@@ -58,7 +58,7 @@ void	empty_block(DEV_BLOCK *block);
 void	free_block(DEV_BLOCK *block);
 int	write_block_to_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
 int	write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
-void	print_block_errors(JCR *jcr, DEV_BLOCK *block);
+void	print_block_read_errors(JCR *jcr, DEV_BLOCK *block);
 
 #define CHECK_BLOCK_NUMBERS    true
 #define NO_BLOCK_NUMBER_CHECK  false

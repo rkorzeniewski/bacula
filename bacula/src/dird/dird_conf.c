@@ -215,6 +215,7 @@ static struct res_items job_items[] = {
    {"prunevolumes", store_yesno, ITEM(res_job.PruneVolumes), 1, ITEM_DEFAULT, 0},
    {"runbeforejob", store_str,  ITEM(res_job.RunBeforeJob), 0, 0, 0},
    {"runafterjob",  store_str,  ITEM(res_job.RunAfterJob),  0, 0, 0},
+   {"runafterfailedjob",  store_str,  ITEM(res_job.RunAfterFailedJob),  0, 0, 0},
    {"clientrunbeforejob", store_str,  ITEM(res_job.ClientRunBeforeJob), 0, 0, 0},
    {"clientrunafterjob",  store_str,  ITEM(res_job.ClientRunAfterJob),  0, 0, 0},
    {"spoolattributes", store_yesno, ITEM(res_job.SpoolAttributes), 1, ITEM_DEFAULT, 0},
@@ -515,6 +516,9 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
       }
       if (res->res_job.RunAfterJob) {
          sendit(sock, "  --> RunAfter=%s\n", NPRT(res->res_job.RunAfterJob));
+      }
+      if (res->res_job.RunAfterFailedJob) {
+         sendit(sock, "  --> RunAfterFailed=%s\n", NPRT(res->res_job.RunAfterFailedJob));
       }
       if (res->res_job.WriteBootstrap) {
          sendit(sock, "  --> WriteBootstrap=%s\n", NPRT(res->res_job.WriteBootstrap));
@@ -836,6 +840,9 @@ void free_resource(int type)
       }
       if (res->res_job.RunAfterJob) {
 	 free(res->res_job.RunAfterJob);
+      }
+      if (res->res_job.RunAfterFailedJob) {
+	 free(res->res_job.RunAfterFailedJob);
       }
       if (res->res_job.ClientRunBeforeJob) {
 	 free(res->res_job.ClientRunBeforeJob);

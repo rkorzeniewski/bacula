@@ -35,17 +35,22 @@ For 1.33 Testing/Documentation:
 - Document ln -sf /usr/lib/libncurses.so /usr/lib/libtermcap.so
   and install the esound-dev  package for compiling Console on 
   SuSE.
+- Document delete job command.
+- Document update volume pool and other command line keywords.
+- Document verify_disk_to_catalog
                 
-For 1.33
-- Limit the number of block checksum/header BB01, ... errors printed.
+For 1.32c
+- If last Full back is purged and an Incremental or Differential remains,
+  Bacula does not promote the Incremental to a Full.
+- Finish implementation of Verify=DiskToCatalog
 - Add VerifyJob to "run" summary (yes/mod/no) prompt.
+
+For 1.33
 - Add device name to "Current Volume not acceptable because ..."
 - Make sure that Bacula rechecks the tape after the 20 min wait.
 - Set IO_NOWAIT on Bacula TCP/IP packets.
 - Try doing a raw partition backup and restore by mounting a
   Windows partition.
-- Implement Verify=DiskToCatalog
-- Implement a RunAfterFailedJob
 - Report CVS problems to SourceForge.
 - Implement .consolerc for Console
 - Is it really important to make Job name the same to find the
@@ -1054,3 +1059,6 @@ Done: (see kernsdone for more)
 - I want to restore by file to some date.
 ---- 1.32b released
 - Figure out a way to move Volumes from one pool to another.
+- Implement a RunAfterFailedJob
+- Limit the number of block checksum/header BB01, ... errors printed.
+

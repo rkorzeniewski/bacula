@@ -145,8 +145,9 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 
 	       /* 
 		* Now try recycling if necessary
+		*   reason set non-NULL if we cannot use it
 		*/
-	       is_volume_valid_or_recyclable(jcr, &mr, &reason);
+	       check_if_volume_valid_or_recyclable(jcr, &mr, &reason);
 	    }
 	 }
 	 if (reason == NULL) {
@@ -216,14 +217,6 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
       mr.LastWritten = sdmr.LastWritten;
       bstrncpy(mr.VolStatus, sdmr.VolStatus, sizeof(mr.VolStatus));
       mr.Slot = sdmr.Slot;
-
-      /*     
-       * Apply expiration periods and limits, if not a label request,
-       *   and ignore status because if !label we won't use it.
-       */
-      if (!label) {
-	 has_volume_expired(jcr, &mr);
-      }
 
       Dmsg2(200, "db_update_media_record. Stat=%s Vol=%s\n", mr.VolStatus, mr.VolumeName);
       /*

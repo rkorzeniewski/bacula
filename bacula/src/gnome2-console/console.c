@@ -50,7 +50,6 @@ GtkWidget *about1;	     /* about box */
 GtkWidget *label_dialog;
 GdkFont   *text_font = NULL;
 PangoFontDescription *font_desc;
-GtkAdjustment *vadj;
 pthread_mutex_t cmd_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t	cmd_wait;
 char cmd[1000];
@@ -64,6 +63,7 @@ GList *type_list, *level_list;
 static void terminate_console(int sig);
 static gint message_handler(gpointer data);
 static int initial_connect_to_director(gpointer data);
+static void set_scroll_bar_to_end(void);
 
 /* Static variables */
 static char *configfile = NULL;
@@ -74,6 +74,7 @@ static int director_reader_running = FALSE;
 static bool at_prompt = false;
 static bool ready = false;
 static bool quit = false;
+static bool adjusted = false;
 static guint initial;
 
 #define CONFIG_FILE "./gnome-console.conf"   /* default configuration file */
@@ -567,14 +568,7 @@ void set_text(char *buf, int len)
    buf_len = gtk_text_buffer_get_char_count(textbuf);
    gtk_text_buffer_get_iter_at_offset(textbuf, &iter, buf_len - 1);
    gtk_text_iter_set_offset(&iter, buf_len);
-   /*
-    * Force the scroll bars to the bottom so that most
-    * recent text is on screen.
-    */
-   if (ready || at_prompt) {
-      vadj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scroll1));
-      gtk_adjustment_set_value(vadj, vadj->upper);
-   }
+   adjusted = false;
 }
 
 void set_statusf(char *fmt, ...)
@@ -585,23 +579,35 @@ void set_statusf(char *fmt, ...)
    va_start(arg_ptr, fmt);
    len = bvsnprintf(buf, sizeof(buf), fmt, arg_ptr);
    gtk_label_set_text(GTK_LABEL(status1), buf);
+   set_scroll_bar_to_end();
    ready = false;
 }
 
 void set_status_ready()    
 {
-   GtkTextBuffer *textbuf;
    gtk_label_set_text(GTK_LABEL(status1), " Ready");
-   if (!ready) {
-      textbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text1));
-      vadj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scroll1));
-      gtk_adjustment_set_value(vadj, vadj->upper);
-   }
    ready = true;
+   set_scroll_bar_to_end();
 }
 
 void set_status(char *buf)
 {
    gtk_label_set_text(GTK_LABEL(status1), buf);
+   set_scroll_bar_to_end();
    ready = false;
+}
+
+static void set_scroll_bar_to_end(void)
+{
+   GtkAdjustment *vadj;
+   /*
+    * Force the scroll bars to the bottom so that most
+    * recent text is on screen.
+    */
+   if ((ready || at_prompt) && !adjusted) {
+      adjusted = true;
+      vadj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scroll1));
+      gtk_adjustment_set_value(vadj, vadj->upper);
+   }
+   gtk_widget_show(text1);
 }

@@ -155,7 +155,7 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
          bstrncpy(since, ", since=", since_len);
 	 bstrncat(since, jcr->stime, since_len);
       }
-      Dmsg1(115, "Last start time = %s\n", jcr->stime);
+      Dmsg1(100, "Last start time = %s\n", jcr->stime);
       break;
    }
 }

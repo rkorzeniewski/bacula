@@ -240,7 +240,7 @@ mount_error:
     *  VOL_LABEL.  We rewind and return the label (reconstructed)
     *  in the block so that in the case of a new tape, data can
     *  be appended just after the block label.	If we are writing
-    *  an second volume, the calling routine will write the label
+    *  a second volume, the calling routine will write the label
     *  before writing the overflow block.
     *
     *  If the tape is marked as Recycle, we rewrite the label.

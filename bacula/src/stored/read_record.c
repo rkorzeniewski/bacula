@@ -244,7 +244,7 @@ int read_records(JCR *jcr,  DEVICE *dev,
       rec = nrec;
    }
    delete recs;
-   print_block_errors(jcr, block);
+   print_block_read_errors(jcr, block);
    free_block(block);
    return ok;
 }
