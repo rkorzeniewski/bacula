@@ -1520,6 +1520,7 @@ extern void reload_config(int sig);
 static int reload_cmd(UAContext *ua, char *cmd)
 {
    reload_config(1);   
+   return 1;
 }
 
 

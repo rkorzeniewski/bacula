@@ -422,12 +422,14 @@ static void *jobq_server(void *arg)
 	    jq->num_workers--;
 	    return NULL;
 	 }
+
          /* Call user's routine here */
          Dmsg1(300, "Calling user engine for jobid=%d\n", jcr->JobId);
 	 jq->engine(je->jcr);
+
          Dmsg1(300, "Back from user engine jobid=%d.\n", jcr->JobId);
 	 if ((stat = pthread_mutex_lock(&jq->mutex)) != 0) {
-            Jmsg1(NULL, M_ERROR, 0, "pthread_mutex_unlock: ERR=%s\n", strerror(stat));
+            Jmsg1(NULL, M_ERROR, 0, "pthread_mutex_lock: ERR=%s\n", strerror(stat));
 	    jq->num_workers--;
 	    free(je);		      /* release job entry */
 	    return NULL;
@@ -510,10 +512,10 @@ static void *jobq_server(void *arg)
 	 jobq_item_t *re = (jobq_item_t *)jq->running_jobs->first();
 	 if (re) {
 	    Priority = re->jcr->JobPriority;
-            Dmsg2(300, "JobId %d is running. Set pri=%d\n", re->jcr->JobId, Priority);
+            Dmsg2(300, "JobId %d is running. Look for pri=%d\n", re->jcr->JobId, Priority);
 	 } else {
 	    Priority = je->jcr->JobPriority;
-            Dmsg1(300, "No job running. Set Job pri=%d\n", Priority);
+            Dmsg1(300, "No job running. Look for Job pri=%d\n", Priority);
 	 }
 	 /*
 	  * Walk down the list of waiting jobs and attempt
@@ -589,6 +591,7 @@ static void *jobq_server(void *arg)
 	 jq->num_workers--;
 	 break;
       }
+
       work = !jq->ready_jobs->empty() || !jq->waiting_jobs->empty();
       if (work) {
 	 /*	     
@@ -597,9 +600,17 @@ static void *jobq_server(void *arg)
 	  *   important, release the lock so that a job that has
 	  *   terminated can give us the resource.
 	  */
-	 pthread_mutex_unlock(&jq->mutex);
+	 if ((stat = pthread_mutex_unlock(&jq->mutex)) != 0) {
+            Jmsg1(NULL, M_ERROR, 0, "pthread_mutex_unlock: ERR=%s\n", strerror(stat));
+	    jq->num_workers--;
+	    return NULL;
+	 }
 	 bmicrosleep(2, 0);		 /* pause for 2 seconds */
-	 pthread_mutex_unlock(&jq->mutex);
+	 if ((stat = pthread_mutex_lock(&jq->mutex)) != 0) {
+            Jmsg1(NULL, M_ERROR, 0, "pthread_mutex_lock: ERR=%s\n", strerror(stat));
+	    jq->num_workers--;
+	    return NULL;
+	 }
 	 /* Recompute work as something may have changed in last 2 secs */
 	 work = !jq->ready_jobs->empty() || !jq->waiting_jobs->empty();
       }
@@ -607,7 +618,9 @@ static void *jobq_server(void *arg)
    } /* end of big for loop */
 
    Dmsg0(200, "unlock mutex\n");
-   pthread_mutex_unlock(&jq->mutex);
+   if ((stat = pthread_mutex_unlock(&jq->mutex)) != 0) {
+      Jmsg1(NULL, M_ERROR, 0, "pthread_mutex_unlock: ERR=%s\n", strerror(stat));
+   }
    Dmsg0(300, "End jobq_server\n");
    return NULL;
 }
