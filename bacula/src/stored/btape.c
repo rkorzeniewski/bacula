@@ -1772,6 +1772,7 @@ This may take a long time -- hours! ...\n\n");
 
    rewind_dev(dev);
    weof_dev(dev, 1);
+   labelcmd();
    dev->state &= ~ST_APPEND;	      /* force volume to be relabeled */
 
    /* 
