@@ -155,8 +155,8 @@ default_path:
       goto get_out;
    }
 
-   dev->state &= ~ST_APPEND;
-   dev->state |= ST_READ;
+   dev->state &= ~ST_APPEND;	      /* clear any previous append mode */
+   dev->state |= ST_READ;	      /* set reed mode */
    attach_jcr_to_device(dev, jcr);    /* attach jcr to device */
    Jmsg(jcr, M_INFO, 0, _("Ready to read from volume \"%s\" on device %s.\n"),
       jcr->VolumeName, dev_name(dev));
