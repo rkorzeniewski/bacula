@@ -1,5 +1,13 @@
 
 2003-07-xx Version 1.31 Beta xxJul03
+- Documentation.
+- Clear VolCatInfo in askdir.c so that readbytes is zeroed.
+- Add SD statistics to backup report.
+- Removed old workq code.
+- Fixed rescheduling after error.
+- Fixed delayed starts which were not working.
+- Added priority to values that can change when starting
+  a job.
 - Complete implementation of new job scheduler. jobq.h jobq.c
   This code is turned off unless specifically enabled in src/version.h
 - Integrate code from Nic Bellamy to check for recycled volume in
