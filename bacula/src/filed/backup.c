@@ -160,7 +160,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 	 strerror(ff_pkt->ff_errno));
       return 1;
    default:
-      Jmsg(jcr, M_ERROR, 0, _("Unknown file type %d; not saved: %s\n"), ff_pkt->type, ff_pkt->fname);
+      Jmsg(jcr, M_NOTSAVED, 0, _("Unknown file type %d; not saved: %s\n"), ff_pkt->type, ff_pkt->fname);
       return 1;
    }
 

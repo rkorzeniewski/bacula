@@ -85,6 +85,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
 
    switch (ff_pkt->type) {
    case FT_LNKSAVED:		      /* Hard linked, file already saved */
+      Dmsg2(30, "FT_LNKSAVED saving: %s => %s\n", ff_pkt->fname, ff_pkt->link);
       break;
    case FT_REGE:
       Dmsg1(30, "FT_REGE saving: %s\n", ff_pkt->fname);
@@ -102,13 +103,13 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       Dmsg1(30, "FT_SPEC saving: %s\n", ff_pkt->fname);
       break;
    case FT_NOACCESS:
-      Jmsg(jcr, M_ERROR, -1, _("     Could not access %s: ERR=%s\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
+      Jmsg(jcr, M_NOTSAVED, -1, _("     Could not access %s: ERR=%s\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
       return 1;
    case FT_NOFOLLOW:
-      Jmsg(jcr, M_ERROR, -1, _("     Could not follow link %s: ERR=%s\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
+      Jmsg(jcr, M_NOTSAVED, -1, _("     Could not follow link %s: ERR=%s\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
       return 1;
    case FT_NOSTAT:
-      Jmsg(jcr, M_ERROR, -1, _("      Could not stat %s: ERR=%s\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
+      Jmsg(jcr, M_NOTSAVED, -1, _("      Could not stat %s: ERR=%s\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
       return 1;
    case FT_DIRNOCHG:
    case FT_NOCHG:
@@ -124,10 +125,10 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       Jmsg(jcr, M_SKIPPED, -1, _("     File system change prohibited. Directory skipped: %s\n"), ff_pkt->fname);
       return 1;
    case FT_NOOPEN:
-      Jmsg(jcr, M_ERROR, -1, _("     Could not open directory %s: ERR=%s\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
+      Jmsg(jcr, M_NOTSAVED, -1, _("     Could not open directory %s: ERR=%s\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
       return 1;
    default:
-      Jmsg(jcr, M_ERROR, 0, _("Unknown file type %d: %s\n"), ff_pkt->type, ff_pkt->fname);
+      Jmsg(jcr, M_NOTSAVED, 0, _("Unknown file type %d: %s\n"), ff_pkt->type, ff_pkt->fname);
       return 1;
    }
 
@@ -170,7 +171,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
     */
    /* Send file attributes to Director (note different format than for Storage) */
    Dmsg2(400, "send ATTR inx=%d fname=%s\n", jcr->JobFiles, ff_pkt->fname);
-   if (ff_pkt->type == FT_LNK) {
+   if (ff_pkt->type == FT_LNK || ff_pkt->tye == FT_LNKSAVED) {
       stat = bnet_fsend(dir, "%d %d %s %s%c%s%c%s%c", jcr->JobFiles,
 		    STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->fname, 
 		    0, attribs, 0, ff_pkt->link, 0);

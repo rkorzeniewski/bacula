@@ -92,7 +92,7 @@ static void signal_handler(int sig)
       strcat(exepath, "/");
       strcat(exepath, exename);
       if (chdir(working_directory) !=0) {  /* dump in working directory */
-         Dmsg1(000, "chdir failed. ERR=%s\n", strerror(errno));
+         Pmsg2(000, "chdir to %s failed. ERR=%s\n", working_directory,  strerror(errno));
       }
       unlink("./core");               /* get rid of any old core file */
       sprintf(pid_buf, "%d", (int)main_pid);

@@ -111,7 +111,8 @@ lex_open_file(LEX *lf, char *filename, LEX_ERROR_HANDLER *scan_error)
 
    
    if ((fd = fopen(fname, "r")) == NULL) {
-      Emsg2(M_ABORT, 0, "Cannot open config file %s: %s\n", fname, strerror(errno));
+      Emsg2(M_ERROR_TERM, 0, _("Cannot open config file %s: %s\n"), 
+	    fname, strerror(errno));
    }
    Dmsg1(49, "Open config file: %s\n", fname);
    nf = (LEX *)malloc(sizeof(LEX));
@@ -184,7 +185,7 @@ lex_unget_char(LEX *lf)
 static void add_str(LEX *lf, int ch)
 {
    if (lf->str_len >= MAXSTRING-3) {
-      Emsg2(M_ABORT, 0, "Token too long, file: %s, line %s\n", lf->fname, lf->line_no);
+      Emsg2(M_ERROR_TERM, 0, "Token too long, file: %s, line %s\n", lf->fname, lf->line_no);
    }
    lf->str[lf->str_len++] = ch;
    lf->str[lf->str_len] = 0;
