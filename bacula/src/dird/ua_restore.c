@@ -360,9 +360,9 @@ static int user_select_jobids(UAContext *ua, JobIds *ji)
 	 fsr.FileSetId = 0;
 	 strcpy(fsr.FileSet, fileset_name);
 	 if (!db_get_fileset_record(ua->db, &fsr)) {
-            bsendmsg(ua, "%s\n", db_strerror(ua->db));
-	    free_pool_memory(query);
-	    return 0;
+            bsendmsg(ua, "Error getting FileSet record: %s\n", db_strerror(ua->db));
+            bsendmsg(ua, _("This probably means you modified the FileSet.\n"
+                           "Continuing anyway.\n"));
 	 }
 
 	 Mmsg(&query, uar_last_full, ji->client->hdr.name, fsr.FileSetId);

@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  11 August 2002
+                  20 August 2002
 
 Irix conversion notes:
 - no uuencode
@@ -28,6 +28,8 @@ From Chuck:
 --sd.conf password does not match dir.conf storage password
 =======
 
+- Fix db_update_fileset in cats/sql_get.c
+- Fix start/end blocks for File
 - Add new code to scheduler.c and run_conf.c
 - Problem with len at 362 in tree.c
 - Volume Bytes shows bytes on last volume written in Job summary.

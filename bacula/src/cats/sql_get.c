@@ -535,17 +535,17 @@ int db_get_fileset_record(B_DB *mdb, FILESET_DBR *fsr)
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 1) {
 	 char ed1[30];
-         Mmsg1(&mdb->errmsg, _("More than one Pool!: %s\n"), 
+         Mmsg1(&mdb->errmsg, _("Got %s FileSets expected only one!\n"), 
 	    edit_uint64(mdb->num_rows, ed1));
-      } else if (mdb->num_rows == 1) {
-	 if ((row = sql_fetch_row(mdb)) == NULL) {
-            Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
-	 } else {
-	    fsr->FileSetId = atoi(row[0]);
-	    strcpy(fsr->FileSet, row[1]);
-	    strcpy(fsr->MD5, row[2]);
-	    stat = fsr->FileSetId;
-	 }
+	 sql_data_seek(mdb, mdb->num_rows-1);
+      }
+      if ((row = sql_fetch_row(mdb)) == NULL) {
+         Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
+      } else {
+	 fsr->FileSetId = atoi(row[0]);
+	 strcpy(fsr->FileSet, row[1]);
+	 strcpy(fsr->MD5, row[2]);
+	 stat = fsr->FileSetId;
       }
       sql_free_result(mdb);
    }

@@ -128,7 +128,7 @@ int do_read_data(JCR *jcr)
 		  vol = vol->next;
 	       }
 	       strcpy(jcr->VolumeName, vol->VolumeName);
-               Dmsg1(000, "There is another volume %s.\n", jcr->VolumeName);
+               Dmsg1(100, "There is another volume %s.\n", jcr->VolumeName);
 	       dev->state &= ~ST_READ; 
 	       if (!acquire_device_for_read(jcr, dev, block)) {
                   Jmsg(jcr, M_FATAL, 0, _("Cannot open Dev=%s, Vol=%s\n"), dev_name(dev), jcr->VolumeName);

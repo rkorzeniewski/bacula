@@ -33,6 +33,10 @@
 #define TRUE  1
 #define FALSE 0
 
+#ifndef ETIME
+#define ETIME ETIMEDOUT
+#endif
+
 #ifdef PROTOTYPES
 # define __PROTO(p)     p
 #else
