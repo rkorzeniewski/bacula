@@ -127,10 +127,10 @@ int authenticate_file_daemon(JCR *jcr)
 int authenticate_user_agent(BSOCK *ua)
 {
    char name[MAXSTRING];
-   int ok = 0;
+   int ok;    
 
    if (ua->msglen < 16 || ua->msglen >= MAXSTRING-1) {
-      Emsg0(M_ERROR, 0, _("UA Hello is invalid.\n"));
+      Emsg1(M_ERROR, 0, _("UA Hello is invalid. Len=%d\n"), ua->msglen);
       return 0;
    }
 

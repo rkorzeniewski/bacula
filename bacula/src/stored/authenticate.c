@@ -47,7 +47,7 @@ static int authenticate(int rcode, BSOCK *bs)
       return 0;
    }
    if (bs->msglen < 25 || bs->msglen > 200) {
-      Emsg0(M_FATAL, 0, _("Bad Hello command from Director.\n"));
+      Emsg1(M_FATAL, 0, _("Bad Hello command from Director. Len=%d.\n"), bs->msglen);
       return 0;
    }
    dirname = get_pool_memory(PM_MESSAGE);

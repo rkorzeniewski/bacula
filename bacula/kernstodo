@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  28 March 2003 
+                  3 April 2003 
 
 Documentation to do: (a little bit at a time)
 - Document running a test version.
@@ -20,6 +20,7 @@ Testing to do: (painful)
 - multiple simultaneous Volumes
 
 For 1.30 release:
+- Make non-zero status from RunJobBefore/After error the job.
 - Remove kern and kelvin from mysql_grant...
 - Install grant_mysql...
 - Look at Python for a Bacula scripting language -- www.python.org
