@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  28 March 2004
+                  31 March 2004
 
 Documentation to do: (any release a little bit at a time)
 - DB upgrade to version 5 in bacula-1.27b, DB upgrade to
@@ -38,9 +38,6 @@ Testing to do: (painful)
 
 For 1.33 Testing/Documentation:
 - Add counter variable test.
-- Document ln -sf /usr/lib/libncurses.so /usr/lib/libtermcap.so
-  and install the esound-dev  package for compiling Console on SuSE.
-  This should read 'Document LDFLAGS="-L/usr/lib/termcap" ... '
 - Add an example of using a FIFO in dirdconf.wml 
 - Add an item to the FAQ about running jobs in different timezones.
 - Add some examples of job editing codes.
@@ -59,23 +56,15 @@ For 1.33 Testing/Documentation:
   a consequence, Bacula will completely stall untilthe machine exporting
   the NSF mounts comes back up.  If someone knows a wayaround this, please
   let me know."I haven't tried using NFS in years, but I think that the
-  "soft" and "intr"remount options may well help you.  The only way of
-  being sure would be totry it.See, for example,
+  "soft" and "intr" remount options may well help you.  The only way of
+  being sure would be to try it.See, for example,
      http://howtos.linux.com/guides/nag2/x-087-2-nfs.mountd.shtml
 
 For 1.33
-- Null dlist head and tail pointers if all items are removed.
 - Complete Win32 installer
 - Finish work on Gnome restore GUI.
-- On unknown client in restore "client=xxx"
-  Could not find Client "Matou": ERR=Query failed: DROP TABLE temp1: 
-     ERR=no such table: temp1
 - Fix "llist jobid=xx" where no fileset or client exists.
-- Build console in client-only build.
 - Test work on conio.c -- particularly linking.
-- Phil says that Windows file sizes mismatch in Verify when they should,
-  and that either the file size or the catalog size was zero.
-- Check time/dates printed during restore when using Win32 API.
 
 --- Maybe in 1.33
 From Chris Hull:
@@ -94,6 +83,8 @@ From Chris Hull:
 
 
 For version 1.35:
+- Make sure list of Volumes needed is in correct order for restore.
+  See havana.
 - Remove paths (and files that reference them) that have no trailing slash   
   in dbcheck -- or add a trailing slash.
 - Remove Filenames (and files that reference them) that have a trailing
@@ -1421,3 +1412,11 @@ Block Position: 0
 - Test Qmsg() code to be used in bnet.c to prevent recursion.  Queue the
   message. If dequeueing toss the messages. Lock while dequeuing so that
   it cannot be called recursively and set dequeuing flag.
+- On unknown client in restore "client=xxx"
+  Could not find Client "Matou": ERR=Query failed: DROP TABLE temp1: 
+     ERR=no such table: temp1
+- Null dlist head and tail pointers if all items are removed.
+- Build console in client-only build.
+- Phil says that Windows file sizes mismatch in Verify when they should,
+  and that either the file size or the catalog size was zero.
+- Check time/dates printed during restore when using Win32 API.

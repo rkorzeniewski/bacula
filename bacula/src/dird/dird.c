@@ -271,7 +271,7 @@ static void terminate_dird(int sig)
    term_msg();			      /* terminate message handler */
    stop_watchdog();
    close_memory_pool(); 	      /* release free memory in pool */
-   sm_dump(False);
+   sm_dump(false);
    exit(sig);
 }
 

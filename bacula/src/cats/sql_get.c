@@ -144,6 +144,8 @@ int db_get_file_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, FILE_DBR *fdbr)
 	    fdbr->PathId, fdbr->FilenameId);
       }
       sql_free_result(mdb);
+   } else {
+      Mmsg(&mdb->errmsg, _("File record not found in Catalog.\n"));
    }
    return stat;
 
@@ -189,6 +191,8 @@ static int db_get_filename_record(JCR *jcr, B_DB *mdb)
          Mmsg1(&mdb->errmsg, _("Filename record: %s not found.\n"), mdb->fname);
       }
       sql_free_result(mdb);
+   } else {
+      Mmsg(&mdb->errmsg, _("Filename record: %s not found in Catalog.\n"), mdb->fname);
    }
    return FilenameId;
 }
@@ -246,6 +250,8 @@ static int db_get_path_record(JCR *jcr, B_DB *mdb)
          Mmsg1(&mdb->errmsg, _("Path record: %s not found.\n"), mdb->path);
       }
       sql_free_result(mdb);
+   } else {
+      Mmsg(&mdb->errmsg, _("Path record: %s not found in Catalog.\n"), mdb->path);
    }
    return PathId;
 }
@@ -352,6 +358,8 @@ int db_get_job_volume_names(JCR *jcr, B_DB *mdb, uint32_t JobId, POOLMEM **Volum
 	 }
       }
       sql_free_result(mdb);
+   } else {
+      Mmsg(&mdb->errmsg, _("No Volume for JobId %d found in Catalog.\n"), JobId);
    }
    db_unlock(mdb);
    return stat;
@@ -563,8 +571,12 @@ MaxVolBytes,PoolType,LabelFormat FROM Pool WHERE Pool.Name='%s'", pdbr->Name);
             bstrncpy(pdbr->LabelFormat, row[14]!=NULL?row[15]:"", sizeof(pdbr->LabelFormat));
 	    stat = pdbr->PoolId;
 	 }
+      } else {
+         Mmsg(&mdb->errmsg, _("Pool record not found in Catalog.\n"));
       }
       sql_free_result(mdb);
+   } else {
+      Mmsg(&mdb->errmsg, _("Pool record not found in Catalog.\n"));
    }
    db_unlock(mdb);
    return stat;
@@ -613,8 +625,12 @@ int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cdbr)
 	    cdbr->JobRetention = str_to_int64(row[5]);
 	    stat = 1;
 	 }
+      } else {
+         Mmsg(&mdb->errmsg, _("Client record not found in Catalog.\n"));
       }
       sql_free_result(mdb);
+   } else {
+      Mmsg(&mdb->errmsg, _("Client record not found in Catalog.\n"));
    }
    db_unlock(mdb);
    return stat;
@@ -664,7 +680,9 @@ int db_get_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
 	 return 1;
       }
       sql_free_result(mdb);
-   }
+   } else {
+      Mmsg(&mdb->errmsg, _("Counter record: %s not found in Catalog.\n"), cr->Counter);
+   }  
    db_unlock(mdb);
    return 0;
 }
@@ -711,6 +729,8 @@ int db_get_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
 	 stat = fsr->FileSetId;
       }
       sql_free_result(mdb);
+   } else {
+      Mmsg(&mdb->errmsg, _("FileSet record not found in Catalog.\n"));
    }
    db_unlock(mdb);
    return stat;
@@ -854,6 +874,8 @@ int db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 	 }
       }
       sql_free_result(mdb);
+   } else {
+      Mmsg(&mdb->errmsg, _("Media record not found in Catalog.\n"));
    }
    db_unlock(mdb);
    return stat;

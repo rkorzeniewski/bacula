@@ -101,7 +101,10 @@ int stop_watchdog(void)
 
    stat = pthread_join(wd_tid, NULL);
 
-   foreach_dlist(p, wd_queue) {
+   while (!wd_queue->empty()) {
+      void *item = wd_queue->first();
+      wd_queue->remove(item);
+      p = (watchdog_t *)item;
       if (p->destructor != NULL) {
 	 p->destructor(p);
       }
@@ -110,13 +113,15 @@ int stop_watchdog(void)
    delete wd_queue;
    wd_queue = NULL;
 
-   foreach_dlist(p, wd_inactive) {
+   while (!wd_inactive->empty()) {
+      void *item = wd_inactive->first();
+      wd_inactive->remove(item);
+      p = (watchdog_t *)item;
       if (p->destructor != NULL) {
 	 p->destructor(p);
       }
       free(p);
    }
-
    delete wd_inactive;
    wd_inactive = NULL;
    rwl_destroy(&lock);
@@ -214,14 +219,14 @@ static void *watchdog_thread(void *arg)
    Dmsg0(400, "NicB-reworked watchdog thread entered\n");
 
    while (!quit) {
-      watchdog_t *p;
+      watchdog_t *p, *q;
 
       /* 
        * We lock the jcr chain here because a good number of the
        *   callback routines lock the jcr chain. We need to lock
        *   it here *before* the watchdog lock because the SD message
        *   thread first locks the jcr chain, then when closing the
-       *   job locks the watchdog chain. If the two thread do not
+       *   job locks the watchdog chain. If the two threads do not
        *   lock in the same order, we get a deadlock -- each holds
        *   the other's needed lock.
        */
@@ -236,8 +241,17 @@ static void *watchdog_thread(void *arg)
 
             /* Reschedule (or move to inactive list if it's a one-shot timer) */
 	    if (p->one_shot) {
+	       /* 
+		* Note, when removing an item while walking the list
+		*  we must get the previous pointer (q) and set the
+		*  current pointer (p) to this previous pointer after
+                *  removing the current pointer, otherwise, we won't
+		*  walk the rest of the list.
+		*/
+	       q = (watchdog_t *)wd_queue->prev(p);
 	       wd_queue->remove(p);
 	       wd_inactive->append(p);
+	       p = q;
 	    } else {
 	       p->next_fire = watchdog_time + p->interval;
 	    }

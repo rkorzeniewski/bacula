@@ -127,6 +127,9 @@ void dlist::remove(void *item)
       ((dlink *)(((char *)xitem)+loffset))->next = ilink->next;
    }
    num_items--;
+   if (num_items == 0) {
+      head = tail = NULL;
+   }
 }
 
 void * dlist::next(void *item)
@@ -235,7 +238,7 @@ int main()
 
    delete jcr_chain;
 
-   sm_dump(False);
+   sm_dump(false);
 
 }
 #endif

@@ -414,7 +414,6 @@ static void list_running_jobs(UAContext *ua)
       return;
    }
    njobs = 0;
-   bsendmsg(ua, _("\nRunning Jobs:\n"));
    bsendmsg(ua, _(" JobId Level   Name                       Status\n"));
    bsendmsg(ua, _("======================================================================\n"));
    foreach_jcr(jcr) {

@@ -466,6 +466,9 @@ static void eliminate_duplicate_filenames()
 	 /* Get all the Ids of each name */
 	 db_escape_string(esc_name, name_list.name[i], strlen(name_list.name[i]));
          sprintf(buf, "SELECT FilenameId FROM Filename WHERE Name='%s'", esc_name);
+	 if (verbose > 1) {
+            printf("%s\n", buf);
+	 }
 	 if (!make_id_list(buf, &id_list)) {
 	    exit(1);
 	 }
@@ -476,9 +479,15 @@ static void eliminate_duplicate_filenames()
 	 for (int j=1; j<id_list.num_ids; j++) {
             sprintf(buf, "UPDATE File SET FilenameId=%u WHERE FilenameId=%u", 
 	       id_list.Id[0], id_list.Id[j]);
+	    if (verbose > 1) {
+               printf("%s\n", buf);
+	    }
 	    db_sql_query(db, buf, NULL, NULL);
             sprintf(buf, "DELETE FROM Filename WHERE FilenameId=%u", 
 	       id_list.Id[j]);
+	    if (verbose > 2) {
+               printf("%s\n", buf);
+	    }
 	    db_sql_query(db, buf, NULL, NULL);
 	 }
       }
@@ -511,7 +520,9 @@ static void eliminate_duplicate_paths()
 	 /* Get all the Ids of each name */
 	 db_escape_string(esc_name, name_list.name[i], strlen(name_list.name[i]));
          sprintf(buf, "SELECT PathId FROM Path WHERE Path='%s'", esc_name);
-	 id_list.num_ids = 0;
+	 if (verbose > 1) {
+            printf("%s\n", buf);
+	 }
 	 if (!make_id_list(buf, &id_list)) {
 	    exit(1);
 	 }
@@ -522,9 +533,15 @@ static void eliminate_duplicate_paths()
 	 for (int j=1; j<id_list.num_ids; j++) {
             sprintf(buf, "UPDATE File SET PathId=%u WHERE PathId=%u", 
 	       id_list.Id[0], id_list.Id[j]);
+	    if (verbose > 1) {
+               printf("%s\n", buf);
+	    }
 	    db_sql_query(db, buf, NULL, NULL);
             sprintf(buf, "DELETE FROM Path WHERE PathId=%u", 
 	       id_list.Id[j]);
+	    if (verbose > 2) {
+               printf("%s\n", buf);
+	    }
 	    db_sql_query(db, buf, NULL, NULL);
 	 }
       }
@@ -569,6 +586,9 @@ static void eliminate_orphaned_file_records()
    query = "SELECT File.FileId,Job.JobId FROM File "
            "LEFT OUTER JOIN Job ON (File.JobId=Job.JobId) "
            "WHERE Job.JobId IS NULL";
+   if (verbose > 1) {
+      printf("%s\n", query);
+   }
    if (!make_id_list(query, &id_list)) {
       exit(1);
    }
@@ -598,6 +618,9 @@ static void eliminate_orphaned_path_records()
    query = "SELECT Path.PathId,File.PathId FROM Path "
            "LEFT OUTER JOIN File ON (Path.PathId=File.PathId) "
            "GROUP BY Path.PathId HAVING File.PathId IS NULL";
+   if (verbose > 1) {
+      printf("%s\n", query);
+   }
    if (!make_id_list(query, &id_list)) {
       exit(1);
    }
@@ -623,7 +646,9 @@ static void eliminate_orphaned_filename_records()
    query = "SELECT Filename.FilenameId,File.FilenameId FROM Filename "
            "LEFT OUTER JOIN File ON (Filename.FilenameId=File.FilenameId) "
            "WHERE File.FilenameId IS NULL";
-
+   if (verbose > 1) {
+      printf("%s\n", query);
+   }
    if (!make_id_list(query, &id_list)) {
       exit(1);
    }
@@ -649,6 +674,9 @@ static void eliminate_orphaned_fileset_records()
    query = "SELECT FileSet.FileSetId,Job.FileSetId FROM FileSet "
            "LEFT OUTER JOIN Job ON (FileSet.FileSetId=Job.FileSetId) "
            "WHERE Job.FileSetId IS NULL";
+   if (verbose > 1) {
+      printf("%s\n", query);
+   }
    if (!make_id_list(query, &id_list)) {
       exit(1);
    }
@@ -677,6 +705,9 @@ static void repair_bad_filenames()
    printf("Checking for Filenames with a trailing slash\n");
    query = "SELECT FilenameId,Name from Filename "
            "WHERE Name LIKE '%/'";
+   if (verbose > 1) {
+      printf("%s\n", query);
+   }
    if (!make_id_list(query, &id_list)) {
       exit(1);
    }
@@ -716,6 +747,9 @@ static void repair_bad_filenames()
 	 bsnprintf(buf, sizeof(buf), 
             "UPDATE Filename SET Name='%s' WHERE FilenameId=%u", 
 	    esc_name, id_list.Id[i]);
+	 if (verbose > 1) {
+            printf("%s\n", buf);
+	 }
 	 db_sql_query(db, buf, NULL, NULL);
       }
    }
@@ -729,6 +763,9 @@ static void repair_bad_paths()
    printf("Checking for Paths without a trailing slash\n");
    query = "SELECT PathId,Path from Path "
            "WHERE Path NOT LIKE '%/'";
+   if (verbose > 1) {
+      printf("%s\n", query);
+   }
    if (!make_id_list(query, &id_list)) {
       exit(1);
    }
@@ -763,6 +800,9 @@ static void repair_bad_paths()
 	 db_escape_string(esc_name, name, len);
          bsnprintf(buf, sizeof(buf), "UPDATE Path SET Path='%s' WHERE PathId=%u", 
 	    esc_name, id_list.Id[i]);
+	 if (verbose > 1) {
+            printf("%s\n", buf);
+	 }
 	 db_sql_query(db, buf, NULL, NULL);
       }
    }

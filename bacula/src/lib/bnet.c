@@ -245,7 +245,7 @@ int32_t bnet_recv(BSOCK *bsock)
     * buffer is at least one byte longer than the message length.
     */
    mp_chr(bsock->msg)[nbytes] = 0;    /* terminate in case it is a string */
-   sm_check(__FILE__, __LINE__, False);
+   sm_check(__FILE__, __LINE__, false);
    return nbytes;		      /* return actual length of message */
 }
 

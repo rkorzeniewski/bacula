@@ -108,8 +108,8 @@ db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
       (char)(jr->Level), dt, jr->ClientId, edit_uint64(JobTDate, ed1), jr->JobId);
 
    stat = UPDATE_DB(jcr, mdb, mdb->cmd);
-   db_unlock(mdb);
    mdb->changes = 0;
+   db_unlock(mdb);
    return stat;
 }
 

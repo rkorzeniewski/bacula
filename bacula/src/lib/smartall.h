@@ -1,6 +1,6 @@
 /*
 
-	Definitions for the smart memory allocator
+        Definitions for the smart memory allocator
   
      Version $Id$
 
@@ -29,23 +29,21 @@
 
 #ifdef SMARTALLOC
 
-typedef enum {False = 0, True = 1} Boolean;
-
 extern void *sm_malloc(const char *fname, int lineno, unsigned int nbytes),
-	    *sm_calloc(const char *fname, int lineno,
-		unsigned int nelem, unsigned int elsize),
-	    *sm_realloc(const char *fname, int lineno, void *ptr, unsigned int size),
-	    *actuallymalloc(unsigned int size),
-	    *actuallycalloc(unsigned int nelem, unsigned int elsize),
-	    *actuallyrealloc(void *ptr, unsigned int size);
+            *sm_calloc(const char *fname, int lineno,
+                unsigned int nelem, unsigned int elsize),
+            *sm_realloc(const char *fname, int lineno, void *ptr, unsigned int size),
+            *actuallymalloc(unsigned int size),
+            *actuallycalloc(unsigned int nelem, unsigned int elsize),
+            *actuallyrealloc(void *ptr, unsigned int size);
 extern void sm_free(const char *fname, int lineno, void *fp);
 extern void actuallyfree(void *cp),
-	    sm_dump(Boolean bufdump), sm_static(int mode);
+            sm_dump(bool bufdump), sm_static(int mode);
 extern void sm_new_owner(const char *fname, int lineno, char *buf);
 
 #ifdef SMCHECK
-extern void sm_check(const char *fname, int lineno, Boolean bufdump);
-extern int sm_check_rtn(const char *fname, int lineno, Boolean bufdump);
+extern void sm_check(const char *fname, int lineno, bool bufdump);
+extern int sm_check_rtn(const char *fname, int lineno, bool bufdump);
 #else
 #define sm_check(f, l, fl)
 #define sm_check_rtn(f, l, fl) 1
@@ -79,7 +77,7 @@ extern int sm_check_rtn(const char *fname, int lineno, Boolean bufdump);
 #define sm_check_rtn(f, l, fl) 1
 
 extern void *b_malloc();
-#define malloc(x) b_malloc(__FILE__, __LINE__, (x))		     
+#define malloc(x) b_malloc(__FILE__, __LINE__, (x))                  
 
 
 #endif

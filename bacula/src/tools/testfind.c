@@ -167,7 +167,7 @@ Hard links     : %d\n"),
   
   free_jcr(jcr);
   close_memory_pool();
-  sm_dump(False);
+  sm_dump(false);
   exit(0);
 }
 

@@ -354,6 +354,9 @@ char *bac_status(int stat)
    struct s_last_job *job;
 
    bacstat = 0;
+   if (!last_jobs) {
+      return _("Bacula Terminated");
+   }
    if (last_jobs->size() > 0) {
       job = (struct s_last_job *)last_jobs->first();
       switch (job->JobStatus) {

@@ -189,7 +189,7 @@ int main(int margc, char *margv[])
 	 break;
 
       case 's':
-	 signals = FALSE;
+	 signals = false;
 	 break;
 
       case 'v':
@@ -253,7 +253,7 @@ terminate:
 static void terminate_btape(int stat)
 {
 
-   sm_check(__FILE__, __LINE__, False);
+   sm_check(__FILE__, __LINE__, false);
    if (configfile) {
       free(configfile);
    }
@@ -288,7 +288,7 @@ static void terminate_btape(int stat)
    term_msg();
    close_memory_pool(); 	      /* free memory in pool */
 
-   sm_dump(False);
+   sm_dump(false);
    exit(stat);
 }
 
@@ -576,7 +576,7 @@ static void rectestcmd()
       return;
    }
 
-   sm_check(__FILE__, __LINE__, False);
+   sm_check(__FILE__, __LINE__, false);
    block = new_block(dev);
    rec = new_record();
 
@@ -584,7 +584,7 @@ static void rectestcmd()
       rec->data = check_pool_memory_size(rec->data, i);
       memset(rec->data, i & 0xFF, i);
       rec->data_len = i;
-      sm_check(__FILE__, __LINE__, False);
+      sm_check(__FILE__, __LINE__, false);
       if (write_record_to_block(block, rec)) {
 	 empty_block(block);
 	 blkno++;
@@ -592,11 +592,11 @@ static void rectestcmd()
       } else {
 	 break;
       }
-      sm_check(__FILE__, __LINE__, False);
+      sm_check(__FILE__, __LINE__, false);
    }
    free_record(rec);
    free_block(block);
-   sm_check(__FILE__, __LINE__, False);
+   sm_check(__FILE__, __LINE__, false);
 }
 
 /*
@@ -1412,7 +1412,7 @@ static void wrcmd()
    DEV_RECORD *rec;
    int i;
 
-   sm_check(__FILE__, __LINE__, False);
+   sm_check(__FILE__, __LINE__, false);
    block = new_block(dev);
    rec = new_record();
    dump_block(block, "test");
@@ -1422,7 +1422,7 @@ static void wrcmd()
    rec->data = check_pool_memory_size(rec->data, i);
    memset(rec->data, i & 0xFF, i);
    rec->data_len = i;
-   sm_check(__FILE__, __LINE__, False);
+   sm_check(__FILE__, __LINE__, false);
    if (!write_record_to_block(block, rec)) {
       Pmsg0(0, _("Error writing record to block.\n")); 
       goto bail_out;
@@ -1436,10 +1436,10 @@ static void wrcmd()
    Pmsg0(0, _("Wrote block to device.\n"));
 
 bail_out:
-   sm_check(__FILE__, __LINE__, False);
+   sm_check(__FILE__, __LINE__, false);
    free_record(rec);
    free_block(block);
-   sm_check(__FILE__, __LINE__, False);
+   sm_check(__FILE__, __LINE__, false);
 }
 
 /* 
@@ -1834,12 +1834,12 @@ This may take a long time -- hours! ...\n\n");
       }
       if (!write_session_label(jcr, block, EOS_LABEL)) {
          Pmsg1(000, _("Error writting end session label. ERR=%s\n"), strerror_dev(dev));
-	 ok = FALSE;
+	 ok = false;
       }
       /* Write out final block of this session */
       if (!write_block_to_device(jcr->dcr, block)) {
-         Pmsg0(-1, _("Set ok=FALSE after write_block_to_device.\n"));
-	 ok = FALSE;
+         Pmsg0(-1, _("Set ok=false after write_block_to_device.\n"));
+	 ok = false;
       }
       Pmsg0(-1, _("Wrote End Of Session label.\n"));
 
@@ -1875,7 +1875,7 @@ This may take a long time -- hours! ...\n\n");
    /* Release the device */
    if (!release_device(jcr)) {
       Pmsg0(-1, _("Error in release_device\n"));
-      ok = FALSE;
+      ok = false;
    }
 
 
@@ -2185,7 +2185,7 @@ static int flush_block(DEV_BLOCK *block, int dump)
 	 /* Full test in progress */
 	 if (!fixup_device_block_write_error(jcr, dev, block)) {
             Pmsg1(000, _("Cannot fixup device error. %s\n"), strerror_dev(dev));
-	    ok = FALSE;
+	    ok = false;
 	    unlock_device(dev);
 	    return 0;
 	 }
@@ -2233,7 +2233,7 @@ static void qfillcmd()
       count = 1000;
    }
 
-   sm_check(__FILE__, __LINE__, False);
+   sm_check(__FILE__, __LINE__, false);
    block = new_block(dev);
    rec = new_record();
 
@@ -2267,10 +2267,10 @@ static void qfillcmd()
    scan_blocks();
 
 bail_out:
-   sm_check(__FILE__, __LINE__, False);
+   sm_check(__FILE__, __LINE__, false);
    free_record(rec);
    free_block(block);
-   sm_check(__FILE__, __LINE__, False);
+   sm_check(__FILE__, __LINE__, false);
 
 }
 
@@ -2416,7 +2416,7 @@ do_tape_cmds()
    bool found;
 
    while (get_cmd("*")) {
-      sm_check(__FILE__, __LINE__, False);
+      sm_check(__FILE__, __LINE__, false);
       found = false;
       parse_args(cmd, &args, &argc, argk, argv, MAX_CMD_ARGS);
       for (i=0; i<comsize; i++)       /* search for command */

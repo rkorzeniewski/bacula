@@ -360,7 +360,7 @@ void close_memory_pool()
 {
    struct abufhead *buf, *next;
 
-   sm_check(__FILE__, __LINE__, False);
+   sm_check(__FILE__, __LINE__, false);
    P(mutex);
    for (int i=1; i<=PM_MAX; i++) {
       buf = pool_ctl[i].free_buf;

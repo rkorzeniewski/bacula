@@ -19,7 +19,7 @@
 */
 
 /*
-   Copyright (C) 2000-2003 Kern Sibbald and John Walker
+   Copyright (C) 2000-2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -44,6 +44,19 @@
 #undef calloc
 #undef malloc
 #undef free
+
+/* We normally turn off debugging here.
+ *  If you want it, simply #ifdef all the 
+ *  following off.
+ */
+#undef Dmsg1
+#undef Dmsg2
+#undef Dmsg3
+#undef Dmsg4
+#define Dmsg1(l,f,a1)
+#define Dmsg2(l,f,a1,a2)
+#define Dmsg3(l,f,a1,a2,a3)
+#define Dmsg4(l,f,a1,a2,a3,a4)
       
 
 
@@ -73,7 +86,7 @@ static struct b_queue abqueue = {    /* Allocated buffer queue */
    &abqueue, &abqueue
 };
 
-static Boolean bufimode = False;   /* Buffers not tracked when True */
+static bool bufimode = false;	/* Buffers not tracked when True */
 
 #define HEAD_SIZE BALIGN(sizeof(struct abufhead))
 
@@ -320,7 +333,7 @@ void actuallyfree(void *cp)
  *  N.B. DO NOT USE any Bacula print routines (Dmsg, Jmsg, Emsg, ...)
  *    as they have all been shut down at this point.
  */
-void sm_dump(Boolean bufdump)
+void sm_dump(bool bufdump)
 {
    struct abufhead *ap;
 
@@ -344,27 +357,29 @@ void sm_dump(Boolean bufdump)
 
       if (ap->abfname != NULL) {
 	 unsigned memsize = ap->ablen - (HEAD_SIZE + 1);
-	 char errmsg[80];
+	 char errmsg[500];
 
-	 sprintf(errmsg,
+	 bsnprintf(errmsg, sizeof(errmsg),
            "Orphaned buffer:  %6u bytes allocated at line %d of %s %s\n",
 	    memsize, ap->ablineno, my_name, ap->abfname
 	 );
          fprintf(stderr, "%s", errmsg);
 	 if (bufdump) {
+	    char buf[20];
 	    unsigned llen = 0;
 	    char *cp = ((char *) ap) + HEAD_SIZE;
 
 	    errmsg[0] = EOS;
 	    while (memsize) {
 	       if (llen >= 16) {
-                  strcat(errmsg, "\n");
+                  bstrncat(errmsg, "\n", sizeof(errmsg));
 		  llen = 0;
                   fprintf(stderr, "%s", errmsg);
 		  errmsg[0] = EOS;
 	       }
-               sprintf(errmsg + strlen(errmsg), " %02X",
+               bsnprintf(buf, sizeof(buf), " %02X",
 		  (*cp++) & 0xFF);
+	       bstrncat(errmsg, buf, sizeof(errmsg));
 	       llen++;
 	       memsize--;
 	    }
@@ -378,7 +393,7 @@ void sm_dump(Boolean bufdump)
 
 #undef sm_check
 /*  SM_CHECK --  Check the buffers and dump if any damage exists. */
-void sm_check(const char *fname, int lineno, Boolean bufdump)
+void sm_check(const char *fname, int lineno, bool bufdump)
 {
 	if (!sm_check_rtn(fname, lineno, bufdump)) {
            Emsg2(M_ABORT, 0, "Damaged buffer found. Called from %s:%d\n",
@@ -388,7 +403,7 @@ void sm_check(const char *fname, int lineno, Boolean bufdump)
 
 #undef sm_check_rtn
 /*  SM_CHECK_RTN -- Check the buffers and return 1 if OK otherwise 0 */
-int sm_check_rtn(const char *fname, int lineno, Boolean bufdump)
+int sm_check_rtn(const char *fname, int lineno, bool bufdump)
 {
    struct abufhead *ap;
    int bad, badbuf = 0;
@@ -475,7 +490,7 @@ int sm_check_rtn(const char *fname, int lineno, Boolean bufdump)
 
 void sm_static(int mode)
 {
-   bufimode = (Boolean) (mode != 0);
+   bufimode = (bool) (mode != 0);
 }
 
 /* 

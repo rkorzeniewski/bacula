@@ -263,6 +263,6 @@ void terminate_filed(int sig)
    term_msg();
    stop_watchdog();
    close_memory_pool(); 	      /* release free memory in pool */
-   sm_dump(False);		      /* dump orphaned buffers */
+   sm_dump(false);		      /* dump orphaned buffers */
    exit(sig);
 }

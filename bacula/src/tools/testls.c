@@ -152,7 +152,7 @@ main (int argc, char *const *argv)
   
    free_jcr(jcr);
    close_memory_pool();
-   sm_dump(False);
+   sm_dump(false);
    exit(0);
 }
 
