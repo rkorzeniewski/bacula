@@ -47,6 +47,7 @@ CLEAN :
         -@erase "$(INTDIR)\authenticate.obj"
         -@erase "$(INTDIR)\backup.obj"
         -@erase "$(INTDIR)\base64.obj"
+        -@erase "$(INTDIR)\berrno.obj"
         -@erase "$(INTDIR)\bfile.obj"
         -@erase "$(INTDIR)\bget_msg.obj"
         -@erase "$(INTDIR)\bnet.obj"
@@ -133,6 +134,7 @@ LINK32_OBJS= \
         "$(INTDIR)\authenticate.obj" \
         "$(INTDIR)\backup.obj" \
         "$(INTDIR)\base64.obj" \
+        "$(INTDIR)\berrno.obj" \
         "$(INTDIR)\bfile.obj" \
         "$(INTDIR)\bget_msg.obj" \
         "$(INTDIR)\bnet.obj" \
@@ -229,6 +231,8 @@ CLEAN :
         -@erase "$(INTDIR)\backup.sbr"
         -@erase "$(INTDIR)\base64.obj"
         -@erase "$(INTDIR)\base64.sbr"
+        -@erase "$(INTDIR)\berrno.obj"
+        -@erase "$(INTDIR)\berrno.sbr"
         -@erase "$(INTDIR)\bfile.obj"
         -@erase "$(INTDIR)\bfile.sbr"
         -@erase "$(INTDIR)\bget_msg.obj"
@@ -376,6 +380,7 @@ BSC32_SBRS= \
         "$(INTDIR)\authenticate.sbr" \
         "$(INTDIR)\backup.sbr" \
         "$(INTDIR)\base64.sbr" \
+        "$(INTDIR)\berrno.sbr" \
         "$(INTDIR)\bfile.sbr" \
         "$(INTDIR)\bget_msg.sbr" \
         "$(INTDIR)\bnet.sbr" \
@@ -455,6 +460,7 @@ LINK32_OBJS= \
         "$(INTDIR)\authenticate.obj" \
         "$(INTDIR)\backup.obj" \
         "$(INTDIR)\base64.obj" \
+        "$(INTDIR)\berrno.obj" \
         "$(INTDIR)\bfile.obj" \
         "$(INTDIR)\bget_msg.obj" \
         "$(INTDIR)\bnet.obj" \
@@ -693,6 +699,25 @@ SOURCE=..\lib\base64.cpp
 
 
 !ENDIF 
+
+SOURCE=..\lib\berrno.cpp
+
+!IF  "$(CFG)" == "baculafd - Win32 Release"
+
+
+"$(INTDIR)\berrno.obj" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
+
+
+"$(INTDIR)\berrno.obj"  "$(INTDIR)\berrno.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 
 SOURCE=..\findlib\bfile.cpp
 

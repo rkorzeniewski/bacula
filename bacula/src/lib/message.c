@@ -473,10 +473,12 @@ void close_msg(JCR *jcr)
 
 	    stat = close_bpipe(bpipe);
 	    if (stat != 0 && msgs != daemon_msgs) {
+	       berrno be;
+	       be.set_errno(stat);
                Dmsg1(150, "Calling emsg. CMD=%s\n", cmd);
-               Jmsg3(jcr, M_ERROR, 0, _("Mail program terminated in error. stat=%d\n"
+               Jmsg2(jcr, M_ERROR, 0, _("Mail program terminated in error.\n"
                                         "CMD=%s\n"
-                                        "ERR=%s\n"), stat, cmd, strerror(stat));
+                                        "ERR=%s\n"), cmd, be.strerror());
 	    }
 	    free_memory(line);
 rem_temp_file:
@@ -645,9 +647,11 @@ void dispatch_message(JCR *jcr, int type, int level, char *msg)
 		   /* Messages to the operator go one at a time */
 		   stat = close_bpipe(bpipe);
 		   if (stat != 0) {
+		      berrno be;
+		      be.set_errno(stat);
                       Jmsg2(jcr, M_ERROR, 0, _("Operator mail program terminated in error.\n"
                             "CMD=%s\n"
-                            "ERR=%s\n"), mcmd, strerror(stat));
+                            "ERR=%s\n"), mcmd, be.strerror());
 		   }
 		}
 		free_pool_memory(mcmd);

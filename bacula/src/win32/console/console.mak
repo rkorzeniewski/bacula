@@ -43,6 +43,7 @@ CLEAN :
         -@erase "$(INTDIR)\alist.obj"
         -@erase "$(INTDIR)\authenticate.obj"
         -@erase "$(INTDIR)\base64.obj"
+        -@erase "$(INTDIR)\berrno.obj"
         -@erase "$(INTDIR)\bnet.obj"
         -@erase "$(INTDIR)\bsys.obj"
         -@erase "$(INTDIR)\btime.obj"
@@ -91,6 +92,7 @@ LINK32_OBJS= \
         "$(INTDIR)\alist.obj" \
         "$(INTDIR)\authenticate.obj" \
         "$(INTDIR)\base64.obj" \
+        "$(INTDIR)\berrno.obj" \
         "$(INTDIR)\bnet.obj" \
         "$(INTDIR)\bsys.obj" \
         "$(INTDIR)\btime.obj" \
@@ -142,6 +144,7 @@ CLEAN :
         -@erase "$(INTDIR)\alist.obj"
         -@erase "$(INTDIR)\authenticate.obj"
         -@erase "$(INTDIR)\base64.obj"
+        -@erase "$(INTDIR)\berrno.obj"
         -@erase "$(INTDIR)\bnet.obj"
         -@erase "$(INTDIR)\bsys.obj"
         -@erase "$(INTDIR)\btime.obj"
@@ -191,6 +194,7 @@ LINK32_OBJS= \
         "$(INTDIR)\alist.obj" \
         "$(INTDIR)\authenticate.obj" \
         "$(INTDIR)\base64.obj" \
+        "$(INTDIR)\berrno.obj" \
         "$(INTDIR)\bnet.obj" \
         "$(INTDIR)\bsys.obj" \
         "$(INTDIR)\btime.obj" \
@@ -285,6 +289,12 @@ SOURCE=..\lib\base64.cpp
 
 "$(INTDIR)\base64.obj" : $(SOURCE) "$(INTDIR)"
         $(CPP) $(CPP_PROJ) $(SOURCE)
+
+SOURCE=..\lib\berrno.cpp
+
+"$(INTDIR)\berrno.obj" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
+
 
 
 SOURCE=..\lib\bnet.cpp
@@ -485,4 +495,3 @@ SOURCE=..\lib\watchdog.cpp
 
 
 !ENDIF 
-

@@ -55,6 +55,15 @@ static SIG_HANDLER *exit_handler;
 /* main process id */
 static pid_t main_pid = 0;
 
+const char *get_signal_name(int sig)
+{
+   if (sig < 0 || sig > BA_NSIG || !sig_names[sig]) {
+      return "Invalid signal number";
+   } else {
+      return sig_names[sig];
+   }
+}
+
 /* 
  * Handle signals here
  */

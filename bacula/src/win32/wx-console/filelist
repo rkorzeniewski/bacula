@@ -2,6 +2,7 @@
 ..\lib\alloc
 ..\lib\attr
 ..\lib\base64
+..\lib\berrno
 ..\lib\bget_msg
 ..\lib\bnet
 ..\lib\bnet_pkt

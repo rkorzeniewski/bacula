@@ -31,6 +31,8 @@
 #include "compat.h"
 #include "pthread.h"
 
+#define b_errno_win32 (1<<29)
+
 #define USE_WIN32_COMPAT_IO 1
 
 extern void d_msg(const char *file, int line, int level, const char *fmt,...);
@@ -1064,7 +1066,7 @@ cleanup:
     CloseIfValid(hChildStdinWrDup);
 
     free((void *) bpipe);
-
+    errno = b_errno_win32;            /* do GetLastError() for error code */
     return NULL;
 }
 
@@ -1074,8 +1076,10 @@ int
 kill(int pid, int signal)
 {
     int rval = 0;
-    if (!TerminateProcess((HANDLE)pid, (UINT) signal))
+    if (!TerminateProcess((HANDLE)pid, (UINT) signal)) {
         rval = -1;
+        errno = b_errno_win32;
+    }
     CloseHandle((HANDLE)pid);
     return rval;
 }
@@ -1095,7 +1099,7 @@ close_bpipe(BPIPE *bpipe)
             DWORD exitCode;
             if (!GetExitCodeProcess((HANDLE)bpipe->worker_pid, &exitCode)) {
                 const char *err = errorString();
-                rval = GetLastError();
+                rval = b_errno_win32;
                 d_msg(__FILE__, __LINE__, 0,
                       "GetExitCode error %s\n", err);
                 LocalFree((void *)err);
@@ -1108,6 +1112,7 @@ close_bpipe(BPIPE *bpipe)
             }
             else break;
         } while(remaining_wait);
+        rval = ETIME;                 /* timed out */
     }
 
     if (bpipe->timer_id) {

@@ -95,6 +95,13 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
 	    changer = edit_device_codes(jcr, changer, 
                         jcr->device->changer_command, "unload");
 	    status = run_program(changer, timeout, NULL);
+	    if (status != 0) {
+	       berrno be;
+	       be.set_errno(status);
+               Jmsg(jcr, M_INFO, 0, _("3992 Bad autochanger \"unload slot %d, drive %d\": ERR=%s.\n"),
+		    slot, drive, be.strerror());
+	    }
+
             Dmsg1(400, "unload status=%d\n", status);
 	 }
 	 /*
@@ -112,8 +119,10 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
             Jmsg(jcr, M_INFO, 0, _("3305 Autochanger \"load slot %d, drive %d\", status is OK.\n"),
 		    slot, drive);
 	 } else {
-            Jmsg(jcr, M_INFO, 0, _("3992 Bad autochanger \"load slot %d, drive %d\", status=%d.\n"),
-		    slot, drive, status);
+	   berrno be;
+	   be.set_errno(status);
+            Jmsg(jcr, M_INFO, 0, _("3992 Bad autochanger \"load slot %d, drive %d\": ERR=%s.\n"),
+		    slot, drive, be.strerror());
 	 }
          Dmsg2(400, "load slot %d status=%d\n", slot, status);
       } else { 
@@ -157,8 +166,10 @@ static int get_autochanger_loaded_slot(JCR *jcr)
 	      drive);
       }
    } else {
-      Jmsg(jcr, M_INFO, 0, _("3991 Bad autochanger \"loaded drive %d\" command, status=%d.\n"), 
-	   drive, status);
+      berrno be;
+      be.set_errno(status);
+      Jmsg(jcr, M_INFO, 0, _("3991 Bad autochanger \"loaded drive %d\" command: ERR=%s.\n"), 
+	   drive, be.strerror());
       loaded = -1;		/* force unload */
    }
    free_pool_memory(changer);
@@ -216,7 +227,13 @@ bool autochanger_list(DCR *dcr, BSOCK *dir)
       slot = jcr->VolCatInfo.Slot; 
       jcr->VolCatInfo.Slot = loaded;
       changer = edit_device_codes(jcr, changer, jcr->device->changer_command, "unload");
-      run_program(changer, timeout, NULL);
+      int stat = run_program(changer, timeout, NULL);
+      if (stat != 0) {
+	 berrno be;
+	 be.set_errno(stat);
+         Jmsg(jcr, M_INFO, 0, _("3995 Bad autochanger \"unload slot %d\" command: ERR=%s.\n"), 
+	      loaded, be.strerror());
+      }
       jcr->VolCatInfo.Slot = slot;
    }
 
@@ -234,8 +251,13 @@ bool autochanger_list(DCR *dcr, BSOCK *dir)
       dir->msglen = strlen(dir->msg);
       bnet_send(dir);
    }
+   int stat = close_bpipe(bpipe);
+   if (stat != 0) {
+      berrno be;
+      be.set_errno(stat);
+      bnet_fsend(dir, "Autochanger error: ERR=%s\n", be.strerror());
+   }
    bnet_sig(dir, BNET_EOD);
-   close_bpipe(bpipe);
 
    free_pool_memory(changer);
    return true;
