@@ -1,4 +1,11 @@
 
+2003-07-12 Version 1.31 Beta 14Jul03
+- Marc Brueckner reported a crash during restore (a missing tree->)
+- Moved host.h.in file from filed to src.
+- Update btraceback to include host os, distname, distver in output.
+- Split list (in lib) into alist and dlist both with .h and .c.
+- Update home page to include Project status page.
+
 2003-07-12 Version 1.31 Beta 10Jul03
 - Manual updates.
 - Clean up some unused variables detected by the IRIX compiler.

@@ -3,6 +3,9 @@ print exename
 print exepath
 print catalog_db
 print version
+print host_os
+print distname
+print distver
 bt
 thread apply all bt
 f 0

@@ -75,7 +75,7 @@ void user_select_files_from_tree(TREE_CTX *tree)
 {
    char cwd[2000];
    /* Get a new context so we don't destroy restore command args */
-   UAContext *ua = new_ua_context(ua->jcr);
+   UAContext *ua = new_ua_context(tree->ua->jcr);
    ua->UA_sock = tree->ua->UA_sock;   /* patch in UA socket */
 
    bsendmsg(tree->ua, _( 
