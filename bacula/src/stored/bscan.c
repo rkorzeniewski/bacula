@@ -449,7 +449,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 	 } else if (verbose) {
             Pmsg1(000, _("Media type \"%s\" is OK.\n"), mr.MediaType);
 	 }
-	 /* Reset some JCR variables */
+	 /* Reset some DCR variables */
 	 foreach_dlist(dcr, dev->attached_dcrs) {
 	    dcr->VolFirstIndex = dcr->FileIndex = 0;
 	    dcr->StartBlock = dcr->EndBlock = 0;

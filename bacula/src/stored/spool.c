@@ -6,7 +6,7 @@
  *  Version $Id$
  */
 /*
-   Copyright (C) 2004-2004 Kern Sibbald and John Walker
+   Copyright (C) 2004-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -29,9 +29,9 @@
 #include "stored.h"
 
 /* Forward referenced subroutines */
-static void make_unique_data_spool_filename(JCR *jcr, POOLMEM **name);
-static bool open_data_spool_file(JCR *jcr);
-static bool close_data_spool_file(JCR *jcr);
+static void make_unique_data_spool_filename(DCR *dcr, POOLMEM **name);
+static bool open_data_spool_file(DCR *dcr);
+static bool close_data_spool_file(DCR *dcr);
 static bool despool_data(DCR *dcr, bool commit);
 static int  read_block_from_spool_file(DCR *dcr);
 static bool open_attr_spool_file(JCR *jcr, BSOCK *bs);
@@ -84,16 +84,16 @@ void list_spool_stats(BSOCK *bs)
    }
 }
 
-bool begin_data_spool(JCR *jcr)
+bool begin_data_spool(DCR *dcr)
 {
    bool stat = true;
-   if (jcr->spool_data) {
+   if (dcr->jcr->spool_data) {
       Dmsg0(100, "Turning on data spooling\n");
-      jcr->dcr->spool_data = true;
-      stat = open_data_spool_file(jcr);
+      dcr->spool_data = true;
+      stat = open_data_spool_file(dcr);
       if (stat) {
-	 jcr->dcr->spooling = true;
-         Jmsg(jcr, M_INFO, 0, _("Spooling data ...\n"));
+	 dcr->spooling = true;
+         Jmsg(dcr->jcr, M_INFO, 0, _("Spooling data ...\n"));
 	 P(mutex);
 	 spool_stats.data_jobs++;
 	 V(mutex);
@@ -102,57 +102,57 @@ bool begin_data_spool(JCR *jcr)
    return stat;
 }
 
-bool discard_data_spool(JCR *jcr)
+bool discard_data_spool(DCR *dcr)
 {
-   if (jcr->dcr->spooling) {
+   if (dcr->spooling) {
       Dmsg0(100, "Data spooling discarded\n");
-      return close_data_spool_file(jcr);
+      return close_data_spool_file(dcr);
    }
    return true;
 }
 
-bool commit_data_spool(JCR *jcr)
+bool commit_data_spool(DCR *dcr)
 {
    bool stat;
 
-   if (jcr->dcr->spooling) {
+   if (dcr->spooling) {
       Dmsg0(100, "Committing spooled data\n");
-      stat = despool_data(jcr->dcr, true /*commit*/);
+      stat = despool_data(dcr, true /*commit*/);
       if (!stat) {
-         Pmsg1(000, "Bad return from despool WroteVol=%d\n", jcr->dcr->WroteVol);
-	 close_data_spool_file(jcr);
+         Pmsg1(000, "Bad return from despool WroteVol=%d\n", dcr->WroteVol);
+	 close_data_spool_file(dcr);
 	 return false;
       }
-      return close_data_spool_file(jcr);
+      return close_data_spool_file(dcr);
    }
    return true;
 }
 
-static void make_unique_data_spool_filename(JCR *jcr, POOLMEM **name)
+static void make_unique_data_spool_filename(DCR *dcr, POOLMEM **name)
 {
    const char *dir;
-   if (jcr->dcr->dev->device->spool_directory) {
-      dir = jcr->dcr->dev->device->spool_directory;
+   if (dcr->dev->device->spool_directory) {
+      dir = dcr->dev->device->spool_directory;
    } else {
       dir = working_directory;
    }
-   Mmsg(name, "%s/%s.data.spool.%s.%s", dir, my_name, jcr->Job, 
-	jcr->dcr->device->hdr.name);
+   Mmsg(name, "%s/%s.data.spool.%s.%s", dir, my_name, dcr->jcr->Job, 
+	dcr->device->hdr.name);
 }
 
 
-static bool open_data_spool_file(JCR *jcr)
+static bool open_data_spool_file(DCR *dcr)
 {
    POOLMEM *name  = get_pool_memory(PM_MESSAGE);
    int spool_fd;
 
-   make_unique_data_spool_filename(jcr, &name);
+   make_unique_data_spool_filename(dcr, &name);
    if ((spool_fd = open(name, O_CREAT|O_TRUNC|O_RDWR|O_BINARY, 0640)) >= 0) {
-      jcr->dcr->spool_fd = spool_fd;
-      jcr->spool_attributes = true;
+      dcr->spool_fd = spool_fd;
+      dcr->jcr->spool_attributes = true;
    } else {
       berrno be;
-      Jmsg(jcr, M_FATAL, 0, _("Open data spool file %s failed: ERR=%s\n"), name,
+      Jmsg(dcr->jcr, M_FATAL, 0, _("Open data spool file %s failed: ERR=%s\n"), name,
 	   be.strerror());
       free_pool_memory(name);
       return false;
@@ -162,25 +162,25 @@ static bool open_data_spool_file(JCR *jcr)
    return true;
 }
 
-static bool close_data_spool_file(JCR *jcr)
+static bool close_data_spool_file(DCR *dcr)
 {
    POOLMEM *name  = get_pool_memory(PM_MESSAGE);
 
    P(mutex);
    spool_stats.data_jobs--;
    spool_stats.total_data_jobs++;
-   if (spool_stats.data_size < jcr->dcr->spool_size) {
+   if (spool_stats.data_size < dcr->spool_size) {
       spool_stats.data_size = 0;
    } else {
-      spool_stats.data_size -= jcr->dcr->spool_size;
+      spool_stats.data_size -= dcr->spool_size;
    }
-   jcr->dcr->spool_size = 0;
+   dcr->spool_size = 0;
    V(mutex);
 
-   make_unique_data_spool_filename(jcr, &name);
-   close(jcr->dcr->spool_fd);
-   jcr->dcr->spool_fd = -1;
-   jcr->dcr->spooling = false;
+   make_unique_data_spool_filename(dcr, &name);
+   close(dcr->spool_fd);
+   dcr->spool_fd = -1;
+   dcr->spooling = false;
    unlink(name);
    Dmsg1(100, "Deleted spool file: %s\n", name);
    free_pool_memory(name);

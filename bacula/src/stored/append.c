@@ -51,6 +51,8 @@ bool do_append_data(JCR *jcr)
 
    Dmsg0(10, "Start append data.\n");
 
+   memset(&rec, 0, sizeof(rec));
+
    ds = fd_sock;
 
    if (!bnet_set_buffer_size(ds, dcr->device->max_network_buffer_size, BNET_SETBUF_WRITE)) {
@@ -64,22 +66,20 @@ bool do_append_data(JCR *jcr)
       return false;
    }
 
-   memset(&rec, 0, sizeof(rec));
-
    set_jcr_job_status(jcr, JS_Running);
    dir_send_job_status(jcr);
 
    if (dev->VolCatInfo.VolCatName[0] == 0) {
-      Dmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
+      Pmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
    }
    Dmsg1(20, "Begin append device=%s\n", dev_name(dev));
 
-   begin_data_spool(jcr);
+   begin_data_spool(dcr);
    begin_attribute_spool(jcr);
 
    Dmsg0(100, "Just after acquire_device_for_append\n");
    if (dev->VolCatInfo.VolCatName[0] == 0) {
-      Dmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
+      Pmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
    }
    /*
     * Write Begin Session Record
@@ -91,7 +91,7 @@ bool do_append_data(JCR *jcr)
       ok = false;
    }
    if (dev->VolCatInfo.VolCatName[0] == 0) {
-      Dmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
+      Pmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
    }
 
    /* Tell File daemon to send data */
@@ -246,7 +246,7 @@ bool do_append_data(JCR *jcr)
 
    Dmsg1(200, "Write session label JobStatus=%d\n", jcr->JobStatus);
    if (dev->VolCatInfo.VolCatName[0] == 0) {
-      Dmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
+      Pmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
    }
 
    /*
@@ -261,7 +261,7 @@ bool do_append_data(JCR *jcr)
 	 ok = false;
       }
       if (dev->VolCatInfo.VolCatName[0] == 0) {
-         Dmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
+         Pmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
       }
       Dmsg0(90, "back from write_end_session_label()\n");
       /* Flush out final partial block of this session */
@@ -272,13 +272,13 @@ bool do_append_data(JCR *jcr)
       }
    }
    if (dev->VolCatInfo.VolCatName[0] == 0) {
-      Dmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
+      Pmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
    }
 
    if (!ok) {
-      discard_data_spool(jcr);
+      discard_data_spool(dcr);
    } else {
-      commit_data_spool(jcr);
+      commit_data_spool(dcr);
    }
    
    /* If the device is nor a dvd and WritePartAfterJob
@@ -306,7 +306,7 @@ bool do_append_data(JCR *jcr)
 
    Dmsg1(200, "calling release device JobStatus=%d\n", jcr->JobStatus);
    /* Release the device */
-   if (!release_device(jcr)) {
+   if (!release_device(dcr)) {
       Pmsg0(000, _("Error in release_device\n"));
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       ok = false;

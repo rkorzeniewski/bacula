@@ -11,7 +11,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -113,7 +113,7 @@ bool read_records(DCR *dcr,
 	    display_tape_error_status(jcr, dev);
 	    if (forge_on || jcr->ignore_label_errors) {
 	       fsr_dev(dev, 1);       /* try skipping bad record */
-               Dmsg0(000, "Did fsr\n");
+               Pmsg0(000, "Did fsr\n");
 	       continue;	      /* try to continue */
 	    }
 	    ok = false;

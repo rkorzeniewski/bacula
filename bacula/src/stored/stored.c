@@ -322,7 +322,7 @@ void *device_allocation(void *arg)
 	 }
       }
       if (device->cap_bits & CAP_AUTOMOUNT && device->dev &&
-	  device->dev->state & ST_OPENED) {
+	  device->dev->is_open()) {
 	 JCR *jcr;
 	 DCR *dcr;
 	 jcr = new_jcr(sizeof(JCR), stored_free_jcr);
