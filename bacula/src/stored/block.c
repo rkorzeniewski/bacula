@@ -513,6 +513,9 @@ reread:
    }
    do {
       stat = read(dev->fd, block->buf, (size_t)block->buf_len);
+      if (retry == 1) {
+	 dev->VolCatInfo.VolCatErrors++;   
+      }
    } while (stat == -1 && (errno == EINTR || errno == EIO) && retry++ < 6);
    if (stat < 0) {
       Dmsg1(90, "Read device got: ERR=%s\n", strerror(errno));

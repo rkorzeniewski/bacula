@@ -112,7 +112,7 @@
 #define BST_MOUNT             6       /* Mount request */
 
 /* Volume Catalog Information structure definition */
-typedef struct s_volume_catalog_info {
+struct VOLUME_CAT_INFO {
    /* Media info for the current Volume */
    uint32_t VolCatJobs;               /* number of jobs on this Volume */
    uint32_t VolCatFiles;              /* Number of files */
@@ -131,7 +131,7 @@ typedef struct s_volume_catalog_info {
    uint64_t VolCatCapacityBytes;      /* capacity estimate */
    char VolCatStatus[20];             /* Volume status */
    char VolCatName[MAX_NAME_LENGTH];  /* Desired volume to mount */
-} VOLUME_CAT_INFO;
+};                
 
 
 typedef struct s_steal_lock {

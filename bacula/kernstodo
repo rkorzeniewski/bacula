@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  20 May  2003 
+                  26 May  2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -27,18 +27,11 @@ Testing to do: (painful)
 For 1.31 release:
 - If bootstrap is non-zero for restore, do not show JobId in the
   OK to run? (yes/mod/no): list.
-- If you enter the userid by hand for restore, you get:
-  Enter JobId(s), comma separated, to restore: 74
-  You have selected the following JobId: 74
-  Building directory tree for JobId 74 ...
-  134645140 items inserted into the tree and marked for extraction.
-
 - The bsr for Dan's job has file indexes covering the whole range rather
   than only the range contained on the volume.
   Constrain FileIndex to be within range for Volume.
 - Don't zero the Slot when the wrong volume is found -- simply ask
   the operator.
-- Add SDWriteSeqNo to SD, and probably Read on FD side.
 - Make sure all restore counters are working correctly in the FD.
 - When all cassettes in magazine are used, got:
   22-May-2003 18:24 undef-sd: 3304 Autochanger "load slot 1" status is OK.
@@ -60,7 +53,6 @@ For 1.31 release:
   they don't expect something in errmsg.
 - Fix Verify VolumeToCatalog to use BSRs -- it is broken.
 - Use switch() in backup.c and restore.c in FD instead of giant if statement.
-- Replace do_shell_expansion() with bpipe code.
 - Investigate doing RAW backup of Win32 partition.
 - Add JobName= to VerifyToCatalog so that all verifies can be done at the end.
 - Add thread specific data to hold the jcr -- send error messages from
@@ -915,3 +907,10 @@ Done: (see kernsdone for more)
 - Put system type returned by FD into catalog.
 - Finish WIN32_DATA stream code (bextract, check if can handle stream)
 - Make SD keep track of Files, Bytes during restore.
+- If you enter the userid by hand for restore, you get:
+  Enter JobId(s), comma separated, to restore: 74
+  You have selected the following JobId: 74
+  Building directory tree for JobId 74 ...
+  134645140 items inserted into the tree and marked for extraction.
+- Add SDWriteSeqNo to SD, and probably Read on FD side.
+
