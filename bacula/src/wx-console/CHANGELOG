@@ -1,4 +1,6 @@
 24-04-2003 :
+ - wxbMainFrame : When starting wx-console, the initial key 
+      input focus is set into the command window.
  - wxbMainFrame : the user is now prompted when an 
       unexpected "question" is asked).
  - wxbRestorePanel : configure is allowed to change fileset

@@ -459,6 +459,7 @@ void wxbMainFrame::DisablePanels(void* except) {
 /* Enable or disable console typing */
 void wxbMainFrame::EnableConsole(bool enable) {
    typeCtrl->Enable(enable);
+   typeCtrl->SetFocus();
 }
 
 /*
