@@ -74,12 +74,14 @@ static int authenticate(int rcode, BSOCK *bs)
       free_pool_memory(dirname);
       return 0;
    }
+   btimer_t *tid = start_bsock_timer(bs, 60 * 5);
    if (!cram_md5_auth(bs, director->password, ssl_need) ||
        !cram_md5_get_auth(bs, director->password, ssl_need)) {
       Emsg1(M_FATAL, 0, _("Incorrect password given by Director at %s.\n"),
 	    bs->who);
       director = NULL;
    }
+   stop_bsock_timer(tid);
    free_pool_memory(dirname);
    return (director != NULL);
 }
@@ -115,8 +117,10 @@ int authenticate_storagedaemon(JCR *jcr)
    int stat;
    int ssl_need = BNET_SSL_NONE;
 
+   btimer_t *tid = start_bsock_timer(sd, 60 * 5);
    stat = cram_md5_get_auth(sd, jcr->sd_auth_key, ssl_need) &&
 	  cram_md5_auth(sd, jcr->sd_auth_key, ssl_need);
+   stop_bsock_timer(tid);
    memset(jcr->sd_auth_key, 0, strlen(jcr->sd_auth_key));
    if (!stat) {
       Jmsg(jcr, M_FATAL, 0, _("Authorization key rejected by Storage daemon.\n"));

@@ -63,10 +63,13 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
       bstrncpy(bashed_name, "*UserAgent*", sizeof(bashed_name));
       password = director->password;
    }
+   /* Timeout Hello after 5 mins */
+   btimer_t *tid = start_bsock_timer(dir, 60 * 5);
    bnet_fsend(dir, hello, bashed_name);
 
    if (!cram_md5_get_auth(dir, password, ssl_need) || 
        !cram_md5_auth(dir, password, ssl_need)) {
+      stop_bsock_timer(tid);
       printf(_("%s: Director authorization problem.\n"), my_name);
       set_text(_("Director authorization problem.\n"), -1);
       return 0;
@@ -74,6 +77,7 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
 
    Dmsg1(6, ">dird: %s", dir->msg);
    if (bnet_recv(dir) <= 0) {
+      stop_bsock_timer(tid);
       set_textf(_("Bad response to Hello command: ERR=%s\n"),
 	 bnet_strerror(dir));
       printf(_("%s: Bad response to Hello command: ERR=%s\n"),
@@ -81,6 +85,7 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
       set_text(_("The Director is probably not running.\n"), -1);
       return 0;
    }
+  stop_bsock_timer(tid);
    Dmsg1(10, "<dird: %s", dir->msg);
    if (strncmp(dir->msg, OKhello, sizeof(OKhello)-1) != 0) {
       set_text(_("Director rejected Hello command\n"), -1);

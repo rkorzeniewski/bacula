@@ -63,22 +63,28 @@ int authenticate_storage_daemon(JCR *jcr)
     */
    bstrncpy(dirname, director->hdr.name, sizeof(dirname));
    bash_spaces(dirname);
+   /* Timeout Hello after 5 mins */
+   btimer_t *tid = start_bsock_timer(sd, 60 * 5);
    if (!bnet_fsend(sd, hello, dirname)) {
+      stop_bsock_timer(tid);
       Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to Storage daemon. ERR=%s\n"), bnet_strerror(sd));
       return 0;
    }
    if (!cram_md5_get_auth(sd, jcr->store->password, ssl_need) || 
        !cram_md5_auth(sd, jcr->store->password, ssl_need)) {
+      stop_bsock_timer(tid);
       Jmsg0(jcr, M_FATAL, 0, _("Director and Storage daemon passwords or names not the same.\n"));
       return 0;
    }
    Dmsg1(116, ">stored: %s", sd->msg);
    if (bnet_recv(sd) <= 0) {
+      stop_bsock_timer(tid);
       Jmsg1(jcr, M_FATAL, 0, _("bdird<stored: bad response to Hello command: ERR=%s\n"),
 	 bnet_strerror(sd));
       return 0;
    }
    Dmsg1(110, "<stored: %s", sd->msg);
+   stop_bsock_timer(tid);
    if (strncmp(sd->msg, OKhello, sizeof(OKhello)) != 0) {
       Jmsg0(jcr, M_FATAL, 0, _("Storage daemon rejected Hello command\n"));
       return 0;
@@ -100,22 +106,28 @@ int authenticate_file_daemon(JCR *jcr)
     */
    bstrncpy(dirname, director->hdr.name, sizeof(dirname));
    bash_spaces(dirname);
+   /* Timeout Hello after 5 mins */
+   btimer_t *tid = start_bsock_timer(fd, 60 * 5);
    if (!bnet_fsend(fd, hello, dirname)) {
+      stop_bsock_timer(tid);
       Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to File daemon. ERR=%s\n"), bnet_strerror(fd));
       return 0;
    }
    if (!cram_md5_get_auth(fd, jcr->client->password, ssl_need) || 
        !cram_md5_auth(fd, jcr->client->password, ssl_need)) {
+      stop_bsock_timer(tid);
       Jmsg(jcr, M_FATAL, 0, _("Director and File daemon passwords or names not the same.\n"));
       return 0;
    }
    Dmsg1(116, ">filed: %s", fd->msg);
    if (bnet_recv(fd) <= 0) {
+      stop_bsock_timer(tid);
       Jmsg(jcr, M_FATAL, 0, _("Bad response from File daemon to Hello command: ERR=%s\n"),
 	 bnet_strerror(fd));
       return 0;
    }
    Dmsg1(110, "<stored: %s", fd->msg);
+   stop_bsock_timer(tid);
    if (strncmp(fd->msg, FDOKhello, sizeof(FDOKhello)) != 0) {
       Jmsg(jcr, M_FATAL, 0, _("File daemon rejected Hello command\n"));
       return 0;
@@ -134,15 +146,15 @@ int authenticate_user_agent(UAContext *uac)
    BSOCK *ua = uac->UA_sock;
 
    if (ua->msglen < 16 || ua->msglen >= MAX_NAME_LENGTH + 15) {
-      Emsg2(M_ERROR, 0, _("UA Hello from %s is invalid. Len=%d\n"), ua->who, 
-	    ua->msglen);
+      Emsg4(M_ERROR, 0, _("UA Hello from %s:%s:%d is invalid. Len=%d\n"), ua->who,
+	    ua->host, ua->port, ua->msglen);
       return 0;
    }
 
    if (sscanf(ua->msg, "Hello %127s calling\n", name) != 1) {
       ua->msg[100] = 0; 	      /* terminate string */
-      Emsg2(M_ERROR, 0, _("UA Hello from %s is invalid. Got: %s\n"), ua->who,
-	    ua->msg);
+      Emsg4(M_ERROR, 0, _("UA Hello from %s:%s:%d is invalid. Got: %s\n"), ua->who,
+	    ua->host, ua->port, ua->msg);
       return 0;
    }
 // Dmsg2(000, "Console=%s addr=%s\n", name, inet_ntoa(ua->client_addr.sin_addr));
@@ -165,8 +177,8 @@ int authenticate_user_agent(UAContext *uac)
    }
    if (!ok) {
       bnet_fsend(ua, "%s", _(Dir_sorry));
-      Emsg2(M_ERROR, 0, _("Unable to authenticate User Agent \"%s\" at %s.\n"),
-	    name, ua->who);
+      Emsg4(M_ERROR, 0, _("Unable to authenticate console \"%s\" at %s:%s:%d.\n"),
+	    name, ua->who, ua->host, ua->port);
       sleep(5);
       return 0;
    }

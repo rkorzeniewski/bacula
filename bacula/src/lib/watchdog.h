@@ -24,8 +24,11 @@
 
  */
 
-#define TYPE_CHILD   1
-#define TYPE_PTHREAD 2
+enum {
+   TYPE_CHILD = 1,
+   TYPE_PTHREAD, 
+   TYPE_BSOCK,
+};
 
 #define TIMEOUT_SIGNAL SIGUSR2
 

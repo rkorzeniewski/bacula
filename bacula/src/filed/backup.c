@@ -215,7 +215,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	 ff_pkt->statp.st_size > 0) || 
 	 ff_pkt->type == FT_RAW || ff_pkt->type == FT_FIFO ||
 	 (!is_portable_backup(&ff_pkt->bfd) && ff_pkt->type == FT_DIR)) {
-      btimer_id tid;	
+      btimer_t *tid;	
       if (ff_pkt->type == FT_FIFO) {
 	 tid = start_thread_timer(pthread_self(), 60);
       } else {
