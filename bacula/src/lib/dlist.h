@@ -39,6 +39,7 @@ class dlist {
    void *head;
    void *tail;
    int loffset;
+   int num_items;
 public:
    dlist(void *item, void *link);
    void init(void *item, void *link);
@@ -48,6 +49,7 @@ public:
    void insert_after(void *item, void *where);
    void remove(void *item);
    bool empty();
+   int  size();
    void *next(void *item);
    void *prev(void *item);
    void destroy();
@@ -66,6 +68,7 @@ inline void dlist::init(void *item, void *link)
 {
    head = tail = NULL;
    loffset = (char *)link - (char *)item;
+   num_items = 0;
 }
 
 /* Constructor */
@@ -78,6 +81,12 @@ inline bool dlist::empty()
 {
    return head == NULL;
 }
+
+inline int dlist::size()
+{
+   return num_items;
+}
+
    
 inline void * dlist::operator new(size_t)
 {

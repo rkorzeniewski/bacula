@@ -438,7 +438,8 @@ RUN *find_next_run(RUN *run, JOB *job, time_t &runtime)
    time_t now, tomorrow;
    SCHED *sched;
    struct tm tm;
-   int mday, wday, month, wpos, tmday, twday, tmonth, twpos, i, hour;
+   int mday, wday, month, wom, tmday, twday, tmonth, twom, i, hour;
+   int woy, twoy;
    int tod, tom;
 
    Dmsg0(200, "enter find_runs()\n");
@@ -453,7 +454,8 @@ RUN *find_next_run(RUN *run, JOB *job, time_t &runtime)
    mday = tm.tm_mday - 1;
    wday = tm.tm_wday;
    month = tm.tm_mon;
-   wpos = (tm.tm_mday - 1) / 7;
+   wom = tm_wom(tm.tm_mday, tm.tm_wday);
+   woy = tm_woy(now);
 
    /* Break down tomorrow into components */
    tomorrow = now + 60 * 60 * 24;
@@ -461,7 +463,8 @@ RUN *find_next_run(RUN *run, JOB *job, time_t &runtime)
    tmday = tm.tm_mday - 1;
    twday = tm.tm_wday;
    tmonth = tm.tm_mon;
-   twpos  = (tm.tm_mday - 1) / 7;
+   twom  = tm_wom(tm.tm_mday, tm.tm_wday);
+   twoy  = tm_woy(tomorrow);
 
    if (run == NULL) {
       run = sched->run;
@@ -473,10 +476,12 @@ RUN *find_next_run(RUN *run, JOB *job, time_t &runtime)
        * Find runs in next 24 hours
        */
       tod = (bit_is_set(mday, run->mday) || bit_is_set(wday, run->wday)) && 
-	     bit_is_set(month, run->month) && bit_is_set(wpos, run->wpos);
+	     bit_is_set(month, run->month) && bit_is_set(wom, run->wom) &&
+	     bit_is_set(woy, run->woy);
 
       tom = (bit_is_set(tmday, run->mday) || bit_is_set(twday, run->wday)) &&
-	     bit_is_set(tmonth, run->month) && bit_is_set(twpos, run->wpos);
+	     bit_is_set(tmonth, run->month) && bit_is_set(twom, run->wom) &&
+	     bit_is_set(twoy, run->woy);
 
       Dmsg2(200, "tod=%d tom=%d\n", tod, tom);
       if (tod) {		   /* Jobs scheduled today (next 24 hours) */

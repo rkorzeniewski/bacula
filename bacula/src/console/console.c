@@ -37,18 +37,32 @@ int authenticate_director(JCR *jcr, DIRRES *director);
        
 /* Exported variables */
 
-
 #ifdef HAVE_CYGWIN
 int rl_catch_signals;
 #else
 extern int rl_catch_signals;
 #endif
 
+#ifdef HAVE_CONIO
+extern int input_line(char *line, int len);
+extern void con_init(FILE *input);
+extern void con_term();
+extern void con_set_zed_keys();
+extern void t_sendl(char *buf, int len);
+extern void t_send(char *buf);
+extern void t_char(char c);
+#else
+#define con_init(x) 
+#define con_term()
+#define con_set_zed_keys();
+#endif
+
 /* Forward referenced functions */
 static void terminate_console(int sig);
 int get_cmd(FILE *input, char *prompt, BSOCK *sock, int sec);
 static int do_outputcmd(FILE *input, BSOCK *UA_sock);
-static void sendit(char *fmt, ...);
+void senditf(char *fmt, ...);
+void sendit(char *buf);
 
 /* Static variables */
 static char *configfile = NULL;
@@ -110,6 +124,15 @@ void got_tin(int sig)
 // printf("Got tin\n");
 }
 
+static int zed_keyscmd(FILE *input, BSOCK *UA_sock)
+{
+   con_set_zed_keys();
+   return 1;
+}
+
+/*
+ * These are the @command
+ */
 struct cmdstruct { char *key; int (*func)(FILE *input, BSOCK *UA_sock); char *help; }; 
 static struct cmdstruct commands[] = {
  { N_("input"),      inputcmd,     _("input from file")},
@@ -120,6 +143,7 @@ static struct cmdstruct commands[] = {
  { N_("time"),       timecmd,      _("print current time")},
  { N_("version"),    versioncmd,   _("print Console's version")},
  { N_("exit"),       quitcmd,      _("exit = quit")},
+ { N_("zed_keyst"),  zed_keyscmd,  _("zed_keys = use zed keys instead of bash keys")},
 	     };
 #define comsize (sizeof(commands)/sizeof(struct cmdstruct))
 
@@ -154,8 +178,7 @@ static int do_a_command(FILE *input, BSOCK *UA_sock)
    if (!found) {
       pm_strcat(&UA_sock->msg, _(": is an illegal command\n"));
       UA_sock->msglen = strlen(UA_sock->msg);
-      fputs(UA_sock->msg, output);
-      fflush(output);
+      sendit(UA_sock->msg);
    }
    return stat;
 }
@@ -182,7 +205,7 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
 	 if (fgets(UA_sock->msg, len, input) == NULL) {
 	    stat = -1;
 	 } else {
-            sendit("%s", UA_sock->msg);  /* echo to terminal */
+	    sendit(UA_sock->msg);  /* echo to terminal */
 	    strip_trailing_junk(UA_sock->msg);
 	    UA_sock->msglen = strlen(UA_sock->msg);
 	    stat = 1;
@@ -221,7 +244,7 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
 	    at_prompt = FALSE;
 	 }
 	 if (!stop) {
-            sendit("%s", UA_sock->msg);
+	    sendit(UA_sock->msg);
 	 }
       }
       if (!stop) {
@@ -328,6 +351,8 @@ Without that I don't how to speak to the Director :-(\n"), configfile);
 
    memset(&jcr, 0, sizeof(jcr));
 
+   con_init(stdin);
+
    if (ndir > 1) {
       UA_sock = init_bsock(NULL, 0, "", "", 0);
 try_again:
@@ -335,7 +360,7 @@ try_again:
       LockRes();
       ndir = 0;
       for (dir = NULL; (dir = (DIRRES *)GetNextRes(R_DIRECTOR, (RES *)dir)); ) {
-         fprintf(output, _("%d  %s at %s:%d\n"), 1+ndir++, dir->hdr.name, dir->address,
+         senditf( _("%d  %s at %s:%d\n"), 1+ndir++, dir->hdr.name, dir->address,
 	    dir->DIRport);
       }
       UnlockRes();
@@ -344,7 +369,7 @@ try_again:
       }
       item = atoi(UA_sock->msg);
       if (item < 0 || item > ndir) {
-         sendit(_("You must enter a number between 1 and %d\n"), ndir);
+         senditf(_("You must enter a number between 1 and %d\n"), ndir);
 	 goto try_again;
       }
       LockRes();
@@ -361,7 +386,7 @@ try_again:
    }
       
 
-   sendit(_("Connecting to Director %s:%d\n"), dir->address,dir->DIRport);
+   senditf(_("Connecting to Director %s:%d\n"), dir->address,dir->DIRport);
    UA_sock = bnet_connect(NULL, 5, 15, "Director daemon", dir->address, 
 			  NULL, dir->DIRport, 0);
    if (UA_sock == NULL) {
@@ -391,6 +416,7 @@ try_again:
       }
    }
 
+
    read_and_process_input(stdin, UA_sock);
 
    if (UA_sock) {
@@ -413,6 +439,7 @@ static void terminate_console(int sig)
    }
    already_here = TRUE;
    free_pool_memory(args);
+   con_term();
    if (sig != 0) {
       exit(1);
    }
@@ -491,8 +518,7 @@ get_cmd(FILE *input, char *prompt, BSOCK *sock, int sec)
    int len;  
    if (!stop) {
       if (output == stdout || tee) {
-	 fputs(prompt, stdout);
-	 fflush(stdout);
+	 sendit(prompt);
       }
    }
 again:
@@ -507,6 +533,12 @@ again:
 	 sleep(1);
 	 goto again;
       }
+#ifdef HAVE_CONIO
+      if (isatty(fileno(input))) {
+	 input_line(sock->msg, len);
+	 break;
+      }
+#endif
       if (fgets(sock->msg, len, input) == NULL) {
 	 return -1;
       }
@@ -521,7 +553,7 @@ again:
 
 static int versioncmd(FILE *input, BSOCK *UA_sock)
 {
-   sendit("Version: " VERSION " (" BDATE ") %s %s %s\n",
+   senditf("Version: " VERSION " (" BDATE ") %s %s %s\n",
       HOST_OS, DISTNAME, DISTVER);
    return 1;
 }
@@ -540,7 +572,7 @@ static int inputcmd(FILE *input, BSOCK *UA_sock)
    }
    fd = fopen(argk[1], "r");
    if (!fd) {
-      sendit(_("Cannot open file %s for input. ERR=%s\n"), 
+      senditf(_("Cannot open file %s for input. ERR=%s\n"), 
 	 argk[1], strerror(errno));
       return 1; 
    }
@@ -584,7 +616,7 @@ static int do_outputcmd(FILE *input, BSOCK *UA_sock)
    }
    fd = fopen(argk[1], mode);
    if (!fd) {
-      sendit(_("Cannot open file %s for output. ERR=%s\n"), 
+      senditf(_("Cannot open file %s for output. ERR=%s\n"), 
 	 argk[1], strerror(errno));
       return 1; 
    }
@@ -613,12 +645,14 @@ static int timecmd(FILE *input, BSOCK *UA_sock)
    struct tm tm;
    localtime_r(&ttime, &tm);
    strftime(sdt, sizeof(sdt), "%d-%b-%Y %H:%M:%S", &tm);
-   sendit(sdt);
    sendit("\n");
    return 1;
 }
 
-static void sendit(char *fmt,...)
+/*
+ * Send a line to the output file and or the terminal
+ */
+void senditf(char *fmt,...)
 {
     char buf[3000];
     va_list arg_ptr;
@@ -626,9 +660,38 @@ static void sendit(char *fmt,...)
     va_start(arg_ptr, fmt);
     bvsnprintf(buf, sizeof(buf), (char *)fmt, arg_ptr);
     va_end(arg_ptr);
+    sendit(buf);
+}
+
+void sendit(char *buf)
+{
+#ifdef HAVE_CONIO
+    if (output == stdout || tee) {
+       char *p, *q;	
+       /*
+        * Here, we convert every \n into \r\n because the
+	*  terminal is in raw mode when we are using 
+	*  conio.
+	*/
+       for (p=q=buf; (p=strchr(q, '\n')); ) {
+	  if (p-q > 0) {
+	     t_sendl(q, p-q);
+	  }
+          t_sendl("\r\n", 2);
+          q = ++p;                    /* point after \n */
+       }
+       if (*q) {
+	  t_send(q);
+       }
+    }
+    if (output != stdout) {
+       fputs(buf, output);
+    }
+#else
     fputs(buf, output);
     if (tee) {
        fputs(buf, stdout);
     }
     fflush(stdout);
+#endif
 }

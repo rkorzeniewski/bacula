@@ -48,6 +48,7 @@ void dlist::append(void *item)
    if (head == NULL) {		      /* if empty list, */
       head = item;		      /* item is head as well */
    }
+   num_items++;
 }
 
 /*
@@ -64,6 +65,7 @@ void dlist::prepend(void *item)
    if (tail == NULL) {		      /* if empty list, */		      
       tail = item;		      /* item is tail too */
    }
+   num_items++;
 }
 
 void dlist::insert_before(void *item, void *where)	 
@@ -80,6 +82,7 @@ void dlist::insert_before(void *item, void *where)
    if (head == where) {
       head = item;
    }
+   num_items++;
 }
 
 void dlist::insert_after(void *item, void *where)	
@@ -96,6 +99,7 @@ void dlist::insert_after(void *item, void *where)
    if (tail == where) {
       tail = item;
    }
+   num_items++;
 }
 
 
@@ -122,6 +126,7 @@ void dlist::remove(void *item)
       xitem = ilink->prev;
       ((dlink *)((char *)xitem+loffset))->next = ilink->next;
    }
+   num_items--;
 }
 
 void * dlist::next(void *item)
@@ -141,7 +146,7 @@ void * dlist::prev(void *item)
 }
 
 
-/* Destroy the list and its contents */
+/* Destroy the list contents */
 void dlist::destroy()
 {
    for (void *n=head; n; ) {
@@ -149,6 +154,7 @@ void dlist::destroy()
       free(n);
       n = ni;
    }
+   num_items = 0;
 }
 
 

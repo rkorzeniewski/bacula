@@ -124,3 +124,4 @@ void store_int64(LEX *lc, struct res_items *item, int index, int pass);
 void store_yesno(LEX *lc, struct res_items *item, int index, int pass);
 void store_time(LEX *lc, struct res_items *item, int index, int pass);
 void store_size(LEX *lc, struct res_items *item, int index, int pass);
+void store_defs(LEX *lc, struct res_items *item, int index, int pass);

@@ -197,6 +197,7 @@ static void do_director_status(UAContext *ua, char *cmd)
    bsendmsg(ua, "%s Version: " VERSION " (" BDATE ") %s %s %s\n", my_name,
 	    HOST_OS, DISTNAME, DISTVER);
    bstrftime(dt, sizeof(dt), daemon_start_time);
+   strcpy(dt+7, dt+9);	   /* cut century */
    bsendmsg(ua, _("Daemon started %s, %d Job%s run.\n"), dt, last_job.NumJobs,
         last_job.NumJobs == 1 ? "" : "s");
    /*
@@ -314,6 +315,7 @@ static void prt_runtime(UAContext *ua, JOB *job, int level, time_t runtime, POOL
       }
    }
    bstrftime(dt, sizeof(dt), runtime);
+   strcpy(dt+7, dt+9);	   /* cut century */
    switch (job->JobType) {
    case JT_ADMIN:
    case JT_RESTORE:
@@ -385,6 +387,7 @@ static void list_running_jobs(UAContext *ua)
    for (jcr=NULL; (jcr=get_next_jcr(jcr)); njobs++) {
       if (jcr->JobId == 0) {	  /* this is us */
 	 bstrftime(dt, sizeof(dt), jcr->start_time);
+	 strcpy(dt+7, dt+9);	 /* cut century */
          bsendmsg(ua, _("Console connected at %s\n"), dt);
 	 njobs--;
       }
@@ -528,14 +531,14 @@ static void list_terminated_jobs(UAContext *ua)
    char dt[MAX_TIME_LENGTH], b1[30], b2[30];
    char level[10];
 
-   if (last_job.NumJobs == 0) {
+   if (last_jobs->size() == 0) {
       bsendmsg(ua, _("No Terminated Jobs.\n"));
       return;
    }
    lock_last_jobs_list();
    struct s_last_job *je;
    bsendmsg(ua, _("\nTerminated Jobs:\n"));
-   bsendmsg(ua, _("Level   Files        Bytes Status   Finished        Name \n"));
+   bsendmsg(ua, _(" JobId  Level   Files        Bytes Status   Finished        Name \n"));
    bsendmsg(ua, _("====================================================================\n"));
    for (je=NULL; (je=(s_last_job *)last_jobs->next(je)); ) {
       char JobName[MAX_NAME_LENGTH];
@@ -582,7 +585,8 @@ static void list_terminated_jobs(UAContext *ua)
 	    *p = 0;
 	 }
       }
-      bsendmsg(ua, _("%-4s %8s %12s %-7s  %-8s %s\n"), 
+      bsendmsg(ua, _("%6d  %-4s %8s %12s %-7s  %-8s %s\n"), 
+	 je->JobId,
 	 level, 
 	 edit_uint64_with_commas(je->JobFiles, b1),
 	 edit_uint64_with_commas(je->JobBytes, b2), 

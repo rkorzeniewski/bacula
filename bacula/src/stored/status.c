@@ -64,6 +64,7 @@ int status_cmd(JCR *jcr)
    bnet_fsend(user, "\n%s Version: " VERSION " (" BDATE ") %s %s %s\n", my_name,
 	      HOST_OS, DISTNAME, DISTVER);
    bstrftime(dt, sizeof(dt), daemon_start_time);
+   strcpy(dt+7, dt+9);		      /* cut century */
    bnet_fsend(user, _("Daemon started %s, %d Job%s run.\n"), dt, last_job.NumJobs,
         last_job.NumJobs == 1 ? "" : "s");
 
@@ -71,18 +72,6 @@ int status_cmd(JCR *jcr)
     * List terminated jobs
     */
    list_terminated_jobs(user);
-#ifdef xxx
-      char termstat[30];
-
-      bstrftime(dt, sizeof(dt), last_job.end_time);
-      bnet_fsend(user, _("Last Job %s finished at %s\n"), last_job.Job, dt);
-
-      jobstatus_to_ascii(last_job.JobStatus, termstat, sizeof(termstat));
-      bnet_fsend(user, _("  Files=%s Bytes=%s Termination Status=%s\n"), 
-	   edit_uint64_with_commas(last_job.JobFiles, b1),
-	   edit_uint64_with_commas(last_job.JobBytes, b2),
-	   termstat);
-#endif
 
    /*
     * List devices
@@ -268,7 +257,7 @@ static void list_terminated_jobs(void *arg)
    lock_last_jobs_list();
    msg =  _("\nTerminated Jobs:\n"); 
    sendit(msg, strlen(msg), arg);
-   msg =  _("Level   Files        Bytes Status   Finished        Name \n");
+   msg =  _(" JobId  Level   Files        Bytes Status   Finished        Name \n");
    sendit(msg, strlen(msg), arg);
    msg = _("====================================================================\n"); 
    sendit(msg, strlen(msg), arg);
@@ -318,7 +307,8 @@ static void list_terminated_jobs(void *arg)
 	    *p = 0;
 	 }
       }
-      bsnprintf(buf, sizeof(buf), _("%-4s %8s %12s %-7s  %-8s %s\n"), 
+      bsnprintf(buf, sizeof(buf), _("%6d  %-4s %8s %12s %-7s  %-8s %s\n"), 
+	 je->JobId,
 	 level, 
 	 edit_uint64_with_commas(je->JobFiles, b1),
 	 edit_uint64_with_commas(je->JobBytes, b2), 

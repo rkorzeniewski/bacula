@@ -47,7 +47,8 @@ enum e_state {
    s_weekly,
    s_monthly,
    s_hourly,
-   s_wpos,			      /* 1st, 2nd, ...*/
+   s_wom,			    /* 1st, 2nd, ...*/
+   s_woy,			    /* week of year w00 - w53 */
 };  
 
 struct s_keyw {
@@ -105,43 +106,45 @@ static struct s_keyw keyw[] = {
   {N_("monthly"),    s_monthly, 0},
   {N_("hourly"),     s_hourly,  0},
 
-  {N_("1st"),        s_wpos,    0},
-  {N_("2nd"),        s_wpos,    1},
-  {N_("3rd"),        s_wpos,    2},
-  {N_("4th"),        s_wpos,    3},
-  {N_("5th"),        s_wpos,    4},
+  {N_("1st"),        s_wom,     0},
+  {N_("2nd"),        s_wom,     1},
+  {N_("3rd"),        s_wom,     2},
+  {N_("4th"),        s_wom,     3},
+  {N_("5th"),        s_wom,     4},
 
-  {N_("first"),      s_wpos,    0},
-  {N_("second"),     s_wpos,    1},
-  {N_("third"),      s_wpos,    2},
-  {N_("fourth"),     s_wpos,    3},
-  {N_("fifth"),      s_wpos,    4},
+  {N_("first"),      s_wom,     0},
+  {N_("second"),     s_wom,     1},
+  {N_("third"),      s_wom,     2},
+  {N_("fourth"),     s_wom,     3},
+  {N_("fifth"),      s_wom,     4},
   {NULL,	 s_none,    0}
 };
 
-static int have_hour, have_mday, have_wday, have_month, have_wpos;
-static int have_at;
+static bool have_hour, have_mday, have_wday, have_month, have_wom;
+static bool have_at, have_woy;
 static RUN lrun;
 
 static void clear_defaults()
 {
-   have_hour = have_mday = have_wday = have_month = have_wpos = TRUE;
+   have_hour = have_mday = have_wday = have_month = have_wom = have_woy = true;
    clear_bit(0,lrun.hour);
    clear_bits(0, 30, lrun.mday);
    clear_bits(0, 6, lrun.wday);
    clear_bits(0, 11, lrun.month);
-   clear_bits(0, 4, lrun.wpos);
+   clear_bits(0, 4, lrun.wom);
+   clear_bits(0, 53, lrun.woy);
 }
 
 static void set_defaults()
 {
-   have_hour = have_mday = have_wday = have_month = have_wpos = FALSE;
-   have_at = FALSE;
+   have_hour = have_mday = have_wday = have_month = have_wom = have_woy = false;
+   have_at = false;
    set_bit(0,lrun.hour);
    set_bits(0, 30, lrun.mday);
    set_bits(0, 6, lrun.wday);
    set_bits(0, 11, lrun.month);
-   set_bits(0, 4, lrun.wpos);
+   set_bits(0, 4, lrun.wom);
+   set_bits(0, 53, lrun.woy);
 }
 
 
@@ -170,7 +173,8 @@ static struct s_kw RunFields[] = {
  */
 void store_run(LEX *lc, struct res_items *item, int index, int pass)
 {
-   int i, j, found;
+   int i, j;
+   bool found;
    int token, state, state2 = 0, code = 0, code2 = 0;
    int options = lc->options;
    RUN **run = (RUN **)(item->value);	
@@ -185,12 +189,12 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
    memset(&lrun, 0, sizeof(RUN));
 
    /* scan for Job level "full", "incremental", ... */
-   for (found=TRUE; found; ) {
-      found = FALSE;
+   for (found=true; found; ) {
+      found = false;
       token = lex_get_token(lc, T_NAME);
       for (i=0; RunFields[i].name; i++) {
 	 if (strcasecmp(lc->str, RunFields[i].name) == 0) {
-	    found = TRUE;
+	    found = true;
 	    if (lex_get_token(lc, T_ALL) != T_EQUALS) {
                scan_err1(lc, "Expected an equals, got: %s", lc->str);
 	       /* NOT REACHED */ 
@@ -268,7 +272,7 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	 if (strcasecmp(lc->str, joblevels[j].level_name) == 0) {
 	    lrun.level = joblevels[j].level;
 	    lrun.job_type = joblevels[j].job_type;
-	    found = TRUE;
+	    found = true;
 	    break;
 	 }
       }
@@ -302,6 +306,15 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	    state = s_time;
 	    break;
 	 }
+         if (lc->str_len == 3 && (lc->str[0] == 'w' || lc->str[0] == 'W') &&
+	     is_an_integer(lc->str+1)) {
+	    code = atoi(lc->str+1);
+	    if (code < 0 || code > 53) {
+               scan_err0(lc, _("Week number out of range (0-53)"));
+	    }
+	    state = s_woy;	      /* week of year */
+	    break;
+	 }
 	 /* everything else must be a keyword */
 	 for (i=0; keyw[i].name; i++) {
 	    if (strcasecmp(lc->str, keyw[i].name) == 0) {
@@ -330,14 +343,14 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	 if (!have_mday) {
 	    clear_bits(0, 30, lrun.mday);
 	    clear_bits(0, 6, lrun.wday);
-	    have_mday = TRUE;
+	    have_mday = true;
 	 }
 	 set_bit(code, lrun.mday);
 	 break;
       case s_month:		   /* month of year */
 	 if (!have_month) {
 	    clear_bits(0, 11, lrun.month);
-	    have_month = TRUE;
+	    have_month = true;
 	 }
 	 set_bit(code, lrun.month);
 	 break;
@@ -345,16 +358,23 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	 if (!have_wday) {
 	    clear_bits(0, 6, lrun.wday);
 	    clear_bits(0, 30, lrun.mday);
-	    have_wday = TRUE;
+	    have_wday = true;
 	 }
 	 set_bit(code, lrun.wday);
 	 break;
-      case s_wpos:		   /* Week position 1st, ... */
-	 if (!have_wpos) {
-	    clear_bits(0, 4, lrun.wpos);
-	    have_wpos = TRUE;
+      case s_wom:		   /* Week of month 1st, ... */
+	 if (!have_wom) {
+	    clear_bits(0, 4, lrun.wom);
+	    have_wom = true;
 	 }
-	 set_bit(code, lrun.wpos);
+	 set_bit(code, lrun.wom);
+	 break;
+      case s_woy:
+	 if (!have_woy) {
+	    clear_bits(0, 53, lrun.woy);
+	    have_woy = true;
+	 }
+	 set_bit(code, lrun.woy);
 	 break;
       case s_time:		   /* time */
 	 if (!have_at) {
@@ -394,10 +414,10 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	 }
 	 set_bit(code, lrun.hour);
 	 lrun.minute = code2;
-	 have_hour = TRUE;
+	 have_hour = true;
 	 break;
       case s_at:
-	 have_at = TRUE;
+	 have_at = true;
 	 break;
       case s_range:
          p = strchr(lc->str, '-');
@@ -416,7 +436,7 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	    if (!have_mday) {
 	       clear_bits(0, 30, lrun.mday);
 	       clear_bits(0, 6, lrun.wday);
-	       have_mday = TRUE;
+	       have_mday = true;
 	    }
 	    if (code < code2) {
 	       set_bits(code, code2, lrun.mday);
@@ -426,7 +446,28 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	    }
 	    break;
 	 }
-
+	 /* Check for week of year range */
+	 if (strlen(lc->str) == 3 && strlen(p) == 3 &&
+             (lc->str[0] == 'w' || lc->str[0] == 'W') &&
+             (p[0] == 'w' || p[0] == 'W') &&
+	     is_an_integer(lc->str+1) && is_an_integer(p+1)) {
+	    code = atoi(lc->str+1);
+	    code2 = atoi(p+1);
+	    if (code < 0 || code > 53 || code2 < 0 || code2 > 53) {
+               scan_err0(lc, _("Week number out of range (0-53)"));
+	    }
+	    if (!have_woy) {
+	       clear_bits(0, 53, lrun.woy);
+	       have_woy = true;
+	    }
+	    if (code < code2) {
+	       set_bits(code, code2, lrun.woy);
+	    } else {
+	       set_bits(code, 53, lrun.woy);
+	       set_bits(0, code2, lrun.woy);
+	    }
+	    break;
+	 }
 	 /* lookup first half of keyword range (week days or months) */
 	 lcase(lc->str);
 	 for (i=0; keyw[i].name; i++) {
@@ -437,7 +478,7 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	       break;
 	    }
 	 }
-	 if (i != 0 || (state != s_month && state != s_wday && state != s_wpos)) {
+	 if (i != 0 || (state != s_month && state != s_wday && state != s_wom)) {
             scan_err0(lc, _("Invalid month, week or position day range"));
 	    /* NOT REACHED */
 	 }
@@ -460,7 +501,7 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	    if (!have_wday) {
 	       clear_bits(0, 6, lrun.wday);
 	       clear_bits(0, 30, lrun.mday);
-	       have_wday = TRUE;
+	       have_wday = true;
 	    }
 	    if (code < code2) {
 	       set_bits(code, code2, lrun.wday);
@@ -471,7 +512,7 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	 } else if (state == s_month) {
 	    if (!have_month) {
 	       clear_bits(0, 30, lrun.month);
-	       have_month = TRUE;
+	       have_month = true;
 	    }
 	    if (code < code2) {
 	       set_bits(code, code2, lrun.month);
@@ -482,15 +523,15 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	    }
 	 } else {
 	    /* Must be position */
-	    if (!have_wpos) {
-	       clear_bits(0, 4, lrun.wpos);
-	       have_wpos = TRUE;
+	    if (!have_wom) {
+	       clear_bits(0, 4, lrun.wom);
+	       have_wom = true;
 	    }
 	    if (code < code2) {
-	       set_bits(code, code2, lrun.wpos);
+	       set_bits(code, code2, lrun.wom);
 	    } else {
-	       set_bits(code, 4, lrun.wpos);
-	       set_bits(0, code2, lrun.wpos);
+	       set_bits(code, 4, lrun.wom);
+	       set_bits(0, code2, lrun.wom);
 	    }
 	 }			
 	 break;
@@ -499,24 +540,28 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	 set_bits(0, 23, lrun.hour);
 	 set_bits(0, 30, lrun.mday);
 	 set_bits(0, 11, lrun.month);
-	 set_bits(0, 4, lrun.wpos);
+	 set_bits(0, 4, lrun.wom);
+	 set_bits(0, 53, lrun.woy);
 	 break;
       case s_weekly:
 	 clear_defaults();
 	 set_bit(0, lrun.wday);
 	 set_bits(0, 11, lrun.month);
-	 set_bits(0, 4, lrun.wpos);
+	 set_bits(0, 4, lrun.wom);
+	 set_bits(0, 53, lrun.woy);
 	 break;
       case s_daily:
 	 clear_defaults();
 	 set_bits(0, 30, lrun.mday);
 	 set_bits(0, 11, lrun.month);
-	 set_bits(0, 4,  lrun.wpos);
+	 set_bits(0, 4,  lrun.wom);
+	 set_bits(0, 53, lrun.woy);
 	 break;
       case s_monthly:
 	 clear_defaults();
 	 set_bits(0, 11, lrun.month);
-	 set_bits(0, 4,  lrun.wpos);
+	 set_bits(0, 4,  lrun.wom);
+	 set_bits(0, 53, lrun.woy);
 	 break;
       default:
          scan_err0(lc, _("Unexpected run state\n"));

@@ -44,8 +44,9 @@
 #define R_MSGS                1010
 #define R_COUNTER             1011
 #define R_CONSOLE             1012
+#define R_JOBDEFS             1013
 
-#define R_LAST                R_CONSOLE
+#define R_LAST                R_JOBDEFS    
 
 /*
  * Some resource attributes
@@ -172,7 +173,6 @@ struct STORE {
 
 /*
  *   Job Resource
- *
  */
 struct JOB {
    RES   hdr;
@@ -348,5 +348,6 @@ struct RUN {
    char mday[nbytes_for_bits(31)];    /* bit set for each day of month */
    char month[nbytes_for_bits(12)];   /* bit set for each month */
    char wday[nbytes_for_bits(7)];     /* bit set for each day of the week */
-   char wpos[nbytes_for_bits(5)];     /* week position */
+   char wom[nbytes_for_bits(5)];      /* week of month */
+   char woy[nbytes_for_bits(54)];     /* week of year */
 };

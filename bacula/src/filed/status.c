@@ -60,6 +60,7 @@ static void do_status(void sendit(char *msg, int len, void *sarg), void *arg)
 	      HOST_OS, DISTNAME, DISTVER);
    sendit(msg, len, arg);
    bstrftime(dt, sizeof(dt), daemon_start_time);
+   strcpy(dt+7, dt+9);		      /* cut century */
    len = Mmsg(&msg, _("Daemon started %s, %d Job%s run.\n"), dt, last_job.NumJobs,
         last_job.NumJobs == 1 ? "" : "s");
    sendit(msg, len, arg);
@@ -89,6 +90,7 @@ static void do_status(void sendit(char *msg, int len, void *sarg), void *arg)
       lock_last_jobs_list();
       for (je=NULL; (je=(s_last_job *)last_jobs->next(je)); ) {
 	 bstrftime(dt, sizeof(dt), je->end_time);
+	 strcpy(dt+7, dt+9);		/* cut century */
          len = Mmsg(&msg, _("Last Job %s finished at %s\n"), je->Job, dt);
 	 sendit(msg, len, arg);
 
@@ -109,6 +111,7 @@ static void do_status(void sendit(char *msg, int len, void *sarg), void *arg)
    lock_jcr_chain();
    for (njcr=NULL; (njcr=get_next_jcr(njcr)); ) {
       bstrftime(dt, sizeof(dt), njcr->start_time);
+      strcpy(dt+7, dt+9);	      /* cut century */
       if (njcr->JobId == 0) {
          len = Mmsg(&msg, _("Director connected at: %s\n"), dt);
       } else {
@@ -178,7 +181,7 @@ static void list_terminated_jobs(void *arg)
    lock_last_jobs_list();
    msg =  _("\nTerminated Jobs:\n"); 
    sendit(msg, strlen(msg), arg);
-   msg =  _("Level   Files        Bytes Status   Finished        Name \n");
+   msg =  _(" JobId  Level   Files        Bytes Status   Finished        Name \n");
    sendit(msg, strlen(msg), arg);
    msg = _("====================================================================\n"); 
    sendit(msg, strlen(msg), arg);
@@ -228,7 +231,8 @@ static void list_terminated_jobs(void *arg)
 	    *p = 0;
 	 }
       }
-      bsnprintf(buf, sizeof(buf), _("%-4s %8s %12s %-7s  %-8s %s\n"), 
+      bsnprintf(buf, sizeof(buf), _("%6d  %-4s %8s %12s %-7s  %-8s %s\n"), 
+	 je->JobId,
 	 level, 
 	 edit_uint64_with_commas(je->JobFiles, b1),
 	 edit_uint64_with_commas(je->JobBytes, b2), 
