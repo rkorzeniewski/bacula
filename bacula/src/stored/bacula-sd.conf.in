@@ -15,7 +15,7 @@ Storage {                             # definition of myself
   SDPort = @sd_port@                  # Director's port      
   WorkingDirectory = "@working_dir@"
   Pid Directory = "@piddir@"
-  Maximum Concurrent Jobs = 1
+  Maximum Concurrent Jobs = 20
 }
 
 #

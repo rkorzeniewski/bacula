@@ -25,6 +25,8 @@ For 1.36.1:
 
 
 1.37 Possibilities:
+- Document testing
+- Add performance testing hooks
 - if 2 concurrent backups are attempted on the same tape
   drive (autoloader) into different tape pools, one of them will exit
   fatally instead of halting until the drive is idle
@@ -998,4 +1000,3 @@ Block Position: 0
 - Fix CDROM make script to permit picking up already installed
   static FD.
 - Add date/time to each Jmsg.
-

@@ -78,6 +78,7 @@ static void read_volume_label(JCR *jcr, DEVICE *dev, int Slot);
 static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
 			       char *newname, char *poolname, 
 			       int Slot, int relabel);
+static bool try_autoload_device(JCR *jcr, int slot, const char *VolName);
 
 struct s_cmds {
    const char *cmd;
@@ -373,21 +374,11 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
    DCR *dcr = jcr->dcr;
    int label_status;
    
+   dcr->dev = dev;
    steal_device_lock(dev, &hold, BST_WRITING_LABEL);
    
-   bstrncpy(dcr->VolumeName, newname, sizeof(dcr->VolumeName));
-   dcr->VolCatInfo.Slot = slot;
-   if (autoload_device(dcr, 0, dir) < 0) {    /* autoload if possible */
-      goto bail_out;
-   }
-
-   /* Ensure that the device is open -- autoload_device() closes it */
-   for ( ; !(dev->state & ST_OPENED); ) {
-      if (open_dev(dev, dcr->VolumeName, OPEN_READ_WRITE) < 0) {
-         bnet_fsend(dir, _("3910 Unable to open device %s. ERR=%s\n"), 
-	    dev_name(dev), strerror_dev(dev));
-	 goto bail_out;
-      }
+   if (!try_autoload_device(jcr, slot, newname)) {
+      goto bail_out;		      /* error */
    }
 
    /* See what we have for a Volume */
@@ -845,22 +836,12 @@ static void read_volume_label(JCR *jcr, DEVICE *dev, int Slot)
    BSOCK *dir = jcr->dir_bsock;
    bsteal_lock_t hold;
    DCR *dcr = jcr->dcr;
-   
+
+   dcr->dev = dev;
    steal_device_lock(dev, &hold, BST_WRITING_LABEL);
    
-   dcr->VolumeName[0] = 0;
-   dcr->VolCatInfo.Slot = Slot;
-   if (autoload_device(dcr, 0, dir) < 0) {    /* autoload if possible */
-      goto bail_out;
-   }
-
-   /* Ensure that the device is open -- autoload_device() closes it */
-   for ( ; !dev_state(dev, ST_OPENED); ) {
-      if (open_dev(dev, dcr->VolumeName, OPEN_READ_WRITE) < 0) {
-         bnet_fsend(dir, _("3910 Unable to open device \"%s\". ERR=%s\n"), 
-	    dev_name(dev), strerror_dev(dev));
-	 goto bail_out;
-      }
+   if (!try_autoload_device(jcr, Slot, "")) {
+      goto bail_out;		      /* error */
    }
 
    dev->state &= ~ST_LABEL;	      /* force read of label */
@@ -879,4 +860,28 @@ static void read_volume_label(JCR *jcr, DEVICE *dev, int Slot)
 bail_out:
    give_back_device_lock(dev, &hold);
    return;
+}
+
+static bool try_autoload_device(JCR *jcr, int slot, const char *VolName)
+{
+   DCR *dcr = jcr->dcr;
+   BSOCK *dir = jcr->dir_bsock;
+   DEVICE *dev = dcr->dev;
+
+   bstrncpy(dcr->VolumeName, VolName, sizeof(dcr->VolumeName));
+   dcr->VolCatInfo.Slot = slot;
+   dcr->VolCatInfo.InChanger = slot > 0;
+   if (autoload_device(dcr, 0, dir) < 0) {    /* autoload if possible */
+      return false; 
+   }
+
+   /* Ensure that the device is open -- autoload_device() closes it */
+   for ( ; !(dev->state & ST_OPENED); ) {
+      if (open_dev(dev, dcr->VolumeName, OPEN_READ_WRITE) < 0) {
+         bnet_fsend(dir, _("3910 Unable to open device %s. ERR=%s\n"), 
+	    dev_name(dev), strerror_dev(dev));
+	 return false;
+      }
+   }
+   return true;
 }
