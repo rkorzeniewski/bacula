@@ -140,8 +140,7 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
  */
 void get_level_since_time(JCR *jcr, char *since, int since_len)
 {
-   /* Lookup the last
-    * FULL backup job to get the time/date for a 
+   /* Lookup the last FULL backup job to get the time/date for a 
     * differential or incremental save.
     */
    if (!jcr->stime) {
@@ -153,20 +152,21 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
    case L_DIFFERENTIAL:
    case L_INCREMENTAL:
       /* Look up start time of last job */
-      jcr->jr.JobId = 0;
+      jcr->jr.JobId = 0;     /* flag for db_find_job_start time */
       if (!db_find_job_start_time(jcr, jcr->db, &jcr->jr, &jcr->stime)) {
          Jmsg(jcr, M_INFO, 0, "%s", db_strerror(jcr->db));
          Jmsg(jcr, M_INFO, 0, _("No prior or suitable Full backup found. Doing FULL backup.\n"));
          bsnprintf(since, since_len, " (upgraded from %s)", 
 	    level_to_str(jcr->JobLevel));
-	 jcr->JobLevel = jcr->jr.Level = L_FULL;
+	 jcr->JobLevel = jcr->jr.JobLevel = L_FULL;
       } else {
          bstrncpy(since, ", since=", since_len);
 	 bstrncat(since, jcr->stime, since_len);
       }
-      Dmsg1(100, "Last start time = %s\n", jcr->stime);
+      jcr->jr.JobId = jcr->JobId;
       break;
    }
+   Dmsg2(100, "Level=%c last start time=%s\n", jcr->JobLevel, jcr->stime);
 }
 
 

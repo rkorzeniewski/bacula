@@ -85,7 +85,7 @@ db_create_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    Mmsg(&mdb->cmd,
 "INSERT INTO Job (Job,Name,Type,Level,JobStatus,SchedTime,JobTDate) VALUES \
 ('%s','%s','%c','%c','%c','%s',%s)", 
-	   jr->Job, jr->Name, (char)(jr->Type), (char)(jr->Level), 
+	   jr->Job, jr->Name, (char)(jr->JobType), (char)(jr->JobLevel), 
 	   (char)(jr->JobStatus), dt, edit_uint64(JobTDate, ed1));
 
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {

@@ -1421,10 +1421,12 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
    JOB *job = NULL;
    CLIENT *client = NULL;
    FILESET *fileset = NULL;
+   FILESET_DBR fsr;
    int listing = 0;
-   BSOCK *fd;
    char since[MAXSTRING];
+   JCR *jcr = ua->jcr;
 
+   jcr->JobLevel = L_FULL;
    for (int i=1; i<ua->argc; i++) {
       if (strcasecmp(ua->argk[i], _("client")) == 0 ||
           strcasecmp(ua->argk[i], _("fd")) == 0) {
@@ -1447,6 +1449,13 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
       }
       if (strcasecmp(ua->argk[i], _("listing")) == 0) {
 	 listing = 1;
+	 continue;
+      }
+      if (strcasecmp(ua->argk[i], _("level")) == 0) {
+	 if (!get_level_from_name(ua->jcr, ua->argv[i])) {
+            bsendmsg(ua, _("Level %s not valid.\n"), ua->argv[i]);
+	 }
+	 continue;
       }
    } 
    if (!job && !(client && fileset)) {
@@ -1456,6 +1465,10 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
    }
    if (!job) {
       job = (JOB *)GetResWithName(R_JOB, ua->argk[1]);
+      if (!job) {
+         bsendmsg(ua, _("No job specified.\n"));
+	 return 1;
+      }
    }
    if (!client) {
       client = job->client;
@@ -1463,8 +1476,8 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
    if (!fileset) {
       fileset = job->fileset;
    }
-   ua->jcr->client = client;
-   ua->jcr->fileset = fileset;
+   jcr->client = client;
+   jcr->fileset = fileset;
    close_db(ua);
    ua->catalog = client->catalog;
 
@@ -1472,39 +1485,51 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
       return 1;
    }
 
+   jcr->job = job;
+   jcr->JobType = JT_BACKUP;
+   init_jcr_job_record(jcr);
+
+   if (!get_or_create_client_record(jcr)) {
+      return 1;
+   }
+   if (!get_or_create_fileset_record(jcr, &fsr)) {
+      return 1;
+   }
+   
    get_level_since_time(ua->jcr, since, sizeof(since));
 
    bsendmsg(ua, _("Connecting to Client %s at %s:%d\n"),
       job->client->hdr.name, job->client->address, job->client->FDport);
-   if (!connect_to_file_daemon(ua->jcr, 1, 15, 0)) {
+   if (!connect_to_file_daemon(jcr, 1, 15, 0)) {
       bsendmsg(ua, _("Failed to connect to Client.\n"));
       return 1;
    }
-   fd = ua->jcr->file_bsock;
 
-   if (!send_include_list(ua->jcr)) {
+   if (!send_include_list(jcr)) {
       bsendmsg(ua, _("Error sending include list.\n"));
-      return 1;
+      goto bail_out;
    }
 
-   if (!send_exclude_list(ua->jcr)) {
+   if (!send_exclude_list(jcr)) {
       bsendmsg(ua, _("Error sending exclude list.\n"));
-      return 1;
+      goto bail_out;
    }
 
-   if (!send_level_command(ua->jcr)) {
-      return 1;
+   if (!send_level_command(jcr)) {
+      goto bail_out;
    }
 
-   bnet_fsend(fd, "estimate listing=%d\n", listing);
-   while (bnet_recv(fd) >= 0) {
-      bsendmsg(ua, "%s", fd->msg);
+   bnet_fsend(jcr->file_bsock, "estimate listing=%d\n", listing);
+   while (bnet_recv(jcr->file_bsock) >= 0) {
+      bsendmsg(ua, "%s", jcr->file_bsock->msg);
    }
 
-   bnet_sig(fd, BNET_TERMINATE);
-   bnet_close(fd);
-   ua->jcr->file_bsock = NULL;
-
+bail_out:
+   if (jcr->file_bsock) {
+      bnet_sig(jcr->file_bsock, BNET_TERMINATE);
+      bnet_close(jcr->file_bsock);
+      jcr->file_bsock = NULL;
+   }
    return 1;
 }
 

@@ -61,7 +61,7 @@
  * most current start fields to the job record.
  * It is assumed that you did a db_create_job_record() already.
  */
-int db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)    
+bool db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)    
 {
    int len, stat = 1;
    JOB_DBR ojr;

@@ -32,10 +32,12 @@
 static void make_unique_data_spool_filename(JCR *jcr, POOLMEM **name);
 static bool open_data_spool_file(JCR *jcr);
 static bool close_data_spool_file(JCR *jcr);
-static bool despool_data(DCR *dcr);
+static bool despool_data(DCR *dcr, bool commit);
 static int  read_block_from_spool_file(DCR *dcr, DEV_BLOCK *block);
 static bool open_attr_spool_file(JCR *jcr, BSOCK *bs);
 static bool close_attr_spool_file(JCR *jcr, BSOCK *bs);
+static bool write_spool_header(DCR *dcr, DEV_BLOCK *block);
+static bool write_spool_data(DCR *dcr, DEV_BLOCK *block);
 
 struct spool_stats_t {
    uint32_t data_jobs;		      /* current jobs spooling data */
@@ -112,13 +114,10 @@ bool discard_data_spool(JCR *jcr)
 bool commit_data_spool(JCR *jcr)
 {
    bool stat;
-   char ec1[40];
 
    if (jcr->dcr->spooling) {
       Dmsg0(100, "Committing spooled data\n");
-      Jmsg(jcr, M_INFO, 0, _("Writing spooled data to Volume. Despooling %s bytes ...\n"),
-	    edit_uint64_with_commas(jcr->dcr->dev->spool_size, ec1));
-      stat = despool_data(jcr->dcr);
+      stat = despool_data(jcr->dcr, true /*commit*/);
       if (!stat) {
          Dmsg1(000, "Bad return from despool WroteVol=%d\n", jcr->dcr->WroteVol);
 	 close_data_spool_file(jcr);
@@ -185,7 +184,7 @@ static bool close_data_spool_file(JCR *jcr)
    return true;
 }
 
-static bool despool_data(DCR *dcr)
+static bool despool_data(DCR *dcr, bool commit) 
 {
    DEVICE *rdev;
    DCR *rdcr;
@@ -193,8 +192,12 @@ static bool despool_data(DCR *dcr)
    DEV_BLOCK *block;
    JCR *jcr = dcr->jcr;
    int stat;
+   char ec1[50];
 
    Dmsg0(100, "Despooling data\n");
+   Jmsg(jcr, M_INFO, 0, _("%s spooled data to Volume. Despooling %s bytes ...\n"),
+        commit?"Committing":"Writting",
+	edit_uint64_with_commas(jcr->dcr->dev->spool_size, ec1));
    dcr->spooling = false;
    lock_device(dcr->dev);
    dcr->dev_locked = true; 
@@ -320,10 +323,7 @@ static int read_block_from_spool_file(DCR *dcr, DEV_BLOCK *block)
  */
 bool write_block_to_spool_file(DCR *dcr, DEV_BLOCK *block)
 {
-   ssize_t stat = 0;
    uint32_t wlen, hlen; 	      /* length to write */
-   int retry = 0;
-   spool_hdr hdr;   
    bool despool = false;
 
    ASSERT(block->binbuf == ((uint32_t) (block->bufp - block->buf)));
@@ -331,7 +331,7 @@ bool write_block_to_spool_file(DCR *dcr, DEV_BLOCK *block)
       return true;
    }
 
-   hlen = sizeof(hdr);
+   hlen = sizeof(spool_hdr);
    wlen = block->binbuf;
    P(dcr->dev->spool_mutex);
    dcr->spool_size += hlen + wlen;
@@ -348,9 +348,8 @@ bool write_block_to_spool_file(DCR *dcr, DEV_BLOCK *block)
    }
    V(mutex);
    if (despool) {
-      char ec1[30];
 #ifdef xDEBUG 
-      char ec2[30], ec3[30], ec4[30];
+      char ec1[30], ec2[30], ec3[30], ec4[30];
       Dmsg4(100, "Despool in write_block_to_spool_file max_size=%s size=%s "
             "max_job_size=%s job_size=%s\n", 
 	    edit_uint64_with_commas(dcr->max_spool_size, ec1),
@@ -358,9 +357,8 @@ bool write_block_to_spool_file(DCR *dcr, DEV_BLOCK *block)
 	    edit_uint64_with_commas(dcr->dev->max_spool_size, ec3),
 	    edit_uint64_with_commas(dcr->dev->spool_size, ec4));
 #endif
-      Jmsg(dcr->jcr, M_INFO, 0, _("User specified spool size reached. Despooling %s bytes ...\n"),
-	    edit_uint64_with_commas(dcr->dev->spool_size, ec1));
-      if (!despool_data(dcr)) {
+      Jmsg(dcr->jcr, M_INFO, 0, _("User specified spool size reached.\n"));
+      if (!despool_data(dcr, false)) {
          Dmsg0(000, "Bad return from despool in write_block.\n");
 	 return false;
       }
@@ -372,52 +370,84 @@ bool write_block_to_spool_file(DCR *dcr, DEV_BLOCK *block)
       Jmsg(dcr->jcr, M_INFO, 0, _("Spooling data again ...\n"));
    }  
 
+
+   if (!write_spool_header(dcr, block)) {
+      return false;
+   }
+   if (!write_spool_data(dcr, block)) {
+     return false;
+   }
+
+   Dmsg2(100, "Wrote block FI=%d LI=%d\n", block->FirstIndex, block->LastIndex);
+   empty_block(block);
+   return true;
+}
+
+static bool write_spool_header(DCR *dcr, DEV_BLOCK *block)
+{
+   spool_hdr hdr;   
+   ssize_t stat;
+
    hdr.FirstIndex = block->FirstIndex;
    hdr.LastIndex = block->LastIndex;
    hdr.len = block->binbuf;
 
    /* Write header */
-   for ( ;; ) {
-      stat = write(dcr->spool_fd, (char*)&hdr, (size_t)hlen);
+   for (int retry=0; retry<=1; retry++) {
+      stat = write(dcr->spool_fd, (char*)&hdr, sizeof(hdr));
       if (stat == -1) {
          Jmsg(dcr->jcr, M_INFO, 0, _("Error writing header to spool file. ERR=%s\n"), strerror(errno));
       }
-      if (stat != (ssize_t)hlen) {
-	 if (!despool_data(dcr)) {
+      if (stat != (ssize_t)sizeof(hdr)) {
+	 /* If we wrote something, truncate it, then despool */
+	 if (stat != -1) {
+	    ftruncate(dcr->spool_fd, lseek(dcr->spool_fd, (off_t)0, SEEK_CUR) - stat);
+	 }
+	 if (!despool_data(dcr, false)) {
             Jmsg(dcr->jcr, M_FATAL, 0, _("Fatal despooling error."));
 	    return false;
 	 }
-	 if (retry++ > 1) {
-	    return false;
-	 }
-	 continue;
+	 continue;		      /* try again */
       }
-      break;
+      return true;
    }
+   Jmsg(dcr->jcr, M_FATAL, 0, _("Retrying after header spooling error failed.\n"));
+   return false;
+}
+
+static bool write_spool_data(DCR *dcr, DEV_BLOCK *block)
+{
+   ssize_t stat;
 
    /* Write data */
-   for ( ;; ) {
-      stat = write(dcr->spool_fd, block->buf, (size_t)wlen);
+   for (int retry=0; retry<=1; retry++) {
+      stat = write(dcr->spool_fd, block->buf, (size_t)block->binbuf);
       if (stat == -1) {
          Jmsg(dcr->jcr, M_INFO, 0, _("Error writing data to spool file. ERR=%s\n"), strerror(errno));
       }
-      if (stat != (ssize_t)wlen) {
-	 if (!despool_data(dcr)) {
+      if (stat != (ssize_t)block->binbuf) {
+	 /* 
+	  * If we wrote something, truncate it and the header, then despool
+	  */
+	 if (stat != -1) {
+	    ftruncate(dcr->spool_fd, lseek(dcr->spool_fd, (off_t)0, SEEK_CUR)
+		      - stat - sizeof(spool_hdr));
+	 }
+	 if (!despool_data(dcr, false)) {
             Jmsg(dcr->jcr, M_FATAL, 0, _("Fatal despooling error."));
 	    return false;
 	 }
-	 if (retry++ > 1) {
+	 if (!write_spool_header(dcr, block)) {
 	    return false;
 	 }
-	 continue;
+	 continue;		      /* try again */
       }
-      break;
+      return true;
    }
-   Dmsg2(100, "Wrote block FI=%d LI=%d\n", block->FirstIndex, block->LastIndex);
-
-   empty_block(block);
-   return true;
+   Jmsg(dcr->jcr, M_FATAL, 0, _("Retrying after data spooling error failed.\n"));
+   return false;
 }
+
 
 
 bool are_attributes_spooled(JCR *jcr)

@@ -114,9 +114,6 @@ int do_verify(JCR *jcr)
       Dmsg1(100, "Last full jobid=%d\n", verify_jobid);
    } 
 
-   jcr->jr.JobId = jcr->JobId;
-   jcr->jr.StartTime = jcr->start_time;
-   jcr->jr.Level = jcr->JobLevel;
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
       goto bail_out;

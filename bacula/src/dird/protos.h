@@ -85,9 +85,11 @@ extern int response(JCR *jcr, BSOCK *fd, char *resp, const char *cmd, e_prtmsg p
 extern void set_jcr_defaults(JCR *jcr, JOB *job);
 extern void create_unique_job_name(JCR *jcr, const char *base_name);
 extern void update_job_end_record(JCR *jcr);
-extern int get_or_create_client_record(JCR *jcr);
+extern bool get_or_create_client_record(JCR *jcr);
+extern bool get_or_create_fileset_record(JCR *jcr, FILESET_DBR *fsr);
 extern void run_job(JCR *jcr);
 extern int cancel_job(UAContext *ua, JCR *jcr);
+extern void init_jcr_job_record(JCR *jcr);
 
 /* mountreq.c */
 extern void mount_request(JCR *jcr, BSOCK *bs, char *buf);
@@ -174,6 +176,7 @@ int find_arg(UAContext *ua, const char *keyword);
 int find_arg_with_value(UAContext *ua, const char *keyword);
 int do_keyword_prompt(UAContext *ua, const char *msg, const char **list);
 int confirm_retention(UAContext *ua, utime_t *ret, const char *msg);
+bool get_level_from_name(JCR *jcr, const char *level_name);
 
 /* ua_tree.c */
 bool user_select_files_from_tree(TREE_CTX *tree);

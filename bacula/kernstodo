@@ -1,9 +1,7 @@
                  Kern's ToDo List
-                  20 June 2004
+                  26 June 2004
 
 1.35 Items to do:
-- Implement second cut of SIGHUP in Dir
-  (Implement resources on a single pointer)
 - Make btape release the drive during the "test" append.
 - Do tape alerts -- see tapealert.txt
 - Revisit and revise Disaster Recovery (fix SCSI and RAID 
@@ -24,7 +22,9 @@
   jobs do.
 - Add regular expressions to FileSets.
 - Perhaps add read/write programs and/or plugins to FileSets.
-
+- Look at adding Client run command that will use the
+  port opened by the client.
+- Test new I/O error despooling code.
 
 Documentation to do: (any release a little bit at a time)
 - Document query file format.
@@ -1083,3 +1083,7 @@ Block Position: 0
 - Implement fast tree insert (doubly linked list?)
 - Disallow using Internal database
 - Feedback while the tree is being built.    
+- Add detection of Whitebox
+- Add InChanger to "list media"
+- Implement second cut of SIGHUP in Dir
+  (Implement resources on a single pointer)

@@ -71,53 +71,16 @@ int do_backup(JCR *jcr)
    since[0] = 0;
 
    if (!get_or_create_client_record(jcr)) {
-      Jmsg(jcr, M_ERROR, 0, _("Could not get/create Client record. ERR=%s\n"), 
-	 db_strerror(jcr->db));
       goto bail_out;
    }
 
-   /*
-    * Get or Create FileSet record
-    */
-   memset(&fsr, 0, sizeof(fsr));
-   bstrncpy(fsr.FileSet, jcr->fileset->hdr.name, sizeof(fsr.FileSet));
-   if (jcr->fileset->have_MD5) {
-      struct MD5Context md5c;
-      unsigned char signature[16];
-      memcpy(&md5c, &jcr->fileset->md5c, sizeof(md5c));
-      MD5Final(signature, &md5c);
-      bin_to_base64(fsr.MD5, (char *)signature, 16); /* encode 16 bytes */
-      bstrncpy(jcr->fileset->MD5, fsr.MD5, sizeof(jcr->fileset->MD5));
-   } else {
-      Jmsg(jcr, M_WARNING, 0, _("FileSet MD5 signature not found.\n"));
-   }
-   if (!db_create_fileset_record(jcr, jcr->db, &fsr)) {
-      Jmsg(jcr, M_ERROR, 0, _("Could not create FileSet \"%s\" record. ERR=%s\n"), 
-	 fsr.FileSet, db_strerror(jcr->db));
+   if (!get_or_create_fileset_record(jcr, &fsr)) {
       goto bail_out;
-   }   
-   jcr->jr.FileSetId = fsr.FileSetId;
-   if (fsr.created) {
-      Jmsg(jcr, M_INFO, 0, _("Created new FileSet record \"%s\" %s\n"), 
-	 fsr.FileSet, fsr.cCreateTime);
    }
-   Dmsg2(119, "Created FileSet %s record %u\n", jcr->fileset->hdr.name, 
-      jcr->jr.FileSetId);
 
    get_level_since_time(jcr, since, sizeof(since));
 
-   jcr->jr.JobId = jcr->JobId;
-   jcr->jr.StartTime = jcr->start_time;
-   if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
-      Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
-      goto bail_out;
-   }
-
    jcr->fname = (char *) get_pool_memory(PM_FNAME);
-
-   /* Print Job Start message */
-   Jmsg(jcr, M_INFO, 0, _("Start Backup JobId %u, Job=%s\n"),
-	jcr->JobId, jcr->Job);
 
    /* 
     * Get the Pool record -- first apply any level defined pools  
@@ -154,6 +117,19 @@ int do_backup(JCR *jcr)
    }
    jcr->PoolId = pr.PoolId;		  /****FIXME**** this can go away */
    jcr->jr.PoolId = pr.PoolId;
+
+
+   /* Print Job Start message */
+   Jmsg(jcr, M_INFO, 0, _("Start Backup JobId %u, Job=%s\n"),
+	jcr->JobId, jcr->Job);
+
+   set_jcr_job_status(jcr, JS_Running);
+   Dmsg2(100, "JobId=%d JobLevel=%c\n", jcr->jr.JobId, jcr->jr.JobLevel);
+   if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
+      Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
+      goto bail_out;
+   }
+
 
    /*
     * Open a message channel connection with the Storage
@@ -199,6 +175,10 @@ int do_backup(JCR *jcr)
       goto bail_out;
    }
 
+   if (!send_level_command(jcr)) {
+      goto bail_out;
+   }
+
    /* 
     * send Storage daemon address to the File daemon
     */
@@ -211,10 +191,6 @@ int do_backup(JCR *jcr)
       goto bail_out;
    }
 
-
-   if (!send_level_command(jcr)) {
-      goto bail_out;
-   }
 
    if (!send_run_before_and_after_commands(jcr)) {
       goto bail_out;

@@ -97,7 +97,7 @@ int  db_list_sql_query(JCR *jcr, B_DB *mdb, char *query, DB_LIST_HANDLER *sendit
 void db_list_client_records(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, e_list_type type);
 
 /* update.c */
-int  db_update_job_start_record(JCR *jcr, B_DB *db, JOB_DBR *jr);
+bool db_update_job_start_record(JCR *jcr, B_DB *db, JOB_DBR *jr);
 int  db_update_job_end_record(JCR *jcr, B_DB *db, JOB_DBR *jr);
 int  db_update_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr);
 int  db_update_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pr);

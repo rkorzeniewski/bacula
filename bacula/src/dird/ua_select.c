@@ -31,6 +31,7 @@
 #include "dird.h"
 
 /* Imported variables */
+extern struct s_jl joblevels[];
 
 
 /*
@@ -864,4 +865,18 @@ int get_media_type(UAContext *ua, char *MediaType, int max_media)
    }
    UnlockRes();
    return (do_prompt(ua, _("Media Type"), _("Select the Media Type"), MediaType, max_media) < 0) ? 0 : 1;
+}
+
+bool get_level_from_name(JCR *jcr, const char *level_name)
+{
+   /* Look up level name and pull code */
+   bool found = false;
+   for (int i=0; joblevels[i].level_name; i++) {
+      if (strcasecmp(level_name, joblevels[i].level_name) == 0) {
+	 jcr->JobLevel = joblevels[i].level;
+	 found = true;
+	 break;
+      }
+   }
+   return found;
 }

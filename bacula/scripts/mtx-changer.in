@@ -29,6 +29,15 @@
 
 MTX=@MTX@
 
+#
+# The purpose of this function to wait a maximum 
+#   time for the drive. It will
+#   return as soon as the drive is ready, or after
+#   waiting a maximum of 180 seconds.
+# Note, this is very system dependent, so if you are
+#   not running on Linux, you will probably need to
+#   re-write it.
+#
 wait_for_drive() {
   for i in $(seq 180); do   # Wait max 180 seconds
     if mt -f $1 status >/dev/null 2>&1; then

@@ -33,7 +33,6 @@
 /* Imported subroutines */
 
 /* Imported variables */
-extern struct s_jl joblevels[];
 extern struct s_kw ReplaceOptions[];
 
 /*
@@ -407,21 +406,11 @@ try_again:
       }
    }
    if (level_name) {
-      /* Look up level name and pull code */
-      bool found = false;
-      for (i=0; joblevels[i].level_name; i++) {
-	 if (strcasecmp(level_name, _(joblevels[i].level_name)) == 0) {
-	    jcr->JobLevel = joblevels[i].level;
-	    found = true;
-	    break;
-	 }
-      }
-      if (!found) { 
+      if (!get_level_from_name(jcr, level_name)) {
          bsendmsg(ua, _("Level %s not valid.\n"), level_name);
 	 goto bail_out;
       }
    }
-   level_name = NULL;
    if (jid) {
       jcr->RestoreJobId = atoi(jid);
    }

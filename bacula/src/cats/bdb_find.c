@@ -97,13 +97,13 @@ StartTime=%100s", &JobId, Name, cType, cLevel, StartTime) == 5) {
 	 unbash_spaces(StartTime);
          Dmsg4(200, "Got Type=%c Level=%c Name=%s StartTime=%s\n",
 	    Type, Level, Name, StartTime);
-         Dmsg3(200, "Want Type=%c Level=%c Name=%s\n", jr->Type, jr->Level,     
+         Dmsg3(200, "Want Type=%c Level=%c Name=%s\n", jr->JobType, jr->JobLevel,     
 	    jr->Name);
 	 /* Differential is since last Full backup */
 	 /* Incremental is since last FULL or Incremental or Differential */
-	 if (((jr->Level == L_DIFFERENTIAL) && (Type == jr->Type && 
+	 if (((jr->JobLevel == L_DIFFERENTIAL) && (Type == jr->JobType && 
 	       Level == L_FULL && strcmp(Name, jr->Name) == 0)) ||
-	     ((jr->Level == L_INCREMENTAL) && (Type == jr->Type && 
+	     ((jr->JobLevel == L_INCREMENTAL) && (Type == jr->JobType && 
 	       (Level == L_FULL || Level == L_INCREMENTAL ||
 		Level == L_DIFFERENTIAL) && strcmp(Name, jr->Name) == 0))) {
 	    addr = ftell(mdb->jobfd);	 /* save current location */
