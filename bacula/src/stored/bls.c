@@ -167,7 +167,7 @@ int main (int argc, char *argv[])
    argv += optind;
 
    if (!argc) {
-      Pmsg0(0, "No archive name specified\n");
+      Pmsg0(0, _("No archive name specified\n"));
       usage();
    }
 
