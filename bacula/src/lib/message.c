@@ -365,7 +365,7 @@ static void make_unique_mail_filename(JCR *jcr, POOLMEM *&name, DEST *d)
       Mmsg(name, "%s/%s.mail.%s.%d", working_directory, my_name,
 		 my_name, (int)(long)d);
    }
-   Dmsg1(200, "mailname=%s\n", *name);
+   Dmsg1(200, "mailname=%s\n", name);
 }
 
 /*

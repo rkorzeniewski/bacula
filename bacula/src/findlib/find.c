@@ -111,7 +111,8 @@ find_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt), void 
    if (fileset) {
       int i, j;
       ff->flags = 0;
-      ff->VerifyOpts[0] = 0;
+      ff->VerifyOpts[0] = 'V';
+      ff->VerifyOpts[1] = 0;
       for (i=0; i<fileset->include_list.size(); i++) {
 	 findINCEXE *incexe = (findINCEXE *)fileset->include_list.get(i);
 	 fileset->incexe = incexe;
@@ -123,7 +124,7 @@ find_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt), void 
 	    findFOPTS *fo = (findFOPTS *)incexe->opts_list.get(j);
 	    ff->flags |= fo->flags;
 	    ff->GZIP_level = fo->GZIP_level;
-	    bstrncpy(ff->VerifyOpts, fo->VerifyOpts, sizeof(ff->VerifyOpts)); 
+	    bstrncat(ff->VerifyOpts, fo->VerifyOpts, sizeof(ff->VerifyOpts)); 
 	 }
 	 for (j=0; j<incexe->name_list.size(); j++) {
             Dmsg1(400, "F %s\n", (char *)incexe->name_list.get(j));
@@ -139,7 +140,7 @@ find_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt), void 
       /* This is the old deprecated way */
       while (!job_canceled(jcr) && (inc = get_next_included_file(ff, inc))) {
 	 /* Copy options for this file */
-	 bstrncpy(ff->VerifyOpts, inc->VerifyOpts, sizeof(ff->VerifyOpts)); 
+	 bstrncat(ff->VerifyOpts, inc->VerifyOpts, sizeof(ff->VerifyOpts)); 
          Dmsg1(50, "find_files: file=%s\n", inc->fname);
 	 if (!file_is_excluded(ff, inc->fname)) {
 	    if (find_one_file(jcr, ff, callback, his_pkt, inc->fname, (dev_t)-1, 1) ==0) {
