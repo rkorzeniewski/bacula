@@ -74,6 +74,8 @@ static FILE_DBR fr;
 static SESSION_LABEL label;
 static SESSION_LABEL elabel;
 
+static time_t lasttime = 0;
+
 static char *db_name = "bacula";
 static char *db_user = "bacula";
 static char *db_password = "";
@@ -232,7 +234,6 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	    rec->VolSessionId, rec->VolSessionTime, rec->FileIndex, 
 	    rec->Stream, rec->data_len);
    }
-Dmsg1(000, "record_cb block=%u\n", rec->Block);
    /* 
     * Check for Start or End of Session Record 
     *
@@ -258,8 +259,10 @@ Dmsg1(000, "record_cb block=%u\n", rec->Block);
                   Pmsg1(000, "Pool record for %s found in DB.\n", pr.Name);
 	       }
 	    } else {
-               Pmsg1(000, "VOL_LABEL: Pool record not found for Pool: %s\n",
-		  pr.Name);
+	       if (!update_db) {
+                  Pmsg1(000, "VOL_LABEL: Pool record not found for Pool: %s\n",
+		     pr.Name);
+	       }
 	       create_pool_record(db, &pr);
 	    }
 	    if (strcmp(pr.PoolType, dev->VolHdr.PoolType) != 0) {
@@ -282,8 +285,10 @@ Dmsg1(000, "record_cb block=%u\n", rec->Block);
 	       mr.VolJobs = mr.VolFiles = mr.VolBlocks = 0;
 	       mr.VolBytes = rec->data_len + 20;
 	    } else {
-               Pmsg1(000, "VOL_LABEL: Media record not found for Volume: %s\n",
-		  mr.VolumeName);
+	       if (!update_db) {
+                  Pmsg1(000, "VOL_LABEL: Media record not found for Volume: %s\n",
+		     mr.VolumeName);
+	       }
 	       strcpy(mr.MediaType, dev->VolHdr.MediaType);
 	       create_media_record(db, &mr, &dev->VolHdr);
 	    }
@@ -317,8 +322,10 @@ Dmsg1(000, "record_cb block=%u\n", rec->Block);
 	       }
 	    } else {
 	       /* Must create a Job record in DB */
-               Pmsg1(000, "SOS_LABEL: Job record not found for JobId: %d\n",
-		  jr.JobId);
+	       if (!update_db) {
+                  Pmsg1(000, "SOS_LABEL: Job record not found for JobId: %d\n",
+		     jr.JobId);
+	       }
 	    }
 	    /* Create Client record if not already there */
 	       strcpy(cr.Name, label.ClientName);
@@ -602,14 +609,20 @@ static int create_media_record(B_DB *db, MEDIA_DBR *mr, VOLUME_LABEL *vl)
 
    strcpy(mr->VolStatus, "Full");
    mr->VolRetention = 355 * 3600 * 24; /* 1 year */
-   dt.julian_day_number = vl->write_date;
-   dt.julian_day_fraction = vl->write_time;
-   tm_decode(&dt, &tm);
-   mr->FirstWritten = mktime(&tm);
-   dt.julian_day_number = vl->label_date;
-   dt.julian_day_fraction = vl->label_time;
-   tm_decode(&dt, &tm);
-   mr->LabelDate = mktime(&tm);
+   if (vl->VerNum >= 11) {
+      mr->FirstWritten = (time_t)vl->write_btime;
+      mr->LabelDate    = (time_t)vl->label_btime;
+   } else {
+      dt.julian_day_number = vl->write_date;
+      dt.julian_day_fraction = vl->write_time;
+      tm_decode(&dt, &tm);
+      mr->FirstWritten = mktime(&tm);
+      dt.julian_day_number = vl->label_date;
+      dt.julian_day_fraction = vl->label_time;
+      tm_decode(&dt, &tm);
+      mr->LabelDate = mktime(&tm);
+   }
+   lasttime = mr->LabelDate;
 
    if (!update_db) {
       return 1;
@@ -639,6 +652,7 @@ static int update_media_record(B_DB *db, MEDIA_DBR *mr)
       return 1;
    }
 
+   mr->LastWritten = lasttime;
    if (!db_update_media_record(db, mr)) {
       Pmsg1(0, _("Could not update media record. ERR=%s\n"), db_strerror(db));
       return 0;
@@ -696,16 +710,19 @@ static int create_fileset_record(B_DB *db, FILESET_DBR *fsr)
       return 1;
    }
    fsr->FileSetId = 0;
+   fsr->MD5[0] = ' ';                 /* ***FIXME*** */
+   fsr->MD5[1] = 0;
    if (db_get_fileset_record(db, fsr)) {
       if (verbose) {
          Pmsg1(000, _("Fileset \"%s\" already exists.\n"), fsr->FileSet);
       }
    } else {
-   if (!db_create_fileset_record(db, fsr)) {
-      Pmsg1(0, _("Could not create FileSet record. ERR=%s\n"), db_strerror(db));
-      return 0;
-   }
-   if (verbose) {
+      if (!db_create_fileset_record(db, fsr)) {
+         Pmsg2(0, _("Could not create FileSet record \"%s\". ERR=%s\n"), 
+	    fsr->FileSet, db_strerror(db));
+	 return 0;
+      }
+      if (verbose) {
          Pmsg1(000, _("Created FileSet record \"%s\"\n"), fsr->FileSet);
       }
    }
@@ -730,10 +747,15 @@ static JCR *create_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *label,
    jr->JobStatus = JS_Created;
    strcpy(jr->Name, label->JobName);
    strcpy(jr->Job, label->Job);
-   dt.julian_day_number = label->write_date;
-   dt.julian_day_fraction = label->write_time;
-   tm_decode(&dt, &tm);
-   jr->SchedTime = mktime(&tm);
+   if (label->VerNum >= 11) {
+      jr->SchedTime = (time_t)label->write_btime;
+   } else {
+      dt.julian_day_number = label->write_date;
+      dt.julian_day_fraction = label->write_time;
+      tm_decode(&dt, &tm);
+      jr->SchedTime = mktime(&tm);
+   }
+
    jr->StartTime = jr->SchedTime;
    jr->JobTDate = (btime_t)jr->SchedTime;
    jr->VolSessionId = rec->VolSessionId;
@@ -748,7 +770,7 @@ static JCR *create_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *label,
 
    /* This creates the bare essentials */
    if (!db_create_job_record(db, jr)) {
-      Pmsg1(0, _("Could not create job record. ERR=%s\n"), db_strerror(db));
+      Pmsg1(0, _("Could not create JobId record. ERR=%s\n"), db_strerror(db));
       return mjcr;
    }
 
@@ -758,8 +780,10 @@ static JCR *create_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *label,
       return mjcr;
    }
    if (verbose) {
-      Pmsg1(000, _("Created Job record for JobId: %d\n"), jr->JobId);
+      Pmsg2(000, _("Created new JobId=%u record for original JobId=%u\n"), jr->JobId, 
+	 label->JobId);
    }
+   mjcr->JobId = jr->JobId;	      /* set new JobId */
    return mjcr;
 }
 
@@ -780,14 +804,20 @@ static int update_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *elabel,
 		   rec->VolSessionId, rec->VolSessionTime);
       return 0;
    }
-   dt.julian_day_number = elabel->write_date;
-   dt.julian_day_fraction = elabel->write_time;
-   tm_decode(&dt, &tm);
-   jr->JobId = mjcr->JobId;
-   jr->JobStatus = JS_Terminated;     /* ***FIXME*** need to add to EOS label */
-   mjcr->JobStatus = JS_Terminated;
-   jr->EndTime = mktime(&tm);
+   if (elabel->VerNum >= 11) {
+      jr->EndTime = (time_t)elabel->write_btime;
+   } else {
+      dt.julian_day_number = elabel->write_date;
+      dt.julian_day_fraction = elabel->write_time;
+      tm_decode(&dt, &tm);
+      jr->EndTime = mktime(&tm);
+   }
+   lasttime = jr->EndTime;
    mjcr->end_time = jr->EndTime;
+
+   jr->JobId = mjcr->JobId;
+   jr->JobStatus = elabel->JobStatus;
+   mjcr->JobStatus = elabel->JobStatus;
    jr->JobFiles = elabel->JobFiles;
    jr->JobBytes = elabel->JobBytes;
    jr->VolSessionId = rec->VolSessionId;
@@ -801,12 +831,12 @@ static int update_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *elabel,
    }
    
    if (!db_update_job_end_record(db, jr)) {
-      Pmsg1(0, _("Could not update job record. ERR=%s\n"), db_strerror(db));
+      Pmsg2(0, _("Could not update JobId=%u record. ERR=%s\n"), jr->JobId,  db_strerror(db));
       free_jcr(mjcr);
       return 0;
    }
    if (verbose) {
-      Pmsg1(000, _("Updated Job termination record for JobId: %u\n"), jr->JobId);
+      Pmsg1(000, _("Updated Job termination record for new JobId=%u\n"), jr->JobId);
    }
    if (verbose > 1) {
       char *term_msg;

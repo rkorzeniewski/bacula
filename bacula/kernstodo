@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                 6 October 2002
+                 7 October 2002
 
 Irix conversion notes:
 - no uuencode
@@ -83,10 +83,12 @@ From Chuck:
 
   
 Projects:
-           Bacula Projects Roadmap 
+            Bacula Projects Roadmap 
                17 August 2002
+           last update 7 October 2002
 
 Item 1:   Multiple simultaneous Jobs. (done)
+Done
 
   What:   Permit multiple simultaneous jobs in Bacula.
 
@@ -106,7 +108,7 @@ Item 1:   Multiple simultaneous Jobs. (done)
 
 
 Item 2:   Make the Storage daemon use intermediate file storage to buffer data.
-          (not necessary)
+Deferred -- not necessary yet.
 
   What:   If data is coming into the SD too fast, buffer it to 
           disk if the user has configured this option.
@@ -125,6 +127,7 @@ Item 2:   Make the Storage daemon use intermediate file storage to buffer data.
 
 
 Item 3:   Write the bscan program.
+Done
 
   What:   Write a program that reads a Bacula tape and puts all the 
           appropriate data into the catalog. This allows recovery
@@ -175,6 +178,7 @@ Item 5:   Implement Label templates
 
 
 Item 6:   Write a regression script.
+Started
 
   What:   This is an automatic script that runs and tests as many features
           of Bacula as possible. The output is compared to previous
@@ -229,6 +233,7 @@ Item 9:   Add SSL to daemon communications.
 
 
 Item 10:  Define definitive tape format.
+Mostly done (version 1.27)
 
   What:   Define that definitive tape format that will not change 
           for the next millennium.
@@ -271,17 +276,11 @@ Small projects:
 - Restore options (overwrite, overwrite if older,
    overwrite if newer, never overwrite, ...)
 - Restore to a particular time -- e.g. before date, after date. 
-- On command write out a bootstrap file (at end of job).
 - Make all database Ids 64 bit.
-- Pass JCR to database routines permitting better error printing.
-- Make bls accept bootstrap record.
 - Write an applet for Linux.
 - Make SD reject writing on tape where Catalog and tape # files
   don't agree (possibly OK if tape > catalog).
 - Implement new daemon communications protocol.
-- Add DIR config directive to spool attributes.
-- Pass DIR config variable to SD for no attributes.
-- Create JobMedia record for all running Jobs when Media changes.
 - Send Volumes needed during restore to Console (just after
   create_volume_list) -- also in restore command?
 - Add estimate to Console commands
@@ -555,65 +554,3 @@ Longer term to do:
 
 
 Done: (see kernsdone for more)
---the console script is broken as installed and has to be hand-massaged with
-  paths, config files etc.
-- Termination status in FD for Verify = C -- incorrect.
-- Implement alter_sqlite_tables
-- Fix scheduler -- see "Hourly cycle". It doesn't do both each
-  hour, rather it alternates between 0:05 and 0:35.
-- Create Counter DB records.
-- Fix db_get_job_volume_names() to return array of strings (now works
-  with pool memory.
-- Eliminate MySQL shared libraries from smtp and daemons not using MySQL.
-- Compare tape File attributes to Catalog.
-  (File attributes are size, dates, MD5, but not
-   data).
-- Report bad status from smtp or mail program.
-- Ensure that Start/End File/Block are correct.
-- If MySQL database is not running, job terminates with
-  wierd type and wierd error code.
-- Probably create a jcr with JobId=0 as a master
-  catchall if jcr not found or if operation involves
-  global operation.
-- The daemons should know when one is already
-  running and refuse to run a second copy.
-- Figure out how to do a "full" restore from catalog
-- Make SD send attribute stream to DR but first
-  buffering to file, then sending only when the
-  files are written to tape.
-- Restore file xx or files xx, yy to their most recent values.
-- Get correct block/file information in Catalog, pay attention to change of media.
-- Write better dump of Messages resource.
-- Authentication between SD and FD
-- In restore job, print some summary information at end, such
-  as rate, ... job status, ...
-- Problem with len at 362 in tree.c
-- Report volume write rate.
-- Pass "Catalog Files = no" to storage daemon to eliminate network traffic.
-- When we are at EOM, we must ask each job to write JobMedia
-  record (update_volume_info).
-- Create all pools when Director starts
-- Correct Warning: Volume name mismatch. Wanted test2 got test1
-  when reading a tape and want the next one.
-- Implement autochanger for restore. ARRRGGG! I forgot!
-- sd.conf password does not match dir.conf storage password
-- Apparently Description records are not freed. Storage daemon
-  Device reported orphaned buffer 45 bytes probably for a Description.
-- Take another stab at 64 bit file addresses
-- Had to label second tape using the autochanger two times. The
-  first time the second tape was apparently loaded but not labeled.
-  3903 Failed to label Volume: ERR=dev.c:285 Bad call to rewind_dev. Device /dev/nst0 not open
-- Attempt to label autochanger tape which is unloaded.
-  rufus-dir: Start Backup JobId 1, Job=kernsave.2002-09-21.21:07:34
-  rufus-sd: Job kernsave.2002-09-21.21:07:34 waiting. Cannot find any appendable volumes.
-  Please use the "label"  command to create a new Volume for:
-      Storage:      FileStorage
-      Media type:   File
-      Pool:         Default
-  rufus-dir: Error in getmsg.c:129 Job not found: Jmsg Job= type=6 level=0 rufus-sd: Issuing autochanger "load slot 2" command.
-     
-  Another try with tape mounted and Job hung in Director.
-- Write updated bootstrap after every Job.
-- Document driver testing with btape.
-- Document autochanger.
-
