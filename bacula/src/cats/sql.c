@@ -363,7 +363,7 @@ list_dashes(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx)
    send(ctx, "+");
    for (i = 0; i < sql_num_fields(mdb); i++) {
       field = sql_fetch_field(mdb);
-      for (j = 0; j < field->max_length + 2; j++) {
+      for (j = 0; j < (int)field->max_length + 2; j++) {
          send(ctx, "-");
       }
       send(ctx, "+");
@@ -401,10 +401,10 @@ list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type type)
 	    max_len = col_len;
 	 }
       } else {
-	 if (IS_NUM(field->type) && field->max_length > 0) { /* fixup for commas */
+	 if (IS_NUM(field->type) && (int)field->max_length > 0) { /* fixup for commas */
 	    field->max_length += (field->max_length - 1) / 3;
 	 }
-	 if (col_len < field->max_length) {
+	 if (col_len < (int)field->max_length) {
 	    col_len = field->max_length;
 	 }
 	 if (col_len < 4 && !IS_NOT_NULL(field->flags)) {
@@ -426,7 +426,7 @@ list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type type)
    for (i = 0; i < sql_num_fields(mdb); i++) {
       Dmsg1(50, "list_result looking at field %d\n", i);
       field = sql_fetch_field(mdb);
-      bsnprintf(buf, sizeof(buf), " %-*s |", field->max_length, field->name);
+      bsnprintf(buf, sizeof(buf), " %-*s |", (int)field->max_length, field->name);
       send(ctx, buf);
    }
    send(ctx, "\n");
@@ -439,12 +439,12 @@ list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type type)
       for (i = 0; i < sql_num_fields(mdb); i++) {
 	 field = sql_fetch_field(mdb);
 	 if (row[i] == NULL) {
-            bsnprintf(buf, sizeof(buf), " %-*s |", field->max_length, "NULL");
+            bsnprintf(buf, sizeof(buf), " %-*s |", (int)field->max_length, "NULL");
 	 } else if (IS_NUM(field->type)) {
-            bsnprintf(buf, sizeof(buf), " %*s |", field->max_length,       
+            bsnprintf(buf, sizeof(buf), " %*s |", (int)field->max_length,       
 		      add_commas(row[i], ewc));
 	 } else {
-            bsnprintf(buf, sizeof(buf), " %-*s |", field->max_length, row[i]);
+            bsnprintf(buf, sizeof(buf), " %-*s |", (int)field->max_length, row[i]);
 	 }
 	 send(ctx, buf);
       }

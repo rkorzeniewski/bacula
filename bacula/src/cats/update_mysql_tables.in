@@ -53,7 +53,7 @@ CREATE TABLE BaseFiles (
    );
 
 DELETE FROM Version;
-INSERT INTO VERSION (VersionId) VALUES (7);
+INSERT INTO Version (VersionId) VALUES (7);
 
 END-OF-DATA
 then
