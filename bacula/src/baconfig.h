@@ -389,6 +389,11 @@ extern "C" int getdomainname(char *name, size_t len);
 /* They don't really have it */
 #undef HAVE_GETDOMAINNAME
 #endif
+
+#ifdef HAVE_AIX_OS
+#define crid_t int
+#define class_id_t unsigned int
+#endif
  
 
 #define ALIGN_SIZE (sizeof(double))
