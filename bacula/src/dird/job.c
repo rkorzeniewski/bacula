@@ -122,8 +122,12 @@ void run_job(JCR *jcr)
    jcr->db=db_init_database(jcr, jcr->catalog->db_name, jcr->catalog->db_user,
 			    jcr->catalog->db_password, jcr->catalog->db_address,
 			    jcr->catalog->db_port, jcr->catalog->db_socket);
-   if (!db_open_database(jcr, jcr->db)) {
-      Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
+   if (!jcr->db || !db_open_database(jcr, jcr->db)) {
+      Jmsg(jcr, M_FATAL, 0, _("Could not open database \"%s\".\n"),
+		 jcr->catalog->db_name);
+      if (jcr->db) {
+         Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
+      }
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       free_jcr(jcr);
       return;

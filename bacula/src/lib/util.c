@@ -112,7 +112,7 @@ char *encode_time(time_t time, char *buf)
 /*
  * Concatenate a string (str) onto a pool memory buffer pm
  */
-in pm_strcat(POOLMEM **pm, char *str)
+int pm_strcat(POOLMEM **pm, char *str)
 {
    int pmlen = strlen(*pm);
    int len = strlen(str) + 1;

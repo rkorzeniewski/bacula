@@ -102,56 +102,56 @@ int main (int argc, char *argv[])
    while ((ch = getopt(argc, argv, "c:d:fg:r:stu:v?")) != -1) {
       switch (ch) {
          case 'c':                    /* specify config file */
-	    if (configfile != NULL) {
-	       free(configfile);
-	    }
-	    configfile = bstrdup(optarg);
-	    break;
+	 if (configfile != NULL) {
+	    free(configfile);
+	 }
+	 configfile = bstrdup(optarg);
+	 break;
 
-         case 'd':                    /* set debug level */
-	    debug_level = atoi(optarg);
-	    if (debug_level <= 0) {
-	       debug_level = 1; 
-	    }
-            Dmsg1(0, "Debug level = %d\n", debug_level);
-	    break;
+      case 'd':                    /* set debug level */
+	 debug_level = atoi(optarg);
+	 if (debug_level <= 0) {
+	    debug_level = 1; 
+	 }
+         Dmsg1(0, "Debug level = %d\n", debug_level);
+	 break;
 
-         case 'f':                    /* run in foreground */
-	    background = FALSE;
-	    break;
+      case 'f':                    /* run in foreground */
+	 background = FALSE;
+	 break;
 
-         case 'g':                    /* set group id */
-	    gid = optarg;
-	    break;
+      case 'g':                    /* set group id */
+	 gid = optarg;
+	 break;
 
-         case 'r':                    /* run job */
-	    if (runjob != NULL) {
-	       free(runjob);
-	    }
-	    if (optarg) {
-	       runjob = bstrdup(optarg);
-	    }
-	    break;
+      case 'r':                    /* run job */
+	 if (runjob != NULL) {
+	    free(runjob);
+	 }
+	 if (optarg) {
+	    runjob = bstrdup(optarg);
+	 }
+	 break;
 
-         case 's':                    /* turn off signals */
-	    no_signals = TRUE;
-	    break;
+      case 's':                    /* turn off signals */
+	 no_signals = TRUE;
+	 break;
 
-         case 't':                    /* test config */
-	    test_config = TRUE;
-	    break;
+      case 't':                    /* test config */
+	 test_config = TRUE;
+	 break;
 
-         case 'u':                    /* set uid */
-	    uid = optarg;
-	    break;
+      case 'u':                    /* set uid */
+	 uid = optarg;
+	 break;
 
-         case 'v':                    /* verbose */
-	    verbose++;
-	    break;
+      case 'v':                    /* verbose */
+	 verbose++;
+	 break;
 
-         case '?':
-	 default:
-	    usage();
+      case '?':
+      default:
+	 usage();
 
       }  
    }
@@ -367,9 +367,12 @@ Without that I don't know who I am :-(\n"), configfile);
 	 db = db_init_database(NULL, catalog->db_name, catalog->db_user,
 			    catalog->db_password, catalog->db_address,
 			    catalog->db_port, catalog->db_socket);
-	 if (!db_open_database(NULL, db)) {
-            Jmsg(NULL, M_FATAL, 0, _("Could not open %s database \"%s\".\n"),
-		 catalog_db, catalog->db_name);
+	 if (!db || !db_open_database(NULL, db)) {
+            Jmsg(NULL, M_FATAL, 0, _("Could not open database \"%s\".\n"),
+		 catalog->db_name);
+	    if (db) {
+               Jmsg(NULL, M_FATAL, 0, _("%s"), db_strerror(db));
+	    }
 	    OK = FALSE;
 	 } else {
 	    /* If a pool is defined for this job, create the pool DB	   
