@@ -120,9 +120,9 @@ struct MQUEUE_ITEM {
 };
 
 
-void d_msg(char *file, int line, int level, char *fmt,...);
-void e_msg(char *file, int line, int type, int level, char *fmt,...);
-void Jmsg(JCR *jcr, int type, int level, char *fmt,...);
+void d_msg(const char *file, int line, int level, const char *fmt,...);
+void e_msg(const char *file, int line, int type, int level, const char *fmt,...);
+void Jmsg(JCR *jcr, int type, int level, const char *fmt,...);
 
 extern int debug_level;
 extern int verbose;

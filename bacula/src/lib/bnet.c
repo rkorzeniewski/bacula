@@ -682,7 +682,7 @@ char *bnet_strerror(BSOCK *bsock)
  *	     1 on success
  */
 int
-bnet_fsend(BSOCK *bs, char *fmt, ...)
+bnet_fsend(BSOCK *bs, const char *fmt, ...)
 {
    va_list arg_ptr;
    int maxlen;

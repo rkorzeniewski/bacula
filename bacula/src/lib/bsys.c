@@ -66,7 +66,7 @@ void *bmalloc(size_t size)
 }
 #endif
 
-void *b_malloc(char *file, int line, size_t size)
+void *b_malloc(const char *file, int line, size_t size)
 {
   void *buf;
 
@@ -108,7 +108,7 @@ void *bcalloc (size_t size1, size_t size2)
 /*
  * Implement snprintf
  */
-int bsnprintf(char *str, int32_t size, const  char  *fmt,  ...) 
+int bsnprintf(char *str, int32_t size, const char *fmt,  ...) 
 {
 #ifdef HAVE_VSNPRINTF
    va_list   arg_ptr;

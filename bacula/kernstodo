@@ -1167,6 +1167,40 @@ Done: (see kernsdone for more)
 ====
 
 ====
+SCSI info:
+FreeBSD
+undef# camcontrol devlist
+<WANGTEK 51000  SCSI M74H 12B3>    at scbus0 target 2 lun 0 (pass0,sa0)
+<ARCHIVE 4586XX 28887-XXX 4BGD>    at scbus0 target 4 lun 0 (pass1,sa1)
+<ARCHIVE 4586XX 28887-XXX 4BGD>    at scbus0 target 4 lun 1 (pass2)
+
+tapeinfo -f /dev/sg0 with a bad tape in drive 1:
+[kern@rufus mtx-1.2.17kes]$ ./tapeinfo -f /dev/sg0
+Product Type: Tape Drive
+Vendor ID: 'HP      '
+Product ID: 'C5713A          '
+Revision: 'H107'
+Attached Changer: No
+TapeAlert[3]:   Hard Error: Uncorrectable read/write error.
+TapeAlert[20]:    Clean Now: The tape drive neads cleaning NOW.
+MinBlock:1
+MaxBlock:16777215
+SCSI ID: 5
+SCSI LUN: 0
+Ready: yes
+BufferedMode: yes
+Medium Type: Not Loaded
+Density Code: 0x26
+BlockSize: 0
+DataCompEnabled: yes
+DataCompCapable: yes
+DataDeCompEnabled: yes
+CompType: 0x20
+DeCompType: 0x0
+Block Position: 0
+=====
+
+====
    Handling removable disks
 
    From: Karl Cunningham <karlc@keckec.com>

@@ -92,7 +92,7 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 #define HEAD_SIZE BALIGN(sizeof(struct abufhead))
 
-POOLMEM *sm_get_pool_memory(char *fname, int lineno, int pool)
+POOLMEM *sm_get_pool_memory(const char *fname, int lineno, int pool)
 {
    struct abufhead *buf;
 
@@ -129,7 +129,7 @@ POOLMEM *sm_get_pool_memory(char *fname, int lineno, int pool)
 }
 
 /* Get nonpool memory of size requested */
-POOLMEM *sm_get_memory(char *fname, int lineno, int32_t size)
+POOLMEM *sm_get_memory(const char *fname, int lineno, int32_t size)
 {
    struct abufhead *buf;
    int pool = 0;
@@ -148,7 +148,7 @@ POOLMEM *sm_get_memory(char *fname, int lineno, int32_t size)
 
 
 /* Return the size of a memory buffer */
-int32_t sm_sizeof_pool_memory(char *fname, int lineno, POOLMEM *obuf)
+int32_t sm_sizeof_pool_memory(const char *fname, int lineno, POOLMEM *obuf)
 {
    char *cp = (char *)obuf;
 
@@ -158,7 +158,7 @@ int32_t sm_sizeof_pool_memory(char *fname, int lineno, POOLMEM *obuf)
 }
 
 /* Realloc pool memory buffer */
-POOLMEM *sm_realloc_pool_memory(char *fname, int lineno, POOLMEM *obuf, int32_t size)
+POOLMEM *sm_realloc_pool_memory(const char *fname, int lineno, POOLMEM *obuf, int32_t size)
 {
    char *cp = (char *)obuf;
    void *buf;
@@ -181,7 +181,7 @@ POOLMEM *sm_realloc_pool_memory(char *fname, int lineno, POOLMEM *obuf, int32_t 
    return (POOLMEM *)(((char *)buf)+HEAD_SIZE);
 }
 
-POOLMEM *sm_check_pool_memory_size(char *fname, int lineno, POOLMEM *obuf, int32_t size)
+POOLMEM *sm_check_pool_memory_size(const char *fname, int lineno, POOLMEM *obuf, int32_t size)
 {
    ASSERT(obuf);
    if (size <= sizeof_pool_memory(obuf)) {
@@ -191,7 +191,7 @@ POOLMEM *sm_check_pool_memory_size(char *fname, int lineno, POOLMEM *obuf, int32
 }
 
 /* Free a memory buffer */
-void sm_free_pool_memory(char *fname, int lineno, POOLMEM *obuf)
+void sm_free_pool_memory(const char *fname, int lineno, POOLMEM *obuf)
 {
    struct abufhead *buf;
    int pool;

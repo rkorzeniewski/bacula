@@ -41,15 +41,15 @@ int       bin_to_base64          (char *buf, char *bin, int len);
 /* bsys.c */
 char     *bstrncpy               (char *dest, const char *src, int maxlen);
 char     *bstrncat               (char *dest, const char *src, int maxlen);
-void     *b_malloc               (char *file, int line, size_t size);
+void     *b_malloc               (const char *file, int line, size_t size);
 #ifndef DEBUG
 void     *bmalloc                (size_t size);
 #endif
 void     *brealloc               (void *buf, size_t size);
 void     *bcalloc                (size_t size1, size_t size2);
-int       bsnprintf              (char *str, int32_t size, const  char  *format, ...);
-int       bvsnprintf             (char *str, int32_t size, const char  *format, va_list ap);
-int       pool_sprintf           (char *pool_buf, char *fmt, ...);
+int       bsnprintf              (char *str, int32_t size, const char *format, ...);
+int       bvsnprintf             (char *str, int32_t size, const char *format, va_list ap);
+int       pool_sprintf           (char *pool_buf, const char *fmt, ...);
 void      create_pid_file        (char *dir, char *progname, int port);
 int       delete_pid_file        (char *dir, char *progname, int port);
 void      drop                   (char *uid, char *gid);
@@ -63,7 +63,7 @@ long long int strtoll            (const char *ptr, char **endptr, int base);
 /* bnet.c */
 int32_t    bnet_recv             (BSOCK *bsock);
 int        bnet_send             (BSOCK *bsock);
-int        bnet_fsend            (BSOCK *bs, char *fmt, ...);
+int        bnet_fsend            (BSOCK *bs, const char *fmt, ...);
 int        bnet_set_buffer_size  (BSOCK *bs, uint32_t size, int rw);
 int        bnet_sig              (BSOCK *bs, int sig);
 int        bnet_ssl_server       (BSOCK *bsock, char *password, int ssl_need, int ssl_has);
@@ -135,13 +135,13 @@ char *    lex_tok_to_str         (int token);
 int       lex_get_token          (LEX *lf, int expect);
 
 /* message.c */
-void       my_name_is            (int argc, char *argv[], char *name);
+void       my_name_is            (int argc, char *argv[], const char *name);
 void       init_msg              (JCR *jcr, MSGS *msg);
 void       term_msg              (void);
 void       close_msg             (JCR *jcr);
 void       add_msg_dest          (MSGS *msg, int dest, int type, char *where, char *dest_code);
 void       rem_msg_dest          (MSGS *msg, int dest, int type, char *where);
-void       Jmsg                  (JCR *jcr, int type, int level, char *fmt, ...);
+void       Jmsg                  (JCR *jcr, int type, int level, const char *fmt, ...);
 void       dispatch_message      (JCR *jcr, int type, int level, char *buf);
 void       init_console_msg      (char *wd);
 void       free_msgs_res         (MSGS *msgs);

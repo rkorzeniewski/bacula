@@ -65,7 +65,7 @@ typedef unsigned short sm_ushort;
 struct abufhead {
    struct b_queue abq;	       /* Links on allocated queue */
    unsigned ablen;	       /* Buffer length in bytes */
-   char *abfname;	       /* File name pointer */
+   const char *abfname;        /* File name pointer */
    sm_ushort ablineno;	       /* Line number of allocation */ 
 };
 
@@ -81,7 +81,7 @@ static Boolean bufimode = False;   /* Buffers not tracked when True */
 /*  SMALLOC  --  Allocate buffer, enqueing on the orphaned buffer
 		 tracking list.  */
 
-static void *smalloc(char *fname, int lineno, unsigned int nbytes)
+static void *smalloc(const char *fname, int lineno, unsigned int nbytes)
 {
    char *buf;
 
@@ -117,7 +117,7 @@ static void *smalloc(char *fname, int lineno, unsigned int nbytes)
 /*  SM_NEW_OWNER -- Update the File and line number for a buffer
 		    This is to accomodate mem_pool. */
 
-void sm_new_owner(char *fname, int lineno, char *buf)
+void sm_new_owner(const char *fname, int lineno, char *buf)
 {
    buf -= HEAD_SIZE;  /* Decrement to header */
    ((struct abufhead *)buf)->abfname = bufimode ? NULL : fname;
@@ -130,7 +130,7 @@ void sm_new_owner(char *fname, int lineno, char *buf)
 		 free(x)  is  defined  to  generate  a	call  to  this
 		 routine.  */
 
-void sm_free(char *file, int line, void *fp)
+void sm_free(const char *file, int line, void *fp)
 {
    char *cp = (char *) fp;
    struct b_queue *qp;
@@ -186,7 +186,7 @@ void sm_free(char *file, int line, void *fp)
 /*  SM_MALLOC  --  Allocate buffer.  NULL is returned if no memory
 		   was available.  */
 
-void *sm_malloc(char *fname, int lineno, unsigned int nbytes)
+void *sm_malloc(const char *fname, int lineno, unsigned int nbytes)
 {
    void *buf;
 
@@ -205,7 +205,7 @@ void *sm_malloc(char *fname, int lineno, unsigned int nbytes)
 
 /*  SM_CALLOC  --  Allocate an array and clear it to zero.  */
 
-void *sm_calloc(char *fname, int lineno,
+void *sm_calloc(const char *fname, int lineno,
 		unsigned int nelem, unsigned int elsize)
 {
    void *buf;
@@ -227,7 +227,7 @@ void *sm_calloc(char *fname, int lineno,
 		    This may result in programs which make heavy use  of
 		    realloc() running much slower than normally.  */
 
-void *sm_realloc(char *fname, int lineno, void *ptr, unsigned int size)
+void *sm_realloc(const char *fname, int lineno, void *ptr, unsigned int size)
 {
    unsigned osize;
    void *buf;
@@ -378,7 +378,7 @@ void sm_dump(Boolean bufdump)
 
 #undef sm_check
 /*  SM_CHECK --  Check the buffers and dump if any damage exists. */
-void sm_check(char *fname, int lineno, Boolean bufdump)
+void sm_check(const char *fname, int lineno, Boolean bufdump)
 {
 	if (!sm_check_rtn(fname, lineno, bufdump)) {
            Emsg2(M_ABORT, 0, "Damaged buffer found. Called from %s:%d\n",
@@ -388,7 +388,7 @@ void sm_check(char *fname, int lineno, Boolean bufdump)
 
 #undef sm_check_rtn
 /*  SM_CHECK_RTN -- Check the buffers and return 1 if OK otherwise 0 */
-int sm_check_rtn(char *fname, int lineno, Boolean bufdump)
+int sm_check_rtn(const char *fname, int lineno, Boolean bufdump)
 {
    struct abufhead *ap;
    int bad, badbuf = 0;

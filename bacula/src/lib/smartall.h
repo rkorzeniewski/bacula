@@ -31,21 +31,21 @@
 
 typedef enum {False = 0, True = 1} Boolean;
 
-extern void *sm_malloc(char *fname, int lineno, unsigned int nbytes),
-	    *sm_calloc(char *fname, int lineno,
+extern void *sm_malloc(const char *fname, int lineno, unsigned int nbytes),
+	    *sm_calloc(const char *fname, int lineno,
 		unsigned int nelem, unsigned int elsize),
-	    *sm_realloc(char *fname, int lineno, void *ptr, unsigned int size),
+	    *sm_realloc(const char *fname, int lineno, void *ptr, unsigned int size),
 	    *actuallymalloc(unsigned int size),
 	    *actuallycalloc(unsigned int nelem, unsigned int elsize),
 	    *actuallyrealloc(void *ptr, unsigned int size);
-extern void sm_free(char *fname, int lineno, void *fp);
+extern void sm_free(const char *fname, int lineno, void *fp);
 extern void actuallyfree(void *cp),
 	    sm_dump(Boolean bufdump), sm_static(int mode);
-extern void sm_new_owner(char *fname, int lineno, char *buf);
+extern void sm_new_owner(const char *fname, int lineno, char *buf);
 
 #ifdef SMCHECK
-extern void sm_check(char *fname, int lineno, Boolean bufdump);
-extern int sm_check_rtn(char *fname, int lineno, Boolean bufdump);
+extern void sm_check(const char *fname, int lineno, Boolean bufdump);
+extern int sm_check_rtn(const char *fname, int lineno, Boolean bufdump);
 #else
 #define sm_check(f, l, fl)
 #define sm_check_rtn(f, l, fl) 1
