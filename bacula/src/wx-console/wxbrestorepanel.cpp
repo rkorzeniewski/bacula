@@ -29,6 +29,9 @@
 #include "marked.xpm"
 #include "partmarked.xpm"
 
+/* A macro named Yield is defined under MinGW */
+#undef Yield
+
 /*
  *  Class which is stored in the tree and in the list to keep informations
  *  about the element.
@@ -706,9 +709,6 @@ void wxbRestorePanel::SetListItemState(long listitem, int newstate) {
 void wxbRestorePanel::SetTreeItemState(wxTreeItemId item, int newstate) {
    long cookie;
    wxTreeItemId currentChild = tree->GetFirstChild(item, cookie);
-
-   bool onechildmarked = false;
-   bool onechildunmarked = false;
 
    wxbTreeItemData* itemdata;
 
