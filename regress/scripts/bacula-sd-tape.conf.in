@@ -41,6 +41,7 @@ Device {
   AutomaticMount = yes;               # when device opened, read it
   AlwaysOpen = yes;
   RemovableMedia = yes;
+  @@sbindir@/tape_options
 # Maximum File Size = 1000000
 }
 
