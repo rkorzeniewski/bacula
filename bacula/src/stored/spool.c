@@ -200,7 +200,7 @@ static bool despool_data(DCR *dcr, bool commit)
 
    Dmsg0(100, "Despooling data\n");
    Jmsg(jcr, M_INFO, 0, _("%s spooled data to Volume. Despooling %s bytes ...\n"),
-        commit?"Committing":"Writting",
+        commit?"Committing":"Writing",
 	edit_uint64_with_commas(jcr->dcr->dev->spool_size, ec1));
    dcr->spooling = false;
    lock_device(dcr->dev);

@@ -176,7 +176,7 @@ It is probably not running or your password is incorrect.\n"),
       return 0;
    }
 
-#ifdef HAVE_TREAD_SAFE_MYSQL
+#ifdef HAVE_THREAD_SAFE_MYSQL
    my_thread_init();
 #endif
 

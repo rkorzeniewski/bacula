@@ -45,7 +45,7 @@ extern int do_backup(JCR *jcr);
 extern bool do_mac(JCR *jcr);
 extern int do_admin(JCR *jcr);
 extern int do_restore(JCR *jcr);
-extern int do_verify(JCR *jcr);
+extern bool do_verify(JCR *jcr);
 
 /* Imported variables */
 extern time_t watchdog_time;
