@@ -209,7 +209,7 @@ static void  list_terminated_jobs(void sendit(const char *msg, int len, void *sa
 	    *p = 0;
 	 }
       }
-      bsnprintf(buf, sizeof(buf), _("%6d  %-4s %8s %14s %-7s  %-8s %s\n"), 
+      bsnprintf(buf, sizeof(buf), _("%6d  %-6s %8s %14s %-7s  %-8s %s\n"), 
 	 je->JobId,
 	 level, 
 	 edit_uint64_with_commas(je->JobFiles, b1),

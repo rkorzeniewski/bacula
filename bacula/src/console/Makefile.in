@@ -3,9 +3,9 @@
 #
 @MCOMMON@
 
-srcdir =	.
-VPATH = 	.
-.PATH:		.
+srcdir =        .
+VPATH =         .
+.PATH:          .
 
 # one up
 basedir = ..
@@ -30,62 +30,74 @@ CONS_INC=@CONS_INC@
 CONS_LIBS=@CONS_LIBS@
 CONS_LDFLAGS=@CONS_LDFLAGS@
 
-.SUFFIXES:	.c .o
+.SUFFIXES:      .c .o
 .PHONY:
 .DONTCARE:
 
 # inference rules
 .c.o:
-	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(CONS_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+        $(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(CONS_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
 all: Makefile bconsole @STATIC_CONS@
-	@echo "==== Make of console is good ===="
-	@echo " "
+        @echo "==== Make of console is good ===="
+        @echo " "
 
 
 bconsole: $(CONSOBJS) ../lib/libbac.a ../cats/libsql.a
-	$(CXX) $(LDFLAGS) $(CONS_LDFLAGS) -L../lib -L../cats -o $@ $(CONSOBJS) \
-	      $(LIBS) $(DLIB) $(CONS_LIBS) -lbac -lsql -lm
+        $(CXX) $(LDFLAGS) $(CONS_LDFLAGS) -L../lib -L../cats -o $@ $(CONSOBJS) \
+              $(LIBS) $(DLIB) $(CONS_LIBS) -lbac -lsql -lm
 
 static-bconsole: $(CONSOBJS) ../lib/libbac.a ../cats/libsql.a
-	$(CXX) -static $(LDFLAGS) $(CONS_LDFLAGS) -L../lib -L../cats -o $@ $(CONSOBJS) \
-	      $(LIBS) $(DLIB) $(CONS_LIBS) -lbac -lsql -lm
-	strip $@
+        $(CXX) -static $(LDFLAGS) $(CONS_LDFLAGS) -L../lib -L../cats -o $@ $(CONSOBJS) \
+              $(LIBS) $(DLIB) $(CONS_LIBS) -lbac -lsql -lm
+        strip $@
 
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
-	cd $(topdir) \
-	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+        cd $(topdir) \
+          && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 clean:
-	@$(RMF) console bconsole core core.* a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
-	@$(RMF) static-console static-bconsole gmon.out
+        @$(RMF) console bconsole core core.* a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
+        @$(RMF) static-console static-bconsole gmon.out
 
 realclean: clean
-	@$(RMF) tags console.conf bconsole.conf
+        @$(RMF) tags console.conf bconsole.conf
 
 distclean: realclean
-	if test $(srcdir) = .; then $(MAKE) realclean; fi
-	(cd $(srcdir); $(RMF) Makefile; $(RMF) -r CVS)
+        if test $(srcdir) = .; then $(MAKE) realclean; fi
+        (cd $(srcdir); $(RMF) Makefile; $(RMF) -r CVS)
 
 install: all
-	$(INSTALL_PROGRAM) bconsole $(DESTDIR)$(sbindir)/bconsole
-	@srcconf=bconsole.conf; \
-	if  test -f ${DESTDIR}${sysconfdir}/$$srcconf; then \
-	   destconf=$$srcconf.new; \
-	   echo "  ==> Found existing $$srcconf, installing new conf file as $$destconf"; \
-	else \
-	   destconf=$$srcconf; \
-	fi; \
-	echo "${INSTALL_CONFIG} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf"; \
-	${INSTALL_CONFIG} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf
-	if test -f static-bconsole; then \
-	   $(INSTALL_PROGRAM) static-bconsole $(DESTDIR)$(sbindir)/static-bconsole; \
-	fi
+        @if test -f ${DESTDIR}${sbindir}/console; then \
+           echo " "; \
+           echo "Warning!!!  ${DESTDIR}${sbindir}console found."; \
+           echo " console has been renamed bconsole, so console"; \
+           echo " is no longer used, and you might want to delete it."; \
+           echo " "; \
+        fi
+        $(INSTALL_PROGRAM) bconsole $(DESTDIR)$(sbindir)/bconsole
+        @srcconf=bconsole.conf; \
+        if  test -f ${DESTDIR}${sysconfdir}/$$srcconf; then \
+           destconf=$$srcconf.new; \
+           echo "  ==> Found existing $$srcconf, installing new conf file as $$destconf"; \
+        else \
+           destconf=$$srcconf; \
+           if  test -f ${DESTDIR}${sysconfdir}/console.conf; then \
+              echo "Existing console.conf moved to bconsole.conf"; \
+              @$(MV) ${DESTDIR}${sysconfdir}/console.conf ${DESTDIR}${sysconfdir}/bconsole.conf; \
+              destconf=$$srcconf.new; \
+           fi; \
+        fi; \
+        echo "${INSTALL_CONFIG} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf"; \
+        ${INSTALL_CONFIG} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf
+        if test -f static-bconsole; then \
+           $(INSTALL_PROGRAM) static-bconsole $(DESTDIR)$(sbindir)/static-bconsole; \
+        fi
 
 uninstall:
-	(cd $(DESTDIR)$(sbindir); $(RMF) bconsole static-bconsole)
-	(cd $(DESTDIR)$(sysconfdir); $(RMF) bconsole.conf bconsole.conf.new)
+        (cd $(DESTDIR)$(sbindir); $(RMF) bconsole static-bconsole)
+        (cd $(DESTDIR)$(sysconfdir); $(RMF) console.conf bconsole.conf bconsole.conf.new)
 
 
 
@@ -95,16 +107,16 @@ uninstall:
 # `semi'-automatic since dependencies are generated at distribution time.
 
 depend:
-	@$(MV) Makefile Makefile.bak
-	@$(SED) "/^# DO NOT DELETE:/,$$ d" Makefile.bak > Makefile
-	@$(ECHO) "# DO NOT DELETE: nice dependency list follows" >> Makefile
-	@$(CC) -S -M $(CPPFLAGS) $(CONS_INC) -I$(srcdir) -I$(basedir) $(SQL_INC) *.c >> Makefile
-	@if test -f Makefile ; then \
-	    $(RMF) Makefile.bak; \
-	else \
-	   $(MV) Makefile.bak Makefile; \
-	   echo -e "Something went wrong\n\a"; \
-	fi
+        @$(MV) Makefile Makefile.bak
+        @$(SED) "/^# DO NOT DELETE:/,$$ d" Makefile.bak > Makefile
+        @$(ECHO) "# DO NOT DELETE: nice dependency list follows" >> Makefile
+        @$(CC) -S -M $(CPPFLAGS) $(CONS_INC) -I$(srcdir) -I$(basedir) $(SQL_INC) *.c >> Makefile
+        @if test -f Makefile ; then \
+            $(RMF) Makefile.bak; \
+        else \
+           $(MV) Makefile.bak Makefile; \
+           echo -e "Something went wrong\n\a"; \
+        fi
 
 # -----------------------------------------------------------------------
 # DO NOT DELETE: nice dependency list follows
