@@ -753,7 +753,7 @@ d_msg(char *file, int line, int level, char *fmt,...)
 #endif
 #ifdef FULL_LOCATION
        if (details) {
-          len = sprintf(buf, "%s: %s:%d ", my_name, file, line);
+          len = bsnprintf(buf, sizeof(buf), "%s: %s:%d ", my_name, file, line);
        } else {
 	  len = 0;
        }
@@ -790,7 +790,7 @@ p_msg(char *file, int line, int level, char *fmt,...)
 
 #ifdef FULL_LOCATION
     if (level >= 0) {
-       len = sprintf(buf, "%s: %s:%d ", my_name, file, line);
+       len = bsnprintf(buf, sizeof(buf), "%s: %s:%d ", my_name, file, line);
     } else {
        len = 0;
     }
@@ -839,7 +839,7 @@ t_msg(char *file, int line, int level, char *fmt,...)
     
 #ifdef FULL_LOCATION
        if (details) {
-          len = sprintf(buf, "%s: %s:%d ", my_name, file, line);
+          len = bsnprintf(buf, sizeof(buf), "%s: %s:%d ", my_name, file, line);
        } else {
 	  len = 0;
        }
@@ -879,30 +879,30 @@ e_msg(char *file, int line, int type, int level, char *fmt,...)
     }
     switch (type) {
     case M_ABORT:
-       len = sprintf(buf, "%s: ABORTING due to ERROR in %s:%d\n", 
+       len = bsnprintf(buf, sizeof(buf), "%s: ABORTING due to ERROR in %s:%d\n", 
 	       my_name, file, line);
        break;
     case M_ERROR_TERM:
-       len = sprintf(buf, "%s: ERROR TERMINATION at %s:%d\n", 
+       len = bsnprintf(buf, sizeof(buf), "%s: ERROR TERMINATION at %s:%d\n", 
 	       my_name, file, line);
        break;
     case M_FATAL:
        if (level == -1) 	   /* skip details */
-          len = sprintf(buf, "%s: Fatal Error because: ", my_name);
+          len = bsnprintf(buf, sizeof(buf), "%s: Fatal Error because: ", my_name);
        else
-          len = sprintf(buf, "%s: Fatal Error at %s:%d because:\n", my_name, file, line);
+          len = bsnprintf(buf, sizeof(buf), "%s: Fatal Error at %s:%d because:\n", my_name, file, line);
        break;
     case M_ERROR:
        if (level == -1) 	   /* skip details */
-          len = sprintf(buf, "%s: Error: ", my_name);
+          len = bsnprintf(buf, sizeof(buf), "%s: Error: ", my_name);
        else
-          len = sprintf(buf, "%s: Error in %s:%d ", my_name, file, line);
+          len = bsnprintf(buf, sizeof(buf), "%s: Error in %s:%d ", my_name, file, line);
        break;
     case M_WARNING:
-       len = sprintf(buf, "%s: Warning: ", my_name);
+       len = bsnprintf(buf, sizeof(buf), "%s: Warning: ", my_name);
        break;
     default:
-       len = sprintf(buf, "%s: ", my_name);
+       len = bsnprintf(buf, sizeof(buf), "%s: ", my_name);
        break;
     }
 
@@ -975,28 +975,28 @@ Jmsg(JCR *jcr, int type, int level, char *fmt,...)
     }
     switch (type) {
     case M_ABORT:
-       len = sprintf(rbuf, "%s ABORTING due to ERROR\n", my_name);
+       len = bsnprintf(rbuf, sizeof(rbuf), "%s ABORTING due to ERROR\n", my_name);
        break;
     case M_ERROR_TERM:
-       len = sprintf(rbuf, "%s ERROR TERMINATION\n", my_name);
+       len = bsnprintf(rbuf, sizeof(rbuf), "%s ERROR TERMINATION\n", my_name);
        break;
     case M_FATAL:
-       len = sprintf(rbuf, "%s: %s Fatal error: ", my_name, job);
+       len = bsnprintf(rbuf, sizeof(rbuf), "%s: %s Fatal error: ", my_name, job);
        if (jcr) {
 	  set_jcr_job_status(jcr, JS_FatalError);
        }
        break;
     case M_ERROR:
-       len = sprintf(rbuf, "%s: %s Error: ", my_name, job);
+       len = bsnprintf(rbuf, sizeof(rbuf), "%s: %s Error: ", my_name, job);
        if (jcr) {
 	  jcr->Errors++;
        }
        break;
     case M_WARNING:
-       len = sprintf(rbuf, "%s: %s Warning: ", my_name, job);
+       len = bsnprintf(rbuf, sizeof(rbuf), "%s: %s Warning: ", my_name, job);
        break;
     default:
-       len = sprintf(rbuf, "%s: ", my_name);
+       len = bsnprintf(rbuf, sizeof(rbuf), "%s: ", my_name);
        break;
     }
 
@@ -1070,7 +1070,7 @@ void j_msg(char *file, int line, JCR *jcr, int type, int level, char *fmt,...)
    POOLMEM *pool_buf;
 
    pool_buf = get_pool_memory(PM_EMSG);
-   i = sprintf(pool_buf, "%s:%d ", file, line);
+   i = Mmsg(&pool_buf, "%s:%d ", file, line);
 
 again:
    maxlen = sizeof_pool_memory(pool_buf) - i - 1; 

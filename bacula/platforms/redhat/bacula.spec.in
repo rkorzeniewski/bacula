@@ -1,39 +1,26 @@
+# Platform Build Configuration
 
 # basic defines for every build
 %define depkgs ../depkgs
 %define depkgs_version 24Jul03
 %define tomsrtbt tomsrtbt-2.0.103
 
-# 
-# You must build the package with at least one define parameter
-#  e.g.  rpmbuild -ba --define "build_rh7 1" bacula.spec
-#
-# If you want the MySQL version, use:
-#        rpmbuild -ba --define "build_mysql 1" --define "build_rh7 1" bacula.spec
-#
-
+# platform defines - set one below or define the build_xxx on the command line
+# RedHat builds
 %define rh7 0
 %{?build_rh7:%define rh7 1}
-
 %define rh8 0
 %{?build_rh8:%define rh8 1}
-
 %define rh9 0
 %{?build_rh9:%define rh9 1}
+# Whitebox Enterprise build
+%define wb3 0
+%{?build_wb3:%define wb3 1}
 
+# database defines
+# set mysql for MySQL support, leave unset for sqlite support
 %define mysql 0
 %{?build_mysql:%define mysql 1}
-
-
-%if %{rh7}
-%define rh_version rh7
-%endif
-%if %{rh8}
-%define rh_version rh8
-%endif
-%if %{rh9}
-%define rh_version rh9
-%endif
 
 Summary: Bacula - The Network Backup Solution
 Name: bacula
@@ -73,9 +60,9 @@ features that make it easy to find and recover lost or damaged files.
 Bacula source code has been released under the GPL version 2 license.
 
 %if %{mysql}
-%package mysql-%{rh_version}
+%package mysql
 %else
-%package sqlite-%{rh_version}
+%package sqlite
 %endif
 
 Summary: Bacula - The Network Backup Solution
@@ -94,9 +81,9 @@ Requires: mysql-server >= 3.23
 %endif
 
 %if %{mysql}
-%description mysql-%{rh_version}
+%description mysql
 %else
-%description sqlite-%{rh_version}
+%description sqlite
 %endif
 
 Bacula - It comes by night and sucks the vital essence from your computers.
@@ -115,7 +102,7 @@ This build requires MySQL to be installed separately as the catalog database.
 This build incorporates sqlite as the catalog database, statically compiled.
 %endif
 
-%package client-%{rh_version}
+%package client
 Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
 Requires: readline
@@ -127,7 +114,7 @@ Requires: gtk2 >= 2.0
 Requires: libgnomeui >= 2.0
 %endif
 
-%description client-%{rh_version}
+%description client
 Bacula - It comes by night and sucks the vital essence from your computers.
 
 Bacula is a set of computer programs that permit you (or the system 
@@ -291,7 +278,7 @@ cp ../%{tomsrtbt}/* $RPM_BUILD_ROOT/etc/bacula/rescue/tomsrtbt/
 
 %if %{mysql}
 
-%files mysql-%{rh_version}
+%files mysql
 %defattr(-,root,root)
 
 %attr(0754,root,root) /etc/bacula/bacula
@@ -330,7 +317,7 @@ cp ../%{tomsrtbt}/* $RPM_BUILD_ROOT/etc/bacula/rescue/tomsrtbt/
 
 %attr(0750,root,root) /usr/sbin/*
 
-%post mysql-%{rh_version}
+%post mysql
 # delete then add our links
 /sbin/chkconfig --del bacula-dir
 /sbin/chkconfig --del bacula-fd
@@ -351,7 +338,7 @@ echo "Creating MySQL bacula database..."
 echo "Creating bacula tables..."
 /etc/bacula/make_mysql_tables
 
-%preun mysql-%{rh_version}
+%preun mysql
 # delete our links
 /sbin/chkconfig --del bacula-dir
 /sbin/chkconfig --del bacula-fd
@@ -359,7 +346,7 @@ echo "Creating bacula tables..."
 
 %else
 
-%files sqlite-%{rh_version}
+%files sqlite
 %defattr(-,root,root)
 
 %attr(0754,root,root) /etc/bacula/bacula
@@ -398,7 +385,7 @@ echo "Creating bacula tables..."
 %attr(0750,root,root) /usr/sbin/*
 %attr(0750,root,root) /usr/lib/sqlite/sqlite
 
-%post sqlite-%{rh_version}
+%post sqlite
 # delete then add our links
 /sbin/chkconfig --del bacula-dir
 /sbin/chkconfig --del bacula-fd
@@ -413,7 +400,7 @@ chmod 0755 /usr/sbin/gnome-console
 # create the tables
 /etc/bacula/make_sqlite_tables
 
-%preun sqlite-%{rh_version}
+%preun sqlite
 # delete our links
 /sbin/chkconfig --del bacula-dir
 /sbin/chkconfig --del bacula-fd
@@ -421,7 +408,7 @@ chmod 0755 /usr/sbin/gnome-console
 
 %endif
 
-%files client-%{rh_version}
+%files client
 %defattr(-,root,root)
 
 %attr(0754,root,root) /etc/bacula/fd
@@ -439,12 +426,12 @@ chmod 0755 /usr/sbin/gnome-console
 %attr(0750,root,root) /usr/sbin/smtp
 
 
-%post client-%{rh_version}
+%post client
 # delete then add our links
 /sbin/chkconfig --del bacula-fd
 /sbin/chkconfig --add bacula-fd
 
-%preun client-%{rh_version}
+%preun client
 # delete our links
 /sbin/chkconfig --del bacula-fd
 
@@ -497,6 +484,9 @@ rm -f /etc/bacula/rescue/sfdisk
 rm -rf /etc/bacula/rescue/diskinfo/*
 
 %changelog
+* Thu Jan 1 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- removed rh_version from package names
+- added platform build configuration section to beginning of file
 * Tue Nov 25 2003 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - removed make_static_bacula script from rescue package install
 * Sun Nov 23 2003 D. Scott Barninger <barninger at fairfieldcomputers.com>
