@@ -195,7 +195,7 @@ depend:
 	    $(RMF) Makefile.bak; \
 	else \
 	   $(MV) Makefile.bak Makefile; \
-	   echo -e "Something went wrong with make depend\n\a"; \
+	   echo " ======= Something went wrong with make depend. ======="; \
 	fi
 
 # -----------------------------------------------------------------------

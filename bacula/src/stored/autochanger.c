@@ -261,7 +261,7 @@ bool autochanger_cmd(DCR *dcr, BSOCK *dir, const char *cmd)
       loaded = get_autochanger_loaded_slot(dcr);
       if (loaded > 0) {
 	 bnet_fsend(dir,
-            _("3305 Issuing autochanger \"unload slot %d, drive %d\" command.\n"),
+            _("3307 Issuing autochanger \"unload slot %d, drive %d\" command.\n"),
 	    loaded, drive);
 	 slot = dcr->VolCatInfo.Slot;
 	 dcr->VolCatInfo.Slot = loaded;

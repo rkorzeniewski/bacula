@@ -38,7 +38,7 @@ MKDIR = $(srcdir)/autoconf/mkinstalldirs
 all: Makefile
 	@for I in ${all_subdirs}; \
 	  do (cd $$I; echo "==>Entering directory `pwd`"; \
-	      $(MAKE) $@ || (echo ""; echo ""; echo -e "  \a\a ====== Error in `pwd` ======\a\a"; \
+	      $(MAKE) $@ || (echo ""; echo ""; echo "  ====== Error in `pwd` ======"; \
 			    echo ""; echo "";)); \
 	done
 
@@ -49,7 +49,7 @@ depend:
 bacula-fd: Makefile	   
 	@for I in ${fd_subdirs}; \
 	  do (cd $$I; echo "==>Entering directory `pwd`"; \
-	      $(MAKE) all || (echo ""; echo ""; echo -e "  \a\a ====== Error in `pwd` ======\a\a"; \
+	      $(MAKE) all || (echo ""; echo ""; echo "	 ====== Error in `pwd` ======; \
 			    echo ""; echo "";)); \
 	done
 
