@@ -162,7 +162,7 @@ UpdateDB(char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
       m_msg(file, line, &mdb->errmsg, _("Update problem: affected_rows=%s\n"), 
 	 edit_uint64(mdb->num_rows, ed1));
       if (verbose) {
-         j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
+//       j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
       }
       return 0;
    }
