@@ -23,6 +23,7 @@ grant all on path	  to ${USER};
 grant all on filename	  to ${USER};
 grant all on counters	  to ${USER};
 grant all on version	  to ${USER};
+grant all on cdimages	  to ${USER};
 
 -- for sequences on those tables
 
