@@ -51,7 +51,7 @@ chmod 777 ${cwd}/bin/mtx-changer
 if test x`uname` = xLinux ; then \
    cp -f scripts/linux_tape_options bin/tape_options ; \
 fi
-if test x`uname` = xFreeBsd ; then \
+if test x`uname` = xFreeBSD ; then \
    cp -f scripts/freebsd_tape_options bin/tape_options ; \
 fi
 
