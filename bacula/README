@@ -5,7 +5,7 @@ numbering conventions, but rather one that I started in
 another user was 1.0, each modified source code release then
 gets a new minor release (1.1, ...) as well as a date.  Each
 major change in the software -- e.g.  new tape format will
-have the major release number incremented.
+normally have the major release number incremented.
 
 Your best bet for getting Bacula up and running is to read
 the manual, which can be found in
@@ -34,8 +34,8 @@ Build Bacula
 
    make
 
-   There should be no errors.  The most likely source of
-   errors will probably come in the src/stored directory
-   in time.c or dev.c.  There may also be problems in
-   lib/signal.c as I currently pull in all Linux signals,
-   some of which may not be available on your system.
+   If you are doing a port, there should be no errors.  The most
+   likely source of errors will probably come in the src/stored
+   directory in time.c or dev.c.  There may also be problems in
+   lib/signal.c as I currently pull in all Linux signals, some of
+   which may not be available on your system.
