@@ -405,8 +405,8 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since, FILESET_DBR *fsr
          sprintf(term_code, _("Inappropriate term code: %c\n"), jcr->JobStatus);
 	 break;
    }
-   bstrftime(sdt, sizeof(sdt), jcr->jr.StartTime);
-   bstrftime(edt, sizeof(edt), jcr->jr.EndTime);
+   bstrftimes(sdt, sizeof(sdt), jcr->jr.StartTime);
+   bstrftimes(edt, sizeof(edt), jcr->jr.EndTime);
    RunTime = jcr->jr.EndTime - jcr->jr.StartTime;
    if (RunTime <= 0) {
       kbps = 0;

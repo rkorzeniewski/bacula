@@ -407,8 +407,8 @@ static void verify_cleanup(JCR *jcr, int TermCode)
                 _("Inappropriate term code: %d %c\n"), TermCode, TermCode);
       break;
    }
-   bstrftime(sdt, sizeof(sdt), jcr->jr.StartTime);
-   bstrftime(edt, sizeof(edt), jcr->jr.EndTime);
+   bstrftimes(sdt, sizeof(sdt), jcr->jr.StartTime);
+   bstrftimes(edt, sizeof(edt), jcr->jr.EndTime);
    if (jcr->verify_job) {
       Name = jcr->verify_job->hdr.name;
    } else {

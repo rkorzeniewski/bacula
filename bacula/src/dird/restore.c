@@ -311,8 +311,8 @@ static void restore_cleanup(JCR *jcr, int TermCode)
       sprintf(term_code, _("Inappropriate term code: %c\n"), TermCode);
       break;
    }
-   bstrftime(sdt, sizeof(sdt), jcr->jr.StartTime);
-   bstrftime(edt, sizeof(edt), jcr->jr.EndTime);
+   bstrftimes(sdt, sizeof(sdt), jcr->jr.StartTime);
+   bstrftimes(edt, sizeof(edt), jcr->jr.EndTime);
    if (jcr->jr.EndTime - jcr->jr.StartTime > 0) {
       kbps = (double)jcr->jr.JobBytes / (1000 * (jcr->jr.EndTime - jcr->jr.StartTime));
    } else {

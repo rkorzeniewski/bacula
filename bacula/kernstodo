@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     26 October 2004
+                     18 November 2004
 
 Major development:      
 Project                     Developer
@@ -15,10 +15,23 @@ For 1.36.1:
    Orphaned buffer:      24 bytes allocated at line 808 of rufus-dir job.c
    Orphaned buffer:      40 bytes allocated at line 45 of rufus-dir alist.c
 - Add dump of VolSessionId/Time and FileIndex with bls.
-- Add date/time to each Jmsg.
 
-1.37 Items:
-- Include within include
+1.37 Projects:
+#3   Migration (Move, Copy, Archive Jobs)
+#4   Embedded Python Scripting
+#5   Events that call a Python program
+#6   Select one from among Multiple Storage Devices for Job
+#7   Single Job Writing to Multiple Storage Devices
+
+
+1.37 Possibilities:
+- if 2 concurrent backups are attempted on the same tape
+  drive (autoloader) into different tape pools, one of them will exit
+  fatally instead of halting until the drive is idle
+- Add seconds to start and end times in the Job report output.
+- Add disk seeking on restore.  
+- Document that ChangerDevice is used for Alert command.
+- Include within include does it work?
 - Implement a Pool of type Cleaning?
 - Implement VolReadTime and VolWriteTime in SD
 - Modify Backing up Your Database to include a bootstrap file.
@@ -234,8 +247,7 @@ For 1.37 Testing/Documentation:
    entirely upon the length.On a restore, the full and all incrementals
    since it will beapplied in sequence to restore the file.  
 - Add a regression test for dbcheck.  
-- Add disk seeking on restore.  - Allow
-   for optional cancelling of SD and FD in case DIR
+- Allow for optional cancelling of SD and FD in case DIR
   gets a fatal error. Requested by Jesse Guardiani <jesse@wingnet.net>
 - Add "limit=n" for "list jobs"
 - Check new HAVE_WIN32 open bits.    
@@ -985,4 +997,5 @@ Block Position: 0
 - Add "Rerun failed levels = yes/no" to Job resource.
 - Fix CDROM make script to permit picking up already installed
   static FD.
+- Add date/time to each Jmsg.
 
