@@ -133,7 +133,7 @@ void job_end_push(JCR *jcr, void job_end_cb(JCR *jcr));
 
 /* lex.c */
 LEX *     lex_close_file         (LEX *lf);
-LEX *     lex_open_file          (LEX *lf, char *fname, LEX_ERROR_HANDLER *scan_error);
+LEX *     lex_open_file          (LEX *lf, const char *fname, LEX_ERROR_HANDLER *scan_error);
 int       lex_get_char           (LEX *lf);
 void      lex_unget_char         (LEX *lf);
 const char *  lex_tok_to_str     (int token);

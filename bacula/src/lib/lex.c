@@ -109,7 +109,7 @@ LEX *lex_close_file(LEX *lf)
  * the next field.
  *
  */
-LEX *lex_open_file(LEX *lf, char *filename, LEX_ERROR_HANDLER *scan_error) 
+LEX *lex_open_file(LEX *lf, const char *filename, LEX_ERROR_HANDLER *scan_error) 
 	      
 {
    LEX *nf;

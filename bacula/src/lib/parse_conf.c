@@ -683,7 +683,7 @@ enum parse_state {
  *
  */
 void 
-parse_config(char *cf)
+parse_config(const char *cf)
 {
    LEX *lc = NULL;
    int token, i, pass;
