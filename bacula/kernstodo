@@ -34,6 +34,7 @@ Maybe for 1.35:
 - Add some sort of guaranteed Interval for upgrading jobs.
 - Can we write the state file after every job terminates? On Win32
   the system crashes and the state file is not updated.
+- Limit bandwidth
 
 Documentation to do: (any release a little bit at a time)
 - Doc to do unmount before removing magazine.
