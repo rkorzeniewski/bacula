@@ -34,8 +34,8 @@ extern struct s_last_job last_job;
 extern time_t daemon_start_time;
 
 /* Forward referenced functions */
-static void list_terminated_jobs(void *arg);
-static void sendit(char *msg, int len, void *arg);
+static void  list_terminated_jobs(void sendit(char *msg, int len, void *sarg), void *arg);
+static void bsock_sendit(char *msg, int len, void *arg);
 static char *level_to_str(int level);
 
 
@@ -81,7 +81,7 @@ static void do_status(void sendit(char *msg, int len, void *sarg), void *arg)
    }
 #endif
 
-   list_terminated_jobs(arg);
+   list_terminated_jobs(sendit, arg);
 
 #ifdef xxx
       char termstat[30];
@@ -163,7 +163,7 @@ static void do_status(void sendit(char *msg, int len, void *sarg), void *arg)
    free_pool_memory(msg);
 }
 
-static void list_terminated_jobs(void *arg)
+static void  list_terminated_jobs(void sendit(char *msg, int len, void *sarg), void *arg) 
 {
    char dt[MAX_TIME_LENGTH], b1[30], b2[30];
    char level[10];
@@ -176,7 +176,8 @@ static void list_terminated_jobs(void *arg)
       return;
    }
    lock_last_jobs_list();
-   msg =  _("\nTerminated Jobs:\n"); 
+   sendit("\n", 1, arg);               /* send separately */
+   msg =  _("Terminated Jobs:\n"); 
    sendit(msg, strlen(msg), arg);
    msg =  _(" JobId  Level   Files          Bytes Status   Finished        Name \n");
    sendit(msg, strlen(msg), arg);
@@ -242,12 +243,13 @@ static void list_terminated_jobs(void *arg)
 
 
 /*
- * Send to Director 
+ * Send to bsock (Director or Console)
  */
-static void sendit(char *msg, int len, void *arg)
+static void bsock_sendit(char *msg, int len, void *arg)
 {
    BSOCK *user = (BSOCK *)arg;
 
+   user->msg = check_pool_memory_size(user->msg, len+1);
    memcpy(user->msg, msg, len+1);
    user->msglen = len+1;
    bnet_send(user);
@@ -261,7 +263,7 @@ int status_cmd(JCR *jcr)
    BSOCK *user = jcr->dir_bsock;
 
    bnet_fsend(user, "\n");
-   do_status(sendit, (void *)user);
+   do_status(bsock_sendit, (void *)user);
    bnet_fsend(user, "====\n");
 
    bnet_sig(user, BNET_EOD);
@@ -335,7 +337,7 @@ static void win32_sendit(char *msg, int len, void *marg)
 {
    struct s_win32_arg *arg = (struct s_win32_arg *)marg;
 
-   if (len > 0) {
+   if (len > 0 && msg[len-1] == '\n') {
       msg[len-1] = 0;		      /* eliminate newline */
    }
    SendDlgItemMessage(arg->hwnd, arg->idlist, LB_ADDSTRING, 0, (LONG)msg);
@@ -363,12 +365,16 @@ char *bac_status(int stat)
    bacstat = 0;
    if (last_job.NumJobs > 0) {
       switch (last_job.JobStatus) {
-	case JS_ErrorTerminated:
-	    bacstat = -1;
-            termstat = _("Last Job Erred");
-	    break;
-	default:
-	    break;
+      case JS_Canceled:
+	 bacstat = -1;
+         termstat = _("Last Job Canceled");
+	 break;
+      case JS_ErrorTerminated:
+	 bacstat = -1;
+         termstat = _("Last Job Failed");
+	 break;
+      default:
+	 break;
       }
    }
    Dmsg0(200, "Begin bac_status jcr loop.\n");
@@ -384,7 +390,7 @@ char *bac_status(int stat)
    }
    unlock_jcr_chain();
    Dmsg0(200, "End bac_status jcr loop.\n");
-   strcpy(buf, termstat);
+   bstrncpy(buf, termstat, sizeof(buf));
    return buf;
 }
 
