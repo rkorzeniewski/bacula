@@ -399,7 +399,7 @@ int write_volume_label_to_dev(JCR *jcr, DEVRES *device, char *VolName, char *Poo
    weof_dev(dev, 1);
    dev->state |= ST_LABEL;
 
-   if (debug_level >= 00)  {
+   if (debug_level >= 20)  {
       dump_volume_label(dev);
    }
    free_block(block);

@@ -1089,7 +1089,7 @@ void attach_jcr_to_device(DEVICE *dev, JCR *jcr)
       attached_jcrs->prev_dev = jcr;
    }
    attached_jcrs = jcr;
-   Dmsg1(000, "Attached Job %s\n", jcr->Job);
+   Dmsg1(100, "Attached Job %s\n", jcr->Job);
 }
 
 void detach_jcr_from_device(DEVICE *dev, JCR *jcr)
@@ -1103,7 +1103,7 @@ void detach_jcr_from_device(DEVICE *dev, JCR *jcr)
       jcr->next_dev->prev_dev = jcr->prev_dev; 
    }
    jcr->next_dev = jcr->prev_dev = NULL;
-   Dmsg1(000, "Detached Job %s\n", jcr->Job);
+   Dmsg1(100, "Detached Job %s\n", jcr->Job);
 }
 
 JCR *next_attached_jcr(DEVICE *dev, JCR *jcr)
