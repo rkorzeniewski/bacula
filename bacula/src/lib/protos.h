@@ -153,6 +153,7 @@ void	   free_msgs_res	 (MSGS *msgs);
 int	   open_spool_file	 (JCR *jcr, BSOCK *bs);
 int	   close_spool_file	 (JCR *jcr, BSOCK *bs);
 void	   dequeue_messages	 (JCR *jcr);
+void	   set_trace		 (int trace_flag);
 
 
 /* bnet_server.c */

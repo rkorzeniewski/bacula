@@ -281,15 +281,16 @@ static int cancel_cmd(JCR *jcr)
 static int setdebug_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
-   int level;
+   int level, trace_flag;
 
    Dmsg1(110, "setdebug_cmd: %s", dir->msg);
-   if (sscanf(dir->msg, "setdebug=%d", &level) != 1 || level < 0) {
+   if (sscanf(dir->msg, "setdebug=%d", &level, &trace_flag) != 2 || level < 0) {
       pm_strcpy(&jcr->errmsg, dir->msg);
       bnet_fsend(dir, "2991 Bad setdebug command: %s\n", jcr->errmsg);
       return 0;   
    }
    debug_level = level;
+   set_trace(trace_flag);
    return bnet_fsend(dir, OKsetdebug, level);
 }
 

@@ -523,7 +523,7 @@ RUN *find_next_run(RUN *run, JOB *job, time_t &runtime)
 	       tm.tm_sec = 0;
 	       runtime = mktime(&tm);
 	       if (runtime > now) {
-                  Dmsg2(000, "Found it level=%d %c\n", run->level, run->level);
+                  Dmsg2(100, "Found it level=%d %c\n", run->level, run->level);
 		  return run;	      /* found it, return run resource */
 	       }
 	    }
