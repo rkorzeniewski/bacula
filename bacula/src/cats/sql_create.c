@@ -88,14 +88,13 @@ db_create_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 	   jr->Job, jr->Name, (char)(jr->Type), (char)(jr->Level), 
 	   (char)(jr->JobStatus), dt, edit_uint64(JobTDate, ed1));
 
-   sql_table_name(mdb, _("Job"));
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create DB Job record %s failed. ERR=%s\n"), 
 	    mdb->cmd, sql_strerror(mdb));
       jr->JobId = 0;
       stat = 0;
    } else {
-      jr->JobId = sql_insert_id(mdb);
+      jr->JobId = sql_insert_id(mdb, _("Job"));
       stat = 1;
    }
    db_unlock(mdb);
@@ -148,7 +147,6 @@ VALUES (%u,%u,%u,%u,%u,%u,%u,%u,%u)",
        jm->StartFile, jm->EndFile, jm->StartBlock, jm->EndBlock,count);
 
    Dmsg0(30, mdb->cmd);
-   sql_table_name(mdb, _("JobMedia"));
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db JobMedia record %s failed. ERR=%s\n"), mdb->cmd, 
 	 sql_strerror(mdb));
@@ -208,14 +206,13 @@ VALUES ('%s',%u,%u,%d,%d,%d,%d,%d,%s,%s,%u,%u,%s,'%s','%s')",
 		  edit_uint64(pr->MaxVolBytes, ed3),
 		  pr->PoolType, pr->LabelFormat);
    Dmsg1(200, "Create Pool: %s\n", mdb->cmd);
-   sql_table_name(mdb, _("Pool"));
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db Pool record %s failed: ERR=%s\n"), 
 	    mdb->cmd, sql_strerror(mdb));
       pr->PoolId = 0;
       stat = 0;
    } else {
-      pr->PoolId = sql_insert_id(mdb);
+      pr->PoolId = sql_insert_id(mdb, _("Pool"));
       stat = 1;
    }
    db_unlock(mdb);
@@ -280,13 +277,12 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 		  mr->InChanger);
 
    Dmsg1(500, "Create Volume: %s\n", mdb->cmd);
-   sql_table_name(mdb, _("Media"));
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create DB Media record %s failed. ERR=%s\n"),
 	    mdb->cmd, sql_strerror(mdb));
       stat = 0;
    } else {
-      mr->MediaId = sql_insert_id(mdb);
+      mr->MediaId = sql_insert_id(mdb, _("Media"));
       stat = 1;
       if (mr->LabelDate) {
 	 char dt[MAX_TIME_LENGTH];
@@ -355,7 +351,6 @@ FileRetention, JobRetention) VALUES \
       edit_uint64(cr->FileRetention, ed1),
       edit_uint64(cr->JobRetention, ed2));
 
-   sql_table_name(mdb, _("Client"));
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create DB Client record %s failed. ERR=%s\n"),
 	    mdb->cmd, sql_strerror(mdb));
@@ -363,7 +358,7 @@ FileRetention, JobRetention) VALUES \
       cr->ClientId = 0;
       stat = 0;
    } else {
-      cr->ClientId = sql_insert_id(mdb);
+      cr->ClientId = sql_insert_id(mdb, _("Client"));
       stat = 1;
    }
    db_unlock(mdb);
@@ -396,7 +391,6 @@ int db_create_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
       cr->Counter, cr->MinValue, cr->MaxValue, cr->CurrentValue,
       cr->WrapCounter);
 
-   sql_table_name(mdb, _("Counters"));
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create DB Counters record %s failed. ERR=%s\n"),
 	    mdb->cmd, sql_strerror(mdb));
@@ -467,7 +461,6 @@ int db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
       Mmsg(&mdb->cmd, "INSERT INTO FileSet (FileSet,MD5,CreateTime) "
 "VALUES ('%s','%s','%s')", fsr->FileSet, fsr->MD5, fsr->cCreateTime);
 
-   sql_table_name(mdb, _("FileSet"));
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create DB FileSet record %s failed. ERR=%s\n"),
 	    mdb->cmd, sql_strerror(mdb));
@@ -475,7 +468,7 @@ int db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
       fsr->FileSetId = 0;
       stat = 0;
    } else {
-      fsr->FileSetId = sql_insert_id(mdb);
+      fsr->FileSetId = sql_insert_id(mdb, _("FileSet"));
       fsr->created = true;
       stat = 1;
    }
@@ -578,7 +571,6 @@ static int db_create_file_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
       ar->FileIndex, ar->JobId, ar->PathId, ar->FilenameId, 
       ar->attr);
 
-   sql_table_name(mdb, _("File"));
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db File record %s failed. ERR=%s"),       
 	 mdb->cmd, sql_strerror(mdb));
@@ -586,7 +578,7 @@ static int db_create_file_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
       ar->FileId = 0;
       stat = 0;
    } else {
-      ar->FileId = sql_insert_id(mdb);
+      ar->FileId = sql_insert_id(mdb, _("File"));
       stat = 1;
    }
    return stat;
@@ -644,7 +636,6 @@ static int db_create_path_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 
    Mmsg(&mdb->cmd, "INSERT INTO Path (Path) VALUES ('%s')", mdb->esc_name);
 
-   sql_table_name(mdb, _("Path"));
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db Path record %s failed. ERR=%s\n"), 
 	 mdb->cmd, sql_strerror(mdb));
@@ -652,7 +643,7 @@ static int db_create_path_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
       ar->PathId = 0;
       stat = 0;
    } else {
-      ar->PathId = sql_insert_id(mdb);
+      ar->PathId = sql_insert_id(mdb, _("Path"));
       stat = 1;
    }
 
@@ -700,14 +691,13 @@ static int db_create_filename_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 
    Mmsg(&mdb->cmd, "INSERT INTO Filename (Name) VALUES ('%s')", mdb->esc_name);
 
-   sql_table_name(mdb, _("Filename"));
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db Filename record %s failed. ERR=%s\n"), 
 	    mdb->cmd, sql_strerror(mdb));
       Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       ar->FilenameId = 0;
    } else {
-      ar->FilenameId = sql_insert_id(mdb);
+      ar->FilenameId = sql_insert_id(mdb, _("Filename"));
    }
    return ar->FilenameId > 0;
 }
