@@ -94,7 +94,7 @@ static int32_t write_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
    if (bsock->spool) {
       nwritten = fwrite(ptr, 1, nbytes, bsock->spool_fd);
       if (nwritten != nbytes) {
-	 berror be;
+	 berrno be;
          Qmsg1(bsock->jcr, M_FATAL, 0, _("Attr spool write error. ERR=%s\n"),
 	       be.strerror());
          Dmsg2(400, "nwritten=%d nbytes=%d.\n", nwritten, nbytes);
@@ -303,7 +303,7 @@ int bnet_despool_to_bsock(BSOCK * bsock, void update_attr_spool_size(ssize_t siz
 	 }
 	 nbytes = fread(bsock->msg, 1, bsock->msglen, bsock->spool_fd);
 	 if (nbytes != (size_t) bsock->msglen) {
-	    berror be;
+	    berrno be;
             Dmsg2(400, "nbytes=%d msglen=%d\n", nbytes, bsock->msglen);
             Qmsg1(bsock->jcr, M_FATAL, 0, _("fread attr spool error. ERR=%s\n"),
 		  be.strerror());
@@ -320,7 +320,7 @@ int bnet_despool_to_bsock(BSOCK * bsock, void update_attr_spool_size(ssize_t siz
    }
    update_attr_spool_size(tsize - last);
    if (ferror(bsock->spool_fd)) {
-      berror be;
+      berrno be;
       Qmsg1(bsock->jcr, M_FATAL, 0, _("fread attr spool error. ERR=%s\n"),
 	    be.strerror());
       return 0;
