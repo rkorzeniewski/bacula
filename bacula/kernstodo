@@ -29,11 +29,23 @@ Suggestions for Preben:
 - Bootstrap from JobMedia records.
 - Optimized bootstrap.
 
+Autochangers:
+- Locking (done)
+- Key on Storage rather than Pool (done)
+- Allow multiple drives to use same Pool
+- Synchronize multiple drives so that no more
+  than one loads a tape and any time.
+- Doc the following
+  to activate, check or disable the hardware compression feature on my 
+  exb-8900 i use the exabyte "MammothTool" you can get it here:
+  http://www.exabyte.com/support/online/downloads/index.cfm
+  There is a solaris version of this tool. With option -C 0 or 1 you can 
+  disable or activate compression. Start this tool without any options for 
+  a small reference.
+
+
 For 1.37:
 - Linux Sony LIB-D81, AIT-3 library works.
-- If Bacula does not find the right tape in the Autochanger,
-  then mark the tape in error and move on rather than asking
-  for operator intervention.
 - Device resource needs the "name" of the SD.
 - Add and option to see if the file size changed
   during backup.
@@ -75,12 +87,10 @@ For 1.37:
   design.
 - Create a new GUI chapter explaining all the GUI programs.
 - Tell the "restore" user when browsing is no longer possible.
-- Cancel command should include JobId in list of Jobs.
 - Require restore via the restore command or make a restore Job
   get the bootstrap file.
 - Make bootstrap file handle multiple MediaTypes (SD)
 - Add offline tape command to Bacula console.
-- Add performance testing hooks
 - Document that Bootstrap files can be written with cataloging
   turned off.
 - Look at adding full Volume and Pool information to a Volume 
@@ -105,7 +115,7 @@ For 1.37:
 - Bug: if a job is manually scheduled to run later, it does not appear
   in any status report and cannot be cancelled.
 
-Regression tests (Jo):
+Regression tests (Scott):
 - Add Pool/Storage override regression test.
 - Add delete JobId to regression.
 - Add a regression test for dbcheck.  
@@ -127,8 +137,6 @@ Regression tests (Jo):
 
 1.37 Possibilities:
 === From Carsten Menke <bootsy52@gmx.net>
-The bacula-devel list is CC'ed (I'm also subscribed to the list right now,
-so I will also get the responses).
 
 Following is a list of what I think in the situations where I'm faced with, 
 could be a usefull enhancement to bacula, which I'm certain other users will 
@@ -1227,3 +1235,8 @@ Block Position: 0
 - Try to open a device on each Job if it was not opened
   when the SD started.
 - Add dump of VolSessionId/Time and FileIndex with bls.
+- If Bacula does not find the right tape in the Autochanger,
+  then mark the tape in error and move on rather than asking
+  for operator intervention.
+- Cancel command should include JobId in list of Jobs.
+- Add performance testing hooks
