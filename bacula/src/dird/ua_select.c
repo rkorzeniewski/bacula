@@ -35,14 +35,6 @@
 /* Imported variables */
 
 
-/* Exported functions */
-
-int do_prompt(UAContext *ua, char *msg, char *prompt);
-void add_prompt(UAContext *ua, char *prompt);
-void start_prompt(UAContext *ua, char *msg);
-STORE *select_storage_resource(UAContext *ua);
-JOB *select_job_resource(UAContext *ua);
-
 /*
  * Confirm a retention period
  */
@@ -106,7 +98,7 @@ int do_keyword_prompt(UAContext *ua, char *msg, char **list)
    for (i=0; list[i]; i++) {
       add_prompt(ua, list[i]);
    }
-   return do_prompt(ua, msg, NULL);
+   return do_prompt(ua, msg, NULL, 0);
 }
 
 
@@ -124,7 +116,7 @@ STORE *select_storage_resource(UAContext *ua)
       add_prompt(ua, store->hdr.name);
    }
    UnlockRes();
-   do_prompt(ua, _("Select Storage resource"), name);
+   do_prompt(ua, _("Select Storage resource"), name, sizeof(name));
    store = (STORE *)GetResWithName(R_STORAGE, name);
    return store;
 }
@@ -143,7 +135,7 @@ FILESET *select_fileset_resource(UAContext *ua)
       add_prompt(ua, fs->hdr.name);
    }
    UnlockRes();
-   do_prompt(ua, _("Select FileSet resource"), name);
+   do_prompt(ua, _("Select FileSet resource"), name, sizeof(name));
    fs = (FILESET *)GetResWithName(R_FILESET, name);
    return fs;
 }
@@ -171,7 +163,7 @@ CAT *get_catalog_resource(UAContext *ua)
 	 add_prompt(ua, catalog->hdr.name);
       }
       UnlockRes();
-      do_prompt(ua, _("Select Catalog resource"), name);
+      do_prompt(ua, _("Select Catalog resource"), name, sizeof(name));
       catalog = (CAT *)GetResWithName(R_CATALOG, name);
    }
    return catalog;
@@ -192,7 +184,7 @@ JOB *select_job_resource(UAContext *ua)
       add_prompt(ua, job->hdr.name);
    }
    UnlockRes();
-   do_prompt(ua, _("Select Job resource"), name);
+   do_prompt(ua, _("Select Job resource"), name, sizeof(name));
    job = (JOB *)GetResWithName(R_JOB, name);
    return job;
 }
@@ -213,7 +205,7 @@ JOB *select_restore_job_resource(UAContext *ua)
       }
    }
    UnlockRes();
-   do_prompt(ua, _("Select Restore Job"), name);
+   do_prompt(ua, _("Select Restore Job"), name, sizeof(name));
    job = (JOB *)GetResWithName(R_JOB, name);
    return job;
 }
@@ -234,7 +226,7 @@ CLIENT *select_client_resource(UAContext *ua)
       add_prompt(ua, client->hdr.name);
    }
    UnlockRes();
-   do_prompt(ua, _("Select Client (File daemon) resource"), name);
+   do_prompt(ua, _("Select Client (File daemon) resource"), name, sizeof(name));
    client = (CLIENT *)GetResWithName(R_CLIENT, name);
    return client;
 }
@@ -284,7 +276,7 @@ int get_pool_dbr(UAContext *ua, POOL_DBR *pr)
    }
    for (i=1; i<ua->argc; i++) {
       if (strcasecmp(ua->argk[i], _("pool")) == 0 && ua->argv[i]) {
-	 strcpy(pr->Name, ua->argv[i]);
+	 bstrncpy(pr->Name, ua->argv[i], sizeof(pr->Name));
 	 if (!db_get_pool_record(ua->db, pr)) {
             bsendmsg(ua, _("Could not find Pool %s: ERR=%s"), ua->argv[i],
 		     db_strerror(ua->db));
@@ -330,11 +322,11 @@ int select_pool_dbr(UAContext *ua, POOL_DBR *pr)
       add_prompt(ua, opr.Name);
    }
    free(ids);
-   if (do_prompt(ua, _("Select the Pool"), name) < 0) {
+   if (do_prompt(ua, _("Select the Pool"), name, sizeof(name)) < 0) {
       return 0;
    }
    memset(&opr, 0, sizeof(pr));
-   strcpy(opr.Name, name);
+   bstrncpy(opr.Name, name, sizeof(opr.Name));
 
    if (!db_get_pool_record(ua->db, &opr)) {
       bsendmsg(ua, _("Could not find Pool %s: ERR=%s"), name, db_strerror(ua->db));
@@ -365,7 +357,7 @@ int select_pool_and_media_dbr(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
 
    i = find_arg_keyword(ua, kw);
    if (i == 0 && ua->argv[i]) {
-      strcpy(mr->VolumeName, ua->argv[i]);
+      bstrncpy(mr->VolumeName, ua->argv[i], sizeof(mr->VolumeName));
    }
    if (mr->VolumeName[0] == 0) {
       db_list_media_records(ua->db, mr, prtit, ua);
@@ -375,7 +367,7 @@ int select_pool_and_media_dbr(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
       if (is_a_number(ua->cmd)) {
 	 mr->MediaId = atoi(ua->cmd);
       } else {
-	 strcpy(mr->VolumeName, ua->cmd);
+	 bstrncpy(mr->VolumeName, ua->cmd, sizeof(mr->VolumeName));
       }
    }
 
@@ -415,7 +407,7 @@ POOL *get_pool_resource(UAContext *ua)
       add_prompt(ua, pool->hdr.name);
    }
    UnlockRes();
-   do_prompt(ua, _("Select Pool resource"), name);
+   do_prompt(ua, _("Select Pool resource"), name, sizeof(name));
    pool = (POOL *)GetResWithName(R_POOL, name);
    return pool;
 }
@@ -456,7 +448,7 @@ int get_job_dbr(UAContext *ua, JOB_DBR *jr)
    for (i=1; i<ua->argc; i++) {
       if (strcasecmp(ua->argk[i], _("job")) == 0 && ua->argv[i]) {
 	 jr->JobId = 0;
-	 strcpy(jr->Job, ua->argv[i]);
+	 bstrncpy(jr->Job, ua->argv[i], sizeof(jr->Job));
       } else if (strcasecmp(ua->argk[i], _("jobid")) == 0 && ua->argv[i]) {
 	 jr->JobId = atoi(ua->argv[i]);
       } else {
@@ -519,7 +511,7 @@ void add_prompt(UAContext *ua, char *prompt)
  *	      index base 0 on success, and choice
  *		 is copied to prompt if not NULL
  */
-int do_prompt(UAContext *ua, char *msg, char *prompt)
+int do_prompt(UAContext *ua, char *msg, char *prompt, int max_prompt)
 {
    int i, item;
    char pmsg[MAXSTRING];
@@ -543,7 +535,7 @@ int do_prompt(UAContext *ua, char *msg, char *prompt)
 	 item = 1;
          bsendmsg(ua, _("Item 1 selected automatically.\n"));
 	 if (prompt) {
-	    strcpy(prompt, ua->prompt[1]);
+	    bstrncpy(prompt, ua->prompt[1], max_prompt);
 	 }
 	 break;
       } else {
@@ -561,7 +553,7 @@ int do_prompt(UAContext *ua, char *msg, char *prompt)
 	 continue;
       }
       if (prompt) {
-	 strcpy(prompt, ua->prompt[item]);
+	 bstrncpy(prompt, ua->prompt[item], max_prompt);
       }
       break;
    }
@@ -671,7 +663,7 @@ STORE *get_storage_resource(UAContext *ua, char *cmd)
  *  Returns: 0 on error
  *	     1 on success, MediaType is set
  */
-int get_media_type(UAContext *ua, char *MediaType)
+int get_media_type(UAContext *ua, char *MediaType, int max_media)
 {
    STORE *store;
    int i;
@@ -681,7 +673,7 @@ int get_media_type(UAContext *ua, char *MediaType)
 
    i = find_arg_keyword(ua, keyword);
    if (i >= 0 && ua->argv[i]) {
-      strcpy(MediaType, ua->argv[i]);
+      bstrncpy(MediaType, ua->argv[i], max_media);
       return 1;
    }
 
@@ -691,5 +683,5 @@ int get_media_type(UAContext *ua, char *MediaType)
       add_prompt(ua, store->media_type);
    }
    UnlockRes();
-   return (do_prompt(ua, _("Select the Media Type"), MediaType) < 0) ? 0 : 1;
+   return (do_prompt(ua, _("Select the Media Type"), MediaType, max_media) < 0) ? 0 : 1;
 }

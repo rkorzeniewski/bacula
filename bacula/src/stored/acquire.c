@@ -93,7 +93,9 @@ int acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 default_path:
 	    tape_previously_mounted = 0;
             Dmsg0(200, "dir_get_volume_info\n");
-	    dir_get_volume_info(jcr, 0);	 /* Get info for reading */
+	    if (!dir_get_volume_info(jcr, 0)) { 
+               Jmsg1(jcr, M_WARNING, 0, "%s", jcr->errmsg);
+	    }
             Dmsg2(200, "calling autoload Vol=%s Slot=%d\n",
 	       jcr->VolumeName, jcr->VolCatInfo.Slot);			       
 	    if (autoload_device(jcr, dev, 0, NULL)) {

@@ -140,7 +140,7 @@ int db_update_media_record(B_DB *mdb, MEDIA_DBR *mr)
    strcpy(mr->MediaType, omr.MediaType);
    mr->MediaId = omr.MediaId;
    mr->PoolId = omr.PoolId;
-   mr->VolMaxBytes = omr.VolMaxBytes;
+   mr->MaxVolBytes = omr.MaxVolBytes;
    mr->VolCapacityBytes = omr.VolCapacityBytes;
    mr->Recycle = omr.Recycle;
 

@@ -249,6 +249,7 @@ struct s_res_pool {
    utime_t VolRetention;              /* volume retention period in seconds */
    utime_t VolUseDuration;            /* duration volume can be used */
    uint32_t MaxVolJobs;               /* Maximum jobs on the volume */
+   uint32_t MaxVolFiles;              /* Maximum files on the volume */
    int   AutoPrune;                   /* default for pool auto prune */
    int   Recycle;                     /* default for media recycle yes/no */
 };

@@ -186,8 +186,8 @@ db_create_pool_record(B_DB *mdb, POOL_DBR *pr)
    Mmsg(&mdb->cmd, 
 "INSERT INTO Pool (Name,NumVols,MaxVols,UseOnce,UseCatalog,\
 AcceptAnyVolume,AutoPrune,Recycle,VolRetention,VolUseDuration,\
-MaxVolJobs,PoolType,LabelFormat) \
-VALUES ('%s',%u,%u,%d,%d,%d,%d,%d,%s,%s,%u,'%s','%s')", 
+MaxVolJobs,MaxVolFiles,PoolType,LabelFormat) \
+VALUES ('%s',%u,%u,%d,%d,%d,%d,%d,%s,%s,%u,%u,'%s','%s')", 
 		  pr->Name,
 		  pr->NumVols, pr->MaxVols,
 		  pr->UseOnce, pr->UseCatalog,
@@ -195,7 +195,7 @@ VALUES ('%s',%u,%u,%d,%d,%d,%d,%d,%s,%s,%u,'%s','%s')",
 		  pr->AutoPrune, pr->Recycle,
 		  edit_uint64(pr->VolRetention, ed1),
 		  edit_uint64(pr->VolUseDuration, ed2),
-		  pr->MaxVolJobs,
+		  pr->MaxVolJobs, pr->MaxVolFiles,
 		  pr->PoolType, pr->LabelFormat);
    Dmsg1(200, "Create Pool: %s\n", mdb->cmd);
    if (!INSERT_DB(mdb, mdb->cmd)) {
@@ -242,11 +242,11 @@ db_create_media_record(B_DB *mdb, MEDIA_DBR *mr)
 
    /* Must create it */
    Mmsg(&mdb->cmd, 
-"INSERT INTO Media (VolumeName,MediaType,PoolId,VolMaxBytes,VolCapacityBytes, \
-Recycle,VolRetention,VolStatus,Slot) VALUES ('%s', '%s', %d, %s, %s, %d, %s, '%s', %d)", 
+"INSERT INTO Media (VolumeName,MediaType,PoolId,MaxVolBytes,VolCapacityBytes, \
+Recycle,VolRetention,VolStatus,Slot) VALUES ('%s','%s',%u,%s,%s,%d,%s,'%s',%d)", 
 		  mr->VolumeName,
 		  mr->MediaType, mr->PoolId, 
-		  edit_uint64(mr->VolMaxBytes,ed1),
+		  edit_uint64(mr->MaxVolBytes,ed1),
 		  edit_uint64(mr->VolCapacityBytes, ed2),
 		  mr->Recycle,
 		  edit_uint64(mr->VolRetention, ed3),

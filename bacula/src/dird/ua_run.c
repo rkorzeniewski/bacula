@@ -403,7 +403,7 @@ JobId:      %s\n"),
          add_prompt(ua, _("Replace"));       /* 7 */
          add_prompt(ua, _("JobId"));         /* 8 */
       }
-      switch (do_prompt(ua, _("Select parameter to modify"), NULL)) {
+      switch (do_prompt(ua, _("Select parameter to modify"), NULL, 0)) {
       case 0:
 	 /* Level */
 	 if (jcr->JobType == JT_BACKUP) {
@@ -413,7 +413,7 @@ JobId:      %s\n"),
             add_prompt(ua, _("Differential"));
             add_prompt(ua, _("Level"));
             add_prompt(ua, _("Since"));
-            switch (do_prompt(ua, _("Select level"), NULL)) {
+            switch (do_prompt(ua, _("Select level"), NULL, 0)) {
 	    case 0:
 	       jcr->JobLevel = L_FULL;
 	       break;
@@ -439,7 +439,7 @@ JobId:      %s\n"),
             add_prompt(ua, _("Verify Catalog"));
             add_prompt(ua, _("Verify Volume"));
             add_prompt(ua, _("Verify Volume Data"));
-            switch (do_prompt(ua, _("Select level"), NULL)) {
+            switch (do_prompt(ua, _("Select level"), NULL, 0)) {
 	    case 0:
 	       jcr->JobLevel = L_VERIFY_INIT;
 	       break;
@@ -533,7 +533,7 @@ JobId:      %s\n"),
 	 for (i=0; ReplaceOptions[i].name; i++) {
 	    add_prompt(ua, ReplaceOptions[i].name);
 	 }
-         opt = do_prompt(ua, _("Select replace option"), NULL);
+         opt = do_prompt(ua, _("Select replace option"), NULL, 0);
 	 if (opt <=  0) {
 	    jcr->replace = ReplaceOptions[opt].token;
 	 }

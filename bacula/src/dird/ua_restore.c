@@ -306,7 +306,7 @@ static int user_select_jobids(UAContext *ua, JobIds *ji)
 	 add_prompt(ua, list[i]);
       }
       done = 1;
-      switch (do_prompt(ua, "Select item: ", NULL)) {
+      switch (do_prompt(ua, "Select item: ", NULL, 0)) {
       case -1:			      /* error */
 	 return 0;
       case 0:			      /* list last 20 Jobs run */
@@ -361,7 +361,8 @@ static int user_select_jobids(UAContext *ua, JobIds *ji)
 	 if (!db_sql_query(ua->db, query, fileset_handler, (void *)ua)) {
             bsendmsg(ua, "%s\n", db_strerror(ua->db));
 	 }
-         if (do_prompt(ua, _("Select FileSet resource"), fileset_name) < 0) {
+         if (do_prompt(ua, _("Select FileSet resource"), 
+		       fileset_name, sizeof(fileset_name)) < 0) {
 	    free_pool_memory(query);
 	    return 0;
 	 }
@@ -1195,7 +1196,7 @@ static void get_storage_from_mediatype(UAContext *ua, NAME_LIST *name_list, JobI
       }
    }
    UnlockRes();
-   do_prompt(ua, _("Select Storage resource"), name);
+   do_prompt(ua, _("Select Storage resource"), name, sizeof(name));
    ji->store = (STORE *)GetResWithName(R_STORAGE, name);
    if (!ji->store) {
       bsendmsg(ua, _("\nWarning. Unable to find Storage resource for\n"

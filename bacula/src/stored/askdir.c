@@ -34,13 +34,13 @@ static char Find_media[]    = "CatReq Job=%s FindMedia=%d\n";
 static char Get_Vol_Info[] = "CatReq Job=%s GetVolInfo VolName=%s write=%d\n";
 
 static char Update_media[] = "CatReq Job=%s UpdateMedia VolName=%s\
- VolJobs=%d VolFiles=%d VolBlocks=%d VolBytes=%" lld " VolMounts=%d\
- VolErrors=%d VolWrites=%d VolMaxBytes=%" lld " EndTime=%d VolStatus=%s\
+ VolJobs=%u VolFiles=%u VolBlocks=%u VolBytes=%s VolMounts=%u\
+ VolErrors=%u VolWrites=%u MaxVolBytes=%s EndTime=%d VolStatus=%s\
  Slot=%d relabel=%d\n";
 
 static char Create_job_media[] = "CatReq Job=%s CreateJobMedia \
- FirstIndex=%d LastIndex=%d StartFile=%d EndFile=%d \
- StartBlock=%d EndBlock=%d\n";
+ FirstIndex=%u LastIndex=%u StartFile=%u EndFile=%u \
+ StartBlock=%u EndBlock=%u\n";
 
 
 static char FileAttributes[] = "UpdCat Job=%s FileAttributes ";
@@ -49,10 +49,10 @@ static char Job_status[]   = "3012 Job %s jobstatus %d\n";
 
 
 /* Responses received from the Director */
-static char OK_media[] = "1000 OK VolName=%127s VolJobs=%d VolFiles=%d\
- VolBlocks=%d VolBytes=%" lld " VolMounts=%d VolErrors=%d VolWrites=%d\
- VolMaxBytes=%" lld " VolCapacityBytes=%" lld " VolStatus=%20s\
- Slot=%d\n";
+static char OK_media[] = "1000 OK VolName=%127s VolJobs=%u VolFiles=%u\
+ VolBlocks=%u VolBytes=%" lld " VolMounts=%u VolErrors=%u VolWrites=%u\
+ MaxVolBytes=%" lld " VolCapacityBytes=%" lld " VolStatus=%20s\
+ Slot=%d MaxVolJobs=%u MaxVolFiles=%u\n";
 
 static char OK_update[] = "1000 OK UpdateMedia\n";
 
@@ -79,16 +79,19 @@ static int do_request_volume_info(JCR *jcr)
     jcr->VolumeName[0] = 0;	      /* No volume */
     if (bnet_recv(dir) <= 0) {
        Dmsg0(200, "getvolname error bnet_recv\n");
+       Mmsg(&jcr->errmsg, _("Network error on bnet_recv in req_vol_info.\n"));
        return 0;
     }
     if (sscanf(dir->msg, OK_media, vol->VolCatName, 
 	       &vol->VolCatJobs, &vol->VolCatFiles,
-	       &vol->VolCatBlocks, &vol->VolCatBytes, 
+	       &vol->VolCatBlocks, &vol->VolCatBytes,
 	       &vol->VolCatMounts, &vol->VolCatErrors,
-	       &vol->VolCatWrites, &vol->VolCatMaxBytes, 
+	       &vol->VolCatWrites, &vol->VolCatMaxBytes,
 	       &vol->VolCatCapacityBytes, vol->VolCatStatus,
-	       &vol->Slot) != 12) {
-       Dmsg1(200, "Bad response from Dir: %s\n", dir->msg);
+	       &vol->Slot, &vol->VolCatMaxJobs, &vol->VolCatMaxFiles) != 14) {
+
+       Dmsg1(000, "Bad response from Dir: %s\n", dir->msg);
+       Mmsg(&jcr->errmsg, _("Error scanning Dir response: %s\n"), dir->msg);
        return 0;
     }
     unbash_spaces(vol->VolCatName);
@@ -149,6 +152,7 @@ int dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel)
 {
    BSOCK *dir = jcr->dir_bsock;
    time_t EndTime = time(NULL);
+   char ed1[50], ed2[50];
 
    if (vol->VolCatName[0] == 0) {
       Jmsg0(jcr, M_ERROR, 0, _("NULL Volume name. This shouldn't happen!!!\n"));
@@ -156,10 +160,10 @@ int dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel)
    }
    bnet_fsend(dir, Update_media, jcr->Job, 
       vol->VolCatName, vol->VolCatJobs, vol->VolCatFiles,
-      vol->VolCatBlocks, vol->VolCatBytes, 
+      vol->VolCatBlocks, edit_uint64(vol->VolCatBytes, ed1),
       vol->VolCatMounts, vol->VolCatErrors,
-      vol->VolCatWrites, vol->VolCatMaxBytes, EndTime, 
-      vol->VolCatStatus, vol->Slot, relabel);
+      vol->VolCatWrites, edit_uint64(vol->VolCatMaxBytes, ed2), 
+      EndTime, vol->VolCatStatus, vol->Slot, relabel);
    Dmsg1(120, "update_volume_data(): %s", dir->msg);
    if (bnet_recv(dir) <= 0) {
       Dmsg0(190, "updateVolCatInfo error bnet_recv\n");

@@ -291,6 +291,7 @@ int write_block_to_dev(DEVICE *dev, DEV_BLOCK *block)
 {
    size_t stat = 0;
    uint32_t wlen;		      /* length to write */
+   int hit_max1, hit_max2;
 
 #ifdef NO_TAPE_WRITE_TEST
    empty_block(block);
@@ -336,12 +337,21 @@ int write_block_to_dev(DEVICE *dev, DEV_BLOCK *block)
    ser_block_header(block);
 
    /* Limit maximum Volume size to value specified by user */
-   if ((dev->max_volume_size > 0) &&
-       ((dev->VolCatInfo.VolCatBytes + block->binbuf)) >= dev->max_volume_size) {
+   hit_max1 = (dev->max_volume_size > 0) &&
+       ((dev->VolCatInfo.VolCatBytes + block->binbuf)) >= dev->max_volume_size;
+   hit_max2 = (dev->VolCatInfo.VolCatMaxBytes > 0) &&
+       ((dev->VolCatInfo.VolCatBytes + block->binbuf)) >= dev->VolCatInfo.VolCatMaxBytes;
+   if (hit_max1 || hit_max2) {	 
+      char ed1[50];
       dev->state |= ST_WEOT;
       Dmsg0(10, "==== Output bytes Triggered medium max capacity.\n");
-      Mmsg2(&dev->errmsg, _("Max. Volume capacity %" lld " exceeded on device %s.\n"),
-	 dev->max_volume_size, dev->dev_name);
+      if (hit_max1) {
+         Mmsg2(&dev->errmsg, _("Max. Volume capacity %s exceeded on device %s.\n"),
+	    edit_uint64(dev->max_volume_size, ed1),  dev->dev_name);
+      } else {
+         Mmsg2(&dev->errmsg, _("Max. Volume capacity %s exceeded on device %s.\n"),
+	    edit_uint64(dev->VolCatInfo.VolCatMaxBytes, ed1),  dev->dev_name);
+      }
       block->failed_write = TRUE;
 /* ****FIXME**** write EOD record here */
       weof_dev(dev, 1); 	      /* end the tape */

@@ -48,7 +48,7 @@ typedef int (DB_RESULT_HANDLER)(void *, int, char **);
 
 #ifdef HAVE_SQLITE
 
-#define BDB_VERSION 3
+#define BDB_VERSION 4
 
 #include <sqlite.h>
 
@@ -134,7 +134,7 @@ extern void my_sqlite_free_table(B_DB *mdb);
 
 #ifdef HAVE_MYSQL
 
-#define BDB_VERSION 3
+#define BDB_VERSION 4
 
 #include <mysql.h>
 
@@ -191,7 +191,7 @@ typedef struct s_db {
 /* Change this each time there is some incompatible
  * file format change!!!!
  */
-#define BDB_VERSION 10                /* file version number */
+#define BDB_VERSION 11                /* file version number */
 
 struct s_control {
    int bdb_version;                   /* Version number */
@@ -360,7 +360,8 @@ typedef struct {
    int Recycle;                       /* default Vol recycle flag */
    utime_t  VolRetention;             /* retention period in seconds */
    utime_t  VolUseDuration;           /* time in secs volume can be used */
-   uint32_t MaxVolJobs;               /* Max jobs on volume */
+   uint32_t MaxVolJobs;               /* Max Jobs on Volume */
+   uint32_t MaxVolFiles;              /* Max files on Volume */
    char PoolType[MAX_NAME_LENGTH];             
    char LabelFormat[MAX_NAME_LENGTH];
    /* Extra stuff not in DB */
@@ -375,7 +376,7 @@ typedef struct {
    uint32_t PoolId;                   /* Pool id */
    time_t   FirstWritten;             /* Time Volume first written */
    time_t   LastWritten;              /* Time Volume last written */
-   time_t   LabelDate;                /* Date/Time Volume labelled */
+   time_t   LabelDate;                /* Date/Time Volume labeled */
    uint32_t VolJobs;                  /* number of jobs on this medium */
    uint32_t VolFiles;                 /* Number of files */
    uint32_t VolBlocks;                /* Number of blocks */
@@ -384,11 +385,12 @@ typedef struct {
    uint32_t VolWrites;                /* Number of writes */
    uint32_t VolReads;                 /* Number of reads */
    uint64_t VolBytes;                 /* Number of bytes written */
-   uint64_t VolMaxBytes;              /* max bytes to write */
+   uint64_t MaxVolBytes;              /* Max bytes to write to Volume */
    uint64_t VolCapacityBytes;         /* capacity estimate */
    utime_t  VolRetention;             /* Volume retention in seconds */
    utime_t  VolUseDuration;           /* time in secs volume can be used */
-   uint32_t MaxVolJobs;               /* Max jobs on volume */
+   uint32_t MaxVolJobs;               /* Max Jobs on Volume */
+   uint32_t MaxVolFiles;              /* Max files on Volume */
    int      Recycle;                  /* recycle yes/no */
    int32_t  Slot;                     /* slot in changer */
    char VolStatus[20];                /* Volume status */

@@ -185,10 +185,8 @@ static int addcmd(UAContext *ua, char *cmd)
    /* Get media type */
    if ((store = get_storage_resource(ua, cmd)) != NULL) {
       strcpy(mr.MediaType, store->media_type);
-   } else {
-      if (!get_media_type(ua, mr.MediaType)) {
-	 return 1;
-      }
+   } else if (!get_media_type(ua, mr.MediaType, sizeof(mr.MediaType))) {
+      return 1;
    }
       
    if (pr.MaxVols == 0) {
@@ -266,6 +264,7 @@ getVolName:
    mr.VolRetention = pr.VolRetention;
    mr.VolUseDuration = pr.VolUseDuration;
    mr.MaxVolJobs = pr.MaxVolJobs;
+   mr.MaxVolFiles = pr.MaxVolFiles;
    for (i=startnum; i < num+startnum; i++) { 
       sprintf(mr.VolumeName, name, i);
       mr.Slot = slot++;
@@ -381,7 +380,7 @@ static int cancelcmd(UAContext *ua, char *cmd)
       }
       unlock_jcr_chain();
 
-      if (do_prompt(ua, _("Choose Job to cancel"), JobName) < 0) {
+      if (do_prompt(ua, _("Choose Job to cancel"), JobName, sizeof(JobName)) < 0) {
 	 return 1;
       }
       if (njobs == 1) {
@@ -480,6 +479,7 @@ int create_pool(B_DB *db, POOL *pool)
    pr.VolRetention = pool->VolRetention;
    pr.VolUseDuration = pool->VolUseDuration;
    pr.MaxVolJobs = pool->MaxVolJobs;
+   pr.MaxVolFiles = pool->MaxVolFiles;
    pr.AutoPrune = pool->AutoPrune;
    if (pool->label_format) {
       strcpy(pr.LabelFormat, pool->label_format);
@@ -568,7 +568,7 @@ static int updatecmd(UAContext *ua, char *cmd)
    start_prompt(ua, _("Update choice:\n"));
    add_prompt(ua, _("Volume parameters"));
    add_prompt(ua, _("Pool from resource"));
-   switch (do_prompt(ua, _("Choose catalog item to update"), NULL)) {
+   switch (do_prompt(ua, _("Choose catalog item to update"), NULL, 0)) {
       case 0:
 	 update_volume(ua);
 	 break;
@@ -613,10 +613,11 @@ static int update_volume(UAContext *ua)
       add_prompt(ua, _("Volume Retention Period"));
       add_prompt(ua, _("Volume Use Duration"));
       add_prompt(ua, _("Maximum Volume Jobs"));
+      add_prompt(ua, _("Maximum Volume Files"));
       add_prompt(ua, _("Recycle Flag"));
       add_prompt(ua, _("Slot"));
       add_prompt(ua, _("Done"));
-      switch (do_prompt(ua, _("Select parameter to modify"), NULL)) {
+      switch (do_prompt(ua, _("Select parameter to modify"), NULL, 0)) {
       case 0:			      /* Volume Status */
 	 /* Modify Volume Status */
          bsendmsg(ua, _("Current value is: %s\n"), mr.VolStatus);
@@ -630,10 +631,10 @@ static int update_volume(UAContext *ua)
             add_prompt(ua, "Recycle");
 	 }
          add_prompt(ua, "Read-Only");
-         if (do_prompt(ua, _("Choose new Volume Status"), ua->cmd) < 0) {
+         if (do_prompt(ua, _("Choose new Volume Status"), ua->cmd, sizeof(mr.VolStatus)) < 0) {
 	    return 1;
 	 }
-	 strcpy(mr.VolStatus, ua->cmd);
+	 bstrncpy(mr.VolStatus, ua->cmd, sizeof(mr.VolStatus));
 	 query = get_pool_memory(PM_MESSAGE);
          Mmsg(&query, "UPDATE Media SET VolStatus='%s' WHERE MediaId=%u",
 	    mr.VolStatus, mr.MediaId);
@@ -702,8 +703,30 @@ static int update_volume(UAContext *ua)
 	 free_pool_memory(query);
 	 break;
 
+      case 4:			      /* Max Files */
+	 int32_t maxfiles;
+         bsendmsg(ua, _("Current value is: %u\n"), mr.MaxVolFiles);
+         if (!get_cmd(ua, _("Enter new Maximum Files: "))) {
+	    return 0;
+	 }
+	 maxfiles = atoi(ua->cmd);
+	 if (maxfiles < 0) {
+            bsendmsg(ua, _("Invalid number, it must be 0 or greater\n"));
+	    break;
+	 } 
+	 query = get_pool_memory(PM_MESSAGE);
+         Mmsg(&query, "UPDATE Media SET MaxVolFiles=%u WHERE MediaId=%u",
+	    maxfiles, mr.MediaId);
+	 if (!db_sql_query(ua->db, query, NULL, NULL)) {  
+            bsendmsg(ua, "%s", db_strerror(ua->db));
+	 } else {
+            bsendmsg(ua, "New value is: %u\n", maxfiles);
+	 }
+	 free_pool_memory(query);
+	 break;
 
-      case 4:			      /* Recycle */
+
+      case 5:			      /* Recycle */
 	 int recycle;
          bsendmsg(ua, _("Current value is: %s\n"),
             mr.Recycle==1?_("yes"):_("no"));
@@ -727,7 +750,7 @@ static int update_volume(UAContext *ua)
 	 free_pool_memory(query);
 	 break;
 
-      case 5:			      /* Slot */
+      case 6:			      /* Slot */
 	 int slot;
          bsendmsg(ua, _("Current value is: %d\n"), mr.Slot);
          if (!get_cmd(ua, _("Enter new Slot: "))) {
@@ -794,6 +817,7 @@ static int update_pool(UAContext *ua)
    pr.VolRetention = pool->VolRetention;
    pr.VolUseDuration = pool->VolUseDuration;
    pr.MaxVolJobs = pool->MaxVolJobs;
+   pr.MaxVolFiles = pool->MaxVolFiles;
    if (pool->label_format) {
       strcpy(pr.LabelFormat, pool->label_format);
    } else {
@@ -1010,7 +1034,7 @@ static int setdebugcmd(UAContext *ua, char *cmd)
    add_prompt(ua, _("Storage"));
    add_prompt(ua, _("Client"));
    add_prompt(ua, _("All"));
-   switch(do_prompt(ua, _("Select daemon type to set debug level"), NULL)) {
+   switch(do_prompt(ua, _("Select daemon type to set debug level"), NULL, 0)) {
       case 0:			      /* Director */
 	 debug_level = level;
 	 break;
@@ -1240,6 +1264,7 @@ gotVol:
       mr.VolRetention = pr.VolRetention;
       mr.VolUseDuration = pr.VolUseDuration;
       mr.MaxVolJobs = pr.MaxVolJobs;
+      mr.MaxVolFiles = pr.MaxVolFiles;
       if (db_create_media_record(ua->db, &mr)) {
          bsendmsg(ua, _("Media record for Volume=%s successfully created.\n"),
 	    mr.VolumeName);

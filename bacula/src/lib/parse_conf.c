@@ -237,8 +237,7 @@ void store_msgs(LEX *lc, struct res_items *item, int index, int pass)
 	    dest = get_pool_memory(PM_MESSAGE);
 	    /* Pick up a single destination */
 	    token = lex_get_token(lc, T_NAME);	 /* scan destination */
-	    dest = check_pool_memory_size(dest, lc->str_len + 2);
-	    strcpy(dest, lc->str);
+	    pm_strcpy(&dest, lc->str);
 	    dest_len = lc->str_len;
 	    token = lex_get_token(lc, T_ALL);
             Dmsg1(200, "store_msgs dest=%s:\n", NPRT(dest));

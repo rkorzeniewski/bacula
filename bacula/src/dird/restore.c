@@ -314,7 +314,7 @@ static void restore_cleanup(JCR *jcr, int TermCode)
    bstrftime(edt, sizeof(edt), jcr->jr.EndTime);
    kbps = (double)jcr->jr.JobBytes / (1000 * (jcr->jr.EndTime - jcr->jr.StartTime));
 
-   Jmsg(jcr, msg_type, 0, _("%s\n\
+   Jmsg(jcr, msg_type, 0, _("Bacula " VERSION " (" LSMDATE "): %s\n\
 JobId:                  %d\n\
 Job:                    %s\n\
 Client:                 %s\n\

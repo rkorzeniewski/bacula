@@ -235,6 +235,7 @@ static struct res_items pool_items[] = {
    {"usevolumeonce",   store_yesno, ITEM(res_pool.use_volume_once), 1, 0,        0},
    {"maximumvolumes",  store_pint,  ITEM(res_pool.max_volumes),     0, 0,        0},
    {"maximumvolumejobs", store_pint,  ITEM(res_pool.MaxVolJobs),    0, 0,       0},
+   {"maximumvolumefiles", store_pint, ITEM(res_pool.MaxVolFiles),   0, 0,       0},
    {"acceptanyvolume", store_yesno, ITEM(res_pool.accept_any_volume), 1, ITEM_DEFAULT,     1},
    {"catalogfiles",    store_yesno, ITEM(res_pool.catalog_files),   1, ITEM_DEFAULT,  1},
    {"volumeretention", store_time,  ITEM(res_pool.VolRetention),    0, ITEM_DEFAULT, 60*60*24*365},
@@ -1226,33 +1227,30 @@ static void scan_include_options(LEX *lc, int keyword, char *opts, int optlen)
 
    option[0] = 0;		      /* default option = none */
    opts[0] = option[2] = 0;	      /* terminate options */
-   for (;;) {
-      token = lex_get_token(lc, T_NAME);	     /* expect at least one option */	    
-      if (keyword == INC_KW_VERIFY) { /* special case */
-	 /* ***FIXME**** ensure these are in permitted set */
-         bstrncat(opts, "V", optlen);         /* indicate Verify */
-	 bstrncat(opts, lc->str, optlen);
-         bstrncat(opts, ":", optlen);         /* terminate it */
-      } else {
-	 for (i=0; FS_options[i].name; i++) {
-	    if (strcasecmp(lc->str, FS_options[i].name) == 0 && FS_options[i].keyword == keyword) {
-	       /* NOTE! maximum 2 letters here or increase option[3] */
-	       option[0] = FS_options[i].option[0];
-	       option[1] = FS_options[i].option[1];
-	       i = 0;
-	       break;
-	    }
+   token = lex_get_token(lc, T_NAME);		  /* expect at least one option */	 
+   if (keyword == INC_KW_VERIFY) { /* special case */
+      /* ***FIXME**** ensure these are in permitted set */
+      bstrncat(opts, "V", optlen);         /* indicate Verify */
+      bstrncat(opts, lc->str, optlen);
+      bstrncat(opts, ":", optlen);         /* terminate it */
+   } else {
+      for (i=0; FS_options[i].name; i++) {
+	 if (strcasecmp(lc->str, FS_options[i].name) == 0 && FS_options[i].keyword == keyword) {
+	    /* NOTE! maximum 2 letters here or increase option[3] */
+	    option[0] = FS_options[i].option[0];
+	    option[1] = FS_options[i].option[1];
+	    i = 0;
+	    break;
 	 }
-	 if (i != 0) {
-            scan_err1(lc, "Expected a FileSet option keyword, got: %s", lc->str);
-	 }
-	 bstrncat(opts, option, optlen);
       }
+      if (i != 0) {
+         scan_err1(lc, "Expected a FileSet option keyword, got:%s:", lc->str);
+      }
+      bstrncat(opts, option, optlen);
+   }
 
-      /* check if more options are specified */
-      if (lc->ch != ',') {
-	 break; 		      /* no, get out */
-      }
+   /* If option terminated by comma, eat it */
+   if (lc->ch == ',') {
       token = lex_get_token(lc, T_ALL);      /* yes, eat comma */
    }
 }

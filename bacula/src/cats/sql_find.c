@@ -204,8 +204,8 @@ db_find_next_volume(B_DB *mdb, int item, MEDIA_DBR *mr)
 
    db_lock(mdb);
    Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,\
-VolBytes,VolMounts,VolErrors,VolWrites,VolMaxBytes,VolCapacityBytes,\
-VolRetention,VolUseDuration,MaxVolJobs,Recycle,Slot,\
+VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,\
+VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,\
 FirstWritten FROM Media WHERE PoolId=%d AND MediaType='%s' AND VolStatus='%s' \
 ORDER BY MediaId", mr->PoolId, mr->MediaType, mr->VolStatus); 
 
@@ -244,14 +244,15 @@ ORDER BY MediaId", mr->PoolId, mr->MediaType, mr->VolStatus);
    mr->VolMounts = atoi(row[6]);
    mr->VolErrors = atoi(row[7]);
    mr->VolWrites = atoi(row[8]);
-   mr->VolMaxBytes = (uint64_t)strtod(row[9], NULL);
+   mr->MaxVolBytes = (uint64_t)strtod(row[9], NULL);
    mr->VolCapacityBytes = (uint64_t)strtod(row[10], NULL);
    mr->VolRetention = (utime_t)strtod(row[11], NULL);
    mr->VolUseDuration = (utime_t)strtod(row[12], NULL);
    mr->MaxVolJobs = atoi(row[13]);
-   mr->Recycle = atoi(row[14]);
-   mr->Slot = atoi(row[15]);
-   bstrncpy(mr->cFirstWritten, row[16]!=NULL?row[16]:"", sizeof(mr->cFirstWritten));
+   mr->MaxVolFiles = atoi(row[14]);
+   mr->Recycle = atoi(row[15]);
+   mr->Slot = atoi(row[16]);
+   bstrncpy(mr->cFirstWritten, row[17]!=NULL?row[17]:"", sizeof(mr->cFirstWritten));
 
    sql_free_result(mdb);
 

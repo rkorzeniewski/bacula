@@ -199,11 +199,11 @@ db_update_media_record(B_DB *mdb, MEDIA_DBR *mr)
 
    Mmsg(&mdb->cmd, "UPDATE Media SET VolJobs=%u,\
  VolFiles=%u, VolBlocks=%u, VolBytes=%s, VolMounts=%u, VolErrors=%u,\
- VolWrites=%u, VolMaxBytes=%s, LastWritten='%s', VolStatus='%s',\
+ VolWrites=%u, MaxVolBytes=%s, LastWritten='%s', VolStatus='%s',\
  Slot=%d WHERE VolumeName='%s'",
    mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
    mr->VolMounts, mr->VolErrors, mr->VolWrites, 
-   edit_uint64(mr->VolMaxBytes, ed2), dt, 
+   edit_uint64(mr->MaxVolBytes, ed2), dt, 
    mr->VolStatus, mr->Slot, mr->VolumeName);
 
    Dmsg1(400, "%s\n", mdb->cmd);

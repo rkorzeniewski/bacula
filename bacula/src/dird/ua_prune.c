@@ -32,11 +32,13 @@
 #include "dird.h"
 #include "ua.h"
 
+/* Imported functions */
+int mark_media_purged(UAContext *ua, MEDIA_DBR *mr);
+
 /* Forward referenced functions */
 int prune_files(UAContext *ua, CLIENT *client);
 int prune_jobs(UAContext *ua, CLIENT *client, int JobType);
 int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr);
-static int mark_media_purged(UAContext *ua, MEDIA_DBR *mr);
 
 
 #define MAX_DEL_LIST_LEN 1000000
@@ -506,7 +508,7 @@ int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
       
    if (cnt.count == 0) {
       if (ua->verbose) {
-         bsendmsg(ua, "There are no Jobs associated with Volume %s. It is purged.\n",
+         bsendmsg(ua, "There are no Jobs associated with Volume %s. Marking it purged.\n",
 	    mr->VolumeName);
       }
       stat = mark_media_purged(ua, mr);
@@ -574,20 +576,4 @@ bail_out:
    db_unlock(ua->db);
    free_pool_memory(query);
    return stat;
-}
-
-static int mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
-{
-   if (strcmp(mr->VolStatus, "Append") == 0 || 
-       strcmp(mr->VolStatus, "Full")   == 0) {
-      strcpy(mr->VolStatus, "Purged");
-      if (!db_update_media_record(ua->db, mr)) {
-	 if (ua->verbose) {
-            bsendmsg(ua, "%s", db_strerror(ua->db));
-	 }
-	 return 0;
-      }
-      return 1;
-   }
-   return strcpy(mr->VolStatus, "Purged") == 0;
 }

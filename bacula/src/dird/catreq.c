@@ -45,19 +45,20 @@ static char Find_media[] = "CatReq Job=%127s FindMedia=%d\n";
 static char Get_Vol_Info[] = "CatReq Job=%127s GetVolInfo VolName=%127s write=%d\n";
 
 static char Update_media[] = "CatReq Job=%127s UpdateMedia VolName=%s\
- VolJobs=%d VolFiles=%d VolBlocks=%d VolBytes=%" lld " VolMounts=%d\
- VolErrors=%d VolWrites=%d VolMaxBytes=%" lld " EndTime=%d VolStatus=%10s\
+ VolJobs=%u VolFiles=%u VolBlocks=%u VolBytes=%" lld " VolMounts=%u\
+ VolErrors=%u VolWrites=%u MaxVolBytes=%" lld " EndTime=%d VolStatus=%10s\
  Slot=%d relabel=%d\n";
 
 static char Create_job_media[] = "CatReq Job=%127s CreateJobMedia \
- FirstIndex=%d LastIndex=%d StartFile=%d EndFile=%d \
- StartBlock=%d EndBlock=%d\n";
+ FirstIndex=%u LastIndex=%u StartFile=%u EndFile=%u \
+ StartBlock=%u EndBlock=%u\n";
 
 
 /* Responses  sent to Storage daemon */
-static char OK_media[] = "1000 OK VolName=%s VolJobs=%d VolFiles=%d\
- VolBlocks=%d VolBytes=%" lld " VolMounts=%d VolErrors=%d VolWrites=%d\
- VolMaxBytes=%" lld " VolCapacityBytes=%" lld " VolStatus=%s Slot=%d\n";
+static char OK_media[] = "1000 OK VolName=%s VolJobs=%u VolFiles=%u\
+ VolBlocks=%u VolBytes=%s VolMounts=%u VolErrors=%u VolWrites=%u\
+ MaxVolBytes=%s VolCapacityBytes=%s VolStatus=%s Slot=%d\
+ MaxVolJobs=%u MaxVolFiles=%u\n";
 
 static char OK_update[] = "1000 OK UpdateMedia\n";
 
@@ -66,13 +67,14 @@ static char OK_update[] = "1000 OK UpdateMedia\n";
 
 void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 {
-   MEDIA_DBR mr; 
+   MEDIA_DBR mr, sdmr; 
    JOBMEDIA_DBR jm;
    char Job[MAX_NAME_LENGTH];
    int index, ok, relabel, writing, retry = 0;
    POOLMEM *omsg;
 
    memset(&mr, 0, sizeof(mr));
+   memset(&sdmr, 0, sizeof(sdmr));
    memset(&jm, 0, sizeof(jm));
 
    /*
@@ -106,11 +108,11 @@ next_volume:
 	 }
       }
       /* Check if use duration has expired */
-      if (ok && jcr->pool->VolUseDuration > 0 && 
+      if (ok && mr.VolUseDuration > 0 && 
                 strcmp(mr.VolStatus, "Recycle") != 0) {
 	 utime_t now = time(NULL);
 	 utime_t start = str_to_utime(mr.cFirstWritten);			 
-	 if (start > 0 && jcr->pool->VolUseDuration <= (now - start)) {
+	 if (start > 0 && mr.VolUseDuration <= (now - start)) {
             Dmsg4(100, "Duration=%d now=%d start=%d now-start=%d\n",
 	       (int)jcr->pool->VolUseDuration, (int)now, (int)start, (int)(now-start));
             Jmsg(jcr, M_INFO, 0, _("Max configured use duration exceeded. "       
@@ -133,13 +135,16 @@ next_volume:
        * Send Find Media response to Storage daemon 
        */
       if (ok) {
+	 char ed1[50], ed2[50], ed3[50];
 	 jcr->MediaId = mr.MediaId;
 	 pm_strcpy(&jcr->VolumeName, mr.VolumeName);
 	 bash_spaces(mr.VolumeName);
 	 bnet_fsend(bs, OK_media, mr.VolumeName, mr.VolJobs,
-	    mr.VolFiles, mr.VolBlocks, mr.VolBytes, mr.VolMounts, mr.VolErrors,
-	    mr.VolWrites, mr.VolMaxBytes, mr.VolCapacityBytes,
-	    mr.VolStatus, mr.Slot);
+	    mr.VolFiles, mr.VolBlocks, edit_uint64(mr.VolBytes, ed1),
+	    mr.VolMounts, mr.VolErrors, mr.VolWrites, 
+	    edit_uint64(mr.MaxVolBytes, ed2), 
+	    edit_uint64(mr.VolCapacityBytes, ed3),
+	    mr.VolStatus, mr.Slot, mr.MaxVolJobs, mr.MaxVolFiles);
       } else {
          bnet_fsend(bs, "1999 No Media\n");
       }
@@ -157,7 +162,7 @@ next_volume:
 	 int VolSuitable = 0;
 	 jcr->MediaId = mr.MediaId;
          Dmsg1(120, "VolumeInfo MediaId=%d\n", jcr->MediaId);
-	 strcpy(jcr->VolumeName, mr.VolumeName);
+	 pm_strcpy(&jcr->VolumeName, mr.VolumeName);
 	 if (!writing) {
 	    VolSuitable = 1;	      /* accept anything for read */
 	 } else {
@@ -175,14 +180,17 @@ next_volume:
 	    }
 	 }
 	 if (VolSuitable) {
+	    char ed1[50], ed2[50], ed3[50];
 	    /*
 	     * Send Find Media response to Storage daemon 
 	     */
 	    bash_spaces(mr.VolumeName);
 	    bnet_fsend(bs, OK_media, mr.VolumeName, mr.VolJobs,
-	       mr.VolFiles, mr.VolBlocks, mr.VolBytes, mr.VolMounts, mr.VolErrors,
-	       mr.VolWrites, mr.VolMaxBytes, mr.VolCapacityBytes,
-	       mr.VolStatus, mr.Slot);
+	       mr.VolFiles, mr.VolBlocks, edit_uint64(mr.VolBytes, ed1),
+	       mr.VolMounts, mr.VolErrors, mr.VolWrites, 
+	       edit_uint64(mr.MaxVolBytes, ed2), 
+	       edit_uint64(mr.VolCapacityBytes, ed3),
+	       mr.VolStatus, mr.Slot, mr.MaxVolJobs, mr.MaxVolFiles);
             Dmsg5(200, "get_media_record PoolId=%d wanted %d, Status=%s, Slot=%d \
 MediaType=%s\n", mr.PoolId, jcr->PoolId, mr.VolStatus, mr.Slot, mr.MediaType);
 	 } else { 
@@ -199,18 +207,37 @@ MediaType=%s\n", mr.PoolId, jcr->PoolId, mr.VolStatus, mr.Slot, mr.MediaType);
     * Request to update Media record. Comes typically at the end
     *  of a Storage daemon Job Session
     */
-   } else if (sscanf(bs->msg, Update_media, &Job, &mr.VolumeName, &mr.VolJobs,
-      &mr.VolFiles, &mr.VolBlocks, &mr.VolBytes, &mr.VolMounts, &mr.VolErrors,
-      &mr.VolWrites, &mr.VolMaxBytes, &mr.LastWritten, &mr.VolStatus, 
-      &mr.Slot, &relabel) == 14) {
+   } else if (sscanf(bs->msg, Update_media, &Job, &sdmr.VolumeName, &sdmr.VolJobs,
+      &sdmr.VolFiles, &sdmr.VolBlocks, &sdmr.VolBytes, &sdmr.VolMounts, &sdmr.VolErrors,
+      &sdmr.VolWrites, &sdmr.MaxVolBytes, &sdmr.LastWritten, &sdmr.VolStatus, 
+      &sdmr.Slot, &relabel) == 14) {
+
+      bstrncpy(mr.VolumeName, sdmr.VolumeName, sizeof(mr.VolumeName)); /* copy Volume name */
+      if (!db_get_media_record(jcr->db, &mr)) {
+         Jmsg(jcr, M_ERROR, 0, _("Unable to get Media record for Volume %s: ERR=%s\n"),
+	      mr.VolumeName, db_strerror(jcr->db));
+         bnet_fsend(bs, "1991 Catalog Request failed: %s", db_strerror(jcr->db));
+	 return;
+      }
+      /* Copy updated values to original media record */
+      mr.VolJobs     = sdmr.VolJobs;
+      mr.VolFiles    = sdmr.VolFiles;
+      mr.VolBlocks   = sdmr.VolBlocks;
+      mr.VolBytes    = sdmr.VolBytes;
+      mr.VolMounts   = sdmr.VolMounts;
+      mr.VolErrors   = sdmr.VolErrors;
+      mr.VolWrites   = sdmr.VolWrites;
+      mr.LastWritten = sdmr.LastWritten;
+      bstrncpy(mr.VolStatus, sdmr.VolStatus, sizeof(mr.VolStatus));
+      mr.Slot = sdmr.Slot;
 
       /*     
        * Update Media Record
        */
 
       /* First handle Max Volume Bytes */
-      if ((mr.VolMaxBytes > 0 && mr.VolBytes >= mr.VolMaxBytes)) {
-         Jmsg(jcr, M_INFO, 0, _("Max configure Volume bytes exceeded. "             
+      if ((mr.MaxVolBytes > 0 && mr.VolBytes >= mr.MaxVolBytes)) {
+         Jmsg(jcr, M_INFO, 0, _("Max Volume bytes exceeded. "             
              "Marking Volume \"%s\" as Full.\n"), mr.VolumeName);
          strcpy(mr.VolStatus, "Full");
 
@@ -221,35 +248,31 @@ MediaType=%s\n", mr.PoolId, jcr->PoolId, mr.VolStatus, mr.Slot, mr.MediaType);
          strcpy(mr.VolStatus, "Used");
 
       /* Now see if Max Jobs written to volume */
-      } else if (jcr->pool->MaxVolJobs > 0 &&
-		 jcr->pool->MaxVolJobs <= mr.VolJobs) {
-         Jmsg(jcr, M_INFO, 0, _("Max configured Volume jobs exceeded. "       
+      } else if (mr.MaxVolJobs > 0 && mr.MaxVolJobs <= mr.VolJobs) {
+         Jmsg(jcr, M_INFO, 0, _("Max Volume jobs exceeded. "       
+             "Marking Volume \"%s\" as Used.\n"), mr.VolumeName);
+         strcpy(mr.VolStatus, "Used");
+
+      /* Now see if Max Files written to volume */
+      } else if (mr.MaxVolFiles > 0 && mr.MaxVolFiles <= mr.VolFiles) {
+         Jmsg(jcr, M_INFO, 0, _("Max Volume files exceeded. "       
              "Marking Volume \"%s\" as Used.\n"), mr.VolumeName);
          strcpy(mr.VolStatus, "Used");
 
       /* Finally, check Use duration expiration */
-      } else if (jcr->pool->VolUseDuration > 0) {
-	 MEDIA_DBR omr;
-	 memset(&omr, 0, sizeof(omr));	 /* clear media record */
-	 strcpy(omr.VolumeName, mr.VolumeName); /* copy Volume name */
-	 if (db_get_media_record(jcr->db, &omr)) {
-	    utime_t start;
-	    utime_t now = time(NULL);
-	    start = str_to_utime(omr.cFirstWritten);			     
-	    /* See if Vol Use has expired */
-	    if (start > 0 && jcr->pool->VolUseDuration <= (now - start)) {
-               Jmsg(jcr, M_INFO, 0, _("Max configured use duration exceeded. "       
-                  "Marking Volume \"%s\"as Used.\n"), mr.VolumeName);
-               strcpy(mr.VolStatus, "Used");  /* yes, mark as used */
-	    }
-	 } else {
-            Jmsg(jcr, M_ERROR, 0, _("Unable to get Media record for Volume %s: ERR=%s\n"),
-	       mr.VolumeName, db_strerror(jcr->db));
+      } else if (mr.VolUseDuration > 0) {
+	 utime_t start;
+	 utime_t now = time(NULL);
+	 start = str_to_utime(mr.cFirstWritten);			 
+	 /* See if Vol Use has expired */
+	 if (start > 0 && mr.VolUseDuration <= (now - start)) {
+            Jmsg(jcr, M_INFO, 0, _("Max configured use duration exceeded. "       
+               "Marking Volume \"%s\"as Used.\n"), mr.VolumeName);
+            strcpy(mr.VolStatus, "Used");  /* yes, mark as used */
 	 }
       }
 
-      Dmsg2(200, "db_update_media_record. Stat=%s Vol=%s\n",
-	 mr.VolStatus, mr.VolumeName);
+      Dmsg2(200, "db_update_media_record. Stat=%s Vol=%s\n", mr.VolStatus, mr.VolumeName);
       if (db_update_media_record(jcr->db, &mr)) {
 	 bnet_fsend(bs, OK_update);
          Dmsg0(190, "send OK\n");
@@ -271,7 +294,7 @@ MediaType=%s\n", mr.PoolId, jcr->PoolId, mr.VolStatus, mr.Slot, mr.MediaType);
       jm.MediaId = jcr->MediaId;
       Dmsg6(100, "create_jobmedia JobId=%d MediaId=%d SF=%d EF=%d FI=%d LI=%d\n",
 	 jm.JobId, jm.MediaId, jm.StartFile, jm.EndFile, jm.FirstIndex, jm.LastIndex);
-      if(!db_create_jobmedia_record(jcr->db, &jm)) {
+      if (!db_create_jobmedia_record(jcr->db, &jm)) {
          Jmsg(jcr, M_ERROR, 0, _("Catalog error creating JobMedia record. %s"),
 	    db_strerror(jcr->db));
          bnet_fsend(bs, "1991 Update JobMedia error\n");
@@ -284,6 +307,7 @@ MediaType=%s\n", mr.PoolId, jcr->PoolId, mr.VolStatus, mr.Slot, mr.MediaType);
       omsg = get_memory(bs->msglen+1);
       pm_strcpy(&omsg, bs->msg);
       bnet_fsend(bs, "1990 Invalid Catalog Request: %s", omsg);    
+      Jmsg1(jcr, M_ERROR, 0, _("Invalid Catalog request: %s"), omsg);
       free_memory(omsg);
    }
    Dmsg1(120, ">CatReq response: %s", bs->msg);

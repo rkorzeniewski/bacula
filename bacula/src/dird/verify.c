@@ -336,7 +336,7 @@ static void verify_cleanup(JCR *jcr, int TermCode)
    bstrftime(sdt, sizeof(sdt), jcr->jr.StartTime);
    bstrftime(edt, sizeof(edt), jcr->jr.EndTime);
 
-   Jmsg(jcr, msg_type, 0, _("%s\n\
+   Jmsg(jcr, msg_type, 0, _("Bacula " VERSION " (" LSMDATE "): %s\n\
 JobId:                  %d\n\
 Job:                    %s\n\
 FileSet:                %s\n\

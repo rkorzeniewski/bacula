@@ -29,6 +29,7 @@
 
 #include "bacula.h"
 
+/* Authorize other end */
 int cram_md5_auth(BSOCK *bs, char *password)
 {
    struct timeval t1;
@@ -43,13 +44,15 @@ int cram_md5_auth(BSOCK *bs, char *password)
    for (i=0; i<4; i++)
       gettimeofday(&t2, &tz);
    srandom((t1.tv_sec&0xffff) * (t2.tv_usec&0xff));
-   gethostname(host, sizeof(host));
+   if (!gethostname(host, sizeof(host))) {
+      bstrncpy(host, my_name, sizeof(host));
+   }
    sprintf((char *)chal, "<%u.%u@%s>", (uint32_t)random(), (uint32_t)time(NULL), host);
    if (!bnet_fsend(bs, "auth cram-md5 %s\n", chal)) {
       return 0;
    }
    Dmsg1(99, "%s", bs->msg);
-   if (bnet_wait_data(bs, 120) <= 0 || bnet_recv(bs) <= 0) {
+   if (bnet_wait_data(bs, 180) <= 0 || bnet_recv(bs) <= 0) {
       sleep(5);
       return 0;
    }
@@ -72,6 +75,7 @@ int cram_md5_auth(BSOCK *bs, char *password)
    return ok;
 }
 
+/* Get authorization from other end */
 int cram_md5_get_auth(BSOCK *bs, char *password)
 {
    char chal[MAXSTRING];
@@ -81,18 +85,18 @@ int cram_md5_get_auth(BSOCK *bs, char *password)
       sleep(5);
       return 0;
    }
-   if (sscanf(bs->msg, "auth cram-md5 %s", chal) != 1) {
-     Dmsg1(99, "Wanted auth cram... Got: %s\n", bs->msg);
+   if (bs->msglen >= MAXSTRING || sscanf(bs->msg, "auth cram-md5 %s\n", chal) != 1) {
+     Dmsg1(99, "Wanted auth cram... Got: %s", bs->msg);
      sleep(5);
      return 0;
    }
    hmac_md5((uint8_t *)chal, strlen(chal), (uint8_t *)password, strlen(password), hmac);
-   bs->msglen = bin_to_base64(bs->msg, (char *)hmac, 16);
+   bs->msglen = bin_to_base64(bs->msg, (char *)hmac, 16) + 1;
    if (!bnet_send(bs)) {
       return 0;
    }
    Dmsg1(99, "sending resp to challenge: %s\n", bs->msg);
-   if (bnet_wait_data(bs, 120) <= 0 || bnet_recv(bs) <= 0) {
+   if (bnet_wait_data(bs, 180) <= 0 || bnet_recv(bs) <= 0) {
       sleep(5);
       return 0;
    }

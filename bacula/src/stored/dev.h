@@ -110,7 +110,9 @@ typedef struct s_volume_catalog_info {
    uint32_t VolCatReads;              /* Number of reads this volume */
    uint32_t VolCatRecycles;           /* Number of recycles this volume */
    int32_t  Slot;                     /* Slot in changer */
-   uint64_t VolCatMaxBytes;           /* max bytes to write */
+   uint32_t VolCatMaxJobs;            /* Maximum Jobs to write to volume */
+   uint32_t VolCatMaxFiles;           /* Maximum files to write to volume */
+   uint64_t VolCatMaxBytes;           /* Max bytes to write to volume */
    uint64_t VolCatCapacityBytes;      /* capacity estimate */
    char VolCatStatus[20];             /* Volume status */
    char VolCatName[MAX_NAME_LENGTH];  /* Desired volume to mount */

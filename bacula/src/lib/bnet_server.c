@@ -284,7 +284,7 @@ bnet_accept(BSOCK *bsock, char *who)
     * return it in the input message buffer.
     */
    if ((caller = inet_ntoa(cli_addr.sin_addr)) != NULL) {
-      strcpy(bsock->msg, caller);
+      pm_strcpy(&bsock->msg, caller);
    } else {
       bsock->msg[0] = 0;
    }

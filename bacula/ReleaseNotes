@@ -1,6 +1,6 @@
           Release Notes for Bacula 1.27
 
-  Bacula code: Total files = 222 Total lines = 60,233 (*.h *.c *.in)
+  Bacula code: Total files = 222 Total lines = 60,396 (*.h *.c *.in)
 
 Major Changes this Release:
 - Implemented support for Sparse files.
@@ -25,6 +25,9 @@ Major Changes this Release:
   it would accept ONLY the next appendable volume. To get
   the old behavior add "Accept Any Volume = No" to the
   Storage resources of your Director's configuration file.
+- New database format. You must either re-initialize your database or
+  use <bacula-src>/src/cats/alter_mysql_tables (or alter_sqlite_tables)
+  to upgrade an existing database.
 
 Minor Changes this Release:
 - A number of small bug fixes.
@@ -36,9 +39,11 @@ Minor Changes this Release:
 - Fixed mount loop when the autochanger slot is incorrect in 
   the catalog.
 - Updated the bacula script to work on more systems.
+- Fixed many places prone to buffer overflows.
 
 Items to note:
 - The Dir-SD protocol has changed since 1.26, so you must
   update the Director and Storage daemons.
 - The Dir-FD protocol has changed since 1.26 (and earlier versions
   of 1.27).
+- You must re-initialize or alter your databases.
