@@ -173,7 +173,7 @@ class wxbRestorePanel : public wxbPanel
       wxTextCtrl*   cfgWhere;
       wxChoice*     cfgReplace;
       wxStaticText* cfgFileset;
-      wxStaticText* cfgClient;
+      wxChoice*     cfgClient;
       wxStaticText* cfgStorage;
       wxTextCtrl*   cfgWhen;
       wxTextCtrl*   cfgPriority;

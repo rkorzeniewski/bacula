@@ -32,7 +32,7 @@ Parameters to modify:
      2: Storage (automatic ?)
      3: Job (no)
      4: FileSet (no)
-     5: Client (no)
+     5: Client (yes : "The defined Client resources are:\n\t1: velours-fd\n\t2: tom-fd\nSelect Client (File daemon) resource (1-2):")
      6: When (yes : "Please enter desired start time as YYYY-MM-DD HH:MM:SS (return for now):")
      7: Priority (yes : "Enter new Priority: (positive integer)")
      8: Bootstrap (?)
@@ -171,7 +171,8 @@ enum
    ConfigWhere = 8,
    ConfigReplace = 9,
    ConfigWhen = 10,
-   ConfigPriority = 11
+   ConfigPriority = 11,
+   ConfigClient = 12
 };
 
 BEGIN_EVENT_TABLE(wxbRestorePanel, wxPanel)
@@ -190,6 +191,7 @@ BEGIN_EVENT_TABLE(wxbRestorePanel, wxPanel)
    EVT_TEXT(ConfigWhen, wxbRestorePanel::OnConfigUpdated)
    EVT_TEXT(ConfigPriority, wxbRestorePanel::OnConfigUpdated)
    EVT_CHOICE(ConfigReplace, wxbRestorePanel::OnConfigUpdated)
+   EVT_CHOICE(ConfigClient, wxbRestorePanel::OnConfigUpdated)
    
    EVT_BUTTON(ConfigOk, wxbRestorePanel::OnConfigOk)
    EVT_BUTTON(ConfigApply, wxbRestorePanel::OnConfigApply)
@@ -219,7 +221,7 @@ wxbRestorePanel::wxbRestorePanel(wxWindow* parent): wxbPanel(parent) {
    start = new wxButton(this, RestoreStart, "Enter restore mode", wxDefaultPosition, wxSize(150, 30));
    firstSizer->Add(start, 1, wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 10);
 
-   wxString* elist = new wxString[1];
+   wxString elist[1];
 
    clientChoice = new wxChoice(this, ClientChoice, wxDefaultPosition, wxSize(150, 30), 0, elist);
    firstSizer->Add(clientChoice, 1, wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 10);
@@ -283,41 +285,39 @@ wxbRestorePanel::wxbRestorePanel(wxWindow* parent): wxbPanel(parent) {
    
    wxBoxSizer* restoreSizer = new wxBoxSizer(wxVERTICAL);
    
-   wxGridSizer* cfgSizer = new wxGridSizer(9, 2, 5, 5);
+   wxFlexGridSizer* cfgSizer = new wxFlexGridSizer(9, 2, 8, 5);
    
-   cfgJobname = new wxStaticText(restorePanel, -1, "  ", wxDefaultPosition, wxSize(150, 15), wxALIGN_LEFT);
-   cfgBootstrap = new wxStaticText(restorePanel, -1, "  ", wxDefaultPosition, wxSize(150, 15), wxALIGN_LEFT);
-   cfgWhere = new wxTextCtrl(restorePanel, ConfigWhere, "", wxDefaultPosition, wxSize(150, 15));
-   elist = new wxString[4];
-   elist[0] = "always";
-   elist[1] = "ifnewer";
-   elist[2] = "ifolder";
-   elist[3] = "never";
-   cfgReplace = new wxChoice(restorePanel, ConfigReplace, wxDefaultPosition, wxSize(150, 15), 4, elist);
-   cfgFileset = new wxStaticText(restorePanel, -1, "  ", wxDefaultPosition, wxSize(150, 15), wxALIGN_LEFT);
-   cfgClient = new wxStaticText(restorePanel, -1, "  ", wxDefaultPosition, wxSize(150, 15), wxALIGN_LEFT);
-   cfgStorage = new wxStaticText(restorePanel, -1, "  ", wxDefaultPosition, wxSize(150, 15), wxALIGN_LEFT);
-   cfgWhen = new wxTextCtrl(restorePanel, ConfigWhen, "0000-00-00 00:00:00", wxDefaultPosition, wxSize(150, 15));
-   cfgPriority = new wxTextCtrl(restorePanel, ConfigPriority, "", wxDefaultPosition, wxSize(50, 15));
+   cfgJobname = new wxStaticText(restorePanel, -1, "  ", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+   cfgBootstrap = new wxStaticText(restorePanel, -1, "  ", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+   cfgWhere = new wxTextCtrl(restorePanel, ConfigWhere, "", wxDefaultPosition, wxDefaultSize);
+   wxString erlist[] = {"always", "if newer", "if older", "never"};
+   cfgReplace = new wxChoice(restorePanel, ConfigReplace, wxDefaultPosition, wxDefaultSize, 4, erlist);
+   cfgFileset = new wxStaticText(restorePanel, -1, "  ", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+   cfgClient = new wxChoice(restorePanel, ConfigClient, wxDefaultPosition, wxDefaultSize, 0, elist);
+   cfgStorage = new wxStaticText(restorePanel, -1, "  ", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+   cfgWhen = new wxTextCtrl(restorePanel, ConfigWhen, "0000-00-00 00:00:00", wxDefaultPosition, wxDefaultSize);
+   cfgPriority = new wxTextCtrl(restorePanel, ConfigPriority, "", wxDefaultPosition, wxDefaultSize);
    
-   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Job Name: ", wxDefaultPosition, wxSize(150, 15), wxALIGN_RIGHT), 1, wxEXPAND);
-   cfgSizer->Add(cfgJobname, 1, wxEXPAND);
-   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Bootstrap: ", wxDefaultPosition, wxSize(150, 15), wxALIGN_RIGHT), 1, wxEXPAND);
-   cfgSizer->Add(cfgBootstrap, 1, wxEXPAND);
-   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Where: ", wxDefaultPosition, wxSize(150, 15), wxALIGN_RIGHT), 1, wxEXPAND);
-   cfgSizer->Add(cfgWhere, 1, wxEXPAND);
-   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Replace: ", wxDefaultPosition, wxSize(150, 15), wxALIGN_RIGHT), 1, wxEXPAND);
+   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Job Name: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND | wxALIGN_CENTER_HORIZONTAL);
+   cfgSizer->Add(cfgJobname, 1, wxEXPAND | wxADJUST_MINSIZE);
+   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Bootstrap: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND | wxALIGN_CENTER_HORIZONTAL);
+   cfgSizer->Add(cfgBootstrap, 1, wxEXPAND | wxADJUST_MINSIZE);
+   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Where: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND | wxALIGN_CENTER_HORIZONTAL);
+   cfgSizer->Add(cfgWhere, 1, wxEXPAND | wxADJUST_MINSIZE);
+   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Replace: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND | wxALIGN_CENTER_HORIZONTAL);
    cfgSizer->Add(cfgReplace, 1, wxEXPAND);
-   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Fileset: ", wxDefaultPosition, wxSize(150, 15), wxALIGN_RIGHT), 1, wxEXPAND);
-   cfgSizer->Add(cfgFileset, 1, wxEXPAND);
-   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Client: ", wxDefaultPosition, wxSize(150, 15), wxALIGN_RIGHT), 1, wxEXPAND);
+   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Fileset: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND | wxALIGN_CENTER_HORIZONTAL);
+   cfgSizer->Add(cfgFileset, 1, wxEXPAND | wxADJUST_MINSIZE);
+   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Client: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND | wxALIGN_CENTER_HORIZONTAL);
    cfgSizer->Add(cfgClient, 1, wxEXPAND);
-   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Storage: ", wxDefaultPosition, wxSize(150, 15), wxALIGN_RIGHT), 1, wxEXPAND);
-   cfgSizer->Add(cfgStorage, 1, wxEXPAND);
-   cfgSizer->Add(new wxStaticText(restorePanel, -1, "When: ", wxDefaultPosition, wxSize(150, 15), wxALIGN_RIGHT), 1, wxEXPAND);
-   cfgSizer->Add(cfgWhen, 1, wxEXPAND);
-   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Priority: ", wxDefaultPosition, wxSize(150, 15), wxALIGN_RIGHT), 1, wxEXPAND);
-   cfgSizer->Add(cfgPriority, 1, wxEXPAND);
+   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Storage: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND | wxALIGN_CENTER_HORIZONTAL);
+   cfgSizer->Add(cfgStorage, 1, wxEXPAND | wxADJUST_MINSIZE);
+   cfgSizer->Add(new wxStaticText(restorePanel, -1, "When: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND | wxALIGN_CENTER_HORIZONTAL);
+   cfgSizer->Add(cfgWhen, 1, wxEXPAND | wxADJUST_MINSIZE);
+   cfgSizer->Add(new wxStaticText(restorePanel, -1, "Priority: ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 1, wxEXPAND | wxALIGN_CENTER_HORIZONTAL);
+   cfgSizer->Add(cfgPriority, 1, wxEXPAND | wxADJUST_MINSIZE);
+   
+   //cfgSizer->SetMinSize(400, 400);
       
    restoreSizer->Add(cfgSizer, 1, wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL | wxALL, 5);
    
@@ -340,8 +340,8 @@ wxbRestorePanel::wxbRestorePanel(wxWindow* parent): wxbPanel(parent) {
    restorePanel->Show(false);
    
    centerSizer = new wxBoxSizer(wxHORIZONTAL);
-   //centerSizer->Add(treelistSizer, 1, wxEXPAND);
-   
+   centerSizer->Add(treelistPanel, 1, wxEXPAND | wxADJUST_MINSIZE);
+      
    mainSizer->Add(centerSizer, 1, wxEXPAND, 10);
 
    gauge = new wxGauge(this, -1, 1, wxDefaultPosition, wxSize(200,20));
@@ -404,6 +404,7 @@ void wxbRestorePanel::CmdStart() {
          long* j = new long;
          (*tableparser)[i][0].ToLong(j);
          clientChoice->Append((*tableparser)[i][1], (void*)j);
+         cfgClient->Append((*tableparser)[i][1]);
       }
       
       delete tableparser;
@@ -623,21 +624,41 @@ void wxbRestorePanel::CmdConfigApply() {
          def = "10";
          cfgUpdated = cfgUpdated & (~(1 << ConfigPriority));
       }
+      else if ((cfgUpdated >> ConfigClient) & 1) {
+         WaitForEnd("mod\n"); /* TODO: check results */
+         dt = WaitForEnd("5\n", true);
+         wxString sel = cfgClient->GetStringSelection();
+         wxString sint = "1";
+         if (sel != "") {
+            // "The defined Client resources are:\n    1: velours-fd\n    2: tom-fd\nSelect Client (File daemon) resource (1-2):"
+            for (unsigned int i = 0; i < dt->GetCount(); i++) {
+               int j;
+               if ((j = (*dt)[i].Find(": " + sel + "\n")) > -1) {
+                  sint = (*dt)[i].Mid(0, j).Trim().Trim(false);
+                  break;
+               }
+            }
+         }
+         delete dt;
+         dt = WaitForEnd(sint + "\n", true);
+         def = "1";
+         cfgUpdated = cfgUpdated & (~(1 << ConfigClient));
+      }
       else {
          cfgUpdated = 0;
          break;
       }
-      
+                 
       unsigned int i;
       for (i = 0; i < dt->GetCount(); i++) {
-         if ((*dt)[i].Find("Run Restore job")) {
+         if ((*dt)[i].Find("Run Restore job") == 0) {
             break;
          }
       }
       
-      if (i == (dt->GetCount()-1)) {
+      if (i == dt->GetCount()) {
          delete dt;   
-         dt = WaitForEnd(def + "\n");
+         dt = WaitForEnd(def + "\n", true);
       }
    }
    UpdateConfig(dt); /* TODO: Check result */
@@ -750,8 +771,8 @@ void wxbRestorePanel::CmdMark(wxTreeItemId treeitem, long listitem) {
          file = "*";
       }
 
-      WaitForEnd(wxString("cd ") << dir << "\n");
-      WaitForEnd(wxString((itemdata->GetMarked() == 1) ? "unmark " : "mark ") << file << "\n");
+      WaitForEnd(wxString("cd \"") << dir << "\"\n");
+      WaitForEnd(wxString((itemdata->GetMarked() == 1) ? "unmark" : "mark") << " \"" << file << "\"\n");
 
       /* TODO: Check commands results */
 
@@ -1151,7 +1172,18 @@ bool wxbRestorePanel::UpdateConfig(wxbDataTokenizer* dt) {
    if ((k = (*dt)[++i].Find("FileSet:")) != 0) return false;
    cfgFileset->SetLabel((*dt)[i].Mid(10).Trim(false).RemoveLast());
    if ((k = (*dt)[++i].Find("Client:")) != 0) return false;
-   cfgClient->SetLabel((*dt)[i].Mid(10).Trim(false).RemoveLast());
+   str = (*dt)[i].Mid(10).Trim(false).RemoveLast();
+   for (k = 0; k < cfgClient->GetCount(); k++) {
+      if (str == cfgClient->GetString(k)) {
+         cfgClient->SetSelection(k);
+         break;
+      }
+   }
+   if (k == cfgClient->GetCount()) { // Should never happen
+      cfgClient->Append(str);
+      cfgClient->SetSelection(k+1);
+   }
+   
    if ((k = (*dt)[++i].Find("Storage:")) != 0) return false;
    cfgStorage->SetLabel((*dt)[i].Mid(10).Trim(false).RemoveLast());
    if ((k = (*dt)[++i].Find("When:")) != 0) return false;
@@ -1178,7 +1210,7 @@ void wxbRestorePanel::SetStatus(status_enum newstatus) {
       restorePanel->Show(false);
       centerSizer->Add(treelistPanel, 1, wxEXPAND);
       treelistPanel->Show(true);
-      centerSizer->Layout();
+      this->Layout();
       start->SetLabel("Enter restore mode");
       start->Enable(false);
       clientChoice->Enable(false);
@@ -1193,6 +1225,7 @@ void wxbRestorePanel::SetStatus(status_enum newstatus) {
       centerSizer->Add(treelistPanel, 1, wxEXPAND);
       treelistPanel->Show(true);
       centerSizer->Layout();
+      this->Layout();
       tree->DeleteAllItems();
       list->DeleteAllItems();
       clientChoice->Clear();
@@ -1240,6 +1273,7 @@ void wxbRestorePanel::SetStatus(status_enum newstatus) {
       restorePanel->Show(true);
       restorePanel->Layout();
       centerSizer->Layout();
+      this->Layout();
       cfgApply->Enable(false);
       cfgOk->Enable(true);
       break;
@@ -1267,6 +1301,7 @@ void wxbRestorePanel::EnableConfig(bool enable) {
    cfgReplace->Enable(enable);
    cfgWhen->Enable(enable);
    cfgPriority->Enable(enable);
+   cfgClient->Enable(enable);
 }
 
 /*----------------------------------------------------------------------------

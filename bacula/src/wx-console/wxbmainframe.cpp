@@ -252,7 +252,8 @@ wxbMainFrame::wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSi
    sizer->Add(global, 1, wxEXPAND | wxALL, 0);
    SetAutoLayout(true);
    SetSizer( sizer );
-   //sizer->SetSizeHints( this );
+   sizer->SetSizeHints( this );
+   this->SetSize(size);
    EnableConsole(false);
 }
 
