@@ -21,10 +21,8 @@ bin/console -c bin/console.conf <<END_OF_DATA
 @output /dev/null
 messages
 @output tmp/log1.out
-label
-TestVolume001
-run job=Client1
-yes
+label volume=TestVolume001
+run job=Client1 yes
 wait
 messages
 @# 
@@ -33,7 +31,6 @@ messages
 @output tmp/log2.out  
 restore current all
 yes
-@sleep 1
 wait
 messages
 @output
