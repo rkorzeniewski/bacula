@@ -1,17 +1,23 @@
 #!/bin/sh
 #
 # This script dumps your Bacula catalog in ASCII format
-#  It works for either MySQL or SQLite
+# It works for MySQL, SQLite, and PostgreSQL
+#
+#  $1 is the name of the database to be backed up and the name
+#     of the output file (default = bacula).
+#  $2 is the user name with which to access the database
+#     (default = bacula).
+#
 #
 cd @working_dir@
 rm -f bacula.sql
 if test xsqlite = x@DB_NAME@ ; then
-  echo ".dump" | @SQL_BINDIR@/sqlite bacula.db >bacula.sql
+  echo ".dump" | @SQL_BINDIR@/sqlite $1.db >$1.sql
 else
   if test xmysql = x@DB_NAME@ ; then
-    @SQL_BINDIR@/mysqldump -u bacula -f --opt bacula >bacula.sql
+    @SQL_BINDIR@/mysqldump -u $2 -f --opt $1 >$1.sql
   else
-    @SQL_BINDIR@/pg_dump -U bacula bacula >bacula.sql
+    @SQL_BINDIR@/pg_dump -U $2 $1 >$1.sql
   fi
 fi
 #
