@@ -170,6 +170,20 @@ extern void _v(char *file, int line, pthread_mutex_t *m);
 
 #endif /* DEBUG_MUTEX */
 
+/* These probably should be subroutines */
+#define Pw(x) \
+   do { int errstat; if ((errstat=rwl_writelock(&(x)))) \
+      e_msg(__FILE__, __LINE__, M_ABORT, 0, "Write lock lock failure. ERR=%s\n",\
+           strerror(errstat)); \
+   } while(0)
+
+#define Vw(x) \
+   do { int errstat; if ((errstat=rwl_writeunlock(&(x)))) \
+         e_msg(__FILE__, __LINE__, M_ABORT, 0, "Write lock unlock failure. ERR=%s\n",\
+           strerror(errstat)); \
+   } while(0)
+
+
 /*
  * The digit following Dmsg and Emsg indicates the number of substitutions in
  * the message string. We need to do this kludge because non-GNU compilers

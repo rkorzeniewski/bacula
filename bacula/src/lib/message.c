@@ -43,7 +43,7 @@ char *exename = (char *)NULL;
 int console_msg_pending = 0;
 char con_fname[1000];
 FILE *con_fd = NULL;
-pthread_mutex_t con_mutex = PTHREAD_MUTEX_INITIALIZER;
+brwlock_t con_lock; 
 
 /* Forward referenced functions */
 
@@ -197,7 +197,7 @@ void init_console_msg(char *wd)
    sprintf(con_fname, "%s/%s.conmsg", wd, my_name);
    fd = open(con_fname, O_CREAT|O_RDWR|O_BINARY, 0600);
    if (fd == -1) {
-       Emsg2(M_ERROR_TERM, 0, "Could not open console message file %s: ERR=%s\n",
+      Emsg2(M_ERROR_TERM, 0, _("Could not open console message file %s: ERR=%s\n"),
 	  con_fname, strerror(errno));
    }
    if (lseek(fd, 0, SEEK_END) > 0) {
@@ -206,8 +206,12 @@ void init_console_msg(char *wd)
    close(fd);
    con_fd = fopen(con_fname, "a+");
    if (!con_fd) {
-       Emsg2(M_ERROR, 0, "Could not open console message file %s: ERR=%s\n",
+      Emsg2(M_ERROR, 0, _("Could not open console message file %s: ERR=%s\n"),
 	  con_fname, strerror(errno));
+   }
+   if (rwl_init(&con_lock) != 0) {
+      Emsg1(M_ERROR_TERM, 0, _("Could not get con mutex: ERR=%s\n"), 
+	 strerror(errno));
    }
 }
 
@@ -608,7 +612,7 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
                    Dmsg0(200, "Console file not open.\n");
 		}
 		if (con_fd) {
-		   P(con_mutex);
+		   Pw(con_lock);      /* get write lock on console message file */
 		   errno = 0;
 		   bstrftime(cmd, sizeof(cmd), time(NULL));
 		   len = strlen(cmd);
@@ -622,7 +626,7 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 		   fwrite(msg, len, 1, con_fd);
 		   fflush(con_fd);
 		   console_msg_pending = TRUE;
-		   V(con_mutex);
+		   Vw(con_lock);
 		}
 		break;
 	     case MD_SYSLOG:

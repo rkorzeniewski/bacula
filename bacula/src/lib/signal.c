@@ -81,7 +81,7 @@ static void signal_handler(int sig)
       pid_t pid;
 
       fprintf(stderr, "Kaboom! %s, %s got signal %d. Attempting traceback.\n", 
-	      NPRT(exename), NPRT(my_name), sig);
+	      exename, my_name, sig);
 
       if (strlen(exepath) + 12 > (int)sizeof(btpath)) {
          strcpy(btpath, "btraceback");

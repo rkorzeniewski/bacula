@@ -101,13 +101,6 @@ db_open_database(B_DB *mdb)
       return 1;
    }
    mdb->connected = FALSE;
-#ifdef needed
-   if (pthread_mutex_init(&mdb->mutex, NULL) != 0) {
-      Mmsg1(&mdb->errmsg, "Unable to initialize DB mutex. ERR=%s\n", strerror(errno));
-      V(mutex);
-      return 0;
-   }
-#endif
 
    if (rwl_init(&mdb->lock) != 0) {
       Mmsg1(&mdb->errmsg, "Unable to initialize DB lock. ERR=%s\n", strerror(errno));

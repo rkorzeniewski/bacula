@@ -38,7 +38,6 @@ extern void run_job(JCR *jcr);
 extern int r_first;
 extern int r_last;
 extern struct s_res resources[];
-extern int console_msg_pending;
 extern char my_name[];
 
 /* Imported functions */

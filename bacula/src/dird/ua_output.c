@@ -41,7 +41,7 @@ extern int r_last;
 extern struct s_res resources[];
 extern int console_msg_pending;
 extern FILE *con_fd;
-extern pthread_mutex_t con_mutex;
+extern brwlock_t con_lock;
 
 
 /* Imported functions */
@@ -321,13 +321,19 @@ int listcmd(UAContext *ua, char *cmd)
    return 1;
 }
 
+static void con_lock_release(void *arg)
+{
+   Vw(con_lock);
+}
+
 void do_messages(UAContext *ua, char *cmd)
 {
    char msg[2000];
    int mlen; 
    int do_truncate = FALSE;
 
-   P(con_mutex);
+   Pw(con_lock);
+   pthread_cleanup_push(con_lock_release, (void *)NULL);
    rewind(con_fd);
    while (fgets(msg, sizeof(msg), con_fd)) {
       mlen = strlen(msg);
@@ -342,7 +348,8 @@ void do_messages(UAContext *ua, char *cmd)
    }
    console_msg_pending = FALSE;
    ua->user_notified_msg_pending = FALSE;
-   V(con_mutex);
+   pthread_cleanup_pop(0);
+   Vw(con_lock);
 }
 
 

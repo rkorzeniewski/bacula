@@ -236,7 +236,7 @@ bin_to_base64(char *buf, char *bin, int len)
    for (i=0; i<len; ) {
       if (rem < 6) {
 	 reg <<= 8;
-	 reg |= (uint8_t)bin[i++];
+	 reg |= (int8_t)bin[i++];
 	 rem += 8;
       }
       save = reg;
@@ -265,10 +265,16 @@ int main(int argc, char *argv[])
    char junk[100];
    int i;
 
-   for (i=0; i < 100; i++) {
+#ifdef xxxx
+   for (i=0; i < 1000; i++) {
       bin_to_base64(buf, (char *)&xx, 4);
       printf("xx=%s\n", buf);
       xx++;
+   }
+#endif
+   junk[0] = 0xFF;
+   for (i=1; i<100; i++) {
+      junk[i] = junk[i-1]-1;
    }
    len = bin_to_base64(buf, junk, 16);
    printf("len=%d junk=%s\n", len, buf);
@@ -297,6 +303,8 @@ int main(int argc, char *argv[])
    struct stat statp;
    struct stat statn;
    int debug_level = 0;
+   char *p;
+   time_t t = 1028712799;
 
    if (argc > 1 && strcmp(argv[1], "-v") == 0)
       debug_level++;  
@@ -304,7 +312,7 @@ int main(int argc, char *argv[])
    base64_init();
 
    my_glob.gl_offs = 0;
-   glob("/etc/*", GLOB_MARK, errfunc, &my_glob);
+   glob("/etc/grub.conf", GLOB_MARK, errfunc, &my_glob);
 
    for (i=0; my_glob.gl_pathv[i]; i++) {
       fname = my_glob.gl_pathv[i];
@@ -313,12 +321,35 @@ int main(int argc, char *argv[])
 	 continue;
       }
       encode_stat(where, &statp);
+      p = where;
+      p += to_base64((intmax_t)(statp.st_atime), p);
+      *p++ = ' ';
+      p += to_base64((intmax_t)t, p);
+      printf("%s %s\n", fname, where);
+
+#ifdef xxxx
+      printf("%s %lld\n", "st_dev", (intmax_t)statp.st_dev);
+      printf("%s %lld\n", "st_ino", (intmax_t)statp.st_ino);
+      printf("%s %lld\n", "st_mode", (intmax_t)statp.st_mode);
+      printf("%s %lld\n", "st_nlink", (intmax_t)statp.st_nlink);
+      printf("%s %lld\n", "st_uid", (intmax_t)statp.st_uid);
+      printf("%s %lld\n", "st_gid", (intmax_t)statp.st_gid);
+      printf("%s %lld\n", "st_rdev", (intmax_t)statp.st_rdev);
+      printf("%s %lld\n", "st_size", (intmax_t)statp.st_size);
+      printf("%s %lld\n", "st_blksize", (intmax_t)statp.st_blksize);
+      printf("%s %lld\n", "st_blocks", (intmax_t)statp.st_blocks);
+      printf("%s %lld\n", "st_atime", (intmax_t)statp.st_atime);
+      printf("%s %lld\n", "st_mtime", (intmax_t)statp.st_mtime);
+      printf("%s %lld\n", "st_ctime", (intmax_t)statp.st_ctime);
+#endif
+
 
       if (debug_level)
          printf("%s: len=%d val=%s\n", fname, strlen(where), where);
       
       decode_stat(where, &statn);
 
+#ifdef xxx
       if (statp.st_dev != statn.st_dev || 
 	  statp.st_ino != statn.st_ino ||
 	  statp.st_mode != statn.st_mode ||
@@ -338,6 +369,7 @@ int main(int argc, char *argv[])
          printf("%s: %s\n", fname, where);
          printf("NOT EQAL\n");
       }
+#endif
 
    }
    globfree(&my_glob);
