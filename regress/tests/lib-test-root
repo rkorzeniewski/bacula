@@ -3,31 +3,32 @@
 # Run a simple backup of the Bacula build directory
 #   then restore it.
 #
-echo " "
-echo " "
-echo " === /lib save/restore test ==="
-echo " "
-echo " "
-UID=`/usr/bin/id -u`
-if [ $UID != 0 ] ; then
+MUID=`/usr/bin/id -u`
+if [ $MUID != 0 ] ; then
    echo " "
    echo "You must be root to run this test."
-   echo "  ===== Test5 failed!!! ===== "
-   echo "  ===== Test5 failed!!! ===== " >>test.out
+   echo "  ===== lib-test-root failed!!! ===== "
+   echo "  ===== lib-test-root failed!!! ===== " >>test.out
    echo " "
    exit 1
 fi
 cwd=`pwd`
 scripts/copy-test-confs
+scripts/cleanup
 echo "/lib" >/tmp/file-list
-rm -rf /tmp/TestVolume001 /tmp/bacula-restores
 bin/bacula stop 2>&1 >/dev/null
 bin/drop_sqlite_tables
 bin/make_sqlite_tables
+echo " "
+echo " "
+echo " === Starting /lib save/restore test ==="
+echo " "
+echo " "
 bin/bacula start 2>&1 >/dev/null
 bin/console -c bin/console.conf <<END_OF_DATA
 @output /dev/null
 messages
+@output tmp/log1.out
 label storage=File
 TestVolume001
 run job=NightlySave
@@ -37,11 +38,9 @@ messages
 @# 
 @# now do a restore
 @#
-restore
-5
-done
+@output tmp/log2.out
+restore where=${cwd}/tmp/bacula-restores current all
 yes
-@sleep 1
 wait
 messages
 @output
@@ -50,18 +49,26 @@ END_OF_DATA
 bin/bacula stop 2>&1 >/dev/null
 cd /
 ${cwd}/bin/testls -e ${cwd}/scripts/exclude-lib-test lib >${cwd}/tmp/original
-cd /tmp/bacula-restores
+cd ${cwd}/tmp/bacula-restores
 ${cwd}/bin/testls -e ${cwd}/scripts/exclude-lib-test lib >${cwd}/tmp/restored
-diff ${cwd}/tmp/original ${cwd}/tmp/restored 2>&1 >/dev/null
+cd ${cwd}/tmp
+sed s%.*lib/kbd/consolefonts$%lib/kbd/consolefonts% original >1
+sort <1 >original
+#
+sed s%.*lib/kbd/consolefonts$%lib/kbd/consolefonts% restored >1
+sort <1 >restored
+rm -f 1
+#
+cd ${cwd}
+diff tmp/original tmp/restored 2>&1 1>/dev/nul
 if [ $? != 0 ] ; then
    echo " "
    echo " "
-   echo "  ===== Test5 /lib failed!!! ===== "
-   echo "  ===== Test5 failed!!! ===== " >>test.out
+   echo "  ===== lib-test-root failed!!! ===== "
+   echo "  ===== lib-test-root failed!!! ===== " >>test.out
    echo " "
 else
-   echo "  ===== Test5 /lib OK ===== "
-   echo "  ===== Test5 OK ===== " >>test.out
-   cd ${cwd}
+   echo "  ===== lib-test-root OK ===== "
+   echo "  ===== lib-test-root OK ===== " >>test.out
    scripts/cleanup
 fi
