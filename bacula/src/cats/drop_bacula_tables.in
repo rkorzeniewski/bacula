@@ -12,7 +12,8 @@ else
     . ./drop_mysql_tables
     echo "Dropped MySQL tables"
   else
-    . ./drop_postgresql_tables
+    # hardcoded database name - should be a parameter
+    . ./drop_postgresql_tables bacula
     echo "Dropped PostgreSQL tables"
   fi
 fi
