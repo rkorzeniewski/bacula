@@ -39,6 +39,15 @@
 extern char *uar_list_jobs;
 extern char *uar_file;
 extern char *uar_sel_files;
+extern char *uar_del_temp;
+extern char *uar_del_temp1;
+extern char *uar_create_temp;
+extern char *uar_create_temp1;
+extern char *uar_last_full;
+extern char *uar_full;
+extern char *uar_inc;
+extern char *uar_list_temp;
+extern char *uar_sel_jobid_temp;
 
 /* Context for insert_tree_handler() */
 typedef struct s_tree_ctx {
@@ -48,6 +57,13 @@ typedef struct s_tree_ctx {
    int cnt;			      /* count for user feedback */
    UAContext *ua;
 } TREE_CTX;
+
+struct s_full_ctx {
+   btime_t JobTDate;
+   uint32_t ClientId;
+   uint32_t TotalFiles;
+   char JobIds[200];
+};
 
 
 /* FileIndex entry in bootstrap record */
@@ -74,8 +90,11 @@ static void print_bsr(UAContext *ua, RBSR *bsr);
 static int  complete_bsr(UAContext *ua, RBSR *bsr);
 static int insert_tree_handler(void *ctx, int num_fields, char **row);
 static void add_findex(RBSR *bsr, uint32_t JobId, int32_t findex);
+static int last_full_handler(void *ctx, int num_fields, char **row);
+static int jobid_handler(void *ctx, int num_fields, char **row);
+static int next_jobid_from_list(char **p, uint32_t *JobId);
+static int user_select_jobids(UAContext *ua, struct s_full_ctx *full);
 static void user_select_files(TREE_CTX *tree);
-
 
 
 /*
@@ -85,101 +104,40 @@ static void user_select_files(TREE_CTX *tree);
 int restorecmd(UAContext *ua, char *cmd)
 {
    POOLMEM *query;
-   int JobId, done = 0;
    TREE_CTX tree;
+   JobId_t JobId;
+   char *p;
    RBSR *bsr;
    char *nofname = "";
-   JOB_DBR jr;
-   char *list[] = { 
-      "List last Jobs run",
-      "Enter list of JobIds",
-      "Enter SQL list command", 
-      "Select a File",
-      "Cancel",
-      NULL };
+   struct s_full_ctx full;
 
    if (!open_db(ua)) {
       return 0;
    }
 
    memset(&tree, 0, sizeof(TREE_CTX));
+   memset(&full, 0, sizeof(full));
 
-   for ( ; !done; ) {
-      start_prompt(ua, _("To narrow down the restore, you have the following choices:\n"));
-      for (int i=0; list[i]; i++) {
-	 add_prompt(ua, list[i]);
-      }
-      done = 1;
-      switch (do_prompt(ua, "Select item: ", NULL)) {
-      case -1:
-	 return 0;
-      case 0:
-	 db_list_sql_query(ua->db, uar_list_jobs, prtit, ua, 1);
-         if (!get_cmd(ua, _("Enter JobId to select files for restore: "))) {
-	    return 0;
-	 }
-	 if (!is_a_number(ua->cmd)) {
-           bsendmsg(ua, _("Bad JobId entered.\n"));
-	   return 0;
-	 }
-	 JobId = atoi(ua->cmd);
-	 break;
-
-      case 1:
-         if (!get_cmd(ua, _("Enter JobIds: "))) {
-	    return 0;
-	 }
-	 JobId = atoi(ua->cmd);
-	 break;
-      case 2:
-         if (!get_cmd(ua, _("Enter SQL list command: "))) {
-	    return 0;
-	 }
-	 db_list_sql_query(ua->db, ua->cmd, prtit, ua, 1);
-	 done = 0;
-	 break;
-      case 3:
-         if (!get_cmd(ua, _("Enter Filename: "))) {
-	    return 0;
-	 }
-	 query = get_pool_memory(PM_MESSAGE);
-	 Mmsg(&query, uar_file, ua->cmd);
-	 db_list_sql_query(ua->db, query, prtit, ua, 1);
-	 free_pool_memory(query);
-         if (!get_cmd(ua, _("Enter JobId to select files for restore: "))) {
-	    return 0;
-	 }
-	 if (!is_a_number(ua->cmd)) {
-           bsendmsg(ua, _("Bad JobId entered.\n"));
-	   return 0;
-	 }
-	 JobId = atoi(ua->cmd);
-	 break;
-      case 4:
-	 return 0;
-      }
-   }
-
-   memset(&jr, 0, sizeof(JOB_DBR));
-   jr.JobId = JobId;
-   if (!db_get_job_record(ua->db, &jr)) {
-      bsendmsg(ua, _("Unable to get Job record. ERR=%s\n"), db_strerror(ua->db));
+   if (!user_select_jobids(ua, &full)) {
       return 0;
    }
+
 
    /* 
     * Build the directory tree	
     */
-   bsendmsg(ua, _("Building directory tree of backed up files ...\n"));
-   memset(&tree, 0, sizeof(tree));
-   tree.root = new_tree(jr.JobFiles);
+   tree.root = new_tree(full.TotalFiles);
    tree.root->fname = nofname;
    tree.ua = ua;
    query = get_pool_memory(PM_MESSAGE);
-   Mmsg(&query, uar_sel_files, JobId);
-   if (!db_sql_query(ua->db, query, insert_tree_handler, (void *)&tree)) {
-      bsendmsg(ua, "%s", db_strerror(ua->db));
+   for (p=full.JobIds; next_jobid_from_list(&p, &JobId) > 0; ) {
+      bsendmsg(ua, _("Building directory tree for JobId %u ...\n"), JobId);
+      Mmsg(&query, uar_sel_files, JobId);
+      if (!db_sql_query(ua->db, query, insert_tree_handler, (void *)&tree)) {
+         bsendmsg(ua, "%s", db_strerror(ua->db));
+      }
    }
+   bsendmsg(ua, "\n");
    free_pool_memory(query);
 
    /* Let the user select which files to restore */
@@ -201,7 +159,7 @@ int restorecmd(UAContext *ua, char *cmd)
    free_tree(tree.root);	      /* free the directory tree */
 
    if (bsr->JobId) {
-      complete_bsr(ua, bsr);
+      complete_bsr(ua, bsr);	      /* find Vol, SessId, SessTime from JobIds */
       print_bsr(ua, bsr);
    } else {
       bsendmsg(ua, _("No files selected to restore.\n"));
@@ -212,11 +170,207 @@ int restorecmd(UAContext *ua, char *cmd)
    return 1;
 }
 
+/*
+ * The first step in the restore process is for the user to 
+ *  select a list of JobIds from which he will subsequently
+ *  select which files are to be restored.
+ */
+static int user_select_jobids(UAContext *ua, struct s_full_ctx *full)
+{
+   char *p;
+   JobId_t JobId;
+   JOB_DBR jr;
+   POOLMEM *query;
+   int done = 0;
+   char *list[] = { 
+      "List last 20 Jobs run",
+      "List Jobs where a given File is saved",
+      "Enter list of JobIds to select",
+      "Enter SQL list command", 
+      "Select the most recent backup for a client"
+      "Cancel",
+      NULL };
+
+   bsendmsg(ua, _("\nFirst you select one or more JobIds that contain files\n"
+                  "to be restored. You will be presented several methods\n"
+                  "of specifying the JobIds. Then you will be allowed to\n"
+                  "select which files from those JobIds are to be restored.\n\n"));
+
+   for ( ; !done; ) {
+      start_prompt(ua, _("To select the JobIds, you have the following choices:\n"));
+      for (int i=0; list[i]; i++) {
+	 add_prompt(ua, list[i]);
+      }
+      done = 1;
+      switch (do_prompt(ua, "Select item: ", NULL)) {
+      case -1:			      /* error */
+	 return 0;
+      case 0:			      /* list last 20 Jobs run */
+	 db_list_sql_query(ua->db, uar_list_jobs, prtit, ua, 1);
+	 done = 0;
+	 break;
+      case 1:			      /* list where a file is saved */
+         if (!get_cmd(ua, _("Enter Filename: "))) {
+	    return 0;
+	 }
+	 query = get_pool_memory(PM_MESSAGE);
+	 Mmsg(&query, uar_file, ua->cmd);
+	 db_list_sql_query(ua->db, query, prtit, ua, 1);
+	 free_pool_memory(query);
+	 done = 0;
+	 break;
+      case 2:			      /* enter a list of JobIds */
+         if (!get_cmd(ua, _("Enter JobId(s), comma separated, to restore: "))) {
+	    return 0;
+	 }
+	 bstrncpy(full->JobIds, ua->cmd, sizeof(full->JobIds));
+	 break;
+      case 3:			      /* Enter an SQL list command */
+         if (!get_cmd(ua, _("Enter SQL list command: "))) {
+	    return 0;
+	 }
+	 db_list_sql_query(ua->db, ua->cmd, prtit, ua, 1);
+	 done = 0;
+	 break;
+      case 4:			      /* Select the most recent backups */
+	 db_sql_query(ua->db, uar_del_temp, NULL, NULL);
+	 db_sql_query(ua->db, uar_del_temp1, NULL, NULL);
+	 if (!db_sql_query(ua->db, uar_create_temp, NULL, NULL)) {
+            bsendmsg(ua, "%s\n", db_strerror(ua->db));
+	 }
+	 if (!db_sql_query(ua->db, uar_create_temp1, NULL, NULL)) {
+            bsendmsg(ua, "%s\n", db_strerror(ua->db));
+	 }
+         if (!get_cmd(ua, _("Enter Client name: "))) {
+	    return 0;
+	 }
+	 query = get_pool_memory(PM_MESSAGE);
+	 Mmsg(&query, uar_last_full, ua->cmd);
+	 /* Find JobId of full Backup of system */
+	 if (!db_sql_query(ua->db, query, NULL, NULL)) {
+            bsendmsg(ua, "%s\n", db_strerror(ua->db));
+	 }
+	 /* Find all Volumes used by that JobId */
+	 if (!db_sql_query(ua->db, uar_full, NULL,NULL)) {
+            bsendmsg(ua, "%s\n", db_strerror(ua->db));
+	 }
+         /* Note, this is needed as I don't seem to get the callback
+	  * from the call just above.
+	  */
+         if (!db_sql_query(ua->db, "SELECT * from temp1", last_full_handler, (void *)full)) {
+            bsendmsg(ua, "%s\n", db_strerror(ua->db));
+	 }
+	 /* Now find all Incremental Jobs */
+	 Mmsg(&query, uar_inc, (uint32_t)full->JobTDate, full->ClientId);
+	 if (!db_sql_query(ua->db, query, NULL, NULL)) {
+            bsendmsg(ua, "%s\n", db_strerror(ua->db));
+	 }
+	 free_pool_memory(query);
+	 db_list_sql_query(ua->db, uar_list_temp, prtit, ua, 1);
+
+	 if (!db_sql_query(ua->db, uar_sel_jobid_temp, jobid_handler, (void *)full)) {
+            bsendmsg(ua, "%s\n", db_strerror(ua->db));
+	 }
+	 db_sql_query(ua->db, uar_del_temp, NULL, NULL);
+	 db_sql_query(ua->db, uar_del_temp1, NULL, NULL);
+	 break;
+      case 5:
+	 return 0;
+      }
+   }
+
+   if (*full->JobIds == 0) {
+      bsendmsg(ua, _("No Jobs selected.\n"));
+      return 0;
+   }
+   bsendmsg(ua, _("You have selected the following JobId: %s\n"), full->JobIds);
+
+   memset(&jr, 0, sizeof(JOB_DBR));
+
+   for (p=full->JobIds; ; ) {
+      int stat = next_jobid_from_list(&p, &JobId);
+      if (stat < 0) {
+         bsendmsg(ua, _("Invalid JobId in list.\n"));
+	 return 0;
+      }
+      if (stat == 0) {
+	 break;
+      }
+      jr.JobId = JobId;
+      if (!db_get_job_record(ua->db, &jr)) {
+         bsendmsg(ua, _("Unable to get Job record. ERR=%s\n"), db_strerror(ua->db));
+	 return 0;
+      }
+      full->TotalFiles = jr.JobFiles;
+   }
+   return 1;
+}
+
+static int next_jobid_from_list(char **p, uint32_t *JobId)
+{
+   char jobid[30];
+   int i;
+   char *q = *p;
+
+   jobid[0] = 0;
+   for (i=0; i<(int)sizeof(jobid); i++) {
+      if (*q == ',') {
+	 q++;
+	 break;
+      }
+      jobid[i] = *q++;
+      jobid[i+1] = 0;
+   }
+   if (jobid[0] == 0 || !is_a_number(jobid)) {
+      return 0;
+   }
+   *p = q;
+   *JobId = strtoul(jobid, NULL, 10);
+   if (errno) {
+      return 0;
+   }
+   return 1;
+}
+
+/*
+ * Callback handler make list of JobIds
+ */
+static int jobid_handler(void *ctx, int num_fields, char **row)
+{
+   struct s_full_ctx *full = (struct s_full_ctx *)ctx;
+
+   if (strlen(full->JobIds)+strlen(row[0])+2 < sizeof(full->JobIds)) {
+      if (full->JobIds[0] != 0) {
+         strcat(full->JobIds, ",");
+      }
+      strcat(full->JobIds, row[0]);
+   }
+
+   return 0;
+}
+
+
+/*
+ * Callback handler to pickup last Full backup JobId and ClientId
+ */
+static int last_full_handler(void *ctx, int num_fields, char **row)
+{
+   struct s_full_ctx *full = (struct s_full_ctx *)ctx;
+
+   full->JobTDate = atoi(row[1]);
+   full->ClientId = atoi(row[2]);
+
+   return 0;
+}
+
+
 
 
 /* Forward referenced commands */
 
 static int addcmd(UAContext *ua, TREE_CTX *tree);
+static int countcmd(UAContext *ua, TREE_CTX *tree);
+static int findcmd(UAContext *ua, TREE_CTX *tree);
 static int lscmd(UAContext *ua, TREE_CTX *tree);
 static int helpcmd(UAContext *ua, TREE_CTX *tree);
 static int cdcmd(UAContext *ua, TREE_CTX *tree);
@@ -228,6 +382,8 @@ static int quitcmd(UAContext *ua, TREE_CTX *tree);
 struct cmdstruct { char *key; int (*func)(UAContext *ua, TREE_CTX *tree); char *help; }; 
 static struct cmdstruct commands[] = {
  { N_("add"),        addcmd,       _("add file")},
+ { N_("count"),      countcmd,     _("count files")},
+ { N_("find"),       findcmd,      _("find files")},
  { N_("ls"),         lscmd,        _("list current directory")},    
  { N_("dir"),        lscmd,        _("list current directory")},    
  { N_("help"),       helpcmd,      _("print help")},
@@ -276,7 +432,7 @@ static void user_select_files(TREE_CTX *tree)
 	    break;
 	 }
       if (!found) {
-         bsendmsg(tree->ua, _("Illegal command\n"));
+         bsendmsg(tree->ua, _("Illegal command. Enter \"done\" to end.\n"));
       }
       if (!stat) {
 	 break;
@@ -500,9 +656,11 @@ static int insert_tree_handler(void *ctx, int num_fields, char **row)
    new_node->FileIndex = atoi(row[2]);
    new_node->JobId = atoi(row[3]);
    new_node->type = type;
+#ifdef xxxxxxx
    if (((tree->cnt) % 10000) == 0) {
       bsendmsg(tree->ua, "%d ", tree->cnt);
    }
+#endif
    tree->cnt++;
    return 0;
 }
@@ -541,6 +699,45 @@ static int addcmd(UAContext *ua, TREE_CTX *tree)
    return 1;
 }
 
+static int countcmd(UAContext *ua, TREE_CTX *tree)
+{
+   int total, extract;
+
+   total = extract = 0;
+   for (TREE_NODE *node=first_tree_node(tree->root); node; node=next_tree_node(node)) {
+      if (node->type != TN_NEWDIR) {
+	 total++;
+	 if (node->extract) {
+	    extract++;
+	 }
+      }
+   }
+   bsendmsg(ua, "%d total files. %d marked for extraction.\n", total, extract);
+   return 1;
+}
+
+static int findcmd(UAContext *ua, TREE_CTX *tree)
+{
+   char cwd[2000];
+
+   if (ua->argc == 1) {
+      bsendmsg(ua, _("No file specification given.\n"));
+      return 0;
+   }
+   
+   for (int i=1; i < ua->argc; i++) {
+      for (TREE_NODE *node=first_tree_node(tree->root); node; node=next_tree_node(node)) {
+	 if (fnmatch(ua->argk[i], node->fname, 0) == 0) {
+	    tree_getpath(node, cwd, sizeof(cwd));
+            bsendmsg(ua, "%s\n", cwd);
+	 }
+      }
+   }
+   return 1;
+}
+
+
+
 static int lscmd(UAContext *ua, TREE_CTX *tree)
 {
    TREE_NODE *node;
@@ -572,11 +769,18 @@ static int helpcmd(UAContext *ua, TREE_CTX *tree)
 
 static int cdcmd(UAContext *ua, TREE_CTX *tree) 
 {
+   TREE_NODE *node;
    char cwd[2000];
+
    if (ua->argc != 2) {
       return 1;
    }
-   tree->node = tree_cwd(ua->argk[1], tree->root, tree->node);
+   node = tree_cwd(ua->argk[1], tree->root, tree->node);
+   if (!node) {
+      bsendmsg(ua, _("Invalid path given.\n"));
+   } else {
+      tree->node = node;
+   }
    tree_getpath(tree->node, cwd, sizeof(cwd));
    bsendmsg(ua, _("cwd is: %s\n"), cwd);
    return 1;

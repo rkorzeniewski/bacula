@@ -425,6 +425,8 @@ char *job_type_to_str(int type)
    case JT_RESTORE:
       str = "Restore";
       break;
+   case JT_ADMIN:
+      str = "Admin";
    default:
       str = "Unknown Job Type";
       break;

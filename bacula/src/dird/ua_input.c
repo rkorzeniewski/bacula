@@ -52,8 +52,7 @@ int get_cmd(UAContext *ua, char *prompt)
 	 return 0;
       }
       ua->cmd = (char *) check_pool_memory_size(ua->cmd, sock->msglen+1);
-      strcpy(ua->cmd, sock->msg);
-      ua->cmd[sock->msglen] = 0;
+      bstrncpy(ua->cmd, sock->msg, sock->msglen+1);
       strip_trailing_junk(ua->cmd);
       if (strcmp(ua->cmd, ".messages") == 0) {
 	 qmessagescmd(ua, ua->cmd);
@@ -74,31 +73,39 @@ int get_cmd(UAContext *ua, char *prompt)
  */
 char *next_arg(char **s)
 {
-   char *p, *n;
+   char *p, *q, *n;
 
+   Dmsg1(400, "Next arg=%s\n", *s);
    /* skip past spaces to next arg */
-   for (p=*s; *p && *p == ' '; p++)
-      {}
+   for (p=*s; *p && *p == ' '; ) {
+      p++;
+   }	
    /* Determine start of argument */
    if (*p == '"') {
-      n = p+1;			      /* skip leading quote */
-   } else {
-      n = p;
-   }
-   /* Scan argment and terminate it */
-   for ( ; *p && *p != ' '; p++) {
-      if (*p == '"') {
-         for (p++; *p && *p != '"'; p++) {
-	    *(p-1) = *p;
-	    *p = 0;
+      Dmsg0(400, "Start with quote.\n");
+      for (n = q = ++p; *p && *p != '"'; ) {
+         if (*p == '\\') {
+	    p++;
 	 }
-	 break;
+	 *q++ = *p++;
+      }
+      p++;			      /* skip terminating quote */
+      for ( ; *p && *p != ' '; ) {
+	 *q++ = *p++;
+      }
+      *q = 0;
+   } else {
+      /* Scan argment and terminate it */
+      n = p;
+      for ( ; *p && *p != ' '; ) {
+	 p++;
+      }
+      if (*p == ' ') {
+	 *p++ = 0;
       }
    }
-   if (*p) {			      /* if more arguments */
-      *p++ = 0; 		      /* terminate this one */
-   }
    *s = p;
+   Dmsg2(400, "End arg=%s next=%s\n", n, p);
    return n;
 }   
 
@@ -129,8 +136,7 @@ void parse_command_args(UAContext *ua)
    int i;
 
    ua->args = (char *) check_pool_memory_size(ua->args, sock->msglen+1);
-   strcpy(ua->args, sock->msg);
-   ua->args[sock->msglen] = 0;
+   bstrncpy(ua->args, sock->msg, sock->msglen+1);
    strip_trailing_junk(ua->args);
    ua->argc = 0;
    p = ua->args;
@@ -154,7 +160,7 @@ void parse_command_args(UAContext *ua)
       }
       ua->argv[i] = p;		      /* save ptr to value or NULL */
    }
-#ifdef xxxxxxxxx
+#ifdef xxxx
    for (i=0; i<ua->argc; i++) {
       Dmsg3(000, "Arg %d: kw=%s val=%s\n", i, 
          ua->argk[i], ua->argv[i]?ua->argv[i]:"NULL");

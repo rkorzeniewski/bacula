@@ -183,6 +183,7 @@ static void msg_thread_cleanup(void *arg)
 {
    JCR *jcr = (JCR *)arg;
    Dmsg0(200, "End msg_thread\n");
+   db_end_transaction(jcr->db);       /* terminate any open transaction */
    P(jcr->mutex);
    jcr->msg_thread_done = TRUE;
    pthread_cond_broadcast(&jcr->term_wait); /* wakeup any waiting threads */

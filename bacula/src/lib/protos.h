@@ -32,6 +32,7 @@ void	  decode_stat		 (char *buf, struct stat *statp);
 int	  bin_to_base64 	 (char *buf, char *bin, int len);
 
 /* bmisc.c */
+char	 *bstrncpy		 (char *dest, char *src, int maxlen);
 void	 *b_malloc		 (char *file, int line, size_t size);
 #ifndef DEBUG
 void	 *bmalloc		 (size_t size);

@@ -298,7 +298,7 @@ static int send_bootstrap_file(JCR *jcr)
       fd->msglen = Mmsg(&fd->msg, "%s", buf);
       bnet_send(fd);	   
    }
-   bnet_sig(fd, BNET_EOF);
+   bnet_sig(fd, BNET_EOD);
    fclose(bs);
    if (!response(fd, OKbootstrap, "Bootstrap")) {
       jcr->JobStatus = JS_ErrorTerminated;

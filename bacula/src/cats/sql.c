@@ -219,5 +219,42 @@ void _db_unlock(char *file, int line, B_DB *mdb)
    }
 }    
 
+/*
+ * Start a transaction. This groups inserts and makes things
+ *  much more efficient. Usually started when inserting 
+ *  file attributes.
+ */
+void db_start_transaction(B_DB *mdb)
+{
+#ifdef HAVE_SQLITE
+   db_lock(mdb);
+   /* Allow only 10,000 changes per transaction */
+   if (mdb->transaction && mdb->changes > 10000) {
+      db_end_transaction(mdb);
+   }
+   if (!mdb->transaction) {   
+      my_sqlite_query(mdb, "BEGIN");  /* begin transaction */
+      Dmsg0(000, "Start SQLite transaction\n");
+      mdb->transaction = 1;
+   }
+   db_unlock(mdb);
+#endif
+
+}
+
+void db_end_transaction(B_DB *mdb)
+{
+#ifdef HAVE_SQLITE
+   db_lock(mdb);
+   if (mdb->transaction) {
+      my_sqlite_query(mdb, "COMMIT"); /* end transaction */
+      mdb->transaction = 0;
+      Dmsg1(000, "End SQLite transaction changes=%d\n", mdb->changes);
+   }
+   mdb->changes = 0;
+   db_unlock(mdb);
+#endif
+}
+
 
 #endif /* HAVE_MYSQL | HAVE_SQLITE */

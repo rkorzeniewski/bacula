@@ -130,7 +130,7 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
 	    break;		      /* error */
 	 }
       }
-      if (strcmp(UA_sock->msg, "quit") == 0 || strcmp(UA_sock->msg, "exit") == 0) {
+      if (strcmp(UA_sock->msg, ".quit") == 0 || strcmp(UA_sock->msg, ".exit") == 0) {
 	 break;
       }
       while ((stat = bnet_recv(UA_sock)) > 0) {

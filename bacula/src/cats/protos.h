@@ -41,6 +41,8 @@ int db_sql_query(B_DB *mdb, char *cmd, DB_RESULT_HANDLER *result_handler, void *
 int check_tables_version(B_DB *mdb);
 void _db_unlock(char *file, int line, B_DB *mdb);
 void _db_lock(char *file, int line, B_DB *mdb);
+void db_start_transaction(B_DB *mdb);
+void db_end_transaction(B_DB *mdb);
 
 /* create.c */
 int db_create_file_attributes_record(B_DB *mdb, ATTR_DBR *ar);
@@ -88,7 +90,7 @@ int  db_update_job_start_record(B_DB *db, JOB_DBR *jr);
 int  db_update_job_end_record(B_DB *db, JOB_DBR *jr);
 int  db_update_pool_record(B_DB *db, POOL_DBR *pr);
 int  db_update_media_record(B_DB *db, MEDIA_DBR *mr);
-int  db_add_MD5_to_file_record(B_DB *mdb, FileId_t FileId, char *MD5);  
+int  db_add_MD5_to_file_record(B_DB *mdb, FileId_t FileId, char *MD5);	
 int  db_mark_file_record(B_DB *mdb, FileId_t FileId, JobId_t JobId);
 
 #endif /* __SQL_PROTOS_H */

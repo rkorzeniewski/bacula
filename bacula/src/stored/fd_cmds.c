@@ -148,7 +148,7 @@ void run_job(JCR *jcr)
    bnet_fsend(dir, Job_end, jcr->Job, jcr->JobStatus, jcr->JobFiles,
       edit_uint64(jcr->JobBytes, ec1));
 
-   bnet_sig(dir, BNET_EOF);	      /* send EOF to Director daemon */
+   bnet_sig(dir, BNET_EOD);	      /* send EOD to Director daemon */
    return;
 }
 
@@ -234,7 +234,7 @@ static int append_close_session(JCR *jcr)
    bnet_fsend(fd, OK_close, jcr->NumVolumes);
    Dmsg1(60, ">filed: %s\n", fd->msg);
 
-   bnet_sig(fd, BNET_EOF);	      /* send EOF to File daemon */
+   bnet_sig(fd, BNET_EOD);	      /* send EOD to File daemon */
        
    Dmsg1(10, "Append close session: %s\n", dev_name(jcr->device->dev));
 
@@ -369,7 +369,7 @@ static int read_close_session(JCR *jcr)
    bnet_fsend(fd, OK_close);
    Dmsg1(60, ">filed: %s\n", fd->msg);
 
-   bnet_sig(fd, BNET_EOF);	    /* send EOF to File daemon */
+   bnet_sig(fd, BNET_EOD);	    /* send EOD to File daemon */
        
    jcr->session_opened = FALSE;
    return 1;

@@ -183,6 +183,7 @@ static void job_thread(void *arg)
 	 case JT_ADMIN:
 	    /* No actual job */
 	    do_autoprune(jcr);
+	    jcr->JobStatus = JS_Terminated;
 	    break;
 	 default:
             Dmsg1(0, "Unimplemented job type: %d\n", jcr->JobType);

@@ -231,7 +231,7 @@ static int cancel_cmd(JCR *jcr)
    } else {
       bnet_fsend(dir, "2902 Error scanning cancel command.\n");
    }
-   bnet_sig(dir, BNET_EOF);
+   bnet_sig(dir, BNET_EOD);
    return 1;
 }
 
@@ -577,11 +577,11 @@ cleanup:
 
    /* Inform Storage daemon that we are done */
    if (sd) {
-      bnet_sig(sd, BNET_EOF);
+      bnet_sig(sd, BNET_TERMINATE);
    }
 
    /* Inform Director that we are done */
-   bnet_sig(dir, BNET_EOF);
+   bnet_sig(dir, BNET_TERMINATE);
 
    return jcr->JobStatus == JS_Terminated;
 }
@@ -637,7 +637,7 @@ static int verify_cmd(JCR *jcr)
       bnet_recv(sd);			 /* get OK */
 
       /* Inform Storage daemon that we are done */
-      bnet_sig(sd, BNET_EOF);
+      bnet_sig(sd, BNET_TERMINATE);
 
       break;
    default:
@@ -646,7 +646,7 @@ static int verify_cmd(JCR *jcr)
    }
 
    /* Inform Director that we are done */
-   return bnet_sig(dir, BNET_EOF);
+   return bnet_sig(dir, BNET_TERMINATE);
 }
 
 /*  
@@ -695,10 +695,10 @@ static int restore_cmd(JCR *jcr)
    bnet_recv(sd);		      /* get OK */
 
    /* Inform Storage daemon that we are done */
-   bnet_sig(sd, BNET_EOF);
+   bnet_sig(sd, BNET_TERMINATE);
 
    /* Inform Director that we are done */
-   bnet_sig(dir, BNET_EOF);
+   bnet_sig(dir, BNET_TERMINATE);
 
    Dmsg0(30, "Done in job.c\n");
    return 1;
@@ -836,7 +836,7 @@ static int send_bootstrap_file(JCR *jcr)
       sd->msglen = Mmsg(&sd->msg, "%s", buf);
       bnet_send(sd);	   
    }
-   bnet_sig(sd, BNET_EOF);
+   bnet_sig(sd, BNET_EOD);
    fclose(bs);
    if (!response(sd, OKSDbootstrap, "Bootstrap")) {
       jcr->JobStatus = JS_ErrorTerminated;

@@ -71,7 +71,7 @@ int blast_data_to_storage_daemon(JCR *jcr, char *addr, int port)
       stat = 0; 		      /* error */
    }
 
-   bnet_sig(sd, BNET_EOF);	      /* terminate data connection */
+   bnet_sig(sd, BNET_EOD);	      /* end data connection */
 
    if (jcr->big_buf) {
       free(jcr->big_buf);

@@ -1,6 +1,9 @@
                  Kern's ToDo List
-                  25 July 2002
+                  3 August 2002
 
+Irix conversion notes:
+- no uuencode
+- no hostname
 To do:    
 - Document passwords.
 - Document running multiple Jobs

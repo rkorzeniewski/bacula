@@ -235,6 +235,7 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
    if (!jcr->pool->catalog_files) {
       return;
    }
+   db_start_transaction(jcr->db);     /* start transaction if not already open */
    skip_nonspaces(&p);		      /* UpdCat */
    skip_spaces(&p);
    skip_nonspaces(&p);		      /* Job=nnn */

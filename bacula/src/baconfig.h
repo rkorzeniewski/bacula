@@ -75,7 +75,9 @@
 #define TAPE_BSIZE 1024
 #if !defined(DEV_BSIZE) && defined(BSIZE)
 #define DEV_BSIZE BSIZE
-#else 
+#endif
+
+#ifndef DEV_BSIZE
 #define DEV_BSIZE 512
 #endif
 

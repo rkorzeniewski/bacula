@@ -142,7 +142,7 @@ int status_cmd(JCR *jcr)
    do_status(sendit, (void *)user);
    bnet_fsend(user, "====\n");
 
-   bnet_sig(user, BNET_EOF);
+   bnet_sig(user, BNET_EOD);
    return 1;
 }
 

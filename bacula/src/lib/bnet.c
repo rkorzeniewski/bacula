@@ -116,7 +116,7 @@ bnet_recv(BSOCK *bsock)
    int32_t nbytes;
    int32_t pktsiz;
 
-   if (bsock->errors) {
+   if (bsock->errors || bsock->terminated) {
       return -2;
    }
 
@@ -146,13 +146,11 @@ bnet_recv(BSOCK *bsock)
 
    pktsiz = ntohl(pktsiz);	      /* decode no. of bytes that follow */
 
-   if (pktsiz <= 0) {
-      bsock->b_errno = ENODATA;
-      bsock->msglen = pktsiz;	      /* return size */
-      return 0; 		      /* soft EOF */
-   }
-   /* For big packet size, something went wrong */
-   if (pktsiz > 10000000) {
+   /* If signal or packet size too big */
+   if (pktsiz <= 0 || pktsiz > 10000000) {
+      if (pktsiz == BNET_TERMINATE) {
+	 bsock->terminated = 1;
+      }
       bsock->b_errno = ENODATA;
       bsock->msglen = pktsiz;	      /* return size */
       return 0; 		      /* soft EOF */
@@ -239,7 +237,7 @@ bnet_send(BSOCK *bsock)
    int32_t rc;
    int32_t pktsiz;
 
-   if (bsock->errors) {
+   if (bsock->errors || bsock->terminated) {
       return 0;
    }
    pktsiz = htonl((int32_t)bsock->msglen);
@@ -579,8 +577,6 @@ char *bnet_sig_to_ascii(BSOCK *bs)
 {
    static char buf[30];
    switch (bs->msglen) {
-      case BNET_EOF:
-         return "BNET_EOF";
       case BNET_EOD:
          return "BNET_EOD";
       case BNET_EOD_POLL:

@@ -1,6 +1,6 @@
 2002-07-26 Release 1.23a
 - Fix segmentation fault is FD status.
-- Turn off TRANACTIONs for SQLite.                        
+- Turn off TRANSACTIONs for SQLite.                        
 
 2002-07-23 Release 1.23
   From kes22Jul02

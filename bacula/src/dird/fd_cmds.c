@@ -131,7 +131,7 @@ int send_include_list(JCR *jcr)
 	 return 0;
       }
    }
-   bnet_sig(fd, BNET_EOF);
+   bnet_sig(fd, BNET_EOD);	      /* end of data */
    fd->msg = msgsave;
    if (!response(fd, OKinc, "Include")) {
       jcr->JobStatus = JS_ErrorTerminated;
@@ -166,7 +166,7 @@ int send_exclude_list(JCR *jcr)
 	 return 0;
       }
    }
-   bnet_sig(fd, BNET_EOF);
+   bnet_sig(fd, BNET_EOD);
    fd->msg = msgsave;
    if (!response(fd, OKexc, "Exclude")) {
       jcr->JobStatus = JS_ErrorTerminated;

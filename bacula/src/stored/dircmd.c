@@ -216,7 +216,7 @@ static int cancel_cmd(JCR *cjcr)
    } else {
       bnet_fsend(dir, _("3993 Error scanning cancel command.\n"));
    }
-   bnet_sig(dir, BNET_EOF);
+   bnet_sig(dir, BNET_EOD);
    return 1;
 }
 
@@ -292,7 +292,7 @@ static int label_cmd(JCR *jcr)
    free_memory(volname);
    free_memory(poolname);
    free_memory(mtype);
-   bnet_sig(dir, BNET_EOF);
+   bnet_sig(dir, BNET_EOD);
    return 1;
 }
 
@@ -503,7 +503,7 @@ static int mount_cmd(JCR *jcr)
       bnet_fsend(dir, _("3906 Error scanning mount command: %s\n"), dev_name);
    }
    free_memory(dev_name);
-   bnet_sig(dir, BNET_EOF);
+   bnet_sig(dir, BNET_EOD);
    return 1;
 }
 
@@ -588,7 +588,7 @@ static int unmount_cmd(JCR *jcr)
       bnet_fsend(dir, _("3907 Error scanning unmount command: %s\n"), dname);
    }
    free_memory(dname);
-   bnet_sig(dir, BNET_EOF);
+   bnet_sig(dir, BNET_EOD);
    return 1;
 }
 
@@ -720,6 +720,6 @@ static int status_cmd(JCR *jcr)
 #endif
    bnet_fsend(user, "====\n");
 
-   bnet_sig(user, BNET_EOF);
+   bnet_sig(user, BNET_EOD);
    return 1;
 }

@@ -789,7 +789,7 @@ e_msg(char *file, int line, int type, int level, char *fmt,...)
 		  my_name, file, line);
 	  break;
        case M_ERROR_TERM:
-          sprintf(buf, "%s ERROR TERMINATING at %s:%d\n", 
+          sprintf(buf, "%s ERROR TERMINATION at %s:%d\n", 
 		  my_name, file, line);
 	  break;
        case M_FATAL:
@@ -874,7 +874,7 @@ Jmsg(void *vjcr, int type, int level, char *fmt,...)
           sprintf(buf, "%s ABORTING due to ERROR\n", my_name);
 	  break;
        case M_ERROR_TERM:
-          sprintf(buf, "%s ERROR TERMINATING\n", my_name);
+          sprintf(buf, "%s ERROR TERMINATION\n", my_name);
 	  break;
        case M_FATAL:
           sprintf(buf, "%s: Job %s Fatal error: ", my_name, job);

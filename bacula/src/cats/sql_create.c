@@ -505,13 +505,6 @@ int db_create_file_attributes_record(B_DB *mdb, ATTR_DBR *ar)
    Dmsg0(50, "db_create_file_record\n");
 
    Dmsg3(100, "Path=%s File=%s FilenameId=%d\n", spath, file, ar->FilenameId);
-#ifdef HAVE_SQLITE
-   if (mdb->transaction && mdb->changes > 10000) {
-      my_sqlite_query(mdb, "COMMIT");    /* end transaction */
-      my_sqlite_query(mdb, "BEGIN");     /* start new transaction */
-      mdb->changes = 0;
-   }
-#endif
    return 1;
 }
 

@@ -80,7 +80,6 @@ int32_t bget_msg(BSOCK *bs, int rtn)
       if (n == 0) {		      /* handle signal */
 	 /* 0 return from bnet_recv() => network signal */
 	 switch (bs->msglen) {
-	    case BNET_EOF:		 /* deprecated */
 	    case BNET_EOD:		 /* end of data */
 	       return 0;
 	    case BNET_EOD_POLL:

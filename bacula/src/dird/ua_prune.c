@@ -311,8 +311,8 @@ int prune_files(UAContext *ua, CLIENT *client)
    }
    edit_uint64_with_commas(del.tot_ids, ed1);
    edit_uint64_with_commas(del.num_ids, ed2);
-   bsendmsg(ua, _("Pruned %s Files from %s Jobs for client %s from %s catalog.\n"), 
-      ed1, ed2, client->hdr.name, client->catalog->hdr.name);
+   bsendmsg(ua, _("Pruned %s Files from %s Jobs for client %s from catalog.\n"), 
+      ed1, ed2, client->hdr.name);
    
 bail_out:
    db_unlock(ua->db);
@@ -465,8 +465,8 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       Dmsg1(050, "Del sql=%s\n", query);
    }
-   bsendmsg(ua, _("Pruned %d %s for client %s from %s catalog.\n"), del.num_ids,
-      del.num_ids==1?_("Job"):_("Jobs"), client->hdr.name, client->catalog->hdr.name);
+   bsendmsg(ua, _("Pruned %d %s for client %s from catalog.\n"), del.num_ids,
+      del.num_ids==1?_("Job"):_("Jobs"), client->hdr.name);
    
 bail_out:
    drop_temp_tables(ua);
