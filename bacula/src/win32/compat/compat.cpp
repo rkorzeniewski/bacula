@@ -446,13 +446,14 @@ strncasecmp(const char *s1, const char *s2, int len)
         return -1;
     else if (!s2)
         return 1;
-    do
+    while (len--)
     {
         ch1 = *s1;
         ch2 = *s2;
         s1++;
         s2++;
-    } while (len-- && ch1 != 0 && tolower(ch1) == tolower(ch2));
+	if (ch1 == 0 || tolower(ch1) != tolower(ch2)) break;
+    } 
 
     return(ch1 - ch2);
 }
@@ -780,19 +781,33 @@ VOID ReadFromPipe(VOID);
 VOID ErrorExit(LPTSTR);
 VOID ErrMsg(LPTSTR, BOOL);
 
-
+/**
+ * Check for a quoted path,  if an absolute path name is given and it contains
+ * spaces it will need to be quoted.  i.e.  "c:/Program Files/foo/bar.exe"
+ * CreateProcess() says the best way to ensure proper results with executables
+ * with spaces in path or filename is to quote the string.
+ */
 const char *
 getArgv0(const char *cmdline)
 {
-    const char *cp = cmdline;
 
-    while (*cp && !isspace(*cp)) cp++;
+    int inquote = 0;
+    for (const char *cp = cmdline; *cp; cp++)
+    {
+	if (*cp == '"') {
+	    inquote = !inquote;
+	}
+	if (!inquote && isspace(*cp))
+	    break;
+    }
 
+	
     int len = cp - cmdline;
     char *rval = (char *)malloc(len+1);
 
     cp = cmdline;
     char *rp = rval;
+    
     while (len--)
         *rp++ = *cp++;
 
@@ -800,6 +815,27 @@ getArgv0(const char *cmdline)
     return rval;
 }
 
+/*
+ * Check to see if filename has the batch file extention.
+ */
+int
+isBatchFile(const char *fname)
+{
+    const char *ext = strrchr(fname, '.');
+    
+    if (ext) {
+	int rval = strncasecmp(ext, ".bat", 4);
+	return !rval;
+    }
+    return 0;
+}
+
+/**
+ * OK, so it would seem CreateProcess only handles true executables:
+ *  .com or .exe files.
+ * So test to see whether we're getting a .bat file and if so grab
+ * $COMSPEC value and pass batch file to it.
+ */
 HANDLE
 CreateChildProcess(const char *cmdline, HANDLE in, HANDLE out, HANDLE err)
 {
@@ -840,32 +876,50 @@ CreateChildProcess(const char *cmdline, HANDLE in, HANDLE out, HANDLE err)
     // retrive the first compont of the command line which should be the
     // executable
     const char *exeName = getArgv0(cmdline);
-    // check to see if absolute path was passed to us already?
-    if (exeName[1] != ':'
-        || (strchr(cmdline, '/') == NULL
-            && strchr(cmdline, '\\') == NULL))
-    {
-        // only command name so perform search of PATH to find
-        char *file;
-        DWORD rval = SearchPath(NULL,
-                                exeName,
-                                ".exe",
-                                sizeof(exeFile),
-                                exeFile,
-                                &file);
-        if (rval == 0)
-            return INVALID_HANDLE_VALUE;
-        if (rval > sizeof(exeFile))
-            return INVALID_HANDLE_VALUE;
 
+    if (isBatchFile(exeName)) {
+	const char *comspec = getenv("COMSPEC");
+	if (comspec == NULL) // should never happen
+	    return INVALID_HANDLE_VALUE;
+
+	free((void *)exeName);
+	strcpy(exeFile, comspec);
+	strcpy(cmdLine, comspec);
+	strcat(cmdLine, " /c ");
+	strcat(cmdLine, cmdline);
     }
     else
-        strcpy(exeFile, exeName);
+    {
+    // check to see if absolute path was passed to us already?
+	// allow for case when absolute path is in quotes "C:/...."
+	int driveCheck = exeName[0] == '"' ? 2 : 1;
+	if (exeName[driveCheck] != ':'
+	    || (strchr(cmdline, '/') == NULL
+		&& strchr(cmdline, '\\') == NULL))
+	{
+	    // only command name so perform search of PATH to find
+	    char *file;
+	    DWORD rval = SearchPath(NULL,
+				    exeName,
+				    ".exe",
+				    sizeof(exeFile),
+				    exeFile,
+				    &file);
+	    if (rval == 0)
+		return INVALID_HANDLE_VALUE;
+	    if (rval > sizeof(exeFile))
+		return INVALID_HANDLE_VALUE;
+	    
+	}
+	else
+	    cygwin_conv_to_win32_path(exeName, exeFile);
+	
+	// exeFile now has absolute path to program to execute.
+	free((void *)exeName);
 
-    // exeFile now has absolute path to program to execute.
-    free((void *)exeName);
-    // copy original command line to pass to create process
-    strcpy(cmdLine, cmdline);
+	// copy original command line to pass to create process
+	strcpy(cmdLine, cmdline);
+    }
     // try to execute program
     bFuncRetn = CreateProcess(exeFile,
                               cmdLine, // command line
@@ -880,6 +934,10 @@ CreateChildProcess(const char *cmdline, HANDLE in, HANDLE out, HANDLE err)
 
     if (bFuncRetn == 0) {
         ErrorExit("CreateProcess failed\n");
+        const char *err = errorString();
+        d_msg(__FILE__, __LINE__, 99,
+              "CreateProcess(%s, %s, ...)=%s\n", exeFile, cmdLine, err);
+        LocalFree((void *)err);
         return INVALID_HANDLE_VALUE;
     }
     // we don't need a handle on the process primary thread so we close
@@ -964,6 +1022,7 @@ open_bpipe(char *prog, int wait, const char *mode)
         }
 
         CloseHandle(hChildStdoutRd);
+	hChildStdoutRd = INVALID_HANDLE_VALUE;
     }
 
     if (mode_write) {
@@ -987,6 +1046,7 @@ open_bpipe(char *prog, int wait, const char *mode)
         }
 
         CloseHandle(hChildStdinWr);
+	hChildStdinWr = INVALID_HANDLE_VALUE;
     }
     // spawn program with redirected handles as appropriate
     bpipe->worker_pid = (pid_t)
