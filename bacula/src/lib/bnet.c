@@ -54,6 +54,19 @@ extern time_t watchdog_time;
 #endif
 
 
+#ifdef HAVE_OLD_SOCKOPT
+int inet_aton(const char *cp, struct in_addr *inp)
+{
+   struct in_addr inaddr;
+
+   if((inaddr.s_addr = inet_addr(cp)) != INADDR_NONE) {
+      inp->s_addr = inaddr.s_addr;
+      return 1;
+   }
+   return 0;
+}
+#endif
+
 /*
  * Read a nbytes from the network.
  * It is possible that the total bytes require in several
