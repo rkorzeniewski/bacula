@@ -74,7 +74,6 @@ static int director_reader_running = FALSE;
 static bool at_prompt = false;
 static bool ready = false;
 static bool quit = false;
-static bool adjusted = false;
 static guint initial;
 
 #define CONFIG_FILE "./gnome-console.conf"   /* default configuration file */
@@ -568,7 +567,7 @@ void set_text(char *buf, int len)
    buf_len = gtk_text_buffer_get_char_count(textbuf);
    gtk_text_buffer_get_iter_at_offset(textbuf, &iter, buf_len - 1);
    gtk_text_iter_set_offset(&iter, buf_len);
-   adjusted = false;
+   set_scroll_bar_to_end();
 }
 
 void set_statusf(char *fmt, ...)
@@ -599,15 +598,8 @@ void set_status(char *buf)
 
 static void set_scroll_bar_to_end(void)
 {
-   GtkAdjustment *vadj;
-   /*
-    * Force the scroll bars to the bottom so that most
-    * recent text is on screen.
-    */
-   if ((ready || at_prompt) && !adjusted) {
-      adjusted = true;
-      vadj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scroll1));
-      gtk_adjustment_set_value(vadj, vadj->upper);
-      gtk_widget_show(text1);
-   }
+   GtkTextBuffer* buffer = NULL;
+   buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text1));
+   gtk_text_view_scroll_mark_onscreen (GTK_TEXT_VIEW(text1),
+              gtk_text_buffer_get_mark (buffer, "insert"));
 }

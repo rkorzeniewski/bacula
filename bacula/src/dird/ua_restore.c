@@ -774,7 +774,7 @@ static int select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *date
       bsendmsg(ua, "%s\n", db_strerror(ua->db));
       goto bail_out;
    }
-   /* Note, this is needed as I don't seem to get the callback
+   /* Note, this is needed because I don't seem to get the callback
     * from the call just above.
     */
    rx->JobTDate = 0;
