@@ -1,4 +1,16 @@
 
+27Mar04
+- Make the default for restore to have nothing marked.
+- The "all" keyword on the restore command marks everything by
+  default.
+- The "done" keyword on the restore command prevents user interaction
+  with the tree routines -- used mainly for scripting (regression ...).
+- Correct a bug in the last_sibling code.
+- Add alphabetic sorting of siblings so the "dir" and "ls" commands
+  during restore show files in alphabetic order.
+25Mar04
+- Based on Mike Acar's suggestions rework tree insert routines. Improve
+  performance by using a last_sibling link for inserts.
 24Mar04
 - Apply corrected SQL to sql_get.c supplied by Dan Langille.
 - Implement "delete job jobid=xxx jobid=yyy ..."

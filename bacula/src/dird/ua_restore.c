@@ -80,6 +80,7 @@ struct RESTORE_CTX {
    int fnl;			      /* filename length */
    int pnl;			      /* path length */
    bool found;
+   bool all;			      /* mark all as default */
    NAME_LIST name_list;
 };
 
@@ -307,12 +308,13 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       "file",      /* 3 */
       "select",    /* 4 */
       "pool",      /* 5 */
-      "client",    /* 6 */
-      "storage",   /* 7 */
-      "fileset",   /* 8 */
-      "where",     /* 9 */
-      "all",       /* 10 */
+      "all",       /* 6 */
+      "client",    /* 7 */
+      "storage",   /* 8 */
+      "fileset",   /* 9 */
+      "where",     /* 10 */
       "yes",       /* 11 */
+      "done",      /* 12 */
       NULL
    };
 
@@ -387,8 +389,11 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
 	    return 0;
 	 }
 	 break;
+      case 6:			      /* all specified */
+	 rx->all = true;
+	 break;
       /*     
-       * All keywords 6 or greater are ignored or handled by a select prompt
+       * All keywords 7 or greater are ignored or handled by a select prompt
        */
       default:
 	 break;
@@ -705,6 +710,7 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
    tree.root = new_tree(rx->TotalFiles);
    tree.root->fname = nofname;
    tree.ua = ua;
+   tree.all = rx->all;
    last_JobId = 0;
    /*
     * For display purposes, the same JobId, with different volumes may
@@ -734,13 +740,13 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
          bsendmsg(ua, "%s", db_strerror(ua->db));
       }
    }
-   bsendmsg(ua, "%d Job%s inserted into the tree and marked for extraction.\n", 
-      items, items==1?"":"s");
+   bsendmsg(ua, "%d Job%s inserted into the tree%s.\n", 
+      items, items==1?"":"s", tree.all?" and marked for extraction":"");
 
    /* Check MediaType and select storage that corresponds */
    get_storage_from_mediatype(ua, &rx->name_list, rx);
 
-   if (find_arg(ua, _("all")) < 0) {
+   if (find_arg(ua, _("done")) < 0) {
       /* Let the user interact in selecting which files to restore */
       OK = user_select_files_from_tree(&tree);
    }

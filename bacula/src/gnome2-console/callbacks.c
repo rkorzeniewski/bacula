@@ -393,6 +393,7 @@ on_run_ok_clicked(GtkButton *button, gpointer user_data)
              "when=\"%s\" where=\"%s\" storage=\"%s\"", 
 	     job, fileset, level, client, pool, when, where, storage);
    write_director(cmd);
+   set_text(cmd, strlen(cmd));
    write_director("yes");
    return;
 }
@@ -465,6 +466,7 @@ on_label_ok_clicked(GtkButton *button, gpointer user_data)
              "label name=\"%s\" pool=\"%s\" storage=\"%s\" slot=%s", 
 	     volume, pool, storage, slot);
    write_director(cmd);
+   set_text(cmd, strlen(cmd));
 }
 
 
@@ -501,6 +503,7 @@ on_select_files_button_clicked(GtkButton *button, gpointer user_data)
              "restore select current fileset=\"%s\" client=\"%s\" pool=\"%s\" "
              "storage=\"%s\"", fileset, client, pool, storage);
    write_director(cmd);
+   set_text(cmd, strlen(cmd));
    gtk_widget_show(restore_file_selection);
    select_restore_files();	      /* put up select files dialog */
 }

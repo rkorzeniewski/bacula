@@ -58,6 +58,7 @@ struct TREE_CTX {
    TREE_NODE *node;                   /* current node */
    TREE_NODE *avail_node;             /* unused node last insert */
    int cnt;                           /* count for user feedback */
+   bool all;                          /* if set mark all as default */
    UAContext *ua;
 };
 

@@ -6,11 +6,11 @@
 Major Features:
 - Data spooling which eliminates tape shoe-shine during Inc backups,         
   and permits multiple simultaneous backups without interleaved blocks.
-- Polling of devices eliminating need to unmount and mount from
-  console.
 - Native Win32 client -- much faster and restores permissions correctly
   (thanks to Christopher Hull)
 - PostgreSQL database driver (thanks to Dan Langille).
+- Polling of devices eliminating need to unmount and mount from
+  console.
 - Improved Autochange support of Slots (update slots scan).
 - Autochanger support for multiple drives.
 - New conio code to implement Console command line editing and history.
@@ -19,6 +19,47 @@ Major Features:
 - Pool level overrides.
 - Daemon statistics memory.
 - Improved btape "test" and "fill" commands.
+
+
+Items to note:  !!!!!
+- The restore default is changed to have nothing selected by default.
+  You must either enter: "restore all" or after getting into the tree
+  selection prompt enter "mark *" to have everything selected.
+- In previous versions the "all" keyword on the restore command caused
+  it to return without user interaction after selecting everything. 
+  This function is now replaced by the "done" keyword (more logical).
+  The "all" keyword now causes everything to be selected by default.
+- The default tape driver behavior is now to write only a single EOF
+  at the end of the tape. For most tape drives, this is totally            
+  transparent and nothing needs to be done. For FreeBSD see below.
+- FreeBSD users NOTE!!!!!
+  You MUST add the following two records to your SD Device resource for
+  tape drives.
+
+     TWOEOF = yes
+     Fast Forward Space File = no
+
+- The daemon protocol has changed, you must update everything at once.
+- The database level has been updated. You must either re-initialize
+  your databases with:
+   
+    ./drop_bacula_tables
+    ./make_bacula_tables
+
+  which will delete ALL prior catalog information, or you can
+  update your database with:
+
+    ./update_bacula_tables
+
+  Please save your old database before dropping the tables or doing
+  an upgrade or you may regret it later.
+
+- smtp has now become bsmtp -- you *must* modify your .conf files.
+- console has now become bconsole.
+- console.conf is now bconsole.conf
+- Please don't underestimate the repercussions of the bsmtp and bconsole 
+  name changes!
+
 
 New directives:
 - "Close on Poll = yes/no" in SD Device resource.
@@ -57,6 +98,9 @@ New Commands:
 - "quit" command in restore tree.
 - Trace option on "setdebug trace=1/0 ..."
 - Update slots scan
+- The "all" keyword on the restore command marks all files by default.
+- The "done" keyword prevents user interaction with the tree -- used
+  mostly for batch scripting.
 
 
 Additional changes:
@@ -133,31 +177,3 @@ Additional changes:
   a single Volume where the volume lable is not in the first 
   tape block, so the tape is not recognized.
 
-Items to note:  !!!!!
-- FreeBSD users NOTE!!!!!
-  You MUST add the following two records to your SD Device resource for
-  tape drives.
-
-     TWOEOF = yes
-     Fast Forward Space File = no
-
-- The daemon protocol has changed, you must update everything at once.
-- The database level has been updated. You must either re-initialize
-  your databases with:
-   
-    ./drop_bacula_tables
-    ./make_bacula_tables
-
-  which will delete ALL prior catalog information, or you can
-  update your database with:
-
-    ./update_bacula_tables
-
-  Please save your old database before dropping the tables or doing
-  an upgrade or you may regret it later.
-
-- smtp has now become bsmtp
-- console has now become bconsole.
-- console.conf is now bconsole.conf
-- Please don't underestimate the repercussions of the bsmtp and bconsole 
-  name changes!

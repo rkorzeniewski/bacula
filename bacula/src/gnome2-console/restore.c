@@ -50,6 +50,7 @@ const int DATE_COLUMN = 6;
 static void discard_to_prompt()
 {
    while (bnet_recv(UA_sock) > 0) {
+      set_text(UA_sock->msg, UA_sock->msglen);
    }
 }
 
