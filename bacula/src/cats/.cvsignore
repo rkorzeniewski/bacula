@@ -2,6 +2,7 @@
 Makefile
 make_catalog_backup
 delete_catalog_backup
+create_bacula_database
 create_bdb_database
 create_mysql_database
 create_postgresql_database
