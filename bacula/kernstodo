@@ -31,6 +31,7 @@ For 1.31 release:
 
 
 For 1.32:
+- User wants to NOT backup up certain big files (email files).
 - Maybe remove multiple simultaneous devices code in SD.
 - On Windows with very long path names, it may be impossible to create 
   a file (and thus restore it) because the total length is too long.
