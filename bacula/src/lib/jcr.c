@@ -111,23 +111,24 @@ static void free_common_jcr(JCR *jcr)
 {
    /* Keep some statistics */
    switch (jcr->JobType) {
-      case JT_BACKUP:
-      case JT_VERIFY:
-      case JT_RESTORE:
-	 last_job.NumJobs++;
-	 last_job.JobType = jcr->JobType;
-	 last_job.JobId = jcr->JobId;
-	 last_job.VolSessionId = jcr->VolSessionId;
-	 last_job.VolSessionTime = jcr->VolSessionTime;
-	 strcpy(last_job.Job, jcr->Job);
-	 last_job.JobFiles = jcr->JobFiles;
-	 last_job.JobBytes = jcr->JobBytes;
-	 last_job.JobStatus = jcr->JobStatus;
-	 last_job.start_time = jcr->start_time;
-	 last_job.end_time = time(NULL);
-	 break;
-      default:
-	 break;
+   case JT_BACKUP:
+   case JT_VERIFY:
+   case JT_RESTORE:
+   case JT_ADMIN:
+      last_job.NumJobs++;
+      last_job.JobType = jcr->JobType;
+      last_job.JobId = jcr->JobId;
+      last_job.VolSessionId = jcr->VolSessionId;
+      last_job.VolSessionTime = jcr->VolSessionTime;
+      bstrncpy(last_job.Job, jcr->Job, sizeof(last_job.Job));
+      last_job.JobFiles = jcr->JobFiles;
+      last_job.JobBytes = jcr->JobBytes;
+      last_job.JobStatus = jcr->JobStatus;
+      last_job.start_time = jcr->start_time;
+      last_job.end_time = time(NULL);
+      break;
+   default:
+      break;
    }
    pthread_mutex_destroy(&jcr->mutex);
 

@@ -73,7 +73,7 @@ int do_restore(JCR *jcr)
    }
 
    memset(&rjr, 0, sizeof(rjr));
-   jcr->jr.Level = 'F';            /* Full restore */
+   jcr->jr.Level = L_FULL;	   /* Full restore */
    jcr->jr.StartTime = jcr->start_time;
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));

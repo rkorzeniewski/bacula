@@ -406,6 +406,7 @@ static void prt_runhdr(UAContext *ua)
 static void prt_runtime(UAContext *ua, JOB *job, int level, time_t runtime, POOL *pool)
 {
    char dt[MAX_TIME_LENGTH];	   
+   char *level_ptr;
    bool ok = false;
    bool close_db = false;
    JCR *jcr = ua->jcr;
@@ -425,9 +426,17 @@ static void prt_runtime(UAContext *ua, JOB *job, int level, time_t runtime, POOL
       }
    }
    bstrftime(dt, sizeof(dt), runtime);
+   switch (job->JobType) {
+   case JT_ADMIN:
+   case JT_RESTORE:
+      level_ptr = " ";
+      break;
+   default:
+      level_ptr = level_to_str(level);
+      break;
+   }
    bsendmsg(ua, _("%-14s %-8s %-18s %-18s %s\n"), 
-      level_to_str(level), job_type_to_str(job->JobType), dt, job->hdr.name,
-      mr.VolumeName);
+      level_ptr, job_type_to_str(job->JobType), dt, job->hdr.name, mr.VolumeName);
    if (close_db) {
       db_close_database(jcr, jcr->db);
    }

@@ -47,6 +47,15 @@ For 1.33 Testing/Documentation:
                 
 
 For 1.33
+- Implement Console mtx commands.
+- Look at 2Gb limit for SQLite.
+- Implement 3 Pools for a Job:
+   Job {
+     Name = ...
+     Full Backup Pool = xxx
+     Incremental Backup Pool = yyy
+     Differential Backup Pool = zzz
+   }
 - Add a default DB password to MySQL.  
   GRANT all privileges ON bacula.* TO bacula@localhost IDENTIFIED BY 
      'bacula_password';

@@ -43,6 +43,7 @@
 #define L_VERIFY_DISK_TO_CATALOG 'd'  /* verify Disk attributes to catalog */
 #define L_VERIFY_DATA            'A'  /* verify data on volume */
 #define L_BASE                   'B'  /* Base level job */
+#define L_NONE                   ' '  /* None, for Restore and Admin */
 
 
 /* Job Types. These are stored in the DB */
