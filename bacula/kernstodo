@@ -22,6 +22,7 @@ Documentation to do: (any release a little bit at a time)
 - Document run "yes".
 - Document that bscan does not work with multiple simultaneous jobs.
 - Update Automatic Volume Labeling in disk.wml
+- Document portable=yes
 
           
 Testing to do: (painful)
@@ -37,15 +38,7 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
-- Listing of Win32 restored files has ??????? for user.
 - Do full check the command line args in update (e.g. VolStatus ...).
-- In Win portable restore the directory is not create    
-   27-Jun-2003 16:52 tibs-fd: kernsrestore.2003-06-27_16.52.20 Error:
-   create_file.c:175 Could not create
-   /tmp/bacula-restores/cygwin/home/kern/bacula/k/src/dird/dird_conf.o: 0
-   ERR=The system cannot find the path specified.
-- Finish Windows implementation (add setting of correct type on restore,
-  add Portable Data Format flag).
 - Maybe remove multiple simultaneous devices code in SD.
 - Increment DB version prior to releasing.
 - Turn off FULL_DEBUG prior to releasing.
@@ -63,6 +56,7 @@ For 1.31 release:
 
 
 For 1.32:
+- Figure out how to handle DHCP IP addresses.
 - Allow multiple Storage specifications (or multiple names on
   a single Storage specification) in the Job record. Thus a job 
   can be backed up to a number of storage devices.
@@ -1020,3 +1014,12 @@ Done: (see kernsdone for more)
   because there were a whole pile of jobs hanging around in the SD  
   waiting for a connection from the FD that was never coming.
 - Possibly update all client records at startup.
+- Listing of Win32 restored files has ??????? for user.
+- In Win portable restore the directory is not create    
+   27-Jun-2003 16:52 tibs-fd: kernsrestore.2003-06-27_16.52.20 Error:
+   create_file.c:175 Could not create
+   /tmp/bacula-restores/cygwin/home/kern/bacula/k/src/dird/dird_conf.o: 0
+   ERR=The system cannot find the path specified.
+- Finish Windows implementation (add setting of correct type on restore,
+  add Portable Data Format flag).
+
