@@ -126,11 +126,11 @@ int authenticate_file_daemon(JCR *jcr)
  */
 int authenticate_user_agent(BSOCK *ua)
 {
-   char name[128];
+   char name[MAXSTRING];
    int ok = 0;
 
-
-   if (sscanf(ua->msg, "Hello %127s calling\n", name) != 1) {
+   if (ua->msglen > MAXSTRING ||
+       sscanf(ua->msg, "Hello %127s calling\n", name) != 1) {
       ua->msg[100] = 0; 	      /* terminate string */
       Emsg1(M_ERROR, 0, _("Authentication failure: %s"), ua->msg);
       return 0;
