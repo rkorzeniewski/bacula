@@ -33,6 +33,13 @@ Changes submitted this submission:
 - Replaced as many lld's with edit_uint64 as I could find.
 22Nov02:
 - Added MaxVolBytes to Pool record - had forgotten it. Updated DB version.
+23Nov02
+- Update manual to document new Pool/Volume attributes
+- Correct make_sqlite_tables (typo, plus missing value in Pool)
+- Fix bizarre behavior in gnome-console and console when auth fails.
+- Add Pool attribute query
+- Add a few more error messages in askdir.c
+- More strcpy() conversions to bstrncpy().
 
 General: from kes18Nov02
 - Did a number of cleanups of string copying to limit the length
