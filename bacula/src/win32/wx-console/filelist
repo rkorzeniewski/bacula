@@ -52,3 +52,4 @@
 ..\..\wx-console\wxbutils
 ..\..\wx-console\wxbconfigpanel
 ..\..\wx-console\wxbconfigfileeditor
+..\..\wx-console\wxbhistorytextctrl
