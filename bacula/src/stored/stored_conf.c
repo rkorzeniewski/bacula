@@ -96,7 +96,6 @@ static struct res_items dev_items[] = {
    {"randomaccess",          store_yesno,  ITEM(res_dev.cap_bits), CAP_RACCESS, 0, 0},
    {"automaticmount",        store_yesno,  ITEM(res_dev.cap_bits), CAP_AUTOMOUNT,  ITEM_DEFAULT, 0},
    {"labelmedia",            store_yesno,  ITEM(res_dev.cap_bits), CAP_LABEL,      ITEM_DEFAULT, 0},
-   {"mountanonymousvolumes", store_yesno,  ITEM(res_dev.cap_bits), CAP_ANONVOLS,   ITEM_DEFAULT, 0},
    {"alwaysopen",            store_yesno,  ITEM(res_dev.cap_bits), CAP_ALWAYSOPEN, ITEM_DEFAULT, 1},
    {"autochanger",           store_yesno,  ITEM(res_dev.cap_bits), CAP_AUTOCHANGER, ITEM_DEFAULT, 0},
    {"changerdevice",         store_strname,ITEM(res_dev.changer_name), 0, 0, 0},
@@ -113,6 +112,9 @@ static struct res_items dev_items[] = {
    {"volumecapacity",        store_size,   ITEM(res_dev.volume_capacity), 0, 0, 0},
    {NULL, NULL, 0, 0, 0, 0} 
 };
+
+// {"mountanonymousvolumes", store_yesno,  ITEM(res_dev.cap_bits), CAP_ANONVOLS,   ITEM_DEFAULT, 0},
+
 
 /* Message resource */
 extern struct res_items msgs_items[];

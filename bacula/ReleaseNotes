@@ -1,9 +1,10 @@
 
           Release Notes for Bacula 1.31
 
-  Bacula code: Total files = 243 Total lines = 70,151 (*.h *.c *.in)
+  Bacula code: Total files = 246 Total lines = 70,476 (*.h *.c *.in)
 
 Major Changes this Release:
+- The database format has changed. Please see below.
 - Support to save and restore all files on WinNT/2K/XP systems 
   including the permissions. Unfortunately files that are in use by another
   program cannot be saved.
@@ -12,6 +13,8 @@ Major Changes this Release:
   timeouts. The heartbeat interval can be set.
 - Volume names may now only contain letters, numbers, colon, period, dash,
   and underscore.
+- Added readline to depkgs (removed from depkgs1) and fixed configuration if
+  it is not installed in your system libraries.
 
 
 Other Changes this Release:
@@ -24,7 +27,8 @@ Other Changes this Release:
 - Improvements to gnome-console.
 - Prune certain orphaned jobs (no files saved, no Volume used).
 - Added non-fatal errors to Job reports.
-- Eliminate need for SubsysDirectory in each daemon.
+- Eliminate need for SubsysDirectory in each daemon -- please remove
+  these records from your .conf files.
 - Add a lot more "command line" options to console commands.
 - More info in traceback (database type, ...).
 - Better handling of errors with autochangers during restore.
@@ -32,12 +36,50 @@ Other Changes this Release:
   to cleanup twice).
 - SD error messages such as autochanger errors are now properly
   directed back to Console -- previously some were lost.
+- A Storage daemon crash on FreeBSD systems (due to an improper FreeBSD
+  pthreads implementation -- IMO) is fixed.
+- Better Job termination report particularly for Verify and Restore jobs.
+- Update Verify VolumeToCatalog to use new BSR records.
+- Fixed list last 20 jobs in restore command (previously reported any 
+  20 jobs).
+- Gnome command line history works better.
+- Better messages if a job is upgraded from Diff or Inc to Full.
 
 
 
 Items to note:  !!!!!
 - For MySQL users, you must have the thread safe client libraries 
   available.  If you build MySQL yourself, add the --enable-thread-safe-client
-  option on the ./configure.
+  option on the ./configure.  You will most likely need to do an ldconfig.
+  Please see the installation documentation for building MySQL.
 - Version 1.31 and 1.30 daemons/Director are not compatible. You must
   upgrade all or nothing.
+- The format of the catalog database has changed, so you must either
+  re-initialize your database (losing all the old info) with:
+
+     ./drop_bacula_tables
+     ./make_bacula_tables
+
+  or you can use the appropriate script (you must choose the name according
+  to which database you have) in the <bacula-source>/src/cats directory.
+
+  BEFORE APPLYING THE ALTER SCRIPT PLEASE BACKUP YOUR DATABASE. Do one
+  of the following only if you wish to keep your old tables (not doing
+  the re-initialize documented above), and do this only after configuring
+  an building the new Bacula, but before trying to run it:
+
+  MySQL:
+     cd working-directory (or where you want to backup the catalog)
+     mysqladmin -f --opt bacula >bacula.sql
+     cd <bacula-source>/src/cats
+     ./alter_mysql_tables
+
+  SQLite:
+     cd working-directory
+     echo '.dump' sqlite bacula.db >bacula.sql
+     cd <bacula-source>/src/cats
+     ./alter_sqlite_tables
+      
+  When you are sure that Bacula is running with your upgraded database,
+  please delete the bacula.sql copy you made.
+  

@@ -30,6 +30,13 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
+- Instrument use_count on DEVICE packets and ensure that the device is
+  being close()ed at the appropriate time.
+- Check if Incremental is working correctly when it looks for the previous Job 
+  (Phil's problem).
+- Add next Volume to be used to status output.
+- Add a recycle command.
+- Command to determine next volume needed for a particular job.
 - Make bootstrap filename unique.
 - Implement FileSet VolIndex.
 - Sort JobIds entered into recover tree.
@@ -916,4 +923,3 @@ Done: (see kernsdone for more)
 - The "List last 20 Jobs run" doesnt work correctly in restore.
   It doesnt show the last 20 jobs , but some older ones.
 - Fix Verify VolumeToCatalog to use BSRs -- it is broken.
-

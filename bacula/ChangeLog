@@ -1,3 +1,111 @@
+2003-06-04 Version 1.31 Beta 04Jun03
+- Fix block.c to check errno only in case of return status -1 as 
+  suggested by Justin Gibbs (FreeBSD).
+- Implemented qfill command in btape for quick testing write/read of a tape.
+- Discovered that FreeBSD pthreads re-use the same thread id, which causes
+  the SD to fail when a user leaves a device unmounted (old pid is reused
+  and lock_device() thinks the same thread is calling again leading to
+  inconsistent state). Set id to zero after blocking the device during
+  unmount.
+- A lot of clean up, moving subroutines around for TermCode.
+- Free ua->prompt when Job terminates.
+- Add AutoPrune and Recycle to values copied from Pool resource
+  into Pool record on create/updated.
+- Implemented bsr for Verify VolumeToCatalog. 
+- Improved the Verify Job report using SD and FD term codes.
+- Split tree handling routines from ua_restore.c to ua_tree.c
+- Split bsr routines from ua_restore.c to bsr.c and bsr.h 
+- Fixed clash between FD and SD returned job values. Report now contains
+  values from FD.  Maybe I should change? or give both.
+- Attempt to fix negative use_count for dev packet in SD by adding
+  a couple of open_dev().   This may be cause of Dan's crash.
+- Clear no_wait_id when device is unblocked. This may be cause of Dan's crash.
+- Eliminate old "new lock code".
+- Add configure of mtx-changer for mtx path.
+- Always rewind tape before releasing it (for FreeBSD).
+- StartBlock was one too large for second volume.
+- Fixed restore to display status from both SD and FD.
+- Unified return status message for backup and restore.
+- Corrected segmentation fault reported by Dan when doing "label barcodes"
+  on a File.
+- Corrected a segmentation fault when attempting to send a JobMedia record
+  to the Console -- reported by Dan.
+- Added MySQL documentation for using the threaded libraries.
+- Added new columns and tables to Catalog database.
+- Wrote alter scripts and tested them (thanks to Dan for the help) on
+  MySQL and SQLite.
+- Started using enums where ever possible when passing flags to 
+  subroutines. This helps make the source much more readable.
+- Corrected a bug where a vertical database listing was being used in
+  the query command.
+- Added new argument to parse_args() to prevent command arg overflow.
+- Renamed ua_db_query.c ua_query.c.
+- Split scan.c out of lib/util.c
+- Perhaps I have *finally* fixed the command line history in gnome-console.
+- Added support for smartalloc for any global new or delete command
+  by overloading the global operators.
+- Made the default time with no qualifier day rather than seconds.
+- Fixed a bug in the store_size() routine that improperly converted from
+  double to uint32_t.
+- Started using "bool" where possible.
+- Zap SD session key once it is used.
+- Added *lots* more checking for strcpy -- bstrncpy(), ... 
+- Added CreateTime field to FileSet record and print it to distinguish
+  FileSets. 
+- Print an information message when a new FileSet is created.
+- Include the FileSet date/time in the Job report.
+- Indicate if a Job is upgraded in the Job report and from what previous level.
+- Incremented the database version.
+- Ensure that any DB error message is printed if the start_time of a previous
+  save is not found.
+- Free orphaned buffer in ua_restore.c in case of database error.
+- Implement enum for response DISPLAY_ERROR and NO_DISPLAY
+- Implement enum for create_pool (POOL_OP_CREATE, POOL_OP_UPDATE).
+- Make sure FileSets printed in restore are in order.
+- Add a number of bstrncat, and other protected string operations.
+- Clean up old structs in dird_conf.h
+- Remove all Slot invalidation code.
+- Add Automatic choice message to all do_prompt() calls.
+- Eliminate JobId from restore if not used.
+- Clean up a few error messages.
+- Make fill/unfill commands work correctly in btape.
+- Enhance btape fill and unfill commands.
+- Implement real Pmsg() code so that negative levels work in Dmsg()
+- Implement block number check -- had to turn it off because it doesn't
+  work.  Need to verify that it is the correct block and that block
+  numbers are properly written.
+- Moved readline from depkgs1 to depkgs.
+- Reworked the configure code to handle readline correctly. This was broken
+  mostly due to the fact that the readline routines are nested down one
+  directory.  Also, I missed one header file that was needed (possibly added
+  in a later version).
+- Put correct include on the dependencies make for Console readline.
+- Remove JobMediaId from VOL_PARAMS (no longer needed).
+- Sort VOL_PARAMS by JobMediaId using SQL in cats.
+- Add jcr as argument to block.c read_block... routines so that error
+  messages are immediately displayed.
+- Make bsr_dev() edit an error message if it is turned off and return 0.
+- Add checking for the BlockNumber in the read routines -- lots of
+  false matches are found -- much check writing end.
+- Now sort bsr volumes by JobMediaId -- produces better results.
+- It turns out that under certain circumstances, when doing a restore, the
+  Volumes will not be written to the BSR in the correct order.  I don't
+  know exactly why, but many thanks to Dan Langille for reporting this.
+  The solution is to sort the Vol_Params within each bsr (done), and to
+  sort the bsr chain (not yet implemented). Note, the bsr chain should
+  always be in order unless the user explicitly specifies the JobIds in
+  a different order.          
+- Began implementing C++ structs rather than typedef structs as in C.
+- Added volatile to a lot of variables that are used in two threads at
+  the same time. This should prevent improper optimization.   
+- Fixed a missing space in the "run job=xxx where=" the where was
+  glued to the end of the previous stuff (bootstrap filename). 
+- I *finally* found the cause of the mysterious failure of shell expansion.
+  It was due to the read() getting interrupted!  That's what opening up
+  SIGCHLD will do!
+- Remove unused default tape drive names.
+- Create a new status.c file in stored and split the status code out of dircmd.c
+
 2003-05-22 Version 1.31 Beta 22May03
 - I discovered that C++ permits "prototyping" structures e.g. struct A; is
   a valid statement. This permitted me to eliminate all the void *jcr, in
@@ -12,6 +120,7 @@
 - Print unexpected (or incorrect) termination message returned from FD.
 - Use switch() instead of giant if statement in verify_vol.c
 - Protect overrun from do_shell_expansion() by passing max length.
+
 2003-05-20 Version 1.31 Beta 20May03
 - Add mandrake to platforms
 - Suppress error messages if no bytes written to tape.
