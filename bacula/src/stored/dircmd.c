@@ -559,7 +559,7 @@ static int mount_cmd(JCR *jcr)
 	       }
 	       read_label(jcr, dev);
 	       if (dev_state(dev, ST_LABEL)) {
-                  bnet_fsend(dir, _("3001 Device %s is mounted with Volume \"%s\"\n"), 
+                  bnet_fsend(dir, _("3001 Device %s is already mounted with Volume \"%s\"\n"), 
 		     dev_name(dev), dev->VolHdr.VolName);
 	       } else {
                   bnet_fsend(dir, _("3905 Device %s open but no Bacula volume is mounted.\n"

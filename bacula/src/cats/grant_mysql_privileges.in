@@ -7,8 +7,8 @@ bindir=@SQL_BINDIR@
 
 if $bindir/mysql $* -u root -f <<END-OF-DATA
 use mysql
-grant all privileges on bacula.* to ${USER}@localhost with grant option;
-grant all privileges on bacula.* to ${USER}@"%" with grant option;
+grant all privileges on bacula.* to ${USER}@localhost;
+grant all privileges on bacula.* to ${USER}@"%";
 select * from user;
 flush privileges;
 END-OF-DATA

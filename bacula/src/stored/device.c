@@ -417,4 +417,7 @@ void _give_back_device_lock(char *file, int line, DEVICE *dev, bsteal_lock_t *ho
    dev->dev_blocked = hold->dev_blocked;
    dev->dev_prev_blocked = hold->dev_prev_blocked;
    dev->no_wait_id = hold->no_wait_id;
+   if (dev->dev_blocked == BST_NOT_BLOCKED && dev->num_waiting > 0) {
+      pthread_cond_broadcast(&dev->wait); /* wake them up */
+   }
 }
