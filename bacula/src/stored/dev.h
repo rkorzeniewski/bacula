@@ -176,6 +176,7 @@ public:
    int state;                         /* state mask */
    int dev_errno;                     /* Our own errno */
    int mode;                          /* read/write modes */
+   uint32_t drive_index;              /* Autochanger drive index */
    POOLMEM *dev_name;                 /* device name */
    char *errmsg;                      /* nicely edited error message */
    uint32_t block_num;                /* current block number base 0 */

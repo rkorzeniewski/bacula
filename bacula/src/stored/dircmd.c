@@ -354,11 +354,13 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
    bsteal_lock_t hold;
    
    steal_device_lock(dev, &hold, BST_WRITING_LABEL);
+   block = new_block(dev);
    
    pm_strcpy(&jcr->VolumeName, newname);
    jcr->VolCatInfo.Slot = slot;
-   autoload_device(jcr, dev, 0, dir);	   /* autoload if possible */
-   block = new_block(dev);
+   if (autoload_device(jcr, dev, 0, dir) < 0) {    /* autoload if possible */
+      goto bail_out;
+   }
 
    /* Ensure that the device is open -- autoload_device() closes it */
    for ( ; !(dev->state & ST_OPENED); ) {
@@ -830,11 +832,13 @@ static void read_volume_label(JCR *jcr, DEVICE *dev, int Slot)
    bsteal_lock_t hold;
    
    steal_device_lock(dev, &hold, BST_WRITING_LABEL);
+   block = new_block(dev);
    
    jcr->VolumeName[0] = 0;
    jcr->VolCatInfo.Slot = Slot;
-   autoload_device(jcr, dev, 0, dir);	   /* autoload if possible */
-   block = new_block(dev);
+   if (autoload_device(jcr, dev, 0, dir) < 0) {    /* autoload if possible */
+      goto bail_out;
+   }
 
    /* Ensure that the device is open -- autoload_device() closes it */
    for ( ; !dev_state(dev, ST_OPENED); ) {

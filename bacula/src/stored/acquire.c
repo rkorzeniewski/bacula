@@ -173,9 +173,12 @@ default_path:
 	 }
 	 /* Call autochanger only once unless ask_sysop called */
 	 if (!autochanger) {
+	    int stat;
             Dmsg2(200, "calling autoload Vol=%s Slot=%d\n",
 	       jcr->VolumeName, jcr->VolCatInfo.Slot);			       
-	    if ((autochanger=autoload_device(jcr, dev, 0, NULL))) {
+	    stat = autoload_device(jcr, dev, 0, NULL);
+	    if (stat > 0) {
+	       autochanger = 1;
 	       continue;
 	    }
 	 }

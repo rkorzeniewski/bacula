@@ -148,6 +148,7 @@ init_dev(DEVICE *dev, DEVRES *device)
    dev->max_open_vols = device->max_open_vols;
    dev->vol_poll_interval = device->vol_poll_interval;
    dev->max_spool_size = device->max_spool_size;
+   dev->drive_index = device->drive_index;
    /* Sanity check */
    if (dev->vol_poll_interval && dev->vol_poll_interval < 60) {
       dev->vol_poll_interval = 60;
