@@ -743,7 +743,7 @@ bool offline_dev(DEVICE *dev)
       return false;
    }
    Dmsg1(100, "Offlined device %s\n", dev->dev_name);
-   return false;
+   return true;
 }
 
 int offline_or_rewind_dev(DEVICE *dev)
@@ -1110,7 +1110,7 @@ reposition_dev(DEVICE *dev, uint32_t file, uint32_t block)
       Dmsg1(100, "fsr %d\n", block-dev->block_num);
       return fsr_dev(dev, block-dev->block_num);
    }
-   return false;
+   return true;
 }
 
 

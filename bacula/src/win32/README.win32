@@ -41,17 +41,16 @@ To build it:
 - You need Visual Studio installed.
 - You need to load depkgs-win32, then
     cd depkgs-win32
+    make
+    (after building zlib and pthreads, it fails in wx)
     cd wx
     ./configure
-    (try doing a make, but it will probably fail)   
-- You may have to build wx with VC++ (as was the case for me).
+    make
+    (if it succeeds skip the next item, otherwise do it) 
+- You may have to build wx with VC++.
   After starting VC++, use File->Open Workspace then
   open wx/src/wxWindows.dsw then use
   Build->Build All or Build->build wxmsw.lib should work too.
-- Then 
-    cd depkgs-win32
-    make
-  this will build pthreads and zlib
 - cd bacula
   ./configure --enable-client-only
   cd src/win32
