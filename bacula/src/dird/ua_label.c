@@ -487,7 +487,7 @@ static vol_list_t *get_slot_list_from_SD(UAContext *ua)
       strip_trailing_junk(sd->msg);
 
       /* Check for returned SD messages */
-      if (sd->msg[0] == '3'     && sd->msg[1] == '9' &&         
+      if (sd->msg[0] == '3'     && B_ISDIGIT(sd->msg[1]) &&
 	  B_ISDIGIT(sd->msg[2]) && B_ISDIGIT(sd->msg[3]) &&
           sd->msg[4] == ' ') {
          bsendmsg(ua, "%s\n", sd->msg);   /* pass them on to user */

@@ -74,6 +74,11 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
       changer = get_pool_memory(PM_FNAME);
 
       /* Find out what is loaded, zero means device is unloaded */
+      if (dir) {
+         bnet_fsend(dir, _("3301 Issuing autochanger \"loaded\" command.\n"));
+      } else {
+         Jmsg(jcr, M_INFO, 0, _("Issuing autochanger \"loaded\" command.\n"));
+      }
       changer = edit_device_codes(jcr, changer, jcr->device->changer_command, 
                    "loaded");
       status = run_program(changer, timeout, results);
@@ -82,10 +87,10 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
 	 loaded = atoi(results);
       } else {
 	 if (dir) {
-            bnet_fsend(dir, _("3991 Bad autochanger \"loaded\" status = %d.\n"),
+            bnet_fsend(dir, _("3991 Bad autochanger \"loaded\" status=%d.\n"),
 	       status);
 	 } else {
-            Jmsg(jcr, M_INFO, 0, _("Bad autochanger \"load slot\" status = %d.\n"),
+            Jmsg(jcr, M_INFO, 0, _("Bad autochanger \"load slot\" status=%d.\n"),
 	       status);
 	 }
 	 loaded = -1;		   /* force unload */
@@ -102,7 +107,7 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
 	 if (loaded != 0) {	   /* must unload drive */
             Dmsg0(100, "Doing changer unload.\n");
 	    if (dir) {
-               bnet_fsend(dir, _("3902 Issuing autochanger \"unload\" command.\n"));
+               bnet_fsend(dir, _("3302 Issuing autochanger \"unload\" command.\n"));
 	    } else {
                Jmsg(jcr, M_INFO, 0, _("Issuing autochanger \"unload\" command.\n"));
 	    }
@@ -116,28 +121,30 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
 	  */
          Dmsg1(100, "Doing changer load slot %d\n", slot);
 	 if (dir) {
-            bnet_fsend(dir, _("3903 Issuing autochanger \"load slot %d\" command.\n"),
-	       slot);
+            bnet_fsend(dir, _("3303 Issuing autochanger \"load slot %d\" command.\n"),
+		 slot);
 	 } else {
             Jmsg(jcr, M_INFO, 0, _("Issuing autochanger \"load slot %d\" command.\n"),
-	       slot);
+		 slot);
 	 }
 	 changer = edit_device_codes(jcr, changer, 
                       jcr->device->changer_command, "load");
 	 status = run_program(changer, timeout, NULL);
 	 if (status == 0) {
 	    if (dir) {
-               bnet_fsend(dir, _("3904 Autochanger \"load slot\" status is OK.\n"));
+               bnet_fsend(dir, _("3304 Autochanger \"load slot %d\" status is OK.\n"),
+		    slot);
 	    } else {
-               Jmsg(jcr, M_INFO, 0, _("Autochanger \"load slot\" status is OK.\n"));
+               Jmsg(jcr, M_INFO, 0, _("Autochanger \"load slot %d\" status is OK.\n"),
+		    slot);
 	    }
 	 } else {
 	    if (dir) {
-               bnet_fsend(dir, _("3992 Bad autochanger \"load slot\" status = %d.\n"),
-		  status);
+               bnet_fsend(dir, _("3992 Bad autochanger \"load slot\" status=%d.\n"),
+		    status);
 	    } else {
-               Jmsg(jcr, M_INFO, 0, _("Bad autochanger \"load slot\" status = %d.\n"),
-		  status);
+               Jmsg(jcr, M_INFO, 0, _("Bad autochanger \"load slot\" status=%d.\n"),
+		    status);
 	    }
 	 }
          Dmsg2(100, "load slot %d status=%d\n", slot, status);
@@ -166,7 +173,7 @@ int autochanger_list(JCR *jcr, DEVICE *dev, BSOCK *dir)
 
    if (!dev_cap(dev, CAP_AUTOCHANGER) || !jcr->device->changer_name ||
        !jcr->device->changer_command) {
-      bnet_fsend(dir, _("3993 Not a changer device.\n"));
+      bnet_fsend(dir, _("3993 Not a autochanger device.\n"));
       return 0;
    }
 
@@ -184,7 +191,7 @@ int autochanger_list(JCR *jcr, DEVICE *dev, BSOCK *dir)
 
    /* Now list slots occupied */
    changer = edit_device_codes(jcr, changer, jcr->device->changer_command, "list");
-   bnet_fsend(dir, _("3903 Issuing autochanger \"list\" command.\n"));
+   bnet_fsend(dir, _("3305 Issuing autochanger \"list\" command.\n"));
    bpipe = open_bpipe(changer, timeout, "r");
    if (!bpipe) {
       bnet_fsend(dir, _("3994 Open bpipe failed.\n"));

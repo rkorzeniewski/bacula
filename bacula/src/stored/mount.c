@@ -188,7 +188,7 @@ read_volume:
 	    bstrncpy(jcr->VolumeName, dev->VolHdr.VolName, sizeof(jcr->VolumeName));
 	    if (!dir_get_volume_info(jcr, 1)) {
                Mmsg(&jcr->errmsg, _("Wanted Volume \"%s\".\n"
-                    "    Actual Volume \"%s\" not acceptable because:\n"
+                    "    Current Volume \"%s\" not acceptable because:\n"
                     "    %s"),
 		   dev->VolCatInfo.VolCatName, dev->VolHdr.VolName,
 		   jcr->dir_bsock->msg);
