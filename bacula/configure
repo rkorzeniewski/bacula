@@ -2346,7 +2346,7 @@ support_sqlite=no
 support_smartalloc=yes
 support_readline=yes
 support_gnome=no
-support_static_tools=yes
+support_static_tools=no
 cats=
 db_name=Internal
 DB_NAME=bdb
@@ -2712,13 +2712,13 @@ EOF
 fi
 
 # -------------------------------------------
-# static-tools (default on)
+# static-tools (default off)
 # -------------------------------------------
 # Check whether --enable-static-tools or --disable-static-tools was given.
 if test "${enable_static_tools+set}" = set; then
   enableval="$enable_static_tools"
-  if test x$enableval = xno; then
-     support_static_tools=no
+  if test x$enableval = xyes; then
+     support_static_tools=yes
    fi
 fi
 

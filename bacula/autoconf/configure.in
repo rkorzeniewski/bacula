@@ -141,7 +141,7 @@ support_sqlite=no
 support_smartalloc=yes
 support_readline=yes
 support_gnome=no
-support_static_tools=yes
+support_static_tools=no
 cats=
 db_name=Internal
 DB_NAME=bdb
@@ -186,12 +186,12 @@ if test x$support_smartalloc = xyes; then
 fi
 
 # -------------------------------------------
-# static-tools (default on)
+# static-tools (default off)
 # -------------------------------------------
 AC_ARG_ENABLE(static-tools,
    [  --enable-static-tools    enable static tape tools 			   *],
-   [if test x$enableval = xno; then
-     support_static_tools=no
+   [if test x$enableval = xyes; then
+     support_static_tools=yes
    fi])
 
 TTOOL_LDFLAGS=
