@@ -327,6 +327,18 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *vname, char *poolnam
    autoload_device(jcr, dev, 0, dir);	   /* autoload if possible */
    block = new_block(dev);
 
+   /* Ensure that the device is open -- not autoload_device() closes it */
+   for ( ; !(dev->state & ST_OPENED); ) {
+       if (open_dev(dev, jcr->VolumeName, READ_WRITE) < 0) {
+	  if (dev->dev_errno == EAGAIN || dev->dev_errno == EBUSY) {
+	     sleep(30);
+	  }
+          bnet_fsend(dir, _("3903 Unable to open device %s. ERR=%s\n"), 
+	     dev_name(dev), strerror_dev(dev));
+	  goto bail_out;
+       }
+   }
+
    /* See what we have for a Volume */
    switch (read_dev_volume_label(jcr, dev, block)) {		    
       case VOL_NAME_ERROR:
@@ -351,6 +363,7 @@ already labeled: %s\n"), dev->VolHdr.VolName);
 Unknown status %d from read_volume_label()\n"), jcr->label_status);
 	 break;
    }
+bail_out:
    free_block(block);
    return_device_lock(dev, &hold);
 }
