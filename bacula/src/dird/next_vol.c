@@ -44,10 +44,16 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int create)
 {
    int retry = 0;
    bool ok;
+   bool InChanger;
 
    mr->PoolId = jcr->PoolId;
    bstrncpy(mr->MediaType, jcr->store->media_type, sizeof(mr->MediaType));
    Dmsg2(120, "CatReq FindMedia: Id=%d, MediaType=%s\n", mr->PoolId, mr->MediaType);
+   /*
+    * If we are using an Autochanger, restrict Volume 
+    *	search to the Autochanger on the first pass 
+    */
+   InChanger = jcr->store->autochanger;
    /*
     * Find the Next Volume for Append
     */
@@ -57,20 +63,26 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int create)
       /*
        *  1. Look for volume with "Append" status.
        */
-      ok = db_find_next_volume(jcr, jcr->db, 1, mr);  
+      ok = db_find_next_volume(jcr, jcr->db, 1, InChanger, mr);  
       Dmsg2(100, "catreq after find_next_vol ok=%d FW=%d\n", ok, mr->FirstWritten);
       if (!ok) {
 	 /*
 	  * 2. Try finding a recycled volume
 	  */
-	 ok = find_recycled_volume(jcr, mr);
+	 ok = find_recycled_volume(jcr, InChanger, mr);
          Dmsg2(100, "find_recycled_volume %d FW=%d\n", ok, mr->FirstWritten);
 	 if (!ok) {
 	    /*
 	     * 3. Try pruning Volumes
 	     */
 	    prune_volumes(jcr);  
-	    ok = recycle_oldest_purged_volume(jcr, mr);
+	    ok = recycle_oldest_purged_volume(jcr, InChanger, mr);
+	    if (InChanger) {
+	       InChanger = false;
+	       if (!ok) {
+		  continue;	      /* retry again accepting any volume */
+	       }
+	    }
             Dmsg2(200, "find_recycled_volume2 %d FW=%d\n", ok, mr->FirstWritten);
 	    if (!ok && create) {
 	       /*
@@ -88,7 +100,7 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int create)
             Dmsg2(200, "No next volume found. PurgeOldest=%d\n RecyleOldest=%d",
 		jcr->pool->purge_oldest_volume, jcr->pool->recycle_oldest_volume);
 	    /* Find oldest volume to recycle */
-	    ok = db_find_next_volume(jcr, jcr->db, -1, mr);
+	    ok = db_find_next_volume(jcr, jcr->db, -1, InChanger, mr);
             Dmsg1(400, "Find oldest=%d\n", ok);
 	    if (ok) {
 	       UAContext *ua;

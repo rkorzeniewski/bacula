@@ -214,7 +214,7 @@ db_find_last_jobid(JCR *jcr, B_DB *mdb, char *Name, JOB_DBR *jr)
  *	    numrows on success
  */
 int
-db_find_next_volume(JCR *jcr, B_DB *mdb, int item, MEDIA_DBR *mr) 
+db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr) 
 {
    SQL_ROW row;
    int numrows;
@@ -232,13 +232,23 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, MEDIA_DBR *mr)
      item = 1;
    } else {
       /* Find next available volume */
-      Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
-          "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
-          "VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
-          "FirstWritten,LastWritten,VolStatus "
-          "FROM Media WHERE PoolId=%u AND MediaType='%s' AND VolStatus='%s' "
-          "ORDER BY LastWritten", 
-	   mr->PoolId, mr->MediaType, mr->VolStatus); 
+      if (InChanger) {
+         Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
+             "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
+             "VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
+             "FirstWritten,LastWritten,VolStatus "
+             "FROM Media WHERE PoolId=%u AND MediaType='%s' AND VolStatus='%s' "
+             "AND InChanger=1 ORDER BY LastWritten,MediaId", 
+	      mr->PoolId, mr->MediaType, mr->VolStatus); 
+      } else {
+         Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
+             "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
+             "VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
+             "FirstWritten,LastWritten,VolStatus "
+             "FROM Media WHERE PoolId=%u AND MediaType='%s' AND VolStatus='%s' "
+             "ORDER BY LastWritten,MediaId", 
+	      mr->PoolId, mr->MediaType, mr->VolStatus); 
+      }
    }
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);

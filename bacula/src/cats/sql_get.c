@@ -308,7 +308,8 @@ int db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
  *  Returns: 0 on error or no Volumes found
  *	     number of volumes on success
  *		Volumes are concatenated in VolumeNames
- *		separated by a vertical bar (|).
+ *		separated by a vertical bar (|) in the order
+ *		that they were written.
  *
  *  Returns: number of volumes on success
  */
@@ -320,8 +321,9 @@ int db_get_job_volume_names(JCR *jcr, B_DB *mdb, uint32_t JobId, POOLMEM **Volum
 
    db_lock(mdb);
    Mmsg(&mdb->cmd, 
-"SELECT VolumeName FROM JobMedia,Media WHERE JobMedia.JobId=%u "
-"AND JobMedia.MediaId=Media.MediaId GROUP BY VolumeName", JobId);
+        "SELECT VolumeName,JobMedia.VolIndex FROM JobMedia,Media WHERE "
+        "JobMedia.JobId=%u AND JobMedia.MediaId=Media.MediaId "
+        "GROUP BY VolumeName ORDER BY JobMedia.VolIndex",  JobId);
 
    Dmsg1(130, "VolNam=%s\n", mdb->cmd);
    *VolumeNames[0] = 0;
