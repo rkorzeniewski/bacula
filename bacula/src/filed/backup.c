@@ -54,11 +54,12 @@ int blast_data_to_storage_daemon(JCR *jcr, char *addr)
 
    jcr->buf_size = sd->msglen;		   
    /* Adjust for compression so that output buffer is
-    * 12 bytes + 0.1% larger than input buffer plus 2 bytes.
+    * 12 bytes + 0.1% larger than input buffer plus 18 bytes.
+    * This gives a bit extra plus room for the sparse addr if any.
     * Note, we adjust the read size to be smaller so that the
     * same output buffer can be used without growing it.
     */
-   jcr->compress_buf_size = jcr->buf_size + ((jcr->buf_size+999) / 1000) + 14;
+   jcr->compress_buf_size = jcr->buf_size + ((jcr->buf_size+999) / 1000) + 30;
    jcr->compress_buf = get_memory(jcr->compress_buf_size);
 
    Dmsg1(100, "set_find_options ff=%p\n", jcr->ff);
@@ -238,12 +239,15 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
     *
     */
    if (ff_pkt->fid >= 0) {
+      uint64_t fileAddr = 0;	      /* file address */
+      char *rbuf, *wbuf;
+      int rsize = jcr->buf_size;      /* read buffer size */
+
+      msgsave = sd->msg;
+      rbuf = sd->msg;		      /* read buffer */ 	    
+      wbuf = sd->msg;		      /* write buffer */
 
       Dmsg1(100, "Saving data, type=%d\n", ff_pkt->type);
-      /*
-       * Send Data header to Storage daemon
-       *    <file-index> <stream> <info>
-       */
 
       if (ff_pkt->flags & FO_SPARSE) {
 	 stream = STREAM_SPARSE_DATA;
@@ -252,7 +256,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
       }
 
 #ifdef HAVE_LIBZ
-      uLong compress_len;   
+      uLong compress_len, max_compress_len = 0;
       const Bytef *cbuf = NULL;
 
       if (ff_pkt->flags & FO_GZIP) {
@@ -264,15 +268,20 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 
 	 if (ff_pkt->flags & FO_SPARSE) {
 	    cbuf = (Bytef *)jcr->compress_buf + SPARSE_FADDR_SIZE;
-	    compress_len = jcr->compress_buf_size - SPARSE_FADDR_SIZE;
+	    max_compress_len = jcr->compress_buf_size - SPARSE_FADDR_SIZE;
 	 } else {
 	    cbuf = (Bytef *)jcr->compress_buf;
-	    compress_len = jcr->compress_buf_size; /* set max length */
+	    max_compress_len = jcr->compress_buf_size; /* set max length */
 	 }
+	 wbuf = jcr->compress_buf;    /* compressed output here */
       }
 #endif
 
 #ifndef NO_FD_SEND_TEST
+      /*
+       * Send Data header to Storage daemon
+       *    <file-index> <stream> <info>
+       */
       if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, stream)) {
 	 close(ff_pkt->fid);
 	 return 0;
@@ -284,12 +293,10 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 	 MD5Init(&md5c);
       }
 
-      msgsave = sd->msg;
-      uint64_t fileAddr = 0;	      /* file address */
-      char *rbuf = sd->msg;	      /* read buffer */ 	    
-      int rsize = jcr->buf_size;      /* read size */
-
-      /* Make space at beginning of buffer for fileAddr */
+      /*
+       * Make space at beginning of buffer for fileAddr because this
+       *   same buffer will be used for writing if compression if off. 
+       */
       if (ff_pkt->flags & FO_SPARSE) {
 	 rbuf += SPARSE_FADDR_SIZE;
 	 rsize -= SPARSE_FADDR_SIZE;
@@ -309,7 +316,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 	       sparseBlock = is_buf_zero(rbuf, rsize);
 	    }
 	       
-	    ser_begin(sd->msg, SPARSE_FADDR_SIZE);
+	    ser_begin(wbuf, SPARSE_FADDR_SIZE);
 	    ser_uint64(fileAddr);     /* store fileAddr in begin of buffer */
 	 } 
 
@@ -325,20 +332,24 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 #ifdef HAVE_LIBZ
 	 /* Do compression if turned on */
 	 if (!sparseBlock && ff_pkt->flags & FO_GZIP) {
-	    if (compress2((Bytef *)cbuf, &compress_len, 
+	    int zstat;
+	    compress_len = max_compress_len;
+            Dmsg4(400, "cbuf=0x%x len=%u rbuf=0x%x len=%u\n", cbuf, compress_len,
+	       rbuf, sd->msglen);
+	    /* NOTE! This call modifies compress_len !!! */
+	    if ((zstat=compress2((Bytef *)cbuf, &compress_len, 
 		  (const Bytef *)rbuf, (uLong)sd->msglen,
-		  ff_pkt->GZIP_level)  != Z_OK) {
-               Jmsg(jcr, M_FATAL, 0, _("Compression error\n"));
+		  ff_pkt->GZIP_level)) != Z_OK) {
+               Jmsg(jcr, M_FATAL, 0, _("Compression error: %d\n"), zstat);
 	       sd->msg = msgsave;
 	       sd->msglen = 0;
 	       close(ff_pkt->fid);
 	       return 0;
 	    }
-            Dmsg2(100, "compressed len=%d uncompressed len=%d\n", 
+            Dmsg2(400, "compressed len=%d uncompressed len=%d\n", 
 	       compress_len, sd->msglen);
 
-	    sd->msg = jcr->compress_buf; /* write compressed buffer */
-	    sd->msglen = compress_len;
+	    sd->msglen = compress_len;	 /* set compressed length */
 	 }
 #endif
 
@@ -348,6 +359,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 	    if (ff_pkt->flags & FO_SPARSE) {
 	       sd->msglen += SPARSE_FADDR_SIZE; /* include fileAddr in size */
 	    }
+	    sd->msg = wbuf;	      /* set correct write buffer */
 	    if (!bnet_send(sd)) {
 	       sd->msg = msgsave;     /* restore read buffer */
 	       sd->msglen = 0;

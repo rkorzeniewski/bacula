@@ -399,7 +399,7 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 fileAddr += wsize;
       }
 
-   } else if (rec->Stream == STREAM_GZIP_DATA) {
+   } else if (rec->Stream == STREAM_GZIP_DATA || rec->Stream == STREAM_SPARSE_GZIP_DATA) {
 #ifdef HAVE_LIBZ
       if (extract) {
 	 uLongf compress_len;

@@ -365,16 +365,15 @@ static int user_select_jobids(UAContext *ua, JobIds *ji)
 	    free_pool_memory(query);
 	    return 0;
 	 }
-	 fsr.FileSetId = 0;
-	 strcpy(fsr.FileSet, fileset_name);
+	 fsr.FileSetId = atoi(fileset_name);  /* Id is first part of name */
 	 if (!db_get_fileset_record(ua->db, &fsr)) {
             bsendmsg(ua, "Error getting FileSet record: %s\n", db_strerror(ua->db));
             bsendmsg(ua, _("This probably means you modified the FileSet.\n"
                            "Continuing anyway.\n"));
 	 }
 
+	 /* Find JobId of last Full backup for this client, fileset */
 	 Mmsg(&query, uar_last_full, ji->client->hdr.name, fsr.FileSetId);
-	 /* Find JobId of full Backup of system */
 	 if (!db_sql_query(ua->db, query, NULL, NULL)) {
             bsendmsg(ua, "%s\n", db_strerror(ua->db));
 	 }
@@ -494,7 +493,10 @@ static int last_full_handler(void *ctx, int num_fields, char **row)
  */
 static int fileset_handler(void *ctx, int num_fields, char **row)
 {
-   add_prompt((UAContext *)ctx, row[1]);
+   char prompt[MAX_NAME_LENGTH+200];
+
+   snprintf(prompt, sizeof(prompt), "%s  %s  %s", row[0], row[1], row[2]);
+   add_prompt((UAContext *)ctx, prompt);
    return 0;
 }
 

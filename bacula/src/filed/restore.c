@@ -295,16 +295,22 @@ void do_restore(JCR *jcr)
       } else if (stream == STREAM_GZIP_DATA || stream == STREAM_SPARSE_GZIP_DATA) {
 #ifdef HAVE_LIBZ
 	 if (extract) {
+	    ser_declare;
 	    uLong compress_len;
+	    uint64_t faddr;
+	    char ec1[50];
 	    int stat;
 
 	    if (stream == STREAM_SPARSE_GZIP_DATA) {
 	       wbuf = sd->msg + SPARSE_FADDR_SIZE;
 	       wsize = sd->msglen - SPARSE_FADDR_SIZE;
-	       if (fileAddr != *((uint64_t *)sd->msg)) {
-		  fileAddr = *((uint64_t *)sd->msg);
+	       ser_begin(sd->msg, SPARSE_FADDR_SIZE);
+	       unser_uint64(faddr);
+	       if (fileAddr != faddr) {
+		  fileAddr = faddr;
 		  if (lseek(ofd, (off_t)fileAddr, SEEK_SET) < 0) {
-                     Jmsg2(jcr, M_ERROR, 0, "Seek error on %s: %s\n", ofile, strerror(errno));
+                     Jmsg3(jcr, M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"),
+			 edit_uint64(fileAddr, ec1), ofile, strerror(errno));
 		     goto bail_out;
 		  }
 	       }
