@@ -4,10 +4,15 @@
   Bacula code: Total files = 259 Total lines = 78,302 (*.h *.c *.in)
 
 Most Significant Changes since 1.32d
-- Implement "update slots scan" that reads the volume label.
-- Turn off changer Volumes that are not current in the changer.
+- Implement "update slots scan" that reads the volume label(s).
+- The full form of the scan is "scan=1,2,4-5,7". With no specification,
+  all occupied slots are scanned.
+- Turn off changer Volumes that are not current in the changer when
+  an "update slots" is done, or if any tape operation discovers that
+  the right volume is not in the slot.
 - Enhance "fill" command of btape.
-- Added an autochanger test to the btape test command.
+- Added an autochanger test to the btape test command. It is automatically
+  invoked if the autochanger is properly configured.
 - New "estimate" and "lsmark" in restore command. Estimate gives
   a byte estimate for the restore, and lsmark does an ls listing 
   of marked files.
@@ -38,3 +43,5 @@ Items to note:  !!!!!
 - smtp has now become bsmtp
 - console has now become bconsole.
 - console.conf is now bconsole.conf
+- Please don't underestimate the repercussions of the bsmtp and bconsole 
+  name changes!

@@ -60,6 +60,8 @@ For 1.33 Testing/Documentation:
 - Document lsmark command in tree.
                 
 For 1.33
+- Add data compare on write/read in btape "test". 
+- Make sure that 64 bit I/O packets are used on Cygwin.
 - Implement RestoreJobRetention? Maybe better "JobRetention" in a Job,
   which would take precidence over the Catalog "JobRetention".
 - Implement Label Format in Add and Label console commands.
@@ -67,6 +69,11 @@ For 1.33
 - Put email tape request delays on one or more variables. User wants
   to cancel the job after a certain time interval.  Maximum Mount Wait?
   Job, Client, Device, Pool, or Volume?
+  Is it possible to make this a directive which is *optional* in multiple
+  resources, like Level? If so, I think I'd make it an optional directive
+  in Job, Client, and Pool, with precedence such that Job overrides Client
+  which in turn overrides Pool.
+
 
 After 1.33:
 - Each DVD-RAM disk would be a volume, just like each tape is 
