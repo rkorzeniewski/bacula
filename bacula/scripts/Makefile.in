@@ -39,8 +39,8 @@ install: installdirs
 	$(INSTALL_SCRIPT) bacula $(DESTDIR)$(scriptdir)/bacula
 	$(INSTALL_SCRIPT) fd $(DESTDIR)$(scriptdir)/fd
 	$(INSTALL_SCRIPT) mtx-changer $(DESTDIR)$(scriptdir)/mtx-changer
+	$(INSTALL_DATA)   btraceback.gdb $(DESTDIR)$(scriptdir)/btraceback.gdb
 	$(INSTALL_SCRIPT) btraceback $(DESTDIR)$(sbindir)/btraceback
-	$(INSTALL_DATA)   btraceback.gdb $(DESTDIR)$(sbindir)/btraceback.gdb
 
 uninstall:
 	(cd $(DESTDIR)$(scriptdir); $(RMF) startmysql)
@@ -50,8 +50,9 @@ uninstall:
 	(cd $(DESTDIR)$(scriptdir); $(RMF) bacula)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) fd)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) mtx-changer)
-	(cd $(DESTDIR)$(sbindir); $(RMF) btraceback)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) btraceback.gdb)
 	(cd $(DESTDIR)$(sbindir); $(RMF) btraceback.gdb)
+	(cd $(DESTDIR)$(sbindir); $(RMF) btraceback)
 
 Makefile: Makefile.in
 	cd $(topdir) \

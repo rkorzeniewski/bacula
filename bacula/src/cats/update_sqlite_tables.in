@@ -208,6 +208,7 @@ CREATE TABLE BaseFiles (
 
 COMMIT;
 
-UPDATE Version SET VersionId=7;
+DELETE FROM Version;
+INSERT INTO VERSION (VersionId) VALUES (7);
 
 END-OF-DATA

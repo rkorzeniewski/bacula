@@ -52,7 +52,8 @@ CREATE TABLE BaseFiles (
    PRIMARY KEY(BaseId)
    );
 
-UPDATE Version SET VersionId=7;
+DELETE FROM Version;
+INSERT INTO VERSION (VersionId) VALUES (7);
 
 END-OF-DATA
 then
