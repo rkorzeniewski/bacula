@@ -1657,9 +1657,12 @@ int open_db(UAContext *ua)
    ua->db = db_init_database(ua->jcr, ua->catalog->db_name, ua->catalog->db_user,
 			     ua->catalog->db_password, ua->catalog->db_address,
 			     ua->catalog->db_port, ua->catalog->db_socket);
-   if (!db_open_database(ua->jcr, ua->db)) {
-      bsendmsg(ua, _("Could not open DB %s: ERR=%s"), 
-	 ua->catalog->db_name, db_strerror(ua->db));
+   if (!ua->db || !db_open_database(ua->jcr, ua->db)) {
+      bsendmsg(ua, _("Could not open database \"%s\".\n"),
+		 ua->catalog->db_name);
+      if (ua->db) {
+         bsendmsg(ua, "%s", db_strerror(ua->db));
+      }
       close_db(ua);
       return 0;
    }

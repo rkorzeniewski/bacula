@@ -27,6 +27,11 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.32:
+- Enhance autochanger interface to include a "scan" feature
+  scan 1; scan 1-5; scan 1,2,4 ...  to update the catalog 
+  when the magazine is changed.
+- Make things like list where a file is saved case independent for
+  Windows.
 - Edit the Client/Storage name into authentication failure messages.
 - Implement job in VerifyToCatalog
 - Implement migrate

@@ -61,6 +61,10 @@ db_init_database(JCR *jcr, char *db_name, char *db_user, char *db_password,
 {
    B_DB *mdb;
 
+   if (!db_user) {		
+      Jmsg(jcr, M_FATAL, 0, _("A user name for MySQL must be supplied.\n"));
+      return NULL;
+   }
    P(mutex);			      /* lock DB queue */
    /* Look to see if DB already open */
    for (mdb=NULL; (mdb=(B_DB *)qnext(&db_list, &mdb->bq)); ) {
@@ -76,7 +80,9 @@ db_init_database(JCR *jcr, char *db_name, char *db_user, char *db_password,
    memset(mdb, 0, sizeof(B_DB));
    mdb->db_name = bstrdup(db_name);
    mdb->db_user = bstrdup(db_user);
-   mdb->db_password = bstrdup(db_password);
+   if (db_password) {
+      mdb->db_password = bstrdup(db_password);
+   }
    if (db_address) {
       mdb->db_address = bstrdup(db_address);
    }
