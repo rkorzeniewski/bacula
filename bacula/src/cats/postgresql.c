@@ -2,7 +2,7 @@
  * Bacula Catalog Database routines specific to PostgreSQL
  *   These are PostgreSQL specific routines
  *
- *    Dan Langille, December 2004
+ *    Dan Langille, December 2003
  *    based upon work done by Kern Sibbald, March 2000
  *
  *    Version $Id$
