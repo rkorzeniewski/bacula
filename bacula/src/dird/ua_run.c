@@ -65,22 +65,22 @@ int run_cmd(UAContext *ua, char *cmd)
       N_("client"),                   /* 2 */
       N_("fd"), 
       N_("fileset"),                  /* 4 */
-      N_("level"),
+      N_("level"),                    /* 5 */
       N_("storage"),                  /* 6 */
       N_("sd"),                       /* 7 */
-      N_("pool"), 
-      N_("where"),
-      N_("bootstrap"),
-      N_("replace"),
-      N_("when"),
-      N_("priority"),
+      N_("pool"),                     /* 8 */
+      N_("where"),                    /* 9 */
+      N_("bootstrap"),                /* 10 */
+      N_("replace"),                  /* 11 */
+      N_("when"),                     /* 12 */
+      N_("priority"),                 /* 13 */
       N_("yes"),          /* 14 -- if you change this change YES_POS too */
       N_("run"),          /* 15 -- if you change this change RUN_POS too */
       N_("verifyjob"),                /* 16 */
       NULL};
 
-#define YES_POS 12
-#define RUN_POS 13
+#define YES_POS 14
+#define RUN_POS 15
 
    if (!open_db(ua)) {
       return 1;
