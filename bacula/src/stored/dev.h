@@ -248,6 +248,7 @@ public:
    int is_dvd() const;
    int is_open() const;
    int is_labeled() const;
+   int is_busy() const;               /* either reading or writing */
    int at_eof() const;
    int at_eom() const;
    int at_eot() const;
@@ -255,6 +256,7 @@ public:
    int can_read() const;
    const char *strerror() const;
    const char *archive_name() const;
+   void set_eof();
 };
 
 /* Note, these return int not bool! */
@@ -264,6 +266,7 @@ inline int DEVICE::is_fifo() const { return state & ST_FIFO; }
 inline int DEVICE::is_dvd()  const { return state & ST_DVD; }
 inline int DEVICE::is_open() const { return state & ST_OPENED; }
 inline int DEVICE::is_labeled() const { return state & ST_LABEL; }
+inline int DEVICE::is_busy() const { return state & ST_READ || num_writers; }
 inline int DEVICE::at_eof() const { return state & ST_EOF; }
 inline int DEVICE::at_eom() const { return state & ST_EOT; }
 inline int DEVICE::at_eot() const { return state & ST_EOT; }
@@ -271,9 +274,6 @@ inline int DEVICE::can_append() const { return state & ST_APPEND; }
 inline int DEVICE::can_read() const { return state & ST_READ; }
 inline const char *DEVICE::strerror() const { return errmsg; }
 inline const char *DEVICE::archive_name() const { return dev_name; }
-
-
- 
 
 /*
  * Device Context (or Control) Record.

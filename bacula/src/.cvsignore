@@ -6,3 +6,4 @@ config.h
 testprogs
 host.h
 perlgui
+python

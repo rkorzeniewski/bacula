@@ -477,7 +477,7 @@ bool write_block_to_dev(DCR *dcr)
        (dev->file_size+block->binbuf) >= dev->max_file_size) {
       dev->file_size = 0;	      /* reset file size */
 
-      if (dev_state(dev, ST_TAPE) && weof_dev(dev, 1) != 0) {		 /* write eof */
+      if (dev->is_tape() && weof_dev(dev, 1) != 0) {		/* write eof */
          Dmsg0(190, "WEOF error in max file size.\n");
 	 terminate_writing_volume(dcr);
 	 dev->dev_errno = ENOSPC;
@@ -870,17 +870,15 @@ reread:
    Dmsg3(200, "Read device got %d bytes at %u:%u\n", stat,
       dev->file, dev->block_num);
    if (stat == 0) {		/* Got EOF ! */
-      dev->block_num = block->read_len = 0;
+      dev->block_num = 0;
+      block->read_len = 0;
       Mmsg3(dev->errmsg, _("Read zero bytes at %u:%u on device %s.\n"),
 	 dev->file, dev->block_num, dev->dev_name);
       if (dev->at_eof()) {	 /* EOF already read? */
 	 dev->state |= ST_EOT;	/* yes, 2 EOFs => EOT */
-	 block->read_len = 0;
 	 return 0;
       }
-      dev->file++;		/* increment file */
-      dev->state |= ST_EOF;	/* set EOF read */
-      block->read_len = 0;
+      dev->set_eof();
       return false;		/* return eof */
    }
    /* Continue here for successful read */

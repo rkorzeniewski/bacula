@@ -82,6 +82,7 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
 			       char *newname, char *poolname,
 			       int Slot, int relabel);
 static bool try_autoload_device(JCR *jcr, int slot, const char *VolName);
+static void send_dir_busy_message(BSOCK *dir, DEVICE *dev);
 
 struct s_cmds {
    const char *cmd;
@@ -338,14 +339,8 @@ static bool do_label(JCR *jcr, int relabel)
 		     dev->dev_blocked == BST_WAITING_FOR_SYSOP ||
 		     dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP)) {
 	    label_volume_if_ok(jcr, dev, oldname, newname, poolname, slot, relabel);
-	 } else if (dev_state(dev, ST_READ) || dev->num_writers) {
-	    if (dev_state(dev, ST_READ)) {
-                bnet_fsend(dir, _("3911 Device %s is busy with 1 reader.\n"),
-		   dev_name(dev));
-	    } else {
-                bnet_fsend(dir, _("3912 Device %s is busy with %d writer(s).\n"),
-		   dev_name(dev), dev->num_writers);
-	    }
+	 } else if (dev->is_busy()) {
+	    send_dir_busy_message(dir, dev);
 	 } else {		      /* device not being used */
 	    label_volume_if_ok(jcr, dev, oldname, newname, poolname, slot, relabel);
 	 }
@@ -402,13 +397,17 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
    case VOL_OK:
       if (!relabel) {
 	 bnet_fsend(dir, _(
-            "3911 Cannot label Volume because it is already labeled: \"%s\"\n"),
+            "3920 Cannot label Volume because it is already labeled: \"%s\"\n"),
 	     dev->VolHdr.VolName);
 	 break;
       }
       /* Relabel request. If oldname matches, continue */
       if (strcmp(oldname, dev->VolHdr.VolName) != 0) {
-         bnet_fsend(dir, _("Wrong volume mounted.\n"));
+         bnet_fsend(dir, _("3921 Wrong volume mounted.\n"));
+	 break;
+      }
+      if (dev->label_type != B_BACULA_LABEL) {
+         bnet_fsend(dir, _("3922 Cannot relabel an ANSI/IBM labeled Volume.\n"));
 	 break;
       }
       /* Fall through wanted! */
@@ -643,16 +642,8 @@ static bool unmount_cmd(JCR *jcr)
 	 } else if (dev->dev_blocked == BST_WRITING_LABEL) {
             bnet_fsend(dir, _("3903 Device \"%s\" is being labeled.\n"), dev_name(dev));
 
-	 } else if (dev_state(dev, ST_READ) || dev->num_writers) {
-	    if (dev_state(dev, ST_READ)) {
-                Dmsg0(90, "Device in read mode\n");
-                bnet_fsend(dir, _("3904 Device \"%s\" is busy reading.\n"), dev_name(dev));
-	    } else {
-                Dmsg1(90, "Device busy with %d writers\n", dev->num_writers);
-                bnet_fsend(dir, _("3905 Device %s is busy with %d writer(s).\n"),
-		   dev_name(dev), dev->num_writers);
-	    }
-
+	 } else if (dev->is_busy()) {
+	    send_dir_busy_message(dir, dev);
 	 } else {		      /* device not being used */
             Dmsg0(90, "Device not in use, unmounting\n");
 	    /* On FreeBSD, I am having ASSERT() failures in block_device()
@@ -714,16 +705,8 @@ static bool release_cmd(JCR *jcr)
 	 } else if (dev->dev_blocked == BST_WRITING_LABEL) {
             bnet_fsend(dir, _("3914 Device %s is being labeled.\n"), dev_name(dev));
 
-	 } else if (dev_state(dev, ST_READ) || dev->num_writers) {
-	    if (dev_state(dev, ST_READ)) {
-                Dmsg0(90, "Device in read mode\n");
-                bnet_fsend(dir, _("3915 Device %s is busy with 1 reader.\n"), dev_name(dev));
-	    } else {
-                Dmsg1(90, "Device busy with %d writers\n", dev->num_writers);
-                bnet_fsend(dir, _("3916 Device %s is busy with %d writer(s).\n"),
-		   dev_name(dev), dev->num_writers);
-	    }
-
+	 } else if (dev->is_busy()) {
+	    send_dir_busy_message(dir, dev);
 	 } else {		      /* device not being used */
             Dmsg0(90, "Device not in use, unmounting\n");
 	    release_volume(jcr->dcr);
@@ -769,13 +752,8 @@ static bool autochanger_cmd(JCR *jcr)
 		     dev->dev_blocked == BST_WAITING_FOR_SYSOP ||
 		     dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP)) {
 	    autochanger_list(dcr, dir);
-	 } else if (dev_state(dev, ST_READ) || dev->num_writers) {
-	    if (dev_state(dev, ST_READ)) {
-                bnet_fsend(dir, _("3901 Device %s is busy with 1 reader.\n"), dev_name(dev));
-	    } else {
-                bnet_fsend(dir, _("3902 Device %s is busy with %d writer(s).\n"),
-		   dev_name(dev), dev->num_writers);
-	    }
+	 } else if (dev->is_busy()) {
+	    send_dir_busy_message(dir, dev);
 	 } else {		      /* device not being used */
 	    autochanger_list(dcr, dir);
 	 }
@@ -815,14 +793,8 @@ static bool readlabel_cmd(JCR *jcr)
 		     dev->dev_blocked == BST_WAITING_FOR_SYSOP ||
 		     dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP)) {
 	    read_volume_label(jcr, dev, Slot);
-	 } else if (dev_state(dev, ST_READ) || dev->num_writers) {
-	    if (dev_state(dev, ST_READ)) {
-                bnet_fsend(dir, _("3911 Device %s is busy with 1 reader.\n"),
-			    dev_name(dev));
-	    } else {
-                bnet_fsend(dir, _("3912 Device %s is busy with %d writer(s).\n"),
-		   dev_name(dev), dev->num_writers);
-	    }
+	 } else if (dev->is_busy()) {
+	    send_dir_busy_message(dir, dev);
 	 } else {		      /* device not being used */
 	    read_volume_label(jcr, dev, Slot);
 	 }
@@ -896,4 +868,15 @@ static bool try_autoload_device(JCR *jcr, int slot, const char *VolName)
       }
    }
    return true;
+}
+
+static void send_dir_busy_message(BSOCK *dir, DEVICE *dev)
+{
+   if (dev->can_read()) {
+       bnet_fsend(dir, _("3911 Device \"%s\" is busy reading.\n"),
+		   dev_name(dev));
+   } else {
+       bnet_fsend(dir, _("3912 Device \"%s\" is busy with %d writer(s).\n"),
+	  dev_name(dev), dev->num_writers);
+   }
 }

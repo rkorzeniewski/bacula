@@ -30,8 +30,6 @@
 #include "bacula.h"                   /* pull in global headers */
 #include "stored.h"                   /* pull in Storage Deamon headers */
 
-static bool rewrite_volume_label(DCR *dcr, bool recycle);
-
 
 /*
  * If release is set, we rewind the current volume,
@@ -375,86 +373,6 @@ read_volume:
    return true;
 }
 
-/*
- * Write a volume label.
- *  Returns: true if OK
- *	     false if unable to write it
- */
-static bool rewrite_volume_label(DCR *dcr, bool recycle)
-{
-   DEVICE *dev = dcr->dev;
-   JCR *jcr = dcr->jcr;
-
-   Dmsg1(190, "set append found freshly labeled volume. dev=%x\n", dev);
-   dev->VolHdr.LabelType = VOL_LABEL; /* set Volume label */
-   dev->state |= ST_APPEND;
-   if (!write_volume_label_to_block(dcr)) {
-      Dmsg0(200, "Error from write volume label.\n");
-      return false;
-   }
-   /*
-    * If we are not dealing with a streaming device,
-    *  write the block now to ensure we have write permission.
-    *  It is better to find out now rather than later.
-    */
-   if (!dev_cap(dev, CAP_STREAM)) {
-      if (!rewind_dev(dev)) {
-         Jmsg2(jcr, M_WARNING, 0, _("Rewind error on device \"%s\". ERR=%s\n"),
-	       dev_name(dev), strerror_dev(dev));
-      }
-      if (recycle) {
-	 if (!truncate_dev(dev)) {
-            Jmsg2(jcr, M_WARNING, 0, _("Truncate error on device \"%s\". ERR=%s\n"),
-		  dev_name(dev), strerror_dev(dev));
-	 }
-      }
-      /* Attempt write to check write permission */
-      Dmsg0(200, "Attempt to write to device.\n");
-      if (!write_ansi_ibm_label(dcr, dev->VolHdr.VolName)) {
-	 return false;
-      }
-      if (!write_block_to_dev(dcr)) {
-         Jmsg2(jcr, M_ERROR, 0, _("Unable to write device \"%s\". ERR=%s\n"),
-	    dev_name(dev), strerror_dev(dev));
-         Dmsg0(200, "===ERROR write block to dev\n");
-	 return false;
-      }
-   }
-   /* Set or reset Volume statistics */
-   dev->VolCatInfo.VolCatJobs = 0;
-   dev->VolCatInfo.VolCatFiles = 0;
-   dev->VolCatInfo.VolCatBytes = 1;
-   dev->VolCatInfo.VolCatErrors = 0;
-   dev->VolCatInfo.VolCatBlocks = 0;
-   dev->VolCatInfo.VolCatRBytes = 0;
-   if (recycle) {
-      dev->VolCatInfo.VolCatMounts++;
-      dev->VolCatInfo.VolCatRecycles++;
-   } else {
-      dev->VolCatInfo.VolCatMounts = 1;
-      dev->VolCatInfo.VolCatRecycles = 0;
-      dev->VolCatInfo.VolCatWrites = 1;
-      dev->VolCatInfo.VolCatReads = 1;
-   }
-   Dmsg0(100, "dir_update_vol_info. Set Append\n");
-   bstrncpy(dev->VolCatInfo.VolCatStatus, "Append", sizeof(dev->VolCatInfo.VolCatStatus));
-   if (!dir_update_volume_info(dcr, true)) {  /* indicate doing relabel */
-      return false;
-   }
-   if (recycle) {
-      Jmsg(jcr, M_INFO, 0, _("Recycled volume \"%s\" on device \"%s\", all previous data lost.\n"),
-	 dcr->VolumeName, dev_name(dev));
-   } else {
-      Jmsg(jcr, M_INFO, 0, _("Wrote label to prelabeled Volume \"%s\" on device \"%s\"\n"),
-	 dcr->VolumeName, dev_name(dev));
-   }
-   /*
-    * End writing real Volume label (from pre-labeled tape), or recycling
-    *  the volume.
-    */
-   Dmsg0(200, "OK from rewite vol label.\n");
-   return true;
-}
 
 
 /*
@@ -518,6 +436,7 @@ void release_volume(DCR *dcr)
    memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
    /* Force re-read of label */
    dev->state &= ~(ST_LABEL|ST_READ|ST_APPEND);
+   dev->label_type = B_BACULA_LABEL;
    dcr->VolumeName[0] = 0;
 
    if (dev->is_open() && (!dev->is_tape() || !dev_cap(dev, CAP_ALWAYSOPEN))) {

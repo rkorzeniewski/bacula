@@ -159,7 +159,6 @@ init_dev(DEVICE *dev, DEVRES *device)
    dev->vol_poll_interval = device->vol_poll_interval;
    dev->max_spool_size = device->max_spool_size;
    dev->drive_index = device->drive_index;
-   dev->label_type = device->label_type;
    if (tape) { /* No parts on tapes */
       dev->max_part_size = 0;
    }
@@ -328,6 +327,7 @@ open_dev(DEVICE *dev, char *VolName, int mode)
    Dmsg3(29, "open_dev: tape=%d dev_name=%s vol=%s\n", dev_is_tape(dev),
 	 dev->dev_name, dev->VolCatInfo.VolCatName);
    dev->state &= ~(ST_LABEL|ST_APPEND|ST_READ|ST_EOT|ST_WEOT|ST_EOF);
+   dev->label_type = B_BACULA_LABEL;
    if (dev->is_tape() || dev->is_fifo()) {
       dev->file_size = 0;
       int timeout;
@@ -921,14 +921,6 @@ int open_first_part(DEVICE *dev) {
    }
 }
 
-#ifdef debug_tracing
-#undef rewind_dev
-bool _rewind_dev(char *file, int line, DEVICE *dev)
-{
-   Dmsg2(100, "rewind_dev called from %s:%d\n", file, line);
-   return rewind_dev(dev);
-}
-#endif
 
 /* Protected version of lseek, which opens the right part if necessary */
 off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
@@ -1029,6 +1021,15 @@ off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
    }
 }
 
+#ifdef debug_tracing
+#undef rewind_dev
+bool _rewind_dev(char *file, int line, DEVICE *dev)
+{
+   Dmsg2(100, "rewind_dev called from %s:%d\n", file, line);
+   return rewind_dev(dev);
+}
+#endif
+
 /*
  * Rewind the device.
  *  Returns: true  on success
@@ -1089,6 +1090,19 @@ bool rewind_dev(DEVICE *dev)
 }
 
 /*
+ * Called to indicate that we have just read an
+ *  EOF from the device.
+ */
+void DEVICE::set_eof() 
+{ 
+   state |= ST_EOF;
+   file++;
+   file_addr = 0;
+   file_size = 0;
+   block_num = 0;
+}
+
+/*
  * Position device to end of medium (end of data)
  *  Returns: 1 on succes
  *	     0 on error
@@ -1102,7 +1116,7 @@ eod_dev(DEVICE *dev)
    off_t pos;
 
    Dmsg0(29, "eod_dev\n");
-   if (dev->state & ST_EOT) {
+   if (dev->at_eot()) {
       return 1;
    }
    dev->state &= ~(ST_EOF);  /* remove EOF flags */
@@ -1112,7 +1126,7 @@ eod_dev(DEVICE *dev)
    if (dev->state & (ST_FIFO | ST_PROG)) {
       return 1;
    }
-   if (!(dev->is_tape())) {
+   if (!dev->is_tape()) {
       pos = lseek_dev(dev, (off_t)0, SEEK_END);
 //    Dmsg1(100, "====== Seek to %lld\n", pos);
       if (pos >= 0) {
@@ -1173,6 +1187,7 @@ eod_dev(DEVICE *dev)
 	 return 0;
       }
       Dmsg2(100, "EOD file=%d block=%d\n", mt_stat.mt_fileno, mt_stat.mt_blkno);
+      dev->set_eof();
       dev->file = mt_stat.mt_fileno;
 
    /*
@@ -1189,7 +1204,7 @@ eod_dev(DEVICE *dev)
        * Move file by file to the end of the tape
        */
       int file_num;
-      for (file_num=dev->file; !(dev->state & ST_EOT); file_num++) {
+      for (file_num=dev->file; !dev->at_eot(); file_num++) {
          Dmsg0(200, "eod_dev: doing fsf 1\n");
 	 if (!fsf_dev(dev, 1)) {
             Dmsg0(200, "fsf_dev error.\n");
@@ -1205,6 +1220,7 @@ eod_dev(DEVICE *dev)
 	    if (dev_cap(dev, CAP_MTIOCGET) && ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) == 0 &&
 		      mt_stat.mt_fileno >= 0) {
                Dmsg2(100, "Adjust file from %d to %d\n", dev->file , mt_stat.mt_fileno);
+	       dev->set_eof();
 	       dev->file = mt_stat.mt_fileno;
 	    }
 	    stat = 0;
@@ -1521,10 +1537,8 @@ fsf_dev(DEVICE *dev, int num)
 	 return false;
       }
       Dmsg2(200, "fsf file=%d block=%d\n", mt_stat.mt_fileno, mt_stat.mt_blkno);
+      dev->set_eof();
       dev->file = mt_stat.mt_fileno;
-      dev->state |= ST_EOF;	/* just read EOF */
-      dev->file_addr = 0;
-      dev->file_size = 0;
       return true;
 
    /*
@@ -1572,10 +1586,7 @@ fsf_dev(DEVICE *dev, int num)
                Dmsg0(100, "Set ST_EOT\n");
 	       break;
 	    } else {
-	       dev->state |= ST_EOF;
-	       dev->file++;
-	       dev->file_addr = 0;
-	       dev->file_size = 0;
+	       dev->set_eof();
 	       continue;
 	    }
 	 } else {			 /* Got data */
@@ -1594,10 +1605,7 @@ fsf_dev(DEVICE *dev, int num)
             Dmsg0(100, "Got < 0 for MTFSF\n");
             Dmsg1(100, "%s", dev->errmsg);
 	 } else {
-	    dev->state |= ST_EOF;     /* just read EOF */
-	    dev->file++;
-	    dev->file_addr = 0;
-	    dev->file_size = 0;
+	    dev->set_eof();
 	 }
       }
       free_memory(rbuf);
@@ -1717,11 +1725,7 @@ fsr_dev(DEVICE *dev, int num)
 	 if (dev->state & ST_EOF) {
 	    dev->state |= ST_EOT;
 	 } else {
-	    dev->state |= ST_EOF;	    /* assume EOF */
-	    dev->file++;
-	    dev->block_num = 0;
-	    dev->file_addr = 0;
-	    dev->file_size = 0;
+	    dev->set_eof();
 	 }
       }
       Mmsg2(dev->errmsg, _("ioctl MTFSR error on %s. ERR=%s.\n"),
@@ -1861,6 +1865,12 @@ weof_dev(DEVICE *dev, int num)
    if (!dev->is_tape()) {
       return 0;
    }
+   if (!dev->can_append()) {
+      Mmsg0(dev->errmsg, _("Attempt to WEOF on non-appendable Volume\n"));
+      Emsg0(M_FATAL, 0, dev->errmsg);
+      return -1;
+   }
+      
    dev->state &= ~(ST_EOT | ST_EOF);  /* remove EOF/EOT flags */
    mt_com.mt_op = MTWEOF;
    mt_com.mt_count = num;
@@ -2048,6 +2058,7 @@ static void do_close(DEVICE *dev)
    /* Clean up device packet so it can be reused */
    dev->fd = -1;
    dev->state &= ~(ST_OPENED|ST_LABEL|ST_READ|ST_APPEND|ST_EOT|ST_WEOT|ST_EOF);
+   dev->label_type = B_BACULA_LABEL;
    dev->file = dev->block_num = 0;
    dev->file_size = 0;
    dev->file_addr = 0;
