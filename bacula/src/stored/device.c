@@ -190,6 +190,11 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    return 1;				    /* device locked */
 }
 
+/*
+ * We have a new Volume mounted, so reset the Volume parameters
+ *  concerning this job.  The global changes were made earlier
+ *  in the dev structure.
+ */
 void set_new_volume_parameters(JCR *jcr, DEVICE *dev) 
 {
    if (jcr->NewVol && !dir_get_volume_info(jcr, GET_VOL_INFO_FOR_WRITE)) {

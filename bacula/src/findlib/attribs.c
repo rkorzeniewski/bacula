@@ -52,6 +52,36 @@ HANDLE bget_handle(BFILE *bfd);
 /*							       */
 /*=============================================================*/
 
+/*
+ * Return the data stream that will be used 
+ */
+int select_data_stream(FF_PKT *ff_pkt)
+{
+   int stream;
+
+   /* Note, no sparse option for win32_data */
+   if (is_win32_backup()) {
+      stream = STREAM_WIN32_DATA;
+      ff_pkt->flags &= ~FO_SPARSE;
+   } else if (ff_pkt->flags & FO_SPARSE) {
+      stream = STREAM_SPARSE_DATA;
+   } else {
+      stream = STREAM_FILE_DATA;
+   }
+#ifdef HAVE_LIBZ
+   if (ff_pkt->flags & FO_GZIP) {
+      if (stream == STREAM_WIN32_DATA) {
+	 stream = STREAM_WIN32_GZIP_DATA;
+      } else if (stream == STREAM_FILE_DATA) {
+	 stream = STREAM_GZIP_DATA;
+      } else {
+	 stream = STREAM_SPARSE_GZIP_DATA;
+      }
+   }
+#endif
+   return stream;
+}
+
 
 /* 
  * Encode a stat structure into a base64 character string   
@@ -64,15 +94,13 @@ HANDLE bget_handle(BFILE *bfd);
  *   them in the encode_attribsEx() subroutine, but this is
  *   not recommended.
  */
-void encode_stat(char *buf, struct stat *statp, uint32_t LinkFI)
+void encode_stat(char *buf, FF_PKT *ff_pkt, int data_stream)
 {
    char *p = buf;
+   struct stat *statp = &ff_pkt->statp;
    /*
-    * NOTE: we should use rdev as major and minor device if
-    * it is a block or char device (S_ISCHR(statp->st_mode)
-    * or S_ISBLK(statp->st_mode)).  In all other cases,
-    * it is not used.	
-    *
+    *  Encode a stat packet.  I should have done this more intelligently
+    *	with a length so that it could be easily expanded.
     */
    p += to_base64((int64_t)statp->st_dev, p);
    *p++ = ' ';                        /* separate fields with a space */
@@ -100,13 +128,17 @@ void encode_stat(char *buf, struct stat *statp, uint32_t LinkFI)
    *p++ = ' ';
    p += to_base64((int64_t)statp->st_ctime, p);
    *p++ = ' ';
-   p += to_base64((int64_t)LinkFI, p);
-
-/* FreeBSD function */
-#ifdef HAVE_CHFLAGS
+   p += to_base64((int64_t)ff_pkt->LinkFI, p);
    *p++ = ' ';
-   p += to_base64((int64_t)statp->st_flags, p);
+
+#ifdef HAVE_CHFLAGS
+   /* FreeBSD function */
+   p += to_base64((int64_t)statp->st_flags, p);  /* output st_flags */
+#else
+   p += to_base64((int64_t)0, p);     /* output place holder */
 #endif
+   *p++ = ' ';
+   p += to_base64((int64_t)data_stream, p);
    *p = 0;
    return;
 }
@@ -114,8 +146,7 @@ void encode_stat(char *buf, struct stat *statp, uint32_t LinkFI)
 
 
 /* Decode a stat packet from base64 characters */
-void
-decode_stat(char *buf, struct stat *statp, uint32_t *LinkFI) 
+int decode_stat(char *buf, struct stat *statp, uint32_t *LinkFI) 
 {
    char *p = buf;
    int64_t val;
@@ -158,25 +189,36 @@ decode_stat(char *buf, struct stat *statp, uint32_t *LinkFI)
    p++;
    p += from_base64(&val, p);
    statp->st_ctime = val;
+
    /* Optional FileIndex of hard linked file data */
    if (*p == ' ' || (*p != 0 && *(p+1) == ' ')) {
       p++;
       p += from_base64(&val, p);
       *LinkFI = (uint32_t)val;
-  } else {
+   } else {
       *LinkFI = 0;
-  }
+      return 0;
+   }
 
-/* FreeBSD user flags */
-#ifdef HAVE_CHFLAGS
+   /* FreeBSD user flags */
    if (*p == ' ' || (*p != 0 && *(p+1) == ' ')) {
       p++;
       p += from_base64(&val, p);
+#ifdef HAVE_CHFLAGS
       statp->st_flags = (uint32_t)val;
-  } else {
+   } else {
       statp->st_flags  = 0;
-  }
 #endif
+   }
+    
+   /* Look for data stream id */
+   if (*p == ' ' || (*p != 0 && *(p+1) == ' ')) {
+      p++;
+      p += from_base64(&val, p);
+   } else {
+      val = 0;
+   }
+   return (int)val;
 }
 
 /*
@@ -311,7 +353,7 @@ int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
    if (!p_GetFileAttributesEx(ff_pkt->sys_fname, GetFileExInfoStandard,
 			    (LPVOID)&atts)) {
       win_error(jcr, "GetFileAttributesEx:", ff_pkt->sys_fname);
-      return STREAM_UNIX_ATTRIBUTES_EX;
+      return STREAM_UNIX_ATTRIBUTES;
    }
 
    p += to_base64((uint64_t)atts.dwFileAttributes, p);

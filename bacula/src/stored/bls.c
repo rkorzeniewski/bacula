@@ -52,6 +52,7 @@ static JCR *jcr;
 static SESSION_LABEL sessrec;
 static uint32_t num_files = 0;
 static ATTR *attr;
+static int non_support_data = 0;
 
 #define CONFIG_FILE "bacula-sd.conf"
 char *configfile;
@@ -342,6 +343,7 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
    if (rec->Stream == STREAM_UNIX_ATTRIBUTES || 
        rec->Stream == STREAM_UNIX_ATTRIBUTES_EX) {
       uint32_t LinkFI;
+      int data_stream;
 
       if (!unpack_attributes_record(jcr, rec->Stream, rec->data, attr)) {
          Emsg0(M_ERROR_TERM, 0, _("Cannot continue.\n"));
@@ -352,7 +354,14 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	    rec->FileIndex, attr->file_index);
       }
 
-      decode_stat(attr->attr, &attr->statp, &LinkFI);
+      data_stream = decode_stat(attr->attr, &attr->statp, &LinkFI);
+      if (!is_stream_supported(data_stream)) {
+	 if (!non_support_data++) {
+            Jmsg(jcr, M_ERROR, 0, _("%s stream not supported on this Client.\n"),
+	       stream_to_ascii(data_stream));
+	 }
+	 return;
+      }
       build_attr_output_fnames(jcr, attr);
 
       if (file_is_included(&ff, attr->fname) && !file_is_excluded(&ff, attr->fname)) {

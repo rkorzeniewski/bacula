@@ -198,12 +198,12 @@ struct JOB {
    int RescheduleTimes;               /* Number of times to reschedule job */
    utime_t RescheduleInterval;        /* Reschedule interval */
   
-   MSGS                *messages;     /* How and where to send messages */
-   SCHED               *schedule;     /* When -- Automatic schedule */
-   CLIENT              *client;       /* Who to backup */
-   FILESET             *fileset;      /* What to backup -- Fileset */
-   STORE               *storage;      /* Where is device -- Storage daemon */
-   POOL                *pool;         /* Where is media -- Media Pool */
+   MSGS      *messages;               /* How and where to send messages */
+   SCHED     *schedule;               /* When -- Automatic schedule */
+   CLIENT    *client;                 /* Who to backup */
+   FILESET   *fileset;                /* What to backup -- Fileset */
+   STORE     *storage;                /* Where is device -- Storage daemon */
+   POOL      *pool;                   /* Where is media -- Media Pool */
 
    semlock_t sem;                     /* Job semaphore */
 };

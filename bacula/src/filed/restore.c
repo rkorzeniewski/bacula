@@ -118,6 +118,7 @@ void do_restore(JCR *jcr)
       case STREAM_UNIX_ATTRIBUTES:
       case STREAM_UNIX_ATTRIBUTES_EX:
 	 uint32_t LinkFI;
+	 int data_stream;
 
          Dmsg1(30, "Stream=Unix Attributes. extract=%d\n", extract);
 	 /* If extracting, it was from previous stream, so
@@ -145,7 +146,15 @@ void do_restore(JCR *jcr)
          Dmsg3(200, "File %s\nattrib=%s\nattribsEx=%s\n", attr->fname, 
 	       attr->attr, attr->attrEx);
 
-	 decode_stat(attr->attr, &attr->statp, &LinkFI);
+	 data_stream = decode_stat(attr->attr, &attr->statp, &LinkFI);
+
+	 if (!is_stream_supported(data_stream)) {
+	    if (!non_support_data++) {
+               Jmsg(jcr, M_ERROR, 0, _("%s stream not supported on this Client.\n"),
+		  stream_to_ascii(data_stream));
+	    }
+	    continue;
+	 }
 
 	 build_attr_output_fnames(jcr, attr);
 
@@ -185,7 +194,8 @@ void do_restore(JCR *jcr)
       case STREAM_WIN32_DATA:  
 	 if (!is_win32_backup()) {
 	    if (!non_support_data) {
-               Jmsg(jcr, M_ERROR, 0, _("Win32 backup data not supported on this Client.\n"));
+               Jmsg(jcr, M_ERROR, 0, _("%s stream not supported on this Client.\n"),
+		  stream_to_ascii(stream));
 	    }
 	    extract = FALSE;
 	    non_support_data++;
@@ -239,7 +249,8 @@ extract_data:
       case STREAM_WIN32_GZIP_DATA:  
 	 if (!is_win32_backup()) {
 	    if (!non_support_attr) {
-               Jmsg(jcr, M_ERROR, 0, _("Win32 GZIP backup data not supported on this Client.\n"));
+               Jmsg(jcr, M_ERROR, 0, _("%s stream not supported on this Client.\n"),
+		  stream_to_ascii(stream));
 	    }
 	    extract = FALSE;
 	    non_support_attr++;

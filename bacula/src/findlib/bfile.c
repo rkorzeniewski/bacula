@@ -31,6 +31,58 @@
 #include "bacula.h"
 #include "find.h"
 
+/* ===============================================================
+ * 
+ *	      U N I X	AND   W I N D O W S
+ *
+ * ===============================================================
+ */
+char *stream_to_ascii(int stream)
+{
+   static char buf[20];
+
+   switch (stream) {
+   case STREAM_GZIP_DATA:
+      return "GZIP data";
+   case STREAM_SPARSE_GZIP_DATA:
+      return "GZIP sparse data";
+   case STREAM_WIN32_ATTRIBUTES:
+      return "Win32 attributes";
+   case STREAM_WIN32_DATA:
+      return "Win32 data";
+   case STREAM_WIN32_GZIP_DATA:
+      return "Win32 GZIP data";
+   case STREAM_UNIX_ATTRIBUTES:
+      return "File attributes";
+   case STREAM_FILE_DATA:
+      return "File data";
+   case STREAM_MD5_SIGNATURE:
+      return "MD5 signature";
+   case STREAM_UNIX_ATTRIBUTES_EX:
+      return "Extended attributes";
+   case STREAM_SPARSE_DATA:
+      return "Sparse data";
+   case STREAM_PROGRAM_NAMES:
+      return "Program names";
+   case STREAM_PROGRAM_DATA:
+      return "Program data";
+   case STREAM_SHA1_SIGNATURE:
+      return "SHA1 signature";
+   default:
+      sprintf(buf, "%d", stream);
+      return buf;
+   }
+}
+
+
+
+/* ===============================================================
+ * 
+ *	      W I N D O W S
+ *
+ * ===============================================================
+ */
+
 #ifdef HAVE_CYGWIN
 
 void unix_name_to_win32(POOLMEM **win32_name, char *name);
@@ -72,31 +124,39 @@ int is_win32_backup(void)
    return p_BackupRead && p_BackupWrite;
 }
 
+/*
+ * Return 1 if we support the stream
+ *	  0 if we do not support the stream
+ */
 int is_stream_supported(int stream)
 {
-   if (is_win32_backup()) {
-      return 1;
-   }
    /* No Win32 backup on this machine */
    switch (stream) {
+#ifndef HAVE_LIBZ
+   case STREAM_GZIP_DATA:
+   case STREAM_SPARSE_GZIP_DATA:
+      return 0;
+#endif
    case STREAM_WIN32_ATTRIBUTES:
    case STREAM_WIN32_DATA:
    case STREAM_WIN32_GZIP_DATA:
-      return 0;
+      return is_win32_backup();   /* check if we support BackupRead/Write data */
 
    /* Known streams */
+#ifdef HAVE_LIBZ
+   case STREAM_GZIP_DATA:
+   case STREAM_SPARSE_GZIP_DATA:
+#endif
    case STREAM_UNIX_ATTRIBUTES:
    case STREAM_FILE_DATA:
    case STREAM_MD5_SIGNATURE:
-   case STREAM_GZIP_DATA:
    case STREAM_UNIX_ATTRIBUTES_EX:
    case STREAM_SPARSE_DATA:
-   case STREAM_SPARSE_GZIP_DATA:
    case STREAM_PROGRAM_NAMES:
    case STREAM_PROGRAM_DATA:
    case STREAM_SHA1_SIGNATURE:
+   case 0:			      /* compatibility with old tapes */
       return 1;
-
    }
    return 0;
 }
@@ -345,22 +405,29 @@ int is_stream_supported(int stream)
 {
    /* No Win32 backup on this machine */
    switch (stream) {
+#ifndef HAVE_LIBZ
+   case STREAM_GZIP_DATA:
+   case STREAM_SPARSE_GZIP_DATA:
+#endif
    case STREAM_WIN32_ATTRIBUTES:
    case STREAM_WIN32_DATA:
    case STREAM_WIN32_GZIP_DATA:
       return 0;
 
    /* Known streams */
+#ifdef HAVE_LIBZ
+   case STREAM_GZIP_DATA:
+   case STREAM_SPARSE_GZIP_DATA:
+#endif
    case STREAM_UNIX_ATTRIBUTES:
    case STREAM_FILE_DATA:
    case STREAM_MD5_SIGNATURE:
-   case STREAM_GZIP_DATA:
    case STREAM_UNIX_ATTRIBUTES_EX:
    case STREAM_SPARSE_DATA:
-   case STREAM_SPARSE_GZIP_DATA:
    case STREAM_PROGRAM_NAMES:
    case STREAM_PROGRAM_DATA:
    case STREAM_SHA1_SIGNATURE:
+   case 0:			      /* compatibility with old tapes */
       return 1;
 
    }

@@ -28,6 +28,7 @@
 
  */
 
+#include "list.h"
 #include "bits.h"
 #include "btime.h"
 #include "smartall.h"

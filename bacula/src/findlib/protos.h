@@ -24,10 +24,11 @@
  */
 
 /* from attribs.c */
-void   encode_stat       (char *buf, struct stat *statp, uint32_t LinkFI);
-void   decode_stat       (char *buf, struct stat *statp, uint32_t *LinkFI);
+void   encode_stat       (char *buf, FF_PKT *ff_pkt, int data_stream);
+int    decode_stat       (char *buf, struct stat *statp, uint32_t *LinkFI);
 int    encode_attribsEx  (JCR *jcr, char *attribsEx, FF_PKT *ff_pkt);
 int    set_attributes    (JCR *jcr, ATTR *attr, BFILE *ofd);
+int    select_data_stream(FF_PKT *ff_pkt);
 
 /* from create_file.c */
 int    create_file       (JCR *jcr, ATTR *attr, BFILE *ofd, int replace);
