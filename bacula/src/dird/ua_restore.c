@@ -309,9 +309,10 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       "pool",      /* 5 */
       "client",    /* 6 */
       "storage",   /* 7 */
-      "where",     /* 8 */
-      "all",       /* 9 */
-      "yes",       /* 10 */
+      "fileset",   /* 8 */
+      "where",     /* 9 */
+      "all",       /* 10 */
+      "yes",       /* 11 */
       NULL
    };
 

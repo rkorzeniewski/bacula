@@ -1,7 +1,7 @@
 /*
  *   scan.c -- scanning routines for Bacula
  * 
- *    Kern Sibbald, MM	separated from util.c MMIII
+ *    Kern Sibbald, MM  separated from util.c MMIII
  *
  *   Version $Id$
  */
@@ -55,9 +55,9 @@ void strip_trailing_slashes(char *dir)
 
 /*
  * Skip spaces
- *  Returns: 0 on failure (EOF) 	    
- *	     1 on success
- *	     new address in passed parameter 
+ *  Returns: 0 on failure (EOF)             
+ *           1 on success
+ *           new address in passed parameter 
  */
 bool skip_spaces(char **msg)
 {
@@ -74,9 +74,9 @@ bool skip_spaces(char **msg)
 
 /*
  * Skip nonspaces
- *  Returns: 0 on failure (EOF) 	    
- *	     1 on success
- *	     new address in passed parameter 
+ *  Returns: 0 on failure (EOF)             
+ *           1 on success
+ *           new address in passed parameter 
  */
 bool skip_nonspaces(char **msg)
 {
@@ -101,19 +101,19 @@ fstrsch(char *a, char *b)   /* folded case search */
 
    s1=a;
    s2=b;
-   while (*s1) {		      /* do it the fast way */
+   while (*s1) {                      /* do it the fast way */
       if ((*s1++ | 0x20) != (*s2++ | 0x20))
-	 return 0;		      /* failed */
+         return 0;                    /* failed */
    }
-   while (*a) { 		      /* do it over the correct slow way */
+   while (*a) {                       /* do it over the correct slow way */
       if (B_ISUPPER(c1 = *a)) {
-	 c1 = tolower((int)c1);
+         c1 = tolower((int)c1);
       }
       if (B_ISUPPER(c2 = *b)) {
-	 c2 = tolower((int)c2);
+         c2 = tolower((int)c2);
       }
       if (c1 != c2) {
-	 return 0;
+         return 0;
       }
       a++;
       b++;
@@ -134,31 +134,31 @@ char *next_arg(char **s)
    /* skip past spaces to next arg */
    for (p=*s; *p && B_ISSPACE(*p); ) {
       p++;
-   }	
+   }    
    Dmsg1(400, "Next arg=%s\n", p);
    for (n = q = p; *p ; ) {
       if (*p == '\\') {
-	 p++;
-	 if (*p) {
-	    *q++ = *p++;
-	 } else {
-	    *q++ = *p;
-	 }
-	 continue;
+         p++;
+         if (*p) {
+            *q++ = *p++;
+         } else {
+            *q++ = *p;
+         }
+         continue;
       }
       if (*p == '"') {                  /* start or end of quote */
-	 if (in_quote) {
-	    p++;			/* skip quote */
-	    in_quote = false;
-	    continue;
-	 }
-	 in_quote = true;
-	 p++;
-	 continue;
+         if (in_quote) {
+            p++;                        /* skip quote */
+            in_quote = false;
+            continue;
+         }
+         in_quote = true;
+         p++;
+         continue;
       }
       if (!in_quote && B_ISSPACE(*p)) {     /* end of field */
-	 p++;
-	 break;
+         p++;
+         break;
       }
       *q++ = *p++;
    }
@@ -189,7 +189,7 @@ char *next_arg(char **s)
  */
 
 int parse_args(POOLMEM *cmd, POOLMEM **args, int *argc, 
-	       char **argk, char **argv, int max_args) 
+               char **argk, char **argv, int max_args) 
 {
    char *p, *q, *n;
 
@@ -201,33 +201,33 @@ int parse_args(POOLMEM *cmd, POOLMEM **args, int *argc,
    while (*argc < max_args) {
       n = next_arg(&p);   
       if (*n) {
-	 argk[*argc] = n;
-	 argv[(*argc)++] = NULL;
+         argk[*argc] = n;
+         argv[(*argc)++] = NULL;
       } else {
-	 break;
+         break;
       }
    }
    /* Separate keyword and value */
    for (int i=0; i < *argc; i++) {
       p = strchr(argk[i], '=');
       if (p) {
-	 *p++ = 0;		      /* terminate keyword and point to value */
-	 /* Unquote quoted values */
+         *p++ = 0;                    /* terminate keyword and point to value */
+         /* Unquote quoted values */
          if (*p == '"') {
             for (n = q = ++p; *p && *p != '"'; ) {
                if (*p == '\\') {
-		  p++;
-	       }
-	       *q++ = *p++;
-	    }
-	    *q = 0;		      /* terminate string */
-	    p = n;		      /* point to string */
-	 }
-	 if (strlen(p) > MAX_NAME_LENGTH-1) {
-	    p[MAX_NAME_LENGTH-1] = 0; /* truncate to max len */
-	 }
+                  p++;
+               }
+               *q++ = *p++;
+            }
+            *q = 0;                   /* terminate string */
+            p = n;                    /* point to string */
+         }
+         if (strlen(p) > MAX_NAME_LENGTH-1) {
+            p[MAX_NAME_LENGTH-1] = 0; /* truncate to max len */
+         }
       }
-      argv[i] = p;		      /* save ptr to value or NULL */
+      argv[i] = p;                    /* save ptr to value or NULL */
    }
 #ifdef xxxx
    for (int i=0; i < *argc; i++) {
@@ -235,4 +235,59 @@ int parse_args(POOLMEM *cmd, POOLMEM **args, int *argc,
    }
 #endif
    return 1;
+}
+
+/*
+ * Given a full filename, split it into its path
+ *  and filename parts. They are returned in pool memory
+ *  in the arguments provided.
+ */
+void split_path_and_filename(const char *fname, POOLMEM **path, int *pnl,
+        POOLMEM **file, int *fnl)
+{
+   const char *p, *f;
+   int slen;
+   int len = slen = strlen(fname);
+
+   /*
+    * Find path without the filename.  
+    * I.e. everything after the last / is a "filename".
+    * OK, maybe it is a directory name, but we treat it like
+    * a filename. If we don't find a / then the whole name
+    * must be a path name (e.g. c:).
+    */
+   p = fname;
+   f = fname + len - 1;
+   /* "strip" any trailing slashes */
+   while (slen > 0 && *f == '/') {
+      slen--;
+      f--;
+   }
+   /* Walk back to last slash -- begin of filename */
+   while (slen > 0 && *f != '/') {
+      slen--;
+      f--;
+   }
+   if (*f == '/') {                   /* did we find a slash? */
+      f++;                            /* yes, point to filename */
+   } else {                           /* no, whole thing must be path name */
+      f = fname;
+   }
+   Dmsg2(200, "after strip len=%d f=%s\n", len, f);
+   *fnl = fname - f + len;
+   if (*fnl > 0) {
+      *file = check_pool_memory_size(*file, *fnl+1);
+      memcpy(*file, f, *fnl);    /* copy filename */
+   }
+   (*file)[*fnl] = 0;
+
+   *pnl = f - fname;
+   if (*pnl > 0) {
+      *path = check_pool_memory_size(*path, *pnl+1);
+      memcpy(*path, fname, *pnl);
+   }
+   (*path)[*pnl] = 0;
+
+   Dmsg2(200, "pnl=%d fnl=%d\n", *pnl, *fnl);
+   Dmsg3(200, "split fname=%s path=%s file=%s\n", fname, *path, *file);
 }

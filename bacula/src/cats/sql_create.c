@@ -55,7 +55,7 @@ extern void print_result(B_DB *mdb);
 extern int QueryDB(char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
 extern int InsertDB(char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
 extern int UpdateDB(char *file, int line, JCR *jcr, B_DB *db, char *update_cmd);
-extern void split_path_and_filename(JCR *jcr, B_DB *mdb, char *fname);
+extern void split_path_and_file(JCR *jcr, B_DB *mdb, const char *fname);
 
 
 /* Create a new record for the Job
@@ -529,7 +529,7 @@ int db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 
    db_lock(mdb);
 
-   split_path_and_filename(jcr, mdb, ar->fname);
+   split_path_and_file(jcr, mdb, ar->fname);
 
    if (!db_create_filename_record(jcr, mdb, ar)) {
       db_unlock(mdb);

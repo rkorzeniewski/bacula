@@ -56,7 +56,7 @@ static int db_get_path_record(JCR *jcr, B_DB *mdb);
 /* Imported subroutines */
 extern void print_result(B_DB *mdb);
 extern int QueryDB(char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
-extern void split_path_and_filename(JCR *jcr, B_DB *mdb, char *fname);
+extern void split_path_and_file(JCR *jcr, B_DB *mdb, const char *fname);
 
 
 
@@ -73,7 +73,7 @@ int db_get_file_attributes_record(JCR *jcr, B_DB *mdb, char *fname, JOB_DBR *jr,
    Dmsg1(100, "db_get_file_att_record fname=%s \n", fname);
 
    db_lock(mdb);
-   split_path_and_filename(jcr, mdb, fname);
+   split_path_and_file(jcr, mdb, fname);
 
    fdbr->FilenameId = db_get_filename_record(jcr, mdb);
 
