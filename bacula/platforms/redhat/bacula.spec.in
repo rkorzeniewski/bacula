@@ -810,7 +810,7 @@ fi
 
 %pre sqlite
 # test for bacula database older than version 7
-if [ -s %{working_dir}/bacula.db ];then
+if [ -s %{working_dir}/bacula.db ] && [ -s %{sqlite_bindir}/sqlite ];then
 	DB_VER=`echo "select * from Version;" | %{sqlite_bindir}/sqlite %{working_dir}/bacula.db | tail -n 1 2>/dev/null`
 	if [ -n "$DB_VER" ] && [ "$DB_VER" -lt "7" ]; then
 		echo "This bacula upgrade will update a bacula database from version 7 to 8."
@@ -839,7 +839,16 @@ fi
 if [ -s %{working_dir}/bacula.db ]; then
 	DB_VER=`echo "select * from Version;" | %{sqlite_bindir}/sqlite %{working_dir}/bacula.db | tail -n 1 2>/dev/null`
 	# check to see if we need to upgrade a 1.34 or lower database
-	if [ "$DB_VER" -lt "8" ]; then
+	if [ "$DB_VER" -lt "7" ]; then
+		echo "This bacula upgrade requires a database update to version 8. You appear to"
+		echo "be running database version $DB_VER. You must update your database using the"
+		echo "upgrade scripts in the bacula-updatedb package. The alternative"
+		echo "is to use /etc/bacula/drop_sqlite_tables to delete all your your current"
+		echo "catalog information, then /etc/bacula/make_sqlite_tables. Information on updating a"
+		echo "database older than version 7 can be found in the release notes."
+	fi	
+	
+	if [ "$DB_VER" -lt "8" ] && [ "$DB_VER" -ge "7" ]; then
 		echo "This release requires an upgrade to your bacula database."
 		echo "Backing up your current database..."
 		echo ".dump" | %{sqlite_bindir}/sqlite %{working_dir}/bacula.db | bzip2 > %{working_dir}/bacula_backup.sql.bz2
@@ -1111,6 +1120,7 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 %changelog
 * Sun Oct 31 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - misc fixes from 1.36.0 suse feedback
+- fix situation where sqlite database exists but sqlite has been removed.
 * Fri Oct 22 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - remove tray-monitor from RH8 build
 - fix permissions on tray-monitor files
