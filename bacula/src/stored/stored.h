@@ -28,7 +28,12 @@
 
 #define STORAGE_DAEMON 1
 
+#ifdef HAVE_MTIO_H
+#include <mtio.h>
+#endif
+#ifdef HAVE_SYS_MTIO_H
 #include <sys/mtio.h>
+#endif
 #include "block.h"
 #include "record.h"
 #include "dev.h"

@@ -29,6 +29,12 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#ifdef HAVE_ARPA_NAMESER_H
+#include <arpa/nameser.h>
+#endif
+#ifdef HAVE_RESOLV_H
+#include <resolv.h>
+#endif
 
 #ifdef HAVE_LIBWRAP
 #include "tcpd.h"
@@ -49,7 +55,11 @@ bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_w
    struct in_addr bind_ip;	      /* address to bind to */
    int tlog;
    fd_set ready, sockset;
+#ifdef __SVR4
+   char turnon = 1;
+#else
    int turnon = 1;
+#endif
    char *caller;
 #ifdef HAVE_LIBWRAP
    struct request_info request;
@@ -178,7 +188,11 @@ bnet_bind(int port)
    int sockfd;
    struct sockaddr_in serv_addr;      /* our address */
    int tlog;
+#ifdef __SVR4
+   char turnon = 1;
+#else
    int turnon = 1;
+#endif
 
    /*
     * Open a TCP socket  
@@ -229,7 +243,11 @@ bnet_accept(BSOCK *bsock, char *who)
    struct sockaddr_in cli_addr;       /* client's address */
    char *caller, *buf;
    BSOCK *bs;
+#ifdef __SVR4
+   char turnon = 1;
+#else
    int turnon = 1;
+#endif
 #ifdef HAVE_LIBWRAP
    struct request_info request;
 #endif

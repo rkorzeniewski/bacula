@@ -414,4 +414,9 @@ extern "C" int getdomainname(char *name, size_t len);
 #define REPLACE_NEVER    'n'
 #define REPLACE_IFOLDER  'o'
 
+#ifdef __SVR4
+#undef socklen_t
+#define socklen_t int
+#endif
+
 #endif /* _BACONFIG_H */

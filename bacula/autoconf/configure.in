@@ -798,6 +798,11 @@ AC_CHECK_HEADERS( \
 	sys/select.h \
 	sys/sockio.h \
 	sys/time.h \
+	sys/socket.h \
+	arpa/nameser.h \
+	resolv.h \
+	mtio.h \
+	sys/mtio.h \
 )
 AC_HEADER_STDC
 AC_HEADER_MAJOR

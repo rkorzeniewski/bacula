@@ -21,6 +21,9 @@
 /* Define to `int' if <sys/types.h> doesn't define.  */
 #undef ssize_t
 
+/* Set if socklen_t is not defined  in sys/types.h */
+#undef socklen_t
+
 /* Define if you want to use MySQL */
 #undef HAVE_MYSQL
 
@@ -389,6 +392,9 @@
 /* Define if you have the vsnprintf function.  */
 #undef HAVE_VSNPRINTF
 
+/* Define if you have the <arpa/nameser.h> header file.  */
+#undef HAVE_ARPA_NAMESER_H
+
 /* Define if you have the <assert.h> header file.  */
 #undef HAVE_ASSERT_H
 
@@ -407,11 +413,17 @@
 /* Define if you have the <limits.h> header file.  */
 #undef HAVE_LIMITS_H
 
+/* Define if you have the <mtio.h> header file.  */
+#undef HAVE_MTIO_H
+
 /* Define if you have the <ndir.h> header file.  */
 #undef HAVE_NDIR_H
 
 /* Define if you have the <pwd.h> header file.  */
 #undef HAVE_PWD_H
+
+/* Define if you have the <resolv.h> header file.  */
+#undef HAVE_RESOLV_H
 
 /* Define if you have the <stdarg.h> header file.  */
 #undef HAVE_STDARG_H
@@ -434,6 +446,9 @@
 /* Define if you have the <sys/ioctl.h> header file.  */
 #undef HAVE_SYS_IOCTL_H
 
+/* Define if you have the <sys/mtio.h> header file.  */
+#undef HAVE_SYS_MTIO_H
+
 /* Define if you have the <sys/ndir.h> header file.  */
 #undef HAVE_SYS_NDIR_H
 
@@ -445,6 +460,9 @@
 
 /* Define if you have the <sys/select.h> header file.  */
 #undef HAVE_SYS_SELECT_H
+
+/* Define if you have the <sys/socket.h> header file.  */
+#undef HAVE_SYS_SOCKET_H
 
 /* Define if you have the <sys/sockio.h> header file.  */
 #undef HAVE_SYS_SOCKIO_H
