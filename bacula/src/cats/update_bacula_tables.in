@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # This routine alters the appropriately configured
-#  Bacula tables for either MySQL or SQLite
+#  Bacula tables for PostgreSQL, MySQL, or SQLite.
 #
 if test xsqlite = x@DB_NAME@ ; then
   echo "Altering SQLite tables"
@@ -10,4 +10,9 @@ fi
 if test xmysql = x@DB_NAME@ ; then
   echo "Altering MySQL tables"
   . ./update_mysql_tables
+fi
+if test xpostgresql = x@DB_NAME@ ; then
+  echo "Altering PostgreSQL tables"
+  # we need the bacula datbase name in here... Should not be hardcoded
+  . ./update_postgresql_tables bacula
 fi
