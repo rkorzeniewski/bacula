@@ -1,5 +1,10 @@
 
-2003-08-02 Version 1.31 30Jul03 Released
+2003-08-02 Version 1.31a 02Aug03 Released
+- Yifang Dai reported a case where he stress tested Bacula and
+  backed up to four volumes, but only two were selected for the
+  restore. This is because I forgot that the selection could
+  span a volume entirely.
+
 - Added a missing CLIENT_FOUND_ROWS to the second attempt to open
   the MySQL database -- this prevents UPDATE errors if nothing
   actually changed.
