@@ -133,7 +133,7 @@ db_init_database(JCR *jcr, char *db_name, char *db_user, char *db_password,
    mdb->cfd = -1;
    V(mutex);
    Jmsg(jcr, M_WARNING, 0, _("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"));
-   Jmsg(jcr, M_WARNING, 0, _("WARNING!!!! The Internal Database is for TESTING ONLY!\n"));
+   Jmsg(jcr, M_WARNING, 0, _("WARNING!!!! The Internal Database is NOT OPERATIONAL!\n"));
    Jmsg(jcr, M_WARNING, 0, _("You should use SQLite, PostgreSQL, or MySQL\n"));
 
    return mdb;
