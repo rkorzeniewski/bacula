@@ -28,7 +28,7 @@ status all
 messages
 @output tmp/log1.out
 label storage=File volume=TestVolume001
-run job=CompressedTest yes
+run job=CompressedTest storage=File yes
 wait
 messages
 @# 

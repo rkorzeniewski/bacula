@@ -1,0 +1,43 @@
+#!/bin/sh
+#
+# Test the fill command in btape
+#
+cwd=`pwd`
+bin/bacula stop  2>&1 >/dev/null
+scripts/copy-tape-confs
+scripts/cleanup-tape
+echo "${cwd}/build" >/tmp/file-list
+cd bin
+./drop_bacula_tables >/dev/null 2>&1
+./make_bacula_tables >/dev/null 2>&1
+./grant_bacula_privileges 2>&1 >/dev/null
+cd ..
+cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
+sed "s%# MaximumVolumeSize%  MaximumVolumeSize%" ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
+
+echo " "
+echo " "
+echo " === Starting btape fill test ==="
+echo " === Starting btape fill test ===" >>working/log
+echo " "
+
+bin/btape -c bin/bacula-sd.conf DDS-4 <<END_OF_DATA 2>&1 >tmp/log1.out
+fill
+s
+
+quit
+END_OF_DATA
+
+
+grep "^The last block on the tape matches\. Test succeeded\." tmp/log1.out 2>&1 >/dev/null
+if [ $? != 0 ] ; then
+   echo " "
+   echo " "
+   echo "  !!!!! btape fill test failed!!! !!!!! "
+   echo "  !!!!! btape fill test failed!!! !!!!! " >>test.out
+   echo " "
+else
+   echo "  ===== btape fill test OK ===== "
+   echo "  ===== btape fill test OK ===== " >>test.out
+#  scripts/cleanup
+fi
