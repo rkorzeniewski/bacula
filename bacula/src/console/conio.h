@@ -21,7 +21,11 @@
 #define __CONIO_H
 extern int  input_line(char *line, int len);
 extern void con_init(FILE *input);
+
+extern "C" {
 extern void con_term();
+}
+
 extern void con_set_zed_keys();
 extern void t_sendl(char *buf, int len);
 extern void t_send(char *buf);

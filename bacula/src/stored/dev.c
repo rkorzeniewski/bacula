@@ -81,6 +81,7 @@
 #include "stored.h"
 
 /* Forward referenced functions */
+void set_os_device_parameters(DEVICE *dev);
 
 /* 
  * Allocate and initialize the DEVICE structure
@@ -314,9 +315,9 @@ open_dev(DEVICE *dev, char *VolName, int mode)
 	 return -1;
       }
       archive_name = get_pool_memory(PM_FNAME);
-      pm_strcpy(&archive_name, dev->dev_name);
+      pm_strcpy(archive_name, dev->dev_name);
       if (archive_name[strlen(archive_name)] != '/') {
-         pm_strcat(&archive_name, "/");
+         pm_strcat(archive_name, "/");
       }
       pm_strcat(&archive_name, VolName);
       Dmsg1(29, "open_dev: device is disk %s\n", archive_name);
@@ -339,6 +340,7 @@ open_dev(DEVICE *dev, char *VolName, int mode)
 	 dev->state |= ST_OPENED;
 	 dev->use_count = 1;
 	 update_pos_dev(dev);		     /* update position */
+	 set_os_device_parameters(dev);      /* do system dependent stuff */
       }
       Dmsg1(29, "open_dev: disk fd=%d opened\n", dev->fd);
       free_pool_memory(archive_name);
@@ -1261,6 +1263,18 @@ clrerror_dev(DEVICE *dev, int func)
    ioctl(dev->fd, MTIOCERRSTAT, (char *)&mt_errstat);
 }
 #endif
+
+/* Clear Subsystem Exception OSF1 */
+#ifdef MTCSE
+{
+   struct mtop mt_com;
+   mt_com.mt_op = MTCSE;
+   mt_com.mt_count = 1;
+   /* Clear any error condition on the tape */
+   ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
+   Dmsg0(200, "Did MTCSE\n");
+}
+#endif
 }
 
 /*
@@ -1463,4 +1477,81 @@ bool double_dev_wait_time(DEVICE *dev)
       return false;
    }
    return true;
+}
+
+void set_os_device_parameters(DEVICE *dev)
+{
+#ifdef HAVE_LINUX_OS
+   struct mtop mt_com;
+   if (dev->min_block_size == dev->max_block_size &&
+       dev->min_block_size == 0) {    /* variable block mode */
+      mt_com.mt_op = MTSETBLK;
+      mt_com.mt_count = 0;
+      if (ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
+	 clrerror_dev(dev, MTSETBLK);
+      }
+      mt_com.mt_op = MTSETDRVBUFFER;
+      mt_com.mt_count = MT_ST_CLEARBOOLEANS;
+      if (!dev_cap(dev, CAP_TWOEOF)) {
+	 mt_com.mt_count |= MT_ST_TWO_FM;
+      }
+      if (dev_cap(dev, CAP_EOM)) {
+	 mt_com.mt_count |= MT_ST_FAST_MTEOM;
+      }
+      if (ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
+	 clrerror_dev(dev, MTSETBLK);
+      }
+   }
+   return;
+#endif
+
+#ifdef HAVE_NETBSD_OS
+   struct mtop mt_com;
+   if (dev->min_block_size == dev->max_block_size &&
+       dev->min_block_size == 0) {    /* variable block mode */
+      mt_com.mt_op = MTSETBSIZ;
+      mt_com.mt_count = 0;
+      if (ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
+	 clrerror_dev(dev, MTSETBSIZ);
+      }
+      /* Get notified at logical end of tape */
+      mt_com.mt_op = MTEWARN;
+      mt_com.mt_count = 1;
+      if (ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
+	 clrerror_dev(dev, MTEWARN);
+      }
+   }
+   return;
+#endif
+
+#if HAVE_FREEBSD_OS || HAVE_OPENBSD_OS
+   struct mtop mt_com;
+   if (dev->min_block_size == dev->max_block_size &&
+       dev->min_block_size == 0) {    /* variable block mode */
+      mt_com.mt_op = MTSETBSIZ;
+      mt_com.mt_count = 0;
+      if (ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
+	 clrerror_dev(dev, MTSETBSIZ);
+      }
+   }
+   return;
+#endif
+
+#ifdef HAVE_SUN_OS
+   struct mtop mt_com;
+   if (dev->min_block_size == dev->max_block_size &&
+       dev->min_block_size == 0) {    /* variable block mode */
+      mt_com.mt_op = MTSRSZ;
+      mt_com.mt_count = 0;
+      if (ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
+	 clrerror_dev(dev, MTSRSZ);
+      }
+   }
+   return;
+#endif
+
+
+
+
+
 }

@@ -70,14 +70,17 @@ extern char *BC;
 extern char *UP;
 
 /* Forward referenced functions */
+extern "C" {
 static void sigintcatcher(int);
+}
+
 static void add_smap(char *str, int func);
 
 
 /* Global variables */
 
-static char *t_up = "\n";                    /* scroll up character */
-static char *t_honk = "\007";                /* sound beep */
+static const char *t_up = "\n";                    /* scroll up character */
+static const char *t_honk = "\007";                /* sound beep */
 static char *t_il;			     /* insert line */
 static char *t_dl;			     /* delete line */
 static char *t_cs;			     /* clear screen */
@@ -221,7 +224,7 @@ static void t_insert_line(void);
 static void t_delete_line(void);
 static void t_clrline(int pos, int width);
 void t_sendl(const char *msg, int len);
-void t_send(char *msg);
+void t_send(const char *msg);
 void t_char(char c);
 static void asclrs();
 static void ascurs(int y, int x);
@@ -234,7 +237,9 @@ static void asinsl();
 static void asdell();
 
 int input_line(char *string, int length);
+extern "C" {
 void con_term();
+}
 void trapctlc();
 int usrbrk();
 void clrbrk();
@@ -897,7 +902,7 @@ t_clrline(int pos, int width)
 
 /* Helper function to add string preceded by 
  *  ESC to smap table */
-static void add_esc_smap(char *str, int func)
+static void add_esc_smap(const char *str, int func)
 {
    char buf[1000];
    buf[0] = 0x1B;		      /* esc */
@@ -1054,7 +1059,7 @@ t_sendl(const char *msg, int len)
 }
 
 void
-t_send(char *msg)
+t_send(const char *msg)
 {
    if (msg == NULL) {
       return;
