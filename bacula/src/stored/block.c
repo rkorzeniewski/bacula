@@ -347,7 +347,6 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    if (hit_max1 || hit_max2) {	 
       char ed1[50];
       uint64_t max_cap;
-      dev->state |= ST_WEOT;
       Dmsg0(10, "==== Output bytes Triggered medium max capacity.\n");
       if (hit_max1) {
 	 max_cap = dev->max_volume_size;
@@ -361,6 +360,7 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       dev->EndFile  = dev->file;
       weof_dev(dev, 1); 	      /* end the tape */
       weof_dev(dev, 1); 	      /* write second eof */
+      dev->state |= (ST_EOF | ST_EOT | ST_WEOT);
       return 0;
    }
 
@@ -385,7 +385,6 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
        * conditions.  In any case, we probably want to
        * simulate an End of Medium.
        */
-      dev->state |= ST_EOF | ST_EOT | ST_WEOT;
       clrerror_dev(dev, -1);
 
       if (dev->dev_errno == 0) {
@@ -407,6 +406,7 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       dev->EndFile  = dev->file;
       weof_dev(dev, 1); 	      /* end the tape */
       weof_dev(dev, 1); 	      /* write second eof */
+      dev->state |= (ST_EOF | ST_EOT | ST_WEOT);
 	
       ok = TRUE;
 #define CHECK_LAST_BLOCK
@@ -428,15 +428,14 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 if (ok && bsr_dev(dev, 1) != 0) {
 	    ok = FALSE;
             Jmsg(jcr, M_ERROR, 0, _("Back space record at EOT failed. ERR=%s\n"), strerror(dev->dev_errno));
-	    /* ****FIXME*****
+	    /*
 	     *	On FreeBSD systems, if the user got here, it is likely that his/her
              *    tape drive is "frozen".  The correct thing to do is a 
 	     *	  rewind(), but if we do that, higher levels in cleaning up, will
 	     *	  most likely write the EOS record over the beginning of the
 	     *	  tape.  The rewind *is* done later in mount.c when another
-	     *	  tape is requested. However, it should be done here. In that
-	     *	  case, we need to send back some fatal error status to avoid
-	     *	  future writes.
+	     *	  tape is requested. Note, the clrerror_dev() call in bsr_dev()
+	     *	  calls ioctl(MTCERRSTAT), which *should* fix the problem.
 	     */
 	 }
 	 if (ok) {

@@ -1351,20 +1351,17 @@ bail_out:
  */
 static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 {
-
    SESSION_LABEL label;
-   if (stop > 1) {		      /* on second tape */
+
+   if (stop > 1 && !dumped) {	      /* on second tape */
+      dumped = 1;
+      dump_block(block, "First block on second tape");
       Pmsg4(-1, "Blk: FileIndex=%d: block=%u size=%d vol=%s\n", 
 	   rec->FileIndex, block->BlockNumber, block->block_len, dev->VolHdr.VolName);
       Pmsg6(-1, "   Rec: VId=%d VT=%d FI=%s Strm=%s len=%d state=%x\n",
 	   rec->VolSessionId, rec->VolSessionTime, 
 	   FI_to_ascii(rec->FileIndex), stream_to_ascii(rec->Stream, rec->FileIndex),
 	   rec->data_len, rec->state);
-
-      if (!dumped) {
-	 dumped = 1;
-         dump_block(block, "Block not written to previous tape");
-      }
    }
    if (rec->FileIndex < 0) {
       if (verbose > 1) {

@@ -1040,6 +1040,8 @@ clrerror_dev(DEVICE *dev, int func)
 {
    /* Read and clear SCSI error status */
    union mterrstat mt_errstat;
+   Pmsg2(000, "Doing MTIOCERRSTAT errno=%d ERR=%s\n", dev->dev_errno,
+      strerror(dev->dev_errno));
    ioctl(dev->fd, MTIOCERRSTAT, (char *)&mt_errstat);
 }
 #endif
