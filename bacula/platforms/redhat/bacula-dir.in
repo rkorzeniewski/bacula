@@ -14,7 +14,12 @@
 
 DIR_USER=@dir_user@
 DIR_GROUP=@dir_group@
+OS=`uname -s`
 
+# if /lib/tls exists, force Bacula to use the glibc pthreads instead
+if [ -d "/lib/tls" -a $OS = "Linux" ] ; then
+     export LD_ASSUME_KERNEL=2.4.19
+fi
 RETVAL=0
 case "$1" in
     start)

@@ -34,7 +34,7 @@
 #include "dird.h"
 
 /* Forward referenced functions */
-static int write_bsr(UAContext *ua, RBSR *bsr, FILE *fd);
+static uint32_t write_bsr(UAContext *ua, RBSR *bsr, FILE *fd);
 void print_bsr(UAContext *ua, RBSR *bsr);
 
 
@@ -178,11 +178,11 @@ int complete_bsr(UAContext *ua, RBSR *bsr)
 /*
  * Write the bootstrap records to file
  */
-int write_bsr_file(UAContext *ua, RBSR *bsr)
+uint32_t write_bsr_file(UAContext *ua, RBSR *bsr)
 {
    FILE *fd;
    POOLMEM *fname = get_pool_memory(PM_MESSAGE);
-   int count = 0;;
+   uint32_t count = 0;;
    bool err;
 
    Mmsg(fname, "%s/restore.bsr", working_directory);
@@ -234,9 +234,10 @@ bail_out:
    return count;
 }
 
-static int write_bsr(UAContext *ua, RBSR *bsr, FILE *fd)
+static uint32_t write_bsr(UAContext *ua, RBSR *bsr, FILE *fd)
 {
    uint32_t count = 0;
+   uint32_t total_count = 0; 
    if (bsr) {
       /*
        * For a given volume, loop over all the JobMedia records.
@@ -271,10 +272,11 @@ static int write_bsr(UAContext *ua, RBSR *bsr, FILE *fd)
 	 if (count) {
             fprintf(fd, "Count=%u\n", count);
 	 }
+	 total_count += count;
       }
       write_bsr(ua, bsr->next, fd);
    }
-   return count;
+   return total_count;
 }
 
 void print_bsr(UAContext *ua, RBSR *bsr)

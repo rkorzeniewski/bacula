@@ -152,7 +152,7 @@ create table media
 	default 0,
     endfile	      integer		    not null
 	default 0,
-    endblock	      integer		    not null
+    endblock	      bigint		    not null
 	default 0,
     primary key (mediaid)
 );

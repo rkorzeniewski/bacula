@@ -1,7 +1,7 @@
                 
 Projects:
                      Bacula Projects Roadmap 
-                       03 August 2004
+                       24 October 2004
 
 Item 1:   Implement Base jobs.
 
@@ -34,9 +34,7 @@ Item 1:   Implement Base jobs.
           FD a list of files/attribs, and the FD must search the
           list and compare it for each file to be saved.
 
-Item 2:   Add Regular Expression Matching and Plug-ins to the
-          FileSet Include statements.
-Done: Regular expression matching.  Plug-ins are not yet started.
+Item 2:   Add Plug-ins to the FileSet Include statements.
 
   What:   Allow users to specify wild-card and/or regular
           expressions to be matched in both the Include and
@@ -51,6 +49,7 @@ Done: Regular expression matching.  Plug-ins are not yet started.
 
 Item 3:   Implement a Migration job type that will move the job
           data from one device to another.
+Coding begun in 1.35:
 
   What:   The ability to copy, move, or archive data that is on a
           device to another device is very important. 
@@ -73,6 +72,7 @@ Item 3:   Implement a Migration job type that will move the job
 
 
 Item 4:   Embedded Perl Scripting (precursor to 5).
+Some testing done:
 
   What:   On a configuration parameter, embed the Perl language in
           Bacula.
@@ -85,7 +85,7 @@ Item 4:   Embedded Perl Scripting (precursor to 5).
   Notes:  This needs Events.
 
 
-Item 5:   Implement Events
+Item 5:   Implement Events that call the scripting language.
 
   What:   When a particular user defined Event occurs, call the
           embedded Perl interpreter.
@@ -108,8 +108,7 @@ Modifications to SD in progress: 1.35
           intervention in the middle of the night.
 
 
-Item  7:  Backup a Single Job Simultaneously to Multiple Storage 
-          Devices
+Item 7:   Backup a Single Job Simultaneously to Multiple Storage Devices
 Modifications to SD in progress: 1.35
 
   What:   Make two copies of the backup data at the same time.
@@ -151,29 +150,6 @@ Assigned: to Meno Abels (both data and communications encryption).
           http://csrc.nist.gov/CryptoToolkit/aes/
 
 
-Item 10:  New daemon communication protocol.
-
-  What:   The current daemon to daemon protocol is basically an ASCII
-          printf() and sending the buffer. On the receiving end, the
-          buffer is sscanf()ed to unpack it. The new scheme would
-          retain the current ASCII sending, but would add an 
-          argc, argv like table driven scanner to replace sscanf.
-
-  Why:    Named fields will permit error checking to ensure that
-          what is sent is what the receiver really wants.  The
-          fields can be in any order and additional fields can be
-          ignored allowing better upward compatibility.  Much
-          better checking of the types and values passed can be
-          done.
-
-  Notes:  These are internal improvements in the interest of the
-          long-term stability and evolution of the program.  On
-          the one hand, the sooner they're done, the less code we
-          have to rip up when the time comes to install them.  On
-          the other hand, they don't bring an immediately
-          perceptible benefit to potential users.
-
-
 
 Completed items from last year's list:
 Item 1:   Multiple simultaneous Jobs. (done)
@@ -188,3 +164,6 @@ Item 3:   GUI for interactive restore. Partially Implemented in 1.34
           GNOME console, and an excellent wx-console GUI.
 Item 4:   GUI for interactive backup
 Item 2:   Job Data Spooling.
+    Done: Regular expression matching.
+Item 10:  New daemon communication protocol (this has been dropped).
+
