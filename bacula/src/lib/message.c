@@ -577,8 +577,10 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 		break;
 	     case MD_SYSLOG:
                 Dmsg1(400, "SYSLOG for collowing msg: %s\n", msg);
-		/* We really should do an openlog() here */
-		syslog(LOG_DAEMON|LOG_ERR, msg);
+		/*
+		 * We really should do an openlog() here.  
+		 */
+                syslog(LOG_DAEMON|LOG_ERR, "%s", msg);
 		break;
 	     case MD_OPERATOR:
                 Dmsg1(400, "OPERATOR for collowing msg: %s\n", msg);
