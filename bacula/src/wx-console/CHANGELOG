@@ -1,3 +1,7 @@
+17-07-2004 :
+ - wxbRestorePanel : Fixed problem when the newly created job is not
+    at the end of the list.
+
 16-07-2004 :
  - wxbRestorePanel : Fixed crash when an error occurs while querying
     restore list (reported by Dan Langille).

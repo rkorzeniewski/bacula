@@ -814,20 +814,27 @@ void wxbRestorePanel::CmdStart() {
          
          wxDateTime jobtime;
          
-         if (jobname == (*tableparser)[tableparser->GetCount()-1][1]) {
-            wxStringTokenizer jtkz((*tableparser)[tableparser->GetCount()-1][2], " ", wxTOKEN_STRTOK);
-            if ((jobtime.ParseDate(jtkz.GetNextToken()) != NULL) && // Date
-                  (jobtime.ParseTime(jtkz.GetNextToken()) != NULL)) { // Time
-               if (jobtime.IsLaterThan(currenttime)) {
-                  jobid = (*tableparser)[tableparser->GetCount()-1][0];
-                  cmd << jobid << "\n";
-                  delete tableparser;
-                  cancel->Enable(true);
-                  break;
+         for (i = 0; i < tableparser->GetCount(); i++) {
+            if (jobname == (*tableparser)[i][1]) {
+               wxStringTokenizer jtkz((*tableparser)[i][2], " ", wxTOKEN_STRTOK);
+               if ((jobtime.ParseDate(jtkz.GetNextToken()) != NULL) && // Date
+                     (jobtime.ParseTime(jtkz.GetNextToken()) != NULL)) { // Time
+                  if (jobtime.IsLaterThan(currenttime)) {
+                     jobid = (*tableparser)[i][0];
+                     cmd << jobid << "\n";
+                     delete tableparser;
+                     tableparser = NULL;
+                     cancel->Enable(true);
+                     break;
+                  }
                }
             }
          }
    
+         if (tableparser == NULL) { //The job was found
+            break;
+         }
+         
          delete tableparser;
          
          wxStopWatch sw2;
