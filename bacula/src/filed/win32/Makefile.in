@@ -68,7 +68,7 @@ distclean: clean
 	@rm -rf bin/CVS CVS
 
 install:
-	@mkdir -p $(sbindir) /tmp $(sbindir)/../working
+	@mkdir -p $(DESTDIR)$(sbindir) $(DESTDIR)/tmp $(DESTDIR)$(sbindir)/../working
 	@echo "Installing system binary files ..."
 	@strip ../bacula-fd.exe
 	@strip ../../tools/smtp.exe
@@ -78,9 +78,9 @@ install:
 	@cp -f ../../tools/smtp.exe bin/
 	@cp -f ../../tools/testfind.exe bin/
 	@cp -f ../../console/console.exe bin/
-	@cp -f bin/* $(sbindir)
-	@cp -f ../bacula-fd.conf $(sysconfdir)/bacula-fd.conf.new
-	@cp -f ../../console/console.conf $(sysconfdir)/console.conf.new
+	@cp -f bin/* $(DESTDIR)$(sbindir)
+	@cp -f ../bacula-fd.conf $(DESTDIR)$(sysconfdir)/bacula-fd.conf.new
+	@cp -f ../../console/console.conf $(DESTDIR)$(sysconfdir)/console.conf.new
 
 # Make a Win32 binary release 
 binary-release:

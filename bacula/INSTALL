@@ -5,10 +5,11 @@ Using GNU autoconfig
         in the "doc" directory.
 
   2.    Run   ./configure   to generate config.h and the various Makefiles.
-        ./configure --help   gives a list of possible options with slightly
-        longer descriptions in README.configure
+        ./configure --help   gives a list of possible options.  Note, in
+        configuring Bacula, you cannot get by with a simple ./configure,
+        it is much more complicated than that (unfortunately).
 
-        You might look at the "defaultconfig" file in the top directory.
+        You might look at the "defaultconfig" file in the examples directory.
         It is an example of what is probably reasonable for defaults.
 
         Some systems require unusual options for compilation or linking that
@@ -26,16 +27,34 @@ Using GNU autoconfig
 
         CFLAGS="-g -Wall" ./configure --enable-smartalloc --enable-mysql
 
-        see README for a few additional details and the online manual
+        See the README for a few additional details and the online manual
         for all the gory details:  http://www.bacula.org/html-manual
-          
 
-  3.    set any other main preferences (normally, you don't do this):
+  3.    Carefully review the output from ./configure.  If it is not
+        what you want, re-run the ./configure.  Often ./configure "caches"
+        things and thus remembers the last ./configure options.  If you
+        want to be sure you are starting fresh after a ./configure,
+        do a:
+
+            make distclean
+
+        before re-running ./configure.  "make distclean" wipes out any
+        knowledge of the ./configure, so don't do it after you have a
+        configuration that suits your needs, otherwise the "make" will
+        not work.
+
+  4.    Set any other main preferences (normally, you don't do this):
             Edit "config.h"   if you didn't use ./configure options
             If you're cross-compiling, edit the following in "config.h"
 
-  4.    Build it (repeat step 2 as desired):
+  5.    Build it (repeat step 2 as desired):
             make
 
-  5.    Install it
+  6.    Install it
             make install
+
+  7.    Run it
+            cd $HOME/bacula/bin
+            ./bacula start
+            ./console
+            (enter commands)

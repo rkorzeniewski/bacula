@@ -1,5 +1,5 @@
 #
-# Bacula Makefile
+# Bacula Makefile for the File daemon
 #
 #  Version $Id$
 #
@@ -54,20 +54,20 @@ all: Makefile @WIN32@ bacula-fd @STATIC_FD@
 	@echo " "
 
 win32/winlib.a:
-	(cd win32; $(MAKE))
+	(cd win32; $(MAKE) DESTDIR=$(DESTDIR))
 	@rm -f bacula-fd.exe
 
 win32/winmain.o:
-	(cd win32; $(MAKE))
+	(cd win32; $(MAKE) DESTDIR=$(DESTDIR))
 	@rm -f bacula-fd.exe
 
 win32/winres.res:
-	(cd win32; $(MAKE))
+	(cd win32; $(MAKE) DESTDIR=$(DESTDIR))
 	@rm -f bacula-fd.exe
 
 # win32 libraries if needed
 win32:	$(WIN32OBJS)
-	(cd win32; $(MAKE))
+	(cd win32; $(MAKE) DESTDIR=$(DESTDIR))
 	@rm -f bacula-fd.exe
 
 bacula-fd:  $(SVROBJS) ../findlib/libfind.a ../lib/libbac.a @WIN32@

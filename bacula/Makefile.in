@@ -43,7 +43,7 @@ all: Makefile
 
 depend:
 	@for I in ${all_subdirs}; \
-	  do (cd $$I; echo "==>Entering directory `pwd`"; $(MAKE) $@ || exit 1); done
+	  do (cd $$I; echo "==>Entering directory `pwd`"; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1); done
 	
 bacula-fd: Makefile	   
 	@for I in ${fd_subdirs}; \
@@ -86,24 +86,24 @@ uninstall:
 install-autostart: install-autostart-dir install-autostart-fd install-autostart-sd
 
 install-autostart-dir:
-	(cd platforms; $(MAKE) $@ || exit 1) 
+	(cd platforms; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1) 
 
 install-autostart-fd:
-	(cd platforms; $(MAKE) $@ || exit 1) 
+	(cd platforms; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1) 
 
 install-autostart-sd:
-	(cd platforms; $(MAKE) $@ || exit 1) 
+	(cd platforms; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1) 
 
 uninstall-autostart: uninstall-autostart-dir uninstall-autostart-fd uninstall-autrun-sd
 
 uninstall-autostart-dir:
-	(cd platforms; $(MAKE) $@ || exit 1)
+	(cd platforms; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1)
 
 uninstall-autostart-fd:
-	(cd platforms; $(MAKE) $@ || exit 1)
+	(cd platforms; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1)
 
 uninstall-autostart-sd:
-	(cd platforms; $(MAKE) $@ || exit 1)
+	(cd platforms; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1)
 
 Makefile: Makefile.in
 	cd $(topdir) \
@@ -153,12 +153,12 @@ distclean:
 distdirs:
 	mkdir ../$(VERNAME);
 	mkdir ../$(VERNAME)/autoconf;
-	@for I in $(all_subdirs); do (cd $$I; $(MAKE) $@ || (echo "Failed to make distclean in $$I"; exit 0) ); done
+	@for I in $(all_subdirs); do (cd $$I; $(MAKE) DESTDIR=$(DESTDIR) $@ || (echo "Failed to make distclean in $$I"; exit 0) ); done
 
 distcopy:
 	$(CP) -p $(DIST) ../$(VERNAME);
 	$(CP) -p $(DIST_CFG) ../$(VERNAME)/autoconf;
-	@for I in $(all_subdirs); do (cd $$I; $(MAKE) $@ || exit 1); done
+	@for I in $(all_subdirs); do (cd $$I; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1); done
 
 distrib: configure autoconf/config.h.in distdirs distcopy
 

@@ -3,7 +3,7 @@ As you will note, I don't follow the standard GNU release
 numbering conventions, but rather one that I started in
 1970.  My internal releases were 0.nn, the first release to
 another user was 1.0, each modified source code release then
-gets a new minor release (1.1, ...) as well as a date.  Each
+gets a new minor release (1.1, 1.2, ...) as well as a date.  Each
 major change in the software -- e.g.  new tape format will
 normally have the major release number incremented.
 
@@ -22,6 +22,7 @@ To Configure it:
     --sysconfdir=$HOME/bacula/bin \
     --with-pid-dir=$HOME/bacula/bin \
     --with-subsys-dir=$HOME/bacula/bin \
+    --with-sqlite=$HOME/depkgs/sqlite \
     --enable-gnome \
     --with-mysql=$HOME/mysql \
     --with-working-dir=$HOME/bacula/bin/working \
@@ -59,9 +60,19 @@ Build Bacula:
 
 To create the database:
 
-   src/make_bacula_tables
+   src/cats/make_bacula_tables
+
+To install:
+
+   make install
 
 To start it:
+
+   cd $HOME/bacula/bin
+   ./bacula start
+
+To start it (as a developer). This is not appropriate if you
+are installing Bacula.
 
    ./startit
    ./console (or ./gnome-console)
@@ -72,3 +83,12 @@ To stop it:
 
 Well, it is all just a bit more complicated than that,
 but you should have the idea.
+
+Be sure you read the chapter about testing your tape drive!
+Don't waste a lot of time setting up and running Bacula, if
+your drive is not supported.
+
+FreeBSD users, pay special attention to the Device configuration
+parameters needed to deal with FreeBSD tape drivers.
+
+
