@@ -1,10 +1,16 @@
                  Kern's ToDo List
-                  10 June 2004
+                  20 June 2004
 
 1.35 Items to do:
 - Implement SIGHUP in Dir
   (Implement resources on a single pointer)
+- Make btape release the drive during the "test" append.
 - Do tape alerts -- see tapealert.txt
+- Revisit and revise Disaster Recovery (fix SCSI and RAID 
+  disk detection)
+- Document a get out of jail procedure if everything breaks if 
+  you lost/broke the Catalog -- do the same for "I know my
+  file is there how do I get it back?".
 - When restore started from console, report jobid.
 - Win32 inc problem when new directory added.
 - On Win95
@@ -62,8 +68,6 @@ Wish list:
 - Add priority to Scheduled jobs status listing.
 - Add multiple-media-types.txt
 - look at mxt-changer.html
-- Document a get out of jail procedure if everything breaks if you lost/broke
-  the Catalog.
 - Make ? do a help command (no return needed).
 - Implement restore directory.
 - Add All Local Partitions = yes to new style saves.
@@ -1078,4 +1082,3 @@ Block Position: 0
 - Implement fast tree insert (doubly linked list?)
 - Disallow using Internal database
 - Feedback while the tree is being built.    
-

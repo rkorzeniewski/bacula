@@ -17,7 +17,7 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 //   General Public License for more details.
 //
-//   You should have received a copcloy of the GNU General Public
+//   You should have received a copy of the GNU General Public
 //   License along with this program; if not, write to the Free
 //   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 //   MA 02111-1307, USA.
@@ -36,7 +36,7 @@
 extern void d_msg(const char *file, int line, int level, const char *fmt,...);
 extern DWORD   g_platform_id;
 
-// from CYGWIN (should be diff between Jan 1 1601 and Jan 1 1970
+// from MicroSoft SDK (KES) is the diff between Jan 1 1601 and Jan 1 1970
 #ifdef HAVE_MINGW
 #define WIN32_FILETIME_ADJUST 0x19DB1DED53E8000UL //Not sure it works
 #else
@@ -452,7 +452,7 @@ strncasecmp(const char *s1, const char *s2, int len)
         ch2 = *s2;
         s1++;
         s2++;
-	if (ch1 == 0 || tolower(ch1) != tolower(ch2)) break;
+        if (ch1 == 0 || tolower(ch1) != tolower(ch2)) break;
     } 
 
     return(ch1 - ch2);
@@ -794,14 +794,14 @@ getArgv0(const char *cmdline)
     int inquote = 0;
     for (const char *cp = cmdline; *cp; cp++)
     {
-	if (*cp == '"') {
-	    inquote = !inquote;
-	}
-	if (!inquote && isspace(*cp))
-	    break;
+        if (*cp == '"') {
+            inquote = !inquote;
+        }
+        if (!inquote && isspace(*cp))
+            break;
     }
 
-	
+        
     int len = cp - cmdline;
     char *rval = (char *)malloc(len+1);
 
@@ -862,7 +862,7 @@ CreateChildProcess(const char *cmdline, HANDLE in, HANDLE out, HANDLE err)
     const char *comspec = getenv("COMSPEC");
     
     if (comspec == NULL) // should never happen
-	return INVALID_HANDLE_VALUE;
+        return INVALID_HANDLE_VALUE;
 
     char *cmdLine = (char *)alloca(strlen(cmdline) + strlen(comspec) + 16);
     
@@ -973,7 +973,7 @@ open_bpipe(char *prog, int wait, const char *mode)
         }
 
         CloseHandle(hChildStdoutRd);
-	hChildStdoutRd = INVALID_HANDLE_VALUE;
+        hChildStdoutRd = INVALID_HANDLE_VALUE;
     }
 
     if (mode_write) {
@@ -997,7 +997,7 @@ open_bpipe(char *prog, int wait, const char *mode)
         }
 
         CloseHandle(hChildStdinWr);
-	hChildStdinWr = INVALID_HANDLE_VALUE;
+        hChildStdinWr = INVALID_HANDLE_VALUE;
     }
     // spawn program with redirected handles as appropriate
     bpipe->worker_pid = (pid_t)
@@ -1164,7 +1164,7 @@ close(int fd)
 {
     int rval = _close(fd);
     if (rval == -1)
-	rval = closesocket(fd);
+        rval = closesocket(fd);
     return rval;
 }
 

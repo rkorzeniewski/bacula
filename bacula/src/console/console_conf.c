@@ -109,7 +109,7 @@ RES_TABLE resources[] = {
 void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fmt, ...), void *sock)
 {
    URES *res = (URES *)reshdr;
-   int recurse = 1;
+   bool recurse = true;
 
    if (res == NULL) {
       printf("No record for %d %s\n", type, res_to_str(type));
@@ -117,7 +117,7 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
    }
    if (type < 0) {		      /* no recursion */
       type = - type;
-      recurse = 0;
+      recurse = false;
    }
    switch (type) {
       case R_CONSOLE:
