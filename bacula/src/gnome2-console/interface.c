@@ -433,7 +433,7 @@ create_about1 (void)
   gtk_widget_show (vbox9);
   gtk_box_pack_start (GTK_BOX (vbox8), vbox9, TRUE, TRUE, 0);
 
-  about_head = gtk_label_new (_("Bacula Console 1.34.0 (16 Mar 04)\n"));
+  about_head = gtk_label_new (_("Bacula Console\n"));
   gtk_widget_show (about_head);
   gtk_box_pack_start (GTK_BOX (vbox9), about_head, FALSE, FALSE, 0);
 

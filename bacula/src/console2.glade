@@ -590,7 +590,7 @@
 	      <child>
 		<widget class="GtkLabel" id="about_head">
 		  <property name="visible">True</property>
-		  <property name="label" translatable="yes">Bacula Console 1.34.0 (16 Mar 04)
+		  <property name="label" translatable="yes">Bacula Console
 </property>
 		  <property name="use_underline">False</property>
 		  <property name="use_markup">False</property>

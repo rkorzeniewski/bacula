@@ -61,15 +61,15 @@ support.o:   support.c
 	sed "s%parent = g_object_get_data%parent = \(GtkWidget \*\)g_object_get_data%" support.c.orig >support.c
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(CONS_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 
-gnome-console: $(CONSOBJS) ../lib/libbac.a ../cats/libsql.a
-	$(CXX) $(LDFLAGS) $(CONS_LDFLAGS) -L../lib -L../cats -o $@ $(CONSOBJS) \
-	      $(LIBS) $(DLIB) $(CONS_LIBS) -lbac -lsql -lm
+gnome-console: $(CONSOBJS) ../lib/libbac.a 
+	$(CXX) $(LDFLAGS) $(CONS_LDFLAGS) -L../lib -o $@ $(CONSOBJS) \
+	      $(LIBS) $(DLIB) $(CONS_LIBS) -lbac -lm
 
 static-console: static-gnome-console
 
-static-gnome-console: $(CONSOBJS) ../lib/libbac.a ../cats/libsql.a
-	$(CXX) $(LDFLAGS) $(CONS_LDFLAGS) -L../lib -L../cats -o $@ $(CONSOBJS) \
-	      $(LIBS) $(DLIB) $(CONS_LIBS) -lbac -lsql -lm 
+static-gnome-console: $(CONSOBJS) ../lib/libbac.a 
+	$(CXX) $(LDFLAGS) $(CONS_LDFLAGS) -L../lib -o $@ $(CONSOBJS) \
+	      $(LIBS) $(DLIB) $(CONS_LIBS) -lbac -lm 
 	strip $@
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
@@ -78,7 +78,7 @@ Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 
 clean:
 	@$(RMF) gnome-console core core.* a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
-	@$(RMF) static-gnome-console gmon.out
+	@$(RMF) static-gnome-console gmon.out Makefile.am
 
 realclean: clean
 	@$(RMF) tags

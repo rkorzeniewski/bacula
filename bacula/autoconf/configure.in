@@ -902,6 +902,21 @@ AC_SUBST(sd_group)
 AC_SUBST(fd_user)
 AC_SUBST(fd_group)
 
+#
+# allow setting default executable permissions
+#
+SBINPERM=0754
+AC_ARG_WITH(sbin-perm,
+    [  --with-sbin-perm=MODE		 specify permissions for sbin binaries (0754)],
+    [
+	if test "x$withval" != "x" ; then	
+	    SBINPERM=$withval
+	fi
+    ]
+)
+
+AC_SUBST(SBINPERM)
+
 # ------------------------------------------------
 # Bacula check for various SQL database engines
 # ------------------------------------------------
