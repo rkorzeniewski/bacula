@@ -11,11 +11,8 @@ Version 1.35                Kern (see below)
 ========================================================
 
 1.35 Items to do for release:
-- Remove documentation for readline.
-- Add File indexes as suggested by Martin -- modify update
-  scripts to add them.
-- Modify postgresql update script to remove bigint FilenameId           
-  reference.
+- Finish recovering from a disaster situation.   
+  - How to get back a catalog.
   
 
 Maybe for 1.35:
@@ -29,6 +26,8 @@ Maybe for 1.35:
 - How to handle backing up portables ...
 - Add "Rerun failed levels = yes/no" to Job resource.
 - Add some sort of guaranteed Interval for upgrading jobs.
+- Can we write the state file after every job terminates? On Win32
+  the system crashes and the state file is not updated.
 
 Documentation to do: (any release a little bit at a time)
 - Doc to do unmount before removing magazine.
@@ -1376,3 +1375,9 @@ Block Position: 0
 - Document a get out of jail procedure if everything breaks if 
   you lost/broke the Catalog -- do the same for "I know my
   file is there how do I get it back?".
+- Fix documentation for readline.
+- Add File indexes as suggested by Martin -- modify update
+  scripts to add them.
+- Modify postgresql update script to remove bigint FilenameId           
+  reference.
+

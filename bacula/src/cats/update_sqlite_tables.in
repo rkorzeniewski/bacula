@@ -109,6 +109,8 @@ INSERT INTO Media (
 
 DROP TABLE Media_backup;
 
+CREATE INDEX inx9 ON File (JobId, PathId, FileNameId);
+
 COMMIT;
 
 UPDATE Filename SET Name='' WHERE Name=' ';
