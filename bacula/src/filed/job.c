@@ -307,7 +307,7 @@ static int estimate_cmd(JCR *jcr)
    }
    make_estimate(jcr);
    bnet_fsend(dir, OKest, jcr->num_files_examined, 
-      edit_uint64(jcr->JobBytes, ed2));
+      edit_uint64_with_commas(jcr->JobBytes, ed2));
    bnet_sig(dir, BNET_EOD);
    return 1;
 }

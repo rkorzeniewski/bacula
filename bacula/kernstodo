@@ -25,7 +25,7 @@ Testing to do: (painful)
 
 For 1.33 Testing/Documentation:
 - bextract is sending everything to the log file ****FIXME****
-- Document new records in Director. SDAddress SDDeviceName, SDPassword.
+- Document new alias records in Director. SDAddress SDDeviceName, SDPassword.
   FDPassword, FDAddress, DBAddress, DBPort, DBPassword.
 - Document new Include/Exclude ...
 - Add test of exclusion, test multiple Include {} statements.
@@ -34,11 +34,43 @@ For 1.33 Testing/Documentation:
   and install the esound-dev  package for compiling Console on SuSE.
 - Add an example of using a FIFO in dirdconf.wml 
 - Add an item to the FAQ about running jobs in different timezones.
-                
-For 1.32c
-- Add Volume name to "I cannot write on this volume because"
+- Add some examples of job editing codes.
+- Add Dan's 31 Oct 2003 email on tcpwrappers to Tips.
+- Add to supported autochangers 
+  OS              : FreeBSD-4.9
+  Auto-Changer    : QUALSTAR TLS-4210
+    Manufufactur  : Qualstar
+    Tapes         : 12 (AIT1: 36GB, AIT2: 50GB all uncompressed)
+    Drives        : 2xAIT2 (installed in the Qualstar: SONY SDX-500C AIT2)
 
+
+                
 For 1.33
+- Estimate to Tibs never returns.
+- Fix TimeZone problem!
+- Recycling volume with a Slot requires an operator intervention:
+    rufus-dir: Start Backup JobId 18, Job=kernsave.2003-11-01_21.23.52
+    rufus-dir: Pruned 1 Job on Volume Vol01 from catalog.
+    rufus-dir: There are no Jobs associated with Volume Vol01. Marking it purged.
+    rufus-dir: Recycled volume "Vol01"
+    rufus-sd: Please mount Volume "Vol01" on Storage Device "DDS-4" for Job kernsave.2003-11-01_21.23.52
+    Use "mount" command to release Job.
+- Think about how space could be freed up on a tape -- perhaps this
+  is a Merge or Compact feature that is needed.
+- Modify FileSet, did not upgrade the current Increment job, but
+  waited for the next job to be upgraded.
+- Take a careful look at SetACL http://setacl.sourceforge.net     
+- Implement a where command for the tree telling where a file
+  is located.
+- Take a careful look at Level for the estimate command, maybe make
+  it a command line option.
+- Optimize fsf not to read.
+- Implement Dan's bacula script (email of 26 Oct).
+- Implement autochange testing in btape.
+- Add Volume name to "I cannot write on this volume because"
+- Make restore job check if all the files are actually restored.
+- Make tree walk routines like cd, ls, ... more user friendly
+  by handling spaces better.
 - Write your PID file and chwon root:wheel before drop.
 - Make sure there is no symlink in a file before creating a
   file (attack).
@@ -588,62 +620,24 @@ Projects:
            last update 8 May 2003
 
 Item 1:   Multiple simultaneous Jobs. (done)
-Done -- Restore part needs better implementation to work correctly
-        Also, it needs considerable testing
-
-  What:   Permit multiple simultaneous jobs in Bacula.
-
-  Why:    An enterprise level solution needs to go fast without the
-          need for the system administrator to carefully tweak
-          timing.  Based on the benchmarks, during a full
-          backup, NetWorker typically hit 10 times the bandwidth to
-          the tape compared to Bacula--largely. This is probably due to
-          running parallel jobs and multi-threaded filling of buffers
-          and writing them to tape.  This should also make things work
-          better when you have a mix of fast and slow machines backing
-          up at the same time.
-
-  Notes:  Bacula was designed to run multiple simultaneous jobs. Thus
-          implementing this is a matter of some small cleanups and
-          careful testing.
-
-
-Item 2:   Make the Storage daemon use intermediate file storage to buffer data.
-Deferred -- not necessary yet -- possibly implement with Migration.
-
-  What:   If data is coming into the SD too fast, buffer it to 
-          disk if the user has configured this option.
-
-  Why:    This would be nice, especially if it more or less falls out
-          when implementing (1) above.  If not, it probably should not
-          be given a high priority because fundamentally the backup time
-          is limited by the tape bandwidth.  Even though you may finish a
-          client job quicker by spilling to disk, you still have to
-          eventually get it onto tape.  If intermediate disk buffering
-          allows us to improve write bandwidth to tape, it may make
-          sense.
-
-  Notes:  Whether or not this is implemented will depend upon performance
-          testing after item 1 is implemented.
-
+Done
 
 Item 3:   Write the bscan program -- also write a bcopy program.
 Done
 
-  What:   Write a program that reads a Bacula tape and puts all the 
-          appropriate data into the catalog. This allows recovery
-          from a tape that is no longer in the database, or it allows
-          re-creation of a database if lost.
+Item 5:   Implement Label templates
+Done 
 
-  Why:    This is a fundamental robustness and disaster recovery tool
-          which will increase the comfort level of a sysadmin
-          considering adopting Bacula.
+Item 6:   Write a regression script.
+Done --   Continue to expand its testing.
 
-  Notes:  A skeleton of this program already exists, but much work
-          needs to be done. Implementing this will also make apparent
-          any deficiencies in the current Bacula tape format.
+Item 9:   Add SSL to daemon communications.
+For now, implement with stunnel
 
+Item 10:  Define definitive tape format.
+Done (version 1.27)
 
+--- Not completed
 Item 4:   Implement Base jobs.
 
   What:   A base job is sort of like a Full save except that you 
@@ -663,37 +657,23 @@ Item 4:   Implement Base jobs.
           the e. DIR must send FD a list of files/attribs, and the FD must
           search the list and compare it for each file to be saved.
 
+Item 2:   Make the Storage daemon use intermediate file storage to buffer data.
+Deferred -- not necessary yet -- possibly implement with Migration.
 
-Item 5:   Implement Label templates
-Done 
+  What:   If data is coming into the SD too fast, buffer it to 
+          disk if the user has configured this option.
 
-  What:   This is a mechanism whereby Bacula can automatically create
-          a tape label for new tapes according to a detailed specification
-          provided by the user.
+  Why:    This would be nice, especially if it more or less falls out
+          when implementing (1) above.  If not, it probably should not
+          be given a high priority because fundamentally the backup time
+          is limited by the tape bandwidth.  Even though you may finish a
+          client job quicker by spilling to disk, you still have to
+          eventually get it onto tape.  If intermediate disk buffering
+          allows us to improve write bandwidth to tape, it may make
+          sense.
 
-  Why:    It is a major convenience item for folks who use automated label
-          creation.
-
-  Notes:  Bacula already has a working form of automatic tape label
-          creation, but it is very crude. The design for the complete
-          tape labeling project is already documented in the manual.
-
-
-Item 6:   Write a regression script.
-Done --   Continue to expand its testing.
-
-  What:   This is an automatic script that runs and tests as many features
-          of Bacula as possible. The output is compared to previous
-          versions of Bacula and any differences are reported.
-
-  Why:    This is an enormous help in preventing introduction of new
-          errors in parts of the program that already work correctly.
-
-  Notes:  This probably should be ranked higher, it's something the typical
-          user doesn't see.  Depending on how it's implemented, it may
-          make sense to defer it until the archival tape format and
-          user interface mature.
-
+  Notes:  Whether or not this is implemented will depend upon performance
+          testing after item 1 is implemented.
 
 Item 7:   GUI for interactive restore
 Item 8:   GUI for interactive backup
@@ -716,34 +696,6 @@ Item 8:   GUI for interactive backup
           the user who's doing an interactive restore or backup of his
           own files will in most cases be on a Windows machine running
           Exploder.
-
-
-Item 9:   Add SSL to daemon communications.
-
-  What:   This provides for secure communications between the daemons.
-
-  Why:    This would allow doing backup across the Internet without
-          privacy concerns (or with much less concern).
-
-  Notes:  The vast majority of near term potential users will be backing up
-          a single site over a LAN and, correctly or not, they probably
-          won't be concerned with security, at least not enough to go to
-          the trouble to set up keys, etc. to screw things down.  We suspect
-          that many users genuinely interested in multi-site backup
-          already run some form of VPN software in their internetwork
-          connections, and are willing to delegate security to that layer.
-
-
-Item 10:  Define definitive tape format.
-Done (version 1.27)
-
-  What:   Define that definitive tape format that will not change 
-          for the next millennium.
-
-  Why:    Stability, security.
-
-  Notes:  See notes for item 11 below.
-
 
 Item 11:  New daemon communication protocol.
 
@@ -998,112 +950,8 @@ Need:
 
 
 Done: (see kernsdone for more)
-- Implement new alist in FileSet scanning.
-- bls should continue reading even if it finds Win32 data on the tape.
-  The error should be Warning rather the Error.
-- Add user configurable timeout for connecting to SD.
-- Unsaved Flag in Job record (use JobMissingFiles).
-- Base Flag in Job record.
-- Configure mtx-changer to have correct path to mtx.
-- Add all command line arguments to "update", e.g. slot=nn volStatus=append, ...
-- Make some way so that if a machine is skipped because it is not up 
-  that Bacula will continue retrying for a specified period of time --
-  periodically.
-- Implement all command line args on run.
-- Implement command line "restore" args.
-- Implement "restore current select=no"
-- Restore file modified before date
-- Restore -- do nothing but show what would happen
-- Add estimate to Console commands
-- Use read_record.c in SD code.
-- Fix read_record to handle multiple sessions.
-- Tip from Steve Allam
-  mt -f /dev/nst0 defblksize 0
-- Document "status" in the console.
-- Document driving console from shell script.
-- Write JobMedia records with max file size is reached on tape.
-- Handle the case of multiple JobMedia records pending (i.e. the
-  thread is slow and multiple situations requiring a JobMedia
-  record occur).
-- Do performance analysis on the restore tree routines.
-- Fix maximum file size (block.c) to generate JobMedia records.
-- Make the default file size 1GB on the tape.
-- Implement forward spacing between files.
-- Add Machine type (Linux/Windows) to Status report for daemons. 
-  Look at src/host.h
-- Use repositioning at the beginning of the tape.                   
-- Do full check the command line args in update (e.g. VolStatus ...).
-- Specify list of files to restore
-- Implement ClientRunBeforeJob and ClientRunAfterJob.
-- Make | and < work on FD side.
-- Check to see if "blocked" is set during restore.
-- Figure out what is interrupting sql command in console.
-- Make new job print warning User Unmounted Tape.
-- Test recycling and purging (code changed in db_find_next_volume and
-  in recycle.c).
-- Document SDConnectTimeout (in FD).
-- Add restore by filename test.
-- Document restore by files.
-- Make variable expansion work correctly.
-- Implement List Volume Job=xxx  or List scheduled volumes or Status Director 
-- Copy static programs into install directory.
-- Think about changing Storage resource Device record to be
-  SDDeviceName.
-- Add RunBeforeJob and RunAfterJob to the Client program.
-- Need return status on read_cb() from read_records(). Need multiple
-  records -- one per Job, maybe a JCR or some other structure with
-  a block and a record.
-- LabelFormat on tape volume apparently creates the db record but 
-  never actually labels the volume.
-- Recycling a volume when two jobs are using it is going to break. Fixed.
-- Document list nextvol and new format status dir.
-- Client files in Win32 with Unix eol conventions doesn't work.
-- Either fix or document that fill command in btape can be
-  compressed enormously by the hardware - a 36GB tape wrote 750GB!
-- Add multiple character duration qualifiers.
-- Require some modifer.
-- Restrict characters permitted in a Resource name, and don't permit
-  duplicate names.
-- Figure out some way to ignore or get past checksum errors in
-  reading.
-- The SD spooling file gets created even if it is not used.
-- Look at Cleaning tape in ua_label.c for media create/update 
-- Add regression testing to the manual
-- End time: in job output of rescheduled job is time of first run.
-- Document list nextvol and status output.
-- Separate Dir heartbeat in FD from the SD heartbeat.
-- Fix sparse file handeling so that it always reads a multiple
-  of 512. Currently, it subtracts 8 bytes (for faddr).
-  Kludged with #ifdef for FreeBSD.
-- Document that Volume pruning can delete last Full backup and
-  hence you will not have a valid backup.
-- Clarify the fact that having the Bacula cygwin1.dll loaded
-  is not the same as having cygwin installed.
-- Document that it is safe to use the drive when the lights stop flashing.
-- Document all the status codes JobLevel, JobType, JobStatus.
-- Add GUI interface to manual
-- Combine the 3 places that search run records for the next
-  job. Use find_job_pool() modified in ua_output.c
-- Test connect timeouts.
-- Fix FreeBSD build with tcp_wrapper -- should not have -lnsl
-- Implement fast block rejection.
-- I want to restore by file to some date.
----- 1.32b released
-- Figure out a way to move Volumes from one pool to another.
-- Implement a RunAfterFailedJob
-- Limit the number of block checksum/header BB01, ... errors printed.
-- If last Full back is purged and an Incremental or Differential remains,
-  Bacula does not promote the Incremental to a Full.
-- Document verify_disk_to_catalog
-- Document delete job command.
-- Document update volume pool and other command line keywords.
-- Add VerifyJob to "run" summary (yes/mod/no) prompt.
-- For listing, eliminate multiple JobIds in restore Jobs listing.
-- Document to start higher priorty jobs before lower ones.
-- suppress "Do not forget to mount the drive!!!" if error
-- Change error message when closing brace left off ...
-- Implement a move Volume from one pool to another.
-- Implement delete Job.
-- Document need to put LabelFormat in quotes.
-- Implement job in VerifyToCatalog
-- Eliminate ua_retention.c (retentioncmd) if possible.
+
+=== after 1.32c
+- John's Full save failed with 1.32c FD and 1.31 Dir no FD status,
+  and no error message.
+

@@ -40,6 +40,8 @@ Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 
 clean:
 	@$(RMF) core core.* a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
+	(cd gnome-console; $(MAKE) clean)
+	(cd gnome2-console; $(MAKE) clean)
 
 realclean: clean
 	@$(RMF) tags

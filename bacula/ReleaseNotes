@@ -1,7 +1,19 @@
 
-          Release Notes for Bacula 1.32c
+          Release Notes for Bacula 1.32d
 
-  Bacula code: Total files = 259 Total lines = 77,957 (*.h *.c *.in)
+  Bacula code: Total files = 259 Total lines = 78,087 (*.h *.c *.in)
+
+Most Significant Changes since 1.32c
+- Mainly a bug fix release.
+- Do a clean of both Gnome directories.
+- Require that FileSet id match when finding an Incremental
+  previous job. This was already the case for a Full.
+- Print message if no status returned from FD.
+- Correct "Do not forget to mount the drive" message. Test was
+  backward.
+- "status dir" stopped scanning the run records on the first
+  one that matched giving an incomplete listing.
+- Edit commas in Bytes on "estimate" command output.
 
 Most Significant Changes since 1.32b
 - Implemented a RunAfterFailedJob record in the Job resource.
@@ -16,6 +28,9 @@ Most Significant Changes since 1.32b
   fixes the problems of data loss at the end of a tape.
   Please see:
   <bacula-source>/platforms/freebsd/pthreads-fix.txt
+- Fixed (I think) the elusive Windows "packet too big" bug.
+- Added %v to RunBefore/After editing codes. It edits in
+  a list of Volumes used for the job (not tested).
 
 Most Significant Changes since 1.32a:
 - Improve forward space file/block during restore, many

@@ -454,7 +454,7 @@ RUN *find_next_run(RUN *run, JOB *job, time_t &runtime)
    } else {
       run = run->next;
    }
-   if (run) {
+   for ( ; run; run=run->next) {
       /* 
        * Find runs in next 24 hours
        */

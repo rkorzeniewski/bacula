@@ -294,7 +294,7 @@ checkName:
 	 }
       }
    }
-   if (!print_reminder) {
+   if (print_reminder) {
       bsendmsg(ua, _("Do not forget to mount the drive!!!\n"));
    }
    bnet_sig(sd, BNET_TERMINATE);
