@@ -31,17 +31,21 @@
 #include "stored.h"
 
 /* Forward referenced functions */
-static void do_scan(void);
 static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
 
 
 /* Global variables */
-static DEVICE *dev = NULL;
-static B_DB *db;
-static JCR *bjcr;		      /* jcr for bscan */
+static DEVICE *in_dev = NULL;
+static DEVICE *out_dev = NULL;
+static JCR *in_jcr;		       /* input jcr */
+static JCR *out_jcr;		       /* output jcr */
 static BSR *bsr = NULL;
 static char *wd = "/tmp";
 static int verbose = 0;
+static int list_records = 0;
+static uint32_t records = 0;
+static uint32_t jobs = 0;
+static DEV_BLOCK *out_block;
 
 #define CONFIG_FILE "bacula-sd.conf"
 char *configfile;
@@ -120,34 +124,54 @@ It is currently under development and does not work.\n\n");
 
    parse_config(configfile);
 
-   bjcr = setup_jcr("bcopy", argv[0], bsr);
-   dev = setup_to_access_device(bjcr, 0);   /* read device */
-   if (!dev) { 
+   /* Setup and acquire input device for reading */
+   in_jcr = setup_jcr("bcopy", argv[0], bsr);
+   in_dev = setup_to_access_device(in_jcr, 1);	 /* read device */
+   if (!in_dev) { 
       exit(1);
    }
 
-   do_copy();
+   /* Setup output device for writing */
+   out_jcr = setup_jcr("bcopy", argv[1], bsr);
+   out_dev = setup_to_access_device(out_jcr, 0);   /* no acquire */  
+   if (!out_dev) { 
+      exit(1);	    
+   }
+   /* For we must now acquire the device for writing */
+   out_block = new_block(out_dev);
+   lock_device(out_dev);
+   if (open_dev(out_dev, out_jcr->VolumeName, READ_WRITE) < 0) {
+      Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), out_dev->errmsg);
+      unlock_device(out_dev);
+      free_block(out_block);
+      exit(1);
+   }
+   unlock_device(out_dev);
+   if (!acquire_device_for_append(out_jcr, out_dev, out_block)) {
+      free_block(out_block);
+      free_jcr(in_jcr);
+      exit(1);
+   }
 
-   free_jcr(bjcr);
+   read_records(in_jcr, in_dev, record_cb, mount_next_read_volume);
+   if (!write_block_to_device(out_jcr, out_dev, out_block)) {
+      Pmsg0(000, _("Write of last block failed.\n"));
+   }
+
+   Pmsg2(000, _("%u Jobs copied. %u records copied.\n"), jobs, records);
+
+   free_block(out_block);
+   term_dev(in_dev);
+   term_dev(out_dev);
+   free_jcr(in_jcr);
+   free_jcr(out_jcr);
    return 0;
 }
   
 
-static void do_copy()		  
+
+static void record_cb(JCR *in_jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 {
-   detach_jcr_from_device(dev, bjcr);
-
-   read_records(bjcr, dev, record_cb, mount_next_read_volume);
-   release_device(bjcr, dev);
-
-   term_dev(dev);
-}
-
-static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
-{
-   JCR *mjcr;
-   char ec1[30];
-
    if (list_records) {
       Pmsg5(000, _("Record: SessId=%u SessTim=%u FileIndex=%d Stream=%d len=%u\n"),
 	    rec->VolSessionId, rec->VolSessionTime, rec->FileIndex, 
@@ -166,78 +190,57 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 case PRE_LABEL:
             Pmsg0(000, "Volume is prelabeled. This volume cannot be copied.\n");
 	    return;
-	    break;
 	 case VOL_LABEL:
-            Pmsg1(000, "VOL_LABEL: OK for Volume: %s\n", mr.VolumeName);
-	    break;
+            Pmsg0(000, "Volume label not copied.\n");
+	    return;
 	 case SOS_LABEL:
+	    jobs++;
 	    break;
 	 case EOS_LABEL:
+	    while (!write_record_to_block(out_block, rec)) {
+               Dmsg2(150, "!write_record_to_block data_len=%d rem=%d\n", rec->data_len,
+			  rec->remainder);
+	       if (!write_block_to_device(out_jcr, out_dev, out_block)) {
+                  Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
+		     dev_name(out_dev), strerror_dev(out_dev));
+                  Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
+			strerror_dev(out_dev));
+	       }
+	    }
+	    if (!write_block_to_device(out_jcr, out_dev, out_block)) {
+               Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
+		  dev_name(out_dev), strerror_dev(out_dev));
+               Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
+		     strerror_dev(out_dev));
+	    }
 	    break;
 	 case EOM_LABEL:
-	    break;
+            Pmsg0(000, "EOM label not copied.\n");
+	    return;
 	 case EOT_LABEL:	      /* end of all tapes */
-	    break;
+            Pmsg0(000, "EOT label not copied.\n");
+	    return;
 	 default:
 	    break;
       }
-      return;
    }
 
    /*  Write record */
-
+   records++;
+   while (!write_record_to_block(out_block, rec)) {
+      Dmsg2(150, "!write_record_to_block data_len=%d rem=%d\n", rec->data_len,
+		 rec->remainder);
+      if (!write_block_to_device(out_jcr, out_dev, out_block)) {
+         Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
+	    dev_name(out_dev), strerror_dev(out_dev));
+         Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
+	       strerror_dev(out_dev));
+	 break;
+      }
+   }
    return;
 }
 
-/*
- * Free the Job Control Record if no one is still using it.
- *  Called from main free_jcr() routine in src/lib/jcr.c so
- *  that we can do our Director specific cleanup of the jcr.
- */
-static void dird_free_jcr(JCR *jcr)
-{
-   Dmsg0(200, "Start dird free_jcr\n");
-
-   if (jcr->file_bsock) {
-      Dmsg0(200, "Close File bsock\n");
-      bnet_close(jcr->file_bsock);
-   }
-   if (jcr->store_bsock) {
-      Dmsg0(200, "Close Store bsock\n");
-      bnet_close(jcr->store_bsock);
-   }
-   if (jcr->RestoreBootstrap) {
-      free(jcr->RestoreBootstrap);
-   }
-   Dmsg0(200, "End dird free_jcr\n");
-}
-
-
-
-/* 
- * Create a JCR as if we are really starting the job
- */
-static JCR *create_jcr(JOB_DBR *jr, DEV_RECORD *rec, uint32_t JobId)
-{
-   JCR *jobjcr;
-   /*
-    * Transfer as much as possible to the Job JCR. Most important is
-    *	the JobId and the ClientId.
-    */
-   jobjcr = new_jcr(sizeof(JCR), dird_free_jcr);
-   jobjcr->JobType = jr->Type;
-   jobjcr->JobLevel = jr->Level;
-   jobjcr->JobStatus = jr->JobStatus;
-   strcpy(jobjcr->Job, jr->Job);
-   jobjcr->JobId = JobId;      /* this is JobId on tape */
-   jobjcr->sched_time = jr->SchedTime;
-   jobjcr->start_time = jr->StartTime;
-   jobjcr->VolSessionId = rec->VolSessionId;
-   jobjcr->VolSessionTime = rec->VolSessionTime;
-   jobjcr->ClientId = jr->ClientId;
-   attach_jcr_to_device(dev, jobjcr);
-   return jobjcr;
-}
 
 /* Dummies to replace askdir.c */
 int	dir_get_volume_info(JCR *jcr, int writing) { return 1;}
@@ -251,31 +254,8 @@ int	dir_send_job_status(JCR *jcr) {return 1;}
 
 int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
 {
-   /*  
-    * We are at the end of reading a tape. Now, we simulate handling
-    *	the end of writing a tape by wiffling through the attached
-    *	jcrs creating jobmedia records.
-    */
-   Dmsg1(100, "Walk attached jcrs. Volume=%s\n", dev->VolCatInfo.VolCatName);
-   for (JCR *mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
-      if (verbose) {
-         Pmsg1(000, "create JobMedia for Job %s\n", mjcr->Job);
-      }
-      if (dev->state & ST_TAPE) {
-	 mjcr->EndBlock = dev->block_num;
-	 mjcr->EndFile = dev->file;
-      } else {
-	 mjcr->EndBlock = (uint32_t)dev->file_addr;
-	 mjcr->StartBlock = (uint32_t)(dev->file_addr >> 32);
-      }
-      if (!create_jobmedia_record(db, mjcr)) {
-         Pmsg2(000, _("Could not create JobMedia record for Volume=%s Job=%s\n"),
-	    dev->VolCatInfo.VolCatName, mjcr->Job);
-      }
-   }
-
    fprintf(stderr, "Mount Volume %s on device %s and press return when ready: ",
-      jcr->VolumeName, dev_name(dev));
+      in_jcr->VolumeName, dev_name(dev));
    getchar();	
    return 1;
 }

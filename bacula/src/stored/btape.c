@@ -118,6 +118,7 @@ int read_dev(DEVICE *dev, char *buf, size_t len)
 int main(int argc, char *argv[])
 {
    int ch;
+   DEV_BLOCK *block;
 
    /* Sanity checks */
    if (TAPE_BSIZE % DEV_BSIZE != 0 || TAPE_BSIZE / DEV_BSIZE == 0) {
@@ -204,10 +205,25 @@ int main(int argc, char *argv[])
    if (!dev) {
       exit(1);
    }
+   block = new_block(dev);
+   lock_device(dev);
+   if (!(dev->state & ST_OPENED)) {
+      Dmsg0(129, "Opening device.\n");
+      if (open_dev(dev, jcr->VolumeName, READ_WRITE) < 0) {
+         Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), dev->errmsg);
+	 unlock_device(dev);
+	 free_block(block);
+	 goto terminate;
+      }
+   }
+   Dmsg1(129, "open_dev %s OK\n", dev_name(dev));
+   unlock_device(dev);
+   free_block(block);
 
    Dmsg0(200, "Do tape commands\n");
    do_tape_cmds();
   
+terminate:
    terminate_btape(0);
    return 0;
 }

@@ -73,7 +73,8 @@ FDLIBS=@FDLIBS@
 .c.o:
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
-all: Makefile bacula-sd bls bextract bscan btape
+
+all: Makefile bacula-sd bls bextract bscan btape bcopy
 	@echo "===== Make of stored is good ===="
 	@echo " "
 

@@ -62,7 +62,7 @@ void	print_ls_output(char *fname, char *link, int type, struct stat *statp);
 JCR    *setup_jcr(char *name, char *device, BSR *bsr); 
 DEVICE *setup_to_access_device(JCR *jcr, int read_access);
 void	display_error_status(DEVICE *dev);
-DEVRES *find_device_res(char *device_name);
+DEVRES *find_device_res(char *device_name, int read_access);
 
 
 /* From dev.c */

@@ -92,7 +92,8 @@ int read_records(JCR *jcr,  DEVICE *dev,
 	    goto next_record;
 	 }
 	 if (dev->state & ST_EOF) {
-            Emsg1(M_INFO, 0, "Got EOF on device %s\n", dev_name(dev));
+            Emsg2(M_INFO, 0, "Got EOF on device %s, Volume \"%s\"\n", 
+		  dev_name(dev), jcr->VolumeName);
             Dmsg0(20, "read_record got eof. try again\n");
 	    continue;
 	 }

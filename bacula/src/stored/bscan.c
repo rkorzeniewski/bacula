@@ -191,7 +191,7 @@ int main (int argc, char *argv[])
    parse_config(configfile);
 
    bjcr = setup_jcr("bscan", argv[0], bsr);
-   dev = setup_to_access_device(bjcr, 0);   /* read device */
+   dev = setup_to_access_device(bjcr, 1);   /* read device */
    if (!dev) { 
       exit(1);
    }

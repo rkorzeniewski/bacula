@@ -241,7 +241,8 @@ int release_device(JCR *jcr, DEVICE *dev)
 	 dir_update_volume_info(jcr, &dev->VolCatInfo, 0); /* send Volume info to Director */
       }
    } else {
-      Jmsg1(jcr, M_ERROR, 0, _("BAD ERROR: release_device %s not in use.\n"), dev_name(dev));
+      Jmsg2(jcr, M_ERROR, 0, _("BAD ERROR: release_device %s, Volume %s not in use.\n"), 
+	    dev_name(dev), NPRT(jcr->VolumeName));
    }
    detach_jcr_from_device(dev, jcr);
    unlock_device(dev);

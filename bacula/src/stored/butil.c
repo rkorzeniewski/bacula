@@ -87,19 +87,15 @@ DEVICE *setup_to_access_device(JCR *jcr, int read_access)
       }
    }
 
-   if ((device=find_device_res(jcr->dev_name)) == NULL) {
-      Emsg2(M_FATAL, 0, "Cannot find device %s in config file %s.\n", 
+   if ((device=find_device_res(jcr->dev_name, read_access)) == NULL) {
+      Emsg2(M_FATAL, 0, _("Cannot find device %s in config file %s.\n"), 
 	   jcr->dev_name, configfile);
       return NULL;
    }
    
    dev = init_dev(NULL, device);
-   if (!dev) {
-      Emsg1(M_FATAL, 0, "Cannot open %s\n", jcr->dev_name);
-      return NULL;
-   }
-   if (!open_device(dev)) {
-      Emsg1(M_FATAL, 0, "Cannot open %s\n", jcr->dev_name);
+   if (!dev || !open_device(dev)) {
+      Emsg1(M_FATAL, 0, _("Cannot open %s\n"), jcr->dev_name);
       return NULL;
    }
    Dmsg0(90, "Device opened for read.\n");
@@ -115,19 +111,6 @@ DEVICE *setup_to_access_device(JCR *jcr, int read_access)
 	 free_block(block);
 	 return NULL;
       }
-   } else {
-      lock_device(dev);
-      if (!(dev->state & ST_OPENED)) {
-         Dmsg0(129, "Opening device.\n");
-	 if (open_dev(dev, jcr->VolumeName, READ_WRITE) < 0) {
-            Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), dev->errmsg);
-	    unlock_device(dev);
-	    free_block(block);
-	    return NULL;
-	 }
-      }
-      Dmsg1(129, "open_dev %s OK\n", dev_name(dev));
-      unlock_device(dev);
    }
    free_block(block);
    return dev;
@@ -141,7 +124,7 @@ DEVICE *setup_to_access_device(JCR *jcr, int read_access)
  * Returns: NULL on failure
  *	    Device resource pointer on success
  */
-DEVRES *find_device_res(char *device_name)
+DEVRES *find_device_res(char *device_name, int read_access)
 {
    int found = 0;
    DEVRES *device;
@@ -155,11 +138,12 @@ DEVRES *find_device_res(char *device_name)
    } 
    UnlockRes();
    if (!found) {
-      Pmsg2(0, "Could not find device %s in config file %s.\n", device_name,
+      Pmsg2(0, _("Could not find device %s in config file %s.\n"), device_name,
 	    configfile);
       return NULL;
    }
-   Pmsg1(0, "Using device: %s\n", device_name);
+   Pmsg2(0, _("Using device: %s for %s.\n"), device_name,
+             read_access?"reading":"writing");
    return device;
 }
 
@@ -245,17 +229,17 @@ void display_error_status(DEVICE *dev)
    status_dev(dev, &status);
    Dmsg1(20, "Device status: %x\n", status);
    if (status & MT_EOD)
-      Emsg0(M_ERROR_TERM, 0, "Unexpected End of Data\n");
+      Emsg0(M_ERROR_TERM, 0, _("Unexpected End of Data\n"));
    else if (status & MT_EOT)
-      Emsg0(M_ERROR_TERM, 0, "Unexpected End of Tape\n");
+      Emsg0(M_ERROR_TERM, 0, _("Unexpected End of Tape\n"));
    else if (status & MT_EOF)
-      Emsg0(M_ERROR_TERM, 0, "Unexpected End of File\n");
+      Emsg0(M_ERROR_TERM, 0, _("Unexpected End of File\n"));
    else if (status & MT_DR_OPEN)
-      Emsg0(M_ERROR_TERM, 0, "Tape Door is Open\n");
+      Emsg0(M_ERROR_TERM, 0, _("Tape Door is Open\n"));
    else if (!(status & MT_ONLINE))
-      Emsg0(M_ERROR_TERM, 0, "Unexpected Tape is Off-line\n");
+      Emsg0(M_ERROR_TERM, 0, _("Unexpected Tape is Off-line\n"));
    else
-      Emsg2(M_ERROR_TERM, 0, "Read error on Record Header %s: %s\n", dev_name(dev), strerror(errno));
+      Emsg2(M_ERROR_TERM, 0, _("Read error on Record Header %s: %s\n"), dev_name(dev), strerror(errno));
 }
 
 
