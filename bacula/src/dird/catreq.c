@@ -212,7 +212,6 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
             } else if (strcmp(mr.VolStatus, "Append") != 0 &&
                        strcmp(mr.VolStatus, "Recycle") != 0) {
                reason = "not Append or Recycle";
-	       /* XXX nicb start */
                /* What we're trying to do here is see if the current volume is
                 * "recycleable" - ie. if we prune all expired jobs off it, is
 		* it now possible to reuse it for the job that it is currently
@@ -228,8 +227,6 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 		   */
 		  UAContext *ua;
 
-                  reason = "not Append or Recycle (auto recycle failed)";
-
 		  ua = new_ua_context(jcr);
 		  ok = prune_volume(ua, &mr);
 		  free_ua_context(ua);
@@ -240,10 +237,16 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
                         Jmsg(jcr, M_INFO, 0, "Recycled current "
                               "volume \"%s\"\n", mr.VolumeName);
 			VolSuitable = true;
+		     } else {
+                        reason = "not Append or Recycle (recycling of the "
+                           "current volume failed)";
 		     }
+		  } else {
+                     reason = "not Append or Recycle (cannot automatically "
+                        "recycle current volume, as it still contains "
+                        "unpruned data)";
 		  }
 	       }
-	       /* XXX nicb end */
 	    } else if (strcmp(mr.MediaType, jcr->store->media_type) != 0) {
                reason = "not correct MediaType";
 	    } else if (!jcr->pool->accept_any_volume) {

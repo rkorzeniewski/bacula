@@ -10,7 +10,7 @@
 #define SMCHECK     
 #define TRACE_FILE 1  
 
-#define FULL_DEBUG 1    /* normally on for testing only */
+/* #define FULL_DEBUG 1 */   /* normally on for testing only */
 
 /* Turn this on ONLY if you want all Dmsg() to append to the
  *   trace file. Implemented mainly for Win32 ...
@@ -18,7 +18,7 @@
 /*  #define SEND_DMSG_TO_FILE 1 */
 
 /* Turn this on if you want to use the Job semaphore code */
-#define USE_SEMAPHORE
+/* #define USE_SEMAPHORE */
 
 /* Turn this on if you want to use the new Job scheduling code */
 #undef USE_SEMAPHORE
