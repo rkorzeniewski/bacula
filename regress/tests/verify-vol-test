@@ -19,6 +19,7 @@ bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
 messages
 @output tmp/log1.out
+setdebug level=1 storage=File sd
 label storage=File volume=TestVolume001
 run job=NightlySave yes
 wait

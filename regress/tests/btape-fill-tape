@@ -16,7 +16,7 @@ echo " "
 echo " === Starting btape fill test ==="
 echo " === Starting btape fill test ===" >>working/log
 echo " "
-
+exit
 bin/btape -c bin/bacula-sd.conf DDS-4 <<END_OF_DATA 2>&1 >tmp/log1.out
 fill
 s

@@ -23,6 +23,18 @@ messages
 @output tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 slot=0
 run job=NightlySave yes
+status storage=DDS-4
+status storage=DDS-4
+status storage=DDS-4
+status storage=DDS-4
+status storage=DDS-4
+status storage=DDS-4
+sleep 1
+status storage=DDS-4
+status storage=DDS-4
+status storage=DDS-4
+status storage=DDS-4
+status storage=DDS-4
 wait
 messages
 @# 

@@ -20,6 +20,18 @@ messages
 @output tmp/log1.out
 label volume=TestVolume001
 run job=Client1 yes
+status storage=File
+status storage=File
+status storage=File
+status storage=File
+status storage=File
+status storage=File
+sleep 1
+status storage=File
+status storage=File
+status storage=File
+status storage=File
+status storage=File
 wait
 messages
 @# 
