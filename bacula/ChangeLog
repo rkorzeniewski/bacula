@@ -1,4 +1,6 @@
 Changes to 1.35.2
+01Sep04
+- Fix logic error in resolution of names on IPv4 systems.
 30Aug04
 - Inhibit printing of FileSet for a restore as it is misleading.
 - Cleaned up a number of minor scripting problems with the CDROM
