@@ -9,6 +9,7 @@
 ; added configuration editing for bconsole.conf and wx-console.conf
 ; better explanation in dialog boxes for editing config files
 ; added Start Menu items
+; fix uninstall of config files to do all not just bacula-fd.conf
 ;
 ; Command line options:
 ;
@@ -126,8 +127,11 @@ Section "Bacula File Service" SecService
   ; Create Start Menu Directory
   SetShellVarContext all
   CreateDirectory "$SMPROGRAMS\Bacula"
+  ; If not installed as service create Start Menu link
+  StrCmp $9 "1" Uninstall
   CreateShortCut "$SMPROGRAMS\Bacula\Start Bacula Client.lnk" "$INSTDIR\bin\bacula-fd.exe" "-c $INSTDIR\bin\bacula-fd.conf" "$INSTDIR\bin\bacula-fd.exe" 0
 
+  Uninstall:
   ; Write the uninstall keys for Windows & create Start Menu entry
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "DisplayName" "Bacula Client"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "UninstallString" '"$INSTDIR\uninstall.exe"'
@@ -253,24 +257,33 @@ Section "Uninstall"
 
   ; remove files and uninstaller (preserving config for now)
   CopyFiles /SILENT "$INSTDIR\bin\bacula-fd.conf" "$INSTDIR\bacula-fd.conf"
+  IfFileExists "$INSTDIR\bin\bconsole.conf" save_bconsole nosave_bconsole
+  save_bconsole:
+  CopyFiles /SILENT "$INSTDIR\bin\bconsole.conf" "$INSTDIR\bconsole.conf"
+  nosave_bconsole:
+  IfFileExists "$INSTDIR\bin\wx-console.conf" save_wxconsole nosave_wxconsole
+  save_wxconsole:
+  CopyFiles /SILENT "$INSTDIR\bin\wx-console.conf" "$INSTDIR\wx-console.conf"
+  nosave_wxconsole:
   Delete /REBOOTOK "$INSTDIR\bin\*.*"
   Delete /REBOOTOK "$INSTDIR\doc\*.*"
   CopyFiles /SILENT "$INSTDIR\bacula-fd.conf" "$INSTDIR\bin\bacula-fd.conf"
   CopyFiles /SILENT "$INSTDIR\bconsole.conf" "$INSTDIR\bin\bconsole.conf"
-  Delete /REBOOTOK "$INSTDIR\bacula-fd.conf"
+  CopyFiles /SILENT "$INSTDIR\wx-console.conf" "$INSTDIR\bin\wx-console.conf"
+  Delete /REBOOTOK "$INSTDIR\*.conf"
   Delete /REBOOTOK "$INSTDIR\Uninstall.exe"
 
   ; Check for existing installation
-  MessageBox MB_YESNO|MB_ICONQUESTION "Would you like to delete the current configuration file ($INSTDIR\bin\bacula-fd.conf)?" IDNO LeaveConfig
-  Delete /REBOOTOK "$INSTDIR\bin\bacula-fd.conf"
+  MessageBox MB_YESNO|MB_ICONQUESTION "Would you like to delete the current configuration files?" IDNO LeaveConfig
+  Delete /REBOOTOK "$INSTDIR\bin\*.conf"
   ; remove directories used
   RMDir "$INSTDIR\bin"
   RMDir "$INSTDIR\doc"
   RMDir "$INSTDIR\working"
   RMDir "$INSTDIR"
   RMDir "C:\tmp"
-  RMDir "$SMPROGRAMS\Bacula"
   LeaveConfig:
+  RMDir "$SMPROGRAMS\Bacula"
   
 SectionEnd
 
