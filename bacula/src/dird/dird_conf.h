@@ -125,8 +125,8 @@ public:
 
    bool found;                        /* found with SD */
    int num_writers;
-   int num_waiting;
-   int use_count;
+   int max_writers;                   /* = 1 for files */
+   int reserved;                      /* number of reserves */
    bool open;
    bool append;                       /* in append mode */
    bool read;
@@ -134,6 +134,7 @@ public:
    bool autochanger;
    bool offline;
    bool autoselect;
+   uint32_t PoolId;
    char ChangerName[MAX_NAME_LENGTH];
    char VolumeName[MAX_NAME_LENGTH];
    char MediaType[MAX_NAME_LENGTH];
@@ -291,6 +292,7 @@ public:
    POOL      *dif_pool;               /* Pool for Differental backups */
    JOB       *verify_job;             /* Job name to verify */
    JOB       *jobdefs;                /* Job defaults */
+   alist     *run_cmds;               /* Run commands */
    uint32_t NumConcurrentJobs;        /* number of concurrent jobs running */
 };
 

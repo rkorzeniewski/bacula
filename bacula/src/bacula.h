@@ -58,6 +58,9 @@
 #include <stdlib.h>
 #endif
 #if HAVE_UNISTD_H
+#  ifdef HAVE_HPUX_OS
+#  undef _INCLUDE_POSIX1C_SOURCE
+#  endif
 #include <unistd.h>
 #endif
 #if HAVE_ALLOCA_H

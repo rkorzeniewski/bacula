@@ -2,7 +2,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -130,6 +130,7 @@ void store_name(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_strname(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_res(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_alist_res(LEX *lc, RES_ITEM *item, int index, int pass);
+void store_alist_str(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_int(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_pint(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_msgs(LEX *lc, RES_ITEM *item, int index, int pass);

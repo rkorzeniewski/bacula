@@ -109,7 +109,7 @@ unbash_spaces(char *str)
 {
    while (*str) {
      if (*str == 0x1)
-	*str = ' ';
+        *str = ' ';
      str++;
    }
 }
@@ -121,7 +121,7 @@ unbash_spaces(POOL_MEM &pm)
    char *str = pm.c_str();
    while (*str) {
      if (*str == 0x1)
-	*str = ' ';
+        *str = ' ';
      str++;
    }
 }
@@ -240,7 +240,7 @@ void jobstatus_to_ascii(int JobStatus, char *msg, int maxlen)
       if (JobStatus == 0) {
 	 buf[0] = 0;
       } else {
-	 bsnprintf(buf, sizeof(buf), _("Unknown Job termination status=%d"), JobStatus);
+         bsnprintf(buf, sizeof(buf), _("Unknown Job termination status=%d"), JobStatus);
       }
       jobstat = buf;
       break;
@@ -364,22 +364,22 @@ char *encode_mode(mode_t mode, char *buf)
   char *cp = buf;
 
   *cp++ = S_ISDIR(mode) ? 'd' : S_ISBLK(mode)  ? 'b' : S_ISCHR(mode)  ? 'c' :
-	  S_ISLNK(mode) ? 'l' : S_ISFIFO(mode) ? 'f' : S_ISSOCK(mode) ? 's' : '-';
+          S_ISLNK(mode) ? 'l' : S_ISFIFO(mode) ? 'f' : S_ISSOCK(mode) ? 's' : '-';
   *cp++ = mode & S_IRUSR ? 'r' : '-';
   *cp++ = mode & S_IWUSR ? 'w' : '-';
   *cp++ = (mode & S_ISUID
-	       ? (mode & S_IXUSR ? 's' : 'S')
-	       : (mode & S_IXUSR ? 'x' : '-'));
+               ? (mode & S_IXUSR ? 's' : 'S')
+               : (mode & S_IXUSR ? 'x' : '-'));
   *cp++ = mode & S_IRGRP ? 'r' : '-';
   *cp++ = mode & S_IWGRP ? 'w' : '-';
   *cp++ = (mode & S_ISGID
-	       ? (mode & S_IXGRP ? 's' : 'S')
-	       : (mode & S_IXGRP ? 'x' : '-'));
+               ? (mode & S_IXGRP ? 's' : 'S')
+               : (mode & S_IXGRP ? 'x' : '-'));
   *cp++ = mode & S_IROTH ? 'r' : '-';
   *cp++ = mode & S_IWOTH ? 'w' : '-';
   *cp++ = (mode & S_ISVTX
-	       ? (mode & S_IXOTH ? 't' : 'T')
-	       : (mode & S_IXOTH ? 'x' : '-'));
+               ? (mode & S_IXOTH ? 't' : 'T')
+               : (mode & S_IXOTH ? 'x' : '-'));
   *cp = '\0';
   return cp;
 }
@@ -407,7 +407,7 @@ int do_shell_expansion(char *name, int name_len)
       cmd =  get_pool_memory(PM_FNAME);
       /* look for shell */
       if ((shellcmd = getenv("SHELL")) == NULL) {
-	 shellcmd = "/bin/sh";
+         shellcmd = "/bin/sh";
       }
       pm_strcpy(&cmd, shellcmd);
       pm_strcat(&cmd, " -c \"echo ");
@@ -419,7 +419,7 @@ int do_shell_expansion(char *name, int name_len)
 	 fgets(line, sizeof(line), bpipe->rfd);
 	 strip_trailing_junk(line);
 	 stat = close_bpipe(bpipe);
-	 Dmsg2(400, "stat=%d got: %s\n", stat, line);
+         Dmsg2(400, "stat=%d got: %s\n", stat, line);
       } else {
 	 stat = 1;		      /* error */
       }
@@ -454,7 +454,7 @@ void make_session_key(char *key, char *seed, int mode)
      /* The following creates a seed for the session key generator
 	based on a collection of volatile and environment-specific
 	information unlikely to be vulnerable (as a whole) to an
-	exhaustive search attack.  If one of these items isn't
+        exhaustive search attack.  If one of these items isn't
 	available on your machine, replace it with something
 	equivalent or, if you like, just delete it. */
 
@@ -492,7 +492,7 @@ void make_session_key(char *key, char *seed, int mode)
 	   key[k++] = Rad16(rb & 0xF);
 #undef Rad16
 	   if (j & 1) {
-	      key[k++] = '-';
+              key[k++] = '-';
 	   }
 	}
 	key[--k] = 0;
@@ -516,6 +516,7 @@ void make_session_key(char *key, char *seed, int mode)
  *  %j = Unique Job name
  *  %l = job level
  *  %n = Unadorned Job name
+ *  %s = Since time
  *  %t = Job type (Backup, ...)
  *  %r = Recipients
  *  %v = Volume name
@@ -538,85 +539,92 @@ POOLMEM *edit_job_codes(JCR *jcr, char *omsg, char *imsg, const char *to)
    for (p=imsg; *p; p++) {
       if (*p == '%') {
 	 switch (*++p) {
-	 case '%':
-	    str = "%";
+         case '%':
+            str = "%";
 	    break;
-	 case 'c':
+         case 'c':
 	    if (jcr) {
 	       str = jcr->client_name;
 	    } else {
-	       str = "*none*";
+               str = "*none*";
 	    }
 	    break;
-	 case 'd':
-	    str = my_name;            /* Director's name */
+         case 'd':
+            str = my_name;            /* Director's name */
 	    break;
-	 case 'e':
+         case 'e':
 	    if (jcr) {
 	       str = job_status_to_str(jcr->JobStatus);
 	    } else {
-	       str = "*none*";
+               str = "*none*";
 	    }
 	    break;
-	 case 'i':
+         case 'i':
 	    if (jcr) {
-	       bsnprintf(add, sizeof(add), "%d", jcr->JobId);
+               bsnprintf(add, sizeof(add), "%d", jcr->JobId);
 	       str = add;
 	    } else {
-	       str = "*none*";
+               str = "*none*";
 	    }
 	    break;
-	 case 'j':                    /* Job name */
+         case 'j':                    /* Job name */
 	    if (jcr) {
 	       str = jcr->Job;
 	    } else {
-	       str = "*none*";
+               str = "*none*";
 	    }
 	    break;
-	 case 'l':
+         case 'l':
 	    if (jcr) {
 	       str = job_level_to_str(jcr->JobLevel);
 	    } else {
-	       str = "*none*";
+               str = "*none*";
 	    }
 	    break;
-	 case 'n':
+         case 'n':
 	     if (jcr) {
 		bstrncpy(name, jcr->Job, sizeof(name));
 		/* There are three periods after the Job name */
 		for (i=0; i<3; i++) {
-		   if ((q=strrchr(name, '.')) != NULL) {
+                   if ((q=strrchr(name, '.')) != NULL) {
 		       *q = 0;
 		   }
 		}
 		str = name;
 	     } else {
-		str = "*none*";
+                str = "*none*";
 	     }
 	     break;
-	 case 'r':
+         case 'r':
 	    str = to;
 	    break;
-	 case 't':
+         case 's':                    /* since time */
+	    if (jcr && jcr->stime) {
+	       str = jcr->stime;
+	    } else {
+               str = "*none*";
+	    }
+	    break;
+         case 't':
 	    if (jcr) {
 	       str = job_type_to_str(jcr->JobType);
 	    } else {
-	       str = "*none*";
+               str = "*none*";
 	    }
 	    break;
-	 case 'v':
+         case 'v':
 	    if (jcr) {
 	       if (jcr->VolumeName && jcr->VolumeName[0]) {
 		  str = jcr->VolumeName;
 	       } else {
-		  str = "";
+                  str = "";
 	       }
 	    } else {
-	       str = "*none*";
+               str = "*none*";
 	    }
 	    break;
 	 default:
-	    add[0] = '%';
+            add[0] = '%';
 	    add[1] = *p;
 	    add[2] = 0;
 	    str = add;

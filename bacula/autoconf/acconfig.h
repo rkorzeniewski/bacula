@@ -216,3 +216,7 @@
 
 /* Defined if Gtk+-2.4 or greater is present */
 #undef HAVE_GTK_2_4
+
+/* Needed on HP-UX/g++ systems to support long long ints (int64) */
+#undef _INCLUDE_LONGLONG
+

@@ -215,7 +215,8 @@ RES_ITEM job_items[] = {
    {"fileset",   store_res,     ITEM(res_job.fileset),  R_FILESET, ITEM_REQUIRED, 0},
    {"schedule",  store_res,     ITEM(res_job.schedule), R_SCHEDULE, 0, 0},
    {"verifyjob", store_res,     ITEM(res_job.verify_job), R_JOB, 0, 0},
-   {"jobdefs",   store_res,     ITEM(res_job.jobdefs),  R_JOBDEFS, 0, 0},
+   {"jobdefs",   store_res,     ITEM(res_job.jobdefs),    R_JOBDEFS, 0, 0},
+   {"run",       store_alist_str, ITEM(res_job.run_cmds), 0, 0, 0},
    {"where",    store_dir,      ITEM(res_job.RestoreWhere), 0, 0, 0},
    {"bootstrap",store_dir,      ITEM(res_job.RestoreBootstrap), 0, 0, 0},
    {"writebootstrap",store_dir, ITEM(res_job.WriteBootstrap), 0, 0, 0},
@@ -395,7 +396,7 @@ const char *level_to_str(int level)
    static char level_no[30];
    const char *str = level_no;
 
-   bsnprintf(level_no, sizeof(level_no), "%d", level);    /* default if not found */
+   bsnprintf(level_no, sizeof(level_no), "%c (%d)", level, level);    /* default if not found */
    for (i=0; joblevels[i].level_name; i++) {
       if (level == joblevels[i].level) {
 	 str = joblevels[i].level_name;
@@ -471,12 +472,14 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       break;
    case R_DEVICE:
       dev = &res->res_dev;
-      sendit(sock, "Device: name=%s ok=%d num_writers=%d num_waiting=%d\n"
-"      use_cnt=%d open=%d append=%d read=%d labeled=%d offline=%d autochgr=%d\n"
-"      volname=%s MediaType=%s\n",
-	 dev->hdr.name, dev->found, dev->num_writers, dev->num_waiting,
-	 dev->use_count, dev->open, dev->append, dev->read, dev->labeled,
+      char ed1[50];
+      sendit(sock, "Device: name=%s ok=%d num_writers=%d max_writers=%d\n"
+"      reserved=%d open=%d append=%d read=%d labeled=%d offline=%d autochgr=%d\n"
+"      poolid=%s volname=%s MediaType=%s\n",
+	 dev->hdr.name, dev->found, dev->num_writers, dev->max_writers,
+	 dev->reserved, dev->open, dev->append, dev->read, dev->labeled,
 	 dev->offline, dev->autochanger,
+	 edit_uint64(dev->PoolId, ed1),
 	 dev->VolumeName, dev->MediaType);
       break;
    case R_STORAGE:
@@ -563,7 +566,12 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
          sendit(sock, "  --> ");
 	 dump_resource(-type, (RES *)res->res_job.verify_job, sendit, sock);
       }
-      break;
+      if (res->res_job.run_cmds) {
+	 char *runcmd;
+	 foreach_alist(runcmd, res->res_job.run_cmds) {
+            sendit(sock, "  --> Run=%s\n", runcmd);
+	 }
+      }
       if (res->res_job.messages) {
          sendit(sock, "  --> ");
 	 dump_resource(-R_MSGS, (RES *)res->res_job.messages, sendit, sock);
@@ -948,6 +956,9 @@ void free_resource(RES *sres, int type)
       if (res->res_job.ClientRunAfterJob) {
 	 free(res->res_job.ClientRunAfterJob);
       }
+      if (res->res_job.run_cmds) {
+	 delete res->res_job.run_cmds;
+      }
       if (res->res_job.storage) {
 	 delete res->res_job.storage;
       }
@@ -1055,6 +1066,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
 	 res->res_job.dif_pool	 = res_all.res_job.dif_pool;
 	 res->res_job.verify_job = res_all.res_job.verify_job;
 	 res->res_job.jobdefs	 = res_all.res_job.jobdefs;
+	 res->res_job.run_cmds	 = res_all.res_job.run_cmds;
 	 break;
       case R_COUNTER:
 	 if ((res = (URES *)GetResWithName(R_COUNTER, res_all.res_counter.hdr.name)) == NULL) {

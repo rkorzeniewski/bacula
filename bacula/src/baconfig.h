@@ -511,6 +511,22 @@ extern "C" int getdomainname(char *name, int len);
 #ifdef HAVE_AIX_OS
 #endif
 
+/* HP-UX 11 specific workarounds */
+
+#ifdef HAVE_HPUX_OS
+# undef h_errno
+extern int h_errno;
+/* the {get,set}domainname() functions exist in HPUX's libc.
+ * the configure script detects that correctly.
+ * the problem is no system headers declares the prototypes for these functions
+ * this is done below
+ */
+extern "C" int getdomainname(char *name, int namelen);
+extern "C" int setdomainname(char *name, int namelen);
+#define uLong unsigned long
+#endif /* HAVE_HPUX_OS */
+
+
 #ifdef HAVE_OSF1_OS
 #undef HAVE_CHFLAGS  /* chflags is incorrectly detected */
 extern "C" int fchdir(int filedes);

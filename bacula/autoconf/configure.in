@@ -1572,7 +1572,12 @@ AC_CHECK_FUNCS(strtoll, [AC_DEFINE(HAVE_STRTOLL)])
 
 AC_CHECK_FUNCS(chflags) 
 
-AC_CHECK_FUNCS(snprintf vsnprintf gethostid getdomainname)
+AC_CHECK_FUNCS(snprintf vsnprintf gethostid)
+if test "$DISTNAME" = "hpux" ; then
+       echo "*** getdomainname check is disabled for hpux"
+else
+       AC_CHECK_FUNCS(getdomainname)
+fi
 
 dnl# --------------------------------------------------------------------------
 dnl# CHECKING FOR THREAD SAFE FUNCTIONS
@@ -1780,6 +1785,7 @@ hpux)
 	DISTVER=`uname -r`
 	TAPEDRIVE="/dev/rmt/0hnb"
 	PTHREAD_LIB="-lpthread"
+	AC_DEFINE([_INCLUDE_LONGLONG])
   ;;
 irix)
 	DISTVER=`uname -r`

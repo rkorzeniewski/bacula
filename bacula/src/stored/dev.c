@@ -2,18 +2,18 @@
  *
  *   dev.c  -- low level operations on device (storage device)
  *
- *              Kern Sibbald, MM
+ *		Kern Sibbald, MM
  *
  *     NOTE!!!! None of these routines are reentrant. You must
- *        use lock_device() and unlock_device() at a higher level,
- *        or use the xxx_device() equivalents.  By moving the
- *        thread synchronization to a higher level, we permit
+ *	  use lock_device() and unlock_device() at a higher level,
+ *	  or use the xxx_device() equivalents.	By moving the
+ *	  thread synchronization to a higher level, we permit
  *        the higher level routines to "seize" the device and
- *        to carry out operations without worrying about who
- *        set what lock (i.e. race conditions).
+ *	  to carry out operations without worrying about who
+ *	  set what lock (i.e. race conditions).
  *
  *     Note, this is the device dependent code, and my have
- *           to be modified for each system, but is meant to
+ *	     to be modified for each system, but is meant to
  *           be as "generic" as possible.
  *
  *     The purpose of this code is to develop a SIMPLE Storage
@@ -114,10 +114,10 @@ init_dev(JCR *jcr, DEVICE *dev, DEVRES *device)
    if (stat(device->device_name, &statp) < 0) {
       berrno be;
       if (dev) {
-         dev->dev_errno = errno;
+	 dev->dev_errno = errno;
       }
       Jmsg2(jcr, M_ERROR, 0, _("Unable to stat device %s: ERR=%s\n"), 
-         device->device_name, be.strerror());
+	 device->device_name, be.strerror());
       return NULL;
    }
    
@@ -132,10 +132,10 @@ init_dev(JCR *jcr, DEVICE *dev, DEVRES *device)
       fifo = true;
    } else {
       if (dev) {
-         dev->dev_errno = ENODEV;
+	 dev->dev_errno = ENODEV;
       }
       Jmsg2(jcr, M_ERROR, 0, _("%s is an unknown device type. Must be tape or directory. st_mode=%x\n"),
-         device->device_name, statp.st_mode);
+	 device->device_name, statp.st_mode);
       return NULL;
    }
    if (!dev) {
@@ -189,11 +189,11 @@ init_dev(JCR *jcr, DEVICE *dev, DEVRES *device)
     */
    if (dev->is_file() && device->cap_bits & CAP_REQMOUNT) {
       if (stat(device->mount_point, &statp) < 0) {
-         berrno be;
-         dev->dev_errno = errno;
+	 berrno be;
+	 dev->dev_errno = errno;
          Jmsg2(jcr, M_ERROR, 0, _("Unable to stat mount point %s: ERR=%s\n"), 
-            device->mount_point, be.strerror());
-         return NULL;
+	    device->mount_point, be.strerror());
+	 return NULL;
       }
       if (!device->mount_command || !device->unmount_command) {
          Jmsg0(jcr, M_ERROR_TERM, 0, _("Mount and unmount commands must defined for a device which requires mount.\n"));
@@ -206,12 +206,12 @@ init_dev(JCR *jcr, DEVICE *dev, DEVRES *device)
 
    if (dev->max_block_size > 1000000) {
       Jmsg3(jcr, M_ERROR, 0, _("Block size %u on device %s is too large, using default %u\n"),
-         dev->max_block_size, dev->dev_name, DEFAULT_BLOCK_SIZE);
+	 dev->max_block_size, dev->dev_name, DEFAULT_BLOCK_SIZE);
       dev->max_block_size = 0;
    }
    if (dev->max_block_size % TAPE_BSIZE != 0) {
       Jmsg2(jcr, M_WARNING, 0, _("Max block size %u not multiple of device %s block size.\n"),
-         dev->max_block_size, dev->dev_name);
+	 dev->max_block_size, dev->dev_name);
    }
 
    dev->errmsg = get_pool_memory(PM_EMSG);
@@ -260,7 +260,7 @@ init_dev(JCR *jcr, DEVICE *dev, DEVRES *device)
  * initialize buffer pointers.
  *
  * Returns:  -1  on error
- *           fd  on success
+ *	     fd  on success
  *
  * Note, for a tape, the VolName is the name we give to the
  *    volume (not really used here), but for a file, the
@@ -279,11 +279,11 @@ open_dev(DEVICE *dev, char *VolName, int mode)
        *  starts and snatches up the device.
        */
       if (VolName && strcmp(dev->VolCatInfo.VolCatName, VolName) != 0) {
-         return -1;
+	 return -1;
       }
       dev->use_count++;
       Mmsg2(&dev->errmsg, _("WARNING!!!! device %s opened %d times!!!\n"),
-            dev->dev_name, dev->use_count);
+	    dev->dev_name, dev->use_count);
       Emsg1(M_WARNING, 0, "%s", dev->errmsg);
       return dev->fd;
    }
@@ -292,7 +292,7 @@ open_dev(DEVICE *dev, char *VolName, int mode)
    }
 
    Dmsg3(29, "open_dev: tape=%d dev_name=%s vol=%s\n", dev_is_tape(dev),
-         dev->dev_name, dev->VolCatInfo.VolCatName);
+	 dev->dev_name, dev->VolCatInfo.VolCatName);
    dev->state &= ~(ST_LABEL|ST_APPEND|ST_READ|ST_EOT|ST_WEOT|ST_EOF);
    dev->label_type = B_BACULA_LABEL;
    if (dev->is_tape() || dev->is_fifo()) {
@@ -300,53 +300,53 @@ open_dev(DEVICE *dev, char *VolName, int mode)
       int timeout;
       Dmsg0(29, "open_dev: device is tape\n");
       if (mode == OPEN_READ_WRITE) {
-         dev->mode = O_RDWR | O_BINARY;
+	 dev->mode = O_RDWR | O_BINARY;
       } else if (mode == OPEN_READ_ONLY) {
-         dev->mode = O_RDONLY | O_BINARY;
+	 dev->mode = O_RDONLY | O_BINARY;
       } else if (mode == OPEN_WRITE_ONLY) {
-         dev->mode = O_WRONLY | O_BINARY;
+	 dev->mode = O_WRONLY | O_BINARY;
       } else {
          Emsg0(M_ABORT, 0, _("Illegal mode given to open_dev.\n"));
       }
       timeout = dev->max_open_wait;
       errno = 0;
       if (dev->is_fifo() && timeout) {
-         /* Set open timer */
-         dev->tid = start_thread_timer(pthread_self(), timeout);
+	 /* Set open timer */
+	 dev->tid = start_thread_timer(pthread_self(), timeout);
       }
       /* If busy retry each second for max_open_wait seconds */
       while ((dev->fd = open(dev->dev_name, dev->mode, MODE_RW)) < 0) {
-         berrno be;
-         if (errno == EINTR || errno == EAGAIN) {
-            continue;
-         }
-         if (errno == EBUSY && timeout-- > 0) {
+	 berrno be;
+	 if (errno == EINTR || errno == EAGAIN) {
+	    continue;
+	 }
+	 if (errno == EBUSY && timeout-- > 0) {
             Dmsg2(100, "Device %s busy. ERR=%s\n", dev->dev_name, be.strerror());
-            bmicrosleep(1, 0);
-            continue;
-         }
-         dev->dev_errno = errno;
+	    bmicrosleep(1, 0);
+	    continue;
+	 }
+	 dev->dev_errno = errno;
          Mmsg2(&dev->errmsg, _("stored: unable to open device %s: ERR=%s\n"),
-               dev->dev_name, be.strerror());
-         /* Stop any open timer we set */
-         if (dev->tid) {
-            stop_thread_timer(dev->tid);
-            dev->tid = 0;
-         }
-         Emsg0(M_FATAL, 0, dev->errmsg);
-         break;
+	       dev->dev_name, be.strerror());
+	 /* Stop any open timer we set */
+	 if (dev->tid) {
+	    stop_thread_timer(dev->tid);
+	    dev->tid = 0;
+	 }
+	 Emsg0(M_FATAL, 0, dev->errmsg);
+	 break;
       }
       if (dev->fd >= 0) {
-         dev->dev_errno = 0;
-         dev->state |= ST_OPENED;
-         dev->use_count = 1;
-         update_pos_dev(dev);             /* update position */
-         set_os_device_parameters(dev);      /* do system dependent stuff */
+	 dev->dev_errno = 0;
+	 dev->state |= ST_OPENED;
+	 dev->use_count = 1;
+	 update_pos_dev(dev);		  /* update position */
+	 set_os_device_parameters(dev);      /* do system dependent stuff */
       }
       /* Stop any open() timer we started */
       if (dev->tid) {
-         stop_thread_timer(dev->tid);
-         dev->tid = 0;
+	 stop_thread_timer(dev->tid);
+	 dev->tid = 0;
       }
       Dmsg1(29, "open_dev: tape %d opened\n", dev->fd);
    } else {
@@ -356,31 +356,31 @@ open_dev(DEVICE *dev, char *VolName, int mode)
        * Handle opening of File Archive (not a tape)
        */     
       if (dev->part == 0) {
-         dev->file_size = 0;
+	 dev->file_size = 0;
       }
       dev->part_size = 0;
       
       /* if num_parts has not been set, but VolCatInfo is available, copy
        * it from the VolCatInfo.VolCatParts */
       if (dev->num_parts < dev->VolCatInfo.VolCatParts) {
-         dev->num_parts = dev->VolCatInfo.VolCatParts;
+	 dev->num_parts = dev->VolCatInfo.VolCatParts;
       }
       
       if (VolName == NULL || *VolName == 0) {
          Mmsg(dev->errmsg, _("Could not open file device %s. No Volume name given.\n"),
-            dev->dev_name);
-         return -1;
+	    dev->dev_name);
+	 return -1;
       }
       get_filename(dev, VolName, archive_name);
 
       if (mount_dev(dev, 1) < 0) {
          Mmsg(dev->errmsg, _("Could not mount archive device %s.\n"),
-              dev->dev_name);
-         Emsg0(M_FATAL, 0, dev->errmsg);
-         dev->fd = -1;
-         return dev->fd;
+	      dev->dev_name);
+	 Emsg0(M_FATAL, 0, dev->errmsg);
+	 dev->fd = -1;
+	 return dev->fd;
       }
-            
+	    
       Dmsg2(29, "open_dev: device is disk %s (mode:%d)\n", archive_name.c_str(), mode);
       dev->openmode = mode;
       
@@ -389,42 +389,42 @@ open_dev(DEVICE *dev, char *VolName, int mode)
        *   OPEN_READ_ONLY as writing would be an error.
        */
       if (dev->part < dev->num_parts) {
-         mode = OPEN_READ_ONLY;
+	 mode = OPEN_READ_ONLY;
       }
       
       if (mode == OPEN_READ_WRITE) {
-         dev->mode = O_CREAT | O_RDWR | O_BINARY;
+	 dev->mode = O_CREAT | O_RDWR | O_BINARY;
       } else if (mode == OPEN_READ_ONLY) {
-         dev->mode = O_RDONLY | O_BINARY;
+	 dev->mode = O_RDONLY | O_BINARY;
       } else if (mode == OPEN_WRITE_ONLY) {
-         dev->mode = O_WRONLY | O_BINARY;
+	 dev->mode = O_WRONLY | O_BINARY;
       } else {
          Emsg0(M_ABORT, 0, _("Illegal mode given to open_dev.\n"));
       }
       /* If creating file, give 0640 permissions */
       if ((dev->fd = open(archive_name.c_str(), dev->mode, 0640)) < 0) {
-         berrno be;
-         dev->dev_errno = errno;
+	 berrno be;
+	 dev->dev_errno = errno;
          Mmsg2(&dev->errmsg, _("Could not open: %s, ERR=%s\n"), archive_name.c_str(), be.strerror());
-         Emsg0(M_FATAL, 0, dev->errmsg);
+	 Emsg0(M_FATAL, 0, dev->errmsg);
       } else {
-         dev->dev_errno = 0;
-         dev->state |= ST_OPENED;
-         dev->use_count = 1;
-         update_pos_dev(dev);                /* update position */
-         if (fstat(dev->fd, &filestat) < 0) {
-            berrno be;
-            dev->dev_errno = errno;
+	 dev->dev_errno = 0;
+	 dev->state |= ST_OPENED;
+	 dev->use_count = 1;
+	 update_pos_dev(dev);		     /* update position */
+	 if (fstat(dev->fd, &filestat) < 0) {
+	    berrno be;
+	    dev->dev_errno = errno;
             Mmsg2(&dev->errmsg, _("Could not fstat: %s, ERR=%s\n"), archive_name.c_str(), be.strerror());
-            Emsg0(M_FATAL, 0, dev->errmsg);
-         } else {
-            dev->part_size = filestat.st_size;
-         }
+	    Emsg0(M_FATAL, 0, dev->errmsg);
+	 } else {
+	    dev->part_size = filestat.st_size;
+	 }
       }
       Dmsg4(29, "open_dev: disk fd=%d opened, part=%d/%d, part_size=%u\n", dev->fd, dev->part, dev->num_parts, dev->part_size);
       if (dev->is_dvd() && (dev->mode != OPEN_READ_ONLY) && 
-          (dev->free_space_errno == 0 || dev->num_parts == dev->part)) {
-         update_free_space_dev(dev);
+	  (dev->free_space_errno == 0 || dev->num_parts == dev->part)) {
+	 update_free_space_dev(dev);
       }
    }
    return dev->fd;
@@ -442,7 +442,7 @@ bool _rewind_dev(char *file, int line, DEVICE *dev)
 /*
  * Rewind the device.
  *  Returns: true  on success
- *           false on failure
+ *	     false on failure
  */
 bool rewind_dev(DEVICE *dev)
 {
@@ -453,7 +453,7 @@ bool rewind_dev(DEVICE *dev)
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
       Mmsg1(&dev->errmsg, _("Bad call to rewind_dev. Device %s not open\n"),
-            dev->dev_name);
+	    dev->dev_name);
       Emsg0(M_ABORT, 0, dev->errmsg);
       return false;
    }
@@ -469,30 +469,30 @@ bool rewind_dev(DEVICE *dev)
        * retrying every 5 seconds.
        */
       for (i=dev->max_rewind_wait; ; i -= 5) {
-         if (ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
-            berrno be;
-            clrerror_dev(dev, MTREW);
-            if (i == dev->max_rewind_wait) {
+	 if (ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
+	    berrno be;
+	    clrerror_dev(dev, MTREW);
+	    if (i == dev->max_rewind_wait) {
                Dmsg1(200, "Rewind error, %s. retrying ...\n", be.strerror());
-            }
-            if (dev->dev_errno == EIO && i > 0) {
+	    }
+	    if (dev->dev_errno == EIO && i > 0) {
                Dmsg0(200, "Sleeping 5 seconds.\n");
-               bmicrosleep(5, 0);
-               continue;
-            }
+	       bmicrosleep(5, 0);
+	       continue;
+	    }
             Mmsg2(&dev->errmsg, _("Rewind error on %s. ERR=%s.\n"),
-               dev->dev_name, be.strerror());
-            return false;
-         }
-         break;
+	       dev->dev_name, be.strerror());
+	    return false;
+	 }
+	 break;
       }
    } else if (dev->is_file()) {      
       if (lseek_dev(dev, (off_t)0, SEEK_SET) < 0) {
-         berrno be;
-         dev->dev_errno = errno;
+	 berrno be;
+	 dev->dev_errno = errno;
          Mmsg2(&dev->errmsg, _("lseek_dev error on %s. ERR=%s.\n"),
-            dev->dev_name, be.strerror());
-         return false;
+	    dev->dev_name, be.strerror());
+	 return false;
       }
    }
    return true;
@@ -518,13 +518,13 @@ void DEVICE::set_eof()
 void DEVICE::set_eot() 
 {
    state |= (ST_EOF|ST_EOT|ST_WEOT);
-   state &= ~ST_APPEND;          /* make tape read-only */
+   state &= ~ST_APPEND; 	 /* make tape read-only */
 }
 
 /*
  * Position device to end of medium (end of data)
  *  Returns: 1 on succes
- *           0 on error
+ *	     0 on error
  */
 int
 eod_dev(DEVICE *dev)
@@ -549,14 +549,14 @@ eod_dev(DEVICE *dev)
       pos = lseek_dev(dev, (off_t)0, SEEK_END);
 //    Dmsg1(100, "====== Seek to %lld\n", pos);
       if (pos >= 0) {
-         update_pos_dev(dev);
-         dev->state |= ST_EOT;
-         return 1;
+	 update_pos_dev(dev);
+	 dev->state |= ST_EOT;
+	 return 1;
       }
       dev->dev_errno = errno;
       berrno be;
       Mmsg2(&dev->errmsg, _("lseek_dev error on %s. ERR=%s.\n"),
-             dev->dev_name, be.strerror());
+	     dev->dev_name, be.strerror());
       return 0;
    }
 #ifdef MTEOM
@@ -564,9 +564,9 @@ eod_dev(DEVICE *dev)
       Dmsg0(100,"Using FAST FSF for EOM\n");
       /* If unknown position, rewind */
       if (!dev_get_os_pos(dev, &mt_stat)) {
-        if (!rewind_dev(dev)) {
-          return 0;
-        }
+	if (!rewind_dev(dev)) {
+	  return 0;
+	}
       }
       mt_com.mt_op = MTFSF;
       /*
@@ -575,33 +575,33 @@ eod_dev(DEVICE *dev)
        */
       mt_com.mt_count = INT16_MAX;    /* use big positive number */
       if (mt_com.mt_count < 0) {
-         mt_com.mt_count = INT16_MAX; /* brain damaged system */
+	 mt_com.mt_count = INT16_MAX; /* brain damaged system */
       }
    }
 
    if (dev_cap(dev, CAP_MTIOCGET) && (dev_cap(dev, CAP_FASTFSF) || dev_cap(dev, CAP_EOM))) {
       if (dev_cap(dev, CAP_EOM)) {
          Dmsg0(100,"Using EOM for EOM\n");
-         mt_com.mt_op = MTEOM;
-         mt_com.mt_count = 1;
+	 mt_com.mt_op = MTEOM;
+	 mt_com.mt_count = 1;
       }
 
       if ((stat=ioctl(dev->fd, MTIOCTOP, (char *)&mt_com)) < 0) {
-         berrno be;
-         clrerror_dev(dev, mt_com.mt_op);
+	 berrno be;
+	 clrerror_dev(dev, mt_com.mt_op);
          Dmsg1(50, "ioctl error: %s\n", be.strerror());
-         update_pos_dev(dev);
+	 update_pos_dev(dev);
          Mmsg2(&dev->errmsg, _("ioctl MTEOM error on %s. ERR=%s.\n"),
-            dev->dev_name, be.strerror());
-         return 0;
+	    dev->dev_name, be.strerror());
+	 return 0;
       }
 
       if (!dev_get_os_pos(dev, &mt_stat)) {
-         berrno be;
-         clrerror_dev(dev, -1);
+	 berrno be;
+	 clrerror_dev(dev, -1);
          Mmsg2(&dev->errmsg, _("ioctl MTIOCGET error on %s. ERR=%s.\n"),
-            dev->dev_name, be.strerror());
-         return 0;
+	    dev->dev_name, be.strerror());
+	 return 0;
       }
       Dmsg2(100, "EOD file=%d block=%d\n", mt_stat.mt_fileno, mt_stat.mt_blkno);
       dev->set_eof();
@@ -615,7 +615,7 @@ eod_dev(DEVICE *dev)
        * Rewind then use FSF until EOT reached
        */
       if (!rewind_dev(dev)) {
-         return 0;
+	 return 0;
       }
       /*
        * Move file by file to the end of the tape
@@ -623,25 +623,25 @@ eod_dev(DEVICE *dev)
       int file_num;
       for (file_num=dev->file; !dev->at_eot(); file_num++) {
          Dmsg0(200, "eod_dev: doing fsf 1\n");
-         if (!fsf_dev(dev, 1)) {
+	 if (!fsf_dev(dev, 1)) {
             Dmsg0(200, "fsf_dev error.\n");
-            return 0;
-         }
-         /*
-          * Avoid infinite loop. ***FIXME*** possibly add code
-          *   to set EOD or to turn off CAP_FASTFSF if on.
-          */
-         if (file_num == (int)dev->file) {
-            struct mtget mt_stat;
+	    return 0;
+	 }
+	 /*
+	  * Avoid infinite loop. ***FIXME*** possibly add code
+	  *   to set EOD or to turn off CAP_FASTFSF if on.
+	  */
+	 if (file_num == (int)dev->file) {
+	    struct mtget mt_stat;
             Dmsg1(100, "fsf_dev did not advance from file %d\n", file_num);
-            if (dev_get_os_pos(dev, &mt_stat)) {
+	    if (dev_get_os_pos(dev, &mt_stat)) {
                Dmsg2(100, "Adjust file from %d to %d\n", dev->file , mt_stat.mt_fileno);
-               dev->set_eof();
-               dev->file = mt_stat.mt_fileno;
-            }
-            stat = 0;
-            break;                    /* we are not progressing, bail out */
-         }
+	       dev->set_eof();
+	       dev->file = mt_stat.mt_fileno;
+	    }
+	    stat = 0;
+	    break;		      /* we are not progressing, bail out */
+	 }
       }
    }
    /*
@@ -656,12 +656,12 @@ eod_dev(DEVICE *dev)
       /* If BSF worked and fileno is known (not -1), set file */
       if (dev_get_os_pos(dev, &mt_stat)) {
          Dmsg2(100, "BSFATEOF adjust file from %d to %d\n", dev->file , mt_stat.mt_fileno);
-         dev->file = mt_stat.mt_fileno;
+	 dev->file = mt_stat.mt_fileno;
       } else {
-         dev->file++;                 /* wing it -- not correct on all OSes */
+	 dev->file++;		      /* wing it -- not correct on all OSes */
       }
    } else {
-      update_pos_dev(dev);                   /* update position */
+      update_pos_dev(dev);		     /* update position */
       stat = 1;
    }
    Dmsg1(200, "EOD dev->file=%d\n", dev->file);
@@ -672,7 +672,7 @@ eod_dev(DEVICE *dev)
  * Set the position of the device -- only for files
  *   For other devices, there is no generic way to do it.
  *  Returns: true  on succes
- *           false on error
+ *	     false on error
  */
 bool update_pos_dev(DEVICE *dev)
 {
@@ -692,14 +692,14 @@ bool update_pos_dev(DEVICE *dev)
       dev->file_addr = 0;
       pos = lseek_dev(dev, (off_t)0, SEEK_CUR);
       if (pos < 0) {
-         berrno be;
-         dev->dev_errno = errno;
+	 berrno be;
+	 dev->dev_errno = errno;
          Pmsg1(000, "Seek error: ERR=%s\n", be.strerror());
          Mmsg2(&dev->errmsg, _("lseek_dev error on %s. ERR=%s.\n"),
-            dev->dev_name, be.strerror());
-         ok = false;
+	    dev->dev_name, be.strerror());
+	 ok = false;
       } else {
-         dev->file_addr = pos;
+	 dev->file_addr = pos;
       }
    }
    return ok;
@@ -733,49 +733,49 @@ uint32_t status_dev(DEVICE *dev)
       Dmsg0(-20," Bacula status:");
       Dmsg2(-20," file=%d block=%d\n", dev->file, dev->block_num);
       if (ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) < 0) {
-         berrno be;
-         dev->dev_errno = errno;
+	 berrno be;
+	 dev->dev_errno = errno;
          Mmsg2(&dev->errmsg, _("ioctl MTIOCGET error on %s. ERR=%s.\n"),
-            dev->dev_name, be.strerror());
-         return 0;
+	    dev->dev_name, be.strerror());
+	 return 0;
       }
       Dmsg0(-20, " Device status:");
 
 #if defined(HAVE_LINUX_OS)
       if (GMT_EOF(mt_stat.mt_gstat)) {
-         stat |= BMT_EOF;
+	 stat |= BMT_EOF;
          Dmsg0(-20, " EOF");
       }
       if (GMT_BOT(mt_stat.mt_gstat)) {
-         stat |= BMT_BOT;
+	 stat |= BMT_BOT;
          Dmsg0(-20, " BOT");
       }
       if (GMT_EOT(mt_stat.mt_gstat)) {
-         stat |= BMT_EOT;
+	 stat |= BMT_EOT;
          Dmsg0(-20, " EOT");
       }
       if (GMT_SM(mt_stat.mt_gstat)) {
-         stat |= BMT_SM;
+	 stat |= BMT_SM;
          Dmsg0(-20, " SM");
       }
       if (GMT_EOD(mt_stat.mt_gstat)) {
-         stat |= BMT_EOD;
+	 stat |= BMT_EOD;
          Dmsg0(-20, " EOD");
       }
       if (GMT_WR_PROT(mt_stat.mt_gstat)) {
-         stat |= BMT_WR_PROT;
+	 stat |= BMT_WR_PROT;
          Dmsg0(-20, " WR_PROT");
       }
       if (GMT_ONLINE(mt_stat.mt_gstat)) {
-         stat |= BMT_ONLINE;
+	 stat |= BMT_ONLINE;
          Dmsg0(-20, " ONLINE");
       }
       if (GMT_DR_OPEN(mt_stat.mt_gstat)) {
-         stat |= BMT_DR_OPEN;
+	 stat |= BMT_DR_OPEN;
          Dmsg0(-20, " DR_OPEN");
       }
       if (GMT_IM_REP_EN(mt_stat.mt_gstat)) {
-         stat |= BMT_IM_REP_EN;
+	 stat |= BMT_IM_REP_EN;
          Dmsg0(-20, " IM_REP_EN");
       }
 #endif /* !SunOS && !OSF */
@@ -794,7 +794,7 @@ uint32_t status_dev(DEVICE *dev)
 /*
  * Load medium in device
  *  Returns: true  on success
- *           false on failure
+ *	     false on failure
  */
 bool load_dev(DEVICE *dev)
 {
@@ -814,9 +814,9 @@ bool load_dev(DEVICE *dev)
 #ifndef MTLOAD
    Dmsg0(200, "stored: MTLOAD command not available\n");
    berrno be;
-   dev->dev_errno = ENOTTY;           /* function not available */
+   dev->dev_errno = ENOTTY;	      /* function not available */
    Mmsg2(&dev->errmsg, _("ioctl MTLOAD error on %s. ERR=%s.\n"),
-         dev->dev_name, be.strerror());
+	 dev->dev_name, be.strerror());
    return false;
 #else
 
@@ -829,7 +829,7 @@ bool load_dev(DEVICE *dev)
       berrno be;
       dev->dev_errno = errno;
       Mmsg2(&dev->errmsg, _("ioctl MTLOAD error on %s. ERR=%s.\n"),
-         dev->dev_name, be.strerror());
+	 dev->dev_name, be.strerror());
       return false;
    }
    return true;
@@ -839,7 +839,7 @@ bool load_dev(DEVICE *dev)
 /*
  * Rewind device and put it offline
  *  Returns: true  on success
- *           false on failure
+ *	     false on failure
  */
 bool offline_dev(DEVICE *dev)
 {
@@ -871,7 +871,7 @@ bool offline_dev(DEVICE *dev)
       berrno be;
       dev->dev_errno = errno;
       Mmsg2(&dev->errmsg, _("ioctl MTOFFL error on %s. ERR=%s.\n"),
-         dev->dev_name, be.strerror());
+	 dev->dev_name, be.strerror());
       return false;
    }
    Dmsg1(100, "Offlined device %s\n", dev->dev_name);
@@ -901,7 +901,7 @@ bool offline_or_rewind_dev(DEVICE *dev)
 /*
  * Foward space a file
  *   Returns: true  on success
- *            false on failure
+ *	      false on failure
  */
 bool
 fsf_dev(DEVICE *dev, int num)
@@ -943,14 +943,14 @@ fsf_dev(DEVICE *dev, int num)
       mt_com.mt_count = num;
       stat = ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
       if (stat < 0 || !dev_get_os_pos(dev, &mt_stat)) {
-         berrno be;
-         dev->state |= ST_EOT;
+	 berrno be;
+	 dev->state |= ST_EOT;
          Dmsg0(200, "Set ST_EOT\n");
-         clrerror_dev(dev, MTFSF);
+	 clrerror_dev(dev, MTFSF);
          Mmsg2(dev->errmsg, _("ioctl MTFSF error on %s. ERR=%s.\n"),
-            dev->dev_name, be.strerror());
+	    dev->dev_name, be.strerror());
          Dmsg1(200, "%s", dev->errmsg);
-         return false;
+	 return false;
       }
       Dmsg2(200, "fsf file=%d block=%d\n", mt_stat.mt_fileno, mt_stat.mt_blkno);
       dev->set_eof();
@@ -969,60 +969,60 @@ fsf_dev(DEVICE *dev, int num)
       int rbuf_len;
       Dmsg0(200, "FSF has cap_fsf\n");
       if (dev->max_block_size == 0) {
-         rbuf_len = DEFAULT_BLOCK_SIZE;
+	 rbuf_len = DEFAULT_BLOCK_SIZE;
       } else {
-         rbuf_len = dev->max_block_size;
+	 rbuf_len = dev->max_block_size;
       }
       rbuf = get_memory(rbuf_len);
       mt_com.mt_op = MTFSF;
       mt_com.mt_count = 1;
       while (num-- && !(dev->state & ST_EOT)) {
          Dmsg0(100, "Doing read before fsf\n");
-         if ((stat = read(dev->fd, (char *)rbuf, rbuf_len)) < 0) {
-            if (errno == ENOMEM) {     /* tape record exceeds buf len */
-               stat = rbuf_len;        /* This is OK */
-            } else {
-               berrno be;
-               dev->state |= ST_EOT;
-               clrerror_dev(dev, -1);
+	 if ((stat = read(dev->fd, (char *)rbuf, rbuf_len)) < 0) {
+	    if (errno == ENOMEM) {     /* tape record exceeds buf len */
+	       stat = rbuf_len;        /* This is OK */
+	    } else {
+	       berrno be;
+	       dev->state |= ST_EOT;
+	       clrerror_dev(dev, -1);
                Dmsg2(100, "Set ST_EOT read errno=%d. ERR=%s\n", dev->dev_errno,
-                  be.strerror());
+		  be.strerror());
                Mmsg2(dev->errmsg, _("read error on %s. ERR=%s.\n"),
-                  dev->dev_name, be.strerror());
+		  dev->dev_name, be.strerror());
                Dmsg1(100, "%s", dev->errmsg);
-               break;
-            }
-         }
-         if (stat == 0) {                /* EOF */
-            update_pos_dev(dev);
+	       break;
+	    }
+	 }
+	 if (stat == 0) {		 /* EOF */
+	    update_pos_dev(dev);
             Dmsg1(100, "End of File mark from read. File=%d\n", dev->file+1);
-            /* Two reads of zero means end of tape */
-            if (dev->state & ST_EOF) {
-               dev->state |= ST_EOT;
+	    /* Two reads of zero means end of tape */
+	    if (dev->state & ST_EOF) {
+	       dev->state |= ST_EOT;
                Dmsg0(100, "Set ST_EOT\n");
-               break;
-            } else {
-               dev->set_eof();
-               continue;
-            }
-         } else {                        /* Got data */
-            dev->state &= ~(ST_EOF|ST_EOT);
-         }
+	       break;
+	    } else {
+	       dev->set_eof();
+	       continue;
+	    }
+	 } else {			 /* Got data */
+	    dev->state &= ~(ST_EOF|ST_EOT);
+	 }
 
          Dmsg0(100, "Doing MTFSF\n");
-         stat = ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
-         if (stat < 0) {                 /* error => EOT */
-            berrno be;
-            dev->state |= ST_EOT;
+	 stat = ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
+	 if (stat < 0) {		 /* error => EOT */
+	    berrno be;
+	    dev->state |= ST_EOT;
             Dmsg0(100, "Set ST_EOT\n");
-            clrerror_dev(dev, MTFSF);
+	    clrerror_dev(dev, MTFSF);
             Mmsg2(&dev->errmsg, _("ioctl MTFSF error on %s. ERR=%s.\n"),
-               dev->dev_name, be.strerror());
+	       dev->dev_name, be.strerror());
             Dmsg0(100, "Got < 0 for MTFSF\n");
             Dmsg1(100, "%s", dev->errmsg);
-         } else {
-            dev->set_eof();
-         }
+	 } else {
+	    dev->set_eof();
+	 }
       }
       free_memory(rbuf);
 
@@ -1032,14 +1032,14 @@ fsf_dev(DEVICE *dev, int num)
    } else {
       Dmsg0(200, "Doing FSR for FSF\n");
       while (num-- && !(dev->state & ST_EOT)) {
-         fsr_dev(dev, INT32_MAX);    /* returns -1 on EOF or EOT */
+	 fsr_dev(dev, INT32_MAX);    /* returns -1 on EOF or EOT */
       }
       if (dev->state & ST_EOT) {
-         dev->dev_errno = 0;
+	 dev->dev_errno = 0;
          Mmsg1(dev->errmsg, _("Device %s at End of Tape.\n"), dev->dev_name);
-         stat = -1;
+	 stat = -1;
       } else {
-         stat = 0;
+	 stat = 0;
       }
    }
    update_pos_dev(dev);
@@ -1055,7 +1055,7 @@ fsf_dev(DEVICE *dev, int num)
 /*
  * Backward space a file
  *  Returns: false on failure
- *           true  on success
+ *	     true  on success
  */
 bool
 bsf_dev(DEVICE *dev, int num)
@@ -1072,7 +1072,7 @@ bsf_dev(DEVICE *dev, int num)
 
    if (!dev->is_tape()) {
       Mmsg1(dev->errmsg, _("Device %s cannot BSF because it is not a tape.\n"),
-         dev->dev_name);
+	 dev->dev_name);
       return false;
    }
    Dmsg0(29, "bsf_dev\n");
@@ -1087,7 +1087,7 @@ bsf_dev(DEVICE *dev, int num)
       berrno be;
       clrerror_dev(dev, MTBSF);
       Mmsg2(dev->errmsg, _("ioctl MTBSF error on %s. ERR=%s.\n"),
-         dev->dev_name, be.strerror());
+	 dev->dev_name, be.strerror());
    }
    update_pos_dev(dev);
    return stat == 0;
@@ -1097,7 +1097,7 @@ bsf_dev(DEVICE *dev, int num)
 /*
  * Foward space a record
  *  Returns: false on failure
- *           true  on success
+ *	     true  on success
  */
 bool
 fsr_dev(DEVICE *dev, int num)
@@ -1134,18 +1134,18 @@ fsr_dev(DEVICE *dev, int num)
       Dmsg1(100, "FSF fail: ERR=%s\n", be.strerror());
       if (dev_get_os_pos(dev, &mt_stat)) {
          Dmsg4(100, "Adjust from %d:%d to %d:%d\n", dev->file,
-            dev->block_num, mt_stat.mt_fileno, mt_stat.mt_blkno);
-         dev->file = mt_stat.mt_fileno;
-         dev->block_num = mt_stat.mt_blkno;
+	    dev->block_num, mt_stat.mt_fileno, mt_stat.mt_blkno);
+	 dev->file = mt_stat.mt_fileno;
+	 dev->block_num = mt_stat.mt_blkno;
       } else {
-         if (dev->state & ST_EOF) {
-            dev->state |= ST_EOT;
-         } else {
-            dev->set_eof();
-         }
+	 if (dev->state & ST_EOF) {
+	    dev->state |= ST_EOT;
+	 } else {
+	    dev->set_eof();
+	 }
       }
       Mmsg2(dev->errmsg, _("ioctl MTFSR error on %s. ERR=%s.\n"),
-         dev->dev_name, be.strerror());
+	 dev->dev_name, be.strerror());
    }
    update_pos_dev(dev);
    return stat == 0;
@@ -1154,7 +1154,7 @@ fsr_dev(DEVICE *dev, int num)
 /*
  * Backward space a record
  *   Returns:  false on failure
- *             true  on success
+ *	       true  on success
  */
 bool
 bsr_dev(DEVICE *dev, int num)
@@ -1188,7 +1188,7 @@ bsr_dev(DEVICE *dev, int num)
       berrno be;
       clrerror_dev(dev, MTBSR);
       Mmsg2(dev->errmsg, _("ioctl MTBSR error on %s. ERR=%s.\n"),
-         dev->dev_name, be.strerror());
+	 dev->dev_name, be.strerror());
    }
    update_pos_dev(dev);
    return stat == 0;
@@ -1197,7 +1197,7 @@ bsr_dev(DEVICE *dev, int num)
 /*
  * Reposition the device to file, block
  * Returns: false on failure
- *          true  on success
+ *	    true  on success
  */
 bool
 reposition_dev(DEVICE *dev, uint32_t file, uint32_t block)
@@ -1213,11 +1213,11 @@ reposition_dev(DEVICE *dev, uint32_t file, uint32_t block)
       off_t pos = (((off_t)file)<<32) + block;
       Dmsg1(100, "===== lseek_dev to %d\n", (int)pos);
       if (lseek_dev(dev, pos, SEEK_SET) == (off_t)-1) {
-         berrno be;
-         dev->dev_errno = errno;
+	 berrno be;
+	 dev->dev_errno = errno;
          Mmsg2(dev->errmsg, _("lseek_dev error on %s. ERR=%s.\n"),
-            dev->dev_name, be.strerror());
-         return false;
+	    dev->dev_name, be.strerror());
+	 return false;
       }
       dev->file = file;
       dev->block_num = block;
@@ -1229,14 +1229,14 @@ reposition_dev(DEVICE *dev, uint32_t file, uint32_t block)
    if (file < dev->file) {
       Dmsg0(100, "Rewind_dev\n");
       if (!rewind_dev(dev)) {
-         return false;
+	 return false;
       }
    }
    if (file > dev->file) {
       Dmsg1(100, "fsf %d\n", file-dev->file);
       if (!fsf_dev(dev, file-dev->file)) {
          Dmsg1(100, "fsf failed! ERR=%s\n", strerror_dev(dev));
-         return false;
+	 return false;
       }
       Dmsg2(100, "wanted_file=%d at_file=%d\n", file, dev->file);
    }
@@ -1261,7 +1261,7 @@ reposition_dev(DEVICE *dev, uint32_t file, uint32_t block)
 /*
  * Write an end of file on the device
  *   Returns: 0 on success
- *            non-zero on failure
+ *	      non-zero on failure
  */
 int
 weof_dev(DEVICE *dev, int num)
@@ -1300,7 +1300,7 @@ weof_dev(DEVICE *dev, int num)
       clrerror_dev(dev, MTWEOF);
       if (stat == -1) {
          Mmsg2(dev->errmsg, _("ioctl MTWEOF error on %s. ERR=%s.\n"),
-            dev->dev_name, be.strerror());
+	    dev->dev_name, be.strerror());
        }
    }
    return stat;
@@ -1330,7 +1330,7 @@ clrerror_dev(DEVICE *dev, int func)
    struct mtget mt_stat;
    char buf[100];
 
-   dev->dev_errno = errno;         /* save errno */
+   dev->dev_errno = errno;	   /* save errno */
    if (errno == EIO) {
       dev->VolCatInfo.VolCatErrors++;
    }
@@ -1342,60 +1342,60 @@ clrerror_dev(DEVICE *dev, int func)
       switch (func) {
       case -1:
          Emsg0(M_ABORT, 0, "Got ENOTTY on read/write!\n");
-         break;
+	 break;
       case MTWEOF:
          msg = "WTWEOF";
-         dev->capabilities &= ~CAP_EOF; /* turn off feature */
-         break;
+	 dev->capabilities &= ~CAP_EOF; /* turn off feature */
+	 break;
 #ifdef MTEOM
       case MTEOM:
          msg = "WTEOM";
-         dev->capabilities &= ~CAP_EOM; /* turn off feature */
-         break;
+	 dev->capabilities &= ~CAP_EOM; /* turn off feature */
+	 break;
 #endif
       case MTFSF:
          msg = "MTFSF";
-         dev->capabilities &= ~CAP_FSF; /* turn off feature */
-         break;
+	 dev->capabilities &= ~CAP_FSF; /* turn off feature */
+	 break;
       case MTBSF:
          msg = "MTBSF";
-         dev->capabilities &= ~CAP_BSF; /* turn off feature */
-         break;
+	 dev->capabilities &= ~CAP_BSF; /* turn off feature */
+	 break;
       case MTFSR:
          msg = "MTFSR";
-         dev->capabilities &= ~CAP_FSR; /* turn off feature */
-         break;
+	 dev->capabilities &= ~CAP_FSR; /* turn off feature */
+	 break;
       case MTBSR:
          msg = "MTBSR";
-         dev->capabilities &= ~CAP_BSR; /* turn off feature */
-         break;
+	 dev->capabilities &= ~CAP_BSR; /* turn off feature */
+	 break;
       case MTREW:
          msg = "MTREW";
-         break;
+	 break;
 #ifdef MTSETBLK
       case MTSETBLK:
          msg = "MTSETBLK";
-         break;
+	 break;
 #endif
 #ifdef MTSETBSIZ 
       case MTSETBSIZ:
          msg = "MTSETBSIZ";
-         break;
+	 break;
 #endif
 #ifdef MTSRSZ
       case MTSRSZ:
          msg = "MTSRSZ";
-         break;
+	 break;
 #endif
       default:
          bsnprintf(buf, sizeof(buf), "unknown func code %d", func);
-         msg = buf;
-         break;
+	 msg = buf;
+	 break;
       }
       if (msg != NULL) {
-         dev->dev_errno = ENOSYS;
+	 dev->dev_errno = ENOSYS;
          Mmsg1(dev->errmsg, _("I/O function \"%s\" not supported on this device.\n"), msg);
-         Emsg0(M_ERROR, 0, dev->errmsg);
+	 Emsg0(M_ERROR, 0, dev->errmsg);
       }
    }
    /* On some systems such as NetBSD, this clears all errors */
@@ -1466,7 +1466,7 @@ static void do_close(DEVICE *dev)
       get_filename(dev, dev->VolCatInfo.VolCatName, archive_name);
       /* Check that the part file is empty */
       if ((stat(archive_name.c_str(), &statp) == 0) && (statp.st_size == 0)) {
-         unlink(archive_name.c_str());
+	 unlink(archive_name.c_str());
       }
    }
    
@@ -1547,7 +1547,7 @@ bool truncate_dev(DEVICE *dev)
       dev->num_parts = 0;
       dev->VolCatInfo.VolCatParts = 0;
       if (open_first_part(dev) < 0) {
-         berrno be;
+	 berrno be;
          Mmsg1(&dev->errmsg, "Unable to truncate device, because I'm unable to open the first part. ERR=%s\n", be.strerror());
       }
    }
@@ -1584,10 +1584,17 @@ dev_can_write(DEVICE *dev)
    }
 }
 
+/* This returns the physical device name */
 char *
 dev_name(DEVICE *dev)
 {
    return dev->dev_name;
+}
+
+/* Return the resource name for the device */
+const char *DEVICE::name() const
+{
+   return device->hdr.name;
 }
 
 char *
@@ -1652,7 +1659,7 @@ void init_dev_wait_timers(DEVICE *dev)
    /* ******FIXME******* put these on config variables */
    dev->min_wait = 60 * 60;
    dev->max_wait = 24 * 60 * 60;
-   dev->max_num_wait = 9;              /* 5 waits =~ 1 day, then 1 day at a time */
+   dev->max_num_wait = 9;	       /* 5 waits =~ 1 day, then 1 day at a time */
    dev->wait_sec = dev->min_wait;
    dev->rem_wait_sec = dev->wait_sec;
    dev->num_wait = 0;
@@ -1662,11 +1669,11 @@ void init_dev_wait_timers(DEVICE *dev)
 
 /*
  * Returns: true if time doubled
- *          false if max time expired
+ *	    false if max time expired
  */
 bool double_dev_wait_time(DEVICE *dev)
 {
-   dev->wait_sec *= 2;               /* double wait time */
+   dev->wait_sec *= 2;		     /* double wait time */
    if (dev->wait_sec > dev->max_wait) {   /* but not longer than maxtime */
       dev->wait_sec = dev->max_wait;
    }
@@ -1687,18 +1694,18 @@ void set_os_device_parameters(DEVICE *dev)
       mt_com.mt_op = MTSETBLK;
       mt_com.mt_count = 0;
       if (ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
-         clrerror_dev(dev, MTSETBLK);
+	 clrerror_dev(dev, MTSETBLK);
       }
       mt_com.mt_op = MTSETDRVBUFFER;
       mt_com.mt_count = MT_ST_CLEARBOOLEANS;
       if (!dev_cap(dev, CAP_TWOEOF)) {
-         mt_com.mt_count |= MT_ST_TWO_FM;
+	 mt_com.mt_count |= MT_ST_TWO_FM;
       }
       if (dev_cap(dev, CAP_EOM)) {
-         mt_com.mt_count |= MT_ST_FAST_MTEOM;
+	 mt_com.mt_count |= MT_ST_FAST_MTEOM;
       }
       if (ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
-         clrerror_dev(dev, MTSETBLK);
+	 clrerror_dev(dev, MTSETBLK);
       }
    }
    return;
@@ -1711,13 +1718,13 @@ void set_os_device_parameters(DEVICE *dev)
       mt_com.mt_op = MTSETBSIZ;
       mt_com.mt_count = 0;
       if (ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
-         clrerror_dev(dev, MTSETBSIZ);
+	 clrerror_dev(dev, MTSETBSIZ);
       }
       /* Get notified at logical end of tape */
       mt_com.mt_op = MTEWARN;
       mt_com.mt_count = 1;
       if (ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
-         clrerror_dev(dev, MTEWARN);
+	 clrerror_dev(dev, MTEWARN);
       }
    }
    return;
@@ -1730,7 +1737,7 @@ void set_os_device_parameters(DEVICE *dev)
       mt_com.mt_op = MTSETBSIZ;
       mt_com.mt_count = 0;
       if (ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
-         clrerror_dev(dev, MTSETBSIZ);
+	 clrerror_dev(dev, MTSETBSIZ);
       }
    }
    return;
@@ -1743,7 +1750,7 @@ void set_os_device_parameters(DEVICE *dev)
       mt_com.mt_op = MTSRSZ;
       mt_com.mt_count = 0;
       if (ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
-         clrerror_dev(dev, MTSRSZ);
+	 clrerror_dev(dev, MTSRSZ);
       }
    }
    return;
@@ -1753,6 +1760,6 @@ void set_os_device_parameters(DEVICE *dev)
 static bool dev_get_os_pos(DEVICE *dev, struct mtget *mt_stat)
 {
    return dev_cap(dev, CAP_MTIOCGET) && 
-          ioctl(dev->fd, MTIOCGET, (char *)mt_stat) == 0 &&
-          mt_stat->mt_fileno >= 0;
+	  ioctl(dev->fd, MTIOCGET, (char *)mt_stat) == 0 &&
+	  mt_stat->mt_fileno >= 0;
 }

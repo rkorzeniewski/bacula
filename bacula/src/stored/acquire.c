@@ -64,6 +64,7 @@ DCR *new_dcr(JCR *jcr, DEVICE *dev)
  *  as it should be, then remove it. Also zap the jcr pointer
  *  to the dcr if it is the same one.
  */
+#ifdef needed
 static void remove_dcr_from_dcrs(DCR *dcr)
 {
    JCR *jcr = dcr->jcr;
@@ -82,6 +83,7 @@ static void remove_dcr_from_dcrs(DCR *dcr)
       }
    }
 }
+#endif
 
 /*
  * Free up all aspects of the given dcr -- i.e. dechain it,
@@ -149,7 +151,7 @@ bool reserve_device_for_read(JCR *jcr, DEVICE *dev)
 
    if (dev->is_busy()) {
       Jmsg2(jcr, M_FATAL, 0, _("Device %s is busy. Job %d canceled.\n"),
-	    dev_name(dev), jcr->JobId);
+	    dev->name(), jcr->JobId);
       goto get_out;
    }
    if (!dcr) {
@@ -353,11 +355,16 @@ get_out:
  *  the DIR to reserve multiple devices before *really* 
  *  starting the job. It also permits the SD to refuse 
  *  certain devices (not up, ...).
+ *
+ * Note, in reserving a device, if the device is for the
+ *  same pool and the same pool type, then it is acceptable.
+ *  The Media Type has already been checked. If we are
+ *  the first tor reserve the device, we put the pool
+ *  name and pool type in the device record.
  */
 bool reserve_device_for_append(JCR *jcr, DEVICE *dev)
 {
    DCR *dcr = jcr->dcr;
-   bool recycle;
    bool ok = false;
 
    ASSERT(dcr);
@@ -365,60 +372,65 @@ bool reserve_device_for_append(JCR *jcr, DEVICE *dev)
    lock_device(dev);
    block_device(dev, BST_DOING_ACQUIRE);
    unlock_device(dev);
+   if (dev->can_read()) {
+      Jmsg(jcr, M_WARNING, 0, _("Device %s is busy reading.\n"), dev->name());
+      goto bail_out;
+   }
    if (device_is_unmounted(dev)) {
       Jmsg(jcr, M_WARNING, 0, _("device %s is BLOCKED due to user unmount.\n"),
 	 dev_name(dev));
-      goto get_out;
+      goto bail_out;
    }
    Dmsg1(190, "reserve_append device is %s\n", dev_is_tape(dev)?"tape":"disk");
-   if (dev->can_append() || dev->num_writers > 0 || dev->reserved_device) {
-      Dmsg0(190, "device already in append.\n");
-      /*
-       * Device already in append mode or reserved for write
-       *
-       * Check if we have the right Volume mounted
-       *   OK if current volume info OK
-       *   OK if next volume matches current volume
-       */
-      bstrncpy(dcr->VolumeName, dev->VolHdr.VolName, sizeof(dcr->VolumeName));
-      if (!dir_get_volume_info(dcr, GET_VOL_INFO_FOR_WRITE) &&
-	  !(dir_find_next_appendable_volume(dcr) &&
-	    strcmp(dev->VolHdr.VolName, dcr->VolumeName) == 0)) { /* wrong tape mounted */
-         Dmsg0(190, "Wrong tape mounted.\n");
-	 if (dev->num_writers != 0 || dev->reserved_device) {
-            Jmsg(jcr, M_FATAL, 0, _("Device %s is busy writing on another Volume.\n"), dev_name(dev));
-	    goto get_out;
+   /*
+    * First handle the case that the drive is not yet in append mode
+    */
+   if (!dev->can_append() && dev->num_writers == 0) {
+      /* Now check if there are any reservations on the drive */
+      if (dev->reserved_device) {	    
+	 /* Yes, now check if we want the same Pool and pool type */
+	 if (strcmp(dev->pool_name, dcr->pool_name) == 0 &&
+	     strcmp(dev->pool_type, dcr->pool_type) == 0) {
+	    /* OK, compatible device */
+	 } else {
+	    /* Drive not suitable for us */
+            Jmsg(jcr, M_WARNING, 0, _("Device %s is busy writing on another Volume.\n"), dev->name());
+	    goto bail_out;
 	 }
       } else {
-	 /*
-	  * At this point, the correct tape is already mounted, so
-	  *   we do not need to do mount_next_write_volume(), unless
-	  *   we need to recycle the tape.
-	  */
-          recycle = strcmp(dcr->VolCatInfo.VolCatStatus, "Recycle") == 0;
-          Dmsg1(190, "Correct tape mounted. recycle=%d\n", recycle);
-	  if (recycle && dev->num_writers != 0) {
-             Jmsg(jcr, M_FATAL, 0, _("Cannot recycle volume \"%s\""
-                  " because it is in use by another job.\n"));
-	     goto get_out;
-	  }
-	  if (dev->num_writers == 0) {
-	     memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
-	  }
-       }
-   } else {
-      if (dev->can_read()) {
-         Jmsg(jcr, M_FATAL, 0, _("Device %s is busy reading.\n"), dev_name(dev));
-	 goto get_out;
+	 /* Device is available but not yet reserved, reserve it for us */
+	 bstrncpy(dev->pool_name, dcr->pool_name, sizeof(dev->pool_name));
+	 bstrncpy(dev->pool_type, dcr->pool_type, sizeof(dev->pool_type));
+	 dev->PoolId = dcr->PoolId;
       }
-      ASSERT(dev->num_writers == 0);
+      goto do_reserve;
    }
 
+   /*
+    * Now check if the device is in append mode 
+    */
+   if (dev->can_append() || dev->num_writers > 0) {
+      Dmsg0(190, "device already in append.\n");
+      /* Yes, now check if we want the same Pool and pool type */
+      if (strcmp(dev->pool_name, dcr->pool_name) == 0 &&
+	  strcmp(dev->pool_type, dcr->pool_type) == 0) {
+	 /* OK, compatible device */
+      } else {
+	 /* Drive not suitable for us */
+         Jmsg(jcr, M_WARNING, 0, _("Device %s is busy writing on another Volume.\n"), dev->name());
+	 goto bail_out;
+      }
+   } else {
+      Pmsg0(000, "Logic error!!!! Should not get here.\n");
+      goto bail_out;		      /* should not get here */
+   }
+
+do_reserve:
    dev->reserved_device++;
    dcr->reserved_device = true;
    ok = true;
 
-get_out:
+bail_out:
    P(dev->mutex);
    unblock_device(dev);
    V(dev->mutex);
@@ -453,6 +465,15 @@ DCR *acquire_device_for_append(JCR *jcr, DEVICE *dev)
       dev->reserved_device--;
       dcr->reserved_device = false;
    }
+
+   /*
+    * With the reservation system, this should not happen
+    */
+   if (dev->can_read()) {
+      Jmsg(jcr, M_FATAL, 0, _("Device %s is busy reading.\n"), dev_name(dev));
+      goto get_out;
+   }
+
    if (dev->can_append()) {
       Dmsg0(190, "device already in append.\n");
       /*
@@ -497,10 +518,6 @@ DCR *acquire_device_for_append(JCR *jcr, DEVICE *dev)
    } else {
       /* Not already in append mode, so mount the device */
       Dmsg0(190, "Not in append mode, try mount.\n");
-      if (dev->can_read()) {
-         Jmsg(jcr, M_FATAL, 0, _("Device %s is busy reading.\n"), dev_name(dev));
-	 goto get_out;
-      }
       ASSERT(dev->num_writers == 0);
       do_mount = true;
    }

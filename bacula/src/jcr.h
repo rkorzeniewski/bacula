@@ -130,6 +130,7 @@ struct JCR {
    time_t end_time;                   /* job end time */
    POOLMEM *client_name;              /* client name */
    POOLMEM *RestoreBootstrap;         /* Bootstrap file to restore */
+   POOLMEM *stime;                    /* start time for incremental/differential */
    char *sd_auth_key;                 /* SD auth key */
    MSGS *jcr_msgs;                    /* Copy of message resource -- actually used */
    uint32_t ClientId;                 /* Client associated with Job */
@@ -174,7 +175,6 @@ struct JCR {
    FileId_t FileId;                   /* Last file id inserted */
    uint32_t FileIndex;                /* Last FileIndex processed */
    POOLMEM *fname;                    /* name to put into catalog */
-   POOLMEM *stime;                    /* start time for incremental/differential */
    JOB_DBR jr;                        /* Job DB record for current job */
    JOB_DBR target_jr;                 /* target job */
    char FSCreateTime[MAX_TIME_LENGTH]; /* FileSet CreateTime as returned from DB */
@@ -190,6 +190,7 @@ struct JCR {
    bool fn_printed;                   /* printed filename */
    bool write_part_after_job;         /* Write part after job in SD */
    bool needs_sd;                     /* set if SD needed by Job */
+   bool cloned;                       /* set if cloned */
 #endif /* DIRECTOR_DAEMON */
 
 
