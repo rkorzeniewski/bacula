@@ -362,8 +362,9 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since, FILESET_DBR *fsr
 	    fclose(fd);
 	 }
       } else {
+	 berrno be;
          Jmsg(jcr, M_ERROR, 0, _("Could not open WriteBootstrap file:\n"
-              "%s: ERR=%s\n"), fname, strerror(errno));
+              "%s: ERR=%s\n"), fname, be.strerror());
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);
       }
    }

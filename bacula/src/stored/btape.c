@@ -1102,12 +1102,14 @@ try_again:
    changer = edit_device_codes(jcr, changer, jcr->device->changer_command, 
                 "loaded");
    status = run_program(changer, timeout, results);
-   Dmsg3(100, "run_prog: %s stat=%d result=%s\n", changer, status, results);
+   Dmsg3(100, "run_prog: %s stat=%d result=\"%s\"\n", changer, status, results);
    if (status == 0) {
       loaded = atoi(results);
    } else {
+      berrno be;
+      be.set_errno(status);
       Pmsg1(-1, _("3991 Bad autochanger command: %s\n"), changer);
-      Pmsg2(-1, _("3991 status=%d result=%s\n"), status, results);
+      Pmsg2(-1, _("3991 result=\"%s\": ERR=%s\n"), results, be.strerror());
       goto bail_out;
    }
    if (loaded) {
@@ -1128,8 +1130,10 @@ try_again:
       status = run_program(changer, timeout, results);
       Pmsg2(-1, "unload status=%s %d\n", status==0?"OK":"Bad", status);
       if (status != 0) {
+	 berrno be;
+	 be.set_errno(status);
          Pmsg1(-1, _("3992 Bad autochanger command: %s\n"), changer);
-         Pmsg2(-1, _("3992 status=%d result=%s\n"), status, results);
+         Pmsg2(-1, _("3992 result=\"%s\": ERR=%s\n"), results, be.strerror());
       }
    }
 
@@ -1149,8 +1153,10 @@ try_again:
       Pmsg2(-1,  _("3303 Autochanger \"load slot %d %d\" status is OK.\n"),
 	 slot, dev->drive_index);
    } else {
+      berrno be;
+      be.set_errno(status);
       Pmsg1(-1, _("3993 Bad autochanger command: %s\n"), changer);
-      Pmsg2(-1, _("3993 status=%d result=%s\n"), status, results);
+      Pmsg2(-1, _("3993 result=\"%s\": ERR=%s\n"), results, be.strerror());
       goto bail_out;
    }
 

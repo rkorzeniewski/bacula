@@ -33,77 +33,69 @@
 
 #include "bacula.h"
 
+#ifndef HAVE_WIN32
+extern const char *get_signal_name(int sig);
+extern int num_execvp_errors;
+extern int execvp_errors[];
+#endif
+
 const char *berrno::strerror()
 {
+   int stat = 0; 
 #ifdef HAVE_WIN32
    LPVOID msg;
 
-   if (errnum && b_errno_win32) {
+   if (berrno_ && b_errno_win32) {
       FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
 	  FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 	  NULL,
 	  GetLastError(),
 	  MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-	  (LPTSTR)&msg;
+	  (LPTSTR)&msg,
 	  0,
 	  NULL);
 
-      pm_strcpy(&buf_, msg);
+      pm_strcpy(&buf_, (const char *)msg);
       LocalFree(msg);
       return (const char *)buf_;
    }
+#else
+   if (berrno_ & b_errno_exit) {
+      stat = (berrno_ & ~b_errno_exit);       /* remove bit */
+      if (stat == 0) {
+         return "Child exited normally.";    /* this really shouldn't happen */
+      } else {
+	 /* Maybe an execvp failure */
+	 if (stat >= 200) {
+	    if (stat < 200 + num_execvp_errors) {
+	       berrno_ = execvp_errors[stat - 200];
+	    } else {
+               return "Unknown error during program execvp";
+	    }
+	 } else {
+            Mmsg(&buf_, "Child exited with code %d", stat);
+	    return buf_;
+	 }
+	 /* If we drop out here, berrno_ is set to an execvp errno */
+      }
+   }
+   if (berrno_ & b_errno_signal) {
+      stat = (berrno_ & ~b_errno_signal);	 /* remove bit */
+      Mmsg(&buf_, "Child died from signal %d: %s", stat, get_signal_name(stat));
+      return buf_;
+   }
 #endif
+   /* Normal errno */
    if (bstrerror(berrno_, buf_, 1024) < 0) {
       return "Invalid errno. No error message possible."; 
    }
-   return (const char *)buf_;
+   return buf_;
 }
 
 
 #ifdef TEST_PROGRAM
 
-
-struct FILESET {
-   alist mylist;
-};
-
 int main()
 {
-   FILESET *fileset;
-   char buf[30];
-   alist *mlist;
-
-   fileset = (FILESET *)malloc(sizeof(FILESET));
-   memset(fileset, 0, sizeof(FILESET));
-   fileset->mylist.init();
-
-   printf("Manual allocation/destruction of list:\n");
-   
-   for (int i=0; i<20; i++) {
-      sprintf(buf, "This is item %d", i);
-      fileset->mylist.append(bstrdup(buf));
-   } 
-   for (int i=0; i< fileset->mylist.size(); i++) {
-      printf("Item %d = %s\n", i, (char *)fileset->mylist[i]);  
-   }
-   fileset->mylist.destroy();
-   free(fileset);
-
-   printf("Allocation/destruction using new delete\n");
-   mlist = new alist(10);
-
-   for (int i=0; i<20; i++) {
-      sprintf(buf, "This is item %d", i);
-      mlist->append(bstrdup(buf));
-   } 
-   for (int i=0; i< mlist->size(); i++) {
-      printf("Item %d = %s\n", i, (char *)mlist->get(i));  
-   }
-
-   delete mlist;
-
-
-   sm_dump(false);
-
 }
 #endif

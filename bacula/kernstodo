@@ -4,10 +4,6 @@
 1.35 Items to do:
 - Add bscan to four-concurrent-jobs regression.
 - Do tape alerts -- see tapealert.txt
-- Fix errno handling in win32 compat routines.
-- Add better error codes to run_program (10000+)
-- Revisit and revise Disaster Recovery (fix SCSI and RAID 
-  disk detection)
 - Document a get out of jail procedure if everything breaks if 
   you lost/broke the Catalog -- do the same for "I know my
   file is there how do I get it back?".
@@ -27,6 +23,7 @@
 - Fix restore ++++ that get intermingled with "Building directory tree"
 - Solve the termcap.h problem on Solaris configure.
 - Fix ./configure to handle installed SQLite
+- Test Win32 errno handling.
 
 Documentation to do: (any release a little bit at a time)
 - Document query file format.
@@ -1115,3 +1112,8 @@ Block Position: 0
    Building directory tree for JobId 856 ...
    Building directory tree for JobId 797 ...3 
    Jobs inserted into the tree.
+- Fix errno handling in win32 compat routines.
+- Add better error codes to run_program (10000+)
+- Revisit and revise Disaster Recovery (fix SCSI and RAID 
+  disk detection)
+

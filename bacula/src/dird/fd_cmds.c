@@ -254,8 +254,9 @@ static int send_list(JCR *jcr, int list)
             fd->msg = edit_job_codes(jcr, fd->msg, p, "");
             bpipe = open_bpipe(fd->msg, 0, "r");
 	    if (!bpipe) {
+	       berrno be;
                Jmsg(jcr, M_FATAL, 0, _("Cannot run program: %s. ERR=%s\n"),
-		  p, strerror(errno));
+		  p, be.strerror());
 	       goto bail_out;
 	    }
 	    /* Copy File options */
@@ -276,8 +277,10 @@ static int send_list(JCR *jcr, int list)
 	       }
 	    }
 	    if ((stat=close_bpipe(bpipe)) != 0) {
-               Jmsg(jcr, M_FATAL, 0, _("Error running program: %s. RtnStat=%d ERR=%s\n"),
-		  p, stat, strerror(errno));
+	       berrno be;
+	       be.set_errno(stat);
+               Jmsg(jcr, M_FATAL, 0, _("Error running program %p: ERR=%s\n"),
+		  p, be.strerror());
 	       goto bail_out;
 	    }
 	    break;
@@ -415,8 +418,10 @@ static int send_fileset(JCR *jcr)
 		  }
 	       }
 	       if ((stat=close_bpipe(bpipe)) != 0) {
-                  Jmsg(jcr, M_FATAL, 0, _("Error running program: %s. RtnStat=%d ERR=%s\n"),
-		     p, stat, strerror(errno));
+		  berrno be;
+		  be.set_errno(stat);
+                  Jmsg(jcr, M_FATAL, 0, _("Error running program: %s. ERR=%s\n"),
+		     p, be.strerror());
 		  goto bail_out;
 	       }
 	       break;

@@ -57,7 +57,9 @@ void init_job_server(int max_workers)
    watchdog_t *wd;
    
    if ((stat = jobq_init(&job_queue, max_workers, job_thread)) != 0) {
-      Emsg1(M_ABORT, 0, _("Could not init job queue: ERR=%s\n"), strerror(stat));
+      berrno be;
+      be.set_errno(stat);
+      Emsg1(M_ABORT, 0, _("Could not init job queue: ERR=%s\n"), be.strerror());
    }
    if ((wd = new_watchdog()) == NULL) {
       Emsg0(M_ABORT, 0, _("Could not init job monitor watchdogs\n"));
@@ -89,7 +91,9 @@ JobId_t run_job(JCR *jcr)
 
    /* Initialize termination condition variable */
    if ((errstat = pthread_cond_init(&jcr->term_wait, NULL)) != 0) {
-      Jmsg1(jcr, M_FATAL, 0, _("Unable to init job cond variable: ERR=%s\n"), strerror(errstat));
+      berrno be;
+      be.set_errno(errstat);
+      Jmsg1(jcr, M_FATAL, 0, _("Unable to init job cond variable: ERR=%s\n"), be.strerror());
       goto bail_out;
    }
    jcr->term_wait_inited = true;
@@ -129,7 +133,9 @@ JobId_t run_job(JCR *jcr)
 
    /* Queue the job to be run */
    if ((stat = jobq_add(&job_queue, jcr)) != 0) {
-      Jmsg(jcr, M_FATAL, 0, _("Could not add job queue: ERR=%s\n"), strerror(stat));
+      berrno be;
+      be.set_errno(stat);
+      Jmsg(jcr, M_FATAL, 0, _("Could not add job queue: ERR=%s\n"), be.strerror());
       JobId = 0;
       goto bail_out;
    }
@@ -189,8 +195,9 @@ static void *job_thread(void *arg)
 	    }
 	    status = close_bpipe(bpipe);
 	    if (status != 0) {
-               Jmsg(jcr, M_FATAL, 0, _("RunBeforeJob returned non-zero status=%d\n"),
-		  status);
+	       berrno be;
+	       be.set_errno(status);
+               Jmsg(jcr, M_FATAL, 0, _("RunBeforeJob error: ERR=%s\n"), be.strerror());
 	       set_jcr_job_status(jcr, JS_FatalError);
 	       update_job_end_record(jcr);
 	       goto bail_out;
@@ -248,12 +255,12 @@ static void *job_thread(void *arg)
 	     *	job in error, simply report the error condition.   
 	     */
 	    if (status != 0) {
+	       berrno be;
+	       be.set_errno(status);
 	       if (jcr->JobStatus == JS_Terminated) {
-                  Jmsg(jcr, M_WARNING, 0, _("RunAfterJob returned non-zero status=%d\n"),
-		       status);
+                  Jmsg(jcr, M_WARNING, 0, _("RunAfterJob error: ERR=%s\n"), be.strerror());
 	       } else {
-                  Jmsg(jcr, M_FATAL, 0, _("RunAfterFailedJob returned non-zero status=%d\n"),
-		       status);
+                  Jmsg(jcr, M_FATAL, 0, _("RunAfterFailedJob error: ERR=%s\n"), be.strerror());
 	       }
 	    }
 	 }

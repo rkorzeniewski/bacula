@@ -25,8 +25,10 @@
  */
 
 #ifdef HAVE_WIN32
-#define b_errno_win32 (1<<29)         /* user reserved bit */
+#define b_errno_win32  (1<<29)        /* user reserved bit */
 #endif
+#define b_errno_exit   (1<<28)        /* child exited, exit code returned */
+#define b_errno_signal (1<<27)        /* child died, signal code returned */
 
 /*
  * A more generalized way of handling errno that works with Unix, Windows,

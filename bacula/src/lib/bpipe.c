@@ -29,11 +29,13 @@
 #include "bacula.h"
 #include "jcr.h"
 
+int execvp_errors[] = {EACCES, ENOEXEC, EFAULT, EINTR, E2BIG, 
+		     ENAMETOOLONG, ENOMEM, ETXTBSY, ENOENT};
+int num_execvp_errors = (int)(sizeof(execvp_errors)/sizeof(int));
+
 
 #define MAX_ARGV 100
 static void build_argc_argv(char *cmd, int *bargc, char *bargv[], int max_arg);
-
-
 
 /*
  * Run an external program. Optionally wait a specified number
@@ -49,6 +51,7 @@ BPIPE *open_bpipe(char *prog, int wait, const char *mode)
    POOLMEM *tprog;
    int mode_read, mode_write;
    BPIPE *bpipe;
+   int save_errno;
 
    bpipe = (BPIPE *)malloc(sizeof(BPIPE));
    memset(bpipe, 0, sizeof(BPIPE));
@@ -68,20 +71,25 @@ BPIPE *open_bpipe(char *prog, int wait, const char *mode)
 
    /* Each pipe is one way, write one end, read the other, so we need two */
    if (mode_write && pipe(writep) == -1) {
+      save_errno = errno;
       free(bpipe);
+      errno = save_errno;
       return NULL;
    }
    if (mode_read && pipe(readp) == -1) {
+      save_errno = errno;
       if (mode_write) {
 	 close(writep[0]);
 	 close(writep[1]);
       }
       free(bpipe);
+      errno = save_errno;
       return NULL;
    }
    /* Start worker process */
    switch (bpipe->worker_pid = fork()) {
    case -1:			      /* error */
+      save_errno = errno;
       if (mode_write) {
 	 close(writep[0]);
 	 close(writep[1]);
@@ -91,6 +99,7 @@ BPIPE *open_bpipe(char *prog, int wait, const char *mode)
 	 close(readp[1]);
       }
       free(bpipe);
+      errno = save_errno;
       return NULL;
 
    case 0:			      /* child */
@@ -108,7 +117,15 @@ BPIPE *open_bpipe(char *prog, int wait, const char *mode)
 	 close(i);
       }
       execvp(bargv[0], bargv);	      /* call the program */
-      exit(errno);                    /* shouldn't get here */
+      /* Convert errno into an exit code for later analysis */
+      for (i=0; i< num_execvp_errors; i++) {
+	 if (execvp_errors[i] == errno) {
+	    exit(200 + i);	      /* exit code => errno */
+	 }
+      }
+      exit(255);		      /* unknown errno */
+
+
 
    default:			      /* parent */
       break;
@@ -148,7 +165,7 @@ int close_wpipe(BPIPE *bpipe)
  * Close both pipes and free resources	 
  *
  *  Returns: 0 on success
- *	     errno on failure
+ *	     berrno on failure
  */
 int close_bpipe(BPIPE *bpipe) 
 {
@@ -183,6 +200,7 @@ int close_bpipe(BPIPE *bpipe)
 	 wpid = waitpid(bpipe->worker_pid, &chldstatus, wait_option);
       } while (wpid == -1 && (errno == EINTR || errno == EAGAIN));
       if (wpid == bpipe->worker_pid || wpid == -1) {
+	 stat = errno;
          Dmsg3(200, "Got break wpid=%d status=%d ERR=%s\n", wpid, chldstatus,
             wpid==-1?strerror(errno):"none");
 	 break;
@@ -190,7 +208,7 @@ int close_bpipe(BPIPE *bpipe)
       Dmsg3(200, "Got wpid=%d status=%d ERR=%s\n", wpid, chldstatus,
             wpid==-1?strerror(errno):"none");
       if (remaining_wait > 0) {
-	 bmicrosleep(1, 0);	       /* wait one second */
+	 bmicrosleep(1, 0);	      /* wait one second */
 	 remaining_wait--;
       } else {
 	 stat = ETIME;		      /* set error status */
@@ -199,18 +217,19 @@ int close_bpipe(BPIPE *bpipe)
       }
    }
    if (wpid > 0) {
-      if (WIFEXITED(chldstatus)) {	     /* process exit()ed */
+      if (WIFEXITED(chldstatus)) {    /* process exit()ed */
 	 stat = WEXITSTATUS(chldstatus);
 	 if (stat != 0) {
             Dmsg1(100, "Non-zero status %s returned from child.\n", stat);
-	    stat = ECHILD;
+	    stat |= b_errno_exit;	 /* exit status returned */
 	 }
-         Dmsg1(200, "child status=%d\n", stat);
+         Dmsg1(200, "child status=%d\n", stat & ~b_errno_exit);
       } else if (WIFSIGNALED(chldstatus)) {  /* process died */
-	 stat = ECHILD;
-         Dmsg0(200, "Signaled\n");
+	 stat = WTERMSIG(chldstatus);
+         Dmsg1(200, "Child died from signale %d\n", stat);
+	 stat |= b_errno_signal;      /* exit signal returned */
       }
-   }  
+   }	   
    if (bpipe->timer_id) {
       stop_child_timer(bpipe->timer_id);
    }
@@ -228,7 +247,7 @@ int close_bpipe(BPIPE *bpipe)
  * Contrary to my normal calling conventions, this program 
  *
  *  Returns: 0 on success
- *	     non-zero on error == errno
+ *	     non-zero on error == berrno status
  */
 int run_program(char *prog, int wait, POOLMEM *results)
 {
