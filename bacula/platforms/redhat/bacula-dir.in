@@ -12,11 +12,22 @@
 # Source function library
 . /etc/rc.d/init.d/functions
 
+DIR_USER=@dir_user@
+DIR_GROUP=@dir_group@
+
 RETVAL=0
 case "$1" in
     start)
+       OPTIONS=''
+       if [ "${DIR_USER}" != '' ]; then
+	  OPTIONS="${OPTIONS} -u ${DIR_USER}"
+       fi
+										   
+       if [ "${DIR_GROUP}" != '' ]; then
+	  OPTIONS="${OPTIONS} -g ${DIR_GROUP}"
+       fi
        echo -n "Starting the Bacula Director: "
-       daemon @sbindir@/bacula-dir $2 -c @sysconfdir@/bacula-dir.conf
+       daemon @sbindir@/bacula-dir $2 ${OPTIONS} -c @sysconfdir@/bacula-dir.conf
        RETVAL=$?
        echo
        [ $RETVAL -eq 0 ] && touch @subsysdir@/bacula-dir
