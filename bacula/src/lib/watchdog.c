@@ -117,7 +117,6 @@ static void *btimer_thread(void *arg)
    Dmsg0(200, "Start watchdog thread\n");
    pthread_detach(pthread_self());
 
-   P(mutex);
    for ( ;!quit; ) {
       time_t timer_start, now;
 
@@ -178,6 +177,7 @@ static void *btimer_thread(void *arg)
        * Now handle child and thread timers set by the code.
        */
       /* Walk child chain killing off any process overdue */
+      P(mutex);
       for (wid = timer_chain; wid; wid=wid->next) {
 	 int killed = FALSE;
 	 /* First ask him politely to go away */
@@ -206,10 +206,9 @@ static void *btimer_thread(void *arg)
 	    }
 	 }
       }
-      
+      V(mutex);
    } /* end of big for loop */
 
-   V(mutex);
    Dmsg0(200, "End watchdog\n");
    return NULL;
 }
