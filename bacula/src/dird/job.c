@@ -293,7 +293,7 @@ void create_unique_job_name(JCR *jcr, char *base_name)
    localtime_r(&now, &tm);
    /* Use only characters that are permitted in Windows filenames */
    strftime(dt, sizeof(dt), "%Y-%m-%d_%H.%M.%S", &tm); 
-   strncpy(name, base_name, sizeof(name));
+   bstrncpy(name, base_name, sizeof(name));
    name[sizeof(name)-22] = 0;	       /* truncate if too long */
    sprintf(jcr->Job, "%s.%s", name, dt); /* add date & time */
    /* Convert spaces into underscores */

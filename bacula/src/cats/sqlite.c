@@ -205,8 +205,7 @@ int db_next_index(B_DB *mdb, char *table, char *index)
       db_unlock(mdb);
       return 0;
    }
-   strncpy(index, row[0], 28);
-   index[28] = 0;
+   bstrncpy(index, row[0], 28);
    sql_free_result(mdb);
 
    Mmsg(&mdb->cmd,

@@ -1,5 +1,5 @@
 /* 
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -218,7 +218,7 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
        len = strlen(fname);
        namebuf_len = len + DEFAULT_NAMEBUF_LEN;
        namebuf = (char *)bmalloc(namebuf_len + 2);
-       strncpy(namebuf, fname, namebuf_len);
+       bstrncpy(namebuf, fname, namebuf_len);
        while (len >= 1 && namebuf[len - 1] == '/')
 	 len--;
        namebuf[len++] = '/';

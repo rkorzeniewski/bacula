@@ -233,8 +233,7 @@ int listcmd(UAContext *ua, char *cmd)
 
       /* List JOB */
       } else if (strcasecmp(ua->argk[i], _("job")) == 0 && ua->argv[i]) {
-	 strncpy(jr.Job, ua->argv[i], MAX_NAME_LENGTH);
-	 jr.Job[MAX_NAME_LENGTH-1] = 0;
+	 bstrncpy(jr.Job, ua->argv[i], MAX_NAME_LENGTH);
 	 jr.JobId = 0;
 	 db_list_job_records(ua->db, &jr, prtit, ua);
 
@@ -243,8 +242,7 @@ int listcmd(UAContext *ua, char *cmd)
 
 	 for (j=i+1; j<ua->argc; j++) {
             if (strcasecmp(ua->argk[j], _("job")) == 0 && ua->argv[j]) {
-	       strncpy(jr.Job, ua->argv[j], MAX_NAME_LENGTH);
-	       jr.Job[MAX_NAME_LENGTH-1] = 0;
+	       bstrncpy(jr.Job, ua->argv[j], MAX_NAME_LENGTH);
 	       jr.JobId = 0;
 	       db_get_job_record(ua->db, &jr);
 	       jobid = jr.JobId;
@@ -263,8 +261,7 @@ int listcmd(UAContext *ua, char *cmd)
 	 int done = FALSE;
 	 for (j=i+1; j<ua->argc; j++) {
             if (strcasecmp(ua->argk[j], _("job")) == 0 && ua->argv[j]) {
-	       strncpy(jr.Job, ua->argv[j], MAX_NAME_LENGTH);
-	       jr.Job[MAX_NAME_LENGTH-1] = 0;
+	       bstrncpy(jr.Job, ua->argv[j], MAX_NAME_LENGTH);
 	       jr.JobId = 0;
 	       db_get_job_record(ua->db, &jr);
 	       jobid = jr.JobId;
@@ -295,8 +292,7 @@ int listcmd(UAContext *ua, char *cmd)
 	 int done = FALSE;
 	 for (j=i+1; j<ua->argc; j++) {
             if (strcasecmp(ua->argk[j], _("job")) == 0 && ua->argv[j]) {
-	       strncpy(jr.Job, ua->argv[j], MAX_NAME_LENGTH);
-	       jr.Job[MAX_NAME_LENGTH-1] = 0;
+	       bstrncpy(jr.Job, ua->argv[j], MAX_NAME_LENGTH);
 	       jr.JobId = 0;
 	       db_get_job_record(ua->db, &jr);
 	       jobid = jr.JobId;

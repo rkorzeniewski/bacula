@@ -306,8 +306,7 @@ int db_create_client_record(B_DB *mdb, CLIENT_DBR *cr)
 	 }
 	 cr->ClientId = atoi(row[0]);
 	 if (row[1]) {
-	    strncpy(cr->Uname, row[1], sizeof(cr->Uname)-2);
-	    cr->Uname[sizeof(cr->Uname)-1] = 0;
+	    bstrncpy(cr->Uname, row[1], sizeof(cr->Uname));
 	 } else {
 	    cr->Uname[0] = 0;	      /* no name */
 	 }

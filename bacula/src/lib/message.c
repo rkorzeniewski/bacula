@@ -71,8 +71,7 @@ void my_name_is(int argc, char *argv[], char *name)
    char cpath[400], npath[400];
    int len;
 
-   strncpy(my_name, name, sizeof(my_name));
-   my_name[sizeof(my_name)-1] = 0;
+   bstrncpy(my_name, name, sizeof(my_name));
    if (argc>0 && argv && argv[0]) {
       /* strip trailing filename and save exepath */
       for (l=p=argv[0]; *p; p++) {

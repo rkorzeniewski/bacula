@@ -186,10 +186,8 @@ File.FilenameId=%u", fdbr->JobId, fdbr->PathId, fdbr->FilenameId);
             Mmsg1(&mdb->errmsg, _("Error fetching row: %s\n"), sql_strerror(mdb));
 	 } else {
 	    fdbr->FileId = (FileId_t)str_to_int64(row[0]);
-	    strncpy(fdbr->LStat, row[1], sizeof(fdbr->LStat));
-	    fdbr->LStat[sizeof(fdbr->LStat)] = 0;
-	    strncpy(fdbr->MD5, row[2], sizeof(fdbr->MD5));
-	    fdbr->MD5[sizeof(fdbr->MD5)] = 0;
+	    bstrncpy(fdbr->LStat, row[1], sizeof(fdbr->LStat));
+	    bstrncpy(fdbr->MD5, row[2], sizeof(fdbr->MD5));
 	    stat = 1;
 	 }
       } else {

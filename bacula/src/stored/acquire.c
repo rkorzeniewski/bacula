@@ -128,6 +128,7 @@ default_path:
    stat = 1;			      /* good return */
    if ((dev->state & ST_TAPE) && vol->start_file > 0) {
       Dmsg1(200, "====== Got start_file = %d\n", vol->start_file);
+      Jmsg(jcr, M_INFO, 0, _("Forward spacing to file %d.\n"), vol->start_file);
       fsf_dev(dev, vol->start_file);
    }
 

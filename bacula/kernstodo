@@ -1,12 +1,10 @@
                  Kern's ToDo List
-                 01 January 2003 
+                 04 January 2003 
 
 Documentation to do: (a little bit at a time)
 - Document running a test version.
-- Make sure restore options are documented
 - Document query file format.
 - Document static linking
-- Document nofollow flag
 
 Testing to do: (painful)
 - that console command line options work
@@ -17,14 +15,16 @@ For 1.28 release:
 - Figure out how to allow multiple simultaneous file Volumes on
   a single device.
 - Why are save/restore of device different sizes (sparse?)
-- Backup of raw partitions
+- Make sure differential handled correctly
 
 For 1.29 release:
+- Cancel does not work for restore in FD.
+- Restore to a particular time -- e.g. before date, after date. 
 - Implement SHA1
 - Implement disk spooling
 - Implement finer multiprocessing options.
 - Solaris -I on tar for include list
-- Add whereln to where or not where absolute links
+- Add whereabslinks to where or not where absolute links
 - Figure out some way to automatically backup all local partitions
 - Enable avoid backing up archive device (findlib/find_one.c:128)
 - Implement FileOptions (see end of this document)
@@ -32,7 +32,6 @@ For 1.29 release:
 - Make hash table for linked files in findlib/find_one.c:161
 - Make bcopy read through bad tape records.
 - Need a verbose mode in restore, perhaps to bsr.
-- Should we dump a SOS when starting a new tape?
 - bscan without -v is too quiet -- perhaps show jobs.
 - Add code to reject whole blocks if not wanted on restore.
 - Implement multiple simultaneous file Volumes on a single device.
@@ -61,16 +60,12 @@ For 1.29 release:
 - Restore program that errors in SD due to no tape reports
   OK incorrectly in output.
 - After unmount, if restore job started, ask to mount.
-- Fix db_get_fileset in cats/sql_get.c for multiple records.
-- Fix catalog filename truncation in sql_get and sql_create. Use
-  only a single filename split routine.
 - Make Restore report an error if FD or SD term codes are not OK.
 - Convert all %x substitution variables, which are hard to remember
   and read to %(variable-name).  Idea from TMDA.
 - Add JobLevel in FD status (but make sure it is defined).
 - Make Pool resource handle Counter resources.
 - Remove NextId for SQLite. Optimize.
-- Fix gethostbyname() to use gethostbyname_r()
 - Strip trailing / from Include
 - Move all SQL statements into a single location.
 - Cleanup db_update_media and db_update_pool
@@ -84,7 +79,6 @@ For 1.29 release:
 - Add Client FS/OS id (Linux, Win95/98, ...).
 - Test a second language e.g. french.
 - Compare tape to Client files (attributes, or attributes and data) 
-- Restore to a particular time -- e.g. before date, after date. 
 - Make all database Ids 64 bit.
 - Write an applet for Linux.
 - Add estimate to Console commands
@@ -105,14 +99,13 @@ For 1.29 release:
 - Fix Win2000 error with no messages during startup.
 - Events : tape has more than xxx bytes.
 - Restrict characters permitted in a Resource name.
-- Complete  code in Bacula Resources -- this will permit
+- Complete code in Bacula Resources -- this will permit
   reading a new config file at any time.
 - Handle ctl-c in Console
 - Implement LabelTemplate (at least first cut).
 - Implement script driven addition of File daemon to config files.
 - Think about how to make Bacula work better with File (non-tape) archives.
 
-- see setgroup and user for Bacula p4-5 of stunnel.c
 - Implement new serialize subroutines
    send(socket, "string", &Vol, "uint32", &i, NULL)
 - Audit all UA commands to ensure that we always prompt where possible.
@@ -122,7 +115,6 @@ For 1.29 release:
 - Make database type selectable by .conf files i.e. at runtime
 - gethostbyname failure in bnet_connect() continues
   generating errors -- should stop.
-- Add HOST to Volume label.
 - Set flag for uname -a.  Add to Volume label.
 - Implement throttled work queue.
 - Check for EOT at ENOSPC or EIO or ENXIO (unix Pc)
@@ -152,8 +144,6 @@ For 1.29 release:
 - Make bcopy copy with a single tape drive.
 - Permit changing ownership during restore.
 
-- Restore should get Device and Pool information from
-  job record rather than from config.
 - Autolabel should be specified by DIR instead of SD.
 - Find out how to get the system tape block limits, e.g.:
   Apr 22 21:22:10 polymatou kernel: st1: Block limits 1 - 245760 bytes.  
@@ -187,6 +177,8 @@ For 1.29 release:
 =====
 - FD sends unsaved file list to Director at end of job (see
   RFC below).
+- File daemon should build list of files skipped, and then
+  at end of save retry and report any errors.
 - Write a Storage daemon that uses pipes and
   standard Unix programs to write to the tape.
   See afbackup.
@@ -203,18 +195,13 @@ For 1.29 release:
   if tape is not valid.
 - Verify from Volume
 - Ensure that /dev/null works
-- File daemon should build list of files skipped, and then
-  at end of save retry and report any errors.
 - Need report class for messages. Perhaps
   report resource where report=group of messages
 - enhance scan_attrib and rename scan_jobtype, and
   fill in code for "since" option 
-- Need to save contents of FileSet to tape?
 - Director needs a time after which the report status is sent
   anyway -- or better yet, a retry time for the job.
   Don't reschedule a job if previous incarnation is still running.
-- Figure out how to save the catalog (possibly a special FileSet).
-- Figure out how to restore the catalog.
 - Some way to automatically backup everything is needed????
 - Need a structure for pending actions:
   - buffered messages
@@ -254,7 +241,7 @@ Projects:
            last update 27 November 2002
 
 Item 1:   Multiple simultaneous Jobs. (done)
-Done
+Done -- Restore part needs better implementation to work correctly
 
   What:   Permit multiple simultaneous jobs in Bacula.
 
@@ -707,4 +694,16 @@ Done: (see kernsdone for more)
 - Implement ./configure --with-client-only
 - Finish up static linking 
 - that restore options work in FD               
+- Backup of raw partitions
+- Document nofollow flag
+- Make sure restore options are documented
+- Should we dump a SOS when starting a new tape? (no -- too complicated)
+- Fix gethostbyname() to use gethostbyname_r() -- no added mutex
+- Add HOST to Volume label.
+- Need to save contents of FileSet to tape? -- no not now
+- Fix db_get_fileset in cats/sql_get.c for multiple records.
+- Fix catalog filename truncation in sql_get and sql_create. Use
+  only a single filename split routine.
+- Figure out how to save the catalog (possibly a special FileSet).
+- Figure out how to restore the catalog.
     

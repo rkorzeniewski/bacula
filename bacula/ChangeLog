@@ -1,5 +1,4 @@
-2002-mm-dd Version 1.28 (not yet released)
-
+2003-01-04 Version 1.28 released
 General:
 - Implemented Bare Metal Recovery for Linux and manual procedures for Solaris
 - Now using only a single technotes file kes-1.28 and will add to
@@ -13,6 +12,8 @@ General:
   tape drivers.
 
 Changes submitted this submission:
+04Jan03
+- Add cygreadline5.dll to Win32 release -- needed for console
 03Jan03
 - Add scripts make_catalog_backup and delete_catalog_backup that makes and
   deletes an ASCII copy of the catalog for backup. An example of how
