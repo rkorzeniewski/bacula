@@ -10,21 +10,23 @@
 #
 
 case "$1" in
-    start)
+    'start')
        echo "Starting the Bacula File daemon: "
-       @sbindir@/bacula-fd $2 -c @sysconfdir@/bacula-fd.conf
+       if test -x @sbindir@/bacula-fd && test -f @sysconfidir@/bacula-fd.conf; then
+	 exec  @sbindir@/bacula-fd $2 -c @sysconfdir@/bacula-fd.conf
+       fi
        RETVAL=$?
        echo
        [ $RETVAL -eq 0 ] && touch @subsysdir@/bacula-fd
        ;;
-    stop)
+    'stop')
        echo "Stopping the Bacula File daemon: "
-#	killproc @sbindir@/bacula-fd
+       /sbin/killall -k 10 -TERM @sbindir@/bacula-fd
        RETVAL=$?
        echo
        [ $RETVAL -eq 0 ] && rm -f @subsysdir@/bacula-fd
        ;;
-    restart)
+    'restart')
        $0 stop
        sleep 5
        $0 start
