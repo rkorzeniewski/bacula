@@ -44,7 +44,7 @@ daemon_start()
    int i;
    pid_t cpid;
    mode_t oldmask;
-   int low_fd = 0;
+   int low_fd = -1;
    /*
     *  Become a daemon.
     */
