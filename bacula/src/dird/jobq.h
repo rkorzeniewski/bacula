@@ -10,7 +10,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2003 Kern Sibbald and John Walker
+   Copyright (C) 2000-2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -44,27 +44,27 @@ struct jobq_item_t {
  * Structure describing a work queue
  */
 struct jobq_t {
-   pthread_mutex_t   mutex;           /* queue access control */
-   pthread_cond_t    work;            /* wait for work */
-   pthread_attr_t    attr;            /* create detached threads */
-   dlist            *waiting_jobs;    /* list of jobs waiting */
-   dlist            *running_jobs;    /* jobs running */
-   dlist            *ready_jobs;      /* jobs ready to run */
-   int               valid;           /* queue initialized */
-   bool              quit;            /* jobq should quit */
-   int               max_workers;     /* max threads */
-   int               num_workers;     /* current threads */
-   int               idle_workers;    /* idle threads */
-   void             *(*engine)(void *arg); /* user engine */
+   pthread_mutex_t   mutex;	      /* queue access control */
+   pthread_cond_t    work;	      /* wait for work */
+   pthread_attr_t    attr;	      /* create detached threads */
+   dlist	    *waiting_jobs;    /* list of jobs waiting */
+   dlist	    *running_jobs;    /* jobs running */
+   dlist	    *ready_jobs;      /* jobs ready to run */
+   int		     valid;	      /* queue initialized */
+   bool 	     quit;	      /* jobq should quit */
+   int		     max_workers;     /* max threads */
+   int		     num_workers;     /* current threads */
+   int		     idle_workers;    /* idle threads */
+   void 	    *(*engine)(void *arg); /* user engine */
 };
 
 #define JOBQ_VALID  0xdec1993
 
 extern int jobq_init(
-              jobq_t *wq,
-              int     threads,            /* maximum threads */
-              void   *(*engine)(void *)   /* engine routine */
-                    );
+	      jobq_t *wq,
+	      int     threads,		  /* maximum threads */
+	      void   *(*engine)(void *)   /* engine routine */
+		    );
 extern int jobq_destroy(jobq_t *wq);
 extern int jobq_add(jobq_t *wq, JCR *jcr);
 extern int jobq_remove(jobq_t *wq, JCR *jcr);

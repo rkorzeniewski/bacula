@@ -6,7 +6,7 @@
  *     Version $Id$
  */
 /*
-   Copyright (C) 2000-2003 Kern Sibbald and John Walker
+   Copyright (C) 2000-2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -34,31 +34,31 @@ struct UAContext {
    JCR *jcr;
    B_DB *db;
    CAT *catalog;
-   CONRES *cons;                      /* console resource */
-   POOLMEM *cmd;                      /* return command/name buffer */
-   POOLMEM *args;                     /* command line arguments */
-   char *argk[MAX_CMD_ARGS];          /* argument keywords */
-   char *argv[MAX_CMD_ARGS];          /* argument values */
-   int argc;                          /* number of arguments */
-   char **prompt;                     /* list of prompts */
-   int max_prompts;                   /* max size of list */
-   int num_prompts;                   /* current number in list */
-   bool auto_display_messages;        /* if set, display messages */
+   CONRES *cons;		      /* console resource */
+   POOLMEM *cmd;		      /* return command/name buffer */
+   POOLMEM *args;		      /* command line arguments */
+   char *argk[MAX_CMD_ARGS];	      /* argument keywords */
+   char *argv[MAX_CMD_ARGS];	      /* argument values */
+   int argc;			      /* number of arguments */
+   char **prompt;		      /* list of prompts */
+   int max_prompts;		      /* max size of list */
+   int num_prompts;		      /* current number in list */
+   bool auto_display_messages;	      /* if set, display messages */
    bool user_notified_msg_pending;    /* set when user notified */
-   bool automount;                    /* if set, mount after label */
-   bool quit;                         /* if set, quit */
-   bool verbose;                      /* set for normal UA verbosity */
-   uint32_t pint32_val;               /* positive integer */
-   int32_t  int32_val;                /* positive/negative */
-};          
+   bool automount;		      /* if set, mount after label */
+   bool quit;			      /* if set, quit */
+   bool verbose;		      /* set for normal UA verbosity */
+   uint32_t pint32_val; 	      /* positive integer */
+   int32_t  int32_val;		      /* positive/negative */
+};	    
 
 /* Context for insert_tree_handler() */
 struct TREE_CTX {
-   TREE_ROOT *root;                   /* root */
-   TREE_NODE *node;                   /* current node */
-   TREE_NODE *avail_node;             /* unused node last insert */
-   int cnt;                           /* count for user feedback */
-   bool all;                          /* if set mark all as default */
+   TREE_ROOT *root;		      /* root */
+   TREE_NODE *node;		      /* current node */
+   TREE_NODE *avail_node;	      /* unused node last insert */
+   int cnt;			      /* count for user feedback */
+   bool all;			      /* if set mark all as default */
    UAContext *ua;
 };
 

@@ -10,6 +10,7 @@
 */
 /*
    Copyright (C) 1981-2004 Kern Sibbald and John Walker
+		 Yes, that is 1981 no error.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
