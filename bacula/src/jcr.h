@@ -233,6 +233,7 @@ struct JCR {
    bool NewVol;                       /* set when new Volume mounted */
    bool WroteVol;                     /* set when Volume written */
    bool NewFile;                      /* set when EOF written */
+   bool ignore_label_errors;          /* ignore Volume label errors */
    int CurVol;                        /* Current Volume count */
 
    uint32_t FileId;                   /* Last file id inserted */
