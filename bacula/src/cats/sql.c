@@ -226,7 +226,7 @@ void _db_unlock(char *file, int line, B_DB *mdb)
  */
 void db_start_transaction(B_DB *mdb)
 {
-#ifdef HAVE_SQLITE
+#ifdef xAVE_SQLITE
    db_lock(mdb);
    /* Allow only 10,000 changes per transaction */
    if (mdb->transaction && mdb->changes > 10000) {
@@ -244,7 +244,7 @@ void db_start_transaction(B_DB *mdb)
 
 void db_end_transaction(B_DB *mdb)
 {
-#ifdef HAVE_SQLITE
+#ifdef xAVE_SQLITE
    db_lock(mdb);
    if (mdb->transaction) {
       my_sqlite_query(mdb, "COMMIT"); /* end transaction */

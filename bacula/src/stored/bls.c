@@ -513,6 +513,7 @@ Warning, this Volume is a continuation of Volume %s\n",
 	 if (!read_record_from_block(block, rec)) {
             Dmsg3(10, "!read-break. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
 		  block->BlockNumber, rec->remainder);
+//	    rec->remainder = 0;
 	    break;
 	 }
          Dmsg3(10, "read-OK. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 

@@ -138,7 +138,7 @@ int acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 
    dev->num_writers++;
    if (dev->num_writers > 1) {
-      Dmsg2(0, "Hey!!!! There are %d writers on device %s\n", dev->num_writers,
+      Dmsg2(100, "Hey!!!! There are %d writers on device %s\n", dev->num_writers,
 	 dev_name(dev));
    }
    if (jcr->NumVolumes == 0) {

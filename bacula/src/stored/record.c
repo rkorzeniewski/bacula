@@ -373,10 +373,12 @@ remlen=%d data_len=%d\n",
        * then reread.
        */
       Dmsg0(90, "read_record_block: nothing\n");
+#ifdef xxx
       if (!rec->remainder) {
 	 rec->remainder = 1;	      /* set to expect continuation */
 	 rec->data_len = 0;	      /* no data transferred */
       }
+#endif
       rec->state |= (REC_NO_HEADER | REC_BLOCK_EMPTY);
       return 0;
    }
