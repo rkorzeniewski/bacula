@@ -201,7 +201,7 @@ static int setdebug_cmd(JCR *jcr)
    int level, trace_flag;
 
    Dmsg1(10, "setdebug_cmd: %s", dir->msg);
-   if (sscanf(dir->msg, "setdebug=%d", &level, &trace_flag) != 2 || level < 0) {
+   if (sscanf(dir->msg, "setdebug=%d trace=%d", &level, &trace_flag) != 2 || level < 0) {
       bnet_fsend(dir, "3991 Bad setdebug command: %s\n", dir->msg);
       return 0;
    }
