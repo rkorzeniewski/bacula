@@ -129,7 +129,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
       Dmsg1(130, "FT_SPEC saving: %s\n", ff_pkt->fname);
       break;
    case FT_NOACCESS:
-      Jmsg(jcr, M_NOTSAVED, -1, _("     Could not access %s: ERR=%s"), ff_pkt->fname, 
+      Jmsg(jcr, M_NOTSAVED, -1, _("     Could not access %s: ERR=%s\n"), ff_pkt->fname, 
 	 strerror(ff_pkt->ff_errno));
       return 1;
    case FT_NOFOLLOW:
@@ -160,7 +160,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 	 strerror(ff_pkt->ff_errno));
       return 1;
    default:
-      Jmsg(jcr, M_NOTSAVED, 0, _("Unknown file type %d; not saved: %s\n"), ff_pkt->type, ff_pkt->fname);
+      Jmsg(jcr, M_NOTSAVED, 0,  _("     Unknown file type %d; not saved: %s\n"), ff_pkt->type, ff_pkt->fname);
       return 1;
    }
 
@@ -168,7 +168,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 	 ff_pkt->statp.st_size > 0) {
       if ((fid = open(ff_pkt->fname, O_RDONLY | O_BINARY)) < 0) {
 	 ff_pkt->ff_errno = errno;
-         Jmsg(jcr, M_NOTSAVED, -1, _("Cannot open %s: ERR=%s.\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
+         Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open %s: ERR=%s.\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
 	 return 1;
       }
    } else {
@@ -276,7 +276,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 	    if (compress2((Bytef *)jcr->compress_buf, &compress_len, 
 		  (const Bytef *)sd->msg, (uLong)sd->msglen,
 		  ff_pkt->GZIP_level)  != Z_OK) {
-               Jmsg(jcr, M_ERROR, 0, _("Compression error\n"));
+               Jmsg(jcr, M_FATAL, 0, _("Compression error\n"));
 	       sd->msg = msgsave;
 	       sd->msglen = 0;
 	       close(fid);
@@ -312,8 +312,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
       } /* end while */
 
       if (sd->msglen < 0) {
-         Jmsg(jcr, M_ERROR, 0, _("Error during save reading ERR=%s\n"), ff_pkt->fname, 
-	    strerror(ff_pkt->ff_errno));
+         Jmsg(jcr, M_ERROR, 0, _("Network error. ERR=%s\n"), bnet_strerror(sd));
       }
 
       /* Send data termination poll signal to Storage daemon.
@@ -331,7 +330,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 	 return 0;
       } else {
          if (strcmp(sd->msg, "3000 OK\n") != 0) {
-           Jmsg1(jcr, M_ERROR, 0, _("Job aborted by Storage daemon: %s\n"), sd->msg);
+           Jmsg1(jcr, M_FATAL, 0, _("Job aborted by Storage daemon: %s\n"), sd->msg);
 	   close(fid);
 	   return 0;
 	 }

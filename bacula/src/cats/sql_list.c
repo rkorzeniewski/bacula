@@ -98,7 +98,7 @@ db_list_media_records(B_DB *mdb, MEDIA_DBR *mdbr, DB_LIST_HANDLER *sendit, void 
 
    Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,MediaType,VolStatus,\
 VolBytes,LastWritten,VolRetention,Recycle,Slot \
-FROM Media WHERE Media.PoolId=%d ORDER BY MediaId", mdbr->PoolId);
+FROM Media WHERE Media.PoolId=%u ORDER BY MediaId", mdbr->PoolId);
 
    db_lock(mdb);
    if (!QUERY_DB(mdb, mdb->cmd)) {
@@ -116,7 +116,7 @@ void db_list_jobmedia_records(B_DB *mdb, uint32_t JobId, DB_LIST_HANDLER *sendit
 {
    if (JobId > 0) {		      /* do by JobId */
       Mmsg(&mdb->cmd, "SELECT JobId, Media.VolumeName, FirstIndex, LastIndex \
-FROM JobMedia, Media WHERE Media.MediaId=JobMedia.MediaId and JobMedia.JobId=%d", 
+FROM JobMedia, Media WHERE Media.MediaId=JobMedia.MediaId and JobMedia.JobId=%u", 
 	   JobId);
    } else {
       Mmsg(&mdb->cmd, "SELECT JobId, Media.VolumeName, FirstIndex, LastIndex \
@@ -152,7 +152,7 @@ db_list_job_records(B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, void *ctx)
 JobFiles,JobBytes,JobStatus FROM Job");
    } else {			      /* single record */
       Mmsg(&mdb->cmd, "SELECT JobId,Name,StartTime,Type,Level,\
-JobFiles,JobBytes,JobStatus FROM Job WHERE Job.JobId=%d", jr->JobId);
+JobFiles,JobBytes,JobStatus FROM Job WHERE Job.JobId=%u", jr->JobId);
    }
 
    db_lock(mdb);
@@ -212,7 +212,7 @@ db_list_files_for_job(B_DB *mdb, uint32_t jobid, DB_LIST_HANDLER *sendit, void *
 {
 
    Mmsg(&mdb->cmd, "SELECT Path.Path,Filename.Name FROM File,\
-Filename,Path WHERE File.JobId=%d and Filename.FilenameId=File.FilenameId \
+Filename,Path WHERE File.JobId=%u and Filename.FilenameId=File.FilenameId \
 and Path.PathId=File.PathId",
       jobid);
 

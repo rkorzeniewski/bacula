@@ -70,7 +70,7 @@ int db_get_file_attributes_record(B_DB *mdb, char *fname, FILE_DBR *fdbr)
 {
    int fnl, pnl;
    char *l, *p;
-   uint64_t id;
+   int stat;
    char file[MAXSTRING];
    char spath[MAXSTRING];
    char buf[MAXSTRING];
@@ -133,22 +133,28 @@ int db_get_file_attributes_record(B_DB *mdb, char *fname, FILE_DBR *fdbr)
 
    db_escape_string(buf, file, fnl);
    fdbr->FilenameId = db_get_filename_record(mdb, buf);
-   Dmsg2(100, "db_get_filename_record FilenameId=%d file=%s\n", fdbr->FilenameId, buf);
+   Dmsg2(100, "db_get_filename_record FilenameId=%u file=%s\n", fdbr->FilenameId, buf);
 
    db_escape_string(buf, spath, pnl);
    fdbr->PathId = db_get_path_record(mdb, buf);
-   Dmsg2(100, "db_get_path_record PathId=%d path=%s\n", fdbr->PathId, buf);
+   Dmsg2(100, "db_get_path_record PathId=%u path=%s\n", fdbr->PathId, buf);
 
-   id = db_get_file_record(mdb, fdbr);
+   stat = db_get_file_record(mdb, fdbr);
 
-   return id;
+   return stat;
 }
 
  
-
-/* Get a File record   
+/*
+ * Get a File record   
  * Returns: 0 on failure
  *	    1 on success
+ *
+ *  DO NOT use Jmsg in this routine.
+ *
+ *  Note in this routine, we do not use Jmsg because it may be
+ *    called to get attributes of a non-existant file, which is
+ *    "normal" if a new file is found during Verify.
  */
 static
 int db_get_file_record(B_DB *mdb, FILE_DBR *fdbr)
@@ -158,10 +164,10 @@ int db_get_file_record(B_DB *mdb, FILE_DBR *fdbr)
 
    db_lock(mdb);
    Mmsg(&mdb->cmd, 
-"SELECT FileId, LStat, MD5 from File where File.JobId=%d and File.PathId=%d and \
-File.FilenameId=%d", fdbr->JobId, fdbr->PathId, fdbr->FilenameId);
+"SELECT FileId, LStat, MD5 from File where File.JobId=%u and File.PathId=%u and \
+File.FilenameId=%u", fdbr->JobId, fdbr->PathId, fdbr->FilenameId);
 
-   Dmsg3(050, "Get_file_record JobId=%d FilenameId=%d PathId=%d\n",
+   Dmsg3(050, "Get_file_record JobId=%u FilenameId=%u PathId=%u\n",
       fdbr->JobId, fdbr->FilenameId, fdbr->PathId);
       
    Dmsg1(100, "Query=%s\n", mdb->cmd);
@@ -171,18 +177,13 @@ File.FilenameId=%d", fdbr->JobId, fdbr->PathId, fdbr->FilenameId);
       mdb->num_rows = sql_num_rows(mdb);
       Dmsg1(050, "get_file_record num_rows=%d\n", (int)mdb->num_rows);
 
-      /* 
-       * Note, we can find more than one File record with the same
-       *  filename if the file is linked.   ????????
-       */
       if (mdb->num_rows > 1) {
-         Jmsg1(mdb->jcr, M_WARNING, 0, _("get_file_record want 1 got rows=%d\n"), mdb->num_rows);
-         Jmsg1(mdb->jcr, M_ERROR, 0, "%s", mdb->cmd);
+         Mmsg1(&mdb->errmsg, _("get_file_record want 1 got rows=%d\n"),
+	    mdb->num_rows);
       }
       if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
-            Mmsg1(&mdb->errmsg, "Error fetching row: %s\n", sql_strerror(mdb));
-            Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
+            Mmsg1(&mdb->errmsg, _("Error fetching row: %s\n"), sql_strerror(mdb));
 	 } else {
 	    fdbr->FileId = (FileId_t)strtod(row[0], NULL);
 	    strncpy(fdbr->LStat, row[1], sizeof(fdbr->LStat));
@@ -202,6 +203,8 @@ File.FilenameId=%d", fdbr->JobId, fdbr->PathId, fdbr->FilenameId);
 /* Get Filename record	 
  * Returns: 0 on failure
  *	    FilenameId on success
+ *
+ *   DO NOT use Jmsg in this routine (see notes for get_file_record)
  */
 static int db_get_filename_record(B_DB *mdb, char *fname) 
 {
@@ -221,18 +224,15 @@ static int db_get_filename_record(B_DB *mdb, char *fname)
 
       if (mdb->num_rows > 1) {
          Mmsg1(&mdb->errmsg, _("More than one Filename!: %d\n"), (int)(mdb->num_rows));
-         Jmsg(mdb->jcr, M_WARNING, 0, "%s", mdb->errmsg);
       }
       if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
-            Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	 } else {
 	    FilenameId = atoi(row[0]);
 	    if (FilenameId <= 0) {
                Mmsg2(&mdb->errmsg, _("Get DB Filename record %s found bad record: %d\n"),
 		  mdb->cmd, FilenameId); 
-               Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	       FilenameId = 0;
 	    }
 	 }
@@ -246,6 +246,8 @@ static int db_get_filename_record(B_DB *mdb, char *fname)
 /* Get path record   
  * Returns: 0 on failure
  *	    PathId on success
+ *
+ *   DO NOT use Jmsg in this routine (see notes for get_file_record)
  */
 static int db_get_path_record(B_DB *mdb, char *path)
 {
@@ -276,13 +278,11 @@ static int db_get_path_record(B_DB *mdb, char *path)
       } else if (mdb->num_rows == 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
-            Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	 } else {
 	    PathId = atoi(row[0]);
 	    if (PathId <= 0) {
-               Mmsg2(&mdb->errmsg, _("Get DB path record %s found bad record: %d\n"),
+               Mmsg2(&mdb->errmsg, _("Get DB path record %s found bad record: %u\n"),
 		  mdb->cmd, PathId); 
-               Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	       PathId = 0;
 	    } else {
 	       /* Cache path */
@@ -319,7 +319,7 @@ FROM Job WHERE Job='%s'", jr->Job);
     } else {
       Mmsg(&mdb->cmd, "SELECT VolSessionId, VolSessionTime, \
 PoolId, StartTime, EndTime, JobFiles, JobBytes, JobTDate, Job, JobStatus \
-FROM Job WHERE JobId=%d", jr->JobId);
+FROM Job WHERE JobId=%u", jr->JobId);
     }
 
    if (!QUERY_DB(mdb, mdb->cmd)) {
@@ -327,7 +327,7 @@ FROM Job WHERE JobId=%d", jr->JobId);
       return 0; 		      /* failed */
    }
    if ((row = sql_fetch_row(mdb)) == NULL) {
-      Mmsg1(&mdb->errmsg, _("No Job found for JobId %d\n"), jr->JobId);
+      Mmsg1(&mdb->errmsg, _("No Job found for JobId %u\n"), jr->JobId);
       Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
       sql_free_result(mdb);
       db_unlock(mdb);
@@ -365,7 +365,7 @@ int db_get_job_volume_names(B_DB *mdb, uint32_t JobId, POOLMEM **VolumeNames)
 
    db_lock(mdb);
    Mmsg(&mdb->cmd, 
-"SELECT VolumeName FROM JobMedia,Media WHERE JobMedia.JobId=%d \
+"SELECT VolumeName FROM JobMedia,Media WHERE JobMedia.JobId=%u \
 AND JobMedia.MediaId=Media.MediaId", JobId);
 
    Dmsg1(130, "VolNam=%s\n", mdb->cmd);

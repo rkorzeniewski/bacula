@@ -498,7 +498,7 @@ void close_msg(void *vjcr)
 	     * make sure we are not closing the daemon messages, otherwise
 	     * kaboom.
 	     */
-	    if (stat < 0 && msgs != daemon_msgs) {
+	    if (stat < 0 && msgs != daemon_msgs && errno != ECHILD) {
                Emsg1(M_ERROR, 0, _("Mail program terminated in error.\nCMD=%s\n"),
 		  cmd);
 	    }
@@ -644,7 +644,7 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 		   /* Messages to the operator go one at a time */
 		   stat = pclose(d->fd);
 		   d->fd = NULL;
-		   if (stat < 0) {
+		   if (stat < 0 && errno != ECHILD) {
                       Emsg1(M_ERROR, 0, _("Operator mail program terminated in error.\nCMD=%s\n"),
 			 mcmd);
 		   }

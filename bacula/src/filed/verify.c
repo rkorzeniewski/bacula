@@ -128,7 +128,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       Jmsg(jcr, M_NOTSAVED, -1, _("     Could not open directory %s: ERR=%s\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
       return 1;
    default:
-      Jmsg(jcr, M_NOTSAVED, 0, _("Unknown file type %d: %s\n"), ff_pkt->type, ff_pkt->fname);
+      Jmsg(jcr, M_NOTSAVED, 0, _("     Unknown file type %d: %s\n"), ff_pkt->type, ff_pkt->fname);
       return 1;
    }
 
@@ -137,7 +137,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
 	 ff_pkt->statp.st_size > 0) {
       if ((fid = open(ff_pkt->fname, O_RDONLY | O_BINARY)) < 0) {
 	 ff_pkt->ff_errno = errno;
-         Jmsg(jcr, M_NOTSAVED, -1, _("Cannot open %s: ERR=%s.\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
+         Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open %s: ERR=%s.\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
 	 return 1;
       }
    } else {
@@ -171,7 +171,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
     */
    /* Send file attributes to Director (note different format than for Storage) */
    Dmsg2(400, "send ATTR inx=%d fname=%s\n", jcr->JobFiles, ff_pkt->fname);
-   if (ff_pkt->type == FT_LNK || ff_pkt->tye == FT_LNKSAVED) {
+   if (ff_pkt->type == FT_LNK || ff_pkt->type == FT_LNKSAVED) {
       stat = bnet_fsend(dir, "%d %d %s %s%c%s%c%s%c", jcr->JobFiles,
 		    STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->fname, 
 		    0, attribs, 0, ff_pkt->link, 0);
