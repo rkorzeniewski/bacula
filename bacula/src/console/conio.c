@@ -1,10 +1,10 @@
 /*	  
-      Generalized consol input/output handler
+      Generalized console input/output handler
       Kern Sibbald, December MMIII
 */
 
 #define BACULA
-#ifdef BACULA
+#ifdef	BACULA
 #include "bacula.h"
 #else
 #include <stdio.h>
@@ -14,8 +14,11 @@
 #include <ctype.h> 
 #endif
 
+/*
 #include <curses.h>
 #include <term.h>
+*/
+#include <termcap.h>
 #include "func.h"
 
 /* Global functions imported */
@@ -33,17 +36,13 @@ extern char *UP;
 
 static char *t_up = "\n";                    /* scroll up character */
 static char *t_honk = "\007";                /* sound beep */
-static char *t_flag = "+";                   /* mark flag sequence */
-static char *t_norm = " ";                   /* clear mark sequence */
 static char *t_il;			     /* insert line */
 static char *t_dl;			     /* delete line */
 static char *t_cs;			     /* clear screen */
 static char *t_cl;			     /* clear line */
 static int t_width = 79;		     /* terminal width */
 static int t_height = 24;		     /* terminal height */
-static int t_flagl = 1; 		     /* # chars for flag */
 static int linsdel_ok = 0;		/* set if term has line insert & delete fncs */
-static short dioflag = 1;		     /* set if ok to use ibm bios calls */
 
 static char *t_cm;			     /* cursor positioning */
 static char *t_ti;			     /* init sequence */
@@ -54,20 +53,10 @@ static char *t_sf;			     /* scroll screen one line up */
 /* Keypad and Function Keys */
 static char *kl;			     /* left key */
 static char *kr;			     /* right */
-static char *ku;
-static char *kd;
+static char *ku;			     /* up */
+static char *kd;			     /* down */
 static char *kh;			     /* home */
 static char *kb;			     /* backspace */
-static char *k0;			     /* function key 10 */
-static char *k1;			     /* function key 1 */
-static char *k2;			     /* function key 2 */
-static char *k3;			     /* function key 3 */
-static char *k4;			     /* function key 4 */
-static char *k5;			     /* function key 5 */
-static char *k6;			     /* function key 6 */
-static char *k7;			     /* function key 7 */
-static char *k8;			     /* function key 8 */
-static char *k9;			     /* function key 9 */
 static char *kD;			     /* delete key */
 static char *kI;			     /* insert */
 static char *kN;			     /* next page */
@@ -75,7 +64,6 @@ static char *kP;			     /* previous page */
 static char *kH;			     /* home */
 static char *kE;			     /* end */
 
-static int use_termcap;
 #ifndef EOS
 #define EOS  '\0'                     /* end of string terminator */
 #endif
@@ -100,6 +88,7 @@ static int num_stab;			     /* size of stab array */
 
 /* Local variables */
 
+static bool old_term_params_set = false;
 static struct termios old_term_params;
 
 /* Maintain lines in a doubly linked circular pool of lines. Each line is
@@ -136,22 +125,23 @@ static void sigintcatcher(int);
 /* Global variables Exported */
 
 static short char_map[600]= {
-   0,				       F_NXTWRD, /* ^A Next Word */
-   F_SPLIT,  /* ^B Split line */       F_EOI,	 /* ^C Quit */
-   F_DELCHR, /* ^D Delete character */ F_EOF,	 /* ^E End of file */
-   F_INSCHR, /* ^F Insert character */ F_TABBAK, /* ^G Back tab */
+   0,				       F_SOL,	 /* ^a Line start */
+   F_PRVWRD, /* ^b Previous word */    F_BREAK,  /* ^C break */
+   F_DELCHR, /* ^D Delete character */ F_EOL,	 /* ^e End of line */
+   F_CSRRGT, /* ^f Right */	       F_TABBAK, /* ^G Back tab */
    F_CSRLFT, /* ^H Left */	       F_TAB,	 /* ^I Tab */
-   F_CSRDWN, /* ^J Down */	       F_CSRUP,  /* ^K Up */
-   F_CSRRGT, /* ^L Right */	       F_RETURN, /* ^M Carriage return */
-   F_EOL,    /* ^N End of line */      F_CONCAT, /* ^O Concatenate lines */
-   F_MARK,   /* ^P Set marker */       F_TINS,	 /* ^Q Insert character mode */
+   F_CSRDWN, /* ^J Down */	       F_DELEOL, /* ^K kill to eol */
+   F_CLRSCRN,/* ^L clear screen */     F_RETURN, /* ^M Carriage return */
+   F_RETURN, /* ^N enter line  */      F_CONCAT, /* ^O Concatenate lines */
+   F_CSRUP,  /* ^P cursor up */        F_TINS,	 /* ^Q Insert character mode */
    F_PAGUP,  /* ^R Page up */	       F_CENTER, /* ^S Center text */
-   F_PAGDWN, /* ^T Page down */        F_SOL,	 /* ^U Line start */
+   F_PAGDWN, /* ^T Page down */        F_DELSOL, /* ^U delete to start of line */
    F_DELWRD, /* ^V Delete word */      F_PRVWRD, /* ^W Previous word */
    F_NXTMCH, /* ^X Next match */       F_DELEOL, /* ^Y Delete to end of line */
-   F_DELLIN, /* ^Z Delete line */      0x1B,	 /* ^[=ESC escape */
+   F_BACKGND,/* ^Z Background */       0x1B,	 /* ^[=ESC escape */
    F_TENTRY, /* ^\ Entry mode */       F_PASTECB,/* ^]=paste clipboard */
    F_HOME,   /* ^^ Home */	       F_ERSLIN, /* ^_ Erase line */
+
    ' ','!','"','#','$','%','&','\047',
    '(',')','*','+','\054','-','.','/',
    '0','1','2','3','4','5','6','7',
@@ -199,11 +189,13 @@ static void t_honk_horn(void);
 static void t_insert_line(void);
 static void t_delete_line(void);
 static void t_clrline(int pos, int width);
-static void t_sendl(char *msg, int len);
-static void t_send(char *msg);
-static void t_char(char c);
+void t_sendl(char *msg, int len);
+void t_send(char *msg);
+void t_char(char c);
+static void asclrs();
+static void ascurs(int y, int x);
 
-static void rawmode(void);
+static void rawmode(FILE *input);
 static void normode(void);
 static int t_getch();
 static void trapctlc();
@@ -213,10 +205,49 @@ static void asdell();
 
 int input_line(char *string, int length);
 
-void con_init() 
+void con_init(FILE *input)
 {
-   rawmode();
+   rawmode(input);
    trapctlc();
+}
+
+/*
+ * Zed control keys
+ */
+void con_set_zed_keys(void)
+{
+   char_map[1]	= F_NXTWRD; /* ^A Next Word */
+   char_map[2]	= F_SPLIT;  /* ^B Split line */
+   char_map[3]	= F_EOI;    /* ^C Quit */
+   char_map[4]	= F_DELCHR; /* ^D Delete character */
+   char_map[5]	= F_EOF;    /* ^E End of file */
+   char_map[6]	= F_INSCHR; /* ^F Insert character */
+   char_map[7]	= F_TABBAK; /* ^G Back tab */
+   char_map[8]	= F_CSRLFT; /* ^H Left */
+   char_map[9]	= F_TAB;    /* ^I Tab */
+   char_map[10] = F_CSRDWN; /* ^J Down */
+   char_map[11] = F_CSRUP;  /* ^K Up */
+   char_map[12] = F_CSRRGT; /* ^L Right */
+   char_map[13] = F_RETURN; /* ^M Carriage return */
+   char_map[14] = F_EOL;    /* ^N End of line */
+   char_map[15] = F_CONCAT; /* ^O Concatenate lines */
+   char_map[16] = F_MARK;   /* ^P Set marker */
+   char_map[17] = F_TINS;   /* ^Q Insert character mode */
+   char_map[18] = F_PAGUP;  /* ^R Page up */
+   char_map[19] = F_CENTER; /* ^S Center text */
+   char_map[20] = F_PAGDWN; /* ^T Page down */
+   char_map[21] = F_SOL;    /* ^U Line start */
+   char_map[22] = F_DELWRD; /* ^V Delete word */
+   char_map[23] = F_PRVWRD; /* ^W Previous word */
+   char_map[24] = F_NXTMCH; /* ^X Next match */
+   char_map[25] = F_DELEOL; /* ^Y Delete to end of line */
+   char_map[26] = F_DELLIN; /* ^Z Delete line */
+   /* 27 = ESC */
+   char_map[28] = F_TENTRY; /* ^\ Entry mode */
+   char_map[29] = F_PASTECB;/* ^]=paste clipboard */
+   char_map[30] = F_HOME;   /* ^^ Home */
+   char_map[31] = F_ERSLIN; /* ^_ Erase line */
+
 }
 
 void con_term()
@@ -358,7 +389,7 @@ static int
     if (c == F_SCRSIZ) {
        int y, x;
        y = t_gnc() - 0x20;	  /* y */
-       x = t_gnc() - 0x20;	/* x */
+       x = t_gnc() - 0x20;	  /* x */
        c = input_char();
     }
     return c;
@@ -384,13 +415,16 @@ int
 	case F_RETURN:		      /* CR */
             t_sendl("\r\n", 2);       /* yes, print it and */
 	    goto done;		      /* get out */
+	case F_CLRSCRN: 	      /* clear screen */
+	   asclrs();
+	   t_sendl(curline, cl);
+	   ascurs(0, cp);
+	   break;
 	case F_CSRUP:
-#ifdef xxx
 	    if (noline) {	      /* no line fetched yet */
 		getnext();	      /* getnext so getprev gets current */
 		noline = 0;	      /* we now have line */
 	    }
-#endif
 	    bstrncpy(curline, getprev(), sizeof(curline));
 	    prtcur(curline);
 	    break;
@@ -737,39 +771,45 @@ static void add_esc_smap(char *str, int func)
    mode in which all characters can be read as they are entered.  CBREAK
    mode is not sufficient.
  */
-/*FCN*/static void rawmode(void)
+/*FCN*/static void rawmode(FILE *input)
 {
    struct termios t;
    static char term_buf[2048];
    static char *term_buffer = term_buf;
    char *termtype = (char *)getenv("TERM");
 
+   /* Make sure we are dealing with a terminal */
+   if (!isatty(fileno(input))) {
+      return;
+   }
    if (tcgetattr(0, &old_term_params) != 0) {
-      printf("Cannot tcgetattr()\n");
+      printf(_("conio: Cannot tcgetattr()\n"));
       exit(1);
    }
+   old_term_params_set = true;
    t = old_term_params; 			
    t.c_cc[VMIN] = 1; /* satisfy read after 1 char */
    t.c_cc[VTIME] = 0;
    t.c_iflag &= ~(BRKINT | IGNPAR | PARMRK | INPCK | 
 		  ISTRIP | ICRNL | IXON | IXOFF | INLCR | IGNCR);     
-   t.c_iflag |= IGNBRK;
-   t.c_oflag &= ~(OPOST);    /* no output processing */       
+   t.c_iflag |= IGNBRK | ISIG;
+// t.c_oflag &= ~(OPOST);    /* no output processing */       
+   t.c_oflag |= ONLCR;
    t.c_lflag &= ~(ECHO | ECHOE | ECHOK | ECHONL | ICANON |
-		  ISIG | NOFLSH | TOSTOP);
+		  NOFLSH | TOSTOP);
    tcflush(0, TCIFLUSH);
    if (tcsetattr(0, TCSANOW, &t) == -1) {
       printf("Cannot tcsetattr()\n");
    }
 
-   signal(SIGQUIT, SIG_IGN);
-   signal(SIGHUP, SIG_IGN);
-   signal(SIGSTOP, SIG_IGN);
+// signal(SIGQUIT, SIG_IGN);
+// signal(SIGHUP, SIG_IGN);
+// signal(SIGSTOP, SIG_IGN);
    signal(SIGINT, sigintcatcher);
-   signal(SIGWINCH, SIG_IGN);	
-   signal(SIGQUIT, SIG_IGN);
-   signal(SIGCHLD, SIG_IGN);
-   signal(SIGTSTP, SIG_IGN);
+// signal(SIGWINCH, SIG_IGN);	
+// signal(SIGQUIT, SIG_IGN);
+// signal(SIGCHLD, SIG_IGN);
+// signal(SIGTSTP, SIG_IGN);
 
    if (!termtype) {
       printf("Cannot get terminal type.\n");
@@ -795,17 +835,6 @@ static void add_esc_smap(char *str, int func)
    t_up = (char *)tgetstr("up", &term_buffer);
    t_do = (char *)tgetstr("do", &term_buffer);
    t_sf = (char *)tgetstr("sf", &term_buffer);
-   t_flag = (char *)tgetstr("so", &term_buffer);
-   t_norm = (char *)tgetstr("se", &term_buffer);
-
-   
-
-   dioflag = 1;
-   use_termcap = 1;
-   t_flagl = tgetnum("sg");
-   if (t_flagl < 0) {
-      t_flagl = 0;
-   }
 
    num_stab = MAX_STAB; 		 /* get default stab size */
    stab = (stab_t **)malloc(sizeof(stab_t *) * num_stab);
@@ -818,16 +847,6 @@ static void add_esc_smap(char *str, int func)
    kd = (char *)tgetstr("kd", &term_buffer);
    kh = (char *)tgetstr("kh", &term_buffer);
    kb = (char *)tgetstr("kb", &term_buffer);
-   k0 = (char *)tgetstr("k0", &term_buffer);
-   k1 = (char *)tgetstr("k1", &term_buffer);
-   k2 = (char *)tgetstr("k2", &term_buffer);
-   k3 = (char *)tgetstr("k3", &term_buffer);
-   k4 = (char *)tgetstr("k4", &term_buffer);
-   k5 = (char *)tgetstr("k5", &term_buffer);
-   k6 = (char *)tgetstr("k6", &term_buffer);
-   k7 = (char *)tgetstr("k7", &term_buffer);
-   k8 = (char *)tgetstr("k8", &term_buffer);
-   k9 = (char *)tgetstr("k9", &term_buffer);
    kD = (char *)tgetstr("kD", &term_buffer);
    kI = (char *)tgetstr("kI", &term_buffer);
    kN = (char *)tgetstr("kN", &term_buffer);
@@ -854,6 +873,9 @@ static void add_esc_smap(char *str, int func)
    add_esc_smap("[2~",  F_TINS);
    add_esc_smap("[3~",  F_DELCHR);
    add_esc_smap("[4~",  F_EOF);
+   add_esc_smap("f",    F_NXTWRD);
+   add_esc_smap("b",    F_PRVWRD);
+
 
 #ifdef needed
    for (i=301; i<600; i++) {
@@ -866,7 +888,9 @@ static void add_esc_smap(char *str, int func)
 /* Restore tty mode */
 /*FCN*/static void normode()
 {
-   tcsetattr(0, TCSANOW, &old_term_params);
+   if (old_term_params_set) {
+      tcsetattr(0, TCSANOW, &old_term_params);
+   }
 }
 
 /* Get next character from terminal/script file/unget buffer */
@@ -903,13 +927,13 @@ static int window_size(int *height, int *width) 	/* /window_size/ */
 #endif
 
 /* Send message to terminal - primitive routine */
-static void
+void
 /*FCN*/t_sendl(char *msg,int len)
 {
     write(1, msg, len);
 }
 
-static void
+void
 /*FCN*/t_send(char *msg)
 {
     if (msg == NULL) {
@@ -918,10 +942,8 @@ static void
     t_sendl(msg, strlen(msg));	  /* faster than one char at time */
 }
 
-/* Send single character to terminal - primitive routine -
-   NOTE! don't convert this routine to use the dioflag routines unless
-   those routines are made to simulate a backspace. */
-static void
+/* Send single character to terminal - primitive routine - */
+void
 /*FCN*/t_char(char c)
 {
    write(1, &c, 1);
@@ -980,7 +1002,6 @@ static void asclrl(int pos, int width)
   
 }
 
-#ifdef xxx
 
 /* ASCURS -- Set cursor position */
 static void ascurs(int y, int x)
@@ -996,7 +1017,6 @@ static void asclrs()
    t_send(t_cs);
 }
 
-#endif
 
 
 /* ASINSL -- insert new line after cursor */

@@ -5,7 +5,7 @@
  *     and waits around until it is time to 
  *     fire them up.
  *
- *     Kern Sibbald, May MM
+ *     Kern Sibbald, May MM, revised December MMIII
  *
  *   Version $Id$
  */
@@ -42,46 +42,45 @@ static void add_job(JOB *job, RUN *run, time_t now, time_t runtime);
 /* Imported variables */
 
 /* Local variables */
-typedef struct {
+struct job_item {  
    RUN *run;
    JOB *job;
    time_t runtime;
-} RUNJOB;
+   dlink link;			      /* link for list */
+};		
 
-static int num_runjobs; 	      /* total jobs found by find_runs() */
-static int rem_runjobs; 	      /* jobs remaining to be processed */
-static int max_runjobs; 	      /* max jobs in runjobs array */
-static RUNJOB *runjobs; 	      /* array of jobs to be run */
+/* List of jobs to be run. They were scheduled in this hour or the next */
+static dlist *jobs_to_run;		 /* list of jobs to be run */
 
+/* Time interval in secs to sleep if nothing to be run */
+#define NEXT_CHECK_SECS 60
 
 /*********************************************************************
  *
  *	   Main Bacula Scheduler
  *
  */
-JCR *wait_for_next_job(char *job_to_run)
+JCR *wait_for_next_job(char *one_shot_job_to_run)
 {
    JCR *jcr;
    JOB *job;
    RUN *run;
    time_t now, runtime, nexttime;
-   int jobindex, i;
-   static int first = TRUE;
+   static bool first = true;
    char dt[MAX_TIME_LENGTH];
+   job_item *next_job = NULL;
 
    Dmsg0(200, "Enter wait_for_next_job\n");
    if (first) {
-      first = FALSE;
-      max_runjobs = 10;
-      runjobs = (RUNJOB *) malloc(sizeof(RUNJOB) * max_runjobs);
-      num_runjobs = 0;
-      rem_runjobs = 0;
-      if (job_to_run) { 	      /* one shot */
-	 job = (JOB *)GetResWithName(R_JOB, job_to_run);
+      first = false;
+      /* Create scheduled jobs list */
+      jobs_to_run = new dlist(next_job, &next_job->link);
+      if (one_shot_job_to_run) {	    /* one shot */
+	 job = (JOB *)GetResWithName(R_JOB, one_shot_job_to_run);
 	 if (!job) {
-            Emsg1(M_ABORT, 0, _("Job %s not found\n"), job_to_run);
+            Emsg1(M_ABORT, 0, _("Job %s not found\n"), one_shot_job_to_run);
 	 }
-         Dmsg1(5, "Found job_to_run %s\n", job_to_run);
+         Dmsg1(5, "Found one_shot_job_to_run %s\n", one_shot_job_to_run);
 	 jcr = new_jcr(sizeof(JCR), dird_free_jcr);
 	 set_jcr_defaults(jcr, job);
 	 return jcr;
@@ -90,12 +89,12 @@ JCR *wait_for_next_job(char *job_to_run)
    /* Wait until we have something in the
     * next hour or so.
     */
-   while (rem_runjobs == 0) {
+   while (jobs_to_run->size() == 0) {
       find_runs();
-      if (rem_runjobs > 0) {
+      if (jobs_to_run->size() > 0) {
 	 break;
       }
-      bmicrosleep(60, 0);	      /* recheck once per minute */
+      bmicrosleep(NEXT_CHECK_SECS, 0); /* recheck once per minute */
    }
 
    /* 
@@ -106,23 +105,25 @@ JCR *wait_for_next_job(char *job_to_run)
     */
    time(&now);
    nexttime = now + 60 * 60 * 24;     /* a much later time */
-   jobindex = -1;
    bstrftime(dt, sizeof(dt), now);
-   Dmsg2(400, "jobs=%d. Now is %s\n", rem_runjobs, dt);
-   for (i=0; i<num_runjobs; i++) {
-      runtime = runjobs[i].runtime;
+   Dmsg2(400, "jobs=%d. Now is %s\n", jobs_to_run->size(), dt);
+   next_job = NULL;
+   for (job_item *je=NULL; (je=(job_item *)jobs_to_run->next(je)); ) {
+      runtime = je->runtime;
       if (runtime > 0 && runtime < nexttime) { /* find minimum time job */
 	 nexttime = runtime;
-	 jobindex = i;
+	 next_job = je;
       }
-#ifdef xxxx_debug
+
+#define xxxx_debug
+#ifdef	xxxx_debug
       if (runtime > 0) {
-	 bstrftime(dt, sizeof(dt), runjobs[i].runtime);  
-         Dmsg2(100, "    %s run %s\n", dt, runjobs[i].job->hdr.name);
+	 bstrftime(dt, sizeof(dt), next_job->runtime);	
+         Dmsg2(100, "    %s run %s\n", dt, next_job->job->hdr.name);
       }
 #endif
    }
-   if (jobindex < 0) {		      /* we really should have something now */
+   if (!next_job) {		   /* we really should have something now */
       Emsg0(M_ABORT, 0, _("Scheduler logic error\n"));
    }
 
@@ -136,11 +137,10 @@ JCR *wait_for_next_job(char *job_to_run)
       }
       bmicrosleep(twait, 0);
    }
-   run = runjobs[jobindex].run;
-   job = runjobs[jobindex].job;
-   runjobs[jobindex].runtime = 0;     /* remove from list */
+   run = next_job->run; 	      /* pick up needed values */
+   job = next_job->job;
+   jobs_to_run->remove(next_job);	 /* remove from list */
    run->last_run = now; 	      /* mark as run */
-   rem_runjobs--;		      /* decrement count of remaining jobs */
 
    jcr = new_jcr(sizeof(JCR), dird_free_jcr);
    ASSERT(job);
@@ -170,42 +170,57 @@ JCR *wait_for_next_job(char *job_to_run)
  */
 void term_scheduler()
 {
-   if (runjobs) {		      /* free allocated memory */
-      free(runjobs);
-      runjobs = NULL;
-      max_runjobs = 0;
+   /* Release all queued job entries to be run */
+   for (void *je=NULL; (je=jobs_to_run->next(je)); ) {
+      free(je);
    }
+   delete jobs_to_run;
 }
 
-
 /*	    
- * Find all jobs to be run this hour
- * and the next hour.
+ * Find all jobs to be run this hour and the next hour.
  */
 static void find_runs()
 {
-   time_t now, runtime;
+   time_t now, next_hour, runtime;
    RUN *run;
    JOB *job;
    SCHED *sched;
    struct tm tm;
-   int hour, next_hour, minute, mday, wday, month, wpos;
+   int minute;
+   int hour, mday, wday, month, wom, woy;
+   /* Items corresponding to above at the next hour */
+   int nh_hour, nh_mday, nh_wday, nh_month, nh_wom, nh_woy, nh_year;
 
    Dmsg0(200, "enter find_runs()\n");
-   num_runjobs = 0;
 
+   
+   /* compute values for time now */
    now = time(NULL);
    localtime_r(&now, &tm);
-   
    hour = tm.tm_hour;
-   next_hour = hour + 1;
-   if (next_hour > 23)
-      next_hour -= 24;
    minute = tm.tm_min;
    mday = tm.tm_mday - 1;
    wday = tm.tm_wday;
    month = tm.tm_mon;
-   wpos = (tm.tm_mday - 1) / 7; 
+   wom = tm_wom(tm.tm_mday, tm.tm_wday);  /* get week of month */
+   woy = tm_woy(now);			  /* get week of year */
+
+   /* 
+    * Compute values for next hour from now.
+    * We do this to be sure we don't miss a job while
+    * sleeping.
+    */
+   next_hour = now + 3600;  
+   localtime_r(&next_hour, &tm);
+   nh_hour = tm.tm_hour;
+   minute = tm.tm_min;
+   nh_mday = tm.tm_mday - 1;
+   nh_wday = tm.tm_wday;
+   nh_month = tm.tm_mon;
+   nh_year  = tm.tm_year;
+   nh_wom = tm_wom(tm.tm_mday, tm.tm_wday);  /* get week of month */
+   nh_woy = tm_woy(now);		     /* get week of year */
 
    /* Loop through all jobs */
    LockRes();
@@ -215,36 +230,44 @@ static void find_runs()
 	 continue;		      /* no, skip this job */
       }
       for (run=sched->run; run; run=run->next) {
+	 bool run_now, run_nh;
 
-	 /* Find runs scheduled in this our or in the
-	  * next hour (we may be one second before the next hour).
+	 /* Find runs scheduled between now and the next
+	  * check time (typically 60 seconds)
 	  */
-	 if ((bit_is_set(hour, run->hour) || bit_is_set(next_hour, run->hour)) &&
-	     (bit_is_set(mday, run->mday) || bit_is_set(wday, run->wday)) && 
-	     bit_is_set(month, run->month) && bit_is_set(wpos, run->wpos)) {
+	 run_now = bit_is_set(hour, run->hour) &&
+	    (bit_is_set(mday, run->mday) || bit_is_set(wday, run->wday)) &&
+	    bit_is_set(month, run->month) &&
+	    bit_is_set(wom, run->wom) &&
+	    bit_is_set(woy, run->woy);
 
-	    /* find time (time_t) job is to be run */
-	    localtime_r(&now, &tm);
-	    tm.tm_min = run->minute;
-	    tm.tm_sec = 0;
-	    if (bit_is_set(hour, run->hour)) {
-	       runtime = mktime(&tm);
-	       add_job(job, run, now, runtime);
-	    }
-	    if (bit_is_set(next_hour, run->hour)) {
-	       tm.tm_hour++;
-	       if (tm.tm_hour > 23) {
-		  tm.tm_hour = 0;
-	       }
-	       runtime = mktime(&tm);
-	       add_job(job, run, now, runtime);
-	    }
+	 run_nh = bit_is_set(nh_hour, run->hour) &&
+	    (bit_is_set(nh_mday, run->mday) || bit_is_set(nh_wday, run->wday)) &&
+	    bit_is_set(nh_month, run->month) &&
+	    bit_is_set(nh_wom, run->wom) &&
+	    bit_is_set(nh_woy, run->woy);
+
+	 /* find time (time_t) job is to be run */
+	 localtime_r(&now, &tm);      /* reset tm structure */
+	 tm.tm_min = run->minute;     /* set run minute */
+	 tm.tm_sec = 0; 	      /* zero secs */
+	 if (run_now) {
+	    runtime = mktime(&tm);
+	    add_job(job, run, now, runtime);
+	 }
+	 /* If job is to be run in the next hour schedule it */
+	 if (run_nh) {
+	    /* Set correct values */
+	    tm.tm_hour = nh_hour;
+	    tm.tm_mday = nh_mday;
+	    tm.tm_mon = nh_month;
+	    tm.tm_year = nh_year;
+	    runtime = mktime(&tm);
+	    add_job(job, run, now, runtime);
 	 }
       }  
    }
-
    UnlockRes();
-   rem_runjobs = num_runjobs;
    Dmsg0(200, "Leave find_runs()\n");
 }
 
@@ -257,16 +280,11 @@ static void add_job(JOB *job, RUN *run, time_t now, time_t runtime)
    if ((runtime - run->last_run < 61) || (runtime+59 < now)) {
       return;
    }
-
-   /* Make sure array is big enough */
-   if (num_runjobs == max_runjobs) {
-      max_runjobs += 10;
-      runjobs = (RUNJOB *)realloc(runjobs, sizeof(RUNJOB) * max_runjobs);
-      if (!runjobs)
-         Emsg0(M_ABORT, 0, _("Out of memory\n"));
-   } 
    /* accept to run this job */
-   runjobs[num_runjobs].run = run;
-   runjobs[num_runjobs].job = job;
-   runjobs[num_runjobs++].runtime = runtime; /* when to run it */
+   job_item *je = (job_item *)malloc(sizeof(job_item));
+   je->run = run;
+   je->job = job;
+   je->runtime = runtime;
+   /* ***FIXME**** (enhancement) insert by sorted runtime */
+   jobs_to_run->append(je);
 }

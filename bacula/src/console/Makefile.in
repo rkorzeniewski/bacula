@@ -20,8 +20,8 @@ first_rule: all
 dummy:
 
 #
-CONSSRCS = console.c console_conf.c authenticate.c 
-CONSOBJS = console.o console_conf.o authenticate.o 
+CONSSRCS = console.c console_conf.c authenticate.c @CONS_SRC@ 
+CONSOBJS = console.o console_conf.o authenticate.o @CONS_OBJ@
 
 # these are the objects that are changed by the .configure process
 EXTRAOBJS = @OBJLIST@

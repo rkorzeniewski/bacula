@@ -35,10 +35,11 @@ extern void timeout_handler(int sig);
 
 struct s_last_job last_job;    /* last job run by this daemon */
 dlist *last_jobs;
-static int num_last_jobs = 0;
 #define MAX_LAST_JOBS 10
 
 static JCR *jobs = NULL;	      /* pointer to JCR chain */
+
+/* Mutex for locking various jcr chains while updating */
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void init_last_jobs_list()
@@ -227,24 +228,23 @@ void free_jcr(JCR *jcr)
       return;
    }
    remove_jcr(jcr);
-   V(mutex);
 
    Dmsg1(200, "End job=%d\n", jcr->JobId);
    if (jcr->daemon_free_jcr) {
       jcr->daemon_free_jcr(jcr);      /* call daemon free routine */
    }
+
    free_common_jcr(jcr);
 
-   P(mutex);
    /* Keep list of last jobs, but not Console where JobId==0 */
    if (last_job.JobId > 0) {
       je = (struct s_last_job *)malloc(sizeof(struct s_last_job));
       memcpy((char *)je, (char *)&last_job, sizeof(last_job));
       last_jobs->append(je);
-      if (++num_last_jobs > MAX_LAST_JOBS) {
+      if (last_jobs->size() > MAX_LAST_JOBS) {
 	 last_jobs->remove(last_jobs->first());
-	 num_last_jobs--;
       }
+      last_job.JobId = 0;	      /* zap last job */
    }
    close_msg(NULL);		      /* flush any daemon messages */
    V(mutex);

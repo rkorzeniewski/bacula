@@ -46,8 +46,10 @@ For 1.33 Testing/Documentation:
 - Add some examples of job editing codes.
 
 - Document Dan's new --with-dir-user, ... options.
+  See userid.txt
 - Figure out how to use ssh or stunnel to protect Bacula communications.
   Add Dan's work to manual
+  See ssl.txt
 - Add db check test to regression. Test each function like delete,
   purge, ...
 - Add subsections to the Disaster Recovery index section.

@@ -3,14 +3,6 @@
 
   See btime.c for defintions.
 
-  The following is deprecated:
-    Time and date structures and functions.
-    Date and time are always represented internally
-    as 64 bit floating point Julian day numbers and
-    fraction.  The day number and fraction are kept
-    as separate quantities to avoid round-off of
-    day fraction. John Walker
-
      Version $Id$
 
  */
@@ -43,6 +35,9 @@
 extern btime_t get_current_btime(void);
 extern time_t btime_to_unix(btime_t bt);   /* bacula time to epoch time */
 extern utime_t btime_to_utime(btime_t bt); /* bacula time to utime_t */
+
+extern int tm_wom(int mday, int wday);
+extern int tm_woy(time_t stime);
 
 extern char *bstrftime(char *dt, int maxlen, utime_t tim);
 extern char *bstrutime(char *dt, int maxlen, utime_t tim);

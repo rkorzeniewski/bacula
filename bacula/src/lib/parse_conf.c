@@ -345,8 +345,6 @@ void store_strname(LEX *lc, struct res_items *item, int index, int pass)
    set_bit(index, res_all.hdr.item_present);
 }
 
-
-
 /* Store a string at specified address */
 void store_str(LEX *lc, struct res_items *item, int index, int pass)
 {
@@ -414,7 +412,7 @@ void store_res(LEX *lc, struct res_items *item, int index, int pass)
    if (pass == 2) {
      res = GetResWithName(item->code, lc->str);
      if (res == NULL) {
-        scan_err3(lc, "Could not find Resource %s referenced on line %d : %s\n", 
+        scan_err3(lc, _("Could not find config Resource %s referenced on line %d : %s\n"), 
 	   lc->str, lc->line_no, lc->line);
      }
      *(item->value) = (char *)res;
@@ -422,6 +420,32 @@ void store_res(LEX *lc, struct res_items *item, int index, int pass)
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
 }
+
+/* Store default values for Resource from xxxDefs
+ * If we are in pass 2, do a lookup of the 
+ * resource and store everything not explicitly set
+ * in main resource.
+ *
+ * Note, here item points to the main resource (e.g. Job, not
+ *  the jobdefs, which we look up).
+ */
+void store_defs(LEX *lc, struct res_items *item, int index, int pass)
+{
+   RES *res;
+
+   lex_get_token(lc, T_NAME);
+   if (pass == 2) {
+     res = GetResWithName(item->code, lc->str);
+     if (res == NULL) {
+        scan_err3(lc, _("Could not find config Resource %s referenced on line %d : %s\n"), 
+	   lc->str, lc->line_no, lc->line);
+     }
+     /* for each item not set, we copy the field from item */
+     /* ***FIXME **** add code */
+   }
+   scan_to_eol(lc);
+}
+
 
 
 /* Store an integer at specified address */
