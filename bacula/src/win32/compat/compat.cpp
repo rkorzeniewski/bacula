@@ -970,7 +970,7 @@ open_bpipe(char *prog, int wait, const char *mode)
 
         // Create a pipe for the child process's STDIN.
 
-        if (! CreatePipe(&hChildStdinRd, &hChildStdinWr, &saAttr, 0)) {
+        if (!CreatePipe(&hChildStdinRd, &hChildStdinWr, &saAttr, 0)) {
             ErrorExit("Stdin pipe creation failed\n");
             goto cleanup;
         }
@@ -990,10 +990,10 @@ open_bpipe(char *prog, int wait, const char *mode)
     }
     // spawn program with redirected handles as appropriate
     bpipe->worker_pid = (pid_t)
-        CreateChildProcess(prog, // commandline
-                           hChildStdinRd, // stdin HANDLE
-                           hChildStdoutWr, // stdout HANDLE
-                           hChildStdoutWr);// stderr HANDLE
+        CreateChildProcess(prog,             // commandline
+                           hChildStdinRd,    // stdin HANDLE
+                           hChildStdoutWr,   // stdout HANDLE
+                           hChildStdoutWr);  // stderr HANDLE
 
     if ((HANDLE) bpipe->worker_pid == INVALID_HANDLE_VALUE)
         goto cleanup;
@@ -1007,14 +1007,18 @@ open_bpipe(char *prog, int wait, const char *mode)
                                      // detect eof.
         // ugly but convert WIN32 HANDLE to FILE*
         int rfd = _open_osfhandle((long)hChildStdoutRdDup, O_RDONLY);
-        bpipe->rfd = _fdopen(rfd, "r");
+        if (rfd >= 0) {
+           bpipe->rfd = _fdopen(rfd, "r");
+        }
     }
     if (mode_write) {
         CloseHandle(hChildStdinRd); // close our read side so as not
                                     // to interfre with child's copy
         // ugly but convert WIN32 HANDLE to FILE*
         int wfd = _open_osfhandle((long)hChildStdinWrDup, O_WRONLY);
-        bpipe->wfd = _fdopen(wfd, "w");
+        if (wfd >= 0) {
+           bpipe->wfd = _fdopen(wfd, "w");
+        }
     }
 
     if (wait > 0) {
@@ -1058,11 +1062,9 @@ close_bpipe(BPIPE *bpipe)
 
     if (bpipe->wait) {
         int remaining_wait = bpipe->wait;
-        do
-        {
+        do {
             DWORD exitCode;
-            if (!GetExitCodeProcess((HANDLE)bpipe->worker_pid, &exitCode))
-            {
+            if (!GetExitCodeProcess((HANDLE)bpipe->worker_pid, &exitCode)) {
                 const char *err = errorString();
                 rval = GetLastError();
                 d_msg(__FILE__, __LINE__, 0,

@@ -401,7 +401,7 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
 	    /* NOT REACHED */
 	 }
 	 if (!have_hour) {
-	    clear_bit(0, lrun.hour);
+	    clear_bits(0, 23, lrun.hour);
 	 }
          p = strchr(lc->str, ':');
 	 if (!p)  {
