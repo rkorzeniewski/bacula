@@ -1,0 +1,5 @@
+#/bin/sh
+#
+# First argument is expected to be a user's configuration file
+#
+sed -e "/@CONFIG@/r $1" -e "s/@CONFIG@//" Makefile.in >Makefile
