@@ -5,9 +5,7 @@
 
 bindir=@SQL_BINDIR@
 
-if $bindir/psql $* -f - <<END-OF-DATA
-DROP DATABASE bacula;
-END-OF-DATA
+if $bindir/dropdb bacula
 then
    echo "Drop of bacula database succeeded."
 else
