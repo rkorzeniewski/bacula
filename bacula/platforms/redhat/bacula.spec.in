@@ -64,8 +64,14 @@ exit 1
 %endif
 
 # check what distribution we are
-%if %{rh7} || %{rh8} || %{rh9} || %{fc1} || %{fc3} || %{wb3}
+%if %{rh7} || %{rh8} || %{rh9}
 %define _dist %(grep Red /etc/redhat-release)
+%endif
+%if %{fc1} || %{fc3}
+%define _dist %(grep Fedora /etc/redhat-release)
+%endif
+%if %{wb3}
+%define _dist %(grep White /etc/whitebox-release)
 %endif
 %if %{su9}
 %define _dist %(grep SuSE /etc/SuSE-release)
@@ -1209,6 +1215,8 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 
 
 %changelog
+* Mon Feb 28 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- fix distribution check for Fedora and Whitebox
 * Sun Feb 06 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - add logwatch script
 - add dvd scripts
