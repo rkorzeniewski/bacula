@@ -308,7 +308,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS BUILD_DIR TRUEPRG FALSEPRG VERSION DATE LSMDATE CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX CPP EGREP INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB MV RM CP SED AWK ECHO CMP TBL AR OPENSSL MTX PKGCONFIG WXCONFIG CDRECORD ARFLAGS MAKE_SHELL LOCAL_LIBS LOCAL_CFLAGS LOCAL_LDFLAGS LOCAL_DEFS build build_cpu build_vendor build_os host host_cpu host_vendor host_os HAVE_SUN_OS_TRUE HAVE_SUN_OS_FALSE HAVE_OSF1_OS_TRUE HAVE_OSF1_OS_FALSE HAVE_AIX_OS_TRUE HAVE_AIX_OS_FALSE HAVE_HPUX_OS_TRUE HAVE_HPUX_OS_FALSE HAVE_LINUX_OS_TRUE HAVE_LINUX_OS_FALSE HAVE_FREEBSD_OS_TRUE HAVE_FREEBSD_OS_FALSE HAVE_NETBSD_OS_TRUE HAVE_NETBSD_OS_FALSE HAVE_OPENBSD_OS_TRUE HAVE_OPENBSD_OS_FALSE HAVE_BSDI_OS_TRUE HAVE_BSDI_OS_FALSE HAVE_SGI_OS_TRUE HAVE_SGI_OS_FALSE HAVE_IRIX_OS_TRUE HAVE_IRIX_OS_FALSE HAVE_DARWIN_OS_TRUE HAVE_DARWIN_OS_FALSE INSIDE_GNOME_COMMON_TRUE INSIDE_GNOME_COMMON_FALSE MSGFMT GNOME_INCLUDEDIR GNOMEUI_LIBS GNOME_LIBDIR GNOME_LIBS GNOMEGNORBA_LIBS GTKXMHTML_LIBS ZVT_LIBS GNOME_CONFIG ORBIT_CONFIG ORBIT_IDL HAVE_ORBIT_TRUE HAVE_ORBIT_FALSE ORBIT_CFLAGS ORBIT_LIBS HAVE_GNORBA_TRUE HAVE_GNORBA_FALSE GNORBA_CFLAGS GNORBA_LIBS GNOME_APPLETS_LIBS GNOME_DOCKLETS_LIBS GNOME_CAPPLET_LIBS GNOME_DIR WXCONS_CPPFLAGS WXCONS_LDFLAGS WX_DIR TRAY_MONITOR_CPPFLAGS TRAY_MONITOR_LDFLAGS TRAY_MONITOR_DIR TTOOL_LDFLAGS STATIC_FD STATIC_SD STATIC_DIR STATIC_CONS STATIC_GNOME_CONS STATIC_WX_CONS ALL_DIRS CONS_INC CONS_OBJ CONS_SRC CONS_LIBS CONS_LDFLAGS READLINE_SRC CDSTL working_dir scriptdir dump_email job_email smtp_host piddir subsysdir baseport dir_port fd_port sd_port dir_password fd_password sd_password mon_dir_password mon_fd_password mon_sd_password bimagemgr_cgidir bimagemgr_docdir bimagemgr_binowner bimagemgr_bingroup bimagemgr_dataowner bimagemgr_datagroup dir_user dir_group sd_user sd_group fd_user fd_group SBINPERM SQL_LFLAGS SQL_INCLUDE SQL_BINDIR cats DB_NAME GETCONF ac_ct_GETCONF X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS LIBOBJS ALLOCA FDLIBS DEBUG DINCLUDE DLIB DB_LIBS WCFLAGS WLDFLAGS OBJLIST hostname TAPEDRIVE PSCMD WIN32 MACOSX DISTNAME DISTVER LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS BUILD_DIR TRUEPRG FALSEPRG VERSION DATE LSMDATE CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX CPP EGREP INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB MV RM CP SED AWK ECHO CMP TBL AR OPENSSL MTX PKGCONFIG WXCONFIG CDRECORD ARFLAGS MAKE_SHELL LOCAL_LIBS LOCAL_CFLAGS LOCAL_LDFLAGS LOCAL_DEFS build build_cpu build_vendor build_os host host_cpu host_vendor host_os HAVE_SUN_OS_TRUE HAVE_SUN_OS_FALSE HAVE_OSF1_OS_TRUE HAVE_OSF1_OS_FALSE HAVE_AIX_OS_TRUE HAVE_AIX_OS_FALSE HAVE_HPUX_OS_TRUE HAVE_HPUX_OS_FALSE HAVE_LINUX_OS_TRUE HAVE_LINUX_OS_FALSE HAVE_FREEBSD_OS_TRUE HAVE_FREEBSD_OS_FALSE HAVE_NETBSD_OS_TRUE HAVE_NETBSD_OS_FALSE HAVE_OPENBSD_OS_TRUE HAVE_OPENBSD_OS_FALSE HAVE_BSDI_OS_TRUE HAVE_BSDI_OS_FALSE HAVE_SGI_OS_TRUE HAVE_SGI_OS_FALSE HAVE_IRIX_OS_TRUE HAVE_IRIX_OS_FALSE HAVE_DARWIN_OS_TRUE HAVE_DARWIN_OS_FALSE INSIDE_GNOME_COMMON_TRUE INSIDE_GNOME_COMMON_FALSE MSGFMT GNOME_INCLUDEDIR GNOMEUI_LIBS GNOME_LIBDIR GNOME_LIBS GNOMEGNORBA_LIBS GTKXMHTML_LIBS ZVT_LIBS GNOME_CONFIG ORBIT_CONFIG ORBIT_IDL HAVE_ORBIT_TRUE HAVE_ORBIT_FALSE ORBIT_CFLAGS ORBIT_LIBS HAVE_GNORBA_TRUE HAVE_GNORBA_FALSE GNORBA_CFLAGS GNORBA_LIBS GNOME_APPLETS_LIBS GNOME_DOCKLETS_LIBS GNOME_CAPPLET_LIBS GNOME_DIR WXCONS_CPPFLAGS WXCONS_LDFLAGS WX_DIR TRAY_MONITOR_CPPFLAGS TRAY_MONITOR_LDFLAGS TRAY_MONITOR_DIR TTOOL_LDFLAGS STATIC_FD STATIC_SD STATIC_DIR STATIC_CONS STATIC_GNOME_CONS STATIC_WX_CONS ALL_DIRS CONS_INC CONS_OBJ CONS_SRC CONS_LIBS CONS_LDFLAGS READLINE_SRC PYTHON_LIBS PYTHON_INCDIR CDSTL working_dir scriptdir dump_email job_email smtp_host piddir subsysdir baseport dir_port fd_port sd_port dir_password fd_password sd_password mon_dir_password mon_fd_password mon_sd_password bimagemgr_cgidir bimagemgr_docdir bimagemgr_binowner bimagemgr_bingroup bimagemgr_dataowner bimagemgr_datagroup dir_user dir_group sd_user sd_group fd_user fd_group SBINPERM SQL_LFLAGS SQL_INCLUDE SQL_BINDIR cats DB_NAME GETCONF ac_ct_GETCONF X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS LIBOBJS ALLOCA FDLIBS DEBUG DINCLUDE DLIB DB_LIBS WCFLAGS WLDFLAGS OBJLIST hostname TAPEDRIVE PSCMD WIN32 MACOSX DISTNAME DISTVER LTLIBOBJS'
 ac_subst_files='MCOMMON'
 
 # Initialize some variables set by options.
@@ -878,6 +878,10 @@ Optional Packages:
   --with-gnome-libs       Specify location of GNOME libs
   --with-gnome            Specify prefix for GNOME files
  --with-readline=DIR		 specify readline library directory
+
+  --with-python=DIR	  Include Python support.  DIR is the Python base
+			  install directory, default is to search through
+			  a number of common places for the Python files.
   --with-tcp-wrappers=DIR	 enable tcpwrappers support
   --with-working-dir=PATH	 specify path of Bacula working directory
   --with-scriptdir=PATH    specify path of Bacula scripts directory
@@ -897,8 +901,8 @@ Optional Packages:
   --with-bimagemgr-docdir=DIR   specify bimagemgr doc root dir
   --with-bimagemgr-binowner=USER   specify bimagemgr binary file owner
   --with-bimagemgr-bingroup=USER   specify bimagemgr binary file group
-  --with-bimagemgr-dataowner=USER   specify bimagemgr data file owner
-  --with-bimagemgr-datagroup=USER   specify bimagemgr data file group
+  --with-bimagemgr-dataowner=USER	specify bimagemgr data file owner
+  --with-bimagemgr-datagroup=USER	specify bimagemgr data file group
   --with-dir-user=USER		 specify user for Director daemon
   --with-dir-group=GROUP		 specify group for Director daemon
   --with-sd-user=USER		 specify user for Storage daemon
@@ -4379,6 +4383,7 @@ support_static_fd=no
 support_static_sd=no
 support_static_dir=no
 support_static_cons=no
+support_python=no
 build_client_only=no
 cats=
 db_name=Internal
@@ -6880,6 +6885,71 @@ done
 
 # End of readline/conio stuff
 # -----------------------------------------------------------------------
+
+# -----------------------------------------------------------------------
+#  Check for Python support
+#
+echo "$as_me:$LINENO: checking for Python support" >&5
+echo $ECHO_N "checking for Python support... $ECHO_C" >&6
+
+# Check whether --with-python or --without-python was given.
+if test "${with_python+set}" = set; then
+  withval="$with_python"
+
+  PYTHON_INCDIR=.
+  PYTHON_LIBS=
+  if test "$withval" != "no"; then
+     if test "$withval" = "yes"; then
+	if test -f /usr/include/python2.2/Python.h; then
+	   PYTHON_INCDIR=/usr/include/python2.2
+	   PYTHON_LIBS="-L/usr/lib/python2.2/config -lpython2.2 -lutil -ldl"
+	elif test -f $prefix/include/Python.h; then
+	   PYTHON_INCDIR=$prefix/include
+	   PYTHON_LIBS="-L$prefix/lib/config -lpython -lutil -ldl"
+	else
+	   echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+	   { { echo "$as_me:$LINENO: error: Unable to find Python.h in standard locations" >&5
+echo "$as_me: error: Unable to find Python.h in standard locations" >&2;}
+   { (exit 1); exit 1; }; }
+	fi
+     else
+	if test -f $withval/Python.h; then
+	   PYTHON_INCDIR=$withval
+	   PYTHON_LIBS="-L$withval/config -lpython -lutil -ldl"
+	elif test -f $withval/include/Python.h; then
+	   PYTHON_INCDIR=$withval/include
+	   PYTHON_LIBS="-L$withval/lib/config -lpython -lutil -ldl"
+	else
+	   echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+	   { { echo "$as_me:$LINENO: error: Invalid Python directory $withval - unable to find Python.h under $withval" >&5
+echo "$as_me: error: Invalid Python directory $withval - unable to find Python.h under $withval" >&2;}
+   { (exit 1); exit 1; }; }
+	fi
+     fi
+     cat >>confdefs.h <<\_ACEOF
+#define HAVE_PYTHON 1
+_ACEOF
+
+     echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+     support_python=yes
+
+  else
+     echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+  fi
+
+else
+
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+
+fi;
+
+
+
 
 # -------------------------------------------
 # check for cdrecord writer location
@@ -20121,6 +20191,8 @@ s,@CONS_SRC@,$CONS_SRC,;t t
 s,@CONS_LIBS@,$CONS_LIBS,;t t
 s,@CONS_LDFLAGS@,$CONS_LDFLAGS,;t t
 s,@READLINE_SRC@,$READLINE_SRC,;t t
+s,@PYTHON_LIBS@,$PYTHON_LIBS,;t t
+s,@PYTHON_INCDIR@,$PYTHON_INCDIR,;t t
 s,@CDSTL@,$CDSTL,;t t
 s,@working_dir@,$working_dir,;t t
 s,@scriptdir@,$scriptdir,;t t
@@ -20824,6 +20896,7 @@ Configuration on `date`:
   enable-tray-monitor:	      ${support_tray_monitor}
   client-only:		      ${build_client_only}
   ACL support:		      ${have_acl}
+  Python support:	      ${support_python} ${PYTHON_LIBS}
 
   " > config.out
 
@@ -20831,4 +20904,4 @@ cat config.out
 
 # old stuff
 # cweb support: 	      ${got_cweb} ${CWEB_SRC}
-  # gmp support:		      ${got_gmp} ${GMP_SRC}
+# gmp support:		      ${got_gmp} ${GMP_SRC}

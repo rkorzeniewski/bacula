@@ -188,6 +188,7 @@
 #undef llu
 
 #undef HAVE_READLINE 
+#undef HAVE_PYTHON
 
 #undef HAVE_GMP
 

@@ -189,6 +189,7 @@ static void *job_thread(void *arg)
       } else {
 
 	 /* Run Job */
+         generate_event(jcr, "StartJob");
 	 if (jcr->job->RunBeforeJob) {
 	    POOLMEM *before = get_pool_memory(PM_FNAME);
 	    int status;
@@ -278,6 +279,7 @@ static void *job_thread(void *arg)
 	       }
 	    }
 	 }
+         generate_event(jcr, "EndJob");
 	 /* Send off any queued messages */
 	 if (jcr->msg_queue->size() > 0) {
 	    dequeue_messages(jcr);

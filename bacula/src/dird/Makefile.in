@@ -18,6 +18,8 @@ thisdir = src/dird
 
 DEBUG=@DEBUG@
 
+PYTHON_LIBS = @PYTHON_LIBS@
+
 first_rule: all
 dummy:
 
@@ -68,11 +70,11 @@ all: Makefile bacula-dir @STATIC_DIR@
 
 bacula-dir:  $(SVROBJS) ../lib/libbac.a ../cats/libsql.a ../findlib/libfind.a
 	$(CXX) $(WLDFLAGS) $(LDFLAGS) -L../lib -L../cats -L../findlib -o $@ $(SVROBJS) \
-	      -lsql -lfind -lbac -lm $(DLIB) $(DB_LIBS) $(LIBS) 
+	      -lsql -lfind -lbac -lm $(PYTHON_LIBS) $(DLIB) $(DB_LIBS) $(LIBS)
 
 static-bacula-dir:  $(SVROBJS) ../lib/libbac.a ../cats/libsql.a ../findlib/libfind.a
 	$(CXX) $(WLDFLAGS) $(LDFLAGS) -static -L../lib -L../cats -L../findlib -o $@ $(SVROBJS) \
-	      -lsql -lbac -lfind -lm $(DLIB) $(DB_LIBS) $(LIBS) 
+	      -lsql -lbac -lfind -lm $(PYTHON_LIBS) $(DLIB) $(DB_LIBS) $(LIBS) 
 	strip $@
 
 
