@@ -336,7 +336,7 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
    }
 
    /* Now update the bootstrap file if any */
-   if (jcr->JobStatus == JS_Terminated && jcr->job->WriteBootstrap) {
+   if (jcr->JobStatus == JS_Terminated && jcr->jr.JobBytes &&jcr->job->WriteBootstrap) {
       FILE *fd;
       BPIPE *bpipe = NULL;
       int got_pipe = 0;
@@ -428,7 +428,7 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
        *  it is normal.  Or look at it the other way, only for a
        *  normal exit should we complain about this error.
        */
-      if (jcr->JobStatus == JS_Terminated) {				    
+      if (jcr->JobStatus == JS_Terminated && jcr->jr.JobBytes) {				
          Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
       }
       jcr->VolumeName[0] = 0;	      /* none */

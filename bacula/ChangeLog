@@ -1,3 +1,123 @@
+2003-05-20 Version 1.31 Beta 20May03
+- Add mandrake to platforms
+- Suppress error messages if no bytes written to tape.
+- Suck up bootstrap file even on error so that Dir sees our error message.
+- Pretty much finish off the Win32 backup code.
+- Add DESTDIR code to autostart for creating non-root rpms
+- Echo input read from a script in Console.
+- Clarify error message for VerifyToCatalog
+- Add error counts in restore for M_NOTSAVED.
+- Adapt bfile.c to handle both Win95 files as well as WinXP files.
+- Add MTIOCERRSTAT for FreeBSD (clear error status).
+- Correct double jobmedia record when cancel at EOM reported by Phil.
+- Correct possible write at beginning of tape during cancel at EOM
+  as reported by Phil.
+- Document in detail how Incremental and Differential jobs work.
+- Add non-fatal error count on backup and restore Job reports.
+- Remove a couple uses of lld -- now prefer to edit and use %s.
+- Fix directory could not be accessed on Win32.
+- Improve message indicating that last Full backup not found. 
+- Fix free() too early in directory traversal code.
+- Prune Jobs with no JobFiles or that have JobStatus!='T'
+- Add a few more command line scans for prune/purge.
+- Restrict valid characters in a Volume name, and document it.
+- Make new Win32 save/restore work. Still a bit more to do.
+- Use reentrant version of mysqlclient library.
+- Use more machine independent way of finding gcc version.
+- Fix race condition in sql_list where messages edited before locking.
+- Lots of testing saving/restoring 6GB files.
+- Add where to restore where=/tmp
+- Complete implementation of Win32 streams in FD. Must test. Also,
+  must implement new streams in SD.
+- Make termination of daemons more "error" tolerant.  
+- Make default "duration" days rather than seconds if there is no modifier.
+- Install bcopy.
+- Add detection of available Win API's so that a single binary will
+  work on all Windows systems.  Reference those APIs through a pointer.
+- Remove use_win_backup_api and enable it in bfile.c if system supports it.
+- Modify dev.c so that it works if MTEOM is not defined (BSDI).
+- Change MT_xxx to BMT_xxx to prevent conflicts with BSDI.
+- Detect strtoll() in configure.
+- Implement replacement for strtoll() for BSDI.
+- Add platform files for BSDI.
+- Use Jmsg() instead of Jmsg1() in acquire because File:line prefixed in dev.c
+- Use Jmsg() in write_block_to_dev() so that no messages are lost.
+- Rework autochanger code in restore to handle case of cassette not in magazine.
+- Implement Windows BackupRead/Write(). I now have permissions right!!!!
+- Additions to the manual (Purging, Autopruning).
+- Add doc to code in autoprune.
+- Begin adding Level = Base.
+- Make Jmsg recognize console and direct messages directly back to it.
+- Hopefully fix mess in mount.c when a tape expires.  
+- Fix restore bug recently introduced due to Unix backwards status convention.
+- New bacula.spec from Scott
+- Add globals for database name and version and print them in traceback.
+- Eliminate SubSysDirectory in each daemon conf file.
+- Implement get_yesno() and get_pint() in UA.
+- Make Jmsg aware of console. Messages now sent directly to Console.
+- Created a single bacula.spec.in for by the MySQL and SQLite builds.
+- Added proper configuration to console.in and gconsole.in
+- Start adding textdomain() code for translating.
+- A number of minor code cleanups.
+- Rework shell expansion just a bit.
+- Add rewind() when releasing a tape before acquiring the next one.
+- Implement addition of Description in Service entry for Win32.
+- Update manual to eliminate unclear autochanger points as mentioned
+  by Dan Langille.
+- Implement DESTDIR everywhere.
+- Rework spec files for 1.31 and combine the main spec and the client
+  only spec making a client package. At the same time, rename the packages
+  so it is a bit clearer to the user. Also fix the build to work
+  as non-root (scriptdir was not prefixed with $RPM_BUILD_ROOT).
+- Correct Auto Changers and all other forms to Autochangers in the
+  manual.
+- John reported needing to do two "mount" requests, and indeed that
+  was the case. It turns out that pthread_cond_timedwait() does not
+  always return zero when awaken by a pthread_cond_signal().
+- Include RunBeforeJob and RunAfterJob output in job output report.
+- Implement a "real" Admin job that prints a mini-job report.
+- Clean up a few error messages in findlib and filed.
+- Recent changes to gnome-console caused initial output to be
+  lost -- now fixed.
+- The Win32 version crashed after each job. After hours, it turns out
+  that when running with LocalSystem privilege (and not as a user), when
+  Cygwin does pthread_kill(id, SIGUSR2), it gets a memory fault.
+- Moved stored/fdmsg.c to lib/bget_msg.c, and moved SD messages to
+  stored.c.  So now bget_msg() can be used by both the SD and FD.
+- Changed Director's bget_msg() to be called bget_dirmsg() to avoid
+  any possible confusion.
+- Implemented bget_msg() in general everywhere in the FD except for
+  job.c where the Dir and FD are communicating.
+- Implemented a Director only heartbeat in the FD for the cases where
+  there is either no connection to the SD or the FD is already reading
+  from the SD.  start_dir_heartbeat() ...
+- Add heartbeat to restore and verify volume.
+- Add "Heartbeat Interval" to Storage resource, which sets interval the
+  SD sends heartbeats to the FD and DIR, 0 disables heartbeats.
+- Add "Heartbeat Interval" to FileDaemon resource, which sets the interval
+  the FD sends heartbeats to the DIR, 0 disables heartbeats. 
+- Added heartbeat from FD to Dir every HB_TIME rather than forwarding
+  SD heartbeats.
+- First cut label dialog.
+- Turn on new semaphore code for simultaneous Jobs.
+- Fix cancel trying to release semaphore's not acquired.
+- Implement get_pint() and get_yesno() for UA.
+- Implement find_arg_with_value() for UA.
+- All command line "slot" to be specified for label command.
+- Rework heartbeat code in FD to correctly terminate.
+- Fix btraceback to use smtp and to eliminate double //
+- Fix "storage" command to include ssl for verify and restores.
+- Add Heartbeat code when SD is waiting on a tape -- heartbeat every 20 mins
+  to keep stateful firewalls from timing out the connections.
+- Fix src/stored/Makefile.in typo causing problems in statically linking
+  btape.  Thanks to Lutz for reporting this.
+- Create an is_client_alive script for checking if a client is alive.
+  Using this script prevents generating error messages.
+- Added corrections and updates to manual provided by Phil -- thanks.
+- Added RequireSSL to each program/daemon configuration.
+- Added EnableSSL to each correspondent for each program.
+- Added the Console resource to the Director (need to
+  implement individual Console authorization).
 
 2003-04-28 Version 1.30 released
 - Fix command history for gnome-console (must malloc).

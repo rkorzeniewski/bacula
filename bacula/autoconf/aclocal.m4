@@ -307,9 +307,9 @@ then
 elif test -d /etc/SuSEconfig
 then
         DISTNAME=suse5
-elif test -d /usr/src/OpenLinux
+elif test -f /etc/mandrake-release
 then
-        DISTNAME=caldera
+        DISTNAME=mandrake
 elif test -f /etc/redhat-release
 then
         DISTNAME=redhat
@@ -325,6 +325,9 @@ then
 elif test $HAVE_UNAME=yes -a x`uname -s` = xDarwin
 then
     DISTNAME=darwin
+elif test -f /etc/engarde-version
+then
+        DISTNAME=engarde
 elif test "$ac_cv_cygwin" = yes
 then
         DISTNAME=cygwin

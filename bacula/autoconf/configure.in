@@ -1281,6 +1281,20 @@ redhat)
 	    "
 	hostname=`hostname -s`
   ;;
+mandrake)
+	DISTVER=`cat /etc/mandrake-release | grep release |\
+	   cut -f 5 -d ' '`
+	TAPEDRIVE="/dev/nst0"
+	PSCMD="ps -e -o pid,command"
+	PFILES="${PFILES} \
+	    platforms/mandrake/Makefile \
+	    platforms/mandrake/bacula-fd \
+	    platforms/mandrake/bacula-sd \
+	    platforms/mandrake/bacula-dir \
+	    platforms/mandrake/bacula.spec \
+	    "
+	hostname=`hostname -s`
+  ;;
 gentoo)
 	DISTVER=`awk '/version / {print $5}' < /etc/gentoo-release`
 	TAPEDRIVE="/dev/nst0"

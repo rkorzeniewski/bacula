@@ -1,12 +1,44 @@
 
-          Release Notes for Bacula 1.30a (or 1.31)
+          Release Notes for Bacula 1.31
 
-  Bacula code: Total files = 235 Total lines = 67,287 (*.h *.c *.in)
+  Bacula code: Total files = 241 Total lines = 69,771 (*.h *.c *.in)
 
 Major Changes this Release:
+- Support to save and restore all files on WinNT/2K/XP systems 
+  including the permissions. Unfortunately files that are in use by another
+  program cannot be saved.
+- Support for Win95 systems (untested since I don't have Win95).
+- Heartbeat every 20 minutes between daemons to prevent network
+  timeouts. The heartbeat interval can be set.
+- Volume names may now only contain letters, numbers, colon, period, dash,
+  and underscore.
 
 
 Other Changes this Release:
-             
+- Preliminary support for BSDi.
+- Use smtp instead of mail to send the traceback message.
+- Fixed a race condition in the "list" command while a backup is
+  in progress.
+- Beginning of support for SSL encryption.
+- Beggining of support for Base level backups.
+- Improvements to gnome-console.
+- Prune certain orphaned jobs (no files saved, no Volume used).
+- Added non-fatal errors to Job reports.
+- Eliminate need for SubsysDirectory in each daemon.
+- Add a lot more "command line" options to console commands.
+- More info in traceback (database type, ...).
+- Better handling of errors with autochangers during restore.
+- Better cancellation of jobs in Storage daemon (doesn't try
+  to cleanup twice).
+- SD error messages such as autochanger errors are now properly
+  directed back to Console -- previously some were lost.
 
-Items to note:
+
+
+Items to note:  !!!!!
+- For MySQL users, you must have the thread safe client libraries 
+  available.  If you build MySQL yourself, add the --enable-thread-safe-client
+  option on the ./configure.
+- Version 1.31 and 1.30 daemons/Director are not compatible. You must
+  upgrade all or nothing.
+
