@@ -792,9 +792,7 @@ getArgv0(const char *cmdline)
 {
 
     int inquote = 0;
-
-    const char *cp = cmdline;
-    for (; *cp; cp++)
+    for (const char *cp = cmdline; *cp; cp++)
     {
         if (*cp == '"') {
             inquote = !inquote;
@@ -1161,33 +1159,36 @@ open(const char *file, int flags, int mode)
 
 }
 
+/*
+ * Note, this works only for a file. If you want
+ *   to close a socket, use closesocket(). 
+ *   Bacula has been modified in src/lib/bnet.c
+ *   to use closesocket().
+ */
 int
 close(int fd)
 {
-    int rval = _close(fd);
-    if (rval == -1)
-        rval = closesocket(fd);
-    return rval;
+    return _close(fd);
 }
 
 #ifndef HAVE_WXCONSOLE
 ssize_t
-read(int fd, void *buf, size_t len)
+read(int fd, void *buf, ssize_t len)
 {
-    return _read(fd, buf, len);
+    return _read(fd, buf, (size_t)len);
 }
 
 ssize_t
-write(int fd, const void *buf, size_t len)
+write(int fd, const void *buf, ssize_t len)
 {
-    return _write(fd, buf, len);
+    return _write(fd, buf, (size_t)len);
 }
 #endif
 
 off_t
 lseek(int fd, off_t offset, int whence)
 {
-    return (off_t)_lseeki64(fd, offset, whence);
+    return _lseeki64(fd, offset, whence);
 }
 
 int
@@ -1243,7 +1244,7 @@ close(int fd)
 }
 
 ssize_t
-write(int fd, const void *data, size_t len)
+write(int fd, const void *data, ssize_t len)
 {
     BOOL status;
     DWORD bwrite;
@@ -1254,7 +1255,7 @@ write(int fd, const void *data, size_t len)
 
 
 ssize_t
-read(int fd, void *data, size_t len)
+read(int fd, void *data, ssize_t len)
 {
     BOOL status;
     DWORD bread;

@@ -265,8 +265,8 @@ int __snprintf(char *str, size_t count, const char *fmt, ...);
 int __sprintf(char *str, const char *fmt, ...);
 
 #ifndef HAVE_WXCONSOLE
-ssize_t read(int fd, void *, size_t nbytes);
-ssize_t write(int fd, const void *, size_t nbytes);
+ssize_t read(int fd, void *, ssize_t nbytes);
+ssize_t write(int fd, const void *, ssize_t nbytes);
 #endif
 
 int close(int fd);
