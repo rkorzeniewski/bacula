@@ -2,6 +2,7 @@ bacula-dir.conf
 bacula-fd.conf
 bacula-sd.conf
 console.conf
+bconsole.conf
 test-bacula-dir.conf
 test-bacula-fd.conf
 test-bacula-sd.conf
@@ -9,5 +10,7 @@ test-console.conf
 testa-bacula-dir.conf
 bacula-dir-tape.conf
 bacula-sd-tape.conf
+bacula-sd-2tape.conf
 cleanup-tape
+cleanup-2tape
 prepare-two-tapes

@@ -1,0 +1,12 @@
+#!/bin/sh
+#
+# Run all tape tests
+#
+tests/test0
+tests/two-volume-tape
+tests/incremental-2tape
+echo " "
+echo " "
+echo "2 Tape Test results"
+cat test.out
+scripts/cleanup

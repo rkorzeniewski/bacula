@@ -1,0 +1,119 @@
+#!/bin/sh
+#
+# Run a simple backup of the Bacula build directory using the compressed option
+#   then backup four times, each with incremental then finally restore.
+#   It should require at least 4 different bsrs.
+#
+cwd=`pwd`
+bin/bacula stop 2>&1 >/dev/null
+bin/drop_sqlite_tables
+bin/make_sqlite_tables
+
+scripts/copy-tape-confs
+scripts/cleanup-tape
+echo "${cwd}/build" >/tmp/file-list
+
+echo " "
+echo " "
+echo " === Starting four-jobs-tape  ==="
+echo " === Starting four-jobs-tape  ===" >>working/log
+echo " "
+
+bin/bacula start 2>&1 >/dev/null
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
+@output /dev/null
+estimate job=NightlySave listing
+estimate job=NightlySave listing
+estimate job=NightlySave listing
+messages
+@output tmp/log1.out
+label storage=DDS-4 volume=TestVolume001 slot=0
+run job=NightlySave yes
+wait
+messages
+quit
+END_OF_DATA
+echo "Backup 1 done"
+# make some files for the incremental to pick up
+touch ${cwd}/build/src/dird/*.c ${cwd}/build/src/dird/*.o
+touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
+   
+#
+# run a second job
+#
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
+@output /dev/null
+messages
+@output tmp/log1.out
+run job=NightlySave level=Incremental yes
+wait
+messages
+quit
+END_OF_DATA
+echo "Backup 2 done"
+touch ${cwd}/build/src/dird/*.c
+touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
+#
+# run a third job
+#
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
+@output /dev/null
+messages
+@output tmp/log1.out
+run job=NightlySave level=Incremental yes
+wait
+messages
+quit
+END_OF_DATA
+echo "Backup 3 done"
+# make some files for the incremental to pick up
+touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
+#
+# run a fourth job
+#
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
+@output /dev/null
+messages
+@output tmp/log1.out
+run job=NightlySave level=Incremental yes
+wait
+messages
+quit
+END_OF_DATA
+echo "Backup 4 done"
+# 
+# now do several restores to ensure we cleanup between jobs
+#
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
+@output /dev/null
+restore where=${cwd}/tmp/bacula-restores select all
+yes
+wait
+restore where=${cwd}/tmp/bacula-restores select all
+yes
+wait
+@output tmp/log2.out
+restore where=${cwd}/tmp/bacula-restores select all
+yes
+wait
+messages
+@output
+quit
+END_OF_DATA
+bin/bacula stop 2>&1 >/dev/null
+grep "^Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
+bstat=$?
+grep "^Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
+rstat=$?
+diff -r build tmp/bacula-restores${cwd}/build 2>&1 >/dev/null
+if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
+   echo " "
+   echo " "
+   echo "  !!!!! four-jobs-tape Bacula source failed!!! !!!!! "
+   echo "  !!!!! four-jobs-tape failed!!! !!!!! " >>test.out
+   echo " "
+else
+   echo "  ===== four-jobs-tape Bacula source OK ===== "
+   echo "  ===== four-jobs-tape OK ===== " >>test.out
+   scripts/cleanup
+fi
