@@ -153,21 +153,33 @@ on_entry1_key_press_event(GtkWidget *widget, GdkEventKey *event, gpointer user_d
       gtk_entry_set_text((GtkEntry *)entry1, "");
    } else if (event->keyval == KEY_Up) {
       if (!hc) {
+	 if (!hist) {
+	    return FALSE;
+	 }
 	 hc = g_list_last(hist);
       } else {
 	 hc = g_list_previous(hc);
       }
       if (!hc) {
+	 if (!hist) {
+	    return FALSE;
+	 }
 	 hc = g_list_first(hist);
       }
       gtk_entry_set_text((GtkEntry *)entry1, (gchar *)hc->data);
    } else if (event->keyval == KEY_Down) {
       if (!hc) {
+	 if (!hist) {
+	    return FALSE;
+	 }
 	 hc = g_list_first(hist);
       } else {
 	 hc = g_list_next(hc);
       }
       if (!hc) {
+	 if (!hist) {
+	    return FALSE;
+	 }
 	 hc = g_list_last(hist);
       }
       gtk_entry_set_text((GtkEntry *)entry1, (gchar *)hc->data);
