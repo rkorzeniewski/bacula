@@ -12,11 +12,16 @@ Version 1.35                Kern (see below)
 
 1.35 Items to do for release:
 - Bacula rescue CDROM
+- Implement a pool of 10 buffers of random data that btape
+  can use when filling a tape (rather than calling random for
+  each new buffer).
 - Fix error handling in spooling both data and attribute.
 - Perhaps add read/write programs and/or plugins to FileSets.
 - Add new DCR calling sequences everywhere in SD. This will permit 
   simultaneous use of multiple devices by a single job.
 - Look at Chris' patch for bscan bug.
+- Look at patches/bacula_db.b2z postgresql that loops.
+  See Gregory Wright.
 
 - Add bscan to four-concurrent-jobs regression.
 - Doc new IPv6 syntax
@@ -31,6 +36,7 @@ Version 1.35                Kern (see below)
 - Doc dbcheck eliminate orphaned clients.
 - Doc new duration time input editing.
 - Doc -p option in stored
+- Document that console commands can be abbreviated.
    
 
 Documentation to do: (any release a little bit at a time)
