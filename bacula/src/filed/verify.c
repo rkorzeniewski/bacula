@@ -65,7 +65,7 @@ void do_verify(JCR *jcr)
 static int verify_file(FF_PKT *ff_pkt, void *pkt) 
 {
    char attribs[MAXSTRING];
-   int32_t n;
+   int64_t n;
    int stat;
    BFILE bfd;
    struct MD5Context md5c;

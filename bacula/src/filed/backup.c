@@ -367,7 +367,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       /* 
        * Read the file data
        */
-      while ((sd->msglen=bread(&ff_pkt->bfd, rbuf, rsize)) > 0) {
+      while ((sd->msglen=(uint32_t)bread(&ff_pkt->bfd, rbuf, rsize)) > 0) {
 	 int sparseBlock = 0;
 
 	 /* Check for sparse blocks */

@@ -551,7 +551,7 @@ static void list_terminated_jobs(UAContext *ua)
    lock_last_jobs_list();
    struct s_last_job *je;
    bsendmsg(ua, _("\nTerminated Jobs:\n"));
-   bsendmsg(ua, _(" JobId  Level   Files          Bytes Status   Finished        Name \n"));
+   bsendmsg(ua, _(" JobId  Level   Files      Bytes     Status   Finished        Name \n"));
    bsendmsg(ua, _("======================================================================\n"));
    foreach_dlist(je, last_jobs) {
       char JobName[MAX_NAME_LENGTH];
