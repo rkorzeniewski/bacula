@@ -39,6 +39,8 @@ For 1.33 Testing/Documentation:
 For 1.32c
 
 For 1.33
+- Fix time difference problem between Bacula and Client
+  so that everything is in GMT.
 - Finish implementation of Verify=DiskToCatalog
 - Change console to bconsole.
 - Change smtp to bsmtp.
@@ -1063,4 +1065,3 @@ Done: (see kernsdone for more)
 - Document delete job command.
 - Document update volume pool and other command line keywords.
 - Add VerifyJob to "run" summary (yes/mod/no) prompt.
-
