@@ -32,6 +32,12 @@
 extern char my_name[];
 extern int num_jobs_run;
 extern time_t daemon_start_time;
+#ifdef SMARTALLOC
+extern uint64_t sm_max_bytes;
+extern uint64_t sm_bytes;
+extern uint32_t sm_max_buffers;
+extern uint32_t sm_buffers;
+#endif
 
 /* Forward referenced functions */
 static void  list_terminated_jobs(void sendit(const char *msg, int len, void *sarg), void *arg);
@@ -49,7 +55,7 @@ static int privs = 0;
 static void do_status(void sendit(const char *msg, int len, void *sarg), void *arg) 
 {
    int sec, bps;
-   char *msg, b1[32], b2[32], b3[32];
+   char *msg, b1[32], b2[32], b3[32], b4[32];
    int found, len;
    JCR *njcr;
    char dt[MAX_TIME_LENGTH];
@@ -80,6 +86,21 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
       sendit(msg, len, arg);
    }
 #endif
+#ifdef SMARTALLOC
+   if (debug_level > 0) {
+      len = Mmsg(&msg, _(" Heap: bytes=%s max_bytes=%s bufs=%s max_bufs=%s\n"),
+	    edit_uint64_with_commas(sm_bytes, b1),
+	    edit_uint64_with_commas(sm_max_bytes, b2),
+	    edit_uint64_with_commas(sm_buffers, b3),
+	    edit_uint64_with_commas(sm_max_buffers, b4));
+       sendit(msg, len, arg);
+    }
+#endif
+   if (debug_level > 0) {
+      len = Mmsg(&msg, _("Sizeof: off_t=%d size_t=%d\n"), sizeof(off_t),
+	    sizeof(size_t));
+      sendit(msg, len, arg);
+   }
 
    list_terminated_jobs(sendit, arg);
 
@@ -390,7 +411,7 @@ char *bac_status(char *buf, int buf_len)
 done:
    bacstat = stat;
    if (buf) {
-      bstrncpy(buf, termstat, sizeof(buf));
+      bstrncpy(buf, termstat, buf_len);
    }
    return buf;
 }
