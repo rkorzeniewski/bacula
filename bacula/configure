@@ -897,17 +897,14 @@ Optional Packages:
   --with-postgresql=DIR      Include PostgreSQL support.  DIR is the PostgreSQL
                           base install directory, defaults to /usr/local/pgsql
 
-Which DBMS do you want to use (please select only one):
   --with-mysql=DIR      Include MySQL support.  DIR is the MySQL base
                           install directory, default is to search through
                           a number of common places for the MySQL files.
 
-Which DBMS do you want to use (please select only one):
   --with-embedded-mysql=DIR Include MySQL support.  DIR is the MySQL base
                           install directory, default is to search through
                           a number of common places for the MySQL files.
 
-Which DBMS do you want to use (please select only one):
   --with-sqlite=DIR     Include SQLite support.  DIR is the SQLite base
                           install directory, default is to search through
                           a number of common places for the SQLite files.
