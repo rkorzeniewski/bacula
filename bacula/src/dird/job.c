@@ -144,7 +144,7 @@ void run_job(JCR *jcr)
    jcr->JobId = jcr->jr.JobId;
    ASSERT(jcr->jr.JobId > 0);
 
-   Dmsg4(30, "Created job record JobId=%d Name=%s Type=%c Level=%c\n", 
+   Dmsg4(50, "Created job record JobId=%d Name=%s Type=%c Level=%c\n", 
        jcr->JobId, jcr->Job, jcr->jr.Type, jcr->jr.Level);
    Dmsg0(200, "Add jrc to work queue\n");
 
@@ -160,7 +160,7 @@ void run_job(JCR *jcr)
    }
 #endif
 #endif
-   Dmsg0(200, "Done run_job()\n");
+   Dmsg0(100, "Done run_job()\n");
 }
 
 /* 
