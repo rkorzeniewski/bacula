@@ -15,3 +15,8 @@ startit
 startmysql
 stopit
 stopmysql
+gnome-console.console_apps
+bacula.desktop.gnome2.xsu
+bacula.desktop.gnome2.consolehelper
+bacula.desktop.gnome1.xsu
+bacula.desktop.gnome1.consolehelper
