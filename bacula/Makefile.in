@@ -19,7 +19,7 @@ fd_subdirs = src scripts doc src/lib src/findlib src/filed \
 	     @READLINE_SRC@ src/console rescue rescue/linux
 
 
-subdirs =    src/cats src/dird src/stored @GNOME_DIR@ src/tools
+subdirs =    src/cats src/dird src/stored @GNOME_DIR@ @WX_DIR@ src/tools
 
 all_subdirs = ${fd_subdirs} ${@ALL_DIRS@}
 
