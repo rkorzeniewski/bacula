@@ -234,7 +234,7 @@ extern "C" void *watchdog_thread(void *arg)
    Dmsg0(400, "NicB-reworked watchdog thread entered\n");
 
    while (!quit) {
-      watchdog_t *p, *q;
+      watchdog_t *p;	
 
       /* 
        * We lock the jcr chain here because a good number of the
@@ -247,9 +247,10 @@ extern "C" void *watchdog_thread(void *arg)
        */
       lock_jcr_chain();
       wd_lock();
+
+walk_list:
       watchdog_time = time(NULL);
       next_time = watchdog_time + watchdog_sleep_time;
-
       foreach_dlist(p, wd_queue) {
 	 if (p->next_fire <= watchdog_time) {
 	    /* Run the callback */
@@ -257,17 +258,9 @@ extern "C" void *watchdog_thread(void *arg)
 
             /* Reschedule (or move to inactive list if it's a one-shot timer) */
 	    if (p->one_shot) {
-	       /* 
-		* Note, when removing an item while walking the list
-		*  we must get the previous pointer (q) and set the
-		*  current pointer (p) to this previous pointer after
-                *  removing the current pointer, otherwise, we won't
-		*  walk the rest of the list.
-		*/
-	       q = (watchdog_t *)wd_queue->prev(p);
 	       wd_queue->remove(p);
 	       wd_inactive->append(p);
-	       p = q;
+	       goto walk_list;
 	    } else {
 	       p->next_fire = watchdog_time + p->interval;
 	    }

@@ -165,7 +165,7 @@ btimer_t *start_bsock_timer(BSOCK *bsock, uint32_t wait)
    wid->wd->interval = wait;
    register_watchdog(wid->wd);
 
-   Dmsg3(50, "Start thread timer %p tip %p for %d secs.\n", wid, wid->tid, wait);
+   Dmsg3(50, "Start bsock timer %p tip %p for %d secs.\n", wid, wid->tid, wait);
 
    return wid;
 }

@@ -246,12 +246,12 @@ int prune_files(UAContext *ua, CLIENT *client)
        
    /* Select Jobs -- for counting */
    Mmsg(query, select_job, edit_uint64(now - period, ed1), cr.ClientId);
-   Dmsg1(050, "select sql=%s\n", query);
+   Dmsg1(500, "select sql=%s\n", query);
    if (!db_sql_query(ua->db, query, file_count_handler, (void *)&del)) {
       if (ua->verbose) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
       }
-      Dmsg0(050, "Count failed\n");
+      Dmsg0(500, "Count failed\n");
       goto bail_out;
    }
       
@@ -276,7 +276,7 @@ int prune_files(UAContext *ua, CLIENT *client)
 
    for (i=0; i < del.num_ids; i++) {
       struct s_count_ctx cnt;
-      Dmsg1(050, "Delete JobId=%d\n", del.JobId[i]);
+      Dmsg1(500, "Delete JobId=%d\n", del.JobId[i]);
       Mmsg(query, cnt_File, del.JobId[i]);
       cnt.count = 0;
       db_sql_query(ua->db, query, count_handler, (void *)&cnt);
@@ -291,7 +291,7 @@ int prune_files(UAContext *ua, CLIENT *client)
        */
       Mmsg(query, upd_Purged, del.JobId[i]);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
-      Dmsg1(050, "Del sql=%s\n", query);
+      Dmsg1(500, "Del sql=%s\n", query);
    }
    edit_uint64_with_commas(del.tot_ids, ed1);
    edit_uint64_with_commas(del.num_ids, ed2);
@@ -323,7 +323,7 @@ static int create_temp_tables(UAContext *ua)
    for (i=0; create_deltabs[i]; i++) {
       if (!db_sql_query(ua->db, create_deltabs[i], NULL, (void *)NULL)) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
-         Dmsg0(050, "create DelTables table failed\n");
+         Dmsg0(500, "create DelTables table failed\n");
 	 return 0;
       }
    }
@@ -384,17 +384,17 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
       if (ua->verbose) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
       }
-      Dmsg0(050, "insert delcand failed\n");
+      Dmsg0(500, "insert delcand failed\n");
       goto bail_out;
    }
 
    /* Count Files to be deleted */
    pm_strcpy(query, cnt_DelCand);
-   Dmsg1(100, "select sql=%s\n", query);
+   Dmsg1(500, "select sql=%s\n", query);
    cnt.count = 0;
    if (!db_sql_query(ua->db, query, count_handler, (void *)&cnt)) {
       bsendmsg(ua, "%s", db_strerror(ua->db));
-      Dmsg0(050, "Count failed\n");
+      Dmsg0(500, "Count failed\n");
       goto bail_out;
    }
       
@@ -437,26 +437,26 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
     * Then delete the Job entry, and finally and JobMedia records.
     */
    for (i=0; i < del.num_ids; i++) {
-      Dmsg1(050, "Delete JobId=%d\n", del.JobId[i]);
+      Dmsg1(500, "Delete JobId=%d\n", del.JobId[i]);
       if (!del.PurgedFiles[i]) {
 	 Mmsg(query, del_File, del.JobId[i]);
 	 if (!db_sql_query(ua->db, query, NULL, (void *)NULL)) {
             bsendmsg(ua, "%s", db_strerror(ua->db));
 	 }
-         Dmsg1(050, "Del sql=%s\n", query);
+         Dmsg1(500, "Del sql=%s\n", query);
       }
 
       Mmsg(query, del_Job, del.JobId[i]);
       if (!db_sql_query(ua->db, query, NULL, (void *)NULL)) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
       }
-      Dmsg1(050, "Del sql=%s\n", query);
+      Dmsg1(500, "Del sql=%s\n", query);
 
       Mmsg(query, del_JobMedia, del.JobId[i]);
       if (!db_sql_query(ua->db, query, NULL, (void *)NULL)) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
       }
-      Dmsg1(050, "Del sql=%s\n", query);
+      Dmsg1(500, "Del sql=%s\n", query);
    }
    bsendmsg(ua, _("Pruned %d %s for client %s from catalog.\n"), del.num_ids,
       del.num_ids==1?_("Job"):_("Jobs"), client->hdr.name);
@@ -498,7 +498,7 @@ int prune_volume(UAContext *ua, MEDIA_DBR *mr)
    Mmsg(query, cnt_JobMedia, mr->MediaId);
    if (!db_sql_query(ua->db, query, count_handler, (void *)&cnt)) {
       bsendmsg(ua, "%s", db_strerror(ua->db));
-      Dmsg0(050, "Count failed\n");
+      Dmsg0(500, "Count failed\n");
       goto bail_out;
    }
       
@@ -527,7 +527,7 @@ int prune_volume(UAContext *ua, MEDIA_DBR *mr)
       if (ua->verbose) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
       }
-      Dmsg0(050, "Count failed\n");
+      Dmsg0(500, "Count failed\n");
       goto bail_out;
    }
 
@@ -535,7 +535,7 @@ int prune_volume(UAContext *ua, MEDIA_DBR *mr)
    period = mr->VolRetention;
    now = (utime_t)time(NULL);
 
-   Dmsg3(200, "Now=%d period=%d now-period=%d\n", (int)now, (int)period,
+   Dmsg3(500, "Now=%d period=%d now-period=%d\n", (int)now, (int)period,
       (int)(now-period));
 
    for (i=0; i < del.num_ids; i++) {
@@ -543,18 +543,18 @@ int prune_volume(UAContext *ua, MEDIA_DBR *mr)
       if (!db_get_job_record(ua->jcr, ua->db, &jr)) {
 	 continue;
       }
-      Dmsg2(200, "Looking at %s JobTdate=%d\n", jr.Job, (int)jr.JobTDate);
+      Dmsg2(500, "Looking at %s JobTdate=%d\n", jr.Job, (int)jr.JobTDate);
       if (jr.JobTDate >= (now - period)) {
 	 continue;
       }
-      Dmsg2(200, "Delete JobId=%d Job=%s\n", del.JobId[i], jr.Job);
+      Dmsg2(500, "Delete JobId=%d Job=%s\n", del.JobId[i], jr.Job);
       Mmsg(query, del_File, del.JobId[i]);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       Mmsg(query, del_Job, del.JobId[i]);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       Mmsg(query, del_JobMedia, del.JobId[i]);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
-      Dmsg1(050, "Del sql=%s\n", query);
+      Dmsg1(500, "Del sql=%s\n", query);
       del.num_del++;
    }
    if (del.JobId) {
@@ -567,7 +567,7 @@ int prune_volume(UAContext *ua, MEDIA_DBR *mr)
 
    /* If purged, mark it so */
    if (del.num_ids == del.num_del) {
-      Dmsg0(200, "Volume is purged.\n");
+      Dmsg0(500, "Volume is purged.\n");
       stat = mark_media_purged(ua, mr);
    }
 

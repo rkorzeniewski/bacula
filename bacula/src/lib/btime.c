@@ -53,6 +53,19 @@ char *bstrftime(char *dt, int maxlen, utime_t tim)
    return dt;
 }
 
+/* Formatted time for user display: dd-Mon-yyyy hh:mm:ss */
+char *bstrftimes(char *dt, int maxlen, utime_t tim)
+{
+   time_t ttime = (time_t)tim;
+   struct tm tm;
+   
+   /* ***FIXME**** the format and localtime_r() should be user configurable */
+   localtime_r(&ttime, &tm);
+   strftime(dt, maxlen, "%d-%b-%Y %H:%M:%S", &tm);
+   return dt;
+}
+
+
 /* Formatted time for user display: dd-Mon hh:mm */
 char *bstrftime_ny(char *dt, int maxlen, utime_t tim)
 {
