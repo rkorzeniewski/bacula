@@ -19,6 +19,8 @@ Testing to do: (painful)
 
 
 For 1.31 release:
+- Properly configure console and gconsole (currently for source not
+  configured for installation).
 - Fix "access not allowed" for backup of files on WinXP.
 - Check for existence of all new Win32 API's.  See LoadLibrary in 
   winservice.cpp

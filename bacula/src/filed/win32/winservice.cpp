@@ -42,6 +42,9 @@
 #include "winservice.h"
 #include "wintray.h"
 
+void set_service_description(SC_HANDLE hSCManager, SC_HANDLE hService,
+                             LPSTR lpDesc);
+
 
 // OS-SPECIFIC ROUTINES
 
@@ -525,30 +528,6 @@ bacService::InstallService()
               "be run the next time this machine is rebooted. ",
               szAppName,
               MB_ICONINFORMATION | MB_OK);
-
-#ifdef needed
-      // Run the service...
-      STARTUPINFO si;
-      si.cb = sizeof(si);
-      si.cbReserved2 = 0;
-      si.lpReserved = NULL;
-      si.lpReserved2 = NULL;
-      si.dwFlags = 0;
-      si.lpTitle = NULL;
-      PROCESS_INFORMATION pi;
-      if (!CreateProcess(NULL, servicecmd,   // Program name & path
-              NULL, NULL,                    // Security attributes
-              FALSE,                         // Inherit handles?
-              NORMAL_PRIORITY_CLASS,         // Extra startup flags
-              NULL,                          // Environment table
-              NULL,                          // Current directory
-              &si,
-              &pi
-              )) {
-         MessageBox(NULL, "CreateProcess: the Bacula service failed to start", szAppName, MB_ICONSTOP | MB_OK);
-         break;
-      }
-#endif
       break;
 
            // Windows NT
@@ -591,7 +570,8 @@ bacService::InstallService()
          break;
       }
 
-      /*****FIXME***** add code to set Description */
+      set_service_description(hsrvmanager,hservice, 
+"Provides file backup and restore services. Bacula -- the Network Backup Solution.");
 
       CloseServiceHandle(hsrvmanager);
       CloseServiceHandle(hservice);
@@ -855,106 +835,72 @@ void LogErrorMsg(char *message, char *fname, int lineno)
 }
 
 /* ================== Not yet implemented ===================== */
-#ifdef implemented
-VOID ReconfigureSampleService(BOOL fDisable, LPSTR lpDesc) 
+void set_service_description(SC_HANDLE hSCManager, SC_HANDLE hService,
+                             LPSTR lpDesc) 
 { 
     SC_LOCK sclLock; 
     LPQUERY_SERVICE_LOCK_STATUS lpqslsBuf; 
     SERVICE_DESCRIPTION sdBuf;
-    DWORD dwBytesNeeded, dwStartType; 
+    DWORD dwBytesNeeded;
  
     // Need to acquire database lock before reconfiguring. 
  
-    sclLock = LockServiceDatabase(schSCManager); 
+    sclLock = LockServiceDatabase(hSCManager); 
  
     // If the database cannot be locked, report the details. 
  
-    if (sclLock == NULL) 
-    { 
+    if (sclLock == NULL) {
         // Exit if the database is not locked by another process. 
  
-        if (GetLastError() != ERROR_SERVICE_DATABASE_LOCKED) 
-            MyErrorExit("LockServiceDatabase"); 
+        if (GetLastError() != ERROR_SERVICE_DATABASE_LOCKED) {
+            log_error_message("LockServiceDatabase"); 
+            return;
+        }
  
         // Allocate a buffer to get details about the lock. 
- 
-        lpqslsBuf = (LPQUERY_SERVICE_LOCK_STATUS) LocalAlloc( 
+        lpqslsBuf = (LPQUERY_SERVICE_LOCK_STATUS)LocalAlloc( 
             LPTR, sizeof(QUERY_SERVICE_LOCK_STATUS)+256); 
-        if (lpqslsBuf == NULL) 
-            MyErrorExit("LocalAlloc"); 
+        if (lpqslsBuf == NULL) {
+            log_error_message("LocalAlloc"); 
+            return;
+        }
  
         // Get and print the lock status information. 
  
         if (!QueryServiceLockStatus( 
-            schSCManager, 
+            hSCManager, 
             lpqslsBuf, 
             sizeof(QUERY_SERVICE_LOCK_STATUS)+256, 
-            &dwBytesNeeded) ) 
-            MyErrorExit("QueryServiceLockStatus"); 
+            &dwBytesNeeded)) {
+           log_error_message("QueryServiceLockStatus"); 
+        }
  
-        if (lpqslsBuf->fIsLocked) 
-            printf("Locked by: %s, duration: %d seconds\n", 
+        if (lpqslsBuf->fIsLocked) {
+            printf("Locked by: %s, duration: %ld seconds\n", 
                 lpqslsBuf->lpLockOwner, 
                 lpqslsBuf->dwLockDuration); 
-        else 
+        } else {
             printf("No longer locked\n"); 
+        }
  
         LocalFree(lpqslsBuf); 
-        MyErrorExit("Could not lock database"); 
+        log_error_message("Could not lock database"); 
+        return;
     } 
  
     // The database is locked, so it is safe to make changes. 
  
-    // Open a handle to the service. 
- 
-    schService = OpenService( 
-        schSCManager,           // SCManager database 
-        "Sample_Srv",           // name of service 
-        SERVICE_CHANGE_CONFIG); // need CHANGE access 
-    if (schService == NULL) 
-        MyErrorExit("OpenService"); 
- 
-    dwStartType = (fDisable) ? SERVICE_DISABLED : 
-                            SERVICE_DEMAND_START; 
- 
-    // Make the changes. 
-
-    if (! ChangeServiceConfig( 
-        schService,        // handle of service 
-        SERVICE_NO_CHANGE, // service type: no change 
-        dwStartType,       // change service start type 
-        SERVICE_NO_CHANGE, // error control: no change 
-        NULL,              // binary path: no change 
-        NULL,              // load order group: no change 
-        NULL,              // tag ID: no change 
-        NULL,              // dependencies: no change 
-        NULL,              // account name: no change 
-        NULL,              // password: no change 
-        NULL) )            // display name: no change
-    {
-        MyErrorExit("ChangeServiceConfig"); 
-    }
-    else 
-        printf("ChangeServiceConfig SUCCESS\n"); 
- 
     sdBuf.lpDescription = lpDesc;
 
-    if( !ChangeServiceConfig2(
-        schService,                // handle to service
-        SERVICE_CONFIG_DESCRIPTION // change: description
-        &sdBuf) )                  // value: new description
-    {
-        MyErrorExit("ChangeServiceConfig2");
-    }
-    else
+    if(!ChangeServiceConfig2(
+        hService,                   // handle to service
+        SERVICE_CONFIG_DESCRIPTION, // change: description
+        &sdBuf) ) {                 // value: new description
+       log_error_message("ChangeServiceConfig2");
+    } else {
         printf("ChangeServiceConfig2 SUCCESS\n");
+    }
 
     // Release the database lock. 
- 
     UnlockServiceDatabase(sclLock); 
- 
-    // Close the handle to the service. 
- 
-    CloseServiceHandle(schService); 
 }
-#endif
