@@ -1,4 +1,11 @@
 /*
+ *
+ *   wxbPanel for restoring files
+ *
+ *    Nicolas Boichat, April-May 2004
+ *
+ */
+/*
    Copyright (C) 2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
@@ -1761,14 +1768,14 @@ void wxbRestorePanel::EnableConfig(bool enable) {
    Event handling
   ----------------------------------------------------------------------------*/
 
-void wxbRestorePanel::OnCancel(wxEvent& WXUNUSED(event)) {
+void wxbRestorePanel::OnCancel(wxCommandEvent& WXUNUSED(event)) {
    cancel->Enable(false);
    SetCursor(*wxHOURGLASS_CURSOR);
    CmdCancel();
    SetCursor(*wxSTANDARD_CURSOR);
 }
 
-void wxbRestorePanel::OnStart(wxEvent& WXUNUSED(event)) {
+void wxbRestorePanel::OnStart(wxCommandEvent& WXUNUSED(event)) {
    if (working) {
       return;
    }
@@ -1921,7 +1928,7 @@ void wxbRestorePanel::OnConfigUpdated(wxCommandEvent& event) {
    }
 }
 
-void wxbRestorePanel::OnConfigOk(wxEvent& WXUNUSED(event)) {
+void wxbRestorePanel::OnConfigOk(wxCommandEvent& WXUNUSED(event)) {
    if (status != configuring) return;
    if (working) {
       return;
@@ -1933,7 +1940,7 @@ void wxbRestorePanel::OnConfigOk(wxEvent& WXUNUSED(event)) {
    SetCursor(*wxSTANDARD_CURSOR);
 }
 
-void wxbRestorePanel::OnConfigApply(wxEvent& WXUNUSED(event)) {
+void wxbRestorePanel::OnConfigApply(wxCommandEvent& WXUNUSED(event)) {
    if (status != configuring) return;
    if (working) {
       return;
@@ -1948,7 +1955,7 @@ void wxbRestorePanel::OnConfigApply(wxEvent& WXUNUSED(event)) {
    SetCursor(*wxSTANDARD_CURSOR);
 }
 
-void wxbRestorePanel::OnConfigCancel(wxEvent& WXUNUSED(event)) {
+void wxbRestorePanel::OnConfigCancel(wxCommandEvent& WXUNUSED(event)) {
    if (status != configuring) return;
    if (working) {
       return;

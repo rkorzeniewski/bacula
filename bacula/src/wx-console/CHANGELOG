@@ -1,4 +1,8 @@
-31-04-2004 :
+02-05-2004 :
+ - wxbRestorePanel : Corrected incorrect casting of event
+      functions (reported by Aristedes Maniatis)
+
+01-05-2004 :
  - wxbRestorePanel : Corrected a problem when you double-clicked an 
       a folder in the list, the list was then refreshed two times
       (instead of one) in the new directory

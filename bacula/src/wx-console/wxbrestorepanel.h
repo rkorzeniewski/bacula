@@ -1,4 +1,11 @@
 /*
+ *
+ *   wxbPanel for restoring files
+ *
+ *    Nicolas Boichat, April-May 2004
+ *
+ */
+/*
    Copyright (C) 2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
@@ -155,8 +162,8 @@ class wxbRestorePanel : public wxbPanel
       void EnableConfig(bool enable);
 
 /* Event handling */
-      void OnStart(wxEvent& WXUNUSED(event));
-      void OnCancel(wxEvent& WXUNUSED(event));
+      void OnStart(wxCommandEvent& WXUNUSED(event));
+      void OnCancel(wxCommandEvent& WXUNUSED(event));
       void OnTreeChanging(wxTreeEvent& event);
       void OnTreeExpanding(wxTreeEvent& event);
       void OnTreeChanged(wxTreeEvent& event);
@@ -164,9 +171,9 @@ class wxbRestorePanel : public wxbPanel
       void OnListMarked(wxbListMarkedEvent& event);
       void OnListActivated(wxListEvent& event);
       void OnConfigUpdated(wxCommandEvent& event);
-      void OnConfigOk(wxEvent& WXUNUSED(event));
-      void OnConfigApply(wxEvent& WXUNUSED(event));
-      void OnConfigCancel(wxEvent& WXUNUSED(event));
+      void OnConfigOk(wxCommandEvent& WXUNUSED(event));
+      void OnConfigApply(wxCommandEvent& WXUNUSED(event));
+      void OnConfigCancel(wxCommandEvent& WXUNUSED(event));
 
 /* Components */
       wxBoxSizer *centerSizer; /* Center sizer */
