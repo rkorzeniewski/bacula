@@ -16,6 +16,9 @@ Changes submitted this submission:
 - Added --enable-client-only to ./configure
 - Modified --enable-static-sd to work better and documented it.
 - Fixed Restore options (never,ifnewer, ...). They now work.
+- Moved the stored.c Resource lock into the allocation thread so
+  that the same thread sets/clears it. This created a problem on
+  FreeBSD.
 28Dec02
 - Added more rescue documentation.
 - Did a spell check of the Bacula doc.

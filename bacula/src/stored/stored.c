@@ -183,22 +183,21 @@ int main (int argc, char *argv[])
    /* Make sure on Solaris we can run concurrent, watch dog + servers + misc */
    set_thread_concurrency(me->max_concurrent_jobs * 2 + 4);
 
-   /*				 
-    * Here we lock the resources then fire off the device allocation
-    *  thread. That thread will release the resources when all the
-    *  devices are allocated.  This allows use to start the server
-    *  right away, but any jobs will wait until the resources are
-    *  unlocked.       
-    */
-   LockRes();
+    /*
+     * Start the device allocation thread
+     */
    if (pthread_create(&thid, NULL, device_allocation, NULL) != 0) {
       Emsg1(M_ABORT, 0, _("Unable to create thread. ERR=%s\n"), strerror(errno));
    }
 
-
-
    start_watchdog();		      /* start watchdog thread */
 
+   /* 
+    * Sleep a bit to give device thread a chance to lock the resource
+    * chain before we start the server.
+    */
+   sleep(1); 
+				 
    /* Single server used for Director and File daemon */
    bnet_thread_server(me->SDaddr, me->SDport, me->max_concurrent_jobs * 2 + 1,
 		      &dird_workq, connection_request);
@@ -283,9 +282,9 @@ static void *device_allocation(void *arg)
    int i;
    DEVRES *device;
 
+   LockRes();
    pthread_detach(pthread_self());
 
-   /* LockRes() alread done */
    for (device=NULL,i=0;  (device=(DEVRES *)GetNextRes(R_DEVICE, (RES *)device)); i++) {
       Dmsg1(90, "calling init_dev %s\n", device->device_name);
       device->dev = init_dev(NULL, device);
