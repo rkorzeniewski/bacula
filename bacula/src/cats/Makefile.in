@@ -70,6 +70,7 @@ realclean: clean
 	$(RMF) make_catalog_backup delete_catalog_backup
 	$(RMF) update_mysql_tables update_sqlite_tables create_sqlite_database
 	$(RMF) drop_bacula_tables drop_sqlite_tables make_bacula_tables
+	$(RMF) create_bacula_database grant_bacula_privileges
 	$(RMF) update_bacula_tables
 	$(RMF) drop_bdb_tables make_bdb_tables mysql postgresql
 
@@ -85,6 +86,8 @@ install:
 	$(INSTALL_SCRIPT) update_@DB_NAME@_tables $(DESTDIR)$(scriptdir)/update_@DB_NAME@_tables
 	$(INSTALL_SCRIPT) drop_bacula_tables $(DESTDIR)$(scriptdir)/drop_bacula_tables
 	$(INSTALL_SCRIPT) make_bacula_tables $(DESTDIR)$(scriptdir)/make_bacula_tables
+	$(INSTALL_SCRIPT) create_bacula_database $(DESTDIR)$(scriptdir)/create_bacula_database
+	$(INSTALL_SCRIPT) grant_bacula_privileges $(DESTDIR)$(scriptdir)/grant_bacula_privileges
 	$(INSTALL_SCRIPT) update_bacula_tables $(DESTDIR)$(scriptdir)/update_bacula_tables
 	$(INSTALL_SCRIPT) make_catalog_backup $(DESTDIR)$(scriptdir)/make_catalog_backup  
 	$(INSTALL_SCRIPT) delete_catalog_backup $(DESTDIR)$(scriptdir)/delete_catalog_backup  
@@ -98,6 +101,8 @@ uninstall:
 	(cd $(DESTDIR)$(scriptdir); $(RMF) update_@DB_NAME@_tables)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) drop_bacula_tables)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) make_bacula_tables)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) create_bacula_database)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) grant_bacula_privileges)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) update_bacula_tables)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) make_catalog_backup)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) delete_catalog_backup)
