@@ -22,7 +22,7 @@ bconsole:
 	(cd console; env MAKEFLAGS= ${NMAKE} CFG="console - Win32 Release" /f console.mak)
 	
 wx-console:
-	(cd wx-console; env MAKEFLAGS= ${NMAKE} CFG="console - Win32 Release" /f wx-console.mak)
+	(cd wx-console; env MAKEFLAGS= ${NMAKE} CFG="wx-console - Win32 Release" /f wx-console.mak)
 
 #
 # Quickie debug installation
