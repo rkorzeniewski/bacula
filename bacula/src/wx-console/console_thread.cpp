@@ -59,12 +59,12 @@ void* console_thread::Entry() {
    csprint("Connecting...\n");
 
    init_stack_dump();
-   my_name_is(0, NULL, "console");
+   my_name_is(0, NULL, "wx-console");
    textdomain("bacula-console");
    init_msg(NULL, NULL);
 
    /* TODO (#4#): Allow the user to choose his config file. */
-   parse_config("./console.conf");
+   parse_config("./wx-console.conf");
 
    LockRes();
    DIRRES *dir = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
