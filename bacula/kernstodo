@@ -30,6 +30,11 @@ Suggestions for Preben:
 - Optimized bootstrap.
 
 For 1.37:
+- Make sure SD deletes spool files on error exit.
+- Delete old spool files when SD starts.
+- When Python creates a new label, the tape is immediately
+  recycled and no label created. This happens when using   
+  autolabeling -- even when Python doesn't generate the name.
 - Add a restore directory-x
 - When labeling tapes, if you enter 000026, Bacula uses
   the tape index rather than the Volume name 000026.
@@ -360,6 +365,10 @@ For 1.37 Testing/Documentation:
 - any actions should be interuptable with STRG+C
 - command-expansion would be pretty cool
 ====
+- When the replace Never option is set, new directory permissions
+  are not restored. See bug 213. To fix this requires creating a
+  list of newly restored directories so that those directory 
+  permissions *can* be restored.
 - Compaction of Disk space by "migrating" Volumes that have pruned
   Jobs (what criteria? size, #jobs, time).
 - Add prune all command

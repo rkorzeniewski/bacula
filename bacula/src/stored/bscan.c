@@ -367,7 +367,6 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    if (rec->data_len > 0) {
       mr.VolBytes += rec->data_len + WRITE_RECHDR_LENGTH; /* Accumulate Volume bytes */
       if (showProgress) {
-	 char ed1[50];
 	 int pct = (mr.VolBytes * 100) / currentVolumeSize;
 	 if (pct != last_pct) {
             fprintf(stdout, "done: %d%%\n", pct);
