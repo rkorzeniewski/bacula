@@ -209,7 +209,7 @@ int response(BSOCK *fd, char *resp, char *cmd)
       return 0;
    }
    if ((n = bget_msg(fd, 0)) > 0) {
-      Dmsg0(10, fd->msg);
+      Dmsg0(110, fd->msg);
       if (strcmp(fd->msg, resp) == 0) {
 	 return 1;
       }

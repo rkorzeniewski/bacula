@@ -46,8 +46,8 @@ static void *director_thread(void *arg);
 /* Global variables exported */
 
 
-struct s_shm *shm;                    /* memory shared with children */
-BSHM bshm;                            /* shared memory control packet */
+struct s_shm *shm;		      /* memory shared with children */
+BSHM bshm;			      /* shared memory control packet */
 
 
 /* This is our own global resource */
@@ -60,8 +60,8 @@ uint32_t VolSessionTime;
 static char *configfile;
 static int foreground = 0;
 
-static workq_t dird_workq;            /* queue for processing connections */
-static workq_t filed_workq;           /* queue for processing connections */
+static workq_t dird_workq;	      /* queue for processing connections */
+static workq_t filed_workq;	      /* queue for processing connections */
 
 
 static void usage()
@@ -102,7 +102,7 @@ int main (int argc, char *argv[])
    /* Sanity checks */
    if (TAPE_BSIZE % DEV_BSIZE != 0 || TAPE_BSIZE / DEV_BSIZE == 0) {
       Emsg2(M_ABORT, 0, "Tape block size (%d) not multiple of system size (%d)\n",
-         TAPE_BSIZE, DEV_BSIZE);
+	 TAPE_BSIZE, DEV_BSIZE);
    }
    if (TAPE_BSIZE != (1 << (ffs(TAPE_BSIZE)-1))) {
       Emsg1(M_ABORT, 0, "Tape block size (%d) is not a power of 2\n", TAPE_BSIZE);
@@ -111,34 +111,34 @@ int main (int argc, char *argv[])
    while ((ch = getopt(argc, argv, "c:d:fst?")) != -1) {
       switch (ch) {
          case 'c':                    /* configuration file */
-            if (configfile != NULL) {
-               free(configfile);
-            }
-            configfile = bstrdup(optarg);
-            break;
+	    if (configfile != NULL) {
+	       free(configfile);
+	    }
+	    configfile = bstrdup(optarg);
+	    break;
 
          case 'd':                    /* debug level */
-            debug_level = atoi(optarg);
-            if (debug_level <= 0) {
-               debug_level = 1; 
-            }
-            break;
+	    debug_level = atoi(optarg);
+	    if (debug_level <= 0) {
+	       debug_level = 1; 
+	    }
+	    break;
 
          case 'f':                    /* run in foreground */
-            foreground = TRUE;
-            break;
+	    foreground = TRUE;
+	    break;
 
          case 's':                    /* no signals */
-            no_signals = TRUE;
-            break;
+	    no_signals = TRUE;
+	    break;
 
          case 't':
-            test_config = TRUE;
-            break;
+	    test_config = TRUE;
+	    break;
 
          case '?':
-         default:
-            usage();
+	 default:
+	    usage();
 
       }  
    }
@@ -147,7 +147,7 @@ int main (int argc, char *argv[])
 
    if (argc) {
       if (configfile != NULL) {
-         free(configfile);
+	 free(configfile);
       }
       configfile = bstrdup(*argv);
       argc--; 
@@ -174,8 +174,8 @@ int main (int argc, char *argv[])
    }
 
    if (!foreground) {
-      daemon_start();                 /* become daemon */
-      init_stack_dump();              /* pick up new pid */
+      daemon_start();		      /* become daemon */
+      init_stack_dump();	      /* pick up new pid */
    }
 
    create_pid_file(me->pid_directory, "bacula-sd", me->SDport);
@@ -201,50 +201,50 @@ int main (int argc, char *argv[])
    LockRes();
    for (device=NULL,i=0;  (device=(DEVRES *)GetNextRes(R_DEVICE, (RES *)device)); i++) {
       if (i >= MAX_DEVICES) {
-         UnlockRes();
+	 UnlockRes();
          Emsg1(M_ABORT, 0, _("Too many Device Resources. Max=%d\n"), MAX_DEVICES);
       }
       Dmsg1(90, "calling init_dev %s\n", device->device_name);
       device->dev = init_dev(&shm->dev[i], device->device_name);
       /* Copy some attributes from the Device Resource to the DEV structure */
       if (device->dev) {
-         device->dev->capabilities = device->cap_bits;
-         device->dev->min_block_size = device->min_block_size;
-         device->dev->max_block_size = device->max_block_size;
-         device->dev->max_volume_jobs = device->max_volume_jobs;
-         device->dev->max_volume_files = device->max_volume_files;
-         device->dev->max_volume_size = device->max_volume_size;
-         device->dev->max_file_size = device->max_file_size;
-         device->dev->volume_capacity = device->volume_capacity;
-         device->dev->max_rewind_wait = device->max_rewind_wait;
-         device->dev->max_open_wait = device->max_open_wait;
-         device->dev->device = device;
+	 device->dev->capabilities = device->cap_bits;
+	 device->dev->min_block_size = device->min_block_size;
+	 device->dev->max_block_size = device->max_block_size;
+	 device->dev->max_volume_jobs = device->max_volume_jobs;
+	 device->dev->max_volume_files = device->max_volume_files;
+	 device->dev->max_volume_size = device->max_volume_size;
+	 device->dev->max_file_size = device->max_file_size;
+	 device->dev->volume_capacity = device->volume_capacity;
+	 device->dev->max_rewind_wait = device->max_rewind_wait;
+	 device->dev->max_open_wait = device->max_open_wait;
+	 device->dev->device = device;
       }
-      Dmsg1(10, "Init done %s\n", device->device_name);
+      Dmsg1(10, "SD init done %s\n", device->device_name);
       if (!device->dev) {
          Emsg1(M_ERROR, 0, _("Could not initialize %s\n"), device->device_name);
       }
       if (device->cap_bits & CAP_ALWAYSOPEN) {
          Dmsg1(20, "calling open_device %s\n", device->device_name);
-         if (!open_device(device->dev)) {
+	 if (!open_device(device->dev)) {
             Emsg1(M_ERROR, 0, _("Could not open device %s\n"), device->device_name);
-         }
+	 }
       }
       if (device->cap_bits & CAP_AUTOMOUNT && device->dev && 
-          device->dev->state & ST_OPENED) {
-         DEV_BLOCK *block;
-         JCR *jcr;
-         block = new_block(device->dev);
-         jcr = new_jcr(sizeof(JCR), stored_free_jcr);
-         switch (read_dev_volume_label(jcr, device->dev, block)) {
-            case VOL_OK:
-               break;
-            default:
+	  device->dev->state & ST_OPENED) {
+	 DEV_BLOCK *block;
+	 JCR *jcr;
+	 block = new_block(device->dev);
+	 jcr = new_jcr(sizeof(JCR), stored_free_jcr);
+	 switch (read_dev_volume_label(jcr, device->dev, block)) {
+	    case VOL_OK:
+	       break;
+	    default:
                Emsg1(M_WARNING, 0, _("Could not mount device %s\n"), device->device_name);
-               break;
-         }
-         free_jcr(jcr);
-         free_block(block);
+	       break;
+	 }
+	 free_jcr(jcr);
+	 free_block(block);
       }
    } 
    UnlockRes();
@@ -253,7 +253,7 @@ int main (int argc, char *argv[])
    set_thread_concurrency(me->max_concurrent_jobs * 2 +
       4 /* watch dog + servers + misc */);
 
-   start_watchdog();                  /* start watchdog thread */
+   start_watchdog();		      /* start watchdog thread */
 
    /*
     * Here we support either listening on one port or on two ports
@@ -261,11 +261,11 @@ int main (int argc, char *argv[])
    if (me->SDDport == 0 || me->SDDport == me->SDport) {
       /* Single server used for Director and File daemon */
       bnet_thread_server(me->SDport, me->max_concurrent_jobs * 2,
-         &dird_workq, connection_request);
+	 &dird_workq, connection_request);
    } else {
       /* Start the Director server */
-      if ((status=pthread_create(&dirid, NULL, director_thread,         
-           (void *)me->SDport)) != 0) {
+      if ((status=pthread_create(&dirid, NULL, director_thread, 	
+	   (void *)me->SDport)) != 0) {
          Emsg1(M_ABORT, 0, _("Cannot create Director thread: %s\n"), strerror(status));
       }
       /* Start File daemon server */
@@ -273,7 +273,7 @@ int main (int argc, char *argv[])
       /* never returns */
    }
 
-   exit(1);                           /* to keep compiler quiet */
+   exit(1);			      /* to keep compiler quiet */
 }
 
 static void *director_thread(void *arg)
@@ -306,49 +306,49 @@ static void check_config()
    if (!me) {
       UnlockRes();
       Emsg1(M_ABORT, 0, _("No Storage resource defined in %s. Cannot continue.\n"),
-         configfile);
+	 configfile);
    }
 
-   my_name_is(0, (char **)NULL, me->hdr.name);     /* Set our real name */
+   my_name_is(0, (char **)NULL, me->hdr.name);	   /* Set our real name */
 
    if (GetNextRes(R_STORAGE, (RES *)me) != NULL) {
       UnlockRes();
       Emsg1(M_ABORT, 0, _("Only one Storage resource permitted in %s\n"), 
-         configfile);
+	 configfile);
    }
    if (GetNextRes(R_DIRECTOR, NULL) == NULL) {
       UnlockRes();
       Emsg1(M_ABORT, 0, _("No Director resource defined in %s. Cannot continue.\n"),
-         configfile);
+	 configfile);
    }
    if (GetNextRes(R_DEVICE, NULL) == NULL){
       UnlockRes();
       Emsg1(M_ABORT, 0, _("No Device resource defined in %s. Cannot continue.\n"),
-           configfile);
+	   configfile);
    }
    if (!me->messages) {
       me->messages = (MSGS *)GetNextRes(R_MSGS, NULL);
       if (!me->messages) {
          Emsg1(M_ABORT, 0, _("No Messages resource defined in %s. Cannot continue.\n"),
-            configfile);
+	    configfile);
       }
    }
-   close_msg(NULL);                   /* close temp message handler */
+   close_msg(NULL);		      /* close temp message handler */
    init_msg(NULL, me->messages);      /* open daemon message handler */
 
    UnlockRes();
 
    if (!me->working_directory) {
       Emsg1(M_ABORT, 0, _("No Working Directory defined in %s. Cannot continue.\n"),
-         configfile);
+	 configfile);
    }
    if (stat(me->working_directory, &stat_buf) != 0) {
       Emsg1(M_ABORT, 0, _("Working Directory: %s not found. Cannot continue.\n"),
-         me->working_directory);
+	 me->working_directory);
    }
    if (!S_ISDIR(stat_buf.st_mode)) {
       Emsg1(M_ABORT, 0, _("Working Directory: %s is not a directory. Cannot continue.\n"),
-         me->working_directory);
+	 me->working_directory);
    }
    working_directory = me->working_directory;
 }
@@ -359,7 +359,7 @@ void terminate_stored(int sig)
    static int in_here = FALSE;
    DEVRES *device;
 
-   if (in_here) {                     /* prevent loops */
+   if (in_here) {		      /* prevent loops */
       exit(1);
    }
    in_here = TRUE;
@@ -372,7 +372,7 @@ void terminate_stored(int sig)
    LockRes();
    for (device=NULL; (device=(DEVRES *)GetNextRes(R_DEVICE, (RES *)device)); ) {
       if (device->dev) {
-         term_dev(device->dev);
+	 term_dev(device->dev);
       }
    } 
    UnlockRes();
@@ -391,6 +391,6 @@ void terminate_stored(int sig)
       free(shm);
    }
 
-   sm_dump(False);                    /* dump orphaned buffers */
+   sm_dump(False);		      /* dump orphaned buffers */
    exit(1);
 }

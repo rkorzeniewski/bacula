@@ -113,19 +113,19 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
    case FT_LNKSAVED:		      /* Hard linked, file already saved */
       break;
    case FT_REGE:
-      Dmsg1(30, "FT_REGE saving: %s\n", ff_pkt->fname);
+      Dmsg1(130, "FT_REGE saving: %s\n", ff_pkt->fname);
       break;
    case FT_REG:
-      Dmsg1(30, "FT_REG saving: %s\n", ff_pkt->fname);
+      Dmsg1(130, "FT_REG saving: %s\n", ff_pkt->fname);
       break;
    case FT_LNK:
-      Dmsg2(30, "FT_LNK saving: %s -> %s\n", ff_pkt->fname, ff_pkt->link);
+      Dmsg2(130, "FT_LNK saving: %s -> %s\n", ff_pkt->fname, ff_pkt->link);
       break;
    case FT_DIR:
-      Dmsg1(30, "FT_DIR saving: %s\n", ff_pkt->link);
+      Dmsg1(130, "FT_DIR saving: %s\n", ff_pkt->link);
       break;
    case FT_SPEC:
-      Dmsg1(30, "FT_SPEC saving: %s\n", ff_pkt->fname);
+      Dmsg1(130, "FT_SPEC saving: %s\n", ff_pkt->fname);
       break;
    case FT_NOACCESS:
       Jmsg(jcr, M_NOTSAVED, -1, _("     Could not access %s: ERR=%s"), ff_pkt->fname, 
@@ -174,7 +174,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
       fid = -1;
    }
 
-   Dmsg1(30, "bfiled: sending %s to stored\n", ff_pkt->fname);
+   Dmsg1(130, "bfiled: sending %s to stored\n", ff_pkt->fname);
    encode_stat(attribs, &ff_pkt->statp);
      
    jcr->JobFiles++;		       /* increment number of files sent */
@@ -194,7 +194,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
       }
       return 0;
    }
-   Dmsg1(10, ">stored: attrhdr %s\n", sd->msg);
+   Dmsg1(100, ">stored: attrhdr %s\n", sd->msg);
 
    /* 
     * Send file attributes to Storage daemon   
@@ -217,7 +217,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 	       ff_pkt->type, ff_pkt->fname, 0, attribs, 0, 0);
    }
 
-   Dmsg2(20, ">stored: attr len=%d: %s\n", sd->msglen, sd->msg);
+   Dmsg2(100, ">stored: attr len=%d: %s\n", sd->msglen, sd->msg);
    if (!stat) {
       if (fid >= 0) {
 	 close(fid);
@@ -234,7 +234,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
     */
    if (fid >= 0) {
 
-      Dmsg1(60, "Saving data, type=%d\n", ff_pkt->type);
+      Dmsg1(100, "Saving data, type=%d\n", ff_pkt->type);
       /*
        * Send Data header to Storage daemon
        *    <file-index> <stream> <info>
@@ -253,7 +253,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 	 close(fid);
 	 return 0;
       }
-      Dmsg1(10, ">stored: datahdr %s\n", sd->msg);
+      Dmsg1(100, ">stored: datahdr %s\n", sd->msg);
 #endif
 
       if (ff_pkt->flags & FO_MD5) {
@@ -292,7 +292,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 	       close(fid);
 	       return 0;
 	    }
-            Dmsg1(30, "Send data to FD len=%d\n", sd->msglen);
+            Dmsg1(130, "Send data to FD len=%d\n", sd->msglen);
 #endif
 	    jcr->JobBytes += sd->msglen;
 	    sd->msg = msgsave;	      /* restore read buffer */
@@ -304,7 +304,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 	    close(fid);
 	    return 0;
 	 }
-         Dmsg1(30, "Send data to FD len=%d\n", sd->msglen);
+         Dmsg1(130, "Send data to FD len=%d\n", sd->msglen);
 #endif
 	 jcr->JobBytes += sd->msglen;
       } /* end while */
@@ -322,7 +322,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 #ifndef NO_FD_SEND_TEST
 #ifndef NO_POLL_TEST
       bnet_sig(sd, BNET_EOD_POLL);
-      Dmsg0(30, "Send EndData_Poll\n");
+      Dmsg0(130, "Send EndData_Poll\n");
       /* ***FIXME**** change to use bget_msg() */
       if (bnet_recv(sd) <= 0) {
 	 close(fid);
@@ -347,7 +347,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
       MD5Final(signature, &md5c);
 #ifndef NO_FD_SEND_TEST
       bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_MD5_SIGNATURE);
-      Dmsg1(10, "bfiled>stored:header %s\n", sd->msg);
+      Dmsg1(100, "bfiled>stored:header %s\n", sd->msg);
       memcpy(sd->msg, signature, 16);
       sd->msglen = 16;
       bnet_send(sd);

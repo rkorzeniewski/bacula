@@ -123,7 +123,7 @@ void run_job(JCR *jcr)
       if (bnet_recv(fd) <= 0) {
 	 break; 		      /* connection terminated */
       }
-      Dmsg1(10, "<filed: %s", fd->msg);
+      Dmsg1(110, "<filed: %s", fd->msg);
       found = 0;
       for (i=0; fd_cmds[i].cmd; i++) {
 	 if (strncmp(fd_cmds[i].cmd, fd->msg, strlen(fd_cmds[i].cmd)) == 0) {
@@ -136,7 +136,7 @@ void run_job(JCR *jcr)
 	 }
       }
       if (!found) {		      /* command not found */
-         Dmsg1(10, "<filed: Command not found: %s\n", fd->msg);
+         Dmsg1(110, "<filed: Command not found: %s\n", fd->msg);
 	 bnet_fsend(fd, ferrmsg);
 	 break;
       }
@@ -162,7 +162,7 @@ static int append_data_cmd(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
 
-   Dmsg1(20, "Append data: %s", fd->msg);
+   Dmsg1(120, "Append data: %s", fd->msg);
    if (jcr->session_opened) {
       Dmsg1(10, "<bfiled: %s", fd->msg);
       if (do_append_data(jcr)) {
@@ -183,7 +183,7 @@ static int append_end_session(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
 
-   Dmsg1(20, "store<file: %s", fd->msg);
+   Dmsg1(120, "store<file: %s", fd->msg);
    if (!jcr->session_opened) {
       bnet_fsend(fd, NOT_opened);
       return 0;
@@ -200,18 +200,18 @@ static int append_open_session(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
 
-   Dmsg1(20, "Append open session: %s", fd->msg);
+   Dmsg1(120, "Append open session: %s", fd->msg);
    if (jcr->session_opened) {
       bnet_fsend(fd, NO_open);
       return 0;
    }
 
-   Dmsg1(10, "Append open session: %s\n", dev_name(jcr->device->dev));
+   Dmsg1(110, "Append open session: %s\n", dev_name(jcr->device->dev));
    jcr->session_opened = TRUE;
 
    /* Send "Ticket" to File Daemon */
    bnet_fsend(fd, OK_open, jcr->VolSessionId);
-   Dmsg1(10, ">filed: %s", fd->msg);
+   Dmsg1(110, ">filed: %s", fd->msg);
 
    return 1;
 }
@@ -225,18 +225,18 @@ static int append_close_session(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
 
-   Dmsg1(20, "<filed: %s\n", fd->msg);
+   Dmsg1(120, "<filed: %s\n", fd->msg);
    if (!jcr->session_opened) {
       bnet_fsend(fd, NOT_opened);
       return 0;
    }
    /* Send final statistics to File daemon */
    bnet_fsend(fd, OK_close, jcr->NumVolumes);
-   Dmsg1(60, ">filed: %s\n", fd->msg);
+   Dmsg1(160, ">filed: %s\n", fd->msg);
 
    bnet_sig(fd, BNET_EOD);	      /* send EOD to File daemon */
        
-   Dmsg1(10, "Append close session: %s\n", dev_name(jcr->device->dev));
+   Dmsg1(110, "Append close session: %s\n", dev_name(jcr->device->dev));
 
    if (jcr->JobStatus != JS_ErrorTerminated) {
       jcr->JobStatus = JS_Terminated;
@@ -255,9 +255,9 @@ static int read_data_cmd(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
 
-   Dmsg1(20, "Read data: %s\n", fd->msg);
+   Dmsg1(120, "Read data: %s\n", fd->msg);
    if (jcr->session_opened) {
-      Dmsg1(20, "<bfiled: %s", fd->msg);
+      Dmsg1(120, "<bfiled: %s", fd->msg);
       return do_read_data(jcr);
    } else {
       bnet_fsend(fd, NOT_opened);
@@ -275,7 +275,7 @@ static int read_open_session(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
 
-   Dmsg1(20, "%s\n", fd->msg);
+   Dmsg1(120, "%s\n", fd->msg);
    if (jcr->session_opened) {
       bnet_fsend(fd, NO_open);
       return 0;
@@ -303,7 +303,7 @@ static int read_open_session(JCR *jcr)
 
    /* Send "Ticket" to File Daemon */
    bnet_fsend(fd, OK_open, jcr->VolSessionId);
-   Dmsg1(10, ">filed: %s", fd->msg);
+   Dmsg1(110, ">filed: %s", fd->msg);
 
    return 1;
 }
@@ -361,14 +361,14 @@ static int read_close_session(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
 
-   Dmsg1(20, "Read close session: %s\n", fd->msg);
+   Dmsg1(120, "Read close session: %s\n", fd->msg);
    if (!jcr->session_opened) {
       bnet_fsend(fd, NOT_opened);
       return 0;
    }
    /* Send final statistics to File daemon */
    bnet_fsend(fd, OK_close);
-   Dmsg1(60, ">filed: %s\n", fd->msg);
+   Dmsg1(160, ">filed: %s\n", fd->msg);
 
    bnet_sig(fd, BNET_EOD);	    /* send EOD to File daemon */
        

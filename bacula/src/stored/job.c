@@ -172,7 +172,7 @@ void connection_from_filed(void *arg)
    BSOCK *fd = (BSOCK *)arg;
    char job_name[MAX_NAME_LENGTH];
 
-   Dmsg0(200, "enter connection_from_filed\n");
+   Dmsg0(10, "enter connection_from_filed\n");
    if (bnet_recv(fd) <= 0) {
       Emsg0(M_FATAL, 0, _("Unable to authenticate Client.\n"));
       return;
@@ -198,7 +198,7 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
 
    jcr->file_bsock = fd;
 
-   Dmsg1(100, "Found Job %s\n", job_name);
+   Dmsg1(10, "Found Job %s\n", job_name);
 
    if (jcr->authenticated) {
       Pmsg2(000, "Hey!!!! JobId %d Job %s already authenticated.\n", 
@@ -213,7 +213,7 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
       Jmsg(jcr, M_FATAL, 0, _("Unable to authenticate File daemon\n"));
    } else {
       jcr->authenticated = TRUE;
-      Dmsg1(100, "OK Authentication Job %s\n", jcr->Job);
+      Dmsg1(10, "OK Authentication Job %s\n", jcr->Job);
    }
 
    P(jcr->mutex);

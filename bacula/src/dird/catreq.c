@@ -78,7 +78,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
    /*
     * Request to find next appendable Volume for this Job
     */
-   Dmsg1(20, "catreq %s", bs->msg);
+   Dmsg1(120, "catreq %s", bs->msg);
    if (sscanf(bs->msg, Find_media, &Job, &index) == 2) {
       mr.PoolId = jcr->PoolId;
       strcpy(mr.MediaType, jcr->store->media_type);
@@ -129,7 +129,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
       unbash_spaces(mr.VolumeName);
       if (db_get_media_record(jcr->db, &mr)) {
 	 jcr->MediaId = mr.MediaId;
-         Dmsg1(20, "VolumeInfo MediaId=%d\n", jcr->MediaId);
+         Dmsg1(120, "VolumeInfo MediaId=%d\n", jcr->MediaId);
 	 strcpy(jcr->VolumeName, mr.VolumeName);
 	 /* 
 	  * Make sure this volume is suitable for this job, i.e.
@@ -179,12 +179,12 @@ MediaType=%s\n", mr.PoolId, jcr->PoolId, mr.VolStatus, mr.MediaType);
 	 mr.VolStatus, mr.VolumeName);
       if (db_update_media_record(jcr->db, &mr)) {
 	 bnet_fsend(bs, OK_update);
-         Dmsg0(90, "send OK\n");
+         Dmsg0(190, "send OK\n");
       } else {
          Jmsg(jcr, M_ERROR, 0, _("Catalog error updating Media record. %s"),
 	    db_strerror(jcr->db));
          bnet_fsend(bs, "1992 Update Media error\n");
-         Dmsg0(90, "send error\n");
+         Dmsg0(190, "send error\n");
       }
 
    /*
@@ -213,7 +213,7 @@ MediaType=%s\n", mr.PoolId, jcr->PoolId, mr.VolStatus, mr.MediaType);
       bnet_fsend(bs, "1990 Invalid Catalog Request: %s", omsg);    
       free_memory(omsg);
    }
-   Dmsg1(20, ">CatReq response: %s", bs->msg);
+   Dmsg1(120, ">CatReq response: %s", bs->msg);
    return;
 }
 
@@ -264,8 +264,8 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
       len = strlen(fname);	  /* length before attributes */
       attr = &fname[len+1];
 
-      Dmsg2(99, "dird<stored: stream=%d %s\n", Stream, fname);
-      Dmsg1(99, "dird<stored: attr=%s\n", attr);
+      Dmsg2(109, "dird<stored: stream=%d %s\n", Stream, fname);
+      Dmsg1(109, "dird<stored: attr=%s\n", attr);
       ar.attr = attr; 
       ar.fname = fname;
       ar.FileIndex = FileIndex;
@@ -273,8 +273,8 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
       ar.link = NULL;
       ar.JobId = jcr->JobId;
 
-      Dmsg2(11, "dird<filed: stream=%d %s\n", Stream, fname);
-      Dmsg1(20, "dird<filed: attr=%s\n", attr);
+      Dmsg2(111, "dird<filed: stream=%d %s\n", Stream, fname);
+      Dmsg1(120, "dird<filed: attr=%s\n", attr);
 
       /* ***FIXME*** fix link field */
       if (!db_create_file_attributes_record(jcr->db, &ar)) {
@@ -291,7 +291,7 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
 	 /* Update MD5 signature in catalog */
 	 char MD5buf[50];	    /* 24 bytes should be enough */
 	 bin_to_base64(MD5buf, fname, 16);
-         Dmsg2(90, "MD5len=%d MD5=%s\n", strlen(MD5buf), MD5buf);
+         Dmsg2(190, "MD5len=%d MD5=%s\n", strlen(MD5buf), MD5buf);
 	 if (!db_add_MD5_to_file_record(jcr->db, jcr->FileId, MD5buf)) {
             Jmsg(jcr, M_ERROR, 0, _("Catalog error updating MD5. %s"), 
 	       db_strerror(jcr->db));

@@ -28,6 +28,7 @@ From Chuck:
 --sd.conf password does not match dir.conf storage password
 =======
 
+- After unmount, if restore job started, ask to mount.
 - Fix db_update_fileset in cats/sql_get.c
 - Fix start/end blocks for File
 - Add new code to scheduler.c and run_conf.c

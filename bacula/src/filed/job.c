@@ -166,7 +166,7 @@ void *handle_client_request(void *dirp)
 	 break; 		      /* connection terminated */
       }
       dir->msg[dir->msglen] = 0;
-      Dmsg1(9, "<dird: %s", dir->msg);
+      Dmsg1(100, "<dird: %s", dir->msg);
       found = FALSE;
       for (i=0; cmds[i].cmd; i++) {
 	 if (strncmp(cmds[i].cmd, dir->msg, strlen(cmds[i].cmd)) == 0) {
@@ -176,7 +176,7 @@ void *handle_client_request(void *dirp)
 	    }
 	    if (!cmds[i].func(jcr)) {	 /* do command */
 	       quit = TRUE;		 /* error, get out */
-               Dmsg0(20, "Command error\n");
+               Pmsg0(20, "Command error\n");
 	    }
 	    found = TRUE;	     /* indicate command found */
 	    break;
@@ -188,11 +188,11 @@ void *handle_client_request(void *dirp)
 	 break;
       }
    }
-   Dmsg0(20, "Calling term_find_files\n");
+   Dmsg0(100, "Calling term_find_files\n");
    term_find_files(jcr->ff);
-   Dmsg0(20, "Done with term_find_files\n");
+   Dmsg0(100, "Done with term_find_files\n");
    free_jcr(jcr);		      /* destroy JCR record */
-   Dmsg0(20, "Done with free_jcr\n");
+   Dmsg0(100, "Done with free_jcr\n");
    return NULL;
 }
 
@@ -297,7 +297,7 @@ static int include_cmd(JCR *jcr)
    while (bnet_recv(dir) > 0) {
        dir->msg[dir->msglen] = 0;
        strip_trailing_junk(dir->msg);
-       Dmsg1(10, "filed<dird: include file %s\n", dir->msg);
+       Dmsg1(110, "filed<dird: include file %s\n", dir->msg);
        add_fname_to_include_list(jcr->ff, 1, dir->msg);
    }
 
@@ -323,7 +323,7 @@ static int exclude_cmd(JCR *jcr)
        for ( ; *p && *p == ' '; p++)
 	  { }
        add_fname_to_exclude_list(jcr->ff, p);
-       Dmsg1(10, "<dird: exclude file %s\n", dir->msg);
+       Dmsg1(110, "<dird: exclude file %s\n", dir->msg);
    }
 
    return bnet_fsend(dir, OKexc);
@@ -375,7 +375,7 @@ static int level_cmd(JCR *jcr)
    time_t mtime;
 
    level = (char *) get_memory(dir->msglen);
-   Dmsg1(10, "level_cmd: %s", dir->msg);
+   Dmsg1(110, "level_cmd: %s", dir->msg);
    if (sscanf(dir->msg, "level = %s ", level) != 1) {
       Jmsg1(jcr, M_FATAL, 0, _("Bad level command: %s\n"), dir->msg);
       free_memory(level);
@@ -404,7 +404,7 @@ static int level_cmd(JCR *jcr)
       tm.tm_wday = tm.tm_yday = 0;		
       tm.tm_isdst = -1;
       mtime = mktime(&tm);
-      Dmsg1(90, "Got since time: %s", ctime(&mtime));
+      Dmsg1(100, "Got since time: %s", ctime(&mtime));
       jcr->incremental = 1;
       jcr->mtime = mtime;
    } else {
@@ -423,7 +423,7 @@ static int session_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
 
-   Dmsg1(050, "SessionCmd: %s", dir->msg);
+   Dmsg1(100, "SessionCmd: %s", dir->msg);
    if (sscanf(dir->msg, sessioncmd, jcr->VolumeName,
 	      &jcr->VolSessionId, &jcr->VolSessionTime,
 	      &jcr->StartFile, &jcr->EndFile, 
@@ -445,12 +445,12 @@ static int storage_cmd(JCR *jcr)
    BSOCK *dir = jcr->dir_bsock;
    BSOCK *sd;			      /* storage daemon bsock */
 
-   Dmsg1(050, "StorageCmd: %s", dir->msg);
+   Dmsg1(100, "StorageCmd: %s", dir->msg);
    if (sscanf(dir->msg, storaddr, &jcr->stored_addr, &stored_port) != 2) {
       Jmsg(jcr, M_FATAL, 0, _("Bad storage command: %s"), dir->msg);
       return 0;
    }
-   Dmsg2(30, "Got storage: %s:%d\n", jcr->stored_addr, stored_port);
+   Dmsg2(10, "Open storage: %s:%d\n", jcr->stored_addr, stored_port);
    /* Open command communications with Storage daemon */
    /* Try to connect for 1 hour at 10 second intervals */
    sd = bnet_connect(jcr, 10, 3600, _("Storage daemon"), 
@@ -468,6 +468,7 @@ static int storage_cmd(JCR *jcr)
       Jmsg(jcr, M_FATAL, 0, _("Failed to authenticate Storage daemon.\n"));
       return 0;
    }
+   Dmsg0(10, "Authenticated with SD.\n");
 
    /* Send OK to Director */
    return bnet_fsend(dir, OKstore);
@@ -494,18 +495,18 @@ static int backup_cmd(JCR *jcr)
    }
 
    bnet_fsend(dir, OKbackup);
-   Dmsg1(10, "bfiled>dird: %s", dir->msg);
+   Dmsg1(110, "bfiled>dird: %s", dir->msg);
 
    /* 
     * Send Append Open Session to Storage daemon
     */
    bnet_fsend(sd, append_open);
-   Dmsg1(10, ">stored: %s", sd->msg);
+   Dmsg1(110, ">stored: %s", sd->msg);
    /* 
     * Expect to receive back the Ticket number
     */
    if (bnet_recv(sd) > 0) {
-      Dmsg1(10, "<stored: %s", sd->msg);
+      Dmsg1(110, "<stored: %s", sd->msg);
       if (sscanf(sd->msg, OK_open, &jcr->Ticket) != 1) {
          Jmsg(jcr, M_FATAL, 0, _("Bad response to append open: %s\n"), sd->msg);
 	 jcr->JobStatus = JS_ErrorTerminated;
@@ -522,12 +523,12 @@ static int backup_cmd(JCR *jcr)
     * Send Append data command to Storage daemon
     */
    bnet_fsend(sd, append_data, jcr->Ticket);
-   Dmsg1(10, ">stored: %s", sd->msg);
+   Dmsg1(110, ">stored: %s", sd->msg);
 
    /* 
     * Expect to get OK data 
     */
-   Dmsg1(10, "<stored: %s", sd->msg);
+   Dmsg1(110, "<stored: %s", sd->msg);
    if (!response(sd, OK_data, "Append Data")) {
       jcr->JobStatus = JS_ErrorTerminated;
       goto cleanup;
@@ -536,7 +537,7 @@ static int backup_cmd(JCR *jcr)
    /*
     * Send Files to Storage daemon
     */
-   Dmsg1(100, "begin blast ff=%p\n", jcr->ff);
+   Dmsg1(10, "begin blast ff=%p\n", jcr->ff);
    if (!blast_data_to_storage_daemon(jcr, NULL)) {
       jcr->JobStatus = JS_ErrorTerminated;
    } else {
@@ -614,7 +615,7 @@ static int verify_cmd(JCR *jcr)
    }
 
    bnet_fsend(dir, OKverify);
-   Dmsg1(10, "bfiled>dird: %s", dir->msg);
+   Dmsg1(110, "bfiled>dird: %s", dir->msg);
 
    switch (jcr->JobLevel) {
    case L_VERIFY_INIT:
@@ -630,7 +631,7 @@ static int verify_cmd(JCR *jcr)
        * Send Close session command to Storage daemon
        */
       bnet_fsend(sd, read_close, jcr->Ticket);
-      Dmsg1(30, "bfiled>stored: %s", sd->msg);
+      Dmsg1(130, "bfiled>stored: %s", sd->msg);
 
       /* ****FIXME**** check response */
       bnet_recv(sd);			 /* get OK */
@@ -661,16 +662,16 @@ static int restore_cmd(JCR *jcr)
    /*
     * Scan WHERE (base directory for restore) from command
     */
-   Dmsg0(50, "restore command\n");
+   Dmsg0(150, "restore command\n");
    /* Pickup where string */
    where = get_memory(dir->msglen+1);
    *where = 0;
    sscanf(dir->msg, restorecmd, where);
-   Dmsg1(50, "Got where=%s\n", where);
+   Dmsg1(150, "Got where=%s\n", where);
    jcr->where = where;
 
    bnet_fsend(dir, OKrestore);
-   Dmsg1(10, "bfiled>dird: %s", dir->msg);
+   Dmsg1(110, "bfiled>dird: %s", dir->msg);
 
    jcr->JobType = JT_RESTORE;
    jcr->JobStatus = JS_Blocked;
@@ -688,7 +689,7 @@ static int restore_cmd(JCR *jcr)
     * Send Close session command to Storage daemon
     */
    bnet_fsend(sd, read_close, jcr->Ticket);
-   Dmsg1(30, "bfiled>stored: %s", sd->msg);
+   Dmsg1(130, "bfiled>stored: %s", sd->msg);
 
    /* ****FIXME**** check response */
    bnet_recv(sd);		      /* get OK */
@@ -699,7 +700,7 @@ static int restore_cmd(JCR *jcr)
    /* Inform Director that we are done */
    bnet_sig(dir, BNET_TERMINATE);
 
-   Dmsg0(30, "Done in job.c\n");
+   Dmsg0(130, "Done in job.c\n");
    return 1;
 }
 
@@ -711,27 +712,27 @@ static int open_sd_read_session(JCR *jcr)
       Jmsg(jcr, M_FATAL, 0, _("Improper calling sequence.\n"));
       return 0;
    }
-   Dmsg4(20, "VolSessId=%ld VolsessT=%ld SF=%ld EF=%ld\n",
+   Dmsg4(120, "VolSessId=%ld VolsessT=%ld SF=%ld EF=%ld\n",
       jcr->VolSessionId, jcr->VolSessionTime, jcr->StartFile, jcr->EndFile);
-   Dmsg2(20, "JobId=%d vol=%s\n", jcr->JobId, "DummyVolume");
+   Dmsg2(120, "JobId=%d vol=%s\n", jcr->JobId, "DummyVolume");
    /* 
     * Open Read Session with Storage daemon
     */
    bnet_fsend(sd, read_open, jcr->VolumeName,
       jcr->VolSessionId, jcr->VolSessionTime, jcr->StartFile, jcr->EndFile, 
       jcr->StartBlock, jcr->EndBlock);
-   Dmsg1(10, ">stored: %s", sd->msg);
+   Dmsg1(110, ">stored: %s", sd->msg);
 
    /* 
     * Get ticket number
     */
    if (bnet_recv(sd) > 0) {
-      Dmsg1(10, "bfiled<stored: %s", sd->msg);
+      Dmsg1(110, "bfiled<stored: %s", sd->msg);
       if (sscanf(sd->msg, OK_open, &jcr->Ticket) != 1) {
          Jmsg(jcr, M_FATAL, 0, _("Bad response to SD read open: %s\n"), sd->msg);
 	 return 0;
       }
-      Dmsg1(10, "bfiled: got Ticket=%d\n", jcr->Ticket);
+      Dmsg1(110, "bfiled: got Ticket=%d\n", jcr->Ticket);
    } else {
       Jmsg(jcr, M_FATAL, 0, _("Bad response from stored to read open command\n"));
       return 0;
@@ -745,7 +746,7 @@ static int open_sd_read_session(JCR *jcr)
     * Start read of data with Storage daemon
     */
    bnet_fsend(sd, read_data, jcr->Ticket);
-   Dmsg1(10, ">stored: %s", sd->msg);
+   Dmsg1(110, ">stored: %s", sd->msg);
 
    /* 
     * Get OK data
@@ -793,7 +794,7 @@ int response(BSOCK *sd, char *resp, char *cmd)
       return 0;
    }
    if ((n = bnet_recv(sd)) > 0) {
-      Dmsg0(10, sd->msg);
+      Dmsg0(110, sd->msg);
       if (strcmp(sd->msg, resp) == 0) {
 	 return 1;
       }

@@ -85,9 +85,9 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
     */
    bnet_fsend(fd, jobcmd, jcr->JobId, jcr->Job, jcr->VolSessionId, 
       jcr->VolSessionTime, jcr->sd_auth_key);
-   Dmsg1(10, ">filed: %s", fd->msg);
+   Dmsg1(110, ">filed: %s", fd->msg);
    if (bnet_recv(fd) > 0) {
-       Dmsg1(10, "<filed: %s", fd->msg);
+       Dmsg1(110, "<filed: %s", fd->msg);
        if (strcmp(fd->msg, OKjob) != 0) {
           Jmsg(jcr, M_FATAL, 0, _("File daemon rejected Job command: %s\n"), fd->msg);
 	  jcr->JobStatus = JS_ErrorTerminated;
@@ -122,7 +122,7 @@ int send_include_list(JCR *jcr)
    bnet_send(fd);
    for (i=0; i < fileset->num_includes; i++) {
       fd->msglen = strlen(fileset->include_array[i]);
-      Dmsg1(20, "dird>filed: include file: %s\n", fileset->include_array[i]);
+      Dmsg1(120, "dird>filed: include file: %s\n", fileset->include_array[i]);
       fd->msg = fileset->include_array[i];
       if (!bnet_send(fd)) {
 	 fd->msg = msgsave;
@@ -158,7 +158,7 @@ int send_exclude_list(JCR *jcr)
    bnet_send(fd);
    for (i=0; i < fileset->num_excludes; i++) {
       fd->msglen = strlen(fileset->exclude_array[i]);
-      Dmsg1(20, "dird>filed: exclude file: %s\n", fileset->exclude_array[i]);
+      Dmsg1(120, "dird>filed: exclude file: %s\n", fileset->exclude_array[i]);
       fd->msg = fileset->exclude_array[i];
       if (!bnet_send(fd)) {
          Emsg0(M_FATAL, 0, _(">filed: write error on socket\n"));
@@ -190,7 +190,7 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
    jcr->jr.FirstIndex = 1;
    memset(&ar, 0, sizeof(ar));
 
-   Dmsg0(20, "bdird: waiting to receive file attributes\n");
+   Dmsg0(120, "bdird: waiting to receive file attributes\n");
    /* Pickup file attributes and signature */
    while (!fd->errors && (n = bget_msg(fd, 0)) > 0) {
 
@@ -237,8 +237,8 @@ msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
 	 ar.PathId = 0;
 	 ar.FilenameId = 0;
 
-         Dmsg2(11, "dird<filed: stream=%d %s\n", stream, jcr->fname);
-         Dmsg1(20, "dird<filed: attr=%s\n", attr);
+         Dmsg2(111, "dird<filed: stream=%d %s\n", stream, jcr->fname);
+         Dmsg1(120, "dird<filed: attr=%s\n", attr);
 
 	 /* ***FIXME*** fix link field */
 	 if (!db_create_file_attributes_record(jcr->db, &ar)) {
@@ -255,7 +255,7 @@ msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
 	    continue;
 	 }
 	 db_escape_string(MD5, Opts_MD5, strlen(Opts_MD5));
-         Dmsg2(20, "MD5len=%d MD5=%s\n", strlen(MD5), MD5);
+         Dmsg2(120, "MD5len=%d MD5=%s\n", strlen(MD5), MD5);
 	 if (!db_add_MD5_to_file_record(jcr->db, jcr->FileId, MD5)) {
             Jmsg1(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
 	    jcr->JobStatus = JS_Error;

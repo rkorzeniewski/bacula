@@ -87,8 +87,10 @@ int do_verify(JCR *jcr)
    if (jcr->JobLevel == L_VERIFY_CATALOG || jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG) {
       memcpy(&jr, &(jcr->jr), sizeof(jr));
       if (!db_find_last_jobid(jcr->db, &jr)) {
-         Jmsg(jcr, M_FATAL, 0, _("Unable to find last full verify. %s"),
-	    db_strerror(jcr->db));
+	 Jmsg(jcr, M_FATAL, 0, _(
+              "Unable to find JobId of previous InitCatalog Job.\n"
+              "Please run a Verify with Level=InitCatalog before\n"
+              "running the current Job.\n"));
 	 goto bail_out;
       }
       JobId = jr.JobId;

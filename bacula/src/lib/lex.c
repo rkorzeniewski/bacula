@@ -70,18 +70,18 @@ lex_close_file(LEX *lf)
 {
    LEX *of;
 
-   Dmsg1(20, "Close lex file: %s\n", lf->fname);
+   Dmsg1(40, "Close lex file: %s\n", lf->fname);
    if (lf == NULL) {
       Emsg0(M_ABORT, 0, "Close of NULL file\n");
    }
    of = lf->next;
    fclose(lf->fd);
-   Dmsg1(29, "Close cfg file %s\n", lf->fname);
+   Dmsg1(49, "Close cfg file %s\n", lf->fname);
    free(lf->fname);
    if (of) {
       of->options = lf->options;      /* preserve options */
       memcpy(lf, of, sizeof(LEX));
-      Dmsg1(29, "Restart scan of cfg file %s\n", of->fname);
+      Dmsg1(49, "Restart scan of cfg file %s\n", of->fname);
    } else {
       of = lf;
       lf = NULL;
@@ -113,7 +113,7 @@ lex_open_file(LEX *lf, char *filename, LEX_ERROR_HANDLER *scan_error)
    if ((fd = fopen(fname, "r")) == NULL) {
       Emsg2(M_ABORT, 0, "Cannot open config file %s: %s\n", fname, strerror(errno));
    }
-   Dmsg1(29, "Open config file: %s\n", fname);
+   Dmsg1(49, "Open config file: %s\n", fname);
    nf = (LEX *)malloc(sizeof(LEX));
    if (lf) {	 
       memcpy(nf, lf, sizeof(LEX));
@@ -133,7 +133,7 @@ lex_open_file(LEX *lf, char *filename, LEX_ERROR_HANDLER *scan_error)
    } else {
       lf->scan_error = s_err;
    }
-   Dmsg1(29, "Return lex=%x\n", lf);
+   Dmsg1(49, "Return lex=%x\n", lf);
    return lf;
 }
 

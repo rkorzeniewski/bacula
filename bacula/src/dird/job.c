@@ -186,7 +186,7 @@ static void job_thread(void *arg)
 	    jcr->JobStatus = JS_Terminated;
 	    break;
 	 default:
-            Dmsg1(0, "Unimplemented job type: %d\n", jcr->JobType);
+            Pmsg1(0, "Unimplemented job type: %d\n", jcr->JobType);
 	    break;
 	 }
    }
@@ -226,7 +226,7 @@ int get_or_create_client_record(JCR *jcr)
       return 0;
    }
    jcr->jr.ClientId = cr.ClientId;
-   Dmsg2(9, "Created Client %s record %d\n", jcr->client->hdr.name, 
+   Dmsg2(100, "Created Client %s record %d\n", jcr->client->hdr.name, 
       jcr->jr.ClientId);
    return 1;
 }
