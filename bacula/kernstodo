@@ -16,16 +16,14 @@ Testing to do: (painful)
 - multiple simultaneous Volumes
 
 For 1.30 release:
-- Bug: up arrow prints garbage in command line on gnome-console!
-- Bug: fix access problems on files restored on WinXP (possibly do
-       this in a later update.
-- Fix Bare Metal restore problem.
+- Examine Bare Metal restore problem.
 - Test multiple simultaneous Volumes
 - Document FInclude ...
 
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 After 1.30:
+- Bug: fix access problems on files restored on WinXP.
 - Implement a Slot priority (loaded/not loaded).
 - Implement "vacation" Incremental only saves.
 - Implement single pane restore (much like the Gftp panes).
@@ -977,4 +975,4 @@ rufus-dir: Volume used once. Marking Volume "File0003" as Used.
   through first save to file Volume with automatic Volume labeling?).
 - Implement scheduling of one time "run" jobs (i.e. instead of
   starting immediately start at some specified time).
-
+- Bug: up arrow prints garbage in command line on gnome-console!

@@ -381,6 +381,11 @@
 	    <handler>on_entry1_key_press_event</handler>
 	    <last_modification_time>Mon, 01 Apr 2002 07:32:11 GMT</last_modification_time>
 	  </signal>
+	  <signal>
+	    <name>key_release_event</name>
+	    <handler>on_entry1_key_release_event</handler>
+	    <last_modification_time>Tue, 29 Apr 2003 08:15:13 GMT</last_modification_time>
+	  </signal>
 	  <editable>True</editable>
 	  <text_visible>True</text_visible>
 	  <text_max_length>0</text_max_length>
