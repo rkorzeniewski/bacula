@@ -347,7 +347,7 @@ int set_win32_attributes(void *jcr, char *fname, char *ofile, char *lname,
 
    if (*ofd == -1) {
       Dmsg1(100, "File not open: %s\n", ofile);
-      fid = open(ofile, O_RDWR);     /* attempt to open the file */
+      fid = open(ofile, O_RDWR|O_BINARY);   /* attempt to open the file */
       if (fid >= 0) {
 	 *ofd = fid;
       }
