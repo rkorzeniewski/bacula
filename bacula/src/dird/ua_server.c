@@ -219,7 +219,6 @@ void free_ua_context(UAContext *ua)
    if (ua->UA_sock) {
       bnet_close(ua->UA_sock);
    }
-
    free(ua);
 }
 

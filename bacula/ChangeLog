@@ -1,5 +1,12 @@
 
 2003-07-xx Version 1.31 Beta xxJul03
+- Add a new test -- bsr-opt-test for testing bsr optimization. As usual,
+  it pointed out a bug where the directory tree handling code destroyed
+  the restore arg list.
+- Many updates to the manual.
+- Pass prefix links flag to FD.
+- Sort list of commands for Console
+- Set default FD and SD concurrent jobs to 10.
 - Rework the find next volume code in catreq.c to correct some minor
   but subtle logic errors and to eliminate a goto.
 - Did spell check on manual.

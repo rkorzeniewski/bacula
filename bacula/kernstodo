@@ -21,6 +21,7 @@ Documentation to do: (any release a little bit at a time)
 - Document update volume: jobid, current, before, all
 - Document run "yes".
 - Document that bscan does not work with multiple simultaneous jobs.
+- Update Automatic Volume Labeling in disk.wml
 
           
 Testing to do: (painful)
@@ -69,6 +70,7 @@ For 1.31 release:
 
 
 For 1.32:
+- Implement ClientRunBeforeJob and ClientRunAfterJob.
 - Implement new alist in FileSet scanning.
 - Add JobLevel in FD status (but make sure it is defined).
 - Audit all UA commands to ensure that we always prompt where possible.

@@ -252,8 +252,8 @@ int restorecmd(UAContext *ua, char *cmd)
           job->hdr.name, ji.ClientName, ji.store?ji.store->hdr.name:"",
 	  working_directory);
    }
-   Dmsg1(400, "Submitting: %s\n", ua->cmd);
    
+   Dmsg1(400, "Submitting: %s\n", ua->cmd);
    parse_ua_args(ua);
    runcmd(ua, ua->cmd);
 
