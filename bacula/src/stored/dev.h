@@ -281,12 +281,12 @@ public:
    void set_eof(); /* in dev.c */
    void set_eot(); /* in dev.c */
    void set_append() { state |= ST_APPEND; };
-   void set_label() { state |= ST_LABEL; };
+   void set_labeled() { state |= ST_LABEL; };
    void set_read() { state |= ST_READ; };
    void set_offline() { state |= ST_OFFLINE; };
    void clear_append() { state &= ~ST_APPEND; };
    void clear_read() { state &= ~ST_READ; };
-   void clear_label() { state &= ~ST_LABEL; };
+   void clear_labeled() { state &= ~ST_LABEL; };
    void clear_offline() { state &= ~ST_OFFLINE; };
    void clear_eot() { state &= ~ST_EOT; };
 };
