@@ -240,10 +240,10 @@ static void do_close(JCR *jcr)
 {
    release_device(jcr);
    free_attr(attr);
-   term_dev(dev);
    free_record(rec);
    free_block(block);
    free_jcr(jcr);
+   term_dev(dev);
 }
 
 

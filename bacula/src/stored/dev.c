@@ -197,13 +197,11 @@ init_dev(DEVICE *dev, DEVRES *device)
       Mmsg1(&dev->errmsg, _("Unable to init mutex: ERR=%s\n"), strerror(errstat));
       Emsg0(M_FATAL, 0, dev->errmsg);
    }
-#ifdef xxx
    if ((errstat = rwl_init(&dev->lock)) != 0) {
       dev->dev_errno = errstat;
       Mmsg1(&dev->errmsg, _("Unable to init mutex: ERR=%s\n"), strerror(errstat));
       Emsg0(M_FATAL, 0, dev->errmsg);
    }
-#endif
 
    dev->fd = -1;
    dev->attached_dcrs = new dlist(dcr, &dcr->dev_link);
@@ -1405,6 +1403,7 @@ term_dev(DEVICE *dev)
    pthread_cond_destroy(&dev->wait);
    pthread_cond_destroy(&dev->wait_next_vol);
    pthread_mutex_destroy(&dev->spool_mutex);
+   rwl_destroy(&dev->lock);
    if (dev->attached_dcrs) {
       delete dev->attached_dcrs;
       dev->attached_dcrs = NULL;

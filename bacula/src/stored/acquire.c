@@ -46,13 +46,22 @@ DCR *new_dcr(JCR *jcr, DEVICE *dev)
    dcr->rec = new_record();
    dcr->spool_fd = -1;
    dcr->max_spool_size = dev->device->max_spool_size;
-// dev->attached_dcrs->append(dcr);
+   /* Attach this dcr only if dev is initialized */
+   if (dev->fd != 0 && jcr && jcr->JobType != JT_SYSTEM) {
+      dev->attached_dcrs->append(dcr);
+   }
    return dcr;
 }
 
 void free_dcr(DCR *dcr)
 {
-// dcr->dev->attached_dcrs->remove(dcr);
+   JCR *jcr = dcr->jcr;
+   DEVICE *dev = dcr->dev;
+
+   /* Detach this dcr only if the dev is initialized */
+   if (dev->fd != 0 && jcr && jcr->JobType != JT_SYSTEM) {
+      dcr->dev->attached_dcrs->remove(dcr);
+   }
    if (dcr->block) {
       free_block(dcr->block);
    }

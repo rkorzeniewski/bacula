@@ -110,34 +110,13 @@ void *bcalloc (size_t size1, size_t size2)
  */
 int bsnprintf(char *str, int32_t size, const char *fmt,  ...) 
 {
-#ifdef HAVE_VSNPRINTF
    va_list   arg_ptr;
    int len;
 
    va_start(arg_ptr, fmt);
-   len = vsnprintf(str, size, fmt, arg_ptr);
+   len = bvsnprintf(str, size, fmt, arg_ptr);
    va_end(arg_ptr);
-   str[size-1] = 0;
    return len;
-
-#else
-
-   va_list   arg_ptr;
-   int len;
-   char *buf;
-
-   buf = get_memory(BIG_BUF);
-   va_start(arg_ptr, fmt);
-   len = vsprintf(buf, fmt, arg_ptr);
-   va_end(arg_ptr);
-   if (len >= BIG_BUF) {
-      Emsg0(M_ABORT, 0, _("Buffer overflow.\n"));
-   }
-   memcpy(str, buf, size);
-   str[size-1] = 0;
-   free_memory(buf);
-   return len;
-#endif
 }
 
 /*

@@ -77,7 +77,6 @@ int64_t str_to_int64(char *str)
 }
 
 
-
 /*
  * Edit an integer number with commas, the supplied buffer
  * must be at least 27 bytes long.  The incoming number
@@ -85,7 +84,21 @@ int64_t str_to_int64(char *str)
  */
 char *edit_uint64_with_commas(uint64_t val, char *buf)
 {
-   sprintf(buf, "%" llu, val);
+   /*  
+    * Replacement for sprintf(buf, "%" llu, val)
+    */
+   char mbuf[50];
+   mbuf[sizeof(mbuf)-1] = 0;
+   int i = sizeof(mbuf)-2;		   /* edit backward */
+   if (val == 0) {
+      mbuf[i--] = '0';
+   } else {
+      while (val != 0) {
+         mbuf[i--] = "0123456789"[val%10];
+	 val /= 10;
+      }
+   }
+   strcpy(buf, &mbuf[i+1]);
    return add_commas(buf, buf);
 }
 
@@ -96,7 +109,21 @@ char *edit_uint64_with_commas(uint64_t val, char *buf)
  */
 char *edit_uint64(uint64_t val, char *buf)
 {
-   sprintf(buf, "%" llu, val);
+   /*  
+    * Replacement for sprintf(buf, "%" llu, val)
+    */
+   char mbuf[50];
+   mbuf[sizeof(mbuf)-1] = 0;
+   int i = sizeof(mbuf)-2;		   /* edit backward */
+   if (val == 0) {
+      mbuf[i--] = '0';
+   } else {
+      while (val != 0) {
+         mbuf[i--] = "0123456789"[val%10];
+	 val /= 10;
+      }
+   }
+   strcpy(buf, &mbuf[i+1]);
    return buf;
 }
 
