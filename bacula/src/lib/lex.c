@@ -546,16 +546,6 @@ lex_get_token(LEX *lf, int expect)
          scan_err3(lf, "name %s length %d too long, max is %d\n", lf->str, 
 	    lf->str_len, MAX_RES_NAME_LENGTH);
 	 token = T_ERROR;
-      } else {
-	 POOLMEM *msg = get_pool_memory(PM_EMSG);
-	 if (is_name_valid(lf->str, &msg)) {
-	    token = T_NAME;
-	    free_pool_memory(msg);
-	 } else {
-            scan_err1(lf, "%s\n", msg);
-	    free_pool_memory(msg);
-	    token = T_ERROR;
-	 }
       }
       break;
 
