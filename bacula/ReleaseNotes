@@ -1,7 +1,7 @@
 
           Release Notes for Bacula 1.33
 
-  Bacula code: Total files = 259 Total lines = 78,303 (*.h *.c *.in)
+  Bacula code: Total files = 261 Total lines = 80,969 (*.h *.c *.in)
 
 Most Significant Changes since 1.32d
 - Implement "update slots scan" that reads the volume label(s).
@@ -10,23 +10,34 @@ Most Significant Changes since 1.32d
 - Turn off changer Volumes that are not current in the changer when
   an "update slots" is done, or if any tape operation discovers that
   the right volume is not in the slot.
-- Enhance "fill" command of btape.
-- Added an autochanger test to the btape test command. It is automatically
-  invoked if the autochanger is properly configured.
-- New "estimate" and "lsmark" in restore command. Estimate gives
-  a byte estimate for the restore, and lsmark does an ls listing 
-  of marked files.
-- Implement Fast Forward Space File.
-- New version 1.5.5 Cygwin.
-- Select the oldest LastWritten volume during recycling.
-- Modify SD to update the catalog database when it is shutdown,
-  even if the job is canceled.
-
-Other Changes since 1.32d
 - The console program will run all commands it finds in ~/.bconsolerc
   at startup.
 - Add Dan Langille's changes to the bacula start/stop script that 
   permit dropping root permissions just after startup.
+- New version 1.5.5-1 Cygwin.
+- Modify SD to update the catalog database when it is shutdown,
+  even if the job is canceled.
+- Fixed seg fault in restore of multiple simultaneous jobs to 
+  a single Volume.
+- Fixed thread race problem in multiple simultaneous jobs to
+  a single Volume where the volume lable is not in the first 
+  tape block, so the tape is not recognized.
+
+Other Changes since 1.32d
+- Enhance "fill" command of btape -- simpler output. Use -v to
+  cause last block to be dumped after write and after re-read.
+- Added an autochanger test to the btape "test" command. It is 
+  automatically invoked if the autochanger is properly configured.  It
+  is still a bit primitive but covers the essential of testing
+  the mtx-changer script with your autochanger.
+- Select the oldest LastWritten volume during recycling.
+- Added forward space file test to btape "test" command.
+- All 1.32d patches applied.
+- Fixed seg fault in restore of multiple simultaneous jobs to 
+  a single Volume.
+- Fixed thread race problem in multiple simultaneous jobs to
+  a single Volume where the volume lable is not in the first 
+  tape block, so the tape is not recognized.
 
 Items to note:  !!!!!
 - The daemon protocol has changed, you must update everything at once.
