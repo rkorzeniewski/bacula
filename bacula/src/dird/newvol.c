@@ -47,6 +47,7 @@ int newVolume(JCR *jcr, MEDIA_DBR *mr)
    memset(&pr, 0, sizeof(pr));
 
    /* See if we can create a new Volume */
+   db_lock(jcr->db);
    pr.PoolId = jcr->PoolId;
    if (db_get_pool_record(jcr, jcr->db, &pr) && pr.LabelFormat[0] &&
        pr.LabelFormat[0] != '*') {
@@ -56,6 +57,7 @@ int newVolume(JCR *jcr, MEDIA_DBR *mr)
 	 strcpy(mr->MediaType, jcr->store->media_type);
 	 strcpy(name, pr.LabelFormat);	 
          if (strchr(name, (int)'%') != NULL) {
+	    db_unlock(jcr->db);
             Jmsg(jcr, M_ERROR, 0, _("Illegal character in Label Format\n"));
 	    return 0;
 	 }
@@ -63,6 +65,7 @@ int newVolume(JCR *jcr, MEDIA_DBR *mr)
 	 sprintf(mr->VolumeName, name, ++pr.NumVols);
 	 if (db_create_media_record(jcr, jcr->db, mr) &&
 	    db_update_pool_record(jcr, jcr->db, &pr) == 1) {
+	    db_unlock(jcr->db);
             Dmsg1(90, "Created new Volume=%s\n", mr->VolumeName);
 	    return 1;
 	 } else {
@@ -70,5 +73,6 @@ int newVolume(JCR *jcr, MEDIA_DBR *mr)
 	 }
       }
    }
+   db_unlock(jcr->db);
    return 0;   
 }

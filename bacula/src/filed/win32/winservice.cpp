@@ -44,11 +44,16 @@
 
 // Error message logging
 void LogErrorMsg(char *message);
+#ifdef needed
+void SetServicePrivileges();
+#endif
 
 // OS-SPECIFIC ROUTINES
 
 // Create an instance of the bacService class to cause the static fields to be
 // initialised properly
+
+int NoGetFileAttributesEx = 0;        /* set if function no avail -- Win95 */
 
 bacService init;
 
@@ -208,6 +213,7 @@ bacService::PostAddNewClient(unsigned long ipaddress)
 // List other required serves 
 #define BAC_DEPENDENCIES       ""
 
+
 // Internal service state
 SERVICE_STATUS          g_srvstatus;       // current status of the service
 SERVICE_STATUS_HANDLE   g_hstatus;
@@ -215,15 +221,13 @@ DWORD                   g_error = 0;
 DWORD                   g_servicethread = 0;
 char*                   g_errortext[256];
 
+
 // Forward defines of internal service functions
 void WINAPI ServiceMain(DWORD argc, char **argv);
-
 DWORD WINAPI ServiceWorkThread(LPVOID lpwThreadParam);
 void ServiceStop();
 void WINAPI ServiceCtrl(DWORD ctrlcode);
-
 bool WINAPI CtrlHandler (DWORD ctrltype);
-
 BOOL ReportStatus(DWORD state, DWORD exitcode, DWORD waithint);
 
 // ROUTINE TO QUERY WHETHER THIS PROCESS IS RUNNING AS A SERVICE OR NOT
@@ -239,8 +243,8 @@ bacService::RunningAsService()
 BOOL
 bacService::KillRunningCopy()
 {
-  while (PostToBacula(WM_CLOSE, 0, 0)) {
-  }
+  while (PostToBacula(WM_CLOSE, 0, 0))
+      {  }
   return TRUE;
 }
 
@@ -332,6 +336,13 @@ bacService::BaculaServiceMain()
          break;
       }
 
+      /* Test for GetFileAttributesEx which is not in Win95 */
+      if (GetProcAddress(kerneldll, "GetFileAttributesEx") == NULL) {
+          NoGetFileAttributesEx = 1;
+          /*****FIXME***** remove after testing */
+          MessageBox(NULL, "NoGetFileAttributesEx", "Bacula", MB_OK);
+      }  
+
       // And find the RegisterServiceProcess function
       DWORD (*RegisterService)(DWORD, DWORD);
       RegisterService = (DWORD (*)(DWORD, DWORD))
@@ -353,12 +364,10 @@ bacService::BaculaServiceMain()
 
       // Free the kernel library
       FreeLibrary(kerneldll);
-
-      // *** If we don't kill the process directly here, then 
-      // for some reason, Bacula crashes...
- //         ExitProcess(0);
       break;
       }
+
+
    // Windows NT
    case VER_PLATFORM_WIN32_NT:
       {
@@ -369,11 +378,12 @@ bacService::BaculaServiceMain()
       };
 
       // Call the service control dispatcher with our entry table
-      if (!StartServiceCtrlDispatcher(dispatchTable))
-              LogErrorMsg("StartServiceCtrlDispatcher failed.");
-      break;
+      if (!StartServiceCtrlDispatcher(dispatchTable)) {
+         LogErrorMsg("StartServiceCtrlDispatcher failed.");
       }
-   }
+      break;
+      } /* end case */
+   } /* end switch */
    return 0;
 }
 
@@ -383,7 +393,7 @@ void WINAPI ServiceMain(DWORD argc, char **argv)
 {
     DWORD dwThreadID;
 
-        // Register the service control handler
+    // Register the service control handler
     g_hstatus = RegisterServiceCtrlHandler(BAC_SERVICENAME, ServiceCtrl);
 
     if (g_hstatus == 0) {
@@ -392,22 +402,19 @@ void WINAPI ServiceMain(DWORD argc, char **argv)
        return;
     }
 
-        // Set up some standard service state values
+     // Set up some standard service state values
     g_srvstatus.dwServiceType = SERVICE_WIN32 | SERVICE_INTERACTIVE_PROCESS;
     g_srvstatus.dwServiceSpecificExitCode = 0;
 
         // Give this status to the SCM
     if (!ReportStatus(
-        SERVICE_START_PENDING,  // Service state
-        NO_ERROR,                               // Exit code type
-        15000))                                 // Hint as to how long Bacula should have hung before you assume error
-        {
-        ReportStatus(
-                        SERVICE_STOPPED,
-                        g_error,
-            0);
-                return;
-        }
+            SERVICE_START_PENDING,          // Service state
+            NO_ERROR,                       // Exit code type
+            45000)) {                       // Hint as to how long Bacula should have hung before you assume error
+
+        ReportStatus(SERVICE_STOPPED, g_error,  0);
+        return;
+    }
 
         // Now start the service for real
     (void)CreateThread(NULL, 0, ServiceWorkThread, NULL, 0, &dwThreadID);
@@ -418,8 +425,6 @@ void WINAPI ServiceMain(DWORD argc, char **argv)
 //   NT ONLY !!!!
 DWORD WINAPI ServiceWorkThread(LPVOID lpwThreadParam)
 {
-    HANDLE hToken;
-    TOKEN_PRIVILEGES tkp;
 
     // Save the current thread identifier
     g_servicethread = GetCurrentThreadId();
@@ -434,46 +439,6 @@ DWORD WINAPI ServiceWorkThread(LPVOID lpwThreadParam)
        return 0;
     }
 
-      // Get a token for this process. 
-       
-      if (!OpenProcessToken(GetCurrentProcess(), 
-              TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken)) {
-         /* Forge on anyway */
-      } 
-
-      // Get the LUID for the backup privilege. 
-      LookupPrivilegeValue(NULL, SE_BACKUP_NAME, 
-              &tkp.Privileges[0].Luid); 
-
-       
-      tkp.PrivilegeCount = 1;  // one privilege to set    
-      tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED; 
-       
-      // Get the backup privilege for this process. 
-      AdjustTokenPrivileges(hToken, FALSE, &tkp, 0, 
-              (PTOKEN_PRIVILEGES)NULL, 0); 
-       
-      // Cannot test the return value of AdjustTokenPrivileges. 
-      if (GetLastError() != ERROR_SUCCESS) {
-//       MessageBox(NULL, "System shutdown failed: AdjustTokePrivileges", "shutdown", MB_OK);
-      } 
-     
-      // Get the LUID for the restore privilege. 
-      LookupPrivilegeValue(NULL, SE_RESTORE_NAME, 
-              &tkp.Privileges[0].Luid); 
-
-      tkp.PrivilegeCount = 1;  // one privilege to set    
-      tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED; 
-       
-      // Get the restore privilege for this process. 
-      AdjustTokenPrivileges(hToken, FALSE, &tkp, 0, 
-              (PTOKEN_PRIVILEGES)NULL, 0); 
-       
-      // Cannot test the return value of AdjustTokenPrivileges. 
-      if (GetLastError() != ERROR_SUCCESS) {
-//       MessageBox(NULL, "System shutdown failed: AdjustTokePrivileges", "shutdown", MB_OK);
-      } 
-
     /* Call Bacula main code */
     BaculaAppMain();
 
@@ -484,6 +449,72 @@ DWORD WINAPI ServiceWorkThread(LPVOID lpwThreadParam)
     ReportStatus(SERVICE_STOPPED, g_error, 0);
     return 0;
 }
+
+#ifdef needed
+/*
+ * Setup privileges we think we will need.  We probably do not need
+ *  the SE_SECURITY_NAME, but since nothing seems to be working,
+ *  we get it hoping to fix the problems.
+ */
+void SetServicePrivileges()
+{
+    HANDLE hToken;
+    TOKEN_PRIVILEGES tkp;
+    // Get a token for this process. 
+    if (!OpenProcessToken(GetCurrentProcess(), 
+            TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken)) {
+       /* Forge on anyway */
+    } 
+
+    // Get the LUID for the security privilege. 
+    LookupPrivilegeValue(NULL, SE_SECURITY_NAME,  &tkp.Privileges[0].Luid); 
+
+    tkp.PrivilegeCount = 1;  // one privilege to set    
+    tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED; 
+       
+    // Get the security privilege for this process. 
+    AdjustTokenPrivileges(hToken, FALSE, &tkp, sizeof(TOKEN_PRIVILEGES),
+                            (PTOKEN_PRIVILEGES)NULL, (PDWORD)0);
+       
+    // Cannot test the return value of AdjustTokenPrivileges. 
+    if (GetLastError() != ERROR_SUCCESS) {
+//     MessageBox(NULL, "Get security priv failed: AdjustTokePrivileges", "backup", MB_OK);
+    } 
+
+    // Get the LUID for the backup privilege. 
+    LookupPrivilegeValue(NULL, SE_BACKUP_NAME,  &tkp.Privileges[0].Luid); 
+
+    tkp.PrivilegeCount = 1;  // one privilege to set    
+    tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED; 
+       
+    // Get the backup privilege for this process. 
+    AdjustTokenPrivileges(hToken, FALSE, &tkp, sizeof(TOKEN_PRIVILEGES),
+                            (PTOKEN_PRIVILEGES)NULL, (PDWORD)0);
+       
+    // Cannot test the return value of AdjustTokenPrivileges. 
+    if (GetLastError() != ERROR_SUCCESS) {
+//     MessageBox(NULL, "Get backup priv failed: AdjustTokePrivileges", "backup", MB_OK);
+    } 
+     
+    // Get the LUID for the restore privilege. 
+    LookupPrivilegeValue(NULL, SE_RESTORE_NAME, &tkp.Privileges[0].Luid); 
+
+    tkp.PrivilegeCount = 1;  // one privilege to set    
+    tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED; 
+       
+    // Get the restore privilege for this process. 
+    AdjustTokenPrivileges(hToken, FALSE, &tkp, sizeof(TOKEN_PRIVILEGES),
+                            (PTOKEN_PRIVILEGES)NULL, (PDWORD)0);
+       
+    // Cannot test the return value of AdjustTokenPrivileges. 
+    if (GetLastError() != ERROR_SUCCESS) {
+//     MessageBox(NULL, "Get restore priv failed: AdjustTokePrivileges", "restore", MB_OK);
+    } 
+
+    CloseHandle(hToken);
+}
+
+#endif
 
 // SERVICE STOP ROUTINE - post a quit message to the relevant thread
 void ServiceStop()
@@ -592,82 +623,190 @@ bacService::InstallService()
 
       // Open the default, local Service Control Manager database
       hsrvmanager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
-          if (hsrvmanager == NULL) {
-             MessageBox(NULL,
-                "The Service Control Manager could not be contacted - the Bacula service was not installed",
-                szAppName, MB_ICONEXCLAMATION | MB_OK);
-             break;
-          }
+      if (hsrvmanager == NULL) {
+         MessageBox(NULL,
+            "The Service Control Manager could not be contacted - the Bacula service was not installed",
+            szAppName, MB_ICONEXCLAMATION | MB_OK);
+         break;
+      }
 
-          // Create an entry for the Bacula service
-          hservice = CreateService(
-                  hsrvmanager,                    // SCManager database
-                  BAC_SERVICENAME,                // name of service
-                  BAC_SERVICEDISPLAYNAME,         // name to display
-                  SERVICE_ALL_ACCESS,             // desired access
-                  SERVICE_WIN32_OWN_PROCESS | SERVICE_INTERACTIVE_PROCESS,
-                                                                          // service type
-                  SERVICE_AUTO_START,             // start type
-                  SERVICE_ERROR_NORMAL,           // error control type
-                  servicecmd,                     // service's binary
-                  NULL,                           // no load ordering group
-                  NULL,                           // no tag identifier
-                  BAC_DEPENDENCIES,               // dependencies
-                  NULL,                           // LocalSystem account
-                  NULL);                          // no password
-          CloseServiceHandle(hsrvmanager);
-          if (hservice == NULL) {
-             MessageBox(NULL,
-                 "The Bacula service could not be installed",
-                  szAppName, MB_ICONEXCLAMATION | MB_OK);
-             break;
-          }
-          CloseServiceHandle(hservice);
+      // Create an entry for the Bacula service
+      hservice = CreateService(
+              hsrvmanager,                    // SCManager database
+              BAC_SERVICENAME,                // name of service
+              BAC_SERVICEDISPLAYNAME,         // name to display
+              SERVICE_ALL_ACCESS,             // desired access
+              SERVICE_WIN32_OWN_PROCESS | SERVICE_INTERACTIVE_PROCESS,
+                                                                      // service type
+              SERVICE_AUTO_START,             // start type
+              SERVICE_ERROR_NORMAL,           // error control type
+              servicecmd,                     // service's binary
+              NULL,                           // no load ordering group
+              NULL,                           // no tag identifier
+              BAC_DEPENDENCIES,               // dependencies
+              NULL,                           // LocalSystem account
+              NULL);                          // no password
+      if (hservice == NULL) {
+         CloseServiceHandle(hsrvmanager);
+         MessageBox(NULL,
+             "The Bacula service could not be installed",
+              szAppName, MB_ICONEXCLAMATION | MB_OK);
+         break;
+      }
 
-          // Now install the servicehelper registry setting...
-          // Locate the RunService registry entry
-          HKEY runapps;
-          if (RegCreateKey(HKEY_LOCAL_MACHINE, 
-                  "Software\\Microsoft\\Windows\\CurrentVersion\\Run",
-                  &runapps) != ERROR_SUCCESS) {
-             MessageBox(NULL, "WARNING: Unable to install the ServiceHelper hook\nGlobal user-specific registry settings will not be loaded", 
-                szAppName, MB_ICONEXCLAMATION | MB_OK);
-          } else {
-             char servicehelpercmd[pathlength];
+      /*****FIXME***** add code to set Description */
 
-             // Append the service-helper-start flag to the end of the path:
-             if ((int)strlen(path) + 4 + (int)strlen(BaculaRunServiceHelper) < pathlength)
-                sprintf(servicehelpercmd, "\"%s\" %s", path, BaculaRunServiceHelper);
-             else
-                return 0;
+      CloseServiceHandle(hsrvmanager);
+      CloseServiceHandle(hservice);
 
-             // Add the upsserviceHelper entry
-             if (RegSetValueEx(runapps, szAppName, 0, REG_SZ,
-                  (unsigned char *)servicehelpercmd, strlen(servicehelpercmd)+1) != ERROR_SUCCESS)
-             {
-                MessageBox(NULL, "WARNING:Unable to install the ServiceHelper hook\nGlobal user-specific registry settings will not be loaded", szAppName, MB_ICONEXCLAMATION | MB_OK);
-             }
-             RegCloseKey(runapps);
-          }
+      // Now install the servicehelper registry setting...
+      // Locate the RunService registry entry
+      HKEY runapps;
+      if (RegCreateKey(HKEY_LOCAL_MACHINE, 
+              "Software\\Microsoft\\Windows\\CurrentVersion\\Run",
+              &runapps) != ERROR_SUCCESS) {
+         MessageBox(NULL, "WARNING: Unable to install the ServiceHelper hook\nGlobal user-specific registry settings will not be loaded", 
+            szAppName, MB_ICONEXCLAMATION | MB_OK);
+      } else {
+         char servicehelpercmd[pathlength];
 
-          // Everything went fine
-          MessageBox(NULL,
-                  "The Bacula File service was successfully installed.\n"
-                  "The service may be started from the Control Panel and will\n"
-                  "automatically be run the next time this machine is rebooted.",
-                  szAppName,
-                  MB_ICONINFORMATION | MB_OK);
-          break;
+         // Append the service-helper-start flag to the end of the path:
+         if ((int)strlen(path) + 4 + (int)strlen(BaculaRunServiceHelper) < pathlength) {
+            sprintf(servicehelpercmd, "\"%s\" %s", path, BaculaRunServiceHelper);
+         } else {
+            return 0;
+         }
+
+         // Add the Bacula Service Helper entry
+         if (RegSetValueEx(runapps, szAppName, 0, REG_SZ,
+              (unsigned char *)servicehelpercmd, strlen(servicehelpercmd)+1) != ERROR_SUCCESS) {
+            MessageBox(NULL, "WARNING:Unable to install the ServiceHelper hook\nGlobal user-specific registry settings will not be loaded", szAppName, MB_ICONEXCLAMATION | MB_OK);
+         }
+         RegCloseKey(runapps);
+      }
+
+      // Everything went fine
+      MessageBox(NULL,
+              "The Bacula File service was successfully installed.\n"
+              "The service may be started from the Control Panel and will\n"
+              "automatically be run the next time this machine is rebooted.",
+              szAppName,
+              MB_ICONINFORMATION | MB_OK);
+      break;
    default:
-          MessageBox(NULL, 
-                   "Unknown Windows operating system.\n"     
-                   "Cannot install Bacula service.\n",
-                    szAppName, MB_ICONEXCLAMATION | MB_OK);
-           break;     
+      MessageBox(NULL, 
+                 "Unknown Windows operating system.\n"     
+                 "Cannot install Bacula service.\n",
+                 szAppName, MB_ICONEXCLAMATION | MB_OK);
+       break;     
    };
 
    return 0;
 }
+
+#ifdef implemented
+VOID ReconfigureSampleService(BOOL fDisable, LPSTR lpDesc) 
+{ 
+    SC_LOCK sclLock; 
+    LPQUERY_SERVICE_LOCK_STATUS lpqslsBuf; 
+    SERVICE_DESCRIPTION sdBuf;
+    DWORD dwBytesNeeded, dwStartType; 
+ 
+    // Need to acquire database lock before reconfiguring. 
+ 
+    sclLock = LockServiceDatabase(schSCManager); 
+ 
+    // If the database cannot be locked, report the details. 
+ 
+    if (sclLock == NULL) 
+    { 
+        // Exit if the database is not locked by another process. 
+ 
+        if (GetLastError() != ERROR_SERVICE_DATABASE_LOCKED) 
+            MyErrorExit("LockServiceDatabase"); 
+ 
+        // Allocate a buffer to get details about the lock. 
+ 
+        lpqslsBuf = (LPQUERY_SERVICE_LOCK_STATUS) LocalAlloc( 
+            LPTR, sizeof(QUERY_SERVICE_LOCK_STATUS)+256); 
+        if (lpqslsBuf == NULL) 
+            MyErrorExit("LocalAlloc"); 
+ 
+        // Get and print the lock status information. 
+ 
+        if (!QueryServiceLockStatus( 
+            schSCManager, 
+            lpqslsBuf, 
+            sizeof(QUERY_SERVICE_LOCK_STATUS)+256, 
+            &dwBytesNeeded) ) 
+            MyErrorExit("QueryServiceLockStatus"); 
+ 
+        if (lpqslsBuf->fIsLocked) 
+            printf("Locked by: %s, duration: %d seconds\n", 
+                lpqslsBuf->lpLockOwner, 
+                lpqslsBuf->dwLockDuration); 
+        else 
+            printf("No longer locked\n"); 
+ 
+        LocalFree(lpqslsBuf); 
+        MyErrorExit("Could not lock database"); 
+    } 
+ 
+    // The database is locked, so it is safe to make changes. 
+ 
+    // Open a handle to the service. 
+ 
+    schService = OpenService( 
+        schSCManager,           // SCManager database 
+        "Sample_Srv",           // name of service 
+        SERVICE_CHANGE_CONFIG); // need CHANGE access 
+    if (schService == NULL) 
+        MyErrorExit("OpenService"); 
+ 
+    dwStartType = (fDisable) ? SERVICE_DISABLED : 
+                            SERVICE_DEMAND_START; 
+ 
+    // Make the changes. 
+
+    if (! ChangeServiceConfig( 
+        schService,        // handle of service 
+        SERVICE_NO_CHANGE, // service type: no change 
+        dwStartType,       // change service start type 
+        SERVICE_NO_CHANGE, // error control: no change 
+        NULL,              // binary path: no change 
+        NULL,              // load order group: no change 
+        NULL,              // tag ID: no change 
+        NULL,              // dependencies: no change 
+        NULL,              // account name: no change 
+        NULL,              // password: no change 
+        NULL) )            // display name: no change
+    {
+        MyErrorExit("ChangeServiceConfig"); 
+    }
+    else 
+        printf("ChangeServiceConfig SUCCESS\n"); 
+ 
+    sdBuf.lpDescription = lpDesc;
+
+    if( !ChangeServiceConfig2(
+        schService,                // handle to service
+        SERVICE_CONFIG_DESCRIPTION // change: description
+        &sdBuf) )                  // value: new description
+    {
+        MyErrorExit("ChangeServiceConfig2");
+    }
+    else
+        printf("ChangeServiceConfig2 SUCCESS\n");
+
+    // Release the database lock. 
+ 
+    UnlockServiceDatabase(sclLock); 
+ 
+    // Close the handle to the service. 
+ 
+    CloseServiceHandle(schService); 
+}
+#endif
 
 // SERVICE REMOVE ROUTINE
 int
@@ -676,7 +815,7 @@ bacService::RemoveService()
         // How to remove the Bacula service depends upon the OS
         switch (g_platform_id) {
 
-                // Windows 95/98
+        // Windows 95/98
         case VER_PLATFORM_WIN32_WINDOWS:
            // Locate the RunService registry entry
            HKEY runservices;
@@ -735,18 +874,17 @@ bacService::RemoveService()
               );
            if (hsrvmanager) {
               hservice = OpenService(hsrvmanager, BAC_SERVICENAME, SERVICE_ALL_ACCESS);
-              if (hservice != NULL)
-              {
+              if (hservice != NULL) {
                  SERVICE_STATUS status;
 
                  // Try to stop the Bacula service
-                 if (ControlService(hservice, SERVICE_CONTROL_STOP, &status))
-                 {
+                 if (ControlService(hservice, SERVICE_CONTROL_STOP, &status)) {
                     while(QueryServiceStatus(hservice, &status)) {
-                            if (status.dwCurrentState == SERVICE_STOP_PENDING)
-                                    Sleep(1000);
-                            else
-                                    break;
+                            if (status.dwCurrentState == SERVICE_STOP_PENDING) {
+                               Sleep(1000);
+                            } else {
+                               break;
+                            }
                     }
 
                     if (status.dwCurrentState != SERVICE_STOPPED)
@@ -754,20 +892,21 @@ bacService::RemoveService()
                  }
 
                  // Now remove the service from the SCM
-                 if(DeleteService(hservice))
+                 if(DeleteService(hservice)) {
                     MessageBox(NULL, "The Bacula service has been removed", szAppName, MB_ICONINFORMATION | MB_OK);
-                 else
+                 } else {
                     MessageBox(NULL, "The Bacula service could not be removed", szAppName, MB_ICONEXCLAMATION | MB_OK);
+                 }
 
                  CloseServiceHandle(hservice);
-              }
-              else
+              } else {
                  MessageBox(NULL, "The Bacula service could not be found", szAppName, MB_ICONEXCLAMATION | MB_OK);
+              }
 
               CloseServiceHandle(hsrvmanager);
-           }
-           else
+           } else {
               MessageBox(NULL, "The SCM could not be contacted - the Bacula service was not removed", szAppName, MB_ICONEXCLAMATION | MB_OK);
+           }
            break;
         }
         return 0;
@@ -778,27 +917,25 @@ bacService::RemoveService()
 // Service control routine
 void WINAPI ServiceCtrl(DWORD ctrlcode)
 {
-        // What control code have we been sent?
-    switch(ctrlcode)
-    {
-
-        case SERVICE_CONTROL_STOP:
-                // STOP : The service must stop
-                g_srvstatus.dwCurrentState = SERVICE_STOP_PENDING;
+    // What control code have we been sent?
+    switch(ctrlcode) {
+    case SERVICE_CONTROL_STOP:
+        // STOP : The service must stop
+        g_srvstatus.dwCurrentState = SERVICE_STOP_PENDING;
         ServiceStop();
         break;
 
     case SERVICE_CONTROL_INTERROGATE:
-                // QUERY : Service control manager just wants to know our state
-                break;
+        // QUERY : Service control manager just wants to know our state
+        break;
 
-        default:
-                // Control code not recognised
-                break;
+     default:
+         // Control code not recognised
+         break;
 
     }
 
-        // Tell the control manager what we're up to.
+    // Tell the control manager what we're up to.
     ReportStatus(g_srvstatus.dwCurrentState, NO_ERROR, 0);
 }
 
@@ -812,10 +949,11 @@ BOOL ReportStatus(DWORD state,
 
     // If we're in the start state then we don't want the control manager
     // sending us control messages because they'll confuse us.
-    if (state == SERVICE_START_PENDING)
+    if (state == SERVICE_START_PENDING) {
        g_srvstatus.dwControlsAccepted = 0;
-    else
+    } else {
        g_srvstatus.dwControlsAccepted = SERVICE_ACCEPT_STOP;
+    }
 
     // Save the new status we've been given
     g_srvstatus.dwCurrentState = state;

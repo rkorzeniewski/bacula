@@ -212,7 +212,7 @@ int set_attributes(void *jcr, char *fname, char *ofile, char *lname,
    }
 
    /*
-    * Update file times.
+    * Reset file times.
     */
    if (utime(ofile, &ut) < 0) {
       Jmsg2(jcr, M_ERROR, 0, "Unable to set file times %s: ERR=%s\n",
@@ -253,6 +253,8 @@ int encode_attribsEx(void *jcr, char *attribsEx, FF_PKT *ff_pkt)
 
 #ifdef HAVE_CYGWIN
 
+extern int NoGetFileAttributesEx;
+
 int encode_attribsEx(void *jcr, char *attribsEx, FF_PKT *ff_pkt)
 {
    char *p = attribsEx;
@@ -260,6 +262,10 @@ int encode_attribsEx(void *jcr, char *attribsEx, FF_PKT *ff_pkt)
    ULARGE_INTEGER li;
 
    attribsEx[0] = 0;		      /* no extended attributes */
+
+   if (NoGetFileAttributesEx) {
+      return STREAM_UNIX_ATTRIBUTES;
+   }
 
    unix_name_to_win32(&ff_pkt->sys_fname, ff_pkt->fname);
    if (!GetFileAttributesEx(ff_pkt->sys_fname, GetFileExInfoStandard,

@@ -10,6 +10,8 @@ Documentation to do: (a little bit at a time)
 - Document how to use multiple databases.
 - Document Maximum File Size
 
+***** Write up how to use/manage disk Volume Storage. ******
+
 
 Testing to do: (painful)
 - that ALL console command line options work and are always implemented
@@ -17,6 +19,10 @@ Testing to do: (painful)
 - multiple simultaneous Volumes
 
 For 1.30 release:
+- Need to return reason for EOF from write_block() e.g. File size
+  exceeded, ERROR, EOF, ...
+- Look at Lutz' every other block checksum error. ***Urgent***
+- Think about adding Modes to the Storage daemon for creating Files.
 - Fix "access not allowed" for backup of files on WinXP.
 - Fix Error: bnet.c:408 gethostbyname() for lpmatou failed: ERR=Operation not permited
   loop.

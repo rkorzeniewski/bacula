@@ -195,7 +195,7 @@ int send_include_list(JCR *jcr)
                pm_strcpy(&fd->msg, "0 ");
 	    }
 	    pm_strcat(&fd->msg, ie->name_list[j]);
-            Dmsg1(000, "Include name=%s\n", fd->msg);
+            Dmsg1(100, "Include name=%s\n", fd->msg);
 	    fd->msglen = strlen(fd->msg);
 	    if (!bnet_send(fd)) {
                Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));

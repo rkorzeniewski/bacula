@@ -133,7 +133,7 @@ extern char *eval_user();               /* client user */
 extern char *eval_hostname();           /* printable hostname */
 extern char *eval_hostaddr();           /* printable host address */
 extern char *eval_hostinfo();           /* host name or address */
-extern char *eval_client();             /* whatever is available */
+extern char *eval_client(struct request_info *); /* whatever is available */
 extern char *eval_server();             /* whatever is available */
 #define eval_daemon(r)  ((r)->daemon)   /* daemon process name */
 #define eval_pid(r)     ((r)->pid)      /* process id */

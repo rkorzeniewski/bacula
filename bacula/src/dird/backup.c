@@ -329,8 +329,8 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
 
    strcpy(mr.VolumeName, jcr->VolumeName);
    if (!db_get_media_record(jcr, jcr->db, &mr)) {
-      Jmsg(jcr, M_WARNING, 0, _("Error getting Media record for stats: %s"), 
-	 db_strerror(jcr->db));
+      Jmsg(jcr, M_WARNING, 0, _("Error getting Media record for Volume \"%s\": ERR=%s"), 
+	 mr.VolumeName, db_strerror(jcr->db));
       set_jcr_job_status(jcr, JS_ErrorTerminated);
    }
 
