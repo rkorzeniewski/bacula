@@ -7,6 +7,8 @@ Changes for 1.34.1:
 - Autochanger users, please note you must add %d to the end of the
   changer command line in your Device resource in your bacula-sd.conf
   file.
+- Make backup report say "Backup OK with warnings" if either FD or SD
+  report any non-fatal errors.
 - Modify bscan to print some elementary statistics (#Jobs, #Files, ...)
   added to catalog.
 - Added --enable-wx-console and updated Makefile.in
