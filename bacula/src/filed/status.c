@@ -278,17 +278,18 @@ int status_cmd(JCR *jcr)
 int qstatus_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
-   char *time;
+   POOLMEM *time;
    JCR *njcr;
    s_last_job* job;
 
-   time = (char *) alloca(dir->msglen+1);
+   time = get_memory(dir->msglen+1);
    
    if (sscanf(dir->msg, qstatus, time) != 1) {
       pm_strcpy(&jcr->errmsg, dir->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Bad .status command: %s\n"), jcr->errmsg);
       bnet_fsend(dir, "2900 Bad .status command, missing argument.\n");
       bnet_sig(dir, BNET_EOD);
+      free_memory(time);
       return 0;
    }
    unbash_spaces(time);
@@ -316,10 +317,12 @@ int qstatus_cmd(JCR *jcr)
       Jmsg1(jcr, M_FATAL, 0, _("Bad .status command: %s\n"), jcr->errmsg);
       bnet_fsend(dir, "2900 Bad .status command, wrong argument.\n");
       bnet_sig(dir, BNET_EOD);
+      free_memory(time);
       return 0;
    }
    
    bnet_sig(dir, BNET_EOD);
+   free_memory(time);
    return 1;
 }
 
