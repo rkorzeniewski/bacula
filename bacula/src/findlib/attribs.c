@@ -35,9 +35,7 @@
 
 /* Forward referenced subroutines */
 static
-int set_win32_attributes(JCR *jcr, char *fname, char *ofile, char *lname, 
-			 int type, int stream, struct stat *statp,
-			 char *attribsEx, BFILE *ofd);
+int set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd);
 void unix_name_to_win32(POOLMEM **win32_name, char *name);
 void win_error(JCR *jcr, char *prefix, POOLMEM *ofile);
 HANDLE bget_handle(BFILE *bfd);
@@ -55,7 +53,17 @@ HANDLE bget_handle(BFILE *bfd);
 /*=============================================================*/
 
 
-/* Encode a stat structure into a base64 character string */
+/* 
+ * Encode a stat structure into a base64 character string   
+ *   All systems must create such a structure.
+ *   In addition, we tack on the LinkFI, which is non-zero in
+ *   the case of a hard linked file that has no data.  This
+ *   is a File Index pointing to the link that does have the
+ *   data (always the first one encountered in a save).
+ * You may piggyback attributes on this packet by encoding
+ *   them in the encode_attribsEx() subroutine, but this is
+ *   not recommended.
+ */
 void encode_stat(char *buf, struct stat *statp, uint32_t LinkFI)
 {
    char *p = buf;
@@ -180,17 +188,15 @@ decode_stat(char *buf, struct stat *statp, uint32_t *LinkFI)
  * Returns:  1 on success
  *	     0 on failure
  */
-int set_attributes(JCR *jcr, char *fname, char *ofile, char *lname, 
-		   int type, int stream, struct stat *statp,
-		   char *attribsEx, BFILE *ofd)
+int set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
 {
    struct utimbuf ut;	 
    mode_t old_mask;
    int stat = 1;
 
 #ifdef HAVE_CYGWIN
-   if (set_win32_attributes(jcr, fname, ofile, lname, type, stream,
-			    statp, attribsEx, ofd)) {
+   if (stream == STREAM_UNIX_ATTRIBUTES_EX &&
+       set_win32_attributes(jcr, attr, ofd)) {
       return 1;
    }
    /*
@@ -205,47 +211,47 @@ int set_attributes(JCR *jcr, char *fname, char *ofile, char *lname,
       bclose(ofd);		      /* first close file */
    }
 
-   ut.actime = statp->st_atime;
-   ut.modtime = statp->st_mtime;
+   ut.actime = attr->statp.st_atime;
+   ut.modtime = attr->statp.st_mtime;
 
    /* ***FIXME**** optimize -- don't do if already correct */
    /* 
     * For link, change owner of link using lchown, but don't
     *	try to do a chmod as that will update the file behind it.
     */
-   if (type == FT_LNK) {
+   if (attr->type == FT_LNK) {
       /* Change owner of link, not of real file */
-      if (lchown(ofile, statp->st_uid, statp->st_gid) < 0) {
+      if (lchown(attr->ofname, attr->statp.st_uid, attr->statp.st_gid) < 0) {
          Jmsg2(jcr, M_WARNING, 0, _("Unable to set file owner %s: ERR=%s\n"),
-	    ofile, strerror(errno));
+	    attr->ofname, strerror(errno));
 	 stat = 0;
       }
    } else {
-      if (chown(ofile, statp->st_uid, statp->st_gid) < 0) {
+      if (chown(attr->ofname, attr->statp.st_uid, attr->statp.st_gid) < 0) {
          Jmsg2(jcr, M_WARNING, 0, _("Unable to set file owner %s: ERR=%s\n"),
-	    ofile, strerror(errno));
+	    attr->ofname, strerror(errno));
 	 stat = 0;
       }
-      if (chmod(ofile, statp->st_mode) < 0) {
+      if (chmod(attr->ofname, attr->statp.st_mode) < 0) {
          Jmsg2(jcr, M_WARNING, 0, _("Unable to set file modes %s: ERR=%s\n"),
-	    ofile, strerror(errno));
+	    attr->ofname, strerror(errno));
 	 stat = 0;
       }
 
       /* FreeBSD user flags */
 #ifdef HAVE_CHFLAGS
-      if (chflags(ofile, statp->st_flags) < 0) {
+      if (chflags(attr->ofname, attr->statp.st_flags) < 0) {
          Jmsg2(jcr, M_WARNING, 0, _("Unable to set file flags %s: ERR=%s\n"),
-	    ofile, strerror(errno));
+	    attr->ofname, strerror(errno));
 	 stat = 0;
       }
 #endif
       /*
        * Reset file times.
        */
-      if (utime(ofile, &ut) < 0) {
+      if (utime(attr->ofname, &ut) < 0) {
          Jmsg2(jcr, M_ERROR, 0, _("Unable to set file times %s: ERR=%s\n"),
-	    ofile, strerror(errno));
+	    attr->ofname, strerror(errno));
 	 stat = 0;
       }
    }
@@ -263,8 +269,13 @@ int set_attributes(JCR *jcr, char *fname, char *ofile, char *lname,
 #ifndef HAVE_CYGWIN
     
 /*
- * If you have a Unix system with extended attributes (e.g.
- *  ACLs for Solaris, do it here.
+ * It is possible to piggyback additional data e.g. ACLs on
+ *   the encode_stat() data by returning the extended attributes
+ *   here.  They must be "self-contained" (i.e. you keep track
+ *   of your own length), and they must be in ASCII string
+ *   format. Using this feature is not recommended.
+ * The code below shows how to return nothing.	See the Win32
+ *   code below for returning something in the attributes.
  */
 int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
 {
@@ -300,7 +311,7 @@ int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
    if (!p_GetFileAttributesEx(ff_pkt->sys_fname, GetFileExInfoStandard,
 			    (LPVOID)&atts)) {
       win_error(jcr, "GetFileAttributesEx:", ff_pkt->sys_fname);
-      return STREAM_WIN32_ATTRIBUTES;
+      return STREAM_UNIX_ATTRIBUTES_EX;
    }
 
    p += to_base64((uint64_t)atts.dwFileAttributes, p);
@@ -321,7 +332,7 @@ int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
    *p++ = ' ';
    p += to_base64((uint64_t)atts.nFileSizeLow, p);
    *p = 0;
-   return STREAM_WIN32_ATTRIBUTES;
+   return STREAM_UNIX_ATTRIBUTES_EX;
 }
 
 /* Define attributes that are legal to set with SetFileAttributes() */
@@ -346,24 +357,22 @@ int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
  *	     0 on failure
  */
 static
-int set_win32_attributes(JCR *jcr, char *fname, char *ofile, char *lname, 
-			 int type, int stream, struct stat *statp,
-			 char *attribsEx, BFILE *ofd)
+int set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
 {
-   char *p = attribsEx;
+   char *p = attr->attrEx;
    int64_t val;
    WIN32_FILE_ATTRIBUTE_DATA atts;
    ULARGE_INTEGER li;
    POOLMEM *win32_ofile;
 
    if (!p || !*p) {		      /* we should have attributes */
-      Dmsg2(100, "Attributes missing. of=%s ofd=%d\n", ofile, ofd->fid);
+      Dmsg2(100, "Attributes missing. of=%s ofd=%d\n", attr->ofname, ofd->fid);
       if (is_bopen(ofd)) {
 	 bclose(ofd);
       }
       return 0;
    } else {
-      Dmsg2(100, "Attribs %s = %s\n", ofile, attribsEx);
+      Dmsg2(100, "Attribs %s = %s\n", attr->ofname, attr->attrEx);
    }
 
    p += from_base64(&val, p);
@@ -392,7 +401,7 @@ int set_win32_attributes(JCR *jcr, char *fname, char *ofile, char *lname,
 
    /* Convert to Windows path format */
    win32_ofile = get_pool_memory(PM_FNAME);
-   unix_name_to_win32(&win32_ofile, ofile);
+   unix_name_to_win32(&win32_ofile, attr->ofname);
 
 
 
@@ -400,12 +409,12 @@ int set_win32_attributes(JCR *jcr, char *fname, char *ofile, char *lname,
 
 
    if (!is_bopen(ofd)) {
-      Dmsg1(100, "File not open: %s\n", ofile);
-      bopen(ofd, ofile, O_WRONLY|O_BINARY, 0);	 /* attempt to open the file */
+      Dmsg1(100, "File not open: %s\n", attr->ofname);
+      bopen(ofd, attr->ofname, O_WRONLY|O_BINARY, 0);	/* attempt to open the file */
    }
 
    if (is_bopen(ofd)) {
-      Dmsg1(100, "SetFileTime %s\n", ofile);
+      Dmsg1(100, "SetFileTime %s\n", attr->ofname);
       if (!SetFileTime(bget_handle(ofd),
 			 &atts.ftCreationTime,
 			 &atts.ftLastAccessTime,
@@ -415,7 +424,7 @@ int set_win32_attributes(JCR *jcr, char *fname, char *ofile, char *lname,
       bclose(ofd);
    }
 
-   Dmsg1(100, "SetFileAtts %s\n", ofile);
+   Dmsg1(100, "SetFileAtts %s\n", attr->ofname);
    if (!(atts.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
       if (!SetFileAttributes(win32_ofile, atts.dwFileAttributes & SET_ATTRS)) {
          win_error(jcr, "SetFileAttributes:", win32_ofile);

@@ -58,7 +58,7 @@ char catalog_db[] = "MySQL";
 char catalog_db[] = "SQLite";
 #endif
 #ifdef HAVE_BACULA_DB
-char catlog_db[] = "Internal";
+char catalog_db[] = "Internal";
 #endif
 
 

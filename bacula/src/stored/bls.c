@@ -28,6 +28,13 @@
 #include "stored.h"
 #include "findlib/find.h"
 
+#ifdef HAVE_CYGWIN
+int win32_client = 1;
+#else
+int win32_client = 0;
+#endif
+
+
 static void do_blocks(char *infname);
 static void do_jobs(char *infname);
 static void do_ls(char *fname);
@@ -44,7 +51,7 @@ static DEV_BLOCK *block;
 static JCR *jcr;
 static SESSION_LABEL sessrec;
 static uint32_t num_files = 0;
-static long record_file_index;
+static ATTR *attr;
 
 #define CONFIG_FILE "bacula-sd.conf"
 char *configfile;
@@ -91,77 +98,77 @@ int main (int argc, char *argv[])
 
    while ((ch = getopt(argc, argv, "b:c:d:e:i:jkLtvV:?")) != -1) {
       switch (ch) {
-         case 'b':
-	    bsrName = optarg;
-	    break;
+      case 'b':
+	 bsrName = optarg;
+	 break;
 
-         case 'c':                    /* specify config file */
-	    if (configfile != NULL) {
-	       free(configfile);
-	    }
-	    configfile = bstrdup(optarg);
-	    break;
+      case 'c':                    /* specify config file */
+	 if (configfile != NULL) {
+	    free(configfile);
+	 }
+	 configfile = bstrdup(optarg);
+	 break;
 
-         case 'd':                    /* debug level */
-	    debug_level = atoi(optarg);
-	    if (debug_level <= 0)
-	       debug_level = 1; 
-	    break;
+      case 'd':                    /* debug level */
+	 debug_level = atoi(optarg);
+	 if (debug_level <= 0)
+	    debug_level = 1; 
+	 break;
 
-         case 'e':                    /* exclude list */
-            if ((fd = fopen(optarg, "r")) == NULL) {
-               Pmsg2(0, _("Could not open exclude file: %s, ERR=%s\n"),
-		  optarg, strerror(errno));
-	       exit(1);
-	    }
-	    while (fgets(line, sizeof(line), fd) != NULL) {
-	       strip_trailing_junk(line);
-               Dmsg1(100, "add_exclude %s\n", line);
-	       add_fname_to_exclude_list(&ff, line);
-	    }
-	    fclose(fd);
-	    break;
+      case 'e':                    /* exclude list */
+         if ((fd = fopen(optarg, "r")) == NULL) {
+            Pmsg2(0, _("Could not open exclude file: %s, ERR=%s\n"),
+	       optarg, strerror(errno));
+	    exit(1);
+	 }
+	 while (fgets(line, sizeof(line), fd) != NULL) {
+	    strip_trailing_junk(line);
+            Dmsg1(100, "add_exclude %s\n", line);
+	    add_fname_to_exclude_list(&ff, line);
+	 }
+	 fclose(fd);
+	 break;
 
-         case 'i':                    /* include list */
-            if ((fd = fopen(optarg, "r")) == NULL) {
-               Pmsg2(0, "Could not open include file: %s, ERR=%s\n",
-		  optarg, strerror(errno));
-	       exit(1);
-	    }
-	    while (fgets(line, sizeof(line), fd) != NULL) {
-	       strip_trailing_junk(line);
-               Dmsg1(100, "add_include %s\n", line);
-	       add_fname_to_include_list(&ff, 0, line);
-	    }
-	    fclose(fd);
-	    break;
+      case 'i':                    /* include list */
+         if ((fd = fopen(optarg, "r")) == NULL) {
+            Pmsg2(0, "Could not open include file: %s, ERR=%s\n",
+	       optarg, strerror(errno));
+	    exit(1);
+	 }
+	 while (fgets(line, sizeof(line), fd) != NULL) {
+	    strip_trailing_junk(line);
+            Dmsg1(100, "add_include %s\n", line);
+	    add_fname_to_include_list(&ff, 0, line);
+	 }
+	 fclose(fd);
+	 break;
 
-         case 'j':
-	    list_jobs = TRUE;
-	    break;
+      case 'j':
+	 list_jobs = TRUE;
+	 break;
 
-         case 'k':
-	    list_blocks = TRUE;
-	    break;
+      case 'k':
+	 list_blocks = TRUE;
+	 break;
 
-         case 'L':
-	    dump_label = TRUE;
-	    break;
+      case 'L':
+	 dump_label = TRUE;
+	 break;
 
-         case 'v':
-	    verbose++;
-	    break;
+      case 'v':
+	 verbose++;
+	 break;
 
-         case 'V':                    /* Volume name */
-	    VolumeName = optarg;
-	    break;
+      case 'V':                    /* Volume name */
+	 VolumeName = optarg;
+	 break;
 
-         case '?':
-	 default:
-	    usage();
+      case '?':
+      default:
+	 usage();
 
-      }  
-   }
+      } /* end switch */
+   } /* end while */
    argc -= optind;
    argv += optind;
 
@@ -191,6 +198,7 @@ int main (int argc, char *argv[])
       }
       rec = new_record();
       block = new_block(dev);
+      attr = new_attr();
       /*
        * Assume that we have already read the volume label.
        * If on second or subsequent volume, adjust buffer pointer 
@@ -220,6 +228,7 @@ Warning, this Volume is a continuation of Volume %s\n",
 static void do_close(JCR *jcr)
 {
    release_device(jcr, dev);
+   free_attr(attr);
    term_dev(dev);
    free_record(rec);
    free_block(block);
@@ -319,43 +328,28 @@ static void do_ls(char *infname)
  */
 static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 {
-   char fname[2000];
-   struct stat statp;
-   int type;
-
    if (rec->FileIndex < 0) {
       get_session_record(dev, rec, &sessrec);
       return;
    }
    /* File Attributes stream */
-   if (rec->Stream == STREAM_UNIX_ATTRIBUTES || rec->Stream == STREAM_WIN32_ATTRIBUTES) {
-      char *ap, *fp;
+   if (rec->Stream == STREAM_UNIX_ATTRIBUTES || 
+       rec->Stream == STREAM_UNIX_ATTRIBUTES_EX) {
       uint32_t LinkFI;
 
-      sscanf(rec->data, "%ld %d", &record_file_index, &type);
-      if (record_file_index != rec->FileIndex) {
-         Emsg2(M_ERROR_TERM, 0, "Record header file index %ld not equal record index %ld\n",
-	    rec->FileIndex, record_file_index);
+      if (!unpack_attributes_record(jcr, rec->Stream, rec->data, attr)) {
+         Emsg0(M_ERROR_TERM, 0, _("Cannot continue.\n"));
       }
-      ap = rec->data;
 
-      while (*ap++ != ' ')         /* skip record file index */
-	 ;
-      while (*ap++ != ' ')         /* skip type */
-	 ;
-      /* Save filename and position to attributes */
-      fp = fname;
-      while (*ap != 0) {
-	 *fp++	= *ap++;
+      if (attr->file_index != rec->FileIndex) {
+         Emsg2(M_ERROR_TERM, 0, _("Record header file index %ld not equal record index %ld\n"),
+	    rec->FileIndex, attr->file_index);
       }
-      *fp = *ap++;		   /* terminate filename & point to attribs */
 
-      decode_stat(ap, &statp, &LinkFI);
-      /* Skip to link name */  
-      while (*ap++ != 0)
-	 ;
-      if (file_is_included(&ff, fname) && !file_is_excluded(&ff, fname)) {
-	 print_ls_output(fname, ap, type, &statp);
+      decode_stat(attr->attr, &attr->statp, &LinkFI);
+
+      if (file_is_included(&ff, attr->fname) && !file_is_excluded(&ff, attr->fname)) {
+	 print_ls_output(jcr, attr);
 	 num_files++;
       }
    }

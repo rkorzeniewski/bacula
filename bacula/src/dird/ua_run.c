@@ -288,10 +288,10 @@ int runcmd(UAContext *ua, char *cmd)
    jcr->fileset = fileset;
    jcr->pool = pool;
    if (where) {
-      if (jcr->RestoreWhere) {
-	 free(jcr->RestoreWhere);
+      if (jcr->where) {
+	 free(jcr->where);
       }
-      jcr->RestoreWhere = bstrdup(where);
+      jcr->where = bstrdup(where);
    }
 
    if (when) {
@@ -414,7 +414,7 @@ Storage:    %s\n\
 When:       %s\n"),
 		 job->hdr.name,
 		 NPRT(jcr->RestoreBootstrap),
-		 jcr->RestoreWhere?jcr->RestoreWhere:NPRT(job->RestoreWhere),
+		 jcr->where?jcr->where:NPRT(job->RestoreWhere),
 		 replace,
 		 jcr->fileset->hdr.name,
 		 jcr->client->hdr.name,
@@ -432,7 +432,7 @@ Storage:    %s\n\
 When:       %s\n"),
 		 job->hdr.name,
 		 NPRT(jcr->RestoreBootstrap),
-		 jcr->RestoreWhere?jcr->RestoreWhere:NPRT(job->RestoreWhere),
+		 jcr->where?jcr->where:NPRT(job->RestoreWhere),
 		 replace,
 		 jcr->fileset->hdr.name,
 		 jcr->client->hdr.name,
@@ -619,14 +619,14 @@ When:       %s\n"),
          if (!get_cmd(ua, _("Please enter path prefix for restore (/ for none): "))) {
 	    break;
 	 }
-	 if (jcr->RestoreWhere) {
-	    free(jcr->RestoreWhere);
-	    jcr->RestoreWhere = NULL;
+	 if (jcr->where) {
+	    free(jcr->where);
+	    jcr->where = NULL;
 	 }
          if (ua->cmd[0] == '/' && ua->cmd[1] == 0) {
 	    ua->cmd[0] = 0;
 	 }
-	 jcr->RestoreWhere = bstrdup(ua->cmd);
+	 jcr->where = bstrdup(ua->cmd);
 	 goto try_again;
       case 8:
 	 /* Replace */

@@ -114,3 +114,4 @@ extern int verbose;
 extern char my_name[];
 extern char *working_directory;
 extern time_t daemon_start_time;
+extern char catalog_db[];

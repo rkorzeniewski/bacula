@@ -102,8 +102,8 @@ char *stream_to_ascii(int stream, int fi)
        return "SHA1";
     case STREAM_GZIP_DATA:
        return "GZIP";
-    case STREAM_WIN32_ATTRIBUTES:
-       return "WIN32-ATTR";
+    case STREAM_UNIX_ATTRIBUTES_EX:
+       return "UNIX-ATTR-EX";
     case STREAM_SPARSE_DATA:
        return "SPARSE-DATA";
     case STREAM_SPARSE_GZIP_DATA:
@@ -126,8 +126,8 @@ char *stream_to_ascii(int stream, int fi)
        return "contSHA1";
     case -STREAM_GZIP_DATA:
        return "contGZIP";
-    case -STREAM_WIN32_ATTRIBUTES:
-       return "contWIN32-ATTR";
+    case -STREAM_UNIX_ATTRIBUTES_EX:
+       return "contUNIX-ATTR-EX";
     case -STREAM_SPARSE_DATA:
        return "contSPARSE-DATA";
     case -STREAM_SPARSE_GZIP_DATA:

@@ -34,10 +34,14 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
+- Implement non-blocking writes and bsock->terminate in heartbeat thread,
+  or set it in status.c cancel.
+- Add restore to specific date.
 - lstat() is not going to work on Win32 for testing date.
 - Implement a Recycle command
 - Something is not right in last block of fill command.
 - Check this below from Phil.
+  This was SD reported data rather than FD data!
   > When the job was done, Bacula reported 11084 files restored:
   > 
   > JobId:                  527                                                     

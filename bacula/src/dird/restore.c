@@ -229,8 +229,8 @@ int do_restore(JCR *jcr)
    } else {
       replace = REPLACE_ALWAYS;       /* always replace */
    }
-   if (jcr->RestoreWhere) {
-      where = jcr->RestoreWhere;      /* override */
+   if (jcr->where) {
+      where = jcr->where;	      /* override */
    } else if (jcr->job->RestoreWhere) {
       where = jcr->job->RestoreWhere; /* no override take from job */
    } else {

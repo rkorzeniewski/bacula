@@ -58,7 +58,10 @@ static int32_t read_nbytes(BSOCK *bsock, char *ptr, int32_t nbytes)
       do {
 	 errno = 0;
 	 nread = read(bsock->fd, ptr, nleft);	 
-      } while (!bsock->timed_out && nread == -1 && (errno == EINTR || errno == EAGAIN));
+	 if (bsock->timed_out || bsock->terminated) {
+	    return nread;
+	 }
+      } while (nread == -1 && (errno == EINTR || errno == EAGAIN));
       if (nread <= 0) {
 	 return nread;		     /* error, or EOF */
       }
@@ -91,7 +94,19 @@ static int32_t write_nbytes(BSOCK *bsock, char *ptr, int32_t nbytes)
       do {
 	 errno = 0;
 	 nwritten = write(bsock->fd, ptr, nleft);
-      } while (!bsock->timed_out && nwritten == -1 && (errno == EINTR || errno == EAGAIN));
+	 if (bsock->timed_out || bsock->terminated) {
+	    return nwritten;
+	 }
+      } while (nwritten == -1 && errno == EINTR);
+      /*
+       * If connection is non-blocking, we will get eagain, so
+       * sleep long enough to keep from consuming all the CPU
+       * and try again.
+       */
+      if (nwritten == -1 && errno == EAGAIN) {
+	 bmicrosleep(0, 50);	   /* sleep 50 ms */
+	 continue;
+      }
       if (nwritten <= 0) {
 	 return nwritten;	     /* error */
       }

@@ -156,6 +156,10 @@ static void free_common_jcr(JCR *jcr)
       free_pool_memory(jcr->errmsg);
       jcr->errmsg = NULL;
    }
+   if (jcr->where) {
+      free(jcr->where);
+      jcr->where = NULL;
+   }
    free(jcr);
 }
 

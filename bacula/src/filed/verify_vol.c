@@ -34,9 +34,6 @@
 static char rec_header[] = "rechdr %ld %ld %ld %ld %ld";
 
 /* Forward referenced functions */
-#ifdef needed
-static void print_ls_output(JCR *jcr, char *fname, char *lname, int type, struct stat *statp);
-#endif
 
 
 /* 
@@ -102,7 +99,7 @@ void do_verify_volume(JCR *jcr)
       /* File Attributes stream */
       switch (stream) {
       case STREAM_UNIX_ATTRIBUTES:
-      case STREAM_WIN32_ATTRIBUTES:
+      case STREAM_UNIX_ATTRIBUTES_EX:
 	 char *ap, *lp, *fp;
 
          Dmsg0(400, "Stream=Unix Attributes.\n");
@@ -246,45 +243,3 @@ ok_out:
    Dmsg2(050, "End Verify-Vol. Files=%d Bytes=%" lld "\n", jcr->JobFiles,
       jcr->JobBytes);
 }	   
-
-extern char *getuser(uid_t uid);
-extern char *getgroup(gid_t gid);
-
-/*
- * Print an ls style message, also send INFO
- */
-#ifdef needed
-static void print_ls_output(JCR *jcr, char *fname, char *lname, int type, struct stat *statp)
-{
-   char buf[2000]; 
-   char ec1[30];
-   char *p, *f;
-   int n;
-
-   p = encode_mode(statp->st_mode, buf);
-   n = sprintf(p, "  %2d ", (uint32_t)statp->st_nlink);
-   p += n;
-   n = sprintf(p, "%-8.8s %-8.8s", getuser(statp->st_uid), getgroup(statp->st_gid));
-   p += n;
-   n = sprintf(p, "%8.8s ", edit_uint64(statp->st_size, ec1));
-   p += n;
-   p = encode_time(statp->st_ctime, p);
-   *p++ = ' ';
-   *p++ = ' ';
-   for (f=fname; *f && (p-buf) < (int)sizeof(buf)-10; )
-      *p++ = *f++;
-   if (type == FT_LNK) {
-      *p++ = ' ';
-      *p++ = '-';
-      *p++ = '>';
-      *p++ = ' ';
-      /* Copy link name */
-      for (f=lname; *f && (p-buf) < (int)sizeof(buf)-10; )
-	 *p++ = *f++;
-   }
-   *p++ = '\n';
-   *p = 0;
-   Dmsg0(20, buf);
-   Jmsg(jcr, M_INFO, 0, "%s", buf);
-}
-#endif

@@ -120,7 +120,7 @@ int do_backup(JCR *jcr)
 	 jcr->jr.JobId = 0;
 	 if (!db_find_job_start_time(jcr, jcr->db, &jcr->jr, &jcr->stime)) {
             Jmsg(jcr, M_INFO, 0, "%s", db_strerror(jcr->db));
-            Jmsg(jcr, M_INFO, 0, _("No prior or suitable FULL backup found. Doing FULL backup.\n"));
+            Jmsg(jcr, M_INFO, 0, _("No prior or suitable Full backup found. Doing FULL backup.\n"));
             bsnprintf(since, sizeof(since), " (upgraded from %s)", 
 	       level_to_str(jcr->jr.Level));
 	    jcr->JobLevel = jcr->jr.Level = L_FULL;

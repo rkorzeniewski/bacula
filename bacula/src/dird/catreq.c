@@ -356,7 +356,10 @@ next_volume:
 
 /*
  * Update File Attributes in the catalog with data
- *  sent by the Storage daemon.
+ *  sent by the Storage daemon.  Note, we receive the whole
+ *  attribute record, but we select out only the stat packet,
+ *  VolSessionId, VolSessionTime, FileIndex, and file name 
+ *  to store in the catalog.
  */
 void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
 {

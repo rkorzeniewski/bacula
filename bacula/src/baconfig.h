@@ -89,19 +89,30 @@
 #define DEV_BSIZE 512
 #endif
 
-/* Maximum number of bytes that you can push into a
+/*
+ * Maximum number of bytes that you can push into a
  * socket.
  */
 #define MAX_NETWORK_BUFFER_SIZE (32 * 1024)
 
-/* Stream definitions.  Once defined these must NEVER
+/*
+ * Stream definitions.  Once defined these must NEVER
  *   change as they go on the storage media.
+ * Note, the following streams are passed from the SD to the DIR
+ *   so that they may be put into the catalog (actually only the
+ *   stat packet part of the attr record is put in the catalog.
+ *
+ *   STREAM_UNIX_ATTRIBUTES
+ *   STREAM_UNIX_ATTRIBUTES_EX
+ *   STREAM_MD5_SIGNATURE
+ *   STREAM_SHA1_SIGNATURE
  */
 #define STREAM_UNIX_ATTRIBUTES    1    /* Generic Unix attributes */
 #define STREAM_FILE_DATA          2    /* Standard uncompressed data */
 #define STREAM_MD5_SIGNATURE      3    /* MD5 signature for the file */
 #define STREAM_GZIP_DATA          4    /* GZip compressed file data */
-#define STREAM_UNIX_ATTRIBUTES_EX 5    /* Extended Unix attr. Win32Ex/FreeBSD */
+/* Extended Unix attributes with Win32 Extended data.  Deprecated. */
+#define STREAM_UNIX_ATTRIBUTES_EX 5    /* Extended Unix attr for Win32 EX */
 #define STREAM_SPARSE_DATA        6    /* Sparse data stream */
 #define STREAM_SPARSE_GZIP_DATA   7
 #define STREAM_PROGRAM_NAMES      8    /* program names for program data */
@@ -109,6 +120,38 @@
 #define STREAM_SHA1_SIGNATURE    10    /* SHA1 signature for the file */
 #define STREAM_WIN32_DATA        11    /* Win32 BackupRead data */
 #define STREAM_WIN32_GZIP_DATA   12    /* Gzipped Win32 BackupRead data */
+#define STREAM_WIN32_ATTRIBUTES  13    /* Unix attribs, but WIN32_DATA follows */
+
+/* 
+ *  File type (Bacula defined).           
+ *  NOTE!!! These are saved in the Attributes record on the tape, so
+ *          do not change them. If need be, add to them.
+ *
+ *  This is stored as 32 bits on tape, but only FT_MASK bits are
+ *    used for the file type. The upper bits are used to indicate
+ *    additional optional fields in the attribute record.
+ */
+#define FT_MASK       0xFFFF          /* Bits used by FT (type) */
+#define FT_LNKSAVED   1               /* hard link to file already saved */  
+#define FT_REGE       2               /* Regular file but empty */
+#define FT_REG        3               /* Regular file */
+#define FT_LNK        4               /* Soft Link */
+#define FT_DIR        5               /* Directory */
+#define FT_SPEC       6               /* Special file -- chr, blk, fifo, sock */
+#define FT_NOACCESS   7               /* Not able to access */
+#define FT_NOFOLLOW   8               /* Could not follow link */
+#define FT_NOSTAT     9               /* Could not stat file */
+#define FT_NOCHG     10               /* Incremental option, file not changed */
+#define FT_DIRNOCHG  11               /* Incremental option, directory not changed */
+#define FT_ISARCH    12               /* Trying to save archive file */
+#define FT_NORECURSE 13               /* No recursion into directory */
+#define FT_NOFSCHG   14               /* Different file system, prohibited */
+#define FT_NOOPEN    15               /* Could not open directory */
+#define FT_RAW       16               /* Raw block device */
+#define FT_FIFO      17               /* Raw fifo device */
+
+/* Definitions for upper part of type word (see above). */
+#define AR_DATA_STREAM (1<<16)        /* Data stream id present */
 
 /*
  * Internal code for Signature types

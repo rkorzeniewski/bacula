@@ -42,14 +42,12 @@
 #include "jcr.h"
 #include "protos.h"
 #ifdef HAVE_LIBZ
-#include <zlib.h>		      /* compression headers */
+#include <zlib.h>                     /* compression headers */
 #else
 #define uLongf uint32_t
 #endif
 
-#include "findlib/find.h"
-
-extern char errmsg[];		      /* general error message */
+extern char errmsg[];                 /* general error message */
 
 extern STORES *me;                    /* "Global" daemon resource */
 

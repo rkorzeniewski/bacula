@@ -739,7 +739,8 @@ static int restore_cmd(JCR *jcr)
       
    Dmsg2(150, "Got replace %c, where=%s\n", replace, where);
    unbash_spaces(where);
-   jcr->where = where;
+   jcr->where = bstrdup(where);
+   free_pool_memory(where);
    jcr->replace = replace;
 
    bnet_fsend(dir, OKrestore);
@@ -853,9 +854,6 @@ static void filed_free_jcr(JCR *jcr)
 {
    if (jcr->store_bsock) {
       bnet_close(jcr->store_bsock);
-   }
-   if (jcr->where) {
-      free_pool_memory(jcr->where);
    }
    if (jcr->RestoreBootstrap) {
       unlink(jcr->RestoreBootstrap);

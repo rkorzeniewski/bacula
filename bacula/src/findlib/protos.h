@@ -24,42 +24,38 @@
  */
 
 /* from attribs.c */
-void      encode_stat            (char *buf, struct stat *statp, uint32_t LinkFI);
-void      decode_stat            (char *buf, struct stat *statp, uint32_t *LinkFI);
-int       encode_attribsEx       (JCR *jcr, char *attribsEx, FF_PKT *ff_pkt);
-int set_attributes(JCR *jcr, char *fname, char *ofile, char *lname,
-                   int type, int stream, struct stat *statp, 
-                   char *attribsEx, BFILE *ofd);
+void   encode_stat       (char *buf, struct stat *statp, uint32_t LinkFI);
+void   decode_stat       (char *buf, struct stat *statp, uint32_t *LinkFI);
+int    encode_attribsEx  (JCR *jcr, char *attribsEx, FF_PKT *ff_pkt);
+int    set_attributes    (JCR *jcr, ATTR *attr, BFILE *ofd);
 
 /* from create_file.c */
-int create_file(JCR *jcr, char *fname, char *ofile, char *lname,
-                int type, int stream, struct stat *statp, 
-                char *attribsEx, BFILE *ofd, int replace);
+int    create_file       (JCR *jcr, ATTR *attr, BFILE *ofd, int replace);
 
 /* From find.c */
 FF_PKT *init_find_files();
-void set_find_options(FF_PKT *ff, int incremental, time_t mtime);
-int find_files(JCR *jcr, FF_PKT *ff, int sub(FF_PKT *ff_pkt, void *hpkt), void *pkt);
-int term_find_files(FF_PKT *ff);
+void  set_find_options(FF_PKT *ff, int incremental, time_t mtime, int mtime_only);
+int   find_files(JCR *jcr, FF_PKT *ff, int sub(FF_PKT *ff_pkt, void *hpkt), void *pkt);
+int   term_find_files(FF_PKT *ff);
 
 /* From match.c */
-void init_include_exclude_files(FF_PKT *ff);
-void term_include_exclude_files(FF_PKT *ff);
-void add_fname_to_include_list(FF_PKT *ff, int prefixed, char *fname);
-void add_fname_to_exclude_list(FF_PKT *ff, char *fname);
-int file_is_excluded(FF_PKT *ff, char *file);
-int file_is_included(FF_PKT *ff, char *file);
+void  init_include_exclude_files(FF_PKT *ff);
+void  term_include_exclude_files(FF_PKT *ff);
+void  add_fname_to_include_list(FF_PKT *ff, int prefixed, char *fname);
+void  add_fname_to_exclude_list(FF_PKT *ff, char *fname);
+int   file_is_excluded(FF_PKT *ff, char *file);
+int   file_is_included(FF_PKT *ff, char *file);
 struct s_included_file *get_next_included_file(FF_PKT *ff, 
                            struct s_included_file *inc);
 
 /* From find_one.c */
-int find_one_file(JCR *jcr, FF_PKT *ff, int handle_file(FF_PKT *ff_pkt, void *hpkt), 
+int   find_one_file(JCR *jcr, FF_PKT *ff, int handle_file(FF_PKT *ff_pkt, void *hpkt), 
                void *pkt, char *p, dev_t parent_device, int top_level);
-int term_find_one(FF_PKT *ff);
+int   term_find_one(FF_PKT *ff);
 
 
 /* From get_priv.c */
-int get_backup_privileges(JCR *jcr, int ignore_errors);
+int enable_backup_privileges(JCR *jcr, int ignore_errors);
 
 
 /* from makepath.c */

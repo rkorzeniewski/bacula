@@ -226,6 +226,7 @@ JCR *setup_jcr(char *name, char *device, BSR *bsr, char *VolumeName)
    if (!bsr && VolumeName) {
       pm_strcpy(&jcr->VolumeName, VolumeName);
    }
+   jcr->where = bstrdup("");
    return jcr;
 }
 
@@ -252,42 +253,4 @@ void display_tape_error_status(JCR *jcr, DEVICE *dev)
       Jmsg(jcr, M_ERROR, 0, _("Unexpected Tape is Off-line\n"));
    else
       Jmsg(jcr, M_ERROR, 0, _("Read error on Record Header %s: %s\n"), dev_name(dev), strerror(errno));
-}
-
-
-extern char *getuser(uid_t uid);
-extern char *getgroup(gid_t gid);
-
-void print_ls_output(char *fname, char *link, int type, struct stat *statp)
-{
-   char buf[1000]; 
-   char ec1[30];
-   char *p, *f;
-   int n;
-
-   p = encode_mode(statp->st_mode, buf);
-   n = sprintf(p, "  %2d ", (uint32_t)statp->st_nlink);
-   p += n;
-   n = sprintf(p, "%-8.8s %-8.8s", getuser(statp->st_uid), getgroup(statp->st_gid));
-   p += n;
-   n = sprintf(p, "%8.8s ", edit_uint64(statp->st_size, ec1));
-   p += n;
-   p = encode_time(statp->st_ctime, p);
-   *p++ = ' ';
-   *p++ = ' ';
-   /* Copy file name */
-   for (f=fname; *f && (p-buf) < (int)sizeof(buf); )
-      *p++ = *f++;
-   if (type == FT_LNK) {
-      *p++ = ' ';
-      *p++ = '-';
-      *p++ = '>';
-      *p++ = ' ';
-      /* Copy link name */
-      for (f=link; *f && (p-buf) < (int)sizeof(buf); )
-	 *p++ = *f++;
-   }
-   *p++ = '\n';
-   *p = 0;
-   fputs(buf, stdout);
 }

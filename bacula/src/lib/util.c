@@ -350,12 +350,6 @@ int do_shell_expansion(char *name, int name_len)
           if ((shellcmd = getenv("SHELL")) == NULL) {
              shellcmd = "/bin/sh";
 	  }
-#ifdef xxx
-	  close(1); dup(pfd[1]);	  /* attach pipes to stdout and stderr */
-	  close(2); dup(pfd[1]);
-	  for (i = 3; i < 32; i++)	  /* close everything else */
-	     close(i);
-#endif
 	  close(pfd[0]);		  /* close stdin */
 	  dup2(pfd[1], 1);		  /* attach to stdout */
 	  dup2(pfd[1], 2);		  /* and stderr */

@@ -521,8 +521,8 @@ static int db_create_file_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 
    /* Must create it */
    Mmsg(&mdb->cmd,
-"INSERT INTO File (FileIndex, JobId, PathId, FilenameId, \
-LStat, MD5) VALUES (%u, %u, %u, %u, '%s', '0')", 
+"INSERT INTO File (FileIndex,JobId,PathId,FilenameId,"
+"LStat,MD5) VALUES (%u,%u,%u,%u,'%s','0')", 
       ar->FileIndex, ar->JobId, ar->PathId, ar->FilenameId, 
       ar->attr);
 
@@ -589,7 +589,7 @@ static int db_create_path_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
       sql_free_result(mdb);
    }
 
-   Mmsg(&mdb->cmd, "INSERT INTO Path (Path)  VALUES ('%s')", mdb->esc_name);
+   Mmsg(&mdb->cmd, "INSERT INTO Path (Path) VALUES ('%s')", mdb->esc_name);
 
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db Path record %s failed. ERR=%s\n"), 

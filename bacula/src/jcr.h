@@ -117,6 +117,8 @@ struct JCR {
    char *sd_auth_key;                 /* SD auth key */
    MSGS *jcr_msgs;                    /* Copy of message resource -- actually used */
    uint32_t ClientId;                 /* Client associated with Job */
+   char *where;                       /* prefix to restore files to */
+   int prefix_links;                  /* Prefix links with Where path */
 
    /* Daemon specific part of JCR */
    /* This should be empty in the library */
@@ -148,7 +150,6 @@ struct JCR {
    POOLMEM *stime;                    /* start time for incremental/differential */
    JOB_DBR jr;                        /* Job record in Database */
    uint32_t RestoreJobId;             /* Id specified by UA */
-   char *RestoreWhere;                /* Where to restore the files */
    POOLMEM *client_uname;             /* client uname */ 
    int replace;                       /* Replace option */
    int acquired_resource_locks;       /* set if resource locks acquired */
@@ -170,9 +171,7 @@ struct JCR {
    char *big_buf;                     /* I/O buffer */
    POOLMEM *compress_buf;             /* Compression buffer */
    int32_t compress_buf_size;         /* Length of compression buffer */
-   POOLMEM *where;                    /* Root where to restore */
    int replace;                       /* Replace options */
-   int prefix_links;                  /* Prefix links with Where path */
    int buf_size;                      /* length of buffer */
    void *ff;                          /* Find Files packet */
    char stored_addr[MAX_NAME_LENGTH]; /* storage daemon address */

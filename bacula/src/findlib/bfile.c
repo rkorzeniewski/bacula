@@ -63,9 +63,42 @@ int set_win32_backup(BFILE *bfd, int enable)
    return bfd->use_backup_api;
 }
 
+/*
+ * Return 1 if we can do Win32 backup
+ * return 0 if not
+ */
 int is_win32_backup(void)
 {
    return p_BackupRead && p_BackupWrite;
+}
+
+int is_stream_supported(int stream)
+{
+   if (is_win32_backup()) {
+      return 1;
+   }
+   /* No Win32 backup on this machine */
+   switch (stream) {
+   case STREAM_WIN32_ATTRIBUTES:
+   case STREAM_WIN32_DATA:
+   case STREAM_WIN32_GZIP_DATA:
+      return 0;
+
+   /* Known streams */
+   case STREAM_UNIX_ATTRIBUTES:
+   case STREAM_FILE_DATA:
+   case STREAM_MD5_SIGNATURE:
+   case STREAM_GZIP_DATA:
+   case STREAM_UNIX_ATTRIBUTES_EX:
+   case STREAM_SPARSE_DATA:
+   case STREAM_SPARSE_GZIP_DATA:
+   case STREAM_PROGRAM_NAMES:
+   case STREAM_PROGRAM_DATA:
+   case STREAM_SHA1_SIGNATURE:
+      return 1;
+
+   }
+   return 0;
 }
 
 HANDLE bget_handle(BFILE *bfd)
@@ -308,6 +341,31 @@ int is_win32_backup(void)
    return 0;
 }
 
+int is_stream_supported(int stream)
+{
+   /* No Win32 backup on this machine */
+   switch (stream) {
+   case STREAM_WIN32_ATTRIBUTES:
+   case STREAM_WIN32_DATA:
+   case STREAM_WIN32_GZIP_DATA:
+      return 0;
+
+   /* Known streams */
+   case STREAM_UNIX_ATTRIBUTES:
+   case STREAM_FILE_DATA:
+   case STREAM_MD5_SIGNATURE:
+   case STREAM_GZIP_DATA:
+   case STREAM_UNIX_ATTRIBUTES_EX:
+   case STREAM_SPARSE_DATA:
+   case STREAM_SPARSE_GZIP_DATA:
+   case STREAM_PROGRAM_NAMES:
+   case STREAM_PROGRAM_DATA:
+   case STREAM_SHA1_SIGNATURE:
+      return 1;
+
+   }
+   return 0;
+}
 
 int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 {

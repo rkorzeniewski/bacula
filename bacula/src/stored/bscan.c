@@ -55,18 +55,18 @@ static int update_SIG_record(B_DB *db, char *SIGbuf, DEV_RECORD *rec, int type);
 
 /* Global variables */
 STORES *me;
+#ifdef HAVE_CYGWIN
+int win32_client = 1;
+#else
+int win32_client = 0;
+#endif
+
 
 /* Local variables */
 static DEVICE *dev = NULL;
 static B_DB *db;
 static JCR *bjcr;		      /* jcr for bscan */
 static BSR *bsr = NULL;
-static struct stat statp;
-static int type;
-static long record_file_index;
-static POOLMEM *fname;			     /* original file name */
-static POOLMEM *ofile;			     /* output name with prefix */
-static POOLMEM *lname;			     /* link name */
 static MEDIA_DBR mr;
 static POOL_DBR pr;
 static JOB_DBR jr;
@@ -76,6 +76,7 @@ static ATTR_DBR ar;
 static FILE_DBR fr;
 static SESSION_LABEL label;
 static SESSION_LABEL elabel;
+static ATTR *attr;
 
 static time_t lasttime = 0;
 
@@ -126,62 +127,62 @@ int main (int argc, char *argv[])
 
    while ((ch = getopt(argc, argv, "b:c:d:mn:p:rsu:vw:?")) != -1) {
       switch (ch) {
-         case 'b':
-	    bsr = parse_bsr(NULL, optarg);
-	    break;
+      case 'b':
+	 bsr = parse_bsr(NULL, optarg);
+	 break;
 
-         case 'c':                    /* specify config file */
-	    if (configfile != NULL) {
-	       free(configfile);
-	    }
-	    configfile = bstrdup(optarg);
-	    break;
+      case 'c':                    /* specify config file */
+	 if (configfile != NULL) {
+	    free(configfile);
+	 }
+	 configfile = bstrdup(optarg);
+	 break;
 
-         case 'd':                    /* debug level */
-	    debug_level = atoi(optarg);
-	    if (debug_level <= 0)
-	       debug_level = 1; 
-	    break;
+      case 'd':                    /* debug level */
+	 debug_level = atoi(optarg);
+	 if (debug_level <= 0)
+	    debug_level = 1; 
+	 break;
 
-         case 'm':
-	    update_vol_info = 1;
-	    break;
+      case 'm':
+	 update_vol_info = 1;
+	 break;
 
-         case 'n':
-	    db_name = optarg;
-	    break;
+      case 'n':
+	 db_name = optarg;
+	 break;
 
-         case 'u':
-	    db_user = optarg;
-	    break;
+      case 'u':
+	 db_user = optarg;
+	 break;
 
-         case 'p':
-	    db_password = optarg;
-	    break;
+      case 'p':
+	 db_password = optarg;
+	 break;
 
-         case 'r':
-	    list_records = 1;
-	    break;
+      case 'r':
+	 list_records = 1;
+	 break;
 
-         case 's':
-	    update_db = 1;
-	    break;
+      case 's':
+	 update_db = 1;
+	 break;
 
-         case 'v':
-	    verbose++;
-	    break;
+      case 'v':
+	 verbose++;
+	 break;
 
-         case 'V':                    /* Volume name */
-	    VolumeName = optarg;
-	    break;
+      case 'V':                    /* Volume name */
+	 VolumeName = optarg;
+	 break;
 
-         case 'w':
-	    wd = optarg;
-	    break;
+      case 'w':
+	 wd = optarg;
+	 break;
 
-         case '?':
-	 default:
-	    usage();
+      case '?':
+      default:
+	 usage();
 
       }  
    }
@@ -252,9 +253,7 @@ int main (int argc, char *argv[])
 
 static void do_scan()		  
 {
-   fname = get_pool_memory(PM_FNAME);
-   ofile = get_pool_memory(PM_FNAME);
-   lname = get_pool_memory(PM_FNAME);
+   attr = new_attr();
 
    memset(&ar, 0, sizeof(ar));
    memset(&pr, 0, sizeof(pr));
@@ -268,9 +267,7 @@ static void do_scan()
    read_records(bjcr, dev, record_cb, mount_next_read_volume);
    release_device(bjcr, dev);
 
-   free_pool_memory(fname);
-   free_pool_memory(ofile);
-   free_pool_memory(lname);
+   free_attr(attr);
    term_dev(dev);
 }
 
@@ -298,255 +295,225 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 dump_label_record(dev, rec, 1);
       }
       switch (rec->FileIndex) {
-	 case PRE_LABEL:
-            Pmsg0(000, _("Volume is prelabeled. This tape cannot be scanned.\n"));
+      case PRE_LABEL:
+         Pmsg0(000, _("Volume is prelabeled. This tape cannot be scanned.\n"));
+	 return;
+	 break;
+      case VOL_LABEL:
+	 unser_volume_label(dev, rec);
+	 /* Check Pool info */
+	 strcpy(pr.Name, dev->VolHdr.PoolName);
+	 strcpy(pr.PoolType, dev->VolHdr.PoolType);
+	 if (db_get_pool_record(bjcr, db, &pr)) {
+	    if (verbose) {
+               Pmsg1(000, _("Pool record for %s found in DB.\n"), pr.Name);
+	    }
+	 } else {
+	    if (!update_db) {
+               Pmsg1(000, _("VOL_LABEL: Pool record not found for Pool: %s\n"),
+		  pr.Name);
+	    }
+	    create_pool_record(db, &pr);
+	 }
+	 if (strcmp(pr.PoolType, dev->VolHdr.PoolType) != 0) {
+            Pmsg2(000, _("VOL_LABEL: PoolType mismatch. DB=%s Vol=%s\n"),
+	       pr.PoolType, dev->VolHdr.PoolType);
 	    return;
-	    break;
-	 case VOL_LABEL:
-	    unser_volume_label(dev, rec);
-	    /* Check Pool info */
-	    strcpy(pr.Name, dev->VolHdr.PoolName);
-	    strcpy(pr.PoolType, dev->VolHdr.PoolType);
-	    if (db_get_pool_record(bjcr, db, &pr)) {
-	       if (verbose) {
-                  Pmsg1(000, _("Pool record for %s found in DB.\n"), pr.Name);
-	       }
-	    } else {
-	       if (!update_db) {
-                  Pmsg1(000, _("VOL_LABEL: Pool record not found for Pool: %s\n"),
-		     pr.Name);
-	       }
-	       create_pool_record(db, &pr);
-	    }
-	    if (strcmp(pr.PoolType, dev->VolHdr.PoolType) != 0) {
-               Pmsg2(000, _("VOL_LABEL: PoolType mismatch. DB=%s Vol=%s\n"),
-		  pr.PoolType, dev->VolHdr.PoolType);
-	       return;
-	    } else if (verbose) {
-               Pmsg1(000, _("Pool type \"%s\" is OK.\n"), pr.PoolType);
-	    }
+	 } else if (verbose) {
+            Pmsg1(000, _("Pool type \"%s\" is OK.\n"), pr.PoolType);
+	 }
 
-	    /* Check Media Info */
-	    memset(&mr, 0, sizeof(mr));
-	    strcpy(mr.VolumeName, dev->VolHdr.VolName);
-	    mr.PoolId = pr.PoolId;
-	    if (db_get_media_record(bjcr, db, &mr)) {
-	       if (verbose) {
-                  Pmsg1(000, _("Media record for %s found in DB.\n"), mr.VolumeName);
-	       }
-	       /* Clear out some volume statistics that will be updated */
-	       mr.VolJobs = mr.VolFiles = mr.VolBlocks = 0;
-	       mr.VolBytes = rec->data_len + 20;
-	    } else {
-	       if (!update_db) {
-                  Pmsg1(000, _("VOL_LABEL: Media record not found for Volume: %s\n"),
-		     mr.VolumeName);
-	       }
-	       strcpy(mr.MediaType, dev->VolHdr.MediaType);
-	       create_media_record(db, &mr, &dev->VolHdr);
+	 /* Check Media Info */
+	 memset(&mr, 0, sizeof(mr));
+	 strcpy(mr.VolumeName, dev->VolHdr.VolName);
+	 mr.PoolId = pr.PoolId;
+	 if (db_get_media_record(bjcr, db, &mr)) {
+	    if (verbose) {
+               Pmsg1(000, _("Media record for %s found in DB.\n"), mr.VolumeName);
 	    }
-	    if (strcmp(mr.MediaType, dev->VolHdr.MediaType) != 0) {
-               Pmsg2(000, _("VOL_LABEL: MediaType mismatch. DB=%s Vol=%s\n"),
-		  mr.MediaType, dev->VolHdr.MediaType);
-	       return;
-	    } else if (verbose) {
-               Pmsg1(000, _("Media type \"%s\" is OK.\n"), mr.MediaType);
+	    /* Clear out some volume statistics that will be updated */
+	    mr.VolJobs = mr.VolFiles = mr.VolBlocks = 0;
+	    mr.VolBytes = rec->data_len + 20;
+	 } else {
+	    if (!update_db) {
+               Pmsg1(000, _("VOL_LABEL: Media record not found for Volume: %s\n"),
+		  mr.VolumeName);
 	    }
-	    /* Reset some JCR variables */
+	    strcpy(mr.MediaType, dev->VolHdr.MediaType);
+	    create_media_record(db, &mr, &dev->VolHdr);
+	 }
+	 if (strcmp(mr.MediaType, dev->VolHdr.MediaType) != 0) {
+            Pmsg2(000, _("VOL_LABEL: MediaType mismatch. DB=%s Vol=%s\n"),
+	       mr.MediaType, dev->VolHdr.MediaType);
+	    return;
+	 } else if (verbose) {
+            Pmsg1(000, _("Media type \"%s\" is OK.\n"), mr.MediaType);
+	 }
+	 /* Reset some JCR variables */
+	 for (mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
+	    mjcr->VolFirstIndex = mjcr->FileIndex = 0;
+	    mjcr->StartBlock = mjcr->EndBlock = 0;
+	    mjcr->StartFile = mjcr->EndFile = 0;
+	 }
+
+         Pmsg1(000, _("VOL_LABEL: OK for Volume: %s\n"), mr.VolumeName);
+	 break;
+      case SOS_LABEL:
+	 mr.VolJobs++;
+	 if (ignored_msgs > 0) {
+            Pmsg1(000, _("%d \"errors\" ignored before first Start of Session record.\n"), 
+		  ignored_msgs);
+	    ignored_msgs = 0;
+	 }
+	 unser_session_label(&label, rec);
+	 memset(&jr, 0, sizeof(jr));
+	 jr.JobId = label.JobId;
+	 if (db_get_job_record(bjcr, db, &jr)) {
+	    /* Job record already exists in DB */
+            update_db = 0;  /* don't change db in create_job_record */
+	    if (verbose) {
+               Pmsg1(000, _("SOS_LABEL: Found Job record for JobId: %d\n"), jr.JobId);
+	    }
+	 } else {
+	    /* Must create a Job record in DB */
+	    if (!update_db) {
+               Pmsg1(000, _("SOS_LABEL: Job record not found for JobId: %d\n"),
+		  jr.JobId);
+	    }
+	 }
+	 /* Create Client record if not already there */
+	    strcpy(cr.Name, label.ClientName);
+	    create_client_record(db, &cr);
+	    jr.ClientId = cr.ClientId;
+
+         /* process label, if Job record exists don't update db */
+	 mjcr = create_job_record(db, &jr, &label, rec);
+	 update_db = save_update_db;
+
+	 jr.PoolId = pr.PoolId;
+	 /* Set start positions into JCR */
+	 if (dev->state & ST_TAPE) {
+	    mjcr->StartBlock = dev->block_num;
+	    mjcr->StartFile = dev->file;
+	 } else {
+	    mjcr->StartBlock = (uint32_t)dev->file_addr;
+	    mjcr->StartFile = (uint32_t)(dev->file_addr >> 32);
+	 }
+	 mjcr->start_time = jr.StartTime;
+	 mjcr->JobLevel = jr.Level;
+
+	 mjcr->client_name = get_pool_memory(PM_FNAME);
+	 pm_strcpy(&mjcr->client_name, label.ClientName);
+	 mjcr->pool_type = get_pool_memory(PM_FNAME);
+	 pm_strcpy(&mjcr->pool_type, label.PoolType);
+	 mjcr->fileset_name = get_pool_memory(PM_FNAME);
+	 pm_strcpy(&mjcr->fileset_name, label.FileSetName);
+	 mjcr->pool_name = get_pool_memory(PM_FNAME);
+	 pm_strcpy(&mjcr->pool_name, label.PoolName);
+
+	 if (rec->VolSessionId != jr.VolSessionId) {
+            Pmsg3(000, _("SOS_LABEL: VolSessId mismatch for JobId=%u. DB=%d Vol=%d\n"),
+	       jr.JobId,
+	       jr.VolSessionId, rec->VolSessionId);
+	    return;
+	 }
+	 if (rec->VolSessionTime != jr.VolSessionTime) {
+            Pmsg3(000, _("SOS_LABEL: VolSessTime mismatch for JobId=%u. DB=%d Vol=%d\n"),
+	       jr.JobId,
+	       jr.VolSessionTime, rec->VolSessionTime);
+	    return;
+	 }
+	 if (jr.PoolId != pr.PoolId) {
+            Pmsg3(000, _("SOS_LABEL: PoolId mismatch for JobId=%u. DB=%d Vol=%d\n"),
+	       jr.JobId,
+	       jr.PoolId, pr.PoolId);
+	    return;
+	 }
+	 break;
+      case EOS_LABEL:
+	 unser_session_label(&elabel, rec);
+
+	 /* Create FileSet record */
+	 strcpy(fsr.FileSet, label.FileSetName);
+	 strcpy(fsr.MD5, label.FileSetMD5);
+	 create_fileset_record(db, &fsr);
+	 jr.FileSetId = fsr.FileSetId;
+
+	 mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
+	 if (!mjcr) {
+            Pmsg2(000, _("Could not find SessId=%d SessTime=%d for EOS record.\n"),
+		  rec->VolSessionId, rec->VolSessionTime);
+	    break;
+	 }
+
+	 /* Do the final update to the Job record */
+	 update_job_record(db, &jr, &elabel, rec);
+
+	 mjcr->end_time = jr.EndTime;
+	 mjcr->JobStatus = JS_Terminated;
+
+	 /* Create JobMedia record */
+	 create_jobmedia_record(db, mjcr);
+	 detach_jcr_from_device(dev, mjcr);
+	 free_jcr(mjcr);
+
+	 break;
+      case EOM_LABEL:
+	 break;
+      case EOT_LABEL:		   /* end of all tapes */
+	 /* 
+	  * Wiffle through all jobs still open and close
+	  *   them.
+	  */
+	 if (update_db) {
 	    for (mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
-	       mjcr->VolFirstIndex = mjcr->FileIndex = 0;
-	       mjcr->StartBlock = mjcr->EndBlock = 0;
-	       mjcr->StartFile = mjcr->EndFile = 0;
-	    }
-
-            Pmsg1(000, _("VOL_LABEL: OK for Volume: %s\n"), mr.VolumeName);
-	    break;
-	 case SOS_LABEL:
-	    mr.VolJobs++;
-	    if (ignored_msgs > 0) {
-               Pmsg1(000, _("%d \"errors\" ignored before first Start of Session record.\n"), 
-		     ignored_msgs);
-	       ignored_msgs = 0;
-	    }
-	    unser_session_label(&label, rec);
-	    memset(&jr, 0, sizeof(jr));
-	    jr.JobId = label.JobId;
-	    if (db_get_job_record(bjcr, db, &jr)) {
-	       /* Job record already exists in DB */
-               update_db = 0;  /* don't change db in create_job_record */
-	       if (verbose) {
-                  Pmsg1(000, _("SOS_LABEL: Found Job record for JobId: %d\n"), jr.JobId);
-	       }
-	    } else {
-	       /* Must create a Job record in DB */
-	       if (!update_db) {
-                  Pmsg1(000, _("SOS_LABEL: Job record not found for JobId: %d\n"),
-		     jr.JobId);
+	       jr.JobId = mjcr->JobId;
+	       jr.JobStatus = JS_ErrorTerminated;
+	       jr.JobFiles = mjcr->JobFiles;
+	       jr.JobBytes = mjcr->JobBytes;
+	       jr.VolSessionId = mjcr->VolSessionId;
+	       jr.VolSessionTime = mjcr->VolSessionTime;
+	       jr.JobTDate = (utime_t)mjcr->start_time;
+	       jr.ClientId = mjcr->ClientId;
+	       free_jcr(mjcr);
+	       if (!db_update_job_end_record(bjcr, db, &jr)) {
+                  Pmsg1(0, _("Could not update job record. ERR=%s\n"), db_strerror(db));
 	       }
 	    }
-	    /* Create Client record if not already there */
-	       strcpy(cr.Name, label.ClientName);
-	       create_client_record(db, &cr);
-	       jr.ClientId = cr.ClientId;
-
-            /* process label, if Job record exists don't update db */
-	    mjcr = create_job_record(db, &jr, &label, rec);
-	    update_db = save_update_db;
-
-	    jr.PoolId = pr.PoolId;
-	    /* Set start positions into JCR */
-	    if (dev->state & ST_TAPE) {
-	       mjcr->StartBlock = dev->block_num;
-	       mjcr->StartFile = dev->file;
-	    } else {
-	       mjcr->StartBlock = (uint32_t)dev->file_addr;
-	       mjcr->StartFile = (uint32_t)(dev->file_addr >> 32);
-	    }
-	    mjcr->start_time = jr.StartTime;
-	    mjcr->JobLevel = jr.Level;
-
-	    mjcr->client_name = get_pool_memory(PM_FNAME);
-	    pm_strcpy(&mjcr->client_name, label.ClientName);
-	    mjcr->pool_type = get_pool_memory(PM_FNAME);
-	    pm_strcpy(&mjcr->pool_type, label.PoolType);
-	    mjcr->fileset_name = get_pool_memory(PM_FNAME);
-	    pm_strcpy(&mjcr->fileset_name, label.FileSetName);
-	    mjcr->pool_name = get_pool_memory(PM_FNAME);
-	    pm_strcpy(&mjcr->pool_name, label.PoolName);
-
-	    if (rec->VolSessionId != jr.VolSessionId) {
-               Pmsg3(000, _("SOS_LABEL: VolSessId mismatch for JobId=%u. DB=%d Vol=%d\n"),
-		  jr.JobId,
-		  jr.VolSessionId, rec->VolSessionId);
-	       return;
-	    }
-	    if (rec->VolSessionTime != jr.VolSessionTime) {
-               Pmsg3(000, _("SOS_LABEL: VolSessTime mismatch for JobId=%u. DB=%d Vol=%d\n"),
-		  jr.JobId,
-		  jr.VolSessionTime, rec->VolSessionTime);
-	       return;
-	    }
-	    if (jr.PoolId != pr.PoolId) {
-               Pmsg3(000, _("SOS_LABEL: PoolId mismatch for JobId=%u. DB=%d Vol=%d\n"),
-		  jr.JobId,
-		  jr.PoolId, pr.PoolId);
-	       return;
-	    }
-	    break;
-	 case EOS_LABEL:
-	    unser_session_label(&elabel, rec);
-
-	    /* Create FileSet record */
-	    strcpy(fsr.FileSet, label.FileSetName);
-	    strcpy(fsr.MD5, label.FileSetMD5);
-	    create_fileset_record(db, &fsr);
-	    jr.FileSetId = fsr.FileSetId;
-
-	    mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
-	    if (!mjcr) {
-               Pmsg2(000, _("Could not find SessId=%d SessTime=%d for EOS record.\n"),
-		     rec->VolSessionId, rec->VolSessionTime);
-	       break;
-	    }
-
-	    /* Do the final update to the Job record */
-	    update_job_record(db, &jr, &elabel, rec);
-
-	    mjcr->end_time = jr.EndTime;
-	    mjcr->JobStatus = JS_Terminated;
-
-	    /* Create JobMedia record */
-	    create_jobmedia_record(db, mjcr);
-	    detach_jcr_from_device(dev, mjcr);
-	    free_jcr(mjcr);
-
-	    break;
-	 case EOM_LABEL:
-	    break;
-	 case EOT_LABEL:	      /* end of all tapes */
-	    /* 
-	     * Wiffle through all jobs still open and close
-	     *	 them.
-	     */
-	    if (update_db) {
-	       for (mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
-		  jr.JobId = mjcr->JobId;
-		  jr.JobStatus = JS_ErrorTerminated;
-		  jr.JobFiles = mjcr->JobFiles;
-		  jr.JobBytes = mjcr->JobBytes;
-		  jr.VolSessionId = mjcr->VolSessionId;
-		  jr.VolSessionTime = mjcr->VolSessionTime;
-		  jr.JobTDate = (utime_t)mjcr->start_time;
-		  jr.ClientId = mjcr->ClientId;
-		  free_jcr(mjcr);
-		  if (!db_update_job_end_record(bjcr, db, &jr)) {
-                     Pmsg1(0, _("Could not update job record. ERR=%s\n"), db_strerror(db));
-		  }
-	       }
-	    }
-	    mr.VolFiles = rec->File;
-	    mr.VolBlocks = rec->Block;
-	    mr.VolBytes += mr.VolBlocks * WRITE_BLKHDR_LENGTH; /* approx. */
-	    mr.VolMounts++;
-	    update_media_record(db, &mr);
-            Pmsg3(0, _("End of Volume. VolFiles=%u VolBlocks=%u VolBytes=%s\n"), mr.VolFiles,
-		       mr.VolBlocks, edit_uint64_with_commas(mr.VolBytes, ec1));
-	    break;
-	 default:
-	    break;
-      }
+	 }
+	 mr.VolFiles = rec->File;
+	 mr.VolBlocks = rec->Block;
+	 mr.VolBytes += mr.VolBlocks * WRITE_BLKHDR_LENGTH; /* approx. */
+	 mr.VolMounts++;
+	 update_media_record(db, &mr);
+         Pmsg3(0, _("End of Volume. VolFiles=%u VolBlocks=%u VolBytes=%s\n"), mr.VolFiles,
+		    mr.VolBlocks, edit_uint64_with_commas(mr.VolBytes, ec1));
+	 break;
+      default:
+	 break;
+      } /* end switch */
       return;
    }
 
 
    /* File Attributes stream */
-   if (rec->Stream == STREAM_UNIX_ATTRIBUTES || rec->Stream == STREAM_WIN32_ATTRIBUTES) {
-      char *ap, *lp, *fp;
+   switch (rec->Stream) {
+   case STREAM_UNIX_ATTRIBUTES:   
+   case STREAM_UNIX_ATTRIBUTES_EX:  
 
-      if (sizeof_pool_memory(fname) < rec->data_len) {
-	 fname = realloc_pool_memory(fname, rec->data_len + 1);
+      if (!unpack_attributes_record(bjcr, rec->Stream, rec->data, attr)) {
+         Emsg0(M_ERROR_TERM, 0, _("Cannot continue.\n"));
       }
-      if (sizeof_pool_memory(lname) < rec->data_len) {
-	 lname = realloc_pool_memory(lname, rec->data_len + 1);
-      }
-      *fname = 0;
-      *lname = 0;
 
-      /*	      
-       * An Attributes record consists of:
-       *    File_index
-       *    Type   (FT_types)
-       *    Filename
-       *    Attributes
-       *    Link name (if file linked i.e. FT_LNK)
-       *
-       */
-      sscanf(rec->data, "%ld %d", &record_file_index, &type);
-      if (record_file_index != rec->FileIndex)
-         Emsg2(M_ERROR_TERM, 0, "Record header file index %ld not equal record index %ld\n",
-	    rec->FileIndex, record_file_index);
-      ap = rec->data;
-      while (*ap++ != ' ')         /* skip record file index */
-	 ;
-      while (*ap++ != ' ')         /* skip type */
-	 ;
-      /* Save filename and position to attributes */
-      fp = fname;
-      while (*ap != 0) {
-	 *fp++	= *ap++;
+      if (attr->file_index != rec->FileIndex) {
+         Emsg2(M_ERROR_TERM, 0, _("Record header file index %ld not equal record index %ld\n"),
+	    rec->FileIndex, attr->file_index);
       }
-      *fp = *ap++;		   /* terminate filename & point to attribs */
-
-      /* Skip through attributes to link name */
-      lp = ap;
-      while (*lp++ != 0) {
-	 ;
-      }
-      strcat(lname, lp);        /* "save" link name */
+       
       if (verbose > 1) {
 	 uint32_t LinkFI;
-	 decode_stat(ap, &statp, &LinkFI);
-	 print_ls_output(fname, lname, type, &statp);	
+	 decode_stat(attr->attr, &attr->statp, &LinkFI);
+	 print_ls_output(bjcr, attr);
       }
       mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
       if (!mjcr) {
@@ -560,17 +527,21 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       }
       fr.JobId = mjcr->JobId;
       fr.FileId = 0;
-      if (db_get_file_attributes_record(bjcr, db, fname, &fr)) {
+      if (db_get_file_attributes_record(bjcr, db, attr->fname, &fr)) {
 	 if (verbose > 1) {
-            Pmsg1(000, _("File record already exists for: %s\n"), fname);
+            Pmsg1(000, _("File record already exists for: %s\n"), attr->fname);
 	 }
       } else {
-	 create_file_attributes_record(db, mjcr, fname, lname, type, ap, rec);
+	 create_file_attributes_record(db, mjcr, attr->fname, attr->lname, 
+	    attr->type, attr->attr, rec);
       }
       free_jcr(mjcr);
+      break;
 
    /* Data stream */
-   } else if (rec->Stream == STREAM_FILE_DATA) {
+   case STREAM_WIN32_DATA:
+   case STREAM_FILE_DATA:
+   case STREAM_SPARSE_DATA:
       mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
       if (!mjcr) {
 	 if (mr.VolJobs > 0) {
@@ -582,23 +553,14 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 return;
       }
       mjcr->JobBytes += rec->data_len;
-      free_jcr(mjcr);		      /* done using JCR */
-
-   } else if (rec->Stream == STREAM_SPARSE_DATA) {
-      mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
-      if (!mjcr) {
-	 if (mr.VolJobs > 0) {
-            Pmsg2(000, _("Could not find Job SessId=%d SessTime=%d for Sparse Data record.\n"),
-			 rec->VolSessionId, rec->VolSessionTime);
-	 } else {
-	    ignored_msgs++;
-	 }
-	 return;
+      if (rec->Stream == STREAM_SPARSE_DATA) {
+	 mjcr->JobBytes -= sizeof(uint64_t);
       }
-      mjcr->JobBytes += rec->data_len - sizeof(uint64_t);
+	 
       free_jcr(mjcr);		      /* done using JCR */
+      break;
 
-   } else if (rec->Stream == STREAM_GZIP_DATA) {
+   case STREAM_GZIP_DATA:
       mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
       if (!mjcr) {
 	 if (mr.VolJobs > 0) {
@@ -611,8 +573,9 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       }
       mjcr->JobBytes += rec->data_len; /* No correct, we should expand it */
       free_jcr(mjcr);		      /* done using JCR */
+      break;
 
-   } else if (rec->Stream == STREAM_SPARSE_GZIP_DATA) {
+   case STREAM_SPARSE_GZIP_DATA:
       mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
       if (!mjcr) {
 	 if (mr.VolJobs > 0) {
@@ -625,24 +588,10 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       }
       mjcr->JobBytes += rec->data_len - sizeof(uint64_t); /* No correct, we should expand it */
       free_jcr(mjcr);		      /* done using JCR */
-
-   /* Win32 Data stream */
-   } else if (rec->Stream == STREAM_WIN32_DATA) {
-      mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
-      if (!mjcr) {
-	 if (mr.VolJobs > 0) {
-            Pmsg2(000, _("Could not find Job SessId=%d SessTime=%d for Win32 Data record.\n"),
-			 rec->VolSessionId, rec->VolSessionTime);
-	 } else {
-	    ignored_msgs++;
-	 }
-	 return;
-      }
-      mjcr->JobBytes += rec->data_len;
-      free_jcr(mjcr);		      /* done using JCR */
+      break;
 
    /* Win32 GZIP stream */
-   } else if (rec->Stream == STREAM_WIN32_GZIP_DATA) {
+   case STREAM_WIN32_GZIP_DATA:
       mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
       if (!mjcr) {
 	 if (mr.VolJobs > 0) {
@@ -655,34 +604,41 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       }
       mjcr->JobBytes += rec->data_len;
       free_jcr(mjcr);		      /* done using JCR */
+      break;
 
-   } else if (rec->Stream == STREAM_MD5_SIGNATURE) {
+   case STREAM_MD5_SIGNATURE:
       char MD5buf[50];
       bin_to_base64(MD5buf, (char *)rec->data, 16); /* encode 16 bytes */
       if (verbose > 1) {
          Pmsg1(000, _("Got MD5 record: %s\n"), MD5buf);
       }
       update_SIG_record(db, MD5buf, rec, MD5_SIG);
+      break;
 
-   } else if (rec->Stream == STREAM_SHA1_SIGNATURE) {
+   case STREAM_SHA1_SIGNATURE:
       char SIGbuf[50];
       bin_to_base64(SIGbuf, (char *)rec->data, 20); /* encode 20 bytes */
       if (verbose > 1) {
          Pmsg1(000, _("Got SHA1 record: %s\n"), SIGbuf);
       }
       update_SIG_record(db, SIGbuf, rec, SHA1_SIG);
+      break;
 
 
-   } else if (rec->Stream == STREAM_PROGRAM_NAMES) {
+   case STREAM_PROGRAM_NAMES:
       if (verbose) {
          Pmsg1(000, _("Got Prog Names Stream: %s\n"), rec->data);
       }
-   } else if (rec->Stream == STREAM_PROGRAM_DATA) {
+      break;
+
+   case STREAM_PROGRAM_DATA:
       if (verbose > 1) {
          Pmsg0(000, _("Got Prog Data Stream record.\n"));
       }
-   } else {
+      break;
+   default:
       Pmsg2(0, _("Unknown stream type!!! stream=%d data=%s\n"), rec->Stream, rec->data);
+      break;
    }
    return;
 }

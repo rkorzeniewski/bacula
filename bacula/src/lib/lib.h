@@ -50,5 +50,6 @@
 #include "tree.h"
 #include "watchdog.h"
 #include "bpipe.h"
+#include "attr.h"
 
 #include "protos.h"

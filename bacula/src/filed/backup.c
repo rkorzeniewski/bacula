@@ -71,7 +71,7 @@ int blast_data_to_storage_daemon(JCR *jcr, char *addr)
    jcr->compress_buf = get_memory(jcr->compress_buf_size);
 
    Dmsg1(100, "set_find_options ff=%p\n", jcr->ff);
-   set_find_options((FF_PKT *)jcr->ff, jcr->incremental, jcr->mtime);
+   set_find_options((FF_PKT *)jcr->ff, jcr->incremental, jcr->mtime, jcr->mtime_only);
    Dmsg0(110, "start find files\n");
 
    start_heartbeat_monitor(jcr);

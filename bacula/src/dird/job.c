@@ -565,9 +565,6 @@ void dird_free_jcr(JCR *jcr)
       Dmsg0(200, "Close DB\n");
       db_close_database(jcr, jcr->db);
    }
-   if (jcr->RestoreWhere) {
-      free(jcr->RestoreWhere);
-   }
    if (jcr->RestoreBootstrap) {
       free(jcr->RestoreBootstrap);
    }

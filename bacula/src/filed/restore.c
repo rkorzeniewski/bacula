@@ -33,7 +33,6 @@
 static char rec_header[] = "rechdr %ld %ld %ld %ld %ld";
 
 /* Forward referenced functions */
-static void print_ls_output(JCR *jcr, char *fname, char *lname, int type, struct stat *statp);
 
 #define RETRY 10		      /* retry wait time */
 
@@ -45,22 +44,21 @@ void do_restore(JCR *jcr)
 {
    int wherelen;
    BSOCK *sd;
-   POOLMEM *fname;		      /* original file name */
-   POOLMEM *ofile;		      /* output name with possible prefix */
-   POOLMEM *lname;		      /* link name with possible prefix */
-   POOLMEM *attribsEx;		      /* Extended attributes (Win32) */
    int32_t stream;
    uint32_t size;
-   uint32_t VolSessionId, VolSessionTime, file_index;
-   uint32_t record_file_index;
-   struct stat statp;
+   uint32_t VolSessionId, VolSessionTime;
+   int32_t file_index;
    int extract = FALSE;
    BFILE bfd;
-   int type, stat;
+   int stat;
    uint32_t total = 0;		      /* Job total but only 32 bits for debug */
    char *wbuf;			      /* write buffer */
    uint32_t wsize;		      /* write size */
    uint64_t fileAddr = 0;	      /* file write address */
+   int non_support_data = 0;
+   int non_support_attr = 0;
+   int prog_name_msg = 0;
+   ATTR *attr;
    
    wherelen = strlen(jcr->where);
 
@@ -74,10 +72,7 @@ void do_restore(JCR *jcr)
    }
    jcr->buf_size = sd->msglen;
 
-   fname = get_pool_memory(PM_FNAME);
-   ofile = get_pool_memory(PM_FNAME);
-   lname = get_pool_memory(PM_FNAME);
-   attribsEx = get_pool_memory(PM_FNAME);
+   attr = new_attr();
 
 #ifdef HAVE_LIBZ
    uint32_t compress_buf_size = jcr->buf_size + 12 + ((jcr->buf_size+999) / 1000) + 100;
@@ -119,8 +114,9 @@ void do_restore(JCR *jcr)
       Dmsg1(30, "Got stream data, len=%d\n", sd->msglen);
 
       /* File Attributes stream */
-      if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_WIN32_ATTRIBUTES) {
-	 char *ap, *lp, *fp, *apex;
+      switch (stream) {
+      case STREAM_UNIX_ATTRIBUTES:
+      case STREAM_UNIX_ATTRIBUTES_EX:
 	 uint32_t LinkFI;
 
          Dmsg1(30, "Stream=Unix Attributes. extract=%d\n", extract);
@@ -131,149 +127,33 @@ void do_restore(JCR *jcr)
 	    if (!is_bopen(&bfd)) {
                Jmsg0(jcr, M_ERROR, 0, _("Logic error output file should be open\n"));
 	    }
-	    set_attributes(jcr, fname, ofile, lname, type, stream, 
-			   &statp, attribsEx, &bfd);
+	    set_attributes(jcr, attr, &bfd);
 	    extract = FALSE;
             Dmsg0(30, "Stop extracting.\n");
 	 }
 
-	 if ((int)sizeof_pool_memory(fname) <  sd->msglen) {
-	    fname = realloc_pool_memory(fname, sd->msglen + 1);
-	 }
-	 if ((int)sizeof_pool_memory(ofile) < sd->msglen + wherelen + 1) {
-	    ofile = realloc_pool_memory(ofile, sd->msglen + wherelen + 1);
-	 }
-	 if ((int)sizeof_pool_memory(lname) < sd->msglen + wherelen + 1) {
-	    lname = realloc_pool_memory(lname, sd->msglen + wherelen + 1);
-	 }
-	 *fname = 0;
-	 *lname = 0;
-
-	 /*		 
-	  * An Attributes record consists of:
-	  *    File_index
-	  *    Type   (FT_types)
-	  *    Filename
-	  *    Attributes
-	  *    Link name (if file linked i.e. FT_LNK)
-	  *    Extended attributes (Win32)
-	  *
-	  */
-         Dmsg1(100, "Attr: %s\n", sd->msg);
-         if (sscanf(sd->msg, "%d %d", &record_file_index, &type) != 2) {
-            Jmsg(jcr, M_FATAL, 0, _("Error scanning attributes: %s\n"), sd->msg);
-            Dmsg1(100, "\nError scanning attributes. %s\n", sd->msg);
+	 if (!unpack_attributes_record(jcr, stream, sd->msg, attr)) {
 	    goto bail_out;
 	 }
-         Dmsg2(100, "Got Attr: FilInx=%d type=%d\n", record_file_index, type);
-	 if (record_file_index != file_index) {
+	 if (file_index != attr->file_index) {
             Jmsg(jcr, M_FATAL, 0, _("Record header file index %ld not equal record index %ld\n"),
-	       file_index, record_file_index);
+		 file_index, attr->file_index);
             Dmsg0(100, "File index error\n");
 	    goto bail_out;
 	 }
-	 ap = sd->msg;
-         while (*ap++ != ' ')         /* skip record file index */
-	    ;
-         while (*ap++ != ' ')         /* skip type */
-	    ;
-	 /* Save filename and position to attributes */
-	 fp = fname;
-	 while (*ap != 0) {
-	    *fp++  = *ap++;	      /* copy filename to fname */
-	 }
-	 *fp = *ap++;		      /* terminate filename & point to attribs */
+	    
+         Dmsg3(200, "File %s\nattrib=%s\nattribsEx=%s\n", attr->fname, 
+	       attr->attr, attr->attrEx);
 
-	 /* Skip to Link name */
-	 if (type == FT_LNK || type == FT_LNKSAVED) {
-	    lp = ap;
-	    while (*lp++ != 0) {
-	       ;
-	    }
-	 } else {
-            lp = "";
-	 }
+	 decode_stat(attr->attr, &attr->statp, &LinkFI);
 
-	 if (stream == STREAM_WIN32_ATTRIBUTES) {
-	    apex = ap;			 /* start at attributes */
-	    while (*apex++ != 0) {	 /* skip attributes */
-	       ;
-	    }
-	    while (*apex++ != 0) {	 /* skip link name */
-	       ;
-	    }
-	    pm_strcpy(&attribsEx, apex); /* make a copy */
-	 } else {
-	    *attribsEx = 0;		 /* no extended attributes */
-	 }
+	 build_attr_output_fnames(jcr, attr);
 
-         Dmsg3(200, "File %s\nattrib=%s\nattribsEx=%s\n", fname, ap, attribsEx);
-
-	 decode_stat(ap, &statp, &LinkFI);
-	 /*
-	  * Prepend the where directory so that the
-	  * files are put where the user wants.
-	  *
-	  * We do a little jig here to handle Win32 files with
-	  *   a drive letter -- we simply strip the drive: from
-	  *   every filename if a prefix is supplied.
-	  *	
-	  */
-	 if (jcr->where[0] == 0) {
-	    strcpy(ofile, fname);
-	    strcpy(lname, lp);
-	 } else {
-	    char *fn;
-	    strcpy(ofile, jcr->where);	/* copy prefix */
-            if (win32_client && fname[1] == ':') {
-	       fn = fname+2;	      /* skip over drive: */
-	    } else {
-	       fn = fname;	      /* take whole name */
-	    }
-	    /* Ensure where is terminated with a slash */
-            if (jcr->where[wherelen-1] != '/' && fn[0] != '/') {
-               strcat(ofile, "/");
-	    }	
-	    strcat(ofile, fn);	      /* copy rest of name */
-	    /*
-	     * Fixup link name -- if it is an absolute path
-	     */
-	    if (type == FT_LNKSAVED || type == FT_LNK) {
-	       int add_link;
-	       /* Always add prefix to hard links (FT_LNKSAVED) and
-		*  on user request to soft links
-		*/
-               if (lp[0] == '/' &&
-		   (type == FT_LNKSAVED || jcr->prefix_links)) {
-		  strcpy(lname, jcr->where);
-		  add_link = 1;
-	       } else {
-		  lname[0] = 0;
-		  add_link = 0;
-	       }
-               if (win32_client && lp[1] == ':') {
-		  fn = lp+2;		 /* skip over drive: */
-	       } else {
-		  fn = lp;		 /* take whole name */
-	       }
-	       /* Ensure where is terminated with a slash */
-               if (add_link && jcr->where[wherelen-1] != '/' && fn[0] != '/') {
-                  strcat(lname, "/");
-	       }   
-	       strcat(lname, fn);     /* copy rest of link */
-	    }
-	 }
-
-	 P(jcr->mutex);
-	 pm_strcpy(&jcr->last_fname, fname);
-	 V(jcr->mutex);
 	 jcr->num_files_examined++;
 
-         Dmsg1(30, "Outfile=%s\n", ofile);
+         Dmsg1(30, "Outfile=%s\n", attr->ofname);
 	 extract = FALSE;
-	 stat = create_file(jcr, fname, ofile, lname, type, 
-			    stream, &statp, attribsEx, &bfd, 
-			    jcr->replace);
+	 stat = create_file(jcr, attr, &bfd, jcr->replace);
 	 switch (stat) {
 	 case CF_ERROR:
 	 case CF_SKIP:
@@ -281,32 +161,43 @@ void do_restore(JCR *jcr)
 	 case CF_EXTRACT:
 	    extract = TRUE;
 	    P(jcr->mutex);
-	    pm_strcpy(&jcr->last_fname, ofile);
+	    pm_strcpy(&jcr->last_fname, attr->ofname);
 	    V(jcr->mutex);
 	    jcr->JobFiles++;
 	    fileAddr = 0;
-	    print_ls_output(jcr, ofile, lname, type, &statp);
+	    print_ls_output(jcr, attr);
 	    /* Set attributes after file extracted */
 	    break;
 	 case CF_CREATED:
+	    P(jcr->mutex);
+	    pm_strcpy(&jcr->last_fname, attr->ofname);
+	    V(jcr->mutex);
 	    jcr->JobFiles++;
 	    fileAddr = 0;
-	    print_ls_output(jcr, ofile, lname, type, &statp);
+	    print_ls_output(jcr, attr);
 	    /* set attributes now because file will not be extracted */
-	    set_attributes(jcr, fname, ofile, lname, type, stream, 
-			   &statp, attribsEx, &bfd);
+	    set_attributes(jcr, attr, &bfd);
 	    break;
 	 }  
+	 break;
 
-
-      /* Data stream */
-      } else if (stream == STREAM_FILE_DATA || stream == STREAM_SPARSE_DATA ||
-		 stream == STREAM_WIN32_DATA) {
-	 if (stream == STREAM_WIN32_DATA && !is_win32_backup()) {
-            Jmsg(jcr, M_ERROR, 0, _("Win32 backup data not supported on this Client.\n"));
+      /* Windows Backup data stream */
+      case STREAM_WIN32_DATA:  
+	 if (!is_win32_backup()) {
+	    if (!non_support_data) {
+               Jmsg(jcr, M_ERROR, 0, _("Win32 backup data not supported on this Client.\n"));
+	    }
 	    extract = FALSE;
+	    non_support_data++;
 	    continue;
 	 }
+	 goto extract_data;
+
+      /* Data stream */
+      case STREAM_FILE_DATA:
+      case STREAM_SPARSE_DATA:	
+
+extract_data:
 	 if (extract) {
 	    if (stream == STREAM_SPARSE_DATA) {
 	       ser_declare;
@@ -321,7 +212,7 @@ void do_restore(JCR *jcr)
 		  fileAddr = faddr;
 		  if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
                      Jmsg3(jcr, M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"),
-			 edit_uint64(fileAddr, ec1), ofile, berror(&bfd));
+			 edit_uint64(fileAddr, ec1), attr->ofname, berror(&bfd));
 		     extract = FALSE;
 		     continue;
 		  }
@@ -333,7 +224,7 @@ void do_restore(JCR *jcr)
             Dmsg2(30, "Write %u bytes, total before write=%u\n", wsize, total);
 	    if ((uint32_t)bwrite(&bfd, wbuf, wsize) != wsize) {
                Dmsg0(0, "===Write error===\n");
-               Jmsg2(jcr, M_ERROR, 0, _("Write error on %s: ERR=%s\n"), ofile, berror(&bfd));
+               Jmsg2(jcr, M_ERROR, 0, _("Write error on %s: ERR=%s\n"), attr->ofname, berror(&bfd));
 	       extract = FALSE;
 	       continue;
 	    } 
@@ -342,15 +233,23 @@ void do_restore(JCR *jcr)
 	    jcr->ReadBytes += wsize;
 	    fileAddr += wsize;
 	 }
-	
-      /* GZIP data stream */
-      } else if (stream == STREAM_GZIP_DATA || stream == STREAM_SPARSE_GZIP_DATA ||
-		 stream == STREAM_WIN32_GZIP_DATA) {
-	 if (stream == STREAM_WIN32_GZIP_DATA && !is_win32_backup()) {
-            Jmsg(jcr, M_ERROR, 0, _("Win32 GZIP backup data not supported on this Client.\n"));
+	 break;
+
+      /* Windows Backup GZIP data stream */
+      case STREAM_WIN32_GZIP_DATA:  
+	 if (!is_win32_backup()) {
+	    if (!non_support_attr) {
+               Jmsg(jcr, M_ERROR, 0, _("Win32 GZIP backup data not supported on this Client.\n"));
+	    }
 	    extract = FALSE;
+	    non_support_attr++;
 	    continue;
 	 }
+	 /* Fall through desired */
+
+      /* GZIP data stream */
+      case STREAM_GZIP_DATA:
+      case STREAM_SPARSE_GZIP_DATA:  
 #ifdef HAVE_LIBZ
 	 if (extract) {
 	    ser_declare;
@@ -368,7 +267,7 @@ void do_restore(JCR *jcr)
 		  fileAddr = faddr;
 		  if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
                      Jmsg3(jcr, M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"),
-			 edit_uint64(fileAddr, ec1), ofile, berror(&bfd));
+			 edit_uint64(fileAddr, ec1), attr->ofname, berror(&bfd));
 		     extract = FALSE;
 		     continue;
 		  }
@@ -389,7 +288,7 @@ void do_restore(JCR *jcr)
             Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
 	    if ((uLong)bwrite(&bfd, jcr->compress_buf, compress_len) != compress_len) {
                Dmsg0(0, "===Write error===\n");
-               Jmsg2(jcr, M_ERROR, 0, _("Write error on %s: %s\n"), ofile, berror(&bfd));
+               Jmsg2(jcr, M_ERROR, 0, _("Write error on %s: %s\n"), attr->ofname, berror(&bfd));
 	       extract = FALSE;
 	       continue;
 	    }
@@ -405,26 +304,42 @@ void do_restore(JCR *jcr)
 	    continue;
 	 }
 #endif
-      /* If extracting, wierd stream (not 1 or 2), close output file anyway */
-      } else if (extract) {
-         Dmsg1(30, "Found wierd stream %d\n", stream);
-	 if (!is_bopen(&bfd)) {
-            Jmsg0(jcr, M_ERROR, 0, _("Logic error output file should be open but is not.\n"));
+	 break;
+
+      case STREAM_MD5_SIGNATURE:
+      case STREAM_SHA1_SIGNATURE:
+	 break;
+
+      case STREAM_PROGRAM_NAMES:
+      case STREAM_PROGRAM_DATA:
+	 if (!prog_name_msg) {
+            Pmsg0(000, "Got Program Name or Data Stream. Ignored.\n");
+	    prog_name_msg++;
 	 }
-	 set_attributes(jcr, fname, ofile, lname, type, stream, 
-			&statp, attribsEx, &bfd);
-	 extract = FALSE;
-      } else if (!(stream == STREAM_MD5_SIGNATURE || stream == STREAM_SHA1_SIGNATURE)) {
+	 break;
+
+      default:
+	 /* If extracting, wierd stream (not 1 or 2), close output file anyway */
+	 if (extract) {
+            Dmsg1(30, "Found wierd stream %d\n", stream);
+	    if (!is_bopen(&bfd)) {
+               Jmsg0(jcr, M_ERROR, 0, _("Logic error output file should be open but is not.\n"));
+	    }
+	    set_attributes(jcr, attr, &bfd);
+	    extract = FALSE;
+	 }
+         Jmsg(jcr, M_ERROR, 0, _("Unknown stream=%d ignored. This shouldn't happen!\n"), stream);
          Dmsg2(0, "None of above!!! stream=%d data=%s\n", stream,sd->msg);
-      }
-   }
+	 break;
+      } /* end switch(stream) */
+
+   } /* end while get_msg() */
 
    /* If output file is still open, it was the last one in the
     * archive since we just hit an end of file, so close the file. 
     */
    if (is_bopen(&bfd)) {
-      set_attributes(jcr, fname, ofile, lname, type, stream, 
-		     &statp, attribsEx, &bfd);
+      set_attributes(jcr, attr, &bfd);
    }
    set_jcr_job_status(jcr, JS_Terminated);
    goto ok_out;
@@ -436,52 +351,11 @@ ok_out:
       free(jcr->compress_buf);
       jcr->compress_buf = NULL;
    }
-   free_pool_memory(fname);
-   free_pool_memory(ofile);
-   free_pool_memory(lname);
-   free_pool_memory(attribsEx);
+   free_attr(attr);
    Dmsg2(10, "End Do Restore. Files=%d Bytes=%" lld "\n", jcr->JobFiles,
       jcr->JobBytes);
+   if (non_support_data > 1 || non_support_attr > 1) {
+      Jmsg(jcr, M_ERROR, 0, _("%d non-supported data streams and %d non-supported attrib streams ignored.\n"),
+	 non_support_data, non_support_attr);
+   }
 }	   
-
-extern char *getuser(uid_t uid);
-extern char *getgroup(gid_t gid);
-
-/*
- * Print an ls style message, also send INFO
- */
-static void print_ls_output(JCR *jcr, char *fname, char *lname, int type, struct stat *statp)
-{
-   char buf[5000]; 
-   char ec1[30];
-   char *p, *f;
-   int n;
-
-   p = encode_mode(statp->st_mode, buf);
-   n = sprintf(p, "  %2d ", (uint32_t)statp->st_nlink);
-   p += n;
-   n = sprintf(p, "%-8.8s %-8.8s", getuser(statp->st_uid), getgroup(statp->st_gid));
-   p += n;
-   n = sprintf(p, "%8.8s ", edit_uint64(statp->st_size, ec1));
-   p += n;
-   p = encode_time(statp->st_ctime, p);
-   *p++ = ' ';
-   *p++ = ' ';
-   for (f=fname; *f && (p-buf) < (int)sizeof(buf)-10; ) {
-      *p++ = *f++;
-   }
-   if (type == FT_LNK) {
-      *p++ = ' ';
-      *p++ = '-';
-      *p++ = '>';
-      *p++ = ' ';
-      /* Copy link name */
-      for (f=lname; *f && (p-buf) < (int)sizeof(buf)-10; ) {
-	 *p++ = *f++;
-      }
-   }
-   *p++ = '\n';
-   *p = 0;
-   Dmsg1(20, "%s", buf);
-   Jmsg(jcr, M_RESTORED, 0, "%s", buf);
-}

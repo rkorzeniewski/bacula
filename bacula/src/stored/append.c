@@ -115,8 +115,8 @@ int do_append_data(JCR *jcr)
 
       /* Read Stream header from the File daemon.
        *  The stream header consists of the following:
-       *    file_index (sequential Bacula file index)
-       *    stream     (arbitrary Bacula number to distinguish parts of data)
+       *    file_index (sequential Bacula file index, base 1)
+       *    stream     (Bacula number to distinguish parts of data)
        *    info       (Info for Storage daemon -- compressed, encryped, ...)
        *       info is not currently used, so is read, but ignored!
        */
@@ -189,8 +189,8 @@ int do_append_data(JCR *jcr)
 	    stream_to_ascii(rec.Stream, rec.FileIndex), rec.data_len);
 
 	 /* Send attributes and MD5 to Director for Catalog */
-	 if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_MD5_SIGNATURE ||
-	     stream == STREAM_WIN32_ATTRIBUTES || stream == STREAM_SHA1_SIGNATURE) { 
+	 if (stream == STREAM_UNIX_ATTRIBUTES	 || stream == STREAM_MD5_SIGNATURE ||
+	     stream == STREAM_UNIX_ATTRIBUTES_EX || stream == STREAM_SHA1_SIGNATURE) { 
 	    if (!jcr->no_attributes) {
 	       if (jcr->spool_attributes && jcr->dir_bsock->spool_fd) {
 		  jcr->dir_bsock->spool = 1;

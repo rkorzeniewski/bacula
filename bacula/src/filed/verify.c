@@ -43,7 +43,7 @@ void do_verify(JCR *jcr)
    if ((jcr->big_buf = (char *) malloc(jcr->buf_size)) == NULL) {
       Jmsg1(jcr, M_ABORT, 0, _("Cannot malloc %d network read buffer\n"), MAX_NETWORK_BUFFER_SIZE);
    }
-   set_find_options((FF_PKT *)jcr->ff, jcr->incremental, jcr->mtime);
+   set_find_options((FF_PKT *)jcr->ff, jcr->incremental, jcr->mtime, jcr->mtime_only);
    Dmsg0(10, "Start find files\n");
    /* Subroutine verify_file() is called for each file */
    find_files(jcr, (FF_PKT *)jcr->ff, verify_file, (void *)jcr);  

@@ -48,20 +48,14 @@ static FF_PKT my_ff;
 static FF_PKT *ff = &my_ff;
 static BSR *bsr = NULL;
 static int extract = FALSE;
-static long record_file_index;
+static int non_support_data = 0;
+static int non_support_attr = 0;
 static long total = 0;
-static POOLMEM *fname;			  /* original file name */
-static POOLMEM *ofile;			  /* output name with prefix */
-static POOLMEM *lname;			  /* link name */
-static POOLMEM *attribsEx;		  /* extended attributes (Win32) */
+static ATTR *attr;
 static char *where;
-static int wherelen;			  /* prefix length */
 static uint32_t num_files = 0;
-static struct stat statp;
 static uint32_t compress_buf_size = 70000;
 static POOLMEM *compress_buf;
-static int type;
-static int stream;
 static int prog_name_msg = 0;
 static int win32_data_msg = 0;
 static char *VolumeName = NULL;
@@ -107,63 +101,63 @@ int main (int argc, char *argv[])
 
    while ((ch = getopt(argc, argv, "b:c:d:e:i:?")) != -1) {
       switch (ch) {
-         case 'b':                    /* bootstrap file */
-	    bsr = parse_bsr(NULL, optarg);
-//	    dump_bsr(bsr);
-	    break;
+      case 'b':                    /* bootstrap file */
+	 bsr = parse_bsr(NULL, optarg);
+//	 dump_bsr(bsr);
+	 break;
 
-         case 'c':                    /* specify config file */
-	    if (configfile != NULL) {
-	       free(configfile);
-	    }
-	    configfile = bstrdup(optarg);
-	    break;
+      case 'c':                    /* specify config file */
+	 if (configfile != NULL) {
+	    free(configfile);
+	 }
+	 configfile = bstrdup(optarg);
+	 break;
 
-         case 'd':                    /* debug level */
-	    debug_level = atoi(optarg);
-	    if (debug_level <= 0)
-	       debug_level = 1; 
-	    break;
+      case 'd':                    /* debug level */
+	 debug_level = atoi(optarg);
+	 if (debug_level <= 0)
+	    debug_level = 1; 
+	 break;
 
-         case 'e':                    /* exclude list */
-            if ((fd = fopen(optarg, "r")) == NULL) {
-               Pmsg2(0, "Could not open exclude file: %s, ERR=%s\n",
-		  optarg, strerror(errno));
-	       exit(1);
-	    }
-	    while (fgets(line, sizeof(line), fd) != NULL) {
-	       strip_trailing_junk(line);
-               Dmsg1(900, "add_exclude %s\n", line);
-	       add_fname_to_exclude_list(ff, line);
-	    }
-	    fclose(fd);
-	    break;
+      case 'e':                    /* exclude list */
+         if ((fd = fopen(optarg, "r")) == NULL) {
+            Pmsg2(0, "Could not open exclude file: %s, ERR=%s\n",
+	       optarg, strerror(errno));
+	    exit(1);
+	 }
+	 while (fgets(line, sizeof(line), fd) != NULL) {
+	    strip_trailing_junk(line);
+            Dmsg1(900, "add_exclude %s\n", line);
+	    add_fname_to_exclude_list(ff, line);
+	 }
+	 fclose(fd);
+	 break;
 
-         case 'i':                    /* include list */
-            if ((fd = fopen(optarg, "r")) == NULL) {
-               Pmsg2(0, "Could not open include file: %s, ERR=%s\n",
-		  optarg, strerror(errno));
-	       exit(1);
-	    }
-	    while (fgets(line, sizeof(line), fd) != NULL) {
-	       strip_trailing_junk(line);
-               Dmsg1(900, "add_include %s\n", line);
-	       add_fname_to_include_list(ff, 0, line);
-	    }
-	    fclose(fd);
-	    got_inc = TRUE;
-	    break;
+      case 'i':                    /* include list */
+         if ((fd = fopen(optarg, "r")) == NULL) {
+            Pmsg2(0, "Could not open include file: %s, ERR=%s\n",
+	       optarg, strerror(errno));
+	    exit(1);
+	 }
+	 while (fgets(line, sizeof(line), fd) != NULL) {
+	    strip_trailing_junk(line);
+            Dmsg1(900, "add_include %s\n", line);
+	    add_fname_to_include_list(ff, 0, line);
+	 }
+	 fclose(fd);
+	 got_inc = TRUE;
+	 break;
 
-         case 'V':                    /* Volume name */
-	    VolumeName = optarg;
-	    break;
+      case 'V':                    /* Volume name */
+	 VolumeName = optarg;
+	 break;
 
-         case '?':
-	 default:
-	    usage();
+      case '?':
+      default:
+	 usage();
 
-      }  
-   }
+      } /* end switch */
+   } /* end while */
    argc -= optind;
    argv += optind;
 
@@ -201,7 +195,7 @@ int main (int argc, char *argv[])
 
 static void do_extract(char *devname)
 {
-
+   struct stat statp;
    jcr = setup_jcr("bextract", devname, bsr, VolumeName);
    dev = setup_to_access_device(jcr, 1);    /* acquire for read */
    if (!dev) {
@@ -217,11 +211,9 @@ static void do_extract(char *devname)
       Emsg1(M_ERROR_TERM, 0, "%s must be a directory.\n", where);
    }
 
-   wherelen = strlen(where);
-   fname = get_pool_memory(PM_FNAME);
-   ofile = get_pool_memory(PM_FNAME);
-   lname = get_pool_memory(PM_FNAME);
-   attribsEx = get_pool_memory(PM_FNAME);
+   free(jcr->where);
+   jcr->where = bstrdup(where);
+   attr = new_attr();
 
    compress_buf = get_memory(compress_buf_size);
 
@@ -230,15 +222,11 @@ static void do_extract(char *devname)
     * archive since we just hit an end of file, so close the file. 
     */
    if (is_bopen(&bfd)) {
-      set_attributes(jcr, fname, ofile, lname, type, stream, &statp,
-		     attribsEx, &bfd);
+      set_attributes(jcr, attr, &bfd);
    }
    release_device(jcr, dev);
 
-   free_pool_memory(fname);
-   free_pool_memory(ofile);
-   free_pool_memory(lname);
-   free_pool_memory(compress_buf);
+   free_attr(attr);
    term_dev(dev);
    free_jcr(jcr);
    printf("%u files restored.\n", num_files);
@@ -257,155 +245,77 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
    }
 
    /* File Attributes stream */
-   if (rec->Stream == STREAM_UNIX_ATTRIBUTES || rec->Stream == STREAM_WIN32_ATTRIBUTES) {
-      char *ap, *lp, *fp, *apex;
 
-      stream = rec->Stream;
+   switch (rec->Stream) {
+   case STREAM_UNIX_ATTRIBUTES:
+   case STREAM_UNIX_ATTRIBUTES_EX:  
 
       /* If extracting, it was from previous stream, so
        * close the output file.
        */
       if (extract) {
 	 if (!is_bopen(&bfd)) {
-            Emsg0(M_ERROR, 0, "Logic error output file should be open but is not.\n");
+            Emsg0(M_ERROR, 0, _("Logic error output file should be open but is not.\n"));
 	 }
 	 extract = FALSE;
-	 set_attributes(jcr, fname, ofile, lname, type, stream, &statp,
-			attribsEx, &bfd);
+	 set_attributes(jcr, attr, &bfd);
       }
 
-      if (sizeof_pool_memory(fname) < rec->data_len) {
-	 fname = realloc_pool_memory(fname, rec->data_len + 1);
-      }
-      if (sizeof_pool_memory(ofile) < rec->data_len + wherelen + 1) {
-	 ofile = realloc_pool_memory(ofile, rec->data_len + wherelen + 1);
-      }
-      if (sizeof_pool_memory(lname) < rec->data_len) {
-	 lname = realloc_pool_memory(lname, rec->data_len + wherelen + 1);
-      }
-      *fname = 0;
-      *lname = 0;
-
-      /*	      
-       * An Attributes record consists of:
-       *    File_index
-       *    Type   (FT_types)
-       *    Filename
-       *    Attributes
-       *    Link name (if file linked i.e. FT_LNK)
-       *    Extended Attributes (Win32) 
-       *
-       */
-      sscanf(rec->data, "%ld %d", &record_file_index, &type);
-      if (record_file_index != rec->FileIndex)
-         Emsg2(M_ERROR_TERM, 0, "Record header file index %ld not equal record index %ld\n",
-	    rec->FileIndex, record_file_index);
-      ap = rec->data;
-      while (*ap++ != ' ')         /* skip record file index */
-	 ;
-      while (*ap++ != ' ')         /* skip type */
-	 ;
-      /* Save filename and position to attributes */
-      fp = fname;
-      while (*ap != 0) {
-	 *fp++	= *ap++;
-      }
-      *fp = *ap++;		   /* terminate filename & point to attribs */
-
-      /* Skip to Link name */
-      if (type == FT_LNK || type == FT_LNKSAVED) {
-	 lp = ap;
-	 while (*lp++ != 0) {
-	    ;
-	 }
-      } else {
-         lp = "";
+      if (!unpack_attributes_record(jcr, rec->Stream, rec->data, attr)) {
+         Emsg0(M_ERROR_TERM, 0, _("Cannot continue.\n"));
       }
 
-      if (rec->Stream == STREAM_WIN32_ATTRIBUTES) {
-	 apex = ap;		      /* start at attributes */
-	 while (*apex++ != 0) {       /* skip attributes */
-	    ;
-	 }
-	 while (*apex++ != 0) {      /* skip link name */
-	    ;
-	 }
-	 pm_strcpy(&attribsEx, apex);  /* make a copy of Extended attributes */
-      } else {
-	 *attribsEx = 0;	      /* no extended attributes */
+      if (attr->file_index != rec->FileIndex) {
+         Emsg2(M_ERROR_TERM, 0, _("Record header file index %ld not equal record index %ld\n"),
+	    rec->FileIndex, attr->file_index);
       }
-
 	 
-      if (file_is_included(ff, fname) && !file_is_excluded(ff, fname)) {
+      if (file_is_included(ff, attr->fname) && !file_is_excluded(ff, attr->fname)) {
 	 uint32_t LinkFI;
 
-	 decode_stat(ap, &statp, &LinkFI);
-	 /*
-	  * Prepend the where directory so that the
-	  * files are put where the user wants.
-	  *
-	  * We do a little jig here to handle Win32 files with
-	  *   a drive letter -- we simply strip the drive: from
-	  *   every filename if a prefix is supplied.
-	  */
-	 if (where[0] == 0) {
-	    strcpy(ofile, fname);
-	    strcpy(lname, lp);
-	 } else {
-	    char *fn;
-	    strcpy(ofile, where);
-            if (win32_client && fname[1] == ':') {
-	       fn = fname+2;	      /* skip over drive: */
-	    } else {
-	       fn = fname;	      /* take whole name */
-	    }
-	    /* Ensure where is terminated with a slash */
-            if (where[wherelen-1] != '/' && fn[0] != '/') {
-               strcat(ofile, "/");
-	    }
-	    strcat(ofile, fn);	      /* copy rest of name */
-	    /* Fixup link name for hard links, but not for
-	     * soft links 
-	     */
-	    if (type == FT_LNKSAVED) {
-               if (lp[0] == '/') {      /* if absolute path */
-		  strcpy(lname, where);
-	       }       
-               if (win32_client && lp[1] == ':') {
-		  strcat(lname, lp+2); /* copy rest of name */
-	       } else {
-		  strcat(lname, lp);   /* On Unix systems we take everything */
-	       }
-	    }
-	 }
+	 decode_stat(attr->attr, &attr->statp, &LinkFI);
 
-         /*          Pmsg1(000, "Restoring: %s\n", ofile); */
+	 build_attr_output_fnames(jcr, attr);
 
 	 extract = FALSE;
-	 stat = create_file(jcr, fname, ofile, lname, type, stream,
-			    &statp, attribsEx, &bfd, REPLACE_ALWAYS);	
+	 stat = create_file(jcr, attr, &bfd, REPLACE_ALWAYS);	
 	 switch (stat) {
 	 case CF_ERROR:
 	 case CF_SKIP:
 	    break;
 	 case CF_EXTRACT:
 	    extract = TRUE;
-	    print_ls_output(ofile, lname, type, &statp);   
+	    print_ls_output(jcr, attr);
 	    num_files++;
 	    fileAddr = 0;
 	    break;
 	 case CF_CREATED:
-	    set_attributes(jcr, fname, ofile, lname, type, stream, &statp,
-			   attribsEx, &bfd);
-	    print_ls_output(ofile, lname, type, &statp);   
+	    set_attributes(jcr, attr, &bfd);
+	    print_ls_output(jcr, attr);
 	    num_files++;
 	    fileAddr = 0;
 	    break;
 	 }  
       }
 
+   /* Windows Backup data stream */
+   case STREAM_WIN32_DATA:  
+      if (!is_win32_backup()) {
+	 if (!non_support_data) {
+            Jmsg(jcr, M_ERROR, 0, _("Win32 backup data not supported on this Client.\n"));
+	 }
+	 extract = FALSE;
+	 non_support_data++;
+	 return;
+      }
+      goto extract_data;
+   
+
    /* Data stream and extracting */
-   } else if (rec->Stream == STREAM_FILE_DATA || rec->Stream == STREAM_SPARSE_DATA) {
+   case STREAM_FILE_DATA:
+   case STREAM_SPARSE_DATA:
+
+extract_data:
       if (extract) {
 	 if (rec->Stream == STREAM_SPARSE_DATA) {
 	    ser_declare;
@@ -417,7 +327,8 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	    if (fileAddr != faddr) {
 	       fileAddr = faddr;
 	       if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
-                  Emsg2(M_ERROR_TERM, 0, _("Seek error on %s: %s\n"), ofile, strerror(errno));
+                  Emsg2(M_ERROR_TERM, 0, _("Seek error on %s: %s\n"), 
+		     attr->ofname, strerror(errno));
 	       }
 	    }
 	 } else {
@@ -427,12 +338,27 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 total += wsize;
          Dmsg2(8, "Write %u bytes, total=%u\n", wsize, total);
 	 if ((uint32_t)bwrite(&bfd, wbuf, wsize) != wsize) {
-            Emsg2(M_ERROR_TERM, 0, _("Write error on %s: %s\n"), ofile, strerror(errno));
+            Emsg2(M_ERROR_TERM, 0, _("Write error on %s: %s\n"), 
+	       attr->ofname, strerror(errno));
 	 }
 	 fileAddr += wsize;
       }
 
-   } else if (rec->Stream == STREAM_GZIP_DATA || rec->Stream == STREAM_SPARSE_GZIP_DATA) {
+   /* Windows Backup GZIP data stream */
+   case STREAM_WIN32_GZIP_DATA:  
+      if (!is_win32_backup()) {
+	 if (!non_support_attr) {
+            Jmsg(jcr, M_ERROR, 0, _("Win32 GZIP backup data not supported on this Client.\n"));
+	 }
+	 extract = FALSE;
+	 non_support_attr++;
+	 return;
+      }
+      /* Fall through desired */
+
+   /* GZIP data stream */
+   case STREAM_GZIP_DATA:
+   case STREAM_SPARSE_GZIP_DATA: 
 #ifdef HAVE_LIBZ
       if (extract) {
 	 uLongf compress_len;
@@ -448,7 +374,8 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	    if (fileAddr != faddr) {
 	       fileAddr = faddr;
 	       if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
-                  Emsg2(M_ERROR, 0, _("Seek error on %s: %s\n"), ofile, strerror(errno));
+                  Emsg2(M_ERROR, 0, _("Seek error on %s: %s\n"), 
+		     attr->ofname, strerror(errno));
 	       }
 	    }
 	 } else {
@@ -464,7 +391,8 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
          Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
 	 if ((uLongf)bwrite(&bfd, compress_buf, (size_t)compress_len) != compress_len) {
             Pmsg0(0, "===Write error===\n");
-            Emsg2(M_ERROR_TERM, 0, _("Write error on %s: %s\n"), ofile, strerror(errno));
+            Emsg2(M_ERROR_TERM, 0, _("Write error on %s: %s\n"), 
+	       attr->ofname, strerror(errno));
 	 }
 	 total += compress_len;
 	 fileAddr += compress_len;
@@ -474,32 +402,37 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 #else
       if (extract) {
          Emsg0(M_ERROR, 0, "GZIP data stream found, but GZIP not configured!\n");
+	 extract = FALSE;
+	 return;
       }
 #endif
 
+   case STREAM_MD5_SIGNATURE:
+   case STREAM_SHA1_SIGNATURE:
+      break;
 
-   /* If extracting, wierd stream (not 1 or 2), close output file anyway */
-   } else if (extract) {
-      if (!is_bopen(&bfd)) {
-         Emsg0(M_ERROR, 0, "Logic error output file should be open but is not.\n");
-      }
-      extract = FALSE;
-      set_attributes(jcr, fname, ofile, lname, type, stream, &statp,
-		     attribsEx, &bfd);
-   } else if (rec->Stream == STREAM_PROGRAM_NAMES || rec->Stream == STREAM_PROGRAM_DATA) {
+   case STREAM_PROGRAM_NAMES:
+   case STREAM_PROGRAM_DATA:
       if (!prog_name_msg) {
          Pmsg0(000, "Got Program Name or Data Stream. Ignored.\n");
 	 prog_name_msg++;
       }
-   } else if (rec->Stream == STREAM_WIN32_DATA || rec->Stream == STREAM_WIN32_GZIP_DATA) {
-      if (!win32_data_msg) {
-         Pmsg0(000, "Got Win32 data or Win32 gzip data stream. Ignored.\n");
-	 win32_data_msg++;
+      break;
+
+   default:
+      /* If extracting, wierd stream (not 1 or 2), close output file anyway */
+      if (extract) {
+	 if (!is_bopen(&bfd)) {
+            Emsg0(M_ERROR, 0, "Logic error output file should be open but is not.\n");
+	 }
+	 extract = FALSE;
+	 set_attributes(jcr, attr, &bfd);
       }
-   } else if (!(rec->Stream == STREAM_MD5_SIGNATURE ||
-		rec->Stream == STREAM_SHA1_SIGNATURE)) {
-      Pmsg2(0, "None of above!!! stream=%d data=%s\n", rec->Stream, rec->data);
-   }
+      Jmsg(jcr, M_ERROR, 0, _("Unknown stream=%d ignored. This shouldn't happen!\n"), 
+	 rec->Stream);
+      break;
+      
+   } /* end switch */
 }
 
 

@@ -31,7 +31,7 @@ GMP_INC=@GMP_INC@
 first_rule: all
 dummy:
 
-LIBSRCS = alloc.c base64.c bsys.c bget_msg.c \
+LIBSRCS = alloc.c attr.c base64.c bsys.c bget_msg.c \
 	  bnet.c bnet_server.c \
 	  bpipe.c bshm.c btime.c \
 	  cram-md5.c crc32.c daemon.c edit.c fnmatch.c \
@@ -42,7 +42,7 @@ LIBSRCS = alloc.c base64.c bsys.c bget_msg.c \
 	  util.c watchdog.c workq.c  
 
 
-LIBOBJS = alloc.o base64.o bsys.o bget_msg.o \
+LIBOBJS = alloc.o attr.o base64.o bsys.o bget_msg.o \
 	  bnet.o bnet_server.o \
 	  bpipe.o bshm.o btime.o \
 	  cram-md5.o crc32.o daemon.o edit.o fnmatch.o \

@@ -76,11 +76,12 @@ FF_PKT *init_find_files()
  * of save_time. For additional options, see above
  */
 void
-set_find_options(FF_PKT *ff, int incremental, time_t save_time)
+set_find_options(FF_PKT *ff, int incremental, time_t save_time, int mtime_only)
 {
   Dmsg0(100, "Enter set_find_options()\n");
   ff->incremental = incremental;
   ff->save_time = save_time;
+  ff->mtime_only = mtime_only;
   Dmsg0(100, "Leave set_find_options()\n");
 }
 

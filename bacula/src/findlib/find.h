@@ -67,27 +67,6 @@ int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
 #define CF_EXTRACT    3               /* file created, data to extract */
 #define CF_CREATED    4               /* file created, no data to extract */
 
-/* 
- *  NOTE!!! These go on the tape, so don't change them. If 
- *  need be, add to them.
- */
-#define FT_LNKSAVED   1               /* hard link to file already saved */  
-#define FT_REGE       2               /* Regular file but empty */
-#define FT_REG        3               /* Regular file */
-#define FT_LNK        4               /* Soft Link */
-#define FT_DIR        5               /* Directory */
-#define FT_SPEC       6               /* Special file -- chr, blk, fifo, sock */
-#define FT_NOACCESS   7               /* Not able to access */
-#define FT_NOFOLLOW   8               /* Could not follow link */
-#define FT_NOSTAT     9               /* Could not stat file */
-#define FT_NOCHG     10               /* Incremental option, file not changed */
-#define FT_DIRNOCHG  11               /* Incremental option, directory not changed */
-#define FT_ISARCH    12               /* Trying to save archive file */
-#define FT_NORECURSE 13               /* No recursion into directory */
-#define FT_NOFSCHG   14               /* Different file system, prohibited */
-#define FT_NOOPEN    15               /* Could not open directory */
-#define FT_RAW       16               /* Raw block device */
-#define FT_FIFO      17               /* Raw fifo device */
 
 /* Options saved in "flag" of ff packet */
 #define FO_MD5          0x001         /* Do MD5 checksum */
