@@ -283,14 +283,14 @@ int runcmd(UAContext *ua, char *cmd)
    } else {
       jcr->replace = REPLACE_ALWAYS;
    }
+
+try_again:
    replace = ReplaceOptions[0].name;
    for (i=0; ReplaceOptions[i].name; i++) {
       if (ReplaceOptions[i].token == jcr->replace) {
 	 replace = ReplaceOptions[i].name;
       }
    }
-
-try_again:
    Dmsg1(20, "JobType=%c\n", jcr->JobType);
    switch (jcr->JobType) {
       char ec1[30];
@@ -530,7 +530,7 @@ JobId:      %s\n"),
 	    add_prompt(ua, ReplaceOptions[i].name);
 	 }
          opt = do_prompt(ua, _("Select replace option"), NULL, 0);
-	 if (opt <=  0) {
+	 if (opt >=  0) {
 	    jcr->replace = ReplaceOptions[opt].token;
 	 }
 	 goto try_again;
