@@ -475,11 +475,13 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
 
 static void insert_one_file(UAContext *ua, RESTORE_CTX *rx)
 {
+   FILE *ffd;
+   char file[5000];
    char *p = ua->cmd;
+   int line = 0;
+  
    switch (*p) {
    case '<':
-      FILE *ffd;
-      char file[5000];
       p++;
       if ((ffd = fopen(p, "r")) == NULL) {
          bsendmsg(ua, _("Cannot open file %s: ERR=%s\n"),
@@ -487,7 +489,10 @@ static void insert_one_file(UAContext *ua, RESTORE_CTX *rx)
 	 break;
       }
       while (fgets(file, sizeof(file), ffd)) {
-	 insert_file_into_findex_list(ua, rx, file);
+	 line++;
+	 if (!insert_file_into_findex_list(ua, rx, file)) {
+            bsendmsg(ua, _("Error occurred on line %d of %s\n"), line, p);
+	 }
       }
       fclose(ffd);
       break;
@@ -800,7 +805,9 @@ static int jobid_handler(void *ctx, int num_fields, char **row)
       return 0; 		      /* duplicate id */
    }
    bstrncpy(rx->last_jobid, row[0], sizeof(rx->last_jobid));
-   pm_strcat(&rx->JobIds, ",");
+   if (rx->JobIds[0] != 0) {
+      pm_strcat(&rx->JobIds, ",");
+   }
    pm_strcat(&rx->JobIds, row[0]);
    return 0;
 }
