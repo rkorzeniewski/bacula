@@ -488,7 +488,7 @@ Files Written:          %s\n\
 Bytes Written:          %s\n\
 Rate:                   %.1f KB/s\n\
 Software Compression:   %s\n\
-Volume names(s):        %s\n\
+Volume name(s):         %s\n\
 Volume Session Id:      %d\n\
 Volume Session Time:    %d\n\
 Last Volume Bytes:      %s\n\

@@ -71,6 +71,6 @@ clean:
 distclean: clean
 	@$(RMF) startmysql stopmysql bacula fd startit stopit btraceback
 	@$(RMF) console gconsole logrotate bacula.desktop 
-	@$(RMF) bacula.desktop.gnome1 bacula.desktop.gnome2
+	@$(RMF) bacula.desktop.gnome1 bacula.desktop.gnome2 mtx-changer
 
 # ------------------------------------------------------------------------
