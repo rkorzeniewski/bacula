@@ -35,6 +35,7 @@
 
 
 #include "bacula.h"
+extern int debug_level;
 
 void 
 daemon_start()
@@ -43,6 +44,7 @@ daemon_start()
    int i;
    pid_t cpid;
    mode_t oldmask;
+   int low_fd = 0;
    /*
     *  Become a daemon.
     */
@@ -59,7 +61,10 @@ daemon_start()
    /* In the PRODUCTION system, we close ALL
     * file descriptors except stdin, stdout, and stderr.
     */
-   for (i=sysconf(_SC_OPEN_MAX)-1; i > 2; i--) {
+   if (debug_level > 0) {
+      low_fd = 2;                     /* don't close debug output */
+   }
+   for (i=sysconf(_SC_OPEN_MAX)-1; i > low_fd; i--) {
       close(i);
    }
 
@@ -78,7 +83,6 @@ daemon_start()
    oldmask |= 026;
    umask(oldmask);
 
-   Dmsg0(200, "Exit daemon_start\n");
 
    /*
     * Make sure we have fd's 0, 1, 2 open
@@ -98,4 +102,5 @@ daemon_start()
    }
 
 #endif /* HAVE_CYGWIN */
+   Dmsg0(200, "Exit daemon_start\n");
 }
