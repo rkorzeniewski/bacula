@@ -61,7 +61,7 @@ static void free_dir_ff_pkt(FF_PKT *dir_ff_pkt)
  * p is the filename
  * parent_device is the device we are currently on 
  * top_level is 1 when not recursing or 0 when 
- *  decending into a directory.
+ *  descending into a directory.
  */
 int
 find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), 
@@ -212,6 +212,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
       int len;	 
       int status;
       dev_t our_device = ff_pkt->statp.st_dev;
+      bool recurse = true;
 
       /*  
        * If we are using Win32 (non-portable) backup API, don't check
@@ -287,43 +288,36 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
       dir_ff_pkt->excluded_files_list = NULL;
       dir_ff_pkt->excluded_paths_list = NULL;
       dir_ff_pkt->linklist = NULL;
-	
+
+      /* 
+       * Do not descend into subdirectories (recurse) if the
+       * user has turned it off for this directory.
+       * Or if we are crossing file systems, 
+       * avoid doing so if the user only wants to dump one file system.
+       */
+      if (ff_pkt->flags & FO_NO_RECURSION) {
+	 ff_pkt->type = FT_NORECURSE;
+	 recurse = false;
+      } else if (!top_level && !(ff_pkt->flags & FO_MULTIFS) &&
+	   parent_device != ff_pkt->statp.st_dev) {
+	 ff_pkt->type = FT_NOFSCHG;
+	 recurse = false;
+      }
+      if (!recurse) {
+	 rtn_stat = handle_file(ff_pkt, pkt);
+	 if (ff_pkt->linked) {
+	    ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
+	 }
+	 free(link);
+	 free_dir_ff_pkt(dir_ff_pkt);
+	 ff_pkt->link = ff_pkt->fname;     /* reset "link" */
+	 return rtn_stat;
+      }
+
       ff_pkt->link = ff_pkt->fname;     /* reset "link" */
 
       /* 
-       * Do not decend into subdirectories (recurse) if the
-       * user has turned it off for this directory.
-       */
-      if (ff_pkt->flags & FO_NO_RECURSION) {
-	 /* No recursion into this directory */
-	 ff_pkt->type = FT_NORECURSE;
-	 rtn_stat = handle_file(ff_pkt, pkt);
-	 if (ff_pkt->linked) {
-	    ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
-	 }
-	 free(link);
-	 free_dir_ff_pkt(dir_ff_pkt);
-	 return rtn_stat;
-      }
-
-      /* 
-       * See if we are crossing file systems, and
-       * avoid doing so if the user only wants to dump one file system.
-       */
-      if (!top_level && !(ff_pkt->flags & FO_MULTIFS) &&
-	   parent_device != ff_pkt->statp.st_dev) {
-	 /* returning here means we do not handle this directory */
-	 ff_pkt->type = FT_NOFSCHG;
-	 rtn_stat = handle_file(ff_pkt, pkt);
-	 if (ff_pkt->linked) {
-	    ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
-	 }
-	 free(link);
-	 free_dir_ff_pkt(dir_ff_pkt);
-	 return rtn_stat;
-      }
-      /* 
-       * Decend into or "recurse" into the directory to read
+       * Descend into or "recurse" into the directory to read
        *   all the files in it.
        */
       errno = 0;

@@ -12,9 +12,9 @@ Major Changes:
 
   StartJob, EndJob, NewVolume
 
-  Where StartJob is called before the RunBeforeJob, EndJob is called after
-  RunAfterJob, and NewVolume, is called before all other "methods" of
-  obtaining a new Volume name, when one is needed.
+  Where StartJob is called before the RunBeforeJob, EndJob is called 
+  after RunAfterJob, and NewVolume, is called before all other 
+  "methods" of obtaining a new Volume name, when one is needed.
 
   The Python script of the same name as the Event name (but with a .py) 
   is called from the Scripts Directory (a directive defined in the
