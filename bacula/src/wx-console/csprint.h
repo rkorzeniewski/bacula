@@ -26,9 +26,11 @@
 #ifndef CSPRINT_H
 #define CSPRINT_H
 
-#define CS_DATA   1 /* data has been received */
-#define CS_END    2 /* no data to receive anymore */
-#define CS_DEBUG  3 /* used to print debug messages */
+#define CS_DATA          1 /* data has been received */
+#define CS_END           2 /* no data to receive anymore */
+#define CS_CONNECTED     3 /* the socket is now connected */
+#define CS_DISCONNECTED  4 /* the socket is now disconnected */
+#define CS_DEBUG        10 /* used to print debug messages */
 
 /* function called by console_thread to send events back to the GUI */
 void csprint(char* str, int status=CS_DATA);

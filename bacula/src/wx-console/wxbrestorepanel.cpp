@@ -237,7 +237,7 @@ wxbRestorePanel::wxbRestorePanel(wxWindow* parent): wxbPanel(parent) {
    SetSizer(sizer);
    sizer->SetSizeHints(this);
 
-   setStatus(disabled);
+   SetStatus(disabled);
 
    tableParser = NULL;
 
@@ -382,13 +382,24 @@ void wxbRestorePanel::Print(wxString str, int stat) {
    }
 }
 
+void wxbRestorePanel::EnablePanel(bool enable) {
+   if (enable) {
+      if (status == disabled) {
+         SetStatus(activable);
+      }
+   }
+   else {
+      SetStatus(disabled);
+   }
+}
+
 /*----------------------------------------------------------------------------
    Commands called by events handler
   ----------------------------------------------------------------------------*/
 
 /* The main button has been clicked */
 void wxbRestorePanel::CmdStart() {
-   if (status == disabled) {
+   if (status == activable) {
       CreateAndWaitForParser("list clients\n");
 
       clientChoice->Clear();
@@ -402,7 +413,7 @@ void wxbRestorePanel::CmdStart() {
          clientChoice->Append((*tableParser)[i][1], (void*)j);
       }
 
-      setStatus(entered);
+      SetStatus(entered);
    }
    else if (status == entered) {
       if (jobChoice->GetStringSelection().Length() < 1) {
@@ -414,7 +425,7 @@ void wxbRestorePanel::CmdStart() {
       WaitForEnd(wxString() << jobChoice->GetStringSelection() << "\n");
       WaitForEnd(wxString() << *((long*)clientChoice->GetClientData(clientChoice->GetSelection())) << "\n");
       WaitForEnd("unmark *\n");
-      setStatus(choosing);
+      SetStatus(choosing);
       wxTreeItemId root = tree->AddRoot(clientChoice->GetStringSelection(), -1, -1, new wxbTreeItemData("/", clientChoice->GetStringSelection(), 0));
       tree->Refresh();
       WaitForList(root, true);
@@ -422,7 +433,7 @@ void wxbRestorePanel::CmdStart() {
       tree->Expand(root);
    }
    else if (status == choosing) {
-      setStatus(restoring);
+      SetStatus(restoring);
 
       wxbMainFrame::GetInstance()->SetStatusText("Restoring, please wait...");
 
@@ -433,7 +444,7 @@ void wxbRestorePanel::CmdStart() {
       if (totfilemessages == 0) {
          wxbMainFrame::GetInstance()->Print("Restore failed : no file selected.\n", CS_DEBUG);
          wxbMainFrame::GetInstance()->SetStatusText("Restore failed : no file selected.");
-         setStatus(finished);
+         SetStatus(finished);
          return;
       }
 
@@ -478,7 +489,7 @@ void wxbRestorePanel::CmdStart() {
          wxbMainFrame::GetInstance()->Print("Restore failed, please look at messages.\n", CS_DEBUG);
          wxbMainFrame::GetInstance()->SetStatusText("Restore failed, please look at messages in console.");
       }
-      setStatus(finished);
+      SetStatus(finished);
    }
 }
 
@@ -643,14 +654,14 @@ void wxbRestorePanel::WaitForList(wxTreeItemId item, bool updatelist) {
 
    WaitForEnd(wxString("cd \"") << static_cast<wxbTreeItemData*>(tree->GetItemData(currentTreeItem))->GetPath() << "\"\n");
 
-   status = listing;
+   SetStatus(listing);
 
    if (updatelist)
       list->DeleteAllItems();
    WaitForEnd("dir\n");
 
    tree->Refresh();
-   status = choosing;
+   SetStatus(choosing);
 }
 
 /* Parse dir command results. */
@@ -849,15 +860,25 @@ void wxbRestorePanel::RefreshTree(wxTreeItemId item) {
   ----------------------------------------------------------------------------*/
 
 /* Set current status by enabling/disabling components */
-void wxbRestorePanel::setStatus(status_enum newstatus) {
+void wxbRestorePanel::SetStatus(status_enum newstatus) {
    switch (newstatus) {
+   case disabled:
+      start->SetLabel("Enter restore mode");
+      start->Enable(false);
+      clientChoice->Enable(false);
+      jobChoice->Enable(false);
+      tree->Enable(false);
+      list->Enable(false);
+      gauge->Enable(false);
+      break;
    case finished:
       tree->DeleteAllItems();
       list->DeleteAllItems();
       clientChoice->Clear();
       jobChoice->Clear();
-      newstatus = disabled;
-   case disabled:
+      wxbMainFrame::GetInstance()->EnablePanels();
+      newstatus = activable;
+   case activable:
       start->SetLabel("Enter restore mode");
       start->Enable(true);
       clientChoice->Enable(false);
@@ -867,6 +888,7 @@ void wxbRestorePanel::setStatus(status_enum newstatus) {
       gauge->Enable(false);
       break;
    case entered:
+      wxbMainFrame::GetInstance()->DisablePanels(this);
       gauge->SetValue(0);
       start->SetLabel("Choose files to restore");
       clientChoice->Enable(true);
@@ -875,7 +897,7 @@ void wxbRestorePanel::setStatus(status_enum newstatus) {
       list->Enable(false);
       break;
    case listing:
-
+      
       break;
    case choosing:
       start->SetLabel("Restore");
@@ -938,7 +960,9 @@ void wxbRestorePanel::OnTreeExpanding(wxTreeEvent& event) {
    }
    //working = true;
    //CmdList(event.GetItem());
-   tree->SelectItem(event.GetItem());
+   if (tree->GetSelection() != event.GetItem()) {
+      tree->SelectItem(event.GetItem());
+   }
    //working = false;
 }
 
@@ -946,13 +970,13 @@ void wxbRestorePanel::OnTreeChanged(wxTreeEvent& event) {
    if (working) {
       return;
    }
+
    working = true;
    CmdList(event.GetItem());
    working = false;
 }
 
 void wxbRestorePanel::OnTreeMarked(wxbTreeMarkedEvent& event) {
-   //wxbMainFrame::GetInstance()->Print(wxString("MARKED\n"), CS_DEBUG);
    if (working) {
       //event.Skip();
       return;
@@ -966,7 +990,7 @@ void wxbRestorePanel::OnTreeMarked(wxbTreeMarkedEvent& event) {
 
 void wxbRestorePanel::OnListMarked(wxbListMarkedEvent& event) {
    if (working) {
-      event.Skip();
+      //event.Skip();
       return;
    }
    working = true;
@@ -980,7 +1004,7 @@ void wxbRestorePanel::OnListMarked(wxbListMarkedEvent& event) {
 
 void wxbRestorePanel::OnListActivated(wxListEvent& event) {
    if (working) {
-      event.Skip();
+      //event.Skip();
       return;
    }
    working = true;
@@ -1000,8 +1024,8 @@ void wxbRestorePanel::OnListActivated(wxListEvent& event) {
          while (currentChild.IsOk()) {
             wxString name2 = tree->GetItemText(currentChild);
             if (name2 == name) {
+               //tree->UnselectAll();
                working = false;
-               tree->UnselectAll();
                tree->Expand(currentTreeItem);
                tree->SelectItem(currentChild);
                //tree->Refresh();

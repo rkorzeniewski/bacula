@@ -90,11 +90,17 @@ public:
    static wxbMainFrame* CreateInstance(const wxString& title, const wxPoint& pos, const wxSize& size, long style = wxDEFAULT_FRAME_STYLE);
    static wxbMainFrame* GetInstance();
 
-    // event handlers (these functions should _not_ be virtual)
+   /* event handlers (these functions should _not_ be virtual) */
    void OnQuit(wxCommandEvent& event);
    void OnAbout(wxCommandEvent& event);
    void OnEnter(wxCommandEvent& event);
    void OnPrint(wxbThreadEvent& event);
+
+   /* Enable and disable panels */
+   void EnablePanels();
+   void DisablePanels(void* except = NULL);
+   
+   void EnableConsole(bool enable = true);
 
    /*
     *  Prints data received from director to the console,

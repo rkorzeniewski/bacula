@@ -1,5 +1,11 @@
+17-04-2004 :
+ - wxbPanel/wxbMainFrame : Added a locking function (for example, 
+   the user can't type something in the console when a restore
+   is in progress)
+
 16-04-2004 :
- - wxbRestorePanel : Allow the user to change the status by double-clicking on the check mark
+ - wxbRestorePanel : Allow the user to change the status by 
+   double-clicking on the check mark
 
 15-04-2004 :
  - project renamed in wx-console

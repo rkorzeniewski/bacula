@@ -72,9 +72,9 @@ void* console_thread::Entry() {
 
    memset(&jcr, 0, sizeof(jcr));
 
-   UA_sock = bnet_connect(&jcr, 5, 15, "Director daemon", dir->address, NULL, dir->DIRport, 0);
+   UA_sock = bnet_connect(&jcr, 3, 3, "Director daemon", dir->address, NULL, dir->DIRport, 0);
    if (UA_sock == NULL) {
-      csprint("NULL\n");
+      csprint("Failed to connect to the director\n");
       return NULL;
    }
 
@@ -86,7 +86,9 @@ void* console_thread::Entry() {
       csprint(UA_sock->msg);
       return NULL;
    }
-
+   
+   csprint(NULL, CS_CONNECTED);
+   
    Write("messages\n");
 
    int stat;
@@ -105,6 +107,8 @@ void* console_thread::Entry() {
          break;            /* error or term */
       }
    }
+   
+   csprint(NULL, CS_DISCONNECTED);
 
    csprint("Connection terminated\n");
 

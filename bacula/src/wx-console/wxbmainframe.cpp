@@ -162,7 +162,9 @@ wxbMainFrame* wxbMainFrame::GetInstance()
  */
 wxbMainFrame::~wxbMainFrame()
 {
-   ct->Delete();
+   if ((ct != NULL) && (!ct->IsRunning())) {
+      ct->Delete();
+   }
 }
 
 /*
@@ -249,6 +251,7 @@ wxbMainFrame::wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSi
    SetAutoLayout(true);
    SetSizer( sizer );
    //sizer->SetSizeHints( this );
+   EnableConsole(false);
 }
 
 /*
@@ -300,7 +303,17 @@ void wxbMainFrame::OnPrint(wxbThreadEvent& event) {
  */
 void wxbMainFrame::Print(wxString str, int status)
 {
-   // CS_DEBUG is often sent by panels, so resend it to them would cause an infinite loop
+   if (status == CS_CONNECTED) {
+      EnablePanels();
+      return;
+   }
+   if (status == CS_DISCONNECTED) {
+      DisablePanels();
+      return;
+   }
+      
+   // CS_DEBUG is often sent by panels, 
+   // and resend it to them would sometimes cause an infinite loop
    if (status != CS_DEBUG) {
       for (int i = 0; panels[i] != NULL; i++) {
          panels[i]->Print(str, status);
@@ -325,6 +338,34 @@ void wxbMainFrame::Send(wxString str)
    typeCtrl->SetValue("");
    consoleCtrl->SetDefaultStyle(wxTextAttr(*wxRED));
    (*consoleCtrl) << str;
+}
+
+/* Enable panels */
+void wxbMainFrame::EnablePanels() {
+   for (int i = 0; panels[i] != NULL; i++) {
+      panels[i]->EnablePanel(true);
+   }
+   EnableConsole(true);
+}
+
+/* Disable panels, except the one passed as parameter */
+void wxbMainFrame::DisablePanels(void* except) {
+   for (int i = 0; panels[i] != NULL; i++) {
+      if (panels[i] != except) {
+         panels[i]->EnablePanel(false);
+      }
+      else {
+         panels[i]->EnablePanel(true);
+      }
+   }
+   if (this != except) {
+      EnableConsole(false);
+   }
+}
+
+/* Enable or disable console typing */
+void wxbMainFrame::EnableConsole(bool enable) {
+   typeCtrl->Enable(enable);
 }
 
 /*
@@ -369,7 +410,8 @@ void csprint(char* str, int status)
          }
       }
       else {
-         wxStringTokenizer tkz(str, "\n", wxTOKEN_RET_DELIMS | wxTOKEN_RET_EMPTY | wxTOKEN_RET_EMPTY_ALL);
+         wxStringTokenizer tkz(str, "\n", 
+            wxTOKEN_RET_DELIMS | wxTOKEN_RET_EMPTY | wxTOKEN_RET_EMPTY_ALL);
 
          while ( tkz.HasMoreTokens() ) {
             csBuffer << tkz.GetNextToken();
@@ -389,12 +431,12 @@ void csprint(char* str, int status)
       }
    }
 
-   if (status == CS_END) {
+   if (status != CS_DATA) {
       if (csBuffer.Length() != 0) {
          firePrintEvent(csBuffer, CS_DATA);
       }
       csBuffer = "";
-      firePrintEvent("", CS_END);
+      firePrintEvent("", status);
    }
 }
 

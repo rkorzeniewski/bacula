@@ -49,6 +49,7 @@ class wxbRestorePanel : public wxbPanel
       /* wxbPanel overloadings */
       virtual wxString GetTitle();
       virtual void Print(wxString str, int status);
+      virtual void EnablePanel(bool enable = true);
 
    private:
 /* Commands called by events handler */
@@ -105,18 +106,19 @@ class wxbRestorePanel : public wxbPanel
 /* Status related */
       enum status_enum
       {
-         disabled,  // The panel is not activated
+         disabled,  // The panel is not activatable
+         activable, // The panel is activable, but not activated
          entered,   // The panel is activated
          choosing,  // The user is choosing files to restore
          listing,   // Dir listing is in progress
          restoring, // Bacula is restoring files
-         finished   // Retore done
+         finished   // Retore done (state will change in activable)
       };
 
       status_enum status;
 
       /* Set current status by enabling/disabling components */
-      void setStatus(status_enum newstatus);
+      void SetStatus(status_enum newstatus);
 
 /* UI related */
       bool working; // A command is running, discard GUI events
