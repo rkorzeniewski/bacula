@@ -317,7 +317,7 @@ void create_pid_file(char *dir, const char *progname, int port)
       unlink(mp_chr(fname));		      /* remove stale pid file */
    }
    /* Create new pid file */
-   if ((pidfd = open(mp_chr(fname), O_CREAT | O_TRUNC | O_WRONLY | O_BINARY, 0644)) >= 0) {
+   if ((pidfd = open(mp_chr(fname), O_CREAT|[CTRUNC|O_WRONLY|O_BINARY, 0644)) >= 0) {
       len = sprintf(pidbuf, "%d\n", (int)getpid());
       write(pidfd, pidbuf, len);
       close(pidfd);
@@ -376,7 +376,7 @@ void read_state_file(char *dir, const char *progname, int port)
 
    Mmsg(&fname, "%s/%s.%d.state", dir, progname, port);
    /* If file exists, see what we have */
-   Dmsg1(10, "O_BINARY=%d\n", O_BINARY);
+// Dmsg1(10, "O_BINARY=%d\n", O_BINARY);
    if ((sfd = open(mp_chr(fname), O_RDONLY|O_BINARY, 0)) < 0) {
       Dmsg3(010, "Could not open state file. sfd=%d size=%d: ERR=%s\n", 
 		    sfd, sizeof(hdr), strerror(errno));
@@ -396,7 +396,7 @@ void read_state_file(char *dir, const char *progname, int port)
       Dmsg0(000, "State file header id invalid.\n");
       goto bail_out;
    }
-   Dmsg1(010, "Read header of %d bytes.\n", sizeof(hdr));
+// Dmsg1(010, "Read header of %d bytes.\n", sizeof(hdr));
    read_last_jobs_list(sfd, hdr.last_jobs_addr);
 bail_out:
    if (sfd >= 0) {
@@ -415,7 +415,7 @@ void write_state_file(char *dir, const char *progname, int port)
 
    Mmsg(&fname, "%s/%s.%d.state", dir, progname, port);
    /* Create new state file */
-   if ((sfd = open(mp_chr(fname), O_CREAT|O_TRUNC|O_WRONLY|O_BINARY, 0640)) < 0) {
+   if ((sfd = open(mp_chr(fname), O_CREAT|O_WRONLY|O_BINARY, 0640)) < 0) {
       Dmsg2(000, _("Could not create state file. %s ERR=%s\n"), fname, strerror(errno));
       Emsg2(M_ERROR, 0, _("Could not create state file. %s ERR=%s\n"), fname, strerror(errno));
       goto bail_out;
@@ -424,10 +424,10 @@ void write_state_file(char *dir, const char *progname, int port)
       Dmsg1(000, "Write hdr error: ERR=%s\n", strerror(errno));
       goto bail_out;
    }
-   Dmsg1(010, "Wrote header of %d bytes\n", sizeof(state_hdr));
+// Dmsg1(010, "Wrote header of %d bytes\n", sizeof(state_hdr));
    state_hdr.last_jobs_addr = sizeof(state_hdr);
    state_hdr.reserved[0] = write_last_jobs_list(sfd, state_hdr.last_jobs_addr);   
-   Dmsg1(010, "write last job end = %d\n", (int)state_hdr.reserved[0]);
+// Dmsg1(010, "write last job end = %d\n", (int)state_hdr.reserved[0]);
    if (lseek(sfd, 0, SEEK_SET) < 0) {
       Dmsg1(000, "lseek error: ERR=%s\n", strerror(errno));
       goto bail_out;
@@ -435,7 +435,7 @@ void write_state_file(char *dir, const char *progname, int port)
    if (write(sfd, &state_hdr, sizeof(state_hdr)) != sizeof(state_hdr)) {
       Dmsg1(000, "Write final hdr error: ERR=%s\n", strerror(errno));
    }
-
+// Dmsg1(010, "rewrote header = %d\n", sizeof(state_hdr));
 bail_out:
    if (sfd >= 0) {
       close(sfd);
