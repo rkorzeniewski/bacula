@@ -21,8 +21,7 @@ echo " === Starting Small File Size test ==="
 echo " === Starting Small File Size test ===" >>working/log
 echo " "
 
-#bin/bacula start 2>&1 >/dev/null
-bin/bacula start
+bin/bacula start 2>&1 >/dev/null
 bin/console -c bin/console.conf <<END_OF_DATA
 @output /dev/null
 messages
