@@ -173,6 +173,12 @@ int acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	  !(dir_find_next_appendable_volume(jcr) &&
 	    strcmp(dev->VolHdr.VolName, jcr->VolumeName) == 0)) { /* wrong tape mounted */
 	 if (dev->num_writers != 0) {
+	    /*
+	     * ***FIXME*** add multiple writers here if permitted   
+	     *	find end of dev chain 
+	     *	 dev->next = init_dev(NULL, dev->device);
+	     *	 ...
+	     */
             Jmsg(jcr, M_FATAL, 0, _("Device %s is busy writing on another Volume.\n"), dev_name(dev));
 	    goto get_out;
 	 }

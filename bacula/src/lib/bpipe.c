@@ -166,17 +166,22 @@ int close_bpipe(BPIPE *bpipe)
 	 sleep(1);		      /* wait one second */
 	 remaining_wait--;
       } else {
-	 stat = ETIME;		      /* set timeout, if no other status */
+	 stat = 1;		      /* set error status */
+	 errno = ETIME; 	      /* set timed out */
 	 wpid = -1;
          break;                       /* don't wait any longer */
       }
    }
-   if (wpid != -1 && WIFEXITED(chldstatus)) {
-      stat = WEXITSTATUS(chldstatus);
-      if (stat != 0) {
-	 errno = ECHILD;
+   if (wpid > 0) {
+      if (WIFEXITED(chldstatus)) {	     /* process exit()ed */
+	 stat = WEXITSTATUS(chldstatus);
+      } else if (WIFSIGNALED(chldstatus)) {  /* process died */
+	 stat = 1;
       }
-   }
+      if (stat != 0) {
+	 errno = ECHILD;	      /* set child errno */
+      }
+   }  
    if (bpipe->timer_id) {
       stop_child_timer(bpipe->timer_id);
    }
