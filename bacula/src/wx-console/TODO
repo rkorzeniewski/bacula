@@ -1,6 +1,10 @@
 FEATURES
 --------
 
+wxbTableParser : Replace wxHashMap by wxArray
+
+console_thread : Show a nice message when config file is not found.
+
 wxbRestorePanel : Add buttons to mark/unmark directories/files.
 
 wxbRestorePanel : Add a button to force the refreshing of the whole tree
@@ -11,8 +15,6 @@ wxbRestorePanel : Check more carefully which job we just have run.
 
 wxbRestorePanel : Check if commands run successfully (cd, mark, mods...).
 
-wxbRestorePanel : Allow configure to change client and fileset
-
 GTK : Improve look
 
 general : Don't concatenate lines in csprint, but in wxbDataTokenizer
@@ -20,12 +22,10 @@ general : Don't concatenate lines in csprint, but in wxbDataTokenizer
          
 general : use dot commands
 
-general : Create a more complicated director config file, to check what
-	choices I should give to the user (pools, filesets, ...(?)).
+wxbRestorePanel : Allow configure to change fileset (need dot)
 
-wxbTableParser : Replace wxHashMap by wxArray
-
-console_thread : Show a nice message when config file is not found.
+general : Allow the user to be prompted when an unexpected "question"
+  is asked ("prompt" data message).
 
 console_thread : Allow the user to choose his config file.
 
