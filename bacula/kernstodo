@@ -28,6 +28,7 @@ From Chuck:
 --sd.conf password does not match dir.conf storage password
 =======
 
+- Implement autochanger for restore. ARRRGGG! I forgot!
 - Make BSR accept count (total files to be restored).
 - Make BSR return next_block when it knows record is not
   in block, done when count is reached, and possibly other
