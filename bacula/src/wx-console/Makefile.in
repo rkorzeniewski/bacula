@@ -61,7 +61,7 @@ CONS_LDFLAGS=@WXCONS_LDFLAGS@
 
 
 #-------------------------------------------------------------------------
-all: Makefile wx-console @MACOSXAPP@
+all: Makefile wx-console $(MACOSXAPP)
 	@echo "==== Make of wx-console is good ===="
 	@echo " "
 
