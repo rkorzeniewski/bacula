@@ -31,7 +31,7 @@
 
 #ifdef xxxxxxx
 
-Remove fprintf's and actuallyfree and fix POOLMEM coding
+Remove fprintf() and actuallyfree and fix POOLMEM coding
 
 Pass errmsg buffer and a length or a POOLMEM buffer
 into subroutine rather than malloc in

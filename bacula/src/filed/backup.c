@@ -372,7 +372,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	 }
       }
 
-      Dmsg1(300, "Saving Finder Info for \"%s\"", ff_pkt->fname);
+      Dmsg1(300, "Saving Finder Info for \"%s\"\n", ff_pkt->fname);
       bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_HFSPLUS_ATTRIBUTES);
       Dmsg1(300, "bfiled>stored:header %s\n", sd->msg);
       memcpy(sd->msg, ff_pkt->hfsinfo.fndrinfo, 32);
@@ -504,7 +504,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       } else if (chksum.type == CHKSUM_SHA1) {
 	 stream = STREAM_SHA1_SIGNATURE;
       } else {
-         Jmsg1(jcr, M_WARNING, 0, _("Unknown signature type %i."), chksum.type);
+         Jmsg1(jcr, M_WARNING, 0, _("Unknown signature type %i.\n"), chksum.type);
       }
       if (stream != 0) {
          bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, stream);
