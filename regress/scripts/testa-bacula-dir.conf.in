@@ -61,8 +61,8 @@ Job {
 # List of files to be backed up
 FileSet {
   Name = "Full Set"
-  Include = signature=SHA1 { 
-    </tmp/file-list
+  Include { Options { signature=SHA1 }
+    File =</tmp/file-list
   }
 }
 
