@@ -78,11 +78,11 @@ From Chris Hull:
 - Add all pools in Dir conf to DB also update them to catch changed
   LabelFormats and such.
 - Update volumes FromPool=xxx does all volumes.
-- Once a job is canceled, make sure the status reflects that even if the
-  job is "stuck" in the run queue.
 
 
 For version 1.35:
+- Pass Director resource name as an option to the Console.
+- Add a "batch" mode to the Console (no unsolicited queries, ...).
 - Add code to check for tape alerts -- tapeinfo.
 - Make sure list of Volumes needed is in correct order for restore.
   See havana.
@@ -1421,3 +1421,6 @@ Block Position: 0
 - Phil says that Windows file sizes mismatch in Verify when they should,
   and that either the file size or the catalog size was zero.
 - Check time/dates printed during restore when using Win32 API.
+- Once a job is canceled, make sure the status reflects that even if the
+  job is "stuck" in the run queue.
+
