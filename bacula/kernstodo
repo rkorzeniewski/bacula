@@ -40,6 +40,7 @@ Regression tests:
 
 
 1.37 Possibilities:
+- Add Python writable variable for changing the Priority.
 - Document security problems with the same password for everyone in
   rpm and Win32 releases.
 - Browse generations of files.
