@@ -243,7 +243,7 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 "INSERT INTO Media (VolumeName,MediaType,PoolId,MaxVolBytes,VolCapacityBytes," 
 "Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,"
 "VolStatus,Slot,VolBytes,InChanger,VolReadTime,VolWriteTime," 
-"EndFile,EndBlock "
+"EndFile,EndBlock) "
 "VALUES ('%s','%s',%u,%s,%s,%d,%s,%s,%u,%u,'%s',%d,%s,%d,%s,%s,0,0)", 
 		  mr->VolumeName,
 		  mr->MediaType, mr->PoolId, 
