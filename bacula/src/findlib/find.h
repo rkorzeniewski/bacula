@@ -202,9 +202,10 @@ struct FF_PKT {
    /* List of all hard linked files found */
    struct f_link *linklist;	      /* hard linked files */
 
-   /* Darwin specific things. So as not to clutter every bclose()
-    * with an #ifdef, we always include rsrc_bfd */
+   /* Darwin specific things.
+    * To avoid clutter, we always include rsrc_bfd and volhas_attrlist */
    BFILE rsrc_bfd;		      /* fd for resource forks */
+   bool volhas_attrlist;	      /* Volume supports getattrlist() */
 #ifdef HAVE_DARWIN_OS
    struct HFSPLUS_INFO hfsinfo;       /* Finder Info and resource fork size */
 #endif

@@ -341,7 +341,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    }
 
 #ifdef HAVE_DARWIN_OS
-   /* Open resource fork if necessary and save content */
+   /* Regular files can have resource forks and Finder Info */
    if (ff_pkt->type != FT_LNKSAVED && (S_ISREG(ff_pkt->statp.st_mode) &&
 	    ff_pkt->flags & FO_HFSPLUS)) {
       if (ff_pkt->hfsinfo.rsrclength > 0) {
@@ -379,14 +379,16 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 #endif
 
 #ifdef HAVE_ACL
-   /* Read access ACLs for files, dirs and links */
-   if (!read_and_send_acl(jcr, BACL_TYPE_ACCESS, STREAM_UNIX_ATTRIBUTES_ACCESS_ACL)) {
-      return 0;
-   }
-   /* Directories can have default ACLs too */
-   if (ff_pkt->type == FT_DIREND && (BACL_CAP & BACL_CAP_DEFAULTS_DIR)) {
-      if (!read_and_send_acl(jcr, BACL_TYPE_DEFAULT, STREAM_UNIX_ATTRIBUTES_DEFAULT_ACL)) {
+   if (ff_pkt->flags & FO_ACL) {
+      /* Read access ACLs for files, dirs and links */
+      if (!read_and_send_acl(jcr, BACL_TYPE_ACCESS, STREAM_UNIX_ATTRIBUTES_ACCESS_ACL)) {
 	 return 0;
+      }
+      /* Directories can have default ACLs too */
+      if (ff_pkt->type == FT_DIREND && (BACL_CAP & BACL_CAP_DEFAULTS_DIR)) {
+	 if (!read_and_send_acl(jcr, BACL_TYPE_DEFAULT, STREAM_UNIX_ATTRIBUTES_DEFAULT_ACL)) {
+	    return 0;
+	 }
       }
    }
 #endif
