@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  9 March 2004
+                  23 March 2004
 
 Documentation to do: (any release a little bit at a time)
 - DB upgrade to version 5 in bacula-1.27b, DB upgrade to
@@ -72,41 +72,46 @@ For 1.33 Testing/Documentation:
    Overland Neo2000 (LVD)
 
 For 1.33
+- Complete Win32 installer
+- Finish work on Gnome restore GUI.
 - Fix query buffer clobber ua_query.c
 - On unknown client in restore "client=xxx"
   Could not find Client "Matou": ERR=Query failed: DROP TABLE temp1: 
      ERR=no such table: temp1
-From Chris Hull:
-   it seems to be complaining about 12:00pm which should be a valid 12
-   hour time.  I changed the time to 11:59am and everything works fine.
-   Also 12:00am works fine.  0:00pm also works (which I don't think
-   should).  None of the values 12:00pm - 12:59pm work for that matter.
-- Use SHA1 on authentication if possible.
-- Restore attributes of directory if replace=never set but directory
-  did not exist.
 - Allow "delete job jobid=xx jobid=xxx".   
-- Allow "delete job jobid=xxx,yyy,aaa-bbb" i.e. list + ranges.
 - Implement multiple Volume in "purge jobs volume=".
-- Fix option 2 of restore -- list where file is backed up -- require Client,
-  then list last 20 backups.
-- Allow browsing the catalog to see all versions of a file (with 
-  stat data on each file).
-- Add level to estimate command.
 - Fix "llist jobid=xx" where no fileset or client exists.
-- Add all pools in Dir conf to DB also update them to catch changed
-  LabelFormats and such.
 - Build console in client-only build.
-- Write a Qmsg() to be used in bnet.c to prevent recursion.  Queue the
+- Test Qmsg() code to be used in bnet.c to prevent recursion.  Queue the
   message. If dequeueing toss the messages. Lock while dequeuing so that
   it cannot be called recursively and set dequeuing flag.
-- Add a .list all files in the restore tree (probably also a list all files)
-  Do both a long and short form.
 - Finish work on conio.c -- particularly linking.
 - Phil says that Windows file sizes mismatch in Verify when they should,
   and that either the file size or the catalog size was zero.
 - Check time/dates printed during restore when using Win32 API.
 
-- Later:
+--- Maybe in 1.33
+From Chris Hull:
+   it seems to be complaining about 12:00pm which should be a valid 12
+   hour time.  I changed the time to 11:59am and everything works fine.
+   Also 12:00am works fine.  0:00pm also works (which I don't think
+   should).  None of the values 12:00pm - 12:59pm work for that matter.
+- Add level to estimate command.
+- Fix option 2 of restore -- list where file is backed up -- require Client,
+  then list last 20 backups.
+- Add all pools in Dir conf to DB also update them to catch changed
+  LabelFormats and such.
+
+
+For version 1.35:
+- Add a .list all files in the restore tree (probably also a list all files)
+  Do both a long and short form.
+- Allow browsing the catalog to see all versions of a file (with 
+  stat data on each file).
+- Restore attributes of directory if replace=never set but directory
+  did not exist.
+- Allow "delete job jobid=xxx,yyy,aaa-bbb" i.e. list + ranges.
+- Use SHA1 on authentication if possible.
 - See comtest-xxx.zip for Windows code to talk to USB.
 - Make btape accept Device Names in addition to Archive names.
 - Add Events and Perl scripting.
