@@ -14,12 +14,11 @@ echo " === Starting truncate-bug-tape test at `date +%R:%S` ==="
 echo " === Starting truncate-bug-tape test at `date +%R:%S` ===" >>working/log
 echo " "
 
-#bin/bacula start 2>&1 >/dev/null
-bin/bacula start
+bin/bacula start 2>&1 >/dev/null
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
-@tee /dev/null
+@output /dev/null
 messages
-@tee tmp/log1.out
+@output tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 slot=0
 @# do a bunch of saves so we have 12 files on the tape
 run job=NightlySave yes
@@ -40,9 +39,9 @@ quit
 END_OF_DATA
 scripts/check_for_zombie_jobs storage=DDS-4
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
-@tee /dev/null
+@output /dev/null
 messages
-@tee tmp/log1.out
+@output tmp/log1.out
 @# 
 @# now do a restore
 @#
@@ -57,14 +56,14 @@ done
 yes
 wait
 messages
-@tee
+@output
 quit
 END_OF_DATA
 scripts/check_for_zombie_jobs storage=DDS-4
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
-@tee /dev/null
+@output /dev/null
 messages
-@tee tmp/log2.out
+@output tmp/log2.out
 run level=Full job=NightlySave yes
 wait
 messages
