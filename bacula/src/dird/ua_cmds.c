@@ -1708,6 +1708,7 @@ static void delete_job(UAContext *ua)
 	       delete_job_id_range(ua, tok);
 	   } else {
 	      JobId = str_to_int64(tok);
+	      do_job_delete(ua, JobId);
 	   }
 	   tok = ++sep;
            sep = strchr(tok, ',');
