@@ -155,6 +155,9 @@
 #define FT_NOOPEN    15               /* Could not open directory */
 #define FT_RAW       16               /* Raw block device */
 #define FT_FIFO      17               /* Raw fifo device */
+/* This directory packet is sent to the FD file processing routine so
+ * that it can filter packets, but otherwise, it is not used
+ * or saved */
 #define FT_DIRBEGIN  18               /* Directory at beginning (not saved) */
 
 /* Definitions for upper part of type word (see above). */
