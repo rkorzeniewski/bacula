@@ -56,7 +56,7 @@ static int tally_file(FF_PKT *ff_pkt, void *ijcr)
    JCR *jcr = (JCR *)ijcr;
    ATTR attr;
 
-   if (job_canceled(jcr) {
+   if (job_canceled(jcr)) {
       return 0;
    }
    switch (ff_pkt->type) {

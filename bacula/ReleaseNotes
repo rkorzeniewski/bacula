@@ -1,7 +1,7 @@
 
           Release Notes for Bacula 1.31
 
-  Bacula code: Total files = 251 Total lines = 74,587 (*.h *.c *.in)
+  Bacula code: Total files = 251 Total lines = 74,714 (*.h *.c *.in)
 
 Major Changes this Release:
 - The database format has changed. Please see below.
@@ -15,13 +15,19 @@ Major Changes this Release:
   and underscore.
 - Added readline to depkgs (removed from depkgs1) and fixed configuration if
   it is not installed in your system libraries.
-- Implemented generalized tape label formats including counter variables.
+- Implemented generalized tape label formats including counter variables 
+  for automatic naming of Volumes.
 - Multiple simultaneous jobs now work.
 - Implemented tape block rejection, which means that restores with
   several incremental backups will run orders of magnitude faster.
 
 
 Other Changes this Release:
+- The new console var command allows testing variable expansion
+  used in automatic tape name generation.
+- The new console estimate command allows you to test FileSets
+  to see how many files and bytes will be saved and optionally
+  to have an "ls -l" style listing of the files.
 - During a normal restore (replace = yes), any existing file is deleted
   and the restored file is then created. This corrects links and other
   wierd files that changed between the backup and the restore.
