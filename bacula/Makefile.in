@@ -97,6 +97,11 @@ install-menu: installdirs
 	${INSTALL_DATA} scripts/bacula.desktop.gnome1 $(DESTDIR)/usr/share/gnome/apps/System/bacula.desktop
 	${INSTALL_DATA} scripts/bacula.desktop.gnome2 $(DESTDIR)/usr/share/applications/bacula.desktop
 
+install-menu-xsu: installdirs
+	${INSTALL_DATA} scripts/bacula.png $(DESTDIR)/usr/share/pixmaps/bacula.png
+	${INSTALL_DATA} scripts/bacula.desktop.gnome1.xsu $(DESTDIR)/usr/share/gnome/apps/System/bacula.desktop
+	${INSTALL_DATA} scripts/bacula.desktop.gnome2.xsu $(DESTDIR)/usr/share/applications/bacula.desktop
+
 install-menu-consolehelper: installdirs
 	${INSTALL_DATA} scripts/bacula.png $(DESTDIR)/usr/share/pixmaps/bacula.png
 	${INSTALL_DATA} scripts/bacula.desktop.gnome1.consolehelper $(DESTDIR)/usr/share/gnome/apps/System/bacula.desktop
