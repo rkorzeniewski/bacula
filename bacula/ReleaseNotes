@@ -1,17 +1,36 @@
 
           Release Notes for Bacula 1.34.2
 
-  Bacula code: Total files = 344 Total lines = 98,746 (*.h *.c *.in)
+  Bacula code: Total files = 345 Total lines = 99,835 (*.h *.c *.in)
 
 Changes for 1.34.2:
-23Apr04
+Major Features:
+- wx-console can now be built both under GTK and Win32. It is     
+  now part of the Win32 binary release. It has a very nice tree
+  oriented restore.  Thanks to Nicolas Boichat for this program.
+- bconsole is now included in the Win32 binary release.
+           
+Items to note!!!
+- bscan restored StartBlocks one block off resulting in loss of
+  data if any bscanned volumes were restored. Thanks to Gregory
+  for reporting this. It is fixed in this release.
+- Due to an oversight, "Maximum Job Spool Size" was is not implemented.
+  It will be in the next release.
+- To build wx-console on Linux. Download wxWidgets 2.4.2 from wxwidgets.org,
+  build and install it on your system, then add --enable-wx-console on
+  your Bacula ./configure and it will be built and installed.  
+- For both the Win32 and Linux GTK versions of wx-console, you must
+  create a wx-console.conf in the current directory. The contents are
+  identical to a bconsole.conf file.                        
+
+Other items:
 - Make SD utility programs accept device name as well as archive device
   on command line.
 - Update docs
-22Apr04
-- Fix one off bug in StartBlock in bscan -- thanks to Gregory Brauer for
-  reporting this.
 - Remove old debug code from Win32 FD.
+- A new version of depkgs-win32 was released containing the Win32
+  wxWidgets source code.
+- Disable SIGHUP code in Director which is not yet complete.
 
 
 Release 1.34.1:  
