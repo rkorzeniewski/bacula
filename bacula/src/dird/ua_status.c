@@ -32,7 +32,7 @@
 
 extern char my_name[];
 extern time_t daemon_start_time;
-extern struct s_last_job last_job;
+extern int num_jobs_run;
 
 static void list_scheduled_jobs(UAContext *ua);
 static void list_running_jobs(UAContext *ua);
@@ -202,8 +202,8 @@ static void do_director_status(UAContext *ua, char *cmd)
    bsendmsg(ua, "%s Version: " VERSION " (" BDATE ") %s %s %s\n", my_name,
 	    HOST_OS, DISTNAME, DISTVER);
    bstrftime_nc(dt, sizeof(dt), daemon_start_time);
-   bsendmsg(ua, _("Daemon started %s, %d Job%s run.\n"), dt, last_jobs->size(),
-        last_jobs->size() == 1 ? "" : "s");
+   bsendmsg(ua, _("Daemon started %s, %d Job%s run since started.\n"), 
+        dt, num_jobs_run, num_jobs_run == 1 ? "" : "s");
    /*
     * List scheduled Jobs
     */

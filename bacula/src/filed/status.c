@@ -30,7 +30,7 @@
 #include "filed.h"
 
 extern char my_name[];
-extern struct s_last_job last_job;
+extern int num_jobs_run;
 extern time_t daemon_start_time;
 
 /* Forward referenced functions */
@@ -60,8 +60,8 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
 	      HOST_OS, DISTNAME, DISTVER);
    sendit(msg, len, arg);
    bstrftime_nc(dt, sizeof(dt), daemon_start_time);
-   len = Mmsg(&msg, _("Daemon started %s, %d Job%s run.\n"), dt, last_jobs->size(),
-        last_jobs->size() == 1 ? "" : "s");
+   len = Mmsg(&msg, _("Daemon started %s, %d Job%s run since started.\n"), 
+        dt, num_jobs_run, num_jobs_run == 1 ? "" : "s");
    sendit(msg, len, arg);
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
    if (debug_level > 0) {
