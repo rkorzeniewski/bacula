@@ -410,11 +410,15 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       Jmsg(jcr, M_INFO, 0, _("User defined maximum volume capacity %s exceeded on device %s.\n"),
 	    edit_uint64(max_cap, ed1),	dev->dev_name);
       block->write_failed = true;
-      weof_dev(dev, 1); 	      /* end the tape */
+      if (weof_dev(dev, 1) != 0) {	      /* end tape */
+         Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
+      }
       /* Don't do update after second EOF or file count will be wrong */
       Dmsg0(100, "dir_update_volume_info\n");
       dir_update_volume_info(jcr, dev, 0);
-      weof_dev(dev, 1);
+      if (dev_cap(dev, CAP_TWOEOF) && weof_dev(dev, 1) != 0) {	/* write eof */
+         Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
+      }
       dev->state |= (ST_EOF | ST_EOT | ST_WEOT);
       return 0;   
    }
@@ -491,10 +495,12 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 wlen, stat, dev->block_num, block->BlockNumber, dev->dev_errno, strerror(dev->dev_errno));
 
       block->write_failed = true;
-      weof_dev(dev,1);
+      if (weof_dev(dev, 1) != 0) {	   /* end the tape */
+         Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
+      }
       Dmsg0(100, "dir_update_volume_info\n");
       dir_update_volume_info(jcr, dev, 0);
-      if (weof_dev(dev, 1) != 0) {	   /* end the tape */
+      if (dev_cap(dev, CAP_TWOEOF) && weof_dev(dev, 1) != 0) {	/* end the tape */
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       }
       dev->state |= (ST_EOF | ST_EOT | ST_WEOT);
@@ -504,14 +510,19 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 #ifdef	CHECK_LAST_BLOCK
       /* 
        * If the device is a tape and it supports backspace record,
-       *   we backspace over two eof marks and over the last record,
+       *   we backspace over one or two eof marks depending on 
+       *   how many we just wrote, then over the last record,
        *   then re-read it and verify that the block number is
        *   correct.
        */
       if (dev->state & ST_TAPE && dev_cap(dev, CAP_BSR)) {
 
 	 /* Now back up over what we wrote and read the last block */
-	 if (!bsf_dev(dev, 1) || !bsf_dev(dev, 1)) {
+	 if (!bsf_dev(dev, 1)) {
+	    ok = false;
+            Jmsg(jcr, M_ERROR, 0, _("Backspace file at EOT failed. ERR=%s\n"), strerror(dev->dev_errno));
+	 }
+	 if (ok && dev_cap(dev, CAP_TWOEOF) && !bsf_dev(dev, 1)) {
 	    ok = false;
             Jmsg(jcr, M_ERROR, 0, _("Backspace file at EOT failed. ERR=%s\n"), strerror(dev->dev_errno));
 	 }

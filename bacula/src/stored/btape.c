@@ -559,8 +559,8 @@ static int re_read_block_test()
    }
 
    Pmsg0(-1, _("\n=== Write, backup, and re-read test ===\n\n"
-      "I'm going to write three records and two eof's\n"
-      "then backup over the eof's and re-read the last record.\n"     
+      "I'm going to write three records and an eof\n"
+      "then backup over the eof and re-read the last record.\n"     
       "Bacula does this after writing the last block on the\n"
       "tape to verify that the block was written correctly.\n"
       "It is not an *essential* feature ...\n\n")); 
@@ -603,16 +603,20 @@ static int re_read_block_test()
       Pmsg1(0, _("Wrote third record of %d bytes.\n"), rec->data_len);
    }
    weofcmd();
-   weofcmd();
-   if (!bsf_dev(dev, 1)) {
-      Pmsg1(0, _("Backspace file failed! ERR=%s\n"), strerror_dev(dev));
-      goto bail_out;
+   if (dev_cap(dev, CAP_TWOEOF)) {
+      weofcmd();
    }
    if (!bsf_dev(dev, 1)) {
       Pmsg1(0, _("Backspace file failed! ERR=%s\n"), strerror_dev(dev));
       goto bail_out;
    }
-   Pmsg0(0, "Backspaced over two EOFs OK.\n");
+   if (dev_cap(dev, CAP_TWOEOF)) {
+      if (!bsf_dev(dev, 1)) {
+         Pmsg1(0, _("Backspace file failed! ERR=%s\n"), strerror_dev(dev));
+	 goto bail_out;
+      }
+   }
+   Pmsg0(0, "Backspaced over EOF OK.\n");
    if (!bsr_dev(dev, 1)) {
       Pmsg1(0, _("Backspace record failed! ERR=%s\n"), strerror_dev(dev));
       goto bail_out;
@@ -1486,6 +1490,7 @@ This may take a long time -- hours! ...\n\n");
 static void unfillcmd()
 {
    DEV_BLOCK *block;
+   uint32_t i;
 
    dumped = 0;
    VolBytes = 0;
@@ -1543,7 +1548,7 @@ static void unfillcmd()
       Pmsg1(-1, _("Forward space to file %u complete. Reading blocks ...\n"), 
 	    last_file);
       Pmsg1(-1, _("Now reading to block %u.\n"), last_block_num);
-      for (uint32_t i=0; i <= last_block_num; i++) {
+      for (i=0; i <= last_block_num; i++) {
 	 if (!read_block_from_device(jcr, dev, block, NO_BLOCK_NUMBER_CHECK)) {
             Pmsg1(-1, _("Error reading blocks: ERR=%s\n"), strerror_dev(dev));
             Pmsg2(-1, _("Wanted block %u error at block %u\n"), last_block_num, i);
@@ -1554,11 +1559,32 @@ static void unfillcmd()
 	 }
       }
       if (last_block) {
-         dump_block(last_block, _("Last block written"));
-         dump_block(block, _("Block read back"));
-         Pmsg0(-1, _("Except for the buffer address, the contents of\n"
-                     "the above two block dumps should be the same.\n"
-                     "If not you have a problem ...\n"));
+	 char *p, *q;
+	 uint32_t CheckSum, block_len;
+	 ser_declare;
+	 p = last_block->buf;	   
+	 q = block->buf;
+	 unser_begin(q, BLKHDR1_LENGTH);
+	 unser_uint32(CheckSum);
+	 unser_uint32(block_len);
+	 while (q < (block->buf+block_len+BLKHDR2_LENGTH)) {
+	    if (*p++ == *q++) {
+	       continue;
+	    }
+            Pmsg0(-1, "\n");
+            dump_block(last_block, _("Last block written"));
+            dump_block(block, _("Block read back"));
+            Pmsg0(-1, "\n\n!!!! The last block written and the block\n"
+                      "that was read back differ. The test FAILED !!!!\n"
+                      "This must be corrected before you use Bacula\n"
+                      "to write multi-tape Volumes.!!!!\n");
+	    goto bail_out;
+	 }
+         Pmsg0(-1, _("\nThe blocks are identical. Test succeeded.\n"));
+	 if (verbose) {
+            dump_block(last_block, _("Last block written"));
+            dump_block(block, _("Block read back"));
+	 }
       }
    }
 
@@ -1694,7 +1720,6 @@ static int flush_block(DEV_BLOCK *block, int dump)
    free_memory(this_block->buf);    
    memcpy(this_block, block, sizeof(DEV_BLOCK));
    this_block->buf = get_memory(block->buf_len);
-   memcpy(this_block->buf, block->buf, this_block->buf_len);
    this_file = dev->file;
    this_block_num = dev->block_num;
    if (!write_block_to_dev(jcr, dev, block)) {
@@ -1736,6 +1761,8 @@ static int flush_block(DEV_BLOCK *block, int dump)
       unlock_device(dev);
       return 1; 		      /* end of tape reached */
    }
+   /* Save contents after write so that the header is serialized */
+   memcpy(this_block->buf, block->buf, this_block->buf_len);
 
    /*
     * Toggle between two allocated blocks for efficiency.
@@ -1799,7 +1826,9 @@ static void qfillcmd()
    }
    printf("\n");
    weofcmd();
-   weofcmd();
+   if (dev_cap(dev, CAP_TWOEOF)) {
+      weofcmd();
+   }
    rewindcmd();
    scan_blocks();
 

@@ -61,7 +61,7 @@ static int32_t read_nbytes(BSOCK *bsock, char *ptr, int32_t nbytes)
 	 errno = 0;
 	 nread = read(bsock->fd, ptr, nleft);	 
 	 if (bsock->timed_out || bsock->terminated) {
-            Dmsg1(000, "timed_out = %d\n", bsock->timed_out);
+            Dmsg1(400, "timed_out = %d\n", bsock->timed_out);
 	    return nread;
 	 }
       } while (nread == -1 && (errno == EINTR || errno == EAGAIN));
