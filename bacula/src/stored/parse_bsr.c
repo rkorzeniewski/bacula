@@ -690,10 +690,16 @@ int add_vol(JCR *jcr, VOL_LIST *vol)
    } else {
       for ( ; next->next; next=next->next) {
 	 if (strcmp(vol->VolumeName, next->VolumeName) == 0) {
+	    if (vol->start_file < next->start_file) {
+	       next->start_file = vol->start_file;
+	    }
 	    return 0;		      /* already in list */
 	 }
       }
       if (strcmp(vol->VolumeName, next->VolumeName) == 0) {
+	 if (vol->start_file < next->start_file) {
+	    next->start_file = vol->start_file;
+	 }
 	 return 0;		      /* already in list */
       }
       next->next = vol; 	      /* add volume */
@@ -720,7 +726,7 @@ void create_vol_list(JCR *jcr)
    VOL_LIST *vol;
 
    /* 
-    * Build a list of volume to be processed
+    * Build a list of volumes to be processed
     */
    jcr->NumVolumes = 0;
    jcr->CurVolume = 1;
@@ -731,10 +737,21 @@ void create_vol_list(JCR *jcr)
       }
       strcpy(jcr->VolumeName, bsr->volume->VolumeName); /* setup first volume */
       for ( ; bsr; bsr=bsr->next) {
-	 BSR_VOLUME *bsrvol = bsr->volume;
-	 for ( ; bsrvol; bsrvol=bsrvol->next) {
+	 BSR_VOLUME *bsrvol;
+	 BSR_VOLFILE *volfile;
+	 uint32_t sfile = 0;
+
+	 /* Find minimum start file so that we can forward space to it */
+	 for (volfile = bsr->volfile; volfile; volfile=volfile->next) {
+	    if (volfile->sfile < sfile) {
+	       sfile = volfile->sfile;
+	    }
+	 }
+	 /* Now add volumes for this bsr */
+	 for (bsrvol = bsr->volume; bsrvol; bsrvol=bsrvol->next) {
 	    vol = new_vol();
 	    strcpy(vol->VolumeName, bsrvol->VolumeName);
+	    vol->start_file = sfile;
 	    if (add_vol(jcr, vol)) {
 	       jcr->NumVolumes++;
                Dmsg1(400, "Added volume %s\n", vol->VolumeName);
@@ -742,6 +759,7 @@ void create_vol_list(JCR *jcr)
                Dmsg1(400, "Duplicate volume %s\n", vol->VolumeName);
 	       free((char *)vol);
 	    }
+	    sfile = 0;		      /* start at beginning of second volume */
 	 }
       }
    } else {

@@ -1,3 +1,39 @@
+2002-mm-dd Version 1.28 (not yet released)
+
+General: from kes02Dec02
+- Wrote a general purpose bi-directional pipe command. This replaces
+  previous use of pipes as well as the run_program previously used.
+- Make BSRs stop if no more matches are possible.
+- Allow unliminted number of devices in Storage daemon.
+- Allow connections to Storage daemon before all devices are initialized.
+
+Changes submitted this submission:
+- Added a readme and an afs-bacula script to the examples directory
+  that permits Bacula to backup an AFS filesystem. Thanks to
+  Lucas Mingarro for the submission.
+- Added A Sun-desktop autoloader script and Device definition to the
+  examples/devices subdirectory.  Thanks to Lucas Mingarro for the
+  submission.
+- If the WriteBootStrap fails, the job will now be marked in error.
+- Added a week position to the scheduler syntax that allows you to
+  specify 1st, 2nd, 3rd, 4th, or 4th, or first, ... fifth as a week
+  position specification in front of a day. So if you say
+
+    1st sun ...
+
+  the scheduler will start only on the first sunday of the month.  The
+  day specification can also be a day range e.g. sun-fri.
+  This code is untested.
+- Implemented bpipe.h and bpipe.c in src/lib, which defines a bi-directional
+  pipe.  This allows executing other programs and sending them information
+  as well as getting info from them.   
+- Replaced the previous pipe usage with bpipes in RunBeforeJob and   
+  RunAfterJob.
+- The mail program now uses bpipes rather than pipes, which means that any
+  error output will appear in the job output (truly bi-directional).
+- Modified BSR to handle counts and to stop when no more matches are possible.
+  This is untested.
+- Improved error messages in smtp.
 
 =============================================================================
 2002-11-29 Version 1.27c

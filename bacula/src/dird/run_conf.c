@@ -47,6 +47,7 @@ enum e_state {
    s_weekly,
    s_monthly,
    s_hourly,
+   s_wpos,			      /* 1st, 2nd, ...*/
 };  
 
 struct s_keyw {
@@ -103,30 +104,44 @@ static struct s_keyw keyw[] = {
   {N_("weekly"),     s_weekly,  0},
   {N_("monthly"),    s_monthly, 0},
   {N_("hourly"),     s_hourly,  0},
+
+  {N_("1st"),        s_wpos,    0},
+  {N_("2nd"),        s_wpos,    1},
+  {N_("3rd"),        s_wpos,    2},
+  {N_("4th"),        s_wpos,    3},
+  {N_("5th"),        s_wpos,    4},
+
+  {N_("first"),      s_wpos,    0},
+  {N_("second"),     s_wpos,    1},
+  {N_("third"),      s_wpos,    2},
+  {N_("fourth"),     s_wpos,    3},
+  {N_("fifth"),      s_wpos,    4},
   {NULL,	 s_none,    0}
 };
 
-static int have_hour, have_mday, have_wday, have_month;
+static int have_hour, have_mday, have_wday, have_month, have_wpos;
 static int have_at;
 static RUN lrun;
 
 static void clear_defaults()
 {
-   have_hour = have_mday = have_wday = have_month = TRUE;
+   have_hour = have_mday = have_wday = have_month = have_wpos = TRUE;
    clear_bit(0,lrun.hour);
    clear_bits(0, 30, lrun.mday);
    clear_bits(0, 6, lrun.wday);
    clear_bits(0, 11, lrun.month);
+   clear_bits(0, 4, lrun.wpos);
 }
 
 static void set_defaults()
 {
-   have_hour = have_mday = have_wday = have_month = FALSE;
+   have_hour = have_mday = have_wday = have_month = have_wpos = FALSE;
    have_at = FALSE;
    set_bit(0,lrun.hour);
    set_bits(0, 30, lrun.mday);
    set_bits(0, 6, lrun.wday);
    set_bits(0, 11, lrun.month);
+   set_bits(0, 4, lrun.wpos);
 }
 
 
@@ -337,6 +352,13 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	    }
 	    set_bit(code, lrun.wday);
 	    break;
+	 case s_wpos:		      /* Week position 1st, ... */
+	    if (!have_wpos) {
+	       clear_bits(0, 4, lrun.wpos);
+	       have_wpos = TRUE;
+	    }
+	    set_bit(code, lrun.wpos);
+	    break;
 	 case s_time:		      /* time */
 	    if (!have_at) {
                scan_err0(lc, _("Time must be preceded by keyword AT."));
@@ -418,8 +440,8 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 		  break;
 	       }
 	    }
-	    if (i != 0 || (state != s_month && state != s_wday)) {
-               scan_err0(lc, _("Invalid month or week day range"));
+	    if (i != 0 || (state != s_month && state != s_wday && state != s_wpos)) {
+               scan_err0(lc, _("Invalid month, week or position day range"));
 	       /* NOT REACHED */
 	    }
 
@@ -433,9 +455,8 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 		  break;
 	       }
 	    }
-	    if (i != 0 || state != state2 || 
-	       (state2 != s_month && state2 != s_wday) || code == code2) {
-               scan_err0(lc, _("Invalid month or weekday range"));
+	    if (i != 0 || state != state2 || code == code2) {
+               scan_err0(lc, _("Invalid month, weekday or position range"));
 	       /* NOT REACHED */
 	    }
 	    if (state == s_wday) {
@@ -450,8 +471,7 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 		  set_bits(code, 6, lrun.wday);
 		  set_bits(0, code2, lrun.wday);
 	       }
-	    } else {
-	       /* must be s_month */
+	    } else if (state == s_month) {
 	       if (!have_month) {
 		  clear_bits(0, 30, lrun.month);
 		  have_month = TRUE;
@@ -463,27 +483,43 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 		  set_bits(code, 30, lrun.month);
 		  set_bits(0, code2, lrun.month);
 	       }
-	    }
+	    } else {
+	       /* Must be position */
+	       if (!have_wpos) {
+		  clear_bits(0, 4, lrun.wpos);
+		  have_wpos = TRUE;
+	       }
+	       if (code < code2) {
+		  set_bits(code, code2, lrun.wpos);
+	       } else {
+		  set_bits(code, 4, lrun.wpos);
+		  set_bits(0, code2, lrun.wpos);
+	       }
+	    }			   
 	    break;
 	 case s_hourly:
 	    clear_defaults();
 	    set_bits(0, 23, lrun.hour);
 	    set_bits(0, 30, lrun.mday);
 	    set_bits(0, 11, lrun.month);
+	    set_bits(0, 4, lrun.wpos);
 	    break;
 	 case s_weekly:
 	    clear_defaults();
 	    set_bit(0, lrun.wday);
 	    set_bits(0, 11, lrun.month);
+	    set_bits(0, 4, lrun.wpos);
 	    break;
 	 case s_daily:
 	    clear_defaults();
 	    set_bits(0, 30, lrun.mday);
 	    set_bits(0, 11, lrun.month);
+	    set_bits(0, 4,  lrun.wpos);
 	    break;
 	 case s_monthly:
 	    clear_defaults();
 	    set_bits(0, 11, lrun.month);
+	    set_bits(0, 4,  lrun.wpos);
 	    break;
 	 default:
             scan_err0(lc, _("Unexpected run state\n"));

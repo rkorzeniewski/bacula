@@ -40,6 +40,7 @@ struct s_vol_list {
    struct s_vol_list *next;
    char VolumeName[MAX_NAME_LENGTH];
    int Slot; 
+   int start_file;
 };
 typedef struct s_vol_list VOL_LIST;
 
@@ -67,34 +68,33 @@ typedef struct s_bsr_sessid {
    struct s_bsr_sessid *next;
    uint32_t sessid;
    uint32_t sessid2;
-   int found;
+   int done;                          /* local done */
 } BSR_SESSID;
 
 typedef struct s_bsr_sesstime {
    struct s_bsr_sesstime *next;
    uint32_t sesstime;
-   int found;
+   int done;                          /* local done */
 } BSR_SESSTIME;
 
 typedef struct s_bsr_volfile {
    struct s_bsr_volfile *next;
    uint32_t sfile;                    /* start file */
    uint32_t efile;                    /* end file */
-   int found;
+   int done;                          /* local done */
 } BSR_VOLFILE;
 
 typedef struct s_bsr_findex {
    struct s_bsr_findex *next;
    int32_t findex;                    /* start file index */
    int32_t findex2;                   /* end file index */
-   int found;
+   int done;                          /* local done */
 } BSR_FINDEX;
 
 typedef struct s_bsr_jobid {
    struct s_bsr_jobid *next;
    uint32_t JobId;
    uint32_t JobId2;
-   int found;
 } BSR_JOBID;
 
 typedef struct s_bsr_jobtype {
@@ -110,13 +110,12 @@ typedef struct s_bsr_joblevel {
 typedef struct s_bsr_job {
    struct s_bsr_job *next;
    char Job[MAX_NAME_LENGTH];
-   int found;
+   int done;
 } BSR_JOB;
 
 typedef struct s_bsr_stream {
    struct s_bsr_stream *next;
    int32_t stream;                    /* stream desired */
-   int found;
 } BSR_STREAM;
 
 typedef struct s_bsr {
@@ -124,7 +123,8 @@ typedef struct s_bsr {
    int           done;                /* set when everything found */
    BSR_VOLUME   *volume;
    int32_t       Slot;                /* Slot */
-   int32_t       count;               /* count of files to restore this volume */
+   uint32_t      count;               /* count of files to restore this bsr */
+   uint32_t      found;               /* count of restored files this bsr */
    BSR_VOLFILE  *volfile;
    BSR_SESSTIME *sesstime;
    BSR_SESSID   *sessid;

@@ -46,5 +46,6 @@
 #endif
 #include "md5.h"
 #include "tree.h"
+#include "bpipe.h"
 
 #include "protos.h"

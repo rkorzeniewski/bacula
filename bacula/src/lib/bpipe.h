@@ -1,8 +1,9 @@
-/*
- * Storage daemon specific defines and includes
+/* 
+ *   Bi-directional pipe structure
  *
- *  Version $Id$
+ *   Version $Id$
  */
+
 /*
    Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
 
@@ -23,23 +24,11 @@
 
  */
 
-#ifndef __STORED_H_
-#define __STORED_H_
+typedef struct s_bpipe {
+   int worker_pid;
+   time_t worker_stime;
+   int wait;
+   FILE *rfd;
+   FILE *wfd;
+} BPIPE;
 
-#include <sys/mtio.h>
-#include "block.h"
-#include "record.h"
-#include "dev.h"
-#include "stored_conf.h"
-#include "bsr.h"
-#include "jcr.h"
-#include "protos.h"
-#ifdef HAVE_LIBZ
-#include <zlib.h>                     /* compression headers */
-#else
-#define uLongf uint32_t
-#endif
-
-extern char errmsg[];                /* general error message */
-
-#endif /* __STORED_H_ */

@@ -38,15 +38,12 @@
 /* Forward referenced functions */
 void terminate_stored(int sig);
 static void check_config();
+static void *device_allocation(void *arg);
 
 #define CONFIG_FILE "bacula-sd.conf"  /* Default config file */
 
 
 /* Global variables exported */
-
-
-struct s_shm *shm;		      /* memory shared with children */
-BSHM bshm;			      /* shared memory control packet */
 
 
 /* This is our own global resource */
@@ -84,10 +81,10 @@ static void usage()
  */
 int main (int argc, char *argv[])
 {
-   int ch, i;
+   int ch;   
    int no_signals = FALSE;
    int test_config = FALSE;
-   DEVRES *device;
+   pthread_t thid;
 
    init_stack_dump();
    my_name_is(argc, argv, "stored");
@@ -164,7 +161,6 @@ int main (int argc, char *argv[])
    parse_config(configfile);
    check_config();
 
-   bshm.size = 0;
    if (test_config) {
       terminate_stored(0);
    }
@@ -176,16 +172,6 @@ int main (int argc, char *argv[])
 
    create_pid_file(me->pid_directory, "bacula-sd", me->SDport);
 
-   /*  ****FIXME**** clean this up */
-   /* Create and attach to shared memory. This is a
-    * hold over from the days of child processes. 
-    * Note, in reality all memory is shared. This
-    * is just a global buffer for the device packets.
-    */
-   shm = (s_shm *) malloc(sizeof(struct s_shm));
-   /* Zero shared memory */
-   memset(shm, 0, sizeof(struct s_shm));
-
    /* Ensure that Volume Session Time and Id are both
     * set and are both non-zero.
     */
@@ -194,46 +180,22 @@ int main (int argc, char *argv[])
       Emsg0(M_ABORT, 0, _("Volume Session Time is ZERO!\n"));
    }
 
-   LockRes();
-   for (device=NULL,i=0;  (device=(DEVRES *)GetNextRes(R_DEVICE, (RES *)device)); i++) {
-      if (i >= MAX_DEVICES) {
-	 UnlockRes();
-         Emsg1(M_ABORT, 0, _("Too many Device Resources. Max=%d\n"), MAX_DEVICES);
-      }
-      Dmsg1(90, "calling init_dev %s\n", device->device_name);
-      device->dev = init_dev(&shm->dev[i], device);
-      Dmsg1(10, "SD init done %s\n", device->device_name);
-      if (!device->dev) {
-         Emsg1(M_ERROR, 0, _("Could not initialize %s\n"), device->device_name);
-      }
-      if (device->cap_bits & CAP_ALWAYSOPEN) {
-         Dmsg1(20, "calling open_device %s\n", device->device_name);
-	 if (!open_device(device->dev)) {
-            Emsg1(M_ERROR, 0, _("Could not open device %s\n"), device->device_name);
-	 }
-      }
-      if (device->cap_bits & CAP_AUTOMOUNT && device->dev && 
-	  device->dev->state & ST_OPENED) {
-	 DEV_BLOCK *block;
-	 JCR *jcr;
-	 block = new_block(device->dev);
-	 jcr = new_jcr(sizeof(JCR), stored_free_jcr);
-	 switch (read_dev_volume_label(jcr, device->dev, block)) {
-	    case VOL_OK:
-	       break;
-	    default:
-               Emsg1(M_WARNING, 0, _("Could not mount device %s\n"), device->device_name);
-	       break;
-	 }
-	 free_jcr(jcr);
-	 free_block(block);
-      }
-   } 
-   UnlockRes();
-   device = NULL;
+   /* Make sure on Solaris we can run concurrent, watch dog + servers + misc */
+   set_thread_concurrency(me->max_concurrent_jobs * 2 + 4);
 
-   set_thread_concurrency(me->max_concurrent_jobs * 2 +
-      4 /* watch dog + servers + misc */);
+   /*				 
+    * Here we lock the resources then fire off the device allocation
+    *  thread. That thread will release the resources when all the
+    *  devices are allocated.  This allows use to start the server
+    *  right away, but any jobs will wait until the resources are
+    *  unlocked.       
+    */
+   LockRes();
+   if (pthread_create(&thid, NULL, device_allocation, NULL) != 0) {
+      Emsg1(M_ABORT, 0, _("Unable to create thread. ERR=%s\n"), strerror(errno));
+   }
+
+
 
    start_watchdog();		      /* start watchdog thread */
 
@@ -312,6 +274,53 @@ static void check_config()
    working_directory = me->working_directory;
 }
 
+/*
+ * We are started as a separate thread.  The
+ *  resources are alread locked.
+ */
+static void *device_allocation(void *arg)
+{
+   int i;
+   DEVRES *device;
+
+   pthread_detach(pthread_self());
+
+   /* LockRes() alread done */
+   for (device=NULL,i=0;  (device=(DEVRES *)GetNextRes(R_DEVICE, (RES *)device)); i++) {
+      Dmsg1(90, "calling init_dev %s\n", device->device_name);
+      device->dev = init_dev(NULL, device);
+      Dmsg1(10, "SD init done %s\n", device->device_name);
+      if (!device->dev) {
+         Emsg1(M_ERROR, 0, _("Could not initialize %s\n"), device->device_name);
+      }
+      if (device->cap_bits & CAP_ALWAYSOPEN) {
+         Dmsg1(20, "calling open_device %s\n", device->device_name);
+	 if (!open_device(device->dev)) {
+            Emsg1(M_ERROR, 0, _("Could not open device %s\n"), device->device_name);
+	 }
+      }
+      if (device->cap_bits & CAP_AUTOMOUNT && device->dev && 
+	  device->dev->state & ST_OPENED) {
+	 DEV_BLOCK *block;
+	 JCR *jcr;
+	 block = new_block(device->dev);
+	 jcr = new_jcr(sizeof(JCR), stored_free_jcr);
+	 switch (read_dev_volume_label(jcr, device->dev, block)) {
+	    case VOL_OK:
+	       break;
+	    default:
+               Emsg1(M_WARNING, 0, _("Could not mount device %s\n"), device->device_name);
+	       break;
+	 }
+	 free_jcr(jcr);
+	 free_block(block);
+      }
+   } 
+   UnlockRes();
+   return NULL;
+}
+
+
 /* Clean up and then exit */
 void terminate_stored(int sig)
 {
@@ -345,10 +354,6 @@ void terminate_stored(int sig)
    }
    term_msg();
    close_memory_pool();
-
-   if (shm) {
-      free(shm);
-   }
 
    sm_dump(False);		      /* dump orphaned buffers */
    exit(1);

@@ -372,7 +372,7 @@ static void print_jobs_scheduled(UAContext *ua)
    JOB *job;
    SCHED *sched;
    struct tm tm;
-   int mday, wday, month, tmday, twday, tmonth, i, hour;
+   int mday, wday, month, wpos, tmday, twday, tmonth, twpos, i, hour;
    int tod, tom;
    int found;
 
@@ -383,12 +383,14 @@ static void print_jobs_scheduled(UAContext *ua)
    mday = tm.tm_mday - 1;
    wday = tm.tm_wday;
    month = tm.tm_mon;
+   wpos = (tm.tm_mday - 1) / 7;
 
    tomorrow = now + 60 * 60 * 24;
    localtime_r(&tomorrow, &tm);
    tmday = tm.tm_mday - 1;
    twday = tm.tm_wday;
    tmonth = tm.tm_mon;
+   twpos  = (tm.tm_mday - 1) / 7;
 
    /* Loop through all jobs */
    LockRes();
@@ -402,10 +404,10 @@ static void print_jobs_scheduled(UAContext *ua)
 	  * Find runs in next 24 hours
 	  */
 	 tod = (bit_is_set(mday, run->mday) || bit_is_set(wday, run->wday)) && 
-		bit_is_set(month, run->month);
+		bit_is_set(month, run->month) && bit_is_set(wpos, run->wpos);
 
 	 tom = (bit_is_set(tmday, run->mday) || bit_is_set(twday, run->wday)) &&
-		bit_is_set(tmonth, run->month);
+		bit_is_set(tmonth, run->month) && bit_is_set(wpos, run->wpos);
 
          Dmsg2(200, "tod=%d tom=%d\n", tod, tom);
 	 found = FALSE;

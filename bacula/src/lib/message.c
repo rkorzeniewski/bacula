@@ -419,9 +419,9 @@ static void make_unique_mail_filename(JCR *jcr, POOLMEM **name, DEST *d)
 /*
  * Open a mail pipe
  */
-static FILE *open_mail_pipe(JCR *jcr, POOLMEM **cmd, DEST *d)
+static BPIPE *open_mail_pipe(JCR *jcr, POOLMEM **cmd, DEST *d)
 {
-   FILE *pfd;
+   BPIPE *bpipe;
 
    if (d->mail_cmd && jcr) {
       *cmd = edit_job_codes(jcr, *cmd, d->mail_cmd, d->where);
@@ -429,11 +429,11 @@ static FILE *open_mail_pipe(JCR *jcr, POOLMEM **cmd, DEST *d)
       Mmsg(cmd, "mail -s \"Bacula Message\" %s", d->where);
    }
    fflush(stdout);
-   pfd = popen(*cmd, "w");
-   if (!pfd) {
-      Jmsg(jcr, M_ERROR, 0, "mail popen %s failed: ERR=%s\n", *cmd, strerror(errno));
+
+   if (!(bpipe = open_bpipe(*cmd, 120, "rw"))) {
+      Jmsg(jcr, M_ERROR, 0, "open mail pipe %s failed: ERR=%s\n", *cmd, strerror(errno));
    } 
-   return pfd;
+   return bpipe;
 }
 
 /* 
@@ -445,7 +445,7 @@ void close_msg(void *vjcr)
    MSGS *msgs;
    JCR *jcr = (JCR *)vjcr;
    DEST *d;
-   FILE *pfd;
+   BPIPE *bpipe;
    POOLMEM *cmd, *line;
    int len, stat;
    
@@ -483,8 +483,8 @@ void close_msg(void *vjcr)
 	       goto rem_temp_file;
 	    }
 	    
-	    pfd = open_mail_pipe(jcr, &cmd, d);
-	    if (!pfd) {
+	    if (!(bpipe=open_mail_pipe(jcr, &cmd, d))) {
+               Dmsg0(000, "open mail pipe failed.\n");
 	       goto rem_temp_file;
 	    }
             Dmsg0(150, "Opened mail pipe\n");
@@ -492,19 +492,30 @@ void close_msg(void *vjcr)
 	    line = get_memory(len);
 	    rewind(d->fd);
 	    while (fgets(line, len, d->fd)) {
-	       fputs(line, pfd);
+	       fputs(line, bpipe->wfd);
 	    }
-	    stat = pclose(pfd);       /* close pipe, sending mail */
-            Dmsg1(150, "Close mail pipe stat=%d\n", stat);
+	    if (!close_wpipe(bpipe)) {	     /* close write pipe sending mail */
+               Dmsg1(000, "close error: ERR=%s\n", strerror(errno));
+	    }
+
 	    /*
              * Since we are closing all messages, before "recursing"
 	     * make sure we are not closing the daemon messages, otherwise
 	     * kaboom.
 	     */
-	    if (stat < 0 && msgs != daemon_msgs && errno != ECHILD) {
+	    if (msgs != daemon_msgs) {
+	       /* read what mail prog returned -- should be nothing */
+	       while (fgets(line, len, bpipe->rfd)) {
+//                Dmsg1(000, "Mail prog got: %s", line);
+                  Jmsg1(jcr, M_INFO, 0, _("Mail prog: %s"), line);
+	       }
+	    }
+
+	    stat = close_bpipe(bpipe);
+	    if (stat != 0 && msgs != daemon_msgs) {
                Dmsg1(150, "Calling emsg. CMD=%s\n", cmd);
-               Emsg1(M_ERROR, 0, _("Mail program terminated in error.\nCMD=%s\n"),
-		  cmd);
+               Jmsg2(jcr, M_ERROR, 0, _("Mail program terminated in error. stat=%d\n"
+                                        "CMD=%s\n"), stat, cmd);
 	    }
 	    free_memory(line);
 rem_temp_file:
@@ -592,6 +603,7 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
     JCR *jcr = (JCR *) vjcr;
     int len;
     MSGS *msgs;
+    BPIPE *bpipe;
 
     Dmsg2(200, "Enter dispatch_msg type=%d msg=%s\n", type, msg);
 
@@ -642,14 +654,12 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 	     case MD_OPERATOR:
                 Dmsg1(400, "OPERATOR for collowing msg: %s\n", msg);
 		mcmd = get_pool_memory(PM_MESSAGE);
-		d->fd = open_mail_pipe(jcr, &mcmd, d);
-		if (d->fd) {
+		if ((bpipe=open_mail_pipe(jcr, &mcmd, d))) {
 		   int stat;
-		   fputs(msg, d->fd);
+		   fputs(msg, bpipe->wfd);
 		   /* Messages to the operator go one at a time */
-		   stat = pclose(d->fd);
-		   d->fd = NULL;
-		   if (stat < 0 && errno != ECHILD) {
+		   stat = close_bpipe(bpipe);
+		   if (stat != 0) {
                       Emsg1(M_ERROR, 0, _("Operator mail program terminated in error.\nCMD=%s\n"),
 			 mcmd);
 		   }

@@ -169,7 +169,11 @@ int do_read_data(JCR *jcr)
 
 	 /* Match BSR against current record */
 	 if (jcr->bsr) {
-	    if (!match_bsr(jcr->bsr, rec, &dev->VolHdr, &sessrec)) {
+	    int stat = match_bsr(jcr->bsr, rec, &dev->VolHdr, &sessrec);
+	    if (stat == -1) {	      /* no more possible matches */
+	       ok = FALSE;
+	       break;
+	    } else if (stat == 0) {   /* no match */
                Dmsg0(50, "BSR rejected record\n");
 	       rec->remainder = 0;
 	       continue;

@@ -320,12 +320,46 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
    if (!db_get_job_record(jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_WARNING, 0, _("Error getting job record for stats: %s"), 
 	 db_strerror(jcr->db));
+      TermCode = JS_ErrorTerminated;
    }
 
    strcpy(mr.VolumeName, jcr->VolumeName);
    if (!db_get_media_record(jcr->db, &mr)) {
       Jmsg(jcr, M_WARNING, 0, _("Error getting Media record for stats: %s"), 
 	 db_strerror(jcr->db));
+      TermCode = JS_ErrorTerminated;
+   }
+
+   /* Now update the bootstrap file if any */
+   if (TermCode == JS_Terminated && jcr->job->WriteBootstrap) {
+      FILE *fd;
+      BPIPE *bpipe = NULL;
+      int got_pipe = 0;
+      char *fname = jcr->job->WriteBootstrap;
+
+      if (*fname == '|') {
+	 fname++;
+	 got_pipe = 1;
+         bpipe = open_bpipe(fname, 0, "w");
+	 fd = bpipe ? bpipe->wfd : NULL;
+      } else {
+         fd = fopen(fname, jcr->JobLevel==L_FULL?"w+":"a+");
+      }
+      if (fd) {
+	 /* Write the record */
+         fprintf(fd, "Volume=\"%s\"\n", jcr->VolumeName);
+         fprintf(fd, "VolSessionId=%u\n", jcr->VolSessionId);
+         fprintf(fd, "VolSessionTime=%u\n", jcr->VolSessionTime);
+	 if (got_pipe) {
+	    close_bpipe(bpipe);
+	 } else {
+	    fclose(fd);
+	 }
+      } else {
+         Jmsg(jcr, M_ERROR, 0, _("Could not open WriteBootstrap file:\n"
+              "%s: ERR=%s\n"), fname, strerror(errno));
+	 TermCode = JS_ErrorTerminated;
+      }
    }
 
    msg_type = M_INFO;		      /* by default INFO message */
@@ -422,32 +456,5 @@ Termination:            %s\n\n"),
 	term_msg);
 
 
-   /* Now update the bootstrap file if any */
-   if (jcr->job->WriteBootstrap) {
-      FILE *fd;
-      int got_pipe = 0;
-      char *fname = jcr->job->WriteBootstrap;
-
-      if (*fname == '|') {
-	 fname++;
-	 got_pipe = 1;
-         fd = popen(fname, "w");
-      } else {
-         fd = fopen(fname, jcr->JobLevel==L_FULL?"w+":"a+");
-      }
-      if (!fd) {
-         Jmsg(jcr, M_ERROR, 0, _("Could not open WriteBootstrap file:\n"
-              "%s: ERR=%s\n"), fname, strerror(errno));
-	 return;
-      }
-      fprintf(fd, "Volume=\"%s\"\n", jcr->VolumeName);
-      fprintf(fd, "VolSessionId=%u\n", jcr->VolSessionId);
-      fprintf(fd, "VolSessionTime=%u\n", jcr->VolSessionTime);
-      if (got_pipe) {
-	 pclose(fd);
-      } else {
-	 fclose(fd);
-      }
-   }
    Dmsg0(100, "Leave backup_cleanup()\n");
 }

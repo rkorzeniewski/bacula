@@ -155,14 +155,20 @@ next_record:
 	 /* 
 	  * Apply BSR filter
 	  */
-	 if (jcr->bsr && !match_bsr(jcr->bsr, rec, &dev->VolHdr, &sessrec)) {
-	    if (verbose) {
-               Dmsg5(10, "BSR no match rec=%d block=%d SessId=%d SessTime=%d FI=%d\n",
-		  record, block->BlockNumber, rec->VolSessionId, rec->VolSessionTime, 
-		  rec->FileIndex);
+	 if (jcr->bsr) {
+	    int stat = match_bsr(jcr->bsr, rec, &dev->VolHdr, &sessrec);
+	    if (stat == -1) { /* no more possible matches */
+	       ok = FALSE;
+	       break;
+	    } else if (stat == 0) {  /* no match */
+	       if (verbose) {
+                  Dmsg5(10, "BSR no match rec=%d block=%d SessId=%d SessTime=%d FI=%d\n",
+		     record, block->BlockNumber, rec->VolSessionId, rec->VolSessionTime, 
+		     rec->FileIndex);
+	       }
+	       rec->remainder = 0;
+               continue;              /* we don't want record, read next one */
 	    }
-	    rec->remainder = 0;
-            continue;              /* we don't want record, read next one */
 	 }
 	 if (is_partial_record(rec)) {
             Dmsg6(10, "Partial, break. recno=%d state=%s blk=%d SI=%d ST=%d FI=%d\n", record,
