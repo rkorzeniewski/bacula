@@ -718,11 +718,7 @@ STORE *get_storage_resource(UAContext *ua, char *cmd)
 	    store = jcr->store;
 	    free_jcr(jcr);
 	    return store;
-
-	 } else {
-            bsendmsg(ua, _("Unknown keyword: %s\n"), ua->argk[i]);
-	    return NULL;
-	 }
+	}
       }
    }
 

@@ -249,6 +249,19 @@ int is_a_number(const char *n)
 }
 
 /*
+ * Check if the specified string is an integer	 
+ */
+int is_an_integer(const char *n)
+{
+   int digit_seen = 0;
+   while (B_ISDIGIT(*n)) {
+      digit_seen = 1;
+      n++;
+   }
+   return digit_seen && *n==0;
+}
+
+/*
  * Add commas to a string, which is presumably
  * a number.  
  */
@@ -277,4 +290,3 @@ char *add_commas(char *val, char *buf)
    }   
    return buf;
 }
-

@@ -71,8 +71,7 @@ static void s_err(char *file, int line, LEX *lc, char *msg, ...)
  * Free the current file, and retrieve the contents
  * of the previous packet if any.
  */
-LEX *
-lex_close_file(LEX *lf)
+LEX *lex_close_file(LEX *lf)
 {
    LEX *of;
 
@@ -107,8 +106,7 @@ lex_close_file(LEX *lf)
  * the next field.
  *
  */
-LEX *
-lex_open_file(LEX *lf, char *filename, LEX_ERROR_HANDLER *scan_error) 
+LEX *lex_open_file(LEX *lf, char *filename, LEX_ERROR_HANDLER *scan_error) 
 	      
 {
    LEX *nf;
@@ -150,8 +148,7 @@ lex_open_file(LEX *lf, char *filename, LEX_ERROR_HANDLER *scan_error)
  *    L_EOF if end of file
  *    L_EOL if end of line
  */
-int
-lex_get_char(LEX *lf)
+int lex_get_char(LEX *lf)
 {
    if (lf->ch == L_EOF) {
       Emsg0(M_ABORT, 0, "get_char: called after EOF\n");
@@ -177,8 +174,7 @@ lex_get_char(LEX *lf)
    return lf->ch;
 }
 
-void
-lex_unget_char(LEX *lf)
+void lex_unget_char(LEX *lf)
 {
    lf->col_no--;      
    if (lf->ch == L_EOL)
@@ -214,8 +210,7 @@ static void begin_str(LEX *lf, int ch)
 }
 
 #ifdef DEBUG
-static char *
-lex_state_to_str(int state)
+static char *lex_state_to_str(int state)
 {
    switch (state) {
       case lex_none:          return "none";
@@ -234,8 +229,7 @@ lex_state_to_str(int state)
  * Convert a lex token to a string
  * used for debug/error printing.
  */
-char *
-lex_tok_to_str(int token)
+char *lex_tok_to_str(int token)
 {
    switch(token) {
       case L_EOF:             return "L_EOF";

@@ -30,16 +30,10 @@
 #include "bacula.h"
 #include "dird.h"
 
-/* Imported subroutines */
-
-/* Imported variables */
-
-
-/* Imported functions */
-
 /* Forward referenced functions */
 static int do_label(UAContext *ua, char *cmd, int relabel);
 static void label_from_barcodes(UAContext *ua);
+static int is_legal_volume_name(UAContext *ua, char *name);
 
 /*
  * Label a tape 
@@ -137,17 +131,7 @@ checkVol:
 	 return 1;
       }
 checkName:
-      /* Restrict the characters permitted in the Volume name */
-      if (strpbrk(ua->cmd, "`~!@#$%^&*()[]{}|\\;'\"<>?,/")) {
-         bsendmsg(ua, _("Illegal character | in a volume name.\n"));
-	 continue;
-      }
-      if (strlen(ua->cmd) >= MAX_NAME_LENGTH) {
-         bsendmsg(ua, _("Volume name too long.\n"));
-	 continue;
-      }
-      if (strlen(ua->cmd) == 0) {
-         bsendmsg(ua, _("Volume name must be at least one character long.\n"));
+      if (!is_legal_volume_name(ua, ua->cmd)) {
 	 continue;
       }
 
@@ -161,7 +145,7 @@ checkName:
       break;			      /* Got it */
    }
 
-   /* Do some more checking on slot ****FIXME**** */
+   /* If autochanger, request slot */
    if (store->autochanger) {
       for ( ;; ) {
          if (!get_cmd(ua, _("Enter slot (0 for none): "))) {
@@ -237,22 +221,20 @@ checkName:
 		*  3001 OK mount. Device=xxx	  or
 		*  3001 Mounted Volume vvvv
 		*/
-               if (strncmp(sd->msg, "3001 ", 5) == 0) {
-		  mounted = TRUE;
-		  /***** ****FIXME***** find job waiting for  
-		   ***** mount, and change to waiting for SD  
-		   */
-	       }
+               mounted = strncmp(sd->msg, "3001 ", 5) == 0;
 	    }
 	 }
       } else {
          bsendmsg(ua, "%s", db_strerror(ua->db));
       }
-      if (!db_delete_media_record(ua->jcr, ua->db, &omr)) {
-         bsendmsg(ua, _("Delete of Volume \"%s\" failed. ERR=%s"),
-	    omr.VolumeName, db_strerror(ua->db));
-      } else {
-         bsendmsg(ua, _("Volume \"%s\" deleted from catalog.\n"));
+      if (relabel) {
+	 if (!db_delete_media_record(ua->jcr, ua->db, &omr)) {
+            bsendmsg(ua, _("Delete of Volume \"%s\" failed. ERR=%s"),
+	       omr.VolumeName, db_strerror(ua->db));
+	 } else {
+            bsendmsg(ua, _("Old volume \"%s\" deleted from catalog.\n"), 
+	       omr.VolumeName);
+	 }
       }
    }
    if (!mounted) {
@@ -265,6 +247,10 @@ checkName:
    return 1;
 }
 
+/*
+ * Request SD to send us the slot:barcodes, then wiffle
+ *  through them all labeling them.
+ */
 static void label_from_barcodes(UAContext *ua)
 {
    STORE *store = ua->jcr->store;
@@ -284,11 +270,31 @@ static void label_from_barcodes(UAContext *ua)
    sd = ua->jcr->store_bsock;
    bnet_fsend(sd, _("autochanger list %s \n"), dev_name);
    while (bget_msg(sd, 0) >= 0) {
-      bsendmsg(ua, "%s", sd->msg);
+      char *p;
+      int slot;
+      strip_trailing_junk(sd->msg);
+      if (strncmp(sd->msg, "3902 Issuing", 12) == 0 ||
+          strncmp(sd->msg, "3903 Issuing", 12) == 0) {
+         bsendmsg(ua, "%s\n", sd->msg);
+	 continue;
+      }
+      p = strchr(sd->msg, ':');
+      if (p && strlen(p) > 1) {
+	 *p++ = 0;
+	 if (!is_an_integer(sd->msg)) {
+	    continue;
+	 }
+      } else {
+	 continue;
+      }
+      slot = atoi(sd->msg);
+      bsendmsg(ua, "Got slot=%d label: %s\n", slot, p);
    }
    bnet_sig(sd, BNET_TERMINATE);
    bnet_close(sd);
    ua->jcr->store_bsock = NULL;
+
+   return;
 
    memset(&pr, 0, sizeof(pr));
    if (!select_pool_dbr(ua, &pr)) {
@@ -296,4 +302,24 @@ static void label_from_barcodes(UAContext *ua)
    }
 
    return;
+}
+
+static int is_legal_volume_name(UAContext *ua, char *name)
+{
+   int len;
+   /* Restrict the characters permitted in the Volume name */
+   if (strpbrk(name, "`~!@#$%^&*()[]{}|\\;'\"<>?,/")) {
+      bsendmsg(ua, _("Illegal character | in a volume name.\n"));
+      return 0;
+   }
+   len = strlen(name);
+   if (len >= MAX_NAME_LENGTH) {
+      bsendmsg(ua, _("Volume name too long.\n"));
+      return 0;
+   }
+   if (len == 0) {
+      bsendmsg(ua, _("Volume name must be at least one character long.\n"));
+      return 0;
+   }
+   return 1;
 }

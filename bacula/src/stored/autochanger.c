@@ -136,6 +136,10 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
    return rtn_stat;
 }
 
+/*
+ * List the Volumes that are in the autoloader possibly
+ *   with their barcodes.
+ */
 int autochanger_list(JCR *jcr, DEVICE *dev, BSOCK *dir)
 {
    uint32_t timeout = jcr->device->max_changer_wait;
