@@ -49,13 +49,6 @@ static char query_device[] = "query device=%s";
 /* Response from Storage daemon */
 static char OKjob[]      = "3000 OK Job SDid=%d SDtime=%d Authorization=%100s\n";
 static char OK_device[]  = "3000 OK use device device=%s\n";
-static char OK_query[]   = "3001 OK query "
-   "append=%d read=%d num_writers=%d "
-   "open=%d labeled=%d offline=%d "
-   "reserved=%d max_writers=%d "
-   "autoselect=%d autochanger=%d "
-   "poolid=%lld "
-   "changer_name=%127s media_type=%127s volume_name=%127s";
 
 /* Storage Daemon requests */
 static char Job_start[]  = "3010 Job %127s start\n";
@@ -108,9 +101,7 @@ bool connect_to_storage_daemon(JCR *jcr, int retry_interval,
  */
 bool update_device_res(JCR *jcr, DEVICE *dev)
 {
-   POOL_MEM device_name, changer_name, media_type, volume_name;
-   int dev_open, dev_append, dev_read, dev_labeled;
-   int dev_offline, dev_autochanger, dev_autoselect;
+   POOL_MEM device_name; 
    BSOCK *sd;
    if (!connect_to_storage_daemon(jcr, 5, 30, 0)) {
       return false;
@@ -120,36 +111,8 @@ bool update_device_res(JCR *jcr, DEVICE *dev)
    bash_spaces(device_name);
    bnet_fsend(sd, query_device, device_name.c_str());
    Dmsg1(100, ">stored: %s\n", sd->msg);
-   if (bget_dirmsg(sd) > 0) {
-      Dmsg1(100, "<stored: %s", sd->msg);
-      if (sscanf(sd->msg, OK_query, 
-	  &dev_append, &dev_read,
-	  &dev->num_writers, &dev_open,
-	  &dev_labeled, &dev_offline, &dev->reserved,
-	  &dev->max_writers, &dev_autoselect, 
-	  &dev_autochanger,  &dev->PoolId,
-	  changer_name.c_str(), media_type.c_str(),
-	  volume_name.c_str()) != 14) {
-	 return false;
-      }
-      unbash_spaces(changer_name);
-      unbash_spaces(media_type);
-      unbash_spaces(volume_name);
-      bstrncpy(dev->ChangerName, changer_name.c_str(), sizeof(dev->ChangerName));
-      bstrncpy(dev->MediaType, media_type.c_str(), sizeof(dev->MediaType));
-      bstrncpy(dev->VolumeName, volume_name.c_str(), sizeof(dev->VolumeName));
-      /* Note, these are copied because they are boolean rather than
-       *  integer.
-       */
-      dev->open = dev_open;
-      dev->append = dev_append;
-      dev->read = dev_read;
-      dev->labeled = dev_labeled;
-      dev->offline = dev_offline;
-      dev->autoselect = dev_autoselect;
-      dev->autochanger = dev_autochanger;
-      dev->found = true;
-   } else {
+   /* The data is returned through Device_update */
+   if (bget_dirmsg(sd) <= 0) {
       return false;
    }
    return true;

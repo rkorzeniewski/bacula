@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     22 February 2005
+                     07 March 2005
 
 Major development:      
 Project                     Developer
@@ -12,64 +12,42 @@ Version 1.37                Kern (see below)
 #3   Migration (Move, Copy, Archive Jobs)
 #4   Embedded Python Scripting 
      (Implemented in Dir/SD)
-#5   Events that call a Python program 
-     (Implemented in Dir/SD)
-#6   Select one from among Multiple Storage Devices for Job
 #7   Single Job Writing to Multiple Storage Devices
 
 ##   Integrate web-bacula into a new Bacula project with
      bimagemgr.
 ##   Consider moving docs to their own project.
 
-Suggestions for Preben:
-- Look at adding Client run command that will use the
-  port opened by the client.
-- Optimized bootstrap.
-
 Autochangers:
-- Fix
-   Please use the "label"  command to create a new Volume for:
-       Storage:      DDS-4-changer
-       Media type:   
-       Pool:         Default
-   label
-   The defined Storage resources are:
-- Copy Changer Device and Changer Command from Autochanger
-  to Device resource in SD if none given in Device resource.
-- 3.Prevent two drives requesting the same Volume in any given
+- 3. Prevent two drives requesting the same Volume in any given
      autochanger.
-- 4. Use Changer Device and Changer Command specified in the
-     Autochanger resource, if none is found in the Device resource.
-    You can continue to specify them in the Device resource if you want
-    or need them to be different for each device.
-- 5. Implement a new Device directive (perhaps "Autoselect = yes/no") 
-    that can allow a Device be part of an Autochanger, and hence the changer
-    script protected, but if set to no, will prevent the Device from being 
-    automatically selected from the changer. This allows the device to
-    be directly accessed through its Device name, but not through the
-    AutoChanger name.
+- 3. Check if a Volume is mounted on another drive in an Autochanger.
 - 7. Implement new Console commands to allow offlining/reserving drives,
      and possibly manipulating the autochanger (much asked for).
 - 8. Automatic updating of Drive status from SD to DIR when something
      changes (Volume, offline, append, read, ...).
-- 9. Check if a Volume is mounted on another drive in an Autochanger.
   
-
-Autochangers Done:
-- 1. Automatic use of more than one drive in an autochanger (done)
-- 2. Automatic selection of the correct drive for each Job (i.e.
-     selects a drive with an appropriate Volume for the Job) (done)
-- 6. Allow multiple simultaneous Jobs referencing the same pool write
-    to several tapes (some new directive(s) are are probably needed for
-    this) (done)
-- Locking (done)
-- Key on Storage rather than Pool (done)
-- Allow multiple drives to use same Pool (change jobq.c DIR) (done).
-- Synchronize multiple drives so that not more
-  than one loads a tape and any time (done)
-
-
 For 1.37:
+- Add disk seeking on restore.  
+- Don't start a second file job if one is already running.
+- Add Python writable variable for changing the Priority,
+    Client, Storage, JobStatus (error), ...
+- SD Python
+  - Solicit Events
+- FD Python
+  - Python script to save with Python, not save, save with Bacula.
+  - Python script to do backup.
+- When Python creates a new label, the tape is immediately
+  recycled and no label created. This happens when using   
+  autolabeling -- even when Python doesn't generate the name.
+- Create a new GUI chapter explaining all the GUI programs.
+- Look at Preben's acl.c error handling code.
+- Look at adding full Volume and Pool information to a Volume 
+  label so that bscan can get *all* the info. 
+- Scratch Pool where the volumes can be re-assigned to any Pool.
+- Implement Maximum Job Spool Size
+
+Maybe in 1.37:
 - By the way: on page http://www.bacula.org/?page=tapedrives , at the 
   bottom, the link to "Tape Testing Chapter" is broken. It goes to 
   /html-manual/... while the others point to /rel-manual/...
@@ -88,18 +66,7 @@ For 1.37:
   a small reference.
 - Linux Sony LIB-D81, AIT-3 library works.
 - Device resource needs the "name" of the SD.
-- Add and option to see if the file size changed
-  during backup.
-- Implement "update device" from SD so that DIR will
-  always have current version of device.
-- Add disk seeking on restore.  
-- Add Python writable variable for changing the Priority,
-    Client, Storage, JobStatus (error), ...
-- SD Python
-  - Solicit Events
-- FD Python
-  - Python script to save with Python, not save, save with Bacula.
-  - Python script to do backup.
+- Add and option to see if the file size changed during backup.
 - Windows restore:
   data-fd: RestoreFiles.2004-12-07_15.56.42 Error:
   > ..\findlib\../../findlib/create_file.c:275 Could not open e:/: ERR=Der
@@ -113,17 +80,10 @@ For 1.37:
   and fix SD messages.
 - Make sure SD deletes spool files on error exit.
 - Delete old spool files when SD starts.
-- When Python creates a new label, the tape is immediately
-  recycled and no label created. This happens when using   
-  autolabeling -- even when Python doesn't generate the name.
 - Add a restore directory-x
 - When labeling tapes, if you enter 000026, Bacula uses
   the tape index rather than the Volume name 000026.
 - Max Vols limit in Pool off by one?
-- Look at Preben's acl.c error handling code.
-- See multiple-store.txt for Multiple Storage implementation
-  design.
-- Create a new GUI chapter explaining all the GUI programs.
 - Tell the "restore" user when browsing is no longer possible.
 - Require restore via the restore command or make a restore Job
   get the bootstrap file.
@@ -131,9 +91,6 @@ For 1.37:
 - Add offline tape command to Bacula console.
 - Document that Bootstrap files can be written with cataloging
   turned off.
-- Look at adding full Volume and Pool information to a Volume 
-  label so that bscan can get *all* the info. 
-- Scratch Pool where the volumes can be re-assigned to any Pool.
 - Upgrade to MySQL 4.1.1 See:  
   http://dev.mysql.com/doc/mysql/en/Server_SQL_mode.html
 - Add client version to the Client name line that prints in
@@ -203,24 +160,6 @@ Notes:
   list, also it is maybe a good idea to check for the return value and
   execute different actions based on the return value
 
-2. Priorities also for the Schedule Resource
-
-    Why:
-
-    With this it is possible to run monthly jobs at the end of the month
-    instead of the beginning of the next month, so one could define
-    weekly and monthly pools to be run on Fridays and if there are
-    2 Jobs resulting on the same time, the one with the higher priority
-    takes precedence. This is also helpfull to implement a daily
-    rotation scheme with an additional 2 weeks changing weekly pool
-
-Example:
-         Schedule {
-           Name = "NightlyBackup"
-           Run = Priority = 1,Pool=Weekly friday at 21:00
-           Run = Priority = 2,Pool=Weekly monthly on friday at 21:00
-           Run = Priority = 3,Pool=Weekly yearly on friday at 21:00
-           }
 
 3. offline capability to bconsole
 
@@ -280,7 +219,6 @@ Why:
 ==========
 - Can one write tapes faster with 8192 byte block sizes?
 - Specify a single directory to restore.
-- Implement Maximum Job Spool Size
 - Document security problems with the same password for everyone in
   rpm and Win32 releases.
 - Browse generations of files.
@@ -1283,3 +1221,38 @@ Block Position: 0
 - Bootstrap from JobMedia records.
 - Implement WildFile and WildDir to solve problem of 
   saving only *.doc files.
+- Fix
+   Please use the "label"  command to create a new Volume for:
+       Storage:      DDS-4-changer
+       Media type:   
+       Pool:         Default
+   label
+   The defined Storage resources are:
+- Copy Changer Device and Changer Command from Autochanger
+  to Device resource in SD if none given in Device resource.
+- 1. Automatic use of more than one drive in an autochanger (done)
+- 2. Automatic selection of the correct drive for each Job (i.e.
+     selects a drive with an appropriate Volume for the Job) (done)
+- 6. Allow multiple simultaneous Jobs referencing the same pool write
+    to several tapes (some new directive(s) are are probably needed for
+    this) (done)
+- Locking (done)
+- Key on Storage rather than Pool (done)
+- Allow multiple drives to use same Pool (change jobq.c DIR) (done).
+- Synchronize multiple drives so that not more
+  than one loads a tape and any time (done)
+- 4. Use Changer Device and Changer Command specified in the
+     Autochanger resource, if none is found in the Device resource.
+    You can continue to specify them in the Device resource if you want
+    or need them to be different for each device.
+- 5. Implement a new Device directive (perhaps "Autoselect = yes/no") 
+    that can allow a Device be part of an Autochanger, and hence the changer
+    script protected, but if set to no, will prevent the Device from being 
+    automatically selected from the changer. This allows the device to
+    be directly accessed through its Device name, but not through the
+    AutoChanger name.
+#6   Select one from among Multiple Storage Devices for Job
+#5   Events that call a Python program 
+     (Implemented in Dir/SD)
+- Make sure the Device name is in the Query packet returned.
+

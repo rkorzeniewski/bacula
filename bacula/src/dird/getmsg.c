@@ -47,6 +47,14 @@
 static char *find_msg_start(char *msg);
 
 static char Job_status[] = "Status Job=%127s JobStatus=%d\n";
+static char Device_update[]   = "DevUpd Job=%127s "
+   "device=%127s "
+   "append=%d read=%d num_writers=%d "
+   "open=%d labeled=%d offline=%d "
+   "reserved=%d max_writers=%d "
+   "autoselect=%d autochanger=%d "
+   "poolid=%lld "
+   "changer_name=%127s media_type=%127s volume_name=%127s\n";
 
 
 static char OK_msg[] = "1000 OK\n";
@@ -63,8 +71,18 @@ static char OK_msg[] = "1000 OK\n";
  *  to the appropriate handler.  If the message is
  *  in any other format, it will be returned.
  *
- *  E.g. any message beginning with a digit will be returned.
- *	 any message beginning with Jmsg will be processed.
+ *  E.g. any message beginning with a digit will be passed   
+ *	 through to the caller.
+ *  All other messages are expected begin with some identifier
+ *    -- for the moment only the first character is checked, but
+ *    at a later time, the whole identifier (e.g. Jmsg, CatReq, ...)
+ *    could be checked. This is followed by Job=Jobname <user-defined>
+ *    info. The identifier is used to dispatch the message to the right
+ *    place (Job message, catalog request, ...). The Job is used to lookup
+ *    the JCR so that the action is performed on the correct jcr, and
+ *    the rest of the message is up to the user.  Note, DevUpd uses
+ *    *System* for the Job name, and hence no JCR is obtained. This   
+ *    is a *rare* case where a jcr is not really needed.
  *
  */
 int bget_dirmsg(BSOCK *bs)
@@ -134,7 +152,9 @@ int bget_dirmsg(BSOCK *bs)
          Emsg1(M_ERROR, 0, _("Malformed message: %s\n"), bs->msg);
 	 continue;
       }
-      if (!(jcr=get_jcr_by_full_name(Job))) {
+      if (strcmp(Job, "*System*") == 0) {
+	 jcr = NULL;		      /* No jcr */
+      } else if (!(jcr=get_jcr_by_full_name(Job))) {
          Emsg1(M_ERROR, 0, _("Job not found: %s\n"), bs->msg);
 	 continue;
       }
@@ -200,9 +220,61 @@ int bget_dirmsg(BSOCK *bs)
 	 char Job[MAX_NAME_LENGTH];
 	 if (sscanf(bs->msg, Job_status, &Job, &JobStatus) == 2) {
 	    jcr->SDJobStatus = JobStatus; /* current status */
-	    free_jcr(jcr);
-	    continue;
+	 } else {
+            Emsg1(M_ERROR, 0, _("Malformed message: %s\n"), bs->msg);
 	 }
+	 free_jcr(jcr);
+	 continue;
+      }
+      /* No JCR for Device Updates! */
+      if (bs->msg[0] = 'D') {         /* Device update */
+	 DEVICE *dev;
+	 POOL_MEM dev_name, changer_name, media_type, volume_name;
+	 int dev_open, dev_append, dev_read, dev_labeled;
+	 int dev_offline, dev_autochanger, dev_autoselect;
+	 int dev_num_writers, dev_max_writers, dev_reserved;
+	 uint64_t dev_PoolId;
+         Dmsg1(100, "<stored: %s", bs->msg);
+	 if (sscanf(bs->msg, Device_update,
+	     &Job, dev_name.c_str(),
+	     &dev_append, &dev_read,
+	     &dev_num_writers, &dev_open,
+	     &dev_labeled, &dev_offline, &dev_reserved,
+	     &dev_max_writers, &dev_autoselect, 
+	     &dev_autochanger, &dev_PoolId,
+	     changer_name.c_str(), media_type.c_str(),
+	     volume_name.c_str()) != 16) {
+            Emsg1(M_ERROR, 0, _("Malformed message: %s\n"), bs->msg);
+	 } else {
+	    unbash_spaces(dev_name);
+	    dev = (DEVICE *)GetResWithName(R_DEVICE, dev_name.c_str());
+	    if (!dev) {
+	       continue;
+	    }
+	    unbash_spaces(changer_name);
+	    unbash_spaces(media_type);
+	    unbash_spaces(volume_name);
+	    bstrncpy(dev->ChangerName, changer_name.c_str(), sizeof(dev->ChangerName));
+	    bstrncpy(dev->MediaType, media_type.c_str(), sizeof(dev->MediaType));
+	    bstrncpy(dev->VolumeName, volume_name.c_str(), sizeof(dev->VolumeName));
+	    /* Note, these are copied because they are boolean rather than
+	     *	integer.
+	     */
+	    dev->open = dev_open;
+	    dev->append = dev_append;
+	    dev->read = dev_read;
+	    dev->labeled = dev_labeled;
+	    dev->offline = dev_offline;
+	    dev->autoselect = dev_autoselect;
+	    dev->autochanger = dev_autochanger > 0;
+	    dev->num_drives = dev_autochanger;	  /* does double duty */
+	    dev->PoolId = dev_PoolId;
+	    dev->num_writers = dev_num_writers;
+	    dev->max_writers = dev_max_writers;
+	    dev->reserved = dev_reserved;
+	    dev->found = true;
+	 }
+	 continue;
       }
       return n;
    }

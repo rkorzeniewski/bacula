@@ -127,11 +127,12 @@ public:
    int num_writers;
    int max_writers;                   /* = 1 for files */
    int reserved;                      /* number of reserves */
+   int num_drives;                    /* for autochanger */
+   bool autochanger;                  /* set if device is autochanger */
    bool open;
    bool append;                       /* in append mode */
    bool read;
    bool labeled;
-   bool autochanger;
    bool offline;
    bool autoselect;
    uint32_t PoolId;

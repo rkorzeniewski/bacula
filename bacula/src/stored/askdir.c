@@ -42,6 +42,14 @@ static char Create_job_media[] = "CatReq Job=%s CreateJobMedia"
    " StartBlock=%u EndBlock=%u\n";
 static char FileAttributes[] = "UpdCat Job=%s FileAttributes ";
 static char Job_status[]     = "Status Job=%s JobStatus=%d\n";
+static char Device_update[] = "DevUpd Job=%s device=%s "
+   "append=%d read=%d num_writers=%d "
+   "open=%d labeled=%d offline=%d "
+   "reserved=%d max_writers=%d "
+   "autoselect=%d autochanger=%d "
+   "poolid=%s "
+   "changer_name=%s media_type=%s volume_name=%s\n";
+
 
 
 /* Responses received from the Director */
@@ -57,6 +65,76 @@ static char OK_create[] = "1000 OK CreateJobMedia\n";
 
 /* Forward referenced functions */
 static int wait_for_sysop(DCR *dcr);
+
+/* Send update information about a device to Director */
+bool dir_update_device(JCR *jcr, DEVICE *dev)
+{
+   BSOCK *dir = jcr->dir_bsock;
+   POOL_MEM dev_name, VolumeName, MediaType, ChangerName;
+   DEVRES *device = dev->device;
+   bool ok;
+   char ed1[50];
+   
+   pm_strcpy(dev_name, device->hdr.name);
+   bash_spaces(dev_name);
+   if (dev->is_labeled()) {
+      pm_strcpy(VolumeName, dev->VolHdr.VolName);
+   } else {
+      pm_strcpy(VolumeName, "*");
+   }
+   bash_spaces(VolumeName);
+   pm_strcpy(MediaType, device->media_type);
+   bash_spaces(MediaType);
+   if (device->changer_res) {
+      pm_strcpy(ChangerName, device->changer_res->hdr.name);
+      bash_spaces(ChangerName);
+   } else {
+      pm_strcpy(ChangerName, "*");
+   }
+   ok =bnet_fsend(dir, Device_update, 
+      jcr->Job,
+      dev_name.c_str(),
+      dev->can_append()!=0,
+      dev->can_read()!=0, dev->num_writers, 
+      dev->is_open()!=0, dev->is_labeled()!=0,
+      dev->is_offline()!=0, dev->reserved_device, 
+      dev->is_tape()?100000:1,
+      dev->autoselect, 0, 
+      edit_uint64(dev->PoolId, ed1),
+      ChangerName.c_str(), MediaType.c_str(), VolumeName.c_str());
+   Dmsg1(100, ">dird: %s\n", dir->msg);
+   return ok;
+}
+
+bool dir_update_changer(JCR *jcr, AUTOCHANGER *changer)
+{
+   BSOCK *dir = jcr->dir_bsock;
+   POOL_MEM dev_name, MediaType;
+   DEVRES *device;
+   bool ok;
+
+   pm_strcpy(dev_name, changer->hdr.name);
+   bash_spaces(dev_name);
+   device = (DEVRES *)changer->device->first();
+   pm_strcpy(MediaType, device->media_type);
+   bash_spaces(MediaType);
+   /* This is mostly to indicate that we are here */
+   ok = bnet_fsend(dir, Device_update,
+      jcr->Job,
+      dev_name.c_str(), 	/* Changer name */
+      0, 0, 0,			/* append, read, num_writers */
+      0, 0, 0,			/* is_open, is_labeled, offline */
+      0, 0,			/* reserved, max_writers */
+      0,			/* Autoselect */
+      changer->device->size(),	/* Number of devices */
+      "0",                      /* PoolId */
+      "*",                      /* ChangerName */
+      MediaType.c_str(),	/* MediaType */
+      "*");                     /* VolName */
+   Dmsg1(100, ">dird: %s\n", dir->msg);
+   return ok;
+}
+
 
 /*
  * Send current JobStatus to Director
