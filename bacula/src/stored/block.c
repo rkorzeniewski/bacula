@@ -651,7 +651,6 @@ reread:
    dev->EndBlock = dev->block_num;
    dev->EndFile  = dev->file;
    dev->block_num++;
-   block->BlockNumber++;
 
    /* Update jcr values */
    if (dev->state & ST_TAPE) {

@@ -142,7 +142,7 @@ int do_read_data(JCR *jcr)
       }
 
       if (!block_is_empty(block) && !match_bsr_block(jcr->bsr, block)) {
-         Dmsg5(100, "reject Blk=%u blen=%u bVer=%d SessId=%u SessTim=%u\n",
+         Dmsg5(150, "reject Blk=%u blen=%u bVer=%d SessId=%u SessTim=%u\n",
 	    block->BlockNumber, block->block_len, block->BlockVer,
 	    block->VolSessionId, block->VolSessionTime);
 	 empty_block(block);	      /* force read next block */
