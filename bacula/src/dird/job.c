@@ -32,14 +32,13 @@
 /* Forward referenced subroutines */
 static void *job_thread(void *arg);
 static char *edit_run_codes(JCR *jcr, char *omsg, char *imsg);
-static void release_resource_locks(JCR *jcr);
 static int acquire_resource_locks(JCR *jcr);
 #ifdef USE_SEMAPHORE
 static void backoff_resource_locks(JCR *jcr, int count);
+static void release_resource_locks(JCR *jcr);
 #endif
 
 /* Exported subroutines */
-void run_job(JCR *jcr);
 
 
 /* Imported subroutines */
@@ -58,9 +57,6 @@ static int waiting = 0; 	      /* count of waiting threads */
 #else
 #ifdef JOB_QUEUE  
 jobq_t	job_queue;
-#else
-/* Queue of jobs to be run */
-workq_t job_wq; 		  /* our job work queue */
 #endif
 #endif
 
@@ -83,11 +79,6 @@ void init_job_server(int max_workers)
    if ((stat = jobq_init(&job_queue, max_workers, job_thread)) != 0) {
       Emsg1(M_ABORT, 0, _("Could not init job queue: ERR=%s\n"), strerror(stat));
    }
-#else
-   /* This is the OLD work queue code to go away */
-   if ((stat = workq_init(&job_wq, max_workers, job_thread)) != 0) {
-      Emsg1(M_ABORT, 0, _("Could not init job work queue: ERR=%s\n"), strerror(stat));
-   }
 #endif
 #endif
    return;
@@ -103,10 +94,6 @@ void run_job(JCR *jcr)
    int stat, errstat;
 #ifdef USE_SEMAPHORE
    pthread_t tid;
-#else
-#ifndef JOB_QUEUE
-   workq_ele_t *work_item;
-#endif
 #endif
 
    sm_check(__FILE__, __LINE__, True);
@@ -171,12 +158,6 @@ void run_job(JCR *jcr)
    if ((stat = jobq_add(&job_queue, jcr)) != 0) {
       Emsg1(M_ABORT, 0, _("Could not add job queue: ERR=%s\n"), strerror(stat));
    }
-#else
-   /* Queue the job to be run */
-   if ((stat = workq_add(&job_wq, (void *)jcr, &work_item, 0)) != 0) {
-      Emsg1(M_ABORT, 0, _("Could not add job to work queue: ERR=%s\n"), strerror(stat));
-   }
-   jcr->work_item = work_item;
 #endif
 #endif
    Dmsg0(200, "Done run_job()\n");
@@ -285,6 +266,7 @@ static void *job_thread(void *arg)
 	 }
       }
 bail_out:
+#ifndef JOB_QUEUE
       release_resource_locks(jcr);
       if (jcr->job->RescheduleOnError && 
 	  jcr->JobStatus != JS_Terminated &&
@@ -321,15 +303,16 @@ bail_out:
 	 njcr->messages = jcr->messages;
 	 run_job(njcr);
       }
+#endif
       break;
    }
 
+#ifndef JOB_QUEUE
    if (jcr->db) {
       Dmsg0(200, "Close DB\n");
       db_close_database(jcr, jcr->db);
       jcr->db = NULL;
    }
-#ifndef JOB_QUEUE
    free_jcr(jcr);
 #endif
    Dmsg0(50, "======== End Job ==========\n");
@@ -482,12 +465,12 @@ static void backoff_resource_locks(JCR *jcr, int count)
  *   there are any other jobs waiting, we wake them
  *   up so that they can try again.
  */
+#ifdef USE_SEMAPHORE
 static void release_resource_locks(JCR *jcr)
 {
    if (!jcr->acquired_resource_locks) {
       return;			      /* Job canceled, no locks acquired */
    }
-#ifdef USE_SEMAPHORE
    P(mutex);
    sem_unlock(&jcr->store->sem);
    sem_unlock(&jcr->client->sem);
@@ -498,8 +481,8 @@ static void release_resource_locks(JCR *jcr)
    }
    jcr->acquired_resource_locks = false;
    V(mutex);
-#endif
 }
+#endif
 
 /*
  * Get or create a Client record for this Job

@@ -44,7 +44,6 @@ extern void term_ua_server();
 extern int do_backup(JCR *jcr);
 extern void backup_cleanup(void);
 extern void start_UA_server(char *addr, int port);
-extern void run_job(JCR *jcr);
 extern void init_job_server(int max_workers);
 
 static char *configfile = NULL;

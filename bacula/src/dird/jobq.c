@@ -375,7 +375,9 @@ static void *jobq_server(void *arg)
        */
       Dmsg0(100, "Checking ready queue.\n");
       while (!jq->ready_jobs->empty() && !jq->quit) {
+	 JCR *jcr;
 	 je = (jobq_item_t *)jq->ready_jobs->first(); 
+	 jcr = je->jcr;
 	 jq->ready_jobs->remove(je);
 	 if (!jq->ready_jobs->empty()) {
             Dmsg0(100, "ready queue not empty start server\n");
@@ -384,14 +386,14 @@ static void *jobq_server(void *arg)
 	    }
 	 }
 	 jq->running_jobs->append(je);
-         Dmsg1(100, "Took jobid=%d from ready and appended to run\n", je->jcr->JobId);
+         Dmsg1(100, "Took jobid=%d from ready and appended to run\n", jcr->JobId);
 	 if ((stat = pthread_mutex_unlock(&jq->mutex)) != 0) {
 	    return NULL;
 	 }
          /* Call user's routine here */
-         Dmsg1(100, "Calling user engine for jobid=%d\n", je->jcr->JobId);
+         Dmsg1(100, "Calling user engine for jobid=%d\n", jcr->JobId);
 	 jq->engine(je->jcr);
-         Dmsg1(100, "Back from user engine jobid=%d.\n", je->jcr->JobId);
+         Dmsg1(100, "Back from user engine jobid=%d.\n", jcr->JobId);
 	 if ((stat = pthread_mutex_lock(&jq->mutex)) != 0) {
 	    free(je);		      /* release job entry */
 	    return NULL;
@@ -403,12 +405,56 @@ static void *jobq_server(void *arg)
 	  *  been acquired for jobs canceled before they were
 	  *  put into the ready queue.
 	  */
-	 if (je->jcr->acquired_resource_locks) {
-	    je->jcr->store->NumConcurrentJobs--;
-	    je->jcr->client->NumConcurrentJobs--;
-	    je->jcr->job->NumConcurrentJobs--;
+	 if (jcr->acquired_resource_locks) {
+	    jcr->store->NumConcurrentJobs--;
+	    jcr->client->NumConcurrentJobs--;
+	    jcr->job->NumConcurrentJobs--;
 	 }
-	 free_jcr(je->jcr);
+
+	 if (jcr->job->RescheduleOnError && 
+	     jcr->JobStatus != JS_Terminated &&
+	     jcr->JobStatus != JS_Canceled && 
+	     jcr->job->RescheduleTimes > 0 && 
+	     jcr->reschedule_count < jcr->job->RescheduleTimes) {
+
+	     /*
+	      * Reschedule this job by cleaning it up, but
+	      *  reuse the same JobId if possible.
+	      */
+	    jcr->reschedule_count++;
+	    jcr->sched_time = time(NULL) + jcr->job->RescheduleInterval;
+            Dmsg2(100, "Rescheduled Job %s to re-run in %d seconds.\n", jcr->Job,
+	       (int)jcr->job->RescheduleInterval);
+	    jcr->JobStatus = JS_Created; /* force new status */
+	    dird_free_jcr(jcr); 	 /* partial cleanup old stuff */
+	    if (jcr->JobBytes == 0) {
+	       jobq_add(jq, jcr);     /* queue the job to run again */
+	       free(je);	      /* free the job entry */
+	       continue;
+	    }
+	    /* 
+	     * Something was actually backed up, so we cannot reuse
+	     *	 the old JobId or there will be database record
+	     *	 conflicts.  We now create a new job, copying the
+	     *	 appropriate fields.
+	     */
+	    JCR *njcr = new_jcr(sizeof(JCR), dird_free_jcr);
+	    set_jcr_defaults(njcr, jcr->job);
+	    njcr->reschedule_count = jcr->reschedule_count;
+	    njcr->JobLevel = jcr->JobLevel;
+	    njcr->JobStatus = jcr->JobStatus;
+	    njcr->pool = jcr->pool;
+	    njcr->store = jcr->store;
+	    njcr->messages = jcr->messages;
+	    run_job(njcr);
+	 }
+	 /* Clean up and release old jcr */
+	 if (jcr->db) {
+            Dmsg0(200, "Close DB\n");
+	    db_close_database(jcr, jcr->db);
+	    jcr->db = NULL;
+	 }
+	 free_jcr(jcr);
 	 free(je);		      /* release job entry */
       }
       /*
