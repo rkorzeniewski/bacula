@@ -470,7 +470,7 @@ eod_dev(DEVICE *dev)
       }
       mt_com.mt_op = MTFSF;
       /*
-       * ***FIXEM*** fix code to handle case that INT16_MAX is
+       * ***FIXME*** fix code to handle case that INT16_MAX is
        *   not large enough.
        */
       mt_com.mt_count = INT16_MAX;    /* use big positive number */
@@ -532,11 +532,13 @@ eod_dev(DEVICE *dev)
 	 if (file_num == (int)dev->file) {
 	    struct mtget mt_stat;
             Dmsg1(100, "fsf_dev did not advance from file %d\n", file_num);
+#ifndef HAVE_OPENBSD_OS
 	    if (ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) == 0 && 
 		      mt_stat.mt_fileno >= 0) {
                Dmsg2(100, "Adjust file from %d to %d\n", dev->file , mt_stat.mt_fileno);
 	       dev->file = mt_stat.mt_fileno;
 	    }
+#endif
 	    stat = 0;
 	    break;		      /* we are not progressing, bail out */
 	 }
@@ -553,7 +555,7 @@ eod_dev(DEVICE *dev)
       stat = bsf_dev(dev, 1);
       /* If BSF worked and fileno is known (not -1), set file */
       if (ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) == 0 && mt_stat.mt_fileno >= 0) {
-         Dmsg2(100, "Adjust file from %d to %d\n", dev->file , mt_stat.mt_fileno);
+         Dmsg2(100, "BSFATEOF adjust file from %d to %d\n", dev->file , mt_stat.mt_fileno);
 	 dev->file = mt_stat.mt_fileno;
       } else {
 	 dev->file++;		      /* wing it -- not correct on all OSes */
@@ -822,14 +824,14 @@ fsf_dev(DEVICE *dev, int num)
       Dmsg0(200, "ST_EOF set on entry to FSF\n");
    }
       
-   Dmsg0(29, "fsf_dev\n");
+   Dmsg0(100, "fsf_dev\n");
    dev->block_num = 0;
    /*
     * If Fast forward space file is set, then we
     *  use MTFSF to forward space and MTIOCGET
     *  to get the file position. We assume that 
     *  the SCSI driver will ensure that we do not
-    *  forward space over the end of data mark.
+    *  forward space past the end of the medium.
     */
    if (dev_cap(dev, CAP_FSF) && dev_cap(dev, CAP_FASTFSF)) {
       mt_com.mt_op = MTFSF;
@@ -872,7 +874,7 @@ fsf_dev(DEVICE *dev, int num)
       mt_com.mt_op = MTFSF;
       mt_com.mt_count = 1;
       while (num-- && !(dev->state & ST_EOT)) {
-         Dmsg0(200, "Doing read before fsf\n");
+         Dmsg0(100, "Doing read before fsf\n");
 	 if ((stat = read(dev->fd, (char *)rbuf, rbuf_len)) < 0) {
 	    if (errno == ENOMEM) {     /* tape record exceeds buf len */
 	       stat = rbuf_len;        /* This is OK */
@@ -880,21 +882,21 @@ fsf_dev(DEVICE *dev, int num)
 	       berrno be;
 	       dev->state |= ST_EOT;
 	       clrerror_dev(dev, -1);
-               Dmsg2(200, "Set ST_EOT read errno=%d. ERR=%s\n", dev->dev_errno,
+               Dmsg2(100, "Set ST_EOT read errno=%d. ERR=%s\n", dev->dev_errno,
 		  be.strerror());
                Mmsg2(dev->errmsg, _("read error on %s. ERR=%s.\n"),
 		  dev->dev_name, be.strerror());
-               Dmsg1(200, "%s", dev->errmsg);
+               Dmsg1(100, "%s", dev->errmsg);
 	       break;
 	    }
 	 }
 	 if (stat == 0) {		 /* EOF */
 	    update_pos_dev(dev);
-            Dmsg1(200, "End of File mark from read. File=%d\n", dev->file+1);
+            Dmsg1(100, "End of File mark from read. File=%d\n", dev->file+1);
 	    /* Two reads of zero means end of tape */
 	    if (dev->state & ST_EOF) {
 	       dev->state |= ST_EOT;
-               Dmsg0(200, "Set ST_EOT\n");
+               Dmsg0(100, "Set ST_EOT\n");
 	       break;
 	    } else {
 	       dev->state |= ST_EOF;
@@ -907,17 +909,17 @@ fsf_dev(DEVICE *dev, int num)
 	    dev->state &= ~(ST_EOF|ST_EOT);
 	 }
 
-         Dmsg0(200, "Doing MTFSF\n");
+         Dmsg0(100, "Doing MTFSF\n");
 	 stat = ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
 	 if (stat < 0) {		 /* error => EOT */
 	    berrno be;
 	    dev->state |= ST_EOT;
-            Dmsg0(200, "Set ST_EOT\n");
+            Dmsg0(100, "Set ST_EOT\n");
 	    clrerror_dev(dev, MTFSF);
             Mmsg2(&dev->errmsg, _("ioctl MTFSF error on %s. ERR=%s.\n"),
 	       dev->dev_name, be.strerror());
-            Dmsg0(200, "Got < 0 for MTFSF\n");
-            Dmsg1(200, "%s", dev->errmsg);
+            Dmsg0(100, "Got < 0 for MTFSF\n");
+            Dmsg1(100, "%s", dev->errmsg);
 	 } else {
 	    dev->state |= ST_EOF;     /* just read EOF */
 	    dev->file++;
@@ -1033,12 +1035,15 @@ fsr_dev(DEVICE *dev, int num)
       struct mtget mt_stat;
       clrerror_dev(dev, MTFSR);
       Dmsg1(100, "FSF fail: ERR=%s\n", be.strerror());
+#ifndef HAVE_OPENBSD_OS
       if (ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) == 0 && mt_stat.mt_fileno >= 0) {
          Dmsg4(100, "Adjust from %d:%d to %d:%d\n", dev->file, 
 	    dev->block_num, mt_stat.mt_fileno, mt_stat.mt_blkno);
 	 dev->file = mt_stat.mt_fileno;
 	 dev->block_num = mt_stat.mt_blkno;
-      } else {
+      } else
+#endif
+      {
 	 if (dev->state & ST_EOF) {
 	    dev->state |= ST_EOT;
 	 } else {
@@ -1140,12 +1145,18 @@ reposition_dev(DEVICE *dev, uint32_t file, uint32_t block)
    if (file > dev->file) {
       Dmsg1(100, "fsf %d\n", file-dev->file);
       if (!fsf_dev(dev, file-dev->file)) {
+         Dmsg1(100, "fsf failed! ERR=%s\n", strerror_dev(dev));
 	 return false;
       }
+      Dmsg2(100, "wanted_file=%d at_file=%d\n", file, dev->file);
    }
    if (block < dev->block_num) {
+      Dmsg2(100, "wanted_blk=%d at_blk=%d\n", block, dev->block_num);
+      Dmsg0(100, "bsf_dev 1\n");
       bsf_dev(dev, 1);
+      Dmsg0(100, "fsf_dev 1\n");
       fsf_dev(dev, 1);
+      Dmsg2(100, "wanted_blk=%d at_blk=%d\n", block, dev->block_num);
    }
    if (dev_cap(dev, CAP_POSITIONBLOCKS) && block > dev->block_num) {
       /* Ignore errors as Bacula can read to the correct block */
