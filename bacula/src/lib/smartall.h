@@ -117,6 +117,16 @@ void  operator delete[](void *ptr, size_t i)
    free(ptr);
 }
 
+void  operator delete(void *ptr, const char *fname, int line)
+{
+   free(ptr);
+}
+void  operator delete[](void *ptr, size_t i, const char *fname, int line) 
+{
+   free(ptr);
+}
+
+
 private:
 void *operator new(size_t s) throw() { return 0; }
 void *operator new[](size_t s) throw() { return 0; }

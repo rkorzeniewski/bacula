@@ -90,6 +90,7 @@ void htable::init(void *item, void *link, int tsize)
    walk_index = 0;
 }
 
+#ifdef xxx
 void * htable::operator new(size_t)
 {
    return malloc(sizeof(htable));
@@ -100,6 +101,7 @@ void htable::operator delete(void *tbl)
    ((htable *)tbl)->destroy();
    free(tbl);
 }
+#endif
 
 uint32_t htable::size()
 {

@@ -58,6 +58,7 @@ class htable : public SMARTALLOC {
    void grow_table();                 /* grow the table */
 public:
    htable(void *item, void *link, int tsize = 31);
+   ~htable() { destroy(); }
    void init(void *item, void *link, int tsize = 31);
    bool  insert(char *key, void *item);
    void *lookup(char *key);

@@ -532,13 +532,14 @@ void free_addresses(dlist * addrs)
 
 int sockaddr_get_port_net_order(const struct sockaddr *client_addr)
 {
-   /* MA BUG 6 remove ifdefs */
    if (client_addr->sa_family == AF_INET) {
       return ((struct sockaddr_in *)client_addr)->sin_port;
    }
+#ifdef HAVE_IPV6
    else {
       return ((struct sockaddr_in6 *)client_addr)->sin6_port;
    }
+#endif
    return -1;
 }
 
