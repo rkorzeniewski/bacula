@@ -376,6 +376,7 @@ checkName:
       }
       mr.InChanger = 1; 	      /* assumed if we are labeling it */
    }
+   mr.StorageId = store->StorageId;
 
    bstrncpy(mr.MediaType, store->media_type, sizeof(mr.MediaType));
 
@@ -386,7 +387,6 @@ checkName:
 	 return 1;
       }
    }
-
 
    ok = send_label_request(ua, &mr, &omr, &pr, relabel, media_record_exists);
 
@@ -505,6 +505,7 @@ static void label_from_barcodes(UAContext *ua)
 	  media_record_exists = true;
       }
       mr.InChanger = 1;
+      mr.StorageId = store->StorageId;
       /*
        * Deal with creating cleaning tape here. Normal tapes created in
        *  send_label_request() below

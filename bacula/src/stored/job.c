@@ -291,7 +291,7 @@ static bool use_device_cmd(JCR *jcr)
 	       device->dev = init_dev(jcr, NULL, device);
 	    }
 	    if (!device->dev) {
-               Jmsg(jcr, M_FATAL, 0, _("\n"
+               Jmsg(jcr, M_WARNING, 0, _("\n"
                   "     Device \"%s\" requested by DIR could not be opened or does not exist.\n"),
 		    dev_name.c_str());
 	       bnet_fsend(dir, NOT_open, dev_name.c_str());
@@ -341,6 +341,9 @@ static bool use_device_cmd(JCR *jcr)
                      "     Device \"%s\" in changer \"%s\" requested by DIR could not be opened or does not exist.\n"),
 		       device->hdr.name, dev_name.c_str());
 		  continue;
+	       }
+	       if (!device->dev->autoselect) {
+		  continue;	      /* device is not available */
 	       }
 	       dcr = new_dcr(jcr, device->dev);
 	       if (!dcr) {

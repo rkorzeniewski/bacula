@@ -76,7 +76,7 @@ static bool mount_cmd(JCR *jcr);
 static bool unmount_cmd(JCR *jcr);
 static bool autochanger_cmd(JCR *sjcr);
 static bool do_label(JCR *jcr, int relabel);
-static DEVICE *find_device(JCR *jcr, POOL_MEM &dname);
+static DEVICE *find_device(JCR *jcr, POOL_MEM &dev_name);
 static void read_volume_label(JCR *jcr, DEVICE *dev, int Slot);
 static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
 			       char *newname, char *poolname,
@@ -299,7 +299,7 @@ static bool relabel_cmd(JCR *jcr)
 static bool do_label(JCR *jcr, int relabel)
 {
    POOLMEM *newname, *oldname, *poolname, *mtype;
-   POOL_MEM dname;
+   POOL_MEM dev_name;
    BSOCK *dir = jcr->dir_bsock;
    DEVICE *dev;
    bool ok = false;
@@ -311,13 +311,13 @@ static bool do_label(JCR *jcr, int relabel)
    mtype = get_memory(dir->msglen+1);
    if (relabel) {
       if (sscanf(dir->msg, "relabel %127s OldName=%127s NewName=%127s PoolName=%127s MediaType=%127s Slot=%d",
-	  dname.c_str(), oldname, newname, poolname, mtype, &slot) == 6) {
+	  dev_name.c_str(), oldname, newname, poolname, mtype, &slot) == 6) {
 	 ok = true;
       }
    } else {
       *oldname = 0;
       if (sscanf(dir->msg, "label %127s VolumeName=%127s PoolName=%127s MediaType=%127s Slot=%d",
-	  dname.c_str(), newname, poolname, mtype, &slot) == 5) {
+	  dev_name.c_str(), newname, poolname, mtype, &slot) == 5) {
 	 ok = true;
       }
    }
@@ -326,7 +326,7 @@ static bool do_label(JCR *jcr, int relabel)
       unbash_spaces(oldname);
       unbash_spaces(poolname);
       unbash_spaces(mtype);
-      dev = find_device(jcr, dname);
+      dev = find_device(jcr, dev_name);
       if (dev) {
 	 /******FIXME**** compare MediaTypes */
 	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
@@ -346,7 +346,7 @@ static bool do_label(JCR *jcr, int relabel)
 	 }
 	 V(dev->mutex);
       } else {
-         bnet_fsend(dir, _("3999 Device \"%s\" not found\n"), dname.c_str());
+         bnet_fsend(dir, _("3999 Device \"%s\" not found\n"), dev_name.c_str());
       }
    } else {
       /* NB dir->msg gets clobbered in bnet_fsend, so save command */
@@ -469,26 +469,59 @@ static bool read_label(DCR *dcr)
    return ok;
 }
 
-static DEVICE *find_device(JCR *jcr, POOL_MEM &dname)
+static DEVICE *find_device(JCR *jcr, POOL_MEM &devname)
 {
    DEVRES *device;
+   AUTOCHANGER *changer;
    bool found = false;
 
-   unbash_spaces(dname);
+   unbash_spaces(devname);
    LockRes();
    foreach_res(device, R_DEVICE) {
       /* Find resource, and make sure we were able to open it */
-      if (strcmp(device->hdr.name, dname.c_str()) == 0 && device->dev) {
+      if (fnmatch(device->hdr.name, devname.c_str(), 0) == 0) {
+	 if (!device->dev) {
+	    device->dev = init_dev(jcr, NULL, device);
+	 }
+	 if (!device->dev) {
+            Jmsg(jcr, M_WARNING, 0, _("\n"
+               "     Device \"%s\" requested by DIR could not be opened or does not exist.\n"),
+		 devname.c_str());
+	    continue;
+	 }
          Dmsg1(20, "Found device %s\n", device->hdr.name);
 	 found = true;
 	 break;
       }
    }
+   foreach_res(changer, R_AUTOCHANGER) {
+      /* Find resource, and make sure we were able to open it */
+      if (fnmatch(devname.c_str(), changer->hdr.name, 0) == 0) {
+	 /* Try each device in this AutoChanger */
+	 foreach_alist(device, changer->device) {
+            Dmsg1(100, "Try changer device %s\n", device->hdr.name);
+	    if (!device->dev) {
+	       device->dev = init_dev(jcr, NULL, device);
+	    }
+	    if (!device->dev) {
+               Dmsg1(100, "Device %s could not be opened. Skipped\n", devname.c_str());
+               Jmsg(jcr, M_WARNING, 0, _("\n"
+                  "     Device \"%s\" in changer \"%s\" requested by DIR could not be opened or does not exist.\n"),
+		    device->hdr.name, devname.c_str());
+	       continue;
+	    }
+	    if (!device->dev->autoselect) {
+	       continue;	      /* device is not available */
+	    }
+            Dmsg1(20, "Found changer device %s\n", device->hdr.name);
+	    found = true;
+	    break;
+	 }
+	 break; 		   /* we found it but could not open a device */
+      }
+   }
+
    if (found) {
-      /*
-       * ****FIXME*****  device->dev may not point to right device
-       *  if there are multiple devices open
-       */
       jcr->dcr = new_dcr(jcr, device->dev);
       UnlockRes();
       jcr->dcr->device = device;
@@ -504,13 +537,13 @@ static DEVICE *find_device(JCR *jcr, POOL_MEM &dname)
  */
 static bool mount_cmd(JCR *jcr)
 {
-   POOL_MEM dname;
+   POOL_MEM devname;
    BSOCK *dir = jcr->dir_bsock;
    DEVICE *dev;
    DCR *dcr;
 
-   if (sscanf(dir->msg, "mount %127s", dname.c_str()) == 1) {
-      dev = find_device(jcr, dname);
+   if (sscanf(dir->msg, "mount %127s", devname.c_str()) == 1) {
+      dev = find_device(jcr, devname);
       dcr = jcr->dcr;
       if (dev) {
 	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
@@ -600,7 +633,7 @@ static bool mount_cmd(JCR *jcr)
 	 }
 	 V(dev->mutex);
       } else {
-         bnet_fsend(dir, _("3999 Device \"%s\" not found\n"), dname.c_str());
+         bnet_fsend(dir, _("3999 Device \"%s\" not found\n"), devname.c_str());
       }
    } else {
       pm_strcpy(jcr->errmsg, dir->msg);
@@ -615,12 +648,12 @@ static bool mount_cmd(JCR *jcr)
  */
 static bool unmount_cmd(JCR *jcr)
 {
-   POOL_MEM dname;
+   POOL_MEM devname;
    BSOCK *dir = jcr->dir_bsock;
    DEVICE *dev;
 
-   if (sscanf(dir->msg, "unmount %127s", dname.c_str()) == 1) {
-      dev = find_device(jcr, dname);
+   if (sscanf(dir->msg, "unmount %127s", devname.c_str()) == 1) {
+      dev = find_device(jcr, devname);
       if (dev) {
 	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
 	 if (!dev->is_open()) {
@@ -661,7 +694,7 @@ static bool unmount_cmd(JCR *jcr)
 	 }
 	 V(dev->mutex);
       } else {
-         bnet_fsend(dir, _("3999 Device \"%s\" not found\n"), dname.c_str());
+         bnet_fsend(dir, _("3999 Device \"%s\" not found\n"), devname.c_str());
       }
    } else {
       /* NB dir->msg gets clobbered in bnet_fsend, so save command */
@@ -681,12 +714,12 @@ static bool unmount_cmd(JCR *jcr)
  */
 static bool release_cmd(JCR *jcr)
 {
-   POOL_MEM dname;
+   POOL_MEM devname;
    BSOCK *dir = jcr->dir_bsock;
    DEVICE *dev;
 
-   if (sscanf(dir->msg, "release %127s", dname.c_str()) == 1) {
-      dev = find_device(jcr, dname);
+   if (sscanf(dir->msg, "release %127s", devname.c_str()) == 1) {
+      dev = find_device(jcr, devname);
       if (dev) {
 	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
 	 if (!dev->is_open()) {
@@ -714,7 +747,7 @@ static bool release_cmd(JCR *jcr)
 	 }
 	 V(dev->mutex);
       } else {
-         bnet_fsend(dir, _("3999 Device \"%s\" not found\n"), dname.c_str());
+         bnet_fsend(dir, _("3999 Device \"%s\" not found\n"), devname.c_str());
       }
    } else {
       /* NB dir->msg gets clobbered in bnet_fsend, so save command */
@@ -732,13 +765,13 @@ static bool release_cmd(JCR *jcr)
  */
 static bool autochanger_cmd(JCR *jcr)
 {
-   POOL_MEM dname;
+   POOL_MEM devname;
    BSOCK *dir = jcr->dir_bsock;
    DEVICE *dev;
    DCR *dcr;
 
-   if (sscanf(dir->msg, "autochanger list %127s ", dname.c_str()) == 1) {
-      dev = find_device(jcr, dname);
+   if (sscanf(dir->msg, "autochanger list %127s ", devname.c_str()) == 1) {
+      dev = find_device(jcr, devname);
       dcr = jcr->dcr;
       if (dev) {
 	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
@@ -759,7 +792,7 @@ static bool autochanger_cmd(JCR *jcr)
 	 }
 	 V(dev->mutex);
       } else {
-         bnet_fsend(dir, _("3999 Device \"%s\" not found\n"), dname.c_str());
+         bnet_fsend(dir, _("3999 Device \"%s\" not found\n"), devname.c_str());
       }
    } else {  /* error on scanf */
       pm_strcpy(jcr->errmsg, dir->msg);
@@ -775,13 +808,13 @@ static bool autochanger_cmd(JCR *jcr)
  */
 static bool readlabel_cmd(JCR *jcr)
 {
-   POOL_MEM dname;
+   POOL_MEM devname;
    BSOCK *dir = jcr->dir_bsock;
    DEVICE *dev;
    int Slot;
 
-   if (sscanf(dir->msg, "readlabel %127s Slot=%d", dname.c_str(), &Slot) == 2) {
-      dev = find_device(jcr, dname);
+   if (sscanf(dir->msg, "readlabel %127s Slot=%d", devname.c_str(), &Slot) == 2) {
+      dev = find_device(jcr, devname);
       if (dev) {
 	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
 	 if (!dev->is_open()) {
@@ -800,7 +833,7 @@ static bool readlabel_cmd(JCR *jcr)
 	 }
 	 V(dev->mutex);
       } else {
-         bnet_fsend(dir, _("3999 Device \"%s\" not found\n"), dname.c_str());
+         bnet_fsend(dir, _("3999 Device \"%s\" not found\n"), devname.c_str());
       }
    } else {
       pm_strcpy(jcr->errmsg, dir->msg);

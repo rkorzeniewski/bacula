@@ -316,6 +316,7 @@ getVolName:
       bsnprintf(mr.VolumeName, sizeof(mr.VolumeName), name, i);
       mr.Slot = Slot++;
       mr.InChanger = InChanger;
+      mr.StorageId = store->StorageId;
       Dmsg1(200, "Create Volume %s\n", mr.VolumeName);
       if (!db_create_media_record(ua->jcr, ua->db, &mr)) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
