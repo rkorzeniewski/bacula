@@ -135,7 +135,7 @@ static void job_thread(void *arg)
    Dmsg0(100, "=====Start Job=========\n");
    jcr->start_time = now;	      /* set the real start time */
    if (jcr->job->MaxStartDelay != 0 && jcr->job->MaxStartDelay <
-       (jcr->start_time - jcr->sched_time)) {
+       (btime_t)(jcr->start_time - jcr->sched_time)) {
       Jmsg(jcr, M_FATAL, 0, _("Job cancelled because max delay time exceeded.\n"));
       free_jcr(jcr);
    }

@@ -137,8 +137,9 @@ char *		 encode_time		 __PROTO((time_t time, char *buf));
 char *		 encode_mode		 __PROTO((mode_t mode, char *buf));
 char *		 edit_uint_with_commas	 __PROTO((uint64_t val, char *buf));
 char *		 add_commas		 __PROTO((char *val, char *buf));
-int do_shell_expansion(char *name);
-int		 is_a_number(const char *num);
+char *		 edit_uint		 (uint64_t val, char *buf);
+int		 do_shell_expansion	 (char *name);
+int		 is_a_number		 (const char *num);
 
 
 /*

@@ -228,6 +228,7 @@ typedef struct s_db {
 /* ***FIXME*** FileId_t should be uint64_t */
 typedef uint32_t FileId_t;
 typedef uint32_t DBId_t;              /* general DB id type */
+typedef uint32_t JobId_t;
 
 
 /* Job information passed to create job record and update

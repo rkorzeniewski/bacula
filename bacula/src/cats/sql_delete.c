@@ -112,7 +112,7 @@ db_delete_pool_record(B_DB *mdb, POOL_DBR *pr)
 #define MAX_DEL_LIST_LEN 1000000
 
 struct s_del_ctx {
-   uint32_t *JobId; 
+   JobId_t *JobId; 
    int num_ids; 		      /* ids stored */
    int max_ids; 		      /* size of array */
    int num_del; 		      /* number deleted */
@@ -135,10 +135,10 @@ static int delete_handler(void *ctx, int num_fields, char **row)
    }
    if (del->num_ids == del->max_ids) {
       del->max_ids = (del->max_ids * 3) / 2;
-      del->JobId = (uint32_t *)brealloc(del->JobId, sizeof(uint32_t) *
+      del->JobId = (JobId_t *)brealloc(del->JobId, sizeof(JobId_t) *
 	 del->max_ids);
    }
-   del->JobId[del->num_ids++] = (uint32_t)strtod(row[0], NULL);
+   del->JobId[del->num_ids++] = (JobId_t)strtod(row[0], NULL);
    return 0;
 }
 
@@ -165,7 +165,7 @@ static int do_media_purge(B_DB *mdb, MEDIA_DBR *mr)
    } else if (del.max_ids > MAX_DEL_LIST_LEN) {
       del.max_ids = MAX_DEL_LIST_LEN;
    }
-   del.JobId = (uint32_t *)malloc(sizeof(uint32_t) * del.max_ids);
+   del.JobId = (JobId_t *)malloc(sizeof(JobId_t) * del.max_ids);
    db_sql_query(mdb, mdb->cmd, delete_handler, (void *)&del);
 
    for (i=0; i < del.num_ids; i++) {

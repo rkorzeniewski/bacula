@@ -151,12 +151,12 @@ void init_resource(int type, struct res_items *items)
 	 if (items[i].handler == store_yesno) {
 	    *(int *)(items[i].value) |= items[i].code;
 	 } else if (items[i].handler == store_pint || 
-		    items[i].handler == store_int  ||
-		    items[i].handler == store_time) {
+		    items[i].handler == store_int) {
 	    *(int *)(items[i].value) = items[i].default_value;
 	 } else if (items[i].handler == store_int64) {
 	    *(int64_t *)(items[i].value) = items[i].default_value;
-	 } else if (items[i].handler == store_size) {
+	 } else if (items[i].handler == store_size ||
+		    items[i].handler == store_time) {
 	    *(uint64_t *)(items[i].value) = items[i].default_value;
 	 }
       }
@@ -586,7 +586,8 @@ void store_size(LEX *lc, struct res_items *item, int index, int pass)
 /* Store a time period in seconds */
 void store_time(LEX *lc, struct res_items *item, int index, int pass)
 {
-   int token, i, ch, value;
+   int token, i, ch;
+   btime_t value;
    int  mod[]  = {'*', 's', 'm', 'h', 'd', 'w', 'o', 'q', 'y', 0};
    int	mult[] = {1, 60, 60*60, 60*60*24, 60*60*24*7, 60*60*24*30, 
 		  60*60*24*91, 60*60*24*365};
@@ -595,11 +596,11 @@ void store_time(LEX *lc, struct res_items *item, int index, int pass)
    errno = 0;
    switch (token) {
    case T_NUMBER:
-      token = (int)strtod(lc->str, NULL);
-      if (errno != 0 || token < 0) {
+      value = (btime_t)strtod(lc->str, NULL);
+      if (errno != 0 || value < 0) {
          scan_err1(lc, "expected a time period, got: %s", lc->str);
       }
-      *(int *)(item->value) = token;
+      *(btime_t *)(item->value) = value;
       break;
    case T_IDENTIFIER:
    case T_STRING:
@@ -621,11 +622,11 @@ void store_time(LEX *lc, struct res_items *item, int index, int pass)
       if (mod[i] == 0 || !is_a_number(lc->str)) {
          scan_err1(lc, "expected a time period, got: %s", lc->str);
       }
-      value = (int)strtod(lc->str, NULL);
+      value = (btime_t)strtod(lc->str, NULL);
       if (errno != 0 || value < 0) {
          scan_err1(lc, "expected a time period, got: %s", lc->str);
       }
-      *(int *)(item->value) = value * mult[i];
+      *(btime_t *)(item->value) = value * mult[i];
       break;
    default:
       scan_err1(lc, "expected a time period, got: %s", lc->str);

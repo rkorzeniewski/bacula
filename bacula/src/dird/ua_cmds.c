@@ -50,6 +50,7 @@ extern int sqlquerycmd(UAContext *ua, char *cmd);
 extern int querycmd(UAContext *ua, char *cmd);
 extern int runcmd(UAContext *ua, char *cmd);
 extern int retentioncmd(UAContext *ua, char *cmd);
+extern int prunecmd(UAContext *ua, char *cmd);
 
 /* Forward referenced functions */
 static int addcmd(UAContext *ua, char *cmd),  createcmd(UAContext *ua, char *cmd), cancelcmd(UAContext *ua, char *cmd);
@@ -80,7 +81,7 @@ static struct cmdstruct commands[] = {
  { N_("list"),       listcmd,      _("list [pools | jobs | jobtotals | media <pool> | files job=<nn>]; from catalog")},
  { N_("messages"),   messagescmd,  _("messages")},
  { N_("mount"),      mountcmd,     _("mount <storage-name>")},
- { N_("retention"),  retentioncmd, _("retention")},
+ { N_("prune"),      prunecmd,     _("prune expired records from catalog")},
  { N_("run"),        runcmd,       _("run <job-name>")},
  { N_("setdebug"),   setdebugcmd,  _("sets debug level")},
  { N_("show"),       showcmd,      _("show (resource records) [jobs | pools | ... | all]")},

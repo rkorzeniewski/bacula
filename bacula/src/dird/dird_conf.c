@@ -92,7 +92,6 @@ static struct res_items dir_items[] = {
    {"password",    store_password, ITEM(res_dir.password), 0, ITEM_REQUIRED, 0},
    {"fdconnecttimeout", store_time,ITEM(res_dir.FDConnectTimeout), 0, ITEM_DEFAULT, 60 * 30},
    {"sdconnecttimeout", store_time,ITEM(res_dir.SDConnectTimeout), 0, ITEM_DEFAULT, 60 * 30},
-
    {NULL, NULL, NULL, 0, 0, 0}
 };
 
@@ -111,6 +110,7 @@ static struct res_items cli_items[] = {
    {"catalog",  store_res,        ITEM(res_client.catalog),  R_CATALOG, 0, 0},
    {"fileretention", store_time,  ITEM(res_client.FileRetention), 0, ITEM_DEFAULT, 60*60*24*30},
    {"jobretention",  store_time,  ITEM(res_client.JobRetention),  0, ITEM_DEFAULT, 60*60*24*365},
+   {"autoprune", store_yesno,     ITEM(res_client.AutoPrune), 1, ITEM_DEFAULT, 1},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
@@ -358,7 +358,7 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
    }
    switch (type) {
       case R_DIRECTOR:
-         sendit(sock, "Director: name=%s maxjobs=%d FDtimeout=%d SDtimeout=%d\n", 
+         sendit(sock, "Director: name=%s maxjobs=%d FDtimeout=%" lld " SDtimeout=%" lld "\n", 
 	    reshdr->name, res->res_dir.MaxConcurrentJobs, 
 	    res->res_dir.FDConnectTimeout,
 	    res->res_dir.SDConnectTimeout);
@@ -373,8 +373,9 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
       case R_CLIENT:
          sendit(sock, "Client: name=%s address=%s FDport=%d\n",
 	    res->res_client.hdr.name, res->res_client.address, res->res_client.FDport);
-         sendit(sock, "JobRetention=%d FileRetention=%d\n",
-	    res->res_client.JobRetention, res->res_client.FileRetention);
+         sendit(sock, "JobRetention=%" lld " FileRetention=%" lld " AutoPrune=%d\n",
+	    res->res_client.JobRetention, res->res_client.FileRetention,
+	    res->res_client.AutoPrune);
 	 if (res->res_client.catalog) {
             sendit(sock, "  --> ");
 	    dump_resource(-R_CATALOG, (RES *)res->res_client.catalog, sendit, sock);
@@ -445,11 +446,13 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
       case R_POOL:
          sendit(sock, "Pool: name=%s PoolType=%s\n", res->res_pool.hdr.name,
 		 res->res_pool.pool_type);
-         sendit(sock, "      use_cat=%d use_once=%d acpt_any=%d\n",
+         sendit(sock, "      use_cat=%d use_once=%d acpt_any=%d cat_files=%d\n",
 		 res->res_pool.use_catalog, res->res_pool.use_volume_once,
-		 res->res_pool.accept_any_volume);
-         sendit(sock, "      cat_files=%d max_vols=%d\n",
-		 res->res_pool.catalog_files, res->res_pool.max_volumes);
+		 res->res_pool.accept_any_volume, res->res_pool.catalog_files);
+         sendit(sock, "      max_vols=%d auto_recycle=%d VolumeRetention=%" lld "\n",
+		 res->res_pool.max_volumes, res->res_pool.AutoRecycle,
+		 res->res_pool.VolumeRetention);
+
          sendit(sock, "      LabelFormat=%s\n", res->res_pool.label_format?
                  res->res_pool.label_format:"NONE");
 	 break;

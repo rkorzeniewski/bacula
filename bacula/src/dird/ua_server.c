@@ -140,6 +140,7 @@ static void handle_UA_client_request(void *arg)
 	 }
       } else if (stat == 0) {
 	 if (ua.UA_sock->msglen == BNET_TERMINATE) {
+	    quit = TRUE;
 	    break;
 	 }
 	 bnet_sig(ua.UA_sock, BNET_POLL);

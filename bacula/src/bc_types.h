@@ -168,6 +168,8 @@ typedef float             float32_t;
 #define uint64_t u_int64_t
 #define uintmax_t u_intmax_t
 
+#define btime_t uint64_t
+
 #ifdef HAVE_CYGWIN
 #define socklen_t int
 #endif

@@ -53,7 +53,7 @@ int is_a_number(const char *n)
    }
    if (digit_seen && (*n == 'e' || *n == 'E')
        && (ISDIGIT(n[1]) || ((n[1]=='-' || n[1] == '+') && ISDIGIT(n[2])))) {
-      n += 2;			      /* skip e- or e+ */
+      n += 2;			      /* skip e- or e+ or e digit */
       while (ISDIGIT(*n)) { n++; }
    }
    return digit_seen && *n==0;
@@ -70,6 +70,18 @@ char *edit_uint_with_commas(uint64_t val, char *buf)
    sprintf(buf, "%" lld, val);
    return add_commas(buf, buf);
 }
+
+/*
+ * Edit an integer number, the supplied buffer
+ * must be at least 27 bytes long.  The incoming number
+ * is always widened to 64 bits.
+ */
+char *edit_uint(uint64_t val, char *buf)
+{
+   sprintf(buf, "%" lld, val);
+   return buf;
+}
+
 
 /*
  * Add commas to a string, which is presumably

@@ -83,8 +83,8 @@ struct s_res_dir {
    char *subsys_directory;            /* SubsysDirectory */
    struct s_res_msgs *messages;
    int   MaxConcurrentJobs;
-   int   FDConnectTimeout;            /* timeout for connect in seconds */
-   int   SDConnectTimeout;            /* timeout in seconds */
+   btime_t FDConnectTimeout;          /* timeout for connect in seconds */
+   btime_t SDConnectTimeout;          /* timeout in seconds */
 };
 typedef struct s_res_dir DIRRES;
 
@@ -96,8 +96,9 @@ struct s_res_client {
    RES   hdr;
 
    int   FDport;                      /* Where File daemon listens */
-   uint32_t FileRetention;            /* file retention period in seconds */
-   uint32_t JobRetention;             /* job retention period in seconds */
+   int   AutoPrune;                   /* Do automatic pruning? */
+   btime_t FileRetention;             /* file retention period in seconds */
+   btime_t JobRetention;              /* job retention period in seconds */
    char *address;
    char *password;
    struct s_res_cat    *catalog;       /* Catalog resource */
@@ -147,8 +148,8 @@ struct s_res_job {
    int   RestoreJobId;                /* What -- JobId to restore */
    char *RestoreWhere;                /* Where on disk to restore -- directory */
    int   RestoreOptions;              /* How (overwrite, ..) */
-   int   MaxRunTime;                  /* max run time in seconds */
-   int   MaxStartDelay;               /* max start delay in seconds */
+   btime_t MaxRunTime;                /* max run time in seconds */
+   btime_t MaxStartDelay;             /* max start delay in seconds */
 
    struct s_res_msgs   *messages;     /* How and where to send messages */
    struct s_res_sch    *schedule;     /* When -- Automatic schedule */
@@ -212,7 +213,7 @@ struct s_res_pool {
    int   use_volume_once;             /* write on volume only once */
    int   accept_any_volume;           /* accept any volume */
    int   max_volumes;                 /* max number of volumes */
-   uint32_t VolumeRetention;          /* volume retention period in seconds */
+   btime_t VolumeRetention;           /* volume retention period in seconds */
    int   AutoRecycle;                 /* auto recycle */
 };
 typedef struct s_res_pool POOL;
