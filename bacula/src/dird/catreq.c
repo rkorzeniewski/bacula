@@ -103,7 +103,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
     */
    Dmsg1(200, "catreq %s", bs->msg);
    if (sscanf(bs->msg, Find_media, &Job, &index) == 2) {
-      ok = find_next_volume_for_append(jcr, &mr, TRUE /*permit create new vol*/);
+      ok = find_next_volume_for_append(jcr, &mr, true /*permit create new vol*/);
       /*
        * Send Find Media response to Storage daemon 
        */

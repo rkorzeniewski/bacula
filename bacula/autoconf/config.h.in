@@ -150,6 +150,9 @@
 /* Define if you have zlib */
 #undef HAVE_LIBZ
 
+/* Define if you have libacl */
+#undef HAVE_ACL
+
 /* General libs */
 #undef LIBS
 

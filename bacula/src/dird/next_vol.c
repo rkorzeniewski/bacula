@@ -40,7 +40,7 @@
  *   MEDIA_DBR mr (zeroed out)
  *   create -- whether or not to create a new volume
  */
-int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int create)
+int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, bool create)
 {
    int retry = 0;
    bool ok;

@@ -1096,6 +1096,7 @@ static int storage_cmd(JCR *jcr)
    /* Try to connect for 1 hour at 10 second intervals */
    sd = bnet_connect(jcr, 10, me->SDConnectTimeout, _("Storage daemon"), 
 		     jcr->stored_addr, NULL, stored_port, 1);
+   Dmsg0(110, "Connection OK to SD.\n");
    if (sd == NULL) {
       Jmsg(jcr, M_FATAL, 0, _("Failed to connect to Storage daemon: %s:%d\n"),
 	  jcr->stored_addr, stored_port);

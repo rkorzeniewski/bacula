@@ -144,7 +144,10 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, char *fname)
          case 'w':
 	    inc->options |= FO_IF_NEWER;
 	    break;
-         case 'Z':                 /* gzip compression */
+         case 'A':
+	    inc->options |= FO_ACL;
+	    break;
+	 case 'Z':                 /* gzip compression */
 	    inc->options |= FO_GZIP;
             inc->level = *++p - '0';
             Dmsg1(200, "Compression level=%d\n", inc->level);
