@@ -32,8 +32,8 @@
 
 extern DIRRES *director;
 
-static char *substitute_prompts(UAContext *ua, 
-		       char *query, char **prompt, int nprompt);
+static POOLMEM *substitute_prompts(UAContext *ua, 
+		       POOLMEM *query, char **prompt, int nprompt);
 
 /*
  * Read a file containing SQL queries and prompt
@@ -50,23 +50,21 @@ static char *substitute_prompts(UAContext *ua,
  */
 int querycmd(UAContext *ua, char *cmd)
 {
-   FILE *fd;
+   FILE *fd = NULL;
    POOLMEM *query = get_pool_memory(PM_MESSAGE);
    char line[1000];
    int i, item, len;
    char *prompt[9];
-   int nprompt;
+   int nprompt = 0;;
    char *query_file = director->query_file;
    
    if (!open_db(ua)) {
-      free_pool_memory(query);
-      return 1;
+      goto bail_out;
    }
    if ((fd=fopen(query_file, "r")) == NULL) {
       bsendmsg(ua, "Could not open %s: ERR=%s\n", query_file,
 	 strerror(errno));
-      free_pool_memory(query);
-      return 1;
+      goto bail_out;
    }
 
    start_prompt(ua, _("Available queries:\n"));
@@ -77,9 +75,7 @@ int querycmd(UAContext *ua, char *cmd)
       }
    }
    if ((item=do_prompt(ua, "", _("Choose a query"), NULL, 0)) < 0) {
-      fclose(fd);
-      free_pool_memory(query);
-      return 1;
+      goto bail_out;
    }
    rewind(fd);
    i = -1;
@@ -93,15 +89,12 @@ int querycmd(UAContext *ua, char *cmd)
    }
    if (i != item) {
       bsendmsg(ua, _("Could not find query.\n"));
-      fclose(fd);
-      free_pool_memory(query);
-      return 1;
+      goto bail_out;
    }
    query[0] = 0;
    for (i=0; i<9; i++) {
       prompt[i] = NULL;
    }
-   nprompt = 0;
    while (fgets(line, sizeof(line), fd) != NULL) {
       if (line[0] == '#') {
 	 continue;
@@ -121,11 +114,10 @@ int querycmd(UAContext *ua, char *cmd)
 	    continue;
 	 }
       }  
-      query = check_pool_memory_size(query, len + 1);
       if (*query != 0) {
-         strcat(query, " ");
+         pm_strcat(&query, " ");
       }
-      strcat(query, line);
+      pm_strcat(&query, line);
       if (line[len-1] != ';') {
 	 continue;
       }
@@ -151,6 +143,11 @@ int querycmd(UAContext *ua, char *cmd)
             bsendmsg(ua, "%s\n", query);
 	 }
    }
+
+bail_out:
+   if (fd) {
+      fclose(fd);
+   }
    free_pool_memory(query);
    for (i=0; i<nprompt; i++) {
       free(prompt[i]);
@@ -159,7 +156,7 @@ int querycmd(UAContext *ua, char *cmd)
 }
 
 static POOLMEM *substitute_prompts(UAContext *ua, 
-		       char *query, char **prompt, int nprompt)
+		       POOLMEM *query, char **prompt, int nprompt)
 {
    char *p, *q, *o;
    POOLMEM *new_query;

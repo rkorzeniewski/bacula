@@ -1,0 +1,8 @@
+12-04-2004 :
+ - The source code is now better documented
+ - wxbRestorePanel : Check if a client was selected before
+   entering choose mode
+ - The source code is now right idented (3 spaces by level)
+ - Copyrights changed to Kern Sibbald and John Walker
+ - wxbPanel : super-class access rights problem corrected
+ - wxbRestorePanel : Added "nice" images to indicate restore status

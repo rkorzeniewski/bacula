@@ -160,6 +160,7 @@ static bool close_data_spool_file(JCR *jcr)
    if (spool_stats.data_size < 0) {
       spool_stats.data_size = 0;
    }
+   jcr->dcr->spool_size = 0;
    V(mutex);
 
    make_unique_data_spool_filename(jcr, &name);
@@ -185,18 +186,22 @@ static bool despool_data(DCR *dcr)
    dcr->spooling = false;
    lock_device(dcr->dev);
    dcr->dev_locked = true; 
-   /* Set up a dev structure to read */
+
+   /* Setup a dev structure to read */
    rdev = (DEVICE *)malloc(sizeof(DEVICE));
    memset(rdev, 0, sizeof(DEVICE));
    rdev->dev_name = get_memory(strlen("spool")+1);
    strcpy(rdev->dev_name, "spool");
    rdev->errmsg = get_pool_memory(PM_EMSG);
    *rdev->errmsg = 0;
+   rdev->max_block_size = dcr->dev->max_block_size;
+   rdev->min_block_size = dcr->dev->min_block_size;
    rdev->device = dcr->dev->device;
    rdcr = new_dcr(NULL, rdev);
    rdcr->spool_fd = dcr->spool_fd; 
    rdcr->jcr = jcr;		      /* set a valid jcr */
    block = rdcr->block;
+   Dmsg1(800, "read/write block size = %d\n", block->buf_len);
    lseek(rdcr->spool_fd, 0, SEEK_SET); /* rewind */
 
    for ( ; ok; ) {

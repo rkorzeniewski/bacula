@@ -498,6 +498,7 @@ void sm_static(int mode)
  *  so that the memory is allocated through smartalloc.
  */
 
+#ifdef xxx
 void * operator new(size_t size)
 {
 // Dmsg1(000, "new called %d\n", size);
@@ -509,5 +510,6 @@ void operator delete(void *buf)
 // Dmsg1(000, "free called 0x%x\n", buf);
    sm_free(__FILE__, __LINE__, buf);
 }
+#endif
 
 #endif

@@ -23,16 +23,17 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, 
-   MA 02111-1307, USA.
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place - Suite 330, Boston, 
+   MA  02111-1307, USA.
  */
 
 #include "bacula.h"
 #include "console_conf.h"
 #include "jcr.h"
 
+#include "csprint.h"
 
 void senditf(char *fmt, ...);
 void sendit(char *buf); 
@@ -73,25 +74,26 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
    if (!cram_md5_get_auth(dir, password, ssl_need) || 
        !cram_md5_auth(dir, password, ssl_need)) {
       stop_bsock_timer(tid);
-      sendit( _("Director authorization problem.\n"
-            "Most likely the passwords do not agree.\n"));  
+      csprint("Director authorization problem.\nMost likely the passwords do not agree.\n", CS_DATA);  
       return 0;
    }
 
    Dmsg1(6, ">dird: %s", dir->msg);
    if (bnet_recv(dir) <= 0) {
       stop_bsock_timer(tid);
-      senditf(_("Bad response to Hello command: ERR=%s\n"),
-	 bnet_strerror(dir));
+      csprint("Bad response to Hello command: ERR=", CS_DATA);  
+      csprint(bnet_strerror(dir), CS_DATA);
+      csprint("\n", CS_DATA);  
       return 0;
    }
    Dmsg1(10, "<dird: %s", dir->msg);
    stop_bsock_timer(tid);
    if (strncmp(dir->msg, OKhello, sizeof(OKhello)-1) != 0) {
-      sendit(_("Director rejected Hello command\n"));
+      csprint("Director rejected Hello command\n", CS_DATA);
       return 0;
    } else {
-      sendit(dir->msg);
+      csprint(dir->msg, CS_DATA);
    }
    return 1;
 }
+
