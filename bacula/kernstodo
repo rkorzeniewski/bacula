@@ -1,26 +1,30 @@
                  Kern's ToDo List
-                 25 November 2002
+                 27 November 2002
 
-Documentation to do:
+Documentation to do: (a little bit at a time)
 - Document running a test version.
+- Make sure restore options are documented
+- Document query file format.
 
-Testing to do:
+Testing to do: (painful)
 - that restore options work in FD.
 - that mod of restore options works.
 - that console command line options work
 - blocksize recognition code.
 
-For 1.27 release:
-
-After 1.27
-- Ensure that restore of differential jobs works (check SQL).
+For 1.28 release:
+- Think about how to make Bacula work better with File archives.
+- Start working on Base jobs.
+- Implement FileOptions (see end of this document)
+- Test a second language e.g. french.
+- Replace popen() and pclose() -- fail safe and timeout, no SIG dep.
 - Enhance schedule to have 1stSat, ...
+- Ensure that restore of differential jobs works (check SQL).
 - Make sure the MaxVolFiles is fully implemented in SD
 - Make Job err if WriteBootstrap fails.
 - Flush all the daemon messages at the end of every job.
 - Check if both CatalogFiles and UseCatalog are set to SD.
 - Check if we can bump Bacula FD priorty in Win2000
-- Implement FileOptions.
 - Make bcopy read through bad tape records.
 - Need return status on read_cb() from read_records(). Need multiple
   records -- one per Job, maybe a JCR or some other structure with
@@ -35,8 +39,6 @@ After 1.27
 - Program files (i.e. execute a program to read/write files).
   Pass read date of last backup, size of file last time.
 - Put system type returned by FD into catalog.
-- Add VOLUME_CAT_INFO to the EOS tape record (as
-  well as to the EOD record).
 - Add code to fast seek to proper place on tape/file
   when doing Restore. If it doesn't work, try linear
   search as before.
@@ -45,11 +47,8 @@ After 1.27
   long and a job is waiting on the drive.
 - Strip trailing slashes from Include directory names in the FD.
 - Use read_record.c in SD code.
-- Add EOM records ???????
 - Why don't we get an error message from Win32 FD when bootstrap 
   file cannot be created for restore command?
-- Put MaximumVolumeSize in Director (MaximumVolumeJobs, MaximumVolumeFiles,
-   MaximumFileSize).
 - When Marking a file in Restore that is a hard link, also
   mark the link so that the data will be reloaded.
 - Restore program that errors in SD due to no tape reports
@@ -78,8 +77,6 @@ After 1.27
   > 13-Nov-2002 02:08 dump01-dir: 13-Nov-2002 02:08
   > 
 
-- Add VolumeUseDuration and MaximumVolumeJobs to Pool db record and
-  to Media db record.
 - Figure out how compress everything except .gz,... files.
 - Make bcopy copy with a single tape drive.
 - Make sure catalog doesn't keep growing.
@@ -118,7 +115,7 @@ After 1.27
 Projects:
             Bacula Projects Roadmap 
                17 August 2002
-           last update 7 October 2002
+           last update 27 November 2002
 
 Item 1:   Multiple simultaneous Jobs. (done)
 Done
@@ -159,7 +156,7 @@ Deferred -- not necessary yet.
           testing after item 1 is implemented.
 
 
-Item 3:   Write the bscan program.
+Item 3:   Write the bscan program -- also write a bcopy program.
 Done
 
   What:   Write a program that reads a Bacula tape and puts all the 
@@ -266,7 +263,7 @@ Item 9:   Add SSL to daemon communications.
 
 
 Item 10:  Define definitive tape format.
-Mostly done (version 1.27)
+Done (version 1.27)
 
   What:   Define that definitive tape format that will not change 
           for the next millennium.
@@ -304,7 +301,6 @@ Item 11:  New daemon communication protocol.
 I haven't put these in any particular order.
 
 Small projects:
-- Rework Storage daemon with new rwl_lock routines.
 - Compare tape to Client files (attributes, or attributes and data) 
 - Restore options (overwrite, overwrite if older,
    overwrite if newer, never overwrite, ...)
@@ -315,10 +311,6 @@ Small projects:
 - Find solution to blank filename (i.e. path only) problem.
 - Implement new daemon communications protocol.
 
-Dump:
-  mysqldump -f  --opt bacula >bacula
-
-
 To be done:
 - Remove PoolId from Job table, it exists in Media.
 - Allow console commands to detach or run in background.
@@ -327,9 +319,6 @@ To be done:
   - Maximum Operator Wait
   - Minimum Message Interval
   - Maximum Message Interval
-- Add EOM handling variables
-  - Write EOD records
-  - Require EOD records
 - Send Operator message when cannot read tape label.
 - Think about how to handle I/O error on MTEOM.
 - Verify level=Volume (scan only), level=Data (compare of data to file).
@@ -367,8 +356,6 @@ To be done:
 - Implement full MediaLabel code.
 - Implement dump label to UA
 - Copy volume using single drive.
-- Copy volume with multiple driven (same or different block size).     
-- Add block size (min, max) to Vol label.
 - Concept of VolumeSet during restore which is a list
   of Volume names needed.
 - Restore files modified after date
@@ -377,11 +364,9 @@ To be done:
   - Backup Bacula
   - Backup working directory
   - Backup Catalog
-- Restore options (do not overwrite)
 - Restore -- do nothing but show what would happen
 - SET LD_RUN_PATH=$HOME/mysql/lib/mysql
 - Implement Restore FileSet=
-- Write a scanner for the UA (keyword, scan-routine, result, prompt).
 - Create a protocol.h and protocol.c where all protocol messages
   are concentrated.
 - If SD cannot open a drive, make it periodically retry.
@@ -395,7 +380,6 @@ To be done:
 - Find general solution for sscanf size problems (as well
   as sprintf. Do at run time?
 - Concept of precious tapes (cannot be reused).
-- Allow FD to run from inetd ???
 
 - Restore should get Device and Pool information from
   job record rather than from config.
@@ -454,7 +438,6 @@ To be done:
   report resource where report=group of messages
 - enhance scan_attrib and rename scan_jobtype, and
   fill in code for "since" option 
-- To buffer messages, we need associated jobid and Director name.
 - Need to save contents of FileSet to tape?
 - Director needs a time after which the report status is sent
   anyway -- or better yet, a retry time for the job.
@@ -471,20 +454,10 @@ To be done:
   Read, Write, Clean, Delete
 - Login to Bacula; Bacula users with different permissions:
    owner, group, user, quotas
-- Tape recycle destination
-- Job Schedule Status
-  - Automatic
-  - Manual
-  - Running
 - Store info on each file system type (probably in the job header on tape.
   This could be the output of df; or perhaps some sort of /etc/mtab record.
 
 Longer term to do:
-- Use media 1 time (so that we can do 6 days of incremental
-  backups before switching to another tape) (already)
-  specify # times (jobs)
-  specify bytes (already)
-  specify time (seconds, hours, days)
 - Implement FSM (File System Modules).
 - Identify unchanged or "system" files and save them to a
   special tape thus removing them from the standard 
@@ -500,110 +473,176 @@ Longer term to do:
   continue a save if the Director goes down (this
   is NOT currently the case). Must detect socket error,
   buffer messages for later. 
+- Enhance time/duration input to allow multiple qualifiers e.g. 3d2h
 
 
 Done: (see kernsdone for more)
-- Document bscan.
-- Document Restore.
-- Check if GZIP1 is working -- check speed.
-- Document forcing a new tape to be used.
-- Ensure that AcceptAnyVolume works.
-- Document running multiple Jobs
-- Preserve block number when EOT and writing on next tape.
-- Document how to cancel a job that is waiting on a Volume. 
-  Must "cancel" then "mount".
-- Document Volume Bytes shows bytes on last volume written in Job summary.
-- Restore all Windows attributes. Leave hooks for ACLs and security.
-  (Handle x = (HANDLE)get_osfhandle(fd);
-- Test Windows restore.
-- Look into MinGW
-- Implement sparse files.
-- Document sparse files.
-- Document better Include  (does it cross file systems ?).
-- Document default config file locations.
-- Document specifically how to add new File daemon to config files.
-- Add VerNo to each Session label record. 
-- Add Job to Session records.
-- Cold start full restore (restore catalog then
-  user selects what to restore).  Write summary file containing only
-  Job, Media, and Catalog information. Store on another machine.
-- Dump/Restore database
-- Write bscan program that will syncronize the DB Media record with
-  the contents of the Volume -- for use after a crash.
-- Figure out how to put a Volume into the catalog (from the tape)
-- Figure out how to do a restore from a Volume
-- Report compression % and other compression statistics if turned on.
-- Put Windows files in Windows stream?
-- Ensure that everyone uses btime routines (mostly done).
-- Put Job statistics in End Session Label (files saved,
-  total bytes, start time, ...).     
-- Put FileSet name in the SOS label.
-- Eliminate duplicate File records to shrink database.
-- If Storage daemon aborts a job, ensure that this
-  is printed in the error message.
-- Add save type to Session label.
-- Correct date on Session label.
-- Test restore of Windows backup
-- Ability to recreate the catalog from a tape.
-- Bug: anonymous Volumes requires mount in some cases.
-- Define how we handle times to avoid problem with Unix dates (2049 ?).
-- Add daemon JCR JobId=0 to have a daemon context
-- Implement full restoration of all Windows attributes
-  (such as Hidden, System, creation dates, ...)
-- Handle sparse files (i.e. files with holes in them)
-- Enhance testing for Bacula compatibility with   
-  tape drives.
-- Turn on new BB02 tape format implemented in 1.26 but
-  not yet turned on.
-- More testing of restoring on Unix systems.
-- Implement additional tape format enhancements to better 
-  support Windows and other non-Unix systems e.g. 
-  extended attributes.
-- Upgrade to latest version of cygwin. (not possible)
-- Add configure for gettimeofday.
-- At line 51 of ua_input.c, why is = 0 necessary. Previously without
-  it, if cancel gnome-console during sql command, DIR crashed.  However,
-  with it, blank line input for Where: is not possible.
-- Make SD disallow writing on Volume with fewer files than in
-  the catalog.
-- Label (asks for slot, return and it stops).
-- Make SD reject writing on tape where Catalog and tape # files
-  don't agree (possibly OK if tape > catalog).
-- Document all daemon tools MUST have a config file.
-- Why does btape error when pointed to a file?
-- Disallow compile if long long not 64 bits.
-- Send Volumes needed during restore to Console (just after
-  create_volume_list) -- also in restore command?
-- File system type from File daemon
-- Move block size code from block.c to init_dev().
-- Add FileSet MD5 to bscan.
-- Finish implementation of restore "replace" options, and document.
-- Rework Web site.
-- Document buffer size considerations with Sparse files --
-- that restore prints volumes.
-- Document that two Verifys at same time on same client do not work.
-- bscan   
-- MD5 in bscan is set in FileSet.
-- that Bacula won't write on tape where tape/catalog files differ.
-- Document how to recycle a tape in 7 days even if the backup takes a long time.
-- Document tape cycling 
-- Implement VolumeUseDuration (maximum duration/period) a volume can be used).
-  Possibly VolumeUseTimes (MaximumVolumeJobs) This permits a volume to be
-  recycled even if it is not full.
-- Decide what to do with JobTDate in catalog (make real utime_t?)
-- Implement VolMaxJob and Duration check in next_volume().
-- Make sure pruning of Jobs removes JobMediaId
-- Write bcopy program -- recovery of bad tape.
-- Make gethostbyname() thread safe in bnet.c
-- Add ORDER BY JobId to list of Jobs in query.sql, and in
-  ua_output.c (list command).
-- drive MaxVolJobs, VolUseDuration from media record
-  rather than Resource.
-- Fix intmax_t on FreeBSD.
-- make sure that update of volume new parameters works
-- Document -i option on FD
-- Document to have patience when SD first starts.
-- Document saving MySQL databases, where to find code for shutting 
-  down and saving other databases.
-  http://www.backupcentral.com/free-backup-software1.html
-  mysqldump -f  --opt bacula >bacula
+- Add EOM records? No, not at this time. The current system works and
+  above all is simple.
+- Add VolumeUseDuration and MaximumVolumeJobs to Pool db record and
+  to Media db record.
+- Add VOLUME_CAT_INFO to the EOS tape record (as
+  well as to the EOD record). -- No, not at this time.
+- Put MaximumVolumeSize in Director (MaximumVolumeJobs, MaximumVolumeFiles,
+   MaximumFileSize).
+
+
+
+====================================
+
+                Request For Comments
+                   10 November 2002
+
+Subject: File Backup Options
+
+Problem: 
+  A few days ago, a Bacula user who is backing up to file volumes and
+  using compression asked if it was possible to suppress compressing
+  all .gz files since it was a waste of CPU time. Although Bacula
+  currently permits using different options (compression, ...) on
+  a directory by directory basis, it cannot do it on a file by 
+  file basis, which is clearly what was desired.   
+
+Proposed Implementation:
+  To solve this problem, I propose the following:
+
+  - Add a new Director resource type called FileOptions.  
+
+  - The FileOptions resource will have records for all
+    options that can currently be specified on the Include record 
+    (in a FileSet).  Examples below.
+
+  - The FileOptions resource will permit an exclude option as well
+    as a number of additional options.
+
+  - The heart of the FileOptions resource is the ability to
+    supply any number of ApplyTo records which specify POSIX
+    regular expressions.  These ApplyTo regular expressions are
+    applied to the fully qualified filename (path and all). If
+    one matches, then the FileOptions will be used.
+
+  - When an ApplyTo specification matches an included file, the
+    options specified in the FileOptions resource will override
+    the default options specified on the Include record.
+
+  - Include records will be modified to permit referencing one or
+    more FileOptions resources.  The FileOptions will be used
+    in the order listed on the Include record and the first
+    one that matches will be applied.
+
+  - Options (or specifications) currently supplied on the Include
+    record will be deprecated (i.e. removed in a later version a
+    year or so from now).
+
+  - The Exclude record will be deprecated as the same functionality
+    can be obtained by using an Exclude = yes in the FileOptions.
+
+FileOptions records:
+  The following records can appear in the FileOptions resource. An
+  asterisk preceding the name indicates a feature not currently
+  implemented.
+
+  For Backup Jobs:
+    - Compression= (GZIP, ...)
+    - Signature=   (MD5, SHA1, ...)
+    - *Encryption=
+    - OneFs=      (yes/no)    - remain on one filesystem
+    - Recurse=    (yes/no)    - recurse into subdirectories
+    - Sparse=     (yes/no)    - do sparse file backup
+    - *Exclude=   (yes/no)    - exclude file from being saved
+    - *Reader=    (filename)  - external read (backup) program
+
+  For Verify Jobs:
+    - verify=     (ipnougsamc5) - verify options
+
+  For Restore Jobs:
+    - replace= (always/ifnewer/ifolder/never) - replace options currently
+                                                implemented in 1.27
+    - *Writer= (filename)   - external write (restore) program
+
+
+Implementation:
+  Currently options specifying compression, MD5 signatures, recursion,
+  ... of a FileSet are supplied on the Include record. These will now
+  all be collected into a FileOptions resource, which will be
+  specified on the Include in place of the options. Multiple FileOptions
+  may be specified.  Since the FileOptions contain regular expressions
+  that are applied to the full filename, this will give the ability
+  to specify backup options on a file by file basis to whatever level
+  of detail you wish.
+
+Example:
+
+  Today:
+
+    FileSet {
+      Name = "FullSet"
+      Include = compression=GZIP signature=MD5 {
+        /
+      }
+    }
+
+  Proposal:
+
+    FileSet {
+      Name = "FullSet"
+      Include = FileOptions=Opts {
+        /
+      }
+    }
+    FileOptions {
+      Name = Opts
+      Compression = GZIP
+      Signature = MD5
+      ApplyTo = /*.?*/
+    }
+
+  That's a lot more to do the same thing, but it gives the ability to
+  apply options on a file by file basis.  For example, suppose you
+  want to compress all files but not any file with extensions .gz or .Z.
+  You could do so as follows:
+
+    FileSet {
+      Name = "FullSet"
+      Include = FileOptions=NoCompress FileOptions=Opts {
+        /
+      }
+    }
+    FileOptions {
+      Name = Opts
+      Compression = GZIP
+      Signature = MD5
+      ApplyTo = /*.?*/   # matches all files
+    }
+    FileOptions {
+      Name = NoCompress
+      Signature = MD5
+      # Note multiple ApplyTos are ORed
+      ApplyTo = /*.gz/   # matches .gz files */
+      ApplyTo = /*.Z/    # matches .Z files */
+    }
+
+  Now, since the NoCompress FileOptions is specified first on the
+  Include line, any *.gz or *.Z file will have an MD5 signature computed,
+  but will not be compressed. For all other files, the NoCompress will not
+  match, so the Opts options will be used which will include GZIP
+  compression.
+
+Questions:
+  - Is it necessary to provide some means of ANDing regular expressions
+    and negation?  (not currently planned)
+
+    e.g.  ApplyTo = /*.gz/ && !/big.gz/
+
+  - I see that Networker has a "null" module which, if specified, does not 
+    backup the file, but does make an record of the file in the catalog
+    so that the catalog will reflect an exact picture of the filesystem.
+    The result is that the file can be "seen" when "browsing" the save
+    sets, but it cannot be restored.
+    
+    Is this really useful?  Should it be implemented in Bacula?
+  
+Results:
+  After implementing the above, the user will be able to specify
+  on a file by file basis (using regular expressions) what options are
+  applied for the backup.
