@@ -429,9 +429,28 @@ eod_dev(DEVICE *dev)
       return 0;
    }
 #ifdef MTEOM
+
+   if (dev_cap(dev, CAP_FASTFSF) && !dev_cap(dev, CAP_EOM)) {
+      struct mtget mt_stat;
+      Dmsg0(200,"PAPED using FAST FSF for EOM\n");
+      if (ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) == 0 && mt_stat.mt_fileno <= 0) {
+	if (!rewind_dev(dev)) {
+	  return 0;
+	}
+      }
+      mt_com.mt_op = MTFSF;
+      mt_com.mt_count = INT32_MAX;    /* use big positive number */
+      if (mt_com.mt_count < 0) {
+	 mt_com.mt_count = INT16_MAX; /* brain damaged system */
+      }
+   }
+
    if (dev_cap(dev, CAP_EOM)) {
+      Dmsg0(200,"PAPED using EOM for EOM\n");
       mt_com.mt_op = MTEOM;
       mt_com.mt_count = 1;
+   }
+   if(dev_cap(dev, CAP_FASTFSF) || dev_cap(dev, CAP_EOM)) {
       if ((stat=ioctl(dev->fd, MTIOCTOP, (char *)&mt_com)) < 0) {
          Dmsg1(50, "ioctl error: %s\n", strerror(dev->dev_errno));
 	 clrerror_dev(dev, mt_com.mt_op);
@@ -440,6 +459,7 @@ eod_dev(DEVICE *dev)
 	    dev->dev_name, strerror(dev->dev_errno));
 	 return 0;
       }
+
       if (ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) < 0) {
 	 dev->dev_errno = errno;
          Mmsg2(&dev->errmsg, _("ioctl MTIOCGET error on %s. ERR=%s.\n"),
