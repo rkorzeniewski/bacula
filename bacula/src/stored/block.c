@@ -346,7 +346,7 @@ int write_block_to_dev(DEVICE *dev, DEV_BLOCK *block)
    /* Limit maximum File size on volume to user specified value */
    if ((dev->max_file_size > 0) &&
        dev->file_bytes >= dev->max_file_size) {
-      weof_dev, 1);		      /* write end of file */
+      weof(dev, 1);		      /* write end of file */
    }
 
    Dmsg2(190, "write_block: wrote block %d bytes=%d\n", dev->block_num,
