@@ -92,7 +92,8 @@ bool user_select_files_from_tree(TREE_CTX *tree)
 
    bsendmsg(tree->ua, _( 
       "\nYou are now entering file selection mode where you add and\n"
-      "remove files to be restored. All files are initially added.\n"
+      "remove files to be restored. No files are initially added, unless\n"
+      "you used the \"all\" keyword on the command line.\n"
       "Enter \"done\" to leave this mode.\n\n"));
    /*
     * Enter interactive command handler allowing selection
