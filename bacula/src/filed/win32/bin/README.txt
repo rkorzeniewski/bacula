@@ -3,7 +3,7 @@
 
 
 This is the binary distribution of Bacula for Win32
-systems (Win95, Win98, WinMe, WinNT, and Win2000).
+systems (Win95, Win98, WinMe, WinXP, WinNT, and Win2000).
 
 INSTALLATION
 
@@ -13,7 +13,7 @@ To install it, please UnZip (or detar) the distribution
 file into your root directory on drive c:\  then follow
 the instructions in the online manual viewable by any
 Internet Browser (Netscape, Microsoft Internet Explorer).
-See  http://www.bacula.net/htm-manual
+See  http://www.bacula.org/rel-manual/index.html
 or get the source release
 
 Bacula (tm) is released under the GPL license (given below).
@@ -41,4 +41,3 @@ cygwin can be found at http://www.cygwin.com
    MA 02111-1307, USA.
 
  */
-

@@ -294,7 +294,10 @@ int release_device(JCR *jcr, DEVICE *dev)
 	 /* If we are the only writer, write EOF after job */
 	 if (dev->state & ST_LABEL) {
             Dmsg0(100, "dir_create_jobmedia_record. Release\n");
-	    dir_create_jobmedia_record(jcr);
+	    if (!dir_create_jobmedia_record(jcr)) {
+               Jmsg(jcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
+	       jcr->VolCatInfo.VolCatName, jcr->Job);
+	    }
 	    if (dev_can_write(dev)) {
 	       weof_dev(dev, 1);
 	    }
@@ -311,14 +314,17 @@ int release_device(JCR *jcr, DEVICE *dev)
 	 }
       } else if (dev->state & ST_LABEL) {
          Dmsg0(100, "dir_create_jobmedia_record. Release\n");
-	 dir_create_jobmedia_record(jcr);
+	 if (!dir_create_jobmedia_record(jcr)) {
+            Jmsg(jcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
+	       jcr->VolCatInfo.VolCatName, jcr->Job);
+	 }
          Dmsg0(200, "dir_update_vol_info. Release1\n");
 	 dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */
 	 dev->VolCatInfo.VolCatJobs++;		    /* increment number of jobs */
 	 dir_update_volume_info(jcr, &dev->VolCatInfo, 0); /* send Volume info to Director */
       }
    } else {
-      Jmsg2(jcr, M_ERROR, 0, _("BAD ERROR: release_device %s, Volume %s not in use.\n"), 
+      Jmsg2(jcr, M_ERROR, 0, _("BAD ERROR: release_device %s, Volume \"%s\" not in use.\n"), 
 	    dev_name(dev), NPRT(jcr->VolumeName));
    }
    detach_jcr_from_device(dev, jcr);

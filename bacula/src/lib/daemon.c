@@ -57,17 +57,10 @@ daemon_start()
    setsid();
 
    /* In the PRODUCTION system, we close ALL
-    * file descriptors. It is useful
-    * for debugging to leave the STDOUT ane STDERR open.
+    * file descriptors except stdin, stdout, and stderr.
     */
-   for (i=sysconf(_SC_OPEN_MAX)-1; i >=0; i--) {
-#ifdef DEBUG
-      if (i != STDOUT_FILENO && i != STDERR_FILENO) {
-	 close(i);
-      }
-#else 
+   for (i=sysconf(_SC_OPEN_MAX)-1; i >= 3; i--) {
       close(i);
-#endif
    }
 
    /* Move to root directory. For debug we stay

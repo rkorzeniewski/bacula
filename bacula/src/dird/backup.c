@@ -338,8 +338,12 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since, FILESET_DBR *fsr
 	 VolCount = db_get_job_volume_parameters(jcr, jcr->db, jcr->JobId,
 		    &VolParams);
 	 if (VolCount == 0) {
-            Jmsg(jcr, M_ERROR, 0, _("Could not get Job Volume Parameters. ERR=%s\n"),
-		 db_strerror(jcr->db));
+            Jmsg(jcr, M_ERROR, 0, _("Could not get Job Volume Parameters to "      
+                 "update Bootstrap file. ERR=%s\n"), db_strerror(jcr->db));
+	     if (jcr->SDJobFiles != 0) {
+		set_jcr_job_status(jcr, JS_ErrorTerminated);
+	     }
+
 	 }
 	 for (int i=0; i < VolCount; i++) {
 	    /* Write the record */

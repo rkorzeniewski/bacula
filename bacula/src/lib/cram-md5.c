@@ -96,6 +96,7 @@ int cram_md5_get_auth(BSOCK *bs, char *password, int ssl_need)
    if (sscanf(mp_chr(bs->msg), "auth cram-md5 %s ssl=%d\n", chal, &ssl_has) != 2) {
       ssl_has = BNET_SSL_NONE;
       if (sscanf(mp_chr(bs->msg), "auth cram-md5 %s\n", chal) != 1) {
+         bnet_fsend(bs, "1999 Authorization failed.\n");
          Dmsg1(100, "Cannot scan challenge: %s\n", bs->msg);
 	 bmicrosleep(5, 0);
 	 return 0;

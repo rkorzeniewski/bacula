@@ -36,8 +36,43 @@ For 1.33 Testing/Documentation:
 - Add an item to the FAQ about running jobs in different timezones.
                 
 For 1.32c
+- Add Volume name to "I cannot write on this volume because"
 
 For 1.33
+- Write your PID file and chwon root:wheel before drop.
+- Make sure there is no symlink in a file before creating a
+  file (attack).
+- Look at mktemp or mkstemp(3).
+    mktemp and mkstemp create files with predictable names too.  That's
+    not the vulnerability.  The vulnerability is in creating files without
+    using the O_EXCL flag, which means "only create this file if it doesn't
+    exist, including if the file is a dangling symlink."
+
+    It is *NOT* enough to do the equivalent of
+
+      if doesn't exist $filename
+       then create $filename
+
+    because between the test and the create another process could have
+    gotten the CPU and created the file.  You must use atomic functions
+    (those that don't get interrupted by other processes) and O_EXCL is
+    the only way for this particular example.
+- Keep last 5 or 10 completed jobs and show them in a similar
+  list.
+- Make a Running Jobs: output similar to current Scheduled Jobs:
+- Use ioctl() fsf if it exists. Figure out where we are from
+  the mt_status command. Use slow fsf only if other does
+  not work.
+- Add flag to write only one EOF mark on the tape.
+- Mount a tape that is not right for the job (wrong # files on tape)
+  Bacula asks for another tape, fix problems with first tape and
+  say "mount". All works OK, but status shows:
+   Device /dev/nst0 open but no Bacula volume is mounted.
+       Total Bytes=1,153,820,213 Blocks=17,888 Bytes/block=64,502
+       Positioned at File=9 Block=3,951
+   Full Backup job Rufus.2003-10-26_16.45.31 using Volume "DLT-24Oct03" on device /dev/nst0
+       Files=21,003 Bytes=253,954,408 Bytes/sec=2,919,016
+       FDReadSeqNo=192,134 in_msg=129830 out_msg=5 fd=7
 - Automatically create pools, but instead of looking for what
   in in Job records, walk through the pool resources.
 - Check and double check tree code, why does it take so long?
