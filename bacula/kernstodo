@@ -30,12 +30,12 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
+- Make bootstrap filename unique.
 - Implement FileSet VolIndex.
 - Sort JobIds entered into recover tree.
 - The bsr for Dan's job has file indexes covering the whole range rather
   than only the range contained on the volume.
   Constrain FileIndex to be within range for Volume.
-- Fix Verify VolumeToCatalog to use BSRs -- it is broken.
 - Should Bacula make an Append tape as Purged when purging?
 - Test a second language e.g. french.
 - Start working on Base jobs.
@@ -915,3 +915,5 @@ Done: (see kernsdone for more)
 - Bytes restored is wrong.
 - The "List last 20 Jobs run" doesnt work correctly in restore.
   It doesnt show the last 20 jobs , but some older ones.
+- Fix Verify VolumeToCatalog to use BSRs -- it is broken.
+

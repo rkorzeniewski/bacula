@@ -1,5 +1,4 @@
 /*
- *
  *   Bacula Director -- restore.c -- responsible for restoring files
  *
  *     Kern Sibbald, November MM
@@ -51,11 +50,9 @@ static char sessioncmd[]   = "session %s %ld %ld %ld %ld %ld %ld\n";
 static char OKrestore[]   = "2000 OK restore\n";
 static char OKstore[]     = "2000 OK storage\n";
 static char OKsession[]   = "2000 OK session\n";
-static char OKbootstrap[] = "2000 OK bootstrap\n";
 
 /* Forward referenced functions */
 static void restore_cleanup(JCR *jcr, int status);
-static int send_bootstrap_file(JCR *jcr);
 
 /* External functions */
 
@@ -341,38 +338,4 @@ Termination:            %s\n\n"),
 	term_msg);
 
    Dmsg0(20, "Leaving restore_cleanup\n");
-}
-
-static int send_bootstrap_file(JCR *jcr)
-{
-   FILE *bs;
-   char buf[1000];
-   BSOCK *fd = jcr->file_bsock;
-   char *bootstrap = "bootstrap\n";
-
-   Dmsg1(400, "send_bootstrap_file: %s\n", jcr->RestoreBootstrap);
-   if (!jcr->RestoreBootstrap) {
-      return 1;
-   }
-   bs = fopen(jcr->RestoreBootstrap, "r");
-   if (!bs) {
-      Jmsg(jcr, M_FATAL, 0, _("Could not open bootstrap file %s: ERR=%s\n"), 
-	 jcr->RestoreBootstrap, strerror(errno));
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
-      return 0;
-   }
-   strcpy(fd->msg, bootstrap);	
-   fd->msglen = strlen(fd->msg);
-   bnet_send(fd);
-   while (fgets(buf, sizeof(buf), bs)) {
-      fd->msglen = Mmsg(&fd->msg, "%s", buf);
-      bnet_send(fd);	   
-   }
-   bnet_sig(fd, BNET_EOD);
-   fclose(bs);
-   if (!response(jcr, fd, OKbootstrap, "Bootstrap", DISPLAY_ERROR)) {
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
-      return 0;
-   }
-   return 1;
 }

@@ -511,8 +511,8 @@ When:       %s\n"),
             start_prompt(ua, _("Levels:\n"));
             add_prompt(ua, _("Initialize Catalog"));
             add_prompt(ua, _("Verify Catalog"));
-            add_prompt(ua, _("Verify Volume"));
-            add_prompt(ua, _("Verify Volume Data"));
+            add_prompt(ua, _("Verify Volume to Catalog"));
+            add_prompt(ua, _("Verify Volume Data (not yet implemented)"));
             switch (do_prompt(ua, "",  _("Select level"), NULL, 0)) {
 	    case 0:
 	       jcr->JobLevel = L_VERIFY_INIT;

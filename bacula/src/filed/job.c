@@ -638,7 +638,7 @@ static int verify_cmd(JCR *jcr)
 { 
    BSOCK *dir = jcr->dir_bsock;
    BSOCK *sd  = jcr->store_bsock;
-   char level[100];
+   char level[100], ed1[50], ed2[50];
 
    jcr->JobType = JT_VERIFY;
    if (sscanf(dir->msg, verifycmd, level) != 1) {
@@ -690,6 +690,13 @@ static int verify_cmd(JCR *jcr)
       bnet_fsend(dir, "2994 Bad verify level: %s\n", dir->msg);
       return 0; 
    }
+
+   bnet_sig(dir, BNET_EOD);
+
+   /* Send termination status back to Dir */
+   bnet_fsend(dir, EndJob, jcr->JobStatus, jcr->JobFiles, 
+      edit_uint64(jcr->ReadBytes, ed1), 
+      edit_uint64(jcr->JobBytes, ed2), jcr->Errors);	
 
    /* Inform Director that we are done */
    bnet_sig(dir, BNET_TERMINATE);

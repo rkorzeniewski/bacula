@@ -306,18 +306,27 @@ int wait_for_job_termination(JCR *jcr)
    /* Note, the SD stores in jcr->JobFiles/ReadBytes/JobBytes/Errors */
    wait_for_storage_daemon_termination(jcr);
 
-   /* Return the first error status we find FD or SD */
-   if (fd_ok && jcr->JobStatus != JS_Terminated) {
+   /* Return values from FD */
+   if (fd_ok) {
+      jcr->JobFiles = JobFiles;
+      jcr->Errors = Errors;
+      jcr->ReadBytes = ReadBytes;
+      jcr->JobBytes = JobBytes;
+   }
+
+// Dmsg4(000, "fd_ok=%d FDJS=%d JS=%d SDJS=%d\n", fd_ok, jcr->FDJobStatus,
+//   jcr->JobStatus, jcr->SDJobStatus);
+
+   /* Return the first error status we find Dir, FD, or SD */
+   if (!fd_ok || is_bnet_error(fd)) {			       
+      jcr->FDJobStatus = JS_ErrorTerminated;
+   }
+   if (jcr->JobStatus != JS_Terminated) {
       return jcr->JobStatus;
    }
-   if (!fd_ok || is_bnet_error(fd)) {			       
-      return JS_ErrorTerminated;
+   if (jcr->FDJobStatus != JS_Terminated) {
+      return jcr->FDJobStatus;
    }
-   /* Return values from FD */
-   jcr->JobFiles = JobFiles;
-   jcr->Errors = Errors;
-   jcr->ReadBytes = ReadBytes;
-   jcr->JobBytes = JobBytes;
    return jcr->SDJobStatus;
 }
 

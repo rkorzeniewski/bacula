@@ -485,11 +485,13 @@ void sm_static(int mode)
 
 void * operator new(size_t size)
 {
+// Dmsg1(000, "new called %d\n", size);
    return sm_malloc(__FILE__, __LINE__, size);
 }
 
 void operator delete(void *buf)
 {
+// Dmsg1(000, "free called 0x%x\n", buf);
    sm_free(__FILE__, __LINE__, buf);
 }
 

@@ -4,12 +4,6 @@
  *
  *     Kern Sibbald, October MM
  *
- *    This routine is run as a separate thread.  There may be more
- *    work to be done to make it totally reentrant!!!!
- * 
- * Current implementation is Catalog verification only (i.e. no
- *  verification versus tape).
- *
  *  Basic tasks done here:
  *     Open DB
  *     Open connection with File daemon and pass him commands
@@ -74,6 +68,7 @@ int do_verify(JCR *jcr)
    BSOCK   *fd;
    JOB_DBR jr;
    JobId_t JobId = 0;
+   int stat;
 
    if (!get_or_create_client_record(jcr)) {
       goto bail_out;
@@ -85,8 +80,9 @@ int do_verify(JCR *jcr)
     * we must look up the time and date of the
     * last full verify.
     */
-   if (jcr->JobLevel == L_VERIFY_CATALOG || jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG) {
-      memcpy(&jr, &(jcr->jr), sizeof(jr));
+   if (jcr->JobLevel == L_VERIFY_CATALOG || 
+       jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG) {
+      memcpy(&jr, &jcr->jr, sizeof(jr));
       if (!db_find_last_jobid(jcr, jcr->db, &jr)) {
 	 if (jcr->JobLevel == L_VERIFY_CATALOG) {
 	    Jmsg(jcr, M_FATAL, 0, _(
@@ -112,7 +108,7 @@ int do_verify(JCR *jcr)
    }
 
    if (!jcr->fname) {
-      jcr->fname = (char *) get_pool_memory(PM_FNAME);
+      jcr->fname = get_pool_memory(PM_FNAME);
    }
 
    jcr->jr.JobId = JobId;      /* save target JobId */
@@ -121,7 +117,8 @@ int do_verify(JCR *jcr)
    Jmsg(jcr, M_INFO, 0, _("Start Verify JobId %d Job=%s\n"),
       jcr->JobId, jcr->Job);
 
-   if (jcr->JobLevel == L_VERIFY_CATALOG || jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG) {
+   if (jcr->JobLevel == L_VERIFY_CATALOG || 
+       jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG) {
       memset(&jr, 0, sizeof(jr));
       jr.JobId = JobId;
       if (!db_get_job_record(jcr, jcr->db, &jr)) {
@@ -139,12 +136,36 @@ int do_verify(JCR *jcr)
    }
 
    /* 
-    * If we are verifing a Volume, we need the Storage
+    * If we are verifying a Volume, we need the Storage
     *	daemon, so open a connection, otherwise, just
     *	create a dummy authorization key (passed to
     *	File daemon but not used).
     */
    if (jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG) {
+      RBSR *bsr = new_bsr();
+      UAContext ua;
+      bsr->JobId = jr.JobId;
+      create_ua_context(jcr, &ua);
+      complete_bsr(&ua, bsr);
+      bsr->fi = new_findex();
+      bsr->fi->findex = 1;
+      bsr->fi->findex2 = jr.JobFiles;
+      if (!write_bsr_file(&ua, bsr)) {
+	 free_ua_context(&ua);
+	 free_bsr(bsr);
+	 goto bail_out;
+      }
+      free_ua_context(&ua);
+      free_bsr(bsr);
+      if (jcr->RestoreBootstrap) {
+	 free(jcr->RestoreBootstrap);
+      }
+      POOLMEM *fname = get_pool_memory(PM_MESSAGE);
+      Mmsg(&fname, "%s/restore.bsr", working_directory);
+      jcr->RestoreBootstrap = bstrdup(fname);
+      free_pool_memory(fname);
+
+#ifdef xxx
       /*
        * Now find the Volumes we will need for the Verify 
        */
@@ -156,6 +177,7 @@ int do_verify(JCR *jcr)
 	 goto bail_out;
       }
       Dmsg1(20, "Got job Volume Names: %s\n", jcr->VolumeName);
+#endif
       /*
        * Start conversation with Storage daemon  
        */
@@ -206,23 +228,35 @@ int do_verify(JCR *jcr)
     *	as the Storage address if appropriate.
     */
    switch (jcr->JobLevel) {
-      case L_VERIFY_INIT:
-         level = "init";
-	 break;
-      case L_VERIFY_CATALOG:
-         level = "catalog";
-	 break;
-      case L_VERIFY_VOLUME_TO_CATALOG:
-	 /* 
-	  * send Storage daemon address to the File daemon
-	  */
-	 if (jcr->store->SDDport == 0) {
-	    jcr->store->SDDport = jcr->store->SDport;
-	 }
-	 bnet_fsend(fd, storaddr, jcr->store->address, jcr->store->SDDport);
-         if (!response(jcr, fd, OKstore, "Storage", DISPLAY_ERROR)) {
-	    goto bail_out;
-	 }
+   case L_VERIFY_INIT:
+      level = "init";
+      break;
+   case L_VERIFY_CATALOG:
+      level = "catalog";
+      break;
+   case L_VERIFY_VOLUME_TO_CATALOG:
+      /* 
+       * send Storage daemon address to the File daemon
+       */
+      if (jcr->store->SDDport == 0) {
+	 jcr->store->SDDport = jcr->store->SDport;
+      }
+      bnet_fsend(fd, storaddr, jcr->store->address, jcr->store->SDDport);
+      if (!response(jcr, fd, OKstore, "Storage", DISPLAY_ERROR)) {
+	 goto bail_out;
+      }
+
+      /* 
+       * Send the bootstrap file -- what Volumes/files to restore
+       */
+      if (!send_bootstrap_file(jcr)) {
+	 goto bail_out;
+      }
+
+      /* 
+       * The following code is deprecated   
+       */
+      if (!jcr->RestoreBootstrap) {
 	 /*
 	  * Pass the VolSessionId, VolSessionTime, Start and
 	  * end File and Blocks on the session command.
@@ -235,14 +269,15 @@ int do_verify(JCR *jcr)
          if (!response(jcr, fd, OKsession, "Session", DISPLAY_ERROR)) {
 	    goto bail_out;
 	 }
-         level = "volume";
-	 break;
-      case L_VERIFY_DATA:
-         level = "data";
-	 break;
-      default:
-         Jmsg1(jcr, M_FATAL, 0, _("Unimplemented save level %d\n"), jcr->JobLevel);
-	 goto bail_out;
+      }
+      level = "volume";
+      break;
+   case L_VERIFY_DATA:
+      level = "data";
+      break;
+   default:
+      Jmsg1(jcr, M_FATAL, 0, _("Unimplemented save level %d\n"), jcr->JobLevel);
+      goto bail_out;
    }
 
    /* 
@@ -262,27 +297,21 @@ int do_verify(JCR *jcr)
    switch (jcr->JobLevel) { 
    case L_VERIFY_CATALOG:
       Dmsg0(10, "Verify level=catalog\n");
+      jcr->sd_msg_thread_done = true;	/* no SD msg thread, so it is done */
+      jcr->SDJobStatus = JS_Terminated;
       get_attributes_and_compare_to_catalog(jcr, JobId);
       break;
 
    case L_VERIFY_VOLUME_TO_CATALOG:
-      int stat;
       Dmsg0(10, "Verify level=volume\n");
       get_attributes_and_compare_to_catalog(jcr, JobId);
-      stat = jcr->JobStatus;
-      set_jcr_job_status(jcr, JS_WaitSD);
-      wait_for_storage_daemon_termination(jcr);
-      /* If we terminate normally, use SD term code, else, use ours */
-      if (stat == JS_Terminated) {
-	 set_jcr_job_status(jcr, jcr->SDJobStatus);
-      } else {
-	 set_jcr_job_status(jcr, stat);
-      }
       break;
 
    case L_VERIFY_INIT:
       /* Build catalog */
       Dmsg0(10, "Verify level=init\n");
+      jcr->sd_msg_thread_done = true;	/* no SD msg thread, so it is done */
+      jcr->SDJobStatus = JS_Terminated;
       get_attributes_and_put_in_catalog(jcr);
       break;
 
@@ -291,7 +320,9 @@ int do_verify(JCR *jcr)
       goto bail_out;
    }
 
-   verify_cleanup(jcr, jcr->JobStatus);
+   stat = wait_for_job_termination(jcr);
+
+   verify_cleanup(jcr, stat);
    return 1;
 
 bail_out:
@@ -307,12 +338,12 @@ static void verify_cleanup(JCR *jcr, int TermCode)
 {
    char sdt[50], edt[50];
    char ec1[30];
-   char term_code[100];
+   char term_code[100], fd_term_msg[100], sd_term_msg[100];
    char *term_msg;
    int msg_type;
    JobId_t JobId;
 
-   Dmsg0(100, "Enter verify_cleanup()\n");
+// Dmsg1(000, "Enter verify_cleanup() TermCod=%d\n", TermCode);
 
    JobId = jcr->jr.JobId;
    set_jcr_job_status(jcr, TermCode);
@@ -321,28 +352,31 @@ static void verify_cleanup(JCR *jcr, int TermCode)
 
    msg_type = M_INFO;		      /* by default INFO message */
    switch (TermCode) {
-      case JS_Terminated:
-         term_msg = _("Verify OK");
-	 break;
-      case JS_ErrorTerminated:
-         term_msg = _("*** Verify Error ***"); 
-	 msg_type = M_ERROR;	      /* Generate error message */
-	 break;
-      case JS_Canceled:
-         term_msg = _("Verify Canceled");
-	 break;
-      case JS_Differences:
-         term_msg = _("Verify Differences");
-	 break;
-      default:
-	 term_msg = term_code;
-         sprintf(term_code, _("Inappropriate term code: %c\n"), TermCode);
-	 break;
+   case JS_Terminated:
+      term_msg = _("Verify OK");
+      break;
+   case JS_ErrorTerminated:
+      term_msg = _("*** Verify Error ***"); 
+      msg_type = M_ERROR;	   /* Generate error message */
+      break;
+   case JS_Canceled:
+      term_msg = _("Verify Canceled");
+      break;
+   case JS_Differences:
+      term_msg = _("Verify Differences");
+      break;
+   default:
+      term_msg = term_code;
+      sprintf(term_code, _("Inappropriate term code: %c\n"), TermCode);
+      break;
    }
    bstrftime(sdt, sizeof(sdt), jcr->jr.StartTime);
    bstrftime(edt, sizeof(edt), jcr->jr.EndTime);
 
-   Jmsg(jcr, msg_type, 0, _("Bacula " VERSION " (" LSMDATE "): %s\n\
+   jobstatus_to_ascii(jcr->FDJobStatus, fd_term_msg, sizeof(fd_term_msg));
+   if (jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG) {
+       jobstatus_to_ascii(jcr->SDJobStatus, sd_term_msg, sizeof(sd_term_msg));
+      Jmsg(jcr, msg_type, 0, _("Bacula " VERSION " (" LSMDATE "): %s\n\
 JobId:                  %d\n\
 Job:                    %s\n\
 FileSet:                %s\n\
@@ -351,18 +385,49 @@ Client:                 %s\n\
 Start time:             %s\n\
 End time:               %s\n\
 Files Examined:         %s\n\
+Non-fatal FD errors:    %d\n\
+FD termination status:  %s\n\
+SD termination status:  %s\n\
 Termination:            %s\n\n"),
-	edt,
-	jcr->jr.JobId,
-	jcr->jr.Job,
-	jcr->fileset->hdr.name,
-	level_to_str(jcr->JobLevel),
-	jcr->client->hdr.name,
-	sdt,
-	edt,
-	edit_uint64_with_commas(jcr->JobFiles, ec1),
-	term_msg);
-
+	 edt,
+	 jcr->jr.JobId,
+	 jcr->jr.Job,
+	 jcr->fileset->hdr.name,
+	 level_to_str(jcr->JobLevel),
+	 jcr->client->hdr.name,
+	 sdt,
+	 edt,
+	 edit_uint64_with_commas(jcr->JobFiles, ec1),
+	 jcr->Errors,
+	 fd_term_msg,
+	 sd_term_msg,
+	 term_msg);
+   } else {
+      Jmsg(jcr, msg_type, 0, _("Bacula " VERSION " (" LSMDATE "): %s\n\
+JobId:                  %d\n\
+Job:                    %s\n\
+FileSet:                %s\n\
+Verify Level:           %s\n\
+Client:                 %s\n\
+Start time:             %s\n\
+End time:               %s\n\
+Files Examined:         %s\n\
+Non-fatal FD errors:    %d\n\
+FD termination status:  %s\n\
+Termination:            %s\n\n"),
+	 edt,
+	 jcr->jr.JobId,
+	 jcr->jr.Job,
+	 jcr->fileset->hdr.name,
+	 level_to_str(jcr->JobLevel),
+	 jcr->client->hdr.name,
+	 sdt,
+	 edt,
+	 edit_uint64_with_commas(jcr->JobFiles, ec1),
+	 jcr->Errors,
+	 fd_term_msg,
+	 term_msg);
+   }
    Dmsg0(100, "Leave verify_cleanup()\n");
    if (jcr->fname) {
       free_memory(jcr->fname);

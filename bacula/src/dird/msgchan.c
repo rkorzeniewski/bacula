@@ -197,7 +197,7 @@ static void msg_thread_cleanup(void *arg)
    Dmsg0(200, "End msg_thread\n");
    db_end_transaction(jcr, jcr->db);	   /* terminate any open transaction */
    P(jcr->mutex);
-   jcr->msg_thread_done = TRUE;
+   jcr->sd_msg_thread_done = true;
    pthread_cond_broadcast(&jcr->term_wait); /* wakeup any waiting threads */
    V(jcr->mutex);
    free_jcr(jcr);		      /* release jcr */
@@ -219,6 +219,7 @@ static void *msg_thread(void *arg)
    int stat;
 
    pthread_cleanup_push(msg_thread_cleanup, arg);
+   jcr->sd_msg_thread_done = false;
    Dmsg0(200, "msg_thread\n");
    sd = jcr->store_bsock;
    pthread_detach(pthread_self());
@@ -254,9 +255,9 @@ void wait_for_storage_daemon_termination(JCR *jcr)
 {
    int cancel_count = 0;
    /* Now wait for Storage daemon to terminate our message thread */
-   P(jcr->mutex);
    set_jcr_job_status(jcr, JS_WaitSD);
-   while (!jcr->msg_thread_done) {
+   P(jcr->mutex);
+   while (!jcr->sd_msg_thread_done) {
       struct timeval tv;
       struct timezone tz;
       struct timespec timeout;
@@ -275,5 +276,5 @@ void wait_for_storage_daemon_termination(JCR *jcr)
       }
    }
    V(jcr->mutex);
-   set_jcr_job_status(jcr, jcr->SDJobStatus);
+   set_jcr_job_status(jcr, JS_Terminated);
 }

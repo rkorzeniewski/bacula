@@ -41,7 +41,7 @@ static void write_bsr(UAContext *ua, RBSR *bsr, FILE *fd);
 /*
  * Create new FileIndex entry for BSR 
  */
-static RBSR_FINDEX *new_findex() 
+RBSR_FINDEX *new_findex() 
 {
    RBSR_FINDEX *fi = (RBSR_FINDEX *)bmalloc(sizeof(RBSR_FINDEX));
    memset(fi, 0, sizeof(RBSR_FINDEX));
@@ -160,7 +160,8 @@ int write_bsr_file(UAContext *ua, RBSR *bsr)
    bsendmsg(ua, _("Bootstrap records written to %s\n"), fname);
 
    /* Tell the user what he will need to mount */
-   bsendmsg(ua, _("\nThe restore job will require the following Volumes:\n"));
+   bsendmsg(ua, "\n");
+   bsendmsg(ua, _("The restore job will require the following Volumes:\n"));
    /* Create Unique list of Volumes using prompt list */
    start_prompt(ua, "");
    for (RBSR *nbsr=bsr; nbsr; nbsr=nbsr->next) {

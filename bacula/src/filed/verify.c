@@ -38,8 +38,7 @@ static int verify_file(FF_PKT *ff_pkt, void *my_pkt);
  */
 void do_verify(JCR *jcr)
 {
-   BSOCK *dir = jcr->dir_bsock;
-   
+   set_jcr_job_status(jcr, JS_Running);
    jcr->buf_size = MAX_NETWORK_BUFFER_SIZE;
    if ((jcr->big_buf = (char *) malloc(jcr->buf_size)) == NULL) {
       Jmsg1(jcr, M_ABORT, 0, _("Cannot malloc %d network read buffer\n"), MAX_NETWORK_BUFFER_SIZE);
@@ -50,12 +49,11 @@ void do_verify(JCR *jcr)
    find_files(jcr, (FF_PKT *)jcr->ff, verify_file, (void *)jcr);  
    Dmsg0(10, "End find files\n");
 
-   bnet_sig(dir, BNET_EOD);	      /* signal end of data */
-
    if (jcr->big_buf) {
       free(jcr->big_buf);
       jcr->big_buf = NULL;
    }
+   set_jcr_job_status(jcr, JS_Terminated);
 }	   
 
 /* 
@@ -187,7 +185,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
    }
    Dmsg2(20, "bfiled>bdird: attribs len=%d: msg=%s\n", dir->msglen, dir->msg);
    if (!stat) {
-      Jmsg(jcr, M_ERROR, 0, _("Network error in send to Director: ERR=%s\n"), bnet_strerror(dir));
+      Jmsg(jcr, M_FATAL, 0, _("Network error in send to Director: ERR=%s\n"), bnet_strerror(dir));
       if (is_bopen(&bfd)) {
 	 bclose(&bfd);
       }
@@ -205,6 +203,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       if (n < 0) {
          Jmsg(jcr, M_ERROR, -1, _("Error reading file %s: ERR=%s\n"), 
 	      ff_pkt->fname, berror(&bfd));
+	 jcr->Errors++;
       }
       MD5Final(signature, &md5c);
 
@@ -223,6 +222,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       if (n < 0) {
          Jmsg(jcr, M_ERROR, -1, _("Error reading file %s: ERR=%s\n"), 
 	      ff_pkt->fname, berror(&bfd));
+	 jcr->Errors++;
       }
       SHA1Final(&sha1c, signature);
 

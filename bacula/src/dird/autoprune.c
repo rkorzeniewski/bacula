@@ -58,6 +58,11 @@ void free_ua_context(UAContext *ua)
    if (ua->args) {
       free_pool_memory(ua->args);
    }
+   if (ua->prompt) {
+      free(ua->prompt);
+      ua->prompt = NULL;
+      ua->max_prompts = 0;
+   }
 }
 
 /*

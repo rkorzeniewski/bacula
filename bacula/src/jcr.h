@@ -113,7 +113,7 @@ struct JCR {
    time_t end_time;                   /* job end time */
    POOLMEM *VolumeName;               /* Volume name desired -- pool_memory */
    POOLMEM *client_name;              /* client name */
-   char *RestoreBootstrap;            /* Bootstrap file to restore */
+   POOLMEM *RestoreBootstrap;         /* Bootstrap file to restore */
    char *sd_auth_key;                 /* SD auth key */
    MSGS *jcr_msgs;                    /* Copy of message resource -- actually used */
    uint32_t ClientId;                 /* Client associated with Job */
@@ -126,7 +126,7 @@ struct JCR {
    pthread_t SD_msg_chan;             /* Message channel thread id */
    pthread_cond_t term_wait;          /* Wait for job termination */
    workq_ele_t *work_item;            /* Work queue item if scheduled */
-   volatile int msg_thread_done;      /* Set when Storage message thread terms */
+   volatile bool sd_msg_thread_done;  /* Set when Storage message thread terms */
    BSOCK *ua;                         /* User agent */
    JOB *job;                          /* Job resource */
    STORE *store;                      /* Storage resource */

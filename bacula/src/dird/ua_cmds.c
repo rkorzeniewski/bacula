@@ -507,6 +507,8 @@ static void set_pooldbr_from_poolres(POOL_DBR *pr, POOL *pool, e_pool_op op)
    pr->MaxVolJobs = pool->MaxVolJobs;
    pr->MaxVolFiles = pool->MaxVolFiles;
    pr->MaxVolBytes = pool->MaxVolBytes;
+   pr->AutoPrune = pool->AutoPrune;
+   pr->Recycle = pool->Recycle;
    if (pool->label_format) {
       strcpy(pr->LabelFormat, pool->label_format);
    } else {
