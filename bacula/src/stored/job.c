@@ -162,7 +162,7 @@ int job_cmd(JCR *jcr)
     *  expires.
     */
    P(jcr->mutex);
-   for ( ;!job_cancelled(jcr); ) {
+   for ( ;!job_canceled(jcr); ) {
       errstat = pthread_cond_timedwait(&jcr->job_start_wait, &jcr->mutex, &timeout);
       if (errstat == 0 || errstat == ETIMEDOUT) {
 	 break;
@@ -170,7 +170,7 @@ int job_cmd(JCR *jcr)
    }
    V(jcr->mutex);
 
-   if (jcr->authenticated && !job_cancelled(jcr)) {
+   if (jcr->authenticated && !job_canceled(jcr)) {
       run_job(jcr);		      /* Run the job */
    }
    return 0;

@@ -34,6 +34,9 @@
 static int do_label(UAContext *ua, char *cmd, int relabel);
 static void label_from_barcodes(UAContext *ua);
 static int is_legal_volume_name(UAContext *ua, char *name);
+static int send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr, 
+	       POOL_DBR *pr, int relabel);
+
 
 /*
  * Label a tape 
@@ -58,13 +61,13 @@ static int do_label(UAContext *ua, char *cmd, int relabel)
 {
    STORE *store;
    BSOCK *sd;
+   sd = ua->jcr->store_bsock;
    char dev_name[MAX_NAME_LENGTH];
    MEDIA_DBR mr, omr;
    POOL_DBR pr;
    int ok = FALSE;
    int mounted = FALSE;
    int i;
-   int slot = 0;
    static char *name_keyword[] = {
       "name",
       NULL};
@@ -151,15 +154,14 @@ checkName:
          if (!get_cmd(ua, _("Enter slot (0 for none): "))) {
 	    return 1;
 	 }
-	 slot = atoi(ua->cmd);
-	 if (slot >= 0) {	      /* OK */
+	 mr.Slot = atoi(ua->cmd);
+	 if (mr.Slot >= 0) {	      /* OK */
 	    break;
 	 }
          bsendmsg(ua, _("Slot numbers must be positive.\n"));
       }
    }
    strcpy(mr.MediaType, store->media_type);
-   mr.Slot = slot;
 
    /* Must select Pool if not already done */
    if (pr.PoolId == 0) {
@@ -176,57 +178,10 @@ checkName:
       return 1;   
    }
    sd = ua->jcr->store_bsock;
-   strcpy(dev_name, store->dev_name);
-   bash_spaces(dev_name);
-   bash_spaces(mr.VolumeName);
-   bash_spaces(mr.MediaType);
-   bash_spaces(pr.Name);
-   if (relabel) {
-      bash_spaces(omr.VolumeName);
-      bnet_fsend(sd, _("relabel %s OldName=%s NewName=%s PoolName=%s MediaType=%s Slot=%d"), 
-	 dev_name, omr.VolumeName, mr.VolumeName, pr.Name, mr.MediaType, mr.Slot);
-      bsendmsg(ua, _("Sending relabel command ...\n"));
-   } else {
-      bnet_fsend(sd, _("label %s VolumeName=%s PoolName=%s MediaType=%s Slot=%d"), 
-	 dev_name, mr.VolumeName, pr.Name, mr.MediaType, mr.Slot);
-      bsendmsg(ua, _("Sending label command ...\n"));
-   }
-   while (bget_msg(sd, 0) >= 0) {
-      bsendmsg(ua, "%s", sd->msg);
-      if (strncmp(sd->msg, "3000 OK label.", 14) == 0) {
-	 ok = TRUE;
-      } else {
-         bsendmsg(ua, _("Label command failed.\n"));
-      }
-   }
-   ua->jcr->store_bsock = NULL;
-   unbash_spaces(dev_name);
-   unbash_spaces(mr.VolumeName);
-   unbash_spaces(mr.MediaType);
-   unbash_spaces(pr.Name);
-   mr.LabelDate = time(NULL);
+
+   ok = send_label_request(ua, &mr, &omr, &pr, relabel);
+
    if (ok) {
-      set_pool_dbr_defaults_in_media_dbr(&mr, &pr);
-      if (db_create_media_record(ua->jcr, ua->db, &mr)) {
-         bsendmsg(ua, _("Media record for Volume \"%s\" successfully created.\n"),
-	    mr.VolumeName);
-	 if (ua->automount) {
-            bsendmsg(ua, _("Requesting mount %s ...\n"), dev_name);
-	    bash_spaces(dev_name);
-            bnet_fsend(sd, "mount %s", dev_name);
-	    unbash_spaces(dev_name);
-	    while (bnet_recv(sd) >= 0) {
-               bsendmsg(ua, "%s", sd->msg);
-	       /* Here we can get
-		*  3001 OK mount. Device=xxx	  or
-		*  3001 Mounted Volume vvvv
-		*/
-               mounted = strncmp(sd->msg, "3001 ", 5) == 0;
-	    }
-	 }
-      } else {
-         bsendmsg(ua, "%s", db_strerror(ua->db));
-      }
       if (relabel) {
 	 if (!db_delete_media_record(ua->jcr, ua->db, &omr)) {
             bsendmsg(ua, _("Delete of Volume \"%s\" failed. ERR=%s"),
@@ -234,6 +189,21 @@ checkName:
 	 } else {
             bsendmsg(ua, _("Old volume \"%s\" deleted from catalog.\n"), 
 	       omr.VolumeName);
+	 }
+      }
+      if (ua->automount) {
+	 strcpy(dev_name, store->dev_name);
+         bsendmsg(ua, _("Requesting mount %s ...\n"), dev_name);
+	 bash_spaces(dev_name);
+         bnet_fsend(sd, "mount %s", dev_name);
+	 unbash_spaces(dev_name);
+	 while (bnet_recv(sd) >= 0) {
+            bsendmsg(ua, "%s", sd->msg);
+	    /* Here we can get
+	     *	3001 OK mount. Device=xxx      or
+	     *	3001 Mounted Volume vvvv
+	     */
+            mounted = strncmp(sd->msg, "3001 ", 5) == 0;
 	 }
       }
    }
@@ -254,9 +224,10 @@ checkName:
 static void label_from_barcodes(UAContext *ua)
 {
    STORE *store = ua->jcr->store;
-   BSOCK *sd;
+   BSOCK *sd = ua->jcr->store_bsock;
    POOL_DBR pr;
    char dev_name[MAX_NAME_LENGTH];
+//   MEDIA_DBR mr, omr;
 
    bsendmsg(ua, _("Connecting to Storage daemon %s at %s:%d ...\n"), 
       store->hdr.name, store->address, store->SDport);
@@ -267,7 +238,6 @@ static void label_from_barcodes(UAContext *ua)
 
    strcpy(dev_name, store->dev_name);
    bash_spaces(dev_name);
-   sd = ua->jcr->store_bsock;
    bnet_fsend(sd, _("autochanger list %s \n"), dev_name);
    while (bget_msg(sd, 0) >= 0) {
       char *p;
@@ -290,6 +260,17 @@ static void label_from_barcodes(UAContext *ua)
       slot = atoi(sd->msg);
       bsendmsg(ua, "Got slot=%d label: %s\n", slot, p);
    }
+
+#ifdef xxxx
+   memset(&mr, 0, sizeof(mr));
+   strcpy(mr.VolumeName, ua->cmd);
+   if (db_get_media_record(ua->jcr, ua->db, &mr)) {
+       bsendmsg(ua, _("Media record for new Volume \"%s\" already exists.\n"), 
+	  mr.VolumeName);
+       continue;
+   }
+#endif
+
    bnet_sig(sd, BNET_TERMINATE);
    bnet_close(sd);
    ua->jcr->store_bsock = NULL;
@@ -322,4 +303,54 @@ static int is_legal_volume_name(UAContext *ua, char *name)
       return 0;
    }
    return 1;
+}
+
+static int send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr, 
+			      POOL_DBR *pr, int relabel)
+{
+   BSOCK *sd;
+   char dev_name[MAX_NAME_LENGTH];
+   int ok = FALSE;
+
+   sd = ua->jcr->store_bsock;
+   strcpy(dev_name, ua->jcr->store->dev_name);
+   bash_spaces(dev_name);
+   bash_spaces(mr->VolumeName);
+   bash_spaces(mr->MediaType);
+   bash_spaces(pr->Name);
+   if (relabel) {
+      bash_spaces(omr->VolumeName);
+      bnet_fsend(sd, _("relabel %s OldName=%s NewName=%s PoolName=%s MediaType=%s Slot=%d"), 
+	 dev_name, omr->VolumeName, mr->VolumeName, pr->Name, mr->MediaType, mr->Slot);
+      bsendmsg(ua, _("Sending relabel command ...\n"));
+   } else {
+      bnet_fsend(sd, _("label %s VolumeName=%s PoolName=%s MediaType=%s Slot=%d"), 
+	 dev_name, mr->VolumeName, pr->Name, mr->MediaType, mr->Slot);
+      bsendmsg(ua, _("Sending label command ...\n"));
+   }
+   while (bget_msg(sd, 0) >= 0) {
+      bsendmsg(ua, "%s", sd->msg);
+      if (strncmp(sd->msg, "3000 OK label.", 14) == 0) {
+	 ok = TRUE;
+      } else {
+         bsendmsg(ua, _("Label command failed.\n"));
+      }
+   }
+   ua->jcr->store_bsock = NULL;
+   unbash_spaces(dev_name);
+   unbash_spaces(mr->VolumeName);
+   unbash_spaces(mr->MediaType);
+   unbash_spaces(pr->Name);
+   mr->LabelDate = time(NULL);
+   if (ok) {
+      set_pool_dbr_defaults_in_media_dbr(mr, pr);
+      if (db_create_media_record(ua->jcr, ua->db, mr)) {
+         bsendmsg(ua, _("Media record for Volume \"%s\" successfully created.\n"),
+	    mr->VolumeName);
+      } else {
+         bsendmsg(ua, "%s", db_strerror(ua->db));
+	 ok = FALSE;
+      }
+   }
+   return ok;
 }

@@ -20,6 +20,9 @@ Testing to do: (painful)
 - multiple simultaneous Volumes
 
 For 1.30 release:
+delete volume
+Please enter a number between 1 and 3
+Select the Pool (1-3): 
 - Add IP address to authentication failures. Implement M_SECURITY
   message class.
 - Remove kern and kelvin from mysql_grant...

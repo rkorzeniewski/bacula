@@ -121,13 +121,16 @@ void *connection_request(void *arg)
    char name[MAX_NAME_LENGTH];
 
    if (bnet_recv(bs) <= 0) {
-      Emsg0(M_ERROR, 0, "Connection request failed.\n");
+      Emsg0(M_ERROR, 0, _("Connection request failed.\n"));
       return NULL;
    }
 
    /* 
     * See if this is a File daemon connection
     */
+   if (bs->msglen < 25 || bs->msglen > (int)sizeof(name)) {
+      Emsg1(M_ERROR, 0, _("Invalid Dir connection. Len=%d\n"), bs->msglen);
+   }
    if (sscanf(bs->msg, "Hello Start Job %127s calling\n", name) == 1) {
       handle_filed_connection(bs, name);
       return NULL;
@@ -149,7 +152,6 @@ void *connection_request(void *arg)
    Dmsg0(90, "Message channel init completed.\n");
 
    for (quit=0; !quit;) {
-
       /* Read command */
       if ((bnet_stat = bnet_recv(bs)) <= 0) {
 	 break; 		      /* connection terminated */
@@ -458,13 +460,13 @@ static int read_label(JCR *jcr, DEVICE *dev)
  */
 static int mount_cmd(JCR *jcr)
 {
-   char *dev_name;
+   POOLMEM *dev_name;
    BSOCK *dir = jcr->dir_bsock;
    DEVRES *device;
    DEVICE *dev;
    int found = 0;
 
-   dev_name = (char *) get_memory(dir->msglen);
+   dev_name = get_memory(dir->msglen+1);
    if (sscanf(dir->msg, "mount %s", dev_name) == 1) {
       unbash_spaces(dev_name);
       device = NULL;
@@ -571,7 +573,7 @@ static int mount_cmd(JCR *jcr)
          bnet_fsend(dir, _("3999 Device %s not found\n"), dev_name);
       }
    } else {
-      strcpy(dev_name, dir->msg);
+      pm_strcpy(&dev_name, dir->msg);
       bnet_fsend(dir, _("3906 Error scanning mount command: %s\n"), dev_name);
    }
    free_memory(dev_name);
