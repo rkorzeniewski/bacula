@@ -391,7 +391,7 @@ static void list_scheduled_jobs(UAContext *ua)
    int priority;
    bool hdr_printed = false;
    dlist sched;
-   sched_pkt *sp;
+   sched_pkt *sp, *ip;
 
    Dmsg0(200, "enter list_sched_jobs()\n");
 
@@ -420,7 +420,11 @@ static void list_scheduled_jobs(UAContext *ua)
 	 sp->priority = priority;
 	 sp->runtime = runtime;
 	 sp->pool = run->pool;
-	 sched.binary_insert(sp, my_compare);
+	 ip = (sched_pkt *)sched.binary_insert(sp, my_compare);
+	 if (ip != sp) {
+	    /* Identical entry already, we must explictly insert it */
+	    sched.insert_after(sp, ip);
+	 }
 	 num_jobs++;
       }
    } /* end for loop over resources */

@@ -225,7 +225,7 @@ statDir(const char *file, struct stat *sb)
 
     sb->st_atime = cvt_ftime_to_utime(info.ftLastAccessTime);
     sb->st_mtime = cvt_ftime_to_utime(info.ftLastWriteTime);
-    sb->st_ctime = cvt_ftime_to_utime(info.ftLastWriteTime);
+    sb->st_ctime = cvt_ftime_to_utime(info.ftCreationTime);
     FindClose(h);
 
     return 0;
@@ -299,7 +299,7 @@ stat2(const char *file, struct stat *sb)
     sb->st_blocks = (uint32_t)(sb->st_size + 4095)/4096;
     sb->st_atime = cvt_ftime_to_utime(info.ftLastAccessTime);
     sb->st_mtime = cvt_ftime_to_utime(info.ftLastWriteTime);
-    sb->st_ctime = cvt_ftime_to_utime(info.ftLastWriteTime);
+    sb->st_ctime = cvt_ftime_to_utime(info.ftCreationTime);
 
 error:
     CloseHandle(h);
@@ -356,7 +356,7 @@ stat(const char *file, struct stat *sb)
     sb->st_blocks = (uint32_t)(sb->st_size + 4095)/4096;
     sb->st_atime = cvt_ftime_to_utime(data.ftLastAccessTime);
     sb->st_mtime = cvt_ftime_to_utime(data.ftLastWriteTime);
-    sb->st_ctime = cvt_ftime_to_utime(data.ftLastWriteTime);
+    sb->st_ctime = cvt_ftime_to_utime(data.ftCreationTime);
     return 0;
 }
 
