@@ -983,6 +983,7 @@ AC_CHECK_HEADERS( \
 	resolv.h \
 	mtio.h \
 	sys/mtio.h \
+	sys/tape.h \
 	regex.h \
 )
 AC_HEADER_STDC

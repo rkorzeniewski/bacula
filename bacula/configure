@@ -9139,6 +9139,7 @@ fi
 
 
 
+
 for ac_header in \
 	assert.h \
 	fcntl.h \
@@ -9163,6 +9164,7 @@ for ac_header in \
 	resolv.h \
 	mtio.h \
 	sys/mtio.h \
+	sys/tape.h \
 	regex.h \
 
 do
