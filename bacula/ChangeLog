@@ -1,5 +1,11 @@
 
-2003-10-24 Version 1.32c 24Oct03 Beta
+2003-10-24 Version 1.32c 26Oct03 Beta
+25Oct03
+- Add new spec file and cats patch from Scott.
+- Optimize tree.c a bit -- turn off debug code, keep node fname
+  length for fast rejection, add some statistics, allocate
+  in 100K and 1Meg chunks, use bool, uint16_t and uint8_t to
+  reduce node packet size.
 24Oct03
 - Eliminate ua_retention.c that was not used.
 - Improve error message when closing brace missing in conf file.
