@@ -33,10 +33,15 @@ struct ATTR {
    int32_t file_index;                /* file index */
    int32_t LinkFI;                    /* file index to data if hard link */
    struct stat statp;                 /* decoded stat packet */
-   char *attr;                        /* attributes position */
-   char *attrEx;                      /* extended attributes if any */
-   char *fname;                       /* filename */
-   char *lname;                       /* link name if any */
+   POOLMEM *attrEx;                   /* extended attributes if any */
    POOLMEM *ofname;                   /* output filename */
    POOLMEM *olname;                   /* output link name */
+   /*
+    * Note the following three variables point into the 
+    *  current BSOCK record, so they are invalid after    
+    *  the next socket read!
+    */
+   char *attr;                        /* attributes position */
+   char *fname;                       /* filename */
+   char *lname;                       /* link name if any */
 };

@@ -37,6 +37,7 @@ ATTR *new_attr()
    memset(attr, 0, sizeof(ATTR));
    attr->ofname = get_pool_memory(PM_FNAME);
    attr->olname = get_pool_memory(PM_FNAME);
+   attr->attrEx = get_pool_memory(PM_FNAME);
    return attr;
 }
 
@@ -44,6 +45,7 @@ void free_attr(ATTR *attr)
 {
    free_pool_memory(attr->olname);
    free_pool_memory(attr->ofname);
+   free_pool_memory(attr->attrEx);
    free(attr);
 }
 
@@ -91,7 +93,7 @@ int unpack_attributes_record(JCR *jcr, int32_t stream, char *rec, ATTR *attr)
    attr->lname = p;		      /* set link position */
    while (*p++ != 0)		      /* skip link */
       { }
-   attr->attrEx = p;		      /* set extended attributes position */
+   pm_strcpy(&attr->attrEx, p);       /* copy extended attributes, if any */
 
    if (attr->data_stream) {
       int64_t val;

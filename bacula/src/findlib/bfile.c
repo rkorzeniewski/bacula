@@ -252,6 +252,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
    }
    bfd->errmsg = NULL;
    bfd->lpContext = NULL;
+   free_pool_memory(win32_fname);
    return bfd->mode == BF_CLOSED ? -1 : 1;
 }
 

@@ -1,5 +1,9 @@
 
-2003-07-xx Version 1.31 Beta 28Jul03
+2003-07-30 Version 1.31 Beta 30Jul03
+- Integrated Robert Mathews improved description of Priorities into
+  the manual.
+- Chased down the "The data is not valid" bug on WinMe/98/95.
+- Found an orphaned buffer in the set_attributs part of WinMe/98/95.
 - Add sleep(1) to console when it gets a SIGTSTP signal 
   to prevent it from using 100% of the CPU.
 - Improve description of Priorities.
