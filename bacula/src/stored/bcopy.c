@@ -57,11 +57,11 @@ static void usage()
 "Usage: bcopy [-d debug_level] <input-archive> <output-archive>\n"
 "       -b bootstrap      specify a bootstrap file\n"
 "       -c <file>         specify configuration file\n"
-"       -dnn              set debug level to nn\n"
+"       -d <nn>           set debug level to nn\n"
 "       -v                verbose\n"
 "       -i                specify input Volume names (separated by |)\n"
 "       -o                specify output Volume names (separated by |)\n"
-"       -w dir            specify working directory (default /tmp)\n"
+"       -w <dir>          specify working directory (default /tmp)\n"
 "       -?                print this message\n\n"));
    exit(1);
 }

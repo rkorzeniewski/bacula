@@ -71,13 +71,13 @@ static void usage()
 {
    fprintf(stderr,
 "\nVersion: " VERSION " (" BDATE ")\n\n"
-"Usage: bextract [-d debug_level] <bacula-archive> <directory-to-store-files>\n"
+"Usage: bextract <options> <bacula-archive-device-name> <directory-to-store-files>\n"
 "       -b <file>       specify a bootstrap file\n"
 "       -c <file>       specify a configuration file\n"
-"       -dnn            set debug level to nn\n"
+"       -d <nn>         set debug level to nn\n"
 "       -e <file>       exclude list\n"
 "       -i <file>       include list\n"
-"       -V              specify Volume names (separated by |)\n"
+"       -V <volumes>    specify Volume names (separated by |)\n"
 "       -?              print this message\n\n");
    exit(1);
 }
