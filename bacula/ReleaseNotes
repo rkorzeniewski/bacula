@@ -1,7 +1,7 @@
 
           Release Notes for Bacula 1.32
 
-  Bacula code: Total files = 259 Total lines = 77,702 (*.h *.c *.in)
+  Bacula code: Total files = 259 Total lines = 77,740 (*.h *.c *.in)
 
 Major Changes this Release:
 - Implemented forward space file/block whenever possible 
