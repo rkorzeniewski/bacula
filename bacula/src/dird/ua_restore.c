@@ -160,13 +160,16 @@ int restorecmd(UAContext *ua, char *cmd)
       return 0;
    }
 
-
+   /* 
+    * Request user to select JobIds by various different methods
+    *  last 20 jobs, where File saved, most recent backup, ...
+    */
    if (!user_select_jobids(ua, &ji)) {
       return 0;
    }
 
    /* 
-    * Build the directory tree	
+    * Build the directory tree containing JobIds user selected
     */
    tree.root = new_tree(ji.TotalFiles);
    tree.root->fname = nofname;
@@ -314,11 +317,17 @@ static int user_select_jobids(UAContext *ua, JobIds *ji)
 	 done = 0;
 	 break;
       case 1:			      /* list where a file is saved */
+	 char *fname;
+	 int len;
          if (!get_cmd(ua, _("Enter Filename: "))) {
 	    return 0;
 	 }
+	 len = strlen(ua->cmd);
+	 fname = (char *)malloc(len * 2 + 1);
+	 db_escape_string(fname, ua->cmd, len);
 	 query = get_pool_memory(PM_MESSAGE);
-	 Mmsg(&query, uar_file, ua->cmd);
+	 Mmsg(&query, uar_file, fname);
+	 free(fname);
 	 db_list_sql_query(ua->jcr, ua->db, query, prtit, ua, 1);
 	 free_pool_memory(query);
 	 done = 0;
