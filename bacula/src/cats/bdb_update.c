@@ -217,5 +217,10 @@ int db_update_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
    return 0;
 }
 
+int db_update_media_defaults(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr) 
+{
+   return 1;
+}
+
 
 #endif /* HAVE_BACULA_DB */

@@ -39,7 +39,6 @@
 
 /* External subroutines */
 extern void free_config_resources();
-extern char *edit_device_codes(JCR *jcr, char *omsg, const char *imsg, const char *cmd);
 
 /* Exported variables */
 int quit = 0;

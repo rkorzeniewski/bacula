@@ -75,6 +75,7 @@ struct DEVRES {
    char *device_name;		      /* Archive device name */
    char *changer_name;		      /* Changer device name */
    char *changer_command;	      /* Changer command  -- external program */
+   char *alert_command; 	      /* Alert command -- external program */
    char *spool_directory;	      /* Spool file directory */
    uint32_t drive_index;	      /* Autochanger drive index */
    uint32_t cap_bits;		      /* Capabilities of this device */

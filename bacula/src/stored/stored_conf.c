@@ -103,6 +103,7 @@ static RES_ITEM dev_items[] = {
    {"closeonpoll",           store_yesno,  ITEM(res_dev.cap_bits), CAP_CLOSEONPOLL, ITEM_DEFAULT, 0},
    {"changerdevice",         store_strname,ITEM(res_dev.changer_name), 0, 0, 0},
    {"changercommand",        store_strname,ITEM(res_dev.changer_command), 0, 0, 0},
+   {"alertcommand",          store_strname,ITEM(res_dev.alert_command), 0, 0, 0},
    {"maximumchangerwait",    store_pint,   ITEM(res_dev.max_changer_wait), 0, ITEM_DEFAULT, 5 * 60},
    {"maximumopenwait",       store_pint,   ITEM(res_dev.max_open_wait), 0, ITEM_DEFAULT, 5 * 60},
    {"maximumopenvolumes",    store_pint,   ITEM(res_dev.max_open_vols), 0, ITEM_DEFAULT, 1},
@@ -310,6 +311,9 @@ void free_resource(RES *sres, int type)
 	 }
 	 if (res->res_dev.changer_command) {
 	    free(res->res_dev.changer_command);
+	 }
+	 if (res->res_dev.alert_command) {
+	    free(res->res_dev.alert_command);
 	 }
 	 if (res->res_dev.spool_directory) {
 	    free(res->res_dev.spool_directory);

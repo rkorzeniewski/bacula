@@ -255,6 +255,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
    if (bfd->fh == INVALID_HANDLE_VALUE) {
       bfd->lerror = GetLastError();
       bfd->berrno = b_errno_win32;
+      errno = b_errno_win32;
       bfd->mode = BF_CLOSED;
    }
    bfd->errmsg = NULL;
@@ -287,6 +288,7 @@ int bclose(BFILE *bfd)
 	      1,		      /* Abort */
 	      1,		      /* ProcessSecurity */
 	      &bfd->lpContext)) {     /* Read context */
+	 errno = b_errno_win32;
 	 stat = -1;
       } 
    } else if (bfd->use_backup_api && bfd->mode == BF_WRITE) {
@@ -298,11 +300,13 @@ int bclose(BFILE *bfd)
 	      1,		      /* Abort */
 	      1,		      /* ProcessSecurity */
 	      &bfd->lpContext)) {     /* Write context */
+	 errno = b_errno_win32;
 	 stat = -1;
       } 
    }
    if (!CloseHandle(bfd->fh)) {
       stat = -1;
+      errno = b_errno_win32;
    }
    bfd->mode = BF_CLOSED;
    bfd->lpContext = NULL;
@@ -312,7 +316,8 @@ int bclose(BFILE *bfd)
 /*
  * Generate error message 
  */
-char *berror(BFILE *bfd)
+/* DO NOT USE */
+char *xberror(BFILE *bfd)
 {
    LPTSTR msg;
 
@@ -351,6 +356,7 @@ ssize_t bread(BFILE *bfd, void *buf, size_t count)
 	   &bfd->lpContext)) {		/* Context */
 	 bfd->lerror = GetLastError();
 	 bfd->berrno = b_errno_win32;
+	 errno = b_errno_win32;
 	 return -1;
       }
    } else {
@@ -361,6 +367,7 @@ ssize_t bread(BFILE *bfd, void *buf, size_t count)
 	   NULL)) {
 	 bfd->lerror = GetLastError();
 	 bfd->berrno = b_errno_win32;
+	 errno = b_errno_win32;
 	 return -1;
       }
    }
@@ -382,6 +389,7 @@ ssize_t bwrite(BFILE *bfd, void *buf, size_t count)
 	   &bfd->lpContext)) {		/* Context */
 	 bfd->lerror = GetLastError();
 	 bfd->berrno = b_errno_win32;
+	 errno = b_errno_win32;
 	 return -1;
       }
    } else {
@@ -392,6 +400,7 @@ ssize_t bwrite(BFILE *bfd, void *buf, size_t count)
 	   NULL)) {
 	 bfd->lerror = GetLastError();
 	 bfd->berrno = b_errno_win32;
+	 errno = b_errno_win32;
 	 return -1;
       }
    }
@@ -405,7 +414,7 @@ int is_bopen(BFILE *bfd)
 
 off_t blseek(BFILE *bfd, off_t offset, int whence)
 {
-   /* ****FIXME**** this is needed if we want to read Win32 Archives */
+   /* ****FIXME**** this must be implemented if we want to read Win32 Archives */
    return -1;
 }
 
@@ -490,6 +499,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
    bfd->fid = open(fname, flags, mode);
    bfd->berrno = errno;
    Dmsg1(400, "Open file %d\n", bfd->fid);
+   errno = bfd->berrno;
    return bfd->fid;
 }
 
@@ -536,7 +546,8 @@ off_t blseek(BFILE *bfd, off_t offset, int whence)
     return pos;
 }
 
-char *berror(BFILE *bfd)
+/* DO NOT USE */
+char *xberror(BFILE *bfd)
 {
     return strerror(bfd->berrno);
 }

@@ -218,7 +218,6 @@ static int our_callback(FF_PKT *ff, void *hpkt)
    case FT_NOFOLLOW:
    case FT_NOSTAT:
    case FT_NOCHG:
-   case FT_DIRNOCHG:
    case FT_ISARCH:
    case FT_NORECURSE:
    case FT_NOFSCHG:
@@ -235,6 +234,7 @@ static int our_callback(FF_PKT *ff, void *hpkt)
    case FT_RAW:
    case FT_FIFO:
    case FT_SPEC:
+   case FT_DIRNOCHG:
       if (accept_file(ff)) {
 	 return ff->callback(ff, hpkt);
       } else {

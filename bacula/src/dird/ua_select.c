@@ -405,28 +405,28 @@ int select_client_dbr(UAContext *ua, CLIENT_DBR *cr)
  *  if error or not found, put up a list of pool DBRs
  *  to choose from.
  *
- *   returns: 0 on error
- *	      1 on success and fills in POOL_DBR
+ *   returns: false on error
+ *	      true  on success and fills in POOL_DBR
  */
-int get_pool_dbr(UAContext *ua, POOL_DBR *pr)
+bool get_pool_dbr(UAContext *ua, POOL_DBR *pr)
 {
    if (pr->Name[0]) {		      /* If name already supplied */
       if (db_get_pool_record(ua->jcr, ua->db, pr) &&
 	  acl_access_ok(ua, Pool_ACL, pr->Name)) { 
-	 return pr->PoolId;
+	 return true;
       }
       bsendmsg(ua, _("Could not find Pool \"%s\": ERR=%s"), pr->Name, db_strerror(ua->db));
    }
    if (!select_pool_dbr(ua, pr)) {  /* try once more */
-      return 0;
+      return false;
    }
-   return 1;
+   return true;
 }
 
 /*
  * Select a Pool record from the catalog
  */
-int select_pool_dbr(UAContext *ua, POOL_DBR *pr)
+bool select_pool_dbr(UAContext *ua, POOL_DBR *pr)
 {
    POOL_DBR opr;
    char name[MAX_NAME_LENGTH];
@@ -443,7 +443,7 @@ int select_pool_dbr(UAContext *ua, POOL_DBR *pr)
 	    pr->PoolId = 0;
 	    break;
 	 }
-	 return 1;
+	 return true;
       }
    }
 
@@ -454,7 +454,7 @@ int select_pool_dbr(UAContext *ua, POOL_DBR *pr)
    }
    if (num_pools <= 0) {
       bsendmsg(ua, _("No pools defined. Use the \"create\" command to create one.\n"));
-      return 0;
+      return false;
    }
      
    start_prompt(ua, _("Defined Pools:\n"));
@@ -468,17 +468,17 @@ int select_pool_dbr(UAContext *ua, POOL_DBR *pr)
    }
    free(ids);
    if (do_prompt(ua, _("Pool"),  _("Select the Pool"), name, sizeof(name)) < 0) {
-      return 0;
+      return false;
    }
    memset(&opr, 0, sizeof(opr));
    bstrncpy(opr.Name, name, sizeof(opr.Name));
 
    if (!db_get_pool_record(ua->jcr, ua->db, &opr)) {
       bsendmsg(ua, _("Could not find Pool \"%s\": ERR=%s"), name, db_strerror(ua->db));
-      return 0;
+      return false;
    }
    memcpy(pr, &opr, sizeof(opr));
-   return 1;
+   return true;
 }
 
 /*

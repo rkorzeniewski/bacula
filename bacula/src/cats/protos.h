@@ -34,7 +34,7 @@
 
 /* sql.c */
 B_DB *db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char *db_password, 
-                       const char *db_address, int db_port, const char *db_socket);
+		       const char *db_address, int db_port, const char *db_socket);
 int  db_open_database(JCR *jcr, B_DB *db);
 void db_close_database(JCR *jcr, B_DB *db);
 void db_escape_string(char *snew, char *old, int len);
@@ -51,7 +51,7 @@ int db_create_job_record(JCR *jcr, B_DB *db, JOB_DBR *jr);
 int db_create_media_record(JCR *jcr, B_DB *db, MEDIA_DBR *media_dbr);
 int db_create_client_record(JCR *jcr, B_DB *db, CLIENT_DBR *cr);
 int db_create_fileset_record(JCR *jcr, B_DB *db, FILESET_DBR *fsr);
-int db_create_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pool_dbr);          
+int db_create_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pool_dbr);	    
 int db_create_jobmedia_record(JCR *jcr, B_DB *mdb, JOBMEDIA_DBR *jr);
 int db_create_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr);
 
@@ -102,6 +102,7 @@ int  db_update_job_end_record(JCR *jcr, B_DB *db, JOB_DBR *jr);
 int  db_update_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr);
 int  db_update_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pr);
 int  db_update_media_record(JCR *jcr, B_DB *db, MEDIA_DBR *mr);
+int  db_update_media_defaults(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr);
 int  db_update_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr);
 int  db_add_SIG_to_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, char *SIG, int type);  
 int  db_mark_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, JobId_t JobId);

@@ -412,7 +412,31 @@ bool release_device(JCR *jcr)
 	    dev_name(dev), NPRT(jcr->VolumeName));
       Jmsg2(jcr, M_ERROR, 0, _("num_writers=%d state=%x\n"), dev->num_writers, dev->state);
    }
-// detach_jcr_from_device(dev, jcr);
+
+   /* Fire off Alert command and include any output */
+   if (jcr->device->alert_command) {
+      POOLMEM *alert;
+      int status;
+      BPIPE *bpipe;
+      char line[MAXSTRING];
+      alert = get_pool_memory(PM_FNAME);
+      alert = edit_device_codes(jcr, alert, jcr->device->alert_command, "");
+      bpipe = open_bpipe(alert, 0, "r");
+      free_pool_memory(alert);
+      while (fgets(line, sizeof(line), bpipe->rfd)) {
+         Jmsg(jcr, M_INFO, 0, _("Alert: %s"), line);
+      }
+      status = close_bpipe(bpipe);
+      if (status != 0) {
+	 berrno be;
+	 be.set_errno(status);
+         Jmsg(jcr, M_INFO, 0, _("3997 Bad alert command: %s: ERR=%s.\n"),
+	      alert, be.strerror());
+      }
+
+      Dmsg1(400, "alert status=%d\n", status);
+      
+   }
    if (dev->prev && !dev_state(dev, ST_READ) && !dev->num_writers) {
       P(mutex);
       unlock_device(dev);

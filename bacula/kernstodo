@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                   03 August 2004
+                   05 August 2004
 
 Major development:      
 Project                     Developer
@@ -12,35 +12,31 @@ Version 1.35                Kern (see below)
 
 1.35 Items to do for release:
 - Knoppix CDROM
-- Add bscan to four-concurrent-jobs regression.
-- Doc new IPv6 syntax
-- Add IPv6 to regression
-- Do tape alerts -- see tapealert.txt
-- Document a get out of jail procedure if everything breaks if 
-  you lost/broke the Catalog -- do the same for "I know my
-  file is there how do I get it back?".
-- When passwords do not match, print message that points the
-  user to the doc.
 - Make Verify jobs require exclusive use of Volume as Restore 
   jobs do.
 - Perhaps add read/write programs and/or plugins to FileSets.
-- Look at adding Client run command that will use the
-  port opened by the client.
-- Fix find_device in stored/dircmd.c:462
-- Add new DCR calling sequences everywhere in SD.
-  This will permit simultaneous use of multiple 
-  devices by a single job.
-- bscan does not put first of two volumes back with all info in
-  bscan-test.
+- Add new DCR calling sequences everywhere in SD. This will permit 
+  simultaneous use of multiple devices by a single job.
 - Fix restore ++++ that get intermingled with "Building directory tree"
 - Solve the termcap.h problem on Solaris configure.
-- Fix ./configure to handle installed SQLite
+
 - Test Win32 errno handling.
-
-
+- Add bscan to four-concurrent-jobs regression.
+- Doc new IPv6 syntax
+- Add IPv6 to regression
+- Alternative to static linking "ldd prog" save all binaries listed,
+  restore them and point LD_LIBRARY_PATH to them.
+- Document a get out of jail procedure if everything breaks if 
+  you lost/broke the Catalog -- do the same for "I know my
+  file is there how do I get it back?".
+- Test Tape Alerts
+- Doc update AllFromVol
+- Doc dbcheck eliminate orphaned clients.
+   
 
 Documentation to do: (any release a little bit at a time)
 - Document query file format.
+- Add more documentation for bsr files.
 - Document problems with Verify and pruning.
 - Document how to use multiple databases.
 - VXA drives have a "cleaning required"
@@ -64,18 +60,20 @@ Documentation to do: (any release a little bit at a time)
 - Document doing table repair
           
 Testing to do: (painful)
-- Test drive polling!
-- blocksize recognition code.
-- Test if rewind at end of tape waits for tape to rewind.
-- Test cancel at EOM.       
+
 
 For 1.37 Testing/Documentation:
+- Fix find_device in stored/dircmd.c:462 (see code) 
 - Add db check test to regression. Test each function like delete,
   purge, ...
 - If you use restore replace=never, the directory attributes for
   non-existent directories will not be restored properly.
 
 Wish list:  
+- Look at adding Client run command that will use the
+  port opened by the client.
+- bscan does not put first of two volumes back with all info in
+  bscan-test.
 - Implement the FreeBSD nodump flag in chflags.
 - Figure out how to make named console messages go only to that
   console and to the non-restricted console (new console class?).
@@ -1165,3 +1163,7 @@ Block Position: 0
 - Add better error codes to run_program (10000+)
 - Revisit and revise Disaster Recovery (fix SCSI and RAID 
   disk detection)
+- When passwords do not match, print message that points the
+  user to the doc.
+- Do tape alerts -- see tapealert.txt
+

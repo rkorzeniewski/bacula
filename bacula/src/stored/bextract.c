@@ -122,8 +122,9 @@ int main (int argc, char *argv[])
 
       case 'e':                    /* exclude list */
          if ((fd = fopen(optarg, "r")) == NULL) {
+	    berrno be;
             Pmsg2(0, "Could not open exclude file: %s, ERR=%s\n",
-	       optarg, strerror(errno));
+	       optarg, be.strerror());
 	    exit(1);
 	 }
 	 while (fgets(line, sizeof(line), fd) != NULL) {
@@ -136,8 +137,9 @@ int main (int argc, char *argv[])
 
       case 'i':                    /* include list */
          if ((fd = fopen(optarg, "r")) == NULL) {
+	    berrno be;
             Pmsg2(0, "Could not open include file: %s, ERR=%s\n",
-	       optarg, strerror(errno));
+	       optarg, be.strerror());
 	    exit(1);
 	 }
 	 while (fgets(line, sizeof(line), fd) != NULL) {
@@ -210,8 +212,9 @@ static void do_extract(char *devname)
 
    /* Make sure where directory exists and that it is a directory */
    if (stat(where, &statp) < 0) {
+      berrno be;
       Emsg2(M_ERROR_TERM, 0, "Cannot stat %s. It must exist. ERR=%s\n",
-	 where, strerror(errno));
+	 where, be.strerror());
    }
    if (!S_ISDIR(statp.st_mode)) {
       Emsg1(M_ERROR_TERM, 0, "%s must be a directory.\n", where);
@@ -329,8 +332,9 @@ static bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	    if (fileAddr != faddr) {
 	       fileAddr = faddr;
 	       if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
+		  berrno be;
                   Emsg2(M_ERROR_TERM, 0, _("Seek error on %s: %s\n"), 
-		     attr->ofname, strerror(errno));
+		     attr->ofname, be.strerror());
 	       }
 	    }
 	 } else {
@@ -340,8 +344,9 @@ static bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 total += wsize;
          Dmsg2(8, "Write %u bytes, total=%u\n", wsize, total);
 	 if ((uint32_t)bwrite(&bfd, wbuf, wsize) != wsize) {
+	    berrno be;
             Emsg2(M_ERROR_TERM, 0, _("Write error on %s: %s\n"), 
-	       attr->ofname, strerror(errno));
+	       attr->ofname, be.strerror());
 	 }
 	 fileAddr += wsize;
       }
@@ -367,8 +372,9 @@ static bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	    if (fileAddr != faddr) {
 	       fileAddr = faddr;
 	       if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
+		  berrno be;
                   Emsg3(M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"), 
-		     edit_uint64(fileAddr, ec1), attr->ofname, berror(&bfd));
+		     edit_uint64(fileAddr, ec1), attr->ofname, be.strerror());
 		  extract = false;
 		  return true;
 	       }
@@ -387,9 +393,10 @@ static bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 
          Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
 	 if ((uLongf)bwrite(&bfd, compress_buf, (size_t)compress_len) != compress_len) {
+	    berrno be;
             Pmsg0(0, "===Write error===\n");
             Emsg2(M_ERROR, 0, _("Write error on %s: %s\n"), 
-	       attr->ofname, strerror(errno));
+	       attr->ofname, be.strerror());
 	    extract = false;
 	    return true;
 	 }
