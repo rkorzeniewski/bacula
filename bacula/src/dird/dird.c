@@ -494,7 +494,7 @@ Without that I don't know who I am :-(\n"), configfile);
 		       job->hdr.name, job_items[i].name, *def_svalue, i, offset);
 		  svalue = (char **)((char *)job + offset);
 		  if (*svalue) {
-                     Dmsg1(000, "Hey something is wrong. p=0x%u\n", (unsigned)*svalue);
+                     Dmsg1(000, "Hey something is wrong. p=0x%lu\n", *svalue);
 		  }
 		  *svalue = bstrdup(*def_svalue);
 		  set_bit(i, job->hdr.item_present);
@@ -504,7 +504,7 @@ Without that I don't know who I am :-(\n"), configfile);
 		       job->hdr.name, job_items[i].name, i, offset);
 		  svalue = (char **)((char *)job + offset);
 		  if (*svalue) {
-                     Dmsg1(000, "Hey something is wrong. p=0x%u\n", (unsigned)*svalue);
+                     Dmsg1(000, "Hey something is wrong. p=0x%lu\n", *svalue);
 		  }
 		  *svalue = *def_svalue;
 		  set_bit(i, job->hdr.item_present);

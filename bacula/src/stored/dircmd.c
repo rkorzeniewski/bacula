@@ -142,11 +142,13 @@ void *connection_request(void *arg)
     * See if this is a File daemon connection. If so
     *	call FD handler.
     */
-   if (sscanf(bs->msg, "Hello Start Job %127s calling\n", name) == 1) {
+   Dmsg1(110, "Conn: %s", bs->msg);
+   if (sscanf(bs->msg, "Hello Start Job %127s", name) == 1) {
       handle_filed_connection(bs, name);
       return NULL;
    }
    
+   Dmsg0(110, "Start Dir Job\n");
    jcr = new_jcr(sizeof(JCR), stored_free_jcr);     /* create Job Control Record */
    jcr->dir_bsock = bs; 	      /* save Director bsock */
    jcr->dir_bsock->jcr = jcr;

@@ -612,6 +612,61 @@ static findFOPTS *start_options(FF_PKT *ff)
 
 }
 
+/*
+ * Add fname to include/exclude fileset list. First check for
+ * | and < and if necessary perform command.
+ */
+static void add_file_to_fileset(JCR *jcr, const char *fname, findFILESET *fileset)
+{
+   char *p;
+   BPIPE *bpipe;
+   POOLMEM *fn;
+   FILE *ffd;
+   char buf[1000];
+   int stat;
+
+   p = (char *)fname;
+   switch (*p) {
+   case '|':
+      p++;			      /* skip over | */
+      fn = get_pool_memory(PM_FNAME);
+      fn = edit_job_codes(jcr, fn, p, "");
+      bpipe = open_bpipe(fn, 0, "r");
+      free_pool_memory(fn);
+      if (!bpipe) {
+         Jmsg(jcr, M_FATAL, 0, _("Cannot run program: %s. ERR=%s\n"),
+	    p, strerror(errno));
+	 return;
+      }
+      while (fgets(buf, sizeof(buf), bpipe->rfd)) {
+	 strip_trailing_junk(buf);
+	 fileset->incexe->name_list.append(bstrdup(buf));
+      }
+      if ((stat=close_bpipe(bpipe)) != 0) {
+         Jmsg(jcr, M_FATAL, 0, _("Error running program: %s. RtnStat=%d ERR=%s\n"),
+	    p, stat, strerror(errno));
+	 return;
+      }
+      break;
+   case '<':
+      p++;			/* skip over < */
+      if ((ffd = fopen(p, "r")) == NULL) {
+         Jmsg(jcr, M_FATAL, 0, _("Cannot open FileSet input file: %s. ERR=%s\n"),
+	    p, strerror(errno));
+	 return;
+      }
+      while (fgets(buf, sizeof(buf), ffd)) {
+	 strip_trailing_junk(buf);
+	 fileset->incexe->name_list.append(bstrdup(buf));
+      }
+      fclose(ffd);
+      break;
+   default:
+      fileset->incexe->name_list.append(bstrdup(fname));
+      break;
+   }
+}
+
    
 static void add_fileset(JCR *jcr, const char *item)
 {
@@ -620,6 +675,7 @@ static void add_fileset(JCR *jcr, const char *item)
    int state = fileset->state;
    findFOPTS *current_opts;
 
+   Dmsg1(100, "%s\n", item);
    int code = item[0];
    if (item[1] == ' ') {              /* If string follows */
       item += 2;		      /* point to string */
@@ -649,9 +705,9 @@ static void add_fileset(JCR *jcr, const char *item)
       state = state_none;
       break;
    case 'F':
-      /* File item */
+      /* File item to either include/include list */
       state = state_include;
-      fileset->incexe->name_list.append(bstrdup(item));
+      add_file_to_fileset(jcr, item, fileset);
       break;
    case 'R':
       current_opts = start_options(ff);
@@ -1042,6 +1098,8 @@ static int storage_cmd(JCR *jcr)
 		     jcr->stored_addr, NULL, stored_port, 1);
    if (sd == NULL) {
       Jmsg(jcr, M_FATAL, 0, _("Failed to connect to Storage daemon: %s:%d\n"),
+	  jcr->stored_addr, stored_port);
+      Dmsg2(100, "Failed to connect to Storage daemon: %s:%d\n",
 	  jcr->stored_addr, stored_port);
       return 0;
    }

@@ -139,7 +139,7 @@ int job_cmd(JCR *jcr)
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;
    }
-   jcr->authenticated = FALSE;
+   jcr->authenticated = false;
 
    /*
     * Pass back an authorization key for the File daemon
@@ -202,6 +202,7 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
    bmicrosleep(0, 50000);	      /* wait 50 millisecs */
    if (!(jcr=get_jcr_by_full_name(job_name))) {
       Jmsg1(NULL, M_FATAL, 0, _("Job name not found: %s\n"), job_name);
+      Dmsg1(100, "Job name not found: %s\n", job_name);
       return;
    }
 

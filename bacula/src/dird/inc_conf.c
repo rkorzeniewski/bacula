@@ -77,6 +77,8 @@ static RES_ITEM options_items[] = {
    {"readfifo",        store_opts,    NULL,     0, 0, 0},
    {"replace",         store_opts,    NULL,     0, 0, 0},
    {"portable",        store_opts,    NULL,     0, 0, 0},
+   {"mtimeonly",       store_opts,    NULL,     0, 0, 0},
+   {"keepatime",       store_opts,    NULL,     0, 0, 0},
    {"regex",           store_regex,   NULL,     0, 0, 0},
    {"base",            store_base,    NULL,     0, 0, 0},
    {"wild",            store_wild,    NULL,     0, 0, 0},

@@ -78,7 +78,7 @@ DCR *acquire_device_for_read(JCR *jcr)
    bool tape_previously_mounted;
    bool tape_initially_mounted;
    VOL_LIST *vol;
-   int autochanger = 0;
+   bool try_autochanger = true;
    int i;
    DCR *dcr = jcr->dcr;
    DEVICE *dev;
@@ -175,13 +175,13 @@ default_path:
             Jmsg1(jcr, M_WARNING, 0, "%s", jcr->errmsg);
 	 }
 	 /* Call autochanger only once unless ask_sysop called */
-	 if (!autochanger) {
+	 if (try_autochanger) {
 	    int stat;
             Dmsg2(200, "calling autoload Vol=%s Slot=%d\n",
 	       jcr->VolumeName, jcr->VolCatInfo.Slot);			       
 	    stat = autoload_device(jcr, dev, 0, NULL);
 	    if (stat > 0) {
-	       autochanger = 1;
+	       try_autochanger = false;
 	       continue;
 	    }
 	 }
@@ -190,7 +190,7 @@ default_path:
 	 if (!dir_ask_sysop_to_mount_volume(jcr, dev)) {
 	    goto get_out;	      /* error return */
 	 }
-	 autochanger = 0;	      /* permit using autochanger again */
+	 try_autochanger = true;      /* permit using autochanger again */
 	 continue;		      /* try reading again */
       } /* end switch */
       break;
