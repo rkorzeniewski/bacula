@@ -117,6 +117,7 @@ db_create_jobmedia_record(JCR *jcr, B_DB *mdb, JOBMEDIA_DBR *jm)
    int count;
 
    db_lock(mdb);
+#ifdef not_used_in_new_code
    Mmsg(&mdb->cmd, "SELECT JobId, MediaId FROM JobMedia WHERE \
 JobId=%d AND MediaId=%d", jm->JobId, jm->MediaId);
 
@@ -132,6 +133,7 @@ JobId=%d AND MediaId=%d", jm->JobId, jm->MediaId);
       }
       sql_free_result(mdb);
    }
+#endif
 
    /* Now get count for VolIndex */
    Mmsg(&mdb->cmd, "SELECT count(*) from JobMedia");

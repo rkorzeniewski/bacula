@@ -140,10 +140,20 @@ default_path:
    attach_jcr_to_device(dev, jcr);    /* attach jcr to device */
    Jmsg(jcr, M_INFO, 0, _("Ready to read from volume \"%s\" on device %s.\n"),
       jcr->VolumeName, dev_name(dev));
-   if ((dev->state & ST_TAPE) && vol->start_file > 0) {
-      Dmsg1(200, "====== Got start_file = %d\n", vol->start_file);
-      Jmsg(jcr, M_INFO, 0, _("Forward spacing to file %d.\n"), vol->start_file);
-      fsf_dev(dev, vol->start_file);
+   if (jcr->bsr) {
+      BSR *bsr;
+
+      jcr->bsr->reposition = true;
+      bsr = find_next_bsr(jcr->bsr, dev);
+      if (bsr) {
+         Jmsg(jcr, M_INFO, 0, _("Forward spacing to file:block %u:%u.\n"), 
+	    bsr->volfile->sfile, bsr->volblock->sblock);
+	 reposition_dev(dev, bsr->volfile->sfile, bsr->volblock->sblock);
+      } else if ((dev->state & ST_TAPE) && vol->start_file > 0) {
+         Dmsg1(200, "====== Got start_file = %d\n", vol->start_file);
+         Jmsg(jcr, M_INFO, 0, _("Forward spacing to file %d.\n"), vol->start_file);
+	 fsf_dev(dev, vol->start_file);
+      }
    }
 
 get_out:
@@ -277,7 +287,7 @@ int release_device(JCR *jcr, DEVICE *dev)
       dev->num_writers--;
       Dmsg1(100, "There are %d writers in release_device\n", dev->num_writers);
       if (dev->num_writers == 0) {
-	 /* If we have fully acquired the tape */
+	 /* If we are the only writer, write EOF after job */
 	 if (dev->state & ST_LABEL) {
             Dmsg0(100, "dir_create_jobmedia_record. Release\n");
 	    dir_create_jobmedia_record(jcr);

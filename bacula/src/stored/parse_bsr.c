@@ -48,6 +48,7 @@ static BSR *store_exclude(LEX *lc, BSR *bsr);
 static BSR *store_stream(LEX *lc, BSR *bsr);
 static BSR *store_slot(LEX *lc, BSR *bsr);
 static bool is_fast_rejection_ok(BSR *bsr);
+static bool is_positioning_ok(BSR *bsr);
 
 struct kw_items {
    char *name;
@@ -81,7 +82,7 @@ struct kw_items items[] = {
 /* 
  * Create a BSR record
  */
-static BSR *new_bsr() 
+static BSR *new_bsr()
 {
    BSR *bsr = (BSR *)malloc(sizeof(BSR));
    memset(bsr, 0, sizeof(BSR));
@@ -118,15 +119,15 @@ static void s_err(char *file, int line, LEX *lc, char *msg, ...)
  *	Parse Bootstrap file
  *
  */
-BSR *parse_bsr(JCR *jcr, char *cf)
+BSR *parse_bsr(JCR *jcr, char *fname)
 {
    LEX *lc = NULL;
    int token, i;
    BSR *root_bsr = new_bsr();
    BSR *bsr = root_bsr;
-
-   Dmsg1(200, "Enter parse_bsf %s\n", cf);
-   lc = lex_open_file(lc, cf, s_err);
+     
+   Dmsg1(200, "Enter parse_bsf %s\n", fname);
+   lc = lex_open_file(lc, fname, s_err);
    lc->caller_ctx = (void *)jcr;
    while ((token=lex_get_token(lc, T_ALL)) != T_EOF) {
       Dmsg1(200, "parse got token=%s\n", lex_tok_to_str(token));
@@ -167,6 +168,10 @@ BSR *parse_bsr(JCR *jcr, char *cf)
    }
    if (root_bsr) {
       root_bsr->use_fast_rejection = is_fast_rejection_ok(root_bsr);
+      root_bsr->use_positioning = is_positioning_ok(root_bsr);
+   }
+   for (bsr=root_bsr; bsr; bsr=bsr->next) {
+      bsr->root = root_bsr;
    }
    return root_bsr;
 }
@@ -186,6 +191,22 @@ static bool is_fast_rejection_ok(BSR *bsr)
    }
    return true;
 }
+
+static bool is_positioning_ok(BSR *bsr)
+{
+   /*
+    * Every bsr should have a volfile entry and a volblock entry
+    *	if we are going to use positioning
+    */
+   if (!bsr->volfile || !bsr->volblock) {
+      return false;
+   }
+   if (bsr->next) {
+      return is_positioning_ok(bsr->next);
+   }
+   return true;
+}
+
 
 static BSR *store_vol(LEX *lc, BSR *bsr)
 {
@@ -667,14 +688,17 @@ void dump_sesstime(BSR_SESSTIME *sesstime)
 
 
 
-void dump_bsr(BSR *bsr)
+void dump_bsr(BSR *bsr, bool recurse)
 {
+   int save_debug = debug_level;
+   debug_level = 1;
    if (!bsr) {
       Dmsg0(-1, "BSR is NULL\n");
+      debug_level = save_debug;
       return;
    }
-   Dmsg1(-1,   
-"Next        : 0x%x\n", bsr->next);
+   Dmsg1(-1,    "Next        : 0x%x\n", bsr->next);
+   Dmsg1(-1,    "Root bsr    : 0x%x\n", bsr->root);
    dump_volume(bsr->volume);
    dump_sessid(bsr->sessid);
    dump_sesstime(bsr->sesstime);
@@ -690,10 +714,13 @@ void dump_bsr(BSR *bsr)
    if (bsr->count) {
       Dmsg1(-1, "count       : %u\n", bsr->count);
    }
-   if (bsr->next) {
+   Dmsg1(-1,    "done        : %s\n", bsr->done?"yes":"no");
+   Dmsg1(-1,    "positioning : %d\n", bsr->use_positioning);
+   if (recurse && bsr->next) {
       Dmsg0(-1, "\n");
-      dump_bsr(bsr->next);
+      dump_bsr(bsr->next, true);
    }
+   debug_level = save_debug;
 }
 
 

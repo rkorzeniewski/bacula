@@ -38,7 +38,7 @@ struct VOL_LIST {
    VOL_LIST *next;
    char VolumeName[MAX_NAME_LENGTH];
    int Slot; 
-   int start_file;
+   uint32_t start_file;
 };
 
 
@@ -124,7 +124,10 @@ struct BSR_STREAM {
 
 struct BSR {
    BSR          *next;                /* pointer to next one */
-   bool          done;                /* set when everything found */
+   BSR          *root;                /* root bsr */
+   bool          reposition;          /* set when any bsr is marked done */
+   bool          mount_next_volume;   /* set when next volume should be mounted */
+   bool          done;                /* set when everything found for this bsr */
    bool          use_fast_rejection;  /* set if fast rejection can be used */
    bool          use_positioning;     /* set if we can position the archive */
    BSR_VOLUME   *volume;

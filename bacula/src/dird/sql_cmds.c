@@ -97,7 +97,7 @@ char *select_backup_del =
    "AND Job.Level='F' "
    "AND Job.JobStatus='T' "
    "AND Job.FileSetId=DelCandidates.FileSetId) "
-   "GROUP BY JobId";
+   "GROUP BY DelCandidates.JobId";
 
 /* Select Jobs from the DelCandidates table that have a
  * more recent InitCatalog -- i.e. are not the only InitCatalog
@@ -112,7 +112,7 @@ char *select_verify_del =
    "AND Job.Level='V' "
    "AND Job.JobStatus='T' "
    "AND Job.FileSetId=DelCandidates.FileSetId "
-   "GROUP BY JobId";
+   "GROUP BY DelCandidates.JobId";
 
 
 /* Select Jobs from the DelCandidates table.
@@ -124,7 +124,7 @@ char *select_restore_del =
    "WHERE Job.JobTDate>%s "
    "AND Job.ClientId=%u "   
    "AND Job.Type='R' "
-   "GROUP BY JobId";
+   "GROUP BY DelCandidates.JobId";
 
 
 
@@ -135,7 +135,7 @@ char *uar_list_jobs =
    "SELECT JobId,Client.Name as Client,StartTime,Level as "
    "JobLevel,JobFiles,JobBytes "
    "FROM Client,Job WHERE Client.ClientId=Job.ClientId AND JobStatus='T' "
-   "AND Type='B' ORDER BY StartTime LIMIT 20";
+   "AND Type='B' ORDER BY StartTime DESC LIMIT 20";
 
 #ifdef HAVE_MYSQL
 /*  MYSQL IS NOT STANDARD SQL !!!!! */

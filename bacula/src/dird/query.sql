@@ -3,7 +3,7 @@ SELECT  count(*) AS Jobs, sum(JobFiles) AS Files,
  sum(JobBytes) AS Bytes, Name AS Job FROM Job GROUP BY Name;
 SELECT max(JobId) AS Jobs,sum(JobFiles) AS Files,
  sum(JobBytes) As Bytes FROM Job;
-#
+# 2
 :List where a file is saved:
 *Enter path with trailing slash:
 *Enter filename:
@@ -20,7 +20,7 @@ SELECT Job.JobId,StartTime AS JobStartTime,VolumeName,Client.Name AS ClientName
  AND JobMedia.MediaId=Media.MediaId
  AND Client.ClientId=Job.ClientId
  GROUP BY Job.JobId;
-#
+# 3
 :List where the most recent copies of a file are saved:
 *Enter path with trailing slash:
 *Enter filename:
@@ -37,7 +37,7 @@ SELECT Job.JobId,StartTime AS JobStartTime,VolumeName,Client.Name AS ClientName
  AND JobMedia.MediaId=Media.MediaId
  AND Client.ClientId=Job.ClientId
  ORDER BY Job.StartTime DESC LIMIT 5;
-#
+# 4
 :List last 20 Full Backups for a Client:
 *Enter Client name:
 Select Job.JobId,Client.Name as Client,StartTime,JobFiles,JobBytes,
@@ -48,7 +48,7 @@ JobMedia.StartFile as VolFile,VolumeName
  AND Level='F' AND JobStatus='T'
  AND JobMedia.JobId=Job.JobId AND JobMedia.MediaId=Media.MediaId
  ORDER BY Job.StartTime DESC LIMIT 20;
-#
+# 5
 :List all backups for a Client after a specified time
 *Enter Client Name:
 *Enter time in YYYY-MM-DD HH:MM:SS format:
@@ -60,7 +60,7 @@ Select Job.JobId,Client.Name as Client,Level,StartTime,JobFiles,JobBytes,VolumeN
   AND JobMedia.JobId=Job.JobId AND JobMedia.MediaId=Media.MediaId
   AND Job.StartTime >= '%2'
   ORDER BY Job.StartTime;
-#
+# 6
 :List all backups for a Client
 *Enter Client Name:
 Select Job.JobId,Client.Name as Client,Level,StartTime,JobFiles,JobBytes,VolumeName
@@ -70,14 +70,14 @@ Select Job.JobId,Client.Name as Client,Level,StartTime,JobFiles,JobBytes,VolumeN
   AND JobStatus='T'
   AND JobMedia.JobId=Job.JobId AND JobMedia.MediaId=Media.MediaId
   ORDER BY Job.StartTime;
-#
+# 7
 :List Volume Attributes for a selected Volume:
 *Enter Volume name:
 SELECT Slot,MaxVolBytes,VolCapacityBytes,VolStatus,Recycle,VolRetention,
  VolUseDuration,MaxVolJobs,MaxVolFiles
  FROM Media   
  WHERE Volumename='%1';
-#
+# 8
 :List Volumes used by selected JobId:
 *Enter JobId:
 SELECT Job.JobId,VolumeName 
@@ -85,7 +85,7 @@ SELECT Job.JobId,VolumeName
  WHERE Job.JobId=%1 
  AND Job.JobId=JobMedia.JobId 
  AND JobMedia.MediaId=Media.MediaId;
-#
+# 9
 :List Volumes to Restore All Files:
 *Enter Client Name:
 !DROP TABLE temp;
@@ -115,17 +115,20 @@ INSERT INTO temp SELECT Job.JobId,JobTDate,Job.ClientId,Job.Level,
  AND JobMedia.JobId=Job.JobId 
  AND JobMedia.MediaId=Media.MediaId
  ORDER BY Job.JobTDate DESC LIMIT 1;
-# Copy into temp 2
-INSERT INTO temp2 SELECT JobId,StartTime,VolumeName,Level,StartFile, 
-   VolSessionId,VolSessionTime
- FROM temp;
+# Copy into temp 2 getting all volumes of Full save
+INSERT INTO temp2 SELECT Job.JobId,Job.StartTime,Media.VolumeName,Job.Level,
+   JobMedia.StartFile,Job.VolSessionId,Job.VolSessionTime
+ FROM temp,Job,JobMedia,Media WHERE temp.JobId=Job.JobId
+ AND Job.Level='F' AND Job.JobStatus='T'
+ AND JobMedia.JobId=Job.JobId
+ AND JobMedia.MediaId=Media.MediaId;
 # Now add subsequent incrementals
 INSERT INTO temp2 SELECT Job.JobId,Job.StartTime,Media.VolumeName,
    Job.Level,JobMedia.StartFile,Job.VolSessionId,Job.VolSessionTime
  FROM Job,temp,JobMedia,Media
  WHERE Job.JobTDate>temp.JobTDate 
  AND Job.ClientId=temp.ClientId
- AND Job.Level='I' AND JobStatus='T'
+ AND Job.Level IN ('I','D') AND JobStatus='T'
  AND JobMedia.JobId=Job.JobId 
  AND JobMedia.MediaId=Media.MediaId
  GROUP BY Job.JobId;
@@ -133,13 +136,13 @@ INSERT INTO temp2 SELECT Job.JobId,Job.StartTime,Media.VolumeName,
 SELECT * from temp2;
 !DROP TABLE temp;
 !DROP TABLE temp2;
-#
+# 10
 :List Pool Attributes for a selected Pool:
 *Enter Pool name:
 SELECT Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,MaxVolBytes
  FROM Pool
  WHERE Name='%1';
-#
+# 11
 :List where a File is saved:
 *Enter Filename (no path):
 SELECT Job.JobId as JobId, Client.Name as Client,

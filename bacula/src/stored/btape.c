@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
       switch (ch) {
       case 'b':                    /* bootstrap file */
 	 bsr = parse_bsr(NULL, optarg);
-//	 dump_bsr(bsr);
+//	 dump_bsr(bsr, true);
 	 break;
 
       case 'c':                    /* specify config file */
@@ -809,10 +809,8 @@ static void fsfcmd()
 /* Forward space a record */
 static void fsrcmd()
 {
-   int stat;
-
-   if ((stat=fsr_dev(dev, 1)) < 0) {
-      Pmsg2(0, "Bad status from fsr %d. ERR=%s\n", stat, strerror_dev(dev));
+   if (!fsr_dev(dev, 1)) {
+      Pmsg1(0, "Bad status from fsr. ERR=%s\n", strerror_dev(dev));
       return;
    }
    Pmsg0(0, "Forward spaced one record.\n");

@@ -27,6 +27,14 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.32:
+- Add ExhautiveRestoreSearch and use repositioning at the beginning
+  of the tape.
+- Add Machine type (Linux/Windows) to Status report for daemons.
+- Document "status" in the console.
+- Document driving console from shell script.
+- Specify list of files to restore
+- Implement ClientRunBeforeJob and ClientRunAfterJob.
+- Restore file list.
 - Write JobMedia records with max file size is reached on tape.
 - Look at the possibility of loading only the necessary 
   data into the restore tree (i.e. do it one directory at a
@@ -292,6 +300,38 @@ For 1.32:
   > warning dialog).  This would be useful for sites that want user
   > woorkstations to be shut down overnight to save power.
   > 
+
+- From Terry Manderson <terry@apnic.net>
+   jobset { # new structure
+   name = "monthlyUnixBoxen"
+   type = backup
+   level = full
+   jobs = "wakame;durian;soy;wasabi;miso" #new!
+   schedule = monthly
+   storage = DLT
+   messages = Standard
+   pool = MonthlyPool
+   priority = 10
+   }
+
+   job {
+   name = "wakame"
+    fileset = "genericUnixSet"
+   client = wakame-fd
+   }
+
+   job {
+   name = "durian"
+   fileset = "genericUnixSet"
+   client = durian-fd
+   }
+
+   job {
+   name = "soy"
+   fileset = "UnixDevelBoxSet"
+   client = soy-fd
+   }
+
 
 - Autolabel should be specified by DIR instead of SD.
 - Storage daemon    

@@ -46,6 +46,8 @@ static int match_stream(BSR *bsr, BSR_STREAM *stream, DEV_RECORD *rec, bool done
 static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSION_LABEL *sessrec, bool done);
 static int match_block_sesstime(BSR *bsr, BSR_SESSTIME *sesstime, DEV_BLOCK *block);
 static int match_block_sessid(BSR *bsr, BSR_SESSID *sessid, DEV_BLOCK *block);
+static BSR *find_smallest_volfile(BSR *fbsr, BSR *bsr);
+
 
 /*********************************************************************
  *
@@ -114,20 +116,119 @@ static int match_block_sessid(BSR *bsr, BSR_SESSID *sessid, DEV_BLOCK *block)
  *
  *	Match Bootstrap records
  *	  returns  1 on match
- *	  returns  0 no match
+ *	  returns  0 no match and reposition is set if we should
+ *			reposition the tape
  *	 returns -1 no additional matches possible
  */
 int match_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSION_LABEL *sessrec)
 {
    int stat;
 
+   /*
+    * The bsr->reposition flag is set any time a bsr is done.
+    *	In this case, we can probably reposition the
+    *	tape to the next available bsr position.
+    */
    if (bsr) {
+      bsr->reposition = false;
       stat = match_all(bsr, rec, volrec, sessrec, true);
+      /* 
+       * Note, bsr->reposition is set by match_all when
+       *  a bsr is done. We turn it off if a match was
+       *  found or if we cannot use poistioning
+       */
+      if (stat != 0 || !bsr->use_positioning) {
+	 bsr->reposition = false;
+      }
    } else {
-      stat = 0;
+      stat = 1; 		      /* no bsr => match all */
    }
-// Dmsg1(000, "BSR returning %d\n", stat);
    return stat;
+}
+
+/*
+ * Find the next bsr that applies to the current tape.
+ *   It is the one with the smallest VolFile position.
+ */
+BSR *find_next_bsr(BSR *root_bsr, DEVICE *dev)
+{
+   BSR *bsr;
+   BSR *found_bsr = NULL;
+
+   if (!root_bsr || !root_bsr->use_positioning || 
+       !root_bsr->reposition || !dev_is_tape(dev)) {
+      Dmsg2(000, "use_pos=%d repos=%d\n", root_bsr->use_positioning,
+	root_bsr->reposition);
+      return NULL;
+   }
+   root_bsr->mount_next_volume = false;
+   for (bsr=root_bsr; bsr; bsr=bsr->next) {
+      if (bsr->done || !match_volume(bsr, bsr->volume, &dev->VolHdr, 1)) {
+	 continue;
+      }
+      if (found_bsr == NULL) {
+	 found_bsr = bsr;
+      } else {
+	 found_bsr = find_smallest_volfile(found_bsr, bsr);
+      }
+   }
+   /*
+    * If we get to this point and found no bsr, it means
+    *  that any additional bsr's must apply to the next
+    *  tape, so set a flag.
+    */
+   if (found_bsr == NULL) {
+      root_bsr->mount_next_volume = true;
+   }
+   return found_bsr;
+}
+
+static BSR *find_smallest_volfile(BSR *found_bsr, BSR *bsr)
+{
+   BSR *return_bsr = found_bsr;
+   BSR_VOLFILE *vf;
+   BSR_VOLBLOCK *vb;
+   uint32_t found_bsr_sfile, bsr_sfile;
+   uint32_t found_bsr_sblock, bsr_sblock;
+
+   vf = found_bsr->volfile;
+   found_bsr_sfile = vf->sfile;
+   while ( (vf=vf->next) ) {
+      if (vf->sfile < found_bsr_sfile) {
+	 found_bsr_sfile = vf->sfile;
+      }
+   }
+   vf = bsr->volfile;
+   bsr_sfile = vf->sfile;
+   while ( (vf=vf->next) ) {
+      if (vf->sfile < bsr_sfile) {
+	 bsr_sfile = vf->sfile;
+      }
+   }
+   if (found_bsr_sfile > bsr_sfile) {
+      return_bsr = bsr;
+   } else if (found_bsr_sfile == bsr_sfile) {
+      /* Must check block */
+      vb = found_bsr->volblock;
+      found_bsr_sblock = vb->sblock;
+      while ( (vb=vb->next) ) {
+	 if (vb->sblock < found_bsr_sblock) {
+	    found_bsr_sblock = vb->sblock;
+	 }
+      }
+      vb = bsr->volblock;
+      bsr_sblock = vb->sblock;
+      while ( (vb=vb->next) ) {
+	 if (vb->sblock < bsr_sblock) {
+	    bsr_sblock = vb->sblock;
+	 }
+      }
+      if (found_bsr_sblock > bsr_sblock) {
+	 return_bsr = bsr;
+      }
+   }
+
+   return return_bsr;
 }
 
 /* 
@@ -144,6 +245,8 @@ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
    }
    if (bsr->count && bsr->count <= bsr->found) {
       bsr->done = true;
+      bsr->root->reposition = true;
+      Dmsg0(100, "bsr done from count\n");
       goto no_match;
    }
    if (!match_volume(bsr, bsr->volume, volrec, 1)) {
@@ -305,6 +408,8 @@ static int match_volfile(BSR *bsr, BSR_VOLFILE *volfile, DEV_RECORD *rec, bool d
    /* If we are done and all prior matches are done, this bsr is finished */
    if (volfile->done && done) {
       bsr->done = true;
+      bsr->root->reposition = true;
+      Dmsg0(100, "bsr done from volfile\n");
    }
    return 0;
 }
@@ -339,6 +444,8 @@ static int match_sesstime(BSR *bsr, BSR_SESSTIME *sesstime, DEV_RECORD *rec, boo
    }
    if (sesstime->done && done) {
       bsr->done = true;
+      bsr->root->reposition = true;
+      Dmsg0(100, "bsr done from sesstime\n");
    }
    return 0;
 }
@@ -373,6 +480,8 @@ static int match_findex(BSR *bsr, BSR_FINDEX *findex, DEV_RECORD *rec, bool done
    }
    if (findex->done && done) {
       bsr->done = true;
+      bsr->root->reposition = true;
+      Dmsg1(100, "bsr done from findex %d\n", rec->FileIndex);
    }
    return 0;
 }

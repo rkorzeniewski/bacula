@@ -84,7 +84,7 @@
 #define CAP_BSFATEOM       (1<<15)    /* Backspace file at EOM */
 
 /* Test state */
-#define dev_state(dev, state) ((dev)->state & (state))
+#define dev_state(dev, st_state) ((dev)->state & (st_state))
 
 /* Device state bits */
 #define ST_OPENED          (1<<0)     /* set when device opened */
