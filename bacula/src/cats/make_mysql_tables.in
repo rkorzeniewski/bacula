@@ -32,8 +32,7 @@ CREATE TABLE File (
    LStat TINYBLOB NOT NULL,
    MD5 TINYBLOB NOT NULL,
    PRIMARY KEY(FileId),
-   INDEX (JobId),
-   INDEX (FilenameId, PathId)
+   INDEX (JobId, PathId, FilenameId)
    );
 
 #
@@ -43,7 +42,8 @@ CREATE TABLE File (
 #
 #  INDEX (PathId),
 #  INDEX (FilenameId),
-#  INDEX (JobId, PathId, FilenameId)
+#  INDEX (FilenameId, PathId)
+#  INDEX (JobId),
 #
 
 CREATE TABLE MediaType (

@@ -664,14 +664,6 @@ eod_dev(DEVICE *dev)
    } else {
       update_pos_dev(dev);		     /* update position */
    }
-   /* If this is an ANSI or IBM labeled tape we must 
-    *  backspace over EOF label
-    */
-   if (dev->label_type != B_BACULA_LABEL) {
-      if (!bsf_dev(dev, 2) || !fsf_dev(dev, 1)) {
-	 ok = false;
-      }
-   }
    Dmsg1(200, "EOD dev->file=%d\n", dev->file);
    return ok;
 }

@@ -487,6 +487,9 @@ bool write_block_to_dev(DCR *dcr)
 	 dev->dev_errno = ENOSPC;
 	 return false;
       }
+      if (!write_ansi_ibm_labels(dcr, ANSI_EOF_LABEL, dev->VolHdr.VolName)) {
+	 return false;
+      }
 
       if (!do_new_file_bookkeeping(dcr)) {
 	 /* Error message already sent */
@@ -662,6 +665,9 @@ static bool terminate_writing_volume(DCR *dcr)
       ok = false;
       Dmsg0(100, "WEOF error.\n");
    }
+   if (ok) {
+      ok = write_ansi_ibm_labels(dcr, ANSI_EOV_LABEL, dev->VolHdr.VolName);
+   }
    dev->VolCatInfo.VolCatFiles = dev->file;
    
    if (dev->is_dvd()) { /* Write the current (and last) part. */
@@ -672,7 +678,6 @@ static bool terminate_writing_volume(DCR *dcr)
       ok = false;
    }
    Dmsg1(100, "dir_update_volume_info terminate writing -- %s\n", ok?"OK":"ERROR");
-
 
    /*
     * Walk through all attached dcrs setting flag to call
@@ -687,10 +692,6 @@ static bool terminate_writing_volume(DCR *dcr)
    }
    /* Set new file/block parameters for current dcr */
    set_new_file_parameters(dcr);
-
-   if (ok) {
-      ok = write_ansi_ibm_labels(dcr, ANSI_EOV_LABEL, dev->VolHdr.VolName);
-   }
 
    if (ok && dev_cap(dev, CAP_TWOEOF) && weof_dev(dev, 1) != 0) {  /* end the tape */
       dev->VolCatInfo.VolCatErrors++;

@@ -24,10 +24,10 @@ dummy:
 
 #
 SVRSRCS = filed.c authenticate.c acl.c backup.c chksum.c estimate.c \
-	  filed_conf.c heartbeat.c job.c \
+	  filed_conf.c heartbeat.c job.c python.c \
 	  restore.c status.c verify.c verify_vol.c
 SVROBJS = filed.o authenticate.o acl.o backup.o chksum.o estimate.o \
-	  filed_conf.o heartbeat.o job.o \
+	  filed_conf.o heartbeat.o job.o python.o \
 	  restore.o status.o verify.o verify_vol.o
 
 # these are the objects that are changed by the .configure process
@@ -47,7 +47,7 @@ WIN32LIBS = $(@WIN32@)
 
 # inference rules
 .c.o:
-	$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+	$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
 all: Makefile @WIN32@ bacula-fd @STATIC_FD@
 	@echo "==== Make of filed is good ===="
@@ -72,11 +72,11 @@ win32:	$(WIN32OBJS)
 
 bacula-fd:  $(SVROBJS) ../findlib/libfind.a ../lib/libbac.a @WIN32@
 	$(CXX) $(WLDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(SVROBJS) \
-	  $(WIN32LIBS) $(FDLIBS) -lfind -lbac -lm $(LIBS) $(DLIB)
+	  $(WIN32LIBS) $(FDLIBS) -lfind -lbac -lm $(PYTHON_LIBS) $(LIBS) $(DLIB)
 
 static-bacula-fd:  $(SVROBJS) ../findlib/libfind.a ../lib/libbac.a @WIN32@
 	$(CXX) $(WLDFLAGS) $(LDFLAGS) -static -L../lib -L../findlib -o $@ $(SVROBJS) \
-	   $(WIN32LIBS) $(FDLIBS) -lfind -lbac -lm $(LIBS) $(DLIB)
+	   $(WIN32LIBS) $(FDLIBS) -lfind -lbac -lm $(PYTHON_LIBS) $(LIBS) $(DLIB)
 	strip $@
 
 
