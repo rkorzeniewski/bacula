@@ -20,15 +20,15 @@ install-autostart: install-autostart-fd install-autostart-sd install-autostart-d
 
 	
 install-autostart-fd:
-	@$(INSTALL) -d -m 744 bacula-fd $(DESTDIR)/etc/init.d/bacula-fd
+	@$(INSTALL) -m 744 bacula-fd $(DESTDIR)/etc/init.d/bacula-fd
 
 
 install-autostart-sd:
-	@$(INSTALL) -d -m 744 bacula-sd $(DESTDIR)/etc/init.d/bacula-sd
+	@$(INSTALL) -m 744 bacula-sd $(DESTDIR)/etc/init.d/bacula-sd
 
 
 install-autostart-dir:
-	@$(INSTALL) -d -m 744 bacula-dir $(DESTDIR)/etc/init.d/bacula-dir
+	@$(INSTALL) -m 744 bacula-dir $(DESTDIR)/etc/init.d/bacula-dir
 
 
 uninstall: uninstall-autostart
