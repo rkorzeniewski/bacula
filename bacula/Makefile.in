@@ -15,11 +15,13 @@ thisdir = .
 first_rule: all
 dummy:
 
+# --client-only directories
 fd_subdirs = src scripts doc src/lib src/findlib src/filed \
-	     @READLINE_SRC@ src/console rescue rescue/linux
+	     @READLINE_SRC@ src/console rescue rescue/linux \
+	     @GNOME_DIR@ @WX_DIR@
 
-
-subdirs =    src/cats src/dird src/stored @GNOME_DIR@ @WX_DIR@ src/tools
+# Non-client-only directores
+subdirs =    src/cats src/dird src/stored src/tools
 
 all_subdirs = ${fd_subdirs} ${@ALL_DIRS@}
 
