@@ -547,20 +547,31 @@ char *bfgets(char *s, int size, FILE *fd)
    *p = 0;
    for (int i=0; i < size-1; i++) {
       do {
-	 errno = 0;
-	 ch = fgetc(fd);
+         errno = 0;
+         ch = fgetc(fd);
       } while (ch == -1 && (errno == EINTR || errno == EAGAIN));
       if (ch == -1) {
-	 if (i == 0) {
-	    return NULL;
-	 } else {
-	    return s;
-	 }
+         if (i == 0) {
+            return NULL;
+         } else {
+            return s;
+         }
       }
       *p++ = ch;
       *p = 0;
+      if (ch == '\r') { /* Support for Mac/Windows file format */
+         ch = fgetc(fd);
+         if (ch == '\n') { /* Windows (\r\n) */
+            *p++ = ch;
+            *p = 0;
+         }
+         else { /* Mac (\r only) */
+            ungetc(ch, fd); /* Push next character back to fd */
+         }
+         break;
+      }      
       if (ch == '\n') {
-	 break;
+         break;
       }
    }
    return s;
