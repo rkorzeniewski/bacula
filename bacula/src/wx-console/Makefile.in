@@ -76,6 +76,22 @@ Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	cd $(topdir) \
 	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
+install: all
+	$(INSTALL_PROGRAM) wx-console $(DESTDIR)$(sbindir)/wx-console
+	@srcconf=wx-console.conf; \
+	if  test -f ${DESTDIR}${sysconfdir}/$$srcconf; then \
+	   destconf=$$srcconf.new; \
+	   echo "  ==> Found existing $$srcconf, installing new conf file as $$destconf"; \
+	else \
+	   destconf=$$srcconf; \
+	fi; \
+	echo "${INSTALL_CONFIG} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf"; \
+	${INSTALL_CONFIG} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf
+
+uninstall:
+	(cd $(DESTDIR)$(sbindir); $(RMF) wx-console)
+	(cd $(DESTDIR)$(sysconfdir); $(RMF) wx-console.conf wx-console.conf.new)
+
 # Semi-automatic generation of dependencies:
 # Use gcc -MM because X11 `makedepend' doesn't work on all systems
 # and it also includes system headers.
