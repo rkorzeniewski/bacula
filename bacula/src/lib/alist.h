@@ -24,12 +24,27 @@
 
  */
 
+/* 
+ * There is a lot of extra casting here to work around the fact
+ * that some compilers (Sun and Visual C++) do not accept
+ * (void *) as an lvalue on the left side of an equal.
+ *
+ * Loop var through each member of list
+ */
+#define foreach_alist(var, list) \
+    for((*((void **)&(var))=(void*)((list)->first())); (var); (*((void **)&(var))=(void*)((list)->next())))
+
+#ifdef the_easy_way
+#define foreach_dlist(var, list) \
+        for((void*(var))=(list)->first(); (var); (void *(var))=(list)->next(var)); )
+#endif
+
+
 /* Second arg of init */
 enum {
   owned_by_alist = true,
   not_owned_by_alist = false
 };
-
 
 /* 
  * Array list -- much like a simplified STL vector
@@ -40,12 +55,21 @@ class alist {
    int num_items;
    int max_items;
    int num_grow;
+   int cur_item;
    bool own_items;
+   void grow_list(void);
 public:
    alist(int num = 1, bool own=true);
    void init(int num = 1, bool own=true);
    void append(void *item);
+   void prepend(void *item);
+   void *remove(int index);
    void *get(int index);
+   bool empty();
+   void *prev();
+   void *next();
+   void *first();
+   void *last();
    void * operator [](int index) const;
    int size();
    void destroy();
@@ -59,6 +83,11 @@ inline void * alist::operator [](int index) const {
       return NULL;
    }
    return items[index];
+}
+
+inline bool alist::empty()
+{
+   return num_items == 0;
 }
 
 /*                            

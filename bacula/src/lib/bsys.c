@@ -303,7 +303,7 @@ void create_pid_file(char *dir, const char *progname, int port)
    if (stat(mp_chr(fname), &statp) == 0) {
       /* File exists, see what we have */
       *pidbuf = 0;
-      if ((pidfd = open(mp_chr(fname), O_RDONLY)) < 0 || 
+      if ((pidfd = open(mp_chr(fname), O_RDONLY|O_BINARY, 0)) < 0 || 
 	   read(pidfd, &pidbuf, sizeof(pidbuf)) < 0 ||
            sscanf(pidbuf, "%d", &oldpid) != 1) {
          Emsg2(M_ERROR_TERM, 0, _("Cannot open pid file. %s ERR=%s\n"), fname, strerror(errno));
@@ -317,7 +317,7 @@ void create_pid_file(char *dir, const char *progname, int port)
       unlink(mp_chr(fname));		      /* remove stale pid file */
    }
    /* Create new pid file */
-   if ((pidfd = open(mp_chr(fname), O_CREAT | O_TRUNC | O_WRONLY, 0644)) >= 0) {
+   if ((pidfd = open(mp_chr(fname), O_CREAT | O_TRUNC | O_WRONLY | O_BINARY, 0644)) >= 0) {
       len = sprintf(pidbuf, "%d\n", (int)getpid());
       write(pidfd, pidbuf, len);
       close(pidfd);
@@ -369,23 +369,34 @@ static struct s_state_hdr state_hdr = {
 void read_state_file(char *dir, const char *progname, int port)
 {
    int sfd;
+   ssize_t stat;
    POOLMEM *fname = get_pool_memory(PM_FNAME);
    struct s_state_hdr hdr;
+   int hdr_size = sizeof(hdr);
 
    Mmsg(&fname, "%s/%s.%d.state", dir, progname, port);
    /* If file exists, see what we have */
-   if ((sfd = open(mp_chr(fname), O_RDONLY, 0)) < 0 ||
-       read(sfd, &hdr, sizeof(hdr)) < 0 ||
-       hdr.version != state_hdr.version) {
-      Dmsg2(000, "Could not open or read state file. sfd=%d: ERR=%s\n", 
-		    sfd, strerror(errno));
+   Dmsg1(10, "O_BINARY=%d\n", O_BINARY);
+   if ((sfd = open(mp_chr(fname), O_RDONLY|O_BINARY, 0)) < 0) {
+      Dmsg3(010, "Could not open state file. sfd=%d size=%d: ERR=%s\n", 
+		    sfd, sizeof(hdr), strerror(errno));
+	   goto bail_out;
+   }
+   if ((stat=read(sfd, &hdr, hdr_size)) != hdr_size) {
+      Dmsg4(010, "Could not read state file. sfd=%d stat=%d size=%d: ERR=%s\n", 
+		    sfd, (int)stat, hdr_size, strerror(errno));
       goto bail_out;
+   }
+   if (hdr.version != state_hdr.version) {
+      Dmsg2(010, "Bad hdr version. Wanted %d got %d\n", 
+	 state_hdr.version, hdr.version);
    }
    hdr.id[13] = 0;
    if (strcmp(hdr.id, state_hdr.id) != 0) {
-      Dmsg0(000, "State file header invalid.\n");
+      Dmsg0(000, "State file header id invalid.\n");
       goto bail_out;
    }
+   Dmsg1(010, "Read header of %d bytes.\n", sizeof(hdr));
    read_last_jobs_list(sfd, hdr.last_jobs_addr);
 bail_out:
    if (sfd >= 0) {
@@ -404,22 +415,27 @@ void write_state_file(char *dir, const char *progname, int port)
 
    Mmsg(&fname, "%s/%s.%d.state", dir, progname, port);
    /* Create new state file */
-   if ((sfd = open(mp_chr(fname), O_CREAT | O_TRUNC | O_WRONLY, 0640)) < 0) {
+   if ((sfd = open(mp_chr(fname), O_CREAT|O_TRUNC|O_WRONLY|O_BINARY, 0640)) < 0) {
       Dmsg2(000, _("Could not create state file. %s ERR=%s\n"), fname, strerror(errno));
       Emsg2(M_ERROR, 0, _("Could not create state file. %s ERR=%s\n"), fname, strerror(errno));
       goto bail_out;
    }
-   if (write(sfd, &state_hdr, sizeof(state_hdr)) < 0) {
-      Dmsg1(000, "Write error: ERR=%s\n", strerror(errno));
+   if (write(sfd, &state_hdr, sizeof(state_hdr)) != sizeof(state_hdr)) {
+      Dmsg1(000, "Write hdr error: ERR=%s\n", strerror(errno));
       goto bail_out;
    }
+   Dmsg1(010, "Wrote header of %d bytes\n", sizeof(state_hdr));
    state_hdr.last_jobs_addr = sizeof(state_hdr);
    state_hdr.reserved[0] = write_last_jobs_list(sfd, state_hdr.last_jobs_addr);   
+   Dmsg1(010, "write last job end = %d\n", (int)state_hdr.reserved[0]);
    if (lseek(sfd, 0, SEEK_SET) < 0) {
       Dmsg1(000, "lseek error: ERR=%s\n", strerror(errno));
       goto bail_out;
    }  
-   write(sfd, &state_hdr, sizeof(state_hdr));
+   if (write(sfd, &state_hdr, sizeof(state_hdr)) != sizeof(state_hdr)) {
+      Dmsg1(000, "Write final hdr error: ERR=%s\n", strerror(errno));
+   }
+
 bail_out:
    if (sfd >= 0) {
       close(sfd);
