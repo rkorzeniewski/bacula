@@ -26,7 +26,8 @@
  */
 
 
-class IPADDR : public SMARTALLOC {
+//class IPADDR : public SMARTALLOC {
+class IPADDR {
  public:
    typedef enum { R_SINGLE, R_SINGLE_PORT, R_SINGLE_ADDR, R_MULTIPLE,
                   R_DEFAULT, R_EMPTY

@@ -933,14 +933,9 @@ AC_DEFINE(PROTOTYPES)
 dnl# --------------------------------------------------------------------------
 dnl# Supply default CFLAGS, if not specified by `CFLAGS=flags ./configure'
 dnl#
-if test -z "$CFLAGS"; then
+if test -z "$CFLAGS" -o "$CFLAGS" = "-g -O2"; then
     if test -z "$CCOPTS"; then
-	CCOPTS='-g -O2'
-dnl>	if test "x$GCC" = xyes; then
-dnl>	    if test x$system = xLinux; then
-dnl>		CCOPTS="$CCOPTS "'-O2 -fno-strength-reduce'
-dnl>	    fi
-dnl>	fi
+	CCOPTS='-g -O2 -Wall'
     fi
     CFLAGS="$CCOPTS"
 fi
