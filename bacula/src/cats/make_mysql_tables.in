@@ -139,8 +139,8 @@ CREATE TABLE Pool (
    PoolType ENUM('Backup', 'Copy', 'Cloned', 'Archive', 'Migration', 'Scratch') NOT NULL,
    LabelFormat TINYBLOB,
    Enabled TINYINT DEFAULT 1,
-   ScratchPoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
-   RecyclePoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
+   ScratchPoolId INTEGER UNSIGNED DEFAULT 0 REFERENCES Pool,
+   RecyclePoolId INTEGER UNSIGNED DEFAULT 0 REFERENCES Pool,
    UNIQUE (Name(128)),
    PRIMARY KEY (PoolId)
    );
