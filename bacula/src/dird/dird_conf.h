@@ -271,6 +271,7 @@ struct s_res_pool {
    struct s_res_counter counter;      /* Counter resources */
    char *pool_type;                   /* Pool type */
    char *label_format;                /* Label format string */
+   char *cleaning_prefix;             /* Cleaning label prefix */
    int   use_catalog;                 /* maintain catalog for media */
    int   catalog_files;               /* maintain file entries in catalog */
    int   use_volume_once;             /* write on volume only once */

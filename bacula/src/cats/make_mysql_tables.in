@@ -105,7 +105,7 @@ CREATE TABLE Media (
    MaxVolBytes BIGINT UNSIGNED NOT NULL,
    VolCapacityBytes BIGINT UNSIGNED NOT NULL,
    VolStatus ENUM('Full', 'Archive', 'Append', 'Recycle', 'Purged',
-    'Read-Only', 'Disabled', 'Error', 'Busy', 'Used') NOT NULL,
+    'Read-Only', 'Disabled', 'Error', 'Busy', 'Used', 'Cleaning') NOT NULL,
    Recycle TINYINT NOT NULL,
    VolRetention BIGINT UNSIGNED NOT NULL,
    VolUseDuration BIGINT UNSIGNED NOT NULL,

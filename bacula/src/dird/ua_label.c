@@ -45,6 +45,7 @@ static int is_legal_volume_name(UAContext *ua, char *name);
 static int send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr, 
 	       POOL_DBR *pr, int relabel);
 static vol_list_t *get_slot_list_from_SD(UAContext *ua);
+static int is_cleaning_tape(UAContext *ua, MEDIA_DBR *mr, POOL_DBR *pr);
 
 
 /*
@@ -310,7 +311,6 @@ static void label_from_barcodes(UAContext *ua)
 
    vol_list = get_slot_list_from_SD(ua);
 
-
    if (!vol_list) {
       bsendmsg(ua, _("No Volumes found to label, or no barcodes.\n"));
       goto bail_out;
@@ -343,6 +343,16 @@ static void label_from_barcodes(UAContext *ua)
           bsendmsg(ua, _("Media record for Slot %d Volume \"%s\" already exists.\n"), 
 	     vl->Slot, mr.VolumeName);
 	  continue;
+      }
+      if (is_cleaning_tape(ua, &mr, &pr)) {
+	 set_pool_dbr_defaults_in_media_dbr(&mr, &pr);
+	 if (db_create_media_record(ua->jcr, ua->db, &mr)) {
+            bsendmsg(ua, _("Catalog record for cleaning tape \"%s\" successfully created.\n"),
+	       mr.VolumeName);
+	 } else {
+            bsendmsg(ua, "Catalog error on cleaning tape: %s", db_strerror(ua->db));
+	 }
+	 continue;
       }
       bstrncpy(mr.MediaType, store->media_type, sizeof(mr.MediaType));
       if (ua->jcr->store_bsock) {
@@ -423,7 +433,8 @@ static int send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
    } else {
       bnet_fsend(sd, _("label %s VolumeName=%s PoolName=%s MediaType=%s Slot=%d"), 
 	 dev_name, mr->VolumeName, pr->Name, mr->MediaType, mr->Slot);
-      bsendmsg(ua, _("Sending label command for Volume \"%s\" ...\n"), mr->VolumeName);
+      bsendmsg(ua, _("Sending label command for Volume \"%s\" Slot %d ...\n"), 
+	 mr->VolumeName, mr->Slot);
       Dmsg5(200, "label %s VolumeName=%s PoolName=%s MediaType=%s Slot=%d\n", 
 	 dev_name, mr->VolumeName, pr->Name, mr->MediaType, mr->Slot);
    }
@@ -441,8 +452,8 @@ static int send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
    if (ok) {
       set_pool_dbr_defaults_in_media_dbr(mr, pr);
       if (db_create_media_record(ua->jcr, ua->db, mr)) {
-         bsendmsg(ua, _("Media record for Volume \"%s\" successfully created.\n"),
-	    mr->VolumeName);
+         bsendmsg(ua, _("Catalog record for Volume \"%s\", Slot %d  successfully created.\n"),
+	    mr->VolumeName, mr->Slot);
       } else {
          bsendmsg(ua, "%s", db_strerror(ua->db));
 	 ok = FALSE;
@@ -523,4 +534,26 @@ static vol_list_t *get_slot_list_from_SD(UAContext *ua)
       }
    }
    return vol_list;
+}
+
+/*
+ * Check if this is a cleaning tape by comparing the Volume name
+ *  with the Cleaning Prefix. If they match, this is a cleaning 
+ *  tape.
+ */
+static int is_cleaning_tape(UAContext *ua, MEDIA_DBR *mr, POOL_DBR *pr)
+{
+   if (!ua->jcr->pool) {
+      /* Find Pool resource */
+      ua->jcr->pool = (POOL *)GetResWithName(R_POOL, pr->Name);
+      if (!ua->jcr->pool) {
+         bsendmsg(ua, _("Pool %s resource not found!\n"), pr->Name);
+	 return 1;
+      }
+   }
+   if (ua->jcr->pool->cleaning_prefix == NULL) {
+      return 0;
+   }
+   return strncmp(mr->VolumeName, ua->jcr->pool->cleaning_prefix,
+		  strlen(ua->jcr->pool->cleaning_prefix)) == 0;
 }

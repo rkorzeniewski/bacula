@@ -240,6 +240,7 @@ static struct res_items pool_items[] = {
    {"description",     store_str,     ITEM(res_pool.hdr.desc),      0, 0,     0},
    {"pooltype",        store_strname, ITEM(res_pool.pool_type),     0, ITEM_REQUIRED, 0},
    {"labelformat",     store_strname, ITEM(res_pool.label_format),  0, 0,     0},
+   {"cleaningprefix",  store_strname, ITEM(res_pool.cleaning_prefix),  0, 0,     0},
    {"usecatalog",      store_yesno, ITEM(res_pool.use_catalog),     1, ITEM_DEFAULT,  1},
    {"usevolumeonce",   store_yesno, ITEM(res_pool.use_volume_once), 1, 0,        0},
    {"recycleoldestvolume", store_yesno, ITEM(res_pool.recycle_oldest_volume), 1, 0, 0},
@@ -576,6 +577,8 @@ next_run:
 		 res->res_pool.VolRetention);
          sendit(sock, "      recycle=%d LabelFormat=%s\n", res->res_pool.Recycle,
 		 NPRT(res->res_pool.label_format));
+         sendit(sock, "      CleaningPrefix=%s\n",
+		 NPRT(res->res_pool.cleaning_prefix));
          sendit(sock, "      recyleOldest=%d MaxVolJobs=%d MaxVolFiles=%d\n",
 		 res->res_pool.recycle_oldest_volume, 
 		 res->res_pool.MaxVolJobs, res->res_pool.MaxVolFiles);
@@ -736,6 +739,9 @@ void free_resource(int type)
 	 }
 	 if (res->res_pool.label_format) {
 	    free(res->res_pool.label_format);
+	 }
+	 if (res->res_pool.cleaning_prefix) {
+	    free(res->res_pool.cleaning_prefix);
 	 }
 	 break;
       case R_SCHEDULE:
