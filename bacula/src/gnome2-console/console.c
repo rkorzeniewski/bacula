@@ -578,7 +578,7 @@ void set_statusf(char *fmt, ...)
    va_start(arg_ptr, fmt);
    len = bvsnprintf(buf, sizeof(buf), fmt, arg_ptr);
    gtk_label_set_text(GTK_LABEL(status1), buf);
-   set_scroll_bar_to_end();
+// set_scroll_bar_to_end();
    ready = false;
 }
 
@@ -586,13 +586,13 @@ void set_status_ready()
 {
    gtk_label_set_text(GTK_LABEL(status1), " Ready");
    ready = true;
-   set_scroll_bar_to_end();
+// set_scroll_bar_to_end();
 }
 
 void set_status(char *buf)
 {
    gtk_label_set_text(GTK_LABEL(status1), buf);
-   set_scroll_bar_to_end();
+// set_scroll_bar_to_end();
    ready = false;
 }
 
