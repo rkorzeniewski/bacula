@@ -335,7 +335,7 @@ char *xberror(BFILE *bfd)
    if (!bfd->errmsg) {
       bfd->errmsg = get_pool_memory(PM_FNAME);
    }
-   pm_strcpy(&bfd->errmsg, msg);
+   pm_strcpy(bfd->errmsg, msg);
    LocalFree(msg);
    return bfd->errmsg;
 }

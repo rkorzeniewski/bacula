@@ -236,8 +236,9 @@ void _db_lock(const char *file, int line, B_DB *mdb)
 {
    int errstat;
    if ((errstat=rwl_writelock(&mdb->lock)) != 0) {
+      berrno be;
       e_msg(file, line, M_ABORT, 0, "rwl_writelock failure. ERR=%s\n",
-	   strerror(errstat));
+	   be.strerror(errstat));
    }
 }    
 
@@ -250,8 +251,9 @@ void _db_unlock(const char *file, int line, B_DB *mdb)
 {
    int errstat;
    if ((errstat=rwl_writeunlock(&mdb->lock)) != 0) {
+      berrno be;
       e_msg(file, line, M_ABORT, 0, "rwl_writeunlock failure. ERR=%s\n",
-	   strerror(errstat));
+	   be.strerror(errstat));
    }
 }    
 
@@ -262,7 +264,10 @@ void _db_unlock(const char *file, int line, B_DB *mdb)
  */
 void db_start_transaction(JCR *jcr, B_DB *mdb)
 {
-#ifdef xAVE_SQLITE
+#ifdef HAVE_SQLITE
+   if (!mdb->allow_transactions) {
+      return;
+   }
    db_lock(mdb);
    /* Allow only 10,000 changes per transaction */
    if (mdb->transaction && mdb->changes > 10000) {
@@ -280,7 +285,10 @@ void db_start_transaction(JCR *jcr, B_DB *mdb)
  * This is turned off because transactions break
  * if multiple simultaneous jobs are run.    
  */
-#ifdef xAVE_POSTGRESQL
+#ifdef HAVE_POSTGRESQL
+   if (!mdb->allow_transactions) {
+      return;
+   }
    db_lock(mdb);
    /* Allow only 25,000 changes per transaction */
    if (mdb->transaction && mdb->changes > 25000) {
@@ -297,7 +305,10 @@ void db_start_transaction(JCR *jcr, B_DB *mdb)
 
 void db_end_transaction(JCR *jcr, B_DB *mdb)
 {
-#ifdef xAVE_SQLITE
+#ifdef HAVE_SQLITE
+   if (!mdb->allow_transactions) {
+      return;
+   }
    db_lock(mdb);
    if (mdb->transaction) {
       my_sqlite_query(mdb, "COMMIT"); /* end transaction */
@@ -308,7 +319,10 @@ void db_end_transaction(JCR *jcr, B_DB *mdb)
    db_unlock(mdb);
 #endif
 
-#ifdef xAVE_POSTGRESQL
+#ifdef HAVE_POSTGRESQL
+   if (!mdb->allow_transactions) {
+      return;
+   }
    db_lock(mdb);
    if (mdb->transaction) {
       db_sql_query(mdb, "COMMIT", NULL, NULL); /* end transaction */
@@ -357,9 +371,8 @@ void split_path_and_file(JCR *jcr, B_DB *mdb, const char *fname)
       memcpy(mdb->fname, f, mdb->fnl);	  /* copy filename */
       mdb->fname[mdb->fnl] = 0;
    } else {
-      mdb->fname[0] = ' ';            /* blank filename */
-      mdb->fname[1] = 0;
-      mdb->fnl = 1;
+      mdb->fname[0] = 0;
+      mdb->fnl = 0;
    }
 
    mdb->pnl = f - fname;    
@@ -370,9 +383,8 @@ void split_path_and_file(JCR *jcr, B_DB *mdb, const char *fname)
    } else {
       Mmsg1(&mdb->errmsg, _("Path length is zero. File=%s\n"), fname);
       Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
-      mdb->path[0] = ' ';
-      mdb->path[1] = 0;
-      mdb->pnl = 1;
+      mdb->path[0] = 0;
+      mdb->pnl = 0;
    }
 
    Dmsg2(500, "split path=%s file=%s\n", mdb->path, mdb->fname);

@@ -687,9 +687,8 @@ static void split_path_and_filename(RESTORE_CTX *rx, char *name)
       memcpy(rx->fname, f, rx->fnl);	/* copy filename */
       rx->fname[rx->fnl] = 0;
    } else {
-      rx->fname[0] = ' ';            /* blank filename */
-      rx->fname[1] = 0;
-      rx->fnl = 1;
+      rx->fname[0] = 0;
+      rx->fnl = 0;
    }
 
    rx->pnl = f - name;	  
@@ -698,9 +697,8 @@ static void split_path_and_filename(RESTORE_CTX *rx, char *name)
       memcpy(rx->path, name, rx->pnl);
       rx->path[rx->pnl] = 0;
    } else {
-      rx->path[0] = ' ';
-      rx->path[1] = 0;
-      rx->pnl = 1;
+      rx->path[0] = 0;
+      rx->pnl = 0;
    }
 
    Dmsg2(100, "sllit path=%s file=%s\n", rx->path, rx->fname);

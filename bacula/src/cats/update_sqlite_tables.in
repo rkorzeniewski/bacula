@@ -111,6 +111,8 @@ DROP TABLE Media_backup;
 
 COMMIT;
 
+UPDATE Filename SET Name='' WHERE Name=' ';
+
 DELETE FROM Version;
 INSERT INTO Version (VersionId) VALUES (8);
 
