@@ -55,6 +55,8 @@ For 1.33 Testing/Documentation:
 - Add subsections to the Disaster Recovery index section.
                 
 For 1.33
+- Volume "add"ed to Pool gets recycled in first use. VolBytes=0
+- Get rid of 0 dates in LastWritten, ...
 - Make Bacula "poll a drive".
 - Fix "llist jobid=xx" where no fileset or client exists.
 - Release SQLite 2.8.8
@@ -1056,4 +1058,3 @@ Done: (see kernsdone for more)
     gnome-console is built, but the binary and .conf are not being installed.
 - Permit Bacula and apcupsd donations (not done for apcupsd).
 - Fix Ctl-C crashing the Console (readline?).
-

@@ -35,8 +35,9 @@
 #include "dird.h"
 
 /* Forward referenced functions */
-int purge_files_from_client(UAContext *ua, CLIENT *client);
-int purge_jobs_from_client(UAContext *ua, CLIENT *client);
+static int purge_files_from_client(UAContext *ua, CLIENT *client);
+static int purge_jobs_from_client(UAContext *ua, CLIENT *client);
+
 void purge_files_from_volume(UAContext *ua, MEDIA_DBR *mr );
 int purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr);
 void purge_files_from_job(UAContext *ua, JOB_DBR *jr);
@@ -270,7 +271,7 @@ int purgecmd(UAContext *ua, char *cmd)
  * the JobIds meeting the prune conditions, then delete all File records
  * pointing to each of those JobIds.
  */
-int purge_files_from_client(UAContext *ua, CLIENT *client)
+static int purge_files_from_client(UAContext *ua, CLIENT *client)
 {
    struct s_file_del_ctx del;
    char *query = (char *)get_pool_memory(PM_MESSAGE);
@@ -280,11 +281,11 @@ int purge_files_from_client(UAContext *ua, CLIENT *client)
    memset(&cr, 0, sizeof(cr));
    memset(&del, 0, sizeof(del));
 
-   strcpy(cr.Name, client->hdr.name);
+   bstrncpy(cr.Name, client->hdr.name, sizeof(cr.Name));
    if (!db_create_client_record(ua->jcr, ua->db, &cr)) {
       return 0;
    }
-
+   bsendmsg(ua, _("Begin purging files for Client \"%s\"\n"), cr.Name);
    Mmsg(&query, select_jobsfiles_from_client, cr.ClientId);
 
    Dmsg1(050, "select sql=%s\n", query);
@@ -326,7 +327,7 @@ int purge_files_from_client(UAContext *ua, CLIENT *client)
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       Dmsg1(050, "Del sql=%s\n", query);
    }
-   bsendmsg(ua, _("%d Files for client %s purged from %s catalog.\n"), del.num_ids,
+   bsendmsg(ua, _("%d Files for client \"%s\" purged from %s catalog.\n"), del.num_ids,
       client->hdr.name, client->catalog->hdr.name);
    
 bail_out:
@@ -347,7 +348,7 @@ bail_out:
  * the JobIds meeting the prune conditions, then delete the Job,
  * Files, and JobMedia records in that list.
  */
-int purge_jobs_from_client(UAContext *ua, CLIENT *client)
+static int purge_jobs_from_client(UAContext *ua, CLIENT *client)
 {
    struct s_job_del_ctx del;
    char *query = (char *)get_pool_memory(PM_MESSAGE);
@@ -362,6 +363,7 @@ int purge_jobs_from_client(UAContext *ua, CLIENT *client)
       return 0;
    }
 
+   bsendmsg(ua, _("Begin purging jobs from Client \"%s\"\n"), cr.Name);
    Mmsg(&query, select_jobs_from_client, cr.ClientId);
 
    Dmsg1(050, "select sql=%s\n", query);
@@ -476,7 +478,7 @@ int purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr)
    }
       
    if (cnt.count == 0) {
-      bsendmsg(ua, "There are no Jobs associated with Volume %s. Marking it purged.\n",
+      bsendmsg(ua, "There are no Jobs associated with Volume \"%s\". Marking it purged.\n",
 	 mr->VolumeName);
       if (!mark_media_purged(ua, mr)) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
@@ -491,13 +493,26 @@ int purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr)
       del.max_ids = MAX_DEL_LIST_LEN; 
    }
 
-   del.JobId = (JobId_t *)malloc(sizeof(JobId_t) * del.max_ids);
+   /*
+    * Check if he wants to purge a single jobid 
+    */
+   i = find_arg_with_value(ua, "jobid");
+   if (i >= 0) {
+      del.JobId = (JobId_t *)malloc(sizeof(JobId_t));
+      del.num_ids = 1;
+      del.JobId[0] = str_to_int64(ua->argv[i]);
+   } else {
+      /* 
+       * Purge ALL JobIds 
+       */
+      del.JobId = (JobId_t *)malloc(sizeof(JobId_t) * del.max_ids);
 
-   Mmsg(&query, "SELECT JobId FROM JobMedia WHERE MediaId=%d", mr->MediaId);
-   if (!db_sql_query(ua->db, query, file_delete_handler, (void *)&del)) {
-      bsendmsg(ua, "%s", db_strerror(ua->db));
-      Dmsg0(050, "Count failed\n");
-      goto bail_out;
+      Mmsg(&query, "SELECT JobId FROM JobMedia WHERE MediaId=%d", mr->MediaId);
+      if (!db_sql_query(ua->db, query, file_delete_handler, (void *)&del)) {
+         bsendmsg(ua, "%s", db_strerror(ua->db));
+         Dmsg0(050, "Count failed\n");
+	 goto bail_out;
+      }
    }
 
    for (i=0; i < del.num_ids; i++) {
@@ -518,9 +533,20 @@ int purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr)
       del.num_del==1?"":"s", mr->VolumeName);
 
    /* If purged, mark it so */
-   if (del.num_ids == del.num_del) {
+   cnt.count = 0;
+   Mmsg(&query, "SELECT count(*) FROM JobMedia WHERE MediaId=%d", mr->MediaId);
+   if (!db_sql_query(ua->db, query, count_handler, (void *)&cnt)) {
+      bsendmsg(ua, "%s", db_strerror(ua->db));
+      Dmsg0(050, "Count failed\n");
+      goto bail_out;
+   }
+      
+   if (cnt.count == 0) {
+      bsendmsg(ua, "There are no more Jobs associated with Volume \"%s\". Marking it purged.\n",
+	 mr->VolumeName);
       if (!(stat = mark_media_purged(ua, mr))) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
+	 goto bail_out;
       }
    }
 
@@ -539,7 +565,7 @@ int mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
        strcmp(mr->VolStatus, "Full")   == 0 ||
        strcmp(mr->VolStatus, "Used")   == 0 || 
        strcmp(mr->VolStatus, "Error")  == 0) {
-      strcpy(mr->VolStatus, "Purged");
+      bstrncpy(mr->VolStatus, "Purged", sizeof(mr->VolStatus));
       if (!db_update_media_record(ua->jcr, ua->db, mr)) {
 	 return 0;
       }

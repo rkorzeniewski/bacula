@@ -359,11 +359,13 @@ static int cancel_cmd(UAContext *ua, char *cmd)
 
    for (i=1; i<ua->argc; i++) {
       if (strcasecmp(ua->argk[i], _("jobid")) == 0) {
+	 uint32_t JobId;
 	 if (!ua->argv[i]) {
 	    break;
 	 }
-	 if (!(jcr=get_jcr_by_id(atoi(ua->argv[i])))) {
-            bsendmsg(ua, _("JobId %d is not running.\n"), atoi(ua->argv[i]));
+	 JobId = str_to_int64(ua->argv[i]);
+	 if (!(jcr=get_jcr_by_id(JobId))) {
+            bsendmsg(ua, _("JobId %d is not running.\n"),  JobId);
 	    return 1;
 	 }
 	 break;
