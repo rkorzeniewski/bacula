@@ -196,7 +196,6 @@ static void do_director_status(UAContext *ua, char *cmd)
    char dt[MAX_TIME_LENGTH], b1[30], b2[30];
    int pool_mem = FALSE;
 
-   Dmsg0(200, "Doing status\n");
    bsendmsg(ua, "%s Version: " VERSION " (" BDATE ") %s %s %s\n", my_name,
 	    HOST_OS, DISTNAME, DISTVER);
    bstrftime(dt, sizeof(dt), daemon_start_time);
@@ -389,17 +388,37 @@ static void do_client_status(UAContext *ua, CLIENT *client)
 
 static void prt_runhdr(UAContext *ua)
 {
-   bsendmsg(ua, _("Level          Type     Scheduled          Name\n"));
-   bsendmsg(ua, _("=================================================================\n"));
+   bsendmsg(ua, _("\nScheduled Jobs:\n"));
+   bsendmsg(ua, _("Level          Type     Scheduled          Name               Volume\n"));
+   bsendmsg(ua, _("===============================================================================\n"));
 }
 
-static void prt_runtime(UAContext *ua, JOB *job, int level, time_t runtime)
+static void prt_runtime(UAContext *ua, JOB *job, int level, time_t runtime, POOL *pool)
 {
    char dt[MAX_TIME_LENGTH];	   
-
+   bool ok = false;
+   JCR *jcr = ua->jcr;
+   MEDIA_DBR mr;
+   memset(&mr, 0, sizeof(mr));
+   if (job->JobType == JT_BACKUP) {
+      jcr->db = NULL;
+      ok = complete_jcr_for_job(jcr, job, pool);
+      if (ok) {
+	 ok = find_next_volume_for_append(jcr, &mr, 0);
+      }
+      if (!ok) {
+         bstrncpy(mr.VolumeName, "*unknown*", sizeof(mr.VolumeName));
+      }
+   }
    bstrftime(dt, sizeof(dt), runtime);
-   bsendmsg(ua, _("%-14s %-8s %-18s %s\n"), 
-      level_to_str(level), job_type_to_str(job->JobType), dt, job->hdr.name);
+   bsendmsg(ua, _("%-14s %-8s %-18s %-18s %s\n"), 
+      level_to_str(level), job_type_to_str(job->JobType), dt, job->hdr.name,
+      mr.VolumeName);
+   if (jcr->db) {
+      db_close_database(jcr, jcr->db);
+      jcr->db = ua->db;
+   }
+
 }
 
 /*	    
@@ -473,7 +492,7 @@ static void print_jobs_scheduled(UAContext *ua)
 			hdr_printed = TRUE;
 			prt_runhdr(ua);
 		     }
-		     prt_runtime(ua, job, level, runtime);
+		     prt_runtime(ua, job, level, runtime, run->pool);
 		     found = TRUE;
 		     break;
 		  }
@@ -501,7 +520,7 @@ static void print_jobs_scheduled(UAContext *ua)
 		  hdr_printed = TRUE;
 		  prt_runhdr(ua);
 	       }
-	       prt_runtime(ua, job, level, runtime);
+	       prt_runtime(ua, job, level, runtime, run->pool);
 	    }
 	 }
       } /* end for loop over runs */ 

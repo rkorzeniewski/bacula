@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                12 September 2003 
+                15 September 2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -23,6 +23,7 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.32:
+- Document list nextvol and new format status dir.
 - Document new records in Director. SDAddress SDDeviceName, SDPassword.
   FDPassword, FDAddress, DBAddress, DBPort, DBPassword.
 - It is generally safe to use the drive when the lights stop flashing.
@@ -34,10 +35,9 @@ For 1.32:
 - Allow a slot or range of slots on the label barcodes command.
   when the magazine is changed.
 - Don't print "Warning: Wrong Volume mounted ..." if mounting second volume.
-- Implement List Volume Job=xxx  or List scheduled volumes or Status Director 
-- May variable expansion work correctly.
 - LabelFormat on tape volume apparently creates the db record but 
   never actually labels the volume.
+- Copy static programs into install directory.
 
 For 1.33
 - Think about changing Storage resource Device record to be
@@ -912,3 +912,5 @@ Done: (see kernsdone for more)
 - Document SDConnectTimeout (in FD).
 - Add restore by filename test.
 - Document restore by files.
+- Make variable expansion work correctly.
+- Implement List Volume Job=xxx  or List scheduled volumes or Status Director 

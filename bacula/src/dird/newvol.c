@@ -41,7 +41,7 @@ static int perform_full_name_substitution(JCR *jcr, MEDIA_DBR *mr, POOL_DBR *pr)
 
 
 /*
- * Really crude automatic Volume name creation using
+ * Automatic Volume name creation using
  *  LabelFormat. We assume that if this routine is being
  *  called the Volume will be labeled, so we set the LabelDate.
  */

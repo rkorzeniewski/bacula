@@ -443,7 +443,7 @@ strtoll(const char *ptr, char **endptr, int base)
  * Bacula's implementation of fgets(). The difference is that it handles
  *   being interrupted by a signal (e.g. a SIGCHLD).
  */
-#undef bfgets
+#undef fgetc
 char *bfgets(char *s, int size, FILE *fd)
 {
    char *p = s;
