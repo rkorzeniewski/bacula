@@ -20,6 +20,8 @@ Testing to do: (painful)
 - multiple simultaneous Volumes
 
 For 1.30 release:
+- Remove kern and kelvin from mysql_grant...
+- Install grant_mysql...
 - Look at Python for a Bacula scripting language -- www.python.org
 - add #define ENABLE_NLS for Gnome compile on SuSE.
 - Need define of int_least16_t in sha1.h for SuSE.
