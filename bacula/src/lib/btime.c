@@ -55,6 +55,11 @@ void get_current_time(struct date_time *dt)
 #endif
 }
 
+btime_t get_current_btime()
+{
+   return (btime_t)time(NULL);
+}
+
 
 /*  date_encode  --  Encode civil date as a Julian day number.	*/
 

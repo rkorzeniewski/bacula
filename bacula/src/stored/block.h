@@ -34,21 +34,43 @@
 #define DEFAULT_BLOCK_SIZE (512 * 126)  /* 64,512 N.B. do not use 65,636 here */
 
 /* Block Header definitions. */
-#define BLKHDR_ID        "BB01"
+#define BLKHDR1_ID       "BB01"
+#define BLKHDR2_ID       "BB02"
 #define BLKHDR_ID_LENGTH  4
 #define BLKHDR_CS_LENGTH  4             /* checksum length */
-#define BLKHDR_LENGTH    16             /* Total length */
+#define BLKHDR1_LENGTH   16             /* Total length */
+#define BLKHDR2_LENGTH   24             /* Total length */
+
+#define WRITE_BLKHDR_ID     BLKHDR1_ID
+#define WRITE_BLKHDR_LENGTH BLKHDR1_LENGTH
+#define BLOCK_VER               1
+
+/* Record header definitions */
+#define RECHDR1_LENGTH      20
+#define RECHDR2_LENGTH      12
+#define WRITE_RECHDR_LENGTH RECHDR1_LENGTH
+
+/* Tape label and version definitions */
+#define BaculaId "Bacula 0.9 mortal\n"
+#define BaculaTapeVersion 10
+#define OldCompatibleBaculaTapeVersion1  10
+#define OldCompatibleBaculaTapeVersion2   9
+
 
 /*
  * This is the Media structure for a block header
  *  Note, when written, it is serialized.
- */
-typedef struct s_block_hdr {
+
    uint32_t CheckSum;
-   uint32_t block_size;
+   uint32_t block_len; 
    uint32_t BlockNumber;
-   char     Id[BLKHDR_ID_LENGTH+1];
-} BLOCK_HDR;
+   char     Id[BLKHDR_ID_LENGTH];
+
+ * for BB02 block, we also have
+
+   uint32_t VolSessionId;
+   uint32_t VolSessionTime;
+ */
 
 /*
  * DEV_BLOCK for reading and writing blocks.
@@ -70,6 +92,9 @@ typedef struct s_dev_block {
    uint32_t buf_len;                  /* max/default block length */
    uint32_t BlockNumber;              /* sequential block number */
    uint32_t read_len;                 /* bytes read into buffer */  
+   uint32_t VolSessionId;             /* */
+   uint32_t VolSessionTime;           /* */
+   int      BlockVer;                 /* block version 1 or 2 */
    int failed_write;                  /* set if write failed */
    char *bufp;                        /* pointer into buffer */
    POOLMEM *buf;                      /* actual data buffer. This is a 

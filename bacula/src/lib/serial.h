@@ -31,6 +31,7 @@ extern void serial_int32(uint8_t * * ptr, int32_t v);
 extern void serial_uint32(uint8_t * * ptr, uint32_t v);
 extern void serial_int64(uint8_t * * ptr, int64_t v);
 extern void serial_uint64(uint8_t * * ptr, uint64_t v);
+extern void serial_btime(uint8_t * * ptr, btime_t v);
 extern void serial_float64(uint8_t * * ptr, float64_t v);
 extern int  serial_string(uint8_t * ptr, char * str);
 extern int16_t unserial_int16(uint8_t * * ptr);
@@ -39,6 +40,7 @@ extern int32_t unserial_int32(uint8_t * * ptr);
 extern uint32_t unserial_uint32(uint8_t * * ptr);
 extern int64_t unserial_int64(uint8_t * * ptr);
 extern uint64_t unserial_uint64(uint8_t * * ptr);
+extern btime_t unserial_btime(uint8_t * * ptr);
 extern float64_t unserial_float64(uint8_t * * ptr);
 extern int unserial_string(uint8_t * ptr, char * str);
 
@@ -97,6 +99,9 @@ extern int unserial_string(uint8_t * ptr, char * str);
 /*  64 bit unsigned integer  */
 #define ser_uint64(x)	serial_uint64(&ser_ptr, x)
 
+/* btime -- 64 bit unsigned integer */
+#define ser_btime(x)    serial_btime(&ser_ptr, x)
+
 
 /*  64 bit IEEE floating point number  */
 #define ser_float64(x)	serial_float64(&ser_ptr, x)
@@ -134,6 +139,9 @@ extern int unserial_string(uint8_t * ptr, char * str);
 #define unser_int64(x)	(x) = unserial_int64(&ser_ptr)
 /*  64 bit unsigned integer  */
 #define unser_uint64(x) (x) = unserial_uint64(&ser_ptr)
+
+/* btime -- 64 bit unsigned integer */
+#define unser_btime(x) (x) = unserial_btime(&ser_ptr)
 
 /*  64 bit IEEE floating point number  */
 #define unser_float64(x)(x) = unserial_float64(&ser_ptr)

@@ -192,10 +192,11 @@ struct s_jcr {
    long Ticket;                       /* ticket for this job */
    uint32_t VolFirstFile;             /* First file index this Volume */
    uint32_t FileIndex;                /* Current File Index */
-   uint32_t start_block;              /* Start write block */
-   uint32_t start_file;               /* Start write file */
-   uint32_t end_block;                /* Ending block written */
-   uint32_t end_file;                 /* End file written */
+   uint32_t EndFile;                  /* End file written */
+   uint32_t StartFile;                /* Start write file */
+   uint32_t StartBlock;               /* Start write block */
+   uint32_t EndBlock;                 /* Ending block written */
+   uint32_t FileId;                   /* Last file id inserted */
 
    /* Parmaters for Open Read Session */
    BSR *bsr;                          /* Bootstrap record -- has everything */

@@ -36,7 +36,7 @@
  */
 
 /*
- * Convert a string to btime_t (64 bit seconds)
+ * Convert a string duration to btime_t (64 bit seconds)
  * Returns 0: if error
 	   1: if OK, and value stored in value
  */
@@ -76,6 +76,9 @@ int string_to_btime(char *str, btime_t *value)
 
 }
 
+/*
+ * Edit a btime "duration" into ASCII
+ */
 char *edit_btime(btime_t val, char *buf)
 {
    char mybuf[30];

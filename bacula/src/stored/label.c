@@ -37,11 +37,6 @@ static void create_volume_label_record(JCR *jcr, DEVICE *dev, DEV_RECORD *rec);
 extern char my_name[];
 extern int debug_level;
 
-char BaculaId[] =  "Bacula 0.9 mortal\n";
-unsigned int BaculaTapeVersion = 10;
-unsigned int OldCompatableBaculaTapeVersion = 9;
-
-
 /*
  * Read the volume label
  *
@@ -65,6 +60,7 @@ int read_dev_volume_label(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
    char *VolName = jcr->VolumeName;
    DEV_RECORD *record;
+   int ok = 0;
 
    Dmsg2(30, "Enter read_volume_label device=%s vol=%s\n", 
       dev_name(dev), VolName);
@@ -100,13 +96,20 @@ int read_dev_volume_label(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    /* Read the device label block */
    record = new_record();
    Dmsg0(90, "Big if statement in read_volume_label\n");
-   if (!read_block_from_dev(dev, block) || 
-       !read_record_from_block(block, record) ||
-       !unser_volume_label(dev, record) || 
-	strcmp(dev->VolHdr.Id, BaculaId) != 0) {
-
+   if (!read_block_from_dev(dev, block)) { 
       Mmsg(&jcr->errmsg, _("Volume on %s is not a Bacula labeled Volume, \
 because:\n   %s"), dev_name(dev), strerror_dev(dev));
+   } else if (!read_record_from_block(block, record)) {
+      Mmsg(&jcr->errmsg, _("Could not read Volume label from block.\n"));
+   } else if (!unser_volume_label(dev, record)) {
+      Mmsg(&jcr->errmsg, _("Could not unserialize Volume label: %s\n"),
+	 strerror_dev(dev));
+   } else if (strcmp(dev->VolHdr.Id, BaculaId) != 0) {
+      Mmsg(&jcr->errmsg, _("Volume Header Id bad: %s\n"), dev->VolHdr.Id);
+   } else {
+      ok = 1;
+   }
+   if (!ok) {
       free_record(record);
       empty_block(block);
       rewind_dev(dev);
@@ -118,7 +121,8 @@ because:\n   %s"), dev_name(dev), strerror_dev(dev));
    rewind_dev(dev);
 
    if (dev->VolHdr.VerNum != BaculaTapeVersion && 
-       dev->VolHdr.VerNum != OldCompatableBaculaTapeVersion) {
+       dev->VolHdr.VerNum != OldCompatibleBaculaTapeVersion1 &&  
+       dev->VolHdr.VerNum != OldCompatibleBaculaTapeVersion2) {
       Mmsg(&jcr->errmsg, _("Volume on %s has wrong Bacula version. Wanted %d got %d\n"),
 	 dev_name(dev), BaculaTapeVersion, dev->VolHdr.VerNum);
       return jcr->label_status = VOL_VERSION_ERROR;
@@ -191,10 +195,15 @@ int unser_volume_label(DEVICE *dev, DEV_RECORD *rec)
 
    unser_uint32(Fld(VerNum));
 
+   if (Fld(VerNum) >= 11) {
+      unser_btime(Fld(label_btime));
+      unser_btime(Fld(write_btime));
+   } else { /* old way */ 
    unser_float64(Fld(label_date));
    unser_float64(Fld(label_time));
-   unser_float64(Fld(write_date));
-   unser_float64(Fld(write_time));
+   }
+   unser_float64(Fld(write_date));    /* Unused with VerNum >= 11 */
+   unser_float64(Fld(write_time));    /* Unused with VerNum >= 11 */
 
    unser_string(Fld(VolName));
    unser_string(Fld(PrevVolName));
@@ -264,15 +273,22 @@ static void create_volume_label_record(JCR *jcr, DEVICE *dev, DEV_RECORD *rec)
 
    ser_uint32(Fld(VerNum));
 
+   if (Fld(VerNum >= 11)) {
+      ser_btime(Fld(label_btime));
+      Fld(write_btime) = get_current_btime();
+      ser_btime(Fld(write_btime));
+      Fld(write_date) = 0;
+      Fld(write_time) = 0;
+   } else {
    ser_float64(Fld(label_date));
    ser_float64(Fld(label_time));
-
    get_current_time(&dt);
    Fld(write_date) = dt.julian_day_number;
    Fld(write_time) = dt.julian_day_fraction;
+   }
 
-   ser_float64(Fld(write_date));
-   ser_float64(Fld(write_time));
+   ser_float64(Fld(write_date));   /* unused if VerNum >= 11 */
+   ser_float64(Fld(write_time));   /* unused if VerNum >= 11 */
 
    ser_string(Fld(VolName));
    ser_string(Fld(PrevVolName));
@@ -326,9 +342,15 @@ static int create_volume_label(DEVICE *dev, char *VolName)
    strcpy(dev->VolHdr.PoolType, "Backup");
 
    /* Put label time/date in header */
+   if (BaculaTapeVersion >= 11) {
+      dev->VolHdr.label_btime = get_current_btime();
+      dev->VolHdr.label_date = 0;
+      dev->VolHdr.label_time = 0;
+   } else {
    get_current_time(&dt);
    dev->VolHdr.label_date = dt.julian_day_number;
    dev->VolHdr.label_time = dt.julian_day_fraction;
+   }
 
    strcpy(dev->VolHdr.LabelProg, my_name);
    sprintf(dev->VolHdr.ProgVersion, "Ver. %s %s", VERSION, DATE);
@@ -374,7 +396,7 @@ int write_volume_label_to_dev(JCR *jcr, DEVRES *device, char *VolName, char *Poo
 
    block = new_block(dev);
    memset(&rec, 0, sizeof(rec));
-   rec.data = (char *) get_memory(SER_LENGTH_Volume_Label);
+   rec.data = get_memory(SER_LENGTH_Volume_Label);
    create_volume_label_record(jcr, dev, &rec);
    rec.Stream = 0;
 
@@ -427,9 +449,14 @@ void create_session_label(JCR *jcr, DEV_RECORD *rec, int label)
 
    ser_uint32(jcr->JobId);
 
+   if (BaculaTapeVersion >= 11) {
+      ser_btime(get_current_btime());
+      ser_float64(0);
+   } else {
    get_current_time(&dt);
    ser_float64(dt.julian_day_number);
    ser_float64(dt.julian_day_fraction);
+   }
 
    ser_string(jcr->pool_name);
    ser_string(jcr->pool_type);
@@ -444,11 +471,13 @@ void create_session_label(JCR *jcr, DEV_RECORD *rec, int label)
    if (label == EOS_LABEL) {
       ser_uint32(jcr->JobFiles);
       ser_uint64(jcr->JobBytes);
-      ser_uint32(jcr->start_block);
-      ser_uint32(jcr->end_block);
-      ser_uint32(jcr->start_file);
-      ser_uint32(jcr->end_file);
+      ser_uint32(jcr->StartBlock);
+      ser_uint32(jcr->EndBlock);
+      ser_uint32(jcr->StartFile);
+      ser_uint32(jcr->EndFile);
       ser_uint32(jcr->JobErrors);
+      /* Added in VerNum 11 */
+      ser_uint32(jcr->JobStatus);
    }
    ser_end(rec->data, SER_LENGTH_Session_Label);
    rec->data_len = ser_length(rec->data);
@@ -467,12 +496,12 @@ int write_session_label(JCR *jcr, DEV_BLOCK *block, int label)
    Dmsg1(90, "session_label record=%x\n", rec);
    switch (label) {
       case SOS_LABEL:
-	 jcr->start_block = dev->block_num;
-	 jcr->start_file  = dev->file;
+	 jcr->StartBlock = dev->block_num;
+	 jcr->StartFile  = dev->file;
 	 break;
       case EOS_LABEL:
-	 jcr->end_block = dev->block_num;
-	 jcr->end_file = dev->file;
+	 jcr->EndBlock = dev->block_num;
+	 jcr->EndFile = dev->file;
 	 break;
       default:
          Jmsg1(jcr, M_ABORT, 0, _("Bad session label = %d\n"), label);
@@ -519,12 +548,13 @@ remainder=%d\n", jcr->JobId,
 
 void dump_volume_label(DEVICE *dev)
 {
-   int dbl;
+   int dbl = debug_level;
    uint32_t File;
    char *LabelType, buf[30];
    struct tm tm;
    struct date_time dt;
 
+   debug_level = 1;
    File = dev->file;
    switch (dev->VolHdr.LabelType) {
       case PRE_LABEL:
@@ -542,6 +572,8 @@ void dump_volume_label(DEVICE *dev)
       case EOS_LABEL:
          LabelType = "EOS_LABEL";
 	 break;
+      case EOT_LABEL:
+	 goto bail_out;
       default:
 	 LabelType = buf;
          sprintf(buf, "Unknown %d", dev->VolHdr.LabelType);
@@ -549,8 +581,6 @@ void dump_volume_label(DEVICE *dev)
    }
 	      
    
-   dbl = debug_level;
-   debug_level = 1;
    Pmsg11(-1, "\nVolume Label:\n\
 Id                : %s\
 VerNo             : %d\n\
@@ -570,12 +600,20 @@ HostName          : %s\n\
 	     dev->VolHdr.PoolName, dev->VolHdr.MediaType, 
 	     dev->VolHdr.PoolType, dev->VolHdr.HostName);
 
+   if (dev->VolHdr.VerNum >= 11) {
+      char dt[50];
+      bstrftime(dt, sizeof(dt), (time_t)dev->VolHdr.label_btime);
+      Pmsg1(-1, "Date label written: %s\n", dt);
+   } else {
    dt.julian_day_number   = dev->VolHdr.label_date;
    dt.julian_day_fraction = dev->VolHdr.label_time;
    tm_decode(&dt, &tm);
    Pmsg5(-1, "\
 Date label written: %04d-%02d-%02d at %02d:%02d\n", 
       tm.tm_year+1900, tm.tm_mon+1, tm.tm_mday, tm.tm_hour, tm.tm_min);
+   }
+
+bail_out:
    debug_level = dbl;
 }
 
@@ -587,13 +625,17 @@ int unser_session_label(SESSION_LABEL *label, DEV_RECORD *rec)
    unser_string(label->Id);
    unser_uint32(label->VerNum);
    unser_uint32(label->JobId);
+   if (label->VerNum >= 11) {
+      unser_btime(label->write_btime);
+   } else {
    unser_float64(label->write_date);
+   }
    unser_float64(label->write_time);
    unser_string(label->PoolName);
    unser_string(label->PoolType);
    unser_string(label->JobName);
    unser_string(label->ClientName);
-   if (label->VerNum > 9) {
+   if (label->VerNum >= 10) {
       unser_string(label->Job); 	 /* Unique name of this Job */
       unser_string(label->FileSetName);
       unser_uint32(label->JobType);
@@ -602,11 +644,16 @@ int unser_session_label(SESSION_LABEL *label, DEV_RECORD *rec)
    if (rec->FileIndex == EOS_LABEL) {
       unser_uint32(label->JobFiles);
       unser_uint64(label->JobBytes);
-      unser_uint32(label->start_block);
-      unser_uint32(label->end_block);
-      unser_uint32(label->start_file);
-      unser_uint32(label->end_file);
+      unser_uint32(label->StartBlock);
+      unser_uint32(label->EndBlock);
+      unser_uint32(label->StartFile);
+      unser_uint32(label->EndFile);
       unser_uint32(label->JobErrors);
+      if (label->VerNum >= 11) {
+	 unser_uint32(label->JobStatus);
+      } else {
+	 label->JobStatus = JS_Terminated; /* kludge */
+      }
    }	  
    return 1;
 }
@@ -620,18 +667,18 @@ static void dump_session_label(DEV_RECORD *rec, char *type)
    SESSION_LABEL label;
    char ec1[30], ec2[30], ec3[30], ec4[30], ec5[30], ec6[30], ec7[30];
 
-
    unser_session_label(&label, rec);
    dbl = debug_level;
    debug_level = 1;
-   Pmsg6(-1, "\n%s Record:\n\
+   Pmsg7(-1, "\n%s Record:\n\
 JobId             : %d\n\
+VerNum            : %d\n\
 PoolName          : %s\n\
 PoolType          : %s\n\
 JobName           : %s\n\
 ClientName        : %s\n\
-",    type, 
-      label.JobId, label.PoolName, label.PoolType,
+",    type, label.JobId, label.VerNum,
+      label.PoolName, label.PoolType,
       label.JobName, label.ClientName);
 
    if (label.VerNum >= 10) {
@@ -644,7 +691,7 @@ JobLevel          : %c\n\
    }
 
    if (rec->FileIndex == EOS_LABEL) {
-      Pmsg7(-1, "\
+      Pmsg8(-1, "\
 JobFiles          : %s\n\
 JobBytes          : %s\n\
 StartBlock        : %s\n\
@@ -652,21 +699,29 @@ EndBlock          : %s\n\
 StartFile         : %s\n\
 EndFile           : %s\n\
 JobErrors         : %s\n\
+JobStatus         : %c\n\
 ",
 	 edit_uint64_with_commas(label.JobFiles, ec1),
 	 edit_uint64_with_commas(label.JobBytes, ec2),
-	 edit_uint64_with_commas(label.start_block, ec3),
-	 edit_uint64_with_commas(label.end_block, ec4),
-	 edit_uint64_with_commas(label.start_file, ec5),
-	 edit_uint64_with_commas(label.end_file, ec6),
-	 edit_uint64_with_commas(label.JobErrors, ec7));
+	 edit_uint64_with_commas(label.StartBlock, ec3),
+	 edit_uint64_with_commas(label.EndBlock, ec4),
+	 edit_uint64_with_commas(label.StartFile, ec5),
+	 edit_uint64_with_commas(label.EndFile, ec6),
+	 edit_uint64_with_commas(label.JobErrors, ec7), 
+	 label.JobStatus);
    }
+   if (label.VerNum >= 11) {
+      char dt[50];
+      bstrftime(dt, sizeof(dt), (time_t)label.write_btime);
+      Pmsg1(-1, _("Date written      : %s\n"), dt);
+   } else {
    dt.julian_day_number   = label.write_date;
    dt.julian_day_fraction = label.write_time;
    tm_decode(&dt, &tm);
-   Pmsg5(-1, "\
-Date written      : %04d-%02d-%02d at %02d:%02d\n", 
+      Pmsg5(-1, _("\
+Date written      : %04d-%02d-%02d at %02d:%02d\n"),
       tm.tm_year+1900, tm.tm_mon+1, tm.tm_mday, tm.tm_hour, tm.tm_min);
+   }
 
    debug_level = dbl;
 }
@@ -680,22 +735,25 @@ void dump_label_record(DEVICE *dev, DEV_RECORD *rec, int verbose)
    debug_level = 1;
    switch (rec->FileIndex) {
       case PRE_LABEL:
-         type = "Fresh Volume";   
+         type = _("Fresh Volume");   
 	 break;
       case VOL_LABEL:
-         type = "Volume";
+         type = _("Volume");
 	 break;
       case SOS_LABEL:
-         type = "Begin Session";
+         type = _("Begin Session");
 	 break;
       case EOS_LABEL:
-         type = "End Session";
+         type = _("End Session");
 	 break;
       case EOM_LABEL:
-         type = "End of Media";
+         type = _("End of Media");
+	 break;
+      case EOT_LABEL:
+         type = ("End of Tape");
 	 break;
       default:
-         type = "Unknown";
+         type = _("Unknown");
 	 break;
    }
    if (verbose) {
@@ -712,17 +770,38 @@ void dump_label_record(DEVICE *dev, DEV_RECORD *rec, int verbose)
 	    dump_session_label(rec, type);
 	    break;
 	 case EOM_LABEL:
-            Pmsg5(-1, "%s Record: VSessId=%d VSessTime=%d JobId=%d DataLen=%d\n",
+            Pmsg5(-1, "%s Record: SessId=%d SessTime=%d JobId=%d DataLen=%d\n",
 	       type, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
 	    break;
+	 case EOT_LABEL:
+            Pmsg0(-1, _("End of physical tape.\n"));
+	    break;
 	 default:
-            Pmsg5(-1, "%s Record: VSessId=%d VSessTime=%d JobId=%d DataLen=%d\n",
+            Pmsg5(-1, "%s Record: SessId=%d SessTime=%d JobId=%d DataLen=%d\n",
 	       type, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
 	    break;
       }
    } else {
-      Pmsg5(-1, "%s Record: VSessId=%d VSessTime=%d JobId=%d DataLen=%d\n",
+      switch (rec->FileIndex) {
+	 case SOS_LABEL:
+	 case EOS_LABEL:
+	    SESSION_LABEL label;
+	    unser_session_label(&label, rec);
+            Pmsg6(-1, "%s Record: SessId=%d SessTime=%d JobId=%d Level=%c \
+Type=%c\n",
+	       type, rec->VolSessionId, rec->VolSessionTime, rec->Stream, 
+	       label.JobLevel, label.JobType);
+	    break;
+	 case EOM_LABEL:
+	 case PRE_LABEL:
+	 case VOL_LABEL:
+	 default:
+            Pmsg5(-1, "%s Record: SessId=%d SessTime=%d JobId=%d DataLen=%d\n",
 	 type, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
+	    break;
+	 case EOT_LABEL:
+	    break;
+      }
    }
    debug_level = dbl;
 }

@@ -83,4 +83,6 @@ extern void tm_encode(struct date_time *dt, struct tm *tm);
 extern void tm_decode(struct date_time *dt, struct tm *tm);
 extern void get_current_time(struct date_time *dt);
 
+extern btime_t get_current_btime(void);
+
 #endif /* __btime_INCLUDED */

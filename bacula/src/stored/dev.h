@@ -147,7 +147,7 @@ typedef struct s_device {
    char *errmsg;                      /* nicely edited error message */
    uint32_t block_num;                /* current block number base 0 */
    uint32_t file;                     /* current file number base 0 */
-   uint32_t file_bytes;               /* bytes in this file */
+   uint64_t file_bytes;               /* bytes in this file */
    uint32_t LastBlockNumWritten;      /* last block written */
    uint32_t min_block_size;           /* min block size */
    uint32_t max_block_size;           /* max block size */

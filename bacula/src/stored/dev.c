@@ -315,7 +315,7 @@ int rewind_dev(DEVICE *dev)
 	 break;
       }
    } else {
-      if (lseek(dev->fd, 0, SEEK_SET) < 0) {
+      if (lseek(dev->fd, (off_t)0, SEEK_SET) < 0) {
 	 dev->dev_errno = errno;
          Mmsg2(&dev->errmsg, _("lseek error on %s. ERR=%s.\n"),
 	    dev->dev_name, strerror(dev->dev_errno));
@@ -336,7 +336,7 @@ eod_dev(DEVICE *dev)
    struct mtop mt_com;
    struct mtget mt_stat;
    int stat = 0;
-   int32_t pos;
+   off_t pos;
 
    Dmsg0(29, "eod_dev\n");
    if (dev->state & ST_EOT) {
@@ -346,8 +346,9 @@ eod_dev(DEVICE *dev)
    dev->block_num = dev->file = 0;
    dev->file_bytes = 0;
    if (!(dev->state & ST_TAPE)) {
-      pos = lseek(dev->fd, 0, SEEK_END);
-      if (pos > 0) {
+      pos = lseek(dev->fd, (off_t)0, SEEK_END);
+//    Dmsg1(000, "====== Seek to %lld\n", pos);
+      if (pos >= 0) {
 	 update_pos_dev(dev);
 	 dev->state |= ST_EOT;
 	 return 1;
@@ -404,7 +405,7 @@ int update_pos_dev(DEVICE *dev)
 #ifdef xxxx
    struct mtget mt_stat;
 #endif
-   int64_t pos;
+   off_t pos;
    int stat = 0;
 
    if (dev->fd < 0) {
@@ -418,15 +419,15 @@ int update_pos_dev(DEVICE *dev)
    if (!(dev->state & ST_TAPE)) {
       dev->file = 0;
       dev->file_bytes = 0;
-      pos = lseek(dev->fd, 0, SEEK_CUR);
+      pos = lseek(dev->fd, (off_t)0, SEEK_CUR);
       if (pos < 0) {
-         Dmsg1(200, "Seek error: ERR=%s\n", strerror(dev->dev_errno));
-	 pos = 0;
+         Dmsg1(000, "Seek error: ERR=%s\n", strerror(dev->dev_errno));
 	 dev->dev_errno = errno;
          Mmsg2(&dev->errmsg, _("lseek error on %s. ERR=%s.\n"),
 	    dev->dev_name, strerror(dev->dev_errno));
       } else {
 	 stat = 1;
+	 dev->file_bytes = pos;
       }
       return stat;
    }

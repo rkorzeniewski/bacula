@@ -40,20 +40,24 @@
 #define VOL_LABEL_ERROR   7               /* Bad label type */
 
 
-/* Length of Record Header (5 * 4 bytes) */
-#define RECHDR_LENGTH 20
+/*  See block.h for RECHDR_LENGTH */
 
 /*
  * This is the Media structure for a record header.
  *  NB: when it is written it is serialized.
- */
-typedef struct s_record_hdr {
+
    uint32_t VolSessionId;
    uint32_t VolSessionTime;
+
+ * The above 8 bytes are only written in a BB01 block, BB02
+ *  and later blocks contain these values in the block header
+ *  rather than the record header.
+
    int32_t  FileIndex;
    int32_t  Stream;
    uint32_t data_len;
-} RECORD_HDR;
+
+ */
 
 /* Record state bit definitions */
 #define REC_NO_HEADER        0x01     /* No header read */
@@ -85,7 +89,7 @@ typedef struct s_dev_rec {
    uint32_t data_len;                 /* current record length */
    uint32_t remainder;                /* remaining bytes to read/write */
    uint32_t state;                    /* state bits */
-   uint8_t  ser_buf[RECHDR_LENGTH];   /* serialized record header goes here */
+   uint8_t  ser_buf[WRITE_RECHDR_LENGTH];   /* serialized record header goes here */
    POOLMEM *data;                     /* Record data. This MUST be a memory pool item */
 } DEV_RECORD;
 
@@ -100,11 +104,15 @@ typedef struct s_dev_rec {
 #define EOM_LABEL   -3                /* Writen at end of tape */        
 #define SOS_LABEL   -4                /* Start of Session */
 #define EOS_LABEL   -5                /* End of Session */
- 
+#define EOT_LABEL   -6                /* End of physical tape (2 eofs) */
 
 /* 
- *   Volume Label Record
+ *   Volume Label Record.  This is the in-memory definition. The
+ *     tape definition is defined in the serialization code itself
+ *     ser_volume_label() and unser_volume_label() and is slightly different.
  */
+
+ 
 struct Volume_Label {
   /*  
    * The first items in this structure are saved
@@ -121,8 +129,15 @@ struct Volume_Label {
 
   uint32_t VerNum;                    /* Label version number */
 
+  /* VerNum <= 10 */
   float64_t label_date;               /* Date tape labeled */
   float64_t label_time;               /* Time tape labeled */
+
+  /* VerNum >= 11 */
+  btime_t   label_btime;              /* tdate tape labeled */
+  btime_t   write_btime;              /* tdate tape written */
+
+  /* Unused with VerNum >= 11 */
   float64_t write_date;               /* Date this label written */
   float64_t write_time;               /* Time this label written */
 
@@ -155,7 +170,13 @@ struct Session_Label {
   uint32_t JobId;                     /* Job id */
   uint32_t VolumeIndex;               /* Sequence no of volume for this job */
 
+  /* VerNum >= 11 */
+  btime_t   write_btime;              /* Tdate this label written */
+
+  /* VerNum < 11 */
   float64_t write_date;               /* Date this label written */
+
+  /* Unused VerNum >= 11 */
   float64_t write_time;               /* Time this label written */
 
   char PoolName[MAX_NAME_LENGTH];     /* Pool name */
@@ -169,11 +190,12 @@ struct Session_Label {
   /* The remainder are part of EOS label only */
   uint32_t JobFiles;
   uint64_t JobBytes;
-  uint32_t start_block;
-  uint32_t end_block;
-  uint32_t start_file;
-  uint32_t end_file;
+  uint32_t StartBlock;
+  uint32_t EndBlock;
+  uint32_t StartFile;
+  uint32_t EndFile;
   uint32_t JobErrors;
+  uint32_t JobStatus;                 /* Job status */
 
 };
 typedef struct Session_Label SESSION_LABEL;

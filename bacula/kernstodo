@@ -27,6 +27,7 @@ From Chuck:
   I tried this and it didn't find sqlite.h
 =======
 
+- Check if GZIP1 is working -- check speed.
 - Put MaximumVolumeSize in Director.
 - Document how to cancel a job that is waiting on a Volume. 
   Must "cancel" then "mount".
@@ -609,4 +610,3 @@ Done: (see kernsdone for more)
      
   Another try with tape mounted and Job hung in Director.
 - Write updated bootstrap after every Job.
-

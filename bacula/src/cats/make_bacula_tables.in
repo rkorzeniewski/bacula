@@ -4,7 +4,9 @@
 #  Bacula tables for either MySQL or SQLite
 #
 if test xsqlite = x@DB_NAME@ ; then
+  echo "Making SQLite tables"
   source ./make_sqlite_tables
 else
+  echo "Making MySQL tables"
   source ./make_mysql_tables
 fi

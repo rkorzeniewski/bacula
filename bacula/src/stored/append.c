@@ -27,9 +27,6 @@
 #include "bacula.h"
 #include "stored.h"
 
-extern int  FiledDataChan;	      /* File daemon data channel (port) */
-extern int BaculaTapeVersion;	      /* Version number */
-extern char BaculaId[]; 	      /* Id string */
 
 /* Responses sent to the File daemon */
 static char OK_data[]    = "3000 OK data\n";
@@ -211,14 +208,17 @@ int do_append_data(JCR *jcr)
       }
    }
    /* 
-    *******FIXME***** we should put the ok status in the End of
-    * session label 
-    *
     *   We probably need a new flag that says "Do not attempt
     *   to write because there is no tape".
     */
    sm_check(__FILE__, __LINE__, False);
    Dmsg0(90, "Write_end_session_label()\n");
+   /* Create Job status for end of session label */
+   if (!job_cancelled(jcr) && ok) {
+      jcr->JobStatus = JS_Terminated;
+   } else if (!ok) {
+      jcr->JobStatus = JS_ErrorTerminated;
+   }
    if (!write_session_label(jcr, block, EOS_LABEL)) {
       Jmsg1(jcr, M_FATAL, 0, _("Error writting end session label. ERR=%s\n"),
 	  strerror_dev(dev));

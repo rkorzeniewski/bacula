@@ -154,21 +154,25 @@ rem=%d remainder=%d\n",
     */
    if (rec->remainder == 0) {
       /* Require enough room to write a full header */
-      if (remlen >= RECHDR_LENGTH) {
-	 ser_begin(block->bufp, RECHDR_LENGTH);
+      if (remlen >= WRITE_RECHDR_LENGTH) {
+	 ser_begin(block->bufp, WRITE_RECHDR_LENGTH);
+	 if (BLOCK_VER == 1) {
 	 ser_uint32(rec->VolSessionId);
 	 ser_uint32(rec->VolSessionTime);
+	 } else {
+	    block->VolSessionId = rec->VolSessionId;
+	    block->VolSessionTime = rec->VolSessionTime;
+	 }
 	 ser_int32(rec->FileIndex);
 	 ser_int32(rec->Stream);
 	 ser_uint32(rec->data_len);
-	 ASSERT(ser_length(block->bufp) == RECHDR_LENGTH);
 
-	 block->bufp += RECHDR_LENGTH;
-	 block->binbuf += RECHDR_LENGTH;
-	 remlen -= RECHDR_LENGTH;
+	 block->bufp += WRITE_RECHDR_LENGTH;
+	 block->binbuf += WRITE_RECHDR_LENGTH;
+	 remlen -= WRITE_RECHDR_LENGTH;
 	 rec->remainder = rec->data_len;
       } else {
-	 rec->remainder = rec->data_len + RECHDR_LENGTH;
+	 rec->remainder = rec->data_len + WRITE_RECHDR_LENGTH;
 	 sm_check(__FILE__, __LINE__, False);
 	 return 0;
       }
@@ -188,9 +192,14 @@ rem=%d remainder=%d\n",
        * of a previous partially written record, we store the
        * Stream as -Stream in the record header.
        */
-      ser_begin(block->bufp, RECHDR_LENGTH);
+      ser_begin(block->bufp, WRITE_RECHDR_LENGTH);
+      if (BLOCK_VER == 1) {
       ser_uint32(rec->VolSessionId);
       ser_uint32(rec->VolSessionTime);
+      } else {
+	 block->VolSessionId = rec->VolSessionId;
+	 block->VolSessionTime = rec->VolSessionTime;
+      }
       ser_int32(rec->FileIndex);
       if (rec->remainder > rec->data_len) {
 	 ser_int32(rec->Stream);      /* normal full header */
@@ -200,14 +209,13 @@ rem=%d remainder=%d\n",
 	 ser_int32(-rec->Stream);     /* mark this as a continuation record */
 	 ser_uint32(rec->remainder);  /* bytes to do */
       }
-      ASSERT(ser_length(block->bufp) == RECHDR_LENGTH);
 
       /* Require enough room to write a full header */
-      ASSERT(remlen >= RECHDR_LENGTH);
+      ASSERT(remlen >= WRITE_RECHDR_LENGTH);
 
-      block->bufp += RECHDR_LENGTH;
-      block->binbuf += RECHDR_LENGTH;
-      remlen -= RECHDR_LENGTH;
+      block->bufp += WRITE_RECHDR_LENGTH;
+      block->binbuf += WRITE_RECHDR_LENGTH;
+      remlen -= WRITE_RECHDR_LENGTH;
    }
    if (remlen == 0) {
       sm_check(__FILE__, __LINE__, False);
@@ -269,8 +277,8 @@ int can_write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec)
 
    remlen = block->buf_len - block->binbuf;
    if (rec->remainder == 0) {
-      if (remlen >= RECHDR_LENGTH) {
-	 remlen -= RECHDR_LENGTH;
+      if (remlen >= WRITE_RECHDR_LENGTH) {
+	 remlen -= WRITE_RECHDR_LENGTH;
 	 rec->remainder = rec->data_len;
       } else {
 	 return 0;
@@ -302,8 +310,10 @@ int read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
    int32_t  FileIndex;
    int32_t  Stream;
    uint32_t data_bytes;
+   uint32_t rhl;
 
    remlen = block->binbuf;
+   rec->Block = block->BlockNumber;
 
    /* Clear state flags */
    rec->state = 0;
@@ -312,21 +322,32 @@ int read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
     * Get the header. There is always a full header,
     * otherwise we find it in the next block.
     */
-   if (remlen >= RECHDR_LENGTH) {
-      Dmsg3(90, "read_record_block: remlen=%d data_len=%d rem=%d\n", 
-	    remlen, rec->data_len, rec->remainder);
+   Dmsg3(100, "Block=%d Ver=%d size=%u\n", block->BlockNumber, block->BlockVer,
+	 block->block_len);
+   if (block->BlockVer == 1) {
+      rhl = RECHDR1_LENGTH;
+   } else {
+      rhl = RECHDR2_LENGTH;
+   }
+   if (remlen >= rhl) {
+      Dmsg4(90, "Enter read_record_block: remlen=%d data_len=%d rem=%d blkver=%d\n", 
+	    remlen, rec->data_len, rec->remainder, block->BlockVer);
 
-      unser_begin(block->bufp, RECHDR_LENGTH);
+      unser_begin(block->bufp, WRITE_RECHDR_LENGTH);
+      if (block->BlockVer == 1) {
       unser_uint32(VolSessionId);
       unser_uint32(VolSessionTime);
+      } else {
+	 VolSessionId = block->VolSessionId;
+	 VolSessionTime = block->VolSessionTime;
+      }
       unser_int32(FileIndex);
       unser_int32(Stream);
       unser_uint32(data_bytes);
 
-      ASSERT(unser_length(block->bufp) == RECHDR_LENGTH);
-      block->bufp += RECHDR_LENGTH;
-      block->binbuf -= RECHDR_LENGTH;
-      remlen -= RECHDR_LENGTH;
+      block->bufp += rhl;
+      block->binbuf -= rhl;
+      remlen -= rhl;
 
       /* If we are looking for more (remainder!=0), we reject anything
        *  where the VolSessionId and VolSessionTime don't agree
@@ -359,7 +380,7 @@ int read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
       rec->VolSessionTime = VolSessionTime;
       rec->FileIndex = FileIndex;
 
-      Dmsg6(90, "rd_rec_blk() got FI=%s SessId=%d Strm=%s len=%d\n\
+      Dmsg6(100, "rd_rec_blk() got FI=%s SessId=%d Strm=%s len=%u\n\
 remlen=%d data_len=%d\n",
 	 FI_to_ascii(rec->FileIndex), rec->VolSessionId, 
 	 stream_to_ascii(rec->Stream), data_bytes, remlen, rec->data_len);

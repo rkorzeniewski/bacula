@@ -739,7 +739,7 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 void 
 d_msg(char *file, int line, int level, char *fmt,...)
 {
-    char      buf[MAXSTRING];
+    char      buf[2000];
     int       i;
     va_list   arg_ptr;
     int       details = TRUE;

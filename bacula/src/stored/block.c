@@ -48,14 +48,25 @@ void dump_block(DEV_BLOCK *b, char *msg)
    uint32_t VolSessionId, VolSessionTime, data_len;
    int32_t  FileIndex;
    int32_t  Stream;
+   int bhl, rhl;
 
-   unser_begin(b->buf, BLKHDR_LENGTH);
+   unser_begin(b->buf, BLKHDR1_LENGTH);
    unser_uint32(CheckSum);
    unser_uint32(block_len);
    unser_uint32(BlockNumber);
    unser_bytes(Id, BLKHDR_ID_LENGTH);
-   ASSERT(unser_length(b->buf) == BLKHDR_LENGTH);
+   ASSERT(unser_length(b->buf) == BLKHDR1_LENGTH);
    Id[BLKHDR_ID_LENGTH] = 0;
+   if (Id[3] == '2') {
+      unser_uint32(VolSessionId);
+      unser_uint32(VolSessionTime);
+      bhl = BLKHDR2_LENGTH;
+      rhl = RECHDR2_LENGTH;
+   } else {
+      VolSessionId = VolSessionTime = 0;
+      bhl = BLKHDR1_LENGTH;
+      rhl = RECHDR1_LENGTH;
+   }
 
    if (block_len > 100000) {
       Dmsg3(20, "Dump block %s %s blocksize too big %d\n", msg, b, block_len);
@@ -67,20 +78,21 @@ void dump_block(DEV_BLOCK *b, char *msg)
    Dmsg6(10, "Dump block %s %x: size=%d BlkNum=%d\n\
                Hdrcksum=%x cksum=%x\n",
       msg, b, block_len, BlockNumber, CheckSum, BlockCheckSum);
-   p = b->buf + BLKHDR_LENGTH;
-   while (p < (b->buf + block_len+RECHDR_LENGTH)) { 
-      unser_begin(p, RECHDR_LENGTH);
+   p = b->buf + bhl;
+   while (p < (b->buf + block_len+WRITE_RECHDR_LENGTH)) { 
+      unser_begin(p, WRITE_RECHDR_LENGTH);
+      if (rhl == RECHDR1_LENGTH) {
       unser_uint32(VolSessionId);
       unser_uint32(VolSessionTime);
+      }
       unser_int32(FileIndex);
       unser_int32(Stream);
       unser_uint32(data_len);
-      Dmsg6(10, "Rec: VId=%d VT=%d FI=%s Strm=%s len=%d p=%x\n",
+      Dmsg6(10, "   Rec: VId=%d VT=%d FI=%s Strm=%s len=%d p=%x\n",
 	   VolSessionId, VolSessionTime, FI_to_ascii(FileIndex), stream_to_ascii(Stream),
 	   data_len, p);
-      p += data_len + RECHDR_LENGTH;
+      p += data_len + rhl;
   }
-
 }
     
 /*
@@ -113,6 +125,7 @@ DEV_BLOCK *new_block(DEVICE *dev)
       return NULL;
    }
    empty_block(block);
+   block->BlockVer = BLOCK_VER;       /* default write version */
    Dmsg1(90, "Returning new block=%x\n", block);
    return block;
 }
@@ -131,7 +144,7 @@ void free_block(DEV_BLOCK *block)
 /* Empty the block -- for writing */
 void empty_block(DEV_BLOCK *block)
 {
-   block->binbuf = BLKHDR_LENGTH;
+   block->binbuf = WRITE_BLKHDR_LENGTH;
    block->bufp = block->buf + block->binbuf;
    block->read_len = 0;
    block->failed_write = FALSE;
@@ -149,19 +162,22 @@ static void ser_block_header(DEV_BLOCK *block)
    uint32_t block_len = block->binbuf;
    
    Dmsg1(190, "ser_block_header: block_len=%d\n", block_len);
-   ser_begin(block->buf, BLKHDR_LENGTH);
+   ser_begin(block->buf, BLKHDR2_LENGTH);
    ser_uint32(CheckSum);
    ser_uint32(block_len);
    ser_uint32(block->BlockNumber);
-   ser_bytes(BLKHDR_ID, BLKHDR_ID_LENGTH);
-   ASSERT(ser_length(block->buf) == BLKHDR_LENGTH);
+   ser_bytes(WRITE_BLKHDR_ID, BLKHDR_ID_LENGTH);
+   if (BLOCK_VER >= 2) {
+      ser_uint32(block->VolSessionId);
+      ser_uint32(block->VolSessionTime);
+   }
 
    /* Checksum whole block except for the checksum */
    CheckSum = bcrc32((uint8_t *)block->buf+BLKHDR_CS_LENGTH, 
 		 block_len-BLKHDR_CS_LENGTH);
    Dmsg1(190, "ser_bloc_header: checksum=%x\n", CheckSum);
-   ser_begin(block->buf, BLKHDR_LENGTH);
-   ser_uint32(CheckSum);
+   ser_begin(block->buf, BLKHDR2_LENGTH);
+   ser_uint32(CheckSum);	      /* now add checksum to block header */
 }
 
 /*
@@ -179,21 +195,38 @@ static int unser_block_header(DEVICE *dev, DEV_BLOCK *block)
    uint32_t block_len;
    uint32_t EndBlock;
    uint32_t BlockNumber;
+   int bhl;
 
    unser_begin(block->buf, BLKHDR_LENGTH);
    unser_uint32(CheckSum);
    unser_uint32(block_len);
    unser_uint32(BlockNumber);
    unser_bytes(Id, BLKHDR_ID_LENGTH);
-   ASSERT(unser_length(block->buf) == BLKHDR_LENGTH);
+   ASSERT(unser_length(block->buf) == BLKHDR1_LENGTH);
 
    Id[BLKHDR_ID_LENGTH] = 0;
-   block->bufp = block->buf + BLKHDR_LENGTH;
-   if (strncmp(Id, BLKHDR_ID, BLKHDR_ID_LENGTH) != 0) {
+   if (Id[3] == '1') {
+      bhl = BLKHDR1_LENGTH;
+      block->BlockVer = 1;
+      block->bufp = block->buf + bhl;
+      if (strncmp(Id, BLKHDR1_ID, BLKHDR_ID_LENGTH) != 0) {
       Mmsg2(&dev->errmsg, _("Buffer ID error. Wanted: %s, got %s. Buffer discarded.\n"),
-	 BLKHDR_ID, Id);
+	    BLKHDR1_ID, Id);
       Emsg0(M_ERROR, 0, dev->errmsg);
       return 0;
+   }
+   } else {
+      unser_uint32(block->VolSessionId);
+      unser_uint32(block->VolSessionTime);
+      bhl = BLKHDR2_LENGTH;
+      block->BlockVer = 2;
+      block->bufp = block->buf + bhl;
+      if (strncmp(Id, BLKHDR2_ID, BLKHDR_ID_LENGTH) != 0) {
+         Mmsg2(&dev->errmsg, _("Buffer ID error. Wanted: %s, got %s. Buffer discarded.\n"),
+	    BLKHDR2_ID, Id);
+	 Emsg0(M_ERROR, 0, dev->errmsg);
+	 return 0;
+      }
    }
 
    ASSERT(block_len < MAX_BLOCK_LENGTH);    /* temp sanity check */
@@ -205,13 +238,13 @@ static int unser_block_header(DEVICE *dev, DEV_BLOCK *block)
    } else {
       EndBlock = block_len;
    }
-   block->binbuf = EndBlock - BLKHDR_LENGTH;
+   block->binbuf = EndBlock - bhl;
    block->block_len = block_len;
    block->BlockNumber = BlockNumber;
    Dmsg3(190, "Read binbuf = %d %d block_len=%d\n", block->binbuf,
-      BLKHDR_LENGTH, block_len);
+      bhl, block_len);
    if (block_len > block->buf_len) {
-      Mmsg2(&dev->errmsg,  _("Block length %d is greater than buffer %d\n"),
+      Mmsg2(&dev->errmsg,  _("Block length %u is greater than buffer %u\n"),
 	 block_len, block->buf_len);
       Emsg0(M_ERROR, 0, dev->errmsg);
       return 0;
@@ -256,7 +289,7 @@ int write_block_to_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
  */
 int write_block_to_dev(DEVICE *dev, DEV_BLOCK *block)
 {
-   int stat = 0;
+   size_t stat = 0;
    uint32_t wlen;		      /* length to write */
 
 #ifdef NO_TAPE_WRITE_TEST
@@ -267,12 +300,12 @@ int write_block_to_dev(DEVICE *dev, DEV_BLOCK *block)
 
    /* dump_block(block, "before write"); */
    if (dev->state & ST_WEOT) {
-      Dmsg0(90, "return write_block_to_dev with ST_WEOT\n");
+      Dmsg0(100, "return write_block_to_dev with ST_WEOT\n");
       return 0;
    }
    wlen = block->binbuf;
-   if (wlen <= BLKHDR_LENGTH) {       /* Does block have data in it? */
-      Dmsg0(190, "return write_block_to_dev no data to write\n");
+   if (wlen <= WRITE_BLKHDR_LENGTH) {  /* Does block have data in it? */
+      Dmsg0(100, "return write_block_to_dev no data to write\n");
       return 1;
    }
    /* 
@@ -318,7 +351,8 @@ int write_block_to_dev(DEVICE *dev, DEV_BLOCK *block)
    }
 
    dev->VolCatInfo.VolCatWrites++;
-   if ((uint32_t) (stat=write(dev->fd, block->buf, wlen)) != wlen) {
+// Dmsg1(000, "Pos before write=%lld\n", lseek(dev->fd, (off_t)0, SEEK_CUR));
+   if ((uint32_t) (stat=write(dev->fd, block->buf, (size_t)wlen)) != wlen) {
       /* We should check for errno == ENOSPC, BUT many 
        * devices simply report EIO when it is full.
        * with a little more thought we may be able to check
@@ -344,14 +378,16 @@ int write_block_to_dev(DEVICE *dev, DEV_BLOCK *block)
       weof_dev(dev, 1); 	      /* write second eof */
       return 0;
    }
+// Dmsg1(000, "Pos after write=%lld\n", lseek(dev->fd, (off_t)0, SEEK_CUR));
    dev->VolCatInfo.VolCatBytes += block->binbuf;
    dev->VolCatInfo.VolCatBlocks++;   
    dev->file_bytes += block->binbuf;
 
    /* Limit maximum File size on volume to user specified value */
-   if ((dev->max_file_size > 0) &&
-       dev->file_bytes >= dev->max_file_size) {
+   if (dev->state & ST_TAPE) {
+      if ((dev->max_file_size > 0) && dev->file_bytes >= dev->max_file_size) {
       weof_dev(dev, 1); 	      /* write eof */
+   }
    }
 
    Dmsg2(190, "write_block: wrote block %d bytes=%d\n", dev->block_num,
@@ -368,10 +404,8 @@ int read_block_from_device(DEVICE *dev, DEV_BLOCK *block)
 {
    int stat;
    Dmsg0(90, "Enter read_block_from_device\n");
-   new_lock_device(dev);
    lock_device(dev);
    stat = read_block_from_dev(dev, block);
-   new_unlock_device(dev);
    unlock_device(dev);
    Dmsg0(90, "Leave read_block_from_device\n");
    return stat;
@@ -384,10 +418,12 @@ int read_block_from_device(DEVICE *dev, DEV_BLOCK *block)
  */
 int read_block_from_dev(DEVICE *dev, DEV_BLOCK *block)
 {
-   int stat;
+   size_t stat;
 
-   Dmsg0(90, "Full read() in read_block_from_device()\n");
-   if ((stat=read(dev->fd, block->buf, block->buf_len)) < 0) {
+   Dmsg1(100, "Full read() in read_block_from_device() len=%d\n",
+	 block->buf_len);
+// Dmsg1(000, "Pos before read=%lld\n", lseek(dev->fd, (off_t)0, SEEK_CUR));
+   if ((stat=read(dev->fd, block->buf, (size_t)block->buf_len)) < 0) {
 
 /* ***FIXME****  add code to detect buffer too small, and
    reallocate buffer, backspace, and reread.
@@ -401,6 +437,7 @@ int read_block_from_dev(DEVICE *dev, DEV_BLOCK *block)
 	 dev->dev_name, strerror(dev->dev_errno));
       return 0;
    }
+// Dmsg1(000, "Pos after read=%lld\n", lseek(dev->fd, (off_t)0, SEEK_CUR));
    Dmsg1(90, "Read device got %d bytes\n", stat);
    if (stat == 0) {		/* Got EOF ! */
       dev->block_num = block->read_len = 0;
@@ -415,7 +452,7 @@ int read_block_from_dev(DEVICE *dev, DEV_BLOCK *block)
    }
    /* Continue here for successful read */
    block->read_len = stat;	/* save length read */
-   if (block->read_len < BLKHDR_LENGTH) {
+   if (block->read_len < BLKHDR2_LENGTH) {
       Mmsg2(&dev->errmsg, _("Very short block of %d bytes on device %s discarded.\n"), 
 	 block->read_len, dev->dev_name);
       dev->state |= ST_SHORT;	/* set short block */
@@ -448,14 +485,19 @@ int read_block_from_dev(DEVICE *dev, DEV_BLOCK *block)
     * from shuffling blocks around in the buffer. Take a
     * look at this from an efficiency stand point later, but
     * it should only happen once at the end of each job.
+    *
+    * I've been lseek()ing negative relative to SEEK_CUR for 30
+    *	years now. However, it seems that with the new off_t definition,
+    *	it is not possible to seek negative amounts, so we use two
+    *	lseek(). One to get the position, then the second to do an
+    *	absolute positioning -- so much for efficiency.  KES Sep 02.
     */
    Dmsg0(200, "At end of read block\n");
    if (block->read_len > block->block_len && !(dev->state & ST_TAPE)) {
-
-      Dmsg3(200, "Block: %d read_len %d > %d block_len\n", dev->block_num,
-block->read_len, block->block_len);
-      lseek(dev->fd, block->block_len-block->read_len, SEEK_CUR);   
-      Dmsg2(90, "Did lseek blk_size=%d rdlen=%d\n", block->block_len,
+      off_t pos = lseek(dev->fd, (off_t)0, SEEK_CUR); /* get curr pos */
+      pos -= (block->read_len - block->block_len);
+      lseek(dev->fd, pos, SEEK_SET);   
+      Dmsg2(100, "Did lseek blk_size=%d rdlen=%d\n", block->block_len,
 	    block->read_len);
    }
    Dmsg2(200, "Exit read_block read_len=%d block_len=%d\n",

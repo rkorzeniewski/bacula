@@ -120,6 +120,27 @@ void serial_uint64(uint8_t * * const ptr, const uint64_t v)
 }
 
 
+/*  serial_btime  --  Serialise an btime_t 64 bit integer.  */
+
+void serial_btime(uint8_t * * const ptr, const btime_t v)
+{
+    if (htonl(1) == 1L) {
+	memcpy(*ptr, &v, sizeof(btime_t));
+    } else {
+	int i;
+	uint8_t rv[sizeof(btime_t)];
+	uint8_t *pv = (uint8_t *) &v;
+
+	for (i = 0; i < 8; i++) {
+	    rv[i] = pv[7 - i];
+	}
+	memcpy(*ptr, &rv, sizeof(btime_t));
+    }
+    *ptr += sizeof(btime_t);
+}
+
+
+
 /*  serial_float64  --	Serialise a 64 bit IEEE floating point number.
 			This code assumes that the host floating point
 			format is IEEE and that floating point quantities
@@ -196,29 +217,6 @@ uint32_t unserial_uint32(uint8_t * * const ptr)
     return ntohl(vo);
 }
 
-/*  unserial_int64  --	Unserialise a signed 64 bit integer.  */
-
-int64_t unserial_int64(uint8_t * * const ptr)
-{
-    int64_t v;
-
-    if (htonl(1) == 1L) {
-	memcpy(&v, *ptr, sizeof(int64_t));
-    } else {
-	int i;
-	uint8_t rv[sizeof(int64_t)];
-	uint8_t *pv = (uint8_t *) &v;
-
-	memcpy(&v, *ptr, sizeof(int64_t));
-	for (i = 0; i < 8; i++) {
-	    rv[i] = pv[7 - i];
-	}
-	memcpy(&v, &rv, sizeof(int64_t));
-    }
-    *ptr += sizeof(int64_t);
-    return v;
-}
-
 /*  unserial_uint64  --  Unserialise an unsigned 64 bit integer.  */
 
 uint64_t unserial_uint64(uint8_t * * const ptr)
@@ -241,6 +239,30 @@ uint64_t unserial_uint64(uint8_t * * const ptr)
     *ptr += sizeof(uint64_t);
     return v;
 }
+
+/*  unserial_btime  --	Unserialise a btime_t 64 bit integer.  */
+
+uint64_t unserial_btime(uint8_t * * const ptr)
+{
+    btime_t v;
+
+    if (htonl(1) == 1L) {
+	memcpy(&v, *ptr, sizeof(btime_t));
+    } else {
+	int i;
+	uint8_t rv[sizeof(btime_t)];
+	uint8_t *pv = (uint8_t *) &v;
+
+	memcpy(&v, *ptr, sizeof(btime_t));
+	for (i = 0; i < 8; i++) {
+	    rv[i] = pv[7 - i];
+	}
+	memcpy(&v, &rv, sizeof(btime_t));
+    }
+    *ptr += sizeof(btime_t);
+    return v;
+}
+
 
 
 /*  unserial_float64  --  Unserialise a 64 bit IEEE floating point number.

@@ -183,8 +183,8 @@ int dir_create_jobmedia_record(JCR *jcr)
 
    bnet_fsend(dir, Create_job_media, jcr->Job, 
       jcr->VolFirstFile, jcr->JobFiles,
-      jcr->start_file, jcr->end_file,
-      jcr->start_block, jcr->end_block);
+      jcr->StartFile, jcr->EndFile,
+      jcr->StartBlock, jcr->EndBlock);
    Dmsg1(100, "create_jobmedia(): %s", dir->msg);
    if (bnet_recv(dir) <= 0) {
       Dmsg0(190, "create_jobmedia error bnet_recv\n");

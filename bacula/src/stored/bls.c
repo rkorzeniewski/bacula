@@ -48,8 +48,6 @@ static SESSION_LABEL sessrec;
 static uint32_t num_files = 0;
 static long record_file_index;
 
-extern char BaculaId[];
-
 static FF_PKT ff;
 
 static BSR *bsr = NULL;
@@ -60,6 +58,7 @@ static void usage()
 "\nVersion: " VERSION " (" DATE ")\n\n"
 "Usage: bls [-d debug_level] <physical-device-name>\n"
 "       -b <file>       specify a bootstrap file\n"
+"       -d <level>      specify debug level\n"
 "       -e <file>       exclude list\n"
 "       -i <file>       include list\n"
 "       -j              list jobs\n"
@@ -225,7 +224,7 @@ static void do_blocks(char *infname)
    }
    for ( ;; ) {
       if (!read_block_from_device(dev, block)) {
-         Dmsg0(20, "!read_block()\n");
+         Dmsg1(100, "!read_block(): ERR=%s\n", strerror_dev(dev));
 	 if (dev->state & ST_EOT) {
 	    if (!mount_next_read_volume(jcr, dev, block)) {
                printf("End of File on device\n");
@@ -252,14 +251,18 @@ static void do_blocks(char *infname)
 	 display_error_status(dev);
 	 break;
       }
-
-      if (verbose) {
+      Dmsg5(100, "Blk=%u blen=%u bVer=%d SessId=%d SessTim=%d\n",
+	 block->BlockNumber, block->block_len, block->BlockVer,
+	 block->VolSessionId, block->VolSessionTime);
+      if (verbose == 1) {
 	 read_record_from_block(block, rec);
-         Pmsg6(-1, "Block: %d blen=%d First rec FI=%s SessId=%d Strm=%s rlen=%d\n",
+         Pmsg6(-1, "Block: %u blen=%u First rec FI=%s SessId=%d Strm=%s rlen=%d\n",
 	      block->BlockNumber, block->block_len,
 	      FI_to_ascii(rec->FileIndex), rec->VolSessionId, 
 	      stream_to_ascii(rec->Stream), rec->data_len);
 	 rec->remainder = 0;
+      } else if (verbose > 1) {
+         dump_block(block, "");
       } else {
          printf("Block: %d size=%d\n", block->BlockNumber, block->block_len);
       }
