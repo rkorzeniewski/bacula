@@ -15,6 +15,10 @@ Major Changes this Release:
   well as all files moved into save path (added st_ctime to check).
 - Preliminary support for cleaning tapes in autochangers.
 - Restores directory permissions and times correctly.
+- Relabel Purged tapes with the relabel command.
+- Support for Win95 systems (I hope).
+- RunBeforeJob now checks the return status. If it is non-zero, the job
+  is error terminated.
 
 Other Changes this Release:
 - Added "BSF at EOM = yes/no" for supporting FreeBSD tape drives.
@@ -29,11 +33,9 @@ Other Changes this Release:
 - Support connection to MySQL on address:port.                 
 - Partial support for AIX systems.
 - Cycle through tapes with "RecycleOldestVolume=yes" (dangerous).
-- Support for Win95 systems (I hope).
 - Console program now supported on Win32 systems as well as 
   several other utility programs.
-- Full listing of most catalog records (llist command).
-- Relabel Purged tapes with the relabel command.
+- Full vertical listing of most catalog records (llist command).
 - Correct backwards path separators on Win32 systems to
   prevent creating files names with mixed conventions.
 - Print IP address on failed connections to servers.

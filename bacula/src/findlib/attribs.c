@@ -462,7 +462,11 @@ void win_error(void *vjcr, char *prefix, DWORD lerror)
 		 0,
 		 NULL);
    strip_trailing_junk(msg);
-   Jmsg2(jcr, M_INFO, 0, _("Error in %s: ERR=%s\n"), prefix, msg);
+   if (jcr) {
+      Jmsg2(jcr, M_INFO, 0, _("Error in %s: ERR=%s\n"), prefix, msg);
+   } else {
+      MessageBox(NULL, msg, prefix, MB_OK);
+   }
    LocalFree(msg);
 }
 
@@ -495,7 +499,6 @@ void SetServicePrivileges(void *jcr)
        /* Forge on anyway */
     } 
 
-#ifdef xxx
     // Get the LUID for the security privilege. 
     if (!LookupPrivilegeValue(NULL, SE_SECURITY_NAME,  &tkp.Privileges[0].Luid)) {
        win_error(jcr, "LookupPrivilegeValue", GetLastError());
@@ -521,7 +524,6 @@ void SetServicePrivileges(void *jcr)
     if (lerror != ERROR_SUCCESS) {
        win_error(jcr, "AdjustTokenPrivileges set SECURITY_NAME", lerror);
     } 
-#endif
 
     // Get the LUID for the backup privilege. 
     if (!LookupPrivilegeValue(NULL, SE_BACKUP_NAME,  &tkp.Privileges[0].Luid)) {

@@ -23,18 +23,10 @@ For 1.30 release:
 - Fix Bare Metal restore problem.
 - Test multiple simultaneous Volumes
 
-- Document new transparent Console commands and wait command.
 - Document new immediate File save configuration (walk user
   through first save to file Volume with automatic Volume labeling?).
 - Document OPTIMIZE TABLE in MySQL
-- Document labeling a whole magazine using "cat"
-- Document Lutz Kittler's trick of using "Run Before Job" to
-  abort a job on a particular day.
-- Document Ludovic Strappazon's Win32 raw device save/restore.
-- Document not to restore .journal .autofsck
 - Document logrotate
-- Document . and @ commands
-- Document run when.
 
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
@@ -975,3 +967,12 @@ rufus-dir: Volume used once. Marking Volume "File0003" as Used.
 - Do not ignore SIGCHLD
 - Add Cleaning to list of volume statuses 
 - Implement run at "xxx"
+- Document new transparent Console commands and wait command.
+- Document . and @ commands
+- Document run when.
+- Document Lutz Kittler's trick of using "Run Before Job" to
+  abort a job on a particular day.
+- Document Ludovic Strappazon's Win32 raw device save/restore.
+- Document not to restore .journal .autofsck
+- Document labeling a whole magazine using "cat"
+
