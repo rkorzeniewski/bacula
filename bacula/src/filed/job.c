@@ -224,6 +224,7 @@ void *handle_client_request(void *dirp)
    findFILESET *fileset = ff->fileset;
    if (fileset) {
       int i, j;
+      /* Delete FileSet Include lists */
       for (i=0; i<fileset->include_list.size(); i++) {
 	 findINCEXE *incexe = (findINCEXE *)fileset->include_list.get(i);
 	 for (j=0; j<incexe->opts_list.size(); j++) {
@@ -236,6 +237,20 @@ void *handle_client_request(void *dirp)
 	 incexe->name_list.destroy();
       }
       fileset->include_list.destroy();
+
+      /* Delete FileSet Exclude lists */
+      for (i=0; i<fileset->exclude_list.size(); i++) {
+	 findINCEXE *incexe = (findINCEXE *)fileset->exclude_list.get(i);
+	 for (j=0; j<incexe->opts_list.size(); j++) {
+	    findFOPTS *fo = (findFOPTS *)incexe->opts_list.get(j);
+	    fo->regex.destroy();
+	    fo->wild.destroy();
+	    fo->base.destroy();
+	 }
+	 incexe->opts_list.destroy();
+	 incexe->name_list.destroy();
+      }
+      fileset->exclude_list.destroy();
       free(fileset);
    }
    Dmsg0(100, "Calling term_find_files\n");
@@ -278,7 +293,10 @@ static int cancel_cmd(JCR *jcr)
 	    P(cjcr->mutex);
 	    cjcr->store_bsock->timed_out = 1;
 	    cjcr->store_bsock->terminated = 1;
-#if !defined(HAVE_CYGWIN) && !defined(HAVE_WIN32)
+/* 
+ * #if !defined(HAVE_CYGWIN) && !defined(HAVE_WIN32)
+ */
+#if !defined(HAVE_CYGWIN)
 	    pthread_kill(cjcr->my_thread_id, TIMEOUT_SIGNAL);
 #endif
 	    V(cjcr->mutex);
@@ -563,6 +581,7 @@ static bool init_fileset(JCR *jcr)
    ff->fileset = fileset;
    fileset->state = state_none;
    fileset->include_list.init(1, true);
+   fileset->exclude_list.init(1, true);
    return true;
 }
 
@@ -592,6 +611,7 @@ static void add_fileset(JCR *jcr, const char *item)
    findFILESET *fileset = ff->fileset;
    int state = fileset->state;
    findFOPTS *current_opts;
+
    int code = item[0];
    if (item[1] == ' ') {              /* If string follows */
       item += 2;		      /* point to string */
@@ -608,6 +628,14 @@ static void add_fileset(JCR *jcr, const char *item)
       fileset->incexe->opts_list.init(1, true);
       fileset->incexe->name_list.init(1, true);
       fileset->include_list.append(fileset->incexe);
+      break;
+   case 'E':
+      /* New exclude */
+      fileset->incexe = (findINCEXE *)malloc(sizeof(findINCEXE));
+      memset(fileset->incexe, 0, sizeof(findINCEXE));
+      fileset->incexe->opts_list.init(1, true);
+      fileset->incexe->name_list.init(1, true);
+      fileset->exclude_list.append(fileset->incexe);
       break;
    case 'N':
       state = state_none;
@@ -653,6 +681,7 @@ static bool term_fileset(JCR *jcr)
 
    for (i=0; i<fileset->include_list.size(); i++) {
       findINCEXE *incexe = (findINCEXE *)fileset->include_list.get(i);
+      Dmsg0(400, "I\n");
       for (j=0; j<incexe->opts_list.size(); j++) {
 	 findFOPTS *fo = (findFOPTS *)incexe->opts_list.get(j);
          Dmsg1(400, "O %s\n", fo->opts);
@@ -669,7 +698,26 @@ static bool term_fileset(JCR *jcr)
       for (j=0; j<incexe->name_list.size(); j++) {
          Dmsg1(400, "F %s\n", (char *)incexe->name_list.get(j));
       }
-
+   }
+   for (i=0; i<fileset->exclude_list.size(); i++) {
+      findINCEXE *incexe = (findINCEXE *)fileset->exclude_list.get(i);
+      Dmsg0(400, "E\n");
+      for (j=0; j<incexe->opts_list.size(); j++) {
+	 findFOPTS *fo = (findFOPTS *)incexe->opts_list.get(j);
+         Dmsg1(400, "O %s\n", fo->opts);
+	 for (k=0; k<fo->regex.size(); k++) {
+            Dmsg1(400, "R %s\n", (char *)fo->regex.get(k));
+	 }
+	 for (k=0; k<fo->wild.size(); k++) {
+            Dmsg1(400, "W %s\n", (char *)fo->wild.get(k));
+	 }
+	 for (k=0; k<fo->base.size(); k++) {
+            Dmsg1(400, "B %s\n", (char *)fo->base.get(k));
+	 }
+      }
+      for (j=0; j<incexe->name_list.size(); j++) {
+         Dmsg1(400, "F %s\n", (char *)incexe->name_list.get(j));
+      }
    }
 
 

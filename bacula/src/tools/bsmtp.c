@@ -291,15 +291,15 @@ hp:
     */
    get_response(); /* banner */
    chat("helo %s\r\n", my_hostname);
-   chat("mail from: <%s>\r\n", from_addr);
+   chat("mail from:<%s>\r\n", from_addr);
 
    for (i = 0; i < argc; i++) {
       Dmsg1(20, "rcpt to: %s\n", argv[i]);
-      chat("rcpt to: <%s>\r\n", argv[i]);
+      chat("rcpt to:<%s>\r\n", argv[i]);
    }
 
    if (cc_addr) {
-      chat("rcpt to: <%s>\r\n", cc_addr);
+      chat("rcpt to:<%s>\r\n", cc_addr);
    }
    Dmsg0(20, "Data\n");
    chat("data\r\n");

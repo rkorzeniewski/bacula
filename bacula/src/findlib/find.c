@@ -160,6 +160,9 @@ static void set_options(FF_PKT *ff, const char *opts)
       case 'a':                 /* alway replace */
       case '0':                 /* no option */
 	 break;
+      case 'e':
+	 ff->flags |= FO_EXCLUDE;
+	 break;
       case 'f':
 	 ff->flags |= FO_MULTIFS;
 	 break;
