@@ -480,7 +480,7 @@ static void *job_thread(void *arg)
 	    status = close_bpipe(bpipe);
 	    /*
 	     * Note, if we get an error here, do not mark the
-	     *	job in error, simply report the error condition. */
+	     *	job in error, simply report the error condition.   
 	     */
 	    if (status != 0) {
 	       if (jcr->JobStatus == JS_Terminated) {
