@@ -255,6 +255,26 @@ to build a boot floppy disk.
 You need to have the bacula-sqlite, bacula-mysql or bacula-client package for 
 your platform installed and configured before installing this package.
 
+%package updatedb
+
+Summary: Bacula - The Network Backup Solution
+Group: System Environment/Daemons
+Requires: coreutils, util-linux, libc5, bacula-fd
+
+%description updatedb
+Bacula - It comes by night and sucks the vital essence from your computers.
+
+Bacula is a set of computer programs that permit you (or the system 
+administrator) to manage backup, recovery, and verification of computer 
+data across a network of computers of different kinds. In technical terms, 
+it is a network client/server based backup program. Bacula is relatively 
+easy to use and efficient, while offering many advanced storage management 
+features that make it easy to find and recover lost or damaged files. 
+Bacula source code has been released under the GPL version 2 license.
+
+This package installs scripts for updating older versions of the bacula
+database.
+
 %prep
 
 %setup -b 1
@@ -324,6 +344,7 @@ mkdir -p $RPM_BUILD_ROOT/usr/share/gnome/apps/System
 mkdir -p $RPM_BUILD_ROOT/usr/share/applications
 mkdir -p $RPM_BUILD_ROOT/etc/bacula/rescue
 mkdir -p $RPM_BUILD_ROOT/etc/bacula/rescue/tomsrtbt
+mkdir -p $RPM_BUILD_ROOT/etc/bacula/updatedb
 
 %if ! %{mysql}
 mkdir -p $RPM_BUILD_ROOT%{sqlite_bindir}
@@ -403,6 +424,9 @@ cp src/filed/static-bacula-fd $RPM_BUILD_ROOT/etc/bacula/rescue/bacula-fd
 
 # this is the tom's root boot disk
 cp ../%{tomsrtbt}/* $RPM_BUILD_ROOT/etc/bacula/rescue/tomsrtbt/
+
+# install the updatedb scripts
+cp updatedb/* $RPM_BUILD_ROOT/etc/bacula/updatedb/
 
 %clean
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf "$RPM_BUILD_ROOT"
@@ -783,7 +807,16 @@ rm -f /etc/bacula/rescue/start_network
 rm -f /etc/bacula/rescue/sfdisk
 rm -rf /etc/bacula/rescue/diskinfo/*
 
+%files updatedb
+%defattr(-,root,root)
+%attr(0644,root,root) /etc/bacula/updatedb/*
+
+%post updatedb
+echo "The database update scripts were installed to /etc/bacula/updatedb"
+
 %changelog
+* Thu Feb 19 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- added updatedb package
 * Thu Feb 12 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - added postgresql package
 * Wed Feb 11 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
