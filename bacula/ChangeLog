@@ -1,4 +1,44 @@
 
+2004-04-05 Version 1.34.0 04Apr04 Release
+04Apr04
+- A good number of document updates.
+- Fixed the order which multiple files are accepted for 
+  inclusion in the restore tree due to the fact that PostgreSQL
+  returns files in a different order from their insertion.
+02Apr04
+- Fix autochanger test in btape. It used old editing routines.
+- Fix run_program to return 0 if program runs and no output.
+- Add more debug to run_program.
+- Make signal debug print signal string.
+01Apr04
+- Build console with client-only build.
+- Add better error messages to some of the db_xxx routines.
+- Apply Christopher Hull's patches for proper Win32 shutdown.
+- Eliminate True and False in favor of true and false.
+- Put correct thread id in jcr once the correct thread is running.
+- Zap head and tail pointers in dlist when everything is removed.
+- Rework sm_dump() so that it won't overrun a buffer when editing
+  and error message.
+- Fix watchdog to properly remove entries while walking the
+  dlist chain.
+- Fix termination of last_jobs list by removing broken code.
+31Mar04
+- Update dbcheck to fix Paths without a trailing slash and Filenames
+  with a trailing slash.
+30Mar04
+- Add -p option to all SD programs including bacula-sd. It causes
+  Bacula to proceed or forge on in case of I/O errors. It is unlikely
+  this will help, and it is strongly recommended against running
+  the daemon with this option in production.
+- Tweaked the Makefile not to create the gnome directories except
+  when doing a gnome install.
+28Mar04
+- Implement Qmsg() queuing of messages to prevent recursion especially
+  for bnet.c where recursion is fatal.
+- Add detection of ncurses if the termcap lib is not found.
+- Tweak winabout -- start cleanup.
+- Fix dlist again, when list is destroyed, be sure to null head and
+  tail pointers.
 27Mar04
 - Make the default for restore to have nothing marked.
 - The "all" keyword on the restore command marks everything by
@@ -14,7 +54,7 @@
 24Mar04
 - Apply corrected SQL to sql_get.c supplied by Dan Langille.
 - Implement "delete job jobid=xxx jobid=yyy ..."
-- Implemente "purge volume=xxx volume=yyy ..."
+- Implement "purge volume=xxx volume=yyy ..."
 - Fix buffer overrun in query string substitution.
 22Mar04
 - Fix bad format %s instead of %d for editing new slot in update volume.
