@@ -204,7 +204,8 @@ int start_storage_daemon_job(JCR *jcr, alist *store, int append)
          bnet_fsend(sd, use_device, device_name.c_str());
          Dmsg1(100, ">stored: %s", sd->msg);
       }
-      bnet_sig(sd, BNET_EOD);
+      bnet_sig(sd, BNET_EOD);            /* end of Devices */
+      bnet_sig(sd, BNET_EOD);            /* end of Storages */
       if (bget_dirmsg(sd) > 0) {
          Dmsg1(100, "<stored: %s", sd->msg);
          /* ****FIXME**** save actual device name */
