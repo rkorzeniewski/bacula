@@ -392,7 +392,7 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *Po
 	 rewind_dev(dev);
 	 goto bail_out;
       }
-   } else if (!write_ansi_ibm_label(dcr, VolName)) {
+   } else if (!write_ansi_ibm_labels(dcr, ANSI_VOL_LABEL, VolName)) {
       goto bail_out;
    }
 
@@ -478,7 +478,7 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
 	    rewind_dev(dev);
 	    return false;
 	 }
-      } else if (!write_ansi_ibm_label(dcr, dev->VolHdr.VolName)) {
+      } else if (!write_ansi_ibm_labels (dcr, ANSI_VOL_LABEL, dev->VolHdr.VolName)) {
 	 return false;
       }
 

@@ -526,27 +526,27 @@ void DEVICE::set_eot()
 
 /*
  * Position device to end of medium (end of data)
- *  Returns: 1 on succes
- *	     0 on error
+ *  Returns: true  on succes
+ *	     false on error
  */
-int
+bool
 eod_dev(DEVICE *dev)
 {
    struct mtop mt_com;
    struct mtget mt_stat;
-   int stat = 0;
+   bool ok = true;
    off_t pos;
 
    Dmsg0(29, "eod_dev\n");
    if (dev->at_eot()) {
-      return 1;
+      return true;
    }
    dev->state &= ~(ST_EOF);  /* remove EOF flags */
    dev->block_num = dev->file = 0;
    dev->file_size = 0;
    dev->file_addr = 0;
    if (dev->state & (ST_FIFO | ST_PROG)) {
-      return 1;
+      return true;
    }
    if (!dev->is_tape()) {
       pos = lseek_dev(dev, (off_t)0, SEEK_END);
@@ -554,13 +554,13 @@ eod_dev(DEVICE *dev)
       if (pos >= 0) {
 	 update_pos_dev(dev);
 	 dev->state |= ST_EOT;
-	 return 1;
+	 return true;
       }
       dev->dev_errno = errno;
       berrno be;
       Mmsg2(&dev->errmsg, _("lseek_dev error on %s. ERR=%s.\n"),
 	     dev->dev_name, be.strerror());
-      return 0;
+      return false;
    }
 #ifdef MTEOM
    if (dev_cap(dev, CAP_FASTFSF) && !dev_cap(dev, CAP_EOM)) {
@@ -568,7 +568,7 @@ eod_dev(DEVICE *dev)
       /* If unknown position, rewind */
       if (!dev_get_os_pos(dev, &mt_stat)) {
 	if (!rewind_dev(dev)) {
-	  return 0;
+	  return false;
 	}
       }
       mt_com.mt_op = MTFSF;
@@ -589,14 +589,14 @@ eod_dev(DEVICE *dev)
 	 mt_com.mt_count = 1;
       }
 
-      if ((stat=ioctl(dev->fd, MTIOCTOP, (char *)&mt_com)) < 0) {
+      if (ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
 	 berrno be;
 	 clrerror_dev(dev, mt_com.mt_op);
          Dmsg1(50, "ioctl error: %s\n", be.strerror());
 	 update_pos_dev(dev);
          Mmsg2(&dev->errmsg, _("ioctl MTEOM error on %s. ERR=%s.\n"),
 	    dev->dev_name, be.strerror());
-	 return 0;
+	 return false;
       }
 
       if (!dev_get_os_pos(dev, &mt_stat)) {
@@ -604,12 +604,11 @@ eod_dev(DEVICE *dev)
 	 clrerror_dev(dev, -1);
          Mmsg2(&dev->errmsg, _("ioctl MTIOCGET error on %s. ERR=%s.\n"),
 	    dev->dev_name, be.strerror());
-	 return 0;
+	 return false;
       }
       Dmsg2(100, "EOD file=%d block=%d\n", mt_stat.mt_fileno, mt_stat.mt_blkno);
       dev->set_eof();
       dev->file = mt_stat.mt_fileno;
-
    } else {
 #else
    {
@@ -618,7 +617,7 @@ eod_dev(DEVICE *dev)
        * Rewind then use FSF until EOT reached
        */
       if (!rewind_dev(dev)) {
-	 return 0;
+	 return false;
       }
       /*
        * Move file by file to the end of the tape
@@ -628,7 +627,7 @@ eod_dev(DEVICE *dev)
          Dmsg0(200, "eod_dev: doing fsf 1\n");
 	 if (!fsf_dev(dev, 1)) {
             Dmsg0(200, "fsf_dev error.\n");
-	    return 0;
+	    return false;
 	 }
 	 /*
 	  * Avoid infinite loop. ***FIXME*** possibly add code
@@ -642,8 +641,7 @@ eod_dev(DEVICE *dev)
 	       dev->set_eof();
 	       dev->file = mt_stat.mt_fileno;
 	    }
-	    stat = 0;
-	    break;		      /* we are not progressing, bail out */
+	    return false;
 	 }
       }
    }
@@ -655,7 +653,7 @@ eod_dev(DEVICE *dev)
    if (dev_cap(dev, CAP_BSFATEOM)) {
       struct mtget mt_stat;
       /* Backup over EOF */
-      stat = bsf_dev(dev, 1);
+      ok = bsf_dev(dev, 1);
       /* If BSF worked and fileno is known (not -1), set file */
       if (dev_get_os_pos(dev, &mt_stat)) {
          Dmsg2(100, "BSFATEOF adjust file from %d to %d\n", dev->file , mt_stat.mt_fileno);
@@ -665,10 +663,17 @@ eod_dev(DEVICE *dev)
       }
    } else {
       update_pos_dev(dev);		     /* update position */
-      stat = 1;
+   }
+   /* If this is an ANSI or IBM labeled tape we must 
+    *  backspace over EOF label
+    */
+   if (dev->label_type != B_BACULA_LABEL) {
+      if (!bsf_dev(dev, 2) || !fsf_dev(dev, 1)) {
+	 ok = false;
+      }
    }
    Dmsg1(200, "EOD dev->file=%d\n", dev->file);
-   return stat;
+   return ok;
 }
 
 /*

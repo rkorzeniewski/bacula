@@ -34,8 +34,8 @@
 
 /* sql.c */
 B_DB *db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char *db_password,
-		       const char *db_address, int db_port, const char *db_socket,
-		       int mult_db_connections);
+                       const char *db_address, int db_port, const char *db_socket,
+                       int mult_db_connections);
 int  db_open_database(JCR *jcr, B_DB *db);
 void db_close_database(JCR *jcr, B_DB *db);
 void db_escape_string(char *snew, char *old, int len);
@@ -70,7 +70,7 @@ int db_find_next_volume(JCR *jcr, B_DB *mdb, int index, bool InChanger, MEDIA_DB
 bool db_find_failed_job_since(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM *stime, int &JobLevel);
 
 /* get.c */
-int db_get_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pdbr);
+bool db_get_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pdbr);
 int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr);
 int db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr);
 int db_get_job_volume_names(JCR *jcr, B_DB *mdb, JobId_t JobId, POOLMEM **VolumeNames);

@@ -688,6 +688,10 @@ static bool terminate_writing_volume(DCR *dcr)
    /* Set new file/block parameters for current dcr */
    set_new_file_parameters(dcr);
 
+   if (ok) {
+      ok = write_ansi_ibm_labels(dcr, ANSI_EOV_LABEL, dev->VolHdr.VolName);
+   }
+
    if (ok && dev_cap(dev, CAP_TWOEOF) && weof_dev(dev, 1) != 0) {  /* end the tape */
       dev->VolCatInfo.VolCatErrors++;
       /* This may not be fatal since we already wrote an EOF */
