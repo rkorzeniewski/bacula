@@ -4859,6 +4859,8 @@ if test "${enable_client_only+set}" = set; then
   enableval="$enable_client_only"
   if test x$enableval = xyes; then
      build_client_only=yes
+    db_name=None
+    DB_NAME=none
    fi
 fi;
 if test x$build_client_only = xno; then
@@ -19811,7 +19813,21 @@ if test "x${subsysdir}" = "x${sbindir}" ; then
    echo "You have set --sbindir and --with-subsys-dir"
    echo "  both equal to: ${subsysdir} "
    echo "  This is not permitted. Please reconfigure."
+   echo " "
    echo "Aborting configuration ..."
+   echo " "
+   echo " "
+   exit 1
+fi
+
+if test "x${db_name}" = "xInternal" ; then
+   echo " "
+   echo " "
+   echo "You have not specified either --enable-client-only or one of the"
+   echo "  supported databases: MySQL, PostgreSQL, or SQLite".
+   echo "  This is not permitted. Please reconfigure."
+   echo " "
+   echo "Aborting the configuration ..."
    echo " "
    echo " "
    exit 1

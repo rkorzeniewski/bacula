@@ -72,15 +72,12 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
 
    if (slot > 0 && jcr->device->changer_name && jcr->device->changer_command) {
       uint32_t timeout = jcr->device->max_changer_wait;
-      POOLMEM *changer, *results;
+      POOLMEM *changer;
       int loaded, status;     
 
-      results = get_pool_memory(PM_MESSAGE);
       changer = get_pool_memory(PM_FNAME);
 
       loaded = get_autochanger_loaded_slot(jcr);
-
-      Dmsg1(400, "loaded=%s\n", results);
 
       /* If tape we want is not loaded, load it. */
       if (loaded != slot) { 
@@ -121,7 +118,6 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
 	 status = 0;		      /* we got what we want */
       }
       free_pool_memory(changer);
-      free_pool_memory(results);
       Dmsg1(400, "After changer, status=%d\n", status);
       if (status == 0) {	      /* did we succeed? */
 	 rtn_stat = 1;		      /* tape loaded by changer */

@@ -28,17 +28,11 @@
 #include "bacula.h"
 #include "findlib/find.h"
 	     
-/*
- * Define SORT_SIBLINGS you want the sibling list to
- *  be sorted otherwise it will be appended when
- *  a new entry is added.
- */
-#define SORT_SIBLINGS
-
 
 /* Forward referenced subroutines */
 static TREE_NODE *search_and_insert_tree_node(char *fname, int type, 
 	       TREE_NODE *node, TREE_ROOT *root, TREE_NODE *parent);
+static char *tree_alloc(TREE_ROOT *root, int size);
 
 /*
  * NOTE !!!!! we turn off Debug messages for performance reasons.
@@ -86,7 +80,6 @@ TREE_ROOT *new_tree(int count)
    }
    root = (TREE_ROOT *)malloc(sizeof(TREE_ROOT));
    memset(root, 0, sizeof(TREE_ROOT));
-   root->type = TN_ROOT;
    /* Assume filename + node  = 40 characters average length */
    size = count * (BALIGN(sizeof(TREE_NODE)) + 40);
    if (count > 1000000 || size > 10000000) {
@@ -95,33 +88,23 @@ TREE_ROOT *new_tree(int count)
    Dmsg2(400, "count=%d size=%d\n", count, size);
    malloc_buf(root, size);
    root->cached_path = get_pool_memory(PM_FNAME);
+   root->type = TN_ROOT;
+   root->fname = "";
    return root;
 }
 
 /* 
- * Create a new tree node. Size depends on type.
+ * Create a new tree node.
  */
-TREE_NODE *new_tree_node(TREE_ROOT *root, int type)
+static TREE_NODE *new_tree_node(TREE_ROOT *root, int type)
 {
    TREE_NODE *node;
-   int asize = BALIGN(sizeof(TREE_NODE));
-
-   if (root->mem->rem < asize) {
-      uint32_t mb_size;
-      if (root->total_size >= 1000000) {
-	 mb_size = 1000000;
-      } else {
-	 mb_size = 100000;
-      }
-      malloc_buf(root, mb_size);
-   }
-   root->mem->rem -= asize;
-   node = (TREE_NODE *)root->mem->mem;
-   root->mem->mem += asize;
-   memset(node, 0, sizeof(TREE_NODE));
-   node->type = type;
+   int size = sizeof(TREE_NODE);
+   node = (TREE_NODE *)tree_alloc(root, size);
+   memset(node, 0, size);
    return node;
 }
+
 
 
 /*
@@ -162,6 +145,7 @@ void free_tree(TREE_ROOT *root)
    }
    if (root->cached_path) {
       free_pool_memory(root->cached_path);
+      root->cached_path = NULL;
    }
    Dmsg2(400, "Total size=%u blocks=%d\n", root->total_size, root->blocks);
    free(root);
@@ -169,21 +153,20 @@ void free_tree(TREE_ROOT *root)
 }
 
 
-
 /* 
  * Insert a node in the tree. This is the main subroutine
  *   called when building a tree.
  *
  */
-TREE_NODE *insert_tree_node(char *path, TREE_NODE *node, 
+TREE_NODE *insert_tree_node(char *path, char *fname, TREE_NODE *node, 
 			    TREE_ROOT *root, TREE_NODE *parent)
 {
-   char *p, *q, *fname;
+   char *p, *q;
    int path_len = strlen(path);
 
    Dmsg1(100, "insert_tree_node: %s\n", path);
    /*
-    * If trailing slash, strip it
+    * If trailing slash on path, strip it
     */
    if (path_len > 0) {
       q = path + path_len - 1;
@@ -195,11 +178,18 @@ TREE_NODE *insert_tree_node(char *path, TREE_NODE *node,
    } else {
       q = NULL; 		      /* no trailing slash */
    }
-   p = strrchr(path, '/');            /* separate path and filename */
-   if (p) {
-      fname = p + 1;
+   /* If no filename, strip last component of path as "filename" */
+   if (*fname == 0) {
+      p = strrchr(path, '/');         /* separate path and filename */
+      if (p) {
+	 fname = p + 1; 	      /* set new filename */
+	 *p = 0;		      /* terminate new path */
+      }
+   } else {
+      p = NULL;
+   }
+   if (*fname) {
       if (!parent) {		      /* if no parent, we need to make one */
-	 *p = 0;		      /* terminate path */
          Dmsg1(100, "make_tree_path for %s\n", path);
 	 path_len = strlen(path);     /* get new length */
 	 if (path_len == root->cached_path_len &&
@@ -212,7 +202,6 @@ TREE_NODE *insert_tree_node(char *path, TREE_NODE *node,
 	    root->cached_parent = parent; 
 	 }
          Dmsg1(100, "parent=%s\n", parent->fname);
-         *p = '/';                    /* restore full path */
       }
    } else {
       fname = path;
@@ -226,6 +215,9 @@ TREE_NODE *insert_tree_node(char *path, TREE_NODE *node,
    node = search_and_insert_tree_node(fname, 0, node, root, parent);
    if (q) {			      /* if trailing slash on entry */
       *q = '/';                       /*  restore it */
+   }
+   if (p) {			      /* if slash in path trashed */
+      *p = '/';                       /* restore full path */
    }
    return node;
 }
@@ -267,12 +259,11 @@ static TREE_NODE *search_and_insert_tree_node(char *fname, int type,
 	       TREE_NODE *node, TREE_ROOT *root, TREE_NODE *parent)
 {
    TREE_NODE *sibling, *last_sibling = NULL;
-#ifdef SORT_SIBLINGS
    uint16_t fname_len = strlen(fname);
    int cmp;
 
    /* Is it already a sibling? */
-   for (sibling=parent->child; sibling; sibling=sibling->sibling) {
+   foreach_child(sibling, parent) {    
       Dmsg2(000, "sibling->fname=%s fname=%s\n", sibling->fname, fname);
       if (fname[0] > sibling->fname[0] || (cmp=strcmp(fname, sibling->fname)) > 0) {
 	 last_sibling = sibling;
@@ -283,30 +274,17 @@ static TREE_NODE *search_and_insert_tree_node(char *fname, int type,
 	 if (!node) {
 	    node = new_tree_node(root, type);
 	 }
-	 node->sibling = sibling;
-	 if (sibling == parent->child) { /* if sibling was at head of list */
-	    parent->child = NULL;	 /* force parent to be updated below */
+	 node->sibling_ = sibling;
+	 if (sibling == first_child(parent)) { /* if sibling was at head of list */
+	    parent->child_ = NULL;	  /* force parent to be updated below */
 	 }
          Dmsg2(000, "insert before sibling->fname=%s fname=%s\n", sibling->fname, fname);
 	 break;
       }
       /* Found it */
+      sibling->inserted = false;      /* already in tree */
       return sibling;
    }
-#else
-   uint16_t fname_len = strlen(fname);
-
-   /* Is it already a sibling? */
-   for (sibling=parent->child; sibling; sibling=sibling->sibling) {
-      Dmsg2(100, "sibling->fname=%s fname=%s\n", sibling->fname, fname);
-      if (sibling->fname_len == fname_len &&
-	  strcmp(sibling->fname, fname) == 0) {
-         Dmsg1(100, "make_tree_path: found parent=%s\n", parent->fname);
-	 return sibling;
-      }
-      last_sibling = sibling;
-   }
-#endif
 
 
    /* 
@@ -320,10 +298,10 @@ static TREE_NODE *search_and_insert_tree_node(char *fname, int type,
    node->fname = tree_alloc(root, node->fname_len + 1);
    strcpy(node->fname, fname);
    node->parent = parent;
-   if (!parent->child) {
-      parent->child = node;
+   if (!tree_node_has_child(parent)) {
+      parent->child_ = node;
    } else {
-      last_sibling->sibling = node;
+      last_sibling->sibling_ = node;
    }
 
    /* Maintain a linear chain of nodes */
@@ -334,6 +312,7 @@ static TREE_NODE *search_and_insert_tree_node(char *fname, int type,
       root->last->next = node;
       root->last = node;
    }
+   node->inserted = true;	      /* inserted into tree */
    return node;
 }
 
@@ -373,7 +352,7 @@ int tree_getpath(TREE_NODE *node, char *buf, int buf_size)
     *  i.e. it is linked to a directory.
     */
    if ((node->type != TN_FILE && !(buf[0] == '/' && buf[1] == 0)) ||
-       (node->soft_link && node->child)) {
+       (node->soft_link && tree_node_has_child(node))) {
       bstrncat(buf, "/", buf_size);
    }
    return 1;
@@ -423,14 +402,14 @@ TREE_NODE *tree_relcwd(char *path, TREE_ROOT *root, TREE_NODE *node)
       len = strlen(path);
    }
    Dmsg2(100, "tree_relcwd: len=%d path=%s\n", len, path);
-   for (cd=node->child; cd; cd=cd->sibling) {
+   foreach_child(cd, node) {
       Dmsg1(100, "tree_relcwd: test cd=%s\n", cd->fname);
       if (cd->fname[0] == path[0] && len == (int)strlen(cd->fname)    
 	  && strncmp(cd->fname, path, len) == 0) {
 	 break;
       }
    }
-   if (!cd || (cd->type == TN_FILE && !cd->child)) {
+   if (!cd || (cd->type == TN_FILE && !tree_node_has_child(cd))) {
       return NULL;
    }
    if (!p) {
@@ -583,15 +562,15 @@ void print_tree(char *path, TREE_NODE *tree)
    case TN_DIR:
    case TN_DIR_NLS:
       bsnprintf(buf, sizeof(buf), "%s/%s", path, tree->fname);
-      print_tree(buf, tree->child);
+      print_tree(buf, first_child(tree));
       break;
    case TN_ROOT:
-      print_tree(path, tree->child);
+      print_tree(path, first_child(tree));
       break;
    default:
       Pmsg1(000, "Unknown node type %d\n", tree->type);
    }
-   print_tree(path, tree->sibling);
+   print_tree(path, tree->sibling_);
    return;
 }
 

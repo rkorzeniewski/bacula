@@ -13,7 +13,8 @@
    The BACULA-FD file is  
    linked to missing export KERNEL32.DLL:GetFileAttributesExA.
 - Add link to doc in message when authentication fails.
-- Add db_ensure...slot_unique to BDB.
+- Disallow using Internal database
+- Add better error codes to run_program (10000+)
 
 
 Documentation to do: (any release a little bit at a time)

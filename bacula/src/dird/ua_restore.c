@@ -701,17 +701,13 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
    TREE_CTX tree;
    JobId_t JobId, last_JobId;
    char *p;
-   char empty = '\0';
-   char *nofname;
    bool OK = true;
 
-   nofname = &empty;
    memset(&tree, 0, sizeof(TREE_CTX));
    /* 
     * Build the directory tree containing JobIds user selected
     */
    tree.root = new_tree(rx->TotalFiles);
-   tree.root->fname = nofname;
    tree.ua = ua;
    tree.all = rx->all;
    last_JobId = 0;

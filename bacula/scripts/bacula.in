@@ -112,7 +112,7 @@ pidofproc() {
 
     # First try PID file
     if [ -f ${PIDDIR}/$base.$2.pid ] ; then
-	pid=`head -1 ${PIDDIR}/$base.$2.pid`
+	pid=`head -n 1 ${PIDDIR}/$base.$2.pid`
 	if [ "$pid" != "" ] ; then
 	    echo $pid
 	    return 0
@@ -163,7 +163,7 @@ status() {
 
     # Next try the PID files
     if [ -f ${PIDDIR}/$base.$2.pid ] ; then
-	pid=`head -1 ${PIDDIR}/$base.$2.pid`
+	pid=`head -n 1 ${PIDDIR}/$base.$2.pid`
 	if [ "$pid" != "" ] ; then
 	    echo "$base dead but pid file exists"
 	    return 1
