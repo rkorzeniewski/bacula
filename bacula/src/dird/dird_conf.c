@@ -581,8 +581,20 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
 	    for (k=0; k<fo->regex.size(); k++) {
 	       sendit(sock, "      R %s\n", fo->regex.get(k));
 	    }
+	    for (k=0; k<fo->regexdir.size(); k++) {
+	       sendit(sock, "      RD %s\n", fo->regexdir.get(k));
+	    }
+	    for (k=0; k<fo->regexfile.size(); k++) {
+	       sendit(sock, "      RF %s\n", fo->regexfile.get(k));
+	    }
 	    for (k=0; k<fo->wild.size(); k++) {
 	       sendit(sock, "      W %s\n", fo->wild.get(k));
+	    }
+	    for (k=0; k<fo->wilddir.size(); k++) {
+	       sendit(sock, "      WD %s\n", fo->wilddir.get(k));
+	    }
+	    for (k=0; k<fo->wildfile.size(); k++) {
+	       sendit(sock, "      WF %s\n", fo->wildfile.get(k));
 	    }
 	    for (k=0; k<fo->base.size(); k++) {
 	       sendit(sock, "      B %s\n", fo->base.get(k));
@@ -749,7 +761,11 @@ static void free_incexe(INCEXE *incexe)
    for (int i=0; i<incexe->num_opts; i++) {
       FOPTS *fopt = incexe->opts_list[i];
       fopt->regex.destroy();
+      fopt->regexdir.destroy();
+      fopt->regexfile.destroy();
       fopt->wild.destroy();
+      fopt->wilddir.destroy();
+      fopt->wildfile.destroy();
       fopt->base.destroy();
       fopt->fstype.destroy();
       if (fopt->reader) {

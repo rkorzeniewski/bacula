@@ -87,8 +87,12 @@ static RES_ITEM options_items[] = {
    {"mtimeonly",       store_opts,    NULL,     0, 0, 0},
    {"keepatime",       store_opts,    NULL,     0, 0, 0},
    {"regex",           store_regex,   NULL,     0, 0, 0},
+   {"regexdir",        store_regex,   NULL,     1, 0, 0},
+   {"regexfile",       store_regex,   NULL,     2, 0, 0},
    {"base",            store_base,    NULL,     0, 0, 0},
    {"wild",            store_wild,    NULL,     0, 0, 0},
+   {"wilddir",         store_wild,    NULL,     1, 0, 0},
+   {"wildfile",        store_wild,    NULL,     2, 0, 0},
    {"exclude",         store_opts,    NULL,     0, 0, 0},
    {"aclsupport",      store_opts,    NULL,     0, 0, 0},
    {"reader",          store_reader,  NULL,     0, 0, 0},
@@ -473,6 +477,8 @@ static void store_regex(LEX *lc, RES_ITEM *item, int index, int pass)
    int token, rc;
    regex_t preg;
    char prbuf[500];
+   char *type;
+   int newsize;
 
    token = lex_get_token(lc, T_SKIP_EOL);
    if (pass == 1) {
@@ -490,9 +496,21 @@ static void store_regex(LEX *lc, RES_ITEM *item, int index, int pass)
 	    break;
 	 }
 	 regfree(&preg);
-	 res_incexe.current_opts->regex.append(bstrdup(lc->str));
-         Dmsg3(900, "set regex %p size=%d %s\n",
-	    res_incexe.current_opts, res_incexe.current_opts->regex.size(),lc->str);
+	 if (item->code == 1) {
+	    type = "regexdir";
+	    res_incexe.current_opts->regexdir.append(bstrdup(lc->str));
+	    newsize = res_incexe.current_opts->regexdir.size();
+	 } else if (item->code == 2) {
+	    type = "regexfile";
+	    res_incexe.current_opts->regexfile.append(bstrdup(lc->str));
+	    newsize = res_incexe.current_opts->regexfile.size();
+	 } else {
+	    type = "regex";
+	    res_incexe.current_opts->regex.append(bstrdup(lc->str));
+	    newsize = res_incexe.current_opts->regex.size();
+	 }
+         Dmsg4(900, "set %s %p size=%d %s\n",
+	    type, res_incexe.current_opts, newsize, lc->str);
 	 break;
       default:
          scan_err1(lc, _("Expected a regex string, got: %s\n"), lc->str);
@@ -552,6 +570,8 @@ static void store_writer(LEX *lc, RES_ITEM *item, int index, int pass)
 static void store_wild(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token;
+   char *type;
+   int newsize;
 
    token = lex_get_token(lc, T_SKIP_EOL);
    if (pass == 1) {
@@ -562,9 +582,21 @@ static void store_wild(LEX *lc, RES_ITEM *item, int index, int pass)
       case T_IDENTIFIER:
       case T_UNQUOTED_STRING:
       case T_QUOTED_STRING:
-	 res_incexe.current_opts->wild.append(bstrdup(lc->str));
-         Dmsg3(900, "set wild %p size=%d %s\n",
-	    res_incexe.current_opts, res_incexe.current_opts->wild.size(),lc->str);
+	 if (item->code == 1) {
+	    type = "wilddir";
+	    res_incexe.current_opts->wilddir.append(bstrdup(lc->str));
+	    newsize = res_incexe.current_opts->wilddir.size();
+	 } else if (item->code == 2) {
+	    type = "wildfile";
+	    res_incexe.current_opts->wildfile.append(bstrdup(lc->str));
+	    newsize = res_incexe.current_opts->wildfile.size();
+	 } else {
+	    type = "wild";
+	    res_incexe.current_opts->wild.append(bstrdup(lc->str));
+	    newsize = res_incexe.current_opts->wild.size();
+	 }
+         Dmsg4(9, "set %s %p size=%d %s\n",
+	    type, res_incexe.current_opts, newsize, lc->str);
 	 break;
       default:
          scan_err1(lc, _("Expected a wild-card string, got: %s\n"), lc->str);
@@ -715,7 +747,11 @@ static void setup_current_opts(void)
    FOPTS *fo = (FOPTS *)malloc(sizeof(FOPTS));
    memset(fo, 0, sizeof(FOPTS));
    fo->regex.init(1, true);
+   fo->regexdir.init(1, true);
+   fo->regexfile.init(1, true);
    fo->wild.init(1, true);
+   fo->wilddir.init(1, true);
+   fo->wildfile.init(1, true);
    fo->base.init(1, true);
    fo->fstype.init(1, true);
    res_incexe.current_opts = fo;

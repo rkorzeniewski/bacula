@@ -30,6 +30,7 @@
 #include "chksum.h"
 #include "findlib/find.h"
 #include "jcr.h"
+#include "acl.h"
 #include "protos.h"                   /* file daemon prototypes */
 #ifdef HAVE_LIBZ
 #include <zlib.h>                     /* compression headers */
