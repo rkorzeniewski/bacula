@@ -42,11 +42,11 @@ extern int run_cmd(UAContext *ua, char *cmd);
 extern void print_bsr(UAContext *ua, RBSR *bsr);
 
 /* Imported variables */
-extern char *uar_list_jobs,	*uar_file,	  *uar_sel_files;
-extern char *uar_del_temp,	*uar_del_temp1,   *uar_create_temp;
-extern char *uar_create_temp1,	*uar_last_full,   *uar_full;
-extern char *uar_inc_dec,	*uar_list_temp,   *uar_sel_jobid_temp;
-extern char *uar_sel_all_temp1, *uar_sel_fileset, *uar_mediatype;
+extern char *uar_list_jobs,      *uar_file,        *uar_sel_files;
+extern char *uar_del_temp,       *uar_del_temp1,   *uar_create_temp;
+extern char *uar_create_temp1,   *uar_last_full,   *uar_full;
+extern char *uar_inc_dec,        *uar_list_temp,   *uar_sel_jobid_temp;
+extern char *uar_sel_all_temp1,  *uar_sel_fileset, *uar_mediatype;
 extern char *uar_jobid_fileindex;
 
 
