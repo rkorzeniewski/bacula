@@ -106,7 +106,7 @@ RES *GetResWithName(int rcode, char *name);
 RES *GetNextRes(int rcode, RES *res);
 void b_LockRes(const char *file, int line);
 void b_UnlockRes(const char *file, int line);
-void dump_resource(int type, RES *res, void sendmsg(void *sock, char *fmt, ...), void *sock);
+void dump_resource(int type, RES *res, void sendmsg(void *sock, const char *fmt, ...), void *sock);
 void free_resource(RES *res, int type);
 void init_resource(int type, RES_ITEM *item);
 void save_resource(int type, RES_ITEM *item, int pass);

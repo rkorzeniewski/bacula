@@ -214,7 +214,7 @@ static char *find_msg_start(char *msg)
  *  Returns: 0 on failure
  *	     1 on success
  */
-int response(JCR *jcr, BSOCK *fd, char *resp, char *cmd, e_prtmsg prtmsg)
+int response(JCR *jcr, BSOCK *fd, char *resp, const char *cmd, e_prtmsg prtmsg)
 {
    int n;
 

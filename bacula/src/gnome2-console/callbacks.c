@@ -331,7 +331,7 @@ on_run_button_clicked(GtkButton *button, gpointer user_data)
 }
 
 
-static char *get_combo_text(GtkWidget *dialog, char *combo_name)
+static char *get_combo_text(GtkWidget *dialog, const char *combo_name)
 {
    GtkWidget *combo;
    combo = lookup_widget(dialog, combo_name);
@@ -341,7 +341,7 @@ static char *get_combo_text(GtkWidget *dialog, char *combo_name)
    return (char *)gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(combo)->entry));
 }
 
-static char *get_entry_text(GtkWidget *dialog, char *entry_name)
+static char *get_entry_text(GtkWidget *dialog, const char *entry_name)
 {
    GtkWidget *entry;
    entry = lookup_widget(dialog, entry_name);
@@ -351,7 +351,7 @@ static char *get_entry_text(GtkWidget *dialog, char *entry_name)
    return (char *)gtk_entry_get_text(GTK_ENTRY(entry));
 }
 
-static char *get_spin_text(GtkWidget *dialog, char *spin_name)
+static char *get_spin_text(GtkWidget *dialog, const char *spin_name)
 {
    GtkSpinButton *spin;
    spin = (GtkSpinButton *)lookup_widget(dialog, spin_name);

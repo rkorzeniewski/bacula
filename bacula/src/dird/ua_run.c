@@ -44,11 +44,12 @@ extern struct s_kw ReplaceOptions[];
  *     run <job-name> jobid=nn
  *
  */
-int run_cmd(UAContext *ua, char *cmd)
+int run_cmd(UAContext *ua, const char *cmd)
 {
    JCR *jcr;
    char *job_name, *level_name, *jid, *store_name, *pool_name;
-   char *where, *fileset_name, *client_name, *bootstrap, *replace;
+   char *where, *fileset_name, *client_name, *bootstrap;
+   const char *replace;
    char *when, *verify_job_name;
    int Priority = 0;
    int i, j, opt, files = 0;
@@ -59,7 +60,7 @@ int run_cmd(UAContext *ua, char *cmd)
    CLIENT *client = NULL;
    FILESET *fileset = NULL;
    POOL *pool = NULL;
-   static char *kw[] = {	      /* command line arguments */
+   static const char *kw[] = {	      /* command line arguments */
       N_("job"),                      /*  Used in a switch() */
       N_("jobid"),                    /* 1 */
       N_("client"),                   /* 2 */
@@ -481,7 +482,7 @@ Priority: %d\n"),
 		 bstrutime(dt, sizeof(dt), jcr->sched_time),
 		 jcr->JobPriority);
       } else {	/* JT_VERIFY */
-	 char *Name;
+	 const char *Name;
 	 if (jcr->job->verify_job) {
 	    Name = jcr->job->verify_job->hdr.name;
 	 } else {

@@ -46,16 +46,16 @@ extern BSOCK *UA_sock;
 #define OK     1
 #define CANCEL 0
 
-void set_textf(char *fmt, ...);
-void set_text(char *buf, int len);
-void set_status(char *buf);
+void set_textf(const char *fmt, ...);
+void set_text(const char *buf, int len);
+void set_status(const char *buf);
 void set_status_ready();
-void set_statusf(char *fmt, ...);
+void set_statusf(const char *fmt, ...);
 int connect_to_director(gpointer data);
 int disconnect_from_director(gpointer data);
 void start_director_reader(gpointer data);
 void stop_director_reader(gpointer data);
-void write_director(gchar *msg);
+void write_director(const gchar *msg);
 void read_director(gpointer data, gint fd, GdkInputCondition condition);
 void set_restore_dialog_defaults();
 void select_restore_files();

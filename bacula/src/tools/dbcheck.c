@@ -61,12 +61,12 @@ static char buf[2000];
 #define MAX_ID_LIST_LEN 1000000
 
 /* Forward referenced functions */
-static int make_id_list(char *query, ID_LIST *id_list);
-static int delete_id_list(char *query, ID_LIST *id_list);
-static int make_name_list(char *query, NAME_LIST *name_list);
+static int make_id_list(const char *query, ID_LIST *id_list);
+static int delete_id_list(const char *query, ID_LIST *id_list);
+static int make_name_list(const char *query, NAME_LIST *name_list);
 static void print_name_list(NAME_LIST *name_list);
 static void free_name_list(NAME_LIST *name_list);
-static char *get_cmd(char *prompt);
+static char *get_cmd(const char *prompt);
 static void eliminate_duplicate_filenames();
 static void eliminate_duplicate_paths();
 static void eliminate_orphaned_jobmedia_records();
@@ -77,7 +77,7 @@ static void eliminate_orphaned_fileset_records();
 static void repair_bad_paths();
 static void repair_bad_filenames();
 static void do_interactive_mode();
-static int yes_no(char *prompt);
+static int yes_no(const char *prompt);
 
 
 static void usage()
@@ -97,7 +97,7 @@ static void usage()
 int main (int argc, char *argv[])
 {
    int ch;
-   char *user, *password, *db_name, *dbhost;
+   const char *user, *password, *db_name, *dbhost;
    char *configfile = NULL;
    char *catalogname = NULL;
 
@@ -241,7 +241,7 @@ int main (int argc, char *argv[])
 static void do_interactive_mode()
 {
    bool quit = false;
-   char *cmd;
+   const char *cmd;
 
    printf("Hello, this is the database check/correct program.\n\
 Modify database is %s. Verbose is %s.\n\
@@ -405,7 +405,7 @@ static int id_list_handler(void *ctx, int num_fields, char **row)
 /*
  * Construct record id list
  */
-static int make_id_list(char *query, ID_LIST *id_list)
+static int make_id_list(const char *query, ID_LIST *id_list)
 {
    id_list->num_ids = 0;
    id_list->num_del = 0;
@@ -421,7 +421,7 @@ static int make_id_list(char *query, ID_LIST *id_list)
 /*
  * Delete all entries in the list 
  */
-static int delete_id_list(char *query, ID_LIST *id_list)
+static int delete_id_list(const char *query, ID_LIST *id_list)
 { 
    for (int i=0; i < id_list->num_ids; i++) {
       sprintf(buf, query, id_list->Id[i]);
@@ -460,7 +460,7 @@ static int name_list_handler(void *ctx, int num_fields, char **row)
 /*
  * Construct name list
  */
-static int make_name_list(char *query, NAME_LIST *name_list)
+static int make_name_list(const char *query, NAME_LIST *name_list)
 {
    name_list->num_ids = 0;
    name_list->num_del = 0;
@@ -497,7 +497,7 @@ static void free_name_list(NAME_LIST *name_list)
 
 static void eliminate_duplicate_filenames()
 {
-   char *query;
+   const char *query;
    char esc_name[5000];
 
    printf("Checking for duplicate Filename entries.\n");
@@ -550,7 +550,7 @@ static void eliminate_duplicate_filenames()
 
 static void eliminate_duplicate_paths()
 {
-   char *query;
+   const char *query;
    char esc_name[5000];
 
    printf(_("Checking for duplicate Path entries.\n"));
@@ -604,7 +604,7 @@ static void eliminate_duplicate_paths()
 
 static void eliminate_orphaned_jobmedia_records()
 {
-   char *query;
+   const char *query;
 
    printf("Checking for orphaned JobMedia entries.\n");
    query = "SELECT JobMedia.JobMediaId,Job.JobId FROM JobMedia "
@@ -633,7 +633,7 @@ static void eliminate_orphaned_jobmedia_records()
 
 static void eliminate_orphaned_file_records()
 {
-   char *query;
+   const char *query;
 
    printf("Checking for orphaned File entries. This may take some time!\n");
    query = "SELECT File.FileId,Job.JobId FROM File "
@@ -665,7 +665,7 @@ static void eliminate_orphaned_file_records()
 
 static void eliminate_orphaned_path_records()
 {
-   char *query;
+   const char *query;
 
    printf("Checking for orphaned Path entries. This may take some time!\n");
    query = "SELECT Path.PathId,File.PathId FROM Path "
@@ -693,7 +693,7 @@ static void eliminate_orphaned_path_records()
 
 static void eliminate_orphaned_filename_records()
 {
-   char *query;
+   const char *query;
 
    printf("Checking for orphaned Filename entries. This may take some time!\n");
    query = "SELECT Filename.FilenameId,File.FilenameId FROM Filename "
@@ -721,7 +721,7 @@ static void eliminate_orphaned_filename_records()
 
 static void eliminate_orphaned_fileset_records()
 {
-   char *query;
+   const char *query;
 
    printf("Checking for orphaned FileSet entries. This takes some time!\n");
    query = "SELECT FileSet.FileSetId,Job.FileSetId FROM FileSet "
@@ -752,7 +752,7 @@ static void eliminate_orphaned_fileset_records()
 
 static void repair_bad_filenames()
 {
-   char *query;
+   const char *query;
    int i;
 
    printf("Checking for Filenames with a trailing slash\n");
@@ -810,7 +810,7 @@ static void repair_bad_filenames()
 
 static void repair_bad_paths()
 {
-   char *query;
+   const char *query;
    int i;
 
    printf("Checking for Paths without a trailing slash\n");
@@ -867,7 +867,7 @@ static void repair_bad_paths()
 /*
  * Gen next input command from the terminal
  */
-static char *get_cmd(char *prompt)
+static char *get_cmd(const char *prompt)
 {
    static char cmd[1000];
 
@@ -879,7 +879,7 @@ static char *get_cmd(char *prompt)
    return cmd;
 }
 
-static int yes_no(char *prompt)
+static int yes_no(const char *prompt)
 {
    char *cmd;  
    cmd = get_cmd(prompt);

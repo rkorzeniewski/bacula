@@ -54,7 +54,7 @@ static int quitcmd(UAContext *ua, TREE_CTX *tree);
 static int donecmd(UAContext *ua, TREE_CTX *tree);
 
 
-struct cmdstruct { char *key; int (*func)(UAContext *ua, TREE_CTX *tree); char *help; }; 
+struct cmdstruct { const char *key; int (*func)(UAContext *ua, TREE_CTX *tree); const char *help; }; 
 static struct cmdstruct commands[] = {
  { N_("cd"),         cdcmd,        _("change current directory")},
  { N_("count"),      countcmd,     _("count marked files in and below the cd")},
@@ -377,7 +377,7 @@ static int findcmd(UAContext *ua, TREE_CTX *tree)
    for (int i=1; i < ua->argc; i++) {
       for (TREE_NODE *node=first_tree_node(tree->root); node; node=next_tree_node(node)) {
 	 if (fnmatch(ua->argk[i], node->fname, 0) == 0) {
-	    char *tag;
+	    const char *tag;
 	    tree_getpath(node, cwd, sizeof(cwd));
 	    if (node->extract) {
                tag = "*";
@@ -404,7 +404,7 @@ static int lscmd(UAContext *ua, TREE_CTX *tree)
    }
    for (node = tree->node->child; node; node=node->sibling) {
       if (ua->argc == 1 || fnmatch(ua->argk[1], node->fname, 0) == 0) {
-	 char *tag;
+	 const char *tag;
 	 if (node->extract) {
             tag = "*";
 	 } else if (node->extract_dir) {
@@ -429,7 +429,7 @@ static void rlsmark(UAContext *ua, TREE_NODE *node)
    for (node = node->child; node; node=node->sibling) {
       if ((ua->argc == 1 || fnmatch(ua->argk[1], node->fname, 0) == 0) &&
 	  (node->extract || node->extract_dir)) {
-	 char *tag;
+	 const char *tag;
 	 if (node->extract) {
             tag = "*";
 	 } else if (node->extract_dir) {
@@ -459,9 +459,10 @@ extern char *getgroup(gid_t gid);
 /*
  * This is actually the long form used for "dir"
  */
-static void ls_output(char *buf, char *fname, char *tag, struct stat *statp)
+static void ls_output(char *buf, const char *fname, const char *tag, struct stat *statp)
 {
-   char *p, *f;
+   char *p;
+   const char *f;
    char ec1[30];
    int n;
 
@@ -497,7 +498,7 @@ static int dircmd(UAContext *ua, TREE_CTX *tree)
       return 1;
    }
    for (node = tree->node->child; node; node=node->sibling) {
-      char *tag;
+      const char *tag;
       if (ua->argc == 1 || fnmatch(ua->argk[1], node->fname, 0) == 0) {
 	 if (node->extract) {
             tag = "*";

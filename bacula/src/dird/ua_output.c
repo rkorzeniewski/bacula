@@ -45,14 +45,14 @@ extern brwlock_t con_lock;
 /* Imported functions */
 
 /* Forward referenced functions */
-static int do_list_cmd(UAContext *ua, char *cmd, e_list_type llist);
+static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist);
 
 /*
  * Turn auto display of console messages on/off
  */
-int autodisplay_cmd(UAContext *ua, char *cmd)
+int autodisplay_cmd(UAContext *ua, const char *cmd)
 {
-   static char *kw[] = {
+   static const char *kw[] = {
       N_("on"), 
       N_("off"),
       NULL};
@@ -74,9 +74,9 @@ int autodisplay_cmd(UAContext *ua, char *cmd)
 /*
  * Turn gui processing on/off
  */
-int gui_cmd(UAContext *ua, char *cmd)
+int gui_cmd(UAContext *ua, const char *cmd)
 {
-   static char *kw[] = {
+   static const char *kw[] = {
       N_("on"), 
       N_("off"),
       NULL};
@@ -97,7 +97,7 @@ int gui_cmd(UAContext *ua, char *cmd)
 
 
 
-struct showstruct {char *res_name; int type;};
+struct showstruct {const char *res_name; int type;};
 static struct showstruct reses[] = {
    {N_("directors"),  R_DIRECTOR},
    {N_("clients"),    R_CLIENT},
@@ -123,7 +123,7 @@ static struct showstruct reses[] = {
  *  show <resource-keyword-name>=<name> e.g. show director=HeadMan
  *
  */
-int show_cmd(UAContext *ua, char *cmd)
+int show_cmd(UAContext *ua, const char *cmd)
 {
    int i, j, type, len; 
    int recurse;
@@ -221,18 +221,18 @@ bail_out:
  */
 
 /* Do long or full listing */
-int llist_cmd(UAContext *ua, char *cmd)
+int llist_cmd(UAContext *ua, const char *cmd)
 {
    return do_list_cmd(ua, cmd, VERT_LIST);
 }
 
 /* Do short or summary listing */
-int list_cmd(UAContext *ua, char *cmd)
+int list_cmd(UAContext *ua, const char *cmd)
 {
    return do_list_cmd(ua, cmd, HORZ_LIST);
 }
 
-static int do_list_cmd(UAContext *ua, char *cmd, e_list_type llist)
+static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
 {
    POOLMEM *VolumeName;
    int jobid, n;
@@ -618,7 +618,7 @@ static void con_lock_release(void *arg)
    Vw(con_lock);
 }
 
-void do_messages(UAContext *ua, char *cmd)
+void do_messages(UAContext *ua, const char *cmd)
 {
    char msg[2000];
    int mlen; 
@@ -645,7 +645,7 @@ void do_messages(UAContext *ua, char *cmd)
 }
 
 
-int qmessagescmd(UAContext *ua, char *cmd)
+int qmessagescmd(UAContext *ua, const char *cmd)
 {
    if (console_msg_pending && ua->auto_display_messages) {
       do_messages(ua, cmd);
@@ -653,7 +653,7 @@ int qmessagescmd(UAContext *ua, char *cmd)
    return 1;
 }
 
-int messagescmd(UAContext *ua, char *cmd)
+int messagescmd(UAContext *ua, const char *cmd)
 {
    if (console_msg_pending) {
       do_messages(ua, cmd);
@@ -666,7 +666,7 @@ int messagescmd(UAContext *ua, char *cmd)
 /*
  * Callback routine for "printing" database file listing
  */
-void prtit(void *ctx, char *msg)
+void prtit(void *ctx, const char *msg)
 {
    UAContext *ua = (UAContext *)ctx;
  
@@ -680,7 +680,7 @@ void prtit(void *ctx, char *msg)
  * agent, so we are being called from Bacula core. In
  * that case direct the messages to the Job.
  */
-void bsendmsg(void *ctx, char *fmt, ...)
+void bsendmsg(void *ctx, const char *fmt, ...)
 {
    va_list arg_ptr;
    UAContext *ua = (UAContext *)ctx;

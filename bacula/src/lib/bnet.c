@@ -800,7 +800,7 @@ int bnet_sig(BSOCK *bs, int sig)
  * Convert a network "signal" code into
  * human readable ASCII.
  */
-char *bnet_sig_to_ascii(BSOCK *bs)
+const char *bnet_sig_to_ascii(BSOCK *bs)
 {
    static char buf[30];
    switch (bs->msglen) {
@@ -831,7 +831,7 @@ char *bnet_sig_to_ascii(BSOCK *bs)
  *  This probably should be done in net_open
  */
 BSOCK *
-init_bsock(JCR *jcr, int sockfd, const char *who, char *host, int port, 
+init_bsock(JCR *jcr, int sockfd, const char *who, const char *host, int port, 
 	   struct sockaddr_in *client_addr) 
 {
    BSOCK *bsock = (BSOCK *)malloc(sizeof(BSOCK));

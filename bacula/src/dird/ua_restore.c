@@ -38,7 +38,7 @@
 
 
 /* Imported functions */
-extern int run_cmd(UAContext *ua, char *cmd);
+extern int run_cmd(UAContext *ua, const char *cmd);
 extern void print_bsr(UAContext *ua, RBSR *bsr);
 
 /* Imported variables */
@@ -113,7 +113,7 @@ static int get_date(UAContext *ua, char *date, int date_len);
  *   Restore files
  *
  */
-int restore_cmd(UAContext *ua, char *cmd)
+int restore_cmd(UAContext *ua, const char *cmd)
 {
    RESTORE_CTX rx;		      /* restore context */
    JOB *job;
@@ -290,7 +290,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
    JOB_DBR jr;
    bool done = false;
    int i, j;
-   char *list[] = { 
+   const char *list[] = { 
       "List last 20 Jobs run",
       "List Jobs where a given File is saved",
       "Enter list of comma separated JobIds to select",
@@ -302,7 +302,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       "Cancel",
       NULL };
 
-   char *kw[] = {
+   const char *kw[] = {
       "jobid",     /* 0 */
       "current",   /* 1 */
       "before",    /* 2 */
@@ -701,9 +701,11 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
    TREE_CTX tree;
    JobId_t JobId, last_JobId;
    char *p;
-   char *nofname = "";
+   char empty = '\0';
+   char *nofname;
    bool OK = true;
 
+   nofname = &empty;
    memset(&tree, 0, sizeof(TREE_CTX));
    /* 
     * Build the directory tree containing JobIds user selected

@@ -53,7 +53,7 @@ int     authenticate_director(JCR *jcr);
 int     authenticate_filed(JCR *jcr);
 
 /* From block.c */
-void    dump_block(DEV_BLOCK *b, char *msg);
+void    dump_block(DEV_BLOCK *b, const char *msg);
 DEV_BLOCK *new_block(DEVICE *dev);
 DEV_BLOCK *dup_block(DEV_BLOCK *eblock);
 void    init_block_write(DEV_BLOCK *block);
@@ -70,8 +70,8 @@ int     read_block_from_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, bool che
 int     read_block_from_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, bool check_block_numbers);
 
 /* From butil.c -- utilities for SD tool programs */
-void    print_ls_output(char *fname, char *link, int type, struct stat *statp);
-JCR    *setup_jcr(char *name, char *device, BSR *bsr, char *VolumeName);
+void    print_ls_output(const char *fname, const char *link, int type, struct stat *statp);
+JCR    *setup_jcr(const char *name, const char * device, BSR *bsr, const char *VolumeName);
 DEVICE *setup_to_access_device(JCR *jcr, int read_access);
 void    display_tape_error_status(JCR *jcr, DEVICE *dev);
 DEVRES *find_device_res(char *device_name, int read_access);
@@ -122,12 +122,12 @@ int      dev_is_tape(DEVICE *dev);
 int      open_device(JCR *jcr, DEVICE *dev);
 int      first_open_device(DEVICE *dev);
 int      fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
-void     _lock_device(char *file, int line, DEVICE *dev);
-void     _unlock_device(char *file, int line, DEVICE *dev);
-void     _block_device(char *file, int line, DEVICE *dev, int state);
-void     _unblock_device(char *file, int line, DEVICE *dev);
-void     _steal_device_lock(char *file, int line, DEVICE *dev, bsteal_lock_t *hold, int state);
-void     _give_back_device_lock(char *file, int line, DEVICE *dev, bsteal_lock_t *hold);
+void     _lock_device(const char *file, int line, DEVICE *dev);
+void     _unlock_device(const char *file, int line, DEVICE *dev);
+void     _block_device(const char *file, int line, DEVICE *dev, int state);
+void     _unblock_device(const char *file, int line, DEVICE *dev);
+void     _steal_device_lock(const char *file, int line, DEVICE *dev, bsteal_lock_t *hold, int state);
+void     _give_back_device_lock(const char *file, int line, DEVICE *dev, bsteal_lock_t *hold);
 void     set_new_volume_parameters(JCR *jcr, DEVICE *dev);
 void     set_new_file_parameters(JCR *jcr, DEVICE *dev); 
 int      device_is_unmounted(DEVICE *dev);
@@ -147,8 +147,8 @@ void     handle_filed_connection(BSOCK *fd, char *job_name);
 /* From label.c */
 int      read_dev_volume_label(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
 void     create_session_label(JCR *jcr, DEV_RECORD *rec, int label);
-void     create_volume_label(DEVICE *dev, char *VolName, char *PoolName);
-int      write_volume_label_to_dev(JCR *jcr, DEVRES *device, char *VolName, char *PoolName);
+void     create_volume_label(DEVICE *dev, const char *VolName, const char *PoolName);
+int      write_volume_label_to_dev(JCR *jcr, DEVRES *device, const char *VolName, const char *PoolName);
 int      write_session_label(JCR *jcr, DEV_BLOCK *block, int label);
 int      write_volume_label_to_block(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
 void     dump_volume_label(DEVICE *dev);
@@ -186,8 +186,8 @@ void     free_vol_list(JCR *jcr);
 void     create_vol_list(JCR *jcr);
 
 /* From record.c */
-char    *FI_to_ascii(int fi);
-char    *stream_to_ascii(int stream, int fi);
+const char *FI_to_ascii(int fi);
+const char *stream_to_ascii(int stream, int fi);
 int      write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec);
 int      can_write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec);
 int      read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec); 

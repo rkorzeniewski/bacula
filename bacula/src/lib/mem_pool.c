@@ -376,9 +376,9 @@ void close_memory_pool()
 
 #ifdef DEBUG
 
-static char *pool_name(int pool)
+static const char *pool_name(int pool)
 {
-   static char *name[] = {"NoPool", "NAME  ", "FNAME ", "MSG   ", "EMSG  "};
+   static const char *name[] = {"NoPool", "NAME  ", "FNAME ", "MSG   ", "EMSG  "};
    static char buf[30];
 
    if (pool >= 0 && pool <= PM_MAX) {

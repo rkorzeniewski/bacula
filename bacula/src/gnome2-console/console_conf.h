@@ -16,7 +16,7 @@
 enum {
    R_DIRECTOR = 1001,
    R_CONSOLE,
-   R_CONSOLE_FONT,
+   R_CONSOLE_FONT
 };
 
 #define R_FIRST     R_DIRECTOR

@@ -102,6 +102,100 @@ void dlist::insert_after(void *item, void *where)
    num_items++;
 }
 
+/*
+ * Returns: item	 if item inserted
+ *	    other_item	 if same value already exists (item not inserted)
+ */
+void *dlist::binary_insert(void *item, int compare(void *item1, void *item2))
+{
+   int comp;
+   int low, high, cur;
+   void *cur_item;
+
+   if (num_items == 0) {
+    //Dmsg0(000, "Append first.\n");
+      append(item);
+      return item;
+   }
+   if (num_items == 1) {
+      comp = compare(item, first());	  
+      if (comp < 0) {
+	 insert_before(item, first());
+       //Dmsg0(000, "Insert before first.\n");
+	 return item;
+      } else if (comp > 0) {
+	 insert_after(item, first());
+       //Dmsg0(000, "Insert after first.\n");
+	 return item;
+      } else {
+       //Dmsg0(000, "Same as first.\n");
+	 return first();
+      }
+   }
+   /* Check against last item */
+   comp = compare(item, last());
+   if (comp > 0) {
+      append(item);
+    //Dmsg0(000, "Appended item.\n");
+      return item;
+   } else if (comp == 0) {
+    //Dmsg0(000, "Same as last.\n");
+      return last();
+   }
+   /* Check against first item */
+   comp = compare(item, first());
+   if (comp < 0) {
+      insert_before(item, first());
+    //Dmsg0(000, "Inserted item before.\n");
+      return item;
+   } else if (comp == 0) {
+    //Dmsg0(000, "Same as first.\n");
+      return first();
+   }
+   if (num_items == 2) {
+      insert_after(item, first());
+    //Dmsg0(000, "Inserted item after.\n");
+      return item;
+   }
+   low = 1;
+   high = num_items;
+   cur = 1;
+   cur_item = first();
+   while (low < high) {
+      int nxt;
+      nxt = (low + high) / 2;
+      while (nxt > cur) {
+	 cur_item = next(cur_item);
+	 cur++;
+      }
+      while (nxt < cur) {
+	 cur_item = prev(cur_item); 
+	 cur--;
+      }
+    //Dmsg1(000, "Compare item to %d\n", cur);
+      comp = compare(item, cur_item);
+    //Dmsg2(000, "Compare item to %d = %d\n", cur, comp);
+      if (comp < 0) {
+	 high = cur;
+       //Dmsg2(000, "set high; low=%d high=%d\n", low, high);
+      } else if (comp > 0) {
+	 low = cur + 1;
+       //Dmsg2(000, "set low; low=%d high=%d\n", low, high);
+      } else {
+       //Dmsg1(000, "Same as item %d\n", cur);
+	 return cur_item;
+      }
+   }
+   if (high == cur) {
+      insert_before(item, cur_item);
+    //Dmsg1(000, "Insert before item %d\n", cur);
+   } else {
+      insert_after(item, cur_item);
+    //Dmsg1(000, "Insert after item %d\n", cur);
+   }
+   return item;
+}
+
 
 void dlist::remove(void *item)
 {
@@ -170,11 +264,23 @@ struct MYJCR {
    dlink link;
 };
 
+static int my_compare(void *item1, void *item2)
+{
+   MYJCR *jcr1, *jcr2;
+   int comp;
+   jcr1 = (MYJCR *)item1;
+   jcr2 = (MYJCR *)item2;
+   comp = strcmp(jcr1->buf, jcr2->buf);
+ //Dmsg3(000, "compare=%d: %s to %s\n", comp, jcr1->buf, jcr2->buf);
+   return comp;
+}
+
 int main()
 {
    char buf[30];
    dlist *jcr_chain;
    MYJCR *jcr = NULL;
+   MYJCR *jcr1;
    MYJCR *save_jcr = NULL;
    MYJCR *next_jcr;
 
@@ -237,6 +343,44 @@ int main()
    }
 
    delete jcr_chain;
+
+
+   /* Now do a binary insert for the list */
+   jcr_chain = new dlist(jcr, &jcr->link);
+#define CNT 26
+   printf("append %d items\n", CNT*CNT*CNT);
+   strcpy(buf, "ZZZ");
+   int count = 0;
+   for (int i=0; i<CNT; i++) {
+      for (int j=0; j<CNT; j++) {
+	 for (int k=0; k<CNT; k++) {
+	    count++;
+	    if ((count & 0x3FF) == 0) {
+               Dmsg1(000, "At %d\n", count);
+	    }
+	    jcr = (MYJCR *)malloc(sizeof(MYJCR));
+	    jcr->buf = bstrdup(buf);
+	    jcr1 = (MYJCR *)jcr_chain->binary_insert(jcr, my_compare);
+	    if (jcr != jcr1) {
+               Dmsg2(000, "Insert of %s vs %s failed.\n", jcr->buf, jcr1->buf);
+	    }
+	    buf[1]--;
+	 }
+         buf[1] = 'Z';
+	 buf[2]--;
+      }
+      buf[2] = 'Z';
+      buf[0]--;
+   }
+
+   printf("Print sorted list.\n");
+   foreach_dlist (jcr, jcr_chain) {
+      printf("Dlist item = %s\n", jcr->buf);
+      free(jcr->buf);
+   }
+
+   delete jcr_chain;
+
 
    sm_dump(false);
 

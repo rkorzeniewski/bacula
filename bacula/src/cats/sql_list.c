@@ -45,7 +45,7 @@
 
 /* Imported subroutines */
 extern void list_result(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, e_list_type type);
-extern int QueryDB(char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
+extern int QueryDB(const char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
 
 
 /* 

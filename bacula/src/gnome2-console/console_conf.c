@@ -105,7 +105,7 @@ RES_TABLE resources[] = {
 
 
 /* Dump contents of resource */
-void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...), void *sock)
+void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fmt, ...), void *sock)
 {
    URES *res = (URES *)reshdr;
    int recurse = 1;

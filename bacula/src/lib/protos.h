@@ -73,12 +73,12 @@ BSOCK *    bnet_connect            (JCR *jcr, int retry_interval,
                int max_retry_time, const char *name, char *host, char *service, 
                int port, int verbose);
 void       bnet_close            (BSOCK *bsock);
-BSOCK *    init_bsock            (JCR *jcr, int sockfd, const char *who, char *ip, 
+BSOCK *    init_bsock            (JCR *jcr, int sockfd, const char *who, const char *ip, 
                                   int port, struct sockaddr_in *client_addr);
 BSOCK *    dup_bsock             (BSOCK *bsock);
 void       term_bsock            (BSOCK *bsock);
 char *     bnet_strerror         (BSOCK *bsock);
-char *     bnet_sig_to_ascii     (BSOCK *bsock);
+const char *bnet_sig_to_ascii     (BSOCK *bsock);
 int        bnet_wait_data        (BSOCK *bsock, int sec);
 int        bnet_wait_data_intr   (BSOCK *bsock, int sec);
 int        bnet_despool_to_bsock (BSOCK *bsock, void update(ssize_t size), ssize_t size);
@@ -148,7 +148,7 @@ void       add_msg_dest          (MSGS *msg, int dest, int type, char *where, ch
 void       rem_msg_dest          (MSGS *msg, int dest, int type, char *where);
 void       Jmsg                  (JCR *jcr, int type, int level, const char *fmt, ...);
 void       dispatch_message      (JCR *jcr, int type, int level, char *buf);
-void       init_console_msg      (char *wd);
+void       init_console_msg      (const char *wd);
 void       free_msgs_res         (MSGS *msgs);
 void       dequeue_messages      (JCR *jcr);
 void       set_trace             (int trace_flag);
@@ -179,7 +179,7 @@ void             strip_trailing_junk     (char *str);
 void             strip_trailing_slashes  (char *dir);
 bool             skip_spaces             (char **msg);
 bool             skip_nonspaces          (char **msg);
-int              fstrsch                 (char *a, char *b);
+int              fstrsch                 (const char *a, const char *b);
 char            *next_arg(char **s);
 int              parse_args(POOLMEM *cmd, POOLMEM **args, int *argc, 
                         char **argk, char **argv, int max_args);
@@ -200,9 +200,9 @@ void             jobstatus_to_ascii      (int JobStatus, char *msg, int maxlen);
 int              pm_strcat               (POOLMEM **pm, const char *str);
 int              pm_strcpy               (POOLMEM **pm, const char *str);
 int              run_program             (char *prog, int wait, POOLMEM *results);
-char *           job_type_to_str         (int type);
-char *           job_status_to_str       (int stat);
-char *           job_level_to_str        (int level);
+const char *     job_type_to_str         (int type);
+const char *     job_status_to_str       (int stat);
+const char *     job_level_to_str        (int level);
 void             make_session_key        (char *key, char *seed, int mode);
 POOLMEM         *edit_job_codes(JCR *jcr, char *omsg, char *imsg, const char *to);
 void             set_working_directory(char *wd);

@@ -95,7 +95,7 @@ static void *connect_thread(void *arg)
  * Create a Job Control Record for a control "job",
  *   filling in all the appropriate fields.
  */
-JCR *new_control_jcr(char *base_name, int job_type)
+JCR *new_control_jcr(const char *base_name, int job_type)
 {
    JCR *jcr;
    jcr = new_jcr(sizeof(JCR), dird_free_jcr);

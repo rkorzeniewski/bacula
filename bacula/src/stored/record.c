@@ -41,7 +41,7 @@ extern int debug_level;
  *   record as a Label, otherwise it is simply
  *   the FileIndex of the current file.
  */
-char *FI_to_ascii(int fi)
+const char *FI_to_ascii(int fi)
 {
    static char buf[20];
    if (fi >= 0) {
@@ -80,7 +80,7 @@ char *FI_to_ascii(int fi)
  *   dealing with a Label, hence the
  *   stream is the JobId.
  */
-char *stream_to_ascii(int stream, int fi)
+const char *stream_to_ascii(int stream, int fi)
 {
     static char buf[20];
     if (fi < 0) {

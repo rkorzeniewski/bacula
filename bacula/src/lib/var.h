@@ -110,7 +110,7 @@ typedef struct {
     char  index_open;   /* default: '[' */
     char  index_close;  /* default: ']' */
     char  index_mark;   /* default: '#' */
-    char *name_chars;   /* default: "a-zA-Z0-9_" */
+    const char *name_chars;   /* default: "a-zA-Z0-9_" */
 } var_syntax_t;
 
 typedef var_rc_t (*var_cb_value_t)(
@@ -135,6 +135,6 @@ var_rc_t  var_unescape  (var_t  *var, const char *src_ptr, int src_len, char  *d
 var_rc_t  var_expand    (var_t  *var, const char *src_ptr, int src_len, char **dst_ptr, int *dst_len, int force_expand);
 var_rc_t  var_formatv   (var_t  *var, char **dst_ptr, int force_expand, const char *fmt, va_list ap);
 var_rc_t  var_format    (var_t  *var, char **dst_ptr, int force_expand, const char *fmt, ...);
-char     *var_strerror  (var_t  *var, var_rc_t rc);            
+const char *var_strerror  (var_t  *var, var_rc_t rc);            
 
 #endif /* __VAR_H__ */

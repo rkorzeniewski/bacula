@@ -11,13 +11,13 @@
 #include "restore.h"
 
 extern BSOCK *UA_sock;
-void write_director(gchar *msg);
+void write_director(const gchar *msg);
 void start_director_reader(gpointer data);
 void stop_director_reader(gpointer data);
 
 
 /* Forward referenced subroutines */
-void FillDirectory(char *path, Window *window);
+void FillDirectory(const char *path, Window *window);
 Window *new_window();
 static void click_column_cb(GtkCList *item, gint column, Window *restore);
 static void select_row_cb(GtkCList *item, gint row, gint column, 
@@ -118,7 +118,7 @@ on_restore_remove_button_clicked(GtkButton *button, gpointer user_data)
  */
 void select_restore_setup()
 {
-   gchar *title[NUM_COLUMNS] = {"Mark", "File", "Mode", "User", "Group", "Size", "Date"};
+   const gchar *title[NUM_COLUMNS] = {"Mark", "File", "Mode", "User", "Group", "Size", "Date"};
 
    restore_file_selection = create_restore_file_selection();
    if (!restore_file_selection) {
@@ -141,7 +141,10 @@ void select_restore_setup()
                   "blank.xpm");
 #endif
 
-   restore->list = (GtkCList *)gtk_clist_new_with_titles(NUM_COLUMNS, title);
+   /* XXX: Stupid gtk_clist_set_selection_mode() has incorrect declaration of the title argument */
+   /* XXX: Workaround by typecast... peter@ifm.liu.se */
+   
+   restore->list = (GtkCList *)gtk_clist_new_with_titles(NUM_COLUMNS, (gchar **) title);
    gtk_clist_set_selection_mode(restore->list, GTK_SELECTION_EXTENDED);
    gtk_clist_set_sort_column(restore->list, FILE_COLUMN);
    gtk_clist_set_auto_sort(restore->list, true);
@@ -173,7 +176,7 @@ void select_restore_files()
 /*
  * Fill the CList box with files at path
  */
-void FillDirectory(char *path, Window *restore)
+void FillDirectory(const char *path, Window *restore)
 {
    char pathbuf[MAXSTRING];
    char modes[20], user[20], group[20], size[20], date[30];

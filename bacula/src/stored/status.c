@@ -46,8 +46,8 @@ extern int num_jobs_run;
 static void send_blocked_status(JCR *jcr, DEVICE *dev);
 static void list_terminated_jobs(void *arg);
 static void list_running_jobs(BSOCK *user);
-static void sendit(char *msg, int len, void *arg);
-static char *level_to_str(int level);
+static void sendit(const char *msg, int len, void *arg);
+static const char *level_to_str(int level);
 
 
 /*
@@ -275,7 +275,7 @@ static void list_terminated_jobs(void *arg)
    char dt[MAX_TIME_LENGTH], b1[30], b2[30];
    char level[10];
    struct s_last_job *je;
-   char *msg;
+   const char *msg;
 
    if (last_jobs->size() == 0) {
       msg = _("No Terminated Jobs.\n"); 
@@ -291,7 +291,7 @@ static void list_terminated_jobs(void *arg)
    sendit(msg, strlen(msg), arg);
    foreach_dlist(je, last_jobs) {
       char JobName[MAX_NAME_LENGTH];
-      char *termstat;
+      const char *termstat;
       char buf[1000];
 
       bstrftime_nc(dt, sizeof(dt), je->end_time);
@@ -350,9 +350,9 @@ static void list_terminated_jobs(void *arg)
 /*
  * Convert Job Level into a string
  */
-static char *level_to_str(int level) 
+static const char *level_to_str(int level) 
 {
-   char *str;
+   const char *str;
 
    switch (level) {
    case L_BASE:
@@ -397,7 +397,7 @@ static char *level_to_str(int level)
 /*
  * Send to Director 
  */
-static void sendit(char *msg, int len, void *arg)
+static void sendit(const char *msg, int len, void *arg)
 {
    BSOCK *user = (BSOCK *)arg;
 

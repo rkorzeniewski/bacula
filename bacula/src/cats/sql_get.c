@@ -55,7 +55,7 @@ static int db_get_path_record(JCR *jcr, B_DB *mdb);
 
 /* Imported subroutines */
 extern void print_result(B_DB *mdb);
-extern int QueryDB(char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
+extern int QueryDB(const char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
 extern void split_path_and_file(JCR *jcr, B_DB *mdb, const char *fname);
 
 

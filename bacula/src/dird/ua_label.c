@@ -39,7 +39,7 @@ typedef struct s_vol_list {
 
 
 /* Forward referenced functions */
-static int do_label(UAContext *ua, char *cmd, int relabel);
+static int do_label(UAContext *ua, const char *cmd, int relabel);
 static void label_from_barcodes(UAContext *ua);
 static int send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr, 
 	       POOL_DBR *pr, int relabel, bool media_record_exits);
@@ -56,12 +56,12 @@ static char *get_volume_name_from_SD(UAContext *ua, int Slot);
  *  
  *   label storage=xxx volume=vvv
  */
-int label_cmd(UAContext *ua, char *cmd)
+int label_cmd(UAContext *ua, const char *cmd)
 {
    return do_label(ua, cmd, 0);       /* standard label */
 }
 
-int relabel_cmd(UAContext *ua, char *cmd)
+int relabel_cmd(UAContext *ua, const char *cmd)
 {
    return do_label(ua, cmd, 1);      /* relabel tape */
 }
@@ -71,7 +71,7 @@ static int const max_slots = 5000;
 static bool get_user_slot_list(UAContext *ua, char *slot_list, int num_slots)
 {
    int i;
-   char *msg;
+   const char *msg;
 
    for (int i=0; i<num_slots; i++) {
       slot_list[i] = 0;
@@ -272,7 +272,7 @@ bail_out:
 /*
  * Common routine for both label and relabel
  */
-static int do_label(UAContext *ua, char *cmd, int relabel)
+static int do_label(UAContext *ua, const char *cmd, int relabel)
 {
    STORE *store;
    BSOCK *sd;
@@ -283,7 +283,7 @@ static int do_label(UAContext *ua, char *cmd, int relabel)
    int ok = FALSE;
    int i;
    bool media_record_exists = false;
-   static char *barcode_keyword[] = {
+   static const char *barcode_keyword[] = {
       "barcode",
       "barcodes",
       NULL};
@@ -537,11 +537,11 @@ bail_out:
  * Check if the Volume name has legal characters
  * If ua is non-NULL send the message
  */
-bool is_volume_name_legal(UAContext *ua, char *name)
+bool is_volume_name_legal(UAContext *ua, const char *name)
 {
    int len;
-   char *p;
-   char *accept = ":.-_";
+   const char *p;
+   const char *accept = ":.-_";
 
    /* Restrict the characters permitted in the Volume name */
    for (p=name; *p; p++) {

@@ -40,7 +40,7 @@ static DEVICE *out_dev = NULL;
 static JCR *in_jcr;		       /* input jcr */
 static JCR *out_jcr;		       /* output jcr */
 static BSR *bsr = NULL;
-static char *wd = "/tmp";
+static const char *wd = "/tmp";
 static int list_records = 0;
 static uint32_t records = 0;
 static uint32_t jobs = 0;

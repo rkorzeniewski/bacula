@@ -64,7 +64,7 @@ static int missing_handler(void *ctx, int num_fields, char **row);
  */
 int do_verify(JCR *jcr) 
 {
-   char *level, *Name;
+   const char *level, *Name;
    BSOCK   *fd;
    JOB_DBR jr, verify_jr;
    JobId_t verify_jobid = 0;
@@ -364,10 +364,10 @@ static void verify_cleanup(JCR *jcr, int TermCode)
    char sdt[50], edt[50];
    char ec1[30];
    char term_code[100], fd_term_msg[100], sd_term_msg[100];
-   char *term_msg;
+   const char *term_msg;
    int msg_type;
    JobId_t JobId;
-   char *Name;
+   const char *Name;
 
 // Dmsg1(100, "Enter verify_cleanup() TermCod=%d\n", TermCode);
 

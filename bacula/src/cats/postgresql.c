@@ -58,8 +58,8 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
  * never have errors, or it is really fatal.
  */
 B_DB *
-db_init_database(JCR *jcr, char *db_name, char *db_user, char *db_password, 
-		 char *db_address, int db_port, char *db_socket) 
+db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char *db_password, 
+		 const char *db_address, int db_port, const char *db_socket) 
 {
    B_DB *mdb;
 
@@ -255,7 +255,7 @@ db_escape_string(char *snew, char *old, int len)
  * Submit a general SQL command (cmd), and for each row returned,
  *  the sqlite_handler is called with the ctx.
  */
-int db_sql_query(B_DB *mdb, char *query, DB_RESULT_HANDLER *result_handler, void *ctx)
+int db_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handler, void *ctx)
 {
    SQL_ROW row;
 

@@ -80,11 +80,12 @@ void term_include_exclude_files(FF_PKT *ff)
 /*
  * Add a filename to list of included files
  */
-void add_fname_to_include_list(FF_PKT *ff, int prefixed, char *fname)
+void add_fname_to_include_list(FF_PKT *ff, int prefixed, const char *fname)
 {
    int len, j;
    struct s_included_file *inc;
    char *p;
+   const char *rp;
 
    len = strlen(fname);
 
@@ -96,8 +97,8 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, char *fname)
 
    /* prefixed = preceded with options */
    if (prefixed) {
-      for (p=fname; *p && *p != ' '; p++) {
-	 switch (*p) {
+      for (rp=fname; *rp && *rp != ' '; rp++) {
+	 switch (*rp) {
          case 'a':                 /* alway replace */
          case '0':                 /* no option */
 	    break;
@@ -133,8 +134,8 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, char *fname)
 	    break;
          case 'V':                  /* verify options */
 	    /* Copy Verify Options */
-            for (j=0; *p && *p != ':'; p++) {
-	       inc->VerifyOpts[j] = *p;
+            for (j=0; *rp && *rp != ':'; rp++) {
+	       inc->VerifyOpts[j] = *rp;
 	       if (j < (int)sizeof(inc->VerifyOpts) - 1) {
 		  j++;
 	       }
@@ -149,22 +150,22 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, char *fname)
 	    break;
 	 case 'Z':                 /* gzip compression */
 	    inc->options |= FO_GZIP;
-            inc->level = *++p - '0';
+            inc->level = *++rp - '0';
             Dmsg1(200, "Compression level=%d\n", inc->level);
 	    break;
 	 default:
-            Emsg1(M_ERROR, 0, "Unknown include/exclude option: %c\n", *p);
+            Emsg1(M_ERROR, 0, "Unknown include/exclude option: %c\n", *rp);
 	    break;
 	 }
       }
       /* Skip past space(s) */
-      for ( ; *p == ' '; p++)
+      for ( ; *rp == ' '; rp++)
 	 {}
    } else {
-      p = fname;
+      rp = fname;
    }
 
-   strcpy(inc->fname, p);		  
+   strcpy(inc->fname, rp);		  
    p = inc->fname;
    len = strlen(p);
    /* Zap trailing slashes.  */
@@ -209,7 +210,7 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, char *fname)
  * We add an exclude name to either the exclude path
  *  list or the exclude filename list.
  */
-void add_fname_to_exclude_list(FF_PKT *ff, char *fname)
+void add_fname_to_exclude_list(FF_PKT *ff, const char *fname)
 {
    int len;
    struct s_excluded_file *exc, **list;
@@ -267,7 +268,7 @@ struct s_included_file *get_next_included_file(FF_PKT *ff, struct s_included_fil
  *  file is included possibly with wild-cards.
  */
 
-int file_is_included(FF_PKT *ff, char *file)
+int file_is_included(FF_PKT *ff, const char *file)
 {
    struct s_included_file *inc = ff->included_files_list;
    int len;
@@ -305,7 +306,7 @@ int file_is_included(FF_PKT *ff, char *file)
  * Determine if the file is excluded or not.
  */
 static int
-file_in_excluded_list(struct s_excluded_file *exc, char *file)
+file_in_excluded_list(struct s_excluded_file *exc, const char *file)
 {
    if (exc == NULL) {
       Dmsg0(900, "exc is NULL\n");
@@ -327,9 +328,9 @@ file_in_excluded_list(struct s_excluded_file *exc, char *file)
  *  of an excluded directory.
  */
 
-int file_is_excluded(FF_PKT *ff, char *file)
+int file_is_excluded(FF_PKT *ff, const char *file)
 {
-   char *p;
+   const char *p;
 
    if (win32_client && file[1] == ':') {
       file += 2;

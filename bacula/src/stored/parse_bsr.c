@@ -51,7 +51,7 @@ static bool is_fast_rejection_ok(BSR *bsr);
 static bool is_positioning_ok(BSR *bsr);
 
 struct kw_items {
-   char *name;
+   const char *name;
    ITEM_HANDLER *handler;
 };
 

@@ -50,7 +50,7 @@
 
 /* Imported subroutines */
 extern void print_result(B_DB *mdb);
-extern int QueryDB(char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
+extern int QueryDB(const char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
 
 /*
  * Find job start time if JobId specified, otherwise
@@ -151,7 +151,7 @@ db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
  *	    0 on failure
  */
 int
-db_find_last_jobid(JCR *jcr, B_DB *mdb, char *Name, JOB_DBR *jr)
+db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr)
 {
    SQL_ROW row;
 
@@ -218,7 +218,7 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
 {
    SQL_ROW row;
    int numrows;
-   char *changer, *order;
+   const char *changer, *order;
 
    db_lock(mdb);
    if (item == -1) {	   /* find oldest volume */

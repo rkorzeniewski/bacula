@@ -39,7 +39,7 @@
 
 /* External subroutines */
 extern void free_config_resources();
-extern char *edit_device_codes(JCR *jcr, char *omsg, char *imsg, char *cmd);
+extern char *edit_device_codes(JCR *jcr, char *omsg, const char *imsg, const char *cmd);
 
 /* Exported variables */
 int quit = 0;
@@ -79,7 +79,7 @@ static int quickie_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
 static bool compare_blocks(DEV_BLOCK *last_block, DEV_BLOCK *block);
 static int my_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
 static void scan_blocks();
-static void set_volume_name(char *VolName, int volnum);
+static void set_volume_name(const char *VolName, int volnum);
 static void rawfill_cmd();
 static void bfill_cmd();
 static bool open_the_device();
@@ -128,7 +128,7 @@ static uint32_t last_block_num = 0;
 static uint32_t BlockNumber = 0;
 static bool simple = true; 
 
-static char *VolumeName = NULL;
+static const char *VolumeName = NULL;
 static int vol_num = 0;
 
 static JCR *jcr = NULL;
@@ -136,7 +136,7 @@ static JCR *jcr = NULL;
 
 static void usage();
 static void terminate_btape(int sig);
-int get_cmd(char *prompt);
+int get_cmd(const char *prompt);
 
 
 /*********************************************************************
@@ -2394,7 +2394,7 @@ static void bfill_cmd()
 }
 
 
-struct cmdstruct { char *key; void (*func)(); char *help; }; 
+struct cmdstruct { const char *key; void (*func)(); const char *help; }; 
 static struct cmdstruct commands[] = {
  {"autochanger", autochangercmd, "test autochanger"},
  {"bsf",        bsfcmd,       "backspace file"},
@@ -2483,7 +2483,7 @@ static void usage()
  * to have correct backspacing, etc.
  */
 int 
-get_cmd(char *prompt)
+get_cmd(const char *prompt)
 {
    int i = 0;
    int ch;
@@ -2628,7 +2628,7 @@ static int my_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    return 1;			   /* next volume mounted */
 }
 
-static void set_volume_name(char *VolName, int volnum) 
+static void set_volume_name(const char *VolName, int volnum) 
 {
    DCR *dcr = jcr->dcr;
    VolumeName = VolName;
@@ -2661,7 +2661,7 @@ static void set_volume_name(char *VolName, int volnum)
  *  cmd = command string (load, unload, ...) 
  *
  */
-static char *edit_device_codes(JCR *jcr, char *omsg, char *imsg, char *cmd) 
+static char *edit_device_codes(JCR *jcr, char *omsg, const char *imsg, const char *cmd) 
 {
    char *p;
    const char *str;

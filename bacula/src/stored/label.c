@@ -328,7 +328,7 @@ static void create_volume_label_record(JCR *jcr, DEVICE *dev, DEV_RECORD *rec)
  *  Returns: 0 on error
  *	     1 on success
  */
-void create_volume_label(DEVICE *dev, char *VolName, char *PoolName)
+void create_volume_label(DEVICE *dev, const char *VolName, const char *PoolName)
 {
    DEVRES *device = (DEVRES *)dev->device;
 
@@ -374,7 +374,7 @@ void create_volume_label(DEVICE *dev, char *VolName, char *PoolName)
  *
  *  This routine should be used only when labeling a blank tape.
  */
-int write_volume_label_to_dev(JCR *jcr, DEVRES *device, char *VolName, char *PoolName)
+int write_volume_label_to_dev(JCR *jcr, DEVRES *device, const char *VolName, const char *PoolName)
 {
    DEVICE *dev = device->dev;
    DEV_RECORD rec;   
@@ -561,7 +561,8 @@ void dump_volume_label(DEVICE *dev)
 {
    int dbl = debug_level;
    uint32_t File;
-   char *LabelType, buf[30];
+   const char *LabelType;
+   char buf[30];
    struct tm tm;
    struct date_time dt;
 
@@ -676,7 +677,7 @@ int unser_session_label(SESSION_LABEL *label, DEV_RECORD *rec)
 }
 
 
-static void dump_session_label(DEV_RECORD *rec, char *type)
+static void dump_session_label(DEV_RECORD *rec, const char *type)
 {
    int dbl;
    struct date_time dt;
@@ -745,7 +746,7 @@ Date written      : %04d-%02d-%02d at %02d:%02d\n"),
 
 void dump_label_record(DEVICE *dev, DEV_RECORD *rec, int verbose)
 {
-   char *type;
+   const char *type;
    int dbl;
 
    dbl = debug_level;

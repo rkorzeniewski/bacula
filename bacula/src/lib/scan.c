@@ -94,10 +94,10 @@ bool skip_nonspaces(char **msg)
 
 /* folded search for string - case insensitive */
 int
-fstrsch(char *a, char *b)   /* folded case search */
+fstrsch(const char *a, const char *b)   /* folded case search */
 {
-   register char *s1,*s2;
-   register char c1, c2;
+   const char *s1,*s2;
+   char c1, c2;
 
    s1=a;
    s2=b;

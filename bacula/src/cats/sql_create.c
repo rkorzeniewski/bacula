@@ -52,9 +52,9 @@ static int db_create_path_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
 /* Imported subroutines */
 extern void print_dashes(B_DB *mdb);
 extern void print_result(B_DB *mdb);
-extern int QueryDB(char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
-extern int InsertDB(char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
-extern int UpdateDB(char *file, int line, JCR *jcr, B_DB *db, char *update_cmd);
+extern int QueryDB(const char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
+extern int InsertDB(const char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
+extern int UpdateDB(const char *file, int line, JCR *jcr, B_DB *db, char *update_cmd);
 extern void split_path_and_file(JCR *jcr, B_DB *mdb, const char *fname);
 
 

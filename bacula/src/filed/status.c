@@ -36,7 +36,7 @@ extern time_t daemon_start_time;
 /* Forward referenced functions */
 static void  list_terminated_jobs(void sendit(const char *msg, int len, void *sarg), void *arg);
 static void bsock_sendit(const char *msg, int len, void *arg);
-static char *level_to_str(int level);
+static const char *level_to_str(int level);
 
 
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
@@ -170,7 +170,7 @@ static void  list_terminated_jobs(void sendit(const char *msg, int len, void *sa
    sendit(msg, strlen(msg), arg);
    foreach_dlist(je, last_jobs) {
       char JobName[MAX_NAME_LENGTH];
-      char *termstat;
+      const char *termstat;
       char buf[1000];
 
       bstrftime_nc(dt, sizeof(dt), je->end_time);
@@ -258,9 +258,9 @@ int status_cmd(JCR *jcr)
 /*
  * Convert Job Level into a string
  */
-static char *level_to_str(int level) 
+static const char *level_to_str(int level) 
 {
-   char *str;
+   const char *str;
 
    switch (level) {
    case L_BASE:
@@ -349,7 +349,7 @@ void FillStatusBox(HWND hwnd, int idlist)
 char *bac_status(int stat)
 {
    JCR *njcr;
-   char *termstat = _("Bacula Idle");
+   const char *termstat = _("Bacula Idle");
    struct s_last_job *job;
 
    bacstat = 0;

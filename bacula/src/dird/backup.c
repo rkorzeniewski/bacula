@@ -310,7 +310,7 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since, FILESET_DBR *fsr
    char sdt[50], edt[50];
    char ec1[30], ec2[30], ec3[30], ec4[30], ec5[30], compress[50];
    char term_code[100], fd_term_msg[100], sd_term_msg[100];
-   char *term_msg;
+   const char *term_msg;
    int msg_type;
    MEDIA_DBR mr;
    double kbps, compression;

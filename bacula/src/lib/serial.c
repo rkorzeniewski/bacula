@@ -165,11 +165,12 @@ void serial_float64(uint8_t * * const ptr, const float64_t v)
     *ptr += sizeof(float64_t);
 }
 
-int serial_string(uint8_t * const ptr, char * const str)
+void serial_string(uint8_t * * const ptr, const char * const str)
 {
-   int len = strlen((const char *) str) + 1;
-   memcpy(ptr, str, len);
-   return len;
+   int len = strlen(str) + 1;
+   
+   memcpy(*ptr, str, len);
+   *ptr += len;
 }
 
 
@@ -293,9 +294,9 @@ float64_t unserial_float64(uint8_t * * const ptr)
     return v;
 }
 
-int unserial_string(uint8_t  * const ptr, char * const str)
+void unserial_string(uint8_t * * const ptr, char * const str)
 {
-   int len = strlen((char *)ptr) + 1;
-   memcpy(str, ptr, len);
-   return len;
+   int len = strlen((char *) *ptr) + 1;
+   memcpy(str, (char *) *ptr, len);
+   *ptr += len;
 }

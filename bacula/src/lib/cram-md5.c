@@ -124,7 +124,7 @@ int cram_md5_get_auth(BSOCK *bs, char *password, int ssl_need)
    if (strcmp(mp_chr(bs->msg), "1000 OK auth\n") == 0) {
       return 1;
    }
-   Dmsg1(100, "PW: %s\n", password);
+   Dmsg1(100, "Bad response: %s\n", bs->msg);
    bmicrosleep(5, 0);
    return 0;
 }

@@ -79,7 +79,7 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
 			       int Slot, int relabel);
 
 struct s_cmds {
-   char *cmd;
+   const char *cmd;
    int (*func)(JCR *jcr);
 };
 

@@ -48,8 +48,8 @@
 /* Imported subroutines */
 extern void print_dashes(B_DB *mdb);
 extern void print_result(B_DB *mdb);
-extern int QueryDB(char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
-extern int DeleteDB(char *file, int line, JCR *jcr, B_DB *db, char *delete_cmd);
+extern int QueryDB(const char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
+extern int DeleteDB(const char *file, int line, JCR *jcr, B_DB *db, char *delete_cmd);
        
 /*
  * Delete Pool record, must also delete all associated
