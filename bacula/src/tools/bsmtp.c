@@ -65,7 +65,7 @@ static void get_response(void)
 	buf[strlen(buf)-1] = 0;
         Dmsg2(10, "%s --> %s\n", mailhost, buf);
         if (!isdigit((int)buf[0]) || buf[0] > '3') {
-            Dmsg1(10, "Fatal malformed reply: %s\n", buf);
+            Pmsg2(0, "Fatal malformed reply from %s: %s\n", mailhost, buf);
 	    exit(1);
 	}
         if (buf[4] != '-') {
@@ -128,7 +128,7 @@ int main (int argc, char *argv[])
     struct passwd *pwd;
     char *cp, *p;
 
-   my_name_is(argc, argv, "smtp");
+   my_name_is(argc, argv, "bsmtp");
 
    while ((ch = getopt(argc, argv, "c:d:f:h:r:s:?")) != -1) {
       switch (ch) {
@@ -178,7 +178,7 @@ int main (int argc, char *argv[])
    argv += optind;
 
    if (argc < 1) {
-      Dmsg0(0, "Fatal error: no recipient given.\n");
+      Pmsg0(0, "Fatal error: no recipient given.\n");
       usage();
       exit(1);
    }
@@ -199,11 +199,11 @@ int main (int argc, char *argv[])
     *  if possible, get the fully qualified domain name
     */
    if (gethostname(my_hostname, sizeof(my_hostname) - 1) < 0) {
-      Dmsg1(0, "Fatal gethostname error: ERR=%s\n", strerror(errno));
+      Pmsg1(0, "Fatal gethostname error: ERR=%s\n", strerror(errno));
       exit(1);
    }
    if ((hp = gethostbyname(my_hostname)) == NULL) {
-      Dmsg2(0, "Fatal gethostbyname for myself failed \"%s\": ERR=%s\n", my_hostname,
+      Pmsg2(0, "Fatal gethostbyname for myself failed \"%s\": ERR=%s\n", my_hostname,
 	 strerror(errno));
       exit(1);
    }
@@ -228,10 +228,10 @@ int main (int argc, char *argv[])
     */
 hp:
    if ((hp = gethostbyname(mailhost)) == NULL) {
-      Dmsg2(0, "Error unknown mail host \"%s\": ERR=%s\n", mailhost,
+      Pmsg2(0, "Error unknown mail host \"%s\": ERR=%s\n", mailhost,
 	 strerror(errno));
       if (strcasecmp(mailhost, "localhost") != 0) {
-         Dmsg0(0, "Retrying connection using \"localhost\".\n");
+         Pmsg0(0, "Retrying connection using \"localhost\".\n");
          mailhost = "localhost";
 	 goto hp;
       }
@@ -239,7 +239,7 @@ hp:
    }
 
    if (hp->h_addrtype != AF_INET) {
-      Dmsg1(0, "Fatal error: Unknown address family for smtp host: %d\n", hp->h_addrtype);
+      Pmsg1(0, "Fatal error: Unknown address family for smtp host: %d\n", hp->h_addrtype);
       exit(1);
    }
    memset((char *)&sin, 0, sizeof(sin));
@@ -247,24 +247,24 @@ hp:
    sin.sin_family = hp->h_addrtype;
    sin.sin_port = htons(mailport);
    if ((s = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-      Dmsg1(0, "Fatal socket error: ERR=%s\n", strerror(errno));
+      Pmsg1(0, "Fatal socket error: ERR=%s\n", strerror(errno));
       exit(1);
    }
    if (connect(s, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
-      Dmsg1(0, "Fatal connect error: ERR=%s\n", strerror(errno));
+      Pmsg1(0, "Fatal connect error: ERR=%s\n", strerror(errno));
       exit(1);
    }
    Dmsg0(20, "Connected\n");
    if ((r = dup(s)) < 0) {
-      Dmsg1(0, "Fatal dup error: ERR=%s\n", strerror(errno));
+      Pmsg1(0, "Fatal dup error: ERR=%s\n", strerror(errno));
       exit(1);
    }
    if ((sfp = fdopen(s, "w")) == 0) {
-      Dmsg1(0, "Fatal fdopen error: ERR=%s\n", strerror(errno));
+      Pmsg1(0, "Fatal fdopen error: ERR=%s\n", strerror(errno));
       exit(1);
    }
    if ((rfp = fdopen(r, "r")) == 0) {
-      Dmsg1(0, "Fatal fdopen error: ERR=%s\n", strerror(errno));
+      Pmsg1(0, "Fatal fdopen error: ERR=%s\n", strerror(errno));
       exit(1);
    }
 
