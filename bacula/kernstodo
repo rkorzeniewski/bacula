@@ -48,6 +48,7 @@ For 1.33 Testing/Documentation:
 - Add regression of btape "fill" 
 - Document if absolute path specified extension must be specified
   on Win32.
+- Document vendor database repair.
 
 For version 1.35:
 - Do tape alerts -- see tapealert.txt
