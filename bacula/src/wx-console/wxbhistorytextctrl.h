@@ -34,32 +34,33 @@
 #endif
 
 #include <wx/treectrl.h>
+#include <wx/hashmap.h>
 
 WX_DECLARE_STRING_HASH_MAP( wxString, wxbCommands );
 
 class wxbHistoryTextCtrl: public wxTextCtrl {
    public:
-      wxbHistoryTextCtrl(wxStaticText* help, wxWindow* parent, wxWindowID id, 
+      wxbHistoryTextCtrl(wxStaticText* help, wxWindow* parent, wxWindowID id,
          const wxString& value = "", const wxPoint& pos = wxDefaultPosition,
-         const wxSize& size = wxDefaultSize, 
-         const wxValidator& validator = wxDefaultValidator, 
+         const wxSize& size = wxDefaultSize,
+         const wxValidator& validator = wxDefaultValidator,
          const wxString& name = wxTextCtrlNameStr);
-         
+
       void HistoryAdd(wxString cmd);
-      
+
       void AddCommand(wxString cmd, wxString description);
       void ClearCommandList();
-      
+
       virtual void SetValue(const wxString& value);
    private:
       wxArrayString history;
       wxbCommands commands;
       int index;
       wxStaticText* help;
-      
+
       void OnKeyUp(wxKeyEvent& event);
       void OnKeyDown(wxKeyEvent& event);
-      
+
       DECLARE_EVENT_TABLE();
 };
 

@@ -1,4 +1,5 @@
 13-08-2004 :
+ - wxbHistoryTextCtrl : Fixed Win32 build error
  - general : implemented command completion and interactive help.
 
 06-08-2004 :
