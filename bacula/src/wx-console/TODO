@@ -13,6 +13,9 @@ Mac OS X : "You must first get a unique identifier for your application,
   a so called creator, a four letter constant. All you need to know about
   this step is at http://developer.apple.com/dev/cftype/" (wxWiki)
   To modify in Makefile.in wx-console target
+  
+Mac OS X : Ask kern for the status of this distribution (who is
+  the package releaser ?)
 
 [postponed to July:]
 

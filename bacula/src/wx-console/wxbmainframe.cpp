@@ -230,7 +230,7 @@ wxbMainFrame::wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSi
 #if defined __WXGTK12__ && !defined __WXGTK20__ // Fix for "chinese" fonts under gtk+ 1.2
    font.SetDefaultEncoding(wxFONTENCODING_ISO8859_1);
    consoleCtrl->SetDefaultStyle(wxTextAttr(*wxBLACK, wxNullColour, font));
-   Print("Warning : Unicode is disabled because you are using wxWidgets for GTK+ 1.2.", CS_DEBUG);
+   Print("Warning : Unicode is disabled because you are using wxWidgets for GTK+ 1.2.\n", CS_DEBUG);
 #else
    consoleCtrl->SetDefaultStyle(wxTextAttr(*wxBLACK, wxNullColour, font));
 #endif
