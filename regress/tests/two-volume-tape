@@ -8,8 +8,11 @@ bin/bacula stop  2>&1 >/dev/null
 scripts/copy-2tape-confs
 scripts/prepare-two-tapes
 echo "${cwd}/build" >/tmp/file-list
-bin/drop_sqlite_tables
-bin/make_sqlite_tables
+cd bin
+./drop_bacula_tables >/dev/null 2>&1
+./make_bacula_tables >/dev/null 2>&1
+./grant_bacula_privileges 2>&1 >/dev/null
+cd ..
 out="tmp/sed_tmp"
 echo "s%# Maximum File Size%  Maximum File Size%g" >${out}
 cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1

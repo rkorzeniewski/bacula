@@ -7,8 +7,11 @@ cwd=`pwd`
 scripts/copy-confs
 scripts/cleanup
 bin/bacula stop 2>&1 >/dev/null
-bin/drop_sqlite_tables
-bin/make_sqlite_tables
+cd bin
+./drop_bacula_tables >/dev/null 2>&1
+./make_bacula_tables >/dev/null 2>&1
+./grant_bacula_privileges >/dev/null 2>&1
+cd ..
 
 echo " "
 echo " "

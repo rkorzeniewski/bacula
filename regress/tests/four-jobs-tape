@@ -6,8 +6,11 @@
 #
 cwd=`pwd`
 bin/bacula stop 2>&1 >/dev/null
-bin/drop_sqlite_tables
-bin/make_sqlite_tables
+cd bin
+./drop_bacula_tables >/dev/null 2>&1
+./make_bacula_tables >/dev/null 2>&1
+./grant_bacula_privileges 2>&1 >/dev/null
+cd ..
 
 scripts/copy-tape-confs
 scripts/cleanup-tape
