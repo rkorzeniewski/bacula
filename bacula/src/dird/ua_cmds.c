@@ -976,6 +976,8 @@ static int update_volume(UAContext *ua)
       add_prompt(ua, _("InChanger Flag"));
       add_prompt(ua, _("Volume Files"));
       add_prompt(ua, _("Pool"));
+      add_prompt(ua, _("Volume from Pool"));
+      add_prompt(ua, _("All Volumes from Pool"));
       add_prompt(ua, _("Done"));
       switch (do_prompt(ua, "", _("Select parameter to modify"), NULL, 0)) {
       case 0:			      /* Volume Status */
@@ -1138,6 +1140,12 @@ static int update_volume(UAContext *ua)
 	 update_vol_pool(ua, ua->cmd, &mr, &pr);
 	 return 1;
 
+      case 11:
+	 update_volfrompool(ua, &mr);
+	 break;
+      case 12:
+	 update_all_vols_from_pool(ua);
+	 break;
       default:			      /* Done or error */
          bsendmsg(ua, "Selection done.\n");
 	 return 1;
