@@ -398,7 +398,6 @@ int do_shell_expansion(char *name)
    int pid, wpid, stat;
    int waitstatus;
    char *shellcmd;
-   void (*istat)(int), (*qstat)(int);
    int i;
    char echout[PATH_MAX + 256];
    int pfd[2];
