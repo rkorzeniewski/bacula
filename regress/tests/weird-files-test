@@ -26,8 +26,7 @@ echo " === Starting weird filenames test ==="
 echo " === Starting weird filenames test ===" >>working/log
 echo " "
 
-# bin/bacula start 2>&1 >/dev/null
-bin/bacula start
+bin/bacula start 2>&1 >/dev/null
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
 messages
@@ -42,7 +41,10 @@ messages
 @# now do a restore
 @#
 @output tmp/log2.out
-restore where=${cwd}/tmp/bacula-restores select all storage=File done
+restore where=${cwd}/tmp/bacula-restores select storage=File
+unmark *
+mark *
+done
 yes
 wait
 messages
