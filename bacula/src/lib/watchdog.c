@@ -64,7 +64,7 @@ int start_watchdog(void)
    if (wd_is_init) {
       return 0;
    }
-   Dmsg0(200, "Initialising NicB-hacked watchdog thread\n");
+   Dmsg0(400, "Initialising NicB-hacked watchdog thread\n");
    watchdog_time = time(NULL);
 
    if ((errstat=rwl_init(&lock)) != 0) {
@@ -159,7 +159,7 @@ bool register_watchdog(watchdog_t *wd)
    wd_lock();
    wd->next_fire = watchdog_time + wd->interval;
    wd_queue->append(wd);
-   Dmsg3(200, "Registered watchdog %p, interval %d%s\n",
+   Dmsg3(400, "Registered watchdog %p, interval %d%s\n",
          wd, wd->interval, wd->one_shot ? " one shot" : "");
    wd_unlock();
 
@@ -177,7 +177,7 @@ bool unregister_watchdog_unlocked(watchdog_t *wd)
    foreach_dlist(p, wd_queue) {
       if (wd == p) {
 	 wd_queue->remove(wd);
-         Dmsg1(200, "Unregistered watchdog %p\n", wd);
+         Dmsg1(400, "Unregistered watchdog %p\n", wd);
 	 return true;
       }
    }
@@ -185,12 +185,12 @@ bool unregister_watchdog_unlocked(watchdog_t *wd)
    foreach_dlist(p, wd_inactive) {
       if (wd == p) {
 	 wd_inactive->remove(wd);
-         Dmsg1(200, "Unregistered inactive watchdog %p\n", wd);
+         Dmsg1(400, "Unregistered inactive watchdog %p\n", wd);
 	 return true;
       }
    }
 
-   Dmsg1(200, "Failed to unregister watchdog %p\n", wd);
+   Dmsg1(400, "Failed to unregister watchdog %p\n", wd);
    return false;
 }
 
@@ -211,7 +211,7 @@ bool unregister_watchdog(watchdog_t *wd)
 
 static void *watchdog_thread(void *arg)
 {
-   Dmsg0(200, "NicB-reworked watchdog thread entered\n");
+   Dmsg0(400, "NicB-reworked watchdog thread entered\n");
 
    while (!quit) {
       watchdog_t *p;
@@ -248,7 +248,7 @@ static void *watchdog_thread(void *arg)
       bmicrosleep(SLEEP_TIME, 0);
    }
 
-   Dmsg0(200, "NicB-reworked watchdog thread exited\n");
+   Dmsg0(400, "NicB-reworked watchdog thread exited\n");
    return NULL;
 }
 

@@ -1440,11 +1440,16 @@ gentoo)
 	    platforms/gentoo/bacula-sd \
 	    platforms/gentoo/bacula-dir"
   ;;
-
 slackware)
 	DISTVER=`cat /etc/slackware-version`
 	TAPEDRIVE="/dev/nst0"
 	PSCMD="ps -e -o pid,command"
+	PFILES="${PFILES} \
+	    platforms/slackware/Makefile \
+	    platforms/slackware/rc.bacula-fd \
+	    platforms/slackware/rc.bacula-sd \
+	    platforms/slackware/rc.bacula-dir\
+	    platforms/slackware/functions.bacula"
   ;;
 solaris)
 	DISTVER=`uname -r`

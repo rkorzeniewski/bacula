@@ -24,6 +24,11 @@ New directives:
    FullPool=xxx
    IncrementalPool=xxx
    DifferentialPool=xxx
+- SpoolData=yes/no in DIR Job resource
+- SpoolData=yes/no in Run override directive.
+- MaximumSpoolSize in SD Device resource
+- MaximumSpoolJobSize in SD Device resource
+- SpoolDirectory in SD Device resource.
 
 New Commands:
 - "SetIP"
@@ -33,6 +38,8 @@ New Commands:
 - "markdir" command in restore tree.
 - "unmarkdir" command in restore tree.
 - "quit" command in restore tree.
+- Trace option on "setdebug trace=1/0 ..."
+
 
 Most Significant Changes since 1.32f-4
 - Add a missing unlock in the jobq handler.

@@ -45,6 +45,7 @@ extern int num_jobs_run;
 /* Forward referenced functions */
 static void send_blocked_status(JCR *jcr, DEVICE *dev);
 static void list_terminated_jobs(void *arg);
+static void list_running_jobs(BSOCK *user);
 static void sendit(char *msg, int len, void *arg);
 static char *level_to_str(int level);
 
@@ -56,16 +57,21 @@ int status_cmd(JCR *jcr)
 {
    DEVRES *device;
    DEVICE *dev;
-   int found, bps, sec, bpb;
    BSOCK *user = jcr->dir_bsock;
    char dt[MAX_TIME_LENGTH];
    char b1[30], b2[30], b3[30];
+   int bpb;
 
    bnet_fsend(user, "\n%s Version: " VERSION " (" BDATE ") %s %s %s\n", my_name,
 	      HOST_OS, DISTNAME, DISTVER);
    bstrftime_nc(dt, sizeof(dt), daemon_start_time);
    bnet_fsend(user, _("Daemon started %s, %d Job%s run since started.\n"), dt, num_jobs_run,
         num_jobs_run == 1 ? "" : "s");
+
+   /*
+    * List running jobs
+    */
+   list_running_jobs(user);
 
    /*
     * List terminated jobs
@@ -75,6 +81,7 @@ int status_cmd(JCR *jcr)
    /*
     * List devices
     */
+   bnet_fsend(user, _("Device status:\n"));
    LockRes();
    foreach_res(device, R_DEVICE) {
       for (dev=device->dev; dev; dev=dev->next) {
@@ -123,54 +130,12 @@ int status_cmd(JCR *jcr)
    }
    UnlockRes();
 
-   found = 0;
-   lock_jcr_chain();
-   /* NOTE, we reuse a calling argument jcr. Be warned! */ 
-   foreach_jcr(jcr) {
-      if (jcr->JobStatus == JS_WaitFD) {
-         bnet_fsend(user, _("%s Job %s waiting for Client connection.\n"),
-	    job_type_to_str(jcr->JobType), jcr->Job);
-      }
-      if (jcr->device) {
-         bnet_fsend(user, _("%s %s job %s using Volume \"%s\" on device \"%s\"\n"), 
-		   job_level_to_str(jcr->JobLevel),
-		   job_type_to_str(jcr->JobType),
-		   jcr->Job,
-		   jcr->VolumeName,
-		   jcr->device->device_name);
-	 sec = time(NULL) - jcr->run_time;
-	 if (sec <= 0) {
-	    sec = 1;
-	 }
-	 bps = jcr->JobBytes / sec;
-         bnet_fsend(user, _("    Files=%s Bytes=%s Bytes/sec=%s\n"), 
-	    edit_uint64_with_commas(jcr->JobFiles, b1),
-	    edit_uint64_with_commas(jcr->JobBytes, b2),
-	    edit_uint64_with_commas(bps, b3));
-	 found = 1;
-#ifdef DEBUG
-	 if (jcr->file_bsock) {
-            bnet_fsend(user, "    FDReadSeqNo=%s in_msg=%u out_msg=%d fd=%d\n", 
-	       edit_uint64_with_commas(jcr->file_bsock->read_seqno, b1),
-	       jcr->file_bsock->in_msg_no, jcr->file_bsock->out_msg_no,
-	       jcr->file_bsock->fd);
-	 } else {
-            bnet_fsend(user, "    FDSocket closed\n");
-	 }
-#endif
-      }
-      free_locked_jcr(jcr);
-   }
-   unlock_jcr_chain();
-   if (!found) {
-      bnet_fsend(user, _("No jobs running.\n"));
-   }
 
 #ifdef xfull_status
    bnet_fsend(user, "\n\n");
    dump_resource(R_DEVICE, resources[R_DEVICE-r_first].res_head, sendit, user);
 #endif
-   bnet_fsend(user, "====\n");
+   bnet_fsend(user, "====\n\n");
 
    list_spool_stats(user);
 
@@ -241,6 +206,67 @@ static void send_blocked_status(JCR *jcr, DEVICE *dev)
       bnet_fsend(user, "Min block=%u Max block=%u\n", dev->min_block_size, dev->max_block_size);
    }
 
+}
+
+static void list_running_jobs(BSOCK *user)
+{
+   bool found = false;
+   int bps, sec;
+   JCR *jcr;
+   char JobName[MAX_NAME_LENGTH];
+   char b1[30], b2[30], b3[30];
+   
+   bnet_fsend(user, _("\nRunning Jobs:\n"));
+   lock_jcr_chain();
+   foreach_jcr(jcr) {
+      if (jcr->JobStatus == JS_WaitFD) {
+         bnet_fsend(user, _("%s Job %s waiting for Client connection.\n"),
+	    job_type_to_str(jcr->JobType), jcr->Job);
+      }
+      if (jcr->device) {
+	 bstrncpy(JobName, jcr->Job, sizeof(JobName));
+	 /* There are three periods after the Job name */
+	 char *p;
+	 for (int i=0; i<3; i++) {
+            if ((p=strrchr(JobName, '.')) != NULL) {
+	       *p = 0;
+	    }
+	 }
+         bnet_fsend(user, _("%s %s job %s JobId=%d Volume=\"%s\" device=\"%s\"\n"), 
+		   job_level_to_str(jcr->JobLevel),
+		   job_type_to_str(jcr->JobType),
+		   JobName,
+		   jcr->JobId,
+		   jcr->VolumeName,
+		   jcr->device->device_name);
+	 sec = time(NULL) - jcr->run_time;
+	 if (sec <= 0) {
+	    sec = 1;
+	 }
+	 bps = jcr->JobBytes / sec;
+         bnet_fsend(user, _("    Files=%s Bytes=%s Bytes/sec=%s\n"), 
+	    edit_uint64_with_commas(jcr->JobFiles, b1),
+	    edit_uint64_with_commas(jcr->JobBytes, b2),
+	    edit_uint64_with_commas(bps, b3));
+	 found = true;
+#ifdef DEBUG
+	 if (jcr->file_bsock) {
+            bnet_fsend(user, "    FDReadSeqNo=%s in_msg=%u out_msg=%d fd=%d\n", 
+	       edit_uint64_with_commas(jcr->file_bsock->read_seqno, b1),
+	       jcr->file_bsock->in_msg_no, jcr->file_bsock->out_msg_no,
+	       jcr->file_bsock->fd);
+	 } else {
+            bnet_fsend(user, "    FDSocket closed\n");
+	 }
+#endif
+      }
+      free_locked_jcr(jcr);
+   }
+   unlock_jcr_chain();
+   if (!found) {
+      bnet_fsend(user, _("No jobs running.\n"));
+   }
+   bnet_fsend(user, "====\n");
 }
 
 static void list_terminated_jobs(void *arg)
@@ -316,7 +342,7 @@ static void list_terminated_jobs(void *arg)
 	 dt, JobName);
       sendit(buf, strlen(buf), arg);
    }
-   sendit("\n", 1, arg);
+   sendit("====\n", 1, arg);
    unlock_last_jobs_list();
 }
 
