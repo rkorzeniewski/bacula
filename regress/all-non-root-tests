@@ -16,6 +16,7 @@ tests/bscan-test
 tests/wierd-files2-test
 tests/concurrent-jobs-test
 tests/concurrent2-jobs-test
+tests/bsr-opt-test
 echo " "
 echo " "
 echo "Test results"
