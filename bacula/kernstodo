@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                 05 February 2003 
+                 23 February 2003 
 
 Documentation to do: (a little bit at a time)
 - Document running a test version.
@@ -16,6 +16,20 @@ Testing to do: (painful)
 - multiple simultaneous Volumes
 
 For 1.30 release:
+- Implement a Mount Command and an Unmount Command where
+  the users could specify a system command to be performed
+  to do the mount, after which Bacula could attempt to
+  read the device. This is for Removeable media such as a
+  CDROM.
+  - Most likely, this mount command would be invoked explicitly
+  by the user using the current Console "mount" and "unmount" 
+  commands -- the Storage Daemon would do the right thing 
+  depending on the exact nature of the device.
+  - As with tape drives, when Bacula wanted a new removable
+  disk mounted, it would unmount the old one, and send a message
+  to the user, who would then use "mount" as described above 
+  once he had actually inserted the disk.
+
 - Implement TCP/IP connection for MySQL
 - Make some way so that if a machine is skipped because it is not up 
   that Bacula will continue retrying for a specified period of time --

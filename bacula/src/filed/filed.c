@@ -62,9 +62,11 @@ static void usage()
 "        -c <file>   use <file> as configuration file\n"
 "        -dnn        set debug level to nn\n"
 "        -f          run in foreground (for debugging)\n"
+"        -g          groupid\n"
 "        -i          inetd request\n"
 "        -s          no signals (for debugging)\n"
 "        -t          test configuration file and exit\n"
+"        -u          userid\n"
 "        -?          print this message.\n"
 "\n"));         
    exit(1);
@@ -85,6 +87,8 @@ int main (int argc, char *argv[])
    int no_signals = FALSE;
    int test_config = FALSE;
    DIRRES *director;
+   char *uid = NULL;
+   char *gid = NULL;
 
    init_stack_dump();
    my_name_is(argc, argv, "filed");
@@ -93,7 +97,7 @@ int main (int argc, char *argv[])
 
    memset(&last_job, 0, sizeof(last_job));
 
-   while ((ch = getopt(argc, argv, "c:d:fist?")) != -1) {
+   while ((ch = getopt(argc, argv, "c:d:fg:istu:?")) != -1) {
       switch (ch) {
          case 'c':                    /* configuration file */
 	    if (configfile != NULL) {
@@ -113,6 +117,10 @@ int main (int argc, char *argv[])
 	    foreground = TRUE;
 	    break;
 
+         case 'g':                    /* set group */
+	    gid = optarg;
+	    break;
+
          case 'i':
 	    inetd_request = TRUE;
 	    break;
@@ -122,6 +130,10 @@ int main (int argc, char *argv[])
 
          case 't':
 	    test_config = TRUE;
+	    break;
+
+         case 'u':                    /* set userid */
+	    uid = optarg;
 	    break;
 
          case '?':
@@ -191,6 +203,8 @@ Without that I don't know who I am :-(\n"), configfile);
       daemon_start();
       init_stack_dump();	      /* set new pid */
    }
+
+   drop(uid, gid);
 
    /* Maximum 1 daemon at a time */
    create_pid_file(me->pid_directory, "bacula-fd", me->FDport);

@@ -67,8 +67,10 @@ static void usage()
 "        -c <file>   use <file> as configuration file\n"
 "        -dnn        set debug level to nn\n"
 "        -f          run in foreground (for debugging)\n"
+"        -g          groupid\n"
 "        -s          no signals (for debugging)\n"
 "        -t          test - read config and exit\n"
+"        -u          userid\n"
 "        -?          print this message.\n"
 "\n"));
    exit(1);
@@ -85,6 +87,8 @@ int main (int argc, char *argv[])
    int no_signals = FALSE;
    int test_config = FALSE;
    pthread_t thid;
+   char *uid = NULL;
+   char *gid = NULL;
 
    init_stack_dump();
    my_name_is(argc, argv, "stored");
@@ -101,7 +105,7 @@ int main (int argc, char *argv[])
       Emsg1(M_ABORT, 0, "Tape block size (%d) is not a power of 2\n", TAPE_BSIZE);
    }
 
-   while ((ch = getopt(argc, argv, "c:d:fst?")) != -1) {
+   while ((ch = getopt(argc, argv, "c:d:fg:stu:?")) != -1) {
       switch (ch) {
          case 'c':                    /* configuration file */
 	    if (configfile != NULL) {
@@ -121,12 +125,20 @@ int main (int argc, char *argv[])
 	    foreground = TRUE;
 	    break;
 
+         case 'g':                    /* set group id */
+	    gid = optarg;
+	    break;
+
          case 's':                    /* no signals */
 	    no_signals = TRUE;
 	    break;
 
          case 't':
 	    test_config = TRUE;
+	    break;
+
+         case 'u':                    /* set uid */
+	    uid = optarg;
 	    break;
 
          case '?':
@@ -169,6 +181,8 @@ int main (int argc, char *argv[])
       daemon_start();		      /* become daemon */
       init_stack_dump();	      /* pick up new pid */
    }
+
+   drop(uid, gid);
 
    create_pid_file(me->pid_directory, "bacula-sd", me->SDport);
 

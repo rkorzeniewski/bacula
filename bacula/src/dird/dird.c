@@ -66,9 +66,11 @@ static void usage()
 "       -c <file>   set configuration file to file\n"
 "       -dnn        set debug level to nn\n"
 "       -f          run in foreground (for debugging)\n"
+"       -g          groupid\n"
 "       -r <job>    run <job> now\n"
 "       -s          no signals\n"
 "       -t          test - read configuration and exit\n"
+"       -u          userid\n"
 "       -?          print this message.\n"  
 "\n"));
 
@@ -87,6 +89,8 @@ int main (int argc, char *argv[])
    JCR *jcr;
    int no_signals = FALSE;
    int test_config = FALSE;
+   char *uid = NULL;
+   char *gid = NULL;
 
    init_stack_dump();
    my_name_is(argc, argv, "bacula-dir");
@@ -94,7 +98,7 @@ int main (int argc, char *argv[])
    daemon_start_time = time(NULL);
    memset(&last_job, 0, sizeof(last_job));
 
-   while ((ch = getopt(argc, argv, "c:d:fr:st?")) != -1) {
+   while ((ch = getopt(argc, argv, "c:d:fg:r:stu:?")) != -1) {
       switch (ch) {
          case 'c':                    /* specify config file */
 	    if (configfile != NULL) {
@@ -115,6 +119,10 @@ int main (int argc, char *argv[])
 	    background = FALSE;
 	    break;
 
+         case 'g':                    /* set group id */
+	    gid = optarg;
+	    break;
+
          case 'r':                    /* run job */
 	    if (runjob != NULL) {
 	       free(runjob);
@@ -130,6 +138,10 @@ int main (int argc, char *argv[])
 
          case 't':                    /* test config */
 	    test_config = TRUE;
+	    break;
+
+         case 'u':                    /* set uid */
+	    uid = optarg;
 	    break;
 
          case '?':
@@ -181,6 +193,8 @@ int main (int argc, char *argv[])
       daemon_start();
       init_stack_dump();	      /* grab new pid */
    }
+
+   drop(uid, gid);		      /* reduce priveleges if requested */
 
    /* Create pid must come after we are a daemon -- so we have our final pid */
    create_pid_file(director->pid_directory, "bacula-dir", director->DIRport);

@@ -43,6 +43,7 @@ int	  bvsnprintf		 (char *str, size_t size, const char  *format, va_list ap);
 int	  pool_sprintf		 (char *pool_buf, char *fmt, ...);
 void	  create_pid_file	 (char *dir, char *progname, int port);
 int	  delete_pid_file	 (char *dir, char *progname, int port);
+void	  drop			 (char *uid, char *gid);
 
 
 /* bnet.c */
@@ -160,4 +161,3 @@ btimer_t *start_child_timer(pid_t pid, uint32_t wait);
 void stop_child_timer(btimer_id wid);
 btimer_id start_thread_timer(pthread_t tid, uint32_t wait);
 void stop_thread_timer(btimer_id wid);
-

@@ -784,6 +784,7 @@ AC_CHECK_HEADERS( \
 	assert.h \
 	fcntl.h \
 	grp.h \
+	pwd.h \
 	libc.h \
 	limits.h \
 	stdarg.h \
