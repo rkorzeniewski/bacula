@@ -11,6 +11,12 @@ wxbRestorePanel : Check more carefully which job we just have run.
 
 wxbRestorePanel : Check if commands run successfully (cd, mark, mods...).
 
+wxbRestorePanel : Lock configure items until first configuration is received
+
+wxbRestorePanel : Remove estimate, which slows the restore process
+
+GTK : Improve look
+
 general : Don't concatenate lines in csprint, but in wxbDataTokenizer
          (necessary for dot commands)
          
