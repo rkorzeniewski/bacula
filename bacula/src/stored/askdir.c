@@ -148,7 +148,7 @@ int dir_find_next_appendable_volume(JCR *jcr)
  * After writing a Volume, send the updated statistics
  * back to the director.
  */
-int dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel)
+int dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int label)
 {
    BSOCK *dir = jcr->dir_bsock;
    time_t EndTime = time(NULL);
@@ -158,13 +158,18 @@ int dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel)
       Jmsg0(jcr, M_ERROR, 0, _("NULL Volume name. This shouldn't happen!!!\n"));
       return 0;
    }
+   /* Just labeled or relabeled the tape */
+   if (label) {
+      bstrncpy(vol->VolCatStatus, "Append", sizeof(vol->VolCatStatus));
+      vol->VolCatBytes = 1;	      /* indicates tape labeled */
+   }
    bash_spaces(vol->VolCatName);
    bnet_fsend(dir, Update_media, jcr->Job, 
       vol->VolCatName, vol->VolCatJobs, vol->VolCatFiles,
       vol->VolCatBlocks, edit_uint64(vol->VolCatBytes, ed1),
       vol->VolCatMounts, vol->VolCatErrors,
       vol->VolCatWrites, edit_uint64(vol->VolCatMaxBytes, ed2), 
-      EndTime, vol->VolCatStatus, vol->Slot, relabel);
+      EndTime, vol->VolCatStatus, vol->Slot, label);
    Dmsg1(120, "update_volume_data(): %s", dir->msg);
    unbash_spaces(vol->VolCatName);
    if (bnet_recv(dir) <= 0) {

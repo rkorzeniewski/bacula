@@ -41,9 +41,7 @@ static int perform_full_name_substitution(JCR *jcr, MEDIA_DBR *mr, POOL_DBR *pr)
 
 
 /*
- * Automatic Volume name creation using
- *  LabelFormat. We assume that if this routine is being
- *  called the Volume will be labeled, so we set the LabelDate.
+ * Automatic Volume name creation using the LabelFormat
  */
 int newVolume(JCR *jcr, MEDIA_DBR *mr)
 {
@@ -59,7 +57,6 @@ int newVolume(JCR *jcr, MEDIA_DBR *mr)
       if (pr.MaxVols == 0 || pr.NumVols < pr.MaxVols) {
 	 memset(mr, 0, sizeof(MEDIA_DBR));
 	 set_pool_dbr_defaults_in_media_dbr(mr, &pr);
-	 mr->LabelDate = time(NULL);
 	 bstrncpy(mr->MediaType, jcr->store->media_type, sizeof(mr->MediaType));
 	 /* Check for special characters */
 	 if (is_volume_name_legal(NULL, pr.LabelFormat)) {

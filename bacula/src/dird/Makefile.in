@@ -104,6 +104,9 @@ install: all
 	   $(MV) -f ${DESTDIR}${scriptdir}/query.sql ${DESTDIR}${scriptdir}/query.sql.save; \
 	fi 
 	${INSTALL_DATA} query.sql ${DESTDIR}${scriptdir}/query.sql
+	@if test -f static-bacula-dir; then \
+	   $(INSTALL_PROGRAM) static-bacula-dir $(DESTDIR)$(sbindir)/static-bacula-dir; \
+	fi
 
 
 uninstall:

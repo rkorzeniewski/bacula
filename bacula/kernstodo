@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                15 September 2003 
+                16 September 2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -22,26 +22,26 @@ Testing to do: (painful)
 - Test not zeroing Autochanger slot when it is wrong.
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
-For 1.32:
+For 1.32 Testing/Documentation:
 - Document list nextvol and new format status dir.
 - Document new records in Director. SDAddress SDDeviceName, SDPassword.
   FDPassword, FDAddress, DBAddress, DBPort, DBPassword.
-- It is generally safe to use the drive when the lights stop flashing.
+- Document that it is safe to use the drive when the lights stop flashing.
 - Document new Include/Exclude ...
 - Document all the status codes JobLevel, JobType, JobStatus.
 - Add test of exclusion, test multiple Include {} statements.
+                
+For 1.32:
 - Enhance "update slots" to include a "scan" feature
   scan 1; scan 1-5; scan 1,2,4 ...  to update the catalog 
 - Allow a slot or range of slots on the label barcodes command.
-  when the magazine is changed.
 - Don't print "Warning: Wrong Volume mounted ..." if mounting second volume.
-- LabelFormat on tape volume apparently creates the db record but 
-  never actually labels the volume.
-- Copy static programs into install directory.
+
+
+
 
 For 1.33
-- Think about changing Storage resource Device record to be
-  SDDeviceName.
+- Write a mini-readline with history and editing.
 - Look at how fuser works and /proc/PID/fd that is how Nic found the
   file descriptor leak in Bacula.
 - Implement WrapCounters in Counters.
@@ -233,7 +233,6 @@ For 1.33
 - Figure out some way to estimate output size and to avoid splitting
   a backup across two Volumes -- this could be useful for writing CDROMs
   where you really prefer not to have it split -- not serious.
-- Add RunBeforeJob and RunAfterJob to the Client program.
 - Have SD compute MD5 or SHA1 and compare to what FD computes.
 - Make VolumeToCatalog calculate an MD5 or SHA1 from the 
   actual data on the Volume and compare it.                  
@@ -255,9 +254,6 @@ For 1.33
 - Check if we can increase Bacula FD priorty in Win2000
 - Make sure the MaxVolFiles is fully implemented in SD
 - Check if both CatalogFiles and UseCatalog are set to SD.
-- Need return status on read_cb() from read_records(). Need multiple
-  records -- one per Job, maybe a JCR or some other structure with
-  a block and a record.
 - Figure out how to do a bare metal Windows restore
 - Possibly add email to Watchdog if drive is unmounted too
   long and a job is waiting on the drive.
@@ -914,3 +910,13 @@ Done: (see kernsdone for more)
 - Document restore by files.
 - Make variable expansion work correctly.
 - Implement List Volume Job=xxx  or List scheduled volumes or Status Director 
+- Copy static programs into install directory.
+- Think about changing Storage resource Device record to be
+  SDDeviceName.
+- Add RunBeforeJob and RunAfterJob to the Client program.
+- Need return status on read_cb() from read_records(). Need multiple
+  records -- one per Job, maybe a JCR or some other structure with
+  a block and a record.
+- LabelFormat on tape volume apparently creates the db record but 
+  never actually labels the volume.
+

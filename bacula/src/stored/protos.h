@@ -39,7 +39,7 @@ enum get_vol_info_rw {
 };
 int     dir_get_volume_info(JCR *jcr, enum get_vol_info_rw);
 int     dir_find_next_appendable_volume(JCR *jcr);
-int     dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel);
+int     dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int label);
 int     dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev);
 int     dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev);
 int     dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec);

@@ -98,6 +98,7 @@ mount_next_vol:
    for ( ;; ) {
       int vol_label_status;
       autochanger = autoload_device(jcr, dev, 1, NULL);
+      Dmsg1(100, "autoload_dev returns %d\n", autochanger);
 
       /*
        * If we autochanged to correct Volume or (we have not just
@@ -184,7 +185,7 @@ read_volume:
 	    goto mount_error;
 	 }
          Dmsg1(100, "want new name=%s\n", jcr->VolumeName);
-	 memcpy(&dev->VolCatInfo, &jcr->VolCatInfo, sizeof(jcr->VolCatInfo));
+	 memcpy(&dev->VolCatInfo, &jcr->VolCatInfo, sizeof(dev->VolCatInfo));
          if (strcmp(dev->VolCatInfo.VolCatStatus, "Recycle") == 0) {
 	    recycle = 1;
 	 }
@@ -194,16 +195,20 @@ read_volume:
        */
       case VOL_NO_LABEL:
       case VOL_IO_ERROR:
-         Dmsg1(500, "Vol NO_LABEL or IO_ERROR name=%s\n", jcr->VolumeName);
-	 /* If permitted, create a label */
-	 if (dev_cap(dev, CAP_LABEL)) {
+	 /* 
+	  * If permitted, we label the device, make sure we can do
+	  *   it by checking that the VolCatBytes is zero => not labeled. 
+	  */
+	 if (dev_cap(dev, CAP_LABEL) && dev->VolCatInfo.VolCatBytes == 0) {
             Dmsg0(100, "Create volume label\n");
-	    /* ***FIXME*** ask for label name */
 	    if (!write_volume_label_to_dev(jcr, (DEVRES *)dev->device, jcr->VolumeName,
 		   jcr->pool_name)) {
                Dmsg0(100, "!write_vol_label\n");
 	       goto mount_next_vol;
 	    }
+            Dmsg0(200, "dir_update_vol_info. Set Append\n");
+	    memcpy(&dev->VolCatInfo, &jcr->VolCatInfo, sizeof(dev->VolCatInfo));
+	    dir_update_volume_info(jcr, &dev->VolCatInfo, 1);  /* indicate tape labeled */
             Jmsg(jcr, M_INFO, 0, _("Labeled new Volume \"%s\" on device %s.\n"),
 	       jcr->VolumeName, dev_name(dev));
 	    goto read_volume;	   /* read label we just wrote */
@@ -244,7 +249,6 @@ mount_error:
        *  It is better to find out now rather than later.
        */
       if (!dev_cap(dev, CAP_STREAM)) {
-	 dev->VolCatInfo.VolCatBytes = 0;
 	 if (!rewind_dev(dev)) {
             Jmsg2(jcr, M_WARNING, 0, _("Rewind error on device %s. ERR=%s\n"), 
 		  dev_name(dev), strerror_dev(dev));
@@ -273,6 +277,7 @@ mount_error:
       /* Set or reset Volume statistics */
       dev->VolCatInfo.VolCatJobs = 0;
       dev->VolCatInfo.VolCatFiles = 0;
+      dev->VolCatInfo.VolCatBytes = 0;
       dev->VolCatInfo.VolCatErrors = 0;
       dev->VolCatInfo.VolCatBlocks = 0;
       dev->VolCatInfo.VolCatRBytes = 0;
@@ -285,7 +290,6 @@ mount_error:
 	 dev->VolCatInfo.VolCatWrites = 1;
 	 dev->VolCatInfo.VolCatReads = 1;
       }
-      bstrncpy(dev->VolCatInfo.VolCatStatus, "Append", sizeof(dev->VolCatInfo.VolCatStatus));
       Dmsg0(200, "dir_update_vol_info. Set Append\n");
       dir_update_volume_info(jcr, &dev->VolCatInfo, 1);  /* indicate doing relabel */
       if (recycle) {
