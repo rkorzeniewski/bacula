@@ -75,7 +75,7 @@ static int accept_fstype(FF_PKT *ff, void *dummy) {
       if (fs == NULL) {
          Dmsg1(50, "Cannot determine file system type for \"%s\"\n", ff->fname);
       } else {
-	 for (i = 0; i <ff->fstypes->size(); ++i) {
+	 for (i = 0; i < ff->fstypes->size(); ++i) {
 	    if (strcmp(fs, (char *)ff->fstypes->get(i)) == 0) {
                Dmsg2(100, "Accepting fstype %s for \"%s\"\n", fs, ff->fname);
 	       accept = true;
@@ -114,23 +114,6 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
        return handle_file(ff_pkt, pkt);
    }
 
-#ifdef HAVE_DARWIN_OS
-   if (S_ISREG(ff_pkt->statp.st_mode) && ff_pkt->flags & FO_HFSPLUS) {
-       /* TODO: initialise attrList once elsewhere? */
-       struct attrlist attrList;
-       memset(&attrList, 0, sizeof(attrList));
-       attrList.bitmapcount = ATTR_BIT_MAP_COUNT;
-       attrList.commonattr = ATTR_CMN_FNDRINFO;
-       attrList.fileattr = ATTR_FILE_RSRCLENGTH;
-       if (getattrlist(fname, &attrList, &ff_pkt->hfsinfo,
-		sizeof(ff_pkt->hfsinfo), 0) != 0) {
-	  ff_pkt->type = FT_NOSTAT;
-	  ff_pkt->ff_errno = errno;
-	  return handle_file(ff_pkt, pkt);
-       }
-   }
-#endif
-
    Dmsg1(300, "File ----: %s\n", fname);
 
    /* Save current times of this directory in case we need to
@@ -139,26 +122,16 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
    restore_times.actime = ff_pkt->statp.st_atime;
    restore_times.modtime = ff_pkt->statp.st_mtime;
 
-   if (top_level) {
-      /*
-       * Check if we start with an allowed file system.
-       *
-       * handle_file() calls accept_file() which fills in ff_pkt->fstypes
-       * Temporarily use our own handler with a fake, but probable, type.
-       */
-      int (*callback)(FF_PKT *, void *) = ff_pkt->callback;
-      ff_pkt->callback = accept_fstype;
-      ff_pkt->type = FT_DIRBEGIN;
-      rtn_stat = handle_file(ff_pkt, pkt);
-      ff_pkt->callback = callback;
-      if (!rtn_stat) {
-	 ff_pkt->type = FT_INVALIDFS;
-	 if (ff_pkt->flags & FO_KEEPATIME) {
-	    utime(fname, &restore_times);
-	 }
-         Jmsg1(jcr, M_ERROR, 0, _("Top level entry \"%s\" has an unlisted fstype\n"), fname);
-	 return rtn_stat;
+   /*
+    * We check for allowed fstypes at top_level and fstype change (below).
+    */
+   if (top_level && !accept_fstype(ff_pkt, NULL)) {
+      ff_pkt->type = FT_INVALIDFS;
+      if (ff_pkt->flags & FO_KEEPATIME) {
+	 utime(fname, &restore_times);
       }
+      Jmsg1(jcr, M_ERROR, 0, _("Top level directory \"%s\" has an unlisted fstype\n"), fname);
+      return 1;      /* Just ignore this error - or the whole backup is cancelled */
    }
 
    /* 
@@ -177,6 +150,23 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 	 return handle_file(ff_pkt, pkt);
       }
    }
+
+#ifdef HAVE_DARWIN_OS
+   if (S_ISREG(ff_pkt->statp.st_mode) && ff_pkt->flags & FO_HFSPLUS) {
+       /* TODO: initialise attrList once elsewhere? */
+       struct attrlist attrList;
+       memset(&attrList, 0, sizeof(attrList));
+       attrList.bitmapcount = ATTR_BIT_MAP_COUNT;
+       attrList.commonattr = ATTR_CMN_FNDRINFO;
+       attrList.fileattr = ATTR_FILE_RSRCLENGTH;
+       if (getattrlist(fname, &attrList, &ff_pkt->hfsinfo,
+		sizeof(ff_pkt->hfsinfo), 0) != 0) {
+	  ff_pkt->type = FT_NOSTAT;
+	  ff_pkt->ff_errno = errno;
+	  return handle_file(ff_pkt, pkt);
+       }
+   }
+#endif
 
 /* ***FIXME*** implement this */
 #if xxxxxxx

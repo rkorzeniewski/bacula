@@ -86,7 +86,8 @@ inline void * alist::operator [](int index) const {
 
 inline bool alist::empty() const
 {
-   return num_items == 0;
+   /* Check for null pointer */
+   return this ? num_items == 0 : true;
 }
 
 /*                            
@@ -117,7 +118,12 @@ inline alist::~alist() {
 /* Current size of list */
 inline int alist::size() const 
 {
-   return num_items;
+   /*
+    * Check for null pointer, which allows test
+    *  on size to succeed even if nothing put in
+    *  alist.
+    */
+   return this ? num_items : 0;
 }
 
 /* How much to grow by each time */

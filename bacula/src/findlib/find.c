@@ -136,6 +136,7 @@ find_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt), void 
 	    findFOPTS *fo = (findFOPTS *)incexe->opts_list.get(j);
 	    ff->flags |= fo->flags;
 	    ff->GZIP_level = fo->GZIP_level;
+	    ff->fstypes = &(fo->fstype);
 	    bstrncat(ff->VerifyOpts, fo->VerifyOpts, sizeof(ff->VerifyOpts)); 
 	 }
 	 for (j=0; j<incexe->name_list.size(); j++) {

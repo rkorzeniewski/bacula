@@ -140,7 +140,7 @@ int start_storage_daemon_job(JCR *jcr)
     * Send use device = xxx media = yyy pool = zzz
     */
 
-   for (i=0; i < 1; /* MAX_STORE */ i++) {
+   for (i=0; i < MAX_STORE; i++) {
       if (jcr->storage[i]) {
 	 storage = (STORE *)jcr->storage[i]->first();
 	 pm_strcpy(device_name, storage->dev_name);

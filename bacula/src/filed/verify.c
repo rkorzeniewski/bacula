@@ -29,10 +29,6 @@
 #include "bacula.h"
 #include "filed.h"
 
-#ifdef HAVE_DARWIN_OS
-#include <sys/paths.h>
-#endif
-
 static int verify_file(FF_PKT *ff_pkt, void *my_pkt);
 
 /* 

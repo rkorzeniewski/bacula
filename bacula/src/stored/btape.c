@@ -1330,7 +1330,7 @@ bail_out:
    }
    Pmsg0(-1, "You must correct this error or Bacula will not work.\n"
             "Some systems, e.g. OpenBSD, require you to set\n"
-            "   File Block Bookkeeping = no\n"
+            "   Use MTIOCGET= no\n"
             "in your device resource. Use with caution.\n");
    return -2;
 }
@@ -1411,7 +1411,7 @@ failed:
             "Fixed block sizes, however, are not normally an ideal solution.\n"
             "\n"
             "Some systems, e.g. OpenBSD, require you to set\n"
-            "   File Block Bookkeeping = no\n"
+            "   Use MTIOCGET= no\n"
             "in your device resource. Use with caution.\n");
        return;
    }
