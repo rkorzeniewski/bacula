@@ -208,15 +208,15 @@ int restore_cmd(UAContext *ua, const char *cmd)
    if (rx.where) {
       Mmsg(ua->cmd, 
           "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s/restore.bsr\""
-          " where=\"%s\" files=%d",
+          " where=\"%s\" files=%d catalog=\"%s\"",
           job->hdr.name, rx.ClientName, rx.store?rx.store->hdr.name:"",
-	  working_directory, rx.where, rx.selected_files);
+	  working_directory, rx.where, rx.selected_files, ua->catalog->hdr.name);
    } else {
       Mmsg(ua->cmd, 
           "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s/restore.bsr\""
-          " files=%d",
+          " files=%d catalog=\"%s\"",
           job->hdr.name, rx.ClientName, rx.store?rx.store->hdr.name:"",
-	  working_directory, rx.selected_files);
+	  working_directory, rx.selected_files, ua->catalog->hdr.name);
    }
    if (find_arg(ua, _("yes")) > 0) {
       pm_strcat(ua->cmd, " yes");    /* pass it on to the run command */

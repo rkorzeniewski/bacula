@@ -275,7 +275,7 @@ int main (int argc, char *argv[])
    }
 
    do_scan();
-   printf("Records %sadded to catalog:\n%7d Media\n%7d Pool\n%7d Job\n%7d File\n",
+   printf("Records %sadded or updated in the catalog:\n%7d Media\n%7d Pool\n%7d Job\n%7d File\n",
       update_db?"":"would have been ",
       num_media, num_pools, num_jobs, num_files);
 
@@ -1209,4 +1209,3 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
    getchar();	
    return true;
 }
-

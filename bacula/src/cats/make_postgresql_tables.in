@@ -210,6 +210,9 @@ create table file
     primary key (fileid)
 );
 
+create index file_jobid_idx on file (jobid);
+create index file_pathid_idx on file(pathid);
+create index file_filenameid_idx on file(filenameid);
 create index file_jpfid_idx on file (jobid, pathid, filenameid);
 
 create table jobmedia

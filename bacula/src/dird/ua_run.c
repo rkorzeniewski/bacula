@@ -49,7 +49,7 @@ int run_cmd(UAContext *ua, const char *cmd)
    char *job_name, *level_name, *jid, *store_name, *pool_name;
    char *where, *fileset_name, *client_name, *bootstrap;
    const char *replace;
-   char *when, *verify_job_name;
+   char *when, *verify_job_name, *catalog_name;
    int Priority = 0;
    int i, j, opt, files = 0;
    bool kw_ok;
@@ -77,6 +77,7 @@ int run_cmd(UAContext *ua, const char *cmd)
       N_("yes"),          /* 14 -- if you change this change YES_POS too */
       N_("verifyjob"),                /* 15 */
       N_("files"),                    /* 16 number of files to restore */
+       N_("catalog"),                 /* 17 override catalog */
       NULL};
 
 #define YES_POS 14
@@ -97,6 +98,7 @@ int run_cmd(UAContext *ua, const char *cmd)
    bootstrap = NULL;
    replace = NULL;
    verify_job_name = NULL;
+   catalog_name = NULL;
 
    for (i=1; i<ua->argc; i++) {
       Dmsg2(200, "Doing arg %d = %s\n", i, ua->argk[i]);
@@ -229,6 +231,11 @@ int run_cmd(UAContext *ua, const char *cmd)
 	       kw_ok = true;
 	       break;
 
+	    case 17: /* catalog */
+	       catalog_name = ua->argv[i];
+	       kw_ok = true;
+	       break;
+
 	    default:
 	       break;
 	    }
@@ -254,6 +261,15 @@ int run_cmd(UAContext *ua, const char *cmd)
    } /* end argc loop */
 	     
    Dmsg0(200, "Done scan.\n");
+
+   CAT *catalog = NULL;
+   if (catalog_name != NULL) {
+       catalog = (CAT *)GetResWithName(R_CATALOG, catalog_name);
+       if (catalog == NULL) {
+            bsendmsg(ua, _("Catalog \"%s\" not found\n"), catalog_name);
+	   return 1;
+       }
+   }
 
    if (job_name) {
       /* Find Job */
@@ -375,6 +391,9 @@ int run_cmd(UAContext *ua, const char *cmd)
    jcr->fileset = fileset;
    jcr->pool = pool;
    jcr->ExpectedFiles = files;
+   if (catalog != NULL) {
+      jcr->catalog = catalog;
+   }
    if (where) {
       if (jcr->where) {
 	 free(jcr->where);
@@ -534,16 +553,17 @@ Priority:    %d\n"),
       jcr->JobLevel = L_FULL;	   /* default level */
       Dmsg1(20, "JobId to restore=%d\n", jcr->RestoreJobId);
       if (jcr->RestoreJobId == 0) {
-         bsendmsg(ua, _("Run Restore job\n\
-JobName:    %s\n\
-Bootstrap:  %s\n\
-Where:      %s\n\
-Replace:    %s\n\
-FileSet:    %s\n\
-Client:     %s\n\
-Storage:    %s\n\
-When:       %s\n\
-Priority:   %d\n"),
+         bsendmsg(ua, _("Run Restore job\n"
+                        "JobName:    %s\n"
+                        "Bootstrap:  %s\n"
+                        "Where:      %s\n"
+                        "Replace:    %s\n"
+                        "FileSet:    %s\n"
+                        "Client:     %s\n"
+                        "Storage:    %s\n"
+                        "When:       %s\n"
+                        "Catalog:    %s\n"
+                        "Priority:   %d\n"),
 	      job->hdr.name,
 	      NPRT(jcr->RestoreBootstrap),
 	      jcr->where?jcr->where:NPRT(job->RestoreWhere),
@@ -552,18 +572,21 @@ Priority:   %d\n"),
 	      jcr->client->hdr.name,
 	      jcr->store->hdr.name, 
 	      bstrutime(dt, sizeof(dt), jcr->sched_time),
+	      jcr->catalog->hdr.name,
 	      jcr->JobPriority);
       } else {
-         bsendmsg(ua, _("Run Restore job\n\
-JobName:    %s\n\
-Bootstrap:  %s\n\
-Where:      %s\n\
-Replace:    %s\n\
-Client:     %s\n\
-Storage:    %s\n\
-JobId:      %s\n\
-When:       %s\n\
-Priority:   %d\n"),
+         bsendmsg(ua, _("Run Restore job\n"
+                       "JobName:    %s\n"
+                       "Bootstrap:  %s\n"
+                       "Where:      %s\n"
+                       "Replace:    %s\n"
+                       "FileSet:    %s\n"
+                       "Client:     %s\n"
+                       "Storage:    %s\n"
+                       "JobId:      %s\n"
+                       "When:       %s\n"
+                       "Catalog:    %s\n"
+                       "Priority:   %d\n"),
 	      job->hdr.name,
 	      NPRT(jcr->RestoreBootstrap),
 	      jcr->where?jcr->where:NPRT(job->RestoreWhere),
@@ -572,6 +595,7 @@ Priority:   %d\n"),
 	      jcr->store->hdr.name, 
               jcr->RestoreJobId==0?"*None*":edit_uint64(jcr->RestoreJobId, ec1), 
 	      bstrutime(dt, sizeof(dt), jcr->sched_time),
+	      jcr->catalog->hdr.name,
 	      jcr->JobPriority);
       }
       break;

@@ -885,6 +885,9 @@ static void set_options(findFOPTS *fo, const char *opts)
       case 'k':
 	 fo->flags |= FO_KEEPATIME;
 	 break;
+      case 'A':
+	 fo->flags |= FO_ACL;
+	 break;
       case 'V':                  /* verify options */
 	 /* Copy Verify Options */
          for (j=0; *p && *p != ':'; p++) {
