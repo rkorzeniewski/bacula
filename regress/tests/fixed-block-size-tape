@@ -7,11 +7,19 @@
 cwd=`pwd`
 scripts/copy-tape-confs
 scripts/cleanup-tape
+echo "${cwd}/build" >/tmp/file-list
 
 cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
 echo "s%# Maximum Block Size%  Maximum Block Size%" >${cwd}/tmp/2
 echo "s%# Minimum Block Size%  Minimum Block Size%" >>${cwd}/tmp/2
 sed -f ${cwd}/tmp/2 ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
+if [ $? != 0 ] ; then
+   echo " "
+   echo " "
+   echo "!!!! sed problem in Fixed Block Size test !!!!!"
+   echo " "
+   exit 1
+fi
 rm -f ${cwd}/tmp/1 ${cwd}/tmp/2
 
 echo " "
@@ -44,6 +52,7 @@ messages
 quit
 END_OF_DATA
 scripts/check_for_zombie_jobs storage=DDS-4
+
 bin/bacula stop 2>&1 >/dev/null
 grep "^Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
 bstat=$?
