@@ -152,7 +152,7 @@ void       init_console_msg      (char *wd);
 void       free_msgs_res         (MSGS *msgs);
 void       dequeue_messages      (JCR *jcr);
 void       set_trace             (int trace_flag);
-
+void       set_exit_on_error     (int value);
 
 /* bnet_server.c */
 void       bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_wq, 
