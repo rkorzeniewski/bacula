@@ -478,16 +478,18 @@ static void *job_thread(void *arg)
                Jmsg(jcr, M_INFO, 0, _("RunAfter: %s"), line);
 	    }
 	    status = close_bpipe(bpipe);
+	    /*
+	     * Note, if we get an error here, do not mark the
+	     *	job in error, simply report the error condition. */
+	     */
 	    if (status != 0) {
 	       if (jcr->JobStatus == JS_Terminated) {
-                  Jmsg(jcr, M_FATAL, 0, _("RunAfterJob returned non-zero status=%d\n"),
+                  Jmsg(jcr, M_ERROR, 0, _("RunAfterJob returned non-zero status=%d\n"),
 		       status);
 	       } else {
                   Jmsg(jcr, M_FATAL, 0, _("RunAfterFailedJob returned non-zero status=%d\n"),
 		       status);
 	       }
-	       set_jcr_job_status(jcr, JS_FatalError);
-	       update_job_end_record(jcr);
 	    }
 	 }
       }

@@ -1699,8 +1699,8 @@ Configuration on `date`:
   Director Group:	      ${dir_group}
   Storage Daemon User:	      ${dir_user}
   Storage DaemonGroup:	      ${dir_group}
-  File Daemon User:	      ${dir_user}
-  File Daemon Group:	      ${dir_group}
+  File Daemon User:	      ${fd_user}
+  File Daemon Group:	      ${fd_group}
 
   SQL binaries Directory      ${SQL_BINDIR}
 
