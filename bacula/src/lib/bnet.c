@@ -43,6 +43,8 @@ extern time_t watchdog_time;
 #endif
 
 
+
+
 /*
  * Read a nbytes from the network.
  * It is possible that the total bytes require in several
@@ -99,12 +101,19 @@ static int32_t write_nbytes(BSOCK *bsock, char *ptr, int32_t nbytes)
 	 }
       } while (nwritten == -1 && errno == EINTR);
       /*
-       * If connection is non-blocking, we will get eagain, so
-       * sleep long enough to keep from consuming all the CPU
+       * If connection is non-blocking, we will get EAGAIN, so
+       * use select() to keep from consuming all the CPU
        * and try again.
        */
       if (nwritten == -1 && errno == EAGAIN) {
-	 bmicrosleep(0, 50);	   /* sleep 50 ms */
+	 fd_set fdset;
+	 struct timeval tv;
+
+	 FD_ZERO(&fdset);
+	 FD_SET(bsock->fd, &fdset);
+	 tv.tv_sec = 10;
+	 tv.tv_usec = 0;
+	 select(bsock->fd + 1, NULL, &fdset, NULL, &tv);
 	 continue;
       }
       if (nwritten <= 0) {

@@ -48,6 +48,8 @@ Other Changes this Release:
 
 
 Items to note:  !!!!!
+- The default time interval is now days instead of seconds. Please
+  check your .conf files!
 - For MySQL users, you must have the thread safe client libraries 
   available.  If you build MySQL yourself, add the --enable-thread-safe-client
   option on the ./configure.  You will most likely need to do an ldconfig.

@@ -42,7 +42,7 @@
 #include <math.h>
 
 /* Formatted time for user display: dd-Mon-yyyy hh:mm */
-void bstrftime(char *dt, int maxlen, utime_t tim)
+char *bstrftime(char *dt, int maxlen, utime_t tim)
 {
    time_t ttime = tim;
    struct tm tm;
@@ -50,6 +50,7 @@ void bstrftime(char *dt, int maxlen, utime_t tim)
    /* ***FIXME**** the format and localtime_r() should be user configurable */
    localtime_r(&ttime, &tm);
    strftime(dt, maxlen, "%d-%b-%Y %H:%M", &tm);
+   return dt;
 }
 
 /* Unix time to standard time string yyyy-mm-dd hh:mm:ss */

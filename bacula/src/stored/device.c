@@ -76,6 +76,7 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    DEV_BLOCK *label_blk;
    char b1[30], b2[30];
    time_t wait_time;
+   char dt[MAX_TIME_LENGTH];
 
    wait_time = time(NULL);
    status_dev(dev, &stat);
@@ -132,9 +133,10 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    label_blk = new_block(dev);
 
    /* Inform User about end of medium */
-   Jmsg(jcr, M_INFO, 0, _("End of medium on Volume \"%s\" Bytes=%s Blocks=%s.\n"), 
+   Jmsg(jcr, M_INFO, 0, _("End of medium on Volume \"%s\" Bytes=%s Blocks=%s at %s.\n"), 
 	PrevVolName, edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, b1),
-	edit_uint64_with_commas(dev->VolCatInfo.VolCatBlocks, b2));
+	edit_uint64_with_commas(dev->VolCatInfo.VolCatBlocks, b2),
+	bstrftime(dt, sizeof(dt), time(NULL)));
 
    if (!mount_next_write_volume(jcr, dev, label_blk, 1)) {
       free_block(label_blk);
@@ -144,8 +146,8 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    }
    P(dev->mutex);		   /* lock again */
 
-   Jmsg(jcr, M_INFO, 0, _("New volume \"%s\" mounted on device %s\n"),
-      jcr->VolumeName, dev_name(dev));
+   Jmsg(jcr, M_INFO, 0, _("New volume \"%s\" mounted on device %s at %s.\n"),
+      jcr->VolumeName, dev_name(dev), bstrftime(dt, sizeof(dt), time(NULL)));
 
    /* 
     * If this is a new tape, the label_blk will contain the

@@ -31,7 +31,6 @@
 #include "dird.h"
 
 /* Imported subroutines */
-extern void run_job(JCR *jcr);
 
 /* Imported variables */
 extern int r_first;

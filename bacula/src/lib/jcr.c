@@ -104,7 +104,8 @@ static void remove_jcr(JCR *jcr)
 }
 
 /*
- * Free stuff common to all JCRs
+ * Free stuff common to all JCRs.  N.B. Be careful to include only
+ *  generic stuff in the common part of the jcr. 
  */
 static void free_common_jcr(JCR *jcr)
 {
@@ -139,7 +140,6 @@ static void free_common_jcr(JCR *jcr)
    }
 
    if (jcr->sd_auth_key) {
-      Dmsg0(200, "Free JCR sd_auth_key\n");
       free(jcr->sd_auth_key);
       jcr->sd_auth_key = NULL;
    }

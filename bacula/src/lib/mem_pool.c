@@ -43,12 +43,15 @@
 #include "bacula.h"
 
 struct s_pool_ctl {
-   size_t size; 		      /* default size */
-   size_t max_size;		      /* max allocated */
-   size_t max_used;		      /* max buffers used */
-   size_t in_use;		      /* number in use */
+   int32_t size;		      /* default size */
+   int32_t max_size;		      /* max allocated */
+   int32_t max_used;		      /* max buffers used */
+   int32_t in_use;		      /* number in use */
    struct abufhead *free_buf;	      /* pointer to free buffers */
 };
+
+/* Bacula Name length plus extra */
+#define NLEN (MAX_NAME_LENGTH+2)
 
 /* #define STRESS_TEST_POOL */
 #ifndef STRESS_TEST_POOL
@@ -57,6 +60,7 @@ struct s_pool_ctl {
  */
 static struct s_pool_ctl pool_ctl[] = {
    {  256,  256, 0, 0, NULL },	      /* PM_NOPOOL no pooling */
+   {  NLEN, NLEN,0, 0, NULL },	      /* PM_NAME Bacula name */
    {  256,  256, 0, 0, NULL },	      /* PM_FNAME filename buffers */
    {  512,  512, 0, 0, NULL },	      /* PM_MESSAGE message buffer */
    { 1024, 1024, 0, 0, NULL }	      /* PM_EMSG error message buffer */
@@ -66,6 +70,7 @@ static struct s_pool_ctl pool_ctl[] = {
 /* This is used ONLY when stress testing the code */
 static struct s_pool_ctl pool_ctl[] = {
    {   20,   20, 0, 0, NULL },	      /* PM_NOPOOL no pooling */
+   {  NLEN, NLEN,0, 0, NULL },	      /* PM_NAME Bacula name */
    {   20,   20, 0, 0, NULL },	      /* PM_FNAME filename buffers */
    {   20,   20, 0, 0, NULL },	      /* PM_MESSAGE message buffer */
    {   20,   20, 0, 0, NULL }	      /* PM_EMSG error message buffer */
@@ -75,7 +80,7 @@ static struct s_pool_ctl pool_ctl[] = {
 
 /*  Memory allocation control structures and storage.  */
 struct abufhead {
-   size_t ablen;		      /* Buffer length in bytes */
+   int32_t ablen;		      /* Buffer length in bytes */
    int32_t pool;		      /* pool */
    struct abufhead *next;	      /* pointer to next free buffer */
 };
@@ -124,7 +129,7 @@ POOLMEM *sm_get_pool_memory(char *fname, int lineno, int pool)
 }
 
 /* Get nonpool memory of size requested */
-POOLMEM *sm_get_memory(char *fname, int lineno, size_t size)
+POOLMEM *sm_get_memory(char *fname, int lineno, int32_t size)
 {
    struct abufhead *buf;
    int pool = 0;
@@ -143,7 +148,7 @@ POOLMEM *sm_get_memory(char *fname, int lineno, size_t size)
 
 
 /* Return the size of a memory buffer */
-size_t sm_sizeof_pool_memory(char *fname, int lineno, POOLMEM *obuf)
+int32_t sm_sizeof_pool_memory(char *fname, int lineno, POOLMEM *obuf)
 {
    char *cp = (char *)obuf;
 
@@ -153,7 +158,7 @@ size_t sm_sizeof_pool_memory(char *fname, int lineno, POOLMEM *obuf)
 }
 
 /* Realloc pool memory buffer */
-POOLMEM *sm_realloc_pool_memory(char *fname, int lineno, POOLMEM *obuf, size_t size)
+POOLMEM *sm_realloc_pool_memory(char *fname, int lineno, POOLMEM *obuf, int32_t size)
 {
    char *cp = (char *)obuf;
    void *buf;
@@ -176,7 +181,7 @@ POOLMEM *sm_realloc_pool_memory(char *fname, int lineno, POOLMEM *obuf, size_t s
    return (POOLMEM *)(((char *)buf)+HEAD_SIZE);
 }
 
-POOLMEM *sm_check_pool_memory_size(char *fname, int lineno, POOLMEM *obuf, size_t size)
+POOLMEM *sm_check_pool_memory_size(char *fname, int lineno, POOLMEM *obuf, int32_t size)
 {
    ASSERT(obuf);
    if (size <= sizeof_pool_memory(obuf)) {
@@ -246,7 +251,7 @@ POOLMEM *get_pool_memory(int pool)
 }
 
 /* Get nonpool memory of size requested */
-POOLMEM *get_memory(size_t size)
+POOLMEM *get_memory(int32_t size)
 {
    struct abufhead *buf;
    int pool = 0;
@@ -266,7 +271,7 @@ POOLMEM *get_memory(size_t size)
 
 
 /* Return the size of a memory buffer */
-size_t sizeof_pool_memory(POOLMEM *obuf)
+int32_t sizeof_pool_memory(POOLMEM *obuf)
 {
    char *cp = (char *)obuf;
 
@@ -276,7 +281,7 @@ size_t sizeof_pool_memory(POOLMEM *obuf)
 }
 
 /* Realloc pool memory buffer */
-POOLMEM *realloc_pool_memory(POOLMEM *obuf, size_t size)
+POOLMEM *realloc_pool_memory(POOLMEM *obuf, int32_t size)
 {
    char *cp = (char *)obuf;
    void *buf;
@@ -299,7 +304,7 @@ POOLMEM *realloc_pool_memory(POOLMEM *obuf, size_t size)
    return (POOLMEM *)(((char *)buf)+HEAD_SIZE);
 }
 
-POOLMEM *check_pool_memory_size(POOLMEM *obuf, size_t size)
+POOLMEM *check_pool_memory_size(POOLMEM *obuf, int32_t size)
 {
    ASSERT(obuf);
    if (size <= sizeof_pool_memory(obuf)) {

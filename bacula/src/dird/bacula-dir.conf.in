@@ -143,23 +143,14 @@ Storage {
   Media Type = File
 }
 
-# Definition of DLT tape storage device
-#Storage {
-#  Name = DLTDrive
-#  Address = @hostname@                # N.B. Use a fully qualified name here
-#  SDPort = @sd_port@
-#  Password = "@sd_password@"          # password for Storage daemon
-#  Device = "HP DLT 80"                # must be same as Device in Storage daemon
-#  Media Type = DLT8000                # must be same as MediaType in Storage daemon
-#}
 
 # Definition of DDS tape storage device
 #Storage {
-#  Name = SDT-10000
+#  Name = DDS-4    
 #  Address = @hostname@                # N.B. Use a fully qualified name here
 #  SDPort = @sd_port@
 #  Password = "@sd_password@"          # password for Storage daemon
-#  Device = SDT-10000                  # must be same as Device in Storage daemon
+#  Device = DDS-4                      # must be same as Device in Storage daemon
 #  Media Type = DDS-4                  # must be same as MediaType in Storage daemon
 #}
 

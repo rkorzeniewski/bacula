@@ -174,99 +174,121 @@ static void *job_thread(void *arg)
    pthread_detach(pthread_self());
    sm_check(__FILE__, __LINE__, True);
 
-   if (!acquire_resource_locks(jcr)) {
-      set_jcr_job_status(jcr, JS_Canceled);
-   }
+   for ( ;; ) {
+      if (!acquire_resource_locks(jcr)) {
+	 set_jcr_job_status(jcr, JS_Canceled);
+      }
 
-   Dmsg0(200, "=====Start Job=========\n");
-   jcr->start_time = time(NULL);      /* set the real start time */
-   set_jcr_job_status(jcr, JS_Running);
+      Dmsg0(200, "=====Start Job=========\n");
+      jcr->start_time = time(NULL);	 /* set the real start time */
+      set_jcr_job_status(jcr, JS_Running);
 
-   if (job_canceled(jcr)) {
-      update_job_end_record(jcr);
-   } else if (jcr->job->MaxStartDelay != 0 && jcr->job->MaxStartDelay <
-       (utime_t)(jcr->start_time - jcr->sched_time)) {
-      Jmsg(jcr, M_FATAL, 0, _("Job canceled because max start delay time exceeded.\n"));
-      set_jcr_job_status(jcr, JS_Canceled);
-      update_job_end_record(jcr);
-   } else {
+      if (job_canceled(jcr)) {
+	 update_job_end_record(jcr);
+      } else if (jcr->job->MaxStartDelay != 0 && jcr->job->MaxStartDelay <
+	  (utime_t)(jcr->start_time - jcr->sched_time)) {
+         Jmsg(jcr, M_FATAL, 0, _("Job canceled because max start delay time exceeded.\n"));
+	 set_jcr_job_status(jcr, JS_Canceled);
+	 update_job_end_record(jcr);
+      } else {
 
-      /* Run Job */
-      if (jcr->job->RunBeforeJob) {
-	 POOLMEM *before = get_pool_memory(PM_FNAME);
-	 int status;
-	 BPIPE *bpipe;
-	 char line[MAXSTRING];
-	 
-	 before = edit_run_codes(jcr, before, jcr->job->RunBeforeJob);
-         bpipe = open_bpipe(before, 0, "r");
-	 while (fgets(line, sizeof(line), bpipe->rfd)) {
-            Jmsg(jcr, M_INFO, 0, _("RunBefore: %s"), line);
-	 }
-	 status = close_bpipe(bpipe);
-	 if (status != 0) {
-            Jmsg(jcr, M_FATAL, 0, _("RunBeforeJob returned non-zero status=%d\n"),
-	       status);
-	    set_jcr_job_status(jcr, JS_FatalError);
-	    update_job_end_record(jcr);
+	 /* Run Job */
+	 if (jcr->job->RunBeforeJob) {
+	    POOLMEM *before = get_pool_memory(PM_FNAME);
+	    int status;
+	    BPIPE *bpipe;
+	    char line[MAXSTRING];
+	    
+	    before = edit_run_codes(jcr, before, jcr->job->RunBeforeJob);
+            bpipe = open_bpipe(before, 0, "r");
+	    while (fgets(line, sizeof(line), bpipe->rfd)) {
+               Jmsg(jcr, M_INFO, 0, _("RunBefore: %s"), line);
+	    }
+	    status = close_bpipe(bpipe);
+	    if (status != 0) {
+               Jmsg(jcr, M_FATAL, 0, _("RunBeforeJob returned non-zero status=%d\n"),
+		  status);
+	       set_jcr_job_status(jcr, JS_FatalError);
+	       update_job_end_record(jcr);
+	       free_pool_memory(before);
+	       goto bail_out;
+	    }
 	    free_pool_memory(before);
-	    goto bail_out;
 	 }
-	 free_pool_memory(before);
+	 switch (jcr->JobType) {
+	    case JT_BACKUP:
+	       do_backup(jcr);
+	       if (jcr->JobStatus == JS_Terminated) {
+		  do_autoprune(jcr);
+	       }
+	       break;
+	    case JT_VERIFY:
+	       do_verify(jcr);
+	       if (jcr->JobStatus == JS_Terminated) {
+		  do_autoprune(jcr);
+	       }
+	       break;
+	    case JT_RESTORE:
+	       do_restore(jcr);
+	       if (jcr->JobStatus == JS_Terminated) {
+		  do_autoprune(jcr);
+	       }
+	       break;
+	    case JT_ADMIN:
+	       do_admin(jcr);
+	       if (jcr->JobStatus == JS_Terminated) {
+		  do_autoprune(jcr);
+	       }
+	       break;
+	    default:
+               Pmsg1(0, "Unimplemented job type: %d\n", jcr->JobType);
+	       break;
+	    }
+	 if (jcr->job->RunAfterJob) {
+	    POOLMEM *after = get_pool_memory(PM_FNAME);
+	    int status;
+	    BPIPE *bpipe;
+	    char line[MAXSTRING];
+	    
+	    after = edit_run_codes(jcr, after, jcr->job->RunAfterJob);
+            bpipe = open_bpipe(after, 0, "r");
+	    while (fgets(line, sizeof(line), bpipe->rfd)) {
+               Jmsg(jcr, M_INFO, 0, _("RunAfter: %s"), line);
+	    }
+	    status = close_bpipe(bpipe);
+	    if (status != 0) {
+               Jmsg(jcr, M_FATAL, 0, _("RunAfterJob returned non-zero status=%d\n"),
+		  status);
+	       set_jcr_job_status(jcr, JS_FatalError);
+	       update_job_end_record(jcr);
+	    }
+	    free_pool_memory(after);
+	 }
       }
-      switch (jcr->JobType) {
-	 case JT_BACKUP:
-	    do_backup(jcr);
-	    if (jcr->JobStatus == JS_Terminated) {
-	       do_autoprune(jcr);
-	    }
-	    break;
-	 case JT_VERIFY:
-	    do_verify(jcr);
-	    if (jcr->JobStatus == JS_Terminated) {
-	       do_autoprune(jcr);
-	    }
-	    break;
-	 case JT_RESTORE:
-	    do_restore(jcr);
-	    if (jcr->JobStatus == JS_Terminated) {
-	       do_autoprune(jcr);
-	    }
-	    break;
-	 case JT_ADMIN:
-	    do_admin(jcr);
-	    if (jcr->JobStatus == JS_Terminated) {
-	       do_autoprune(jcr);
-	    }
-	    break;
-	 default:
-            Pmsg1(0, "Unimplemented job type: %d\n", jcr->JobType);
-	    break;
-	 }
-      if (jcr->job->RunAfterJob) {
-	 POOLMEM *after = get_pool_memory(PM_FNAME);
-	 int status;
-	 BPIPE *bpipe;
-	 char line[MAXSTRING];
-	 
-	 after = edit_run_codes(jcr, after, jcr->job->RunAfterJob);
-         bpipe = open_bpipe(after, 0, "r");
-	 while (fgets(line, sizeof(line), bpipe->rfd)) {
-            Jmsg(jcr, M_INFO, 0, _("RunAfter: %s"), line);
-	 }
-	 status = close_bpipe(bpipe);
-	 if (status != 0) {
-            Jmsg(jcr, M_FATAL, 0, _("RunAfterJob returned non-zero status=%d\n"),
-	       status);
-	    set_jcr_job_status(jcr, JS_FatalError);
-	    update_job_end_record(jcr);
-	 }
-	 free_pool_memory(after);
-      }
-   }
 bail_out:
-   release_resource_locks(jcr);
-   Dmsg0(50, "Before free jcr\n");
+      release_resource_locks(jcr);
+      if (jcr->job->RescheduleOnError && 
+	  jcr->JobStatus != JS_Terminated &&
+	  jcr->JobStatus != JS_Canceled && 
+	  jcr->job->RescheduleTimes > 0 && 
+	  jcr->reschedule_count < jcr->job->RescheduleTimes) {
+
+	 jcr->reschedule_count++;
+	 jcr->sched_time = time(NULL) + jcr->job->RescheduleInterval;
+         Dmsg2(000, "Reschedule Job %s in %d seconds.\n", jcr->Job,
+	    (int)jcr->job->RescheduleInterval);
+	 jcr->JobStatus = JS_Created; /* force new status */
+	 dird_free_jcr(jcr);	      /* partial cleanup old stuff */
+	 continue;		      /* reschedule the job */
+      }
+      break;
+   }
+
+   if (jcr->db) {
+      Dmsg0(200, "Close DB\n");
+      db_close_database(jcr, jcr->db);
+      jcr->db = NULL;
+   }
    free_jcr(jcr);
    Dmsg0(50, "======== End Job ==========\n");
    sm_check(__FILE__, __LINE__, True);
@@ -285,9 +307,11 @@ static int acquire_resource_locks(JCR *jcr)
 
    /* Wait until scheduled time arrives */
    if (wtime > 0 && verbose) {
-      Jmsg(jcr, M_INFO, 0, _("Waiting %d seconds for start time.\n"), wtime);
+      Jmsg(jcr, M_INFO, 0, _("Job %s waiting %d seconds for scheduled start time.\n"), 
+	 jcr->Job, wtime);
       set_jcr_job_status(jcr, JS_WaitStartTime);
    }
+   /* Check every 30 seconds if canceled */ 
    while (wtime > 0) {
       Dmsg2(100, "Waiting on sched time, jobid=%d secs=%d\n", jcr->JobId, wtime);
       if (wtime > 30) {
@@ -298,7 +322,6 @@ static int acquire_resource_locks(JCR *jcr)
 	 return 0;
       }
       wtime = jcr->sched_time - time(NULL);
-
    }
 
 
@@ -446,11 +469,10 @@ int get_or_create_client_record(JCR *jcr)
    cr.AutoPrune = jcr->client->AutoPrune;
    cr.FileRetention = jcr->client->FileRetention;
    cr.JobRetention = jcr->client->JobRetention;
-   if (jcr->client_name) {
-      free_pool_memory(jcr->client_name);
+   if (!jcr->client_name) {
+      jcr->client_name = get_pool_memory(PM_NAME);
    }
-   jcr->client_name = get_memory(strlen(jcr->client->hdr.name) + 1);
-   strcpy(jcr->client_name, jcr->client->hdr.name);
+   pm_strcpy(&jcr->client_name, jcr->client->hdr.name);
    if (!db_create_client_record(jcr, jcr->db, &cr)) {
       Jmsg(jcr, M_FATAL, 0, _("Could not create Client record. ERR=%s\n"), 
 	 db_strerror(jcr->db));
@@ -458,10 +480,9 @@ int get_or_create_client_record(JCR *jcr)
    }
    jcr->jr.ClientId = cr.ClientId;
    if (cr.Uname[0]) {
-      if (jcr->client_uname) {
-	 free_pool_memory(jcr->client_uname);
+      if (!jcr->client_uname) {
+	 jcr->client_uname = get_pool_memory(PM_NAME);
       }
-      jcr->client_uname = get_memory(strlen(cr.Uname) + 1);
       pm_strcpy(&jcr->client_uname, cr.Uname);
    }
    Dmsg2(100, "Created Client %s record %d\n", jcr->client->hdr.name, 
@@ -527,7 +548,7 @@ void create_unique_job_name(JCR *jcr, char *base_name)
    strftime(dt, sizeof(dt), "%Y-%m-%d_%H.%M.%S", &tm); 
    bstrncpy(name, base_name, sizeof(name));
    name[sizeof(name)-22] = 0;	       /* truncate if too long */
-   sprintf(jcr->Job, "%s.%s", name, dt); /* add date & time */
+   bsnprintf(jcr->Job, sizeof(jcr->Job), "%s.%s", name, dt); /* add date & time */
    /* Convert spaces into underscores */
    for (p=jcr->Job; *p; p++) {
       if (*p == ' ') {
@@ -545,31 +566,41 @@ void dird_free_jcr(JCR *jcr)
 {
    Dmsg0(200, "Start dird free_jcr\n");
 
+   if (jcr->sd_auth_key) {
+      free(jcr->sd_auth_key);
+      jcr->sd_auth_key = NULL;
+   }
+   if (jcr->where) {
+      free(jcr->where);
+      jcr->where = NULL;
+   }
    if (jcr->file_bsock) {
       Dmsg0(200, "Close File bsock\n");
       bnet_close(jcr->file_bsock);
+      jcr->file_bsock = NULL;
    }
    if (jcr->store_bsock) {
       Dmsg0(200, "Close Store bsock\n");
       bnet_close(jcr->store_bsock);
+      jcr->store_bsock = NULL;
    }
    if (jcr->fname) {  
       Dmsg0(200, "Free JCR fname\n");
       free_pool_memory(jcr->fname);
+      jcr->fname = NULL;
    }
    if (jcr->stime) {
       Dmsg0(200, "Free JCR stime\n");
       free_pool_memory(jcr->stime);
-   }
-   if (jcr->db) {
-      Dmsg0(200, "Close DB\n");
-      db_close_database(jcr, jcr->db);
+      jcr->stime = NULL;
    }
    if (jcr->RestoreBootstrap) {
       free(jcr->RestoreBootstrap);
+      jcr->RestoreBootstrap = NULL;
    }
    if (jcr->client_uname) {
       free_pool_memory(jcr->client_uname);
+      jcr->client_uname = NULL;
    }
    Dmsg0(200, "End dird free_jcr\n");
 }
@@ -588,11 +619,10 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    jcr->JobLevel = job->level;
    jcr->store = job->storage;
    jcr->client = job->client;
-   if (jcr->client_name) {
-      free_pool_memory(jcr->client_name);
+   if (!jcr->client_name) {
+      jcr->client_name = get_pool_memory(PM_NAME);
    }
-   jcr->client_name = get_memory(strlen(jcr->client->hdr.name) + 1);
-   strcpy(jcr->client_name, jcr->client->hdr.name);
+   pm_strcpy(&jcr->client_name, jcr->client->hdr.name);
    jcr->pool = job->pool;
    jcr->catalog = job->client->catalog;
    jcr->fileset = job->fileset;

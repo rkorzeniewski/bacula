@@ -26,18 +26,15 @@ Testing to do: (painful)
 - Test cancel at EOM.       
 - Test not zeroing Autochanger slot when it is wrong.
 - Test multiple simultaneous Volumes
-- That restoring a hard link that already exists works correctly.
-  Same for soft link.
 - Test of last block is correct in JobMedia when splitting file 
   over two volumes.
 
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
+- Move JobFiles and JobBytes to SD rather than FD -- more correct.
 - Add client name to cram-md5 challenge so Director can immediately
   verify if it is the correct client.
-- Implement a record that suppresses errors if the Client is not
-  available.
 - Use runbeforejob to unload, then reload a volume previously used,
   then the next job run gets an error reading the drive.
 - Implement non-blocking writes and bsock->terminate in heartbeat thread,
@@ -54,7 +51,6 @@ For 1.31 release:
   (Phil's problem).
 - Add next Volume to be used to status output.
 - Make bootstrap filename unique.
-- Sort JobIds entered into recover tree.
 - The bsr for Dan's job has file indexes covering the whole range rather
   than only the range contained on the volume.
   Constrain FileIndex to be within range for Volume.
@@ -86,7 +82,6 @@ For 1.31 release:
 - Prohibit backing up archive device (findlib/find_one.c:128)
 - Make Restore report an error if FD or SD term codes are not OK.
 - Add JobLevel in FD status (but make sure it is defined).
-- Make Pool resource handle Counter resources.
 - Restrict characters permitted in a Resource name, and don't permit
   duplicate names.
 - Implement new serialize subroutines
@@ -118,7 +113,6 @@ After 1.31:
 
 - Add Progress command that periodically reports the progress of
   a job or all jobs.
-- Implement "Reschedule OnError=yes interval=nnn times=xxx"
 - One block was orphaned in the SD probably after cancel.
 - Add all command line arguments to "update", e.g. slot=nn volStatus=append, ...
 
@@ -981,3 +975,9 @@ Done: (see kernsdone for more)
   Do lstat() to see if it is already properly linked.
   Same for symlinked file.
   Make sure ifnewer, ifolder, never, ... apply correctly.
+- Flag so that no connect does not error, and Reschedule a job.
+- Implement "Reschedule OnError=yes interval=nnn times=xxx"
+- That restoring a hard link that already exists works correctly.
+  Same for soft link.
+- Make Pool resource handle Counter resources.
+

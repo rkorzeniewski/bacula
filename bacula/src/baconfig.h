@@ -71,7 +71,7 @@
 #define MAXSTRING 500
 
 /* Maximum length to edit time/date */
-#define MAX_TIME_LENGTH 30
+#define MAX_TIME_LENGTH 50  
 
 /* Maximum Name length including EOS */
 #define MAX_NAME_LENGTH 128

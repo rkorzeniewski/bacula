@@ -232,8 +232,6 @@ int do_backup(JCR *jcr)
       case L_DIFFERENTIAL:
       case L_INCREMENTAL:
          bnet_fsend(fd, levelcmd, "since ", jcr->stime, 0);
-	 free_pool_memory(jcr->stime);
-	 jcr->stime = NULL;
 	 break;
       case L_SINCE:
       default:
@@ -258,13 +256,8 @@ int do_backup(JCR *jcr)
    return 1;
 
 bail_out:
-   if (jcr->stime) {
-      free_pool_memory(jcr->stime);
-      jcr->stime = NULL;
-   }
    backup_cleanup(jcr, JS_ErrorTerminated, since, &fsr);
    return 0;
-
 }
 
 /*

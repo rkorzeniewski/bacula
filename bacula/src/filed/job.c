@@ -240,6 +240,15 @@ static int cancel_cmd(JCR *jcr)
       if (!(cjcr=get_jcr_by_full_name(Job))) {
          bnet_fsend(dir, "2901 Job %s not found.\n", Job);
       } else {
+	 if (cjcr->store_bsock) {
+	    P(cjcr->mutex);
+	    cjcr->store_bsock->timed_out = 1;
+	    cjcr->store_bsock->terminated = 1;
+#ifndef HAVE_CYGWIN
+	    pthread_kill(cjcr->my_thread_id, TIMEOUT_SIGNAL);
+#endif
+	    V(cjcr->mutex);
+	 }
 	 set_jcr_job_status(cjcr, JS_Canceled);
 	 free_jcr(cjcr);
          bnet_fsend(dir, "2001 Job %s marked to be canceled.\n", Job);

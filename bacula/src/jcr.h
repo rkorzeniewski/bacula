@@ -86,13 +86,13 @@ struct JCR {
    /* Global part of JCR common to all daemons */
    JCR *next;
    JCR *prev;
+   volatile int use_count;            /* use count */
    pthread_t my_thread_id;            /* id of thread controlling jcr */
    pthread_mutex_t mutex;             /* jcr mutex */
    BSOCK *dir_bsock;                  /* Director bsock or NULL if we are him */
    BSOCK *store_bsock;                /* Storage connection socket */
    BSOCK *file_bsock;                 /* File daemon connection socket */
    JCR_free_HANDLER *daemon_free_jcr; /* Local free routine */
-   volatile int use_count;            /* use count */
    POOLMEM *errmsg;                   /* edited error message */
    char Job[MAX_NAME_LENGTH];         /* Unique name of this Job */
    uint32_t JobId;                    /* Director's JobId */
@@ -153,6 +153,7 @@ struct JCR {
    int replace;                       /* Replace option */
    int acquired_resource_locks;       /* set if resource locks acquired */
    int NumVols;                       /* Number of Volume used in pool */
+   int reschedule_count;              /* Number of times rescheduled */
 #endif /* DIRECTOR_DAEMON */
 
 
@@ -164,7 +165,6 @@ struct JCR {
    int incremental;                   /* set if incremental for SINCE */
    time_t mtime;                      /* begin time for SINCE */
    int mtime_only;                    /* compare only mtime and not ctime as well */
-   int mode;                          /* manual/auto run */
    int status;                        /* job status */
    long Ticket;                       /* Ticket */
    int save_level;                    /* save level */
@@ -202,7 +202,6 @@ struct JCR {
    VOL_LIST *VolList;                 /* list to read */
    long NumVolumes;                   /* number of volumes used */
    long CurVolume;                    /* current volume number */
-   int mode;                          /* manual/auto run */
    int spool_attributes;              /* set if spooling attributes */
    int no_attributes;                 /* set if no attributes wanted */
    int label_status;                  /* device volume label status */

@@ -307,8 +307,9 @@ static var_rc_t lookup_var(var_t *ctx, void *my_ctx,
 	  const char *var_ptr, int var_len, int var_inc, int var_index, 
 	  const char **val_ptr, int *val_len, int *val_size)
 {
-   char buf[MAXSTRING];
+   char buf[MAXSTRING], *val, *p, *v;
    var_rc_t stat;
+   int count;
 
    if ((stat = lookup_built_in_var(ctx, my_ctx, var_ptr, var_len, var_index,
 	val_ptr, val_len, val_size)) == VAR_OK) {
@@ -321,21 +322,63 @@ static var_rc_t lookup_var(var_t *ctx, void *my_ctx,
    }
 
    /* Look in environment */
-   if (var_index != 0) {
-       return VAR_ERR_ARRAY_LOOKUPS_ARE_UNSUPPORTED;
-   }
    if (var_len > (int)sizeof(buf) - 1) {
        return VAR_ERR_OUT_OF_MEMORY;
    }
-   memcpy(buf, var_ptr, var_len+1);
-   buf[var_len+1] = 0;
-   Dmsg1(000, "Var=%s\n", buf);
+   memcpy(buf, var_ptr, var_len + 1);
+   buf[var_len] = 0;
+// Dmsg1(000, "Var=%s\n", buf);
 
-   if ((*val_ptr = getenv(buf)) == NULL) {
+   if ((val = getenv(buf)) == NULL) {
        return VAR_ERR_UNDEFINED_VARIABLE;
    }
-   *val_len = strlen(*val_ptr);
-   *val_size = 0;
+   if (var_index == 0) {
+      *val_ptr = val;
+      *val_len = strlen(val);
+      *val_size = 0;
+      return VAR_OK;
+   }
+   /* He wants to index the "array" */
+   count = 0;
+   /* Find the size of the "array"                           
+    *	each element is separated by a |  
+    */
+   for (p = val; *p; p++) {
+      if (*p == '|') {
+	 count++;
+      }
+   }
+   count++;
+// Dmsg3(000, "For %s, reqest index=%d have=%d\n",
+//    buf, var_index, count);
+   if (var_index < 0 || var_index > count) {
+      return VAR_ERR_SUBMATCH_OUT_OF_RANGE;
+   }
+   /* Now find the particular item (var_index) he wants */
+   count = 1;
+   for (p=val; *p; ) {
+      if (*p == '|') {
+	 if (count < var_index) {
+	    val = ++p;
+	    count++;
+	    continue;
+	 }
+	 break;
+      }
+      p++;
+   }
+   if (p-val > (int)sizeof(buf) - 1) {
+       return VAR_ERR_OUT_OF_MEMORY;
+   }
+// Dmsg2(000, "val=%s len=%d\n", val, p-val);
+   /* Make a copy of item, and pass it back */
+   v = (char *)malloc(p-val+1);
+   memcpy(v, val, p-val);
+   v[p-val] = 0;
+   *val_ptr = v;
+   *val_len = p-val;
+   *val_size = p-val;
+// Dmsg1(000, "v=%s\n", v);
    return VAR_OK;
 }
 

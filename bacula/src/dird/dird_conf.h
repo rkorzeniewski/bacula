@@ -194,6 +194,9 @@ struct JOB {
    int PruneVolumes;                  /* Force pruning of Volumes */
    int SpoolAttributes;               /* Set to spool attributes in SD */
    uint32_t MaxConcurrentJobs;        /* Maximume concurrent jobs */
+   int RescheduleOnError;             /* Set to reschedule on error */
+   int RescheduleTimes;               /* Number of times to reschedule job */
+   utime_t RescheduleInterval;        /* Reschedule interval */
   
    MSGS                *messages;     /* How and where to send messages */
    SCHED               *schedule;     /* When -- Automatic schedule */

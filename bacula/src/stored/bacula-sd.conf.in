@@ -43,31 +43,12 @@ Device {
 }
 
 #Device {
-#  Name = "HP DLT 80"
-#  Media Type = DLT8000
+#  Name = DDS-4                        # 
+#  Media Type = DDS-4
 #  Archive Device = @TAPEDRIVE@
 #  AutomaticMount = yes;               # when device opened, read it
 #  AlwaysOpen = yes;
 #  RemovableMedia = yes;
-#}
-
-#Device {
-#  Name = SDT-7000                     # 
-#  Media Type = DDS-2
-#  Archive Device = @TAPEDRIVE@
-#  AutomaticMount = yes;               # when device opened, read it
-#  AlwaysOpen = yes;
-#  RemovableMedia = yes;
-#}
-
-#Device {
-#  Name = Floppy
-#  Media Type = Floppy
-#  Archive Device = /mnt/floppy
-#  RemovableMedia = yes;
-#  Random Access = Yes;
-#  AutomaticMount = yes;               # when device opened, read it
-#  AlwaysOpen = no;
 #}
 
 #
