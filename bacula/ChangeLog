@@ -1,4 +1,4 @@
-2003-01-04 Version 1.28 released
+2003-01-05 Version 1.28 released
 General:
 - Implemented Bare Metal Recovery for Linux and manual procedures for Solaris
 - Now using only a single technotes file kes-1.28 and will add to
