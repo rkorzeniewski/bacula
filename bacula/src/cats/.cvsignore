@@ -1,5 +1,7 @@
 1
 Makefile
+make_catalog_backup
+delete_catalog_backup
 alter_mysql_tables
 alter_sqlite_tables
 create_bdb_database
