@@ -575,6 +575,7 @@ rem_temp_file:
    free_pool_memory(cmd);
 
    free_msgs_res(msgs);
+   msgs = NULL;
 }
 
 /*

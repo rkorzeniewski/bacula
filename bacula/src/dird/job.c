@@ -69,6 +69,7 @@ void run_job(JCR *jcr)
 {
    int stat, errstat;
 
+   init_msg(jcr, jcr->msgs);
    create_unique_job_name(jcr, jcr->job->hdr.name);
    jcr->jr.SchedTime = jcr->sched_time;
    jcr->jr.StartTime = jcr->start_time;
@@ -79,7 +80,7 @@ void run_job(JCR *jcr)
 
    /* Initialize termination condition variable */
    if ((errstat = pthread_cond_init(&jcr->term_wait, NULL)) != 0) {
-      Emsg1(M_FATAL, 0, _("Unable to init job cond variable: ERR=%s\n"), strerror(errstat));
+      Jmsg1(jcr, M_FATAL, 0, _("Unable to init job cond variable: ERR=%s\n"), strerror(errstat));
       jcr->JobStatus = JS_ErrorTerminated;
       free_jcr(jcr);
       return;
@@ -329,7 +330,7 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    jcr->pool = job->pool;
    jcr->catalog = job->client->catalog;
    jcr->fileset = job->fs;
-   init_msg(jcr, job->messages);
+   jcr->msgs = job->messages; 
    /* If no default level given, set one */
    if (jcr->level == 0) {
       switch (jcr->JobType) {

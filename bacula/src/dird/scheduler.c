@@ -76,7 +76,7 @@ JCR *wait_for_next_job(char *job_to_run)
       if (job_to_run) { 	      /* one shot */
 	 job = (JOB *)GetResWithName(R_JOB, job_to_run);
 	 if (!job) {
-            Emsg1(M_ERROR, 0, _("Job %s not found\n"), job_to_run);
+            Emsg1(M_ABORT, 0, _("Job %s not found\n"), job_to_run);
 	 }
          Dmsg1(5, "Found job_to_run %s\n", job_to_run);
 	 jcr = new_jcr(sizeof(JCR), dird_free_jcr);
@@ -130,6 +130,8 @@ JCR *wait_for_next_job(char *job_to_run)
    rem_runjobs--;		      /* decrement count of remaining jobs */
 
    jcr = new_jcr(sizeof(JCR), dird_free_jcr);
+   ASSERT(job);
+   sm_check(__FILE__, __LINE__, False);
    set_jcr_defaults(jcr, job);
    if (run->level) {
       jcr->level = run->level;	      /* override run level */

@@ -201,8 +201,9 @@ int main (int argc, char *argv[])
    /* Main loop -- call scheduler to get next job to run */
    while ((jcr = wait_for_next_job(runjob))) {
       run_job(jcr);		      /* run job */
-      if (runjob)		      /* command line, run a single job? */
+      if (runjob) {		      /* command line, run a single job? */
 	 break; 		      /* yes, terminate */
+      }
    }
 
    terminate_dird(0);
