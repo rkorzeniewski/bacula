@@ -1,0 +1,90 @@
+@MCOMMON@
+
+srcdir =	.
+VPATH = 	.
+.PATH:		.
+
+# one up
+basedir = ..
+# top dir
+topdir = ../..
+# this dir relative to top dir
+thisdir = src/tools
+
+DEBUG=@DEBUG@
+
+first_rule: all
+dummy:
+
+#
+
+FINDOBJS = testfind.o
+
+# these are the objects that are changed by the .configure process
+EXTRAOBJS = @OBJLIST@
+
+.SUFFIXES:	.c .o
+.PHONY:
+.DONTCARE:
+
+# inference rules
+.c.o:
+	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+#-------------------------------------------------------------------------
+all: Makefile smtp dbcheck
+	@echo "==== Make of tools is good ===="
+	@echo " "
+
+smtp:	smtp.o ../lib/libbac.a	      
+	$(CXX) $(LDFLAGS) -L../lib -o $@ smtp.o -lbac -lm $(LIBS) $(DLIB)
+
+dbcheck: dbcheck.o ../lib/libbac.a ../cats/libsql.a
+	$(CXX) $(LDFLAGS) -L../lib -L../cats -o $@ dbcheck.o -lbac -lsql -lm $(LIBS) $(DB_LIBS)
+
+testfind: ../findlib/libfind.a ../lib/libbac.a $(FINDOBJS)
+	$(CC) -g $(LDFLAGS) -L. -L../lib -L../findlib -o $@ $(FINDOBJS) \
+	  $(LIBS) $(DLIB) -lfind -lbac -lm
+ 
+
+Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
+	cd $(topdir) \
+	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
+clean:
+	@$(RMF) smtp core core.* a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
+	@$(RMF) testfind dbcheck
+
+realclean: clean
+	@$(RMF) tags Makefile
+
+distclean: realclean
+	if test $(srcdir) = .; then $(MAKE) realclean; fi
+	(cd $(srcdir); $(RMF) Makefile)
+
+install: smtp
+	$(INSTALL_PROGRAM) smtp $(DESTDIR)$(sbindir)/smtp      
+
+uninstall:
+	(cd $(DESTDIR)$(sbindir); $(RMF) smtp)
+
+
+
+# Semi-automatic generation of dependencies:
+# Use gcc -MM because X11 `makedepend' doesn't work on all systems
+# and it also includes system headers.
+# `semi'-automatic since dependencies are generated at distribution time.
+
+depend:
+	@$(MV) Makefile Makefile.bak
+	@$(SED) "/^# DO NOT DELETE:/,$$ d" Makefile.bak > Makefile
+	@$(ECHO) "# DO NOT DELETE: nice dependency list follows" >> Makefile
+	@$(CC) -S -M $(CPPFLAGS) $(XINC) -I$(srcdir) -I$(basedir) $(SQL_INC) *.c >> Makefile
+	@if test -f Makefile ; then \
+	    $(RMF) Makefile.bak; \
+	else \
+	   $(MV) Makefile.bak Makefile; \
+	   echo -e "Something went wrong\n\a"; \
+	fi
+
+# -----------------------------------------------------------------------
+# DO NOT DELETE: nice dependency list follows
