@@ -57,6 +57,7 @@ CLEAN :
         -@erase "$(INTDIR)\bsys.obj"
         -@erase "$(INTDIR)\btime.obj"
         -@erase "$(INTDIR)\btimers.obj"
+        -@erase "$(INTDIR)\chksum.obj"
         -@erase "$(INTDIR)\compat.obj"
         -@erase "$(INTDIR)\cram-md5.obj"
         -@erase "$(INTDIR)\crc32.obj"
@@ -71,6 +72,7 @@ CLEAN :
         -@erase "$(INTDIR)\find.obj"
         -@erase "$(INTDIR)\find_one.obj"
         -@erase "$(INTDIR)\fnmatch.obj"
+        -@erase "$(INTDIR)\fstype.obj"
         -@erase "$(INTDIR)\getopt.obj"
         -@erase "$(INTDIR)\heartbeat.obj"
         -@erase "$(INTDIR)\hmac.obj"
@@ -145,6 +147,7 @@ LINK32_OBJS= \
         "$(INTDIR)\bsys.obj" \
         "$(INTDIR)\btime.obj" \
         "$(INTDIR)\btimers.obj" \
+        "$(INTDIR)\chksum.obj" \
         "$(INTDIR)\compat.obj" \
         "$(INTDIR)\cram-md5.obj" \
         "$(INTDIR)\crc32.obj" \
@@ -159,6 +162,7 @@ LINK32_OBJS= \
         "$(INTDIR)\find.obj" \
         "$(INTDIR)\find_one.obj" \
         "$(INTDIR)\fnmatch.obj" \
+        "$(INTDIR)\fstype.obj" \
         "$(INTDIR)\getopt.obj" \
         "$(INTDIR)\heartbeat.obj" \
         "$(INTDIR)\hmac.obj" \
@@ -253,6 +257,8 @@ CLEAN :
         -@erase "$(INTDIR)\btime.sbr"
         -@erase "$(INTDIR)\btimers.obj"
         -@erase "$(INTDIR)\btimers.sbr"
+        -@erase "$(INTDIR)\chksum.obj"
+        -@erase "$(INTDIR)\chksum.sbr"
         -@erase "$(INTDIR)\compat.obj"
         -@erase "$(INTDIR)\compat.sbr"
         -@erase "$(INTDIR)\cram-md5.obj"
@@ -281,6 +287,8 @@ CLEAN :
         -@erase "$(INTDIR)\find_one.sbr"
         -@erase "$(INTDIR)\fnmatch.obj"
         -@erase "$(INTDIR)\fnmatch.sbr"
+        -@erase "$(INTDIR)\fstype.obj"
+        -@erase "$(INTDIR)\fstype.sbr"
         -@erase "$(INTDIR)\getopt.obj"
         -@erase "$(INTDIR)\getopt.sbr"
         -@erase "$(INTDIR)\heartbeat.obj"
@@ -394,6 +402,7 @@ BSC32_SBRS= \
         "$(INTDIR)\bsys.sbr" \
         "$(INTDIR)\btime.sbr" \
         "$(INTDIR)\btimers.sbr" \
+        "$(INTDIR)\chksum.sbr" \
         "$(INTDIR)\compat.sbr" \
         "$(INTDIR)\cram-md5.sbr" \
         "$(INTDIR)\crc32.sbr" \
@@ -408,6 +417,7 @@ BSC32_SBRS= \
         "$(INTDIR)\find.sbr" \
         "$(INTDIR)\find_one.sbr" \
         "$(INTDIR)\fnmatch.sbr" \
+        "$(INTDIR)\fstype.sbr" \
         "$(INTDIR)\getopt.sbr" \
         "$(INTDIR)\heartbeat.sbr" \
         "$(INTDIR)\hmac.sbr" \
@@ -475,6 +485,7 @@ LINK32_OBJS= \
         "$(INTDIR)\bsys.obj" \
         "$(INTDIR)\btime.obj" \
         "$(INTDIR)\btimers.obj" \
+        "$(INTDIR)\chksum.obj" \
         "$(INTDIR)\compat.obj" \
         "$(INTDIR)\cram-md5.obj" \
         "$(INTDIR)\crc32.obj" \
@@ -489,6 +500,7 @@ LINK32_OBJS= \
         "$(INTDIR)\find.obj" \
         "$(INTDIR)\find_one.obj" \
         "$(INTDIR)\fnmatch.obj" \
+        "$(INTDIR)\fstype.obj" \
         "$(INTDIR)\getopt.obj" \
         "$(INTDIR)\heartbeat.obj" \
         "$(INTDIR)\hmac.obj" \
@@ -889,6 +901,26 @@ SOURCE=..\lib\btimers.cpp
 
 !ENDIF 
 
+
+SOURCE=..\filed\chksum.cpp
+
+!IF  "$(CFG)" == "baculafd - Win32 Release"
+
+
+"$(INTDIR)\chksum.obj" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
+
+
+"$(INTDIR)\chksum.obj" "$(INTDIR)\chksum.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+
 SOURCE=..\compat\compat.cpp
 
 !IF  "$(CFG)" == "baculafd - Win32 Release"
@@ -1140,6 +1172,25 @@ SOURCE=..\lib\fnmatch.cpp
 
 
 !ENDIF 
+
+SOURCE=..\findlib\fstype.cpp
+
+!IF  "$(CFG)" == "baculafd - Win32 Release"
+
+
+"$(INTDIR)\fstype.obj" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
+
+
+"$(INTDIR)\fstype.obj" "$(INTDIR)\fstype.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 
 SOURCE=..\compat\getopt.c
 
