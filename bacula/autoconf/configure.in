@@ -817,12 +817,23 @@ AC_STRUCT_TIMEZONE
 dnl# --------------------------------------------------------------------------
 dnl# Check for utime.h structure 
 dnl# --------------------------------------------------------------------------
-AC_CACHE_CHECK(for utime.h, tar_cv_header_utime_h,
+AC_CACHE_CHECK(for utime.h, ba_cv_header_utime_h,
   [AC_TRY_COMPILE([
 #include <sys/types.h>
 #include <utime.h>], [struct utimbuf foo],
-  tar_cv_header_utime_h=yes, tar_cv_header_utime_h=no)])
-test $tar_cv_header_utime_h = yes && AC_DEFINE(HAVE_UTIME_H)
+  ba_cv_header_utime_h=yes, ba_cv_header_utime_h=no)])
+test $ba_cv_header_utime_h = yes && AC_DEFINE(HAVE_UTIME_H)
+
+dnl# --------------------------------------------------------------------------
+dnl# Check for socklen_t
+dnl# --------------------------------------------------------------------------
+AC_CACHE_CHECK(for socklen_t, ba_cv_header_socklen_t,
+  [AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <sys/socket.h>],
+  [socklen_t x],
+  ba_cv_header_socklen_t=yes, ba_cv_header_socklen_t=no)])
+test $ba_cv_header_socklen_t = yes && AC_DEFINE(HAVE_SOCKLEN_T)
 
 dnl# --------------------------------------------------------------------------
 dnl# Check for bigendian

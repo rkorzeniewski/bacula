@@ -331,6 +331,13 @@ static void do_client_status(UAContext *ua, CLIENT *client)
    /* Connect to File daemon */
 
    ua->jcr->client = client;
+   /* Release any old dummy key */
+   if (ua->jcr->sd_auth_key) {
+      free(ua->jcr->sd_auth_key);
+   }
+   /* Create a new dummy SD auth key */
+   ua->jcr->sd_auth_key = bstrdup("dummy");
+
    /* Try to connect for 15 seconds */
    bsendmsg(ua, _("Connecting to Client %s at %s:%d\n"), 
       client->hdr.name, client->address, client->FDport);

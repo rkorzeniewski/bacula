@@ -146,6 +146,9 @@ get_out:
  *
  *  Returns: NULL if failed for any reason
  *	     dev if successful (may change if new dev opened)
+ *  This routine must be single threaded because we may create
+ *   multiple devices (for files), thus we have our own mutex 
+ *   on top of the device mutex.
  */
 DEVICE * acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
@@ -156,6 +159,7 @@ DEVICE * acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    lock_device(dev);
    block_device(dev, BST_DOING_ACQUIRE);
    unlock_device(dev);
+   P(mutex);			     /* lock all devices */
    Dmsg1(190, "acquire_append device is %s\n", dev_is_tape(dev)?"tape":"disk");
 	     
 
@@ -180,7 +184,6 @@ DEVICE * acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	       open_vols++;
 	    }
 	    if (dev->state & ST_FILE && dev->max_open_vols > open_vols) {
-	       P(mutex);	      /* lock all devices */
 	       d = init_dev(NULL, (DEVRES *)dev->device); /* init new device */
 	       d->prev = dev;			/* chain in new device */
 	       d->next = dev->next;
@@ -194,7 +197,6 @@ DEVICE * acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	       lock_device(dev);
 	       block_device(dev, BST_DOING_ACQUIRE);
 	       unlock_device(dev);
-	       V(mutex);
 	    } else {
                Jmsg(jcr, M_FATAL, 0, _("Device %s is busy writing on another Volume.\n"), dev_name(dev));
 	       goto get_out;
@@ -237,6 +239,7 @@ get_out:
    P(dev->mutex); 
    unblock_device(dev);
    V(dev->mutex);
+   V(mutex);			      /* unlock other threads */
    return rtn_dev;
 }
 

@@ -39,9 +39,6 @@
 #ifndef __bc_types_INCLUDED
 #define __bc_types_INCLUDED
 
-/* ****FIXME***** implement 64 bit file addresses ! */
-#define faddr_t long 
-
 typedef char POOLMEM;
 
 /* Types */
@@ -180,6 +177,10 @@ typedef float             float32_t;
 #define utime_t int64_t
 
 #ifdef HAVE_CYGWIN
-#define socklen_t int
 #define int_least16_t int32_t
 #endif
+
+#ifndef HAVE_SOCKLEN_T
+#define socklen_t int
+#endif
+

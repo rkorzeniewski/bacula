@@ -269,6 +269,8 @@ typedef struct s_db {
 typedef uint32_t FileId_t;
 typedef uint32_t DBId_t;              /* general DB id type */
 typedef uint32_t JobId_t;
+      
+#define faddr_t long
 
 
 /* Job information passed to create job record and update

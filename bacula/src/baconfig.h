@@ -372,12 +372,7 @@ extern int thr_setconcurrency(int);
 
 #endif
 
-#ifdef HAVE_IRIX_OS
-#define socklen_t int
-#endif
-
 #ifdef HAVE_DARWIN_OS
-#define socklen_t int
 /* Apparently someone forgot to wrap getdomainname as a C function */
 extern "C" int getdomainname(char *name, size_t len);
 

@@ -263,7 +263,6 @@ void db_close_database(void *jcr, B_DB *mdb)
       if (mdb->filesetfd) {
 	 fclose(mdb->filesetfd);
       }
-/*    pthread_mutex_destroy(&mdb->mutex); */
       rwl_destroy(&mdb->lock);	     
       free_pool_memory(mdb->errmsg);
       free_pool_memory(mdb->cmd);
@@ -276,7 +275,8 @@ void db_close_database(void *jcr, B_DB *mdb)
 
 void db_escape_string(char *snew, char *old, int len)
 {
-   strcpy(snew, old);
+   memset(new, 0, len);
+   bstrncpy(snew, old, len);
 }
 
 char *db_strerror(B_DB *mdb)
