@@ -224,7 +224,7 @@ Pool {
 # Restricted console used by tray-monitor to get the status of the director
 #
 Console {
-  Name = Monitor
+  Name = @hostname@-mon
   Password = "@mon_dir_password@"
   CommandACL = status, .status
   ClientACL = 
