@@ -143,8 +143,12 @@ int send_include_list(JCR *jcr)
 	       goto bail_out;
 	    }
 	    /* Copy File options */
-	    strcpy(buf, ie->opts);
-            strcat(buf, " ");
+	    if (ie->num_opts) {
+	       strcpy(buf, ie->opts_list[0]->opts);
+               strcat(buf, " ");
+	    } else {
+               strcpy(buf, "0 ");
+	    }
 	    optlen = strlen(buf);
 	    while (fgets(buf+optlen, sizeof(buf)-optlen, bpipe->rfd)) {
                fd->msglen = Mmsg(&fd->msg, "%s", buf);
@@ -167,8 +171,12 @@ int send_include_list(JCR *jcr)
 	       goto bail_out;
 	    }
 	    /* Copy File options */
-	    strcpy(buf, ie->opts);
-            strcat(buf, " ");
+	    if (ie->num_opts) {
+	       strcpy(buf, ie->opts_list[0]->opts);
+               strcat(buf, " ");
+	    } else {
+               strcpy(buf, "0 ");
+	    }
 	    optlen = strlen(buf);
 	    while (fgets(buf+optlen, sizeof(buf)-optlen, ffd)) {
                fd->msglen = Mmsg(&fd->msg, "%s", buf);
@@ -180,10 +188,14 @@ int send_include_list(JCR *jcr)
 	    fclose(ffd);
 	    break;
 	 default:
-	    pm_strcpy(&fd->msg, ie->opts);
-            pm_strcat(&fd->msg, " ");
+	    if (ie->num_opts) {
+	       pm_strcpy(&fd->msg, ie->opts_list[0]->opts);
+               pm_strcat(&fd->msg, " ");
+	    } else {
+               pm_strcpy(&fd->msg, "0 ");
+	    }
 	    pm_strcat(&fd->msg, ie->name_list[j]);
-            Dmsg1(200, "Include name=%s\n", fd->msg);
+            Dmsg1(000, "Include name=%s\n", fd->msg);
 	    fd->msglen = strlen(fd->msg);
 	    if (!bnet_send(fd)) {
                Jmsg(jcr, M_FATAL, 0, _(">filed: write error on socket\n"));

@@ -586,6 +586,36 @@ next_run:
    }
 }
 
+/*
+ * Free all the members of an INCEXE structure
+ */
+static void free_incexe(INCEXE *incexe)
+{
+   for (int i=0; i<incexe->num_names; i++) {
+      free(incexe->name_list[i]);
+   }
+   if (incexe->name_list) {
+      free(incexe->name_list);
+   }
+   for (int i=0; i<incexe->num_opts; i++) {
+      FOPTS *fopt = incexe->opts_list[i];
+      if (fopt->match) {
+	 free(fopt->match);
+      }
+      for (int j=0; j<fopt->num_base; j++) {
+	 free(fopt->base_list[j]);
+      }
+      if (fopt->base_list) {
+	 free(fopt->base_list);
+      }
+      free(fopt);
+   }
+   if (incexe->opts_list) {
+      free(incexe->opts_list);
+   }
+   free(incexe);
+}
+
 /* 
  * Free memory of resource.  
  * NB, we don't need to worry about freeing any references
@@ -677,40 +707,14 @@ void free_resource(int type)
       case R_FILESET:
 	 if ((num=res->res_fs.num_includes)) {
 	    while (--num >= 0) {   
-	       INCEXE *incexe = res->res_fs.include_items[num];
-	       for (int i=0; i<incexe->num_names; i++) {
-		  free(incexe->name_list[i]);
-	       }
-	       if (incexe->name_list) {
-		  free(incexe->name_list);
-	       }
-	       for (int i=0; i<incexe->num_match; i++) {
-		  free(incexe->match_list[i]);
-	       }
-	       if (incexe->match_list) {
-		  free(incexe->match_list);
-	       }
-	       free(incexe);
+	       free_incexe(res->res_fs.include_items[num]);
 	    }
 	    free(res->res_fs.include_items);
 	 }
 	 res->res_fs.num_includes = 0;
 	 if ((num=res->res_fs.num_excludes)) {
 	    while (--num >= 0) {   
-	       INCEXE *incexe = res->res_fs.exclude_items[num];
-	       for (int i=0; i<incexe->num_names; i++) {
-		  free(incexe->name_list[i]);
-	       }
-	       if (incexe->name_list) {
-		  free(incexe->name_list);
-	       }
-	       for (int i=0; i<incexe->num_match; i++) {
-		  free(incexe->match_list[i]);
-	       }
-	       if (incexe->match_list) {
-		  free(incexe->match_list);
-	       }
-	       free(incexe);
+	       free_incexe(res->res_fs.exclude_items[num]);
 	    }
 	    free(res->res_fs.exclude_items);
 	 }

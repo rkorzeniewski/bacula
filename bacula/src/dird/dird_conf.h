@@ -180,13 +180,22 @@ struct s_res_job {
 };
 typedef struct s_res_job JOB;
 
-#define MAX_FO_OPTS 30
+#define MAX_FOPTS 30
+
+struct s_fopts_item {
+   char opts[MAX_FOPTS];              /* options string */
+   char *match;                       /* match string */
+   char **base_list;                  /* list of base job names */
+   int  num_base;                     /* number of bases in list */
+};
+typedef struct s_fopts_item FOPTS;
+
 
 /* This is either an include item or an exclude item */
 struct s_incexc_item {
-   char opts[MAX_FO_OPTS];            /* options string */
-   char **match_list;                 /* match strings */
-   int num_match;                     /* number of match strings */
+   FOPTS *current_opts;               /* points to current options structure */
+   FOPTS **opts_list;                 /* options list */
+   int num_opts;                      /* number of options items */
    char **name_list;                  /* filename list */
    int max_names;                     /* malloc'ed size of name list */
    int num_names;                     /* number of names in the list */

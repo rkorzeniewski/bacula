@@ -37,6 +37,8 @@ void store_finc(LEX *lc, struct res_items *item, int index, int pass);
 static void store_match(LEX *lc, struct res_items *item, int index, int pass);
 static void store_opts(LEX *lc, struct res_items *item, int index, int pass);
 static void store_fname(LEX *lc, struct res_items *item, int index, int pass);
+static void store_base(LEX *lc, struct res_items *item, int index, int pass);
+static void setup_current_opts(void);
 
 
 /* We build the current resource here as we are
@@ -65,7 +67,7 @@ static struct res_items finc_items[] = {
    {"replace",         store_opts,    NULL,     0, 0, 0},
    {"match",           store_match,   NULL,     0, 0, 0},
    {"file",            store_fname,   NULL,     0, 0, 0},
-
+   {"base",            store_base,    NULL,     0, 0, 0},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
@@ -198,6 +200,7 @@ void store_inc(LEX *lc, struct res_items *item, int index, int pass)
    int inc_opts_len;
 
    lc->options |= LOPT_NO_IDENT;      /* make spaces significant */
+   memset(&res_incexe, 0, sizeof(INCEXE));
 
    /* Get include options */
    inc_opts[0] = 0;
@@ -233,12 +236,15 @@ void store_inc(LEX *lc, struct res_items *item, int index, int pass)
 	 MD5Init(&res_all.res_fs.md5c);
 	 res_all.res_fs.have_MD5 = TRUE;
       }
+      setup_current_opts();
+      bstrncpy(res_incexe.current_opts->opts, inc_opts, MAX_FOPTS);
+      Dmsg1(200, "incexe opts=%s\n", res_incexe.current_opts->opts);
+
       /* Create incexe structure */
       Dmsg0(200, "Create INCEXE structure\n");
       incexe = (INCEXE *)malloc(sizeof(INCEXE));
-      memset(incexe, 0, sizeof(INCEXE));
-      bstrncpy(incexe->opts, inc_opts, sizeof(incexe->opts));
-      Dmsg1(200, "incexe opts=%s\n", incexe->opts);
+      memcpy(incexe, &res_incexe, sizeof(INCEXE));
+      memset(&res_incexe, 0, sizeof(INCEXE));
       if (item->code == 0) { /* include */
 	 if (res_all.res_fs.num_includes == 0) {
 	    res_all.res_fs.include_items = (INCEXE **)malloc(sizeof(INCEXE *));
@@ -347,7 +353,7 @@ void store_finc(LEX *lc, struct res_items *item, int index, int pass)
    if (pass == 1) {
       incexe = (INCEXE *)malloc(sizeof(INCEXE));
       memcpy(incexe, &res_incexe, sizeof(INCEXE));
-      Dmsg1(200, "incexe opts=%s\n", incexe->opts);
+      memset(&res_incexe, 0, sizeof(INCEXE));
       if (item->code == 0) { /* include */
 	 if (res_all.res_fs.num_includes == 0) {
 	    res_all.res_fs.include_items = (INCEXE **)malloc(sizeof(INCEXE *));
@@ -377,7 +383,6 @@ void store_finc(LEX *lc, struct res_items *item, int index, int pass)
 static void store_match(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token;
-   char *match;
 
    if (pass == 1) {
       /* Pickup Match string
@@ -387,19 +392,14 @@ static void store_match(LEX *lc, struct res_items *item, int index, int pass)
 	 case T_IDENTIFIER:
 	 case T_UNQUOTED_STRING:
 	 case T_QUOTED_STRING:
-	    match = (char *)malloc(lc->str_len + 1);
-	    strcpy(match, lc->str);
-	    res_incexe.num_match++;
-	    if (res_incexe.match_list == NULL) {
-	       res_incexe.match_list = (char **)malloc(sizeof(char *) * res_incexe.num_match);
-	    } else {
-	       res_incexe.match_list = (char **)realloc(res_incexe.match_list,
-		  sizeof(char *) * res_incexe.num_match);
+	    setup_current_opts();
+	    if (res_incexe.current_opts->match) {
+               scan_err0(lc, _("More than one match specified.\n")); 
 	    }
-	    res_incexe.match_list[res_incexe.num_match-1] = match;
+	    res_incexe.current_opts->match = bstrdup(lc->str);
 	    break;
 	 default:
-            scan_err1(lc, "Expected a filename, got: %s", lc->str);
+            scan_err1(lc, _("Expected a filename, got: %s\n"), lc->str);
       } 				
    } else { /* pass 2 */
       lex_get_token(lc, T_ALL); 	 
@@ -407,8 +407,36 @@ static void store_match(LEX *lc, struct res_items *item, int index, int pass)
    scan_to_eol(lc);
 }
 
+/* Store Base info */
+static void store_base(LEX *lc, struct res_items *item, int index, int pass)
+{
+   int token;
+   FOPTS *copt;
 
-/* Store Filename info */
+   if (pass == 1) {
+      setup_current_opts();
+      /*
+       * Pickup Base Job Name
+       */
+      token = lex_get_token(lc, T_NAME);	   
+      copt = res_incexe.current_opts;
+      if (copt->base_list == NULL) {
+	 copt->base_list = (char **)malloc(sizeof(char *));			
+      } else {
+	 copt->base_list = (char **)realloc(copt->base_list,
+	    sizeof(char *) * (copt->num_base+1));
+      }
+      copt->base_list[copt->num_base++] = bstrdup(lc->str);
+   } else { /* pass 2 */
+      lex_get_token(lc, T_ALL); 	 
+   }
+   scan_to_eol(lc);
+}
+/*
+ * Store Filename info. Note, for minor efficiency reasons, we
+ * always increase the name buffer by 10 items because we expect
+ * to add more entries.
+ */
 static void store_fname(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token;
@@ -439,7 +467,7 @@ static void store_fname(LEX *lc, struct res_items *item, int index, int pass)
             Dmsg1(200, "Add to name_list %s\n", incexe->name_list[incexe->num_names -1]);
 	    break;
 	 default:
-            scan_err1(lc, "Expected a filename, got: %s", lc->str);
+            scan_err1(lc, _("Expected a filename, got: %s"), lc->str);
       } 				
    } else { /* pass 2 */
       lex_get_token(lc, T_ALL); 	 
@@ -468,7 +496,25 @@ static void store_opts(LEX *lc, struct res_items *item, int index, int pass)
    Dmsg2(200, "keyword=%d %s\n", keyword, FS_option_kw[keyword].name);
    scan_include_options(lc, keyword, inc_opts, sizeof(inc_opts));
 
-   bstrncat(res_incexe.opts, inc_opts, MAX_FO_OPTS);
+   if (pass == 1) {
+      setup_current_opts();
+
+      bstrncat(res_incexe.current_opts->opts, inc_opts, MAX_FOPTS);
+   }
 
    scan_to_eol(lc);
+}
+
+
+
+/* If current_opts not defined, create first entry */
+static void setup_current_opts(void)
+{
+   if (res_incexe.current_opts == NULL) {
+      res_incexe.current_opts = (FOPTS *)malloc(sizeof(FOPTS));
+      memset(res_incexe.current_opts, 0, sizeof(FOPTS));
+      res_incexe.num_opts = 1;
+      res_incexe.opts_list = (FOPTS **)malloc(sizeof(FOPTS *));
+      res_incexe.opts_list[0] = res_incexe.current_opts;
+   }
 }
