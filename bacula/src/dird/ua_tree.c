@@ -31,7 +31,11 @@
 
 #include "bacula.h"
 #include "dird.h"
+#ifdef HAVE_FNMATCH
 #include <fnmatch.h>
+#else
+#include "lib/fnmatch.h"
+#endif
 #include "findlib/find.h"
 
 

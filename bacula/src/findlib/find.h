@@ -92,6 +92,8 @@ enum {
 #define FO_EXCLUDE      (1<<13)       /* Exclude file */
 #define FO_ACL          (1<<14)       /* Backup ACLs */
 #define FO_NO_HARDLINK  (1<<15)       /* don't handle hard links */
+#define FO_IGNORECASE   (1<<16)       /* Ignore file name case */
+
 
 struct s_included_file {
    struct s_included_file *next;

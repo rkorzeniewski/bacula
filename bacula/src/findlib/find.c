@@ -165,6 +165,7 @@ find_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt), void 
 static bool accept_file(FF_PKT *ff)
 {
    int i, j, k;
+   int ic;
    findFILESET *fileset = ff->fileset;
    findINCEXE *incexe = fileset->incexe;
 
@@ -174,8 +175,9 @@ static bool accept_file(FF_PKT *ff)
       ff->GZIP_level = fo->GZIP_level;
       ff->reader = fo->reader;
       ff->writer = fo->writer;
+      ic = (ff->flags & FO_IGNORECASE) ? FNM_CASEFOLD : 0;
       for (k=0; k<fo->wild.size(); k++) {
-	 if (fnmatch((char *)fo->wild.get(k), ff->fname, fnmode) == 0) {
+	 if (fnmatch((char *)fo->wild.get(k), ff->fname, fnmode|ic) == 0) {
 	    if (ff->flags & FO_EXCLUDE) {
                Dmsg2(100, "Exclude wild: %s file=%s\n", (char *)fo->wild.get(k),
 		  ff->fname);
@@ -202,15 +204,18 @@ static bool accept_file(FF_PKT *ff)
       findINCEXE *incexe = (findINCEXE *)fileset->exclude_list.get(i);
       for (j=0; j<incexe->opts_list.size(); j++) {
 	 findFOPTS *fo = (findFOPTS *)incexe->opts_list.get(j);
+	 ic = (fo->flags & FO_IGNORECASE) ? FNM_CASEFOLD : 0;
 	 for (k=0; k<fo->wild.size(); k++) {
-	    if (fnmatch((char *)fo->wild.get(k), ff->fname, fnmode) == 0) {
+	    if (fnmatch((char *)fo->wild.get(k), ff->fname, fnmode|ic) == 0) {
                Dmsg1(100, "Reject wild1: %s\n", ff->fname);
 	       return false;	      /* reject file */
 	    }
 	 }
       }
+      ic = (incexe->current_opts != NULL && incexe->current_opts->flags & FO_IGNORE
+	     ? FNM_CASEFOLD : 0;
       for (j=0; j<incexe->name_list.size(); j++) {
-	 if (fnmatch((char *)incexe->name_list.get(j), ff->fname, fnmode) == 0) {
+	 if (fnmatch((char *)incexe->name_list.get(j), ff->fname, fnmode|ic) == 0) {
             Dmsg1(100, "Reject wild2: %s\n", ff->fname);
 	    return false;	   /* reject file */
 	 }

@@ -29,7 +29,11 @@
 
 #include "bacula.h"
 #include "stored.h"
+#ifdef HAVE_FNMATCH
 #include <fnmatch.h>
+#else
+#include "lib/fnmatch.h"
+#endif
 
 /* Forward references */
 static int match_volume(BSR *bsr, BSR_VOLUME *volume, VOLUME_LABEL *volrec, bool done);

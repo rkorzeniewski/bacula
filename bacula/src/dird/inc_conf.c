@@ -92,6 +92,7 @@ static RES_ITEM options_items[] = {
    {"aclsupport",      store_opts,    NULL,     0, 0, 0},
    {"reader",          store_reader,  NULL,     0, 0, 0},
    {"writer",          store_writer,  NULL,     0, 0, 0},
+   {"ignorecase",      store_opts,    NULL,     0, 0, 0},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
@@ -114,7 +115,8 @@ enum {
    INC_KW_MTIMEONLY,
    INC_KW_KEEPATIME,
    INC_KW_EXCLUDE,
-   INC_KW_ACL
+   INC_KW_ACL,
+   INC_KW_IGNORECASE
 };
 
 /*
@@ -137,6 +139,7 @@ static struct s_kw FS_option_kw[] = {
    {"keepatime",   INC_KW_KEEPATIME},
    {"exclude",     INC_KW_EXCLUDE},
    {"aclsupport",  INC_KW_ACL},
+   {"ignorecase",  INC_KW_IGNORECASE},
    {NULL,	   0}
 };
 
@@ -192,6 +195,8 @@ static struct s_fs_opt FS_options[] = {
    {"no",       INC_KW_EXCLUDE,       "0"},
    {"yes",      INC_KW_ACL,           "A"},
    {"no",       INC_KW_ACL,           "0"},
+   {"yes",      INC_KW_IGNORECASE,    "i"},
+   {"no",       INC_KW_IGNORECASE,    "0"},
    {NULL,	0,			0}
 };
 
