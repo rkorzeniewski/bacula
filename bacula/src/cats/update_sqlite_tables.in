@@ -28,6 +28,7 @@ CREATE TEMPORARY TABLE Media_backup (
    VolBlocks INTEGER UNSIGNED DEFAULT 0,
    VolMounts INTEGER UNSIGNED DEFAULT 0,
    VolBytes BIGINT UNSIGNED DEFAULT 0,
+   VolParts INTEGER UNSIGNED DEFAULT 0,
    VolErrors INTEGER UNSIGNED DEFAULT 0,
    VolWrites INTEGER UNSIGNED DEFAULT 0,
    VolCapacityBytes BIGINT UNSIGNED DEFAULT 0,
@@ -51,11 +52,11 @@ INSERT INTO Media_backup SELECT
    MediaId, VolumeName, Slot, PoolId,
    MediaType, FirstWritten, LastWritten,
    LabelDate, VolJobs, VolFiles, VolBlocks,
-   VolMounts, VolBytes, VolErrors, VolWrites,
+   VolMounts, VolBytes, 0, VolErrors, VolWrites,
    VolCapacityBytes, VolStatus, Recycle,
    VolRetention, VolUseDuration, MaxVolJobs,
    MaxVolFiles, MaxVolBytes, InChanger, MediaAddressing,
-   VolReadTime, VolWriteTime, 0, 0
+   VolReadTime, VolWriteTime, EndFile, EndBlock
    FROM Media;
 
 
@@ -75,6 +76,7 @@ CREATE TABLE Media (
    VolBlocks INTEGER UNSIGNED DEFAULT 0,
    VolMounts INTEGER UNSIGNED DEFAULT 0,
    VolBytes BIGINT UNSIGNED DEFAULT 0,
+   VolParts INTEGER UNSIGNED DEFAULT 0,
    VolErrors INTEGER UNSIGNED DEFAULT 0,
    VolWrites INTEGER UNSIGNED DEFAULT 0,
    VolCapacityBytes BIGINT UNSIGNED DEFAULT 0,
@@ -98,7 +100,7 @@ INSERT INTO Media (
    MediaId, VolumeName, Slot, PoolId,
    MediaType, FirstWritten, LastWritten,
    LabelDate, VolJobs, VolFiles, VolBlocks,
-   VolMounts, VolBytes, VolErrors, VolWrites,
+   VolMounts, VolBytes, VolParts, VolErrors, VolWrites,
    VolCapacityBytes, VolStatus, Recycle,
    VolRetention, VolUseDuration, MaxVolJobs,
    MaxVolFiles, MaxVolBytes,
@@ -109,19 +111,6 @@ INSERT INTO Media (
 
 DROP TABLE Media_backup;
 
-CREATE TABLE CDImages (
-   MediaId INTEGER UNSIGNED NOT NULL,
-   LastBurn DATETIME NOT NULL,
-   PRIMARY KEY (MediaId)
-   );
-
-CREATE INDEX inx9 ON File (JobId, PathId, FileNameId);
-
 COMMIT;
-
-UPDATE Filename SET Name='' WHERE Name=' ';
-
-DELETE FROM Version;
-INSERT INTO Version (VersionId) VALUES (8);
 
 END-OF-DATA

@@ -9,7 +9,7 @@
  *
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -234,10 +234,10 @@ static bool unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       block->bufp = block->buf + bhl;
       if (strncmp(Id, BLKHDR1_ID, BLKHDR_ID_LENGTH) != 0) {
 	 dev->dev_errno = EIO;
-	 Mmsg4(dev->errmsg, _("Volume data error at %u:%u! Wanted ID: \"%s\", got \"%s\". Buffer discarded.\n"),
+         Mmsg4(dev->errmsg, _("Volume data error at %u:%u! Wanted ID: \"%s\", got \"%s\". Buffer discarded.\n"),
 	    dev->file, dev->block_num, BLKHDR1_ID, Id);
 	 if (block->read_errors == 0 || verbose >= 2) {
-	    Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
+            Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
 	 }
 	 block->read_errors++;
 	 return false;
@@ -250,10 +250,10 @@ static bool unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       block->bufp = block->buf + bhl;
       if (strncmp(Id, BLKHDR2_ID, BLKHDR_ID_LENGTH) != 0) {
 	 dev->dev_errno = EIO;
-	 Mmsg4(dev->errmsg, _("Volume data error at %u:%u! Wanted ID: \"%s\", got \"%s\". Buffer discarded.\n"),
+         Mmsg4(dev->errmsg, _("Volume data error at %u:%u! Wanted ID: \"%s\", got \"%s\". Buffer discarded.\n"),
 	    dev->file, dev->block_num, BLKHDR2_ID, Id);
 	 if (block->read_errors == 0 || verbose >= 2) {
-	    Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
+            Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
 	 }
 	 block->read_errors++;
 	 return false;
@@ -263,7 +263,7 @@ static bool unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       Mmsg4(dev->errmsg, _("Volume data error at %u:%u! Wanted ID: \"%s\", got \"%s\". Buffer discarded.\n"),
 	  dev->file, dev->block_num, BLKHDR2_ID, Id);
       if (block->read_errors == 0 || verbose >= 2) {
-	 Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
+         Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       }
       block->read_errors++;
       unser_uint32(block->VolSessionId);
@@ -277,7 +277,7 @@ static bool unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       Mmsg3(dev->errmsg,  _("Volume data error at %u:%u! Block length %u is insane (too large), probably due to a bad archive.\n"),
 	 dev->file, dev->block_num, block_len);
       if (block->read_errors == 0 || verbose >= 2) {
-	 Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
+         Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       }
       block->read_errors++;
       return false;
@@ -300,10 +300,10 @@ static bool unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 			 block_len-BLKHDR_CS_LENGTH);
       if (BlockCheckSum != CheckSum) {
 	 dev->dev_errno = EIO;
-	 Mmsg5(dev->errmsg, _("Volume data error at %u:%u! Block checksum mismatch in block %u: calc=%x blk=%x\n"),
+         Mmsg5(dev->errmsg, _("Volume data error at %u:%u! Block checksum mismatch in block %u: calc=%x blk=%x\n"),
 	    dev->file, dev->block_num, (unsigned)BlockNumber, BlockCheckSum, CheckSum);
 	 if (block->read_errors == 0 || verbose >= 2) {
-	    Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
+            Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
 	 }
 	 block->read_errors++;
 	 if (!forge_on) {
@@ -350,7 +350,7 @@ bool write_block_to_device(DCR *dcr)
       /* Create a jobmedia record for this job */
       if (!dir_create_jobmedia_record(dcr)) {
 	 dev->dev_errno = EIO;
-	 Jmsg(jcr, M_FATAL, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
+         Jmsg(jcr, M_FATAL, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
 	    dcr->VolCatInfo.VolCatName, jcr->Job);
 	 set_new_volume_parameters(dcr);
 	 stat = false;
@@ -476,7 +476,7 @@ bool write_block_to_dev(DCR *dcr)
       dev->file_size = 0;	      /* reset file size */
 
       if (dev_state(dev, ST_TAPE) && weof_dev(dev, 1) != 0) {		 /* write eof */
-	 Dmsg0(190, "WEOF error in max file size.\n");
+         Dmsg0(190, "WEOF error in max file size.\n");
 	 terminate_writing_volume(dcr);
 	 dev->dev_errno = ENOSPC;
 	 return false;
@@ -484,9 +484,9 @@ bool write_block_to_dev(DCR *dcr)
 
       /* Create a JobMedia record so restore can seek */
       if (!dir_create_jobmedia_record(dcr)) {
-	 Dmsg0(190, "Error from create_job_media.\n");
+         Dmsg0(190, "Error from create_job_media.\n");
 	 dev->dev_errno = EIO;
-	  Jmsg(jcr, M_FATAL, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
+          Jmsg(jcr, M_FATAL, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
 	       dcr->VolCatInfo.VolCatName, jcr->Job);
 	  terminate_writing_volume(dcr);
 	  dev->dev_errno = EIO;
@@ -494,7 +494,7 @@ bool write_block_to_dev(DCR *dcr)
       }
       dev->VolCatInfo.VolCatFiles = dev->file;
       if (!dir_update_volume_info(dcr, false)) {
-	 Dmsg0(190, "Error from update_vol_info.\n");
+         Dmsg0(190, "Error from update_vol_info.\n");
 	 terminate_writing_volume(dcr);
 	 dev->dev_errno = EIO;
 	 return false;
@@ -516,6 +516,60 @@ bool write_block_to_dev(DCR *dcr)
       /* Set new file/block parameters for current dcr */
       set_new_file_parameters(dcr);
    }
+   
+   /* Limit maximum part size to value specified by user (not applicable to tapes/fifos) */
+   if (!(dev->state & (ST_TAPE|ST_FIFO)) && 
+	 (dev->max_part_size > 0) &&
+	((dev->part_size + block->binbuf) >= dev->max_part_size)) {
+      if (dev->part < dev->num_parts) {
+         Jmsg3(dcr->jcr, M_FATAL, 0, _("Error while writing, current part number is less than the total number of parts (%d/%d, device=%s)\n"),
+	       dev->part, dev->num_parts, dev_name(dev));
+	 dev->dev_errno = EIO;
+	 return false;
+      }
+      
+      if (open_next_part(dev) < 0) {
+         Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open device next part %s. ERR=%s\n"),
+		dev_name(dev), strerror_dev(dev));
+	 dev->dev_errno = EIO;
+	 return false;
+      }
+      
+      dev->VolCatInfo.VolCatParts = dev->num_parts;
+	    
+      if (!dir_update_volume_info(dcr, false)) {
+         Dmsg0(190, "Error from update_vol_info.\n");
+	 dev->dev_errno = EIO;
+	 return false;
+      }
+   }
+   
+   if (dev->free_space_errno < 0) { /* Error while getting free space */
+      char ed1[50];
+      char ed2[50];
+      Dmsg1(10, "Cannot get free space on the device ERR=%s.\n", dev->errmsg);
+      Jmsg(jcr, M_FATAL, 0, _("End of Volume \"%s\" at %u:%u on device %s (part_size=%s, free_space=%s, free_space_errno=%d, errmsg=%s).\n"),
+	   dev->VolCatInfo.VolCatName,
+	   dev->file, dev->block_num, dev->dev_name,
+	   edit_uint64_with_commas(dev->part_size, ed1), edit_uint64_with_commas(dev->free_space, ed2),
+	   dev->free_space_errno, dev->errmsg);
+      dev->dev_errno = -dev->free_space_errno;
+      return false;
+   }
+   
+   if (((dev->free_space_errno > 0) && ((dev->part_size + block->binbuf) >= dev->free_space))) {
+      char ed1[50];
+      char ed2[50];
+      Dmsg0(10, "==== Just enough free space on the device to write the current part...\n");
+      Jmsg(jcr, M_INFO, 0, _("End of Volume \"%s\" at %u:%u on device %s (part_size=%s, free_space=%s, free_space_errno=%d).\n"),
+	    dev->VolCatInfo.VolCatName,
+	    dev->file, dev->block_num, dev->dev_name,
+	    edit_uint64_with_commas(dev->part_size, ed1), edit_uint64_with_commas(dev->free_space, ed2),
+	    dev->free_space_errno);
+      terminate_writing_volume(dcr);
+      dev->dev_errno = ENOSPC;
+      return false;
+   }   
 
    dev->VolCatInfo.VolCatWrites++;
    Dmsg1(300, "Write block of %u bytes\n", wlen);
@@ -548,14 +602,14 @@ bool write_block_to_dev(DCR *dcr)
 	    dev->dev_errno = ENOSPC;	    /* out of space */
 	 }
 	 if (dev->dev_errno != ENOSPC) {
-	    Jmsg4(jcr, M_ERROR, 0, _("Write error at %u:%u on device %s. ERR=%s.\n"),
+            Jmsg4(jcr, M_ERROR, 0, _("Write error at %u:%u on device %s. ERR=%s.\n"),
 	       dev->file, dev->block_num, dev->dev_name, be.strerror());
 	 }
       } else {
 	dev->dev_errno = ENOSPC;	    /* out of space */
       }
       if (dev->dev_errno == ENOSPC) {
-	 Jmsg(jcr, M_INFO, 0, _("End of Volume \"%s\" at %u:%u on device %s. Write of %u bytes got %d.\n"),
+         Jmsg(jcr, M_INFO, 0, _("End of Volume \"%s\" at %u:%u on device %s. Write of %u bytes got %d.\n"),
 	    dev->VolCatInfo.VolCatName,
 	    dev->file, dev->block_num, dev->dev_name, wlen, stat);
       }
@@ -580,19 +634,19 @@ bool write_block_to_dev(DCR *dcr)
 	 /* Now back up over what we wrote and read the last block */
 	 if (!bsf_dev(dev, 1)) {
 	    ok = false;
-	    Jmsg(jcr, M_ERROR, 0, _("Backspace file at EOT failed. ERR=%s\n"), strerror(dev->dev_errno));
+            Jmsg(jcr, M_ERROR, 0, _("Backspace file at EOT failed. ERR=%s\n"), strerror(dev->dev_errno));
 	 }
 	 if (ok && dev_cap(dev, CAP_TWOEOF) && !bsf_dev(dev, 1)) {
 	    ok = false;
-	    Jmsg(jcr, M_ERROR, 0, _("Backspace file at EOT failed. ERR=%s\n"), strerror(dev->dev_errno));
+            Jmsg(jcr, M_ERROR, 0, _("Backspace file at EOT failed. ERR=%s\n"), strerror(dev->dev_errno));
 	 }
 	 /* Backspace over record */
 	 if (ok && !bsr_dev(dev, 1)) {
 	    ok = false;
-	    Jmsg(jcr, M_ERROR, 0, _("Backspace record at EOT failed. ERR=%s\n"), strerror(dev->dev_errno));
+            Jmsg(jcr, M_ERROR, 0, _("Backspace record at EOT failed. ERR=%s\n"), strerror(dev->dev_errno));
 	    /*
 	     *	On FreeBSD systems, if the user got here, it is likely that his/her
-	     *    tape drive is "frozen".  The correct thing to do is a
+             *    tape drive is "frozen".  The correct thing to do is a
 	     *	  rewind(), but if we do that, higher levels in cleaning up, will
 	     *	  most likely write the EOS record over the beginning of the
 	     *	  tape.  The rewind *is* done later in mount.c when another
@@ -605,10 +659,10 @@ bool write_block_to_dev(DCR *dcr)
 	    /* Note, this can destroy dev->errmsg */
 	    dcr->block = lblock;
 	    if (!read_block_from_dev(dcr, NO_BLOCK_NUMBER_CHECK)) {
-	       Jmsg(jcr, M_ERROR, 0, _("Re-read last block at EOT failed. ERR=%s"), dev->errmsg);
+               Jmsg(jcr, M_ERROR, 0, _("Re-read last block at EOT failed. ERR=%s"), dev->errmsg);
 	    } else {
 	       if (lblock->BlockNumber+1 == block->BlockNumber) {
-		  Jmsg(jcr, M_INFO, 0, _("Re-read of last block succeeded.\n"));
+                  Jmsg(jcr, M_INFO, 0, _("Re-read of last block succeeded.\n"));
 	       } else {
 		  Jmsg(jcr, M_ERROR, 0, _(
 "Re-read of last block failed. Last block=%u Current block=%u.\n"),
@@ -650,6 +704,7 @@ bool write_block_to_dev(DCR *dcr)
    dcr->WroteVol = true;
    dev->file_addr += wlen;	      /* update file address */
    dev->file_size += wlen;
+   dev->part_size += wlen;
 
    Dmsg2(300, "write_block: wrote block %d bytes=%d\n", dev->block_num, wlen);
    empty_block(block);
@@ -675,11 +730,16 @@ static bool terminate_writing_volume(DCR *dcr)
    if (weof_dev(dev, 1) != 0) { 	/* end the tape */
       dev->VolCatInfo.VolCatErrors++;
       Jmsg(dcr->jcr, M_ERROR, 0, "Error writing final EOF to tape. This tape may not be readable.\n"
-	   "%s", dev->errmsg);
+           "%s", dev->errmsg);
       ok = false;
       Dmsg0(100, "WEOF error.\n");
    }
    dev->VolCatInfo.VolCatFiles = dev->file;
+   
+   if (dev_cap(dev, CAP_REQMOUNT)) { /* Write the current (and last) part. */
+      open_next_part(dev);
+   }
+   
    if (!dir_update_volume_info(dcr, false)) {
       ok = false;
    }
@@ -743,7 +803,7 @@ bool read_block_from_dev(DCR *dcr, bool check_block_numbers)
    JCR *jcr = dcr->jcr;
    DEVICE *dev = dcr->dev;
    DEV_BLOCK *block = dcr->block;
-
+   
    if (dev_state(dev, ST_EOT)) {
       return false;
    }
@@ -759,6 +819,27 @@ reread:
       block->read_len = 0;
       return false;
    }
+   
+   /*Dmsg1(200, "dev.c 111->file_size=%u\n",(unsigned int)dev->file_size);
+   Dmsg1(200, "dev.c          lseek=%u\n",(unsigned int)lseek(dev->fd, 0, SEEK_CUR));
+   Dmsg1(200, "dev.c dev->part_start=%u\n",(unsigned int)dev->part_start);
+   Dmsg1(200, "dev.c dev->file_size-dev->part_start=%u\n",(unsigned int)dev->file_size-dev->part_start);
+   Dmsg1(200, "dev.c dev->part_size=%u\n", (unsigned int)dev->part_size);
+   Dmsg1(200, "dev.c dev->part=%u\n", (unsigned int)dev->part);
+   Dmsg1(200, "dev.c dev->VolCatInfo.VolCatParts=%u\n", (unsigned int)dev->VolCatInfo.VolCatParts);
+   Dmsg3(200, "dev.c Tests : %d %d %d\n", (dev->VolCatInfo.VolCatParts > 0), ((dev->file_size-dev->part_start) == dev->part_size), (dev->part <= dev->VolCatInfo.VolCatParts));*/
+   /* Check for part file end */
+   if ((dev->num_parts > 0) &&
+	((dev->file_size-dev->part_start) == dev->part_size) && 
+	(dev->part < dev->num_parts)) {
+      if (open_next_part(dev) < 0) {
+         Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open device next part %s. ERR=%s\n"),
+	       dev_name(dev), strerror_dev(dev));
+	 dev->dev_errno = EIO;
+	 return false;
+      }
+   }
+   
    retry = 0;
    do {
 //    uint32_t *bp = (uint32_t *)block->buf;
@@ -836,17 +917,17 @@ reread:
       Pmsg1(000, "%s", dev->errmsg);
       /* Attempt to reposition to re-read the block */
       if (dev->state & ST_TAPE) {
-	 Dmsg0(200, "BSR for reread; block too big for buffer.\n");
+         Dmsg0(200, "BSR for reread; block too big for buffer.\n");
 	 if (!bsr_dev(dev, 1)) {
-	    Jmsg(jcr, M_ERROR, 0, "%s", strerror_dev(dev));
+            Jmsg(jcr, M_ERROR, 0, "%s", strerror_dev(dev));
 	    block->read_len = 0;
 	    return false;
 	 }
       } else {
-	 Dmsg0(200, "Seek to beginning of block for reread.\n");
-	 off_t pos = lseek(dev->fd, (off_t)0, SEEK_CUR); /* get curr pos */
+         Dmsg0(200, "Seek to beginning of block for reread.\n");
+	 off_t pos = lseek_dev(dev, (off_t)0, SEEK_CUR); /* get curr pos */
 	 pos -= block->read_len;
-	 lseek(dev->fd, pos, SEEK_SET);
+	 lseek_dev(dev, pos, SEEK_SET);
 	 dev->file_addr = pos;
       }
       Mmsg1(dev->errmsg, _("Setting block buffer size to %u bytes.\n"), block->block_len);
@@ -910,9 +991,9 @@ reread:
     */
    Dmsg0(200, "At end of read block\n");
    if (block->read_len > block->block_len && !(dev->state & ST_TAPE)) {
-      off_t pos = lseek(dev->fd, (off_t)0, SEEK_CUR); /* get curr pos */
+      off_t pos = lseek_dev(dev, (off_t)0, SEEK_CUR); /* get curr pos */
       pos -= (block->read_len - block->block_len);
-      lseek(dev->fd, pos, SEEK_SET);
+      lseek_dev(dev, pos, SEEK_SET);
       Dmsg2(200, "Did lseek blk_size=%d rdlen=%d\n", block->block_len,
 	    block->read_len);
       dev->file_addr = pos;

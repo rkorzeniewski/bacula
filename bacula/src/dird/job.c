@@ -7,7 +7,7 @@
  *    Version $Id$
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -786,6 +786,7 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    jcr->fileset = job->fileset;
    jcr->messages = job->messages;
    jcr->spool_data = job->spool_data;
+   jcr->write_part_after_job = job->write_part_after_job;
    if (jcr->RestoreBootstrap) {
       free(jcr->RestoreBootstrap);
       jcr->RestoreBootstrap = NULL;

@@ -7,7 +7,7 @@
  *
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -724,7 +724,7 @@ static void add_fileset(JCR *jcr, const char *item)
    if (code != '\0') {
       ++item;
    }
-   int subcode = ' ';		    /* A space is always a valid subcode */
+   int subcode = ' ';               /* A space is always a valid subcode */
    if (item[0] != '\0' && item[0] != ' ') {
       subcode = item[0];
       ++item;
@@ -862,21 +862,21 @@ static bool term_fileset(JCR *jcr)
 	 for (k=0; k<fo->regex.size(); k++) {
             Dmsg1(400, "R %s\n", (char *)fo->regex.get(k));
 	 }
- 	 for (k=0; k<fo->regexdir.size(); k++) {
- 	    Dmsg1(400, "RD %s\n", (char *)fo->regexdir.get(k));
- 	 }
- 	 for (k=0; k<fo->regexfile.size(); k++) {
- 	    Dmsg1(400, "RF %s\n", (char *)fo->regexfile.get(k));
- 	 }
-  	 for (k=0; k<fo->wild.size(); k++) {
-  	    Dmsg1(400, "W %s\n", (char *)fo->wild.get(k));
-  	 }
- 	 for (k=0; k<fo->wilddir.size(); k++) {
- 	    Dmsg1(400, "WD %s\n", (char *)fo->wilddir.get(k));
- 	 }
- 	 for (k=0; k<fo->wildfile.size(); k++) {
- 	    Dmsg1(400, "WF %s\n", (char *)fo->wildfile.get(k));
- 	 }
+	 for (k=0; k<fo->regexdir.size(); k++) {
+            Dmsg1(400, "RD %s\n", (char *)fo->regexdir.get(k));
+	 }
+	 for (k=0; k<fo->regexfile.size(); k++) {
+            Dmsg1(400, "RF %s\n", (char *)fo->regexfile.get(k));
+	 }
+	 for (k=0; k<fo->wild.size(); k++) {
+            Dmsg1(400, "W %s\n", (char *)fo->wild.get(k));
+	 }
+	 for (k=0; k<fo->wilddir.size(); k++) {
+            Dmsg1(400, "WD %s\n", (char *)fo->wilddir.get(k));
+	 }
+	 for (k=0; k<fo->wildfile.size(); k++) {
+            Dmsg1(400, "WF %s\n", (char *)fo->wildfile.get(k));
+	 }
 	 for (k=0; k<fo->base.size(); k++) {
             Dmsg1(400, "B %s\n", (char *)fo->base.get(k));
 	 }
@@ -902,21 +902,21 @@ static bool term_fileset(JCR *jcr)
 	 for (k=0; k<fo->regex.size(); k++) {
             Dmsg1(400, "R %s\n", (char *)fo->regex.get(k));
 	 }
- 	 for (k=0; k<fo->regexdir.size(); k++) {
- 	    Dmsg1(400, "RD %s\n", (char *)fo->regexdir.get(k));
- 	 }
- 	 for (k=0; k<fo->regexfile.size(); k++) {
- 	    Dmsg1(400, "RF %s\n", (char *)fo->regexfile.get(k));
- 	 }
-  	 for (k=0; k<fo->wild.size(); k++) {
-  	    Dmsg1(400, "W %s\n", (char *)fo->wild.get(k));
-  	 }
- 	 for (k=0; k<fo->wilddir.size(); k++) {
- 	    Dmsg1(400, "WD %s\n", (char *)fo->wilddir.get(k));
- 	 }
- 	 for (k=0; k<fo->wildfile.size(); k++) {
- 	    Dmsg1(400, "WF %s\n", (char *)fo->wildfile.get(k));
- 	 }
+	 for (k=0; k<fo->regexdir.size(); k++) {
+            Dmsg1(400, "RD %s\n", (char *)fo->regexdir.get(k));
+	 }
+	 for (k=0; k<fo->regexfile.size(); k++) {
+            Dmsg1(400, "RF %s\n", (char *)fo->regexfile.get(k));
+	 }
+	 for (k=0; k<fo->wild.size(); k++) {
+            Dmsg1(400, "W %s\n", (char *)fo->wild.get(k));
+	 }
+	 for (k=0; k<fo->wilddir.size(); k++) {
+            Dmsg1(400, "WD %s\n", (char *)fo->wilddir.get(k));
+	 }
+	 for (k=0; k<fo->wildfile.size(); k++) {
+            Dmsg1(400, "WF %s\n", (char *)fo->wildfile.get(k));
+	 }
 	 for (k=0; k<fo->base.size(); k++) {
             Dmsg1(400, "B %s\n", (char *)fo->base.get(k));
 	 }

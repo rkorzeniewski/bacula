@@ -6,7 +6,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -117,7 +117,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 	 bnet_strerror(fd));
       return false;
    } else {
-      Dmsg1(30, ">filed: Hdr=%s\n", fd->msg);
+      Dmsg1(31, ">filed: Hdr=%s\n", fd->msg);
    }
 
 
@@ -125,7 +125,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    save_msg = fd->msg;		/* save fd message pointer */
    fd->msg = rec->data; 	/* pass data directly to bnet_send */
    fd->msglen = rec->data_len;
-   Dmsg1(30, ">filed: send %d bytes data.\n", fd->msglen);
+   Dmsg1(31, ">filed: send %d bytes data.\n", fd->msglen);
    if (!bnet_send(fd)) {
       Pmsg1(000, "Error sending to FD. ERR=%s\n", bnet_strerror(fd));
       Jmsg1(jcr, M_FATAL, 0, _("Error sending to File daemon. ERR=%s\n"),

@@ -8,7 +8,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -69,7 +69,7 @@ mount_next_vol:
       /* Last ditch effort before giving up, force operator to respond */
       dcr->VolCatInfo.Slot = 0;
       if (!dir_ask_sysop_to_mount_volume(dcr)) {
-	 Jmsg(jcr, M_FATAL, 0, _("Too many errors trying to mount device %s.\n"),
+         Jmsg(jcr, M_FATAL, 0, _("Too many errors trying to mount device %s.\n"),
 	      dev_name(dev));
 	 return false;
       }
@@ -100,8 +100,10 @@ mount_next_vol:
    if (job_canceled(jcr)) {
       return false;
    }
-   Dmsg2(100, "After find_next_append. Vol=%s Slot=%d\n",
-	 dcr->VolCatInfo.VolCatName, dcr->VolCatInfo.Slot);
+   Dmsg3(100, "After find_next_append. Vol=%s Slot=%d Parts=%d\n",
+	 dcr->VolCatInfo.VolCatName, dcr->VolCatInfo.Slot, dcr->VolCatInfo.VolCatParts);
+   
+   dev->num_parts = dcr->VolCatInfo.VolCatParts;
 
    /*
     * Get next volume and ready it for append
@@ -154,12 +156,23 @@ mount_next_vol:
    }
 
    /* Ensure the device is open */
-   if (!open_device(dcr)) {
-      if (dev->poll) {
-	 goto mount_next_vol;
-      } else {
-	 return false;
+   /* If we have a device that requires mount, we first want to guess
+    * which device is loaded, so we continue (if the wrong device is
+    * loaded, open_device would fail). */
+   if (!dev_cap(dev, CAP_REQMOUNT)) {
+      if (!open_device(dcr)) {
+	 if (dev->poll) {
+	    goto mount_next_vol;
+	 } 
+	 else {
+	    return false;
+	 }
       }
+   }
+   else {
+      /* Just copy the VolCatName in the device resource (usually done by open_dev).
+       * It is necessary so we can open the real files later. */
+      bstrncpy(dcr->dev->VolCatInfo.VolCatName, dcr->VolCatInfo.VolCatName, sizeof(dcr->dev->VolCatInfo.VolCatName));
    }
 
    /*
@@ -174,7 +187,10 @@ read_volume:
       vol_label_status = VOL_OK;
       create_volume_label(dev, dcr->VolumeName, "Default");
       dev->VolHdr.LabelType = PRE_LABEL;
-   } else {
+   } else if (dev_cap(dev, CAP_REQMOUNT)) {
+      vol_label_status = read_dev_volume_label_guess(dcr, 1);
+   }
+   else {
       vol_label_status = read_dev_volume_label(dcr);
    }
    if (job_canceled(jcr)) {
@@ -198,7 +214,7 @@ read_volume:
 
       /* If not removable, Volume is broken */
       if (!dev_cap(dev, CAP_REM)) {
-	 Jmsg(jcr, M_WARNING, 0, _("Volume \"%s\" not on device %s.\n"),
+         Jmsg(jcr, M_WARNING, 0, _("Volume \"%s\" not on device %s.\n"),
 	    dcr->VolumeName, dev_name(dev));
 	 mark_volume_in_error(dcr);
 	 goto mount_next_vol;
@@ -208,7 +224,7 @@ read_volume:
       /* If polling and got a previous bad name, ignore it */
       if (dev->poll && strcmp(dev->BadVolName, dev->VolHdr.VolName) == 0) {
 	 ask = true;
-	 Dmsg1(200, "Vol Name error supress due to poll. Name=%s\n",
+         Dmsg1(200, "Vol Name error supress due to poll. Name=%s\n",
 	    dcr->VolumeName);
 	 goto mount_next_vol;
       }
@@ -223,9 +239,9 @@ read_volume:
       bstrncpy(dcr->VolumeName, dev->VolHdr.VolName, sizeof(dcr->VolumeName));
       if (!dir_get_volume_info(dcr, GET_VOL_INFO_FOR_WRITE)) {
 	 bstrncpy(dev->BadVolName, dev->VolHdr.VolName, sizeof(dev->BadVolName));
-	 Jmsg(jcr, M_WARNING, 0, _("Director wanted Volume \"%s\".\n"
-	      "    Current Volume \"%s\" not acceptable because:\n"
-	      "    %s"),
+         Jmsg(jcr, M_WARNING, 0, _("Director wanted Volume \"%s\".\n"
+              "    Current Volume \"%s\" not acceptable because:\n"
+              "    %s"),
 	     VolCatInfo.VolCatName, dev->VolHdr.VolName,
 	     jcr->dir_bsock->msg);
 	 /* Restore desired volume name, note device info out of sync */
@@ -255,27 +271,27 @@ read_volume:
        */
       if (dev_cap(dev, CAP_LABEL) && (dcr->VolCatInfo.VolCatBytes == 0 ||
 	    (!dev_is_tape(dev) && strcmp(dcr->VolCatInfo.VolCatStatus,
-				   "Recycle") == 0))) {
-	 Dmsg0(100, "Create volume label\n");
+                                   "Recycle") == 0))) {
+         Dmsg0(100, "Create volume label\n");
 	 /* Create a new Volume label and write it to the device */
 	 if (!write_new_volume_label_to_dev(dcr, dcr->VolumeName,
 		dcr->pool_name)) {
-	    Dmsg0(100, "!write_vol_label\n");
+            Dmsg0(100, "!write_vol_label\n");
 	    goto mount_next_vol;
 	 }
-	 Dmsg0(100, "dir_update_vol_info. Set Append\n");
-	 /* Copy Director's info into the device info */
+         Dmsg0(100, "dir_update_vol_info. Set Append\n");
+         /* Copy Director's info into the device info */
 	 memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
 	 if (!dir_update_volume_info(dcr, true)) {  /* indicate tape labeled */
 	    return false;
 	 }
-	 Jmsg(jcr, M_INFO, 0, _("Labeled new Volume \"%s\" on device %s.\n"),
+         Jmsg(jcr, M_INFO, 0, _("Labeled new Volume \"%s\" on device %s.\n"),
 	    dcr->VolumeName, dev_name(dev));
 	 goto read_volume;	/* read label we just wrote */
       }
       /* If not removable, Volume is broken */
       if (!dev_cap(dev, CAP_REM)) {
-	 Jmsg(jcr, M_WARNING, 0, _("Volume \"%s\" not on device %s.\n"),
+         Jmsg(jcr, M_WARNING, 0, _("Volume \"%s\" not on device %s.\n"),
 	    dcr->VolumeName, dev_name(dev));
 	 mark_volume_in_error(dcr);
 	 goto mount_next_vol;
@@ -285,11 +301,15 @@ read_volume:
    default:
       /* Send error message */
       if (!dev->poll) {
-	 Jmsg(jcr, M_WARNING, 0, "%s", jcr->errmsg);
+         Jmsg(jcr, M_WARNING, 0, "%s", jcr->errmsg);
       } else {
-	 Dmsg1(200, "Msg suppressed by poll: %s\n", jcr->errmsg);
+         Dmsg1(200, "Msg suppressed by poll: %s\n", jcr->errmsg);
       }
       ask = true;
+      /* Needed, so the medium can be changed */
+      if (dev_cap(dev, CAP_REQMOUNT)) {
+	 close_dev(dev);  
+      }
       goto mount_next_vol;
    }
 
@@ -320,7 +340,7 @@ read_volume:
       Jmsg(jcr, M_INFO, 0, _("Volume \"%s\" previously written, moving to end of data.\n"),
 	 dcr->VolumeName);
       if (!eod_dev(dev)) {
-	 Jmsg(jcr, M_ERROR, 0, _("Unable to position to end of data on device \"%s\". ERR=%s\n"),
+         Jmsg(jcr, M_ERROR, 0, _("Unable to position to end of data on device \"%s\". ERR=%s\n"),
 	    dev_name(dev), strerror_dev(dev));
 	 mark_volume_in_error(dcr);
 	 goto mount_next_vol;
@@ -332,10 +352,10 @@ read_volume:
 	  * that the database says we should be.
 	  */
 	 if (dev->VolCatInfo.VolCatFiles == dev_file(dev)) {
-	    Jmsg(jcr, M_INFO, 0, _("Ready to append to end of Volume \"%s\" at file=%d.\n"),
+            Jmsg(jcr, M_INFO, 0, _("Ready to append to end of Volume \"%s\" at file=%d.\n"),
 		 dcr->VolumeName, dev_file(dev));
 	 } else {
-	    Jmsg(jcr, M_ERROR, 0, _("I canot write on Volume \"%s\" because:\n"
+            Jmsg(jcr, M_ERROR, 0, _("I canot write on Volume \"%s\" because:\n"
 "The number of files mismatch! Volume=%u Catalog=%u\n"),
 		 dcr->VolumeName, dev_file(dev), dev->VolCatInfo.VolCatFiles);
 	    mark_volume_in_error(dcr);
@@ -379,21 +399,21 @@ static bool rewrite_volume_label(DCR *dcr, bool recycle)
     */
    if (!dev_cap(dev, CAP_STREAM)) {
       if (!rewind_dev(dev)) {
-	 Jmsg2(jcr, M_WARNING, 0, _("Rewind error on device \"%s\". ERR=%s\n"),
+         Jmsg2(jcr, M_WARNING, 0, _("Rewind error on device \"%s\". ERR=%s\n"),
 	       dev_name(dev), strerror_dev(dev));
       }
       if (recycle) {
 	 if (!truncate_dev(dev)) {
-	    Jmsg2(jcr, M_WARNING, 0, _("Truncate error on device \"%s\". ERR=%s\n"),
+            Jmsg2(jcr, M_WARNING, 0, _("Truncate error on device \"%s\". ERR=%s\n"),
 		  dev_name(dev), strerror_dev(dev));
 	 }
       }
       /* Attempt write to check write permission */
       Dmsg0(200, "Attempt to write to device.\n");
       if (!write_block_to_dev(dcr)) {
-	 Jmsg2(jcr, M_ERROR, 0, _("Unable to write device \"%s\". ERR=%s\n"),
+         Jmsg2(jcr, M_ERROR, 0, _("Unable to write device \"%s\". ERR=%s\n"),
 	    dev_name(dev), strerror_dev(dev));
-	 Dmsg0(200, "===ERROR write block to dev\n");
+         Dmsg0(200, "===ERROR write block to dev\n");
 	 return false;
       }
    }
@@ -463,7 +483,7 @@ bool mount_next_read_volume(DCR *dcr)
       close_dev(dev);
       dev->state &= ~ST_READ;
       if (!acquire_device_for_read(jcr)) {
-	 Jmsg2(jcr, M_FATAL, 0, "Cannot open Dev=%s, Vol=%s\n", dev_name(dev),
+         Jmsg2(jcr, M_FATAL, 0, "Cannot open Dev=%s, Vol=%s\n", dev_name(dev),
 	       dcr->VolumeName);
 	 return false;
       }

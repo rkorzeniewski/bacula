@@ -10,7 +10,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -140,7 +140,7 @@ find_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt), void 
 	    bstrncat(ff->VerifyOpts, fo->VerifyOpts, sizeof(ff->VerifyOpts));
 	 }
 	 for (j=0; j<incexe->name_list.size(); j++) {
-	    Dmsg1(100, "F %s\n", (char *)incexe->name_list.get(j));
+            Dmsg1(100, "F %s\n", (char *)incexe->name_list.get(j));
 	    char *fname = (char *)incexe->name_list.get(j);
 	    if (find_one_file(jcr, ff, our_callback, his_pkt, fname, (dev_t)-1, 1) == 0) {
 	       return 0;		  /* error return */
@@ -154,7 +154,7 @@ find_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt), void 
       while (!job_canceled(jcr) && (inc = get_next_included_file(ff, inc))) {
 	 /* Copy options for this file */
 	 bstrncat(ff->VerifyOpts, inc->VerifyOpts, sizeof(ff->VerifyOpts));
-	 Dmsg1(100, "find_files: file=%s\n", inc->fname);
+         Dmsg1(100, "find_files: file=%s\n", inc->fname);
 	 if (!file_is_excluded(ff, inc->fname)) {
 	    if (find_one_file(jcr, ff, callback, his_pkt, inc->fname, (dev_t)-1, 1) ==0) {
 	       return 0;		  /* error return */
@@ -184,9 +184,9 @@ static bool accept_file(FF_PKT *ff)
 	 for (k=0; k<fo->wilddir.size(); k++) {
 	    if (fnmatch((char *)fo->wilddir.get(k), ff->fname, fnmode|ic) == 0) {
 	       if (ff->flags & FO_EXCLUDE) {
-		  Dmsg2(100, "Exclude wilddir: %s file=%s\n", (char *)fo->wilddir.get(k),
+                  Dmsg2(100, "Exclude wilddir: %s file=%s\n", (char *)fo->wilddir.get(k),
 		     ff->fname);
-		  return false;	      /* reject file */
+		  return false;       /* reject file */
 	       }
 	       return true;	      /* accept file */
 	    }
@@ -195,9 +195,9 @@ static bool accept_file(FF_PKT *ff)
 	 for (k=0; k<fo->wildfile.size(); k++) {
 	    if (fnmatch((char *)fo->wildfile.get(k), ff->fname, fnmode|ic) == 0) {
 	       if (ff->flags & FO_EXCLUDE) {
-		  Dmsg2(100, "Exclude wildfile: %s file=%s\n", (char *)fo->wildfile.get(k),
+                  Dmsg2(100, "Exclude wildfile: %s file=%s\n", (char *)fo->wildfile.get(k),
 		     ff->fname);
-		  return false;	      /* reject file */
+		  return false;       /* reject file */
 	       }
 	       return true;	      /* accept file */
 	    }
@@ -206,7 +206,7 @@ static bool accept_file(FF_PKT *ff)
       for (k=0; k<fo->wild.size(); k++) {
 	 if (fnmatch((char *)fo->wild.get(k), ff->fname, fnmode|ic) == 0) {
 	    if (ff->flags & FO_EXCLUDE) {
-	       Dmsg2(100, "Exclude wild: %s file=%s\n", (char *)fo->wild.get(k),
+               Dmsg2(100, "Exclude wild: %s file=%s\n", (char *)fo->wild.get(k),
 		  ff->fname);
 	       return false;	      /* reject file */
 	    }
@@ -220,7 +220,7 @@ static bool accept_file(FF_PKT *ff)
 	    regmatch_t pmatch[nmatch];
 	    if (regexec((regex_t *)fo->regexdir.get(k), ff->fname, nmatch, pmatch,  0) == 0) {
 	       if (ff->flags & FO_EXCLUDE) {
-		  return false;	      /* reject file */
+		  return false;       /* reject file */
 	       }
 	       return true;	      /* accept file */
 	    }
@@ -231,7 +231,7 @@ static bool accept_file(FF_PKT *ff)
 	    regmatch_t pmatch[nmatch];
 	    if (regexec((regex_t *)fo->regexfile.get(k), ff->fname, nmatch, pmatch,  0) == 0) {
 	       if (ff->flags & FO_EXCLUDE) {
-		  return false;	      /* reject file */
+		  return false;       /* reject file */
 	       }
 	       return true;	      /* accept file */
 	    }
@@ -257,7 +257,7 @@ static bool accept_file(FF_PKT *ff)
 	 ic = (fo->flags & FO_IGNORECASE) ? FNM_CASEFOLD : 0;
 	 for (k=0; k<fo->wild.size(); k++) {
 	    if (fnmatch((char *)fo->wild.get(k), ff->fname, fnmode|ic) == 0) {
-	       Dmsg1(100, "Reject wild1: %s\n", ff->fname);
+               Dmsg1(100, "Reject wild1: %s\n", ff->fname);
 	       return false;	      /* reject file */
 	    }
 	 }
@@ -266,7 +266,7 @@ static bool accept_file(FF_PKT *ff)
 	     ? FNM_CASEFOLD : 0;
       for (j=0; j<incexe->name_list.size(); j++) {
 	 if (fnmatch((char *)incexe->name_list.get(j), ff->fname, fnmode|ic) == 0) {
-	    Dmsg1(100, "Reject wild2: %s\n", ff->fname);
+            Dmsg1(100, "Reject wild2: %s\n", ff->fname);
 	    return false;	   /* reject file */
 	 }
       }
@@ -307,7 +307,7 @@ static int our_callback(FF_PKT *ff, void *hpkt)
       if (accept_file(ff)) {
 	 return ff->callback(ff, hpkt);
       } else {
-	 Dmsg1(100, "Skip file %s\n", ff->fname);
+         Dmsg1(100, "Skip file %s\n", ff->fname);
 	 return -1;		      /* ignore this file */
       }
 

@@ -5,7 +5,7 @@
  */
 
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -85,6 +85,10 @@ void	display_tape_error_status(JCR *jcr, DEVICE *dev);
 /* From dev.c */
 DEVICE	*init_dev(DEVICE *dev, DEVRES *device);
 int	 open_dev(DEVICE *dev, char *VolName, int mode);
+off_t	 lseek_dev(DEVICE *dev, off_t offset, int whence);
+int	 open_first_part(DEVICE *dev);
+int	 open_next_part(DEVICE *dev);
+int	 open_guess_name_dev(DEVICE *dev);
 void	 close_dev(DEVICE *dev);
 void	 force_close_dev(DEVICE *dev);
 bool	 truncate_dev(DEVICE *dev);
@@ -112,7 +116,6 @@ bool	 offline_or_rewind_dev(DEVICE *dev);
 bool	 reposition_dev(DEVICE *dev, uint32_t file, uint32_t block);
 void	 init_dev_wait_timers(DEVICE *dev);
 bool	 double_dev_wait_time(DEVICE *dev);
-
 
 /* Get info about device */
 char *	 dev_name(DEVICE *dev);
@@ -153,6 +156,7 @@ void	 handle_filed_connection(BSOCK *fd, char *job_name);
 
 /* From label.c */
 int	 read_dev_volume_label(DCR *dcr);
+int	 read_dev_volume_label_guess(DCR *dcr, bool write);
 void	 create_session_label(DCR *dcr, DEV_RECORD *rec, int label);
 void	 create_volume_label(DEVICE *dev, const char *VolName, const char *PoolName);
 bool	 write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *PoolName);

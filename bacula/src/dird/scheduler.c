@@ -10,7 +10,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -82,9 +82,9 @@ JCR *wait_for_next_job(char *one_shot_job_to_run)
       if (one_shot_job_to_run) {	    /* one shot */
 	 job = (JOB *)GetResWithName(R_JOB, one_shot_job_to_run);
 	 if (!job) {
-	    Emsg1(M_ABORT, 0, _("Job %s not found\n"), one_shot_job_to_run);
+            Emsg1(M_ABORT, 0, _("Job %s not found\n"), one_shot_job_to_run);
 	 }
-	 Dmsg1(5, "Found one_shot_job_to_run %s\n", one_shot_job_to_run);
+         Dmsg1(5, "Found one_shot_job_to_run %s\n", one_shot_job_to_run);
 	 jcr = new_jcr(sizeof(JCR), dird_free_jcr);
 	 set_jcr_defaults(jcr, job);
 	 return jcr;
@@ -168,6 +168,9 @@ JCR *wait_for_next_job(char *one_shot_job_to_run)
    if (run->spool_data_set) {
       jcr->spool_data = run->spool_data;
    }
+   if (run->write_part_after_job_set) {
+      jcr->write_part_after_job = run->write_part_after_job;
+   }
    Dmsg0(200, "Leave wait_for_next_job()\n");
    return jcr;
 }
@@ -246,10 +249,10 @@ static void find_runs()
 	  * Find runs scheduled between now and the next hour.
 	  */
 #ifdef xxxx
-	 Dmsg0(000, "\n");
-	 Dmsg6(000, "run h=%d m=%d md=%d wd=%d wom=%d woy=%d\n",
+         Dmsg0(000, "\n");
+         Dmsg6(000, "run h=%d m=%d md=%d wd=%d wom=%d woy=%d\n",
 	    hour, month, mday, wday, wom, woy);
-	 Dmsg6(000, "bitset bsh=%d bsm=%d bsmd=%d bswd=%d bswom=%d bswoy=%d\n",
+         Dmsg6(000, "bitset bsh=%d bsm=%d bsmd=%d bswd=%d bswom=%d bswoy=%d\n",
 	    bit_is_set(hour, run->hour),
 	    bit_is_set(month, run->month),
 	    bit_is_set(mday, run->mday),
@@ -257,9 +260,9 @@ static void find_runs()
 	    bit_is_set(wom, run->wom),
 	    bit_is_set(woy, run->woy));
 
-	 Dmsg6(000, "nh_run h=%d m=%d md=%d wd=%d wom=%d woy=%d\n",
+         Dmsg6(000, "nh_run h=%d m=%d md=%d wd=%d wom=%d woy=%d\n",
 	    nh_hour, nh_month, nh_mday, nh_wday, nh_wom, nh_woy);
-	 Dmsg6(000, "nh_bitset bsh=%d bsm=%d bsmd=%d bswd=%d bswom=%d bswoy=%d\n",
+         Dmsg6(000, "nh_bitset bsh=%d bsm=%d bsmd=%d bswd=%d bswom=%d bswoy=%d\n",
 	    bit_is_set(nh_hour, run->hour),
 	    bit_is_set(nh_month, run->month),
 	    bit_is_set(nh_mday, run->mday),
@@ -282,7 +285,7 @@ static void find_runs()
 	    bit_is_set(nh_wom, run->wom) &&
 	    bit_is_set(nh_woy, run->woy);
 
-	 Dmsg2(200, "run_now=%d run_nh=%d\n", run_now, run_nh);
+         Dmsg2(200, "run_now=%d run_nh=%d\n", run_now, run_nh);
 
 	 /* find time (time_t) job is to be run */
 	 localtime_r(&now, &tm);      /* reset tm structure */
@@ -344,7 +347,7 @@ static void add_job(JOB *job, RUN *run, time_t now, time_t runtime)
       if (ji->runtime > je->runtime ||
 	  (ji->runtime == je->runtime && ji->Priority > je->Priority)) {
 	 jobs_to_run->insert_before(je, ji);
-	 dump_job(je, "Inserted job");
+         dump_job(je, "Inserted job");
 	 inserted = true;
 	 break;
       }

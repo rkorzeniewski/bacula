@@ -268,7 +268,7 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
       Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
 	  "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
 	  "VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
-	  "FirstWritten,LastWritten,VolStatus,InChanger "
+	  "FirstWritten,LastWritten,VolStatus,InChanger,VolParts "
 	  "FROM Media WHERE PoolId=%u AND MediaType='%s' AND VolStatus IN ('Full',"
 	  "'Recycle','Purged','Used','Append') "
 	  "ORDER BY LastWritten LIMIT 1", mr->PoolId, mr->MediaType);
@@ -289,7 +289,7 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
       Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
 	  "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
 	  "VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
-	  "FirstWritten,LastWritten,VolStatus,InChanger "
+	  "FirstWritten,LastWritten,VolStatus,InChanger,VolParts "
 	  "FROM Media WHERE PoolId=%u AND MediaType='%s' AND VolStatus='%s' "
 	  "%s "
 	  "%s LIMIT %d",
@@ -344,6 +344,7 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
    mr->LastWritten = (time_t)str_to_utime(mr->cLastWritten);
    bstrncpy(mr->VolStatus, row[19], sizeof(mr->VolStatus));
    mr->InChanger = str_to_int64(row[20]);
+   mr->VolParts = str_to_int64(row[21]);
    sql_free_result(mdb);
 
    db_unlock(mdb);

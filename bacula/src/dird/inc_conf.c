@@ -7,7 +7,7 @@
  *     Version $Id$
  */
 /*
-   Copyright (C) 2003-2004 Kern Sibbald
+   Copyright (C) 2003-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -497,15 +497,15 @@ static void store_regex(LEX *lc, RES_ITEM *item, int index, int pass)
 	 }
 	 regfree(&preg);
 	 if (item->code == 1) {
-	    type = "regexdir";
+            type = "regexdir";
 	    res_incexe.current_opts->regexdir.append(bstrdup(lc->str));
 	    newsize = res_incexe.current_opts->regexdir.size();
 	 } else if (item->code == 2) {
-	    type = "regexfile";
+            type = "regexfile";
 	    res_incexe.current_opts->regexfile.append(bstrdup(lc->str));
 	    newsize = res_incexe.current_opts->regexfile.size();
 	 } else {
-	    type = "regex";
+            type = "regex";
 	    res_incexe.current_opts->regex.append(bstrdup(lc->str));
 	    newsize = res_incexe.current_opts->regex.size();
 	 }
@@ -583,15 +583,15 @@ static void store_wild(LEX *lc, RES_ITEM *item, int index, int pass)
       case T_UNQUOTED_STRING:
       case T_QUOTED_STRING:
 	 if (item->code == 1) {
-	    type = "wilddir";
+            type = "wilddir";
 	    res_incexe.current_opts->wilddir.append(bstrdup(lc->str));
 	    newsize = res_incexe.current_opts->wilddir.size();
 	 } else if (item->code == 2) {
-	    type = "wildfile";
+            type = "wildfile";
 	    res_incexe.current_opts->wildfile.append(bstrdup(lc->str));
 	    newsize = res_incexe.current_opts->wildfile.size();
 	 } else {
-	    type = "wild";
+            type = "wild";
 	    res_incexe.current_opts->wild.append(bstrdup(lc->str));
 	    newsize = res_incexe.current_opts->wild.size();
 	 }

@@ -7,7 +7,7 @@
  *
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -71,7 +71,7 @@ bool status_cmd(JCR *jcr)
 	      HOST_OS, DISTNAME, DISTVER);
    bstrftime_nc(dt, sizeof(dt), daemon_start_time);
    bnet_fsend(user, _("Daemon started %s, %d Job%s run since started.\n"), dt, num_jobs_run,
-	num_jobs_run == 1 ? "" : "s");
+        num_jobs_run == 1 ? "" : "s");
    if (debug_level > 0) {
       char b1[35], b2[35], b3[35], b4[35];
       bnet_fsend(user, _(" Heap: bytes=%s max_bytes=%s bufs=%s max_bufs=%s\n"),
@@ -100,10 +100,10 @@ bool status_cmd(JCR *jcr)
       for (dev=device->dev; dev; dev=dev->next) {
 	 if (dev_state(dev, ST_OPENED)) {
 	    if (dev_state(dev, ST_LABEL)) {
-	       bnet_fsend(user, _("Device \"%s\" is mounted with Volume \"%s\"\n"),
+               bnet_fsend(user, _("Device \"%s\" is mounted with Volume \"%s\"\n"),
 		  dev_name(dev), dev->VolHdr.VolName);
 	    } else {
-	       bnet_fsend(user, _("Device \"%s\" open but no Bacula volume is mounted.\n"), dev_name(dev));
+               bnet_fsend(user, _("Device \"%s\" open but no Bacula volume is mounted.\n"), dev_name(dev));
 	    }
 	    send_blocked_status(jcr, dev);
 	    if (dev_state(dev, ST_APPEND)) {
@@ -112,7 +112,7 @@ bool status_cmd(JCR *jcr)
 		  bpb = 1;
 	       }
 	       bpb = dev->VolCatInfo.VolCatBytes / bpb;
-	       bnet_fsend(user, _("    Total Bytes=%s Blocks=%s Bytes/block=%s\n"),
+               bnet_fsend(user, _("    Total Bytes=%s Blocks=%s Bytes/block=%s\n"),
 		  edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, b1),
 		  edit_uint64_with_commas(dev->VolCatInfo.VolCatBlocks, b2),
 		  edit_uint64_with_commas(bpb, b3));
@@ -126,17 +126,17 @@ bool status_cmd(JCR *jcr)
 	       } else {
 		  bpb = 0;
 	       }
-	       bnet_fsend(user, _("    Total Bytes Read=%s Blocks Read=%s Bytes/block=%s\n"),
+               bnet_fsend(user, _("    Total Bytes Read=%s Blocks Read=%s Bytes/block=%s\n"),
 		  edit_uint64_with_commas(dev->VolCatInfo.VolCatRBytes, b1),
 		  edit_uint64_with_commas(dev->VolCatInfo.VolCatReads, b2),
 		  edit_uint64_with_commas(bpb, b3));
 	    }
-	    bnet_fsend(user, _("    Positioned at File=%s Block=%s\n"),
+            bnet_fsend(user, _("    Positioned at File=%s Block=%s\n"),
 	       edit_uint64_with_commas(dev->file, b1),
 	       edit_uint64_with_commas(dev->block_num, b2));
 
 	 } else {
-	    bnet_fsend(user, _("Device \"%s\" is not open.\n"), dev_name(dev));
+            bnet_fsend(user, _("Device \"%s\" is not open.\n"), dev_name(dev));
 	    send_blocked_status(jcr, dev);
 	 }
       }
@@ -170,10 +170,10 @@ static void send_blocked_status(JCR *jcr, DEVICE *dev)
       break;
    case BST_WAITING_FOR_SYSOP:
       if (jcr->JobStatus == JS_WaitMount) {
-	 bnet_fsend(user, _("    Device is BLOCKED waiting for mount of volume \"%s\".\n"),
+         bnet_fsend(user, _("    Device is BLOCKED waiting for mount of volume \"%s\".\n"),
 	    dcr->VolumeName);
       } else {
-	 bnet_fsend(user, _("    Device is BLOCKED waiting for appendable media.\n"));
+         bnet_fsend(user, _("    Device is BLOCKED waiting for appendable media.\n"));
       }
       break;
    case BST_DOING_ACQUIRE:
@@ -213,6 +213,7 @@ static void send_blocked_status(JCR *jcr, DEVICE *dev)
       bnet_fsend(user, "%sEOF ", dev->state & ST_EOF ? "" : "!");
       bnet_fsend(user, "%sNEXTVOL ", dev->state & ST_NEXTVOL ? "" : "!");
       bnet_fsend(user, "%sSHORT ", dev->state & ST_SHORT ? "" : "!");
+      bnet_fsend(user, "%sMOUNTED ", dev->state & ST_MOUNTED ? "" : "!");
       bnet_fsend(user, "\n");
 
       bnet_fsend(user, _("Device parameters:\n"));
@@ -235,7 +236,7 @@ static void list_running_jobs(BSOCK *user)
    lock_jcr_chain();
    foreach_jcr(jcr) {
       if (jcr->JobStatus == JS_WaitFD) {
-	 bnet_fsend(user, _("%s Job %s waiting for Client connection.\n"),
+         bnet_fsend(user, _("%s Job %s waiting for Client connection.\n"),
 	    job_type_to_str(jcr->JobType), jcr->Job);
       }
       if (jcr->device) {
@@ -243,35 +244,35 @@ static void list_running_jobs(BSOCK *user)
 	 /* There are three periods after the Job name */
 	 char *p;
 	 for (int i=0; i<3; i++) {
-	    if ((p=strrchr(JobName, '.')) != NULL) {
+            if ((p=strrchr(JobName, '.')) != NULL) {
 	       *p = 0;
 	    }
 	 }
-	 bnet_fsend(user, _("%s %s job %s JobId=%d Volume=\"%s\" device=\"%s\"\n"),
+         bnet_fsend(user, _("%s %s job %s JobId=%d Volume=\"%s\" device=\"%s\"\n"),
 		   job_level_to_str(jcr->JobLevel),
 		   job_type_to_str(jcr->JobType),
 		   JobName,
 		   jcr->JobId,
-		   jcr->dcr?jcr->dcr->VolumeName:"*none*",
-		   jcr->device?jcr->device->device_name:"none");
+                   jcr->dcr?jcr->dcr->VolumeName:"*none*",
+                   jcr->device?jcr->device->device_name:"none");
 	 sec = time(NULL) - jcr->run_time;
 	 if (sec <= 0) {
 	    sec = 1;
 	 }
 	 bps = jcr->JobBytes / sec;
-	 bnet_fsend(user, _("    Files=%s Bytes=%s Bytes/sec=%s\n"),
+         bnet_fsend(user, _("    Files=%s Bytes=%s Bytes/sec=%s\n"),
 	    edit_uint64_with_commas(jcr->JobFiles, b1),
 	    edit_uint64_with_commas(jcr->JobBytes, b2),
 	    edit_uint64_with_commas(bps, b3));
 	 found = true;
 #ifdef DEBUG
 	 if (jcr->file_bsock) {
-	    bnet_fsend(user, "    FDReadSeqNo=%s in_msg=%u out_msg=%d fd=%d\n",
+            bnet_fsend(user, "    FDReadSeqNo=%s in_msg=%u out_msg=%d fd=%d\n",
 	       edit_uint64_with_commas(jcr->file_bsock->read_seqno, b1),
 	       jcr->file_bsock->in_msg_no, jcr->file_bsock->out_msg_no,
 	       jcr->file_bsock->fd);
 	 } else {
-	    bnet_fsend(user, "    FDSocket closed\n");
+            bnet_fsend(user, "    FDSocket closed\n");
 	 }
 #endif
       }
@@ -312,7 +313,7 @@ static void list_terminated_jobs(void *arg)
       switch (je->JobType) {
       case JT_ADMIN:
       case JT_RESTORE:
-	 bstrncpy(level, "    ", sizeof(level));
+         bstrncpy(level, "    ", sizeof(level));
 	 break;
       default:
 	 bstrncpy(level, level_to_str(je->JobLevel), sizeof(level));
@@ -321,30 +322,30 @@ static void list_terminated_jobs(void *arg)
       }
       switch (je->JobStatus) {
       case JS_Created:
-	 termstat = "Created";
+         termstat = "Created";
 	 break;
       case JS_FatalError:
       case JS_ErrorTerminated:
-	 termstat = "Error";
+         termstat = "Error";
 	 break;
       case JS_Differences:
-	 termstat = "Diffs";
+         termstat = "Diffs";
 	 break;
       case JS_Canceled:
-	 termstat = "Cancel";
+         termstat = "Cancel";
 	 break;
       case JS_Terminated:
-	 termstat = "OK";
+         termstat = "OK";
 	 break;
       default:
-	 termstat = "Other";
+         termstat = "Other";
 	 break;
       }
       bstrncpy(JobName, je->Job, sizeof(JobName));
       /* There are three periods after the Job name */
       char *p;
       for (int i=0; i<3; i++) {
-	 if ((p=strrchr(JobName, '.')) != NULL) {
+         if ((p=strrchr(JobName, '.')) != NULL) {
 	    *p = 0;
 	 }
       }

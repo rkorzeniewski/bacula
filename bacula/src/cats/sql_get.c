@@ -810,13 +810,13 @@ int db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
 	 "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
 	 "MediaType,VolStatus,PoolId,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,"
-	 "Recycle,Slot,FirstWritten,LastWritten,InChanger,EndFile,EndBlock "
+	 "Recycle,Slot,FirstWritten,LastWritten,InChanger,EndFile,EndBlock,VolParts "
 	 "FROM Media WHERE MediaId=%d", mr->MediaId);
    } else {			      /* find by name */
       Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
 	 "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
 	 "MediaType,VolStatus,PoolId,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,"
-	 "Recycle,Slot,FirstWritten,LastWritten,InChanger,EndFile,EndBlock "
+	 "Recycle,Slot,FirstWritten,LastWritten,InChanger,EndFile,EndBlock,VolParts "
 	 "FROM Media WHERE VolumeName='%s'", mr->VolumeName);
    }
 
@@ -860,6 +860,7 @@ int db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 	    mr->InChanger = str_to_uint64(row[22]);
 	    mr->EndFile = str_to_uint64(row[23]);
 	    mr->EndBlock = str_to_uint64(row[24]);
+	    mr->VolParts = str_to_int64(row[25]);
 	    stat = mr->MediaId;
 	 }
       } else {

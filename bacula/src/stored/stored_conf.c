@@ -7,7 +7,7 @@
  */
 
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -122,6 +122,13 @@ static RES_ITEM dev_items[] = {
    {"maximumspoolsize",      store_size,   ITEM(res_dev.max_spool_size), 0, 0, 0},
    {"maximumjobspoolsize",   store_size,   ITEM(res_dev.max_job_spool_size), 0, 0, 0},
    {"driveindex",            store_pint,   ITEM(res_dev.drive_index), 0, 0, 0},
+   {"maximumpartsize",       store_size,   ITEM(res_dev.max_part_size), 0, ITEM_DEFAULT, 0},
+   {"requiresmount",         store_yesno,  ITEM(res_dev.cap_bits), CAP_REQMOUNT, ITEM_DEFAULT, 0},
+   {"mountpoint",            store_strname,ITEM(res_dev.mount_point), 0, 0, 0},
+   {"mountcommand",          store_strname,ITEM(res_dev.mount_command), 0, 0, 0},
+   {"unmountcommand",        store_strname,ITEM(res_dev.unmount_command), 0, 0, 0},
+   {"writepartcommand",      store_strname,ITEM(res_dev.write_part_command), 0, 0, 0},
+   {"freespacecommand",      store_strname,ITEM(res_dev.free_space_command), 0, 0, 0},
    {NULL, NULL, 0, 0, 0, 0}
 };
 
@@ -172,11 +179,11 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
 	   get_first_port_host_order(res->res_store.sddaddrs),
 	   edit_utime(res->res_store.heartbeat_interval, buf, sizeof(buf)));
 	  foreach_dlist(p, res->res_store.sdaddrs) {
-		sendit(sock, "        SDaddr=%s SDport=%d\n",
+                sendit(sock, "        SDaddr=%s SDport=%d\n",
 			     p->get_address(buf, sizeof(buf)), p->get_port_host_order());
 	  }
 	  foreach_dlist(p, res->res_store.sddaddrs) {
-		sendit(sock, "        SDDaddr=%s SDDport=%d\n",
+                sendit(sock, "        SDDaddr=%s SDDport=%d\n",
 			     p->get_address(buf, sizeof(buf)), p->get_port_host_order());
 	  }
       break;
@@ -197,40 +204,40 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
 	 res->res_dev.max_spool_size, res->res_dev.max_job_spool_size);
       strcpy(buf, "        ");
       if (res->res_dev.cap_bits & CAP_EOF) {
-	 bstrncat(buf, "CAP_EOF ", sizeof(buf));
+         bstrncat(buf, "CAP_EOF ", sizeof(buf));
       }
       if (res->res_dev.cap_bits & CAP_BSR) {
-	 bstrncat(buf, "CAP_BSR ", sizeof(buf));
+         bstrncat(buf, "CAP_BSR ", sizeof(buf));
       }
       if (res->res_dev.cap_bits & CAP_BSF) {
-	 bstrncat(buf, "CAP_BSF ", sizeof(buf));
+         bstrncat(buf, "CAP_BSF ", sizeof(buf));
       }
       if (res->res_dev.cap_bits & CAP_FSR) {
-	 bstrncat(buf, "CAP_FSR ", sizeof(buf));
+         bstrncat(buf, "CAP_FSR ", sizeof(buf));
       }
       if (res->res_dev.cap_bits & CAP_FSF) {
-	 bstrncat(buf, "CAP_FSF ", sizeof(buf));
+         bstrncat(buf, "CAP_FSF ", sizeof(buf));
       }
       if (res->res_dev.cap_bits & CAP_EOM) {
-	 bstrncat(buf, "CAP_EOM ", sizeof(buf));
+         bstrncat(buf, "CAP_EOM ", sizeof(buf));
       }
       if (res->res_dev.cap_bits & CAP_REM) {
-	 bstrncat(buf, "CAP_REM ", sizeof(buf));
+         bstrncat(buf, "CAP_REM ", sizeof(buf));
       }
       if (res->res_dev.cap_bits & CAP_RACCESS) {
-	 bstrncat(buf, "CAP_RACCESS ", sizeof(buf));
+         bstrncat(buf, "CAP_RACCESS ", sizeof(buf));
       }
       if (res->res_dev.cap_bits & CAP_AUTOMOUNT) {
-	 bstrncat(buf, "CAP_AUTOMOUNT ", sizeof(buf));
+         bstrncat(buf, "CAP_AUTOMOUNT ", sizeof(buf));
       }
       if (res->res_dev.cap_bits & CAP_LABEL) {
-	 bstrncat(buf, "CAP_LABEL ", sizeof(buf));
+         bstrncat(buf, "CAP_LABEL ", sizeof(buf));
       }
       if (res->res_dev.cap_bits & CAP_ANONVOLS) {
-	 bstrncat(buf, "CAP_ANONVOLS ", sizeof(buf));
+         bstrncat(buf, "CAP_ANONVOLS ", sizeof(buf));
       }
       if (res->res_dev.cap_bits & CAP_ALWAYSOPEN) {
-	 bstrncat(buf, "CAP_ALWAYSOPEN ", sizeof(buf));
+         bstrncat(buf, "CAP_ALWAYSOPEN ", sizeof(buf));
       }
       bstrncat(buf, "\n", sizeof(buf));
       sendit(sock, buf);
@@ -238,9 +245,9 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
    case R_MSGS:
       sendit(sock, "Messages: name=%s\n", res->res_msgs.hdr.name);
       if (res->res_msgs.mail_cmd)
-	 sendit(sock, "      mailcmd=%s\n", res->res_msgs.mail_cmd);
+         sendit(sock, "      mailcmd=%s\n", res->res_msgs.mail_cmd);
       if (res->res_msgs.operator_cmd)
-	 sendit(sock, "      opcmd=%s\n", res->res_msgs.operator_cmd);
+         sendit(sock, "      opcmd=%s\n", res->res_msgs.operator_cmd);
       break;
    default:
       sendit(sock, _("Warning: unknown resource type %d\n"), type);
@@ -320,6 +327,21 @@ void free_resource(RES *sres, int type)
 	 if (res->res_dev.spool_directory) {
 	    free(res->res_dev.spool_directory);
 	 }
+	 if (res->res_dev.mount_point) {
+	    free(res->res_dev.mount_point);
+	 }
+	 if (res->res_dev.mount_command) {
+	    free(res->res_dev.mount_command);
+	 }
+	 if (res->res_dev.unmount_command) {
+	    free(res->res_dev.unmount_command);
+	 }
+	 if (res->res_dev.write_part_command) {
+	    free(res->res_dev.write_part_command);
+	 }
+	 if (res->res_dev.free_space_command) {
+	    free(res->res_dev.free_space_command);
+	 }
 	 break;
       case R_MSGS:
 	 if (res->res_msgs.mail_cmd) {
@@ -332,7 +354,7 @@ void free_resource(RES *sres, int type)
 	 res = NULL;
 	 break;
       default:
-	 Dmsg1(0, "Unknown resource type %d\n", type);
+         Dmsg1(0, "Unknown resource type %d\n", type);
 	 break;
    }
    /* Common stuff again -- free the resource, recurse to next one */
@@ -361,13 +383,13 @@ void save_resource(int type, RES_ITEM *items, int pass)
    for (i=0; items[i].name; i++) {
       if (items[i].flags & ITEM_REQUIRED) {
 	 if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {
-	    Emsg2(M_ERROR_TERM, 0, _("\"%s\" item is required in \"%s\" resource, but not found.\n"),
+            Emsg2(M_ERROR_TERM, 0, _("\"%s\" item is required in \"%s\" resource, but not found.\n"),
 	      items[i].name, resources[rindex]);
 	  }
       }
       /* If this triggers, take a look at lib/parse_conf.h */
       if (i >= MAX_RES_ITEMS) {
-	 Emsg1(M_ERROR_TERM, 0, _("Too many items in \"%s\" resource\n"), resources[rindex]);
+         Emsg1(M_ERROR_TERM, 0, _("Too many items in \"%s\" resource\n"), resources[rindex]);
       }
    }
 
@@ -387,12 +409,12 @@ void save_resource(int type, RES_ITEM *items, int pass)
 	 /* Resources containing a resource */
 	 case R_STORAGE:
 	    if ((res = (URES *)GetResWithName(R_STORAGE, res_all.res_dir.hdr.name)) == NULL) {
-	       Emsg1(M_ERROR_TERM, 0, "Cannot find Storage resource \"%s\"\n", res_all.res_dir.hdr.name);
+               Emsg1(M_ERROR_TERM, 0, "Cannot find Storage resource \"%s\"\n", res_all.res_dir.hdr.name);
 	    }
 	    res->res_store.messages = res_all.res_store.messages;
 	    break;
 	 default:
-	    printf("Unknown resource type %d\n", type);
+            printf("Unknown resource type %d\n", type);
 	    error = 1;
 	    break;
       }
@@ -424,7 +446,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
 	 size = sizeof(MSGS);
 	 break;
       default:
-	 printf("Unknown resource type %d\n", type);
+         printf("Unknown resource type %d\n", type);
 	 error = 1;
 	 size = 1;
 	 break;
@@ -441,12 +463,12 @@ void save_resource(int type, RES_ITEM *items, int pass)
 	 for (next=res_head[rindex]; next->next; next=next->next) {
 	    if (strcmp(next->name, res->res_dir.hdr.name) == 0) {
 	       Emsg2(M_ERROR_TERM, 0,
-		  _("Attempt to define second \"%s\" resource named \"%s\" is not permitted.\n"),
+                  _("Attempt to define second \"%s\" resource named \"%s\" is not permitted.\n"),
 		  resources[rindex].name, res->res_dir.hdr.name);
 	    }
 	 }
 	 next->next = (RES *)res;
-	 Dmsg2(90, "Inserting %s res: %s\n", res_to_str(type),
+         Dmsg2(90, "Inserting %s res: %s\n", res_to_str(type),
 	       res->res_dir.hdr.name);
       }
    }
