@@ -1,7 +1,7 @@
 
           Release Notes for Bacula 1.31
 
-  Bacula code: Total files = 250 Total lines = 74,359 (*.h *.c *.in)
+  Bacula code: Total files = 250 Total lines = 74,376 (*.h *.c *.in)
 
 Major Changes this Release:
 - The database format has changed. Please see below.
@@ -16,10 +16,15 @@ Major Changes this Release:
 - Added readline to depkgs (removed from depkgs1) and fixed configuration if
   it is not installed in your system libraries.
 - Implemented generalized tape label formats including counter variables.
-- Implement multiple simultaneous jobs.
+- Multiple simultaneous jobs now work.
+- Implemented tape block rejection, which means that restores with
+  several incremental backups will run orders of magnitude faster.
 
 
 Other Changes this Release:
+- During a normal restore (replace = yes), any existing file is deleted
+  and the restored file is then created. This corrects links and other
+  wierd files that changed between the backup and the restore.
 - Preliminary support for BSDi.
 - Use smtp instead of mail to send the traceback message.
 - Fixed a race condition in the "list" command while a backup is
@@ -27,7 +32,7 @@ Other Changes this Release:
 - Beginning of support for SSL encryption.
 - Beggining of support for Base level backups.
 - Improvements to gnome-console.
-- Prune certain orphaned jobs (no files saved, no Volume used).
+- Prune orphaned jobs (no files saved, no Volume used).
 - Added non-fatal errors to Job reports.
 - Eliminate need for SubsysDirectory in each daemon -- please remove
   these records from your .conf files.
@@ -36,16 +41,19 @@ Other Changes this Release:
 - Better handling of errors with autochangers during restore.
 - Better cancellation of jobs in Storage daemon (doesn't try
   to cleanup twice).
+- Better cancellation of File daemon (except on Cygwin systems).
 - SD error messages such as autochanger errors are now properly
   directed back to Console -- previously some were lost.
-- A Storage daemon crash on FreeBSD systems (due to an improper FreeBSD
-  pthreads implementation -- IMO) is fixed.
+- A Storage daemon crash on FreeBSD systems (due to a different FreeBSD
+  pthreads implementation) is fixed.
 - Better Job termination report particularly for Verify and Restore jobs.
 - Update Verify VolumeToCatalog to use new BSR records.
 - Fixed list last 20 jobs in restore command (previously reported any 
   20 jobs).
 - Gnome command line history works better.
 - Better messages if a job is upgraded from Diff or Inc to Full.
+- Replaced FileSet MD5 with date created -- more aestetic and readable.
+- Fixed a FD crash on long directory names (Win32 specific).
 
 
 

@@ -275,6 +275,12 @@ static void do_blocks(char *infname)
 	    break;
 	 }
       }
+      if (!match_bsr_block(bsr, block)) {
+         Dmsg5(100, "reject Blk=%u blen=%u bVer=%d SessId=%u SessTim=%u\n",
+	    block->BlockNumber, block->block_len, block->BlockVer,
+	    block->VolSessionId, block->VolSessionTime);
+	 continue;
+      }
       Dmsg5(100, "Blk=%u blen=%u bVer=%d SessId=%u SessTim=%u\n",
 	 block->BlockNumber, block->block_len, block->BlockVer,
 	 block->VolSessionId, block->VolSessionTime);

@@ -148,6 +148,8 @@ int	 unser_session_label(SESSION_LABEL *label, DEV_RECORD *rec);
 /* From match_bsr.c */
 int match_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, 
 	      SESSION_LABEL *sesrec);
+int match_bsr_block(BSR *bsr, DEV_BLOCK *block);
+void position_bsr_block(BSR *bsr, DEV_BLOCK *block);
 
 /* From mount.c */
 int	 mount_next_write_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, int release);
