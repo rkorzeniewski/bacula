@@ -516,15 +516,15 @@ status_dev(DEVICE *dev, uint32_t *status)
    uint32_t stat = 0;
 
    if (dev->state & (ST_EOT | ST_WEOT)) {
-      stat |= MT_EOD;
+      stat |= BMT_EOD;
       Dmsg0(-20, " EOD");
    }
    if (dev->state & ST_EOF) {
-      stat |= MT_EOF;
+      stat |= BMT_EOF;
       Dmsg0(-20, " EOF");
    }
    if (dev->state & ST_TAPE) {
-      stat |= MT_TAPE;
+      stat |= BMT_TAPE;
       Dmsg0(-20," Driver status:");
       Dmsg2(-20," file=%d block=%d\n", dev->file, dev->block_num);
       if (ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) < 0) {
@@ -537,45 +537,45 @@ status_dev(DEVICE *dev, uint32_t *status)
 
 #if defined(HAVE_LINUX_OS)
       if (GMT_EOF(mt_stat.mt_gstat)) {
-	 stat |= MT_EOF;
+	 stat |= BMT_EOF;
          Dmsg0(-20, " EOF");
       }
       if (GMT_BOT(mt_stat.mt_gstat)) {
-	 stat |= MT_BOT;
+	 stat |= BMT_BOT;
          Dmsg0(-20, " BOT");
       }
       if (GMT_EOT(mt_stat.mt_gstat)) {
-	 stat |= MT_EOT;
+	 stat |= BMT_EOT;
          Dmsg0(-20, " EOT");
       }
       if (GMT_SM(mt_stat.mt_gstat)) {
-	 stat |= MT_SM;
+	 stat |= BMT_SM;
          Dmsg0(-20, " SM");
       }
       if (GMT_EOD(mt_stat.mt_gstat)) {
-	 stat |= MT_EOD;
+	 stat |= BMT_EOD;
          Dmsg0(-20, " EOD");
       }
       if (GMT_WR_PROT(mt_stat.mt_gstat)) {
-	 stat |= MT_WR_PROT;
+	 stat |= BMT_WR_PROT;
          Dmsg0(-20, " WR_PROT");
       }
       if (GMT_ONLINE(mt_stat.mt_gstat)) {
-	 stat |= MT_ONLINE;
+	 stat |= BMT_ONLINE;
          Dmsg0(-20, " ONLINE");
       }
       if (GMT_DR_OPEN(mt_stat.mt_gstat)) {
-	 stat |= MT_DR_OPEN;
+	 stat |= BMT_DR_OPEN;
          Dmsg0(-20, " DR_OPEN");       
       }
       if (GMT_IM_REP_EN(mt_stat.mt_gstat)) {
-	 stat |= MT_IM_REP_EN;
+	 stat |= BMT_IM_REP_EN;
          Dmsg0(-20, " IM_REP_EN");
       }
 #endif /* !SunOS && !OSF */
       Dmsg2(-20, " file=%d block=%d\n", mt_stat.mt_fileno, mt_stat.mt_blkno);
    } else {
-      stat |= MT_ONLINE | MT_BOT;
+      stat |= BMT_ONLINE | BMT_BOT;
    }
    *status = stat; 
    return 1;
@@ -743,7 +743,7 @@ fsf_dev(DEVICE *dev, int num)
 	    dev->state &= ~(ST_EOF|ST_EOT);
 	 }
 
-         Dmsg0(200, "Doing MT_FSF\n");
+         Dmsg0(200, "Doing MTFSF\n");
 	 stat = ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
 	 if (stat < 0) {		 /* error => EOT */
 	    dev->state |= ST_EOT;
@@ -751,7 +751,7 @@ fsf_dev(DEVICE *dev, int num)
 	    clrerror_dev(dev, MTFSF);
             Mmsg2(&dev->errmsg, _("ioctl MTFSF error on %s. ERR=%s.\n"),
 	       dev->dev_name, strerror(dev->dev_errno));
-            Dmsg0(200, "Got < 0 for MT_FSF\n");
+            Dmsg0(200, "Got < 0 for MTFSF\n");
             Dmsg1(200, "%s", dev->errmsg);
 	 } else {
 	    dev->state |= ST_EOF;     /* just read EOF */

@@ -390,6 +390,9 @@
 /* Define if you have the strncpy function.  */
 #undef HAVE_STRNCPY
 
+/* Define if you have the strtoll function.  */
+#undef HAVE_STRTOLL
+
 /* Define if you have the tcgetattr function.  */
 #undef HAVE_TCGETATTR
 

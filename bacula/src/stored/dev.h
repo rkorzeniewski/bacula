@@ -50,16 +50,16 @@
 #define OPEN_WRITE_ONLY 2
 
 /* Generic status bits returned from status_dev() */
-#define MT_TAPE      (1<<0)                /* is tape device */
-#define MT_EOF       (1<<1)                /* just read EOF */
-#define MT_BOT       (1<<2)                /* at beginning of tape */
-#define MT_EOT       (1<<3)                /* end of tape reached */
-#define MT_SM        (1<<4)                /* DDS setmark */
-#define MT_EOD       (1<<5)                /* DDS at end of data */
-#define MT_WR_PROT   (1<<6)                /* tape write protected */
-#define MT_ONLINE    (1<<7)                /* tape online */
-#define MT_DR_OPEN   (1<<8)                /* tape door open */
-#define MT_IM_REP_EN (1<<9)                /* immediate report enabled */
+#define BMT_TAPE      (1<<0)               /* is tape device */
+#define BMT_EOF       (1<<1)               /* just read EOF */
+#define BMT_BOT       (1<<2)               /* at beginning of tape */
+#define BMT_EOT       (1<<3)               /* end of tape reached */
+#define BMT_SM        (1<<4)               /* DDS setmark */
+#define BMT_EOD       (1<<5)               /* DDS at end of data */
+#define BMT_WR_PROT   (1<<6)               /* tape write protected */
+#define BMT_ONLINE    (1<<7)               /* tape online */
+#define BMT_DR_OPEN   (1<<8)               /* tape door open */
+#define BMT_IM_REP_EN (1<<9)               /* immediate report enabled */
 
 
 /* Test capabilities */

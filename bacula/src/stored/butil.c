@@ -240,15 +240,15 @@ void display_error_status(DEVICE *dev)
    Emsg0(M_ERROR, 0, dev->errmsg);
    status_dev(dev, &status);
    Dmsg1(20, "Device status: %x\n", status);
-   if (status & MT_EOD)
+   if (status & BMT_EOD)
       Emsg0(M_ERROR_TERM, 0, _("Unexpected End of Data\n"));
-   else if (status & MT_EOT)
+   else if (status & BMT_EOT)
       Emsg0(M_ERROR_TERM, 0, _("Unexpected End of Tape\n"));
-   else if (status & MT_EOF)
+   else if (status & BMT_EOF)
       Emsg0(M_ERROR_TERM, 0, _("Unexpected End of File\n"));
-   else if (status & MT_DR_OPEN)
+   else if (status & BMT_DR_OPEN)
       Emsg0(M_ERROR_TERM, 0, _("Tape Door is Open\n"));
-   else if (!(status & MT_ONLINE))
+   else if (!(status & BMT_ONLINE))
       Emsg0(M_ERROR_TERM, 0, _("Unexpected Tape is Off-line\n"));
    else
       Emsg2(M_ERROR_TERM, 0, _("Read error on Record Header %s: %s\n"), dev_name(dev), strerror(errno));

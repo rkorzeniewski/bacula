@@ -1051,6 +1051,7 @@ AC_CHECK_FUNCS( \
 	strncmp \
 	strncpy \
 	vfprintf \
+	strtoll \
 	,,
 	[echo 'configure: cannot find needed function.'; exit 1]
 )
@@ -1178,13 +1179,19 @@ alpha)
   ;;
 bsdi)
 	DISTVER=`uname -a |awk '{print $3}'`
-	TAPEDRIVE="/dev/nrst0"
-  ;;
-caldera)
-	DISTVER=`cat /etc/.issue | grep Version | cut -f 2 -d ' '`
-	TAPEDRIVE="/dev/nrst0"
-	PSCMD="ps -e -o pid,command"
+	TAPEDRIVE="/dev/nrmt0"
+	PTHREAD_LIB="-pthread"
+	CFLAGS="${CFLAGS} -pthread"
+	PSCMD="ps -x -o pid,command"
+	lld="qd"
+	llu="qu"
+	PFILES="${PFILES} \
+	    platforms/bsdi/Makefile \
+	    platforms/bsdi/bacula-fd \
+	    platforms/bsdi/bacula-sd \
+	    platforms/bsdi/bacula-dir"
 	hostname=`hostname -s`
+	largefile_support="yes"
   ;;
 cygwin)
 	DISTVER=`uname -a |awk '{print $3}'`
@@ -1213,7 +1220,7 @@ freebsd)
 	CFLAGS="${CFLAGS} -pthread"
 	lld="qd"
 	llu="qu"
-	TAPEDRIVE="/dev/nrst0"
+	TAPEDRIVE="/dev/nrsa0"
 	PSCMD="ps -x -o pid,command"
 	PFILES="${PFILES} \
 	    platforms/freebsd/Makefile \

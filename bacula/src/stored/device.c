@@ -79,7 +79,7 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 
    wait_time = time(NULL);
    status_dev(dev, &stat);
-   if (stat & MT_EOD) {
+   if (stat & BMT_EOD) {
       Dmsg0(100, "======= Got EOD ========\n");
 
       block_device(dev, BST_DOING_ACQUIRE);
