@@ -56,6 +56,16 @@ console_thread::~console_thread() {
  * Thread entry point
  */
 void* console_thread::Entry() {
+#ifdef HAVE_WIN32
+   if (WSA_Init() == 0) {
+      csprint("Windows sockets initialized successfully...\n");
+   }
+   else {
+      csprint("Error while initializing windows sockets...\n");
+      return 0;
+   }
+#endif
+   
    csprint("Connecting...\n");
 
    init_stack_dump();
