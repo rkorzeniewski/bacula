@@ -3,4 +3,5 @@ testls
 Makefile
 dbcheck
 smtp
+bsmtp
 testfind

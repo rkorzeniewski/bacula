@@ -32,24 +32,24 @@
 /* Requests sent to the Director */
 static char Find_media[]   = "CatReq Job=%s FindMedia=%d\n";
 static char Get_Vol_Info[] = "CatReq Job=%s GetVolInfo VolName=%s write=%d\n";
-static char Update_media[] = "CatReq Job=%s UpdateMedia VolName=%s\
- VolJobs=%u VolFiles=%u VolBlocks=%u VolBytes=%s VolMounts=%u\
- VolErrors=%u VolWrites=%u MaxVolBytes=%s EndTime=%d VolStatus=%s\
- Slot=%d relabel=%d\n";
-
-static char Create_job_media[] = "CatReq Job=%s CreateJobMedia \
- FirstIndex=%u LastIndex=%u StartFile=%u EndFile=%u \
- StartBlock=%u EndBlock=%u\n";
+static char Update_media[] = "CatReq Job=%s UpdateMedia VolName=%s"
+   " VolJobs=%u VolFiles=%u VolBlocks=%u VolBytes=%s VolMounts=%u"
+   " VolErrors=%u VolWrites=%u MaxVolBytes=%s EndTime=%d VolStatus=%s"
+   " Slot=%d relabel=%d Drive=%d InChanger=%d\n";
+static char Create_job_media[] = "CatReq Job=%s CreateJobMedia" 
+   " FirstIndex=%u LastIndex=%u StartFile=%u EndFile=%u" 
+   " StartBlock=%u EndBlock=%u\n";
 static char FileAttributes[] = "UpdCat Job=%s FileAttributes ";
 static char Job_status[]     = "3012 Job %s jobstatus %d\n";
 
 
 /* Responses received from the Director */
-static char OK_media[] = "1000 OK VolName=%127s VolJobs=%u VolFiles=%u\
- VolBlocks=%u VolBytes=%" lld " VolMounts=%u VolErrors=%u VolWrites=%u\
- MaxVolBytes=%" lld " VolCapacityBytes=%" lld " VolStatus=%20s\
- Slot=%d MaxVolJobs=%u MaxVolFiles=%u\n";
-static char OK_update[] = "1000 OK UpdateMedia\n";
+static char OK_media[] = "1000 OK VolName=%127s VolJobs=%u VolFiles=%u"
+   " VolBlocks=%u VolBytes=%" lld " VolMounts=%u VolErrors=%u VolWrites=%u"
+   " MaxVolBytes=%" lld " VolCapacityBytes=%" lld " VolStatus=%20s"
+   " Slot=%d MaxVolJobs=%u MaxVolFiles=%u Drive=%d InChanger=%d";
+
+static char OK_create[] = "1000 OK CreateJobMedia\n";
 
 /* Forward referenced functions */
 static int wait_for_sysop(JCR *jcr, DEVICE *dev, int wait_sec);
@@ -67,8 +67,11 @@ int dir_send_job_status(JCR *jcr)
  *   dir_get_volume_info()
  * and
  *   dir_find_next_appendable_volume()
+ * 
+ *  Returns: 1 on success and vol info in jcr->VolCatInfo
+ *	     0 on failure
  */
-static int do_request_volume_info(JCR *jcr)
+static int do_get_volume_info(JCR *jcr)
 {
     BSOCK *dir = jcr->dir_bsock;
     VOLUME_CAT_INFO vol;
@@ -86,10 +89,11 @@ static int do_request_volume_info(JCR *jcr)
 	       &vol.VolCatMounts, &vol.VolCatErrors,
 	       &vol.VolCatWrites, &vol.VolCatMaxBytes,
 	       &vol.VolCatCapacityBytes, vol.VolCatStatus,
-	       &vol.Slot, &vol.VolCatMaxJobs, &vol.VolCatMaxFiles) != 14) {
+	       &vol.Slot, &vol.VolCatMaxJobs, &vol.VolCatMaxFiles,
+	       &vol.Drive, &vol.InChanger) != 16) {
 
        Dmsg1(200, "Bad response from Dir: %s\n", dir->msg);
-       Mmsg(&jcr->errmsg, _("Error scanning Dir response: %s\n"), dir->msg);
+       Mmsg(&jcr->errmsg, _("Error getting Volume info: %s\n"), dir->msg);
        return 0;
     }
     unbash_spaces(vol.VolCatName);
@@ -121,7 +125,7 @@ int dir_get_volume_info(JCR *jcr, enum get_vol_info_rw writing)
     bash_spaces(jcr->VolCatInfo.VolCatName);
     bnet_fsend(dir, Get_Vol_Info, jcr->Job, jcr->VolCatInfo.VolCatName, 
        writing==GET_VOL_INFO_FOR_WRITE?1:0);
-    return do_request_volume_info(jcr);
+    return do_get_volume_info(jcr);
 }
 
 
@@ -140,7 +144,7 @@ int dir_find_next_appendable_volume(JCR *jcr)
 
     Dmsg0(200, "dir_find_next_appendable_volume\n");
     bnet_fsend(dir, Find_media, jcr->Job, 1);
-    return do_request_volume_info(jcr);
+    return do_get_volume_info(jcr);
 }
 
     
@@ -148,16 +152,28 @@ int dir_find_next_appendable_volume(JCR *jcr)
  * After writing a Volume, send the updated statistics
  * back to the director.
  */
-int dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int label)
+int dir_update_volume_info(JCR *jcr, DEVICE *dev, int label)
 {
    BSOCK *dir = jcr->dir_bsock;
    time_t EndTime = time(NULL);
    char ed1[50], ed2[50];
+   VOLUME_CAT_INFO *vol = &dev->VolCatInfo;
 
    if (vol->VolCatName[0] == 0) {
       Jmsg0(jcr, M_ERROR, 0, _("NULL Volume name. This shouldn't happen!!!\n"));
       return 0;
    }
+   if (dev_state(dev, ST_READ)) {
+      Jmsg0(jcr, M_ERROR, 0, _("Attempt to update_volume_info in read mode!!!\n"));
+      return 0;
+   }
+   if (!dev_state(dev, ST_LABEL)) {
+      Jmsg0(jcr, M_ERROR, 0, _("Attempt to update_volume_info on non-labeled Volume!!!\n"));
+      return 0;
+   }
+
+   dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */
+   Dmsg1(100, "Update cat VolFiles=%d\n", dev->file);
    /* Just labeled or relabeled the tape */
    if (label) {
       bstrncpy(vol->VolCatStatus, "Append", sizeof(vol->VolCatStatus));
@@ -169,22 +185,17 @@ int dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int label)
       vol->VolCatBlocks, edit_uint64(vol->VolCatBytes, ed1),
       vol->VolCatMounts, vol->VolCatErrors,
       vol->VolCatWrites, edit_uint64(vol->VolCatMaxBytes, ed2), 
-      EndTime, vol->VolCatStatus, vol->Slot, label);
+      EndTime, vol->VolCatStatus, vol->Slot, label, vol->Drive, 
+      vol->InChanger);
    Dmsg1(120, "update_volume_data(): %s", dir->msg);
    unbash_spaces(vol->VolCatName);
-   if (bnet_recv(dir) <= 0) {
-      Dmsg0(190, "updateVolCatInfo error bnet_recv\n");
-      Jmsg(jcr, M_ERROR, 0, _("Error updating Volume info Vol=\"%s\": ERR=%s\n"), 
-	   vol->VolCatName, bnet_strerror(dir));
+
+   if (!do_get_volume_info(jcr)) {
+      Jmsg(jcr, M_ERROR, 0, "%s", jcr->errmsg);
       return 0;
    }
-   Dmsg1(120, "Updatevol: %s", dir->msg);
-   if (strcmp(dir->msg, OK_update) != 0) {
-      Dmsg1(130, "Bad response from Dir: %s\n", dir->msg);
-      Jmsg(jcr, M_ERROR, 0, _("Error updating Volume info Vol=\"%s\": %s\n"), 
-	   vol->VolCatName, dir->msg);
-      return 0;
-   }
+   /* Update dev Volume info in case something changed (e.g. expired) */
+   memcpy(&dev->VolCatInfo, &jcr->VolCatInfo, sizeof(dev->VolCatInfo));
    return 1;
 }
 
@@ -212,7 +223,7 @@ int dir_create_jobmedia_record(JCR *jcr)
       return 0;
    }
    Dmsg1(120, "Create_jobmedia: %s", dir->msg);
-   if (strcmp(dir->msg, OK_update) != 0) {
+   if (strcmp(dir->msg, OK_create) != 0) {
       Dmsg1(130, "Bad response from Dir: %s\n", dir->msg);
       Jmsg(jcr, M_ERROR, 0, _("Error creating JobMedia record: %s\n"), dir->msg);
       return 0;

@@ -411,13 +411,16 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	    edit_uint64(max_cap, ed1),	dev->dev_name);
       block->write_failed = true;
       weof_dev(dev, 1); 	      /* end the tape */
+      /* Don't do update after second EOF or file count will be wrong */
+      Dmsg0(100, "dir_update_volume_info\n");
+      dir_update_volume_info(jcr, dev, 0);
       weof_dev(dev, 1);
       dev->state |= (ST_EOF | ST_EOT | ST_WEOT);
       return 0;   
    }
 
    /* Limit maximum File size on volume to user specified value */
-   if (dev->state & ST_TAPE) {
+   if (dev_state(dev, ST_TAPE)) {
       if ((dev->max_file_size > 0) && 
 	  (dev->file_addr+block->binbuf) >= dev->max_file_size) {
 
@@ -426,10 +429,14 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
             Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
 	    block->write_failed = true;
 	    dev->state |= (ST_EOF | ST_EOT | ST_WEOT);
+            Dmsg0(100, "dir_update_volume_info\n");
+	    dir_update_volume_info(jcr, dev, 0);
 	    return 0;	
 	 }
 
 	 /* Do bookkeeping to handle EOF just written */
+         Dmsg0(100, "dir_update_volume_info\n");
+	 dir_update_volume_info(jcr, dev, 0);
 	 if (!dir_create_jobmedia_record(jcr)) {
              Jmsg(jcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
 		  jcr->VolCatInfo.VolCatName, jcr->Job);
@@ -443,7 +450,7 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	    if (mjcr->JobId == 0) {
 	       continue;		 /* ignore console */
 	    }
-	    mjcr->NewFile = true;
+	    mjcr->NewFile = true;     /* set reminder to do set_new_file_params */
 	 }
 	 set_new_file_parameters(jcr, dev);
       }
@@ -485,6 +492,8 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 
       block->write_failed = true;
       weof_dev(dev,1);
+      Dmsg0(100, "dir_update_volume_info\n");
+      dir_update_volume_info(jcr, dev, 0);
       if (weof_dev(dev, 1) != 0) {	   /* end the tape */
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       }
@@ -552,7 +561,7 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    block->BlockNumber++;
 
    /* Update jcr values */
-   if (dev->state & ST_TAPE) {
+   if (dev_state(dev, ST_TAPE)) {
       jcr->EndBlock = dev->EndBlock;
       jcr->EndFile  = dev->EndFile;
    } else {
@@ -621,7 +630,7 @@ reread:
 	 dev->VolCatInfo.VolCatErrors++;   
       }
    } while (stat == -1 && (errno == EINTR || errno == EIO) && retry++ < 11);
-// Dmsg1(000, "read stat = %d\n", stat);
+// Dmsg1(100, "read stat = %d\n", stat);
    if (stat < 0) {
       Dmsg1(90, "Read device got: ERR=%s\n", strerror(errno));
       clrerror_dev(dev, -1);

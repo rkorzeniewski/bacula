@@ -398,7 +398,7 @@ static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sess
 /* Dummies to replace askdir.c */
 int	dir_get_volume_info(JCR *jcr, enum get_vol_info_rw  writing) { return 1;}
 int	dir_find_next_appendable_volume(JCR *jcr) { return 1;}
-int	dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel) { return 1; }
+int	dir_update_volume_info(JCR *jcr, DEVICE *dev, int relabel) { return 1; }
 int	dir_create_jobmedia_record(JCR *jcr) { return 1; }
 int	dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev) { return 1; }
 int	dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec) { return 1;}

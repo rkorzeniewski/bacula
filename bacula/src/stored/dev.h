@@ -125,6 +125,8 @@ struct VOLUME_CAT_INFO {
    uint64_t VolCatRBytes;             /* Number of bytes read */
    uint32_t VolCatRecycles;           /* Number of recycles this volume */
    int32_t  Slot;                     /* Slot in changer */
+   int32_t  Drive;                    /* Changer drive */
+   bool     InChanger;                /* Set if vol in current magazine */
    uint32_t VolCatMaxJobs;            /* Maximum Jobs to write to volume */
    uint32_t VolCatMaxFiles;           /* Maximum files to write to volume */
    uint64_t VolCatMaxBytes;           /* Max bytes to write to volume */

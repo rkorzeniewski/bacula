@@ -65,7 +65,7 @@ int read_dev_volume_label(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    Dmsg3(100, "Enter read_volume_label device=%s vol=%s dev_Vol=%s\n", 
       dev_name(dev), VolName, dev->VolHdr.VolName);
 
-   if (dev->state & ST_LABEL) {       /* did we already read label? */
+   if (dev_state(dev, ST_LABEL)) {	 /* did we already read label? */
       /* Compare Volume Names allow special wild card */
       if (VolName && *VolName && *VolName != '*' && strcmp(dev->VolHdr.VolName, VolName) != 0) {
          Mmsg(&jcr->errmsg, _("Wrong Volume mounted on device %s: Wanted %s have %s\n"),
@@ -131,6 +131,17 @@ because:\n   %s"), dev_name(dev), strerror_dev(dev));
       return jcr->label_status = VOL_VERSION_ERROR;
    }
 
+   /* We are looking for either an unused Bacula tape (PRE_LABEL) or
+    * a Bacula volume label (VOL_LABEL)
+    */
+   if (dev->VolHdr.LabelType != PRE_LABEL && dev->VolHdr.LabelType != VOL_LABEL) {
+      Mmsg(&jcr->errmsg, _("Volume on %s has bad Bacula label type: %x\n"), 
+	  dev_name(dev), dev->VolHdr.LabelType);
+      return jcr->label_status = VOL_LABEL_ERROR;
+   }
+
+   dev->state |= ST_LABEL;	      /* set has Bacula label */
+
    /* Compare Volume Names */
    Dmsg2(30, "Compare Vol names: VolName=%s hdr=%s\n", VolName?VolName:"*", dev->VolHdr.VolName);
    if (VolName && *VolName && *VolName != '*' && strcmp(dev->VolHdr.VolName, VolName) != 0) {
@@ -147,16 +158,6 @@ because:\n   %s"), dev_name(dev), strerror_dev(dev));
    }
    Dmsg1(30, "Copy vol_name=%s\n", dev->VolHdr.VolName);
 
-   /* We are looking for either an unused Bacula tape (PRE_LABEL) or
-    * a Bacula volume label (VOL_LABEL)
-    */
-   if (dev->VolHdr.LabelType != PRE_LABEL && dev->VolHdr.LabelType != VOL_LABEL) {
-      Mmsg(&jcr->errmsg, _("Volume on %s has bad Bacula label type: %x\n"), 
-	  dev_name(dev), dev->VolHdr.LabelType);
-      return jcr->label_status = VOL_LABEL_ERROR;
-   }
-
-   dev->state |= ST_LABEL;	      /* set has Bacula label */
    if (debug_level >= 10) {
       dump_volume_label(dev);
    }

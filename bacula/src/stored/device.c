@@ -106,13 +106,11 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
        return 0;
    }
 
-   strcpy(dev->VolCatInfo.VolCatStatus, "Full");
-   Dmsg2(200, "Call update_vol_info Stat=%s Vol=%s\n", 
+   bstrncpy(dev->VolCatInfo.VolCatStatus, "Full", sizeof(dev->VolCatInfo.VolCatStatus));
+   Dmsg2(100, "Call update_vol_info Stat=%s Vol=%s\n", 
       dev->VolCatInfo.VolCatStatus, dev->VolCatInfo.VolCatName);
-   dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */
-   /* *****FIXME**** this needs to be done elsewhere */
    dev->VolCatInfo.VolCatJobs++;	      /* increment number of jobs */
-   if (!dir_update_volume_info(jcr, &dev->VolCatInfo, 0)) {    /* send Volume info to Director */
+   if (!dir_update_volume_info(jcr, dev, 0)) {	  /* send Volume info to Director */
       P(dev->mutex);
       unblock_device(dev);
       return 0; 		   /* device locked */
@@ -201,7 +199,7 @@ void set_new_volume_parameters(JCR *jcr, DEVICE *dev)
       Jmsg1(jcr, M_ERROR, 0, "%s", jcr->errmsg);
    }
    /* Set new start/end positions */
-   if (dev->state & ST_TAPE) {
+   if (dev_state(dev, ST_TAPE)) {
       jcr->StartBlock = dev->block_num;
       jcr->StartFile = dev->file;
    } else {
@@ -217,14 +215,14 @@ void set_new_volume_parameters(JCR *jcr, DEVICE *dev)
 }
 
 /*
- * We are now in a new file, so reset the Volume parameters
+ * We are now in a new Volume file, so reset the Volume parameters
  *  concerning this job.  The global changes were made earlier
  *  in the dev structure.
  */
 void set_new_file_parameters(JCR *jcr, DEVICE *dev) 
 {
    /* Set new start/end positions */
-   if (dev->state & ST_TAPE) {
+   if (dev_state(dev, ST_TAPE)) {
       jcr->StartBlock = dev->block_num;
       jcr->StartFile = dev->file;
    } else {

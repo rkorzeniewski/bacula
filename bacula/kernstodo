@@ -47,6 +47,13 @@ For 1.33 Testing/Documentation:
                 
 
 For 1.33
+- do a "messages" before the first prompt in Console
+- Add a date and time stamp at the beginning of every line in the 
+  Job report (Volker Sauer).
+- Client does not show busy during Estimate command.
+- Volume problems occurs if you have valid volume, written, then it is
+  truncated. You get 12-Nov-2003 11:48 rufus-sd: kernsave.2003-11-12_11.48.09 Warning: mount.c:228 Volume on /tmp is not a Bacula labeled Volume, because:
+     block.c:640 Read zero bytes on device /tmp.
 - Implement Console mtx commands.
 - Look at 2Gb limit for SQLite.
 - Implement 3 Pools for a Job:

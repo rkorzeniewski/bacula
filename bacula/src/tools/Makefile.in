@@ -36,7 +36,7 @@ EXTRAOBJS = @OBJLIST@
 .c.o:
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
-all: Makefile bsmtp dbcheck testfind testls
+all: Makefile bsmtp dbcheck testfind testls hammer
 	@echo "==== Make of tools is good ===="
 	@echo " "
 
@@ -53,8 +53,6 @@ testfind: ../findlib/libfind.a ../lib/libbac.a $(FINDOBJS)
 testls: ../findlib/libfind.a ../lib/libbac.a testls.o
 	$(CXX) -g $(LDFLAGS) -L. -L../lib -L../findlib -o $@ testls.o \
 	  $(LIBS) $(DLIB) -lfind -lbac -lm
-
- 
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	cd $(topdir) \

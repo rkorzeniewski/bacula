@@ -53,17 +53,18 @@ int acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    block_device(dev, BST_DOING_ACQUIRE);
    unlock_device(dev);
 
-   tape_previously_mounted = (dev->state & ST_READ) || (dev->state & ST_APPEND);
+   tape_previously_mounted = dev_state(dev, ST_READ) || dev_state(dev, ST_APPEND);
 
-   if (dev->state & ST_READ || dev->num_writers > 0) {
-      Jmsg1(jcr, M_FATAL, 0, _("Device %s is busy. Job canceled.\n"), dev_name(dev));
+   if (dev_state(dev, ST_READ) || dev->num_writers > 0) {
+      Jmsg2(jcr, M_FATAL, 0, _("Device %s is busy. Job %d canceled.\n"), 
+	    dev_name(dev), jcr->JobId);
       goto get_out;
    }
 
    /* Find next Volume, if any */
    vol = jcr->VolList;
    if (!vol) {
-      Jmsg(jcr, M_FATAL, 0, _("No volumes specified. Job canceled.\n"));
+      Jmsg(jcr, M_FATAL, 0, _("No volumes specified. Job %d canceled.\n"), jcr->JobId);
       goto get_out;
    }
    jcr->CurVolume++;
@@ -74,7 +75,7 @@ int acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 
    for (i=0; i<5; i++) {
       if (job_canceled(jcr)) {
-         Mmsg0(&dev->errmsg, _("Job canceled.\n"));
+         Mmsg1(&dev->errmsg, _("Job %d canceled.\n"), jcr->JobId);
 	 goto get_out;		      /* error return */
       }
       /*
@@ -178,7 +179,7 @@ DEVICE *acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    Dmsg1(190, "acquire_append device is %s\n", dev_is_tape(dev)?"tape":"disk");
 	     
 
-   if (dev->state & ST_APPEND) {
+   if (dev_state(dev, ST_APPEND)) {
       /* 
        * Device already in append mode	 
        *
@@ -198,7 +199,7 @@ DEVICE *acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	    for ( ; d; d=d->next) {
 	       open_vols++;
 	    }
-	    if (dev->state & ST_FILE && dev->max_open_vols > open_vols) {
+	    if (dev_state(dev, ST_FILE) && dev->max_open_vols > open_vols) {
 	       d = init_dev(NULL, (DEVRES *)dev->device); /* init new device */
 	       d->prev = dev;			/* chain in new device */
 	       d->next = dev->next;
@@ -235,7 +236,7 @@ DEVICE *acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
        }
    } else { 
       /* Not already in append mode, so mount the device */
-      if (dev->state & ST_READ) {
+      if (dev_state(dev, ST_READ)) {
          Jmsg(jcr, M_FATAL, 0, _("Device %s is busy reading.\n"), dev_name(dev));
 	 goto get_out;
       } 
@@ -245,8 +246,11 @@ DEVICE *acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 
    if (do_mount || recycle) {
       if (!mount_next_write_volume(jcr, dev, block, release)) {
-         Jmsg(jcr, M_FATAL, 0, _("Could not ready device %s for append.\n"),
-	    dev_name(dev));
+	 if (!job_canceled(jcr)) {
+            /* Reduce "noise" -- don't print if job canceled */
+            Jmsg(jcr, M_FATAL, 0, _("Could not ready device %s for append.\n"),
+	       dev_name(dev));
+	 }
 	 goto get_out;
       }
    }
@@ -279,7 +283,7 @@ int release_device(JCR *jcr, DEVICE *dev)
 {
    lock_device(dev);
    Dmsg1(100, "release_device device is %s\n", dev_is_tape(dev)?"tape":"disk");
-   if (dev->state & ST_READ) {
+   if (dev_state(dev, ST_READ)) {
       dev->state &= ~ST_READ;	      /* clear read bit */
       if (!dev_is_tape(dev) || !dev_cap(dev, CAP_ALWAYSOPEN)) {
 	 offline_or_rewind_dev(dev);
@@ -288,11 +292,12 @@ int release_device(JCR *jcr, DEVICE *dev)
       /******FIXME**** send read volume usage statistics to director */
 
    } else if (dev->num_writers > 0) {
+      ASSERT(dev_state(dev, ST_APPEND));
       dev->num_writers--;
       Dmsg1(100, "There are %d writers in release_device\n", dev->num_writers);
       if (dev->num_writers == 0) {
 	 /* If we are the only writer, write EOF after job */
-	 if (dev->state & ST_LABEL) {
+	 if (dev_state(dev, ST_LABEL)) {
             Dmsg0(100, "dir_create_jobmedia_record. Release\n");
 	    if (!dir_create_jobmedia_record(jcr)) {
                Jmsg(jcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
@@ -301,34 +306,32 @@ int release_device(JCR *jcr, DEVICE *dev)
 	    if (dev_can_write(dev)) {
 	       weof_dev(dev, 1);
 	    }
-	    dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */
 	    dev->VolCatInfo.VolCatJobs++;	       /* increment number of jobs */
 	    /* Note! do volume update before close, which zaps VolCatInfo */
-            Dmsg0(200, "dir_update_vol_info. Release0\n");
-	    dir_update_volume_info(jcr, &dev->VolCatInfo, 0); /* send Volume info to Director */
+            Dmsg0(100, "dir_update_vol_info. Release0\n");
+	    dir_update_volume_info(jcr, dev, 0); /* send Volume info to Director */
 	 }
 
 	 if (!dev_is_tape(dev) || !dev_cap(dev, CAP_ALWAYSOPEN)) {
 	    offline_or_rewind_dev(dev);
 	    close_dev(dev);
 	 }
-      } else if (dev->state & ST_LABEL) {
+      } else if (dev_state(dev, ST_LABEL)) {
          Dmsg0(100, "dir_create_jobmedia_record. Release\n");
 	 if (!dir_create_jobmedia_record(jcr)) {
             Jmsg(jcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
 	       jcr->VolCatInfo.VolCatName, jcr->Job);
 	 }
-         Dmsg0(200, "dir_update_vol_info. Release1\n");
-	 dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */
+         Dmsg0(100, "dir_update_vol_info. Release1\n");
 	 dev->VolCatInfo.VolCatJobs++;		    /* increment number of jobs */
-	 dir_update_volume_info(jcr, &dev->VolCatInfo, 0); /* send Volume info to Director */
+	 dir_update_volume_info(jcr, dev, 0); /* send Volume info to Director */
       }
    } else {
       Jmsg2(jcr, M_ERROR, 0, _("BAD ERROR: release_device %s, Volume \"%s\" not in use.\n"), 
 	    dev_name(dev), NPRT(jcr->VolumeName));
    }
    detach_jcr_from_device(dev, jcr);
-   if (dev->prev && !(dev->state & ST_READ) && dev->num_writers == 0) {
+   if (dev->prev && !dev_state(dev, ST_READ) && dev->num_writers == 0) {
       P(mutex);
       unlock_device(dev);
       dev->prev->next = dev->next;    /* dechain */

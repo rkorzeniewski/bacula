@@ -189,7 +189,7 @@ void free_jcr(JCR *jcr)
 
    P(mutex);
    jcr->use_count--;		      /* decrement use count */
-   Dmsg2(200, "Dec jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+   Dmsg3(200, "Dec jcr 0x%x use_count=%d jobid=%d\n", jcr, jcr->use_count, jcr->JobId);
    if (jcr->use_count > 0) {	      /* if in use */
       V(mutex);
       Dmsg2(200, "jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
@@ -198,6 +198,7 @@ void free_jcr(JCR *jcr)
    remove_jcr(jcr);
    V(mutex);
 
+   Dmsg1(200, "End job=%d\n", jcr->JobId);
    if (jcr->daemon_free_jcr) {
       jcr->daemon_free_jcr(jcr);      /* call daemon free routine */
    }

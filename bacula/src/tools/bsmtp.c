@@ -102,7 +102,7 @@ static void usage()
 {
    fprintf(stderr,
 "\n"
-"Usage: smtp [-f from] [-h mailhost] [-s subject] [-c copy] [recepient ...]\n"
+"Usage: bsmtp [-f from] [-h mailhost] [-s subject] [-c copy] [recepient ...]\n"
 "       -c          set the Cc: field\n"
 "       -dnn        set debug level to nn\n"
 "       -f          set the From: field\n"
