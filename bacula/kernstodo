@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                 01 March 2003 
+                 09 March 2003 
 
 Documentation to do: (a little bit at a time)
 - Document running a test version.
@@ -8,17 +8,20 @@ Documentation to do: (a little bit at a time)
 - Document how to automatically backup all local partitions
 - Document problems with Verify and pruning.
 - Document how to use multiple databases.
+- Document Maximum File Size
 
 
 Testing to do: (painful)
-- that console command line options work
+- that ALL console command line options work and are always implemented
 - blocksize recognition code.
 - multiple simultaneous Volumes
 
 For 1.30 release:
-- Implement max_file_size in block.c
+- Fix "access not allowed" for backup of files on WinXP.
+- Fix Error: bnet.c:408 gethostbyname() for lpmatou failed: ERR=Operation not permited
+  loop.
 - Add code if there is no mtio.h.
-- Add a section to the doc on Manual cycling
+- Add a section to the doc on Manual cycling of Volumes.
 - Look at purge jobs volume (at least document it, and see if it is
   logical).
 - Add list volumes pool=*
@@ -878,3 +881,4 @@ Done: (see kernsdone for more)
   scheduled.
 - Implement TCP/IP connection for MySQL
 - Pull a canceled job from the Scheduling queue.
+- Implement max_file_size in block.c (already done, just tweaked).

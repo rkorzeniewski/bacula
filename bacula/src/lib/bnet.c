@@ -30,6 +30,7 @@
 
 
 #include "bacula.h"
+#include "jcr.h"
 
 extern time_t watchdog_time;
 
@@ -494,13 +495,17 @@ bnet_open(void *jcr, char *name, char *host, char *service, int port)
  * Try to connect to host for max_retry_time at retry_time intervals.
  */
 BSOCK *
-bnet_connect(void *jcr, int retry_interval, int max_retry_time, char *name,
+bnet_connect(void *vjcr, int retry_interval, int max_retry_time, char *name,
 	     char *host, char *service, int port, int verbose)
 {
    int i;
    BSOCK *bsock;
+   JCR *jcr = (JCR *)vjcr;
 
    for (i=0; (bsock = bnet_open(jcr, name, host, service, port)) == NULL; i -= retry_interval) {
+     if (job_cancelled(jcr)) {
+	break;
+     }
      Dmsg4(100, "Unable to connect to %s on %s:%d. ERR=%s\n",
 	      name, host, port, strerror(errno));
       if (i < 0) {

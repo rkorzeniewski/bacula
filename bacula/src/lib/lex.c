@@ -153,8 +153,9 @@ lex_open_file(LEX *lf, char *filename, LEX_ERROR_HANDLER *scan_error)
 int
 lex_get_char(LEX *lf)
 {
-   if (lf->ch == L_EOF)
+   if (lf->ch == L_EOF) {
       Emsg0(M_ABORT, 0, "get_char: called after EOF\n");
+   }
    if (lf->ch == L_EOL) {
       if (fgets(lf->line, MAXSTRING, lf->fd) == NULL) {
 	 lf->ch = L_EOF;
@@ -357,10 +358,16 @@ lex_get_token(LEX *lf, int expect)
 	    if (ch == L_EOL) {
 	       lf->state = lex_none;
 	       token = T_EOL;
+	    } else if (ch == L_EOF) {
+	       token = T_ERROR;
 	    }
 	    break;
 	 case lex_number:
             Dmsg2(290, "Lex state lex_number ch=%x %c\n", ch, ch);
+	    if (ch == L_EOF) {
+	       token = T_ERROR;
+	       break;
+	    }
 	    /* Might want to allow trailing specifications here */
 	    if (B_ISDIGIT(ch)) {
 	       add_str(lf, ch);
@@ -377,10 +384,18 @@ lex_get_token(LEX *lf, int expect)
 	    lex_unget_char(lf);
 	    break;
 	 case lex_ip_addr:
+	    if (ch == L_EOF) {
+	       token = T_ERROR;
+	       break;
+	    }
             Dmsg1(290, "Lex state lex_ip_addr ch=%x\n", ch);
 	    break;
 	 case lex_string:
             Dmsg1(290, "Lex state lex_string ch=%x\n", ch);
+	    if (ch == L_EOF) {
+	       token = T_ERROR;
+	       break;
+	    }
             if (ch == '\n' || ch == L_EOL || ch == '=' || ch == '}' || ch == '{' ||
                 ch == ';' || ch == ',' || ch == '#' || (B_ISSPACE(ch)) ) {
 	       lex_unget_char(lf);    
@@ -415,6 +430,10 @@ lex_get_token(LEX *lf, int expect)
 	    break;
 	 case lex_quoted_string:
             Dmsg2(290, "Lex state lex_quoted_string ch=%x %c\n", ch, ch);
+	    if (ch == L_EOF) {
+	       token = T_ERROR;
+	       break;
+	    }
 	    if (ch == L_EOL) {
 	       esc_next = FALSE;
 	       break;
@@ -436,6 +455,10 @@ lex_get_token(LEX *lf, int expect)
 	    add_str(lf, ch);
 	    break;
 	 case lex_include:	      /* scanning a filename */
+	    if (ch == L_EOF) {
+	       token = T_ERROR;
+	       break;
+	    }
             if (B_ISSPACE(ch) || ch == '\n' || ch == L_EOL || ch == '}' || ch == '{' ||
                 ch == ';' || ch == ','   || ch == '"' || ch == '#') {
 	       lf->state = lex_none;
@@ -536,7 +559,7 @@ lex_get_token(LEX *lf, int expect)
 
    case T_STRING:
       if (token != T_IDENTIFIER && token != T_UNQUOTED_STRING && token != T_QUOTED_STRING) {
-         scan_err2(lf, "expected a name, got %s: %s",
+         scan_err2(lf, "expected a string, got %s: %s",
 	       lex_tok_to_str(token), lf->str);
 	 token = T_ERROR;
       } else {
