@@ -451,13 +451,10 @@ AC_SUBST(READLINE_SRC)
 # Minimal stuff for readline Makefile configuration
 MAKE_SHELL=/bin/sh
 AC_SUBST(MAKE_SHELL)
-
 AC_HEADER_STAT
 AC_HEADER_DIRENT
-
 AC_CHECK_FUNCS(strcasecmp select setenv putenv tcgetattr setlocale lstat lchown)
 AC_CHECK_FUNCS(nanosleep nl_langinfo)
-
 AC_CHECK_HEADERS(varargs.h)
 
 # End of readline/conio stuff
@@ -985,6 +982,7 @@ AC_CHECK_HEADERS( \
 	resolv.h \
 	mtio.h \
 	sys/mtio.h \
+	regex.h \
 )
 AC_HEADER_STDC
 AC_HEADER_MAJOR
@@ -1232,7 +1230,7 @@ fi
 
 
 dnl# --------------------------------------------------------------------------
-dnl# CHECKING FOR LIBRARY FUNCTIONS
+dnl# CHECKING FOR REQUIRED LIBRARY FUNCTIONS
 dnl# --------------------------------------------------------------------------
 AC_CHECK_FUNCS( \
 	fork \
@@ -1700,7 +1698,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/win32/console/bconsole.conf \
 	   src/win32/wx-console/wx-console.conf \
 	   $PFILES ],  
-	  [(echo "Doing make of dependencies"; make depend;) ]
+	  [(echo "Doing make of dependencies"; ${MAKE:-make} depend;) ]
 )
 
 cd scripts

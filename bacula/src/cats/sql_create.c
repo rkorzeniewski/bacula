@@ -177,9 +177,7 @@ db_create_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
    Dmsg1(200, "selectpool: %s\n", mdb->cmd);
 
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
-
       mdb->num_rows = sql_num_rows(mdb);
-   
       if (mdb->num_rows > 0) {
          Mmsg1(&mdb->errmsg, _("pool record %s already exists\n"), pr->Name);
 	 sql_free_result(mdb);
@@ -319,9 +317,7 @@ int db_create_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr)
 
    cr->ClientId = 0;
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
-
       mdb->num_rows = sql_num_rows(mdb);
-      
       /* If more than one, report error, but return first row */
       if (mdb->num_rows > 1) {
          Mmsg1(&mdb->errmsg, _("More than one Client!: %d\n"), (int)(mdb->num_rows));
@@ -427,9 +423,7 @@ int db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
 
    fsr->FileSetId = 0;
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
-
       mdb->num_rows = sql_num_rows(mdb);
-      
       if (mdb->num_rows > 1) {
          Mmsg1(&mdb->errmsg, _("More than one FileSet!: %d\n"), (int)(mdb->num_rows));
          Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
@@ -635,7 +629,6 @@ static int db_create_path_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 	 ASSERT(ar->PathId);
 	 return 1;
       }
-
       sql_free_result(mdb);
    }
 

@@ -122,10 +122,8 @@ int db_get_file_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, FILE_DBR *fdbr)
    Dmsg1(100, "Query=%s\n", mdb->cmd);
 
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
-
       mdb->num_rows = sql_num_rows(mdb);
       Dmsg1(050, "get_file_record num_rows=%d\n", (int)mdb->num_rows);
-
       if (mdb->num_rows > 1) {
          Mmsg1(&mdb->errmsg, _("get_file_record want 1 got rows=%d\n"),
 	    mdb->num_rows);
@@ -168,9 +166,7 @@ static int db_get_filename_record(JCR *jcr, B_DB *mdb)
    Mmsg(&mdb->cmd, "SELECT FilenameId FROM Filename WHERE Name='%s'", mdb->esc_name);
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       char ed1[30];
-
       mdb->num_rows = sql_num_rows(mdb);
-
       if (mdb->num_rows > 1) {
          Mmsg2(&mdb->errmsg, _("More than one Filename!: %s for file: %s\n"),
 	    edit_uint64(mdb->num_rows, ed1), mdb->fname);
@@ -221,7 +217,6 @@ static int db_get_path_record(JCR *jcr, B_DB *mdb)
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       char ed1[30];
       mdb->num_rows = sql_num_rows(mdb);
-
       if (mdb->num_rows > 1) {
          Mmsg2(&mdb->errmsg, _("More than one Path!: %s for path: %s\n"),
 	    edit_uint64(mdb->num_rows, ed1), mdb->path);
@@ -651,7 +646,6 @@ int db_get_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
       "FROM Counters WHERE Counter='%s'", cr->Counter);
 
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
-
       mdb->num_rows = sql_num_rows(mdb);
       
       /* If more than one, report error, but return first row */

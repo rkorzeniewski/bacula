@@ -510,4 +510,13 @@ extern "C" int getdomainname(char *name, int len);
 #define nl_langinfo(x) ("ANSI_X3.4-1968")
 #endif
 
+/* Fake entry points if regex does not exist */
+#ifndef HAVE_REGEX_H
+#define regcomp(x, y, z) 1
+#define regfree(x)
+#define regerror(rc, preg, prbuf, len) bstrncpy(prbuf, "REGEX not available on this system.", len)
+#define regex_t int
+#define regmatch_t char
+#endif
+
 #endif /* _BACONFIG_H */

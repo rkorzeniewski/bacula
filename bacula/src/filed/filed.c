@@ -32,6 +32,9 @@
 /* Imported Functions */
 extern void *handle_client_request(void *dir_sock);
 
+/* Imported Variables */
+extern time_t watchdog_sleep_time;
+
 /* Forward referenced functions */
 void terminate_filed(int sig);
 
@@ -39,7 +42,6 @@ void terminate_filed(int sig);
 CLIENT *me;			      /* my resource */
 char OK_msg[]   = "2000 OK\n";
 char TERM_msg[] = "2999 Terminate\n";
-
 
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 const int win32_client = 1;
@@ -51,8 +53,8 @@ const int win32_client = 0;
 #define CONFIG_FILE "./bacula-fd.conf" /* default config file */
 
 static char *configfile = NULL;
-static int foreground = 0;
-static int inetd_request = 0;
+static bool foreground = false;
+static bool inetd_request = false;
 static workq_t dir_workq;	      /* queue of work from Director */
 static pthread_t server_tid;
 
@@ -89,8 +91,8 @@ static void usage()
 int main (int argc, char *argv[])
 {
    int ch;
-   int no_signals = FALSE;
-   int test_config = FALSE;
+   bool no_signals = false;
+   bool test_config = false;
    DIRRES *director;
    char *uid = NULL;
    char *gid = NULL;
@@ -118,7 +120,7 @@ int main (int argc, char *argv[])
 	 break;
 
       case 'f':                    /* run in foreground */
-	 foreground = TRUE;
+	 foreground = true;
 	 break;
 
       case 'g':                    /* set group */
@@ -126,14 +128,14 @@ int main (int argc, char *argv[])
 	 break;
 
       case 'i':
-	 inetd_request = TRUE;
+	 inetd_request = true;
 	 break;
       case 's':
-	 no_signals = TRUE;
+	 no_signals = true;
 	 break;
 
       case 't':
-	 test_config = TRUE;
+	 test_config = true;
 	 break;
 
       case 'u':                    /* set userid */
@@ -166,6 +168,9 @@ int main (int argc, char *argv[])
 
    if (!no_signals) {
       init_signals(terminate_filed);
+   } else {
+      /* This reduces the number of signals facilitating debugging */
+      watchdog_sleep_time = 120;      /* long timeout for debugging */
    }
 
    if (configfile == NULL) {
@@ -225,9 +230,10 @@ Without that I don't know who I am :-(\n"), configfile);
 
    set_thread_concurrency(10);
 
-   start_watchdog();		      /* start watchdog thread */
-
-   init_jcr_subsystem();	      /* start JCR watchdogs etc. */
+   if (!no_signals) {
+      start_watchdog(); 	      /* start watchdog thread */
+      init_jcr_subsystem();	      /* start JCR watchdogs etc. */
+   }
    server_tid = pthread_self();
 
    if (inetd_request) {

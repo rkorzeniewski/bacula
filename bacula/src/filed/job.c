@@ -226,12 +226,15 @@ void *handle_client_request(void *dirp)
    FF_PKT *ff = (FF_PKT *)jcr->ff;
    findFILESET *fileset = ff->fileset;
    if (fileset) {
-      int i, j;
+      int i, j, k;
       /* Delete FileSet Include lists */
       for (i=0; i<fileset->include_list.size(); i++) {
 	 findINCEXE *incexe = (findINCEXE *)fileset->include_list.get(i);
 	 for (j=0; j<incexe->opts_list.size(); j++) {
 	    findFOPTS *fo = (findFOPTS *)incexe->opts_list.get(j);
+	    for (k=0; k<fo->regex.size(); k++) {
+	       regfree((regex_t *)fo->regex.get(k));
+	    }
 	    fo->regex.destroy();
 	    fo->wild.destroy();
 	    fo->base.destroy();
@@ -711,7 +714,20 @@ static void add_fileset(JCR *jcr, const char *item)
       break;
    case 'R':
       current_opts = start_options(ff);
-      current_opts->regex.append(bstrdup(item));
+      regex_t *preg;
+      int rc;
+      char prbuf[500];
+      preg = (regex_t *)malloc(sizeof(regex_t));
+      rc = regcomp(preg, item, REG_EXTENDED);
+      if (rc != 0) {
+	 regerror(rc, preg, prbuf, sizeof(prbuf));
+	 regfree(preg);
+	 free(preg);
+         Jmsg(jcr, M_FATAL, 0, "REGEX %s compile error. ERR=%s\n", item, prbuf);
+	 state = state_error;
+	 break;
+      }
+      current_opts->regex.append(preg);
       state = state_options;
       break;
    case 'B':

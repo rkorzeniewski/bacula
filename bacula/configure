@@ -5884,7 +5884,6 @@ fi
 # Minimal stuff for readline Makefile configuration
 MAKE_SHELL=/bin/sh
 
-
 echo "$as_me:$LINENO: checking whether stat file-mode macros are broken" >&5
 echo $ECHO_N "checking whether stat file-mode macros are broken... $ECHO_C" >&6
 if test "${ac_cv_header_stat_broken+set}" = set; then
@@ -6233,7 +6232,6 @@ fi
 
 
 
-
 for ac_func in strcasecmp select setenv putenv tcgetattr setlocale lstat lchown
 do
 as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
@@ -6401,7 +6399,6 @@ _ACEOF
 
 fi
 done
-
 
 
 for ac_header in varargs.h
@@ -9152,6 +9149,7 @@ fi
 
 
 
+
 for ac_header in \
 	assert.h \
 	fcntl.h \
@@ -9175,6 +9173,7 @@ for ac_header in \
 	resolv.h \
 	mtio.h \
 	sys/mtio.h \
+	regex.h \
 
 do
 as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
@@ -19736,7 +19735,7 @@ ac_abs_top_srcdir=`cd "$ac_dir" && cd $ac_top_srcdir && pwd`
   { echo "$as_me:$LINENO: executing $ac_dest commands" >&5
 echo "$as_me: executing $ac_dest commands" >&6;}
   case $ac_dest in
-    default ) (echo "Doing make of dependencies"; make depend;)
+    default ) (echo "Doing make of dependencies"; ${MAKE:-make} depend;)
  ;;
   esac
 done
