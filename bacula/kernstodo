@@ -23,6 +23,7 @@ For 1.30 release:
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 After 1.30:
+- Check if Job/File retentions apply to multivolume jobs.
 - Change M_INFO to M_RESTORED for all restored files.
 - Remove subsysdir from conf files (used only in autostart scripts).
 - Implement console @echo command.

@@ -50,6 +50,7 @@ static int jobscmd(UAContext *ua, char *cmd);
 static int filesetscmd(UAContext *ua, char *cmd);
 static int clientscmd(UAContext *ua, char *cmd);
 static int msgscmd(UAContext *ua, char *cmd);
+static int poolscmd(UAContext *ua, char *cmd);
 
 struct cmdstruct { char *key; int (*func)(UAContext *ua, char *cmd); char *help; }; 
 static struct cmdstruct commands[] = {
@@ -58,6 +59,7 @@ static struct cmdstruct commands[] = {
  { N_(".filesets"),   filesetscmd,  NULL},
  { N_(".clients"),    clientscmd,   NULL},
  { N_(".msgs"),       msgscmd,      NULL},
+ { N_(".pools"),      poolscmd,     NULL},
  { N_(".messages"),   qmessagescmd, NULL},
  { N_(".quit"),       quitcmd,      NULL},
  { N_(".exit"),       quitcmd,      NULL} 
@@ -155,3 +157,15 @@ static int msgscmd(UAContext *ua, char *cmd)
    UnlockRes();
    return 1;
 }
+
+static int poolscmd(UAContext *ua, char *cmd)
+{
+   POOL *pool = NULL;
+   LockRes();
+   while ( (pool = (POOL *)GetNextRes(R_POOL, (RES *)pool)) ) {
+      bsendmsg(ua, "%s\n", pool->hdr.name);
+   }
+   UnlockRes();
+   return 1;
+}
+
