@@ -86,29 +86,18 @@ char *insert_delcand =
  * more recent backup -- i.e. are not the only backup.
  * This is the list of Jobs to delete for a Backup Job.
  */
-#ifdef xxx
 char *select_backup_del =
    "SELECT DelCandidates.JobId "
    "FROM Job,DelCandidates "
    "WHERE (DelCandidates.JobFiles=0) OR "
-   "(NOT DelCandidates.JobStatus='T') OR "
+   "(DelCandidates.JobStatus!='T') OR "
    "(Job.JobTDate>%s "
    "AND Job.ClientId=%u "
    "AND Job.Type='B' "
    "AND Job.Level='F' "
    "AND Job.JobStatus='T' "
-   "AND Job.FileSetId=DelCandidates.FileSetId)";
-#else
-char *select_backup_del =
-   "SELECT DelCandidates.JobId "
-   "FROM Job,DelCandidates "
-   "WHERE (Job.JobTDate>%s "
-   "AND Job.ClientId=%u "
-   "AND Job.Type='B' "
-   "AND Job.Level='F' "
-   "AND Job.JobStatus='T' "
-   "AND Job.FileSetId=DelCandidates.FileSetId)";
-#endif
+   "AND Job.FileSetId=DelCandidates.FileSetId) "
+   "GROUP BY JobId";
 
 /* Select Jobs from the DelCandidates table that have a
  * more recent InitCatalog -- i.e. are not the only InitCatalog
@@ -122,7 +111,8 @@ char *select_verify_del =
    "AND Job.Type='V' "
    "AND Job.Level='V' "
    "AND Job.JobStatus='T' "
-   "AND Job.FileSetId=DelCandidates.FileSetId";
+   "AND Job.FileSetId=DelCandidates.FileSetId "
+   "GROUP BY JobId";
 
 
 /* Select Jobs from the DelCandidates table.
@@ -133,7 +123,8 @@ char *select_restore_del =
    "FROM Job,DelCandidates "
    "WHERE Job.JobTDate>%s "
    "AND Job.ClientId=%u "   
-   "AND Job.Type='R'";
+   "AND Job.Type='R' "
+   "GROUP BY JobId";
 
 
 

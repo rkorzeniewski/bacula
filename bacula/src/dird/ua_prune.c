@@ -237,7 +237,7 @@ int prune_files(UAContext *ua, CLIENT *client)
    db_lock(ua->db);
    memset(&cr, 0, sizeof(cr));
    memset(&del, 0, sizeof(del));
-   strcpy(cr.Name, client->hdr.name);
+   bstrncpy(cr.Name, client->hdr.name, sizeof(cr.Name));
    if (!db_create_client_record(ua->jcr, ua->db, &cr)) {
       db_unlock(ua->db);
       return 0;
@@ -359,7 +359,7 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
    db_lock(ua->db);
    memset(&cr, 0, sizeof(cr));
    memset(&del, 0, sizeof(del));
-   strcpy(cr.Name, client->hdr.name);
+   bstrncpy(cr.Name, client->hdr.name, sizeof(cr.Name));
    if (!db_create_client_record(ua->jcr, ua->db, &cr)) {
       db_unlock(ua->db);
       return 0;
@@ -391,7 +391,7 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
    }
 
    /* Count Files to be deleted */
-   strcpy(query, cnt_DelCand);
+   pm_strcpy(&query, cnt_DelCand);
    Dmsg1(100, "select sql=%s\n", query);
    cnt.count = 0;
    if (!db_sql_query(ua->db, query, count_handler, (void *)&cnt)) {
@@ -437,9 +437,7 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
     * Then delete the Job entry, and finally and JobMedia records.
     */
    for (i=0; i < del.num_ids; i++) {
-      Dmsg1(100, "Delete JobId=%d\n", del.JobId[i]);
-#define xxx
-#ifdef xxx
+      Dmsg1(050, "Delete JobId=%d\n", del.JobId[i]);
       if (!del.PurgedFiles[i]) {
 	 Mmsg(&query, del_File, del.JobId[i]);
 	 if (!db_sql_query(ua->db, query, NULL, (void *)NULL)) {
@@ -459,7 +457,6 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
          bsendmsg(ua, "%s", db_strerror(ua->db));
       }
       Dmsg1(050, "Del sql=%s\n", query);
-#endif
    }
    bsendmsg(ua, _("Pruned %d %s for client %s from catalog.\n"), del.num_ids,
       del.num_ids==1?_("Job"):_("Jobs"), client->hdr.name);

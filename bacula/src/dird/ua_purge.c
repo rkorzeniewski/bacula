@@ -205,8 +205,10 @@ int purgecmd(UAContext *ua, char *cmd)
 	 }
 	 return 1;
       case 2:			      /* client */
-	 client = select_client_resource(ua);
-	 purge_files_from_client(ua, client);
+	 client = get_client_resource(ua);
+	 if (client) {
+	    purge_files_from_client(ua, client);
+	 }
 	 return 1;
       case 3:			      /* Volume */
 	 if (select_media_dbr(ua, &mr)) {
@@ -218,8 +220,10 @@ int purgecmd(UAContext *ua, char *cmd)
    case 1:
       switch(find_arg_keyword(ua, jobs_keywords)) {
       case 0:			      /* client */
-	 client = select_client_resource(ua);
-	 purge_jobs_from_client(ua, client);
+	 client = get_client_resource(ua);
+	 if (client) {
+	    purge_jobs_from_client(ua, client);
+	 }
 	 return 1;
       case 1:			      /* Volume */
 	 if (select_media_dbr(ua, &mr)) {
@@ -238,18 +242,16 @@ int purgecmd(UAContext *ua, char *cmd)
    }
    switch (do_keyword_prompt(ua, _("Choose item to purge"), keywords)) {
    case 0:			      /* files */
-      client = select_client_resource(ua);
-      if (!client) {
-	 return 1;
+      client = get_client_resource(ua);
+      if (client) {
+	 purge_files_from_client(ua, client);
       }
-      purge_files_from_client(ua, client);
       break;
    case 1:			      /* jobs */
-      client = select_client_resource(ua);
-      if (!client) {
-	 return 1;
+      client = get_client_resource(ua);
+      if (client) {
+	 purge_jobs_from_client(ua, client);
       }
-      purge_jobs_from_client(ua, client);
       break;
    case 2:			      /* Volume */
       if (select_media_dbr(ua, &mr)) {
@@ -355,7 +357,7 @@ int purge_jobs_from_client(UAContext *ua, CLIENT *client)
    memset(&cr, 0, sizeof(cr));
    memset(&del, 0, sizeof(del));
 
-   strcpy(cr.Name, client->hdr.name);
+   bstrncpy(cr.Name, client->hdr.name, sizeof(cr.Name));
    if (!db_create_client_record(ua->jcr, ua->db, &cr)) {
       return 0;
    }
