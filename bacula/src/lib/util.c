@@ -385,12 +385,15 @@ int do_shell_expansion(char *name, int name_len)
       pm_strcat(&cmd, name);
       pm_strcat(&cmd, "\"");
       Dmsg1(400, "Send: %s\n", cmd);
-      bpipe = open_bpipe(cmd, 0, "r");
-      *line = 0;
-      fgets(line, sizeof(line), bpipe->rfd);
-      strip_trailing_junk(line);
-      stat = close_bpipe(bpipe);
-      Dmsg2(400, "stat=%d got: %s\n", stat, line);
+      if ((bpipe = open_bpipe(cmd, 0, "r"))) {
+	 *line = 0;
+	 fgets(line, sizeof(line), bpipe->rfd);
+	 strip_trailing_junk(line);
+	 stat = close_bpipe(bpipe);
+         Dmsg2(400, "stat=%d got: %s\n", stat, line);
+      } else {
+	 stat = 1;		      /* error */
+      }
       free_pool_memory(cmd);
       if (stat == 0) {
 	 bstrncpy(name, line, name_len);
@@ -416,7 +419,7 @@ void make_session_key(char *key, char *seed, int mode)
 
      s[0] = 0;
      if (seed != NULL) {
-	strcat(s, seed);
+	bstrncat(s, seed, sizeof(s));
      }
 
      /* The following creates a seed for the session key generator
@@ -426,11 +429,11 @@ void make_session_key(char *key, char *seed, int mode)
 	available on your machine, replace it with something
 	equivalent or, if you like, just delete it. */
 
-     sprintf(s + strlen(s), "%lu", (unsigned long) getpid());
-     sprintf(s + strlen(s), "%lu", (unsigned long) getppid());
+     sprintf(s + strlen(s), "%lu", (unsigned long)getpid());
+     sprintf(s + strlen(s), "%lu", (unsigned long)getppid());
      getcwd(s + strlen(s), 256);
-     sprintf(s + strlen(s), "%lu", (unsigned long) clock());
-     sprintf(s + strlen(s), "%lu", (unsigned long) time(NULL));
+     sprintf(s + strlen(s), "%lu", (unsigned long)clock());
+     sprintf(s + strlen(s), "%lu", (unsigned long)time(NULL));
 #ifdef Solaris
      sysinfo(SI_HW_SERIAL,s + strlen(s), 12);
 #endif
@@ -446,27 +449,27 @@ void make_session_key(char *key, char *seed, int mode)
      MD5Init(&md5c);
      MD5Update(&md5c, (unsigned char *)s, strlen(s));
      MD5Final(md5key, &md5c);
-     sprintf(s + strlen(s), "%lu", (unsigned long) ((time(NULL) + 65121) ^ 0x375F));
+     sprintf(s + strlen(s), "%lu", (unsigned long)((time(NULL) + 65121) ^ 0x375F));
      MD5Init(&md5c);
      MD5Update(&md5c, (unsigned char *)s, strlen(s));
      MD5Final(md5key1, &md5c);
 #define nextrand    (md5key[j] ^ md5key1[j])
      if (mode) {
 	for (j = k = 0; j < 16; j++) {
-	    unsigned char rb = nextrand;
+	   unsigned char rb = nextrand;
 
 #define Rad16(x) ((x) + 'A')
-	    key[k++] = Rad16((rb >> 4) & 0xF);
-	    key[k++] = Rad16(rb & 0xF);
+	   key[k++] = Rad16((rb >> 4) & 0xF);
+	   key[k++] = Rad16(rb & 0xF);
 #undef Rad16
-	    if (j & 1) {
-                 key[k++] = '-';
-	    }
+	   if (j & 1) {
+              key[k++] = '-';
+	   }
 	}
 	key[--k] = 0;
      } else {
 	for (j = 0; j < 16; j++) {
-	    key[j] = nextrand;
+	   key[j] = nextrand;
 	}
      }
 }
