@@ -80,7 +80,6 @@ int do_read_data(JCR *jcr)
 
    block = new_block(dev);
 
-
    create_vol_list(jcr);
 
    Dmsg1(20, "Found %d volumes names to restore.\n", jcr->NumVolumes);
@@ -223,10 +222,13 @@ int do_read_data(JCR *jcr)
 	 ds->msglen = rec->data_len;
          Dmsg1(40, ">filed: send %d bytes data.\n", ds->msglen);
 	 if (!bnet_send(ds)) {
-            Dmsg0(0, "Error sending to FD\n");
+            Dmsg1(000, "Error sending to FD. ERR=%s\n", bnet_strerror(ds));
+            Dmsg1(100, "Hdr=%s\n", hdr);
+            Dmsg1(100, "data=%s\n", ds->msg);
             Jmsg1(jcr, M_FATAL, 0, _("Error sending to File daemon. ERR=%s\n"),
 	       bnet_strerror(ds));
 	    ok = FALSE;
+	    break;
 	 }
       }
    }

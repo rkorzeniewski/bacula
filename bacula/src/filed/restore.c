@@ -143,16 +143,17 @@ void do_restore(JCR *jcr)
 	  *    Link name (if file linked i.e. FT_LNK)
 	  *
 	  */
+         Dmsg1(100, "Attr: %s\n", sd->msg);
          if (sscanf(sd->msg, "%d %d", &record_file_index, &type) != 2) {
-            Jmsg(jcr, M_FATAL, 0, _("Error scanning record header: %s\n"), sd->msg);
-            Dmsg0(0, "\nError scanning header\n");
+            Jmsg(jcr, M_FATAL, 0, _("Error scanning attributes: %s\n"), sd->msg);
+            Dmsg1(000, "\nError scanning attributes. %s\n", sd->msg);
 	    goto bail_out;
 	 }
-         Dmsg2(30, "Got Attr: FilInx=%d type=%d\n", record_file_index, type);
+         Dmsg2(100, "Got Attr: FilInx=%d type=%d\n", record_file_index, type);
 	 if (record_file_index != file_index) {
             Jmsg(jcr, M_FATAL, 0, _("Record header file index %ld not equal record index %ld\n"),
 	       file_index, record_file_index);
-            Dmsg0(0, "File index error\n");
+            Dmsg0(000, "File index error\n");
 	    goto bail_out;
 	 }
 	 ap = sd->msg;

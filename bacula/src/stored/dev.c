@@ -144,10 +144,12 @@ init_dev(DEVICE *dev, char *dev_name)
    dev->errmsg = get_pool_memory(PM_EMSG);
    *dev->errmsg = 0;
 
+#ifdef NEW_LOCK
    if ((errstat=rwl_init(&dev->lock)) != 0) {
       Mmsg1(&dev->errmsg, _("Unable to initialize dev lock. ERR=%s\n"), strerror(errstat));
       Emsg0(M_FATAL, 0, dev->errmsg);
    }
+#endif
 
    if ((errstat = pthread_mutex_init(&dev->mutex, NULL)) != 0) {
       dev->dev_errno = errstat;
@@ -1073,7 +1075,9 @@ term_dev(DEVICE *dev)
       free_pool_memory(dev->errmsg);
       dev->errmsg = NULL;
    }
+#ifdef NEW_LOCK
    rwl_destroy(&dev->lock);
+#endif
    pthread_mutex_destroy(&dev->mutex);
    pthread_cond_destroy(&dev->wait);
    pthread_cond_destroy(&dev->wait_next_vol);

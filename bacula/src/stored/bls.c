@@ -511,10 +511,12 @@ Warning, this Volume is a continuation of Volume %s\n",
       record = 0;
       for (rec->state=0; !is_block_empty(rec); ) {
 	 if (!read_record_from_block(block, rec)) {
-            Dmsg2(30, "!read-break. stat=%s blk=%d\n", rec_state_to_str(rec), 
-		  block->BlockNumber);
+            Dmsg3(10, "!read-break. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
+		  block->BlockNumber, rec->remainder);
 	    break;
 	 }
+         Dmsg3(10, "read-OK. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
+		  block->BlockNumber, rec->remainder);
 	 /*
 	  * At this point, we have at least a record header.
 	  *  Now decide if we want this record or not, but remember

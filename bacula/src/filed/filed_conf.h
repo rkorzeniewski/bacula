@@ -28,38 +28,39 @@
 /*
  * Resource codes -- they must be sequential for indexing   
  */
-#define R_FIRST 		      1001
+#define R_FIRST                       1001
 
-#define R_DIRECTOR		      1001
-#define R_CLIENT		      1002
-#define R_MSGS			      1003
+#define R_DIRECTOR                    1001
+#define R_CLIENT                      1002
+#define R_MSGS                        1003
 
-#define R_LAST			      R_MSGS
+#define R_LAST                        R_MSGS
 
 /*
  * Some resource attributes
  */
-#define R_NAME			      1020
-#define R_ADDRESS		      1021
-#define R_PASSWORD		      1022
-#define R_TYPE			      1023
+#define R_NAME                        1020
+#define R_ADDRESS                     1021
+#define R_PASSWORD                    1022
+#define R_TYPE                        1023
 
 
 /* Definition of the contents of each Resource */
 struct s_res_dir {
-   RES	 hdr;
-   char *password;		      /* Director password */
-   char *address;		      /* Director address or zero */
+   RES   hdr;
+   char *password;                    /* Director password */
+   char *address;                     /* Director address or zero */
 };
 typedef struct s_res_dir DIRRES;
 
 struct s_res_client {
-   RES	 hdr;
-   int	 FDport;		      /* where we listen for Directors */ 
+   RES   hdr;
+   int   FDport;                      /* where we listen for Directors */ 
    char *working_directory;
    char *pid_directory;
    char *subsys_directory;
    struct s_res_msgs *messages;       /* daemon message handler */
+   int MaxConcurrentJobs;
 };
 typedef struct s_res_client CLIENT;
 
@@ -69,9 +70,9 @@ typedef struct s_res_client CLIENT;
  * resource structure definitions.
  */
 union u_res {
-   struct s_res_dir	res_dir;
-   struct s_res_client	res_client;
-   struct s_res_msgs	res_msgs;
+   struct s_res_dir     res_dir;
+   struct s_res_client  res_client;
+   struct s_res_msgs    res_msgs;
    RES hdr;
 };
 

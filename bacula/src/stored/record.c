@@ -328,8 +328,16 @@ int read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
       block->binbuf -= RECHDR_LENGTH;
       remlen -= RECHDR_LENGTH;
 
-      /*    
-       * if Stream is negative, it means that this is a continuation
+      /* If we are looking for more (remainder!=0), we reject anything
+       *  where the VolSessionId and VolSessionTime don't agree
+       */
+      if (rec->remainder && (rec->VolSessionId != VolSessionId || 
+			     rec->VolSessionTime != VolSessionTime)) {
+	 rec->state |= REC_NO_MATCH;
+	 return 0;		   /* This is from some other Session */
+      }
+
+      /* if Stream is negative, it means that this is a continuation
        * of a previous partially written record.
        */
       if (Stream < 0) { 	      /* continuation record? */
@@ -338,9 +346,7 @@ int read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
 	 rec->state |= REC_CONTINUATION;
          if (!rec->remainder) {       /* if we didn't read previously */
 	    rec->data_len = 0;	      /* return data as if no continuation */
-	 } else if (rec->VolSessionId != VolSessionId || 
-		    rec->VolSessionTime != VolSessionTime ||
-		    rec->Stream != -Stream) {
+	 } else if (rec->Stream != -Stream) {
 	    rec->state |= REC_NO_MATCH;
 	    return 0;		      /* This is from some other Session */
 	 }

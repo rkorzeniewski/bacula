@@ -110,11 +110,19 @@ typedef struct s_volume_catalog_info {
 } VOLUME_CAT_INFO;
 
 
+typedef struct s_steal_lock {
+   pthread_t         no_wait_id;      /* id of no wait thread */
+   int               dev_blocked;     /* state */
+} bsteal_lock_t;
+
+
 /* Device structure definition */
 typedef struct s_device {
    struct s_device *next;             /* pointer to next open device */
    void *attached_jcrs;               /* attached JCR list */
+#ifdef NEW_LOCK
    brwlock_t lock;                    /* new device locking mechanism */
+#endif
    pthread_mutex_t mutex;             /* access control */
    pthread_cond_t wait;               /* thread wait variable */
    pthread_cond_t wait_next_vol;      /* wait for tape to be mounted */

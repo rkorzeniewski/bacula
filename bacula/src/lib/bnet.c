@@ -661,7 +661,7 @@ term_bsock(BSOCK *bsock)
       free_pool_memory(bsock->msg);
       bsock->msg = NULL;
    } else {
-      ASSERT(1=0);		      /* double close */
+      ASSERT(1==0);		      /* double close */
    }
    if (bsock->errmsg) {
       free_pool_memory(bsock->errmsg);

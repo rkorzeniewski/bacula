@@ -254,10 +254,48 @@ static int label_cmd(JCR *jcr)
       }
       UnlockRes();
       if (found) {
+#ifdef NEW_LOCK
+	 int label_it = FALSE;
+	 brwsteal_t hold;
+#endif
 	 /******FIXME**** compare MediaTypes */
 	 jcr->device = device;
 	 dev = device->dev;
 
+#ifdef NEW_LOCK
+	 P(dev->lock.mutex);
+	 if (!(dev->state & ST_OPENED)) {
+	    label_it = TRUE;
+	 } else if (dev->dev_blocked && 
+		    dev->dev_blocked != BST_DOING_ACQUIRE) {  /* device blocked? */
+	    label_it = TRUE;
+	 } else if (dev->state & ST_READ || dev->num_writers) {
+	    if (dev->state & ST_READ) {
+                bnet_fsend(dir, _("3901 Device %s is busy with 1 reader.\n"),
+		   dev_name(dev));
+	    } else {
+                bnet_fsend(dir, _("3902 Device %s is busy with %d writer(s).\n"),
+		   dev_name(dev), dev->num_writers);
+	    }
+	 } else {		      /* device not being used */
+	    label_it = TRUE;
+	 }
+	 if (label_it) {
+	    new_steal_device_lock(dev, &hold, BST_WRITING_LABEL);
+	    if (!(dev->state & ST_OPENED)) {
+	       if (open_dev(dev, volname, READ_WRITE) < 0) {
+                  bnet_fsend(dir, _("3994 Connot open device: %s\n"), strerror_dev(dev));
+	       } else {
+		  label_volume_if_ok(jcr, dev, volname, poolname);
+		  force_close_dev(dev);
+	       }
+	    } else {
+	       label_volume_if_ok(jcr, dev, volname, poolname);
+	    }
+	    new_return_device_lock(dev, &hold);
+	 }
+	 V(dev->lock.mutex);
+#else
 	 P(dev->mutex);
 	 if (!(dev->state & ST_OPENED)) {
 	    if (open_dev(dev, volname, READ_WRITE) < 0) {
@@ -281,6 +319,7 @@ static int label_cmd(JCR *jcr)
 	    label_volume_if_ok(jcr, dev, volname, poolname);
 	 }
 	 V(dev->mutex);
+#endif
       } else {
          bnet_fsend(dir, _("3999 Device %s not found\n"), dname);
       }
@@ -307,19 +346,12 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *vname, char *poolnam
 {
    BSOCK *dir = jcr->dir_bsock;
    DEV_BLOCK *block;
-   brwsteal_t hold;
 #ifndef NEW_LOCK
-   int blocked;
-   pthread_t no_wait_id;
+   bsteal_lock_t hold;
    
-   blocked = dev->dev_blocked;	      /* save any prev blocked state */
-   dev->dev_blocked = BST_WRITING_LABEL;
-   no_wait_id = dev->no_wait_id;
-   dev->no_wait_id = pthread_self();  /* let us use the tape */
+   steal_device_lock(dev, &hold, BST_WRITING_LABEL);
 #endif
    
-   new_steal_device_lock(dev, &hold, BST_WRITING_LABEL);
-   V(dev->mutex);
    strcpy(jcr->VolumeName, vname);
    block = new_block(dev);
    switch (read_dev_volume_label(jcr, dev, block)) {		    
@@ -343,11 +375,8 @@ Unknown status %d from read_volume_label()\n"), jcr->label_status);
 	 break;
    }
    free_block(block);
-   P(dev->mutex);
-   new_return_device_lock(dev, &hold);
 #ifndef NEW_LOCK
-   dev->dev_blocked = blocked;	      /* reset blocked state */
-   dev->no_wait_id = no_wait_id;      /* reset blocking thread id */
+   return_device_lock(dev, &hold);
 #endif
 }
 
@@ -362,18 +391,11 @@ static int read_label(JCR *jcr, DEVICE *dev)
    int stat;
    BSOCK *dir = jcr->dir_bsock;
    DEV_BLOCK *block;
-   brwsteal_t hold;
 #ifndef NEW_LOCK
-   int blocked;
-   pthread_t no_wait_id;
+   bsteal_lock_t hold;
    
-   blocked = dev->dev_blocked;	      /* save any prev blocked state */
-   no_wait_id = dev->no_wait_id;
-   dev->dev_blocked = BST_DOING_ACQUIRE;
-   dev->no_wait_id = pthread_self();  /* let us use the tape */
+   steal_device_lock(dev, &hold, BST_DOING_ACQUIRE);
 #endif
-   new_steal_device_lock(dev, &hold, BST_DOING_ACQUIRE);
-   V(dev->mutex);		      /* release lock */
    
    jcr->VolumeName[0] = 0;
    block = new_block(dev);
@@ -390,11 +412,8 @@ static int read_label(JCR *jcr, DEVICE *dev)
 	 break;
    }
    free_block(block);
-   P(dev->mutex);
-   new_return_device_lock(dev, &hold);
 #ifndef NEW_LOCK
-   dev->dev_blocked = blocked;	      /* reset blocked state */
-   dev->no_wait_id = no_wait_id;      /* reset blocking thread id */
+   return_device_lock(dev, &hold);
 #endif
    return stat;
 }

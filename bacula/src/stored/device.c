@@ -301,6 +301,33 @@ void unblock_device(DEVICE *dev)
 #endif
 }
 
+void steal_device_lock(DEVICE *dev, bsteal_lock_t *hold, int state)
+{
+#ifndef NEW_LOCK
+   hold->dev_blocked = dev->dev_blocked;
+   hold->no_wait_id = dev->no_wait_id;
+   dev->dev_blocked = state;
+   dev->no_wait_id = pthread_self();
+   V(dev->mutex);
+#endif
+}
+
+void return_device_lock(DEVICE *dev, bsteal_lock_t *hold)	    
+{
+#ifndef NEW_LOCK
+   P(dev->mutex);
+   dev->dev_blocked = hold->dev_blocked;
+   dev->no_wait_id = hold->no_wait_id;
+#endif
+}
+
+
+
+/* ==================================================================
+ *  New device locking code.  It is not currently used.
+ * ==================================================================
+ */
+
 /*
  * New device locking scheme 
  */
@@ -344,7 +371,6 @@ void _unlock_device(char *file, int line, DEVICE *dev)
 void new_steal_device_lock(DEVICE *dev, brwsteal_t *hold, int state)
 {
 #ifdef NEW_LOCK
-   P(dev->lock.mutex);
    hold->state = dev->dev_blocked;
    hold->writer_id = dev->lock.writer_id;
    dev->dev_blocked = state;
@@ -359,6 +385,5 @@ void new_return_device_lock(DEVICE *dev, brwsteal_t *hold)
    P(dev->lock.mutex);
    dev->dev_blocked = hold->state;
    dev->lock.writer_id = hold->writer_id;
-   V(dev->lock.mutex);
 #endif
 }

@@ -100,7 +100,7 @@ int db_get_file_attributes_record(B_DB *mdb, char *fname, FILE_DBR *fdbr)
     */
    fnl = p - l;
    if (fnl > 255) {
-      Emsg1(M_WARNING, 0, _("Filename truncated to 255 chars: %s\n"), l);
+      Jmsg1(mdb->jcr, M_WARNING, 0, _("Filename truncated to 255 chars: %s\n"), l);
       fnl = 255;
    }
    if (fnl > 0) {
@@ -114,7 +114,7 @@ int db_get_file_attributes_record(B_DB *mdb, char *fname, FILE_DBR *fdbr)
 
    pnl = l - fname;    
    if (pnl > 255) {
-      Emsg1(M_WARNING, 0, _("Path name truncated to 255 chars: %s\n"), fname);
+      Jmsg1(mdb->jcr, M_WARNING, 0, _("Path name truncated to 255 chars: %s\n"), fname);
       pnl = 255;
    }
    strncpy(spath, fname, pnl);
@@ -122,7 +122,7 @@ int db_get_file_attributes_record(B_DB *mdb, char *fname, FILE_DBR *fdbr)
 
    if (pnl == 0) {
       Mmsg1(&mdb->errmsg, _("Path length is zero. File=%s\n"), fname);
-      Emsg0(M_ERROR, 0, mdb->errmsg);
+      Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
       spath[0] = ' ';
       spath[1] = 0;
       pnl = 1;
@@ -176,12 +176,13 @@ File.FilenameId=%d", fdbr->JobId, fdbr->PathId, fdbr->FilenameId);
        *  filename if the file is linked.   ????????
        */
       if (mdb->num_rows > 1) {
-         Emsg1(M_WARNING, 0, _("get_file_record want 1 got rows=%d\n"), mdb->num_rows);
-         Emsg1(M_ERROR, 0, "%s", mdb->cmd);
+         Jmsg1(mdb->jcr, M_WARNING, 0, _("get_file_record want 1 got rows=%d\n"), mdb->num_rows);
+         Jmsg1(mdb->jcr, M_ERROR, 0, "%s", mdb->cmd);
       }
       if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg1(&mdb->errmsg, "Error fetching row: %s\n", sql_strerror(mdb));
+            Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	 } else {
 	    fdbr->FileId = (FileId_t)strtod(row[0], NULL);
 	    strncpy(fdbr->LStat, row[1], sizeof(fdbr->LStat));
@@ -220,19 +221,18 @@ static int db_get_filename_record(B_DB *mdb, char *fname)
 
       if (mdb->num_rows > 1) {
          Mmsg1(&mdb->errmsg, _("More than one Filename!: %d\n"), (int)(mdb->num_rows));
-         Emsg1(M_WARNING, 0, _("get_filename_record want 1 got rows=%d\n"), mdb->num_rows);
-         Emsg1(M_ERROR, 0, "%s", mdb->errmsg);
+         Jmsg(mdb->jcr, M_WARNING, 0, "%s", mdb->errmsg);
       }
       if (mdb->num_rows >= 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
-            Emsg1(M_ERROR, 0, "%s", mdb->errmsg);
+            Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	 } else {
 	    FilenameId = atoi(row[0]);
 	    if (FilenameId <= 0) {
                Mmsg2(&mdb->errmsg, _("Get DB Filename record %s found bad record: %d\n"),
 		  mdb->cmd, FilenameId); 
-               Emsg1(M_ERROR, 0, "%s", mdb->errmsg);
+               Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	       FilenameId = 0;
 	    }
 	 }
@@ -272,14 +272,17 @@ static int db_get_path_record(B_DB *mdb, char *path)
       if (mdb->num_rows > 1) {
          Mmsg1(&mdb->errmsg, _("More than one Path!: %s\n"), 
 	    edit_uint64(mdb->num_rows, ed1));
+         Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
       } else if (mdb->num_rows == 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
+            Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	 } else {
 	    PathId = atoi(row[0]);
 	    if (PathId <= 0) {
                Mmsg2(&mdb->errmsg, _("Get DB path record %s found bad record: %d\n"),
 		  mdb->cmd, PathId); 
+               Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	       PathId = 0;
 	    } else {
 	       /* Cache path */
@@ -325,6 +328,7 @@ FROM Job WHERE JobId=%d", jr->JobId);
    }
    if ((row = sql_fetch_row(mdb)) == NULL) {
       Mmsg1(&mdb->errmsg, _("No Job found for JobId %d\n"), jr->JobId);
+      Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
       sql_free_result(mdb);
       db_unlock(mdb);
       return 0; 		      /* failed */
@@ -371,12 +375,14 @@ AND JobMedia.MediaId=Media.MediaId", JobId);
       Dmsg1(130, "Num rows=%d\n", mdb->num_rows);
       if (mdb->num_rows <= 0) {
          Mmsg1(&mdb->errmsg, _("No volumes found for JobId=%d"), JobId);
+         Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	 stat = 0;
       } else {
 	 stat = mdb->num_rows;
 	 for (i=0; i < stat; i++) {
 	    if ((row = sql_fetch_row(mdb)) == NULL) {
                Mmsg2(&mdb->errmsg, _("Error fetching row %d: ERR=%s\n"), i, sql_strerror(mdb));
+               Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	       stat = 0;
 	       break;
 	    } else {
@@ -441,6 +447,7 @@ int db_get_pool_ids(B_DB *mdb, int *num_ids, uint32_t *ids[])
       stat = 1;
    } else {
       Mmsg(&mdb->errmsg, _("Pool id select failed: ERR=%s\n"), sql_strerror(mdb));
+      Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
       stat = 0;
    }
    db_unlock(mdb);
@@ -479,9 +486,11 @@ PoolType, LabelFormat FROM Pool WHERE Pool.Name='%s'", pdbr->Name);
 	 char ed1[30];
          Mmsg1(&mdb->errmsg, _("More than one Pool!: %s\n"), 
 	    edit_uint64(mdb->num_rows, ed1));
+         Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
       } else if (mdb->num_rows == 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
+            Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	 } else {
 	    pdbr->PoolId = atoi(row[0]);
 	    strcpy(pdbr->Name, row[1]);
@@ -538,9 +547,11 @@ int db_get_fileset_record(B_DB *mdb, FILESET_DBR *fsr)
          Mmsg1(&mdb->errmsg, _("Got %s FileSets expected only one!\n"), 
 	    edit_uint64(mdb->num_rows, ed1));
 	 sql_data_seek(mdb, mdb->num_rows-1);
+         Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
       }
       if ((row = sql_fetch_row(mdb)) == NULL) {
-         Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
+         Mmsg1(&mdb->errmsg, _("Error fetching row get_fileset: %s\n"), sql_strerror(mdb));
+         Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
       } else {
 	 fsr->FileSetId = atoi(row[0]);
 	 strcpy(fsr->FileSet, row[1]);
@@ -602,6 +613,7 @@ int db_get_media_ids(B_DB *mdb, int *num_ids, uint32_t *ids[])
       stat = 1;
    } else {
       Mmsg(&mdb->errmsg, _("Media id select failed: ERR=%s\n"), sql_strerror(mdb));
+      Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
       stat = 0;
    }
    db_unlock(mdb);
@@ -644,9 +656,11 @@ FROM Media WHERE VolumeName='%s'", mr->VolumeName);
 	 char ed1[30];
          Mmsg1(&mdb->errmsg, _("More than one Volume!: %s\n"), 
 	    edit_uint64(mdb->num_rows, ed1));
+         Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
       } else if (mdb->num_rows == 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
             Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
+            Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	 } else {
 	    /* return values */
 	    mr->MediaId = atoi(row[0]);
