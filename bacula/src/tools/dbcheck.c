@@ -681,7 +681,7 @@ static void repair_bad_filenames()
       exit(1);
    }
    printf("Found %d bad Filename records.\n", id_list.num_ids);
-   if (name_list.num_ids && verbose && yes_no("Print them? (yes/no): ")) {
+   if (id_list.num_ids && verbose && yes_no("Print them? (yes/no): ")) {
       for (i=0; i < id_list.num_ids; i++) {
 	 sprintf(buf, 
             "SELECT Name FROM Filename WHERE FilenameId=%u", id_list.Id[i]);
@@ -703,11 +703,19 @@ static void repair_bad_filenames()
             printf("%s\n", db_strerror(db));
 	 }
 	 /* Strip trailing slash(es) */
-	 for (len=strlen(name); len > 1 && name[len-1]; len--)
+         for (len=strlen(name); len > 0 && name[len-1]=='/'; len--)
 	    {  }
-	 db_escape_string(esc_name, name, len);
+	 if (len == 0) {
+	    len = 1;
+            esc_name[0] = ' ';
+	    esc_name[1] = 0;
+	 } else {
+	    name[len-1] = 0;
+	    db_escape_string(esc_name, name, len);
+	 }
 	 bsnprintf(buf, sizeof(buf), 
-            "UPDATE Filename SET Name='%s' WHERE FilenameId=%u", id_list.Id[i]);
+            "UPDATE Filename SET Name='%s' WHERE FilenameId=%u", 
+	    esc_name, id_list.Id[i]);
 	 db_sql_query(db, buf, NULL, NULL);
       }
    }
@@ -720,12 +728,12 @@ static void repair_bad_paths()
 
    printf("Checking for Paths without a trailing slash\n");
    query = "SELECT PathId,Path from Path "
-           "WHERE Path IS NOT LIKE '%/'";
+           "WHERE Path NOT LIKE '%/'";
    if (!make_id_list(query, &id_list)) {
       exit(1);
    }
    printf("Found %d bad Path records.\n", id_list.num_ids);
-   if (name_list.num_ids && verbose && yes_no("Print them? (yes/no): ")) {
+   if (id_list.num_ids && verbose && yes_no("Print them? (yes/no): ")) {
       for (i=0; i < id_list.num_ids; i++) {
 	 sprintf(buf, 
             "SELECT Path FROM Path WHERE PathId=%u", id_list.Id[i]);
@@ -740,16 +748,21 @@ static void repair_bad_paths()
       char esc_name[5000];
       printf("Reparing %d bad Filename records.\n", id_list.num_ids);
       for (i=0; i < id_list.num_ids; i++) {
+	 int len;
 	 sprintf(buf, 
             "SELECT Path FROM Path WHERE PathId=%u", id_list.Id[i]);
 	 if (!db_sql_query(db, buf, get_name_handler, name)) {
             printf("%s\n", db_strerror(db));
 	 }
+	 /* Strip trailing blanks */
+         for (len=strlen(name); len > 0 && name[len-1]==' '; len--) {
+	    name[len-1] = 0;
+	 }
 	 /* Add trailing slash */
-         int len = pm_strcat(&name, "/");
+         len = pm_strcat(&name, "/");
 	 db_escape_string(esc_name, name, len);
-	 bsnprintf(buf, sizeof(buf), 
-            "UPDATE Path SET Path='%s' WHERE PathId=%u", id_list.Id[i]);
+         bsnprintf(buf, sizeof(buf), "UPDATE Path SET Path='%s' WHERE PathId=%u", 
+	    esc_name, id_list.Id[i]);
 	 db_sql_query(db, buf, NULL, NULL);
       }
    }
