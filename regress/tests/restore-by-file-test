@@ -38,7 +38,7 @@ messages
 @# now do a restore
 @#
 @output tmp/log2.out
-restore
+restore where=${cwd}/tmp/bacula-restores
 7
 <${cwd}/tmp/restore-list
 
@@ -53,7 +53,7 @@ grep "^Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
 bstat=$?
 grep "^Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
 rstat=$?
-diff -r tmp/build /tmp/bacula-restores${cwd}/tmp/build
+diff -r tmp/build tmp/bacula-restores${cwd}/tmp/build
 if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
    echo " "
    echo " "
