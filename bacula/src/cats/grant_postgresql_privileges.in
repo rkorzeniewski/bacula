@@ -1,0 +1,45 @@
+#!/bin/sh
+#
+# shell script to grant privileges to the bacula database
+#
+bindir=@SQL_BINDIR@
+
+if $bindir/psql $* -f - <<END-OF-DATA
+\c bacula
+
+-- for tables
+grant all on unsavedfiles to bacula;
+grant all on basefiles    to bacula;
+grant all on jobmedia     to bacula;
+grant all on file         to bacula;
+grant all on job          to bacula;
+grant all on media        to bacula;
+grant all on client       to bacula;
+grant all on pool         to bacula;
+grant all on fileset      to bacula;
+grant all on path         to bacula;
+grant all on filename     to bacula;
+grant all on counters     to bacula;
+grant all on version      to bacula;
+
+-- for sequences on those tables
+
+grant update on filename_filenameid_seq to bacula;
+grant update on path_pathid_seq         to bacula;
+grant update on fileset_filesetid_seq   to bacula;
+grant update on pool_poolid_seq         to bacula;
+grant update on client_clientid_seq     to bacula;
+grant update on media_mediaid_seq       to bacula;
+grant update on job_jobid_seq           to bacula;
+grant update on file_fileid_seq         to bacula;
+grant update on jobmedia_jobmediaid_seq to bacula;
+grant update on basefiles_baseid_seq    to bacula;
+
+END-OF-DATA
+then
+   echo "Privileges for bacula granted."
+   exit 0
+else
+   echo "Error creating privileges."
+   exit 1
+fi
