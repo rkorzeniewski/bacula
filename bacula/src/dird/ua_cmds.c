@@ -211,7 +211,7 @@ static int addcmd(UAContext *ua, char *cmd)
    }
 
    /* Get media type */
-   if ((store = get_storage_resource(ua, cmd)) != NULL) {
+   if ((store = get_storage_resource(ua, cmd, 0)) != NULL) {
       strcpy(mr.MediaType, store->media_type);
    } else if (!get_media_type(ua, mr.MediaType, sizeof(mr.MediaType))) {
       return 1;
@@ -1134,7 +1134,7 @@ static int setdebugcmd(UAContext *ua, char *cmd)
 	       return 1;
 	    }
 	 }
-	 store = get_storage_resource(ua, cmd);
+	 store = get_storage_resource(ua, cmd, 0);
 	 if (store) {
 	    do_storage_setdebug(ua, store, level);
 	    return 1;
@@ -1155,7 +1155,7 @@ static int setdebugcmd(UAContext *ua, char *cmd)
 	 debug_level = level;
 	 break;
       case 1:
-	 store = get_storage_resource(ua, cmd);
+	 store = get_storage_resource(ua, cmd, 0);
 	 if (store) {
 	    do_storage_setdebug(ua, store, level);
 	 }
@@ -1294,7 +1294,7 @@ static void do_mount_cmd(int mount, UAContext *ua, char *cmd)
    }
    Dmsg1(120, "mount: %s\n", ua->UA_sock->msg);
 
-   store = get_storage_resource(ua, cmd);
+   store = get_storage_resource(ua, cmd, 1);
    if (!store) {
       return;
    }

@@ -84,7 +84,7 @@ static int do_label(UAContext *ua, char *cmd, int relabel)
    if (!open_db(ua)) {
       return 1;
    }
-   store = get_storage_resource(ua, cmd);
+   store = get_storage_resource(ua, cmd, 1);
    if (!store) {
       return 1;
    }

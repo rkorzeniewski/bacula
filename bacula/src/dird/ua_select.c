@@ -660,41 +660,44 @@ int do_prompt(UAContext *ua, char *msg, char *prompt, int max_prompt)
 
 /*
  * We scan what the user has entered looking for
- *    device=<device-name>	???? does this work ????
  *    storage=<storage-resource>
  *    job=<job_name>
  *    jobid=<jobid>
  *    ? 	     (prompt him with storage list)
  *    <some-error>   (prompt him with storage list)
+ *
+ * If use_default is set, we assume that any keyword without a value
+ *   is the name of the Storage resource wanted.
  */
-STORE *get_storage_resource(UAContext *ua, char *cmd)
+STORE *get_storage_resource(UAContext *ua, char *cmd, int use_default)
 {
-   char *store_name, *device_name;
-   STORE *store;
+   char *store_name = NULL;
+   STORE *store = NULL;
    int jobid;
    JCR *jcr;
    int i;
       
-   device_name = NULL;
-   store_name = NULL;
 
    for (i=1; i<ua->argc; i++) {
-      if (!ua->argv[i]) {
+      if (use_default && !ua->argv[i]) {
 	 /* Default argument is storage */
 	 if (store_name) {
             bsendmsg(ua, _("Storage name given twice.\n"));
 	    return NULL;
 	 }
+	 /* Ignore barcode(s) keywords */
+         if (strncasecmp("barcode", ua->argk[i], 7) == 0) {
+	    continue;
+	 }
 	 store_name = ua->argk[i];
          if (*store_name == '?') {
-	    return select_storage_resource(ua);
+	    *store_name = 0;
+	    break;
 	 }
       } else {
-         if (strcasecmp(ua->argk[i], _("device")) == 0) {
-	    device_name = ua->argv[i];
-
-         } else if (strcasecmp(ua->argk[i], _("storage")) == 0) {
+         if (strcasecmp(ua->argk[i], _("storage")) == 0) {
 	    store_name = ua->argv[i];
+	    break;
 
          } else if (strcasecmp(ua->argk[i], _("jobid")) == 0) {
 	    jobid = atoi(ua->argv[i]);
@@ -708,7 +711,7 @@ STORE *get_storage_resource(UAContext *ua, char *cmd)
 	    }
 	    store = jcr->store;
 	    free_jcr(jcr);
-	    return store;
+	    break;
 
          } else if (strcasecmp(ua->argk[i], _("job")) == 0) {
 	    if (!(jcr=get_jcr_by_partial_name(ua->argv[i]))) {
@@ -717,20 +720,18 @@ STORE *get_storage_resource(UAContext *ua, char *cmd)
 	    }
 	    store = jcr->store;
 	    free_jcr(jcr);
-	    return store;
+	    break;
 	}
       }
    }
 
-   if (!store_name) {
-     bsendmsg(ua, _("A storage device name must be given.\n"));
-     store = NULL;
-   } else {
+   if (!store && store_name) {
       store = (STORE *)GetResWithName(R_STORAGE, store_name);
       if (!store) {
          bsendmsg(ua, "Storage resource %s: not found\n", store_name);
       }
    }
+   /* No keywords found, so present a selection list */
    if (!store) {
       store = select_storage_resource(ua);
    }
