@@ -1,0 +1,116 @@
+#!@PYTHON@
+#
+# Check the free space available on a writable DVD
+# Should always exit with 0 status, otherwise it indicates a serious error.
+# (wrong number of arguments, Python exception...)
+#
+# Prints on the first output line the free space available in bytes.
+# If an error occurs, prints a negative number (-errno), followed,
+# on the second line, by an error message.
+# 
+# $Id$
+
+# Configurable values:
+mkisofs="@MKISOFS@"
+growisofs="@GROWISOFS@"
+dvdrwmediainfo="@DVDRWMEDIAINFO@"
+
+margin=10485760 # 10 mb security margin
+
+growisofsparams=""
+
+# Uncomment the following line if you have a Linux kernel >=2.6.8, and
+# if you want to allow a session to start behind the 4gb boundary.
+#growisofsparams = growisofsparams + " -use-the-force-luke=4gms"
+
+# end of configurable values
+
+import popen2
+import os
+import errno
+import tempfile
+import sys
+
+if len(sys.argv) != 3:
+   print "Wrong number of argument."
+   sys.exit(1)
+
+device=sys.argv[1]
+part_num=int(sys.argv[2])
+
+os.environ["MKISOFS"] = mkisofs
+
+def gettotalsize():
+   cmd=dvdrwmediainfo + " " + device
+   processi = popen2.Popen4(cmd)
+   status = processi.wait()
+   if not os.WIFEXITED(status):
+      print -errno.EPIPE
+      print "Process has not exited correctly."
+      sys.exit(0)
+   if os.WEXITSTATUS(status) != 0:
+      print -errno.EPIPE
+      print 'Cannot get media info.'
+      sys.exit(0)
+   while 1:
+      result = processi.fromchild.readline()
+      if result.find("Legacy lead-out at:") > -1:
+         index = result.find("=")
+         if index > -1:
+            res = result[index+1:-1]
+            if not res.isdigit():
+               print -errno.EPIPE
+               print 'Invalid format in media info lead-out line.'
+               sys.exit(0)
+            return int(res)
+         else:
+            print -errno.EPIPE
+            print 'Invalid format in media info lead-out line.'
+            sys.exit(0)
+      if not result:
+         print -errno.EPIPE
+         print 'Cannot get media lead-out index.'
+         sys.exit(0)
+
+tmpfile = tempfile.NamedTemporaryFile()
+if part_num == 0:
+   flag = "-Z"
+else:
+   flag = "-M"
+cmd=growisofs + " " + growisofsparams + " -use-the-force-luke=tty -dry-run -quiet " + flag + " " + device + " -R " + tmpfile.name
+process = popen2.Popen4(cmd)
+status = process.wait()
+if not os.WIFEXITED(status):
+   print -errno.EPIPE
+   print "Process has not exited correctly."
+   sys.exit(0)
+
+exitstat = os.WEXITSTATUS(status) & ~0x80
+if exitstat == errno.ENOSPC:
+   print "0"
+   print os.strerror(exitstat)
+   sys.exit(0)
+if exitstat != 0:
+   print -exitstat
+   print os.strerror(exitstat)
+   sys.exit(0)
+while 1:
+   result = process.fromchild.readline()
+   if not result:
+      print -errno.EPIPE
+      print 'Cannot find the seek argument in the output.'
+      sys.exit(0)
+   index = result.find("seek=")
+   if index > -1:
+      res = result[index+5:-2]
+      if not res.isdigit():
+         print -errno.EPIPE
+         print 'Wrong seek argument in the output.'
+         sys.exit(0)
+      size = int(res)*32*1024
+      size = gettotalsize()-(size+margin)
+      if size < 0:
+         size = 0
+      print size
+      print "No error occured"
+      sys.exit(0)
