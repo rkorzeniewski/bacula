@@ -551,19 +551,19 @@ eod_dev(DEVICE *dev)
 /*
  * Set the position of the device -- only for files
  *   For other devices, there is no generic way to do it.
- *  Returns: 1 on succes
- *	     0 on error
+ *  Returns: true  on succes
+ *	     false on error
  */
-int update_pos_dev(DEVICE *dev)
+bool update_pos_dev(DEVICE *dev)
 {
    off_t pos;
-   int stat = 0;
+   bool ok = true;
 
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
       Mmsg0(&dev->errmsg, _("Bad device call. Archive not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
-      return 0;
+      return false;
    }
 
    /* Find out where we are */
@@ -576,13 +576,12 @@ int update_pos_dev(DEVICE *dev)
 	 dev->dev_errno = errno;
          Mmsg2(&dev->errmsg, _("lseek error on %s. ERR=%s.\n"),
 	    dev->dev_name, strerror(dev->dev_errno));
+	 ok = false;
       } else {
-	 stat = 1;
 	 dev->file_addr = pos;
       }
-      return stat;
    }
-   return 1;
+   return ok;
 }
 
 
@@ -668,10 +667,10 @@ uint32_t status_dev(DEVICE *dev)
 
 /*
  * Load medium in device
- *  Returns: 1 on success
- *	     0 on failure
+ *  Returns: true  on success
+ *	     false on failure
  */
-int load_dev(DEVICE *dev)
+bool load_dev(DEVICE *dev)
 {
 #ifdef MTLOAD
    struct mtop mt_com;
@@ -681,17 +680,17 @@ int load_dev(DEVICE *dev)
       dev->dev_errno = EBADF;
       Mmsg0(&dev->errmsg, _("Bad call to load_dev. Archive not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
-      return 0;
+      return false;
    }
    if (!(dev->state & ST_TAPE)) {
-      return 1;
+      return true;
    }
 #ifndef MTLOAD
    Dmsg0(200, "stored: MTLOAD command not available\n");
    dev->dev_errno = ENOTTY;	      /* function not available */
    Mmsg2(&dev->errmsg, _("ioctl MTLOAD error on %s. ERR=%s.\n"),
 	 dev->dev_name, strerror(dev->dev_errno));	return 0;
-   return 0;
+   return false;
 #else
 
    dev->block_num = dev->file = 0;
@@ -702,17 +701,18 @@ int load_dev(DEVICE *dev)
       dev->dev_errno = errno;
       Mmsg2(&dev->errmsg, _("ioctl MTLOAD error on %s. ERR=%s.\n"),
 	 dev->dev_name, strerror(dev->dev_errno));	return 0;
+      return false;
    }
-   return 1;
+   return true;
 #endif
 }
 
 /*
  * Rewind device and put it offline
- *  Returns: 1 on success
- *	     0 on failure
+ *  Returns: true  on success
+ *	     false on failure
  */
-int offline_dev(DEVICE *dev)
+bool offline_dev(DEVICE *dev)
 {
    struct mtop mt_com;
 
@@ -720,10 +720,10 @@ int offline_dev(DEVICE *dev)
       dev->dev_errno = EBADF;
       Mmsg0(&dev->errmsg, _("Bad call to offline_dev. Archive not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
-      return 0;
+      return false;
    }
    if (!(dev->state & ST_TAPE)) {
-      return 1;
+      return true;
    }
 
    dev->state &= ~(ST_APPEND|ST_READ|ST_EOT|ST_EOF|ST_WEOT);  /* remove EOF/EOT flags */
@@ -740,10 +740,10 @@ int offline_dev(DEVICE *dev)
       dev->dev_errno = errno;
       Mmsg2(&dev->errmsg, _("ioctl MTOFFL error on %s. ERR=%s.\n"),
 	 dev->dev_name, strerror(dev->dev_errno));
-      return 0;
+      return false;
    }
    Dmsg1(100, "Offlined device %s\n", dev->dev_name);
-   return 1;
+   return false;
 }
 
 int offline_or_rewind_dev(DEVICE *dev)
@@ -764,10 +764,10 @@ int offline_or_rewind_dev(DEVICE *dev)
 
 /* 
  * Foward space a file	
- *   Returns: 1 on success
- *	      0 on failure
+ *   Returns: true  on success
+ *	      false on failure
  */
-int
+bool
 fsf_dev(DEVICE *dev, int num)
 { 
    struct mtget mt_stat;
@@ -778,16 +778,16 @@ fsf_dev(DEVICE *dev, int num)
       dev->dev_errno = EBADF;
       Mmsg0(&dev->errmsg, _("Bad call to fsf_dev. Archive not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
-      return 0;
+      return false;
    }
 
    if (!(dev->state & ST_TAPE)) {
-      return 1;
+      return true;
    }
    if (dev->state & ST_EOT) {
       dev->dev_errno = 0;
       Mmsg1(&dev->errmsg, _("Device %s at End of Tape.\n"), dev->dev_name);
-      return 0;
+      return false;
    }
    if (dev->state & ST_EOF) {
       Dmsg0(200, "ST_EOF set on entry to FSF\n");
@@ -813,13 +813,13 @@ fsf_dev(DEVICE *dev, int num)
          Mmsg2(&dev->errmsg, _("ioctl MTFSF error on %s. ERR=%s.\n"),
 	    dev->dev_name, strerror(dev->dev_errno));
          Dmsg1(200, "%s", dev->errmsg);
-	 return 0;
+	 return false;
       }
       Dmsg2(200, "fsf file=%d block=%d\n", mt_stat.mt_fileno, mt_stat.mt_blkno);
       dev->file = mt_stat.mt_fileno;
       dev->state |= ST_EOF;	/* just read EOF */
       dev->file_addr = 0;
-      return 1;
+      return true;
 
    /* 
     * Here if CAP_FSF is set, and virtually all drives
@@ -915,15 +915,15 @@ fsf_dev(DEVICE *dev, int num)
    if (dev->state & ST_EOT)
       Dmsg0(200, "ST_EOT set on exit FSF\n");
    Dmsg1(200, "Return from FSF file=%d\n", dev->file);
-   return stat == 0 ? 1 : 0;
+   return stat == 0;
 }
 
 /* 
  * Backward space a file  
- *  Returns: 0 on failure
- *	     1 on success
+ *  Returns: false on failure
+ *	     true  on success
  */
-int
+bool
 bsf_dev(DEVICE *dev, int num)
 { 
    struct mtop mt_com;
@@ -933,13 +933,13 @@ bsf_dev(DEVICE *dev, int num)
       dev->dev_errno = EBADF;
       Mmsg0(&dev->errmsg, _("Bad call to bsf_dev. Archive device not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
-      return 0;
+      return false;
    }
 
    if (!(dev_state(dev, ST_TAPE))) {
       Mmsg1(&dev->errmsg, _("Device %s cannot BSF because it is not a tape.\n"),
 	 dev->dev_name);
-      return 0;
+      return false;
    }
    Dmsg0(29, "bsf_dev\n");
    dev->state &= ~(ST_EOT|ST_EOF);
@@ -954,16 +954,16 @@ bsf_dev(DEVICE *dev, int num)
 	 dev->dev_name, strerror(dev->dev_errno));
    }
    update_pos_dev(dev);
-   return stat == 0 ? 1 : 0;
+   return stat == 0;
 }
 
 
 /* 
  * Foward space a record
- *  Returns: 0 on failure
- *	     1 on success
+ *  Returns: false on failure
+ *	     true  on success
  */
-int
+bool
 fsr_dev(DEVICE *dev, int num)
 { 
    struct mtop mt_com;
@@ -973,12 +973,17 @@ fsr_dev(DEVICE *dev, int num)
       dev->dev_errno = EBADF;
       Mmsg0(&dev->errmsg, _("Bad call to fsr_dev. Archive not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
-      return 0;
+      return false;
    }
 
    if (!(dev_state(dev, ST_TAPE))) {
-      return 0;
+      return false;
    }
+   if (!dev_cap(dev, CAP_FSR)) {
+      Mmsg1(&dev->errmsg, _("ioctl MTFSR not permitted on %s.\n"), dev->dev_name);
+      return false;
+   }
+
    Dmsg0(29, "fsr_dev\n");
    mt_com.mt_op = MTFSR;
    mt_com.mt_count = num;
@@ -1008,15 +1013,15 @@ fsr_dev(DEVICE *dev, int num)
 	 dev->dev_name, strerror(dev->dev_errno));
    }
    update_pos_dev(dev);
-   return stat == 0 ? 1 : 0;
+   return stat == 0;
 }
 
 /* 
  * Backward space a record
- *   Returns:  0 on failure
- *	       1 on success
+ *   Returns:  false on failure
+ *	       true  on success
  */
-int
+bool
 bsr_dev(DEVICE *dev, int num)
 { 
    struct mtop mt_com;
@@ -1026,17 +1031,16 @@ bsr_dev(DEVICE *dev, int num)
       dev->dev_errno = EBADF;
       Mmsg0(&dev->errmsg, _("Bad call to bsr_dev. Archive not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
-      return 0;
+      return false;
    }
 
    if (!(dev->state & ST_TAPE)) {
-      return 0;
+      return false;
    }
 
    if (!dev_cap(dev, CAP_BSR)) {
-      Mmsg1(&dev->errmsg, _("ioctl MTBSR not permitted on %s.\n"),
-	 dev->dev_name);
-      return 0;
+      Mmsg1(&dev->errmsg, _("ioctl MTBSR not permitted on %s.\n"), dev->dev_name);
+      return false;
    }
 
    Dmsg0(29, "bsr_dev\n");
@@ -1051,22 +1055,22 @@ bsr_dev(DEVICE *dev, int num)
 	 dev->dev_name, strerror(dev->dev_errno));
    }
    update_pos_dev(dev);
-   return stat == 0 ? 1 : 0;
+   return stat == 0;
 }
 
 /* 
  * Reposition the device to file, block
- * Returns: 0 on failure
- *	    1 on success
+ * Returns: false on failure
+ *	    true  on success
  */
-int
+bool
 reposition_dev(DEVICE *dev, uint32_t file, uint32_t block)
 { 
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
       Mmsg0(&dev->errmsg, _("Bad call to reposition_dev. Archive not open\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);
-      return 0;
+      return false;
    }
 
    if (!(dev_state(dev, ST_TAPE))) {
@@ -1076,25 +1080,25 @@ reposition_dev(DEVICE *dev, uint32_t file, uint32_t block)
 	 dev->dev_errno = errno;
          Mmsg2(&dev->errmsg, _("lseek error on %s. ERR=%s.\n"),
 	    dev->dev_name, strerror(dev->dev_errno));
-	 return 0;
+	 return false;
       }
       dev->file = file;
       dev->block_num = block;
       dev->file_addr = pos;
-      return 1;
+      return true;
    }
    Dmsg4(100, "reposition_dev from %u:%u to %u:%u\n", 
       dev->file, dev->block_num, file, block);
    if (file < dev->file) {
       Dmsg0(100, "Rewind_dev\n");
       if (!rewind_dev(dev)) {
-	 return 0;
+	 return false;
       }
    }
    if (file > dev->file) {
       Dmsg1(100, "fsf %d\n", file-dev->file);
       if (!fsf_dev(dev, file-dev->file)) {
-	 return 0;
+	 return false;
       }
    }
    if (block < dev->block_num) {
@@ -1104,9 +1108,9 @@ reposition_dev(DEVICE *dev, uint32_t file, uint32_t block)
    if (block > dev->block_num) {
       /* Ignore errors as Bacula can read to the correct block */
       Dmsg1(100, "fsr %d\n", block-dev->block_num);
-      fsr_dev(dev, block-dev->block_num);
+      return fsr_dev(dev, block-dev->block_num);
    }
-   return 1;
+   return false;
 }
 
 
@@ -1317,22 +1321,23 @@ void force_close_dev(DEVICE *dev)
 #endif
 }
 
-int truncate_dev(DEVICE *dev)
+bool truncate_dev(DEVICE *dev)
 {
    if (dev->state & ST_TAPE) {
-      return 1;
+      return true;                    /* we don't really truncate tapes */
+      /* maybe we should rewind and write and eof ???? */
    }
    if (ftruncate(dev->fd, 0) != 0) {
       Mmsg1(&dev->errmsg, _("Unable to truncate device. ERR=%s\n"), strerror(errno));
-      return 0;
+      return false;
    }
-   return 1;
+   return true;
 }
 
-int 
+bool
 dev_is_tape(DEVICE *dev)
 {  
-   return (dev->state & ST_TAPE) ? 1 : 0;
+   return (dev->state & ST_TAPE) ? true : false;
 }
 
 
@@ -1342,14 +1347,14 @@ dev_is_tape(DEVICE *dev)
  *   if we still have a tape (perhaps not if at end of tape
  *   and the job is canceled).
  */
-int
+bool
 dev_can_write(DEVICE *dev)
 {
    if ((dev->state & ST_OPENED) &&  (dev->state & ST_APPEND) &&
        (dev->state & ST_LABEL)	&& !(dev->state & ST_WEOT)) {
-      return 1;
+      return true;
    } else {
-      return 0;
+      return false;
    }
 }
 
