@@ -587,6 +587,10 @@ AC_ARG_WITH(postgresql,
           POSTGRESQL_INCDIR=$withval/include
           POSTGRESQL_LIBDIR=$withval/lib
           POSTGRESQL_BINDIR=$withval/bin
+      elif test -f $withval/include/postgresql/libpq-fe.h; then
+          POSTGRESQL_INCDIR=$withval/include/postgresql
+          POSTGRESQL_LIBDIR=$withval/lib
+          POSTGRESQL_BINDIR=$withval/bin
       else
           AC_MSG_RESULT(no)
           AC_MSG_ERROR(Invalid PostgreSQL directory $withval - unable to find libpq-fe.h under $withval)

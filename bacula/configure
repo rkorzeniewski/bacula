@@ -7599,6 +7599,10 @@ echo "$as_me: error: Unable to find libpq-fe.h in standard locations" >&2;}
           POSTGRESQL_INCDIR=$withval/include
           POSTGRESQL_LIBDIR=$withval/lib
           POSTGRESQL_BINDIR=$withval/bin
+      elif test -f $withval/include/postgresql/libpq-fe.h; then
+          POSTGRESQL_INCDIR=$withval/include/postgresql
+          POSTGRESQL_LIBDIR=$withval/lib
+          POSTGRESQL_BINDIR=$withval/bin
       else
           echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
