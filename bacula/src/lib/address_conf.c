@@ -191,7 +191,7 @@ const char *IPADDR::build_address_str(char *buf, int blen)
 
 const char *build_addresses_str(dlist *addrs, char *buf, int blen) 
 {
-   if (!addrs->size()) {
+   if (addrs->size() == 0) {
       bstrncpy(buf, "", blen);
       return buf;
    }
@@ -222,17 +222,6 @@ int get_first_port_host_order(dlist * addrs)
 {
    return ((IPADDR *)(addrs->first()))->get_port_host_order();				  
 }
-
-static int skip_to_next_not_eol(LEX * lc)
-{
-   int token;
-
-   do {
-      token = lex_get_token(lc, T_ALL);
-   } while (token == T_EOL);
-   return token;
-}
-
 
 void init_default_addresses(dlist **out, int port)
 {
@@ -269,7 +258,7 @@ static int add_address(dlist **out, IPADDR::i_type type, unsigned short defaultp
 	 } else if (iaddr->get_type() != type) {
 	    *errstr = (char *)malloc(1024);
 	    bsnprintf(*errstr, 1023,
-                      "the old style addresses could mixed with new style");
+                      "the old style addresses cannot be mixed with new style");
 	    return 0;
 	 }
       }
@@ -348,6 +337,37 @@ static int add_address(dlist **out, IPADDR::i_type type, unsigned short defaultp
    return 1;
 }
 
+/*
+ *   my tests
+ *   positiv
+ *   = { ip = { addr = 1.2.3.4; port = 1205; } ipv4 = { addr = 1.2.3.4; port = http; } }
+ *   = { ip = { 
+ *	   addr = 1.2.3.4; port = 1205; } 
+ *     ipv4 = { 
+ *	   addr = 1.2.3.4; port = http; } 
+ *     ipv6 = { 
+ *	 addr = 1.2.3.4; 
+ *	 port = 1205;
+ *     } 
+ *     ip = {
+ *	 addr = 1.2.3.4
+ *	 port = 1205
+ *     } 
+ *     ip = {
+ *	 addr = 1.2.3.4
+ *     } 
+ *     ip = {
+ *	 addr = 2001:220:222::2
+ *     } 
+ *     ip = {
+ *	 addr = bluedot.thun.net
+ (     } 
+ *   }
+ *   negativ
+ *   = { ip = { } }
+ *   = { ipv4 { addr = doof.nowaytoheavenxyz.uhu; } }
+ *   = { ipv4 { port = 4711 } }
+ */
 void store_addresses(LEX * lc, RES_ITEM * item, int index, int pass)
 {
    int token;
@@ -357,47 +377,13 @@ void store_addresses(LEX * lc, RES_ITEM * item, int index, int pass)
    char port_str[128];
    int family = 0;
 
-    
 
-   /*
-    *   =  { [[ip|ipv4|ipv6] = { [[addr|port] = [^ ]+[\n;]+] }]+ }
-    *	or my tests
-    *	positiv
-    *	= { ip = { addr = 1.2.3.4; port = 1205; } ipv4 = { addr = 1.2.3.4; port = http; } }
-    *	= { ip = { 
-    *	      addr = 1.2.3.4; port = 1205; } 
-    *	  ipv4 = { 
-    *	      addr = 1.2.3.4; port = http; } 
-    *	  ipv6 = { 
-    *	    addr = 1.2.3.4; 
-    *	    port = 1205;
-    *	  } 
-    *	  ip = {
-    *	    addr = 1.2.3.4
-    *	    port = 1205
-    *	  } 
-    *	  ip = {
-    *	    addr = 1.2.3.4
-    *	  } 
-    *	  ip = {
-    *	    addr = 2001:220:222::2
-    *	  } 
-    *	  ip = {
-    *	    addr = bluedot.thun.net
-    (	  } 
-    *	}
-    *	negativ
-    *	= { ip = { } }
-    *	= { ipv4 { addr = doof.nowaytoheavenxyz.uhu; } }
-    *	= { ipv4 { port = 4711 } }
-    */
-
-   token = skip_to_next_not_eol(lc);
+   token = lex_get_token(lc, T_SKIP_EOL);
    if (token != T_BOB) {
       scan_err1(lc, _("Expected a block begin { , got: %s"), lc->str);
    }
 
-   token = skip_to_next_not_eol(lc);
+   token = lex_get_token(lc, T_SKIP_EOL);
    if (token == T_EOB) {
       scan_err0(lc, _("Empty addr block is not allowed"));
    }
@@ -405,39 +391,42 @@ void store_addresses(LEX * lc, RES_ITEM * item, int index, int pass)
       if (!(token == T_UNQUOTED_STRING || token == T_IDENTIFIER)) {
          scan_err1(lc, _("Expected a string, got: %s"), lc->str);
       }
-      if (!strcmp("ip", lc->str) || !strcmp("ipv4", lc->str)) {
+      if (strcmp("ip", lc->str) == 0 || strcmp("ipv4", lc->str) == 0) {
 	 family = AF_INET;
       }
 #ifdef HAVE_IPV6
-      else if (!strcmp("ipv6", lc->str)) {
+      else if (strcmp("ipv6", lc->str) == 0) {
 	 family = AF_INET6;
-      }
-#endif
-      else {
+      } else {
          scan_err1(lc, _("Expected a string [ip|ipv4|ipv6], got: %s"), lc->str);
       }
-      token = skip_to_next_not_eol(lc);
+#else
+      else {
+         scan_err1(lc, _("Expected a string [ip|ipv4], got: %s"), lc->str);
+      }
+#endif
+      token = lex_get_token(lc, T_SKIP_EOL);
       if (token != T_EQUALS) {
          scan_err1(lc, _("Expected a equal =, got: %s"), lc->str);
       }
-      token = skip_to_next_not_eol(lc);
+      token = lex_get_token(lc, T_SKIP_EOL);
       if (token != T_BOB) {
          scan_err1(lc, _("Expected a block beginn { , got: %s"), lc->str);
       }
-      token = skip_to_next_not_eol(lc);
+      token = lex_get_token(lc, T_SKIP_EOL);
       exist = EMPTYLINE;
       port_str[0] = hostname_str[0] = '\0';
       do {
 	 if (token != T_IDENTIFIER) {
             scan_err1(lc, _("Expected a identifier [addr|port], got: %s"), lc->str);
 	 }
-         if (!strcmp("port", lc->str)) {
+         if (strcmp("port", lc->str) == 0) {
 	    next_line = PORTLINE;
 	    if (exist & PORTLINE) {
                scan_err0(lc, _("Only one port per address block"));
 	    }
 	    exist |= PORTLINE;
-         } else if (!strcmp("addr", lc->str)) {
+         } else if (strcmp("addr", lc->str) == 0) {
 	    next_line = ADDRLINE;
 	    if (exist & ADDRLINE) {
                scan_err0(lc, _("Only one addr per address block"));
@@ -446,11 +435,11 @@ void store_addresses(LEX * lc, RES_ITEM * item, int index, int pass)
 	 } else {
             scan_err1(lc, _("Expected a identifier [addr|port], got: %s"), lc->str);
 	 }
-	 token = lex_get_token(lc, T_ALL);
+	 token = lex_get_token(lc, T_SKIP_EOL);
 	 if (token != T_EQUALS) {
             scan_err1(lc, _("Expected a equal =, got: %s"), lc->str);
 	 }
-	 token = lex_get_token(lc, T_ALL);
+	 token = lex_get_token(lc, T_SKIP_EOL);
 	 switch (next_line) {
 	 case PORTLINE:
 	    if (!
@@ -462,16 +451,16 @@ void store_addresses(LEX * lc, RES_ITEM * item, int index, int pass)
 	    break;
 	 case ADDRLINE:
 	    if (!(token == T_UNQUOTED_STRING || token == T_IDENTIFIER)) {
-               scan_err1(lc, _("Expected a ipnumber or a hostname, got: %s"),
+               scan_err1(lc, _("Expected an IP number or a hostname, got: %s"),
 			 lc->str);
 	    }
 	    bstrncpy(hostname_str, lc->str, sizeof(hostname_str));
 	    break;
 	 case EMPTYLINE:
-            scan_err0(lc, _("Statemachine missmatch"));
+            scan_err0(lc, _("State machine missmatch"));
 	    break;
 	 }
-	 token = skip_to_next_not_eol(lc);
+	 token = lex_get_token(lc, T_SKIP_EOL);
       } while (token == T_IDENTIFIER);
       if (token != T_EOB) {
          scan_err1(lc, _("Expected a end of block }, got: %s"), lc->str);
@@ -484,7 +473,7 @@ void store_addresses(LEX * lc, RES_ITEM * item, int index, int pass)
 		   hostname_str, port_str, errstr);
 	   free(errstr);
 	}
-      token = skip_to_next_not_eol(lc);
+      token = scan_to_next_not_eol(lc);
    } while ((token == T_IDENTIFIER || token == T_UNQUOTED_STRING));
    if (token != T_EOB) {
       scan_err1(lc, _("Expected a end of block }, got: %s"), lc->str);
@@ -494,9 +483,9 @@ void store_addresses(LEX * lc, RES_ITEM * item, int index, int pass)
 void store_addresses_address(LEX * lc, RES_ITEM * item, int index, int pass)
 {
 
-   int token = lex_get_token(lc, T_ALL);
+   int token = lex_get_token(lc, T_SKIP_EOL);
    if (!(token == T_UNQUOTED_STRING || token == T_NUMBER || token == T_IDENTIFIER)) {
-      scan_err1(lc, _("Expected a hostname or ipnummer, got: %s"), lc->str);
+      scan_err1(lc, _("Expected a hostname or IP nummer, got: %s"), lc->str);
    }
    char *errstr;
    if (pass == 1 && !add_address((dlist **) (item->value), IPADDR::R_SINGLE_ADDR,
@@ -508,9 +497,9 @@ void store_addresses_address(LEX * lc, RES_ITEM * item, int index, int pass)
 
 void store_addresses_port(LEX * lc, RES_ITEM * item, int index, int pass)
 {
-   int token = lex_get_token(lc, T_ALL);
+   int token = lex_get_token(lc, T_SKIP_EOL);
    if (!(token == T_UNQUOTED_STRING || token == T_NUMBER || token == T_IDENTIFIER)) {
-      scan_err1(lc, _("Expected a port nummer or string, got: %s"), lc->str);
+      scan_err1(lc, _("Expected a port number or string, got: %s"), lc->str);
    }
    char *errstr;
    if (pass == 1 && !add_address((dlist **)(item->value), IPADDR::R_SINGLE_PORT,

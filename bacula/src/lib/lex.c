@@ -34,14 +34,31 @@ extern int debug_level;
 
 /*
  * Scan to "logical" end of line. I.e. end of line,
- * or semicolon.
+ *   or semicolon, but stop on T_EOB (same as end of
+ *   line except it is not eaten).
  */
 void scan_to_eol(LEX *lc)
 {
+   int token;
    Dmsg0(2000, "start scan to eof\n");
-   while (lex_get_token(lc, T_ALL) != T_EOL)
-      { }
-   Dmsg0(2000, "done scan to eof\n");
+   while ((token = lex_get_token(lc, T_ALL)) != T_EOL) {
+      if (token == T_EOB) {
+	 lex_unget_char(lc);
+	 return;
+      }
+   }
+}
+
+/*
+ * Get next token, but skip EOL
+ */
+int scan_to_next_not_eol(LEX * lc)
+{
+   int token;
+   do {
+      token = lex_get_token(lc, T_ALL);
+   } while (token == T_EOL);
+   return token;
 }
 
    
@@ -282,7 +299,7 @@ lex_get_token(LEX *lf, int expect)
 {
    int ch;
    int token = T_NONE;
-   int esc_next = FALSE;
+   bool esc_next = false;
 
    Dmsg0(2000, "enter lex_get_token\n");
    while (token == T_NONE) {
@@ -335,11 +352,15 @@ lex_get_token(LEX *lf, int expect)
 	    begin_str(lf, ch);
 	    break;
          case ';':
-	    token = T_EOL;	/* treat ; like EOL */
+	    if (expect != T_SKIP_EOL) {
+	       token = T_EOL;	   /* treat ; like EOL */
+	    }
 	    break;
 	 case L_EOL:
             Dmsg0(2000, "got L_EOL set token=T_EOL\n");
-	    token = T_EOL;
+	    if (expect != T_SKIP_EOL) {
+	       token = T_EOL;
+	    }
 	    break;
          case '@':
 	    lf->state = lex_include;
@@ -355,7 +376,9 @@ lex_get_token(LEX *lf, int expect)
          Dmsg1(2000, "Lex state lex_comment ch=%x\n", ch);
 	 if (ch == L_EOL) {
 	    lf->state = lex_none;
-	    token = T_EOL;
+	    if (expect != T_SKIP_EOL) {
+	       token = T_EOL;
+	    }
 	 } else if (ch == L_EOF) {
 	    token = T_ERROR;
 	 }
@@ -433,16 +456,16 @@ lex_get_token(LEX *lf, int expect)
 	    break;
 	 }
 	 if (ch == L_EOL) {
-	    esc_next = FALSE;
+	    esc_next = false;
 	    break;
 	 }
 	 if (esc_next) {
 	    add_str(lf, ch);
-	    esc_next = FALSE;
+	    esc_next = false;
 	    break;
 	 }
          if (ch == '\\') {
-	    esc_next = TRUE;
+	    esc_next = true;
 	    break;
 	 }
          if (ch == '"') {

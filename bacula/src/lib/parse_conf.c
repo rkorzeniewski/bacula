@@ -234,13 +234,13 @@ void store_msgs(LEX *lc, RES_ITEM *item, int index, int pass)
 	    token = lex_get_token(lc, T_NAME);	 /* scan destination */
 	    dest = check_pool_memory_size(dest, dest_len + lc->str_len + 2);
 	    if (dest[0] != 0) {
-               pm_strcat(&dest, " ");  /* separate multiple destinations with space */
+               pm_strcat(dest, " ");  /* separate multiple destinations with space */
 	       dest_len++;
 	    }
-	    pm_strcat(&dest, lc->str);
+	    pm_strcat(dest, lc->str);
 	    dest_len += lc->str_len;
             Dmsg2(900, "store_msgs newdest=%s: dest=%s:\n", lc->str, NPRT(dest));
-	    token = lex_get_token(lc, T_ALL);
+	    token = lex_get_token(lc, T_SKIP_EOL);
 	    if (token == T_COMMA) { 
 	       continue;	   /* get another destination */
 	    }
@@ -259,9 +259,9 @@ void store_msgs(LEX *lc, RES_ITEM *item, int index, int pass)
 	 dest = get_pool_memory(PM_MESSAGE);
 	 /* Pick up a single destination */
 	 token = lex_get_token(lc, T_NAME);   /* scan destination */
-	 pm_strcpy(&dest, lc->str);
+	 pm_strcpy(dest, lc->str);
 	 dest_len = lc->str_len;
-	 token = lex_get_token(lc, T_ALL);
+	 token = lex_get_token(lc, T_SKIP_EOL);
          Dmsg1(900, "store_msgs dest=%s:\n", NPRT(dest));
 	 if (token != T_EQUALS) {
             scan_err1(lc, _("expected an =, got: %s"), lc->str); 
@@ -527,7 +527,7 @@ void store_size(LEX *lc, RES_ITEM *item, int index, int pass)
    uint64_t uvalue;
 
    Dmsg0(900, "Enter store_size\n");
-   token = lex_get_token(lc, T_ALL);
+   token = lex_get_token(lc, T_SKIP_EOL);
    errno = 0;
    switch (token) {
    case T_NUMBER:
@@ -555,7 +555,7 @@ void store_time(LEX *lc, RES_ITEM *item, int index, int pass)
    utime_t utime;
    char period[500];
 
-   token = lex_get_token(lc, T_ALL);
+   token = lex_get_token(lc, T_SKIP_EOL);
    errno = 0;
    switch (token) {
    case T_NUMBER:
@@ -754,7 +754,7 @@ parse_config(const char *cf, int exit_on_error)
 		     /* If the ITEM_NO_EQUALS flag is set we do NOT		 
 		      *   scan for = after the keyword	*/
 		     if (!(items[i].flags & ITEM_NO_EQUALS)) {
-			token = lex_get_token(lc, T_ALL);
+			token = lex_get_token(lc, T_SKIP_EOL);
                         Dmsg1 (900, "in T_IDENT got token=%s\n", lex_tok_to_str(token));
 			if (token != T_EQUALS) {
                            scan_err1(lc, _("expected an equals, got: %s"), lc->str);

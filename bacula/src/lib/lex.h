@@ -50,12 +50,12 @@
 #define T_EQUALS                      110
 #define T_COMMA                       111
 #define T_EOL                         112
-#define T_SEMI                        113
 #define T_ERROR                       200
 /*
  * The following will be returned only if
  * the appropriate expect flag has been set   
  */
+#define T_SKIP_EOL                    113  /* scan through EOLs */
 #define T_PINT32                      114  /* positive integer */
 #define T_PINT32_RANGE                115  /* positive integer range */
 #define T_INT32                       116  /* integer */
@@ -115,5 +115,6 @@ typedef void (LEX_ERROR_HANDLER)(const char *file, int line, LEX *lc, const char
 #define scan_err6(lc, msg, a1, a2, a3, a4, a5, a6) lc->scan_error(__FILE__, __LINE__, lc, msg, a1, a2, a3, a4, a5, a6)
 
 void scan_to_eol(LEX *lc);
+int scan_to_next_not_eol(LEX * lc);
 
 #endif /* _LEX_H */

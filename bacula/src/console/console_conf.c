@@ -122,16 +122,16 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       recurse = false;
    }
    switch (type) {
-      case R_CONSOLE:
-         printf("Console: name=%s rcfile=%s histfile=%s\n", reshdr->name,
-		res->res_cons.rc_file, res->res_cons.hist_file);
-	 break;
-      case R_DIRECTOR:
-         printf("Director: name=%s address=%s DIRport=%d\n", reshdr->name, 
-		 res->res_dir.address, res->res_dir.DIRport);
-	 break;
-      default:
-         printf("Unknown resource type %d\n", type);
+   case R_CONSOLE:
+      printf("Console: name=%s rcfile=%s histfile=%s\n", reshdr->name,
+	     res->res_cons.rc_file, res->res_cons.hist_file);
+      break;
+   case R_DIRECTOR:
+      printf("Director: name=%s address=%s DIRport=%d\n", reshdr->name, 
+	      res->res_dir.address, res->res_dir.DIRport);
+      break;
+   default:
+      printf("Unknown resource type %d\n", type);
    }
    if (recurse && res->res_dir.hdr.next) {
       dump_resource(type, res->res_dir.hdr.next, sendit, sock);
@@ -163,19 +163,19 @@ void free_resource(RES *sres, int type)
    }
 
    switch (type) {
-      case R_CONSOLE:
-	 if (res->res_cons.rc_file) {
-	    free(res->res_cons.rc_file);
-	 }
-	 if (res->res_cons.hist_file) {
-	    free(res->res_cons.hist_file);
-	 }
-      case R_DIRECTOR:
-	 if (res->res_dir.address)
-	    free(res->res_dir.address);
-	 break;
-      default:
-         printf("Unknown resource type %d\n", type);
+   case R_CONSOLE:
+      if (res->res_cons.rc_file) {
+	 free(res->res_cons.rc_file);
+      }
+      if (res->res_cons.hist_file) {
+	 free(res->res_cons.hist_file);
+      }
+   case R_DIRECTOR:
+      if (res->res_dir.address)
+	 free(res->res_dir.address);
+      break;
+   default:
+      printf("Unknown resource type %d\n", type);
    }
    /* Common stuff again -- free the resource, recurse to next one */
    free(res);
@@ -240,17 +240,17 @@ void save_resource(int type, RES_ITEM *items, int pass)
 
    /* The following code is only executed during pass 1 */
    switch (type) {
-      case R_CONSOLE:
-	 size = sizeof(CONRES);
-	 break;
-      case R_DIRECTOR:
-	 size = sizeof(DIRRES);
-	 break;
-      default:
-         printf("Unknown resource type %d\n", type);
-	 error = 1;
-	 size = 1;
-	 break;
+   case R_CONSOLE:
+      size = sizeof(CONRES);
+      break;
+   case R_DIRECTOR:
+      size = sizeof(DIRRES);
+      break;
+   default:
+      printf("Unknown resource type %d\n", type);
+      error = 1;
+      size = 1;
+      break;
    }
    /* Common */
    if (!error) {
