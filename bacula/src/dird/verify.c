@@ -288,7 +288,7 @@ bool do_verify(JCR *jcr)
       level="disk_to_catalog";
       break;
    default:
-      Jmsg2(jcr, M_FATAL, 0, _("Unimplemented save level %d(%c)\n"), jcr->JobLevel,
+      Jmsg2(jcr, M_FATAL, 0, _("Unimplemented Verify level %d(%c)\n"), jcr->JobLevel,
 	 jcr->JobLevel);
       goto bail_out;
    }

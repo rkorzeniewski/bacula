@@ -182,20 +182,10 @@ bnet_thread_server(dlist *addrs, int max_clients, workq_t *client_wq,
 	    fromhost(&request);
 	    if (!hosts_access(&request)) {
 	       V(mutex);
-#ifndef HAVE_INET_NTOP
 	       Jmsg2(NULL, M_SECURITY, 0,
                      _("Connection from %s:%d refused by hosts.access\n"),
-		     inet_ntoa(((sockaddr_in *)&cli_addr)->sin_addr),
-		     ntohs(((sockaddr_in *)&cli_addr)->sin_port));
-#else
-	       Jmsg2(NULL, M_SECURITY, 0,
-                     _("Connection from %s:%d refused by hosts.access\n"),
-		     inet_ntop(clilen == sizeof(sockaddr_in) ? AF_INET : AF_INET6,
-			       &clilen, buf, clilen),
-		     ntohs(clilen == sizeof(sockaddr_in) ? 
-			   ((sockaddr_in *)&cli_addr)->sin_port :
-			    ((sockaddr_in6 *)&cli_addr)->sin6_port));
-#endif
+		     sockaddr_to_ascii(&cli_addr, buf, sizeof(buf)),
+		     sockaddr_get_port(&cli_addr));
 	       close(newsockfd);
 	       continue;
 	    }
@@ -214,12 +204,7 @@ bnet_thread_server(dlist *addrs, int max_clients, workq_t *client_wq,
 
 	    /* see who client is. i.e. who connected to us. */
 	    P(mutex);
-#ifdef HAVE_INET_NTOP
-	    inet_ntop(clilen == sizeof(sockaddr_in) ? AF_INET : AF_INET6, &clilen,
-		      buf, sizeof(buf));
-#else
-	    bstrncpy(buf, inet_ntoa(((sockaddr_in *)&cli_addr)->sin_addr), sizeof(buf));      /* NOT thread safe, use mutex */
-#endif
+	    sockaddr_to_ascii(&cli_addr, buf, sizeof(buf));
 	    V(mutex);
 	    BSOCK *bs; 
             bs = init_bsock(NULL, newsockfd, "client", buf, fd_ptr->port, &cli_addr);

@@ -27,6 +27,12 @@
 
 
 #include "bacula.h"
+#ifdef HAVE_ARPA_NAMESER_H
+#include <arpa/nameser.h>
+#endif
+#ifdef HAVE_RESOLV_H
+#include <resolv.h>
+#endif
 
 static int add_address(dlist **out, IPADDR::i_type type, unsigned short defaultport, int family,
 		const char *hostname_str, const char *port_str, char **errstr);
@@ -176,10 +182,14 @@ void IPADDR::set_addr6(struct in6_addr *ip6)
 const char *IPADDR::get_address(char *outputbuf, int outlen)
 {
    outputbuf[0] = '\0';
-#if defined(HAVE_INET_NTOP) && defined(HAVE_IPV6)
+#ifdef HAVE_INET_NTOP
+# ifdef HAVE_IPV6
    inet_ntop(saddr->sa_family, saddr->sa_family == AF_INET ?
 	      (void*)&(saddr4->sin_addr) : (void*)&(saddr6->sin6_addr),
 	      outputbuf, outlen);
+# else
+   inet_ntop(saddr->sa_family, (void*)&(saddr4->sin_addr), outputbuf, outlen);
+# endif
 #else
    bstrncpy(outputbuf, inet_ntoa(saddr4->sin_addr), outlen);
 #endif
@@ -538,17 +548,48 @@ int sockaddr_get_port_net_order(const struct sockaddr *client_addr)
    return -1;
 }
 
-int  sockaddr_to_ascii(const struct sockaddr *sa, char *buf, int len)
+int sockaddr_get_port(const struct sockaddr *client_addr)
+{
+   if (client_addr->sa_family == AF_INET) {
+      return ntohs(((struct sockaddr_in *)client_addr)->sin_port);
+   }
+#ifdef HAVE_IPV6
+   else {
+      return ntohs(((struct sockaddr_in6 *)client_addr)->sin6_port);
+   }
+#endif
+   return -1;
+}
+
+
+char *sockaddr_to_ascii(const struct sockaddr *sa, char *buf, int len)
 {
 #ifdef HAVE_INET_NTOP
    /* MA Bug 5 the problem was that i mixed up sockaddr and in_addr */
    inet_ntop(sa->sa_family,
+# ifdef HAVE_IPV6
 	     sa->sa_family == AF_INET ? 
 		 (void*)&(((struct sockaddr_in*)sa)->sin_addr) :
 		 (void*)&(((struct sockaddr_in6*)sa)->sin6_addr),
+# else
+		 (void*)&(((struct sockaddr_in*)sa)->sin_addr) :
+# endif /* HAVE_IPV6 */
 	     buf, len);
 #else
    bstrncpy(buf, inet_ntoa(((struct sockaddr_in *)sa)->sin_addr), len);
 #endif
-   return 1;
+   return buf;
 }
+
+#ifdef HAVE_OLD_SOCKOPT
+int inet_aton(const char *cp, struct in_addr *inp)
+{
+   struct in_addr inaddr;
+
+   if((inaddr.s_addr = inet_addr(cp)) != INADDR_NONE) {
+      inp->s_addr = inaddr.s_addr;
+      return 1;
+   }
+   return 0;
+}
+#endif
