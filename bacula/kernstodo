@@ -43,6 +43,7 @@ For 1.33 Testing/Documentation:
 
 
 For version 1.35:
+- Document writing to a CD/DVD with Bacula.
 - Add check for tape alerts.
 - Add a "base" package to the window installer for pthreadsVCE.dll
   which is needed by all packages.

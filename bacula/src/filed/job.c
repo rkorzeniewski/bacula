@@ -45,6 +45,7 @@ static int exclude_cmd(JCR *jcr);
 static int hello_cmd(JCR *jcr);
 static int job_cmd(JCR *jcr);
 static int include_cmd(JCR *jcr);
+static int incopts_cmd(JCR *jcr);
 static int level_cmd(JCR *jcr);
 static int verify_cmd(JCR *jcr);
 static int restore_cmd(JCR *jcr);
@@ -77,6 +78,7 @@ static struct s_cmds cmds[] = {
    {"exclude",      exclude_cmd},
    {"Hello",        hello_cmd},
    {"include",      include_cmd},
+   {"incopts",      incopts_cmd},
    {"JobId=",       job_cmd},
    {"level = ",     level_cmd},
    {"restore",      restore_cmd},
@@ -524,6 +526,21 @@ static int include_cmd(JCR *jcr)
 
    return bnet_fsend(dir, OKinc);
 }
+
+static int incopts_cmd(JCR *jcr)
+{
+   BSOCK *dir = jcr->dir_bsock;
+
+   while (bnet_recv(dir) >= 0) {
+      strip_trailing_junk(dir->msg);
+      Dmsg1(000, "Incopt: %s\n", dir->msg);
+//    add_fname_to_list(jcr, dir->msg, INC_LIST);
+      
+   }
+
+   return bnet_fsend(dir, OKinc);
+}
+
 
 /*
  * Get list of files to exclude from Director

@@ -12,7 +12,6 @@ else
     @scriptdir@/make_mysql_tables $*
   else
     echo "Making PostgreSQL tables"
-    # hard coded database name
     @scriptdir@/make_postgresql_tables $*
   fi
 fi
