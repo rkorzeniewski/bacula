@@ -47,6 +47,7 @@ messages
 quit
 END_OF_DATA
 dstat=0
+scripts/check_for_zombie_jobs storage=DDS-4
 #
 # We need to stop and start Bacula to
 #  test appending to a previously written tape
@@ -99,6 +100,7 @@ messages
 @output
 quit
 END_OF_DATA
+scripts/check_for_zombie_jobs storage=DDS-4
 bin/bacula stop 2>&1 >/dev/null
 for i in `cat ${cwd}/tmp/restore2-list`; do
    diff $i ${cwd}/tmp/bacula-restores$i

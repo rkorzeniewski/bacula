@@ -19,8 +19,7 @@ echo " === Starting four-concurrent-jobs-tape  ==="
 echo " === Starting four-concurrent-jobs-tape  ===" >>working/log
 echo " "
 
-#bin/bacula start 2>&1 >/dev/null
-bin/bacula start
+bin/bacula start 2>&1 >/dev/null
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
 messages
@@ -40,13 +39,17 @@ messages
 @# now do a restore
 @#
 @output tmp/log2.out
-restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4
+restore where=${cwd}/tmp/bacula-restores select storage=DDS-4
+unmark *
+mark *
+done
 yes
 wait
 messages
 @output
 quit
 END_OF_DATA
+scripts/check_for_zombie_jobs storage=DDS-4
 bin/bacula stop 2>&1 >/dev/null
 grep "^Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
 bstat=$?

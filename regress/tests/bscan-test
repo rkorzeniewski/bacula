@@ -49,6 +49,7 @@ yes
 messages
 quit
 END_OF_DATA
+scripts/check_for_zombie_jobs storage=File1
 bin/bacula stop 2>&1 >/dev/null
 echo "volume=TestVolume001|TestVolume002" >tmp/bscan.bsr
 bin/bscan -w working -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf ${cwd}/tmp 2>&1 >/dev/null
@@ -67,6 +68,7 @@ messages
 @output
 quit
 END_OF_DATA
+scripts/check_for_zombie_jobs storage=File1
 bin/bacula stop 2>&1 >/dev/null
 grep "^Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
 bstat=$?

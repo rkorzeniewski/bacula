@@ -22,6 +22,9 @@ echo " "
 
 bin/bacula start 2>&1 >/dev/null
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
+setdebug level=15  storage=File
+@output /dev/null
+messages
 @output /dev/null
 estimate job=CompressedTest listing
 estimate job=CompressedTest listing
@@ -34,6 +37,7 @@ wait
 messages
 quit
 END_OF_DATA
+scripts/check_for_zombie_jobs storage=File 
 echo "Backup 1 done"
 touch ${cwd}/build/src/dird/*.c
 #
@@ -58,13 +62,17 @@ restore where=${cwd}/tmp/bacula-restores select all storage=File
 yes
 wait
 @output tmp/log2.out
-restore where=${cwd}/tmp/bacula-restores select all storage=File
+restore where=${cwd}/tmp/bacula-restores select storage=File
+unmark *
+mark *
+done
 yes
 wait
 messages
 @output
 quit
 END_OF_DATA
+scripts/check_for_zombie_jobs storage=File
 bin/bacula stop 2>&1 >/dev/null
 grep "^Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
 bstat=$?

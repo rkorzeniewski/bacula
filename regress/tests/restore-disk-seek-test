@@ -68,6 +68,7 @@ messages
 @output
 quit
 END_OF_DATA
+scripts/check_for_zombie_jobs storage=File
 bin/bacula stop 2>&1 >/dev/null
 # Now setup a control directory of only what we *should* restore
 rm -rf ${cwd}/tmp/build
