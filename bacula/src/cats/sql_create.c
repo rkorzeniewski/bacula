@@ -162,7 +162,7 @@ int
 db_create_pool_record(B_DB *mdb, POOL_DBR *pr)
 {
    int stat;
-   char ed1[30];
+   char ed1[30], ed2[30];
 
    db_lock(mdb);
    Mmsg(&mdb->cmd, "SELECT PoolId,Name FROM Pool WHERE Name='%s'", pr->Name);
@@ -183,15 +183,18 @@ db_create_pool_record(B_DB *mdb, POOL_DBR *pr)
 
    /* Must create it */
    Mmsg(&mdb->cmd, 
-"INSERT INTO Pool (Name, NumVols, MaxVols, UseOnce, UseCatalog, \
-AcceptAnyVolume, AutoPrune, Recycle, VolRetention, PoolType, LabelFormat) \
-VALUES ('%s', %d, %d, %d, %d, %d, %d, %d, %s, '%s', '%s')", 
+"INSERT INTO Pool (Name,NumVols,MaxVols,UseOnce,UseCatalog,\
+AcceptAnyVolume,AutoPrune,Recycle,VolRetention,VolUseDuration,\
+MaxVolJobs,PoolType,LabelFormat) \
+VALUES ('%s',%u,%u,%d,%d,%d,%d,%d,%s,%s,%u,'%s','%s')", 
 		  pr->Name,
 		  pr->NumVols, pr->MaxVols,
 		  pr->UseOnce, pr->UseCatalog,
 		  pr->AcceptAnyVolume,
 		  pr->AutoPrune, pr->Recycle,
 		  edit_uint64(pr->VolRetention, ed1),
+		  edit_uint64(pr->VolUseDuration, ed2),
+		  pr->MaxVolJobs,
 		  pr->PoolType, pr->LabelFormat);
    Dmsg1(500, "Create Pool: %s\n", mdb->cmd);
    if (!INSERT_DB(mdb, mdb->cmd)) {

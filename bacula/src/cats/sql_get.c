@@ -486,9 +486,9 @@ AutoPrune, Recycle, VolRetention, \
 PoolType, LabelFormat FROM Pool WHERE Pool.PoolId=%d", pdbr->PoolId);
    } else {			      /* find by name */
       Mmsg(&mdb->cmd, 
-"SELECT PoolId, Name, NumVols, MaxVols, UseOnce, UseCatalog, AcceptAnyVolume, \
-AutoPrune, Recycle, VolRetention, \
-PoolType, LabelFormat FROM Pool WHERE Pool.Name='%s'", pdbr->Name);
+"SELECT PoolId,Name,NumVols,MaxVols,UseOnce,UseCatalog,AcceptAnyVolume,\
+AutoPrune,Recycle,VolRetention,VolUseDuration,MaxVolJobs,\
+PoolType,LabelFormat FROM Pool WHERE Pool.Name='%s'", pdbr->Name);
    }  
 
    if (QUERY_DB(mdb, mdb->cmd)) {
@@ -513,9 +513,11 @@ PoolType, LabelFormat FROM Pool WHERE Pool.Name='%s'", pdbr->Name);
 	    pdbr->AutoPrune = atoi(row[7]);
 	    pdbr->Recycle = atoi(row[8]);
 	    pdbr->VolRetention = (utime_t)strtod(row[9], NULL);
-	    strcpy(pdbr->PoolType, row[10]);
-	    if (row[11]) {
-	       strcpy(pdbr->LabelFormat, row[11]);
+	    pdbr->VolUseDuration = (utime_t)strtod(row[10], NULL);
+	    pdbr->MaxVolJobs = atoi(row[11]);
+	    strcpy(pdbr->PoolType, row[12]);
+	    if (row[13]) {
+	       strcpy(pdbr->LabelFormat, row[13]);
 	    } else {
 	       pdbr->LabelFormat[0] = 0;
 	    }
@@ -650,12 +652,14 @@ int db_get_media_record(B_DB *mdb, MEDIA_DBR *mr)
    if (mr->MediaId != 0) {		 /* find by id */
       Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,\
 VolBytes,VolMounts,VolErrors,VolWrites,VolMaxBytes,VolCapacityBytes,\
-MediaType,VolStatus,PoolId,VolRetention,Recycle,Slot, FirstWritten \
+MediaType,VolStatus,PoolId,VolRetention,VolUseDuration,MaxVolJobs,\
+Recycle,Slot, FirstWritten \
 FROM Media WHERE MediaId=%d", mr->MediaId);
    } else {			      /* find by name */
       Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,\
 VolBytes,VolMounts,VolErrors,VolWrites,VolMaxBytes,VolCapacityBytes,\
-MediaType,VolStatus,PoolId,VolRetention,Recycle,Slot,FirstWritten \
+MediaType,VolStatus,PoolId,VolRetention,VolUseDuration,MaxVolJobs,\
+Recycle,Slot,FirstWritten \
 FROM Media WHERE VolumeName='%s'", mr->VolumeName);
    }  
 
@@ -687,9 +691,11 @@ FROM Media WHERE VolumeName='%s'", mr->VolumeName);
 	    strcpy(mr->VolStatus, row[12]);
 	    mr->PoolId = atoi(row[13]);
 	    mr->VolRetention = (utime_t)strtod(row[14], NULL);
-	    mr->Recycle = atoi(row[15]);
-	    mr->Slot = atoi(row[16]);
-	    strcpy(mr->cFirstWritten, row[17]);
+	    mr->VolUseDuration = (utime_t)strtod(row[15], NULL);
+	    mr->MaxVolJobs = atoi(row[16]);
+	    mr->Recycle = atoi(row[17]);
+	    mr->Slot = atoi(row[18]);
+	    strcpy(mr->cFirstWritten, row[19]);
 	    stat = mr->MediaId;
 	 }
       } else {

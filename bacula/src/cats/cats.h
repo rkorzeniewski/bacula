@@ -358,7 +358,9 @@ typedef struct {
    int AcceptAnyVolume;               /* set to accept any volume sequence */
    int AutoPrune;                     /* set to prune automatically */
    int Recycle;                       /* default Vol recycle flag */
-   utime_t VolRetention;              /* retention period in seconds */
+   utime_t  VolRetention;             /* retention period in seconds */
+   utime_t  VolUseDuration;           /* time in secs volume can be used */
+   uint32_t MaxVolJobs;               /* Max jobs on volume */
    char PoolType[MAX_NAME_LENGTH];             
    char LabelFormat[MAX_NAME_LENGTH];
    /* Extra stuff not in DB */
@@ -385,6 +387,8 @@ typedef struct {
    uint64_t VolMaxBytes;              /* max bytes to write */
    uint64_t VolCapacityBytes;         /* capacity estimate */
    utime_t  VolRetention;             /* Volume retention in seconds */
+   utime_t  VolUseDuration;           /* time in secs volume can be used */
+   uint32_t MaxVolJobs;               /* Max jobs on volume */
    int      Recycle;                  /* recycle yes/no */
    int32_t  Slot;                     /* slot in changer */
    char VolStatus[20];                /* Volume status */

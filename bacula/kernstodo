@@ -1,7 +1,7 @@
                  Kern's ToDo List
-                 14 November 2002
+                 18 November 2002
 
-To do:    
+Documentation to do:
 - Document to have patience when SD first starts.
 - Document running a test version.
 - Document saving MySQL databases, where to find code for shutting 
@@ -9,15 +9,17 @@ To do:
   http://www.backupcentral.com/free-backup-software1.html
 - Document -i option on FD
 
-Test:
+Testing to do:
 - that restore options work in FD.
 - that mod of restore options works.
 - that console command line options work
 - blocksize recognition code.
+- make sure that update of volume new parameters works
 
 For 1.27 release:
-- Add ORDER BY JobId to list of Jobs in query.sql, and in
-  ua_list.c (list command).
+- drive MaxVolJobs, VolUseDuration from media record
+  rather than Resource.
+
 
 After 1.27
 - Check if both CatalogFiles and UseCatalog are set to SD.
@@ -597,3 +599,5 @@ Done: (see kernsdone for more)
 - Make sure pruning of Jobs removes JobMediaId
 - Write bcopy program -- recovery of bad tape.
 - Make gethostbyname() thread safe in bnet.c
+- Add ORDER BY JobId to list of Jobs in query.sql, and in
+  ua_output.c (list command).

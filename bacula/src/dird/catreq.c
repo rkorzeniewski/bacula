@@ -215,13 +215,13 @@ MediaType=%s\n", mr.PoolId, jcr->PoolId, mr.VolStatus, mr.Slot, mr.MediaType);
 
       /* Now see if Volume should only be used once */
       } else if (mr.VolBytes > 0 && jcr->pool->use_volume_once) {
-         Jmsg(jcr, M_INFO, 0, _("Volume used once. As configured, "             
-             "marking Volume \"%s\" as Used.\n"), mr.VolumeName);
+         Jmsg(jcr, M_INFO, 0, _("Volume used once. "             
+             "Marking Volume \"%s\" as Used.\n"), mr.VolumeName);
          strcpy(mr.VolStatus, "Used");
 
       /* Now see if Max Jobs written to volume */
-      } else if (jcr->pool->MaxVolumeJobs > 0 &&
-		 jcr->pool->MaxVolumeJobs <= mr.VolJobs) {
+      } else if (jcr->pool->MaxVolJobs > 0 &&
+		 jcr->pool->MaxVolJobs <= mr.VolJobs) {
          Jmsg(jcr, M_INFO, 0, _("Max configured Volume jobs exceeded. "       
              "Marking Volume \"%s\" as Used.\n"), mr.VolumeName);
          strcpy(mr.VolStatus, "Used");

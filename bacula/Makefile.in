@@ -109,9 +109,6 @@ Makefiles:
 	(cd scripts; \
 	   chmod 755 startmysql stopmysql bacula fd startit stopit btraceback; \
 	   chmod 755 mtx-changer console gconsole)
-	chmod 755 src/console/btraceback src/lib/btraceback	       
-	chmod 755 src/dird/btraceback src/filed/btraceback
-	chmod 755 src/stored/btraceback
 	chmod 755 src/cats/make_mysql_tables src/cats/drop_mysql_tables
 	chmod 755 src/cats/make_sqlite_tables src/cats/drop_sqlite_tables
 	chmod 755 src/cats/make_bdb_tables src/cats/drop_bdb_tables
