@@ -135,6 +135,8 @@ db_open_database(JCR *jcr, B_DB *mdb)
 
    if (mdb->db_port && mdb->db_port[0]) {
       bsnprintf(port, sizeof(port), "%d", mdb->db_port);
+   } else {
+      port[0] = 0;
    }
    /* connect to the database */
    mdb->db = PQsetdbLogin(
