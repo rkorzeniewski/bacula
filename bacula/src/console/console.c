@@ -30,11 +30,18 @@
 #include "bacula.h"
 #include "console_conf.h"
 #include "jcr.h"
- 
-/* Imported functions */
-int authenticate_director(JCR *jcr, DIRRES *director);
 
-       
+#ifdef HAVE_CONIO
+#include "conio.h"
+#else
+#define con_init(x) 
+#define con_term()
+#define con_set_zed_keys();
+#define trapctlc()
+#define clrbrk()
+#define usrbrk() 0  
+#endif
+ 
 /* Exported variables */
 
 #ifdef HAVE_CYGWIN
@@ -43,19 +50,10 @@ int rl_catch_signals;
 extern int rl_catch_signals;
 #endif
 
-#ifdef HAVE_CONIO
-extern int input_line(char *line, int len);
-extern void con_init(FILE *input);
-extern void con_term();
-extern void con_set_zed_keys();
-extern void t_sendl(char *buf, int len);
-extern void t_send(char *buf);
-extern void t_char(char c);
-#else
-#define con_init(x) 
-#define con_term()
-#define con_set_zed_keys();
-#endif
+/* Imported functions */
+int authenticate_director(JCR *jcr, DIRRES *director);
+
+
 
 /* Forward referenced functions */
 static void terminate_console(int sig);
@@ -69,12 +67,13 @@ static char *configfile = NULL;
 static BSOCK *UA_sock = NULL;
 static DIRRES *dir; 
 static FILE *output = stdout;
-int tee = 0;			      /* output to output and stdout */
-static int stop = FALSE;
+static bool tee = false;		  /* output to output and stdout */
+static bool stop = false;
 static int argc;
 static POOLMEM *args;
 static char *argk[MAX_CMD_ARGS];
 static char *argv[MAX_CMD_ARGS];
+
 
 /* Command prototypes */
 static int versioncmd(FILE *input, BSOCK *UA_sock);
@@ -99,27 +98,24 @@ static void usage()
 "       -t          test - read configuration and exit\n"
 "       -?          print this message.\n"  
 "\n"), HOST_OS, DISTNAME, DISTVER);
-
-   exit(1);
 }
 
-
-void got_stop(int sig)
+void got_sigstop(int sig)
 {
-   stop = TRUE;
+   stop = true;
 }
 
-void got_continue(int sig)
+void got_sigcontinue(int sig)
 {
-   stop = FALSE;
+   stop = false;
 }
 
-void got_tout(int sig) 
+void got_sigtout(int sig) 
 {
 // printf("Got tout\n");
 }
 
-void got_tin(int sig)
+void got_sigtin(int sig)
 {   
 // printf("Got tin\n");
 }
@@ -187,7 +183,7 @@ static int do_a_command(FILE *input, BSOCK *UA_sock)
 static void read_and_process_input(FILE *input, BSOCK *UA_sock) 
 {
    char *prompt = "*";
-   int at_prompt = FALSE;
+   bool at_prompt = false;
    int tty_input = isatty(fileno(input));
    int stat;
 
@@ -196,13 +192,14 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
          prompt = "";
       } else {
          prompt = "*";
-	 at_prompt = TRUE;
+	 at_prompt = true;
       }
       if (tty_input) {
 	 stat = get_cmd(input, prompt, UA_sock, 30);
+	 clrbrk();
       } else {
 	 int len = sizeof_pool_memory(UA_sock->msg) - 1;
-	 if (fgets(UA_sock->msg, len, input) == NULL) {
+	 if (fgets(UA_sock->msg, len, input) == NULL || usrbrk()) {
 	    stat = -1;
 	 } else {
 	    sendit(UA_sock->msg);  /* echo to terminal */
@@ -212,7 +209,7 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
 	 }
       }
       if (stat < 0) {
-	 break; 		      /* error */
+	 break; 		      /* error or interrupt */
       } else if (stat == 0) {	      /* timeout */
          if (strcmp(prompt, "*") == 0) {
             bnet_fsend(UA_sock, ".messages");
@@ -241,9 +238,10 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
 	    if (!stop) {
                sendit("\n");
 	    }
-	    at_prompt = FALSE;
+	    at_prompt = false;
 	 }
-	 if (!stop) {
+	 /* Suppress output if running in background or user hit ctl-c */
+	 if (!stop && !usrbrk()) {
 	    sendit(UA_sock->msg);
 	 }
       }
@@ -254,7 +252,7 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
 	 break; 		      /* error or term */
       } else if (stat == BNET_SIGNAL) {
 	 if (UA_sock->msglen == BNET_PROMPT) {
-	    at_prompt = TRUE;
+	    at_prompt = true;
 	 }
          Dmsg1(100, "Got poll %s\n", bnet_sig_to_ascii(UA_sock));
       }
@@ -270,8 +268,8 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
 int main(int argc, char *argv[])
 {
    int ch, i, ndir, item;
-   int no_signals = FALSE;
-   int test_config = FALSE;
+   bool no_signals = false;
+   bool test_config = false;
    JCR jcr;
 
    init_stack_dump();
@@ -280,6 +278,7 @@ int main(int argc, char *argv[])
    init_msg(NULL, NULL);
    working_directory = "/tmp";
    args = get_pool_memory(PM_FNAME);
+   con_init(stdin);
 
    while ((ch = getopt(argc, argv, "bc:d:r:st?")) != -1) {
       switch (ch) {
@@ -298,17 +297,18 @@ int main(int argc, char *argv[])
 	 break;
 
       case 's':                    /* turn off signals */
-	 no_signals = TRUE;
+	 no_signals = true;
 	 break;
 
       case 't':
-	 test_config = TRUE;
+	 test_config = true;
 	 break;
 
       case '?':
       default:
 	 usage();
-
+	 con_term();
+	 exit(1);
       }  
    }
    argc -= optind;
@@ -317,14 +317,19 @@ int main(int argc, char *argv[])
    if (!no_signals) {
       init_signals(terminate_console);
    }
+
+   /* Override Bacula default signals */
    signal(SIGCHLD, SIG_IGN);
-   signal(SIGTSTP, got_stop);
-   signal(SIGCONT, got_continue);
-   signal(SIGTTIN, got_tin);
-   signal(SIGTTOU, got_tout);
+   signal(SIGTSTP, got_sigstop);
+   signal(SIGCONT, got_sigcontinue);
+   signal(SIGTTIN, got_sigtin);
+   signal(SIGTTOU, got_sigtout);
+   trapctlc();
 
    if (argc) {
       usage();
+      con_term();
+      exit(1);
    }
 
    if (configfile == NULL) {
@@ -335,11 +340,12 @@ int main(int argc, char *argv[])
 
    LockRes();
    ndir = 0;
-   for (dir=NULL; (dir = (DIRRES *)GetNextRes(R_DIRECTOR, (RES *)dir)); ) {
+   foreach_res(dir, R_DIRECTOR) {
       ndir++;
    }
    UnlockRes();
    if (ndir == 0) {
+      con_term();
       Emsg1(M_ERROR_TERM, 0, _("No Director resource defined in %s\n\
 Without that I don't how to speak to the Director :-(\n"), configfile);
    }
@@ -351,7 +357,6 @@ Without that I don't how to speak to the Director :-(\n"), configfile);
 
    memset(&jcr, 0, sizeof(jcr));
 
-   con_init(stdin);
 
    if (ndir > 1) {
       UA_sock = init_bsock(NULL, 0, "", "", 0);
@@ -359,7 +364,7 @@ try_again:
       sendit(_("Available Directors:\n"));
       LockRes();
       ndir = 0;
-      for (dir = NULL; (dir = (DIRRES *)GetNextRes(R_DIRECTOR, (RES *)dir)); ) {
+      foreach_res(dir, R_DIRECTOR) {
          senditf( _("%d  %s at %s:%d\n"), 1+ndir++, dir->hdr.name, dir->address,
 	    dir->DIRport);
       }
@@ -385,7 +390,6 @@ try_again:
       UnlockRes();
    }
       
-
    senditf(_("Connecting to Director %s:%d\n"), dir->address,dir->DIRport);
    UA_sock = bnet_connect(NULL, 5, 15, "Director daemon", dir->address, 
 			  NULL, dir->DIRport, 0);
@@ -404,6 +408,7 @@ try_again:
 
    sendit(_("Enter a period to cancel a command.\n"));
 
+   /* Run commands in ~/.bconsolerc if any */
    char *env = getenv("HOME");
    if (env) {
       FILE *fd;
@@ -415,7 +420,6 @@ try_again:
 	 fclose(fd);
       }
    }
-
 
    read_and_process_input(stdin, UA_sock);
 
@@ -581,15 +585,17 @@ static int inputcmd(FILE *input, BSOCK *UA_sock)
    return 1;
 }
 
+/* Send output to both termina and specified file */
 static int teecmd(FILE *input, BSOCK *UA_sock)
 {
-   tee = 1;
+   tee = true;
    return do_outputcmd(input, UA_sock);
 }
 
+/* Send output to specified "file" */
 static int outputcmd(FILE *input, BSOCK *UA_sock)
 {
-   tee = 0;
+   tee = false;
    return do_outputcmd(input, UA_sock);
 }
 
@@ -607,7 +613,7 @@ static int do_outputcmd(FILE *input, BSOCK *UA_sock)
       if (output != stdout) {
 	 fclose(output);
 	 output = stdout;
-	 tee = 0;
+	 tee = false;
       }
       return 1;
    }
@@ -665,7 +671,7 @@ void senditf(char *fmt,...)
 
 void sendit(char *buf)
 {
-#ifdef HAVE_CONIO
+#ifdef xHAVE_CONIO
     if (output == stdout || tee) {
        char *p, *q;	
        /*

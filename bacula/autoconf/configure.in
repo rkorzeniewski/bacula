@@ -1541,6 +1541,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   scripts/bconsole \
 	   scripts/gconsole \
 	   scripts/bacula \
+	   scripts/devel_bacula \
 	   scripts/fd \
 	   scripts/Makefile \
 	   scripts/logrotate \
@@ -1608,7 +1609,7 @@ AC_OUTPUT([autoconf/Make.common \
 
 cd scripts
 chmod 755 startmysql stopmysql bacula startit stopit btraceback mtx-changer
-chmod 755 bconsole gconsole mtx-changer
+chmod 755 bconsole gconsole mtx-changer devel_bacula
 cd ..
 
 c=src/cats

@@ -62,6 +62,7 @@ configure: autoconf/configure.in autoconf/aclocal.m4 autoconf/acconfig.h autocon
 
 old-configure: autoconf/configure.in autoconf/aclocal.m4 autoconf/acconfig.h
 	cd $(srcdir);
+	${RMF} -f config.cache config.log config.out config.status src/config.h
 	autoconf --include=$(srcdir)/autoconf \
 	autoconf/configure.in > configure
 	chmod 755 configure
@@ -73,6 +74,7 @@ config.status:
 
 autoconf/config.h.in: autoconf/configure.in autoconf/acconfig.h
 	cd $(srcdir);
+	${RMF} -f config.cache config.log config.out config.status src/config.h
 	autoheader --prepend-include=$(srcdir)/autoconf \
 	autoconf/configure.in > autoconf/config.h.in
 	chmod 644 autoconf/config.h.in
@@ -120,7 +122,7 @@ Makefiles:
 	$(SHELL) config.status
 	(cd scripts; \
 	chmod 755 startmysql stopmysql bacula fd startit stopit btraceback; \
-	chmod 755 mtx-changer bconsole gconsole)
+	chmod 755 mtx-changer bconsole gconsole devel_bacula)
 
 	(cd src/cats; \
 	chmod 755 create_bacula_database      update_bacula_tables     make_bacula_tables; \
