@@ -413,7 +413,7 @@ bool write_block_to_dev(DCR *dcr)
       Jmsg(jcr, M_FATAL, 0,  _("Cannot write block. Device at EOM.\n"));
       return false;
    }
-   if (!(dev->state & ST_APPEND)) {
+   if (!dev->can_append()) {
       dev->dev_errno = EIO;
       Jmsg(jcr, M_FATAL, 0, _("Attempt to write on read-only Volume.\n"));
       return false;

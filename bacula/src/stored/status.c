@@ -106,7 +106,7 @@ bool status_cmd(JCR *jcr)
             bnet_fsend(user, _("Device \"%s\" open but no Bacula volume is mounted.\n"), dev_name(dev));
 	 }
 	 send_blocked_status(jcr, dev);
-	 if (dev_state(dev, ST_APPEND)) {
+	 if (dev->can_append()) {
 	    bpb = dev->VolCatInfo.VolCatBlocks;
 	    if (bpb <= 0) {
 	       bpb = 1;

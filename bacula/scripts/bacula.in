@@ -15,7 +15,7 @@ PSCMD="@PSCMD@"
 # On Solaris, you may need to use nawk, or alternatively,
 #  add the GNU binaries to your path, such as /usr/xpg4/bin
 #
-AWK=awk
+AWK=@AWK@
 
 # All these are not *really* needed but it makes it
 #  easier to "steal" this code for the development 
