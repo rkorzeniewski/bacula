@@ -21,7 +21,7 @@ bin/bacula start 2>&1 >/dev/null
 bin/console -c bin/console.conf <<END_OF_DATA
 @output /dev/null
 messages
-@tee    tmp/log1.out
+@output tmp/log1.out
 label storage=File1 volume=TestVolume001
 label storage=File1 volume=TestVolume002
 update Volume=TestVolume001
