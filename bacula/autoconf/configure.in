@@ -1284,6 +1284,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   rescue/Makefile \
 	   rescue/linux/Makefile \
 	   rescue/freebsd/Makefile \
+	   rescue/solaris/Makefile \
 	   scripts/startmysql \
 	   scripts/stopmysql \
 	   scripts/btraceback \

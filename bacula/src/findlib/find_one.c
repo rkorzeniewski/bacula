@@ -149,7 +149,7 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
 
        struct f_link *lp;
 
-       /* keep linked list of files */
+       /* Search link list of hard linked files */
        for (lp = ff_pkt->linklist; lp; lp = lp->next)
 	  if (lp->ino == ff_pkt->statp.st_ino && lp->dev == ff_pkt->statp.st_dev) {
 	      ff_pkt->link = lp->name;

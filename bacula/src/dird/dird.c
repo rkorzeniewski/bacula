@@ -49,7 +49,6 @@ extern void init_job_server(int max_workers);
 
 static char *configfile = NULL;
 static char *runjob = NULL;
-
 static int background = 1;
 
 /* Globals Exported */
@@ -175,8 +174,8 @@ int main (int argc, char *argv[])
 
    my_name_is(0, NULL, director->hdr.name);    /* set user defined name */
 
-   FDConnectTimeout = director->FDConnectTimeout;
-   SDConnectTimeout = director->SDConnectTimeout;
+   FDConnectTimeout = (int)director->FDConnectTimeout;
+   SDConnectTimeout = (int)director->SDConnectTimeout;
 
    if (background) {
       daemon_start();

@@ -17,6 +17,7 @@ For 1.28 release:
   a single device.
 
 For 1.29 release:
+- Enable avoid backing up archive device (findlib/find_one.c:128)
 - Implement FileOptions (see end of this document)
 - Implement Bacula plugins -- design API
 - Make hash table for linked files in findlib/find_one.c:161

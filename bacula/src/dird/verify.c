@@ -463,12 +463,14 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
 	  * fields he requests.
 	  */
 	 for (p=Opts_MD5; *p; p++) {
+	    char ed1[30], ed2[30];
 	    switch (*p) {
             case 'i':                /* compare INODEs */
 	       if (statc.st_ino != statf.st_ino) {
 		  prt_fname(jcr);
-                  Jmsg(jcr, M_INFO, 0, _("      st_ino   differ. Cat: %x File: %x\n"), 
-		     statc.st_ino, statf.st_ino);
+                  Jmsg(jcr, M_INFO, 0, _("      st_ino   differ. Cat: %s File: %s\n"), 
+		     edit_uint64((uint64_t)statc.st_ino, ed1),
+		     edit_uint64((uint64_t)statf.st_ino, ed2));
 		  stat = JS_Differences;
 	       }
 	       break;
@@ -476,7 +478,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
 	       if (statc.st_mode != statf.st_mode) {
 		  prt_fname(jcr);
                   Jmsg(jcr, M_INFO, 0, _("      st_mode  differ. Cat: %x File: %x\n"), 
-		     statc.st_mode, statf.st_mode);
+		     (uint32_t)statc.st_mode, (uint32_t)statf.st_mode);
 		  stat = JS_Differences;
 	       }
 	       break;
@@ -484,31 +486,32 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
 	       if (statc.st_nlink != statf.st_nlink) {
 		  prt_fname(jcr);
                   Jmsg(jcr, M_INFO, 0, _("      st_nlink differ. Cat: %d File: %d\n"), 
-		     statc.st_nlink, statf.st_nlink);
+		     (uint32_t)statc.st_nlink, (uint32_t)statf.st_nlink);
 		  stat = JS_Differences;
 	       }
 	       break;
             case 'u':                /* user id */
 	       if (statc.st_uid != statf.st_uid) {
 		  prt_fname(jcr);
-                  Jmsg(jcr, M_INFO, 0, _("      st_uid   differ. Cat: %d File: %d\n"), 
-		     statc.st_uid, statf.st_uid);
+                  Jmsg(jcr, M_INFO, 0, _("      st_uid   differ. Cat: %u File: %u\n"), 
+		     (uint32_t)statc.st_uid, (uint32_t)statf.st_uid);
 		  stat = JS_Differences;
 	       }
 	       break;
             case 'g':                /* group id */
 	       if (statc.st_gid != statf.st_gid) {
 		  prt_fname(jcr);
-                  Jmsg(jcr, M_INFO, 0, _("      st_gid   differ. Cat: %d File: %d\n"), 
-		     statc.st_gid, statf.st_gid);
+                  Jmsg(jcr, M_INFO, 0, _("      st_gid   differ. Cat: %u File: %u\n"), 
+		     (uint32_t)statc.st_gid, (uint32_t)statf.st_gid);
 		  stat = JS_Differences;
 	       }
 	       break;
             case 's':                /* size */
 	       if (statc.st_size != statf.st_size) {
 		  prt_fname(jcr);
-                  Jmsg(jcr, M_INFO, 0, _("      st_size  differ. Cat: %d File: %d\n"), 
-		     statc.st_size, statf.st_size);
+                  Jmsg(jcr, M_INFO, 0, _("      st_size  differ. Cat: %s File: %s\n"), 
+		     edit_uint64((uint64_t)statc.st_size, ed1),
+		     edit_uint64((uint64_t)statf.st_size, ed2));
 		  stat = JS_Differences;
 	       }
 	       break;
@@ -536,8 +539,9 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
             case 'd':                /* file size decrease */
 	       if (statc.st_size > statf.st_size) {
 		  prt_fname(jcr);
-                  Jmsg(jcr, M_INFO, 0, _("      st_size  decrease. Cat: %d File: %d\n"), 
-		     statc.st_size, statf.st_size);
+                  Jmsg(jcr, M_INFO, 0, _("      st_size  decrease. Cat: %s File: %s\n"), 
+		     edit_uint64((uint64_t)statc.st_size, ed1),
+		     edit_uint64((uint64_t)statf.st_size, ed2));
 		  stat = JS_Differences;
 	       }
 	       break;

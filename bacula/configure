@@ -9442,6 +9442,7 @@ trap 'rm -fr `echo "autoconf/Make.common \
 	   rescue/Makefile \
 	   rescue/linux/Makefile \
 	   rescue/freebsd/Makefile \
+	   rescue/solaris/Makefile \
 	   scripts/startmysql \
 	   scripts/stopmysql \
 	   scripts/btraceback \
@@ -9700,6 +9701,7 @@ CONFIG_FILES=\${CONFIG_FILES-"autoconf/Make.common \
 	   rescue/Makefile \
 	   rescue/linux/Makefile \
 	   rescue/freebsd/Makefile \
+	   rescue/solaris/Makefile \
 	   scripts/startmysql \
 	   scripts/stopmysql \
 	   scripts/btraceback \

@@ -106,8 +106,9 @@ void do_restore(JCR *jcr)
       /* 
        * Now we expect the Stream Data
        */
-      if (bnet_recv(sd) < 0 && !job_cancelled(jcr)) {
+      if (bnet_recv(sd) < 0) {
          Jmsg1(jcr, M_FATAL, 0, _("Data record error. ERR=%s\n"), bnet_strerror(sd));
+	 goto bail_out;
       }
       if (size != (uint32_t)sd->msglen) {
          Jmsg2(jcr, M_FATAL, 0, _("Actual data size %d not same as header %d\n"), sd->msglen, size);
