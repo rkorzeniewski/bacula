@@ -11,6 +11,12 @@
 ; added Start Menu items
 ; fix uninstall of config files to do all not just bacula-fd.conf
 ;
+; D. Scott Barninger Dec 05 2004
+; added specification of default permissions for bacula-fd.conf
+;   - thanks to Jamie Ffolliott for pointing me at cacls
+; added removal of working-dir files if user selects to remove config
+; uninstall is now 100% clean
+;
 ; Command line options:
 ;
 ; /cygwin     -  do cygwin install into c:\cygwin\bacula
@@ -154,8 +160,11 @@ Section "Bacula File Service" SecService
   Call IsNt
   Pop $R0
   StrCmp $R0 "false" do_win98
-  MessageBox MB_YESNO|MB_ICONQUESTION  "Would you like to start the Bacula Client now?" IDNO NoStart
+  MessageBox MB_YESNO|MB_ICONQUESTION  "Would you like to start the Bacula Client now?" IDNO SetPerms
   Exec 'net start bacula'
+ SetPerms:
+  ; set default permissions on config file so it's not world readable
+  Exec 'cmd /C echo Y|cacls "$INSTDIR\bin\bacula-fd.conf" /G SYSTEM:F Administrators:F'
   goto NoStart 
  do_win98:
   File Start.bat
@@ -274,8 +283,9 @@ Section "Uninstall"
   Delete /REBOOTOK "$INSTDIR\Uninstall.exe"
 
   ; Check for existing installation
-  MessageBox MB_YESNO|MB_ICONQUESTION "Would you like to delete the current configuration files?" IDNO LeaveConfig
+  MessageBox MB_YESNO|MB_ICONQUESTION "Would you like to delete the current configuration files and the working state file?" IDNO LeaveConfig
   Delete /REBOOTOK "$INSTDIR\bin\*.conf"
+  Delete /REBOOTOK "$INSTDIR\working\*"
   ; remove directories used
   RMDir "$INSTDIR\bin"
   RMDir "$INSTDIR\doc"
