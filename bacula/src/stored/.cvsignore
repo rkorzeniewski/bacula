@@ -1,4 +1,5 @@
 1
+2
 Makefile
 bacula-sd
 bacula-sd.conf
@@ -19,3 +20,4 @@ stopit
 changer.out
 mtx-changer
 stored.conf
+test.conf
