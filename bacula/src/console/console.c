@@ -381,9 +381,7 @@ Without that I don't how to speak to the Director :-(\n"), configfile);
    memset(&jcr, 0, sizeof(jcr));
 
 
-#ifdef HAVE_WIN32
    WSA_Init();			      /* Initialize Windows sockets */
-#endif
 
    if (ndir > 1) {
       struct sockaddr_in client_addr;
@@ -399,7 +397,8 @@ try_again:
       }
       UnlockRes();
       if (get_cmd(stdin, _("Select Director: "), UA_sock, 600) < 0) {
-	 return 1;
+         WSACleanup();               /* Cleanup Windows sockets */
+         return 1;
       }
       item = atoi(UA_sock->msg);
       if (item < 0 || item > ndir) {
@@ -470,6 +469,8 @@ try_again:
 /* Cleanup and then exit */
 static void terminate_console(int sig)
 {
+   WSACleanup();               /* Cleanup Windows sockets */
+
    static bool already_here = false;
 
    if (already_here) {		      /* avoid recursive temination problems */
