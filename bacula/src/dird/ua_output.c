@@ -325,6 +325,7 @@ void do_messages(UAContext *ua, char *cmd)
 {
    char msg[2000];
    int mlen; 
+   int do_truncate = FALSE;
 
    P(con_mutex);
    rewind(con_fd);
@@ -334,8 +335,11 @@ void do_messages(UAContext *ua, char *cmd)
       strcpy(ua->UA_sock->msg, msg);
       ua->UA_sock->msglen = mlen;
       bnet_send(ua->UA_sock);
+      do_truncate = TRUE;
    }
-   ftruncate(fileno(con_fd), 0L);
+   if (do_truncate) {
+      ftruncate(fileno(con_fd), 0L);
+   }
    console_msg_pending = FALSE;
    ua->user_notified_msg_pending = FALSE;
    V(con_mutex);

@@ -108,6 +108,7 @@ ClientId=%d, JobTDate=%s WHERE JobId=%d",
    stat = UPDATE_DB(mdb, mdb->cmd);
    db_unlock(mdb);
 #ifdef HAVE_SQLITE
+   /******FIXME***** do this machine independently */
    my_sqlite_query(mdb, "BEGIN");     /* begin transaction */
 #endif
    return stat;
