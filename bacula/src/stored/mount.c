@@ -279,6 +279,13 @@ mount_error:
 	       dev_name(dev), strerror_dev(dev));
 	    goto mount_next_vol;
 	 }
+	 /* 
+	  * We do not return the label in the block, because if we are
+	  *  running multiple simultaneous jobs, once we release the lock
+	  *  some other thread may write his block over the label. So, 
+	  *  we simply write it definitively now.
+	  */
+#ifdef needed
 	 if (!rewind_dev(dev)) {
             Jmsg2(jcr, M_ERROR, 0, _("Unable to rewind device %s. ERR=%s\n"),
 	       dev_name(dev), strerror_dev(dev));
@@ -287,6 +294,7 @@ mount_error:
 
 	 /* Recreate a correct volume label and return it in the block */
 	 write_volume_label_to_block(jcr, dev, block);
+#endif
       }
       /* Set or reset Volume statistics */
       dev->VolCatInfo.VolCatJobs = 0;
