@@ -20,7 +20,7 @@ Director {                            # define myself
   PidDirectory = "@piddir@"
   Maximum Concurrent Jobs = 1
   Password = "@dir_password@"         # Console password
-  Messages = Standard
+  Messages = Daemon
 }
 
 JobDefs {
@@ -212,6 +212,20 @@ Messages {
 #
   append = "@working_dir@/log" = all, !skipped
 }
+
+
+#
+# Message delivery for daemon messages (no job).
+Messages {
+  Name = Daemon
+  mailcommand = "@sbindir@/bsmtp -h @smtp_host@ -f \"\(Bacula\) %r\" -s \"Bacula daemon message\" %r"
+  mail = @job_email@ = all, !skipped            
+  console = all, !skipped, !saved
+  append = "@working_dir@/log" = all, !skipped
+}
+
+
+
     
 # Default pool definition
 Pool {

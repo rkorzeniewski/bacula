@@ -19038,7 +19038,7 @@ openbsd)
 	lld="qd"
 	llu="qu"
 	TAPEDRIVE="/dev/nrst0"
-	PSCMD="ps -a -o pid,command"
+	PSCMD="ps -ax -o pid,command"
 	PTHREAD_LIB="-pthread"
 	CFLAGS="${CFLAGS} -pthread"
 	PFILES="${PFILES} \
@@ -19091,7 +19091,7 @@ gentoo)
 	PSCMD="ps -e -o pid,command"
 	PFILES="${PFILES} \
 	    platforms/gentoo/Makefile \
-         platforms/gentoo/bacula-init \
+	 platforms/gentoo/bacula-init \
 	    platforms/gentoo/bacula-fd \
 	    platforms/gentoo/bacula-sd \
 	    platforms/gentoo/bacula-dir"

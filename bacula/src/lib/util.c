@@ -542,7 +542,11 @@ POOLMEM *edit_job_codes(JCR *jcr, char *omsg, char *imsg, const char *to)
             str = "%";
 	    break;
          case 'c':
-	    str = jcr->client_name;
+	    if (jcr) {
+	       str = jcr->client_name;
+	    } else {
+               str = "*none*";
+	    }
 	    if (!str) {
                str = "";
 	    }
@@ -551,39 +555,67 @@ POOLMEM *edit_job_codes(JCR *jcr, char *omsg, char *imsg, const char *to)
             str = my_name;            /* Director's name */
 	    break;
          case 'e':
-	    str = job_status_to_str(jcr->JobStatus); 
+	    if (jcr) {
+	       str = job_status_to_str(jcr->JobStatus); 
+	    } else { 
+               str = "*none*";
+	    }
 	    break;
          case 'i':
-            bsnprintf(add, sizeof(add), "%d", jcr->JobId);
-	    str = add;
+	    if (jcr) {
+               bsnprintf(add, sizeof(add), "%d", jcr->JobId);
+	       str = add;
+	    } else {
+               str = "*none*";
+	    }
 	    break;
          case 'j':                    /* Job name */
-	    str = jcr->Job;
+	    if (jcr) {
+	       str = jcr->Job;
+	    } else {
+               str = "*none*";
+	    }
 	    break;
          case 'l':
-	    str = job_level_to_str(jcr->JobLevel);
+	    if (jcr) {
+	       str = job_level_to_str(jcr->JobLevel);
+	    } else {
+               str = "*none*";
+	    }
 	    break;
          case 'n':
-	     bstrncpy(name, jcr->Job, sizeof(name));
-	     /* There are three periods after the Job name */
-	     for (i=0; i<3; i++) {
-                if ((q=strrchr(name, '.')) != NULL) {
-		    *q = 0;
+	     if (jcr) {
+		bstrncpy(name, jcr->Job, sizeof(name));
+		/* There are three periods after the Job name */
+		for (i=0; i<3; i++) {
+                   if ((q=strrchr(name, '.')) != NULL) {
+		       *q = 0;
+		   }
 		}
+		str = name;
+	     } else {
+                str = "*none*";
 	     }
-	     str = name;
 	     break;
          case 'r':
 	    str = to;
 	    break;
          case 't':
-	    str = job_type_to_str(jcr->JobType);
+	    if (jcr) {
+	       str = job_type_to_str(jcr->JobType);
+	    } else {
+               str = "*none*";
+	    }
 	    break;
          case 'v':
-	    if (jcr->VolumeName && jcr->VolumeName[0]) {
-	       str = jcr->VolumeName;
+	    if (jcr) {
+	       if (jcr->VolumeName && jcr->VolumeName[0]) {
+		  str = jcr->VolumeName;
+	       } else {
+                  str = "";
+	       }
 	    } else {
-               str = "";
+               str = "*none*";
 	    }
 	    break;
 	 default:

@@ -7,13 +7,15 @@ Project                     Developer
 IPv6_2                      Meno Abels
 Data encryption             Meno Abels (see projects)
 Communication encryption    Meno Abels  
-Version 1.35                Kern (see below)
+Version 1.37                Kern (see below)
 ========================================================
 
-1.37 Items to do for release:
-  
-
 1.37 Items:
+- Make bls list files but with VolID, VolTime, FileIndex
+- Modify Backing up Your Database to include a bootstrap file.
+- Add restore of specific JobId to regression.
+- Add date/time to each Jmsg.
+- Think about making certain database errors fatal.
 - Look at correcting the time jump in the sceduler for daylight
   savings time changes.
 - Add a "real" timer to network connections.
