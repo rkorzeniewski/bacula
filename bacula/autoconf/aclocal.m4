@@ -258,6 +258,14 @@ else
         BA_CONDITIONAL(HAVE_IRIX_OS, $FALSEPRG)
 fi
 
+if test $HAVE_UNAME=yes -a x`uname -s` = xDarwin
+then
+    AM_CONDITIONAL(HAVE_DARWIN_OS, $TRUEPRG)
+    AC_DEFINE(HAVE_DARWIN_OS)
+else
+    AM_CONDITIONAL(HAVE_DARWIN_OS, $FALSEPRG)
+fi
+
 AC_MSG_RESULT(" ")
 ])
 
@@ -311,6 +319,9 @@ then
 elif test -f /etc/slackware-version
 then
         DISTNAME=slackware
+elif test $HAVE_UNAME=yes -a x`uname -s` = xDarwin
+then
+    DISTNAME=darwin
 elif test "$ac_cv_cygwin" = yes
 then
         DISTNAME=cygwin

@@ -457,23 +457,23 @@ int db_create_file_attributes_record(void *jcr, B_DB *mdb, ATTR_DBR *ar)
       db_unlock(mdb);
       return 0;
    }
-   Dmsg1(100, "db_create_filename_record: %s\n", mdb->esc_name);
+   Dmsg1(500, "db_create_filename_record: %s\n", mdb->esc_name);
 
 
    if (!db_create_path_record(jcr, mdb, ar)) {
       db_unlock(mdb);
       return 0;
    }
-   Dmsg1(100, "db_create_path_record\n", mdb->esc_name);
+   Dmsg1(500, "db_create_path_record: %s\n", mdb->esc_name);
 
    /* Now create master File record */
    if (!db_create_file_record(jcr, mdb, ar)) {
       db_unlock(mdb);
       return 0;
    }
-   Dmsg0(50, "db_create_file_record\n");
+   Dmsg0(500, "db_create_file_record OK\n");
 
-   Dmsg3(100, "Path=%s File=%s FilenameId=%d\n", mdb->path, mdb->fname, ar->FilenameId);
+   Dmsg3(100, "CreateAttributes Path=%s File=%s FilenameId=%d\n", mdb->path, mdb->fname, ar->FilenameId);
    db_unlock(mdb);
    return 1;
 }

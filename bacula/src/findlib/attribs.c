@@ -45,6 +45,10 @@ extern "C" HANDLE get_osfhandle(int fd);
 void win_error(void *jcr, char *prefix, POOLMEM *ofile);
 #endif
 
+/* For old systems that don't have lchown() use chown() */
+#ifndef HAVE_LCHOWN
+#define lchown chown
+#endif
 
 /*=============================================================*/
 /*							       */

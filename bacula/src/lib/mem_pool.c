@@ -87,8 +87,6 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 #define HEAD_SIZE BALIGN(sizeof(struct abufhead))
 
-extern POOLMEM *sm_malloc(char *fname, int lineno, int nbytes);
-
 POOLMEM *sm_get_pool_memory(char *fname, int lineno, int pool)
 {
    struct abufhead *buf;

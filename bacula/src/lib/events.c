@@ -43,7 +43,7 @@ void log_event(UPSINFO *ups, int level, char *fmt, ...)
     vsprintf(msg, fmt, arg_ptr);
     va_end(arg_ptr);
 
-    syslog(level, msg); 	  /* log the event */
+    syslog(level, "%s", msg);         /* log the event */
 
     /* Write out to our temp file. LOG_INFO is DATA logging, so
        do not write it to our temp events file. */

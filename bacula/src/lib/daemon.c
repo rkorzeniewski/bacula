@@ -58,11 +58,11 @@ daemon_start()
 
    /* In the PRODUCTION system, we close ALL
     * file descriptors. It is useful
-    * for debugging to leave the standard ones open.
+    * for debugging to leave the STDOUT ane STDERR open.
     */
    for (i=sysconf(_SC_OPEN_MAX)-1; i >=0; i--) {
 #ifdef DEBUG
-      if (i != STDIN_FILENO && i != STDOUT_FILENO && i != STDERR_FILENO) {
+      if (i != STDOUT_FILENO && i != STDERR_FILENO) {
 	 close(i);
       }
 #else 

@@ -16,6 +16,7 @@ Testing to do: (painful)
 - multiple simultaneous Volumes
 
 For 1.30 release:
+- Implement TCP/IP connection for MySQL
 - Make some way so that if a machine is skipped because it is not up 
   that Bacula will continue retrying for a specified period of time --
   periodically.

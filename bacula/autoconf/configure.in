@@ -1178,6 +1178,14 @@ cygwin)
 	CFLAGS="${CFLAGS} -mwindows"
 	LDFLAGS="${LDFLAGS} -mwindows"
   ;;
+darwin)
+	DISTVER=`uname -r`
+	TAPEDRIVE="/dev/nst0"
+	PSCMD="ps -e -o pid,command"
+	hostname=`hostname -s`
+	PFILES="${PFILES} \
+	   platforms/darwin/Makefile"
+  ;;
 debian)
 	DISTVER=`cat /etc/debian_version`
 	TAPEDRIVE="/dev/nrst0"

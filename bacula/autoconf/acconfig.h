@@ -172,6 +172,7 @@
 #undef HAVE_SGI_OS
 #undef HAVE_CYGWIN
 #undef HAVE_OSF1_OS
+#undef HAVE_DARWIN_OS
 
 /* Set to correct scanf value for long long int */
 #undef lld
