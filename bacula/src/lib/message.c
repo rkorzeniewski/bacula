@@ -654,7 +654,9 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 		   make_unique_mail_filename(jcr, &name, d);
                    d->fd = fopen(name, "w+");
 		   if (!d->fd) {
+		      d->fd = stdout;
                       Emsg2(M_ERROR, 0, "fopen %s failed: ERR=%s\n", name, strerror(errno));
+		      d->fd = NULL;
 		      free_pool_memory(name);
 		      break;
 		   }
@@ -671,7 +673,9 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 		if (!d->fd) {
                    d->fd = fopen(d->where, "w+");
 		   if (!d->fd) {
+		      d->fd = stdout;
                       Emsg2(M_ERROR, 0, "fopen %s failed: ERR=%s\n", d->where, strerror(errno));
+		      d->fd = NULL;
 		      break;
 		   }
 		}
@@ -682,7 +686,9 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 		if (!d->fd) {
                    d->fd = fopen(d->where, "a");
 		   if (!d->fd) {
+		      d->fd = stdout;
                       Emsg2(M_ERROR, 0, "fopen %s failed: ERR=%s\n", d->where, strerror(errno));
+		      d->fd = NULL;
 		      break;
 		   }
 		}
