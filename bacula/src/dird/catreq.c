@@ -108,9 +108,10 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 	       }
 	    }
 
-	    if (!ok && jcr->pool->purge_oldest_volume) {
-               Dmsg1(200, "No next volume found. PurgeOldest=%d\n",
-		   jcr->pool->purge_oldest_volume);
+	    if (!ok && (jcr->pool->purge_oldest_volume ||
+			jcr->pool->recycle_oldest_volume)) {
+               Dmsg2(200, "No next volume found. PurgeOldest=%d\n RecyleOldest=%d",
+		   jcr->pool->purge_oldest_volume, jcr->pool->recycle_oldest_volume);
 	       /* Find oldest volume to recycle */
 	       ok = db_find_next_volume(jcr, jcr->db, -1, &mr);
                Dmsg1(400, "Find oldest=%d\n", ok);
@@ -119,12 +120,17 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
                   Dmsg0(400, "Try purge.\n");
 		  /* Try to purge oldest volume */
 		  ua = new_ua_context(jcr);
-                  Jmsg(jcr, M_INFO, 0, _("Purging oldest volume \"%s\"\n"), mr.VolumeName);
-		  ok = purge_jobs_from_volume(ua, &mr);
+		  if (jcr->pool->purge_oldest_volume) {
+                     Jmsg(jcr, M_INFO, 0, _("Purging oldest volume \"%s\"\n"), mr.VolumeName);
+		     ok = purge_jobs_from_volume(ua, &mr);
+		  } else {
+                     Jmsg(jcr, M_INFO, 0, _("Pruning oldest volume \"%s\"\n"), mr.VolumeName);
+		     ok = prune_volume(ua, &mr);
+		  }
 		  free_ua_context(ua);
 		  if (ok) {
-		     ok = recycle_oldest_purged_volume(jcr, &mr);
-                     Dmsg1(400, "Recycle after recycle oldest=%d\n", ok);
+		     ok = recycle_volume(jcr, &mr);
+                     Dmsg1(400, "Recycle after purge oldest=%d\n", ok);
 		  }
 	       }
 	    }
@@ -187,13 +193,13 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
        */
       unbash_spaces(mr.VolumeName);
       if (db_get_media_record(jcr, jcr->db, &mr)) {
-	 int VolSuitable = 0;
+	 bool VolSuitable = false;
          char *reason = "";           /* detailed reason for rejection */
 	 jcr->MediaId = mr.MediaId;
          Dmsg1(120, "VolumeInfo MediaId=%d\n", jcr->MediaId);
 	 pm_strcpy(&jcr->VolumeName, mr.VolumeName);
 	 if (!writing) {
-	    VolSuitable = 1;	      /* accept anything for read */
+	    VolSuitable = true;        /* accept anything for read */
 	 } else {
 	    /* 
 	     * SD wants to write this Volume, so make
@@ -206,12 +212,44 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
             } else if (strcmp(mr.VolStatus, "Append") != 0 &&
                        strcmp(mr.VolStatus, "Recycle") != 0) {
                reason = "not Append or Recycle";
+	       /* XXX nicb start */
+               /* What we're trying to do here is see if the current volume is
+                * "recycleable" - ie. if we prune all expired jobs off it, is
+		* it now possible to reuse it for the job that it is currently
+		* needed for?
+		*/
+	       if ((mr.LastWritten + mr.VolRetention) < (utime_t)time(NULL)
+		     && mr.Recycle && jcr->pool->recycle_current_volume   
+                     && (strcmp(mr.VolStatus, "Full") == 0 ||
+                        strcmp(mr.VolStatus, "Used") == 0)) {
+		  /*
+		   * Attempt prune of current volume to see if we can
+		   * recycle it for use.
+		   */
+		  UAContext *ua;
+
+                  reason = "not Append or Recycle (auto recycle failed)";
+
+		  ua = new_ua_context(jcr);
+		  ok = prune_volume(ua, &mr);
+		  free_ua_context(ua);
+
+		  if (ok) {
+		     /* If fully purged, recycle current volume */
+		     if (recycle_volume(jcr, &mr)) {
+                        Jmsg(jcr, M_INFO, 0, "Recycled current "
+                              "volume \"%s\"\n", mr.VolumeName);
+			VolSuitable = true;
+		     }
+		  }
+	       }
+	       /* XXX nicb end */
 	    } else if (strcmp(mr.MediaType, jcr->store->media_type) != 0) {
                reason = "not correct MediaType";
 	    } else if (!jcr->pool->accept_any_volume) {
                reason = "Volume not in sequence";
 	    } else {
-	       VolSuitable = 1;
+	       VolSuitable = true;
 	    }
 	 }
 	 if (VolSuitable) {

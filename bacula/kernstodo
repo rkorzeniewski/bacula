@@ -18,7 +18,37 @@ Documentation to do: (any release a little bit at a time)
   (./create_mys... ./make_my...).
 - Document all the status codes JobLevel, JobType, JobStatus.
 - Document dynamic DNS
+- Document using multiple Pools for daily rotating tapes.
+- Fix default time in seconds without qualifier -- bacula-dir.conf
+- From Marc Brueckner der Megauser
+   Backup OS       Restore OS      Result
+   -------------------------------------------------------------------------------
+   WinME           WinME           Works
+   WinME           WinNT           Works (minor problems with rights)
+   WinME           WINXP           Works (minor problems with rights)
+   WinME           Linux           Works (minor problems with rights) 
 
+
+   WinXP           WinXP           Works
+   WinXP           WinNT           Works  *
+   WinXP           WinME           Error: Win32 data stream not supported on this Client
+   WinXP           Linux           Error: Win32 data stream not supported on this Client
+
+   WinNT           WinNT           Works
+   WinNT           WinXP           Works
+   WinNT           WinME           Error: Win32 data stream not supported on this Client
+   WinNT           Linux           Error: Win32 data stream not supported on this Client
+
+   Linux           Linux           Works
+   Linux           WinNT           Works (minor problems with rights)
+   Linux           WinME           Client hangs
+   * When restoring files on WinNT previously backed up on XP I get the following 
+   Message for some files.
+   But any file was restored correctly !
+
+   Write error on c:/tmp/transfer/WinSCP2.exe: ERR=Die Daten sind unzulassig. (the
+   data is invalid).
+- Add Nic Bellamy's backup scheme.
           
 Testing to do: (painful)
 - that ALL console command line options work and are always implemented
@@ -1047,4 +1077,3 @@ Done: (see kernsdone for more)
 - Update Automatic Volume Labeling in disk.wml
 - Figure out how to handle DHCP IP addresses -- use dynamic DNS.
 - Add OS, GCC version to traceback output.
-

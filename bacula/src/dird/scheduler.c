@@ -157,6 +157,9 @@ JCR *wait_for_next_job(char *job_to_run)
    if (run->msgs) {
       jcr->messages = run->msgs;      /* override messages */
    }
+   if (run->Priority) {
+      jcr->JobPriority = run->Priority;
+   }
    Dmsg0(200, "Leave wait_for_next_job()\n");
    return jcr;
 }

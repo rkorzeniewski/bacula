@@ -723,13 +723,14 @@ int db_get_num_media_records(JCR *jcr, B_DB *mdb)
 
 
 /*
- * This function returns a list of all the Media record ids.
+ * This function returns a list of all the Media record ids for
+ *     the current Pool.
  *  The caller must free ids if non-NULL.
  *
  *  Returns 0: on failure
  *	    1: on success
  */
-int db_get_media_ids(JCR *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
+int db_get_media_ids(JCR *jcr, B_DB *mdb, uint32_t PoolId, int *num_ids, uint32_t *ids[])
 {
    SQL_ROW row;
    int stat = 0;
@@ -738,7 +739,7 @@ int db_get_media_ids(JCR *jcr, B_DB *mdb, int *num_ids, uint32_t *ids[])
 
    db_lock(mdb);
    *ids = NULL;
-   Mmsg(&mdb->cmd, "SELECT MediaId FROM Media");
+   Mmsg(&mdb->cmd, "SELECT MediaId FROM Media WHERE PoolId=%u", PoolId);
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       *num_ids = sql_num_rows(mdb);
       if (*num_ids > 0) {

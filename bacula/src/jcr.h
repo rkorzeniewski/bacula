@@ -106,6 +106,7 @@ struct JCR {
    volatile int JobStatus;            /* ready, running, blocked, terminated */ 
    int JobType;                       /* backup, restore, verify ... */
    int JobLevel;                      /* Job level */
+   int JobPriority;                   /* Job priority */
    int authenticated;                 /* set when client authenticated */
    time_t sched_time;                 /* job schedule time, i.e. when it should start */
    time_t start_time;                 /* when job actually started */
@@ -156,7 +157,7 @@ struct JCR {
    uint32_t RestoreJobId;             /* Id specified by UA */
    POOLMEM *client_uname;             /* client uname */ 
    int replace;                       /* Replace option */
-   int acquired_resource_locks;       /* set if resource locks acquired */
+   bool acquired_resource_locks;      /* set if resource locks acquired */
    int NumVols;                       /* Number of Volume used in pool */
    int reschedule_count;              /* Number of times rescheduled */
 #endif /* DIRECTOR_DAEMON */

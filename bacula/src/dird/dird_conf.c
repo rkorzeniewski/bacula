@@ -1,7 +1,7 @@
 /*
  *   Main configuration file parser for Bacula Directors,
  *    some parts may be split into separate files such as
- *    the schedule configuration (sch_config.c).
+ *    the schedule configuration (run_config.c).
  *
  *   Note, the configuration file parser consists of three parts
  *
@@ -50,6 +50,7 @@
  */
 int r_first = R_FIRST;
 int r_last  = R_LAST;
+
 pthread_mutex_t res_mutex =  PTHREAD_MUTEX_INITIALIZER;
 
 /* Imported subroutines */
@@ -213,6 +214,7 @@ static struct res_items job_items[] = {
    {"rescheduleonerror", store_yesno, ITEM(res_job.RescheduleOnError), 1, ITEM_DEFAULT, 0},
    {"rescheduleinterval", store_time, ITEM(res_job.RescheduleInterval), 0, ITEM_DEFAULT, 60 * 30},
    {"rescheduletimes", store_pint, ITEM(res_job.RescheduleTimes), 0, 0, 0},
+   {"priority",   store_pint, ITEM(res_job.Priority), 0, ITEM_DEFAULT, 10},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
@@ -265,6 +267,8 @@ static struct res_items pool_items[] = {
    {"usecatalog",      store_yesno, ITEM(res_pool.use_catalog),     1, ITEM_DEFAULT,  1},
    {"usevolumeonce",   store_yesno, ITEM(res_pool.use_volume_once), 1, 0,        0},
    {"purgeoldestvolume", store_yesno, ITEM(res_pool.purge_oldest_volume), 1, 0, 0},
+   {"recycleoldestvolume", store_yesno, ITEM(res_pool.recycle_oldest_volume), 1, 0, 0},
+   {"recyclecurrentvolume", store_yesno, ITEM(res_pool.recycle_current_volume), 1, 0, 0},
    {"maximumvolumes",  store_pint,  ITEM(res_pool.max_volumes),     0, 0,        0},
    {"maximumvolumejobs", store_pint,  ITEM(res_pool.MaxVolJobs),    0, 0,       0},
    {"maximumvolumefiles", store_pint, ITEM(res_pool.MaxVolFiles),   0, 0,       0},
@@ -438,10 +442,8 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
          sendit(sock, "  --> ");
 	 dump_resource(-R_COUNTER, (RES *)res->res_counter.WrapCounter, sendit, sock);
       }
+      break;
 
-
-
-	 break;
    case R_CLIENT:
       sendit(sock, "Client: name=%s address=%s FDport=%d MaxJobs=%u\n",
 	 res->res_client.hdr.name, res->res_client.address, res->res_client.FDport,
@@ -468,9 +470,10 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
 	 res->res_cat.db_port, res->res_cat.db_name, NPRT(res->res_cat.db_user));
       break;
    case R_JOB:
-      sendit(sock, "Job: name=%s JobType=%d level=%s MaxJobs=%u\n", 
+      sendit(sock, "Job: name=%s JobType=%d level=%s Priority=%d MaxJobs=%u\n", 
 	 res->res_job.hdr.name, res->res_job.JobType, 
-	 level_to_str(res->res_job.level), res->res_job.MaxConcurrentJobs);
+	 level_to_str(res->res_job.level), res->res_job.Priority,
+	 res->res_job.MaxConcurrentJobs);
       sendit(sock, "     Resched=%d Times=%d Interval=%s\n",
 	  res->res_job.RescheduleOnError, res->res_job.RescheduleTimes,
 	  edit_uint64_with_commas(res->res_job.RescheduleInterval, ed1));
@@ -1115,7 +1118,7 @@ static void store_backup(LEX *lc, struct res_items *item, int index, int pass)
    
    ((JOB *)(item->value))->JobType = item->code;
    while ((token = lex_get_token(lc, T_ALL)) != T_EOL) {
-      int found;
+      bool found = false;
 
       Dmsg1(150, "store_backup got token=%s\n", lex_tok_to_str(token));
       
@@ -1123,52 +1126,51 @@ static void store_backup(LEX *lc, struct res_items *item, int index, int pass)
          scan_err1(lc, "Expected a backup/verify keyword, got: %s", lc->str);
       }
       Dmsg1(190, "Got keyword: %s\n", lc->str);
-      found = FALSE;
       for (i=0; BakVerFields[i].name; i++) {
 	 if (strcasecmp(lc->str, BakVerFields[i].name) == 0) {
-	    found = TRUE;
+	    found = true;
 	    if (lex_get_token(lc, T_ALL) != T_EQUALS) {
                scan_err1(lc, "Expected an equals, got: %s", lc->str);
 	    }
 	    token = lex_get_token(lc, T_NAME);
             Dmsg1(190, "Got value: %s\n", lc->str);
 	    switch (BakVerFields[i].token) {
-               case 'C':
-		  /* Find Client Resource */
-		  if (pass == 2) {
-		     res = GetResWithName(R_CLIENT, lc->str);
-		     if (res == NULL) {
-                        scan_err1(lc, "Could not find specified Client Resource: %s",
-				   lc->str);
-		     }
-		     res_all.res_job.client = (CLIENT *)res;
+            case 'C':
+	       /* Find Client Resource */
+	       if (pass == 2) {
+		  res = GetResWithName(R_CLIENT, lc->str);
+		  if (res == NULL) {
+                     scan_err1(lc, "Could not find specified Client Resource: %s",
+				lc->str);
 		  }
-		  break;
-               case 'F':
-		  /* Find FileSet Resource */
-		  if (pass == 2) {
-		     res = GetResWithName(R_FILESET, lc->str);
-		     if (res == NULL) {
-                        scan_err1(lc, "Could not find specified FileSet Resource: %s\n",
-				    lc->str);
-		     }
-		     res_all.res_job.fileset = (FILESET *)res;
+		  res_all.res_job.client = (CLIENT *)res;
+	       }
+	       break;
+            case 'F':
+	       /* Find FileSet Resource */
+	       if (pass == 2) {
+		  res = GetResWithName(R_FILESET, lc->str);
+		  if (res == NULL) {
+                     scan_err1(lc, "Could not find specified FileSet Resource: %s\n",
+				 lc->str);
 		  }
-		  break;
-               case 'L':
-		  /* Get level */
-		  for (i=0; joblevels[i].level_name; i++) {
-		     if (joblevels[i].job_type == item->code && 
-			  strcasecmp(lc->str, joblevels[i].level_name) == 0) {
-			((JOB *)(item->value))->level = joblevels[i].level;
-			i = 0;
-			break;
-		     }
+		  res_all.res_job.fileset = (FILESET *)res;
+	       }
+	       break;
+            case 'L':
+	       /* Get level */
+	       for (i=0; joblevels[i].level_name; i++) {
+		  if (joblevels[i].job_type == item->code && 
+		       strcasecmp(lc->str, joblevels[i].level_name) == 0) {
+		     ((JOB *)(item->value))->level = joblevels[i].level;
+		     i = 0;
+		     break;
 		  }
-		  if (i != 0) {
-                     scan_err1(lc, "Expected a Job Level keyword, got: %s", lc->str);
-		  }
-		  break;
+	       }
+	       if (i != 0) {
+                  scan_err1(lc, "Expected a Job Level keyword, got: %s", lc->str);
+	       }
+	       break;
 	    } /* end switch */
 	    break;
 	 } /* end if strcmp() */
@@ -1199,91 +1201,90 @@ static void store_restore(LEX *lc, struct res_items *item, int index, int pass)
    
    ((JOB *)(item->value))->JobType = item->code;
    while ((token = lex_get_token(lc, T_ALL)) != T_EOL) {
-      int found; 
+      bool found = false;
 
       if (token != T_IDENTIFIER && token != T_UNQUOTED_STRING && token != T_QUOTED_STRING) {
          scan_err1(lc, "expected a name, got: %s", lc->str);
       }
-      found = FALSE;
       for (i=0; RestoreFields[i].name; i++) {
          Dmsg1(190, "Restore kw=%s\n", lc->str);
 	 if (strcasecmp(lc->str, RestoreFields[i].name) == 0) {
-	    found = TRUE;
+	    found = true;
 	    if (lex_get_token(lc, T_ALL) != T_EQUALS) {
                scan_err1(lc, "Expected an equals, got: %s", lc->str);
 	    }
 	    token = lex_get_token(lc, T_ALL);
             Dmsg1(190, "Restore value=%s\n", lc->str);
 	    switch (RestoreFields[i].token) {
-               case 'B':
-		  /* Bootstrap */
-		  if (token != T_IDENTIFIER && token != T_UNQUOTED_STRING && token != T_QUOTED_STRING) {
-                     scan_err1(lc, "Expected a Restore bootstrap file, got: %s", lc->str);
+            case 'B':
+	       /* Bootstrap */
+	       if (token != T_IDENTIFIER && token != T_UNQUOTED_STRING && token != T_QUOTED_STRING) {
+                  scan_err1(lc, "Expected a Restore bootstrap file, got: %s", lc->str);
+	       }
+	       if (pass == 1) {
+		  res_all.res_job.RestoreBootstrap = bstrdup(lc->str);
+	       }
+	       break;
+            case 'C':
+	       /* Find Client Resource */
+	       if (pass == 2) {
+		  res = GetResWithName(R_CLIENT, lc->str);
+		  if (res == NULL) {
+                     scan_err1(lc, "Could not find specified Client Resource: %s",
+				lc->str);
 		  }
-		  if (pass == 1) {
-		     res_all.res_job.RestoreBootstrap = bstrdup(lc->str);
+		  res_all.res_job.client = (CLIENT *)res;
+	       }
+	       break;
+            case 'F':
+	       /* Find FileSet Resource */
+	       if (pass == 2) {
+		  res = GetResWithName(R_FILESET, lc->str);
+		  if (res == NULL) {
+                     scan_err1(lc, "Could not find specified FileSet Resource: %s\n",
+				 lc->str);
 		  }
-		  break;
-               case 'C':
-		  /* Find Client Resource */
-		  if (pass == 2) {
-		     res = GetResWithName(R_CLIENT, lc->str);
-		     if (res == NULL) {
-                        scan_err1(lc, "Could not find specified Client Resource: %s",
-				   lc->str);
-		     }
-		     res_all.res_job.client = (CLIENT *)res;
+		  res_all.res_job.fileset = (FILESET *)res;
+	       }
+	       break;
+            case 'J':
+	       /* JobId */
+	       if (token != T_NUMBER) {
+                  scan_err1(lc, "expected an integer number, got: %s", lc->str);
+	       }
+	       errno = 0;
+	       res_all.res_job.RestoreJobId = strtol(lc->str, NULL, 0);
+               Dmsg1(190, "RestorJobId=%d\n", res_all.res_job.RestoreJobId);
+	       if (errno != 0) {
+                  scan_err1(lc, "expected an integer number, got: %s", lc->str);
+	       }
+	       break;
+            case 'W':
+	       /* Where */
+	       if (token != T_IDENTIFIER && token != T_UNQUOTED_STRING && token != T_QUOTED_STRING) {
+                  scan_err1(lc, "Expected a Restore root directory, got: %s", lc->str);
+	       }
+	       if (pass == 1) {
+		  res_all.res_job.RestoreWhere = bstrdup(lc->str);
+	       }
+	       break;
+            case 'R':
+	       /* Replacement options */
+	       if (token != T_IDENTIFIER && token != T_UNQUOTED_STRING && token != T_QUOTED_STRING) {
+                  scan_err1(lc, "Expected a keyword name, got: %s", lc->str);
+	       }
+	       /* Fix to scan Replacement options */
+	       for (i=0; ReplaceOptions[i].name; i++) {
+		  if (strcasecmp(lc->str, ReplaceOptions[i].name) == 0) {
+		      ((JOB *)(item->value))->replace = ReplaceOptions[i].token;
+		     i = 0;
+		     break;
 		  }
-		  break;
-               case 'F':
-		  /* Find FileSet Resource */
-		  if (pass == 2) {
-		     res = GetResWithName(R_FILESET, lc->str);
-		     if (res == NULL) {
-                        scan_err1(lc, "Could not find specified FileSet Resource: %s\n",
-				    lc->str);
-		     }
-		     res_all.res_job.fileset = (FILESET *)res;
-		  }
-		  break;
-               case 'J':
-		  /* JobId */
-		  if (token != T_NUMBER) {
-                     scan_err1(lc, "expected an integer number, got: %s", lc->str);
-		  }
-		  errno = 0;
-		  res_all.res_job.RestoreJobId = strtol(lc->str, NULL, 0);
-                  Dmsg1(190, "RestorJobId=%d\n", res_all.res_job.RestoreJobId);
-		  if (errno != 0) {
-                     scan_err1(lc, "expected an integer number, got: %s", lc->str);
-		  }
-		  break;
-               case 'W':
-		  /* Where */
-		  if (token != T_IDENTIFIER && token != T_UNQUOTED_STRING && token != T_QUOTED_STRING) {
-                     scan_err1(lc, "Expected a Restore root directory, got: %s", lc->str);
-		  }
-		  if (pass == 1) {
-		     res_all.res_job.RestoreWhere = bstrdup(lc->str);
-		  }
-		  break;
-               case 'R':
-		  /* Replacement options */
-		  if (token != T_IDENTIFIER && token != T_UNQUOTED_STRING && token != T_QUOTED_STRING) {
-                     scan_err1(lc, "Expected a keyword name, got: %s", lc->str);
-		  }
-		  /* Fix to scan Replacement options */
-		  for (i=0; ReplaceOptions[i].name; i++) {
-		     if (strcasecmp(lc->str, ReplaceOptions[i].name) == 0) {
-			 ((JOB *)(item->value))->replace = ReplaceOptions[i].token;
-			i = 0;
-			break;
-		     }
-		  }
-		  if (i != 0) {
-                     scan_err1(lc, "Expected a Restore replacement option, got: %s", lc->str);
-		  }
-		  break;
+	       }
+	       if (i != 0) {
+                  scan_err1(lc, "Expected a Restore replacement option, got: %s", lc->str);
+	       }
+	       break;
 	    } /* end switch */
 	    break;
 	 } /* end if strcmp() */

@@ -89,7 +89,6 @@ int prune_volumes(JCR *jcr)
    uint32_t *ids = NULL;
    int num_ids = 0;
    MEDIA_DBR mr;
-   POOL_DBR pr;
    UAContext *ua;
 
    if (!jcr->job->PruneVolumes && !jcr->pool->AutoPrune) {
@@ -97,14 +96,12 @@ int prune_volumes(JCR *jcr)
       return 0;
    }
    memset(&mr, 0, sizeof(mr));
-   memset(&pr, 0, sizeof(pr));
    ua = new_ua_context(jcr);
 
    db_lock(jcr->db);
 
-   /* Get the Pool Record and a list of Media Id's in the Pool */
-   pr.PoolId = jcr->PoolId;
-   if (!db_get_pool_record(jcr, jcr->db, &pr) || !db_get_media_ids(jcr, jcr->db, &num_ids, &ids)) {
+   /* Get the List of all media ids in the current Pool */
+   if (!db_get_media_ids(jcr, jcr->db, jcr->PoolId, &num_ids, &ids)) {
       Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
       goto bail_out;
    }
@@ -117,7 +114,7 @@ int prune_volumes(JCR *jcr)
 	 continue;
       }
       /* Prune only Volumes from current Pool */
-      if (pr.PoolId != mr.PoolId) {
+      if (jcr->PoolId != mr.PoolId) {
 	 continue;
       }
       /* Prune only Volumes with status "Full", "Used", or "Append" */
@@ -125,7 +122,7 @@ int prune_volumes(JCR *jcr)
           strcmp(mr.VolStatus, "Append") == 0 ||
           strcmp(mr.VolStatus, "Used")   == 0) {
          Dmsg1(200, "Prune Volume %s\n", mr.VolumeName);
-	 stat += prune_volume(ua, &pr, &mr); 
+	 stat += prune_volume(ua, &mr); 
          Dmsg1(200, "Num pruned = %d\n", stat);
       }
    }   

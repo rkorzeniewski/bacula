@@ -34,6 +34,7 @@ extern int prune_volumes(JCR *jcr);
 
 /* autorecycle.c */
 extern int recycle_oldest_purged_volume(JCR *jcr, MEDIA_DBR *mr);
+extern int recycle_volume(JCR *jcr, MEDIA_DBR *mr);
 extern int find_recycled_volume(JCR *jcr, MEDIA_DBR *mr);
 
 /* backup.c */
@@ -166,7 +167,7 @@ int insert_tree_handler(void *ctx, int num_fields, char **row);
 /* ua_prune.c */
 int prune_files(UAContext *ua, CLIENT *client);
 int prune_jobs(UAContext *ua, CLIENT *client, int JobType);
-int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr);
+int prune_volume(UAContext *ua, MEDIA_DBR *mr);
 
 /* ua_purge.c */
 int purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr);
