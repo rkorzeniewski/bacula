@@ -11,6 +11,7 @@ tests/four-concurrent-jobs-tape
 tests/four-jobs-tape
 tests/fixed-block-size-tape
 tests/bscan-tape
+tests/btape-fill-tape
 echo " "
 echo " "
 echo "Test results"
