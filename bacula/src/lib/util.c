@@ -126,12 +126,41 @@ unbash_spaces(POOL_MEM &pm)
    }
 }
 
+#ifdef WIN32
+extern long _timezone;
+extern int _daylight;
+extern long _dstbias;
+extern "C" void __tzset(void);
+extern "C" int _isindst(struct tm *);
+#endif
 
 char *encode_time(time_t time, char *buf)
 {
    struct tm tm;
    int n = 0;
 
+#ifdef WIN32
+    /*
+     * Gross kludge to avoid a seg fault in Microsoft's CRT localtime_r(),
+     *	which incorrectly references a NULL returned from gmtime() if
+     *	the time (adjusted for the current timezone) is invalid.
+     *	This could happen if you have a bad date/time, or perhaps if you
+     *	moved a file from one timezone to another?
+     */
+    struct tm *gtm;
+    time_t gtime;
+    __tzset();
+    gtime = time - _timezone;
+    if (!(gtm = gmtime(&gtime))) {
+       return buf;
+    }
+    if (_daylight && _isindst(gtm)) {
+       gtime -= _dstbias;
+       if (!gmtime(&gtime)) {
+	  return buf;
+       }
+    }
+#endif
    if (localtime_r(&time, &tm)) {
       n = sprintf(buf, "%04d-%02d-%02d %02d:%02d:%02d",
 		   tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,

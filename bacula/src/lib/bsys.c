@@ -169,14 +169,16 @@ int bvsnprintf(char *str, int32_t size, const char  *format, va_list ap)
 struct tm *localtime_r(const time_t *timep, struct tm *tm)
 {
     static pthread_mutex_t mutex;
-    static int first = 1;
-    struct tm *ltm;
+    static bool first = true;
+    struct tm *ltm, 
 
     if (first) {
        pthread_mutex_init(&mutex, NULL);
-       first = 0;
+       first = false;
     }
+
     P(mutex);
+
     ltm = localtime(timep);
     if (ltm) {
        memcpy(tm, ltm, sizeof(struct tm));

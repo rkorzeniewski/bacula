@@ -177,7 +177,7 @@ void *handle_client_request(void *dirp)
    jcr->last_fname = get_pool_memory(PM_FNAME);
    jcr->last_fname[0] = 0;
    jcr->client_name = get_memory(strlen(my_name) + 1);
-   pm_strcpy(&jcr->client_name, my_name);
+   pm_strcpy(jcr->client_name, my_name);
    dir->jcr = jcr;
    enable_backup_privileges(NULL, 1 /* ignore_errors */);
 
@@ -348,7 +348,7 @@ static int setdebug_cmd(JCR *jcr)
 
    Dmsg1(110, "setdebug_cmd: %s", dir->msg);
    if (sscanf(dir->msg, "setdebug=%d trace=%d", &level, &trace_flag) != 2 || level < 0) {
-      pm_strcpy(&jcr->errmsg, dir->msg);
+      pm_strcpy(jcr->errmsg, dir->msg);
       bnet_fsend(dir, "2991 Bad setdebug command: %s\n", jcr->errmsg);
       return 0;   
    }
@@ -364,7 +364,7 @@ static int estimate_cmd(JCR *jcr)
    char ed2[50];
 
    if (sscanf(dir->msg, estimatecmd, &jcr->listing) != 1) {
-      pm_strcpy(&jcr->errmsg, dir->msg);
+      pm_strcpy(jcr->errmsg, dir->msg);
       Jmsg(jcr, M_FATAL, 0, _("Bad estimate command: %s"), jcr->errmsg);
       bnet_fsend(dir, "2992 Bad estimate command.\n");
       return 0;
@@ -388,7 +388,7 @@ static int job_cmd(JCR *jcr)
    if (sscanf(dir->msg, jobcmd,  &jcr->JobId, jcr->Job,  
 	      &jcr->VolSessionId, &jcr->VolSessionTime,
 	      sd_auth_key) != 5) {
-      pm_strcpy(&jcr->errmsg, dir->msg);
+      pm_strcpy(jcr->errmsg, dir->msg);
       Jmsg(jcr, M_FATAL, 0, _("Bad Job Command: %s"), jcr->errmsg);
       bnet_fsend(dir, BADjob);
       free_pool_memory(sd_auth_key);
@@ -408,7 +408,7 @@ static int runbefore_cmd(JCR *jcr)
 
    Dmsg1(100, "runbefore_cmd: %s", dir->msg);
    if (sscanf(dir->msg, runbefore, cmd) != 1) {
-      pm_strcpy(&jcr->errmsg, dir->msg);
+      pm_strcpy(jcr->errmsg, dir->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Bad RunBeforeJob command: %s\n"), jcr->errmsg);
       bnet_fsend(dir, "2905 Bad RunBeforeJob command.\n");
       free_memory(cmd);
@@ -435,7 +435,7 @@ static int runafter_cmd(JCR *jcr)
 
    Dmsg1(100, "runafter_cmd: %s", dir->msg);
    if (sscanf(dir->msg, runafter, msg) != 1) {
-      pm_strcpy(&jcr->errmsg, dir->msg);
+      pm_strcpy(jcr->errmsg, dir->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Bad RunAfter command: %s\n"), jcr->errmsg);
       bnet_fsend(dir, "2905 Bad RunAfterJob command.\n");
       free_memory(msg);
@@ -446,7 +446,7 @@ static int runafter_cmd(JCR *jcr)
       free_pool_memory(jcr->RunAfterJob);
    }
    jcr->RunAfterJob = get_pool_memory(PM_FNAME);
-   pm_strcpy(&jcr->RunAfterJob, msg);
+   pm_strcpy(jcr->RunAfterJob, msg);
    free_pool_memory(msg);
    return bnet_fsend(dir, OKRunAfter);
 }
@@ -1098,7 +1098,7 @@ static int level_cmd(JCR *jcr)
    return bnet_fsend(dir, OKlevel);
 
 bail_out:
-   pm_strcpy(&jcr->errmsg, dir->msg);
+   pm_strcpy(jcr->errmsg, dir->msg);
    Jmsg1(jcr, M_FATAL, 0, _("Bad level command: %s\n"), jcr->errmsg);
    free_memory(level);
    if (buf) {
@@ -1119,7 +1119,7 @@ static int session_cmd(JCR *jcr)
 	      &jcr->VolSessionId, &jcr->VolSessionTime,
 	      &jcr->StartFile, &jcr->EndFile, 
 	      &jcr->StartBlock, &jcr->EndBlock) != 7) {
-      pm_strcpy(&jcr->errmsg, dir->msg);
+      pm_strcpy(jcr->errmsg, dir->msg);
       Jmsg(jcr, M_FATAL, 0, "Bad session command: %s", jcr->errmsg);
       return 0;
    }
@@ -1140,7 +1140,7 @@ static int storage_cmd(JCR *jcr)
 
    Dmsg1(100, "StorageCmd: %s", dir->msg);
    if (sscanf(dir->msg, storaddr, &jcr->stored_addr, &stored_port, &enable_ssl) != 3) {
-      pm_strcpy(&jcr->errmsg, dir->msg);
+      pm_strcpy(jcr->errmsg, dir->msg);
       Jmsg(jcr, M_FATAL, 0, _("Bad storage command: %s"), jcr->errmsg);
       return 0;
    }
@@ -1391,7 +1391,7 @@ static int restore_cmd(JCR *jcr)
 
    if (sscanf(dir->msg, restorecmd, &replace, &prefix_links, where) != 3) {
       if (sscanf(dir->msg, restorecmd1, &replace, &prefix_links) != 2) {
-	 pm_strcpy(&jcr->errmsg, dir->msg);
+	 pm_strcpy(jcr->errmsg, dir->msg);
          Jmsg(jcr, M_FATAL, 0, _("Bad replace command. CMD=%s\n"), jcr->errmsg);
 	 return 0;
       }
@@ -1591,8 +1591,7 @@ static int send_bootstrap_file(JCR *jcr)
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       goto bail_out;
    }
-   pm_strcpy(&sd->msg, bootstrap);  
-   sd->msglen = strlen(sd->msg);
+   sd->msglen = pm_strcpy(sd->msg, bootstrap);	
    bnet_send(sd);
    while (fgets(buf, sizeof(buf), bs)) {
       sd->msglen = Mmsg(sd->msg, "%s", buf);

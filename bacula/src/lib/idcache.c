@@ -35,7 +35,7 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 /* Translate UID to a login name or a stringified number,
    with cache.	*/
 
-char *getuser(uid_t uid)
+char *getuser(uid_t uid, char *name, int len)
 {
   register struct userid *tail;
   struct passwd *pwent;
@@ -44,8 +44,7 @@ char *getuser(uid_t uid)
   P(mutex);
   for (tail = user_alist; tail; tail = tail->next) {
     if (tail->id.u == uid) {
-      V(mutex);
-      return tail->name;
+      goto uid_done;
     }
   }
 
@@ -53,7 +52,7 @@ char *getuser(uid_t uid)
   tail = (struct userid *)malloc(sizeof (struct userid));
   tail->id.u = uid;
 #ifndef HAVE_WIN32
-  if (pwent == 0 || strcmp(pwent->pw_name, "????????") == 0) {
+  if (pwent == NULL || strcmp(pwent->pw_name, "????????") == 0) {
       sprintf(usernum_string, "%u", (uint32_t)uid);
       tail->name = bstrdup(usernum_string);
   } else {
@@ -67,8 +66,11 @@ char *getuser(uid_t uid)
   /* Add to the head of the list, so most recently used is first.  */
   tail->next = user_alist;
   user_alist = tail;
+
+uid_done:
+  bstrncpy(name, tail->name, len);
   V(mutex);
-  return tail->name;
+  return name;
 }
 
 void free_getuser_cache()
@@ -90,7 +92,7 @@ void free_getuser_cache()
 
 /* Translate GID to a group name or a stringified number,
    with cache.	*/
-char *getgroup(gid_t gid)
+char *getgroup(gid_t gid, char *name, int len)
 {
   register struct userid *tail;
   struct group *grent;
@@ -99,8 +101,7 @@ char *getgroup(gid_t gid)
   P(mutex);
   for (tail = group_alist; tail; tail = tail->next) {
     if (tail->id.g == gid) {
-      V(mutex);
-      return tail->name;
+      goto gid_done;
     }
   }
 
@@ -108,7 +109,7 @@ char *getgroup(gid_t gid)
   tail = (struct userid *)malloc(sizeof (struct userid));
   tail->id.g = gid;
 #ifndef HAVE_WIN32
-  if (grent == 0 || strcmp(grent->gr_name, "????????") == 0) {
+  if (grent == NULL || strcmp(grent->gr_name, "????????") == 0) {
       sprintf (groupnum_string, "%u", (uint32_t)gid);
       tail->name = bstrdup(groupnum_string);
   } else {
@@ -121,8 +122,11 @@ char *getgroup(gid_t gid)
   /* Add to the head of the list, so most recently used is first.  */
   tail->next = group_alist;
   group_alist = tail;
+
+gid_done:
+  bstrncpy(name, tail->name, len);
   V(mutex);
-  return tail->name;
+  return name;
 }
 
 void free_getgroup_cache()

@@ -334,8 +334,8 @@ int bnet_despool_to_bsock(BSOCK * bsock, void update_attr_spool_size(ssize_t siz
  * two network packets. The first is sends a 32 bit integer containing
  * the length of the data packet which follows.
  *
- * Returns: 0 on failure
- *	    1 on success
+ * Returns: false on failure
+ *	    true  on success
  */
 bool bnet_send(BSOCK * bsock)
 {

@@ -202,7 +202,7 @@ create table file
 	default 0,
     jobid	      integer		    not null,
     pathid	      integer		    not null,
-    filenameid	      bigint		    not null,
+    filenameid	      integer		    not null,
     markid	      integer		    not null
 	default 0,
     lstat	      text		    not null,
