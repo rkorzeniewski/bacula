@@ -64,7 +64,7 @@ Vendor: The Bacula Team
 Distribution: The Bacula Team
 Packager: D. Scott Barninger <barninger@fairfieldcomputers.com>
 BuildRequires: readline-devel, atk-devel, ncurses-devel, pango-devel
-BuildRequires: libstdc++-devel, libxml2-devel, zlib-devel
+BuildRequires: libstdc++-devel, libxml2-devel, zlib-devel, pkgconfig
 %if %{rh7}
 BuildRequires: libtermcap-devel
 BuildRequires: gtk+-devel >= 1.2
@@ -953,6 +953,8 @@ rm -f /usr/bin/gnome-console
 %endif
 
 %changelog
+* Sun Apr 04 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- add pkgconfig to BuildRequires
 * Fri Apr 02 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - tightened up doc distribution
 * Tue Mar 30 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
