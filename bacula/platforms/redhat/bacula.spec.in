@@ -476,8 +476,9 @@ mkdir -p $RPM_BUILD_ROOT/usr/share/gnome/apps/System
 %else
 mkdir -p $RPM_BUILD_ROOT/usr/share/applications
 %endif
-mkdir -p $RPM_BUILD_ROOT/etc/bacula/rescue
-mkdir -p $RPM_BUILD_ROOT/etc/bacula/rescue/tomsrtbt
+mkdir -p $RPM_BUILD_ROOT/etc/bacula/rescue/floppy
+mkdir -p $RPM_BUILD_ROOT/etc/bacula/rescue/floppy/tomsrtbt
+mkdir -p $RPM_BUILD_ROOT/etc/bacula/rescue/cdrom
 mkdir -p $RPM_BUILD_ROOT/etc/bacula/updatedb
 %if ! %{su9}
 mkdir -p $RPM_BUILD_ROOT/etc/pam.d
@@ -584,22 +585,30 @@ cp -p %{depkgs}/sqlite/libsqlite.a $RPM_BUILD_ROOT%{sqlite_bindir}/libsqlite.a
 cp -p scripts/logrotate $RPM_BUILD_ROOT/etc/logrotate.d/bacula
 
 # install the rescue stuff
-# these are the rescue scripts
-cp -p rescue/linux/floppy/backup.etc.list $RPM_BUILD_ROOT/etc/bacula/rescue/
-cp -p rescue/linux/floppy/format_floppy $RPM_BUILD_ROOT/etc/bacula/rescue/
-cp -p rescue/linux/floppy/getdiskinfo $RPM_BUILD_ROOT/etc/bacula/rescue/
-cp -p rescue/linux/floppy/make_rescue_disk $RPM_BUILD_ROOT/etc/bacula/rescue/
-cp -p rescue/linux/floppy/restore_bacula $RPM_BUILD_ROOT/etc/bacula/rescue/
-cp -p rescue/linux/floppy/restore_etc $RPM_BUILD_ROOT/etc/bacula/rescue/
-cp -p rescue/linux/floppy/run_grub $RPM_BUILD_ROOT/etc/bacula/rescue/
-cp -p rescue/linux/floppy/run_lilo $RPM_BUILD_ROOT/etc/bacula/rescue/
-cp -p rescue/linux/floppy/sfdisk.bz2 $RPM_BUILD_ROOT/etc/bacula/rescue/
+# these are the floppy rescue scripts
+cp -p rescue/linux/floppy/backup.etc.list $RPM_BUILD_ROOT/etc/bacula/rescue/floppy/
+cp -p rescue/linux/floppy/format_floppy $RPM_BUILD_ROOT/etc/bacula/rescue/floppy/
+cp -p rescue/linux/floppy/getdiskinfo $RPM_BUILD_ROOT/etc/bacula/rescue/floppy/
+cp -p rescue/linux/floppy/make_rescue_disk $RPM_BUILD_ROOT/etc/bacula/rescue/floppy/
+cp -p rescue/linux/floppy/restore_bacula $RPM_BUILD_ROOT/etc/bacula/rescue/floppy/
+cp -p rescue/linux/floppy/restore_etc $RPM_BUILD_ROOT/etc/bacula/rescue/floppy/
+cp -p rescue/linux/floppy/run_grub $RPM_BUILD_ROOT/etc/bacula/rescue/floppy/
+cp -p rescue/linux/floppy/run_lilo $RPM_BUILD_ROOT/etc/bacula/rescue/floppy/
+cp -p rescue/linux/floppy/sfdisk.bz2 $RPM_BUILD_ROOT/etc/bacula/rescue/floppy/
+
+# this is the cdrom rescue stuff
+cp -r -p rescue/linux/cdrom/* $RPM_BUILD_ROOT/etc/bacula/rescue/cdrom/
+mkdir -p $RPM_BUILD_ROOT/etc/bacula/rescue/cdrom/bin/
+rm -f $RPM_BUILD_ROOT/etc/bacula/rescue/cdrom/Makefile.in
+rm -f $RPM_BUILD_ROOT/etc/bacula/rescue/cdrom/bacula/Makefile.in
+touch $RPM_BUILD_ROOT/etc/bacula/rescue/cdrom/rpm_release
 
 # this is the static file daemon
-cp -p src/filed/static-bacula-fd $RPM_BUILD_ROOT/etc/bacula/rescue/bacula-fd
+cp -p src/filed/static-bacula-fd $RPM_BUILD_ROOT/etc/bacula/rescue/floppy/bacula-fd
+cp -p src/filed/static-bacula-fd $RPM_BUILD_ROOT/etc/bacula/rescue/cdrom/bin/bacula-fd
 
 # this is the tom's root boot disk
-cp -p ../%{tomsrtbt}/* $RPM_BUILD_ROOT/etc/bacula/rescue/tomsrtbt/
+cp -p ../%{tomsrtbt}/* $RPM_BUILD_ROOT/etc/bacula/rescue/floppy/tomsrtbt/
 
 # install the updatedb scripts
 cp -p updatedb/* $RPM_BUILD_ROOT/etc/bacula/updatedb/
@@ -1051,36 +1060,37 @@ fi
 
 %files rescue
 %defattr(-,root,root)
-/etc/bacula/rescue/backup.etc.list
-/etc/bacula/rescue/format_floppy
-/etc/bacula/rescue/getdiskinfo
-/etc/bacula/rescue/make_rescue_disk
-/etc/bacula/rescue/restore_bacula
-/etc/bacula/rescue/restore_etc
-/etc/bacula/rescue/run_grub
-/etc/bacula/rescue/run_lilo
-/etc/bacula/rescue/sfdisk.bz2
-/etc/bacula/rescue/bacula-fd
-/etc/bacula/rescue/tomsrtbt/*
+/etc/bacula/rescue/floppy/*
+/etc/bacula/rescue/cdrom/*
 
 %post rescue
 # link our current installed conf file to the rescue directory
-ln -s /etc/bacula-fd.conf /etc/bacula/rescue/bacula-fd.conf
+ln -s /etc/bacula-fd.conf /etc/bacula/rescue/floppy/bacula-fd.conf
+ln -s /etc/bacula-fd.conf /etc/bacula/rescue/cdrom/bin/bacula-fd.conf
 
 # run getdiskinfo
 echo "Creating rescue files for this system..."
-cd /etc/bacula/rescue
+cd /etc/bacula/rescue/floppy
+./getdiskinfo
+cd /etc/bacula/rescue/cdrom/bacula
 ./getdiskinfo
 
 %preun rescue
 # remove the files created after the initial rpm installation
-rm -f /etc/bacula/rescue/bacula-fd.conf
-rm -f /etc/bacula/rescue/partition.*
-rm -f /etc/bacula/rescue/format.*
-rm -f /etc/bacula/rescue/mount_drives
-rm -f /etc/bacula/rescue/start_network
-rm -f /etc/bacula/rescue/sfdisk
-rm -rf /etc/bacula/rescue/diskinfo/*
+rm -f /etc/bacula/rescue/floppy/bacula-fd.conf
+rm -f /etc/bacula/rescue/floppy/partition.*
+rm -f /etc/bacula/rescue/floppy/format.*
+rm -f /etc/bacula/rescue/floppy/mount_drives
+rm -f /etc/bacula/rescue/floppy/start_network
+rm -f /etc/bacula/rescue/floppy/sfdisk
+rm -rf /etc/bacula/rescue/floppy/diskinfo/*
+
+rm -f /etc/bacula/rescue/cdrom/bacula/bacula-fd.conf
+rm -f /etc/bacula/rescue/cdrom/bacula/partition.*
+rm -f /etc/bacula/rescue/cdrom/bacula/format.*
+rm -f /etc/bacula/rescue/cdrom/bacula/mount_drives
+rm -f /etc/bacula/rescue/cdrom/bacula/start_network
+rm -rf /etc/bacula/rescue/cdrom/bacula/diskinfo/*
 
 %files updatedb
 %defattr(-,root,root)
@@ -1118,6 +1128,8 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 
 
 %changelog
+* Fri Nov 12 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- add cdrom rescue to bacula-rescue package
 * Sun Oct 31 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - misc fixes from 1.36.0 suse feedback
 - fix situation where sqlite database exists but sqlite has been removed.
