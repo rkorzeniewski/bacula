@@ -53,8 +53,8 @@
 extern void print_result(B_DB *mdb);
 extern int QueryDB(char *file, int line, B_DB *db, char *select_cmd);
 
-
-/* Find job start time. Used to find last full save
+/*
+ * Find job start time. Used to find last full save
  * for Incremental and Differential saves.
  *	
  * Returns: 0 on failure
@@ -73,16 +73,16 @@ db_find_job_start_time(B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
       /* Differential is since last Full backup */
       if (jr->Level == L_DIFFERENTIAL) {
 	 Mmsg(&mdb->cmd, 
-"SELECT JobId from Job WHERE JobStatus='T' and Type='%c' and \
-Level='%c' and Name='%s' and ClientId=%d and FileSetId=%d \
-ORDER by StartTime DESC LIMIT 1",
+"SELECT JobId FROM Job WHERE JobStatus='T' AND Type='%c' AND \
+Level='%c' AND Name='%s' AND ClientId=%d AND FileSetId=%d \
+ORDER BY StartTime DESC LIMIT 1",
 	   jr->Type, L_FULL, jr->Name, jr->ClientId, jr->FileSetId);
       /* Incremental is since last Full, Incremental, or Differential */
       } else if (jr->Level == L_INCREMENTAL) {
 	 Mmsg(&mdb->cmd, 
-"SELECT JobId from Job WHERE JobStatus='T' and Type='%c' and \
-(Level='%c' or Level='%c' or Level='%c') and Name='%s' and ClientId=%d \
-ORDER by StartTime DESC LIMIT 1",
+"SELECT JobId FROM Job WHERE JobStatus='T' AND Type='%c' AND \
+Level IN ('%c','%c','%c') AND Name='%s' AND ClientId=%d \
+ORDER BY StartTime DESC LIMIT 1",
 	   jr->Type, L_INCREMENTAL, L_DIFFERENTIAL, L_FULL, jr->Name,
 	   jr->ClientId);
       } else {
@@ -108,7 +108,7 @@ ORDER by StartTime DESC LIMIT 1",
    }
 
    Dmsg1(100, "Submitting: %s\n", mdb->cmd);
-   Mmsg(&mdb->cmd, "SELECT StartTime from Job WHERE Job.JobId=%d", JobId);
+   Mmsg(&mdb->cmd, "SELECT StartTime FROM Job WHERE Job.JobId=%d", JobId);
 
    if (!QUERY_DB(mdb, mdb->cmd)) {
       Mmsg1(&mdb->errmsg, _("Query error for start time request: %s\n"), mdb->cmd);

@@ -223,7 +223,7 @@ int
 db_create_media_record(B_DB *mdb, MEDIA_DBR *mr)
 {
    int stat;
-   char ed1[30], ed2[30], ed3[30];
+   char ed1[30], ed2[30], ed3[30], ed4[30];
 
    db_lock(mdb);
    Mmsg(&mdb->cmd, "SELECT MediaId FROM Media WHERE VolumeName='%s'", 
@@ -243,14 +243,16 @@ db_create_media_record(B_DB *mdb, MEDIA_DBR *mr)
 
    /* Must create it */
    Mmsg(&mdb->cmd, 
-"INSERT INTO Media (VolumeName,MediaType,PoolId,MaxVolBytes,VolCapacityBytes, \
-Recycle,VolRetention,VolStatus,Slot) VALUES ('%s','%s',%u,%s,%s,%d,%s,'%s',%d)", 
+"INSERT INTO Media (VolumeName,MediaType,PoolId,MaxVolBytes,VolCapacityBytes," 
+"Recycle,VolRetention,VolUseDuration,VolStatus,Slot) "
+"VALUES ('%s','%s',%u,%s,%s,%d,%s,%s,'%s',%d)", 
 		  mr->VolumeName,
 		  mr->MediaType, mr->PoolId, 
 		  edit_uint64(mr->MaxVolBytes,ed1),
 		  edit_uint64(mr->VolCapacityBytes, ed2),
 		  mr->Recycle,
 		  edit_uint64(mr->VolRetention, ed3),
+		  edit_uint64(mr->VolUseDuration, ed4),
 		  mr->VolStatus,
 		  mr->Slot);
 

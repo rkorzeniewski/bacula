@@ -133,6 +133,23 @@ int do_a_command(UAContext *ua, char *cmd)
    return stat;
 }
 
+/*
+ * This is a common routine used to stuff the Pool DB record defaults
+ *   into the Media DB record just before creating a media (Volume) 
+ *   record.
+ */
+static void set_pool_dbr_defaults_in_media_dbr(MEDIA_DBR *mr, POOL_DBR *pr)
+{
+   mr->PoolId = pr->PoolId;
+   strcpy(mr->VolStatus, "Append");
+   mr->Recycle = pr->Recycle;
+   mr->VolRetention = pr->VolRetention;
+   mr->VolUseDuration = pr->VolUseDuration;
+   mr->MaxVolJobs = pr->MaxVolJobs;
+   mr->MaxVolFiles = pr->MaxVolFiles;
+   mr->MaxVolBytes = pr->MaxVolBytes;
+}
+
 
 /*
  *  Add Volumes to an existing Pool
@@ -258,14 +275,7 @@ getVolName:
       slot = atoi(ua->cmd);
    }
 	   
-   mr.PoolId = pr.PoolId;
-   strcpy(mr.VolStatus, "Append");
-   mr.Recycle = pr.Recycle;
-   mr.VolRetention = pr.VolRetention;
-   mr.VolUseDuration = pr.VolUseDuration;
-   mr.MaxVolJobs = pr.MaxVolJobs;
-   mr.MaxVolFiles = pr.MaxVolFiles;
-   mr.MaxVolBytes = pr.MaxVolBytes;
+   set_pool_dbr_defaults_in_media_dbr(&mr, &pr);
    for (i=startnum; i < num+startnum; i++) { 
       sprintf(mr.VolumeName, name, i);
       mr.Slot = slot++;
@@ -451,6 +461,44 @@ static int cancelcmd(UAContext *ua, char *cmd)
 }
 
 /*
+ * This is a common routine to create or update a
+ *   Pool DB base record from a Pool Resource. We handle
+ *   the setting of MaxVols and NumVols slightly differently
+ *   depending on if we are creating the Pool or we are
+ *   simply bringing it into agreement with the resource (updage).
+ */
+void set_pooldbr_from_poolres(POOL_DBR *pr, POOL *pool, int create)
+{
+   strcpy(pr->PoolType, pool->pool_type);
+   if (create) {
+      pr->MaxVols = pool->max_volumes;
+      pr->NumVols = 0;
+   } else {	     /* update pool */
+      if (pr->MaxVols != pool->max_volumes) {
+	 pr->MaxVols = pool->max_volumes;
+      }
+      if (pr->MaxVols != 0 && pr->MaxVols < pr->NumVols) {
+	 pr->MaxVols = pr->NumVols;
+      }
+   }
+   pr->UseOnce = pool->use_volume_once;
+   pr->UseCatalog = pool->use_catalog;
+   pr->AcceptAnyVolume = pool->accept_any_volume;
+   pr->Recycle = pool->Recycle;
+   pr->VolRetention = pool->VolRetention;
+   pr->VolUseDuration = pool->VolUseDuration;
+   pr->MaxVolJobs = pool->MaxVolJobs;
+   pr->MaxVolFiles = pool->MaxVolFiles;
+   pr->MaxVolBytes = pool->MaxVolBytes;
+   if (pool->label_format) {
+      strcpy(pr->LabelFormat, pool->label_format);
+   } else {
+      strcpy(pr->LabelFormat, "*");    /* none */
+   }
+}
+
+
+/*
  * Create a pool record from a given Pool resource
  *   Also called from backup.c
  * Returns: -1	on error
@@ -470,24 +518,7 @@ int create_pool(B_DB *db, POOL *pool)
       return 0; 		      /* exists */
    }
 
-   strcpy(pr.PoolType, pool->pool_type);
-   pr.MaxVols = pool->max_volumes;
-   pr.NumVols = 0;
-   pr.UseOnce = pool->use_volume_once;
-   pr.UseCatalog = pool->use_catalog;
-   pr.AcceptAnyVolume = pool->accept_any_volume;
-   pr.Recycle = pool->Recycle;
-   pr.VolRetention = pool->VolRetention;
-   pr.VolUseDuration = pool->VolUseDuration;
-   pr.MaxVolJobs = pool->MaxVolJobs;
-   pr.MaxVolFiles = pool->MaxVolFiles;
-   pr.MaxVolBytes = pool->MaxVolBytes;
-   pr.AutoPrune = pool->AutoPrune;
-   if (pool->label_format) {
-      strcpy(pr.LabelFormat, pool->label_format);
-   } else {
-      strcpy(pr.LabelFormat, "*");    /* none */
-   }
+   set_pooldbr_from_poolres(&pr, pool, 1);
 
    if (!db_create_pool_record(db, &pr)) {
       return -1;		      /* error */
@@ -839,28 +870,9 @@ static int update_pool(UAContext *ua)
    if (!get_pool_dbr(ua, &pr)) {
       return 0;
    }
-   strcpy(pr.PoolType, pool->pool_type);
-   if (pr.MaxVols != pool->max_volumes) {
-      pr.MaxVols = pool->max_volumes;
-   }
-   if (pr.MaxVols != 0 && pr.MaxVols < pr.NumVols) {
-      pr.MaxVols = pr.NumVols;
-   }
-   pr.UseOnce = pool->use_volume_once;
-   pr.UseCatalog = pool->use_catalog;
-   pr.AcceptAnyVolume = pool->accept_any_volume;
-   pr.Recycle = pool->Recycle;
-   pr.VolRetention = pool->VolRetention;
-   pr.VolUseDuration = pool->VolUseDuration;
-   pr.MaxVolJobs = pool->MaxVolJobs;
-   pr.MaxVolFiles = pool->MaxVolFiles;
-   pr.MaxVolBytes = pool->MaxVolBytes;
 
-   if (pool->label_format) {
-      strcpy(pr.LabelFormat, pool->label_format);
-   } else {
-      strcpy(pr.LabelFormat, "*");    /* none */
-   }
+   set_pooldbr_from_poolres(&pr, pool, 0); /* update */
+
    id = db_update_pool_record(ua->db, &pr);
    if (id <= 0) {
       bsendmsg(ua, _("db_update_pool_record returned %d. ERR=%s\n"),
@@ -1265,10 +1277,6 @@ gotVol:
    if (!select_pool_dbr(ua, &pr)) {
       return 1;
    }
-   mr.PoolId = pr.PoolId;
-   strcpy(mr.VolStatus, "Append");
-   mr.Recycle = pr.Recycle;
-   mr.VolRetention = pr.VolRetention;
 
    ua->jcr->store = store;
    bsendmsg(ua, _("Connecting to Storage daemon %s at %s:%d ...\n"), 
@@ -1298,12 +1306,7 @@ gotVol:
    unbash_spaces(mr.MediaType);
    unbash_spaces(pr.Name);
    if (ok) {
-      mr.Recycle = pr.Recycle;
-      mr.VolRetention = pr.VolRetention;
-      mr.VolUseDuration = pr.VolUseDuration;
-      mr.MaxVolJobs = pr.MaxVolJobs;
-      mr.MaxVolFiles = pr.MaxVolFiles;
-      mr.MaxVolBytes = pr.MaxVolBytes;
+      set_pool_dbr_defaults_in_media_dbr(&mr, &pr);
       if (db_create_media_record(ua->db, &mr)) {
          bsendmsg(ua, _("Media record for Volume=%s successfully created.\n"),
 	    mr.VolumeName);
