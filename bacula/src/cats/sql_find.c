@@ -218,6 +218,7 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
 {
    SQL_ROW row;
    int numrows;
+   char *changer, *order;
 
    db_lock(mdb);
    if (item == -1) {	   /* find oldest volume */
@@ -233,22 +234,24 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
    } else {
       /* Find next available volume */
       if (InChanger) {
-         Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
-             "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
-             "VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
-             "FirstWritten,LastWritten,VolStatus "
-             "FROM Media WHERE PoolId=%u AND MediaType='%s' AND VolStatus='%s' "
-             "AND InChanger=1 ORDER BY LastWritten,MediaId", 
-	      mr->PoolId, mr->MediaType, mr->VolStatus); 
+         changer = "AND InChanger=1";
       } else {
-         Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
-             "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
-             "VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
-             "FirstWritten,LastWritten,VolStatus "
-             "FROM Media WHERE PoolId=%u AND MediaType='%s' AND VolStatus='%s' "
-             "ORDER BY LastWritten,MediaId", 
-	      mr->PoolId, mr->MediaType, mr->VolStatus); 
+         changer = "";
       }
+      if (strcmp(mr->VolStatus, "Recycled") == 0 ||
+          strcmp(mr->VolStatus, "Purged") == 0) {
+         order = "ORDER BY LastWritten ASC,MediaId";  /* take oldest */
+      } else {
+         order = "ORDER BY LastWritten DESC,MediaId";   /* take most recently written */
+      }  
+      Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
+          "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
+          "VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
+          "FirstWritten,LastWritten,VolStatus "
+          "FROM Media WHERE PoolId=%u AND MediaType='%s' AND VolStatus='%s' "
+          "%s " 
+          "%s LIMIT 1",
+	  mr->PoolId, mr->MediaType, mr->VolStatus, changer, order);
    }
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);
