@@ -29,26 +29,17 @@
 
 #define DIRECTOR_DAEMON 1
 
-/* The following includes are at the bottom of 
- * this file rather than at the top because the
- *  #include "jcr.h" uses the definition of JOB
- * as supplied above.
- */
-
 #include "cats/cats.h"
 
 #include "jcr.h"
-
 #include "bsr.h"
 #include "ua.h"
 #include "protos.h"
+
 #include "jobq.h"
 
 /* Globals that dird.c exports */
-extern int debug_level;
-extern time_t start_time;
 extern DIRRES *director;                     /* Director resource */
-extern char *working_directory;              /* export our working directory */
 extern int FDConnectTimeout;
 extern int SDConnectTimeout;
 

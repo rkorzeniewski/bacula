@@ -1,8 +1,8 @@
 /* */
 #define VERSION "1.31"
 #define VSTRING "1"
-#define BDATE   "17 Jul 2003"
-#define LSMDATE "17Jul03"
+#define BDATE   "20 Jul 2003"
+#define LSMDATE "20Jul03"
 
 /* Debug flags */
 #define DEBUG 1
@@ -17,8 +17,15 @@
  */
 /*  #define SEND_DMSG_TO_FILE 1 */
 
-/* Turn this on if you want to try the new Job semaphore code */
+/* Turn this on if you want to use the Job semaphore code */
 #define USE_SEMAPHORE
+
+/* Turn this on if you want to use the new Job scheduling code */
+#ifdef xxx
+#undef USE_SEMAPHORE
+#define JOB_QUEUE 1
+#endif
+
 
 /* #define NO_ATTRIBUTES_TEST 1 */
 /* #define NO_TAPE_WRITE_TEST 1 */

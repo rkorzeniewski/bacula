@@ -185,6 +185,9 @@ read_volume:
 	 }
          Dmsg1(100, "want new name=%s\n", jcr->VolumeName);
 	 memcpy(&dev->VolCatInfo, &jcr->VolCatInfo, sizeof(jcr->VolCatInfo));
+         if (strcmp(dev->VolCatInfo.VolCatStatus, "Recycle") == 0) {
+	    recycle = 1;
+	 }
 	 break; 	       /* got a Volume */
 
       case VOL_NO_LABEL:

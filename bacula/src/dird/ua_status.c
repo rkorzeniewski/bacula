@@ -260,6 +260,9 @@ static void do_director_status(UAContext *ua, char *cmd)
 	 case JS_WaitJobRes:
             msg = _("is waiting on max Job jobs");
 	    break;
+	 case JS_WaitPriority:
+            msg = _("is waiting on for higher priority jobs to finish");
+	    break;
 	 case JS_WaitMaxJobs:
             msg = _("is waiting on max total jobs");
 	    break;

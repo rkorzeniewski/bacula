@@ -105,17 +105,23 @@ void dlist::remove(void *item)
    dlink *ilink = (dlink *)((char *)item+loffset);   /* item's link */
    if (item == head) {
       head = ilink->next;
-      ((dlink *)((char *)head+loffset))->prev = NULL;
+      if (head) {
+	 ((dlink *)((char *)head+loffset))->prev = NULL;
+      }
+      if (item == tail) {
+	 tail = ilink->prev;
+      }
    } else if (item == tail) {
       tail = ilink->prev;
-      ((dlink *)((char *)tail+loffset))->next = NULL;
+      if (tail) {
+	 ((dlink *)((char *)tail+loffset))->next = NULL;
+      }
    } else {
       xitem = ilink->next;
       ((dlink *)((char *)xitem+loffset))->prev = ilink->prev;
       xitem = ilink->prev;
       ((dlink *)((char *)xitem+loffset))->next = ilink->next;
    }
-   free(item);
 }
 
 void * dlist::next(void *item)
@@ -192,6 +198,35 @@ int main()
    }
    jcr_chain->destroy();
    free(jcr_chain);
+
+   jcr_chain = new dlist(jcr, &jcr->link);
+   printf("append 20 items 0-19\n");
+   for (int i=0; i<20; i++) {
+      sprintf(buf, "This is dlist item %d", i);
+      jcr = (MYJCR *)malloc(sizeof(MYJCR));
+      jcr->buf = bstrdup(buf);
+      jcr_chain->append(jcr);
+      if (i == 10) {
+	 save_jcr = jcr;
+      }
+   }
+
+   next_jcr = (MYJCR *)jcr_chain->next(save_jcr);
+   printf("11th item=%s\n", next_jcr->buf);
+   jcr = (MYJCR *)malloc(sizeof(MYJCR));
+   jcr->buf = save_jcr->buf;
+   printf("Remove 10th item\n");
+   jcr_chain->remove(save_jcr);
+   printf("Re-insert 10th item\n");
+   jcr_chain->insert_before(jcr, next_jcr);
+   
+   printf("Print remaining list.\n");
+   for (MYJCR *jcr=NULL; (jcr=(MYJCR *)jcr_chain->next(jcr)); ) {
+      printf("Dlist item = %s\n", jcr->buf);
+      free(jcr->buf);
+   }
+
+   delete jcr_chain;
 
    sm_dump(False);
 

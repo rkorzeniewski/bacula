@@ -1,6 +1,13 @@
 /*
  * Bacula job queue routines.
  *
+ *  This code consists of three queues, the waiting_jobs
+ *  queue, where jobs are initially queued, the ready_jobs
+ *  queue, where jobs are placed when all the resources are
+ *  allocated and they can immediately be run, and the
+ *  running queue where jobs are placed when they are
+ *  running.
+ *
  *  Kern Sibbald, July MMIII
  *
  *   Version $Id$
@@ -8,23 +15,6 @@
  *  This code was adapted from the Bacula workq, which was
  *    adapted from "Programming with POSIX Threads", by
  *    David R. Butenhof
- *
- * Example:
- *
- * static jobq_t jq;	define job queue
- *
- *  Initialize queue
- *  if ((stat = jobq_init(&jq, max_workers, job_thread)) != 0) {
- *     Emsg1(M_ABORT, 0, "Could not init job work queue: ERR=%s\n", strerror(errno));
- *   }
- *
- *  Add an item to the queue
- *  if ((stat = jobq_add(&jq, jcr)) != 0) {
- *      Emsg1(M_ABORT, 0, "Could not add job to queue: ERR=%s\n", strerror(errno));
- *   }
- *
- *  Terminate the queue
- *  jobq_destroy(jobq_t *jq);
  *
  */
 /*
@@ -50,8 +40,11 @@
 #include "bacula.h"
 #include "dird.h"
 
+#ifdef JOB_QUEUE
+
 /* Forward referenced functions */
 static void *jobq_server(void *arg);
+static int   start_server(jobq_t *jq);
 
 /*   
  * Initialize a job queue
@@ -86,7 +79,10 @@ int jobq_init(jobq_t *jq, int threads, void *(*engine)(void *arg))
    jq->idle_workers = 0;	      /* no idle threads */
    jq->engine = engine; 	      /* routine to run */
    jq->valid = JOBQ_VALID; 
-   jq->list.init(item, &item->link);
+   /* Initialize the job queues */
+   jq->waiting_jobs = new dlist(item, &item->link);
+   jq->running_jobs = new dlist(item, &item->link);
+   jq->ready_jobs = new dlist(item, &item->link);
    return 0;
 }
 
@@ -132,8 +128,49 @@ int jobq_destroy(jobq_t *jq)
   stat	= pthread_mutex_destroy(&jq->mutex);
   stat1 = pthread_cond_destroy(&jq->work);
   stat2 = pthread_attr_destroy(&jq->attr);
-  jq->list.destroy();
+  delete jq->waiting_jobs;
+  delete jq->running_jobs;
+  delete jq->ready_jobs;
   return (stat != 0 ? stat : (stat1 != 0 ? stat1 : stat2));
+}
+
+struct wait_pkt {
+   JCR *jcr;
+   jobq_t *jq;
+};
+
+/*
+ * Wait until schedule time arrives before starting
+ */
+static void *sched_wait(void *arg)
+{
+   JCR *jcr = ((wait_pkt *)arg)->jcr;
+   jobq_t *jq = ((wait_pkt *)arg)->jq;
+
+   Dmsg0(100, "Enter sched_wait.\n");
+   free(arg);
+   time_t wtime = jcr->sched_time - time(NULL);
+   /* Wait until scheduled time arrives */
+   if (wtime > 0 && verbose) {
+      Jmsg(jcr, M_INFO, 0, _("Job %s waiting %d seconds for scheduled start time.\n"), 
+	 jcr->Job, wtime);
+      set_jcr_job_status(jcr, JS_WaitStartTime);
+   }
+   /* Check every 30 seconds if canceled */ 
+   while (wtime > 0) {
+      Dmsg2(100, "Waiting on sched time, jobid=%d secs=%d\n", jcr->JobId, wtime);
+      if (wtime > 30) {
+	 wtime = 30;
+      }
+      bmicrosleep(wtime, 0);
+      if (job_canceled(jcr)) {
+	 break;
+      }
+      wtime = jcr->sched_time - time(NULL);
+   }
+   jobq_add(jq, jcr);
+   Dmsg0(100, "Exit sched_wait\n");
+   return NULL;
 }
 
 
@@ -146,53 +183,63 @@ int jobq_add(jobq_t *jq, JCR *jcr)
 {
    int stat;
    jobq_item_t *item, *li;
-   pthread_t id;
    bool inserted = false;
+   time_t wtime = jcr->sched_time - time(NULL);
+   pthread_t id;
+   wait_pkt *sched_pkt;
     
-   Dmsg0(200, "jobq_add\n");
+    
+   Dmsg0(100, "jobq_add\n");
    if (jq->valid != JOBQ_VALID) {
       return EINVAL;
+   }
+
+   if (!job_canceled(jcr) && wtime > 0) {
+      set_thread_concurrency(jq->max_workers + 2);
+      sched_pkt = (wait_pkt *)malloc(sizeof(wait_pkt));
+      sched_pkt->jcr = jcr;
+      sched_pkt->jq = jq;
+      if ((stat = pthread_create(&id, &jq->attr, sched_wait, (void *)sched_pkt)) != 0) {
+	 return stat;
+      }
+   }
+
+   if ((stat = pthread_mutex_lock(&jq->mutex)) != 0) {
+      return stat;
    }
 
    if ((item = (jobq_item_t *)malloc(sizeof(jobq_item_t))) == NULL) {
       return ENOMEM;
    }
    item->jcr = jcr;
-   if ((stat = pthread_mutex_lock(&jq->mutex)) != 0) {
-      free(item);
-      return stat;
+
+   Dmsg1(100, "add 0x%x to queue\n", (unsigned)item);
+   if (job_canceled(jcr)) {
+      /* Add job to ready queue so that it is canceled quickly */
+      jq->ready_jobs->prepend(item);
+   } else {
+      /* Add this job to the wait queue in priority sorted order */
+      for (li=NULL; (li=(jobq_item_t *)jq->waiting_jobs->next(li)); ) {
+	 if (li->jcr->JobPriority < jcr->JobPriority) {
+	    jq->waiting_jobs->insert_before(item, li);
+            Dmsg1(100, "insert_before 0x%x\n", (unsigned)li);
+	    inserted = true;
+	 }
+      }
+      /* If not jobs in wait queue, append it */
+      if (!inserted) {
+	 jq->waiting_jobs->append(item);
+         Dmsg0(100, "Appended item.\n");
+      }
+      Dmsg1(100, "Next=0x%x\n", (unsigned)jq->waiting_jobs->next(item));
    }
 
-   Dmsg0(200, "add item to queue\n");
-   for (li=NULL; (li=(jobq_item_t *)jq->list.next(li)); ) {
-      if (li->jcr->JobPriority < jcr->JobPriority) {
-	 jq->list.insert_before(item, li);
-	 inserted = true;
-      }
-   }
-   if (!inserted) {
-      jq->list.append(item);
-   }
+   stat = start_server(jq);
 
-   /* if any threads are idle, wake one */
-   if (jq->idle_workers > 0) {
-      Dmsg0(200, "Signal worker\n");
-      if ((stat = pthread_cond_signal(&jq->work)) != 0) {
-	 pthread_mutex_unlock(&jq->mutex);
-	 return stat;
-      }
-   } else if (jq->num_workers < jq->max_workers) {
-      Dmsg0(200, "Create worker thread\n");
-      /* No idle threads so create a new one */
-      set_thread_concurrency(jq->max_workers + 1);
-      if ((stat = pthread_create(&id, &jq->attr, jobq_server, (void *)jq)) != 0) {
-	 pthread_mutex_unlock(&jq->mutex);
-	 return stat;
-      }
-      jq->num_workers++;
+   if (stat == 0) {
+      pthread_mutex_unlock(&jq->mutex);
    }
-   pthread_mutex_unlock(&jq->mutex);
-   Dmsg0(200, "Return jobq_add\n");
+   Dmsg0(100, "Return jobq_add\n");
    return stat;
 }
 
@@ -212,7 +259,7 @@ int jobq_remove(jobq_t *jq, JCR *jcr)
    pthread_t id;
    jobq_item_t *item;
     
-   Dmsg0(200, "jobq_remove\n");
+   Dmsg0(100, "jobq_remove\n");
    if (jq->valid != JOBQ_VALID) {
       return EINVAL;
    }
@@ -221,7 +268,7 @@ int jobq_remove(jobq_t *jq, JCR *jcr)
       return stat;
    }
 
-   for (item=NULL; (item=(jobq_item_t *)jq->list.next(item)); ) {
+   for (item=NULL; (item=(jobq_item_t *)jq->waiting_jobs->next(item)); ) {
       if (jcr == item->jcr) {
 	 found = true;
 	 break;
@@ -232,18 +279,18 @@ int jobq_remove(jobq_t *jq, JCR *jcr)
    }
 
    /* Move item to be the first on the list */
-   jq->list.remove(item);
-   jq->list.prepend(item);
+   jq->waiting_jobs->remove(item);
+   jq->ready_jobs->prepend(item);
    
    /* if any threads are idle, wake one */
    if (jq->idle_workers > 0) {
-      Dmsg0(200, "Signal worker\n");
+      Dmsg0(100, "Signal worker\n");
       if ((stat = pthread_cond_signal(&jq->work)) != 0) {
 	 pthread_mutex_unlock(&jq->mutex);
 	 return stat;
       }
    } else {
-      Dmsg0(200, "Create worker thread\n");
+      Dmsg0(100, "Create worker thread\n");
       /* No idle threads so create a new one */
       set_thread_concurrency(jq->max_workers + 1);
       if ((stat = pthread_create(&id, &jq->attr, jobq_server, (void *)jq)) != 0) {
@@ -253,7 +300,36 @@ int jobq_remove(jobq_t *jq, JCR *jcr)
       jq->num_workers++;
    }
    pthread_mutex_unlock(&jq->mutex);
-   Dmsg0(200, "Return jobq_remove\n");
+   Dmsg0(100, "Return jobq_remove\n");
+   return stat;
+}
+
+
+/*
+ * Start the server thread 
+ */
+static int start_server(jobq_t *jq)
+{
+   int stat = 0;
+   pthread_t id;
+
+   /* if any threads are idle, wake one */
+   if (jq->idle_workers > 0) {
+      Dmsg0(100, "Signal worker\n");
+      if ((stat = pthread_cond_signal(&jq->work)) != 0) {
+	 pthread_mutex_unlock(&jq->mutex);
+	 return stat;
+      }
+   } else if (jq->num_workers < jq->max_workers) {
+      Dmsg0(100, "Create worker thread\n");
+      /* No idle threads so create a new one */
+      set_thread_concurrency(jq->max_workers + 1);
+      if ((stat = pthread_create(&id, &jq->attr, jobq_server, (void *)jq)) != 0) {
+	 pthread_mutex_unlock(&jq->mutex);
+	 return stat;
+      }
+      jq->num_workers++;
+   }
    return stat;
 }
 
@@ -271,7 +347,7 @@ static void *jobq_server(void *arg)
    int stat;
    bool timedout;
 
-   Dmsg0(200, "Start jobq_server\n");
+   Dmsg0(100, "Start jobq_server\n");
    if ((stat = pthread_mutex_lock(&jq->mutex)) != 0) {
       return NULL;
    }
@@ -280,79 +356,163 @@ static void *jobq_server(void *arg)
       struct timeval tv;
       struct timezone tz;
 
-      Dmsg0(200, "Top of for loop\n");
+      Dmsg0(100, "Top of for loop\n");
       timedout = false;
-      Dmsg0(200, "gettimeofday()\n");
+      Dmsg0(100, "gettimeofday()\n");
       gettimeofday(&tv, &tz);
       timeout.tv_nsec = 0;
-      timeout.tv_sec = tv.tv_sec + 2;
+      timeout.tv_sec = tv.tv_sec + 4;
 
-      while (jq->list.empty() && !jq->quit) {
+      while (jq->waiting_jobs->empty() && jq->ready_jobs->empty() && !jq->quit) {
 	 /*
-	  * Wait 2 seconds, then if no more work, exit
+	  * Wait 4 seconds, then if no more work, exit
 	  */
-         Dmsg0(200, "pthread_cond_timedwait()\n");
+         Dmsg0(100, "pthread_cond_timedwait()\n");
 	 stat = pthread_cond_timedwait(&jq->work, &jq->mutex, &timeout);
-         Dmsg1(200, "timedwait=%d\n", stat);
+         Dmsg1(100, "timedwait=%d\n", stat);
 	 if (stat == ETIMEDOUT) {
 	    timedout = true;
 	    break;
 	 } else if (stat != 0) {
             /* This shouldn't happen */
-            Dmsg0(200, "This shouldn't happen\n");
+            Dmsg0(100, "This shouldn't happen\n");
 	    jq->num_workers--;
 	    pthread_mutex_unlock(&jq->mutex);
 	    return NULL;
 	 }
       } 
-      je = (jobq_item_t *)jq->list.first();
-      if (je != NULL) {
-	 jq->list.remove(je);
+      /* 
+       * If anything is in the ready queue, run it
+       */
+      Dmsg0(100, "Checking ready queue.\n");
+      while (!jq->ready_jobs->empty() && !jq->quit) {
+	 je = (jobq_item_t *)jq->ready_jobs->first(); 
+	 jq->ready_jobs->remove(je);
+	 if (!jq->ready_jobs->empty()) {
+	    if (start_server(jq) != 0) {
+	       return NULL;
+	    }
+	 }
+	 jq->running_jobs->append(je);
 	 if ((stat = pthread_mutex_unlock(&jq->mutex)) != 0) {
 	    return NULL;
 	 }
          /* Call user's routine here */
-         Dmsg0(200, "Calling user engine.\n");
+         Dmsg0(100, "Calling user engine.\n");
 	 jq->engine(je->jcr);
-         Dmsg0(200, "Back from user engine.\n");
-	 free(je);		      /* release job entry */
-         Dmsg0(200, "relock mutex\n"); 
+         Dmsg0(100, "Back from user engine.\n");
 	 if ((stat = pthread_mutex_lock(&jq->mutex)) != 0) {
+	    free(je);		      /* release job entry */
 	    return NULL;
 	 }
-         Dmsg0(200, "Done lock mutex\n");
+         Dmsg0(100, "Done lock mutex\n");
+	 jq->running_jobs->remove(je);
+	 /* 
+	  * Release locks if acquired. Note, they will not have
+	  *  been acquired for jobs canceled before they were
+	  *  put into the ready queue.
+	  */
+	 if (je->jcr->acquired_resource_locks) {
+	    je->jcr->store->NumConcurrentJobs--;
+	    je->jcr->client->NumConcurrentJobs--;
+	    je->jcr->job->NumConcurrentJobs--;
+	 }
+	 free_jcr(je->jcr);
+	 free(je);		      /* release job entry */
       }
+      /*
+       * If any job in the wait queue can be run,
+       *  move it to the ready queue
+       */
+      Dmsg0(100, "Done check ready, now check wait queue.\n");
+      while (!jq->waiting_jobs->empty() && !jq->quit) {
+	 int Priority;
+	 je = (jobq_item_t *)jq->waiting_jobs->first(); 
+	 jobq_item_t *re = (jobq_item_t *)jq->running_jobs->first();
+	 if (re) {
+	    Priority = re->jcr->JobPriority;
+            Dmsg1(100, "Set Run pri=%d\n", Priority);
+	 } else {
+	    Priority = je->jcr->JobPriority;
+            Dmsg1(100, "Set Job pri=%d\n", Priority);
+	 }
+	 /*
+	  * Acquire locks
+	  */
+	 for ( ; je;  ) {
+	    JCR *jcr = je->jcr;
+	    jobq_item_t *jn = (jobq_item_t *)jq->waiting_jobs->next(je);
+            Dmsg2(100, "je=0x%x jn=0x%x\n", (unsigned)je, (unsigned)jn);
+            Dmsg3(100, "Examining Job=%d JobPri=%d want Pri=%d\n",
+	       jcr->JobId, jcr->JobPriority, Priority);
+	    /* Take only jobs of correct Priority */
+	    if (jcr->JobPriority != Priority) {
+	       set_jcr_job_status(jcr, JS_WaitPriority);
+	       break;
+	    }
+	    if (jcr->store->NumConcurrentJobs < jcr->store->MaxConcurrentJobs) {
+	       jcr->store->NumConcurrentJobs++;
+	    } else {
+	       set_jcr_job_status(jcr, JS_WaitStoreRes);
+	       je = jn;
+	       continue;
+	    }
+	    if (jcr->client->NumConcurrentJobs < jcr->client->MaxConcurrentJobs) {
+	       jcr->client->NumConcurrentJobs++;
+	    } else {
+	       jcr->store->NumConcurrentJobs--;
+	       set_jcr_job_status(jcr, JS_WaitClientRes);
+	       je = jn;
+	       continue;
+	    }
+	    if (jcr->job->NumConcurrentJobs < jcr->job->MaxConcurrentJobs) {
+	       jcr->job->NumConcurrentJobs++;
+	    } else {
+	       jcr->store->NumConcurrentJobs--;
+	       jcr->client->NumConcurrentJobs--;
+	       set_jcr_job_status(jcr, JS_WaitJobRes);
+	       je = jn;
+	       continue;
+	    }
+	    jcr->acquired_resource_locks = true;
+	    jq->waiting_jobs->remove(je);
+	    jq->ready_jobs->append(je);
+            Dmsg1(100, "moved JobId=%d from wait to ready queue\n", 
+	      je->jcr->JobId);
+	    je = jn;
+	 } /* end for loop */
+      } /* end while loop */
+      Dmsg0(100, "Done checking wait queue.\n");
       /*
        * If no more work request, and we are asked to quit, then do it
        */
-      if (jq->list.empty() && jq->quit) {
+      if (jq->waiting_jobs->empty() && jq->ready_jobs->empty() && jq->quit) {
 	 jq->num_workers--;
 	 if (jq->num_workers == 0) {
-            Dmsg0(200, "Wake up destroy routine\n");
+            Dmsg0(100, "Wake up destroy routine\n");
 	    /* Wake up destroy routine if he is waiting */
 	    pthread_cond_broadcast(&jq->work);
 	 }
-         Dmsg0(200, "Unlock mutex\n");
-	 pthread_mutex_unlock(&jq->mutex);
-         Dmsg0(200, "Return from jobq_server\n");
-	 return NULL;
+	 break;
       }
-      Dmsg0(200, "Check for work request\n");
+      Dmsg0(100, "Check for work request\n");
       /* 
        * If no more work requests, and we waited long enough, quit
        */
-      Dmsg1(200, "jq empty = %d\n", jq->list.empty());
-      Dmsg1(200, "timedout=%d\n", timedout);
-      if (jq->list.empty() && timedout) {
-         Dmsg0(200, "break big loop\n");
+      Dmsg1(100, "jq empty = %d\n", jq->waiting_jobs->empty());
+      Dmsg1(100, "timedout=%d\n", timedout);
+      if (jq->waiting_jobs->empty() && jq->ready_jobs->empty() && timedout) {
+         Dmsg0(100, "break big loop\n");
 	 jq->num_workers--;
 	 break;
       }
-      Dmsg0(200, "Loop again\n");
+      Dmsg0(100, "Loop again\n");
    } /* end of big for loop */
 
-   Dmsg0(200, "unlock mutex\n");
+   Dmsg0(100, "unlock mutex\n");
    pthread_mutex_unlock(&jq->mutex);
-   Dmsg0(200, "End jobq_server\n");
+   Dmsg0(100, "End jobq_server\n");
    return NULL;
 }
+
+#endif /* JOB_QUEUE */

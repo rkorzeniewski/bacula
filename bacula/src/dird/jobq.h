@@ -47,7 +47,9 @@ struct jobq_t {
    pthread_mutex_t   mutex;           /* queue access control */
    pthread_cond_t    work;            /* wait for work */
    pthread_attr_t    attr;            /* create detached threads */
-   dlist             list;            /* list of jobs */
+   dlist            *waiting_jobs;    /* list of jobs waiting */
+   dlist            *running_jobs;    /* jobs running */
+   dlist            *ready_jobs;      /* jobs ready to run */
    int               valid;           /* queue initialized */
    bool              quit;            /* jobq should quit */
    int               max_workers;     /* max threads */

@@ -1,5 +1,11 @@
 
 2003-07-xx Version 1.31 Beta xxJul03
+- Complete implementation of new job scheduler. jobq.h jobq.c
+  This code is turned off unless specifically enabled in src/version.h
+- Integrate code from Nic Bellamy to check for recycled volume in
+  mount.c in SD.
+- Fix a couple of bugs in dlist.c
+- Begin implementation of new job scheduler.
 - Take serial.h provided by David Craigon, which corrects differences in 
   prototypes between serial.h and serial.c.
 - Make db_get_media_ids() return Media Ids only for the current pool.
