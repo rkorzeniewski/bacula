@@ -84,7 +84,7 @@ int statuscmd(UAContext *ua, char *cmd)
       add_prompt(ua, _("Client"));
       add_prompt(ua, _("All"));
       Dmsg0(20, "do_prompt: select daemon\n");
-      if ((item=do_prompt(ua, _("Select daemon type for status"), cmd, MAX_NAME_LENGTH)) < 0) {
+      if ((item=do_prompt(ua, "",  _("Select daemon type for status"), cmd, MAX_NAME_LENGTH)) < 0) {
 	 return 1;
       }
       Dmsg1(20, "item=%d\n", item);

@@ -107,9 +107,6 @@ int acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
          Jmsg(jcr, M_WARNING, 0, "%s", jcr->errmsg);
 default_path:
 	 tape_previously_mounted = 1;
-	 if (autochanger) {
-	    invalidate_slot_in_catalog(jcr);
-	 }
          Dmsg0(200, "dir_get_volume_info\n");
 	 if (!dir_get_volume_info(jcr, 0)) { 
             Jmsg1(jcr, M_WARNING, 0, "%s", jcr->errmsg);

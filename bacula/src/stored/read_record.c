@@ -61,7 +61,7 @@ int read_records(JCR *jcr,  DEVICE *dev,
 	 if (dev->state & ST_EOT) {
 	    DEV_RECORD *trec = new_record();
 
-            Pmsg3(000, "EOT. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
+            Dmsg3(100, "EOT. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
 		  block->BlockNumber, rec->remainder);
 	    if (!mount_cb(jcr, dev, block)) {
                Dmsg3(100, "After mount next vol. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 

@@ -400,7 +400,7 @@ static int cancelcmd(UAContext *ua, char *cmd)
       }
       unlock_jcr_chain();
 
-      if (do_prompt(ua, _("Choose Job to cancel"), JobName, sizeof(JobName)) < 0) {
+      if (do_prompt(ua, _("Job"),  _("Choose Job to cancel"), JobName, sizeof(JobName)) < 0) {
 	 return 1;
       }
       if (njobs == 1) {
@@ -628,7 +628,7 @@ static int updatecmd(UAContext *ua, char *cmd)
    add_prompt(ua, _("Volume parameters"));
    add_prompt(ua, _("Pool from resource"));
    add_prompt(ua, _("Slots from autochanger"));
-   switch (do_prompt(ua, _("Choose catalog item to update"), NULL, 0)) {
+   switch (do_prompt(ua, _("item"), _("Choose catalog item to update"), NULL, 0)) {
       case 0:
 	 update_volume(ua);
 	 break;
@@ -673,7 +673,7 @@ static int update_volume(UAContext *ua)
       add_prompt(ua, _("Slot"));
       add_prompt(ua, _("Volume Files"));
       add_prompt(ua, _("Done"));
-      switch (do_prompt(ua, _("Select parameter to modify"), NULL, 0)) {
+      switch (do_prompt(ua, "", _("Select parameter to modify"), NULL, 0)) {
       case 0:			      /* Volume Status */
 	 /* Modify Volume Status */
          bsendmsg(ua, _("Current Volume status is: %s\n"), mr.VolStatus);
@@ -688,7 +688,7 @@ static int update_volume(UAContext *ua)
             add_prompt(ua, "Recycle");
 	 }
          add_prompt(ua, "Read-Only");
-         if (do_prompt(ua, _("Choose new Volume Status"), ua->cmd, sizeof(mr.VolStatus)) < 0) {
+         if (do_prompt(ua, "", _("Choose new Volume Status"), ua->cmd, sizeof(mr.VolStatus)) < 0) {
 	    return 1;
 	 }
 	 bstrncpy(mr.VolStatus, ua->cmd, sizeof(mr.VolStatus));
@@ -1133,7 +1133,7 @@ static int setdebugcmd(UAContext *ua, char *cmd)
    add_prompt(ua, _("Storage"));
    add_prompt(ua, _("Client"));
    add_prompt(ua, _("All"));
-   switch(do_prompt(ua, _("Select daemon type to set debug level"), NULL, 0)) {
+   switch(do_prompt(ua, "", _("Select daemon type to set debug level"), NULL, 0)) {
       case 0:			      /* Director */
 	 debug_level = level;
 	 break;

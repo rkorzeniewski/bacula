@@ -148,6 +148,7 @@ mount_next_vol:
 
       release = 1;                    /* release next time if we "recurse" */
 
+ask_again:
       if (ask && !dir_ask_sysop_to_mount_next_volume(jcr, dev)) {
          Dmsg0(100, "Error return ask_sysop ...\n");
 	 return 0;		/* error return */
@@ -243,11 +244,9 @@ read_volume:
 mount_error:
 	 /* Send error message */
          Jmsg1(jcr, M_WARNING, 0, "%s", jcr->errmsg);                         
-	 if (autochanger) {
-	    invalidate_slot_in_catalog(jcr);
-	 }
          Dmsg0(100, "Default\n");
-	 goto mount_next_vol;
+	 ask = 1;
+	 goto ask_again;
       }
       break;
    }

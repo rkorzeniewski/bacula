@@ -402,7 +402,8 @@ When:     %s\n"),
 	 }
 	 jcr->JobLevel = L_FULL;      /* default level */
          Dmsg1(20, "JobId to restore=%d\n", jcr->RestoreJobId);
-         bsendmsg(ua, _("Run Restore job\n\
+	 if (jcr->RestoreJobId == 0) {
+            bsendmsg(ua, _("Run Restore job\n\
 JobName:    %s\n\
 Bootstrap:  %s\n\
 Where:      %s\n\
@@ -410,7 +411,24 @@ Replace:    %s\n\
 FileSet:    %s\n\
 Client:     %s\n\
 Storage:    %s\n\
-JobId:      %s\n\
+When:       %s\n"),
+		 job->hdr.name,
+		 NPRT(jcr->RestoreBootstrap),
+		 jcr->RestoreWhere?jcr->RestoreWhere:NPRT(job->RestoreWhere),
+		 replace,
+		 jcr->fileset->hdr.name,
+		 jcr->client->hdr.name,
+		 jcr->store->hdr.name, 
+		 bstrutime(dt, sizeof(dt), jcr->sched_time));
+	 } else {
+            bsendmsg(ua, _("Run Restore job\n\
+JobName:    %s\n\
+Bootstrap:  %s\n\
+Where:      %s\n\
+Replace:    %s\n\
+FileSet:    %s\n\
+Client:     %s\n\
+Storage:    %s\n\
 When:       %s\n"),
 		 job->hdr.name,
 		 NPRT(jcr->RestoreBootstrap),
@@ -421,6 +439,7 @@ When:       %s\n"),
 		 jcr->store->hdr.name, 
                  jcr->RestoreJobId==0?"*None*":edit_uint64(jcr->RestoreJobId, ec1), 
 		 bstrutime(dt, sizeof(dt), jcr->sched_time));
+	 }
 	 break;
       default:
          bsendmsg(ua, _("Unknown Job Type=%d\n"), jcr->JobType);
@@ -458,7 +477,7 @@ When:       %s\n"),
          add_prompt(ua, _("Replace"));       /* 8 */
          add_prompt(ua, _("JobId"));         /* 9 */
       }
-      switch (do_prompt(ua, _("Select parameter to modify"), NULL, 0)) {
+      switch (do_prompt(ua, "", _("Select parameter to modify"), NULL, 0)) {
       case 0:
 	 /* Level */
 	 if (jcr->JobType == JT_BACKUP) {
@@ -468,7 +487,7 @@ When:       %s\n"),
             add_prompt(ua, _("Incremental"));
             add_prompt(ua, _("Differential"));
             add_prompt(ua, _("Since"));
-            switch (do_prompt(ua, _("Select level"), NULL, 0)) {
+            switch (do_prompt(ua, "", _("Select level"), NULL, 0)) {
 	    case 0:
 	       jcr->JobLevel = L_BASE;
 	       break;
@@ -494,7 +513,7 @@ When:       %s\n"),
             add_prompt(ua, _("Verify Catalog"));
             add_prompt(ua, _("Verify Volume"));
             add_prompt(ua, _("Verify Volume Data"));
-            switch (do_prompt(ua, _("Select level"), NULL, 0)) {
+            switch (do_prompt(ua, "",  _("Select level"), NULL, 0)) {
 	    case 0:
 	       jcr->JobLevel = L_VERIFY_INIT;
 	       break;
@@ -615,7 +634,7 @@ When:       %s\n"),
 	 for (i=0; ReplaceOptions[i].name; i++) {
 	    add_prompt(ua, ReplaceOptions[i].name);
 	 }
-         opt = do_prompt(ua, _("Select replace option"), NULL, 0);
+         opt = do_prompt(ua, "", _("Select replace option"), NULL, 0);
 	 if (opt >=  0) {
 	    jcr->replace = ReplaceOptions[opt].token;
 	 }
