@@ -73,13 +73,13 @@ int authenticate_storage_daemon(JCR *jcr)
    }
    Dmsg1(116, ">stored: %s", sd->msg);
    if (bnet_recv(sd) <= 0) {
-      Emsg1(M_FATAL, 0, _("bdird<stored: bad response to Hello command: ERR=%s\n"),
+      Jmsg1(jcr, M_FATAL, 0, _("bdird<stored: bad response to Hello command: ERR=%s\n"),
 	 bnet_strerror(sd));
       return 0;
    }
    Dmsg1(110, "<stored: %s", sd->msg);
    if (strncmp(sd->msg, OKhello, sizeof(OKhello)) != 0) {
-      Emsg0(M_FATAL, 0, _("Storage daemon rejected Hello command\n"));
+      Jmsg0(jcr, M_FATAL, 0, _("Storage daemon rejected Hello command\n"));
       return 0;
    }
    return 1;
@@ -98,7 +98,7 @@ int authenticate_file_daemon(JCR *jcr)
     */
    strcpy(dirname, director->hdr.name);
    bash_spaces(dirname);
-   if (!bnet_fsend(fd, hello, director->hdr.name)) {
+   if (!bnet_fsend(fd, hello, dirname)) {
       Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to File daemon. ERR=%s\n"), bnet_strerror(fd));
       return 0;
    }
@@ -109,7 +109,7 @@ int authenticate_file_daemon(JCR *jcr)
    }
    Dmsg1(116, ">filed: %s", fd->msg);
    if (bnet_recv(fd) <= 0) {
-      Jmsg(jcr, M_FATAL, 0, _("bdird<filed: bad response to Hello command: ERR=%s\n"),
+      Jmsg(jcr, M_FATAL, 0, _("Bad response from File daemon to Hello command: ERR=%s\n"),
 	 bnet_strerror(fd));
       return 0;
    }
@@ -129,10 +129,14 @@ int authenticate_user_agent(BSOCK *ua)
    char name[MAXSTRING];
    int ok = 0;
 
-   if (ua->msglen > MAXSTRING ||
-       sscanf(ua->msg, "Hello %127s calling\n", name) != 1) {
+   if (ua->msglen < 16 || ua->msglen >= MAXSTRING-1) {
+      Emsg0(M_ERROR, 0, _("UA Hello is invalid.\n"));
+      return 0;
+   }
+
+   if (sscanf(ua->msg, "Hello %127s calling\n", name) != 1) {
       ua->msg[100] = 0; 	      /* terminate string */
-      Emsg1(M_ERROR, 0, _("Authentication failure: %s"), ua->msg);
+      Emsg1(M_ERROR, 0, _("UA Hello is invalid. Got: %s\n"), ua->msg);
       return 0;
    }
 
