@@ -115,6 +115,8 @@ CREATE TABLE Media (
    MaxVolJobs INTEGER UNSIGNED DEFAULT 0,
    MaxVolFiles INTEGER UNSIGNED DEFAULT 0,
    MaxVolBytes BIGINT UNSIGNED DEFAULT 0,
+   Drive INTEGER DEFAULT 0,
+   InChanger TINYINT DEFAULT 0,
    PRIMARY KEY(MediaId)
    );
 
@@ -184,7 +186,7 @@ CREATE TABLE Version (
    );
 
 -- Initialize Version		 
-INSERT INTO Version (VersionId) VALUES (6);
+INSERT INTO Version (VersionId) VALUES (7);
 
 CREATE TABLE Counters (
    Counter TEXT NOT NULL,     

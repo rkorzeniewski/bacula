@@ -61,6 +61,7 @@ Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 
 clean:
 	rm -f *.exe *.o *.res *.a 1 2 3
+	rm -f bin/smtp.exe bin/console.exe
 	rm -f bin/bacula-fd.exe bin/bsmtp.exe bin/testfind.exe
 
 distclean: clean

@@ -184,7 +184,7 @@ static int add_cmd(UAContext *ua, char *cmd)
    int first_id = 0;
    char name[MAX_NAME_LENGTH];
    STORE *store;
-   int slot = 0;
+   int Slot = 0, InChanger = 0;
 
    bsendmsg(ua, _(
 "You probably don't want to be using this command since it\n"
@@ -287,13 +287,18 @@ getVolName:
       if (!get_pint(ua, _("Enter slot (0 for none): "))) {
 	 return 1;
       }
-      slot = ua->pint32_val;
+      Slot = ua->pint32_val;
+      if (!get_yesno(ua, _("InChanger? yes/no: "))) {
+	 return 1;
+      }
+      InChanger = ua->pint32_val;
    }
 	   
    set_pool_dbr_defaults_in_media_dbr(&mr, &pr);
    for (i=startnum; i < num+startnum; i++) { 
       bsnprintf(mr.VolumeName, sizeof(mr.VolumeName), name, i);
-      mr.Slot = slot++;
+      mr.Slot = Slot++;
+      mr.InChanger = InChanger;
       Dmsg1(200, "Create Volume %s\n", mr.VolumeName);
       if (!db_create_media_record(ua->jcr, ua->db, &mr)) {
 	 bsendmsg(ua, db_strerror(ua->db));
@@ -794,7 +799,7 @@ static void update_volrecycle(UAContext *ua, char *val, MEDIA_DBR *mr)
    if (!db_sql_query(ua->db, query, NULL, NULL)) {  
       bsendmsg(ua, "%s", db_strerror(ua->db));
    } else {	  
-      bsendmsg(ua, _("New recycle flag is: %s\n"),
+      bsendmsg(ua, _("New Recycle flag is: %s\n"),
          mr->Recycle==1?_("yes"):_("no"));
    }
    free_pool_memory(query);
@@ -895,6 +900,7 @@ static int update_volume(UAContext *ua)
       add_prompt(ua, _("Maximum Volume Bytes"));
       add_prompt(ua, _("Recycle Flag"));
       add_prompt(ua, _("Slot"));
+      add_prompt(ua, _("InChanger Flag"));
       add_prompt(ua, _("Volume Files"));
       add_prompt(ua, _("Pool"));
       add_prompt(ua, _("Done"));
@@ -971,7 +977,7 @@ static int update_volume(UAContext *ua)
 	 break;
 
       case 7:			      /* Slot */
-	 int slot;
+	 int Slot;
 
 	 memset(&pr, 0, sizeof(POOL_DBR));
 	 pr.PoolId = mr.PoolId;
@@ -983,13 +989,13 @@ static int update_volume(UAContext *ua)
          if (!get_pint(ua, _("Enter new Slot: "))) {
 	    return 0;
 	 }
-	 slot = ua->pint32_val;
-	 if (pr.MaxVols > 0 && slot > (int)pr.MaxVols) {
+	 Slot = ua->pint32_val;
+	 if (pr.MaxVols > 0 && Slot > (int)pr.MaxVols) {
             bsendmsg(ua, _("Invalid slot, it must be between 0 and %d\n"),
 	       pr.MaxVols);
 	    break;
 	 }
-	 mr.Slot = slot;
+	 mr.Slot = Slot;
 	 /*
 	  * Make sure to use db_update... rather than doing this directly,
 	  *   so that any Slot is handled correctly. 
@@ -1001,7 +1007,25 @@ static int update_volume(UAContext *ua)
 	 }
 	 break;
 
-      case 8:			      /* Volume Files */
+      case 8:			      /* InChanger */
+         bsendmsg(ua, _("Current InChanger flag is: %d\n"), mr.InChanger);
+         if (!get_yesno(ua, _("Set InChanger flag? yes/no: "))) {
+	    return 0;
+	 }
+	 mr.InChanger = ua->pint32_val;
+	 /*
+	  * Make sure to use db_update... rather than doing this directly,
+	  *   so that any Slot is handled correctly. 
+	  */
+	 if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
+            bsendmsg(ua, _("Error updating media record Slot: ERR=%s"), db_strerror(ua->db));
+	 } else {
+            bsendmsg(ua, _("New InChanger flag is: %s\n"), mr.InChanger);
+	 }
+	 break;
+
+
+      case 9:			      /* Volume Files */
 	 int32_t VolFiles;
          bsendmsg(ua, _("Warning changing Volume Files can result\n"
                         "in loss of data on your Volume\n\n"));
@@ -1027,7 +1051,7 @@ static int update_volume(UAContext *ua)
 	 free_pool_memory(query);
 	 break;
 
-      case 9:                         /* Volume's Pool */
+      case 10:                        /* Volume's Pool */
 	 memset(&pr, 0, sizeof(POOL_DBR));
 	 pr.PoolId = mr.PoolId;
 	 if (!db_get_pool_record(ua->jcr, ua->db, &pr)) {
@@ -1040,6 +1064,7 @@ static int update_volume(UAContext *ua)
 	 }
 	 update_volpool(ua, ua->cmd, &mr);
 	 return 1;
+
       default:			      /* Done or error */
          bsendmsg(ua, "Selection done.\n");
 	 return 1;

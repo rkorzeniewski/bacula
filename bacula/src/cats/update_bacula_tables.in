@@ -1,0 +1,13 @@
+#!/bin/sh
+#
+# This routine alters the appropriately configured
+#  Bacula tables for either MySQL or SQLite
+#
+if test xsqlite = x@DB_NAME@ ; then
+  echo "Altering SQLite tables"
+  . ./update_sqlite_tables
+fi
+if test xmysql = x@DB_NAME@ ; then
+  echo "Altering MySQL tables"
+  . ./update_mysql_tables
+fi

@@ -1,0 +1,47 @@
+#!/bin/sh
+#
+# Shell script to update MySQL tables from version 1.32 to 1.33
+#
+echo " "
+echo "Depending on the size of your database,"
+echo "this script may take several minutes to run."
+echo " "
+bindir=@SQL_BINDIR@
+
+if $bindir/mysql $* -f <<END-OF-DATA
+USE bacula;
+
+ALTER TABLE Media ADD COLUMN Drive INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE Media ADD COLUMN InChanger TINYINT NOT NULL DEFAULT 0;
+
+
+DROP TABLE BaseFiles;
+
+
+CREATE TABLE BaseFiles (
+   BaseId INTEGER UNSIGNED AUTO_INCREMENT,
+   JobId INTEGER UNSIGNED NOT NULL REFERENCES Job,
+   FileId INTEGER UNSIGNED NOT NULL REFERENCES File,
+   FileIndex INTEGER UNSIGNED,
+   PRIMARY KEY(BaseId)
+   );
+
+DROP TABLE UnsavedFiles;
+
+CREATE TABLE UnsavedFiles (
+   UnsavedId INTEGER UNSIGNED AUTO_INCREMENT,
+   JobId INTEGER UNSIGNED NOT NULL REFERENCES Job,
+   PathId INTEGER UNSIGNED NOT NULL REFERENCES Path,
+   FilenameId INTEGER UNSIGNED NOT NULL REFERENCES Filename,
+   PRIMARY KEY (UnsavedId)
+   );
+
+UPDATE Version SET VersionId=7;
+
+END-OF-DATA
+then
+   echo "Update of Bacula MySQL tables succeeded."
+else
+   echo "Update of Bacula MySQL tables failed."
+fi
+exit 0

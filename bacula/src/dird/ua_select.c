@@ -738,14 +738,15 @@ STORE *get_storage_resource(UAContext *ua, int use_default)
 
    for (i=1; i<ua->argc; i++) {
       if (use_default && !ua->argv[i]) {
+	 /* Ignore scan and barcode(s) keywords */
+         if (strncasecmp("scan", ua->argk[i], 4) == 0 ||
+             strncasecmp("barcode", ua->argk[i], 7) == 0) {
+	    continue;
+	 }
 	 /* Default argument is storage */
 	 if (store_name) {
             bsendmsg(ua, _("Storage name given twice.\n"));
 	    return NULL;
-	 }
-	 /* Ignore barcode(s) keywords */
-         if (strncasecmp("barcode", ua->argk[i], 7) == 0) {
-	    continue;
 	 }
 	 store_name = ua->argk[i];
          if (*store_name == '?') {

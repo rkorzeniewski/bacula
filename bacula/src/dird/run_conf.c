@@ -145,19 +145,6 @@ static void set_defaults()
 }
 
 
-/* Check if string is a number */
-static int is_num(char *num)
-{
-   char *p = num;
-   int ch;
-   while ((ch = *p++)) {
-      if (ch < '0' || ch > '9') {
-	 return FALSE;
-      }
-   }
-   return TRUE;
-}
-
 /* Keywords (RHS) permitted in Run records */
 static struct s_kw RunFields[] = {
    {"pool",     'P'},
@@ -420,7 +407,7 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	 *p++ = 0;		   /* separate two halves */
 
 	 /* Check for day range */
-	 if (is_num(lc->str) && is_num(p)) {
+	 if (is_an_integer(lc->str) && is_an_integer(p)) {
 	    code = atoi(lc->str) - 1;
 	    code2 = atoi(p) - 1;
 	    if (code < 0 || code > 30 || code2 < 0 || code2 > 30) {

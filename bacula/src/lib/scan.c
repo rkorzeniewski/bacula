@@ -65,7 +65,7 @@ int skip_spaces(char **msg)
    if (!p) {
       return 0;
    }
-   while (*p && *p == ' ') {
+   while (*p && B_ISSPACE(*p)) {
       p++;
    }
    *msg = p;
@@ -85,7 +85,7 @@ int skip_nonspaces(char **msg)
    if (!p) {
       return 0;
    }
-   while (*p && *p != ' ') {
+   while (*p && !B_ISSPACE(*p)) {
       p++;
    }
    *msg = p;

@@ -256,7 +256,8 @@ int dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec)
 
 
 /*
- *   
+ *   Request to mount next Volume, which Volume not specified
+ *
  *   Entered with device blocked.
  *   Leaves with device blocked.
  *
@@ -362,8 +363,8 @@ Please use the \"label\"  command to create a new Volume for:\n\
       wait_sec = min_wait;
       num_wait = 0;
       /* If no VolumeName, and cannot get one, try again */
-      if (jcr->VolumeName[0] == 0 && 
-	  !dir_find_next_appendable_volume(jcr) && !job_canceled(jcr)) {
+      if (jcr->VolumeName[0] == 0 && !job_canceled(jcr) &&
+	  !dir_find_next_appendable_volume(jcr)) {
 	 Jmsg(jcr, M_MOUNT, 0, _(
 "Someone woke me up, but I cannot find any appendable\n\
 volumes for Job=%s.\n"), jcr->Job);
@@ -378,7 +379,8 @@ volumes for Job=%s.\n"), jcr->Job);
 }
 
 /*
- *   
+ *   Request to mount specific Volume
+ *
  *   Entered with device blocked and jcr->VolumeName is desired
  *	volume.
  *   Leaves with device blocked.
@@ -540,7 +542,7 @@ static int wait_for_sysop(JCR *jcr, DEVICE *dev, int wait_sec)
       Dmsg1(100, "Additional wait %d sec.\n", add_wait);
    }
 
-   dev->dev_blocked = dev_blocked;
+   dev->dev_blocked = dev_blocked;    /* restore entry state */
    V(dev->mutex);
    return stat;
 }

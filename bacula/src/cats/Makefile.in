@@ -64,8 +64,9 @@ realclean: clean
 	$(RMF) create_mysql_database make_sqlite_tables sqlite
 	$(RMF) create_bdb_database drop_bdb_tables make_dbd_tables
 	$(RMF) make_catalog_backup delete_catalog_backup
-	$(RMF) alter_mysql_tables alter_sqlite_tables create_sqlite_database
+	$(RMF) update_mysql_tables update_sqlite_tables create_sqlite_database
 	$(RMF) drop_bacula_tables drop_sqlite_tables make_bacula_tables
+	$(RMF) update_bacula_tables
 	$(RMF) drop_bdb_tables make_bdb_tables mysql
 
 distclean: realclean
@@ -76,8 +77,10 @@ install:
 	$(INSTALL_SCRIPT) create_@DB_NAME@_database $(DESTDIR)$(scriptdir)/create_@DB_NAME@_database
 	$(INSTALL_SCRIPT) drop_@DB_NAME@_tables $(DESTDIR)$(scriptdir)/drop_@DB_NAME@_tables
 	$(INSTALL_SCRIPT) make_@DB_NAME@_tables $(DESTDIR)$(scriptdir)/make_@DB_NAME@_tables
+	$(INSTALL_SCRIPT) update_@DB_NAME@_tables $(DESTDIR)$(scriptdir)/update_@DB_NAME@_tables
 	$(INSTALL_SCRIPT) drop_bacula_tables $(DESTDIR)$(scriptdir)/drop_bacula_tables
 	$(INSTALL_SCRIPT) make_bacula_tables $(DESTDIR)$(scriptdir)/make_bacula_tables
+	$(INSTALL_SCRIPT) update_bacula_tables $(DESTDIR)$(scriptdir)/update_bacula_tables
 	$(INSTALL_SCRIPT) make_catalog_backup $(DESTDIR)$(scriptdir)/make_catalog_backup  
 	$(INSTALL_SCRIPT) delete_catalog_backup $(DESTDIR)$(scriptdir)/delete_catalog_backup  
 	$(INSTALL_SCRIPT) grant_mysql_privileges $(DESTDIR)$(scriptdir)/grant_mysql_privileges	
@@ -86,8 +89,10 @@ uninstall:
 	(cd $(DESTDIR)$(scriptdir); $(RMF) create_@DB_NAME@_database)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) drop_@DB_NAME@_tables)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) make_@DB_NAME@_tables)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) update_@DB_NAME@_tables)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) drop_bacula_tables)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) make_bacula_tables)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) update_bacula_tables)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) make_catalog_backup)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) delete_catalog_backup)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) grant_mysql_privileges)
