@@ -15,7 +15,7 @@
  */
 
 /*
-   Copyright (C) 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2001-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -61,7 +61,7 @@
  * most current start fields to the job record.
  * It is assumed that you did a db_create_job_record() already.
  */
-int db_update_job_start_record(B_DB *mdb, JOB_DBR *jr)	  
+int db_update_job_start_record(void *jcr, B_DB *mdb, JOB_DBR *jr)    
 {
    int len, stat = 1;
    JOB_DBR ojr;
@@ -70,7 +70,7 @@ int db_update_job_start_record(B_DB *mdb, JOB_DBR *jr)
    len = sizeof(ojr);
    memcpy(&ojr, jr, len);
 
-   if (!db_get_job_record(mdb, &ojr)) {
+   if (!db_get_job_record(jcr, mdb, &ojr)) {
       return 0;
    }
 
@@ -91,7 +91,7 @@ int db_update_job_start_record(B_DB *mdb, JOB_DBR *jr)
  * This is called at Job termination time to add all the
  * other fields to the job record.
  */
-int db_update_job_end_record(B_DB *mdb, JOB_DBR *jr)	
+int db_update_job_end_record(void *jcr, B_DB *mdb, JOB_DBR *jr)    
 {
    int len, stat = 1;
    JOB_DBR ojr;
@@ -100,7 +100,7 @@ int db_update_job_end_record(B_DB *mdb, JOB_DBR *jr)
    len = sizeof(ojr);
    memcpy(&ojr, jr, len);
 
-   if (!db_get_job_record(mdb, &ojr)) {
+   if (!db_get_job_record(jcr, mdb, &ojr)) {
       return 0;
    }
 
@@ -118,7 +118,7 @@ int db_update_job_end_record(B_DB *mdb, JOB_DBR *jr)
 }
 
 
-int db_update_media_record(B_DB *mdb, MEDIA_DBR *mr) 
+int db_update_media_record(void *jcr, B_DB *mdb, MEDIA_DBR *mr) 
 { 
    int stat = 1;
    MEDIA_DBR omr;
@@ -129,7 +129,7 @@ int db_update_media_record(B_DB *mdb, MEDIA_DBR *mr)
    len = sizeof(omr);
    memcpy(&omr, mr, len);
 
-   if (!db_get_media_record(mdb, &omr)) {
+   if (!db_get_media_record(jcr, mdb, &omr)) {
       return 0;
    }
 
@@ -155,7 +155,7 @@ int db_update_media_record(B_DB *mdb, MEDIA_DBR *mr)
    return stat;
 }
 
-int db_update_pool_record(B_DB *mdb, POOL_DBR *pr) 
+int db_update_pool_record(void *jcr, B_DB *mdb, POOL_DBR *pr) 
 { 
    int stat = 1;
    POOL_DBR opr;
@@ -165,7 +165,7 @@ int db_update_pool_record(B_DB *mdb, POOL_DBR *pr)
    len = sizeof(opr);
    memcpy(&opr, pr, len);
 
-   if (!db_get_pool_record(mdb, &opr)) {
+   if (!db_get_pool_record(jcr, mdb, &opr)) {
       return 0;
    }
 
@@ -192,12 +192,12 @@ int db_update_pool_record(B_DB *mdb, POOL_DBR *pr)
    return stat;
 }
 
-int db_add_MD5_to_file_record(B_DB *mdb, FileId_t FileId, char *MD5)   
+int db_add_MD5_to_file_record(void *jcr, B_DB *mdb, FileId_t FileId, char *MD5)   
 {
    return 1;
 }
 
-int db_mark_file_record(B_DB *mdb, FileId_t FileId, JobId_t JobId)
+int db_mark_file_record(void *jcr, B_DB *mdb, FileId_t FileId, JobId_t JobId)
 { 
    return 1;
 }

@@ -14,7 +14,7 @@
  */
 
 /*
-   Copyright (C) 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2001-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -55,13 +55,13 @@ int db_create_pool_record(B_DB *mdb, POOL_DBR *pr);
  * -----------------------------------------------------------------------
  */
 
-int db_create_file_attributes_record(B_DB *mdb, ATTR_DBR *ar)
+int db_create_file_attributes_record(void *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
    /* *****FIXME***** implement this */
    return 1;
 }
 
-int db_create_file_item(B_DB *mdb, ATTR_DBR *ar)
+int db_create_file_item(void *jcr, B_DB *mdb, ATTR_DBR *ar)
 {	     
    /****FIXME***** not implemented */
    return 1;
@@ -76,7 +76,7 @@ int db_create_file_item(B_DB *mdb, ATTR_DBR *ar)
  * Returns: 0 on failure
  *	    1 on success
  */
-int db_create_job_record(B_DB *mdb, JOB_DBR *jr)
+int db_create_job_record(void *jcr, B_DB *mdb, JOB_DBR *jr)
 {
    int len;
 
@@ -105,7 +105,7 @@ int db_create_job_record(B_DB *mdb, JOB_DBR *jr)
  * Returns: 0 on failure
  *	    record-id on success
  */
-int db_create_jobmedia_record(B_DB *mdb, JOBMEDIA_DBR *jm)
+int db_create_jobmedia_record(void *jcr, B_DB *mdb, JOBMEDIA_DBR *jm)
 {
    int len;
 
@@ -137,14 +137,14 @@ int db_create_jobmedia_record(B_DB *mdb, JOBMEDIA_DBR *jm)
  * Returns: 0 on failure
  *	    1 on success
  */
-int db_create_pool_record(B_DB *mdb, POOL_DBR *pr)
+int db_create_pool_record(void *jcr, B_DB *mdb, POOL_DBR *pr)
 {
    int len;
    POOL_DBR mpr;
 
    memset(&mpr, 0, sizeof(mpr));
    strcpy(mpr.Name, pr->Name);
-   if (db_get_pool_record(mdb, &mpr)) {
+   if (db_get_pool_record(jcr, mdb, &mpr)) {
       Mmsg1(&mdb->errmsg, "Pool record %s already exists\n", mpr.Name);
       return 0;
    }
@@ -180,14 +180,14 @@ int db_create_pool_record(B_DB *mdb, POOL_DBR *pr)
  * Returns: 0 on failure
  *	    1 on success
  */ 
-int db_create_media_record(B_DB *mdb, MEDIA_DBR *mr)
+int db_create_media_record(void *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
    int len;
    MEDIA_DBR mmr;
 
    memset(&mmr, 0, sizeof(mmr));
    strcpy(mmr.VolumeName, mr->VolumeName);
-   if (db_get_media_record(mdb, &mmr)) {
+   if (db_get_media_record(jcr, mdb, &mmr)) {
       Mmsg1(&mdb->errmsg, "Media record %s already exists\n", mmr.VolumeName);
       return 0;
    }
@@ -216,13 +216,13 @@ int db_create_media_record(B_DB *mdb, MEDIA_DBR *mr)
  * Returns: 0 on failure
  *	    1 on success
  */
-int db_create_client_record(B_DB *mdb, CLIENT_DBR *cr)
+int db_create_client_record(void *jcr, B_DB *mdb, CLIENT_DBR *cr)
 {
    int len;
    CLIENT_DBR lcr;
 
    cr->ClientId = 0;
-   if (db_get_client_record(mdb, cr)) {
+   if (db_get_client_record(jcr, mdb, cr)) {
       Mmsg1(&mdb->errmsg, "Client record %s already exists\n", cr->Name);
       return 1;
    }
@@ -257,13 +257,13 @@ int db_create_client_record(B_DB *mdb, CLIENT_DBR *cr)
  * Returns: 0 on failure
  *	    1 on success
  */
-int db_create_fileset_record(B_DB *mdb, FILESET_DBR *fsr)
+int db_create_fileset_record(void *jcr, B_DB *mdb, FILESET_DBR *fsr)
 {
    int len;
    FILESET_DBR lfsr;
 
    fsr->FileSetId = 0;
-   if (db_get_fileset_record(mdb, fsr)) {
+   if (db_get_fileset_record(jcr, mdb, fsr)) {
       Mmsg1(&mdb->errmsg, "FileSet record %s already exists\n", fsr->FileSet);
       return 1;
    }

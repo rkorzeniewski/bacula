@@ -14,7 +14,7 @@
  */
 
 /*
-   Copyright (C) 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2001-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -57,8 +57,8 @@
 /* 
  * Submit general SQL query
  */
-int db_list_sql_query(B_DB *mdb, char *query, DB_LIST_HANDLER *sendit, void *ctx,
-		      int verbose)
+int db_list_sql_query(void *jcr, B_DB *mdb, char *query, DB_LIST_HANDLER *sendit, 
+		      void *ctx, int verbose)
 {
    sendit(ctx, "SQL Queries not implemented with internal database.\n");
    return 0;
@@ -68,7 +68,7 @@ int db_list_sql_query(B_DB *mdb, char *query, DB_LIST_HANDLER *sendit, void *ctx
 /*
  * List all the pool records
  */
-void db_list_pool_records(B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx)
+void db_list_pool_records(void *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx)
 {
    int len;
    POOL_DBR pr;
@@ -98,7 +98,8 @@ void db_list_pool_records(B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx)
 /*
  * List Media records
  */
-void db_list_media_records(B_DB *mdb, MEDIA_DBR *mdbr, DB_LIST_HANDLER *sendit, void *ctx)
+void db_list_media_records(void *jcr, B_DB *mdb, MEDIA_DBR *mdbr, 
+			   DB_LIST_HANDLER *sendit, void *ctx)
 {
    char ewc[30];
    int len;
@@ -124,7 +125,8 @@ void db_list_media_records(B_DB *mdb, MEDIA_DBR *mdbr, DB_LIST_HANDLER *sendit, 
    return;
 }
 
-void db_list_jobmedia_records(B_DB *mdb, uint32_t JobId, DB_LIST_HANDLER *sendit, void *ctx)
+void db_list_jobmedia_records(void *jcr, B_DB *mdb, uint32_t JobId, 
+			      DB_LIST_HANDLER *sendit, void *ctx)
 {
    JOBMEDIA_DBR jm;
    MEDIA_DBR mr;
@@ -182,7 +184,8 @@ void db_list_jobmedia_records(B_DB *mdb, uint32_t JobId, DB_LIST_HANDLER *sendit
 /*
  * List Job records
  */
-void db_list_job_records(B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, void *ctx)
+void db_list_job_records(void *jcr, B_DB *mdb, JOB_DBR *jr, 
+			 DB_LIST_HANDLER *sendit, void *ctx)
 {
    int jrlen;
    JOB_DBR ojr;
@@ -229,7 +232,8 @@ void db_list_job_records(B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, void *
 /*
  * List Job Totals
  */
-void db_list_job_totals(B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, void *ctx)
+void db_list_job_totals(void *jcr, B_DB *mdb, JOB_DBR *jr, 
+			DB_LIST_HANDLER *sendit, void *ctx)
 {
    char ewc1[30], ewc2[30], ewc3[30];
    int jrlen;
@@ -267,10 +271,10 @@ void db_list_job_totals(B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, void *c
 
 
 
-void db_list_files_for_job(B_DB *mdb, uint32_t jobid, DB_LIST_HANDLER *sendit, void *ctx)
+void db_list_files_for_job(void *jcr, B_DB *mdb, uint32_t jobid, DB_LIST_HANDLER *sendit, void *ctx)
 { }
 
-void db_list_client_records(B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx)
+void db_list_client_records(void *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx)
 { }
 
 

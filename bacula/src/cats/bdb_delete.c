@@ -14,7 +14,7 @@
  */
 
 /*
-   Copyright (C) 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2001-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -61,13 +61,13 @@
  * Returns: 0 on error
  *	    the number of records deleted on success 
  */
-int db_delete_pool_record(B_DB *mdb, POOL_DBR *pr)
+int db_delete_pool_record(void *jcr, B_DB *mdb, POOL_DBR *pr)
 {
    int stat;
    POOL_DBR opr;
 
    pr->PoolId = 0;		      /* Search on Pool Name */
-   if (!db_get_pool_record(mdb, pr)) {
+   if (!db_get_pool_record(jcr, mdb, pr)) {
       Mmsg1(&mdb->errmsg, "No pool record %s exists\n", pr->Name);
       return 0;
    }
@@ -79,12 +79,12 @@ int db_delete_pool_record(B_DB *mdb, POOL_DBR *pr)
    return stat; 
 }
 
-int db_delete_media_record(B_DB *mdb, MEDIA_DBR *mr) 
+int db_delete_media_record(void *jcr, B_DB *mdb, MEDIA_DBR *mr) 
 { 
    int stat;
    MEDIA_DBR omr;
 
-   if (!db_get_media_record(mdb, mr)) {
+   if (!db_get_media_record(jcr, mdb, mr)) {
       Mmsg0(&mdb->errmsg, "Media record not found.\n");
       return 0;
    }
