@@ -161,7 +161,7 @@ int read_dev_volume_label(DCR *dcr)
 
    if (!ok) {
       if (forge_on || jcr->ignore_label_errors) {
-	 dev->set_label();	      /* set has Bacula label */
+	 dev->set_labeled();	     /* set has Bacula label */
          Jmsg(jcr, M_ERROR, 0, "%s", jcr->errmsg);
 	 return VOL_OK;
       }
@@ -201,7 +201,7 @@ int read_dev_volume_label(DCR *dcr)
       return VOL_LABEL_ERROR;
    }
 
-   dev->set_label();		      /* set has Bacula label */
+   dev->set_labeled();		     /* set has Bacula label */
 
    /* Compare Volume Names */
    Dmsg2(30, "Compare Vol names: VolName=%s hdr=%s\n", VolName?VolName:"*", dev->VolHdr.VolName);
@@ -308,7 +308,7 @@ int read_dev_volume_label_guess(DCR *dcr, bool write)
        */
       if (vol_label_status != VOL_NAME_ERROR) {
          Dmsg0(100, "Leave read_dev_volume_label_guess (open_guess_name_dev && !VOL_NAME_ERROR)\n");
-	 dev->clear_label();	 
+	 dev->clear_labeled();	 
 	 return read_dev_volume_label(dcr);
       } else {
          Dmsg0(100, "Leave read_dev_volume_label_guess (open_guess_name_dev && VOL_NAME_ERROR)\n");
@@ -416,7 +416,7 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *Po
    Dmsg0(99, " Wrote block to device\n");
 
    if (weof_dev(dev, 1) == 0) {
-      dev->set_label();
+      dev->set_labeled();
       write_ansi_ibm_labels(dcr, ANSI_EOF_LABEL, dev->VolHdr.VolName);
    }
 
@@ -621,7 +621,7 @@ void create_volume_label(DEVICE *dev, const char *VolName, const char *PoolName)
    bstrncpy(dev->VolHdr.LabelProg, my_name, sizeof(dev->VolHdr.LabelProg));
    sprintf(dev->VolHdr.ProgVersion, "Ver. %s %s", VERSION, BDATE);
    sprintf(dev->VolHdr.ProgDate, "Build %s %s", __DATE__, __TIME__);
-   dev->set_label();		      /* set has Bacula label */
+   dev->set_labeled();		     /* set has Bacula label */
    if (debug_level >= 90) {
       dump_volume_label(dev);
    }

@@ -227,7 +227,7 @@ DCR *acquire_device_for_read(JCR *jcr, DEVICE *dev)
    dev->num_parts = dcr->VolCatInfo.VolCatParts;
    
    for (i=0; i<5; i++) {
-      dev->clear_label();		 /* force reread of label */
+      dev->clear_labeled();		 /* force reread of label */
       if (job_canceled(jcr)) {
          Mmsg1(dev->errmsg, _("Job %d canceled.\n"), jcr->JobId);
 	 goto get_out;		      /* error return */
