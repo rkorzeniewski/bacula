@@ -254,6 +254,12 @@ int get_pool_dbr(UAContext *ua, POOL_DBR *pr)
 {
    int i;
 
+   if (pr->Name[0]) {		      /* If name already supplied */
+      if (db_get_pool_record(ua->db, pr)) {
+	 return pr->PoolId;
+      }
+      bsendmsg(ua, _("Could not find Pool %s: ERR=%s"), pr->Name, db_strerror(ua->db));
+   }
    for (i=1; i<ua->argc; i++) {
       if (strcasecmp(ua->argk[i], _("pool")) == 0 && ua->argv[i]) {
 	 strcpy(pr->Name, ua->argv[i]);

@@ -660,11 +660,17 @@ static int update_pool(UAContext *ua)
    int id;
    POOL *pool;
    
-   memset(&pr, 0, sizeof(pr));
-   if (!get_pool_dbr(ua, &pr)) {
-      return 1;
+   
+   pool = get_pool_resource(ua);
+   if (!pool) {
+      return 0;
    }
 
+   memset(&pr, 0, sizeof(pr));
+   strcpy(pr.Name, pool->hdr.name);
+   if (!get_pool_dbr(ua, &pr)) {
+      return 0;
+   }
    strcpy(pr.PoolType, pool->pool_type);
    if (pr.MaxVols != (uint32_t) (pool->max_volumes)) {
       pr.MaxVols = pool->max_volumes;

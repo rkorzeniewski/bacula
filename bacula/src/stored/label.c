@@ -73,7 +73,14 @@ int read_dev_volume_label(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       if (VolName && *VolName && strcmp(dev->VolHdr.VolName, VolName) != 0) {
          Mmsg(&jcr->errmsg, _("Volume name mismatch on device %s: Wanted %s got %s\n"),
 	    dev_name(dev), VolName, dev->VolHdr.VolName);
-
+	 /*
+	  * Cancel Job if too many label errors
+	  *  => we are in a loop
+	  */
+	 if (jcr->label_errors > 100) {
+	    jcr->JobStatus = JS_Cancelled;
+            Jmsg(jcr, M_FATAL, 0, "%s", jcr->errmsg);
+	 }
 	 return jcr->label_status = VOL_NAME_ERROR;
       }
       Dmsg0(30, "Leave read_volume_label() VOL_OK\n");
@@ -120,6 +127,14 @@ because:\n   %s"), dev_name(dev), strerror_dev(dev));
    if (VolName && *VolName && strcmp(dev->VolHdr.VolName, VolName) != 0) {
       Mmsg(&jcr->errmsg, _("Volume name mismatch. Wanted %s got %s\n"),
 	 VolName, dev->VolHdr.VolName);
+      /*
+       * Cancel Job if too many label errors
+       *  => we are in a loop
+       */
+      if (jcr->label_errors > 100) {
+	 jcr->JobStatus = JS_Cancelled;
+         Jmsg(jcr, M_FATAL, 0, "%s", jcr->errmsg);
+      }
       return jcr->label_status = VOL_NAME_ERROR;
    }
    Dmsg1(30, "Copy vol_name=%s\n", dev->VolHdr.VolName);
@@ -211,7 +226,7 @@ int write_volume_label_to_block(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 
    Dmsg0(20, "write Label in write_volume_label_to_block()\n");
    memset(&rec, 0, sizeof(rec));
-   rec.data = (char *) get_memory(SER_LENGTH_Volume_Label);
+   rec.data = get_memory(SER_LENGTH_Volume_Label);
 
    create_volume_label_record(jcr, dev, &rec);
 

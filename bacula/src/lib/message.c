@@ -157,7 +157,7 @@ init_msg(void *vjcr, MSGS *msg)
     * for the current Job.
     */
    for (d=msg->dest_chain; d; d=d->next) {
-      dnew = (DEST *) malloc(sizeof(DEST));
+      dnew = (DEST *)malloc(sizeof(DEST));
       memcpy(dnew, d, sizeof(DEST));
       dnew->next = temp_chain;
       dnew->fd = NULL;
@@ -890,12 +890,15 @@ Jmsg(void *vjcr, int type, int level, char *fmt,...)
     Dmsg1(200, "Enter Jmsg type=%d\n", type);
 
     msgs = NULL;
+    job = NULL;
     if (jcr) {
        msgs = jcr->msgs;
        job = jcr->Job;
     } 
-    if (msgs == NULL) {
+    if (!msgs) {
        msgs = daemon_msgs;
+    }
+    if (!job) {
        job = "*None*";
     }
 
@@ -949,7 +952,7 @@ Jmsg(void *vjcr, int type, int level, char *fmt,...)
 /*
  * Edit a message into a Pool memory buffer, with file:lineno
  */
-int m_msg(char *file, int line, char **pool_buf, char *fmt, ...)
+int m_msg(char *file, int line, POOLMEM **pool_buf, char *fmt, ...)
 {
    va_list   arg_ptr;
    int i, len, maxlen;
@@ -963,7 +966,7 @@ again:
    len = bvsnprintf(*pool_buf+i, maxlen, fmt, arg_ptr);
    va_end(arg_ptr);
    if (len < 0 || len >= maxlen) {
-      *pool_buf = (char *) realloc_pool_memory(*pool_buf, maxlen + i + 200);
+      *pool_buf = realloc_pool_memory(*pool_buf, maxlen + i + 200);
       goto again;
    }
    return len;
@@ -973,7 +976,7 @@ again:
  * Edit a message into a Pool Memory buffer NO file:lineno
  *  Returns: string length of what was edited.
  */
-int Mmsg(char **pool_buf, char *fmt, ...)
+int Mmsg(POOLMEM **pool_buf, char *fmt, ...)
 {
    va_list   arg_ptr;
    int len, maxlen;

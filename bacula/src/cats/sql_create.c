@@ -293,8 +293,8 @@ int db_create_client_record(B_DB *mdb, CLIENT_DBR *cr)
 	    db_unlock(mdb);
 	    return 0;
 	 }
-	 sql_free_result(mdb);
 	 cr->ClientId = atoi(row[0]);
+	 sql_free_result(mdb);
 	 db_unlock(mdb);
 	 return 1;
       }
@@ -353,8 +353,8 @@ FileSet=\"%s\" and MD5=\"%s\"", fsr->FileSet, fsr->MD5);
 	    db_unlock(mdb);
 	    return 0;
 	 }
-	 sql_free_result(mdb);
 	 fsr->FileSetId = atoi(row[0]);
+	 sql_free_result(mdb);
 	 db_unlock(mdb);
 	 return 1;
       }
@@ -544,6 +544,7 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar, char *path)
    if (*path == 0) {
       Mmsg0(&mdb->errmsg, _("Null path given to db_create_path_record\n"));
       ar->PathId = 0;
+      ASSERT(ar->PathId);
       return 0;
    }
 
@@ -551,6 +552,7 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar, char *path)
 
    if (mdb->cached_path_id != 0 && strcmp(mdb->cached_path, path) == 0) {
       ar->PathId = mdb->cached_path_id;
+      ASSERT(ar->PathId);
       db_unlock(mdb);
       return 1;
    }	      
@@ -574,10 +576,11 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar, char *path)
             Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
 	    sql_free_result(mdb);
 	    ar->PathId = 0;
+	    ASSERT(ar->PathId);
 	    return 0;
 	 }
-	 sql_free_result(mdb);
 	 ar->PathId = atoi(row[0]);
+	 sql_free_result(mdb);
 	 /* Cache path */
 	 if (ar->PathId != mdb->cached_path_id) {
 	    mdb->cached_path_id = ar->PathId;
@@ -585,6 +588,7 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar, char *path)
 	       strlen(path)+1);
 	    strcpy(mdb->cached_path, path);
 	 }
+	 ASSERT(ar->PathId);
 	 db_unlock(mdb);
 	 return 1;
       }
@@ -611,6 +615,7 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar, char *path)
 	 strlen(path)+1);
       strcpy(mdb->cached_path, path);
    }
+   ASSERT(ar->PathId);
    db_unlock(mdb);
    return stat;
 }

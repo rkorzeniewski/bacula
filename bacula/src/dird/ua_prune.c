@@ -487,8 +487,8 @@ int prune_jobs(UAContext *ua, CLIENT *client)
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       Dmsg1(050, "Del sql=%s\n", query);
    }
-   bsendmsg(ua, _("Pruned %d Jobs for client %s from %s catalog.\n"), del.num_ids,
-      client->hdr.name, client->catalog->hdr.name);
+   bsendmsg(ua, _("Pruned %d %s for client %s from %s catalog.\n"), del.num_ids,
+      del.num_ids==1?_("Job"):_("Jobs"), client->hdr.name, client->catalog->hdr.name);
    
 bail_out:
    drop_temp_tables(ua);
@@ -581,7 +581,7 @@ int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
    if (del.JobId) {
       free(del.JobId);
    }
-   if (ua->verbose) {
+   if (ua->verbose && del.num_del != 0) {
       bsendmsg(ua, _("Pruned %d Jobs on Volume %s from catalog.\n"), del.num_del,
 	 mr->VolumeName);
    }

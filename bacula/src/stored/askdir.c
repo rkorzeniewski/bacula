@@ -37,7 +37,7 @@ static char Update_media[] = "CatReq Job=%s UpdateMedia VolName=%s\
  VolJobs=%d VolFiles=%d VolBlocks=%d VolBytes=%" lld " VolMounts=%d\
  VolErrors=%d VolWrites=%d VolMaxBytes=%" lld " EndTime=%d VolStatus=%s\
  FirstIndex=%d LastIndex=%d StartFile=%d EndFile=%d \
- StartBlock=%d EndBlock=%d\n";
+ StartBlock=%d EndBlock=%d relabel=%d\n";
 
 static char FileAttributes[] = "UpdCat Job=%s FileAttributes ";
 
@@ -138,13 +138,13 @@ int dir_find_next_appendable_volume(JCR *jcr)
  * After writing a Volume, send the updated statistics
  * back to the director.
  */
-int dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol)
+int dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel)
 {
    BSOCK *dir = jcr->dir_bsock;
    time_t EndTime = time(NULL);
 
    if (vol->VolCatName[0] == 0) {
-      Emsg0(M_ERROR, 0, "NULL Volume name. This shouldn't happen!!!\n");
+      Jmsg0(jcr, M_ERROR, 0, _("NULL Volume name. This shouldn't happen!!!\n"));
    }
    bnet_fsend(dir, Update_media, jcr->Job, 
       vol->VolCatName, vol->VolCatJobs, vol->VolCatFiles,
@@ -154,7 +154,8 @@ int dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol)
       vol->VolCatStatus, 
       jcr->VolFirstFile, jcr->JobFiles,
       jcr->start_file, jcr->end_file,
-      jcr->start_block, jcr->end_block);
+      jcr->start_block, jcr->end_block,
+      relabel);
    Dmsg1(20, "update_volume_data(): %s", dir->msg);
    if (bnet_recv(dir) <= 0) {
       Dmsg0(90, "updateVolCatInfo error bnet_recv\n");
@@ -163,8 +164,7 @@ int dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol)
    Dmsg1(20, "Updatevol: %s", dir->msg);
    if (strcmp(dir->msg, OK_update) != 0) {
       Dmsg1(30, "Bad response from Dir: %s\n", dir->msg);
-      Jmsg(jcr, M_ERROR, 0, "Error updating Volume Info: %s\n", 
-	 dir->msg);
+      Jmsg(jcr, M_ERROR, 0, _("Error updating Volume Info: %s\n"), dir->msg);
       return 0;
    }
    return 1;
@@ -227,7 +227,7 @@ int dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev)
    wait_sec = min_wait;
    for ( ;; ) {
       if (job_cancelled(jcr)) {
-         Mmsg(&dev->errmsg, "Job %s cancelled while waiting for mount on Storage Device \"%s\".\n", 
+         Mmsg(&dev->errmsg, _("Job %s cancelled while waiting for mount on Storage Device \"%s\".\n"), 
 	      jcr->Job, jcr->dev_name);
 	 return 0;
       }
@@ -248,16 +248,16 @@ int dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev)
 	 } else {
             msg = "Please mount";
 	 }
-         Jmsg(jcr, M_MOUNT, 0, "%s Volume \"%s\" on Storage Device \"%s\" for Job %s\n",
+         Jmsg(jcr, M_MOUNT, 0, _("%s Volume \"%s\" on Storage Device \"%s\" for Job %s\n"),
 	      msg, jcr->VolumeName, jcr->dev_name, jcr->Job);
          Dmsg3(90, "Mount %s on %s for Job %s\n",
 		jcr->VolumeName, jcr->dev_name, jcr->Job);
       } else {
 	 jstat = JS_WaitMedia;
-         Jmsg(jcr, M_MOUNT, 0, "Job %s waiting. Cannot find any appendable volumes.\n\
+         Jmsg(jcr, M_MOUNT, 0, _("Job %s waiting. Cannot find any appendable volumes.\n\
 Please use the \"unmount\" and \"label\"  commands to create new Volumes for:\n\
    Storage Device \"%s\" with Pool \"%s\" and Media type \"%s\".\n\
-Use \"mount\" to resume the job.\n",
+Use \"mount\" to resume the job.\n"),
 	      jcr->Job, jcr->dev_name, jcr->pool_name, jcr->media_type);
       }
       /*
@@ -298,7 +298,7 @@ Use \"mount\" to resume the job.\n",
 	 }
 	 num_wait++;
 	 if (num_wait >= max_num_wait) {
-            Mmsg(&dev->errmsg, "Gave up waiting to mount Storage Device \"%s\" for Job %s\n", 
+            Mmsg(&dev->errmsg, _("Gave up waiting to mount Storage Device \"%s\" for Job %s\n"), 
 		 jcr->dev_name, jcr->Job);
             Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
             Dmsg1(90, "Gave up waiting on device %s\n", dev->dev_name);
@@ -307,13 +307,13 @@ Use \"mount\" to resume the job.\n",
 	 continue;
       }
       if (stat == EINVAL) {
-         Mmsg2(&dev->errmsg, "pthread error in mount_next_volume stat=%d ERR=%s\n",      
+         Mmsg2(&dev->errmsg, _("pthread error in mount_next_volume stat=%d ERR=%s\n"),
 	       stat, strerror(stat));
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
 	 return 0;
       }
       if (stat != 0) {
-         Jmsg(jcr, M_ERROR, 0, "pthread error in mount_next_volume stat=%d ERR=%s\n", stat,
+         Jmsg(jcr, M_ERROR, 0, _("pthread error in mount_next_volume stat=%d ERR=%s\n"), stat,
 	    strerror(stat));
       }
       Dmsg1(90, "Someone woke me for device %s\n", dev->dev_name);
@@ -324,9 +324,9 @@ Use \"mount\" to resume the job.\n",
       /* If no VolumeName, and cannot get one, try again */
       if (jcr->VolumeName[0] == 0 && 
 	  !dir_find_next_appendable_volume(jcr)) {
-	 Jmsg(jcr, M_MOUNT, 0, 
+	 Jmsg(jcr, M_MOUNT, 0, _(
 "You woke me up, but I cannot find any appendable\n\
-volumes for Job=%s.\n", jcr->Job);
+volumes for Job=%s.\n"), jcr->Job);
 	 continue;
       }       
       break;
@@ -365,19 +365,19 @@ int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
 
    Dmsg0(30, "enter dir_ask_sysop_to_mount_next_volume\n");
    if (!jcr->VolumeName[0]) {
-      Mmsg0(&dev->errmsg, "Cannot request another volume: no volume name given.\n");
+      Mmsg0(&dev->errmsg, _("Cannot request another volume: no volume name given.\n"));
       return 0;
    }
    ASSERT(dev->dev_blocked);
    wait_sec = min_wait;
    for ( ;; ) {
       if (job_cancelled(jcr)) {
-         Mmsg(&dev->errmsg, "Job %s cancelled while waiting for mount on Storage Device \"%s\".\n", 
+         Mmsg(&dev->errmsg, _("Job %s cancelled while waiting for mount on Storage Device \"%s\".\n"), 
 	      jcr->Job, jcr->dev_name);
 	 return 0;
       }
-      msg = "Please mount";
-      Jmsg(jcr, M_MOUNT, 0, "%s Volume \"%s\" on Storage Device \"%s\" for Job %s\n",
+      msg = _("Please mount");
+      Jmsg(jcr, M_MOUNT, 0, _("%s Volume \"%s\" on Storage Device \"%s\" for Job %s\n"),
 	   msg, jcr->VolumeName, jcr->dev_name, jcr->Job);
       Dmsg3(90, "Mount %s on %s for Job %s\n",
 	    jcr->VolumeName, jcr->dev_name, jcr->Job);
@@ -420,7 +420,7 @@ int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
 	 }
 	 num_wait++;
 	 if (num_wait >= max_num_wait) {
-            Mmsg(&dev->errmsg, "Gave up waiting to mount Storage Device \"%s\" for Job %s\n", 
+            Mmsg(&dev->errmsg, _("Gave up waiting to mount Storage Device \"%s\" for Job %s\n"), 
 		 jcr->dev_name, jcr->Job);
             Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
             Dmsg1(90, "Gave up waiting on device %s\n", dev->dev_name);
@@ -429,13 +429,13 @@ int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
 	 continue;
       }
       if (stat == EINVAL) {
-         Mmsg2(&dev->errmsg, "pthread error in mount_volume stat=%d ERR=%s\n",      
+         Mmsg2(&dev->errmsg, _("pthread error in mount_volume stat=%d ERR=%s\n"),
 	       stat, strerror(stat));
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
 	 return 0;
       }
       if (stat != 0) {
-         Jmsg(jcr, M_ERROR, 0, "pthread error in mount_next_volume stat=%d ERR=%s\n", stat,
+         Jmsg(jcr, M_ERROR, 0, _("pthread error in mount_next_volume stat=%d ERR=%s\n"), stat,
 	    strerror(stat));
       }
       Dmsg1(90, "Someone woke me for device %s\n", dev->dev_name);

@@ -42,7 +42,11 @@
 #endif
 
 /* #define ASSERT(x) if (!(x)) Emsg1(M_ABORT, 0, "Failed ASSERT: %s\n", __STRING(x)) */
-#define ASSERT(x) if (!(x)) Emsg1(M_ABORT, 0, "Failed ASSERT: %s\n", #x)
+#define ASSERT(x) if (!(x)) { \
+   char *jcr = NULL; \
+   Emsg1(M_ERROR, 0, "Failed ASSERT: %s\n", #x); \
+   jcr[0] = 0; }
+
 
 
 #ifdef ENABLE_NLS

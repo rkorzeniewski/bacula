@@ -93,7 +93,7 @@ DEV_RECORD *new_record(void)
 
    rec = (DEV_RECORD *) get_memory(sizeof(DEV_RECORD));
    memset(rec, 0, sizeof(DEV_RECORD));
-   rec->data = (char *) get_pool_memory(PM_MESSAGE);
+   rec->data = get_pool_memory(PM_MESSAGE);
    return rec;
 }
 
@@ -360,7 +360,7 @@ remlen=%d data_len=%d\n",
 
    ASSERT(data_bytes < MAX_BLOCK_LENGTH);	/* temp sanity check */
 
-   rec->data = (char *) check_pool_memory_size(rec->data, rec->data_len+data_bytes);
+   rec->data = check_pool_memory_size(rec->data, rec->data_len+data_bytes);
    
    /*
     * At this point, we have read the header, now we

@@ -157,7 +157,7 @@ static struct s_kw RunFields[] = {
  * 
  * Parse Run statement:
  *
- *  Run <full|incremental|...> [on] 2 january at 23:45
+ *  Run <keyword=value ...> [on] 2 january at 23:45
  *
  *   Default Run time is daily at 0:0
  *  
@@ -248,6 +248,18 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	    } /* end switch */	   
 	 } /* end if strcasecmp */
       } /* end for RunFields */
+
+      /* At this point, it is not a keyword. Check for old syle
+       * Job Levels without keyword. This form is depreciated!!!
+       */
+      for (j=0; joblevels[j].level_name; j++) {
+	 if (strcasecmp(lc->str, joblevels[j].level_name) == 0) {
+	    lrun.level = joblevels[j].level;
+	    lrun.job_type = joblevels[j].job_type;
+	    found = TRUE;
+	    break;
+	 }
+      }
    } /* end for found */
 
 
@@ -258,7 +270,7 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
    state = s_none;
    set_defaults();
 
-   while ((token = lex_get_token(lc)) != T_EOL) {
+   for ( ; token != T_EOL; (token = lex_get_token(lc))) {
       int len, pm;
       switch (token) {
 	 case T_NUMBER:
@@ -328,7 +340,6 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	    }
 	    if (!have_hour) {
 	       clear_bit(0, lrun.hour);
-	       have_hour = TRUE;
 	    }
             p = strchr(lc->str, ':');
 	    if (!p)  {
@@ -357,6 +368,7 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	    }
 	    set_bit(code, lrun.hour);
 	    lrun.minute = code2;
+	    have_hour = TRUE;
 	    break;
 	 case s_at:
 	    have_at = TRUE;
@@ -462,7 +474,6 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
 	    break;
 	 case s_monthly:
 	    clear_defaults();
-	    set_bit(0, lrun.mday);
 	    set_bits(0, 11, lrun.month);
 	    break;
 	 default:
@@ -475,8 +486,8 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
     * and link it into the list of run records 
     * in the schedule resource.
     */
-   if (pass == 1) {
-      trun = (RUN *) malloc(sizeof(RUN));
+   if (pass == 2) {
+      trun = (RUN *)malloc(sizeof(RUN));
       memcpy(trun, &lrun, sizeof(RUN));
       if (*run) {
 	 trun->next = *run;

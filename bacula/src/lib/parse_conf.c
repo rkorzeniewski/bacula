@@ -18,6 +18,16 @@
  *	definitions as well as any specific store routines
  *	for the resource records.
  *
+ *    N.B. This is a two pass parser, so if you malloc() a string
+ *         in a "store" routine, you must ensure to do it during
+ *	   only one of the two passes, or to free it between.
+ *	   Also, note that the resource record is malloced and
+ *	   saved in save_resource() during pass 1.  Anything that
+ *	   you want saved after pass two (e.g. resource pointers)
+ *	   must explicitly be done in save_resource. Take a look
+ *	   at the Job resource in src/dird/dird_conf.c to see how
+ *	   it is done.
+ *
  *     Kern Sibbald, January MM
  *
  *   Version $Id$
@@ -752,7 +762,7 @@ parse_config(char *cf)
     * and the second picks up the items. 
     */
    Dmsg0(200, "Enter parse_config()\n");
-   for (pass=1; pass<= 2; pass++) {
+   for (pass=1; pass <= 2; pass++) {
       Dmsg1(200, "parse_config pass %d\n", pass);
       lc = lex_open_file(lc, cf);
       while ((token=lex_get_token(lc)) != T_EOF) {

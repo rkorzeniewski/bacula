@@ -154,7 +154,9 @@ static void job_thread(void *arg)
       switch (jcr->JobType) {
 	 case JT_BACKUP:
 	    do_backup(jcr);
-	    do_autoprune(jcr);
+	    if (jcr->JobStatus == JS_Terminated) {
+	       do_autoprune(jcr);
+	    }
 	    break;
 	 case JT_VERIFY:
 	    do_verify(jcr);

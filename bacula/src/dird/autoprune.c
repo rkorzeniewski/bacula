@@ -110,8 +110,8 @@ int prune_volumes(JCR *jcr)
    UAContext ua;
 
    if (!jcr->job->PruneVolumes && !jcr->pool->AutoPrune) {
-      Dmsg0(200, "AutoPrune not set in Pool.\n");
-      return stat;
+      Dmsg0(100, "AutoPrune not set in Pool.\n");
+      return 0;
    }
    memset(&mr, 0, sizeof(mr));
    memset(&pr, 0, sizeof(pr));

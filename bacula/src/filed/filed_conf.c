@@ -266,6 +266,7 @@ void save_resource(int type, struct res_items *items, int pass)
       return;
    }
 
+   /* The following code is only executed on pass 1 */
    switch (type) {
       case R_DIRECTOR:
 	 size = sizeof(DIRRES);

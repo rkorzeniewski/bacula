@@ -195,17 +195,17 @@ int release_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 weof_dev(dev, 1);
 	 dev->VolCatInfo.VolCatFiles++; 	    /* increment number of files */
 	 /* Note! do volume update before close, which zaps VolCatInfo */
-	 dir_update_volume_info(jcr, &dev->VolCatInfo);   /* send Volume info to Director */
+	 dir_update_volume_info(jcr, &dev->VolCatInfo, 0); /* send Volume info to Director */
 	 if (!dev_is_tape(dev)) {
 	    close_dev(dev);
 	 } else {
             Dmsg0(90, "Device is tape leave open in release_device\n");
 	 }
       } else {
-	 dir_update_volume_info(jcr, &dev->VolCatInfo);   /* send Volume info to Director */
+	 dir_update_volume_info(jcr, &dev->VolCatInfo, 0); /* send Volume info to Director */
       }
    } else {
-      Emsg1(M_ERROR, 0, _("BAD ERROR: release_device %s not in use.\n"), dev_name(dev));
+      Jmsg1(jcr, M_ERROR, 0, _("BAD ERROR: release_device %s not in use.\n"), dev_name(dev));
    }
    V(dev->mutex);
    return 1;
@@ -408,6 +408,12 @@ mount_next_vol:
          Jmsg2(jcr, M_WARNING, 0, _("Rewind error on device %s. ERR=%s\n"), 
 	       dev_name(dev), strerror_dev(dev));
       }
+      if (recycle) {
+	 if (!truncate_dev(dev)) {
+            Jmsg2(jcr, M_WARNING, 0, _("Truncate error on device %s. ERR=%s\n"), 
+		  dev_name(dev), strerror_dev(dev));
+	 }
+      }
       if (!write_block_to_dev(dev, block)) {
          Jmsg2(jcr, M_ERROR, 0, _("Unable to write device %s. ERR=%s\n"),
 	    dev_name(dev), strerror_dev(dev));
@@ -434,7 +440,7 @@ mount_next_vol:
 	 dev->VolCatInfo.VolCatReads = 1;
       }
       strcpy(dev->VolCatInfo.VolCatStatus, "Append");
-      dir_update_volume_info(jcr, &dev->VolCatInfo);
+      dir_update_volume_info(jcr, &dev->VolCatInfo, 1);  /* indicate doing relabel */
       if (recycle) {
          Jmsg(jcr, M_INFO, 0, _("Recycled volume %s on device %s, all previous data lost.\n"),
 	    jcr->VolumeName, dev_name(dev));
@@ -456,7 +462,7 @@ mount_next_vol:
          Jmsg(jcr, M_INFO, 0, _("Marking Volume %s in Error in Catalog.\n"),
 	    jcr->VolumeName);
          strcpy(dev->VolCatInfo.VolCatStatus, "Error");
-	 dir_update_volume_info(jcr, &dev->VolCatInfo);
+	 dir_update_volume_info(jcr, &dev->VolCatInfo, 0);
 	 return 0;
       }
       /* *****FIXME**** we might do some checking for files too */
@@ -556,7 +562,7 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 
       strcpy(dev->VolCatInfo.VolCatStatus, "Full");
       Dmsg0(90, "Call update_vol_info\n");
-      if (!dir_update_volume_info(jcr, &dev->VolCatInfo)) {    /* send Volume info to Director */
+      if (!dir_update_volume_info(jcr, &dev->VolCatInfo, 0)) {	  /* send Volume info to Director */
          Jmsg(jcr, M_ERROR, 0, _("Could not update Volume info Volume=%s Job=%s\n"),
 	    dev->VolCatInfo.VolCatName, jcr->Job);
 	 return 0;		      /* device locked */

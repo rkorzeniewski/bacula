@@ -129,7 +129,7 @@ void connection_request(void *arg)
     * Authenticate the Director
     */
    if (!authenticate_director(jcr)) {
-      Emsg0(M_FATAL, 0, _("Unable to authenticate Director\n"));
+      Jmsg(jcr, M_FATAL, 0, _("Unable to authenticate Director\n"));
       free_jcr(jcr);
       return;
    }

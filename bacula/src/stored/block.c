@@ -90,7 +90,7 @@ void dump_block(DEV_BLOCK *b, char *msg)
  */
 DEV_BLOCK *new_block(DEVICE *dev)
 {
-   DEV_BLOCK *block = (DEV_BLOCK *) get_memory(sizeof(DEV_BLOCK));
+   DEV_BLOCK *block = (DEV_BLOCK *)get_memory(sizeof(DEV_BLOCK));
 
    memset(block, 0, sizeof(DEV_BLOCK));
 
@@ -106,7 +106,7 @@ DEV_BLOCK *new_block(DEVICE *dev)
       block->buf_len = ((block->buf_len + TAPE_BSIZE - 1) / TAPE_BSIZE) * TAPE_BSIZE;
    }
    block->block_len = block->buf_len;  /* default block size */
-   block->buf = (char *) get_memory(block->buf_len); 
+   block->buf = get_memory(block->buf_len); 
    if (block->buf == NULL) {
       Mmsg0(&dev->errmsg, _("Unable to malloc block buffer.\n"));
       Emsg0(M_FATAL, 0, dev->errmsg);

@@ -48,7 +48,7 @@ static char Update_media[] = "CatReq Job=%127s UpdateMedia VolName=%s\
  VolJobs=%d VolFiles=%d VolBlocks=%d VolBytes=%" lld " VolMounts=%d\
  VolErrors=%d VolWrites=%d VolMaxBytes=%" lld " EndTime=%d VolStatus=%10s\
  FirstIndex=%d LastIndex=%d StartFile=%d EndFile=%d \
- StartBlock=%d EndBlock=%d\n";
+ StartBlock=%d EndBlock=%d relabel=%d\n";
 
 /* Responses  sent to Storage daemon */
 static char OK_media[] = "1000 OK VolName=%s VolJobs=%d VolFiles=%d\
@@ -65,7 +65,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
    MEDIA_DBR mr; 
    JOBMEDIA_DBR jm;
    char Job[MAX_NAME_LENGTH];
-   int index, ok;
+   int index, ok, relabel;
    char *omsg;
 
    memset(&mr, 0, sizeof(mr));
@@ -84,22 +84,18 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
       /*
        * Find the Volume
        */
-      ok = FALSE;
-      if (db_find_next_volume(jcr->db, index, &mr)) {
-	 jcr->MediaId = mr.MediaId;
-         Dmsg1(20, "Find_next_vol MediaId=%d\n", jcr->MediaId);
-	 strcpy(jcr->VolumeName, mr.VolumeName);
-	 ok = TRUE;
-      } else {
+      ok = db_find_next_volume(jcr->db, index, &mr);  
+      if (!ok) {
 	 /* Well, try finding recycled tapes */
 	 ok = find_recycled_volume(jcr, &mr);
+         Dmsg1(100, "find_recycled_volume1 %d\n", ok);
 	 if (!ok) {
-	    if (prune_volumes(jcr)) {
-	       ok = recycle_a_volume(jcr, &mr);
-	    }
+	    prune_volumes(jcr);  
+	    ok = recycle_a_volume(jcr, &mr);
+            Dmsg1(100, "find_recycled_volume2 %d\n", ok);
 	    if (!ok) {
 	       /* See if we can create a new Volume */
-	       ok = newVolume(jcr);
+	       ok = newVolume(jcr, &mr);
 	    }
 	 }
       }
@@ -107,6 +103,8 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
        * Send Find Media response to Storage daemon 
        */
       if (ok) {
+	 jcr->MediaId = mr.MediaId;
+	 strcpy(jcr->VolumeName, mr.VolumeName);
 	 bash_spaces(mr.VolumeName);
 	 bnet_fsend(bs, OK_media, mr.VolumeName, mr.VolJobs,
 	    mr.VolFiles, mr.VolBlocks, mr.VolBytes, mr.VolMounts, mr.VolErrors,
@@ -146,7 +144,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 	       mr.VolWrites, mr.VolMaxBytes, mr.VolCapacityBytes,
 	       mr.VolStatus);
 	 } else { 
-            Dmsg4(000, "get_media_record PoolId=%d wanted %d, Status=%s, \
+            Dmsg4(100, "get_media_record PoolId=%d wanted %d, Status=%s, \
 MediaType=%s\n", mr.PoolId, jcr->PoolId, mr.VolStatus, mr.MediaType);
 	    /* Not suitable volume */
             bnet_fsend(bs, "1998 Volume not appropriate.\n");
@@ -165,7 +163,7 @@ MediaType=%s\n", mr.PoolId, jcr->PoolId, mr.VolStatus, mr.MediaType);
       &mr.VolFiles, &mr.VolBlocks, &mr.VolBytes, &mr.VolMounts, &mr.VolErrors,
       &mr.VolWrites, &mr.VolMaxBytes, &mr.LastWritten, &mr.VolStatus, 
       &jm.FirstIndex, &jm.LastIndex, &jm.StartFile, &jm.EndFile,
-      &jm.StartBlock, &jm.EndBlock) == 18) {
+      &jm.StartBlock, &jm.EndBlock, &relabel) == 19) {
       /*     
        * Update Media Record
        */
@@ -177,12 +175,12 @@ MediaType=%s\n", mr.PoolId, jcr->PoolId, mr.VolStatus, mr.MediaType);
       jm.JobId = jcr->JobId;
       jm.MediaId = jcr->MediaId;
       /*
-       * A single write means we just labeled the tape,
+       * If relabel is set, it means we just labeled the tape,
        * so no need to create a jobmedia record.
        * Otherwise, record the fact that this job used this Volume 
        */
-      if (mr.VolWrites > 1) {
-         Dmsg4(20, "create_jobmedia JobId=%d MediaId=%d FI=%d LI=%d\n",
+      if (!relabel) {
+         Dmsg4(100, "create_jobmedia JobId=%d MediaId=%d FI=%d LI=%d\n",
 	    jm.JobId, jm.MediaId, jm.FirstIndex, jm.LastIndex);
 	 if(!db_create_jobmedia_record(jcr->db, &jm)) {
             Jmsg(jcr, M_ERROR, 0, _("Catalog error creating JobMedia record. %s"),

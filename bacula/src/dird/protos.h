@@ -73,7 +73,7 @@ extern int32_t bget_msg(BSOCK *bs, int type);
 extern int response(BSOCK *fd, char *resp, char *cmd);
 
 /* newvol.c */
-extern int newVolume(JCR *jcr);
+extern int newVolume(JCR *jcr, MEDIA_DBR *mr);
 
 /* ua_cmd.c */
 extern int create_pool(B_DB *db, POOL *pool);

@@ -460,11 +460,73 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
             sendit(sock, "      Exc: %s\n", res->res_fs.exclude_array[i]);
 	 break;
       case R_SCHEDULE:
-	 if (res->res_sch.run)
-            sendit(sock, "Schedule: name=%s Level=%s\n", res->res_sch.hdr.name,
-	       level_to_str(res->res_sch.run->level));
-	 else
+	 if (res->res_sch.run) {
+	    int i;
+	    RUN *run = res->res_sch.run;
+	    char buf[1000], num[10];
             sendit(sock, "Schedule: name=%s\n", res->res_sch.hdr.name);
+	    if (!run) {
+	       break;
+	    }
+next_run:
+            sendit(sock, "  --> Run Level=%s\n", level_to_str(run->level));
+            strcpy(buf, "      hour=");
+	    for (i=0; i<24; i++) {
+	       if (bit_is_set(i, run->hour)) {
+                  sprintf(num, "%d ", i+1);
+		  strcat(buf, num);
+	       }
+	    }
+            strcat(buf, "\n");
+	    sendit(sock, buf);
+            strcpy(buf, "      mday=");
+	    for (i=0; i<31; i++) {
+	       if (bit_is_set(i, run->mday)) {
+                  sprintf(num, "%d ", i+1);
+		  strcat(buf, num);
+	       }
+	    }
+            strcat(buf, "\n");
+	    sendit(sock, buf);
+            strcpy(buf, "      month=");
+	    for (i=0; i<12; i++) {
+	       if (bit_is_set(i, run->month)) {
+                  sprintf(num, "%d ", i+1);
+		  strcat(buf, num);
+	       }
+	    }
+            strcat(buf, "\n");
+	    sendit(sock, buf);
+            strcpy(buf, "      wday=");
+	    for (i=0; i<7; i++) {
+	       if (bit_is_set(i, run->wday)) {
+                  sprintf(num, "%d ", i+1);
+		  strcat(buf, num);
+	       }
+	    }
+            strcat(buf, "\n");
+	    sendit(sock, buf);
+            sendit(sock, "      mins=%d\n", run->minute);
+	    if (run->pool) {
+               sendit(sock, "     --> ");
+	       dump_resource(-R_POOL, (RES *)run->pool, sendit, sock);
+	    }
+	    if (run->storage) {
+               sendit(sock, "     --> ");
+	       dump_resource(-R_STORAGE, (RES *)run->storage, sendit, sock);
+	    }
+	    if (run->msgs) {
+               sendit(sock, "     --> ");
+	       dump_resource(-R_MSGS, (RES *)run->msgs, sendit, sock);
+	    }
+	    /* If another Run record is chained in, go print it */
+	    if (run->next) {
+	       run = run->next;
+	       goto next_run;
+	    }
+	 } else {
+            sendit(sock, "Schedule: name=%s\n", res->res_sch.hdr.name);
+	 }
 	 break;
       case R_GROUP:
          sendit(sock, "Group: name=%s\n", res->res_group.hdr.name);
@@ -478,11 +540,8 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
          sendit(sock, "      max_vols=%d auto_prune=%d VolRetention=%" lld "\n",
 		 res->res_pool.max_volumes, res->res_pool.AutoPrune,
 		 res->res_pool.VolRetention);
-         sendit(sock, "      recycle=%d\n",  res->res_pool.Recycle);
-	 
-
-         sendit(sock, "      LabelFormat=%s\n", res->res_pool.label_format?
-                 res->res_pool.label_format:"NONE");
+         sendit(sock, "      recycle=%d LabelFormat=%s\n", res->res_pool.Recycle,
+                 res->res_pool.label_format?res->res_pool.label_format:"*None*");
 	 break;
       case R_MSGS:
          sendit(sock, "Messages: name=%s\n", res->res_msgs.hdr.name);
@@ -629,7 +688,8 @@ void free_resource(int type)
 /*
  * Save the new resource by chaining it into the head list for
  * the resource. If this is pass 2, we update any resource
- * pointers (currently only in the Job resource).
+ * pointers because they may not have been defined until 
+ * later in pass 1.
  */
 void save_resource(int type, struct res_items *items, int pass)
 {
@@ -654,9 +714,9 @@ void save_resource(int type, struct res_items *items, int pass)
       }
    }
 
-   /* During pass 2, we looked up pointers to all the resources
-    * referrenced in the current resource, , now we
-    * must copy their address from the static record to the allocated
+   /* During pass 2 in each "store" routine, we looked up pointers 
+    * to all the resources referrenced in the current resource, now we
+    * must copy their addresses from the static record to the allocated
     * record.
     */
    if (pass == 2) {
@@ -665,7 +725,6 @@ void save_resource(int type, struct res_items *items, int pass)
 	 case R_CATALOG:
 	 case R_STORAGE:
 	 case R_FILESET:
-	 case R_SCHEDULE:
 	 case R_GROUP:
 	 case R_POOL:
 	 case R_MSGS:
@@ -712,6 +771,17 @@ void save_resource(int type, struct res_items *items, int pass)
 	    }
 	    res->res_client.catalog = res_all.res_client.catalog;
 	    break;
+	 case R_SCHEDULE:
+	    /* Schedule is a bit different in that it contains a RUN record
+             * chain which isn't a "named" resource. This chain was linked
+	     * in by run_conf.c during pass 2, so here we jam the pointer 
+	     * into the Schedule resource.			   
+	     */
+	    if ((res = (URES *)GetResWithName(R_SCHEDULE, res_all.res_client.hdr.name)) == NULL) {
+               Emsg1(M_ABORT, 0, "Cannot find Schedule resource %s\n", res_all.res_client.hdr.name);
+	    }
+	    res->res_sch.run = res_all.res_sch.run;
+	    break;
 	 default:
             Emsg1(M_ERROR, 0, "Unknown resource type %d\n", type);
 	    error = 1;
@@ -731,6 +801,7 @@ void save_resource(int type, struct res_items *items, int pass)
       return;
    }
 
+   /* The following code is only executed for pass 1 */
    switch (type) {
       case R_DIRECTOR:
 	 size = sizeof(DIRRES);
@@ -769,7 +840,7 @@ void save_resource(int type, struct res_items *items, int pass)
    }
    /* Common */
    if (!error) {
-      res = (URES *) malloc(size);
+      res = (URES *)malloc(size);
       memcpy(res, &res_all, size);
       res->res_dir.hdr.next = resources[rindex].res_head;
       resources[rindex].res_head = (RES *)res;

@@ -30,7 +30,7 @@ uint32_t new_VolSessionId();
 /* From askdir.c */
 int	dir_get_volume_info(JCR *jcr);
 int	dir_find_next_appendable_volume(JCR *jcr);
-int	dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol);
+int	dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel);
 int	dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev);
 int	dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev);
 int	dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec);
@@ -57,6 +57,7 @@ DEVICE	*init_dev(DEVICE *dev, char *device);
 int	 open_dev(DEVICE *dev, char *VolName, int mode);
 void	 close_dev(DEVICE *dev);
 void	 force_close_dev(DEVICE *dev);
+int	 truncate_dev(DEVICE *dev);
 void	 term_dev(DEVICE *dev);
 char *	 strerror_dev(DEVICE *dev);
 void	 clrerror_dev(DEVICE *dev, int func);

@@ -144,9 +144,9 @@ static void do_extract(char *devname, char *where)
    long total = 0;
    DEV_RECORD rec;
    DEV_BLOCK *block;
-   char *fname; 		      /* original file name */
-   char *ofile; 		      /* output name with prefix */
-   char *lname; 		      /* link name */
+   POOLMEM *fname;		      /* original file name */
+   POOLMEM *ofile;		      /* output name with prefix */
+   POOLMEM *lname;		      /* link name */
    int wherelen;		      /* prefix length */
 
    if (strncmp(devname, "/dev/", 5) != 0) {
@@ -176,9 +176,9 @@ static void do_extract(char *devname, char *where)
    }
 
    wherelen = strlen(where);
-   fname = (char *)get_pool_memory(PM_FNAME);
-   ofile = (char *)get_pool_memory(PM_FNAME);
-   lname = (char *)get_pool_memory(PM_FNAME);
+   fname = get_pool_memory(PM_FNAME);
+   ofile = get_pool_memory(PM_FNAME);
+   lname = get_pool_memory(PM_FNAME);
 
    block = new_block(dev);
 
@@ -189,7 +189,7 @@ static void do_extract(char *devname, char *where)
    }
 
    memset(&rec, 0, sizeof(rec));
-   rec.data = (char *) get_memory(70000);
+   rec.data = get_memory(70000);
 
    for ( ;; ) {
 
@@ -276,13 +276,13 @@ static void do_extract(char *devname, char *where)
 	 }
 
 	 if (sizeof_pool_memory(fname) < rec.data_len) {
-	    fname = (char *) realloc_pool_memory(fname, rec.data_len + 1);
+	    fname = realloc_pool_memory(fname, rec.data_len + 1);
 	 }
 	 if (sizeof_pool_memory(ofile) < sizeof_pool_memory(fname) + wherelen + 1) {
-	    ofile = (char *)realloc_pool_memory(ofile, sizeof_pool_memory(fname) + wherelen + 1);
+	    ofile = realloc_pool_memory(ofile, sizeof_pool_memory(fname) + wherelen + 1);
 	 }
 	 if (sizeof_pool_memory(lname) < rec.data_len) {
-	    ofile = (char *)realloc_pool_memory(ofile, rec.data_len + 1);
+	    ofile = realloc_pool_memory(ofile, rec.data_len + 1);
 	 }
 	 *fname = 0;
 	 *lname = 0;

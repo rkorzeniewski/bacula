@@ -175,6 +175,7 @@ struct s_jcr {
    long CurVolume;                    /* current volume number */
    int mode;                          /* manual/auto run */
    int label_status;                  /* device volume label status */
+   int label_errors;                  /* count of label errors */
    int session_opened;
    DEV_RECORD rec;                    /* Read/Write record */
    long Ticket;                       /* ticket for this job */

@@ -189,7 +189,7 @@ int showcmd(UAContext *ua, char *cmd)
  */
 int listcmd(UAContext *ua, char *cmd) 
 {
-   char *VolumeName;
+   POOLMEM *VolumeName;
    int jobid, n;
    int i, j;
    JOB_DBR jr;
@@ -283,8 +283,9 @@ int listcmd(UAContext *ua, char *cmd)
       } else if (strcasecmp(ua->argk[i], _("pools")) == 0) {
 	 db_list_pool_records(ua->db, prtit, ua);
 
-      /* List MEDIA */
-      } else if (strcasecmp(ua->argk[i], _("media")) == 0) {
+      /* List MEDIA or VOLUMES */
+      } else if (strcasecmp(ua->argk[i], _("media")) == 0 ||
+                 strcasecmp(ua->argk[i], _("volumes")) == 0) {
 	 int done = FALSE;
 	 for (j=i+1; j<ua->argc; j++) {
             if (strcasecmp(ua->argk[j], _("job")) == 0 && ua->argv[j]) {
@@ -298,7 +299,7 @@ int listcmd(UAContext *ua, char *cmd)
 	    } else {
 	       continue;
 	    }
-	    VolumeName = (char *) get_pool_memory(PM_FNAME);
+	    VolumeName = get_pool_memory(PM_FNAME);
 	    n = db_get_job_volume_names(ua->db, jobid, VolumeName);
             bsendmsg(ua, _("Jobid %d used %d Volume(s): %s\n"), jobid, n, VolumeName);
 	    free_memory(VolumeName);
@@ -328,8 +329,7 @@ void do_messages(UAContext *ua, char *cmd)
    rewind(con_fd);
    while (fgets(msg, sizeof(msg), con_fd)) {
       mlen = strlen(msg);
-      ua->UA_sock->msg = (char *) check_pool_memory_size(
-	 ua->UA_sock->msg, mlen+1);
+      ua->UA_sock->msg = check_pool_memory_size(ua->UA_sock->msg, mlen+1);
       strcpy(ua->UA_sock->msg, msg);
       ua->UA_sock->msglen = mlen;
       bnet_send(ua->UA_sock);
@@ -382,12 +382,12 @@ void bsendmsg(void *ctx, char *fmt, ...)
    UAContext *ua = (UAContext *)ctx;
    BSOCK *bs = ua->UA_sock;
    int maxlen, len;
-   char *msg;
+   POOLMEM *msg;
 
    if (bs) {
       msg = bs->msg;
    } else {
-      msg = (char *)get_pool_memory(PM_EMSG);
+      msg = get_pool_memory(PM_EMSG);
    }
 
 again:
@@ -396,7 +396,7 @@ again:
    len = bvsnprintf(msg, maxlen, fmt, arg_ptr);
    va_end(arg_ptr);
    if (len < 0 || len >= maxlen) {
-      msg = (char *) realloc_pool_memory(msg, maxlen + 200);
+      msg = realloc_pool_memory(msg, maxlen + 200);
       goto again;
    }
 
@@ -405,7 +405,7 @@ again:
       bnet_send(bs);
    } else {			      /* No UA, send to Job */
       Jmsg(ua->jcr, M_INFO, 0, msg);
-      free_memory(msg);
+      free_pool_memory(msg);
    }
 
 }

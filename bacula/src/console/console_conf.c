@@ -228,6 +228,7 @@ void save_resource(int type, struct res_items *items, int pass)
       return;
    }
 
+   /* The following code is only executed during pass 1 */
    switch (type) {
       case R_CONSOLE:
 	 size = sizeof(CONSRES);
