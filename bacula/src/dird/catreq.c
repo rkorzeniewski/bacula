@@ -382,20 +382,28 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
       if (!db_create_file_attributes_record(jcr, jcr->db, &ar)) {
          Jmsg1(jcr, M_FATAL, 0, _("Attribute create error. %s"), db_strerror(jcr->db));
       }
-      /* Save values for MD5 update */
+      /* Save values for SIG update */
       jcr->FileId = ar.FileId;
       jcr->FileIndex = FileIndex;
-   } else if (Stream == STREAM_MD5_SIGNATURE) {
+   } else if (Stream == STREAM_MD5_SIGNATURE || Stream == STREAM_SHA1_SIGNATURE) {
       fname = p;
       if (jcr->FileIndex != FileIndex) {    
-         Jmsg(jcr, M_WARNING, 0, "Got MD5 but not same File as attributes\n");
+         Jmsg(jcr, M_WARNING, 0, "Got MD5/SHA1 but not same File as attributes\n");
       } else {
-	 /* Update MD5 signature in catalog */
-	 char MD5buf[50];	    /* 24 bytes should be enough */
-	 bin_to_base64(MD5buf, fname, 16);
-         Dmsg2(190, "MD5len=%d MD5=%s\n", strlen(MD5buf), MD5buf);
-	 if (!db_add_MD5_to_file_record(jcr, jcr->db, jcr->FileId, MD5buf)) {
-            Jmsg(jcr, M_ERROR, 0, _("Catalog error updating MD5. %s"), 
+	 /* Update signature in catalog */
+	 char SIGbuf[50];	    /* 24 bytes should be enough */
+	 int len, type;
+	 if (Stream == STREAM_MD5_SIGNATURE) {
+	    len = 16;
+	    type = MD5_SIG;
+	 } else {
+	    len = 20;
+	    type = SHA1_SIG;
+	 }
+	 bin_to_base64(SIGbuf, fname, len);
+         Dmsg3(190, "SIGlen=%d SIG=%s type=%d\n", strlen(SIGbuf), SIGbuf, Stream);
+	 if (!db_add_SIG_to_file_record(jcr, jcr->db, jcr->FileId, SIGbuf, type)) {
+            Jmsg(jcr, M_ERROR, 0, _("Catalog error updating MD5/SHA1. %s"), 
 	       db_strerror(jcr->db));
 	 }
       }

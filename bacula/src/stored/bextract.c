@@ -467,7 +467,8 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
          Pmsg0(000, "Got Program Name or Data Stream. Ignored.\n");
 	 prog_name_msg = 1;
       }
-   } else if (rec->Stream != STREAM_MD5_SIGNATURE) {
+   } else if (!(rec->Stream == STREAM_MD5_SIGNATURE ||
+		rec->Stream == STREAM_SHA1_SIGNATURE)) {
       Pmsg2(0, "None of above!!! stream=%d data=%s\n", rec->Stream, rec->data);
    }
 }

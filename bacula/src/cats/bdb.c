@@ -128,6 +128,9 @@ db_init_database(void *jcr, char *db_name, char *db_user, char *db_password)
    Dmsg0(200, "Done db_open_database()\n");
    mdb->cfd = -1;
    V(mutex);
+   Jmsg(jcr, M_WARNING, 0, _("WARNING!!!! The Internal Database is for TESTING ONLY!\n"));
+   Jmsg(jcr, M_WARNING, 0, _("You should use either SQLite or MySQL\n"));
+
    return mdb;
 }
 

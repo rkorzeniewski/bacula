@@ -94,7 +94,7 @@ int  db_update_job_start_record(void *jcr, B_DB *db, JOB_DBR *jr);
 int  db_update_job_end_record(void *jcr, B_DB *db, JOB_DBR *jr);
 int  db_update_pool_record(void *jcr, B_DB *db, POOL_DBR *pr);
 int  db_update_media_record(void *jcr, B_DB *db, MEDIA_DBR *mr);
-int  db_add_MD5_to_file_record(void *jcr, B_DB *mdb, FileId_t FileId, char *MD5);  
+int  db_add_SIG_to_file_record(void *jcr, B_DB *mdb, FileId_t FileId, char *SIG, int type);  
 int  db_mark_file_record(void *jcr, B_DB *mdb, FileId_t FileId, JobId_t JobId);
 
 #endif /* __SQL_PROTOS_H */

@@ -128,7 +128,7 @@ File.FilenameId=%u", fdbr->JobId, fdbr->PathId, fdbr->FilenameId);
 	 } else {
 	    fdbr->FileId = (FileId_t)str_to_int64(row[0]);
 	    bstrncpy(fdbr->LStat, row[1], sizeof(fdbr->LStat));
-	    bstrncpy(fdbr->MD5, row[2], sizeof(fdbr->MD5));
+	    bstrncpy(fdbr->SIG, row[2], sizeof(fdbr->SIG));
 	    stat = 1;
 	 }
       } else {

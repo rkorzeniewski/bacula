@@ -61,7 +61,7 @@ void do_verify(JCR *jcr)
 /* 
  * Called here by find() for each file.
  *
- *  Find the file, compute the MD5 and send it back to the Director
+ *  Find the file, compute the MD5 or SHA1 and send it back to the Director
  */
 static int verify_file(FF_PKT *ff_pkt, void *pkt) 
 {
@@ -69,7 +69,8 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
    int32_t n;
    int fid, stat;
    struct MD5Context md5c;
-   unsigned char signature[20];
+   struct SHA1Context sha1c;
+   unsigned char signature[25];       /* large enough for either */
    BSOCK *dir;
    JCR *jcr = (JCR *)pkt;
 
@@ -189,10 +190,8 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
 
    /* If file opened, compute MD5 */
    if (fid >= 0  && ff_pkt->flags & FO_MD5) {
-      char MD5buf[50];		      /* 24 should do */
-
+      char MD5buf[40];		      /* 24 should do */
       MD5Init(&md5c);
-
       while ((n=read(fid, jcr->big_buf, jcr->buf_size)) > 0) {
 	 MD5Update(&md5c, ((unsigned char *) jcr->big_buf), n);
 	 jcr->JobBytes += n;
@@ -201,7 +200,6 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
          Jmsg(jcr, M_WARNING, -1, _("Error reading file %s: ERR=%s\n"), 
 	      ff_pkt->fname, strerror(errno));
       }
-
       MD5Final(signature, &md5c);
 
       bin_to_base64(MD5buf, (char *)signature, 16); /* encode 16 bytes */
@@ -209,6 +207,24 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       bnet_fsend(dir, "%d %d %s *MD5-%d*", jcr->JobFiles, STREAM_MD5_SIGNATURE, MD5buf,
 	 jcr->JobFiles);
       Dmsg2(20, "bfiled>bdird: MD5 len=%d: msg=%s\n", dir->msglen, dir->msg);
+   } else if (fid >= 0 && ff_pkt->flags & FO_SHA1) {
+      char SHA1buf[40]; 	      /* 24 should do */
+      SHA1Init(&sha1c);
+      while ((n=read(fid, jcr->big_buf, jcr->buf_size)) > 0) {
+	 SHA1Update(&sha1c, ((unsigned char *) jcr->big_buf), n);
+	 jcr->JobBytes += n;
+      }
+      if (n < 0) {
+         Jmsg(jcr, M_WARNING, -1, _("Error reading file %s: ERR=%s\n"), 
+	      ff_pkt->fname, strerror(errno));
+      }
+      SHA1Final(&sha1c, signature);
+
+      bin_to_base64(SHA1buf, (char *)signature, 20); /* encode 20 bytes */
+      Dmsg2(400, "send inx=%d SHA1=%s\n", jcr->JobFiles, SHA1buf);
+      bnet_fsend(dir, "%d %d %s *SHA1-%d*", jcr->JobFiles, STREAM_SHA1_SIGNATURE, 
+	 SHA1buf, jcr->JobFiles);
+      Dmsg2(20, "bfiled>bdird: SHA1 len=%d: msg=%s\n", dir->msglen, dir->msg);
    }
    if (fid >= 0) {
       close(fid);

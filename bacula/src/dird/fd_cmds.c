@@ -270,11 +270,11 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
       long file_index;
       int stream, len;
       char *attr, *p, *fn;
-      char Opts_MD5[MAXSTRING];      /* either Verify opts or MD5 signature */
-      char MD5[MAXSTRING];
+      char Opts_SIG[MAXSTRING];      /* either Verify opts or MD5/SHA1 signature */
+      char SIG[MAXSTRING];
 
       jcr->fname = check_pool_memory_size(jcr->fname, fd->msglen);
-      if ((len = sscanf(fd->msg, "%ld %d %s", &file_index, &stream, Opts_MD5)) != 3) {
+      if ((len = sscanf(fd->msg, "%ld %d %s", &file_index, &stream, Opts_SIG)) != 3) {
          Jmsg(jcr, M_FATAL, 0, _("<filed: bad attributes, expected 3 fields got %d\n\
 msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);
@@ -285,7 +285,7 @@ msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
       skip_spaces(&p);
       skip_nonspaces(&p);	      /* skip Stream */
       skip_spaces(&p);
-      skip_nonspaces(&p);	      /* skip Opts_MD5 */   
+      skip_nonspaces(&p);	      /* skip Opts_SHA1 */   
       p++;			      /* skip space */
       fn = jcr->fname;
       while (*p != 0) {
@@ -316,16 +316,17 @@ msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
 	    continue;
 	 }
 	 jcr->FileId = ar.FileId;
-      } else if (stream == STREAM_MD5_SIGNATURE) {
+      } else if (stream == STREAM_MD5_SIGNATURE || stream == STREAM_SHA1_SIGNATURE) {
 	 if (jcr->FileIndex != (uint32_t)file_index) {
-            Jmsg2(jcr, M_ERROR, 0, _("MD5 index %d not same as attributes %d\n"),
+            Jmsg2(jcr, M_ERROR, 0, _("MD5/SHA1 index %d not same as attributes %d\n"),
 	       file_index, jcr->FileIndex);
 	    set_jcr_job_status(jcr, JS_Error);
 	    continue;
 	 }
-	 db_escape_string(MD5, Opts_MD5, strlen(Opts_MD5));
-         Dmsg2(120, "MD5len=%d MD5=%s\n", strlen(MD5), MD5);
-	 if (!db_add_MD5_to_file_record(jcr, jcr->db, jcr->FileId, MD5)) {
+	 db_escape_string(SIG, Opts_SIG, strlen(Opts_SIG));
+         Dmsg2(120, "SIGlen=%d SIG=%s\n", strlen(SIG), SIG);
+	 if (!db_add_SIG_to_file_record(jcr, jcr->db, jcr->FileId, SIG, 
+		   stream==STREAM_MD5_SIGNATURE?MD5_SIG:SHA1_SIG)) {
             Jmsg1(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
 	    set_jcr_job_status(jcr, JS_Error);
 	 }

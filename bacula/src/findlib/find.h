@@ -84,6 +84,7 @@
 #define FO_IF_NEWER     0x020         /* replace if newer */
 #define FO_NOREPLACE    0x040         /* never replace */
 #define FO_READFIFO     0x080         /* read data from fifo */
+#define FO_SHA1         0x100         /* Do SHA1 checksum */
 
 /*
  * Options saved in "options" of include list
@@ -100,6 +101,7 @@
 #define OPT_replace_if_newer  0x20    /* replace file if newer */
 #define OPT_never_replace     0x40    /* never replace */
 #define OPT_read_fifo         0x80    /* read data from fifo (named pipe) */
+#define OPT_compute_SHA1     0x100    /* compute SHA1 of file's data */
 
 
 struct s_included_file {

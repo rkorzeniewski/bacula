@@ -90,7 +90,7 @@ void do_restore(JCR *jcr)
     *	2. Stream data
     *	     a. Attributes (Unix or Win32)
     *	 or  b. File data for the file
-    *	 or  c. Possibly MD5 record
+    *	 or  c. Possibly MD5 or SHA1 record
     *	3. Repeat step 1
     */
    while (bnet_recv(sd) >= 0 && !job_cancelled(jcr)) {
@@ -365,7 +365,7 @@ void do_restore(JCR *jcr)
 	 set_attributes(jcr, fname, ofile, lname, type, stream, 
 			&statp, attribsEx, &ofd);
 	 extract = FALSE;
-      } else if (stream != STREAM_MD5_SIGNATURE) {
+      } else if (!(stream == STREAM_MD5_SIGNATURE || stream == STREAM_SHA1_SIGNATURE)) {
          Dmsg2(0, "None of above!!! stream=%d data=%s\n", stream,sd->msg);
       }
    }

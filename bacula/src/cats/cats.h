@@ -365,7 +365,8 @@ typedef struct {
    JobId_t  MarkId;
    char LStat[256];
 /*   int Status; */
-   char MD5[50];
+   char SIG[50];
+   int SigType;                       /* NO_SIG/MD5_SIG/SHA1_SIG */
 } FILE_DBR;
 
 /* Pool record -- same format as database */

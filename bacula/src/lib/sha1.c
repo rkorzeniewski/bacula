@@ -39,11 +39,11 @@
 		(((word) << (bits)) | ((word) >> (32-(bits))))
 
 /* Local Function Prototyptes */
-void SHA1PadMessage(SHA1Context *);
-void SHA1ProcessMessageBlock(SHA1Context *);
+static void SHA1PadMessage(SHA1Context *);
+static void SHA1ProcessMessageBlock(SHA1Context *);
 
 /*
- *  SHA1Reset
+ *  SHA1Init
  *
  *  Description:
  *	This function will initialize the SHA1Context in preparation
@@ -57,7 +57,7 @@ void SHA1ProcessMessageBlock(SHA1Context *);
  *	sha Error Code.
  *
  */
-int SHA1Reset(SHA1Context *context)
+int SHA1Init(SHA1Context *context)
 {
     if (!context)
     {
@@ -81,7 +81,7 @@ int SHA1Reset(SHA1Context *context)
 }
 
 /*
- *  SHA1Result
+ *  SHA1Final
  *
  *  Description:
  *	This function will return the 160-bit message digest into the
@@ -99,26 +99,22 @@ int SHA1Reset(SHA1Context *context)
  *	sha Error Code.
  *
  */
-int SHA1Result( SHA1Context *context,
-		uint8_t Message_Digest[SHA1HashSize])
+int SHA1Final(SHA1Context *context,
+	      uint8_t Message_Digest[SHA1HashSize])
 {
     int i;
 
-    if (!context || !Message_Digest)
-    {
+    if (!context || !Message_Digest) {
 	return shaNull;
     }
 
-    if (context->Corrupted)
-    {
+    if (context->Corrupted) {
 	return context->Corrupted;
     }
 
-    if (!context->Computed)
-    {
+    if (!context->Computed) {
 	SHA1PadMessage(context);
-	for(i=0; i<64; ++i)
-	{
+	for(i=0; i<64; ++i) {
 	    /* message may be sensitive, clear it out */
 	    context->Message_Block[i] = 0;
 	}
@@ -128,17 +124,16 @@ int SHA1Result( SHA1Context *context,
 
     }
 
-    for(i = 0; i < SHA1HashSize; ++i)
-    {
+    for(i = 0; i < SHA1HashSize; ++i) {
 	Message_Digest[i] = context->Intermediate_Hash[i>>2]
-			    >> 8 * ( 3 - ( i &amp; 0x03 ) );
+			    >> 8 * ( 3 - ( i & 0x03 ) );
     }
 
     return shaSuccess;
 }
 
 /*
- *  SHA1Input
+ *  SHA1Update
  *
  *  Description:
  *	This function accepts an array of octets as the next portion
@@ -157,53 +152,45 @@ int SHA1Result( SHA1Context *context,
  *	sha Error Code.
  *
  */
-int SHA1Input(	  SHA1Context	 *context,
-		  const uint8_t  *message_array,
-		  unsigned	 length)
+int SHA1Update(SHA1Context    *context,
+	       const uint8_t  *message_array,
+	       unsigned       length)
 {
-    if (!length)
-    {
+    if (!length) {
 	return shaSuccess;
     }
 
-    if (!context || !message_array)
-    {
+    if (!context || !message_array) {
 	return shaNull;
     }
 
-    if (context->Computed)
-    {
+    if (context->Computed) {
 	context->Corrupted = shaStateError;
 
 	return shaStateError;
     }
 
-    if (context->Corrupted)
-    {
+    if (context->Corrupted) {
 	 return context->Corrupted;
     }
-    while(length-- &amp;&amp; !context->Corrupted)
-    {
-    context->Message_Block[context->Message_Block_Index++] =
-		    (*message_array &amp; 0xFF);
+    while(length-- && !context->Corrupted) {
+       context->Message_Block[context->Message_Block_Index++] =
+		    (*message_array & 0xFF);
 
-    context->Length_Low += 8;
-    if (context->Length_Low == 0)
-    {
-	context->Length_High++;
-	if (context->Length_High == 0)
-	{
-	    /* Message is too long */
-	    context->Corrupted = 1;
-	}
-    }
+       context->Length_Low += 8;
+       if (context->Length_Low == 0) {
+	   context->Length_High++;
+	   if (context->Length_High == 0) {
+	       /* Message is too long */
+	       context->Corrupted = 1;
+	   }
+       }
 
-    if (context->Message_Block_Index == 64)
-    {
-	SHA1ProcessMessageBlock(context);
-    }
+       if (context->Message_Block_Index == 64) {
+	   SHA1ProcessMessageBlock(context);
+       }
 
-    message_array++;
+       message_array++;
     }
 
     return shaSuccess;
@@ -230,7 +217,7 @@ int SHA1Input(	  SHA1Context	 *context,
  *
  *
  */
-void SHA1ProcessMessageBlock(SHA1Context *context)
+static void SHA1ProcessMessageBlock(SHA1Context *context)
 {
     const uint32_t K[] =    {	    /* Constants defined in SHA-1   */
 			    0x5A827999,
@@ -246,16 +233,14 @@ void SHA1ProcessMessageBlock(SHA1Context *context)
     /*
      *	Initialize the first 16 words in the array W
      */
-    for(t = 0; t < 16; t++)
-    {
+    for(t = 0; t < 16; t++) {
 	W[t] = context->Message_Block[t * 4] << 24;
 	W[t] |= context->Message_Block[t * 4 + 1] << 16;
 	W[t] |= context->Message_Block[t * 4 + 2] << 8;
 	W[t] |= context->Message_Block[t * 4 + 3];
     }
 
-    for(t = 16; t < 80; t++)
-    {
+    for(t = 16; t < 80; t++) {
        W[t] = SHA1CircularShift(1,W[t-3] ^ W[t-8] ^ W[t-14] ^ W[t-16]);
     }
 
@@ -265,10 +250,9 @@ void SHA1ProcessMessageBlock(SHA1Context *context)
     D = context->Intermediate_Hash[3];
     E = context->Intermediate_Hash[4];
 
-    for(t = 0; t < 20; t++)
-    {
+    for(t = 0; t < 20; t++) {
 	temp =	SHA1CircularShift(5,A) +
-		((B &amp; C) | ((~B) &amp; D)) + E + W[t] + K[0];
+		((B & C) | ((~B) & D)) + E + W[t] + K[0];
 	E = D;
 	D = C;
 	C = SHA1CircularShift(30,B);
@@ -277,8 +261,7 @@ void SHA1ProcessMessageBlock(SHA1Context *context)
 	A = temp;
     }
 
-    for(t = 20; t < 40; t++)
-    {
+    for(t = 20; t < 40; t++) {
 	temp = SHA1CircularShift(5,A) + (B ^ C ^ D) + E + W[t] + K[1];
 	E = D;
 	D = C;
@@ -287,10 +270,9 @@ void SHA1ProcessMessageBlock(SHA1Context *context)
 	A = temp;
     }
 
-    for(t = 40; t < 60; t++)
-    {
+    for(t = 40; t < 60; t++) {
 	temp = SHA1CircularShift(5,A) +
-	       ((B &amp; C) | (B &amp; D) | (C &amp; D)) + E + W[t] + K[2];
+	       ((B & C) | (B & D) | (C & D)) + E + W[t] + K[2];
 	E = D;
 	D = C;
 	C = SHA1CircularShift(30,B);
@@ -298,8 +280,7 @@ void SHA1ProcessMessageBlock(SHA1Context *context)
 	A = temp;
     }
 
-    for(t = 60; t < 80; t++)
-    {
+    for(t = 60; t < 80; t++) {
 	temp = SHA1CircularShift(5,A) + (B ^ C ^ D) + E + W[t] + K[3];
 	E = D;
 	D = C;
@@ -341,7 +322,7 @@ void SHA1ProcessMessageBlock(SHA1Context *context)
  *
  */
 
-void SHA1PadMessage(SHA1Context *context)
+static void SHA1PadMessage(SHA1Context *context)
 {
     /*
      *	Check to see if the current message block is too small to hold
@@ -349,26 +330,20 @@ void SHA1PadMessage(SHA1Context *context)
      *	block, process it, and then continue padding into a second
      *	block.
      */
-    if (context->Message_Block_Index > 55)
-    {
+    if (context->Message_Block_Index > 55) {
 	context->Message_Block[context->Message_Block_Index++] = 0x80;
-	while(context->Message_Block_Index < 64)
-	{
+	while(context->Message_Block_Index < 64) {
 	    context->Message_Block[context->Message_Block_Index++] = 0;
 	}
 
 	SHA1ProcessMessageBlock(context);
 
-	while(context->Message_Block_Index < 56)
-	{
+	while(context->Message_Block_Index < 56) {
 	    context->Message_Block[context->Message_Block_Index++] = 0;
 	}
-    }
-    else
-    {
+    } else {
 	context->Message_Block[context->Message_Block_Index++] = 0x80;
-	while(context->Message_Block_Index < 56)
-	{
+	while(context->Message_Block_Index < 56) {
 
 	    context->Message_Block[context->Message_Block_Index++] = 0;
 	}
@@ -448,36 +423,31 @@ int main()
     /*
      *	Perform SHA-1 tests
      */
-    for(j = 0; j < 4; ++j)
-    {
+    for(j = 0; j < 4; ++j) {
         printf( "\nTest %d: %d, '%s'\n",
 		j+1,
 		repeatcount[j],
 		testarray[j]);
 
-	err = SHA1Reset(&amp;sha);
-	if (err)
-	{
+	err = SHA1Init(&sha);
+	if (err) {
             fprintf(stderr, "SHA1Reset Error %d.\n", err );
 	    break;    /* out of for j loop */
 	}
 
-	for(i = 0; i < repeatcount[j]; ++i)
-	{
+	for(i = 0; i < repeatcount[j]; ++i) {
 
-	    err = SHA1Input(&amp;sha,
+	    err = SHA1Input(&sha,
 		  (const unsigned char *) testarray[j],
 		  strlen(testarray[j]));
-	    if (err)
-	    {
+	    if (err) {
                 fprintf(stderr, "SHA1Input Error %d.\n", err );
 		break;	  /* out of for i loop */
 	    }
 	}
 
-	err = SHA1Result(&amp;sha, Message_Digest);
-	if (err)
-	{
+	err = SHA1Final(&sha, Message_Digest);
+	if (err) {
 	    fprintf(stderr,
             "SHA1Result Error %d, could not compute message digest.\n",
 	    err );
@@ -485,8 +455,7 @@ int main()
 	else
 	{
             printf("\t");
-	    for(i = 0; i < 20 ; ++i)
-	    {
+	    for(i = 0; i < 20 ; ++i) {
                 printf("%02X ", Message_Digest[i]);
 	    }
             printf("\n");
@@ -496,11 +465,44 @@ int main()
     }
 
     /* Test some error returns */
-    err = SHA1Input(&amp;sha,(const unsigned char *) testarray[1], 1);
+    err = SHA1Input(&sha,(const unsigned char *) testarray[1], 1);
     printf ("\nError %d. Should be %d.\n", err, shaStateError );
-    err = SHA1Reset(0);
+    err = SHA1Init(0);
     printf ("\nError %d. Should be %d.\n", err, shaNull );
     return 0;
 }
 
 #endif /* TEST_DRIVER */
+
+#ifdef SHA1_SUM
+/*
+ * Reads a single ASCII file and prints the HEX sha1 sum.
+ */
+#include <stdio.h>
+int main(int argc, char *argv[]) 
+{
+   FILE *fd;
+   SHA1Context ctx;
+   char buf[5000];
+   char signature[25];
+
+   if (argc < 1) {
+      printf("Must have filename\n");
+      exit(1);
+   }
+   fd = fopen(argv[1], "r");
+   if (!fd) {
+      printf("Could not open %s: ERR=%s\n", argv[1], strerror(errno));
+      exit(1);
+   }
+   SHA1Init(&ctx);
+   while (fgets(buf, sizeof(buf), fd)) {
+      SHA1Update(&ctx, (unsigned char *)buf, strlen(buf));
+   }
+   SHA1Final(&ctx, (unsigned char *)signature);
+   for (int i=0; i < 20; i++) {
+      printf("%02x", signature[i]& 0xFF);
+   }
+   printf("  %s\n", argv[1]);
+}
+#endif

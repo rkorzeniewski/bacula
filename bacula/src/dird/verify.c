@@ -377,7 +377,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
    int stat = JS_Terminated;
    char buf[MAXSTRING];
    POOLMEM *fname = get_pool_memory(PM_MESSAGE);
-   int do_MD5 = FALSE;
+   int do_SIG = NO_SIG;
    long file_index = 0;
 
    memset(&fdbr, 0, sizeof(FILE_DBR));
@@ -387,11 +387,11 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
    
    Dmsg0(20, "bdird: waiting to receive file attributes\n");
    /*
-    * Get Attributes and MD5 Signature from File daemon
+    * Get Attributes and Signature from File daemon
     * We expect:
     *	FileIndex
     *	Stream
-    *	Options or MD5
+    *	Options or SIG (MD5/SHA1)
     *	Filename
     *	Attributes
     *	Link name  ???
@@ -399,23 +399,28 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
    while ((n=bget_msg(fd, 0)) >= 0 && !job_cancelled(jcr)) {
       int stream;
       char *attr, *p, *fn;
-      char Opts_MD5[MAXSTRING];        /* Verify Opts or MD5 signature */
+      char Opts_SIG[MAXSTRING];        /* Verify Opts or MD5/SHA1 signature */
 
       fname = check_pool_memory_size(fname, fd->msglen);
       jcr->fname = check_pool_memory_size(jcr->fname, fd->msglen);
-      Dmsg1(400, "Atts+MD5=%s\n", fd->msg);
+      Dmsg1(400, "Atts+SIG=%s\n", fd->msg);
       if ((len = sscanf(fd->msg, "%ld %d %100s", &file_index, &stream, 
-	    Opts_MD5)) != 3) {
+	    fname)) != 3) {
          Jmsg3(jcr, M_FATAL, 0, _("bird<filed: bad attributes, expected 3 fields got %d\n\
  mslen=%d msg=%s\n"), len, fd->msglen, fd->msg);
 	 goto bail_out;
       }
+      /*
+       * We read the Options or Signature into fname				    
+       *  to prevent overrun, now copy it to proper location.
+       */
+      bstrncpy(Opts_SIG, fname, sizeof(Opts_SIG));
       p = fd->msg;
       skip_nonspaces(&p);	      /* skip FileIndex */
       skip_spaces(&p);
       skip_nonspaces(&p);	      /* skip Stream */
       skip_spaces(&p);
-      skip_nonspaces(&p);	      /* skip Opts_MD5 */   
+      skip_nonspaces(&p);	      /* skip Opts_SIG */   
       p++;			      /* skip space */
       fn = fname;
       while (*p != 0) {
@@ -431,7 +436,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
 	 jcr->JobFiles++;
 	 jcr->FileIndex = file_index;	 /* remember attribute file_index */
 	 decode_stat(attr, &statf);  /* decode file stat packet */
-	 do_MD5 = FALSE;
+	 do_SIG = NO_SIG;
 	 jcr->fn_printed = FALSE;
 	 strcpy(jcr->fname, fname);  /* move filename into JCR */
 
@@ -456,13 +461,13 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
 	 }
 
          Dmsg3(400, "Found %s in catalog. inx=%d Opts=%s\n", jcr->fname, 
-	    file_index, Opts_MD5);
+	    file_index, Opts_SIG);
 	 decode_stat(fdbr.LStat, &statc); /* decode catalog stat */
 	 /*
 	  * Loop over options supplied by user and verify the
 	  * fields he requests.
 	  */
-	 for (p=Opts_MD5; *p; p++) {
+	 for (p=Opts_SIG; *p; p++) {
 	    char ed1[30], ed2[30];
 	    switch (*p) {
             case 'i':                /* compare INODEs */
@@ -547,7 +552,10 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
 	       break;
             case '5':                /* compare MD5 */
                Dmsg1(500, "set Do_MD5 for %s\n", jcr->fname);
-	       do_MD5 = TRUE;
+	       do_SIG = MD5_SIG;
+	       break;
+            case '1':                 /* compare SHA1 */
+	       do_SIG = SHA1_SIG;
 	       break;
             case ':':
             case 'V':
@@ -556,32 +564,34 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
 	    }
 	 }
       /*
-       * Got MD5 Signature from Storage daemon
-       *  It came across in the Opts_MD5 field.
+       * Got SIG Signature from Storage daemon
+       *  It came across in the Opts_SIG field.
        */
-      } else if (stream == STREAM_MD5_SIGNATURE) {
-         Dmsg2(400, "stream=MD5 inx=%d MD5=%s\n", file_index, Opts_MD5);
+      } else if (stream == STREAM_MD5_SIGNATURE || stream == STREAM_SHA1_SIGNATURE) {
+         Dmsg2(400, "stream=SIG inx=%d SIG=%s\n", file_index, Opts_SIG);
 	 /* 
-	  * When ever we get an MD5 signature is MUST have been
+	  * When ever we get a signature is MUST have been
 	  * preceded by an attributes record, which sets attr_file_index
 	  */
 	 if (jcr->FileIndex != (uint32_t)file_index) {
-            Jmsg2(jcr, M_FATAL, 0, _("MD5 index %d not same as attributes %d\n"),
+            Jmsg2(jcr, M_FATAL, 0, _("MD5/SHA1 index %d not same as attributes %d\n"),
 	       file_index, jcr->FileIndex);
 	    goto bail_out;
 	 } 
-	 if (do_MD5) {
-	    db_escape_string(buf, Opts_MD5, strlen(Opts_MD5));
-	    if (strcmp(buf, fdbr.MD5) != 0) {
+	 if (do_SIG) {
+	    db_escape_string(buf, Opts_SIG, strlen(Opts_SIG));
+	    if (strcmp(buf, fdbr.SIG) != 0) {
 	       prt_fname(jcr);
 	       if (debug_level >= 10) {
-                  Jmsg(jcr, M_INFO, 0, _("      MD5 not same. File=%s Cat=%s\n"), buf, fdbr.MD5);
+                  Jmsg(jcr, M_INFO, 0, _("      %s not same. File=%s Cat=%s\n"), 
+                       stream==STREAM_MD5_SIGNATURE?"MD5":"SHA1", buf, fdbr.SIG);
 	       } else {
-                  Jmsg(jcr, M_INFO, 0, _("      MD5 differs.\n"));
+                  Jmsg(jcr, M_INFO, 0, _("      %s differs.\n"), 
+                       stream==STREAM_MD5_SIGNATURE?"MD5":"SHA1");
 	       }
 	       stat = JS_Differences;
 	    }
-	    do_MD5 = FALSE;
+	    do_SIG = FALSE;
 	 }
       }
       jcr->JobFiles = file_index;

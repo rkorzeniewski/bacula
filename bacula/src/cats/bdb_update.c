@@ -192,7 +192,7 @@ int db_update_pool_record(void *jcr, B_DB *mdb, POOL_DBR *pr)
    return stat;
 }
 
-int db_add_MD5_to_file_record(void *jcr, B_DB *mdb, FileId_t FileId, char *MD5)   
+int db_add_SIG_to_file_record(void *jcr, B_DB *mdb, FileId_t FileId, char *SIG, int type)
 {
    return 1;
 }

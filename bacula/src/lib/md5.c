@@ -249,3 +249,36 @@ void MD5Transform(uint32_t buf[4], uint32_t in[16])
     buf[2] += c;
     buf[3] += d;
 }
+
+#ifdef MD5_SUM
+/*
+ * Reads a single ASCII file and prints the HEX md5 sum.
+ */
+#include <stdio.h>
+int main(int argc, char *argv[]) 
+{
+   FILE *fd;
+   MD5Context ctx;
+   char buf[5000];
+   char signature[20];
+
+   if (argc < 1) {
+      printf("Must have filename\n");
+      exit(1);
+   }
+   fd = fopen(argv[1], "r");
+   if (!fd) {
+      printf("Could not open %s: ERR=%s\n", argv[1], strerror(errno));
+      exit(1);
+   }
+   MD5Init(&ctx);
+   while (fgets(buf, sizeof(buf), fd)) {
+      MD5Update(&ctx, (unsigned char *)buf, strlen(buf));
+   }
+   MD5Final((unsigned char *)signature, &ctx);
+   for (int i=0; i < 16; i++) {
+      printf("%02x", signature[i]& 0xFF);
+   }
+   printf("  %s\n", argv[1]);
+}
+#endif

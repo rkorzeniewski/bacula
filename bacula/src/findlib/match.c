@@ -115,6 +115,9 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, char *fname)
             case 'M':                 /* MD5 */
 	       inc->options |= OPT_compute_MD5;
 	       break;
+            case 'S':
+	       inc->options |= OPT_compute_SHA1;
+	       break;
             case 'n':
 	       inc->options |= OPT_never_replace;
 	       break;

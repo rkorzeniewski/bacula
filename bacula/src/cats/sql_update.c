@@ -55,12 +55,13 @@ extern int UpdateDB(char *file, int line, void *jcr, B_DB *db, char *update_cmd)
  */
 /* Update the attributes record by adding the MD5 signature */
 int
-db_add_MD5_to_file_record(void *jcr, B_DB *mdb, FileId_t FileId, char *MD5)
+db_add_SIG_to_file_record(void *jcr, B_DB *mdb, FileId_t FileId, char *SIG,
+			  int type)
 {
    int stat;
 
    db_lock(mdb);
-   Mmsg(&mdb->cmd, "UPDATE File SET MD5='%s' WHERE FileId=%u", MD5, FileId);
+   Mmsg(&mdb->cmd, "UPDATE File SET MD5='%s' WHERE FileId=%u", SIG, FileId);
    stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    db_unlock(mdb);
    return stat;

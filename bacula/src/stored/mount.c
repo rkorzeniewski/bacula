@@ -460,6 +460,12 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
 	 changer = edit_device_codes(jcr, changer, 
                       jcr->device->changer_command, "load");
 	 status = run_program(changer, timeout, NULL);
+	 if (status == 0) {
+            Jmsg(jcr, M_INFO, 0, _("Autochanger \"load slot\" status is OK.\n"));
+	 } else {
+            Jmsg(jcr, M_INFO, 0, _("Bad autochanger \"load slot\" status = %d.\n"),
+	       status);
+	 }
          Dmsg2(100, "load slot %d status=%d\n", slot, status);
       }
       free_pool_memory(changer);

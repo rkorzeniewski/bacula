@@ -50,7 +50,7 @@ static int  create_client_record(B_DB *db, CLIENT_DBR *cr);
 static int  create_fileset_record(B_DB *db, FILESET_DBR *fsr);
 static int  create_jobmedia_record(B_DB *db, JCR *jcr);
 static JCR *create_jcr(JOB_DBR *jr, DEV_RECORD *rec, uint32_t JobId);
-static int update_MD5_record(B_DB *db, char *MD5buf, DEV_RECORD *rec);
+static int update_SIG_record(B_DB *db, char *SIGbuf, DEV_RECORD *rec, int type);
 
 
 /* Global variables */
@@ -620,12 +620,21 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 
 
    } else if (rec->Stream == STREAM_MD5_SIGNATURE) {
-      char MD5buf[30];
+      char MD5buf[50];
       bin_to_base64(MD5buf, (char *)rec->data, 16); /* encode 16 bytes */
       if (verbose > 1) {
          Pmsg1(000, _("Got MD5 record: %s\n"), MD5buf);
       }
-      update_MD5_record(db, MD5buf, rec);
+      update_SIG_record(db, MD5buf, rec, MD5_SIG);
+
+   } else if (rec->Stream == STREAM_SHA1_SIGNATURE) {
+      char SIGbuf[50];
+      bin_to_base64(SIGbuf, (char *)rec->data, 20); /* encode 20 bytes */
+      if (verbose > 1) {
+         Pmsg1(000, _("Got SHA1 record: %s\n"), SIGbuf);
+      }
+      update_SIG_record(db, SIGbuf, rec, SHA1_SIG);
+
 
    } else if (rec->Stream == STREAM_PROGRAM_NAMES) {
       if (verbose) {
@@ -1038,16 +1047,16 @@ static int create_jobmedia_record(B_DB *db, JCR *mjcr)
 }
 
 /* 
- * Simulate the database call that updates the MD5 record
+ * Simulate the database call that updates the MD5/SHA1 record
  */
-static int update_MD5_record(B_DB *db, char *MD5buf, DEV_RECORD *rec)
+static int update_SIG_record(B_DB *db, char *SIGbuf, DEV_RECORD *rec, int type)
 {
    JCR *mjcr;
 
    mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
    if (!mjcr) {
       if (mr.VolJobs > 0) {
-         Pmsg2(000, _("Could not find SessId=%d SessTime=%d for MD5 record.\n"),
+         Pmsg2(000, _("Could not find SessId=%d SessTime=%d for MD5/SHA1 record.\n"),
 		      rec->VolSessionId, rec->VolSessionTime);
       } else {
 	 ignored_msgs++;
@@ -1060,13 +1069,13 @@ static int update_MD5_record(B_DB *db, char *MD5buf, DEV_RECORD *rec)
       return 1;
    }
    
-   if (!db_add_MD5_to_file_record(bjcr, db, mjcr->FileId, MD5buf)) {
-      Pmsg1(0, _("Could not add MD5 to File record. ERR=%s\n"), db_strerror(db));
+   if (!db_add_SIG_to_file_record(bjcr, db, mjcr->FileId, SIGbuf, type)) {
+      Pmsg1(0, _("Could not add MD5/SHA1 to File record. ERR=%s\n"), db_strerror(db));
       free_jcr(mjcr);
       return 0;
    }
    if (verbose > 1) {
-      Pmsg0(000, _("Updated MD5 record\n"));
+      Pmsg0(000, _("Updated MD5/SHA1 record\n"));
    }
    free_jcr(mjcr);
    return 1;

@@ -99,8 +99,10 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
    char attribsEx[MAXSTRING];
    int stat, stream; 
    struct MD5Context md5c;
+   struct SHA1Context sha1c;
    int gotMD5 = 0;
-   unsigned char signature[16];
+   int gotSHA1 = 0;
+   unsigned char signature[25];       /* large enough for either signature */
    BSOCK *sd;
    JCR *jcr = (JCR *)ijcr;
    POOLMEM *msgsave;
@@ -312,6 +314,8 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 
       if (ff_pkt->flags & FO_MD5) {
 	 MD5Init(&md5c);
+      } else if (ff_pkt->flags & FO_SHA1) {
+	 SHA1Init(&sha1c);
       }
 
       /*
@@ -348,6 +352,9 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 	 if (ff_pkt->flags & FO_MD5) {
 	    MD5Update(&md5c, (unsigned char *)rbuf, sd->msglen);
 	    gotMD5 = 1;
+	 } else if (ff_pkt->flags & FO_SHA1) {
+	    SHA1Update(&sha1c, (unsigned char *)rbuf, sd->msglen);
+	    gotSHA1 = 1;
 	 }
 
 #ifdef HAVE_LIBZ
@@ -422,6 +429,18 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
       sd->msglen = 16;
       bnet_send(sd);
       bnet_sig(sd, BNET_EOD);	      /* end of MD5 */
+#endif
+      gotMD5 = 0;
+   } else if (gotSHA1 && ff_pkt->flags & FO_SHA1) {
+   /* Terminate any SHA1 signature and send it to Storage daemon and the Director */
+      SHA1Final(&sha1c, signature);
+#ifndef NO_FD_SEND_TEST
+      bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_SHA1_SIGNATURE);
+      Dmsg1(100, "bfiled>stored:header %s\n", sd->msg);
+      memcpy(sd->msg, signature, 20);
+      sd->msglen = 20;
+      bnet_send(sd);
+      bnet_sig(sd, BNET_EOD);	      /* end of SHA1 */
 #endif
       gotMD5 = 0;
    }

@@ -6,7 +6,7 @@
  *    Version $Id$
  */
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 2002 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -180,6 +180,24 @@ struct s_res_job {
 };
 typedef struct s_res_job JOB;
 
+/*
+ * File Options Resource (options for Includes)
+ */
+struct s_res_fo {
+   RES  hdr;
+
+   char opts[20];                     /* Options string */
+   int  replace;                      /* How (overwrite, ...) */
+   struct s_applyto *applyto;         /* applyto strings */
+}; 
+typedef struct s_res_fo FILEOPTIONS;
+
+struct s_incexc_item {
+   char opts[20];                     /* options string */
+   struct s_res_fo *fileopts;         /* file options */
+   char name[1];                      /* include/exclude name */
+};
+
 /* 
  *   FileSet Resource
  *
@@ -187,6 +205,7 @@ typedef struct s_res_job JOB;
 struct s_res_fs {
    RES   hdr;
 
+   /* ***FIXME*** each include must have chain of FileOptions */
    char **include_array;
    int num_includes;
    int include_size;
@@ -195,22 +214,11 @@ struct s_res_fs {
    int exclude_size;
    int have_MD5;                      /* set if MD5 initialized */
    struct MD5Context md5c;            /* MD5 of include/exclude */
-   char MD5[50];                      /* base 64 representation of MD5 */
+   char MD5[30];                      /* base 64 representation of MD5 */
 };
 typedef struct s_res_fs FILESET;
 
-/*
- * FileOptions Resource (options for Includes)
- */
-struct s_res_fo {
-   RES  hdr;
-
-   char opts[50];                     /* Options string */
-   struct s_applyto *applyto;         /* applyto strings */
-}; 
-typedef struct s_res_fo FILEOPTIONS;
  
-
 /* 
  *   Schedule Resource
  *

@@ -189,6 +189,18 @@ static struct res_items job_items[] = {
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
+/* FileOptions resource
+ *
+ *   name	   handler     value		     code flags    default_value
+ */
+static struct res_items fo_items[] = {
+   {"name",        store_name, ITEM(res_fo.hdr.name), 0, ITEM_REQUIRED, 0},
+   {"description", store_str,  ITEM(res_fo.hdr.desc), 0, 0, 0},
+   {"replace",     store_replace, ITEM(res_fo.replace), REPLACE_ALWAYS, ITEM_DEFAULT, 0},
+   {NULL,	   NULL,       NULL,		      0, 0, 0} 
+};
+
+
 /* FileSet resource
  *
  *   name	   handler     value		     code flags    default_value
@@ -278,6 +290,7 @@ struct s_res resources[] = {
    {"storage",       store_items, R_STORAGE,   NULL},
    {"catalog",       cat_items,   R_CATALOG,   NULL},
    {"schedule",      sch_items,   R_SCHEDULE,  NULL},
+   {"fileoptions",   fo_items,    R_FILEOPTIONS, NULL},
    {"fileset",       fs_items,    R_FILESET,   NULL},
    {"group",         group_items, R_GROUP,     NULL},
    {"pool",          pool_items,  R_POOL,      NULL},
@@ -384,6 +397,7 @@ struct s_fs_opt {
 /* Options permitted for each keyword and resulting value */
 static struct s_fs_opt FS_options[] = {
    {"md5",      INC_KW_SIGNATURE,    "M"},
+   {"sha1",     INC_KW_SIGNATURE,    "S"},
    {"gzip",     INC_KW_COMPRESSION,  "Z6"},
    {"gzip1",    INC_KW_COMPRESSION,  "Z1"},
    {"gzip2",    INC_KW_COMPRESSION,  "Z2"},
@@ -1333,7 +1347,7 @@ static void store_inc(LEX *lc, struct res_items *item, int index, int pass)
 	    case T_IDENTIFIER:
 	    case T_UNQUOTED_STRING:
 	    case T_QUOTED_STRING:
-	       fname = (char *) malloc(lc->str_len + inc_opts_len + 1);
+	       fname = (char *)malloc(lc->str_len + inc_opts_len + 1);
 	       strcpy(fname, inc_opts);
 	       strcat(fname, lc->str);
 	       if (res_all.res_fs.have_MD5) {
@@ -1355,9 +1369,9 @@ static void store_inc(LEX *lc, struct res_items *item, int index, int pass)
 		  if (res_all.res_fs.num_excludes == res_all.res_fs.exclude_size) {
 		     res_all.res_fs.exclude_size += 10;
 		     if (res_all.res_fs.exclude_array == NULL) {
-			res_all.res_fs.exclude_array = (char **) malloc(sizeof(char *) * res_all.res_fs.exclude_size);
+			res_all.res_fs.exclude_array = (char **)malloc(sizeof(char *) * res_all.res_fs.exclude_size);
 		     } else {
-			res_all.res_fs.exclude_array = (char **) realloc(res_all.res_fs.exclude_array,
+			res_all.res_fs.exclude_array = (char **)realloc(res_all.res_fs.exclude_array,
 			   sizeof(char *) * res_all.res_fs.exclude_size);
 		     }
 		  }

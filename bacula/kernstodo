@@ -15,6 +15,8 @@ Testing to do: (painful)
 - blocksize recognition code.
 
 For 1.30 release:
+- Add Signature type to File DB record.
+
 - CD into subdirectory when open()ing files for backup to
   speed up things.  Test with testfind().
 - Add prefixlinks to where or not where absolute links to FD.

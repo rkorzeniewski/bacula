@@ -190,7 +190,7 @@ int do_append_data(JCR *jcr)
 
 	 /* Send attributes and MD5 to Director for Catalog */
 	 if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_MD5_SIGNATURE ||
-	     stream == STREAM_WIN32_ATTRIBUTES) { 
+	     stream == STREAM_WIN32_ATTRIBUTES || stream == STREAM_SHA1_SIGNATURE) { 
 	    if (!jcr->no_attributes) {
 	       if (jcr->spool_attributes && jcr->dir_bsock->spool_fd) {
 		  jcr->dir_bsock->spool = 1;

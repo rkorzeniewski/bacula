@@ -102,6 +102,14 @@
 #define STREAM_SPARSE_GZIP_DATA  7
 #define STREAM_PROGRAM_NAMES     8    /* program names for program data */
 #define STREAM_PROGRAM_DATA      9    /* Data needing program */
+#define STREAM_SHA1_SIGNATURE   10    /* SHA1 signature for the file */
+
+/*
+ * Internal code for Signature types
+ */
+#define NO_SIG   0
+#define MD5_SIG  1
+#define SHA1_SIG 2
 
 /* Size of File Address stored in STREAM_SPARSE_DATA. Do NOT change! */
 #define SPARSE_FADDR_SIZE (sizeof(uint64_t))
