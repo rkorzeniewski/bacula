@@ -105,14 +105,14 @@ struct s_excluded_file {
  * Definition of the find_files packet passed as the
  * first argument to the find_files callback subroutine.
  */
-typedef struct s_ff {
+struct FF_PKT {
    char *fname;                       /* filename */
    char *link;                        /* link if file linked */
    POOLMEM *sys_fname;                /* system filename */
    struct stat statp;                 /* stat packet */
-   uint32_t FileIndex;                /* FileIndex of this file */
-   uint32_t LinkFI;                   /* FileIndex of main hard linked file */
-   struct f_link *linked;             /* Set if we are hard linked */
+   int32_t FileIndex;                 /* FileIndex of this file */
+   int32_t LinkFI;                    /* FileIndex of main hard linked file */
+   struct f_link *linked;             /* Set if this file is hard linked */
    int type;                          /* FT_ type from above */
    uint32_t flags;                    /* control flags */
    int ff_errno;                      /* errno */
@@ -129,8 +129,9 @@ typedef struct s_ff {
    struct s_excluded_file *excluded_files_list;
    struct s_excluded_file *excluded_paths_list;
 
+   /* List of all hard linked files found */
    struct f_link *linklist;           /* hard linked files */
-} FF_PKT;
+};
 
 
 #include "protos.h"

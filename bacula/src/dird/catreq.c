@@ -107,9 +107,9 @@ next_volume:
 	    }
 	 }
 
-	 if (!ok && jcr->pool->recycle_oldest_volume) {
-            Dmsg1(200, "No next volume found. RecycleOldest=%d\n",
-		jcr->pool->recycle_oldest_volume);
+	 if (!ok && jcr->pool->purge_oldest_volume) {
+            Dmsg1(200, "No next volume found. PurgeOldest=%d\n",
+		jcr->pool->purge_oldest_volume);
 	    /* Find oldest volume to recycle */
 	    ok = db_find_next_volume(jcr, jcr->db, -1, &mr);
             Dmsg1(400, "Find oldest=%d\n", ok);
@@ -118,7 +118,7 @@ next_volume:
                Dmsg0(400, "Try purge.\n");
 	       /* Try to purge oldest volume */
 	       ua = new_ua_context(jcr);
-               Jmsg(jcr, M_INFO, 0, _("Recycling oldest volume \"%s\"\n"), mr.VolumeName);
+               Jmsg(jcr, M_INFO, 0, _("Purging oldest volume \"%s\"\n"), mr.VolumeName);
 	       ok = purge_jobs_from_volume(ua, &mr);
 	       free_ua_context(ua);
 	       if (ok) {

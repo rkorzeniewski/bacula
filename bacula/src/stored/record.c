@@ -211,8 +211,8 @@ rem=%d remainder=%d\n",
       if (remlen >= WRITE_RECHDR_LENGTH) {
 	 ser_begin(block->bufp, WRITE_RECHDR_LENGTH);
 	 if (BLOCK_VER == 1) {
-	 ser_uint32(rec->VolSessionId);
-	 ser_uint32(rec->VolSessionTime);
+	    ser_uint32(rec->VolSessionId);
+	    ser_uint32(rec->VolSessionTime);
 	 } else {
 	    block->VolSessionId = rec->VolSessionId;
 	    block->VolSessionTime = rec->VolSessionTime;
@@ -225,6 +225,13 @@ rem=%d remainder=%d\n",
 	 block->binbuf += WRITE_RECHDR_LENGTH;
 	 remlen -= WRITE_RECHDR_LENGTH;
 	 rec->remainder = rec->data_len;
+	 if (rec->FileIndex > 0) {
+	    /* If data record, update what we have in this block */
+	    if (block->FirstIndex == 0) {
+	       block->FirstIndex = rec->FileIndex;
+	    }
+	    block->LastIndex = rec->FileIndex;
+	 }
       } else {
 	 rec->remainder = rec->data_len + WRITE_RECHDR_LENGTH;
 	 return 0;
@@ -247,8 +254,8 @@ rem=%d remainder=%d\n",
        */
       ser_begin(block->bufp, WRITE_RECHDR_LENGTH);
       if (BLOCK_VER == 1) {
-      ser_uint32(rec->VolSessionId);
-      ser_uint32(rec->VolSessionTime);
+	 ser_uint32(rec->VolSessionId);
+	 ser_uint32(rec->VolSessionTime);
       } else {
 	 block->VolSessionId = rec->VolSessionId;
 	 block->VolSessionTime = rec->VolSessionTime;
@@ -269,6 +276,13 @@ rem=%d remainder=%d\n",
       block->bufp += WRITE_RECHDR_LENGTH;
       block->binbuf += WRITE_RECHDR_LENGTH;
       remlen -= WRITE_RECHDR_LENGTH;
+      if (rec->FileIndex > 0) {
+	 /* If data record, update what we have in this block */
+	 if (block->FirstIndex == 0) {
+	    block->FirstIndex = rec->FileIndex;
+	 }
+	 block->LastIndex = rec->FileIndex;
+      }
    }
    if (remlen == 0) {
       return 0; 		      /* partial transfer */
@@ -393,8 +407,8 @@ int read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
 
       unser_begin(block->bufp, WRITE_RECHDR_LENGTH);
       if (block->BlockVer == 1) {
-      unser_uint32(VolSessionId);
-      unser_uint32(VolSessionTime);
+	 unser_uint32(VolSessionId);
+	 unser_uint32(VolSessionTime);
       } else {
 	 VolSessionId = block->VolSessionId;
 	 VolSessionTime = block->VolSessionTime;
@@ -437,9 +451,15 @@ int read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
       rec->VolSessionId = VolSessionId;
       rec->VolSessionTime = VolSessionTime;
       rec->FileIndex = FileIndex;
+      if (FileIndex > 0) {
+	 if (block->FirstIndex == 0) {
+	    block->FirstIndex = FileIndex;
+	 }
+	 block->LastIndex = FileIndex;
+      }
 
-      Dmsg6(100, "rd_rec_blk() got FI=%s SessId=%d Strm=%s len=%u\n\
-remlen=%d data_len=%d\n",
+      Dmsg6(100, "rd_rec_blk() got FI=%s SessId=%d Strm=%s len=%u\n"
+                 "remlen=%d data_len=%d\n",
 	 FI_to_ascii(rec->FileIndex), rec->VolSessionId, 
 	 stream_to_ascii(rec->Stream, rec->FileIndex), data_bytes, remlen, 
 	 rec->data_len);

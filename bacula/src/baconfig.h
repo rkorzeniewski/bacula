@@ -60,10 +60,13 @@
 #define _(s) gettext((s))
 #define N_(s) (s)
 #else
+#undef _
 #define _(s) (s)
+#undef N_
 #define N_(s) (s)
+#undef textdomain
 #define textdomain(d)
-#define bindtextdomain(p, d)
+/* #define bindtextdomain(p, d) */
 #endif
 
 

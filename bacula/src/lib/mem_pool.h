@@ -25,6 +25,10 @@
 
  */
 
+#ifndef __MEM_POOL_H_
+#define __MEM_POOL_H_
+
+
 #ifdef SMARTALLOC
 
 #define get_pool_memory(pool) sm_get_pool_memory(__FILE__, __LINE__, pool)
@@ -68,3 +72,5 @@ extern void  print_memory_pool_stats();
 #define PM_MESSAGE 3                  /* daemon message */
 #define PM_EMSG    4                  /* error message */
 #define PM_MAX     PM_EMSG            /* Number of types */
+
+#endif

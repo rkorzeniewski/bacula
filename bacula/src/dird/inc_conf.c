@@ -398,17 +398,14 @@ static void store_match(LEX *lc, struct res_items *item, int index, int pass)
        */
       token = lex_get_token(lc, T_ALL); 	   
       switch (token) {
-	 case T_IDENTIFIER:
-	 case T_UNQUOTED_STRING:
-	 case T_QUOTED_STRING:
-	    setup_current_opts();
-	    if (res_incexe.current_opts->match) {
-               scan_err0(lc, _("More than one match specified.\n")); 
-	    }
-	    res_incexe.current_opts->match = bstrdup(lc->str);
-	    break;
-	 default:
-            scan_err1(lc, _("Expected a filename, got: %s\n"), lc->str);
+      case T_IDENTIFIER:
+      case T_UNQUOTED_STRING:
+      case T_QUOTED_STRING:
+	 setup_current_opts();
+	 res_incexe.current_opts->match.append(bstrdup(lc->str));
+	 break;
+      default:
+         scan_err1(lc, _("Expected a filename, got: %s\n"), lc->str);
       } 				
    } else { /* pass 2 */
       lex_get_token(lc, T_ALL); 	 
@@ -420,7 +417,6 @@ static void store_match(LEX *lc, struct res_items *item, int index, int pass)
 static void store_base(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token;
-   FOPTS *copt;
 
    if (pass == 1) {
       setup_current_opts();
@@ -428,14 +424,7 @@ static void store_base(LEX *lc, struct res_items *item, int index, int pass)
        * Pickup Base Job Name
        */
       token = lex_get_token(lc, T_NAME);	   
-      copt = res_incexe.current_opts;
-      if (copt->base_list == NULL) {
-	 copt->base_list = (char **)malloc(sizeof(char *));			
-      } else {
-	 copt->base_list = (char **)realloc(copt->base_list,
-	    sizeof(char *) * (copt->num_base+1));
-      }
-      copt->base_list[copt->num_base++] = bstrdup(lc->str);
+      res_incexe.current_opts->base_list.append(bstrdup(lc->str));
    } else { /* pass 2 */
       lex_get_token(lc, T_ALL); 	 
    }
@@ -507,7 +496,6 @@ static void store_opts(LEX *lc, struct res_items *item, int index, int pass)
 
    if (pass == 1) {
       setup_current_opts();
-
       bstrncat(res_incexe.current_opts->opts, inc_opts, MAX_FOPTS);
    }
 

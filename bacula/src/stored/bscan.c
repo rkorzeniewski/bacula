@@ -337,8 +337,8 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       case VOL_LABEL:
 	 unser_volume_label(dev, rec);
 	 /* Check Pool info */
-	 strcpy(pr.Name, dev->VolHdr.PoolName);
-	 strcpy(pr.PoolType, dev->VolHdr.PoolType);
+	 bstrncpy(pr.Name, dev->VolHdr.PoolName, sizeof(pr.Name));
+	 bstrncpy(pr.PoolType, dev->VolHdr.PoolType, sizeof(pr.PoolType));
 	 if (db_get_pool_record(bjcr, db, &pr)) {
 	    if (verbose) {
                Pmsg1(000, _("Pool record for %s found in DB.\n"), pr.Name);
@@ -360,7 +360,7 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 
 	 /* Check Media Info */
 	 memset(&mr, 0, sizeof(mr));
-	 strcpy(mr.VolumeName, dev->VolHdr.VolName);
+	 bstrncpy(mr.VolumeName, dev->VolHdr.VolName, sizeof(mr.VolumeName));
 	 mr.PoolId = pr.PoolId;
 	 if (db_get_media_record(bjcr, db, &mr)) {
 	    if (verbose) {
@@ -374,7 +374,7 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
                Pmsg1(000, _("VOL_LABEL: Media record not found for Volume: %s\n"),
 		  mr.VolumeName);
 	    }
-	    strcpy(mr.MediaType, dev->VolHdr.MediaType);
+	    bstrncpy(mr.MediaType, dev->VolHdr.MediaType, sizeof(mr.MediaType));
 	    create_media_record(db, &mr, &dev->VolHdr);
 	 }
 	 if (strcmp(mr.MediaType, dev->VolHdr.MediaType) != 0) {
@@ -534,6 +534,19 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       return;
    }
 
+   mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
+   if (!mjcr) {
+      if (mr.VolJobs > 0) {
+         Pmsg2(000, _("Could not find Job for SessId=%d SessTime=%d record.\n"),
+		      rec->VolSessionId, rec->VolSessionTime);
+      } else {
+	 ignored_msgs++;
+      }
+      return;
+   }
+   if (mjcr->VolFirstIndex == 0) {
+      mjcr->VolFirstIndex = block->FirstIndex;
+   }
 
    /* File Attributes stream */
    switch (rec->Stream) {
@@ -554,16 +567,6 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 build_attr_output_fnames(bjcr, attr);
 	 print_ls_output(bjcr, attr);
       }
-      mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
-      if (!mjcr) {
-	 if (mr.VolJobs > 0) {
-            Pmsg2(000, _("Could not find Job SessId=%d SessTime=%d for Attributes record.\n"),
-			 rec->VolSessionId, rec->VolSessionTime);
-	 } else {
-	    ignored_msgs++;
-	 }
-	 return;
-      }
       fr.JobId = mjcr->JobId;
       fr.FileId = 0;
       if (db_get_file_attributes_record(bjcr, db, attr->fname, &fr)) {
@@ -581,16 +584,6 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
    case STREAM_WIN32_DATA:
    case STREAM_FILE_DATA:
    case STREAM_SPARSE_DATA:
-      mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
-      if (!mjcr) {
-	 if (mr.VolJobs > 0) {
-            Pmsg2(000, _("Could not find Job SessId=%d SessTime=%d for File Data record.\n"),
-			 rec->VolSessionId, rec->VolSessionTime);
-	 } else {
-	    ignored_msgs++;
-	 }
-	 return;
-      }
       mjcr->JobBytes += rec->data_len;
       if (rec->Stream == STREAM_SPARSE_DATA) {
 	 mjcr->JobBytes -= sizeof(uint64_t);
@@ -600,47 +593,17 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       break;
 
    case STREAM_GZIP_DATA:
-      mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
-      if (!mjcr) {
-	 if (mr.VolJobs > 0) {
-            Pmsg2(000, _("Could not find Job SessId=%d SessTime=%d for GZIP Data record.\n"),
-			 rec->VolSessionId, rec->VolSessionTime);
-	 } else {
-	    ignored_msgs++;
-	 }
-	 return;
-      }
       mjcr->JobBytes += rec->data_len; /* No correct, we should expand it */
       free_jcr(mjcr);		      /* done using JCR */
       break;
 
    case STREAM_SPARSE_GZIP_DATA:
-      mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
-      if (!mjcr) {
-	 if (mr.VolJobs > 0) {
-            Pmsg2(000, _("Could not find Job SessId=%d SessTime=%d for Sparse GZIP Data record.\n"),
-			 rec->VolSessionId, rec->VolSessionTime);
-	 } else {
-	    ignored_msgs++;
-	 }
-	 return;
-      }
       mjcr->JobBytes += rec->data_len - sizeof(uint64_t); /* No correct, we should expand it */
       free_jcr(mjcr);		      /* done using JCR */
       break;
 
    /* Win32 GZIP stream */
    case STREAM_WIN32_GZIP_DATA:
-      mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
-      if (!mjcr) {
-	 if (mr.VolJobs > 0) {
-            Pmsg2(000, _("Could not find Job SessId=%d SessTime=%d for Win32 GZIP Data record.\n"),
-			 rec->VolSessionId, rec->VolSessionTime);
-	 } else {
-	    ignored_msgs++;
-	 }
-	 return;
-      }
       mjcr->JobBytes += rec->data_len;
       free_jcr(mjcr);		      /* done using JCR */
       break;

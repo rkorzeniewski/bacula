@@ -146,6 +146,7 @@ void empty_block(DEV_BLOCK *block)
    block->read_len = 0;
    block->write_failed = false;
    block->block_read = false;
+   block->FirstIndex = block->LastIndex = 0;
 }
 
 /*
@@ -475,7 +476,7 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       return 0;
    }
 
-   /* Do housekeeping */
+   /* We successfully wrote the block, now do housekeeping */
 
    dev->VolCatInfo.VolCatBytes += block->binbuf;
    dev->VolCatInfo.VolCatBlocks++;   
@@ -492,6 +493,12 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    } else {
       jcr->EndBlock = (uint32_t)dev->file_addr;
       jcr->EndFile = (uint32_t)(dev->file_addr >> 32);
+   }
+   if (jcr->VolFirstIndex == 0 && block->FirstIndex > 0) {
+      jcr->VolFirstIndex = block->FirstIndex;
+   }
+   if (block->LastIndex > 0) {
+      jcr->VolLastIndex = block->LastIndex;
    }
    jcr->WroteVol = true;
 
@@ -635,9 +642,25 @@ reread:
    }  
 
    dev->state &= ~(ST_EOF|ST_SHORT); /* clear EOF and short block */
-   dev->block_num++;
    dev->VolCatInfo.VolCatReads++;   
    dev->VolCatInfo.VolCatRBytes += block->read_len;
+
+   dev->VolCatInfo.VolCatBytes += block->block_len;
+   dev->VolCatInfo.VolCatBlocks++;   
+   dev->file_addr += block->block_len;
+   dev->EndBlock = dev->block_num;
+   dev->EndFile  = dev->file;
+   dev->block_num++;
+   block->BlockNumber++;
+
+   /* Update jcr values */
+   if (dev->state & ST_TAPE) {
+      jcr->EndBlock = dev->EndBlock;
+      jcr->EndFile  = dev->EndFile;
+   } else {
+      jcr->EndBlock = (uint32_t)dev->file_addr;
+      jcr->EndFile = (uint32_t)(dev->file_addr >> 32);
+   }
 
    /*
     * If we read a short block on disk,

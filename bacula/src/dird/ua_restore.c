@@ -80,7 +80,6 @@ static void free_name_list(NAME_LIST *name_list);
 static void get_storage_from_mediatype(UAContext *ua, NAME_LIST *name_list, JOBIDS *ji);
 static int select_backups_before_date(UAContext *ua, JOBIDS *ji, char *date);
 
-
 /*
  *   Restore files
  *
@@ -176,7 +175,6 @@ int restorecmd(UAContext *ua, char *cmd)
       if (!db_sql_query(ua->db, query, unique_name_list_handler, (void *)&name_list)) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
       }
-
    }
    bsendmsg(ua, "%d item%s inserted into the tree and marked for extraction.\n", 
       items, items==1?"":"s");
@@ -186,8 +184,10 @@ int restorecmd(UAContext *ua, char *cmd)
    get_storage_from_mediatype(ua, &name_list, &ji);
    free_name_list(&name_list);
 
-   /* Let the user select which files to restore */
-   user_select_files_from_tree(&tree);
+   if (find_arg(ua, _("all")) < 0) {
+      /* Let the user select which files to restore */
+      user_select_files_from_tree(&tree);
+   }
 
    /*
     * Walk down through the tree finding all files marked to be 
@@ -273,7 +273,8 @@ static int user_select_jobids(UAContext *ua, JOBIDS *ji)
    JobId_t JobId;
    JOB_DBR jr;
    POOLMEM *query;
-   int done = 0;
+   bool done = false;
+   int i;
    char *list[] = { 
       "List last 20 Jobs run",
       "List Jobs where a given File is saved",
@@ -284,23 +285,68 @@ static int user_select_jobids(UAContext *ua, JOBIDS *ji)
       "Cancel",
       NULL };
 
-   bsendmsg(ua, _("\nFirst you select one or more JobIds that contain files\n"
+   char *kw[] = {
+      "jobid",     /* 0 */
+      "current",   /* 1 */
+      "before",    /* 2 */
+      NULL
+   };
+
+   switch (find_arg_keyword(ua, kw)) {
+   case 0:			      /* jobid */
+      i = find_arg_with_value(ua, _("jobid"));
+      if (i < 0) {
+	 return 0;
+      }
+      bstrncpy(ji->JobIds, ua->argv[i], sizeof(ji->JobIds));
+      done = true;
+      break;
+   case 1:			      /* current */
+      bstrutime(date, sizeof(date), time(NULL));
+      if (!select_backups_before_date(ua, ji, date)) {
+	 return 0;
+      }
+      done = true;
+      break;
+   case 2:			      /* before */
+      i = find_arg_with_value(ua, _("before"));
+      if (i < 0) {
+	 return 0;
+      }
+      if (str_to_utime(ua->argv[i]) == 0) {
+         bsendmsg(ua, _("Improper date format: %s\n"), ua->argv[i]);
+	 return 0;
+      }
+      bstrncpy(date, ua->argv[i], sizeof(date));
+      if (!select_backups_before_date(ua, ji, date)) {
+	 return 0;
+      }
+      done = true;
+      break;
+   default:
+      break;
+   }
+       
+   if (!done) {
+      bsendmsg(ua, _("\nFirst you select one or more JobIds that contain files\n"
                   "to be restored. You will be presented several methods\n"
                   "of specifying the JobIds. Then you will be allowed to\n"
                   "select which files from those JobIds are to be restored.\n\n"));
+   }
 
+   /* If choice not already made above, prompt */
    for ( ; !done; ) {
       start_prompt(ua, _("To select the JobIds, you have the following choices:\n"));
       for (int i=0; list[i]; i++) {
 	 add_prompt(ua, list[i]);
       }
-      done = 1;
+      done = true;
       switch (do_prompt(ua, "", _("Select item: "), NULL, 0)) {
       case -1:			      /* error */
 	 return 0;
       case 0:			      /* list last 20 Jobs run */
 	 db_list_sql_query(ua->jcr, ua->db, uar_list_jobs, prtit, ua, 1, HORZ_LIST);
-	 done = 0;
+	 done = false;
 	 break;
       case 1:			      /* list where a file is saved */
 	 char *fname;
@@ -316,7 +362,7 @@ static int user_select_jobids(UAContext *ua, JOBIDS *ji)
 	 free(fname);
 	 db_list_sql_query(ua->jcr, ua->db, query, prtit, ua, 1, HORZ_LIST);
 	 free_pool_memory(query);
-	 done = 0;
+	 done = false;
 	 break;
       case 2:			      /* enter a list of JobIds */
          if (!get_cmd(ua, _("Enter JobId(s), comma separated, to restore: "))) {
@@ -329,7 +375,7 @@ static int user_select_jobids(UAContext *ua, JOBIDS *ji)
 	    return 0;
 	 }
 	 db_list_sql_query(ua->jcr, ua->db, ua->cmd, prtit, ua, 1, HORZ_LIST);
-	 done = 0;
+	 done = false;
 	 break;
       case 4:			      /* Select the most recent backups */
 	 bstrutime(date, sizeof(date), time(NULL));
@@ -493,15 +539,14 @@ bail_out:
    return stat;
 }
 
-
+/* Return next JobId from comma separated list */
 static int next_jobid_from_list(char **p, uint32_t *JobId)
 {
    char jobid[30];
-   int i;
    char *q = *p;
 
    jobid[0] = 0;
-   for (i=0; i<(int)sizeof(jobid); i++) {
+   for (int i=0; i<(int)sizeof(jobid); i++) {
       if (*q == ',' || *q == 0) {
 	 q++;
 	 break;
@@ -524,13 +569,13 @@ static int jobid_handler(void *ctx, int num_fields, char **row)
 {
    JOBIDS *ji = (JOBIDS *)ctx;
 
+   /* Concatenate a JobId if it does not exceed array size */
    if (strlen(ji->JobIds)+strlen(row[0])+2 < sizeof(ji->JobIds)) {
       if (ji->JobIds[0] != 0) {
          strcat(ji->JobIds, ",");
       }
       strcat(ji->JobIds, row[0]);
    }
-
    return 0;
 }
 
@@ -597,9 +642,7 @@ static int unique_name_list_handler(void *ctx, int num_fields, char **row)
  */
 static void print_name_list(UAContext *ua, NAME_LIST *name_list)
 { 
-   int i;
-
-   for (i=0; i < name_list->num_ids; i++) {
+   for (int i=0; i < name_list->num_ids; i++) {
       bsendmsg(ua, "%s\n", name_list->name[i]);
    }
 }
@@ -610,9 +653,7 @@ static void print_name_list(UAContext *ua, NAME_LIST *name_list)
  */
 static void free_name_list(NAME_LIST *name_list)
 { 
-   int i;
-
-   for (i=0; i < name_list->num_ids; i++) {
+   for (int i=0; i < name_list->num_ids; i++) {
       free(name_list->name[i]);
    }
    if (name_list->name) {

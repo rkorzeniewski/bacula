@@ -49,7 +49,6 @@ static FF_PKT *ff = &my_ff;
 static BSR *bsr = NULL;
 static int extract = FALSE;
 static int non_support_data = 0;
-static int non_support_attr = 0;
 static long total = 0;
 static ATTR *attr;
 static char *where;

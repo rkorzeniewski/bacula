@@ -90,8 +90,8 @@ static struct s_cmds cmds[] = {
 static char jobcmd[]      = "JobId=%d Job=%127s SDid=%d SDtime=%d Authorization=%100s";
 static char storaddr[]    = "storage address=%s port=%d ssl=%d\n";
 static char sessioncmd[]  = "session %127s %ld %ld %ld %ld %ld %ld\n";
-static char restorecmd[]  = "restore replace=%c where=%s\n";
-static char restorecmd1[] = "restore replace=%c where=\n";
+static char restorecmd[]  = "restore replace=%c prelinks=%d where=%s\n";
+static char restorecmd1[] = "restore replace=%c prelinks=%d where=\n";
 static char verifycmd[]   = "verify level=%30s\n";
 static char estimatecmd[] = "estimate listing=%d\n";
 
@@ -741,6 +741,7 @@ static int restore_cmd(JCR *jcr)
    BSOCK *dir = jcr->dir_bsock;
    BSOCK *sd = jcr->store_bsock;
    POOLMEM *where;
+   int prefix_links;
    char replace;
    char ed1[50], ed2[50];
 
@@ -752,8 +753,8 @@ static int restore_cmd(JCR *jcr)
    where = get_memory(dir->msglen+1);
    *where = 0;
 
-   if (sscanf(dir->msg, restorecmd, &replace, where) != 2) {
-      if (sscanf(dir->msg, restorecmd1, &replace) != 1) {
+   if (sscanf(dir->msg, restorecmd, &replace, &prefix_links, where) != 3) {
+      if (sscanf(dir->msg, restorecmd1, &replace, &prefix_links) != 2) {
 	 pm_strcpy(&jcr->errmsg, dir->msg);
          Jmsg(jcr, M_FATAL, 0, _("Bad replace command. CMD=%s\n"), jcr->errmsg);
 	 return 0;
@@ -770,6 +771,7 @@ static int restore_cmd(JCR *jcr)
    jcr->where = bstrdup(where);
    free_pool_memory(where);
    jcr->replace = replace;
+   jcr->prefix_links = prefix_links;
 
    bnet_fsend(dir, OKrestore);
    Dmsg1(110, "bfiled>dird: %s", dir->msg);

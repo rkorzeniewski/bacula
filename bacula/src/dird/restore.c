@@ -42,7 +42,7 @@
 #include "dird.h"
 
 /* Commands sent to File daemon */
-static char restorecmd[]   = "restore replace=%c where=%s\n";
+static char restorecmd[]   = "restore replace=%c prelinks=%d where=%s\n";
 static char storaddr[]     = "storage address=%s port=%d ssl=0\n";
 static char sessioncmd[]   = "session %s %ld %ld %ld %ld %ld %ld\n";  
 
@@ -237,7 +237,7 @@ int do_restore(JCR *jcr)
       where = "";                     /* None */
    }
    bash_spaces(where);
-   bnet_fsend(fd, restorecmd, replace, where);
+   bnet_fsend(fd, restorecmd, replace, jcr->prefix_links, where);
    unbash_spaces(where);
 
    if (!response(jcr, fd, OKrestore, "Restore", DISPLAY_ERROR)) {

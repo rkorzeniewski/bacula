@@ -63,6 +63,8 @@ Other Changes this Release:
 
 
 Items to note:  !!!!!
+- Recycle Oldest Volume has changed to be Purge Oldest Volume
+  Please change your Director's .conf file.
 - The default time interval is now days instead of seconds. Please
   check your .conf files!
 - For MySQL users, you must have the thread safe client libraries 

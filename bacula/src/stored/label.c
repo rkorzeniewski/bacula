@@ -441,7 +441,6 @@ int write_volume_label_to_dev(JCR *jcr, DEVRES *device, char *VolName, char *Poo
 void create_session_label(JCR *jcr, DEV_RECORD *rec, int label)
 {
    ser_declare;
-   struct date_time dt;
 
    rec->sync	       = 1;	    /* wait for completion */
    rec->VolSessionId   = jcr->VolSessionId;
@@ -455,15 +454,9 @@ void create_session_label(JCR *jcr, DEV_RECORD *rec, int label)
 
    ser_uint32(jcr->JobId);
 
-   if (BaculaTapeVersion >= 11) {
-      ser_btime(get_current_btime());
-      ser_float64(0);
-   } else {
-      /* OLD WAY DEPRECATED */
-      get_current_time(&dt);
-      ser_float64(dt.julian_day_number);
-      ser_float64(dt.julian_day_fraction);
-   }
+   /* Changed in VerNum 11 */
+   ser_btime(get_current_btime());
+   ser_float64(0);
 
    ser_string(jcr->pool_name);
    ser_string(jcr->pool_type);
@@ -475,9 +468,8 @@ void create_session_label(JCR *jcr, DEV_RECORD *rec, int label)
    ser_string(jcr->fileset_name);
    ser_uint32(jcr->JobType);
    ser_uint32(jcr->JobLevel);
-   if (BaculaTapeVersion >= 11) {
-      ser_string(jcr->fileset_md5);
-   }
+   /* Added in VerNum 11 */
+   ser_string(jcr->fileset_md5);
 
    if (label == EOS_LABEL) {
       ser_uint32(jcr->JobFiles);
@@ -507,27 +499,27 @@ int write_session_label(JCR *jcr, DEV_BLOCK *block, int label)
    rec = new_record();
    Dmsg1(90, "session_label record=%x\n", rec);
    switch (label) {
-      case SOS_LABEL:
-	 if (dev->state & ST_TAPE) {
-	    jcr->StartBlock = dev->block_num;
-	    jcr->StartFile  = dev->file;
-	 } else {
-	    jcr->StartBlock = (uint32_t)dev->file_addr;
-	    jcr->StartFile = (uint32_t)(dev->file_addr >> 32);
-	 }
-	 break;
-      case EOS_LABEL:
-	 if (dev->state & ST_TAPE) {
-	    jcr->EndBlock = dev->EndBlock;
-	    jcr->EndFile  = dev->EndFile;
-	 } else {
-	    jcr->EndBlock = (uint32_t)dev->file_addr;
-	    jcr->EndFile = (uint32_t)(dev->file_addr >> 32);
-	 }
-	 break;
-      default:
-         Jmsg1(jcr, M_ABORT, 0, _("Bad session label = %d\n"), label);
-	 break;
+   case SOS_LABEL:
+      if (dev->state & ST_TAPE) {
+	 jcr->StartBlock = dev->block_num;
+	 jcr->StartFile  = dev->file;
+      } else {
+	 jcr->StartBlock = (uint32_t)dev->file_addr;
+	 jcr->StartFile = (uint32_t)(dev->file_addr >> 32);
+      }
+      break;
+   case EOS_LABEL:
+      if (dev->state & ST_TAPE) {
+	 jcr->EndBlock = dev->EndBlock;
+	 jcr->EndFile  = dev->EndFile;
+      } else {
+	 jcr->EndBlock = (uint32_t)dev->file_addr;
+	 jcr->EndFile = (uint32_t)(dev->file_addr >> 32);
+      }
+      break;
+   default:
+      Jmsg1(jcr, M_ABORT, 0, _("Bad session label = %d\n"), label);
+      break;
    }
    create_session_label(jcr, rec, label);
    rec->FileIndex = label;
