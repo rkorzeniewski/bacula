@@ -47,7 +47,7 @@ static char Get_Vol_Info[] = "CatReq Job=%127s GetVolInfo VolName=%127s write=%d
 static char Update_media[] = "CatReq Job=%127s UpdateMedia VolName=%s\
  VolJobs=%u VolFiles=%u VolBlocks=%u VolBytes=%" lld " VolMounts=%u\
  VolErrors=%u VolWrites=%u MaxVolBytes=%" lld " EndTime=%d VolStatus=%10s\
- Slot=%d relabel=%d Drive=%d InChanger=%d\n";
+ Slot=%d relabel=%d InChanger=%d VolReadTime=%" lld " VolWriteTime=%" lld "\n";
 
 static char Create_job_media[] = "CatReq Job=%127s CreateJobMedia \
  FirstIndex=%u LastIndex=%u StartFile=%u EndFile=%u \
@@ -58,7 +58,8 @@ static char Create_job_media[] = "CatReq Job=%127s CreateJobMedia \
 static char OK_media[] = "1000 OK VolName=%s VolJobs=%u VolFiles=%u"
    " VolBlocks=%u VolBytes=%s VolMounts=%u VolErrors=%u VolWrites=%u"
    " MaxVolBytes=%s VolCapacityBytes=%s VolStatus=%s Slot=%d"
-   " MaxVolJobs=%u MaxVolFiles=%u Drive=%d InChanger=%d\n";
+   " MaxVolJobs=%u MaxVolFiles=%u InChanger=%d VolReadTime=%s"
+   " VolWriteTime=%s\n";
 
 static char OK_create[] = "1000 OK CreateJobMedia\n";
 
@@ -66,7 +67,7 @@ static char OK_create[] = "1000 OK CreateJobMedia\n";
 static int send_volume_info_to_storage_daemon(JCR *jcr, BSOCK *sd, MEDIA_DBR *mr) 
 {
    int stat;
-   char ed1[50], ed2[50], ed3[50];
+   char ed1[50], ed2[50], ed3[50], ed4[50], ed5[50];
 
    jcr->MediaId = mr->MediaId;
    pm_strcpy(&jcr->VolumeName, mr->VolumeName);
@@ -77,9 +78,11 @@ static int send_volume_info_to_storage_daemon(JCR *jcr, BSOCK *sd, MEDIA_DBR *mr
       edit_uint64(mr->MaxVolBytes, ed2), 
       edit_uint64(mr->VolCapacityBytes, ed3),
       mr->VolStatus, mr->Slot, mr->MaxVolJobs, mr->MaxVolFiles,
-      mr->Drive, mr->InChanger);
+      mr->InChanger,
+      edit_uint64(mr->VolReadTime, ed4),
+      edit_uint64(mr->VolWriteTime, ed5));
    unbash_spaces(mr->VolumeName);
-   Dmsg2(100, "Vol Info for %s: %s", jcr->Job, sd->msg);
+   Dmsg2(200, "Vol Info for %s: %s", jcr->Job, sd->msg);
    return stat;
 }
 
@@ -179,7 +182,8 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
    } else if (sscanf(bs->msg, Update_media, &Job, &sdmr.VolumeName, &sdmr.VolJobs,
       &sdmr.VolFiles, &sdmr.VolBlocks, &sdmr.VolBytes, &sdmr.VolMounts, &sdmr.VolErrors,
       &sdmr.VolWrites, &sdmr.MaxVolBytes, &sdmr.LastWritten, &sdmr.VolStatus, 
-      &sdmr.Slot, &label, &sdmr.Drive, &sdmr.InChanger) == 16) {
+      &sdmr.Slot, &label, &sdmr.InChanger, &sdmr.VolReadTime, 
+      &sdmr.VolWriteTime) == 17) {
 
       db_lock(jcr->db);
       Dmsg3(100, "Update media %s oldStat=%s newStat=%s\n", sdmr.VolumeName,
@@ -204,17 +208,18 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
       }
       Dmsg2(100, "Update media: BefVolJobs=%u After=%u\n", mr.VolJobs, sdmr.VolJobs);
       /* Copy updated values to original media record */
-      mr.VolJobs     = sdmr.VolJobs;
-      mr.VolFiles    = sdmr.VolFiles;
-      mr.VolBlocks   = sdmr.VolBlocks;
-      mr.VolBytes    = sdmr.VolBytes;
-      mr.VolMounts   = sdmr.VolMounts;
-      mr.VolErrors   = sdmr.VolErrors;
-      mr.VolWrites   = sdmr.VolWrites;
-      mr.LastWritten = sdmr.LastWritten;
-      mr.Slot	     = sdmr.Slot;
-      mr.Drive	     = sdmr.Drive;
-      mr.InChanger   = sdmr.InChanger;
+      mr.VolJobs      = sdmr.VolJobs;
+      mr.VolFiles     = sdmr.VolFiles;
+      mr.VolBlocks    = sdmr.VolBlocks;
+      mr.VolBytes     = sdmr.VolBytes;
+      mr.VolMounts    = sdmr.VolMounts;
+      mr.VolErrors    = sdmr.VolErrors;
+      mr.VolWrites    = sdmr.VolWrites;
+      mr.LastWritten  = sdmr.LastWritten;
+      mr.Slot	      = sdmr.Slot;
+      mr.InChanger    = sdmr.InChanger;
+      mr.VolReadTime  = sdmr.VolReadTime;
+      mr.VolWriteTime = sdmr.VolWriteTime;
       bstrncpy(mr.VolStatus, sdmr.VolStatus, sizeof(mr.VolStatus));
 
       Dmsg2(100, "db_update_media_record. Stat=%s Vol=%s\n", mr.VolStatus, mr.VolumeName);

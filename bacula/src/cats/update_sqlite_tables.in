@@ -37,9 +37,10 @@ CREATE TEMPORARY TABLE Media_backup (
    MaxVolJobs INTEGER UNSIGNED DEFAULT 0,
    MaxVolFiles INTEGER UNSIGNED DEFAULT 0,
    MaxVolBytes BIGINT UNSIGNED DEFAULT 0,
-   Drive INTEGER DEFAULT 0,
    InChanger TINYINT DEFAULT 0,
    MediaAddressing TINYINT DEFAULT 0,
+   VolReadTime BIGINT UNSIGNED DEFAULT 0,
+   VolWriteTime BIGINT UNSIGNED DEFAULT 0,
    PRIMARY KEY(MediaId)
    );
 
@@ -50,7 +51,7 @@ INSERT INTO Media_backup SELECT
    VolMounts, VolBytes, VolErrors, VolWrites,
    VolCapacityBytes, VolStatus, Recycle,
    VolRetention, VolUseDuration, MaxVolJobs,
-   MaxVolFiles, MaxVolBytes, 0, 0, 0
+   MaxVolFiles, MaxVolBytes, 0, 0, 0, 0
    FROM Media;
 
 
@@ -80,9 +81,10 @@ CREATE TABLE Media (
    MaxVolJobs INTEGER UNSIGNED DEFAULT 0,
    MaxVolFiles INTEGER UNSIGNED DEFAULT 0,
    MaxVolBytes BIGINT UNSIGNED DEFAULT 0,
-   Drive INTEGER DEFAULT 0,
    InChanger TINYINT DEFAULT 0,
    MediaAddressing TINYINT DEFAULT 0,
+   VolReadTime BIGINT UNSIGNED DEFAULT 0,
+   VolWriteTime BIGINT UNSIGNED DEFAULT 0,
    PRIMARY KEY(MediaId)
    );
 
@@ -93,8 +95,9 @@ INSERT INTO Media (
    VolMounts, VolBytes, VolErrors, VolWrites,
    VolCapacityBytes, VolStatus, Recycle,
    VolRetention, VolUseDuration, MaxVolJobs,
-   MaxVolFiles, MaxVolBytes, Drive, 
-   InChanger, MediaAddressing)
+   MaxVolFiles, MaxVolBytes,
+   InChanger, MediaAddressing,
+   VolReadTime, VolWriteTime,
    SELECT * FROM Media_backup;
 
 DROP TABLE Media_backup;

@@ -329,7 +329,7 @@ SQL_ROW my_sqlite_fetch_row(B_DB *mdb)
 
 void my_sqlite_free_table(B_DB *mdb)
 {
-   unsigned int i;
+   int i;
 
    if (mdb->fields_defined) {
       for (i=0; i < sql_num_fields(mdb); i++) {
@@ -344,7 +344,7 @@ void my_sqlite_free_table(B_DB *mdb)
 
 void my_sqlite_field_seek(B_DB *mdb, int field)
 {
-   unsigned int i, j;
+   int i, j;
    if (mdb->result == NULL) {
       return;
    }
@@ -356,8 +356,8 @@ void my_sqlite_field_seek(B_DB *mdb, int field)
 	 mdb->fields[i]->name = mdb->result[i];
 	 mdb->fields[i]->length = strlen(mdb->fields[i]->name);
 	 mdb->fields[i]->max_length = mdb->fields[i]->length;
-	 for (j=1; j <= (unsigned)mdb->nrow; j++) {
-	    uint32_t len;
+	 for (j=1; j <= mdb->nrow; j++) {
+	    int len;
 	    if (mdb->result[i + mdb->ncolumn *j]) {
 	       len = (uint32_t)strlen(mdb->result[i + mdb->ncolumn * j]);
 	    } else {
@@ -372,8 +372,8 @@ void my_sqlite_field_seek(B_DB *mdb, int field)
       }
       mdb->fields_defined = TRUE;
    }
-   if (field > (int)sql_num_fields(mdb)) {
-      field = (int)sql_num_fields(mdb);
+   if (field > sql_num_fields(mdb)) {
+      field = sql_num_fields(mdb);
     }
     mdb->field = field;
 
@@ -384,117 +384,6 @@ SQL_FIELD *my_sqlite_fetch_field(B_DB *mdb)
    return mdb->fields[mdb->field++];
 }
 
-static void
-list_dashes(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx)
-{
-   SQL_FIELD *field;
-   unsigned int i, j;
-
-   sql_field_seek(mdb, 0);
-   send(ctx, "+");
-   for (i = 0; i < sql_num_fields(mdb); i++) {
-      field = sql_fetch_field(mdb);
-      for (j = 0; j < field->max_length + 2; j++)
-              send(ctx, "-");
-      send(ctx, "+");
-   }
-   send(ctx, "\n");
-}
-
-/*
- * If full_list is set, we list vertically, otherwise, we 
- * list on one line horizontally.      
- */
-void
-list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type type)
-{
-   SQL_FIELD *field;
-   SQL_ROW row;
-   unsigned int i, col_len, max_len = 0;
-   char buf[2000], ewc[30];
-
-   if (mdb->result == NULL || mdb->nrow == 0) {
-      send(ctx, _("No results to list.\n"));
-      return;
-   }
-   /* determine column display widths */
-   sql_field_seek(mdb, 0);
-   for (i = 0; i < sql_num_fields(mdb); i++) {
-      field = sql_fetch_field(mdb);
-      col_len = strlen(field->name);
-      if (type == VERT_LIST) {
-	 if (col_len > max_len) {
-	    max_len = col_len;
-	 }
-      } else {
-	 if (IS_NUM(field->type) && field->max_length > 0) { /* fixup for commas */
-	    field->max_length += (field->max_length - 1) / 3;
-	 }
-	 if (col_len < field->max_length) {
-	    col_len = field->max_length;
-	 }
-	 if (col_len < 4 && !IS_NOT_NULL(field->flags)) {
-            col_len = 4;                 /* 4 = length of the word "NULL" */
-	 }
-	 field->max_length = col_len;	 /* reset column info */
-      }
-   }
-
-   if (type == VERT_LIST) {
-      goto vertical_list;
-   }
-
-   list_dashes(mdb, send, ctx);
-   send(ctx, "|");
-   sql_field_seek(mdb, 0);
-   for (i = 0; i < sql_num_fields(mdb); i++) {
-      field = sql_fetch_field(mdb);
-      bsnprintf(buf, sizeof(buf), " %-*s |", (int)field->max_length, field->name);
-      send(ctx, buf);
-   }
-   send(ctx, "\n");
-   list_dashes(mdb, send, ctx);
-
-   while ((row = sql_fetch_row(mdb)) != NULL) {
-      sql_field_seek(mdb, 0);
-      send(ctx, "|");
-      for (i = 0; i < sql_num_fields(mdb); i++) {
-	 field = sql_fetch_field(mdb);
-	 if (row[i] == NULL) {
-            bsnprintf(buf, sizeof(buf), " %-*s |", (int)field->max_length, "NULL");
-	 } else if (IS_NUM(field->type)) {
-            bsnprintf(buf, sizeof(buf), " %*s |", (int)field->max_length,       
-	       add_commas(row[i], ewc));
-	 } else {
-            bsnprintf(buf, sizeof(buf), " %-*s |", (int)field->max_length, row[i]);
-	 }
-	 send(ctx, buf);
-      }
-      send(ctx, "\n");
-   }
-   list_dashes(mdb, send, ctx);
-   return;
-
-vertical_list:
-   
-   while ((row = sql_fetch_row(mdb)) != NULL) {
-      sql_field_seek(mdb, 0);
-      for (i = 0; i < sql_num_fields(mdb); i++) {
-	 field = sql_fetch_field(mdb);
-	 if (row[i] == NULL) {
-            bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name, "NULL");
-	 } else if (IS_NUM(field->type)) {
-            bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name, 
-	       add_commas(row[i], ewc));
-	 } else {
-            bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name, row[i]);
-	 }
-	 send(ctx, buf);
-      }
-      send(ctx, "\n");
-   }
-   return;
-}
 
 
 #endif /* HAVE_SQLITE */

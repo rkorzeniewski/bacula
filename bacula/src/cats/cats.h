@@ -62,8 +62,8 @@ struct sqlite {
 
 typedef struct s_sql_field {
    char *name;                        /* name of column */
-   uint32_t length;                   /* length */
-   uint32_t max_length;               /* max length */
+   int length;                        /* length */
+   int max_length;                    /* max length */
    uint32_t type;                     /* type */
    uint32_t flags;                    /* flags */
 } SQL_FIELD;
@@ -129,15 +129,18 @@ typedef struct s_db {
 #define sql_insert_id(x,y)    sqlite_last_insert_rowid((x)->db)
 #define sql_field_seek(x, y)  my_sqlite_field_seek((x), (y))
 #define sql_fetch_field(x)    my_sqlite_fetch_field(x)
-#define sql_num_fields(x)     (unsigned)((x)->ncolumn)
+#define sql_num_fields(x)     ((x)->ncolumn)
 #define SQL_ROW               char**   
 
 
 
 /* In cats/sqlite.c */
-extern int     my_sqlite_query(B_DB *mdb, char *cmd);
-extern SQL_ROW my_sqlite_fetch_row(B_DB *mdb);
-extern void my_sqlite_free_table(B_DB *mdb);
+void       my_sqlite_free_table(B_DB *mdb);
+SQL_ROW    my_sqlite_fetch_row(B_DB *mdb);
+int        my_sqlite_query(B_DB *mdb, char *cmd);
+void       my_sqlite_field_seek(B_DB *mdb, int field);
+SQL_FIELD *my_sqlite_fetch_field(B_DB *mdb);
+
 
 #else
 
@@ -199,7 +202,7 @@ typedef struct s_db {
 #define sql_insert_id(x,y)    mysql_insert_id((x)->db)
 #define sql_field_seek(x, y)  mysql_field_seek((x)->result, (y))
 #define sql_fetch_field(x)    mysql_fetch_field((x)->result)
-#define sql_num_fields(x)     mysql_num_fields((x)->result)
+#define sql_num_fields(x)     (int)mysql_num_fields((x)->result)
 #define SQL_ROW               MYSQL_ROW
 #define SQL_FIELD             MYSQL_FIELD
 
@@ -217,10 +220,10 @@ typedef struct s_db {
 
 typedef char **POSTGRESQL_ROW;
 typedef struct pg_field {
-	char         *name;
-	unsigned int  max_length;
-	unsigned int  type;        // 1 = number
-	unsigned int  flags;       // 1 == not null
+        char         *name;
+        int           max_length;
+        unsigned int  type;        // 1 = number
+        unsigned int  flags;       // 1 == not null
 } POSTGRESQL_FIELD;
 
 
@@ -229,11 +232,11 @@ typedef struct pg_field {
  * used inside sql.c and associated database interface
  * subroutines.
  *
- *		       P O S T G R E S Q L
+ *                     P O S T G R E S Q L
  */
 typedef struct s_db {
-   BQUEUE bq;			      /* queue control */
-   brwlock_t lock;		      /* transaction lock */
+   BQUEUE bq;                         /* queue control */
+   brwlock_t lock;                    /* transaction lock */
    PGconn *db;
    PGresult *result;
    int status;
@@ -247,32 +250,31 @@ typedef struct s_db {
    char *db_name;
    char *db_user;
    char *db_password;
-   char *db_address;		  /* host address */
-   char *db_socket;		      /* socket for local access */
-   int db_port; 		      /* port of host address */
-   int have_insert_id;		  /* do have insert_id() */
+   char *db_address;              /* host address */
+   char *db_socket;                   /* socket for local access */
+   int db_port;                       /* port of host address */
+   int have_insert_id;            /* do have insert_id() */
    int connected;
-   POOLMEM *errmsg;		      /* nicely edited error message */
-   POOLMEM *cmd;		      /* SQL command string */
+   POOLMEM *errmsg;                   /* nicely edited error message */
+   POOLMEM *cmd;                      /* SQL command string */
    POOLMEM *cached_path;
-   int cached_path_len; 	  /* length of cached path */
+   int cached_path_len;           /* length of cached path */
    uint32_t cached_path_id;
-   int changes; 		      /* changes made to db */
-   POOLMEM *fname;		      /* Filename only */
-   POOLMEM *path;		      /* Path only */
-   POOLMEM *esc_name;		  /* Escaped file/path name */
-   int fnl;			          /* file name length */
-   int pnl;			          /* path name length */
+   int changes;                       /* changes made to db */
+   POOLMEM *fname;                    /* Filename only */
+   POOLMEM *path;                     /* Path only */
+   POOLMEM *esc_name;             /* Escaped file/path name */
+   int fnl;                               /* file name length */
+   int pnl;                               /* path name length */
 } B_DB;
 
-POSTGRESQL_ROW     my_postgresql_fetch_row  (B_DB *mdb);
-POSTGRESQL_FIELD * my_postgresql_fetch_field(B_DB *mdb);
-
-void my_postgresql_data_seek  (B_DB *mdb, int row);
-void my_postgresql_field_seek (B_DB *mdb, int row);
-int  my_postgresql_query      (B_DB *mdb, char *query);
-void my_postgresql_free_result(B_DB *mdb);
-int  my_postgresql_currval    (B_DB *mdb, char *table_name);
+void               my_postgresql_free_result(B_DB *mdb);
+POSTGRESQL_ROW     my_postgresql_fetch_row(B_DB *mdb);
+int                my_postgresql_query      (B_DB *mdb, char *query);
+void               my_postgresql_data_seek  (B_DB *mdb, int row);
+int                my_postgresql_currval    (B_DB *mdb, char *table_name);
+void               my_postgresql_field_seek (B_DB *mdb, int row);
+POSTGRESQL_FIELD * my_postgresql_fetch_field(B_DB *mdb) 
 
 
 /* "Generic" names for easier conversion */
@@ -288,7 +290,7 @@ int  my_postgresql_currval    (B_DB *mdb, char *table_name);
 #define sql_insert_id(x,y)    my_postgresql_currval((x), (y))
 #define sql_field_seek(x, y)  my_postgresql_field_seek((x), (y))
 #define sql_fetch_field(x)    my_postgresql_fetch_field(x)
-#define sql_num_fields(x)     (unsigned) (x)->num_fields
+#define sql_num_fields(x)     ((x)->num_fields)
 #define SQL_ROW               POSTGRESQL_ROW
 #define SQL_FIELD             POSTGRESQL_FIELD
 
@@ -360,7 +362,9 @@ typedef struct s_db {
 
 extern uint32_t bacula_db_version;
 
-/* ***FIXME*** FileId_t should be uint64_t */
+/* ***FIXME*** FileId_t should *really* be uint64_t
+ *  but at the current time, this breaks MySQL.
+ */
 typedef uint32_t FileId_t;
 typedef uint32_t DBId_t;              /* general DB id type */
 typedef uint32_t JobId_t;
@@ -515,13 +519,14 @@ struct MEDIA_DBR {
    uint64_t VolBytes;                 /* Number of bytes written */
    uint64_t MaxVolBytes;              /* Max bytes to write to Volume */
    uint64_t VolCapacityBytes;         /* capacity estimate */
+   uint64_t VolReadTime;              /* time spent reading volume */
+   uint64_t VolWriteTime;             /* time spent writing volume */
    utime_t  VolRetention;             /* Volume retention in seconds */
    utime_t  VolUseDuration;           /* time in secs volume can be used */
    uint32_t MaxVolJobs;               /* Max Jobs on Volume */
    uint32_t MaxVolFiles;              /* Max files on Volume */
    int32_t  Recycle;                  /* recycle yes/no */
    int32_t  Slot;                     /* slot in changer */
-   int32_t  Drive;                    /* drive in changer */
    int32_t  InChanger;                /* Volume currently in changer */
    char VolStatus[20];                /* Volume status */
    /* Extra stuff not in DB */
@@ -569,7 +574,19 @@ struct FILESET_DBR {
 };
 
 
+
 #include "protos.h"
 #include "jcr.h"
+
+/*
+ * Some functions exported by sql.c for use withing the 
+ *   cats directory.
+ */
+void list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type type);
+void list_dashes(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx);
+int get_sql_record_max(JCR *jcr, B_DB *mdb);
+int check_tables_version(JCR *jcr, B_DB *mdb);
+void _db_unlock(char *file, int line, B_DB *mdb);
+void _db_lock(char *file, int line, B_DB *mdb);
  
 #endif /* __SQL_H_ */

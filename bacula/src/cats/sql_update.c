@@ -119,7 +119,7 @@ db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
  *
  */
 void edit_num_or_null(char *s, size_t n, uint32_t id) {
-	bsnprintf(s, n, id ? "%u" : "NULL", id);
+        bsnprintf(s, n, id ? "%u" : "NULL", id);
 }
 
 
@@ -138,13 +138,13 @@ db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    int stat;
    char ed1[30], ed2[30];
    btime_t JobTDate;
-   char PoolId    [50];
+   char PoolId	  [50];
    char FileSetId [50];
    char ClientId  [50];
 
 
    /* some values are set to zero, which translates to NULL in SQL */
-   edit_num_or_null(PoolId,    sizeof(PoolId),    jr->PoolId);
+   edit_num_or_null(PoolId,    sizeof(PoolId),	  jr->PoolId);
    edit_num_or_null(FileSetId, sizeof(FileSetId), jr->FileSetId);
    edit_num_or_null(ClientId,  sizeof(ClientId),  jr->ClientId);
        
@@ -260,7 +260,7 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    time_t ttime;
    struct tm tm;
    int stat;
-   char ed1[30], ed2[30];
+   char ed1[30], ed2[30], ed3[30], ed4[30];
        
 
    Dmsg1(100, "update_media: FirstWritten=%d\n", mr->FirstWritten);
@@ -299,11 +299,16 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    Mmsg(&mdb->cmd, "UPDATE Media SET VolJobs=%u,"
         "VolFiles=%u,VolBlocks=%u,VolBytes=%s,VolMounts=%u,VolErrors=%u,"
         "VolWrites=%u,MaxVolBytes=%s,LastWritten='%s',VolStatus='%s',"
-        "Slot=%d,Drive=%d,InChanger=%d WHERE VolumeName='%s'",
+        "Slot=%d,InChanger=%d,VolReadTime=%s,VolWriteTime=%s "
+        " WHERE VolumeName='%s'",
 	 mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
 	 mr->VolMounts, mr->VolErrors, mr->VolWrites, 
 	 edit_uint64(mr->MaxVolBytes, ed2), dt, 
-	 mr->VolStatus, mr->Slot, mr->Drive, mr->InChanger, mr->VolumeName);
+	 mr->VolStatus, mr->Slot, mr->InChanger, 
+	 edit_uint64(mr->VolReadTime, ed3),
+	 edit_uint64(mr->VolWriteTime, ed4),
+	 mr->VolumeName);
+
 
    Dmsg1(400, "%s\n", mdb->cmd);
 
