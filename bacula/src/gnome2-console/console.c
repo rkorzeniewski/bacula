@@ -8,7 +8,7 @@
  */
 
 /*
-   Copyright (C) 2002 Kern Sibbald and John Walker
+   Copyright (C) 2002-2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -85,6 +85,7 @@ static guint initial;
 static void usage()
 {
    fprintf(stderr, _(
+"Copyright (C) 2002-2004 Kern Sibbald and John Walker\n"
 "\nVersion: " VERSION " (" BDATE ") %s %s %s\n\n"
 "Usage: gnome-console [-s] [-c config_file] [-d debug_level] [config_file]\n"
 "       -c <file>   set configuration file to file\n"

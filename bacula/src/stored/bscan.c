@@ -103,6 +103,7 @@ bool forge_on = false;
 static void usage()
 {
    fprintf(stderr, _(
+"Copyright (C) 2001-2004 Kern Sibbald and John Walker.\n"
 "\nVersion: " VERSION " (" BDATE ")\n\n"
 "Usage: bscan [ options ] <bacula-archive>\n"
 "       -b bootstrap      specify a bootstrap file\n"

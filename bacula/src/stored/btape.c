@@ -2489,6 +2489,7 @@ static void helpcmd()
 static void usage()
 {
    fprintf(stderr, _(
+"Copyright (C) 2000-2004 Kern Sibbald and John Walker.\n"
 "\nVersion: " VERSION " (" BDATE ")\n\n"
 "Usage: btape <options> <device_name>\n"
 "       -b <file>   specify bootstrap file\n"

@@ -63,6 +63,7 @@ static pthread_t server_tid;
 static void usage()
 {
    fprintf(stderr, _(
+"Copyright (C) 2000-2004 Kern Sibbald and John Walker\n"
 "\nVersion: " VERSION " (" BDATE ")\n\n"
 "Usage: bacula-fd [-f -s] [-c config_file] [-d debug_level]\n"  
 "        -c <file>   use <file> as configuration file\n"

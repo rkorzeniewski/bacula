@@ -92,16 +92,29 @@ FreeBSD users, pay special attention to the Device configuration
 parameters needed to deal with FreeBSD tape drivers.
 
 License:
-For the most part, Bacula is licensed under GPL version 2 or greater.        
-Bacula may be linked with any libraries permitted under the GPL, or 
-with any non-GPLed libraries, including OpenSSL, that are required for 
-its proper functioning, providing the source code of those non-GPLed
-libraries is freely available.
-    
+For the most part, Bacula is licensed under the GPL version 2 or greater         
+with the following two additions:
 
-In addition to GPL, there are also parts of Bacula that are licensed
-under LGPL so that they may be used in proprietary code to interface
-with Bacula, and there are parts that are in the public domain.
+Linking: Bacula may be linked with any libraries permitted under
+the GPL, or with any non-GPLed libraries, including OpenSSL, that
+are required for its proper functioning, providing the source
+code of those non-GPLed libraries is non-proprietary and freely available.
+
+Termination for Patent Action: In addition to the termination
+clause specified in the GPL, this license shall terminate
+automatically and you may no longer exercise any of the rights
+granted to you by this license as of the date you commence an
+action, including a cross-claim or counterclaim, against any
+licensor of GPL software alleging that the software infringes a
+copyright, an intellectual property right, or a patent.
+    
+=====================================
+
+In addition to the GPL, there are parts of Bacula that are licensed
+under the LGPL so that they may be used in proprietary code to interface
+with Bacula. 
+
+Finally there are parts of Bacula that are in the public domain.
              
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
 IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED

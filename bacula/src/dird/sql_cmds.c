@@ -33,6 +33,18 @@
 /* For ua_cmds.c */
 const char *list_pool = "SELECT * FROM Pool WHERE PoolId=%u";
 
+/* For ua_dotcmds.c */
+const char *client_backups =
+"SELECT DISTINCT Job.JobId,Client.Name as Client,Level,StartTime,"
+"JobFiles,JobBytes,VolumeName"
+" FROM Client,Job,JobMedia,Media"
+" WHERE Client.Name='%s'"
+" AND Client.ClientId=Job.ClientId"
+" AND JobStatus='T'"
+" AND JobMedia.JobId=Job.JobId AND JobMedia.MediaId=Media.MediaId"
+" ORDER BY Job.StartTime";
+
+
 /* ====== ua_prune.c */
 
 const char *cnt_File     = "SELECT count(*) FROM File WHERE JobId=%u";

@@ -73,6 +73,7 @@ extern URES res_all;
 static void usage()
 {
    fprintf(stderr, _(
+"Copyright (C) 2000-2004 Kern Sibbald and John Walker\n"
 "\nVersion: " VERSION " (" BDATE ")\n\n"
 "Usage: dird [-f -s] [-c config_file] [-d debug_level] [config_file]\n"
 "       -c <file>   set configuration file to file\n"

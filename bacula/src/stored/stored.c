@@ -63,6 +63,7 @@ static workq_t dird_workq;	      /* queue for processing connections */
 static void usage()
 {
    fprintf(stderr, _(
+"Copyright (C) 2000-2004 Kern Sibbald and John Walker.\n"
 "\nVersion: " VERSION " (" BDATE ")\n\n"
 "Usage: stored [options] [-c config_file] [config_file]\n"
 "        -c <file>   use <file> as configuration file\n"
