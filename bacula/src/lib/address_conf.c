@@ -34,11 +34,11 @@ static int add_address(dlist **out, IPADDR::i_type type, unsigned short defaultp
 
 IPADDR::IPADDR(const IPADDR &src) : type(src.type)
 {
-  memcpy(&buf, &src.buf, sizeof(buf));
-  saddr  = &buf.dontuse;
-  saddr4 = &buf.dontuse4; 
+  memcpy(&saddrbuf, &src.saddrbuf, sizeof(saddrbuf));
+  saddr  = &saddrbuf.dontuse;
+  saddr4 = &saddrbuf.dontuse4; 
 #ifdef HAVE_IPV6
-  saddr6 = &buf.dontuse6;
+  saddr6 = &saddrbuf.dontuse6;
 #endif
 }
 
@@ -47,10 +47,10 @@ IPADDR::IPADDR(int af) : type(R_EMPTY)
   if (!(af  == AF_INET6 || af  == AF_INET)) {
      Emsg1(M_ERROR_TERM, 0, _("Only ipv4 and ipv6 are supported(%d)\n"), af);
   }
-  saddr  = &buf.dontuse;
-  saddr4 = &buf.dontuse4; 
+  saddr  = &saddrbuf.dontuse;
+  saddr4 = &saddrbuf.dontuse4; 
 #ifdef HAVE_IPV6
-  saddr6 = &buf.dontuse6;
+  saddr6 = &saddrbuf.dontuse6;
 #endif
   saddr->sa_family = af;
   if (af  == AF_INET) {

@@ -27,7 +27,6 @@
 
 
 class IPADDR : public SMARTALLOC {
-// class IPADDR {
  public:
    typedef enum { R_SINGLE, R_SINGLE_PORT, R_SINGLE_ADDR, R_MULTIPLE,
                   R_DEFAULT, R_EMPTY
@@ -43,7 +42,7 @@ class IPADDR : public SMARTALLOC {
 #ifdef HAVE_IPV6
       struct sockaddr_in6 dontuse6;
 #endif
-   } buf;
+   } saddrbuf;
    struct sockaddr *saddr;
    struct sockaddr_in *saddr4;
 #ifdef HAVE_IPV6
