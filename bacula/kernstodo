@@ -43,6 +43,7 @@ For 1.33 Testing/Documentation:
 
 
 For version 1.35:
+- Possibly implement: Action = Unmount Device="TapeDrive1" in Admin jobs.
 - Setup lrrd graphs: (http://www.linpro.no/projects/lrrd/) Mike Acar.
 - Revisit the question of multiple Volumes (disk) on a single device.
 - Finish SIGHUP work.
