@@ -1,34 +1,61 @@
 /*	  
-      Generalized console input/output handler
-      Kern Sibbald, December MMIII
-*/
+      Generalized console input/output handler			   
+      A maintanable replacement for readline()
 
-#define BACULA
-#ifdef	BACULA
-#include "bacula.h"
-#else
+	 Kern Sibbald, December MMIII
+
+      This code is in part derived from code that I wrote in
+      1981, so some of it is a bit old and could use a cleanup.
+	 
+*/
+/*
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
+
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License as
+   published by the Free Software Foundation; either version 2 of
+   the License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+   General Public License for more details.
+
+   You should have received a copy of the GNU General Public
+   License along with this program; if not, write to the Free
+   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+   MA 02111-1307, USA.
+
+ */
+
+
+#ifdef	TEST_PROGRAM
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
 #include <ctype.h> 
+#else
+
+/* We are in Bacula */
+#include "bacula.h"
+
 #endif
 
 #include <termios.h>
 #include <termcap.h>
 #include "func.h"
 
-/* Global functions imported */
-
-
-extern char *getenv(char *);
-
-static void add_smap(char *str, int func);
 
 /* From termios library */
 extern char *BC;
 extern char *UP;
+
+/* Forward referenced functions */
+static void sigintcatcher(int);
+static void add_smap(char *str, int func);
+
 
 /* Global variables */
 
@@ -84,8 +111,6 @@ typedef struct s_stab {
 static stab_t **stab = NULL;		     /* array of stabs by length */
 static int num_stab;			     /* size of stab array */
 
-/* Local variables */
-
 static bool old_term_params_set = false;
 static struct termios old_term_params;
 
@@ -117,10 +142,6 @@ static int first = 1;
 static int mode_insert = 0;
 static int mode_wspace = 1;	      /* words separated by spaces */
 
-/* Forward referenced functions */
-static void sigintcatcher(int);
-
-/* Global variables Exported */
 
 static short char_map[600]= {
    0,				       F_SOL,	 /* ^a Line start */
@@ -196,15 +217,17 @@ static void ascurs(int y, int x);
 static void rawmode(FILE *input);
 static void normode(void);
 static int t_getch();
-static void trapctlc();
 static void asclrl(int pos, int width);
 static void asinsl();
 static void asdell();
 
 int input_line(char *string, int length);
-
+void con_term();
+void trapctlc();
+    
 void con_init(FILE *input)
 {
+   atexit(con_term); 
    rawmode(input);
    trapctlc();
 }
@@ -253,10 +276,10 @@ void con_term()
    normode();
 }
 
-#ifndef BACULA
+#ifdef TEST_PROGRAM
 /*
  * Guarantee that the string is properly terminated */
-static char *bstrncpy(char *dest, const char *src, int maxlen)
+char *bstrncpy(char *dest, const char *src, int maxlen)
 {
    strncpy(dest, src, maxlen-1);
    dest[maxlen-1] = 0;
@@ -371,7 +394,7 @@ static void add_smap(char *str, int func)
 /* Get the next character from the terminal - performs table lookup on
    the character to do the desired translation */
 static int
-/*FCN*/input_char()
+input_char()
 {
     int c;
 
@@ -397,7 +420,7 @@ static int
 /* Get a complete input line */
 
 int
-/*FCN*/input_line(char *string, int length)
+input_line(char *string, int length)
 {
    char curline[200];		      /* edit buffer */
    int noline;
@@ -520,7 +543,7 @@ done:
 
 /* Insert a space at the current cursor position */
 static void
-/*FCN*/insert_space(char *curline, int curline_len)
+insert_space(char *curline, int curline_len)
 {
     int i;
 
@@ -537,7 +560,7 @@ static void
 
 /* Move cursor forward keeping characters under it */
 static void
-/*FCN*/forward(int i,char *str, int str_len)
+forward(int i,char *str, int str_len)
 {
     while (i--) {
 	if (cp > str_len) {
@@ -555,7 +578,7 @@ static void
 
 /* Backup cursor keeping characters under it */
 static void
-/*FCN*/backup(int i)
+backup(int i)
 {
     for ( ;i && cp; i--,cp--)
         t_char('\010');
@@ -563,7 +586,7 @@ static void
 
 /* Delete the character under the cursor */
 static void
-/*FCN*/delchr(int cnt, char *curline, int line_len) 
+delchr(int cnt, char *curline, int line_len) 
 {
     register int i;
 
@@ -582,7 +605,7 @@ static void
 
 /* Determine if character is part of a word */
 static int
-/*FCN*/iswordc(char c)
+iswordc(char c)
 {
    if (mode_wspace)
       return !isspace(c);
@@ -595,7 +618,7 @@ static int
 
 /* Return number of characters to get to next word */
 static int
-/*FCN*/next_word(char *ldb_buf)
+next_word(char *ldb_buf)
 {
     int ncp;
 
@@ -609,7 +632,7 @@ static int
 
 /* Return number of characters to get to previous word */
 static int
-/*FCN*/prev_word(char *ldb_buf)
+prev_word(char *ldb_buf)
 {
     int ncp, i;
 
@@ -634,7 +657,7 @@ static int
 
 /* Display new current line */
 static void
-/*FCN*/prtcur(char *str)
+prtcur(char *str)
 {
     backup(cp);
     t_clrline(0,t_width);
@@ -645,7 +668,7 @@ static void
 
 /* Initialize line pool. Split pool into two pieces. */
 static void
-/*FCN*/poolinit()
+poolinit()
 {
     slptr = lptr = (struct lstr *)pool;
     lptr->nextl = lptr;
@@ -658,7 +681,7 @@ static void
 
 /* Return pointer to next line in the pool and advance current line pointer */
 static char *
-/*FCN*/getnext()
+getnext()
 {
     do {			      /* find next used line */
 	lptr = lptr->nextl;
@@ -668,7 +691,7 @@ static char *
 
 /* Return pointer to previous line in the pool */
 static char *
-/*FCN*/getprev()
+getprev()
 {
     do {			      /* find previous used line */
 	lptr = lptr->prevl;
@@ -677,7 +700,7 @@ static char *
 }
 
 static void
-/*FCN*/putline(char *newl, int newlen)
+putline(char *newl, int newlen)
 {
     struct lstr *nptr;		      /* points to next line */
     char *p;
@@ -717,7 +740,7 @@ static void
 
 #ifdef	DEBUGOUT
 static void
-/*FCN*/dump(struct lstr *ptr, char *msg)
+dump(struct lstr *ptr, char *msg)
 {
     printf("%s buf=%x nextl=%x prevl=%x len=%d used=%d\n",
 	msg,ptr,ptr->nextl,ptr->prevl,ptr->len,ptr->used);
@@ -729,28 +752,28 @@ static void
 
 /* Honk horn on terminal */
 static void
-/*FCN*/t_honk_horn()
+t_honk_horn()
 {
     t_send(t_honk);
 }
 
 /* Insert line on terminal */
 static void
-/*FCN*/t_insert_line()
+t_insert_line()
 {
     asinsl();
 }
 
 /* Delete line from terminal */
 static void
-/*FCN*/t_delete_line()
+t_delete_line()
 {
     asdell();
 }
 
 /* clear line from pos to width */
 static void
-/*FCN*/t_clrline(int pos, int width)
+t_clrline(int pos, int width)
 {
     asclrl(pos, width); 	  /* clear to end of line */
 }
@@ -769,7 +792,7 @@ static void add_esc_smap(char *str, int func)
    mode in which all characters can be read as they are entered.  CBREAK
    mode is not sufficient.
  */
-/*FCN*/static void rawmode(FILE *input)
+static void rawmode(FILE *input)
 {
    struct termios t;
    static char term_buf[2048];
@@ -799,6 +822,7 @@ static void add_esc_smap(char *str, int func)
       printf("Cannot tcsetattr()\n");
    }
 
+   /* Defaults, the main program can override these */
    signal(SIGQUIT, SIG_IGN);
    signal(SIGHUP, SIG_IGN);
 // signal(SIGSTOP, SIG_IGN);
@@ -883,16 +907,17 @@ static void add_esc_smap(char *str, int func)
 
 
 /* Restore tty mode */
-/*FCN*/static void normode()
+static void normode()
 {
    if (old_term_params_set) {
       tcsetattr(0, TCSANOW, &old_term_params);
+      old_term_params_set = false;
    }
 }
 
 /* Get next character from terminal/script file/unget buffer */
 static int
-/*FCN*/t_gnc()
+t_gnc()
 {
     return t_getch();
 }
@@ -922,13 +947,13 @@ static int window_size(int *height, int *width) 	/* /window_size/ */
 
 /* Send message to terminal - primitive routine */
 void
-/*FCN*/t_sendl(char *msg,int len)
+t_sendl(char *msg,int len)
 {
     write(1, msg, len);
 }
 
 void
-/*FCN*/t_send(char *msg)
+t_send(char *msg)
 {
     if (msg == NULL) {
        return;
@@ -938,7 +963,7 @@ void
 
 /* Send single character to terminal - primitive routine - */
 void
-/*FCN*/t_char(char c)
+t_char(char c)
 {
    write(1, &c, 1);
 }
@@ -947,7 +972,7 @@ void
 static int brkflg = 0;		    /* set on user break */
 
 /* Routine to return true if user types break */
-/*FCN*/int usrbrk()
+int usrbrk()
 {
    return brkflg;
 }
@@ -968,7 +993,7 @@ static void sigintcatcher(int sig)
 
 
 /* Trap Ctl-C */
-/*FCN*/void trapctlc()
+void trapctlc()
 {
    signal(SIGINT, sigintcatcher);
 }

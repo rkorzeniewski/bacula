@@ -60,17 +60,22 @@ static pid_t main_pid = 0;
  */
 static void signal_handler(int sig)
 {
-   static int already_dead = FALSE;
+   static int already_dead = 0;
 
-   if (already_dead) {
+   /* If we come back more than once, get out fast! */
+   if (already_dead > 1) {
       _exit(1);
+   }
+   /* If we come back once, take normal exit */
+   if (already_dead) {
+      exit(1);
    }
    Dmsg1(200, "sig=%d\n", sig);
    /* Ignore certain signals */
    if (sig == SIGCHLD || sig == SIGUSR2) {
       return;
    }
-   already_dead = sig;
+   already_dead++;
    if (sig == SIGTERM) {
       Emsg1(M_TERM, -1, "Shutting down Bacula service: %s ...\n", my_name);
    } else {

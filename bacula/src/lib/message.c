@@ -878,32 +878,32 @@ e_msg(char *file, int line, int type, int level, char *fmt,...)
        return;			      /* no destination */
     }
     switch (type) {
-       case M_ABORT:
-          len = sprintf(buf, "%s: ABORTING due to ERROR in %s:%d\n", 
-		  my_name, file, line);
-	  break;
-       case M_ERROR_TERM:
-          len = sprintf(buf, "%s: ERROR TERMINATION at %s:%d\n", 
-		  my_name, file, line);
-	  break;
-       case M_FATAL:
-	  if (level == -1)	      /* skip details */
-             len = sprintf(buf, "%s: Fatal Error because: ", my_name);
-	  else
-             len = sprintf(buf, "%s: Fatal Error at %s:%d because:\n", my_name, file, line);
-	  break;
-       case M_ERROR:
-	  if (level == -1)	      /* skip details */
-             len = sprintf(buf, "%s: Error: ", my_name);
-	  else
-             len = sprintf(buf, "%s: Error in %s:%d ", my_name, file, line);
-	  break;
-       case M_WARNING:
-          len = sprintf(buf, "%s: Warning: ", my_name);
-	  break;
-       default:
-          len = sprintf(buf, "%s: ", my_name);
-	  break;
+    case M_ABORT:
+       len = sprintf(buf, "%s: ABORTING due to ERROR in %s:%d\n", 
+	       my_name, file, line);
+       break;
+    case M_ERROR_TERM:
+       len = sprintf(buf, "%s: ERROR TERMINATION at %s:%d\n", 
+	       my_name, file, line);
+       break;
+    case M_FATAL:
+       if (level == -1) 	   /* skip details */
+          len = sprintf(buf, "%s: Fatal Error because: ", my_name);
+       else
+          len = sprintf(buf, "%s: Fatal Error at %s:%d because:\n", my_name, file, line);
+       break;
+    case M_ERROR:
+       if (level == -1) 	   /* skip details */
+          len = sprintf(buf, "%s: Error: ", my_name);
+       else
+          len = sprintf(buf, "%s: Error in %s:%d ", my_name, file, line);
+       break;
+    case M_WARNING:
+       len = sprintf(buf, "%s: Warning: ", my_name);
+       break;
+    default:
+       len = sprintf(buf, "%s: ", my_name);
+       break;
     }
 
     va_start(arg_ptr, fmt);
@@ -917,7 +917,7 @@ e_msg(char *file, int line, int type, int level, char *fmt,...)
        p[0] = 0;		      /* generate segmentation violation */
     }
     if (type == M_ERROR_TERM) {
-       _exit(1);
+       exit(1);
     }
 }
 
@@ -1011,7 +1011,7 @@ Jmsg(JCR *jcr, int type, int level, char *fmt,...)
        p[0] = 0;		      /* generate segmentation violation */
     }
     if (type == M_ERROR_TERM) {
-       _exit(1);
+       exit(1);
     }
 }
 

@@ -3,6 +3,9 @@
 # bacula       This shell script takes care of starting and stopping
 #	       the bacula daemons.
 #
+#   It runs with different ports than the production version,
+#   and using the current development enviornment.
+#
 #   This is pretty much watered down version of the RedHat script
 #   that works on Solaris as well as Linux, but it won't work everywhere.
 #
@@ -10,23 +13,21 @@
 #
 
 PSCMD="@PSCMD@"
+pwd=`pwd`
 
-# All these are not *really* needed but it makes it
-#  easier to "steal" this code for the development 
-#  environment where they are different.
-#  
-BACFDBIN=@sbindir@
-BACFDCFG=@sysconfdir@
-BACSDBIN=@sbindir@
-BACSDCFG=@sysconfdir@
-BACDIRBIN=@sbindir@
-BACDIRCFG=@sysconfdir@
+BACDIRBIN=${pwd}/src/dird
+BACDIRCFG=${pwd}/src/dird
+BACFDBIN=${pwd}/src/filed
+BACFDCFG=${pwd}/src/filed
+BACSDBIN=${pwd}/src/stored
+BACSDCFG=${pwd}/src/stored
 PIDDIR=@piddir@
 SUBSYSDIR=@subsysdir@
 
-DIR_PORT=@dir_port@
-FD_PORT=@fd_port@
-SD_PORT=@sd_port@
+# Use non-production ports
+DIR_PORT=8101
+FD_PORT=8102
+SD_PORT=8103
 
 DIR_USER=@dir_user@
 DIR_GROUP=@dir_group@
@@ -200,7 +201,7 @@ case "$1" in
 	     OPTIONS="${OPTIONS} -g ${SD_GROUP}"
 	  fi
 
-	  ${BACSDBIN}/bacula-sd $2 ${OPTIONS} -v -c ${BACSDCFG}/bacula-sd.conf
+	  ${BACSDBIN}/bacula-sd $2 ${OPTIONS} -v -c ${BACSDCFG}/stored.conf
        }
 
        [ -x ${BACFDBIN}/bacula-fd ] && {
@@ -214,7 +215,7 @@ case "$1" in
 	     OPTIONS="${OPTIONS} -g ${FD_GROUP}"
 	  fi
 
-	  ${BACFDBIN}/bacula-fd $2 ${OPTIONS} -v -c ${BACFDCFG}/bacula-fd.conf
+	  ${BACFDBIN}/bacula-fd $2 ${OPTIONS} -v -c ${BACFDCFG}/filed.conf
        }
 
        [ -x ${BACDIRBIN}/bacula-dir ] && { 
@@ -229,7 +230,7 @@ case "$1" in
 	     OPTIONS="${OPTIONS} -g ${DIR_GROUP}"
 	  fi
 
-	  ${BACDIRBIN}/bacula-dir $2 ${OPTIONS} -v -c ${BACDIRCFG}/bacula-dir.conf
+	  ${BACDIRBIN}/bacula-dir $2 ${OPTIONS} -v -c ${BACDIRCFG}/dird.conf
        }
        ;;
 
