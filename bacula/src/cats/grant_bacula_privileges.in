@@ -1,0 +1,14 @@
+#!/bin/sh
+#
+# This routine makes the appropriately configured
+#  Bacula tables for PostgreSQL or MySQL.
+# SQLite does not have permissions.
+#
+if test xmysql = x@DB_NAME@ ; then 
+  echo "Granting MySQL privileges"
+  . ./grant_mysql_privileges
+else
+  echo "Granting PostgreSQL privileges"
+  # hard coded database name
+  . ./grant_postgresql_privileges bacula
+fi
