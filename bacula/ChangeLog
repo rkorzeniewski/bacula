@@ -1,5 +1,77 @@
 
-2002-mm-dd Version 1.27 (22Oct02) not yet released
+2002-mm-dd Version 1.27 (14Nov02) not yet released
+
+General: from kes13Nov02
+- You MUST either re-initialize your databases or use the 
+    ./alter_mysql_tables
+  or  
+    ./alter_sqlite_tables
+  in the <bacula-src>/src/cats directory to modify your database tables.
+- Major improvements to dbcheck including an interactive mode.
+
+Changes submitted this submission:
+- Implemented VolumeUseDuration and MaximumVolumeJobs which control
+  when a tape can be marked Used.
+- New tape status "Used" means it was used and cannot be used any more.
+- Defined utime_t which is 64 bit epoch time in seconds.  btime_t is
+  64 bit epoch time in microseconds.
+- Created alter_xxx_tables to add new columns (VolUseDuration, MaxVolJobs) to
+  database. Incremented db version.
+- Changed a few subroutine names concerning dates to be more descriptive.
+- Fixed several places where the last filename was not stored in JCR in
+  FD verify_vol.c and restore.c
+- Major update to dbcheck.  Unfortunately I used subselects, which work
+  perfectly fine in SQLite, but not at all in MySQL.  I must now rework
+  it for MySQL. What a pain!
+- Removed "Database found" from configure output. It was no longer used or valid.
+- Corrected doc --working-dir => --with-working-dir  Thanks to Tuck for 
+  reporting this.
+- Added the database name to the error message for mismatched DB version.
+- Commented out GMP and CWEB from configure as they are not currently used.
+
+General: from kes09Nov02
+- Converted the manual over to a new format written in wml. This
+  gives navigation buttons on the top and bottom of each page
+  as well as a standard page size.
+- Updated the main Web site, providing a menu bar to the left
+  and much better organization and presentation of the information.
+- Added code to recognize a Volume written with a larger block
+  size than specified. The code automatically adjusts. 
+
+Changes submitted this submission:
+- Created a new scripts directory and moved most of the scripts
+  previously in the main directory there. This cleans things up
+  quite a bit.
+- Moved the randpass stuff into autoconf.
+- ensure that the generic make_bacula_tables and drop_bacula_tables
+  are installed.
+- Added code to filed to allow it to be run from inetd.  Just add the
+  -i option.  I have not tested it.
+
+General: from kes30Oct02
+- Alex found a problem with GZIP compression -- fixed.
+- bacula stript fixes.
+- Segment fault in Director fixed.
+- Added openbsd to platforms
+
+Changes submitted this submission:
+- GZIP compression was broken for large files due to a variable that
+  is changed during the compression. This was relatively easy to fix.
+  However, there were a number of fixes required to make GZIP and SPARSE
+  files work together. Found one more place in bextract where SPARSE_GZIP
+  testing was missing.
+- During testing of the above, I ran into the restore problem of multiple
+  FileSet records. Fixed by including the FileSetId and the MD5 on the
+  selection string, then always using the FileSetId. It is a bit
+  confusing for the user, but ...
+- Francis found a problem with bacula.in (fixed - thanks)
+- I found another problem with bacula.in, so now it REALLY should work
+  on most systems.
+- Added the Replace options code for restores. Not tested.
+- Fixed an ugly stack overrun bug in reading the config file
+  that has been in for a long time.  I found this in testing on FreeBSD
+  where the Director seg faulted.
+
 General: from kes29Oct02
 - Major change to the bnet communications routines.
 

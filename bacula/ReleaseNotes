@@ -1,6 +1,6 @@
           Release Notes for Bacula 1.27
 
-  Bacula code: Total files = 220 Total lines = 59,468 (*.h *.c *.in)
+  Bacula code: Total files = 222 Total lines = 60,233 (*.h *.c *.in)
 
 Major Changes this Release:
 - Implemented support for Sparse files.
@@ -10,8 +10,14 @@ Major Changes this Release:
   simultaneous jobs.
 - Important change to communications protocol. Eliminated
   deprecated 0 signal. 
-
-Minor Changes this Release:
+- Implemented VolumeUseDuration (duration Volume can be written)
+- Implemented MaximumVolumeJobs (max jobs written to volume) see
+  the Pool documentation for the Director for more details.
+- Rework of the Web site.
+- New format for the User's Guide (manual).
+- New bcopy tool.
+- All bxxx tool programs MUST read a Storage daemon configuration
+  file.
 - Mount Anonymous Volumes is now dropped from the Storage
   daemon configuration files.
 - Accept Any Volume is by default "Yes" and permits Bacula
@@ -19,6 +25,9 @@ Minor Changes this Release:
   it would accept ONLY the next appendable volume. To get
   the old behavior add "Accept Any Volume = No" to the
   Storage resources of your Director's configuration file.
+
+Minor Changes this Release:
+- A number of small bug fixes.
 - Improve handling of the "Where" prefix on Win32 by first
   stripping any previous drive. This allows restoration to
   any drive.
