@@ -17,7 +17,7 @@ Testing to do: (painful)
 - blocksize recognition code.
 
 For 1.29 release:
-- Add whereabslinks to where or not where absolute links
+- Add prefixlinks to where or not where absolute links
 
 For 1.30 release:
 - Get correct error status from run_program or open_bpipe().
