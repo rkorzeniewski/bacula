@@ -13,7 +13,8 @@ echo " === Starting Backup Bacula Test ==="
 echo " === Starting Backup Bacula Test ===" >>working/log
 echo " "
 
-bin/bacula start 2>&1 >/dev/null
+#bin/bacula start 2>&1 >/dev/null
+bin/bacula start
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
 messages
