@@ -63,7 +63,7 @@ static int path_already_seen(char *path, int pnl);
  */
 int create_file(void *jcr, char *fname, char *ofile, char *lname,
 		int type, int stream, struct stat *statp, 
-		char *attribsEx, BFILE *ofd, int replace)
+		char *attribsEx, BFILE *ofd, int replace, int win_io)
 {
    int new_mode, parent_mode, mode;
    uid_t uid;
@@ -71,7 +71,7 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
    int stat = 0;
    int pnl;
 
-   binit(ofd);
+   binit(ofd, win_io);
    new_mode = statp->st_mode;
    Dmsg2(300, "newmode=%x file=%s\n", new_mode, ofile);
    parent_mode = S_IWUSR | S_IXUSR | new_mode;
@@ -158,7 +158,7 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
 	 }
          Dmsg1(50, "Create file: %s\n", ofile);
 	 if ((bopen(ofd, ofile, mode, S_IRUSR | S_IWUSR)) < 0) {
-            Jmsg2(jcr, M_ERROR, 0, _("Could not create %s: ERR=%s\n"), ofile, strerror(errno));
+            Jmsg2(jcr, M_ERROR, 0, _("Could not create %s: ERR=%s\n"), ofile, berror(ofd));
 	    return CF_ERROR;
 	 }
 	 return CF_EXTRACT;
@@ -169,13 +169,13 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
 	 if (S_ISFIFO(statp->st_mode)) {
             Dmsg1(200, "Restore fifo: %s\n", ofile);
 	    if (mkfifo(ofile, statp->st_mode) != 0 && errno != EEXIST) {
-               Jmsg2(jcr, M_ERROR, 0, _("Cannot make fifo %s: ERR=%s\n"), ofile, strerror(errno));
+               Jmsg2(jcr, M_ERROR, 0, _("Cannot make fifo %s: ERR=%s\n"), ofile, berror(ofd));
 	       return CF_ERROR;
 	    }
 	 } else {	   
             Dmsg1(200, "Restore node: %s\n", ofile);
 	    if (mknod(ofile, statp->st_mode, statp->st_rdev) != 0 && errno != EEXIST) {
-               Jmsg2(jcr, M_ERROR, 0, _("Cannot make node %s: ERR=%s\n"), ofile, strerror(errno));
+               Jmsg2(jcr, M_ERROR, 0, _("Cannot make node %s: ERR=%s\n"), ofile, berror(ofd));
 	       return CF_ERROR;
 	    }
 	 }	 
@@ -190,7 +190,7 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
 	       tid = NULL;
 	    }
 	    if ((bopen(ofd, ofile, mode, 0)) < 0) {
-               Jmsg2(jcr, M_ERROR, 0, _("Could not open %s: ERR=%s\n"), ofile, strerror(errno));
+               Jmsg2(jcr, M_ERROR, 0, _("Could not open %s: ERR=%s\n"), ofile, berror(ofd));
 	       stop_thread_timer(tid);
 	       return CF_ERROR;
 	    }
@@ -203,8 +203,8 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
       case FT_LNK:
          Dmsg2(130, "FT_LNK should restore: %s -> %s\n", ofile, lname);
 	 if (symlink(lname, ofile) != 0 && errno != EEXIST) {
-            Jmsg3(jcr, M_ERROR, 0, _("Could not symlink %s -> %s: ERR=%s\n"), 
-	       ofile, lname, strerror(errno));
+            Jmsg3(jcr, M_ERROR, 0, _("Could not symlink %s -> %s: ERR=%s\n"),
+		  ofile, lname, berror(ofd));
 	    return CF_ERROR;
 	 }
 	 return CF_CREATED;
@@ -212,8 +212,8 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
       case FT_LNKSAVED: 		 /* Hard linked, file already saved */
       Dmsg2(130, "Hard link %s => %s\n", ofile, lname);
       if (link(lname, ofile) != 0) {
-         Jmsg3(jcr, M_ERROR, 0, _("Could not hard link %s ==> %s: ERR=%s\n"), 
-	       ofile, lname, strerror(errno));
+         Jmsg3(jcr, M_ERROR, 0, _("Could not hard link %s ==> %s: ERR=%s\n"),
+	       ofile, lname, berror(ofd));
 	 return CF_ERROR;
       }
       return CF_CREATED;
@@ -223,7 +223,8 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
    case FT_DIR:
       Dmsg2(300, "Make dir mode=%o dir=%s\n", new_mode, ofile);
       if (make_path(jcr, ofile, new_mode, parent_mode, uid, gid, 0, NULL) != 0) {
-         Jmsg1(jcr, M_ERROR, 0, _("Could not make directory: %s\n"), ofile);
+         Jmsg2(jcr, M_ERROR, 0, _("Could not make directory %s: ERR=%s.\n"), 
+	       ofile, berror(ofd));
 	 return CF_ERROR;
       }
       return CF_CREATED;

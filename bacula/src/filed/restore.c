@@ -64,7 +64,7 @@ void do_restore(JCR *jcr)
    
    wherelen = strlen(jcr->where);
 
-   binit(&bfd);
+   binit(&bfd, jcr->use_win_backup_api);
    sd = jcr->store_bsock;
    set_jcr_job_status(jcr, JS_Running);
 
@@ -268,7 +268,8 @@ void do_restore(JCR *jcr)
 
 	 extract = FALSE;
 	 stat = create_file(jcr, fname, ofile, lname, type, 
-			    stream, &statp, attribsEx, &bfd, jcr->replace);
+			    stream, &statp, attribsEx, &bfd, jcr->replace, 
+			    jcr->use_win_backup_api);
 	 switch (stat) {
 	 case CF_ERROR:
 	 case CF_SKIP:
@@ -311,7 +312,7 @@ void do_restore(JCR *jcr)
 		  fileAddr = faddr;
 		  if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
                      Jmsg3(jcr, M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"),
-			 edit_uint64(fileAddr, ec1), ofile, strerror(errno));
+			 edit_uint64(fileAddr, ec1), ofile, berror(&bfd));
 		     goto bail_out;
 		  }
 	       }
@@ -322,7 +323,7 @@ void do_restore(JCR *jcr)
             Dmsg2(30, "Write %u bytes, total before write=%u\n", wsize, total);
 	    if ((uint32_t)bwrite(&bfd, wbuf, wsize) != wsize) {
                Dmsg0(0, "===Write error===\n");
-               Jmsg2(jcr, M_ERROR, 0, _("Write error on %s: %s\n"), ofile, strerror(errno));
+               Jmsg2(jcr, M_ERROR, 0, _("Write error on %s: %s\n"), ofile, berror(&bfd));
 	       goto bail_out;
 	    }
 	    total += wsize;
@@ -349,7 +350,7 @@ void do_restore(JCR *jcr)
 		  fileAddr = faddr;
 		  if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
                      Jmsg3(jcr, M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"),
-			 edit_uint64(fileAddr, ec1), ofile, strerror(errno));
+			 edit_uint64(fileAddr, ec1), ofile, berror(&bfd));
 		     goto bail_out;
 		  }
 	       }
@@ -368,7 +369,7 @@ void do_restore(JCR *jcr)
             Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
 	    if ((uLong)bwrite(&bfd, jcr->compress_buf, compress_len) != compress_len) {
                Dmsg0(0, "===Write error===\n");
-               Jmsg2(jcr, M_ERROR, 0, "Write error on %s: %s\n", ofile, strerror(errno));
+               Jmsg2(jcr, M_ERROR, 0, "Write error on %s: %s\n", ofile, berror(&bfd));
 	       goto bail_out;
 	    }
 	    total += compress_len;

@@ -106,6 +106,8 @@
 #define STREAM_PROGRAM_NAMES     8    /* program names for program data */
 #define STREAM_PROGRAM_DATA      9    /* Data needing program */
 #define STREAM_SHA1_SIGNATURE   10    /* SHA1 signature for the file */
+#define STREAM_WIN32_DATA       11    /* Win32 BackupRead data */
+#define STREAM_WIN32_GZIP_DATA  12    /* Gzipped Win32 BackupRead data */
 
 /*
  * Internal code for Signature types

@@ -25,6 +25,8 @@ For 1.30 release:
 - Fix "access not allowed" for backup of files on WinXP.
 - Document new transparent Console commands and wait command.
 - Document new immediate File save capability.
+- Document OPTIMIZE TABLE in MySQL
+- Fix watchdog pthread crash on Win32
 
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
@@ -32,6 +34,21 @@ After 1.30:
 - Make | and < work on FD side.
 - Pass prefix_links to FD.
 - Implement a M_SECURITY message class.
+- Implement disk spooling. Two parts: 1. Spool to disk then
+  immediately to tape to speed up tape operations. 2. Spool to
+  disk only when the tape is full, then when a tape is hung move
+  it to tape.
+- From Phil Stracchino:
+  It would probably be a per-client option, and would be called
+  something like, say, "Automatically purge obsoleted jobs".  What it
+  would do is, when you successfully complete a Differential backup of a
+  client, it would automatically purge all Incremental backups for that
+  client that are rendered redundant by that Differential.  Likewise,
+  when a Full backup on a client completed, it would automatically purge
+  all Differential and Incremental jobs obsoleted by that Full backup.
+  This would let people minimize the number of tapes they're keeping on
+  hand without having to master the art of retention times.
+
 - Allow multiple Storage specifications (or multiple names on
   a single Storage specification) in the Job record. Thus a job 
   can be backed up to a number of storage devices.
@@ -88,7 +105,6 @@ After 1.30:
 - Why are save/restore of device different sizes (sparse?)   Yup! Fix it.
 - Implement some way for the Console to dynamically create a job.
 - Restore to a particular time -- e.g. before date, after date. 
-- Implement disk spooling
 - Solaris -I on tar for include list
 - Prohibit backing up archive device (findlib/find_one.c:128)
 - Need a verbose mode in restore, perhaps to bsr.

@@ -174,6 +174,7 @@ struct s_jcr {
    uint32_t EndFile;
    uint32_t StartBlock;
    uint32_t EndBlock;
+   int use_win_backup_api;            /* set to use native Win API */
 #endif /* FILE_DAEMON */
 
 #ifdef STORAGE_DAEMON

@@ -157,6 +157,7 @@ void *handle_client_request(void *dirp)
    jcr = new_jcr(sizeof(JCR), filed_free_jcr); /* create JCR */
    jcr->dir_bsock = dir;
    jcr->ff = init_find_files();
+   jcr->use_win_backup_api = 0;
    jcr->start_time = time(NULL);
    jcr->last_fname = get_pool_memory(PM_FNAME);
    jcr->last_fname[0] = 0;
@@ -288,6 +289,9 @@ static int job_cmd(JCR *jcr)
    }
    jcr->sd_auth_key = bstrdup(sd_auth_key);
    free_pool_memory(sd_auth_key);
+   if (jcr->use_win_backup_api) {
+      SetServicePrivileges(jcr);
+   }
    Dmsg2(120, "JobId=%d Auth=%s\n", jcr->JobId, jcr->sd_auth_key);
    return bnet_fsend(dir, OKjob);
 }

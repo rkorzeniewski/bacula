@@ -1391,7 +1391,7 @@ int quitcmd(UAContext *ua, char *cmd)
  */
 int waitcmd(UAContext *ua, char *cmd) 
 {
-   usleep(300000);
+   usleep(500000);
    for (int running=1; running; ) {
       running = 0;
       lock_jcr_chain();

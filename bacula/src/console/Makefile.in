@@ -48,7 +48,7 @@ console: $(CONSOBJS) ../lib/libbac.a ../cats/libsql.a
 	      $(LIBS) $(DLIB) $(CONS_LIBS) -lbac -lsql -lm
 
 static-console: $(CONSOBJS) ../lib/libbac.a ../cats/libsql.a
-	$(CXX) $(LDFLAGS) $(CONS_LDFLAGS) -L../lib -L../cats -o $@ $(CONSOBJS) \
+	$(CXX) -static $(LDFLAGS) $(CONS_LDFLAGS) -L../lib -L../cats -o $@ $(CONSOBJS) \
 	      $(LIBS) $(DLIB) $(CONS_LIBS) -lbac -lsql -lm
 	strip $@
 

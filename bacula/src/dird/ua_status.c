@@ -159,7 +159,7 @@ static void do_all_status(UAContext *ua, char *cmd)
    client = NULL;
    for (i=0; (client = (CLIENT *)GetNextRes(R_CLIENT, (RES *)client)); i++)
       { }
-   unique_client = (CLIENT **) malloc(i * sizeof(CLIENT));
+   unique_client = (CLIENT **)malloc(i * sizeof(CLIENT));
    /* Find Unique Client address/port */	 
    client = (CLIENT *)GetNextRes(R_CLIENT, NULL);
    i = 0;
@@ -322,6 +322,10 @@ static void do_storage_status(UAContext *ua, STORE *store)
    if (!connect_to_storage_daemon(ua->jcr, 1, 15, 0)) {
       bsendmsg(ua, _("\nFailed to connect to Storage daemon %s.\n====\n"),
 	 store->hdr.name);
+      if (ua->jcr->store_bsock) {
+	 bnet_close(ua->jcr->store_bsock);
+	 ua->jcr->store_bsock = NULL;
+      } 	
       return;
    }
    Dmsg0(20, _("Connected to storage daemon\n"));
@@ -356,6 +360,10 @@ static void do_client_status(UAContext *ua, CLIENT *client)
    if (!connect_to_file_daemon(ua->jcr, 1, 15, 0)) {
       bsendmsg(ua, _("Failed to connect to Client %s.\n====\n"),
 	 client->hdr.name);
+      if (ua->jcr->file_bsock) {
+	 bnet_close(ua->jcr->file_bsock);
+	 ua->jcr->file_bsock = NULL;
+      } 	
       return;
    }
    Dmsg0(20, _("Connected to file daemon\n"));

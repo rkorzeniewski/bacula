@@ -33,16 +33,15 @@
 #include "jcr.h"
 
 #ifdef HAVE_CYGWIN
-#include <windows.h>
 
 /* Forward referenced subroutines */
 static
 int set_win32_attributes(void *jcr, char *fname, char *ofile, char *lname, 
-			 int type, int stream, struct stat *statp,
-			 char *attribsEx, BFILE *ofd);
+                         int type, int stream, struct stat *statp,
+                         char *attribsEx, BFILE *ofd);
 void unix_name_to_win32(POOLMEM **win32_name, char *name);
-extern "C" HANDLE get_osfhandle(int fd);
 void win_error(void *jcr, char *prefix, POOLMEM *ofile);
+HANDLE bget_handle(BFILE *bfd);
 #endif
 
 /* For old systems that don't have lchown() use chown() */
@@ -51,9 +50,9 @@ void win_error(void *jcr, char *prefix, POOLMEM *ofile);
 #endif
 
 /*=============================================================*/
-/*							       */
-/*	       ***  A l l  S y s t e m s ***		       */
-/*							       */
+/*                                                             */
+/*             ***  A l l  S y s t e m s ***                   */
+/*                                                             */
 /*=============================================================*/
 
 
@@ -65,7 +64,7 @@ void encode_stat(char *buf, struct stat *statp, uint32_t LinkFI)
     * NOTE: we should use rdev as major and minor device if
     * it is a block or char device (S_ISCHR(statp->st_mode)
     * or S_ISBLK(statp->st_mode)).  In all other cases,
-    * it is not used.	
+    * it is not used.   
     *
     */
    p += to_base64((int64_t)statp->st_dev, p);
@@ -95,6 +94,7 @@ void encode_stat(char *buf, struct stat *statp, uint32_t LinkFI)
    p += to_base64((int64_t)statp->st_ctime, p);
    *p++ = ' ';
    p += to_base64((int64_t)LinkFI, p);
+
 /* FreeBSD function */
 #ifdef HAVE_CHFLAGS
    *p++ = ' ';
@@ -115,7 +115,7 @@ decode_stat(char *buf, struct stat *statp, uint32_t *LinkFI)
 
    p += from_base64(&val, p);
    statp->st_dev = val;
-   p++; 			      /* skip space */
+   p++;                               /* skip space */
    p += from_base64(&val, p);
    statp->st_ino = val;
    p++;
@@ -159,6 +159,7 @@ decode_stat(char *buf, struct stat *statp, uint32_t *LinkFI)
   } else {
       *LinkFI = 0;
   }
+
 /* FreeBSD user flags */
 #ifdef HAVE_CHFLAGS
    if (*p == ' ' || (*p != 0 && *(p+1) == ' ')) {
@@ -178,31 +179,31 @@ decode_stat(char *buf, struct stat *statp, uint32_t *LinkFI)
  *  ofile is the output filename (may be in a different directory)
  *
  * Returns:  1 on success
- *	     0 on failure
+ *           0 on failure
  */
 int set_attributes(void *jcr, char *fname, char *ofile, char *lname, 
-		   int type, int stream, struct stat *statp,
-		   char *attribsEx, BFILE *ofd)
+                   int type, int stream, struct stat *statp,
+                   char *attribsEx, BFILE *ofd)
 {
-   struct utimbuf ut;	 
+   struct utimbuf ut;    
    mode_t old_mask;
    int stat = 1;
 
 #ifdef HAVE_CYGWIN
    if (set_win32_attributes(jcr, fname, ofile, lname, type, stream,
-			    statp, attribsEx, ofd)) {
+                            statp, attribsEx, ofd)) {
       return 1;
    }
    /*
     * If Windows stuff failed, e.g. attempt to restore Unix file
-    *  to Windows, simply fall through and we will do it the	 
+    *  to Windows, simply fall through and we will do it the     
     *  universal way.
     */
 #endif
 
    old_mask = umask(0);
    if (is_bopen(ofd)) {
-      bclose(ofd);		      /* first close file */
+      bclose(ofd);                    /* first close file */
    }
 
    ut.actime = statp->st_atime;
@@ -211,43 +212,42 @@ int set_attributes(void *jcr, char *fname, char *ofile, char *lname,
    /* ***FIXME**** optimize -- don't do if already correct */
    /* 
     * For link, change owner of link using lchown, but don't
-    *	try to do a chmod as that will update the file behind it.
+    *   try to do a chmod as that will update the file behind it.
     */
    if (type == FT_LNK) {
       /* Change owner of link, not of real file */
       if (lchown(ofile, statp->st_uid, statp->st_gid) < 0) {
          Jmsg2(jcr, M_WARNING, 0, "Unable to set file owner %s: ERR=%s\n",
-	    ofile, strerror(errno));
-	 stat = 0;
+            ofile, strerror(errno));
+         stat = 0;
       }
    } else {
       if (chown(ofile, statp->st_uid, statp->st_gid) < 0) {
          Jmsg2(jcr, M_WARNING, 0, "Unable to set file owner %s: ERR=%s\n",
-	    ofile, strerror(errno));
-	 stat = 0;
+            ofile, strerror(errno));
+         stat = 0;
       }
       if (chmod(ofile, statp->st_mode) < 0) {
          Jmsg2(jcr, M_WARNING, 0, "Unable to set file modes %s: ERR=%s\n",
-	    ofile, strerror(errno));
-	 stat = 0;
+            ofile, strerror(errno));
+         stat = 0;
       }
 
       /* FreeBSD user flags */
 #ifdef HAVE_CHFLAGS
       if (chflags(ofile, statp->st_flags) < 0) {
          Jmsg2(jcr, M_WARNING, 0, "Unable to set file flags %s: ERR=%s\n",
-	    ofile, strerror(errno));
-	 stat = 0;
+            ofile, strerror(errno));
+         stat = 0;
       }
-
 #endif
       /*
        * Reset file times.
        */
       if (utime(ofile, &ut) < 0) {
          Jmsg2(jcr, M_ERROR, 0, "Unable to set file times %s: ERR=%s\n",
-	    ofile, strerror(errno));
-	 stat = 0;
+            ofile, strerror(errno));
+         stat = 0;
       }
    }
    umask(old_mask);
@@ -256,9 +256,9 @@ int set_attributes(void *jcr, char *fname, char *ofile, char *lname,
 
 
 /*=============================================================*/
-/*							       */
-/*		   * * *  U n i x * * * *		       */
-/*							       */
+/*                                                             */
+/*                 * * *  U n i x * * * *                      */
+/*                                                             */
 /*=============================================================*/
 
 #ifndef HAVE_CYGWIN
@@ -269,18 +269,22 @@ int set_attributes(void *jcr, char *fname, char *ofile, char *lname,
  */
 int encode_attribsEx(void *jcr, char *attribsEx, FF_PKT *ff_pkt)
 {
-   *attribsEx = 0;		      /* no extended attributes */
+   *attribsEx = 0;                    /* no extended attributes */
    return STREAM_UNIX_ATTRIBUTES;
 }
+
+void SetServicePrivileges(void *jcr)
+ { }
+
 
 #endif
 
 
 
 /*=============================================================*/
-/*							       */
-/*		   * * *  W i n 3 2 * * * *		       */
-/*							       */
+/*                                                             */
+/*                 * * *  W i n 3 2 * * * *                    */
+/*                                                             */
 /*=============================================================*/
 
 #ifdef HAVE_CYGWIN
@@ -293,7 +297,7 @@ int encode_attribsEx(void *jcr, char *attribsEx, FF_PKT *ff_pkt)
    WIN32_FILE_ATTRIBUTE_DATA atts;
    ULARGE_INTEGER li;
 
-   attribsEx[0] = 0;		      /* no extended attributes */
+   attribsEx[0] = 0;                  /* no extended attributes */
 
    if (NoGetFileAttributesEx) {
       return STREAM_UNIX_ATTRIBUTES;
@@ -301,7 +305,7 @@ int encode_attribsEx(void *jcr, char *attribsEx, FF_PKT *ff_pkt)
 
    unix_name_to_win32(&ff_pkt->sys_fname, ff_pkt->fname);
    if (!GetFileAttributesEx(ff_pkt->sys_fname, GetFileExInfoStandard,
-			    (LPVOID)&atts)) {
+                            (LPVOID)&atts)) {
       win_error(jcr, "GetFileAttributesEx:", ff_pkt->sys_fname);
       return STREAM_WIN32_ATTRIBUTES;
    }
@@ -336,7 +340,7 @@ int encode_attribsEx(void *jcr, char *attribsEx, FF_PKT *ff_pkt)
          FILE_ATTRIBUTE_OFFLINE| \
          FILE_ATTRIBUTE_READONLY| \
          FILE_ATTRIBUTE_SYSTEM| \
-	 FILE_ATTRIBUTE_TEMPORARY)
+         FILE_ATTRIBUTE_TEMPORARY)
 
 
 /*
@@ -346,12 +350,12 @@ int encode_attribsEx(void *jcr, char *attribsEx, FF_PKT *ff_pkt)
  *  ofile is the output filename (may be in a different directory)
  *
  * Returns:  1 on success
- *	     0 on failure
+ *           0 on failure
  */
 static
 int set_win32_attributes(void *jcr, char *fname, char *ofile, char *lname, 
-			 int type, int stream, struct stat *statp,
-			 char *attribsEx, BFILE *ofd)
+                         int type, int stream, struct stat *statp,
+                         char *attribsEx, BFILE *ofd)
 {
    char *p = attribsEx;
    int64_t val;
@@ -360,10 +364,10 @@ int set_win32_attributes(void *jcr, char *fname, char *ofile, char *lname,
    int stat;
    POOLMEM *win32_ofile;
 
-   if (!p || !*p) {		      /* we should have attributes */
+   if (!p || !*p) {                   /* we should have attributes */
       Dmsg2(100, "Attributes missing. of=%s ofd=%d\n", ofile, ofd->fid);
       if (is_bopen(ofd)) {
-	 bclose(ofd);
+         bclose(ofd);
       }
       return 0;
    } else {
@@ -372,17 +376,17 @@ int set_win32_attributes(void *jcr, char *fname, char *ofile, char *lname,
 
    p += from_base64(&val, p);
    atts.dwFileAttributes = val;
-   p++; 			      /* skip space */
+   p++;                               /* skip space */
    p += from_base64(&val, p);
    li.QuadPart = val;
    atts.ftCreationTime.dwLowDateTime = li.LowPart;
    atts.ftCreationTime.dwHighDateTime = li.HighPart;
-   p++; 			      /* skip space */
+   p++;                               /* skip space */
    p += from_base64(&val, p);
    li.QuadPart = val;
    atts.ftLastAccessTime.dwLowDateTime = li.LowPart;
    atts.ftLastAccessTime.dwHighDateTime = li.HighPart;
-   p++; 			      /* skip space */
+   p++;                               /* skip space */
    p += from_base64(&val, p);
    li.QuadPart = val;
    atts.ftLastWriteTime.dwLowDateTime = li.LowPart;
@@ -402,15 +406,15 @@ int set_win32_attributes(void *jcr, char *fname, char *ofile, char *lname,
 
    if (!is_bopen(ofd)) {
       Dmsg1(100, "File not open: %s\n", ofile);
-      bopen(ofd, ofile, O_RDWR|O_BINARY, 0);   /* attempt to open the file */
+      bopen(ofd, ofile, O_WRONLY|O_BINARY, 0);   /* attempt to open the file */
    }
 
    if (is_bopen(ofd)) {
       Dmsg1(100, "SetFileTime %s\n", ofile);
-      stat = SetFileTime(get_osfhandle(ofd->fid),
-			 &atts.ftCreationTime,
-			 &atts.ftLastAccessTime,
-			 &atts.ftLastWriteTime);
+      stat = SetFileTime(bget_handle(ofd),
+                         &atts.ftCreationTime,
+                         &atts.ftLastAccessTime,
+                         &atts.ftLastWriteTime);
       if (stat != 1) {
          win_error(jcr, "SetFileTime:", win32_ofile);
       }
@@ -432,14 +436,15 @@ void win_error(void *vjcr, char *prefix, POOLMEM *win32_ofile)
    DWORD lerror = GetLastError();
    LPTSTR msg;
    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|
-		 FORMAT_MESSAGE_FROM_SYSTEM,
-		 NULL,
-		 lerror,
-		 0,
-		 (LPTSTR)&msg,
-		 0,
-		 NULL);
+                 FORMAT_MESSAGE_FROM_SYSTEM,
+                 NULL,
+                 lerror,
+                 0,
+                 (LPTSTR)&msg,
+                 0,
+                 NULL);
    Dmsg3(100, "Error in %s on file %s: ERR=%s\n", prefix, win32_ofile, msg);
+   strip_trailing_junk(msg);
    Jmsg3(jcr, M_INFO, 0, _("Error in %s file %s: ERR=%s\n"), prefix, win32_ofile, msg);
    LocalFree(msg);
 }
@@ -454,4 +459,68 @@ void unix_name_to_win32(POOLMEM **win32_name, char *name)
    cygwin_conv_to_win32_path(name, *win32_name);
 }
 
-#endif	/* HAVE_CYGWIN */
+/*
+ * Setup privileges we think we will need.  We probably do not need
+ *  the SE_SECURITY_NAME, but since nothing seems to be working,
+ *  we get it hoping to fix the problems.
+ */
+void SetServicePrivileges(void *jcr)
+{
+    HANDLE hToken;
+    TOKEN_PRIVILEGES tkp;
+    POOLMEM *dummy = "*none*";
+    // Get a token for this process. 
+    if (!OpenProcessToken(GetCurrentProcess(), 
+            TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken)) {
+       win_error(jcr, "OpenProcessToken", dummy);
+       /* Forge on anyway */
+    } 
+
+    // Get the LUID for the security privilege. 
+    if (!LookupPrivilegeValue(NULL, SE_SECURITY_NAME,  &tkp.Privileges[0].Luid)) {
+       win_error(jcr, "LookupPrivilegeValue", dummy);
+    }
+
+    tkp.PrivilegeCount = 1;  // one privilege to set    
+    tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED; 
+       
+    // Get the security privilege for this process. 
+    if (!AdjustTokenPrivileges(hToken, FALSE, &tkp, sizeof(TOKEN_PRIVILEGES),
+                            (PTOKEN_PRIVILEGES)NULL, (PDWORD)0)) {
+       win_error(jcr, "AdjustTokenPrivileges SE_PRIVILEGE_ENABLED", dummy);
+//     MessageBox(NULL, "Get security priv failed: AdjustTokePrivileges", "backup", MB_OK);
+    } 
+
+    // Get the LUID for the backup privilege. 
+    if (!LookupPrivilegeValue(NULL, SE_BACKUP_NAME,  &tkp.Privileges[0].Luid)) {
+       win_error(jcr, "LookupPrivilegeValue", dummy);
+    }
+
+    tkp.PrivilegeCount = 1;  // one privilege to set    
+    tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED; 
+       
+    // Get the backup privilege for this process. 
+    if (!AdjustTokenPrivileges(hToken, FALSE, &tkp, sizeof(TOKEN_PRIVILEGES),
+                            (PTOKEN_PRIVILEGES)NULL, (PDWORD)0)) {
+       win_error(jcr, "AdjustTokenPrivileges SE_BACKUP_NAME", dummy);
+//     MessageBox(NULL, "Get backup priv failed: AdjustTokePrivileges", "backup", MB_OK);
+    } 
+     
+    // Get the LUID for the restore privilege. 
+    if (!LookupPrivilegeValue(NULL, SE_RESTORE_NAME, &tkp.Privileges[0].Luid)) {
+       win_error(jcr, "LookupPrivilegeValue", dummy);
+    }
+
+    tkp.PrivilegeCount = 1;  // one privilege to set    
+    tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED; 
+       
+    // Get the restore privilege for this process. 
+    if (!AdjustTokenPrivileges(hToken, FALSE, &tkp, sizeof(TOKEN_PRIVILEGES),
+                            (PTOKEN_PRIVILEGES)NULL, (PDWORD)0)) {
+       win_error(jcr, "AdjustTokenPrivileges SE_RESTORE_NAME", dummy);
+//     MessageBox(NULL, "Get restore priv failed: AdjustTokePrivileges", "restore", MB_OK);
+    } 
+}
+
+
+#endif  /* HAVE_CYGWIN */

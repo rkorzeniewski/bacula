@@ -34,14 +34,14 @@ Other Changes this Release:
   several other utility programs.
 - Full listing of most catalog records (llist command).
 - Relabel Purged tapes with the relabel command.
-- Correct misentered path separators on Win32 systems to
+- Correct backwards path separators on Win32 systems to
   prevent creating files names with mixed conventions.
 - Print IP address on failed connections to servers.
 - Cancel command works much better (cancels waiting jobs in Dir
   and in SD).
 - Now have reasonable (but still small) regression script.
-- New Console commands for aiding scripting (input, output, tee,
-  time, wait).
+- New Console commands for aiding scripting (@input, @output, @tee,
+  @time, @version and wait).
              
 Items to note:
 - Version 1.29 File daemons can be used with version 1.30. However,

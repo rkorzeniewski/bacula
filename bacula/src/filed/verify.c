@@ -137,17 +137,17 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       return 1;
    }
 
+   binit(&bfd, jcr->use_win_backup_api);
 
    if (ff_pkt->type != FT_LNKSAVED && (S_ISREG(ff_pkt->statp.st_mode) && 
 	 ff_pkt->statp.st_size > 0) || 
 	 ff_pkt->type == FT_RAW || ff_pkt->type == FT_FIFO) {
       if ((bopen(&bfd, ff_pkt->fname, O_RDONLY | O_BINARY, 0)) < 0) {
 	 ff_pkt->ff_errno = errno;
-         Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open %s: ERR=%s.\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
+         Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open %s: ERR=%s.\n"),
+	      ff_pkt->fname, berror(&bfd));
 	 return 1;
       }
-   } else {
-      binit(&bfd);
    }
 
    encode_stat(attribs, &ff_pkt->statp, ff_pkt->LinkFI);
@@ -156,7 +156,6 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
    jcr->JobFiles++;		     /* increment number of files sent */
    pm_strcpy(&jcr->last_fname, ff_pkt->fname);
    V(jcr->mutex);
-
 
    /* 
     * Send file attributes to Director
@@ -199,7 +198,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       }
       if (n < 0) {
          Jmsg(jcr, M_WARNING, -1, _("Error reading file %s: ERR=%s\n"), 
-	      ff_pkt->fname, strerror(errno));
+	      ff_pkt->fname, berror(&bfd));
       }
       MD5Final(signature, &md5c);
 
@@ -217,7 +216,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       }
       if (n < 0) {
          Jmsg(jcr, M_WARNING, -1, _("Error reading file %s: ERR=%s\n"), 
-	      ff_pkt->fname, strerror(errno));
+	      ff_pkt->fname, berror(&bfd));
       }
       SHA1Final(&sha1c, signature);
 

@@ -30,11 +30,12 @@ int       encode_attribsEx       (void *jcr, char *attribsEx, FF_PKT *ff_pkt);
 int set_attributes(void *jcr, char *fname, char *ofile, char *lname,
                    int type, int stream, struct stat *statp, 
                    char *attribsEx, BFILE *ofd);
+void SetServicePrivileges(void *jcr);
 
 /* from create_file.c */
 int create_file(void *jcr, char *fname, char *ofile, char *lname,
                 int type, int stream, struct stat *statp, 
-                char *attribsEx, BFILE *ofd, int replace);
+                char *attribsEx, BFILE *ofd, int replace, int win_io);
 
 /* From find.c */
 FF_PKT *init_find_files();
@@ -65,10 +66,11 @@ int make_path(void *jcr, const char *argpath, int mode,
 
 /* from file_io.c */
 ssize_t  bread(BFILE *bfd, void *buf, size_t count);
-int      bopen(BFILE *bfd, const char *pathname, int flags, mode_t mode);
+int      bopen(BFILE *bfd, const char *fname, int flags, mode_t mode);
 int      bclose(BFILE *bfd);
 ssize_t  bread(BFILE *bfd, void *buf, size_t count);
 ssize_t  bwrite(BFILE *bfd, void *buf, size_t count);
 off_t    blseek(BFILE *bfd, off_t offset, int whence);
 int      is_bopen(BFILE *bfd);
-void     binit(BFILE *bfd);
+void     binit(BFILE *bfd, int use_win_api);
+char    *berror(BFILE *bfd);

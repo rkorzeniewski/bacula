@@ -175,6 +175,8 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       return 1;
    }
 
+   binit(&ff_pkt->bfd, jcr->use_win_backup_api);
+
    /* Open any file with data that we intend to save */
    if (ff_pkt->type != FT_LNKSAVED && (S_ISREG(ff_pkt->statp.st_mode) && 
 	 ff_pkt->statp.st_size > 0) || 
@@ -187,13 +189,12 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       }
       if (bopen(&ff_pkt->bfd, ff_pkt->fname, O_RDONLY | O_BINARY, 0) < 0) {
 	 ff_pkt->ff_errno = errno;
-         Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open %s: ERR=%s.\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
+         Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open %s: ERR=%s.\n"), ff_pkt->fname, 
+	      berror(&ff_pkt->bfd));
 	 stop_thread_timer(tid);
 	 return 1;
       }
       stop_thread_timer(tid);
-   } else {
-      binit(&ff_pkt->bfd);	      /* mark file not opened */
    }
 
    Dmsg1(130, "bfiled: sending %s to stored\n", ff_pkt->fname);
@@ -211,7 +212,6 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
     * Send Attributes header to Storage daemon
     *	 <file-index> <stream> <info>
     */
-/* #ifndef FD_NO_SEND_TEST */
    if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, stream)) {
       if (is_bopen(&ff_pkt->bfd)) {
 	 bclose(&ff_pkt->bfd);
@@ -256,7 +256,6 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       return 0;
    }
    bnet_sig(sd, BNET_EOD);	      /* indicate end of attributes data */
-/* #endif  */
 
    /* 
     * If the file has data, read it and send to the Storage daemon
@@ -301,7 +300,6 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       }
 #endif
 
-/*    #ifndef FD_NO_SEND_TEST  */
       /*
        * Send Data header to Storage daemon
        *    <file-index> <stream> <info>
@@ -312,7 +310,6 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	 return 0;
       }
       Dmsg1(100, ">stored: datahdr %s\n", sd->msg);
-/*    #endif */
 
       if (ff_pkt->flags & FO_MD5) {
 	 MD5Init(&md5c);
@@ -384,7 +381,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	 }
 #endif
 
-/*	 #ifndef FD_NO_SEND_TEST */
+	 /*	  #ifndef FD_NO_SEND_TEST */
 	 /* Send the buffer to the Storage daemon */
 	 if (!sparseBlock) {
 	    if (ff_pkt->flags & FO_SPARSE) {
@@ -400,50 +397,45 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	    }
 	 }
          Dmsg1(130, "Send data to SD len=%d\n", sd->msglen);
-/*	 #endif */
+	 /*	  #endif */
 	 jcr->JobBytes += sd->msglen;	/* count bytes saved possibly compressed */
 	 sd->msg = msgsave;		/* restore read buffer */
 
       } /* end while read file data */
 
+
       if (sd->msglen < 0) {
          Jmsg(jcr, M_ERROR, 0, _("Read error on file %s. ERR=%s\n"),
-	    ff_pkt->fname, strerror(errno));
+	    ff_pkt->fname, berror(&ff_pkt->bfd));
       }
 
       bclose(&ff_pkt->bfd);		 /* close file */
-/*    #ifndef FD_NO_SEND_TEST */
       if (!bnet_sig(sd, BNET_EOD)) {	 /* indicate end of file data */
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);
 	 return 0;
       }
-/*    #endif  */
    }
 
 
    /* Terminate any MD5 signature and send it to Storage daemon and the Director */
    if (gotMD5 && ff_pkt->flags & FO_MD5) {
       MD5Final(signature, &md5c);
-/*    #ifndef FD_NO_SEND_TEST */
       bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_MD5_SIGNATURE);
       Dmsg1(100, "bfiled>stored:header %s\n", sd->msg);
       memcpy(sd->msg, signature, 16);
       sd->msglen = 16;
       bnet_send(sd);
       bnet_sig(sd, BNET_EOD);	      /* end of MD5 */
-/*    #endif */
       gotMD5 = 0;
    } else if (gotSHA1 && ff_pkt->flags & FO_SHA1) {
    /* Terminate any SHA1 signature and send it to Storage daemon and the Director */
       SHA1Final(&sha1c, signature);
-/*    #ifndef FD_NO_SEND_TEST */
       bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_SHA1_SIGNATURE);
       Dmsg1(100, "bfiled>stored:header %s\n", sd->msg);
       memcpy(sd->msg, signature, 20);
       sd->msglen = 20;
       bnet_send(sd);
       bnet_sig(sd, BNET_EOD);	      /* end of SHA1 */
-/*    #endif  */
       gotMD5 = 0;
    }
    return 1;
