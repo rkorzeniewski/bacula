@@ -1,4 +1,11 @@
 /*
+ *
+ *   Main frame header file
+ *
+ *    Nicolas Boichat, April 2004
+ *
+ */
+/*
    Copyright (C) 2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
