@@ -1,4 +1,12 @@
-2003-xx-xx Version 1.31 Beta 20Jun03
+2003-06-24 Version 1.31 Beta 22Jun03
+- Change Purging Oldest Volume message to Recycling Oldest Volume.
+- Limit results from find_oldest_volume to one.
+- Fix possible buffer overrun in the restore tree handling routines.
+- Fixed a crash in VerifyToVolume because I moved the close_db()
+  down into the free_ua_context() and should not have done so.
+- At a "var" command in the Console that does variable expansion and
+  prints it.
+- Implement first cut of estimate command.
 - Change find_next_volume() for oldest to use LastWritten instead of
   FirstWritten -- also add Append to volumes slected.
 - Do normal recycling before checking for RecycleOldestVolume.
