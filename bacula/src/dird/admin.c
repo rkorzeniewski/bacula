@@ -48,11 +48,6 @@ int do_admin(JCR *jcr)
 {
 
    jcr->jr.JobId = jcr->JobId;
-   jcr->jr.StartTime = jcr->start_time;
-   if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
-      Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
-      goto bail_out;
-   }
 
    jcr->fname = (char *)get_pool_memory(PM_FNAME);
 
@@ -62,10 +57,6 @@ int do_admin(JCR *jcr)
 
    set_jcr_job_status(jcr, JS_Running);
    admin_cleanup(jcr, JS_Terminated);
-   return 0;
-    
-bail_out:
-   admin_cleanup(jcr, JS_ErrorTerminated);
    return 0;
 }
 

@@ -173,7 +173,11 @@ static void *job_thread(void *arg)
    for ( ;; ) {
       Dmsg0(200, "=====Start Job=========\n");
       jcr->start_time = time(NULL);	 /* set the real start time */
+      jcr->jr.StartTime = jcr->start_time;
       set_jcr_job_status(jcr, JS_Running);
+      if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
+         Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
+      }
 
       if (job_canceled(jcr)) {
 	 update_job_end_record(jcr);

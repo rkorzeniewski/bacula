@@ -84,8 +84,8 @@ int db_mark_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, JobId_t JobId)
 /*
  * Update the Job record at start of Job
  *
- *  Returns: 0 on failure
- *	     1 on success
+ *  Returns: false on failure
+ *	     true  on success
  */
 bool
 db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
