@@ -1,4 +1,4 @@
-2002-07-22 Release 1.23
+2002-07-23 Release 1.23
   From kes22Jul02
 - Updated Bacula to handle some minor differences in MySQL 4.0.2
   (still works with older MySQLs).
