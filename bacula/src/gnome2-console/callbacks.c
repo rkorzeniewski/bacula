@@ -19,11 +19,13 @@
 #define KEY_Left  65361
 #define KEY_Right 65363
 
+void terminate_console(int sig);
+
 gboolean
 on_console_delete_event(GtkWidget *widget, GdkEvent *event, gpointer user_data)
 {
    gtk_main_quit();
-   return FALSE;
+   terminate_console(0);     
 }
 
 void

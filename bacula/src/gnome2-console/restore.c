@@ -64,17 +64,52 @@ on_restore_up_button_clicked(GtkButton *button, gpointer user_data)
    FillDirectory(restore->path, restore);
 }
 
+static void mark_row(int row, bool mark)
+{
+   char *file;
+   int len;
+   char new_mark[10];
+
+   gtk_clist_get_text(restore->list, row, FILE_COLUMN, &file);
+   if (mark) {
+      bstrncpy(new_mark, "x", sizeof(new_mark));
+      len = Mmsg(&restore->buf, "mark %s", file);
+   } else {
+      bstrncpy(new_mark, " ", sizeof(new_mark));
+      len = Mmsg(&restore->buf, "unmark %s", file);
+   }
+   gtk_clist_set_text(restore->list, row, CHECK_COLUMN, new_mark);
+    /* strip trailing slash from directory name */
+   while (len > 1 && restore->buf[len-1] == '/') {
+      restore->buf[len-1] = 0;
+   }
+   write_director(restore->buf);
+   discard_to_prompt();
+}
+
 void
 on_restore_add_button_clicked(GtkButton *button, gpointer user_data)
 {
+   int num_selected = g_list_length(restore->list->selection);
+   int row;
 
+   for (int i=0; i < num_selected; i++) {
+      row = (int)g_list_nth_data(restore->list->selection, i);
+      mark_row(row, true);
+   }
 }
 
 
 void
 on_restore_remove_button_clicked(GtkButton *button, gpointer user_data)
 {
+   int num_selected = g_list_length(restore->list->selection);
+   int row;
 
+   for (int i=0; i < num_selected; i++) {
+      row = (int)g_list_nth_data(restore->list->selection, i);
+      mark_row(row, false);
+   }
 }
 
 /*
@@ -216,13 +251,6 @@ void FillDirectory(char *path, Window *restore)
 
       gtk_clist_append(list, text);
 
-#ifdef xxx
-      if (marked) {
-	 gtk_clist_set_pixmap(list, row, CHECK_COLUMN, check_pixmap, check_trans);
-      } else {
-	 gtk_clist_set_pixmap(list, row, CHECK_COLUMN, blank_pixmap, blank_trans);
-      }
-#endif
       row++;
    }
 
@@ -240,18 +268,6 @@ Window *new_window()
    return window;
 }
 
-#ifdef xxx
-static void window_delete_cb(GtkWidget *item, GdkEvent *event, Window *restore)
-{
-   gtk_widget_destroy(restore->window);
-   gtk_main_quit();
-   free_pool_memory(restore->buf);
-   free_pool_memory(restore->fname);
-   free_pool_memory(restore->path);
-   free_pool_memory(restore->file);
-   free(restore);
-}
-#endif
 
 /*
  * User clicked a column title
@@ -266,44 +282,24 @@ static void click_column_cb(GtkCList *item, gint column, Window *restore)
 static void select_row_cb(GtkCList *item, gint row, gint column, 
 	     GdkEventButton *event, Window *restore)
 {
-#ifdef xxx
-   GdkPixmap *pixmap, *trans;
-#endif
-   char *file, *marked = NULL;
-   int len;
-   char new_mark[10];
+   char *file;
+   char *marked = NULL;
    /* Column non-negative => double click */
    if (column >= 0) {
       gtk_clist_unselect_row(item, row, column);
-      gtk_clist_get_text(item, row, FILE_COLUMN, &file);
       /* Double click on column 0 means to mark or unmark */
       if (column == 0) {
-#ifdef xxx
-	 utf8_mark = g_locale_to_utf8(new_mark, -1, NULL, NULL, NULL);
-	 gtk_clist_get_pixmap(restore->list, row, CHECK_COLUMN, &pixmap, &trans);
-	 if (pixmap == blank_pixmap) {
-            bstrncpy(new_mark, "x", sizeof(new_mark));
-//	    gtk_clist_set_pixmap(item, row, CHECK_COLUMN, check_pixmap, check_trans);
-#endif
 	 gtk_clist_get_text(restore->list, row, CHECK_COLUMN, &marked);
          Dmsg1(200, "Marked=%s\n", marked);
          if (!marked || strcmp(marked, "x") != 0) {
-            len = Mmsg(&restore->buf, "mark %s", file);
-            bstrncpy(new_mark, "x", sizeof(new_mark));
+	    mark_row(row, true);
 	 } else {
-            len = Mmsg(&restore->buf, "unmark %s", file);
-            bstrncpy(new_mark, " ", sizeof(new_mark));
+	    mark_row(row, false);
 	 }
-	 gtk_clist_set_text(restore->list, row, CHECK_COLUMN, new_mark);
-	 /* strip trailing slash from directory name */
-         while (len > 1 && restore->buf[len-1] == '/') {
-	    restore->buf[len-1] = 0;
-	 }
-	 write_director(restore->buf);
-	 discard_to_prompt();
       } else {
       /* Double clicking on directory means to move to it */
 	 int len;
+	 gtk_clist_get_text(item, row, FILE_COLUMN, &file);
 	 len = strlen(file);
          if (len > 0 && file[len-1] == '/') {
 	    /* Change to new directory */
@@ -328,3 +324,31 @@ void row_data_destroy_cb(gpointer data)
       free(data);
    }
 }
+
+#ifdef xxx
+   GdkPixmap *pixmap, *trans;
+	 utf8_mark = g_locale_to_utf8(new_mark, -1, NULL, NULL, NULL);
+	 gtk_clist_get_pixmap(restore->list, row, CHECK_COLUMN, &pixmap, &trans);
+	 if (pixmap == blank_pixmap) {
+            bstrncpy(new_mark, "x", sizeof(new_mark));
+//	    gtk_clist_set_pixmap(item, row, CHECK_COLUMN, check_pixmap, check_trans);
+#endif
+#ifdef xxx
+static void window_delete_cb(GtkWidget *item, GdkEvent *event, Window *restore)
+{
+   gtk_widget_destroy(restore->window);
+   gtk_main_quit();
+   free_pool_memory(restore->buf);
+   free_pool_memory(restore->fname);
+   free_pool_memory(restore->path);
+   free_pool_memory(restore->file);
+   free(restore);
+}
+#endif
+#ifdef xxx
+      if (marked) {
+	 gtk_clist_set_pixmap(list, row, CHECK_COLUMN, check_pixmap, check_trans);
+      } else {
+	 gtk_clist_set_pixmap(list, row, CHECK_COLUMN, blank_pixmap, blank_trans);
+      }
+#endif

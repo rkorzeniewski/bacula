@@ -61,7 +61,7 @@ GList *messages_list, *pool_list, *storage_list;
 GList *type_list, *level_list;
 
 /* Forward referenced functions */
-static void terminate_console(int sig);
+void terminate_console(int sig);
 static gint message_handler(gpointer data);
 static int initial_connect_to_director(gpointer data);
 static void set_scroll_bar_to_end(void);
@@ -528,7 +528,7 @@ void stop_director_reader(gpointer data)
 
 
 /* Cleanup and then exit */
-static void terminate_console(int sig)
+void terminate_console(int sig)
 {
    static int already_here = FALSE;
 
