@@ -1,5 +1,13 @@
 
 2003-07-xx Version 1.31 Beta xxJul03
+- Update document for Win32 stuff.
+- Ensure VolStatus value for update is permitted.
+- Fix cached_path so that it is local to the jcr, otherwise, there
+  are problems from job to job.
+- Fixed idcache.c which was not thread safe and didn't release memory,
+  and didn't always edit the userid correctly.
+- Correct missing pool memory allocation in update voluseduration.
+- Release mutex in pool_mem.c before triggering ASSERT.
 - Lock database while recycling.
 - Fix a bug in editing since where I forgot to update to the new size.  
 - Implement all the command line update arguments.

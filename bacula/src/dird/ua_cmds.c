@@ -654,13 +654,35 @@ static int update_cmd(UAContext *ua, char *cmd)
 static void update_volstatus(UAContext *ua, char *val, MEDIA_DBR *mr)
 {
    POOLMEM *query = get_pool_memory(PM_MESSAGE);
-   bstrncpy(mr->VolStatus, val, sizeof(mr->VolStatus));
-   Mmsg(&query, "UPDATE Media SET VolStatus='%s' WHERE MediaId=%u",
-      mr->VolStatus, mr->MediaId);
-   if (!db_sql_query(ua->db, query, NULL, NULL)) {  
-      bsendmsg(ua, "%s", db_strerror(ua->db));
+   char *kw[] = {
+      "Append",
+      "Archive",
+      "Disabled",
+      "Full",
+      "Used", 
+      "Cleaning", 
+      "Read-Only",
+      NULL};
+   bool found = false;
+   int i;
+
+   for (i=0; kw[i]; i++) {
+      if (strcasecmp(val, kw[i]) == 0) {
+	 found = true;
+	 break;
+      }
+   }
+   if (!found) {
+      bsendmsg(ua, _("Invalid VolStatus specified: %s\n"), val);
    } else {
-      bsendmsg(ua, _("New Volume status is: %s\n"), mr->VolStatus);
+      bstrncpy(mr->VolStatus, kw[i], sizeof(mr->VolStatus));
+      Mmsg(&query, "UPDATE Media SET VolStatus='%s' WHERE MediaId=%u",
+	 mr->VolStatus, mr->MediaId);
+      if (!db_sql_query(ua->db, query, NULL, NULL)) {  
+         bsendmsg(ua, "%s", db_strerror(ua->db));
+      } else {
+         bsendmsg(ua, _("New Volume status is: %s\n"), mr->VolStatus);
+      }
    }
    free_pool_memory(query);
 }
