@@ -28,6 +28,10 @@ From Chuck:
 --sd.conf password does not match dir.conf storage password
 =======
 
+- Make BSR accept count (total files to be restored).
+- Make BSR return next_block when it knows record is not
+  in block, done when count is reached, and possibly other
+  optimizations. I.e. add a state word.
 - After unmount, if restore job started, ask to mount.
 - Fix db_get_fileset in cats/sql_get.c for multiple records.
 - Fix start/end blocks for File
@@ -41,12 +45,9 @@ From Chuck:
   the catalog.
 - Make Restore report an error if FD or SD term codes are not OK.
 - Convert all %x substitution variables, which are hard to remember
-  and read to %(variable-name)s.  Idea from TMDA.
-- Report volume write rate.
+  and read to %(variable-name).  Idea from TMDA.
 - Report compression % and other compression statistics if turned on.
 - Add JobLevel in FD status (but make sure it is defined).
-- Pass "Catalog Files = no" to storage daemon to eliminate
-  network traffic.
 - Make Pool resource handle Counter resources.
 - Remove NextId for SQLite. Optimize.
 - Fix gethostbyname() to use gethostbyname_r()
@@ -60,10 +61,8 @@ From Chuck:
 - Remove JobMediaId it is not used.
 - Enhance time and size scanning routines.
 - Fix Autoprune for Volumes to respect need for full save.
-- DateWritten may be wrong.
+- DateWritten field on tape may be wrong.
 - Fix Win32 config file definition name on /install
-- When we are at EOM, we must ask each job to write JobMedia
-  record (update_volume_info).
 - No READLINE_SRC if found in alternate directory.
 - Add Client FS/OS id (Linux, Win95/98, ...).
 - Put Windows files in Windows stream?
@@ -71,60 +70,185 @@ From Chuck:
 
   
 Projects:
-- Add Base job.
-- Make Storage daemon multi-buffer to tape (i.e. writer thread).
-- Implement Label templates
-- Define definitive tape format.
-- GUI for interactive restore.
-- Interactive backup.
-- Write bscan program (skeleton exists).
-- Write a regression script
-- Add ssl to daemon communications
-- New daemon communications protocol.
-- SD can buffer to disk.
+           Bacula Projects Roadmap 
+               17 August 2002
 
-1.  Implement Base jobs.
-    Big savings in tape usage. Will require more resources.
-    i.e. DIR must send FD a list of files/attribs, and the FD must
-    search the list and compare it for each file to be saved.
+Item 1:   Multiple simultaneous Jobs. (done)
 
-2.  Make Storage daemon multi-buffer to tape (i.e. writer thread).
-    Hopefully much faster backups. Each Job will have a pool of
-    buffers that it hands off to the tape writer thread. 
+  What:   Permit multiple simultaneous jobs in Bacula.
 
-3.  Implement Label templates
-    Better automated label creation, using design that is
-    already documented in the manual.
+  Why:    An enterprise level solution needs to go fast without the
+          need for the system administrator to carefully tweak
+          timing.  Based on the benchmarks, during a full
+          backup, NetWorker typically hit 10 times the bandwidth to
+          the tape compared to Bacula--largely. This is probably due to
+          running parallel jobs and multi-threaded filling of buffers
+          and writing them to tape.  This should also make things work
+          better when you have a mix of fast and slow machines backing
+          up at the same time.
 
-4.  Define definitive tape format.
-    A lot of design thought needed here.
-    
-5.  GUI for interactive restore.
-    Probably will do in Gtk, but would be nice in Browser.
+  Notes:  Bacula was designed to run multiple simultaneous jobs. Thus
+          implementing this is a matter of some small cleanups and
+          careful testing.
 
-6.  Interactive backup.
-    Really part of 5.
 
-7.  Write bscan program (skeleton exists).
-    Allows recovery from tape.
+Item 2:   Make the Storage daemon use intermediate file storage to buffer data.
+          (not necessary)
 
-8.  Write a regression script
-    Needed to ensure long term stability.
+  What:   If data is coming into the SD too fast, buffer it to 
+          disk if the user has configured this option.
 
-9.  Add ssl to daemon communications
-    Needed for secure operations.
+  Why:    This would be nice, especially if it more or less falls out
+          when implementing (1) above.  If not, it probably should not
+          be given a high priority because fundamentally the backup time
+          is limited by the tape bandwidth.  Even though you may finish a
+          client job quicker by spilling to disk, you still have to
+          eventually get it onto tape.  If intermediate disk buffering
+          allows us to improve write bandwidth to tape, it may make
+          sense.
 
-10. Multiple simultaneous Jobs.
-    I don't think this will take much.
+  Notes:  Whether or not this is implemented will depend upon performance
+          testing after item 1 is implemented.
 
-11. New daemon communication protocol. 
-    Use serial for all daemon communications, allow transfer
-    of any data type with type checking and optional name
-    checking.
 
-12. SD can use intermediate file storage to buffer data
-    while waiting for tape to catch up.  This requires that
-    item 2 be implemented (or simultaneously implemented).
+Item 3:   Write the bscan program.
+
+  What:   Write a program that reads a Bacula tape and puts all the 
+          appropriate data into the catalog. This allows recovery
+          from a tape that is no longer in the database, or it allows
+          re-creation of a database if lost.
+
+  Why:    This is a fundamental robustness and disaster recovery tool
+          which will increase the comfort level of a sysadmin
+          considering adopting Bacula.
+
+  Notes:  A skeleton of this program already exists, but much work
+          needs to be done. Implementing this will also make apparent
+          any deficiencies in the current Bacula tape format.
+
+
+Item 4:   Implement Base jobs.
+
+  What:   A base job is sort of like a Full save except that you 
+          will want the FileSet to contain only files that are unlikely
+          to change in the future (i.e. a snapshot of most of your
+          system after installing it). After the base job has been run,
+          when you are doing a Full save, you can specify to exclude
+          all files saved by the base job that have not been modified.
+
+  Why:    This is something none of the competition does, as far as we know
+          (except BackupPC, which is a Perl program that saves to disk
+          only).  It is big win for the user, it makes Bacula stand out
+          as offering a unique optimization that immediately saves time
+          and money.
+
+  Notes:  Big savings in tape usage. Will require more resources because
+          the e. DIR must send FD a list of files/attribs, and the FD must
+          search the list and compare it for each file to be saved.
+
+
+Item 5:   Implement Label templates
+
+  What:   This is a mechanism whereby Bacula can automatically create
+          a tape label for new tapes according to a detailed specification
+          provided by the user.
+
+  Why:    It is a major convenience item for folks who use automated label
+          creation.
+
+  Notes:  Bacula already has a working form of automatic tape label
+          creation, but it is very crude. The design for the complete
+          tape labeling project is already documented in the manual.
+
+
+Item 6:   Write a regression script.
+
+  What:   This is an automatic script that runs and tests as many features
+          of Bacula as possible. The output is compared to previous
+          versions of Bacula and any differences are reported.
+
+  Why:    This is an enormous help in preventing introduction of new
+          errors in parts of the program that already work correctly.
+
+  Notes:  This probably should be ranked higher, it's something the typical
+          user doesn't see.  Depending on how it's implemented, it may
+          make sense to defer it until the archival tape format and
+          user interface mature.
+
+
+Item 7:   GUI for interactive restore
+Item 8:   GUI for interactive backup
+
+  What:   The current interactive restore is implemented with a tty
+          interface. It would be much nicer to be able to "see" the
+          list of files backed up in typical GUI tree format.
+          The same mechanism could also be used for creating 
+          ad-hoc backup FileSets (item 8).
+
+  Why:    Ease of use -- especially for the end user.
+
+  Notes:  Rather than implementing in Gtk, we probably should go directly
+          for a Browser implementation, even if doing so meant the
+          capability wouldn't be available until much later.  Not only
+          is there the question of Windows sites, most
+          Solaris/HP/IRIX, etc,  shops can't currently run Gtk programs
+          without installing lots of stuff admins are very wary about.
+          Real sysadmins will always use the command line anyway, and
+          the user who's doing an interactive restore or backup of his
+          own files will in most cases be on a Windows machine running
+          Exploder.
+
+
+Item 9:   Add SSL to daemon communications.
+
+  What:   This provides for secure communications between the daemons.
+
+  Why:    This would allow doing backup across the Internet without
+          privacy concerns (or with much less concern).
+
+  Notes:  The vast majority of near term potential users will be backing up
+          a single site over a LAN and, correctly or not, they probably
+          won't be concerned with security, at least not enough to go to
+          the trouble to set up keys, etc. to screw things down.  We suspect
+          that many users genuinely interested in multi-site backup
+          already run some form of VPN software in their internetwork
+          connections, and are willing to delegate security to that layer.
+
+
+Item 10:  Define definitive tape format.
+
+  What:   Define that definitive tape format that will not change 
+          for the next millennium.
+
+  Why:    Stability, security.
+
+  Notes:  See notes for item 11 below.
+
+
+Item 11:  New daemon communication protocol.
+
+  What:   The current daemon to daemon protocol is basically an ASCII
+          printf() and sending the buffer. On the receiving end, the
+          buffer is sscanf()ed to unpack it. The new scheme would
+          be a binary format that allows quick packing and unpacking
+          of any data type with named fields.
+
+  Why:    Using binary packing would be faster. Named fields will permit
+          error checking to ensure that what is sent is what the 
+          receiver really wants.
+
+  Notes:  These are internal improvements in the interest of the
+          long-term stability and evolution of the program.  On the one
+          hand, the sooner they're done, the less code we have to rip
+          up when the time comes to install them.  On the other hand, they
+          don't bring an immediately perceptible benefit to potential
+          users.  Item 10 and possibly item 11 should be deferred until Bacula
+          is well established with a growing user community more or
+          less happy with the feature set.  At that time, it will make a
+          good "next generation" upgrade in the interest of data
+          immortality.
+
+
 
 I haven't put these in any particular order.
 
@@ -451,4 +575,7 @@ Done: (see kernsdone for more)
 - In restore job, print some summary information at end, such
   as rate, ... job status, ...
 - Problem with len at 362 in tree.c
-
+- Report volume write rate.
+- Pass "Catalog Files = no" to storage daemon to eliminate network traffic.
+- When we are at EOM, we must ask each job to write JobMedia
+  record (update_volume_info).

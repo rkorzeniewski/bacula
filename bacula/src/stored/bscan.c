@@ -46,6 +46,7 @@ static BSR *bsr;
 static void usage()
 {
    fprintf(stderr,
+"\nVersion: " VERSION " (" DATE ")\n\n"
 "Usage: bscan [-d debug_level] <bacula-archive>\n"
 "       -dnn            set debug level to nn\n"
 "       -?              print this message\n\n");

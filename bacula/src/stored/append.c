@@ -56,11 +56,6 @@ int do_append_data(JCR *jcr)
 
    sm_check(__FILE__, __LINE__, False);
 
-#ifdef NO_ATTRIBUTES_TEST
-// jcr->spool_attributes = 1;
-   jcr->no_attributes = 1;
-#endif
-  
    if (!jcr->no_attributes && jcr->spool_attributes) {
       open_spool_file(jcr, jcr->dir_bsock);
    }

@@ -1030,7 +1030,7 @@ static void helpcmd()
 static void usage()
 {
    fprintf(stderr,
-"\n"
+"\nVersion: " VERSION " (" DATE ")\n\n"
 "Usage: btape [-c config_file] [-d debug_level] [device_name]\n"
 "       -c <file>   set configuration file to file\n"
 "       -dnn        set debug level to nn\n"

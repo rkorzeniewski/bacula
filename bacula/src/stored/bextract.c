@@ -51,6 +51,7 @@ static DEV_BLOCK *block;
 static void usage()
 {
    fprintf(stderr,
+"\nVersion: " VERSION " (" DATE ")\n\n"
 "Usage: bextract [-d debug_level] <bacula-archive> <directory-to-store-files>\n"
 "       -b <file>       specify a bootstrap file\n"
 "       -dnn            set debug level to nn\n"
