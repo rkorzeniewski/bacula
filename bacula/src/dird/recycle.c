@@ -112,7 +112,7 @@ int recycle_oldest_purged_volume(JCR *jcr, MEDIA_DBR *mr)
  */
 int recycle_volume(JCR *jcr, MEDIA_DBR *mr)
 {
-   strcpy(mr->VolStatus, "Recycle");
+   bstrncpy(mr->VolStatus, "Recycle", sizeof(mr->VolStatus));
    mr->VolJobs = mr->VolFiles = mr->VolBlocks = mr->VolErrors = 0;
    mr->VolBytes = 0;
    mr->FirstWritten = mr->LastWritten = 0;

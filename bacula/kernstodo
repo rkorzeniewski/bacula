@@ -28,11 +28,11 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.32:
-- Enhance autochanger interface to include a "scan" feature
+- Specify list of files to restore
+- Enhance "update slots" to include a "scan" feature
   scan 1; scan 1-5; scan 1,2,4 ...  to update the catalog 
 - Allow a slot or range of slots on the label barcodes command.
   when the magazine is changed.
-- Specify list of files to restore
 - Implement ClientRunBeforeJob and ClientRunAfterJob.
 - Figure out what is interrupting sql command in console.
 - Don't print "Warning: Wrong Volume mounted ..." if mounting second

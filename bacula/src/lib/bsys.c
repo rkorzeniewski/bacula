@@ -469,3 +469,15 @@ char *bfgets(char *s, int size, FILE *fd)
    }
    return s;
 }
+
+/*
+ * Make a "unique" filename.  It is important that if
+ *   called again with the same "what" that the result
+ *   will be identical. This allows us to use the file
+ *   without saving its name, and re-generate the name
+ *   so that it can be deleted.
+ */
+void make_unique_filename(POOLMEM **name, int Id, char *what)
+{
+   Mmsg(name, "%s/%s.%s.%d.tmp", working_directory, my_name, what, Id);
+}
