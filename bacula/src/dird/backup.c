@@ -400,7 +400,7 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
 	 }
 	 break;
       case JS_Cancelled:
-         term_msg = _("Backup Cancelled");
+         term_msg = _("Backup Canceled");
 	 if (jcr->store_bsock) {
 	    bnet_sig(jcr->store_bsock, BNET_TERMINATE);
 	    pthread_cancel(jcr->SD_msg_chan);

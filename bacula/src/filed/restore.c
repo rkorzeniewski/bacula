@@ -232,18 +232,31 @@ void do_restore(JCR *jcr)
 	    /* Ensure where is terminated with a slash */
             if (jcr->where[wherelen-1] != '/' && fn[0] != '/') {
                strcat(ofile, "/");
-	    }
+	    }	
 	    strcat(ofile, fn);	      /* copy rest of name */
-	    /* Fixup link name */
-	    if (type == FT_LNKSAVED || (type == FT_LNK && jcr->prefix_links)) {
-               if (lp[0] == '/') {      /* if absolute path */
+	    /*
+	     * Fixup link name -- add where only if requested
+	     *	 and if it is an absolute path
+	     */
+	    if (type == FT_LNKSAVED || type == FT_LNK) {
+	       int add_link;
+               if (jcr->prefix_links && lp[0] == '/') {      /* if absolute path */
 		  strcpy(lname, jcr->where);
-	       }       
-               if (win32_client && lp[1] == ':') {
-		  strcat(lname, lp+2); /* copy rest of name */
+		  add_link = 1;
 	       } else {
-		  strcat(lname, lp);   /* On Unix systems we take everything */
+		  lname[0] = 0;
+		  add_link = 0;
 	       }
+               if (win32_client && lp[1] == ':') {
+		  fn = lp+2;		 /* skip over drive: */
+	       } else {
+		  fn = lp;		 /* take whole name */
+	       }
+	       /* Ensure where is terminated with a slash */
+               if (add_link && jcr->where[wherelen-1] != '/' && fn[0] != '/') {
+                  strcat(lname, "/");
+	       }   
+	       strcat(lname, fn);     /* copy rest of link */
 	    }
 	 }
 

@@ -181,7 +181,6 @@ int do_restore(JCR *jcr)
       return 0;
    }
 
-
    /* 
     * send Storage daemon address to the File daemon,
     *	then wait for File daemon to make connection
@@ -262,6 +261,13 @@ int do_restore(JCR *jcr)
       }
    }
 
+   if (is_bnet_error(fd)) {
+      Jmsg(jcr, M_FATAL, 0, _("Network error during RESTORE command. ERR=%s\n"),
+	  bnet_strerror(fd));
+   }
+   bnet_sig(fd, BNET_TERMINATE);   /* tell Client we are terminating */
+
+
    restore_cleanup(jcr, ok?jcr->FDJobStatus:JS_ErrorTerminated);
 
    return 1;
@@ -275,7 +281,7 @@ static void restore_cleanup(JCR *jcr, int TermCode)
 {
    char sdt[MAX_TIME_LENGTH], edt[MAX_TIME_LENGTH];
    char ec1[30], ec2[30];
-   char term_code[100];
+   char term_code[100], fd_term_msg[100];
    char *term_msg;
    int msg_type;
    double kbps;
@@ -300,7 +306,7 @@ static void restore_cleanup(JCR *jcr, int TermCode)
 	 }
 	 break;
       case JS_Cancelled:
-         term_msg = _("Restore Cancelled");
+         term_msg = _("Restore Canceled");
 	 if (jcr->store_bsock) {
 	    bnet_sig(jcr->store_bsock, BNET_TERMINATE);
 	    pthread_cancel(jcr->SD_msg_chan);
@@ -314,6 +320,11 @@ static void restore_cleanup(JCR *jcr, int TermCode)
    bstrftime(sdt, sizeof(sdt), jcr->jr.StartTime);
    bstrftime(edt, sizeof(edt), jcr->jr.EndTime);
    kbps = (double)jcr->jr.JobBytes / (1000 * (jcr->jr.EndTime - jcr->jr.StartTime));
+   if (kbps < 0.05) {
+      kbps = 0;
+   }
+
+   jobstatus_to_ascii(jcr->FDJobStatus, fd_term_msg, sizeof(fd_term_msg));
 
    Jmsg(jcr, msg_type, 0, _("Bacula " VERSION " (" LSMDATE "): %s\n\
 JobId:                  %d\n\
@@ -324,6 +335,7 @@ End time:               %s\n\
 Files Restored:         %s\n\
 Bytes Restored:         %s\n\
 Rate:                   %.1f KB/s\n\
+FD termination status:  %s\n\
 Termination:            %s\n\n"),
 	edt,
 	jcr->jr.JobId,
@@ -334,6 +346,7 @@ Termination:            %s\n\n"),
 	edit_uint64_with_commas((uint64_t)jcr->jr.JobFiles, ec1),
 	edit_uint64_with_commas(jcr->jr.JobBytes, ec2),
 	(float)kbps,
+	fd_term_msg,
 	term_msg);
 
    Dmsg0(20, "Leaving restore_cleanup\n");
