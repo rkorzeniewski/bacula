@@ -38,7 +38,7 @@ Job {
 
 # Standard Restore template, to be changed by Console program
 Job {
-  Name = "RestoreFiles
+  Name = "RestoreFiles"
   Type = Restore
   Client=@hostname@-fd 
   FileSet="Full Set"
