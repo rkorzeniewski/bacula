@@ -1003,7 +1003,9 @@ bool write_ansi_ibm_label(DCR *dcr, const char *VolName)
       Dmsg1(000, "Write ANSI label type=%d\n", label_type);
       len = strlen(VolName);
       if (len > 6) {
-	 len = 6;			 /* max len ANSI label */
+         Jmsg1(jcr, M_FATAL, 0, _("ANSI Volume label name \"%s\" longer than 6 chars.\n"),
+	    VolName);
+	 return false;
       }
       memset(label, ' ', sizeof(label));
       ser_begin(label, sizeof(label));
@@ -1021,15 +1023,8 @@ bool write_ansi_ibm_label(DCR *dcr, const char *VolName)
       /* Now construct HDR1 label */
       ser_begin(label, sizeof(label));
       ser_bytes("HDR1", 4);
-      len = strlen(VolName);
-      if (len > 17) {
-	 len = 17;		      /* Max filename len */
-      }
-      ser_bytes(VolName, len);	      /* stick Volume name in Filename field */
-      if (len > 6) {
-	 len = 6;
-      }
-      ser_begin(&label[21], sizeof(label)-21);
+      ser_bytes("BACULA.DATA", 11);            /* Filename field */
+      ser_begin(&label[21], sizeof(label)-21); /* fileset field */
       ser_bytes(VolName, len);	      /* write Vol Ser No. */
       ser_begin(&label[27], sizeof(label)-27);
       ser_bytes("00010001000100", 14);  /* File section, File seq no, Generation no */
@@ -1119,6 +1114,10 @@ static int read_ansi_ibm_label(DCR *dcr)
          if (stat != 80 || strncmp("HDR1", label, 4) != 0) {
             Dmsg0(000, "No HDR1 label\n");
 	    return VOL_NO_LABEL;
+	 }
+         if (strncmp("BACULA.DATA", &label[4], 11) != 0) {
+            Dmsg0(000, "HD1 not Bacula label\n");
+	    return VOL_NAME_ERROR;
 	 }
 	 break;
       case 2:
