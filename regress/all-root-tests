@@ -6,3 +6,4 @@ tests/dev-test-root
 tests/etc-test-root
 tests/lib-test-root
 cat test.out
+scripts/cleanup

@@ -24,3 +24,4 @@ echo " "
 echo " "
 echo "Test results"
 cat test.out
+scripts/cleanup
