@@ -115,7 +115,7 @@ int do_restore(JCR *jcr)
        * Now find the Volumes we will need for the Restore
        */
       jcr->VolumeName[0] = 0;
-      if (!db_get_job_volume_names(jcr->db, rjr.JobId, jcr->VolumeName) ||
+      if (!db_get_job_volume_names(jcr->db, rjr.JobId, &jcr->VolumeName) ||
 	   jcr->VolumeName[0] == 0) {
          Jmsg(jcr, M_FATAL, 0, _("Cannot find Volume Name for restore Job %d. %s"), 
 	    rjr.JobId, db_strerror(jcr->db));

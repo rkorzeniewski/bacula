@@ -129,6 +129,8 @@ void my_name_is(int argc, char *argv[], char *name)
 
 /* 
  * Initialize message handler for a daemon or a Job
+ *   We make a copy of the MSGS resource passed, so it belows
+ *   to the job or daemon and thus can be modified.
  * 
  *   NULL for jcr -> initialize global messages for daemon
  *   non-NULL	  -> initialize jcr using Message resource
@@ -174,10 +176,10 @@ init_msg(void *vjcr, MSGS *msg)
    }
 
    if (jcr) {
-      jcr->msgs = (MSGS *)malloc(sizeof(MSGS));
-      memset(jcr->msgs, 0, sizeof(MSGS));
-      jcr->msgs->dest_chain = temp_chain;
-      memcpy(jcr->msgs->send_msg, msg->send_msg, sizeof(msg->send_msg));
+      jcr->jcr_msgs = (MSGS *)malloc(sizeof(MSGS));
+      memset(jcr->jcr_msgs, 0, sizeof(MSGS));
+      jcr->jcr_msgs->dest_chain = temp_chain;
+      memcpy(jcr->jcr_msgs->send_msg, msg->send_msg, sizeof(msg->send_msg));
    } else {
       daemon_msgs = (MSGS *)malloc(sizeof(MSGS));
       memset(daemon_msgs, 0, sizeof(MSGS));
@@ -304,19 +306,16 @@ void rem_msg_dest(MSGS *msg, int dest_code, int msg_type, char *where)
  */
 static char *edit_job_codes(JCR *jcr, char *omsg, char *imsg, char *to)   
 {
-   char *p, *o, *str;
+   char *p, *str;
    char add[20];
 
+   *omsg = 0;
    Dmsg1(200, "edit_job_codes: %s\n", imsg);
-   add[2] = 0;
-   o = omsg;
    for (p=imsg; *p; p++) {
       if (*p == '%') {
 	 switch (*++p) {
          case '%':
-            add[0] = '%';
-	    add[1] = 0;
-	    str = add;
+            str = "%";
 	    break;
          case 'c':
 	    str = jcr->client_name;
@@ -349,6 +348,7 @@ static char *edit_job_codes(JCR *jcr, char *omsg, char *imsg, char *to)
 	 default:
             add[0] = '%';
 	    add[1] = *p;
+	    add[2] = 0;
 	    str = add;
 	    break;
 	 }
@@ -358,11 +358,9 @@ static char *edit_job_codes(JCR *jcr, char *omsg, char *imsg, char *to)
 	 str = add;
       }
       Dmsg1(200, "add_str %s\n", str);
-      add_str_to_pool_mem(&omsg, &o, str);
-      *o = 0;
+      pm_strcat(&omsg, str);
       Dmsg1(200, "omsg=%s\n", omsg);
    }
-   *o = 0;
    return omsg;
 }
 
@@ -421,7 +419,7 @@ static void make_unique_mail_filename(JCR *jcr, POOLMEM **name, DEST *d)
 /*
  * Open a mail pipe
  */
-static FILE *open_mail_pipe(JCR *jcr, char **cmd, DEST *d)
+static FILE *open_mail_pipe(JCR *jcr, POOLMEM **cmd, DEST *d)
 {
    FILE *pfd;
 
@@ -457,8 +455,8 @@ void close_msg(void *vjcr)
       msgs = daemon_msgs;
       daemon_msgs = NULL;
    } else {
-      msgs = jcr->msgs;
-      jcr->msgs = NULL;
+      msgs = jcr->jcr_msgs;
+      jcr->jcr_msgs = NULL;
    }
    if (msgs == NULL) {
       return;
@@ -597,7 +595,7 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
     /* Now figure out where to send the message */
     msgs = NULL;
     if (jcr) {
-       msgs = jcr->msgs;
+       msgs = jcr->jcr_msgs;
     } 
     if (msgs == NULL) {
        msgs = daemon_msgs;
@@ -854,7 +852,7 @@ Jmsg(void *vjcr, int type, int level, char *fmt,...)
     msgs = NULL;
     job = NULL;
     if (jcr) {
-       msgs = jcr->msgs;
+       msgs = jcr->jcr_msgs;
        job = jcr->Job;
     } 
     if (!msgs) {

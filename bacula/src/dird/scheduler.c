@@ -157,7 +157,7 @@ JCR *wait_for_next_job(char *job_to_run)
       jcr->store = run->storage;      /* override storage */
    }
    if (run->msgs) {
-      jcr->msgs = run->msgs;	      /* override messages */
+      jcr->messages = run->msgs;      /* override messages */
    }
    Dmsg0(200, "Leave wait_for_next_job()\n");
    return jcr;

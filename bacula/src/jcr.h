@@ -107,7 +107,7 @@ struct s_jcr {
    POOLMEM *client_name;              /* client name */
    char *RestoreBootstrap;            /* Bootstrap file to restore */
    char *sd_auth_key;                 /* SD auth key */
-   MSGS *msgs;                        /* Message resource */
+   MSGS *jcr_msgs;                    /* Copy of message resource -- actually used */
 
    /* Daemon specific part of JCR */
    /* This should be empty in the library */
@@ -124,6 +124,7 @@ struct s_jcr {
    POOL *pool;                        /* Pool resource */
    FILESET *fileset;                  /* FileSet resource */
    CAT *catalog;                      /* Catalog resource */
+   MSGS *messages;                    /* Default message handler */
    int SDJobStatus;                   /* Storage Job Status */
    int mode;                          /* manual/auto run */
    B_DB *db;                          /* database pointer */

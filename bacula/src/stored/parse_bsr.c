@@ -51,6 +51,9 @@ struct kw_items {
    ITEM_HANDLER *handler;
 };
 
+/*
+ * List of all keywords permitted in bsr files and their handlers
+ */
 struct kw_items items[] = {
    {"volume", store_vol},
    {"client", store_client},
@@ -70,6 +73,9 @@ struct kw_items items[] = {
 
 };
 
+/* 
+ * Create a BSR record
+ */
 static BSR *new_bsr() 
 {
    BSR *bsr = (BSR *)malloc(sizeof(BSR));
@@ -160,17 +166,35 @@ BSR *parse_bsr(JCR *jcr, char *cf)
 static BSR *store_vol(LEX *lc, BSR *bsr)
 {
    int token;
+   BSR_VOLUME *volume;
+   char *p, *n;
     
-   token = lex_get_token(lc, T_NAME);
+   token = lex_get_token(lc, T_STRING);
    if (token == T_ERROR) {
       return NULL;
    }
-   if (bsr->VolumeName) {
-      bsr->next = new_bsr();
-      bsr = bsr->next;
+   /* This may actually be more than one volume separated by a |  
+    * If so, separate them.
+    */
+   for (p=lc->str; p && *p; ) {
+      n = strchr(p, '|');
+      if (n) {
+	 *n++ = 0;
+      }
+      volume = (BSR_VOLUME *)malloc(sizeof(BSR_VOLUME));
+      memset(volume, 0, sizeof(BSR_VOLUME));
+      strcpy(volume->VolumeName, p);
+      /* Add it to the end of the volume chain */
+      if (!bsr->volume) {
+	 bsr->volume = volume;
+      } else {
+	 BSR_VOLUME *bc = bsr->volume;
+	 for ( ;bc->next; bc=bc->next)	
+	    { }
+	 bc->next = volume;
+      }
+      p = n;
    }
-   bsr->VolumeName = bstrdup(lc->str);
-   scan_to_eol(lc);
    return bsr;
 }
 
@@ -519,6 +543,14 @@ void dump_sessid(BSR_SESSID *sessid)
    }
 }
 
+void dump_volume(BSR_VOLUME *volume)
+{
+   if (volume) {
+      Dmsg1(-1, "VolumeName  : %s\n", volume->VolumeName);
+      dump_volume(volume->next);
+   }
+}
+
 
 void dump_client(BSR_CLIENT *client)
 {
@@ -554,11 +586,9 @@ void dump_bsr(BSR *bsr)
       Dmsg0(-1, "BSR is NULL\n");
       return;
    }
-   Dmsg2(-1,   
-"Next        : 0x%x\n"
-"VolumeName  : %s\n",
-		 bsr->next,
-                 bsr->VolumeName ? bsr->VolumeName : "*None*");
+   Dmsg1(-1,   
+"Next        : 0x%x\n", bsr->next);
+   dump_volume(bsr->volume);
    dump_sessid(bsr->sessid);
    dump_sesstime(bsr->sesstime);
    dump_volfile(bsr->volfile);
@@ -592,6 +622,7 @@ void free_bsr(BSR *bsr)
    if (!bsr) {
       return;
    }
+   free_bsr_item((BSR *)bsr->volume);
    free_bsr_item((BSR *)bsr->client);
    free_bsr_item((BSR *)bsr->sessid);
    free_bsr_item((BSR *)bsr->sesstime);
@@ -601,9 +632,6 @@ void free_bsr(BSR *bsr)
    free_bsr_item((BSR *)bsr->FileIndex);
    free_bsr_item((BSR *)bsr->JobType);
    free_bsr_item((BSR *)bsr->JobLevel);
-   if (bsr->VolumeName) {
-      free(bsr->VolumeName);
-   }
    free_bsr(bsr->next);
    free(bsr);
 }
@@ -670,16 +698,19 @@ void create_vol_list(JCR *jcr)
    jcr->CurVolume = 1;
    if (jcr->bsr) {
       BSR *bsr = jcr->bsr;
-      strcpy(jcr->VolumeName, bsr->VolumeName); /* setup first volume */
+      strcpy(jcr->VolumeName, bsr->volume->VolumeName); /* setup first volume */
       for ( ; bsr; bsr=bsr->next) {
-	 vol = new_vol();
-	 strcpy(vol->VolumeName, bsr->VolumeName);
-	 if (add_vol(jcr, vol)) {
-	    jcr->NumVolumes++;
-            Dmsg1(400, "Added volume %s\n", vol->VolumeName);
-	 } else {
-            Dmsg1(400, "Duplicate volume %s\n", vol->VolumeName);
-	    free((char *)vol);
+	 BSR_VOLUME *bsrvol = bsr->volume;
+	 for ( ; bsrvol; bsrvol=bsrvol->next) {
+	    vol = new_vol();
+	    strcpy(vol->VolumeName, bsrvol->VolumeName);
+	    if (add_vol(jcr, vol)) {
+	       jcr->NumVolumes++;
+               Dmsg1(400, "Added volume %s\n", vol->VolumeName);
+	    } else {
+               Dmsg1(400, "Duplicate volume %s\n", vol->VolumeName);
+	       free((char *)vol);
+	    }
 	 }
       }
    } else {

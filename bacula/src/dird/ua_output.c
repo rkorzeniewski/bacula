@@ -301,9 +301,9 @@ int listcmd(UAContext *ua, char *cmd)
 	       continue;
 	    }
 	    VolumeName = get_pool_memory(PM_FNAME);
-	    n = db_get_job_volume_names(ua->db, jobid, VolumeName);
+	    n = db_get_job_volume_names(ua->db, jobid, &VolumeName);
             bsendmsg(ua, _("Jobid %d used %d Volume(s): %s\n"), jobid, n, VolumeName);
-	    free_memory(VolumeName);
+	    free_pool_memory(VolumeName);
 	    done = TRUE;
 	 }
 	 /* if no job or jobid keyword found, then we list all media */

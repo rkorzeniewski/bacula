@@ -197,7 +197,7 @@ int restorecmd(UAContext *ua, char *cmd)
 
    if (bsr->JobId) {
       complete_bsr(ua, bsr);	      /* find Vol, SessId, SessTime from JobIds */
-      print_bsr(ua, bsr);
+//    print_bsr(ua, bsr);
       write_bsr_file(ua, bsr);
    } else {
       bsendmsg(ua, _("No files selected to restore.\n"));
@@ -575,9 +575,10 @@ static void free_bsr(RBSR *bsr)
 static int complete_bsr(UAContext *ua, RBSR *bsr)
 {
    JOB_DBR jr;
-   char VolumeNames[1000];	      /* ****FIXME**** */
+   POOLMEM *VolumeNames;
 
    if (bsr) {
+      VolumeNames = get_pool_memory(PM_MESSAGE);
       memset(&jr, 0, sizeof(jr));
       jr.JobId = bsr->JobId;
       if (!db_get_job_record(ua->db, &jr)) {
@@ -586,11 +587,13 @@ static int complete_bsr(UAContext *ua, RBSR *bsr)
       }
       bsr->VolSessionId = jr.VolSessionId;
       bsr->VolSessionTime = jr.VolSessionTime;
-      if (!db_get_job_volume_names(ua->db, bsr->JobId, VolumeNames)) {
+      if (!db_get_job_volume_names(ua->db, bsr->JobId, &VolumeNames)) {
          bsendmsg(ua, _("Unable to get Job Volumes. ERR=%s\n"), db_strerror(ua->db));
+	 free_pool_memory(VolumeNames);
 	 return 0;
       }
       bsr->VolumeName = bstrdup(VolumeNames);
+      free_pool_memory(VolumeNames);
       return complete_bsr(ua, bsr->next);
    }
    return 1;
@@ -625,7 +628,7 @@ static void write_bsr(UAContext *ua, RBSR *bsr, FILE *fd)
 {
    if (bsr) {
       if (bsr->VolumeName) {
-         fprintf(fd, "Volume=%s\n", bsr->VolumeName);
+         fprintf(fd, "Volume=\"%s\"\n", bsr->VolumeName);
       }
       fprintf(fd, "VolSessionId=%u\n", bsr->VolSessionId);
       fprintf(fd, "VolSessionTime=%u\n", bsr->VolSessionTime);
@@ -638,7 +641,7 @@ static void print_bsr(UAContext *ua, RBSR *bsr)
 {
    if (bsr) {
       if (bsr->VolumeName) {
-         bsendmsg(ua, "Volume=%s\n", bsr->VolumeName);
+         bsendmsg(ua, "Volume=\"%s\"\n", bsr->VolumeName);
       }
       bsendmsg(ua, "VolSessionId=%u\n", bsr->VolSessionId);
       bsendmsg(ua, "VolSessionTime=%u\n", bsr->VolSessionTime);

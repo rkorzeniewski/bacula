@@ -33,6 +33,7 @@
 #include <fnmatch.h>
 
 /* Forward references */
+static int match_volume(BSR_VOLUME *volume, VOLUME_LABEL *volrec);
 static int match_sesstime(BSR_SESSTIME *sesstime, DEV_RECORD *rec);
 static int match_sessid(BSR_SESSID *sessid, DEV_RECORD *rec);
 static int match_client(BSR_CLIENT *client, SESSION_LABEL *sessrec);
@@ -63,7 +64,7 @@ int match_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSION_LABEL *se
 
 static int match_one_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSION_LABEL *sessrec)
 {
-   if (strcmp(bsr->VolumeName, volrec->VolName) != 0) {
+   if (!match_volume(bsr->volume, volrec)) {
       return 0;
    }
    if (!match_volfile(bsr->volfile, rec)) {
@@ -97,6 +98,20 @@ static int match_one_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSIO
       return 0;
    }
    return 1;
+}
+
+static int match_volume(BSR_VOLUME *volume, VOLUME_LABEL *volrec) 
+{
+   if (!volume) {
+      return 0; 		      /* Volume must match */
+   }
+   if (strcmp(volume->VolumeName, volrec->VolName) == 0) {
+      return 1;
+   }
+   if (volume->next) {
+      return match_volume(volume->next, volrec);
+   }
+   return 0;
 }
 
 static int match_client(BSR_CLIENT *client, SESSION_LABEL *sessrec)

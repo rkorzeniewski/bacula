@@ -829,20 +829,17 @@ void unblock_device(DEVICE *dev)
  */
 static char *edit_device_codes(JCR *jcr, char *omsg, char *imsg, char *cmd) 
 {
-   char *p, *o;
+   char *p;
    const char *str;
    char add[20];
 
+   *omsg = 0;
    Dmsg1(200, "edit_device_codes: %s\n", imsg);
-   add[2] = 0;
-   o = omsg;
    for (p=imsg; *p; p++) {
       if (*p == '%') {
 	 switch (*++p) {
          case '%':
-            add[0] = '%';
-	    add[1] = 0;
-	    str = add;
+            str = "%";
 	    break;
          case 'a':
 	    str = jcr->device->dev->dev_name;
@@ -865,21 +862,16 @@ static char *edit_device_codes(JCR *jcr, char *omsg, char *imsg, char *cmd)
 	    str = jcr->Job;
 	    break;
          case 'v':
-	    str = jcr->VolumeName;
-	    if (!str) {
-               str = "";
-	    }
+	    str = NPRT(jcr->VolumeName);
 	    break;
          case 'f':
-	    str = jcr->client_name;
-	    if (!str) {
-               str = "";
-	    }
+	    str = NPRT(jcr->client_name);
 	    break;
 
 	 default:
             add[0] = '%';
 	    add[1] = *p;
+	    add[2] = 0;
 	    str = add;
 	    break;
 	 }
@@ -889,10 +881,8 @@ static char *edit_device_codes(JCR *jcr, char *omsg, char *imsg, char *cmd)
 	 str = add;
       }
       Dmsg1(200, "add_str %s\n", str);
-      add_str_to_pool_mem(&omsg, &o, (char *)str);
-      *o = 0;
+      pm_strcat(&omsg, (char *)str);
       Dmsg1(200, "omsg=%s\n", omsg);
    }
-   *o = 0;
    return omsg;
 }

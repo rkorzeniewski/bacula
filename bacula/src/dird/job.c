@@ -70,7 +70,7 @@ void run_job(JCR *jcr)
 {
    int stat, errstat;
 
-   init_msg(jcr, jcr->msgs);
+   init_msg(jcr, jcr->messages);
    create_unique_job_name(jcr, jcr->job->hdr.name);
    jcr->jr.SchedTime = jcr->sched_time;
    jcr->jr.StartTime = jcr->start_time;
@@ -357,7 +357,7 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    jcr->pool = job->pool;
    jcr->catalog = job->client->catalog;
    jcr->fileset = job->fileset;
-   jcr->msgs = job->messages; 
+   jcr->messages = job->messages; 
    if (jcr->RestoreBootstrap) {
       free(jcr->RestoreBootstrap);
    }
@@ -398,20 +398,17 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
  */
 static char *edit_run_codes(JCR *jcr, char *omsg, char *imsg) 
 {
-   char *p, *o;
+   char *p;
    const char *str;
    char add[20];
 
+   *omsg = 0;
    Dmsg1(200, "edit_run_codes: %s\n", imsg);
-   add[2] = 0;
-   o = omsg;
    for (p=imsg; *p; p++) {
       if (*p == '%') {
 	 switch (*++p) {
          case '%':
-            add[0] = '%';
-	    add[1] = 0;
-	    str = add;
+            str = "%";
 	    break;
          case 'c':
 	    str = jcr->client_name;
@@ -444,6 +441,7 @@ static char *edit_run_codes(JCR *jcr, char *omsg, char *imsg)
 	 default:
             add[0] = '%';
 	    add[1] = *p;
+	    add[2] = 0;
 	    str = add;
 	    break;
 	 }
@@ -453,10 +451,8 @@ static char *edit_run_codes(JCR *jcr, char *omsg, char *imsg)
 	 str = add;
       }
       Dmsg1(200, "add_str %s\n", str);
-      add_str_to_pool_mem(&omsg, &o, (char *)str);
-      *o = 0;
+      pm_strcat(&omsg, (char *)str);
       Dmsg1(200, "omsg=%s\n", omsg);
    }
-   *o = 0;
    return omsg;
 }

@@ -342,7 +342,7 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
    }
    bstrftime(sdt, sizeof(sdt), jcr->jr.StartTime);
    bstrftime(edt, sizeof(edt), jcr->jr.EndTime);
-   if (!db_get_job_volume_names(jcr->db, jcr->jr.JobId, jcr->VolumeName)) {
+   if (!db_get_job_volume_names(jcr->db, jcr->jr.JobId, &jcr->VolumeName)) {
       jcr->VolumeName[0] = 0;	      /* none */
    }
 

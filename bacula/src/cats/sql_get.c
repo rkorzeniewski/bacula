@@ -353,7 +353,7 @@ FROM Job WHERE JobId=%d", jr->JobId);
  *		Volumes are concatenated in VolumeNames
  *		separated by a vertical bar (|).
  */
-int db_get_job_volume_names(B_DB *mdb, uint32_t JobId, char *VolumeNames)
+int db_get_job_volume_names(B_DB *mdb, uint32_t JobId, POOLMEM **VolumeNames)
 {
    SQL_ROW row;
    int stat = 0;
@@ -365,7 +365,7 @@ int db_get_job_volume_names(B_DB *mdb, uint32_t JobId, char *VolumeNames)
 AND JobMedia.MediaId=Media.MediaId", JobId);
 
    Dmsg1(130, "VolNam=%s\n", mdb->cmd);
-   VolumeNames[0] = 0;
+   *VolumeNames[0] = 0;
    if (QUERY_DB(mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
       Dmsg1(130, "Num rows=%d\n", mdb->num_rows);
@@ -380,10 +380,10 @@ AND JobMedia.MediaId=Media.MediaId", JobId);
 	       stat = 0;
 	       break;
 	    } else {
-	       if (VolumeNames[0] != 0) {
-                  strcat(VolumeNames, "|");
+	       if (*VolumeNames[0] != 0) {
+                  pm_strcat(VolumeNames, "|");
 	       }
-	       strcat(VolumeNames, row[0]);
+	       pm_strcat(VolumeNames, row[0]);
 	    }
 	 }
       }

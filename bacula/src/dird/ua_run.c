@@ -241,7 +241,6 @@ int runcmd(UAContext *ua, char *cmd)
    /* Create JCR to run job */
    jcr = new_jcr(sizeof(JCR), dird_free_jcr);
    set_jcr_defaults(jcr, job);
-   init_msg(jcr, jcr->msgs);	      /* start message handler */
 
    jcr->store = store;
    jcr->client = client;

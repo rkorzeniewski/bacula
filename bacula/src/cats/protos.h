@@ -66,7 +66,7 @@ int db_find_next_volume(B_DB *mdb, int index, MEDIA_DBR *mr);
 int db_get_pool_record(B_DB *db, POOL_DBR *pdbr);
 int db_get_client_record(B_DB *mdb, CLIENT_DBR *cr);
 int db_get_job_record(B_DB *mdb, JOB_DBR *jr);
-int db_get_job_volume_names(B_DB *mdb, uint32_t JobId, char *VolumeNames);
+int db_get_job_volume_names(B_DB *mdb, uint32_t JobId, POOLMEM **VolumeNames);
 int db_get_file_attributes_record(B_DB *mdb, char *fname, FILE_DBR *fdbr);
 int db_get_fileset_record(B_DB *mdb, FILESET_DBR *fsr);
 int db_get_media_record(B_DB *mdb, MEDIA_DBR *mr);

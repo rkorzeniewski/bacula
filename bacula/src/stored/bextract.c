@@ -80,7 +80,7 @@ int main (int argc, char *argv[])
       switch (ch) {
          case 'b':                    /* bootstrap file */
 	    bsr = parse_bsr(NULL, optarg);
-	    dump_bsr(bsr);
+//	    dump_bsr(bsr);
 	    break;
 
          case 'd':                    /* debug level */

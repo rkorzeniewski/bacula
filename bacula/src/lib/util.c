@@ -323,22 +323,27 @@ char *encode_time(time_t time, char *buf)
 }
 
 /*
- * Concatenate a string (str) onto a poolmem message (msg)
- *  return new message pointer. The base of the pool memory
- *  is base.
+ * Concatenate a string (str) onto a pool memory buffer pm
  */
-void add_str_to_pool_mem(POOLMEM **base, char **msg, char *str)
+void pm_strcat(POOLMEM **pm, char *str)
+{
+   int pmlen = strlen(*pm);
+   int len = strlen(str) + 1;
+
+   *pm = check_pool_memory_size(*pm, pmlen + len);
+   memcpy(*pm+pmlen, str, len);
+}
+
+
+/*
+ * Copy a string (str) into a pool memory buffer pm
+ */
+void pm_strcpy(POOLMEM **pm, char *str)
 {
    int len = strlen(str) + 1;
-   char *b, *m;
 
-   b = *base;
-   *base = check_pool_memory_size(*base, len);
-   m = *base - b + *msg;
-   while (*str) {
-      *m++ = *str++;
-   }
-   *msg = m;
+   *pm = check_pool_memory_size(*pm, len);
+   memcpy(*pm, str, len);
 }
 
 
