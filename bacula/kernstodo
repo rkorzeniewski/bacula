@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  19 May  2003 
+                  20 May  2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -19,10 +19,8 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
-- Document what characters can go into Volume names.
+- Finish WIN32_DATA stream code (bextract, check if can handle stream)
 - Default duration with no qualifier is sec should be 1 day
-- Getting the following on all directories on Win32
-  19-May-2003 01:14 tibs-fd:      Could not access c:/cygwin/home/kern/rxvt: ERR=Permission denied
 - Find a solution for the multiple FileSet problem (when it is changed).
   Add date?
 - Cancel waiting for Client connect in SD if FD goes away.
@@ -871,3 +869,7 @@ Done: (see kernsdone for more)
 - Make sure Bacula prunes/purges canceled and failed jobs too and all
   jobs with zero JobFiles.
 - Implement Volume name checking.
+- Document what characters can go into Volume names.
+- Getting the following on all directories on Win32
+  19-May-2003 01:14 tibs-fd:      Could not access c:/cygwin/home/kern/rxvt: ERR=Permission denied
+

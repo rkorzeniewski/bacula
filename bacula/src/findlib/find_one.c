@@ -197,6 +197,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
       int status;
       dev_t our_device = ff_pkt->statp.st_dev;
 
+#ifndef HAVE_CYGWIN
       if (access(fname, R_OK) == -1 && geteuid() != 0) {
 	 /* Could not access() directory */
 	 ff_pkt->type = FT_NOACCESS;
@@ -207,6 +208,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 	 }
 	 return rtn_stat;
       }
+#endif
 
       /* Build a canonical directory name with a trailing slash in link var */
       len = strlen(fname);
@@ -241,13 +243,13 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
        * user has turned it off for this directory.
        */
       if (ff_pkt->flags & FO_NO_RECURSION) {
-	 free(link);
 	 /* No recursion into this directory */
 	 ff_pkt->type = FT_NORECURSE;
 	 rtn_stat = handle_file(ff_pkt, pkt);
 	 if (ff_pkt->linked) {
 	    ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
 	 }
+	 free(link);
 	 free(dir_ff_pkt->fname);
 	 free(dir_ff_pkt->link);
 	 free(dir_ff_pkt);
@@ -260,13 +262,13 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
        */
       if (!top_level && !(ff_pkt->flags & FO_MULTIFS) &&
 	   parent_device != ff_pkt->statp.st_dev) {
-	 free(link);
 	 /* returning here means we do not handle this directory */
 	 ff_pkt->type = FT_NOFSCHG;
 	 rtn_stat = handle_file(ff_pkt, pkt);
 	 if (ff_pkt->linked) {
 	    ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
 	 }
+	 free(link);
 	 free(dir_ff_pkt->fname);
 	 free(dir_ff_pkt->link);
 	 free(dir_ff_pkt);
@@ -277,13 +279,13 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
        */
       errno = 0;
       if ((directory = opendir(fname)) == NULL) {
-	 free(link);
 	 ff_pkt->type = FT_NOOPEN;
 	 ff_pkt->ff_errno = errno;
 	 rtn_stat = handle_file(ff_pkt, pkt);
 	 if (ff_pkt->linked) {
 	    ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
 	 }
+	 free(link);
 	 free(dir_ff_pkt->fname);
 	 free(dir_ff_pkt->link);
 	 free(dir_ff_pkt);
