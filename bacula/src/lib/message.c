@@ -1027,6 +1027,34 @@ Jmsg(JCR *jcr, int type, int level, char *fmt,...)
 }
 
 /*
+ * If we come here, prefix the message with the file:line-number,
+ *  then pass it on to the normal Jmsg routine.
+ */
+void j_msg(char *file, int line, JCR *jcr, int type, int level, char *fmt,...)
+{
+   va_list   arg_ptr;
+   int i, len, maxlen;
+   POOLMEM *pool_buf;
+
+   pool_buf = get_pool_memory(PM_EMSG);
+   i = Mmsg(&pool_buf, "%s:%d ", file, line);
+
+again:
+   maxlen = sizeof_pool_memory(pool_buf) - i - 1; 
+   va_start(arg_ptr, fmt);
+   len = bvsnprintf(pool_buf+i, maxlen, fmt, arg_ptr);
+   va_end(arg_ptr);
+   if (len < 0 || len >= maxlen) {
+      pool_buf = realloc_pool_memory(pool_buf, maxlen + i + maxlen/2);
+      goto again;
+   }
+
+   Jmsg(jcr, type, level, "%s", pool_buf);
+   free_memory(pool_buf);
+}
+
+
+/*
  * Edit a message into a Pool memory buffer, with file:lineno
  */
 int m_msg(char *file, int line, POOLMEM **pool_buf, char *fmt, ...)
@@ -1069,12 +1097,66 @@ again:
    return len;
 }
 
+static pthread_mutex_t msg_queue_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+/*
+ * We queue messages rather than print them directly. This
+ *  is generally used in low level routines (msg handler, bnet)
+ *  to prevent recursion.
+ */
+void Qmsg(JCR *jcr, int type, int level, char *fmt,...)
+{
+   va_list   arg_ptr;
+   int len, maxlen;
+   POOLMEM *pool_buf;
+   MQUEUE_ITEM *item;
+
+   if (jcr->dequeuing) {	      /* do not allow recursion */
+      return;
+   }
+   pool_buf = get_pool_memory(PM_EMSG);
+
+again:
+   maxlen = sizeof_pool_memory(pool_buf) - 1; 
+   va_start(arg_ptr, fmt);
+   len = bvsnprintf(pool_buf, maxlen, fmt, arg_ptr);
+   va_end(arg_ptr);
+   if (len < 0 || len >= maxlen) {
+      pool_buf = realloc_pool_memory(pool_buf, maxlen + maxlen/2);
+      goto again;
+   }
+   P(msg_queue_mutex);
+   item = (MQUEUE_ITEM *)malloc(sizeof(MQUEUE_ITEM) + strlen(pool_buf) + 1);
+   item->type = type;
+   item->level = level;
+   strcpy(item->msg, pool_buf);  
+   jcr->msg_queue->append(item);
+   V(msg_queue_mutex);
+   free_memory(pool_buf);
+}
+
+/*
+ * Dequeue messages 
+ */
+void dequeue_messages(JCR *jcr)
+{
+   MQUEUE_ITEM *item;
+   P(msg_queue_mutex);
+   jcr->dequeuing = true;
+   foreach_dlist(item, jcr->msg_queue) {
+      Jmsg(jcr, item->type, item->level, "%s", item->msg);
+   }
+   jcr->msg_queue->destroy();
+   jcr->dequeuing = false;
+   V(msg_queue_mutex);
+}
+
 
 /*
  * If we come here, prefix the message with the file:line-number,
- *  then pass it on to the normal Jmsg routine.
+ *  then pass it on to the normal Qmsg routine.
  */
-void j_msg(char *file, int line, JCR *jcr, int type, int level, char *fmt,...)
+void q_msg(char *file, int line, JCR *jcr, int type, int level, char *fmt,...)
 {
    va_list   arg_ptr;
    int i, len, maxlen;
@@ -1093,6 +1175,6 @@ again:
       goto again;
    }
 
-   Jmsg(jcr, type, level, "%s", pool_buf);
+   Qmsg(jcr, type, level, "%s", pool_buf);
    free_memory(pool_buf);
 }

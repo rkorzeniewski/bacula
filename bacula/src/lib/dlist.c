@@ -1,9 +1,9 @@
 /*
- *  Bacula doubly linked list routines. 	 
+ *  Bacula doubly linked list routines.          
  *
  *    dlist is a doubly linked list with the links being in the
- *	 list data item.
- *		  
+ *       list data item.
+ *                
  *   Kern Sibbald, July MMIII
  *
  *   Version $Id$
@@ -45,8 +45,8 @@ void dlist::append(void *item)
       ((dlink *)((char *)tail+loffset))->next = item;
    }
    tail = item;
-   if (head == NULL) {		      /* if empty list, */
-      head = item;		      /* item is head as well */
+   if (head == NULL) {                /* if empty list, */
+      head = item;                    /* item is head as well */
    }
    num_items++;
 }
@@ -62,13 +62,13 @@ void dlist::prepend(void *item)
       ((dlink *)((char *)head+loffset))->prev = item;
    }
    head = item;
-   if (tail == NULL) {		      /* if empty list, */		      
-      tail = item;		      /* item is tail too */
+   if (tail == NULL) {                /* if empty list, */                    
+      tail = item;                    /* item is tail too */
    }
    num_items++;
 }
 
-void dlist::insert_before(void *item, void *where)	 
+void dlist::insert_before(void *item, void *where)       
 {
    dlink *where_link = (dlink *)((char *)where+loffset);     
 
@@ -85,7 +85,7 @@ void dlist::insert_before(void *item, void *where)
    num_items++;
 }
 
-void dlist::insert_after(void *item, void *where)	
+void dlist::insert_after(void *item, void *where)       
 {
    dlink *where_link = (dlink *)((char *)where+loffset);     
 
@@ -110,15 +110,15 @@ void dlist::remove(void *item)
    if (item == head) {
       head = ilink->next;
       if (head) {
-	 ((dlink *)((char *)head+loffset))->prev = NULL;
+         ((dlink *)((char *)head+loffset))->prev = NULL;
       }
       if (item == tail) {
-	 tail = ilink->prev;
+         tail = ilink->prev;
       }
    } else if (item == tail) {
       tail = ilink->prev;
       if (tail) {
-	 ((dlink *)((char *)tail+loffset))->next = NULL;
+         ((dlink *)((char *)tail+loffset))->next = NULL;
       }
    } else {
       xitem = ilink->next;
@@ -184,7 +184,7 @@ int main()
       jcr->buf = bstrdup(buf);
       jcr_chain->prepend(jcr);
       if (i == 10) {
-	 save_jcr = jcr;
+         save_jcr = jcr;
       }
    }
 
@@ -213,7 +213,7 @@ int main()
       jcr->buf = bstrdup(buf);
       jcr_chain->append(jcr);
       if (i == 10) {
-	 save_jcr = jcr;
+         save_jcr = jcr;
       }
    }
 

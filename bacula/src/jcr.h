@@ -101,6 +101,8 @@ struct JCR {
    BSOCK *store_bsock;                /* Storage connection socket */
    BSOCK *file_bsock;                 /* File daemon connection socket */
    JCR_free_HANDLER *daemon_free_jcr; /* Local free routine */
+   dlist *msg_queue;                  /* Queued messages */
+   bool dequeuing;                    /* dequeuing messages */
    POOLMEM *errmsg;                   /* edited error message */
    char Job[MAX_NAME_LENGTH];         /* Unique name of this Job */
    uint32_t JobId;                    /* Director's JobId */
@@ -127,7 +129,7 @@ struct JCR {
    MSGS *jcr_msgs;                    /* Copy of message resource -- actually used */
    uint32_t ClientId;                 /* Client associated with Job */
    char *where;                       /* prefix to restore files to */
-   int prefix_links;                  /* Prefix links with Where path */
+   bool prefix_links;                 /* Prefix links with Where path */
    int cached_pnl;                    /* cached path length */
    POOLMEM *cached_path;              /* cached path */
 

@@ -1,10 +1,47 @@
 
+16Feb04
+- Added first cut of message queuing to prevent recursion in
+  low level routines. This code is not yet working.
+- Spent a *huge* amount of time looking at the tape driver
+  code in the wake of several reports of tape labels getting
+  trashed. The code looks fine.
+- Created a tape with an error (by writing a block at the
+  beginning of a tape that had valid data), and found that
+  Under Linux there is no way to read past an I/O error.
+  I tried mt; I tried my own program (btape); and I tried
+  using scsitape, which talks directly to the scsi driver.
+  This is *VERY BAD* news.
+- I spent an *enormous* amount of time enhancing the btape
+  test program as well as making the fill command work with
+  both one and two tapes and the autochanger if configured.
+  The multiple tape fill test is now quite comprehensive.
+  It checks the last block on the first tape, the first block
+  on the second tape, and the last block (11) on the second
+  tape.
+- Teaked the tape driver for several functions to use the 
+  OS driver's notion of mt_file if there is an error.
+13Feb04
+- Add DB update scripts retrieved by Scott to a new updatedb
+  directory at the top level.
+- Add -p option to bcopy to allow ignoring errors on input.
+- COALESCE(xx,0) does not work on PostgreSQL because the 0 is not a 
+  correct time. Replaced by adding LastWritten IS NULL to the sort
+  line as was first suggested by JML.
+12Feb04
+- Use COALESCE(LastWritten, 0) in sql_find.c to get NULLs to sort last.
+  See note above.
+- Add write/read and positioning test to btape "test" program.
+10Feb04
+- Fix bad printf of InChanger flag reported by Pascal Pederiva.
+- Fix bad indexing off stack in authenticate.c reported by
+  Pascal Pederiva.
 09Feb04
 - Add \n to hosts.access reject message.
 - Implement security message class and make hosts.access message use
   that class.
 08Feb04
 - Fix check_memory bug in ua_query.c, which gives a bus error on Solaris.
+  This affected only the query command.
 07Feb04
 - Added backup to cdwriter script to examples provided by Johan Decock.
 - Fixed a bug where ls really did lsmark (just invert command table

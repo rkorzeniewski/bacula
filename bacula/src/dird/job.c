@@ -72,6 +72,280 @@ void init_job_server(int max_workers)
    return;
 }
 
+
+/*
+ * Run a job -- typically called by the scheduler, but may also
+ *		be called by the UA (Console program).
+ *
+ */
+void run_job(JCR *jcr)
+{
+   int stat, errstat;
+
+   P(jcr->mutex);
+   sm_check(__FILE__, __LINE__, True);
+   init_msg(jcr, jcr->messages);
+   create_unique_job_name(jcr, jcr->job->hdr.name);
+   set_jcr_job_status(jcr, JS_Created);
+   jcr->jr.SchedTime = jcr->sched_time;
+   jcr->jr.StartTime = jcr->start_time;
+   jcr->jr.EndTime = 0; 	      /* perhaps rescheduled, clear it */
+   jcr->jr.Type = jcr->JobType;
+   jcr->jr.Level = jcr->JobLevel;
+   jcr->jr.JobStatus = jcr->JobStatus;
+   bstrncpy(jcr->jr.Name, jcr->job->hdr.name, sizeof(jcr->jr.Name));
+   bstrncpy(jcr->jr.Job, jcr->Job, sizeof(jcr->jr.Job));
+
+   /* Initialize termination condition variable */
+   if ((errstat = pthread_cond_init(&jcr->term_wait, NULL)) != 0) {
+      Jmsg1(jcr, M_FATAL, 0, _("Unable to init job cond variable: ERR=%s\n"), strerror(errstat));
+      goto bail_out;
+   }
+
+   /*
+    * Open database
+    */
+   Dmsg0(50, "Open database\n");
+   jcr->db=db_init_database(jcr, jcr->catalog->db_name, jcr->catalog->db_user,
+			    jcr->catalog->db_password, jcr->catalog->db_address,
+			    jcr->catalog->db_port, jcr->catalog->db_socket);
+   if (!jcr->db || !db_open_database(jcr, jcr->db)) {
+      Jmsg(jcr, M_FATAL, 0, _("Could not open database \"%s\".\n"),
+		 jcr->catalog->db_name);
+      if (jcr->db) {
+         Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
+      }
+      goto bail_out;
+   }
+   Dmsg0(50, "DB opened\n");
+
+   /*
+    * Create Job record  
+    */
+   jcr->jr.JobStatus = jcr->JobStatus;
+   if (!db_create_job_record(jcr, jcr->db, &jcr->jr)) {
+      Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
+      goto bail_out;
+   }
+   jcr->JobId = jcr->jr.JobId;
+
+   Dmsg4(50, "Created job record JobId=%d Name=%s Type=%c Level=%c\n", 
+       jcr->JobId, jcr->Job, jcr->jr.Type, jcr->jr.Level);
+   Dmsg0(200, "Add jrc to work queue\n");
+
+   /* Queue the job to be run */
+   if ((stat = jobq_add(&job_queue, jcr)) != 0) {
+      Jmsg(jcr, M_FATAL, 0, _("Could not add job queue: ERR=%s\n"), strerror(stat));
+      goto bail_out;
+   }
+   Dmsg0(100, "Done run_job()\n");
+
+   V(jcr->mutex);
+   return;
+
+bail_out:
+   set_jcr_job_status(jcr, JS_ErrorTerminated);
+   V(jcr->mutex);
+   return;
+
+}
+
+
+/* 
+ * This is the engine called by jobq.c:jobq_add() when we were pulled		     
+ *  from the work queue.
+ *  At this point, we are running in our own thread and all
+ *    necessary resources are allocated -- see jobq.c
+ */
+static void *job_thread(void *arg)
+{
+   JCR *jcr = (JCR *)arg;
+
+   pthread_detach(pthread_self());
+   sm_check(__FILE__, __LINE__, True);
+
+   for ( ;; ) {
+
+      Dmsg0(200, "=====Start Job=========\n");
+      jcr->start_time = time(NULL);	 /* set the real start time */
+      set_jcr_job_status(jcr, JS_Running);
+
+      if (job_canceled(jcr)) {
+	 update_job_end_record(jcr);
+      } else if (jcr->job->MaxStartDelay != 0 && jcr->job->MaxStartDelay <
+	  (utime_t)(jcr->start_time - jcr->sched_time)) {
+         Jmsg(jcr, M_FATAL, 0, _("Job canceled because max start delay time exceeded.\n"));
+	 set_jcr_job_status(jcr, JS_Canceled);
+	 update_job_end_record(jcr);
+      } else {
+
+	 /* Run Job */
+	 if (jcr->job->RunBeforeJob) {
+	    POOLMEM *before = get_pool_memory(PM_FNAME);
+	    int status;
+	    BPIPE *bpipe;
+	    char line[MAXSTRING];
+	    
+            before = edit_job_codes(jcr, before, jcr->job->RunBeforeJob, "");
+            bpipe = open_bpipe(before, 0, "r");
+	    free_pool_memory(before);
+	    while (fgets(line, sizeof(line), bpipe->rfd)) {
+               Jmsg(jcr, M_INFO, 0, _("RunBefore: %s"), line);
+	    }
+	    status = close_bpipe(bpipe);
+	    if (status != 0) {
+               Jmsg(jcr, M_FATAL, 0, _("RunBeforeJob returned non-zero status=%d\n"),
+		  status);
+	       set_jcr_job_status(jcr, JS_FatalError);
+	       update_job_end_record(jcr);
+	       goto bail_out;
+	    }
+	 }
+	 switch (jcr->JobType) {
+	 case JT_BACKUP:
+	    do_backup(jcr);
+	    if (jcr->JobStatus == JS_Terminated) {
+	       do_autoprune(jcr);
+	    }
+	    break;
+	 case JT_VERIFY:
+	    do_verify(jcr);
+	    if (jcr->JobStatus == JS_Terminated) {
+	       do_autoprune(jcr);
+	    }
+	    break;
+	 case JT_RESTORE:
+	    do_restore(jcr);
+	    if (jcr->JobStatus == JS_Terminated) {
+	       do_autoprune(jcr);
+	    }
+	    break;
+	 case JT_ADMIN:
+	    do_admin(jcr);
+	    if (jcr->JobStatus == JS_Terminated) {
+	       do_autoprune(jcr);
+	    }
+	    break;
+	 default:
+            Pmsg1(0, "Unimplemented job type: %d\n", jcr->JobType);
+	    break;
+	 }
+	 if ((jcr->job->RunAfterJob && jcr->JobStatus == JS_Terminated) ||
+	     (jcr->job->RunAfterFailedJob && jcr->JobStatus != JS_Terminated)) {
+	    POOLMEM *after = get_pool_memory(PM_FNAME);
+	    int status;
+	    BPIPE *bpipe;
+	    char line[MAXSTRING];
+	    
+	    if (jcr->JobStatus == JS_Terminated) {
+               after = edit_job_codes(jcr, after, jcr->job->RunAfterJob, "");
+	    } else {
+               after = edit_job_codes(jcr, after, jcr->job->RunAfterFailedJob, "");
+	    }
+            bpipe = open_bpipe(after, 0, "r");
+	    free_pool_memory(after);
+	    while (fgets(line, sizeof(line), bpipe->rfd)) {
+               Jmsg(jcr, M_INFO, 0, _("RunAfter: %s"), line);
+	    }
+	    status = close_bpipe(bpipe);
+	    /*
+	     * Note, if we get an error here, do not mark the
+	     *	job in error, simply report the error condition.   
+	     */
+	    if (status != 0) {
+	       if (jcr->JobStatus == JS_Terminated) {
+                  Jmsg(jcr, M_ERROR, 0, _("RunAfterJob returned non-zero status=%d\n"),
+		       status);
+	       } else {
+                  Jmsg(jcr, M_FATAL, 0, _("RunAfterFailedJob returned non-zero status=%d\n"),
+		       status);
+	       }
+	    }
+	 }
+	 /* Send off any queued messages */
+	 if (jcr->msg_queue->size() > 0) {
+	    dequeue_messages(jcr);
+	 }
+      }
+bail_out:
+      break;
+   }
+
+   Dmsg0(50, "======== End Job ==========\n");
+   sm_check(__FILE__, __LINE__, True);
+   return NULL;
+}
+
+
+/*
+ * Cancel a job -- typically called by the UA (Console program), but may also
+ *		be called by the job watchdog.
+ * 
+ *  Returns: 1 if cancel appears to be successful
+ *	     0 on failure. Message sent to ua->jcr.
+ */
+int cancel_job(UAContext *ua, JCR *jcr)
+{
+   BSOCK *sd, *fd;
+
+   switch (jcr->JobStatus) {
+   case JS_Created:
+   case JS_WaitJobRes:
+   case JS_WaitClientRes:
+   case JS_WaitStoreRes:
+   case JS_WaitPriority:
+   case JS_WaitMaxJobs:
+   case JS_WaitStartTime:
+      set_jcr_job_status(jcr, JS_Canceled);
+      bsendmsg(ua, _("JobId %d, Job %s marked to be canceled.\n"),
+	      jcr->JobId, jcr->Job);
+      jobq_remove(&job_queue, jcr); /* attempt to remove it from queue */
+      return 1;
+	 
+   default:
+      set_jcr_job_status(jcr, JS_Canceled);
+
+      /* Cancel File daemon */
+      if (jcr->file_bsock) {
+	 ua->jcr->client = jcr->client;
+	 if (!connect_to_file_daemon(ua->jcr, 10, FDConnectTimeout, 1)) {
+            bsendmsg(ua, _("Failed to connect to File daemon.\n"));
+	    return 0;
+	 }
+         Dmsg0(200, "Connected to file daemon\n");
+	 fd = ua->jcr->file_bsock;
+         bnet_fsend(fd, "cancel Job=%s\n", jcr->Job);
+	 while (bnet_recv(fd) >= 0) {
+            bsendmsg(ua, "%s", fd->msg);
+	 }
+	 bnet_sig(fd, BNET_TERMINATE);
+	 bnet_close(fd);
+	 ua->jcr->file_bsock = NULL;
+      }
+
+      /* Cancel Storage daemon */
+      if (jcr->store_bsock) {
+	 ua->jcr->store = jcr->store;
+	 if (!connect_to_storage_daemon(ua->jcr, 10, SDConnectTimeout, 1)) {
+            bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
+	    return 0;
+	 }
+         Dmsg0(200, "Connected to storage daemon\n");
+	 sd = ua->jcr->store_bsock;
+         bnet_fsend(sd, "cancel Job=%s\n", jcr->Job);
+	 while (bnet_recv(sd) >= 0) {
+            bsendmsg(ua, "%s", sd->msg);
+	 }
+	 bnet_sig(sd, BNET_TERMINATE);
+	 bnet_close(sd);
+	 ua->jcr->store_bsock = NULL;
+      }
+   }
+
+   return 1;
+}
+
+
 static void job_monitor_destructor(watchdog_t *self)
 {
    JCR *control_jcr = (JCR *) self->data;
@@ -234,272 +508,6 @@ static bool job_check_maxruntime(JCR *control_jcr, JCR *jcr)
          cancel ? "" : "do not ", jcr, jcr->job);
 
    return cancel;
-}
-
-/*
- * Run a job -- typically called by the scheduler, but may also
- *		be called by the UA (Console program).
- *
- */
-void run_job(JCR *jcr)
-{
-   int stat, errstat;
-
-   P(jcr->mutex);
-   sm_check(__FILE__, __LINE__, True);
-   init_msg(jcr, jcr->messages);
-   create_unique_job_name(jcr, jcr->job->hdr.name);
-   set_jcr_job_status(jcr, JS_Created);
-   jcr->jr.SchedTime = jcr->sched_time;
-   jcr->jr.StartTime = jcr->start_time;
-   jcr->jr.EndTime = 0; 	      /* perhaps rescheduled, clear it */
-   jcr->jr.Type = jcr->JobType;
-   jcr->jr.Level = jcr->JobLevel;
-   jcr->jr.JobStatus = jcr->JobStatus;
-   bstrncpy(jcr->jr.Name, jcr->job->hdr.name, sizeof(jcr->jr.Name));
-   bstrncpy(jcr->jr.Job, jcr->Job, sizeof(jcr->jr.Job));
-
-   /* Initialize termination condition variable */
-   if ((errstat = pthread_cond_init(&jcr->term_wait, NULL)) != 0) {
-      Jmsg1(jcr, M_FATAL, 0, _("Unable to init job cond variable: ERR=%s\n"), strerror(errstat));
-      goto bail_out;
-   }
-
-   /*
-    * Open database
-    */
-   Dmsg0(50, "Open database\n");
-   jcr->db=db_init_database(jcr, jcr->catalog->db_name, jcr->catalog->db_user,
-			    jcr->catalog->db_password, jcr->catalog->db_address,
-			    jcr->catalog->db_port, jcr->catalog->db_socket);
-   if (!jcr->db || !db_open_database(jcr, jcr->db)) {
-      Jmsg(jcr, M_FATAL, 0, _("Could not open database \"%s\".\n"),
-		 jcr->catalog->db_name);
-      if (jcr->db) {
-         Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
-      }
-      goto bail_out;
-   }
-   Dmsg0(50, "DB opened\n");
-
-   /*
-    * Create Job record  
-    */
-   jcr->jr.JobStatus = jcr->JobStatus;
-   if (!db_create_job_record(jcr, jcr->db, &jcr->jr)) {
-      Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
-      goto bail_out;
-   }
-   jcr->JobId = jcr->jr.JobId;
-
-   Dmsg4(50, "Created job record JobId=%d Name=%s Type=%c Level=%c\n", 
-       jcr->JobId, jcr->Job, jcr->jr.Type, jcr->jr.Level);
-   Dmsg0(200, "Add jrc to work queue\n");
-
-   /* Queue the job to be run */
-   if ((stat = jobq_add(&job_queue, jcr)) != 0) {
-      Jmsg(jcr, M_FATAL, 0, _("Could not add job queue: ERR=%s\n"), strerror(stat));
-      goto bail_out;
-   }
-   Dmsg0(100, "Done run_job()\n");
-
-   V(jcr->mutex);
-   return;
-
-bail_out:
-   set_jcr_job_status(jcr, JS_ErrorTerminated);
-   V(jcr->mutex);
-   return;
-
-}
-
-/*
- * Cancel a job -- typically called by the UA (Console program), but may also
- *		be called by the job watchdog.
- * 
- *  Returns: 1 if cancel appears to be successful
- *	     0 on failure. Message sent to ua->jcr.
- */
-int cancel_job(UAContext *ua, JCR *jcr)
-{
-   BSOCK *sd, *fd;
-
-   switch (jcr->JobStatus) {
-   case JS_Created:
-   case JS_WaitJobRes:
-   case JS_WaitClientRes:
-   case JS_WaitStoreRes:
-   case JS_WaitPriority:
-   case JS_WaitMaxJobs:
-   case JS_WaitStartTime:
-      set_jcr_job_status(jcr, JS_Canceled);
-      bsendmsg(ua, _("JobId %d, Job %s marked to be canceled.\n"),
-	      jcr->JobId, jcr->Job);
-      jobq_remove(&job_queue, jcr); /* attempt to remove it from queue */
-      return 1;
-	 
-   default:
-      set_jcr_job_status(jcr, JS_Canceled);
-
-      /* Cancel File daemon */
-      if (jcr->file_bsock) {
-	 ua->jcr->client = jcr->client;
-	 if (!connect_to_file_daemon(ua->jcr, 10, FDConnectTimeout, 1)) {
-            bsendmsg(ua, _("Failed to connect to File daemon.\n"));
-	    return 0;
-	 }
-         Dmsg0(200, "Connected to file daemon\n");
-	 fd = ua->jcr->file_bsock;
-         bnet_fsend(fd, "cancel Job=%s\n", jcr->Job);
-	 while (bnet_recv(fd) >= 0) {
-            bsendmsg(ua, "%s", fd->msg);
-	 }
-	 bnet_sig(fd, BNET_TERMINATE);
-	 bnet_close(fd);
-	 ua->jcr->file_bsock = NULL;
-      }
-
-      /* Cancel Storage daemon */
-      if (jcr->store_bsock) {
-	 ua->jcr->store = jcr->store;
-	 if (!connect_to_storage_daemon(ua->jcr, 10, SDConnectTimeout, 1)) {
-            bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
-	    return 0;
-	 }
-         Dmsg0(200, "Connected to storage daemon\n");
-	 sd = ua->jcr->store_bsock;
-         bnet_fsend(sd, "cancel Job=%s\n", jcr->Job);
-	 while (bnet_recv(sd) >= 0) {
-            bsendmsg(ua, "%s", sd->msg);
-	 }
-	 bnet_sig(sd, BNET_TERMINATE);
-	 bnet_close(sd);
-	 ua->jcr->store_bsock = NULL;
-      }
-   }
-
-   return 1;
-}
-
-/* 
- * This is the engine called by jobq.c:jobq_add() when we were pulled		     
- *  from the work queue.
- *  At this point, we are running in our own thread and all
- *    necessary resources are allocated -- see jobq.c
- */
-static void *job_thread(void *arg)
-{
-   JCR *jcr = (JCR *)arg;
-
-   pthread_detach(pthread_self());
-   sm_check(__FILE__, __LINE__, True);
-
-   for ( ;; ) {
-
-      Dmsg0(200, "=====Start Job=========\n");
-      jcr->start_time = time(NULL);	 /* set the real start time */
-      set_jcr_job_status(jcr, JS_Running);
-
-      if (job_canceled(jcr)) {
-	 update_job_end_record(jcr);
-      } else if (jcr->job->MaxStartDelay != 0 && jcr->job->MaxStartDelay <
-	  (utime_t)(jcr->start_time - jcr->sched_time)) {
-         Jmsg(jcr, M_FATAL, 0, _("Job canceled because max start delay time exceeded.\n"));
-	 set_jcr_job_status(jcr, JS_Canceled);
-	 update_job_end_record(jcr);
-      } else {
-
-	 /* Run Job */
-	 if (jcr->job->RunBeforeJob) {
-	    POOLMEM *before = get_pool_memory(PM_FNAME);
-	    int status;
-	    BPIPE *bpipe;
-	    char line[MAXSTRING];
-	    
-            before = edit_job_codes(jcr, before, jcr->job->RunBeforeJob, "");
-            bpipe = open_bpipe(before, 0, "r");
-	    free_pool_memory(before);
-	    while (fgets(line, sizeof(line), bpipe->rfd)) {
-               Jmsg(jcr, M_INFO, 0, _("RunBefore: %s"), line);
-	    }
-	    status = close_bpipe(bpipe);
-	    if (status != 0) {
-               Jmsg(jcr, M_FATAL, 0, _("RunBeforeJob returned non-zero status=%d\n"),
-		  status);
-	       set_jcr_job_status(jcr, JS_FatalError);
-	       update_job_end_record(jcr);
-	       goto bail_out;
-	    }
-	 }
-	 switch (jcr->JobType) {
-	 case JT_BACKUP:
-	    do_backup(jcr);
-	    if (jcr->JobStatus == JS_Terminated) {
-	       do_autoprune(jcr);
-	    }
-	    break;
-	 case JT_VERIFY:
-	    do_verify(jcr);
-	    if (jcr->JobStatus == JS_Terminated) {
-	       do_autoprune(jcr);
-	    }
-	    break;
-	 case JT_RESTORE:
-	    do_restore(jcr);
-	    if (jcr->JobStatus == JS_Terminated) {
-	       do_autoprune(jcr);
-	    }
-	    break;
-	 case JT_ADMIN:
-	    do_admin(jcr);
-	    if (jcr->JobStatus == JS_Terminated) {
-	       do_autoprune(jcr);
-	    }
-	    break;
-	 default:
-            Pmsg1(0, "Unimplemented job type: %d\n", jcr->JobType);
-	    break;
-	 }
-	 if ((jcr->job->RunAfterJob && jcr->JobStatus == JS_Terminated) ||
-	     (jcr->job->RunAfterFailedJob && jcr->JobStatus != JS_Terminated)) {
-	    POOLMEM *after = get_pool_memory(PM_FNAME);
-	    int status;
-	    BPIPE *bpipe;
-	    char line[MAXSTRING];
-	    
-	    if (jcr->JobStatus == JS_Terminated) {
-               after = edit_job_codes(jcr, after, jcr->job->RunAfterJob, "");
-	    } else {
-               after = edit_job_codes(jcr, after, jcr->job->RunAfterFailedJob, "");
-	    }
-            bpipe = open_bpipe(after, 0, "r");
-	    free_pool_memory(after);
-	    while (fgets(line, sizeof(line), bpipe->rfd)) {
-               Jmsg(jcr, M_INFO, 0, _("RunAfter: %s"), line);
-	    }
-	    status = close_bpipe(bpipe);
-	    /*
-	     * Note, if we get an error here, do not mark the
-	     *	job in error, simply report the error condition.   
-	     */
-	    if (status != 0) {
-	       if (jcr->JobStatus == JS_Terminated) {
-                  Jmsg(jcr, M_ERROR, 0, _("RunAfterJob returned non-zero status=%d\n"),
-		       status);
-	       } else {
-                  Jmsg(jcr, M_FATAL, 0, _("RunAfterFailedJob returned non-zero status=%d\n"),
-		       status);
-	       }
-	    }
-	 }
-      }
-bail_out:
-      break;
-   }
-
-   Dmsg0(50, "======== End Job ==========\n");
-   sm_check(__FILE__, __LINE__, True);
-   return NULL;
 }
 
 

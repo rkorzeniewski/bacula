@@ -122,6 +122,22 @@ DEV_BLOCK *new_block(DEVICE *dev)
    return block;
 }
 
+
+/*
+ * Duplicate an existing block (eblock)
+ */
+DEV_BLOCK *dup_block(DEV_BLOCK *eblock)
+{
+   DEV_BLOCK *block = (DEV_BLOCK *)get_memory(sizeof(DEV_BLOCK));
+   int buf_len = sizeof_pool_memory(eblock->buf);
+
+   memcpy(block, eblock, sizeof(DEV_BLOCK));
+   block->buf = get_memory(buf_len);
+   memcpy(block->buf, eblock->buf, buf_len);
+   return block;
+}
+
+
 /* 
  * Only the first block checksum error was reported.
  *   If there are more, report it now.
@@ -403,7 +419,7 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 max_cap = dev->VolCatInfo.VolCatMaxBytes;
       }
       Jmsg(jcr, M_INFO, 0, _("User defined maximum volume capacity %s exceeded on device %s.\n"),
-	    edit_uint64(max_cap, ed1),	dev->dev_name);
+	    edit_uint64_with_commas(max_cap, ed1),  dev->dev_name);
       block->write_failed = true;
       if (weof_dev(dev, 1) != 0) {	      /* end tape */
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);

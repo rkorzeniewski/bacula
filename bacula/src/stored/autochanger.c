@@ -81,6 +81,12 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
       Dmsg3(100, "run_prog: %s stat=%d result=%s\n", changer, status, results);
       if (status == 0) {
 	 loaded = atoi(results);
+	 if (loaded > 0) {
+            Jmsg(jcr, M_INFO, 0, _("3302 Autochanger \"loaded\", result is Slot %d.\n"),
+	      loaded);
+	 } else {
+            Jmsg(jcr, M_INFO, 0, _("3302 Autochanger \"loaded\", result is not loaded.\n"));
+	 }
       } else {
          Jmsg(jcr, M_INFO, 0, _("3991 Bad autochanger \"loaded\" command, status=%d.\n"), status);
 	 loaded = -1;		   /* force unload */
@@ -94,7 +100,7 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
 	 force_close_dev(dev);
 	 if (loaded != 0) {	   /* must unload drive */
             Dmsg0(400, "Doing changer unload.\n");
-            Jmsg(jcr, M_INFO, 0, _("3302 Issuing autochanger \"unload\" command.\n"));
+            Jmsg(jcr, M_INFO, 0, _("3303 Issuing autochanger \"unload\" command.\n"));
 	    changer = edit_device_codes(jcr, changer, 
                         jcr->device->changer_command, "unload");
 	    status = run_program(changer, timeout, NULL);
@@ -104,13 +110,13 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
 	  * Load the desired cassette	 
 	  */
          Dmsg1(400, "Doing changer load slot %d\n", slot);
-         Jmsg(jcr, M_INFO, 0, _("3303 Issuing autochanger \"load slot %d\" command.\n"), 
+         Jmsg(jcr, M_INFO, 0, _("3304 Issuing autochanger \"load slot %d\" command.\n"), 
 	      slot);
 	 changer = edit_device_codes(jcr, changer, 
                       jcr->device->changer_command, "load");
 	 status = run_program(changer, timeout, NULL);
 	 if (status == 0) {
-            Jmsg(jcr, M_INFO, 0, _("3304 Autochanger \"load slot %d\", status is OK.\n"),
+            Jmsg(jcr, M_INFO, 0, _("3305 Autochanger \"load slot %d\", status is OK.\n"),
 		    slot);
 	 } else {
             Jmsg(jcr, M_INFO, 0, _("3992 Bad autochanger \"load slot %d\", status=%d.\n"),

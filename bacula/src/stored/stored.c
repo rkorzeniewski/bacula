@@ -304,8 +304,8 @@ static void *device_allocation(void *arg)
 	 continue;
       }
       if (device->cap_bits & CAP_ALWAYSOPEN) {
-         Dmsg1(20, "calling open_device %s\n", device->device_name);
-	 if (!open_device(device->dev)) {
+         Dmsg1(20, "calling first_open_device %s\n", device->device_name);
+	 if (!first_open_device(device->dev)) {
             Emsg1(M_ERROR, 0, _("Could not open device %s\n"), device->device_name);
 	 }
       }

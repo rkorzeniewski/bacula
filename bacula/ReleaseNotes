@@ -35,6 +35,7 @@ New Commands:
 - "quit" command in restore tree.
 
 Most Significant Changes since 1.32d
+- Improved btape "test" and "fill" commands.
 - The ability to ask the Storage daemon on a device by device basis
   to "poll" the tape drive at a given interval (minimum 1 minute). If
   a tape is found, its label is read and if appropriate it is used.
