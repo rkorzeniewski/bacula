@@ -418,7 +418,7 @@ static int record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	    }
 	 }
 	 /* Create Client record if not already there */
-	    strcpy(cr.Name, label.ClientName);
+	    bstrncpy(cr.Name, label.ClientName, sizeof(cr.Name));
 	    create_client_record(db, &cr);
 	    jr.ClientId = cr.ClientId;
 
@@ -471,8 +471,8 @@ static int record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 unser_session_label(&elabel, rec);
 
 	 /* Create FileSet record */
-	 strcpy(fsr.FileSet, label.FileSetName);
-	 strcpy(fsr.MD5, label.FileSetMD5);
+	 bstrncpy(fsr.FileSet, label.FileSetName, sizeof(fsr.FileSet));
+	 bstrncpy(fsr.MD5, label.FileSetMD5, sizeof(fsr.MD5));
 	 create_fileset_record(db, &fsr);
 	 jr.FileSetId = fsr.FileSetId;
 
@@ -714,7 +714,7 @@ static int create_media_record(B_DB *db, MEDIA_DBR *mr, VOLUME_LABEL *vl)
    struct date_time dt;
    struct tm tm;
 
-   strcpy(mr->VolStatus, "Full");
+   bstrncpy(mr->VolStatus, "Full", sizeof(mr->VolStatus));
    mr->VolRetention = 365 * 3600 * 24; /* 1 year */
    if (vl->VerNum >= 11) {
       mr->FirstWritten = btime_to_utime(vl->write_btime);
@@ -855,8 +855,8 @@ static JCR *create_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *label,
    jr->Type = label->JobType;
    jr->Level = label->JobLevel;
    jr->JobStatus = JS_Created;
-   strcpy(jr->Name, label->JobName);
-   strcpy(jr->Job, label->Job);
+   bstrncpy(jr->Name, label->JobName, sizeof(jr->Name));
+   bstrncpy(jr->Job, label->Job, sizeof(jr->Job));
    if (label->VerNum >= 11) {
       jr->SchedTime = btime_to_unix(label->write_btime);
    } else {
@@ -1091,7 +1091,7 @@ static JCR *create_jcr(JOB_DBR *jr, DEV_RECORD *rec, uint32_t JobId)
    jobjcr->JobType = jr->Type;
    jobjcr->JobLevel = jr->Level;
    jobjcr->JobStatus = jr->JobStatus;
-   strcpy(jobjcr->Job, jr->Job);
+   bstrncpy(jobjcr->Job, jr->Job, sizeof(jobjcr->Job));
    jobjcr->JobId = JobId;      /* this is JobId on tape */
    jobjcr->sched_time = jr->SchedTime;
    jobjcr->start_time = jr->StartTime;

@@ -384,8 +384,8 @@ static int cdcmd(UAContext *ua, TREE_CTX *tree)
    if (!node) {
       /* Try once more if Win32 drive -- make absolute */
       if (ua->argk[1][1] == ':') {  /* win32 drive */
-         strcpy(cwd, "/");
-	 strcat(cwd, ua->argk[1]);
+         bstrncpy(cwd, "/", sizeof(cwd));
+	 bstrncat(cwd, ua->argk[1], sizeof(cwd));
 	 node = tree_cwd(cwd, tree->root, tree->node);
       }
       if (!node) {

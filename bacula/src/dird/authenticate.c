@@ -61,7 +61,7 @@ int authenticate_storage_daemon(JCR *jcr)
    /* 
     * Send my name to the Storage daemon then do authentication
     */
-   strcpy(dirname, director->hdr.name);
+   bstrncpy(dirname, director->hdr.name, sizeof(dirname));
    bash_spaces(dirname);
    if (!bnet_fsend(sd, hello, dirname)) {
       Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to Storage daemon. ERR=%s\n"), bnet_strerror(sd));
@@ -98,7 +98,7 @@ int authenticate_file_daemon(JCR *jcr)
    /* 
     * Send my name to the File daemon then do authentication
     */
-   strcpy(dirname, director->hdr.name);
+   bstrncpy(dirname, director->hdr.name, sizeof(dirname));
    bash_spaces(dirname);
    if (!bnet_fsend(fd, hello, dirname)) {
       Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to File daemon. ERR=%s\n"), bnet_strerror(fd));

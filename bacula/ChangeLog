@@ -1,5 +1,35 @@
 
-2003-09-12 Version 1.32 12Sep03 Beta
+2003-09-20 Version 1.32 20Sep03 Beta
+- Replace a number strcpy() calls with bstrncpy().
+- Added code to ensure that the names for each resource
+  type are unique. Two resources of different types can
+  have the same name.
+- More documentation
+- Added new full length modifiers for time intervals.
+  Compatible with previous method EXCEPT a modifier is now
+  manditory.
+- Completely restructured recycling. It should work now, but
+  in any case, the logic is much cleaner. A lot of new
+  code in next_vol.c
+- Added a few pthread_xx_destroy() for items inited.
+- Nic Bellamy pointed out that it wasn't necessary to do 
+  destroy() of static initialized pthread variables -- fixed
+  watchdog.
+- update VolStatus asked for the media and volume twice.
+- Changed a few more strcpy() to bstrncpy().
+- Made VolBytes=1 as indicator that the Volume is labeled.
+- Modified creation of Media record to include VolBytes,
+  same for sql_update - also set LabelDate if VolBytes = 1.
+- Copy any statically linked programs to install directory.
+- Change relabel flag to label in Update_media protocol Dir<->SD.
+- Change a few strcpy to bstrncpy ...
+- Update Media record after an automatic tape label.  
+- Added more debug code to bnet_server and bnet.c to attempt to
+  track down Alex's SD segfault (BSOCK==0)
+- Add additional debug cod for authentication errors in cram-md5.     
+- Implement "list nextvol job=xx" and add Volume to Dir status.
+- Retry waitpid if interrupted -- needed for FreeBSD!
+- Move lex.c debug level to 900
 - Add new aliases SDAddress, ...
 - Final changes for variable expansion
 - Possible fix to Alex's SD crashes
