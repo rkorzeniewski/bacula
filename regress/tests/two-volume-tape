@@ -11,7 +11,7 @@ mtx -f /dev/sg0 load 1
 mt -f /dev/nst0 rewind
 mt -f /dev/nst0 weof
 mtx -f /dev/sg0 unload
-mt -f /dev/sg0 load 2
+mtx -f /dev/sg0 load 2
 mt -f /dev/nst0 rewind
 mt -f /dev/nst0 weof
 mtx -f /dev/sg0 unload
