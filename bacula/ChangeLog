@@ -1,5 +1,18 @@
 
-2002-mm-dd Version 1.27 (14Nov02) not yet released
+2002-mm-dd Version 1.27 (18Nov02) not yet released
+
+General: from kes18Nov02
+- Did a number of cleanups of string copying to limit the length
+  and prevent buffer overflows.
+
+Changes submitted this submission:
+- Added a mutex arount the gethostbyname() so that multiple simultaneous
+  jobs get the correct address.
+- Added the MaxVolJobs to the Media alter tables script for MySQL (forgot it).
+- Changed arg to db_find_job_start_time to be POOLMEM for returning the string.
+- Add the new VolUseDuration and MaxVolJobs to all the db_ routines.
+- Use bstrncpy() in most places in the db_ routines to prevent a bad 
+  database from crashing Bacula (self protection).
 
 General: from kes13Nov02
 - You MUST either re-initialize your databases or use the 
