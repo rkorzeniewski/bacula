@@ -502,12 +502,8 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       
       /* Send stream to server */
       sd = jcr->store_bsock;
-      char *rbuf, *wbuf;
-      int rsize = jcr->buf_size;
       
       msgsave = sd->msg;
-      rbuf = sd->msg;
-      wbuf = sd->msg;
       
       pm_strcpy(&jcr->last_fname, ff_pkt->fname);
       
@@ -520,18 +516,9 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 	 return 0;
       }
       
-      /* Make space at beginning of buffer for fileAddr */
-      if(ff_pkt->flags & FO_SPARSE) {
-	 rbuf += SPARSE_FADDR_SIZE;
-	 rsize -= SPARSE_FADDR_SIZE;
-      }
-      
       /* Send the buffer to the storage deamon */
-      if(ff_pkt->flags & FO_SPARSE) {
-	 sd->msglen += SPARSE_FADDR_SIZE;
-      }
       sd->msg = acl_text;
-      sd->msglen += strlen(acl_text);
+      sd->msglen = strlen(acl_text);
       if(!bnet_send(sd)) {
 	 sd->msg = msgsave;
 	 sd->msglen = 0;
