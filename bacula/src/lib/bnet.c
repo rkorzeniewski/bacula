@@ -53,20 +53,6 @@ extern time_t watchdog_time;
 #define socketClose(fd) 	  close(fd)
 #endif
 
-
-#ifdef HAVE_OLD_SOCKOPT
-int inet_aton(const char *cp, struct in_addr *inp)
-{
-   struct in_addr inaddr;
-
-   if((inaddr.s_addr = inet_addr(cp)) != INADDR_NONE) {
-      inp->s_addr = inaddr.s_addr;
-      return 1;
-   }
-   return 0;
-}
-#endif
-
 /*
  * Read a nbytes from the network.
  * It is possible that the total bytes require in several
@@ -109,9 +95,9 @@ static int32_t write_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
       if (nwritten != nbytes) {
 	 berrno be;
 	 bsock->b_errno = errno;
-	 Qmsg1(bsock->jcr, M_FATAL, 0, _("Attr spool write error. ERR=%s\n"),
+         Qmsg1(bsock->jcr, M_FATAL, 0, _("Attr spool write error. ERR=%s\n"),
 	       be.strerror());
-	 Dmsg2(400, "nwritten=%d nbytes=%d.\n", nwritten, nbytes);
+         Dmsg2(400, "nwritten=%d nbytes=%d.\n", nwritten, nbytes);
 	 errno = bsock->b_errno;
 	 return -1;
       }
@@ -217,7 +203,7 @@ int32_t bnet_recv(BSOCK * bsock)
    if (pktsiz < 0 || pktsiz > 1000000) {
       if (pktsiz > 0) { 	   /* if packet too big */
 	 Qmsg3(bsock->jcr, M_FATAL, 0,
-	       _("Packet size too big from \"%s:%s:%d. Terminating connection.\n"),
+               _("Packet size too big from \"%s:%s:%d. Terminating connection.\n"),
 	       bsock->who, bsock->host, bsock->port);
 	 pktsiz = BNET_TERMINATE;  /* hang up */
       }
@@ -320,8 +306,8 @@ int bnet_despool_to_bsock(BSOCK * bsock, void update_attr_spool_size(ssize_t siz
 	 nbytes = fread(bsock->msg, 1, bsock->msglen, bsock->spool_fd);
 	 if (nbytes != (size_t) bsock->msglen) {
 	    berrno be;
-	    Dmsg2(400, "nbytes=%d msglen=%d\n", nbytes, bsock->msglen);
-	    Qmsg1(bsock->jcr, M_FATAL, 0, _("fread attr spool error. ERR=%s\n"),
+            Dmsg2(400, "nbytes=%d msglen=%d\n", nbytes, bsock->msglen);
+            Qmsg1(bsock->jcr, M_FATAL, 0, _("fread attr spool error. ERR=%s\n"),
 		  be.strerror());
 	    update_attr_spool_size(tsize - last);
 	    return 0;
@@ -381,12 +367,12 @@ bool bnet_send(BSOCK * bsock)
       if (rc < 0) {
 	 if (!bsock->suppress_error_msgs && !bsock->timed_out) {
 	    Qmsg4(bsock->jcr, M_ERROR, 0,
-		  _("Write error sending to %s:%s:%d: ERR=%s\n"), bsock->who,
+                  _("Write error sending to %s:%s:%d: ERR=%s\n"), bsock->who,
 		  bsock->host, bsock->port, bnet_strerror(bsock));
 	 }
       } else {
 	 Qmsg5(bsock->jcr, M_ERROR, 0,
-	       _("Wrote %d bytes to %s:%s:%d, but only %d accepted.\n"), bsock->who,
+               _("Wrote %d bytes to %s:%s:%d, but only %d accepted.\n"), bsock->who,
 	       bsock->host, bsock->port, bsock->msglen, rc);
       }
       return false;
@@ -412,12 +398,12 @@ bool bnet_send(BSOCK * bsock)
       if (rc < 0) {
 	 if (!bsock->suppress_error_msgs) {
 	    Qmsg4(bsock->jcr, M_ERROR, 0,
-		  _("Write error sending to %s:%s:%d: ERR=%s\n"), bsock->who,
+                  _("Write error sending to %s:%s:%d: ERR=%s\n"), bsock->who,
 		  bsock->host, bsock->port, bnet_strerror(bsock));
 	 }
       } else {
 	 Qmsg5(bsock->jcr, M_ERROR, 0,
-	       _("Wrote %d bytes to %s:%s:%d, but only %d accepted.\n"),
+               _("Wrote %d bytes to %s:%s:%d, but only %d accepted.\n"),
 	       bsock->msglen, bsock->who, bsock->host, bsock->port, rc);
       }
       return false;
@@ -712,7 +698,7 @@ static BSOCK *bnet_open(JCR * jcr, const char *name, char *host, char *service,
 	 berrno be;
 	 save_errno = errno;
 	 *fatal = 1;
-	 Pmsg3(000, "Socket open error. proto=%d port=%d. ERR=%s\n",
+         Pmsg3(000, "Socket open error. proto=%d port=%d. ERR=%s\n",
 	    ipaddr->get_family(), ipaddr->get_port_host_order(), be.strerror());
 	 continue;
       }
@@ -721,7 +707,7 @@ static BSOCK *bnet_open(JCR * jcr, const char *name, char *host, char *service,
        */
       if (setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, (sockopt_val_t)&turnon, sizeof(turnon)) < 0) {
 	 berrno be;
-	 Qmsg1(jcr, M_WARNING, 0, _("Cannot set SO_KEEPALIVE on socket: %s\n"),
+         Qmsg1(jcr, M_WARNING, 0, _("Cannot set SO_KEEPALIVE on socket: %s\n"),
 	       be.strerror());
       }
       /* connect to server */
@@ -776,13 +762,13 @@ BSOCK *bnet_connect(JCR * jcr, int retry_interval, int max_retry_time,
       if (i < 0) {
 	 i = 60 * 5;		   /* complain again in 5 minutes */
 	 if (verbose)
-	    Qmsg4(jcr, M_WARNING, 0, "Could not connect to %s on %s:%d. ERR=%s\n"
+            Qmsg4(jcr, M_WARNING, 0, "Could not connect to %s on %s:%d. ERR=%s\n"
 "Retrying ...\n", name, host, port, be.strerror());
       }
       bmicrosleep(retry_interval, 0);
       max_retry_time -= retry_interval;
       if (max_retry_time <= 0) {
-	 Qmsg4(jcr, M_FATAL, 0, _("Unable to connect to %s on %s:%d. ERR=%s\n"),
+         Qmsg4(jcr, M_FATAL, 0, _("Unable to connect to %s on %s:%d. ERR=%s\n"),
 	       name, host, port, be.strerror());
 	 return NULL;
       }
@@ -867,17 +853,17 @@ bool bnet_set_buffer_size(BSOCK * bs, uint32_t size, int rw)
       while ((dbuf_size > TAPE_BSIZE) && (setsockopt(bs->fd, SOL_SOCKET,
 	      SO_RCVBUF, (sockopt_val_t) & dbuf_size, sizeof(dbuf_size)) < 0)) {
 	 berrno be;
-	 Qmsg1(bs->jcr, M_ERROR, 0, _("sockopt error: %s\n"), be.strerror());
+         Qmsg1(bs->jcr, M_ERROR, 0, _("sockopt error: %s\n"), be.strerror());
 	 dbuf_size -= TAPE_BSIZE;
       }
       Dmsg1(200, "set network buffer size=%d\n", dbuf_size);
       if (dbuf_size != start_size) {
 	 Qmsg1(bs->jcr, M_WARNING, 0,
-	       _("Warning network buffer = %d bytes not max size.\n"), dbuf_size);
+               _("Warning network buffer = %d bytes not max size.\n"), dbuf_size);
       }
       if (dbuf_size % TAPE_BSIZE != 0) {
 	 Qmsg1(bs->jcr, M_ABORT, 0,
-	       _("Network buffer size %d not multiple of tape block size.\n"),
+               _("Network buffer size %d not multiple of tape block size.\n"),
 	       dbuf_size);
       }
    }
@@ -891,17 +877,17 @@ bool bnet_set_buffer_size(BSOCK * bs, uint32_t size, int rw)
       while ((dbuf_size > TAPE_BSIZE) && (setsockopt(bs->fd, SOL_SOCKET,
 	      SO_SNDBUF, (sockopt_val_t) & dbuf_size, sizeof(dbuf_size)) < 0)) {
 	 berrno be;
-	 Qmsg1(bs->jcr, M_ERROR, 0, _("sockopt error: %s\n"), be.strerror());
+         Qmsg1(bs->jcr, M_ERROR, 0, _("sockopt error: %s\n"), be.strerror());
 	 dbuf_size -= TAPE_BSIZE;
       }
       Dmsg1(200, "set network buffer size=%d\n", dbuf_size);
       if (dbuf_size != start_size) {
 	 Qmsg1(bs->jcr, M_WARNING, 0,
-	       _("Warning network buffer = %d bytes not max size.\n"), dbuf_size);
+               _("Warning network buffer = %d bytes not max size.\n"), dbuf_size);
       }
       if (dbuf_size % TAPE_BSIZE != 0) {
 	 Qmsg1(bs->jcr, M_ABORT, 0,
-	       _("Network buffer size %d not multiple of tape block size.\n"),
+               _("Network buffer size %d not multiple of tape block size.\n"),
 	       dbuf_size);
       }
    }
