@@ -150,15 +150,16 @@ int bvsnprintf(char *str, int32_t size, const char  *format, va_list ap)
 
 #else
 
-   int len;
+   int len, buflen;
    char *buf;
-   buf = get_memory(BIG_BUF);
+   buflen = size > BIG_BUF ? size : BIG_BUF;
+   buf = get_memory(buflen);
    len = vsprintf(buf, format, ap);
-   if (len >= BIG_BUF) {
+   if (len >= buflen) {
       Emsg0(M_ABORT, 0, _("Buffer overflow.\n"));
    }
-   memcpy(str, buf, size);
-   str[size-1] = 0;
+   memcpy(str, buf, len);
+   str[len] = 0;		/* len excludes the null */
    free_memory(buf);
    return len;
 #endif

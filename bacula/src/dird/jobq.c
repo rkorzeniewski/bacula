@@ -40,12 +40,15 @@
 #include "bacula.h"
 #include "dird.h"
 
+extern JCR *jobs;
 
 /* Forward referenced functions */
 extern "C" void *jobq_server(void *arg);
 extern "C" void *sched_wait(void *arg);
 
 static int   start_server(jobq_t *jq);
+
+
 
 /*   
  * Initialize a job queue
@@ -544,6 +547,7 @@ void *jobq_server(void *arg)
 	 for ( ; je;  ) {
 	    /* je is current job item on the queue, jn is the next one */
 	    JCR *jcr = je->jcr;
+	    bool skip_this_jcr = false;
 	    jobq_item_t *jn = (jobq_item_t *)jq->waiting_jobs->next(je);
             Dmsg3(300, "Examining Job=%d JobPri=%d want Pri=%d\n",
 	       jcr->JobId, jcr->JobPriority, Priority);
@@ -560,14 +564,40 @@ void *jobq_server(void *arg)
 		  jcr->store->MaxConcurrentJobs = 1;
 	       } else {
 		  set_jcr_job_status(jcr, JS_WaitStoreRes);
-		  je = jn;
+		  je = jn;	      /* point to next waiting job */
 		  continue;
 	       }
+	    /* We are not doing a Restore or Verify */
+	    } else if (jcr->store->NumConcurrentJobs == 0 &&
+		       jcr->store->NumConcurrentJobs < jcr->store->MaxConcurrentJobs) {
+		/* Simple case, first job */
+		jcr->store->NumConcurrentJobs = 1;  
 	    } else if (jcr->store->NumConcurrentJobs < jcr->store->MaxConcurrentJobs) {
-	       jcr->store->NumConcurrentJobs++;
-	    } else {
+	       /*
+		* At this point, we already have at least one Job running 
+		*  for this Storage daemon, so we must ensure that there
+		*  is no Volume conflict. In general, it should be OK, if
+		*  all Jobs pull from the same Pool, so we check the Pools.
+		*/
+		JCR *njcr;
+		lock_jcr_chain();
+		for (njcr=jobs; njcr; njcr=njcr->next) {
+		   if (njcr->JobId == 0 || njcr == jcr) {
+		      continue;
+		   }
+		   if (njcr->pool != jcr->pool) {
+		      skip_this_jcr = true;
+		      break;
+		   }
+		}  
+		unlock_jcr_chain();
+		if (!skip_this_jcr) {
+		   jcr->store->NumConcurrentJobs++;    
+		}
+	    } 
+	    if (skip_this_jcr) {
 	       set_jcr_job_status(jcr, JS_WaitStoreRes);
-	       je = jn;
+	       je = jn; 	      /* point to next waiting job */
 	       continue;
 	    }
 
@@ -580,7 +610,7 @@ void *jobq_server(void *arg)
 		  jcr->store->MaxConcurrentJobs = jcr->saveMaxConcurrentJobs;  
 	       }
 	       set_jcr_job_status(jcr, JS_WaitClientRes);
-	       je = jn;
+	       je = jn; 	      /* point to next waiting job */
 	       continue;
 	    }
 	    if (jcr->job->NumConcurrentJobs < jcr->job->MaxConcurrentJobs) {
@@ -593,7 +623,7 @@ void *jobq_server(void *arg)
 	       }
 	       jcr->client->NumConcurrentJobs--;
 	       set_jcr_job_status(jcr, JS_WaitJobRes);
-	       je = jn;
+	       je = jn; 	      /* Point to next waiting job */
 	       continue;
 	    }
 	    /* Got all locks, now remove it from wait queue and append it
@@ -603,7 +633,7 @@ void *jobq_server(void *arg)
 	    jq->waiting_jobs->remove(je);
 	    jq->ready_jobs->append(je);
             Dmsg1(300, "moved JobId=%d from wait to ready queue\n", je->jcr->JobId);
-	    je = jn;
+	    je = jn;		      /* Point to next waiting job */
 	 } /* end for loop */
 	 break;
       } /* end while loop */

@@ -43,7 +43,7 @@ int num_jobs_run;
 dlist *last_jobs = NULL;
 const int max_last_jobs = 10;
 
-static JCR *jobs = NULL;	      /* pointer to JCR chain */
+JCR *jobs = NULL;		      /* pointer to JCR chain */
 static brwlock_t lock;		      /* lock for last jobs and JCR chain */
 
 void init_last_jobs_list()
