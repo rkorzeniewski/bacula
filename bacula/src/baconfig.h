@@ -333,4 +333,11 @@ extern int thr_setconcurrency(int);
 #define ALIGN_SIZE (sizeof(double))
 #define BALIGN(x) (((x) + ALIGN_SIZE - 1) & ~(ALIGN_SIZE -1))
 
+
+/* Added by KES to deal with Win32 systems */
+#ifndef S_ISWIN32
+#define S_ISWIN32 020000
+#endif
+
+
 #endif /* _BACONFIG_H */

@@ -132,6 +132,7 @@ int restorecmd(UAContext *ua, char *cmd)
    JOB *restore_job = NULL;
    int restore_jobs = 0;
    NAME_LIST name_list;
+   uint32_t selected_files = 0;
 
    if (!open_db(ua)) {
       return 0;
@@ -219,6 +220,7 @@ int restorecmd(UAContext *ua, char *cmd)
       if (node->extract) {
          Dmsg2(400, "type=%d FI=%d\n", node->type, node->FileIndex);
 	 add_findex(bsr, node->JobId, node->FileIndex);
+	 selected_files++;
       }
    }
 
@@ -232,6 +234,7 @@ int restorecmd(UAContext *ua, char *cmd)
       }
 //    print_bsr(ua, bsr);
       write_bsr_file(ua, bsr);
+      bsendmsg(ua, _("\n%u files selected to restore.\n\n"), selected_files);
    } else {
       bsendmsg(ua, _("No files selected to restore.\n"));
    }
@@ -832,7 +835,11 @@ static int insert_tree_handler(void *ctx, int num_fields, char **row)
 
    strip_trailing_junk(row[1]);
    if (*row[1] == 0) {
-      type = TN_DIR;
+      if (*row[0] != '/') {           /* Must be Win32 directory */
+	 type = TN_DIR_NLS;
+      } else {
+	 type = TN_DIR;
+      }
    } else {
       type = TN_FILE;
    }
@@ -843,7 +850,7 @@ static int insert_tree_handler(void *ctx, int num_fields, char **row)
       node = new_tree_node(tree->root, type);
       tree->avail_node = node;
    }
-   Dmsg2(400, "FI=%d fname=%s\n", node->FileIndex, fname);
+   Dmsg3(200, "FI=%d type=%d fname=%s\n", node->FileIndex, type, fname);
    new_node = insert_tree_node(fname, node, tree->root, NULL);
    /* Note, if node already exists, save new one for next time */
    if (new_node != node) {
@@ -958,6 +965,8 @@ static void ls_output(char *buf, char *fname, struct stat *statp)
    char ec1[30];
    int n;
 
+// Dmsg2(000, "%s mode=0%o\n", fname, statp->st_mode);
+
    p = encode_mode(statp->st_mode, buf);
    n = sprintf(p, "  %2d ", (uint32_t)statp->st_nlink);
    p += n;
@@ -997,6 +1006,10 @@ static int dircmd(UAContext *ua, TREE_CTX *tree)
 	    decode_stat(fdbr.LStat, &statp); /* decode stat pkt */
 	    ls_output(buf, cwd, &statp);
             bsendmsg(ua, "%s\n", buf);
+	 } else {
+	    /* Something went wrong getting attributes -- print name */
+            bsendmsg(ua, "%s%s%s\n", node->extract?"*":"", node->fname,
+               (node->type==TN_DIR||node->type==TN_NEWDIR)?"/":"");
 	 }
       }
    }
@@ -1017,6 +1030,11 @@ static int helpcmd(UAContext *ua, TREE_CTX *tree)
    return 1;
 }
 
+/*
+ * Change directories.	Note, if the user specifies x: and it fails,
+ *   we assume it is a Win32 absolute cd rather than relative and
+ *   try a second time with /x: ...  Win32 kludge.
+ */
 static int cdcmd(UAContext *ua, TREE_CTX *tree) 
 {
    TREE_NODE *node;
@@ -1027,7 +1045,17 @@ static int cdcmd(UAContext *ua, TREE_CTX *tree)
    }
    node = tree_cwd(ua->argk[1], tree->root, tree->node);
    if (!node) {
-      bsendmsg(ua, _("Invalid path given.\n"));
+      /* Try once more if Win32 drive -- make absolute */
+      if (ua->argk[1][1] == ':') {  /* win32 drive */
+         strcpy(cwd, "/");
+	 strcat(cwd, ua->argk[1]);
+	 node = tree_cwd(cwd, tree->root, tree->node);
+      }
+      if (!node) {
+         bsendmsg(ua, _("Invalid path given.\n"));
+      } else {
+	 tree->node = node;
+      }
    } else {
       tree->node = node;
    }

@@ -179,42 +179,48 @@ void do_restore(JCR *jcr)
 	 }
 
 	 decode_stat(ap, &statp);
+	 /* 
+	  *   ***FIXME***  add REAL Win32 code to backup.c
+	  * Temp kludge so that low level routines (set_statp) know
+	  *   we are dealing with a Win32 system.
+	  */
+#ifdef HAVE_CYGWIN
+	    statp.st_mode |= S_ISWIN32;
+#endif
 	 /*
 	  * Prepend the where directory so that the
 	  * files are put where the user wants.
 	  *
 	  * We do a little jig here to handle Win32 files with
-	  * a drive letter.  
-	  *   If where is null and we are running on a win32 client,
-	  *	 change nothing.
-	  *   Otherwise, if the second character of the filename is a
-	  *   colon (:), change it into a slash (/) -- this creates
-	  *   a reasonable pathname on most systems.
+	  *   a drive letter -- we simply strip the drive: from
+	  *   every filename if a prefix is supplied.
+	  *	
 	  */
-	 if (jcr->where[0] == 0 && win32_client) {
+	 if (jcr->where[0] == 0) {
 	    strcpy(ofile, fname);
 	    strcpy(lname, lp);
 	 } else {
-	    strcpy(ofile, jcr->where);
-            if (fname[1] == ':') {
-               fname[1] = '/';
-	       strcat(ofile, fname);
-               fname[1] = ':';
+	    char *fn;
+	    strcpy(ofile, jcr->where);	/* copy prefix */
+            if (win32_client && fname[1] == ':') {
+	       fn = fname+2;	      /* skip over drive: */
 	    } else {
-	       strcat(ofile, fname);
+	       fn = fname;	      /* take whole name */
 	    }
+	    /* Ensure where is terminated with a slash */
+            if (jcr->where[wherelen-1] != '/' && fn[0] != '/') {
+               strcat(ofile, "/");
+	    }
+	    strcat(ofile, fn);	      /* copy rest of name */
 	    /* Fixup link name */
 	    if (type == FT_LNK || type == FT_LNKSAVED) {
                if (lp[0] == '/') {      /* if absolute path */
 		  strcpy(lname, jcr->where);
 	       }       
-               /* ***FIXME**** we shouldn't have links on Windoz */
-               if (lp[1] == ':') {
-                  lp[1] = '/';
-		  strcat(lname, lp);
-                  lp[1] = ':';
+               if (win32_client && lp[1] == ':') {
+		  strcat(lname, lp+2); /* copy rest of name */
 	       } else {
-		  strcat(lname, lp);
+		  strcat(lname, lp);   /* On Unix systems we take everything */
 	       }
 	    }
 	 }

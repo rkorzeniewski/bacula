@@ -357,9 +357,9 @@ static char *edit_job_codes(JCR *jcr, char *omsg, char *imsg, char *to)
 	 add[1] = 0;
 	 str = add;
       }
-      Dmsg1(200, "add_str %s\n", str);
+      Dmsg1(1200, "add_str %s\n", str);
       pm_strcat(&omsg, str);
-      Dmsg1(200, "omsg=%s\n", omsg);
+      Dmsg1(1200, "omsg=%s\n", omsg);
    }
    return omsg;
 }

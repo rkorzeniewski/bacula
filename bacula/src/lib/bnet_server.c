@@ -78,7 +78,11 @@ bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_w
     */
    bind_ip.s_addr = htonl(INADDR_ANY);
    if (bind_addr && bind_addr[0]) {
+#ifdef HAVE_INET_PTON
       if (inet_pton(AF_INET, bind_addr, &bind_ip) <= 0) {
+#else
+      if (inet_aton(bind_addr, &bind_ip) <= 0) {
+#endif
          Emsg1(M_WARNING, 0, _("Invalid bind address: %s, using INADDR_ANY\n"),
 	    bind_addr);
 	 bind_ip.s_addr = htonl(INADDR_ANY);

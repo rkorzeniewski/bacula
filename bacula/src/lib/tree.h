@@ -66,7 +66,8 @@ typedef struct s_tree_root TREE_ROOT;
 #define TN_ROOT    1                  /* root node */
 #define TN_NEWDIR  2                  /* created directory to fill path */
 #define TN_DIR     3                  /* directory entry */
-#define TN_FILE    4                  /* file entry */
+#define TN_DIR_NLS 4                  /* directory -- no leading slash -- win32 */
+#define TN_FILE    5                  /* file entry */
 
 TREE_ROOT *new_tree(int count);
 TREE_NODE *new_tree_node(TREE_ROOT *root, int type);

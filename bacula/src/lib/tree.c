@@ -171,6 +171,7 @@ TREE_NODE *insert_tree_node(char *path, TREE_NODE *node, TREE_ROOT *root, TREE_N
       fname = path;
       if (!parent) {
 	 parent = (TREE_NODE *)root;
+	 node->type = TN_DIR_NLS;
       }
       Dmsg1(100, "No / found: %s\n", path);
    }
@@ -203,6 +204,7 @@ TREE_NODE *make_tree_path(char *path, TREE_ROOT *root)
 {
    TREE_NODE *parent, *sibling, *node;
    char *fname, *p;
+   int type = TN_NEWDIR;
 
    Dmsg1(100, "make_tree_path: %s\n", path);
    if (*path == 0) {
@@ -218,6 +220,7 @@ TREE_NODE *make_tree_path(char *path, TREE_ROOT *root)
    } else {
       fname = path;
       parent = (TREE_NODE *)root;
+      type = TN_DIR_NLS;
    }
    /* Is it already a sibling? */
    for (sibling=parent->child; sibling; sibling=sibling->sibling) {
@@ -228,7 +231,7 @@ TREE_NODE *make_tree_path(char *path, TREE_ROOT *root)
       }
    }
    /* Must add */
-   node = new_tree_node(root, TN_NEWDIR);
+   node = new_tree_node(root, type);
    append_tree_node(fname, node, root, parent);
    Dmsg1(100, "make_tree_path: add parent=%s\n", node->fname);
    return node;
@@ -286,6 +289,7 @@ void print_tree(char *path, TREE_NODE *tree)
       return;
    }
    switch (tree->type) {
+   case TN_DIR_NLS:
    case TN_DIR:
    case TN_NEWDIR:  
       termchr = "/";
@@ -300,16 +304,14 @@ void print_tree(char *path, TREE_NODE *tree)
    switch (tree->type) {
    case TN_FILE:
       break;
+   case TN_NEWDIR:
    case TN_DIR:
+   case TN_DIR_NLS:
       sprintf(buf, "%s/%s", path, tree->fname);
       print_tree(buf, tree->child);
       break;
    case TN_ROOT:
       print_tree(path, tree->child);
-      break;
-   case TN_NEWDIR:  
-      sprintf(buf, "%s/%s", path, tree->fname);
-      print_tree(buf, tree->child);
       break;
    default:
       Pmsg1(000, "Unknown node type %d\n", tree->type);
@@ -325,6 +327,14 @@ int tree_getpath(TREE_NODE *node, char *buf, int buf_size)
       return 1;
    }
    tree_getpath(node->parent, buf, buf_size);
+   /* 
+    * Fixup for Win32. If we have a Win32 directory and 
+    *	 there is only a / in the buffer, remove it since
+    *    win32 names don't generally start with /
+    */
+   if (node->type == TN_DIR_NLS && buf[0] == '/' && buf[1] == 0) {
+      buf[0] = 0;   
+   }
    strcat(buf, node->fname);
    if (node->type != TN_FILE) {
       strcat(buf, "/");

@@ -128,16 +128,16 @@ int db_get_file_attributes_record(B_DB *mdb, char *fname, FILE_DBR *fdbr)
       pnl = 1;
    }
 
-   Dmsg1(100, "spath=%s\n", spath);
-   Dmsg1(100, "file=%s\n", file);
+   Dmsg1(400, "spath=%s\n", spath);
+   Dmsg1(400, "file=%s\n", file);
 
    db_escape_string(buf, file, fnl);
    fdbr->FilenameId = db_get_filename_record(mdb, buf);
-   Dmsg2(100, "db_get_filename_record FilenameId=%u file=%s\n", fdbr->FilenameId, buf);
+   Dmsg2(400, "db_get_filename_record FilenameId=%u file=%s\n", fdbr->FilenameId, buf);
 
    db_escape_string(buf, spath, pnl);
    fdbr->PathId = db_get_path_record(mdb, buf);
-   Dmsg2(100, "db_get_path_record PathId=%u path=%s\n", fdbr->PathId, buf);
+   Dmsg2(400, "db_get_path_record PathId=%u path=%s\n", fdbr->PathId, buf);
 
    stat = db_get_file_record(mdb, fdbr);
 
@@ -192,6 +192,9 @@ File.FilenameId=%u", fdbr->JobId, fdbr->PathId, fdbr->FilenameId);
 	    fdbr->MD5[sizeof(fdbr->MD5)] = 0;
 	    stat = 1;
 	 }
+      } else {
+         Mmsg2(&mdb->errmsg, _("File record not found for PathId=%u FilenameId=%u\n"),
+	    fdbr->PathId, fdbr->FilenameId);
       }
       sql_free_result(mdb);
    }
@@ -236,6 +239,8 @@ static int db_get_filename_record(B_DB *mdb, char *fname)
 	       FilenameId = 0;
 	    }
 	 }
+      } else {
+         Mmsg1(&mdb->errmsg, _("Filename record: %s not found.\n"), fname);
       }
       sql_free_result(mdb);
    }
@@ -294,6 +299,8 @@ static int db_get_path_record(B_DB *mdb, char *path)
 	       }
 	    }
 	 }
+      } else {	
+         Mmsg1(&mdb->errmsg, _("Path record: %s not found.\n"), path);
       }
       sql_free_result(mdb);
    }

@@ -45,7 +45,7 @@ Job {
   Storage = DLTDrive
   Messages = Standard
   Pool = Default
-  Where = /tmp
+  Where = /tmp/bacula-restores
 }
 
 

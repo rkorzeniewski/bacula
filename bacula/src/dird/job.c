@@ -274,17 +274,18 @@ void create_unique_job_name(JCR *jcr, char *base_name)
     * thus unique Job Name 
     */
    P(mutex);			      /* lock creation of jobs */
-   time(&now);
+   now = time(NULL);
    while (now == last_start_time) {
       sleep(1);
-      time(&now);
+      now = time(NULL);
    }
    last_start_time = now;
    V(mutex);			      /* allow creation of jobs */
    jcr->start_time = now;
    /* Form Unique JobName */
    localtime_r(&now, &tm);
-   strftime(dt, sizeof(dt), "%Y-%m-%d.%H:%M:%S", &tm); 
+   /* Use only characters that are permitted in Windows filenames */
+   strftime(dt, sizeof(dt), "%Y-%m-%d_%H.%M.%S", &tm); 
    strncpy(name, base_name, sizeof(name));
    name[sizeof(name)-22] = 0;	       /* truncate if too long */
    sprintf(jcr->Job, "%s.%s", name, dt); /* add date & time */

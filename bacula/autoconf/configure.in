@@ -972,6 +972,7 @@ AC_CHECK_FUNC(socket,
     AC_CHECK_LIB(socket,socket)
     AC_CHECK_LIB(inet,socket))
 
+AC_CHECK_FUNCS(inet_pton, [AC_DEFINE(HAVE_INET_PTON)])
 
 AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF

@@ -481,18 +481,17 @@ JobId:      %s\n"),
 	 goto try_again;
       case 6:
 	 /* Where */
-         if (!get_cmd(ua, _("Please enter path prefix (where) for restore: "))) {
+         if (!get_cmd(ua, _("Please enter path prefix for restore (/ for none): "))) {
 	    break;
 	 }
-	 /* ***FIXME*** allow drive:/ for Windows */
-         if (ua->cmd[0] != 0 && ua->cmd[0] != '/') {
-            bsendmsg(ua, _("Prefix must be null or begin with a /\n"));
-	 } else {
-	    if (jcr->RestoreWhere) {
-	       free(jcr->RestoreWhere);
-	    }
-	    jcr->RestoreWhere = bstrdup(ua->cmd);
-	 }  
+	 if (jcr->RestoreWhere) {
+	    free(jcr->RestoreWhere);
+	    jcr->RestoreWhere = NULL;
+	 }
+         if (ua->cmd[0] == '/' && ua->cmd[1] == 0) {
+	    ua->cmd[0] = 0;
+	 }
+	 jcr->RestoreWhere = bstrdup(ua->cmd);
 	 goto try_again;
       case 7:
 	 /* JobId */
