@@ -2,14 +2,6 @@
 #
 # Run all tests
 #
-tests/test0
-tests/backup-bacula-test
-tests/sparse-test
-tests/compressed-test
-tests/sparse-compressed-test
-tests/wierd-files-test
-tests/two-jobs-test
-tests/dev-test-root
-tests/etc-test-root
-tests/lib-test-root
+./all-non-root-tests
+./all-root-tests
 cat test.out

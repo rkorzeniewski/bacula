@@ -50,5 +50,5 @@ if [ $? != 0 ] ; then
 else
    echo "  ===== compressed-test Bacula source OK ===== "
    echo "  ===== compressed-test OK ===== " >>test.out
+   rm -rf /tmp/bacula-restores /tmp/TestVolume001
 fi
-rm -rf /tmp/bacula-restores

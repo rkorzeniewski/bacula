@@ -7,6 +7,7 @@ echo "s%@scriptdir@%${cwd}/bin%g" >>${out}
 echo "s%@working_dir@%${cwd}/bin/working%g" >>${out}
 echo "s%@piddir@%${cwd}/bin/working%g" >>${out}
 echo "s%@subsysdir@%${cwd}/bin/working%g" >>${out}
+echo "s%@job_email@%${1}%g">>${out}
 
 # process .in files with sed script
 sed -f ${out} ${cwd}/scripts/test-bacula-dir.conf.in >${cwd}/scripts/test-bacula-dir.conf

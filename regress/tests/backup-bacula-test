@@ -51,5 +51,5 @@ if [ $? != 0 ] ; then
 else
    echo "  ===== Backup Bacula Test OK ===== "
    echo "  ===== Backup Bacula Test OK ===== " >>test.out
+   rm -rf /tmp/bacula-restores /tmp/TestVolume001
 fi
-rm -rf /tmp/bacula-restores

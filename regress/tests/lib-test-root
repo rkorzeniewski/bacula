@@ -48,10 +48,10 @@ quit
 END_OF_DATA
 bin/bacula stop
 cd /
-${cwd}/bin/testls -e ${cwd}/scripts/exclude-lib-test lib >/tmp/original
+${cwd}/bin/testls -e ${cwd}/scripts/exclude-lib-test lib >${cwd}/tmp/original
 cd /tmp/bacula-restores
-${cwd}/bin/testls -e ${cwd}/scripts/exclude-lib-test lib >/tmp/restored
-diff /tmp/original /tmp/restored
+${cwd}/bin/testls -e ${cwd}/scripts/exclude-lib-test lib >${cwd}/tmp/restored
+diff ${cwd}/tmp/original ${cwd}/tmp/restored
 if [ $? != 0 ] ; then
    echo " "
    echo " "
@@ -61,6 +61,6 @@ if [ $? != 0 ] ; then
 else
    echo "  ===== Test5 /lib OK ===== "
    echo "  ===== Test5 OK ===== " >>test.out
-   rm -rf /tmp/bacula-restores /tmp/original /tmp/restored
+   rm -rf /tmp/bacula-restores ${cwd}/tmp/original ${cwd}/tmp/restored
    rm -rf /tmp/file-list /tmp/job /tmp/TestVolume001
 fi

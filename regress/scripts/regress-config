@@ -10,10 +10,10 @@ CFLAGS="-g -O2 -Wall" \
     --with-pid-dir=$1/bin/working \
     --with-subsys-dir=$1/bin/working \
     --enable-smartalloc \
-    --with-sqlite=$1/../depkgs/sqlite \
+    --with-sqlite=$2 \
     --with-working-dir=$1/bin/working \
-    --with-dump-email=kern+ok@sibbald.com \
-    --with-job-email=kern+ok@sibbald.com \
+    --with-dump-email=$3 \
+    --with-job-email=$3 \
     --with-baseport=8101 
 
 exit 0

@@ -48,9 +48,9 @@ quit
 END_OF_DATA
 bin/bacula stop
 cd /
-${cwd}/bin/testls -e ${cwd}/scripts/exclude-etc-test dev >/tmp/original
+${cwd}/bin/testls -e ${cwd}/scripts/exclude-etc-test dev >${cwd}/tmp/original
 cd /tmp/bacula-restores
-${cwd}/bin/testls -e ${cwd}/scripts/exclude-etc-test dev >/tmp/restored
+${cwd}/bin/testls -e ${cwd}/scripts/exclude-etc-test dev >${cwd}/tmp/restored
 diff /tmp/original /tmp/restored
 if [ $? != 0 ] ; then
    echo " "
@@ -61,6 +61,6 @@ if [ $? != 0 ] ; then
 else
    echo "  ===== dev test OK ===== "
    echo "  ===== dev test OK ===== " >>test.out
-   rm -rf /tmp/bacula-restores /tmp/original /tmp/restored
+   rm -rf /tmp/bacula-restores ${cwd}/tmp/original ${cwd}/tmp/restored
    rm -rf /tmp/file-list /tmp/job /tmp/TestVolume001
 fi
