@@ -23,6 +23,7 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.33 Testing/Documentation:
+- bextract is sending everything to the log file ****FIXME****
 - Document to start higher priorty jobs before lower ones.
 - suppress "Do not forget to mount the drive!!!" if error
 - Document new records in Director. SDAddress SDDeviceName, SDPassword.

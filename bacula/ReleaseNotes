@@ -1,9 +1,16 @@
 
-          Release Notes for Bacula 1.32a
+          Release Notes for Bacula 1.32b
 
-  Bacula code: Total files = 259 Total lines = 77,873 (*.h *.c *.in)
+  Bacula code: Total files = 259 Total lines = 77,984 (*.h *.c *.in)
 
-Major Changes this Release:
+Changes since 1.32a:
+- Improve forward space file/block during restore, many
+  optimizations.
+- Fix a bug that did not allow appending to a tape    
+  on FreeBSD systems.
+  
+
+Major Changes 1.32a Release:
 - Implemented forward space file/block whenever possible 
   during restore. Restoring a small number of files is now  
   much faster.
@@ -28,7 +35,7 @@ Major Changes this Release:
   resource.
 
 
-Other Changes this Release:
+Other Changes 1.32a Release:
 - Fixed sparse file bug.
 - A warning message is sent when a job starts that will be
   blocked because the user did an "unmount".

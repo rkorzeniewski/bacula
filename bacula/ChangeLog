@@ -1,5 +1,20 @@
 
-2003-10-09 Version 1.32b 08Oct03 Release
+2003-10-10 Version 1.32b 10Oct03 Release
+10Oct03
+- When pruning, select only old orphanned jobs to delete so that
+  the current job is not pruned too.
+09Oct03
+- Corrected return status for bsf_dev and bsr_dev in block.c and btape.c
+- dev.c used incorrect ruturn status for bsf_dev in the BSF at EOM
+  code. This caused all appends on FreeBSD to fail.
+- Turn on fast block rejection code.
+08Oct03
+- Optimize file index searches by adding a count to the bootstrap.
+- Write single files/blocks to bootstrap without the second part.
+- Add current Volume status to the cannot use this Volume message.
+- Zero the rx->bsr in ua_restore when freeing so it doesn't get
+  freed twice.
+- Lots of testing on the restore
 - I noticed that SD and FD bootstrap files were not always
   deleted, so delete them as soon as possible.
 - Restore by file (or by selecting files) created some

@@ -270,7 +270,7 @@ int prune_files(UAContext *ua, CLIENT *client)
 
    del.JobId = (JobId_t *)malloc(sizeof(JobId_t) * del.max_ids);
 
-   /* Now process same set but making delete list */
+   /* Now process same set but making a delete list */
    db_sql_query(ua->db, query, file_delete_handler, (void *)&del);
 
    for (i=0; i < del.num_ids; i++) {
@@ -286,7 +286,7 @@ int prune_files(UAContext *ua, CLIENT *client)
        * Now mark Job as having files purged. This is necessary to
        * avoid having too many Jobs to process in future prunings. If
        * we don't do this, the number of JobId's in our in memory list
-       * will grow very large.
+       * could grow very large.
        */
       Mmsg(&query, upd_Purged, del.JobId[i]);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
@@ -415,7 +415,7 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
    switch (JobType) {
    case JT_ADMIN:
    case JT_BACKUP:
-      Mmsg(&query, select_backup_del, ed1, cr.ClientId);
+      Mmsg(&query, select_backup_del, ed1, ed1, cr.ClientId);
       break;
    case JT_RESTORE:
       Mmsg(&query, select_restore_del, ed1, cr.ClientId);
