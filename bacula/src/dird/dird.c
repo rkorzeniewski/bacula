@@ -214,12 +214,15 @@ int main (int argc, char *argv[])
 
    start_watchdog();		      /* start network watchdog thread */
 
+   init_jcr_subsystem();	      /* start JCR watchdogs etc. */
+
    init_job_server(director->MaxConcurrentJobs);
   
    Dmsg0(200, "wait for next job\n");
    /* Main loop -- call scheduler to get next job to run */
    while ((jcr = wait_for_next_job(runjob))) {
       run_job(jcr);		      /* run job */
+      free_jcr(jcr);		      /* release jcr */
       if (runjob) {		      /* command line, run a single job? */
 	 break; 		      /* yes, terminate */
       }
@@ -239,7 +242,6 @@ static void terminate_dird(int sig)
    already_here = TRUE;
    delete_pid_file(director->pid_directory, "bacula-dir",  
 		   director->DIRport);
-   stop_watchdog();
 // signal(SIGCHLD, SIG_IGN);          /* don't worry about children now */
    term_scheduler();
    if (runjob) {
@@ -254,6 +256,7 @@ static void terminate_dird(int sig)
    free_config_resources();
    term_ua_server();
    term_msg();			      /* terminate message handler */
+   stop_watchdog();
    close_memory_pool(); 	      /* release free memory in pool */
    sm_dump(False);
    exit(sig != 0);

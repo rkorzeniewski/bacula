@@ -191,6 +191,7 @@ struct JOB {
    char *WriteBootstrap;              /* Where to write bootstrap Job updates */
    int   replace;                     /* How (overwrite, ..) */
    utime_t MaxRunTime;                /* max run time in seconds */
+   utime_t MaxWaitTime;               /* max blocking time in seconds */
    utime_t MaxStartDelay;             /* max start delay in seconds */
    int PrefixLinks;                   /* prefix soft links with Where path */
    int PruneJobs;                     /* Force pruning of Jobs */

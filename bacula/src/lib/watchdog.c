@@ -30,31 +30,34 @@
 #include "bacula.h"
 #include "jcr.h"
 
+/* This breaks Kern's #include rules, but I don't want to put it into bacula.h
+ * until it has been discussed with him */
+#include "bsd_queue.h"
+
 /* Exported globals */
 time_t watchdog_time;		      /* this has granularity of SLEEP_TIME */
 
-#define SLEEP_TIME 30		      /* examine things every 30 seconds */
+#define SLEEP_TIME 1		      /* examine things every second */
 
 /* Forward referenced functions */
-static void *btimer_thread(void *arg);
-static void stop_btimer(btimer_id wid);
-static btimer_id btimer_start_common(uint32_t wait);
+static void *watchdog_thread(void *arg);
 
 /* Static globals */
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t  timer = PTHREAD_COND_INITIALIZER;
 static int quit;
-static btimer_t *timer_chain = NULL;
+static bool wd_is_init = false;
 
+/* Forward referenced callback functions */
+static void callback_child_timer(watchdog_t *self);
+static void callback_thread_timer(watchdog_t *self);
+static pthread_t wd_tid;
 
-/*
- * Timeout signal comes here
- */
-void timeout_handler(int sig)
-{
-   return;			      /* thus interrupting the function */
-}
-
+/* Static globals */
+static TAILQ_HEAD(/* no struct */, s_watchdog_t) wd_queue =
+	TAILQ_HEAD_INITIALIZER(wd_queue);
+static TAILQ_HEAD(/* no struct */, s_watchdog_t) wd_inactive =
+	TAILQ_HEAD_INITIALIZER(wd_inactive);
 
 /*   
  * Start watchdog thread
@@ -65,18 +68,14 @@ void timeout_handler(int sig)
 int start_watchdog(void)
 {
    int stat;
-   pthread_t wdid;
-   struct sigaction sigtimer;
-			
-   sigtimer.sa_flags = 0;
-   sigtimer.sa_handler = timeout_handler;
-   sigfillset(&sigtimer.sa_mask);
-   sigaction(TIMEOUT_SIGNAL, &sigtimer, NULL);
+
+   Dmsg0(200, "Initialising NicB-hacked watchdog thread\n");
    watchdog_time = time(NULL);
    quit = FALSE;
-   if ((stat = pthread_create(&wdid, NULL, btimer_thread, (void *)NULL)) != 0) {
+   if ((stat = pthread_create(&wd_tid, NULL, watchdog_thread, NULL)) != 0) {
       return stat;
    }
+   wd_is_init = true;
    return 0;
 }
 
@@ -89,223 +88,161 @@ int start_watchdog(void)
 int stop_watchdog(void)
 {
    int stat;
+   watchdog_t *p, *n;
 
-   quit = TRUE;
-   P(mutex);
-   if ((stat = pthread_cond_signal(&timer)) != 0) {
-      V(mutex);
-      return stat;
+   if (!wd_is_init) {
+      Emsg0(M_ABORT, 0, "BUG! stop_watchdog called before start_watchdog\n");
    }
+
+   Dmsg0(200, "Sending stop signal to NicB-hacked watchdog thread\n");
+   P(mutex);
+   quit = true;
+   stat = pthread_cond_signal(&timer);
    V(mutex);
-   return 0;
+
+   wd_is_init = false;
+
+   stat = pthread_join(wd_tid, NULL);
+
+   TAILQ_FOREACH_SAFE(p, &wd_queue, qe, n) {
+      TAILQ_REMOVE(&wd_queue, p, qe);
+      if (p->destructor != NULL) {
+	 p->destructor(p);
+      }
+      free(p);
+   }
+
+   TAILQ_FOREACH_SAFE(p, &wd_inactive, qe, n) {
+      TAILQ_REMOVE(&wd_inactive, p, qe);
+      if (p->destructor != NULL) {
+	 p->destructor(p);
+      }
+      free(p);
+   }
+
+   return stat;
 }
 
-
-/* 
- * This is the actual watchdog thread.
- */
-static void *btimer_thread(void *arg)
+watchdog_t *watchdog_new(void)
 {
-   JCR *jcr;
-   BSOCK *fd;
-   btimer_t *wid;
+   watchdog_t *wd = (watchdog_t *) malloc(sizeof(watchdog_t));
 
-   Dmsg0(200, "Start watchdog thread\n");
-   pthread_detach(pthread_self());
+   if (!wd_is_init) {
+      Emsg0(M_ABORT, 0, "BUG! watchdog_new called before start_watchdog\n");
+   }
 
-   for ( ;!quit; ) {
-      time_t timer_start, now;
+   if (wd == NULL) {
+      return NULL;
+   }
+   wd->one_shot = true;
+   wd->interval = 0;
+   wd->callback = NULL;
+   wd->destructor = NULL;
+   wd->data = NULL;
 
-      Dmsg0(200, "Top of watchdog loop\n");
+   return wd;
+}
 
-      watchdog_time = time(NULL);     /* update timer */
+bool register_watchdog(watchdog_t *wd)
+{
+   if (!wd_is_init) {
+      Emsg0(M_ABORT, 0, "BUG! register_watchdog called before start_watchdog\n");
+   }
+   if (wd->callback == NULL) {
+      Emsg1(M_ABORT, 0, "BUG! Watchdog %p has NULL callback\n", wd);
+   }
+   if (wd->interval == 0) {
+      Emsg1(M_ABORT, 0, "BUG! Watchdog %p has zero interval\n", wd);
+   }
 
-      /* Walk through all JCRs checking if any one is 
-       * blocked for more than specified max time.
-       */
-      lock_jcr_chain();
-      for (jcr=NULL; (jcr=get_next_jcr(jcr)); ) {
-	 free_locked_jcr(jcr);
-	 if (jcr->JobId == 0) {
-	    continue;
-	 }
-	 fd = jcr->store_bsock;
-	 if (fd) {
-	    timer_start = fd->timer_start;
-	    if (timer_start && (watchdog_time - timer_start) > fd->timeout) {
-	       fd->timer_start = 0;   /* turn off timer */
-	       fd->timed_out = TRUE;
-	       Jmsg(jcr, M_ERROR, 0, _(
-"Watchdog sending kill after %d secs to thread stalled reading Storage daemon.\n"),
-		    watchdog_time - timer_start);
-	       pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
-	    }
-	 }
-	 fd = jcr->file_bsock;
-	 if (fd) {
-	    timer_start = fd->timer_start;
-	    if (timer_start && (watchdog_time - timer_start) > fd->timeout) {
-	       fd->timer_start = 0;   /* turn off timer */
-	       fd->timed_out = TRUE;
-	       Jmsg(jcr, M_ERROR, 0, _(
-"Watchdog sending kill after %d secs to thread stalled reading File daemon.\n"),
-		    watchdog_time - timer_start);
-	       pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
-	    }
-	 }
-	 fd = jcr->dir_bsock;
-	 if (fd) {
-	    timer_start = fd->timer_start;
-	    if (timer_start && (watchdog_time - timer_start) > fd->timeout) {
-	       fd->timer_start = 0;   /* turn off timer */
-	       fd->timed_out = TRUE;
-	       Jmsg(jcr, M_ERROR, 0, _(
-"Watchdog sending kill after %d secs to thread stalled reading Director.\n"),
-		    watchdog_time - timer_start);
-	       pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
-	    }
-	 }
+   P(mutex);
+   wd->next_fire = watchdog_time + wd->interval;
+   TAILQ_INSERT_TAIL(&wd_queue, wd, qe);
+   Dmsg3(200, "Registered watchdog %p, interval %d%s\n",
+	 wd, wd->interval, wd->one_shot ? " one shot" : "");
+   V(mutex);
 
+   return false;
+}
+
+bool unregister_watchdog_unlocked(watchdog_t *wd)
+{
+   watchdog_t *p, *n;
+
+   if (!wd_is_init) {
+      Emsg0(M_ABORT, 0, "BUG! unregister_watchdog_unlocked called before start_watchdog\n");
+   }
+
+   TAILQ_FOREACH_SAFE(p, &wd_queue, qe, n) {
+      if (wd == p) {
+	 TAILQ_REMOVE(&wd_queue, wd, qe);
+	 Dmsg1(200, "Unregistered watchdog %p\n", wd);
+	 return true;
       }
-      unlock_jcr_chain();
+   }
 
-      Dmsg0(200, "Watchdog sleep.\n");
-      bmicrosleep(SLEEP_TIME, 0);
-      now = time(NULL);
+   TAILQ_FOREACH_SAFE(p, &wd_inactive, qe, n) {
+      if (wd == p) {
+	 TAILQ_REMOVE(&wd_inactive, wd, qe);
+	 Dmsg1(200, "Unregistered inactive watchdog %p\n", wd);
+	 return true;
+      }
+   }
 
-      /* 
-       * Now handle child and thread timers set by the code.
-       */
-      /* Walk child chain killing off any process overdue */
+   Dmsg1(200, "Failed to unregister watchdog %p\n", wd);
+
+   return false;
+}
+
+bool unregister_watchdog(watchdog_t *wd)
+{
+   bool ret;
+
+   if (!wd_is_init) {
+      Emsg0(M_ABORT, 0, "BUG! unregister_watchdog called before start_watchdog\n");
+   }
+
+   P(mutex);
+   ret = unregister_watchdog_unlocked(wd);
+   V(mutex);
+
+   return ret;
+}
+
+static void *watchdog_thread(void *arg)
+{
+   Dmsg0(200, "NicB-reworked watchdog thread entered\n");
+
+   while (true) {
+      watchdog_t *p, *n;
+
       P(mutex);
-      for (wid = timer_chain; wid; wid=wid->next) {
-	 int killed = FALSE;
-	 /* First ask him politely to go away */
-	 if (!wid->killed && now > (wid->start_time + wid->wait)) {
-//          Dmsg1(000, "Watchdog sigterm pid=%d\n", wid->pid);
-	    if (wid->type == TYPE_CHILD) {
-	       kill(wid->pid, SIGTERM);
-	       killed = TRUE;
+      if (quit) {
+	 V(mutex);
+	 break;
+      }
+
+      watchdog_time = time(NULL);
+
+      TAILQ_FOREACH_SAFE(p, &wd_queue, qe, n) {
+	 if (p->next_fire < watchdog_time) {
+	    /* Run the callback */
+	    p->callback(p);
+
+	    /* Reschedule (or move to inactive list if it's a one-shot timer) */
+	    if (p->one_shot) {
+	       TAILQ_REMOVE(&wd_queue, p, qe);
+	       TAILQ_INSERT_TAIL(&wd_inactive, p, qe);
 	    } else {
-               Dmsg1(200, "watchdog kill thread %d\n", wid->tid);
-	       pthread_kill(wid->tid, TIMEOUT_SIGNAL);
-	       wid->killed = TRUE;
-	    }
-	 }
-	 /* If we asked a child to die, wait 3 seconds and slam him */
-	 if (killed) {
-	    btimer_t *wid1;
-	    bmicrosleep(3, 0);
-	    for (wid1 = timer_chain; wid1; wid1=wid1->next) {
-	       if (wid->type == TYPE_CHILD &&
-		   !wid1->killed && now > (wid1->start_time + wid1->wait)) {
-		  kill(wid1->pid, SIGKILL);
-//                Dmsg1(000, "Watchdog killed pid=%d\n", wid->pid);
-		  wid1->killed = TRUE;
-	       }
+	       p->next_fire = watchdog_time + p->interval;
 	    }
 	 }
       }
       V(mutex);
-   } /* end of big for loop */
+      bmicrosleep(SLEEP_TIME, 0);
+   }
 
-   Dmsg0(200, "End watchdog\n");
+   Dmsg0(200, "NicB-reworked watchdog thread exited\n");
+
    return NULL;
-}
-
-/* 
- * Start a timer on a child process of pid, kill it after wait seconds.
- *   NOTE!  Granularity is SLEEP_TIME (i.e. 30 seconds)
- *
- *  Returns: btimer_id (pointer to btimer_t struct) on success
- *	     NULL on failure
- */
-btimer_id start_child_timer(pid_t pid, uint32_t wait)
-{
-   btimer_t *wid;
-   wid = btimer_start_common(wait);
-   wid->pid = pid;
-   wid->type = TYPE_CHILD;
-   Dmsg2(200, "Start child timer 0x%x for %d secs.\n", wid, wait);
-   return wid;
-}
-
-/* 
- * Start a timer on a thread. kill it after wait seconds.
- *   NOTE!  Granularity is SLEEP_TIME (i.e. 30 seconds)
- *
- *  Returns: btimer_id (pointer to btimer_t struct) on success
- *	     NULL on failure
- */
-btimer_id start_thread_timer(pthread_t tid, uint32_t wait)
-{
-   btimer_t *wid;
-   wid = btimer_start_common(wait);
-   wid->tid = tid;
-   wid->type = TYPE_PTHREAD;
-   Dmsg2(200, "Start thread timer 0x%x for %d secs.\n", wid, wait);
-   return wid;
-}
-
-static btimer_id btimer_start_common(uint32_t wait)
-{
-   btimer_id wid = (btimer_id)malloc(sizeof(btimer_t));
-
-   P(mutex);
-   /* Chain it into timer_chain as the first item */
-   wid->prev = NULL;
-   wid->next = timer_chain;
-   if (timer_chain) {
-      timer_chain->prev = wid;
-   }
-   timer_chain = wid;
-   wid->start_time = time(NULL);
-   wid->wait = wait;
-   wid->killed = FALSE;
-   V(mutex);
-   return wid;
-}
-
-/*
- * Stop child timer
- */
-void stop_child_timer(btimer_id wid)
-{
-   Dmsg2(200, "Stop child timer 0x%x for %d secs.\n", wid, wid->wait);
-   stop_btimer(wid);	     
-}
-
-/*
- * Stop thread timer
- */
-void stop_thread_timer(btimer_id wid)
-{
-   if (!wid) {
-      return;
-   }
-   Dmsg2(200, "Stop thread timer 0x%x for %d secs.\n", wid, wid->wait);
-   stop_btimer(wid);	     
-}
-
-
-/*
- * Stop btimer
- */
-static void stop_btimer(btimer_id wid)
-{
-   if (wid == NULL) {
-      Emsg0(M_ABORT, 0, _("NULL btimer_id.\n"));
-   }
-   P(mutex);
-   /* Remove wid from timer_chain */
-   if (!wid->prev) {		      /* if no prev */
-      timer_chain = wid->next;	      /* set new head */
-   } else {
-      wid->prev->next = wid->next;    /* update prev */
-   }
-   if (wid->next) {
-      wid->next->prev = wid->prev;    /* unlink it */
-   }
-   V(mutex);
-   free(wid);
 }

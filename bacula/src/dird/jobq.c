@@ -171,7 +171,10 @@ static void *sched_wait(void *arg)
       }
       wtime = jcr->sched_time - time(NULL);
    }
+   P(jcr->mutex);		      /* lock jcr */
    jobq_add(jq, jcr);
+   V(jcr->mutex);
+   free_jcr(jcr);		      /* we are done with jcr */
    Dmsg0(100, "Exit sched_wait\n");
    return NULL;
 }
@@ -180,6 +183,8 @@ static void *sched_wait(void *arg)
 /*
  *  Add a job to the queue
  *    jq is a queue that was created with jobq_init
+ * 
+ *  On entry jcr->mutex must be locked.
  *   
  */
 int jobq_add(jobq_t *jq, JCR *jcr)
@@ -197,20 +202,27 @@ int jobq_add(jobq_t *jq, JCR *jcr)
       return EINVAL;
    }
 
+   jcr->use_count++;		      /* mark jcr in use by us */
+
    if (!job_canceled(jcr) && wtime > 0) {
       set_thread_concurrency(jq->max_workers + 2);
       sched_pkt = (wait_pkt *)malloc(sizeof(wait_pkt));
       sched_pkt->jcr = jcr;
       sched_pkt->jq = jq;
       stat = pthread_create(&id, &jq->attr, sched_wait, (void *)sched_pkt);	   
+      if (!stat) {		      /* thread not created */
+	 jcr->use_count--;	      /* release jcr */
+      }
       return stat;
    }
 
    if ((stat = pthread_mutex_lock(&jq->mutex)) != 0) {
+      jcr->use_count--; 	      /* release jcr */
       return stat;
    }
 
    if ((item = (jobq_item_t *)malloc(sizeof(jobq_item_t))) == NULL) {
+      jcr->use_count--; 	      /* release jcr */
       return ENOMEM;
    }
    item->jcr = jcr;
@@ -248,13 +260,13 @@ int jobq_add(jobq_t *jq, JCR *jcr)
 }
 
 /*
- *  Remove a job from the job queue. Used only by cancel Console command.
+ *  Remove a job from the job queue. Used only by cancel_job().
  *    jq is a queue that was created with jobq_init
  *    work_item is an element of work
  *
- *   Note, it is "removed" by immediately calling a processing routine.
- *    if you want to cancel it, you need to provide some external means
- *    of doing so.
+ *   Note, it is "removed" from the job queue.
+ *    If you want to cancel it, you need to provide some external means
+ *    of doing so (e.g. pthread_kill()).
  */
 int jobq_remove(jobq_t *jq, JCR *jcr)
 {
@@ -454,6 +466,7 @@ static void *jobq_server(void *arg)
             Dmsg0(100, "Call to run new job\n");
 	    V(jq->mutex);
             run_job(njcr);            /* This creates a "new" job */
+            free_jcr(njcr);           /* release "new" jcr */
 	    P(jq->mutex);
             Dmsg0(100, "Back from running new job.\n");
 	 }

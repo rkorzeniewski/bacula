@@ -31,7 +31,12 @@
 #include "bacula.h"
 #include "jcr.h"
 
-extern void timeout_handler(int sig);
+/* External variables we reference */
+extern time_t watchdog_time;
+
+/* Forward referenced functions */
+static void timeout_handler(int sig);
+static void jcr_timeout_check(watchdog_t *self);
 
 struct s_last_job last_job;    /* last job run by this daemon */
 dlist *last_jobs;
@@ -40,7 +45,7 @@ dlist *last_jobs;
 static JCR *jobs = NULL;	      /* pointer to JCR chain */
 
 /* Mutex for locking various jcr chains while updating */
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t jcr_chain_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void init_last_jobs_list()
 {
@@ -59,12 +64,14 @@ void term_last_jobs_list()
 
 void lock_last_jobs_list() 
 {
-   P(mutex);
+   /* Use jcr chain mutex */
+   P(jcr_chain_mutex);
 }
 
 void unlock_last_jobs_list() 
 {
-   V(mutex);
+   /* Use jcr chain mutex */
+   V(jcr_chain_mutex);
 }
 
 /*
@@ -98,14 +105,14 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    sigfillset(&sigtimer.sa_mask);
    sigaction(TIMEOUT_SIGNAL, &sigtimer, NULL);
 
-   P(mutex);
+   P(jcr_chain_mutex);
    jcr->prev = NULL;
    jcr->next = jobs;
    if (jobs) {
       jobs->prev = jcr;
    }
    jobs = jcr;
-   V(mutex);
+   V(jcr_chain_mutex);
    return jcr;
 }
 
@@ -219,11 +226,11 @@ void free_jcr(JCR *jcr)
 #endif
    struct s_last_job *je;
 
-   P(mutex);
+   P(jcr_chain_mutex);
    jcr->use_count--;		      /* decrement use count */
    Dmsg3(200, "Dec jcr 0x%x use_count=%d jobid=%d\n", jcr, jcr->use_count, jcr->JobId);
    if (jcr->use_count > 0) {	      /* if in use */
-      V(mutex);
+      V(jcr_chain_mutex);
       Dmsg2(200, "jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
       return;
    }
@@ -247,7 +254,7 @@ void free_jcr(JCR *jcr)
       last_job.JobId = 0;	      /* zap last job */
    }
    close_msg(NULL);		      /* flush any daemon messages */
-   V(mutex);
+   V(jcr_chain_mutex);
    Dmsg0(200, "Exit free_jcr\n");
 }
 
@@ -280,15 +287,17 @@ JCR *get_jcr_by_id(uint32_t JobId)
 {
    JCR *jcr;	   
 
-   P(mutex);
+   P(jcr_chain_mutex);			/* lock chain */
    for (jcr = jobs; jcr; jcr=jcr->next) {
       if (jcr->JobId == JobId) {
+	 P(jcr->mutex);
 	 jcr->use_count++;
+	 V(jcr->mutex);
          Dmsg2(200, "Inc jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
 	 break;
       }
    }
-   V(mutex);
+   V(jcr_chain_mutex);
    return jcr; 
 }
 
@@ -301,16 +310,18 @@ JCR *get_jcr_by_session(uint32_t SessionId, uint32_t SessionTime)
 {
    JCR *jcr;	   
 
-   P(mutex);
+   P(jcr_chain_mutex);
    for (jcr = jobs; jcr; jcr=jcr->next) {
       if (jcr->VolSessionId == SessionId && 
 	  jcr->VolSessionTime == SessionTime) {
+	 P(jcr->mutex);
 	 jcr->use_count++;
+	 V(jcr->mutex);
          Dmsg2(200, "Inc jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
 	 break;
       }
    }
-   V(mutex);
+   V(jcr_chain_mutex);
    return jcr; 
 }
 
@@ -330,16 +341,18 @@ JCR *get_jcr_by_partial_name(char *Job)
    if (!Job) {
       return NULL;
    }
-   P(mutex);
+   P(jcr_chain_mutex);
    len = strlen(Job);
    for (jcr = jobs; jcr; jcr=jcr->next) {
       if (strncmp(Job, jcr->Job, len) == 0) {
+	 P(jcr->mutex);
 	 jcr->use_count++;
+	 V(jcr->mutex);
          Dmsg2(200, "Inc jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
 	 break;
       }
    }
-   V(mutex);
+   V(jcr_chain_mutex);
    return jcr; 
 }
 
@@ -357,15 +370,17 @@ JCR *get_jcr_by_full_name(char *Job)
    if (!Job) {
       return NULL;
    }
-   P(mutex);
+   P(jcr_chain_mutex);
    for (jcr = jobs; jcr; jcr=jcr->next) {
       if (strcmp(jcr->Job, Job) == 0) {
+	 P(jcr->mutex);
 	 jcr->use_count++;
+	 V(jcr->mutex);
          Dmsg2(200, "Inc jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
 	 break;
       }
    }
-   V(mutex);
+   V(jcr_chain_mutex);
    return jcr; 
 }
 
@@ -392,7 +407,7 @@ void set_jcr_job_status(JCR *jcr, int JobStatus)
  */
 void lock_jcr_chain()
 {
-   P(mutex);
+   P(jcr_chain_mutex);
 }
 
 /*
@@ -400,7 +415,7 @@ void lock_jcr_chain()
  */
 void unlock_jcr_chain()
 {
-   V(mutex);
+   V(jcr_chain_mutex);
 }
 
 
@@ -414,8 +429,92 @@ JCR *get_next_jcr(JCR *jcr)
       rjcr = jcr->next;
    }
    if (rjcr) {
+      P(rjcr->mutex);
       rjcr->use_count++;
+      V(rjcr->mutex);
       Dmsg1(200, "Inc jcr use_count=%d\n", rjcr->use_count);
    }
    return rjcr;
+}
+
+bool init_jcr_subsystem(void)
+{
+   watchdog_t *wd = watchdog_new();
+
+   wd->one_shot = false;
+   wd->interval = 30;	/* FIXME: should be configurable somewhere, even
+			 if only with a #define */
+   wd->callback = jcr_timeout_check;
+
+   register_watchdog(wd);
+
+   return true;
+}
+
+static void jcr_timeout_check(watchdog_t *self)
+{
+   JCR *jcr;
+   BSOCK *fd;
+   time_t timer_start, now;
+
+   Dmsg0(200, "Start JCR timeout checks\n");
+
+   /* Walk through all JCRs checking if any one is 
+    * blocked for more than specified max time.
+    */
+   lock_jcr_chain();
+   for (jcr=NULL; (jcr=get_next_jcr(jcr)); ) {
+      free_locked_jcr(jcr);	      /* OK to free now cuz chain is locked */
+      if (jcr->JobId == 0) {
+	 continue;
+      }
+      fd = jcr->store_bsock;
+      if (fd) {
+	 timer_start = fd->timer_start;
+	 if (timer_start && (watchdog_time - timer_start) > fd->timeout) {
+	    fd->timer_start = 0;      /* turn off timer */
+	    fd->timed_out = TRUE;
+	    Jmsg(jcr, M_ERROR, 0, _(
+"Watchdog sending kill after %d secs to thread stalled reading Storage daemon.\n"),
+		 watchdog_time - timer_start);
+	    pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
+	 }
+      }
+      fd = jcr->file_bsock;
+      if (fd) {
+	 timer_start = fd->timer_start;
+	 if (timer_start && (watchdog_time - timer_start) > fd->timeout) {
+	    fd->timer_start = 0;      /* turn off timer */
+	    fd->timed_out = TRUE;
+	    Jmsg(jcr, M_ERROR, 0, _(
+"Watchdog sending kill after %d secs to thread stalled reading File daemon.\n"),
+		 watchdog_time - timer_start);
+	    pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
+	 }
+      }
+      fd = jcr->dir_bsock;
+      if (fd) {
+	 timer_start = fd->timer_start;
+	 if (timer_start && (watchdog_time - timer_start) > fd->timeout) {
+	    fd->timer_start = 0;      /* turn off timer */
+	    fd->timed_out = TRUE;
+	    Jmsg(jcr, M_ERROR, 0, _(
+"Watchdog sending kill after %d secs to thread stalled reading Director.\n"),
+		 watchdog_time - timer_start);
+	    pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
+	 }
+      }
+
+   }
+   unlock_jcr_chain();
+
+   Dmsg0(200, "Finished JCR timeout checks\n");
+}
+
+/*
+ * Timeout signal comes here
+ */
+void timeout_handler(int sig)
+{
+   return;			      /* thus interrupting the function */
 }

@@ -87,6 +87,7 @@ extern void create_unique_job_name(JCR *jcr, char *base_name);
 extern void update_job_end_record(JCR *jcr);
 extern int get_or_create_client_record(JCR *jcr);
 extern void run_job(JCR *jcr);
+extern int cancel_job(UAContext *ua, JCR *jcr);
 
 /* mountreq.c */
 extern void mount_request(JCR *jcr, BSOCK *bs, char *buf);
@@ -137,6 +138,7 @@ RUN *find_next_run(RUN *run, JOB *job, time_t &runtime);
 /* ua_server.c */
 void bsendmsg(void *sock, char *fmt, ...);
 UAContext *new_ua_context(JCR *jcr);
+JCR *create_control_jcr(char *base_name, int job_type);
 void free_ua_context(UAContext *ua);
 
 /* ua_select.c */

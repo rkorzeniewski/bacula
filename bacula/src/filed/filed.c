@@ -224,6 +224,8 @@ Without that I don't know who I am :-(\n"), configfile);
 
    start_watchdog();		      /* start watchdog thread */
 
+   init_jcr_subsystem();	      /* start JCR watchdogs etc. */
+
    if (inetd_request) {
       /* Socket is on fd 0 */	       
       BSOCK *bs = init_bsock(NULL, 0, "client", "unknown client", me->FDport);
@@ -241,8 +243,6 @@ Without that I don't know who I am :-(\n"), configfile);
 
 void terminate_filed(int sig)
 {
-   stop_watchdog();
-
    if (configfile != NULL) {
       free(configfile);
    }
@@ -252,6 +252,7 @@ void terminate_filed(int sig)
    delete_pid_file(me->pid_directory, "bacula-fd", me->FDport);
    free_config_resources();
    term_msg();
+   stop_watchdog();
    close_memory_pool(); 	      /* release free memory in pool */
    sm_dump(False);		      /* dump orphaned buffers */
    exit(1);

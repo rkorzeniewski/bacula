@@ -348,9 +348,8 @@ int automount_cmd(UAContext *ua, char *cmd)
  */
 static int cancel_cmd(UAContext *ua, char *cmd)
 {
-   int i;
+   int i, ret;
    int njobs = 0;
-   BSOCK *sd, *fd;
    JCR *jcr = NULL;
    char JobName[MAX_NAME_LENGTH];
 
@@ -419,72 +418,18 @@ static int cancel_cmd(UAContext *ua, char *cmd)
 	    return 1;
 	 }
       }
+      /* NOTE! This increments the ref_count */
       jcr = get_jcr_by_full_name(JobName);
       if (!jcr) {
          bsendmsg(ua, _("Job %s not found.\n"), JobName);
 	 return 1;
       }
    }
-     
-   switch (jcr->JobStatus) {
-   case JS_Created:
-   case JS_WaitJobRes:
-   case JS_WaitClientRes:
-   case JS_WaitStoreRes:
-   case JS_WaitPriority:
-   case JS_WaitMaxJobs:
-   case JS_WaitStartTime:
-      set_jcr_job_status(jcr, JS_Canceled);
-      bsendmsg(ua, _("JobId %d, Job %s marked to be canceled.\n"),
-	      jcr->JobId, jcr->Job);
-      jobq_remove(&job_queue, jcr); /* attempt to remove it from queue */
-      free_jcr(jcr);		      /* this decrements the use count only */
-      return 1;
-	 
-   default:
-      set_jcr_job_status(jcr, JS_Canceled);
 
-      /* Cancel File daemon */
-      if (jcr->file_bsock) {
-	 ua->jcr->client = jcr->client;
-	 if (!connect_to_file_daemon(ua->jcr, 10, FDConnectTimeout, 1)) {
-            bsendmsg(ua, _("Failed to connect to File daemon.\n"));
-	    free_jcr(jcr);
-	    return 1;
-	 }
-         Dmsg0(200, "Connected to file daemon\n");
-	 fd = ua->jcr->file_bsock;
-         bnet_fsend(fd, "cancel Job=%s\n", jcr->Job);
-	 while (bnet_recv(fd) >= 0) {
-            bsendmsg(ua, "%s", fd->msg);
-	 }
-	 bnet_sig(fd, BNET_TERMINATE);
-	 bnet_close(fd);
-	 ua->jcr->file_bsock = NULL;
-      }
-
-      /* Cancel Storage daemon */
-      if (jcr->store_bsock) {
-	 ua->jcr->store = jcr->store;
-	 if (!connect_to_storage_daemon(ua->jcr, 10, SDConnectTimeout, 1)) {
-            bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
-	    free_jcr(jcr);
-	    return 1;
-	 }
-         Dmsg0(200, "Connected to storage daemon\n");
-	 sd = ua->jcr->store_bsock;
-         bnet_fsend(sd, "cancel Job=%s\n", jcr->Job);
-	 while (bnet_recv(sd) >= 0) {
-            bsendmsg(ua, "%s", sd->msg);
-	 }
-	 bnet_sig(sd, BNET_TERMINATE);
-	 bnet_close(sd);
-	 ua->jcr->store_bsock = NULL;
-      }
-   }
+   ret = cancel_job(ua, jcr);
    free_jcr(jcr);
 
-   return 1; 
+   return ret;
 }
 
 /*

@@ -55,6 +55,8 @@ For 1.33 Testing/Documentation:
 - Add subsections to the Disaster Recovery index section.
                 
 For 1.33
+- If a tape is recycled while it is mounted, Stanislav Tvrudy must do an
+  additional mount to deblock the job.
 - Notes for integrating Nic's code:
   - Most likely jcr crash is the free_jcr(). The ref count was not incremented
     in the watchdog call to cancel_job() as it is in the UA -- see

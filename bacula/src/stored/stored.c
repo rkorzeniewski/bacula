@@ -209,6 +209,8 @@ int main (int argc, char *argv[])
 
    start_watchdog();		      /* start watchdog thread */
 
+   init_jcr_subsystem();	      /* start JCR watchdogs etc. */
+
    /* 
     * Sleep a bit to give device thread a chance to lock the resource
     * chain before we start the server.
@@ -372,7 +374,6 @@ void terminate_stored(int sig)
    }
 
    delete_pid_file(me->pid_directory, "bacula-sd", me->SDport);
-   stop_watchdog();
 
    Dmsg1(200, "In terminate_stored() sig=%d\n", sig);
 
@@ -392,6 +393,7 @@ void terminate_stored(int sig)
       print_memory_pool_stats();
    }
    term_msg();
+   stop_watchdog();
    close_memory_pool();
 
    sm_dump(False);		      /* dump orphaned buffers */
