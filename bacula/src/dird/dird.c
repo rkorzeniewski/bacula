@@ -128,7 +128,7 @@ int main (int argc, char *argv[])
 	 if (debug_level <= 0) {
 	    debug_level = 1;
 	 }
-	 Dmsg1(0, "Debug level = %d\n", debug_level);
+         Dmsg1(0, "Debug level = %d\n", debug_level);
 	 break;
 
       case 'f':                    /* run in foreground */
@@ -375,6 +375,7 @@ void reload_config(int sig)
    JCR *jcr;
    int njobs = 0;		      /* number of running jobs */
    int table, rtable;
+   bool ok;	  
 
    if (already_here) {
       abort();			      /* Oops, recursion -> die */
@@ -399,16 +400,17 @@ void reload_config(int sig)
    reload_table[table].res_table = save_config_resources();
    Dmsg1(100, "Saved old config in table %d\n", table);
 
-   parse_config(configfile);
+   ok = parse_config(configfile, 0);  /* no exit on error */
 
    Dmsg0(100, "Reloaded config file\n");
-   if (!check_resources()) {
+   if (!ok || !check_resources()) {
       rtable = find_free_reload_table_entry();	  /* save new, bad table */
       if (rtable < 0) {
-	 Jmsg(NULL, M_ERROR, 0, _("Please correct configuration file: %s\n"), configfile);
-	 Jmsg(NULL, M_ERROR_TERM, 0, _("Out of reload table entries. Giving up.\n"));
+         Jmsg(NULL, M_ERROR, 0, _("Please correct configuration file: %s\n"), configfile);
+         Jmsg(NULL, M_ERROR_TERM, 0, _("Out of reload table entries. Giving up.\n"));
       } else {
-	 Jmsg(NULL, M_ERROR, 0, _("Please correct configuration file: %s\n"), configfile);
+         Jmsg(NULL, M_ERROR, 0, _("Please correct configuration file: %s\n"), configfile);
+         Jmsg(NULL, M_ERROR, 0, _("Resetting previous configuration.\n"));
       }
       reload_table[rtable].res_table = save_config_resources();
       /* Now restore old resoure values */
@@ -476,12 +478,12 @@ static int check_resources()
       if (!director->messages) {       /* If message resource not specified */
 	 director->messages = (MSGS *)GetNextRes(R_MSGS, NULL);
 	 if (!director->messages) {
-	    Jmsg(NULL, M_FATAL, 0, _("No Messages resource defined in %s\n"), configfile);
+            Jmsg(NULL, M_FATAL, 0, _("No Messages resource defined in %s\n"), configfile);
 	    OK = false;
 	 }
       }
       if (GetNextRes(R_DIRECTOR, (RES *)director) != NULL) {
-	 Jmsg(NULL, M_FATAL, 0, _("Only one Director resource permitted in %s\n"),
+         Jmsg(NULL, M_FATAL, 0, _("Only one Director resource permitted in %s\n"),
 	    configfile);
 	 OK = false;
       }
@@ -514,14 +516,14 @@ static int check_resources()
 	    int64_t *def_lvalue, *lvalue; /* 64 bit values */
 	    uint32_t offset;
 
-	    Dmsg4(400, "Job \"%s\", field \"%s\" bit=%d def=%d\n",
+            Dmsg4(400, "Job \"%s\", field \"%s\" bit=%d def=%d\n",
 		job->hdr.name, job_items[i].name,
 		bit_is_set(i, job->hdr.item_present),
 		bit_is_set(i, job->jobdefs->hdr.item_present));
 
 	    if (!bit_is_set(i, job->hdr.item_present) &&
 		 bit_is_set(i, job->jobdefs->hdr.item_present)) {
-	       Dmsg2(400, "Job \"%s\", field \"%s\": getting default.\n",
+               Dmsg2(400, "Job \"%s\", field \"%s\": getting default.\n",
 		 job->hdr.name, job_items[i].name);
 	       offset = (char *)(job_items[i].value) - (char *)&res_all;
 	       /*
@@ -530,11 +532,11 @@ static int check_resources()
 	       if (job_items[i].handler == store_str ||
 		   job_items[i].handler == store_dir) {
 		  def_svalue = (char **)((char *)(job->jobdefs) + offset);
-		  Dmsg5(400, "Job \"%s\", field \"%s\" def_svalue=%s item %d offset=%u\n",
+                  Dmsg5(400, "Job \"%s\", field \"%s\" def_svalue=%s item %d offset=%u\n",
 		       job->hdr.name, job_items[i].name, *def_svalue, i, offset);
 		  svalue = (char **)((char *)job + offset);
 		  if (*svalue) {
-		     Pmsg1(000, "Hey something is wrong. p=0x%lu\n", *svalue);
+                     Pmsg1(000, "Hey something is wrong. p=0x%lu\n", *svalue);
 		  }
 		  *svalue = bstrdup(*def_svalue);
 		  set_bit(i, job->hdr.item_present);
@@ -543,11 +545,11 @@ static int check_resources()
 		*/
 	       } else if (job_items[i].handler == store_res) {
 		  def_svalue = (char **)((char *)(job->jobdefs) + offset);
-		  Dmsg4(400, "Job \"%s\", field \"%s\" item %d offset=%u\n",
+                  Dmsg4(400, "Job \"%s\", field \"%s\" item %d offset=%u\n",
 		       job->hdr.name, job_items[i].name, i, offset);
 		  svalue = (char **)((char *)job + offset);
 		  if (*svalue) {
-		     Pmsg1(000, "Hey something is wrong. p=0x%lu\n", *svalue);
+                     Pmsg1(000, "Hey something is wrong. p=0x%lu\n", *svalue);
 		  }
 		  *svalue = *def_svalue;
 		  set_bit(i, job->hdr.item_present);
@@ -569,7 +571,7 @@ static int check_resources()
 			  job_items[i].handler == store_pint	||
 			  job_items[i].handler == store_replace) {
 		  def_ivalue = (int *)((char *)(job->jobdefs) + offset);
-		  Dmsg5(400, "Job \"%s\", field \"%s\" def_ivalue=%d item %d offset=%u\n",
+                  Dmsg5(400, "Job \"%s\", field \"%s\" def_ivalue=%d item %d offset=%u\n",
 		       job->hdr.name, job_items[i].name, *def_ivalue, i, offset);
 		  ivalue = (int *)((char *)job + offset);
 		  *ivalue = *def_ivalue;
@@ -581,7 +583,7 @@ static int check_resources()
 			  job_items[i].handler == store_size   ||
 			  job_items[i].handler == store_int64) {
 		  def_lvalue = (int64_t *)((char *)(job->jobdefs) + offset);
-		  Dmsg5(400, "Job \"%s\", field \"%s\" def_lvalue=%" lld " item %d offset=%u\n",
+                  Dmsg5(400, "Job \"%s\", field \"%s\" def_lvalue=%" lld " item %d offset=%u\n",
 		       job->hdr.name, job_items[i].name, *def_lvalue, i, offset);
 		  lvalue = (int64_t *)((char *)job + offset);
 		  *lvalue = *def_lvalue;
@@ -596,14 +598,14 @@ static int check_resources()
       for (i=0; job_items[i].name; i++) {
 	 if (job_items[i].flags & ITEM_REQUIRED) {
 	       if (!bit_is_set(i, job->hdr.item_present)) {
-		  Jmsg(NULL, M_FATAL, 0, "\"%s\" directive in Job \"%s\" resource is required, but not found.\n",
+                  Jmsg(NULL, M_FATAL, 0, "\"%s\" directive in Job \"%s\" resource is required, but not found.\n",
 		    job_items[i].name, job->hdr.name);
 		  OK = false;
 		}
 	 }
 	 /* If this triggers, take a look at lib/parse_conf.h */
 	 if (i >= MAX_RES_ITEMS) {
-	    Emsg0(M_ERROR_TERM, 0, "Too many items in Job resource\n");
+            Emsg0(M_ERROR_TERM, 0, "Too many items in Job resource\n");
 	 }
       }
    } /* End loop over Job res */
@@ -621,10 +623,10 @@ static int check_resources()
 			 catalog->db_port, catalog->db_socket,
 			 catalog->mult_db_connections);
       if (!db || !db_open_database(NULL, db)) {
-	 Jmsg(NULL, M_FATAL, 0, _("Could not open database \"%s\".\n"),
+         Jmsg(NULL, M_FATAL, 0, _("Could not open database \"%s\".\n"),
 	      catalog->db_name);
 	 if (db) {
-	    Jmsg(NULL, M_FATAL, 0, _("%s"), db_strerror(db));
+            Jmsg(NULL, M_FATAL, 0, _("%s"), db_strerror(db));
 	 }
 	 OK = false;
 	 continue;
@@ -655,7 +657,7 @@ static int check_resources()
 	    if (db_create_counter_record(NULL, db, &cr)) {
 	       counter->CurrentValue = cr.CurrentValue;
 	       counter->created = true;
-	       Dmsg2(100, "Create counter %s val=%d\n", counter->hdr.name, counter->CurrentValue);
+               Dmsg2(100, "Create counter %s val=%d\n", counter->hdr.name, counter->CurrentValue);
 	    }
 	 }
 	 if (!counter->created) {
