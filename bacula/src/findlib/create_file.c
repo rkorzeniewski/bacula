@@ -61,7 +61,7 @@ static int path_already_seen(char *path, int pnl);
  *     files.
  *
  */
-int create_file(JCR *jcr, ATTR *attr, BFILE *ofd, int replace)
+int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
 {
    int new_mode, parent_mode, mode;
    uid_t uid;
@@ -70,25 +70,10 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *ofd, int replace)
    bool exists = false;
    struct stat mstatp;
 
-   binit(ofd);
-   /* Set desired writing mode (BackupWrite() or write()) */
-   switch (attr->data_stream) {
-   case 0:
-      break;			      /* use default defined by system */
-
-   /* These streams require using BackupWrite() */
-   case STREAM_WIN32_ATTRIBUTES:
-   case STREAM_WIN32_DATA:
-   case STREAM_WIN32_GZIP_DATA:
-      if (!set_win32_backup(ofd, 1)) {	/* use BackupWrite() */
-         Jmsg(jcr, M_ERROR, 0, _("Could not set Win32 output format.\n"));
-	 return CF_ERROR;
-      }
-
-   /* All other stream use standard system I/O (portable) */
-   default:
-      set_win32_backup(ofd, 0);       /* Disable using BackupWrite() */
-      break;
+   if (is_win32_stream(attr->data_stream)) { 
+      set_win32_backup(bfd);
+   } else {
+      set_portable_backup(bfd);
    }
 
    new_mode = attr->statp.st_mode;
@@ -167,7 +152,8 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *ofd, int replace)
 	     * exists. Normally, this should do nothing.
 	     */
 	    if (make_path(jcr, attr->ofname, parent_mode, parent_mode, uid, gid, 1, NULL) != 0) {
-               Dmsg1(0, "Could not make path. %s\n", attr->ofname);
+               Dmsg1(10, "Could not make path. %s\n", attr->ofname);
+	       attr->ofname[pnl] = savechr;	/* restore full name */
 	       return CF_ERROR;
 	    }
 	 }
@@ -184,9 +170,10 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *ofd, int replace)
 	    mode |= O_CTG;		 /* set contiguous bit if needed */
 	 }
          Dmsg1(50, "Create file: %s\n", attr->ofname);
-	 if ((bopen(ofd, attr->ofname, mode, S_IRUSR | S_IWUSR)) < 0) {
-            Jmsg2(jcr, M_ERROR, 0, _("Could not create %s: ERR=%s\n"), 
-		  attr->ofname, berror(ofd));
+	 if ((bopen(bfd, attr->ofname, mode, S_IRUSR | S_IWUSR)) < 0) {
+            Jmsg2(jcr, M_ERROR, 0, _("Could not create %s: %d ERR=%s\n"), 
+		  attr->ofname, berror(bfd));
+
 	    return CF_ERROR;
 	 }
 	 return CF_EXTRACT;
@@ -219,9 +206,9 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *ofd, int replace)
 	    } else {
 	       tid = NULL;
 	    }
-	    if ((bopen(ofd, attr->ofname, mode, 0)) < 0) {
+	    if ((bopen(bfd, attr->ofname, mode, 0)) < 0) {
                Jmsg2(jcr, M_ERROR, 0, _("Could not open %s: ERR=%s\n"), 
-		     attr->ofname, berror(ofd));
+		     attr->ofname, berror(bfd));
 	       stop_thread_timer(tid);
 	       return CF_ERROR;
 	    }
@@ -261,10 +248,10 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *ofd, int replace)
        *   directory so that the security info will be read
        *   and saved.
        */
-      if (is_win32_backup()) {
-	 if ((bopen(ofd, attr->ofname, O_WRONLY|O_BINARY, 0)) < 0) {
+      if (!is_portable_backup(bfd)) {
+	 if ((bopen(bfd, attr->ofname, O_WRONLY|O_BINARY, 0)) < 0) {
             Jmsg2(jcr, M_ERROR, 0, _("Could not open %s: ERR=%s\n"), 
-		  attr->ofname, berror(ofd));
+		  attr->ofname, berror(bfd));
 	    return CF_ERROR;
 	 }
 	 return CF_EXTRACT;

@@ -194,7 +194,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
 
    binit(&ff_pkt->bfd);
    if (ff_pkt->flags & FO_PORTABLE) {
-      set_win32_backup(&ff_pkt->bfd, 0); /* disable Win32 BackupRead() */
+      set_portable_backup(&ff_pkt->bfd); /* disable Win32 BackupRead() */
    }
 
    /* 
@@ -205,7 +205,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    if (ff_pkt->type != FT_LNKSAVED && (S_ISREG(ff_pkt->statp.st_mode) && 
 	 ff_pkt->statp.st_size > 0) || 
 	 ff_pkt->type == FT_RAW || ff_pkt->type == FT_FIFO ||
-	 (is_win32_backup() && ff_pkt->type == FT_DIR)) {
+	 (!is_portable_backup(&ff_pkt->bfd) && ff_pkt->type == FT_DIR)) {
       btimer_id tid;	
       if (ff_pkt->type == FT_FIFO) {
 	 tid = start_thread_timer(pthread_self(), 60);

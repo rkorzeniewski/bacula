@@ -305,24 +305,11 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 }  
       }
 
-   /* Windows Backup data stream */
-   case STREAM_WIN32_DATA:  
-      if (!is_win32_backup()) {
-	 if (!non_support_data) {
-            Jmsg(jcr, M_ERROR, 0, _("Win32 backup data not supported on this Client.\n"));
-	 }
-	 extract = FALSE;
-	 non_support_data++;
-	 return;
-      }
-      goto extract_data;
-   
-
    /* Data stream and extracting */
    case STREAM_FILE_DATA:
    case STREAM_SPARSE_DATA:
+   case STREAM_WIN32_DATA:  
 
-extract_data:
       if (extract) {
 	 if (rec->Stream == STREAM_SPARSE_DATA) {
 	    ser_declare;
@@ -351,21 +338,11 @@ extract_data:
 	 fileAddr += wsize;
       }
 
-   /* Windows Backup GZIP data stream */
-   case STREAM_WIN32_GZIP_DATA:  
-      if (!is_win32_backup()) {
-	 if (!non_support_attr) {
-            Jmsg(jcr, M_ERROR, 0, _("Win32 GZIP backup data not supported on this Client.\n"));
-	 }
-	 extract = FALSE;
-	 non_support_attr++;
-	 return;
-      }
-      /* Fall through desired */
 
    /* GZIP data stream */
    case STREAM_GZIP_DATA:
    case STREAM_SPARSE_GZIP_DATA: 
+   case STREAM_WIN32_GZIP_DATA:  
 #ifdef HAVE_LIBZ
       if (extract) {
 	 uLongf compress_len;

@@ -37,6 +37,17 @@
  *
  * ===============================================================
  */
+
+int is_win32_stream(int stream)
+{
+   switch (stream) {
+   case STREAM_WIN32_DATA:
+   case STREAM_WIN32_GZIP_DATA:
+      return 1;
+   }
+   return 0;
+}
+
 char *stream_to_ascii(int stream)
 {
    static char buf[20];
@@ -46,7 +57,6 @@ char *stream_to_ascii(int stream)
       return "GZIP data";
    case STREAM_SPARSE_GZIP_DATA:
       return "GZIP sparse data";
-   case STREAM_WIN32_ATTRIBUTES:
       return "Win32 attributes";
    case STREAM_WIN32_DATA:
       return "Win32 data";
@@ -89,40 +99,51 @@ void unix_name_to_win32(POOLMEM **win32_name, char *name);
 extern "C" HANDLE get_osfhandle(int fd);
 
 
+
 void binit(BFILE *bfd)
 {
    bfd->fid = -1;
    bfd->mode = BF_CLOSED;
-   bfd->use_backup_api = p_BackupRead && p_BackupWrite;
+   bfd->use_backup_api = have_win32_api();
    bfd->errmsg = NULL;
    bfd->lpContext = NULL;
    bfd->lerror = 0;
 }
 
 /*
- * Enables/disables using the Backup API (win32_data).
+ * Enables using the Backup API (win32_data).
  *   Returns 1 if function worked
  *   Returns 0 if failed (i.e. do not have Backup API on this machine)
  */
-int set_win32_backup(BFILE *bfd, int enable)
+int set_win32_backup(BFILE *bfd) 
 {
-   if (!enable) {
-      bfd->use_backup_api = 0;
-      return 1;
-   }
    /* We enable if possible here */
-   bfd->use_backup_api = p_BackupRead && p_BackupWrite;
+   bfd->use_backup_api = have_win32_api();
    return bfd->use_backup_api;
 }
 
+
+int set_portable_backup(BFILE *bfd)
+{
+   bfd->use_backup_api = 0;
+   return 1;
+}
+
 /*
- * Return 1 if we can do Win32 backup
- * return 0 if not
+ * Return 1 if we are NOT using Win32 BackupWrite() 
+ * return 0 if are
  */
-int is_win32_backup(void)
+int is_portable_backup(BFILE *bfd) 
+{
+   return !bfd->use_backup_api;
+}
+
+int have_win32_api()
 {
    return p_BackupRead && p_BackupWrite;
 }
+
+
 
 /*
  * Return 1 if we support the stream
@@ -137,10 +158,9 @@ int is_stream_supported(int stream)
    case STREAM_SPARSE_GZIP_DATA:
       return 0;
 #endif
-   case STREAM_WIN32_ATTRIBUTES:
    case STREAM_WIN32_DATA:
    case STREAM_WIN32_GZIP_DATA:
-      return is_win32_backup();   /* check if we support BackupRead/Write data */
+      return have_win32_api();
 
    /* Known streams */
 #ifdef HAVE_LIBZ
@@ -194,7 +214,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 
    } else if (flags & O_WRONLY) {     /* Open existing for write */
       if (bfd->use_backup_api) {
-	 dwaccess = FILE_ALL_ACCESS|WRITE_OWNER|WRITE_DAC|ACCESS_SYSTEM_SECURITY;
+	 dwaccess = GENERIC_WRITE|FILE_ALL_ACCESS|WRITE_OWNER|WRITE_DAC|ACCESS_SYSTEM_SECURITY;
 	 dwflags = FILE_FLAG_BACKUP_SEMANTICS;
       } else {
 	 dwaccess = GENERIC_WRITE;
@@ -391,14 +411,34 @@ void binit(BFILE *bfd)
    bfd->fid = -1;
 }
 
-int set_win32_backup(BFILE *bfd, int enable)
+int have_win32_api()
+{ 
+   return 0;			      /* no can do */
+} 
+
+/*
+ * Enables using the Backup API (win32_data).
+ *   Returns 1 if function worked
+ *   Returns 0 if failed (i.e. do not have Backup API on this machine)
+ */
+int set_win32_backup(BFILE *bfd) 
 {
-   return !enable;
+   return 0;			      /* no can do */
 }
 
-int is_win32_backup(void)
+
+int set_portable_backup(BFILE *bfd)
 {
-   return 0;
+   return 1;			      /* no problem */
+}
+
+/*
+ * Return 1 if we are writing in portable format
+ * return 0 if not
+ */
+int is_portable_backup(BFILE *bfd) 
+{
+   return 1;			      /* portable by definition */
 }
 
 int is_stream_supported(int stream)
@@ -409,7 +449,6 @@ int is_stream_supported(int stream)
    case STREAM_GZIP_DATA:
    case STREAM_SPARSE_GZIP_DATA:
 #endif
-   case STREAM_WIN32_ATTRIBUTES:
    case STREAM_WIN32_DATA:
    case STREAM_WIN32_GZIP_DATA:
       return 0;
