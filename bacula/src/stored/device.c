@@ -120,13 +120,13 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       }
       Dmsg0(100, "Back from update_vol_info\n");
 
-      strcpy(PrevVolName, dev->VolCatInfo.VolCatName);
-      strcpy(dev->VolHdr.PrevVolName, PrevVolName);
+      bstrncpy(PrevVolName, dev->VolCatInfo.VolCatName, sizeof(PrevVolName));
+      bstrncpy(dev->VolHdr.PrevVolName, PrevVolName, sizeof(dev->VolHdr.PrevVolName));
 
       label_blk = new_block(dev);
 
-      /* Inform User about end of media */
-      Jmsg(jcr, M_INFO, 0, _("End of media on Volume %s Bytes=%s Blocks=%s.\n"), 
+      /* Inform User about end of medium */
+      Jmsg(jcr, M_INFO, 0, _("End of medium on Volume \"%s\" Bytes=%s Blocks=%s.\n"), 
 	   PrevVolName, edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, b1),
 	   edit_uint64_with_commas(dev->VolCatInfo.VolCatBlocks, b2));
 
@@ -137,7 +137,7 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       }
       P(dev->mutex);		      /* lock again */
 
-      Jmsg(jcr, M_INFO, 0, _("New volume %s mounted on device %s\n"),
+      Jmsg(jcr, M_INFO, 0, _("New volume \"%s\" mounted on device %s\n"),
 	 jcr->VolumeName, dev_name(dev));
 
       /* 

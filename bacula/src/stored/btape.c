@@ -44,7 +44,7 @@ extern void free_config_resources();
 int quit = 0;
 char buf[100000];
 int bsize = TAPE_BSIZE;
-char VolName[100];
+char VolName[MAX_NAME_LENGTH];
 
 DEVICE *dev = NULL;
 DEVRES *device = NULL;
@@ -66,6 +66,7 @@ static int flush_block(DEV_BLOCK *block, int dump);
 static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
 static int my_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
 static void scan_blocks();
+static void set_volume_name(char *VolName, int volnum);
 
 
 /* Static variables */
@@ -92,9 +93,11 @@ static DEV_BLOCK *last_block = NULL;
 static DEV_BLOCK *this_block = NULL;
 static uint32_t last_file = 0;
 static uint32_t last_block_num = 0;
+static uint32_t BlockNumber = 0;
 static int simple = FALSE;
 
 static char *VolumeName = NULL;
+static int vol_num;
 
 static JCR *jcr = NULL;
 
@@ -1078,8 +1081,9 @@ static void fillcmd()
 
    ok = TRUE;
    stop = 0;
+   vol_num = 0;
 
-   Pmsg0(000, "\n\
+   Pmsg0(-1, "\n\
 This command simulates Bacula writing to a tape.\n\
 It requires either one or two blank tapes, which it\n\
 will label and write. It will print a status approximately\n\
@@ -1106,8 +1110,7 @@ This may take a long time -- hours! ...\n\n");
       return;
    }
 
-   VolumeName = "TestVolume1";
-   pm_strcpy(&jcr->VolumeName, "TestVolume1");
+   set_volume_name("TestVolume1", 1);
    labelcmd();
    VolumeName = NULL;
 
@@ -1138,7 +1141,7 @@ This may take a long time -- hours! ...\n\n");
 	 strerror_dev(dev));
       ok = FALSE;
    }
-   Pmsg0(-1, "Wrote session label.\n");
+   Pmsg0(-1, "Wrote Start Of Session label.\n");
 
    memset(&rec, 0, sizeof(rec));
    rec.data = get_memory(100000);     /* max record size */
@@ -1147,21 +1150,23 @@ This may take a long time -- hours! ...\n\n");
    rec.data_len = REC_SIZE;
 
    /* 
-    * Get Data from File daemon, write to device   
+    * Generate data as if from File daemon, write to device   
     */
    jcr->VolFirstIndex = 0;
    time(&jcr->run_time);	      /* start counting time for rates */
+   Pmsg0(-1, "Begin writing records to first tape ...\n");
    for (file_index = 0; ok && !job_canceled(jcr); ) {
       rec.VolSessionId = jcr->VolSessionId;
       rec.VolSessionTime = jcr->VolSessionTime;
       rec.FileIndex = ++file_index;
       rec.Stream = STREAM_FILE_DATA;
 
-      /* Write file_index at beginning of buffer and add file_index to each
-       *  uint64_t item to make it unique.
+      /* 
+       * Fill the buffer with the file_index negated. Negation ensures that
+       *   more bits are turned on.
        */
       uint64_t *lp = (uint64_t *)rec.data;
-      for (uint32_t i=0; i < (REC_SIZE-sizeof(uint64_t))/sizeof(uint64_t); i++) {
+      for (uint32_t i=0; i < (rec.data_len-sizeof(uint64_t))/sizeof(uint64_t); i++) {
 	 *lp++ = ~file_index;
       }
 
@@ -1170,11 +1175,9 @@ This may take a long time -- hours! ...\n\n");
 	 rec.data_len);
        
       while (!write_record_to_block(block, &rec)) {
-	 
 	 /*
-	  * Here we just filled a block
+	  * When we get here we have just filled a block
 	  */
-
          Dmsg2(150, "!write_record_to_block data_len=%d rem=%d\n", rec.data_len,
 		    rec.remainder);
 
@@ -1195,18 +1198,17 @@ This may take a long time -- hours! ...\n\n");
             Pmsg3(-1, "Wrote block=%u, VolBytes=%s rate=%.1f KB/s\n", block->BlockNumber,
 	       edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, ec1), (float)kbs);
 	 }
-	 /* Every 15000 blocks (approx 1GB) write an eof.
+	 /* Every 15000 blocks (approx 1GB) write an EOF.
 	  */
 	 if ((block->BlockNumber % 15000) == 0) {
             Pmsg0(-1, "Flush block, write EOF\n");
 	    flush_block(block, 0);
 	    weof_dev(dev, 1);
-	    /* The weof resets the block number */
 	 }
 
 	 /* Get out after writing 10 blocks to the second tape */
-	 if (block->BlockNumber > 10 && stop != 0) {	  /* get out */
-	    break;
+	 if (++BlockNumber > 10 && stop != 0) {      /* get out */
+	    break;    
 	 }
       }
       if (!ok) {
@@ -1217,6 +1219,12 @@ This may take a long time -- hours! ...\n\n");
       Dmsg4(190, "write_record FI=%s SessId=%d Strm=%s len=%d\n",
 	 FI_to_ascii(rec.FileIndex), rec.VolSessionId, 
 	 stream_to_ascii(rec.Stream, rec.FileIndex), rec.data_len);
+
+      /* Get out after writing 10 blocks to the second tape */
+      if (BlockNumber > 10 && stop != 0) {	/* get out */
+         Pmsg0(-1, "Done writing 10 blocks to second tape.\n");
+	 break;    
+      }
    }
    if (stop > 0) {
       Dmsg0(100, "Write_end_session_label()\n");
@@ -1235,6 +1243,7 @@ This may take a long time -- hours! ...\n\n");
          Pmsg0(-1, _("Set ok=FALSE after write_block_to_device.\n"));
 	 ok = FALSE;
       }
+      Pmsg0(-1, "Wrote End Of Session label.\n");
    }
 
    /* Release the device */
@@ -1245,7 +1254,7 @@ This may take a long time -- hours! ...\n\n");
 
    free_block(block);
    free_memory(rec.data);
-   Pmsg0(000, _("\n\nDone filling tape. Now beginning re-read of tape ...\n"));
+   Pmsg0(-1, _("\n\nDone filling tape. Now beginning re-read of tape ...\n"));
 
    dump_block(last_block, _("Last block written to tape.\n"));
 
@@ -1275,7 +1284,7 @@ static void unfillcmd()
    get_cmd(_("Mount first tape. Press enter when ready: ")); 
    
    free_vol_list(jcr);
-   pm_strcpy(&jcr->VolumeName, "TestVolume1");
+   set_volume_name("TestVolume1", 1);
    jcr->bsr = NULL;
    create_vol_list(jcr);
    close_dev(dev);
@@ -1321,7 +1330,7 @@ static void unfillcmd()
             Pmsg1(-1, _("At block %u\n"), i);
 	 }
       }
-      if (last_block != 0) {
+      if (last_block) {
          dump_block(last_block, _("Last block written"));
          dump_block(block, _("Block read back"));
          Pmsg0(-1, _("Except for the buffer address, the contents of\n"
@@ -1345,9 +1354,9 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 
    SESSION_LABEL label;
    if (stop > 1) {		      /* on second tape */
-      Pmsg4(000, "Blk: FileIndex=%d: block=%u size=%d vol=%s\n", 
+      Pmsg4(-1, "Blk: FileIndex=%d: block=%u size=%d vol=%s\n", 
 	   rec->FileIndex, block->BlockNumber, block->block_len, dev->VolHdr.VolName);
-      Pmsg6(000, "   Rec: VId=%d VT=%d FI=%s Strm=%s len=%d state=%x\n",
+      Pmsg6(-1, "   Rec: VId=%d VT=%d FI=%s Strm=%s len=%d state=%x\n",
 	   rec->VolSessionId, rec->VolSessionTime, 
 	   FI_to_ascii(rec->FileIndex), stream_to_ascii(rec->Stream, rec->FileIndex),
 	   rec->data_len, rec->state);
@@ -1363,25 +1372,25 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       }
       switch (rec->FileIndex) {
       case PRE_LABEL:
-         Pmsg0(000, "Volume is prelabeled. This tape cannot be scanned.\n");
+         Pmsg0(-1, "Volume is prelabeled. This tape cannot be scanned.\n");
 	 return;
       case VOL_LABEL:
 	 unser_volume_label(dev, rec);
-         Pmsg3(000, "VOL_LABEL: block=%u size=%d vol=%s\n", block->BlockNumber, 
+         Pmsg3(-1, "VOL_LABEL: block=%u size=%d vol=%s\n", block->BlockNumber, 
 	    block->block_len, dev->VolHdr.VolName);
 	 stop++;
 	 break;
       case SOS_LABEL:
 	 unser_session_label(&label, rec);
-         Pmsg1(000, "SOS_LABEL: JobId=%u\n", label.JobId);
+         Pmsg1(-1, "SOS_LABEL: JobId=%u\n", label.JobId);
 	 break;
       case EOS_LABEL:
 	 unser_session_label(&label, rec);
-         Pmsg2(000, "EOS_LABEL: block=%u JobId=%u\n", block->BlockNumber, 
+         Pmsg2(-1, "EOS_LABEL: block=%u JobId=%u\n", block->BlockNumber, 
 	    label.JobId);
 	 break;
       case EOM_LABEL:
-         Pmsg0(000, "EOM_LABEL:\n");
+         Pmsg0(-1, "EOM_LABEL:\n");
 	 break;
       case EOT_LABEL:		   /* end of all tapes */
 	 char ec1[50];
@@ -1462,12 +1471,9 @@ static int flush_block(DEV_BLOCK *block, int dump)
       this_block = new_block(dev);
    }
    /* Copy block */
+   free_memory(this_block->buf);    
    memcpy(this_block, block, sizeof(DEV_BLOCK));
-   if (this_block->buf_len < block->buf_len) {
-      free_memory(this_block->buf);    
-      this_block->buf = get_memory(block->buf_len);
-      this_block->buf_len = block->buf_len;
-   }
+   this_block->buf = get_memory(block->buf_len);
    memcpy(this_block->buf, block->buf, this_block->buf_len);
    this_file = dev->file;
    this_block_num = dev->block_num;
@@ -1504,6 +1510,7 @@ static int flush_block(DEV_BLOCK *block, int dump)
 	    return 0;
 	 }
 	 stop = 1;						       
+	 BlockNumber = 0;	      /* start counting for second tape */
       }
       unlock_device(dev);
       return 1; 		      /* end of tape reached */
@@ -1634,12 +1641,17 @@ get_cmd(char *prompt)
 
 /* Dummies to replace askdir.c */
 int	dir_get_volume_info(JCR *jcr, int writing) { return 1;}
-int	dir_find_next_appendable_volume(JCR *jcr) { return 1;}
 int	dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel) { return 1; }
 int	dir_create_jobmedia_record(JCR *jcr) { return 1; }
 int	dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec) { return 1;}
 int	dir_send_job_status(JCR *jcr) {return 1;}
 
+
+
+int	dir_find_next_appendable_volume(JCR *jcr) 
+{ 
+   return 1; 
+}
 
 int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
 {
@@ -1655,10 +1667,11 @@ int dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev)
    fprintf(stderr, "Mount next Volume on device %s and press return when ready: ",
       dev_name(dev));
    getchar();	
-   VolumeName = "TestVolume2";
-   pm_strcpy(&jcr->VolumeName, "TestVolume2");
+   set_volume_name("TestVolume2", 2);
    labelcmd();
    VolumeName = NULL;
+   BlockNumber = 0;
+   stop = 1;
    return 1;
 }
 
@@ -1687,7 +1700,7 @@ static int my_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    }
 
    free_vol_list(jcr);
-   pm_strcpy(&jcr->VolumeName, "TestVolume2");
+   set_volume_name("TestVolume2", 2);
    jcr->bsr = NULL;
    create_vol_list(jcr);
    close_dev(dev);
@@ -1697,4 +1710,12 @@ static int my_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       return 0;
    }
    return 1;			   /* next volume mounted */
+}
+
+static void set_volume_name(char *VolName, int volnum) 
+{
+   VolumeName = VolName;
+   vol_num = volnum;
+   pm_strcpy(&jcr->VolumeName, VolName);
+   bstrncpy(dev->VolCatInfo.VolCatName, VolName, sizeof(dev->VolCatInfo.VolCatName));
 }
