@@ -21,8 +21,8 @@
  * Author          : Christopher S. Hull
  * Created On      : Fri Jan 30 13:00:51 2004
  * Last Modified By: Christopher S. Hull
- * Last Modified On: Mon Feb  9 12:08:07 2004
- * Update Count    : 201
+ * Last Modified On: Mon Feb 23 10:39:46 2004
+ * Update Count    : 202
  * $Id$
  */
 
@@ -55,6 +55,10 @@
 #include <direct.h>
 #include <ctype.h>
 #include <fcntl.h>
+
+#define __STDC__ 1
+#include <io.h>
+
 
 #include "getopt.h"
 

@@ -22,14 +22,16 @@
 // Author          : Christopher S. Hull
 // Created On      : Sat Jan 31 15:55:00 2004
 // Last Modified By: Christopher S. Hull
-// Last Modified On: Sun Feb 22 12:55:40 2004
-// Update Count    : 634
+// Last Modified On: Mon Feb 23 10:48:23 2004
+// Update Count    : 663
 // $Id$
 
 #include <stdio.h>
 
 #include "compat.h"
 #include "pthread.h"
+
+#define USE_WIN32_COMPAT_IO 1
 
 extern void d_msg(const char *file, int line, int level, const char *fmt,...);
 extern DWORD   g_platform_id;
@@ -88,75 +90,6 @@ wchar_win32_path(const char *name, WCHAR *win32_name)
     } else {
         *win32_name = 0;
     }
-}
-
-
-int
-open(const char *file, int flags, int mode)
-{
-    DWORD access = 0;
-    DWORD shareMode = 0;
-    DWORD create = 0;
-    DWORD msflags = 0;
-    HANDLE foo;
-    const char *remap = file;
-
-    if (flags & O_WRONLY) access = GENERIC_WRITE;
-    else if (flags & O_RDWR) access = GENERIC_READ|GENERIC_WRITE;
-    else access = GENERIC_READ;
-    
-    if (flags & O_CREAT) create = CREATE_NEW;
-    else create = OPEN_EXISTING;
-    
-    if (flags & O_TRUNC) create = TRUNCATE_EXISTING;
-    
-    if (!(flags & O_EXCL))
-        shareMode = FILE_SHARE_DELETE|FILE_SHARE_READ|FILE_SHARE_WRITE;
-    
-    if (flags & O_APPEND)
-    {
-        printf("open...APPEND not implemented yet.");
-        exit(-1);
-    }
-    
-    foo = CreateFile(file, access, shareMode, NULL, create, msflags, NULL);
-    if (INVALID_HANDLE_VALUE == foo)
-        return(int) -1;
-
-    return (int)foo;
-
-}
-
-
-int
-close(int fd)
-{
-    if (!CloseHandle((HANDLE)fd))
-        return -1;
-
-    return 0;
-}
-
-ssize_t
-write(int fd, const void *data, size_t len)
-{
-    BOOL status;
-    DWORD bwrite;
-    status = WriteFile((HANDLE)fd, data, len, &bwrite, NULL);
-    if (status) return bwrite;
-    return -1;
-}
-
-
-ssize_t
-read(int fd, void *data, size_t len)
-{
-    BOOL status;
-    DWORD bread;
-
-    status = ReadFile((HANDLE)fd, data, len, &bread, NULL);
-    if (status) return bread;
-    return -1;
 }
 
 int
@@ -440,11 +373,6 @@ execvp(const char *, char *[]) {
     return -1;
 }
 
-int
-dup2(int, int)
-{
-    return -1;
-}
 
 int
 fork(void)
@@ -470,26 +398,6 @@ readlink(const char *, char *, int)
     return -1;
 }
 
-off_t
-lseek(int fd, off_t offset, int whence)
-{
-    DWORD method = 0;
-    switch (whence) {
-    case SEEK_SET :
-        method = FILE_BEGIN;
-        break;
-    case SEEK_CUR:
-        method = FILE_CURRENT;
-        break;
-    case SEEK_END:
-        method = FILE_END;
-        break;
-    default:
-        return -1;
-    }
-    
-    return SetFilePointer((HANDLE)fd, (DWORD)offset, NULL, method);
-}
 
 int
 strcasecmp(const char *s1, const char *s2)
@@ -835,6 +743,10 @@ winver::winver(void)
     snprintf(WIN_VERSION, sizeof(WIN_VERSION), "%s %d.%d.%d",
              platform, osvinfo.dwMajorVersion, osvinfo.dwMinorVersion, osvinfo.dwBuildNumber);
 
+#if 1
+    HANDLE h = CreateFile("G:\\foobar", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL);
+    CloseHandle(h);
+#endif
 #if 0
     BPIPE *b = open_bpipe("ls -l", 10, "r");
     char buf[1024];
@@ -985,11 +897,6 @@ CloseIfValid(HANDLE handle)
     if (handle != INVALID_HANDLE_VALUE)
         CloseHandle(handle);
 }
-// include <io.h> causes to many conflicts with some of
-// the fuctions we define here.
-extern "C" {
-int __cdecl _open_osfhandle(long, int);
-}
 
 BPIPE *
 open_bpipe(char *prog, int wait, const char *mode)
@@ -1033,7 +940,7 @@ open_bpipe(char *prog, int wait, const char *mode)
                                    GetCurrentProcess(), &hChildStdoutRdDup , 0,
                                    FALSE,
                                    DUPLICATE_SAME_ACCESS);
-        if( !fSuccess ) {
+        if ( !fSuccess ) {
             ErrorExit("DuplicateHandle failed");
             goto cleanup;
         }
@@ -1208,3 +1115,139 @@ utime(const char *fname, struct utimbuf *times)
     return rval;
 }
 
+#if USE_WIN32_COMPAT_IO
+
+int
+open(const char *file, int flags, int mode)
+{
+    return _open(file, flags, mode);
+
+}
+
+int
+close(int fd)
+{
+    return _close(fd);
+}
+
+ssize_t
+read(int fd, void *buf, size_t len)
+{
+    return _read(fd, buf, len);
+}
+
+ssize_t
+write(int fd, const void *buf, size_t len)
+{
+    return _write(fd, buf, len);
+}
+
+off_t
+lseek(int fd, off_t offset, int whence)
+{
+    return _lseek(fd, offset, whence);
+}
+
+int
+dup2(int fd1, int fd2)
+{
+    return _dup2(fd1, fd2);
+}
+#else
+int
+open(const char *file, int flags, int mode)
+{
+    DWORD access = 0;
+    DWORD shareMode = 0;
+    DWORD create = 0;
+    DWORD msflags = 0;
+    HANDLE foo;
+    const char *remap = file;
+
+    if (flags & O_WRONLY) access = GENERIC_WRITE;
+    else if (flags & O_RDWR) access = GENERIC_READ|GENERIC_WRITE;
+    else access = GENERIC_READ;
+    
+    if (flags & O_CREAT) create = CREATE_NEW;
+    else create = OPEN_EXISTING;
+    
+    if (flags & O_TRUNC) create = TRUNCATE_EXISTING;
+    
+    if (!(flags & O_EXCL))
+        shareMode = FILE_SHARE_DELETE|FILE_SHARE_READ|FILE_SHARE_WRITE;
+    
+    if (flags & O_APPEND)
+    {
+        printf("open...APPEND not implemented yet.");
+        exit(-1);
+    }
+    
+    foo = CreateFile(file, access, shareMode, NULL, create, msflags, NULL);
+    if (INVALID_HANDLE_VALUE == foo)
+        return(int) -1;
+
+    return (int)foo;
+
+}
+
+
+int
+close(int fd)
+{
+    if (!CloseHandle((HANDLE)fd))
+        return -1;
+
+    return 0;
+}
+
+ssize_t
+write(int fd, const void *data, size_t len)
+{
+    BOOL status;
+    DWORD bwrite;
+    status = WriteFile((HANDLE)fd, data, len, &bwrite, NULL);
+    if (status) return bwrite;
+    return -1;
+}
+
+
+ssize_t
+read(int fd, void *data, size_t len)
+{
+    BOOL status;
+    DWORD bread;
+
+    status = ReadFile((HANDLE)fd, data, len, &bread, NULL);
+    if (status) return bread;
+    return -1;
+}
+
+off_t
+lseek(int fd, off_t offset, int whence)
+{
+    DWORD method = 0;
+    switch (whence) {
+    case SEEK_SET :
+        method = FILE_BEGIN;
+        break;
+    case SEEK_CUR:
+        method = FILE_CURRENT;
+        break;
+    case SEEK_END:
+        method = FILE_END;
+        break;
+    default:
+        return -1;
+    }
+    
+    return SetFilePointer((HANDLE)fd, (DWORD)offset, NULL, method);
+}
+
+int
+dup2(int, int)
+{
+    return -1;
+}
+
+
+#endif
