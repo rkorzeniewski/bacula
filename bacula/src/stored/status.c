@@ -37,7 +37,7 @@ extern int r_first, r_last;
 extern struct s_res resources[];
 extern char my_name[];
 extern time_t daemon_start_time;
-extern struct s_last_job last_job;
+extern int num_jobs_run;
 
 /* Static variables */
 
@@ -64,8 +64,8 @@ int status_cmd(JCR *jcr)
    bnet_fsend(user, "\n%s Version: " VERSION " (" BDATE ") %s %s %s\n", my_name,
 	      HOST_OS, DISTNAME, DISTVER);
    bstrftime_nc(dt, sizeof(dt), daemon_start_time);
-   bnet_fsend(user, _("Daemon started %s, %d Job%s run.\n"), dt, last_jobs->size(),
-        last_jobs->size() == 1 ? "" : "s");
+   bnet_fsend(user, _("Daemon started %s, %d Job%s run since started.\n"), dt, num_jobs_run,
+        num_jobs_run == 1 ? "" : "s");
 
    /*
     * List terminated jobs

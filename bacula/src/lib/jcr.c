@@ -38,12 +38,11 @@ extern time_t watchdog_time;
 static void timeout_handler(int sig);
 static void jcr_timeout_check(watchdog_t *self);
 
-struct s_last_job last_job;    /* last job run by this daemon */
+int num_jobs_run;
 dlist *last_jobs = NULL;
-#define MAX_LAST_JOBS 10
+#define MAX_LAST_JOBS 15
 
 static JCR *jobs = NULL;	      /* pointer to JCR chain */
-
 static brwlock_t lock;		      /* lock for last jobs and JCR chain */
 
 void init_last_jobs_list()
@@ -52,7 +51,6 @@ void init_last_jobs_list()
    struct s_last_job *job_entry = NULL;
    if (!last_jobs) {
       last_jobs = new dlist(job_entry,	&job_entry->link);
-      memset(&last_job, 0, sizeof(last_job));
       if ((errstat=rwl_init(&lock)) != 0) {
          Emsg1(M_ABORT, 0, _("Unable to initialize jcr_chain lock. ERR=%s\n"), 
 	       strerror(errstat));
@@ -76,18 +74,18 @@ void term_last_jobs_list()
 
 void read_last_jobs_list(int fd, uint64_t addr)
 {
-   struct s_last_job *je;
+   struct s_last_job *je, job;
 
    if (addr == 0 || lseek(fd, addr, SEEK_SET) < 0) {
       return;
    }
    for ( ;; ) {
-      if (read(fd, &last_job, sizeof(last_job)) < 0) {
+      if (read(fd, &job, sizeof(job)) < 0) {
 	 return;
       }
-      if (last_job.JobId > 0) {
+      if (job.JobId > 0) {
 	 je = (struct s_last_job *)malloc(sizeof(struct s_last_job));
-	 memcpy((char *)je, (char *)&last_job, sizeof(last_job));
+	 memcpy((char *)je, (char *)&job, sizeof(job));
 	 if (!last_jobs) {
 	    init_last_jobs_list();
 	 }
@@ -95,7 +93,7 @@ void read_last_jobs_list(int fd, uint64_t addr)
 	 if (last_jobs->size() > MAX_LAST_JOBS) {
 	    last_jobs->remove(last_jobs->first());
 	 }
-	 last_job.JobId = 0;		 /* zap last job */
+	 job.JobId = 0; 		/* zap last job */
       } else {
 	 break;
       }
@@ -104,7 +102,7 @@ void read_last_jobs_list(int fd, uint64_t addr)
 
 uint64_t write_last_jobs_list(int fd, uint64_t addr)
 {
-   struct s_last_job *je;
+   struct s_last_job *je, job;
    if (lseek(fd, addr, SEEK_SET) < 0) {
       return 0;
    }
@@ -115,8 +113,9 @@ uint64_t write_last_jobs_list(int fd, uint64_t addr)
 	 }
       }
    }
-   memset(&last_job, 0, sizeof(last_job));
-   write(fd, &last_job, sizeof(last_job));
+   /* Write a zero record to terminate list */
+   memset(&job, 0, sizeof(job));
+   write(fd, &job, sizeof(job));
    ssize_t stat = lseek(fd, 0, SEEK_CUR);
    if (stat < 0) {
       return 0;
@@ -210,12 +209,15 @@ static void remove_jcr(JCR *jcr)
  */
 static void free_common_jcr(JCR *jcr)
 {
+   struct s_last_job *je, last_job;
+
    /* Keep some statistics */
    switch (jcr->JobType) {
    case JT_BACKUP:
    case JT_VERIFY:
    case JT_RESTORE:
    case JT_ADMIN:
+      num_jobs_run++;
       last_job.JobType = jcr->JobType;
       last_job.JobId = jcr->JobId;
       last_job.VolSessionId = jcr->VolSessionId;
@@ -227,6 +229,18 @@ static void free_common_jcr(JCR *jcr)
       last_job.JobLevel = jcr->JobLevel;
       last_job.start_time = jcr->start_time;
       last_job.end_time = time(NULL);
+      /* Keep list of last jobs, but not Console where JobId==0 */
+      if (last_job.JobId > 0) {
+	 je = (struct s_last_job *)malloc(sizeof(struct s_last_job));
+	 memcpy((char *)je, (char *)&last_job, sizeof(last_job));
+	 if (!last_jobs) {
+	    init_last_jobs_list();
+	 }
+	 last_jobs->append(je);
+	 if (last_jobs->size() > MAX_LAST_JOBS) {
+	    last_jobs->remove(last_jobs->first());
+	 }
+      }
       break;
    default:
       break;
@@ -289,10 +303,13 @@ void free_jcr(JCR *jcr)
    Dmsg1(200, "Enter free_jcr 0x%x\n", jcr);
 
 #endif
-   struct s_last_job *je;
 
    lock_jcr_chain();
    jcr->use_count--;		      /* decrement use count */
+   if (jcr->use_count < 0) {
+      Emsg2(M_ERROR, 0, _("JCR use_count=%d JobId=%d\n"),
+	 jcr->use_count, jcr->JobId);
+   }
    Dmsg3(200, "Dec free_jcr 0x%x use_count=%d jobid=%d\n", jcr, jcr->use_count, jcr->JobId);
    if (jcr->use_count > 0) {	      /* if in use */
       unlock_jcr_chain();
@@ -308,19 +325,6 @@ void free_jcr(JCR *jcr)
 
    free_common_jcr(jcr);
 
-   /* Keep list of last jobs, but not Console where JobId==0 */
-   if (last_job.JobId > 0) {
-      je = (struct s_last_job *)malloc(sizeof(struct s_last_job));
-      memcpy((char *)je, (char *)&last_job, sizeof(last_job));
-      if (!last_jobs) {
-	 init_last_jobs_list();
-      }
-      last_jobs->append(je);
-      if (last_jobs->size() > MAX_LAST_JOBS) {
-	 last_jobs->remove(last_jobs->first());
-      }
-      last_job.JobId = 0;	      /* zap last job */
-   }
    close_msg(NULL);		      /* flush any daemon messages */
    unlock_jcr_chain();
    Dmsg0(200, "Exit free_jcr\n");
