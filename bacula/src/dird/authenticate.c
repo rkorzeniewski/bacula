@@ -84,8 +84,10 @@ bool authenticate_storage_daemon(JCR *jcr, STORE *store)
    if (!get_auth || !auth) {
       stop_bsock_timer(tid);
       Dmsg0(50, _("Director and Storage daemon passwords or names not the same.\n"));
-      Jmsg0(jcr, M_FATAL, 0, _("Director and Storage daemon passwords or names not the same.\n"   
-       "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"));
+      Jmsg0(jcr, M_FATAL, 0,
+            _("Director and Storage daemon passwords or names not the same or\n"
+            "you have exceeded the Maximum Concurrent Jobs on the SD.\n"
+            "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"));
       return 0;
    }
    Dmsg1(116, ">stored: %s", sd->msg);
@@ -139,8 +141,10 @@ int authenticate_file_daemon(JCR *jcr)
    if (!get_auth || !auth) {
       stop_bsock_timer(tid);
       Dmsg0(50, _("Director and File daemon passwords or names not the same.\n"));
-      Jmsg(jcr, M_FATAL, 0, _("Director and File daemon passwords or names not the same.\n"   
-       "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"));
+      Jmsg(jcr, M_FATAL, 0,
+           _("Director and File daemon passwords or names not the same or\n"   
+            "you have exceeded the Maximum Concurrent Jobs on the FD.\n"
+            "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"));
       return 0;
    }
    Dmsg1(116, ">filed: %s", fd->msg);

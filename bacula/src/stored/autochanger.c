@@ -52,10 +52,11 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
 {
    JCR *jcr = dcr->jcr;
    DEVICE *dev = dcr->dev;
-   int slot = dcr->VolCatInfo.Slot;
+   int slot;
    int drive = jcr->device->drive_index;
    int rtn_stat = -1;		      /* error status */
      
+   slot = dcr->VolCatInfo.InChanger ? dcr->VolCatInfo.Slot : 0;
    /*
     * Handle autoloaders here.	If we cannot autoload it, we
     *  will return FALSE to ask the sysop.
@@ -65,7 +66,7 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
 	 return 0;		      /* For user, bail out right now */
       }
       if (dir_find_next_appendable_volume(dcr)) {
-	 slot = dcr->VolCatInfo.Slot; 
+	 slot = dcr->VolCatInfo.InChanger ? dcr->VolCatInfo.Slot : 0;
       } else {
 	 slot = 0;
       }
