@@ -30,9 +30,14 @@
 
 #ifdef HAVE_MTIO_H
 #include <mtio.h>
-#endif
-#ifdef HAVE_SYS_MTIO_H
-#include <sys/mtio.h>
+#else
+# ifdef HAVE_SYS_MTIO_H
+# include <sys/mtio.h>
+# else
+#   ifdef HAVE_SYS_TAPE
+#   include <sys/tape.h>
+#   endif
+# endif
 #endif
 #include "block.h"
 #include "record.h"
