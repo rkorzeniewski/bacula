@@ -113,7 +113,7 @@ int bget_dirmsg(BSOCK *bs)
      
       /* Handle normal data */
 
-      if (B_ISDIGIT(bs->msg[0])) {	/* response? */
+      if (n > 0 && B_ISDIGIT(bs->msg[0])) {	 /* response? */
 	 return n;		      /* yes, return it */
       }
 	

@@ -175,7 +175,7 @@ read_volume:
 	 memcpy(&VolCatInfo, &jcr->VolCatInfo, sizeof(jcr->VolCatInfo));
 	 /* Check if this is a valid Volume in the pool */
 	 pm_strcpy(&jcr->VolumeName, dev->VolHdr.VolName);			   
-	 if (!dir_get_volume_info(jcr, 1)) {
+	 if (!dir_get_volume_info(jcr, GET_VOL_INFO_FOR_WRITE)) {
             Mmsg(&jcr->errmsg, _("Director wanted Volume \"%s\".\n"
                  "    Current Volume \"%s\" not acceptable because:\n"
                  "    %s"),
@@ -363,9 +363,14 @@ int mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 
 void release_volume(JCR *jcr, DEVICE *dev)
 {
+   /********FIXME******* if WroteVol, must write JobMedia record */
    /* 
     * First erase all memory of the current volume   
     */
+
+   if (jcr->WroteVol) {
+      Jmsg0(jcr, M_ERROR, 0, "Hey!!!!! WriteVol non-zero !!!!!\n");
+   }
    dev->block_num = dev->file = 0;
    dev->EndBlock = dev->EndFile = 0;
    memset(&dev->VolCatInfo, 0, sizeof(dev->VolCatInfo));

@@ -137,6 +137,9 @@ struct JCR {
    FILESET *fileset;                  /* FileSet resource */
    CAT *catalog;                      /* Catalog resource */
    MSGS *messages;                    /* Default message handler */
+   uint32_t SDJobFiles;               /* Number of files written, this job */
+   uint64_t SDJobBytes;               /* Number of bytes processed this job */
+   uint32_t SDErrors;                 /* Number of non-fatal errors */
    volatile int SDJobStatus;          /* Storage Job Status */
    volatile int FDJobStatus;          /* File daemon Job Status */
    B_DB *db;                          /* database pointer */
@@ -200,8 +203,8 @@ struct JCR {
    POOLMEM *media_type;               /* media type */
    POOLMEM *dev_name;                 /* device name */
    VOL_LIST *VolList;                 /* list to read */
-   long NumVolumes;                   /* number of volumes used */
-   long CurVolume;                    /* current volume number */
+   int32_t NumVolumes;                /* number of volumes used */
+   int32_t CurVolume;                 /* current volume number */
    int spool_attributes;              /* set if spooling attributes */
    int no_attributes;                 /* set if no attributes wanted */
    int label_status;                  /* device volume label status */
@@ -210,11 +213,16 @@ struct JCR {
    DEV_RECORD rec;                    /* Read/Write record */
    long Ticket;                       /* ticket for this job */
    uint32_t VolFirstIndex;            /* First file index this Volume */
+   uint32_t VolLastIndex;             /* Last file index this Volume */
    uint32_t FileIndex;                /* Current File Index */
    uint32_t EndFile;                  /* End file written */
    uint32_t StartFile;                /* Start write file */
    uint32_t StartBlock;               /* Start write block */
    uint32_t EndBlock;                 /* Ending block written */
+   bool NewVol;                       /* set when new Volume mounted */
+   bool WroteVol;                     /* set when Volume written */
+   int CurVol;                        /* Current Volume count */
+
    uint32_t FileId;                   /* Last file id inserted */
 
    /* Parmaters for Open Read Session */

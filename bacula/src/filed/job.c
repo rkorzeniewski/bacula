@@ -894,6 +894,9 @@ int response(JCR *jcr, BSOCK *sd, char *resp, char *cmd)
 	 return 1;
       }
    } 
+   if (job_canceled(jcr)) {
+      return 0; 		      /* if canceled avoid useless error messages */
+   }
    if (is_bnet_error(sd)) {
       Jmsg2(jcr, M_FATAL, 0, _("Comm error with SD. bad response to %s. ERR=%s\n"),
 	 cmd, bnet_strerror(sd));

@@ -108,7 +108,7 @@ int acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 default_path:
 	 tape_previously_mounted = 1;
          Dmsg0(200, "dir_get_volume_info\n");
-	 if (!dir_get_volume_info(jcr, 0)) { 
+	 if (!dir_get_volume_info(jcr, GET_VOL_INFO_FOR_READ)) { 
             Jmsg1(jcr, M_WARNING, 0, "%s", jcr->errmsg);
 	 }
 	 /* Call autochanger only once unless ask_sysop called */
@@ -186,7 +186,7 @@ DEVICE * acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
        *    dir_find_next_appendable_volume
        */
       pm_strcpy(&jcr->VolumeName, dev->VolHdr.VolName);
-      if (!dir_get_volume_info(jcr, 1) &&
+      if (!dir_get_volume_info(jcr, GET_VOL_INFO_FOR_WRITE) &&
 	  !(dir_find_next_appendable_volume(jcr) &&
 	    strcmp(dev->VolHdr.VolName, jcr->VolumeName) == 0)) { /* wrong tape mounted */
 	 if (dev->num_writers != 0) {
@@ -274,14 +274,6 @@ int release_device(JCR *jcr, DEVICE *dev)
 
    } else if (dev->num_writers > 0) {
       dev->num_writers--;
-      if (dev->state & ST_TAPE) {
-	 jcr->EndBlock = dev->EndBlock;
-	 jcr->EndFile  = dev->EndFile;
-         Dmsg2(200, "Release device: EndFile=%u EndBlock=%u\n", jcr->EndFile, jcr->EndBlock);
-      } else {
-	 jcr->EndBlock = (uint32_t)dev->file_addr;
-	 jcr->EndFile = (uint32_t)(dev->file_addr >> 32);
-      }
       Dmsg1(100, "There are %d writers in release_device\n", dev->num_writers);
       if (dev->num_writers == 0) {
 	 /* If we have fully acquired the tape */

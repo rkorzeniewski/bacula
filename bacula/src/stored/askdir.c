@@ -111,14 +111,15 @@ static int do_request_volume_info(JCR *jcr)
  *
  *	    Volume information returned in jcr
  */
-int dir_get_volume_info(JCR *jcr, int writing)
+int dir_get_volume_info(JCR *jcr, enum get_vol_info_rw writing)
 {
     BSOCK *dir = jcr->dir_bsock;
 
     bstrncpy(jcr->VolCatInfo.VolCatName, jcr->VolumeName, sizeof(jcr->VolCatInfo.VolCatName));
     Dmsg1(200, "dir_get_volume_info=%s\n", jcr->VolCatInfo.VolCatName);
     bash_spaces(jcr->VolCatInfo.VolCatName);
-    bnet_fsend(dir, Get_Vol_Info, jcr->Job, jcr->VolCatInfo.VolCatName, writing);
+    bnet_fsend(dir, Get_Vol_Info, jcr->Job, jcr->VolCatInfo.VolCatName, 
+       writing==GET_VOL_INFO_FOR_WRITE?1:0);
     return do_request_volume_info(jcr);
 }
 
@@ -188,12 +189,12 @@ int dir_create_jobmedia_record(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
 
-   if (jcr->VolFirstIndex == 0) {
+   if (!jcr->WroteVol) {
       return 1; 		      /* nothing written to tape */
    }
 
    bnet_fsend(dir, Create_job_media, jcr->Job, 
-      jcr->VolFirstIndex, jcr->JobFiles,
+      jcr->VolFirstIndex, jcr->VolLastIndex,
       jcr->StartFile, jcr->EndFile,
       jcr->StartBlock, jcr->EndBlock);
    Dmsg1(100, "create_jobmedia(): %s", dir->msg);
@@ -271,7 +272,7 @@ int dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev)
       if (job_canceled(jcr)) {
          Mmsg(&dev->errmsg, _("Job %s canceled while waiting for mount on Storage Device \"%s\".\n"), 
 	      jcr->Job, jcr->dev_name);
-         Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
+         Jmsg(jcr, M_INFO, 0, "%s", dev->errmsg);
 	 return 0;
       }
       if (dir_find_next_appendable_volume(jcr)) {    /* get suggested volume */
@@ -342,7 +343,7 @@ Please use the \"label\"  command to create a new Volume for:\n\
       num_wait = 0;
       /* If no VolumeName, and cannot get one, try again */
       if (jcr->VolumeName[0] == 0 && 
-	  !dir_find_next_appendable_volume(jcr)) {
+	  !dir_find_next_appendable_volume(jcr) && !job_canceled(jcr)) {
 	 Jmsg(jcr, M_MOUNT, 0, _(
 "Someone woke me up, but I cannot find any appendable\n\
 volumes for Job=%s.\n"), jcr->Job);

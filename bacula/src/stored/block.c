@@ -276,9 +276,27 @@ int write_block_to_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
    int stat = 1;
    lock_device(dev);
+
+   /*
+    * If a new volume has been mounted since our last write
+    *	Create a JobMedia record for the previous volume written,
+    *	and set new parameters to write this volume   
+    */
+   if (jcr->NewVol) {
+      /* Create a jobmedia record for this job */
+      if (!dir_create_jobmedia_record(jcr)) {
+         Jmsg(jcr, M_ERROR, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
+	    jcr->VolCatInfo.VolCatName, jcr->Job);
+	 unlock_device(dev);
+	 return 0;
+      }
+      set_new_volume_parameters(jcr, dev);
+   }
+
    if (!write_block_to_dev(jcr, dev, block)) {
        stat = fixup_device_block_write_error(jcr, dev, block);
    }
+
    unlock_device(dev);
    return stat;
 }
@@ -455,6 +473,9 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 #endif
       return 0;
    }
+
+   /* Do housekeeping */
+
    dev->VolCatInfo.VolCatBytes += block->binbuf;
    dev->VolCatInfo.VolCatBlocks++;   
    dev->file_addr += wlen;
@@ -462,6 +483,16 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    dev->EndFile  = dev->file;
    dev->block_num++;
    block->BlockNumber++;
+
+   /* Update jcr values */
+   if (dev->state & ST_TAPE) {
+      jcr->EndBlock = dev->EndBlock;
+      jcr->EndFile  = dev->EndFile;
+   } else {
+      jcr->EndBlock = (uint32_t)dev->file_addr;
+      jcr->EndFile = (uint32_t)(dev->file_addr >> 32);
+   }
+   jcr->WroteVol = true;
 
    Dmsg2(190, "write_block: wrote block %d bytes=%d\n", dev->block_num,
       wlen);

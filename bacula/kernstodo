@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  14 June 2003 
+                  18 June 2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -32,24 +32,16 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
-- Fix first block number after label to be zero instead of 1 (reset after label).
-- Grep for Backup OK in regression script.
-- Do NOT reuse same JobId if tape written.
 - Move JobFiles and JobBytes to SD rather than FD -- more correct.
 - Add client name to cram-md5 challenge so Director can immediately
   verify if it is the correct client.
 - Use runbeforejob to unload, then reload a volume previously used,
   then the next job run gets an error reading the drive.
-- Implement non-blocking writes and bsock->terminate in heartbeat thread,
-  or set it in status.c cancel.
-- Add restore to specific date.
 - lstat() is not going to work on Win32 for testing date.
 - Implement a Recycle command
 - Something is not right in last block of fill command.
 - Implement List Volume Job=xxx  or List scheduled volumes or
   Status Director 
-- Instrument use_count on DEVICE packets and ensure that the device is
-  being close()ed at the appropriate time.
 - Check if Incremental is working correctly when it looks for the previous Job 
   (Phil's problem).
 - Add next Volume to be used to status output.
@@ -983,3 +975,13 @@ Done: (see kernsdone for more)
 - That restoring a hard link that already exists works correctly.
   Same for soft link.
 - Make Pool resource handle Counter resources.
+- Fix first block number after label to be zero instead of 1 (reset after label).
+- Grep for Backup OK in regression script.
+- Do NOT reuse same JobId if tape written.
+- Implement non-blocking writes and bsock->terminate in heartbeat
+  thread, or set it in status.c cancel (used pthread_kill() instead of
+  non-blocking I/O.
+- Add restore to specific date.
+- Instrument use_count on DEVICE packets and ensure that the device is
+  being close()ed at the appropriate time.
+

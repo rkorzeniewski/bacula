@@ -91,7 +91,7 @@ int main (int argc, char *argv[])
 
    working_directory = "/tmp";
    my_name_is(argc, argv, "bls");
-   init_msg(NULL, NULL);	      /* initialize message handler */
+   init_msg(NULL, NULL);              /* initialize message handler */
 
    memset(&ff, 0, sizeof(ff));
    init_include_exclude_files(&ff);
@@ -99,73 +99,73 @@ int main (int argc, char *argv[])
    while ((ch = getopt(argc, argv, "b:c:d:e:i:jkLtvV:?")) != -1) {
       switch (ch) {
       case 'b':
-	 bsrName = optarg;
-	 break;
+         bsrName = optarg;
+         break;
 
       case 'c':                    /* specify config file */
-	 if (configfile != NULL) {
-	    free(configfile);
-	 }
-	 configfile = bstrdup(optarg);
-	 break;
+         if (configfile != NULL) {
+            free(configfile);
+         }
+         configfile = bstrdup(optarg);
+         break;
 
       case 'd':                    /* debug level */
-	 debug_level = atoi(optarg);
-	 if (debug_level <= 0)
-	    debug_level = 1; 
-	 break;
+         debug_level = atoi(optarg);
+         if (debug_level <= 0)
+            debug_level = 1; 
+         break;
 
       case 'e':                    /* exclude list */
          if ((fd = fopen(optarg, "r")) == NULL) {
             Pmsg2(0, _("Could not open exclude file: %s, ERR=%s\n"),
-	       optarg, strerror(errno));
-	    exit(1);
-	 }
-	 while (fgets(line, sizeof(line), fd) != NULL) {
-	    strip_trailing_junk(line);
+               optarg, strerror(errno));
+            exit(1);
+         }
+         while (fgets(line, sizeof(line), fd) != NULL) {
+            strip_trailing_junk(line);
             Dmsg1(100, "add_exclude %s\n", line);
-	    add_fname_to_exclude_list(&ff, line);
-	 }
-	 fclose(fd);
-	 break;
+            add_fname_to_exclude_list(&ff, line);
+         }
+         fclose(fd);
+         break;
 
       case 'i':                    /* include list */
          if ((fd = fopen(optarg, "r")) == NULL) {
             Pmsg2(0, "Could not open include file: %s, ERR=%s\n",
-	       optarg, strerror(errno));
-	    exit(1);
-	 }
-	 while (fgets(line, sizeof(line), fd) != NULL) {
-	    strip_trailing_junk(line);
+               optarg, strerror(errno));
+            exit(1);
+         }
+         while (fgets(line, sizeof(line), fd) != NULL) {
+            strip_trailing_junk(line);
             Dmsg1(100, "add_include %s\n", line);
-	    add_fname_to_include_list(&ff, 0, line);
-	 }
-	 fclose(fd);
-	 break;
+            add_fname_to_include_list(&ff, 0, line);
+         }
+         fclose(fd);
+         break;
 
       case 'j':
-	 list_jobs = TRUE;
-	 break;
+         list_jobs = TRUE;
+         break;
 
       case 'k':
-	 list_blocks = TRUE;
-	 break;
+         list_blocks = TRUE;
+         break;
 
       case 'L':
-	 dump_label = TRUE;
-	 break;
+         dump_label = TRUE;
+         break;
 
       case 'v':
-	 verbose++;
-	 break;
+         verbose++;
+         break;
 
       case 'V':                    /* Volume name */
-	 VolumeName = optarg;
-	 break;
+         VolumeName = optarg;
+         break;
 
       case '?':
       default:
-	 usage();
+         usage();
 
       } /* end switch */
    } /* end while */
@@ -189,12 +189,12 @@ int main (int argc, char *argv[])
 
    for (i=0; i < argc; i++) {
       if (bsrName) {
-	 bsr = parse_bsr(NULL, bsrName);
+         bsr = parse_bsr(NULL, bsrName);
       }
       jcr = setup_jcr("bls", argv[i], bsr, VolumeName);
       dev = setup_to_access_device(jcr, 1);   /* acquire for read */
       if (!dev) {
-	 exit(1);
+         exit(1);
       }
       rec = new_record();
       block = new_block(dev);
@@ -206,15 +206,15 @@ int main (int argc, char *argv[])
       if (dev->VolHdr.PrevVolName[0] != 0) { /* second volume */
          Pmsg1(0, "\n\
 Warning, this Volume is a continuation of Volume %s\n",
-		dev->VolHdr.PrevVolName);
+                dev->VolHdr.PrevVolName);
       }
 
       if (list_blocks) {
-	 do_blocks(argv[i]);
+         do_blocks(argv[i]);
       } else if (list_jobs) {
-	 do_jobs(argv[i]);
+         do_jobs(argv[i]);
       } else {
-	 do_ls(argv[i]);
+         do_ls(argv[i]);
       }
       do_close(jcr);
    }
@@ -246,45 +246,45 @@ static void do_blocks(char *infname)
    for ( ;; ) {
       if (!read_block_from_device(jcr, dev, block, NO_BLOCK_NUMBER_CHECK)) {
          Dmsg1(100, "!read_block(): ERR=%s\n", strerror_dev(dev));
-	 if (dev->state & ST_EOT) {
-	    if (!mount_next_read_volume(jcr, dev, block)) {
+         if (dev->state & ST_EOT) {
+            if (!mount_next_read_volume(jcr, dev, block)) {
                Jmsg(jcr, M_INFO, 0, _("Got EOM at file %u on device %s, Volume \"%s\"\n"), 
-		  dev->file, dev_name(dev), jcr->VolumeName);
-	       break;
-	    }
-	    /* Read and discard Volume label */
-	    DEV_RECORD *record;
-	    record = new_record();
-	    read_block_from_device(jcr, dev, block, NO_BLOCK_NUMBER_CHECK);
-	    read_record_from_block(block, record);
-	    get_session_record(dev, record, &sessrec);
-	    free_record(record);
+                  dev->file, dev_name(dev), jcr->VolumeName);
+               break;
+            }
+            /* Read and discard Volume label */
+            DEV_RECORD *record;
+            record = new_record();
+            read_block_from_device(jcr, dev, block, NO_BLOCK_NUMBER_CHECK);
+            read_record_from_block(block, record);
+            get_session_record(dev, record, &sessrec);
+            free_record(record);
             Jmsg(jcr, M_INFO, 0, _("Mounted Volume \"%s\".\n"), jcr->VolumeName);
-	    
-	 } else if (dev->state & ST_EOF) {
+            
+         } else if (dev->state & ST_EOF) {
             Jmsg(jcr, M_INFO, 0, _("Got EOF at file %u on device %s, Volume \"%s\"\n"), 
-	       dev->file, dev_name(dev), jcr->VolumeName);
+               dev->file, dev_name(dev), jcr->VolumeName);
             Dmsg0(20, "read_record got eof. try again\n");
-	    continue;
-	 } else if (dev->state & ST_SHORT) {
+            continue;
+         } else if (dev->state & ST_SHORT) {
             Jmsg(jcr, M_INFO, 0, "%s", dev->errmsg);
-	    continue;
-	 } else {
-	    /* I/O error */
-	    display_tape_error_status(jcr, dev);
-	    break;
-	 }
+            continue;
+         } else {
+            /* I/O error */
+            display_tape_error_status(jcr, dev);
+            break;
+         }
       }
       Dmsg5(100, "Blk=%u blen=%u bVer=%d SessId=%u SessTim=%u\n",
-	 block->BlockNumber, block->block_len, block->BlockVer,
-	 block->VolSessionId, block->VolSessionTime);
+         block->BlockNumber, block->block_len, block->BlockVer,
+         block->VolSessionId, block->VolSessionTime);
       if (verbose == 1) {
-	 read_record_from_block(block, rec);
+         read_record_from_block(block, rec);
          Pmsg7(-1, "Block: %u blen=%u First rec FI=%s SessId=%u SessTim=%u Strm=%s rlen=%d\n",
-	      block->BlockNumber, block->block_len,
-	      FI_to_ascii(rec->FileIndex), rec->VolSessionId, rec->VolSessionTime,
-	      stream_to_ascii(rec->Stream, rec->FileIndex), rec->data_len);
-	 rec->remainder = 0;
+              block->BlockNumber, block->block_len,
+              FI_to_ascii(rec->FileIndex), rec->VolSessionId, rec->VolSessionTime,
+              stream_to_ascii(rec->Stream, rec->FileIndex), rec->data_len);
+         rec->remainder = 0;
       } else if (verbose > 1) {
          dump_block(block, "");
       } else {
@@ -343,14 +343,14 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 
       if (attr->file_index != rec->FileIndex) {
          Emsg2(M_ERROR_TERM, 0, _("Record header file index %ld not equal record index %ld\n"),
-	    rec->FileIndex, attr->file_index);
+            rec->FileIndex, attr->file_index);
       }
 
       decode_stat(attr->attr, &attr->statp, &LinkFI);
 
       if (file_is_included(&ff, attr->fname) && !file_is_excluded(&ff, attr->fname)) {
-	 print_ls_output(jcr, attr);
-	 num_files++;
+         print_ls_output(jcr, attr);
+         num_files++;
       }
    }
    return;
@@ -364,44 +364,44 @@ static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sess
    switch (rec->FileIndex) {
       case PRE_LABEL:
          rtype = "Fresh Volume Label";   
-	 break;
+         break;
       case VOL_LABEL:
          rtype = "Volume Label";
-	 unser_volume_label(dev, rec);
-	 break;
+         unser_volume_label(dev, rec);
+         break;
       case SOS_LABEL:
          rtype = "Begin Session";
-	 unser_session_label(sessrec, rec);
-	 break;
+         unser_session_label(sessrec, rec);
+         break;
       case EOS_LABEL:
          rtype = "End Session";
-	 break;
+         break;
       case EOM_LABEL:
          rtype = "End of Medium";
-	 break;
+         break;
       default:
          rtype = "Unknown";
-	 break;
+         break;
    }
    Dmsg5(10, "%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
-	 rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
+         rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
 }
 
 
 /* Dummies to replace askdir.c */
-int	dir_get_volume_info(JCR *jcr, int writing) { return 1;}
-int	dir_find_next_appendable_volume(JCR *jcr) { return 1;}
-int	dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel) { return 1; }
-int	dir_create_jobmedia_record(JCR *jcr) { return 1; }
-int	dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev) { return 1; }
-int	dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec) { return 1;}
-int	dir_send_job_status(JCR *jcr) {return 1;}
+int     dir_get_volume_info(JCR *jcr, enum get_vol_info_rw  writing) { return 1;}
+int     dir_find_next_appendable_volume(JCR *jcr) { return 1;}
+int     dir_update_volume_info(JCR *jcr, VOLUME_CAT_INFO *vol, int relabel) { return 1; }
+int     dir_create_jobmedia_record(JCR *jcr) { return 1; }
+int     dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev) { return 1; }
+int     dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec) { return 1;}
+int     dir_send_job_status(JCR *jcr) {return 1;}
 
 
 int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
 {
    fprintf(stderr, "Mount Volume \"%s\" on device %s and press return when ready: ",
       jcr->VolumeName, dev_name(dev));
-   getchar();	
+   getchar();   
    return 1;
 }

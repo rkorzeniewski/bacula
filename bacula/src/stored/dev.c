@@ -270,7 +270,7 @@ open_dev(DEVICE *dev, char *VolName, int mode)
       if (dev->fd >= 0) {
 	 dev->dev_errno = 0;
 	 dev->state |= ST_OPENED;
-	 dev->use_count++;
+	 dev->use_count = 1;
 	 update_pos_dev(dev);		  /* update position */
       }
       /* Stop any open() timer we started */
@@ -312,7 +312,7 @@ open_dev(DEVICE *dev, char *VolName, int mode)
       } else {
 	 dev->dev_errno = 0;
 	 dev->state |= ST_OPENED;
-	 dev->use_count++;
+	 dev->use_count = 1;
 	 update_pos_dev(dev);		     /* update position */
       }
       Dmsg1(29, "open_dev: disk fd=%d opened\n", dev->fd);
@@ -1075,7 +1075,7 @@ int flush_dev(DEVICE *dev)
 static void do_close(DEVICE *dev)
 {
 
-   Dmsg0(29, "really close_dev\n");
+   Dmsg1(29, "really close_dev %s\n", dev->dev_name);
    close(dev->fd);
    /* Clean up device packet so it can be reused */
    dev->fd = -1;
@@ -1089,6 +1089,7 @@ static void do_close(DEVICE *dev)
       stop_thread_timer(dev->tid);
       dev->tid = 0;
    }
+   dev->use_count = 0;
 }
 
 /* 
@@ -1104,8 +1105,10 @@ close_dev(DEVICE *dev)
    }
    if (dev->fd >= 0 && dev->use_count == 1) {
       do_close(dev);
+   } else if (dev->use_count > 0) {
+      dev->use_count--;
    }
-   dev->use_count--;
+	   
 #ifdef FULL_DEBUG
    ASSERT(dev->use_count >= 0);
 #endif
@@ -1121,9 +1124,9 @@ void force_close_dev(DEVICE *dev)
       Emsg0(M_FATAL, 0, dev->errmsg);
       return;
    }
-   Dmsg0(29, "really close_dev\n");
+   Dmsg1(29, "Force close_dev %s\n", dev->dev_name);
    do_close(dev);
-   dev->use_count--;
+
 #ifdef FULL_DEBUG
    ASSERT(dev->use_count >= 0);
 #endif

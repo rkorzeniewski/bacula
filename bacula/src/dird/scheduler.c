@@ -118,7 +118,7 @@ JCR *wait_for_next_job(char *job_to_run)
 #ifdef xxxx_debug
       if (runtime > 0) {
 	 bstrftime(dt, sizeof(dt), runjobs[i].runtime);  
-         Dmsg2(000, "    %s run %s\n", dt, runjobs[i].job->hdr.name);
+         Dmsg2(100, "    %s run %s\n", dt, runjobs[i].job->hdr.name);
       }
 #endif
    }

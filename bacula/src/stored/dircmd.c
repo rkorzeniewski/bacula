@@ -402,7 +402,7 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
          bnet_fsend(dir, _("3912 Failed to label Volume: ERR=%s\n"), strerror_dev(dev));
 	 break;
       }
-      strcpy(jcr->VolumeName, newname);
+      pm_strcpy(&jcr->VolumeName, newname);
       bnet_fsend(dir, _("3000 OK label. Volume=%s Device=%s\n"), 
 	 newname, dev->dev_name);
       break;

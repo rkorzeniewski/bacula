@@ -66,6 +66,7 @@ int do_append_data(JCR *jcr)
    Dmsg1(20, "Begin append device=%s\n", dev_name(dev));
 
    block = new_block(dev);
+   memset(&rec, 0, sizeof(rec));
 
    /* 
     * Acquire output device for writing.  Note, after acquiring a
@@ -89,7 +90,6 @@ int do_append_data(JCR *jcr)
       ok = FALSE;
    }
 
-   memset(&rec, 0, sizeof(rec));
 
    /* 
     * Get Data from File daemon, write to device.  To clarify what is
@@ -109,7 +109,7 @@ int do_append_data(JCR *jcr)
     *	and 3. for the MD5 if any.
     */
    jcr->VolFirstIndex = 0;
-   time(&jcr->run_time);	      /* start counting time for rates */
+   jcr->run_time = time(NULL);		    /* start counting time for rates */
    for (last_file_index = 0; ok && !job_canceled(jcr); ) {
       char info[100];
 
@@ -129,7 +129,6 @@ int do_append_data(JCR *jcr)
 	 ok = FALSE;
 	 break;
       }
-      ds->msg[ds->msglen] = 0;
       if (sscanf(ds->msg, "%ld %ld %100s", &file_index, &stream, info) != 3) {
          Jmsg1(jcr, M_FATAL, 0, _("Malformed data header from FD: %s\n"), ds->msg);
 	 ok = FALSE;
@@ -148,6 +147,7 @@ int do_append_data(JCR *jcr)
 	 if (jcr->VolFirstIndex == 0) {
 	    jcr->VolFirstIndex = file_index;
 	 }
+	 jcr->VolLastIndex = file_index;
 	 last_file_index = file_index;
       }
       
@@ -236,9 +236,9 @@ int do_append_data(JCR *jcr)
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);
 	 ok = FALSE;
       }
-      /* Write out final block of this session */
+      /* Flush out final partial block of this session */
       if (!write_block_to_device(jcr, dev, block)) {
-         Pmsg0(000, _("Set ok=FALSE after write_block_to_device.\n"));
+         Dmsg0(100, _("Set ok=FALSE after write_block_to_device.\n"));
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);
 	 ok = FALSE;
       }

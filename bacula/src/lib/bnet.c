@@ -334,7 +334,7 @@ bnet_send(BSOCK *bsock)
 	 bsock->b_errno = errno;
       }
       if (rc < 0) {
-	 if (!bsock->suppress_error_msgs) {
+	 if (!bsock->suppress_error_msgs && !bsock->timed_out) {
             Jmsg4(bsock->jcr, M_ERROR, 0, _("Write error sending to %s:%s:%d: ERR=%s\n"), 
 		  bsock->who, bsock->host, bsock->port,  bnet_strerror(bsock));
 	 }

@@ -183,11 +183,16 @@ int start_storage_daemon_message_thread(JCR *jcr)
 
    P(jcr->mutex);
    jcr->use_count++;		      /* mark in use by msg thread */
+   jcr->sd_msg_thread_done = false;
+   jcr->SD_msg_chan = 0;
    V(jcr->mutex);
    if ((status=pthread_create(&thid, NULL, msg_thread, (void *)jcr)) != 0) {
       Jmsg1(jcr, M_ABORT, 0, _("Cannot create message thread: %s\n"), strerror(status));
    }	     
-   jcr->SD_msg_chan = thid;
+   /* Wait for thread to start */
+   while (jcr->SD_msg_chan == 0) {
+      bmicrosleep(0, 50);
+   }  
    return 1;
 }
 
@@ -218,11 +223,11 @@ static void *msg_thread(void *arg)
    uint64_t JobBytes;
    int stat;
 
+   pthread_detach(pthread_self());
+   jcr->SD_msg_chan = pthread_self();
    pthread_cleanup_push(msg_thread_cleanup, arg);
-   jcr->sd_msg_thread_done = false;
    Dmsg0(200, "msg_thread\n");
    sd = jcr->store_bsock;
-   pthread_detach(pthread_self());
 
    /* Read the Storage daemon's output.
     */
@@ -235,8 +240,8 @@ static void *msg_thread(void *arg)
       if (sscanf(sd->msg, Job_end, &Job, &JobStatus, &JobFiles,
 		 &JobBytes) == 4) {
 	 jcr->SDJobStatus = JobStatus; /* termination status */
-	 jcr->JobFiles = JobFiles;
-	 jcr->JobBytes = JobBytes;
+	 jcr->SDJobFiles = JobFiles;
+	 jcr->SDJobBytes = JobBytes;
 	 break;
       }     
       if (sscanf(sd->msg, Job_status, &Job, &JobStatus) == 2) {

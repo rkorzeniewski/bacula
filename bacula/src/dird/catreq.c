@@ -168,7 +168,7 @@ next_volume:
 	    edit_uint64(mr.MaxVolBytes, ed2), 
 	    edit_uint64(mr.VolCapacityBytes, ed3),
 	    mr.VolStatus, mr.Slot, mr.MaxVolJobs, mr.MaxVolFiles);
-         Dmsg1(200, "Find media: %s", bs->msg);
+         Dmsg2(100, "Find media for %s: %s", jcr->Job, bs->msg);
       } else {
          bnet_fsend(bs, "1901 No Media.\n");
       }
@@ -222,7 +222,7 @@ next_volume:
 	       edit_uint64(mr.MaxVolBytes, ed2), 
 	       edit_uint64(mr.VolCapacityBytes, ed3),
 	       mr.VolStatus, mr.Slot, mr.MaxVolJobs, mr.MaxVolFiles);
-            Dmsg1(200, "Vol Info: %s", bs->msg);
+            Dmsg2(100, "Vol Info for %s: %s", jcr->Job, bs->msg);
 	 } else { 
 	    /* Not suitable volume */
             bnet_fsend(bs, "1998 Volume \"%s\" %s.\n",
