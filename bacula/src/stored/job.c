@@ -44,9 +44,9 @@ static char use_device[] = "use device=%s media_type=%s pool_name=%s pool_type=%
 /* Responses sent to Director daemon */
 static char OKjob[]     = "3000 OK Job SDid=%u SDtime=%u Authorization=%s\n";
 static char OK_device[] = "3000 OK use device\n";
-static char NO_device[] = "3904 Device %s not available\n";
-static char BAD_use[]   = "3903 Bad use command: %s\n";
-static char BAD_job[]   = "3905 Bad Job command: %s\n";
+static char NO_device[] = "3914 Device %s not available\n";
+static char BAD_use[]   = "3913 Bad use command: %s\n";
+static char BAD_job[]   = "3915 Bad Job command: %s\n";
 
 
 

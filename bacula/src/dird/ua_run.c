@@ -485,8 +485,8 @@ JobId:      %s\n"),
 	    break;
 	 }
 	 /* ***FIXME*** allow drive:/ for Windows */
-         if (ua->cmd[0] != '/') {
-            bsendmsg(ua, _("Prefix must begin with a /\n"));
+         if (ua->cmd[0] != 0 && ua->cmd[0] != '/') {
+            bsendmsg(ua, _("Prefix must be null or begin with a /\n"));
 	 } else {
 	    if (jcr->RestoreWhere) {
 	       free(jcr->RestoreWhere);

@@ -279,8 +279,12 @@ void do_restore(JCR *jcr)
       close(ofd);
       set_statp(jcr, fname, ofile, lname, type, &statp);
    }
+   jcr->JobStatus = JS_Terminated;
+   goto ok_out;
 
 bail_out:
+   jcr->JobStatus = JS_ErrorTerminated;
+ok_out:
    if (jcr->compress_buf) {
       free(jcr->compress_buf);
       jcr->compress_buf = NULL;

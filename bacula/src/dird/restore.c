@@ -53,6 +53,7 @@ static char OKrestore[]   = "2000 OK restore\n";
 static char OKstore[]     = "2000 OK storage\n";
 static char OKsession[]   = "2000 OK session\n";
 static char OKbootstrap[] = "2000 OK bootstrap\n";
+static char EndJob[]      = "2800 End Job TermCode=%d JobFiles=%u JobBytes=%" lld "\n";
 
 /* Forward referenced functions */
 static void restore_cleanup(JCR *jcr, int status);
@@ -71,6 +72,7 @@ int do_restore(JCR *jcr)
    char dt[MAX_TIME_LENGTH];
    BSOCK   *fd;
    JOB_DBR rjr; 		      /* restore job record */
+   int ok = FALSE;
 
 
    if (!get_or_create_client_record(jcr)) {
@@ -245,10 +247,14 @@ int do_restore(JCR *jcr)
    /*** ****FIXME**** get job termination status */
    Dmsg0(20, "wait for job termination\n");
    while (bget_msg(fd, 0) >  0) {
-      Dmsg1(0, "dird<filed: %s\n", fd->msg);
+      Dmsg1(100, "dird<filed: %s\n", fd->msg);
+      if (sscanf(fd->msg, EndJob, &jcr->JobStatus, &jcr->JobFiles,
+	  &jcr->JobBytes) == 3) {
+	 ok = TRUE;
+      }
    }
 
-   restore_cleanup(jcr, JS_Terminated);
+   restore_cleanup(jcr, ok?jcr->JobStatus:JS_ErrorTerminated);
 
    return 1;
 }
@@ -257,18 +263,70 @@ int do_restore(JCR *jcr)
  * Release resources allocated during restore.
  *
  */
-static void restore_cleanup(JCR *jcr, int status) 
+static void restore_cleanup(JCR *jcr, int TermCode)
 {
-   char dt[MAX_TIME_LENGTH];
+   char sdt[MAX_TIME_LENGTH], edt[MAX_TIME_LENGTH];
+   char ec1[30], ec2[30];
+   char term_code[100];
+   char *term_msg;
+   int msg_type;
+   double kbps;
 
    Dmsg0(20, "In restore_cleanup\n");
-   jcr->JobStatus = status;
+   jcr->JobStatus = TermCode;
 
    update_job_end_record(jcr);
 
-   bstrftime(dt, sizeof(dt), jcr->jr.EndTime);
-   Jmsg(jcr, M_INFO, 0, _("%s End Restore Job %s.\n\n"),
-      dt, jcr->Job);
+   msg_type = M_INFO;		      /* by default INFO message */
+   switch (TermCode) {
+      case JS_Terminated:
+         term_msg = _("Restore OK");
+	 break;
+      case JS_FatalError:
+      case JS_ErrorTerminated:
+         term_msg = _("*** Restore Error ***"); 
+	 msg_type = M_ERROR;	      /* Generate error message */
+	 if (jcr->store_bsock) {
+	    bnet_sig(jcr->store_bsock, BNET_TERMINATE);
+	    pthread_cancel(jcr->SD_msg_chan);
+	 }
+	 break;
+      case JS_Cancelled:
+         term_msg = _("Restore Cancelled");
+	 if (jcr->store_bsock) {
+	    bnet_sig(jcr->store_bsock, BNET_TERMINATE);
+	    pthread_cancel(jcr->SD_msg_chan);
+	 }
+	 break;
+      default:
+	 term_msg = term_code;
+         sprintf(term_code, _("Inappropriate term code: %c\n"), TermCode);
+	 break;
+   }
+   bstrftime(sdt, sizeof(sdt), jcr->jr.StartTime);
+   bstrftime(edt, sizeof(edt), jcr->jr.EndTime);
+   kbps = (double)jcr->jr.JobBytes / (1000 * (jcr->jr.EndTime - jcr->jr.StartTime));
+
+   Jmsg(jcr, msg_type, 0, _("%s\n\
+JobId:                  %d\n\
+Job:                    %s\n\
+Client:                 %s\n\
+Start time:             %s\n\
+End time:               %s\n\
+Files Restored:         %s\n\
+Bytes Restored:         %s\n\
+Rate:                   %.1f KB/s\n\
+Termination:            %s\n\n"),
+	edt,
+	jcr->jr.JobId,
+	jcr->jr.Job,
+	jcr->client->hdr.name,
+	sdt,
+	edt,
+	edit_uint64_with_commas(jcr->jr.JobFiles, ec1),
+	edit_uint64_with_commas(jcr->jr.JobBytes, ec2),
+	(float)kbps,
+	term_msg);
 
    Dmsg0(20, "Leaving restore_cleanup\n");
 }

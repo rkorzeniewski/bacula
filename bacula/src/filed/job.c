@@ -108,6 +108,7 @@ static char OKstore[]      = "2000 OK storage\n";
 static char OKjob[]        = "2000 OK Job\n";
 static char OKsetdebug[]   = "2000 OK setdebug=%d\n";
 static char BADjob[]       = "2901 Bad Job\n";
+static char EndJob[]       = "2800 End Job TermCode=%d JobFiles=%u JobBytes=%" lld "\n";
 
 /* Responses received from Storage Daemon */
 static char OK_end[]       = "3000 OK end\n";
@@ -260,7 +261,7 @@ static int estimate_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
    make_estimate(jcr);
-   return bnet_fsend(dir, OKest, jcr->JobFiles, jcr->JobBytes);
+   return bnet_fsend(dir, OKest, jcr->num_files_examined, jcr->JobBytes);
 }
 
 /*
@@ -697,6 +698,8 @@ static int restore_cmd(JCR *jcr)
 
    /* Inform Storage daemon that we are done */
    bnet_sig(sd, BNET_TERMINATE);
+
+   bnet_fsend(dir, EndJob, jcr->JobStatus, jcr->num_files_examined, jcr->JobBytes);
 
    /* Inform Director that we are done */
    bnet_sig(dir, BNET_TERMINATE);

@@ -104,7 +104,7 @@ int start_storage_daemon_job(JCR *jcr)
     */
    bash_spaces(jcr->job->hdr.name);
    bash_spaces(jcr->client->hdr.name);
-   bash_spaces(jcr->client->hdr.name);
+   bash_spaces(jcr->fileset->hdr.name);
    bnet_fsend(sd, jobcmd, jcr->JobId, jcr->Job, jcr->job->hdr.name, 
 	      jcr->client->hdr.name, jcr->JobType, jcr->JobLevel, 
 	      jcr->fileset->hdr.name, !jcr->pool->catalog_files,

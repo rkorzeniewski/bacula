@@ -109,12 +109,10 @@ int do_read_data(JCR *jcr)
       }
       /* Read Record */
       Dmsg1(500, "Main read_record. rem=%d\n", rec->remainder);
+
       if (!read_block_from_device(dev, block)) {
          Dmsg1(500, "Main read record failed. rem=%d\n", rec->remainder);
 	 if (dev->state & ST_EOT) {
-	    if (rec->remainder) {
-               Dmsg0(500, "Not end of record.\n");
-	    }
 	    if (!mount_next_read_volume(jcr, dev, block)) {
 	       break;
 	    }
@@ -130,6 +128,16 @@ int do_read_data(JCR *jcr)
       }
 
       for (rec->state=0; !is_block_empty(rec); ) {
+
+	 if (!read_record_from_block(block, rec)) {
+	    break;
+	 }
+	 /*
+	  * At this point, we have at least a record header.
+	  *  Now decide if we want this record or not, but remember
+	  *  before accessing the record, we may need to read again to
+	  *  get all the data.
+	  */
 
 	 /* Some sort of label? */ 
 	 if (rec->FileIndex < 0) {
@@ -163,13 +171,15 @@ int do_read_data(JCR *jcr)
             Dmsg1(40, "Got label = %d\n", rec->FileIndex);
 	    if (rec->FileIndex == EOM_LABEL) { /* end of tape? */
                Dmsg0(40, "Get EOM LABEL\n");
+	       rec->remainder = 0;
 	       break;			      /* yes, get out */
 	    }
+	    rec->remainder = 0;
 	    continue;			      /* ignore other labels */
 	 } /* end if label record */
 
+	 /* Match BSR against current record */
 	 if (jcr->bsr) {
-	    /* Match BSR against current record */
 	    if (!match_bsr(jcr->bsr, rec, &dev->VolHdr, &sessrec)) {
                Dmsg0(50, "BSR rejected record\n");
 	       rec->remainder = 0;
@@ -184,8 +194,9 @@ int do_read_data(JCR *jcr)
 	       continue;		    /* ignore */
 	    }
 	 }
+
 	 if (is_partial_record(rec)) {
-	    break;
+	    break;		      /* Go read full record */
 	 }
 	  
 	 /* Generate Header parameters and send to File daemon

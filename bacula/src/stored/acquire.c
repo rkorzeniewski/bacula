@@ -157,7 +157,7 @@ int release_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 
    } else if (dev->num_writers > 0) {
       dev->num_writers--;
-      Dmsg1(00, "There are %d writers in release_device\n", dev->num_writers);
+      Dmsg1(100, "There are %d writers in release_device\n", dev->num_writers);
       if (dev->num_writers == 0) {
 	 weof_dev(dev, 1);
          Dmsg0(100, "dir_create_jobmedia_record. Release\n");

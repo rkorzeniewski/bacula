@@ -28,6 +28,8 @@ From Chuck:
 --sd.conf password does not match dir.conf storage password
 =======
 
+- In restore job, print some summary information at end, such
+  as rate, ... job status, ...
 - After unmount, if restore job started, ask to mount.
 - Fix db_update_fileset in cats/sql_get.c
 - Fix start/end blocks for File

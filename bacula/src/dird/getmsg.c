@@ -60,6 +60,9 @@ static char OK_msg[] = "1000 OK\n";
  *  to the appropriate handler.  If the message is
  *  in any other format, it will be returned. 
  *
+ *  E.g. any message beginning with a digit will be returned.
+ *	 any message beginning with Jmsg will be processed.
+ *
  */
 int32_t bget_msg(BSOCK *bs, int rtn)
 {
