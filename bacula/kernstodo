@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                 17 January 2003 
+                 20 January 2003 
 
 Documentation to do: (a little bit at a time)
 - Document running a test version.
@@ -14,6 +14,8 @@ Testing to do: (painful)
 - blocksize recognition code.
 
 For 1.29 release:
+- Look at handling <> in smtp doesn't work with exim.
+- InitVerify is getting pruned and it shouldn't
 - Priority job to go to top of list.
 - Implement Bar code handling
 - Why is catreq.c:111 Find vol called twice for a job?

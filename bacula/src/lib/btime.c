@@ -64,6 +64,7 @@ utime_t str_to_utime(char *str)
       return 0;
    }
    if (tm.tm_year >= 1900) {
+      tm.tm_year -= 1900;
    } else {
       return 0;
    }

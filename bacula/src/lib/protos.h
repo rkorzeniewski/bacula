@@ -156,5 +156,8 @@ POOLMEM 	*edit_job_codes(void *jcr, char *omsg, char *imsg, char *to);
 /* watchdog.c */
 int start_watchdog(void);
 int stop_watchdog(void);
-void stop_child_timer(btimer_id wid);
 btimer_t *start_child_timer(pid_t pid, uint32_t wait);
+void stop_child_timer(btimer_id wid);
+btimer_id start_thread_timer(pthread_t tid, uint32_t wait);
+void stop_thread_timer(btimer_id wid);
+

@@ -92,15 +92,15 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 next_volume:
       strcpy(mr.VolStatus, "Append");  /* want only appendable volumes */
       ok = db_find_next_volume(jcr, jcr->db, index, &mr);  
-      Dmsg1(200, "catreq after find_next_vol ok=%d\n", ok);
+      Dmsg2(100, "catreq after find_next_vol ok=%d FW=%d\n", ok, mr.FirstWritten);
       if (!ok) {
 	 /* Well, try finding recycled tapes */
 	 ok = find_recycled_volume(jcr, &mr);
-         Dmsg1(100, "find_recycled_volume1 %d\n", ok);
+         Dmsg2(100, "find_recycled_volume1 %d FW=%d\n", ok, mr.FirstWritten);
 	 if (!ok) {
 	    prune_volumes(jcr);  
 	    ok = recycle_a_volume(jcr, &mr);
-            Dmsg1(100, "find_recycled_volume2 %d\n", ok);
+            Dmsg2(200, "find_recycled_volume2 %d FW=%d\n", ok, mr.FirstWritten);
 	    if (!ok) {
 	       /* See if we can create a new Volume */
 	       ok = newVolume(jcr, &mr);
@@ -108,7 +108,7 @@ next_volume:
 	 }
       }
       /* Check if use duration has expired */
-      Dmsg2(200, "VolJobs=%d FirstWritten=%d\n", mr.VolJobs, mr.FirstWritten);
+      Dmsg2(100, "VolJobs=%d FirstWritten=%d\n", mr.VolJobs, mr.FirstWritten);
       if (ok && mr.VolJobs > 0 && mr.VolUseDuration > 0 && 
            strcmp(mr.VolStatus, "Recycle") != 0) {
 	 utime_t now = time(NULL);

@@ -107,6 +107,8 @@ static void *smalloc(char *fname, int lineno, unsigned int nbytes)
 	   buf[nbytes - 1] = (((long) buf) & 0xFF) ^ 0xC5;
 	   buf += HEAD_SIZE;  /* Increment to user data start */
 	   V(mutex);
+	} else {
+           Emsg0(M_ABORT, 0, _("Out of memory\n"));
 	}
         Dmsg4(1150, "smalloc %d at %x from %s:%d\n", nbytes, buf, fname, lineno);
 	return (void *)buf;
@@ -195,6 +197,8 @@ void *sm_malloc(char *fname, int lineno, unsigned int nbytes)
               "designer garbage" consisting of alternating bits.  */
 
 	   memset(buf, 0x55, (int) nbytes);
+	} else {
+           Emsg0(M_ABORT, 0, _("Out of memory\n"));
 	}
 	return buf;
 }
@@ -208,6 +212,8 @@ void *sm_calloc(char *fname, int lineno,
 
 	if ((buf = smalloc(fname, lineno, nelem * elsize)) != NULL) {
 	   memset(buf, 0, (int) (nelem * elsize));
+	} else {
+           Emsg0(M_ABORT, 0, _("Out of memory\n"));
 	}
 	return buf;
 }
@@ -236,8 +242,9 @@ void *sm_realloc(char *fname, int lineno, void *ptr, unsigned int size)
 	   malloc().  SVID is silent  on  this,  but  many  C  libraries
 	   permit this.  */
 
-	if (ptr == NULL)
+	if (ptr == NULL) {
 	   return sm_malloc(fname, lineno, size);
+	}
 
 	/* If the old and new sizes are the same, be a nice guy and just
 	   return the buffer passed in.  */
