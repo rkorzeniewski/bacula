@@ -133,7 +133,9 @@ db_open_database(JCR *jcr, B_DB *mdb)
       return 0;
    }
 
-   bsnprintf(port, sizeof(port), "%d", mdb->db_port);
+   if (mdb->db_port && mdb->db_port[0]) {
+      bsnprintf(port, sizeof(port), "%d", mdb->db_port);
+   }
    /* connect to the database */
    mdb->db = PQsetdbLogin(
 	mdb->db_address,	      /* default = localhost */
