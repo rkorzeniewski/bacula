@@ -37,9 +37,7 @@ extern int r_first;
 extern int r_last;
 extern struct s_res resources[];
 extern char my_name[];
-#ifdef JOB_QUEUE
 extern jobq_t job_queue;	      /* job queue */
-#endif
 
 extern char *list_pool;
 
@@ -431,9 +429,7 @@ static int cancelcmd(UAContext *ua, char *cmd)
       set_jcr_job_status(jcr, JS_Canceled);
       bsendmsg(ua, _("JobId %d, Job %s marked to be canceled.\n"),
 	      jcr->JobId, jcr->Job);
-#ifdef JOB_QUEUE
       jobq_remove(&job_queue, jcr); /* attempt to remove it from queue */
-#endif
       free_jcr(jcr);		      /* this decrements the use count only */
       return 1;
 	 

@@ -146,12 +146,7 @@ struct CLIENT {
    char *password;
    CAT *catalog;                      /* Catalog resource */
    uint32_t MaxConcurrentJobs;        /* Maximume concurrent jobs */
-#ifdef USE_SEMAPHORE
-   semlock_t sem;                     /* storage semaphore */
-#endif
-#ifdef JOB_QUEUE
    uint32_t NumConcurrentJobs;        /* number of concurrent jobs running */
-#endif
    int enable_ssl;                    /* Use SSL */
 };
 
@@ -170,12 +165,7 @@ struct STORE {
    char *dev_name;   
    int  autochanger;                  /* set if autochanger */
    uint32_t MaxConcurrentJobs;        /* Maximume concurrent jobs */
-#ifdef USE_SEMAPHORE
-   semlock_t sem;                     /* storage semaphore */
-#endif
-#ifdef JOB_QUEUE
    uint32_t NumConcurrentJobs;        /* number of concurrent jobs running */
-#endif
    int enable_ssl;                    /* Use SSL */
 };
 
@@ -215,13 +205,7 @@ struct JOB {
    FILESET   *fileset;                /* What to backup -- Fileset */
    STORE     *storage;                /* Where is device -- Storage daemon */
    POOL      *pool;                   /* Where is media -- Media Pool */
-
-#ifdef USE_SEMAPHORE
-   semlock_t sem;                     /* storage semaphore */
-#endif
-#ifdef JOB_QUEUE
    uint32_t NumConcurrentJobs;        /* number of concurrent jobs running */
-#endif
 };
 
 #define MAX_FOPTS 30
