@@ -31,8 +31,10 @@
 #include "bacula.h"
 #include "jcr.h"
 
+#if !define(HAVE_CONSOLE)
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 #include <windows.h>
+#endif
 #endif
 
 #define FULL_LOCATION 1 	      /* set for file:line in Debug messages */
@@ -560,8 +562,10 @@ void dispatch_message(JCR *jcr, int type, int level, char *msg)
     if (type == M_ABORT || type == M_ERROR_TERM) {
        fputs(msg, stdout);	   /* print this here to INSURE that it is printed */
        fflush(stdout);
+#if !defined(HAVE_CONSOLE)
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
        MessageBox(NULL, msg, "Bacula", MB_OK);
+#endif
 #endif
     }
 

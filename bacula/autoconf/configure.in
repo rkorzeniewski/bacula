@@ -1,4 +1,4 @@
-dnl#
+lal#
 dnl#
 dnl# Process this file with autoconf to produce a configure script.
 dnl#
@@ -1662,8 +1662,9 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/findlib/Makefile \
 	   src/tools/Makefile \
 	   src/win32/winbacula.nsi \
-	   src/win32/bacula-fd.conf \
+	   src/win32/baculafd/bacula-fd.conf \
 	   src/win32/Makefile \
+	   src/win32/console/bconsole.conf.in \
 	   $PFILES ],  
 	  [(echo "Doing make of dependencies"; make depend;) ]
 )
