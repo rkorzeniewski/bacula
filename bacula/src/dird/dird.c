@@ -347,6 +347,22 @@ static int find_free_reload_table_entry()
 /*
  * If we get here, we have received a SIGHUP, which means to
  *    reread our configuration file. 
+ *
+ * The algorithm used is as follows: we count how many jobs are
+ *   running since the last reload and set those jobs to make a
+ *   callback. Also, we set each job with the current reload table
+ *   id. . The old config is saved with the reload table
+ *   id in a reload table. The new config file is read. Now, as
+ *   each job exits, it calls back to the reload_job_end_cb(), which
+ *   decrements the count of open jobs for the given reload table.
+ *   When the count goes to zero, we release those resources.
+ *   This allows us to have pointers into the resource table (from
+ *   jobs), and once they exit and all the pointers are released, we
+ *   release the old table. Note, if no new jobs are running since the
+ *   last reload, then the old resources will be immediately release.
+ *   A console is considered a job because it may have pointers to
+ *   resources, but a SYSTEM job is not since it *should* not have any
+ *   permanent pointers to jobs.
  */
 extern "C"
 void reload_config(int sig)

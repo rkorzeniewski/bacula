@@ -21,7 +21,7 @@
 
  */
 
-struct RES_ITEM;		    /* Declare forward referenced structure */ 
+struct RES_ITEM;                    /* Declare forward referenced structure */ 
 typedef void (MSG_RES_HANDLER)(LEX *lc, RES_ITEM *item, int index, int pass);
 
 /* This is the structure that defines
@@ -30,29 +30,29 @@ typedef void (MSG_RES_HANDLER)(LEX *lc, RES_ITEM *item, int index, int pass);
  * tables.
  */
 struct RES_ITEM {
-   const char *name;		      /* Resource name i.e. Director, ... */
-   MSG_RES_HANDLER *handler;	      /* Routine storing the resource item */
-   void **value;		      /* Where to store the item */
-   int	code;			      /* item code/additional info */
-   int	flags;			      /* flags: default, required, ... */
-   int	default_value;		      /* default value */
+   const char *name;                  /* Resource name i.e. Director, ... */
+   MSG_RES_HANDLER *handler;          /* Routine storing the resource item */
+   void **value;                      /* Where to store the item */
+   int  code;                         /* item code/additional info */
+   int  flags;                        /* flags: default, required, ... */
+   int  default_value;                /* default value */
 };
 
 /* For storing name_addr items in res_items table */
 #define ITEM(x) ((void **)&res_all.x)
 
-#define MAX_RES_ITEMS 50	      /* maximum resource items per RES */
+#define MAX_RES_ITEMS 50              /* maximum resource items per RES */
 
 /* This is the universal header that is
  * at the beginning of every resource
  * record.
  */
 struct RES {
-   RES *next;			      /* pointer to next resource of this type */
-   char *name;			      /* resource name */
-   char *desc;			      /* resource description */
-   int	 rcode; 		      /* resource id or type */
-   int	 refcnt;		      /* reference count for releasing */
+   RES *next;                         /* pointer to next resource of this type */
+   char *name;                        /* resource name */
+   char *desc;                        /* resource description */
+   int   rcode;                       /* resource id or type */
+   int   refcnt;                      /* reference count for releasing */
    char  item_present[MAX_RES_ITEMS]; /* set if item is present in conf file */
 };
 
@@ -62,27 +62,27 @@ struct RES {
  * This is the structure that defines the
  * resources that are available to this daemon.
  */
-struct RES_TABLE {	 
-   const char *name;		      /* resource name */
-   RES_ITEM *items;	      /* list of resource keywords */
-   int rcode;			      /* code if needed */
-   RES *res_head;		      /* where to store it */
+struct RES_TABLE {       
+   const char *name;                  /* resource name */
+   RES_ITEM *items;                   /* list of resource keywords */
+   int rcode;                         /* code if needed */
+   RES *res_head;                     /* where to store it */
 };
 
 /* Common Resource definitions */
 
-#define MAX_RES_NAME_LENGTH MAX_NAME_LENGTH-1	    /* maximum resource name length */
+#define MAX_RES_NAME_LENGTH MAX_NAME_LENGTH-1       /* maximum resource name length */
 
-#define ITEM_REQUIRED	 0x1	      /* item required */
-#define ITEM_DEFAULT	 0x2	      /* default supplied */
+#define ITEM_REQUIRED    0x1          /* item required */
+#define ITEM_DEFAULT     0x2          /* default supplied */
 #define ITEM_NO_EQUALS   0x4          /* Don't scan = after name */
 
 /* Message Resource */
 struct MSGS {
-   RES	 hdr;
-   char *mail_cmd;		      /* mail command */
-   char *operator_cmd;		      /* Operator command */
-   DEST *dest_chain;		      /* chain of destinations */
+   RES   hdr;
+   char *mail_cmd;                    /* mail command */
+   char *operator_cmd;                /* Operator command */
+   DEST *dest_chain;                  /* chain of destinations */
    char send_msg[nbytes_for_bits(M_MAX+1)];  /* bit array of types */
 };
 
@@ -118,7 +118,7 @@ const char *res_to_str(int rcode);
 
 #ifdef the_old_way
 #define foreach_res(var, type) \
-	for((var)=NULL; (((void *)(var))=GetNextRes((type), (RES *)var));) 
+        for((var)=NULL; (((void *)(var))=GetNextRes((type), (RES *)var));) 
 #endif
 
 

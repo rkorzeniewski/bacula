@@ -47,6 +47,8 @@
  */
 int r_first = R_FIRST;
 int r_last  = R_LAST;
+static RES *sres_head[R_LAST - R_FIRST];
+RES **res_head = sres_head;
 
 /* Forward referenced subroutines */
 
