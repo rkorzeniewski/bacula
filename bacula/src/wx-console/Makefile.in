@@ -22,10 +22,10 @@ dummy:
 #
 CONSSRCS = main.cpp console_thread.cpp authenticate.c console_conf.c wxbrestorepanel.cpp \
 	     wxbmainframe.cpp wxbtableparser.cpp wxbtreectrl.cpp wxblistctrl.cpp wxbutils.cpp \
-	     wxbconfigpanel.cpp
+	     wxbconfigpanel.cpp wxbconfigfileeditor.cpp
 CONSOBJS = main.o console_thread.o authenticate.o console_conf.o wxbrestorepanel.o \
 	     wxbmainframe.o wxbtableparser.o wxbtreectrl.o wxblistctrl.o wxbutils.o \
-	     wxbconfigpanel.o
+	     wxbconfigpanel.o wxbconfigfileeditor.o
 
 win32 = wx-console_private.res
 

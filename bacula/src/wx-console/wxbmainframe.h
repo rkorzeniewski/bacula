@@ -94,6 +94,10 @@ public:
    /* event handlers (these functions should _not_ be virtual) */
    void OnQuit(wxCommandEvent& event);
    void OnAbout(wxCommandEvent& event);
+   void OnChangeConfig(wxCommandEvent& event);
+   void OnEditConfig(wxCommandEvent& event);
+   void OnConnect(wxCommandEvent& event);
+   void OnDisconnect(wxCommandEvent& event);
    void OnEnter(wxCommandEvent& event);
    void OnPrint(wxbThreadEvent& event);
 
@@ -114,8 +118,9 @@ public:
 
    /*
     *  Starts the thread interacting with the director
+    *  If config is not empty, uses this config file.
     */
-   void StartConsoleThread();
+   void StartConsoleThread(const wxString& config);
    
    /* Register a new wxbDataParser */
    void Register(wxbDataParser* dp);
@@ -129,6 +134,8 @@ private:
    /* private constructor, singleton */
    wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSize& size, long style);
    ~wxbMainFrame();
+   
+   wxMenu *menuFile;
 
    wxNotebook *notebook; /* main notebook */
    wxTextCtrl *consoleCtrl; /* wxTextCtrl containing graphical console */

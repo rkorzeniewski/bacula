@@ -1,3 +1,14 @@
+09-05-2004 :
+ - wxbMainFrame : reconnecting/disconnecting implemented
+ - wxbMainFrame : Added menus to allow the user to change his config
+      file, and to edit it.
+
+08-05-2004 :
+ - wxbMainFrame : The user can now choose his configuration file,
+      and his choice is stored in a wxConfig (registry under Win32,
+      file under Linux)...
+ - wxbConfigFileEditor : Created a small text editor
+
 07-05-2004 :
  - console_thread : Added support for the new parse_config which
       returns a status code.

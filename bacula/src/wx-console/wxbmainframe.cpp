@@ -27,6 +27,8 @@
 
 #include "wxbrestorepanel.h"
 
+#include "wxbconfigfileeditor.h"
+
 #include "csprint.h"
 
 #include "wxwin16x16.xpm"
@@ -34,6 +36,10 @@
 #include <wx/arrimpl.cpp>
 
 #include <wx/stattext.h>
+
+#include <wx/config.h>
+
+#include <wx/filename.h>
 
 // ----------------------------------------------------------------------------
 // event tables and other macros for wxWindows
@@ -53,9 +59,14 @@ enum
    // this standard value as otherwise it won't be handled properly under Mac
    // (where it is special and put into the "Apple" menu)
    Minimal_About = wxID_ABOUT,
-   TypeText = 2,
-   SendButton = 3,
-   Thread = 4
+   
+   ChangeConfigFile = 2,
+   EditConfigFile = 3,
+   MenuConnect = 4,
+   MenuDisconnect = 5,
+   TypeText = 6,
+   SendButton = 7,
+   Thread = 8
 };
 
 /*
@@ -82,6 +93,10 @@ typedef void (wxEvtHandler::*wxThreadEventFunction)(wxbThreadEvent&);
 BEGIN_EVENT_TABLE(wxbMainFrame, wxFrame)
    EVT_MENU(Minimal_Quit,  wxbMainFrame::OnQuit)
    EVT_MENU(Minimal_About, wxbMainFrame::OnAbout)
+   EVT_MENU(ChangeConfigFile, wxbMainFrame::OnChangeConfig)
+   EVT_MENU(EditConfigFile, wxbMainFrame::OnEditConfig)
+   EVT_MENU(MenuConnect, wxbMainFrame::OnConnect)
+   EVT_MENU(MenuDisconnect, wxbMainFrame::OnDisconnect)
    EVT_TEXT_ENTER(TypeText, wxbMainFrame::OnEnter)
    EVT_THREAD_EVENT(Thread, wxbMainFrame::OnPrint)
    EVT_BUTTON(SendButton, wxbMainFrame::OnEnter)
@@ -190,18 +205,26 @@ wxbMainFrame::wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSi
       : wxFrame(NULL, -1, title, pos, size, style)
 {
    ct = NULL;
+   
+   promptparser = NULL;
 
    // set the frame icon
    SetIcon(wxIcon(wxwin16x16_xpm));
 
 #if wxUSE_MENUS
    // create a menu bar
-   wxMenu *menuFile = new wxMenu;
+   menuFile = new wxMenu;
 
    // the "About" item should be in the help menu
    wxMenu *helpMenu = new wxMenu;
    helpMenu->Append(Minimal_About, _T("&About...\tF1"), _T("Show about dialog"));
 
+   menuFile->Append(MenuConnect, _T("Connect"), _T("Connect to the director"));
+   menuFile->Append(MenuDisconnect, _T("Disconnect"), _T("Disconnect of the director"));
+   menuFile->AppendSeparator();
+   menuFile->Append(ChangeConfigFile, _T("Change of configuration file"), _T("Change your default configuration file"));
+   menuFile->Append(EditConfigFile, _T("Edit your configuration file"), _T("Edit your configuration file"));
+   menuFile->AppendSeparator();
    menuFile->Append(Minimal_Quit, _T("E&xit\tAlt-X"), _T("Quit this program"));
 
    // now append the freshly created menu to the menu bar...
@@ -290,35 +313,112 @@ wxbMainFrame::wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSi
 
 /*
  *  Starts the thread interacting with the director
+ *  If config is not empty, uses this config file.
  */
-void wxbMainFrame::StartConsoleThread()
-{
+void wxbMainFrame::StartConsoleThread(const wxString& config) {
+   menuFile->Enable(MenuConnect, false);
+   menuFile->Enable(MenuDisconnect, false);
+   menuFile->Enable(ChangeConfigFile, false);
+   menuFile->Enable(EditConfigFile, false);
+
    if (ct != NULL) {
       ct->Delete();
+      ct = NULL;
    }
-   else {
+   if (promptparser == NULL) {
       promptparser = new wxbPromptParser();      
    }
    
    wxString configfile;
+
+   if (config == "") {   
+      if ((wxTheApp->argc == 3) && (wxString(wxTheApp->argv[1]) == "-c")) {
+         configfile = wxTheApp->argv[2];
+      }
+      else {
+         wxConfig::Set(new wxConfig("wx-console", "bacula"));
+         if (!wxConfig::Get()->Read("/ConfigFile", &configfile)) {
+#ifdef HAVE_MACOSX
+            wxFileName filename(::wxGetHomeDir());
+            filename.MakeAbsolute();
+            configfile = filename.GetLongPath();
+            if (configfile.Last() != '/')
+               configfile += '/';
+            configfile += "Library/Preferences/org.bacula.wxconsole.conf";
+#else
+            wxFileName filename(::wxGetCwd(), "wx-console.conf");
+            filename.MakeAbsolute();
+            configfile = filename.GetLongPath();
+#ifdef HAVE_WIN32
+            configfile.Replace("\\", "/");
+#endif //HAVE_WIN32
+#endif //HAVE_MACOSX
+            wxConfig::Get()->Write("/ConfigFile", configfile);
+            if (wxTheApp->argc > 1) {
+               Print("Error while parsing command line arguments, using defaults.\n", CS_DEBUG);
+               Print("Usage: wx-console [-c configfile]\n", CS_DEBUG);
+            }
    
-   
-   if ((wxTheApp->argc == 3) && (wxString(wxTheApp->argv[1]) == "-c")) {
-      configfile = wxTheApp->argv[2];
+            int answer = wxMessageBox(
+                              wxString("It seems that it is the first time you run wx-console.\n") <<
+                                 "This file (" << configfile << ") has been choosen as default configuration file.\n" << 
+                                 "Do you want to edit it? (if you click No you will have to select another file)",
+                              "First run",
+                              wxYES_NO | wxICON_QUESTION, this);
+            if (answer == wxYES) {
+               wxbConfigFileEditor(this, configfile).ShowModal();
+            }
+         }
+      }
    }
    else {
-#ifdef HAVE_MACOSX
-      configfile = "/Library/Preferences/org.bacula.wxconsole.conf";
-#else
-      configfile = "./wx-console.conf";
-#endif
-      if (wxTheApp->argc > 1) {
-         Print("Error while parsing command line arguments, using defaults.\n", CS_DEBUG);
-         Print("Usage: wx-console [-c configfile]\n", CS_DEBUG);
+      configfile = config;
+   }
+   
+   wxString err = console_thread::LoadConfig(configfile);
+   
+   while (err != "") {
+      int answer = wxMessageBox(
+                        wxString("Unable to read ") << configfile << "\n" << 
+                           err << "\nDo you want to choose another one? (Press no to edit this file)",
+                        "Unable to read configuration file",
+                        wxYES_NO | wxCANCEL | wxICON_ERROR, this);
+      if (answer == wxNO) {
+         wxbConfigFileEditor(this, configfile).ShowModal();
+         err = console_thread::LoadConfig(configfile);
+      }
+      else if (answer == wxCANCEL) {
+         frame = NULL;
+         Close(true);
+         return;
+      }
+      else { // (answer == wxYES)
+         configfile = wxFileSelector("Please choose a configuration file to use");
+         if ( !configfile.empty() ) {
+            err = console_thread::LoadConfig(configfile);
+         }
+         else {
+            frame = NULL;
+            Close(true);
+            return;
+         }
+      }
+      
+      if ((err == "") && (config == "")) {
+         answer = wxMessageBox(
+                           "This configuration file has been successfully read, use it as default?",
+                           "Configuration file read successfully",
+                           wxYES_NO | wxICON_QUESTION, this);
+         if (answer == wxYES) {
+              wxConfigBase::Get()->Write("/ConfigFile", configfile);
+         }
+         break;
       }
    }
    
-   ct = new console_thread(configfile);
+   csprint(wxString("Using this configuration file: ") << configfile << "\n", CS_DEBUG);
+   
+   ct = new console_thread();
    ct->Create();
    ct->Run();
    SetStatusText("Connecting to the director...");
@@ -349,6 +449,7 @@ void wxbMainFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
       ct->Delete();
       ct = NULL;
    }
+   console_thread::FreeLib();
    frame = NULL;
    Close(TRUE);
 }
@@ -359,6 +460,63 @@ void wxbMainFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
    msg.Printf( _T("Welcome to Bacula wx-console.\nWritten by Nicolas Boichat <nicolas@boichat.ch>\n(C) 2004 Kern Sibbald and John Walker\n"));
 
    wxMessageBox(msg, _T("About Bacula wx-console"), wxOK | wxICON_INFORMATION, this);
+}
+
+void wxbMainFrame::OnChangeConfig(wxCommandEvent& event) {
+   wxString oriconfigfile;
+   wxConfig::Get()->Read("/ConfigFile", &oriconfigfile);
+   wxString configfile = wxFileSelector("Please choose your default configuration file");
+   if ( !configfile.empty() ) {
+      if (oriconfigfile != configfile) {
+         int answer = wxMessageBox(
+                           "Use this configuration file as default?",
+                           "Configuration file",
+                           wxYES_NO | wxICON_QUESTION, this);
+         if (answer == wxYES) {
+              wxConfigBase::Get()->Write("/ConfigFile", configfile);
+              StartConsoleThread("");
+              return;
+         }
+      }
+   
+      StartConsoleThread(configfile);
+   }
+}
+
+void wxbMainFrame::OnEditConfig(wxCommandEvent& event) {
+   wxString configfile;
+   wxConfig::Get()->Read("/ConfigFile", &configfile);
+   int stat = wxbConfigFileEditor(this, configfile).ShowModal();
+   if (stat == wxOK) {
+      StartConsoleThread(configfile);
+   }
+}
+
+void wxbMainFrame::OnConnect(wxCommandEvent& event) {
+   menuFile->Enable(MenuConnect, false);
+   menuFile->Enable(MenuDisconnect, false);
+   menuFile->Enable(ChangeConfigFile, false);
+   menuFile->Enable(EditConfigFile, false);
+
+   if (ct != NULL) {
+      ct->Delete();
+      ct = NULL;
+   }
+   if (promptparser == NULL) {
+      promptparser = new wxbPromptParser();      
+   }
+
+   ct = new console_thread();
+   ct->Create();
+   ct->Run();
+   SetStatusText("Connecting to the director...");
+}
+
+void wxbMainFrame::OnDisconnect(wxCommandEvent& event) {
+   if (ct != NULL) {
+      ct->Delete();
+      ct = NULL;
+   }
 }
 
 void wxbMainFrame::OnEnter(wxCommandEvent& WXUNUSED(event))
@@ -399,12 +557,24 @@ void wxbMainFrame::Print(wxString str, int status)
          frame = NULL;
          Close(true);
       }
+      menuFile->Enable(MenuConnect, true);
+      menuFile->SetLabel(MenuConnect, "Connect");
+      menuFile->SetHelpString(MenuConnect, "Connect to the director");
+      menuFile->Enable(MenuDisconnect, false);
+      menuFile->Enable(ChangeConfigFile, true);
+      menuFile->Enable(EditConfigFile, true);
       return;
    }
    
    if (status == CS_CONNECTED) {
       SetStatusText("Connected to the director.");
       EnablePanels();
+      menuFile->Enable(MenuConnect, true);
+      menuFile->SetLabel(MenuConnect, "Reconnect");
+      menuFile->SetHelpString(MenuConnect, "Reconnect to the director");
+      menuFile->Enable(MenuDisconnect, false);
+      menuFile->Enable(ChangeConfigFile, true);
+      menuFile->Enable(EditConfigFile, true);
       return;
    }
    if (status == CS_DISCONNECTED) {

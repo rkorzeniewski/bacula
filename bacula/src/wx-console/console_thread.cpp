@@ -23,11 +23,14 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+// http://66.102.9.104/search?q=cache:Djc1mPF3hRoJ:cvs.sourceforge.net/viewcvs.py/audacity/audacity-src/src/AudioIO.cpp%3Frev%3D1.102+macos+x+wxthread&hl=fr
+
 #include "console_thread.h" // class's header file
 
 #include <wx/wxprec.h>
 
 #include <wx/thread.h>
+#include <wx/file.h>
 #include <bacula.h>
 #include <jcr.h>
 
@@ -45,43 +48,37 @@ char TERM_msg[] = "2999 Terminate\n";
 /* Imported functions */
 int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons);
 
-// class constructor
-console_thread::console_thread(wxString configfile) {
-   UA_sock = NULL;
-   this->configfile = configfile;
-}
+bool console_thread::inited = false;
+bool console_thread::configloaded = false;
 
-// class destructor
-console_thread::~console_thread() {
-   if (UA_sock) {
-      bnet_sig(UA_sock, BNET_TERMINATE); /* send EOF */
-      bnet_close(UA_sock);
-      UA_sock = NULL;
-   }
-   if (WSACleanup() == 0) {
-      //csprint("Windows sockets cleaned up successfully...\n");
-   }
-   else {
-      csprint("Error while cleaning up windows sockets...\n");
-   }
-}
-
-/*
- * Thread entry point
- */
-void* console_thread::Entry() {
-   if (WSA_Init() == 0) {
-      //csprint("Windows sockets initialized successfully...\n");
-   }
-   else {
+void console_thread::InitLib() {
+   if (WSA_Init() != 0) {
       csprint("Error while initializing windows sockets...\n");
+      inited = false;
+      return;
    }
-
-   csprint("Connecting...\n");
-
+   
    init_stack_dump();
    my_name_is(0, NULL, "wx-console");
    //textdomain("bacula-console");
+   
+   inited = true;
+}
+
+void console_thread::FreeLib() {
+   if (inited) {
+      if (WSACleanup() != 0) {
+         csprint("Error while cleaning up windows sockets...\n");
+      }
+   }
+}
+
+wxString console_thread::LoadConfig(wxString configfile) {
+   if (!inited) {
+      InitLib();
+      if (!inited)
+         return "Error while initializing library.";
+   }
    
    MSGS* msgs = (MSGS *)malloc(sizeof(MSGS));
    memset(msgs, 0, sizeof(MSGS));
@@ -98,7 +95,54 @@ void* console_thread::Entry() {
 
    /* TODO (#4#): Allow the user to choose his config file. */
    if (!parse_config(configfile.c_str(), 0)) {
-      csprint("Unable to read configuration file.\n");
+      configloaded = false;
+      wxFile file("./wx-console.conmsg");
+      if (!file.IsOpened())
+         return "Unable to retrieve error message.";
+      wxString err = "";
+      wxChar buffer[513];
+      off_t len;
+      while ((len = file.Read(buffer, 512)) > -1) {
+         buffer[len] = (wxChar)0;
+         err += buffer;
+         if (file.Eof())
+            break;
+      }
+      file.Close();
+      term_msg();
+      wxRemoveFile("./wx-console.conmsg");
+      return err;
+   }
+   
+   term_msg();
+   wxRemoveFile("./wx-console.conmsg");
+   init_msg(NULL, NULL);
+   
+   configloaded = true;
+   
+   return "";
+}
+
+// class constructor
+console_thread::console_thread() {
+   UA_sock = NULL;
+}
+
+// class destructor
+console_thread::~console_thread() {
+   if (UA_sock) {
+      bnet_sig(UA_sock, BNET_TERMINATE); /* send EOF */
+      bnet_close(UA_sock);
+      UA_sock = NULL;
+   }
+}
+
+/*
+ * Thread entry point
+ */
+void* console_thread::Entry() {
+   if (!inited) {
+      csprint("Error : Library not initialized\n");
       csprint(NULL, CS_END);
       csprint(NULL, CS_DISCONNECTED);
       csprint(NULL, CS_TERMINATED);
@@ -108,8 +152,19 @@ void* console_thread::Entry() {
       return NULL;
    }
    
-   init_msg(NULL, NULL);
+   if (!configloaded) {
+      csprint("Error : No configuration file loaded\n");
+      csprint(NULL, CS_END);
+      csprint(NULL, CS_DISCONNECTED);
+      csprint(NULL, CS_TERMINATED);
+      #ifdef HAVE_WIN32
+         Exit();
+      #endif
+      return NULL;
+   }
    
+   csprint("Connecting...\n");
+  
    LockRes();
    DIRRES *dir = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
    UnlockRes();

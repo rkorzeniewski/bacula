@@ -1,15 +1,11 @@
-FEATURES
---------
-
 general : Show nice messages boxes when errors occurs.
-
-console_thread : Check for config file parsing error messages
-    in console file.
-
-console_thread : Allow the user to choose his config file.
 
 console_thread : Allow the user to choose his director when there's multiple
     directors.
+
+Win32 : Crash when quitting while trying to connect
+
+Mac OS X : Problem if config file in Mac file format (new line = ASCII 13).
 
 Mac OS X : Integrate Mac OS X into the automake process
   (note : add -DNO_GCC_PRAGMA to CPPFLAGS, build app,
@@ -24,6 +20,9 @@ Mac OS X : Ask kern for the status of this distribution (who is
   the package releaser ?)
 
 [postponed to July:]
+
+wxbConfigFileEditor : create a more precise editor, with something like
+   a tree structure
 
 wxbRestorePanel : When cancelling, check for commands results
 

@@ -77,7 +77,7 @@ bool MyApp::OnInit()
 
    frame->Print(wxString("Welcome to bacula wx-console ") << VERSION << " (" << BDATE << ")!\n", CS_DEBUG);
 
-   frame->StartConsoleThread();
+   frame->StartConsoleThread("");
    
    return TRUE;
 }

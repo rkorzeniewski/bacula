@@ -2,7 +2,7 @@
  *
  *    Interaction thread between director and the GUI
  *
- *    Nicolas Boichat, April 2004
+ *    Nicolas Boichat, April-May 2004
  *
  */
 /*
@@ -39,17 +39,22 @@ class console_thread : public wxThread
 {
    public:
       // class constructor
-      console_thread(wxString configfile);
+      console_thread();
       // class destructor
       ~console_thread();
 
       void* Entry();
       void Write(const char* str);
       virtual void Delete();
+      
+      static void InitLib();
+      static void FreeLib();
+      static wxString LoadConfig(wxString configfile);
    private:
+      static bool inited;
+      static bool configloaded;
       BSOCK* UA_sock;
       JCR jcr;
-      wxString configfile;
 };
 
 int pm_cst_strcpy(POOLMEM **pm, const char *str);
