@@ -1960,6 +1960,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/win32/wx-console/wx-console.conf \
         src/win32/pebuilder/Makefile \
         src/bimagemgr/Makefile \
+        src/bimagemgr/bacula-bimagemgr.spec \
 	   $PFILES ],  
 	  [(echo "Doing make of dependencies"; ${MAKE:-make} depend;) ]
 )
