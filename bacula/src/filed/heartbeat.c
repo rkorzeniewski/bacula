@@ -31,6 +31,16 @@
 #include "bacula.h"
 #include "filed.h"
 
+#ifdef HAVE_CYGWIN
+/* pthread_kill() dies on Cygwin, so disable it */
+#define pthread_kill(x, y)
+/* Use shorter wait interval on Cygwin because no kill */
+#define WAIT_INTERVAL 10
+ 
+#else	/* Unix systems */
+#define WAIT_INTERVAL 60
+#endif
+
 /* 
  * Listen on the SD socket for heartbeat signals.
  * Send heartbeats to the Director every HB_TIME
@@ -57,7 +67,7 @@ static void *sd_heartbeat_thread(void *arg)
     *	keep him alive.
     */
    for ( ; !is_bnet_stop(sd); ) {
-      n = bnet_wait_data_intr(sd, 60);
+      n = bnet_wait_data_intr(sd, WAIT_INTERVAL);
       if (me->heartbeat_interval) {
 	 now = time(NULL);
 	 if (now-last_heartbeat >= me->heartbeat_interval) {
@@ -95,10 +105,8 @@ void stop_heartbeat_monitor(JCR *jcr)
 
    /* Wait for heartbeat thread to stop */
    while (jcr->hb_bsock) {
-#ifndef HAVE_CYGWIN
       /* Naturally, Cygwin 1.3.20 craps out on the following */
       pthread_kill(jcr->heartbeat_id, TIMEOUT_SIGNAL);	/* make heartbeat thread go away */
-#endif
       bmicrosleep(0, 500);
    }
 }

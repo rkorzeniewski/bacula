@@ -31,6 +31,10 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
+- On Windows with very long path names, it may be impossible to create 
+  a file (and thus restore it) because the total length is too long.
+  We must cd into the directory then create the file without the
+  full path name.
 - Move JobFiles and JobBytes to SD rather than FD -- more correct.
 - Add client name to cram-md5 challenge so Director can immediately
   verify if it is the correct client.
@@ -984,4 +988,3 @@ Done: (see kernsdone for more)
 - Instrument use_count on DEVICE packets and ensure that the device is
   being close()ed at the appropriate time.
 - Test long path names (>64 chars) in Windows -- crashes FD?
-

@@ -429,6 +429,7 @@ Replace:    %s\n\
 FileSet:    %s\n\
 Client:     %s\n\
 Storage:    %s\n\
+JobId:      %s\n\
 When:       %s\n"),
 		 job->hdr.name,
 		 NPRT(jcr->RestoreBootstrap),
