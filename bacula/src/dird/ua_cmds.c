@@ -650,6 +650,7 @@ static int update_volume(UAContext *ua)
       add_prompt(ua, _("Maximum Volume Bytes"));
       add_prompt(ua, _("Recycle Flag"));
       add_prompt(ua, _("Slot"));
+      add_prompt(ua, _("Volume Files"));
       add_prompt(ua, _("Done"));
       switch (do_prompt(ua, _("Select parameter to modify"), NULL, 0)) {
       case 0:			      /* Volume Status */
@@ -838,6 +839,30 @@ static int update_volume(UAContext *ua)
             bsendmsg(ua, "%s", db_strerror(ua->db));
 	 } else {
             bsendmsg(ua, "New Slot is: %d\n", slot);
+	 }
+	 free_pool_memory(query);
+	 break;
+
+      case 8:			      /* Volume Files */
+	 int32_t VolFiles;
+         bsendmsg(ua, _("Warning changing Volume Files can result\n"
+                        "in loss of data on your Volume\n\n"));
+         bsendmsg(ua, _("Current Volume Files is: %u\n"), mr.VolFiles);
+         if (!get_cmd(ua, _("Enter new number of Files for Volume: "))) {
+	    return 0;
+	 }
+	 VolFiles = atoi(ua->cmd);
+	 if (VolFiles < 0) {
+            bsendmsg(ua, _("Invalid number, it must be 0 or greater\n"));
+	    break;
+	 } 
+	 query = get_pool_memory(PM_MESSAGE);
+         Mmsg(&query, "UPDATE Media SET VolFiles=%u WHERE MediaId=%u",
+	    VolFiles, mr.MediaId);
+	 if (!db_sql_query(ua->db, query, NULL, NULL)) {  
+            bsendmsg(ua, "%s", db_strerror(ua->db));
+	 } else {
+            bsendmsg(ua, _("New Volume Files is: %u\n"), VolFiles);
 	 }
 	 free_pool_memory(query);
 	 break;

@@ -226,6 +226,9 @@ int db_next_index(B_DB *mdb, char *table, char *index)
 void
 db_escape_string(char *snew, char *old, int len)
 {
+   mysql_escape_string(snew, old, len);
+
+#ifdef DO_IT_MYSELF
    char *n, *o;
 
    n = snew;
@@ -272,6 +275,7 @@ db_escape_string(char *snew, char *old, int len)
       }
    }
    *n = 0;
+#endif
 }
 
 /*

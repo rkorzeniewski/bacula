@@ -777,7 +777,7 @@ e_msg(char *file, int line, int type, int level, char *fmt,...)
 void 
 Jmsg(void *vjcr, int type, int level, char *fmt,...)
 {
-    char     rbuf[2000];
+    char     rbuf[5000];
     char     *buf;
     va_list   arg_ptr;
     int i, len;
