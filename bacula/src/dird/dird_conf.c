@@ -432,9 +432,10 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
       break;
    case R_COUNTER:
       if (res->res_counter.WrapCounter) {
-         sendit(sock, "Counter: name=%s min=%d max=%d wrapcntr=%s\n",
+         sendit(sock, "Counter: name=%s min=%d max=%d cur=%d wrapcntr=%s\n",
 	    res->res_counter.hdr.name, res->res_counter.MinValue, 
-	    res->res_counter.MaxValue, res->res_counter.WrapCounter->hdr.name);
+	    res->res_counter.MaxValue, res->res_counter.CurrentValue,
+	    res->res_counter.WrapCounter->hdr.name);
       } else {
          sendit(sock, "Counter: name=%s min=%d max=%d\n",
 	    res->res_counter.hdr.name, res->res_counter.MinValue, 

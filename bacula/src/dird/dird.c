@@ -398,9 +398,10 @@ Without that I don't know who I am :-(\n"), configfile);
 		  if (db_create_counter_record(NULL, db, &cr)) {
 		     counter->CurrentValue = cr.CurrentValue;
 		     counter->created = true;
-//                   Dmsg2(000, "Create counter %s val=%d\n", counter->hdr.name, counter->CurrentValue);
+                     Dmsg2(100, "Create counter %s val=%d\n", counter->hdr.name, counter->CurrentValue);
 		  }
-	       } else {
+	       } 
+	       if (!counter->created) {
 		  counter->CurrentValue = counter->MinValue;  /* default value */
 	       }
 	    }
