@@ -195,6 +195,12 @@ CREATE TABLE Counters (
    PRIMARY KEY (Counter(128))
    );
 
+CREATE TABLE CDImages (
+   MediaId INTEGER UNSIGNED NOT NULL,
+   LastBurn DATETIME NOT NULL,
+   PRIMARY KEY (MediaId)
+   );
+
 
 END-OF-DATA
 then
