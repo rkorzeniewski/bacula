@@ -71,6 +71,7 @@ realclean: clean
 	$(RMF) update_mysql_tables update_sqlite_tables create_sqlite_database
 	$(RMF) drop_bacula_tables drop_sqlite_tables make_bacula_tables
 	$(RMF) create_bacula_database grant_bacula_privileges
+	$(RMF) grant_sqlite_privileges
 	$(RMF) update_bacula_tables
 	$(RMF) drop_bdb_tables make_bdb_tables mysql postgresql
 
@@ -92,6 +93,7 @@ install:
 	$(INSTALL_SCRIPT) delete_catalog_backup $(DESTDIR)$(scriptdir)/delete_catalog_backup  
 	$(INSTALL_SCRIPT) grant_mysql_privileges $(DESTDIR)$(scriptdir)/grant_mysql_privileges	
 	$(INSTALL_SCRIPT) grant_postgresql_privileges $(DESTDIR)$(scriptdir)/grant_postgresql_privileges	
+	$(INSTALL_SCRIPT) grant_sqlite_privileges $(DESTDIR)$(scriptdir)/grant_sqlite_privileges	
 
 uninstall:
 	(cd $(DESTDIR)$(scriptdir); $(RMF) create_@DB_NAME@_database)
@@ -107,6 +109,7 @@ uninstall:
 	(cd $(DESTDIR)$(scriptdir); $(RMF) delete_catalog_backup)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) grant_mysql_privileges)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) grant_postgresql_privileges)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) grant_sqlite_privileges)
 
 
 # Semi-automatic generation of dependencies:
