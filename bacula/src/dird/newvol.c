@@ -59,13 +59,30 @@ int newVolume(JCR *jcr, MEDIA_DBR *mr)
 	 bstrncpy(mr->MediaType, jcr->store->media_type, sizeof(mr->MediaType));
 	 bstrncpy(name, pr.LabelFormat, sizeof(name));
          if (strchr(name, (int)'%') != NULL) {
-	    db_unlock(jcr->db);
             Jmsg(jcr, M_ERROR, 0, _("Illegal character in Label Format\n"));
-	    return 0;
+	    goto bail_out;
 	 }
-         sprintf(num, "%04d", ++pr.NumVols);
-	 bstrncpy(mr->VolumeName, name, sizeof(mr->VolumeName));
-	 bstrncat(mr->VolumeName, num, sizeof(mr->VolumeName));
+	 /* See if volume already exists */
+	 mr->VolumeName[0] = 0;
+	 for (int i=pr.NumVols+1; i<(int)pr.NumVols+11; i++) {
+	    MEDIA_DBR tmr;
+	    memset(&tmr, 0, sizeof(tmr));
+            sprintf(num, "%04d", i);
+	    bstrncpy(tmr.VolumeName, name, sizeof(tmr.VolumeName));
+	    bstrncat(tmr.VolumeName, num, sizeof(tmr.VolumeName));
+	    if (db_get_media_record(jcr, jcr->db, &tmr)) {
+	       Jmsg(jcr, M_WARNING, 0, 
+_("Wanted to create Volume \"%s\", but it already exists. Trying again.\n"), 
+		    tmr.VolumeName);
+	       continue;
+	    }
+	    bstrncpy(mr->VolumeName, tmr.VolumeName, sizeof(mr->VolumeName));
+	 }
+	 if (mr->VolumeName[0] == 0) {
+            Jmsg(jcr, M_ERROR, 0, _("Too many failures. Giving up creating Volume.\n"));
+	    goto bail_out;
+	 }
+	 pr.NumVols++;
 	 if (db_create_media_record(jcr, jcr->db, mr) &&
 	    db_update_pool_record(jcr, jcr->db, &pr)) {
 	    db_unlock(jcr->db);
@@ -76,6 +93,7 @@ int newVolume(JCR *jcr, MEDIA_DBR *mr)
 	 }
       }
    }
+bail_out:
    db_unlock(jcr->db);
    return 0;   
 }

@@ -155,9 +155,11 @@ db_update_client_record(void *jcr, B_DB *mdb, CLIENT_DBR *cr)
 {
    int stat;
    char ed1[50], ed2[50];
+   CLIENT_DBR tcr;
 
    db_lock(mdb);
-   if (!db_create_client_record(jcr, mdb, cr)) {
+   memcpy(&tcr, cr, sizeof(tcr));
+   if (!db_create_client_record(jcr, mdb, &tcr)) {
       db_unlock(mdb);
       return 0;
    }

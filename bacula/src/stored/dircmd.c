@@ -216,6 +216,13 @@ static int cancel_cmd(JCR *cjcr)
 	 if (jcr->file_bsock) {
 	    bnet_sig(jcr->file_bsock, BNET_TERMINATE);
 	 }
+	 /* If thread waiting on mount, wake him */
+	 if (jcr->device && jcr->device->dev &&      
+	      (jcr->device->dev->dev_blocked == BST_WAITING_FOR_SYSOP ||
+	       jcr->device->dev->dev_blocked == BST_UNMOUNTED ||
+	       jcr->device->dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP)) {
+	     pthread_cond_signal(&jcr->device->dev->wait_next_vol);
+	 }
          bnet_fsend(dir, _("3000 Job %s marked to be cancelled.\n"), jcr->Job);
 	 free_jcr(jcr);
       }

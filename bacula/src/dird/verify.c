@@ -323,7 +323,7 @@ static void verify_cleanup(JCR *jcr, int TermCode)
 	 msg_type = M_ERROR;	      /* Generate error message */
 	 break;
       case JS_Cancelled:
-         term_msg = _("Verify Cancelled");
+         term_msg = _("Verify Canceled");
 	 break;
       case JS_Differences:
          term_msg = _("Verify Differences");
