@@ -32,12 +32,6 @@
 extern char my_name[];
 extern int num_jobs_run;
 extern time_t daemon_start_time;
-#ifdef SMARTALLOC
-extern uint64_t sm_max_bytes;
-extern uint64_t sm_bytes;
-extern uint32_t sm_max_buffers;
-extern uint32_t sm_buffers;
-#endif
 
 /* Forward referenced functions */
 static void  list_terminated_jobs(void sendit(const char *msg, int len, void *sarg), void *arg);
@@ -86,7 +80,6 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
       sendit(msg, len, arg);
    }
 #endif
-#ifdef SMARTALLOC
    if (debug_level > 0) {
       len = Mmsg(&msg, _(" Heap: bytes=%s max_bytes=%s bufs=%s max_bufs=%s\n"),
 	    edit_uint64_with_commas(sm_bytes, b1),
@@ -95,7 +88,6 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
 	    edit_uint64_with_commas(sm_max_buffers, b4));
        sendit(msg, len, arg);
     }
-#endif
    if (debug_level > 0) {
       len = Mmsg(&msg, _(" Sizeof: off_t=%d size_t=%d\n"), sizeof(off_t),
 	    sizeof(size_t));

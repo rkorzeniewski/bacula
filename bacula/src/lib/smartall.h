@@ -26,6 +26,10 @@
 
  */
 
+extern uint64_t sm_max_bytes;
+extern uint64_t sm_bytes;
+extern uint32_t sm_max_buffers;
+extern uint32_t sm_buffers;
 
 #ifdef SMARTALLOC
 
