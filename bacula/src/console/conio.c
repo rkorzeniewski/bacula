@@ -43,9 +43,8 @@
 
 #endif
 
-#ifdef HAVE_TERMCAP_H
+#include <termios.h>
 #include <termcap.h>
-#endif
 #include "func.h"
 
 
