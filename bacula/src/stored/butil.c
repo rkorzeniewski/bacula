@@ -97,8 +97,10 @@ DEVICE *setup_to_access_device(JCR *jcr, int read_access)
 	   jcr->dev_name, configfile);
       return NULL;
    }
+   jcr->device = device;
    
    dev = init_dev(NULL, device);
+   jcr->device->dev = dev;
    if (!dev || !open_device(dev)) {
       Jmsg1(jcr, M_FATAL, 0, _("Cannot open %s\n"), jcr->dev_name);
       return NULL;

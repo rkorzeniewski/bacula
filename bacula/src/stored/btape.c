@@ -70,6 +70,9 @@ static void scan_blocks();
 static void set_volume_name(char *VolName, int volnum);
 static void rawfill_cmd();
 static void bfill_cmd();
+static bool open_the_device();
+static char *edit_device_codes(JCR *jcr, char *omsg, char *imsg, char *cmd);
+static void autochangercmd();
 
 
 /* Static variables */
@@ -118,7 +121,6 @@ int get_cmd(char *prompt);
 int main(int argc, char *argv[])
 {
    int ch;
-   DEV_BLOCK *block;
 
    /* Sanity checks */
    if (TAPE_BSIZE % DEV_BSIZE != 0 || TAPE_BSIZE / DEV_BSIZE == 0) {
@@ -205,20 +207,9 @@ int main(int argc, char *argv[])
    if (!dev) {
       exit(1);
    }
-   block = new_block(dev);
-   lock_device(dev);
-   if (!(dev->state & ST_OPENED)) {
-      Dmsg0(129, "Opening device.\n");
-      if (open_dev(dev, jcr->VolumeName, READ_WRITE) < 0) {
-         Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), dev->errmsg);
-	 unlock_device(dev);
-	 free_block(block);
-	 goto terminate;
-      }
+   if (!open_the_device()) {
+      goto terminate;
    }
-   Dmsg1(129, "open_dev %s OK\n", dev_name(dev));
-   unlock_device(dev);
-   free_block(block);
 
    Dmsg0(200, "Do tape commands\n");
    do_tape_cmds();
@@ -265,6 +256,28 @@ static void terminate_btape(int stat)
    exit(stat);
 }
 
+static bool open_the_device()
+{
+   DEV_BLOCK *block;
+   
+   block = new_block(dev);
+   lock_device(dev);
+   if (!(dev->state & ST_OPENED)) {
+      Dmsg1(200, "Opening device %s\n", jcr->VolumeName);
+      if (open_dev(dev, jcr->VolumeName, READ_WRITE) < 0) {
+         Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), dev->errmsg);
+	 unlock_device(dev);
+	 free_block(block);
+	 return false;
+      }
+   }
+   Dmsg1(000, "open_dev %s OK\n", dev_name(dev));
+   unlock_device(dev);
+   free_block(block);
+   return true;
+}
+
+
 void quitcmd()
 {
    quit = 1;
@@ -275,27 +288,8 @@ void quitcmd()
  */
 static void labelcmd()
 {
-   DEVRES *device;
-   int found = 0;
-
-   LockRes();
-   for (device=NULL; (device=(DEVRES *)GetNextRes(R_DEVICE, (RES *)device)); ) {
-      if (strcmp(device->device_name, dev->dev_name) == 0) {
-	 jcr->device = device;	      /* Arggg a bit of duplication here */
-	 device->dev = dev;
-	 dev->device = device;
-	 found = 1;
-	 break;
-      }
-   } 
-   UnlockRes();
-   if (!found) {
-      Pmsg2(0, "Could not find device %s in %s\n", dev->dev_name, configfile);
-      return;
-   }
-
    if (VolumeName) {
-      strcpy(cmd, VolumeName);
+      bstrncpy(cmd, VolumeName, sizeof(cmd));
    } else {
       if (!get_cmd("Enter Volume Name: ")) {
 	 return;
@@ -307,7 +301,7 @@ static void labelcmd()
          Pmsg1(0, "Device open failed. ERR=%s\n", strerror_dev(dev));
       }
    }
-   write_volume_label_to_dev(jcr, device, cmd, "Default");
+   write_volume_label_to_dev(jcr, jcr->device, cmd, "Default");
 }
 
 /*
@@ -709,6 +703,225 @@ static int append_test()
    return 1;
 }
 
+
+/*
+ * This test exercises the autochanger
+ */
+static int autochanger_test()
+{
+   POOLMEM *results, *changer;
+   int slot, status, loaded;
+   int timeout = 120;
+   int sleep_time = 0;
+
+   if (!dev_cap(dev, CAP_AUTOCHANGER)) {
+      return 1;
+   }
+   if (!(jcr->device && jcr->device->changer_name && jcr->device->changer_command)) {
+      Pmsg0(-1, "\nAutochanger enabled, but no name or no command device specified.\n");
+      return 1;
+   }
+
+   Pmsg0(-1, "\nTo test the autochanger you must have a blank tape in Slot 1.\n"
+             "I'm going to write on it.\n");
+   if (!get_cmd("\nDo you wish to continue with the Autochanger test? (y/n): ")) {
+      return 0;
+   }
+   if (cmd[0] != 'y' && cmd[0] != 'Y') {
+      return 0;
+   }
+
+   Pmsg0(-1, _("\n\n=== Autochanger test ===\n\n"));
+
+   results = get_pool_memory(PM_MESSAGE);
+   changer = get_pool_memory(PM_FNAME);
+
+try_again:
+   slot = 1;
+   jcr->VolCatInfo.Slot = slot;
+   /* Find out what is loaded, zero means device is unloaded */
+   Pmsg0(-1, _("3301 Issuing autochanger \"loaded\" command.\n"));
+   changer = edit_device_codes(jcr, changer, jcr->device->changer_command, 
+                "loaded");
+   status = run_program(changer, timeout, results);
+   Dmsg3(100, "run_prog: %s stat=%d result=%s\n", changer, status, results);
+   if (status == 0) {
+      loaded = atoi(results);
+   } else {
+      Pmsg1(-1, _("3991 Bad autochanger \"load slot\" status=%d.\n"), status);
+      loaded = -1;		/* force unload */
+      goto bail_out;
+   }
+   if (loaded) {
+      Pmsg1(-1, "Slot %d loaded. I am going to unload it.\n", loaded);
+   } else {
+      Pmsg0(-1, "Nothing loaded into the drive. OK.\n");
+   }
+   Dmsg1(100, "Results from loaded query=%s\n", results);
+   if (loaded) {
+      offline_or_rewind_dev(dev);
+      /* We are going to load a new tape, so close the device */
+      force_close_dev(dev);
+      Pmsg0(-1, _("3302 Issuing autochanger \"unload\" command.\n"));
+      changer = edit_device_codes(jcr, changer, 
+                     jcr->device->changer_command, "unload");
+      status = run_program(changer, timeout, NULL);
+      Pmsg2(-1, "unload status=%s %d\n", status==0?"OK":"Bad", status);
+   }
+
+   /*
+    * Load the Slot 1
+    */
+   Pmsg1(-1, _("3303 Issuing autochanger \"load slot %d\" command.\n"), slot);
+   changer = edit_device_codes(jcr, changer, jcr->device->changer_command, "load");
+   Dmsg1(200, "Changer=%s\n", changer);
+   status = run_program(changer, timeout, NULL);
+   if (status == 0) {
+      Pmsg1(-1,  _("3304 Autochanger \"load slot %d\" status is OK.\n"), slot);
+   } else {
+      Pmsg1(-1,  _("3992 Bad autochanger \"load slot\" status=%d.\n"), status);
+      goto bail_out;
+   }
+
+   if (!open_the_device()) {
+      goto bail_out;
+   }
+   bmicrosleep(sleep_time, 0);
+   if (!rewind_dev(dev)) {
+      Pmsg1(0, "Bad status from rewind. ERR=%s\n", strerror_dev(dev));
+      clrerror_dev(dev, -1);
+      Pmsg0(-1, "\nThe test failed, probably because you need to put\n"
+                "a longer sleep time in the mtx-script in the load) case.\n" 
+                "Adding a 30 second sleep and trying again ...\n");
+      sleep_time += 30;
+      goto try_again;
+   } else {
+      Pmsg1(0, "Rewound %s\n", dev_name(dev));
+   }
+      
+   if ((status = weof_dev(dev, 1)) < 0) {
+      Pmsg2(0, "Bad status from weof %d. ERR=%s\n", status, strerror_dev(dev));
+      goto bail_out;
+   } else {
+      Pmsg1(0, "Wrote EOF to %s\n", dev_name(dev));
+   }
+
+   if (sleep_time) {
+      Pmsg1(-1, "\nThe test worked this time. Please add:\n\n"
+                "   sleep %d\n\n"
+                "to your mtx-changer script in the load) case.\n\n",
+		sleep_time);
+   } else {
+      Pmsg0(-1, "\nThe test autochanger worked!!\n\n");
+   }
+
+   free_pool_memory(changer);
+   free_pool_memory(results);
+   return 1;
+
+
+bail_out:
+   free_pool_memory(changer);
+   free_pool_memory(results);
+   Pmsg0(-1, "You must correct this error or the Autochanger will not work.\n");
+   return -2;
+}
+
+static void autochangercmd()
+{
+   autochanger_test();
+}
+
+
+/*
+ * This test assumes that the append test has been done,
+ *   then it tests the fsf function.
+ */
+static int fsf_test()
+{
+   bool set_off = false;
+   
+   Pmsg0(-1, _("\n\n=== Forward space files test ===\n\n"
+               "This test is essential to Bacula.\n\n"
+               "I'm going to write five files then test forward spacing\n\n"));
+   rewindcmd();
+   wrcmd();
+   weofcmd();	   /* end file 0 */
+   wrcmd();
+   wrcmd();
+   weofcmd();	   /* end file 1 */
+   wrcmd();
+   wrcmd();
+   wrcmd();
+   weofcmd();	  /* end file 2 */
+   wrcmd();
+   wrcmd();
+   weofcmd();	  /* end file 3 */
+   wrcmd();
+   weofcmd();	  /* end file 4 */
+
+test_again:
+   rewindcmd();
+   Pmsg0(0, _("Now forward spacing 1 file.\n"));
+   if (!fsf_dev(dev, 1)) {
+      Pmsg1(0, "Bad status from fsr. ERR=%s\n", strerror_dev(dev));
+      goto bail_out;
+   }
+   Pmsg2(-1, _("We should be in file 1. I am at file %d. This is %s\n"), 
+      dev->file, dev->file == 1 ? "correct!" : "NOT correct!!!!");
+
+   if (dev->file != 1) {
+      goto bail_out;
+   }
+
+   Pmsg0(0, _("Now forward spacing 2 files.\n"));
+   if (!fsf_dev(dev, 2)) {
+      Pmsg1(0, "Bad status from fsr. ERR=%s\n", strerror_dev(dev));
+      goto bail_out;
+   }
+   Pmsg2(-1, _("We should be in file 3. I am at file %d. This is %s\n"), 
+      dev->file, dev->file == 3 ? "correct!" : "NOT correct!!!!");
+
+   if (dev->file != 3) {
+      goto bail_out;
+   }
+
+   rewindcmd();
+   Pmsg0(0, _("Now forward spacing 4 files.\n"));
+   if (!fsf_dev(dev, 4)) {
+      Pmsg1(0, "Bad status from fsr. ERR=%s\n", strerror_dev(dev));
+      goto bail_out;
+   }
+   Pmsg2(-1, _("We should be in file 4. I am at file %d. This is %s\n"), 
+      dev->file, dev->file == 4 ? "correct!" : "NOT correct!!!!");
+
+   if (dev->file != 4) {
+      goto bail_out;
+   }
+   if (set_off) {
+      Pmsg0(-1, "The test worked this time. Please add:\n\n"
+                "   Fast Forward Space File = no\n\n"
+                "to your Device resource for this drive.\n");
+   }
+   return 1;
+
+bail_out:
+   Pmsg0(-1, _("\nThe forward space file test failed.\n"));
+   if (dev_cap(dev, CAP_FASTFSF)) {
+      Pmsg0(-1, "You have Fast Forward Space File enabled.\n"
+              "I am turning it off then retring the test.\n");
+      dev->capabilities &= ~CAP_FASTFSF;
+      set_off = true;
+      goto test_again;
+   }
+   Pmsg0(-1, "You must correct this error or Bacula will not work.\n");
+   return -2;
+}
+
+
+
+
+
 /* 
  * This is a general test of Bacula's functions
  *   needed to read and write the tape.
@@ -724,12 +937,16 @@ static void testcmd()
    if (stat == -1) {		      /* first test failed */
       if (dev_cap(dev, CAP_EOM)) {
          Pmsg0(-1, "\nAppend test failed. Attempting again.\n"
-                   "Setting \"Hardware End of Medium = no\" and retrying append test.\n\n");
+                   "Setting \"Hardware End of Medium = no\n"
+                   "    and \"Fast Forward Space File = no\n"
+                   "and retrying append test.\n\n");
 	 dev->capabilities &= ~CAP_EOM; /* turn off eom */
+	 dev->capabilities &= ~CAP_FASTFSF; /* turn off fast fsf */
 	 stat = append_test();
 	 if (stat == 1) {
             Pmsg0(-1, "\n\nIt looks like the test worked this time, please add:\n\n"
                      "    Hardware End of Medium = No\n\n"
+                     "    Fast Forward Space File = No\n"
                      "to your Device resource in the Storage conf file.\n");
 	    goto all_done;
 	 }
@@ -746,23 +963,25 @@ static void testcmd()
 	    if (stat == 1) {
                Pmsg0(-1, "\n\nIt looks like the test worked this time, please add:\n\n"
                      "    Hardware End of Medium = No\n"
+                     "    Fast Forward Space File = No\n"
                      "    BSF at EOM = yes\n\n"
                      "to your Device resource in the Storage conf file.\n");
 	       goto all_done;
 	    }
 	 }
 
-         Pmsg0(-1, "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
-               "Unable to correct the problem. You MUST fix this\n"
-                "problem before Bacula can use your tape drive correctly\n");
-         Pmsg0(-1, "\nPerhaps running Bacula in fixed block mode will work.\n"
-               "Do so by setting:\n\n"
-               "Minimum Block Size = nnn\n"
-               "Maximum Block Size = nnn\n\n"
-               "in your Storage daemon's Device definition.\n"
-               "nnn must match your tape driver's block size.\n"
-               "This, however, is not really an ideal solution.\n");
       }
+      Pmsg0(-1, "\nAppend test failed.\n\n");
+      Pmsg0(-1, "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+            "Unable to correct the problem. You MUST fix this\n"
+             "problem before Bacula can use your tape drive correctly\n");
+      Pmsg0(-1, "\nPerhaps running Bacula in fixed block mode will work.\n"
+            "Do so by setting:\n\n"
+            "Minimum Block Size = nnn\n"
+            "Maximum Block Size = nnn\n\n"
+            "in your Storage daemon's Device definition.\n"
+            "nnn must match your tape driver's block size.\n"
+            "This, however, is not really an ideal solution.\n");
    }
 
 all_done:
@@ -788,6 +1007,10 @@ all_done:
    if (stat == 1) {
       re_read_block_test();
    }
+
+   fsf_test();			      /* do fast forward space file test */
+
+   autochanger_test();		      /* do autochanger test */
 
    Pmsg0(-1, _("\n=== End Append files test ===\n"));
    
@@ -1676,6 +1899,7 @@ static void bfill_cmd()
 
 struct cmdstruct { char *key; void (*func)(); char *help; }; 
 static struct cmdstruct commands[] = {
+ {"autochanger", autochangercmd, "test autochanger"},
  {"bsf",        bsfcmd,       "backspace file"},
  {"bsr",        bsrcmd,       "backspace record"},
  {"bfill",      bfill_cmd,    "fill tape using Bacula writes"},
@@ -1875,4 +2099,82 @@ static void set_volume_name(char *VolName, int volnum)
    vol_num = volnum;
    pm_strcpy(&jcr->VolumeName, VolName);
    bstrncpy(dev->VolCatInfo.VolCatName, VolName, sizeof(dev->VolCatInfo.VolCatName));
+}
+
+/*
+ * Edit codes into ChangerCommand
+ *  %% = %
+ *  %a = archive device name
+ *  %c = changer device name
+ *  %f = Client's name
+ *  %j = Job name
+ *  %o = command
+ *  %s = Slot base 0
+ *  %S = Slot base 1
+ *  %v = Volume name
+ *
+ *
+ *  omsg = edited output message
+ *  imsg = input string containing edit codes (%x)
+ *  cmd = command string (load, unload, ...) 
+ *
+ */
+static char *edit_device_codes(JCR *jcr, char *omsg, char *imsg, char *cmd) 
+{
+   char *p;
+   const char *str;
+   char add[20];
+
+   *omsg = 0;
+   Dmsg1(400, "edit_device_codes: %s\n", imsg);
+   for (p=imsg; *p; p++) {
+      if (*p == '%') {
+	 switch (*++p) {
+         case '%':
+            str = "%";
+	    break;
+         case 'a':
+	    str = dev_name(jcr->device->dev);
+	    break;
+         case 'c':
+	    str = NPRT(jcr->device->changer_name);
+	    break;
+         case 'o':
+	    str = NPRT(cmd);
+	    break;
+         case 's':
+            sprintf(add, "%d", jcr->VolCatInfo.Slot - 1);
+	    str = add;
+	    break;
+         case 'S':
+            sprintf(add, "%d", jcr->VolCatInfo.Slot);
+	    str = add;
+	    break;
+         case 'j':                    /* Job name */
+	    str = jcr->Job;
+	    break;
+         case 'v':
+	    str = NPRT(jcr->VolumeName);
+	    break;
+         case 'f':
+	    str = NPRT(jcr->client_name);
+	    break;
+
+	 default:
+            add[0] = '%';
+	    add[1] = *p;
+	    add[2] = 0;
+	    str = add;
+	    break;
+	 }
+      } else {
+	 add[0] = *p;
+	 add[1] = 0;
+	 str = add;
+      }
+      Dmsg1(400, "add_str %s\n", str);
+      pm_strcat(&omsg, (char *)str);
+      Dmsg1(400, "omsg=%s\n", omsg);
+   }
+   return omsg;
 }

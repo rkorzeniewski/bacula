@@ -92,6 +92,7 @@ static struct res_items dev_items[] = {
    {"bsfateom",              store_yesno,  ITEM(res_dev.cap_bits), CAP_BSFATEOM, ITEM_DEFAULT, 0},
    {"forwardspacerecord",    store_yesno,  ITEM(res_dev.cap_bits), CAP_FSR,  ITEM_DEFAULT, 1},
    {"forwardspacefile",      store_yesno,  ITEM(res_dev.cap_bits), CAP_FSF,  ITEM_DEFAULT, 1},
+   {"fastforwardspacefile",  store_yesno,  ITEM(res_dev.cap_bits), CAP_FASTFSF, ITEM_DEFAULT, 1},
    {"removablemedia",        store_yesno,  ITEM(res_dev.cap_bits), CAP_REM,  ITEM_DEFAULT, 1},
    {"randomaccess",          store_yesno,  ITEM(res_dev.cap_bits), CAP_RACCESS, 0, 0},
    {"automaticmount",        store_yesno,  ITEM(res_dev.cap_bits), CAP_AUTOMOUNT,  ITEM_DEFAULT, 0},

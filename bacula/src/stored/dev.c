@@ -703,6 +703,7 @@ int offline_or_rewind_dev(DEVICE *dev)
 int
 fsf_dev(DEVICE *dev, int num)
 { 
+   struct mtget mt_stat;
    struct mtop mt_com;
    int stat = 0;
 
@@ -724,13 +725,51 @@ fsf_dev(DEVICE *dev, int num)
    if (dev->state & ST_EOF) {
       Dmsg0(200, "ST_EOF set on entry to FSF\n");
    }
-   if (dev->state & ST_EOT) {
-      Dmsg0(200, "ST_EOT set on entry to FSF\n");
-   }
       
    Dmsg0(29, "fsf_dev\n");
    dev->block_num = 0;
-   if (dev_cap(dev, CAP_FSF)) {
+   /*
+    * If Fast forward space file is set, then we
+    *  use MTFSF to forward space and MTIOCGET
+    *  to get the file position. We assume that 
+    *  the SCSI driver will ensure that we do not
+    *  forward space over the end of data mark.
+    */
+   if (dev_cap(dev, CAP_FSF) && dev_cap(dev, CAP_FASTFSF)) {
+      mt_com.mt_op = MTFSF;
+      mt_com.mt_count = num;
+      stat = ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
+      if (stat < 0) {		      /* error => EOT */
+	 dev->state |= ST_EOT;
+         Dmsg0(200, "Set ST_EOT\n");
+	 clrerror_dev(dev, MTFSF);
+         Mmsg2(&dev->errmsg, _("ioctl MTFSF error on %s. ERR=%s.\n"),
+	    dev->dev_name, strerror(dev->dev_errno));
+         Dmsg1(200, "%s", dev->errmsg);
+	 return 0;
+      } else if (ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) < 0) {
+	    dev->state |= ST_EOT;
+	    clrerror_dev(dev, MTFSF);
+	    dev->dev_errno = errno;
+            Mmsg2(&dev->errmsg, _("ioctl MTIOCGET error on %s. ERR=%s.\n"),
+	       dev->dev_name, strerror(dev->dev_errno));
+            Dmsg1(200, "%s", dev->errmsg);
+	    return 0;
+      }
+      Dmsg2(200, "fsf file=%d block=%d\n", mt_stat.mt_fileno, mt_stat.mt_blkno);
+      dev->file = mt_stat.mt_fileno;
+      dev->state |= ST_EOF;	/* just read EOF */
+      dev->file_addr = 0;
+      return 1;
+
+   /* 
+    * Here if CAP_FSF is set, and virtually all drives
+    *  these days support it, we read a record, then forward
+    *  space one file. Using this procedure, which is slow,
+    *  is the only way we can be sure that we don't read
+    *  two consecutive EOF marks, which means End of Data.
+    */
+   } else if (dev_cap(dev, CAP_FSF)) {
       POOLMEM *rbuf;
       int rbuf_len;
       Dmsg0(200, "FSF has cap_fsf\n");
@@ -1122,7 +1161,7 @@ clrerror_dev(DEVICE *dev, int func)
 {
    /* Read and clear SCSI error status */
    union mterrstat mt_errstat;
-   Pmsg2(000, "Doing MTIOCERRSTAT errno=%d ERR=%s\n", dev->dev_errno,
+   Dmsg2(200, "Doing MTIOCERRSTAT errno=%d ERR=%s\n", dev->dev_errno,
       strerror(dev->dev_errno));
    ioctl(dev->fd, MTIOCERRSTAT, (char *)&mt_errstat);
 }

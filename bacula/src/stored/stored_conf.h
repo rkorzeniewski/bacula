@@ -75,7 +75,7 @@ struct DEVRES {
    char *device_name;                 /* Archive device name */
    char *changer_name;                /* Changer device name */
    char *changer_command;             /* Changer command  -- external program */
-   int  cap_bits;                     /* Capabilities of this device */
+   uint32_t cap_bits;                 /* Capabilities of this device */
    uint32_t max_changer_wait;         /* Changer timeout */
    uint32_t max_rewind_wait;          /* maximum secs to wait for rewind */
    uint32_t max_open_wait;            /* maximum secs to wait for open */
