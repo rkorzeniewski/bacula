@@ -548,9 +548,11 @@ static int backup_cmd(JCR *jcr)
    Dmsg1(110, "begin blast ff=%p\n", (FF_PKT *)jcr->ff);
    if (!blast_data_to_storage_daemon(jcr, NULL)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
+      bnet_suppress_error_messages(sd, 1);
    } else {
       set_jcr_job_status(jcr, JS_Terminated);
       if (jcr->JobStatus != JS_Terminated) {
+	 bnet_suppress_error_messages(sd, 1);
 	 goto cleanup;		      /* bail out now */
       }
       /* 

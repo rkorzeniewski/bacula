@@ -394,10 +394,13 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 	    ff_pkt->fname, strerror(errno));
       }
 
-#ifndef NO_FD_SEND_TEST
-      bnet_sig(sd, BNET_EOD);	      /* indicate end of file data */
-#endif /* NO_FD_SEND_TEST */
       close(ff_pkt->fid);	      /* close file */
+#ifndef NO_FD_SEND_TEST
+      if (!bnet_sig(sd, BNET_EOD)) {	 /* indicate end of file data */
+	 set_jcr_job_status(jcr, JS_ErrorTerminated);
+	 return 0;
+      }
+#endif /* NO_FD_SEND_TEST */
    }
 
 

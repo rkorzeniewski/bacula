@@ -231,6 +231,20 @@ int is_bnet_error(BSOCK *bsock)
    return bsock->errors;
 }
 
+/*
+ * Call here after error during closing to suppress error
+ *  messages which are due to the other end shutting down too.
+ */
+void
+bnet_suppress_error_messages(BSOCK *bsock, int flag)
+{      
+   bsock->suppress_error_msgs = flag;
+}
+
+
+/*
+ * Transmit spooled data now
+ */
 int bnet_despool(BSOCK *bsock)
 {
    int32_t pktsiz;
@@ -291,8 +305,10 @@ bnet_send(BSOCK *bsock)
 	 bsock->b_errno = errno;
       }
       if (rc < 0) {
-         Jmsg4(bsock->jcr, M_ERROR, 0, _("Write error sending to %s:%s:%d: ERR=%s\n"), 
-	       bsock->who, bsock->host, bsock->port,  bnet_strerror(bsock));
+	 if (!bsock->suppress_error_msgs) {
+            Jmsg4(bsock->jcr, M_ERROR, 0, _("Write error sending to %s:%s:%d: ERR=%s\n"), 
+		  bsock->who, bsock->host, bsock->port,  bnet_strerror(bsock));
+	 }
       } else {
          Jmsg5(bsock->jcr, M_ERROR, 0, _("Wrote %d bytes to %s:%s:%d, but only %d accepted.\n"), 
 	       bsock->who, bsock->host, bsock->port, bsock->msglen, rc);
@@ -318,8 +334,10 @@ bnet_send(BSOCK *bsock)
 	 bsock->b_errno = errno;
       }
       if (rc < 0) {
-         Jmsg4(bsock->jcr, M_ERROR, 0, _("Write error sending to %s:%s:%d: ERR=%s\n"), 
-	       bsock->who, bsock->host, bsock->port,  bnet_strerror(bsock));
+	 if (!bsock->suppress_error_msgs) {
+            Jmsg4(bsock->jcr, M_ERROR, 0, _("Write error sending to %s:%s:%d: ERR=%s\n"), 
+		  bsock->who, bsock->host, bsock->port,  bnet_strerror(bsock));
+	 }
       } else {
          Jmsg5(bsock->jcr, M_ERROR, 0, _("Wrote %d bytes to %s:%s:%d, but only %d accepted.\n"), 
 	       bsock->who, bsock->host, bsock->port, bsock->msglen, rc);
