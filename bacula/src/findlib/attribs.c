@@ -150,60 +150,69 @@ void encode_stat(char *buf, FF_PKT *ff_pkt, int data_stream)
 }
 
 
+/* Do casting according to unknown type to keep compiler happy */
+class castit {
+public:
+  template <class T> void plug(T &st, uint64_t val)
+    { st = (T)val; }
+};
+
 
 /* Decode a stat packet from base64 characters */
 int decode_stat(char *buf, struct stat *statp, int32_t *LinkFI) 
 {
    char *p = buf;
    int64_t val;
+   castit plugger;
+     
 
    p += from_base64(&val, p);
-   statp->st_dev = val;
-   p++; 			      /* skip space */
-   p += from_base64(&val, p);
-   statp->st_ino = val;
+   plugger.plug(statp->st_dev, val);
    p++;
    p += from_base64(&val, p);
-   statp->st_mode = val;
+   plugger.plug(statp->st_ino, val);
    p++;
    p += from_base64(&val, p);
-   statp->st_nlink = val;
+   plugger.plug(statp->st_mode, val);
    p++;
    p += from_base64(&val, p);
-   statp->st_uid = val;
+   plugger.plug(statp->st_nlink, val);
    p++;
    p += from_base64(&val, p);
-   statp->st_gid = val;
+   plugger.plug(statp->st_uid, val);
    p++;
    p += from_base64(&val, p);
-   statp->st_rdev = val;
+   plugger.plug(statp->st_gid, val);
    p++;
    p += from_base64(&val, p);
-   statp->st_size = val;
+   plugger.plug(statp->st_rdev, val);
+   p++;
+   p += from_base64(&val, p);
+   plugger.plug(statp->st_size, val);
    p++;
 #ifndef HAVE_MINGW
    p += from_base64(&val, p);
-   statp->st_blksize = val;
+   plugger.plug(statp->st_blksize, val);
    p++;
    p += from_base64(&val, p);
-   statp->st_blocks = val;
+   plugger.plug(statp->st_blocks, val);
    p++;
 #else
    p += from_base64(&val, p);
-//   statp->st_blksize = val;
+//   plugger.plug(statp->st_blksize, val);
    p++;
    p += from_base64(&val, p);
-//   statp->st_blocks = val;
+//   plugger.plug(statp->st_blocks, val);
    p++;
 #endif
    p += from_base64(&val, p);
-   statp->st_atime = val;
+   plugger.plug(statp->st_atime, val);
    p++;
    p += from_base64(&val, p);
-   statp->st_mtime = val;
+   plugger.plug(statp->st_mtime, val);
    p++;
    p += from_base64(&val, p);
-   statp->st_ctime = val;
+   plugger.plug(statp->st_ctime, val);
 
    /* Optional FileIndex of hard linked file data */
    if (*p == ' ' || (*p != 0 && *(p+1) == ' ')) {
@@ -220,7 +229,7 @@ int decode_stat(char *buf, struct stat *statp, int32_t *LinkFI)
       p++;
       p += from_base64(&val, p);
 #ifdef HAVE_CHFLAGS
-      statp->st_flags = (uint32_t)val;
+      plugger.plug(statp->st_flags, val);
    } else {
       statp->st_flags  = 0;
 #endif
