@@ -1,0 +1,73 @@
+#!/bin/sh
+#
+# Run a simple backup of the Bacula build directory but 
+#   split the archive into two volumes, then restore
+#   files on only one of the volumes and ensure that
+#   the other volume is not used.
+#
+cwd=`pwd`
+scripts/copy-test-confs
+scripts/cleanup
+echo "${cwd}/build" >/tmp/file-list
+bin/bacula stop 2>&1 >/dev/null
+bin/drop_sqlite_tables
+bin/make_sqlite_tables
+
+echo " "
+echo " "
+echo " === Starting bsr-opt-test  ==="
+echo " === Starting bsr-opt-test  ===" >working/log
+echo " "
+
+bin/bacula start 2>&1 >/dev/null
+bin/console -c bin/console.conf <<END_OF_DATA
+@output /dev/null
+messages
+@output tmp/log1.out
+label storage=File1
+TestVolume001
+label storage=File1
+TestVolume002
+update Volume=TestVolume001
+6
+3000000
+10
+run job=NightlySave storage=File1
+yes
+wait
+messages
+@# 
+@# now do a restore
+@#
+@output tmp/log2.out
+restore where=${cwd}/tmp/bacula-restores current
+unmark *
+cd ${cwd}/build/src/cats
+mark *
+ls
+done
+yes
+wait
+messages
+@output
+quit
+END_OF_DATA
+bin/bacula stop 2>&1 >/dev/null
+grep TestVolume001 working/restore.bsr
+bsrstat=$?
+grep "^Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
+bstat=$?
+grep "^Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
+rstat=$?
+diff -r build/src/cats  tmp/bacula-restores${cwd}/build/src/cats
+if [ $? != 0 -o $bsrstat != 1 -o $bstat != 0 -o $rstat != 0 ] ; then
+   echo " "
+   echo " "
+   echo "  !!!!! bsr-opt-test Bacula source failed!!! !!!!! "
+   echo "  !!!!! bsr-opt-test failed!!! !!!!! " >>test.out
+   echo " "
+else
+   echo "  ===== bsr-opt-test Bacula source OK ===== "
+   echo "  ===== bsr-opt-test OK ===== " >>test.out
+   scripts/cleanup
+fi
