@@ -61,5 +61,6 @@ if [ $? != 0 ] ; then
 else
    echo "  ===== Test5 /lib OK ===== "
    echo "  ===== Test5 OK ===== " >>test.out
+   cd ${cwd}
    scripts/cleanup
 fi
