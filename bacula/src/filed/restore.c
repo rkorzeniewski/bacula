@@ -72,7 +72,8 @@ int bclose_chksize(JCR *jcr, BFILE *bfd, off_t osize)
 void do_restore(JCR *jcr)
 {
    BSOCK *sd;
-   int32_t stream, prev_stream;
+   int32_t stream = 0;
+   int32_t prev_stream;
    uint32_t VolSessionId, VolSessionTime;
    bool extract = false;
    int32_t file_index;

@@ -1128,7 +1128,8 @@ close_bpipe(BPIPE *bpipe)
          bmicrosleep(1, 0);           /* wait one second */
          remaining_wait--;
       } else if (exitCode != 0) {
-         rval = exitCode | b_errno_exit;
+         /* Truncate exit code as it doesn't seem to be correct */
+         rval = (exitCode & 0xFF) | b_errno_exit;
          break;
       } else {
          break;                       /* Shouldn't get here */

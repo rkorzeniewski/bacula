@@ -58,7 +58,7 @@ static int open_sd_read_session(JCR *jcr);
 static int send_bootstrap_file(JCR *jcr);
 static int runbefore_cmd(JCR *jcr);
 static int runafter_cmd(JCR *jcr);
-static int run_cmd(JCR *jcr, char *cmd, const char *name);
+static bool run_cmd(JCR *jcr, char *cmd, const char *name);
 static void set_options(findFOPTS *fo, const char *opts);
 
 
@@ -208,7 +208,7 @@ void *handle_client_request(void *dirp)
 	    }
             Dmsg1(100, "Executing %s command.\n", cmds[i].cmd);
 	    if (!cmds[i].func(jcr)) {	      /* do command */
-	       quit = true;	    /* error or fully terminated,	get out */
+	       quit = true;	    /* error or fully terminated, get out */
                Dmsg0(20, "Quit command loop due to command error or Job done.\n");
 	    }
 	    break;
@@ -412,7 +412,7 @@ static int job_cmd(JCR *jcr)
 
 static int runbefore_cmd(JCR *jcr)
 {
-   int stat;
+   bool ok;
    BSOCK *dir = jcr->dir_bsock;
    POOLMEM *cmd = get_memory(dir->msglen+1);
 
@@ -427,9 +427,9 @@ static int runbefore_cmd(JCR *jcr)
    unbash_spaces(cmd);
 
    /* Run the command now */
-   stat = run_cmd(jcr, cmd, "ClientRunBeforeJob");
+   ok = run_cmd(jcr, cmd, "ClientRunBeforeJob");
    free_memory(cmd);
-   if (stat) {
+   if (ok) {
       bnet_fsend(dir, OKRunBefore);
       return 1;
    } else {
@@ -461,7 +461,7 @@ static int runafter_cmd(JCR *jcr)
    return bnet_fsend(dir, OKRunAfter);
 }
 
-static int run_cmd(JCR *jcr, char *cmd, const char *name)
+static bool run_cmd(JCR *jcr, char *cmd, const char *name)
 {
    POOLMEM *ecmd = get_pool_memory(PM_FNAME);
    int status;
@@ -475,23 +475,23 @@ static int run_cmd(JCR *jcr, char *cmd, const char *name)
       berrno be;
       Jmsg(jcr, M_FATAL, 0, _("%s could not execute. ERR=%s\n"), name,
 	 be.strerror());
-      return 0;
+      return false;
    }
    while (fgets(line, sizeof(line), bpipe->rfd)) {
       int len = strlen(line);
-      if (len > 0 && line[len-1] != '\n') {
-         bstrncat(line, "\n", sizeof(line));
+      if (len > 0 && line[len-1] == '\n') {
+	 line[len-1] = 0;
       }
-      Jmsg(jcr, M_INFO, 0, _("%s: %s"), name, line);
+      Jmsg(jcr, M_INFO, 0, _("%s: %s\n"), name, line);
    }
    status = close_bpipe(bpipe);
    if (status != 0) {
       berrno be;
       Jmsg(jcr, M_FATAL, 0, _("%s returned non-zero status=%d. ERR=%s\n"), name,
 	 status, be.strerror(status));
-      return 0;
+      return false;
    }
-   return 1;
+   return true;
 }
 
 
@@ -691,6 +691,7 @@ static void add_file_to_fileset(JCR *jcr, const char *fname, findFILESET *filese
       }
       break;
    case '<':
+      Dmsg0(100, "Doing < include on client.\n");
       p++;			/* skip over < */
       if ((ffd = fopen(p, "r")) == NULL) {
 	 berrno be;
@@ -700,6 +701,7 @@ static void add_file_to_fileset(JCR *jcr, const char *fname, findFILESET *filese
       }
       while (fgets(buf, sizeof(buf), ffd)) {
 	 strip_trailing_junk(buf);
+         Dmsg1(100, "%s\n", buf);
 	 fileset->incexe->name_list.append(bstrdup(buf));
       }
       fclose(ffd);

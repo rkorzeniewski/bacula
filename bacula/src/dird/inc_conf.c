@@ -477,7 +477,7 @@ static void store_regex(LEX *lc, RES_ITEM *item, int index, int pass)
    int token, rc;
    regex_t preg;
    char prbuf[500];
-   char *type;
+   const char *type;
    int newsize;
 
    token = lex_get_token(lc, T_SKIP_EOL);
@@ -570,7 +570,7 @@ static void store_writer(LEX *lc, RES_ITEM *item, int index, int pass)
 static void store_wild(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token;
-   char *type;
+   const char *type;
    int newsize;
 
    token = lex_get_token(lc, T_SKIP_EOL);
