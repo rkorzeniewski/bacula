@@ -27,6 +27,7 @@ For 1.30 release:
 - Document new immediate File save capability.
 - Document OPTIMIZE TABLE in MySQL
 - Fix watchdog pthread crash on Win32
+- Document labeling a whole magazine using "cat"
 
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
