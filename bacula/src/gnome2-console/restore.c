@@ -95,7 +95,7 @@ on_restore_add_button_clicked(GtkButton *button, gpointer user_data)
    int row;
 
    for (int i=0; i < num_selected; i++) {
-      row = (int)g_list_nth_data(restore->list->selection, i);
+      row = (int)(long int)g_list_nth_data(restore->list->selection, i);
       mark_row(row, true);
    }
 }
@@ -108,7 +108,7 @@ on_restore_remove_button_clicked(GtkButton *button, gpointer user_data)
    int row;
 
    for (int i=0; i < num_selected; i++) {
-      row = (int)g_list_nth_data(restore->list->selection, i);
+      row = (int)(long int)g_list_nth_data(restore->list->selection, i);
       mark_row(row, false);
    }
 }
@@ -307,11 +307,11 @@ static void select_row_cb(GtkCList *item, gint row, gint column,
 	 len = strlen(file);
          if (len > 0 && file[len-1] == '/') {
 	    /* Change to new directory */
-	    pm_strcpy(&restore->path, restore->fname);
+	    pm_strcpy(restore->path, restore->fname);
             if (*file == '*') {
-               Mmsg(&restore->fname, "%s%s", restore->path, file+1);
+               Mmsg(restore->fname, "%s%s", restore->path, file+1);
 	    } else {
-               Mmsg(&restore->fname, "%s%s", restore->path, file);
+               Mmsg(restore->fname, "%s%s", restore->path, file);
 	    }
 	    FillDirectory(restore->fname, restore);
 	 }

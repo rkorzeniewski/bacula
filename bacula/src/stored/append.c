@@ -164,7 +164,7 @@ bool do_append_data(JCR *jcr)
       }
       stream = (int32_t)str_to_int64(p);
 
-      Dmsg2(490, "<filed: Header FilInx=%d stream=%d\n", file_index, stream);
+      Dmsg2(890, "<filed: Header FilInx=%d stream=%d\n", file_index, stream);
 
       if (!(file_index > 0 && (file_index == last_file_index ||
 	  file_index == last_file_index + 1))) {
@@ -188,12 +188,12 @@ bool do_append_data(JCR *jcr)
 	 rec.data_len = ds->msglen;
 	 rec.data = ds->msg;		/* use message buffer */
 
-         Dmsg4(450, "before writ_rec FI=%d SessId=%d Strm=%s len=%d\n",
+         Dmsg4(850, "before writ_rec FI=%d SessId=%d Strm=%s len=%d\n",
 	    rec.FileIndex, rec.VolSessionId, stream_to_ascii(rec.Stream,rec.FileIndex), 
 	    rec.data_len);
 	  
 	 while (!write_record_to_block(dcr->block, &rec)) {
-            Dmsg2(650, "!write_record_to_block data_len=%d rem=%d\n", rec.data_len,
+            Dmsg2(850, "!write_record_to_block data_len=%d rem=%d\n", rec.data_len,
 		       rec.remainder);
 	    if (!write_block_to_device(dcr)) {
                Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
@@ -209,7 +209,7 @@ bool do_append_data(JCR *jcr)
 	    break;
 	 }
 	 jcr->JobBytes += rec.data_len;   /* increment bytes this job */
-         Dmsg4(350, "write_record FI=%s SessId=%d Strm=%s len=%d\n",
+         Dmsg4(850, "write_record FI=%s SessId=%d Strm=%s len=%d\n",
 	    FI_to_ascii(rec.FileIndex), rec.VolSessionId, 
 	    stream_to_ascii(rec.Stream, rec.FileIndex), rec.data_len);
 
@@ -220,7 +220,7 @@ bool do_append_data(JCR *jcr)
 	       if (are_attributes_spooled(jcr)) {
 		  jcr->dir_bsock->spool = true;
 	       }
-               Dmsg0(350, "Send attributes.\n");
+               Dmsg0(850, "Send attributes to dir.\n");
 	       if (!dir_update_file_attributes(dcr, &rec)) {
 		  jcr->dir_bsock->spool = false;
                   Jmsg(jcr, M_FATAL, 0, _("Error updating file attributes. ERR=%s\n"),

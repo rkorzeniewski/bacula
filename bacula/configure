@@ -8261,11 +8261,7 @@ if test "${ac_cv_sys_file_offset_bits+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   ac_cv_sys_file_offset_bits=no
-      case "$host_os" in
-        # HP-UX 10.20 and later
-        hpux10.[2-9][0-9]* | hpux1[1-9]* | hpux[2-9][0-9]*)
-          ac_cv_sys_file_offset_bits=64 ;;
-        esac
+      ac_cv_sys_file_offset_bits=64
       for ac_flag in $ac_cv_sys_largefile_CFLAGS no; do
         case "$ac_flag" in
         -D_FILE_OFFSET_BITS)
@@ -8291,11 +8287,7 @@ if test "${ac_cv_sys_largefile_source+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   ac_cv_sys_largefile_source=no
-      case "$host_os" in
-        # HP-UX 10.20 and later
-        hpux10.[2-9][0-9]* | hpux1[1-9]* | hpux[2-9][0-9]*)
-          ac_cv_sys_largefile_source=1 ;;
-        esac
+      ac_cv_sys_largefile_source=1
       for ac_flag in $ac_cv_sys_largefile_CFLAGS no; do
         case "$ac_flag" in
         -D_LARGEFILE_SOURCE)
@@ -8321,11 +8313,7 @@ if test "${ac_cv_sys_large_files+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   ac_cv_sys_large_files=no
-      case "$host_os" in
-        # AIX 4.2 and later
-        aix4.[2-9]* | aix4.1[0-9]* | aix[5-9].* | aix[1-9][0-9]*)
-          ac_cv_sys_large_files=1 ;;
-        esac
+      ac_cv_sys_large_files=1
       for ac_flag in $ac_cv_sys_largefile_CFLAGS no; do
         case "$ac_flag" in
         -D_LARGE_FILES)

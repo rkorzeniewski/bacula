@@ -22,6 +22,7 @@ DROP TABLE IF EXISTS Version;
 DROP TABLE IF EXISTS Counters;
 DROP TABLE IF EXISTS BaseFiles;
 DROP TABLE IF EXISTS UnsavedFiles;
+DROP TABLE IF EXISTS CDImages;
 END-OF-DATA
 then
    echo "Deletion of Bacula MySQL tables succeeded."
