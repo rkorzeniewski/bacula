@@ -59,7 +59,7 @@ daemon_start()
    /* In the PRODUCTION system, we close ALL
     * file descriptors except stdin, stdout, and stderr.
     */
-   for (i=sysconf(_SC_OPEN_MAX)-1; i >= 3; i--) {
+   for (i=sysconf(_SC_OPEN_MAX)-1; i > 2; i--) {
       close(i);
    }
 
