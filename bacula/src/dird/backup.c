@@ -131,7 +131,6 @@ int do_backup(JCR *jcr)
       goto bail_out;
    }
 
-
    /*
     * Open a message channel connection with the Storage
     * daemon. This is to let him know that our client
