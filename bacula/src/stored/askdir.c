@@ -434,8 +434,9 @@ int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
    return 1;
 }
 
-#define HB_TIME (20*60)   /* send a heatbeat once every 20 minutes while waiting */
-
+/*
+ * Wait for SysOp to mount a tape
+ */
 static int wait_for_sysop(JCR *jcr, DEVICE *dev, int wait_sec)
 {
    struct timeval tv;
@@ -454,7 +455,12 @@ static int wait_for_sysop(JCR *jcr, DEVICE *dev, int wait_sec)
     */
    gettimeofday(&tv, &tz);
    timeout.tv_nsec = tv.tv_usec * 1000;
-   timeout.tv_sec = tv.tv_sec + (wait_sec > HB_TIME ? HB_TIME: wait_sec);
+   if (me->heartbeat_interval) {
+      utime_t hb = me->heartbeat_interval;
+      timeout.tv_sec = tv.tv_sec + (wait_sec > hb ? hb : wait_sec);
+   } else {
+      timeout.tv_sec = tv.tv_sec + wait_sec;
+   }  
 
    P(dev->mutex);
    dev_blocked = dev->dev_blocked;
@@ -462,21 +468,26 @@ static int wait_for_sysop(JCR *jcr, DEVICE *dev, int wait_sec)
 
    for ( ; !job_canceled(jcr); ) {
       int add_wait;
+      time_t now;
 
       Dmsg1(190, "I'm going to sleep on device %s\n", dev->dev_name);
       stat = pthread_cond_timedwait(&dev->wait_next_vol, &dev->mutex, &timeout);
 
+      now = time(NULL);
+
       /* Note, this always triggers the first time. We want that. */
-      time_t now = time(NULL);
-      if (now - last_heartbeat >= HB_TIME) {
-	 /* send heartbeats */
-	 if (jcr->file_bsock) {
-	    bnet_sig(jcr->file_bsock, BNET_HEARTBEAT);
+      if (me->heartbeat_interval) {
+	 if (now - last_heartbeat >= me->heartbeat_interval) {
+	    /* send heartbeats */
+	    if (jcr->file_bsock) {
+	       bnet_sig(jcr->file_bsock, BNET_HEARTBEAT);
+               Dmsg0(000, "Send heartbeat to FD.\n");
+	    }
+	    if (jcr->dir_bsock) {
+	       bnet_sig(jcr->dir_bsock, BNET_HEARTBEAT);
+	    }
+	    last_heartbeat = now;
 	 }
-	 if (jcr->dir_bsock) {
-	    bnet_sig(jcr->dir_bsock, BNET_HEARTBEAT);
-	 }
-	 last_heartbeat = now;
       }
 
       /* Check if we blocked the device */
@@ -488,8 +499,8 @@ static int wait_for_sysop(JCR *jcr, DEVICE *dev, int wait_sec)
 	    break;
 	 }
 	 add_wait = wait_sec - (now - start);
-	 if (add_wait > HB_TIME) {
-	    add_wait = HB_TIME;
+	 if (me->heartbeat_interval && add_wait > me->heartbeat_interval) {
+	    add_wait = me->heartbeat_interval;
 	 }
       } else {			      /* Oops someone else has it blocked now */
 	 add_wait = 10; 	      /* hang around until he releases it */

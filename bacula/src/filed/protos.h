@@ -30,3 +30,6 @@ extern int authenticate_director(JCR *jcr);
 extern int authenticate_storagedaemon(JCR *jcr);
 extern int make_estimate(JCR *jcr);
 
+/* From heartbeat.c */
+void start_heartbeat_monitor(JCR *jcr);
+void stop_heartbeat_monitor(JCR *jcr);

@@ -37,3 +37,5 @@
 #endif
 
 extern int win32_client;              /* Are we running on Windows? */
+
+extern CLIENT *me;                    /* "Global" Client resource */

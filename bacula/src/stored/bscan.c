@@ -54,7 +54,9 @@ static int update_SIG_record(B_DB *db, char *SIGbuf, DEV_RECORD *rec, int type);
 
 
 /* Global variables */
-static STORES *me;
+STORES *me;
+
+/* Local variables */
 static DEVICE *dev = NULL;
 static B_DB *db;
 static JCR *bjcr;		      /* jcr for bscan */
