@@ -556,7 +556,7 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar)
       sql_free_result(mdb);
    }
 
-   Mmsg(&mdb->cmd, "INSERT INTO Path (Path)  VALUES ('%s')", mdb->path);
+   Mmsg(&mdb->cmd, "INSERT INTO Path (Path)  VALUES ('%s')", mdb->esc_name);
 
    if (!INSERT_DB(mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db Path record %s failed. ERR=%s\n"), 
