@@ -505,6 +505,7 @@ static void capcmd()
    printf("%sBSF ", dev->capabilities & CAP_BSF ? "" : "!");
    printf("%sFSR ", dev->capabilities & CAP_FSR ? "" : "!");
    printf("%sFSF ", dev->capabilities & CAP_FSF ? "" : "!");
+   printf("%sFASTFSF ", dev->capabilities & CAP_FASTFSF ? "" : "!");
    printf("%sEOM ", dev->capabilities & CAP_EOM ? "" : "!");
    printf("%sREM ", dev->capabilities & CAP_REM ? "" : "!");
    printf("%sRACCESS ", dev->capabilities & CAP_RACCESS ? "" : "!");
@@ -603,11 +604,11 @@ static int re_read_block_test()
    }
 
    Pmsg0(-1, _("\n=== Write, backup, and re-read test ===\n\n"
-      "I'm going to write three records and an eof\n"
-      "then backup over the eof and re-read the last record.\n"     
+      "I'm going to write three records and an EOF\n"
+      "then backup over the EOF and re-read the last record.\n"     
       "Bacula does this after writing the last block on the\n"
-      "tape to verify that the block was written correctly.\n"
-      "It is not an *essential* feature ...\n\n")); 
+      "tape to verify that the block was written correctly.\n\n"
+      "This is not an *essential* feature ...\n\n")); 
    rewindcmd();
    block = new_block(dev);
    rec = new_record();
@@ -700,6 +701,215 @@ bail_out:
    return stat;
 }
 
+
+/*
+ * This test writes Bacula blocks to the tape in
+ *   several files. It then rewinds the tape and attepts
+ *   to read these blocks back checking the data.
+ */
+static int write_read_test()
+{
+   DEV_BLOCK *block;
+   DEV_RECORD *rec;
+   int stat = 0;
+   int len, i, j;
+
+   Pmsg0(-1, _("\n=== Write, rewind, and re-read test ===\n\n"
+      "I'm going to write 10 records and an EOF\n"
+      "then write 10 records and an EOF, then rewind,\n"     
+      "and re-read the data to verify that it is correct.\n\n"
+      "This is an *essential* feature ...\n\n")); 
+   block = new_block(dev);
+   rec = new_record();
+   if (!rewind_dev(dev)) {
+      Pmsg1(0, "Bad status from rewind. ERR=%s\n", strerror_dev(dev));
+      goto bail_out;
+   }
+   rec->data = check_pool_memory_size(rec->data, block->buf_len);
+   len = rec->data_len = block->buf_len-100;
+   for (i=1; i<=10; i++) {
+      memset(rec->data, i, rec->data_len);
+      if (!write_record_to_block(block, rec)) {
+         Pmsg0(0, _("Error writing record to block.\n")); 
+	 goto bail_out;
+      }
+      if (!write_block_to_dev(jcr, dev, block)) {
+         Pmsg0(0, _("Error writing block to device.\n")); 
+	 goto bail_out;
+      }
+   }
+   Pmsg1(0, _("Wrote 10 blocks of %d bytes.\n"), rec->data_len);
+   weofcmd();
+   for (i=11; i<=20; i++) {
+      memset(rec->data, i, rec->data_len);
+      if (!write_record_to_block(block, rec)) {
+         Pmsg0(0, _("Error writing record to block.\n")); 
+	 goto bail_out;
+      }
+      if (!write_block_to_dev(jcr, dev, block)) {
+         Pmsg0(0, _("Error writing block to device.\n")); 
+	 goto bail_out;
+      }
+   }
+   Pmsg1(0, _("Wrote 10 blocks of %d bytes.\n"), rec->data_len);
+   weofcmd();
+   if (dev_cap(dev, CAP_TWOEOF)) {
+      weofcmd();
+   }
+   if (!rewind_dev(dev)) {
+      Pmsg1(0, "Bad status from rewind. ERR=%s\n", strerror_dev(dev));
+      goto bail_out;
+   } else {
+      Pmsg0(0, "Rewind OK.\n");
+   }
+   for (i=1; i<=20; i++) {
+read_again:
+      if (!read_block_from_dev(jcr, dev, block, NO_BLOCK_NUMBER_CHECK)) {
+	 if (dev_state(dev, ST_EOF)) {
+            Pmsg0(-1, _("Got EOF on tape.\n"));
+	    goto read_again;
+	 }
+         Pmsg1(0, _("Read block failed! ERR=%s\n"), strerror(dev->dev_errno));
+	 goto bail_out;
+      }
+      memset(rec->data, 0, rec->data_len);
+      if (!read_record_from_block(block, rec)) {
+         Pmsg1(0, _("Read record failed! ERR=%s\n"), strerror(dev->dev_errno));
+	 goto bail_out;
+      }
+      for (j=0; j<len; j++) {
+	 if (rec->data[j] != i) {
+            Pmsg3(0, _("Bad data in record. Expected %d, got %d at byte %d. Test failed!\n"),
+	       i, rec->data[j], j);
+	    goto bail_out;
+	 }
+      }
+      if (i == 10 || i == 20) {
+         Pmsg0(-1, _("10 blocks re-read correctly.\n"));
+      }
+   }
+   Pmsg0(-1, _("=== Test Succeeded. End Write, rewind, and re-read test ===\n\n"));
+   stat = 1;
+
+bail_out:
+   free_block(block);
+   free_record(rec);
+   return stat;
+}
+
+/*
+ * This test writes Bacula blocks to the tape in
+ *   several files. It then rewinds the tape and attepts
+ *   to read these blocks back checking the data.
+ */
+static int position_test()
+{
+   DEV_BLOCK *block;
+   DEV_RECORD *rec;
+   int stat = 0;
+   int len, i, j;
+
+   Pmsg0(-1, _("\n=== Write, rewind, and position test ===\n\n"
+      "I'm going to write 10 records and an EOF\n"
+      "then write 10 records and an EOF, then rewind,\n"     
+      "and position to a few blocks and verify that it is correct.\n\n"
+      "This is an *essential* feature ...\n\n")); 
+   block = new_block(dev);
+   rec = new_record();
+   if (!rewind_dev(dev)) {
+      Pmsg1(0, "Bad status from rewind. ERR=%s\n", strerror_dev(dev));
+      goto bail_out;
+   }
+   rec->data = check_pool_memory_size(rec->data, block->buf_len);
+   len = rec->data_len = block->buf_len-100;
+   for (i=1; i<=10; i++) {
+      memset(rec->data, i, rec->data_len);
+      if (!write_record_to_block(block, rec)) {
+         Pmsg0(0, _("Error writing record to block.\n")); 
+	 goto bail_out;
+      }
+      if (!write_block_to_dev(jcr, dev, block)) {
+         Pmsg0(0, _("Error writing block to device.\n")); 
+	 goto bail_out;
+      }
+   }
+   Pmsg1(0, _("Wrote 10 blocks of %d bytes.\n"), rec->data_len);
+   weofcmd();
+   for (i=11; i<=20; i++) {
+      memset(rec->data, i, rec->data_len);
+      if (!write_record_to_block(block, rec)) {
+         Pmsg0(0, _("Error writing record to block.\n")); 
+	 goto bail_out;
+      }
+      if (!write_block_to_dev(jcr, dev, block)) {
+         Pmsg0(0, _("Error writing block to device.\n")); 
+	 goto bail_out;
+      }
+   }
+   Pmsg1(0, _("Wrote 10 blocks of %d bytes.\n"), rec->data_len);
+   weofcmd();
+   if (dev_cap(dev, CAP_TWOEOF)) {
+      weofcmd();
+   }
+   if (!rewind_dev(dev)) {
+      Pmsg1(0, "Bad status from rewind. ERR=%s\n", strerror_dev(dev));
+      goto bail_out;
+   } else {
+      Pmsg0(0, "Rewind OK.\n");
+   }
+
+   for (i=1; i<=20; i++) {
+      if (i != 5 && i != 17) {
+	 continue;
+      }
+      if (i == 5) {
+         Pmsg0(-1, "Reposition to file:block 0:4\n");
+	 if (!reposition_dev(dev, 0, 4)) {
+            Pmsg0(0, "Reposition error.\n");
+	    goto bail_out;
+	 }
+      } else {
+         Pmsg0(-1, "Reposition to file:block 1:6\n");
+	 if (!reposition_dev(dev, 1, 6)) {
+            Pmsg0(0, "Reposition error.\n");
+	    goto bail_out;
+	 }
+      }
+read_again:
+      if (!read_block_from_dev(jcr, dev, block, NO_BLOCK_NUMBER_CHECK)) {
+	 if (dev_state(dev, ST_EOF)) {
+            Pmsg0(-1, _("Got EOF on tape.\n"));
+	    goto read_again;
+	 }
+         Pmsg1(0, _("Read block failed! ERR=%s\n"), strerror(dev->dev_errno));
+	 goto bail_out;
+      }
+      memset(rec->data, 0, rec->data_len);
+      if (!read_record_from_block(block, rec)) {
+         Pmsg1(0, _("Read record failed! ERR=%s\n"), strerror(dev->dev_errno));
+	 goto bail_out;
+      }
+      for (j=0; j<len; j++) {
+	 if (rec->data[j] != i) {
+            Pmsg3(0, _("Bad data in record. Expected %d, got %d at byte %d. Test failed!\n"),
+	       i, rec->data[j], j);
+	    goto bail_out;
+	 }
+      }
+      Pmsg0(-1, _("Block re-read correctly.\n"));
+   }
+   Pmsg0(-1, _("=== Test Succeeded. End Write, rewind, and re-read test ===\n\n"));
+   stat = 1;
+
+bail_out:
+   free_block(block);
+   free_record(rec);
+   return stat;
+}
+
+
+
+
 /*
  * This test writes some records, then writes an end of file,
  *   rewinds the tape, moves to the end of the data and attepts
@@ -754,7 +964,6 @@ static int append_test()
    if (dev->file != 4) {
       return -2;
    }
-
    return 1;
 }
 
@@ -964,10 +1173,9 @@ test_again:
    }
 
    Pmsg0(-1, "\n");
-   Pmsg0(0, _("Now forward spacing 4 more files.\n"));
-   if (!fsf_dev(dev, 4)) {
+   Pmsg0(0, _("Now forward spacing 1 more file.\n"));
+   if (!fsf_dev(dev, 1)) {
       Pmsg1(0, "Bad status from fsr. ERR=%s\n", strerror_dev(dev));
-      goto bail_out;
    }
    Pmsg2(-1, _("We should be in file 5. I am at file %d. This is %s\n"), 
       dev->file, dev->file == 5 ? "correct!" : "NOT correct!!!!");
@@ -1002,6 +1210,13 @@ static void testcmd()
 {
    int stat;
 
+   if (!write_read_test()) {
+      return;
+   }
+   if (!position_test()) {
+      return;
+   }
+
    stat = append_test();
    if (stat == 1) {		      /* OK get out */
       goto all_done;
@@ -1023,8 +1238,8 @@ static void testcmd()
 	    goto all_done;
 	 }
 	 if (stat == -1) {
-            Pmsg0(-1, "\n\nThat appears not to have corrected the problem.\n");
-	    goto all_done;
+            Pmsg0(-1, "\n\nThat appears *NOT* to have corrected the problem.\n");
+	    goto failed;
 	 }
 	 /* Wrong count after append */
 	 if (stat == -2) {
@@ -1043,6 +1258,7 @@ static void testcmd()
 	 }
 
       }
+failed:
       Pmsg0(-1, "\nAppend test failed.\n\n");
       Pmsg0(-1, "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
             "Unable to correct the problem. You MUST fix this\n"
@@ -1052,8 +1268,11 @@ static void testcmd()
             "Minimum Block Size = nnn\n"
             "Maximum Block Size = nnn\n\n"
             "in your Storage daemon's Device definition.\n"
-            "nnn must match your tape driver's block size.\n"
-            "This, however, is not really an ideal solution.\n");
+            "nnn must match your tape driver's block size, which\n"
+            "can be determined by reading your tape manufacturers\n"
+            "information, and the information on your kernel dirver.\n"
+            "Fixed block sizes, however, are not normally an ideal solution.\n");
+       return;
    }
 
 all_done:

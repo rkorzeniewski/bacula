@@ -432,7 +432,7 @@ eod_dev(DEVICE *dev)
 
    if (dev_cap(dev, CAP_FASTFSF) && !dev_cap(dev, CAP_EOM)) {
       struct mtget mt_stat;
-      Dmsg0(200,"PAPED using FAST FSF for EOM\n");
+      Dmsg0(000,"Using FAST FSF for EOM\n");
       if (ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) == 0 && mt_stat.mt_fileno <= 0) {
 	if (!rewind_dev(dev)) {
 	  return 0;
@@ -450,11 +450,11 @@ eod_dev(DEVICE *dev)
    }
 
    if (dev_cap(dev, CAP_EOM)) {
-      Dmsg0(200,"PAPED using EOM for EOM\n");
+      Dmsg0(000,"Using EOM for EOM\n");
       mt_com.mt_op = MTEOM;
       mt_com.mt_count = 1;
    }
-   if(dev_cap(dev, CAP_FASTFSF) || dev_cap(dev, CAP_EOM)) {
+   if (dev_cap(dev, CAP_FASTFSF) || dev_cap(dev, CAP_EOM)) {
       if ((stat=ioctl(dev->fd, MTIOCTOP, (char *)&mt_com)) < 0) {
          Dmsg1(50, "ioctl error: %s\n", strerror(dev->dev_errno));
 	 clrerror_dev(dev, mt_com.mt_op);
@@ -470,7 +470,7 @@ eod_dev(DEVICE *dev)
 	    dev->dev_name, strerror(dev->dev_errno));
 	 return 0;
       }
-      Dmsg2(200, "EOD file=%d block=%d\n", mt_stat.mt_fileno, mt_stat.mt_blkno);
+      Dmsg2(000, "EOD file=%d block=%d\n", mt_stat.mt_fileno, mt_stat.mt_blkno);
       dev->file = mt_stat.mt_fileno;
 
    /*
