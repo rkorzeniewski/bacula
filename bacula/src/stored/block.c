@@ -107,6 +107,7 @@ DEV_BLOCK *new_block(DEVICE *dev)
 
    memset(block, 0, sizeof(DEV_BLOCK));
 
+   /* If the user has specified a max_block_size, use it as the default */
    if (dev->max_block_size == 0) {
       block->buf_len = DEFAULT_BLOCK_SIZE;
    } else {
@@ -205,12 +206,12 @@ static int unser_block_header(DEVICE *dev, DEV_BLOCK *block)
       block->BlockVer = 1;
       block->bufp = block->buf + bhl;
       if (strncmp(Id, BLKHDR1_ID, BLKHDR_ID_LENGTH) != 0) {
-      Mmsg2(&dev->errmsg, _("Buffer ID error. Wanted: %s, got %s. Buffer discarded.\n"),
+         Mmsg2(&dev->errmsg, _("Buffer ID error. Wanted: %s, got %s. Buffer discarded.\n"),
 	    BLKHDR1_ID, Id);
-      Emsg0(M_ERROR, 0, dev->errmsg);
-      return 0;
-   }
-   } else {
+	 Emsg0(M_ERROR, 0, dev->errmsg);
+	 return 0;
+      }
+   } else if (Id[3] == '2') {
       unser_uint32(block->VolSessionId);
       unser_uint32(block->VolSessionTime);
       bhl = BLKHDR2_LENGTH;
@@ -222,9 +223,19 @@ static int unser_block_header(DEVICE *dev, DEV_BLOCK *block)
 	 Emsg0(M_ERROR, 0, dev->errmsg);
 	 return 0;
       }
+   } else {
+      Mmsg1(&dev->errmsg, _("Expected block-id BB01 or BB02, got %s. Buffer discarded.\n"), Id);
+      Emsg0(M_ERROR, 0, dev->errmsg);
+      return 0;
    }
 
-   ASSERT(block_len < MAX_BLOCK_LENGTH);    /* temp sanity check */
+   /* Sanity check */
+   if (block_len > MAX_BLOCK_LENGTH) {
+      Mmsg1(&dev->errmsg,  _("Block length %u is insane (too large), probably due to a bad archive.\n"),
+	 block_len);
+      Emsg0(M_ERROR, 0, dev->errmsg);
+      return 0;
+   }
 
    Dmsg1(190, "unser_block_header block_len=%d\n", block_len);
    /* Find end of block or end of buffer whichever is smaller */
@@ -238,12 +249,6 @@ static int unser_block_header(DEVICE *dev, DEV_BLOCK *block)
    block->BlockNumber = BlockNumber;
    Dmsg3(190, "Read binbuf = %d %d block_len=%d\n", block->binbuf,
       bhl, block_len);
-   if (block_len > block->buf_len) {
-      Mmsg2(&dev->errmsg,  _("Block length %u is greater than buffer %u\n"),
-	 block_len, block->buf_len);
-      Emsg0(M_ERROR, 0, dev->errmsg);
-      return 0;
-   }
    if (block_len <= block->read_len) {
       BlockCheckSum = bcrc32((uint8_t *)block->buf+BLKHDR_CS_LENGTH,
 			 block_len-BLKHDR_CS_LENGTH);
@@ -372,7 +377,6 @@ int write_block_to_dev(DEVICE *dev, DEV_BLOCK *block)
       weof_dev(dev, 1); 	      /* write second eof */
       return 0;
    }
-// Dmsg1(000, "Pos after write=%lld\n", lseek(dev->fd, (off_t)0, SEEK_CUR));
    dev->VolCatInfo.VolCatBytes += block->binbuf;
    dev->VolCatInfo.VolCatBlocks++;   
    dev->file_addr += wlen;
@@ -415,17 +419,19 @@ int read_block_from_device(DEVICE *dev, DEV_BLOCK *block)
 int read_block_from_dev(DEVICE *dev, DEV_BLOCK *block)
 {
    size_t stat;
+   int looping;
 
+   looping = 0;
    Dmsg1(100, "Full read() in read_block_from_device() len=%d\n",
 	 block->buf_len);
-// Dmsg1(000, "Pos before read=%lld\n", lseek(dev->fd, (off_t)0, SEEK_CUR));
+reread:
+   if (looping > 1) {
+      Mmsg1(&dev->errmsg, _("Block buffer size looping problem on device %s\n"),
+	 dev->dev_name);
+      block->read_len = 0;
+      return 0;
+   }
    if ((stat=read(dev->fd, block->buf, (size_t)block->buf_len)) < 0) {
-
-/* ***FIXME****  add code to detect buffer too small, and
-   reallocate buffer, backspace, and reread.
-   ENOMEM
- */
-
       Dmsg1(90, "Read device got: ERR=%s\n", strerror(errno));
       clrerror_dev(dev, -1);
       block->read_len = 0;
@@ -433,7 +439,6 @@ int read_block_from_dev(DEVICE *dev, DEV_BLOCK *block)
 	 dev->dev_name, strerror(dev->dev_errno));
       return 0;
    }
-// Dmsg1(000, "Pos after read=%lld\n", lseek(dev->fd, (off_t)0, SEEK_CUR));
    Dmsg1(90, "Read device got %d bytes\n", stat);
    if (stat == 0) {		/* Got EOF ! */
       dev->block_num = block->read_len = 0;
@@ -455,8 +460,45 @@ int read_block_from_dev(DEVICE *dev, DEV_BLOCK *block)
       block->read_len = block->binbuf = 0;
       return 0; 		/* return error */
    }  
+
    if (!unser_block_header(dev, block)) {
       return 0;
+   }
+
+   /*
+    * If the block is bigger than the buffer, we reposition for
+    *  re-reading the block, allocate a buffer of the correct size,
+    *  and go re-read.
+    */
+   if (block->block_len > block->buf_len) {
+      Mmsg2(&dev->errmsg,  _("Block length %u is greater than buffer %u. Attempting recovery.\n"),
+	 block->block_len, block->buf_len);
+      Emsg0(M_WARNING, 0, dev->errmsg);
+      Dmsg1(000, "%s", dev->errmsg);
+      /* Attempt to reposition to re-read the block */
+      if (dev->state & ST_TAPE) {
+         Dmsg0(000, "Backspace record for reread.\n");
+	 if (bsf_dev(dev, 1) != 0) {
+	    Emsg0(M_ERROR, 0, dev->errmsg);
+	    return 0;
+	 }
+      } else {
+         Dmsg0(000, "Seek to beginning of block for reread.\n");
+	 off_t pos = lseek(dev->fd, (off_t)0, SEEK_CUR); /* get curr pos */
+	 pos -= block->read_len;
+	 lseek(dev->fd, pos, SEEK_SET);   
+      }
+      Mmsg1(&dev->errmsg, _("Resetting buffer size to %u bytes.\n"), block->block_len);
+      Emsg0(M_WARNING, 0, dev->errmsg);
+      Dmsg1(000, "%s", dev->errmsg);
+      /* Set new block length */
+      dev->max_block_size = block->block_len;
+      block->buf_len = block->block_len;
+      free_memory(block->buf);
+      block->buf = get_memory(block->buf_len);
+      empty_block(block);
+      looping++;
+      goto reread;		      /* re-read block with correct block size */
    }
 
    if (block->block_len > block->read_len) {
@@ -466,11 +508,6 @@ int read_block_from_dev(DEVICE *dev, DEV_BLOCK *block)
       block->read_len = block->binbuf = 0;
       return 0; 		/* return error */
    }  
-
-   /* Make sure block size is not too big (temporary
-    * sanity check) and that we read the full block.
-    */
-   ASSERT(block->block_len < MAX_BLOCK_LENGTH);
 
    dev->state &= ~(ST_EOF|ST_SHORT); /* clear EOF and short block */
    dev->block_num++;

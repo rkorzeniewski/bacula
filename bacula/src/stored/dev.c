@@ -819,6 +819,8 @@ fsr_dev(DEVICE *dev, int num)
 
 /* 
  * Backward space a record
+ *   Returns:  0 on success
+ *	      -1 on failure
  */
 int
 bsr_dev(DEVICE *dev, int num)

@@ -49,6 +49,7 @@ int win32_client = 0;
 
 static char *configfile = NULL;
 static int foreground = 0;
+static int inetd_request = 0;
 static workq_t dir_workq;	      /* queue of work from Director */
 
 CLIENT *me;			      /* my resource */
@@ -61,6 +62,7 @@ static void usage()
 "        -c <file>   use <file> as configuration file\n"
 "        -dnn        set debug level to nn\n"
 "        -f          run in foreground (for debugging)\n"
+"        -i          inetd request\n"
 "        -s          no signals (for debugging)\n"
 "        -t          test configuration file and exit\n"
 "        -?          print this message.\n"
@@ -91,7 +93,7 @@ int main (int argc, char *argv[])
 
    memset(&last_job, 0, sizeof(last_job));
 
-   while ((ch = getopt(argc, argv, "c:d:fst?")) != -1) {
+   while ((ch = getopt(argc, argv, "c:d:fist?")) != -1) {
       switch (ch) {
          case 'c':                    /* configuration file */
 	    if (configfile != NULL) {
@@ -111,6 +113,9 @@ int main (int argc, char *argv[])
 	    foreground = TRUE;
 	    break;
 
+         case 'i':
+	    inetd_request = TRUE;
+	    break;
          case 's':
 	    no_signals = TRUE;
 	    break;
@@ -182,12 +187,14 @@ Without that I don't know who I am :-(\n"), configfile);
       terminate_filed(0);
    }
 
-   if (!foreground) {
+   if (!foreground &&!inetd_request) {
       daemon_start();
       init_stack_dump();	      /* set new pid */
    }
 
-   create_pid_file(me->pid_directory, "bacula-fd", me->FDport);
+   if (!inetd_request) {
+      create_pid_file(me->pid_directory, "bacula-fd", me->FDport);
+   }
 
 #ifdef BOMB
    me += 1000000;
@@ -197,11 +204,17 @@ Without that I don't know who I am :-(\n"), configfile);
 
    start_watchdog();		      /* start watchdog thread */
 
-   /* Become server, and handle requests */
-   Dmsg1(10, "filed: listening on port %d\n", me->FDport);
-   bnet_thread_server(me->FDaddr, me->FDport, me->MaxConcurrentJobs, 
+   if (inetd_request) {
+      BSOCK *bs = init_bsock(NULL, 0, "client", "unknown client", me->FDport);
+      handle_client_request((void *)bs);
+   } else {
+      /* Become server, and handle requests */
+      Dmsg1(10, "filed: listening on port %d\n", me->FDport);
+      bnet_thread_server(me->FDaddr, me->FDport, me->MaxConcurrentJobs, 
 		      &dir_workq, handle_client_request);
+   }
 
+   term_msg();
    exit(0);			      /* should never get here */
 }
 

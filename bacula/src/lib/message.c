@@ -611,7 +611,7 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
        if (bit_is_set(type, d->msg_types)) {
 	  switch (d->dest_code) {
 	     case MD_CONSOLE:
-                Dmsg1(200, "CONSOLE for following err: %s\n", msg);
+                Dmsg1(400, "CONSOLE for following msg: %s", msg);
 		if (!con_fd) {
                    con_fd = fopen(con_fname, "a+");
                    Dmsg0(200, "Console file not open.\n");
@@ -635,12 +635,12 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 		}
 		break;
 	     case MD_SYSLOG:
-                Dmsg1(200, "SYSLOG for following err: %s\n", msg);
+                Dmsg1(400, "SYSLOG for collowing msg: %s\n", msg);
 		/* We really should do an openlog() here */
 		syslog(LOG_DAEMON|LOG_ERR, msg);
 		break;
 	     case MD_OPERATOR:
-                Dmsg1(200, "OPERATOR for following err: %s\n", msg);
+                Dmsg1(400, "OPERATOR for collowing msg: %s\n", msg);
 		mcmd = get_pool_memory(PM_MESSAGE);
 		d->fd = open_mail_pipe(jcr, &mcmd, d);
 		if (d->fd) {
@@ -658,7 +658,7 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 		break;
 	     case MD_MAIL:
 	     case MD_MAIL_ON_ERROR:
-                Dmsg1(200, "MAIL for following err: %s\n", msg);
+                Dmsg1(400, "MAIL for following msg: %s", msg);
 		if (!d->fd) {
 		   POOLMEM *name  = get_pool_memory(PM_MESSAGE);
 		   make_unique_mail_filename(jcr, &name, d);
@@ -679,7 +679,7 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 		fputs(msg, d->fd);
 		break;
 	     case MD_FILE:
-                Dmsg1(200, "FILE for following err: %s\n", msg);
+                Dmsg1(400, "FILE for following msg: %s", msg);
 		if (!d->fd) {
                    d->fd = fopen(d->where, "w+");
 		   if (!d->fd) {
@@ -692,7 +692,7 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 		fputs(msg, d->fd);
 		break;
 	     case MD_APPEND:
-                Dmsg1(200, "APPEND for following err: %s\n", msg);
+                Dmsg1(400, "APPEND for following msg: %s", msg);
 		if (!d->fd) {
                    d->fd = fopen(d->where, "a");
 		   if (!d->fd) {
@@ -705,7 +705,7 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 		fputs(msg, d->fd);
 		break;
 	     case MD_DIRECTOR:
-                Dmsg1(200, "DIRECTOR for following err: %s\n", msg);
+                Dmsg1(400, "DIRECTOR for following msg: %s", msg);
 		if (jcr && jcr->dir_bsock && !jcr->dir_bsock->errors) {
 
 		   jcr->dir_bsock->msglen = Mmsg(&(jcr->dir_bsock->msg),
@@ -715,12 +715,12 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 		}
 		break;
 	     case MD_STDOUT:
-                Dmsg1(200, "STDOUT for following err: %s\n", msg);
+                Dmsg1(400, "STDOUT for following msg: %s", msg);
 		if (type != M_ABORT && type != M_ERROR_TERM)  /* already printed */
 		   fprintf(stdout, msg);
 		break;
 	     case MD_STDERR:
-                Dmsg1(200, "STDERR for following err: %s\n", msg);
+                Dmsg1(400, "STDERR for following msg: %s", msg);
 		fprintf(stderr, msg);
 		break;
 	     default:

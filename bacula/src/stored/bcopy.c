@@ -72,9 +72,6 @@ int main (int argc, char *argv[])
    my_name_is(argc, argv, "bscan");
    init_msg(NULL, NULL);
 
-   fprintf(stderr, "\n\nPlease don't use this program.\n\
-It is currently under development and does not work.\n\n");
-
    while ((ch = getopt(argc, argv, "b:c:d:mn:p:rsu:vw:?")) != -1) {
       switch (ch) {
          case 'b':

@@ -15,7 +15,7 @@ thisdir = .
 first_rule: all
 dummy:
 
-subdirs = src doc src/lib src/findlib src/cats \
+subdirs = src scripts doc src/lib src/findlib src/cats \
 	  @READLINE_SRC@ src/console src/dird src/filed \
 	  src/stored @GNOME_DIR@ src/tools
 
@@ -73,25 +73,9 @@ installdirs:
 #	$(MKDIR) $(DESTDIR)$(mandir)
 
 install: installdirs
-	$(INSTALL_SCRIPT) startmysql $(DESTDIR)$(sysconfdir)/startmysql
-	$(INSTALL_SCRIPT) stopmysql $(DESTDIR)$(sysconfdir)/stopmysql
-	$(INSTALL_SCRIPT) console $(DESTDIR)$(sysconfdir)/console
-	$(INSTALL_SCRIPT) bacula $(DESTDIR)$(sysconfdir)/bacula
-	$(INSTALL_SCRIPT) fd $(DESTDIR)$(sysconfdir)/fd
-	$(INSTALL_SCRIPT) mtx-changer $(DESTDIR)$(sysconfdir)/mtx-changer
-	$(INSTALL_SCRIPT) btraceback $(DESTDIR)$(sysconfdir)/btraceback
-	$(INSTALL_DATA)   btraceback.gdb $(DESTDIR)$(sysconfdir)/btraceback.gdb
 	@for I in $(subdirs); do (cd $$I; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1); done
 
 uninstall:
-	(cd $(DESTDIR)$(sysconfdir); $(RMF) startmysql)
-	(cd $(DESTDIR)$(sysconfdir); $(RMF) stopmysql)
-	(cd $(DESTDIR)$(sysconfdir); $(RMF) console)
-	(cd $(DESTDIR)$(sysconfdir); $(RMF) bacula)
-	(cd $(DESTDIR)$(sysconfdir); $(RMF) fd)
-	(cd $(DESTDIR)$(sysconfdir); $(RMF) mtx-changer)
-	(cd $(DESTDIR)$(sysconfdir); $(RMF) btraceback)
-	(cd $(DESTDIR)$(sysconfdir); $(RMF) btraceback.gdb)
 	@for I in $(subdirs); do (cd $$I; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1); done
 
 install-autostart: install-autostart-dir install-autostart-fd install-autostart-sd
@@ -122,8 +106,9 @@ Makefile: Makefile.in
 
 Makefiles:
 	$(SHELL) config.status
-	chmod 755 startmysql stopmysql bacula fd startit stopit btraceback
-	chmod 755 mtx-changer console gconsole
+	(cd scripts; \
+	   chmod 755 startmysql stopmysql bacula fd startit stopit btraceback; \
+	   chmod 755 mtx-changer console gconsole)
 	chmod 755 src/console/btraceback src/lib/btraceback	       
 	chmod 755 src/dird/btraceback src/filed/btraceback
 	chmod 755 src/stored/btraceback

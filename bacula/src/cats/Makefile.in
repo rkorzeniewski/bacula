@@ -72,11 +72,15 @@ install:
 	$(INSTALL_SCRIPT) create_@DB_NAME@_database $(DESTDIR)$(sysconfdir)/create_@DB_NAME@_database
 	$(INSTALL_SCRIPT) drop_@DB_NAME@_tables $(DESTDIR)$(sysconfdir)/drop_@DB_NAME@_tables
 	$(INSTALL_SCRIPT) make_@DB_NAME@_tables $(DESTDIR)$(sysconfdir)/make_@DB_NAME@_tables
+	$(INSTALL_SCRIPT) drop_bacula_tables $(DESTDIR)$(sysconfdir)/drop_bacula_tables
+	$(INSTALL_SCRIPT) make_bacula_tables $(DESTDIR)$(sysconfdir)/make_bacula_tables
 
 uninstall:
 	(cd $(DESTDIR)$(sysconfdir); $(RMF) create_@DB_NAME@_database)
 	(cd $(DESTDIR)$(sysconfdir); $(RMF) drop_@DB_NAME@_tables)
 	(cd $(DESTDIR)$(sysconfdir); $(RMF) make_@DB_NAME@_tables)
+	(cd $(DESTDIR)$(sysconfdir); $(RMF) drop_bacula_tables)
+	(cd $(DESTDIR)$(sysconfdir); $(RMF) make_bacula_tables)
 
 
 # Semi-automatic generation of dependencies:

@@ -1,17 +1,24 @@
                  Kern's ToDo List
-                 1 November 2002
+                 8 November 2002
 
 To do:    
-- Document that two Verifys at same time on same client do not work.
 - Document how to recycle a tape in 7 days even if the backup takes a long time.
 - Document to have patience when SD first starts.
 - Document running a test version.
-- Document buffer size considerations with Sparse files --
 - Document saving MySQL databases, where to find code for shutting 
   down and saving other databases.
-- Test restore options. Test bscan and MD5 in FileSet.
+  http://www.backupcentral.com/free-backup-software1.html
+
+Test:
+- that restore options work in FD.
+- that mod of restore options works.
+- that console command line options work
+- blocksize recognition code.
 
 For 1.27 release:
+- Need return status on read_cb() from read_records(). Need multiple
+  records -- one per Job, maybe a JCR or some other structure with
+  a block and a record.
 - Continue improving the restore process (handling
   of tapes, efficiency improvements e.g. use FSF to
   position the tape, ...)
@@ -51,14 +58,10 @@ For 1.27 release:
   in block, done when count is reached, and possibly other
   optimizations. I.e. add a state word.
 
-Test:
-- that restore prints volumes.
-- that restore options work in FD.
-- that mod of restore options works.
-- that Bacula won't write on tape where tape/catalog files differ.
-- that console command line options work
 
 After 1.27
+- Figure out how compress everything except .gz,... files.
+- Make bcopy copy with a single tape drive.
 - Make sure catalog doesn't keep growing.
 - Permit changing ownership during restore.
 - After unmount, if restore job started, ask to mount.
@@ -555,3 +558,10 @@ Done: (see kernsdone for more)
 - Move block size code from block.c to init_dev().
 - Add FileSet MD5 to bscan.
 - Finish implementation of restore "replace" options, and document.
+- Rework Web site.
+- Document buffer size considerations with Sparse files --
+- that restore prints volumes.
+- Document that two Verifys at same time on same client do not work.
+- bscan   
+- MD5 in bscan is set in FileSet.
+- that Bacula won't write on tape where tape/catalog files differ.

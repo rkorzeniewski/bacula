@@ -590,7 +590,7 @@ AC_ARG_WITH(dir-password,
 if test "x$dir_password" = "x" ; then
    if test "x$OPENSSL" = "xnone" ; then
 #     key=`date | uuencode /dev/stdout | tr "\"@\\\`\\ \\=\\,\\(\\)\\#\\.\\!\\-$'" abcdefghijklmnopqrst | awk '{getline} {print} {exit}'`
-      key=`./randpass 33`
+      key=`autoconf/randpass 33`
    else
       key=`openssl rand -base64 33`
    fi
@@ -610,7 +610,7 @@ AC_ARG_WITH(fd-password,
 if test "x$fd_password" = "x" ; then
    if test "x$OPENSSL" = "xnone" ; then
 #     key=`date | uuencode /dev/stdout | tr "\"@\\\`\\ \\=\\,\\(\\)\\#\\.\\!\\-$'" tsrqponmlkjihgfedcba | awk '{getline} {print} {exit}'`
-      key=`./randpass 37`
+      key=`autoconf/randpass 37`
    else
       key=`openssl rand -base64 33`
    fi
@@ -630,7 +630,7 @@ AC_ARG_WITH(sd-password,
 if test "x$sd_password" = "x" ; then
    if test "x$OPENSSL" = "xnone" ; then
 #     key=`date | uuencode /dev/stdout | tr "\"@\\\`\\ \\=\\,\\(\\)\\#\\.\\!\\-$'" 123456789uvwxyzabcdef | awk '{getline} {print} {exit}'`
-      key=`./randpass 41`
+      key=`autocnf/randpass 41`
    else
       key=`openssl rand -base64 33`
    fi
@@ -1207,15 +1207,16 @@ AC_SUBST_FILE(MCOMMON)
 
 AC_OUTPUT([autoconf/Make.common \
 	   Makefile \
-	   startmysql \
-	   stopmysql \
-	   btraceback \
-	   startit \
-	   stopit \
-	   console \
-	   gconsole \
-	   bacula \
-	   fd \
+	   scripts/startmysql \
+	   scripts/stopmysql \
+	   scripts/btraceback \
+	   scripts/startit \
+	   scripts/stopit \
+	   scripts/console \
+	   scripts/gconsole \
+	   scripts/bacula \
+	   scripts/fd \
+	   scripts/Makefile \
 	   doc/Makefile \
 	   src/Makefile \
 	   src/console/Makefile \
@@ -1254,13 +1255,10 @@ AC_OUTPUT([autoconf/Make.common \
 	  [(echo "Doing make of dependencies"; make depend;) ]
 )
 
+cd scripts
 chmod 755 startmysql stopmysql bacula startit stopit btraceback mtx-changer
 chmod 755 console gconsole
-cp -f startit stopit btraceback btraceback.gdb src/console
-cp -f startit stopit btraceback btraceback.gdb src/dird
-cp -f startit stopit btraceback btraceback.gdb src/filed
-cp -f startit stopit btraceback btraceback.gdb src/lib
-cp -f startit stopit btraceback btraceback.gdb src/stored
+cd ..
 chmod 755 src/cats/make_mysql_tables src/cats/drop_mysql_tables
 chmod 755 src/cats/make_test_tables src/cats/drop_test_tables
 chmod 755 src/cats/create_mysql_database 
