@@ -570,7 +570,7 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
     MSGS *msgs;
     BPIPE *bpipe;
 
-    Dmsg2(850, "Enter dispatch_msg type=%d msg=%s\n", type, msg);
+    Dmsg2(850, "Enter dispatch_msg type=%d msg=%s", type, msg);
 
     /*
      * Most messages are prefixed by a date and time. If mtime is

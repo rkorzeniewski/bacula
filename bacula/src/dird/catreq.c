@@ -95,6 +95,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
    MEDIA_DBR mr, sdmr;
    JOBMEDIA_DBR jm;
    char Job[MAX_NAME_LENGTH];
+   int64_t PoolId;
    int index, ok, label, writing;
    POOLMEM *omsg;
 
@@ -117,7 +118,8 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
    /*
     * Find next appendable medium for SD
     */
-   if (sscanf(bs->msg, Find_media, &Job, &index, &mr.PoolId) == 3) {
+   if (sscanf(bs->msg, Find_media, &Job, &index, &PoolId) == 3) {
+      mr.PoolId = PoolId;
       ok = find_next_volume_for_append(jcr, &mr, true /*permit create new vol*/);
       /*
        * Send Find Media response to Storage daemon
