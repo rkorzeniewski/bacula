@@ -58,6 +58,49 @@ Documentation to do: (any release a little bit at a time)
 - Lookup HP tape replacement recommendations (see trouble shooting autochanger)
 - Add more obvious documentation of @ for conf files.
 - Document doing table repair
+- New IP address specification is used as follows:
+    [sdaddresses|diraddresses|fdaddresses] = { [[ip|ipv4|ipv6] = { 
+           [[addr|port] = [^ ]+[\n;]+] }] }
+
+  so it could look for example like this:
+     SDaddresses  = { ip = {
+            addr = 1.2.3.4; port = 1205; }
+        ipv4 = {
+            addr = 1.2.3.4; port = http; }
+        ipv6 = {
+            addr = 1.2.3.4;
+            port = 1205;
+        }
+        ip = {
+            addr = 1.2.3.4
+            port = 1205
+        }
+        ip = {
+            addr = 1.2.3.4
+        }
+        ip = {
+            addr = 201:220:222::2
+        }
+        ip = {
+            addr = bluedot.thun.net
+        }
+     }
+  as a consequence, you can now specify multiple IP addresses and
+  ports to be used. In the case of a server, it will listen on
+  all those that you specify. In the case of connecting to the server,
+  Bacula will attempt connecting to one at a time until it succeeds.
+  And, in a few other special cases, Bacula will use only the first
+  address specified.
+
+  The default port numbers are still the same and the services and hosts 
+  are also resolved by name. So now  you could use the real names for the 
+  port numbers.
+
+  An ip section will allow resolution to either an ipv4 or an ipv6 address.
+  An ipv4 section forces the resolution to be only ipv4, and an ipv6 section
+  forces the resolution to be only ipv6.
+
+  
           
 Testing to do: (painful)
 
@@ -68,6 +111,55 @@ For 1.37 Testing/Documentation:
   purge, ...
 - If you use restore replace=never, the directory attributes for
   non-existent directories will not be restored properly.
+
+Fix:
+   Kern,
+
+   mt status and tapeinfo output are attached. Default blocksize was
+   originally 512 bytes. I ran the following test on my machine:
+
+   - set defblksize to 512
+   - started bacula, labelled tape, ran job
+   - job completes with the following in log
+           SD termination status:  OK
+           Termination:            Backup OK
+   - restore attempts with blocksize set to 0 or 512 result in the familiar
+           "Volume data error! Wanted block-id BB02, got . Buffer discarded."
+
+
+   # tapeinfo -f /dev/sg0
+   Product Type: Tape Drive
+   Vendor ID: 'SONY    '
+   Product ID: 'TSL-11000       '
+   Revision: 'L100'
+   Attached Changer: Yes
+   SerialNumber: '0010000443'
+   MinBlock:1
+   MaxBlock:16777215
+   SCSI ID: 1
+   SCSI LUN: 0
+   Ready: yes
+   BufferedMode: yes
+   Medium Type: Not Loaded
+   Density Code: 0x26
+   BlockSize: 512
+   DataCompEnabled: no
+   DataCompCapable: yes
+   DataDeCompEnabled: yes
+   CompType: 0x20
+   DeCompType: 0x20
+   BOP: yes
+   Block Position: 0
+
+   # mt -f /dev/nst0 status
+   SCSI 2 tape drive:
+   File number=0, block number=132, partition=0.
+   Tape block size 512 bytes. Density code 0x26 (DDS-4 or QIC-4GB).
+   Soft error count since last status=0
+   General status bits on (1010000):
+    ONLINE IM_REP_EN
+
+
 
 Wish list:  
 - see lzma401.zip in others directory for new compression
