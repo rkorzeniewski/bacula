@@ -201,7 +201,7 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    /* Setup some dummy values */
    jcr->Job[0] = 0;		      /* no job name by default */
    jcr->JobId = 0;
-   jcr->JobType = JT_ADMIN;
+   jcr->JobType = JT_SYSTEM;	      /* internal job until defined */
    jcr->JobLevel = L_NONE;
    jcr->JobStatus = JS_Created;
 

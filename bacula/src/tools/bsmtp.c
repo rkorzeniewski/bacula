@@ -33,8 +33,24 @@
     
  */
 
+#ifdef APCUPSD
+
+#include "apc.h"
+#undef main
+#define my_name_is(x)
+#define bstrdup(x) strdup(x)
+UPSINFO myUPS;
+UPSINFO *core_ups = &myUPS;
+#define MY_NAME "smtp"
+
+#else
+
 #include "bacula.h"
 #include "jcr.h"
+#define MY_NAME "bsmtp"
+
+#endif
+
 
 #ifndef MAXSTRING
 #define MAXSTRING 254
@@ -102,14 +118,14 @@ static void usage()
 {
    fprintf(stderr,
 "\n"
-"Usage: bsmtp [-f from] [-h mailhost] [-s subject] [-c copy] [recepient ...]\n"
+"Usage: %s [-f from] [-h mailhost] [-s subject] [-c copy] [recepient ...]\n"
 "       -c          set the Cc: field\n"
 "       -dnn        set debug level to nn\n"
 "       -f          set the From: field\n"
 "       -h          use mailhost:port as the SMTP server\n"
 "       -s          set the Subject: field\n"
 "       -?          print this message.\n"  
-"\n");
+"\n", MY_NAME);
 
    exit(1);
 }

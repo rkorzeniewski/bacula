@@ -1,4 +1,13 @@
 
+16Apr04
+- Modify bscan to print some elementary statistics (#Jobs, #Files, ...)
+  added to catalog.
+15Apr04
+- Added --enable-wx-console and updated Makefile.in
+- Fix mtx-changer so that the calling sequence is compatible
+  with the previous version (the new one required arguments that
+  were not necessarily used).
+- Document how to use stunnel with Bacula.
 13Apr04
 - Fix crash in query command.
 - Remove schedule from the default restore job.
