@@ -79,8 +79,6 @@ int runcmd(UAContext *ua, char *cmd)
    fileset_name = NULL;
    bootstrap = NULL;
 
-   Dmsg1(000, "run: %s\n", ua->UA_sock->msg);
-
    for (i=1; i<ua->argc; i++) {
       found = False;
       Dmsg2(200, "Doing arg %d = %s\n", i, ua->argk[i]);

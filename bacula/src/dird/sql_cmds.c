@@ -211,8 +211,14 @@ char *uar_sel_jobid_temp = "SELECT JobId FROM temp";
 
 char *uar_sel_all_temp1 = "SELECT * FROM temp1";
 
+/* Select filesets for this Client */
 char *uar_sel_fileset = 
    "SELECT FileSet.FileSetId,FileSet.FileSet FROM Job,"
    "Client,FileSet WHERE Job.FileSetId=FileSet.FileSetId "
    "AND Job.ClientId=Client.ClientId AND Client.Name='%s' "
    "GROUP BY FileSetId";
+
+/* Find MediaType used by this Job */
+char *uar_mediatype =
+   "SELECT MediaType FROM JobMedia,Media WHERE JobMedia.JobId=%u "
+   "AND JobMedia.MediaId=Media.MediaId";

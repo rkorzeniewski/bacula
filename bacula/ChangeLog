@@ -1,4 +1,28 @@
 2002-08-?? Version 1.24 (not yet released)
+  From kes12Aug02
+- Made a new tools directory.
+- Moved smtp into the tools directory.
+- Created a dbcheck program in the tools directory that
+  checks for certain database errors and if requested fixes them.
+- Put the database link flags on DB_LIBS so that it now only is
+  on binaries that actually need it.
+- Document dbcheck and testfind programs.
+- Move testfind to tools directory.
+- Check for FileSet after getting Client name in Restore command.
+  Modify all necessary SQL commands to accept FileSetId.
+- Add a db_get_fileset_record in cats directory.
+- Correct list last 20 files concatenation to be MySQL 
+  dependent. They aren't SQL standard. Use SQL standard || for
+  other SQL programs.
+- Modify dir command in file selection to produce a long form
+  listing of the file/directory name.
+- Add platforms/irix/*.in files to CVS
+- Make Console command scanner accept quoted value fields.
+- If after selecting Client to restore, there are multiple
+  FileSets, ask user to select one.
+- After obtaining JobIds for restore, ensure that there is only
+  one MediaType, and select a Storage resource to be used.
+
   From kes11Aug02
 - Made restore actually work.
 - Made console and gconsole be configured (requested by Chuck)

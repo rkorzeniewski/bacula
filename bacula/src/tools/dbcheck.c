@@ -188,7 +188,7 @@ static int id_list_handler(void *ctx, int num_fields, char **row)
    if (lst->num_ids == lst->max_ids) {
       if (lst->max_ids == 0) {
 	 lst->max_ids = 1000;
-	 lst->Id = (uint32_t *)malloc(sizeof(uint32_t) * lst->max_ids);
+	 lst->Id = (uint32_t *)bmalloc(sizeof(uint32_t) * lst->max_ids);
       } else {
 	 lst->max_ids = (lst->max_ids * 3) / 2;
 	 lst->Id = (uint32_t *)brealloc(lst->Id, sizeof(uint32_t) * lst->max_ids);
@@ -241,7 +241,7 @@ static int name_list_handler(void *ctx, int num_fields, char **row)
    if (name->num_ids == name->max_ids) {
       if (name->max_ids == 0) {
 	 name->max_ids = 1000;
-	 name->name = (char **)malloc(sizeof(char *) * name->max_ids);
+	 name->name = (char **)bmalloc(sizeof(char *) * name->max_ids);
       } else {
 	 name->max_ids = (name->max_ids * 3) / 2;
 	 name->name = (char **)brealloc(name->name, sizeof(char *) * name->max_ids);

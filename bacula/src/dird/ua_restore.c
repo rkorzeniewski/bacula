@@ -39,11 +39,12 @@
 extern int runcmd(UAContext *ua, char *cmd);
 
 /* Imported variables */
-extern char *uar_list_jobs, *uar_file, *uar_sel_files;
-extern char *uar_del_temp, *uar_del_temp1, *uar_create_temp;
-extern char *uar_create_temp1, *uar_last_full, *uar_full;
-extern char *uar_inc, *uar_list_temp, *uar_sel_jobid_temp;
-extern char *uar_sel_all_temp1, *uar_sel_fileset;
+extern char *uar_list_jobs,	*uar_file,	  *uar_sel_files;
+extern char *uar_del_temp,	*uar_del_temp1,   *uar_create_temp;
+extern char *uar_create_temp1,	*uar_last_full,   *uar_full;
+extern char *uar_inc,		*uar_list_temp,   *uar_sel_jobid_temp;
+extern char *uar_sel_all_temp1, *uar_sel_fileset, *uar_mediatype;
+
 
 /* Context for insert_tree_handler() */
 typedef struct s_tree_ctx {
@@ -54,12 +55,14 @@ typedef struct s_tree_ctx {
    UAContext *ua;
 } TREE_CTX;
 
+/* Main structure for obtaining JobIds */
 typedef struct s_jobids {
    btime_t JobTDate;
    uint32_t ClientId;
    uint32_t TotalFiles;
    char JobIds[200];
    CLIENT *client;
+   STORE  *store;
 } JobIds;
 
 
@@ -80,6 +83,17 @@ typedef struct s_rbsr {
    RBSR_FINDEX *fi;		      /* File indexes this JobId */
 } RBSR;
 
+typedef struct s_name_ctx {
+   char **name; 		      /* list of names */
+   int num_ids; 		      /* ids stored */
+   int max_ids; 		      /* size of array */
+   int num_del; 		      /* number deleted */
+   int tot_ids; 		      /* total to process */
+} NAME_LIST;
+
+#define MAX_ID_LIST_LEN 1000000
+
+
 /* Forward referenced functions */
 static RBSR *new_bsr();
 static void free_bsr(RBSR *bsr);
@@ -95,6 +109,10 @@ static int next_jobid_from_list(char **p, uint32_t *JobId);
 static int user_select_jobids(UAContext *ua, JobIds *ji);
 static void user_select_files(TREE_CTX *tree);
 static int fileset_handler(void *ctx, int num_fields, char **row);
+static void print_name_list(UAContext *ua, NAME_LIST *name_list);
+static int unique_name_list_handler(void *ctx, int num_fields, char **row);
+static void free_name_list(NAME_LIST *name_list);
+static void get_storage_from_mediatype(UAContext *ua, NAME_LIST *name_list, JobIds *ji);
 
 
 /*
@@ -113,12 +131,14 @@ int restorecmd(UAContext *ua, char *cmd)
    JOB *job = NULL;
    JOB *restore_job = NULL;
    int restore_jobs = 0;
+   NAME_LIST name_list;
 
    if (!open_db(ua)) {
       return 0;
    }
 
    memset(&tree, 0, sizeof(TREE_CTX));
+   memset(&name_list, 0, sizeof(name_list));
    memset(&ji, 0, sizeof(ji));
 
    /* Ensure there is at least one Restore Job */
@@ -157,18 +177,34 @@ int restorecmd(UAContext *ua, char *cmd)
     * appear more than once, however, we only insert it once.
     */
    for (p=ji.JobIds; next_jobid_from_list(&p, &JobId) > 0; ) {
+
       if (JobId == last_JobId) {	     
 	 continue;		      /* eliminate duplicate JobIds */
       }
       last_JobId = JobId;
       bsendmsg(ua, _("Building directory tree for JobId %u ...\n"), JobId);
+      /*
+       * Find files for this JobId and insert them in the tree
+       */
       Mmsg(&query, uar_sel_files, JobId);
       if (!db_sql_query(ua->db, query, insert_tree_handler, (void *)&tree)) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
       }
+      /*
+       * Find the FileSets for this JobId and add to the name_list
+       */
+      Mmsg(&query, uar_mediatype, JobId);
+      if (!db_sql_query(ua->db, query, unique_name_list_handler, (void *)&name_list)) {
+         bsendmsg(ua, "%s", db_strerror(ua->db));
+      }
+
    }
    bsendmsg(ua, "\n");
    free_pool_memory(query);
+
+   /* Check MediaType and select storage that corresponds */
+   get_storage_from_mediatype(ua, &name_list, &ji);
+   free_name_list(&name_list);
 
    /* Let the user select which files to restore */
    user_select_files(&tree);
@@ -208,12 +244,16 @@ int restorecmd(UAContext *ua, char *cmd)
    }
 
    if (ji.client) {
-      Mmsg(&ua->cmd, "run job=%s client=%s bootstrap=%s/restore.bsr",
-	 job->hdr.name, ji.client->hdr.name, working_directory);
+      Mmsg(&ua->cmd, 
+         "run job=%s client=\"%s\" storage=\"%s\" bootstrap=\"%s/restore.bsr\"",
+         job->hdr.name, ji.client->hdr.name, ji.store?ji.store->hdr.name:"",
+	 working_directory);
    } else {
-      Mmsg(&ua->cmd, "run job=%s bootstrap=%s/restore.bsr",
-	 job->hdr.name, working_directory);
+      Mmsg(&ua->cmd, 
+         "run job=%s storage=\"%s\" bootstrap=\"%s/restore.bsr\"",
+         job->hdr.name, ji.store?ji.store->hdr.name:"", working_directory);
    }
+   
 
    Dmsg1(400, "Submitting: %s\n", ua->cmd);
    
@@ -492,7 +532,7 @@ static void user_select_files(TREE_CTX *tree)
    char cwd[2000];
 
    bsendmsg(tree->ua, _( 
-      "You are now entering file selection mode where you add and\n"
+      "\nYou are now entering file selection mode where you add and\n"
       "remove files to be restored. All files are initially added.\n"
       "Enter done to leave this mode.\n\n"));
    /*
@@ -534,7 +574,7 @@ static void user_select_files(TREE_CTX *tree)
  */
 static RBSR_FINDEX *new_findex() 
 {
-   RBSR_FINDEX *fi = (RBSR_FINDEX *)malloc(sizeof(RBSR_FINDEX));
+   RBSR_FINDEX *fi = (RBSR_FINDEX *)bmalloc(sizeof(RBSR_FINDEX));
    memset(fi, 0, sizeof(RBSR_FINDEX));
    return fi;
 }
@@ -576,7 +616,7 @@ static void print_findex(UAContext *ua, RBSR_FINDEX *fi)
 /* Create a new bootstrap record */
 static RBSR *new_bsr()
 {
-   RBSR *bsr = (RBSR *)malloc(sizeof(RBSR));
+   RBSR *bsr = (RBSR *)bmalloc(sizeof(RBSR));
    memset(bsr, 0, sizeof(RBSR));
    return bsr;
 }
@@ -645,7 +685,7 @@ static int write_bsr_file(UAContext *ua, RBSR *bsr)
    write_bsr(ua, bsr, fd);
    stat = !ferror(fd);
    fclose(fd);
-   bsendmsg(ua, _("Bootstrap records written to %s\n"), fname);
+// bsendmsg(ua, _("Bootstrap records written to %s\n"), fname);
    free_pool_memory(fname);
    return stat;
 }
@@ -1018,4 +1058,95 @@ static int unmarkcmd(UAContext *ua, TREE_CTX *tree)
 static int quitcmd(UAContext *ua, TREE_CTX *tree) 
 {
    return 0;
+}
+
+
+/*
+ * Called here with each name to be added to the list. The name is
+ *   added to the list if it is not already in the list.
+ */
+static int unique_name_list_handler(void *ctx, int num_fields, char **row)
+{
+   NAME_LIST *name = (NAME_LIST *)ctx;
+
+   if (name->num_ids == MAX_ID_LIST_LEN) {  
+      return 1;
+   }
+   if (name->num_ids == name->max_ids) {
+      if (name->max_ids == 0) {
+	 name->max_ids = 1000;
+	 name->name = (char **)bmalloc(sizeof(char *) * name->max_ids);
+      } else {
+	 name->max_ids = (name->max_ids * 3) / 2;
+	 name->name = (char **)brealloc(name->name, sizeof(char *) * name->max_ids);
+      }
+   }
+   for (int i=0; i<name->num_ids; i++) {
+      if (strcmp(name->name[i], row[0]) == 0) {
+	 return 0;		      /* already in list, return */
+      }
+   }
+   /* Add new name to list */
+   name->name[name->num_ids++] = bstrdup(row[0]);
+   return 0;
+}
+
+
+/*
+ * Print names in the list
+ */
+static void print_name_list(UAContext *ua, NAME_LIST *name_list)
+{ 
+   int i;
+
+   for (i=0; i < name_list->num_ids; i++) {
+      bsendmsg(ua, "%s\n", name_list->name[i]);
+   }
+}
+
+
+/*
+ * Free names in the list
+ */
+static void free_name_list(NAME_LIST *name_list)
+{ 
+   int i;
+
+   for (i=0; i < name_list->num_ids; i++) {
+      free(name_list->name[i]);
+   }
+   free(name_list->name);
+   name_list->max_ids = 0;
+   name_list->num_ids = 0;
+}
+
+static void get_storage_from_mediatype(UAContext *ua, NAME_LIST *name_list, JobIds *ji)
+{
+   char name[MAX_NAME_LENGTH];
+   STORE *store = NULL;
+
+   if (name_list->num_ids > 1) {
+      bsendmsg(ua, _("Warning, the JobIds that you selected refer to more than one MediaType.\n"
+         "Restore is not possible. The MediaTypes used are:\n"));
+      print_name_list(ua, name_list);
+      ji->store = select_storage_resource(ua);
+      return;
+   }
+
+   start_prompt(ua, _("The defined Storage resources are:\n"));
+   LockRes();
+   while ((store = (STORE *)GetNextRes(R_STORAGE, (RES *)store))) {
+      if (strcmp(store->hdr.name, name_list->name[0]) == 0) {
+	 add_prompt(ua, store->hdr.name);
+      }
+   }
+   UnlockRes();
+   do_prompt(ua, _("Select Storage resource"), name);
+   ji->store = (STORE *)GetResWithName(R_STORAGE, name);
+   if (!ji->store) {
+      bsendmsg(ua, _("\nWarning. Unable to find Storage resource for\n"
+         "MediaType %s, needed by the Jobs you selected.\n"
+         "You will be allowed to select a Storage device later.\n"),
+	 name_list->name[0]); 
+   }
 }

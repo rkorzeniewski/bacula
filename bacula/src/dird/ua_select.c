@@ -487,7 +487,7 @@ void start_prompt(UAContext *ua, char *msg)
 {
   if (ua->max_prompts == 0) {
      ua->max_prompts = 10;
-     ua->prompt = (char **) bmalloc(sizeof(char *) * ua->max_prompts);
+     ua->prompt = (char **)bmalloc(sizeof(char *) * ua->max_prompts);
   }
   ua->num_prompts = 1;
   ua->prompt[0] = bstrdup(msg);
@@ -501,7 +501,7 @@ void add_prompt(UAContext *ua, char *prompt)
    int i;
    if (ua->num_prompts == ua->max_prompts) {
       ua->max_prompts *= 2;
-      ua->prompt = (char **) brealloc(ua->prompt, sizeof(char *) *
+      ua->prompt = (char **)brealloc(ua->prompt, sizeof(char *) *
 	 ua->max_prompts);
     }
     for (i=1; i < ua->num_prompts; i++) {
@@ -534,6 +534,11 @@ int do_prompt(UAContext *ua, char *msg, char *prompt)
    }
 
    for ( ;; ) {
+      /* First item is the prompt string, not the items */
+      if (ua->num_prompts == 1) { 
+	 item = 0;		      /* list is empty ! */
+	 break;
+      }
       if (ua->num_prompts == 2) {
 	 item = 1;
          bsendmsg(ua, _("Item 1 selected automatically.\n"));

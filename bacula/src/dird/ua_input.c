@@ -131,7 +131,7 @@ char *next_arg(char **s)
 
 void parse_command_args(UAContext *ua)
 {
-   char *p, *n;
+   char *p, *q, *n;
    int i, len;
 
    len = strlen(ua->cmd) + 1;
@@ -154,6 +154,22 @@ void parse_command_args(UAContext *ua)
       p = strchr(ua->argk[i], '=');
       if (p) {
 	 *p++ = 0;		      /* terminate keyword and point to value */
+	 /* Unquote quoted values */
+         if (*p == '"') {
+            Dmsg0(400, "Start with quote.\n");
+            for (n = q = ++p; *p && *p != '"'; ) {
+               if (*p == '\\') {
+		  p++;
+	       }
+	       *q++ = *p++;
+	    }
+	    p++;			    /* skip terminating quote */
+            for ( ; *p && *p != ' '; ) {
+	       *q++ = *p++;
+	    }
+	    *q = 0;
+	    p = n;
+	 }
 	 if (strlen(p) > MAX_NAME_LENGTH-1) {
 	    p[MAX_NAME_LENGTH-1] = 0; /* truncate to max len */
 	 }
