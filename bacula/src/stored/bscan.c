@@ -90,6 +90,9 @@ static bool update_vol_info = false;
 static bool list_records = false;
 static int ignored_msgs = 0;
 
+static uint64_t currentVolumeSize;
+static int64_t last_pct = -1;
+static bool showProgress = false;
 static int num_jobs = 0;
 static int num_pools = 0;
 static int num_media = 0;
@@ -134,8 +137,11 @@ int main (int argc, char *argv[])
    init_msg(NULL, NULL);
 
 
-   while ((ch = getopt(argc, argv, "b:c:d:h:mn:pP:rsu:vV:w:?")) != -1) {
+   while ((ch = getopt(argc, argv, "b:c:d:h:mn:pP:rsSu:vV:w:?")) != -1) {
       switch (ch) {
+      case 'S' :
+	 showProgress = true;
+	 break;
       case 'b':
 	 bsr = parse_bsr(NULL, optarg);
 	 break;
@@ -249,6 +255,12 @@ int main (int argc, char *argv[])
    if (!dev) { 
       exit(1);
    }
+   if (showProgress) {
+      struct stat sb;
+      fstat(dev->fd, &sb);
+      currentVolumeSize = sb.st_size;
+      Pmsg1(000, _("Current Volume Size = %" llu "\n"), currentVolumeSize);
+   }
 
    if ((db=db_init_database(NULL, db_name, db_user, db_password, db_host, 0, NULL)) == NULL) {
       Emsg0(M_ERROR_TERM, 0, _("Could not init Bacula database\n"));
@@ -305,6 +317,13 @@ static bool bscan_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block
     * have the Volume list, but we get attached.
     */
    bool stat = mount_next_read_volume(jcr, dev, block);
+
+   if (showProgress) {
+      struct stat sb;
+      fstat(dev->fd, &sb);
+      currentVolumeSize = sb.st_size;
+      Pmsg1(000, _("Current Volume Size = %" llu "\n"), currentVolumeSize);
+   }
    return stat;
 }
 
@@ -339,7 +358,16 @@ static bool record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 
    if (rec->data_len > 0) {
       mr.VolBytes += rec->data_len + WRITE_RECHDR_LENGTH; /* Accumulate Volume bytes */
+      if (showProgress) {
+	 int64_t pct = (mr.VolBytes * 100) / currentVolumeSize;
+	 if (pct != last_pct) {
+            fprintf(stdout, "done: %" lld "\n", pct);
+	    fflush(stdout);
+	    last_pct = pct;
+	 }
+      }
    }
+   
    if (list_records) {
       Pmsg5(000, _("Record: SessId=%u SessTim=%u FileIndex=%d Stream=%d len=%u\n"),
 	    rec->VolSessionId, rec->VolSessionTime, rec->FileIndex, 
@@ -433,7 +461,7 @@ static bool record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 }
 	 unser_session_label(&label, rec);
 	 memset(&jr, 0, sizeof(jr));
-	 jr.JobId = label.JobId;
+	 bstrncpy(jr.Job, label.Job, sizeof(jr.Job));
 	 if (db_get_job_record(bjcr, db, &jr)) {
 	    /* Job record already exists in DB */
             update_db = false;  /* don't change db in create_job_record */
@@ -621,14 +649,8 @@ static bool record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 		     edit_uint64_with_commas(rec->Block, ed3),
 		     edit_uint64_with_commas(mr.VolBytes, ed4));
       } 
-      if (db_get_file_attributes_record(bjcr, db, attr->fname, NULL, &fr)) {
-	 if (verbose > 1) {
-            Pmsg1(000, _("File record already exists for: %s\n"), attr->fname);
-	 }
-      } else {
-	 create_file_attributes_record(db, mjcr, attr->fname, attr->lname, 
+      create_file_attributes_record(db, mjcr, attr->fname, attr->lname, 
 	    attr->type, attr->attr, rec);
-      }
       free_jcr(mjcr);
       break;
 
@@ -1118,7 +1140,7 @@ static int update_SIG_record(B_DB *db, char *SIGbuf, DEV_RECORD *rec, int type)
       return 0;
    }
 
-   if (!update_db) {
+   if (!update_db || mjcr->FileId == 0) {
       free_jcr(mjcr);
       return 1;
    }
