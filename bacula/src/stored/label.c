@@ -90,7 +90,7 @@ int read_dev_volume_label(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 strerror_dev(dev));
       return jcr->label_status = VOL_NO_MEDIA;
    }
-   strcpy(dev->VolHdr.Id, "**error**");
+   bstrncpy(dev->VolHdr.Id, "**error**", sizeof(dev->VolHdr.Id));
 
    /* Read the Volume label block */
    record = new_record();
