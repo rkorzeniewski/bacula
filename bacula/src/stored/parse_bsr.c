@@ -720,6 +720,10 @@ void free_vol_list(JCR *jcr)
    jcr->VolList = NULL;
 }
 
+/*
+ * Create a list of Volumes (and Slots and Start positions) to be
+ *  used in the current restore job.
+ */
 void create_vol_list(JCR *jcr)
 {
    char *p, *n;
@@ -729,17 +733,16 @@ void create_vol_list(JCR *jcr)
     * Build a list of volumes to be processed
     */
    jcr->NumVolumes = 0;
-   jcr->CurVolume = 1;
+   jcr->CurVolume = 0;
    if (jcr->bsr) {
       BSR *bsr = jcr->bsr;
       if (!bsr->volume || !bsr->volume->VolumeName) {
 	 return;
       }
-      strcpy(jcr->VolumeName, bsr->volume->VolumeName); /* setup first volume */
       for ( ; bsr; bsr=bsr->next) {
 	 BSR_VOLUME *bsrvol;
 	 BSR_VOLFILE *volfile;
-	 uint32_t sfile = 0;
+	 uint32_t sfile = UINT32_MAX;
 
 	 /* Find minimum start file so that we can forward space to it */
 	 for (volfile = bsr->volfile; volfile; volfile=volfile->next) {

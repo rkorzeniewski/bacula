@@ -41,6 +41,7 @@ int acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
    int stat = 0;
    int tape_previously_mounted;
+   VOL_LIST *vol;
 
    lock_device(dev);
    block_device(dev, BST_DOING_ACQUIRE);
@@ -52,6 +53,14 @@ int acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       Jmsg1(jcr, M_FATAL, 0, _("Device %s is busy. Job cancelled.\n"), dev_name(dev));
       goto get_out;
    }
+
+   /* Find next Volume, if any */
+   vol = jcr->VolList;
+   jcr->CurVolume++;
+   for (int i=1; i<jcr->CurVolume; i++) {
+      vol = vol->next;
+   }
+   pm_strcpy(&jcr->VolumeName, vol->VolumeName);
 
    for (;;) {
       if (job_cancelled(jcr)) {
@@ -72,7 +81,6 @@ int acquire_device_for_read(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	  }
           Dmsg1(129, "open_dev %s OK\n", dev_name(dev));
       }
-      /* ***FIXME*** this is probably not necessary */
       dev->state &= ~ST_LABEL;		 /* force reread of label */
       Dmsg0(200, "calling read-vol-label\n");
       switch (read_dev_volume_label(jcr, dev, block)) {
@@ -114,6 +122,10 @@ default_path:
    dev->state |= ST_READ;
    attach_jcr_to_device(dev, jcr);    /* attach jcr to device */
    stat = 1;			      /* good return */
+   if ((dev->state & ST_TAPE) && vol->start_file > 0) {
+      Dmsg1(100, "====== Got start_file = %d\n", vol->start_file);
+      fsf_dev(dev, vol->start_file);
+   }
 
 get_out:
    P(dev->mutex); 

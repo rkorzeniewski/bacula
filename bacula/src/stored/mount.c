@@ -342,15 +342,6 @@ int mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
     * End Of Tape -- mount next Volume (if another specified)
     */
    if (jcr->NumVolumes > 1 && jcr->CurVolume < jcr->NumVolumes) {
-      VOL_LIST *vol = jcr->VolList;
-      /* Find next Volume */
-      jcr->CurVolume++;
-      for (int i=1; i<jcr->CurVolume; i++) {
-	 vol = vol->next;
-      }
-      pm_strcpy(&jcr->VolumeName, vol->VolumeName);
-      Dmsg1(400, "There is another volume %s.\n", jcr->VolumeName);
-
       close_dev(dev);
       dev->state &= ~ST_READ; 
       if (!acquire_device_for_read(jcr, dev, block)) {

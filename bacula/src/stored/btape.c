@@ -944,7 +944,10 @@ static void unfillcmd()
    end_of_tape = 0;
    get_cmd("Mount first of two tapes. Press enter when ready: "); 
    
+   free_vol_list(jcr);
    pm_strcpy(&jcr->VolumeName, "TestVolume1");
+   jcr->bsr = NULL;
+   create_vol_list(jcr);
    close_dev(dev);
    dev->state &= ~ST_READ;
    if (!acquire_device_for_read(jcr, dev, block)) {
@@ -1259,7 +1262,11 @@ static int my_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       end_of_tape = 1;
       return 0;
    }
+
+   free_vol_list(jcr);
    pm_strcpy(&jcr->VolumeName, "TestVolume2");
+   jcr->bsr = NULL;
+   create_vol_list(jcr);
    close_dev(dev);
    dev->state &= ~ST_READ; 
    if (!acquire_device_for_read(jcr, dev, block)) {

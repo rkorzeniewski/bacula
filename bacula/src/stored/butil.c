@@ -104,7 +104,6 @@ DEVICE *setup_to_access_device(JCR *jcr, int read_access)
 
    create_vol_list(jcr);
 
-   Dmsg1(100, "Volume=%s\n", jcr->VolumeName);
    if (read_access) {
       if (!acquire_device_for_read(jcr, dev, block)) {
 	 Emsg0(M_ERROR, 0, dev->errmsg);

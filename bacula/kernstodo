@@ -14,23 +14,15 @@ Testing to do: (painful)
 
 
 For 1.28 release:
-- Make BSR accept count (total files to be restored).
-- Make BSR return next_block when it knows record is not
-  in block, done when count is reached, and possibly other
-  optimizations. I.e. add a state word.
-- Continue improving the restore process (handling
-  of tapes, efficiency improvements e.g. use FSF to
-  position the tape, ...)
-- Add code to fast seek to proper place on tape/file
-  when doing Restore. If it doesn't work, try linear
-  search as before.
+- Add code to put VolFile in bsr for restore command.
 - Add code to reject whole blocks if not wanted on restore.
+- Add watchdog timeout for child processes start_child_timer()
+  end_child_timer();
 
 - Figure out how to allow multiple simultaneous file Volumes on
   a single device.
 - Start working on Base jobs.
 - Implement FileOptions (see end of this document)
-- Replace popen() and pclose() -- fail safe and timeout, no SIG dep.
 - Ensure that restore of differential jobs works (check SQL).
 - Make sure the MaxVolFiles is fully implemented in SD
 - Flush all the daemon messages at the end of every job.
@@ -40,7 +32,6 @@ For 1.28 release:
 - Need return status on read_cb() from read_records(). Need multiple
   records -- one per Job, maybe a JCR or some other structure with
   a block and a record.
-- Think about how to make Bacula work better with File archives.
 
 - Work more on how to to a Bacula restore beginning with
   just a Bacula tape and a boot floppy (bare metal recovery).
@@ -113,6 +104,7 @@ For 1.28 release:
 - Handle ctl-c in Console
 - Implement LabelTemplate (at least first cut).
 - Implement script driven addition of File daemon to config files.
+- Think about how to make Bacula work better with File archives.
 
 - see setgroup and user for Bacula p4-5 of stunnel.c
 - Implement new serialize subroutines
@@ -619,3 +611,7 @@ Done: (see kernsdone for more)
 - Make Job err if WriteBootstrap fails.
 - Test that mod of restore options works.
 - Test that week position schedule code works.
+- Make BSR accept count (total files to be restored).
+- Add code to fast seek to proper place on tape/file when doing Restore.
+- Replace popen() and pclose() -- fail safe and timeout, no SIG dep.
+
