@@ -64,9 +64,9 @@ static int missing_handler(void *ctx, int num_fields, char **row);
  */
 int do_verify(JCR *jcr) 
 {
-   char *level;
+   char *level, *Name;
    BSOCK   *fd;
-   JOB_DBR jr;
+   JOB_DBR jr, verify_jr;
    JobId_t JobId = 0;
    int stat;
 
@@ -76,14 +76,23 @@ int do_verify(JCR *jcr)
 
    Dmsg1(9, "bdird: created client %s record\n", jcr->client->hdr.name);
 
-   /* If we are doing a verify from the catalog,
-    * we must look up the time and date of the
-    * last full verify.
+   /*
+    * Find JobId of last job that ran.	E.g. 
+    *	for VERIFY_CATALOG we want the JobId of the last INIT.
+    *	for VERIFY_VOLUME_TO_CATALOG, we want the JobId of the 
+    *	    last backup Job.
     */
    if (jcr->JobLevel == L_VERIFY_CATALOG || 
        jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG) {
       memcpy(&jr, &jcr->jr, sizeof(jr));
-      if (!db_find_last_jobid(jcr, jcr->db, &jr)) {
+      if (jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG &&
+	  jcr->job->verify_job) {
+	 Name = jcr->job->verify_job->hdr.name;
+      } else {
+	 Name = NULL;
+      }
+      Dmsg1(100, "find last jobid for: %s\n", NPRT(Name));
+      if (!db_find_last_jobid(jcr, jcr->db, Name, &jr)) {
 	 if (jcr->JobLevel == L_VERIFY_CATALOG) {
 	    Jmsg(jcr, M_FATAL, 0, _(
                  "Unable to find JobId of previous InitCatalog Job.\n"
@@ -96,7 +105,7 @@ int do_verify(JCR *jcr)
 	 goto bail_out;
       }
       JobId = jr.JobId;
-      Dmsg1(20, "Last full id=%d\n", JobId);
+      Dmsg1(100, "Last full Jobid=%d\n", JobId);
    } 
 
    jcr->jr.JobId = jcr->JobId;
@@ -111,28 +120,31 @@ int do_verify(JCR *jcr)
       jcr->fname = get_pool_memory(PM_FNAME);
    }
 
-   jcr->jr.JobId = JobId;      /* save target JobId */
-
    /* Print Job Start message */
    Jmsg(jcr, M_INFO, 0, _("Start Verify JobId %d Job=%s\n"),
       jcr->JobId, jcr->Job);
 
+   /*
+    * Now get the job record for the previous backup that interests
+    *	us. We use the JobId that we found above.
+    */
    if (jcr->JobLevel == L_VERIFY_CATALOG || 
-       jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG) {
-      memset(&jr, 0, sizeof(jr));
-      jr.JobId = JobId;
-      if (!db_get_job_record(jcr, jcr->db, &jr)) {
+       jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG ||
+       jcr->JobLevel == L_VERIFY_DISK_TO_CATALOG) {
+      memset(&verify_jr, 0, sizeof(verify_jr));
+      verify_jr.JobId = JobId;
+      if (!db_get_job_record(jcr, jcr->db, &verify_jr)) {
          Jmsg(jcr, M_FATAL, 0, _("Could not get job record for previous Job. ERR=%s"), 
 	      db_strerror(jcr->db));
 	 goto bail_out;
       }
-      if (jr.JobStatus != 'T') {
+      if (verify_jr.JobStatus != 'T') {
          Jmsg(jcr, M_FATAL, 0, _("Last Job %d did not terminate normally. JobStatus=%c\n"),
-	    JobId, jr.JobStatus);
+	    JobId, verify_jr.JobStatus);
 	 goto bail_out;
       }
       Jmsg(jcr, M_INFO, 0, _("Verifying against JobId=%d Job=%s\n"),
-	 JobId, jr.Job); 
+	 verify_jr.JobId, verify_jr.Job); 
    }
 
    /* 
@@ -144,12 +156,12 @@ int do_verify(JCR *jcr)
    if (jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG) {
       RBSR *bsr = new_bsr();
       UAContext *ua;
-      bsr->JobId = jr.JobId;
+      bsr->JobId = verify_jr.JobId;
       ua = new_ua_context(jcr);
       complete_bsr(ua, bsr);
       bsr->fi = new_findex();
       bsr->fi->findex = 1;
-      bsr->fi->findex2 = jr.JobFiles;
+      bsr->fi->findex2 = verify_jr.JobFiles;
       if (!write_bsr_file(ua, bsr)) {
 	 free_ua_context(ua);
 	 free_bsr(bsr);
@@ -188,6 +200,13 @@ int do_verify(JCR *jcr)
    } else {
       jcr->sd_auth_key = bstrdup("dummy");    /* dummy Storage daemon key */
    }
+
+   if (jcr->JobLevel == L_VERIFY_DISK_TO_CATALOG &&
+       jcr->job->verify_job) {
+       jcr->fileset = jcr->job->verify_job->fileset;
+   }
+   jcr->verify_jr = &verify_jr;
+
    /*
     * OK, now connect to the File daemon
     *  and ask him for the files.
@@ -199,6 +218,7 @@ int do_verify(JCR *jcr)
 
    set_jcr_job_status(jcr, JS_Running);
    fd = jcr->file_bsock;
+
 
    Dmsg0(30, ">filed: Send include list\n");
    if (!send_include_list(jcr)) {
@@ -262,6 +282,9 @@ int do_verify(JCR *jcr)
    case L_VERIFY_DATA:
       level = "data";
       break;
+   case L_VERIFY_DISK_TO_CATALOG:
+      level="disk_to_catalog";
+      break;
    default:
       Jmsg1(jcr, M_FATAL, 0, _("Unimplemented save level %d\n"), jcr->JobLevel);
       goto bail_out;
@@ -295,6 +318,11 @@ int do_verify(JCR *jcr)
 
    case L_VERIFY_VOLUME_TO_CATALOG:
       Dmsg0(10, "Verify level=volume\n");
+      get_attributes_and_compare_to_catalog(jcr, JobId);
+      break;
+
+   case L_VERIFY_DISK_TO_CATALOG:
+      Dmsg0(10, "Verify level=disk_to_catalog\n");
       get_attributes_and_compare_to_catalog(jcr, JobId);
       break;
 
@@ -510,7 +538,8 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
 	  * Find equivalent record in the database 
 	  */
 	 fdbr.FileId = 0;
-	 if (!db_get_file_attributes_record(jcr, jcr->db, jcr->fname, &fdbr)) {
+	 if (!db_get_file_attributes_record(jcr, jcr->db, jcr->fname, 
+	      jcr->verify_jr, &fdbr)) {
             Jmsg(jcr, M_INFO, 0, _("New file: %s\n"), jcr->fname);
             Dmsg1(020, _("File not in catalog: %s\n"), jcr->fname);
 	    stat = JS_Differences;

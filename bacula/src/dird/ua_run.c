@@ -557,6 +557,7 @@ Priority:   %d\n"),
             add_prompt(ua, _("Initialize Catalog"));
             add_prompt(ua, _("Verify Catalog"));
             add_prompt(ua, _("Verify Volume to Catalog"));
+            add_prompt(ua, _("Verify Disk to Catalog"));
             add_prompt(ua, _("Verify Volume Data (not yet implemented)"));
             switch (do_prompt(ua, "",  _("Select level"), NULL, 0)) {
 	    case 0:
@@ -569,6 +570,9 @@ Priority:   %d\n"),
 	       jcr->JobLevel = L_VERIFY_VOLUME_TO_CATALOG;
 	       break;
 	    case 3:
+	       jcr->JobLevel = L_VERIFY_DISK_TO_CATALOG;
+	       break;
+	    case 4:
 	       jcr->JobLevel = L_VERIFY_DATA;
 	       break;
 	    default:

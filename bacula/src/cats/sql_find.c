@@ -144,7 +144,7 @@ db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
  *	    0 on failure
  */
 int
-db_find_last_jobid(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
+db_find_last_jobid(JCR *jcr, B_DB *mdb, char *Name, JOB_DBR *jr)
 {
    SQL_ROW row;
 
@@ -156,10 +156,15 @@ db_find_last_jobid(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 "ClientId=%u ORDER BY StartTime DESC LIMIT 1",
 	   L_VERIFY_INIT, jr->Name, jr->ClientId);
    } else if (jr->Level == L_VERIFY_VOLUME_TO_CATALOG) {
-      Mmsg(&mdb->cmd, 
+      if (Name) {
+	 Mmsg(&mdb->cmd,
+"SELECT JobId FROM Job WHERE Type='B' AND JobStatus='T' AND "
+"Name='%s' ORDER BY StartTime DESC LIMIT 1", Name);
+      } else {
+	 Mmsg(&mdb->cmd, 
 "SELECT JobId FROM Job WHERE Type='B' AND "
-"ClientId=%u ORDER BY StartTime DESC LIMIT 1", 
-	   jr->ClientId);
+"ClientId=%u ORDER BY StartTime DESC LIMIT 1", jr->ClientId);
+      }
    } else {
       Mmsg1(&mdb->errmsg, _("Unknown Job level=%c\n"), jr->Level);
       db_unlock(mdb);

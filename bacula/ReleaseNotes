@@ -1,14 +1,18 @@
 
           Release Notes for Bacula 1.32b
 
-  Bacula code: Total files = 259 Total lines = 77,984 (*.h *.c *.in)
+  Bacula code: Total files = 259 Total lines = 78,067 (*.h *.c *.in)
 
-Changes since 1.32a:
+Most Significant Changes since 1.32a:
 - Improve forward space file/block during restore, many
   optimizations.
 - Fix a bug that did not allow appending to a tape    
   on FreeBSD systems.
 - Fix pruning so that it will not prune the current job.
+- Modify configure to use non-threaded MySQL client lib if
+  the threaded version is not present.
+- Implement restore by file before date.
+- When pruning don't prune the current job.
 
 Major Changes 1.32a Release:
 - Implemented forward space file/block whenever possible 

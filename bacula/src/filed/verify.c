@@ -192,7 +192,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       return 0;
    }
 
-   /* If file opened, compute MD5 */
+   /* If file opened, compute MD5 or SHA1 hash */
    if (is_bopen(&bfd)  && ff_pkt->flags & FO_MD5) {
       char MD5buf[40];		      /* 24 should do */
       MD5Init(&md5c);

@@ -195,7 +195,7 @@ static void set_extract(UAContext *ua, TREE_NODE *node, TREE_CTX *tree, int valu
       tree_getpath(node, cwd, sizeof(cwd));
       fdbr.FileId = 0;
       fdbr.JobId = node->JobId;
-      if (db_get_file_attributes_record(ua->jcr, ua->db, cwd, &fdbr)) {
+      if (db_get_file_attributes_record(ua->jcr, ua->db, cwd, NULL, &fdbr)) {
 	 int32_t LinkFI;
 	 decode_stat(fdbr.LStat, &statp, &LinkFI); /* decode stat pkt */
 	 /*
@@ -338,7 +338,7 @@ static int dircmd(UAContext *ua, TREE_CTX *tree)
 	 tree_getpath(node, cwd, sizeof(cwd));
 	 fdbr.FileId = 0;
 	 fdbr.JobId = node->JobId;
-	 if (db_get_file_attributes_record(ua->jcr, ua->db, cwd, &fdbr)) {
+	 if (db_get_file_attributes_record(ua->jcr, ua->db, cwd, NULL, &fdbr)) {
 	    int32_t LinkFI;
 	    decode_stat(fdbr.LStat, &statp, &LinkFI); /* decode stat pkt */
 	    ls_output(buf, cwd, node->extract, &statp);

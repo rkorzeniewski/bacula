@@ -61,7 +61,7 @@ int db_delete_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr);
 
 /* find.c */
 int db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime);
-int db_find_last_jobid(JCR *jcr, B_DB *mdb, JOB_DBR *jr);
+int db_find_last_jobid(JCR *jcr, B_DB *mdb, char *Name, JOB_DBR *jr);
 int db_find_next_volume(JCR *jcr, B_DB *mdb, int index, MEDIA_DBR *mr);
 
 /* get.c */
@@ -69,7 +69,7 @@ int db_get_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pdbr);
 int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr);
 int db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr);
 int db_get_job_volume_names(JCR *jcr, B_DB *mdb, uint32_t JobId, POOLMEM **VolumeNames);
-int db_get_file_attributes_record(JCR *jcr, B_DB *mdb, char *fname, FILE_DBR *fdbr);
+int db_get_file_attributes_record(JCR *jcr, B_DB *mdb, char *fname, JOB_DBR *jr, FILE_DBR *fdbr);
 int db_get_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr);
 int db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr);
 int db_get_num_media_records(JCR *jcr, B_DB *mdb);
