@@ -1,6 +1,6 @@
-     Bacula Regression
-      Kern Sibbald
-       April 2003
+      Bacula Regression
+        Kern Sibbald
+        December 2003
 
 This is Bacula's regression script directory.  At this time
 (December 2003), it is still in development, so all the tests are

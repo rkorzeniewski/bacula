@@ -14,7 +14,7 @@
 # suck in user's configuration
 @CONFIG@
 
-WHICHDB?="--with-sqlite"
+WHICHDB?="--with-sqlite=${SQLITE_DIR}"
 
 first_rule: all
 
