@@ -3,23 +3,16 @@ SELECT  count(*) AS Jobs, sum(JobFiles) AS Files,
  sum(JobBytes) AS Bytes, Name AS Job FROM Job GROUP BY Name;
 SELECT max(JobId) AS Jobs,sum(JobFiles) AS Files,
  sum(JobBytes) As Bytes FROM Job;
-# 2
-:List where a file is saved:
-*Enter path with trailing slash:
-*Enter filename:
-*Enter Client name:
-SELECT Job.JobId,StartTime AS JobStartTime,VolumeName,Client.Name AS ClientName
- FROM Job,File,Path,Filename,Media,JobMedia,Client
- WHERE File.JobId=Job.JobId
- AND Path.Path='%1'
- AND Filename.Name='%2'
- AND Client.Name='%3'
- AND Path.PathId=File.PathId
- AND Filename.FilenameId=File.FilenameId
- AND JobMedia.JobId=Job.JobId
- AND JobMedia.MediaId=Media.MediaId
- AND Client.ClientId=Job.ClientId
- GROUP BY Job.JobId;
+# 2 
+:List where a File is saved regardless of the directory:
+*Enter Filename (no path):
+SELECT Job.JobId as JobId, Client.Name as Client,
+ Path.Path,Filename.Name,
+ StartTime,Level,JobFiles,JobBytes
+ FROM Client,Job,File,Filename,Path WHERE Client.ClientId=Job.ClientId
+ AND JobStatus='T' AND Job.JobId=File.JobId
+ AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId
+ AND Filename.Name='%1' ORDER BY Job.StartTime LIMIT 20;
 # 3
 :List where the most recent copies of a file are saved:
 *Enter path with trailing slash:
@@ -143,21 +136,11 @@ SELECT Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,MaxVolBytes
  FROM Pool
  WHERE Name='%1';
 # 11
-:List where a File is saved:
-*Enter Filename (no path):
-SELECT Job.JobId as JobId, Client.Name as Client,
- Path.Path,Filename.Name,
- StartTime,Level,JobFiles,JobBytes
- FROM Client,Job,File,Filename,Path WHERE Client.ClientId=Job.ClientId
- AND JobStatus='T' AND Job.JobId=File.JobId
- AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId
- AND Filename.Name='%1' ORDER BY Job.StartTime LIMIT 20;
-#
 :List total files/bytes by Job:
 SELECT count(*) AS Jobs, sum(JobFiles) AS Files,
  sum(JobBytes) AS Bytes, Name AS Job
  FROM Job GROUP by Name
-#
+# 12
 :List total files/bytes by Volume:
 SELECT count(*) AS Jobs, sum(JobFiles) AS Files,
  sum(JobBytes) AS Bytes, VolumeName
@@ -165,7 +148,7 @@ SELECT count(*) AS Jobs, sum(JobFiles) AS Files,
  WHERE JobMedia.JobId=Job.JobId
  AND JobMedia.MediaId=Media.MediaId
  GROUP by VolumeName;  
-#
+# 13
 :List Files for a selected JobId:
 *Enter JobId:
 SELECT Path.Path,Filename.Name FROM File,

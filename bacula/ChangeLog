@@ -1,10 +1,76 @@
+2003-08-02 Version 1.32 02Sep03 Beta
+- Eliminate a duplicated query from query.sql
+- Restructure ua_restore.c so that I can add restore files.
+- Correct positioning problem at beginning of a second volume 
+  introduced with the new forward spacing code.
+- Eliminated a sprintf() in the tree routines.
+- Doc updates
+- Added HOST_OS, DISTNAME, and DISTVER to the status output.
+- Eliminated a few stray Dmsgn(000, messages making them either
+  debug_level 100, or Pmsg().
+- Made the default "Maximum File Size" 1Gbyte in SD.
+- Cache path in tree.c to reduce calls to make_tree_path 
+- Documentation updates
+- Implement forward space file and block when reading a bsr.
+- Fixed a bug in db_find_next_volume() where the VolStatus was
+  not being returned.
+- Rework some of the query.sql records that were incomplete.
+- Fixed an ambigous SQL statement in restore.
+- Fix proper sorting order in restore display last 20 jobs.
+- Remove duplicate JobId's in feeding the directory tree.
+- Fix an orphaned ua buffer due to a return that should have been 
+  break so that cleanup code executed.
+- Changed some strcats and sprintfs int bstrncat() ... to prevent
+  possible buffer overflows.
+- Fix max file size code on tape so that after writing EOF, 
+  an appropriate jobmedia record is created.
+- Fix error messages in dev.c, which were copied into lots of
+  different subroutines without updating the text.
+- Add reposition_dev(), and make more of the return statuses of
+  dev routine standard.
+- Eliminate old semaphore and workq code. Keep only new jobq code.
+- Try to get a better default size for the gnome-console
+- Add code to avoid race conditions in starting/stoping the
+  heartbeat thread.
+- Correct potential race condition in heartbeat_stop().
+- Correct segmentation fault in mysql.c if no password given.
+- make pm_strcat and pm_strcpy return the string length
+- Use Phil's code to get the unadorned job name.
+- Move the MTIOCERRSTAT from just after a write() failure to
+  after writing the EOF marks on FreeBSD systems.
+- Enhance packet too big error in bnet.c and add some
+  ASSERTs in the send code.
+- Set heartbeat interval to zero by default.
+- Add Recycle to list of Update Volume parameters.
+- Use bget_dirmsg() wherever possible in Director.
+- Split next_volume code from catreq.c to next_vol.c
+- Consolidate editing job codes into a single routine.
+- Add Job resource name
+- Remove check for Win32 attributes in bls.  It doesn't
+  need to read them, only print ls -l.
+- Add SDConnectTimeout in FD.
+- Add Scott's perlgui directory
+- Upgrade from RH7.3 to RH9.  New autoconf.
+- Eliminate gnome2-console directory.
+- Correct English in status command.
+- Eliminate old shell expansion code and use BPIPE to call shell      
+  with echo command.
+- Documentation as usual.
+- Add a new bacula.spec for Mandrake
+- Add ownership to alist items. Default the list owns the items.
+- Make record_cb return a status (preparation for internal use).
+- Remove all clearing of remainder in read_record.c -- not necessary
+- Write a tapetest program for FreeBSD end of tape testing.
+- Modify read.c in Bacula to use read_record.c
+- Implement multiple records in read_record.c. One for each session that
+  is open.  Free the record with the EOS_LABEL is found (or at the
+  end of the scan).
 
 2003-08-02 Version 1.31a 02Aug03 Released
 - Yifang Dai reported a case where he stress tested Bacula and
   backed up to four volumes, but only two were selected for the
   restore. This is because I forgot that the selection could
   span a volume entirely.
-
 - Added a missing CLIENT_FOUND_ROWS to the second attempt to open
   the MySQL database -- this prevents UPDATE errors if nothing
   actually changed.

@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                   24 August 2003 
+                 3 September 2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -15,6 +15,7 @@ Documentation to do: (any release a little bit at a time)
 - Lookup HP tape replacement recommendations (see trouble shooting autochanger)
 - Document FInclude ...
 - Document all the status codes JobLevel, JobType, JobStatus.
+- Document SDConnectTimeout (in FD).
           
 Testing to do: (painful)
 - that ALL console command line options work and are always implemented
@@ -27,15 +28,26 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.32:
+- Enhance autochanger interface to include a "scan" feature
+  scan 1; scan 1-5; scan 1,2,4 ...  to update the catalog 
+- Allow a slot or range of slots on the label barcodes command.
+  when the magazine is changed.
+- Specify list of files to restore
+- Implement ClientRunBeforeJob and ClientRunAfterJob.
+- Figure out what is interrupting sql command in console.
+- Don't print "Warning: Wrong Volume mounted ..." if mounting second
+  volume.
+- Implement List Volume Job=xxx  or List scheduled volumes or Status Director 
+- Make | and < work on FD side.
+
+For 1.33
+- Why can't SQL do the filename sort for restore?
 - Is a pool specification really needed for a restore?  Yes, and
   you may want to exclude archive Pools.
 - Look at libkse (man kse) for FreeBSD threading.
 - Look into Microsoft Volume Shadowcopy Service VSS for backing
   up system state components (Active Directory, System Volume, ...)
-- Add ExhautiveRestoreSearch and use repositioning at the beginning
-  of the tape.                   
-- Specify list of files to restore
-- Implement ClientRunBeforeJob and ClientRunAfterJob.
+- Add ExhautiveRestoreSearch
 - Look at the possibility of loading only the necessary 
   data into the restore tree (i.e. do it one directory at a
   time as the user walks through the tree).
@@ -49,7 +61,6 @@ For 1.32:
 - Fix restore to list errors if Invalid block found, and if # files
   restored does not match # expected.
 - Prohibit backing up archive device (findlib/find_one.c:128)
-- Make | and < work on FD side.
 - Implement Release Device in the Job resource to unmount a drive.
 - Implement Acquire Device in the Job resource to mount a drive,
   be sure this works with admin jobs so that the user can get
@@ -57,16 +68,11 @@ For 1.32:
   run the job but don't save the files.
 - Add JobName= to VerifyToCatalog so that all verifies can be done at the end.
 - Implement FileOptions (see end of this document)
-- Enhance autochanger interface to include a "scan" feature
-  scan 1; scan 1-5; scan 1,2,4 ...  to update the catalog 
-  when the magazine is changed.
 - Make things like list where a file is saved case independent for
   Windows.
 - Edit the Client/Storage name into authentication failure messages.
 - Implement job in VerifyToCatalog
 - Implement migrate
-- Implement List Volume Job=xxx  or List scheduled volumes or Status Director 
-- Allow a slot or range of slots on the label barcodes command.
 - Implement a PostgreSQL driver.
 - Bacula needs to propagate SD errors.
   > > cluster-dir: Start Backup JobId 252, Job=REUTERS.2003-08-11_15.04.12
@@ -92,7 +98,6 @@ For 1.32:
 - Something is not right in last block of fill command.
 - Implement a Recycle command
 - Add FileSet to command line arguments for restore.
-- Do full check the command line args in update (e.g. VolStatus ...).
 - Allow multiple Storage specifications (or multiple names on
   a single Storage specification) in the Job record. Thus a job 
   can be backed up to a number of storage devices.
@@ -866,4 +871,5 @@ Done: (see kernsdone for more)
 - Implement forward spacing between files.
 - Add Machine type (Linux/Windows) to Status report for daemons. 
   Look at src/host.h
-
+- Use repositioning at the beginning of the tape.                   
+- Do full check the command line args in update (e.g. VolStatus ...).
