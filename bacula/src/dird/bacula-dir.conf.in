@@ -153,6 +153,7 @@ Client {
 # Definiton of file storage device
 Storage {
   Name = File
+# Do not use "localhost" here    
   Address = @hostname@                # N.B. Use a fully qualified name here
   SDPort = @sd_port@
   Password = "@sd_password@"
@@ -164,6 +165,7 @@ Storage {
 # Definition of DDS tape storage device
 #Storage {
 #  Name = DDS-4    
+#  Do not use "localhost" here
 #  Address = @hostname@                # N.B. Use a fully qualified name here
 #  SDPort = @sd_port@
 #  Password = "@sd_password@"          # password for Storage daemon
@@ -174,6 +176,7 @@ Storage {
 # Definition of 8mm tape storage device
 #Storage {
 #  Name = "8mmDrive"
+#  Do not use "localhost" here
 #  Address = @hostname@                # N.B. Use a fully qualified name here
 #  SDPort = @sd_port@
 #  Password = "@sd_password@"
