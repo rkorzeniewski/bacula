@@ -44,9 +44,15 @@ IPADDR::IPADDR(const IPADDR &src) : type(src.type)
 
 IPADDR::IPADDR(int af) : type(R_EMPTY)
 {
+#ifdef HAVE_IPV6
   if (!(af  == AF_INET6 || af  == AF_INET)) {
-     Emsg1(M_ERROR_TERM, 0, _("Only ipv4 and ipv6 are supported(%d)\n"), af);
+     Emsg1(M_ERROR_TERM, 0, _("Only ipv4 and ipv6 are supported (%d)\n"), af);
   }
+#else
+  if (af != AF_INET) {
+     Emsg1(M_ERROR_TERM, 0, _("Only ipv4 is supported (%d)\n"), af);
+  }
+#endif
   saddr  = &saddrbuf.dontuse;
   saddr4 = &saddrbuf.dontuse4; 
 #ifdef HAVE_IPV6
@@ -391,11 +397,11 @@ void store_addresses(LEX * lc, RES_ITEM * item, int index, int pass)
       if (!(token == T_UNQUOTED_STRING || token == T_IDENTIFIER)) {
          scan_err1(lc, _("Expected a string, got: %s"), lc->str);
       }
-      if (strcmp("ip", lc->str) == 0 || strcmp("ipv4", lc->str) == 0) {
+      if (strcasecmp("ip", lc->str) == 0 || strcasecmp("ipv4", lc->str) == 0) {
 	 family = AF_INET;
       }
 #ifdef HAVE_IPV6
-      else if (strcmp("ipv6", lc->str) == 0) {
+      else if (strcasecmp("ipv6", lc->str) == 0) {
 	 family = AF_INET6;
       } else {
          scan_err1(lc, _("Expected a string [ip|ipv4|ipv6], got: %s"), lc->str);
@@ -420,13 +426,13 @@ void store_addresses(LEX * lc, RES_ITEM * item, int index, int pass)
 	 if (token != T_IDENTIFIER) {
             scan_err1(lc, _("Expected a identifier [addr|port], got: %s"), lc->str);
 	 }
-         if (strcmp("port", lc->str) == 0) {
+         if (strcasecmp("port", lc->str) == 0) {
 	    next_line = PORTLINE;
 	    if (exist & PORTLINE) {
                scan_err0(lc, _("Only one port per address block"));
 	    }
 	    exist |= PORTLINE;
-         } else if (strcmp("addr", lc->str) == 0) {
+         } else if (strcasecmp("addr", lc->str) == 0) {
 	    next_line = ADDRLINE;
 	    if (exist & ADDRLINE) {
                scan_err0(lc, _("Only one addr per address block"));
