@@ -182,36 +182,14 @@ int job_cmd(JCR *jcr)
 }
 
 /*
- * This entry point is only called if we have a separate
- *   Storage Daemon Data port. Otherwise, the connection
- *   is made to the main port, and if it is a File daemon
- *   calling, handle_filed_connection() is called directly.
- */
-void connection_from_filed(void *arg)
-{
-   BSOCK *fd = (BSOCK *)arg;
-   char job_name[MAX_NAME_LENGTH];
-
-   Dmsg0(110, "enter connection_from_filed\n");
-   if (bnet_recv(fd) <= 0) {
-      Emsg0(M_FATAL, 0, _("Unable to authenticate Client.\n"));
-      return;
-   }
-   Dmsg1(100, "got: %s\n", fd->msg);
-
-   if (fd->msglen < 17 || fd->msglen > 17+127 ||
-       sscanf(fd->msg, "Hello Start Job %127s\n", job_name) != 1) {
-      Emsg1(M_FATAL, 0, _("Bad Hello from FD: %s\n"), fd->msg);
-      return;
-   }
-   handle_filed_connection(fd, job_name);
-   return;
-}
-
+ * After receiving a connection (in job.c) if it is
+ *   from the File daemon, this routine is called.
+ */  
 void handle_filed_connection(BSOCK *fd, char *job_name)
 {
    JCR *jcr;
 
+   bmicrosleep(0, 50000);	      /* wait 50 millisecs */
    if (!(jcr=get_jcr_by_full_name(job_name))) {
       Jmsg1(NULL, M_FATAL, 0, _("Job name not found: %s\n"), job_name);
       return;

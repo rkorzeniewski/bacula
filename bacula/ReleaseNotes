@@ -1,27 +1,37 @@
 
           Release Notes for Bacula 1.32
 
-  Bacula code: Total files = 259 Total lines = 77,576 (*.h *.c *.in)
+  Bacula code: Total files = 259 Total lines = 77,702 (*.h *.c *.in)
 
 Major Changes this Release:
-- Fixed gnome-console to compile with RH9 (Gnome 2.0)
-- Implemented a single routine to read_records. It also returns
-  a different record packet for each session.  This means
-  that multiple simultaneous jobs should work.
 - Implemented forward space file/block whenever possible 
-  during restore.
-- Added SDConnectTimeout to FD.    
+  during restore. Restoring a small number of files is now  
+  much faster.
+- There is a new option to restore that allows you   
+  to restore files based on their Filename. You can
+  also specify a file to read which contains the list.
 - Added ClientRunBeforeJob and ClientRunAfterJob.
 - Implemented Include | and < in File daemon.
-- Implemented a new Include/Exclude syntax.
-- Lots of fixes with variable expansion and counter variables
-- Automatic labeling of tape Volumes is fixed.
+- Automatic labeling of tape Volumes should work now.
 - Recycling has been completely restructured and should work.
 - Implemented full length time interval qualifiers (e.g
   "5n is now "5 min" or "5 minutes". A modifier is now required!
+- Fixed gnome-console to compile with RH9 (Gnome 2.0)
+- Implemented "list nextvol job=xxx", which displays the
+  next volume to be used by job xxx. The Volume name to
+  be used is also added to the "status dir" output.
+- Lots of fixes with variable expansion and counter variables
+- Implemented a new Include/Exclude syntax.
 
 
 Other Changes this Release:
+- A warning message is sent when a job starts that will be
+  blocked because the user did an "unmount".
+- Block checksum errors if any are printed in the job report.
+- Implemented a single routine to read_records. It also returns
+  a different record packet for each session.  This means
+  that multiple simultaneous jobs should work.
+- Added SDConnectTimeout to FD.    
 - Lots of doc enhancements
 - Fixed a PurgeOldestVolume bug (VolStatus not returned)
 - Don't crash if DB address record not specified.
@@ -45,9 +55,18 @@ Other Changes this Release:
   be phased out over time. FDAddress, FDPassword, SDAddress SDPassword,
   SDDeviceName, and DBPassword.
 - A possible fix to the very intermittent SD crashes that Alex gets.
+              
 
 
 Items to note:  !!!!!
 - Modifiers (sec, min, hour, day, ...) are now required on conf file
   time interval specifications.
 - Duplicate names within the same conf resource are prohibited.
+- If you have used a prior BETA version of 1.32, please do
+  the following to cleanup any zero length spool files:
+
+   cd <working-directory-as-in-Bacula-conf>
+   rm -f *.spool.*
+
+  Please be sure there are no spaces between the asterisks
+  and the periods.

@@ -100,7 +100,7 @@ static struct s_cmds cmds[] = {
 
 /* 
  * Connection request. We accept connections either from the 
- *  Director or a Client.
+ *  Director or a Client (File daemon).
  * 
  * Note, we are running as a seperate thread of the Storage daemon.
  *  and it is because a Director has made a connection with
@@ -108,6 +108,7 @@ static struct s_cmds cmds[] = {
  *
  * Basic tasks done here:  
  *  - Create a JCR record
+ *  - If it was from the FD, call handle_filed_connection()
  *  - Authenticate the Director
  *  - We wait for a command
  *  - We execute the command
@@ -127,11 +128,15 @@ void *connection_request(void *arg)
    }
 
    /* 
-    * See if this is a File daemon connection
+    * Do a sanity check on the message received
     */
-   if (bs->msglen < 25 || bs->msglen > (int)sizeof(name)+25) {
+   if (bs->msglen < 25 || bs->msglen > (int)sizeof(name)-25) {
       Emsg1(M_ERROR, 0, _("Invalid Dir connection. Len=%d\n"), bs->msglen);
    }
+   /* 
+    * See if this is a File daemon connection. If so
+    *	call FD handler.
+    */
    if (sscanf(bs->msg, "Hello Start Job %127s calling\n", name) == 1) {
       handle_filed_connection(bs, name);
       return NULL;

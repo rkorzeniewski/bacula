@@ -83,6 +83,7 @@ static time_t lasttime = 0;
 static char *db_name = "bacula";
 static char *db_user = "bacula";
 static char *db_password = "";
+static char *db_host = NULL;
 static char *wd = NULL;
 static int update_db = 0;
 static int update_vol_info = 0;
@@ -106,6 +107,7 @@ static void usage()
 "       -n name           specify the database name (default bacula)\n"
 "       -u user           specify database user name (default bacula)\n"
 "       -p password       specify database password (default none)\n"
+"       -h host           specify database host (default NULL)\n"
 "       -r                list records\n"
 "       -s                synchronize or store in database\n"
 "       -v                verbose\n"
@@ -125,7 +127,7 @@ int main (int argc, char *argv[])
    init_msg(NULL, NULL);
 
 
-   while ((ch = getopt(argc, argv, "b:c:d:mn:p:rsu:vV:w:?")) != -1) {
+   while ((ch = getopt(argc, argv, "b:c:d:h:mn:p:rsu:vV:w:?")) != -1) {
       switch (ch) {
       case 'b':
 	 bsr = parse_bsr(NULL, optarg);
@@ -142,6 +144,10 @@ int main (int argc, char *argv[])
 	 debug_level = atoi(optarg);
 	 if (debug_level <= 0)
 	    debug_level = 1; 
+	 break;
+
+      case 'h':
+	 db_host = optarg;
 	 break;
 
       case 'm':
@@ -233,7 +239,7 @@ int main (int argc, char *argv[])
       exit(1);
    }
 
-   if ((db=db_init_database(NULL, db_name, db_user, db_password, NULL, 0, NULL)) == NULL) {
+   if ((db=db_init_database(NULL, db_name, db_user, db_password, db_host, 0, NULL)) == NULL) {
       Emsg0(M_ERROR_TERM, 0, _("Could not init Bacula database\n"));
    }
    if (!db_open_database(NULL, db)) {

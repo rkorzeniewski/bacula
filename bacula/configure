@@ -6046,157 +6046,8 @@ fi
 done
 
 
-#AC_CHECK_FUNC(getopt_long, AC_DEFINE(HAVE_GETOPT_LONG),
-#   [LIBEXTRAOBJ="$LIBEXTRAOBJ getopt.o getopt1.o"
-#    EXTRAOBJ="$EXTRAOBJ lib/getopt.o lib/getopt1.o"])
 
-echo "$as_me:$LINENO: checking for getopt_long" >&5
-echo $ECHO_N "checking for getopt_long... $ECHO_C" >&6
-if test "${ac_cv_func_getopt_long+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  cat >conftest.$ac_ext <<_ACEOF
-#line $LINENO "configure"
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-/* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char getopt_long (); below.
-    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
-    <limits.h> exists even on freestanding compilers.  */
-#ifdef __STDC__
-# include <limits.h>
-#else
-# include <assert.h>
-#endif
-/* Override any gcc2 internal prototype to avoid an error.  */
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-/* We use char because int might match the return type of a gcc2
-   builtin and then its argument prototype would still apply.  */
-char getopt_long ();
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_getopt_long) || defined (__stub___getopt_long)
-choke me
-#else
-char (*f) () = getopt_long;
-#endif
-#ifdef __cplusplus
-}
-#endif
-
-int
-main ()
-{
-return f != getopt_long;
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext conftest$ac_exeext
-if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
-  (eval $ac_link) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-         { ac_try='test -s conftest$ac_exeext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
-  ac_cv_func_getopt_long=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-ac_cv_func_getopt_long=no
-fi
-rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
-fi
-echo "$as_me:$LINENO: result: $ac_cv_func_getopt_long" >&5
-echo "${ECHO_T}$ac_cv_func_getopt_long" >&6
-if test $ac_cv_func_getopt_long = yes; then
-  cat >>confdefs.h <<\_ACEOF
-#define HAVE_GETOPT_LONG 1
-_ACEOF
-
-fi
-
-
-
-echo "$as_me:$LINENO: checking for working strcoll" >&5
-echo $ECHO_N "checking for working strcoll... $ECHO_C" >&6
-if test "${ac_cv_func_strcoll_works+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  if test "$cross_compiling" = yes; then
-  ac_cv_func_strcoll_works=no
-else
-  cat >conftest.$ac_ext <<_ACEOF
-#line $LINENO "configure"
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-$ac_includes_default
-int
-main ()
-{
-exit (strcoll ("abc", "def") >= 0 ||
-	 strcoll ("ABC", "DEF") >= 0 ||
-	 strcoll ("123", "456") >= 0)
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest$ac_exeext
-if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
-  (eval $ac_link) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && { ac_try='./conftest$ac_exeext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
-  ac_cv_func_strcoll_works=yes
-else
-  echo "$as_me: program exited with status $ac_status" >&5
-echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-( exit $ac_status )
-ac_cv_func_strcoll_works=no
-fi
-rm -f core core.* *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
-fi
-fi
-echo "$as_me:$LINENO: result: $ac_cv_func_strcoll_works" >&5
-echo "${ECHO_T}$ac_cv_func_strcoll_works" >&6
-if test $ac_cv_func_strcoll_works = yes; then
-
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_STRCOLL 1
-_ACEOF
-
-fi
-
-
-
-
-
-
-for ac_header in varargs.h \
-		sys/ptem.h sys/pte.h sys/stream.h
+for ac_header in varargs.h
 do
 as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if eval "test \"\${$as_ac_Header+set}\" = set"; then
@@ -17400,8 +17251,11 @@ debian)
   ;;
 freebsd)
 	DISTVER=`uname -a |awk '{print $3}'`
-	PTHREAD_LIB="-pthread"
-	CFLAGS="${CFLAGS} -pthread"
+	VER=`echo $DISTVER | cut -c 1`
+	if test x$VER = x4 ; then
+	   PTHREAD_LIB="-pthread"
+	   CFLAGS="${CFLAGS} -pthread"
+	fi
 	lld="qd"
 	llu="qu"
 	TAPEDRIVE="/dev/nrsa0"

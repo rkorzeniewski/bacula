@@ -378,10 +378,6 @@
 /* Define to 1 if you have the `strcasecmp' function. */
 #undef HAVE_STRCASECMP
 
-/* Define to 1 if you have the `strcoll' function and it is properly defined.
-   */
-#undef HAVE_STRCOLL
-
 /* Define to 1 if you have the `strerror' function. */
 #undef HAVE_STRERROR
 
@@ -447,12 +443,6 @@
    */
 #undef HAVE_SYS_NDIR_H
 
-/* Define to 1 if you have the <sys/ptem.h> header file. */
-#undef HAVE_SYS_PTEM_H
-
-/* Define to 1 if you have the <sys/pte.h> header file. */
-#undef HAVE_SYS_PTE_H
-
 /* Define to 1 if you have the <sys/select.h> header file. */
 #undef HAVE_SYS_SELECT_H
 
@@ -464,9 +454,6 @@
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #undef HAVE_SYS_STAT_H
-
-/* Define to 1 if you have the <sys/stream.h> header file. */
-#undef HAVE_SYS_STREAM_H
 
 /* Define to 1 if you have the <sys/time.h> header file. */
 #undef HAVE_SYS_TIME_H
