@@ -30,6 +30,8 @@ Suggestions for Preben:
 - Optimized bootstrap.
 
 For 1.37:
+- Try to open a device on each Job if it was not opened
+  when the SD started.
 - Windows restore:
   data-fd: RestoreFiles.2004-12-07_15.56.42 Error:
   > ..\findlib\../../findlib/create_file.c:275 Could not open e:/: ERR=Der
