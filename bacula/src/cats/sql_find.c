@@ -61,12 +61,12 @@ extern int QueryDB(char *file, int line, B_DB *db, char *select_cmd);
  *	    1 on success, jr is unchanged, but stime is set
  */
 int
-db_find_job_start_time(B_DB *mdb, JOB_DBR *jr, char *stime)
+db_find_job_start_time(B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
 {
    SQL_ROW row;
    int JobId;
 
-   strcpy(stime, "0000-00-00 00:00:00");   /* default */
+   pm_strcpy(stime, "0000-00-00 00:00:00");   /* default */
    db_lock(mdb);
    /* If no Id given, we must find corresponding job */
    if (jr->JobId == 0) {
@@ -117,14 +117,14 @@ ORDER by StartTime DESC LIMIT 1",
    }
 
    if ((row = sql_fetch_row(mdb)) == NULL) {
-      *stime = 0;		      /* set EOS */
+      pm_strcpy(stime, "");                   /* set EOS */
       Mmsg2(&mdb->errmsg, _("No Job found for JobId=%d: %s\n"), JobId, sql_strerror(mdb));
       sql_free_result(mdb);
       db_unlock(mdb);
       return 0;
    }
    Dmsg1(100, "Got start time: %s\n", row[0]);
-   strcpy(stime, row[0]);
+   pm_strcpy(stime, row[0]);
 
    sql_free_result(mdb);
 
@@ -204,7 +204,8 @@ db_find_next_volume(B_DB *mdb, int item, MEDIA_DBR *mr)
 
    db_lock(mdb);
    Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,\
-VolBytes,VolMounts,VolErrors,VolWrites,VolMaxBytes,VolCapacityBytes,Slot,\
+VolBytes,VolMounts,VolErrors,VolWrites,VolMaxBytes,VolCapacityBytes,\
+VolRetention,VolUseDuration,MaxVolJobs,Recycle,Slot,\
 FirstWritten FROM Media WHERE PoolId=%d AND MediaType='%s' AND VolStatus='%s' \
 ORDER BY MediaId", mr->PoolId, mr->MediaType, mr->VolStatus); 
 
@@ -235,7 +236,7 @@ ORDER BY MediaId", mr->PoolId, mr->MediaType, mr->VolStatus);
 
    /* Return fields in Media Record */
    mr->MediaId = atoi(row[0]);
-   strcpy(mr->VolumeName, row[1]);
+   bstrncpy(mr->VolumeName, row[1], sizeof(mr->VolumeName));
    mr->VolJobs = atoi(row[2]);
    mr->VolFiles = atoi(row[3]);
    mr->VolBlocks = atoi(row[4]);
@@ -245,8 +246,12 @@ ORDER BY MediaId", mr->PoolId, mr->MediaType, mr->VolStatus);
    mr->VolWrites = atoi(row[8]);
    mr->VolMaxBytes = (uint64_t)strtod(row[9], NULL);
    mr->VolCapacityBytes = (uint64_t)strtod(row[10], NULL);
-   mr->Slot = atoi(row[11]);
-   strcpy(mr->cFirstWritten, row[12]);
+   mr->VolRetention = (utime_t)strtod(row[11], NULL);
+   mr->VolUseDuration = (utime_t)strtod(row[12], NULL);
+   mr->MaxVolJobs = atoi(row[13]);
+   mr->Recycle = atoi(row[14]);
+   mr->Slot = atoi(row[15]);
+   bstrncpy(mr->cFirstWritten, row[16]!=NULL?row[16]:"", sizeof(mr->cFirstWritten));
 
    sql_free_result(mdb);
 

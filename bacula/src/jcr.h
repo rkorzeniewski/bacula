@@ -242,7 +242,6 @@ typedef struct s_jcr JCR;
 
 /* The following routines are found in lib/jcr.c */
 extern JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr);
-extern void free_jcr(JCR *jcr);
 extern void free_locked_jcr(JCR *jcr);
 extern JCR *get_jcr_by_id(uint32_t JobId);
 extern JCR *get_jcr_by_session(uint32_t SessionId, uint32_t SessionTime);
@@ -251,5 +250,12 @@ extern JCR *get_jcr_by_full_name(char *Job);
 extern JCR *get_next_jcr(JCR *jcr);
 extern void lock_jcr_chain();
 extern void unlock_jcr_chain();
+
+#ifdef DEBUG
+extern void b_free_jcr(char *file, int line, JCR *jcr);
+#define free_jcr(jcr) b_free_jcr(__FILE__, __LINE__, (jcr))
+#else
+extern void free_jcr(JCR *jcr);
+#endif
 
 #endif /* __JCR_H_ */

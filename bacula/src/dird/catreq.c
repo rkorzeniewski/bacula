@@ -70,7 +70,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
    JOBMEDIA_DBR jm;
    char Job[MAX_NAME_LENGTH];
    int index, ok, relabel, writing, retry = 0;
-   char *omsg;
+   POOLMEM *omsg;
 
    memset(&mr, 0, sizeof(mr));
    memset(&jm, 0, sizeof(jm));
@@ -82,14 +82,15 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
    if (sscanf(bs->msg, Find_media, &Job, &index) == 2) {
       mr.PoolId = jcr->PoolId;
       strcpy(mr.MediaType, jcr->store->media_type);
-      Dmsg3(120, "CatReq FindMedia: Id=%d, MediaType=%s, Status=%s\n",
-	 mr.PoolId, mr.MediaType, mr.VolStatus);
+      Dmsg2(120, "CatReq FindMedia: Id=%d, MediaType=%s\n",
+	 mr.PoolId, mr.MediaType);
       /*
        * Find the Next Volume for Append
        */
 next_volume:
       strcpy(mr.VolStatus, "Append");  /* want only appendable volumes */
       ok = db_find_next_volume(jcr->db, index, &mr);  
+      Dmsg1(200, "catreq after find_next_vol ok=%d\n", ok);
       if (!ok) {
 	 /* Well, try finding recycled tapes */
 	 ok = find_recycled_volume(jcr, &mr);
@@ -133,7 +134,7 @@ next_volume:
        */
       if (ok) {
 	 jcr->MediaId = mr.MediaId;
-	 strcpy(jcr->VolumeName, mr.VolumeName);
+	 pm_strcpy(&jcr->VolumeName, mr.VolumeName);
 	 bash_spaces(mr.VolumeName);
 	 bnet_fsend(bs, OK_media, mr.VolumeName, mr.VolJobs,
 	    mr.VolFiles, mr.VolBlocks, mr.VolBytes, mr.VolMounts, mr.VolErrors,
@@ -280,12 +281,13 @@ MediaType=%s\n", mr.PoolId, jcr->PoolId, mr.VolStatus, mr.Slot, mr.MediaType);
       }
 
    } else {
-      omsg = (char *) get_memory(bs->msglen+1);
-      strcpy(omsg, bs->msg);
+      omsg = get_memory(bs->msglen+1);
+      pm_strcpy(&omsg, bs->msg);
       bnet_fsend(bs, "1990 Invalid Catalog Request: %s", omsg);    
       free_memory(omsg);
    }
    Dmsg1(120, ">CatReq response: %s", bs->msg);
+   Dmsg1(200, "Leave catreq jcr 0x%x\n", jcr);
    return;
 }
 

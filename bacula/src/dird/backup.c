@@ -117,12 +117,12 @@ int do_backup(JCR *jcr)
       case L_INCREMENTAL:
 	 /* Look up start time of last job */
 	 jcr->jr.JobId = 0;
-	 if (!db_find_job_start_time(jcr->db, &jcr->jr, jcr->stime)) {
+	 if (!db_find_job_start_time(jcr->db, &jcr->jr, &jcr->stime)) {
             Jmsg(jcr, M_INFO, 0, _("Last FULL backup time not found. Doing FULL backup.\n"));
 	    jcr->JobLevel = jcr->jr.Level = L_FULL;
 	 } else {
             strcpy(since, ", since=");
-	    strcat(since, jcr->stime);
+	    bstrncat(since, jcr->stime, sizeof(since));
 	 }
          Dmsg1(115, "Last start time = %s\n", jcr->stime);
 	 break;

@@ -62,11 +62,10 @@ Makefiles:
 
 clean:
 	@$(RMF) *~ 1 2 3
-	@$(RMF) startmysql stopmysql bacula fd startit stopit btraceback
-	@$(RMF) console gconsole
-
 
 # clean for distribution
 distclean: clean
+	@$(RMF) startmysql stopmysql bacula fd startit stopit btraceback
+	@$(RMF) console gconsole
 
 # ------------------------------------------------------------------------

@@ -128,6 +128,7 @@ int32_t bget_msg(BSOCK *bs, int rtn)
          Emsg1(M_ERROR, 0, _("Job not found: %s\n"), bs->msg);
 	 continue;
       }
+      Dmsg1(200, "Getmsg got jcr 0x%x\n", jcr);
 
       /* Skip past "Jmsg Job=nnn" */
       if (!(msg=find_msg_start(bs->msg))) {
@@ -165,13 +166,16 @@ int32_t bget_msg(BSOCK *bs, int rtn)
        *   CatReq Job=nn Catalog-Request-Message
        */
       if (bs->msg[0] == 'C') {        /* Catalog request */
-         Dmsg1(120, "Catalog req: %s", bs->msg);
+         Dmsg2(120, "Catalog req jcr 0x%x: %s", jcr, bs->msg);
 	 catalog_request(jcr, bs, msg);
+         Dmsg1(200, "Calling freejcr 0x%x\n", jcr);
 	 free_jcr(jcr);
 	 continue;
       }
       if (bs->msg[0] == 'U') {        /* Catalog update */
+         Dmsg2(120, "Catalog upd jcr 0x%x: %s", jcr, bs->msg);
 	 catalog_update(jcr, bs, msg);
+         Dmsg1(200, "Calling freejcr 0x%x\n", jcr);
 	 free_jcr(jcr);
 	 continue;
       }

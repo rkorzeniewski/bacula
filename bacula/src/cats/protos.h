@@ -58,7 +58,7 @@ int db_delete_pool_record(B_DB *db, POOL_DBR *pool_dbr);
 int db_delete_media_record(B_DB *mdb, MEDIA_DBR *mr);
 
 /* find.c */
-int db_find_job_start_time(B_DB *mdb, JOB_DBR *jr, char *stime);
+int db_find_job_start_time(B_DB *mdb, JOB_DBR *jr, POOLMEM **stime);
 int db_find_last_jobid(B_DB *mdb, JOB_DBR *jr);
 int db_find_next_volume(B_DB *mdb, int index, MEDIA_DBR *mr);
 
@@ -90,7 +90,7 @@ int  db_update_job_start_record(B_DB *db, JOB_DBR *jr);
 int  db_update_job_end_record(B_DB *db, JOB_DBR *jr);
 int  db_update_pool_record(B_DB *db, POOL_DBR *pr);
 int  db_update_media_record(B_DB *db, MEDIA_DBR *mr);
-int  db_add_MD5_to_file_record(B_DB *mdb, FileId_t FileId, char *MD5);  
+int  db_add_MD5_to_file_record(B_DB *mdb, FileId_t FileId, char *MD5);	
 int  db_mark_file_record(B_DB *mdb, FileId_t FileId, JobId_t JobId);
 
 #endif /* __SQL_PROTOS_H */

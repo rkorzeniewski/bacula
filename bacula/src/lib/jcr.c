@@ -153,15 +153,25 @@ static void free_common_jcr(JCR *jcr)
 /* 
  * Global routine to free a jcr
  */
+#ifdef DEBUG
+void b_free_jcr(char *file, int line, JCR *jcr)
+{
+   Dmsg3(200, "Enter free_jcr 0x%x from %s:%d\n", jcr, file, line);
+
+#else
+
 void free_jcr(JCR *jcr)
 {
-   Dmsg0(200, "Enter free_jcr\n");
+   Dmsg1(200, "Enter free_jcr 0x%x\n", jcr);
+
+#endif
+
    P(mutex);
    jcr->use_count--;		      /* decrement use count */
-   Dmsg1(200, "Decrement jcr use_count=%d\n", jcr->use_count);
+   Dmsg2(200, "Decrement jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
    if (jcr->use_count > 0) {	      /* if in use */
       V(mutex);
-      Dmsg1(200, "jcr use_count=%d\n", jcr->use_count);
+      Dmsg2(200, "jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
       return;
    }
    remove_jcr(jcr);
@@ -180,7 +190,7 @@ void free_jcr(JCR *jcr)
 void free_locked_jcr(JCR *jcr)
 {
    jcr->use_count--;		      /* decrement use count */
-   Dmsg1(200, "Decrement jcr use_count=%d\n", jcr->use_count);
+   Dmsg2(200, "Decrement jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
    if (jcr->use_count > 0) {	      /* if in use */
       return;
    }
@@ -205,7 +215,7 @@ JCR *get_jcr_by_id(uint32_t JobId)
    for (jcr = jobs; jcr; jcr=jcr->next) {
       if (jcr->JobId == JobId) {
 	 jcr->use_count++;
-         Dmsg1(200, "Increment jcr use_count=%d\n", jcr->use_count);
+         Dmsg2(200, "Increment jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
 	 break;
       }
    }
@@ -227,7 +237,7 @@ JCR *get_jcr_by_session(uint32_t SessionId, uint32_t SessionTime)
       if (jcr->VolSessionId == SessionId && 
 	  jcr->VolSessionTime == SessionTime) {
 	 jcr->use_count++;
-         Dmsg1(200, "Increment jcr use_count=%d\n", jcr->use_count);
+         Dmsg2(200, "Increment jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
 	 break;
       }
    }
@@ -253,7 +263,7 @@ JCR *get_jcr_by_partial_name(char *Job)
    for (jcr = jobs; jcr; jcr=jcr->next) {
       if (strncmp(Job, jcr->Job, len) == 0) {
 	 jcr->use_count++;
-         Dmsg1(200, "Increment jcr use_count=%d\n", jcr->use_count);
+         Dmsg2(200, "Increment jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
 	 break;
       }
    }
@@ -276,7 +286,7 @@ JCR *get_jcr_by_full_name(char *Job)
    for (jcr = jobs; jcr; jcr=jcr->next) {
       if (strcmp(jcr->Job, Job) == 0) {
 	 jcr->use_count++;
-         Dmsg1(200, "Increment jcr use_count=%d\n", jcr->use_count);
+         Dmsg2(200, "Increment jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
 	 break;
       }
    }

@@ -345,12 +345,12 @@ FROM Job WHERE JobId=%u", jr->JobId);
    jr->VolSessionId = atol(row[0]);
    jr->VolSessionTime = atol(row[1]);
    jr->PoolId = atoi(row[2]);
-   strcpy(jr->cStartTime, row[3]);
-   strcpy(jr->cEndTime, row[4]);
+   bstrncpy(jr->cStartTime, row[3]!=NULL?row[3]:"", sizeof(jr->cStartTime));
+   bstrncpy(jr->cEndTime, row[4]!=NULL?row[4]:"", sizeof(jr->cEndTime));
    jr->JobFiles = atol(row[5]);
    jr->JobBytes = (uint64_t)strtod(row[6], NULL);
    jr->JobTDate = (utime_t)strtod(row[7], NULL);
-   strcpy(jr->Job, row[8]);
+   bstrncpy(jr->Job, row[8]!=NULL?row[8]:"", sizeof(jr->Job));
    jr->JobStatus = (int)*row[9];
    jr->Type = (int)*row[10];
    jr->Level = (int)*row[11];
@@ -481,9 +481,9 @@ int db_get_pool_record(B_DB *mdb, POOL_DBR *pdbr)
    db_lock(mdb);
    if (pdbr->PoolId != 0) {		  /* find by id */
       Mmsg(&mdb->cmd, 
-"SELECT PoolId, Name, NumVols, MaxVols, UseOnce, UseCatalog, AcceptAnyVolume, \
-AutoPrune, Recycle, VolRetention, \
-PoolType, LabelFormat FROM Pool WHERE Pool.PoolId=%d", pdbr->PoolId);
+"SELECT PoolId,Name,NumVols,MaxVols,UseOnce,UseCatalog,AcceptAnyVolume,\
+AutoPrune,Recycle,VolRetention,VolUseDuration,MaxVolJobs,\
+PoolType,LabelFormat FROM Pool WHERE Pool.PoolId=%d", pdbr->PoolId);
    } else {			      /* find by name */
       Mmsg(&mdb->cmd, 
 "SELECT PoolId,Name,NumVols,MaxVols,UseOnce,UseCatalog,AcceptAnyVolume,\
@@ -504,7 +504,7 @@ PoolType,LabelFormat FROM Pool WHERE Pool.Name='%s'", pdbr->Name);
             Jmsg(mdb->jcr, M_ERROR, 0, "%s", mdb->errmsg);
 	 } else {
 	    pdbr->PoolId = atoi(row[0]);
-	    strcpy(pdbr->Name, row[1]);
+            bstrncpy(pdbr->Name, row[1]!=NULL?row[1]:"", sizeof(pdbr->Name));
 	    pdbr->NumVols = atoi(row[2]);
 	    pdbr->MaxVols = atoi(row[3]);
 	    pdbr->UseOnce = atoi(row[4]);
@@ -515,12 +515,8 @@ PoolType,LabelFormat FROM Pool WHERE Pool.Name='%s'", pdbr->Name);
 	    pdbr->VolRetention = (utime_t)strtod(row[9], NULL);
 	    pdbr->VolUseDuration = (utime_t)strtod(row[10], NULL);
 	    pdbr->MaxVolJobs = atoi(row[11]);
-	    strcpy(pdbr->PoolType, row[12]);
-	    if (row[13]) {
-	       strcpy(pdbr->LabelFormat, row[13]);
-	    } else {
-	       pdbr->LabelFormat[0] = 0;
-	    }
+            bstrncpy(pdbr->PoolType, row[12]!=NULL?row[12]:"", sizeof(pdbr->PoolType));
+            bstrncpy(pdbr->LabelFormat, row[13]!=NULL?row[13]:"", sizeof(pdbr->LabelFormat));
 	    stat = pdbr->PoolId;
 	 }
       }
@@ -565,8 +561,8 @@ int db_get_fileset_record(B_DB *mdb, FILESET_DBR *fsr)
          Mmsg1(&mdb->errmsg, _("Error: FileSet record \"%s\" not found\n"), fsr->FileSet);
       } else {
 	 fsr->FileSetId = atoi(row[0]);
-	 strcpy(fsr->FileSet, row[1]);
-	 strcpy(fsr->MD5, row[2]);
+         bstrncpy(fsr->FileSet, row[1]!=NULL?row[1]:"", sizeof(fsr->FileSet));
+         bstrncpy(fsr->MD5, row[2]!=NULL?row[2]:"", sizeof(fsr->MD5));
 	 stat = fsr->FileSetId;
       }
       sql_free_result(mdb);
@@ -677,7 +673,7 @@ FROM Media WHERE VolumeName='%s'", mr->VolumeName);
 	 } else {
 	    /* return values */
 	    mr->MediaId = atoi(row[0]);
-	    strcpy(mr->VolumeName, row[1]);
+            bstrncpy(mr->VolumeName, row[1]!=NULL?row[1]:"", sizeof(mr->VolumeName));
 	    mr->VolJobs = atoi(row[2]);
 	    mr->VolFiles = atoi(row[3]);
 	    mr->VolBlocks = atoi(row[4]);
@@ -687,15 +683,15 @@ FROM Media WHERE VolumeName='%s'", mr->VolumeName);
 	    mr->VolWrites = atoi(row[8]);
 	    mr->VolMaxBytes = (uint64_t)strtod(row[9], NULL);
 	    mr->VolCapacityBytes = (uint64_t)strtod(row[10], NULL);
-	    strcpy(mr->MediaType, row[11]);
-	    strcpy(mr->VolStatus, row[12]);
+            bstrncpy(mr->MediaType, row[11]!=NULL?row[11]:"", sizeof(mr->MediaType));
+            bstrncpy(mr->VolStatus, row[12]!=NULL?row[12]:"", sizeof(mr->VolStatus));
 	    mr->PoolId = atoi(row[13]);
 	    mr->VolRetention = (utime_t)strtod(row[14], NULL);
 	    mr->VolUseDuration = (utime_t)strtod(row[15], NULL);
 	    mr->MaxVolJobs = atoi(row[16]);
 	    mr->Recycle = atoi(row[17]);
 	    mr->Slot = atoi(row[18]);
-	    strcpy(mr->cFirstWritten, row[19]);
+            bstrncpy(mr->cFirstWritten, row[19]!=NULL?row[19]:"", sizeof(mr->cFirstWritten));
 	    stat = mr->MediaId;
 	 }
       } else {

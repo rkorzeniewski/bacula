@@ -164,9 +164,10 @@ db_create_pool_record(B_DB *mdb, POOL_DBR *pr)
    int stat;
    char ed1[30], ed2[30];
 
+   Dmsg0(200, "In create pool\n");
    db_lock(mdb);
    Mmsg(&mdb->cmd, "SELECT PoolId,Name FROM Pool WHERE Name='%s'", pr->Name);
-   Dmsg1(20, "selectpool: %s\n", mdb->cmd);
+   Dmsg1(200, "selectpool: %s\n", mdb->cmd);
 
    if (QUERY_DB(mdb, mdb->cmd)) {
 
@@ -196,7 +197,7 @@ VALUES ('%s',%u,%u,%d,%d,%d,%d,%d,%s,%s,%u,'%s','%s')",
 		  edit_uint64(pr->VolUseDuration, ed2),
 		  pr->MaxVolJobs,
 		  pr->PoolType, pr->LabelFormat);
-   Dmsg1(500, "Create Pool: %s\n", mdb->cmd);
+   Dmsg1(200, "Create Pool: %s\n", mdb->cmd);
    if (!INSERT_DB(mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db Pool record %s failed: ERR=%s\n"), 
 	    mdb->cmd, sql_strerror(mdb));

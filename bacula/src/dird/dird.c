@@ -364,6 +364,7 @@ Without that I don't know who I am :-(\n"), configfile);
 	    }
 	    db_close_database(db);
 	 }
+
       } else {
 	 if (job->client) {
             Jmsg(NULL, M_FATAL, 0, _("No Catalog resource defined for client %s\n"), 
