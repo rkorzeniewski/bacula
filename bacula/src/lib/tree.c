@@ -29,11 +29,11 @@
 #include "findlib/find.h"
 	     
 /*
- * Define PREPEND if you want the sibling list to
- *  be prepended otherwise it will be appended when
+ * Define SORT_SIBLINGS you want the sibling list to
+ *  be sorted otherwise it will be appended when
  *  a new entry is added.
  */
-// #define PREPEND
+#define SORT_SIBLINGS
 
 
 /* Forward referenced subroutines */
@@ -266,7 +266,34 @@ TREE_NODE *make_tree_path(char *path, TREE_ROOT *root)
 static TREE_NODE *search_and_insert_tree_node(char *fname, int type, 
 	       TREE_NODE *node, TREE_ROOT *root, TREE_NODE *parent)
 {
-   TREE_NODE *sibling, *last_sibling;
+   TREE_NODE *sibling, *last_sibling = NULL;
+#ifdef SORT_SIBLINGS
+   uint16_t fname_len = strlen(fname);
+   int cmp;
+
+   /* Is it already a sibling? */
+   for (sibling=parent->child; sibling; sibling=sibling->sibling) {
+      Dmsg2(000, "sibling->fname=%s fname=%s\n", sibling->fname, fname);
+      if (fname[0] > sibling->fname[0] || (cmp=strcmp(fname, sibling->fname)) > 0) {
+	 last_sibling = sibling;
+	 continue;
+      }
+      if (cmp < 0) {
+	 /* Insert before current sibling */
+	 if (!node) {
+	    node = new_tree_node(root, type);
+	 }
+	 node->sibling = sibling;
+	 if (sibling == parent->child) { /* if sibling was at head of list */
+	    parent->child = NULL;	 /* force parent to be updated below */
+	 }
+         Dmsg2(000, "insert before sibling->fname=%s fname=%s\n", sibling->fname, fname);
+	 break;
+      }
+      /* Found it */
+      return sibling;
+   }
+#else
    uint16_t fname_len = strlen(fname);
 
    /* Is it already a sibling? */
@@ -279,30 +306,27 @@ static TREE_NODE *search_and_insert_tree_node(char *fname, int type,
       }
       last_sibling = sibling;
    }
-   /* Must add */
+#endif
+
+
+   /* 
+    * At this point, the fname is not found. We must add it 
+    */
    if (!node) {
       node = new_tree_node(root, type);
    }
-   Dmsg1(100, "append_tree_node: %s\n", fname);
+   Dmsg1(000, "append_tree_node: %s\n", fname);
    node->fname_len = fname_len;
    node->fname = tree_alloc(root, node->fname_len + 1);
    strcpy(node->fname, fname);
    node->parent = parent;
    if (!parent->child) {
       parent->child = node;
-      goto item_link;		      /* No children, so skip search */
+   } else {
+      last_sibling->sibling = node;
    }
 
-#ifdef	PREPEND
-   /* Add node to head of sibling chain */
-   node->sibling = parent->child;
-   parent->child = node;
-#else
-   last_sibling = node;
-#endif
-
    /* Maintain a linear chain of nodes */
-item_link:
    if (!root->first) {
       root->first = node;
       root->last = node;
