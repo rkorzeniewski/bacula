@@ -35,7 +35,7 @@ extern int debug_level;
 /* First and last resource ids */
 int r_first = R_FIRST;
 int r_last  = R_LAST;
-static RES *sres_head[R_LAST - R_FIRST];
+static RES *sres_head[R_LAST - R_FIRST + 1];
 RES **res_head = sres_head;
 
 

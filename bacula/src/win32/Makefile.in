@@ -55,7 +55,7 @@ installer: winbacula.exe
 # Build installer
 #
 winbacula.exe: bacula
-	${MAKENSIS} winbacula.nsi
+	${MAKENSIS} /V2 winbacula.nsi
 
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status winbacula.nsi.in

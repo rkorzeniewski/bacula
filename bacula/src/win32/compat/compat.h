@@ -44,11 +44,6 @@
 #include <basetsd.h>
 #include <stdarg.h>
 #include <sys/types.h>
-
-#ifdef HAVE_WXCONSOLE
-//#include <sys/stat.h>
-#endif
-
 #include <process.h>
 #include <direct.h>
 #include <winsock2.h>
@@ -78,15 +73,15 @@
 
 #include "getopt.h"
 
-#ifdef HAVE_MINGW
 #define HAVE_WIN32 1
-#else
+
+#ifndef HAVE_MINGW
 #ifdef HAVE_CYGWIN
 #error should not be used under cygwin...
 #else
-#define HAVE_WIN32 1
 #endif //HAVE_CYGWIN
 #endif //HAVE_MINGW
+
 typedef UINT64 u_int64_t;
 typedef UINT64 uint64_t;
 typedef INT64 int64_t;
@@ -98,6 +93,8 @@ typedef float float32_t;
 typedef unsigned short uint16_t;
 typedef signed short int16_t;
 typedef long time_t;
+typedef signed char int8_t;
+
 #if __STDC__
 #ifndef HAVE_MINGW
 typedef _dev_t dev_t;
@@ -109,13 +106,14 @@ typedef __int64 off_t;          /* STDC=1 means we can define this */
 #else
 typedef long _off_t;            /* must be same as sys/types.h */
 #endif
-typedef signed char int8_t;
+
 #ifndef HAVE_MINGW
 #ifndef HAVE_WXCONSOLE
 typedef int BOOL;
 #define bool BOOL
 #endif
 #endif
+
 typedef double float64_t;
 typedef UINT32 u_int32_t;
 typedef unsigned char u_int8_t;
@@ -202,6 +200,11 @@ struct stat
 #define S_IRUSR         S_IREAD
 #define S_IWUSR         S_IWRITE
 #define S_IXUSR         S_IEXEC
+#define S_ISREG(x)  (((x) & S_IFREG) == S_IFREG)
+#define S_ISDIR(x)  (((x) & S_IFDIR) == S_IFDIR)
+#define S_ISCHR(x) 0
+#define S_ISBLK(x) 0
+#define S_ISFIFO(x) 0
 #endif //HAVE_MINGW
 
 #define S_IRGRP         000040
@@ -217,18 +220,8 @@ struct stat
 #define S_ISUID         004000
 #define S_ISGID         002000
 #define S_ISVTX         001000
-
-#ifndef HAVE_MINGW
-#define S_ISREG(x)  (((x) & S_IFREG) == S_IFREG)
-#define S_ISDIR(x)  (((x) & S_IFDIR) == S_IFDIR)
-#define S_ISCHR(x) 0
-#define S_ISBLK(x) 0
-#define S_ISFIFO(x) 0
-#endif //HAVE_MINGW
-
 #define S_ISSOCK(x) 0
 #define S_ISLNK(x)      0
-
 
 #if __STDC__
 #define O_RDONLY _O_RDONLY
@@ -241,23 +234,13 @@ struct stat
 #define toascii __toascii
 #define iscsymf __iscsymf
 #define iscsym  __iscsym
-
 #endif
-#define SIGUSR2 9999
+
 
 int umask(int);
 int lchown(const char *, uid_t uid, gid_t gid);
 int chown(const char *, uid_t uid, gid_t gid);
 int chmod(const char *, mode_t mode);
-#ifndef HAVE_MINGW
-int utime(const char *filename, struct utimbuf *buf);
-int open(const char *, int, int);
-#ifndef HAVE_WXCONSOLE
-ssize_t read(int fd, void *, size_t nbytes);
-ssize_t write(int fd, const void *, size_t nbytes);
-#endif
-int close(int fd);
-#endif //HAVE_MINGW
 off_t lseek(int, off_t, int);
 int inet_aton(const char *cp, struct in_addr *inp);
 int kill(int pid, int signo);
@@ -265,16 +248,10 @@ int pipe(int []);
 int fork();
 int dup2(int, int);
 int waitpid(int, int *, int);
-#define WNOHANG 0
-#define WIFEXITED(x) 0
-#define WEXITSTATUS(x) x
-#define WIFSIGNALED(x) 0
-
-#define SIGKILL 9
-
-#define HAVE_OLD_SOCKOPT
 
 #ifndef HAVE_MINGW
+int utime(const char *filename, struct utimbuf *buf);
+int open(const char *, int, int);
 #define vsnprintf __vsnprintf
 int __vsnprintf(char *s, size_t count, const char *format, va_list args);
 
@@ -286,11 +263,27 @@ int __snprintf(char *str, size_t count, const char *fmt, ...);
 
 #define sprintf __sprintf
 int __sprintf(char *str, const char *fmt, ...);
+
+#ifndef HAVE_WXCONSOLE
+ssize_t read(int fd, void *, size_t nbytes);
+ssize_t write(int fd, const void *, size_t nbytes);
+#endif
+
+int close(int fd);
 #endif //HAVE_MINGW
+
+
+#define WNOHANG 0
+#define WIFEXITED(x) 0
+#define WEXITSTATUS(x) x
+#define WIFSIGNALED(x) 0
+#define SIGKILL 9
+#define SIGUSR2 9999
+
+#define HAVE_OLD_SOCKOPT
 
 int readdir(unsigned int fd, struct dirent *dirp, unsigned int count);
 int nanosleep(const struct timespec*, struct timespec *);
-
 struct tm *localtime_r(const time_t *, struct tm *);
 struct tm *gmtime_r(const time_t *, struct tm *);
 long int random(void);
@@ -333,15 +326,12 @@ struct sigaction {
 
 #define mkdir(p, m) _mkdir(p)
 #define chdir win32_chdir
-
-#ifndef HAVE_MINGW
-int stat(const char *, struct stat *);
-#endif //HAVE_MINGW
 int syslog(int, const char *, const char *);
 #define LOG_DAEMON 0
 #define LOG_ERR 0
 
 #ifndef HAVE_MINGW
+int stat(const char *, struct stat *);
 #ifdef __cplusplus
 #define access _access
 extern "C" _CRTIMP int __cdecl _access(const char *, int);

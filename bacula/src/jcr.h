@@ -261,7 +261,7 @@ struct JCR {
  */
 struct s_last_job {
    dlink link;
-   int xNumJobs;                      /* no longer used */
+   int Errors;                        /* FD/SD errors */
    int JobType;
    int JobStatus;
    int JobLevel;

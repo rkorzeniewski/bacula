@@ -25,6 +25,9 @@ NULL=
 NULL=nul
 !ENDIF 
 
+CPP=cl.exe
+RSC=rc.exe
+
 !IF  "$(CFG)" == "baculafd - Win32 Release"
 
 OUTDIR=.\Release
@@ -51,6 +54,7 @@ CLEAN :
         -@erase "$(INTDIR)\bshm.obj"
         -@erase "$(INTDIR)\bsys.obj"
         -@erase "$(INTDIR)\btime.obj"
+        -@erase "$(INTDIR)\btimers.obj"
         -@erase "$(INTDIR)\compat.obj"
         -@erase "$(INTDIR)\cram-md5.obj"
         -@erase "$(INTDIR)\crc32.obj"
@@ -92,7 +96,6 @@ CLEAN :
         -@erase "$(INTDIR)\smartall.obj"
         -@erase "$(INTDIR)\status.obj"
         -@erase "$(INTDIR)\StdAfx.obj"
-        -@erase "$(INTDIR)\btimers.obj"
         -@erase "$(INTDIR)\tree.obj"
         -@erase "$(INTDIR)\util.obj"
         -@erase "$(INTDIR)\var.obj"
@@ -114,47 +117,14 @@ CLEAN :
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-CPP=cl.exe
 CPP_PROJ=/nologo /MT /W3 /GX /O2 /I "../compat" /I "../.." /I "../../../../depkgs-win32/pthreads" /I "../../../../depkgs-win32/zlib" /I "." /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "HAVE_WIN32" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
-
-.c{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cpp{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cxx{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.c{$(INTDIR)}.sbr::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cpp{$(INTDIR)}.sbr::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cxx{$(INTDIR)}.sbr::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-RSC=rc.exe
 RSC_PROJ=/l 0x409 /fo"$(INTDIR)\winres.res" /d "NDEBUG" 
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\baculafd.bsc" 
 BSC32_SBRS= \
         
 LINK32=link.exe
-LINK32_FLAGS=user32.lib ADVAPI32.LIB gdi32.lib wsock32.lib shell32.lib pthreadVCE.lib zlib.lib /nologo /subsystem:windows /pdb:none /machine:I386 /nodefaultlib:"MSVCRT.lib" /out:"$(OUTDIR)\bacula-fd.exe" /libpath:"../../../../depkgs-win32/pthreads" /libpath:"../../../../depkgs-win32/zlib" 
+LINK32_FLAGS=user32.lib advapi32.lib gdi32.lib wsock32.lib shell32.lib pthreadVCE.lib zlib.lib /nologo /subsystem:windows /pdb:none /machine:I386 /nodefaultlib:"MSVCRT.lib" /out:"$(OUTDIR)\bacula-fd.exe" /libpath:"../../../../depkgs-win32/pthreads" /libpath:"../../../../depkgs-win32/zlib" 
 LINK32_OBJS= \
         "$(INTDIR)\alist.obj" \
         "$(INTDIR)\alloc.obj" \
@@ -170,6 +140,7 @@ LINK32_OBJS= \
         "$(INTDIR)\bshm.obj" \
         "$(INTDIR)\bsys.obj" \
         "$(INTDIR)\btime.obj" \
+        "$(INTDIR)\btimers.obj" \
         "$(INTDIR)\compat.obj" \
         "$(INTDIR)\cram-md5.obj" \
         "$(INTDIR)\crc32.obj" \
@@ -211,7 +182,6 @@ LINK32_OBJS= \
         "$(INTDIR)\smartall.obj" \
         "$(INTDIR)\status.obj" \
         "$(INTDIR)\StdAfx.obj" \
-        "$(INTDIR)\btimers.obj" \
         "$(INTDIR)\tree.obj" \
         "$(INTDIR)\util.obj" \
         "$(INTDIR)\var.obj" \
@@ -273,6 +243,8 @@ CLEAN :
         -@erase "$(INTDIR)\bsys.sbr"
         -@erase "$(INTDIR)\btime.obj"
         -@erase "$(INTDIR)\btime.sbr"
+        -@erase "$(INTDIR)\btimers.obj"
+        -@erase "$(INTDIR)\btimers.sbr"
         -@erase "$(INTDIR)\compat.obj"
         -@erase "$(INTDIR)\compat.sbr"
         -@erase "$(INTDIR)\cram-md5.obj"
@@ -355,8 +327,6 @@ CLEAN :
         -@erase "$(INTDIR)\status.sbr"
         -@erase "$(INTDIR)\StdAfx.obj"
         -@erase "$(INTDIR)\StdAfx.sbr"
-        -@erase "$(INTDIR)\btimers.obj"
-        -@erase "$(INTDIR)\btimers.sbr"
         -@erase "$(INTDIR)\tree.obj"
         -@erase "$(INTDIR)\tree.sbr"
         -@erase "$(INTDIR)\util.obj"
@@ -394,41 +364,8 @@ CLEAN :
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-CPP=cl.exe
-CPP_PROJ=/nologo /MDd /W3 /Gm /GX /ZI /Od /I "../compat" /I "../.." /I "../../../../depkgs-win32/pthreads" /I "../../../../depkgs-win32/zlib" /I "." /D "_DEBUG" /D "_WINMAIN_" /D "PTW32_BUILD" /D "_AFXDLL" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "HAVE_WIN32" /FR"$(INTDIR)\\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
-
-.c{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cpp{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cxx{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.c{$(INTDIR)}.sbr::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cpp{$(INTDIR)}.sbr::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cxx{$(INTDIR)}.sbr::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-RSC=rc.exe
-RSC_PROJ=/l 0x409 /fo"$(INTDIR)\winres.res" /d "_DEBUG" /d "_AFXDLL" 
+CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I "../compat" /I "../.." /I "../../../../depkgs-win32/pthreads" /I "../../../../depkgs-win32/zlib" /I "." /D "_DEBUG" /D "_WINMAIN_" /D "PTW32_BUILD" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "HAVE_WIN32" /FR"$(INTDIR)\\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+RSC_PROJ=/l 0x409 /fo"$(INTDIR)\winres.res" /d "_DEBUG" 
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\baculafd.bsc" 
 BSC32_SBRS= \
@@ -446,6 +383,7 @@ BSC32_SBRS= \
         "$(INTDIR)\bshm.sbr" \
         "$(INTDIR)\bsys.sbr" \
         "$(INTDIR)\btime.sbr" \
+        "$(INTDIR)\btimers.sbr" \
         "$(INTDIR)\compat.sbr" \
         "$(INTDIR)\cram-md5.sbr" \
         "$(INTDIR)\crc32.sbr" \
@@ -487,7 +425,6 @@ BSC32_SBRS= \
         "$(INTDIR)\smartall.sbr" \
         "$(INTDIR)\status.sbr" \
         "$(INTDIR)\StdAfx.sbr" \
-        "$(INTDIR)\btimers.sbr" \
         "$(INTDIR)\tree.sbr" \
         "$(INTDIR)\util.sbr" \
         "$(INTDIR)\var.sbr" \
@@ -509,7 +446,7 @@ BSC32_SBRS= \
 <<
 
 LINK32=link.exe
-LINK32_FLAGS=user32.lib ADVAPI32.LIB gdi32.lib shell32.lib wsock32.lib pthreadVCE.lib zlib.lib /nologo /subsystem:windows /pdb:none /debug /machine:I386 /out:"$(OUTDIR)\bacula-fd.exe" /libpath:"../../../../depkgs-win32/pthreads" /libpath:"../../../../depkgs-win32/zlib" 
+LINK32_FLAGS=user32.lib advapi32.lib gdi32.lib shell32.lib wsock32.lib pthreadVCE.lib zlib.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /pdb:none /debug /machine:I386 /nodefaultlib:"MSVCRT.lib" /out:"$(OUTDIR)\bacula-fd.exe" /libpath:"../../../../depkgs-win32/pthreads" /libpath:"../../../../depkgs-win32/zlib" 
 LINK32_OBJS= \
         "$(INTDIR)\alist.obj" \
         "$(INTDIR)\alloc.obj" \
@@ -525,6 +462,7 @@ LINK32_OBJS= \
         "$(INTDIR)\bshm.obj" \
         "$(INTDIR)\bsys.obj" \
         "$(INTDIR)\btime.obj" \
+        "$(INTDIR)\btimers.obj" \
         "$(INTDIR)\compat.obj" \
         "$(INTDIR)\cram-md5.obj" \
         "$(INTDIR)\crc32.obj" \
@@ -566,7 +504,6 @@ LINK32_OBJS= \
         "$(INTDIR)\smartall.obj" \
         "$(INTDIR)\status.obj" \
         "$(INTDIR)\StdAfx.obj" \
-        "$(INTDIR)\btimers.obj" \
         "$(INTDIR)\tree.obj" \
         "$(INTDIR)\util.obj" \
         "$(INTDIR)\var.obj" \
@@ -589,6 +526,36 @@ LINK32_OBJS= \
 <<
 
 !ENDIF 
+
+.c{$(INTDIR)}.obj::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.cpp{$(INTDIR)}.obj::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.cxx{$(INTDIR)}.obj::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.c{$(INTDIR)}.sbr::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.cpp{$(INTDIR)}.sbr::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.cxx{$(INTDIR)}.sbr::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
 
 
 !IF "$(NO_EXTERNAL_DEPS)" != "1"
@@ -848,6 +815,24 @@ SOURCE=..\lib\btime.cpp
 
 
 "$(INTDIR)\btime.obj"   "$(INTDIR)\btime.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\lib\btimers.cpp
+
+!IF  "$(CFG)" == "baculafd - Win32 Release"
+
+
+"$(INTDIR)\btimers.obj" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
+
+
+"$(INTDIR)\btimers.obj" "$(INTDIR)\btimers.sbr" : $(SOURCE) "$(INTDIR)"
         $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
@@ -1589,24 +1574,6 @@ SOURCE=.\StdAfx.cpp
 
 !ENDIF 
 
-SOURCE=..\lib\btimers.cpp
-
-!IF  "$(CFG)" == "baculafd - Win32 Release"
-
-
-"$(INTDIR)\btimers.obj" : $(SOURCE) "$(INTDIR)"
-        $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
-
-
-"$(INTDIR)\btimers.obj"  "$(INTDIR)\btimers.sbr" : $(SOURCE) "$(INTDIR)"
-        $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
-
 SOURCE=..\lib\tree.cpp
 
 !IF  "$(CFG)" == "baculafd - Win32 Release"
@@ -1800,7 +1767,7 @@ SOURCE=..\..\filed\win32\winres.rc
 
 
 "$(INTDIR)\winres.res" : $(SOURCE) "$(INTDIR)"
-        $(RSC) /l 0x409 /fo"$(INTDIR)\winres.res" /i "..\..\filed\win32" /d "_DEBUG" /d "_AFXDLL" $(SOURCE)
+        $(RSC) /l 0x409 /fo"$(INTDIR)\winres.res" /i "..\..\filed\win32" /d "_DEBUG" $(SOURCE)
 
 
 !ENDIF 

@@ -306,7 +306,6 @@ static const char *level_to_str(int level)
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 #include <windows.h>
 
-static char buf[100];
 int bacstat = 0;
 
 struct s_win32_arg {
@@ -325,8 +324,7 @@ static void win32_sendit(const char *msg, int len, void *marg)
        // when compiling with visual studio some strings are read-only 
        // and cause access violations.	So we creat a tmp copy.
        char *_msg = (char *)alloca(len);
-       strncpy(_msg, msg, len-1);
-       _msg[len-1] = 0;
+       bstrncpy(_msg, msg, len);
        msg = _msg;
    }
    SendDlgItemMessage(arg->hwnd, arg->idlist, LB_ADDSTRING, 0, (LONG)msg);
@@ -346,36 +344,21 @@ void FillStatusBox(HWND hwnd, int idlist)
    do_status(win32_sendit, (void *)&arg);
 }
 
-char *bac_status(int stat)
+char *bac_status(char *buf, int buf_len)
 {
    JCR *njcr;
    const char *termstat = _("Bacula Idle");
    struct s_last_job *job;
+   int stat = 0;		      /* Idle */
 
-   bacstat = 0;
    if (!last_jobs) {
-      return _("Bacula Terminated");
-   }
-   if (last_jobs->size() > 0) {
-      job = (struct s_last_job *)last_jobs->last();
-      switch (job->JobStatus) {
-      case JS_Canceled:
-	 bacstat = -1;
-         termstat = _("Last Job Canceled");
-	 break;
-      case JS_ErrorTerminated:
-	 bacstat = -1;
-         termstat = _("Last Job Failed");
-	 break;
-      default:
-	 break;
-      }
+      goto done;
    }
    Dmsg0(1000, "Begin bac_status jcr loop.\n");
    lock_jcr_chain();
    foreach_jcr(njcr) {
       if (njcr->JobId != 0) {
-	 bacstat = 1;
+	 stat = JS_Running;
          termstat = _("Bacula Running");
 	 free_locked_jcr(njcr);
 	 break;
@@ -383,8 +366,32 @@ char *bac_status(int stat)
       free_locked_jcr(njcr);
    }
    unlock_jcr_chain();
+   if (stat != 0) {
+      goto done;
+   }
+   if (last_jobs->size() > 0) {
+      job = (struct s_last_job *)last_jobs->last();
+      stat = job->JobStatus;
+      switch (job->JobStatus) {
+      case JS_Canceled:
+         termstat = _("Last Job Canceled");
+	 break;
+      case JS_ErrorTerminated:
+         termstat = _("Last Job Failed");
+	 break;
+      default:
+	 if (job->Errors) {
+            termstat = _("Last Job had Errors");
+	 }
+	 break;
+      }
+   }
    Dmsg0(1000, "End bac_status jcr loop.\n");
-   bstrncpy(buf, termstat, sizeof(buf));
+done:
+   bacstat = stat;
+   if (buf) {
+      bstrncpy(buf, termstat, sizeof(buf));
+   }
    return buf;
 }
 
