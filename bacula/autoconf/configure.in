@@ -757,7 +757,7 @@ AC_EXEEXT
 
 dnl See if we can use 64 bit file addresses
 largefile_support="no"
-AC_SYS_LARGEFILE
+AC_BAC_LARGEFILE
 
 
 AC_PATH_XTRA

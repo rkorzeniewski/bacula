@@ -16,9 +16,9 @@ ac_help="$ac_help
 ac_help="$ac_help
   --with-gnome-includes   Specify location of GNOME headers"
 ac_help="$ac_help
-  --with-gnome-libs	   Specify location of GNOME libs"
+  --with-gnome-libs       Specify location of GNOME libs"
 ac_help="$ac_help
-  --with-gnome 	   Specify prefix for GNOME files"
+  --with-gnome            Specify prefix for GNOME files"
 ac_help="$ac_help
   --enable-smartalloc     enable smartalloc debugging support [disabled]"
 ac_help="$ac_help
@@ -65,23 +65,23 @@ ac_help="$ac_help
 ac_help="$ac_help
 
 Which DBMS do you want to use (please select only one):
-  --with-mysql[=DIR]	  Include MySQL support.  DIR is the MySQL base
-			  install directory, default is to search through
-			  a number of common places for the MySQL files."
+  --with-mysql[=DIR]      Include MySQL support.  DIR is the MySQL base
+                          install directory, default is to search through
+                          a number of common places for the MySQL files."
 ac_help="$ac_help
 
 Which DBMS do you want to use (please select only one):
   --with-embedded-mysql[=DIR] Include MySQL support.  DIR is the MySQL base
-			  install directory, default is to search through
-			  a number of common places for the MySQL files."
+                          install directory, default is to search through
+                          a number of common places for the MySQL files."
 ac_help="$ac_help
 
 Which DBMS do you want to use (please select only one):
-  --with-sqlite[=DIR]	  Include SQLite support.  DIR is the SQLite base
-			  install directory, default is to search through
-			  a number of common places for the SQLite files."
+  --with-sqlite[=DIR]     Include SQLite support.  DIR is the SQLite base
+                          install directory, default is to search through
+                          a number of common places for the SQLite files."
 ac_help="$ac_help
-	--disable-largefile	omit support for large files"
+  --disable-largefile     omit support for large files"
 ac_help="$ac_help
   --with-x                use the X Window System"
 
@@ -1884,7 +1884,7 @@ CYGWIN=
 test "$ac_cv_cygwin" = yes && CYGWIN=yes
 if test $HAVE_UNAME=yes -a x`uname -s` = xSunOS
 then
-	
+        
 
 if $TRUEPRG; then
   HAVE_SUN_OS_TRUE=
@@ -1893,12 +1893,12 @@ else
   HAVE_SUN_OS_TRUE='#'
   HAVE_SUN_OS_FALSE=
 fi
-	cat >> confdefs.h <<\EOF
+        cat >> confdefs.h <<\EOF
 #define HAVE_SUN_OS 1
 EOF
 
 else
-	
+        
 
 if $FALSEPRG; then
   HAVE_SUN_OS_TRUE=
@@ -1911,7 +1911,7 @@ fi
 
 if test $HAVE_UNAME=yes -a x`uname -s` = xOSF1
 then
-	
+        
 
 if $TRUEPRG; then
   HAVE_OSF1_OS_TRUE=
@@ -1920,12 +1920,12 @@ else
   HAVE_OSF1_OS_TRUE='#'
   HAVE_OSF1_OS_FALSE=
 fi
-	cat >> confdefs.h <<\EOF
+        cat >> confdefs.h <<\EOF
 #define HAVE_OSF1_OS 1
 EOF
 
 else
-	
+        
 
 if $FALSEPRG; then
   HAVE_OSF1_OS_TRUE=
@@ -1938,7 +1938,7 @@ fi
 
 if test $HAVE_UNAME=yes -a x`uname -s` = xAIX
 then
-	
+        
 
 if $TRUEPRG; then
   HAVE_AIX_OS_TRUE=
@@ -1947,12 +1947,12 @@ else
   HAVE_AIX_OS_TRUE='#'
   HAVE_AIX_OS_FALSE=
 fi
-	cat >> confdefs.h <<\EOF
+        cat >> confdefs.h <<\EOF
 #define HAVE_AIX_OS 1
 EOF
 
 else
-	
+        
 
 if $FALSEPRG; then
   HAVE_AIX_OS_TRUE=
@@ -1965,7 +1965,7 @@ fi
 
 if test $HAVE_UNAME=yes -a x`uname -s` = xHP-UX
 then
-	
+        
 
 if $TRUEPRG; then
   HAVE_HPUX_OS_TRUE=
@@ -1974,12 +1974,12 @@ else
   HAVE_HPUX_OS_TRUE='#'
   HAVE_HPUX_OS_FALSE=
 fi
-	cat >> confdefs.h <<\EOF
+        cat >> confdefs.h <<\EOF
 #define HAVE_HPUX_OS 1
 EOF
 
 else
-	
+        
 
 if $FALSEPRG; then
   HAVE_HPUX_OS_TRUE=
@@ -1992,7 +1992,7 @@ fi
 
 if test $HAVE_UNAME=yes -a x`uname -s` = xLinux
 then
-	
+        
 
 if $TRUEPRG; then
   HAVE_LINUX_OS_TRUE=
@@ -2001,12 +2001,12 @@ else
   HAVE_LINUX_OS_TRUE='#'
   HAVE_LINUX_OS_FALSE=
 fi
-	cat >> confdefs.h <<\EOF
+        cat >> confdefs.h <<\EOF
 #define HAVE_LINUX_OS 1
 EOF
 
 else
-	
+        
 
 if $FALSEPRG; then
   HAVE_LINUX_OS_TRUE=
@@ -2019,7 +2019,7 @@ fi
 
 if test $HAVE_UNAME=yes -a x`uname -s` = xFreeBSD
 then
-	
+        
 
 if $TRUEPRG; then
   HAVE_FREEBSD_OS_TRUE=
@@ -2028,12 +2028,12 @@ else
   HAVE_FREEBSD_OS_TRUE='#'
   HAVE_FREEBSD_OS_FALSE=
 fi
-	cat >> confdefs.h <<\EOF
+        cat >> confdefs.h <<\EOF
 #define HAVE_FREEBSD_OS 1
 EOF
 
 else
-	
+        
 
 if $FALSEPRG; then
   HAVE_FREEBSD_OS_TRUE=
@@ -2046,7 +2046,7 @@ fi
 
 if test $HAVE_UNAME=yes -a x`uname -s` = xNetBSD
 then
-	
+        
 
 if $TRUEPRG; then
   HAVE_NETBSD_OS_TRUE=
@@ -2055,12 +2055,12 @@ else
   HAVE_NETBSD_OS_TRUE='#'
   HAVE_NETBSD_OS_FALSE=
 fi
-	cat >> confdefs.h <<\EOF
+        cat >> confdefs.h <<\EOF
 #define HAVE_NETBSD_OS 1
 EOF
 
 else
-	
+        
 
 if $FALSEPRG; then
   HAVE_NETBSD_OS_TRUE=
@@ -2073,7 +2073,7 @@ fi
 
 if test $HAVE_UNAME=yes -a x`uname -s` = xOpenBSD
 then
-	
+        
 
 if $TRUEPRG; then
   HAVE_OPENBSD_OS_TRUE=
@@ -2082,12 +2082,12 @@ else
   HAVE_OPENBSD_OS_TRUE='#'
   HAVE_OPENBSD_OS_FALSE=
 fi
-	cat >> confdefs.h <<\EOF
+        cat >> confdefs.h <<\EOF
 #define HAVE_OPENBSD_OS 1
 EOF
 
 else
-	
+        
 
 if $FALSEPRG; then
   HAVE_OPENBSD_OS_TRUE=
@@ -2100,7 +2100,7 @@ fi
 
 if test $HAVE_UNAME=yes -a x`uname -s` = xBSD/OS
 then
-	
+        
 
 if $TRUEPRG; then
   HAVE_BSDI_OS_TRUE=
@@ -2109,12 +2109,12 @@ else
   HAVE_BSDI_OS_TRUE='#'
   HAVE_BSDI_OS_FALSE=
 fi
-	cat >> confdefs.h <<\EOF
+        cat >> confdefs.h <<\EOF
 #define HAVE_BSDI_OS 1
 EOF
 
 else
-	
+        
 
 if $FALSEPRG; then
   HAVE_BSDI_OS_TRUE=
@@ -2127,7 +2127,7 @@ fi
 
 if test $HAVE_UNAME=yes -a x`uname -s` = xSGI
 then
-	
+        
 
 if $TRUEPRG; then
   HAVE_SGI_OS_TRUE=
@@ -2136,12 +2136,12 @@ else
   HAVE_SGI_OS_TRUE='#'
   HAVE_SGI_OS_FALSE=
 fi
-	cat >> confdefs.h <<\EOF
+        cat >> confdefs.h <<\EOF
 #define HAVE_SGI_OS 1
 EOF
 
 else
-	
+        
 
 if $FALSEPRG; then
   HAVE_SGI_OS_TRUE=
@@ -2154,7 +2154,7 @@ fi
 
 if test $HAVE_UNAME=yes -a x`uname -s` = xIRIX
 then
-	
+        
 
 if $TRUEPRG; then
   HAVE_IRIX_OS_TRUE=
@@ -2163,12 +2163,12 @@ else
   HAVE_IRIX_OS_TRUE='#'
   HAVE_IRIX_OS_FALSE=
 fi
-	cat >> confdefs.h <<\EOF
+        cat >> confdefs.h <<\EOF
 #define HAVE_IRIX_OS 1
 EOF
 
 else
-	
+        
 
 if $FALSEPRG; then
   HAVE_IRIX_OS_TRUE=
@@ -2215,67 +2215,67 @@ echo $ac_n "checking for Operating System Distribution""... $ac_c" 1>&6
 echo "configure:2216: checking for Operating System Distribution" >&5
 if test "x$DISTNAME" != "x"
 then
-	echo "distname set to $DISTNAME"
+        echo "distname set to $DISTNAME"
 elif test $HAVE_UNAME=yes -a x`uname -s` = xOSF1
 then
-	DISTNAME=alpha
+        DISTNAME=alpha
 elif test $HAVE_UNAME=yes -a x`uname -s` = xAIX
 then
-	DISTNAME=aix
+        DISTNAME=aix
 elif test $HAVE_UNAME=yes -a x`uname -s` = xHP-UX
 then
-	DISTNAME=hpux
+        DISTNAME=hpux
 elif test $HAVE_UNAME=yes -a x`uname -s` = xSunOS
 then
-	DISTNAME=solaris
+        DISTNAME=solaris
 elif test $HAVE_UNAME=yes -a x`uname -s` = xFreeBSD
 then
-	DISTNAME=freebsd
+        DISTNAME=freebsd
 elif test $HAVE_UNAME=yes -a x`uname -s` = xNetBSD
 then
-	DISTNAME=netbsd
+        DISTNAME=netbsd
 elif test $HAVE_UNAME=yes -a x`uname -s` = xOpenBSD
 then
-	DISTNAME=openbsd
+        DISTNAME=openbsd
 elif test $HAVE_UNAME=yes -a x`uname -s` = xIRIX
 then
-	DISTNAME=irix
+        DISTNAME=irix
 elif test $HAVE_UNAME=yes -a x`uname -s` = xBSD/OS
 then
-	DISTNAME=bsdi
+        DISTNAME=bsdi
 elif test -f /etc/SuSE-release
 then
-	DISTNAME=suse
+        DISTNAME=suse
 elif test -d /etc/SuSEconfig
 then
-	DISTNAME=suse5
+        DISTNAME=suse5
 elif test -d /usr/src/OpenLinux
 then
-	DISTNAME=caldera
+        DISTNAME=caldera
 elif test -f /etc/redhat-release
 then
-	DISTNAME=redhat
+        DISTNAME=redhat
 elif test -f /etc/gentoo-release
 then
-	DISTNAME=gentoo
+        DISTNAME=gentoo
 elif test -f /etc/debian_version
 then
-	DISTNAME=debian
+        DISTNAME=debian
 elif test -f /etc/slackware-version
 then
-	DISTNAME=slackware
+        DISTNAME=slackware
 elif test $HAVE_UNAME=yes -a x`uname -s` = xDarwin
 then
     DISTNAME=darwin
 elif test "$ac_cv_cygwin" = yes
 then
-	DISTNAME=cygwin
-	cat >> confdefs.h <<\EOF
+        DISTNAME=cygwin
+        cat >> confdefs.h <<\EOF
 #define HAVE_CYGWIN 1
 EOF
 
 else
-	DISTNAME=unknown
+        DISTNAME=unknown
 fi
 echo "$ac_t""" "" 1>&6
 
@@ -2283,7 +2283,7 @@ echo "$ac_t""" "" 1>&6
 # -----------------------------------------------------------
 # ----------------------------------------------------------
 
-	
+        
 
 if false; then
   INSIDE_GNOME_COMMON_TRUE=
@@ -2293,9 +2293,9 @@ else
   INSIDE_GNOME_COMMON_FALSE=
 fi
 
-	test -n "$ACLOCAL_FLAGS" && ACLOCAL="$ACLOCAL $ACLOCAL_FLAGS"
+        test -n "$ACLOCAL_FLAGS" && ACLOCAL="$ACLOCAL $ACLOCAL_FLAGS"
 
-	for k in gnome-macros ; do ACLOCAL="$ACLOCAL -I $k" ; done
+        for k in gnome-macros ; do ACLOCAL="$ACLOCAL -I $k" ; done
 
 
 # ------------------------------------------------------------------
@@ -2415,58 +2415,58 @@ fi
 GNOME_DIR=
 if test x$support_gnome = xyes; then
     
-	
-	
-	
-	
-	
-	
-	
-	
+        
+        
+        
+        
+        
+        
+        
+        
 
-	# Check whether --with-gnome-includes or --without-gnome-includes was given.
+        # Check whether --with-gnome-includes or --without-gnome-includes was given.
 if test "${with_gnome_includes+set}" = set; then
   withval="$with_gnome_includes"
   
-	CFLAGS="$CFLAGS -I$withval"
-	
+        CFLAGS="$CFLAGS -I$withval"
+        
 fi
 
-	
-	# Check whether --with-gnome-libs or --without-gnome-libs was given.
+        
+        # Check whether --with-gnome-libs or --without-gnome-libs was given.
 if test "${with_gnome_libs+set}" = set; then
   withval="$with_gnome_libs"
   
-	LDFLAGS="$LDFLAGS -L$withval"
-	gnome_prefix=$withval
-	
+        LDFLAGS="$LDFLAGS -L$withval"
+        gnome_prefix=$withval
+        
 fi
 
 
-	# Check whether --with-gnome or --without-gnome was given.
+        # Check whether --with-gnome or --without-gnome was given.
 if test "${with_gnome+set}" = set; then
   withval="$with_gnome"
   if test x$withval = xyes; then
-			want_gnome=yes
-									:
-		else
-			if test "x$withval" = xno; then
-				want_gnome=no
-			else
-				want_gnome=yes
-				LDFLAGS="$LDFLAGS -L$withval/lib"
-				CFLAGS="$CFLAGS -I$withval/include"
-				gnome_prefix=$withval/lib
-			fi
-		fi
+                        want_gnome=yes
+                                                                        :
+                else
+                        if test "x$withval" = xno; then
+                                want_gnome=no
+                        else
+                                want_gnome=yes
+                                LDFLAGS="$LDFLAGS -L$withval/lib"
+                                CFLAGS="$CFLAGS -I$withval/include"
+                                gnome_prefix=$withval/lib
+                        fi
+                fi
 else
   want_gnome=yes
 fi
 
 
-	if test "x$want_gnome" = xyes; then
+        if test "x$want_gnome" = xyes; then
 
-	    # Extract the first word of "gnome-config", so it can be a program name with args.
+            # Extract the first word of "gnome-config", so it can be a program name with args.
 set dummy gnome-config; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
 echo "configure:2473: checking for $ac_word" >&5
@@ -2502,16 +2502,16 @@ else
   echo "$ac_t""no" 1>&6
 fi
 
-	    if test "$GNOME_CONFIG" = "no"; then
-	      no_gnome_config="yes"
-	    else
-	      echo $ac_n "checking if $GNOME_CONFIG works""... $ac_c" 1>&6
+            if test "$GNOME_CONFIG" = "no"; then
+              no_gnome_config="yes"
+            else
+              echo $ac_n "checking if $GNOME_CONFIG works""... $ac_c" 1>&6
 echo "configure:2510: checking if $GNOME_CONFIG works" >&5
-	      if $GNOME_CONFIG --libs-only-l gnome >/dev/null 2>&1; then
-		echo "$ac_t""yes" 1>&6
-		
-	
-	# Extract the first word of "orbit-config", so it can be a program name with args.
+              if $GNOME_CONFIG --libs-only-l gnome >/dev/null 2>&1; then
+                echo "$ac_t""yes" 1>&6
+                
+        
+        # Extract the first word of "orbit-config", so it can be a program name with args.
 set dummy orbit-config; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
 echo "configure:2518: checking for $ac_word" >&5
@@ -2547,7 +2547,7 @@ else
   echo "$ac_t""no" 1>&6
 fi
 
-	# Extract the first word of "orbit-idl", so it can be a program name with args.
+        # Extract the first word of "orbit-idl", so it can be a program name with args.
 set dummy orbit-idl; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
 echo "configure:2554: checking for $ac_word" >&5
@@ -2583,22 +2583,22 @@ else
   echo "$ac_t""no" 1>&6
 fi
 
-	echo $ac_n "checking for working ORBit environment""... $ac_c" 1>&6
+        echo $ac_n "checking for working ORBit environment""... $ac_c" 1>&6
 echo "configure:2588: checking for working ORBit environment" >&5
 if eval "test \"`echo '$''{'gnome_cv_orbit_found'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   
-		if test x$ORBIT_CONFIG = xno -o x$ORBIT_IDL = xno; then
-			gnome_cv_orbit_found=no
-		else
-			gnome_cv_orbit_found=yes
-		fi
-	
+                if test x$ORBIT_CONFIG = xno -o x$ORBIT_IDL = xno; then
+                        gnome_cv_orbit_found=no
+                else
+                        gnome_cv_orbit_found=yes
+                fi
+        
 fi
 
 echo "$ac_t""$gnome_cv_orbit_found" 1>&6
-	
+        
 
 if test x$gnome_cv_orbit_found = xyes; then
   HAVE_ORBIT_TRUE=
@@ -2607,37 +2607,37 @@ else
   HAVE_ORBIT_TRUE='#'
   HAVE_ORBIT_FALSE=
 fi
-	if test x$gnome_cv_orbit_found = xyes; then
-		
-		ORBIT_CFLAGS=`orbit-config --cflags client server`
-		ORBIT_LIBS=`orbit-config --use-service=name --libs client server`
-		
-		
-	else
-		if test xfail = xfailure; then
-			{ echo "configure: error: ORBit not installed or installation problem" 1>&2; exit 1; }
-		fi
-	fi
+        if test x$gnome_cv_orbit_found = xyes; then
+                
+                ORBIT_CFLAGS=`orbit-config --cflags client server`
+                ORBIT_LIBS=`orbit-config --use-service=name --libs client server`
+                
+                
+        else
+                if test xfail = xfailure; then
+                        { echo "configure: error: ORBit not installed or installation problem" 1>&2; exit 1; }
+                fi
+        fi
 
-	echo $ac_n "checking for gnorba libraries""... $ac_c" 1>&6
+        echo $ac_n "checking for gnorba libraries""... $ac_c" 1>&6
 echo "configure:2624: checking for gnorba libraries" >&5
 if eval "test \"`echo '$''{'gnome_cv_gnorba_found'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   
-		gnome_cv_gnorba_found=no
-		if test x$gnome_cv_orbit_found = xyes; then
-			GNORBA_CFLAGS="`gnome-config --cflags gnorba gnomeui`"
-			GNORBA_LIBS="`gnome-config --libs gnorba gnomeui`"
-			if test -n "$GNORBA_LIBS"; then
-				gnome_cv_gnorba_found=yes
-			fi
-		fi
-	
+                gnome_cv_gnorba_found=no
+                if test x$gnome_cv_orbit_found = xyes; then
+                        GNORBA_CFLAGS="`gnome-config --cflags gnorba gnomeui`"
+                        GNORBA_LIBS="`gnome-config --libs gnorba gnomeui`"
+                        if test -n "$GNORBA_LIBS"; then
+                                gnome_cv_gnorba_found=yes
+                        fi
+                fi
+        
 fi
 
 echo "$ac_t""$gnome_cv_gnorba_found" 1>&6
-	
+        
 
 if test x$gnome_cv_gnorba_found = xyes; then
   HAVE_GNORBA_TRUE=
@@ -2646,85 +2646,85 @@ else
   HAVE_GNORBA_TRUE='#'
   HAVE_GNORBA_FALSE=
 fi
-	if test x$gnome_cv_orbit_found = xyes; then
-		
-		GNORBA_CFLAGS="`gnome-config --cflags gnorba gnomeui`"
-		GNORBA_LIBS="`gnome-config --libs gnorba gnomeui`"
-		
-		
-	else
-		if test xfail = xfailure; then
-			{ echo "configure: error: gnorba library not installed or installation problem" 1>&2; exit 1; }
-		fi
-	fi
+        if test x$gnome_cv_orbit_found = xyes; then
+                
+                GNORBA_CFLAGS="`gnome-config --cflags gnorba gnomeui`"
+                GNORBA_LIBS="`gnome-config --libs gnorba gnomeui`"
+                
+                
+        else
+                if test xfail = xfailure; then
+                        { echo "configure: error: gnorba library not installed or installation problem" 1>&2; exit 1; }
+                fi
+        fi
 
-		GNOME_LIBS="`$GNOME_CONFIG --libs-only-l gnome`"
-		GNOMEUI_LIBS="`$GNOME_CONFIG --libs-only-l gnomeui`"
-		GNOMEGNORBA_LIBS="`$GNOME_CONFIG --libs-only-l gnorba gnomeui`"
-		GTKXMHTML_LIBS="`$GNOME_CONFIG --libs-only-l gtkxmhtml`"
-		ZVT_LIBS="`$GNOME_CONFIG --libs-only-l zvt`"
-		GNOME_LIBDIR="`$GNOME_CONFIG --libs-only-L gnorba gnomeui`"
-		GNOME_INCLUDEDIR="`$GNOME_CONFIG --cflags gnorba gnomeui`"
-		
-	      else
-		echo "$ac_t""no" 1>&6
-		no_gnome_config="yes"
-	      fi
-	    fi
+                GNOME_LIBS="`$GNOME_CONFIG --libs-only-l gnome`"
+                GNOMEUI_LIBS="`$GNOME_CONFIG --libs-only-l gnomeui`"
+                GNOMEGNORBA_LIBS="`$GNOME_CONFIG --libs-only-l gnorba gnomeui`"
+                GTKXMHTML_LIBS="`$GNOME_CONFIG --libs-only-l gtkxmhtml`"
+                ZVT_LIBS="`$GNOME_CONFIG --libs-only-l zvt`"
+                GNOME_LIBDIR="`$GNOME_CONFIG --libs-only-L gnorba gnomeui`"
+                GNOME_INCLUDEDIR="`$GNOME_CONFIG --cflags gnorba gnomeui`"
+                
+              else
+                echo "$ac_t""no" 1>&6
+                no_gnome_config="yes"
+              fi
+            fi
 
-	    if test x$exec_prefix = xNONE; then
-		if test x$prefix = xNONE; then
-		    gnome_prefix=$ac_default_prefix/lib
-		else
-		    gnome_prefix=$prefix/lib
-		fi
-	    else
-		gnome_prefix=`eval echo \`echo $libdir\``
-	    fi
-	
-	    if test "$no_gnome_config" = "yes"; then
-	      echo $ac_n "checking for gnomeConf.sh file in $gnome_prefix""... $ac_c" 1>&6
+            if test x$exec_prefix = xNONE; then
+                if test x$prefix = xNONE; then
+                    gnome_prefix=$ac_default_prefix/lib
+                else
+                    gnome_prefix=$prefix/lib
+                fi
+            else
+                gnome_prefix=`eval echo \`echo $libdir\``
+            fi
+        
+            if test "$no_gnome_config" = "yes"; then
+              echo $ac_n "checking for gnomeConf.sh file in $gnome_prefix""... $ac_c" 1>&6
 echo "configure:2688: checking for gnomeConf.sh file in $gnome_prefix" >&5
-	      if test -f $gnome_prefix/gnomeConf.sh; then
-		echo "$ac_t""found" 1>&6
-		echo "loading gnome configuration from" \
-		     "$gnome_prefix/gnomeConf.sh"
-		. $gnome_prefix/gnomeConf.sh
-		
-	      else
-		echo "$ac_t""not found" 1>&6
-		if test xfail = xfail; then
-		  { echo "configure: error: Could not find the gnomeConf.sh file that is generated by gnome-libs install" 1>&2; exit 1; }
-		fi
-	      fi
-	    fi
-	fi
+              if test -f $gnome_prefix/gnomeConf.sh; then
+                echo "$ac_t""found" 1>&6
+                echo "loading gnome configuration from" \
+                     "$gnome_prefix/gnomeConf.sh"
+                . $gnome_prefix/gnomeConf.sh
+                
+              else
+                echo "$ac_t""not found" 1>&6
+                if test xfail = xfail; then
+                  { echo "configure: error: Could not find the gnomeConf.sh file that is generated by gnome-libs install" 1>&2; exit 1; }
+                fi
+              fi
+            fi
+        fi
 
-	if test -n ""; then
-	  n=""
-	  for i in $n; do
-	    echo $ac_n "checking extra library \"$i\"""... $ac_c" 1>&6
+        if test -n ""; then
+          n=""
+          for i in $n; do
+            echo $ac_n "checking extra library \"$i\"""... $ac_c" 1>&6
 echo "configure:2708: checking extra library \"$i\"" >&5
-	    case $i in 
-	      applets)
-		
-		GNOME_APPLETS_LIBS=`$GNOME_CONFIG --libs-only-l applets`
-		echo "$ac_t""$GNOME_APPLETS_LIBS" 1>&6;;
-	      docklets)
-		
-		GNOME_DOCKLETS_LIBS=`$GNOME_CONFIG --libs-only-l docklets`
-		echo "$ac_t""$GNOME_DOCKLETS_LIBS" 1>&6;;
-	      capplet)
-		
-		GNOME_CAPPLET_LIBS=`$GNOME_CONFIG --libs-only-l capplet`
-		echo "$ac_t""$GNOME_CAPPLET_LIBS" 1>&6;;
-	      *)
-		echo "$ac_t""unknown library" 1>&6
-	    esac
-	    EXTRA_INCLUDEDIR=`$GNOME_CONFIG --cflags $i`
-	    GNOME_INCLUDEDIR="$GNOME_INCLUDEDIR $EXTRA_INCLUDEDIR"
-	  done
-	fi
+            case $i in 
+              applets)
+                
+                GNOME_APPLETS_LIBS=`$GNOME_CONFIG --libs-only-l applets`
+                echo "$ac_t""$GNOME_APPLETS_LIBS" 1>&6;;
+              docklets)
+                
+                GNOME_DOCKLETS_LIBS=`$GNOME_CONFIG --libs-only-l docklets`
+                echo "$ac_t""$GNOME_DOCKLETS_LIBS" 1>&6;;
+              capplet)
+                
+                GNOME_CAPPLET_LIBS=`$GNOME_CONFIG --libs-only-l capplet`
+                echo "$ac_t""$GNOME_CAPPLET_LIBS" 1>&6;;
+              *)
+                echo "$ac_t""unknown library" 1>&6
+            esac
+            EXTRA_INCLUDEDIR=`$GNOME_CONFIG --cflags $i`
+            GNOME_INCLUDEDIR="$GNOME_INCLUDEDIR $EXTRA_INCLUDEDIR"
+          done
+        fi
 
 
     GNOME_DIR=src/gnome-console
@@ -3867,45 +3867,45 @@ if test "${with_mysql+set}" = set; then
   withval="$with_mysql"
   
   if test "$withval" != "no"; then
-	if test "$withval" = "yes"; then
-		if test -f /usr/local/mysql/include/mysql/mysql.h; then
-			MYSQL_INCDIR=/usr/local/mysql/include/mysql
-			MYSQL_LIBDIR=/usr/local/mysql/lib/mysql
-			MYSQL_BINDIR=/usr/local/mysql/bin
-		elif test -f /usr/include/mysql/mysql.h; then
-			MYSQL_INCDIR=/usr/include/mysql
-			MYSQL_LIBDIR=/usr/lib/mysql
-			MYSQL_BINDIR=/usr/bin	   
-		elif test -f /usr/include/mysql.h; then
-			MYSQL_INCDIR=/usr/include
-			MYSQL_LIBDIR=/usr/lib
-			MYSQL_BINDIR=/usr/bin
-		elif test -f /usr/local/include/mysql/mysql.h; then
-			MYSQL_INCDIR=/usr/local/include/mysql
-			MYSQL_LIBDIR=/usr/local/lib/mysql
-			MYSQL_BINDIR=/usr/local/bin
-		elif test -f /usr/local/include/mysql.h; then
-			MYSQL_INCDIR=/usr/local/include
-			MYSQL_LIBDIR=/usr/local/lib
-			MYSQL_BINDIR=/usr/local/bin
-		else
-		   echo "$ac_t""no" 1>&6
-		   { echo "configure: error: Unable to find mysql.h in standard locations" 1>&2; exit 1; }
-		fi
-	else
-		if test -f $withval/include/mysql/mysql.h; then
-			MYSQL_INCDIR=$withval/include/mysql
-			MYSQL_LIBDIR=$withval/lib/mysql
-			MYSQL_BINDIR=$withval/bin
-		elif test -f $withval/include/mysql.h; then
-			MYSQL_INCDIR=$withval/include
-			MYSQL_LIBDIR=$withval/lib
-			MYSQL_BINDIR=$withval/bin
-		else
-		   echo "$ac_t""no" 1>&6
-		   { echo "configure: error: Invalid MySQL directory $withval - unable to find mysql.h under $withval" 1>&2; exit 1; }
-		fi
-	fi
+        if test "$withval" = "yes"; then
+                if test -f /usr/local/mysql/include/mysql/mysql.h; then
+                        MYSQL_INCDIR=/usr/local/mysql/include/mysql
+                        MYSQL_LIBDIR=/usr/local/mysql/lib/mysql
+                        MYSQL_BINDIR=/usr/local/mysql/bin
+                elif test -f /usr/include/mysql/mysql.h; then
+                        MYSQL_INCDIR=/usr/include/mysql
+                        MYSQL_LIBDIR=/usr/lib/mysql
+                        MYSQL_BINDIR=/usr/bin      
+                elif test -f /usr/include/mysql.h; then
+                        MYSQL_INCDIR=/usr/include
+                        MYSQL_LIBDIR=/usr/lib
+                        MYSQL_BINDIR=/usr/bin
+                elif test -f /usr/local/include/mysql/mysql.h; then
+                        MYSQL_INCDIR=/usr/local/include/mysql
+                        MYSQL_LIBDIR=/usr/local/lib/mysql
+                        MYSQL_BINDIR=/usr/local/bin
+                elif test -f /usr/local/include/mysql.h; then
+                        MYSQL_INCDIR=/usr/local/include
+                        MYSQL_LIBDIR=/usr/local/lib
+                        MYSQL_BINDIR=/usr/local/bin
+                else
+                   echo "$ac_t""no" 1>&6
+                   { echo "configure: error: Unable to find mysql.h in standard locations" 1>&2; exit 1; }
+                fi
+        else
+                if test -f $withval/include/mysql/mysql.h; then
+                        MYSQL_INCDIR=$withval/include/mysql
+                        MYSQL_LIBDIR=$withval/lib/mysql
+                        MYSQL_BINDIR=$withval/bin
+                elif test -f $withval/include/mysql.h; then
+                        MYSQL_INCDIR=$withval/include
+                        MYSQL_LIBDIR=$withval/lib
+                        MYSQL_BINDIR=$withval/bin
+                else
+                   echo "$ac_t""no" 1>&6
+                   { echo "configure: error: Invalid MySQL directory $withval - unable to find mysql.h under $withval" 1>&2; exit 1; }
+                fi
+        fi
     SQL_INCLUDE=-I$MYSQL_INCDIR
     SQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqlclient -lz"
     SQL_BINDIR=$MYSQL_BINDIR
@@ -3921,7 +3921,7 @@ EOF
     DB_NAME=mysql
 
   else
-	echo "$ac_t""no" 1>&6
+        echo "$ac_t""no" 1>&6
   fi
 
 else
@@ -3936,45 +3936,45 @@ if test "${with_embedded_mysql+set}" = set; then
   withval="$with_embedded_mysql"
   
   if test "$withval" != "no"; then
-	if test "$withval" = "yes"; then
-		if test -f /usr/local/mysql/include/mysql/mysql.h; then
-			MYSQL_INCDIR=/usr/local/mysql/include/mysql
-			MYSQL_LIBDIR=/usr/local/mysql/lib/mysql
-			MYSQL_BINDIR=/usr/local/mysql/bin
-		elif test -f /usr/include/mysql/mysql.h; then
-			MYSQL_INCDIR=/usr/include/mysql
-			MYSQL_LIBDIR=/usr/lib/mysql
-			MYSQL_BINDIR=/usr/bin	   
-		elif test -f /usr/include/mysql.h; then
-			MYSQL_INCDIR=/usr/include
-			MYSQL_LIBDIR=/usr/lib
-			MYSQL_BINDIR=/usr/bin
-		elif test -f /usr/local/include/mysql/mysql.h; then
-			MYSQL_INCDIR=/usr/local/include/mysql
-			MYSQL_LIBDIR=/usr/local/lib/mysql
-			MYSQL_BINDIR=/usr/local/bin
-		elif test -f /usr/local/include/mysql.h; then
-			MYSQL_INCDIR=/usr/local/include
-			MYSQL_LIBDIR=/usr/local/lib
-			MYSQL_BINDIR=/usr/local/bin
-		else
-		   echo "$ac_t""no" 1>&6
-		   { echo "configure: error: Unable to find mysql.h in standard locations" 1>&2; exit 1; }
-		fi
-	else
-		if test -f $withval/include/mysql/mysql.h; then
-			MYSQL_INCDIR=$withval/include/mysql
-			MYSQL_LIBDIR=$withval/lib/mysql
-			MYSQL_BINDIR=$withval/bin
-		elif test -f $withval/include/mysql.h; then
-			MYSQL_INCDIR=$withval/include
-			MYSQL_LIBDIR=$withval/lib
-			MYSQL_BINDIR=$withval/bin
-		else
-		   echo "$ac_t""no" 1>&6
-		   { echo "configure: error: Invalid MySQL directory $withval - unable to find mysql.h under $withval" 1>&2; exit 1; }
-		fi
-	fi
+        if test "$withval" = "yes"; then
+                if test -f /usr/local/mysql/include/mysql/mysql.h; then
+                        MYSQL_INCDIR=/usr/local/mysql/include/mysql
+                        MYSQL_LIBDIR=/usr/local/mysql/lib/mysql
+                        MYSQL_BINDIR=/usr/local/mysql/bin
+                elif test -f /usr/include/mysql/mysql.h; then
+                        MYSQL_INCDIR=/usr/include/mysql
+                        MYSQL_LIBDIR=/usr/lib/mysql
+                        MYSQL_BINDIR=/usr/bin      
+                elif test -f /usr/include/mysql.h; then
+                        MYSQL_INCDIR=/usr/include
+                        MYSQL_LIBDIR=/usr/lib
+                        MYSQL_BINDIR=/usr/bin
+                elif test -f /usr/local/include/mysql/mysql.h; then
+                        MYSQL_INCDIR=/usr/local/include/mysql
+                        MYSQL_LIBDIR=/usr/local/lib/mysql
+                        MYSQL_BINDIR=/usr/local/bin
+                elif test -f /usr/local/include/mysql.h; then
+                        MYSQL_INCDIR=/usr/local/include
+                        MYSQL_LIBDIR=/usr/local/lib
+                        MYSQL_BINDIR=/usr/local/bin
+                else
+                   echo "$ac_t""no" 1>&6
+                   { echo "configure: error: Unable to find mysql.h in standard locations" 1>&2; exit 1; }
+                fi
+        else
+                if test -f $withval/include/mysql/mysql.h; then
+                        MYSQL_INCDIR=$withval/include/mysql
+                        MYSQL_LIBDIR=$withval/lib/mysql
+                        MYSQL_BINDIR=$withval/bin
+                elif test -f $withval/include/mysql.h; then
+                        MYSQL_INCDIR=$withval/include
+                        MYSQL_LIBDIR=$withval/lib
+                        MYSQL_BINDIR=$withval/bin
+                else
+                   echo "$ac_t""no" 1>&6
+                   { echo "configure: error: Invalid MySQL directory $withval - unable to find mysql.h under $withval" 1>&2; exit 1; }
+                fi
+        fi
     SQL_INCLUDE=-I$MYSQL_INCDIR
     SQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqld -lz -lm -lcrypt"
     SQL_BINDIR=$MYSQL_BINDIR
@@ -3994,7 +3994,7 @@ EOF
     DB_NAME=mysql
 
   else
-	echo "$ac_t""no" 1>&6
+        echo "$ac_t""no" 1>&6
   fi
 
 else
@@ -4024,29 +4024,29 @@ if test "${with_sqlite+set}" = set; then
   withval="$with_sqlite"
   
   if test "$withval" != "no"; then
-	if test "$withval" = "yes"; then
-		if test -f /usr/local/include/sqlite.h; then
-			SQLITE_INCDIR=/usr/local/include
-			SQLITE_LIBDIR=/usr/local/lib
-			SQLITE_BINDIR=/usr/local/bin
-		elif test -f /usr/include/sqlite.h; then
-			SQLITE_INCDIR=/usr/include
-			SQLITE_LIBDIR=/usr/lib
-			SQLITE_BINDIR=/usr/bin	    
-		else
-		   echo "$ac_t""no" 1>&6
-		   { echo "configure: error: Unable to find sqlite.h in standard locations" 1>&2; exit 1; }
-		fi
-	else
-		if test -f $withval/sqlite.h; then
-			SQLITE_INCDIR=$withval
-			SQLITE_LIBDIR=$withval
-			SQLITE_BINDIR=$withval
-		else
-		   echo "$ac_t""no" 1>&6
-		   { echo "configure: error: Invalid SQLite directory $withval - unable to find sqlite.h under $withval" 1>&2; exit 1; }
-		fi
-	fi
+        if test "$withval" = "yes"; then
+                if test -f /usr/local/include/sqlite.h; then
+                        SQLITE_INCDIR=/usr/local/include
+                        SQLITE_LIBDIR=/usr/local/lib
+                        SQLITE_BINDIR=/usr/local/bin
+                elif test -f /usr/include/sqlite.h; then
+                        SQLITE_INCDIR=/usr/include
+                        SQLITE_LIBDIR=/usr/lib
+                        SQLITE_BINDIR=/usr/bin      
+                else
+                   echo "$ac_t""no" 1>&6
+                   { echo "configure: error: Unable to find sqlite.h in standard locations" 1>&2; exit 1; }
+                fi
+        else
+                if test -f $withval/sqlite.h; then
+                        SQLITE_INCDIR=$withval
+                        SQLITE_LIBDIR=$withval
+                        SQLITE_BINDIR=$withval
+                else
+                   echo "$ac_t""no" 1>&6
+                   { echo "configure: error: Invalid SQLite directory $withval - unable to find sqlite.h under $withval" 1>&2; exit 1; }
+                fi
+        fi
     SQL_INCLUDE=-I$SQLITE_INCDIR
     SQL_LFLAGS="-L$SQLITE_LIBDIR -lsqlite"
     SQL_BINDIR=$SQLITE_BINDIR
@@ -4062,7 +4062,7 @@ EOF
     DB_NAME=sqlite
 
   else
-	echo "$ac_t""no" 1>&6
+        echo "$ac_t""no" 1>&6
   fi
 
 else
@@ -4227,16 +4227,16 @@ if eval "test \"`echo '$''{'ac_cv_sys_largefile_CFLAGS'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   ac_cv_sys_largefile_CFLAGS=`($GETCONF LFS_CFLAGS) 2>/dev/null` || {
-	ac_cv_sys_largefile_CFLAGS=no
-	case "$host_os" in
-	   # IRIX 6.2 and later require cc -n32.
-	   irix6.[2-9]* | irix6.1[0-9]* | irix[7-9].* | irix[1-9][0-9]*)
-	     if test "$GCC" != yes; then
-	       ac_cv_sys_largefile_CFLAGS=-n32
-	     fi
-	     ac_save_CC="$CC"
-	     CC="$CC $ac_cv_sys_largefile_CFLAGS"
-	     cat > conftest.$ac_ext <<EOF
+        ac_cv_sys_largefile_CFLAGS=no
+        case "$host_os" in
+           # IRIX 6.2 and later require cc -n32.
+           irix6.[2-9]* | irix6.1[0-9]* | irix[7-9].* | irix[1-9][0-9]*)
+             if test "$GCC" != yes; then
+               ac_cv_sys_largefile_CFLAGS=-n32
+             fi
+             ac_save_CC="$CC"
+             CC="$CC $ac_cv_sys_largefile_CFLAGS"
+             cat > conftest.$ac_ext <<EOF
 #line 4241 "configure"
 #include "confdefs.h"
 
@@ -4253,8 +4253,8 @@ else
   ac_cv_sys_largefile_CFLAGS=no
 fi
 rm -f conftest*
-	     CC="$ac_save_CC"
-	   esac
+             CC="$ac_save_CC"
+           esac
       }
 fi
 
@@ -4265,8 +4265,8 @@ if eval "test \"`echo '$''{'ac_cv_sys_largefile_LDFLAGS'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   ac_cv_sys_largefile_LDFLAGS=`($GETCONF LFS_LDFLAGS) 2>/dev/null` || {
-	ac_cv_sys_largefile_LDFLAGS=no
-	
+        ac_cv_sys_largefile_LDFLAGS=no
+        
       }
 fi
 
@@ -4277,8 +4277,8 @@ if eval "test \"`echo '$''{'ac_cv_sys_largefile_LIBS'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   ac_cv_sys_largefile_LIBS=`($GETCONF LFS_LIBS) 2>/dev/null` || {
-	ac_cv_sys_largefile_LIBS=no
-	
+        ac_cv_sys_largefile_LIBS=no
+        
       }
 fi
 
@@ -4291,7 +4291,7 @@ echo "$ac_t""$ac_cv_sys_largefile_LIBS" 1>&6
        -D_LARGEFILE_SOURCE | -D_LARGEFILE_SOURCE=*) ;;
        -D_LARGE_FILES | -D_LARGE_FILES=*) ;;
        -D?* | -I?*)
-	 case "$ac_flag" in
+         case "$ac_flag" in
    no) ;;
    ?*)
      case "$CPPFLAGS" in
@@ -4300,7 +4300,7 @@ echo "$ac_t""$ac_cv_sys_largefile_LIBS" 1>&6
      esac ;;
    esac ;;
        *)
-	 case "$ac_flag" in
+         case "$ac_flag" in
    no) ;;
    ?*)
      case "$CFLAGS" in
@@ -4333,17 +4333,17 @@ if eval "test \"`echo '$''{'ac_cv_sys_file_offset_bits'+set}'`\" = set"; then
 else
   ac_cv_sys_file_offset_bits=no
       case "$host_os" in
-	# HP-UX 10.20 and later
-	hpux10.[2-9][0-9]* | hpux1[1-9]* | hpux[2-9][0-9]*)
-	  ac_cv_sys_file_offset_bits=64 ;;
-	esac
+        # HP-UX 10.20 and later
+        hpux10.[2-9][0-9]* | hpux1[1-9]* | hpux[2-9][0-9]*)
+          ac_cv_sys_file_offset_bits=64 ;;
+        esac
       for ac_flag in $ac_cv_sys_largefile_CFLAGS no; do
-	case "$ac_flag" in
-	-D_FILE_OFFSET_BITS)
-	  ac_cv_sys_file_offset_bits=1 ;;
-	-D_FILE_OFFSET_BITS=*)
-	  ac_cv_sys_file_offset_bits=`expr " $ac_flag" : '[^=]*=\(.*\)'` ;;
-	esac
+        case "$ac_flag" in
+        -D_FILE_OFFSET_BITS)
+          ac_cv_sys_file_offset_bits=1 ;;
+        -D_FILE_OFFSET_BITS=*)
+          ac_cv_sys_file_offset_bits=`expr " $ac_flag" : '[^=]*=\(.*\)'` ;;
+        esac
       done
       
 fi
@@ -4362,17 +4362,17 @@ if eval "test \"`echo '$''{'ac_cv_sys_largefile_source'+set}'`\" = set"; then
 else
   ac_cv_sys_largefile_source=no
       case "$host_os" in
-	# HP-UX 10.20 and later
-	hpux10.[2-9][0-9]* | hpux1[1-9]* | hpux[2-9][0-9]*)
-	  ac_cv_sys_largefile_source=1 ;;
-	esac
+        # HP-UX 10.20 and later
+        hpux10.[2-9][0-9]* | hpux1[1-9]* | hpux[2-9][0-9]*)
+          ac_cv_sys_largefile_source=1 ;;
+        esac
       for ac_flag in $ac_cv_sys_largefile_CFLAGS no; do
-	case "$ac_flag" in
-	-D_LARGEFILE_SOURCE)
-	  ac_cv_sys_largefile_source=1 ;;
-	-D_LARGEFILE_SOURCE=*)
-	  ac_cv_sys_largefile_source=`expr " $ac_flag" : '[^=]*=\(.*\)'` ;;
-	esac
+        case "$ac_flag" in
+        -D_LARGEFILE_SOURCE)
+          ac_cv_sys_largefile_source=1 ;;
+        -D_LARGEFILE_SOURCE=*)
+          ac_cv_sys_largefile_source=`expr " $ac_flag" : '[^=]*=\(.*\)'` ;;
+        esac
       done
       
 fi
@@ -4391,17 +4391,17 @@ if eval "test \"`echo '$''{'ac_cv_sys_large_files'+set}'`\" = set"; then
 else
   ac_cv_sys_large_files=no
       case "$host_os" in
-	# AIX 4.2 and later
-	aix4.[2-9]* | aix4.1[0-9]* | aix[5-9].* | aix[1-9][0-9]*)
-	  ac_cv_sys_large_files=1 ;;
-	esac
+        # AIX 4.2 and later
+        aix4.[2-9]* | aix4.1[0-9]* | aix[5-9].* | aix[1-9][0-9]*)
+          ac_cv_sys_large_files=1 ;;
+        esac
       for ac_flag in $ac_cv_sys_largefile_CFLAGS no; do
-	case "$ac_flag" in
-	-D_LARGE_FILES)
-	  ac_cv_sys_large_files=1 ;;
-	-D_LARGE_FILES=*)
-	  ac_cv_sys_large_files=`expr " $ac_flag" : '[^=]*=\(.*\)'` ;;
-	esac
+        case "$ac_flag" in
+        -D_LARGE_FILES)
+          ac_cv_sys_large_files=1 ;;
+        -D_LARGE_FILES=*)
+          ac_cv_sys_large_files=`expr " $ac_flag" : '[^=]*=\(.*\)'` ;;
+        esac
       done
       
 fi
@@ -6346,8 +6346,8 @@ else
 #include <signal.h>
 int main() {
 
-	int mask = sigmask(SIGINT);
-	sigsetmask(mask); sigblock(mask); sigpause(mask);
+        int mask = sigmask(SIGINT);
+        sigsetmask(mask); sigblock(mask); sigpause(mask);
     
 ; return 0; }
 EOF
@@ -6363,14 +6363,14 @@ else
 #line 6364 "configure"
 #include "confdefs.h"
 
-	#include <signal.h>
-	RETSIGTYPE foo() { }
+        #include <signal.h>
+        RETSIGTYPE foo() { }
 int main() {
 
-		int mask = sigmask(SIGINT);
-		sigset(SIGINT, foo); sigrelse(SIGINT);
-		sighold(SIGINT); sigpause(SIGINT);
-	
+                int mask = sigmask(SIGINT);
+                sigset(SIGINT, foo); sigrelse(SIGINT);
+                sighold(SIGINT); sigpause(SIGINT);
+        
 ; return 0; }
 EOF
 if { (eval echo configure:6377: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then

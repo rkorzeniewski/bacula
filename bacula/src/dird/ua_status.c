@@ -263,6 +263,10 @@ static void do_director_status(UAContext *ua, char *cmd)
 	 case JS_WaitMaxJobs:
             msg = _("is waiting on max total jobs");
 	    break;
+	 case JS_WaitStartTime:
+            msg = _("is waiting for its start time");
+	    break;
+
 
 	 default:
 	    msg = (char *) get_pool_memory(PM_FNAME);

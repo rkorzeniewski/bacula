@@ -65,7 +65,8 @@ static void signal_handler(int sig)
    if (already_dead) {
       _exit(1);
    }
-   if (sig == SIGCHLD) {	      /* Ignore sigchld */
+   /* Ignore certain signals */
+   if (sig == SIGCHLD || sig == SIGUSR2) {
       return;
    }
    already_dead = sig;

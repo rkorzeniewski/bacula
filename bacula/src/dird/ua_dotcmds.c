@@ -51,6 +51,10 @@ static int filesetscmd(UAContext *ua, char *cmd);
 static int clientscmd(UAContext *ua, char *cmd);
 static int msgscmd(UAContext *ua, char *cmd);
 static int poolscmd(UAContext *ua, char *cmd);
+static int storagecmd(UAContext *ua, char *cmd);
+static int defaultscmd(UAContext *ua, char *cmd);
+static int typescmd(UAContext *ua, char *cmd);
+static int levelscmd(UAContext *ua, char *cmd);
 
 struct cmdstruct { char *key; int (*func)(UAContext *ua, char *cmd); char *help; }; 
 static struct cmdstruct commands[] = {
@@ -60,6 +64,10 @@ static struct cmdstruct commands[] = {
  { N_(".clients"),    clientscmd,   NULL},
  { N_(".msgs"),       msgscmd,      NULL},
  { N_(".pools"),      poolscmd,     NULL},
+ { N_(".types"),      typescmd,     NULL},
+ { N_(".levels"),     levelscmd,    NULL},
+ { N_(".storage"),    storagecmd,   NULL},
+ { N_(".defaults"),   defaultscmd,  NULL},
  { N_(".messages"),   qmessagescmd, NULL},
  { N_(".quit"),       quitcmd,      NULL},
  { N_(".exit"),       quitcmd,      NULL} 
@@ -169,3 +177,59 @@ static int poolscmd(UAContext *ua, char *cmd)
    return 1;
 }
 
+static int storagecmd(UAContext *ua, char *cmd)
+{
+   STORE *store = NULL;
+   LockRes();
+   while ( (store = (STORE *)GetNextRes(R_STORAGE, (RES *)store)) ) {
+      bsendmsg(ua, "%s\n", store->hdr.name);
+   }
+   UnlockRes();
+   return 1;
+}
+
+
+static int typescmd(UAContext *ua, char *cmd)
+{
+   bsendmsg(ua, "Backup\n");
+   bsendmsg(ua, "Restore\n");
+   bsendmsg(ua, "Admin\n");
+   bsendmsg(ua, "Verify\n");
+   return 1;
+}
+
+static int levelscmd(UAContext *ua, char *cmd)
+{
+   bsendmsg(ua, "Incremental\n");
+   bsendmsg(ua, "Full\n");
+   bsendmsg(ua, "Differential\n");
+   bsendmsg(ua, "Catalog\n");
+   bsendmsg(ua, "InitCatalog\n");
+   bsendmsg(ua, "VolumeToCatalog\n");
+   return 1;
+}
+
+
+
+/*
+ * Return default values for a job
+ */
+static int defaultscmd(UAContext *ua, char *cmd)
+{
+   JOB *job;	   
+   if (ua->argc == 2 && strcmp(ua->argk[1], "job") == 0) {
+      job = (JOB *)GetResWithName(R_JOB, ua->argv[1]);
+      if (job) {
+         bsendmsg(ua, "job=%s", job->hdr.name);
+         bsendmsg(ua, "pool=%s", job->pool->hdr.name);
+         bsendmsg(ua, "messages=%s", job->messages->hdr.name);
+         bsendmsg(ua, "client=%s", job->client->hdr.name);
+         bsendmsg(ua, "storage=%s", job->storage->hdr.name);
+         bsendmsg(ua, "where=%s", job->RestoreWhere?job->RestoreWhere:"");
+         bsendmsg(ua, "level=%s", level_to_str(job->level));
+         bsendmsg(ua, "type=%s", job_type_to_str(job->JobType));
+         bsendmsg(ua, "fileset=%s", job->fileset->hdr.name);
+      }
+   }
+   return 1;
+}

@@ -27,15 +27,17 @@
 #define TYPE_CHILD   1
 #define TYPE_PTHREAD 2
 
+#define TIMEOUT_SIGNAL SIGUSR2
+
 typedef struct s_btimer_t {
    struct s_btimer_t *next;
    struct s_btimer_t *prev;
    time_t start_time;
    int32_t  wait;
-   pid_t pid;                         /* process id if TYPE_CHILD */
+   pid_t pid;			      /* process id if TYPE_CHILD */
    int killed;
    int type;
-   pthread_t tid;                     /* thread id if TYPE_PTHREAD */
+   pthread_t tid;		      /* thread id if TYPE_PTHREAD */
 } btimer_t;
 
 #define btimer_id btimer_t *

@@ -31,6 +31,8 @@
 #include "bacula.h"
 #include "jcr.h"
 
+extern void timeout_handler(int sig);
+
 struct s_last_job last_job;	      /* last job run by this daemon */
 
 static JCR *jobs = NULL;	      /* pointer to JCR chain */
@@ -45,6 +47,7 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
 {
    JCR *jcr;
+   struct sigaction sigtimer;
 
    Dmsg0(200, "Enter new_jcr\n");
    jcr = (JCR *)malloc(size);
@@ -59,6 +62,11 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    jcr->VolumeName[0] = 0;
    jcr->errmsg = get_pool_memory(PM_MESSAGE);
    jcr->errmsg[0] = 0;
+
+   sigtimer.sa_flags = 0;
+   sigtimer.sa_handler = timeout_handler;
+   sigfillset(&sigtimer.sa_mask);
+   sigaction(TIMEOUT_SIGNAL, &sigtimer, NULL);
 
    P(mutex);
    jcr->prev = NULL;

@@ -268,20 +268,24 @@ bail_out:
 static int acquire_resource_locks(JCR *jcr)
 {
    time_t now = time(NULL);
+   time_t wtime = jcr->sched_time - now;
 
    /* Wait until scheduled time arrives */
-   if (jcr->sched_time > now && verbose) {
-      Jmsg(jcr, M_INFO, 0, _("Waiting %d seconds for sched time.\n"), 
-	   jcr->sched_time - now);
+   if (wtime > 0 && verbose) {
+      Jmsg(jcr, M_INFO, 0, _("Waiting %d seconds for start time.\n"), wtime);
+      set_jcr_job_status(jcr, JS_WaitStartTime);
    }
-   while (jcr->sched_time > now) {
-      Dmsg2(100, "Waiting on sched time, jobid=%d secs=%d\n", jcr->JobId,
-	    jcr->sched_time - now);
-      bmicrosleep(jcr->sched_time - now, 0);
-      now = time(NULL);
+   while (wtime > 0) {
+      Dmsg2(100, "Waiting on sched time, jobid=%d secs=%d\n", jcr->JobId, wtime);
+      if (wtime > 30) {
+	 wtime = 30;
+      }
+      bmicrosleep(wtime, 0);
       if (job_canceled(jcr)) {
 	 return 0;
       }
+      wtime = jcr->sched_time - time(NULL);
+
    }
 
 

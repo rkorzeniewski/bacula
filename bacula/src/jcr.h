@@ -69,6 +69,7 @@
 #define JS_WaitJobRes            'j'  /* Waiting for job resource */
 #define JS_WaitClientRes         'c'  /* Waiting for Client resource */
 #define JS_WaitMaxJobs           'd'  /* Waiting for maximum jobs */
+#define JS_WaitStartTime         't'  /* Waiting for start time */
 
 #define job_canceled(jcr) \
   (jcr->JobStatus == JS_Canceled || \

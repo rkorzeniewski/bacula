@@ -58,6 +58,7 @@ configure: autoconf/configure.in autoconf/aclocal.m4 autoconf/acconfig.h autocon
 	autoconf --localdir=$(srcdir)/autoconf \
 	autoconf/configure.in > configure
 	chmod 755 configure
+	@rm -f config.cache
 
 config.status:
 	if test -x config.status; then config.status --recheck; \

@@ -33,8 +33,6 @@
 /* Exported globals */
 time_t watchdog_time;		      /* this has granularity of SLEEP_TIME */
 
-
-#define TIMEOUT_SIGNAL SIGUSR2
 #define SLEEP_TIME 30		      /* examine things every 30 seconds */
 
 /* Forward referenced functions */
@@ -52,7 +50,7 @@ static btimer_t *timer_chain = NULL;
 /*
  * Timeout signal comes here
  */
-static void timeout_handler(int sig)
+void timeout_handler(int sig)
 {
    return;			      /* thus interrupting the function */
 }
