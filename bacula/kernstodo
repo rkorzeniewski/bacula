@@ -58,6 +58,7 @@ For 1.33 Testing/Documentation:
 - Document Pool keyword for restore.
                 
 For 1.33
+- Implement alist processing for ACLs from Console.
 - Finish code passing files=nnn to restore start.
 - Add Console usr permissions -- do by adding regex filters for
   jobs, clients, storage, ...

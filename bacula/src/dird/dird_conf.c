@@ -64,6 +64,7 @@ extern void store_inc(LEX *lc, struct res_items *item, int index, int pass);
 void store_jobtype(LEX *lc, struct res_items *item, int index, int pass);
 void store_level(LEX *lc, struct res_items *item, int index, int pass);
 void store_replace(LEX *lc, struct res_items *item, int index, int pass);
+void store_acl(LEX *lc, struct res_items *item, int index, int pass);
 
 
 /* We build the current resource here as we are
@@ -113,6 +114,15 @@ static struct res_items con_items[] = {
    {"description", store_str,      ITEM(res_con.hdr.desc), 0, 0, 0},
    {"enablessl",   store_yesno,    ITEM(res_con.enable_ssl), 1, ITEM_DEFAULT, 0},
    {"password",    store_password, ITEM(res_con.password), 0, ITEM_REQUIRED, 0},
+   {"jobacl",      store_acl,      ITEM(res_con.ACL_lists), Job_ACL, 0, 0},
+   {"clientacl",   store_acl,      ITEM(res_con.ACL_lists), Client_ACL, 0, 0},
+   {"storageacl",  store_acl,      ITEM(res_con.ACL_lists), Storage_ACL, 0, 0},
+   {"scheduleacl", store_acl,      ITEM(res_con.ACL_lists), Schedule_ACL, 0, 0},
+   {"runacl",      store_acl,      ITEM(res_con.ACL_lists), Run_ACL, 0, 0},
+   {"poolacl",     store_acl,      ITEM(res_con.ACL_lists), Pool_ACL, 0, 0},
+   {"commandacl",  store_acl,      ITEM(res_con.ACL_lists), Command_ACL, 0, 0},
+   {"filesetacl",  store_acl,      ITEM(res_con.ACL_lists), FileSet_ACL, 0, 0},
+   {"catalogacl",  store_acl,      ITEM(res_con.ACL_lists), Catalog_ACL, 0, 0},
    {NULL, NULL, NULL, 0, 0, 0}
 };
 
@@ -250,16 +260,6 @@ static struct res_items sch_items[] = {
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
-/* Group resource -- not implemented
- *
- *   name	   handler     value		     code flags    default_value
- */
-static struct res_items group_items[] = {
-   {"name",        store_name, ITEM(res_group.hdr.name), 0, ITEM_REQUIRED, 0},
-   {"description", store_str,  ITEM(res_group.hdr.desc), 0, 0, 0},
-   {NULL, NULL, NULL, 0, 0, 0} 
-};
-
 /* Pool resource
  *
  *   name	      handler	  value 		       code flags default_value
@@ -323,7 +323,6 @@ struct s_res resources[] = {
    {"catalog",       cat_items,   R_CATALOG,   NULL},
    {"schedule",      sch_items,   R_SCHEDULE,  NULL},
    {"fileset",       fs_items,    R_FILESET,   NULL},
-   {"group",         group_items, R_GROUP,     NULL},
    {"pool",          pool_items,  R_POOL,      NULL},
    {"messages",      msgs_items,  R_MSGS,      NULL},
    {"counter",       counter_items, R_COUNTER, NULL},
@@ -402,7 +401,7 @@ char *level_to_str(int level)
    static char level_no[30];
    char *str = level_no;
 
-   sprintf(level_no, "%d", level);    /* default if not found */
+   bsnprintf(level_no, sizeof(level_no), "%d", level);    /* default if not found */
    for (i=0; joblevels[i].level_name; i++) {
       if (level == joblevels[i].level) {
 	 str = joblevels[i].level_name;
@@ -567,7 +566,7 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
       if (res->res_sch.run) {
 	 int i;
 	 RUN *run = res->res_sch.run;
-	 char buf[1000], num[10];
+	 char buf[1000], num[30];
          sendit(sock, "Schedule: name=%s\n", res->res_sch.hdr.name);
 	 if (!run) {
 	    break;
@@ -577,7 +576,7 @@ next_run:
          bstrncpy(buf, "      hour=", sizeof(buf));
 	 for (i=0; i<24; i++) {
 	    if (bit_is_set(i, run->hour)) {
-               sprintf(num, "%d ", i);
+               bsnprintf(num, sizeof(num), "%d ", i);
 	       bstrncat(buf, num, sizeof(buf));
 	    }
 	 }
@@ -586,7 +585,7 @@ next_run:
          bstrncpy(buf, "      mday=", sizeof(buf));
 	 for (i=0; i<31; i++) {
 	    if (bit_is_set(i, run->mday)) {
-               sprintf(num, "%d ", i);
+               bsnprintf(num, sizeof(num), "%d ", i);
 	       bstrncat(buf, num, sizeof(buf));
 	    }
 	 }
@@ -595,7 +594,7 @@ next_run:
          bstrncpy(buf, "      month=", sizeof(buf));
 	 for (i=0; i<12; i++) {
 	    if (bit_is_set(i, run->month)) {
-               sprintf(num, "%d ", i);
+               bsnprintf(num, sizeof(num), "%d ", i);
 	       bstrncat(buf, num, sizeof(buf));
 	    }
 	 }
@@ -604,7 +603,7 @@ next_run:
          bstrncpy(buf, "      wday=", sizeof(buf));
 	 for (i=0; i<7; i++) {
 	    if (bit_is_set(i, run->wday)) {
-               sprintf(num, "%d ", i);
+               bsnprintf(num, sizeof(num), "%d ", i);
 	       bstrncat(buf, num, sizeof(buf));
 	    }
 	 }
@@ -613,7 +612,7 @@ next_run:
          bstrncpy(buf, "      wom=", sizeof(buf));
 	 for (i=0; i<5; i++) {
 	    if (bit_is_set(i, run->wom)) {
-               sprintf(num, "%d ", i);
+               bsnprintf(num, sizeof(num), "%d ", i);
 	       bstrncat(buf, num, sizeof(buf));
 	    }
 	 }
@@ -622,7 +621,7 @@ next_run:
          bstrncpy(buf, "      woy=", sizeof(buf));
 	 for (i=0; i<54; i++) {
 	    if (bit_is_set(i, run->woy)) {
-               sprintf(num, "%d ", i);
+               bsnprintf(num, sizeof(num), "%d ", i);
 	       bstrncat(buf, num, sizeof(buf));
 	    }
 	 }
@@ -649,9 +648,6 @@ next_run:
       } else {
          sendit(sock, "Schedule: name=%s\n", res->res_sch.hdr.name);
       }
-      break;
-   case R_GROUP:
-      sendit(sock, "Group: name=%s\n", res->res_group.hdr.name);
       break;
    case R_POOL:
       sendit(sock, "Pool: name=%s PoolType=%s\n", res->res_pool.hdr.name,
@@ -760,6 +756,12 @@ void free_resource(int type)
    case R_CONSOLE:
       if (res->res_con.password) {
 	 free(res->res_con.password);
+      }
+      for (int i=0; i<Num_ACL; i++) {
+	 if (res->res_con.ACL_lists[i]) {
+	    delete res->res_con.ACL_lists[i];
+	    res->res_con.ACL_lists[i] = NULL;
+	 }
       }
       break;
    case R_CLIENT:
@@ -876,8 +878,6 @@ void free_resource(int type)
       free_msgs_res((MSGS *)res);  /* free message resource */
       res = NULL;
       break;
-   case R_GROUP:
-      break;
    default:
       printf("Unknown resource type %d in free_resource.\n", type);
    }
@@ -935,7 +935,6 @@ void save_resource(int type, struct res_items *items, int pass)
       case R_CONSOLE:
       case R_CATALOG:
       case R_STORAGE:
-      case R_GROUP:
       case R_POOL:
       case R_MSGS:
       case R_FILESET:
@@ -1036,9 +1035,6 @@ void save_resource(int type, struct res_items *items, int pass)
       break;
    case R_SCHEDULE:
       size = sizeof(SCHED);
-      break;
-   case R_GROUP:
-      size = sizeof(GROUP);
       break;
    case R_POOL:
       size = sizeof(POOL);
@@ -1149,6 +1145,34 @@ void store_replace(LEX *lc, struct res_items *item, int index, int pass)
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
 }
+
+/* 
+ * Store ACL (access control list)
+ *
+ */
+void store_acl(LEX *lc, struct res_items *item, int index, int pass)
+{
+   int token;
+
+   for (;;) {
+      token = lex_get_token(lc, T_NAME);
+      if (pass == 1) {
+	 if (((alist **)item->value)[item->code] == NULL) {   
+	    ((alist **)item->value)[item->code] = new alist(10, owned_by_alist);
+//          Dmsg1(400, "Defined new ACL alist at %d\n", item->code);
+	 }
+	 ((alist **)item->value)[item->code]->append(bstrdup(lc->str));
+//       Dmsg2(400, "Appended to %d %s\n", item->code, lc->str);
+      }
+      token = lex_get_token(lc, T_ALL);
+      if (token == T_COMMA) {
+	 continue;		      /* get another ACL */
+      }
+      break;
+   }
+   set_bit(index, res_all.hdr.item_present);
+}
+
 
 #ifdef old_deprecated_code
 /* 

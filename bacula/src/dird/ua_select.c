@@ -149,7 +149,9 @@ STORE *select_storage_resource(UAContext *ua)
    start_prompt(ua, _("The defined Storage resources are:\n"));
    LockRes();
    foreach_res(store, R_STORAGE) {
-      add_prompt(ua, store->hdr.name);
+      if (acl_access_ok(ua, Storage_ACL, store->hdr.name)) {
+	 add_prompt(ua, store->hdr.name);
+      }
    }
    UnlockRes();
    do_prompt(ua, _("Storage"),  _("Select Storage resource"), name, sizeof(name));
@@ -168,7 +170,9 @@ FILESET *select_fileset_resource(UAContext *ua)
    start_prompt(ua, _("The defined FileSet resources are:\n"));
    LockRes();
    foreach_res(fs, R_FILESET) {
-      add_prompt(ua, fs->hdr.name);
+      if (acl_access_ok(ua, FileSet_ACL, fs->hdr.name)) {
+	 add_prompt(ua, fs->hdr.name);
+      }
    }
    UnlockRes();
    do_prompt(ua, _("FileSet"), _("Select FileSet resource"), name, sizeof(name));
@@ -188,15 +192,19 @@ CAT *get_catalog_resource(UAContext *ua)
 
    for (i=1; i<ua->argc; i++) {
       if (strcasecmp(ua->argk[i], _("catalog")) == 0 && ua->argv[i]) {
-	 catalog = (CAT *)GetResWithName(R_CATALOG, ua->argv[i]);
-	 break;
+	 if (acl_access_ok(ua, Catalog_ACL, ua->argv[i])) {
+	    catalog = (CAT *)GetResWithName(R_CATALOG, ua->argv[i]);
+	    break;
+	 }
       }
    }
    if (!catalog) {
       start_prompt(ua, _("The defined Catalog resources are:\n"));
       LockRes();
       foreach_res(catalog, R_CATALOG) {
-	 add_prompt(ua, catalog->hdr.name);
+	 if (acl_access_ok(ua, Catalog_ACL, catalog->hdr.name)) {
+	    add_prompt(ua, catalog->hdr.name);
+	 }
       }
       UnlockRes();
       do_prompt(ua, _("Catalog"),  _("Select Catalog resource"), name, sizeof(name));
@@ -217,7 +225,9 @@ JOB *select_job_resource(UAContext *ua)
    start_prompt(ua, _("The defined Job resources are:\n"));
    LockRes();
    foreach_res(job, R_JOB) {
-      add_prompt(ua, job->hdr.name);
+      if (acl_access_ok(ua, Job_ACL, job->hdr.name)) {
+	 add_prompt(ua, job->hdr.name);
+      }
    }
    UnlockRes();
    do_prompt(ua, _("Job"), _("Select Job resource"), name, sizeof(name));
@@ -236,7 +246,7 @@ JOB *select_restore_job_resource(UAContext *ua)
    start_prompt(ua, _("The defined Restore Job resources are:\n"));
    LockRes();
    foreach_res(job, R_JOB) {
-      if (job->JobType == JT_RESTORE) {
+      if (job->JobType == JT_RESTORE && acl_access_ok(ua, Job_ACL, job->hdr.name)) {
 	 add_prompt(ua, job->hdr.name);
       }
    }
@@ -259,7 +269,9 @@ CLIENT *select_client_resource(UAContext *ua)
    start_prompt(ua, _("The defined Client resources are:\n"));
    LockRes();
    foreach_res(client, R_CLIENT) {
-      add_prompt(ua, client->hdr.name);
+      if (acl_access_ok(ua, Client_ACL, client->hdr.name)) {
+	 add_prompt(ua, client->hdr.name);
+      }
    }
    UnlockRes();
    do_prompt(ua, _("Client"),  _("Select Client (File daemon) resource"), name, sizeof(name));
@@ -280,6 +292,9 @@ CLIENT *get_client_resource(UAContext *ua)
    for (i=1; i<ua->argc; i++) {
       if ((strcasecmp(ua->argk[i], _("client")) == 0 ||
            strcasecmp(ua->argk[i], _("fd")) == 0) && ua->argv[i]) {
+	 if (!acl_access_ok(ua, Client_ACL, ua->argv[i])) {
+	    break;
+	 }
 	 client = (CLIENT *)GetResWithName(R_CLIENT, ua->argv[i]);
 	 if (client) {
 	    return client;
@@ -314,6 +329,9 @@ int get_client_dbr(UAContext *ua, CLIENT_DBR *cr)
    for (i=1; i<ua->argc; i++) {
       if ((strcasecmp(ua->argk[i], _("client")) == 0 ||               
            strcasecmp(ua->argk[i], _("fd")) == 0) && ua->argv[i]) {
+	 if (!acl_access_ok(ua, Client_ACL, ua->argv[i])) {
+	    break;
+	 }
 	 bstrncpy(cr->Name, ua->argv[i], sizeof(cr->Name));
 	 if (!db_get_client_record(ua->jcr, ua->db, cr)) {
             bsendmsg(ua, _("Could not find Client \"%s\": ERR=%s"), ua->argv[i],
@@ -356,7 +374,8 @@ int select_client_dbr(UAContext *ua, CLIENT_DBR *cr)
    start_prompt(ua, _("Defined Clients:\n"));
    for (i=0; i < num_clients; i++) {
       ocr.ClientId = ids[i];
-      if (!db_get_client_record(ua->jcr, ua->db, &ocr)) {
+      if (!db_get_client_record(ua->jcr, ua->db, &ocr) ||
+	  !acl_access_ok(ua, Client_ACL, ocr.Name)) {
 	 continue;
       }
       add_prompt(ua, ocr.Name);
@@ -391,7 +410,8 @@ int select_client_dbr(UAContext *ua, CLIENT_DBR *cr)
 int get_pool_dbr(UAContext *ua, POOL_DBR *pr)
 {
    if (pr->Name[0]) {		      /* If name already supplied */
-      if (db_get_pool_record(ua->jcr, ua->db, pr)) {
+      if (db_get_pool_record(ua->jcr, ua->db, pr) &&
+	  acl_access_ok(ua, Pool_ACL, pr->Name)) { 
 	 return pr->PoolId;
       }
       bsendmsg(ua, _("Could not find Pool \"%s\": ERR=%s"), pr->Name, db_strerror(ua->db));
@@ -413,7 +433,8 @@ int select_pool_dbr(UAContext *ua, POOL_DBR *pr)
    uint32_t *ids; 
 
    for (i=1; i<ua->argc; i++) {
-      if (strcasecmp(ua->argk[i], _("pool")) == 0 && ua->argv[i]) {
+      if (strcasecmp(ua->argk[i], _("pool")) == 0 && ua->argv[i] &&
+	  acl_access_ok(ua, Pool_ACL, ua->argv[i])) {
 	 bstrncpy(pr->Name, ua->argv[i], sizeof(pr->Name));
 	 if (!db_get_pool_record(ua->jcr, ua->db, pr)) {
             bsendmsg(ua, _("Could not find Pool \"%s\": ERR=%s"), ua->argv[i],
@@ -438,7 +459,8 @@ int select_pool_dbr(UAContext *ua, POOL_DBR *pr)
    start_prompt(ua, _("Defined Pools:\n"));
    for (i=0; i < num_pools; i++) {
       opr.PoolId = ids[i];
-      if (!db_get_pool_record(ua->jcr, ua->db, &opr)) {
+      if (!db_get_pool_record(ua->jcr, ua->db, &opr) ||
+	  !acl_access_ok(ua, Pool_ACL, opr.Name)) {
 	 continue;
       }
       add_prompt(ua, opr.Name);
@@ -525,7 +547,9 @@ POOL *select_pool_resource(UAContext *ua)
    start_prompt(ua, _("The defined Pool resources are:\n"));
    LockRes();
    foreach_res(pool, R_POOL) {
-      add_prompt(ua, pool->hdr.name);
+      if (acl_access_ok(ua, Pool_ACL, pool->hdr.name)) {
+	 add_prompt(ua, pool->hdr.name);
+      }
    }
    UnlockRes();
    do_prompt(ua, _("Pool"), _("Select Pool resource"), name, sizeof(name));
@@ -545,7 +569,7 @@ POOL *get_pool_resource(UAContext *ua)
    int i;
    
    i = find_arg_with_value(ua, "pool");
-   if (i >= 0) {
+   if (i >= 0 && acl_access_ok(ua, Pool_ACL, ua->argv[i])) {
       pool = (POOL *)GetResWithName(R_POOL, ua->argv[i]);
       if (pool) {
 	 return pool;
@@ -593,7 +617,7 @@ int get_job_dbr(UAContext *ua, JOB_DBR *jr)
 	 jr->JobId = 0;
 	 bstrncpy(jr->Job, ua->argv[i], sizeof(jr->Job));
       } else if (strcasecmp(ua->argk[i], _("jobid")) == 0 && ua->argv[i]) {
-	 jr->JobId = atoi(ua->argv[i]);
+	 jr->JobId = str_to_int64(ua->argv[i]);
       } else {
 	 continue;
       }
@@ -760,7 +784,7 @@ STORE *get_storage_resource(UAContext *ua, int use_default)
 	    break;
 
          } else if (strcasecmp(ua->argk[i], _("jobid")) == 0) {
-	    jobid = atoi(ua->argv[i]);
+	    jobid = str_to_int64(ua->argv[i]);
 	    if (jobid <= 0) {
                bsendmsg(ua, _("Expecting jobid=nn command, got: %s\n"), ua->argk[i]);
 	       return NULL;
@@ -784,12 +808,18 @@ STORE *get_storage_resource(UAContext *ua, int use_default)
 	}
       }
    }
-
+   if (store && !acl_access_ok(ua, Storage_ACL, store->hdr.name)) {
+      store = NULL;
+   }
+   
    if (!store && store_name) {
       store = (STORE *)GetResWithName(R_STORAGE, store_name);
       if (!store) {
          bsendmsg(ua, "Storage resource \"%s\": not found\n", store_name);
       }
+   }
+   if (store && !acl_access_ok(ua, Storage_ACL, store->hdr.name)) {
+      store = NULL;
    }
    /* No keywords found, so present a selection list */
    if (!store) {

@@ -12,12 +12,14 @@
 /*
  * Resource codes -- they must be sequential for indexing   
  */
-#define R_FIRST 		      1001
 
-#define R_DIRECTOR		      1001
-#define R_CONSOLE		      1002
+enum {
+   R_DIRECTOR = 1001,
+   R_CONSOLE,
+};
 
-#define R_LAST			      R_CONSOLE
+#define R_FIRST     R_DIRECTOR
+#define R_LAST	    R_CONSOLE
 
 /*
  * Some resource attributes
@@ -42,6 +44,7 @@ typedef struct s_res_dir DIRRES;
 struct s_con_dir {
    RES	 hdr;
    char *fontface;		      /* Console Font specification */
+   char *password;		      /* UA server password */
    int require_ssl;		      /* Require SSL on all connections */
 };
 typedef struct s_con_dir CONRES;

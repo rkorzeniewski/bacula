@@ -24,6 +24,13 @@
 
  */
 
+/* Second arg of init */
+enum {
+  owned_by_alist = true,
+  not_owned_by_alist = false
+};
+
+
 /* 
  * Array list -- much like a simplified STL vector
  *   array of pointers to inserted items

@@ -57,12 +57,13 @@ static void s_err(char *file, int line, LEX *lc, char *msg, ...)
    va_end(arg_ptr);
      
    if (lc->line_no > lc->begin_line_no) {
-      sprintf(more, _("Problem probably begins at Line %d.\n"), lc->begin_line_no);
+      bsnprintf(more, sizeof(more), 
+                _("Problem probably begins at line %d.\n"), lc->begin_line_no);
    } else {
       more[0] = 0;
    }
    e_msg(file, line, M_ERROR_TERM, 0, _("Config error: %s\n\
-            : Line %d, col %d of file %s\n%s\n%s"),
+            : line %d, col %d of file %s\n%s\n%s"),
       buf, lc->line_no, lc->col_no, lc->fname, lc->line, more);
 }
 
@@ -189,7 +190,7 @@ static void add_str(LEX *lf, int ch)
 {
    if (lf->str_len >= MAXSTRING-3) {
       Emsg3(M_ERROR_TERM, 0, _(
-            "Token too long, file: %s, line %d, begins at line %d\n"), 
+           _("Config token too long, file: %s, line %d, begins at line %d\n")), 
 	     lf->fname, lf->line_no, lf->begin_line_no);
    }
    lf->str[lf->str_len++] = ch;
@@ -253,19 +254,19 @@ char *lex_tok_to_str(int token)
 
 static uint32_t scan_pint(LEX *lf, char *str)
 {
-   double dval = 0;
+   int64_t val = 0;
    if (!is_a_number(str)) {
       scan_err1(lf, "expected a positive integer number, got: %s", str);
       /* NOT REACHED */
    } else {
       errno = 0;
-      dval = strtod(str, NULL);
-      if (errno != 0 || dval < 0) {
+      val = str_to_int64(str);
+      if (errno != 0 || val < 0) {
          scan_err1(lf, "expected a postive integer number, got: %s", str);
 	 /* NOT REACHED */
       }
    }
-   return (uint32_t)dval;
+   return (uint32_t)val;
 }
 
 /*	  
@@ -508,7 +509,7 @@ lex_get_token(LEX *lf, int expect)
 	 break;
       }
       errno = 0;
-      lf->int32_val = (int32_t)strtod(lf->str, NULL);
+      lf->int32_val = (int32_t)str_to_int64(lf->str);
       if (errno != 0) {
          scan_err2(lf, "expected an integer number, got %s: %s",
 	       lex_tok_to_str(token), lf->str);
@@ -527,7 +528,7 @@ lex_get_token(LEX *lf, int expect)
 	 break;
       }
       errno = 0;
-      lf->int64_val = (int64_t)strtod(lf->str, NULL);
+      lf->int64_val = str_to_int64(lf->str);
       if (errno != 0) {
          scan_err2(lf, "expected an integer number, got %s: %s",
 	       lex_tok_to_str(token), lf->str);

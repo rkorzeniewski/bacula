@@ -34,6 +34,7 @@ struct s_res_con {
    char *rc_file;                     /* startup file */
    char *hist_file;                   /* command history file */
    int require_ssl;                   /* Require SSL on all connections */
+   char *password;                    /* UA server password */
 };
 typedef struct s_res_con CONRES;
 

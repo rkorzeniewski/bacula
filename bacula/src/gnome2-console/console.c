@@ -32,7 +32,7 @@
 #include "support.h"
 
 /* Imported functions */
-int authenticate_director(JCR *jcr, DIRRES *director, char *name);
+int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons);
        
 /* Exported variables */
 GtkWidget *app1;	     /* application window */
@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
 
    LockRes();
    ndir = 0;
-   for (dir=NULL; (dir = (DIRRES *)GetNextRes(R_DIRECTOR, (RES *)dir)); ) {
+   foreach_res(dir, R_DIRECTOR) {
       ndir++;
    }
    UnlockRes();
@@ -181,10 +181,6 @@ int main(int argc, char *argv[])
 Without that I don't how to speak to the Director :-(\n"), configfile);
    }
 
-   if (test_config) {
-      terminate_console(0);
-      exit(0);
-   }
 
 
    app1 = create_app1();
@@ -212,13 +208,17 @@ Without that I don't how to speak to the Director :-(\n"), configfile);
  */
 
    LockRes();
-   for (con = NULL; (con = (CONRES *)GetNextRes(R_CONSOLE, (RES *)con)); ) {
+   foreach_res(con, R_CONSOLE) {
+       if (!con->fontface) {
+          Dmsg1(400, "No fontface for %s\n", con->hdr.name);
+	  continue;
+       }
        text_font = gdk_font_load(con->fontface);
        if (text_font == NULL) {
-           Dmsg2(404, "Load of requested ConsoleFont \"%s\" (%s) failed!\n",
+           Dmsg2(400, "Load of requested ConsoleFont \"%s\" (%s) failed!\n",
 		  con->hdr.name, con->fontface);
        } else {
-           Dmsg2(404, "ConsoleFont \"%s\" (%s) loaded.\n",
+           Dmsg2(400, "ConsoleFont \"%s\" (%s) loaded.\n",
 		  con->hdr.name, con->fontface);
 	   break;
        }	   
@@ -226,7 +226,7 @@ Without that I don't how to speak to the Director :-(\n"), configfile);
    UnlockRes();
 
    if (text_font == NULL) {
-       Dmsg1(100, "Attempting to load fallback font %s\n",
+       Dmsg1(400, "Attempting to load fallback font %s\n",
               "-misc-fixed-medium-r-normal-*-*-130-*-*-c-*-iso8859-1");
        text_font = gdk_font_load("-misc-fixed-medium-r-normal-*-*-130-*-*-c-*-iso8859-1");
    }
@@ -236,6 +236,11 @@ Without that I don't how to speak to the Director :-(\n"), configfile);
    gtk_widget_modify_font (entry1, font_desc);
    gtk_widget_modify_font (status1, font_desc);
    pango_font_description_free (font_desc);
+
+   if (test_config) {
+      terminate_console(0);
+      exit(0);
+   }
 
    initial = gtk_timeout_add(100, initial_connect_to_director, (gpointer)NULL);
 
@@ -401,13 +406,7 @@ int connect_to_director(gpointer data)
    LockRes();
    CONRES *cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)NULL);
    UnlockRes();
-   char *con_name;
-   if (cons) {
-      con_name = cons->hdr.name;
-   } else {
-      con_name = "*UserAgent*";
-   }
-   if (!authenticate_director(&jcr, dir, con_name)) {
+   if (!authenticate_director(&jcr, dir, cons)) {
       set_text(UA_sock->msg, UA_sock->msglen);
       return 0;
    }

@@ -28,7 +28,6 @@
 #ifndef __UA_H_
 #define __UA_H_ 1
 
-
 struct UAContext {
    BSOCK *UA_sock;
    BSOCK *sd;
@@ -61,6 +60,5 @@ struct TREE_CTX {
    int cnt;                           /* count for user feedback */
    UAContext *ua;
 };
-
 
 #endif

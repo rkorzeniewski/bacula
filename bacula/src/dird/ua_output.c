@@ -82,7 +82,6 @@ static struct showstruct reses[] = {
    {N_("catalogs"),   R_CATALOG},
    {N_("schedules"),  R_SCHEDULE},
    {N_("filesets"),   R_FILESET},
-   {N_("groups"),     R_GROUP},
    {N_("pools"),      R_POOL},
    {N_("messages"),   R_MSGS},
    {N_("all"),        -1},
