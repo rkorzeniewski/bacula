@@ -34,6 +34,7 @@ static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
 
 /* Responses sent to the File daemon */
 static char OK_data[]    = "3000 OK data\n";
+static char FD_error[]   = "3000 error\n";
 static char rec_header[] = "rechdr %ld %ld %ld %ld %ld";
 
 /* 
@@ -47,29 +48,26 @@ int do_read_data(JCR *jcr)
    int ok = TRUE;
    DEVICE *dev;
    DEV_BLOCK *block;
+   DCR *dcr;
    
    Dmsg0(20, "Start read data.\n");
 
    dev = jcr->device->dev;
 
-   /* Tell File daemon we will send data */
-   bnet_fsend(fd, OK_data);
    Dmsg1(10, "bstored>filed: %s\n", fd->msg);
 
-   if (!bnet_set_buffer_size(fd, dev->device->max_network_buffer_size, BNET_SETBUF_WRITE)) {
+   if (!bnet_set_buffer_size(fd, jcr->device->max_network_buffer_size, BNET_SETBUF_WRITE)) {
       return 0;
    }
 
 
    Dmsg1(20, "Begin read device=%s\n", dev_name(dev));
 
-   block = new_block(dev);
-
    create_vol_list(jcr);
    if (jcr->NumVolumes == 0) {
       Jmsg(jcr, M_FATAL, 0, _("No Volume names found for restore.\n"));
-      free_block(block);
       free_vol_list(jcr);
+      bnet_fsend(fd, FD_error);
       return 0;
    }
 
@@ -81,22 +79,24 @@ int do_read_data(JCR *jcr)
    /* 
     * Ready device for reading, and read records
     */
-   if (!acquire_device_for_read(jcr, dev, block)) {
-      free_block(block);
+   if (!acquire_device_for_read(jcr)) {
       free_vol_list(jcr);
       return 0;
    }
 
+   block = dcr->block;
+
+   /* Tell File daemon we will send data */
+   bnet_fsend(fd, OK_data);
    ok = read_records(jcr, dev, record_cb, mount_next_read_volume);
 
    /* Send end of data to FD */
    bnet_sig(fd, BNET_EOD);
 
-   if (!release_device(jcr, dev)) {
+   if (!release_device(jcr)) {
       ok = FALSE;
    }
    
-   free_block(block);
    free_vol_list(jcr);
    Dmsg0(30, "Done reading.\n");
    return ok ? 1 : 0;

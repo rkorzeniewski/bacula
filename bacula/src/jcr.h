@@ -212,7 +212,8 @@ struct JCR {
    JCR *prev_dev;                     /* previous JCR attached to device */
    pthread_cond_t job_start_wait;     /* Wait for FD to start Job */
    int type;
-   DEVRES *device;                    /* device to use */
+   DCR *dcr;                          /* device context record */
+   DEVRES *device;                    /* device resource to use */
    VOLUME_CAT_INFO VolCatInfo;        /* Catalog info for desired volume */
    POOLMEM *job_name;                 /* base Job name (not unique) */
    POOLMEM *fileset_name;             /* FileSet */
@@ -224,24 +225,13 @@ struct JCR {
    VOL_LIST *VolList;                 /* list to read */
    int32_t NumVolumes;                /* number of volumes used */
    int32_t CurVolume;                 /* current volume number */
-   int spool_attributes;              /* set if spooling attributes */
-   int no_attributes;                 /* set if no attributes wanted */
    int label_status;                  /* device volume label status */
    int label_errors;                  /* count of label errors */
-   int session_opened;
-   DEV_RECORD rec;                    /* Read/Write record */
+   bool session_opened;
    long Ticket;                       /* ticket for this job */
-   uint32_t VolFirstIndex;            /* First file index this Volume */
-   uint32_t VolLastIndex;             /* Last file index this Volume */
-   uint32_t FileIndex;                /* Current File Index */
-   uint32_t EndFile;                  /* End file written */
-   uint32_t StartFile;                /* Start write file */
-   uint32_t StartBlock;               /* Start write block */
-   uint32_t EndBlock;                 /* Ending block written */
-   bool NewVol;                       /* set when new Volume mounted */
-   bool WroteVol;                     /* set when Volume written */
-   bool NewFile;                      /* set when EOF written */
    bool ignore_label_errors;          /* ignore Volume label errors */
+   bool spool_attributes;             /* set if spooling attributes */
+   bool no_attributes;                /* set if no attributes wanted */
    int CurVol;                        /* Current Volume count */
 
    uint32_t FileId;                   /* Last file id inserted */

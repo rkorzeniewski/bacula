@@ -265,15 +265,16 @@ static int bscan_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 {
    Dmsg1(100, "Walk attached jcrs. Volume=%s\n", dev->VolCatInfo.VolCatName);
    for (JCR *mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
+      DCR *dcr = mjcr->dcr;
       if (verbose) {
          Pmsg1(000, _("Create JobMedia for Job %s\n"), mjcr->Job);
       }
       if (dev->state & ST_TAPE) {
-	 mjcr->EndBlock = dev->EndBlock;
-	 mjcr->EndFile = dev->EndFile;
+	 dcr->EndBlock = dev->EndBlock;
+	 dcr->EndFile = dev->EndFile;
       } else {
-	 mjcr->EndBlock = (uint32_t)dev->file_addr;
-	 mjcr->StartBlock = (uint32_t)(dev->file_addr >> 32);
+	 dcr->EndBlock = (uint32_t)dev->file_addr;
+	 dcr->StartBlock = (uint32_t)(dev->file_addr >> 32);
       }
       if (!create_jobmedia_record(db, mjcr)) {
          Pmsg2(000, _("Could not create JobMedia record for Volume=%s Job=%s\n"),
@@ -305,7 +306,7 @@ static void do_scan()
    detach_jcr_from_device(dev, bjcr);
 
    read_records(bjcr, dev, record_cb, bscan_mount_next_read_volume);
-   release_device(bjcr, dev);
+   release_device(bjcr);
 
    free_attr(attr);
    term_dev(dev);
@@ -314,6 +315,7 @@ static void do_scan()
 static int record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 {
    JCR *mjcr;
+   DCR *dcr;
    char ec1[30];
 
    if (rec->data_len > 0) {
@@ -392,9 +394,10 @@ static int record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 }
 	 /* Reset some JCR variables */
 	 for (mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
-	    mjcr->VolFirstIndex = mjcr->FileIndex = 0;
-	    mjcr->StartBlock = mjcr->EndBlock = 0;
-	    mjcr->StartFile = mjcr->EndFile = 0;
+	    dcr = mjcr->dcr;
+	    dcr->VolFirstIndex = dcr->FileIndex = 0;
+	    dcr->StartBlock = dcr->EndBlock = 0;
+	    dcr->StartFile = dcr->EndFile = 0;
 	 }
 
          Pmsg1(000, _("VOL_LABEL: OK for Volume: %s\n"), mr.VolumeName);
@@ -430,16 +433,17 @@ static int record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 
          /* process label, if Job record exists don't update db */
 	 mjcr = create_job_record(db, &jr, &label, rec);
+	 dcr = mjcr->dcr;
 	 update_db = save_update_db;
 
 	 jr.PoolId = pr.PoolId;
 	 /* Set start positions into JCR */
 	 if (dev->state & ST_TAPE) {
-	    mjcr->StartBlock = dev->block_num;
-	    mjcr->StartFile = dev->file;
+	    dcr->StartBlock = dev->block_num;
+	    dcr->StartFile = dev->file;
 	 } else {
-	    mjcr->StartBlock = (uint32_t)dev->file_addr;
-	    mjcr->StartFile = (uint32_t)(dev->file_addr >> 32);
+	    dcr->StartBlock = (uint32_t)dev->file_addr;
+	    dcr->StartFile = (uint32_t)(dev->file_addr >> 32);
 	 }
 	 mjcr->start_time = jr.StartTime;
 	 mjcr->JobLevel = jr.Level;
@@ -511,7 +515,9 @@ static int record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	  *   them.
 	  */
 	 if (update_db) {
-	    for (mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
+	    mjcr=next_attached_jcr(dev, NULL);
+	    for ( ; mjcr; ) {
+	       JCR *njcr; 
 	       jr.JobId = mjcr->JobId;
 	       jr.JobStatus = JS_ErrorTerminated;
 	       jr.JobFiles = mjcr->JobFiles;
@@ -520,10 +526,12 @@ static int record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	       jr.VolSessionTime = mjcr->VolSessionTime;
 	       jr.JobTDate = (utime_t)mjcr->start_time;
 	       jr.ClientId = mjcr->ClientId;
-	       free_jcr(mjcr);
 	       if (!db_update_job_end_record(bjcr, db, &jr)) {
                   Pmsg1(0, _("Could not update job record. ERR=%s\n"), db_strerror(db));
 	       }
+	       njcr = mjcr->next_dev;
+	       free_jcr(mjcr);
+	       mjcr = njcr;
 	    }
 	 }
 	 mr.VolFiles = rec->File;
@@ -550,8 +558,9 @@ static int record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       }
       return 1;
    }
-   if (mjcr->VolFirstIndex == 0) {
-      mjcr->VolFirstIndex = block->FirstIndex;
+   dcr = mjcr->dcr;
+   if (dcr->VolFirstIndex == 0) {
+      dcr->VolFirstIndex = block->FirstIndex;
    }
 
    /* File Attributes stream */
@@ -656,7 +665,7 @@ static int record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
  *  Called from main free_jcr() routine in src/lib/jcr.c so
  *  that we can do our Director specific cleanup of the jcr.
  */
-static void dird_free_jcr(JCR *jcr)
+static void bscan_free_jcr(JCR *jcr)
 {
    Dmsg0(200, "Start dird free_jcr\n");
 
@@ -671,6 +680,10 @@ static void dird_free_jcr(JCR *jcr)
    if (jcr->RestoreBootstrap) {
       free(jcr->RestoreBootstrap);
    }
+   if (jcr->dcr) {
+      free_dcr(jcr->dcr);
+      jcr->dcr = NULL;
+   }
    Dmsg0(200, "End dird free_jcr\n");
 }
 
@@ -682,7 +695,7 @@ static int create_file_attributes_record(B_DB *db, JCR *mjcr,
 			       char *fname, char *lname, int type,
 			       char *ap, DEV_RECORD *rec)
 {
-
+   DCR *dcr = mjcr->dcr;
    ar.fname = fname;
    ar.link = lname;
    ar.ClientId = mjcr->ClientId;
@@ -690,10 +703,10 @@ static int create_file_attributes_record(B_DB *db, JCR *mjcr,
    ar.Stream = rec->Stream;
    ar.FileIndex = rec->FileIndex;
    ar.attr = ap;
-   if (mjcr->VolFirstIndex == 0) {
-      mjcr->VolFirstIndex = rec->FileIndex;
+   if (dcr->VolFirstIndex == 0) {
+      dcr->VolFirstIndex = rec->FileIndex;
    }
-   mjcr->FileIndex = rec->FileIndex;
+   dcr->FileIndex = rec->FileIndex;
    mjcr->JobFiles++;
 
    if (!update_db) {
@@ -1013,24 +1026,25 @@ Termination:            %s\n\n"),
 static int create_jobmedia_record(B_DB *db, JCR *mjcr)
 {
    JOBMEDIA_DBR jmr;
+   DCR *dcr = mjcr->dcr;
 
    if (dev->state & ST_TAPE) {
-      mjcr->EndBlock = dev->EndBlock;
-      mjcr->EndFile  = dev->EndFile;
+      dcr->EndBlock = dev->EndBlock;
+      dcr->EndFile  = dev->EndFile;
    } else {
-      mjcr->EndBlock = (uint32_t)dev->file_addr;
-      mjcr->EndFile = (uint32_t)(dev->file_addr >> 32);
+      dcr->EndBlock = (uint32_t)dev->file_addr;
+      dcr->EndFile = (uint32_t)(dev->file_addr >> 32);
    }
 
    memset(&jmr, 0, sizeof(jmr));
    jmr.JobId = mjcr->JobId;
    jmr.MediaId = mr.MediaId;
-   jmr.FirstIndex = mjcr->VolFirstIndex;
-   jmr.LastIndex = mjcr->FileIndex;
-   jmr.StartFile = mjcr->StartFile;
-   jmr.EndFile = mjcr->EndFile;
-   jmr.StartBlock = mjcr->StartBlock;
-   jmr.EndBlock = mjcr->EndBlock;
+   jmr.FirstIndex = dcr->VolFirstIndex;
+   jmr.LastIndex = dcr->FileIndex;
+   jmr.StartFile = dcr->StartFile;
+   jmr.EndFile = dcr->EndFile;
+   jmr.StartBlock = dcr->StartBlock;
+   jmr.EndBlock = dcr->EndBlock;
 
 
    if (!update_db) {
@@ -1094,7 +1108,7 @@ static JCR *create_jcr(JOB_DBR *jr, DEV_RECORD *rec, uint32_t JobId)
     * Transfer as much as possible to the Job JCR. Most important is
     *	the JobId and the ClientId.
     */
-   jobjcr = new_jcr(sizeof(JCR), dird_free_jcr);
+   jobjcr = new_jcr(sizeof(JCR), bscan_free_jcr);
    jobjcr->JobType = jr->Type;
    jobjcr->JobLevel = jr->Level;
    jobjcr->JobStatus = jr->JobStatus;
@@ -1106,6 +1120,7 @@ static JCR *create_jcr(JOB_DBR *jr, DEV_RECORD *rec, uint32_t JobId)
    jobjcr->VolSessionTime = rec->VolSessionTime;
    jobjcr->ClientId = jr->ClientId;
    attach_jcr_to_device(dev, jobjcr);
+   new_dcr(jobjcr, dev);
    return jobjcr;
 }
 
@@ -1121,7 +1136,7 @@ int	dir_send_job_status(JCR *jcr) {return 1;}
 
 int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
 {
-   fprintf(stderr, _("Mount Volume %s on device %s and press return when ready: "),
+   fprintf(stderr, _("Mount Volume \"%s\" on device \"%s\" and press return when ready: "),
       jcr->VolumeName, dev_name(dev));
    getchar();	
    return 1;

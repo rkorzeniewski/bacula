@@ -296,7 +296,7 @@ int db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    jr->JobStatus = (int)*row[9];
    jr->Type = (int)*row[10];
    jr->Level = (int)*row[11];
-   jr->ClientId = str_to_uint64(row[12]);
+   jr->ClientId = str_to_uint64(row[12]!=NULL?row[12]:(char *)"");
    sql_free_result(mdb);
 
    db_unlock(mdb);

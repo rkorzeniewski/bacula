@@ -462,6 +462,9 @@ static bool find_device(JCR *jcr, char *dname)
 	 break;
       }
    }
+   if (found) {
+      jcr->dcr = new_dcr(jcr, device->dev);
+   }
    UnlockRes();
    return found;
 }

@@ -406,7 +406,7 @@ int mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    if (jcr->NumVolumes > 1 && jcr->CurVolume < jcr->NumVolumes) {
       close_dev(dev);
       dev->state &= ~ST_READ; 
-      if (!acquire_device_for_read(jcr, dev, block)) {
+      if (!acquire_device_for_read(jcr)) {
          Jmsg2(jcr, M_FATAL, 0, "Cannot open Dev=%s, Vol=%s\n", dev_name(dev),
 	       jcr->VolumeName);
 	 return 0;
@@ -423,7 +423,7 @@ int mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
  */
 void release_volume(JCR *jcr, DEVICE *dev)
 {
-   if (jcr->WroteVol) {
+   if (jcr->dcr->WroteVol) {
       Jmsg0(jcr, M_ERROR, 0, "Hey!!!!! WroteVol non-zero !!!!!\n");
    }
    /* 

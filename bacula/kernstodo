@@ -106,9 +106,20 @@ For 1.33
   Do both a long and short form.
 
 - Later:
-- Add a regression test for dbcheck.
-- Add disk seeking on restore.
-- Allow for optional cancelling of SD and FD in case DIR
+- Add John's appended files:
+   Appended = {     /files/server/logs/http/*log   }
+   and such files would be treated as follows.On a FULL backup, they would
+   be backed up like any other file.On an INCREMENTAL backup, where a
+   previous INCREMENTAL or FULL was already in thecatalogue and the length
+   of the file wasgreater than the length of the last backup, only thedata
+   added since the last backup will be dumped.On an INCREMENTAL backup, if
+   the length of the file is less than thelength of the file with the same
+   name last backed up, the completefile is dumped.On Windows systems, with
+   creation date of files, we can be evensmarter about this and not count
+   entirely upon the length.On a restore, the full and all incrementals
+   since it will beapplied in sequence to restore the file.  - Add a
+   regression test for dbcheck.  - Add disk seeking on restore.  - Allow
+   for optional cancelling of SD and FD in case DIR
   gets a fatal error. Requested by Jesse Guardiani <jesse@wingnet.net>
 - Bizarre message: Error: Could not open WriteBootstrap file:
 - Build console in client only build.

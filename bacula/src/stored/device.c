@@ -164,14 +164,15 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       if (mjcr->JobId == 0) {
 	 continue;		   /* ignore console */
       }
-      mjcr->NewVol = true;
+      mjcr->dcr->NewVol = true;
       if (jcr != mjcr) {
 	 pm_strcpy(&mjcr->VolumeName, jcr->VolumeName);  /* get a copy of the new volume */
+	 bstrncpy(mjcr->dcr->VolumeName, jcr->VolumeName, sizeof(mjcr->dcr->VolumeName));
       }
    }
 
    /* Clear NewVol now because dir_get_volume_info() already done */
-   jcr->NewVol = false;
+   jcr->dcr->NewVol = false;
    set_new_volume_parameters(jcr, dev);
 
    jcr->run_time += time(NULL) - wait_time; /* correct run time for mount wait */
@@ -196,23 +197,24 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
  */
 void set_new_volume_parameters(JCR *jcr, DEVICE *dev) 
 {
-   if (jcr->NewVol && !dir_get_volume_info(jcr, GET_VOL_INFO_FOR_WRITE)) {
+   DCR *dcr = jcr->dcr;
+   if (dcr->NewVol && !dir_get_volume_info(jcr, GET_VOL_INFO_FOR_WRITE)) {
       Jmsg1(jcr, M_ERROR, 0, "%s", jcr->errmsg);
    }
    /* Set new start/end positions */
    if (dev_state(dev, ST_TAPE)) {
-      jcr->StartBlock = dev->block_num;
-      jcr->StartFile = dev->file;
+      dcr->StartBlock = dev->block_num;
+      dcr->StartFile = dev->file;
    } else {
-      jcr->StartBlock = (uint32_t)dev->file_addr;
-      jcr->StartFile  = (uint32_t)(dev->file_addr >> 32);
+      dcr->StartBlock = (uint32_t)dev->file_addr;
+      dcr->StartFile  = (uint32_t)(dev->file_addr >> 32);
    }
    /* Reset indicies */
-   jcr->VolFirstIndex = 0;
-   jcr->VolLastIndex = 0;
+   dcr->VolFirstIndex = 0;
+   dcr->VolLastIndex = 0;
    jcr->NumVolumes++;
-   jcr->NewVol = false;
-   jcr->WroteVol = false;
+   dcr->NewVol = false;
+   dcr->WroteVol = false;
 }
 
 /*
@@ -222,19 +224,21 @@ void set_new_volume_parameters(JCR *jcr, DEVICE *dev)
  */
 void set_new_file_parameters(JCR *jcr, DEVICE *dev) 
 {
+   DCR *dcr = jcr->dcr;
+    
    /* Set new start/end positions */
    if (dev_state(dev, ST_TAPE)) {
-      jcr->StartBlock = dev->block_num;
-      jcr->StartFile = dev->file;
+      dcr->StartBlock = dev->block_num;
+      dcr->StartFile = dev->file;
    } else {
-      jcr->StartBlock = (uint32_t)dev->file_addr;
-      jcr->StartFile  = (uint32_t)(dev->file_addr >> 32);
+      dcr->StartBlock = (uint32_t)dev->file_addr;
+      dcr->StartFile  = (uint32_t)(dev->file_addr >> 32);
    }
    /* Reset indicies */
-   jcr->VolFirstIndex = 0;
-   jcr->VolLastIndex = 0;
-   jcr->NewFile = false;
-   jcr->WroteVol = false;
+   dcr->VolFirstIndex = 0;
+   dcr->VolLastIndex = 0;
+   dcr->NewFile = false;
+   dcr->WroteVol = false;
 }
 
 

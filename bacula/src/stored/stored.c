@@ -304,6 +304,7 @@ static void *device_allocation(void *arg)
          Emsg1(M_ERROR, 0, _("Could not initialize %s\n"), device->device_name);
 	 continue;
       }
+
       if (device->cap_bits & CAP_ALWAYSOPEN) {
          Dmsg1(20, "calling first_open_device %s\n", device->device_name);
 	 if (!first_open_device(device->dev)) {
@@ -312,11 +313,12 @@ static void *device_allocation(void *arg)
       }
       if (device->cap_bits & CAP_AUTOMOUNT && device->dev && 
 	  device->dev->state & ST_OPENED) {
-	 DEV_BLOCK *block;
 	 JCR *jcr;
-	 block = new_block(device->dev);
+	 DCR *dcr;
 	 jcr = new_jcr(sizeof(JCR), stored_free_jcr);
-	 switch (read_dev_volume_label(jcr, device->dev, block)) {
+	 jcr->device = device;
+	 dcr = new_dcr(jcr, device->dev);
+	 switch (read_dev_volume_label(jcr, device->dev, dcr->block)) {
 	    case VOL_OK:
 	       break;
 	    default:
@@ -324,7 +326,6 @@ static void *device_allocation(void *arg)
 	       break;
 	 }
 	 free_jcr(jcr);
-	 free_block(block);
       }
    } 
    UnlockRes();

@@ -153,20 +153,18 @@ int main (int argc, char *argv[])
       exit(1);	    
    }
    /* For we must now acquire the device for writing */
-   out_block = new_block(out_dev);
    lock_device(out_dev);
    if (open_dev(out_dev, out_jcr->VolumeName, READ_WRITE) < 0) {
       Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), out_dev->errmsg);
       unlock_device(out_dev);
-      free_block(out_block);
       exit(1);
    }
    unlock_device(out_dev);
-   if (!(out_dev=acquire_device_for_append(out_jcr, out_dev, out_block))) {
-      free_block(out_block);
+   if (!acquire_device_for_append(out_jcr)) {
       free_jcr(in_jcr);
       exit(1);
    }
+   out_block = out_jcr->dcr->block;
 
    read_records(in_jcr, in_dev, record_cb, mount_next_read_volume);
    if (!write_block_to_device(out_jcr, out_dev, out_block)) {
@@ -175,7 +173,6 @@ int main (int argc, char *argv[])
 
    Pmsg2(000, _("%u Jobs copied. %u records copied.\n"), jobs, records);
 
-   free_block(out_block);
    term_dev(in_dev);
    term_dev(out_dev);
    free_jcr(in_jcr);

@@ -443,6 +443,7 @@ int write_volume_label_to_dev(JCR *jcr, DEVRES *device, char *VolName, char *Poo
  */
 void create_session_label(JCR *jcr, DEV_RECORD *rec, int label)
 {
+   DCR *dcr = jcr->dcr;
    ser_declare;
 
    rec->VolSessionId   = jcr->VolSessionId;
@@ -476,10 +477,10 @@ void create_session_label(JCR *jcr, DEV_RECORD *rec, int label)
    if (label == EOS_LABEL) {
       ser_uint32(jcr->JobFiles);
       ser_uint64(jcr->JobBytes);
-      ser_uint32(jcr->StartBlock);
-      ser_uint32(jcr->EndBlock);
-      ser_uint32(jcr->StartFile);
-      ser_uint32(jcr->EndFile);
+      ser_uint32(dcr->StartBlock);
+      ser_uint32(dcr->EndBlock);
+      ser_uint32(dcr->StartFile);
+      ser_uint32(dcr->EndFile);
       ser_uint32(jcr->JobErrors);
 
       /* Added in VerNum 11 */
@@ -496,6 +497,7 @@ void create_session_label(JCR *jcr, DEV_RECORD *rec, int label)
 int write_session_label(JCR *jcr, DEV_BLOCK *block, int label)
 {
    DEVICE *dev = jcr->device->dev;
+   DCR *dcr = jcr->dcr;
    DEV_RECORD *rec;
 
    rec = new_record();
@@ -503,20 +505,20 @@ int write_session_label(JCR *jcr, DEV_BLOCK *block, int label)
    switch (label) {
    case SOS_LABEL:
       if (dev->state & ST_TAPE) {
-	 jcr->StartBlock = dev->block_num;
-	 jcr->StartFile  = dev->file;
+	 dcr->StartBlock = dev->block_num;
+	 dcr->StartFile  = dev->file;
       } else {
-	 jcr->StartBlock = (uint32_t)dev->file_addr;
-	 jcr->StartFile = (uint32_t)(dev->file_addr >> 32);
+	 dcr->StartBlock = (uint32_t)dev->file_addr;
+	 dcr->StartFile = (uint32_t)(dev->file_addr >> 32);
       }
       break;
    case EOS_LABEL:
       if (dev->state & ST_TAPE) {
-	 jcr->EndBlock = dev->EndBlock;
-	 jcr->EndFile  = dev->EndFile;
+	 dcr->EndBlock = dev->EndBlock;
+	 dcr->EndFile  = dev->EndFile;
       } else {
-	 jcr->EndBlock = (uint32_t)dev->file_addr;
-	 jcr->EndFile = (uint32_t)(dev->file_addr >> 32);
+	 dcr->EndBlock = (uint32_t)dev->file_addr;
+	 dcr->EndFile = (uint32_t)(dev->file_addr >> 32);
       }
       break;
    default:

@@ -76,10 +76,12 @@ int dir_send_job_status(JCR *jcr)
 static int do_get_volume_info(JCR *jcr)
 {
     BSOCK *dir = jcr->dir_bsock;
+    DCR *dcr = jcr->dcr;
     VOLUME_CAT_INFO vol;
     int n;
 
     jcr->VolumeName[0] = 0;	      /* No volume */
+    dcr->VolumeName[0] = 0;	      /* No volume */
     if (bnet_recv(dir) <= 0) {
        Dmsg0(200, "getvolname error bnet_recv\n");
        Mmsg(&jcr->errmsg, _("Network error on bnet_recv in req_vol_info.\n"));
@@ -102,7 +104,9 @@ static int do_get_volume_info(JCR *jcr)
     }
     unbash_spaces(vol.VolCatName);
     pm_strcpy(&jcr->VolumeName, vol.VolCatName); /* set desired VolumeName */
+    bstrncpy(dcr->VolumeName, vol.VolCatName, sizeof(dcr->VolumeName));
     memcpy(&jcr->VolCatInfo, &vol, sizeof(jcr->VolCatInfo));
+    memcpy(&dcr->VolCatInfo, &vol, sizeof(dcr->VolCatInfo));
     
     Dmsg2(200, "do_reqest_vol_info got slot=%d Volume=%s\n", 
 	  vol.Slot, vol.VolCatName);
@@ -212,16 +216,17 @@ int dir_update_volume_info(JCR *jcr, DEVICE *dev, int label)
 int dir_create_jobmedia_record(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
+   DCR *dcr = jcr->dcr;
 
-   if (!jcr->WroteVol) {
+   if (!dcr->WroteVol) {
       return 1; 		      /* nothing written to tape */
    }
 
-   jcr->WroteVol = false;
+   dcr->WroteVol = false;
    bnet_fsend(dir, Create_job_media, jcr->Job, 
-      jcr->VolFirstIndex, jcr->VolLastIndex,
-      jcr->StartFile, jcr->EndFile,
-      jcr->StartBlock, jcr->EndBlock);
+      dcr->VolFirstIndex, dcr->VolLastIndex,
+      dcr->StartFile, dcr->EndFile,
+      dcr->StartBlock, dcr->EndBlock);
    Dmsg1(100, "create_jobmedia(): %s", dir->msg);
    if (bnet_recv(dir) <= 0) {
       Dmsg0(190, "create_jobmedia error bnet_recv\n");
