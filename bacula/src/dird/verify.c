@@ -44,36 +44,27 @@ extern int debug_level;
 /* Commands sent to File daemon */
 static char verifycmd[]    = "verify level=%s\n";
 static char storaddr[]     = "storage address=%s port=%d ssl=0\n";
-static char sessioncmd[]   = "session %s %ld %ld %ld %ld %ld %ld\n";
 
 /* Responses received from File daemon */
 static char OKverify[]    = "2000 OK verify\n";
 static char OKstore[]     = "2000 OK storage\n";
-static char OKsession[]   = "2000 OK session\n";
 
 /* Forward referenced functions */
-static void verify_cleanup(JCR *jcr, int TermCode);
 static void prt_fname(JCR *jcr);
 static int missing_handler(void *ctx, int num_fields, char **row);
 
-/*
- * Do a verification of the specified files against the Catlaog
- *
- *  Returns:  false on failure
- *	      true  on success
- */
-bool do_verify(JCR *jcr)
-{
-   const char *level, *Name;
-   BSOCK   *fd;
-   JOB_DBR jr, verify_jr;
-   JobId_t verify_jobid = 0;
-   int stat;
 
-   memset(&verify_jr, 0, sizeof(verify_jr));
-   if (!jcr->verify_jr) {
-      jcr->verify_jr = &verify_jr;
-   }
+/* 
+ * Called here before the job is run to do the job
+ *   specific setup.
+ */
+bool do_verify_init(JCR *jcr) 
+{
+   JOB_DBR jr;
+   JobId_t verify_jobid = 0;
+   const char *Name;
+
+   memset(&jcr->target_jr, 0, sizeof(jcr->target_jr));
 
    Dmsg1(9, "bdird: created client %s record\n", jcr->client->hdr.name);
 
@@ -105,21 +96,11 @@ bool do_verify(JCR *jcr)
 	    Jmsg(jcr, M_FATAL, 0, _(
                  "Unable to find JobId of previous Job for this client.\n"));
 	 }
-	 goto bail_out;
+	 return false;
       }
       verify_jobid = jr.JobId;
       Dmsg1(100, "Last full jobid=%d\n", verify_jobid);
    }
-
-   if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
-      Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
-      goto bail_out;
-   }
-
-   /* Print Job Start message */
-   Jmsg(jcr, M_INFO, 0, _("Start Verify JobId=%d Level=%s Job=%s\n"),
-      jcr->JobId, level_to_str(jcr->JobLevel), jcr->Job);
-
    /*
     * Now get the job record for the previous backup that interests
     *	us. We use the verify_jobid that we found above.
@@ -127,19 +108,19 @@ bool do_verify(JCR *jcr)
    if (jcr->JobLevel == L_VERIFY_CATALOG ||
        jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG ||
        jcr->JobLevel == L_VERIFY_DISK_TO_CATALOG) {
-      verify_jr.JobId = verify_jobid;
-      if (!db_get_job_record(jcr, jcr->db, &verify_jr)) {
+      jcr->target_jr.JobId = verify_jobid;
+      if (!db_get_job_record(jcr, jcr->db, &jcr->target_jr)) {
          Jmsg(jcr, M_FATAL, 0, _("Could not get job record for previous Job. ERR=%s"),
 	      db_strerror(jcr->db));
-	 goto bail_out;
+	 return false;
       }
-      if (verify_jr.JobStatus != 'T') {
+      if (jcr->target_jr.JobStatus != 'T') {
          Jmsg(jcr, M_FATAL, 0, _("Last Job %d did not terminate normally. JobStatus=%c\n"),
-	    verify_jobid, verify_jr.JobStatus);
-	 goto bail_out;
+	    verify_jobid, jcr->target_jr.JobStatus);
+	 return false;
       }
       Jmsg(jcr, M_INFO, 0, _("Verifying against JobId=%d Job=%s\n"),
-	 verify_jr.JobId, verify_jr.Job);
+	 jcr->target_jr.JobId, jcr->target_jr.Job);
    }
 
    /*
@@ -151,17 +132,17 @@ bool do_verify(JCR *jcr)
    if (jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG) {
       RBSR *bsr = new_bsr();
       UAContext *ua;
-      bsr->JobId = verify_jr.JobId;
+      bsr->JobId = jcr->target_jr.JobId;
       ua = new_ua_context(jcr);
       complete_bsr(ua, bsr);
       bsr->fi = new_findex();
       bsr->fi->findex = 1;
-      bsr->fi->findex2 = verify_jr.JobFiles;
+      bsr->fi->findex2 = jcr->target_jr.JobFiles;
       jcr->ExpectedFiles = write_bsr_file(ua, bsr);
       if (jcr->ExpectedFiles == 0) {
 	 free_ua_context(ua);
 	 free_bsr(bsr);
-	 goto bail_out;
+	 return false;
       }
       free_ua_context(ua);
       free_bsr(bsr);
@@ -172,27 +153,8 @@ bool do_verify(JCR *jcr)
       Mmsg(fname, "%s/restore.bsr", working_directory);
       jcr->RestoreBootstrap = bstrdup(fname);
       free_pool_memory(fname);
+      jcr->needs_sd = true;
 
-      /*
-       * Start conversation with Storage daemon
-       */
-      set_jcr_job_status(jcr, JS_Blocked);
-      if (!connect_to_storage_daemon(jcr, 10, SDConnectTimeout, 1)) {
-	 goto bail_out;
-      }
-      /*
-       * Now start a job with the Storage daemon
-       */
-      if (!start_storage_daemon_job(jcr, jcr->storage, SD_READ)) {
-	 goto bail_out;
-      }
-      /*
-       * Now start a Storage daemon message thread
-       */
-      if (!start_storage_daemon_message_thread(jcr)) {
-	 goto bail_out;
-      }
-      Dmsg0(50, "Storage daemon connection OK\n");
    } else {
       jcr->sd_auth_key = bstrdup("dummy");    /* dummy Storage daemon key */
    }
@@ -200,15 +162,61 @@ bool do_verify(JCR *jcr)
    if (jcr->JobLevel == L_VERIFY_DISK_TO_CATALOG && jcr->verify_job) {
       jcr->fileset = jcr->verify_job->fileset;
    }
-   Dmsg2(100, "ClientId=%u JobLevel=%c\n", verify_jr.ClientId, jcr->JobLevel);
+   Dmsg2(100, "ClientId=%u JobLevel=%c\n", jcr->target_jr.ClientId, jcr->JobLevel);
+   return true;
+}
 
+
+/*
+ * Do a verification of the specified files against the Catlaog
+ *
+ *  Returns:  false on failure
+ *	      true  on success
+ */
+bool do_verify(JCR *jcr)
+{
+   const char *level;
+   BSOCK   *fd;
+   int stat;
+
+   if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
+      Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
+      return false;
+   }
+
+   /* Print Job Start message */
+   Jmsg(jcr, M_INFO, 0, _("Start Verify JobId=%d Level=%s Job=%s\n"),
+      jcr->JobId, level_to_str(jcr->JobLevel), jcr->Job);
+
+   if (jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG) {
+      /*
+       * Start conversation with Storage daemon
+       */
+      set_jcr_job_status(jcr, JS_Blocked);
+      if (!connect_to_storage_daemon(jcr, 10, SDConnectTimeout, 1)) {
+	 return false;
+      }
+      /*
+       * Now start a job with the Storage daemon
+       */
+      if (!start_storage_daemon_job(jcr, jcr->storage, SD_READ)) {
+	 return false;
+      }
+      /*
+       * Now start a Storage daemon message thread
+       */
+      if (!start_storage_daemon_message_thread(jcr)) {
+	 return false;
+      }
+      Dmsg0(50, "Storage daemon connection OK\n");
+   }
    /*
     * OK, now connect to the File daemon
     *  and ask him for the files.
     */
    set_jcr_job_status(jcr, JS_Blocked);
    if (!connect_to_file_daemon(jcr, 10, FDConnectTimeout, 1)) {
-      goto bail_out;
+      return false;
    }
 
    set_jcr_job_status(jcr, JS_Running);
@@ -217,12 +225,12 @@ bool do_verify(JCR *jcr)
 
    Dmsg0(30, ">filed: Send include list\n");
    if (!send_include_list(jcr)) {
-      goto bail_out;
+      return false;
    }
 
    Dmsg0(30, ">filed: Send exclude list\n");
    if (!send_exclude_list(jcr)) {
-      goto bail_out;
+      return false;
    }
 
    /*
@@ -245,33 +253,21 @@ bool do_verify(JCR *jcr)
       }
       bnet_fsend(fd, storaddr, jcr->store->address, jcr->store->SDDport);
       if (!response(jcr, fd, OKstore, "Storage", DISPLAY_ERROR)) {
-	 goto bail_out;
+	 return false;
       }
 
       /*
        * Send the bootstrap file -- what Volumes/files to restore
        */
       if (!send_bootstrap_file(jcr)) {
-	 goto bail_out;
+	 return false;
       }
 
-      /*
-       * The following code is deprecated
-       */
       if (!jcr->RestoreBootstrap) {
-	 /*
-	  * Pass the VolSessionId, VolSessionTime, Start and
-	  * end File and Blocks on the session command.
-	  */
-	 bnet_fsend(fd, sessioncmd,
-		   jcr->VolumeName,
-		   jr.VolSessionId, jr.VolSessionTime,
-		   jr.StartFile, jr.EndFile, jr.StartBlock,
-		   jr.EndBlock);
-         if (!response(jcr, fd, OKsession, "Session", DISPLAY_ERROR)) {
-	    goto bail_out;
-	 }
+         Jmsg0(jcr, M_FATAL, 0, _("Deprecated feature ... use bootstrap.\n"));
+	 return false;
       }
+
       level = "volume";
       break;
    case L_VERIFY_DATA:
@@ -283,11 +279,11 @@ bool do_verify(JCR *jcr)
    default:
       Jmsg2(jcr, M_FATAL, 0, _("Unimplemented Verify level %d(%c)\n"), jcr->JobLevel,
 	 jcr->JobLevel);
-      goto bail_out;
+      return false;
    }
 
    if (!send_run_before_and_after_commands(jcr)) {
-      goto bail_out;
+      return false;
    }
 
    /*
@@ -295,7 +291,7 @@ bool do_verify(JCR *jcr)
     */
    bnet_fsend(fd, verifycmd, level);
    if (!response(jcr, fd, OKverify, "Verify", DISPLAY_ERROR)) {
-      goto bail_out;
+      return false;
    }
 
    /*
@@ -309,19 +305,19 @@ bool do_verify(JCR *jcr)
       Dmsg0(10, "Verify level=catalog\n");
       jcr->sd_msg_thread_done = true;	/* no SD msg thread, so it is done */
       jcr->SDJobStatus = JS_Terminated;
-      get_attributes_and_compare_to_catalog(jcr, verify_jobid);
+      get_attributes_and_compare_to_catalog(jcr, jcr->target_jr.JobId);
       break;
 
    case L_VERIFY_VOLUME_TO_CATALOG:
       Dmsg0(10, "Verify level=volume\n");
-      get_attributes_and_compare_to_catalog(jcr, verify_jobid);
+      get_attributes_and_compare_to_catalog(jcr, jcr->target_jr.JobId);
       break;
 
    case L_VERIFY_DISK_TO_CATALOG:
       Dmsg0(10, "Verify level=disk_to_catalog\n");
       jcr->sd_msg_thread_done = true;	/* no SD msg thread, so it is done */
       jcr->SDJobStatus = JS_Terminated;
-      get_attributes_and_compare_to_catalog(jcr, verify_jobid);
+      get_attributes_and_compare_to_catalog(jcr, jcr->target_jr.JobId);
       break;
 
    case L_VERIFY_INIT:
@@ -334,23 +330,20 @@ bool do_verify(JCR *jcr)
 
    default:
       Jmsg1(jcr, M_FATAL, 0, _("Unimplemented verify level %d\n"), jcr->JobLevel);
-      goto bail_out;
+      return false;
    }
 
    stat = wait_for_job_termination(jcr);
    verify_cleanup(jcr, stat);
    return true;
-
-bail_out:
-   verify_cleanup(jcr, JS_ErrorTerminated);
-   return false;
 }
+
 
 /*
  * Release resources allocated during backup.
  *
  */
-static void verify_cleanup(JCR *jcr, int TermCode)
+void verify_cleanup(JCR *jcr, int TermCode)
 {
    char sdt[50], edt[50];
    char ec1[30], ec2[30];
@@ -433,7 +426,7 @@ static void verify_cleanup(JCR *jcr, int TermCode)
 	 jcr->fileset->hdr.name,
 	 level_to_str(jcr->JobLevel),
 	 jcr->client->hdr.name,
-	 jcr->verify_jr->JobId,
+	 jcr->target_jr.JobId,
 	 Name,
 	 sdt,
 	 edt,
@@ -464,7 +457,7 @@ static void verify_cleanup(JCR *jcr, int TermCode)
 	 jcr->fileset->hdr.name,
 	 level_to_str(jcr->JobLevel),
 	 jcr->client->hdr.name,
-	 jcr->verify_jr->JobId,
+	 jcr->target_jr.JobId,
 	 Name,
 	 sdt,
 	 edt,
@@ -474,10 +467,6 @@ static void verify_cleanup(JCR *jcr, int TermCode)
 	 term_msg);
    }
    Dmsg0(100, "Leave verify_cleanup()\n");
-   if (jcr->fname) {
-      free_memory(jcr->fname);
-      jcr->fname = NULL;
-   }
 }
 
 /*
@@ -524,7 +513,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
 	    fname)) != 3) {
          Jmsg3(jcr, M_FATAL, 0, _("bird<filed: bad attributes, expected 3 fields got %d\n"
 " mslen=%d msg=%s\n"), len, fd->msglen, fd->msg);
-	 goto bail_out;
+	 return false;
       }
       /*
        * We read the Options or Signature into fname
@@ -565,7 +554,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
 	  */
 	 fdbr.FileId = 0;
 	 if (!db_get_file_attributes_record(jcr, jcr->db, jcr->fname,
-	      jcr->verify_jr, &fdbr)) {
+	      &jcr->target_jr, &fdbr)) {
             Jmsg(jcr, M_INFO, 0, _("New file: %s\n"), jcr->fname);
             Dmsg1(020, _("File not in catalog: %s\n"), jcr->fname);
 	    stat = JS_Differences;
@@ -694,7 +683,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
 	 if (jcr->FileIndex != (uint32_t)file_index) {
             Jmsg2(jcr, M_FATAL, 0, _("MD5/SHA1 index %d not same as attributes %d\n"),
 	       file_index, jcr->FileIndex);
-	    goto bail_out;
+	    return false;
 	 }
 	 if (do_SIG) {
 	    db_escape_string(buf, Opts_SIG, strlen(Opts_SIG));
@@ -718,7 +707,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
       berrno be;
       Jmsg2(jcr, M_FATAL, 0, _("bdird<filed: bad attributes from filed n=%d : %s\n"),
 			n, be.strerror());
-      goto bail_out;
+      return false;
    }
 
    /* Now find all the files that are missing -- i.e. all files in
@@ -738,12 +727,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
    }
    free_pool_memory(fname);
    set_jcr_job_status(jcr, stat);
-   return 1;
-
-bail_out:
-   free_pool_memory(fname);
-   set_jcr_job_status(jcr, JS_ErrorTerminated);
-   return 0;
+   return stat == JS_Terminated;
 }
 
 /*

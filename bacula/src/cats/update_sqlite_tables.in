@@ -198,10 +198,17 @@ INSERT INTO Pool (
 DROP TABLE Pool_backup;
 
 CREATE TABLE MediaType (
-   MediaTypeId INTERGER,
+   MediaTypeId INTEGER,
    MediaType VARCHAR(128) NOT NULL,
    ReadOnly TINYINT DEFAULT 0,
    PRIMARY KEY(MediaTypeId)
+   );
+
+CREATE TABLE Storage (
+   StorageId INTEGER,
+   Name VARCHAR(128) NOT NULL,
+   AutoChanger TINYINT DEFAULT 0,
+   PRIMARY KEY(StorageId)
    );
 
 CREATE TABLE Device (
@@ -223,12 +230,6 @@ CREATE TABLE Device (
    PRIMARY KEY(DeviceId)
    );
 
-CREATE TABLE Storage (
-   StorageId INTEGER,
-   Name VARCHAR(128) NOT NULL,
-   AutoChanger TINYINT DEFAULT 0,
-   PRIMARY KEY(StorageId)
-   );
 
 COMMIT;
 

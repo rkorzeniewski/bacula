@@ -154,6 +154,13 @@ CREATE TABLE MediaType (
    PRIMARY KEY(MediaTypeId)
    );
 
+CREATE TABLE Storage (
+   StorageId SERIAL,
+   Name TEXT NOT NULL,
+   AutoChanger INTEGER DEFAULT 0,
+   PRIMARY KEY(StorageId)
+   );
+
 CREATE TABLE Device (
    DeviceId SERIAL,
    Name TEXT NOT NULL,
@@ -173,12 +180,6 @@ CREATE TABLE Device (
    PRIMARY KEY(DeviceId)
    );
 
-CREATE TABLE Storage (
-   StorageId SERIAL,
-   Name TEXT NOT NULL,
-   AutoChanger INTEGER DEFAULT 0,
-   PRIMARY KEY(StorageId)
-   );
 
 CREATE TABLE pool
 (

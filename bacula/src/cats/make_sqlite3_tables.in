@@ -137,10 +137,17 @@ CREATE TABLE Media (
 CREATE INDEX inx8 ON Media (PoolId);
 
 CREATE TABLE MediaType (
-   MediaTypeId INTERGER,
+   MediaTypeId INTEGER,
    MediaType VARCHAR(128) NOT NULL,
    ReadOnly TINYINT DEFAULT 0,
    PRIMARY KEY(MediaTypeId)
+   );
+
+CREATE TABLE Storage (
+   StorageId INTEGER,
+   Name VARCHAR(128) NOT NULL,
+   AutoChanger TINYINT DEFAULT 0,
+   PRIMARY KEY(StorageId)
    );
 
 CREATE TABLE Device (
@@ -160,13 +167,6 @@ CREATE TABLE Device (
    CleaningDate DATETIME DEFAULT 0,
    CleaningPeriod BIGINT UNSIGNED DEFAULT 0,
    PRIMARY KEY(DeviceId)
-   );
-
-CREATE TABLE Storage (
-   StorageId INTEGER,
-   Name VARCHAR(128) NOT NULL,
-   AutoChanger TINYINT DEFAULT 0,
-   PRIMARY KEY(StorageId)
    );
 
 

@@ -131,6 +131,8 @@ public:
    bool append;                       /* in append mode */
    bool read;
    bool labeled;
+   bool autochanger;
+   bool offline;
    char VolumeName[MAX_NAME_LENGTH];
    char MediaType[MAX_NAME_LENGTH];
 };

@@ -55,7 +55,7 @@ static char NOT_open[]  = "3925 Device \"%s\" could not be opened or does not ex
 static char BAD_use[]   = "3913 Bad use command: %s\n";
 static char BAD_job[]   = "3915 Bad Job command: %s\n";
 static char OK_query[]  = "3001 OK query append=%d read=%d num_writers=%d "
-   "num_waiting=%d open=%d use_count=%d labeled=%d "
+   "num_waiting=%d open=%d use_count=%d labeled=%d offline=%d autochanger=%d "
    "media_type=%s volume_name=%s";
 static char BAD_query[]   = "3917 Bad query command: %s\n";
 
@@ -385,6 +385,7 @@ bool query_cmd(JCR *jcr)
 	    return bnet_fsend(dir, OK_query, dev->can_append()!=0,
 	       dev->can_read()!=0, dev->num_writers, dev->num_waiting,
 	       dev->is_open()!=0, dev->use_count, dev->is_labeled()!=0,
+	       dev->is_offline()!=0, device->changer_res!=NULL, 
 	       MediaType.c_str(), VolumeName.c_str());
 	 }
       }
