@@ -83,6 +83,7 @@
 #define CAP_STREAM         (1<<14)    /* Stream device */
 #define CAP_BSFATEOM       (1<<15)    /* Backspace file at EOM */
 #define CAP_FASTFSF        (1<<16)    /* Fast forward space file */
+#define CAP_TWOEOF         (1<<17)    /* Write two eofs for EOM */
 
 /* Test state */
 #define dev_state(dev, st_state) ((dev)->state & (st_state))

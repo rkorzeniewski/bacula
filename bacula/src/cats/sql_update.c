@@ -304,7 +304,7 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 void
 db_make_inchanger_unique(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr) 
 {
-   if (mr->InChanger != 0) {
+   if (mr->InChanger != 0 && mr->Slot != 0) {
       Mmsg(&mdb->cmd, "UPDATE Media SET InChanger=0 WHERE PoolId=%u "
            "AND Slot=%d\n", mr->PoolId, mr->Slot);
       Dmsg1(400, "%s\n", mdb->cmd);
