@@ -1,7 +1,7 @@
 
           Release Notes for Bacula 1.33
 
-  Bacula code: Total files = 259 Total lines = 78,302 (*.h *.c *.in)
+  Bacula code: Total files = 259 Total lines = 78,303 (*.h *.c *.in)
 
 Most Significant Changes since 1.32d
 - Implement "update slots scan" that reads the volume label(s).
