@@ -197,59 +197,71 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
     * really fatal problems, or the number of errors is too
     * large.
     */
-       long file_index;
-       int stream, len;
-       char *attr, buf[MAXSTRING];
-       char Opts[MAXSTRING];	      /* either Verify opts or MD5 signature */
+      long file_index;
+      int stream, len;
+      char *attr, *p, *fn;
+      char Opts_MD5[MAXSTRING];      /* either Verify opts or MD5 signature */
+      char MD5[MAXSTRING];
 
-       /* ***FIXME*** check fname length */
-       if ((len = sscanf(fd->msg, "%ld %d %s %s", &file_index, &stream, 
-	     Opts, jcr->fname)) != 4) {
-          Jmsg(jcr, M_FATAL, 0, _("<filed: bad attributes, expected 4 fields got %d\n\
+      jcr->fname = check_pool_memory_size(jcr->fname, fd->msglen);
+      if ((len = sscanf(fd->msg, "%ld %d %s", &file_index, &stream, Opts_MD5)) != 3) {
+         Jmsg(jcr, M_FATAL, 0, _("<filed: bad attributes, expected 3 fields got %d\n\
 msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
-	  jcr->JobStatus = JS_ErrorTerminated;
-	  return 0;
-       }
+	 jcr->JobStatus = JS_ErrorTerminated;
+	 return 0;
+      }
+      p = fd->msg;
+      skip_nonspaces(&p);	      /* skip FileIndex */
+      skip_spaces(&p);
+      skip_nonspaces(&p);	      /* skip Stream */
+      skip_spaces(&p);
+      skip_nonspaces(&p);	      /* skip Opts_MD5 */   
+      p++;			      /* skip space */
+      fn = jcr->fname;
+      while (*p != 0) {
+	 *fn++ = *p++;		      /* copy filename */
+      }
+      *fn = *p++;		      /* term filename and point to attribs */
+      attr = p;
 
-       if (stream == STREAM_UNIX_ATTRIBUTES) {
-	  jcr->JobFiles++;
-	  len = strlen(fd->msg);      /* length before attributes */
-	  ar.attr = &fd->msg[len+1];
-	  ar.fname = jcr->fname;
-	  ar.FileIndex = 0;	      /* used as mark field during compare */
-	  ar.Stream = stream;
-	  ar.link = NULL;
-	  ar.JobId = jcr->JobId;
-	  ar.ClientId = jcr->ClientId;
-	  ar.PathId = 0;
-	  ar.FilenameId = 0;
+      if (stream == STREAM_UNIX_ATTRIBUTES) {
+	 jcr->JobFiles++;
+	 ar.attr = attr;
+	 ar.fname = jcr->fname;
+	 ar.FileIndex = 0;	     /* used as mark field during compare */
+	 ar.Stream = stream;
+	 ar.link = NULL;
+	 ar.JobId = jcr->JobId;
+	 ar.ClientId = jcr->ClientId;
+	 ar.PathId = 0;
+	 ar.FilenameId = 0;
 
-          Dmsg2(11, "dird<filed: stream=%d %s\n", stream, jcr->fname);
-          Dmsg1(20, "dird<filed: attr=%s\n", attr);
+         Dmsg2(11, "dird<filed: stream=%d %s\n", stream, jcr->fname);
+         Dmsg1(20, "dird<filed: attr=%s\n", attr);
 
-	  /* ***FIXME*** fix link field */
-	  if (!db_create_file_attributes_record(jcr->db, &ar)) {
-             Jmsg1(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
-	     jcr->JobStatus = JS_ErrorTerminated;
-	     /* This probably should not really be fatal *****FIXME****** */
-	     return 0;
-	  }
-	  jcr->FileIndex = file_index;
-	  jcr->FileId = ar.FileId;
-       } else if (stream == STREAM_MD5_SIGNATURE) {
-	  if (jcr->FileIndex != (uint32_t)file_index) {
-             Jmsg0(jcr, M_FATAL, 0, _("Got MD5 but not same block as attributes\n"));
-	     jcr->JobStatus = JS_ErrorTerminated;
-	     return 0;
-	  }
-	  db_escape_string(buf, Opts, strlen(Opts));
-          Dmsg2(20, "MD5len=%d MD5=%s\n", strlen(buf), buf);
-	  if (!db_add_MD5_to_file_record(jcr->db, jcr->FileId, buf)) {
-             Jmsg1(jcr, M_WARNING, 0, "%s", db_strerror(jcr->db));
-	  }
-       }
-       jcr->jr.JobFiles = jcr->JobFiles = file_index;
-       jcr->jr.LastIndex = file_index;
+	 /* ***FIXME*** fix link field */
+	 if (!db_create_file_attributes_record(jcr->db, &ar)) {
+            Jmsg1(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
+	    jcr->JobStatus = JS_Error;
+	    continue;
+	 }
+	 jcr->FileIndex = file_index;
+	 jcr->FileId = ar.FileId;
+      } else if (stream == STREAM_MD5_SIGNATURE) {
+	 if (jcr->FileIndex != (uint32_t)file_index) {
+            Jmsg0(jcr, M_ERROR, 0, _("Got MD5 but not same block as attributes\n"));
+	    jcr->JobStatus = JS_Error;
+	    continue;
+	 }
+	 db_escape_string(MD5, Opts_MD5, strlen(Opts_MD5));
+         Dmsg2(20, "MD5len=%d MD5=%s\n", strlen(MD5), MD5);
+	 if (!db_add_MD5_to_file_record(jcr->db, jcr->FileId, MD5)) {
+            Jmsg1(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
+	    jcr->JobStatus = JS_Error;
+	 }
+      }
+      jcr->jr.JobFiles = jcr->JobFiles = file_index;
+      jcr->jr.LastIndex = file_index;
    } 
    if (n < 0) {
       Jmsg1(jcr, M_FATAL, 0, _("<filed: Network error getting attributes. ERR=%s\n"),

@@ -63,6 +63,7 @@ int main (int argc, char *argv[])
    int ch;   
    FILE *fd;
    char line[1000];
+   int got_inc = FALSE;
 
    my_name_is(argc, argv, "bextract");
    init_msg(NULL, NULL);	      /* setup message handler */
@@ -104,6 +105,7 @@ int main (int argc, char *argv[])
 	       add_fname_to_include_list(ff, 0, line);
 	    }
 	    fclose(fd);
+	    got_inc = TRUE;
 	    break;
 
          case '?':
@@ -118,6 +120,9 @@ int main (int argc, char *argv[])
    if (argc != 2) {
       Dmsg0(0, "Wrong number of arguments: \n");
       usage();
+   }
+   if (!got_inc) {			      /* If no include file, */
+      add_fname_to_include_list(ff, 0, "/");  /*   include everything */
    }
 
    jcr = new_jcr(sizeof(JCR), my_free_jcr);
@@ -264,7 +269,7 @@ static void do_extract(char *devname, char *where)
 
       /* File Attributes stream */
       if (rec.Stream == STREAM_UNIX_ATTRIBUTES) {
-	 char *ap, *lp;
+	 char *ap, *lp, *fp;
 
 	 /* If extracting, it was from previous stream, so
 	  * close the output file.
@@ -300,14 +305,22 @@ static void do_extract(char *devname, char *where)
 	  *    Link name (if file linked i.e. FT_LNK)
 	  *
 	  */
-         sscanf(rec.data, "%ld %d %s", &record_file_index, &type, fname);
+         sscanf(rec.data, "%ld %d", &record_file_index, &type);
 	 if (record_file_index != rec.FileIndex)
             Emsg2(M_ABORT, 0, "Record header file index %ld not equal record index %ld\n",
 	       rec.FileIndex, record_file_index);
 	 ap = rec.data;
-	 /* Skip to attributes */
-	 while (*ap++ != 0)
+         while (*ap++ != ' ')         /* skip record file index */
 	    ;
+         while (*ap++ != ' ')         /* skip type */
+	    ;
+	 /* Save filename and position to attributes */
+	 fp = fname;
+	 while (*ap != 0) {
+	    *fp++  = *ap++;
+	 }
+	 *fp = *ap++;		      /* terminate filename & point to attribs */
+
 	 /* Skip to Link name */
 	 if (type == FT_LNK) {
 	    lp = ap;

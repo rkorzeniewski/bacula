@@ -57,7 +57,8 @@
 /* 
  * Submit general SQL query
  */
-int db_list_sql_query(B_DB *mdb, char *query, DB_LIST_HANDLER *sendit, void *ctx)
+int db_list_sql_query(B_DB *mdb, char *query, DB_LIST_HANDLER *sendit, void *ctx,
+		      int verbose)
 {
    sendit(ctx, "SQL Queries not implemented with internal database.\n");
    return 0;

@@ -299,26 +299,37 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, int last_full_id)
    while ((n=bget_msg(fd, 0)) > 0) {
       long file_index, attr_file_index;
       int stream;
-      char *attr, *p;
+      char *attr, *p, *fn;
       char Opts_MD5[MAXSTRING];        /* Verify Opts or MD5 signature */
 
       fname = check_pool_memory_size(fname, fd->msglen);
       jcr->fname = check_pool_memory_size(jcr->fname, fd->msglen);
       Dmsg1(50, "Atts+MD5=%s\n", fd->msg);
-      if ((len = sscanf(fd->msg, "%ld %d %100s %s", &file_index, &stream, 
-	    Opts_MD5, fname)) != 4) {
-         Jmsg3(jcr, M_FATAL, 0, _("bird<filed: bad attributes, expected 4 fields got %d\n\
+      if ((len = sscanf(fd->msg, "%ld %d %100s", &file_index, &stream, 
+	    Opts_MD5)) != 3) {
+         Jmsg3(jcr, M_FATAL, 0, _("bird<filed: bad attributes, expected 3 fields got %d\n\
  mslen=%d msg=%s\n"), len, fd->msglen, fd->msg);
 	 goto bail_out;
       }
+      p = fd->msg;
+      skip_nonspaces(&p);	      /* skip FileIndex */
+      skip_spaces(&p);
+      skip_nonspaces(&p);	      /* skip Stream */
+      skip_spaces(&p);
+      skip_nonspaces(&p);	      /* skip Opts_MD5 */   
+      p++;			      /* skip space */
+      fn = fname;
+      while (*p != 0) {
+	 *fn++ = *p++;		      /* copy filename */
+      }
+      *fn = *p++;		      /* term filename and point to attribs */
+      attr = p;
       /*
        * Got attributes stream, decode it
        */
       if (stream == STREAM_UNIX_ATTRIBUTES) {
 	 jcr->JobFiles++;
 	 attr_file_index = file_index;	  /* remember attribute file_index */
-	 len = strlen(fd->msg);
-	 attr = &fd->msg[len+1];
 	 decode_stat(attr, &statf);  /* decode file stat packet */
 	 do_MD5 = FALSE;
 	 jcr->fn_printed = FALSE;

@@ -51,12 +51,15 @@ extern int QueryDB(char *file, int line, B_DB *db, char *select_cmd);
 /* 
  * Submit general SQL query
  */
-int db_list_sql_query(B_DB *mdb, char *query, DB_LIST_HANDLER *sendit, void *ctx)
+int db_list_sql_query(B_DB *mdb, char *query, DB_LIST_HANDLER *sendit, void *ctx,
+		      int verbose)
 {
    db_lock(mdb);
    if (sql_query(mdb, query) != 0) {
       Mmsg(&mdb->errmsg, _("Query failed: %s\n"), sql_strerror(mdb));
-      sendit(ctx, mdb->errmsg);
+      if (verbose) {
+	 sendit(ctx, mdb->errmsg);
+      }
       db_unlock(mdb);
       return 0;
    }

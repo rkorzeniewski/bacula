@@ -81,14 +81,14 @@ void db_list_job_totals(B_DB *db, JOB_DBR *jr, DB_LIST_HANDLER sendit, void *ctx
 void db_list_files_for_job(B_DB *db, uint32_t jobid, DB_LIST_HANDLER sendit, void *ctx);
 void db_list_media_records(B_DB *mdb, MEDIA_DBR *mdbr, DB_LIST_HANDLER *sendit, void *ctx);
 void db_list_jobmedia_records(B_DB *mdb, uint32_t JobId, DB_LIST_HANDLER *sendit, void *ctx);
-int  db_list_sql_query(B_DB *mdb, char *query, DB_LIST_HANDLER *sendit, void *ctx);
+int  db_list_sql_query(B_DB *mdb, char *query, DB_LIST_HANDLER *sendit, void *ctx, int verbose);
 
 /* update.c */
 int  db_update_job_start_record(B_DB *db, JOB_DBR *jr);
 int  db_update_job_end_record(B_DB *db, JOB_DBR *jr);
 int  db_update_pool_record(B_DB *db, POOL_DBR *pr);
 int  db_update_media_record(B_DB *db, MEDIA_DBR *mr);
-int  db_add_MD5_to_file_record(B_DB *mdb, FileId_t FileId, char *MD5);	
+int  db_add_MD5_to_file_record(B_DB *mdb, FileId_t FileId, char *MD5);  
 int  db_mark_file_record(B_DB *mdb, FileId_t FileId, int JobId);
 
 #endif /* __SQL_PROTOS_H */

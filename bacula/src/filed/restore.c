@@ -105,7 +105,7 @@ void do_restore(JCR *jcr)
 
       /* File Attributes stream */
       if (stream == STREAM_UNIX_ATTRIBUTES) {
-	 char *ap, *lp;
+	 char *ap, *lp, *fp;
 
          Dmsg1(30, "Stream=Unix Attributes. extract=%d\n", extract);
 	 /* If extracting, it was from previous stream, so
@@ -143,13 +143,12 @@ void do_restore(JCR *jcr)
 	  *    Link name (if file linked i.e. FT_LNK)
 	  *
 	  */
-         if (sscanf(sd->msg, "%d %d %s", &record_file_index, &type, fname) != 3) {
+         if (sscanf(sd->msg, "%d %d", &record_file_index, &type) != 2) {
             Jmsg(jcr, M_FATAL, 0, _("Error scanning record header: %s\n"), sd->msg);
             Dmsg0(0, "\nError scanning header\n");
 	    goto bail_out;
 	 }
-         Dmsg3(30, "Got Attr: FilInx=%d type=%d fname=%s\n", record_file_index,
-	    type, fname);
+         Dmsg2(30, "Got Attr: FilInx=%d type=%d\n", record_file_index, type);
 	 if (record_file_index != file_index) {
             Jmsg(jcr, M_FATAL, 0, _("Record header file index %ld not equal record index %ld\n"),
 	       file_index, record_file_index);
@@ -157,10 +156,17 @@ void do_restore(JCR *jcr)
 	    goto bail_out;
 	 }
 	 ap = sd->msg;
-	 /* Skip to attributes */
-	 while (*ap++ != 0) {
+         while (*ap++ != ' ')         /* skip record file index */
 	    ;
+         while (*ap++ != ' ')         /* skip type */
+	    ;
+	 /* Save filename and position to attributes */
+	 fp = fname;
+	 while (*ap != 0) {
+	    *fp++  = *ap++;
 	 }
+	 *fp = *ap++;		      /* terminate filename & point to attribs */
+
 	 /* Skip to Link name */
 	 if (type == FT_LNK) {
 	    lp = ap;
