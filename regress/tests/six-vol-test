@@ -57,8 +57,8 @@ diff tmp/largefile  tmp/bacula-restores${cwd}/tmp/largefile
 if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
    echo " "
    echo " "
-   echo "  ===== six-vol-test Bacula source failed!!! ===== "
-   echo "  ===== six-vol-test failed!!! ===== " >>test.out
+   echo "  !!!!! six-vol-test Bacula source failed!!! !!!!! "
+   echo "  !!!!! six-vol-test failed!!! !!!!! " >>test.out
    echo " "
 else
    echo "  ===== six-vol-test Bacula source OK ===== "
