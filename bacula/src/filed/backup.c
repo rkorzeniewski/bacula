@@ -518,7 +518,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
       
       /* Send the buffer to the storage deamon */
       sd->msg = acl_text;
-      sd->msglen = strlen(acl_text);
+      sd->msglen = strlen(acl_text) + 1;
       if(!bnet_send(sd)) {
 	 sd->msg = msgsave;
 	 sd->msglen = 0;
