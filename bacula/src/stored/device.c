@@ -176,7 +176,10 @@ int release_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
    Dmsg1(90, "release_device device is %s\n", dev_is_tape(dev)?"tape":"disk");
    if (dev->state & ST_READ) {
       dev->state &= ~ST_READ;	      /* clear read bit */
-      if (!dev_is_tape(dev)) {
+      if (!dev_is_tape(dev) || !(dev->capabilities & CAP_ALWAYSOPEN)) {
+	 if (dev->capabilities & CAP_OFFLINEUNMOUNT) {
+	    offline_dev(dev);
+	 }
 	 close_dev(dev);
       }
       /******FIXME**** send read volume usage statistics to director */
@@ -190,10 +193,12 @@ int release_device(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 	 dev->VolCatInfo.VolCatFiles++; 	    /* increment number of files */
 	 /* Note! do volume update before close, which zaps VolCatInfo */
 	 dir_update_volume_info(jcr, &dev->VolCatInfo, 0); /* send Volume info to Director */
-	 if (!dev_is_tape(dev)) {
+
+	 if (!dev_is_tape(dev) || !(dev->capabilities & CAP_ALWAYSOPEN)) {
+	    if (dev->capabilities & CAP_OFFLINEUNMOUNT) {
+	       offline_dev(dev);
+	    }
 	    close_dev(dev);
-	 } else {
-            Dmsg0(90, "Device is tape leave open in release_device\n");
 	 }
       } else {
 	 dir_create_job_media_record(jcr);
@@ -247,8 +252,18 @@ mount_next_vol:
       memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
       dev->state &= ~ST_LABEL;	      /* label not yet read */
 
-      /* Rewind device */				     
+      if (!dev_is_tape(dev) || !(dev->capabilities & CAP_ALWAYSOPEN)) {
+	 if (dev->capabilities & CAP_OFFLINEUNMOUNT) {
+	    offline_dev(dev);
+	 }
+	 close_dev(dev);
+      }
+
+      /* If we have not closed the device, then at least rewind the tape */
       if (dev->state & ST_OPENED) {
+	 if (dev->capabilities & CAP_OFFLINEUNMOUNT) {
+	    offline_dev(dev);
+	 }
 	 if (!rewind_dev(dev)) {
             Jmsg2(jcr, M_WARNING, 0, _("Rewind error on device %s. ERR=%s\n"), 
 		  dev_name(dev), strerror_dev(dev));
@@ -634,10 +649,6 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       Jmsg(jcr, M_INFO, 0, _("End of media on Volume %s Bytes=%s Blocks=%s.\n"), 
 	   PrevVolName, edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, b1),
 	   edit_uint64_with_commas(dev->VolCatInfo.VolCatBlocks, b2));
-
-      if (!dev_is_tape(dev)) {		 /* If file, */
-	 close_dev(dev);		 /* yes, close it */
-      }
 
       /* Unlock, but leave BLOCKED */
       unlock_device(dev);
