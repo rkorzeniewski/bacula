@@ -222,7 +222,7 @@ static void  list_terminated_jobs(void sendit(const char *msg, int len, void *sa
 	 dt, JobName);
       sendit(buf, strlen(buf), arg);
    }
-   sendit("\n", 1, arg);
+   sendit("====\n", 1, arg);
    unlock_last_jobs_list();
 }
 
@@ -249,7 +249,6 @@ int status_cmd(JCR *jcr)
 
    bnet_fsend(user, "\n");
    do_status(bsock_sendit, (void *)user);
-   bnet_fsend(user, "====\n");
 
    bnet_sig(user, BNET_EOD);
    return 1;

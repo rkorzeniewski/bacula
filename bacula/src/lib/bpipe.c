@@ -191,7 +191,7 @@ int close_bpipe(BPIPE *bpipe)
 	 if (stat != 0) {
 	    stat = ECHILD;
 	 }
-         Dmsg1(200, "status =%d\n", stat);
+         Dmsg1(200, "child status=%d\n", stat);
       } else if (WIFSIGNALED(chldstatus)) {  /* process died */
 	 stat = ECHILD;
          Dmsg0(200, "Signaled\n");
@@ -229,12 +229,24 @@ int run_program(char *prog, int wait, POOLMEM *results)
    }
    if (results) {
       mp_chr(results)[0] = 0;
-      stat1 = fgets(mp_chr(results), sizeof_pool_memory(results), bpipe->rfd) == NULL;
+      fgets(mp_chr(results), sizeof_pool_memory(results), bpipe->rfd);	      
+      if (feof(bpipe->rfd)) {
+	 stat1 = 0;
+      } else {
+	 stat1 = ferror(bpipe->rfd);
+      }
+      if (stat1 < 0) {
+         Dmsg2(100, "Run program fgets stat=%d ERR=%s\n", stat1, strerror(errno));
+      } else if (stat1 != 0) {
+         Dmsg1(100, "Run program fgets stat=%d\n", stat1);
+      }
    } else {
       stat1 = 0;
    }
    stat2 = close_bpipe(bpipe);
-   return stat2 != 0 ? stat2 : stat1; 
+   stat1 = stat2 != 0 ? stat2 : stat1;
+   Dmsg1(100, "Run program returning %d\n", stat1);
+   return stat1;
 }
 
 

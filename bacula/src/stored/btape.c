@@ -39,6 +39,7 @@
 
 /* External subroutines */
 extern void free_config_resources();
+extern char *edit_device_codes(JCR *jcr, char *omsg, char *imsg, char *cmd);
 
 /* Exported variables */
 int quit = 0;
@@ -82,7 +83,6 @@ static void set_volume_name(char *VolName, int volnum);
 static void rawfill_cmd();
 static void bfill_cmd();
 static bool open_the_device();
-static char *edit_device_codes(JCR *jcr, char *omsg, char *imsg, char *cmd);
 static void autochangercmd();
 static void do_unfill();
 
@@ -1037,9 +1037,10 @@ static int autochanger_test()
 {
    POOLMEM *results, *changer;
    int slot, status, loaded;
-   int timeout = 120;
+   int timeout = jcr->device->max_changer_wait;
    int sleep_time = 0;
 
+   Dmsg1(100, "Max changer wait = %d sec\n", timeout);
    if (!dev_cap(dev, CAP_AUTOCHANGER)) {
       return 1;
    }
@@ -1075,38 +1076,51 @@ try_again:
    if (status == 0) {
       loaded = atoi(results);
    } else {
-      Pmsg1(-1, _("3991 Bad autochanger \"load slot\" status=%d.\n"), status);
-      loaded = -1;		/* force unload */
+      Pmsg1(-1, _("3991 Bad autochanger command: %s\n"), changer);
+      Pmsg2(-1, _("3991 status=%d result=%s\n"), status, results);
       goto bail_out;
    }
    if (loaded) {
       Pmsg1(-1, "Slot %d loaded. I am going to unload it.\n", loaded);
    } else {
-      Pmsg0(-1, "Nothing loaded into the drive. OK.\n");
+      Pmsg0(-1, "Nothing loaded in the drive. OK.\n");
    }
    Dmsg1(100, "Results from loaded query=%s\n", results);
    if (loaded) {
+      jcr->VolCatInfo.Slot = loaded;
       offline_or_rewind_dev(dev);
       /* We are going to load a new tape, so close the device */
       force_close_dev(dev);
-      Pmsg0(-1, _("3302 Issuing autochanger \"unload\" command.\n"));
+      Pmsg2(-1, _("3302 Issuing autochanger \"unload %d %d\" command.\n"),
+	 loaded, dev->drive_index);
       changer = edit_device_codes(jcr, changer, 
                      jcr->device->changer_command, "unload");
-      status = run_program(changer, timeout, NULL);
+      status = run_program(changer, timeout, results);
       Pmsg2(-1, "unload status=%s %d\n", status==0?"OK":"Bad", status);
+      if (status != 0) {
+         Pmsg1(-1, _("3992 Bad autochanger command: %s\n"), changer);
+         Pmsg2(-1, _("3992 status=%d result=%s\n"), status, results);
+      }
    }
 
    /*
     * Load the Slot 1
     */
-   Pmsg1(-1, _("3303 Issuing autochanger \"load slot %d\" command.\n"), slot);
+   
+   slot = 1;
+   jcr->VolCatInfo.Slot = slot;
+   Pmsg2(-1, _("3303 Issuing autochanger \"load slot %d %d\" command.\n"), 
+      slot, dev->drive_index);
    changer = edit_device_codes(jcr, changer, jcr->device->changer_command, "load");
-   Dmsg1(200, "Changer=%s\n", changer);
-   status = run_program(changer, timeout, NULL);
+   Dmsg1(100, "Changer=%s\n", changer);
+   force_close_dev(dev);
+   status = run_program(changer, timeout, results);
    if (status == 0) {
-      Pmsg1(-1,  _("3304 Autochanger \"load slot %d\" status is OK.\n"), slot);
+      Pmsg2(-1,  _("3303 Autochanger \"load slot %d %d\" status is OK.\n"),
+	 slot, dev->drive_index);
    } else {
-      Pmsg1(-1,  _("3992 Bad autochanger \"load slot\" status=%d.\n"), status);
+      Pmsg1(-1, _("3993 Bad autochanger command: %s\n"), changer);
+      Pmsg2(-1, _("3993 status=%d result=%s\n"), status, results);
       goto bail_out;
    }
 
@@ -2624,6 +2638,7 @@ static void set_volume_name(char *VolName, int volnum)
    dcr->VolCatInfo.Slot = volnum;
 }
 
+#ifdef xxx
 /*
  * Edit codes into ChangerCommand
  *  %% = %
@@ -2701,6 +2716,7 @@ static char *edit_device_codes(JCR *jcr, char *omsg, char *imsg, char *cmd)
    }
    return omsg;
 }
+#endif
 
 #ifdef xxxx_needed
 /* 
