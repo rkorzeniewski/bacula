@@ -921,12 +921,6 @@ void wxbRestorePanel::CmdStart() {
             break;
          }
          delete tableparser;
-
-         wxStopWatch sw2;
-         while (sw2.Time() < 1000) {  
-            wxTheApp->Yield(true);
-            ::wxUsleep(100);
-         }
          
          dt = wxbUtils::WaitForEnd(".messages\n", true);
                   
@@ -961,7 +955,7 @@ void wxbRestorePanel::CmdStart() {
          delete dt;
          
          wxStopWatch sw2;
-         while (sw2.Time() < 1000) {  
+         while (sw2.Time() < 10000) {  
             wxTheApp->Yield(true);
             ::wxUsleep(100);
          }
