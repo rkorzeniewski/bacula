@@ -48,7 +48,7 @@ static char OK_media[] = "1000 OK VolName=%127s VolJobs=%u VolFiles=%u"
    " VolBlocks=%u VolBytes=%" lld " VolMounts=%u VolErrors=%u VolWrites=%u"
    " MaxVolBytes=%" lld " VolCapacityBytes=%" lld " VolStatus=%20s"
    " Slot=%d MaxVolJobs=%u MaxVolFiles=%u InChanger=%d"
-   " VolReadTime=%" lld " VolWriteTime=%" lld;
+   " VolReadTime=%" lld " VolWriteTime=%" lld " EndFile=%u EndBlock=%u";
 
 
 static char OK_create[] = "1000 OK CreateJobMedia\n";
@@ -96,12 +96,14 @@ static bool do_get_volume_info(DCR *dcr)
 	       &vol.VolCatWrites, &vol.VolCatMaxBytes,
 	       &vol.VolCatCapacityBytes, vol.VolCatStatus,
 	       &vol.Slot, &vol.VolCatMaxJobs, &vol.VolCatMaxFiles,
-	       &InChanger, &vol.VolReadTime, &vol.VolWriteTime);
-    if (n != 17) {
+	       &InChanger, &vol.VolReadTime, &vol.VolWriteTime,
+	       &vol.EndFile, &vol.EndBlock);
+    if (n != 19) {
        Dmsg2(100, "Bad response from Dir fields=%d: %s\n", n, dir->msg);
        Mmsg(jcr->errmsg, _("Error getting Volume info: %s\n"), dir->msg);
        return false;
     }
+    Dmsg2(000, "EndFile=%u EndBlock=%u\n", vol.EndFile, vol.EndBlock);
     vol.InChanger = InChanger;	      /* bool in structure */
     unbash_spaces(vol.VolCatName);
     bstrncpy(dcr->VolumeName, vol.VolCatName, sizeof(dcr->VolumeName));
