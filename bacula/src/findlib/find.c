@@ -29,8 +29,8 @@
 #include "find.h"
 
 
-size_t name_max;	       /* filename max length */
-size_t path_max;	       /* path name max length */
+int32_t name_max;	       /* filename max length */
+int32_t path_max;	       /* path name max length */
 
 
 /* ****FIXME**** debug until stable */

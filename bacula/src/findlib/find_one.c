@@ -28,8 +28,8 @@
 #include "bacula.h"
 #include "find.h"
 
-extern size_t name_max; 	      /* filename max length */
-extern size_t path_max; 	      /* path name max length */
+extern int32_t name_max;	      /* filename max length */
+extern int32_t path_max;	      /* path name max length */
 
 /*
  * Structure for keeping track of hard linked files, we   
@@ -329,7 +329,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt),
 	 if (status != 0 || result == NULL) {
 	    break;
 	 }
-	 ASSERT(name_max+1 > sizeof(struct dirent) + (int)NAMELEN(entry));
+	 ASSERT(name_max+1 > (int)sizeof(struct dirent) + (int)NAMELEN(entry));
 	 p = entry->d_name;
          /* Skip `.', `..', and excluded file names.  */
          if (p[0] == '\0' || (p[0] == '.' && (p[1] == '\0' ||

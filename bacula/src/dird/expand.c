@@ -195,11 +195,12 @@ static var_rc_t lookup_counter_var(var_t *ctx, void *my_ctx,
    LockRes();
    for (COUNTER *counter=NULL; (counter = (COUNTER *)GetNextRes(R_COUNTER, (RES *)counter)); ) {
       if (strcmp(counter->hdr.name, buf) == 0) {
+         Dmsg2(100, "Counter=%s val=%d\n", buf, counter->CurrentValue);
          bsnprintf(buf, sizeof(buf), "%d", counter->CurrentValue);
 	 *val_ptr = bstrdup(buf);
 	 *val_len = strlen(buf);
 	 *val_size = *val_len;
-	 if (var_inc) {
+	 if (var_inc && counter->Catalog) {
 	    COUNTER_DBR cr;
 	    JCR *jcr = (JCR *)my_ctx;
 	    memset(&cr, 0, sizeof(cr));
@@ -212,6 +213,7 @@ static var_rc_t lookup_counter_var(var_t *ctx, void *my_ctx,
 	       counter->CurrentValue++;
 	    }
 	    cr.CurrentValue = counter->CurrentValue;
+            Dmsg1(100, "New value=%d\n", cr.CurrentValue);
 	    if (counter->WrapCounter) {
 	       bstrncpy(cr.WrapCounter, counter->WrapCounter->hdr.name, sizeof(cr.WrapCounter));
 	    } else {
@@ -258,7 +260,7 @@ static var_rc_t lookup_var(var_t *ctx, void *my_ctx,
    }
    memcpy(buf, var_ptr, var_len + 1);
    buf[var_len] = 0;
-// Dmsg1(000, "Var=%s\n", buf);
+   Dmsg1(100, "Var=%s\n", buf);
 
    if ((val = getenv(buf)) == NULL) {
        return VAR_ERR_UNDEFINED_VARIABLE;
@@ -280,8 +282,8 @@ static var_rc_t lookup_var(var_t *ctx, void *my_ctx,
       }
    }
    count++;
-// Dmsg3(000, "For %s, reqest index=%d have=%d\n",
-//    buf, var_index, count);
+   Dmsg3(100, "For %s, reqest index=%d have=%d\n",
+      buf, var_index, count);
    if (var_index < 0 || var_index > count) {
       return VAR_ERR_SUBMATCH_OUT_OF_RANGE;
    }
@@ -301,7 +303,7 @@ static var_rc_t lookup_var(var_t *ctx, void *my_ctx,
    if (p-val > (int)sizeof(buf) - 1) {
        return VAR_ERR_OUT_OF_MEMORY;
    }
-// Dmsg2(000, "val=%s len=%d\n", val, p-val);
+   Dmsg2(100, "val=%s len=%d\n", val, p-val);
    /* Make a copy of item, and pass it back */
    v = (char *)malloc(p-val+1);
    memcpy(v, val, p-val);
@@ -309,7 +311,7 @@ static var_rc_t lookup_var(var_t *ctx, void *my_ctx,
    *val_ptr = v;
    *val_len = p-val;
    *val_size = p-val;
-// Dmsg1(000, "v=%s\n", v);
+   Dmsg1(100, "v=%s\n", v);
    return VAR_OK;
 }
 
@@ -327,7 +329,7 @@ static var_rc_t operate_var(var_t *var, void *my_ctx,
 	  char **out_ptr, int *out_len, int *out_size)
 {
    var_rc_t stat = VAR_ERR_UNDEFINED_OPERATION;
-// Dmsg0(000, "Enter operate_var\n");
+   Dmsg0(100, "Enter operate_var\n");
    if (!val_ptr) {
       *out_size = 0;
       return stat;
@@ -339,14 +341,14 @@ static var_rc_t operate_var(var_t *var, void *my_ctx,
       }
       memcpy(buf, arg_ptr, arg_len);
       buf[arg_len] = 0;
-//    Dmsg1(000, "Arg=%s\n", buf);
+      Dmsg1(100, "Arg=%s\n", buf);
       memcpy(buf, val_ptr, val_len);
       buf[val_len] = 0;   
-//    Dmsg1(000, "Val=%s\n", buf);
+      Dmsg1(100, "Val=%s\n", buf);
       LockRes();
       for (COUNTER *counter=NULL; (counter = (COUNTER *)GetNextRes(R_COUNTER, (RES *)counter)); ) {
 	 if (strcmp(counter->hdr.name, buf) == 0) {
-//          Dmsg2(000, "counter=%s val=%s\n", counter->hdr.name, buf);
+            Dmsg2(100, "counter=%s val=%s\n", counter->hdr.name, buf);
 	    break;
 	 }
       }
