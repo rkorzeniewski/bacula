@@ -14,6 +14,7 @@ Major Changes this Release:
 - Added ClientRunBeforeJob and ClientRunAfterJob.
 - Implemented Include | and < in File daemon.
 - Implemented a new Include/Exclude syntax.
+- Lots of fixes with variable expansion and counter variables
 
 
 Other Changes this Release:
@@ -26,7 +27,7 @@ Other Changes this Release:
 - Delete old semaphore job and workq job scheduling code.
 - edit_run_codes in one place (/lib)  Add Job name
 - Update query.sql to find current backups correctly.
-- Correct ambiguous SQL statement for prunning.
+- Correct ambiguous SQL statement for pruning.
 - Set heartbeat interval to zero by default.
 - Fix a possible race condition in stopping the 
   heartbeat thread.
@@ -35,6 +36,11 @@ Other Changes this Release:
 - Corrected console prompt problem in non-readline versions.
 - Correct a number of variable expansion problems.
 - Added a number of new regression tests.
+- In an attempt to make configuration a bit less confusing, I've changed
+  the name of a number of variables. The old ones still work, but will
+  be phased out over time. FDAddress, FDPassword, SDAddress SDPassword,
+  SDDeviceName, and DBPassword.
+- A possible fix to the very intermittent SD crashes that Alex gets.
 
 
 Items to note:  !!!!!

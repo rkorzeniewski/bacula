@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                10 September 2003 
+                12 September 2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -23,6 +23,9 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.32:
+- Document new records in Director. SDAddress SDDeviceName, SDPassword.
+  FDPassword, FDAddress, DBAddress, DBPort, DBPassword.
+- It is generally safe to use the drive when the lights stop flashing.
 - Document new Include/Exclude ...
 - Document all the status codes JobLevel, JobType, JobStatus.
 - Add test of exclusion, test multiple Include {} statements.
@@ -32,8 +35,18 @@ For 1.32:
   when the magazine is changed.
 - Don't print "Warning: Wrong Volume mounted ..." if mounting second volume.
 - Implement List Volume Job=xxx  or List scheduled volumes or Status Director 
+- May variable expansion work correctly.
+- LabelFormat on tape volume apparently creates the db record but 
+  never actually labels the volume.
 
 For 1.33
+- Think about changing Storage resource Device record to be
+  SDDeviceName.
+- Look at how fuser works and /proc/PID/fd that is how Nic found the
+  file descriptor leak in Bacula.
+- Implement WrapCounters in Counters.
+- Turn on SIGHUP in dird.c and test.
+- Use system dependent calls to get more precise info on tape errors.
 - Add heartbeat from FD to SD if hb interval expires.
 - Suppress read error on blank tape when doing a label.
 - Can we dynamically change FileSets.

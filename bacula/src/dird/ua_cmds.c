@@ -1276,17 +1276,22 @@ static int setdebug_cmd(UAContext *ua, char *cmd)
 
 static int var_cmd(UAContext *ua, char *cmd)
 {
-   POOLMEM *var = get_pool_memory(PM_FNAME);
+   POOLMEM *val = get_pool_memory(PM_FNAME);
+   char *var;
 
    if (!open_db(ua)) {
       return 1;
    }
-   for (int i=1; i<ua->argc; i++) {
-      if (ua->argk[i] && variable_expansion(ua->jcr, ua->argk[i], &var)) {
-         bsendmsg(ua, "%s\n", var);
-      }
+   for (var=ua->cmd; *var != ' '; ) {    /* skip command */
+      var++;
    }
-   free_pool_memory(var);
+   while (*var == ' ') {                 /* skip spaces */
+      var++;
+   }
+   Dmsg1(100, "Var=%s:\n", var);
+   variable_expansion(ua->jcr, var, &val);  
+   bsendmsg(ua, "%s\n", val);
+   free_pool_memory(val);
    return 1;
 }
 

@@ -67,7 +67,7 @@ static int date_item(JCR *jcr, int code,
    bsnprintf(buf, sizeof(buf), "%d", val);
    *val_ptr = bstrdup(buf);
    *val_len = strlen(buf);
-   *val_size = *val_len;
+   *val_size = *val_len + 1;
    return 1;
 }
 
@@ -122,7 +122,7 @@ static int job_item(JCR *jcr, int code,
    }
    *val_ptr = bstrdup(str);
    *val_len = strlen(str);
-   *val_size = *val_len;
+   *val_size = *val_len + 1;
    return 1;
 }
 
@@ -203,10 +203,19 @@ static var_rc_t lookup_counter_var(var_t *ctx, void *my_ctx,
    for (COUNTER *counter=NULL; (counter = (COUNTER *)GetNextRes(R_COUNTER, (RES *)counter)); ) {
       if (strcmp(counter->hdr.name, buf) == 0) {
          Dmsg2(100, "Counter=%s val=%d\n", buf, counter->CurrentValue);
-         bsnprintf(buf, sizeof(buf), "%d", counter->CurrentValue);
-	 *val_ptr = bstrdup(buf);
-	 *val_len = strlen(buf);
-	 *val_size = *val_len;
+	 /* -1 => return size of array */
+	if (var_index == -1) {
+            bsnprintf(buf, sizeof(buf), "%d", counter->CurrentValue);
+            *val_len = bsnprintf(buf, sizeof(buf), "%d", strlen(buf));
+	    *val_ptr = buf;
+            *val_size = 0;                  /* don't try to free val_ptr */
+	    return VAR_OK;
+	 } else {
+            bsnprintf(buf, sizeof(buf), "%d", counter->CurrentValue);
+	    *val_ptr = bstrdup(buf);
+	    *val_len = strlen(buf);
+	    *val_size = *val_len + 1;
+	 }
 	 if (var_inc) { 	      /* increment the variable? */
 	    if (counter->CurrentValue == counter->MaxValue) {
 	       counter->CurrentValue = counter->MinValue;
@@ -275,14 +284,8 @@ static var_rc_t lookup_var(var_t *ctx, void *my_ctx,
    if ((val = getenv(buf)) == NULL) {
        return VAR_ERR_UNDEFINED_VARIABLE;
    }
-   if (var_index == 0) {
-      *val_ptr = val;
-      *val_len = strlen(val);
-      *val_size = 0;                  /* don't try to free val_ptr */
-      return VAR_OK;
-   }
    /* He wants to index the "array" */
-   count = 0;
+   count = 1;
    /* Find the size of the "array"                           
     *	each element is separated by a |  
     */
@@ -291,14 +294,30 @@ static var_rc_t lookup_var(var_t *ctx, void *my_ctx,
 	 count++;
       }
    }
-   count++;
    Dmsg3(100, "For %s, reqest index=%d have=%d\n",
       buf, var_index, count);
-   if (var_index < 0 || var_index > count) {
-      return VAR_ERR_SUBMATCH_OUT_OF_RANGE;
+
+   /* -1 => return size of array */
+   if (var_index == -1) {
+      int len;
+      if (count == 1) { 	      /* if not array */
+	 len = strlen(val);	      /* return length of string */
+      } else {
+	 len = count;		      /* else return # array items */
+      }
+      *val_len = bsnprintf(buf, sizeof(buf), "%d", len);
+      *val_ptr = buf;
+      *val_size = 0;                  /* don't try to free val_ptr */
+      return VAR_OK;
+   }
+
+
+   if (var_index < -1 || var_index > --count) {
+//    return VAR_ERR_SUBMATCH_OUT_OF_RANGE;
+      return VAR_ERR_UNDEFINED_VARIABLE;
    }
    /* Now find the particular item (var_index) he wants */
-   count = 1;
+   count = 0;
    for (p=val; *p; ) {
       if (*p == '|') {
 	 if (count < var_index) {
@@ -320,7 +339,7 @@ static var_rc_t lookup_var(var_t *ctx, void *my_ctx,
    v[p-val] = 0;
    *val_ptr = v;
    *val_len = p-val;
-   *val_size = p-val;
+   *val_size = p-val+1; 	      
    Dmsg1(100, "v=%s\n", v);
    return VAR_OK;
 }
@@ -414,8 +433,8 @@ int variable_expansion(JCR *jcr, char *inp, POOLMEM **exp)
    in_len = strlen(inp);
 
    /* expand variables */
-   if ((stat = var_expand(var_ctx, inp, in_len, &outp, &out_len, 1)) != VAR_OK) {
-       Jmsg(jcr, M_ERROR, 0, _("Cannot expand LabelFormat \"%s\": ERR=%s\n"), 
+   if ((stat = var_expand(var_ctx, inp, in_len, &outp, &out_len, 0)) != VAR_OK) {
+       Jmsg(jcr, M_ERROR, 0, _("Cannot expand expression \"%s\": ERR=%s\n"), 
 	  inp, var_strerror(var_ctx, stat));
        goto bail_out;
    }

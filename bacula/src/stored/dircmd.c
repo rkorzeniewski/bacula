@@ -139,6 +139,7 @@ void *connection_request(void *arg)
    
    jcr = new_jcr(sizeof(JCR), stored_free_jcr);     /* create Job Control Record */
    jcr->dir_bsock = bs; 	      /* save Director bsock */
+   jcr->dir_bsock->jcr = jcr;
 
    Dmsg0(1000, "stored in start_job\n");
 
