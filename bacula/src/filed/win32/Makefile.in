@@ -63,7 +63,7 @@ Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 
 clean:
 	rm -f *.exe *.o *.res *.a 1 2 3
-	rm -f bin/bacula-fd.exe bin/smtp.exe
+	rm -f bin/bacula-fd.exe bin/smtp.exe bin/testfind.exe
 
 distclean: clean
 	rm -f Makefile
@@ -73,9 +73,11 @@ install:
 	@echo "Installing system binary files ..."
 	@strip ../bacula-fd.exe
 	@strip ../../tools/smtp.exe
+	@strip ../../tools/testfind.exe
 	@strip ../../console/console.exe
 	@cp -f ../bacula-fd.exe bin/
 	@cp -f ../../tools/smtp.exe bin/
+	@cp -f ../../tools/testfind.exe bin/
 	@cp -f ../../console/console.exe bin/
 	@cp -f bin/* $(sbindir)
 	@cp -f ../bacula-fd.conf $(sysconfdir)/bacula-fd.conf.new
@@ -90,10 +92,12 @@ binary-release:
 	@cp bin/* wr/$(sbindir)
 	@strip ../bacula-fd.exe
 	@strip ../../tools/smtp.exe
+	@strip ../../tools/testfind.exe
 	@strip ../../console/console.exe
 	@echo "Copying executables ..."
 	@cp -f ../bacula-fd.exe wr/$(sbindir)/bacula-fd.exe 
 	@cp -f ../../tools/smtp.exe wr/$(sbindir)/smtp.exe 
+	@cp -f ../../tools/testfind.exe wr/$(sbindir)/testfind.exe 
 	@cp -f ../../console/console.exe wr/$(sbindir)/console.exe 
 	@echo "Copying bacula-fd.conf..."
 	@cp -f ../bacula-fd.conf wr/$(sysconfdir)/bacula-fd.conf.new
