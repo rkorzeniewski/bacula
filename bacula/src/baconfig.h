@@ -459,6 +459,12 @@ extern "C" int getdomainname(char *name, int len);
 #undef HAVE_GETDOMAINNAME
 #endif
 
+/* Define Winsock functions if we aren't on Windows */
+#if (!defined HAVE_WIN32) || (defined HAVE_CYGWIN)
+#define WSA_Init() 0 /* 0 = success */
+#define WSACleanup() 0 /* 0 = success */
+#endif
+
 #ifdef HAVE_AIX_OS
 #endif
  
