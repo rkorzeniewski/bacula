@@ -44,7 +44,7 @@
  */
 
 /* Imported subroutines */
-extern void list_result(B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx);
+extern void list_result(B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, int full_list);
 extern int QueryDB(char *file, int line, void *jcr, B_DB *db, char *select_cmd);
 
 
@@ -52,7 +52,7 @@ extern int QueryDB(char *file, int line, void *jcr, B_DB *db, char *select_cmd);
  * Submit general SQL query
  */
 int db_list_sql_query(void *jcr, B_DB *mdb, char *query, DB_LIST_HANDLER *sendit, 
-		      void *ctx, int verbose)
+		      void *ctx, int verbose, int full)
 {
    db_lock(mdb);
    if (sql_query(mdb, query) != 0) {
@@ -67,7 +67,7 @@ int db_list_sql_query(void *jcr, B_DB *mdb, char *query, DB_LIST_HANDLER *sendit
    mdb->result = sql_store_result(mdb);
 
    if (mdb->result) {
-      list_result(mdb, sendit, ctx);
+      list_result(mdb, sendit, ctx, full);
       sql_free_result(mdb);
    }
    db_unlock(mdb);
@@ -75,70 +75,16 @@ int db_list_sql_query(void *jcr, B_DB *mdb, char *query, DB_LIST_HANDLER *sendit
 }
 
 void
-db_list_pool_records(void *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx) 
+db_list_pool_records(void *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, int full) 
 {
-   Mmsg(&mdb->cmd, "SELECT PoolId,Name,NumVols,MaxVols,PoolType,LabelFormat "
-"FROM Pool ORDER BY PoolId");
-
-   db_lock(mdb);
-   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
-      db_unlock(mdb);
-      return;
-   }
-
-   list_result(mdb, sendit, ctx);
-   
-   sql_free_result(mdb);
-   db_unlock(mdb);
-}
-
-void
-db_list_client_records(void *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx) 
-{
-   Mmsg(&mdb->cmd, "SELECT ClientId,Name,FileRetention,JobRetention "
-"FROM Client ORDER BY ClientId");
-
-   db_lock(mdb);
-   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
-      db_unlock(mdb);
-      return;
-   }
-
-   list_result(mdb, sendit, ctx);
-   
-   sql_free_result(mdb);
-   db_unlock(mdb);
-}
-
-
-void
-db_list_media_records(void *jcr, B_DB *mdb, MEDIA_DBR *mdbr, DB_LIST_HANDLER *sendit, void *ctx)
-{
-   Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,MediaType,VolStatus,\
-VolBytes,LastWritten,VolRetention,Recycle,Slot \
-FROM Media WHERE Media.PoolId=%u ORDER BY MediaId", mdbr->PoolId);
-
-   db_lock(mdb);
-   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
-      db_unlock(mdb);
-      return;
-   }
-
-   list_result(mdb, sendit, ctx);
-   
-   sql_free_result(mdb);
-   db_unlock(mdb);
-}
-
-void db_list_jobmedia_records(void *jcr, B_DB *mdb, uint32_t JobId, DB_LIST_HANDLER *sendit, void *ctx)
-{
-   if (JobId > 0) {		      /* do by JobId */
-      Mmsg(&mdb->cmd, "SELECT JobId, Media.VolumeName, FirstIndex, LastIndex \
-FROM JobMedia, Media WHERE Media.MediaId=JobMedia.MediaId and JobMedia.JobId=%u", 
-	   JobId);
+   if (full) {
+      Mmsg(&mdb->cmd, "SELECT PoolId,Name,NumVols,MaxVols,UseOnce,UseCatalog,"
+         "AcceptAnyVolume,VolRetention,VolUseDuration,MaxVolJobs,MaxVolBytes,"
+         "AutoPrune,Recycle,PoolType,LabelFormat "
+          "FROM Pool ORDER BY PoolId");
    } else {
-      Mmsg(&mdb->cmd, "SELECT JobId, Media.VolumeName, FirstIndex, LastIndex \
-FROM JobMedia, Media WHERE Media.MediaId=JobMedia.MediaId");
+      Mmsg(&mdb->cmd, "SELECT PoolId,Name,NumVols,MaxVols,PoolType,LabelFormat "
+        "FROM Pool ORDER BY PoolId");
    }
 
    db_lock(mdb);
@@ -147,7 +93,98 @@ FROM JobMedia, Media WHERE Media.MediaId=JobMedia.MediaId");
       return;
    }
 
-   list_result(mdb, sendit, ctx);
+   list_result(mdb, sendit, ctx, full);
+   
+   sql_free_result(mdb);
+   db_unlock(mdb);
+}
+
+void
+db_list_client_records(void *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, int full)
+{
+   if (full) {
+      Mmsg(&mdb->cmd, "SELECT ClientId,Name,Uname,AutoPrune,FileRetention,"
+         "FileRetention,JobRetention "
+         "FROM Client ORDER BY ClientId");
+   } else {
+      Mmsg(&mdb->cmd, "SELECT ClientId,Name,FileRetention,JobRetention "
+         "FROM Client ORDER BY ClientId");
+   }
+
+   db_lock(mdb);
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
+      db_unlock(mdb);
+      return;
+   }
+
+   list_result(mdb, sendit, ctx, full);
+   
+   sql_free_result(mdb);
+   db_unlock(mdb);
+}
+
+
+void
+db_list_media_records(void *jcr, B_DB *mdb, MEDIA_DBR *mdbr, 
+		      DB_LIST_HANDLER *sendit, void *ctx, int full)
+{
+   if (full) {
+      Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,Slot,PoolId,"
+         "MediaType,FirstWritten,LastWritten,LabelDate,VolJobs,"
+         "VolFiles,VolBlocks,VolMounts,VolBytes,VolErrors,VolWrites,"
+         "VolCapacityBytes,VolStatus,Recycle,VolRetention,"
+         "VolUseDuration,MaxVolJobs,MaxVolFiles,MaxVolBytes "
+         "FROM Media WHERE Media.PoolId=%u ORDER BY MediaId", mdbr->PoolId);
+   } else {
+      Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,MediaType,VolStatus,"
+         "VolBytes,LastWritten,VolRetention,Recycle,Slot "
+         "FROM Media WHERE Media.PoolId=%u ORDER BY MediaId", mdbr->PoolId);
+   }
+
+   db_lock(mdb);
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
+      db_unlock(mdb);
+      return;
+   }
+
+   list_result(mdb, sendit, ctx, full);
+   
+   sql_free_result(mdb);
+   db_unlock(mdb);
+}
+
+void db_list_jobmedia_records(void *jcr, B_DB *mdb, uint32_t JobId, 
+			      DB_LIST_HANDLER *sendit, void *ctx, int full)
+{
+   if (full) {
+      if (JobId > 0) {			 /* do by JobId */
+         Mmsg(&mdb->cmd, "SELECT JobMediaId,JobId,MediaId,Media.VolumeName,"
+            "FirstIndex,LastIndex,StartFile,EndFile,StartBlock,EndBlock "
+            "FROM JobMedia,Media WHERE Media.MediaId=JobMedia.MediaId "
+            "AND JobMedia.JobId=%u", JobId);
+      } else {
+         Mmsg(&mdb->cmd, "SELECT JobMediaId,JobId,MediaId,Media.VolumeName,"
+            "FirstIndex,LastIndex,StartFile,EndFile,StartBlock,EndBlock "
+            "FROM JobMedia,Media WHERE Media.MediaId=JobMedia.MediaId");
+      }
+
+   } else {
+      if (JobId > 0) {			 /* do by JobId */
+         Mmsg(&mdb->cmd, "SELECT JobId,Media.VolumeName,FirstIndex,LastIndex"
+            "FROM JobMedia,Media WHERE Media.MediaId=JobMedia.MediaId "
+            "AND JobMedia.JobId=%u", JobId);
+      } else {
+         Mmsg(&mdb->cmd, "SELECT JobId,Media.VolumeName,FirstIndex,LastIndex "
+            "FROM JobMedia,Media WHERE Media.MediaId=JobMedia.MediaId");
+      }
+   }
+   db_lock(mdb);
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
+      db_unlock(mdb);
+      return;
+   }
+
+   list_result(mdb, sendit, ctx, full);
    
    sql_free_result(mdb);
    db_unlock(mdb);
@@ -162,24 +199,48 @@ FROM JobMedia, Media WHERE Media.MediaId=JobMedia.MediaId");
  *  only the job with the specified id.
  */
 void
-db_list_job_records(void *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, void *ctx)
+db_list_job_records(void *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, 
+		    void *ctx, int full)
 {
-   if (jr->JobId == 0 && jr->Job[0] == 0) {
-      Mmsg(&mdb->cmd, 
-"SELECT JobId,Name,StartTime,Type,Level,JobFiles,JobBytes,JobStatus "
-"FROM Job ORDER BY JobId");
-   } else {			      /* single record */
-      Mmsg(&mdb->cmd, "SELECT JobId,Name,StartTime,Type,Level,\
-JobFiles,JobBytes,JobStatus FROM Job WHERE Job.JobId=%u", jr->JobId);
+   if (full) {
+      if (jr->JobId == 0 && jr->Job[0] == 0) {
+	 Mmsg(&mdb->cmd, 
+            "SELECT JobId,Job,Job.Name,PurgedFiles,Type,Level,"
+            "Job.ClientId,Client.Name,JobStatus,SchedTime,"
+            "StartTime,EndTime,JobTDate,"
+            "VolSessionId,VolSessionTime,JobFiles,JobErrors,"
+            "JobMissingFiles,Job.PoolId,Pool.Name,Job.FileSetId,FileSet.FileSet "
+            "FROM Job,Client,Pool,FileSet WHERE "
+            "Client.ClientId=Job.ClientId AND Pool.PoolId=Job.PoolId "
+            "AND FileSet.FileSetId=Job.FileSetId  ORDER BY JobId");
+      } else {				 /* single record */
+	 Mmsg(&mdb->cmd, 
+            "SELECT JobId,Job,Job.Name,PurgedFiles,Type,Level,"
+            "Job.ClientId,Client.Name,JobStatus,SchedTime,"
+            "StartTime,EndTime,JobTDate,"
+            "VolSessionId,VolSessionTime,JobFiles,JobErrors,"
+            "JobMissingFiles,Job.PoolId,Pool.Name,Job.FileSetId,FileSet.FileSet "
+            "FROM Job,Client,Pool,FileSet WHERE Job.JobId=%u AND "
+            "Client.ClientId=Job.ClientId AND Pool.PoolId=Job.PoolId "
+            "AND FileSet.FileSetId=Job.FileSetId", jr->JobId);
+      }
+   } else {
+      if (jr->JobId == 0 && jr->Job[0] == 0) {
+	 Mmsg(&mdb->cmd, 
+           "SELECT JobId,Name,StartTime,Type,Level,JobFiles,JobBytes,JobStatus "
+           "FROM Job ORDER BY JobId");
+      } else {				 /* single record */
+         Mmsg(&mdb->cmd, "SELECT JobId,Name,StartTime,Type,Level,"
+            "JobFiles,JobBytes,JobStatus FROM Job WHERE JobId=%u", jr->JobId);
+      }
    }
-
    db_lock(mdb);
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);
       return;
    }
 
-   list_result(mdb, sendit, ctx);
+   list_result(mdb, sendit, ctx, full);
    
    sql_free_result(mdb);
    db_unlock(mdb);
@@ -203,7 +264,7 @@ AS Files, sum(JobBytes) AS Bytes, Name AS Job FROM Job GROUP BY Name");
       return;
    }
 
-   list_result(mdb, sendit, ctx);
+   list_result(mdb, sendit, ctx, 0);
    
    sql_free_result(mdb);
 
@@ -216,7 +277,7 @@ AS Files,sum(JobBytes) As Bytes FROM Job");
       return;
    }
 
-   list_result(mdb, sendit, ctx);
+   list_result(mdb, sendit, ctx, 0);
    
    sql_free_result(mdb);
    db_unlock(mdb);
@@ -238,7 +299,7 @@ AND Path.PathId=File.PathId",
       return;
    }
 
-   list_result(mdb, sendit, ctx);
+   list_result(mdb, sendit, ctx, 0);
    
    sql_free_result(mdb);
    db_unlock(mdb);

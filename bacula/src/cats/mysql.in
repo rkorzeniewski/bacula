@@ -4,4 +4,4 @@
 #
 bindir=@SQL_BINDIR@
 
-$bindir/mysql bacula
+$bindir/mysql $* bacula

@@ -161,7 +161,6 @@ void set_pool_dbr_defaults_in_media_dbr(MEDIA_DBR *mr, POOL_DBR *pr)
 
 /*
  *  Add Volumes to an existing Pool
- *
  */
 static int addcmd(UAContext *ua, char *cmd) 
 {
@@ -516,7 +515,7 @@ void set_pooldbr_from_poolres(POOL_DBR *pr, POOL *pool, int create)
  *	     1	record created
  */
 
-int create_pool(JCR *jcr, B_DB *db, POOL *pool, int update)
+int create_pool(JCR *jcr, B_DB *db, POOL *pool, int create)
 {
    POOL_DBR  pr;
 
@@ -526,8 +525,8 @@ int create_pool(JCR *jcr, B_DB *db, POOL *pool, int update)
 
    if (db_get_pool_record(jcr, db, &pr)) {
       /* Pool Exists */
-      if (update) {
-	 set_pooldbr_from_poolres(&pr, pool, 1);
+      if (!create) {  /* update request */
+	 set_pooldbr_from_poolres(&pr, pool, 0);
 	 db_update_pool_record(jcr, db, &pr);
       }
       return 0; 		      /* exists */
@@ -560,7 +559,7 @@ static int createcmd(UAContext *ua, char *cmd)
       return 1;
    }
 
-   switch (create_pool(ua->jcr, ua->db, pool, 0)) {
+   switch (create_pool(ua->jcr, ua->db, pool, 1)) {
    case 0:
       bsendmsg(ua, _("Error: Pool %s already exists.\n\
 Use update to change it.\n"), pool->hdr.name);
@@ -928,7 +927,7 @@ static int update_pool(UAContext *ua)
    }
    query = get_pool_memory(PM_MESSAGE);
    Mmsg(&query, list_pool, pr.PoolId);
-   db_list_sql_query(ua->jcr, ua->db, query, prtit, ua, 1);
+   db_list_sql_query(ua->jcr, ua->db, query, prtit, ua, 1, 0);
    free_pool_memory(query);
    bsendmsg(ua, _("Pool DB record updated from resource.\n"));
    return 1;

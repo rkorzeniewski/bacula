@@ -317,7 +317,7 @@ static int user_select_jobids(UAContext *ua, JobIds *ji)
       case -1:			      /* error */
 	 return 0;
       case 0:			      /* list last 20 Jobs run */
-	 db_list_sql_query(ua->jcr, ua->db, uar_list_jobs, prtit, ua, 1);
+	 db_list_sql_query(ua->jcr, ua->db, uar_list_jobs, prtit, ua, 1, 0);
 	 done = 0;
 	 break;
       case 1:			      /* list where a file is saved */
@@ -332,7 +332,7 @@ static int user_select_jobids(UAContext *ua, JobIds *ji)
 	 query = get_pool_memory(PM_MESSAGE);
 	 Mmsg(&query, uar_file, fname);
 	 free(fname);
-	 db_list_sql_query(ua->jcr, ua->db, query, prtit, ua, 1);
+	 db_list_sql_query(ua->jcr, ua->db, query, prtit, ua, 1, 0);
 	 free_pool_memory(query);
 	 done = 0;
 	 break;
@@ -346,7 +346,7 @@ static int user_select_jobids(UAContext *ua, JobIds *ji)
          if (!get_cmd(ua, _("Enter SQL list command: "))) {
 	    return 0;
 	 }
-	 db_list_sql_query(ua->jcr, ua->db, ua->cmd, prtit, ua, 1);
+	 db_list_sql_query(ua->jcr, ua->db, ua->cmd, prtit, ua, 1, 0);
 	 done = 0;
 	 break;
       case 4:			      /* Select the most recent backups */
@@ -414,7 +414,7 @@ static int user_select_jobids(UAContext *ua, JobIds *ji)
             bsendmsg(ua, "%s\n", db_strerror(ua->db));
 	 }
 	 free_pool_memory(query);
-	 db_list_sql_query(ua->jcr, ua->db, uar_list_temp, prtit, ua, 1);
+	 db_list_sql_query(ua->jcr, ua->db, uar_list_temp, prtit, ua, 1, 0);
 
 	 if (!db_sql_query(ua->db, uar_sel_jobid_temp, jobid_handler, (void *)ji)) {
             bsendmsg(ua, "%s\n", db_strerror(ua->db));

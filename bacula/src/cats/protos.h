@@ -51,7 +51,7 @@ int db_create_job_record(void *jcr, B_DB *db, JOB_DBR *jr);
 int db_create_media_record(void *jcr, B_DB *db, MEDIA_DBR *media_dbr);
 int db_create_client_record(void *jcr, B_DB *db, CLIENT_DBR *cr);
 int db_create_fileset_record(void *jcr, B_DB *db, FILESET_DBR *fsr);
-int db_create_pool_record(void *jcr, B_DB *db, POOL_DBR *pool_dbr);
+int db_create_pool_record(void *jcr, B_DB *db, POOL_DBR *pool_dbr);          
 int db_create_jobmedia_record(void *jcr, B_DB *mdb, JOBMEDIA_DBR *jr);
 
 /* delete.c */
@@ -81,14 +81,14 @@ int db_get_client_record(void *jcr, B_DB *mdb, CLIENT_DBR *cdbr);
 
 
 /* list.c */
-void db_list_pool_records(void *jcr, B_DB *db, DB_LIST_HANDLER sendit, void *ctx);
-void db_list_job_records(void *jcr, B_DB *db, JOB_DBR *jr, DB_LIST_HANDLER sendit, void *ctx);
+void db_list_pool_records(void *jcr, B_DB *db, DB_LIST_HANDLER sendit, void *ctx, int full);
+void db_list_job_records(void *jcr, B_DB *db, JOB_DBR *jr, DB_LIST_HANDLER sendit, void *ctx, int full);
 void db_list_job_totals(void *jcr, B_DB *db, JOB_DBR *jr, DB_LIST_HANDLER sendit, void *ctx);
 void db_list_files_for_job(void *jcr, B_DB *db, uint32_t jobid, DB_LIST_HANDLER sendit, void *ctx);
-void db_list_media_records(void *jcr, B_DB *mdb, MEDIA_DBR *mdbr, DB_LIST_HANDLER *sendit, void *ctx);
-void db_list_jobmedia_records(void *jcr, B_DB *mdb, uint32_t JobId, DB_LIST_HANDLER *sendit, void *ctx);
-int  db_list_sql_query(void *jcr, B_DB *mdb, char *query, DB_LIST_HANDLER *sendit, void *ctx, int verbose);
-void db_list_client_records(void *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx);
+void db_list_media_records(void *jcr, B_DB *mdb, MEDIA_DBR *mdbr, DB_LIST_HANDLER *sendit, void *ctx, int full);
+void db_list_jobmedia_records(void *jcr, B_DB *mdb, uint32_t JobId, DB_LIST_HANDLER *sendit, void *ctx, int full);
+int  db_list_sql_query(void *jcr, B_DB *mdb, char *query, DB_LIST_HANDLER *sendit, void *ctx, int verbose, int full);
+void db_list_client_records(void *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, int full);
 
 /* update.c */
 int  db_update_job_start_record(void *jcr, B_DB *db, JOB_DBR *jr);

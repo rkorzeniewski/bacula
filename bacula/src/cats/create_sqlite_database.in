@@ -5,6 +5,6 @@
 bindir=@SQL_BINDIR@
 cd @working_dir@
 
-$bindir/sqlite bacula.db <<END-OF-DATA
+$bindir/sqlite $* bacula.db <<END-OF-DATA
 END-OF-DATA
 exit 0

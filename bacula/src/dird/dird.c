@@ -379,7 +379,7 @@ Without that I don't know who I am :-(\n"), configfile);
 	     *	record if it is not already created. 
 	     */
 	    if (job->pool) {
-	       create_pool(NULL, db, job->pool, 1);
+	       create_pool(NULL, db, job->pool, 0);  /* update request */
 	    }
 	    db_close_database(NULL, db);
 	 }

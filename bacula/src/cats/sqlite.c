@@ -401,12 +401,16 @@ list_dashes(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx)
    send(ctx, "\n");
 }
 
+/*
+ * If full_list is set, we list vertically, otherwise, we 
+ * list on one line horizontally.      
+ */
 void
-list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx)
+list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, int full_list)
 {
    SQL_FIELD *field;
    SQL_ROW row;
-   unsigned int i, col_len;
+   unsigned int i, col_len, max_len = 0;
    char buf[2000], ewc[30];
 
    if (mdb->result == NULL || mdb->nrow == 0) {
@@ -417,15 +421,27 @@ list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx)
    sql_field_seek(mdb, 0);
    for (i = 0; i < sql_num_fields(mdb); i++) {
       field = sql_fetch_field(mdb);
-      if (IS_NUM(field->type) && field->max_length > 0) { /* fixup for commas */
-	 field->max_length += (field->max_length - 1) / 3;
-      }
       col_len = strlen(field->name);
-      if (col_len < field->max_length)
-	      col_len = field->max_length;
-      if (col_len < 4 && !IS_NOT_NULL(field->flags))
-              col_len = 4;    /* 4 = length of the word "NULL" */
-      field->max_length = col_len;    /* reset column info */
+      if (full_list) {
+	 if (col_len > max_len) {
+	    max_len = col_len;
+	 }
+      } else {
+	 if (IS_NUM(field->type) && field->max_length > 0) { /* fixup for commas */
+	    field->max_length += (field->max_length - 1) / 3;
+	 }
+	 if (col_len < field->max_length) {
+	    col_len = field->max_length;
+	 }
+	 if (col_len < 4 && !IS_NOT_NULL(field->flags)) {
+            col_len = 4;                 /* 4 = length of the word "NULL" */
+	 }
+	 field->max_length = col_len;	 /* reset column info */
+      }
+   }
+
+   if (full_list) {
+      goto horizontal_list;
    }
 
    list_dashes(mdb, send, ctx);
@@ -433,7 +449,7 @@ list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx)
    sql_field_seek(mdb, 0);
    for (i = 0; i < sql_num_fields(mdb); i++) {
       field = sql_fetch_field(mdb);
-      sprintf(buf, " %-*s |", field->max_length, field->name);
+      bsnprintf(buf, sizeof(buf), " %-*s |", (int)field->max_length, field->name);
       send(ctx, buf);
    }
    send(ctx, "\n");
@@ -445,18 +461,39 @@ list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx)
       for (i = 0; i < sql_num_fields(mdb); i++) {
 	 field = sql_fetch_field(mdb);
 	 if (row[i] == NULL) {
-            sprintf(buf, " %-*s |", field->max_length, "NULL");
+            bsnprintf(buf, sizeof(buf), " %-*s |", (int)field->max_length, "NULL");
 	 } else if (IS_NUM(field->type)) {
-            sprintf(buf, " %*s |", field->max_length,       
+            bsnprintf(buf, sizeof(buf), " %*s |", (int)field->max_length,       
 	       add_commas(row[i], ewc));
 	 } else {
-            sprintf(buf, " %-*s |", field->max_length, row[i]);
+            bsnprintf(buf, sizeof(buf), " %-*s |", (int)field->max_length, row[i]);
 	 }
 	 send(ctx, buf);
       }
       send(ctx, "\n");
    }
    list_dashes(mdb, send, ctx);
+   return;
+
+horizontal_list:
+   
+   while ((row = sql_fetch_row(mdb)) != NULL) {
+      sql_field_seek(mdb, 0);
+      for (i = 0; i < sql_num_fields(mdb); i++) {
+	 field = sql_fetch_field(mdb);
+	 if (row[i] == NULL) {
+            bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name, "NULL");
+	 } else if (IS_NUM(field->type)) {
+            bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name, 
+	       add_commas(row[i], ewc));
+	 } else {
+            bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name, row[i]);
+	 }
+	 send(ctx, buf);
+      }
+      send(ctx, "\n");
+   }
+   return;
 }
 
 

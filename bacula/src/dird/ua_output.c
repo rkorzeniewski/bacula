@@ -229,7 +229,7 @@ static int do_listcmd(UAContext *ua, char *cmd, int llist)
    for (i=1; i<ua->argc; i++) {
       /* List JOBS */
       if (strcasecmp(ua->argk[i], _("jobs")) == 0) {
-	 db_list_job_records(ua->jcr, ua->db, &jr, prtit, ua);
+	 db_list_job_records(ua->jcr, ua->db, &jr, prtit, ua, llist);
 
 	 /* List JOBTOTALS */
       } else if (strcasecmp(ua->argk[i], _("jobtotals")) == 0) {
@@ -241,7 +241,7 @@ static int do_listcmd(UAContext *ua, char *cmd, int llist)
 	    jobid = atoi(ua->argv[i]);
 	    if (jobid > 0) {
 	       jr.JobId = jobid;
-	       db_list_job_records(ua->jcr, ua->db, &jr, prtit, ua);
+	       db_list_job_records(ua->jcr, ua->db, &jr, prtit, ua, llist);
 	    }
 	 }
 
@@ -249,7 +249,7 @@ static int do_listcmd(UAContext *ua, char *cmd, int llist)
       } else if (strcasecmp(ua->argk[i], _("job")) == 0 && ua->argv[i]) {
 	 bstrncpy(jr.Job, ua->argv[i], MAX_NAME_LENGTH);
 	 jr.JobId = 0;
-	 db_list_job_records(ua->jcr, ua->db, &jr, prtit, ua);
+	 db_list_job_records(ua->jcr, ua->db, &jr, prtit, ua, llist);
 
       /* List FILES */
       } else if (strcasecmp(ua->argk[i], _("files")) == 0) {
@@ -284,20 +284,20 @@ static int do_listcmd(UAContext *ua, char *cmd, int llist)
 	    } else {
 	       continue;
 	    }
-	    db_list_jobmedia_records(ua->jcr, ua->db, jobid, prtit, ua);
+	    db_list_jobmedia_records(ua->jcr, ua->db, jobid, prtit, ua, llist);
 	    done = TRUE;
 	 }
 	 if (!done) {
 	    /* List for all jobs (jobid=0) */
-	    db_list_jobmedia_records(ua->jcr, ua->db, 0, prtit, ua);
+	    db_list_jobmedia_records(ua->jcr, ua->db, 0, prtit, ua, llist);
 	 }
 
       /* List POOLS */
       } else if (strcasecmp(ua->argk[i], _("pools")) == 0) {
-	 db_list_pool_records(ua->jcr, ua->db, prtit, ua);
+	 db_list_pool_records(ua->jcr, ua->db, prtit, ua, llist);
 
       } else if (strcasecmp(ua->argk[i], _("clients")) == 0) {
-	 db_list_client_records(ua->jcr, ua->db, prtit, ua);
+	 db_list_client_records(ua->jcr, ua->db, prtit, ua, llist);
 
 
       /* List MEDIA or VOLUMES */
@@ -332,7 +332,7 @@ static int do_listcmd(UAContext *ua, char *cmd, int llist)
 		     return 1;
 		  }
 		  mr.PoolId = pr.PoolId;
-		  db_list_media_records(ua->jcr, ua->db, &mr, prtit, ua);
+		  db_list_media_records(ua->jcr, ua->db, &mr, prtit, ua, llist);
 		  return 1;
 	       }
 	    }
@@ -351,7 +351,7 @@ static int do_listcmd(UAContext *ua, char *cmd, int llist)
                   bsendmsg(ua, _("Pool: %s\n"), pr.Name);
 	       }
 	       mr.PoolId = ids[i];
-	       db_list_media_records(ua->jcr, ua->db, &mr, prtit, ua);
+	       db_list_media_records(ua->jcr, ua->db, &mr, prtit, ua, llist);
 	    }
 	    free(ids);
 	    return 1;
