@@ -345,7 +345,7 @@ static int markdircmd(UAContext *ua, TREE_CTX *tree)
 static int countcmd(UAContext *ua, TREE_CTX *tree)
 {
    int total, num_extract;
-   char ec1[50];
+   char ec1[50], ec2[50];
 
    total = num_extract = 0;
    for (TREE_NODE *node=first_tree_node(tree->root); node; node=next_tree_node(node)) {
@@ -356,8 +356,9 @@ static int countcmd(UAContext *ua, TREE_CTX *tree)
 	 }
       }
    }
-   bsendmsg(ua, "%s total files/dirs. %d marked to be restored.\n", total, 
-	    edit_uint64_with_commas(num_extract, ec1));
+   bsendmsg(ua, "%s total files/dirs. %s marked to be restored.\n", 
+	    edit_uint64_with_commas(total, ec1), 
+	    edit_uint64_with_commas(num_extract, ec2));
    return 1;
 }
 
