@@ -1484,7 +1484,7 @@ fsf_dev(DEVICE *dev, int num)
       return false;
    }
 
-   if (!(dev->state & ST_TAPE)) {
+   if (!dev->is_tape()) {
       return true;
    }
    if (dev->state & ST_EOT) {
@@ -1645,7 +1645,7 @@ bsf_dev(DEVICE *dev, int num)
       return false;
    }
 
-   if (!(dev_state(dev, ST_TAPE))) {
+   if (!dev->is_tape()) {
       Mmsg1(dev->errmsg, _("Device %s cannot BSF because it is not a tape.\n"),
 	 dev->dev_name);
       return false;
@@ -1687,7 +1687,7 @@ fsr_dev(DEVICE *dev, int num)
       return false;
    }
 
-   if (!(dev_state(dev, ST_TAPE))) {
+   if (!dev->is_tape()) {
       return false;
    }
    if (!dev_cap(dev, CAP_FSR)) {
@@ -1748,7 +1748,7 @@ bsr_dev(DEVICE *dev, int num)
       return false;
    }
 
-   if (!(dev->state & ST_TAPE)) {
+   if (!dev->is_tape()) {
       return false;
    }
 
@@ -1788,7 +1788,7 @@ reposition_dev(DEVICE *dev, uint32_t file, uint32_t block)
       return false;
    }
 
-   if (!(dev_state(dev, ST_TAPE))) {
+   if (!dev->is_tape()) {
       off_t pos = (((off_t)file)<<32) + block;
       Dmsg1(100, "===== lseek_dev to %d\n", (int)pos);
       if (lseek_dev(dev, pos, SEEK_SET) == (off_t)-1) {
@@ -1857,7 +1857,7 @@ weof_dev(DEVICE *dev, int num)
    }
    dev->file_size = 0;
 
-   if (!(dev_state(dev, ST_TAPE))) {
+   if (!dev->is_tape()) {
       return 0;
    }
    dev->state &= ~(ST_EOT | ST_EOF);  /* remove EOF/EOT flags */
@@ -2110,7 +2110,7 @@ void force_close_dev(DEVICE *dev)
 bool truncate_dev(DEVICE *dev)
 {
    Dmsg1(100, "truncate_dev %s\n", dev->dev_name);
-   if (dev->state & ST_TAPE) {
+   if (dev->is_tape()) {
       return true;                    /* we don't really truncate tapes */
       /* maybe we should rewind and write and eof ???? */
    }
@@ -2136,7 +2136,7 @@ bool truncate_dev(DEVICE *dev)
 bool
 dev_is_tape(DEVICE *dev)
 {
-   return (dev->state & ST_TAPE) ? true : false;
+   return dev->is_tape() ? true : false;
 }
 
 
