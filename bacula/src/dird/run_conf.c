@@ -124,26 +124,15 @@ static bool have_hour, have_mday, have_wday, have_month, have_wom;
 static bool have_at, have_woy;
 static RUN lrun;
 
-static void clear_defaults()
-{
-   have_hour = have_mday = have_wday = have_month = have_wom = have_woy = true;
-   clear_bit(0,lrun.hour);
-   clear_bits(0, 30, lrun.mday);
-   clear_bits(0, 6, lrun.wday);
-   clear_bits(0, 11, lrun.month);
-   clear_bits(0, 4, lrun.wom);
-   clear_bits(0, 53, lrun.woy);
-}
-
 static void set_defaults()
 {
    have_hour = have_mday = have_wday = have_month = have_wom = have_woy = false;
    have_at = false;
-   set_bit(0,lrun.hour);
+   set_bits(0, 23, lrun.hour);
    set_bits(0, 30, lrun.mday);
-   set_bits(0, 6, lrun.wday);
+   set_bits(0, 6,  lrun.wday);
    set_bits(0, 11, lrun.month);
-   set_bits(0, 4, lrun.wom);
+   set_bits(0, 4,  lrun.wom);
    set_bits(0, 53, lrun.woy);
 }
 
@@ -565,32 +554,22 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
 	 }			
 	 break;
       case s_hourly:
-	 clear_defaults();
+	 have_hour = true;
 	 set_bits(0, 23, lrun.hour);
-	 set_bits(0, 30, lrun.mday);
-	 set_bits(0, 11, lrun.month);
-	 set_bits(0, 4, lrun.wom);
-	 set_bits(0, 53, lrun.woy);
 	 break;
       case s_weekly:
-	 clear_defaults();
-	 set_bit(0, lrun.wday);
-	 set_bits(0, 11, lrun.month);
-	 set_bits(0, 4, lrun.wom);
+	 have_mday = have_wom = have_woy = true;
+	 set_bits(0, 30, lrun.mday);
+	 set_bits(0, 4,  lrun.wom);
 	 set_bits(0, 53, lrun.woy);
 	 break;
       case s_daily:
-	 clear_defaults();
-	 set_bits(0, 30, lrun.mday);
-	 set_bits(0, 11, lrun.month);
-	 set_bits(0, 4,  lrun.wom);
-	 set_bits(0, 53, lrun.woy);
+	 have_mday = true;
+	 set_bits(0, 6, lrun.wday);
 	 break;
       case s_monthly:
-	 clear_defaults();
+	 have_month = true;
 	 set_bits(0, 11, lrun.month);
-	 set_bits(0, 4,  lrun.wom);
-	 set_bits(0, 53, lrun.woy);
 	 break;
       default:
          scan_err0(lc, _("Unexpected run state\n"));

@@ -29,6 +29,8 @@
 #ifndef __DEV_H
 #define __DEV_H 1
 
+#undef DCR                            /* used by Bacula */
+
 /* #define NEW_LOCK 1 */
 
 #define new_lock_device(dev)             _new_lock_device(__FILE__, __LINE__, (dev)) 

@@ -942,7 +942,11 @@ read_again:
             Pmsg0(-1, _("Got EOF on tape.\n"));
 	    goto read_again;
 	 }
-         Pmsg1(0, _("Read block failed! ERR=%s\n"), strerror(dev->dev_errno));
+         Pmsg1(0, _("Read block failed! ERR=%s\n\n"), strerror(dev->dev_errno));
+         Pmsg0(0, _("This may be because the tape drive block size is not\n"
+                    " set to variable blocking as normally used by Bacula.\n"
+                    " Please see the Tape Testing chapter in the manual and \n"
+                    " look for using mt with defblksize and setoptions\n"));
 	 goto bail_out;
       }
       memset(rec->data, 0, rec->data_len);

@@ -762,7 +762,9 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
 	 if (node->extract || node->extract_dir) {
             Dmsg2(400, "type=%d FI=%d\n", node->type, node->FileIndex);
 	    add_findex(rx->bsr, node->JobId, node->FileIndex);
-	    rx->selected_files++;
+	    if (node->extract) {
+	       rx->selected_files++;  /* count only saved files */
+	    }
 	 }
       }
    }

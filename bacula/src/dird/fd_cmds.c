@@ -40,6 +40,7 @@ static char inc[]         = "include\n";
 static char exc[]         = "exclude\n";
 static char fileset[]     = "fileset\n"; /* set full fileset */
 static char jobcmd[]      = "JobId=%d Job=%s SDid=%u SDtime=%u Authorization=%s\n";
+/* Note, mtime_only is not used here -- implemented as file option */
 static char levelcmd[]    = "level = %s%s mtime_only=%d\n";
 static char runbefore[]   = "RunBeforeJob %s\n";
 static char runafter[]    = "RunAfterJob %s\n";
