@@ -269,12 +269,12 @@ typedef struct s_db {
 } B_DB;
 
 void               my_postgresql_free_result(B_DB *mdb);
-POSTGRESQL_ROW     my_postgresql_fetch_row(B_DB *mdb);
+POSTGRESQL_ROW     my_postgresql_fetch_row  (B_DB *mdb);
 int                my_postgresql_query      (B_DB *mdb, char *query);
 void               my_postgresql_data_seek  (B_DB *mdb, int row);
 int                my_postgresql_currval    (B_DB *mdb, char *table_name);
 void               my_postgresql_field_seek (B_DB *mdb, int row);
-POSTGRESQL_FIELD * my_postgresql_fetch_field(B_DB *mdb) 
+POSTGRESQL_FIELD * my_postgresql_fetch_field(B_DB *mdb);
 
 
 /* "Generic" names for easier conversion */
