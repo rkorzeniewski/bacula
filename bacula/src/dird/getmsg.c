@@ -95,15 +95,17 @@ int32_t bget_msg(BSOCK *bs, int rtn)
 	    bnet_fsend(bs, OK_msg); /* send response */
 	    break;
 	 case BNET_HEARTBEAT:
+       /*   Dmsg0(000, "Got heartbeat.\n"); */
+	    break;
 	 case BNET_HB_RESPONSE:
 	    break;
 	 case BNET_STATUS:
-	    /* *****FIXME***** Implement */
+	    /* *****FIXME***** Implement more completely */
             bnet_fsend(bs, "Status OK\n");
 	    bnet_sig(bs, BNET_EOD);
 	    break;
 	 default:
-            Emsg1(M_WARNING, 0, _("bget_msg: unknown signal %d\n"), bs->msglen);
+            Emsg1(M_WARNING, 0, _("bget_msg: unknown bnet signal %d\n"), bs->msglen);
 	    return n;
 	 }
 	 continue;

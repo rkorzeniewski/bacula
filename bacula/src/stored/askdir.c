@@ -52,7 +52,7 @@ static char OK_media[] = "1000 OK VolName=%127s VolJobs=%u VolFiles=%u\
 static char OK_update[] = "1000 OK UpdateMedia\n";
 
 /* Forward referenced functions */
-static int device_wait(JCR *jcr, DEVICE *dev, int wait_sec);
+static int wait_for_sysop(JCR *jcr, DEVICE *dev, int wait_sec);
 
 /*
  * Send current JobStatus to Director
@@ -302,7 +302,7 @@ Please use the \"label\"  command to create a new Volume for:\n\
       jcr->JobStatus = jstat;
       dir_send_job_status(jcr);
 
-      stat = device_wait(jcr, dev, wait_sec);
+      stat = wait_for_sysop(jcr, dev, wait_sec);
 
       if (stat == ETIMEDOUT) {
 	 wait_sec *= 2; 	      /* double wait time */
@@ -394,7 +394,7 @@ int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
       jcr->JobStatus = JS_WaitMount;
       dir_send_job_status(jcr);
 
-      stat = device_wait(jcr, dev, wait_sec); /* wait on device */
+      stat = wait_for_sysop(jcr, dev, wait_sec); /* wait on device */
 
       if (stat == ETIMEDOUT) {
 	 wait_sec *= 2; 	      /* double wait time */
@@ -434,9 +434,9 @@ int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
    return 1;
 }
 
-#define HB_TIME 20*60	/* send a heatbeat once every 20 minutes while waiting */
+#define HB_TIME (20*60)   /* send a heatbeat once every 20 minutes while waiting */
 
-static int device_wait(JCR *jcr, DEVICE *dev, int wait_sec)
+static int wait_for_sysop(JCR *jcr, DEVICE *dev, int wait_sec)
 {
    struct timeval tv;
    struct timezone tz;

@@ -32,13 +32,21 @@
 
 static int save_file(FF_PKT *ff_pkt, void *pkt);
 
+#define HB_TIME  (20*60)
+/* 
+ * Listen on the SD socket for heartbeat signals.
+ * Send heartbeats to the Director every HB_TIME
+ *   seconds.
+ */
 static void *heartbeat_thread(void *arg)
 {
    int32_t n;
    JCR *jcr = (JCR *)arg;
    BSOCK *sd, *dir;
+   time_t last_heartbeat = time(NULL);
+   time_t now;
 
-   jcr->heartbeat_id = pthread_self();
+   pthread_detach(pthread_self());
 
    /* Get our own local copy */
    sd = dup_bsock(jcr->store_bsock);
@@ -52,12 +60,13 @@ static void *heartbeat_thread(void *arg)
     */
    for ( ; !is_bnet_stop(sd); ) {
       n = bnet_wait_data_intr(sd, 60);
-      if (n != 1) {
-	 continue;
-      }
-      n = bnet_recv(sd);
-      if (n == BNET_SIGNAL && sd->msglen == BNET_HEARTBEAT) {
+      now = time(NULL);
+      if (now-last_heartbeat >= HB_TIME) {
 	 bnet_sig(dir, BNET_HEARTBEAT);
+	 last_heartbeat = now;
+      }
+      if (n == 1) {		      /* input waiting */
+	 bnet_recv(sd); 	      /* read it -- probably heartbeat */
       }
    }
    bnet_close(sd);
@@ -69,27 +78,23 @@ static void *heartbeat_thread(void *arg)
 /* Startup the heartbeat thread -- see above */
 static void start_heartbeat_monitor(JCR *jcr)
 {
-   pthread_t hbtid;
    jcr->duped_sd = NULL;
-   pthread_create(&hbtid, NULL, heartbeat_thread, (void *)jcr);
+   pthread_create(&jcr->heartbeat_id, NULL, heartbeat_thread, (void *)jcr);
 }
 
 /* Terminate the heartbeat thread */
 static void stop_heartbeat_monitor(JCR *jcr) 
 {
-   pthread_t hbtid = jcr->heartbeat_id;
-
    while (jcr->duped_sd == NULL) {
-      bmicrosleep(0, 500);	      /* avoid race */
+      bmicrosleep(0, 50);	      /* avoid race */
    }
    jcr->duped_sd->timed_out = 1;      /* set timed_out to terminate read */
    jcr->duped_sd->terminated = 1;     /* set to terminate read */
 
    while (jcr->duped_sd) {
-      pthread_kill(hbtid, TIMEOUT_SIGNAL);  /* make heartbeat thread go away */
+      pthread_kill(jcr->heartbeat_id, TIMEOUT_SIGNAL);	/* make heartbeat thread go away */
       bmicrosleep(0, 20);
    }
-   pthread_join(hbtid, NULL);	      /* wait for him to clean up */
 }
 
 /* 
