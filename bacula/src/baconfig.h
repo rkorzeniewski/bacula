@@ -172,7 +172,7 @@
  * that it can filter packets, but otherwise, it is not used
  * or saved */
 #define FT_DIRBEGIN  18               /* Directory at beginning (not saved) */
-#define FT_INVALIDFS 19		      /* File system not allowed for */
+#define FT_INVALIDFS 19               /* File system not allowed for */
 
 /* Definitions for upper part of type word (see above). */
 #define AR_DATA_STREAM (1<<16)        /* Data stream id present */
@@ -483,9 +483,6 @@ extern int thr_setconcurrency(int);
 #ifdef HAVE_DARWIN_OS
 /* Apparently someone forgot to wrap getdomainname as a C function */
 extern "C" int getdomainname(char *name, int len);
-
-/* Darwin lib fnmatch() doesn't work, so use our own */
-#undef HAVE_FNMATCH
 #endif
 
 #ifdef HAVE_CYGWIN

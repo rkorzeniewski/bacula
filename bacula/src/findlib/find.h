@@ -46,11 +46,7 @@ struct utimbuf {
 
 #define MODE_RALL (S_IRUSR|S_IRGRP|S_IROTH)
 
-#ifdef HAVE_FNMATCH
-#include <fnmatch.h>
-#else
 #include "lib/fnmatch.h"
-#endif
 
 #ifdef HAVE_REGEX_H
 #include <regex.h>
