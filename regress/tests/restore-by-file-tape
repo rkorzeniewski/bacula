@@ -2,7 +2,9 @@
 #
 # Run a simple backup of the Bacula build directory 
 #   to a tape where the maximum tape file size is set to 1M
-#   then restore a few files from it.
+#   then restore a few files from it.  Note, by setting the maximum 
+#   file size to 1M, it runs very slow. There are about 64 files that
+#   are created during each of the two backups.
 #
 cwd=`pwd`
 bin/bacula stop  2>&1 >/dev/null
@@ -69,6 +71,8 @@ if [ $dstat != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
    echo " "
    bin/bacula stop 2>&1 >/dev/null
    exit 1
+else
+   echo "  First of two restores OK "
 fi
 rm -rf ${cwd}/tmp/bacula-restores
 #
