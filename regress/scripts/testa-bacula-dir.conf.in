@@ -27,6 +27,7 @@ Job {
   Messages = Standard
   Write Bootstrap = "@working_dir@/SmallVols.bsr"
   Pool = SmallVols
+  SpoolData = yes
 }
 
 

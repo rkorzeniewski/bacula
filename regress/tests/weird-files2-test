@@ -40,6 +40,7 @@ messages
 @output
 quit
 END_OF_DATA
+scripts/check_for_zombie_jobs storage=File 
 #
 # Now mess up the a hard link, and a soft link
 #
@@ -58,6 +59,8 @@ messages
 @output tmp/log2.out
 restore where= storage=File
 5
+unmark *
+mark *
 done
 yes
 wait
@@ -65,6 +68,7 @@ messages
 @output
 quit
 END_OF_DATA
+scripts/check_for_zombie_jobs storage=File 
 bin/bacula stop 2>&1 >/dev/null
 bin/testls weird-files2 >${cwd}/tmp/restored
 grep "^Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null

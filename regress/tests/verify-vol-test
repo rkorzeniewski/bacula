@@ -41,6 +41,7 @@ messages
 quit
 END_OF_DATA
 sleep 2
+scripts/check_for_zombie_jobs storage=File 
 bin/bacula stop 2>&1 >/dev/null
 grep "^Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
 bstat=$?

@@ -42,13 +42,17 @@ messages
 @# now do a restore
 @#
 @output tmp/log2.out
-restore where=${cwd}/tmp/bacula-restores select all storage=File1
+restore where=${cwd}/tmp/bacula-restores select storage=File1
+unmark *
+mark *
+done
 yes
 wait
 messages
 @output
 quit
 END_OF_DATA
+scripts/check_for_zombie_jobs storage=File1
 bin/bacula stop 2>&1 >/dev/null
 grep "^Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
 bstat=$?

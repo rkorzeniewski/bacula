@@ -43,6 +43,7 @@ messages
 @output
 quit
 END_OF_DATA
+scripts/check_for_zombie_jobs storage=File1
 bin/bacula stop 2>&1 >/dev/null
 mkdir -p ${cwd}/tmp/bacula-restores
 bin/bextract -b working/restore.bsr -c bin/bacula-sd.conf ${cwd}/tmp ${cwd}/tmp/bacula-restores 2>&1 >/dev/null

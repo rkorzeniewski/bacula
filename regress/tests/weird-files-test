@@ -11,7 +11,14 @@ fi
 cwd=`pwd`
 scripts/copy-test-confs
 scripts/cleanup
+#
+# Note, we save the weird-files directory twice on purpose
+#  because this causes problems with hard linked files 
+#  that are only saved once.  In 1.33, Bacula now deals
+#  with this situation.
+#
 echo "${cwd}/weird-files" >/tmp/file-list
+echo "${cwd}/weird-files" >>/tmp/file-list
 bin/bacula stop 2>&1 >/dev/null
 cd bin
 ./drop_bacula_tables >/dev/null 2>&1
@@ -25,7 +32,8 @@ echo " === Starting weird filenames test ==="
 echo " === Starting weird filenames test ===" >>working/log
 echo " "
 
-bin/bacula start 2>&1 >/dev/null
+# bin/bacula start 2>&1 >/dev/null
+bin/bacula start
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
 messages
@@ -47,10 +55,11 @@ messages
 @output
 quit
 END_OF_DATA
+scripts/check_for_zombie_jobs storage=File 
 bin/bacula stop 2>&1 >/dev/null
-${cwd}/bin/testls weird-files >${cwd}/tmp/original
+${cwd}/bin/testls weird-files | sort >${cwd}/tmp/original
 cd tmp/bacula-restores${cwd}
-${cwd}/bin/testls weird-files >${cwd}/tmp/restored
+${cwd}/bin/testls weird-files | sort >${cwd}/tmp/restored
 cd ${cwd}
 grep "^Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
 bstat=$?
