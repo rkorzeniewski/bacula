@@ -252,8 +252,8 @@ static void list_running_jobs(BSOCK *user)
 		   job_type_to_str(jcr->JobType),
 		   JobName,
 		   jcr->JobId,
-		   jcr->dcr->VolumeName,
-		   jcr->device->device_name);
+                   jcr->dcr?jcr->dcr->VolumeName:"*none*",
+                   jcr->device?jcr->device->device_name:"none");
 	 sec = time(NULL) - jcr->run_time;
 	 if (sec <= 0) {
 	    sec = 1;

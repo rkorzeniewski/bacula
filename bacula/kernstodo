@@ -11,17 +11,11 @@ Version 1.35                Kern (see below)
 ========================================================
 
 1.35 Items to do for release:
-- Document a get out of jail procedure if everything breaks if 
-  you lost/broke the Catalog -- do the same for "I know my
-  file is there how do I get it back?".
 
+Maybe for 1.35:
 - Add Pool/Storage override regression test.
-- Add relabel regression test.
 - Add delete JobId to regression.
 - Add bscan to four-concurrent-jobs regression.
-
-   
-Maybe for 1.35:
 - Look at patches/bacula_db.b2z postgresql that loops during restore.
   See Gregory Wright.
 - Add IPv6 to regression
@@ -63,6 +57,9 @@ Testing to do: (painful)
 
 
 For 1.37 Testing/Documentation:
+- Add bandwidth limiting.
+- Add acks every once and a while from the SD to keep
+  the line from timing out.
 - When an error in input occurs and conio beeps, you can back
   up through the prompt.
 - Detect fixed tape block mode during positioning by looking at
@@ -86,7 +83,6 @@ For 1.37 Testing/Documentation:
 
 Fix:
    Kern,
-
    mt status and tapeinfo output are attached. Default blocksize was
    originally 512 bytes. I ran the following test on my machine:
 
@@ -130,8 +126,6 @@ Fix:
    Soft error count since last status=0
    General status bits on (1010000):
     ONLINE IM_REP_EN
-
-
 
 Wish list:  
 - see lzma401.zip in others directory for new compression
@@ -1372,3 +1366,8 @@ Block Position: 0
 - Backspace to beginning of line (conio) does not erase first char.
 - Fix possible bug in update volumefrompool (email 9/28 from
   jesk@killall.org
+- Add relabel regression test.
+- Document a get out of jail procedure if everything breaks if 
+  you lost/broke the Catalog -- do the same for "I know my
+  file is there how do I get it back?".
+
