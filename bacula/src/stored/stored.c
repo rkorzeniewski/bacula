@@ -226,7 +226,7 @@ static void check_config()
    me = (STORES *)GetNextRes(R_STORAGE, NULL);
    if (!me) {
       UnlockRes();
-      Emsg1(M_ABORT, 0, _("No Storage resource defined in %s. Cannot continue.\n"),
+      Emsg1(M_ERROR_TERM, 0, _("No Storage resource defined in %s. Cannot continue.\n"),
 	 configfile);
    }
 
@@ -234,23 +234,23 @@ static void check_config()
 
    if (GetNextRes(R_STORAGE, (RES *)me) != NULL) {
       UnlockRes();
-      Emsg1(M_ABORT, 0, _("Only one Storage resource permitted in %s\n"), 
+      Emsg1(M_ERROR_TERM, 0, _("Only one Storage resource permitted in %s\n"), 
 	 configfile);
    }
    if (GetNextRes(R_DIRECTOR, NULL) == NULL) {
       UnlockRes();
-      Emsg1(M_ABORT, 0, _("No Director resource defined in %s. Cannot continue.\n"),
+      Emsg1(M_ERROR_TERM, 0, _("No Director resource defined in %s. Cannot continue.\n"),
 	 configfile);
    }
    if (GetNextRes(R_DEVICE, NULL) == NULL){
       UnlockRes();
-      Emsg1(M_ABORT, 0, _("No Device resource defined in %s. Cannot continue.\n"),
+      Emsg1(M_ERROR_TERM, 0, _("No Device resource defined in %s. Cannot continue.\n"),
 	   configfile);
    }
    if (!me->messages) {
       me->messages = (MSGS *)GetNextRes(R_MSGS, NULL);
       if (!me->messages) {
-         Emsg1(M_ABORT, 0, _("No Messages resource defined in %s. Cannot continue.\n"),
+         Emsg1(M_ERROR_TERM, 0, _("No Messages resource defined in %s. Cannot continue.\n"),
 	    configfile);
       }
    }
@@ -260,15 +260,15 @@ static void check_config()
    UnlockRes();
 
    if (!me->working_directory) {
-      Emsg1(M_ABORT, 0, _("No Working Directory defined in %s. Cannot continue.\n"),
+      Emsg1(M_ERROR_TERM, 0, _("No Working Directory defined in %s. Cannot continue.\n"),
 	 configfile);
    }
    if (stat(me->working_directory, &stat_buf) != 0) {
-      Emsg1(M_ABORT, 0, _("Working Directory: %s not found. Cannot continue.\n"),
+      Emsg1(M_ERROR_TERM, 0, _("Working Directory: %s not found. Cannot continue.\n"),
 	 me->working_directory);
    }
    if (!S_ISDIR(stat_buf.st_mode)) {
-      Emsg1(M_ABORT, 0, _("Working Directory: %s is not a directory. Cannot continue.\n"),
+      Emsg1(M_ERROR_TERM, 0, _("Working Directory: %s is not a directory. Cannot continue.\n"),
 	 me->working_directory);
    }
    working_directory = me->working_directory;

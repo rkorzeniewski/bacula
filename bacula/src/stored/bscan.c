@@ -54,6 +54,7 @@ static int update_MD5_record(B_DB *db, char *MD5buf, DEV_RECORD *rec);
 
 
 /* Global variables */
+static STORES *me;
 static DEVICE *dev = NULL;
 static B_DB *db;
 static JCR *bjcr;		      /* jcr for bscan */
@@ -79,7 +80,7 @@ static time_t lasttime = 0;
 static char *db_name = "bacula";
 static char *db_user = "bacula";
 static char *db_password = "";
-static char *wd = "/tmp";
+static char *wd = NULL;
 static int verbose = 0;
 static int update_db = 0;
 static int update_vol_info = 0;
@@ -88,6 +89,7 @@ static int ignored_msgs = 0;
 
 #define CONFIG_FILE "bacula-sd.conf"
 char *configfile;
+
 
 
 static void usage()
@@ -105,7 +107,7 @@ static void usage()
 "       -r                list records\n"
 "       -s                synchronize or store in database\n"
 "       -v                verbose\n"
-"       -w dir            specify working directory (default /tmp)\n"
+"       -w dir            specify working directory (default from conf file)\n"
 "       -?                print this message\n\n"));
    exit(1);
 }
@@ -113,6 +115,7 @@ static void usage()
 int main (int argc, char *argv[])
 {
    int ch;
+   struct stat stat_buf;
 
    my_name_is(argc, argv, "bscan");
    init_msg(NULL, NULL);
@@ -183,13 +186,38 @@ int main (int argc, char *argv[])
       usage();
    }
 
-   working_directory = wd;
-
    if (configfile == NULL) {
       configfile = bstrdup(CONFIG_FILE);
    }
 
    parse_config(configfile);
+   LockRes();
+   me = (STORES *)GetNextRes(R_STORAGE, NULL);
+   if (!me) {
+      UnlockRes();
+      Emsg1(M_ERROR_TERM, 0, _("No Storage resource defined in %s. Cannot continue.\n"), 
+	 configfile);
+   }
+   UnlockRes();
+   /* Check if -w option given, otherwise use resource for working directory */
+   if (wd) { 
+      working_directory = wd;
+   } else if (!me->working_directory) {
+      Emsg1(M_ERROR_TERM, 0, _("No Working Directory defined in %s. Cannot continue.\n"),
+	 configfile);
+   } else {
+      working_directory = me->working_directory;
+   }
+
+   /* Check that working directory is good */
+   if (stat(working_directory, &stat_buf) != 0) {
+      Emsg1(M_ERROR_TERM, 0, _("Working Directory: %s not found. Cannot continue.\n"),
+	 working_directory);
+   }
+   if (!S_ISDIR(stat_buf.st_mode)) {
+      Emsg1(M_ERROR_TERM, 0, _("Working Directory: %s is not a directory. Cannot continue.\n"),
+	 working_directory);
+   }
 
    bjcr = setup_jcr("bscan", argv[0], bsr);
    dev = setup_to_access_device(bjcr, 1);   /* read device */

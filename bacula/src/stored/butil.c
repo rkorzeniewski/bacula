@@ -88,14 +88,14 @@ DEVICE *setup_to_access_device(JCR *jcr, int read_access)
    }
 
    if ((device=find_device_res(jcr->dev_name, read_access)) == NULL) {
-      Emsg2(M_FATAL, 0, _("Cannot find device %s in config file %s.\n"), 
+      Jmsg2(jcr, M_FATAL, 0, _("Cannot find device %s in config file %s.\n"), 
 	   jcr->dev_name, configfile);
       return NULL;
    }
    
    dev = init_dev(NULL, device);
    if (!dev || !open_device(dev)) {
-      Emsg1(M_FATAL, 0, _("Cannot open %s\n"), jcr->dev_name);
+      Jmsg1(jcr, M_FATAL, 0, _("Cannot open %s\n"), jcr->dev_name);
       return NULL;
    }
    Dmsg0(90, "Device opened for read.\n");
@@ -106,7 +106,6 @@ DEVICE *setup_to_access_device(JCR *jcr, int read_access)
 
    if (read_access) {
       if (!acquire_device_for_read(jcr, dev, block)) {
-	 Emsg0(M_ERROR, 0, dev->errmsg);
 	 free_block(block);
 	 return NULL;
       }
