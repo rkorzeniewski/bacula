@@ -313,13 +313,16 @@ AC_ARG_ENABLE(conio,
 
 got_conio="no"
 if test x$support_conio = xyes; then
-   CONS_OBJ="conio.o"
-   CONS_SRC="conio.c"
-   got_conio="yes"
-   AC_CHECK_HEADERS(termcap.h)
-   AC_CHECK_LIB(termcap, tgetent, CONS_LIBS="-ltermcap")
-   support_readline=no
-   AC_DEFINE(HAVE_CONIO, 1, [Set if Bacula conio support enabled]) 
+   AC_CHECK_HEADER(termcap.h, 
+     [ AC_CHECK_LIB(termcap, tgetent, 
+       [ CONS_LIBS="-ltermcap"
+	 CONS_OBJ="conio.o"
+	 CONS_SRC="conio.c"
+	 got_conio="yes"
+	 support_readline=no
+	 AC_DEFINE(HAVE_CONIO, 1, [Set if Bacula conio support enabled]) 
+       ], [ echo " "; echo "termcap library not found. CONIO turned off ..."; echo " "])
+    ],[echo " "; echo "termcap.h not found. CONIO turned off ..."; echo " "])
 fi
 
 

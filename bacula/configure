@@ -4844,9 +4844,6 @@ fi;
 
 got_conio="no"
 if test x$support_conio = xyes; then
-   CONS_OBJ="conio.o"
-   CONS_SRC="conio.c"
-   got_conio="yes"
    echo "$as_me:$LINENO: checking for ANSI C header files" >&5
 echo $ECHO_N "checking for ANSI C header files... $ECHO_C" >&6
 if test "${ac_cv_header_stdc+set}" = set; then
@@ -5070,22 +5067,18 @@ fi
 done
 
 
-
-for ac_header in termcap.h
-do
-as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
-if eval "test \"\${$as_ac_Header+set}\" = set"; then
-  echo "$as_me:$LINENO: checking for $ac_header" >&5
-echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6
-if eval "test \"\${$as_ac_Header+set}\" = set"; then
+if test "${ac_cv_header_termcap_h+set}" = set; then
+  echo "$as_me:$LINENO: checking for termcap.h" >&5
+echo $ECHO_N "checking for termcap.h... $ECHO_C" >&6
+if test "${ac_cv_header_termcap_h+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 fi
-echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_Header'}'`" >&5
-echo "${ECHO_T}`eval echo '${'$as_ac_Header'}'`" >&6
+echo "$as_me:$LINENO: result: $ac_cv_header_termcap_h" >&5
+echo "${ECHO_T}$ac_cv_header_termcap_h" >&6
 else
   # Is the header compilable?
-echo "$as_me:$LINENO: checking $ac_header usability" >&5
-echo $ECHO_N "checking $ac_header usability... $ECHO_C" >&6
+echo "$as_me:$LINENO: checking termcap.h usability" >&5
+echo $ECHO_N "checking termcap.h usability... $ECHO_C" >&6
 cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 /* confdefs.h.  */
@@ -5094,7 +5087,7 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 $ac_includes_default
-#include <$ac_header>
+#include <termcap.h>
 _ACEOF
 rm -f conftest.$ac_objext
 if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
@@ -5120,8 +5113,8 @@ echo "$as_me:$LINENO: result: $ac_header_compiler" >&5
 echo "${ECHO_T}$ac_header_compiler" >&6
 
 # Is the header present?
-echo "$as_me:$LINENO: checking $ac_header presence" >&5
-echo $ECHO_N "checking $ac_header presence... $ECHO_C" >&6
+echo "$as_me:$LINENO: checking termcap.h presence" >&5
+echo $ECHO_N "checking termcap.h presence... $ECHO_C" >&6
 cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 /* confdefs.h.  */
@@ -5129,7 +5122,7 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <$ac_header>
+#include <termcap.h>
 _ACEOF
 if { (eval echo "$as_me:$LINENO: \"$ac_cpp conftest.$ac_ext\"") >&5
   (eval $ac_cpp conftest.$ac_ext) 2>conftest.er1
@@ -5162,10 +5155,10 @@ echo "${ECHO_T}$ac_header_preproc" >&6
 # So?  What about this header?
 case $ac_header_compiler:$ac_header_preproc in
   yes:no )
-    { echo "$as_me:$LINENO: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&5
-echo "$as_me: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&2;}
-    { echo "$as_me:$LINENO: WARNING: $ac_header: proceeding with the preprocessor's result" >&5
-echo "$as_me: WARNING: $ac_header: proceeding with the preprocessor's result" >&2;}
+    { echo "$as_me:$LINENO: WARNING: termcap.h: accepted by the compiler, rejected by the preprocessor!" >&5
+echo "$as_me: WARNING: termcap.h: accepted by the compiler, rejected by the preprocessor!" >&2;}
+    { echo "$as_me:$LINENO: WARNING: termcap.h: proceeding with the preprocessor's result" >&5
+echo "$as_me: WARNING: termcap.h: proceeding with the preprocessor's result" >&2;}
     (
       cat <<\_ASBOX
 ## ------------------------------------ ##
@@ -5176,12 +5169,12 @@ _ASBOX
       sed "s/^/$as_me: WARNING:     /" >&2
     ;;
   no:yes )
-    { echo "$as_me:$LINENO: WARNING: $ac_header: present but cannot be compiled" >&5
-echo "$as_me: WARNING: $ac_header: present but cannot be compiled" >&2;}
-    { echo "$as_me:$LINENO: WARNING: $ac_header: check for missing prerequisite headers?" >&5
-echo "$as_me: WARNING: $ac_header: check for missing prerequisite headers?" >&2;}
-    { echo "$as_me:$LINENO: WARNING: $ac_header: proceeding with the preprocessor's result" >&5
-echo "$as_me: WARNING: $ac_header: proceeding with the preprocessor's result" >&2;}
+    { echo "$as_me:$LINENO: WARNING: termcap.h: present but cannot be compiled" >&5
+echo "$as_me: WARNING: termcap.h: present but cannot be compiled" >&2;}
+    { echo "$as_me:$LINENO: WARNING: termcap.h: check for missing prerequisite headers?" >&5
+echo "$as_me: WARNING: termcap.h: check for missing prerequisite headers?" >&2;}
+    { echo "$as_me:$LINENO: WARNING: termcap.h: proceeding with the preprocessor's result" >&5
+echo "$as_me: WARNING: termcap.h: proceeding with the preprocessor's result" >&2;}
     (
       cat <<\_ASBOX
 ## ------------------------------------ ##
@@ -5192,26 +5185,18 @@ _ASBOX
       sed "s/^/$as_me: WARNING:     /" >&2
     ;;
 esac
-echo "$as_me:$LINENO: checking for $ac_header" >&5
-echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6
-if eval "test \"\${$as_ac_Header+set}\" = set"; then
+echo "$as_me:$LINENO: checking for termcap.h" >&5
+echo $ECHO_N "checking for termcap.h... $ECHO_C" >&6
+if test "${ac_cv_header_termcap_h+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-  eval "$as_ac_Header=$ac_header_preproc"
+  ac_cv_header_termcap_h=$ac_header_preproc
 fi
-echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_Header'}'`" >&5
-echo "${ECHO_T}`eval echo '${'$as_ac_Header'}'`" >&6
-
-fi
-if test `eval echo '${'$as_ac_Header'}'` = yes; then
-  cat >>confdefs.h <<_ACEOF
-#define `echo "HAVE_$ac_header" | $as_tr_cpp` 1
-_ACEOF
+echo "$as_me:$LINENO: result: $ac_cv_header_termcap_h" >&5
+echo "${ECHO_T}$ac_cv_header_termcap_h" >&6
 
 fi
-
-done
-
+if test $ac_cv_header_termcap_h = yes; then
    echo "$as_me:$LINENO: checking for tgetent in -ltermcap" >&5
 echo $ECHO_N "checking for tgetent in -ltermcap... $ECHO_C" >&6
 if test "${ac_cv_lib_termcap_tgetent+set}" = set; then
@@ -5267,14 +5252,26 @@ fi
 echo "$as_me:$LINENO: result: $ac_cv_lib_termcap_tgetent" >&5
 echo "${ECHO_T}$ac_cv_lib_termcap_tgetent" >&6
 if test $ac_cv_lib_termcap_tgetent = yes; then
-  CONS_LIBS="-ltermcap"
-fi
-
-   support_readline=no
+   CONS_LIBS="-ltermcap"
+	 CONS_OBJ="conio.o"
+	 CONS_SRC="conio.c"
+	 got_conio="yes"
+	 support_readline=no
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_CONIO 1
 _ACEOF
+
+
+else
+   echo " "; echo "termcap library not found. CONIO turned off ..."; echo " "
+fi
+
+
+else
+  echo " "; echo "termcap.h not found. CONIO turned off ..."; echo " "
+fi
+
 
 fi
 

@@ -475,9 +475,6 @@
 /* Define to 1 if you have the `tcgetattr' function. */
 #undef HAVE_TCGETATTR
 
-/* Define to 1 if you have the <termcap.h> header file. */
-#undef HAVE_TERMCAP_H
-
 /* Define to 1 if you have the <termios.h> header file. */
 #undef HAVE_TERMIOS_H
 
