@@ -108,7 +108,7 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
       if (sec <= 0) {
 	 sec = 1;
       }
-      bps = njcr->JobBytes / sec;
+      bps = (int)(njcr->JobBytes / sec);
       len = Mmsg(&msg,  _("    Files=%s Bytes=%s Bytes/sec=%s\n"), 
 	   edit_uint64_with_commas(njcr->JobFiles, b1),
 	   edit_uint64_with_commas(njcr->JobBytes, b2),
@@ -347,10 +347,12 @@ char *bac_status(int stat)
 {
    JCR *njcr;
    char *termstat = _("Bacula Idle");
+   struct s_last_job *job;
 
    bacstat = 0;
    if (last_jobs->size() > 0) {
-      switch (last_job.JobStatus) {
+      job = (struct s_last_job *)last_jobs->first();
+      switch (job->JobStatus) {
       case JS_Canceled:
 	 bacstat = -1;
          termstat = _("Last Job Canceled");
@@ -365,7 +367,7 @@ char *bac_status(int stat)
    }
    Dmsg0(1000, "Begin bac_status jcr loop.\n");
    lock_jcr_chain();
-   for (njcr=NULL; (njcr=get_next_jcr(njcr)); ) {
+   foreach_jcr(njcr) {
       if (njcr->JobId != 0) {
 	 bacstat = 1;
          termstat = _("Bacula Running");
