@@ -724,7 +724,6 @@ static int append_test()
 static void testcmd()
 {
    int stat;
-   re_read_block_test();
 
    stat = append_test();
    if (stat == 1) {		      /* OK get out */
@@ -793,6 +792,10 @@ all_done:
                "sample output, you MUST correct the problem\n"
                "or Bacula will not be able to write multiple Jobs to \n"
                "the tape.\n\n"));
+
+   if (stat == 1) {
+      re_read_block_test();
+   }
 
    Pmsg0(-1, _("\n=== End Append files test ===\n"));
    

@@ -20,6 +20,7 @@ Testing to do: (painful)
 - multiple simultaneous Volumes
 
 For 1.30 release:
+- Look at Python for a Bacula scripting language -- www.python.org
 - add #define ENABLE_NLS for Gnome compile on SuSE.
 - Need define of int_least16_t in sha1.h for SuSE.
 - Figure out how to use ssh to protect Bacula communications.
