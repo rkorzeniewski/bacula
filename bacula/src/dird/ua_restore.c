@@ -213,7 +213,7 @@ int restore_cmd(UAContext *ua, char *cmd)
           job->hdr.name, rx.ClientName, rx.store?rx.store->hdr.name:"",
 	  working_directory);
    }
-   if (find_arg(ua, _("run")) >= 0 || find_arg(ua, _("yes"))) {
+   if (find_arg(ua, _("yes")) > 0) {
       pm_strcat(&ua->cmd, " yes");    /* pass it on to the run command */
    }
    Dmsg1(400, "Submitting: %s\n", ua->cmd);

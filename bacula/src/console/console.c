@@ -359,7 +359,9 @@ Without that I don't how to speak to the Director :-(\n"), configfile);
 
 
    if (ndir > 1) {
-      UA_sock = init_bsock(NULL, 0, "", "", 0);
+      struct sockaddr_in client_addr;
+      memset(&client_addr, 0, sizeof(client_addr));
+      UA_sock = init_bsock(NULL, 0, "", "", 0, &client_addr);
 try_again:
       sendit(_("Available Directors:\n"));
       LockRes();

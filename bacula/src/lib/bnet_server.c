@@ -174,7 +174,7 @@ bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_w
          caller = "unknown client";
       }
 
-      BSOCK *bs = init_bsock(NULL, newsockfd, "client", caller, port);
+      BSOCK *bs = init_bsock(NULL, newsockfd, "client", caller, port, &cli_addr);
       if (bs == NULL) {
          Jmsg0(NULL, M_ABORT, 0, _("Could not create client BSOCK.\n"));
       }
@@ -242,7 +242,7 @@ bnet_bind(int port)
       bmicrosleep(5, 0);
    }
    listen(sockfd, 1);		      /* tell system we are ready */
-   return init_bsock(NULL, sockfd, _("Server socket"), _("client"), port);
+   return init_bsock(NULL, sockfd, _("Server socket"), _("client"), port, &serv_addr);
 }
 
 /*
@@ -335,7 +335,7 @@ bnet_accept(BSOCK *bsock, char *who)
       strcpy(buf, who);
       strcat(buf, ": ");
       strcat(buf, caller);
-      bs = init_bsock(NULL, newsockfd, "client", buf, bsock->port);
+      bs = init_bsock(NULL, newsockfd, "client", buf, bsock->port, &cli_addr);
       free(buf);
       return bs;		      /* return new BSOCK */
    }

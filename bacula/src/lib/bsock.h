@@ -37,24 +37,25 @@ struct BSOCK {
    uint32_t out_msg_no;               /* output message number */
    int fd;                            /* socket file descriptor */
    int32_t msglen;                    /* message length */
-   int port;                          /* desired port */
-   volatile int errors;               /* set if errors on socket */
-   volatile int suppress_error_msgs;  /* set to suppress error messages */
    int b_errno;                       /* bsock errno */
+   int port;                          /* desired port */
+   volatile bool errors: 1;           /* set if errors on socket */
+   volatile bool suppress_error_msgs: 1; /* set to suppress error messages */
+   volatile bool timed_out: 1;        /* timed out in read/write */
+   volatile bool terminated: 1;       /* set when BNET_TERMINATE arrives */
+   bool duped: 1;                     /* set if duped BSOCK */
+   bool spool: 1;                      /* set for spooling */
    volatile time_t timer_start;       /* time started read/write */
-   volatile int timed_out;            /* timed out in read/write */
-   volatile int timeout;              /* time out after this value */
-   volatile int terminated;           /* set when BNET_TERMINATE arrives */
-   int duped;                         /* set if duped BSOCK */
+   volatile time_t timeout;           /* timeout BSOCK after this interval */
    POOLMEM *msg;                      /* message pool buffer */
    char *who;                         /* Name of daemon to which we are talking */
    char *host;                        /* Host name/IP */
    POOLMEM *errmsg;                   /* edited error message (to be implemented) */
    RES *res;                          /* Resource to which we are connected */
    BSOCK *next;                       /* next BSOCK if duped */
-   int spool;                         /* set for spooling */
    FILE *spool_fd;                    /* spooling file */
    JCR *jcr;                          /* jcr or NULL for error msgs */
+   struct sockaddr_in client_addr;    /* client's IP address */
 };      
 
 /* Signal definitions for use in bnet_sig() */

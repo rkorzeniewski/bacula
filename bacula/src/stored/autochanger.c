@@ -82,7 +82,7 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
       if (status == 0) {
 	 loaded = atoi(results);
       } else {
-         Jmsg(jcr, M_INFO, 0, _("3991 Bad autochanger \"load slot\" status=%d.\n"), status);
+         Jmsg(jcr, M_INFO, 0, _("3991 Bad autochanger \"loaded\" command, status=%d.\n"), status);
 	 loaded = -1;		   /* force unload */
       }
       Dmsg1(400, "loaded=%s\n", results);
@@ -110,11 +110,11 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
                       jcr->device->changer_command, "load");
 	 status = run_program(changer, timeout, NULL);
 	 if (status == 0) {
-            Jmsg(jcr, M_INFO, 0, _("3304 Autochanger \"load slot %d\" status is OK.\n"),
+            Jmsg(jcr, M_INFO, 0, _("3304 Autochanger \"load slot %d\", status is OK.\n"),
 		    slot);
 	 } else {
-            Jmsg(jcr, M_INFO, 0, _("3992 Bad autochanger \"load slot\" status=%d.\n"),
-		    status);
+            Jmsg(jcr, M_INFO, 0, _("3992 Bad autochanger \"load slot %d\", status=%d.\n"),
+		    slot, status);
 	 }
          Dmsg2(400, "load slot %d status=%d\n", slot, status);
       }

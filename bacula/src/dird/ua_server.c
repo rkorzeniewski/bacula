@@ -140,7 +140,7 @@ static void *handle_UA_client_request(void *arg)
    ua->UA_sock = UA_sock;
 
    bnet_recv(ua->UA_sock);	    /* Get first message */
-   if (!authenticate_user_agent(ua->UA_sock)) {
+   if (!authenticate_user_agent(ua)) {
       goto getout;
    }
 
