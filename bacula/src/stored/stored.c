@@ -310,6 +310,7 @@ static void *device_allocation(void *arg)
       Dmsg1(10, "SD init done %s\n", device->device_name);
       if (!device->dev) {
          Emsg1(M_ERROR, 0, _("Could not initialize %s\n"), device->device_name);
+	 continue;
       }
       if (device->cap_bits & CAP_ALWAYSOPEN) {
          Dmsg1(20, "calling open_device %s\n", device->device_name);

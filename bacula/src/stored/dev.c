@@ -286,7 +286,7 @@ open_dev(DEVICE *dev, char *VolName, int mode)
       Dmsg1(29, "open_dev: tape %d opened\n", dev->fd);
    } else {
       /*
-       * Handle opening of file
+       * Handle opening of File Archive (not a tape)
        */
       archive_name = get_pool_memory(PM_FNAME);
       pm_strcpy(&archive_name, dev->dev_name);

@@ -103,7 +103,6 @@ mount_next_vol:
    }
    Dmsg2(100, "After find_next_append. Vol=%s Slot=%d\n",
 	 jcr->VolCatInfo.VolCatName, jcr->VolCatInfo.Slot);
-   release = 1;                       /* release if we "recurse" */
 
    /* 
     * Get next volume and ready it for append
@@ -127,9 +126,18 @@ mount_next_vol:
    for ( ;; ) {
       int vol_label_status;
       autochanger = autoload_device(jcr, dev, 1, NULL);
-      if (autochanger) {
-	 ask = 0;		      /* if autochange no need to ask sysop */
+
+      /*
+       * If we autochanged to correct Volume or (we have not just
+       *   released the Volume AND we can automount) we go ahead 
+       *   and read the label. If there is no tape in the drive,
+       *   we will err, recurse and ask the operator the next time.
+       */
+      if (autochanger || (!release && dev_cap(dev, CAP_AUTOMOUNT))) {
+         ask = 0;                     /* don't ask SYSOP this time */
       }
+
+      release = 1;                    /* release next time if we "recurse" */
 
       if (ask && !dir_ask_sysop_to_mount_next_volume(jcr, dev)) {
          Dmsg0(100, "Error return ask_sysop ...\n");
@@ -138,7 +146,7 @@ mount_next_vol:
       Dmsg1(100, "want vol=%s\n", jcr->VolumeName);
 
       /* Open device */
-      for ( ; !(dev->state & ST_OPENED); ) {
+      if  (!(dev->state & ST_OPENED)) {
 	  int mode;
 	  if (dev_cap(dev, CAP_STREAM)) {
 	     mode = OPEN_WRITE_ONLY;

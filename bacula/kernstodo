@@ -19,6 +19,7 @@ Testing to do: (painful)
 For 1.30 release:
 - Fix Bare Metal restore problem.
 - Implement create "FileSet"?
+- Possibly implement a Slot priority (loaded/not loaded).
 - Test multiple simultaneous Volumes
 
 - Document new transparent Console commands and wait command.
@@ -961,4 +962,3 @@ rufus-dir: Volume used once. Marking Volume "File0003" as Used.
   the binary gets deleted when the daemon is stopped in the
   rc.d/inid.d directory.
 - Do not ignore SIGCHLD
-
