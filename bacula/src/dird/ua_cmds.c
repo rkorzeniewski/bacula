@@ -53,6 +53,7 @@ extern int runcmd(UAContext *ua, char *cmd);
 extern int retentioncmd(UAContext *ua, char *cmd);
 extern int prunecmd(UAContext *ua, char *cmd);
 extern int purgecmd(UAContext *ua, char *cmd);
+extern int restorecmd(UAContext *ua, char *cmd);
 
 /* Forward referenced functions */
 static int addcmd(UAContext *ua, char *cmd),  createcmd(UAContext *ua, char *cmd), cancelcmd(UAContext *ua, char *cmd);
@@ -83,6 +84,7 @@ static struct cmdstruct commands[] = {
  { N_("list"),       listcmd,      _("list [pools | jobs | jobtotals | media <pool> | files job=<nn>]; from catalog")},
  { N_("messages"),   messagescmd,  _("messages")},
  { N_("mount"),      mountcmd,     _("mount <storage-name>")},
+ { N_("restore"),    restorecmd,   _("restore files")},
  { N_("prune"),      prunecmd,     _("prune expired records from catalog")},
  { N_("purge"),      purgecmd,     _("purge records from catalog")},
  { N_("run"),        runcmd,       _("run <job-name>")},
@@ -545,14 +547,14 @@ static int updatecmd(UAContext *ua, char *cmd)
    }
     
    start_prompt(ua, _("Update choice:\n"));
-   add_prompt(ua, _("Pool from resource"));
    add_prompt(ua, _("Volume parameters"));
+   add_prompt(ua, _("Pool from resource"));
    switch (do_prompt(ua, _("Choose catalog item to update"), NULL)) {
       case 0:
-	 update_pool(ua);
+	 update_volume(ua);
 	 break;
       case 1:
-	 update_volume(ua);
+	 update_pool(ua);
 	 break;
       default:
 	 break;
@@ -570,46 +572,30 @@ static int update_volume(UAContext *ua)
 {
    POOL_DBR pr;
    MEDIA_DBR mr;
-   int i;
-   static char *kw[] = {
-      "volume",
-      NULL};
    POOLMEM *query;
    char ed1[30];
 
-   memset(&pr, 0, sizeof(pr));
-   memset(&mr, 0, sizeof(mr));
-   if (!get_pool_dbr(ua, &pr)) {
+   if (!select_pool_and_media_dbr(ua, &pr, &mr)) {
       return 0;
-   }
-   mr.PoolId = pr.PoolId;
-   mr.VolumeName[0] = 0;
-
-   i = find_arg_keyword(ua, kw);
-   if (i == 0 && ua->argv[i]) {
-      strcpy(mr.VolumeName, ua->argv[i]);
-   }
-   if (mr.VolumeName[0] == 0) {
-      db_list_media_records(ua->db, &mr, prtit, ua);
-      if (!get_cmd(ua, _("Enter Volume name to update: "))) {
-	 return 0;
-      }
-      strcpy(mr.VolumeName, ua->cmd);
    }
 
    for (int done=0; !done; ) {
-      mr.MediaId = 0;
       if (!db_get_media_record(ua->db, &mr)) {
-         bsendmsg(ua, _("Volume record for %s not found.\n"), mr.VolumeName);
+	 if (mr.MediaId != 0) {
+            bsendmsg(ua, _("Volume record for MediaId %d not found.\n"), mr.MediaId);
+	 } else {
+            bsendmsg(ua, _("Volume record for %s not found.\n"), mr.VolumeName);
+	 }
 	 return 0;
       }
+      bsendmsg(ua, _("Updating Volume %s\n"), mr.VolumeName);
       start_prompt(ua, _("Parameters to modify:\n"));
       add_prompt(ua, _("Volume Status"));
       add_prompt(ua, _("Volume Retention Period"));
       add_prompt(ua, _("Recycle Flag"));
       add_prompt(ua, _("Slot"));
       add_prompt(ua, _("Done"));
-      switch (do_prompt(ua, _("Select paramter to modify"), NULL)) {
+      switch (do_prompt(ua, _("Select parameter to modify"), NULL)) {
       case 0:			      /* Volume Status */
 	 /* Modify Volume Status */
          bsendmsg(ua, _("Current value is: %s\n"), mr.VolStatus);
@@ -627,7 +613,7 @@ static int update_volume(UAContext *ua)
 	 }
 	 strcpy(mr.VolStatus, ua->cmd);
 	 query = get_pool_memory(PM_MESSAGE);
-         Mmsg(&query, "UPDATE Media SET VolStatus=\"%s\" WHERE MediaId=%d",
+         Mmsg(&query, "UPDATE Media SET VolStatus='%s' WHERE MediaId=%d",
 	    mr.VolStatus, mr.MediaId);
 	 if (!db_sql_query(ua->db, query, NULL, NULL)) {  
             bsendmsg(ua, "%s", db_strerror(ua->db));
@@ -1306,11 +1292,11 @@ static int helpcmd(UAContext *ua, char *cmd)
    unsigned int i;
 
 /* usage(); */
-   bnet_fsend(ua->UA_sock, _("  Command    Description\n  =======    ===========\n"));
+   bsendmsg(ua, _("  Command    Description\n  =======    ===========\n"));
    for (i=0; i<comsize; i++) {
-      bnet_fsend(ua->UA_sock, _("  %-10s %s\n"), _(commands[i].key), _(commands[i].help));
+      bsendmsg(ua, _("  %-10s %s\n"), _(commands[i].key), _(commands[i].help));
    }
-   bnet_fsend(ua->UA_sock, "\n");
+   bsendmsg(ua, "\n");
    return 1;
 }
 

@@ -213,7 +213,7 @@ static int db_get_filename_record(B_DB *mdb, char *fname)
    }
 
    db_lock(mdb);
-   Mmsg(&mdb->cmd, "SELECT FilenameId FROM Filename WHERE Name=\"%s\"", fname);
+   Mmsg(&mdb->cmd, "SELECT FilenameId FROM Filename WHERE Name='%s'", fname);
    if (QUERY_DB(mdb, mdb->cmd)) {
 
       mdb->num_rows = sql_num_rows(mdb);
@@ -263,7 +263,7 @@ static int db_get_path_record(B_DB *mdb, char *path)
       return mdb->cached_path_id;
    }	      
 
-   Mmsg(&mdb->cmd, "SELECT PathId FROM Path WHERE Path=\"%s\"", path);
+   Mmsg(&mdb->cmd, "SELECT PathId FROM Path WHERE Path='%s'", path);
 
    if (QUERY_DB(mdb, mdb->cmd)) {
       char ed1[30];
@@ -312,7 +312,7 @@ int db_get_job_record(B_DB *mdb, JOB_DBR *jr)
    if (jr->JobId == 0) {
       Mmsg(&mdb->cmd, "SELECT VolSessionId, VolSessionTime, \
 PoolId, StartTime, EndTime, JobFiles, JobBytes, JobTDate, Job, JobStatus \
-FROM Job WHERE Job=\"%s\"", jr->Job);
+FROM Job WHERE Job='%s'", jr->Job);
     } else {
       Mmsg(&mdb->cmd, "SELECT VolSessionId, VolSessionTime, \
 PoolId, StartTime, EndTime, JobFiles, JobBytes, JobTDate, Job, JobStatus \
@@ -470,7 +470,7 @@ PoolType, LabelFormat FROM Pool WHERE Pool.PoolId=%d", pdbr->PoolId);
       Mmsg(&mdb->cmd, 
 "SELECT PoolId, Name, NumVols, MaxVols, UseOnce, UseCatalog, AcceptAnyVolume, \
 AutoPrune, Recycle, VolRetention, \
-PoolType, LabelFormat FROM Pool WHERE Pool.Name=\"%s\"", pdbr->Name);
+PoolType, LabelFormat FROM Pool WHERE Pool.Name='%s'", pdbr->Name);
    }  
 
    if (QUERY_DB(mdb, mdb->cmd)) {
@@ -590,7 +590,7 @@ FROM Media WHERE MediaId=%d", mr->MediaId);
       Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,\
 VolBytes,VolMounts,VolErrors,VolWrites,VolMaxBytes,VolCapacityBytes,\
 MediaType,VolStatus,PoolId,VolRetention,Recycle,Slot \
-FROM Media WHERE VolumeName=\"%s\"", mr->VolumeName);
+FROM Media WHERE VolumeName='%s'", mr->VolumeName);
    }  
 
    if (QUERY_DB(mdb, mdb->cmd)) {

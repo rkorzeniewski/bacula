@@ -760,13 +760,13 @@ void save_resource(int type, struct res_items *items, int pass)
    for (i=0; items[i].name; i++) {
       if (items[i].flags & ITEM_REQUIRED) {
 	    if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {  
-               Emsg2(M_ABORT, 0, "%s item is required in %s resource, but not found.\n",
+               Emsg2(M_ERROR_TERM, 0, "%s item is required in %s resource, but not found.\n",
 		 items[i].name, resources[rindex]);
 	     }
       }
       /* If this triggers, take a look at lib/parse_conf.h */
       if (i >= MAX_RES_ITEMS) {
-         Emsg1(M_ABORT, 0, "Too many items in %s resource\n", resources[rindex]);
+         Emsg1(M_ERROR_TERM, 0, "Too many items in %s resource\n", resources[rindex]);
       }
    }
 
@@ -789,13 +789,13 @@ void save_resource(int type, struct res_items *items, int pass)
 	 /* Resources containing another resource */
 	 case R_DIRECTOR:
 	    if ((res = (URES *)GetResWithName(R_DIRECTOR, res_all.res_dir.hdr.name)) == NULL) {
-               Emsg1(M_ABORT, 0, "Cannot find Director resource %s\n", res_all.res_dir.hdr.name);
+               Emsg1(M_ERROR_TERM, 0, "Cannot find Director resource %s\n", res_all.res_dir.hdr.name);
 	    }
 	    res->res_dir.messages = res_all.res_dir.messages;
 	    break;
 	 case R_JOB:
 	    if ((res = (URES *)GetResWithName(R_JOB, res_all.res_dir.hdr.name)) == NULL) {
-               Emsg1(M_ABORT, 0, "Cannot find Job resource %s\n", res_all.res_dir.hdr.name);
+               Emsg1(M_ERROR_TERM, 0, "Cannot find Job resource %s\n", res_all.res_dir.hdr.name);
 	    }
 	    res->res_job.messages = res_all.res_job.messages;
 	    res->res_job.schedule = res_all.res_job.schedule;
@@ -804,7 +804,7 @@ void save_resource(int type, struct res_items *items, int pass)
 	    res->res_job.storage  = res_all.res_job.storage;
 	    res->res_job.pool	  = res_all.res_job.pool;
 	    if (res->res_job.JobType == 0) {
-               Emsg1(M_ABORT, 0, "Job Type not defined for Job resource %s\n", res_all.res_dir.hdr.name);
+               Emsg1(M_ERROR_TERM, 0, "Job Type not defined for Job resource %s\n", res_all.res_dir.hdr.name);
 	    }
 	    if (res->res_job.level != 0) {
 	       int i;
@@ -816,14 +816,14 @@ void save_resource(int type, struct res_items *items, int pass)
 		  }
 	       }
 	       if (i != 0) {
-                  Emsg1(M_ABORT, 0, "Inappropriate level specified in Job resource %s\n", 
+                  Emsg1(M_ERROR_TERM, 0, "Inappropriate level specified in Job resource %s\n", 
 		     res_all.res_dir.hdr.name);
 	       }
 	    }
 	    break;
 	 case R_CLIENT:
 	    if ((res = (URES *)GetResWithName(R_CLIENT, res_all.res_client.hdr.name)) == NULL) {
-               Emsg1(M_ABORT, 0, "Cannot find Client resource %s\n", res_all.res_client.hdr.name);
+               Emsg1(M_ERROR_TERM, 0, "Cannot find Client resource %s\n", res_all.res_client.hdr.name);
 	    }
 	    res->res_client.catalog = res_all.res_client.catalog;
 	    break;
@@ -834,7 +834,7 @@ void save_resource(int type, struct res_items *items, int pass)
 	     * into the Schedule resource.			   
 	     */
 	    if ((res = (URES *)GetResWithName(R_SCHEDULE, res_all.res_client.hdr.name)) == NULL) {
-               Emsg1(M_ABORT, 0, "Cannot find Schedule resource %s\n", res_all.res_client.hdr.name);
+               Emsg1(M_ERROR_TERM, 0, "Cannot find Schedule resource %s\n", res_all.res_client.hdr.name);
 	    }
 	    res->res_sch.run = res_all.res_sch.run;
 	    break;

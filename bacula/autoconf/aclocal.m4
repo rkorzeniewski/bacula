@@ -295,6 +295,74 @@ Which one DBMS do you want to use (please select only one):
 ],[
   AC_MSG_RESULT(no)
 ])
+
+AC_ARG_WITH(embedded-mysql,
+[
+Which one DBMS do you want to use (please select only one):
+  --with-embedde-mysql[=DIR] Include MySQL support.  DIR is the MySQL base
+                          install directory, default is to search through
+                          a number of common places for the MySQL files.],
+[
+  if test "$withval" != "no"; then
+        if test "$withval" = "yes"; then
+                if test -f /usr/local/mysql/include/mysql/mysql.h; then
+                        MYSQL_INCDIR=/usr/local/mysql/include/mysql
+                        MYSQL_LIBDIR=/usr/local/mysql/lib/mysql
+                        MYSQL_BINDIR=/usr/local/mysql/bin
+                elif test -f /usr/include/mysql/mysql.h; then
+                        MYSQL_INCDIR=/usr/include/mysql
+                        MYSQL_LIBDIR=/usr/lib/mysql
+                        MYSQL_BINDIR=/usr/bin      
+                elif test -f /usr/include/mysql.h; then
+                        MYSQL_INCDIR=/usr/include
+                        MYSQL_LIBDIR=/usr/lib
+                        MYSQL_BINDIR=/usr/bin
+                elif test -f /usr/local/include/mysql/mysql.h; then
+                        MYSQL_INCDIR=/usr/local/include/mysql
+                        MYSQL_LIBDIR=/usr/local/lib/mysql
+                        MYSQL_BINDIR=/usr/local/bin
+                elif test -f /usr/local/include/mysql.h; then
+                        MYSQL_INCDIR=/usr/local/include
+                        MYSQL_LIBDIR=/usr/local/lib
+                        MYSQL_BINDIR=/usr/local/bin
+                else
+                   AC_MSG_RESULT(no)
+                   AC_MSG_ERROR(Unable to find mysql.h in standard locations)
+                fi
+        else
+                if test -f $withval/include/mysql/mysql.h; then
+                        MYSQL_INCDIR=$withval/include/mysql
+                        MYSQL_LIBDIR=$withval/lib/mysql
+                        MYSQL_BINDIR=$withval/bin
+                elif test -f $withval/include/mysql.h; then
+                        MYSQL_INCDIR=$withval/include
+                        MYSQL_LIBDIR=$withval/lib
+                        MYSQL_BINDIR=$withval/bin
+                else
+                   AC_MSG_RESULT(no)
+                   AC_MSG_ERROR(Invalid MySQL directory $withval - unable to find mysql.h under $withval)
+                fi
+        fi
+    SQL_INCLUDE=-I$MYSQL_INCDIR
+    SQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqld -lz -lm -lcrypt"
+    SQL_BINDIR=$MYSQL_BINDIR
+
+    AC_DEFINE(HAVE_MYSQL)
+    AC_DEFINE(HAVE_EMBEDDED_MYSQL)
+    AC_MSG_RESULT(yes)
+    have_db=yes
+    support_mysql=yes
+    db_name=MySQL
+    DB_NAME=mysql
+
+  else
+        AC_MSG_RESULT(no)
+  fi
+],[
+  AC_MSG_RESULT(no)
+])
+
+
 AC_SUBST(SQL_LFLAGS)
 AC_SUBST(SQL_INCLUDE)
 AC_SUBST(SQL_BINDIR)

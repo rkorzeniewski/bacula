@@ -225,13 +225,8 @@ db_escape_string(char *snew, char *old, int len)
    while (len--) {
       switch (*o) {
       case '\'':
-         *n++ = '\\';
          *n++ = '\'';
-	 o++;
-	 break;
-      case '"':
-         *n++ = '\\';
-         *n++ = '"';
+         *n++ = '\'';
 	 o++;
 	 break;
       case 0:

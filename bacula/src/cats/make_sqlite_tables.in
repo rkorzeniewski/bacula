@@ -12,11 +12,15 @@ CREATE TABLE Filename (
   PRIMARY KEY(FilenameId) 
   );
 
+CREATE INDEX inx1 ON Filename (Name);
+
 CREATE TABLE Path (
    PathId INTEGER UNSIGNED AUTOINCREMENT,
    Path TEXT DEFAULT "",
    PRIMARY KEY(PathId) 
    );
+
+CREATE INDEX inx2 ON Path (Path);
 
 
 CREATE TABLE File (
@@ -30,6 +34,10 @@ CREATE TABLE File (
    MD5 VARCHAR(25) NOT NULL,
    PRIMARY KEY(FileId) 
    );
+
+CREATE INDEX inx3 ON File (JobId);
+CREATE INDEX inx4 ON File (PathId);
+CREATE INDEX inx5 ON File (FileNameId);
 
 CREATE TABLE Job (
    JobId INTEGER UNSIGNED NOT NULL,
@@ -55,6 +63,8 @@ CREATE TABLE Job (
    PRIMARY KEY(JobId) 
    );
 
+CREATE INDEX inx6 ON Job (Name);
+
 CREATE TABLE FileSet (
    FileSetId INTEGER UNSIGNED AUTOINCREMENT,
    FileSet VARCHAR(128) NOT NULL,
@@ -74,6 +84,8 @@ CREATE TABLE JobMedia (
    EndBlock INTEGER UNSIGNED DEFAULT 0,
    PRIMARY KEY(JobMediaId) 
    );
+
+CREATE INDEX inx7 ON JobMedia (JobId, MediaId);
 
 
 CREATE TABLE Media (
@@ -99,6 +111,8 @@ CREATE TABLE Media (
    VolRetention BIGINT UNSIGNED DEFAULT 0,
    PRIMARY KEY(MediaId)
    );
+
+CREATE INDEX inx8 ON Media (PoolId);
 
 CREATE TABLE Pool (
    PoolId INTEGER UNSIGNED AUTOINCREMENT,

@@ -215,6 +215,19 @@ try_again:
    Dmsg1(20, "JobType=%c\n", jcr->JobType);
    switch (jcr->JobType) {
       char ec1[30];
+      case JT_ADMIN:
+         bsendmsg(ua, _("Run %s job\n\
+JobName:  %s\n\
+FileSet:  %s\n\
+Client:   %s\n\
+Storage:  %s\n"),
+                 _("Admin"),
+		 job->hdr.name,
+		 jcr->fileset->hdr.name,
+		 NPRT(jcr->client->hdr.name),
+		 NPRT(jcr->store->hdr.name));
+	 break;
+	 break;
       case JT_BACKUP:
       case JT_VERIFY:
 	 if (level_name) {

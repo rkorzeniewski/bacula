@@ -60,7 +60,7 @@ db_add_MD5_to_file_record(B_DB *mdb, FileId_t FileId, char *MD5)
    int stat;
 
    db_lock(mdb);
-   Mmsg(&mdb->cmd, "UPDATE File SET MD5=\"%s\" WHERE FileId=%d", MD5, FileId);
+   Mmsg(&mdb->cmd, "UPDATE File SET MD5='%s' WHERE FileId=%d", MD5, FileId);
    stat = UPDATE_DB(mdb, mdb->cmd);
    db_unlock(mdb);
    return stat;
@@ -102,7 +102,7 @@ db_update_job_start_record(B_DB *mdb, JOB_DBR *jr)
    JobTDate = (btime_t)stime;
 
    db_lock(mdb);
-   Mmsg(&mdb->cmd, "UPDATE Job SET Level='%c', StartTime=\"%s\", \
+   Mmsg(&mdb->cmd, "UPDATE Job SET Level='%c', StartTime='%s', \
 ClientId=%d, JobTDate=%s WHERE JobId=%d",
       (char)(jr->Level), dt, jr->ClientId, edit_uint64(JobTDate, ed1), jr->JobId);
    stat = UPDATE_DB(mdb, mdb->cmd);
@@ -166,7 +166,7 @@ db_update_pool_record(B_DB *mdb, POOL_DBR *pr)
    db_lock(mdb);
    Mmsg(&mdb->cmd,
 "UPDATE Pool SET NumVols=%d, MaxVols=%d, UseOnce=%d, UseCatalog=%d, \
-AcceptAnyVolume=%d, LabelFormat=\"%s\" WHERE PoolId=%d",
+AcceptAnyVolume=%d, LabelFormat='%s' WHERE PoolId=%d",
       pr->NumVols, pr->MaxVols, pr->UseOnce, pr->UseCatalog,
       pr->AcceptAnyVolume, pr->LabelFormat, pr->PoolId);
 
@@ -197,15 +197,15 @@ db_update_media_record(B_DB *mdb, MEDIA_DBR *mr)
    Dmsg1(100, "update_media: FirstWritten=%d\n", mr->FirstWritten);
    db_lock(mdb);
    if (mr->VolMounts == 1) {
-      Mmsg(&mdb->cmd, "UPDATE Media SET FirstWritten=\"%s\"\
- WHERE VolumeName=\"%s\"", dt, mr->VolumeName);
+      Mmsg(&mdb->cmd, "UPDATE Media SET FirstWritten='%s'\
+ WHERE VolumeName='%s'", dt, mr->VolumeName);
       UPDATE_DB(mdb, mdb->cmd);
    }
 
    Mmsg(&mdb->cmd, "UPDATE Media SET VolJobs=%d,\
  VolFiles=%d, VolBlocks=%d, VolBytes=%s, VolMounts=%d, VolErrors=%d,\
- VolWrites=%d, VolMaxBytes=%s, LastWritten=\"%s\", VolStatus=\"%s\",\
- Slot=%d WHERE VolumeName=\"%s\"",
+ VolWrites=%d, VolMaxBytes=%s, LastWritten='%s', VolStatus='%s',\
+ Slot=%d WHERE VolumeName='%s'",
    mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
    mr->VolMounts, mr->VolErrors, mr->VolWrites, 
    edit_uint64(mr->VolMaxBytes, ed2), dt, 

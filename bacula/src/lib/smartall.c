@@ -221,6 +221,7 @@ void *sm_realloc(char *fname, int lineno, void *ptr, unsigned int size)
 	void *buf;
 	char *cp = (char *) ptr;
 
+        Dmsg4(400, "sm_realloc %s:%d 0x%x %d\n", fname, lineno, ptr, size);
 	sm_check(fname, lineno, True);
 	if (size <= 0) {
            e_msg(fname, lineno, M_ABORT, 0, "sm_realloc size: %d\n", size);
@@ -292,6 +293,7 @@ void *actuallycalloc(unsigned int nelem, unsigned int elsize)
 
 void *actuallyrealloc(void *ptr, unsigned int size)
 {
+        Dmsg2(400, "Actuallyrealloc 0x%x %d\n", ptr, size);
 	return realloc(ptr, size);
 }
 

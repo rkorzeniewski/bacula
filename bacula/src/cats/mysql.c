@@ -116,6 +116,9 @@ db_open_database(B_DB *mdb)
    }
 
    /* connect to the database */
+#ifdef HAVE_EMBEDDED_MYSQL
+   mysql_server_init(0, NULL, NULL);
+#endif
    mysql_init(&(mdb->mysql));
    Dmsg0(50, "mysql_init done\n");
    mdb->db = mysql_real_connect(
@@ -173,6 +176,9 @@ db_close_database(B_DB *mdb)
       qdchain(&mdb->bq);
       if (mdb->connected && mdb->db) {
 	 sql_close(mdb);
+#ifdef HAVE_EMBEDDED_MYSQL
+	 mysql_server_end();
+#endif
       }
 /*    pthread_mutex_destroy(&mdb->mutex); */
       rwl_destroy(&mdb->lock);	     

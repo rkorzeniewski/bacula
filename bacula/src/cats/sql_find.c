@@ -74,14 +74,14 @@ db_find_job_start_time(B_DB *mdb, JOB_DBR *jr, char *stime)
       if (jr->Level == L_DIFFERENTIAL) {
 	 Mmsg(&mdb->cmd, 
 "SELECT JobId from Job WHERE JobStatus='T' and Type='%c' and \
-Level='%c' and Name=\"%s\" and ClientId=%d and FileSetId=%d \
+Level='%c' and Name='%s' and ClientId=%d and FileSetId=%d \
 ORDER by StartTime DESC LIMIT 1",
 	   jr->Type, L_FULL, jr->Name, jr->ClientId, jr->FileSetId);
       /* Incremental is since last Full, Incremental, or Differential */
       } else if (jr->Level == L_INCREMENTAL) {
 	 Mmsg(&mdb->cmd, 
 "SELECT JobId from Job WHERE JobStatus='T' and Type='%c' and \
-(Level='%c' or Level='%c' or Level='%c') and Name=\"%s\" and ClientId=%d \
+(Level='%c' or Level='%c' or Level='%c') and Name='%s' and ClientId=%d \
 ORDER by StartTime DESC LIMIT 1",
 	   jr->Type, L_INCREMENTAL, L_DIFFERENTIAL, L_FULL, jr->Name,
 	   jr->ClientId);
@@ -149,7 +149,7 @@ db_find_last_jobid(B_DB *mdb, JOB_DBR *jr)
    db_lock(mdb);
    if (jr->Level == L_VERIFY_CATALOG) {
       Mmsg(&mdb->cmd, 
-"SELECT JobId FROM Job WHERE Type='%c' AND Level='%c' AND Name=\"%s\" AND \
+"SELECT JobId FROM Job WHERE Type='%c' AND Level='%c' AND Name='%s' AND \
 ClientId=%d ORDER BY StartTime DESC LIMIT 1",
 	   JT_VERIFY, L_VERIFY_INIT, jr->Name, jr->ClientId);
    } else if (jr->Level == L_VERIFY_VOLUME_TO_CATALOG) {
@@ -205,7 +205,7 @@ db_find_next_volume(B_DB *mdb, int item, MEDIA_DBR *mr)
    db_lock(mdb);
    Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,\
 VolBytes,VolMounts,VolErrors,VolWrites,VolMaxBytes,VolCapacityBytes,Slot \
-FROM Media WHERE PoolId=%d AND MediaType=\"%s\" AND VolStatus=\"%s\" \
+FROM Media WHERE PoolId=%d AND MediaType='%s' AND VolStatus='%s' \
 ORDER BY MediaId", mr->PoolId, mr->MediaType, mr->VolStatus); 
 
    if (!QUERY_DB(mdb, mdb->cmd)) {

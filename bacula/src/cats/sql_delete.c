@@ -66,7 +66,7 @@ db_delete_pool_record(B_DB *mdb, POOL_DBR *pr)
    SQL_ROW row;
 
    db_lock(mdb);
-   Mmsg(&mdb->cmd, "SELECT PoolId FROM Pool WHERE Name=\"%s\"", pr->Name);
+   Mmsg(&mdb->cmd, "SELECT PoolId FROM Pool WHERE Name='%s'", pr->Name);
    Dmsg1(10, "selectpool: %s\n", mdb->cmd);
 
    pr->PoolId = pr->NumVols = 0;

@@ -30,6 +30,7 @@
 
 #include "bacula.h"
 #include "stored.h"
+#include <fnmatch.h>
 
 /* Forward references */
 static int match_sesstime(BSR_SESSTIME *sesstime, DEV_RECORD *rec);
@@ -103,7 +104,7 @@ static int match_client(BSR_CLIENT *client, SESSION_LABEL *sessrec)
    if (!client) {
       return 1; 		      /* no specification matches all */
    }
-   if (strcmp(client->ClientName, sessrec->ClientName) == 0) {
+   if (fnmatch(client->ClientName, sessrec->ClientName, 0) == 0) {
       return 1;
    }
    if (client->next) {
@@ -117,7 +118,7 @@ static int match_job(BSR_JOB *job, SESSION_LABEL *sessrec)
    if (!job) {
       return 1; 		      /* no specification matches all */
    }
-   if (strcmp(job->Job, sessrec->Job) == 0) {
+   if (fnmatch(job->Job, sessrec->Job, 0) == 0) {
       job->found++;
       return 1;
    }

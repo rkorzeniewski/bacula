@@ -326,12 +326,13 @@ int write_block_to_dev(DEVICE *dev, DEV_BLOCK *block)
       dev->state |= ST_EOF | ST_EOT | ST_WEOT;
       clrerror_dev(dev, -1);
 
-      Dmsg2(0, "=== Write error %d: ERR=%s\n", dev->dev_errno,
-	 strerror(dev->dev_errno));
-
       if (dev->dev_errno == 0) {
 	 dev->dev_errno = ENOSPC;	 /* out of space */
       }
+
+      Dmsg2(0, "=== Write error errno=%d: ERR=%s\n", dev->dev_errno,
+	 strerror(dev->dev_errno));
+
       Mmsg2(&dev->errmsg, _("Write error on device %s. ERR=%s.\n"), 
 	 dev->dev_name, strerror(dev->dev_errno));
       block->failed_write = TRUE;

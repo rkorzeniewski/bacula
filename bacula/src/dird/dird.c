@@ -166,7 +166,7 @@ int main (int argc, char *argv[])
    parse_config(configfile);
 
    if (!check_resources()) {
-      Emsg1(M_ABORT, 0, "Please correct configuration file: %s\n", configfile);
+      Emsg1(M_ERROR_TERM, 0, "Please correct configuration file: %s\n", configfile);
    }
 
    if (test_config) {
@@ -268,7 +268,7 @@ static void reload_config(int sig)
 
    Dmsg0(200, "check_resources()\n");
    if (!check_resources()) {
-      Emsg1(M_ABORT, 0, _("Please correct configuration file: %s\n"), configfile);
+      Emsg1(M_ERROR_TERM, 0, _("Please correct configuration file: %s\n"), configfile);
    }
 
    /* Reset globals */

@@ -41,86 +41,23 @@ static int mark_media_purged(UAContext *ua, MEDIA_DBR *mr);
 
 #define MAX_DEL_LIST_LEN 1000000
 
-/*
- * Select JobIds for File deletion.
- */
-static char *select_job =
-   "SELECT JobId from Job "    
-   "WHERE JobTDate < %s "
-   "AND ClientId=%d "
-   "AND PurgedFiles=0";
+/* Imported variables */
+extern char *select_job;
+extern char *drop_deltabs[];
+extern char *create_deltabs[];
+extern char *insert_delcand;
+extern char *select_backup_del;
+extern char *select_verify_del;
+extern char *select_restore_del;
+extern char *cnt_File;
+extern char *del_File;
+extern char *upd_Purged;
+extern char *cnt_DelCand;
+extern char *del_Job;
+extern char *del_JobMedia;
+extern char *cnt_JobMedia;
+extern char *sel_JobMedia;
 
-/*
- * List of SQL commands terminated by NULL for deleting
- *  temporary tables and indicies 
- */
-static char *drop_deltabs[] = {
-   "DROP TABLE DelCandidates",
-   "DROP INDEX DelInx1",
-   NULL};
-
-/*
- * List of SQL commands to create temp table and indicies
- */
-static char *create_deltabs[] = {
-   "CREATE TABLE DelCandidates ("
-      "JobId INTEGER UNSIGNED NOT NULL, "
-      "PurgedFiles TINYINT, "
-      "FileSetId INTEGER UNSIGNED)",
-   "CREATE INDEX DelInx1 ON DelCandidates (JobId)",
-   NULL};
-
-
-/*
- * Fill candidates table with all Files subject to being deleted.
- *  This is used for pruning Jobs (first the files, then the Jobs).
- */
-static char *insert_delcand = 
-   "INSERT INTO DelCandidates "
-   "SELECT JobId, PurgedFiles, FileSetId FROM Job "
-   "WHERE JobTDate < %s " 
-   "AND ClientId=%d";
-
-/*
- * Select files from the DelCandidates table that have a
- * more recent backup -- i.e. are not the only backup.
- * This is the list of files to delete for a Backup Job.
- */
-static char *select_backup_del =
-   "SELECT DelCandidates.JobId "
-   "FROM Job,DelCandidates "
-   "WHERE Job.JobTDate >= %s "
-   "AND Job.ClientId=%d "
-   "AND Job.JobType='B' "
-   "AND Job.Level='F' "
-   "AND Job.JobStatus='T' "
-   "AND Job.FileSetId=DelCandidates.FileSetId";
-
-/*
- * Select files from the DelCandidates table that have a
- * more recent InitCatalog -- i.e. are not the only InitCatalog
- * This is the list of files to delete for a Verify Job.
- */
-static char *select_verify_del =
-   "SELECT DelCandidates.JobId "
-   "FROM Job,DelCandidates "
-   "WHERE Job.JobTDate >= %s "
-   "AND Job.ClientId=%d "
-   "AND Job.JobType='V' "
-   "AND Job.Level='V' "
-   "AND Job.JobStatus='T' "
-   "AND Job.FileSetId=DelCandidates.FileSetId";
-
-/*
- * Select files from the DelCandidates table.
- * This is the list of files to delete for a Restore Job.
- */
-static char *select_restore_del =
-   "SELECT DelCandidates.JobId "
-   "FROM Job,DelCandidates "
-   "WHERE Job.JobTDate >= %s "
-   "AND Job.ClientId=%d "   
-   "AND Job.JobType='R'";
 
 /* In memory list of JobIds */
 struct s_file_del_ctx {
@@ -336,8 +273,7 @@ int prune_files(UAContext *ua, CLIENT *client)
       
    if (del.tot_ids == 0) {
       if (ua->verbose) {
-         bsendmsg(ua, _("No Files found for client %s to prune from %s catalog.\n"),
-	    client->hdr.name, client->catalog->hdr.name);
+         bsendmsg(ua, _("No Files found to prune.\n"));
       }
       goto bail_out;
    }
@@ -357,11 +293,11 @@ int prune_files(UAContext *ua, CLIENT *client)
    for (i=0; i < del.num_ids; i++) {
       struct s_count_ctx cnt;
       Dmsg1(050, "Delete JobId=%d\n", del.JobId[i]);
-      Mmsg(&query, "SELECT count(*) FROM File WHERE JobId=%d", del.JobId[i]);
+      Mmsg(&query, cnt_File, del.JobId[i]);
       cnt.count = 0;
       db_sql_query(ua->db, query, count_handler, (void *)&cnt);
       del.tot_ids += cnt.count;
-      Mmsg(&query, "DELETE FROM File WHERE JobId=%d", del.JobId[i]);
+      Mmsg(&query, del_File, del.JobId[i]);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       /* 
        * Now mark Job as having files purged. This is necessary to
@@ -369,7 +305,7 @@ int prune_files(UAContext *ua, CLIENT *client)
        * we don't do this, the number of JobId's in our in memory list
        * will grow very large.
        */
-      Mmsg(&query, "UPDATE Job Set PurgedFiles=1 WHERE JobId=%d", del.JobId[i]);
+      Mmsg(&query, upd_Purged, del.JobId[i]);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       Dmsg1(050, "Del sql=%s\n", query);
    }
@@ -469,7 +405,7 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
    }
 
    /* Count Files to be deleted */
-   strcpy(query, "SELECT count(*) FROM DelCandidates");
+   strcpy(query, cnt_DelCand);
    Dmsg1(100, "select sql=%s\n", query);
    if (!db_sql_query(ua->db, query, count_handler, (void *)&cnt)) {
       if (ua->verbose) {
@@ -481,8 +417,7 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
       
    if (cnt.count == 0) {
       if (ua->verbose) {
-         bsendmsg(ua, _("No Jobs found for client %s to prune from %s catalog.\n"),
-	    client->hdr.name, client->catalog->hdr.name);
+         bsendmsg(ua, _("No Jobs found to prune.\n"));
       }
       goto bail_out;
    }
@@ -517,16 +452,16 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
    for (i=0; i < del.num_ids; i++) {
       Dmsg1(050, "Delete JobId=%d\n", del.JobId[i]);
       if (!del.PurgedFiles[i]) {
-         Mmsg(&query, "DELETE FROM File WHERE JobId=%d", del.JobId[i]);
+	 Mmsg(&query, del_File, del.JobId[i]);
 	 db_sql_query(ua->db, query, NULL, (void *)NULL);
          Dmsg1(050, "Del sql=%s\n", query);
       }
 
-      Mmsg(&query, "DELETE FROM Job WHERE JobId=%d", del.JobId[i]);
+      Mmsg(&query, del_Job, del.JobId[i]);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       Dmsg1(050, "Del sql=%s\n", query);
 
-      Mmsg(&query, "DELETE FROM JobMedia WHERE JobId=%d", del.JobId[i]);
+      Mmsg(&query, del_JobMedia, del.JobId[i]);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       Dmsg1(050, "Del sql=%s\n", query);
    }
@@ -562,7 +497,7 @@ int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
    memset(&jr, 0, sizeof(jr));
    memset(&del, 0, sizeof(del));
    cnt.count = 0;
-   Mmsg(&query, "SELECT count(*) FROM JobMedia WHERE MediaId=%d", mr->MediaId);
+   Mmsg(&query, cnt_JobMedia, mr->MediaId);
    if (!db_sql_query(ua->db, query, count_handler, (void *)&cnt)) {
       bsendmsg(ua, "%s", db_strerror(ua->db));
       Dmsg0(050, "Count failed\n");
@@ -587,7 +522,7 @@ int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
    del.JobId = (JobId_t *)malloc(sizeof(JobId_t) * del.max_ids);
 
    /* ***FIXME*** could make this do JobTDate check too */
-   Mmsg(&query, "SELECT JobId FROM JobMedia WHERE MediaId=%d", mr->MediaId);
+   Mmsg(&query, sel_JobMedia, mr->MediaId);
    if (!db_sql_query(ua->db, query, file_delete_handler, (void *)&del)) {
       if (ua->verbose) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
@@ -612,11 +547,11 @@ int prune_volume(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
 	 continue;
       }
       Dmsg2(200, "Delete JobId=%d Job=%s\n", del.JobId[i], jr.Job);
-      Mmsg(&query, "DELETE FROM File WHERE JobId=%d", del.JobId[i]);
+      Mmsg(&query, del_File, del.JobId[i]);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
-      Mmsg(&query, "DELETE FROM Job WHERE JobId=%d", del.JobId[i]);
+      Mmsg(&query, del_Job, del.JobId[i]);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
-      Mmsg(&query, "DELETE FROM JobMedia WHERE JobId=%d", del.JobId[i]);
+      Mmsg(&query, del_JobMedia, del.JobId[i]);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       Dmsg1(050, "Del sql=%s\n", query);
       del.num_del++;

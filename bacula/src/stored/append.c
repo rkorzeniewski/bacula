@@ -56,6 +56,7 @@ int do_append_data(JCR *jcr)
 
    sm_check(__FILE__, __LINE__, False);
 
+// jcr->spool_attributes = 1;
    if (!jcr->no_attributes && jcr->spool_attributes) {
       open_spool_file(jcr, jcr->dir_bsock);
    }

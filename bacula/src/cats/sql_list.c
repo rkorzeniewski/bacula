@@ -96,7 +96,7 @@ void
 db_list_media_records(B_DB *mdb, MEDIA_DBR *mdbr, DB_LIST_HANDLER *sendit, void *ctx)
 {
 
-   Mmsg(&mdb->cmd, "SELECT VolumeName,MediaType,VolStatus,\
+   Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,MediaType,VolStatus,\
 VolBytes,LastWritten,VolRetention,Recycle \
 FROM Media WHERE Media.PoolId=%d ORDER BY MediaId", mdbr->PoolId);
 
