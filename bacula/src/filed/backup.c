@@ -398,7 +398,7 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
 	       return 0;
 	    }
 	 }
-         Dmsg1(130, "Send data to FD len=%d\n", sd->msglen);
+         Dmsg1(130, "Send data to SD len=%d\n", sd->msglen);
 #endif
 	 jcr->JobBytes += sd->msglen;	/* count bytes saved possibly compressed */
 	 sd->msg = msgsave;		/* restore read buffer */
