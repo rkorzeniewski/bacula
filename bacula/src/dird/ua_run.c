@@ -210,6 +210,7 @@ int runcmd(UAContext *ua, char *cmd)
 
    jcr = new_jcr(sizeof(JCR), dird_free_jcr);
    set_jcr_defaults(jcr, job);
+   init_msg(jcr, jcr->msgs);	      /* start message handler */
    jcr->store = store;		      /* set possible new Storage */
 
 try_again:
