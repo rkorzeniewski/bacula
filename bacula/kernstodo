@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     20 October 2004
+                     26 October 2004
 
 Major development:      
 Project                     Developer
@@ -10,12 +10,18 @@ Communication encryption    Meno Abels
 Version 1.35                Kern (see below)
 ========================================================
 
-1.35 Items to do for release:
-- Finish recovering from a disaster situation.   
-  - How to get back a catalog.
+1.37 Items to do for release:
   
 
-Maybe for 1.35:
+1.37 Items:
+- Tell the "restore" user when browsing is no longer possible.
+- Write non-optimized bsrs from the JobMedia and Media records,
+  even after Files are pruned.
+- Document that Bootstrap files can be written with cataloging
+  turned off.
+- Add dump of VolSessionId/Time and FileIndex with bls.
+- Look at adding full Volume and Pool information to a Volume.
+- Promote to Full = Time period 
 - Scratch Pool where the volumes can be re-assigned to any Pool.
 - Update StartTime if job held in Job Queue.
 - Despool attributes simultaneously with data in a separate
@@ -78,70 +84,18 @@ For 1.37 Testing/Documentation:
   up through the prompt.
 - Detect fixed tape block mode during positioning by looking at
   block numbers in btape "test".  Possibly adjust in Bacula.
-- Implement a Client filename case fold option (default = fold
-  on Win32).
 - Fix list volumes to output volume retention in some other
   units, perhaps via a directive.
 - If opening a tape in read/write mode fails attempt to open
   it in read-only mode, and mark the tape for read only.
 - Add a read-only mode to the mount option.
-- Add "Allow multiple connections" in Catalog resource to open a new 
-  database connection for each job.
 - Allow Simultaneous Priorities = yes  => run up to Max concurrent jobs even
   with multiple priorities.
-- Fix find_device in stored/dircmd.c:462 (see code) 
 - Add db check test to regression. Test each function like delete,
   purge, ...
 - If you use restore replace=never, the directory attributes for
   non-existent directories will not be restored properly.
 
-Fix:
-   Kern,
-   mt status and tapeinfo output are attached. Default blocksize was
-   originally 512 bytes. I ran the following test on my machine:
-
-   - set defblksize to 512
-   - started bacula, labelled tape, ran job
-   - job completes with the following in log
-           SD termination status:  OK
-           Termination:            Backup OK
-   - restore attempts with blocksize set to 0 or 512 result in the familiar
-           "Volume data error! Wanted block-id BB02, got . Buffer discarded."
-
-
-   # tapeinfo -f /dev/sg0
-   Product Type: Tape Drive
-   Vendor ID: 'SONY    '
-   Product ID: 'TSL-11000       '
-   Revision: 'L100'
-   Attached Changer: Yes
-   SerialNumber: '0010000443'
-   MinBlock:1
-   MaxBlock:16777215
-   SCSI ID: 1
-   SCSI LUN: 0
-   Ready: yes
-   BufferedMode: yes
-   Medium Type: Not Loaded
-   Density Code: 0x26
-   BlockSize: 512
-   DataCompEnabled: no
-   DataCompCapable: yes
-   DataDeCompEnabled: yes
-   CompType: 0x20
-   DeCompType: 0x20
-   BOP: yes
-   Block Position: 0
-
-   # mt -f /dev/nst0 status
-   SCSI 2 tape drive:
-   File number=0, block number=132, partition=0.
-   Tape block size 512 bytes. Density code 0x26 (DDS-4 or QIC-4GB).
-   Soft error count since last status=0
-   General status bits on (1010000):
-    ONLINE IM_REP_EN
-
-Wish list:  
 - see lzma401.zip in others directory for new compression
   algorithm/library.
 - Minimal autochanger handling in Bacula and in btape.
@@ -208,9 +162,6 @@ Wish list:
 - Make ? do a help command (no return needed).
 - Implement restore directory.
 - Document streams and how to implement them.
-- Possibly implement "Ensure Full Backup = yes" looks for a failed full backup
-  and upgrades the current backup if one exists.
-- Check that barcode reading and update slots scan works.
 - Try not to re-backup a file if a new hard link is added.
 - Add feature to backup hard links only, but not the data.
 - Fix stream handling to be simpler.
@@ -218,8 +169,6 @@ Wish list:
 - Eliminate Restore "Run Restore Job" prompt by allowing new "run command
   to be issued"
 - Remove View FileSet button from Run a Job dialog.
-- Don't count higher level non-saved directories in Files expected
-  in restore report.
 - Handle prompt for restore job at end of Restore command.
 - Add display of total selected files to Restore window.
 - Add tree pane to left of window.
@@ -249,8 +198,6 @@ Wish list:
   fields.
 - Fix option 2 of restore -- list where file is backed up -- require Client,
   then list last 20 backups.
-- Add all pools in Dir conf to DB also update them to catch changed
-  LabelFormats and such.
 - Pass Director resource name as an option to the Console.
 - Add a "batch" mode to the Console (no unsolicited queries, ...).
 - Add a .list all files in the restore tree (probably also a list all files)
@@ -261,7 +208,6 @@ Wish list:
   did not exist.
 - Use SHA1 on authentication if possible.
 - See comtest-xxx.zip for Windows code to talk to USB.
-- Make btape accept Device Names in addition to Archive names.
 - Add Events and Perl scripting.
 - Add John's appended files:
    Appended = {     /files/server/logs/http/*log   }
@@ -318,66 +264,6 @@ Wish list:
   in Job, Client, and Pool, with precedence such that Job overrides Client
   which in turn overrides Pool.
 
-- Spooling ideas taken from Volker Sauer's and other's emails:
-   > IMHO job spooling should be turned on
-   > 
-   > 1) by job
-   > 2) by schedule
-   > 3) by sd
-   > 
-   > where and 2) overrides 1) and 3) is independent.
-
-   Yes, this is the minimum that I think is necessary.
-
-   > 
-   > Reason(s):
-   > It should be switched by job, because the job that backs up the machine 
-   > with the bacula-sd on doesn't need spooling.
-   > It should be switched by schedule, because for full-backups I don't need 
-   > spooling, so I can switch it off (because the network faster then the 
-   > tapedrive) 
-
-   True, with the exception that if you have enough disk spool space,
-   and you want to run concurrent jobs, spooling can eliminate the block
-   interleaving restore inefficiencies.
-
-   > And you should be able to turn it of by sd for sd-machines with low disk 
-   > capacity or if you just don't need or want this feature.
-   > 
-   > There should be:
-   > - definitly the possibility for multipe spool direcories
-
-   Having multiple directories is no problem -- having different maximum
-   sizes creates specification problems.  At some point, I will probably
-   have a common SD pool of spool directories as well as a set of
-   private spool directories for each device.  The first implementation
-   will be a set of private spool directories for each device since
-   managing a global pool with a bunch of threads writing into the same
-   directory is *much* more complicated and prone to error.
-
-   > - the ability to spool parts of a backup (not the whole client)
-
-   This may change in the future, but for the moment, it will spool
-   either to a job high water mark, or until the directory is full
-   (reaches max spool size or I/O error).  It will then write to tape,
-   truncate the spool file, and begin spooling again.
-
-   > - spooling while writing to tape
-
-   Not within a job, but yes, if you run concurrent jobs -- each is a
-   different thread.  Within a job could be a feature, but *much* later.
-
-   > - parallel spooling (like parallel jobs/ concurrent jobs) of clients
-
-   Yes, this is one of my main motivations for doing it (aside from
-   eliminating tape "shoe shine" during incremental backups.
-
-   > - flushing a backup that only went to disk (like amflush in amanda)
-
-   This will be a future feature, since spooling is different from backing
-   up to disk. The future feature will be "migration" which will move a job
-   from one backup Volume to another.
-
 - New Storage specifications:
   - Want to write to multiple storage devices simultaneously
   - Want to write to multiple storage devices sequentially (in one job)
@@ -409,10 +295,9 @@ Wish list:
     is contained in only one device.
   In SD allow Device to have Multiple MediaTypes
 
-After 1.33:
 - Look at www.nu2.nu/pebuilder as a helper for full windows
   bare metal restore.
-Ideas from Jerry Scharf:
+- Ideas from Jerry Scharf:
   First let's point out some big pluses that bacula has for this
         it's open source
         more importantly it's active. Thank you so much for that
@@ -436,9 +321,6 @@ Ideas from Jerry Scharf:
    support for Oracle database ??
 ===
 - Look at adding SQL server and Exchange support for Windows. 
-- Restore: Enter Filename: 'C:/Documents and Settings/Comercial/My
-  Documents/MOP/formulário de registro BELAS ARTES.doc' causes Bacula to
-  crash.
 - Each DVD-RAM disk would be a volume, just like each tape is 
   a volume. It's a 4.7GB media with random access, but there's nothing about 
   it that I can see that makes it so different than a tape from  bacula's 
@@ -448,20 +330,13 @@ Ideas from Jerry Scharf:
   be an invalid value which happens with BSR.
 - Create VolAddr for disk files in place of VolFile and VolBlock. This
   is needed to properly specify ranges.
-- Print bsmtp output to job report so that problems will be seen.
-- Pass the number of files to be restored to the FD for reporting 
 - Add progress of files/bytes to SD and FD.
-- Don't continue Restore if no files selected.
 - Print warning message if FileId > 4 billion
 - do a "messages" before the first prompt in Console
 - Add a date and time stamp at the beginning of every line in the 
   Job report (Volker Sauer).
 - Client does not show busy during Estimate command.
 - Implement Console mtx commands.
-- Add a default DB password to MySQL.  
-  GRANT all privileges ON bacula.* TO bacula@localhost IDENTIFIED BY 
-     'bacula_password';
-  FLUSH PRIVILEGES;
 - Implement a Mount Command and an Unmount Command where
   the users could specify a system command to be performed
   to do the mount, after which Bacula could attempt to
@@ -478,61 +353,23 @@ Ideas from Jerry Scharf:
 - Spool to disk only when the tape is full, then when a tape is hung move
   it to tape.
 - bextract is sending everything to the log file ****FIXME****
-- Add Progress command that periodically reports the progress of
-  a job or all jobs.
-- Restrict characters permitted in a Resource name, and don't permit
-  duplicate names.
 - Allow multiple Storage specifications (or multiple names on
   a single Storage specification) in the Job record. Thus a job 
   can be backed up to a number of storage devices.
 - Implement some way for the File daemon to contact the Director 
   to start a job or pass its DHCP obtained IP number.
-- Implement multiple Consoles.
 - Implement a query tape prompt/replace feature for a console
-- From Johan?
-    Two jobs ready to go, first one blocked waiting for media
-    Cancel 2nd job ("waiting execution" one)
-    Cancel blocked job
-    boom - segfault*
 - Copy console @ code to gnome2-console
 - Make AES the only encryption algorithm see 
   http://csrc.nist.gov/CryptoToolkit/aes/).  It's
   an officially adopted standard, has survived peer
   review, and provides keys up to 256 bits.
-- Think about how space could be freed up on a tape -- perhaps this
-  is a Merge or Compact feature that is needed.
-- Modify FileSet, did not upgrade the current Increment job, but
-  waited for the next job to be upgraded.
 - Take a careful look at SetACL http://setacl.sourceforge.net     
-- Implement a where command for the tree telling where a file
-  is located.
 - Take a careful look at Level for the estimate command, maybe make
   it a command line option.
 - Add Volume name to "I cannot write on this volume because"
 - Make tree walk routines like cd, ls, ... more user friendly
   by handling spaces better.
-- Write your PID file and chown root:wheel before drop.
-- Make sure there is no symlink in a file before creating a
-  file (attack).
-- Look at mktemp or mkstemp(3).
-    mktemp and mkstemp create files with predictable names too.  That's
-    not the vulnerability.  The vulnerability is in creating files without
-    using the O_EXCL flag, which means "only create this file if it doesn't
-    exist, including if the file is a dangling symlink."
-
-    It is *NOT* enough to do the equivalent of
-
-      if doesn't exist $filename
-       then create $filename
-
-    because between the test and the create another process could have
-    gotten the CPU and created the file.  You must use atomic functions
-    (those that don't get interrupted by other processes) and O_EXCL is
-    the only way for this particular example.
-- Automatically create pools, but instead of looking for what
-  in in Job records, walk through the pool resources.
-- Check and double check tree code, why does it take so long?
-- Add device name to "Current Volume not acceptable because ..."
 - Make sure that Bacula rechecks the tape after the 20 min wait.
 - Set IO_NOWAIT on Bacula TCP/IP packets.
 - Try doing a raw partition backup and restore by mounting a
@@ -546,76 +383,17 @@ Ideas from Jerry Scharf:
     By the way can bacula automatically "move" an empty/purged volume say 
     in the "short" pool to the "long" pool if this pool runs out of volume 
     space?
-- Eliminate orphaned jobs: dbcheck, normal pruning, delete job command.
-  Hm.  Well, there are the remaining orphaned job records:
-
-     |   105 | Llioness Save  | 0000-00-00 00:00:00 | B    | D     |        0 |             0 | f         |
-     |   110 | Llioness Save  | 0000-00-00 00:00:00 | B    | I     |        0 |             0 | f         |
-     |   115 | Llioness Save  | 2003-09-10 02:22:03 | B    | I     |        0 |             0 | A         |
-     |   128 | Catalog Save   | 2003-09-11 03:53:32 | B    | I     |        0 |             0 | C         |
-     |   131 | Catalog Save   | 0000-00-00 00:00:00 | B    | I     |        0 |             0 | f         |
-
-     As you can see, three of the five are failures.  I already deleted the
-     one restore and one other failure using the by-client option.  Deciding
-     what is an orphaned job is a tricky problem though, I agree.  All these
-     records have or had 0 files/ 0 bytes, except for the restore.  With no
-     files, of course, I don't know of the job ever actually becomes
-     associated with a Volume.
-
-     (I'm not sure if this is documented anywhere -- what are the meanings of
-     all the possible JobStatus codes?)
-
-     Looking at my database, it appears to me as though all the "orphaned"
-     jobs fit into one of two categories:
-
-     1)  The Job record has a StartTime but no EndTime, and the job is not
-         currently running;
-     or
-     2)  The Job record has an EndTime, indicating that it completed, but
-         it has no associated JobMedia record.
-
-
-     This does suggest an approach.  If failed jobs (or jobs that, for some
-     other reason, write no files) are associated with a volume via a
-     JobMedia record, then they should be purged when the associated volume
-     is purged.  I see two ways to handle jobs that are NOT associated with a
-     specific volume:
-
-     1)  purge them automatically whenever any volume is manually purged;
-     or
-     2)  add an option to the purge command to manually purge all jobs with
-         no associated volume.
-
-     I think Restore jobs also fall into category 2 above ....  so one might
-     want to make that "The Job record has an EndTime,, but no associated
-     JobMedia record, and is not a Restore job."  
-- make "btape /tmp" work.
-- Make sure a rescheduled job is properly reported by status.
-- Walk through the Pool records rather than the Job records
-  in dird.c to create/update pools.
 - What to do about "list files job=xxx".
-- When job rescheduled, status gives is waiting for Client Rufus 
-  to connect to Storage File. Dir needs to inform SD that job
-  is rescheduled.
 - Make Dmsg look at global before calling subroutine.
-- Enable trace output at runtime for Win32
-- Available volumes for autochangers (see patrick@baanboard.com 3 Sep 03 
-  and 4 Sep) scan slots.
 - Get and test MySQL 4.0
-- Do a complete audit of all pthreads_mutex, cond, ... to ensure that
-  any that are dynamically initialized are destroyed when no longer used.
 - Look at how fuser works and /proc/PID/fd that is how Nic found the
   file descriptor leak in Bacula.
 - Implement WrapCounters in Counters.
-- Turn on SIGHUP in dird.c and test.
-- Use system dependent calls to get more precise info on tape errors.
 - Add heartbeat from FD to SD if hb interval expires.
-- Suppress read error on blank tape when doing a label.
 - Can we dynamically change FileSets?
 - If pool specified to label command and Label Format is specified,
   automatically generate the Volume name.
 - Why can't SQL do the filename sort for restore?
-- Look at libkse (man kse) for FreeBSD threading.
 - Look into Microsoft Volume Shadowcopy Service VSS for backing
   up system state components (Active Directory, System Volume, ...)
 - Add ExhautiveRestoreSearch
@@ -623,7 +401,6 @@ Ideas from Jerry Scharf:
   data into the restore tree (i.e. do it one directory at a
   time as the user walks through the tree).
 - Possibly use the hash code if the user selects all for a restore command.
-- Orphaned Dir buffer at parse_conf.c:373 =>  store_dir
 - Fix "restore all" to bypass building the tree.
 - Prohibit backing up archive device (findlib/find_one.c:128)
 - Implement Release Device in the Job resource to unmount a drive.
@@ -631,50 +408,28 @@ Ideas from Jerry Scharf:
   be sure this works with admin jobs so that the user can get
   prompted to insert the correct tape.  Possibly some way to say to
   run the job but don't save the files.
-- Implement FileOptions (see end of this document)
 - Make things like list where a file is saved case independent for
   Windows.
 - Implement migrate
-- Bacula needs to propagate SD errors.
-  > > cluster-dir: Start Backup JobId 252, Job=REUTERS.2003-08-11_15.04.12
-  > > prod4-sd: REUTERS.2003-08-11_15.04.12 Error: Write error on device 
-       /dev/nst0. ERR=Input/output error.
-  > > prod4-sd: REUTERS.2003-08-11_15.04.12 Error: Re-read of last block failed. 
-       Last block=5162 Current block=5164.
-  > > prod4-sd: End of medium on Volume "REU007" Bytes=16,303,521,933 
-
 - Use autochanger to handle multiple devices.
 - Add SuSE install doc to list.
 - Check and rechedk "Invalid block number"
-- Make bextract release the drive properly between tapes 
-  so that an autochanger can be made to work.
 - User wants to NOT backup up certain big files (email files).
 - Maybe remove multiple simultaneous devices code in SD.
 - On Windows with very long path names, it may be impossible to create 
   a file (and thus restore it) because the total length is too long.
   We must cd into the directory then create the file without the
   full path name.
-- lstat() is not going to work on Win32 for testing date.
 - Implement a Recycle command
 - Add client name to cram-md5 challenge so Director can immediately
   verify if it is the correct client.
-- Add JobLevel in FD status (but make sure it is defined).
 - Audit all UA commands to ensure that we always prompt where possible.
-- Check Jmsg in bnet, may not work, must dup bsock.
-- Suppress Job Name in Jmsg for console
-- Create Pools that are referenced in a Run statement at startup if possible.
-- Use runbeforejob to unload, then reload a volume previously used,
-  then the next job run gets an error reading the drive.
 - Make bootstrap filename unique.
 - Test a second language e.g. french.
 - Start working on Base jobs.
-- Make "make binary-release" work from any directory.
 - Implement UnsavedFiles DB record.
 - Implement argc/argv for daemon command line scanning using table driven
   stuff below.
-- Implement table driven single argc/argv scanner to pickup all arguments.
-  Much like xxx_conf.c scan table.
-  keyword, handler(store_routine), store_address, code, flags, default.
 - From Phil Stracchino:
   It would probably be a per-client option, and would be called
   something like, say, "Automatically purge obsoleted jobs".  What it
@@ -691,16 +446,10 @@ Ideas from Jerry Scharf:
 - Currently in mount.c:236 the SD simply creates a Volume. It should have
   explicit permission to do so.  It should also mark the tape in error
   if there is an error.
-- Make sure all restore counters are working correctly in the FD.
 - SD Bytes Read is wrong.
-- Look at ALL higher level routines that call block.c to be sure
-  they don't expect something in errmsg.
 - Investigate doing RAW backup of Win32 partition.
-- Add thread specific data to hold the jcr -- send error messages from
-  low level routines by accessing it and using Jmsg().
 - Cancel waiting for Client connect in SD if FD goes away.
 
-- Examine Bare Metal restore problem (a FD crash exists somewhere ...).
 - Implement timeout in response() when it should come quickly.
 - Implement console @echo command.
 - Implement a Slot priority (loaded/not loaded).
@@ -708,9 +457,6 @@ Ideas from Jerry Scharf:
 - Implement single pane restore (much like the Gftp panes).
 - Implement Automatic Mount even in operator wait.
 - Implement create "FileSet"?
-- Fix watchdog pthread crash on Win32 (this is pthread_kill() Cygwin bug)
-- Implement "scratch pool" where tapes are defined and can be
-  taken by any pool that needs them.
 - Implement restore "current system", but take all files without
   doing selection tree -- so that jobs without File records can
   be restored.
@@ -754,8 +500,6 @@ Ideas from Jerry Scharf:
 - Figure out how to do a bare metal Windows restore
 - Possibly add email to Watchdog if drive is unmounted too
   long and a job is waiting on the drive.
-- Restore program that errs in SD due to no tape, reports
-  OK incorrectly in output.
 - After unmount, if restore job started, ask to mount.
 - Convert all %x substitution variables, which are hard to remember
   and read to %(variable-name).  Idea from TMDA.
@@ -1225,167 +969,4 @@ Block Position: 0
 ====
 
 
-=== Done in 1.34.3
-- To pass Include 1 or two letter commands
-  I Name           Include name - first record
-  B Name           Base name - repeat
-  R "xxx"          Regexp
-  W "xxx"          Wild Card
-  E zzz            Exclude expression (wild card)
-  P "plugin"       Plugin
-  D "reader"       Reader program
-  T "writer"       Writer program
-  O Options        In current commpressed format
-    (compression, signature, onefs, recurse, sparse,
-     replace, verify options, ...)
-  N                End option set
-  B BaseName       Start second option set any letter
-  ...
-  E
-  F Number         Number of filenames to follow
-  <file-name>
-  B Name
-  ...
-  N                End option set
-  F Number         Number of filenames to follow
-  <file-name>
-  ...
-- Add regression of btape "fill" 
-==== Done in 1.34.4
-- Implement "label slots=1,2... pool=yyy barcodes"
-- Mark a non-removable disk Volume in error rather than asking sys op to
-  mount it.
-- Implement Fixed storage LabelFormat test.
-- Add reporting in attr despooling.
-- Figure out how to use ssh or stunnel to protect Bacula communications.
-  Add Dan's work to manual See ssl.txt
-
-==== Done in 1.35.0
-- Implement fast tree insert (doubly linked list)
-- Disallow using Internal database
-- Feedback while the restore tree is being built.    
-- Add detection of Whitebox release in ./configure
-- Add InChanger to "list media"
-- Implement second cut of SIGHUP in Dir
-  (Implement resources on a single pointer)
-- Add regular expressions to FileSets (needs testing).
-- Test new despooling error recovery code when partition fills.
-- Sort Scheduled jobs status listing by start time.
-- Add priority to Scheduled jobs status listing.
-- Look at Win32 inc problem when new directory added files not saved???
-- Require resource names to be unique.
-- Make sure that all errors from libacl are printed.
-- Make FD run on Win95 if possible (not really possible).
-- Fix GROUP BYs in all SQL (done by Dan -- thanks)
-- Make entering multiple Storage names in Dir illegal.
-- Make btape release the drive during the "test" append.
-- Fix restore:
-   You have selected the following JobIds: 739,856,797
-   Building directory tree for JobId 739 ...
-   Building directory tree for JobId 856 ...
-   Building directory tree for JobId 797 ...3 
-   Jobs inserted into the tree.
-- Fix errno handling in win32 compat routines.
-- Add better error codes to run_program (10000+)
-- Revisit and revise Disaster Recovery (fix SCSI and RAID 
-  disk detection)
-- When passwords do not match, print message that points the
-  user to the doc.
-- Do tape alerts -- see tapealert.txt
-- Find memory leaks in address_conf.c
-- Network order of port and ip addresses.
-- SetIP in dird/fd_cmds.c is broken.
-- don't use inet_addr() it is deprecated.
-- Fix code in filed.c for init_bsock();
-- Fix code in console.c for init_bsock();
-- Solve the termcap.h problem on Solaris configure.
-- Make Verify jobs require exclusive use of Volume as Restore 
-  jobs do.
-- Fix restore ++++ that get intermingled with "Building directory tree"
-- Fix doc in dirdconf.html for @, where the file must
-  have not a list of files, but 
-   file = xxx
-   file = yyy
-- Test Win32 errno handling.
-- port 1.34.6-block.patch to 1.35
-- Look at Chris' patch for bscan bug.
-- Fix error handling in spooling both data and attribute.
-- Implement Ignore FileSet Change.
-- Doc new duration time input editing.
-- Bacula rescue CDROM implement isolinux
-- Make sure Qmsgs are dequeued by FD and SD.
-- Check if ACLs allocated at dird_conf.c:1214 are being properly
-  released.
-- Test/doc Tape Alerts
-- Doc dbcheck eliminate orphaned clients.
-- Doc Phil's new delete job jobid scanning code.
-- Document that console commands can be abbreviated.
-- Doc update AllFromVol
-- Doc -p option in stored
-- New IP address specification is used as follows:
-    [sdaddresses|diraddresses|fdaddresses] = { [[ip|ipv4|ipv6] = { 
-           [[addr|port] = [^ ]+[\n;]+] }] }
-
-  so it could look for example like this:
-     SDaddresses  = { ip = {
-            addr = 1.2.3.4; port = 1205; }
-        ipv4 = {
-            addr = 1.2.3.4; port = http; }
-        ipv6 = {
-            addr = 1.2.3.4;
-            port = 1205;
-        }
-        ip = {
-            addr = 1.2.3.4
-            port = 1205
-        }
-        ip = {
-            addr = 1.2.3.4
-        }
-        ip = {
-            addr = 201:220:222::2
-        }
-        ip = {
-            addr = bluedot.thun.net
-        }
-     }
-  as a consequence, you can now specify multiple IP addresses and
-  ports to be used. In the case of a server, it will listen on
-  all those that you specify. In the case of connecting to the server,
-  Bacula will attempt connecting to one at a time until it succeeds.
-  And, in a few other special cases, Bacula will use only the first
-  address specified.
-
-  The default port numbers are still the same and the services and hosts 
-  are also resolved by name. So now  you could use the real names for the 
-  port numbers.
-
-  An ip section will allow resolution to either an ipv4 or an ipv6 address.
-  An ipv4 section forces the resolution to be only ipv4, and an ipv6 section
-  forces the resolution to be only ipv6.
-- Fix silly restriction requiring Include { Options { xxx } } to be
-  on separate lines.
-- Restore c: with a prefix into /prefix/c/ to prevent c: and d:
-  files with the same name from overwritting each other.
-- Add "Multiple connections = yes/no" to catalog resource.
-- Add new DCR calling sequences everywhere in SD. This will permit 
-  simultaneous use of multiple devices by a single job.
-- Fix bscan so that it releases the drive when requesting a new tape.
-- List verify options for DiskToCatalog in doc.
-- Turn on transactions if multiple connections are on in DB.
-- Fix storage overrides in Run directives.
-- Look into failing Excludes in Win32
-- Make restore check if the file size restored is correct.
-- Backspace to beginning of line (conio) does not erase first char.
-- Fix possible bug in update volumefrompool (email 9/28 from
-  jesk@killall.org
-- Add relabel regression test.
-- Document a get out of jail procedure if everything breaks if 
-  you lost/broke the Catalog -- do the same for "I know my
-  file is there how do I get it back?".
-- Fix documentation for readline.
-- Add File indexes as suggested by Martin -- modify update
-  scripts to add them.
-- Modify postgresql update script to remove bigint FilenameId           
-  reference.
-- Kill daemons at levels in the teens rather than late.
+=== Done

@@ -339,7 +339,10 @@ DCR *acquire_device_for_append(JCR *jcr)
 
    if (do_mount || recycle) {
       Dmsg0(190, "Do mount_next_write_vol\n");
-      if (!mount_next_write_volume(dcr, release)) {
+      V(mutex);                       /* don't lock everything during mount */
+      bool mounted = mount_next_write_volume(dcr, release);
+      P(mutex); 		      /* re-lock */
+      if (!mounted) {
 	 if (!job_canceled(jcr)) {
             /* Reduce "noise" -- don't print if job canceled */
             Jmsg(jcr, M_FATAL, 0, _("Could not ready device \"%s\" for append.\n"),
