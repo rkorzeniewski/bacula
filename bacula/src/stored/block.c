@@ -9,7 +9,7 @@
  *
  */
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -399,7 +399,7 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
        *   then re-read it and verify that the block number is
        *   correct.
        */
-      if (dev->state & ST_TAPE && dev->capabilities & CAP_BSR) {
+      if (dev->state & ST_TAPE && dev_cap(dev, CAP_BSR)) {
 
 	 /* Now back up over what we wrote and read the last block */
 	 if (bsf_dev(dev, 1) != 0 || bsf_dev(dev, 1) != 0) {

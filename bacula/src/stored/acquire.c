@@ -6,7 +6,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2003 Kern Sibbald and John Walker
+   Copyright (C) 2002-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -227,8 +227,8 @@ int release_device(JCR *jcr, DEVICE *dev)
    Dmsg1(100, "release_device device is %s\n", dev_is_tape(dev)?"tape":"disk");
    if (dev->state & ST_READ) {
       dev->state &= ~ST_READ;	      /* clear read bit */
-      if (!dev_is_tape(dev) || !(dev->capabilities & CAP_ALWAYSOPEN)) {
-	 if (dev->capabilities & CAP_OFFLINEUNMOUNT) {
+      if (!dev_is_tape(dev) || !dev_cap(dev, CAP_ALWAYSOPEN)) {
+	 if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
 	    offline_dev(dev);
 	 }
 	 close_dev(dev);
@@ -256,8 +256,8 @@ int release_device(JCR *jcr, DEVICE *dev)
          Dmsg0(200, "dir_update_vol_info. Release0\n");
 	 dir_update_volume_info(jcr, &dev->VolCatInfo, 0); /* send Volume info to Director */
 
-	 if (!dev_is_tape(dev) || !(dev->capabilities & CAP_ALWAYSOPEN)) {
-	    if (dev->capabilities & CAP_OFFLINEUNMOUNT) {
+	 if (!dev_is_tape(dev) || !dev_cap(dev, CAP_ALWAYSOPEN)) {
+	    if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
 	       offline_dev(dev);
 	    }
 	    close_dev(dev);

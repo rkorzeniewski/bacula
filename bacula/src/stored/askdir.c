@@ -98,7 +98,7 @@ static int do_request_volume_info(JCR *jcr)
     strcpy(jcr->VolumeName, vol->VolCatName); /* set desired VolumeName */
     
     Dmsg2(200, "do_reqest_vol_info got slot=%d Volume=%s\n", 
-       vol->Slot, vol->VolCatName);
+	  vol->Slot, vol->VolCatName);
     return 1;
 }
 
@@ -280,8 +280,7 @@ int dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev)
 	  * removable media, return now, otherwise wait
 	  * for the operator to mount the media.
 	  */
-	 if (jcr->VolumeName[0] && !(dev->capabilities & CAP_REM) &&	  
-	      dev->capabilities & CAP_LABEL) {
+	 if (jcr->VolumeName[0] && !dev_cap(dev, CAP_REM) && dev_cap(dev, CAP_LABEL)) {
             Dmsg0(190, "Return 1 from mount without wait.\n");
 	    return 1;
 	 }

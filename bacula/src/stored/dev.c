@@ -29,7 +29,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -224,7 +224,7 @@ open_dev(DEVICE *dev, char *VolName, int mode)
       dev->use_count++;
       Mmsg2(&dev->errmsg, _("WARNING!!!! device %s opened %d times!!!\n"), 
 	    dev->dev_name, dev->use_count);
-      Emsg0(M_WARNING, 0, dev->errmsg);
+      Emsg1(M_WARNING, 0, "%s", dev->errmsg);
       return dev->fd;
    }
    if (VolName) {
@@ -237,14 +237,22 @@ open_dev(DEVICE *dev, char *VolName, int mode)
    if (dev->state & (ST_TAPE|ST_FIFO)) {
       int timeout;
       Dmsg0(29, "open_dev: device is tape\n");
-      if (mode == READ_WRITE) {
+      if (mode == OPEN_READ_WRITE) {
 	 dev->mode = O_RDWR | O_BINARY;
-      } else {
+      } else if (mode == OPEN_READ_ONLY) {
 	 dev->mode = O_RDONLY | O_BINARY;
+      } else if (mode == OPEN_WRITE_ONLY) {
+	 dev->mode = O_WRONLY | O_BINARY;
+      } else {
+         Emsg0(M_ABORT, 0, _("Illegal mode given to open_dev.\n")); 
       }
       timeout = dev->max_open_wait;
       errno = 0;
+      /* If busy retry each second for max_open_wait seconds */
       while ((dev->fd = open(dev->dev_name, dev->mode, MODE_RW)) < 0) {
+	 if (errno == EAGAIN) {
+	    continue;
+	 }
 	 if (errno == EBUSY && timeout-- > 0) {
             Dmsg2(100, "Device %s busy. ERR=%s\n", dev->dev_name, strerror(errno));
 	    sleep(1);
@@ -274,10 +282,14 @@ open_dev(DEVICE *dev, char *VolName, int mode)
       }
       pm_strcat(&archive_name, VolName);
       Dmsg1(29, "open_dev: device is disk %s\n", archive_name);
-      if (mode == READ_WRITE) {
+      if (mode == OPEN_READ_WRITE) {
 	 dev->mode = O_CREAT | O_RDWR | O_BINARY;
-      } else {
+      } else if (mode == OPEN_READ_ONLY) {
 	 dev->mode = O_RDONLY | O_BINARY;
+      } else if (mode == OPEN_WRITE_ONLY) {
+	 dev->mode = O_WRONLY | O_BINARY;
+      } else {
+         Emsg0(M_ABORT, 0, _("Illegal mode given to open_dev.\n")); 
       }
       if ((dev->fd = open(archive_name, dev->mode, MODE_RW)) < 0) {
 	 dev->dev_errno = errno;

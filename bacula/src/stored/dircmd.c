@@ -19,7 +19,7 @@
  *  
  */
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -565,7 +565,7 @@ static int unmount_cmd(JCR *jcr)
 	 } else if (dev->dev_blocked == BST_WAITING_FOR_SYSOP) {
             Dmsg2(90, "%d waiter dev_block=%d. doing unmount\n", dev->num_waiting,
 	       dev->dev_blocked);
-	    if (dev->capabilities & CAP_OFFLINEUNMOUNT) {
+	    if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
 	       offline_dev(dev);
 	    }
 	    force_close_dev(dev);
@@ -594,7 +594,7 @@ static int unmount_cmd(JCR *jcr)
 	 } else {		      /* device not being used */
             Dmsg0(90, "Device not in use, unmounting\n");
 	    block_device(dev, BST_UNMOUNTED);
-	    if (dev->capabilities & CAP_OFFLINEUNMOUNT) {
+	    if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
 	       offline_dev(dev);
 	    }
 	    force_close_dev(dev);

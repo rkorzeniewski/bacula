@@ -8,7 +8,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -31,7 +31,6 @@
 #include "stored.h"                   /* pull in Storage Deamon headers */
 
 /* Forward referenced functions */
-static int create_volume_label(DEVICE *dev, char *VolName);
 static void create_volume_label_record(JCR *jcr, DEVICE *dev, DEV_RECORD *rec);
 
 extern char my_name[];
@@ -193,34 +192,31 @@ int unser_volume_label(DEVICE *dev, DEV_RECORD *rec)
    /* Unserialize the record into the Volume Header */
    rec->data = check_pool_memory_size(rec->data, SER_LENGTH_Volume_Label);
    ser_begin(rec->data, SER_LENGTH_Volume_Label);
-#define Fld(x)	(dev->VolHdr.x)
-   unser_string(Fld(Id));
+   unser_string(dev->VolHdr.Id);
+   unser_uint32(dev->VolHdr.VerNum);
 
-   unser_uint32(Fld(VerNum));
-
-   if (Fld(VerNum) >= 11) {
-      unser_btime(Fld(label_btime));
-      unser_btime(Fld(write_btime));
+   if (dev->VolHdr.VerNum >= 11) {
+      unser_btime(dev->VolHdr.label_btime);
+      unser_btime(dev->VolHdr.write_btime);
    } else { /* old way */ 
-   unser_float64(Fld(label_date));
-   unser_float64(Fld(label_time));
+      unser_float64(dev->VolHdr.label_date);
+      unser_float64(dev->VolHdr.label_time);
    }
-   unser_float64(Fld(write_date));    /* Unused with VerNum >= 11 */
-   unser_float64(Fld(write_time));    /* Unused with VerNum >= 11 */
+   unser_float64(dev->VolHdr.write_date);    /* Unused with VerNum >= 11 */
+   unser_float64(dev->VolHdr.write_time);    /* Unused with VerNum >= 11 */
 
-   unser_string(Fld(VolName));
-   unser_string(Fld(PrevVolName));
-   unser_string(Fld(PoolName));
-   unser_string(Fld(PoolType));
-   unser_string(Fld(MediaType));
+   unser_string(dev->VolHdr.VolName);
+   unser_string(dev->VolHdr.PrevVolName);
+   unser_string(dev->VolHdr.PoolName);
+   unser_string(dev->VolHdr.PoolType);
+   unser_string(dev->VolHdr.MediaType);
 
-   unser_string(Fld(HostName));
-   unser_string(Fld(LabelProg));
-   unser_string(Fld(ProgVersion));
-   unser_string(Fld(ProgDate));
+   unser_string(dev->VolHdr.HostName);
+   unser_string(dev->VolHdr.LabelProg);
+   unser_string(dev->VolHdr.ProgVersion);
+   unser_string(dev->VolHdr.ProgDate);
 
    ser_end(rec->data, SER_LENGTH_Volume_Label);
-#undef Fld
    Dmsg0(90, "ser_read_vol\n");
    if (debug_level >= 90) {
       dump_volume_label(dev);	   
@@ -272,48 +268,46 @@ static void create_volume_label_record(JCR *jcr, DEVICE *dev, DEV_RECORD *rec)
 
    rec->data = check_pool_memory_size(rec->data, SER_LENGTH_Volume_Label);
    ser_begin(rec->data, SER_LENGTH_Volume_Label);
-#define Fld(x)	(dev->VolHdr.x)
-   ser_string(Fld(Id));
+   ser_string(dev->VolHdr.Id);
 
-   ser_uint32(Fld(VerNum));
+   ser_uint32(dev->VolHdr.VerNum);
 
-   if (Fld(VerNum >= 11)) {
-      ser_btime(Fld(label_btime));
-      Fld(write_btime) = get_current_btime();
-      ser_btime(Fld(write_btime));
-      Fld(write_date) = 0;
-      Fld(write_time) = 0;
+   if (dev->VolHdr.VerNum >= 11) {
+      ser_btime(dev->VolHdr.label_btime);
+      dev->VolHdr.write_btime = get_current_btime();
+      ser_btime(dev->VolHdr.write_btime);
+      dev->VolHdr.write_date = 0;
+      dev->VolHdr.write_time = 0;
    } else {
       /* OLD WAY DEPRECATED */
-      ser_float64(Fld(label_date));
-      ser_float64(Fld(label_time));
+      ser_float64(dev->VolHdr.label_date);
+      ser_float64(dev->VolHdr.label_time);
       get_current_time(&dt);
-      Fld(write_date) = dt.julian_day_number;
-      Fld(write_time) = dt.julian_day_fraction;
+      dev->VolHdr.write_date = dt.julian_day_number;
+      dev->VolHdr.write_time = dt.julian_day_fraction;
    }
-   ser_float64(Fld(write_date));   /* 0 if VerNum >= 11 */
-   ser_float64(Fld(write_time));   /* 0  if VerNum >= 11 */
+   ser_float64(dev->VolHdr.write_date);   /* 0 if VerNum >= 11 */
+   ser_float64(dev->VolHdr.write_time);   /* 0	if VerNum >= 11 */
 
-   ser_string(Fld(VolName));
-   ser_string(Fld(PrevVolName));
-   ser_string(Fld(PoolName));
-   ser_string(Fld(PoolType));
-   ser_string(Fld(MediaType));
+   ser_string(dev->VolHdr.VolName);
+   ser_string(dev->VolHdr.PrevVolName);
+   ser_string(dev->VolHdr.PoolName);
+   ser_string(dev->VolHdr.PoolType);
+   ser_string(dev->VolHdr.MediaType);
 
-   ser_string(Fld(HostName));
-   ser_string(Fld(LabelProg));
-   ser_string(Fld(ProgVersion));
-   ser_string(Fld(ProgDate));
+   ser_string(dev->VolHdr.HostName);
+   ser_string(dev->VolHdr.LabelProg);
+   ser_string(dev->VolHdr.ProgVersion);
+   ser_string(dev->VolHdr.ProgDate);
 
    ser_end(rec->data, SER_LENGTH_Volume_Label);
    rec->data_len = ser_length(rec->data);
-   rec->FileIndex = Fld(LabelType);
+   rec->FileIndex = dev->VolHdr.LabelType;
    rec->VolSessionId = jcr->VolSessionId;
    rec->VolSessionTime = jcr->VolSessionTime;
    rec->Stream = jcr->NumVolumes;
    Dmsg2(100, "Created Vol label rec: FI=%s len=%d\n", FI_to_ascii(rec->FileIndex),
       rec->data_len);
-#undef Fld
 }     
 
 
@@ -322,7 +316,7 @@ static void create_volume_label_record(JCR *jcr, DEVICE *dev, DEV_RECORD *rec)
  *  Returns: 0 on error
  *	     1 on success
  */
-static int create_volume_label(DEVICE *dev, char *VolName)
+void create_volume_label(DEVICE *dev, char *VolName)
 {
    struct date_time dt;
    DEVRES *device = (DEVRES *)dev->device;
@@ -367,7 +361,6 @@ static int create_volume_label(DEVICE *dev, char *VolName)
    if (debug_level >= 90) {
       dump_volume_label(dev);
    }
-   return 1;
 }
 
 /*
@@ -390,9 +383,7 @@ int write_volume_label_to_dev(JCR *jcr, DEVRES *device, char *VolName, char *Poo
 
 
    Dmsg0(99, "write_volume_label()\n");
-   if (!create_volume_label(dev, VolName)) {
-      return 0;
-   }
+   create_volume_label(dev, VolName);
    strcpy(dev->VolHdr.MediaType, device->media_type);
    bstrncpy(dev->VolHdr.VolName, VolName, sizeof(dev->VolHdr.VolName));
    bstrncpy(dev->VolHdr.PoolName, PoolName, sizeof(dev->VolHdr.PoolName));
@@ -654,7 +645,7 @@ int unser_session_label(SESSION_LABEL *label, DEV_RECORD *rec)
    if (label->VerNum >= 11) {
       unser_btime(label->write_btime);
    } else {
-   unser_float64(label->write_date);
+      unser_float64(label->write_date);
    }
    unser_float64(label->write_time);
    unser_string(label->PoolName);
@@ -746,9 +737,9 @@ JobStatus         : %c\n\
       bstrftime(dt, sizeof(dt), btime_to_unix(label.write_btime));
       Pmsg1(-1, _("Date written      : %s\n"), dt);
    } else {
-   dt.julian_day_number   = label.write_date;
-   dt.julian_day_fraction = label.write_time;
-   tm_decode(&dt, &tm);
+      dt.julian_day_number   = label.write_date;
+      dt.julian_day_fraction = label.write_time;
+      tm_decode(&dt, &tm);
       Pmsg5(-1, _("\
 Date written      : %04d-%02d-%02d at %02d:%02d\n"),
       tm.tm_year+1900, tm.tm_mon+1, tm.tm_mday, tm.tm_hour, tm.tm_min);

@@ -74,8 +74,8 @@ mount_next_vol:
       dev->state &= ~ST_LABEL;	      /* label not yet read */
       jcr->VolumeName[0] = 0;
 
-      if (!dev_is_tape(dev) || !(dev->capabilities & CAP_ALWAYSOPEN)) {
-	 if (dev->capabilities & CAP_OFFLINEUNMOUNT) {
+      if (!dev_is_tape(dev) || !dev_cap(dev, CAP_ALWAYSOPEN)) {
+	 if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
 	    offline_dev(dev);
 	 }
 	 close_dev(dev);
@@ -83,7 +83,7 @@ mount_next_vol:
 
       /* If we have not closed the device, then at least rewind the tape */
       if (dev->state & ST_OPENED) {
-	 if (dev->capabilities & CAP_OFFLINEUNMOUNT) {
+	 if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
 	    offline_dev(dev);
 	 }
 	 if (!rewind_dev(dev)) {
@@ -102,7 +102,7 @@ mount_next_vol:
       Dmsg0(100, "did not find next volume. Must ask.\n");
    }
    Dmsg2(100, "After find_next_append. Vol=%s Slot=%d\n",
-      jcr->VolCatInfo.VolCatName, jcr->VolCatInfo.Slot);
+	 jcr->VolCatInfo.VolCatName, jcr->VolCatInfo.Slot);
    release = 1;                       /* release if we "recurse" */
 
    /* 
@@ -125,6 +125,7 @@ mount_next_vol:
 
    jcr->VolFirstFile = jcr->JobFiles; /* first update of Vol FileIndex */
    for ( ;; ) {
+      int vol_label_status;
       autochanger = autoload_device(jcr, dev, 1, NULL);
       if (autochanger) {
 	 ask = 0;		      /* if autochange no need to ask sysop */
@@ -138,10 +139,13 @@ mount_next_vol:
 
       /* Open device */
       for ( ; !(dev->state & ST_OPENED); ) {
-	  if (open_dev(dev, jcr->VolCatInfo.VolCatName, READ_WRITE) < 0) {
-	     if (dev->dev_errno == EAGAIN || dev->dev_errno == EBUSY) {
-		sleep(30);
-	     }
+	  int mode;
+	  if (dev_cap(dev, CAP_STREAM)) {
+	     mode = OPEN_WRITE_ONLY;
+	  } else {
+	     mode = OPEN_READ_WRITE;
+	  }
+	  if (open_dev(dev, jcr->VolCatInfo.VolCatName, mode) < 0) {
              Jmsg2(jcr, M_FATAL, 0, _("Unable to open device %s. ERR=%s\n"), 
 		dev_name(dev), strerror_dev(dev));
 	     return 0;
@@ -152,7 +156,18 @@ mount_next_vol:
        * Now make sure we have the right tape mounted
        */
 read_volume:
-      switch (read_dev_volume_label(jcr, dev, block)) {
+      /* 
+       * If we are writing to a stream device, ASSUME the volume label
+       *  is correct.
+       */
+      if (dev_cap(dev, CAP_STREAM)) {
+	 vol_label_status = VOL_OK;
+	 create_volume_label(dev, jcr->VolumeName);
+	 dev->VolHdr.LabelType = PRE_LABEL;
+      } else {
+	 vol_label_status = read_dev_volume_label(jcr, dev, block);
+      }
+      switch (vol_label_status) {
 	 case VOL_OK:
             Dmsg1(100, "Vol OK name=%s\n", jcr->VolumeName);
 	    memcpy(&dev->VolCatInfo, &jcr->VolCatInfo, sizeof(jcr->VolCatInfo));
@@ -187,7 +202,7 @@ read_volume:
 	 case VOL_IO_ERROR:
             Dmsg1(500, "Vol NO_LABEL or IO_ERROR name=%s\n", jcr->VolumeName);
 	    /* If permitted, create a label */
-	    if (dev->capabilities & CAP_LABEL) {
+	    if (dev_cap(dev, CAP_LABEL)) {
                Dmsg0(100, "Create volume label\n");
 	       if (!write_volume_label_to_dev(jcr, (DEVRES *)dev->device, jcr->VolumeName,
 		      jcr->pool_name)) {
@@ -235,34 +250,37 @@ mount_error:
       dev->VolHdr.LabelType = VOL_LABEL; /* set Volume label */
       write_volume_label_to_block(jcr, dev, block);
       /*
-       * Write the block now to ensure we have write permission.
+       * If we are not dealing with a streaming device,
+       *  write the block now to ensure we have write permission.
        *  It is better to find out now rather than later.
        */
-      dev->VolCatInfo.VolCatBytes = 0;
-      if (!rewind_dev(dev)) {
-         Jmsg2(jcr, M_WARNING, 0, _("Rewind error on device %s. ERR=%s\n"), 
-	       dev_name(dev), strerror_dev(dev));
-      }
-      if (recycle) {
-	 if (!truncate_dev(dev)) {
-            Jmsg2(jcr, M_WARNING, 0, _("Truncate error on device %s. ERR=%s\n"), 
+      if (!dev_cap(dev, CAP_STREAM)) {
+	 dev->VolCatInfo.VolCatBytes = 0;
+	 if (!rewind_dev(dev)) {
+            Jmsg2(jcr, M_WARNING, 0, _("Rewind error on device %s. ERR=%s\n"), 
 		  dev_name(dev), strerror_dev(dev));
 	 }
-      }
-      /* Attempt write to check write permission */
-      if (!write_block_to_dev(jcr, dev, block)) {
-         Jmsg2(jcr, M_ERROR, 0, _("Unable to write device %s. ERR=%s\n"),
-	    dev_name(dev), strerror_dev(dev));
-	 goto mount_next_vol;
-      }
-      if (!rewind_dev(dev)) {
-         Jmsg2(jcr, M_ERROR, 0, _("Unable to rewind device %s. ERR=%s\n"),
-	    dev_name(dev), strerror_dev(dev));
-	 goto mount_next_vol;
-      }
+	 if (recycle) {
+	    if (!truncate_dev(dev)) {
+               Jmsg2(jcr, M_WARNING, 0, _("Truncate error on device %s. ERR=%s\n"), 
+		     dev_name(dev), strerror_dev(dev));
+	    }
+	 }
+	 /* Attempt write to check write permission */
+	 if (!write_block_to_dev(jcr, dev, block)) {
+            Jmsg2(jcr, M_ERROR, 0, _("Unable to write device %s. ERR=%s\n"),
+	       dev_name(dev), strerror_dev(dev));
+	    goto mount_next_vol;
+	 }
+	 if (!rewind_dev(dev)) {
+            Jmsg2(jcr, M_ERROR, 0, _("Unable to rewind device %s. ERR=%s\n"),
+	       dev_name(dev), strerror_dev(dev));
+	    goto mount_next_vol;
+	 }
 
-      /* Recreate a correct volume label and return it in the block */
-      write_volume_label_to_block(jcr, dev, block);
+	 /* Recreate a correct volume label and return it in the block */
+	 write_volume_label_to_block(jcr, dev, block);
+      }
       /* Set or reset Volume statistics */
       dev->VolCatInfo.VolCatJobs = 0;
       dev->VolCatInfo.VolCatFiles = 0;
@@ -380,7 +398,7 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
     * Handle autoloaders here.	If we cannot autoload it, we
     *  will return FALSE to ask the sysop.
     */
-   if (writing && dev->capabilities && CAP_AUTOCHANGER && slot <= 0) {
+   if (writing && dev_cap(dev, CAP_AUTOCHANGER) && slot <= 0) {
       if (dir) {
 	 return 0;		      /* For user, bail out right now */
       }
@@ -411,7 +429,7 @@ int autoload_device(JCR *jcr, DEVICE *dev, int writing, BSOCK *dir)
 
       /* If bad status or tape we want is not loaded, load it. */
       if (status != 0 || loaded != slot) { 
-	 if (dev->capabilities & CAP_OFFLINEUNMOUNT) {
+	 if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
 	    offline_dev(dev);
 	 }
 	 /* We are going to load a new tape, so close the device */
