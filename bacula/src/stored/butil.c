@@ -219,8 +219,8 @@ JCR *setup_jcr(char *name, char *device, BSR *bsr, char *VolumeName)
    pm_strcpy(&jcr->fileset_name, "Dummy.fileset.name");
    jcr->fileset_md5 = get_pool_memory(PM_FNAME);
    pm_strcpy(&jcr->fileset_md5, "Dummy.fileset.md5");
-   jcr->JobId = 1;
-   jcr->JobType = JT_BACKUP;
+   jcr->JobId = 0;
+   jcr->JobType = JT_CONSOLE;
    jcr->JobLevel = L_FULL;
    jcr->JobStatus = JS_Terminated;
    jcr->dev_name = get_pool_memory(PM_FNAME);
