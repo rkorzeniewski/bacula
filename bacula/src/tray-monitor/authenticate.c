@@ -1,9 +1,9 @@
 /*
  *
- *   Bacula UA authentication. Provides authentication with
- *     the Director.
+ *   Bacula authentication. Provides authentication with
+ *     File and Storage daemons.
  *
- *     Kern Sibbald, June MMI
+ *     Nicolas Boichat, August MMIV
  *
  *    This routine runs as a thread and must be thread reentrant.
  *
@@ -11,7 +11,7 @@
  *
  */
 /*
-   Copyright (C) 2001-2004 Kern Sibbald and John Walker
+   Copyright (C) 2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License

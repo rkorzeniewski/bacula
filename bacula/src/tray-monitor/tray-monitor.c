@@ -8,7 +8,7 @@
  */
 
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2004 Kern Sibbald and John Walker
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -386,8 +386,8 @@ Without that I don't how to get status from the File or Storage Daemon :-(\n"), 
 static void MonitorAbout(GtkWidget *widget, gpointer data) {
    GtkWidget* about = gtk_message_dialog_new_with_markup(GTK_WINDOW(window),GTK_DIALOG_MODAL, GTK_MESSAGE_INFO, GTK_BUTTONS_CLOSE, _(
       "<span size='x-large' weight='bold'>Bacula Tray Monitor</span>\n\n"
-      "Copyright (C) 2000-2004 Kern Sibbald and John Walker\n"
-      "Written by Nicolas Boichat (2004)\n"
+      "Copyright (C) 2004 Kern Sibbald and John Walker\n"
+      "Written by Nicolas Boichat\n"
       "\n<small>Version: " VERSION " (" BDATE ") %s %s %s</small>"
    ), HOST_OS, DISTNAME, DISTVER);
    gtk_dialog_run(GTK_DIALOG(about));

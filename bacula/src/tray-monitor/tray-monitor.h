@@ -1,12 +1,12 @@
 /*
- * Includes specific to the Director
+ * Includes specific to the tray monitor
  *
- *     Kern Sibbald, December MM
+ *     Nicolas Boichat, August MMIV
  *
  *    Version $Id$
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
