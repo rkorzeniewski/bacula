@@ -92,6 +92,7 @@ enum {
 #define CAP_POSITIONBLOCKS (1<<19)    /* Use block positioning */
 #define CAP_MTIOCGET       (1<<20)    /* Basic support for fileno and blkno */
 #define CAP_REQMOUNT       (1<<21)    /* Require mount to read files back (typically: DVD) */
+#define CAP_CHECKLABELS    (1<<22)    /* Check for ANSI/IBM labels */
 
 /* Test state */
 #define dev_state(dev, st_state) ((dev)->state & (st_state))
@@ -192,6 +193,7 @@ public:
    int dev_errno;                     /* Our own errno */
    int mode;                          /* read/write modes */
    int openmode;                      /* parameter passed to open_dev (useful to reopen the device) */
+   int label_type;                    /* Bacula/ANSI/IBM label types */
    uint32_t drive_index;              /* Autochanger drive index */
    POOLMEM *dev_name;                 /* device name */
    char *errmsg;                      /* nicely edited error message */
@@ -248,6 +250,7 @@ public:
    int is_labeled() const;
    int at_eof() const;
    int at_eom() const;
+   int at_eot() const;
    int can_append() const;
    int can_read() const;
    const char *strerror() const;
@@ -263,6 +266,7 @@ inline int DEVICE::is_open() const { return state & ST_OPENED; }
 inline int DEVICE::is_labeled() const { return state & ST_LABEL; }
 inline int DEVICE::at_eof() const { return state & ST_EOF; }
 inline int DEVICE::at_eom() const { return state & ST_EOT; }
+inline int DEVICE::at_eot() const { return state & ST_EOT; }
 inline int DEVICE::can_append() const { return state & ST_APPEND; }
 inline int DEVICE::can_read() const { return state & ST_READ; }
 inline const char *DEVICE::strerror() const { return errmsg; }

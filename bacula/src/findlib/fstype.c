@@ -122,6 +122,8 @@ bool fstype(const char *fname, char *fs, int fslen)
       case 0x58465342:     bstrncpy(fs, "xfs", fslen); return true;           /* XFS_SB_MAGIC */
       case 0x9fa2:         bstrncpy(fs, "usbdevfs", fslen); return true;      /* USBDEVICE_SUPER_MAGIC */
       case 0x62656572:     bstrncpy(fs, "sysfs", fslen); return true;         /* SYSFS_MAGIC */
+      case 0x517B:         bstrncpy(fs, "smbfs", fslen); return true;         /* SMB_SUPER_MAGIC */
+      case 0x9660:         bstrncpy(fs, "iso9660", fslen); return true;       /* ISOFS_SUPER_MAGIC */
 
 #if 0	    /* These need confirmation */
       case 0xadf5:         bstrncpy(fs, "adfs", fslen); return true;          /* ADFS_SUPER_MAGIC */
@@ -151,7 +153,6 @@ bool fstype(const char *fname, char *fs, int fslen)
       case 0x958458f6:     bstrncpy(fs, "hugetlbfs", fslen); return true;     /* HUGETLBFS_MAGIC */
       case 0x12061983:     bstrncpy(fs, "hwgfs", fslen); return true;         /* HWGFS_MAGIC */
       case 0x66726f67:     bstrncpy(fs, "ibmasmfs", fslen); return true;      /* IBMASMFS_MAGIC */
-      case 0x9660:         bstrncpy(fs, "iso9660", fslen); return true;       /* ISOFS_SUPER_MAGIC */
       case 0x9660:         bstrncpy(fs, "isofs", fslen); return true;         /* ISOFS_SUPER_MAGIC */
       case 0x07c0:         bstrncpy(fs, "jffs", fslen); return true;          /* JFFS_MAGIC_SB_BITMASK */
       case 0x72b6:         bstrncpy(fs, "jffs2", fslen); return true;         /* JFFS2_SUPER_MAGIC */
@@ -172,7 +173,6 @@ bool fstype(const char *fname, char *fs, int fslen)
       case 0x7275:         bstrncpy(fs, "romfs", fslen); return true;         /* ROMFS_MAGIC */
       case 0x858458f6:     bstrncpy(fs, "rootfs", fslen); return true;        /* RAMFS_MAGIC */
       case 0x67596969:     bstrncpy(fs, "rpc_pipefs", fslen); return true;    /* RPCAUTH_GSSMAGIC */
-      case 0x517B:         bstrncpy(fs, "smbfs", fslen); return true;         /* SMB_SUPER_MAGIC */
       case 0x534F434B:     bstrncpy(fs, "sockfs", fslen); return true;        /* SOCKFS_MAGIC */
       case 0x012ff7b6:     bstrncpy(fs, "sysv2", fslen); return true;         /* SYSV2_SUPER_MAGIC */
       case 0x012ff7b5:     bstrncpy(fs, "sysv4", fslen); return true;         /* SYSV4_SUPER_MAGIC */

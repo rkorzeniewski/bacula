@@ -63,7 +63,6 @@ extern void store_inc(LEX *lc, RES_ITEM *item, int index, int pass);
 
 void store_jobtype(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_level(LEX *lc, RES_ITEM *item, int index, int pass);
-void store_label(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_replace(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_acl(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_device(LEX *lc, RES_ITEM *item, int index, int pass);
@@ -377,40 +376,6 @@ struct s_jt jobtypes[] = {
    {NULL,	     0}
 };
 
-/* 
- * Tape Label types permitted in Pool records 
- *
- *   tape label      label code = token
- */
-struct s_kw tapelabels[] = {
-   {"bacula",        B_BACULA_LABEL},
-   {"ansi",          B_ANSI_LABEL},
-   {"ibm",           B_IBM_LABEL},
-   {NULL,	     0}
-};
-
-
-#ifdef old_deprecated_code
-
-/* Keywords (RHS) permitted in Backup and Verify records */
-static struct s_kw BakVerFields[] = {
-   {"client",        'C'},
-   {"fileset",       'F'},
-   {"level",         'L'},
-   {NULL,	     0}
-};
-
-/* Keywords (RHS) permitted in Restore records */
-static struct s_kw RestoreFields[] = {
-   {"client",        'C'},
-   {"fileset",       'F'},
-   {"jobid",         'J'},            /* JobId to restore */
-   {"where",         'W'},            /* root of restore */
-   {"replace",       'R'},            /* replacement options */
-   {"bootstrap",     'B'},            /* bootstrap file */
-   {NULL,	       0}
-};
-#endif
 
 /* Options permitted in Restore replace= */
 struct s_kw ReplaceOptions[] = {
@@ -1298,32 +1263,6 @@ void store_level(LEX *lc, RES_ITEM *item, int index, int pass)
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
 }
-
-
-/*
- * Store Tape Label Type (Bacula, ANSI, IBM)
- *
- */
-void store_label(LEX *lc, RES_ITEM *item, int index, int pass)
-{
-   int token, i;
-
-   token = lex_get_token(lc, T_NAME);
-   /* Store the label pass 2 so that type is defined */
-   for (i=0; tapelabels[i].name; i++) {
-      if (strcasecmp(lc->str, tapelabels[i].name) == 0) {
-	 *(int *)(item->value) = tapelabels[i].token;
-	 i = 0;
-	 break;
-      }
-   }
-   if (i != 0) {
-      scan_err1(lc, "Expected a Tape Label keyword, got: %s", lc->str);
-   }
-   scan_to_eol(lc);
-   set_bit(index, res_all.hdr.item_present);
-}
-
 
 
 void store_replace(LEX *lc, RES_ITEM *item, int index, int pass)

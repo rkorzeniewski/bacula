@@ -34,7 +34,7 @@
  */
 
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -129,6 +129,24 @@ static struct s_mtypes msg_types[] = {
    {"security",      M_SECURITY},
    {"alert",         M_ALERT},
    {"all",           M_MAX+1},
+   {NULL,	     0}
+};
+
+/* Used for certain KeyWord tables */
+struct s_kw {
+   const char *name;
+   int token;
+};
+
+/*
+ * Tape Label types permitted in Pool records 
+ *
+ *   tape label      label code = token
+ */
+struct s_kw tapelabels[] = {
+   {"bacula",        B_BACULA_LABEL},
+   {"ansi",          B_ANSI_LABEL},
+   {"ibm",           B_IBM_LABEL},
    {NULL,	     0}
 };
 
@@ -653,6 +671,30 @@ void store_yesno(LEX *lc, RES_ITEM *item, int index, int pass)
       *(int *)(item->value) &= ~(item->code);
    } else {
       scan_err1(lc, _("Expect a YES or NO, got: %s"), lc->str);
+   }
+   scan_to_eol(lc);
+   set_bit(index, res_all.hdr.item_present);
+}
+
+/*
+ * Store Tape Label Type (Bacula, ANSI, IBM)
+ *
+ */
+void store_label(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+   int token, i;
+
+   token = lex_get_token(lc, T_NAME);
+   /* Store the label pass 2 so that type is defined */
+   for (i=0; tapelabels[i].name; i++) {
+      if (strcasecmp(lc->str, tapelabels[i].name) == 0) {
+	 *(int *)(item->value) = tapelabels[i].token;
+	 i = 0;
+	 break;
+      }
+   }
+   if (i != 0) {
+      scan_err1(lc, "Expected a Tape Label keyword, got: %s", lc->str);
    }
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
