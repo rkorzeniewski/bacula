@@ -1,9 +1,14 @@
 /*
-
-   Bacula interface to Python
-
-   Kern Sibbald, November MMIV
+ * 
+ * Bacula common code library interface to Python
+ *
+ * Kern Sibbald, November MMIV
+ *
+ *   Version $Id$
+ *
+ */
    
+/*
    Copyright (C) 2004 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
@@ -24,101 +29,29 @@
  */
 
 #include "bacula.h"
-#include "../dird/dird_conf.h"
-#define DIRECTOR_DAEMON 1
-#include "../cats/cats.h"
-#include "jcr.h"
-
 
 #ifdef HAVE_PYTHON
 #include <Python.h>
 
-bool run_module(const char *module);
 
-static PyObject *bacula_get(PyObject *self, PyObject *args);
-static PyObject *bacula_set(PyObject *self, PyObject *args, PyObject *keyw);
+PyObject *bacula_get(PyObject *self, PyObject *args);
+PyObject *bacula_set(PyObject *self, PyObject *args, PyObject *keyw);
 
-/* Define Bacula entry points */
-static PyMethodDef BaculaMethods[] = {
-    {"get", bacula_get, METH_VARARGS, "Get Bacula variables."},
-    {"set", (PyCFunction)bacula_set, METH_VARARGS|METH_KEYWORDS,
-        "Set Bacula variables."}, 
-    {NULL, NULL, 0, NULL}	      /* last item */
-};
+/* Pull in Bacula entry points */
+extern PyMethodDef BaculaMethods[];
 
 
-/* Return Bacula variables */
-static PyObject*
-bacula_get(PyObject *self, PyObject *args)
+/* Start the interpreter */
+void init_python_interpreter(char *progname, char *scripts)
 {
-   PyObject *CObject;
-   JCR *jcr;
-   char *item;
-   if (!PyArg_ParseTuple(args, "Os:get", &CObject, &item)) {
-      return NULL;
-   }
-   jcr = (JCR *)PyCObject_AsVoidPtr(CObject);
-   /* ***FIXME*** put this in a table */
-   if (strcmp(item, "JobId") == 0) {
-      return Py_BuildValue("i", jcr->JobId);
-   } else if (strcmp(item, "Client") == 0) {
-      return Py_BuildValue("s", jcr->client->hdr.name);
-   } else if (strcmp(item, "Pool") == 0) {
-      return Py_BuildValue("s", jcr->pool->hdr.name);
-   } else if (strcmp(item, "Storage") == 0) {
-      return Py_BuildValue("s", jcr->store->hdr.name);
-   } else if (strcmp(item, "Catalog") == 0) {
-      return Py_BuildValue("s", jcr->catalog->hdr.name);
-   } else if (strcmp(item, "MediaType") == 0) {
-      return Py_BuildValue("s", jcr->store->media_type);
-   } else if (strcmp(item, "NumVols") == 0) {
-      return Py_BuildValue("i", jcr->NumVols);
-   } else if (strcmp(item, "DirName") == 0) {
-      return Py_BuildValue("s", my_name);
-   } else if (strcmp(item, "Level") == 0) {
-      return Py_BuildValue("s", job_level_to_str(jcr->JobLevel));
-   } else if (strcmp(item, "Type") == 0) {
-      return Py_BuildValue("s", job_type_to_str(jcr->JobType));
-   } else if (strcmp(item, "Job") == 0) {
-      return Py_BuildValue("s", jcr->job->hdr.name);
-   } else if (strcmp(item, "JobName") == 0) {
-      return Py_BuildValue("s", jcr->Job);
-   }
-   return NULL;
-}
-
-/* Set Bacula variables */
-static PyObject*					 
-bacula_set(PyObject *self, PyObject *args, PyObject *keyw)
-{
-   PyObject *CObject;
-   JCR *jcr;
-   char *msg = NULL;
-   char *VolumeName = NULL;
-   static char *kwlist[] = {"jcr", "JobReport", "VolumeName", NULL};
-   if (!PyArg_ParseTupleAndKeywords(args, keyw, "O|ss:set", kwlist, 
-	&CObject, &msg, &VolumeName)) {
-      return NULL;
-   }
-   jcr = (JCR *)PyCObject_AsVoidPtr(CObject);
-   if (msg) {
-      Jmsg(jcr, M_INFO, 0, "%s", msg);
-   }
-   if (VolumeName) {
-      pm_strcpy(jcr->VolumeName, VolumeName);
-   }
-   return Py_BuildValue("i", 1);
-}
-
-
-void init_python_interpreter(char *progname)
-{
+   char buf[MAXSTRING];
    Py_SetProgramName(progname);
    Py_Initialize();
    PyEval_InitThreads();
    Py_InitModule("bacula", BaculaMethods);
-   PyRun_SimpleString("import sys\n"
-                      "sys.path.append('.')\n");
+   bsnprintf(buf, sizeof(buf), "import sys\n"
+            "sys.path.append('%s')\n", scripts);
+   PyRun_SimpleString(buf);
    PyEval_ReleaseLock();
 }
 
@@ -177,12 +110,17 @@ int generate_event(JCR *jcr, const char *event)
 	     Py_DECREF(pValue);
 	  } else {
 	     Py_DECREF(pModule);
-	     PyErr_Print();
-             Jmsg(jcr, M_ERROR, 0, "Error running Python module: %s\n", event);
+	     if (PyErr_Occurred()) {
+		PyErr_Print();
+                Jmsg(jcr, M_ERROR, 0, "Error running Python module: %s\n", event);
+	     }
 	     return 0;		      /* error running function */
 	  }
 	  /* pDict and pFunc are borrowed and must not be Py_DECREF-ed */
       } else {
+	 if (PyErr_Occurred()) {
+	    PyErr_Print();
+	 }
          Jmsg(jcr, M_ERROR, 0, "Python function \"%s\" not found in module.\n", event);
 	 return -1;		      /* function not found */ 
       }
