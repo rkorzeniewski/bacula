@@ -423,7 +423,7 @@ void close_msg(JCR *jcr)
 	    }
 	    
 	    if (!(bpipe=open_mail_pipe(jcr, &cmd, d))) {
-               Dmsg0(000, "open mail pipe failed.\n");
+               Pmsg0(000, "open mail pipe failed.\n");
 	       goto rem_temp_file;
 	    }
             Dmsg0(150, "Opened mail pipe\n");
@@ -434,7 +434,7 @@ void close_msg(JCR *jcr)
 	       fputs(line, bpipe->wfd);
 	    }
 	    if (!close_wpipe(bpipe)) {	     /* close write pipe sending mail */
-               Dmsg1(000, "close error: ERR=%s\n", strerror(errno));
+               Pmsg1(000, "close error: ERR=%s\n", strerror(errno));
 	    }
 
 	    /*

@@ -108,7 +108,7 @@ static struct res_items dev_items[] = {
    {"minimumblocksize",      store_pint,   ITEM(res_dev.min_block_size), 0, 0, 0},
    {"maximumblocksize",      store_pint,   ITEM(res_dev.max_block_size), 0, 0, 0},
    {"maximumvolumesize",     store_size,   ITEM(res_dev.max_volume_size), 0, 0, 0},
-   {"maximumfilesize",       store_size,   ITEM(res_dev.max_file_size), 0, 0, 0},
+   {"maximumfilesize",       store_size,   ITEM(res_dev.max_file_size), 0, ITEM_DEFAULT, 1000000000},
    {"volumecapacity",        store_size,   ITEM(res_dev.volume_capacity), 0, 0, 0},
    {NULL, NULL, 0, 0, 0, 0} 
 };

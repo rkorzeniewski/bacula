@@ -33,7 +33,7 @@
 #include "bacula.h"
 #include "stored.h"
 
-static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sessrec);
+static void handle_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sessrec);
 #ifdef DEBUG
 static char *rec_state_to_str(DEV_RECORD *rec);
 #endif
@@ -93,25 +93,32 @@ int read_records(JCR *jcr,  DEVICE *dev,
 	     */
 	    read_block_from_device(jcr, dev, block, NO_BLOCK_NUMBER_CHECK);
 	    read_record_from_block(block, trec);
-	    get_session_record(dev, trec, &sessrec);
+	    handle_session_record(dev, trec, &sessrec);
 	    ok = record_cb(jcr, dev, block, trec);
 	    free_record(trec);
 	    /*
 	     * Now find and position to first file and block 
 	     *	 on this tape.
 	     */
-	    BSR *bsr = find_next_bsr(jcr->bsr, dev);
-	    if (bsr == NULL && jcr->bsr->mount_next_volume) {
-               Dmsg0(100, "Would mount next volume here\n");
-	    }	  
-	    if (bsr) {
-               Dmsg4(100, "Reposition new tape from (file:block) %d:%d to %d:%d\n",
-		  dev->file, dev->block_num, bsr->volfile->sfile,
-		  bsr->volblock->sblock);
-	       reposition_dev(dev, bsr->volfile->sfile, bsr->volblock->sblock);
-               Dmsg2(100, "Now at (file:block) %d:%d\n",
-		  dev->file, dev->block_num);
+	    if (jcr->bsr) {
+	       BSR *bsr;
+
+	       jcr->bsr->reposition = true;
+	       bsr = find_next_bsr(jcr->bsr, dev);
+	       if (bsr) {
+                  Jmsg(jcr, M_INFO, 0, _("Forward spacing to file:block %u:%u.\n"), 
+		     bsr->volfile->sfile, bsr->volblock->sblock);
+                  Dmsg4(100, "Reposition new from (file:block) %d:%d to %d:%d\n",
+			dev->file, dev->block_num, bsr->volfile->sfile,
+			bsr->volblock->sblock);
+		  reposition_dev(dev, bsr->volfile->sfile, bsr->volblock->sblock);
+                  Dmsg2(100, "Now at (file:block) %d:%d\n",
+			dev->file, dev->block_num);
+	       }
 	    }
+	    /* After reading label, we must read first data block */
+	    continue;
+
 	 } else if (dev_state(dev, ST_EOF)) {
             Jmsg(jcr, M_INFO, 0, "Got EOF at file %u  on device %s, Volume \"%s\"\n", 
 		  dev->file, dev_name(dev), jcr->VolumeName);
@@ -161,6 +168,8 @@ int read_records(JCR *jcr,  DEVICE *dev,
 		 rec->Block+1, block->BlockNumber);
 	 }
       }
+      Dmsg3(100, "After mount next vol. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
+	    block->BlockNumber, rec->remainder);
       record = 0;
       for (rec->state=0; !is_block_empty(rec); ) {
 	 if (!read_record_from_block(block, rec)) {
@@ -193,7 +202,7 @@ int read_records(JCR *jcr,  DEVICE *dev,
 
 	 /* Some sort of label? */ 
 	 if (rec->FileIndex < 0) {
-	    get_session_record(dev, rec, &sessrec);
+	    handle_session_record(dev, rec, &sessrec);
 	    ok = record_cb(jcr, dev, block, rec);
 	    if (rec->FileIndex == EOS_LABEL) {
                Dmsg2(100, "Remove rec. SI=%d ST=%d\n", rec->VolSessionId,
@@ -219,6 +228,7 @@ int read_records(JCR *jcr,  DEVICE *dev,
                   Dmsg0(100, "Would mount next volume here\n");
                   Dmsg2(100, "Current postion (file:block) %d:%d\n",
 		     dev->file, dev->block_num);
+		  jcr->bsr->mount_next_volume = false;
 		  dev->state |= ST_EOT;
 		  rec->Block = 0;
 		  break;
@@ -232,7 +242,7 @@ int read_records(JCR *jcr,  DEVICE *dev,
                   Dmsg2(100, "Now at (file:block) %d:%d\n",
 		     dev->file, dev->block_num);
 	       }
-               Dmsg5(10, "BSR no match rec=%d block=%d SessId=%d SessTime=%d FI=%d\n",
+               Dmsg5(100, "BSR no match rec=%d block=%d SessId=%d SessTime=%d FI=%d\n",
 		  record, block->BlockNumber, rec->VolSessionId, rec->VolSessionTime, 
 		  rec->FileIndex);
                continue;              /* we don't want record, read next one */
@@ -261,9 +271,10 @@ int read_records(JCR *jcr,  DEVICE *dev,
 }
 
 
-static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sessrec)
+static void handle_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sessrec)
 {
    char *rtype;
+   char buf[100];
    memset(sessrec, 0, sizeof(sessrec));
    switch (rec->FileIndex) {
    case PRE_LABEL:
@@ -284,10 +295,11 @@ static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sess
       rtype = "End of Media";
       break;
    default:
-      rtype = "Unknown";
+      bsnprintf(buf, sizeof(buf), "Unknown code %d\n", rec->FileIndex);
+      rtype = buf;
       break;
    }
-   Dmsg5(10, "%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
+   Dmsg5(100, "%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
 	 rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
 }
 

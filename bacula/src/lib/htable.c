@@ -138,7 +138,7 @@ void htable::stats()
 
 void htable::grow_table()
 {
-   Dmsg1(000, "Grow called old size = %d\n", buckets);
+   Dmsg1(100, "Grow called old size = %d\n", buckets);
    /* Setup a bigger table */
    htable *big = (htable *)malloc(sizeof(htable));
    big->loffset = loffset;

@@ -27,29 +27,19 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.32:
+- Is a pool specification really needed for a restore?  Yes, and
+  you may want to exclude archive Pools.
 - Look at libkse (man kse) for FreeBSD threading.
 - Look into Microsoft Volume Shadowcopy Service VSS for backing
   up system state components (Active Directory, System Volume, ...)
 - Add ExhautiveRestoreSearch and use repositioning at the beginning
-  of the tape.
-- Add Machine type (Linux/Windows) to Status report for daemons.
-- Document "status" in the console.
-- Document driving console from shell script.
+  of the tape.                   
 - Specify list of files to restore
 - Implement ClientRunBeforeJob and ClientRunAfterJob.
-- Restore file list.
-- Write JobMedia records with max file size is reached on tape.
 - Look at the possibility of loading only the necessary 
   data into the restore tree (i.e. do it one directory at a
   time as the user walks through the tree).
-- Possibly use the hash code if the user selects all.
-- Handle the case of multiple JobMedia records pending (i.e. the
-  thread is slow and multiple situations requiring a JobMedia
-  record occur).
-- Fix maximum file size (block.c) to generate JobMedia records.
-- Do performance analysis on the restore tree routines.
-- Implement forward spacing between files.
-- Make the default file size 1GB on the tape.
+- Possibly use the hash code if the user selects all for a restore command.
 - Orphaned Dir buffer at parse_conf.c:373 =>  store_dir
 - Implement some way for the File daemon to contact the Director 
   to start a job or pass its DHCP obtained IP number.
@@ -78,7 +68,6 @@ For 1.32:
 - Implement List Volume Job=xxx  or List scheduled volumes or Status Director 
 - Allow a slot or range of slots on the label barcodes command.
 - Implement a PostgreSQL driver.
-- Is a pool specification really needed for a restore?
 - Bacula needs to propagate SD errors.
   > > cluster-dir: Start Backup JobId 252, Job=REUTERS.2003-08-11_15.04.12
   > > prod4-sd: REUTERS.2003-08-11_15.04.12 Error: Write error on device 
@@ -865,3 +854,16 @@ Done: (see kernsdone for more)
 - Fix read_record to handle multiple sessions.
 - Tip from Steve Allam
   mt -f /dev/nst0 defblksize 0
+- Document "status" in the console.
+- Document driving console from shell script.
+- Write JobMedia records with max file size is reached on tape.
+- Handle the case of multiple JobMedia records pending (i.e. the
+  thread is slow and multiple situations requiring a JobMedia
+  record occur).
+- Do performance analysis on the restore tree routines.
+- Fix maximum file size (block.c) to generate JobMedia records.
+- Make the default file size 1GB on the tape.
+- Implement forward spacing between files.
+- Add Machine type (Linux/Windows) to Status report for daemons. 
+  Look at src/host.h
+

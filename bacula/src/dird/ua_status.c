@@ -43,7 +43,7 @@ static void do_all_status(UAContext *ua, char *cmd);
 /*
  * status command
  */
-int statuscmd(UAContext *ua, char *cmd)
+int status_cmd(UAContext *ua, char *cmd)
 {
    STORE *store;
    CLIENT *client;
@@ -197,7 +197,8 @@ static void do_director_status(UAContext *ua, char *cmd)
    int pool_mem = FALSE;
 
    Dmsg0(200, "Doing status\n");
-   bsendmsg(ua, "%s Version: " VERSION " (" BDATE ")\n", my_name);
+   bsendmsg(ua, "%s Version: " VERSION " (" BDATE ") %s %s %s\n", my_name,
+	    HOST_OS, DISTNAME, DISTVER);
    bstrftime(dt, sizeof(dt), daemon_start_time);
    bsendmsg(ua, _("Daemon started %s, %d Job%s run.\n"), dt, last_job.NumJobs,
         last_job.NumJobs == 1 ? "" : "s");
