@@ -72,10 +72,11 @@ static void do_status(void sendit(char *msg, int len, void *sarg), void *arg)
       if (njcr->JobId == 0) {
          len = Mmsg(&msg, _("Director connected at: %s\n"), dt);
       } else {
-         len = Mmsg(&msg, _("JobId %d Job %s is running.\n    %s Job started: %s\n"), 
-	     njcr->JobId, njcr->Job, job_type_to_str(njcr->JobType), 
-	     dt);
-//	     job_level_to_str(njcr->JobLevel), dt);
+         len = Mmsg(&msg, _("JobId %d Job %s is running.\n"), 
+		    njcr->JobId, njcr->Job);
+	 sendit(msg, len, arg);
+         len = Mmsg(&msg, _("    %s Job started: %s\n"), 
+		    job_type_to_str(njcr->JobType), dt);
       }
       sendit(msg, len, arg);
       if (njcr->JobId == 0) {
