@@ -32,8 +32,6 @@ Testing to do: (painful)
 - blocksize recognition code.
 - Test if rewind at end of tape waits for tape to rewind.
 - Test cancel at EOM.       
-- Test not zeroing Autochanger slot when it is wrong.
-- Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.33 Testing/Documentation:
 - Document new alias records in Director. SDAddress SDDeviceName, SDPassword.
@@ -46,18 +44,10 @@ For 1.33 Testing/Documentation:
 - Add an example of using a FIFO in dirdconf.wml 
 - Add an item to the FAQ about running jobs in different timezones.
 - Add some examples of job editing codes.
-- Add Dan's 31 Oct 2003 email on tcpwrappers to Tips.
-- Add to supported autochangers 
-  OS              : FreeBSD-4.9
-  Auto-Changer    : QUALSTAR TLS-4210
-    Manufufactur  : Qualstar
-    Tapes         : 12 (AIT1: 36GB, AIT2: 50GB all uncompressed)
-    Drives        : 2xAIT2 (installed in the Qualstar: SONY SDX-500C AIT2)
-- Setup a standard job that builds a bootstrap file and saves
-  it with the catalog database.
+
 - Document Dan's new --with-dir-user, ... options.
-- Document estimate command in tree.
-- Document lsmark command in tree.
+- Figure out how to use ssh or stunnel to protect Bacula communications.
+  Add Dan's work to manual
                 
 For 1.33
 - Add a .list all files in the restore tree (probably also a list all files)
@@ -76,7 +66,6 @@ For 1.33
 - Having dashes in filenames apparently creates problems for restore
   by filename.
 - Add data compare on write/read in btape "test". 
-- Make sure that 64 bit I/O packets are used on Cygwin.
 - Implement RestoreJobRetention? Maybe better "JobRetention" in a Job,
   which would take precidence over the Catalog "JobRetention".
 - Implement Label Format in Add and Label console commands.
@@ -89,6 +78,7 @@ For 1.33
   in Job, Client, and Pool, with precedence such that Job overrides Client
   which in turn overrides Pool.
 - Fix Ctl-C crashing the Console (readline?).
+- Finish work on conio.c
 
 
 After 1.33:
@@ -964,3 +954,15 @@ Done: (see kernsdone for more)
 - Volume problems occurs if you have valid volume, written, then it is
   truncated. You get 12-Nov-2003 11:48 rufus-sd: kernsave.2003-11-12_11.48.09 Warning: mount.c:228 Volume on /tmp is not a Bacula labeled Volume, because:
      block.c:640 Read zero bytes on device /tmp.
+- Make sure that 64 bit I/O packets are used on Cygwin.
+- Add to supported autochangers 
+  OS              : FreeBSD-4.9
+  Auto-Changer    : QUALSTAR TLS-4210
+    Manufufactur  : Qualstar
+    Tapes         : 12 (AIT1: 36GB, AIT2: 50GB all uncompressed)
+    Drives        : 2xAIT2 (installed in the Qualstar: SONY SDX-500C AIT2)
+- Document estimate command in tree.
+- Document lsmark command in tree.
+- Setup a standard job that builds a bootstrap file and saves
+  it with the catalog database.
+
