@@ -257,6 +257,7 @@ int wait_for_job_termination(JCR *jcr)
    /* Note, the SD stores in jcr->JobFiles/ReadBytes/JobBytes/Errors */
    wait_for_storage_daemon_termination(jcr);
 
+
    /* Return values from FD */
    if (fd_ok) {
       jcr->JobFiles = JobFiles;
@@ -295,7 +296,7 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since, FILESET_DBR *fsr
    double kbps, compression;
    utime_t RunTime;
 
-   Dmsg0(100, "Enter backup_cleanup()\n");
+   Dmsg2(100, "Enter backup_cleanup %d %c\n", TermCode, TermCode);
    memset(&mr, 0, sizeof(mr));
    set_jcr_job_status(jcr, TermCode);
 

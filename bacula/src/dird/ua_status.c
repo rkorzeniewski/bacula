@@ -238,6 +238,15 @@ static void do_director_status(UAContext *ua, char *cmd)
       case JS_ErrorTerminated:
          msg = _("has erred");
 	 break;
+      case JS_Error:
+         msg = _("has errors");
+	 break;
+      case JS_FatalError:
+         msg = _("has a fatal error");
+	 break;
+      case JS_Differences:
+         msg = _("has verify differences");
+	 break;
       case JS_Canceled:
          msg = _("has been canceled");
 	 break;
@@ -260,16 +269,15 @@ static void do_director_status(UAContext *ua, char *cmd)
       case JS_WaitJobRes:
          msg = _("is waiting on max Job jobs");
 	 break;
-      case JS_WaitPriority:
-         msg = _("is waiting for higher priority jobs to finish");
-	 break;
       case JS_WaitMaxJobs:
          msg = _("is waiting on max total jobs");
 	 break;
       case JS_WaitStartTime:
          msg = _("is waiting for its start time");
 	 break;
-
+      case JS_WaitPriority:
+         msg = _("is waiting for higher priority jobs to finish");
+	 break;
 
       default:
 	 msg = (char *) get_pool_memory(PM_FNAME);

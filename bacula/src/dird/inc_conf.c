@@ -151,8 +151,9 @@ static struct s_fs_opt FS_options[] = {
 
 
 /* 
- * Scan for old Include options (keyword=option) is converted into one or
- *  two characters. Verifyopts=xxxx is Vxxxx:
+ * Scan for right hand side of Include options (keyword=option) is 
+ *    converted into one or two characters. Verifyopts=xxxx is Vxxxx:
+ *    Whatever is found is concatenated to the opts string.
  */
 static void scan_include_options(LEX *lc, int keyword, char *opts, int optlen)
 {
@@ -167,6 +168,7 @@ static void scan_include_options(LEX *lc, int keyword, char *opts, int optlen)
       bstrncat(opts, "V", optlen);         /* indicate Verify */
       bstrncat(opts, lc->str, optlen);
       bstrncat(opts, ":", optlen);         /* terminate it */
+      Dmsg3(100, "Catopts=%s option=%s optlen=%d\n", opts, option,optlen);
 
    /*
     * Standard keyword options for Include/Exclude 
@@ -185,7 +187,7 @@ static void scan_include_options(LEX *lc, int keyword, char *opts, int optlen)
          scan_err1(lc, "Expected a FileSet option keyword, got:%s:", lc->str);
       } else { /* add option */
 	 bstrncat(opts, option, optlen);
-         Dmsg3(200, "Catopts=%s option=%s optlen=%d\n", opts, option,optlen);
+         Dmsg3(100, "Catopts=%s option=%s optlen=%d\n", opts, option,optlen);
       }
    }
 
@@ -238,6 +240,7 @@ void store_inc(LEX *lc, struct res_items *item, int index, int pass)
       if ((token=lex_get_token(lc, T_ALL)) != T_EQUALS) {
          scan_err1(lc, _("expected an = following keyword, got: %s"), lc->str);
       } else {
+	 /* Scan right hand side of option */
 	 scan_include_options(lc, keyword, inc_opts, sizeof(inc_opts));
       }
       if (token == T_BOB) {
@@ -258,7 +261,7 @@ void store_inc(LEX *lc, struct res_items *item, int index, int pass)
       }
       setup_current_opts();
       bstrncpy(res_incexe.current_opts->opts, inc_opts, MAX_FOPTS);
-      Dmsg1(200, "incexe opts=%s\n", res_incexe.current_opts->opts);
+      Dmsg2(100, "old pass=%d incexe opts=%s\n", pass, res_incexe.current_opts->opts);
 
       /* Create incexe structure */
       Dmsg0(200, "Create INCEXE structure\n");
@@ -472,7 +475,9 @@ static void store_fname(LEX *lc, struct res_items *item, int index, int pass)
    scan_to_eol(lc);
 }
 
-
+/*
+ * New style options come here
+ */
 static void store_opts(LEX *lc, struct res_items *item, int index, int pass)
 {
    int i;
@@ -481,6 +486,7 @@ static void store_opts(LEX *lc, struct res_items *item, int index, int pass)
 
    inc_opts[0] = 0;
    keyword = INC_KW_NONE;
+   /* Look up the keyword */
    for (i=0; FS_option_kw[i].name; i++) {
       if (strcasecmp(item->name, FS_option_kw[i].name) == 0) {
 	 keyword = FS_option_kw[i].token;
@@ -490,14 +496,13 @@ static void store_opts(LEX *lc, struct res_items *item, int index, int pass)
    if (keyword == INC_KW_NONE) {
       scan_err1(lc, "Expected a FileSet keyword, got: %s", lc->str);
    }
-   Dmsg2(200, "keyword=%d %s\n", keyword, FS_option_kw[keyword].name);
+   /* Now scan for the value */
    scan_include_options(lc, keyword, inc_opts, sizeof(inc_opts));
-
    if (pass == 1) {
       setup_current_opts();
-      bstrncat(res_incexe.current_opts->opts, inc_opts, MAX_FOPTS);
+      bstrncpy(res_incexe.current_opts->opts, inc_opts, MAX_FOPTS);
+      Dmsg2(100, "new pass=%d incexe opts=%s\n", pass, res_incexe.current_opts->opts);
    }
-
    scan_to_eol(lc);
 }
 

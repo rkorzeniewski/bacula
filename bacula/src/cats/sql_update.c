@@ -103,9 +103,10 @@ db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    JobTDate = (btime_t)stime;
 
    db_lock(mdb);
-   Mmsg(&mdb->cmd, "UPDATE Job SET Level='%c', StartTime='%s', \
-ClientId=%u, JobTDate=%s WHERE JobId=%u",
+   Mmsg(&mdb->cmd, "UPDATE Job SET Level='%c', StartTime='%s',"
+"ClientId=%u, JobTDate=%s WHERE JobId=%u",
       (char)(jr->Level), dt, jr->ClientId, edit_uint64(JobTDate, ed1), jr->JobId);
+
    stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    db_unlock(mdb);
    mdb->changes = 0;

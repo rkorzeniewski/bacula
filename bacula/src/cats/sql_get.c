@@ -70,7 +70,7 @@ extern void split_path_and_filename(JCR *jcr, B_DB *mdb, char *fname);
 int db_get_file_attributes_record(JCR *jcr, B_DB *mdb, char *fname, JOB_DBR *jr, FILE_DBR *fdbr)
 {
    int stat;
-   Dmsg1(20, "Enter get_file_from_catalog fname=%s \n", fname);
+   Dmsg1(100, "db_get_file_att_record fname=%s \n", fname);
 
    db_lock(mdb);
    split_path_and_filename(jcr, mdb, fname);
@@ -262,15 +262,15 @@ int db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 
    db_lock(mdb);
    if (jr->JobId == 0) {
-      Mmsg(&mdb->cmd, "SELECT VolSessionId,VolSessionTime,\
-PoolId,StartTime,EndTime,JobFiles,JobBytes,JobTDate,Job,JobStatus,\
-Type,Level \
-FROM Job WHERE Job='%s'", jr->Job);
+      Mmsg(&mdb->cmd, "SELECT VolSessionId,VolSessionTime,"
+"PoolId,StartTime,EndTime,JobFiles,JobBytes,JobTDate,Job,JobStatus,"
+"Type,Level,ClientId "
+"FROM Job WHERE Job='%s'", jr->Job);
     } else {
-      Mmsg(&mdb->cmd, "SELECT VolSessionId,VolSessionTime,\
-PoolId,StartTime,EndTime,JobFiles,JobBytes,JobTDate,Job,JobStatus,\
-Type,Level \
-FROM Job WHERE JobId=%u", jr->JobId);
+      Mmsg(&mdb->cmd, "SELECT VolSessionId,VolSessionTime,"
+"PoolId,StartTime,EndTime,JobFiles,JobBytes,JobTDate,Job,JobStatus,"
+"Type,Level,ClientId "
+"FROM Job WHERE JobId=%u", jr->JobId);
     }
 
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
@@ -296,6 +296,7 @@ FROM Job WHERE JobId=%u", jr->JobId);
    jr->JobStatus = (int)*row[9];
    jr->Type = (int)*row[10];
    jr->Level = (int)*row[11];
+   jr->ClientId = str_to_uint64(row[12]);
    sql_free_result(mdb);
 
    db_unlock(mdb);
