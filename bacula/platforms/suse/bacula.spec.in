@@ -30,10 +30,13 @@
 # Whitebox Enterprise build
 %define wb3 0
 %{?build_wb3:%define wb3 1}
-# RedHat Enterprise build
+# RedHat Enterprise builds
 %define rhel3 0
 %{?build_rhel3:%define rhel3 1}
 %{?build_rhel3:%define wb3 1}
+%define rhel4 0
+%{?build_rhel4:%define rhel4 1}
+%{?build_rhel4:%define fc3 1}
 # SuSE build
 %define su9 0
 %{?build_su9:%define su9 1}
@@ -52,7 +55,7 @@ exit 1
 %define mysql 0
 %{?build_mysql:%define mysql 1}
 # if using mysql 4.x define this and mysql above
-# currently only Mandrake 10.1 uses this
+# currently: Mandrake 10.1, SuSE 9.2, RHEL4
 %define mysql4 0
 %{?build_mysql4:%define mysql4 1}
 %define sqlite 0
@@ -67,10 +70,13 @@ exit 1
 %endif
 
 # check what distribution we are
-%if %{rh7} || %{rh8} || %{rh9} || %{rhel3}
+%if %{rh7} || %{rh8} || %{rh9} || %{rhel3} || %{rhel4}
 %define _dist %(grep Red /etc/redhat-release)
 %endif
-%if %{fc1} || %{fc3}
+%if %{fc1}
+%define _dist %(grep Fedora /etc/redhat-release)
+%endif
+%if %{fc3} || !%{rhel4}
 %define _dist %(grep Fedora /etc/redhat-release)
 %endif
 %if %{wb3} && ! %{rhel3}
@@ -213,6 +219,7 @@ Requires: readline, ncurses, libstdc++, zlib
 %if %{sqlite}
 Conflicts: sqlite, sqlite-tools
 %endif
+
 %if %{rh7}
 Requires: glibc >= 2.2
 Requires: libtermcap
@@ -225,14 +232,25 @@ Requires: termcap
 Requires: glibc >= 2.3
 Requires: libtermcap
 %endif
-%if %{mysql} && ! %{su9} && ! %{mdk}
+
+%if %{mysql} && ! %{su9} && ! %{mdk} && ! %{mysql4}
 Requires: mysql >= 3.23
 Requires: mysql-server >= 3.23
 %endif
-%if %{mysql} && %{su9}
+%if %{mysql} && ! %{su9} && ! %{mdk} && %{mysql4}
+Requires: mysql >= 4.0
+Requires: mysql-server >= 4.0
+%endif
+
+%if %{mysql} && %{su9} && ! %{mysql4}
 Requires: mysql >= 3.23
 Requires: mysql-client >= 3.23
 %endif
+%if %{mysql} && %{su9} && %{mysql4}
+Requires: mysql >= 4.0
+Requires: mysql-client >= 4.0
+%endif
+
 %if %{mysql} && %{mdk} && ! %{mysql4}
 Requires: mysql >= 3.23
 Requires: mysql-client >= 3.23
@@ -241,6 +259,7 @@ Requires: mysql-client >= 3.23
 Requires: mysql >= 4.0
 Requires: mysql-client >= 4.0
 %endif
+
 %if %{postgresql} && %{wb3}
 Requires: rh-postgresql >= 7
 Requires: rh-postgresql-server >= 7
@@ -728,8 +747,8 @@ chmod 644 $RPM_BUILD_ROOT/etc/bacula/tray-monitor.conf
 /etc/bacula/mtx-changer
 /etc/bacula/btraceback.dbx
 /etc/bacula/btraceback.gdb
-/etc/bacula/dvd-freespace
-/etc/bacula/dvd-writepart
+#/etc/bacula/dvd-freespace
+#/etc/bacula/dvd-writepart
 /etc/init.d/bacula-dir
 /etc/init.d/bacula-fd
 /etc/init.d/bacula-sd
@@ -861,8 +880,8 @@ fi
 /etc/bacula/mtx-changer
 /etc/bacula/btraceback.dbx
 /etc/bacula/btraceback.gdb
-/etc/bacula/dvd-freespace
-/etc/bacula/dvd-writepart
+#/etc/bacula/dvd-freespace
+#/etc/bacula/dvd-writepart
 /etc/init.d/bacula-dir
 /etc/init.d/bacula-fd
 /etc/init.d/bacula-sd
@@ -1002,8 +1021,8 @@ fi
 /etc/bacula/mtx-changer
 /etc/bacula/btraceback.dbx
 /etc/bacula/btraceback.gdb
-/etc/bacula/dvd-freespace
-/etc/bacula/dvd-writepart
+#/etc/bacula/dvd-freespace
+#/etc/bacula/dvd-writepart
 /etc/init.d/bacula-dir
 /etc/init.d/bacula-fd
 /etc/init.d/bacula-sd
@@ -1218,6 +1237,9 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 
 
 %changelog
+* Sun Apr 03 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- add rhel4 build tag
+- clean up for mysql4 which is now mdk-10.1, suse-9.2 and rhel4
 * Sun Mar 06 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - add rhel3 build tag
 * Tue Mar 01 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
