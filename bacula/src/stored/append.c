@@ -61,7 +61,7 @@ bool do_append_data(JCR *jcr)
       return false;
    }
 
-   if (!acquire_device_for_append(jcr, dev)) {
+   if (!acquire_device_for_append(dcr)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       return false;
    }

@@ -172,7 +172,7 @@ int main (int argc, char *argv[])
       exit(1);
    }
    unlock_device(out_dev);
-   if (!acquire_device_for_append(out_jcr, out_dev)) {
+   if (!acquire_device_for_append(out_jcr->dcr)) {
       free_jcr(in_jcr);
       exit(1);
    }

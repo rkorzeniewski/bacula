@@ -28,6 +28,8 @@
 #include "bacula.h"                   /* pull in global headers */
 #include "stored.h"                   /* pull in Storage Deamon headers */
 
+static int can_reserve_drive(DCR *dcr);
+
 /*
  * Create a new Device Control Record and attach
  *   it to the device (if this is a real job).
@@ -53,8 +55,8 @@ DCR *new_dcr(JCR *jcr, DEVICE *dev)
    dcr->max_spool_size = dev->device->max_spool_size;
    /* Attach this dcr only if dev is initialized */
    if (dev->fd != 0 && jcr && jcr->JobType != JT_SYSTEM) {
-      dev->attached_dcrs->append(dcr);
-//    jcr->dcrs->append(dcr);
+      dev->attached_dcrs->append(dcr);	/* attach dcr to device */
+//    jcr->dcrs->append(dcr);	      /* put dcr in list for Job */
    }
    return dcr;
 }
@@ -111,8 +113,8 @@ void free_dcr(DCR *dcr)
 
    /* Detach this dcr only if the dev is initialized */
    if (dev->fd != 0 && jcr && jcr->JobType != JT_SYSTEM) {
-      dev->attached_dcrs->remove(dcr);
-//    remove_dcr_from_dcrs(dcr);
+      dev->attached_dcrs->remove(dcr);	/* detach dcr from device */
+//    remove_dcr_from_dcrs(dcr);      /* remove dcr from jcr list */
    }
    if (dcr->block) {
       free_block(dcr->block);
@@ -134,9 +136,10 @@ void free_dcr(DCR *dcr)
  *  starting the job. If the device is not available, the DIR
  *  can wait (to be implemented 1/05).
  */
-bool reserve_device_for_read(JCR *jcr, DEVICE *dev)
+bool reserve_device_for_read(DCR *dcr)
 {
-   DCR *dcr = jcr->dcr;
+   DEVICE *dev = dcr->dev;
+   JCR *jcr = dcr->jcr;
    bool first;
 
    ASSERT(dcr);
@@ -179,25 +182,19 @@ bool reserve_device_for_read(JCR *jcr, DEVICE *dev)
  *  Returns: NULL if failed for any reason
  *	     dcr  if successful
  */
-DCR *acquire_device_for_read(JCR *jcr, DEVICE *dev)
+DCR *acquire_device_for_read(DCR *dcr)
 {
+   DEVICE *dev = dcr->dev;
+   JCR *jcr = dcr->jcr;
    bool vol_ok = false;
    bool tape_previously_mounted;
    bool tape_initially_mounted;
    VOL_LIST *vol;
    bool try_autochanger = true;
    int i;
-   DCR *dcr = jcr->dcr;
    int vol_label_status;
    
    dev->block(BST_DOING_ACQUIRE);
-
-   init_device_wait_timers(dcr);
-
-   tape_previously_mounted = dev->can_read() ||
-			     dev->can_append() ||
-			     dev->is_labeled();
-   tape_initially_mounted = tape_previously_mounted;
 
    if (dev->num_writers > 0) {
       Jmsg2(jcr, M_FATAL, 0, _("Num_writers=%d not zero. Job %d canceled.\n"), 
@@ -215,7 +212,18 @@ DCR *acquire_device_for_read(JCR *jcr, DEVICE *dev)
    for (i=1; i<jcr->CurVolume; i++) {
       vol = vol->next;
    }
+   if (!vol) {
+      goto get_out;		      /* should not happen */	
+   }
    bstrncpy(dcr->VolumeName, vol->VolumeName, sizeof(dcr->VolumeName));
+
+   init_device_wait_timers(dcr);
+
+   tape_previously_mounted = dev->can_read() ||
+			     dev->can_append() ||
+			     dev->is_labeled();
+   tape_initially_mounted = tape_previously_mounted;
+
 
    /* Volume info is always needed because of VolParts */
    Dmsg0(200, "dir_get_volume_info\n");
@@ -355,24 +363,71 @@ get_out:
  *  the first tor reserve the device, we put the pool
  *  name and pool type in the device record.
  */
-bool reserve_device_for_append(JCR *jcr, DEVICE *dev)
+bool reserve_device_for_append(DCR *dcr)
 {
-   DCR *dcr = jcr->dcr;
+   JCR *jcr = dcr->jcr;
+   DEVICE *dev = dcr->dev;
    bool ok = false;
+   bool first;
 
    ASSERT(dcr);
-
    dev->block(BST_DOING_ACQUIRE);
-   if (dev->can_read()) {
-      Jmsg(jcr, M_WARNING, 0, _("Device %s is busy reading.\n"), dev->print_name());
-      goto bail_out;
+
+   Mmsg2(jcr->errmsg, _("Device %s is busy reading. Job %d canceled.\n"),
+	 dev->print_name(), jcr->JobId);
+   for (first=true; dev->can_read(); first=false) {
+      dev->unblock();
+      if (!wait_for_device(dcr, jcr->errmsg, first)) {
+	 return false;
+      }
+      dev->block(BST_DOING_ACQUIRE);
    }
-   if (device_is_unmounted(dev)) {
-      Jmsg(jcr, M_WARNING, 0, _("device %s is BLOCKED due to user unmount.\n"),
-	 dev->print_name());
-      goto bail_out;
+
+
+   Mmsg(jcr->errmsg, _("Device %s is BLOCKED due to user unmount.\n"),
+	dev->print_name());
+   for (first=true; device_is_unmounted(dev); first=false) {
+      dev->unblock();
+      if (!wait_for_device(dcr, jcr->errmsg, first))  {
+	 return false;
+      }
+     dev->block(BST_DOING_ACQUIRE);
    }
+
    Dmsg1(190, "reserve_append device is %s\n", dev_is_tape(dev)?"tape":"disk");
+
+   for ( ;; ) {
+      switch (can_reserve_drive(dcr)) {
+      case 0:
+	 /* ****FIXME**** Make wait */
+	 goto bail_out;
+      case -1:
+	 goto bail_out; 	      /* error */
+      default:
+	 break; 		      /* OK, reserve drive */
+      }
+      break;
+   }
+
+
+   dev->reserved_device++;
+   dcr->reserved_device = true;
+   ok = true;
+
+bail_out:
+   dev->unblock();
+   return ok;
+}
+
+/*
+ * Returns: 1 if drive can be reserved
+ *	    0 if we should wait
+ *	   -1 on error
+ */
+static int can_reserve_drive(DCR *dcr) 
+{
+   DEVICE *dev = dcr->dev;
+   JCR *jcr = dcr->jcr;
    /*
     * First handle the case that the drive is not yet in append mode
     */
@@ -386,7 +441,7 @@ bool reserve_device_for_append(JCR *jcr, DEVICE *dev)
 	 } else {
 	    /* Drive not suitable for us */
             Jmsg(jcr, M_WARNING, 0, _("Device %s is busy writing on another Volume.\n"), dev->print_name());
-	    goto bail_out;
+	    return 0;		      /* wait */
 	 }
       } else {
 	 /* Device is available but not yet reserved, reserve it for us */
@@ -394,7 +449,7 @@ bool reserve_device_for_append(JCR *jcr, DEVICE *dev)
 	 bstrncpy(dev->pool_type, dcr->pool_type, sizeof(dev->pool_type));
 	 dev->PoolId = dcr->PoolId;
       }
-      goto do_reserve;
+      return 1; 		      /* reserve drive */
    }
 
    /*
@@ -409,21 +464,14 @@ bool reserve_device_for_append(JCR *jcr, DEVICE *dev)
       } else {
 	 /* Drive not suitable for us */
          Jmsg(jcr, M_WARNING, 0, _("Device %s is busy writing on another Volume.\n"), dev->print_name());
-	 goto bail_out;
+	 return 0;		      /* wait */
       }
    } else {
       Pmsg0(000, "Logic error!!!! Should not get here.\n");
-      goto bail_out;		      /* should not get here */
+      Jmsg0(jcr, M_FATAL, 0, _("Logic error!!!! Should not get here.\n"));
+      return -1;		      /* error, should not get here */
    }
-
-do_reserve:
-   dev->reserved_device++;
-   dcr->reserved_device = true;
-   ok = true;
-
-bail_out:
-   dev->unblock();
-   return ok;
+   return 1;			      /* reserve drive */
 }
 
 /*
@@ -435,16 +483,14 @@ bail_out:
  *   Note, normally reserve_device_for_append() is called
  *   before this routine.
  */
-DCR *acquire_device_for_append(JCR *jcr, DEVICE *dev)
+DCR *acquire_device_for_append(DCR *dcr)
 {
    bool release = false;
    bool recycle = false;
    bool do_mount = false;
-   DCR *dcr = jcr->dcr;
+   DEVICE *dev = dcr->dev;
+   JCR *jcr = dcr->jcr;
 
-   if (!dcr) {
-      dcr = new_dcr(jcr, dev);
-   }
    dev->block(BST_DOING_ACQUIRE);
    Dmsg1(190, "acquire_append device is %s\n", dev_is_tape(dev)?"tape":"disk");
 

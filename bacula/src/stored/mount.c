@@ -407,7 +407,7 @@ bool mount_next_read_volume(DCR *dcr)
    if (jcr->NumVolumes > 1 && jcr->CurVolume < jcr->NumVolumes) {
       close_dev(dev);
       dev->clear_read();
-      if (!acquire_device_for_read(jcr, dev)) {
+      if (!acquire_device_for_read(dcr)) {
          Jmsg2(jcr, M_FATAL, 0, "Cannot open Dev=%s, Vol=%s\n", dev->print_name(),
 	       dcr->VolumeName);
 	 return false;

@@ -171,7 +171,7 @@ static DCR *setup_to_access_device(JCR *jcr, char *dev_name, const char *VolumeN
    create_vol_list(jcr);
 
    if (mode) {			      /* read only access? */
-      if (!acquire_device_for_read(jcr, dev)) {
+      if (!acquire_device_for_read(dcr)) {
 	 return NULL;
       }
    }
