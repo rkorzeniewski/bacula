@@ -96,7 +96,7 @@ Schedule {
 
 # This schedule does the catalog. It starts after the WeeklyCycle
 Schedule {
-  Name = "WeeklyCycleAfterBackup
+  Name = "WeeklyCycleAfterBackup"
   Run = Full sun-sat at 1:10
 }
 
