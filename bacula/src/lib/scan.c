@@ -231,7 +231,7 @@ int parse_args(POOLMEM *cmd, POOLMEM **args, int *argc,
    }
 #ifdef xxxx
    for (int i=0; i < *argc; i++) {
-      Dmsg3(000, "Arg %d: kw=%s val=%s\n", i, argk[i], argv[i]?argv[i]:"NULL");
+      Pmsg3(000, "Arg %d: kw=%s val=%s\n", i, argk[i], argv[i]?argv[i]:"NULL");
    }
 #endif
    return 1;

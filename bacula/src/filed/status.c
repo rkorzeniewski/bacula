@@ -50,7 +50,8 @@ static void do_status(void sendit(char *msg, int len, void *sarg), void *arg)
 
    msg = (char *)get_pool_memory(PM_MESSAGE);
    found = 0;
-   len = Mmsg(&msg, "%s Version: " VERSION " (" BDATE ")\n", my_name);
+   len = Mmsg(&msg, "%s Version: " VERSION " (" BDATE ") %s %s %s\n", my_name,
+	      HOST_OS, DISTNAME, DISTVER);
    sendit(msg, len, arg);
    bstrftime(dt, sizeof(dt), daemon_start_time);
    len = Mmsg(&msg, _("Daemon started %s, %d Job%s run.\n"), dt, last_job.NumJobs,

@@ -58,7 +58,8 @@ int status_cmd(JCR *jcr)
    char dt[MAX_TIME_LENGTH];
    char b1[30], b2[30], b3[30];
 
-   bnet_fsend(user, "\n%s Version: " VERSION " (" BDATE ")\n", my_name);
+   bnet_fsend(user, "\n%s Version: " VERSION " (" BDATE ") %s %s %s\n", my_name,
+	      HOST_OS, DISTNAME, DISTVER);
    bstrftime(dt, sizeof(dt), daemon_start_time);
    bnet_fsend(user, _("Daemon started %s, %d Job%s run.\n"), dt, last_job.NumJobs,
         last_job.NumJobs == 1 ? "" : "s");
@@ -135,8 +136,9 @@ int status_cmd(JCR *jcr)
          bnet_fsend(user, _("%s %s job %s using Volume \"%s\" on device %s\n"), 
 		   job_level_to_str(jcr->JobLevel),
 		   job_type_to_str(jcr->JobType),
+		   jcr->Job,
 		   jcr->VolumeName,
-		   jcr->Job, jcr->device->device_name);
+		   jcr->device->device_name);
 	 sec = time(NULL) - jcr->run_time;
 	 if (sec <= 0) {
 	    sec = 1;

@@ -941,7 +941,6 @@ bsr_dev(DEVICE *dev, int num)
 int
 reposition_dev(DEVICE *dev, uint32_t file, uint32_t block)
 { 
-
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
       Mmsg0(&dev->errmsg, _("Bad call to reposition_dev. Archive not open\n"));
@@ -965,6 +964,10 @@ reposition_dev(DEVICE *dev, uint32_t file, uint32_t block)
       if (!fsf_dev(dev, file-dev->file)) {
 	 return 0;
       }
+   }
+   if (block < dev->block_num) {
+      bsf_dev(dev, 1);
+      fsf_dev(dev, 1);
    }
    if (block > dev->block_num) {
       /* Ignore errors as Bacula can read to the correct block */

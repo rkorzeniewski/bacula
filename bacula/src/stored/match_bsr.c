@@ -157,7 +157,7 @@ BSR *find_next_bsr(BSR *root_bsr, DEVICE *dev)
 
    if (!root_bsr || !root_bsr->use_positioning || 
        !root_bsr->reposition || !dev_is_tape(dev)) {
-      Dmsg2(000, "use_pos=%d repos=%d\n", root_bsr->use_positioning,
+      Dmsg2(100, "use_pos=%d repos=%d\n", root_bsr->use_positioning,
 	root_bsr->reposition);
       return NULL;
    }

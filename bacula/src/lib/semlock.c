@@ -278,7 +278,7 @@ void *thread_routine(void *arg)
       }
    }
    if (repeats > 0) {
-      Dmsg2(000, "Thread %d found unchanged elements %d times\n",
+      Pmsg2(000, "Thread %d found unchanged elements %d times\n",
 	 self->thread_num, repeats);
    }
    return NULL;

@@ -77,14 +77,14 @@ static int sleepcmd(FILE *input, BSOCK *UA_sock);
 static void usage()
 {
    fprintf(stderr, _(
-"\nVersion: " VERSION " (" BDATE ")\n\n"
+"\nVersion: " VERSION " (" BDATE ") %s %s %s\n\n"
 "Usage: console [-s] [-c config_file] [-d debug_level] [config_file]\n"
 "       -c <file>   set configuration file to file\n"
 "       -dnn        set debug level to nn\n"
 "       -s          no signals\n"
 "       -t          test - read configuration and exit\n"
 "       -?          print this message.\n"  
-"\n"));
+"\n"), HOST_OS, DISTNAME, DISTVER);
 
    exit(1);
 }
@@ -504,7 +504,8 @@ again:
 
 static int versioncmd(FILE *input, BSOCK *UA_sock)
 {
-   sendit("Version: " VERSION " (" BDATE ")\n");
+   sendit("Version: " VERSION " (" BDATE ") %s %s %s\n",
+      HOST_OS, DISTNAME, DISTVER);
    return 1;
 }
 

@@ -42,7 +42,7 @@ extern jobq_t job_queue;	      /* job queue */
 extern char *list_pool;
 
 /* Imported functions */
-extern int statuscmd(UAContext *ua, char *cmd);
+extern int status_cmd(UAContext *ua, char *cmd);
 extern int listcmd(UAContext *ua, char *cmd);
 extern int llistcmd(UAContext *ua, char *cmd);
 extern int show_cmd(UAContext *ua, char *cmd);
@@ -60,7 +60,9 @@ extern int relabel_cmd(UAContext *ua, char *cmd);
 extern int update_slots(UAContext *ua);  /* ua_label.c */
 
 /* Forward referenced functions */
-static int add_cmd(UAContext *ua, char *cmd),  createcmd(UAContext *ua, char *cmd), cancelcmd(UAContext *ua, char *cmd);
+static int add_cmd(UAContext *ua, char *cmd);  
+static int create_cmd(UAContext *ua, char *cmd); 
+static int cancel_cmd(UAContext *ua, char *cmd); 
 static int setdebug_cmd(UAContext *ua, char *cmd);
 static int var_cmd(UAContext *ua, char *cmd);
 static int estimate_cmd(UAContext *ua, char *cmd);
@@ -86,8 +88,8 @@ static struct cmdstruct commands[] = {
  { N_("add"),        add_cmd,         _("add media to a pool")},
  { N_("autodisplay"), autodisplaycmd, _("autodisplay [on/off] -- console messages")},
  { N_("automount"),   automount_cmd,  _("automount [on/off] -- after label")},
- { N_("cancel"),     cancelcmd,     _("cancel job=nnn -- cancel a job")},
- { N_("create"),     createcmd,     _("create DB Pool from resource")},  
+ { N_("cancel"),     cancel_cmd,    _("cancel job=nnn -- cancel a job")},
+ { N_("create"),     create_cmd,    _("create DB Pool from resource")},  
  { N_("delete"),     delete_cmd,    _("delete [pool=<pool-name> | media volume=<volume-name>]")},    
  { N_("estimate"),   estimate_cmd,  _("performs FileSet estimate, listing gives full listing")},
  { N_("exit"),       quit_cmd,      _("exit = quit")},
@@ -108,7 +110,7 @@ static struct cmdstruct commands[] = {
  { N_("setdebug"),   setdebug_cmd,  _("sets debug level")},
  { N_("show"),       show_cmd,      _("show (resource records) [jobs | pools | ... | all]")},
  { N_("sqlquery"),   sqlquerycmd,   _("use SQL to query catalog")}, 
- { N_("status"),     statuscmd,     _("status [storage | client]=<name>")},
+ { N_("status"),     status_cmd,    _("status [storage | client]=<name>")},
  { N_("time"),       time_cmd,      _("print current time")},
  { N_("unmount"),    unmount_cmd,   _("unmount <storage-name>")},
  { N_("update"),     update_cmd,    _("update Volume or Pool")},
@@ -338,7 +340,7 @@ int automount_cmd(UAContext *ua, char *cmd)
 /*
  * Cancel a job
  */
-static int cancelcmd(UAContext *ua, char *cmd)
+static int cancel_cmd(UAContext *ua, char *cmd)
 {
    int i;
    int njobs = 0;
@@ -558,7 +560,7 @@ int create_pool(JCR *jcr, B_DB *db, POOL *pool, e_pool_op op)
  * Create a Pool Record in the database.
  *  It is always created from the Resource record.
  */
-static int createcmd(UAContext *ua, char *cmd) 
+static int create_cmd(UAContext *ua, char *cmd) 
 {
    POOL *pool;
 

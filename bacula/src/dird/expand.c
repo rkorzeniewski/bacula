@@ -323,7 +323,7 @@ static var_rc_t operate_var(var_t *var, void *my_ctx,
 	  char **out_ptr, int *out_len, int *out_size)
 {
    var_rc_t stat = VAR_ERR_UNDEFINED_OPERATION;
-   Dmsg0(000, "Enter operate_var\n");
+// Dmsg0(000, "Enter operate_var\n");
    if (!val_ptr) {
       *out_size = 0;
       return stat;
@@ -335,14 +335,14 @@ static var_rc_t operate_var(var_t *var, void *my_ctx,
       }
       memcpy(buf, arg_ptr, arg_len);
       buf[arg_len] = 0;
-      Dmsg1(000, "Arg=%s\n", buf);
+//    Dmsg1(000, "Arg=%s\n", buf);
       memcpy(buf, val_ptr, val_len);
       buf[val_len] = 0;   
-      Dmsg1(000, "Val=%s\n", buf);
+//    Dmsg1(000, "Val=%s\n", buf);
       LockRes();
       for (COUNTER *counter=NULL; (counter = (COUNTER *)GetNextRes(R_COUNTER, (RES *)counter)); ) {
 	 if (strcmp(counter->hdr.name, buf) == 0) {
-            Dmsg2(000, "counter=%s val=%s\n", counter->hdr.name, buf);
+//          Dmsg2(000, "counter=%s val=%s\n", counter->hdr.name, buf);
 	    break;
 	 }
       }

@@ -5,7 +5,9 @@
 
 Major Changes this Release:
 - Fixed gnome-console to compile with RH9 (Gnome 2.0)
-- Implemented a single routine to read_records.
+- Implemented a single routine to read_records. It also returns
+  a different record packet for each session.  This means
+  that multiple simultaneous jobs should work.
 - Implemented forward space file/block whenever possible.
 - Added SDConnectTimeout to FD.    
 
