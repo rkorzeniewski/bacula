@@ -44,5 +44,13 @@ cp ${cwd}/bin/mtx-changer /tmp/bac$$
 sed "s%^MTX.*$%MTX=${4}%g" /tmp/bac$$ >${cwd}/bin/mtx-changer
 chmod 777 ${cwd}/bin/mtx-changer
 
+# get proper SD tape definitions
+if test x`uname` = xLinux ; then \
+   cp -f scripts/linux_tape_options bin/tape_options ; \
+fi
+if test x`uname` = xFreeBsd ; then \
+   cp -f scripts/freebsd_tape_options bin/tape_options ; \
+fi
+
 rm -f ${out}
 rm -f /tmp/bac$$

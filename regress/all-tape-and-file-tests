@@ -2,29 +2,5 @@
 #
 # Run all tests
 #
-tests/test0
-tests/backup-bacula-test
-tests/verify-vol-test
-tests/sparse-test
-tests/compressed-test
-tests/sparse-compressed-test
-tests/weird-files-test
-tests/two-jobs-test
-tests/two-vol-test
-tests/six-vol-test
-tests/bscan-test
-tests/weird-files2-test
-tests/concurrent-jobs-test
-tests/four-concurrent-jobs-test
-tests/bsr-opt-test
-tests/bextract-test
-tests/recycle-test
-tests/span-vol-test
-tests/backup-bacula-tape
-tests/small-file-size-tape
-tests/two-volume-tape
-echo " "
-echo " "
-echo "Test results"
-cat test.out
-scripts/cleanup
+./all-non-root-tests
+./all-non-root-tape-tests
