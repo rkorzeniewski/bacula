@@ -43,7 +43,7 @@ DCR *new_dcr(JCR *jcr, DEVICE *dev)
    dcr->jcr = jcr;
    dcr->dev = dev;
    dcr->block = new_block(dev);
-   dcr->record = new_record();
+   dcr->rec = new_record();
    dcr->spool_fd = -1;
    dcr->max_spool_size = dev->device->max_spool_size;
    return dcr;
@@ -54,8 +54,8 @@ void free_dcr(DCR *dcr)
    if (dcr->block) {
       free_block(dcr->block);
    }
-   if (dcr->record) {
-      free_record(dcr->record);
+   if (dcr->rec) {
+      free_record(dcr->rec);
    }
    if (dcr->jcr) {
       dcr->jcr->dcr = NULL;

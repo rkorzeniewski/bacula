@@ -22,6 +22,7 @@
 - Perhaps add read/write programs and/or plugins to FileSets.
 - Look at adding Client run command that will use the
   port opened by the client.
+- Fix find_device in stored/dircmd.c:462
 
 Documentation to do: (any release a little bit at a time)
 - Document query file format.
@@ -1091,4 +1092,3 @@ Block Position: 0
 - Test new I/O error despooling code.
 - Sort Scheduled jobs status listing by start time.
 - Add priority to Scheduled jobs status listing.
-

@@ -5,7 +5,7 @@
  */
 
 /*
-   Copyright (C) 2000-2003 Kern Sibbald and John Walker
+   Copyright (C) 2000-2004 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -60,7 +60,7 @@ void	init_block_write(DEV_BLOCK *block);
 void	empty_block(DEV_BLOCK *block);
 void	free_block(DEV_BLOCK *block);
 int	write_block_to_device(DCR *dcr, DEV_BLOCK *block);
-int	write_block_to_dev(DCR *dcr, DEV_BLOCK *block);
+bool	write_block_to_dev(DCR *dcr, DEV_BLOCK *block);
 void	print_block_read_errors(JCR *jcr, DEV_BLOCK *block);
 void	ser_block_header(DEV_BLOCK *block);
 
@@ -121,7 +121,7 @@ int	 dev_is_tape(DEVICE *dev);
 /* From device.c */
 int	 open_device(JCR *jcr, DEVICE *dev);
 int	 first_open_device(DEVICE *dev);
-int	 fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
+bool	 fixup_device_block_write_error(DCR *dcr, DEV_BLOCK *block);
 void	 _lock_device(const char *file, int line, DEVICE *dev);
 void	 _unlock_device(const char *file, int line, DEVICE *dev);
 void	 _block_device(const char *file, int line, DEVICE *dev, int state);
@@ -149,7 +149,7 @@ int	 read_dev_volume_label(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
 void	 create_session_label(JCR *jcr, DEV_RECORD *rec, int label);
 void	 create_volume_label(DEVICE *dev, const char *VolName, const char *PoolName);
 bool	 write_new_volume_label_to_dev(JCR *jcr, DEVICE *dev, const char *VolName, const char *PoolName);
-int	 write_session_label(JCR *jcr, DEV_BLOCK *block, int label);
+bool	 write_session_label(JCR *jcr, DEV_BLOCK *block, int label);
 bool	 write_volume_label_to_block(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
 void	 dump_volume_label(DEVICE *dev);
 void	 dump_label_record(DEVICE *dev, DEV_RECORD *rec, int verbose);

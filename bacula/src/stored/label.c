@@ -483,13 +483,13 @@ void create_session_label(JCR *jcr, DEV_RECORD *rec, int label)
 }
 
 /* Write session label
- *  Returns: 0 on failure
- *	     1 on success 
+ *  Returns: false on failure
+ *	     true  on success 
  */
-int write_session_label(JCR *jcr, DEV_BLOCK *block, int label)
+bool write_session_label(JCR *jcr, DEV_BLOCK *block, int label)
 {
-   DEVICE *dev = jcr->device->dev;
    DCR *dcr = jcr->dcr;
+   DEVICE *dev = dcr->dev;
    DEV_RECORD *rec;
 
    rec = new_record();
@@ -534,14 +534,14 @@ int write_session_label(JCR *jcr, DEV_BLOCK *block, int label)
          Jmsg(jcr, M_FATAL, 0, _("Error writing Session label to %s: %s\n"), 
 			   dev_vol_name(dev), strerror(errno));
 	 free_record(rec);
-	 return 0;
+	 return false;
       }
    }
    if (!write_record_to_block(block, rec)) {
       Jmsg(jcr, M_FATAL, 0, _("Error writing Session label to %s: %s\n"), 
 			dev_vol_name(dev), strerror(errno));
       free_record(rec);
-      return 0;
+      return false;
    }
 
    Dmsg6(20, "Write sesson_label record JobId=%d FI=%s SessId=%d Strm=%s len=%d\n\
@@ -553,7 +553,7 @@ remainder=%d\n", jcr->JobId,
    free_record(rec);
    Dmsg2(20, "Leave write_session_label Block=%d File=%d\n", 
       dev->block_num, dev->file);
-   return 1;
+   return true;
 }
 
 void dump_volume_label(DEVICE *dev)
