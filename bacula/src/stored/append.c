@@ -126,14 +126,14 @@ int do_append_data(JCR *jcr)
        *    info       (Info for Storage daemon -- compressed, encryped, ...)
        *       info is not currently used, so is read, but ignored!
        */
-      if ((n=bget_msg(ds)) < 0) { 
+     if ((n=bget_msg(ds)) <= 0) {
+	 if (n == BNET_SIGNAL && ds->msglen == BNET_EOD) {
+	    break;		      /* end of data */
+	 }
          Jmsg1(jcr, M_FATAL, 0, _("Error reading data header from FD. ERR=%s\n"),
 	    bnet_strerror(ds));
 	 ok = FALSE;
 	 break;
-      }
-      if (n == 0 || job_cancelled(jcr)) {
-	 break; 		      /* all done */
       }
       sm_check(__FILE__, __LINE__, False);
       ds->msg[ds->msglen] = 0;
@@ -218,7 +218,7 @@ int do_append_data(JCR *jcr)
 	 }
 	 sm_check(__FILE__, __LINE__, False);
       }
-      if (n < 0) {
+      if (is_bnet_error(ds)) {
          Jmsg1(jcr, M_FATAL, 0, _("Network error on data channel. ERR=%s\n"),
 	    bnet_strerror(ds));
 	 ok = FALSE;

@@ -53,7 +53,7 @@ int mount_next_write_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, int release
 
 mount_next_vol:
    if (retry++ > 5) {
-      Jmsg(jcr, M_FATAL, 0, _("Too many errors on device %s.\n"), dev_name(dev));
+      Jmsg(jcr, M_FATAL, 0, _("Too many errors trying to mount device %s.\n"), dev_name(dev));
       return 0;
    }
    if (job_cancelled(jcr)) {
@@ -132,6 +132,7 @@ mount_next_vol:
       }
 
       if (ask && !dir_ask_sysop_to_mount_next_volume(jcr, dev)) {
+         Dmsg0(100, "Error return ask_sysop ...\n");
 	 return 0;		/* error return */
       }
       Dmsg1(100, "want vol=%s\n", jcr->VolumeName);
@@ -154,20 +155,32 @@ mount_next_vol:
 read_volume:
       switch (read_dev_volume_label(jcr, dev, block)) {
 	 case VOL_OK:
-            Dmsg1(500, "Vol OK name=%s\n", jcr->VolumeName);
+            Dmsg1(100, "Vol OK name=%s\n", jcr->VolumeName);
 	    memcpy(&dev->VolCatInfo, &jcr->VolCatInfo, sizeof(jcr->VolCatInfo));
             if (strcmp(dev->VolCatInfo.VolCatStatus, "Recycle") == 0) {
 	       recycle = 1;
 	    }
 	    break;		      /* got it */
 	 case VOL_NAME_ERROR:
-            Dmsg1(500, "Vol NAME Error Name=%s\n", jcr->VolumeName);
+            Dmsg1(100, "Vol NAME Error Name=%s\n", jcr->VolumeName);
+	    /* 
+	     * OK, we got a different volume mounted. First save the
+	     *	requested Volume info in the dev structure, then query if
+	     *	this volume is really OK. If not, put back the desired
+	     *	volume name and continue.
+	     */
+	    memcpy(&dev->VolCatInfo, &jcr->VolCatInfo, sizeof(jcr->VolCatInfo));
 	    /* Check if this is a valid Volume in the pool */
 	    strcpy(jcr->VolumeName, dev->VolHdr.VolName);
 	    if (!dir_get_volume_info(jcr, 1)) {
-	       goto mount_next_vol;
+               Mmsg(&jcr->errmsg, _("Wanted Volume \"%s\".\n\
+    Actual Volume \"%s\" not acceptable.\n"),
+		  dev->VolCatInfo.VolCatName, dev->VolHdr.VolName);
+	       /* Restore desired volume name, note device info out of sync */
+	       memcpy(&jcr->VolCatInfo, &dev->VolCatInfo, sizeof(jcr->VolCatInfo));
+	       goto mount_error;
 	    }
-            Dmsg1(200, "want new name=%s\n", jcr->VolumeName);
+            Dmsg1(100, "want new name=%s\n", jcr->VolumeName);
 	    memcpy(&dev->VolCatInfo, &jcr->VolCatInfo, sizeof(jcr->VolCatInfo));
 	    break;
 
@@ -176,9 +189,10 @@ read_volume:
             Dmsg1(500, "Vol NO_LABEL or IO_ERROR name=%s\n", jcr->VolumeName);
 	    /* If permitted, create a label */
 	    if (dev->capabilities & CAP_LABEL) {
-               Dmsg0(190, "Create volume label\n");
+               Dmsg0(100, "Create volume label\n");
 	       if (!write_volume_label_to_dev(jcr, (DEVRES *)dev->device, jcr->VolumeName,
 		      jcr->pool_name)) {
+                  Dmsg0(100, "!write_vol_label\n");
 		  goto mount_next_vol;
 	       }
                Jmsg(jcr, M_INFO, 0, _("Created Volume label %s on device %s.\n"),
@@ -187,15 +201,17 @@ read_volume:
 	    } 
 	    /* NOTE! Fall-through wanted. */
 	 default:
+mount_error:
 	    /* Send error message */
             Jmsg1(jcr, M_WARNING, 0, "%s", jcr->errmsg);                         
 	    if (autochanger) {
-               Jmsg(jcr, M_ERROR, 0, _("Autochanger Volume %s not found in slot %d.\n\
+               Jmsg(jcr, M_ERROR, 0, _("Autochanger Volume \"%s\" not found in slot %d.\n\
     Setting slot to zero in catalog.\n"),
-		  jcr->VolumeName, jcr->VolCatInfo.Slot);
+		  jcr->VolCatInfo.VolCatName, jcr->VolCatInfo.Slot);
 	       jcr->VolCatInfo.Slot = 0; /* invalidate slot */
 	       dir_update_volume_info(jcr, &jcr->VolCatInfo, 1);  /* set slot */
 	    }
+            Dmsg0(100, "Default\n");
 	    goto mount_next_vol;
       }
       break;
@@ -290,15 +306,21 @@ read_volume:
       }
       /* *****FIXME**** we should do some checking for files too */
       if (dev_is_tape(dev)) {
-         Jmsg(jcr, M_INFO, 0, _("Ready to append to end of Volume at file=%d.\n"), dev_file(dev));
 	 /*
 	  * Check if we are positioned on the tape at the same place
 	  * that the database says we should be.
 	  */
-	 if (dev->VolCatInfo.VolCatFiles != dev_file(dev) + 1) {
-	    /* ****FIXME**** this should refuse to write on tape */
-            Jmsg(jcr, M_ERROR, 0, _("Hey! Num files mismatch! Volume=%d Catalog=%d\n"), 
-	       dev_file(dev)+1, dev->VolCatInfo.VolCatFiles);
+	 if (dev->VolCatInfo.VolCatFiles == dev_file(dev) + 1) {
+            Jmsg(jcr, M_INFO, 0, _("Ready to append to end of Volume at file=%d.\n"), 
+		 dev_file(dev));
+	 } else {
+            Jmsg(jcr, M_ERROR, 0, _("I canot write on this volume because:\n\
+The number of files mismatch! Volume=%d Catalog=%d\n"), 
+		 dev_file(dev)+1, dev->VolCatInfo.VolCatFiles);
+            strcpy(dev->VolCatInfo.VolCatStatus, "Error");
+            Dmsg0(100, "dir_update_vol_info. Set Error.\n");
+	    dir_update_volume_info(jcr, &dev->VolCatInfo, 0);
+	    goto mount_next_vol;
 	 }
       }
       /* Update Volume Info -- will be written at end of Job */

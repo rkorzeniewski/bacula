@@ -57,7 +57,6 @@ typedef struct s_bsock {
 } BSOCK;
 
 /* Signal definitions for use in bnet_sig() */
-#define BNET_NONO         0           /* DO NOT USE, remains for compatibility */
 #define BNET_EOD         -1           /* End of data stream, new data may follow */
 #define BNET_EOD_POLL    -2           /* End of data and poll all in one */
 #define BNET_STATUS      -3           /* Send full status */
@@ -69,6 +68,11 @@ typedef struct s_bsock {
 
 #define BNET_SETBUF_READ  1           /* Arg for bnet_set_buffer_size */
 #define BNET_SETBUF_WRITE 2           /* Arg for bnet_set_buffer_size */
+
+/* Return status from bnet_recv() */
+#define BNET_SIGNAL  -1
+#define BNET_HARDEOF -2
+#define BNET_ERROR   -3
 
 /*
  * This is the structure of the in memory BPKT

@@ -396,7 +396,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
     *	Attributes
     *	Link name  ???
     */
-   while ((n=bget_msg(fd, 0)) > 0 && !job_cancelled(jcr)) {
+   while ((n=bget_msg(fd, 0)) >= 0 && !job_cancelled(jcr)) {
       int stream;
       char *attr, *p, *fn;
       char Opts_MD5[MAXSTRING];        /* Verify Opts or MD5 signature */
@@ -426,7 +426,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
       /*
        * Got attributes stream, decode it
        */
-      if (stream == STREAM_UNIX_ATTRIBUTES) {
+      if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_WIN32_ATTRIBUTES) {
          Dmsg2(400, "file_index=%d attr=%s\n", file_index, attr);
 	 jcr->JobFiles++;
 	 jcr->FileIndex = file_index;	 /* remember attribute file_index */
@@ -582,7 +582,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
       }
       jcr->JobFiles = file_index;
    } 
-   if (n < 0) {
+   if (is_bnet_error(fd)) {
       Jmsg2(jcr, M_FATAL, 0, _("bdird<filed: bad attributes from filed n=%d : %s\n"),
 			n, strerror(errno));
       goto bail_out;

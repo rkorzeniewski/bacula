@@ -44,7 +44,7 @@
 #include "dird.h"
 
 /* Commands sent to File daemon */
-static char restorecmd[]   = "restore where=%s\n";
+static char restorecmd[]   = "restore replace=%c where=%s\n";
 static char storaddr[]     = "storage address=%s port=%d\n";
 static char sessioncmd[]   = "session %s %ld %ld %ld %ld %ld %ld\n";  
 
@@ -228,21 +228,32 @@ int do_restore(JCR *jcr)
    }
 
    /* Send restore command */
-   if (jcr->RestoreWhere) {
-      bnet_fsend(fd, restorecmd, jcr->RestoreWhere);
+   char replace, *where;
+
+   if (jcr->job->RestoreOptions != 0) {
+      replace = jcr->job->RestoreOptions;
    } else {
-      bnet_fsend(fd, restorecmd, 
-                 jcr->job->RestoreWhere ? jcr->job->RestoreWhere : "");
+      replace = 'a';                  /* always replace */
    }
+   if (jcr->RestoreWhere) {
+      where = jcr->RestoreWhere;      /* override */
+   } else if (jcr->job->RestoreWhere) {
+      where = jcr->job->RestoreWhere; /* no override take from job */
+   } else {
+      where = "";                     /* None */
+   }
+   bash_spaces(where);
+   bnet_fsend(fd, restorecmd, replace, where);
+   unbash_spaces(where);
+
    if (!response(fd, OKrestore, "Restore")) {
       restore_cleanup(jcr, JS_ErrorTerminated);
       return 0;
    }
 
    /* Wait for Job Termination */
-   /*** ****FIXME**** get job termination status */
    Dmsg0(20, "wait for job termination\n");
-   while (bget_msg(fd, 0) >  0) {
+   while (bget_msg(fd, 0) >= 0) {
       Dmsg1(100, "dird<filed: %s\n", fd->msg);
       if (sscanf(fd->msg, EndRestore, &jcr->JobStatus, &jcr->JobFiles,
 	  &jcr->JobBytes) == 3) {

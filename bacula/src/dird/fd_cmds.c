@@ -44,7 +44,7 @@ static char jobcmd[]      = "JobId=%d Job=%s SDid=%u SDtime=%u Authorization=%s\
 /* Responses received from File daemon */
 static char OKinc[]      = "2000 OK include\n";
 static char OKexc[]      = "2000 OK exclude\n";
-static char OKjob[]      = "2000 OK Job\n";
+static char OKjob[]      = "2000 OK Job";
 
 /* Forward referenced functions */
 
@@ -88,11 +88,13 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
    Dmsg1(110, ">filed: %s", fd->msg);
    if (bnet_recv(fd) > 0) {
        Dmsg1(110, "<filed: %s", fd->msg);
-       if (strcmp(fd->msg, OKjob) != 0) {
+       if (strncmp(fd->msg, OKjob, strlen(OKjob)) != 0) {
           Jmsg(jcr, M_FATAL, 0, _("File daemon rejected Job command: %s\n"), fd->msg);
 	  jcr->JobStatus = JS_ErrorTerminated;
 	  return 0;
-       } 
+       } else {
+	  /***** ***FIXME***** update Client Uname */
+       }
    } else {
       Jmsg(jcr, M_FATAL, 0, _("<filed: bad response to JobId command: %s\n"),
 	 bnet_strerror(fd));
@@ -226,7 +228,7 @@ msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
       *fn = *p++;		      /* term filename and point to attribs */
       attr = p;
 
-      if (stream == STREAM_UNIX_ATTRIBUTES) {
+      if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_WIN32_ATTRIBUTES) {
 	 jcr->JobFiles++;
 	 jcr->FileIndex = file_index;
 	 ar.attr = attr;
@@ -266,7 +268,7 @@ msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
       jcr->jr.JobFiles = jcr->JobFiles = file_index;
       jcr->jr.LastIndex = file_index;
    } 
-   if (n < 0) {
+   if (is_bnet_error(fd)) {
       Jmsg1(jcr, M_FATAL, 0, _("<filed: Network error getting attributes. ERR=%s\n"),
 			bnet_strerror(fd));
       jcr->JobStatus = JS_ErrorTerminated;

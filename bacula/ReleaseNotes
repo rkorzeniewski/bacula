@@ -1,6 +1,6 @@
           Release Notes for Bacula 1.27
 
-  Bacula code: Total files = 218 Total lines = 59,267 (*.h *.c *.in)
+  Bacula code: Total files = 220 Total lines = 59,468 (*.h *.c *.in)
 
 Major Changes this Release:
 - Implemented support for Sparse files.
@@ -8,6 +8,8 @@ Major Changes this Release:
 - New Volume format. Will permit faster restores,
   and correct restores of Volumes written with multiple
   simultaneous jobs.
+- Important change to communications protocol. Eliminated
+  deprecated 0 signal. 
 
 Minor Changes this Release:
 - Mount Anonymous Volumes is now dropped from the Storage
@@ -20,7 +22,14 @@ Minor Changes this Release:
 - Improve handling of the "Where" prefix on Win32 by first
   stripping any previous drive. This allows restoration to
   any drive.
+- Modified Director-FD logon sequence to pass the OS id strings
+  to the director.
+- Fixed mount loop when the autochanger slot is incorrect in 
+  the catalog.
+- Updated the bacula script to work on more systems.
 
 Items to note:
 - The Dir-SD protocol has changed since 1.26, so you must
   update the Director and Storage daemons.
+- The Dir-FD protocol has changed since 1.26 (and earlier versions
+  of 1.27).

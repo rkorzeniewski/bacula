@@ -75,7 +75,7 @@ void do_verify_volume(JCR *jcr)
    /* 
     * Get a record from the Storage daemon
     */
-   while (bnet_recv(sd) > 0 && !job_cancelled(jcr)) {
+   while (bnet_recv(sd) >= 0 && !job_cancelled(jcr)) {
       /*
        * First we expect a Stream Record Header 
        */
@@ -100,7 +100,7 @@ void do_verify_volume(JCR *jcr)
       Dmsg1(30, "Got stream data, len=%d\n", sd->msglen);
 
       /* File Attributes stream */
-      if (stream == STREAM_UNIX_ATTRIBUTES) {
+      if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_WIN32_ATTRIBUTES) {
 	 char *ap, *lp, *fp;
 
          Dmsg0(400, "Stream=Unix Attributes.\n");
@@ -122,7 +122,7 @@ void do_verify_volume(JCR *jcr)
 	  *    Filename
 	  *    Attributes
 	  *    Link name (if file linked i.e. FT_LNK)
-	  *
+	  *    Extended Attributes (if Win32)
 	  */
          if (sscanf(sd->msg, "%d %d", &record_file_index, &type) != 2) {
             Jmsg(jcr, M_FATAL, 0, _("Error scanning record header: %s\n"), sd->msg);
@@ -150,7 +150,7 @@ void do_verify_volume(JCR *jcr)
 
          Dmsg1(200, "Attr=%s\n", ap);
 	 /* Skip to Link name */
-	 if (type == FT_LNK) {
+	 if (type == FT_LNK || type == FT_LNKSAVED) {
 	    lp = ap;
 	    while (*lp++ != 0) {
 	       ;
@@ -175,7 +175,7 @@ void do_verify_volume(JCR *jcr)
 	  */
 	 /* Send file attributes to Director */
          Dmsg2(200, "send ATTR inx=%d fname=%s\n", jcr->JobFiles, fname);
-	 if (type == FT_LNK) {
+	 if (type == FT_LNK || type == FT_LNKSAVED) {
             stat = bnet_fsend(dir, "%d %d %s %s%c%s%c%s%c", jcr->JobFiles,
                           STREAM_UNIX_ATTRIBUTES, "pinsug5", fname, 
 			  0, ap, 0, lname, 0);
@@ -192,12 +192,12 @@ void do_verify_volume(JCR *jcr)
 
 
       /* Data stream */
-      } else if (stream == STREAM_FILE_DATA) {
+      } else if (stream == STREAM_FILE_DATA || stream == STREAM_SPARSE_DATA) {
 
 	/* Do nothing */
 	
       /* GZIP data stream */
-      } else if (stream == STREAM_GZIP_DATA) {
+      } else if (stream == STREAM_GZIP_DATA || stream == STREAM_SPARSE_GZIP_DATA) {
 
 	/* Do nothing */
 

@@ -140,6 +140,7 @@ struct s_jcr {
    JOB_DBR jr;                        /* Job record in Database */
    uint32_t RestoreJobId;             /* Id specified by UA */
    char *RestoreWhere;                /* Where to restore the files */
+   POOLMEM *client_uname;             /* client uname */ 
 #endif /* DIRECTOR_DAEMON */
 
 #ifdef FILE_DAEMON
@@ -157,6 +158,7 @@ struct s_jcr {
    POOLMEM *compress_buf;             /* Compression buffer */
    int32_t compress_buf_size;         /* Length of compression buffer */
    POOLMEM *where;                    /* Root where to restore */
+   int replace;                       /* Replace options */
    int buf_size;                      /* length of buffer */
    FF_PKT *ff;                        /* Find Files packet */
    char stored_addr[MAX_NAME_LENGTH]; /* storage daemon address */

@@ -315,7 +315,7 @@ static void do_storage_status(UAContext *ua, STORE *store)
    Dmsg0(20, _("Connected to storage daemon\n"));
    sd = ua->jcr->store_bsock;
    bnet_fsend(sd, "status");
-   while (bnet_recv(sd) > 0) {
+   while (bnet_recv(sd) >= 0) {
       bsendmsg(ua, "%s", sd->msg);
    }
    bnet_sig(sd, BNET_TERMINATE);
@@ -342,7 +342,7 @@ static void do_client_status(UAContext *ua, CLIENT *client)
    Dmsg0(20, _("Connected to file daemon\n"));
    fd = ua->jcr->file_bsock;
    bnet_fsend(fd, "status");
-   while (bnet_recv(fd) > 0) {
+   while (bnet_recv(fd) >= 0) {
       bsendmsg(ua, "%s", fd->msg);
    }
    bnet_sig(fd, BNET_TERMINATE);

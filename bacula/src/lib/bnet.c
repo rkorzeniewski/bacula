@@ -104,21 +104,27 @@ static int32_t write_nbytes(BSOCK *bsock, char *ptr, int32_t nbytes)
  * Receive a message from the other end. Each message consists of
  * two packets. The first is a header that contains the size
  * of the data that follows in the second packet.
- * Returns number of bytes read
- * Returns 0 on end of file
- * Returns -1 on hard end of file (i.e. network connection close)
- * Returns -2 on error
+ * Returns number of bytes read (may return zero)
+ * Returns -1 on signal (BNET_SIGNAL) 
+ * Returns -2 on hard end of file (BNET_HARDEOF)
+ * Returns -3 on error	(BNET_ERROR)
+ *
+ *  Unfortunately, it is a bit complicated because we have these
+ *    four return types:
+ *    1. Normal data
+ *    2. Signal including end of data stream
+ *    3. Hard end of file		  
+ *    4. Error
+ *  Using is_bnet_stop() and is_bnet_error() you can figure this all out.
  */
-/* EXTPROTO */
-int32_t 
-bnet_recv(BSOCK *bsock)
+int32_t bnet_recv(BSOCK *bsock)
 {
    int32_t nbytes;
    int32_t pktsiz;
 
    bsock->msg[0] = 0;
    if (bsock->errors || bsock->terminated) {
-      return -2;
+      return BNET_HARDEOF;
    }
 
    bsock->read_seqno++; 	      /* bump sequence number */
@@ -134,7 +140,7 @@ bnet_recv(BSOCK *bsock)
 	 bsock->b_errno = errno;
       }
       bsock->errors++;
-      return -1;		      /* assume hard EOF received */
+      return BNET_HARDEOF;	      /* assume hard EOF received */
    }
    bsock->timer_start = 0;	      /* clear timer */
    if (nbytes != sizeof(int32_t)) {
@@ -142,19 +148,27 @@ bnet_recv(BSOCK *bsock)
       bsock->b_errno = EIO;
       Jmsg3(bsock->jcr, M_ERROR, 0, _("Read %d expected %d from %s\n"), nbytes, sizeof(int32_t),
 	    bsock->who);
-      return -2;
+      return BNET_ERROR;
    }
 
    pktsiz = ntohl(pktsiz);	      /* decode no. of bytes that follow */
 
+   if (pktsiz == 0) {		      /* No data transferred */
+      bsock->timer_start = 0;	      /* clear timer */
+      bsock->in_msg_no++;
+      bsock->msglen = 0;
+      return 0; 		      /* zero bytes read */
+   }
+
    /* If signal or packet size too big */
-   if (pktsiz <= 0 || pktsiz > 10000000) {
+   if (pktsiz < 0 || pktsiz > 10000000) {
       if (pktsiz == BNET_TERMINATE) {
 	 bsock->terminated = 1;
       }
+      bsock->timer_start = 0;	      /* clear timer */
       bsock->b_errno = ENODATA;
-      bsock->msglen = pktsiz;	      /* return size */
-      return 0; 		      /* soft EOF */
+      bsock->msglen = pktsiz;	      /* signal code */
+      return BNET_SIGNAL;	      /* signal */
    }
 
    /* Make sure the buffer is big enough + one byte for EOS */
@@ -175,7 +189,7 @@ bnet_recv(BSOCK *bsock)
       bsock->errors++;
       Jmsg4(bsock->jcr, M_ERROR, 0, _("Read error from %s:%s:%d: ERR=%s\n"), 
 	    bsock->who, bsock->host, bsock->port, bnet_strerror(bsock));
-      return -2;
+      return BNET_ERROR;
    }
    bsock->timer_start = 0;	      /* clear timer */
    bsock->in_msg_no++;
@@ -185,7 +199,7 @@ bnet_recv(BSOCK *bsock)
       bsock->errors++;
       Jmsg5(bsock->jcr, M_ERROR, 0, _("Read expected %d got %d from %s:%s:%d\n"), pktsiz, nbytes,
 	    bsock->who, bsock->host, bsock->port);
-      return -2;
+      return BNET_ERROR;
    }
    /* always add a zero by to properly terminate any
     * string that was send to us. Note, we ensured above that the
@@ -194,6 +208,24 @@ bnet_recv(BSOCK *bsock)
    bsock->msg[nbytes] = 0;	      /* terminate in case it is a string */
    sm_check(__FILE__, __LINE__, False);
    return nbytes;		      /* return actual length of message */
+}
+
+
+/*
+ * Return 1 if there are errors on this bsock or it is closed,	
+ *   i.e. stop communicating on this line.
+ */
+int is_bnet_stop(BSOCK *bsock) 
+{
+   return bsock->errors || bsock->terminated;
+}
+
+/*
+ * Return number of errors on socket 
+ */
+int is_bnet_error(BSOCK *bsock)
+{
+   return bsock->errors;
 }
 
 int bnet_despool(BSOCK *bsock)
@@ -223,6 +255,7 @@ int bnet_despool(BSOCK *bsock)
    }
    return 1;
 }
+
 
 /*
  * Send a message over the network. The send consists of
@@ -444,7 +477,7 @@ bnet_connect(void *jcr, int retry_interval, int max_retry_time, char *name,
    for (i=0; (bsock = bnet_open(jcr, name, host, service, port)) == NULL; i -= retry_interval) {
      Dmsg4(100, "Unable to connect to %s on %s:%d. ERR=%s\n",
 	      name, host, port, strerror(errno));
-      if (i <= 0) {
+      if (i < 0) {
 	 i = 60 * 5;		      /* complain again in 5 minutes */
 	 if (verbose)
             Jmsg(jcr, M_WARNING, 0, "Could not connect to %s on %s:%d. ERR=%s\n\
@@ -468,7 +501,6 @@ Retrying ...\n", name, host, port, strerror(errno));
  */
 char *bnet_strerror(BSOCK *bsock)
 {
-   /*  ***FIXME*** not thread safe */
    return strerror(bsock->b_errno);
 }
 
@@ -519,7 +551,7 @@ int bnet_set_buffer_size(BSOCK *bs, uint32_t size, int rw)
 
    dbuf_size = size;
    if ((bs->msg = realloc_pool_memory(bs->msg, dbuf_size+100)) == NULL) {
-      Jmsg0(bs->jcr, M_FATAL, 0, _("Could not malloc 32K BSOCK data buffer\n"));
+      Jmsg0(bs->jcr, M_FATAL, 0, _("Could not malloc BSOCK data buffer\n"));
       return 0;
    }
    if (rw & BNET_SETBUF_READ) {
@@ -577,7 +609,6 @@ char *bnet_sig_to_ascii(BSOCK *bs)
 {
    static char buf[30];
    switch (bs->msglen) {
-      case BNET_NONO:		      /* for compatibility */
       case BNET_EOD:
          return "BNET_EOD";           /* end of data stream */
       case BNET_EOD_POLL:

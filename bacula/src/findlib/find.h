@@ -72,6 +72,8 @@
 #define FO_NO_RECURSION 0x04          /* no recursion in directories */
 #define FO_MULTIFS      0x08          /* multiple file systems */
 #define FO_SPARSE       0x10          /* do sparse file checking */
+#define FO_IF_NEWER     0x20          /* replace if newer */
+#define FO_NOREPLACE    0x40          /* never replace */
 
 /* Options saved in "options" of include list */
 /* ****FIXME**** replace OPT_ flags with FO_ */
@@ -80,6 +82,8 @@
 #define OPT_no_recursion      0x04    /* no recursion in directories */
 #define OPT_multifs           0x08    /* multiple file systems */
 #define OPT_sparse            0x10    /* do sparse file checking */
+#define OPT_replace_if_newer  0x20    /* replace file if newer */
+#define OPT_never_replace     0x40    /* never replace */
 
 
 struct s_included_file {

@@ -295,7 +295,7 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
    } else if (Stream == STREAM_MD5_SIGNATURE) {
       fname = p;
       if (jcr->FileIndex != FileIndex) {    
-         Jmsg(jcr, M_WARNING, 0, "Got MD5 but not same block as attributes\n");
+         Jmsg(jcr, M_WARNING, 0, "Got MD5 but not same File as attributes\n");
       } else {
 	 /* Update MD5 signature in catalog */
 	 char MD5buf[50];	    /* 24 bytes should be enough */

@@ -83,7 +83,7 @@ static char read_open[]       = "read open session = %s %ld %ld %ld %ld %ld %ld\
 static char NO_open[]         = "3901 Error session already open\n";
 static char NOT_opened[]      = "3902 Error session not opened\n";
 static char OK_end[]          = "3000 OK end\n";
-static char OK_close[]        = "3000 OK close Volumes = %d\n";
+static char OK_close[]        = "3000 OK close Status = %d\n";
 static char OK_open[]         = "3000 OK open ticket = %d\n";
 static char OK_append[]       = "3000 OK append data\n";
 static char ERROR_append[]    = "3903 Error append data\n";
@@ -115,15 +115,20 @@ void run_job(JCR *jcr)
    dir->jcr = (void *)jcr;
    Dmsg1(120, "Start run Job=%s\n", jcr->Job);
    bnet_fsend(dir, Job_start, jcr->Job); 
-   time(&jcr->start_time);
+   jcr->start_time = time(NULL);
    jcr->run_time = jcr->start_time;
    jcr->JobStatus = JS_Running;
    dir_send_job_status(jcr);	      /* update director */
    for (quit=0; !quit;) {
+      int stat;
 
       /* Read command coming from the File daemon */
-      if (bnet_recv(fd) <= 0) {
+      stat = bnet_recv(fd);
+      if (is_bnet_stop(fd)) {	      /* hardeof or error */
 	 break; 		      /* connection terminated */
+      }
+      if (stat <= 0) {
+	 continue;		      /* ignore signals and zero length msgs */
       }
       Dmsg1(110, "<filed: %s", fd->msg);
       found = 0;
@@ -143,7 +148,8 @@ void run_job(JCR *jcr)
 	 break;
       }
    }
-   time(&jcr->end_time);
+   bnet_sig(fd, BNET_TERMINATE);      /* signal to FD job is done */
+   jcr->end_time = time(NULL);
    if (!job_cancelled(jcr)) {
       jcr->JobStatus = JS_Terminated;
    }
@@ -232,17 +238,17 @@ static int append_close_session(JCR *jcr)
       bnet_fsend(fd, NOT_opened);
       return 0;
    }
+   if (jcr->JobStatus != JS_ErrorTerminated) {
+      jcr->JobStatus = JS_Terminated;
+   }
    /* Send final statistics to File daemon */
-   bnet_fsend(fd, OK_close, jcr->NumVolumes);
+   bnet_fsend(fd, OK_close, jcr->JobStatus);
    Dmsg1(160, ">filed: %s\n", fd->msg);
 
    bnet_sig(fd, BNET_EOD);	      /* send EOD to File daemon */
        
    Dmsg1(110, "Append close session: %s\n", dev_name(jcr->device->dev));
 
-   if (jcr->JobStatus != JS_ErrorTerminated) {
-      jcr->JobStatus = JS_Terminated;
-   }
    jcr->session_opened = FALSE;
    return 1;
 }
@@ -330,7 +336,7 @@ static int bootstrap_cmd(JCR *jcr)
 	 jcr->RestoreBootstrap, strerror(errno));
       goto bail_out;
    }
-   while (bnet_recv(fd) > 0) {
+   while (bnet_recv(fd) >= 0) {
        Dmsg1(400, "stored<filed: bootstrap file %s\n", fd->msg);
        fputs(fd->msg, bs);
    }

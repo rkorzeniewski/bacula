@@ -28,6 +28,7 @@
 
 #include "bacula.h"
 #include "filed.h"
+#include "host.h"
 
 extern char my_name[];
 extern CLIENT *me;		      /* our client resource */
@@ -50,7 +51,7 @@ static int verify_cmd(JCR *jcr);
 static int restore_cmd(JCR *jcr);
 static int storage_cmd(JCR *jcr);
 static int session_cmd(JCR *jcr);
-static int response(BSOCK *sd, char *resp, char *cmd);
+static int response(JCR *jcr, BSOCK *sd, char *resp, char *cmd);
 static void filed_free_jcr(JCR *jcr);
 static int open_sd_read_session(JCR *jcr);
 static int send_bootstrap_file(JCR *jcr);
@@ -89,7 +90,7 @@ static struct s_cmds cmds[] = {
 static char jobcmd[]     = "JobId=%d Job=%127s SDid=%d SDtime=%d Authorization=%100s";
 static char storaddr[]   = "storage address=%s port=%d\n";
 static char sessioncmd[] = "session %s %ld %ld %ld %ld %ld %ld\n";
-static char restorecmd[] = "restore where=%s\n";
+static char restorecmd[] = "restore replace=%c where=%s\n";
 static char verifycmd[]  = "verify level=%20s\n";
 
 /* Responses sent to Director */
@@ -105,7 +106,7 @@ static char OKverify[]     = "2000 OK verify\n";
 static char OKrestore[]    = "2000 OK restore\n";
 static char OKsession[]    = "2000 OK session\n";
 static char OKstore[]      = "2000 OK storage\n";
-static char OKjob[]        = "2000 OK Job\n";
+static char OKjob[]        = "2000 OK Job " FDHOST "," DISTNAME "," DISTVER;
 static char OKsetdebug[]   = "2000 OK setdebug=%d\n";
 static char BADjob[]       = "2901 Bad Job\n";
 static char EndRestore[]   = "2800 End Job TermCode=%d JobFiles=%u JobBytes=%" lld "\n";
@@ -113,6 +114,7 @@ static char EndBackup[]    = "2801 End Backup Job TermCode=%d JobFiles=%u ReadBy
 
 /* Responses received from Storage Daemon */
 static char OK_end[]       = "3000 OK end\n";
+static char OK_close[]     = "3000 OK close Status = %d\n";
 static char OK_open[]      = "3000 OK open ticket = %d\n";
 static char OK_data[]      = "3000 OK data\n";
 static char OK_append[]    = "3000 OK append data\n";
@@ -165,7 +167,7 @@ void *handle_client_request(void *dirp)
    for (quit=0; !quit;) {
 
       /* Read command */
-      if (bnet_recv(dir) <= 0) {
+      if (bnet_recv(dir) < 0) {
 	 break; 		      /* connection terminated */
       }
       dir->msg[dir->msglen] = 0;
@@ -297,7 +299,7 @@ static int include_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
 
-   while (bnet_recv(dir) > 0) {
+   while (bnet_recv(dir) >= 0) {
        dir->msg[dir->msglen] = 0;
        strip_trailing_junk(dir->msg);
        Dmsg1(110, "filed<dird: include file %s\n", dir->msg);
@@ -316,7 +318,7 @@ static int exclude_cmd(JCR *jcr)
    BSOCK *dir = jcr->dir_bsock;
    char *p;  
 
-   while (bnet_recv(dir) > 0) {
+   while (bnet_recv(dir) >= 0) {
        dir->msg[dir->msglen] = 0;
        strip_trailing_junk(dir->msg);
        /* Skip leading options */
@@ -356,7 +358,7 @@ static int bootstrap_cmd(JCR *jcr)
       return 0;
    }
 
-   while (bnet_recv(dir) > 0) {
+   while (bnet_recv(dir) >= 0) {
        Dmsg1(200, "filed<dird: bootstrap file %s\n", dir->msg);
        fputs(dir->msg, bs);
    }
@@ -485,7 +487,8 @@ static int backup_cmd(JCR *jcr)
 { 
    BSOCK *dir = jcr->dir_bsock;
    BSOCK *sd = jcr->store_bsock;
-   int len;
+   int ok = 0;
+   int SDJobStatus;
 
    jcr->JobStatus = JS_Blocked;
    jcr->JobType = JT_BACKUP;
@@ -508,7 +511,7 @@ static int backup_cmd(JCR *jcr)
    /* 
     * Expect to receive back the Ticket number
     */
-   if (bnet_recv(sd) > 0) {
+   if (bnet_recv(sd) >= 0) {
       Dmsg1(110, "<stored: %s", sd->msg);
       if (sscanf(sd->msg, OK_open, &jcr->Ticket) != 1) {
          Jmsg(jcr, M_FATAL, 0, _("Bad response to append open: %s\n"), sd->msg);
@@ -532,7 +535,7 @@ static int backup_cmd(JCR *jcr)
     * Expect to get OK data 
     */
    Dmsg1(110, "<stored: %s", sd->msg);
-   if (!response(sd, OK_data, "Append Data")) {
+   if (!response(jcr, sd, OK_data, "Append Data")) {
       jcr->JobStatus = JS_ErrorTerminated;
       goto cleanup;
    }
@@ -548,7 +551,7 @@ static int backup_cmd(JCR *jcr)
       /* 
        * Expect to get response to append_data from Storage daemon
        */
-      if (!response(sd, OK_append, "Append Data")) {
+      if (!response(jcr, sd, OK_append, "Append Data")) {
 	 jcr->JobStatus = JS_ErrorTerminated;
 	 goto cleanup;
       }
@@ -558,7 +561,7 @@ static int backup_cmd(JCR *jcr)
        */
       bnet_fsend(sd, append_end, jcr->Ticket);
       /* Get end OK */
-      if (!response(sd, OK_end, "Append End")) {
+      if (!response(jcr, sd, OK_end, "Append End")) {
 	 jcr->JobStatus = JS_ErrorTerminated;
 	 goto cleanup;
       }
@@ -567,11 +570,20 @@ static int backup_cmd(JCR *jcr)
        * Send Append Close to Storage daemon
        */
       bnet_fsend(sd, append_close, jcr->Ticket);
-      while ((len = bnet_recv(sd)) > 0) {
-	  /* discard anything else returned from SD */
+      while (bnet_recv(sd) >= 0) {    /* stop on signal or error */
+	 if (sscanf(sd->msg, OK_close, &SDJobStatus) == 1) {
+	    ok = 1;
+            Dmsg2(200, "SDJobStatus = %d %c\n", SDJobStatus, (char)SDJobStatus);
+	 }
       }
-      if (len < 0) {
-         Jmsg(jcr, M_FATAL, 0, _("<stored: net_recv len=%d: ERR=%s\n"), len, bnet_strerror(sd));
+      if (!ok) {
+         Jmsg(jcr, M_FATAL, 0, _("Append Close with SD failed.\n"));
+	 jcr->JobStatus = JS_ErrorTerminated;
+	 goto cleanup;
+      }
+      if (SDJobStatus != JS_Terminated) {
+         Jmsg(jcr, M_FATAL, 0, _("Bad status %d returned from Storage Daemon.\n"),
+	    SDJobStatus);
 	 jcr->JobStatus = JS_ErrorTerminated;
       }
    }
@@ -663,6 +675,7 @@ static int restore_cmd(JCR *jcr)
    BSOCK *dir = jcr->dir_bsock;
    BSOCK *sd = jcr->store_bsock;
    POOLMEM *where;
+   char replace;
 
    /*
     * Scan WHERE (base directory for restore) from command
@@ -671,9 +684,16 @@ static int restore_cmd(JCR *jcr)
    /* Pickup where string */
    where = get_memory(dir->msglen+1);
    *where = 0;
-   sscanf(dir->msg, restorecmd, where);
-   Dmsg1(150, "Got where=%s\n", where);
+
+   if (sscanf(dir->msg, restorecmd, &replace, where) != 2) {
+      Jmsg(jcr, M_FATAL, 0, _("Bad replace command.\n"));
+      return 0;
+   }
+      
+   Dmsg2(150, "Got replace %c, where=%s\n", replace, where);
+   unbash_spaces(where);
    jcr->where = where;
+   jcr->replace = replace;
 
    bnet_fsend(dir, OKrestore);
    Dmsg1(110, "bfiled>dird: %s", dir->msg);
@@ -733,7 +753,7 @@ static int open_sd_read_session(JCR *jcr)
    /* 
     * Get ticket number
     */
-   if (bnet_recv(sd) > 0) {
+   if (bnet_recv(sd) >= 0) {
       Dmsg1(110, "bfiled<stored: %s", sd->msg);
       if (sscanf(sd->msg, OK_open, &jcr->Ticket) != 1) {
          Jmsg(jcr, M_FATAL, 0, _("Bad response to SD read open: %s\n"), sd->msg);
@@ -758,7 +778,7 @@ static int open_sd_read_session(JCR *jcr)
    /* 
     * Get OK data
     */
-   if (!response(sd, OK_data, "Read Data")) {
+   if (!response(jcr, sd, OK_data, "Read Data")) {
       return 0;
    }
    return 1;
@@ -793,7 +813,7 @@ static void filed_free_jcr(JCR *jcr)
  *  Returns: 0 on failure
  *	     1 on success
  */
-int response(BSOCK *sd, char *resp, char *cmd)
+int response(JCR *jcr, BSOCK *sd, char *resp, char *cmd)
 {
    int n;
 
@@ -806,13 +826,12 @@ int response(BSOCK *sd, char *resp, char *cmd)
 	 return 1;
       }
    } 
-   /* ********FIXME******** segfault if the following is executed */
-   if (n > 0) {
-      Emsg3(M_FATAL, 0, _("<stored: bad response to %s: wanted: %s, got: %s\n"),
-	 cmd, resp, sd->msg);
-   } else {
-      Emsg2(M_FATAL, 0, _("<stored: bad response to %s command: ERR=%s\n"),
+   if (is_bnet_error(sd)) {
+      Jmsg2(jcr, M_FATAL, 0, _("Comm error with SD. bad response to %s. ERR=%s\n"),
 	 cmd, bnet_strerror(sd));
+   } else {
+      Jmsg3(jcr, M_FATAL, 0, _("Bad response to %s command. Wanted %s, got %s\n"),
+	 cmd, resp, sd->msg);
    }
    return 0;
 }
@@ -844,7 +863,7 @@ static int send_bootstrap_file(JCR *jcr)
    }
    bnet_sig(sd, BNET_EOD);
    fclose(bs);
-   if (!response(sd, OKSDbootstrap, "Bootstrap")) {
+   if (!response(jcr, sd, OKSDbootstrap, "Bootstrap")) {
       jcr->JobStatus = JS_ErrorTerminated;
       return 0;
    }

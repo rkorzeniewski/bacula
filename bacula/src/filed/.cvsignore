@@ -5,3 +5,4 @@ btraceback
 btraceback.gdb
 startit
 stopit
+host.h

@@ -104,17 +104,24 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, char *fname)
    if (prefixed) {
       for (p=fname; *p && *p != ' '; p++) {
 	 switch (*p) {
-            case '0':                  /* no option */
+            case 'a':                 /* alway replace */
+            case '0':                 /* no option */
 	       break;
-            case 'M':                  /* MD5 */
+            case 'w':
+	       inc->options |= OPT_replace_if_newer;
+	       break;
+            case 'n':
+	       inc->options |= OPT_never_replace;
+	       break;
+            case 'M':                 /* MD5 */
 	       inc->options |= OPT_compute_MD5;
 	       break;
-            case 'Z':                  /* gzip compression */
+            case 'Z':                 /* gzip compression */
 	       inc->options |= OPT_GZIP_compression;
                inc->level = *++p - '0';
                Dmsg1(200, "Compression level=%d\n", inc->level);
 	       break;
-            case 'h':                  /* no recursion */
+            case 'h':                 /* no recursion */
 	       inc->options |= OPT_no_recursion;
 	       break;
             case 'f':

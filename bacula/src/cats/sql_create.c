@@ -276,7 +276,7 @@ int db_create_client_record(B_DB *mdb, CLIENT_DBR *cr)
    char ed1[30], ed2[30];
 
    db_lock(mdb);
-   Mmsg(&mdb->cmd, "SELECT ClientId FROM Client WHERE Name='%s'", cr->Name);
+   Mmsg(&mdb->cmd, "SELECT ClientId,Uname FROM Client WHERE Name='%s'", cr->Name);
 
    cr->ClientId = 0;
    if (QUERY_DB(mdb, mdb->cmd)) {
@@ -297,6 +297,12 @@ int db_create_client_record(B_DB *mdb, CLIENT_DBR *cr)
 	    return 0;
 	 }
 	 cr->ClientId = atoi(row[0]);
+	 if (row[1]) {
+	    strncpy(cr->Uname, row[1], sizeof(cr->Uname)-2);
+	    cr->Uname[sizeof(cr->Uname)-1] = 0;
+	 } else {
+	    cr->Uname[0] = 0;	      /* no name */
+	 }
 	 sql_free_result(mdb);
 	 db_unlock(mdb);
 	 return 1;

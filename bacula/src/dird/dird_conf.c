@@ -331,9 +331,9 @@ static struct s_kw RestoreFields[] = {
 
 /* Options permitted in Restore replace= */
 static struct s_kw ReplaceOptions[] = {
-   {"always",         'A'},           /* always */
-   {"ifnewer",        'W'},
-   {"never",          'N'},
+   {"always",         'a'},           /* always */
+   {"ifnewer",        'w'},
+   {"never",          'n'},
    {NULL,		0}
 };
 
@@ -341,24 +341,26 @@ static struct s_kw ReplaceOptions[] = {
 
 /* Define FileSet KeyWord values */
 
-#define FS_KW_NONE	   0
-#define FS_KW_COMPRESSION  1
-#define FS_KW_SIGNATURE    2
-#define FS_KW_ENCRYPTION   3
-#define FS_KW_VERIFY	   4
-#define FS_KW_ONEFS	   5
-#define FS_KW_RECURSE	   6
-#define FS_KW_SPARSE	   7
+#define INC_KW_NONE	    0
+#define INC_KW_COMPRESSION  1
+#define INC_KW_SIGNATURE    2
+#define INC_KW_ENCRYPTION   3
+#define INC_KW_VERIFY	    4
+#define INC_KW_ONEFS	    5
+#define INC_KW_RECURSE	    6
+#define INC_KW_SPARSE	    7
+#define INC_KW_REPLACE	    8	      /* restore options */
 
-/* FileSet keywords */
+/* Include keywords */
 static struct s_kw FS_option_kw[] = {
-   {"compression", FS_KW_COMPRESSION},
-   {"signature",   FS_KW_SIGNATURE},
-   {"encryption",  FS_KW_ENCRYPTION},
-   {"verify",      FS_KW_VERIFY},
-   {"onefs",       FS_KW_ONEFS},
-   {"recurse",     FS_KW_RECURSE},
-   {"sparse",      FS_KW_SPARSE},
+   {"compression", INC_KW_COMPRESSION},
+   {"signature",   INC_KW_SIGNATURE},
+   {"encryption",  INC_KW_ENCRYPTION},
+   {"verify",      INC_KW_VERIFY},
+   {"onefs",       INC_KW_ONEFS},
+   {"recurse",     INC_KW_RECURSE},
+   {"sparse",      INC_KW_SPARSE},
+   {"replace",     INC_KW_REPLACE},
    {NULL,	   0}
 };
 
@@ -372,25 +374,28 @@ struct s_fs_opt {
 
 /* Options permitted for each keyword and resulting value */
 static struct s_fs_opt FS_options[] = {
-   {"md5",      FS_KW_SIGNATURE,    "M"},
-   {"gzip",     FS_KW_COMPRESSION,  "Z6"},
-   {"gzip1",    FS_KW_COMPRESSION,  "Z1"},
-   {"gzip2",    FS_KW_COMPRESSION,  "Z2"},
-   {"gzip3",    FS_KW_COMPRESSION,  "Z3"},
-   {"gzip4",    FS_KW_COMPRESSION,  "Z4"},
-   {"gzip5",    FS_KW_COMPRESSION,  "Z5"},
-   {"gzip6",    FS_KW_COMPRESSION,  "Z6"},
-   {"gzip7",    FS_KW_COMPRESSION,  "Z7"},
-   {"gzip8",    FS_KW_COMPRESSION,  "Z8"},
-   {"gzip9",    FS_KW_COMPRESSION,  "Z9"},
-   {"blowfish", FS_KW_ENCRYPTION,    "B"},   /* ***FIXME*** not implemented */
-   {"3des",     FS_KW_ENCRYPTION,    "3"},   /* ***FIXME*** not implemented */
-   {"yes",      FS_KW_ONEFS,         "0"},
-   {"no",       FS_KW_ONEFS,         "f"},
-   {"yes",      FS_KW_RECURSE,       "0"},
-   {"no",       FS_KW_RECURSE,       "h"},
-   {"yes",      FS_KW_SPARSE,        "s"},
-   {"no",       FS_KW_SPARSE,        "0"},
+   {"md5",      INC_KW_SIGNATURE,    "M"},
+   {"gzip",     INC_KW_COMPRESSION,  "Z6"},
+   {"gzip1",    INC_KW_COMPRESSION,  "Z1"},
+   {"gzip2",    INC_KW_COMPRESSION,  "Z2"},
+   {"gzip3",    INC_KW_COMPRESSION,  "Z3"},
+   {"gzip4",    INC_KW_COMPRESSION,  "Z4"},
+   {"gzip5",    INC_KW_COMPRESSION,  "Z5"},
+   {"gzip6",    INC_KW_COMPRESSION,  "Z6"},
+   {"gzip7",    INC_KW_COMPRESSION,  "Z7"},
+   {"gzip8",    INC_KW_COMPRESSION,  "Z8"},
+   {"gzip9",    INC_KW_COMPRESSION,  "Z9"},
+   {"blowfish", INC_KW_ENCRYPTION,    "B"},   /* ***FIXME*** not implemented */
+   {"3des",     INC_KW_ENCRYPTION,    "3"},   /* ***FIXME*** not implemented */
+   {"yes",      INC_KW_ONEFS,         "0"},
+   {"no",       INC_KW_ONEFS,         "f"},
+   {"yes",      INC_KW_RECURSE,       "0"},
+   {"no",       INC_KW_RECURSE,       "h"},
+   {"yes",      INC_KW_SPARSE,        "s"},
+   {"no",       INC_KW_SPARSE,        "0"},
+   {"always",   INC_KW_REPLACE,       "a"},
+   {"ifnewer",  INC_KW_REPLACE,       "w"},
+   {"never",    INC_KW_REPLACE,       "n"},
    {NULL,	0,		     0}
 };
 
@@ -1189,10 +1194,10 @@ static void store_restore(LEX *lc, struct res_items *item, int index, int pass)
 
 
 /* 
- * Scan for FileSet options (keyword=option) is converted into one or
+ * Scan for Include options (keyword=option) is converted into one or
  *  two characters. Verifyopts=xxxx is Vxxxx:
  */
-static char *scan_fs_options(LEX *lc, int keyword)
+static char *scan_include_options(LEX *lc, int keyword)
 {
    int token, i;
    static char opts[100];
@@ -1202,7 +1207,7 @@ static char *scan_fs_options(LEX *lc, int keyword)
    opts[0] = option[2] = 0;	      /* terminate options */
    for (;;) {
       token = lex_get_token(lc, T_NAME);	     /* expect at least one option */	    
-      if (keyword == FS_KW_VERIFY) { /* special case */
+      if (keyword == INC_KW_VERIFY) { /* special case */
 	 /* ***FIXME**** ensure these are in permitted set */
          strcpy(option, "V");         /* indicate Verify */
 	 strcat(option, lc->str);
@@ -1248,21 +1253,21 @@ static void store_inc(LEX *lc, struct res_items *item, int index, int pass)
    /* Get include options */
    strcpy(inc_opts, "0");             /* set no options */
    while ((token=lex_get_token(lc, T_ALL)) != T_BOB) {
-      keyword = FS_KW_NONE;
+      keyword = INC_KW_NONE;
       for (i=0; FS_option_kw[i].name; i++) {
 	 if (strcasecmp(lc->str, FS_option_kw[i].name) == 0) {
 	    keyword = FS_option_kw[i].token;
 	    break;
 	 }
       }
-      if (keyword == FS_KW_NONE) {
+      if (keyword == INC_KW_NONE) {
          scan_err1(lc, "Expected a FileSet keyword, got: %s", lc->str);
       }
       /* Option keyword should be following by = <option> */
       if ((token=lex_get_token(lc, T_ALL)) != T_EQUALS) {
          scan_err1(lc, "expected an = following keyword, got: %s", lc->str);
       }
-      strcat(inc_opts, scan_fs_options(lc, keyword));
+      strcat(inc_opts, scan_include_options(lc, keyword));
       if (token == T_BOB) {
 	 break;
       }

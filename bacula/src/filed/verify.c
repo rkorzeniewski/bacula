@@ -200,7 +200,8 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
 	 jcr->JobBytes += n;
       }
       if (n < 0) {
-         Jmsg(jcr, M_WARNING, -1, _("  Error reading file %s: ERR=%s\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
+         Jmsg(jcr, M_WARNING, -1, _("Error reading file %s: ERR=%s\n"), 
+	      ff_pkt->fname, strerror(errno));
       }
 
       MD5Final(signature, &md5c);

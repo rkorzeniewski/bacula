@@ -73,9 +73,13 @@ install:
 	@echo "Installing system binary files ..."
 	@strip ../bacula-fd.exe
 	@strip ../../tools/smtp.exe
+	@strip ../../console/console.exe
 	@cp -f ../bacula-fd.exe bin/
 	@cp -f ../../tools/smtp.exe bin/
+	@cp -f ../../console/console.exe bin/
 	@cp -f bin/* $(sbindir)
+	@cp -f ../bacula-fd.conf $(sysconfdir)/bacula-fd.conf.new
+	@cp -f ../../console/console.conf $(sysconfdir)/console.conf.new
 
 # Make a Win32 binary release 
 binary-release:
@@ -86,11 +90,14 @@ binary-release:
 	@cp bin/* wr/$(sbindir)
 	@strip ../bacula-fd.exe
 	@strip ../../tools/smtp.exe
+	@strip ../../console/console.exe
 	@echo "Copying executables ..."
 	@cp -f ../bacula-fd.exe wr/$(sbindir)/bacula-fd.exe 
 	@cp -f ../../tools/smtp.exe wr/$(sbindir)/smtp.exe 
+	@cp -f ../../console/console.exe wr/$(sbindir)/console.exe 
 	@echo "Copying bacula-fd.conf..."
 	@cp -f ../bacula-fd.conf wr/$(sysconfdir)/bacula-fd.conf.new
+	@cp -f ../../console/console.conf wr/$(sysconfdir)/console.conf.new
 # the two dummy files are necessary to insure that WinZip
 # actually creates the directories.
 	@echo "dummy" >wr/tmp/dummy.txt

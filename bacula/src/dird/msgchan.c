@@ -94,7 +94,7 @@ int start_storage_daemon_job(JCR *jcr)
    STORE *storage;
    BSOCK *sd;
    char auth_key[100];
-   char *device_name, *pool_name, *pool_type, *media_type;
+   POOLMEM *device_name, *pool_name, *pool_type, *media_type;
    int device_name_len, pool_name_len, pool_type_len, media_type_len;
 
    storage = jcr->store;
@@ -105,10 +105,14 @@ int start_storage_daemon_job(JCR *jcr)
    bash_spaces(jcr->job->hdr.name);
    bash_spaces(jcr->client->hdr.name);
    bash_spaces(jcr->fileset->hdr.name);
+   if (jcr->fileset->MD5[0] == 0) {
+      strcpy(jcr->fileset->MD5, "**Dummy**");
+   }
    bnet_fsend(sd, jobcmd, jcr->JobId, jcr->Job, jcr->job->hdr.name, 
 	      jcr->client->hdr.name, jcr->JobType, jcr->JobLevel, 
 	      jcr->fileset->hdr.name, !jcr->pool->catalog_files,
 	      jcr->job->SpoolAttributes, jcr->fileset->MD5);
+   Dmsg1(200, "Jobcmd=%s\n", sd->msg);
    unbash_spaces(jcr->job->hdr.name);
    unbash_spaces(jcr->client->hdr.name);
    unbash_spaces(jcr->fileset->hdr.name);
@@ -116,6 +120,7 @@ int start_storage_daemon_job(JCR *jcr)
        Dmsg1(110, "<stored: %s", sd->msg);
        if (sscanf(sd->msg, OKjob, &jcr->VolSessionId, 
 		  &jcr->VolSessionTime, &auth_key) != 3) {
+          Dmsg1(100, "BadJob=%s\n", sd->msg);
           Jmsg(jcr, M_FATAL, 0, _("Storage daemon rejected Job command: %s\n"), sd->msg);
 	  return 0;
        } else {
@@ -135,10 +140,10 @@ int start_storage_daemon_job(JCR *jcr)
    media_type_len = strlen(storage->media_type) + 1;
    pool_type_len = strlen(jcr->pool->pool_type) + 1;
    pool_name_len = strlen(jcr->pool->hdr.name) + 1;
-   device_name = (char *) get_memory(device_name_len);
-   pool_name = (char *) get_memory(pool_name_len);
-   pool_type = (char *) get_memory(pool_type_len);
-   media_type = (char *) get_memory(media_type_len);
+   device_name = get_memory(device_name_len);
+   pool_name = get_memory(pool_name_len);
+   pool_type = get_memory(pool_type_len);
+   media_type = get_memory(media_type_len);
    memcpy(device_name, storage->dev_name, device_name_len);
    memcpy(media_type, storage->media_type, media_type_len);
    memcpy(pool_type, jcr->pool->pool_type, pool_type_len);
@@ -215,7 +220,7 @@ static void *msg_thread(void *arg)
    /* Read the Storage daemon's output.
     */
    Dmsg0(200, "Start msg_thread loop\n");
-   while ((stat=bget_msg(sd, 0)) > 0) {
+   while ((stat=bget_msg(sd, 0)) >= 0) {
       Dmsg1(200, "<stored: %s", sd->msg);
       if (sscanf(sd->msg, Job_start, &Job) == 1) {
 	 continue;
@@ -232,7 +237,7 @@ static void *msg_thread(void *arg)
 	 continue;
       }
    }
-   if (stat < 0) {		     
+   if (is_bnet_error(sd)) {		      
       jcr->SDJobStatus = JS_ErrorTerminated;
    }
    pthread_cleanup_pop(1);

@@ -40,6 +40,7 @@
 int get_cmd(UAContext *ua, char *prompt)
 {
    BSOCK *sock = ua->UA_sock;
+   int stat;
 
    ua->cmd[0] = 0;
    if (!sock) { 		      /* No UA */
@@ -48,8 +49,12 @@ int get_cmd(UAContext *ua, char *prompt)
    bnet_fsend(sock, "%s", prompt);
    bnet_sig(sock, BNET_PROMPT);       /* request more input */
    for ( ;; ) {
-      if (bnet_recv(sock) <= 0) {
-	 return 0;
+      stat = bnet_recv(sock);
+      if (stat == BNET_SIGNAL) {
+	 continue;		      /* ignore signals */
+      }
+      if (is_bnet_stop(sock)) {
+	 return 0;		      /* error or terminate */
       }
       ua->cmd = check_pool_memory_size(ua->cmd, sock->msglen+1);
       bstrncpy(ua->cmd, sock->msg, sock->msglen+1);
@@ -74,36 +79,40 @@ int get_cmd(UAContext *ua, char *prompt)
 char *next_arg(char **s)
 {
    char *p, *q, *n;
+   int in_quote = 0;
 
-   Dmsg1(400, "Next arg=%s\n", *s);
    /* skip past spaces to next arg */
    for (p=*s; *p && *p == ' '; ) {
       p++;
    }	
-   /* Determine start of argument */
-   if (*p == '"') {
-      Dmsg0(400, "Start with quote.\n");
-      for (n = q = ++p; *p && *p != '"'; ) {
-         if (*p == '\\') {
-	    p++;
-	 }
-	 *q++ = *p++;
-      }
-      p++;			      /* skip terminating quote */
-      for ( ; *p && *p != ' '; ) {
-	 *q++ = *p++;
-      }
-      *q = 0;
-   } else {
-      /* Scan argment and terminate it */
-      n = p;
-      for ( ; *p && *p != ' '; ) {
+   Dmsg1(400, "Next arg=%s\n", p);
+   for (n = q = p; *p ; ) {
+      if (*p == '\\') {
 	 p++;
+	 if (*p) {
+	    *q++ = *p++;
+	 } else {
+	    *q++ = *p;
+	 }
+	 continue;
       }
-      if (*p == ' ') {
-	 *p++ = 0;
+      if (*p == '"') {                  /* start or end of quote */
+	 if (in_quote) {
+	    p++;			/* skip quote */
+	    in_quote = 0;
+	    continue;
+	 }
+	 in_quote = 1;
+	 p++;
+	 continue;
       }
+      if (!in_quote && *p == ' ') {     /* end of field */
+	 p++;
+	 break;
+      }
+      *q++ = *p++;
    }
+   *q = 0;
    *s = p;
    Dmsg2(400, "End arg=%s next=%s\n", n, p);
    return n;
@@ -156,19 +165,15 @@ void parse_command_args(UAContext *ua)
 	 *p++ = 0;		      /* terminate keyword and point to value */
 	 /* Unquote quoted values */
          if (*p == '"') {
-            Dmsg0(400, "Start with quote.\n");
+            Dmsg1(000, "Start with quote: %s\n", p);
             for (n = q = ++p; *p && *p != '"'; ) {
                if (*p == '\\') {
 		  p++;
 	       }
 	       *q++ = *p++;
 	    }
-	    p++;			    /* skip terminating quote */
-            for ( ; *p && *p != ' '; ) {
-	       *q++ = *p++;
-	    }
-	    *q = 0;
-	    p = n;
+	    *q = 0;		      /* terminate string */
+	    p = n;		      /* point to string */
 	 }
 	 if (strlen(p) > MAX_NAME_LENGTH-1) {
 	    p[MAX_NAME_LENGTH-1] = 0; /* truncate to max len */

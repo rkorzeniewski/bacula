@@ -272,17 +272,18 @@ static int wait_for_job_termination(JCR *jcr)
 
    jcr->JobStatus = JS_WaitFD;
    /* Wait for Client to terminate */
-   while ((n = bget_msg(fd, 0)) > 0 && !job_cancelled(jcr)) {
+   while ((n = bget_msg(fd, 0)) >= 0 && !job_cancelled(jcr)) {
       if (sscanf(fd->msg, EndBackup, &jcr->JobStatus, &jcr->JobFiles,
 	  &jcr->ReadBytes, &jcr->JobBytes) == 4) {
 	 fd_ok = TRUE;
+         Dmsg1(100, "FDStatus=%c\n", (char)jcr->JobStatus);
       }
    }
-   bnet_sig(fd, BNET_TERMINATE);      /* tell Client we are terminating */
-   if (n < 0) {
+   if (is_bnet_error(fd)) {
       Jmsg(jcr, M_FATAL, 0, _("<filed: network error during BACKUP command. ERR=%s\n"),
 	  bnet_strerror(fd));
    }
+   bnet_sig(fd, BNET_TERMINATE);   /* tell Client we are terminating */
 
    wait_for_storage_daemon_termination(jcr);
 
@@ -290,7 +291,7 @@ static int wait_for_job_termination(JCR *jcr)
    if (fd_ok && jcr->JobStatus != JS_Terminated) {
       return jcr->JobStatus;
    }
-   if (!fd_ok || n < 0) {				      
+   if (!fd_ok || is_bnet_error(fd)) {			       
       return JS_ErrorTerminated;
    }
    return jcr->SDJobStatus;

@@ -938,6 +938,7 @@ AC_CHECK_FUNCS( \
 	getcwd \
 	gethostname \
 	getpid \
+	gettimeofday \
 	setpgid \
 	setpgrp \
 	setsid \
@@ -1118,6 +1119,8 @@ netbsd)
 	llu="qu"
 	TAPEDRIVE="/dev/nrst0"
 	PSCMD="ps -a -o pid,command"
+	PTHREAD_LIB="-pthread"
+	CFLAGS="${CFLAGS} -pthread"
   ;;
 openbsd)
 	DISTVER=`uname -a |awk '{print $3}'`
@@ -1125,6 +1128,8 @@ openbsd)
 	llu="qu"
 	TAPEDRIVE="/dev/nrst0"
 	PSCMD="ps -a -o pid,command"
+	PTHREAD_LIB="-pthread"
+	CFLAGS="${CFLAGS} -pthread"
   ;;
 redhat)
 	DISTVER=`cat /etc/redhat-release | grep release |\
@@ -1218,6 +1223,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/stored/Makefile \
 	   src/stored/bacula-sd.conf \
 	   src/filed/Makefile \
+	   src/filed/host.h \
 	   src/filed/bacula-fd.conf \
 	   src/filed/win32/Makefile \
 	   src/cats/Makefile \
@@ -1271,7 +1277,7 @@ fi
 echo "
 Configuration on `date`:
 
-  Host: 		      ${DISTNAME} ${DISTVER}
+  Host: 		      $host -- ${DISTNAME} ${DISTVER}
   Bacula version:	      ${VERSION} (${DATE})
   Source code location:       ${srcdir}
   Install binaries:	      ${sbindir}

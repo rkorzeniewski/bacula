@@ -120,7 +120,7 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
 	    stat = 1;
 	 }
       }
-      if (stat < 0) { 
+      if (stat < 0) {
 	 break; 		      /* error */
       } else if (stat == 0) {	      /* timeout */
          bnet_fsend(UA_sock, ".messages");
@@ -133,7 +133,7 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
       if (strcmp(UA_sock->msg, ".quit") == 0 || strcmp(UA_sock->msg, ".exit") == 0) {
 	 break;
       }
-      while ((stat = bnet_recv(UA_sock)) > 0) {
+      while ((stat = bnet_recv(UA_sock)) >= 0) {
 	 if (at_prompt) {
 	    if (!stop) {
                fprintf(output, "\n");
@@ -147,9 +147,9 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
       if (!stop) {
 	 fflush(output);
       }
-      if (stat < 0) {
-	 break; 		      /* error */
-      } else if (stat == 0) {
+      if (is_bnet_stop(UA_sock)) {
+	 break; 		      /* error or term */
+      } else if (stat == BNET_SIGNAL) {
 	 if (UA_sock->msglen == BNET_PROMPT) {
 	    at_prompt = TRUE;
 	 }

@@ -82,17 +82,17 @@ typedef uint32_t u_int32_t;
 #  if (SIZEOF_CHAR == 1)
 typedef unsigned char u_int8_t;
 #  else
-#   error "8 bit int type not found."
+#   error "8 bit int type not found. Required!"
 #  endif
 #  if (SIZEOF_SHORT_INT == 2)
 typedef unsigned short int u_int16_t;
 #  else
-#   error "16 bit int type not found."
+#   error "16 bit int type not found. Required!"
 #  endif
 #  if (SIZEOF_INT == 4)
 typedef unsigned int u_int32_t;
 #  else
-#   error "32 bit int type not found."
+#   error "32 bit int type not found. Required!"
 #  endif
 # endif
 #endif
@@ -114,7 +114,7 @@ typedef long int int64_t;
 # ifdef HAVE_INT64_T
 typedef int64_t intmax_t;
 # else
-typedef int32_t intmax_t;
+#   error "64 bit type not found. Required!"
 # endif
 #endif
 
@@ -126,6 +126,8 @@ typedef unsigned long long int u_int64_t;
 #  if (SIZEOF_LONG_INT == 8)
 typedef unsigned long int u_int64_t;
 #   define HAVE_U_INT64_T 1
+#  else
+#   error "64 bit type not found. Required!"
 #  endif
 # endif
 #endif
@@ -134,7 +136,7 @@ typedef unsigned long int u_int64_t;
 # ifdef HAVE_U_INT64_T
 typedef u_int64_t u_intmax_t;
 # else
-typedef u_int32_t u_intmax_t;
+#   error "64 bit type not found. Required!"
 # endif
 #endif
 

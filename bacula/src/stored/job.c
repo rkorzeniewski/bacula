@@ -121,7 +121,7 @@ int job_cmd(JCR *jcr)
 
    /* Initialize FD start condition variable */
    if ((errstat = pthread_cond_init(&jcr->job_start_wait, NULL)) != 0) {
-      Emsg1(M_FATAL, 0, _("Unable to init job cond variable: ERR=%s\n"), strerror(errstat));
+      Jmsg1(jcr, M_FATAL, 0, _("Unable to init job cond variable: ERR=%s\n"), strerror(errstat));
       jcr->JobStatus = JS_ErrorTerminated;
       return 0;
    }
@@ -217,7 +217,7 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
    Dmsg1(110, "Found Job %s\n", job_name);
 
    if (jcr->authenticated) {
-      Pmsg2(000, "Hey!!!! JobId %d Job %s already authenticated.\n", 
+      Pmsg2(000, "Hey!!!! JobId %u Job %s already authenticated.\n", 
 	 jcr->JobId, jcr->Job);
    }
   
@@ -258,7 +258,7 @@ static int use_device_cmd(JCR *jcr)
    DEVRES *device;
 
    if (bnet_recv(dir) <= 0) {
-      Emsg0(M_FATAL, 0, "No Device from Director\n");
+      Jmsg0(jcr, M_FATAL, 0, _("No Device from Director\n"));
       return 0;
    }
    

@@ -225,6 +225,13 @@ int get_or_create_client_record(JCR *jcr)
       return 0;
    }
    jcr->jr.ClientId = cr.ClientId;
+   if (cr.Uname[0]) {
+      if (jcr->client_uname) {
+	 free_pool_memory(jcr->client_uname);
+      }
+      jcr->client_uname = get_memory(strlen(cr.Uname) + 1);
+      strcpy(jcr->client_uname, cr.Uname);
+   }
    Dmsg2(100, "Created Client %s record %d\n", jcr->client->hdr.name, 
       jcr->jr.ClientId);
    return 1;

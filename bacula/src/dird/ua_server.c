@@ -125,7 +125,7 @@ static void handle_UA_client_request(void *arg)
 
    while (!ua.quit) {
       stat = bnet_recv(ua.UA_sock);
-      if (stat > 0) {
+      if (stat >= 0) {
 	 ua.cmd = check_pool_memory_size(ua.cmd, ua.UA_sock->msglen+1);
 	 bstrncpy(ua.cmd, ua.UA_sock->msg, ua.UA_sock->msglen+1);
 	 parse_command_args(&ua);
@@ -145,14 +145,11 @@ static void handle_UA_client_request(void *arg)
 	    }
 	    bnet_sig(ua.UA_sock, BNET_EOD); /* send end of command */
 	 }
-      } else if (stat == 0) {
-	 if (ua.UA_sock->msglen == BNET_TERMINATE) {
-	    ua.quit = TRUE;
-	    break;
-	 }
+      } else if (is_bnet_stop(ua.UA_sock)) {
+	 ua.quit = TRUE;
+	 break;
+      } else { /* signal */
 	 bnet_sig(ua.UA_sock, BNET_POLL);
-      } else {
-	 break; 		   /* error, exit */
       }
    }
 

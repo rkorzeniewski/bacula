@@ -77,21 +77,20 @@ int32_t bget_msg(BSOCK *bs, int rtn)
       n = bnet_recv(bs);
       Dmsg2(120, "bget_msg %d: %s\n", n, bs->msg);
 
-      if (n < 0) {
-	 return n;		      /* error return */
+      if (is_bnet_stop(bs)) {
+	 return n;		      /* error or terminate */
       }
-      if (n == 0) {		      /* handle signal */
-	 /* 0 return from bnet_recv() => network signal */
+      if (n == BNET_SIGNAL) {	       /* handle signal */
+	 /* BNET_SIGNAL (-1) return from bnet_recv() => network signal */
 	 switch (bs->msglen) {
-	    case BNET_NONO:	      /* for compatibility */
 	    case BNET_EOD:	      /* end of data */
-	       return 0;
+	       return n;
 	    case BNET_EOD_POLL:
 	       bnet_fsend(bs, OK_msg);/* send response */
-	       return 0;	      /* end of data */
+	       return n;	      /* end of data */
 	    case BNET_TERMINATE:
 	       bs->terminated = 1;
-	       return 0;
+	       return n;
 	    case BNET_POLL:
 	       bnet_fsend(bs, OK_msg); /* send response */
 	       break;
@@ -105,7 +104,7 @@ int32_t bget_msg(BSOCK *bs, int rtn)
 	       break;
 	    default:
                Emsg1(M_WARNING, 0, _("bget_msg: unknown signal %d\n"), bs->msglen);
-	       return 0;
+	       return n;
 	 }
 	 continue;
       }
@@ -208,10 +207,10 @@ int response(BSOCK *fd, char *resp, char *cmd)
 {
    int n;
 
-   if (fd->errors) {
+   if (is_bnet_error(fd)) {
       return 0;
    }
-   if ((n = bget_msg(fd, 0)) > 0) {
+   if ((n = bget_msg(fd, 0)) >= 0) {
       Dmsg0(110, fd->msg);
       if (strcmp(fd->msg, resp) == 0) {
 	 return 1;

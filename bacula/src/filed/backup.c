@@ -363,7 +363,8 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
       } /* end while read file data */
 
       if (sd->msglen < 0) {
-         Jmsg(jcr, M_ERROR, 0, _("Network error. ERR=%s\n"), bnet_strerror(sd));
+         Jmsg(jcr, M_ERROR, 0, _("Read error on file %s. ERR=%s\n"),
+	    ff_pkt->fname, strerror(errno));
       }
 
 #ifndef NO_FD_SEND_TEST

@@ -418,7 +418,7 @@ static int cancelcmd(UAContext *ua, char *cmd)
       Dmsg0(200, "Connected to file daemon\n");
       fd = ua->jcr->file_bsock;
       bnet_fsend(fd, "cancel Job=%s\n", jcr->Job);
-      while (bnet_recv(fd) > 0) {
+      while (bnet_recv(fd) >= 0) {
          bsendmsg(ua, "%s", fd->msg);
       }
       bnet_sig(fd, BNET_TERMINATE);
@@ -435,7 +435,7 @@ static int cancelcmd(UAContext *ua, char *cmd)
       Dmsg0(200, "Connected to storage daemon\n");
       sd = ua->jcr->store_bsock;
       bnet_fsend(sd, "cancel Job=%s\n", jcr->Job);
-      while (bnet_recv(sd) > 0) {
+      while (bnet_recv(sd) >= 0) {
          bsendmsg(ua, "%s", sd->msg);
       }
       bnet_sig(sd, BNET_TERMINATE);
@@ -772,7 +772,7 @@ static void do_storage_setdebug(UAContext *ua, STORE *store, int level)
    Dmsg0(120, _("Connected to storage daemon\n"));
    sd = ua->jcr->store_bsock;
    bnet_fsend(sd, "setdebug=%d\n", level);
-   if (bnet_recv(sd) > 0) {
+   if (bnet_recv(sd) >= 0) {
       bsendmsg(ua, "%s", sd->msg);
    }
    bnet_sig(sd, BNET_TERMINATE);
@@ -798,7 +798,7 @@ static void do_client_setdebug(UAContext *ua, CLIENT *client, int level)
    Dmsg0(120, "Connected to file daemon\n");
    fd = ua->jcr->file_bsock;
    bnet_fsend(fd, "setdebug=%d\n", level);
-   if (bnet_recv(fd) > 0) {
+   if (bnet_recv(fd) >= 0) {
       bsendmsg(ua, "%s", fd->msg);
    }
    bnet_sig(fd, BNET_TERMINATE);
@@ -1172,7 +1172,7 @@ gotVol:
    bnet_fsend(sd, _("label %s VolumeName=%s PoolName=%s MediaType=%s Slot=%d"), 
       dev_name, mr.VolumeName, pr.Name, mr.MediaType, mr.Slot);
    bsendmsg(ua, "Sending label command ...\n");
-   while (bget_msg(sd, 0) > 0) {
+   while (bget_msg(sd, 0) >= 0) {
       bsendmsg(ua, "%s", sd->msg);
       if (strncmp(sd->msg, "3000 OK label.", 14) == 0) {
 	 ok = TRUE;
@@ -1192,7 +1192,7 @@ gotVol:
 	    bash_spaces(dev_name);
             bnet_fsend(sd, "mount %s", dev_name);
 	    unbash_spaces(dev_name);
-	    while (bnet_recv(sd) > 0) {
+	    while (bnet_recv(sd) >= 0) {
                bsendmsg(ua, "%s", sd->msg);
 	       /* Here we can get
 		*  3001 OK mount. Device=xxx	  or
@@ -1251,7 +1251,7 @@ static void do_mount_cmd(int mount, UAContext *ua, char *cmd)
    } else {
       bnet_fsend(sd, "unmount %s", dev_name);
    }
-   while (bnet_recv(sd) > 0) {
+   while (bnet_recv(sd) >= 0) {
       bsendmsg(ua, "%s", sd->msg);
       if (strncmp(sd->msg, "3001 OK mount.", 14) == 0) {
 	  /***** ****FIXME**** fix JobStatus */
