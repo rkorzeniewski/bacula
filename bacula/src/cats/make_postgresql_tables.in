@@ -207,6 +207,8 @@ create table file
 );
 
 create index file_jobid_idx on file (jobid);
+create index file_pathid_idx on file(pathid);
+create index file_filenameid_idx on file(filenameid);
 
 create table jobmedia
 (
