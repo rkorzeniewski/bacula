@@ -31,6 +31,8 @@
 
 #include "wxbtableparser.h"
 
+/* A macro named Yield is defined under MinGW */
+#undef Yield
 
 bool wxbUtils::inited = false;
 

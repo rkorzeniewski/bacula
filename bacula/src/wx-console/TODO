@@ -5,7 +5,7 @@ Win32 : Crash when quitting while trying to connect
 Mac OS X : "You must first get a unique identifier for your application, 
   a so called creator, a four letter constant. All you need to know about
   this step is at http://developer.apple.com/dev/cftype/" (wxWiki)
-  To modify in Makefile.in wx-console target
+  To be modified in Makefile.in wx-console target
   
 Mac OS X : Ask kern for the status of this distribution (who is
   the package releaser ?)
@@ -18,9 +18,14 @@ wxbRestorePanel : disable controls when working or (better) queue events
 wxbMainFrame : When exiting using menu, a messagebox is shown to ask the
   user if he want to quit because the connection is lost.
 
-wxbUtils : add clients, jobs, filesets, pools... list
+wxbUtils : add clients, jobs, filesets, pools... list, merge patch file (wxbnewutils.patch)
 
-[postponed to July:]
+general : add a tab containing messages
+
+wxbMainFrame : Implement command history (accessible with up and down keys)
+
+wxbMainFrame : When an unexpected question is in this format (***? (yes/mod/no):),
+   show a list to choose one of these possibilities.
 
 wxbConfigFileEditor : create a more precise editor, with something like
    a tree structure

@@ -1,3 +1,9 @@
+25-06-2004 :
+ - wxbRestorePanel : Fix file size truncated if >100mb.
+
+14-06-2004 :
+ - wxbConfigPanel : fixed tests
+
 22-05-2004 :
  - wxbUtils : Created this class, containing general functions like
     WaitForEnd
