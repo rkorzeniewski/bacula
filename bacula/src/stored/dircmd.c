@@ -62,13 +62,16 @@ extern int job_cmd(JCR *jcr);
 
 /* Forward referenced functions */
 static int label_cmd(JCR *jcr);
+static int relabel_cmd(JCR *jcr);
 static int setdebug_cmd(JCR *jcr);
 static int cancel_cmd(JCR *cjcr);
 static int mount_cmd(JCR *jcr);
 static int unmount_cmd(JCR *jcr);
 static int status_cmd(JCR *sjcr);
-static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *vname, char *poolname, 
-			       int Slot);
+static int do_label(JCR *jcr, int relabel);
+static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
+			       char *newname, char *poolname, 
+			       int Slot, int relabel);
 static void send_blocked_status(JCR *jcr, DEVICE *dev);
 
 struct s_cmds {
@@ -84,6 +87,7 @@ static struct s_cmds cmds[] = {
    {"setdebug=", setdebug_cmd},       /* set debug level */
    {"cancel",    cancel_cmd},
    {"label",     label_cmd},          /* label a tape */
+   {"relabel",   relabel_cmd},        /* relabel a tape */
    {"mount",     mount_cmd},
    {"unmount",   unmount_cmd},
    {"status",    status_cmd},
@@ -239,21 +243,44 @@ static int cancel_cmd(JCR *cjcr)
  */
 static int label_cmd(JCR *jcr) 
 {
-   POOLMEM *dname, *volname, *poolname, *mtype;
+   return do_label(jcr, 0);
+}
+
+static int relabel_cmd(JCR *jcr) 
+{
+   return do_label(jcr, 1);
+}
+
+static int do_label(JCR *jcr, int relabel)  
+{
+   POOLMEM *dname, *newname, *oldname, *poolname, *mtype;
    BSOCK *dir = jcr->dir_bsock;
    DEVRES *device;
    DEVICE *dev;
-   int found = 0;
+   int found = 0, ok = 0;
    int slot;	
 
    dname = get_memory(dir->msglen+1);
-   volname = get_memory(dir->msglen+1);
+   newname = get_memory(dir->msglen+1);
+   oldname = get_memory(dir->msglen+1);
    poolname = get_memory(dir->msglen+1);
    mtype = get_memory(dir->msglen+1);
-   if (sscanf(dir->msg, "label %s VolumeName=%s PoolName=%s MediaType=%s Slot=%d",
-       dname, volname, poolname, mtype, &slot) == 5) {
+   if (relabel) {
+      if (sscanf(dir->msg, "relabel %s OldName=%s NewName=%s PoolName=%s MediaType=%s Slot=%d",
+	  dname, oldname, newname, poolname, mtype, &slot) == 6) {
+	 ok = 1;
+      }
+   } else {
+      *oldname = 0;
+      if (sscanf(dir->msg, "label %s VolumeName=%s PoolName=%s MediaType=%s Slot=%d",
+	  dname, newname, poolname, mtype, &slot) == 5) {
+	 ok = 1;
+      }
+   }
+   if (ok) {
       unbash_spaces(dname);
-      unbash_spaces(volname);
+      unbash_spaces(newname);
+      unbash_spaces(oldname);
       unbash_spaces(poolname);
       unbash_spaces(mtype);
       device = NULL;
@@ -274,10 +301,10 @@ static int label_cmd(JCR *jcr)
 
 	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
 	 if (!(dev->state & ST_OPENED)) {
-	    if (open_dev(dev, volname, READ_WRITE) < 0) {
+	    if (open_dev(dev, newname, READ_WRITE) < 0) {
                bnet_fsend(dir, _("3994 Connot open device: %s\n"), strerror_dev(dev));
 	    } else {
-	       label_volume_if_ok(jcr, dev, volname, poolname, slot);
+	       label_volume_if_ok(jcr, dev, oldname, newname, poolname, slot, relabel);
 	       force_close_dev(dev);
 	    }
          /* Under certain "safe" conditions, we can steal the lock */
@@ -285,7 +312,7 @@ static int label_cmd(JCR *jcr)
 		    (dev->dev_blocked == BST_UNMOUNTED ||
 		     dev->dev_blocked == BST_WAITING_FOR_SYSOP ||
 		     dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP)) {
-	    label_volume_if_ok(jcr, dev, volname, poolname, slot);
+	    label_volume_if_ok(jcr, dev, oldname, newname, poolname, slot, relabel);
 	 } else if (dev->state & ST_READ || dev->num_writers) {
 	    if (dev->state & ST_READ) {
                 bnet_fsend(dir, _("3901 Device %s is busy with 1 reader.\n"),
@@ -295,7 +322,7 @@ static int label_cmd(JCR *jcr)
 		   dev_name(dev), dev->num_writers);
 	    }
 	 } else {		      /* device not being used */
-	    label_volume_if_ok(jcr, dev, volname, poolname, slot);
+	    label_volume_if_ok(jcr, dev, oldname, newname, poolname, slot, relabel);
 	 }
 	 V(dev->mutex);
       } else {
@@ -307,7 +334,8 @@ static int label_cmd(JCR *jcr)
       bnet_fsend(dir, _("3903 Error scanning label command: %s\n"), dname);
    }
    free_memory(dname);
-   free_memory(volname);
+   free_memory(oldname);
+   free_memory(newname);
    free_memory(poolname);
    free_memory(mtype);
    bnet_sig(dir, BNET_EOD);
@@ -320,8 +348,9 @@ static int label_cmd(JCR *jcr)
  *
  *  Enter with the mutex set
  */
-static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *vname, char *poolname,
-			       int slot) 
+static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname, 
+			       char *newname, char *poolname,
+			       int slot, int relabel)
 {
    BSOCK *dir = jcr->dir_bsock;
    DEV_BLOCK *block;
@@ -329,7 +358,7 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *vname, char *poolnam
    
    steal_device_lock(dev, &hold, BST_WRITING_LABEL);
    
-   strcpy(jcr->VolumeName, vname);
+   strcpy(jcr->VolumeName, newname);
    jcr->VolCatInfo.Slot = slot;
    autoload_device(jcr, dev, 0, dir);	   /* autoload if possible */
    block = new_block(dev);
@@ -352,18 +381,27 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *vname, char *poolnam
       case VOL_VERSION_ERROR:
       case VOL_LABEL_ERROR:
       case VOL_OK:
-         bnet_fsend(dir, _("3901 Cannot label Volume because it is \
-already labeled: %s\n"), dev->VolHdr.VolName);
-	 break;
+	 if (!relabel) {
+	    bnet_fsend(dir, _(
+               "3901 Cannot label Volume because it is already labeled: %s\n"), 
+		dev->VolHdr.VolName);
+	    break;
+	 }
+	 /* Relabel request. If oldname matches, continue */
+	 if (strcmp(oldname, dev->VolHdr.VolName) != 0) {
+            bnet_fsend(dir, _("Wrong volume mounted.\n"));
+	    break;
+	 }
+	 /* Fall through wanted! */
       case VOL_IO_ERROR:
       case VOL_NO_LABEL:
-	 if (!write_volume_label_to_dev(jcr, jcr->device, vname, poolname)) {
+	 if (!write_volume_label_to_dev(jcr, jcr->device, newname, poolname)) {
             bnet_fsend(dir, _("3903 Failed to label Volume: ERR=%s\n"), strerror_dev(dev));
 	    break;
 	 }
-	 strcpy(jcr->VolumeName, vname);
+	 strcpy(jcr->VolumeName, newname);
          bnet_fsend(dir, _("3000 OK label. Volume=%s Device=%s\n"), 
-	    vname, dev->dev_name);
+	    newname, dev->dev_name);
 	 break;
       default:
          bnet_fsend(dir, _("3902 Cannot label Volume. \

@@ -20,6 +20,8 @@ Testing to do: (painful)
 - multiple simultaneous Volumes
 
 For 1.30 release:
+- Pool requested twice in "relabel" command.
+  Must delete old volume from catalog.
 - Make non-zero status from RunJobBefore/After error the job.
 - Remove kern and kelvin from mysql_grant...
 - Install grant_mysql...

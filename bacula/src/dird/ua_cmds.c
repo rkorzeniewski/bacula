@@ -66,12 +66,14 @@ static int helpcmd(UAContext *ua, char *cmd);
 static int deletecmd(UAContext *ua, char *cmd);
 static int usecmd(UAContext *ua, char *cmd),  unmountcmd(UAContext *ua, char *cmd);
 static int labelcmd(UAContext *ua, char *cmd), mountcmd(UAContext *ua, char *cmd), updatecmd(UAContext *ua, char *cmd);
+static int relabelcmd(UAContext *ua, char *cmd), mountcmd(UAContext *ua, char *cmd), updatecmd(UAContext *ua, char *cmd);
 static int versioncmd(UAContext *ua, char *cmd), automountcmd(UAContext *ua, char *cmd);
 static int timecmd(UAContext *ua, char *cmd);
 static int update_volume(UAContext *ua);
 static int update_pool(UAContext *ua);
 static int delete_volume(UAContext *ua);
 static int delete_pool(UAContext *ua);
+static int do_label(UAContext *ua, char *cmd, int relabel);
 
 int quitcmd(UAContext *ua, char *cmd);
 
@@ -86,6 +88,7 @@ static struct cmdstruct commands[] = {
  { N_("delete"),     deletecmd,    _("delete [pool=<pool-name> | media volume=<volume-name>]")},    
  { N_("help"),       helpcmd,      _("print this command")},
  { N_("label"),      labelcmd,     _("label a tape")},
+ { N_("relabel"),    relabelcmd,   _("relabel a tape")},
  { N_("list"),       listcmd,      _("list [pools | jobs | jobtotals | media <pool> | files job=<nn>]; from catalog")},
  { N_("llist"),      llistcmd,     _("full or long list like list command")},
  { N_("messages"),   messagescmd,  _("messages")},
@@ -1274,18 +1277,37 @@ static int delete_pool(UAContext *ua)
  */
 static int labelcmd(UAContext *ua, char *cmd)
 {
+   return do_label(ua, cmd, 0);       /* standard label */
+}
+
+static int relabelcmd(UAContext *ua, char *cmd)
+{
+   return do_label(ua, cmd, 1);      /* relabel tape */
+}
+
+
+/*
+ * Common routine for both label and relabel
+ */
+static int do_label(UAContext *ua, char *cmd, int relabel)
+{
    STORE *store;
    BSOCK *sd;
    char dev_name[MAX_NAME_LENGTH];
-   MEDIA_DBR mr;
+   MEDIA_DBR mr, omr;
    POOL_DBR pr;
    int ok = FALSE;
    int mounted = FALSE;
    int i;
    int slot = 0;
-   static char *keyword[] = {
+   static char *name_keyword[] = {
+      "name",
+      NULL};
+
+   static char *vol_keyword[] = {
       "volume",
       NULL};
+
 
    if (!open_db(ua)) {
       return 1;
@@ -1295,20 +1317,46 @@ static int labelcmd(UAContext *ua, char *cmd)
       return 1;
    }
 
-   i = find_arg_keyword(ua, keyword);
-   if (i >=0 && ua->argv[i]) {
-      strcpy(ua->cmd, ua->argv[i]);
-      goto gotVol;
+   /* If relabel get name of Volume to relabel */
+   if (relabel) {
+      i = find_arg_keyword(ua, vol_keyword); 
+      if (i >= 0 && ua->argv[i]) {
+	 memset(&omr, 0, sizeof(omr));
+	 bstrncpy(omr.VolumeName, ua->argv[i], sizeof(omr.VolumeName));
+	 if (!db_get_media_record(ua->jcr, ua->db, &omr)) {
+            bsendmsg(ua, "%s", db_strerror(ua->db));
+	    goto getVol;
+	 }
+	 goto gotVol;
+      }
+getVol:
+      if (!select_pool_and_media_dbr(ua, &pr, &omr)) {
+	 return 1;
+      }
+
+gotVol:
+      if (strcmp(omr.VolStatus, "Purged") != 0) {
+         bsendmsg(ua, _("Volume \"%s\" has VolStatus %s. It must be purged before relabeling.\n"),
+	    omr.VolumeName, omr.VolStatus);
+	 return 1;
+      }
    }
 
-getVol:
+   i = find_arg_keyword(ua, name_keyword);
+   if (i >=0 && ua->argv[i]) {
+      strcpy(ua->cmd, ua->argv[i]);
+      goto gotName;
+   }
+
+getName:
    if (!get_cmd(ua, _("Enter new Volume name: "))) {
       return 1;
    }
-gotVol:
-   if (strchr(ua->cmd, '|')) {
+gotName:
+   /* ****FIXME*** be much more restrictive in the name */
+   if (strpbrk(ua->cmd, "`~!@#$%^&*()[]{}|\\;'\"<>?,/")) {
       bsendmsg(ua, _("Illegal character | in a volume name.\n"));
-      goto getVol;
+      goto getName;
    }
    if (strlen(ua->cmd) >= MAX_NAME_LENGTH) {
       bsendmsg(ua, _("Volume name too long.\n"));
@@ -1316,16 +1364,15 @@ gotVol:
    }
    if (strlen(ua->cmd) == 0) {
       bsendmsg(ua, _("Volume name must be at least one character long.\n"));
-      goto getVol;
+      goto getName;
    }
-
 
    memset(&mr, 0, sizeof(mr));
    strcpy(mr.VolumeName, ua->cmd);
    if (db_get_media_record(ua->jcr, ua->db, &mr)) {
-       bsendmsg(ua, _("Media record for Volume %s already exists.\n"), 
+       bsendmsg(ua, _("Media record for new Volume \"%s\" already exists.\n"), 
 	  mr.VolumeName);
-       return 1;
+       goto getName;
    }
 
    /* Do some more checking on slot ****FIXME**** */
@@ -1356,9 +1403,16 @@ gotVol:
    bash_spaces(mr.VolumeName);
    bash_spaces(mr.MediaType);
    bash_spaces(pr.Name);
-   bnet_fsend(sd, _("label %s VolumeName=%s PoolName=%s MediaType=%s Slot=%d"), 
-      dev_name, mr.VolumeName, pr.Name, mr.MediaType, mr.Slot);
-   bsendmsg(ua, _("Sending label command ...\n"));
+   if (relabel) {
+      bash_spaces(omr.VolumeName);
+      bnet_fsend(sd, _("relabel %s OldName=%s NewName=%s PoolName=%s MediaType=%s Slot=%d"), 
+	 dev_name, omr.VolumeName, mr.VolumeName, pr.Name, mr.MediaType, mr.Slot);
+      bsendmsg(ua, _("Sending relabel command ...\n"));
+   } else {
+      bnet_fsend(sd, _("label %s VolumeName=%s PoolName=%s MediaType=%s Slot=%d"), 
+	 dev_name, mr.VolumeName, pr.Name, mr.MediaType, mr.Slot);
+      bsendmsg(ua, _("Sending label command ...\n"));
+   }
    while (bget_msg(sd, 0) >= 0) {
       bsendmsg(ua, "%s", sd->msg);
       if (strncmp(sd->msg, "3000 OK label.", 14) == 0) {
@@ -1376,7 +1430,7 @@ gotVol:
    if (ok) {
       set_pool_dbr_defaults_in_media_dbr(&mr, &pr);
       if (db_create_media_record(ua->jcr, ua->db, &mr)) {
-         bsendmsg(ua, _("Media record for Volume=%s successfully created.\n"),
+         bsendmsg(ua, _("Media record for Volume \"%s\" successfully created.\n"),
 	    mr.VolumeName);
 	 if (ua->automount) {
             bsendmsg(ua, _("Requesting mount %s ...\n"), dev_name);
