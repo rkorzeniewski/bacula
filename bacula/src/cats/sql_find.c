@@ -301,7 +301,6 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
    bstrncpy(mr->cLastWritten, row[18]!=NULL?row[18]:"", sizeof(mr->cLastWritten));
    mr->LastWritten = (time_t)str_to_utime(mr->cLastWritten);
    bstrncpy(mr->VolStatus, row[19], sizeof(mr->VolStatus));
-
    sql_free_result(mdb);
 
    db_unlock(mdb);

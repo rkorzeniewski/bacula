@@ -69,7 +69,7 @@ extern struct s_res resources[];
 extern CURES res_all;
 extern int res_all_size;
 
-static int res_locked = 0;	       /* set when resource chains locked */
+static bool res_locked = false;        /* set when resource chains locked */
 
 /* Forward referenced subroutines */
 static void scan_types(LEX *lc, MSGS *msg, int dest, char *where, char *cmd);
@@ -579,12 +579,12 @@ void store_yesno(LEX *lc, struct res_items *item, int index, int pass)
 void LockRes()
 {
    P(res_mutex);
-   res_locked = 1;
+   res_locked = true;
 }
 
 void UnlockRes()
 {
-   res_locked = 0;
+   res_locked = false;
    V(res_mutex);
 }
 

@@ -1,9 +1,48 @@
 
           Release Notes for Bacula 1.33
 
-  Bacula code: Total files = 281 Total lines = 83,815 (*.h *.c *.in)
+  Bacula code: Total files = 283 Total lines = 84,818 (*.h *.c *.in)
+
+New directives:
+- "Close on Poll = yes/no" in SD Device resource.
+- "Volume Poll Interval = time-interval" in SD Device resource.
+- "Two EOF = yes/no" in SD Device resource.
+- "Close on Poll = yes/no" in SD Device resource.
+- "Maximum Network Buffer Size = size" in SD Device resource.
+- "Maximum Network Buffer Size = size" in FD FileDaemon (or Client) resource.
+- "Console" new resource in Director conf file.
+     New directives: Name, Description, Password, JobACL, ClientACL,
+        StorageACL, ScheduleACL, RunACL, PoolACL, CommandACL,
+        FileSetACL, CatalogACL.
+- "Max Run Time = duration" in Director Job resource.
+- "Max Wait Time = duration" in Director Job resource (not fully implemented).
+- "JobDefs = name-of-resource" in Director Job resource.
+- "Jobdefs" new resource in Director. Same directives as for a Job.
+- "Full Backup Pool = xxx" in Job resource in the Director.
+- "Incremental Backup Pool = xxx" in Job resource in the Director.
+- "Differential Backup Pool = xxx" in Job resource in the Director.
+- Three new options on the Run override statement in a Schedule resource:
+   FullPool=xxx
+   IncrementalPool=xxx
+   DifferentialPool=xxx
+
+New Commands:
+- "SetIP"
+- Added "pool=xxx" to restore command line.
+- Added "fileset=xxx" to restore command line.
+- Fixed "storage=xxx" on restore command line.
+- "markdir" command in restore tree.
+- "unmarkdir" command in restore tree.
+- "quit" command in restore tree.
 
 Most Significant Changes since 1.32d
+- The ability to ask the Storage daemon on a device by device basis
+  to "poll" the tape drive at a given interval (minimum 1 minute). If
+  a tape is found, its label is read and if appropriate it is used.
+  This eliminates the need to do "mount" commands.
+- The ability to close and re-open the device when a poll occurs. 
+  This permits dealing with certain recalcitrant autochangers that
+  invalidate devices (typically on FreeBSD).
 - Dan Langille has written a PostgreSQL driver for Bacula.
 - Implement "update slots scan" that reads the volume label(s).
 - The full form of the scan is "scan=1,2,4-5,7". With no specification,

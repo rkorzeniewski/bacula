@@ -680,6 +680,9 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    }
    pm_strcpy(&jcr->client_name, jcr->client->hdr.name);
    jcr->pool = job->pool;
+   jcr->full_pool = job->full_pool;
+   jcr->inc_pool = job->inc_pool;
+   jcr->dif_pool = job->dif_pool;
    jcr->catalog = job->client->catalog;
    jcr->fileset = job->fileset;
    jcr->messages = job->messages; 

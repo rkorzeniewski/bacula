@@ -80,6 +80,7 @@ static int mount_cmd(UAContext *ua, char *cmd);
 static int release_cmd(UAContext *ua, char *cmd);
 static int update_cmd(UAContext *ua, char *cmd);
 static int wait_cmd(UAContext *ua, char *cmd);
+static int setip_cmd(UAContext *ua, char *cmd);
 
 int quit_cmd(UAContext *ua, char *cmd);
 
@@ -110,6 +111,7 @@ static struct cmdstruct commands[] = {
  { N_("run"),        run_cmd,       _("run <job-name>")},
  { N_("status"),     status_cmd,    _("status [storage | client]=<name>")},
  { N_("setdebug"),   setdebug_cmd,  _("sets debug level")},
+ { N_("setip"),      setip_cmd,     _("sets new client address -- if authorized")},
  { N_("show"),       show_cmd,      _("show (resource records) [jobs | pools | ... | all]")},
  { N_("sqlquery"),   sqlquerycmd,   _("use SQL to query catalog")}, 
  { N_("time"),       time_cmd,      _("print current time")},
@@ -528,8 +530,8 @@ static int create_cmd(UAContext *ua, char *cmd)
 
    switch (create_pool(ua->jcr, ua->db, pool, POOL_OP_CREATE)) {
    case 0:
-      bsendmsg(ua, _("Error: Pool %s already exists.\n\
-Use update to change it.\n"), pool->hdr.name);
+      bsendmsg(ua, _("Error: Pool %s already exists.\n"
+               "Use update to change it.\n"), pool->hdr.name);
       break;
 
    case -1:
@@ -544,6 +546,34 @@ Use update to change it.\n"), pool->hdr.name);
 }
 
 
+/*
+ * Set a new address in a Client resource. We do this only
+ *  if the Console name is the same as the Client name 
+ *  and the Console can access the client.
+ */
+static int setip_cmd(UAContext *ua, char *cmd) 
+{
+   CLIENT *client;
+   if (!ua->cons && acl_access_ok(ua, Client_ACL, ua->cons->hdr.name)) {
+      bsendmsg(ua, _("Illegal command from this console.\n"));
+      return 1;
+   }
+   client = (CLIENT *)GetResWithName(R_CLIENT, ua->cons->hdr.name);
+
+   if (!client) {
+      bsendmsg(ua, _("Client \"%s\" not found.\n"), ua->cons->hdr.name);
+      return 1;
+   }
+   LockRes();
+   if (client->address) {
+      free(client->address);
+   }
+   client->address = bstrdup(inet_ntoa(ua->UA_sock->client_addr.sin_addr));
+   bsendmsg(ua, _("Client \"%s\" address set to %s\n"),
+	    client->hdr.name, client->address);
+   UnlockRes();
+   return 1;
+}
 
 
 /*

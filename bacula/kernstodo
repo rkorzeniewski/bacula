@@ -35,6 +35,7 @@ Testing to do: (painful)
 - Test cancel at EOM.       
 
 For 1.33 Testing/Documentation:
+- Newly labeled tapes are chosen before ones already in use.
 - Document new alias records in Director. SDAddress SDDeviceName, SDPassword.
   FDPassword, FDAddress, DBAddress, DBPort, DBPassword.
 - Document new Include/Exclude ...
@@ -56,9 +57,37 @@ For 1.33 Testing/Documentation:
   purge, ...
 - Add subsections to the Disaster Recovery index section.
 - Document Pool keyword for restore.
-                
+- If you use restore replace=never, the directory attributes for
+  non-existent directories will not be restored properly.
+- In the Bacula User Guide you write:"Note, one major disadvantage of
+  writing to a NFS mounted volume as I do isthat if the other machine goes
+  down, the OS will wait forever on the fopen()call that Bacula makes.  As
+  a consequence, Bacula will completely stall untilthe machine exporting
+  the NSF mounts comes back up.  If someone knows a wayaround this, please
+  let me know."I haven't tried using NFS in years, but I think that the
+  "soft" and "intr"remount options may well help you.  The only way of
+  being sure would be totry it.See, for example,
+     http://howtos.linux.com/guides/nag2/x-087-2-nfs.mountd.shtml
+
 For 1.33
-- Fix restore to only pull in last Differential and later Incrementals.
+- Rescue builds incorrect script files on Rufus.
+- Write a Qmsg() to be used in bnet.c to prevent recursion. Queue the
+  message. If dequeueing toss the messages. Lock while dequeuing so that
+  it cannot be called recursively and set dequeuing flag.
+- Look at ASSERT() at 384 src/lib/bnet.c
+- Add all pools in Dir conf to DB.
+- Symbolic link a directory to another one, then backup the symbolic
+  link.
+- Build console in client-only build.
+- Restore attributes of directory if replace=never set but directory
+  did not exist.
+- Check why Phil's Verify exclude does not work.
+- Phil says that Windows file sizes mismatch in Verify when they should,
+  and that either the file size or the catalog size was zero.
+- Fix option 2 of restore -- list where file is backed up -- require Client,
+  then list last 20 backups.
+- Allow browsing the catalog to see all versions of a file (with 
+  stat data on each file).
 - Finish code passing files=nnn to restore start.
 - Add level to estimate command.
 - Check time/dates printed during restore when using Win32 API.
@@ -131,6 +160,67 @@ For 1.33
   F Number         Number of filenames to follow
   <file-name>
   ...
+
+- Spooling ideas taken from Volker Sauer's and other's emails:
+   > IMHO job spooling should be turned on
+   > 
+   > 1) by job
+   > 2) by schedule
+   > 3) by sd
+   > 
+   > where and 2) overrides 1) and 3) is independent.
+
+   Yes, this is the minimum that I think is necessary.
+
+   > 
+   > Reason(s):
+   > It should be switched by job, because the job that backs up the machine 
+   > with the bacula-sd on doesn't need spooling.
+   > It should be switched by schedule, because for full-backups I don't need 
+   > spooling, so I can switch it off (because the network faster then the 
+   > tapedrive) 
+
+   True, with the exception that if you have enough disk spool space,
+   and you want to run concurrent jobs, spooling can eliminate the block
+   interleaving restore inefficiencies.
+
+   > And you should be able to turn it of by sd for sd-machines with low disk 
+   > capacity or if you just don't need or want this feature.
+   > 
+   > There should be:
+   > - definitly the possibility for multipe spool direcories
+
+   Having multiple directories is no problem -- having different maximum
+   sizes creates specification problems.  At some point, I will probably
+   have a common SD pool of spool directories as well as a set of
+   private spool directories for each device.  The first implementation
+   will be a set of private spool directories for each device since
+   managing a global pool with a bunch of threads writing into the same
+   directory is *much* more complicated and prone to error.
+
+   > - the ability to spool parts of a backup (not the whole client)
+
+   This may change in the future, but for the moment, it will spool
+   either to a job high water mark, or until the directory is full
+   (reaches max spool size or I/O error).  It will then write to tape,
+   truncate the spool file, and begin spooling again.
+
+   > - spooling while writing to tape
+
+   Not within a job, but yes, if you run concurrent jobs -- each is a
+   different thread.  Within a job could be a feature, but *much* later.
+
+   > - parallel spooling (like parallel jobs/ concurrent jobs) of clients
+
+   Yes, this is one of my main motivations for doing it (aside from
+   eliminating tape "shoe shine" during incremental backups.
+
+   > - flushing a backup that only went to disk (like amflush in amanda)
+
+   This will be a future feature, since spooling is different from backing
+   up to disk. The future feature will be "migration" which will move a job
+   from one backup Volume to another.
+
 - New Storage specifications:
   Passed to SD as a sort of BSR record called Storage Specification
     Record or SSR.
@@ -215,13 +305,6 @@ Ideas from Jerry Scharf:
   Job report (Volker Sauer).
 - Client does not show busy during Estimate command.
 - Implement Console mtx commands.
-- Implement 3 Pools for a Job:
-   Job {
-     Name = ...
-     Full Backup Pool = xxx
-     Incremental Backup Pool = yyy
-     Differential Backup Pool = zzz
-   }
 - Add a default DB password to MySQL.  
   GRANT all privileges ON bacula.* TO bacula@localhost IDENTIFIED BY 
      'bacula_password';
@@ -1119,3 +1202,11 @@ Done: (see kernsdone for more)
   directories, setting them to be restored.
 - Figure out a way to set restore on a directory without recursively
   decending.  (recurse off?).
+- Fix restore to only pull in last Differential and later Incrementals.
+- Implement 3 Pools for a Job:
+   Job {
+     Name = ...
+     Full Backup Pool = xxx
+     Incremental Backup Pool = yyy
+     Differential Backup Pool = zzz
+   }

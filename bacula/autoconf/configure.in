@@ -576,7 +576,7 @@ AC_ARG_WITH(tcp-wrappers,
 # ------------------------------------------
 # Where to place working dir
 # ------------------------------------------
-working_dir=`eval echo ${sysconfdir}/working`
+working_dir=`eval echo ${prefix}/var/bacula/working`
 AC_ARG_WITH(working-dir,
    [  --with-working-dir=PATH	 specify path of Bacula working directory],
    [
@@ -1285,7 +1285,7 @@ WLDFLAGS=
 PFILES="platforms/Makefile"
 PSCMD="ps -e"
 WIN32=
-hostname=`uname -n`
+hostname=`uname -n | cut -d '.' -f 1`
 case "$DISTNAME" in
 aix)
 	DISTVER=`uname -r`
@@ -1319,7 +1319,6 @@ bsdi)
 	    platforms/bsdi/bacula-fd \
 	    platforms/bsdi/bacula-sd \
 	    platforms/bsdi/bacula-dir"
-	hostname=`hostname -s`
 	largefile_support="yes"
   ;;
 cygwin)
@@ -1333,7 +1332,6 @@ darwin)
 	DISTVER=`uname -r`
 	TAPEDRIVE="/dev/nst0"
 	PSCMD="ps -e -o pid,command"
-	hostname=`hostname -s`
 	PFILES="${PFILES} \
 	   platforms/darwin/Makefile"
   ;;
@@ -1341,7 +1339,6 @@ debian)
 	DISTVER=`cat /etc/debian_version`
 	TAPEDRIVE="/dev/nrst0"
 	PSCMD="ps -e -o pid,command"
-	hostname=`hostname -s`
   ;;
 freebsd)
 	DISTVER=`uname -a |awk '{print $3}'`
@@ -1359,7 +1356,6 @@ freebsd)
 	    platforms/freebsd/bacula-fd \
 	    platforms/freebsd/bacula-sd \
 	    platforms/freebsd/bacula-dir"
-	hostname=`hostname -s`
 	largefile_support="yes"
   ;;
 hpux)
@@ -1431,7 +1427,6 @@ mandrake)
 	    platforms/mandrake/bacula-dir \
 	    platforms/mandrake/bacula.spec \
 	    "
-	hostname=`hostname -s`
   ;;
 gentoo)
 	DISTVER=`awk '/version / {print $5}' < /etc/gentoo-release`
@@ -1442,14 +1437,12 @@ gentoo)
 	    platforms/gentoo/bacula-fd \
 	    platforms/gentoo/bacula-sd \
 	    platforms/gentoo/bacula-dir"
-	hostname=`hostname -s`
   ;;
 
 slackware)
 	DISTVER=`cat /etc/slackware-version`
 	TAPEDRIVE="/dev/nst0"
 	PSCMD="ps -e -o pid,command"
-	hostname=`hostname -s`
   ;;
 solaris)
 	DISTVER=`uname -r`
@@ -1469,7 +1462,6 @@ suse)
 	    cut -f 3 -d ' '`
 	TAPEDRIVE="/dev/nst0"
 	PSCMD="ps -e -o pid,command"
-	hostname=`hostname -s`
 	PFILES="${PFILES} \
 	    platforms/suse/Makefile \
 	    platforms/suse/bacula-fd \
@@ -1481,7 +1473,6 @@ suse5)
 	DISTVER=5.x
 	TAPEDRIVE="/dev/nst0"
 	PSCMD="ps -e -o pid,command"
-	hostname=`hostname -s`
 	PFILES="${PFILES} \
 	    platforms/suse/Makefile \
 	    platforms/suse/bacula-fd \

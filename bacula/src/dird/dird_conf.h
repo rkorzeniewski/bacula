@@ -228,6 +228,9 @@ struct JOB {
    FILESET   *fileset;                /* What to backup -- Fileset */
    STORE     *storage;                /* Where is device -- Storage daemon */
    POOL      *pool;                   /* Where is media -- Media Pool */
+   POOL      *full_pool;              /* Pool for Full backups */
+   POOL      *inc_pool;               /* Pool for Incremental backups */
+   POOL      *dif_pool;               /* Pool for Differental backups */
    JOB       *verify_job;             /* Job name to verify */
    JOB       *jobdefs;                /* Job defaults */
    uint32_t NumConcurrentJobs;        /* number of concurrent jobs running */
@@ -348,6 +351,9 @@ struct RUN {
    int Priority;                      /* priority override */
    int job_type;  
    POOL *pool;                        /* Pool override */
+   POOL *full_pool;                   /* Pool override */
+   POOL *inc_pool;                    /* Pool override */
+   POOL *dif_pool;                    /* Pool override */
    STORE *storage;                    /* Storage override */
    MSGS *msgs;                        /* Messages override */
    char *since;

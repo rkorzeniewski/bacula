@@ -262,7 +262,6 @@ int dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec)
 }
 
 
-
 /*
  *   Request the sysop to create an appendable volume
  *
@@ -285,6 +284,7 @@ int dir_ask_sysop_to_create_appendable_volume(JCR *jcr, DEVICE *dev)
 {
    int stat = 0, jstat;
    bool unmounted;
+   bool first = true;
 
    Dmsg0(130, "enter dir_ask_sysop_to_create_appendable_volume\n");
    ASSERT(dev->dev_blocked);
@@ -296,7 +296,8 @@ int dir_ask_sysop_to_create_appendable_volume(JCR *jcr, DEVICE *dev)
          Jmsg(jcr, M_INFO, 0, "%s", dev->errmsg);
 	 return 0;
       }
-      if (dir_find_next_appendable_volume(jcr)) {    /* get suggested volume */
+      /* First pass, we *know* there are no appendable volumes, so no need to call */
+      if (!first && dir_find_next_appendable_volume(jcr)) { /* get suggested volume */
 	 jstat = JS_WaitMount;
 	 unmounted = (dev->dev_blocked == BST_UNMOUNTED) ||
 		     (dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP);
@@ -312,12 +313,14 @@ int dir_ask_sysop_to_create_appendable_volume(JCR *jcr, DEVICE *dev)
             Dmsg0(100, "Return 1 from mount without wait.\n");
 	    return 1;
 	 }
-	 Jmsg(jcr, M_MOUNT, 0, _(
+	 if (!dev->poll) {
+	    Jmsg(jcr, M_MOUNT, 0, _(
 "Please mount Volume \"%s\" on Storage Device \"%s\" for Job %s\n"
 "Use \"mount\" command to release Job.\n"),
 	      jcr->VolumeName, jcr->dev_name, jcr->Job);
-         Dmsg3(190, "Mount %s on %s for Job %s\n",
-		jcr->VolumeName, jcr->dev_name, jcr->Job);
+            Dmsg3(190, "Mount %s on %s for Job %s\n",
+		  jcr->VolumeName, jcr->dev_name, jcr->Job);
+	 }
       } else {
 	 jstat = JS_WaitMedia;
 	 if (!dev->poll) {
@@ -333,6 +336,7 @@ Please use the \"label\"  command to create a new Volume for:\n\
 	       jcr->pool_name);
 	 }
       }
+      first = false;
 
       jcr->JobStatus = jstat;
       dir_send_job_status(jcr);

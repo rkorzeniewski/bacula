@@ -136,6 +136,9 @@ static void do_all_status(UAContext *ua, char *cmd)
    i = 0;
    foreach_res(store, R_STORAGE) {
       found = false;
+      if (!acl_access_ok(ua, Storage_ACL, store->hdr.name)) {
+	 continue;
+      }
       for (j=0; j<i; j++) {
 	 if (strcmp(unique_store[j]->address, store->address) == 0 &&
 	     unique_store[j]->SDport == store->SDport) {
@@ -167,6 +170,9 @@ static void do_all_status(UAContext *ua, char *cmd)
    i = 0;
    foreach_res(client, R_CLIENT) {
       found = false;
+      if (!acl_access_ok(ua, Client_ACL, client->hdr.name)) {
+	 continue;
+      }
       for (j=0; j<i; j++) {
 	 if (strcmp(unique_client[j]->address, client->address) == 0 &&
 	     unique_client[j]->FDport == client->FDport) {
@@ -348,6 +354,9 @@ static void list_scheduled_jobs(UAContext *ua)
    /* Loop through all jobs */
    LockRes();
    foreach_res(job, R_JOB) {
+      if (!acl_access_ok(ua, Job_ACL, job->hdr.name)) {
+	 continue;
+      }
       for (run=NULL; (run = find_next_run(run, job, runtime)); ) {
 	 level = job->level;   
 	 if (run->level) {
@@ -404,6 +413,9 @@ static void list_running_jobs(UAContext *ua)
    bsendmsg(ua, _("Level JobId  Job                        Status\n"));
    bsendmsg(ua, _("====================================================================\n"));
    for (jcr=NULL; (jcr=get_next_jcr(jcr)); njobs++) {
+      if (!acl_access_ok(ua, Job_ACL, jcr->job->hdr.name)) {
+	 continue;
+      }
       if (jcr->JobId == 0) {	  /* this is us */
 	 njobs--;
 	 free_locked_jcr(jcr);
