@@ -377,11 +377,12 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
    char buf[MAXSTRING];
    POOLMEM *fname = get_pool_memory(PM_MESSAGE);
    int do_MD5 = FALSE;
-   long file_index = 0, attr_file_index = 0;
+   long file_index = 0;
 
    memset(&fdbr, 0, sizeof(FILE_DBR));
    fd = jcr->file_bsock;
    fdbr.JobId = JobId;
+   jcr->FileIndex = 0;
    
    Dmsg0(20, "bdird: waiting to receive file attributes\n");
    /*
@@ -427,7 +428,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
       if (stream == STREAM_UNIX_ATTRIBUTES) {
          Dmsg2(400, "file_index=%d attr=%s\n", file_index, attr);
 	 jcr->JobFiles++;
-	 attr_file_index = file_index;	  /* remember attribute file_index */
+	 jcr->FileIndex = file_index;	 /* remember attribute file_index */
 	 decode_stat(attr, &statf);  /* decode file stat packet */
 	 do_MD5 = FALSE;
 	 jcr->fn_printed = FALSE;
@@ -559,9 +560,9 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
 	  * When ever we get an MD5 signature is MUST have been
 	  * preceded by an attributes record, which sets attr_file_index
 	  */
-	 if (attr_file_index != file_index) {
+	 if (jcr->FileIndex != (uint32_t)file_index) {
             Jmsg2(jcr, M_FATAL, 0, _("MD5 index %d not same as attributes %d\n"),
-	       file_index, attr_file_index);
+	       file_index, jcr->FileIndex);
 	    goto bail_out;
 	 } 
 	 if (do_MD5) {
@@ -587,7 +588,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
    }
 
    /* Now find all the files that are missing -- i.e. all files in
-    *  the database where the FileIndex != current JobId
+    *  the database where the MarkedId != current JobId
     */
    jcr->fn_printed = FALSE;
    sprintf(buf, 

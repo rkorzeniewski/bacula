@@ -189,6 +189,7 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
    fd = jcr->file_bsock;
    jcr->jr.FirstIndex = 1;
    memset(&ar, 0, sizeof(ar));
+   jcr->FileIndex = 0;
 
    Dmsg0(120, "bdird: waiting to receive file attributes\n");
    /* Pickup file attributes and signature */
@@ -227,9 +228,10 @@ msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
 
       if (stream == STREAM_UNIX_ATTRIBUTES) {
 	 jcr->JobFiles++;
+	 jcr->FileIndex = file_index;
 	 ar.attr = attr;
 	 ar.fname = jcr->fname;
-	 ar.FileIndex = 0;	     /* used as mark field during compare */
+	 ar.FileIndex = file_index;
 	 ar.Stream = stream;
 	 ar.link = NULL;
 	 ar.JobId = jcr->JobId;
@@ -246,11 +248,11 @@ msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
 	    jcr->JobStatus = JS_Error;
 	    continue;
 	 }
-	 jcr->FileIndex = file_index;
 	 jcr->FileId = ar.FileId;
       } else if (stream == STREAM_MD5_SIGNATURE) {
 	 if (jcr->FileIndex != (uint32_t)file_index) {
-            Jmsg0(jcr, M_ERROR, 0, _("Got MD5 but not same block as attributes\n"));
+            Jmsg2(jcr, M_ERROR, 0, _("MD5 index %d not same as attributes %d\n"),
+	       file_index, jcr->FileIndex);
 	    jcr->JobStatus = JS_Error;
 	    continue;
 	 }
