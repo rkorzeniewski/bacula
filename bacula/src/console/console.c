@@ -442,21 +442,21 @@ wait_for_data(int fd, int sec)
    fd_set fdset;
    struct timeval tv;
 
-   FD_ZERO(&fdset);
-   FD_SET(fd, &fdset);
    tv.tv_sec = sec;
    tv.tv_usec = 0;
    for ( ;; ) {
+      FD_ZERO(&fdset);
+      FD_SET(fd, &fdset);
       switch(select(fd + 1, &fdset, NULL, NULL, &tv)) {
-	 case 0:			 /* timeout */
-	    return 0;
-	 case -1:
-	    if (errno == EINTR || errno == EAGAIN) {
-	       continue;
-	    }
-	    return -1;			/* error return */
-	 default:
-	    return 1;
+      case 0:			      /* timeout */
+	 return 0;
+      case -1:
+	 if (errno == EINTR || errno == EAGAIN) {
+	    continue;
+	 }
+	 return -1;		     /* error return */
+      default:
+	 return 1;
       }
    }
 }
@@ -480,19 +480,20 @@ get_cmd(FILE *input, char *prompt, BSOCK *sock, int sec)
    }
 again:
    switch (wait_for_data(fileno(input), sec)) {
-      case 0:
-	 return 0;		      /* timeout */
-      case -1: 
-	 return -1;		      /* error */
-      default:
-	 len = sizeof_pool_memory(sock->msg) - 1;
-	 if (stop) {
-	    goto again;
-	 }
-	 if (fgets(sock->msg, len, input) == NULL) {
-	    return -1;
-	 }
-	 break;
+   case 0:
+      return 0; 		   /* timeout */
+   case -1: 
+      return -1;		   /* error */
+   default:
+      len = sizeof_pool_memory(sock->msg) - 1;
+      if (stop) {
+	 sleep(1);
+	 goto again;
+      }
+      if (fgets(sock->msg, len, input) == NULL) {
+	 return -1;
+      }
+      break;
    }
    strip_trailing_junk(sock->msg);
    sock->msglen = strlen(sock->msg);

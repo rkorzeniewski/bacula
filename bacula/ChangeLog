@@ -1,4 +1,12 @@
 
+2003-07-xx Version 1.31 Beta 28Jul03
+- Add sleep(1) to console when it gets a SIGTSTP signal 
+  to prevent it from using 100% of the CPU.
+- Improve description of Priorities.
+- Add a bit more documentation to jobq.c
+- Complete hash table routine htable.c htable.h
+- Change M_INFO to M_ERROR in attribs.c for Windows errors.
+
 2003-07-23 Version 1.31 Beta 22Jul03
 - Apply a patch from Nic Bellamy that clarifies the error messages 
   during recycling volumes.
