@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  9 April 2003 
+                  17 April 2003 
 
 Documentation to do: (a little bit at a time)
 - Document running a test version.
@@ -31,6 +31,11 @@ For 1.30 release:
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 After 1.30:
+- Implement restore "current system", but take all files without
+  doing selection tree -- so that jobs without File records can
+  be restored.
+- Implement scheduling of one time "run" jobs (i.e. instead of
+  starting immediately start at some specified time).
 - Make | and < work on FD side.
 - Pass prefix_links to FD.
 - Implement a M_SECURITY message class.
