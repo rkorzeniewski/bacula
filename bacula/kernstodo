@@ -21,7 +21,17 @@ Testing to do: (painful)
 - ***test GetFileAttributexEx, and remove MessageBox at 335 of winservice.cpp ****
 
 For 1.30 release:
-- Ability to backup to a file then later transfer to a tape.
+- Cancelling of a queued job does NOT work!!!!!!
+- Bevan Anderson suggests having a run queue for each device
+  so that multiple simultaneous jobs can run but each writing
+  to a different Volume.
+- Get two 
+rufus-dir: Volume used once. Marking Volume "File0003" as Used.
+rufus-sd: Recycled volume File0003 on device /home/kern/bacula/working, all previous data lost.
+rufus-dir: Volume used once. Marking Volume "File0003" as Used.
+- Ability to backup to a file then later transfer to a tape -- Migration.
+  Migration based on MaxJobs(MinJobs),MaxVols(MinVols),AgeJobs,MaxBytes(MinBytes)
+  (i.e. HighwaterMark, LowwaterMark).
 - Eugeny Fisher <efischer@vip-rus.com> wants to cycle through a
   set of volumes recycling the oldest volume when it is needed.
 - Fix "access not allowed" for backup of files on WinXP.

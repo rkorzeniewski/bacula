@@ -80,7 +80,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
    /*
     * Request to find next appendable Volume for this Job
     */
-   Dmsg1(120, "catreq %s", bs->msg);
+   Dmsg1(200, "catreq %s", bs->msg);
    if (sscanf(bs->msg, Find_media, &Job, &index) == 2) {
       mr.PoolId = jcr->PoolId;
       strcpy(mr.MediaType, jcr->store->media_type);
@@ -94,15 +94,24 @@ next_volume:
       ok = db_find_next_volume(jcr, jcr->db, index, &mr);  
       Dmsg2(100, "catreq after find_next_vol ok=%d FW=%d\n", ok, mr.FirstWritten);
       if (!ok) {
+         Dmsg1(200, "No next volume found. RecycleOldest=%d\n",
+	     jcr->pool->recycle_oldest_volume);
 	 if (jcr->pool->recycle_oldest_volume) {
+            Dmsg0(200, "Request to find oldest volume.\n");
 	    /* Find oldest volume to recycle */
 	    ok = db_find_next_volume(jcr, jcr->db, -1, &mr);
+            Dmsg1(400, "Find oldest=%d\n", ok);
 	    if (ok) {
 	       UAContext ua;
+               Dmsg0(400, "Try purge.\n");
 	       /* Try to purge oldest volume */
 	       create_ua_context(jcr, &ua);
 	       ok = purge_jobs_from_volume(&ua, &mr);
 	       free_ua_context(&ua);
+	       if (ok) {
+		  ok = recycle_oldest_purged_volume(jcr, &mr);
+                  Dmsg1(400, "Recycle after recycle oldest=%d\n", ok);
+	       }
 	    }
 	 }
 	 if (!ok) {
@@ -111,7 +120,7 @@ next_volume:
             Dmsg2(100, "find_recycled_volume1 %d FW=%d\n", ok, mr.FirstWritten);
 	    if (!ok) {
 	       prune_volumes(jcr);  
-	       ok = recycle_a_volume(jcr, &mr);
+	       ok = recycle_oldest_purged_volume(jcr, &mr);
                Dmsg2(200, "find_recycled_volume2 %d FW=%d\n", ok, mr.FirstWritten);
 	       if (!ok) {
 		  /* See if we can create a new Volume */
@@ -123,7 +132,7 @@ next_volume:
       /* Check if use duration has expired */
       Dmsg2(100, "VolJobs=%d FirstWritten=%d\n", mr.VolJobs, mr.FirstWritten);
       if (ok && mr.VolJobs > 0 && mr.VolUseDuration > 0 && 
-           strcmp(mr.VolStatus, "Recycle") != 0) {
+           strcmp(mr.VolStatus, "Append") == 0) {
 	 utime_t now = time(NULL);
 	 if (mr.VolUseDuration <= (now - mr.FirstWritten)) {
             Dmsg4(100, "Duration=%d now=%d start=%d now-start=%d\n",
@@ -168,7 +177,7 @@ next_volume:
     * Request to find specific Volume information
     */
    } else if (sscanf(bs->msg, Get_Vol_Info, &Job, &mr.VolumeName, &writing) == 3) {
-      Dmsg1(120, "CatReq GetVolInfo Vol=%s\n", mr.VolumeName);
+      Dmsg1(400, "CatReq GetVolInfo Vol=%s\n", mr.VolumeName);
       /*
        * Find the Volume
        */
@@ -227,6 +236,8 @@ next_volume:
       &sdmr.VolWrites, &sdmr.MaxVolBytes, &sdmr.LastWritten, &sdmr.VolStatus, 
       &sdmr.Slot, &relabel) == 14) {
 
+      Dmsg3(400, "Update media %s oldStat=%s newStat=%s\n", sdmr.VolumeName,
+	 mr.VolStatus, sdmr.VolStatus);
       bstrncpy(mr.VolumeName, sdmr.VolumeName, sizeof(mr.VolumeName)); /* copy Volume name */
       if (!db_get_media_record(jcr, jcr->db, &mr)) {
          Jmsg(jcr, M_ERROR, 0, _("Unable to get Media record for Volume %s: ERR=%s\n"),
@@ -255,41 +266,43 @@ next_volume:
        * Update Media Record
        */
 
-      /* First handle Max Volume Bytes */
-      if ((mr.MaxVolBytes > 0 && mr.VolBytes >= mr.MaxVolBytes)) {
-         Jmsg(jcr, M_INFO, 0, _("Max Volume bytes exceeded. "             
-             "Marking Volume \"%s\" as Full.\n"), mr.VolumeName);
-         strcpy(mr.VolStatus, "Full");
+      /* Check limits and expirations if "Append" and not a relable request */
+      if (strcmp(mr.VolStatus, "Append") == 0 && !relabel) {
+	 /* First handle Max Volume Bytes */
+	 if ((mr.MaxVolBytes > 0 && mr.VolBytes >= mr.MaxVolBytes)) {
+            Jmsg(jcr, M_INFO, 0, _("Max Volume bytes exceeded. "             
+                "Marking Volume \"%s\" as Full.\n"), mr.VolumeName);
+            strcpy(mr.VolStatus, "Full");
 
-      /* Now see if Volume should only be used once */
-      } else if (mr.VolBytes > 0 && jcr->pool->use_volume_once) {
-         Jmsg(jcr, M_INFO, 0, _("Volume used once. "             
-             "Marking Volume \"%s\" as Used.\n"), mr.VolumeName);
-         strcpy(mr.VolStatus, "Used");
+	 /* Now see if Volume should only be used once */
+	 } else if (mr.VolBytes > 0 && jcr->pool->use_volume_once) {
+            Jmsg(jcr, M_INFO, 0, _("Volume used once. "             
+                "Marking Volume \"%s\" as Used.\n"), mr.VolumeName);
+            strcpy(mr.VolStatus, "Used");
 
-      /* Now see if Max Jobs written to volume */
-      } else if (mr.MaxVolJobs > 0 && mr.MaxVolJobs <= mr.VolJobs) {
-         Jmsg(jcr, M_INFO, 0, _("Max Volume jobs exceeded. "       
-             "Marking Volume \"%s\" as Used.\n"), mr.VolumeName);
-         strcpy(mr.VolStatus, "Used");
+	 /* Now see if Max Jobs written to volume */
+	 } else if (mr.MaxVolJobs > 0 && mr.MaxVolJobs <= mr.VolJobs) {
+            Jmsg(jcr, M_INFO, 0, _("Max Volume jobs exceeded. "       
+                "Marking Volume \"%s\" as Used.\n"), mr.VolumeName);
+            strcpy(mr.VolStatus, "Used");
 
-      /* Now see if Max Files written to volume */
-      } else if (mr.MaxVolFiles > 0 && mr.MaxVolFiles <= mr.VolFiles) {
-         Jmsg(jcr, M_INFO, 0, _("Max Volume files exceeded. "       
-             "Marking Volume \"%s\" as Used.\n"), mr.VolumeName);
-         strcpy(mr.VolStatus, "Used");
+	 /* Now see if Max Files written to volume */
+	 } else if (mr.MaxVolFiles > 0 && mr.MaxVolFiles <= mr.VolFiles) {
+            Jmsg(jcr, M_INFO, 0, _("Max Volume files exceeded. "       
+                "Marking Volume \"%s\" as Used.\n"), mr.VolumeName);
+            strcpy(mr.VolStatus, "Used");
 
-      /* Finally, check Use duration expiration */
-      } else if (mr.VolUseDuration > 0) {
-	 utime_t now = time(NULL);
-	 /* See if Vol Use has expired */
-	 if (mr.VolUseDuration <= (now - mr.FirstWritten)) {
-            Jmsg(jcr, M_INFO, 0, _("Max configured use duration exceeded. "       
-               "Marking Volume \"%s\"as Used.\n"), mr.VolumeName);
-            strcpy(mr.VolStatus, "Used");  /* yes, mark as used */
+	 /* Finally, check Use duration expiration */
+	 } else if (mr.VolUseDuration > 0) {
+	    utime_t now = time(NULL);
+	    /* See if Vol Use has expired */
+	    if (mr.VolUseDuration <= (now - mr.FirstWritten)) {
+               Jmsg(jcr, M_INFO, 0, _("Max configured use duration exceeded. "       
+                  "Marking Volume \"%s\"as Used.\n"), mr.VolumeName);
+               strcpy(mr.VolStatus, "Used");  /* yes, mark as used */
+	    }
 	 }
       }
-
       Dmsg2(200, "db_update_media_record. Stat=%s Vol=%s\n", mr.VolStatus, mr.VolumeName);
       if (db_update_media_record(jcr, jcr->db, &mr)) {
 	 bnet_fsend(bs, OK_update);
