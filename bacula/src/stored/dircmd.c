@@ -338,7 +338,10 @@ already labeled: %s\n"), dev->VolHdr.VolName);
 	 break;
       case VOL_IO_ERROR:
       case VOL_NO_LABEL:
-	 write_volume_label_to_dev(jcr, jcr->device, vname, poolname);
+	 if (!write_volume_label_to_dev(jcr, jcr->device, vname, poolname)) {
+            bnet_fsend(dir, _("3903 Failed to label Volume: ERR=%s\n"), strerror_dev(dev));
+	    break;
+	 }
 	 strcpy(jcr->VolumeName, vname);
          bnet_fsend(dir, _("3000 OK label. Volume=%s Device=%s\n"), 
 	    vname, dev->dev_name);

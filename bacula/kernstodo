@@ -29,6 +29,7 @@ From Chuck:
 
 - Had to label second tape using the autochanger two times. The
   first time the second tape was apparently loaded but not labeled.
+  3903 Failed to label Volume: ERR=dev.c:285 Bad call to rewind_dev. Device /dev/nst0 not open
 - Put MaximumVolumeSize in Director.
 - Document how to cancel a job that is waiting on a Volume. 
   Must "cancel" then "mount".
