@@ -1563,5 +1563,4 @@ void close_db(UAContext *ua)
       db_close_database(ua->jcr, ua->db);
    }
    ua->db = NULL;
-   ua->jcr->db = NULL;
 }
