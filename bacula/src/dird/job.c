@@ -337,9 +337,10 @@ int cancel_job(UAContext *ua, JCR *jcr)
 
       /* Cancel Storage daemon */
       if (jcr->store_bsock) {
-	 ua->jcr->store = jcr->store;
-	 for (int i=0; i<MAX_STORE; i++) {
-	    ua->jcr->storage[i] = jcr->storage[i];
+	 if (!ua->jcr->storage[0]) {
+	    copy_storage(ua->jcr, jcr);
+	 } else {
+	    ua->jcr->store = jcr->store;
 	 }
 	 if (!connect_to_storage_daemon(ua->jcr, 10, SDConnectTimeout, 1)) {
             bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
@@ -747,7 +748,7 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    for (int i=0; i<MAX_STORE; i++) {
       jcr->storage[i] = job->storage[i];
    }
-   if (jcr->storage[0]) {
+   if (!jcr->store && jcr->storage[0]) {
       jcr->store = (STORE *)jcr->storage[0]->first();
    }
    jcr->client = job->client;
