@@ -2,12 +2,7 @@
                  25 November 2002
 
 Documentation to do:
-- Document to have patience when SD first starts.
 - Document running a test version.
-- Document saving MySQL databases, where to find code for shutting 
-  down and saving other databases.
-  http://www.backupcentral.com/free-backup-software1.html
-  mysqldump -f  --opt bacula >bacula
 
 Testing to do:
 - that restore options work in FD.
@@ -607,3 +602,8 @@ Done: (see kernsdone for more)
 - Fix intmax_t on FreeBSD.
 - make sure that update of volume new parameters works
 - Document -i option on FD
+- Document to have patience when SD first starts.
+- Document saving MySQL databases, where to find code for shutting 
+  down and saving other databases.
+  http://www.backupcentral.com/free-backup-software1.html
+  mysqldump -f  --opt bacula >bacula
