@@ -16,6 +16,6 @@ CFLAGS="-g -O2 -Wall" \
     --with-job-email=$2 \
     $3 \
     --with-baseport=8101 \
-    --with-tcp-wrappers
+    $4
 
 exit 0
