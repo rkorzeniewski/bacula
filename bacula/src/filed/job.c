@@ -375,6 +375,13 @@ static int bootstrap_cmd(JCR *jcr)
    jcr->RestoreBootstrap = fname;
    bs = fopen(fname, "a+");           /* create file */
    if (!bs) {
+      /* 
+       * Suck up what he is sending to us so that he will then
+       *   read our error message.
+       */
+      while (bnet_recv(dir) >= 0)
+	{  }
+
       Jmsg(jcr, M_FATAL, 0, _("Could not create bootstrap file %s: ERR=%s\n"),
 	 jcr->RestoreBootstrap, strerror(errno));
       free_pool_memory(jcr->RestoreBootstrap);
