@@ -71,8 +71,8 @@ static void do_status(void sendit(char *msg, int len, void *sarg), void *arg)
       }
 	   
       len = Mmsg(&msg, _("  Files=%s Bytes=%s Termination Status=%s\n"), 
-	   edit_uint_with_commas(last_job.JobFiles, b1),
-	   edit_uint_with_commas(last_job.JobBytes, b2),
+	   edit_uint64_with_commas(last_job.JobFiles, b1),
+	   edit_uint64_with_commas(last_job.JobBytes, b2),
 	   termstat);
       sendit(msg, len, arg);
    }
@@ -96,12 +96,12 @@ static void do_status(void sendit(char *msg, int len, void *sarg), void *arg)
       }
       bps = njcr->JobBytes / sec;
       len = Mmsg(&msg,  _("    Files=%s Bytes=%s Bytes/sec=%s\n"), 
-	   edit_uint_with_commas(njcr->JobFiles, b1),
-	   edit_uint_with_commas(njcr->JobBytes, b2),
-	   edit_uint_with_commas(bps, b3));
+	   edit_uint64_with_commas(njcr->JobFiles, b1),
+	   edit_uint64_with_commas(njcr->JobBytes, b2),
+	   edit_uint64_with_commas(bps, b3));
       sendit(msg, len, arg);
       len = Mmsg(&msg, _("    Files Examined=%s\n"), 
-	   edit_uint_with_commas(njcr->num_files_examined, b1));
+	   edit_uint64_with_commas(njcr->num_files_examined, b1));
       sendit(msg, len, arg);
       if (njcr->JobFiles > 0) {
          len = Mmsg(&msg, _("    Processing file: %s\n"), njcr->last_fname);

@@ -306,7 +306,7 @@ Termination:            %s\n"),
 	jcr->client->hdr.name,
 	sdt,
 	edt,
-	edit_uint_with_commas(jcr->jr.JobFiles, ec1),
+	edit_uint64_with_commas(jcr->jr.JobFiles, ec1),
 	term_msg);
 
    Dmsg0(100, "Leave verify_cleanup()\n");

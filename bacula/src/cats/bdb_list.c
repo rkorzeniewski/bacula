@@ -112,7 +112,7 @@ void db_list_media_records(B_DB *mdb, MEDIA_DBR *mdbr, DB_LIST_HANDLER *sendit, 
    len = sizeof(mr);
    while (fread(&mr, len, 1, mdb->mediafd) > 0) {
          Mmsg(&mdb->cmd, " %-10s %17s %-15s  %s\n",
-	    mr.VolStatus, edit_uint_with_commas(mr.VolBytes, ewc),
+	    mr.VolStatus, edit_uint64_with_commas(mr.VolBytes, ewc),
 	    mr.MediaType, mr.VolumeName);
 	 sendit(ctx, mdb->cmd);
    }
@@ -212,8 +212,8 @@ void db_list_job_records(B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, void *
       strftime(dt, sizeof(dt), "%m-%d %H:%M", &tm);
       Mmsg(&mdb->cmd, " %7d  %-10s   %c    %c   %14s %10s  %c  %s\n", 
 		ojr.JobId, dt, (char)ojr.Type, (char)ojr.Level, 
-		edit_uint_with_commas(ojr.JobBytes, ewc1), 
-		edit_uint_with_commas(ojr.JobFiles, ewc2),
+		edit_uint64_with_commas(ojr.JobBytes, ewc1), 
+		edit_uint64_with_commas(ojr.JobFiles, ewc2),
 		(char)ojr.JobStatus, ojr.Name);
       sendit(ctx, mdb->cmd);
    }
@@ -253,9 +253,9 @@ void db_list_job_totals(B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, void *c
       total_jobs++;
    }
    Mmsg(&mdb->cmd, " %7s  %10s   %15s\n", 
-	     edit_uint_with_commas(total_jobs, ewc1),
-	     edit_uint_with_commas(total_files, ewc2), 
-	     edit_uint_with_commas(total_bytes, ewc3));
+	     edit_uint64_with_commas(total_jobs, ewc1),
+	     edit_uint64_with_commas(total_files, ewc2), 
+	     edit_uint64_with_commas(total_bytes, ewc3));
    sendit(ctx, mdb->cmd);
    sendit(ctx, "=======================================\n");
    V(mdb->mutex);

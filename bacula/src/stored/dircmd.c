@@ -620,8 +620,8 @@ static int status_cmd(JCR *jcr)
       }
 	   
       bnet_fsend(user, _("  Files=%s Bytes=%s Termination Status=%s\n"), 
-	   edit_uint_with_commas(last_job.JobFiles, b1),
-	   edit_uint_with_commas(last_job.JobBytes, b2),
+	   edit_uint64_with_commas(last_job.JobFiles, b1),
+	   edit_uint64_with_commas(last_job.JobBytes, b2),
 	   termstat);
    }
 
@@ -665,12 +665,12 @@ static int status_cmd(JCR *jcr)
 	    }
 	    bpb = dev->VolCatInfo.VolCatBytes / bpb;
             bnet_fsend(user, _("    Total Bytes=%s Blocks=%s Bytes/block=%s\n"),
-	       edit_uint_with_commas(dev->VolCatInfo.VolCatBytes, b1),
-	       edit_uint_with_commas(dev->VolCatInfo.VolCatBlocks, b2), 
-	       edit_uint_with_commas(bpb, b3));
+	       edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, b1),
+	       edit_uint64_with_commas(dev->VolCatInfo.VolCatBlocks, b2), 
+	       edit_uint64_with_commas(bpb, b3));
             bnet_fsend(user, _("    Positioned at File=%s Block=%s\n"), 
-	       edit_uint_with_commas(dev->file, b1),
-	       edit_uint_with_commas(dev->block_num, b2));
+	       edit_uint64_with_commas(dev->file, b1),
+	       edit_uint64_with_commas(dev->block_num, b2));
 
 	 } else {
             bnet_fsend(user, _("Device %s is not open.\n"), dev_name(dev));
@@ -696,9 +696,9 @@ static int status_cmd(JCR *jcr)
 	 }
 	 bps = jcr->JobBytes / sec;
          bnet_fsend(user, _("    Files=%s Bytes=%s Bytes/sec=%s\n"), 
-	    edit_uint_with_commas(jcr->JobFiles, b1),
-	    edit_uint_with_commas(jcr->JobBytes, b2),
-	    edit_uint_with_commas(bps, b3));
+	    edit_uint64_with_commas(jcr->JobFiles, b1),
+	    edit_uint64_with_commas(jcr->JobBytes, b2),
+	    edit_uint64_with_commas(bps, b3));
 	 found = 1;
 #ifdef DEBUG
 	 if (jcr->file_bsock) {

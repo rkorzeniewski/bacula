@@ -79,7 +79,9 @@ InsertDB(char *file, int line, B_DB *mdb, char *cmd)
       mdb->num_rows = 1;
    }
    if (mdb->num_rows != 1) {
-      m_msg(file, line, &mdb->errmsg, _("Insertion problem: affect_rows=%" lld "\n"), mdb->num_rows);
+      char ed1[30];
+      m_msg(file, line, &mdb->errmsg, _("Insertion problem: affect_rows=%s\n"), 
+	 edit_uint64(mdb->num_rows, ed1));
       e_msg(file, line, M_FATAL, 0, mdb->errmsg);  /* ***FIXME*** remove me */
       return 0;
    }
@@ -102,7 +104,9 @@ UpdateDB(char *file, int line, B_DB *mdb, char *cmd)
    }
    mdb->num_rows = sql_affected_rows(mdb);
    if (mdb->num_rows != 1) {
-      m_msg(file, line, &mdb->errmsg, _("Update problem: affect_rows=%" lld "\n"), mdb->num_rows);
+      char ed1[30];
+      m_msg(file, line, &mdb->errmsg, _("Update problem: affect_rows=%s\n"), 
+	 edit_uint64(mdb->num_rows, ed1));
       e_msg(file, line, M_ERROR, 0, mdb->errmsg);
       e_msg(file, line, M_ERROR, 0, "%s\n", cmd);
       return 0;

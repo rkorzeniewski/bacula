@@ -100,19 +100,20 @@ db_update_job_start_record(B_DB *mdb, JOB_DBR *jr)
    char dt[MAX_TIME_LENGTH];
    time_t stime;
    struct tm tm;
-   int32_t StartDay;
+   btime_t StartDay;
    int stat;
+   char ed1[30];
        
    stime = jr->StartTime;
    localtime_r(&stime, &tm);
    strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
-   StartDay = (int32_t)(date_encode(tm.tm_year+1900, tm.tm_mon+1, tm.tm_mday) -
+   StartDay = (btime_t)(date_encode(tm.tm_year+1900, tm.tm_mon+1, tm.tm_mday) -
        date_encode(2000, 1, 1));
 
    P(mdb->mutex);
    Mmsg(&mdb->cmd, "UPDATE Job SET Level='%c', StartTime=\"%s\", \
-ClientId=%d, StartDay=%d WHERE JobId=%d",
-      (char)(jr->Level), dt, jr->ClientId, StartDay, jr->JobId);
+ClientId=%d, StartDay=%s WHERE JobId=%d",
+      (char)(jr->Level), dt, jr->ClientId, edit_uint64(StartDay, ed1), jr->JobId);
    stat = UPDATE_DB(mdb, mdb->cmd);
    V(mdb->mutex);
    return stat;
@@ -133,19 +134,23 @@ db_update_job_end_record(B_DB *mdb, JOB_DBR *jr)
    time_t ttime;
    struct tm tm;
    int stat;
+   char ed1[30], ed2[30];
+   btime_t StartDay;
        
    ttime = jr->EndTime;
    localtime_r(&ttime, &tm);
    strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
+   StartDay = (btime_t)(date_encode(tm.tm_year+1900, tm.tm_mon+1, tm.tm_mday) -
+       date_encode(2000, 1, 1));
 
    P(mdb->mutex);
    Mmsg(&mdb->cmd,
       "UPDATE Job SET JobStatus='%c', EndTime='%s', \
-ClientId=%d, JobBytes=%" lld ", JobFiles=%d, JobErrors=%d, VolSessionId=%d, \
-VolSessionTime=%d, PoolId=%d, FileSetId=%d WHERE JobId=%d",
-      (char)(jr->JobStatus), dt, jr->ClientId, jr->JobBytes, jr->JobFiles,
-      jr->JobErrors, jr->VolSessionId, jr->VolSessionTime, 
-      jr->PoolId, jr->FileSetId, jr->JobId);
+ClientId=%d, JobBytes=%s, JobFiles=%d, JobErrors=%d, VolSessionId=%d, \
+VolSessionTime=%d, PoolId=%d, FileSetId=%d, StartDay=%s WHERE JobId=%d",
+      (char)(jr->JobStatus), dt, jr->ClientId, edit_uint64(jr->JobBytes, ed1), 
+      jr->JobFiles, jr->JobErrors, jr->VolSessionId, jr->VolSessionTime, 
+      jr->PoolId, jr->FileSetId, edit_uint64(StartDay, ed2), jr->JobId);
 
    stat = UPDATE_DB(mdb, mdb->cmd);
    V(mdb->mutex);
@@ -183,6 +188,7 @@ db_update_media_record(B_DB *mdb, MEDIA_DBR *mr)
    time_t ttime;
    struct tm tm;
    int stat;
+   char ed1[30], ed2[30];
        
    ttime = mr->LastWritten;
    localtime_r(&ttime, &tm);
@@ -199,12 +205,13 @@ db_update_media_record(B_DB *mdb, MEDIA_DBR *mr)
    }
 
    Mmsg(&mdb->cmd, "UPDATE Media SET VolJobs=%d,\
- VolFiles=%d, VolBlocks=%d, VolBytes=%" lld ", VolMounts=%d, VolErrors=%d,\
- VolWrites=%d, VolMaxBytes=%" lld ", LastWritten=\"%s\", VolStatus=\"%s\" \
+ VolFiles=%d, VolBlocks=%d, VolBytes=%s, VolMounts=%d, VolErrors=%d,\
+ VolWrites=%d, VolMaxBytes=%s, LastWritten=\"%s\", VolStatus=\"%s\" \
  WHERE VolumeName=\"%s\"",
-   mr->VolJobs, mr->VolFiles, mr->VolBlocks, mr->VolBytes, mr->VolMounts,
-   mr->VolErrors, mr->VolWrites, mr->VolMaxBytes, dt, mr->VolStatus,
-   mr->VolumeName);
+   mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
+   mr->VolMounts, mr->VolErrors, mr->VolWrites, 
+   edit_uint64(mr->VolMaxBytes, ed2), dt, 
+   mr->VolStatus, mr->VolumeName);
 
    stat = UPDATE_DB(mdb, mdb->cmd);
    V(mdb->mutex);

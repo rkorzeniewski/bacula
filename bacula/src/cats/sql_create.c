@@ -68,13 +68,14 @@ db_create_job_record(B_DB *mdb, JOB_DBR *jr)
    struct tm tm;
    int stat;
    char *JobId;
-   int32_t StartDay;
+   btime_t StartDay;
+   char ed1[30];
 
    stime = jr->SchedTime;
 
    localtime_r(&stime, &tm); 
    strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
-   StartDay = (int32_t)(date_encode(tm.tm_year+1900, tm.tm_mon+1, tm.tm_mday) -
+   StartDay = (btime_t)(date_encode(tm.tm_year+1900, tm.tm_mon+1, tm.tm_mday) -
        date_encode(2000, 1, 1));
 
    P(mdb->mutex);
@@ -87,9 +88,9 @@ db_create_job_record(B_DB *mdb, JOB_DBR *jr)
    /* Must create it */
    Mmsg(&mdb->cmd,
 "INSERT INTO Job (JobId, Job, Name, Type, Level, SchedTime, StartDay) VALUES \
-(%s, \"%s\", \"%s\", \"%c\", \"%c\", \"%s\", %d)", 
+(%s, \"%s\", \"%s\", \"%c\", \"%c\", \"%s\", %s)", 
 	   JobId, jr->Job, jr->Name, (char)(jr->Type), (char)(jr->Level), dt,
-	   StartDay);
+	   edit_uint64(StartDay, ed1));
 
    if (!INSERT_DB(mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create DB Job record %s failed. ERR=%s\n"), 
@@ -212,6 +213,7 @@ int
 db_create_media_record(B_DB *mdb, MEDIA_DBR *mr)
 {
    int stat;
+   char ed1[30], ed2[30];
 
    P(mdb->mutex);
    Mmsg(&mdb->cmd, "SELECT MediaId FROM Media WHERE VolumeName=\"%s\"", 
@@ -232,10 +234,11 @@ db_create_media_record(B_DB *mdb, MEDIA_DBR *mr)
    /* Must create it */
    Mmsg(&mdb->cmd, 
 "INSERT INTO Media (VolumeName, MediaType, PoolId, VolMaxBytes, VolCapacityBytes, \
-VolStatus, Recycle) VALUES (\"%s\", \"%s\", %d, %" lld ", %" lld ", \"%s\", \"%s\")", 
+VolStatus, Recycle) VALUES (\"%s\", \"%s\", %d, %s, %s, \"%s\", \"%s\")", 
 		  mr->VolumeName,
 		  mr->MediaType, mr->PoolId, 
-		  mr->VolMaxBytes, mr->VolCapacityBytes, 
+		  edit_uint64(mr->VolMaxBytes,ed1),
+		  edit_uint64(mr->VolCapacityBytes, ed2),
 		  mr->VolStatus, mr->Recycle);
 
    if (!INSERT_DB(mdb, mdb->cmd)) {
@@ -550,8 +553,9 @@ static int db_create_path_record(B_DB *mdb, ATTR_DBR *ar, char *path)
       mdb->num_rows = sql_num_rows(mdb);
 
       if (mdb->num_rows > 1) {
-         Mmsg2(&mdb->errmsg, _("More than one Path!: %" lld " for Path=%s\n"), 
-	    mdb->num_rows, path);
+	 char ed1[30];
+         Mmsg2(&mdb->errmsg, _("More than one Path!: %s for Path=%s\n"), 
+	    edit_uint64(mdb->num_rows, ed1), path);
          Emsg1(M_ERROR, 0, "%s", mdb->errmsg);
          Emsg1(M_ERROR, 0, "%s\n", mdb->cmd);
       }

@@ -220,8 +220,8 @@ static void do_director_status(UAContext *ua, char *cmd)
       }
 	   
       bsendmsg(ua, _("  Files=%s Bytes=%s Termination Status=%s\n"), 
-	   edit_uint_with_commas(last_job.JobFiles, b1),
-	   edit_uint_with_commas(last_job.JobBytes, b2),
+	   edit_uint64_with_commas(last_job.JobFiles, b1),
+	   edit_uint64_with_commas(last_job.JobBytes, b2),
 	   termstat);
    }
    lock_jcr_chain();

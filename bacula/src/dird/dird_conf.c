@@ -358,10 +358,11 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...
    }
    switch (type) {
       case R_DIRECTOR:
-         sendit(sock, "Director: name=%s maxjobs=%d FDtimeout=%" lld " SDtimeout=%" lld "\n", 
+	 char ed1[30], ed2[30];
+         sendit(sock, "Director: name=%s maxjobs=%d FDtimeout=%s SDtimeout=%s\n", 
 	    reshdr->name, res->res_dir.MaxConcurrentJobs, 
-	    res->res_dir.FDConnectTimeout,
-	    res->res_dir.SDConnectTimeout);
+	    edit_uint64(res->res_dir.FDConnectTimeout, ed1),
+	    edit_uint64(res->res_dir.SDConnectTimeout, ed2));
 	 if (res->res_dir.query_file) {
             sendit(sock, "   query_file=%s\n", res->res_dir.query_file);
 	 }

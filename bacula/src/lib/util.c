@@ -65,7 +65,7 @@ int is_a_number(const char *n)
  * must be at least 27 bytes long.  The incoming number
  * is always widened to 64 bits.
  */
-char *edit_uint_with_commas(uint64_t val, char *buf)
+char *edit_uint64_with_commas(uint64_t val, char *buf)
 {
    sprintf(buf, "%" lld, val);
    return add_commas(buf, buf);
@@ -76,7 +76,7 @@ char *edit_uint_with_commas(uint64_t val, char *buf)
  * must be at least 27 bytes long.  The incoming number
  * is always widened to 64 bits.
  */
-char *edit_uint(uint64_t val, char *buf)
+char *edit_uint64(uint64_t val, char *buf)
 {
    sprintf(buf, "%" lld, val);
    return buf;

@@ -51,6 +51,7 @@ extern int querycmd(UAContext *ua, char *cmd);
 extern int runcmd(UAContext *ua, char *cmd);
 extern int retentioncmd(UAContext *ua, char *cmd);
 extern int prunecmd(UAContext *ua, char *cmd);
+extern int purgecmd(UAContext *ua, char *cmd);
 
 /* Forward referenced functions */
 static int addcmd(UAContext *ua, char *cmd),  createcmd(UAContext *ua, char *cmd), cancelcmd(UAContext *ua, char *cmd);
@@ -82,6 +83,7 @@ static struct cmdstruct commands[] = {
  { N_("messages"),   messagescmd,  _("messages")},
  { N_("mount"),      mountcmd,     _("mount <storage-name>")},
  { N_("prune"),      prunecmd,     _("prune expired records from catalog")},
+ { N_("purge"),      purgecmd,     _("purge records from catalog")},
  { N_("run"),        runcmd,       _("run <job-name>")},
  { N_("setdebug"),   setdebugcmd,  _("sets debug level")},
  { N_("show"),       showcmd,      _("show (resource records) [jobs | pools | ... | all]")},
@@ -926,37 +928,13 @@ static int delete_media(UAContext *ua)
 {
    POOL_DBR pr;
    MEDIA_DBR mr;
-   int found = FALSE;
-   int i;
 
-   memset(&pr, 0, sizeof(pr));
-   memset(&mr, 0, sizeof(mr));
-
-   /* Get the pool, possibly from pool=<pool-name> */
-   if (!get_pool_dbr(ua, &pr)) {
+   if (!select_pool_and_media_dbr(ua, &pr, &mr)) {
       return 1;
    }
-   mr.PoolId = pr.PoolId;
-
-   /* See if a volume name is specified as an argument */
-   for (i=1; i<ua->argc; i++) {
-      if (strcasecmp(ua->argk[i], _("volume")) == 0 && ua->argv[i]) {
-	 found = TRUE;
-	 break;
-      }
-   }
-   if (found) {
-      strcpy(mr.VolumeName, ua->argv[i]);
-   } else {
-      db_list_media_records(ua->db, &mr, prtit, ua);
-      if (!get_cmd(ua, _("Enter the Volume name to delete: "))) {
-	 return 1;
-      }
-   }
-   mr.MediaId = 0;
-   strcpy(mr.VolumeName, ua->cmd);
    bsendmsg(ua, _("\nThis command will delete volume %s\n"
-      "and all Jobs saved on that volume from the Catalog\n"));
+      "and all Jobs saved on that volume from the Catalog\n"),
+      mr.VolumeName);
 
    if (!get_cmd(ua, _("If you want to continue enter pretty please: "))) {
       return 1;

@@ -597,13 +597,13 @@ StartFile         : %s\n\
 EndFile           : %s\n\
 JobErrors         : %s\n\
 ",
-	 edit_uint_with_commas(label.JobFiles, ec1),
-	 edit_uint_with_commas(label.JobBytes, ec2),
-	 edit_uint_with_commas(label.start_block, ec3),
-	 edit_uint_with_commas(label.end_block, ec4),
-	 edit_uint_with_commas(label.start_file, ec5),
-	 edit_uint_with_commas(label.end_file, ec6),
-	 edit_uint_with_commas(label.JobErrors, ec7));
+	 edit_uint64_with_commas(label.JobFiles, ec1),
+	 edit_uint64_with_commas(label.JobBytes, ec2),
+	 edit_uint64_with_commas(label.start_block, ec3),
+	 edit_uint64_with_commas(label.end_block, ec4),
+	 edit_uint64_with_commas(label.start_file, ec5),
+	 edit_uint64_with_commas(label.end_file, ec6),
+	 edit_uint64_with_commas(label.JobErrors, ec7));
    }
    dt.julian_day_number   = label.write_date;
    dt.julian_day_fraction = label.write_time;

@@ -232,11 +232,12 @@ static int db_get_path_record(B_DB *mdb, char *path)
    Mmsg(&mdb->cmd, "SELECT PathId FROM Path WHERE Path=\"%s\"", path);
 
    if (QUERY_DB(mdb, mdb->cmd)) {
-
+      char ed1[30];
       mdb->num_rows = sql_num_rows(mdb);
 
       if (mdb->num_rows > 1) {
-         Mmsg1(&mdb->errmsg, _("More than one Path!: %" lld "\n"), mdb->num_rows);
+         Mmsg1(&mdb->errmsg, _("More than one Path!: %s\n"), 
+	    edit_uint64(mdb->num_rows, ed1));
 	 Emsg0(M_FATAL, 0, mdb->errmsg);
       } else if (mdb->num_rows == 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
@@ -433,7 +434,9 @@ PoolType, LabelFormat FROM Pool WHERE Pool.Name=\"%s\"", pdbr->Name);
    if (QUERY_DB(mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 1) {
-         Mmsg1(&mdb->errmsg, _("More than one Pool!: %" lld "\n"), mdb->num_rows);
+	 char ed1[30];
+         Mmsg1(&mdb->errmsg, _("More than one Pool!: %s\n"), 
+	    edit_uint64(mdb->num_rows, ed1));
 	 Emsg0(M_ERROR, 0, mdb->errmsg);
       } else if (mdb->num_rows == 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
@@ -550,7 +553,9 @@ FROM Media WHERE VolumeName=\"%s\"", mr->VolumeName);
    if (QUERY_DB(mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 1) {
-         Mmsg1(&mdb->errmsg, _("More than one Volume!: %" lld "\n"), mdb->num_rows);
+	 char ed1[30];
+         Mmsg1(&mdb->errmsg, _("More than one Volume!: %s\n"), 
+	    edit_uint64(mdb->num_rows, ed1));
 	 Emsg0(M_ERROR, 0, mdb->errmsg);
       } else if (mdb->num_rows == 1) {
 	 if ((row = sql_fetch_row(mdb)) == NULL) {
@@ -574,6 +579,8 @@ FROM Media WHERE VolumeName=\"%s\"", mr->VolumeName);
 	    mr->PoolId = atoi(row[13]);
 	    stat = mr->MediaId;
 	 }
+      } else {
+         Mmsg0(&mdb->errmsg, _("Media record not found.\n"));
       }
       sql_free_result(mdb);
    }

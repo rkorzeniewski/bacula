@@ -208,9 +208,6 @@ CLIENT *get_client_resource(UAContext *ua)
    return select_client_resource(ua);
 }
 
-
-
-
 /* Scan what the user has entered looking for:
  * 
  *  pool=<pool-name>   
@@ -287,6 +284,47 @@ int select_pool_dbr(UAContext *ua, POOL_DBR *pr)
    return opr.PoolId;
 }
 
+/*
+ * Select a Pool and a Media (Volume) record from the database
+ */
+int select_pool_and_media_dbr(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr)
+{
+   int found = FALSE;
+   int i;
+
+   memset(pr, 0, sizeof(POOL_DBR));
+   memset(mr, 0, sizeof(MEDIA_DBR));
+
+   /* Get the pool, possibly from pool=<pool-name> */
+   if (!get_pool_dbr(ua, pr)) {
+      return 0;
+   }
+   mr->PoolId = pr->PoolId;
+
+   /* See if a volume name is specified as an argument */
+   for (i=1; i<ua->argc; i++) {
+      if (strcasecmp(ua->argk[i], _("volume")) == 0 && ua->argv[i]) {
+	 found = TRUE;
+	 break;
+      }
+   }
+   if (found) {
+      strcpy(mr->VolumeName, ua->argv[i]);
+   } else {
+      db_list_media_records(ua->db, mr, prtit, ua);
+      if (!get_cmd(ua, _("Enter the Volume name to delete: "))) {
+	 return 01;
+      }
+      strcpy(mr->VolumeName, ua->cmd);
+   }
+   mr->MediaId = 0;
+   if (!db_get_media_record(ua->db, mr)) {
+      bsendmsg(ua, "%s", db_strerror(ua->db));
+      return 0;
+   }
+   return 1;
+}
+
 
 /*
  *  This routine is ONLY used in the create command.
@@ -319,6 +357,63 @@ POOL *get_pool_resource(UAContext *ua)
    do_prompt(ua, _("Select Pool resource"), name);
    pool = (POOL *)GetResWithName(R_POOL, name);
    return pool;
+}
+
+/*
+ * List all jobs and ask user to select one
+ */
+int select_job_dbr(UAContext *ua, JOB_DBR *jr)
+{
+   db_list_job_records(ua->db, jr, prtit, ua);
+   if (!get_cmd(ua, _("Enter the JobId to select: "))) {
+      return 0;
+   }
+   jr->JobId = atoi(ua->cmd);
+   if (!db_get_job_record(ua->db, jr)) {
+      bsendmsg(ua, "%s", db_strerror(ua->db));
+      return 0;
+   }
+   return jr->JobId;
+
+}
+
+
+/* Scan what the user has entered looking for:
+ * 
+ *  jobid=nn
+ *
+ *  if error or not found, put up a list of Jobs
+ *  to choose from.
+ *
+ *   returns: 0 on error
+ *	      JobId on success and fills in JOB_DBR
+ */
+int get_job_dbr(UAContext *ua, JOB_DBR *jr)
+{
+   int i;
+
+   for (i=1; i<ua->argc; i++) {
+      if (strcasecmp(ua->argk[i], _("job")) == 0 && ua->argv[i]) {
+	 jr->JobId = 0;
+	 strcpy(jr->Job, ua->argv[i]);
+      } else if (strcasecmp(ua->argk[i], _("jobid")) == 0 && ua->argv[i]) {
+	 jr->JobId = atoi(ua->argv[i]);
+      } else {
+	 continue;
+      }
+      if (!db_get_job_record(ua->db, jr)) {
+         bsendmsg(ua, _("Could not find Job %s: ERR=%s"), ua->argv[i],
+		  db_strerror(ua->db));
+	 jr->JobId = 0;
+	 break;
+      }
+      return jr->JobId;
+   }
+
+   if (!select_job_dbr(ua, jr)) {  /* try once more */
+      return 0;
+   }
+   return jr->JobId;
 }
 
 

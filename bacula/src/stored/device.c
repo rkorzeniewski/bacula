@@ -569,8 +569,8 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
 
       /* Inform User about end of media */
       Jmsg(jcr, M_INFO, 0, _("End of media on Volume %s Bytes=%s Blocks=%s.\n"), 
-	   PrevVolName, edit_uint_with_commas(dev->VolCatInfo.VolCatBytes, b1),
-	   edit_uint_with_commas(dev->VolCatInfo.VolCatBlocks, b2));
+	   PrevVolName, edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, b1),
+	   edit_uint64_with_commas(dev->VolCatInfo.VolCatBlocks, b2));
 
       if (!dev_is_tape(dev)) {		 /* If file, */
 	 close_dev(dev);		 /* yes, close it */

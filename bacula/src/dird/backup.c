@@ -432,12 +432,12 @@ Termination:            %s\n"),
 	jcr->client->hdr.name,
 	sdt,
 	edt,
-	edit_uint_with_commas(jcr->jr.JobBytes, ec1),
-	edit_uint_with_commas(jcr->jr.JobFiles, ec2),
+	edit_uint64_with_commas(jcr->jr.JobBytes, ec1),
+	edit_uint64_with_commas(jcr->jr.JobFiles, ec2),
 	jcr->VolumeName,
 	jcr->VolSessionId,
 	jcr->VolSessionTime,
-	edit_uint_with_commas(mr.VolBytes, ec3),
+	edit_uint64_with_commas(mr.VolBytes, ec3),
 	term_msg);
 
    Dmsg0(100, "Leave backup_cleanup()\n");
