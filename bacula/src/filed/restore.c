@@ -264,8 +264,9 @@ void do_restore(JCR *jcr)
 	    }
 	 }
 
-         Dmsg1(30, "Outfile=%s\n", ofile);
+	 jcr->num_files_examined++;
 
+         Dmsg1(30, "Outfile=%s\n", ofile);
 	 extract = FALSE;
 	 stat = create_file(jcr, fname, ofile, lname, type, 
 			    stream, &statp, attribsEx, &bfd, jcr->replace, 
@@ -294,7 +295,6 @@ void do_restore(JCR *jcr)
 	    break;
 	 }  
 
-	 jcr->num_files_examined++;
 
       /* Data stream */
       } else if (stream == STREAM_FILE_DATA || stream == STREAM_SPARSE_DATA) {
@@ -429,7 +429,7 @@ extern char *getgroup(gid_t gid);
  */
 static void print_ls_output(JCR *jcr, char *fname, char *lname, int type, struct stat *statp)
 {
-   char buf[2000]; 
+   char buf[5000]; 
    char ec1[30];
    char *p, *f;
    int n;
@@ -459,6 +459,6 @@ static void print_ls_output(JCR *jcr, char *fname, char *lname, int type, struct
    }
    *p++ = '\n';
    *p = 0;
-   Dmsg0(20, buf);
+   Dmsg1(20, "%s", buf);
    Jmsg(jcr, M_RESTORED, 0, "%s", buf);
 }

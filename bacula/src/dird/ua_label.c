@@ -205,7 +205,7 @@ checkVol:
 
    /* Get a new Volume name */
    for ( ;; ) {
-      if (!get_cmd(ua, _("Enter new Volume name: ")) || ua->cmd[0] == '.') {
+      if (!get_cmd(ua, _("Enter new Volume name: "))) {
 	 return 1;
       }
 checkName:
@@ -234,7 +234,7 @@ checkName:
 	    }
 	    first = 0;
 	 } else {
-            if (!get_cmd(ua, _("Enter slot (0 for none): ")) || ua->cmd[0] == '.') {
+            if (!get_cmd(ua, _("Enter slot (0 for none): "))) {
 	       return 1;
 	    }
 	    mr.Slot = atoi(ua->cmd);

@@ -19,6 +19,17 @@ Testing to do: (painful)
 
 
 For 1.31 release:
+- Shell character expansion is failing occassionally.
+- One block was orphaned in the SD probably after cancel.
+- Test if rewind at end of tape waits for tape to rewind.
+- Check if cancel works with FD.
+- Error labeling tape from console gets Jmsg error because of no Job.
+- Fix the following:
+  rufus-dir: Max configured use duration exceeded. Marking Volume "MatouBackup" as Used.
+   rufus-sd: Volume "" previously written, moving to end of data.
+   rufus-sd: Matou.2003-05-10_10.39.18 Error: I canot write on this volume because:
+      The number of files mismatch! Volume=1 Catalog=0
+   rufus-sd: Matou.2003-05-10_10.39.18 Error: askdir.c:155 NULL Volume name. This shouldn't happen!!!
 - Properly configure console and gconsole (currently for source not
   configured for installation).
 - Fix "access not allowed" for backup of files on WinXP.

@@ -77,6 +77,9 @@ mount_next_vol:
       if (!dev_is_tape(dev) || !dev_cap(dev, CAP_ALWAYSOPEN)) {
 	 if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
 	    offline_dev(dev);
+	 } else if (!rewind_dev(dev)) {
+            Jmsg2(jcr, M_WARNING, 0, _("Rewind error on device %s. ERR=%s\n"), 
+		  dev_name(dev), strerror_dev(dev));
 	 }
 	 close_dev(dev);
       }
@@ -85,8 +88,7 @@ mount_next_vol:
       if (dev->state & ST_OPENED) {
 	 if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
 	    offline_dev(dev);
-	 }
-	 if (!rewind_dev(dev)) {
+	 } else if (!rewind_dev(dev)) {
             Jmsg2(jcr, M_WARNING, 0, _("Rewind error on device %s. ERR=%s\n"), 
 		  dev_name(dev), strerror_dev(dev));
 	 }

@@ -436,33 +436,34 @@ int do_shell_expansion(char *name)
 
        case 0:				  /* child */
 	  /* look for shell */
-          if ((shellcmd = getenv("SHELL")) == NULL)
+          if ((shellcmd = getenv("SHELL")) == NULL) {
              shellcmd = "/bin/sh";
+	  }
 	  close(1); dup(pfd[1]);	  /* attach pipes to stdin and stdout */
 	  close(2); dup(pfd[1]);
 	  for (i = 3; i < 32; i++)	  /* close everything else */
 	     close(i);
           strcpy(echout, "echo ");        /* form echo command */
-	  strcat(echout, name);
+	  bstrncat(echout, name, sizeof(echout));
           execl(shellcmd, shellcmd, "-c", echout, NULL); /* give to shell */
           exit(127);                      /* shouldn't get here */
 
        default: 			  /* parent */
 	  /* read output from child */
+	  echout[0] = 0;
 	  i = read(pfd[0], echout, sizeof echout);
-	  echout[--i] = 0;		  /* set end of string */
-	  /* look for first word or first line. */
-	  while (--i >= 0) {
-             if (echout[i] == ' ' || echout[i] == '\n')
-		echout[i] = 0;		  /* keep only first one */
+	  if (i > 0) {
+	     echout[--i] = 0;		     /* set end of string */
+	     /* look for first line. */
+	     while (--i >= 0) {
+                if (echout[i] == '\n') {
+		   echout[i] = 0;	     /* keep only first one */
+		}
+	     }
 	  }
-	  istat = signal(SIGINT, SIG_IGN);
-	  qstat = signal(SIGQUIT, SIG_IGN);
 	  /* wait for child to exit */
 	  while ((wpid = wait(&waitstatus)) != pid && wpid != -1)
 	     { ; }
-	  signal(SIGINT, istat);
-	  signal(SIGQUIT, qstat);
 	  strcpy(name, echout);
 	  stat = 1;
 	  break;
