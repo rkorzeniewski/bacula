@@ -1,29 +1,90 @@
 
-This code written by:
+This directory <bacula-src>/src/win32 contains the build
+environment for building the native Win32 Bacula File daemon,
+the native Win32 bconsole program and the wx-console GUI console
+program.
+
+The directory structure is:
+
+  bacula/src/win32      Makefiles and scripts
+    baculafd            Visual Studio Files
+      Release           Release objects, and bacula-fd.exe
+       Debug            Debug object, and bacula-fd.exe produced
+                           by VC++
+    console             Build of console program and bconsole.conf
+      Release           Release objects  and bconsole.exe
+      Debug             Debug objects 
+    wx-console          Buld of wx-console program and wx-console-conf
+      Release           Release objects and wx-console.exe
+      Debug             Debug objects.
+    filed               Links to core filed code
+    findlib             Links to core findlib code
+    lib                 Links to core lib code
+
+  depkgs-win32
+    pthreads            The POSIX pthreads library (third party)
+    zlib                The zlib library (third party)
+    wx                  The wxWidgets library (third party)
+
+To build it:
+- Make sure nmake, and VC++ libraries and includes are setup correctly
+  in PATH, INCLUDE, and LIB environment variables.
+- cd depkgs-win32
+  make
+- You may have to build wx with VC++ (as was the case for me).
+  In that case, open wx/src/wxWindows.dsp with VC++, select
+  static complilation (not the DLL) of "Win32 Release", then
+  click build all.
+- cd bacula
+  ./configure
+  cd src/win32
+  make
+
+That should be all there is too it. The winbacula-1.xx.y.exe should be
+in the current directory.
+
+
+See License.txt for the License.
+
+The native Win32 interface code was written by:
 
    Christopher S. Hull, February 2004
 
-This directory <bacula-src>/src/win32 contains the build
-environment for building the native Win32 Bacula File daemon.
-The directory structure is:
 
-  src/win32      Makefiles and scripts
-    baculafd     Visual Studio Files
-      Release    Release objects, and bacula-fd.exe
-       Debug     Debug object, and bacula-fd.exe produced
-                    by VC++
-    console      Build of console program (not yet complete)
-    filed        Links to core filed code
-    findlib      Links to core findlib code
-    lib          Links to core lib code
-    pthreads     The POSIX pthreads library (third party)
-    zlib         The zlib library (third party)
+For more details of building wx, see depkgs-win32/wx/docs/msw/install.txt
 
-To build it, make sure that VC++ 6.0 include files are in
-the INCLUDE environment variable, the libraries are in
-the LIB environment variable and the compiler and tools
-are on the PATH.  Then enter:
+Here are additional pointers on building wx-console supplied by Nicolas Boichat:
 
-  make
 
-See License.txt for the License.
+Tools I used (I think the 3 first one are included in VStudio) :
+- VC++ toolkit : http://msdn.microsoft.com/visualc/vctoolkit2003/
+- Windows Platform SDK :
+http://www.microsoft.com/msdownload/platformsdk/sdkupdate/
+   (Core SDK and Internet Development SDK)
+- nmake (it got it with .Net Framework SDK)
+- lib.exe found in the SDK-base/Bin/win64 directory (works fine
+  on a 32 bit Windows).
+
+Instructions if you want to build wx-console :
+- wxWidgets 2.4.2 compilation
+  + In include/wx/string.h, replace line 195 by
+      #if defined(__VISUALC__) // && defined(_MT) && !defined(_DLL)
+  + In src/common/string.cpp, replace line 167 by
+      #if defined(__VISUALC__) // && defined(_MT) && !defined(_DLL)
+  + Follow the instructions in docs/msw/install.txt
+     (Visual C++ 6.0 compilation - Using makefiles)
+
+- Add Platform SDK and wxWidgets dirs to VC++ vcvars.bat
+  Example :
+    Set PATH=F:\MSVC++\bin;F:\MSSDK\bin;%PATH%
+    Set
+INCLUDE=F:\MSVC++\include;F:\MSSDK\include;F:\wxWindows-2.4.2\include;F:
+\wxWindows-2.4.2\lib\msw;%INCLUDE%
+    Set LIB=F:\MSVC++\lib;F:\MSSDK\lib;F:\wxWindows-2.4.2\lib;%LIB%
+    
+- Compile bacula depkg-win32 with Visual Studio or try the
+  supplied makefiles as described in the doc.
+
+- Compile wx-console with nmake -f wx-console.mak in
+  src/win32/wx-console
+
