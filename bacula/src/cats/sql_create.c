@@ -1,5 +1,3 @@
-
-
 /*
  * Bacula Catalog Database Create record interface routines
  * 
@@ -70,7 +68,6 @@ db_create_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    time_t stime;
    struct tm tm;
    int stat;
-   char JobId[30];
    utime_t JobTDate;
    char ed1[30];
 
@@ -83,18 +80,14 @@ db_create_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
    JobTDate = (utime_t)stime;
 
-   if (!db_next_index(jcr, mdb, "Job", JobId)) {
-      jr->JobId = 0;
-      db_unlock(mdb);
-      return 0;
-   }
    /* Must create it */
    Mmsg(&mdb->cmd,
-"INSERT INTO Job (JobId,Job,Name,Type,Level,JobStatus,SchedTime,JobTDate) VALUES \
-(%s,'%s','%s','%c','%c','%c','%s',%s)", 
-	   JobId, jr->Job, jr->Name, (char)(jr->Type), (char)(jr->Level), 
+"INSERT INTO Job (Job,Name,Type,Level,JobStatus,SchedTime,JobTDate) VALUES \
+('%s','%s','%c','%c','%c','%s',%s)", 
+	   jr->Job, jr->Name, (char)(jr->Type), (char)(jr->Level), 
 	   (char)(jr->JobStatus), dt, edit_uint64(JobTDate, ed1));
 
+   sql_table_name(mdb, _("Job"));
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create DB Job record %s failed. ERR=%s\n"), 
 	    mdb->cmd, sql_strerror(mdb));
@@ -154,6 +147,7 @@ VALUES (%u,%u,%u,%u,%u,%u,%u,%u,%u)",
        jm->StartFile, jm->EndFile, jm->StartBlock, jm->EndBlock,count);
 
    Dmsg0(30, mdb->cmd);
+   sql_table_name(mdb, _("JobMedia"));
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db JobMedia record %s failed. ERR=%s\n"), mdb->cmd, 
 	 sql_strerror(mdb));
@@ -213,6 +207,7 @@ VALUES ('%s',%u,%u,%d,%d,%d,%d,%d,%s,%s,%u,%u,%s,'%s','%s')",
 		  edit_uint64(pr->MaxVolBytes, ed3),
 		  pr->PoolType, pr->LabelFormat);
    Dmsg1(200, "Create Pool: %s\n", mdb->cmd);
+   sql_table_name(mdb, _("Pool"));
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db Pool record %s failed: ERR=%s\n"), 
 	    mdb->cmd, sql_strerror(mdb));
@@ -271,6 +266,26 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       bstrncpy(dt, "0000-00-00 00:00:00", sizeof(dt));
    }
    Mmsg(&mdb->cmd, 
+#ifdef HAVE_POSTGRESQL
+"INSERT INTO Media (VolumeName,MediaType,PoolId,MaxVolBytes,VolCapacityBytes," 
+"Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,"
+"VolStatus,Slot,VolBytes,Drive,InChanger) "
+"VALUES ('%s','%s',%u,%s,%s,%d,%s,%s,%u,%u,'%s',%d,%s,%d,%d)", 
+		  mr->VolumeName,
+		  mr->MediaType, mr->PoolId, 
+		  edit_uint64(mr->MaxVolBytes,ed1),
+		  edit_uint64(mr->VolCapacityBytes, ed2),
+		  mr->Recycle,
+		  edit_uint64(mr->VolRetention, ed3),
+		  edit_uint64(mr->VolUseDuration, ed4),
+		  mr->MaxVolJobs,
+		  mr->MaxVolFiles,
+		  mr->VolStatus,
+		  mr->Slot,
+		  edit_uint64(mr->VolBytes, ed5),
+		  mr->Drive,
+		  mr->InChanger);
+#else
 "INSERT INTO Media (VolumeName,MediaType,PoolId,MaxVolBytes,VolCapacityBytes," 
 "Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,"
 "VolStatus,LabelDate,Slot,VolBytes,Drive,InChanger) "
@@ -289,8 +304,10 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 		  edit_uint64(mr->VolBytes, ed5),
 		  mr->Drive,
 		  mr->InChanger);
+#endif
 
    Dmsg1(500, "Create Volume: %s\n", mdb->cmd);
+   sql_table_name(mdb, _("Media"));
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create DB Media record %s failed. ERR=%s\n"),
 	    mdb->cmd, sql_strerror(mdb));
@@ -357,6 +374,7 @@ FileRetention, JobRetention) VALUES \
       edit_uint64(cr->FileRetention, ed1),
       edit_uint64(cr->JobRetention, ed2));
 
+   sql_table_name(mdb, _("Client"));
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create DB Client record %s failed. ERR=%s\n"),
 	    mdb->cmd, sql_strerror(mdb));
@@ -397,6 +415,7 @@ int db_create_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
       cr->Counter, cr->MinValue, cr->MaxValue, cr->CurrentValue,
       cr->WrapCounter);
 
+   sql_table_name(mdb, _("Counters"));
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create DB Counters record %s failed. ERR=%s\n"),
 	    mdb->cmd, sql_strerror(mdb));
@@ -467,6 +486,7 @@ int db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
       Mmsg(&mdb->cmd, "INSERT INTO FileSet (FileSet,MD5,CreateTime) "
 "VALUES ('%s','%s','%s')", fsr->FileSet, fsr->MD5, fsr->cCreateTime);
 
+   sql_table_name(mdb, _("FileSet"));
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create DB FileSet record %s failed. ERR=%s\n"),
 	    mdb->cmd, sql_strerror(mdb));
@@ -577,6 +597,7 @@ static int db_create_file_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
       ar->FileIndex, ar->JobId, ar->PathId, ar->FilenameId, 
       ar->attr);
 
+   sql_table_name(mdb, _("File"));
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db File record %s failed. ERR=%s"),       
 	 mdb->cmd, sql_strerror(mdb));
@@ -642,6 +663,7 @@ static int db_create_path_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 
    Mmsg(&mdb->cmd, "INSERT INTO Path (Path) VALUES ('%s')", mdb->esc_name);
 
+   sql_table_name(mdb, _("Path"));
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db Path record %s failed. ERR=%s\n"), 
 	 mdb->cmd, sql_strerror(mdb));
@@ -697,6 +719,7 @@ static int db_create_filename_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 
    Mmsg(&mdb->cmd, "INSERT INTO Filename (Name) VALUES ('%s')", mdb->esc_name);
 
+   sql_table_name(mdb, _("Filename"));
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db Filename record %s failed. ERR=%s\n"), 
 	    mdb->cmd, sql_strerror(mdb));
