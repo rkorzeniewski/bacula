@@ -64,7 +64,7 @@ static void qfillcmd();
 static void statcmd();
 static void unfillcmd();
 static int flush_block(DEV_BLOCK *block, int dump);
-static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
+static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
 static int my_mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block);
 static void scan_blocks();
 static void set_volume_name(char *VolName, int volnum);
@@ -1349,7 +1349,7 @@ bail_out:
 /* 
  * We are called here from "unfill" for each record on the tape.
  */
-static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
+static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 {
    SESSION_LABEL label;
 
@@ -1370,7 +1370,7 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       switch (rec->FileIndex) {
       case PRE_LABEL:
          Pmsg0(-1, "Volume is prelabeled. This tape cannot be scanned.\n");
-	 return;
+	 return 1;;
       case VOL_LABEL:
 	 unser_volume_label(dev, rec);
          Pmsg3(-1, "VOL_LABEL: block=%u size=%d vol=%s\n", block->BlockNumber, 
@@ -1411,7 +1411,7 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       default:
 	 break;
       }
-      return;
+      return 1;
    }
    if (++file_index != rec->FileIndex) {
       Pmsg3(000, "Incorrect FileIndex in Block %u. Got %d, expected %d.\n", 
@@ -1448,6 +1448,7 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
    if (end_of_tape) {
       Pmsg1(000, "End of all blocks. Block=%u\n", block->BlockNumber);
    }
+   return 1;
 }
 
 

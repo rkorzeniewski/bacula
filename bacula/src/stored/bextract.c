@@ -39,7 +39,7 @@ int win32_client = 0;
 
 
 static void do_extract(char *fname);
-static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
+static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
 
 static DEVICE *dev = NULL;
 static BFILE bfd;
@@ -235,12 +235,12 @@ static void do_extract(char *devname)
 /*
  * Called here for each record from read_records()
  */
-static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
+static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 {
    int stat;
 
    if (rec->FileIndex < 0) {
-      return;                         /* we don't want labels */
+      return 1;                       /* we don't want labels */
    }
 
    /* File Attributes stream */
@@ -278,7 +278,7 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 		  stream_to_ascii(attr->data_stream));
 	    }
 	    extract = FALSE;
-	    return;
+	    return 1;
 	 }
 
 
@@ -363,7 +363,7 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
                   Emsg3(M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"), 
 		     edit_uint64(fileAddr, ec1), attr->ofname, berror(&bfd));
 		  extract = FALSE;
-		  return;
+		  return 1;
 	       }
 	    }
 	 } else {
@@ -375,7 +375,7 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	       (const Bytef *)wbuf, (uLong)wsize) != Z_OK)) {
             Emsg1(M_ERROR, 0, _("Uncompression error. ERR=%d\n"), stat);
 	    extract = FALSE;
-	    return;
+	    return 1;
 	 }
 
          Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
@@ -384,7 +384,7 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
             Emsg2(M_ERROR, 0, _("Write error on %s: %s\n"), 
 	       attr->ofname, strerror(errno));
 	    extract = FALSE;
-	    return;
+	    return 1;
 	 }
 	 total += compress_len;
 	 fileAddr += compress_len;
@@ -395,7 +395,7 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       if (extract) {
          Emsg0(M_ERROR, 0, "GZIP data stream found, but GZIP not configured!\n");
 	 extract = FALSE;
-	 return;
+	 return 1;
       }
 #endif
       break;
@@ -426,6 +426,7 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       break;
       
    } /* end switch */
+   return 1;
 }
 
 

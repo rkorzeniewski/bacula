@@ -442,7 +442,6 @@ void create_session_label(JCR *jcr, DEV_RECORD *rec, int label)
 {
    ser_declare;
 
-   rec->sync	       = 1;	    /* wait for completion */
    rec->VolSessionId   = jcr->VolSessionId;
    rec->VolSessionTime = jcr->VolSessionTime;
    rec->Stream	       = jcr->JobId;

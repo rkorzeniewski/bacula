@@ -20,16 +20,18 @@ dummy:
 # bacula-sd
 SVRSRCS = stored.c autochanger.c acquire.c append.c \
 	  askdir.c authenticate.c \
-	  block.c dev.c \
+	  block.c butil.c dev.c \
 	  device.c dircmd.c fd_cmds.c job.c \
 	  label.c match_bsr.c parse_bsr.c \
-	  read.c record.c status.c stored_conf.c mount.c
+	  read.c read_record.c \
+	  record.c status.c stored_conf.c mount.c
 SVROBJS = stored.o autochanger.o acquire.o append.o \
 	  askdir.o authenticate.o \
-	  block.o dev.o \
+	  block.o butil.o dev.o \
 	  device.o dircmd.o fd_cmds.o job.o \
 	  label.o match_bsr.o mount.o parse_bsr.o \
-	  read.o record.o status.o stored_conf.o
+	  read.o read_record.o \
+	  record.o status.o stored_conf.o
 
 # btape
 TAPESRCS = btape.c block.c butil.c dev.c device.c label.c \

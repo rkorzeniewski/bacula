@@ -36,7 +36,7 @@
 
 /* Forward referenced functions */
 static void do_scan(void);
-static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
+static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
 static int  create_file_attributes_record(B_DB *db, JCR *mjcr, 
 			       char *fname, char *lname, int type,
 			       char *ap, DEV_RECORD *rec);
@@ -305,7 +305,7 @@ static void do_scan()
    term_dev(dev);
 }
 
-static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
+static int record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 {
    JCR *mjcr;
    char ec1[30];
@@ -331,7 +331,7 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       switch (rec->FileIndex) {
       case PRE_LABEL:
          Pmsg0(000, _("Volume is prelabeled. This tape cannot be scanned.\n"));
-	 return;
+	 return 1;
 	 break;
 
       case VOL_LABEL:
@@ -353,7 +353,7 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 if (strcmp(pr.PoolType, dev->VolHdr.PoolType) != 0) {
             Pmsg2(000, _("VOL_LABEL: PoolType mismatch. DB=%s Vol=%s\n"),
 	       pr.PoolType, dev->VolHdr.PoolType);
-	    return;
+	    return 1;
 	 } else if (verbose) {
             Pmsg1(000, _("Pool type \"%s\" is OK.\n"), pr.PoolType);
 	 }
@@ -380,7 +380,7 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 if (strcmp(mr.MediaType, dev->VolHdr.MediaType) != 0) {
             Pmsg2(000, _("VOL_LABEL: MediaType mismatch. DB=%s Vol=%s\n"),
 	       mr.MediaType, dev->VolHdr.MediaType);
-	    return;
+	    return 1;
 	 } else if (verbose) {
             Pmsg1(000, _("Media type \"%s\" is OK.\n"), mr.MediaType);
 	 }
@@ -451,19 +451,19 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
             Pmsg3(000, _("SOS_LABEL: VolSessId mismatch for JobId=%u. DB=%d Vol=%d\n"),
 	       jr.JobId,
 	       jr.VolSessionId, rec->VolSessionId);
-	    return;
+	    return 1;
 	 }
 	 if (rec->VolSessionTime != jr.VolSessionTime) {
             Pmsg3(000, _("SOS_LABEL: VolSessTime mismatch for JobId=%u. DB=%d Vol=%d\n"),
 	       jr.JobId,
 	       jr.VolSessionTime, rec->VolSessionTime);
-	    return;
+	    return 1;
 	 }
 	 if (jr.PoolId != pr.PoolId) {
             Pmsg3(000, _("SOS_LABEL: PoolId mismatch for JobId=%u. DB=%d Vol=%d\n"),
 	       jr.JobId,
 	       jr.PoolId, pr.PoolId);
-	    return;
+	    return 1;
 	 }
 	 break;
 
@@ -531,7 +531,7 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       default:
 	 break;
       } /* end switch */
-      return;
+      return 1;
    }
 
    mjcr = get_jcr_by_session(rec->VolSessionId, rec->VolSessionTime);
@@ -542,7 +542,7 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       } else {
 	 ignored_msgs++;
       }
-      return;
+      return 1;
    }
    if (mjcr->VolFirstIndex == 0) {
       mjcr->VolFirstIndex = block->FirstIndex;
@@ -642,7 +642,7 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       Pmsg2(0, _("Unknown stream type!!! stream=%d data=%s\n"), rec->Stream, rec->data);
       break;
    }
-   return;
+   return 1;
 }
 
 /*

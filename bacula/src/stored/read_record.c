@@ -39,18 +39,20 @@ static char *rec_state_to_str(DEV_RECORD *rec);
 #endif
 
 int read_records(JCR *jcr,  DEVICE *dev, 
-       void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec),
+       int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec),
        int mount_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block))
 {
    DEV_BLOCK *block;
-   DEV_RECORD *rec;
-   uint32_t record, num_files = 0;
+   DEV_RECORD *rec = NULL;
+   uint32_t record;
    int ok = TRUE;
-   int done = FALSE;
+   bool done = false;
    SESSION_LABEL sessrec;
+   dlist *recs; 			
 
    block = new_block(dev);
-   rec = new_record();
+   recs = new dlist(rec, &rec->link);
+
    for ( ; ok && !done; ) {
       if (job_canceled(jcr)) {
 	 ok = FALSE;
@@ -63,7 +65,7 @@ int read_records(JCR *jcr,  DEVICE *dev,
 
             Dmsg3(100, "EOT. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
 		  block->BlockNumber, rec->remainder);
-            Jmsg(jcr, M_INFO, 0, "Got EOM at file %u  on device %s, Volume \"%s\"\n", 
+            Jmsg(jcr, M_INFO, 0, "End of Volume at file %u  on device %s, Volume \"%s\"\n", 
 		 dev->file, dev_name(dev), jcr->VolumeName);
 	    if (!mount_cb(jcr, dev, block)) {
                Jmsg(jcr, M_INFO, 0, "End of all volumes.\n");
@@ -78,7 +80,7 @@ int read_records(JCR *jcr,  DEVICE *dev,
 	       trec->FileIndex = EOT_LABEL;
 	       trec->File = dev->file;
 	       trec->Block = rec->Block; /* return block last read */
-	       record_cb(jcr, dev, block, trec);
+	       ok = record_cb(jcr, dev, block, trec);
 	       free_record(trec);
 	       break;
 	    }
@@ -92,17 +94,15 @@ int read_records(JCR *jcr,  DEVICE *dev,
 	    read_block_from_device(jcr, dev, block, NO_BLOCK_NUMBER_CHECK);
 	    read_record_from_block(block, trec);
 	    get_session_record(dev, trec, &sessrec);
-	    record_cb(jcr, dev, block, trec);
+	    ok = record_cb(jcr, dev, block, trec);
 	    free_record(trec);
-	    goto next_record;	      /* go read new tape */
-
 	 } else if (dev->state & ST_EOF) {
             Jmsg(jcr, M_INFO, 0, "Got EOF at file %u  on device %s, Volume \"%s\"\n", 
 		  dev->file, dev_name(dev), jcr->VolumeName);
             Dmsg0(20, "read_record got eof. try again\n");
 	    continue;
 	 } else if (dev->state & ST_SHORT) {
-            Jmsg(jcr, M_INFO, 0, "%s", dev->errmsg);
+            Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
 	    continue;
 	 } else {
 	    /* I/O error or strange end of tape */
@@ -117,12 +117,32 @@ int read_records(JCR *jcr,  DEVICE *dev,
 	    block->VolSessionId, block->VolSessionTime);
 	 continue;
       }
-      if (verbose) {
-         Pmsg4(000, "Block: %d VI=%u VT=%u blen=%d\n", block->BlockNumber, 
-	    block->VolSessionId, block->VolSessionTime, block->block_len);
-      }
+      Dmsg4(100, "Block: %d VI=%u VT=%u blen=%d\n", block->BlockNumber, 
+	 block->VolSessionId, block->VolSessionTime, block->block_len);
 
-next_record:
+      /*
+       * Get a new record for each Job as defined by
+       *   VolSessionId and VolSessionTime 
+       */
+      bool found = false;
+      for (rec=(DEV_RECORD *)recs->first(); rec; rec=(DEV_RECORD *)recs->next(rec)) {
+	 if (rec->VolSessionId == block->VolSessionId &&
+	     rec->VolSessionTime == block->VolSessionTime) {
+	    found = true;
+	    break;
+	  }
+      }
+      if (!found) {
+	 rec = new_record();
+	 recs->prepend(rec);
+         Dmsg2(100, "New record for SI=%d ST=%d\n",
+	     block->VolSessionId, block->VolSessionTime);
+      } else {
+	 if ((rec->Block+1) != block->BlockNumber) {
+            Jmsg(jcr, M_ERROR, 0, _("Invalid block number. Expected %u, got %u\n"),
+		 rec->Block+1, block->BlockNumber);
+	 }
+      }
       record = 0;
       for (rec->state=0; !is_block_empty(rec); ) {
 	 if (!read_record_from_block(block, rec)) {
@@ -139,28 +159,29 @@ next_record:
 	  *  get all the data.
 	  */
 	 record++;
-	 if (verbose) {
-            Dmsg6(30, "recno=%d state=%s blk=%d SI=%d ST=%d FI=%d\n", record,
-	       rec_state_to_str(rec), block->BlockNumber,
-	       rec->VolSessionId, rec->VolSessionTime, rec->FileIndex);
-	 }
-	 if (debug_level >= 30) {
-            Dmsg4(30, "VolSId=%ld FI=%s Strm=%s Size=%ld\n", rec->VolSessionId,
-		  FI_to_ascii(rec->FileIndex), 
-		  stream_to_ascii(rec->Stream, rec->FileIndex), 
-		  rec->data_len);
-	 }
+         Dmsg6(30, "recno=%d state=%s blk=%d SI=%d ST=%d FI=%d\n", record,
+	    rec_state_to_str(rec), block->BlockNumber,
+	    rec->VolSessionId, rec->VolSessionTime, rec->FileIndex);
+         Dmsg4(30, "VolSId=%ld FI=%s Strm=%s Size=%ld\n", rec->VolSessionId,
+	       FI_to_ascii(rec->FileIndex), 
+	       stream_to_ascii(rec->Stream, rec->FileIndex), 
+	       rec->data_len);
 
 	 if (rec->FileIndex == EOM_LABEL) { /* end of tape? */
             Dmsg0(40, "Get EOM LABEL\n");
-	    rec->remainder = 0;
 	    break;			   /* yes, get out */
 	 }
 
 	 /* Some sort of label? */ 
 	 if (rec->FileIndex < 0) {
 	    get_session_record(dev, rec, &sessrec);
-	    record_cb(jcr, dev, block, rec);
+	    ok = record_cb(jcr, dev, block, rec);
+	    if (rec->FileIndex == EOS_LABEL) {
+               Dmsg2(100, "Remove rec. SI=%d ST=%d\n", rec->VolSessionId,
+		  rec->VolSessionTime);
+	       recs->remove(rec);
+	       free_record(rec);
+	    }
 	    continue;
 	 } /* end if label record */
 
@@ -170,15 +191,12 @@ next_record:
 	 if (jcr->bsr) {
 	    int stat = match_bsr(jcr->bsr, rec, &dev->VolHdr, &sessrec);
 	    if (stat == -1) { /* no more possible matches */
-	       done = TRUE;   /* all items found, stop */
+	       done = true;   /* all items found, stop */
 	       break;
 	    } else if (stat == 0) {  /* no match */
-	       if (verbose) {
-                  Dmsg5(10, "BSR no match rec=%d block=%d SessId=%d SessTime=%d FI=%d\n",
-		     record, block->BlockNumber, rec->VolSessionId, rec->VolSessionTime, 
-		     rec->FileIndex);
-	       }
-	       rec->remainder = 0;
+               Dmsg5(10, "BSR no match rec=%d block=%d SessId=%d SessTime=%d FI=%d\n",
+		  record, block->BlockNumber, rec->VolSessionId, rec->VolSessionTime, 
+		  rec->FileIndex);
                continue;              /* we don't want record, read next one */
 	    }
 	 }
@@ -188,13 +206,18 @@ next_record:
 	       rec->VolSessionId, rec->VolSessionTime, rec->FileIndex);
 	    break;		      /* read second part of record */
 	 }
-	 record_cb(jcr, dev, block, rec);
-      }
+	 ok = record_cb(jcr, dev, block, rec);
+      } /* end for loop over records */
+   } /* end for loop over blocks */
+
+   /* Walk down list and free all remaining allocated recs */
+   for (rec=(DEV_RECORD *)recs->first(); rec; ) {
+      DEV_RECORD *nrec = (DEV_RECORD *)recs->next(rec);
+      recs->remove(rec);
+      free_record(rec);
+      rec = nrec;
    }
-   if (verbose) {
-      printf("%u files found.\n", num_files);
-   }
-   free_record(rec);
+   delete recs;
    free_block(block);
    return ok;
 }
@@ -205,26 +228,26 @@ static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sess
    char *rtype;
    memset(sessrec, 0, sizeof(sessrec));
    switch (rec->FileIndex) {
-      case PRE_LABEL:
-         rtype = "Fresh Volume Label";   
-	 break;
-      case VOL_LABEL:
-         rtype = "Volume Label";
-	 unser_volume_label(dev, rec);
-	 break;
-      case SOS_LABEL:
-         rtype = "Begin Session";
-	 unser_session_label(sessrec, rec);
-	 break;
-      case EOS_LABEL:
-         rtype = "End Session";
-	 break;
-      case EOM_LABEL:
-         rtype = "End of Media";
-	 break;
-      default:
-         rtype = "Unknown";
-	 break;
+   case PRE_LABEL:
+      rtype = "Fresh Volume Label";   
+      break;
+   case VOL_LABEL:
+      rtype = "Volume Label";
+      unser_volume_label(dev, rec);
+      break;
+   case SOS_LABEL:
+      rtype = "Begin Session";
+      unser_session_label(sessrec, rec);
+      break;
+   case EOS_LABEL:
+      rtype = "End Session";
+      break;
+   case EOM_LABEL:
+      rtype = "End of Media";
+      break;
+   default:
+      rtype = "Unknown";
+      break;
    }
    Dmsg5(10, "%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
 	 rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);

@@ -31,9 +31,10 @@ class alist {
    int num_items;
    int max_items;
    int num_grow;
+   bool own_items;
 public:
-   alist(int num = 1);
-   void init(int num = 1);
+   alist(int num = 1, bool own=true);
+   void init(int num = 1, bool own=true);
    void append(void *item);
    void *get(int index);
    void * operator [](int index) const;
@@ -51,21 +52,22 @@ inline void * alist::operator [](int index) const {
    return items[index];
 }
 
-/*                            
+/*			      
  * This allows us to do explicit initialization,
  *   allowing us to mix C++ classes inside malloc'ed
  *   C structures. Define before called in constructor.
  */
-inline void alist::init(int num) {
+inline void alist::init(int num, bool own) {
    items = NULL;
    num_items = 0;
    max_items = 0;
    num_grow = num;
+   own_items = own;
 }
 
 /* Constructor */
-inline alist::alist(int num) {
-   this->init(num);
+inline alist::alist(int num, bool own) {
+   this->init(num, own);
 }
    
 
