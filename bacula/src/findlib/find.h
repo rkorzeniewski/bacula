@@ -73,6 +73,7 @@
 #define FT_NOFSCHG   14               /* Different file system, prohibited */
 #define FT_NOOPEN    15               /* Could not open directory */
 #define FT_RAW       16               /* Raw block device */
+#define FT_FIFO      17               /* Raw fifo device */
 
 /* Options saved in "flag" of ff packet */
 #define FO_MD5          0x01          /* Do MD5 checksum */

@@ -149,6 +149,7 @@ void             makeSessionKey          (char *key, char *seed, int mode);
 BPIPE *          open_bpipe(char *prog, int wait, char *mode);
 int              close_wpipe(BPIPE *bpipe);
 int              close_bpipe(BPIPE *bpipe);
+POOLMEM         *edit_job_codes(void *jcr, char *omsg, char *imsg, char *to);  
 
 
 /* watchdog.c */

@@ -312,10 +312,13 @@ find_one_file(FF_PKT *ff_pkt, int handle_file(FF_PKT *ff, void *hpkt), void *pkt
 
    /*
     * If it is explicitly mentioned (i.e. top_level) and is
-    *  a block device, we do a raw backup of it.
+    *  a block device, we do a raw backup of it or if it is
+    *  a fifo, we simply read it.
     */
-   if (top_level && S_ISBLK(ff_pkt->statp.st_mode)) {
+   if (top_level && S_ISBLK(ff_pkt->statp.st_mode) {
       ff_pkt->type = FT_RAW;	      /* raw partition */
+   } else if (top_level && S_ISFIFO(ff_pkt->statp.st_mode) {
+      ff_pkt->type = FT_FIFO;
    } else {
       /* The only remaining types are special (character, ...) files */
       ff_pkt->type = FT_SPEC;

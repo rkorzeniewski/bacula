@@ -564,3 +564,84 @@ void makeSessionKey(char *key, char *seed, int mode)
      }
 }
 #undef nextrand
+
+
+
+/*
+ * Edit job codes into main command line
+ *  %% = %
+ *  %j = Job name
+ *  %t = Job type (Backup, ...)
+ *  %e = Job Exit code
+ *  %i = JobId
+ *  %l = job level
+ *  %c = Client's name
+ *  %r = Recipients
+ *  %d = Director's name
+ *
+ *  omsg = edited output message
+ *  imsg = input string containing edit codes (%x)
+ *  to = recepients list 
+ *
+ */
+POOLMEM *edit_job_codes(void *mjcr, char *omsg, char *imsg, char *to)	
+{
+   char *p, *str;
+   char add[20];
+   JCR *jcr = (JCR *)mjcr;
+
+   *omsg = 0;
+   Dmsg1(200, "edit_job_codes: %s\n", imsg);
+   for (p=imsg; *p; p++) {
+      if (*p == '%') {
+	 switch (*++p) {
+         case '%':
+            str = "%";
+	    break;
+         case 'c':
+	    str = jcr->client_name;
+	    if (!str) {
+               str = "";
+	    }
+	    break;
+         case 'd':
+            str = my_name;            /* Director's name */
+	    break;
+         case 'e':
+	    str = job_status_to_str(jcr->JobStatus); 
+	    break;
+         case 'i':
+            sprintf(add, "%d", jcr->JobId);
+	    str = add;
+	    break;
+         case 'j':                    /* Job name */
+	    str = jcr->Job;
+	    break;
+         case 'l':
+	    str = job_level_to_str(jcr->JobLevel);
+	    break;
+         case 'r':
+	    str = to;
+	    break;
+         case 't':
+	    str = job_type_to_str(jcr->JobType);
+	    break;
+	 default:
+            add[0] = '%';
+	    add[1] = *p;
+	    add[2] = 0;
+	    str = add;
+	    break;
+	 }
+      } else {
+	 add[0] = *p;
+	 add[1] = 0;
+	 str = add;
+      }
+      Dmsg1(1200, "add_str %s\n", str);
+      pm_strcat(&omsg, str);
+      Dmsg1(1200, "omsg=%s\n", omsg);
+   }
+   return omsg;
+}
+

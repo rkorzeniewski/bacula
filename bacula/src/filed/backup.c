@@ -132,6 +132,9 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
    case FT_RAW:
       Dmsg1(130, "FT_RAW saving: %s\n", ff_pkt->fname);
       break;
+   case FT_FIFO:
+      Dmsg1(130, "FT_FIFO saving: %s\n", ff_pkt->fname);
+      break;
    case FT_NOACCESS:
       Jmsg(jcr, M_NOTSAVED, -1, _("     Could not access %s: ERR=%s\n"), ff_pkt->fname, 
 	 strerror(ff_pkt->ff_errno));
@@ -169,7 +172,8 @@ static int save_file(FF_PKT *ff_pkt, void *ijcr)
    }
 
    if (ff_pkt->type != FT_LNKSAVED && (S_ISREG(ff_pkt->statp.st_mode) && 
-	 ff_pkt->statp.st_size > 0) || ff_pkt->type == FT_RAW) {
+	 ff_pkt->statp.st_size > 0) || 
+	 ff_pkt->type == FT_RAW || ff_pkt->type == FT_FIFO) {
       if ((ff_pkt->fid = open(ff_pkt->fname, O_RDONLY | O_BINARY)) < 0) {
 	 ff_pkt->ff_errno = errno;
          Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open %s: ERR=%s.\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));

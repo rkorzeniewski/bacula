@@ -304,7 +304,7 @@ static int include_cmd(JCR *jcr)
    while (bnet_recv(dir) >= 0) {
        dir->msg[dir->msglen] = 0;
        strip_trailing_junk(dir->msg);
-       Dmsg1(110, "filed<dird: include file %s\n", dir->msg);
+       Dmsg1(010, "include file: %s\n", dir->msg);
        add_fname_to_include_list(jcr->ff, 1, dir->msg);
    }
 

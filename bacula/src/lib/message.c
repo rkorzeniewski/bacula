@@ -285,84 +285,6 @@ void rem_msg_dest(MSGS *msg, int dest_code, int msg_type, char *where)
 
 
 
-
-/*
- * Edit job codes into main command line
- *  %% = %
- *  %j = Job name
- *  %t = Job type (Backup, ...)
- *  %e = Job Exit code
- *  %i = JobId
- *  %l = job level
- *  %c = Client's name
- *  %r = Recipients
- *  %d = Director's name
- *
- *  omsg = edited output message
- *  imsg = input string containing edit codes (%x)
- *  to = recepients list 
- *
- */
-static char *edit_job_codes(JCR *jcr, char *omsg, char *imsg, char *to)   
-{
-   char *p, *str;
-   char add[20];
-
-   *omsg = 0;
-   Dmsg1(200, "edit_job_codes: %s\n", imsg);
-   for (p=imsg; *p; p++) {
-      if (*p == '%') {
-	 switch (*++p) {
-         case '%':
-            str = "%";
-	    break;
-         case 'c':
-	    str = jcr->client_name;
-	    if (!str) {
-               str = "";
-	    }
-	    break;
-         case 'd':
-            str = my_name;            /* Director's name */
-	    break;
-         case 'e':
-	    str = job_status_to_str(jcr->JobStatus); 
-	    break;
-         case 'i':
-            sprintf(add, "%d", jcr->JobId);
-	    str = add;
-	    break;
-         case 'j':                    /* Job name */
-	    str = jcr->Job;
-	    break;
-         case 'l':
-	    str = job_level_to_str(jcr->JobLevel);
-	    break;
-         case 'r':
-	    str = to;
-	    break;
-         case 't':
-	    str = job_type_to_str(jcr->JobType);
-	    break;
-	 default:
-            add[0] = '%';
-	    add[1] = *p;
-	    add[2] = 0;
-	    str = add;
-	    break;
-	 }
-      } else {
-	 add[0] = *p;
-	 add[1] = 0;
-	 str = add;
-      }
-      Dmsg1(1200, "add_str %s\n", str);
-      pm_strcat(&omsg, str);
-      Dmsg1(1200, "omsg=%s\n", omsg);
-   }
-   return omsg;
-}
-
 static void make_unique_spool_filename(JCR *jcr, POOLMEM **name, int fd)
 {
    Mmsg(name, "%s/%s.spool.%s.%d", working_directory, my_name,
@@ -989,8 +911,7 @@ void j_msg(char *file, int line, void *jcr, int type, int level, char *fmt,...)
    POOLMEM *pool_buf;
 
    pool_buf = get_pool_memory(PM_EMSG);
-   sprintf(pool_buf, "%s:%d ", file, line);
-   i = strlen(pool_buf);
+   i = sprintf(pool_buf, "%s:%d ", file, line);
 
 again:
    maxlen = sizeof_pool_memory(pool_buf) - i - 1; 

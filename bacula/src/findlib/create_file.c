@@ -182,6 +182,7 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
       }
       return CF_CREATED;
    case FT_RAW:
+   case FT_FIFO:
    case FT_SPEC:
       if (S_ISFIFO(statp->st_mode)) {
          Dmsg1(200, "Restore fifo: %s\n", ofile);
@@ -196,8 +197,8 @@ int create_file(void *jcr, char *fname, char *ofile, char *lname,
 	    return CF_ERROR;
 	 }
       }       
-      if (type == FT_RAW) {
-         Dmsg1(200, "FT_RAW %s\n", ofile);
+      if (type == FT_RAW || type == FT_FIFO) {
+         Dmsg1(200, "FT_RAW|FT_FIFO %s\n", ofile);
 	 mode =  O_WRONLY | O_BINARY;
 	 if ((*ofd = open(ofile, mode)) < 0) {
             Jmsg2(jcr, M_ERROR, 0, _("Could not open %s: ERR=%s\n"), ofile, strerror(errno));

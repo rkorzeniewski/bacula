@@ -69,7 +69,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
    int32_t n;
    int fid, stat;
    struct MD5Context md5c;
-   unsigned char signature[16];
+   unsigned char signature[20];
    BSOCK *dir;
    JCR *jcr = (JCR *)pkt;
 
@@ -102,6 +102,9 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
    case FT_RAW:
       Dmsg1(30, "FT_RAW saving: %s\n", ff_pkt->fname);
       break;
+   case FT_FIFO:
+      Dmsg1(30, "FT_FIFO saving: %s\n", ff_pkt->fname);
+      break;
    case FT_NOACCESS:
       Jmsg(jcr, M_NOTSAVED, -1, _("     Could not access %s: ERR=%s\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
       return 1;
@@ -109,7 +112,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       Jmsg(jcr, M_NOTSAVED, -1, _("     Could not follow link %s: ERR=%s\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
       return 1;
    case FT_NOSTAT:
-      Jmsg(jcr, M_NOTSAVED, -1, _("      Could not stat %s: ERR=%s\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
+      Jmsg(jcr, M_NOTSAVED, -1, _("     Could not stat %s: ERR=%s\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
       return 1;
    case FT_DIRNOCHG:
    case FT_NOCHG:
@@ -134,7 +137,8 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
 
 
    if (ff_pkt->type != FT_LNKSAVED && (S_ISREG(ff_pkt->statp.st_mode) && 
-	 ff_pkt->statp.st_size > 0) || ff_pkt->type == FT_RAW) {
+	 ff_pkt->statp.st_size > 0) || 
+	 ff_pkt->type == FT_RAW || ff_pkt->type == FT_FIFO) {
       if ((fid = open(ff_pkt->fname, O_RDONLY | O_BINARY)) < 0) {
 	 ff_pkt->ff_errno = errno;
          Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open %s: ERR=%s.\n"), ff_pkt->fname, strerror(ff_pkt->ff_errno));
