@@ -1,0 +1,90 @@
+#!/bin/sh
+#
+# Run a simple backup of the Bacula build directory but 
+#   create three volumes and do six backups causing the
+#   volumes to be recycled, and cycling through the volumes
+#   twice.
+#
+cwd=`pwd`
+scripts/copy-test-confs
+scripts/cleanup
+echo "${cwd}/build" >/tmp/file-list
+bin/bacula stop 2>&1 >/dev/null
+bin/drop_sqlite_tables
+bin/make_sqlite_tables
+
+echo " "
+echo " "
+echo " === Starting recycle-test  ==="
+echo " === Starting recycle-test  ===" >working/log
+echo " "
+
+#bin/bacula start 2>&1 >/dev/null
+bin/bacula start
+bin/console -c bin/console.conf <<END_OF_DATA
+@output /dev/null
+messages
+label storage=File1 volume=TestVolume001
+label storage=File1 volume=TestVolume002
+label storage=File1 volume=TestVolume003
+update Volume=TestVolume001 volretention=10s
+update Volume=TestVolume001 maxvoljobs=1
+update Volume=TestVolume002 volretention=10s
+update Volume=TestVolume002 maxvoljobs=1
+update Volume=TestVolume003 volretention=10s
+update Volume=TestVolume003 maxvoljobs=1
+list volumes
+run job=NightlySave storage=File1 level=full yes
+wait
+messages
+list volumes
+run job=NightlySave storage=File1 level=full yes
+wait
+messages
+list volumes
+run job=NightlySave storage=File1 level=full yes
+wait
+messages
+list volumes
+@sleep 10
+run job=NightlySave storage=File1 level=full yes
+wait
+messages
+list volumes
+run job=NightlySave storage=File1 level=full yes
+wait
+messages
+@output tmp/log1.out
+list volumes
+run job=NightlySave storage=File1 level=full yes
+wait
+messages
+list volumes
+@# 
+@# now do a restore
+@#
+@output tmp/log2.out
+restore where=${cwd}/tmp/bacula-restores current all
+yes
+wait
+messages
+@output
+quit
+END_OF_DATA
+bin/bacula stop 2>&1 >/dev/null
+grep "^Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
+bstat=$?
+grep "^Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
+rstat=$?
+diff -r build  tmp/bacula-restores${cwd}/build
+if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
+   echo " "
+   echo " "
+   echo "  !!!!! recycle-test Bacula source failed!!! !!!!! "
+   echo "  !!!!! recycle-test failed!!! !!!!! " >>test.out
+   echo " "
+else
+   echo "  ===== recycle-test Bacula source OK ===== "
+   echo "  ===== recycle-test OK ===== " >>test.out
+   scripts/cleanup
+fi

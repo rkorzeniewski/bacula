@@ -21,17 +21,14 @@ bin/bacula start 2>&1 >/dev/null
 bin/console -c bin/console.conf <<END_OF_DATA
 @output /dev/null
 messages
-@output tmp/log1.out
-label storage=File1
-TestVolume001
-label storage=File1
-TestVolume002
+@tee    tmp/log1.out
+label storage=File1 volume=TestVolume001
+label storage=File1 volume=TestVolume002
 update Volume=TestVolume001
 6
 3000000
 10
-run job=NightlySave storage=File1
-yes
+run job=NightlySave storage=File1 yes
 wait
 messages
 @# 
