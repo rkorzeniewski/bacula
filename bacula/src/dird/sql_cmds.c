@@ -176,6 +176,10 @@ char *uar_file =
 #endif
 
 
+/*
+ * Find all files for a particular JobId and insert them into
+ *  the tree during a restore.
+ */
 char *uar_sel_files = 
    "SELECT Path.Path,Filename.Name,FileIndex,JobId,LStat "
    "FROM File,Filename,Path "
@@ -298,7 +302,10 @@ char *uar_mediatype =
    "SELECT MediaType FROM JobMedia,Media WHERE JobMedia.JobId=%u "
    "AND JobMedia.MediaId=Media.MediaId";
 
-/* Find JobId, FileIndex for a given path/file and date */
+/* 
+ *  Find JobId, FileIndex for a given path/file and date   
+ *  for use when inserting individual files into the tree.
+ */
 char *uar_jobid_fileindex = 
    "SELECT Job.JobId, File.FileIndex FROM Job,File,Path,Filename,Client "
    "WHERE Job.JobId=File.JobId "
