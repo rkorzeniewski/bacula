@@ -8,6 +8,7 @@ Documentation to do: (any release a little bit at a time)
 - Document problems with Verify and pruning.
 - Document how to use multiple databases.
 - Add a section to the doc on Manual cycling of Volumes.
+- For FreeBSD typical /dev/nrsa0 and for mtx /dev/pass1
 
           
 Testing to do: (painful)
@@ -23,15 +24,14 @@ For 1.31 release:
 - Add Progress command that periodically reports the progress of
   a job or all jobs.
 - Implement "Reschedule OnError=yes interval=nnn times=xxx"
-- Shell character expansion is failing occassionally.
 - One block was orphaned in the SD probably after cancel.
+- Add all command line arguments to "update", e.g. slot=nn volStatus=append, ...
 
-- Fix the following:
-  rufus-dir: Max configured use duration exceeded. Marking Volume "MatouBackup" as Used.
-   rufus-sd: Volume "" previously written, moving to end of data.
-   rufus-sd: Matou.2003-05-10_10.39.18 Error: I canot write on this volume because:
-      The number of files mismatch! Volume=1 Catalog=0
-   rufus-sd: Matou.2003-05-10_10.39.18 Error: askdir.c:155 NULL Volume name. This shouldn't happen!!!
+- Implement argc/argv for daemon command line scanning using table driven
+  stuff below.
+- Implement table driven single argc/argv scanner to pickup all arguments.
+  Much like xxx_conf.c scan table.
+  keyword, handler(store_routine), store_address, code, flags, default.
 
 - Fix "access not allowed" for backup of files on WinXP.
 - Check for existence of all new Win32 API's.  See LoadLibrary in 
@@ -777,3 +777,10 @@ Done: (see kernsdone for more)
 - Test and implement get_pint and get_yesno.
 - Implement global with DB name and add to btraceback.gdb
 - Remove subsysdir from conf files (used only in autostart scripts).
+- Fix the following:
+  rufus-dir: Max configured use duration exceeded. Marking Volume "MatouBackup" as Used.
+   rufus-sd: Volume "" previously written, moving to end of data.
+   rufus-sd: Matou.2003-05-10_10.39.18 Error: I canot write on this volume because:
+      The number of files mismatch! Volume=1 Catalog=0
+   rufus-sd: Matou.2003-05-10_10.39.18 Error: askdir.c:155 NULL Volume name. This shouldn't happen!!!
+- Shell character expansion is failing occassionally.
