@@ -820,7 +820,7 @@ int get_media_type(UAContext *ua, char *MediaType, int max_media)
 
    start_prompt(ua, _("Media Types defined in conf file:\n"));
    LockRes();
-   for (store = NULL; (store = (STORE *)GetNextRes(R_STORAGE, (RES *)store)); ) {
+   foreach_res(store, R_STORAGE) {
       add_prompt(ua, store->media_type);
    }
    UnlockRes();

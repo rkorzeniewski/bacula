@@ -110,6 +110,11 @@ void free_resource(int type);
 void init_resource(int type, struct res_items *item);
 void save_resource(int type, struct res_items *item, int pass);
 char *res_to_str(int rcode);
+/* Loop through each resource of type, returning in var */
+#define foreach_res(var, type) \
+        for((var)=NULL; (((void *)(var))=GetNextRes((type), (RES *)var));) 
+
+
 
 void store_str(LEX *lc, struct res_items *item, int index, int pass);
 void store_dir(LEX *lc, struct res_items *item, int index, int pass);

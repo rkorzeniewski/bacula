@@ -120,26 +120,26 @@ static void do_all_status(UAContext *ua, char *cmd)
 {
    STORE *store, **unique_store;
    CLIENT *client, **unique_client;
-   int i, j, found;
+   int i, j;
+   bool found;
 
    do_director_status(ua, cmd);
 
    /* Count Storage items */
    LockRes();
-   store = NULL;
-   for (i=0; (store = (STORE *)GetNextRes(R_STORAGE, (RES *)store)); i++)
-      { }
+   i = 0;
+   foreach_res(store, R_STORAGE) {
+      i++;
+   }
    unique_store = (STORE **) malloc(i * sizeof(STORE));
    /* Find Unique Storage address/port */	  
-   store = (STORE *)GetNextRes(R_STORAGE, NULL);
    i = 0;
-   unique_store[i++] = store;
-   while ((store = (STORE *)GetNextRes(R_STORAGE, (RES *)store))) {
-      found = 0;
+   foreach_res(store, R_STORAGE) {
+      found = false;
       for (j=0; j<i; j++) {
 	 if (strcmp(unique_store[j]->address, store->address) == 0 &&
 	     unique_store[j]->SDport == store->SDport) {
-	    found = 1;
+	    found = true;
 	    break;
 	 }
       }
@@ -158,20 +158,19 @@ static void do_all_status(UAContext *ua, char *cmd)
 
    /* Count Client items */
    LockRes();
-   client = NULL;
-   for (i=0; (client = (CLIENT *)GetNextRes(R_CLIENT, (RES *)client)); i++)
-      { }
+   i = 0;
+   foreach_res(client, R_CLIENT) {
+      i++;
+   }
    unique_client = (CLIENT **)malloc(i * sizeof(CLIENT));
    /* Find Unique Client address/port */	 
-   client = (CLIENT *)GetNextRes(R_CLIENT, NULL);
    i = 0;
-   unique_client[i++] = client;
-   while ((client = (CLIENT *)GetNextRes(R_CLIENT, (RES *)client))) {
-      found = 0;
+   foreach_res(client, R_CLIENT) {
+      found = false;
       for (j=0; j<i; j++) {
 	 if (strcmp(unique_client[j]->address, client->address) == 0 &&
 	     unique_client[j]->FDport == client->FDport) {
-	    found = 1;
+	    found = true;
 	    break;
 	 }
       }
@@ -196,8 +195,7 @@ static void do_director_status(UAContext *ua, char *cmd)
 
    bsendmsg(ua, "%s Version: " VERSION " (" BDATE ") %s %s %s\n", my_name,
 	    HOST_OS, DISTNAME, DISTVER);
-   bstrftime(dt, sizeof(dt), daemon_start_time);
-   strcpy(dt+7, dt+9);	   /* cut century */
+   bstrftime_nc(dt, sizeof(dt), daemon_start_time);
    bsendmsg(ua, _("Daemon started %s, %d Job%s run.\n"), dt, last_job.NumJobs,
         last_job.NumJobs == 1 ? "" : "s");
    /*
@@ -314,8 +312,7 @@ static void prt_runtime(UAContext *ua, JOB *job, int level, time_t runtime, POOL
          bstrncpy(mr.VolumeName, "*unknown*", sizeof(mr.VolumeName));
       }
    }
-   bstrftime(dt, sizeof(dt), runtime);
-   strcpy(dt+7, dt+9);	   /* cut century */
+   bstrftime_nc(dt, sizeof(dt), runtime);
    switch (job->JobType) {
    case JT_ADMIN:
    case JT_RESTORE:
@@ -350,7 +347,7 @@ static void list_scheduled_jobs(UAContext *ua)
 
    /* Loop through all jobs */
    LockRes();
-   for (job=NULL; (job=(JOB *)GetNextRes(R_JOB, (RES *)job)); ) {
+   foreach_res(job, R_JOB) {
       for (run=NULL; (run = find_next_run(run, job, runtime)); ) {
 	 level = job->level;   
 	 if (run->level) {
@@ -390,8 +387,7 @@ static void list_running_jobs(UAContext *ua)
 	  * jobs in the status output.
 	  */
 	 if (jcr->JobType == JT_CONSOLE) {
-	    bstrftime(dt, sizeof(dt), jcr->start_time);
-	    strcpy(dt+7, dt+9);  /* cut century */
+	    bstrftime_nc(dt, sizeof(dt), jcr->start_time);
             bsendmsg(ua, _("Console connected at %s\n"), dt);
 	 }
 	 njobs--;
@@ -549,8 +545,7 @@ static void list_terminated_jobs(UAContext *ua)
       char JobName[MAX_NAME_LENGTH];
       char *termstat;
 
-      bstrftime(dt, sizeof(dt), je->end_time);
-      strcpy(dt+7, dt+9);     /* cut century */
+      bstrftime_nc(dt, sizeof(dt), je->end_time);
       switch (je->JobType) {
       case JT_ADMIN:
       case JT_RESTORE:

@@ -426,7 +426,8 @@ void store_res(LEX *lc, struct res_items *item, int index, int pass)
    set_bit(index, res_all.hdr.item_present);
 }
 
-/* Store default values for Resource from xxxDefs
+/*
+ * Store default values for Resource from xxxDefs
  * If we are in pass 2, do a lookup of the 
  * resource and store everything not explicitly set
  * in main resource.
@@ -440,13 +441,23 @@ void store_defs(LEX *lc, struct res_items *item, int index, int pass)
 
    lex_get_token(lc, T_NAME);
    if (pass == 2) {
+     Dmsg2(200, "Code=%d name=%s\n", item->code, lc->str);
      res = GetResWithName(item->code, lc->str);
      if (res == NULL) {
-        scan_err3(lc, _("Could not find config Resource %s referenced on line %d : %s\n"), 
+        scan_err3(lc, _("Missing config Resource \"%s\" referenced on line %d : %s\n"), 
 	   lc->str, lc->line_no, lc->line);
      }
-     /* for each item not set, we copy the field from item */
+     /* for each item not set, we copy the field from res */
+#ifdef xxx
+     for (int i=0; item->name;; i++, item++) {
+	if (bit_is_set(i, res->item_present)) {
+           Dmsg2(000, "Item %d is present in %s\n", i, res->name);
+	} else {
+           Dmsg2(000, "Item %d is not present in %s\n", i, res->name);
+	}
+     }
      /* ***FIXME **** add code */
+#endif
    }
    scan_to_eol(lc);
 }

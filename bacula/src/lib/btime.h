@@ -32,16 +32,17 @@
 #define __btime_INCLUDED
 
 /* New btime definition -- use this */
-extern btime_t get_current_btime(void);
-extern time_t btime_to_unix(btime_t bt);   /* bacula time to epoch time */
-extern utime_t btime_to_utime(btime_t bt); /* bacula time to utime_t */
+btime_t get_current_btime(void);
+time_t btime_to_unix(btime_t bt);   /* bacula time to epoch time */
+utime_t btime_to_utime(btime_t bt); /* bacula time to utime_t */
 
-extern int tm_wom(int mday, int wday);
-extern int tm_woy(time_t stime);
+int tm_wom(int mday, int wday);
+int tm_woy(time_t stime);
 
-extern char *bstrftime(char *dt, int maxlen, utime_t tim);
-extern char *bstrutime(char *dt, int maxlen, utime_t tim);
-extern utime_t str_to_utime(char *str);
+char *bstrutime(char *dt, int maxlen, utime_t tim);
+char *bstrftime(char *dt, int maxlen, utime_t tim);
+char *bstrftime_nc(char *dt, int maxlen, utime_t tim);
+utime_t str_to_utime(char *str);
 
 
 /* =========================================================== */

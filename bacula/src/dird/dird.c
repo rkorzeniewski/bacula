@@ -315,7 +315,7 @@ static int check_resources()
 
    LockRes();
 
-   job	= (JOB *)GetNextRes(R_JOB, NULL);
+   job = (JOB *)GetNextRes(R_JOB, NULL);
    director = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
    if (!director) {
       Jmsg(NULL, M_FATAL, 0, _("No Director resource defined in %s\n\
@@ -341,7 +341,7 @@ Without that I don't know who I am :-(\n"), configfile);
       Jmsg(NULL, M_FATAL, 0, _("No Job records defined in %s\n"), configfile);
       OK = FALSE;
    }
-   for (job=NULL; (job = (JOB *)GetNextRes(R_JOB, (RES *)job)); ) {
+   foreach_res(job, R_JOB) {
       if (!job->client) {
          Jmsg(NULL, M_FATAL, 0, _("No Client record defined for job %s\n"), job->hdr.name);
 	 OK = FALSE;
@@ -384,7 +384,8 @@ Without that I don't know who I am :-(\n"), configfile);
 	       create_pool(NULL, db, job->pool, POOL_OP_UPDATE);  /* update request */
 	    }
 	    /* Set default value in all counters */
-	    for (COUNTER *counter=NULL; (counter = (COUNTER *)GetNextRes(R_COUNTER, (RES *)counter)); ) {
+	    COUNTER *counter;
+	    foreach_res(counter, R_COUNTER) {
 	       /* Write to catalog? */
 	       if (!counter->created && counter->Catalog == catalog) {
 		  COUNTER_DBR cr;

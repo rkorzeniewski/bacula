@@ -53,6 +53,21 @@ char *bstrftime(char *dt, int maxlen, utime_t tim)
    return dt;
 }
 
+/* Formatted time for user display: dd-Mon-yy hh:mm  (no century) */
+char *bstrftime_nc(char *dt, int maxlen, utime_t tim)
+{
+   time_t ttime = tim;
+   struct tm tm;
+   
+   /* ***FIXME**** the format and localtime_r() should be user configurable */
+   localtime_r(&ttime, &tm);
+   /* NOTE! since the compiler complains about %y, I use %y and cut the century */
+   strftime(dt, maxlen, "%d-%b-%Y %H:%M", &tm);
+   strcpy(dt+7, dt+9);
+   return dt;
+}
+
+
 /* Unix time to standard time string yyyy-mm-dd hh:mm:ss */
 char *bstrutime(char *dt, int maxlen, utime_t tim)
 {

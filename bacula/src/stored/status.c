@@ -63,8 +63,7 @@ int status_cmd(JCR *jcr)
 
    bnet_fsend(user, "\n%s Version: " VERSION " (" BDATE ") %s %s %s\n", my_name,
 	      HOST_OS, DISTNAME, DISTVER);
-   bstrftime(dt, sizeof(dt), daemon_start_time);
-   strcpy(dt+7, dt+9);		      /* cut century */
+   bstrftime_nc(dt, sizeof(dt), daemon_start_time);
    bnet_fsend(user, _("Daemon started %s, %d Job%s run.\n"), dt, last_job.NumJobs,
         last_job.NumJobs == 1 ? "" : "s");
 
@@ -266,8 +265,7 @@ static void list_terminated_jobs(void *arg)
       char *termstat;
       char buf[1000];
 
-      bstrftime(dt, sizeof(dt), je->end_time);
-      strcpy(dt+7, dt+9);     /* cut century */
+      bstrftime_nc(dt, sizeof(dt), je->end_time);
       switch (je->JobType) {
       case JT_ADMIN:
       case JT_RESTORE:

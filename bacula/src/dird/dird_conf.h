@@ -211,6 +211,7 @@ struct JOB {
    STORE     *storage;                /* Where is device -- Storage daemon */
    POOL      *pool;                   /* Where is media -- Media Pool */
    JOB       *verify_job;             /* Job name to verify */
+   JOB       *jobdefs;                /* Job defaults */
    uint32_t NumConcurrentJobs;        /* number of concurrent jobs running */
 };
 

@@ -61,8 +61,6 @@ extern void store_inc(LEX *lc, struct res_items *item, int index, int pass);
 
 /* Forward referenced subroutines */
 
-static void store_backup(LEX *lc, struct res_items *item, int index, int pass);
-static void store_restore(LEX *lc, struct res_items *item, int index, int pass);
 static void store_jobtype(LEX *lc, struct res_items *item, int index, int pass);
 static void store_level(LEX *lc, struct res_items *item, int index, int pass);
 static void store_replace(LEX *lc, struct res_items *item, int index, int pass);
@@ -190,44 +188,41 @@ static struct res_items cat_items[] = {
  *   name	   handler     value		     code flags    default_value
  */
 static struct res_items job_items[] = {
-   {"name",     store_name,    ITEM(res_job.hdr.name), 0, ITEM_REQUIRED, 0},
-   {"description", store_str,  ITEM(res_job.hdr.desc), 0, 0, 0},
-   {"backup",   store_backup,  ITEM(res_job),          JT_BACKUP, 0, 0},
-   {"verify",   store_backup,  ITEM(res_job),          JT_VERIFY, 0, 0},
-   {"restore",  store_restore, ITEM(res_job),          JT_RESTORE, 0, 0},
-   {"schedule", store_res,     ITEM(res_job.schedule), R_SCHEDULE, 0, 0},
-   {"type",     store_jobtype, ITEM(res_job),          0, 0, 0},
-   {"level",    store_level,   ITEM(res_job),          0, 0, 0},
-   {"messages", store_res,     ITEM(res_job.messages), R_MSGS, 0, 0},
-   {"storage",  store_res,     ITEM(res_job.storage),  R_STORAGE, 0, 0},
-   {"pool",     store_res,     ITEM(res_job.pool),     R_POOL, 0, 0},
-   {"client",   store_res,     ITEM(res_job.client),   R_CLIENT, 0, 0},
-   {"fileset",  store_res,     ITEM(res_job.fileset),  R_FILESET, 0, 0},
-   {"jobdefs",  store_defs,    ITEM(res_job),          R_JOB, 0, 0},
-   {"verifyjob",  store_res,   ITEM(res_job.verify_job), R_JOB, 0, 0},
-   {"where",    store_dir,     ITEM(res_job.RestoreWhere), 0, 0, 0},
-   {"replace",  store_replace, ITEM(res_job.replace), 0, ITEM_DEFAULT, REPLACE_ALWAYS},
-   {"bootstrap",store_dir,     ITEM(res_job.RestoreBootstrap), 0, 0, 0},
-   {"maxruntime", store_time,  ITEM(res_job.MaxRunTime), 0, 0, 0},
-   {"maxwaittime", store_time,  ITEM(res_job.MaxWaitTime), 0, 0, 0},
-   {"maxstartdelay", store_time,ITEM(res_job.MaxStartDelay), 0, 0, 0},
+   {"name",      store_name,    ITEM(res_job.hdr.name), 0, ITEM_REQUIRED, 0},
+   {"description", store_str,   ITEM(res_job.hdr.desc), 0, 0, 0},
+   {"type",      store_jobtype, ITEM(res_job),          0, 0, 0},
+   {"level",     store_level,   ITEM(res_job),          0, 0, 0},
+   {"messages",  store_res,     ITEM(res_job.messages), R_MSGS, 0, 0},
+   {"storage",   store_res,     ITEM(res_job.storage),  R_STORAGE, 0, 0},
+   {"pool",      store_res,     ITEM(res_job.pool),     R_POOL, 0, 0},
+   {"client",    store_res,     ITEM(res_job.client),   R_CLIENT, 0, 0},
+   {"fileset",   store_res,     ITEM(res_job.fileset),  R_FILESET, 0, 0},
+   {"schedule",  store_res,     ITEM(res_job.schedule), R_SCHEDULE, 0, 0},
+   {"verifyjob", store_res,     ITEM(res_job.verify_job), R_JOB, 0, 0},
+   {"jobdefs",   store_res,     ITEM(res_job.jobdefs),  R_JOBDEFS, 0, 0},
+   {"where",    store_dir,      ITEM(res_job.RestoreWhere), 0, 0, 0},
+   {"bootstrap",store_dir,      ITEM(res_job.RestoreBootstrap), 0, 0, 0},
+   {"writebootstrap",store_dir, ITEM(res_job.WriteBootstrap), 0, 0, 0},
+   {"replace",  store_replace,  ITEM(res_job.replace), 0, ITEM_DEFAULT, REPLACE_ALWAYS},
+   {"maxruntime",   store_time, ITEM(res_job.MaxRunTime), 0, 0, 0},
+   {"maxwaittime",  store_time, ITEM(res_job.MaxWaitTime), 0, 0, 0},
+   {"maxstartdelay",store_time, ITEM(res_job.MaxStartDelay), 0, 0, 0},
+   {"jobretention", store_time, ITEM(res_job.JobRetention),  0, 0, 0},
    {"prefixlinks", store_yesno, ITEM(res_job.PrefixLinks), 1, ITEM_DEFAULT, 0},
    {"prunejobs",   store_yesno, ITEM(res_job.PruneJobs), 1, ITEM_DEFAULT, 0},
    {"prunefiles",  store_yesno, ITEM(res_job.PruneFiles), 1, ITEM_DEFAULT, 0},
-   {"prunevolumes", store_yesno, ITEM(res_job.PruneVolumes), 1, ITEM_DEFAULT, 0},
+   {"prunevolumes",store_yesno, ITEM(res_job.PruneVolumes), 1, ITEM_DEFAULT, 0},
+   {"spoolattributes",store_yesno, ITEM(res_job.SpoolAttributes), 1, ITEM_DEFAULT, 0},
    {"runbeforejob", store_str,  ITEM(res_job.RunBeforeJob), 0, 0, 0},
    {"runafterjob",  store_str,  ITEM(res_job.RunAfterJob),  0, 0, 0},
    {"runafterfailedjob",  store_str,  ITEM(res_job.RunAfterFailedJob),  0, 0, 0},
    {"clientrunbeforejob", store_str,  ITEM(res_job.ClientRunBeforeJob), 0, 0, 0},
    {"clientrunafterjob",  store_str,  ITEM(res_job.ClientRunAfterJob),  0, 0, 0},
-   {"spoolattributes", store_yesno, ITEM(res_job.SpoolAttributes), 1, ITEM_DEFAULT, 0},
-   {"writebootstrap", store_dir, ITEM(res_job.WriteBootstrap), 0, 0, 0},
    {"maximumconcurrentjobs", store_pint, ITEM(res_job.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},
    {"rescheduleonerror", store_yesno, ITEM(res_job.RescheduleOnError), 1, ITEM_DEFAULT, 0},
    {"rescheduleinterval", store_time, ITEM(res_job.RescheduleInterval), 0, ITEM_DEFAULT, 60 * 30},
    {"rescheduletimes", store_pint, ITEM(res_job.RescheduleTimes), 0, 0, 0},
    {"priority",   store_pint, ITEM(res_job.Priority), 0, ITEM_DEFAULT, 10},
-   {"jobretention",  store_time,  ITEM(res_job.JobRetention),  0, 0, 0},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
 
@@ -324,7 +319,6 @@ struct s_res resources[] = {
    {"director",      dir_items,   R_DIRECTOR,  NULL},
    {"client",        cli_items,   R_CLIENT,    NULL},
    {"job",           job_items,   R_JOB,       NULL},
-   {"jobdefs",       job_items,   R_JOBDEFS,   NULL},
    {"storage",       store_items, R_STORAGE,   NULL},
    {"catalog",       cat_items,   R_CATALOG,   NULL},
    {"schedule",      sch_items,   R_SCHEDULE,  NULL},
@@ -334,6 +328,7 @@ struct s_res resources[] = {
    {"messages",      msgs_items,  R_MSGS,      NULL},
    {"counter",       counter_items, R_COUNTER, NULL},
    {"console",       con_items,   R_CONSOLE,   NULL},
+   {"jobdefs",       job_items,   R_JOBDEFS,   NULL},
    {NULL,	     NULL,	  0,	       NULL}
 };
 
@@ -370,6 +365,7 @@ struct s_jt jobtypes[] = {
    {NULL,	     0}
 };
 
+#ifdef old_deprecated_code
 
 /* Keywords (RHS) permitted in Backup and Verify records */
 static struct s_kw BakVerFields[] = {
@@ -389,6 +385,7 @@ static struct s_kw RestoreFields[] = {
    {"bootstrap",     'B'},            /* bootstrap file */
    {NULL,	       0}
 };
+#endif
 
 /* Options permitted in Restore replace= */
 struct s_kw ReplaceOptions[] = {
@@ -710,7 +707,7 @@ static void free_incexe(INCEXE *incexe)
 }
 
 /* 
- * Free memory of resource.  
+ * Free memory of resource -- called when daemon terminates.
  * NB, we don't need to worry about freeing any references
  * to other resources as they will be freed when that 
  * resource chain is traversed.  Mainly we worry about freeing
@@ -907,6 +904,9 @@ void save_resource(int type, struct res_items *items, int pass)
    int i, size;
    int error = 0;
    
+   if (type == R_JOBDEFS) {
+      return;			      /* nothing required */
+   }
    /* 
     * Ensure that all required items are present
     */
@@ -923,7 +923,8 @@ void save_resource(int type, struct res_items *items, int pass)
       }
    }
 
-   /* During pass 2 in each "store" routine, we looked up pointers 
+   /*
+    * During pass 2 in each "store" routine, we looked up pointers 
     * to all the resources referrenced in the current resource, now we
     * must copy their addresses from the static record to the allocated
     * record.
@@ -948,6 +949,7 @@ void save_resource(int type, struct res_items *items, int pass)
 	 res->res_dir.messages = res_all.res_dir.messages;
 	 break;
       case R_JOB:
+      case R_JOBDEFS:
 	 if ((res = (URES *)GetResWithName(type, res_all.res_dir.hdr.name)) == NULL) {
             Emsg1(M_ERROR_TERM, 0, "Cannot find Job resource %s\n", 
 		  res_all.res_dir.hdr.name);
@@ -959,21 +961,24 @@ void save_resource(int type, struct res_items *items, int pass)
 	 res->res_job.storage	 = res_all.res_job.storage;
 	 res->res_job.pool	 = res_all.res_job.pool;
 	 res->res_job.verify_job = res_all.res_job.verify_job;
-	 if (res->res_job.JobType == 0) {
-            Emsg1(M_ERROR_TERM, 0, "Job Type not defined for Job resource %s\n", res_all.res_dir.hdr.name);
-	 }
-	 if (res->res_job.level != 0) {
-	    int i;
-	    for (i=0; joblevels[i].level_name; i++) {
-	       if (joblevels[i].level == res->res_job.level &&
-		   joblevels[i].job_type == res->res_job.JobType) {
-		  i = 0;
-		  break;
-	       }
+	 res->res_job.jobdefs	 = res_all.res_job.jobdefs;
+	 if (type == R_JOB) {
+	    if (res->res_job.JobType == 0) {
+               Emsg1(M_ERROR_TERM, 0, "Job Type not defined for Job resource %s\n", res_all.res_dir.hdr.name);
 	    }
-	    if (i != 0) {
-               Emsg1(M_ERROR_TERM, 0, "Inappropriate level specified in Job resource %s\n", 
-		  res_all.res_dir.hdr.name);
+	    if (res->res_job.level != 0) {
+	       int i;
+	       for (i=0; joblevels[i].level_name; i++) {
+		  if (joblevels[i].level == res->res_job.level &&
+		      joblevels[i].job_type == res->res_job.JobType) {
+		     i = 0;
+		     break;
+		  }
+	       }
+	       if (i != 0) {
+                  Emsg1(M_ERROR_TERM, 0, "Inappropriate level specified in Job resource %s\n", 
+		     res_all.res_dir.hdr.name);
+	       }
 	    }
 	 }
 	 break;
@@ -992,7 +997,8 @@ void save_resource(int type, struct res_items *items, int pass)
 	 res->res_client.catalog = res_all.res_client.catalog;
 	 break;
       case R_SCHEDULE:
-	 /* Schedule is a bit different in that it contains a RUN record
+	 /*
+	  * Schedule is a bit different in that it contains a RUN record
           * chain which isn't a "named" resource. This chain was linked
 	  * in by run_conf.c during pass 2, so here we jam the pointer 
 	  * into the Schedule resource. 			
@@ -1070,6 +1076,9 @@ void save_resource(int type, struct res_items *items, int pass)
    }
    /* Common */
    if (!error) {
+      if (type == R_JOBDEFS) {
+         Dmsg0(200, "Storing JobDefs definition.\n");
+      }
       res = (URES *)malloc(size);
       memcpy(res, &res_all, size);
       if (!resources[rindex].res_head) {
@@ -1160,6 +1169,7 @@ static void store_replace(LEX *lc, struct res_items *item, int index, int pass)
    set_bit(index, res_all.hdr.item_present);
 }
 
+#ifdef old_deprecated_code
 /* 
  * Store backup/verify info for Job record 
  *
@@ -1356,3 +1366,4 @@ static void store_restore(LEX *lc, struct res_items *item, int index, int pass)
    lc->options = options;	      /* reset original options */
    set_bit(index, res_all.hdr.item_present);
 }
+#endif

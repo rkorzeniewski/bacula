@@ -35,7 +35,7 @@
  * Loop var through each member of list
  */
 #define foreach_dlist(var, list) \
-        for((var)=NULL; ((void *)(var))=(list)->next((var)); )
+        for((var)=NULL; (((void *)(var))=(list)->next(var)); )
 
 struct dlink {
    void *next;
