@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                17 December 2003  
+                18 December 2003  
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -55,6 +55,7 @@ For 1.33 Testing/Documentation:
 - Add subsections to the Disaster Recovery index section.
                 
 For 1.33
+- In restore take all filesets with same base name.
 - From Alan Brown <ajb2@mssl.ucl.ac.uk>
     BTW, there's a make install bug in 1.33 - with --enable-gnome,
     gnome-console is built, but the binary and .conf are not being installed.
