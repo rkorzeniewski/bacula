@@ -759,8 +759,8 @@ next_run:
 	      edit_utime(res->res_pool.VolUseDuration, ed1, sizeof(ed1)),
 	      res->res_pool.Recycle,
 	      NPRT(res->res_pool.label_format));
-      sendit(sock, "      CleaningPrefix=%s\n",
-	      NPRT(res->res_pool.cleaning_prefix));
+      sendit(sock, "      CleaningPrefix=%s LabelType=%d\n",
+	      NPRT(res->res_pool.cleaning_prefix), res->res_pool.LabelType);
       sendit(sock, "      RecyleOldest=%d PurgeOldest=%d MaxVolJobs=%d MaxVolFiles=%d\n",
 	      res->res_pool.recycle_oldest_volume,
 	      res->res_pool.purge_oldest_volume,

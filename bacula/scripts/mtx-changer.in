@@ -36,18 +36,17 @@ MTX=@MTX@
 #   waiting a maximum of 180 seconds.
 # Note, this is very system dependent, so if you are
 #   not running on Linux, you will probably need to
-#   re-write it.
-#
-# If you have a FreeBSD system, you might want to change
-#  the $(seq 180) to $(jot 180) -- tip from Brian McDonald
+#   re-write it, or at least change the grep target.
 #
 wait_for_drive() {
-  for i in $(seq 180); do   # Wait max 180 seconds
+  i=0 
+  while [ $i -le 180 ]; do  # Wait max 180 seconds
     if mt -f $1 status | grep ONLINE  >/dev/null 2>&1; then
       break
     fi
 #   echo "Device $1 - not ready, retrying..."
     sleep 1
+    i=`expr $i + 1`
   done
 }
 

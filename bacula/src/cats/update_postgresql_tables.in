@@ -15,6 +15,9 @@ if $bindir/psql $* -f - <<END-OF-DATA
 ALTER TABLE media ADD COLUMN labeltype integer;
 UPDATE media SET labeltype=0;
 ALTER TABLE media ALTER COLUMN labeltype SET NOT NULL;
+ALTER TABLE pool ADD COLUMN labeltype integer;
+UPDATE pool set labeltype=0;
+ALTER TABLE pool ALTER COLUMN labeltype SET NOT NULL;
 
 ALTER TABLE media ADD COLUMN volparts integer;
 UPDATE media SET volparts=0;

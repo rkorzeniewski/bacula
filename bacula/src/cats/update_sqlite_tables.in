@@ -112,6 +112,78 @@ INSERT INTO Media (
 
 DROP TABLE Media_backup;
 
+CREATE TEMPORARY TABLE Pool_backup (
+   PoolId INTEGER,
+   Name VARCHAR(128) NOT NULL,
+   NumVols INTEGER UNSIGNED DEFAULT 0,
+   MaxVols INTEGER UNSIGNED DEFAULT 0,
+   UseOnce TINYINT DEFAULT 0,
+   UseCatalog TINYINT DEFAULT 1,
+   AcceptAnyVolume TINYINT DEFAULT 0,
+   VolRetention BIGINT UNSIGNED DEFAULT 0,
+   VolUseDuration BIGINT UNSIGNED DEFAULT 0,
+   MaxVolJobs INTEGER UNSIGNED DEFAULT 0,
+   MaxVolFiles INTEGER UNSIGNED DEFAULT 0,
+   MaxVolBytes BIGINT UNSIGNED DEFAULT 0,
+   AutoPrune TINYINT DEFAULT 0,
+   Recycle TINYINT DEFAULT 0,
+   PoolType VARCHAR(20) NOT NULL,
+   LabelType TINYINT DEFAULT 0,
+   LabelFormat VARCHAR(128) NOT NULL,
+   Enabled TINYINT DEFAULT 1,
+   ScratchPoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
+   RecyclePoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
+   UNIQUE (Name),
+   PRIMARY KEY (PoolId)
+   );
+
+INSERT INTO Pool_backup SELECT 
+   PoolId, Name, NumVols, MaxVols,
+   UseOnce, UseCatalog, AcceptAnyVolume,
+   VolRetention, VolUseDuration, MaxVolJobs,
+   MaxVolFiles, MaxVolBytes, AutoPrune,
+   Recycle, PoolType, 0, LabelFormat,
+   Enabled, ScratchPoolId, RecyclePoolId
+   FROM Pool;
+
+DROP TABLE Pool;
+
+CREATE TABLE Pool (
+   PoolId INTEGER,
+   Name VARCHAR(128) NOT NULL,
+   NumVols INTEGER UNSIGNED DEFAULT 0,
+   MaxVols INTEGER UNSIGNED DEFAULT 0,
+   UseOnce TINYINT DEFAULT 0,
+   UseCatalog TINYINT DEFAULT 1,
+   AcceptAnyVolume TINYINT DEFAULT 0,
+   VolRetention BIGINT UNSIGNED DEFAULT 0,
+   VolUseDuration BIGINT UNSIGNED DEFAULT 0,
+   MaxVolJobs INTEGER UNSIGNED DEFAULT 0,
+   MaxVolFiles INTEGER UNSIGNED DEFAULT 0,
+   MaxVolBytes BIGINT UNSIGNED DEFAULT 0,
+   AutoPrune TINYINT DEFAULT 0,
+   Recycle TINYINT DEFAULT 0,
+   PoolType VARCHAR(20) NOT NULL,
+   LabelType TINYINT DEFAULT 0,
+   LabelFormat VARCHAR(128) NOT NULL,
+   Enabled TINYINT DEFAULT 1,
+   ScratchPoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
+   RecyclePoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
+   UNIQUE (Name),
+   PRIMARY KEY (PoolId)
+   );
+
+INSERT INTO Pool (
+   PoolId, Name, NumVols, MaxVols,
+   UseOnce, UseCatalog, AcceptAnyVolume,
+   VolRetention, VolUseDuration, MaxVolJobs,
+   MaxVolFiles, MaxVolBytes, AutoPrune,
+   Recycle, PoolType, LabelType, LabelFormat,
+   Enabled, ScratchPoolId, RecyclePoolId )
+   SELECT * FROM Pool_backup;
+
+DROP TABLE Pool_backup;
+
 COMMIT;
 
 END-OF-DATA

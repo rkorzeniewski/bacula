@@ -181,8 +181,8 @@ db_create_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
    Mmsg(mdb->cmd,
 "INSERT INTO Pool (Name,NumVols,MaxVols,UseOnce,UseCatalog,"
 "AcceptAnyVolume,AutoPrune,Recycle,VolRetention,VolUseDuration,"
-"MaxVolJobs,MaxVolFiles,MaxVolBytes,PoolType,LabelFormat) "
-"VALUES ('%s',%u,%u,%d,%d,%d,%d,%d,%s,%s,%u,%u,%s,'%s','%s')",
+"MaxVolJobs,MaxVolFiles,MaxVolBytes,PoolType,LabelType,LabelFormat) "
+"VALUES ('%s',%u,%u,%d,%d,%d,%d,%d,%s,%s,%u,%u,%s,'%s',%d,'%s')",
 		  pr->Name,
 		  pr->NumVols, pr->MaxVols,
 		  pr->UseOnce, pr->UseCatalog,
@@ -192,7 +192,7 @@ db_create_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
 		  edit_uint64(pr->VolUseDuration, ed2),
 		  pr->MaxVolJobs, pr->MaxVolFiles,
 		  edit_uint64(pr->MaxVolBytes, ed3),
-		  pr->PoolType, pr->LabelFormat);
+		  pr->PoolType, pr->LabelType, pr->LabelFormat);
    Dmsg1(200, "Create Pool: %s\n", mdb->cmd);
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db Pool record %s failed: ERR=%s\n"),
