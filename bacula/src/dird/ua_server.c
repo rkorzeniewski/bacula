@@ -59,23 +59,23 @@ static workq_t ua_workq;
 
 struct s_addr_port {
    char *addr;
-   int port;
+   char *port;
 };
 
 /* Called here by Director daemon to start UA (user agent)
  * command thread. This routine creates the thread and then
  * returns.
  */
-void start_UA_server(char *UA_addr, int UA_port)
+void start_UA_server(dlist *addrs)
 {
    pthread_t thid;
    int status;
-   static struct s_addr_port arg;
+   static dlist *myaddrs = addrs;
 
-   arg.port = UA_port;
-   arg.addr = UA_addr;
-   if ((status=pthread_create(&thid, NULL, connect_thread, (void *)&arg)) != 0) {
-      Emsg1(M_ABORT, 0, _("Cannot create UA thread: %s\n"), strerror(status));
+   if ((status=pthread_create(&thid, NULL, connect_thread, (void *)myaddrs)) != 0) {
+      berrno be;
+      be.set_errno(status);
+      Emsg1(M_ABORT, 0, _("Cannot create UA thread: %s\n"), be.strerror());
    }
    started = TRUE;
    return;
@@ -84,12 +84,10 @@ void start_UA_server(char *UA_addr, int UA_port)
 extern "C" 
 void *connect_thread(void *arg)
 {
-   struct s_addr_port *UA = (struct s_addr_port *)arg;
-
    pthread_detach(pthread_self());
 
-   /*  ****FIXME**** put # 10 on config parameter */
-   bnet_thread_server(UA->addr, UA->port, 10, &ua_workq, handle_UA_client_request);
+   /*  ****FIXME**** put # 10 (timeout) on config parameter */
+   bnet_thread_server((dlist*)arg, 10, &ua_workq, handle_UA_client_request);
    return NULL;
 }
 

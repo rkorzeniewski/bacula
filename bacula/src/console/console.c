@@ -396,7 +396,7 @@ Without that I don't how to speak to the Director :-(\n"), configfile);
    (void)WSA_Init();			    /* Initialize Windows sockets */
 
    if (ndir > 1) {
-      struct sockaddr_in client_addr;
+      struct sockaddr client_addr;
       memset(&client_addr, 0, sizeof(client_addr));
       UA_sock = init_bsock(NULL, 0, "", "", 0, &client_addr);
 try_again:

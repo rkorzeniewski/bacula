@@ -44,7 +44,7 @@ void term_scheduler();
 void term_ua_server();
 int do_backup(JCR *jcr);
 void backup_cleanup(void);
-void start_UA_server(char *addr, int port);
+void start_UA_server(dlist *addrs);
 void init_job_server(int max_workers);
 void store_jobtype(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_level(LEX *lc, RES_ITEM *item, int index, int pass);
@@ -213,8 +213,8 @@ int main (int argc, char *argv[])
    }
 
    /* Create pid must come after we are a daemon -- so we have our final pid */
-   create_pid_file(director->pid_directory, "bacula-dir", director->DIRport);
-   read_state_file(director->working_directory, "bacula-dir", director->DIRport);
+   create_pid_file(director->pid_directory, "bacula-dir", get_first_port(director->DIRaddrs));
+   read_state_file(director->working_directory, "bacula-dir", get_first_port(director->DIRaddrs));
 
    drop(uid, gid);		      /* reduce priveleges if requested */
 
@@ -226,7 +226,7 @@ int main (int argc, char *argv[])
       4 /* UA */ + 4 /* sched+watchdog+jobsvr+misc */);
 
    Dmsg0(200, "Start UA server\n");
-   start_UA_server(director->DIRaddr, director->DIRport);
+   start_UA_server(director->DIRaddrs);
 
    start_watchdog();		      /* start network watchdog thread */
 
@@ -256,8 +256,8 @@ static void terminate_dird(int sig)
       exit(1);
    }
    already_here = TRUE;
-   write_state_file(director->working_directory, "bacula-dir", director->DIRport);
-   delete_pid_file(director->pid_directory, "bacula-dir", director->DIRport);
+   write_state_file(director->working_directory, "bacula-dir", get_first_port(director->DIRaddrs));
+   delete_pid_file(director->pid_directory, "bacula-dir", get_first_port(director->DIRaddrs));
 // signal(SIGCHLD, SIG_IGN);          /* don't worry about children now */
    term_scheduler();
    if (runjob) {

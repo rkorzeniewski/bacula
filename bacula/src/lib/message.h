@@ -68,8 +68,9 @@
  */
 
 enum {
-   M_DEBUG = 1,                       /* debug message */
-   M_ABORT,                           /* MUST abort immediately */
+   /* Keep M_ABORT=1 for dlist.h */
+   M_ABORT = 1,                       /* MUST abort immediately */
+   M_DEBUG,                           /* debug message */
    M_FATAL,                           /* Fatal error, stopping job */
    M_ERROR,                           /* Error, but recoverable */
    M_WARNING,                         /* Warning message */

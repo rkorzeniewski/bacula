@@ -93,8 +93,7 @@ struct RUN;
  */
 struct DIRRES {
    RES   hdr;
-   int   DIRport;                     /* where we listen -- UA port server port */
-   char *DIRaddr;                     /* bind address */
+   dlist *DIRaddrs;
    char *password;                    /* Password for UA access */
    int enable_ssl;                    /* Use SSL for UA */
    char *query_file;                  /* SQL query file */

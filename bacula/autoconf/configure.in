@@ -1311,6 +1311,34 @@ AC_CHECK_FUNC(socket,
     AC_CHECK_LIB(inet,socket))
 
 AC_CHECK_FUNCS(inet_pton, [AC_DEFINE(HAVE_INET_PTON)])
+AC_CHECK_FUNCS(inet_ntop, [AC_DEFINE(HAVE_INET_NTOP)])
+AC_CHECK_FUNCS(gethostbyname2, [AC_DEFINE(HAVE_GETHOSTBYNAME2)])
+
+dnl ----------------------------
+dnl check sa_len of sockaddr
+dnl ----------------------------
+AC_CACHE_CHECK(for struct sockaddr has a sa_len field, ac_cv_struct_sockaddr_sa_len,
+  [AC_TRY_COMPILE([#include <sys/socket.h>], [struct sockaddr s; s.sa_len;],
+  ac_cv_struct_sockaddr_sa_len=yes, ac_cv_struct_sockaddr_sa_len=no)])
+
+ if test $ac_cv_struct_sockaddr_sa_len = yes; then
+  AC_DEFINE(HAVE_SA_LEN, 1, [Define if sa_len field exists in struct sockaddr])
+ fi
+
+
+dnl Check for IPv6 support
+AC_CACHE_CHECK([for IPv6 support], ac_cv_ipv6_support,
+[AC_TRY_LINK([ #include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>], [struct sockaddr_in6 s; struct in6_addr t=in6addr_any; int i=AF_INET6; s; t.s6_addr[0] =
+ 0;],
+  [ac_cv_ipv6_support=yes], [ac_cv_ipv6_support=no])])
+
+if test "$ac_cv_ipv6_support" = yes; then
+  AC_DEFINE(HAVE_IPV6,1,[Whether to enable IPv6 support])
+fi
+
+
 
 AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
@@ -1862,4 +1890,4 @@ cat config.out
 
 # old stuff
 # cweb support: 	      ${got_cweb} ${CWEB_SRC}
-# gmp support:		      ${got_gmp} ${GMP_SRC}
+  # gmp support:		      ${got_gmp} ${GMP_SRC}

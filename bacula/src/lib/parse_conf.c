@@ -188,6 +188,8 @@ void init_resource(int type, RES_ITEM *items)
 	    *(uint64_t *)(items[i].value) = (uint64_t)items[i].default_value;
 	 } else if (items[i].handler == store_time) {
 	    *(utime_t *)(items[i].value) = (utime_t)items[i].default_value;
+	 } else if (items[i].handler == store_addresses) {
+	    init_default_addresses((dlist**)items[i].value, items[i].default_value);
 	 }
       }
       /* If this triggers, take a look at lib/parse_conf.h */

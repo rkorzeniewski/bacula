@@ -28,6 +28,7 @@
 #undef DEV_BSIZE
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <stdlib.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #ifdef HAVE_ARPA_NAMESER_H
@@ -48,184 +49,228 @@ int deny_severity = LOG_WARNING;
 
 static bool quit = false;
 
-void
-bnet_stop_thread_server(pthread_t tid)
+void bnet_stop_thread_server(pthread_t tid)
 {
    quit = true;
    pthread_kill(tid, TIMEOUT_SIGNAL);
 }
 
-/* Become Threaded Network Server */
+/* 
+	Become Threaded Network Server 
+    This function is able to handle multiple server ips in
+    ipv4 and ipv6 style. The Addresse are give in a comma
+    seperated string in bind_addr
+    In the moment it is inpossible to bind different ports.
+*/
 void
-bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_wq, 
+bnet_thread_server(dlist *addrs, int max_clients, workq_t *client_wq,
 		   void *handle_client_request(void *bsock))
 {
-   int newsockfd, sockfd, stat;
+   int newsockfd, stat;
    socklen_t clilen;
-   struct sockaddr_in cli_addr;       /* client's address */
-   struct sockaddr_in serv_addr;      /* our address */
-   struct in_addr bind_ip;	      /* address to bind to */
+   struct sockaddr cli_addr;       /* client's address */
    int tlog;
    int turnon = 1;
-   const char *caller;
 #ifdef HAVE_LIBWRAP
    struct request_info request;
 #endif
+   IPADDR *p;
+   struct s_sockfd {
+      dlink link;		      /* this MUST be the first item */
+      int fd;
+      int port;
+   } *fd_ptr = NULL;
+   char buf[128];
+   dlist sockfds;
 
-   /*
-    * Open a TCP socket  
-    */
-   for (tlog=0; (sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0; tlog -= 10 ) {
-      if (tlog <= 0) {
-	 tlog = 60; 
-         Emsg1(M_ERROR, 0, _("Cannot open stream socket: %s. Retrying ...\n"), strerror(errno));
+   char allbuf[256 * addrs->size()];
+   Dmsg1(100, "Addresses %s\n", build_addresses_str(addrs, allbuf, sizeof(allbuf)));
+
+   foreach_dlist(p, addrs) {
+      /* Allocate on stack frame -- no need to free */
+      fd_ptr = (s_sockfd *)alloca(sizeof(s_sockfd));
+      fd_ptr->port = p->get_port();
+      /*
+       * Open a TCP socket  
+       */
+      for (tlog= 60; (fd_ptr->fd=socket(p->get_family(), SOCK_STREAM, 0)) < 0; tlog -= 10) {
+	 if (tlog <= 0) {
+	    berrno be;
+	    char curbuf[256];
+            Emsg3(M_ABORT, 0, _("Cannot open stream socket. ERR=%s. Current %s All %s\n"),
+		       be.strerror(),
+		       p->build_address_str(curbuf, sizeof(curbuf)), 
+		       build_addresses_str(addrs, allbuf, sizeof(allbuf)));
+	 }
+	 bmicrosleep(10, 0);
       }
-      bmicrosleep(10, 0);
-   }
-
-   /*
-    * Reuse old sockets 
-    */
-   if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (sockopt_val_t)&turnon, sizeof(turnon)) < 0) {
-      Emsg1(M_WARNING, 0, _("Cannot set SO_REUSEADDR on socket: %s\n"), strerror(errno));
-   }
-
-   /* 
-    * Bind our local address so that the client can send to us.
-    */
-   bind_ip.s_addr = htonl(INADDR_ANY);
-   if (bind_addr && bind_addr[0]) {
-#ifdef HAVE_INET_PTON
-      if (inet_pton(AF_INET, bind_addr, &bind_ip) <= 0) {
-#else
-      if (inet_aton(bind_addr, &bind_ip) <= 0) {
-#endif
-         Emsg1(M_WARNING, 0, _("Invalid bind address: %s, using INADDR_ANY\n"),
-	    bind_addr);
-	 bind_ip.s_addr = htonl(INADDR_ANY);
+      /*
+       * Reuse old sockets 
+       */
+      if (setsockopt(fd_ptr->fd, SOL_SOCKET, SO_REUSEADDR, (sockopt_val_t) & turnon,
+	   sizeof(turnon)) < 0) {
+	 berrno be;
+         Emsg1(M_WARNING, 0, _("Cannot set SO_REUSEADDR on socket: %s\n"),
+	       be.strerror());
       }
-   }
-   memset((char *) &serv_addr, 0, sizeof(serv_addr));
-   serv_addr.sin_family = AF_INET;
-   serv_addr.sin_addr.s_addr = bind_ip.s_addr;
-   serv_addr.sin_port = htons(port);
 
-   int tmax = 30 * (60 / 5);	      /* wait 30 minutes max */
-   for (tlog=0; bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0; tlog -= 5 ) {
-      if (tlog <= 0) {
-	 tlog = 2*60;		      /* Complain every 2 minutes */
-         Emsg2(M_WARNING, 0, _("Cannot bind port %d: %s. Retrying ...\n"), port, strerror(errno));
+      int tmax = 30 * (60 / 5);    /* wait 30 minutes max */
+      /* FIXME i can go to a endless loop i get a invalid address */
+      for (tlog = 0; bind(fd_ptr->fd, p->get_sockaddr(), p->get_sockaddr_len()) < 0; tlog -= 5) {
+	 berrno be;
+	 if (tlog <= 0) {
+	    tlog = 2 * 60;	   /* Complain every 2 minutes */
+            Emsg2(M_WARNING, 0, _("Cannot bind port %d: ERR=%s. Retrying ...\n"),
+		  fd_ptr->port, be.strerror());
+	 }
+	 bmicrosleep(5, 0);
+	 if (--tmax <= 0) {
+            Emsg2(M_ABORT, 0, _("Cannot bind port %d: ERR=%s.\n"), fd_ptr->port,
+		  be.strerror());
+	 }
       }
-      bmicrosleep(5, 0);
-      if (--tmax <= 0) {
-         Emsg2(M_ABORT, 0, _("Cannot bind port %d: %s.\n"), port, strerror(errno));
-      }
+      listen(fd_ptr->fd, 5);	   /* tell system we are ready */
+      sockfds.append(fd_ptr);
    }
-   listen(sockfd, 5);		      /* tell system we are ready */
-
    /* Start work queue thread */
    if ((stat = workq_init(client_wq, max_clients, handle_client_request)) != 0) {
-      Emsg1(M_ABORT, 0, _("Could not init client queue: ERR=%s\n"), strerror(stat));
+      berrno be;
+      be.set_errno(stat);
+      Emsg1(M_ABORT, 0, _("Could not init client queue: ERR=%s\n"), be.strerror());
    }
-
    /* 
     * Wait for a connection from the client process.
     */
-   for (;!quit;) {
+   for (; !quit;) {
+      unsigned int maxfd = 0;
       fd_set sockset;
       FD_ZERO(&sockset);
-      FD_SET((unsigned)sockfd, &sockset);
+      foreach_dlist(fd_ptr, &sockfds) {
+	 FD_SET((unsigned)fd_ptr->fd, &sockset);
+	 maxfd = maxfd > (unsigned)fd_ptr->fd ? maxfd : fd_ptr->fd;
+      }
       errno = 0;
-      if ((stat = select(sockfd+1, &sockset, NULL, NULL, NULL)) < 0) {
+      if ((stat = select(maxfd + 1, &sockset, NULL, NULL, NULL)) < 0) {
+	 berrno be;		      /* capture errno */
 	 if (errno == EINTR || errno == EAGAIN) {
 	    continue;
 	 }
 	 /* Error, get out */
-	 close(sockfd);
-         Emsg1(M_FATAL, 0, _("Error in select: %s\n"), strerror(errno));
+	 foreach_dlist(fd_ptr, &sockfds) {
+	    close(fd_ptr->fd);
+	    free((void *)fd_ptr);
+	 }
+         Emsg1(M_FATAL, 0, _("Error in select: %s\n"), be.strerror());
 	 break;
       }
 
-      /* Got a connection, now accept it. */
-      do {
-	 clilen = sizeof(cli_addr);
-	 newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen);
-      } while (newsockfd < 0 && (errno == EINTR || errno == EAGAIN));
-      if (newsockfd < 0) {
-	 continue;
-      }
-
-
+      foreach_dlist(fd_ptr, &sockfds) {
+	 if (FD_ISSET(fd_ptr->fd, &sockset)) {
+	    /* Got a connection, now accept it. */
+	    do {
+	       clilen = sizeof(cli_addr);
+	       newsockfd = accept(fd_ptr->fd, &cli_addr, &clilen);
+	    } while (newsockfd < 0 && (errno == EINTR || errno == EAGAIN));
+	    if (newsockfd < 0) {
+	       continue;
+	    }
 #ifdef HAVE_LIBWRAP
-      P(mutex); 		      /* hosts_access is not thread safe */
-      request_init(&request, RQ_DAEMON, my_name, RQ_FILE, newsockfd, 0);
-      fromhost(&request);
-      if (!hosts_access(&request)) {
-	 V(mutex);
-         Jmsg2(NULL, M_SECURITY, 0, _("Connection from %s:%d refused by hosts.access\n"),
-	       inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
-	 close(newsockfd);
-	 continue;
-      }
-      V(mutex);
+	    P(mutex);		   /* hosts_access is not thread safe */
+	    request_init(&request, RQ_DAEMON, my_name, RQ_FILE, newsockfd, 0);
+	    fromhost(&request);
+	    if (!hosts_access(&request)) {
+	       V(mutex);
+#ifndef HAVE_INET_NTOP
+	       Jmsg2(NULL, M_SECURITY, 0,
+                     _("Connection from %s:%d refused by hosts.access\n"),
+		     inet_ntoa(((sockaddr_in *)&cli_addr)->sin_addr),
+		     ntohs(((sockaddr_in *)&cli_addr)->sin_port));
+#else
+	       Jmsg2(NULL, M_SECURITY, 0,
+                     _("Connection from %s:%d refused by hosts.access\n"),
+		     inet_ntop(clilen == sizeof(sockaddr_in) ? AF_INET : AF_INET6,
+			       &clilen, buf, clilen),
+		     ntohs(clilen == sizeof(sockaddr_in) ? 
+			   ((sockaddr_in *)&cli_addr)->sin_port :
+			    ((sockaddr_in6 *)&cli_addr)->sin6_port));
+#endif
+	       close(newsockfd);
+	       continue;
+	    }
+	    V(mutex);
 #endif
 
-      /*
-       * Receive notification when connection dies.
-       */
-      if (setsockopt(newsockfd, SOL_SOCKET, SO_KEEPALIVE, (sockopt_val_t)&turnon, sizeof(turnon)) < 0) {
-         Emsg1(M_WARNING, 0, _("Cannot set SO_KEEPALIVE on socket: %s\n") , strerror(errno));
-      }
+	    /*
+	     * Receive notification when connection dies.
+	     */
+	    if (setsockopt(newsockfd, SOL_SOCKET, SO_KEEPALIVE, (sockopt_val_t) & turnon,
+		 sizeof(turnon)) < 0) {
+	       berrno be;
+               Emsg1(M_WARNING, 0, _("Cannot set SO_KEEPALIVE on socket: %s\n"),
+		     be.strerror());
+	    }
 
-      /* see who client is. i.e. who connected to us. */
-      P(mutex);
-      caller = inet_ntoa(cli_addr.sin_addr);  /* NOT thread safe, use mutex */
-      if (caller == NULL) {
-         caller = _("unknown client");
-      }
+	    /* see who client is. i.e. who connected to us. */
+	    P(mutex);
+#ifndef HAVE_INET_NTOP
+	    bstrncpy(buf, inet_ntoa(((sockaddr_in *) & cli_addr)->sin_addr), sizeof(buf));	/* NOT thread safe, use mutex */
+#else
+	    inet_ntop(clilen == sizeof(sockaddr_in) ? AF_INET : AF_INET6, &clilen,
+		      buf, clilen);
+#endif
+	    /* possible release of the mutex */
 
-      BSOCK *bs = init_bsock(NULL, newsockfd, "client", caller, port, &cli_addr);
-      if (bs == NULL) {
-         Jmsg0(NULL, M_ABORT, 0, _("Could not create client BSOCK.\n"));
-      }
+	    BSOCK *bs =
+               init_bsock(NULL, newsockfd, "client", buf, fd_ptr->port, &cli_addr);
+	    if (bs == NULL) {
+               Jmsg0(NULL, M_ABORT, 0, _("Could not create client BSOCK.\n"));
+	    }
 
-      /* Queue client to be served */
-      if ((stat = workq_add(client_wq, (void *)bs, NULL, 0)) != 0) {
-	 V(mutex);
-         Jmsg1(NULL, M_ABORT, 0, _("Could not add job to client queue: ERR=%s\n"), strerror(stat));
+	    /* Queue client to be served */
+	    if ((stat = workq_add(client_wq, (void *)bs, NULL, 0)) != 0) {
+	       berrno be;
+	       V(mutex);
+	       be.set_errno(stat);
+	       Jmsg1(NULL, M_ABORT, 0,
+                     _("Could not add job to client queue: ERR=%s\n"),
+		     be.strerror());
+	    }
+	    V(mutex);
+	 }
       }
-      V(mutex);
    }
 
    /* Stop work queue thread */
    if ((stat = workq_destroy(client_wq)) != 0) {
-      Emsg1(M_FATAL, 0, _("Could not destroy client queue: ERR=%s\n"), strerror(stat));
+      berrno be;
+      be.set_errno(stat);
+      Emsg1(M_FATAL, 0, _("Could not destroy client queue: ERR=%s\n"),
+	    be.strerror());
    }
-}   
+}
 
 
-#ifdef REALLY_USED   
+#ifdef REALLY_USED
 /*
  * Bind an address so that we may accept connections
  * one at a time.
  */
-BSOCK *
-bnet_bind(int port)
+BSOCK *bnet_bind(int port)
 {
    int sockfd;
-   struct sockaddr_in serv_addr;      /* our address */
+   struct sockaddr_in serv_addr;   /* our address */
    int tlog;
    int turnon = 1;
 
    /*
     * Open a TCP socket  
     */
-   for (tlog=0; (sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0; tlog -= 10 ) {
+   for (tlog = 0; (sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0; tlog -= 10) {
       if (errno == EINTR || errno == EAGAIN) {
 	 continue;
       }
       if (tlog <= 0) {
-	 tlog = 2*60; 
+	 tlog = 2 * 60;
          Emsg1(M_ERROR, 0, _("Cannot open stream socket: %s\n"), strerror(errno));
       }
       bmicrosleep(60, 0);
@@ -234,42 +279,48 @@ bnet_bind(int port)
    /*
     * Reuse old sockets 
     */
-   if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (sockopt_val_t)&turnon, sizeof(turnon)) < 0) {
-      Emsg1(M_WARNING, 0, _("Cannot set SO_REUSEADDR on socket: %s\n") , strerror(errno));
+   if (setsockopt
+       (sockfd, SOL_SOCKET, SO_REUSEADDR, (sockopt_val_t) & turnon,
+	sizeof(turnon)) < 0) {
+      Emsg1(M_WARNING, 0, _("Cannot set SO_REUSEADDR on socket: %s\n"),
+	    strerror(errno));
    }
 
    /* 
     * Bind our local address so that the client can send to us.
     */
-   bzero((char *) &serv_addr, sizeof(serv_addr));
+   bzero((char *)&serv_addr, sizeof(serv_addr));
    serv_addr.sin_family = AF_INET;
    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
    serv_addr.sin_port = htons(port);
 
-   for (tlog=0; bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0; tlog -= 5 ) {
+   for (tlog = 0; bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0;
+	tlog -= 5) {
+      berrno be;
       if (errno == EINTR || errno == EAGAIN) {
 	 continue;
       }
       if (tlog <= 0) {
-	 tlog = 2*60;
-         Emsg2(M_WARNING, 0, _("Cannot bind port %d: %s: retrying ...\n"), port, strerror(errno));
+	 tlog = 2 * 60;
+         Emsg2(M_WARNING, 0, _("Cannot bind port %d: ERR=%s: retrying ...\n"), port,
+	       be.strerror());
       }
       bmicrosleep(5, 0);
    }
-   listen(sockfd, 1);		      /* tell system we are ready */
-   return init_bsock(NULL, sockfd, _("Server socket"), _("client"), port, &serv_addr);
+   listen(sockfd, 1);		   /* tell system we are ready */
+   return init_bsock(NULL, sockfd, _("Server socket"), _("client"), port,
+		     &serv_addr);
 }
 
 /*
  * Accept a single connection 
  */
-BSOCK *
-bnet_accept(BSOCK *bsock, char *who)
+BSOCK *bnet_accept(BSOCK * bsock, char *who)
 {
    fd_set ready, sockset;
    int newsockfd, stat, len;
    socklen_t clilen;
-   struct sockaddr_in cli_addr;       /* client's address */
+   struct sockaddr_in cli_addr;    /* client's address */
    char *caller, *buf;
    BSOCK *bs;
    int turnon = 1;
@@ -288,7 +339,7 @@ bnet_accept(BSOCK *bsock, char *who)
        * Wait for a connection from a client process.
        */
       ready = sockset;
-      if ((stat = select(bsock->fd+1, &ready, NULL, NULL, NULL)) < 0) {
+      if ((stat = select(bsock->fd + 1, &ready, NULL, NULL, NULL)) < 0) {
 	 if (errno == EINTR || errno = EAGAIN) {
 	    errno = 0;
 	    continue;
@@ -323,8 +374,11 @@ bnet_accept(BSOCK *bsock, char *who)
    /*
     * Receive notification when connection dies.
     */
-   if (setsockopt(newsockfd, SOL_SOCKET, SO_KEEPALIVE, (sockopt_val_t)&turnon, sizeof(turnon)) < 0) {
-      Emsg1(M_WARNING, 0, _("Cannot set SO_KEEPALIVE on socket: %s\n"), strerror(errno));
+   if (setsockopt
+       (newsockfd, SOL_SOCKET, SO_KEEPALIVE, (sockopt_val_t) & turnon,
+	sizeof(turnon)) < 0) {
+      Emsg1(M_WARNING, 0, _("Cannot set SO_KEEPALIVE on socket: %s\n"),
+	    strerror(errno));
    }
 
    /* see who client is. I.e. who connected to us.
@@ -346,14 +400,14 @@ bnet_accept(BSOCK *bsock, char *who)
          caller = "unknown";
       }
       len = strlen(caller) + strlen(who) + 3;
-      buf = (char *) malloc(len);
-      strcpy(buf, who);
-      strcat(buf, ": ");
-      strcat(buf, caller);
+      buf = (char *)malloc(len);
+      bstrncpy(buf, len, who);
+      bstrncat(buf, len, ": ");
+      bstrncat(buf, len, caller);
       bs = init_bsock(NULL, newsockfd, "client", buf, bsock->port, &cli_addr);
       free(buf);
-      return bs;		      /* return new BSOCK */
+      return bs;		   /* return new BSOCK */
    }
-}   
+}
 
 #endif

@@ -40,6 +40,7 @@ enum {
    R_BACKUP
 };
 
+
 /* Definition of the contents of each Resource */
 struct DIRRES {
    RES	 hdr;
@@ -54,10 +55,8 @@ struct DIRRES {
 struct s_res_store {
    RES	 hdr;
 
-   char *address;		      /* deprecated */
-   char *SDaddr;		      /* bind address */
-   int	 SDport;		      /* Where we listen for Directors */
-   int   SDDport;                     /* "Data" port where we listen for File daemons */
+   dlist *sdaddrs;
+   dlist *sddaddrs;
    char *working_directory;	      /* working directory for checkpoints */
    char *pid_directory;
    char *subsys_directory;

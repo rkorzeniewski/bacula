@@ -75,7 +75,7 @@ BSOCK *    bnet_connect 	   (JCR *jcr, int retry_interval,
 	       int port, int verbose);
 void	   bnet_close		 (BSOCK *bsock);
 BSOCK *    init_bsock		 (JCR *jcr, int sockfd, const char *who, const char *ip, 
-				  int port, struct sockaddr_in *client_addr);
+				  int port, struct sockaddr *client_addr);
 BSOCK *    dup_bsock		 (BSOCK *bsock);
 void	   term_bsock		 (BSOCK *bsock);
 char *	   bnet_strerror	 (BSOCK *bsock);
@@ -86,6 +86,7 @@ int	   bnet_despool_to_bsock (BSOCK *bsock, void update(ssize_t size), ssize_t s
 bool	   is_bnet_stop 	 (BSOCK *bsock);
 int	   is_bnet_error	 (BSOCK *bsock);
 void	   bnet_suppress_error_messages(BSOCK *bsock, bool flag);
+dlist *bnet_host2ipaddrs(const char *host, int family, const char **errstr);
 
 /* bget_msg.c */
 int	 bget_msg(BSOCK *sock);
@@ -156,7 +157,7 @@ void	   set_trace		 (int trace_flag);
 void	   set_exit_on_error	 (int value);
 
 /* bnet_server.c */
-void	   bnet_thread_server(char *bind_addr, int port, int max_clients, workq_t *client_wq, 
+void	   bnet_thread_server(dlist *addr, int max_clients, workq_t *client_wq, 
 		   void *handle_client_request(void *bsock));
 void	   bnet_stop_thread_server(pthread_t tid);
 void		 bnet_server		 (int port, void handle_client_request(BSOCK *bsock));
