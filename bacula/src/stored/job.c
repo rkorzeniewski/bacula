@@ -355,7 +355,7 @@ void stored_free_jcr(JCR *jcr)
       free_pool_memory(jcr->RestoreBootstrap);
       jcr->RestoreBootstrap = NULL;
    }
-   if (jcr->next_dev && jcr->prev_dev) {
+   if (jcr->next_dev || jcr->prev_dev) {
       Emsg0(M_FATAL, 0, _("In free_jcr(), but still attached to device!!!!\n"));
    }
    pthread_cond_destroy(&jcr->job_start_wait);

@@ -402,7 +402,7 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
       /* Fall through wanted! */
    case VOL_IO_ERROR:
    case VOL_NO_LABEL:
-      if (!write_new_volume_label_to_dev(jcr, dev, newname, poolname)) {
+      if (!write_new_volume_label_to_dev(jcr->dcr, newname, poolname)) {
          bnet_fsend(dir, _("3912 Failed to label Volume: ERR=%s\n"), strerror_dev(dev));
 	 break;
       }

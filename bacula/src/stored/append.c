@@ -82,7 +82,7 @@ int do_append_data(JCR *jcr)
    /*
     * Write Begin Session Record
     */
-   if (!write_session_label(jcr, block, SOS_LABEL)) {
+   if (!write_session_label(dcr, block, SOS_LABEL)) {
       Jmsg1(jcr, M_FATAL, 0, _("Write session label failed. ERR=%s\n"),
 	 strerror_dev(dev));
       set_jcr_job_status(jcr, JS_ErrorTerminated);
@@ -238,7 +238,7 @@ int do_append_data(JCR *jcr)
     *  if we are at the end of the tape or we got a fatal I/O error.
     */
    if (ok || dev_can_write(dev)) {
-      if (!write_session_label(jcr, block, EOS_LABEL)) {
+      if (!write_session_label(dcr, block, EOS_LABEL)) {
          Jmsg1(jcr, M_FATAL, 0, _("Error writting end session label. ERR=%s\n"),
 	     strerror_dev(dev));
 	 set_jcr_job_status(jcr, JS_ErrorTerminated);

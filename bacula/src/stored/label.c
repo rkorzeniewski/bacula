@@ -31,7 +31,7 @@
 #include "stored.h"                   /* pull in Storage Deamon headers */
 
 /* Forward referenced functions */
-static void create_volume_label_record(JCR *jcr, DEVICE *dev, DEV_RECORD *rec);
+static void create_volume_label_record(DCR *dcr, DEV_RECORD *rec);
 
 extern char my_name[];
 extern int debug_level;
@@ -180,11 +180,11 @@ int read_dev_volume_label(DCR *dcr, DEV_BLOCK *block)
  *
  * Assumes that the record is already read.
  *
- * Returns: 0 on error
- *	    1 on success
+ * Returns: false on error
+ *	    true  on success
 */
 
-int unser_volume_label(DEVICE *dev, DEV_RECORD *rec)
+bool unser_volume_label(DEVICE *dev, DEV_RECORD *rec)
 {
    ser_declare;
 
@@ -194,7 +194,7 @@ int unser_volume_label(DEVICE *dev, DEV_RECORD *rec)
 	      stream_to_ascii(rec->Stream, rec->FileIndex),
 	      rec->data_len);
       if (!forge_on) {
-	 return 0;
+	 return false;
       }
    }
 
@@ -234,7 +234,7 @@ int unser_volume_label(DEVICE *dev, DEV_RECORD *rec)
    if (debug_level >= 90) {
       dump_volume_label(dev);	   
    }
-   return 1;
+   return true;
 }
 
 /*
@@ -243,15 +243,17 @@ int unser_volume_label(DEVICE *dev, DEV_RECORD *rec)
  *  Returns: false on failure
  *	     true  on success
  */
-bool write_volume_label_to_block(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
+bool write_volume_label_to_block(DCR *dcr, DEV_BLOCK *block)
 {
    DEV_RECORD rec;
+   DEVICE *dev = dcr->dev;
+   JCR *jcr = dcr->jcr;
 
    Dmsg0(20, "write Label in write_volume_label_to_block()\n");
    memset(&rec, 0, sizeof(rec));
    rec.data = get_memory(SER_LENGTH_Volume_Label);
 
-   create_volume_label_record(jcr, dev, &rec);
+   create_volume_label_record(dcr, &rec);
 
    empty_block(block);		      /* Volume label always at beginning */
    block->BlockNumber = 0;
@@ -273,10 +275,12 @@ bool write_volume_label_to_block(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
  *   Assumes that the dev->VolHdr structure is properly 
  *   initialized.
 */
-static void create_volume_label_record(JCR *jcr, DEVICE *dev, DEV_RECORD *rec)
+static void create_volume_label_record(DCR *dcr, DEV_RECORD *rec)
 {
    ser_declare;
    struct date_time dt;
+   DEVICE *dev = dcr->dev;
+   JCR *jcr = dcr->jcr;
 
    /* Serialize the label into the device record. */
 
@@ -327,8 +331,6 @@ static void create_volume_label_record(JCR *jcr, DEVICE *dev, DEV_RECORD *rec)
 
 /*
  * Create a volume label in memory
- *  Returns: 0 on error
- *	     1 on success
  */
 void create_volume_label(DEVICE *dev, const char *VolName, const char *PoolName)
 {
@@ -376,11 +378,12 @@ void create_volume_label(DEVICE *dev, const char *VolName, const char *PoolName)
  *
  *  This routine should be used only when labeling a blank tape.
  */
-bool write_new_volume_label_to_dev(JCR *jcr, DEVICE *dev, const char *VolName, const char *PoolName)
+bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *PoolName)
 {
    DEV_RECORD rec;   
    DEV_BLOCK *block;
    bool ok = false;
+   DEVICE *dev = dcr->dev;
 
 
    Dmsg0(99, "write_volume_label()\n");
@@ -397,7 +400,7 @@ bool write_new_volume_label_to_dev(JCR *jcr, DEVICE *dev, const char *VolName, c
    block = new_block(dev);
    memset(&rec, 0, sizeof(rec));
    rec.data = get_memory(SER_LENGTH_Volume_Label);
-   create_volume_label_record(jcr, dev, &rec);
+   create_volume_label_record(dcr, &rec);
    rec.Stream = 0;
 
    if (!write_record_to_block(block, &rec)) {
@@ -409,7 +412,7 @@ bool write_new_volume_label_to_dev(JCR *jcr, DEVICE *dev, const char *VolName, c
    }
       
    Dmsg0(99, "Call write_block_to_dev()\n");
-   if (!write_block_to_dev(jcr->dcr, block)) {
+   if (!write_block_to_dev(dcr, block)) {
       memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
       Dmsg2(30, "Bad Label write on %s. ERR=%s\n", dev_name(dev), strerror_dev(dev));
       goto bail_out;
@@ -435,9 +438,9 @@ bail_out:
  * Create session label
  *  The pool memory must be released by the calling program
  */
-void create_session_label(JCR *jcr, DEV_RECORD *rec, int label)
+void create_session_label(DCR *dcr, DEV_RECORD *rec, int label)
 {
-   DCR *dcr = jcr->dcr;
+   JCR *jcr = dcr->jcr;
    ser_declare;
 
    rec->VolSessionId   = jcr->VolSessionId;
@@ -488,9 +491,9 @@ void create_session_label(JCR *jcr, DEV_RECORD *rec, int label)
  *  Returns: false on failure
  *	     true  on success 
  */
-bool write_session_label(JCR *jcr, DEV_BLOCK *block, int label)
+bool write_session_label(DCR *dcr, DEV_BLOCK *block, int label)
 {
-   DCR *dcr = jcr->dcr;
+   JCR *jcr = dcr->jcr;
    DEVICE *dev = dcr->dev;
    DEV_RECORD *rec;
 
@@ -519,7 +522,7 @@ bool write_session_label(JCR *jcr, DEV_BLOCK *block, int label)
       Jmsg1(jcr, M_ABORT, 0, _("Bad session label = %d\n"), label);
       break;
    }
-   create_session_label(jcr, rec, label);
+   create_session_label(dcr, rec, label);
    rec->FileIndex = label;
 
    /* 
@@ -630,7 +633,7 @@ bail_out:
    debug_level = dbl;
 }
 
-int unser_session_label(SESSION_LABEL *label, DEV_RECORD *rec) 
+bool unser_session_label(SESSION_LABEL *label, DEV_RECORD *rec) 
 {
    ser_declare;
 
@@ -674,7 +677,7 @@ int unser_session_label(SESSION_LABEL *label, DEV_RECORD *rec)
 	 label->JobStatus = JS_Terminated; /* kludge */
       }
    }	  
-   return 1;
+   return true;
 }
 
 
