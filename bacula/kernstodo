@@ -38,6 +38,7 @@ For 1.32:
 
 
 For 1.33
+- Upgrade to cygwin 1.5
 - Get MySQL 3.23.58
 - Get and test MySQL 4.0
 - Do a complete audit of all pthreads_mutex, cond, ... to ensure that

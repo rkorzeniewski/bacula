@@ -397,12 +397,16 @@ static void prt_runtime(UAContext *ua, JOB *job, int level, time_t runtime, POOL
 {
    char dt[MAX_TIME_LENGTH];	   
    bool ok = false;
+   bool close_db = false;
    JCR *jcr = ua->jcr;
    MEDIA_DBR mr;
    memset(&mr, 0, sizeof(mr));
    if (job->JobType == JT_BACKUP) {
       jcr->db = NULL;
       ok = complete_jcr_for_job(jcr, job, pool);
+      if (jcr->db) {
+	 close_db = true;	      /* new db opened, remember to close it */
+      }
       if (ok) {
 	 ok = find_next_volume_for_append(jcr, &mr, 0);
       }
@@ -414,10 +418,10 @@ static void prt_runtime(UAContext *ua, JOB *job, int level, time_t runtime, POOL
    bsendmsg(ua, _("%-14s %-8s %-18s %-18s %s\n"), 
       level_to_str(level), job_type_to_str(job->JobType), dt, job->hdr.name,
       mr.VolumeName);
-   if (jcr->db) {
+   if (close_db) {
       db_close_database(jcr, jcr->db);
-      jcr->db = ua->db;
    }
+   jcr->db = ua->db;		      /* restore ua db to jcr */
 
 }
 
