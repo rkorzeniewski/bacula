@@ -9,6 +9,13 @@ rm -rf /tmp/TestVolume001 /tmp/bacula-restores
 bin/bacula stop 
 bin/drop_sqlite_tables
 bin/make_sqlite_tables
+
+echo " "
+echo " "
+echo " === Starting Backup Bacula Test ==="
+echo " "
+echo " "
+
 bin/bacula start
 bin/console -c bin/console.conf <<END_OF_DATA
 @output /dev/null

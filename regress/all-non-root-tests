@@ -12,5 +12,4 @@ tests/two-jobs-test
 echo " "
 echo " "
 echo "Test results"
-echo " "
 cat test.out
