@@ -37,8 +37,7 @@ all: Makefile libfind.a ../lib/libbac.a
 
 libfind.a: $(LIBOBJS) 
 	$(RMF) libfind.a
-	$(AR) cru $@ $(LIBOBJS)
-	$(RANLIB) $@
+	$(AR) crs $@ $(LIBOBJS)
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	cd $(topdir) \

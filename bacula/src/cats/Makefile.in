@@ -45,7 +45,6 @@ all: Makefile libsql.a
 
 libsql.a: $(LIBOBJS)
 	$(AR) rcs $@ $(LIBOBJS)
-	$(RANLIB) $@
 
 cats: $(SVROBJS) ../findlib/libfind.a
 	$(CC) $(LDFLAGS) -L../findlib -L../lib -o $@ $(SVROBJS) $(LIBS) $(DB_LIBS) -lfind -lbac

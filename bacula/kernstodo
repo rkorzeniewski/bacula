@@ -28,7 +28,7 @@ From Chuck:
 --sd.conf password does not match dir.conf storage password
 =======
 
-- Fix catalog filename truncation in sql_get and elsewhere. Use
+- Fix catalog filename truncation in sql_get and sql_create. Use
   only a single filename split routine.
 - Add command to reset VolFiles to a larger value (don't allow
   a smaller number or print big warning).
@@ -38,17 +38,13 @@ From Chuck:
 - Convert all %x substitution variables, which are hard to remember
   and read to %(variable-name)s.  Idea from TMDA.
 - Report volume write rate.
-- Fix db_get_job_volume_names() to return array of strings.
 - Report compression % and other compression statistics if turned on.
 - Add JobLevel in FD status (but make sure it is defined).
-- Eliminate MySQL shared libraries from smtp and daemons not
-  using MySQL.
 - Pass "Catalog Files = no" to storage daemon to eliminate
   network traffic.
 - Make Pool resource handle Counter resources.
 - Remove NextId for SQLite. Optimize.
 - Fix gethostbyname() to use gethostbyname_r()
-- Cleanup path/filename separation in sql_get.c and sql_create.c
 - Implement ./configure --with-client-only
 - Strip trailing / from Include
 - Move all SQL statements into a single location.
@@ -66,93 +62,96 @@ From Chuck:
 - No READLINE_SRC if found in alternate directory.
 - Add Client FS/OS id (Linux, Win95/98, ...).
 - Put Windows files in Windows stream?
+- Ensure that everyone uses btime routines.
 
-====== 31 May 2002 ========
-Now that Bacula 1.20 is released, virtually all the 
-basic features are implemented (some are still quite
-primitive though). Over the next month or two, I'm 
-planning to focus on the following items:
-
-Minor details:
-- Fix any bugs I find or you report.
-- Finish the implementation of automatic pruning 
-  (add pruning of Restore and Verify jobs). 
-- Make sure pruning of Volumes won't prune the
-  only backup of a FileSet
-
-Major Project:
-- Improve the Restore capabilities of Bacula
-  - Restore to most recent system state (i.e.
-    figure out what tapes need to be mounted and
-    in what order).
-  - Restore to a particular time (perhaps several
-    variations -- e.g. before date, after date).
-  - Interactive Restore where you get to select 
-    what files are to be restored (much like the Unix
-    "restore" program permits). Now that we have a
-    catalog of all files saved, it would be nice to
-    be able to use it. 
-  - Restore options (overwrite, overwrite if older,
-    overwrite if newer, never overwrite, ...)
-  - Improve the standalone programs (bls and bextract)
-    to have pattern matching capabilities (e.g. restore
-    by FileSet, Job, JobType, JobLevel, ...). 
-  - Ideally after each Job, Bacula could write out a 
-    set of commands to a file that if later feed to
-    bextract would restore your system to the current
-    state (at least for the saved FileSet).  This would 
-    provide a simple disaster recovery that could be 
-    initiated from a "floppy" and one simple ASCII control 
-    file. I'm not exactly sure how to do this, but it
-    shouldn't be too hard and I'll 
-    be trying to go in this direction.
   
-Smaller Projects:
-- Implement tape verification to ensure that the data
-  written for a particular Job can really be read.
-- Compare tape File attributes to Catalog.
-  (File attributes are size, dates, MD5, but not
-   data).
-- Compare tape to Client files (attributes, or
-  attributes and data) 
-
-Playing around:
-- With the current Bacula 1.21 (not yet in the CVS) I
-  expect there is about 95% chance that running multiple
-  simultaneous Jobs will actually work without stepping
-  on each other. I'm planning to try this sometime soon.
-===========
-
 Projects:
 - Add Base job.
-- Rework Storage daemon with new rwl_lock routines.
+- Make Storage daemon multi-buffer to tape (i.e. writer thread).
 - Implement Label templates
+- Define definitive tape format.
+- GUI for interactive restore.
+- Interactive backup.
+- Write bscan program (skeleton exists).
+- Write a regression script
+- Add ssl to daemon communications
+- New daemon communications protocol.
+- SD can buffer to disk.
+
+1.  Implement Base jobs.
+    Big savings in tape usage. Will require more resources.
+    i.e. DIR must send FD a list of files/attribs, and the FD must
+    search the list and compare it for each file to be saved.
+
+2.  Make Storage daemon multi-buffer to tape (i.e. writer thread).
+    Hopefully much faster backups. Each Job will have a pool of
+    buffers that it hands off to the tape writer thread. 
+
+3.  Implement Label templates
+    Better automated label creation, using design that is
+    already documented in the manual.
+
+4.  Define definitive tape format.
+    A lot of design thought needed here.
+    
+5.  GUI for interactive restore.
+    Probably will do in Gtk, but would be nice in Browser.
+
+6.  Interactive backup.
+    Really part of 5.
+
+7.  Write bscan program (skeleton exists).
+    Allows recovery from tape.
+
+8.  Write a regression script
+    Needed to ensure long term stability.
+
+9.  Add ssl to daemon communications
+    Needed for secure operations.
+
+10. Multiple simultaneous Jobs.
+    I don't think this will take much.
+
+11. New daemon communication protocol. 
+    Use serial for all daemon communications, allow transfer
+    of any data type with type checking and optional name
+    checking.
+
+12. SD can use intermediate file storage to buffer data
+    while waiting for tape to catch up.  This requires that
+    item 2 be implemented (or simultaneously implemented).
+
+I haven't put these in any particular order.
+
+Small projects:
+- Rework Storage daemon with new rwl_lock routines.
+- Compare tape to Client files (attributes, or attributes and data) 
+- Restore options (overwrite, overwrite if older,
+   overwrite if newer, never overwrite, ...)
+- Restore to a particular time -- e.g. before date, after date. 
+- On command write out a bootstrap file (at end of job).
+- Make all database Ids 64 bit.
 - Pass JCR to database routines permitting better error printing.
-- Improve Restore
-- Verify tape data
-- Verify against Full.
+- Make bls accept bootstrap record.
+- Write an applet for Linux.
+- Make SD reject writing on tape where Catalog and tape # files
+  don't agree (possibly OK if tape > catalog).
+- Implement new daemon communications protocol.
+- Add DIR config directive to spool attributes.
+- Pass DIR config variable to SD for no attributes.
+- Create JobMedia record for all running Jobs when Media changes.
+- Send Volumes needed during restore to Console (just after
+  create_volume_list) -- also in restore command?
+- Add estimate to Console commands
+- Find solution to blank filename (i.e. path only) problem.
 
 Dump:
   mysqldump -f  --opt bacula >bacula
 
 
 To be done:
-- Probably add End of Data tape records (this would make
-  the tape format incompatible with the previous version).
-- I'll most likely enhance the current tape format
-  in the way that I previously described, which will make
-  some of the labels incompatible, but the change will
-  not affect the current restore code since it does not
-  look at the details of the labels.
-- I may add a few more waiting conditions in the Storage
-  daemon where it will current immediately aborts a
-  Job if the necessary resources are not available (e.g.
-  tape is being written and a read request arrives).
-- Write an applet for Linux.
-
 - Remove PoolId from Job table, it exists in Media.
-- Allow commands to detach or run in background.
-- Write better dump of Messages resource.
+- Allow console commands to detach or run in background.
 - Fix status delay on storage daemon during rewind.
 - Add VerNo to each Session label record. 
 - Add Job to Session records.
@@ -171,7 +170,6 @@ To be done:
   is printed in the error message.
 - Verify level=Volume (scan only), level=Data (compare of data to file).
   Verify level=Catalog, level=InitCatalog
-- Scan tape contents into database.
 - Dump of Catalog
 - Cold start full restore (restore catalog then
   user selects what to restore).  Write summary file containing only
@@ -179,24 +177,13 @@ To be done:
 - Dump/Restore database
 - File system type
 - Events file
-- Implement first cut of Catalog Retention period (remove old
-  entries from database).
-- Add SessionTime/Id filters to bextract.
-- Write bscan
-- Ensure that Start/End File/Block are correct.
 - Add keyword search to show command in Console.
-- If MySQL database is not running, job terminates with
-  wierd type and wierd error code.
-- Write a regression script
-- Report bad status from smtp or mail program.
 - Fix Win2000 error with no messages during startup.
-- Add estimate to Console
 - Events : tape has more than xxx bytes.
 - In Storage daemon, status should include job cancelled.
 - Write general list maintenance subroutines.
 - Implement immortal format with EDOs. 
 - Restrict characters permitted in a Resource name.
-- Restore file xx or files xx, yy to their most recent values.
 - Provide definitive identification of  type in backup.
 - Complete  code in Bacula Resources -- this will permit
   reading a new config file at any time.
@@ -225,8 +212,6 @@ To be done:
   generating errors -- should stop.
 - Don't create a volume that is already written. I.e. create only once.
 - If error at end of tape, implement some way to kill waiting processes.
-- Get correct block/file information in Catalog, pay attention
-  to change of media.
 - Add HOST to Volume label.
 - Set flag for uname -a.  Add to Volume label.
 - Implement throttled work queue.
@@ -250,10 +235,8 @@ To be done:
   - Backup working directory
   - Backup Catalog
 - Restore options (do not overwrite)
-- Restore -- do nothing but show what would happend
-- Authentication between SD and FD
+- Restore -- do nothing but show what would happen
 - SET LD_RUN_PATH=$HOME/mysql/lib/mysql
-- Send Volumes needed during restore to Console
 - Put Job statistics in End Session Label (files saved,
   total bytes, start time, ...).     
 - Put FileSet name in the SOS label.
@@ -268,8 +251,6 @@ To be done:
   jcr.jr.Level, ...).
 - Timout a job or terminate if link goes down, or reopen link and query.
 - Define how we handle times to avoid problem with Unix dates (2049 ?).
-- The daemons should know when one is already
-  running and refuse to run a second copy.
 - Fill all fields in Vol/Job Header -- ensure that everything
   needed is written to tape. Think about restore to Catalog
   from tape.  Client record needs improving.
@@ -283,9 +264,6 @@ To be done:
 
 - Restore should get Device and Pool information from
   job record rather than from config.
-- Make SD send attribute stream to DR but first
-  buffering to file, then sending only when the
-  files are written to tape.
 - Autolabel should be specified by DR instead of SD.
 - Ability to recreate the catalog from a tape.
 - Find out how to get the system tape block limits, e.g.:
@@ -320,7 +298,6 @@ To be done:
 =====
 - Eliminate duplicate File records to shrink database.
 - FD sends unsaved file list to Director at end of job. 
-- Implement InsertUniqueDB. 
 - Write a Storage daemon that uses pipes and
   standard Unix programs to write to the tape.
   See afbackup.
@@ -364,19 +341,7 @@ To be done:
   fl = fcntl(sockfd, F_GETFL);
   fcntl(sockfd, F_SETFL, fl & (~ O_NONBLOCK) & (~ O_NDELAY));
 ====
-- Add "0nnn" in front of all sscanf %s fields
-  to prevent field overflow.
-- Restore:
-  What: jobid or file list
-  From: tape, file, ...
-  Where: original location, another path
-  How: Always replace, Replace if newer, Never replace
-  Report: files restored; files not restored; errors; warnings
-          summary.
 - Enhance Jmsg code to permit buffering and saving to disk.
-- Probably create a jcr with JobId=0 as a master
-  catchall if jcr not found or if operation involves
-  global operation.
 - device driver = "xxxx" for drives.
 - restart: paranoid: read label fsf to
   eom read append block, and go
@@ -391,17 +356,14 @@ To be done:
   at end of save retry and report any errors.
 - Need report class for messages. Perhaps
   report resource where report=group of messages
-- Extract what=(session_id|file_list); where
 - Verify from Tape
 - enhance scan_attrib and rename scan_jobtype, and
   fill in code for "since" option 
-- dir_config: get rid of all printfs
 - To buffer messages, we need associated jobid and Director name.
 - Need to save contents of FileSet to tape?
 - Director needs a time after which the report status is sent
   anyway -- or better yet, a retry time for the job.
   Don't reschedule a job if previous incarnation is still running.
-- Figure out how to do a "full" restore from catalog
 - Figure out how to save the catalog (possibly a special FileSet).
 - Figure out how to restore the catalog.
 - Figure out how to put a Volume into the catalog (from the tape)
@@ -439,8 +401,7 @@ Longer term to do:
   backup FileSet -- BASE backup.
 - Turn virutally all sprintfs into snprintfs.
 - Heartbeat between daemons.
-- Audit M_ error codes to ensure they are correct and
-  consistent.
+- Audit M_ error codes to ensure they are correct and consistent.
 - Add variable break characters to lex analyzer.
   Either a bit mask or a string of chars so that
   the caller can change the break characters.
@@ -459,3 +420,26 @@ Done: (see kernsdone for more)
 - Fix scheduler -- see "Hourly cycle". It doesn't do both each
   hour, rather it alternates between 0:05 and 0:35.
 - Create Counter DB records.
+- Fix db_get_job_volume_names() to return array of strings (now works
+  with pool memory.
+- Eliminate MySQL shared libraries from smtp and daemons not using MySQL.
+- Compare tape File attributes to Catalog.
+  (File attributes are size, dates, MD5, but not
+   data).
+- Report bad status from smtp or mail program.
+- Ensure that Start/End File/Block are correct.
+- If MySQL database is not running, job terminates with
+  wierd type and wierd error code.
+- Probably create a jcr with JobId=0 as a master
+  catchall if jcr not found or if operation involves
+  global operation.
+- The daemons should know when one is already
+  running and refuse to run a second copy.
+- Figure out how to do a "full" restore from catalog
+- Make SD send attribute stream to DR but first
+  buffering to file, then sending only when the
+  files are written to tape.
+- Restore file xx or files xx, yy to their most recent values.
+- Get correct block/file information in Catalog, pay attention to change of media.
+- Write better dump of Messages resource.
+- Authentication between SD and FD

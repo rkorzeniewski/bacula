@@ -40,8 +40,7 @@ all: winlib.a winres.res
 win32: winlib.a
 
 winlib.a: $(BACOBJS) winres.res
-	ar rc $@ $(BACOBJS)
-	$(RANLIB) $@
+	ar rcs $@ $(BACOBJS)
 
 winres.res: winres.rc bacula.ico winres.h idle.ico running.ico error.ico
 	windres $< -O coff -o $@
