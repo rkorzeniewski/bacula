@@ -92,14 +92,14 @@ db_update_job_start_record(B_DB *mdb, JOB_DBR *jr)
    char dt[MAX_TIME_LENGTH];
    time_t stime;
    struct tm tm;
-   utime_t JobTDate;
+   btime_t JobTDate;
    int stat;
    char ed1[30];
        
    stime = jr->StartTime;
    localtime_r(&stime, &tm);
    strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
-   JobTDate = (utime_t)stime;
+   JobTDate = (btime_t)stime;
 
    db_lock(mdb);
    Mmsg(&mdb->cmd, "UPDATE Job SET Level='%c', StartTime='%s', \
@@ -127,7 +127,7 @@ db_update_job_end_record(B_DB *mdb, JOB_DBR *jr)
    struct tm tm;
    int stat;
    char ed1[30], ed2[30];
-   utime_t JobTDate;
+   btime_t JobTDate;
        
    ttime = jr->EndTime;
    localtime_r(&ttime, &tm);
