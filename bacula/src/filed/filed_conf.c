@@ -114,11 +114,11 @@ extern RES_ITEM msgs_items[];
  * It must have one item for each of the resources.
  */
 RES_TABLE resources[] = {
-   {"director",      dir_items,   R_DIRECTOR,  NULL},
-   {"filedaemon",    cli_items,   R_CLIENT,    NULL},
-   {"client",        cli_items,   R_CLIENT,    NULL}, /* alias for filedaemon */
-   {"messages",      msgs_items,  R_MSGS,      NULL},
-   {NULL,	     NULL,	  0,	       NULL}
+   {"director",      dir_items,   R_DIRECTOR},
+   {"filedaemon",    cli_items,   R_CLIENT},
+   {"client",        cli_items,   R_CLIENT},     /* alias for filedaemon */
+   {"messages",      msgs_items,  R_MSGS},
+   {NULL,	     NULL,	  0}
 };
 
 
@@ -309,12 +309,12 @@ void save_resource(int type, RES_ITEM *items, int pass)
    if (!error) {
       res = (URES *)malloc(size);
       memcpy(res, &res_all, size);
-      if (!resources[rindex].res_head) {
-	 resources[rindex].res_head = (RES *)res; /* store first entry */
+      if (!res_head[rindex]) {
+	 res_head[rindex] = (RES *)res; /* store first entry */
       } else {
 	 RES *next;
 	 /* Add new res to end of chain */
-	 for (next=resources[rindex].res_head; next->next; next=next->next) {
+	 for (next=res_head[rindex]; next->next; next=next->next) {
 	    if (strcmp(next->name, res->res_dir.hdr.name) == 0) {
 	       Emsg2(M_ERROR_TERM, 0,
                   _("Attempt to define second %s resource named \"%s\" is not permitted.\n"),

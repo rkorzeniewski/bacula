@@ -66,7 +66,6 @@ struct RES_TABLE {
    const char *name;                  /* resource name */
    RES_ITEM *items;                   /* list of resource keywords */
    int rcode;                         /* code if needed */
-   RES *res_head;                     /* where to store it */
 };
 
 /* Common Resource definitions */
