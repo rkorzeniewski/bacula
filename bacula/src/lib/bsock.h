@@ -50,7 +50,7 @@ struct BSOCK {
    POOLMEM *msg;                      /* message pool buffer */
    char *who;                         /* Name of daemon to which we are talking */
    char *host;                        /* Host name/IP */
-   POOLMEM *errmsg;                   /* edited error message (to be implemented) */
+   POOLMEM *errmsg;                   /* edited error message */
    RES *res;                          /* Resource to which we are connected */
    BSOCK *next;                       /* next BSOCK if duped */
    FILE *spool_fd;                    /* spooling file */

@@ -167,6 +167,7 @@ int main (int argc, char *argv[])
       usage();
    }
 
+   server_tid = pthread_self();
    if (!no_signals) {
       init_signals(terminate_filed);
    } else {

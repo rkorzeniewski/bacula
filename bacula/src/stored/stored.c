@@ -354,14 +354,14 @@ void *device_allocation(void *arg)
 /* Clean up and then exit */
 void terminate_stored(int sig)
 {
-   static int in_here = FALSE;
+   static bool in_here = false;
    DEVRES *device;
    JCR *jcr;
 
    if (in_here) {		      /* prevent loops */
       exit(1);
    }
-   in_here = TRUE;
+   in_here = true;
 
    if (sig == SIGTERM) {	      /* normal shutdown request? */
       /*
@@ -380,8 +380,8 @@ void terminate_stored(int sig)
 	 set_jcr_job_status(jcr, JS_Canceled);
 	 fd = jcr->file_bsock;	
 	 if (fd) {
-	    fd->timed_out = TRUE;
-            Dmsg1(100, "killing JobId=%d\n", jcr->JobId);
+	    fd->timed_out = true;
+            Dmsg1(100, "term_stored killing JobId=%d\n", jcr->JobId);
 	    pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
 	    if (jcr->device && jcr->device->dev && jcr->device->dev->dev_blocked) {
 	       pthread_cond_signal(&jcr->device->dev->wait_next_vol);

@@ -6,24 +6,46 @@ The name Bacula is a registered trademark.
 License:
 For the most part, Bacula is licensed under the GPL version 2 or greater         
 and any code that is Copyright Kern Sibbald and John Walker with the GPL
-indication is so licensed, but with the following two additions:
+indication is so licensed, but with the following four additions:
 
-Linking: Bacula may be linked with any libraries permitted under
+Linking: 
+Bacula may be linked with any libraries permitted under
 the GPL, or with any non-GPLed libraries, including OpenSSL, that
 are required for its proper functioning, providing the source
 code of those non-GPLed libraries is non-proprietary and freely available.
 
-Termination for Patent Action: In addition to the termination
-clause specified in the GPL, this license shall terminate
-automatically and you may no longer exercise any of the rights
-granted to you by this license as of the date you commence an
-action, including a cross-claim or counterclaim, against any
-licensor of GPL software alleging that the software infringes  
-an intellectual property right or a patent. Special dispensation
-from or delay to the execution of this clause may be possible
-by applying directly to the license owner of this software.
-Such a dispensation or delay is valid only in writing and signed
-by the one or more of the license holders.
+Termination for Patent Action: 
+In addition to the termination clause specified in the GPL, this
+license shall terminate automatically and you may no longer
+exercise any of the rights granted to you by this license as of
+the date you commence an action, including a cross-claim or
+counterclaim, against any licensor of GPL software alleging that
+the software infringes an intellectual property right or a
+patent.  Special dispensation from or delay to the execution of
+this clause may be possible by applying directly to the license
+owner of this software.  Such a dispensation or delay is valid
+only in writing and signed by the one or more of the license
+holders.
+
+IP rights:
+Recipient understands that although each Contributor grants the
+licenses to its Contributions set forth herein, no assurances are
+provided by any Contributor that the Program does not infringe
+the patent or other intellectual property rights of any other
+entity.  Each Contributor disclaims any liability to Recipient
+for claims brought by any other entity based on infringement of
+intellectual property rights or otherwise.  As a condition to
+exercising the rights and licenses granted hereunder, each
+Recipient hereby assumes sole responsibility to secure any other
+intellectual property rights needed, if any.  For example, if a
+third party patent license is required to allow Recipient to
+distribute the Program, it is Recipient's responsibility to
+acquire that license before distributing the Program.
+
+Copyrights:
+Each Contributor represents that to its knowledge it has
+sufficient copyright rights in its Contribution, if any, to grant
+the copyright license set forth in this Agreement.
 
 Code falling under the above conditions will be marked as follows:
 
