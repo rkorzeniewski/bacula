@@ -8,7 +8,11 @@ rm -f bacula.sql
 if test xsqlite = x@DB_NAME@ ; then
   echo ".dump" | @SQL_BINDIR@/sqlite bacula.db >bacula.sql
 else
-  @SQL_BINDIR@/mysqldump $* -f --opt bacula >bacula.sql
+  if test xmysql = x@DB_NAME@ ; then
+    @SQL_BINDIR@/mysqldump $* -f --opt bacula >bacula.sql
+  else
+    @SQL_BINDIR@/pg_dump $* bacula >bacula.sql
+  fi
 fi
 #
 #  To read back a MySQL database use: 
@@ -20,4 +24,9 @@ fi
 #     cd @working_dir@
 #     rm -f bacula.db
 #     sqlite bacula.db <bacula.sql
+#
+#  To read back a PostgreSQL database use:
+#     cd @working_dir@
+#     dropdb bacula
+#     psql bacula <bacula.sql
 #
