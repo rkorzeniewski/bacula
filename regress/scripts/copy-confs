@@ -1,0 +1,5 @@
+#!/bin/sh
+/bin/cp -f scripts/bacula-dir.conf bin/bacula-dir.conf
+/bin/cp -f scripts/bacula-sd.conf bin/bacula-sd.conf
+/bin/cp -f scripts/bacula-fd.conf bin/bacula-fd.conf
+/bin/cp -f scripts/console.conf bin/console.conf

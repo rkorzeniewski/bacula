@@ -1,0 +1,51 @@
+     Bacula Regression
+     Kern Sibbald
+     April 2003
+
+This is Bacula's regression script directory.
+
+To set it up, first edit Makefile and set BACULA-SOURCE to point
+to your source.
+
+Second, make sure that depkgs is in the parent directory of this
+directory (i.e. at the same level) and that it is pre-built.
+
+Then do:
+
+   make setup
+
+You run the above one time.
+
+Then you can run any of the tests in the tests subdirectory.
+Each test whose name ends in -root requires you to be root for
+a resonable run.  Each test is totally independent of any other
+test. Aside from the required "make setup", each test is totally
+self-initalizing and should clean up after itself.
+
+Not all the tests yet report OK.  This is simply because there are
+some spurious differences that I haven't yet taken the time to
+eliminate.
+
+The tests expect you to execute them from the main regress 
+directory!               
+
+You can run them individually as:
+
+   tests/two-jobs-test
+
+or all tests:
+
+   su
+   ./all-tests
+
+or all non-root tests
+
+  ./all-non-root-tests
+
+after running the root tests, while still root, it is a good idea
+to do:
+
+   make reset
+
+this cleans up any files that may be created with root permissions.
+

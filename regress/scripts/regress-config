@@ -1,0 +1,19 @@
+#!/bin/sh
+#
+# This is the configuration script for regression testing
+#
+
+CFLAGS="-g -O2 -Wall" \
+ ./configure \
+    --sbindir=$1/bin \
+    --sysconfdir=$1/bin \
+    --with-pid-dir=$1/bin/working \
+    --with-subsys-dir=$1/bin/working \
+    --enable-smartalloc \
+    --with-sqlite=$1/../depkgs/sqlite \
+    --with-working-dir=$1/bin/working \
+    --with-dump-email=kern+ok@sibbald.com \
+    --with-job-email=kern+ok@sibbald.com \
+    --with-baseport=8101 
+
+exit 0

@@ -1,0 +1,48 @@
+#!/bin/sh
+#
+# Run a simple backup of the Bacula build directory using the compressed option
+#   then restore it.
+#
+cwd=`pwd`
+scripts/copy-test-confs
+rm -rf /tmp/TestVolume001 /tmp/bacula-restores
+echo "${cwd}/build" >/tmp/file-list
+bin/bacula stop 
+bin/drop_sqlite_tables
+bin/make_sqlite_tables
+bin/bacula start
+bin/console -c bin/console.conf <<END_OF_DATA
+@output /dev/null
+messages
+@output
+label
+TestVolume001
+run job=CompressedTest
+yes
+wait
+messages
+@# 
+@# now do a restore
+@#
+restore
+5
+done
+yes
+wait
+@output /dev/null
+messages
+quit
+END_OF_DATA
+bin/bacula stop
+diff -ur build /tmp/bacula-restores${cwd}/build
+if [ $? != 0 ] ; then
+   echo " "
+   echo " "
+   echo "  ===== compressed-test Bacula source failed!!! ===== "
+   echo "  ===== compressed-test failed!!! ===== " >>test.out
+   echo " "
+else
+   echo "  ===== compressed-test Bacula source OK ===== "
+   echo "  ===== compressed-test OK ===== " >>test.out
+fi
+rm -rf /tmp/bacula-restores

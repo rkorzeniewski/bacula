@@ -1,0 +1,49 @@
+#!/bin/sh
+#
+# Run a simple backup of the Bacula build directory
+#   then restore it.
+#
+cwd=`pwd`
+scripts/copy-confs
+rm -rf /tmp/TestVolume001 /tmp/bacula-restores
+bin/bacula stop 
+bin/drop_sqlite_tables
+bin/make_sqlite_tables
+bin/bacula start
+bin/console -c bin/console.conf <<END_OF_DATA
+@output /dev/null
+messages
+@output
+label
+TestVolume001
+run job=NightlySave
+yes
+wait
+messages
+@# 
+@# now do a restore
+@#
+restore
+5
+done
+yes
+@sleep 1
+wait
+@output /dev/null
+messages
+quit
+END_OF_DATA
+sleep 2
+bin/bacula stop
+diff -ur build /tmp/bacula-restores${cwd}/build
+if [ $? != 0 ] ; then
+   echo " "
+   echo " "
+   echo "  ===== Test1 Bacula source failed!!! ===== "
+   echo "  ===== Test1 failed!!! ===== " >>test.out
+   echo " "
+else
+   echo "  ===== Test1 Bacula source OK ===== "
+   echo "  ===== Test1 OK ===== " >>test.out
+fi
+rm -rf /tmp/bacula-restores

@@ -1,0 +1,8 @@
+bacula-dir.conf
+bacula-fd.conf
+bacula-sd.conf
+console.conf
+test-bacula-dir.conf
+test-bacula-fd.conf
+test-bacula-sd.conf
+test-console.conf

@@ -1,0 +1,12 @@
+#!/bin/sh
+#
+# Run all tests
+#
+tests/test0
+tests/backup-bacula-test
+tests/sparse-test
+tests/compressed-test
+tests/sparse-compressed-test
+tests/wierd-files-test
+tests/two-jobs-test
+cat test.out

@@ -1,0 +1,66 @@
+#!/bin/sh
+#
+# Run a simple backup of the Bacula build directory
+#   then restore it.
+#
+echo " "
+echo " "
+echo " === /dev save/restore test ==="
+echo " "
+echo " "
+if [ $UID != 0 ] ; then
+   echo " "
+   echo "You must be root to run this test."
+   echo "  ===== dev test failed!!! ===== "
+   echo "  ===== dev test failed!!! ===== " >>test.out
+   echo " "
+   exit 1
+fi
+cwd=`pwd`
+scripts/copy-test-confs
+echo "/dev" >/tmp/file-list
+rm -rf /tmp/TestVolume001 /tmp/bacula-restores
+bin/bacula stop 
+bin/drop_sqlite_tables
+bin/make_sqlite_tables
+bin/bacula start
+bin/console -c bin/console.conf <<END_OF_DATA
+@output /dev/null
+messages
+label
+TestVolume001
+run job=NightlySave
+yes
+wait
+messages
+@# 
+@# now do a restore
+@#
+restore
+5
+done
+yes
+@sleep 1
+wait
+messages
+@output
+quit
+END_OF_DATA
+bin/bacula stop
+cd /
+${cwd}/bin/testls -e ${cwd}/scripts/exclude-etc-test dev >/tmp/original
+cd /tmp/bacula-restores
+${cwd}/bin/testls -e ${cwd}/scripts/exclude-etc-test dev >/tmp/restored
+diff /tmp/original /tmp/restored
+if [ $? != 0 ] ; then
+   echo " "
+   echo " "
+   echo "  ===== dev test failed!!! ===== "
+   echo "  ===== dev test failed!!! ===== " >>test.out
+   echo " "
+else
+   echo "  ===== dev test OK ===== "
+   echo "  ===== dev test OK ===== " >>test.out
+   rm -rf /tmp/bacula-restores /tmp/original /tmp/restored
+   rm -rf /tmp/file-list /tmp/job /tmp/TestVolume001
+fi
