@@ -10,11 +10,16 @@ Communication encryption    Meno Abels
 Version 1.37                Kern (see below)
 ========================================================
 
+For 1.36.1:
+- Fix CDROM make script to permit picking up already installed
+  static FD.
+- Add dump of VolSessionId/Time and FileIndex with bls.
+- Add date/time to each Jmsg.
+
 1.37 Items:
-- Make bls list files but with VolID, VolTime, FileIndex
+- Implement VolReadTime and VolWriteTime in SD
 - Modify Backing up Your Database to include a bootstrap file.
 - Add restore of specific JobId to regression.
-- Add date/time to each Jmsg.
 - Think about making certain database errors fatal.
 - Look at correcting the time jump in the sceduler for daylight
   savings time changes.
@@ -24,8 +29,8 @@ Version 1.37                Kern (see below)
   even after Files are pruned.
 - Document that Bootstrap files can be written with cataloging
   turned off.
-- Add dump of VolSessionId/Time and FileIndex with bls.
-- Look at adding full Volume and Pool information to a Volume.
+- Look at adding full Volume and Pool information to a Volume 
+  label so that bscan can get *all* the info. 
 - Promote to Full = Time period 
 - Scratch Pool where the volumes can be re-assigned to any Pool.
 - Update StartTime if job held in Job Queue.
@@ -43,7 +48,6 @@ Version 1.37                Kern (see below)
 - Add IPv6 to regression
 - Perhaps add read/write programs and/or plugins to FileSets.
 - How to handle backing up portables ...
-- Add "Rerun failed levels = yes/no" to Job resource.
 - Add some sort of guaranteed Interval for upgrading jobs.
 - Can we write the state file after every job terminates? On Win32
   the system crashes and the state file is not updated.
@@ -975,3 +979,5 @@ Block Position: 0
 
 
 === Done
+- Add "Rerun failed levels = yes/no" to Job resource.
+
