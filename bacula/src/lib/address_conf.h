@@ -29,14 +29,12 @@
 class IPADDR {
  public:
    typedef enum { R_SINGLE, R_SINGLE_PORT, R_SINGLE_ADDR, R_MULTIPLE,
-      R_DEFAULT, R_EMPTY
+                  R_DEFAULT, R_EMPTY
    } i_type;
    IPADDR(int af);
    IPADDR(const IPADDR & src);
  private:
-   IPADDR() {
-      /* block this construction */ 
-   } 
+   IPADDR() {  /* block this construction */ } 
    i_type type;
    union {
       struct sockaddr dontuse;
@@ -66,13 +64,8 @@ class IPADDR {
 #endif
    const char *get_address(char *outputbuf, int outlen);
 
-   const char *build_address_str(char *buf, int blen) {
-      char tmp[1024];
-      snprintf(buf, blen, "host[%s:%s:%hu] ",
-                get_family() == AF_INET ? "ipv4" : "ipv6",
-                get_address(tmp, sizeof(tmp) - 1), ntohs(get_port()));
-      return buf;
-   }
+   const char *build_address_str(char *buf, int blen);
+
    /* private */
    dlink link;
 };
@@ -91,4 +84,3 @@ extern const char *get_first_address(dlist * addrs, char *outputbuf, int outlen)
 extern int get_first_port(dlist * addrs);
 
 extern const char *build_addresses_str(dlist *addrs, char *buf, int blen);
-
