@@ -132,7 +132,7 @@ int get_yesno(UAContext *ua, char *prompt);
 void parse_ua_args(UAContext *ua);
 
 /* ua_label.c */
-int is_volume_name_legal(UAContext *ua, char *name);
+bool is_volume_name_legal(UAContext *ua, char *name);
 
 /* ua_output.c */
 void prtit(void *ctx, char *msg);

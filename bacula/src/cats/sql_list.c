@@ -81,7 +81,8 @@ db_list_pool_records(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, e_
    if (type == VERT_LIST) {
       Mmsg(&mdb->cmd, "SELECT PoolId,Name,NumVols,MaxVols,UseOnce,UseCatalog,"
          "AcceptAnyVolume,VolRetention,VolUseDuration,MaxVolJobs,MaxVolBytes,"
-         "AutoPrune,Recycle,PoolType,LabelFormat "
+         "AutoPrune,Recycle,PoolType,LabelFormat,Enabled,ScratchPoolId,"
+         "RecyclePoolId "
           "FROM Pool ORDER BY PoolId");
    } else {
       Mmsg(&mdb->cmd, "SELECT PoolId,Name,NumVols,MaxVols,PoolType,LabelFormat "

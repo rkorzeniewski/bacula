@@ -45,7 +45,7 @@ static int send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
 	       POOL_DBR *pr, int relabel, bool media_record_exits);
 static vol_list_t *get_vol_list_from_SD(UAContext *ua, bool scan);
 static void free_vol_list(vol_list_t *vol_list);
-static int is_cleaning_tape(UAContext *ua, MEDIA_DBR *mr, POOL_DBR *pr);
+static bool is_cleaning_tape(UAContext *ua, MEDIA_DBR *mr, POOL_DBR *pr);
 static BSOCK *open_sd_bsock(UAContext *ua);
 static void close_sd_bsock(UAContext *ua);
 static char *get_volume_name_from_SD(UAContext *ua, int Slot);
@@ -66,7 +66,7 @@ int relabel_cmd(UAContext *ua, char *cmd)
    return do_label(ua, cmd, 1);      /* relabel tape */
 }
 
-#define MAX_SLOTS 5000
+static int const max_slots = 5000;
 
 static bool get_user_slot_list(UAContext *ua, char *slot_list, int num_slots)
 {
@@ -174,8 +174,8 @@ int update_slots(UAContext *ua)
 
    scan = find_arg(ua, _("scan")) >= 0;
 
-   slot_list = (char *)malloc(MAX_SLOTS);
-   if (!get_user_slot_list(ua, slot_list, MAX_SLOTS)) {
+   slot_list = (char *)malloc(max_slots);
+   if (!get_user_slot_list(ua, slot_list, max_slots)) {
       free(slot_list);
       return 1;
    }
@@ -191,6 +191,7 @@ int update_slots(UAContext *ua)
    for (vl=vol_list; vl; vl=vl->next) {
       /* Check if user wants us to look at this slot */
       if (!slot_list[vl->Slot]) {
+         Dmsg1(100, "Skipping slot=%d\n", vl->Slot);
 	 continue;
       }
       /* If scanning, we read the label rather than the barcode */
@@ -200,8 +201,10 @@ int update_slots(UAContext *ua)
 	    vl->VolName = NULL;
 	 }
 	 vl->VolName = get_volume_name_from_SD(ua, vl->Slot);
+         Dmsg2(100, "Got Vol=%s from SD for Slot=%d\n", vl->VolName, vl->Slot);
       }
       if (!vl->VolName) {
+         Dmsg1(100, "No VolName for Slot=%d skipping.\n", vl->Slot);
 	 continue;
       }
       memset(&mr, 0, sizeof(mr));
@@ -414,8 +417,8 @@ static void label_from_barcodes(UAContext *ua)
    bool media_record_exists;
    char *slot_list;
 
-   slot_list = (char *)malloc(MAX_SLOTS);
-   if (!get_user_slot_list(ua, slot_list, MAX_SLOTS)) {
+   slot_list = (char *)malloc(max_slots);
+   if (!get_user_slot_list(ua, slot_list, max_slots)) {
       free(slot_list);
       return;
    }
@@ -512,7 +515,7 @@ bail_out:
  * Check if the Volume name has legal characters
  * If ua is non-NULL send the message
  */
-int is_volume_name_legal(UAContext *ua, char *name)
+bool is_volume_name_legal(UAContext *ua, char *name)
 {
    int len;
    char *p;
@@ -740,10 +743,14 @@ static vol_list_t *get_vol_list_from_SD(UAContext *ua, bool scan)
       vl = (vol_list_t *)malloc(sizeof(vol_list_t));
       vl->Slot = Slot;
       if (p) {
+         if (*p == ':') {
+	    p++;		      /* skip separator */
+	 }
 	 vl->VolName = bstrdup(p);
       } else {
 	 vl->VolName = NULL;
       }
+      Dmsg2(100, "Add slot=%d Vol=%s to list.\n", vl->Slot, NPRT(vl->VolName));
       if (!vol_list) {
 	 vl->next = vol_list;
 	 vol_list = vl;
@@ -783,20 +790,18 @@ static void free_vol_list(vol_list_t *vol_list)
  *  with the Cleaning Prefix. If they match, this is a cleaning 
  *  tape.
  */
-static int is_cleaning_tape(UAContext *ua, MEDIA_DBR *mr, POOL_DBR *pr)
+static bool is_cleaning_tape(UAContext *ua, MEDIA_DBR *mr, POOL_DBR *pr)
 {
+   /* Find Pool resource */
+   ua->jcr->pool = (POOL *)GetResWithName(R_POOL, pr->Name);
    if (!ua->jcr->pool) {
-      /* Find Pool resource */
-      ua->jcr->pool = (POOL *)GetResWithName(R_POOL, pr->Name);
-      if (!ua->jcr->pool) {
-         bsendmsg(ua, _("Pool %s resource not found!\n"), pr->Name);
-	 return 1;
-      }
+      bsendmsg(ua, _("Pool \"%s\" resource not found!\n"), pr->Name);
+      return true;
    }
    if (ua->jcr->pool->cleaning_prefix == NULL) {
-      return 0;
+      return false;
    }
-   Dmsg4(200, "CLNprefix=%s: Vol=%s: len=%d strncmp=%d\n",
+   Dmsg4(100, "CLNprefix=%s: Vol=%s: len=%d strncmp=%d\n",
       ua->jcr->pool->cleaning_prefix, mr->VolumeName,
       strlen(ua->jcr->pool->cleaning_prefix), 
       strncmp(mr->VolumeName, ua->jcr->pool->cleaning_prefix,
