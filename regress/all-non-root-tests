@@ -21,6 +21,7 @@ tests/bextract-test
 tests/recycle-test
 tests/span-vol-test
 tests/restore-by-file-test
+tests/restore2-by-file-test
 echo " "
 echo " "
 echo "Test results"
