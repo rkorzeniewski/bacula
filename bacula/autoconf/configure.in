@@ -236,8 +236,15 @@ AC_ARG_ENABLE(tray-monitor,
 
 TRAY_MONITOR_DIR=
 if test x$support_tray_monitor = xyes; then
-# TODO: Check for GTK+ presence
-  TRAY_MONITOR_DIR=src/tray-monitor
+  abc=`$PKGCONFIG --exists gtk+-2.0`
+  pkg=$?
+  if test $pkg = 0; then
+     TRAY_MONITOR_CPPFLAGS=`$PKGCONFIG --cflags gtk+-2.0`
+     TRAY_MONITOR_LDFLAGS=`$PKGCONFIG --libs gtk+-2.0`
+     AC_SUBST(TRAY_MONITOR_CPPFLAGS)
+     AC_SUBST(TRAY_MONITOR_LDFLAGS)
+     TRAY_MONITOR_DIR=src/tray-monitor
+  fi
 fi
 AC_SUBST(TRAY_MONITOR_DIR)
 
