@@ -15,7 +15,7 @@ Testing to do: (painful)
 - blocksize recognition code.
 - multiple simultaneous Volumes
 
-For 1.30 release:
+For 1.30a release:
 - Examine Bare Metal restore problem.
 - Test multiple simultaneous Volumes
 - Document FInclude ...
@@ -23,6 +23,10 @@ For 1.30 release:
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 After 1.30:
+- Fix command prompt in gnome-console by checking on Ready.
+- Implement HEART_BEAT while SD waiting for tapes.
+- Include RunBeforeJob and RunAfterJob output in the message
+  stream.
 - Check if Job/File retentions apply to multivolume jobs.
 - Change M_INFO to M_RESTORED for all restored files.
 - Remove subsysdir from conf files (used only in autostart scripts).

@@ -30,9 +30,8 @@
 #include "stored.h"                   /* pull in Storage Deamon headers */
 
 /* Requests sent to the Director */
-static char Find_media[]    = "CatReq Job=%s FindMedia=%d\n";
+static char Find_media[]   = "CatReq Job=%s FindMedia=%d\n";
 static char Get_Vol_Info[] = "CatReq Job=%s GetVolInfo VolName=%s write=%d\n";
-
 static char Update_media[] = "CatReq Job=%s UpdateMedia VolName=%s\
  VolJobs=%u VolFiles=%u VolBlocks=%u VolBytes=%s VolMounts=%u\
  VolErrors=%u VolWrites=%u MaxVolBytes=%s EndTime=%d VolStatus=%s\
@@ -41,11 +40,8 @@ static char Update_media[] = "CatReq Job=%s UpdateMedia VolName=%s\
 static char Create_job_media[] = "CatReq Job=%s CreateJobMedia \
  FirstIndex=%u LastIndex=%u StartFile=%u EndFile=%u \
  StartBlock=%u EndBlock=%u\n";
-
-
 static char FileAttributes[] = "UpdCat Job=%s FileAttributes ";
-
-static char Job_status[]   = "3012 Job %s jobstatus %d\n";
+static char Job_status[]     = "3012 Job %s jobstatus %d\n";
 
 
 /* Responses received from the Director */
@@ -53,9 +49,10 @@ static char OK_media[] = "1000 OK VolName=%127s VolJobs=%u VolFiles=%u\
  VolBlocks=%u VolBytes=%" lld " VolMounts=%u VolErrors=%u VolWrites=%u\
  MaxVolBytes=%" lld " VolCapacityBytes=%" lld " VolStatus=%20s\
  Slot=%d MaxVolJobs=%u MaxVolFiles=%u\n";
-
 static char OK_update[] = "1000 OK UpdateMedia\n";
 
+/* Forward referenced functions */
+static int device_wait(JCR *jcr, DEVICE *dev, int wait_sec);
 
 /*
  * Send current JobStatus to Director
@@ -252,9 +249,6 @@ int dir_update_file_attributes(JCR *jcr, DEV_RECORD *rec)
  */
 int dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev)
 {
-   struct timeval tv;
-   struct timezone tz;
-   struct timespec timeout;
    int stat = 0, jstat;
    /* ******FIXME******* put these on config variable */
    int min_wait = 60 * 60;
@@ -263,7 +257,6 @@ int dir_ask_sysop_to_mount_next_volume(JCR *jcr, DEVICE *dev)
 
    int wait_sec;
    int num_wait = 0;
-   int dev_blocked;
 
    Dmsg0(130, "enter dir_ask_sysop_to_mount_next_volume\n");
    ASSERT(dev->dev_blocked);
@@ -305,36 +298,11 @@ Please use the \"label\"  command to create a new Volume for:\n\
 	      jcr->media_type,
 	      jcr->pool_name);
       }
-      /*
-       * Wait then send message again
-       */
-      gettimeofday(&tv, &tz);
-      timeout.tv_nsec = tv.tv_usec * 1000;
-      timeout.tv_sec = tv.tv_sec + wait_sec;
 
-      P(dev->mutex);
-      dev_blocked = dev->dev_blocked;
-      dev->dev_blocked = BST_WAITING_FOR_SYSOP; /* indicate waiting for mount */
       jcr->JobStatus = jstat;
       dir_send_job_status(jcr);
 
-      for ( ;!job_canceled(jcr); ) {
-         Dmsg1(190, "I'm going to sleep on device %s\n", dev->dev_name);
-	 stat = pthread_cond_timedwait(&dev->wait_next_vol, &dev->mutex, &timeout);
-	 if (dev->dev_blocked == BST_WAITING_FOR_SYSOP) {
-	    break;
-	 }
-	 /*	    
-	  * Someone other than us blocked the device (probably the
-	  *  user via the Console program.   
-	  * So, we continue waiting.
-	  */
-	 gettimeofday(&tv, &tz);
-	 timeout.tv_nsec = 0;
-	 timeout.tv_sec = tv.tv_sec + 10; /* wait 10 seconds */
-      }
-      dev->dev_blocked = dev_blocked;
-      V(dev->mutex);
+      stat = device_wait(jcr, dev, wait_sec);
 
       if (stat == ETIMEDOUT) {
 	 wait_sec *= 2; 	      /* double wait time */
@@ -402,11 +370,7 @@ int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
    int max_num_wait = 9;	      /* 5 waits =~ 1 day, then 1 day at a time */
    int wait_sec;
    int num_wait = 0;
-   int dev_blocked;
    char *msg;
-   struct timeval tv;
-   struct timezone tz;
-   struct timespec timeout;
 
    Dmsg0(130, "enter dir_ask_sysop_to_mount_next_volume\n");
    if (!jcr->VolumeName[0]) {
@@ -427,36 +391,10 @@ int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
       Dmsg3(190, "Mount %s on %s for Job %s\n",
 	    jcr->VolumeName, jcr->dev_name, jcr->Job);
 
-      /*
-       * Wait then send message again
-       */
-      gettimeofday(&tv, &tz);
-      timeout.tv_nsec = tv.tv_usec * 1000;
-      timeout.tv_sec = tv.tv_sec + wait_sec;
-
-      P(dev->mutex);
-      dev_blocked = dev->dev_blocked;
-      dev->dev_blocked = BST_WAITING_FOR_SYSOP; /* indicate waiting for mount */
       jcr->JobStatus = JS_WaitMount;
       dir_send_job_status(jcr);
 
-      for ( ;!job_canceled(jcr); ) {
-         Dmsg1(190, "I'm going to sleep on device %s\n", dev->dev_name);
-	 stat = pthread_cond_timedwait(&dev->wait_next_vol, &dev->mutex, &timeout);
-	 if (dev->dev_blocked == BST_WAITING_FOR_SYSOP) {
-	    break;
-	 }
-	 /*	    
-	  * Someone other than us blocked the device (probably the
-	  *  user via the Console program.   
-	  * So, we continue waiting.
-	  */
-	 gettimeofday(&tv, &tz);
-	 timeout.tv_nsec = 0;
-	 timeout.tv_sec = tv.tv_sec + 10; /* wait 10 seconds */
-      }
-      dev->dev_blocked = dev_blocked;
-      V(dev->mutex);
+      stat = device_wait(jcr, dev, wait_sec); /* wait on device */
 
       if (stat == ETIMEDOUT) {
 	 wait_sec *= 2; 	      /* double wait time */
@@ -494,4 +432,80 @@ int dir_ask_sysop_to_mount_volume(JCR *jcr, DEVICE *dev)
    dir_send_job_status(jcr);
    Dmsg0(130, "leave dir_ask_sysop_to_mount_next_volume\n");
    return 1;
+}
+
+#define HB_TIME 20*60	/* send a heatbeat once every 20 minutes while waiting */
+
+static int device_wait(JCR *jcr, DEVICE *dev, int wait_sec)
+{
+   struct timeval tv;
+   struct timezone tz;
+   struct timespec timeout;
+   int dev_blocked;
+   time_t start = time(NULL);
+   time_t last_heartbeat = 0;
+   int stat = 0;
+   
+   /*
+    * Wait requested time (wait_sec).  However, we also wake up every
+    *	 HB_TIME seconds and send a heartbeat to the FD and the Director
+    *	 to keep stateful firewalls from closing them down while waiting
+    *	 for the operator.
+    */
+   gettimeofday(&tv, &tz);
+   timeout.tv_nsec = tv.tv_usec * 1000;
+   timeout.tv_sec = tv.tv_sec + (wait_sec > HB_TIME ? HB_TIME: wait_sec);
+
+   P(dev->mutex);
+   dev_blocked = dev->dev_blocked;
+   dev->dev_blocked = BST_WAITING_FOR_SYSOP; /* indicate waiting for mount */
+
+   for ( ; !job_canceled(jcr); ) {
+      int add_wait;
+
+      Dmsg1(190, "I'm going to sleep on device %s\n", dev->dev_name);
+      stat = pthread_cond_timedwait(&dev->wait_next_vol, &dev->mutex, &timeout);
+
+      /* Note, this always triggers the first time. We want that. */
+      time_t now = time(NULL);
+      if (now - last_heartbeat >= HB_TIME) {
+	 /* send heartbeats */
+	 if (jcr->file_bsock) {
+	    bnet_sig(jcr->file_bsock, BNET_HEARTBEAT);
+	 }
+	 if (jcr->dir_bsock) {
+	    bnet_sig(jcr->dir_bsock, BNET_HEARTBEAT);
+	 }
+	 last_heartbeat = now;
+      }
+
+      /* Check if we blocked the device */
+      if (dev->dev_blocked == BST_WAITING_FOR_SYSOP) {
+	 if (stat != ETIMEDOUT) {     /* we blocked the device */
+	    break;		      /* on error return */
+	 }
+	 if (now - start >= wait_sec) {  /* on exceeding wait time return */
+	    break;
+	 }
+	 add_wait = wait_sec - (now - start);
+	 if (add_wait > HB_TIME) {
+	    add_wait = HB_TIME;
+	 }
+      } else {			      /* Oops someone else has it blocked now */
+	 add_wait = 10; 	      /* hang around until he releases it */
+      }
+      /*	 
+       * Note, if dev_blocked is not BST_WAITING FOR_SYSOP,
+       *  someone other than us has blocked the device (probably the
+       *  user via the Console program), so we continue waiting
+       *  until he releases the device back to us.
+       */
+      gettimeofday(&tv, &tz);
+      timeout.tv_nsec = tv.tv_usec * 1000;
+      timeout.tv_sec = tv.tv_sec + add_wait; /* additional wait */
+   }
+
+   dev->dev_blocked = dev_blocked;
+   V(dev->mutex);
+   return stat;
 }

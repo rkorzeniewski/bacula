@@ -83,28 +83,28 @@ int32_t bget_msg(BSOCK *bs, int rtn)
       if (n == BNET_SIGNAL) {	       /* handle signal */
 	 /* BNET_SIGNAL (-1) return from bnet_recv() => network signal */
 	 switch (bs->msglen) {
-	    case BNET_EOD:	      /* end of data */
-	       return n;
-	    case BNET_EOD_POLL:
-	       bnet_fsend(bs, OK_msg);/* send response */
-	       return n;	      /* end of data */
-	    case BNET_TERMINATE:
-	       bs->terminated = 1;
-	       return n;
-	    case BNET_POLL:
-	       bnet_fsend(bs, OK_msg); /* send response */
-	       break;
-	    case BNET_HEARTBEAT:
-	       bnet_sig(bs, BNET_HB_RESPONSE);
-	       break;
-	    case BNET_STATUS:
-	       /* *****FIXME***** Implement */
-               bnet_fsend(bs, "Status OK\n");
-	       bnet_sig(bs, BNET_EOD);
-	       break;
-	    default:
-               Emsg1(M_WARNING, 0, _("bget_msg: unknown signal %d\n"), bs->msglen);
-	       return n;
+	 case BNET_EOD: 	   /* end of data */
+	    return n;
+	 case BNET_EOD_POLL:
+	    bnet_fsend(bs, OK_msg);/* send response */
+	    return n;		   /* end of data */
+	 case BNET_TERMINATE:
+	    bs->terminated = 1;
+	    return n;
+	 case BNET_POLL:
+	    bnet_fsend(bs, OK_msg); /* send response */
+	    break;
+	 case BNET_HEARTBEAT:
+	 case BNET_HB_RESPONSE:
+	    break;
+	 case BNET_STATUS:
+	    /* *****FIXME***** Implement */
+            bnet_fsend(bs, "Status OK\n");
+	    bnet_sig(bs, BNET_EOD);
+	    break;
+	 default:
+            Emsg1(M_WARNING, 0, _("bget_msg: unknown signal %d\n"), bs->msglen);
+	    return n;
 	 }
 	 continue;
       }

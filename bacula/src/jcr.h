@@ -151,6 +151,7 @@ struct s_jcr {
    int replace;                       /* Replace option */
 #endif /* DIRECTOR_DAEMON */
 
+
 #ifdef FILE_DAEMON
    /* File Daemon specific part of JCR */
    uint32_t num_files_examined;       /* files examined this job */
@@ -176,7 +177,10 @@ struct s_jcr {
    uint32_t StartBlock;
    uint32_t EndBlock;
    int use_win_backup_api;            /* set to use native Win API */
+   pthread_t heartbeat_id;            /* id of heartbeat thread */
+   BSOCK *duped_sd;                   /* duped SD socket */
 #endif /* FILE_DAEMON */
+
 
 #ifdef STORAGE_DAEMON
    /* Storage Daemon specific part of JCR */

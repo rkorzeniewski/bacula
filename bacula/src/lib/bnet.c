@@ -341,7 +341,7 @@ bnet_send(BSOCK *bsock)
 	 }
       } else {
          Jmsg5(bsock->jcr, M_ERROR, 0, _("Wrote %d bytes to %s:%s:%d, but only %d accepted.\n"), 
-	       bsock->who, bsock->host, bsock->port, bsock->msglen, rc);
+	       bsock->msglen, bsock->who, bsock->host, bsock->port, rc);
       }
       return 0;
    }
@@ -722,6 +722,12 @@ dup_bsock(BSOCK *osock)
    memcpy(bsock, osock, sizeof(BSOCK));
    bsock->msg = get_pool_memory(PM_MESSAGE);
    bsock->errmsg = get_pool_memory(PM_MESSAGE);
+   if (osock->who) {
+      bsock->who = bstrdup(osock->who);
+   }
+   if (osock->host) {
+      bsock->host = bstrdup(osock->host);
+   }
    bsock->duped = TRUE;
    return bsock;
 }
@@ -735,12 +741,9 @@ bnet_close(BSOCK *bsock)
    for ( ; bsock != NULL; bsock = next) {
       next = bsock->next;
       if (!bsock->duped) {
-//	 shutdown(bsock->fd, SHUT_RDWR);
 	 close(bsock->fd);
-	 term_bsock(bsock);
-      } else {
-	 free(bsock);
       }
+      term_bsock(bsock);
    }
    return;
 }

@@ -32,9 +32,70 @@
 
 static int save_file(FF_PKT *ff_pkt, void *pkt);
 
+static void *heartbeat_thread(void *arg)
+{
+   int32_t n;
+   JCR *jcr = (JCR *)arg;
+   BSOCK *sd, *dir;
+
+   jcr->heartbeat_id = pthread_self();
+
+   /* Get our own local copy */
+   sd = dup_bsock(jcr->store_bsock);
+   dir = dup_bsock(jcr->dir_bsock);
+
+   jcr->duped_sd = sd;
+
+   /* Hang reading the socket to the SD, and every time we get
+    *	a heartbeat, we simply send it on to the Director to
+    *	keep him alive.
+    */
+   for ( ;; ) {
+      n = bnet_recv(sd);
+      if (is_bnet_stop(sd)) {
+	 break;
+      }
+      if (n == BNET_SIGNAL && sd->msglen == BNET_HEARTBEAT) {
+	 bnet_sig(dir, BNET_HEARTBEAT);
+      }
+   }
+   bnet_close(sd);
+   bnet_close(dir);
+   return NULL;
+}
+
+/* Startup the heartbeat thread -- see above */
+static void start_heartbeat_monitor(JCR *jcr)
+{
+   pthread_t hbtid;
+   jcr->duped_sd = NULL;
+   pthread_create(&hbtid, NULL, heartbeat_thread, (void *)jcr);
+}
+
+/* Terminate the heartbeat thread */
+static void stop_heartbeat_monitor(JCR *jcr) 
+{
+   pthread_t hbtid = jcr->heartbeat_id;
+
+   while (jcr->duped_sd == NULL) {
+      bmicrosleep(0, 500);	      /* avoid race */
+   }
+   jcr->duped_sd->timed_out = 1;      /* set timed_out to terminate read */
+
+   pthread_kill(hbtid, TIMEOUT_SIGNAL);  /* make heartbeat thread go away */
+   pthread_join(hbtid, NULL);	      /* wait for him to clean up */
+}
+
 /* 
  * Find all the requested files and send them
- * to the Storage daemon.
+ * to the Storage daemon. 
+ *
+ * Note, we normally carry on a one-way
+ * conversation from this point on with the SD, simply blasting
+ * data to him.  To properly know what is going on, we
+ * also run a "heartbeat" monitor which reads the socket and
+ * reacts accordingly (at the moment it has nothing to do
+ * except echo the heartbeat to the Director).
  * 
  */
 int blast_data_to_storage_daemon(JCR *jcr, char *addr) 
@@ -67,11 +128,15 @@ int blast_data_to_storage_daemon(JCR *jcr, char *addr)
    set_find_options((FF_PKT *)jcr->ff, jcr->incremental, jcr->mtime);
    Dmsg0(110, "start find files\n");
 
+   start_heartbeat_monitor(jcr);
+
    /* Subroutine save_file() is called for each file */
    if (!find_files(jcr, (FF_PKT *)jcr->ff, save_file, (void *)jcr)) {
       stat = 0; 		      /* error */
       set_jcr_job_status(jcr, JS_ErrorTerminated);
    }
+
+   stop_heartbeat_monitor(jcr);
 
    bnet_sig(sd, BNET_EOD);	      /* end data connection */
 
