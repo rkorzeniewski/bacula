@@ -2,6 +2,6 @@
 #
 # Cleanup left over files -- both before and after test run
 #
-rm -rf /tmp/TestVolume001 /tmp/bacula-restores
-rm -rf tmp/original tmp/bacula-restores tmp/SmallVols* tmp/TestVolume*
+rm -rf /tmp/TestVolume001 /tmp/bacula-restores /tmp/Small*
+rm -rf tmp/original tmp/bacula-restores tmp/Small* tmp/TestVolume*
 rm -rf tmp/restored tmp/largefile
