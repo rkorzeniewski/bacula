@@ -99,8 +99,6 @@ int main (int argc, char *argv[])
    init_msg(NULL, NULL);
    daemon_start_time = time(NULL);
 
-   memset(&last_job, 0, sizeof(last_job));
-
    while ((ch = getopt(argc, argv, "c:d:fg:istu:v?")) != -1) {
       switch (ch) {
       case 'c':                    /* configuration file */

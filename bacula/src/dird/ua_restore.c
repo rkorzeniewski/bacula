@@ -178,10 +178,10 @@ int restore_cmd(UAContext *ua, char *cmd)
 	 return 0;
       }
       write_bsr_file(ua, rx.bsr);
-      bsendmsg(ua, _("\n%u file%s selected to restore.\n\n"), rx.selected_files,
+      bsendmsg(ua, _("\n%u file%s selected to be restored.\n\n"), rx.selected_files,
          rx.selected_files==1?"":"s");
    } else {
-      bsendmsg(ua, _("No files selected to restore.\n"));
+      bsendmsg(ua, _("No files selected to be restored.\n"));
       free_rx(&rx);
       return 0;
    }

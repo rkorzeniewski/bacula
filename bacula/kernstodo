@@ -57,18 +57,24 @@ For 1.33 Testing/Documentation:
   it with the catalog database.
 - Document Dan's new --with-dir-user, ... options.
                 
-
 For 1.33
+- Change "create_media_record in bscan to use Archive instead of Full.
 - Implement RestoreJobRetention? Maybe better "JobRetention" in a Job,
   which would take precidence over the Catalog "JobRetention".
 - Implement Label Format in Add and Label console commands.
-- Possibly up network buffers to 65K.
-- Keep last 5 or 10 completed jobs and show them in a similar list.
-- Make a Running Jobs: output similar to current Scheduled Jobs:
+- Possibly up network buffers to 65K. Put on variable.
+- Put email tape request delays on one or more variables. User wants
+  to cancel the job after a certain time interval.  Maximum Mount Wait?
+  Job, Client, Device, Pool, or Volume?
 
 After 1.33:
+- Each DVD-RAM disk would be a volume, just like each tape is 
+  a volume. It's a 4.7GB media with random access, but there's nothing about 
+  it that I can see that makes it so different than a tape from  bacula's 
+  perspective. Why couldn't I back up to a bare floppy as a volume (ignoring 
+  the media capacity?)
 - Make dev->file and dev->block_num signed integers so that -1 can
-  be an invalid value.
+  be an invalid value which happens with BSR.
 - Create VolAddr for disk files in place of VolFile and VolBlock. This
   is needed to properly specify ranges.
 - Print bsmtp output to job report so that problems will be seen.
@@ -927,3 +933,6 @@ Done: (see kernsdone for more)
 - Implement autochanger testing in btape "test" command.
 - Implement lmark to list everyfile marked.
 - Make mark/unmark report how many files marked/unmarked.
+- Keep last 5 or 10 completed jobs and show them in a similar list.
+- Make a Running Jobs: output similar to current Scheduled Jobs:
+

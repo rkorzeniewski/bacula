@@ -253,9 +253,11 @@ struct JCR {
  *  info on the last job run.
  */
 struct s_last_job {
+   dlink link;
    int NumJobs;
    int JobType;
    int JobStatus;
+   int JobLevel;
    uint32_t JobId;
    uint32_t VolSessionId;
    uint32_t VolSessionTime;
@@ -266,7 +268,8 @@ struct s_last_job {
    char Job[MAX_NAME_LENGTH];
 };
 
-extern struct s_last_job last_job;
+extern struct s_last_job last_job;               
+extern dlist *last_jobs;
 
 
 /* The following routines are found in lib/jcr.c */
