@@ -505,7 +505,7 @@ AC_ARG_WITH(tcp-wrappers,
   [
     if test "x$withval" != "xno" ; then
        saved_LIBS="$LIBS"
-       LIBS="$LIBS -lwrap -lnsl"
+       LIBS="$saved_LIBS -lwrap"
        AC_MSG_CHECKING(for libwrap)
        AC_TRY_LINK(
 	  [ #include <tcpd.h>
@@ -517,8 +517,21 @@ AC_ARG_WITH(tcp-wrappers,
 	    AC_MSG_RESULT(yes)
 	    AC_DEFINE(HAVE_LIBWRAP)
 	    TCPW_MSG="yes" 
-	  ],
-	  [AC_MSG_ERROR([*** libwrap missing]) ]
+	  ], [
+	    LIBS="$saved_LIBS -lwrap -lnsl"
+	    AC_TRY_LINK(
+	      [ #include <tcpd.h>
+		 int deny_severity = 0;
+		 int allow_severity = 0;
+		 struct request_info *req; ],
+	      [ hosts_access(req); ],
+	      [
+		 AC_MSG_RESULT(yes)
+		 AC_DEFINE(HAVE_LIBWRAP)
+		 TCPW_MSG="yes" 
+	      ],
+	      [AC_MSG_ERROR([*** libwrap missing]) ] ]
+	    )
        )
     fi
   ]

@@ -135,7 +135,7 @@ int match_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSION_LABEL *se
       /* 
        * Note, bsr->reposition is set by match_all when
        *  a bsr is done. We turn it off if a match was
-       *  found or if we cannot use poistioning
+       *  found or if we cannot use positioning
        */
       if (stat != 0 || !bsr->use_positioning) {
 	 bsr->reposition = false;
@@ -464,6 +464,10 @@ static int match_sessid(BSR *bsr, BSR_SESSID *sessid, DEV_RECORD *rec)
    return 0;
 }
 
+/*
+ * When reading the Volume, the Volume Findex (rec->FileIndex) always
+ *   are found in sequential order. Thus we can make optimizations.
+ */
 static int match_findex(BSR *bsr, BSR_FINDEX *findex, DEV_RECORD *rec, bool done)
 {
    if (!findex) {

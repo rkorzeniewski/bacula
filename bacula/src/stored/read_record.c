@@ -263,7 +263,7 @@ static BSR *position_to_first_file(JCR *jcr, DEVICE *dev)
     *	on this tape.
     */
    if (jcr->bsr) {
-      jcr->bsr->reposition = true;
+      jcr->bsr->reposition = true;    /* force repositioning */
       bsr = find_next_bsr(jcr->bsr, dev);
       if (bsr) {
          Jmsg(jcr, M_INFO, 0, _("Forward spacing to file:block %u:%u.\n"), 

@@ -1,4 +1,25 @@
 
+2003-10-09 Version 1.32b 08Oct03 Release
+- I noticed that SD and FD bootstrap files were not always
+  deleted, so delete them as soon as possible.
+- Restore by file (or by selecting files) created some
+  horrible looking bsr files that defeated the forward
+  spacing code, so fix write_findex to work right.
+- Add zlib_strerror() routine in filed/restore in case
+  of zlib errors.
+- In filed/restore.c make sure all error returns cleanup
+  and close the open file descriptor.
+- Make sure to set *non* over filename in attr packet
+  after file is found, so error messages that print the
+  filename don't print an old, incorrect name.
+- Allow bclose() to be called after closing the file.
+- Fix a number of unclear help messages, ... reported by
+  Phil in btape.
+- Retweak stored/read_record.c so that it does forward
+  spacing at the beginning of every tape, not just the
+  first one.
+- Print repositioning message if verbose is set.
+
 2003-10-01 Version 1.32a 03Oct03 Release
 04Oct03
 - Combine the code in ua_output and ua_status that searches

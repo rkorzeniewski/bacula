@@ -23,7 +23,6 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.33 Testing/Documentation:
-- Fix FreeBSD build with tcp_wrapper -- should not have -lnsl
 - Document to start higher priorty jobs before lower ones.
 - suppress "Do not forget to mount the drive!!!" if error
 - Document new records in Director. SDAddress SDDeviceName, SDPassword.
@@ -31,8 +30,23 @@ For 1.33 Testing/Documentation:
 - Document new Include/Exclude ...
 - Add test of exclusion, test multiple Include {} statements.
 - Add counter variable test.
+- Document ln -sf /usr/lib/libncurses.so /usr/lib/libtermcap.so
+  and install the esound-dev  package for compiling Console on 
+  SuSE.
                 
 For 1.33
+- Implement a RunAfterFailedJob
+- Zap illegal characters in job name for mail files (e.g. /).
+- From Lars Köllers:
+    Yes, it would allow to highly automatic the request for new tapes. If a 
+    tape is empty, bacula reads the barcodes (native or simulated), and if 
+    an unused tape is found, it runs the label command with all the 
+    necessary parameters.
+
+    By the way can bacula automatically "move" an empry/purged volume say 
+    in the "short" pool to the "long" pool if this pool runs out of volume 
+    space?
+- Implement a move Volume from one pool to another.
 - Either restrict the characters in a name, or fix the problem 
   emailing with names containing / (smtp command line breaks).
 - Eliminate ua_retention.c (retentioncmd) if possible.
@@ -120,7 +134,7 @@ For 1.33
 - Use system dependent calls to get more precise info on tape errors.
 - Add heartbeat from FD to SD if hb interval expires.
 - Suppress read error on blank tape when doing a label.
-- Can we dynamically change FileSets.
+- Can we dynamically change FileSets?
 - If pool specified to label command and Label Format is specified,
   automatically generate the Volume name.
 - Take a careful look a the Basic recycling algorithm.  When Bacula
@@ -180,7 +194,8 @@ For 1.33
   > > prod4-sd: End of medium on Volume "REU007" Bytes=16,303,521,933 
 
 - Use autochanger to handle multiple devices.
-- Fix packet too big problem.
+- Fix packet too big problem. This is most likely a Windows TCP stack 
+  problem.
 - Add SuSE install doc to list.
 - Check and rechedk "Invalid block number"
 - Make bextract release the drive properly between tapes 
@@ -1020,4 +1035,5 @@ Done: (see kernsdone for more)
 - Combine the 3 places that search run records for the next
   job. Use find_job_pool() modified in ua_output.c
 - Test connect timeouts.
+- Fix FreeBSD build with tcp_wrapper -- should not have -lnsl
 

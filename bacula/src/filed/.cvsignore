@@ -7,3 +7,4 @@ host.h
 startit
 static-bacula-fd
 stopit
+filed.conf
