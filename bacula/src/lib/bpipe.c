@@ -120,6 +120,7 @@ int close_wpipe(BPIPE *bpipe)
    int stat = 1;
 
    if (bpipe->wfd) {
+      fflush(bpipe->wfd);
       if (fclose(bpipe->wfd) != 0) {
 	 stat = 0;
       }
@@ -132,9 +133,11 @@ int close_wpipe(BPIPE *bpipe)
 int close_bpipe(BPIPE *bpipe) 
 {
    int chldstatus = 0;
-   int stat = ETIME;
+   int stat = 0;    
    int wait_option;
    int remaining_wait;
+   pid_t wpid = 0;
+
 
    /* Close pipes */
    if (bpipe->rfd) {
@@ -155,7 +158,6 @@ int close_bpipe(BPIPE *bpipe)
 
    /* wait for worker child to exit */
    for ( ;; ) {
-      pid_t wpid;
       wpid = waitpid(bpipe->worker_pid, &chldstatus, wait_option);
       if (wpid == bpipe->worker_pid || (wpid == -1 && errno != EINTR)) {
 	 break;
@@ -164,16 +166,21 @@ int close_bpipe(BPIPE *bpipe)
 	 sleep(1);		      /* wait one second */
 	 remaining_wait--;
       } else {
+	 stat = ETIME;		      /* set timeout, if no other status */
+	 wpid = -1;
          break;                       /* don't wait any longer */
       }
    }
-   if (WIFEXITED(chldstatus)) {
+   if (wpid != -1 && WIFEXITED(chldstatus)) {
       stat = WEXITSTATUS(chldstatus);
    }
    if (bpipe->timer_id) {
       stop_child_timer(bpipe->timer_id);
    }
    free(bpipe);
+#ifdef HAVE_FREEBSD_OS
+   stat = 0;  /* kludge because FreeBSD doesn't seem to return valid status */
+#endif
    return stat;
 }
 
