@@ -65,7 +65,7 @@ Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 
 clean:
 	@$(RMF) bsmtp core core.* a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
-	@$(RMF) testfind dbcheck testls
+	@$(RMF) testfind dbcheck testls fstype
 
 realclean: clean
 	@$(RMF) tags
