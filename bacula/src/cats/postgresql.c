@@ -39,6 +39,8 @@
 
 #ifdef HAVE_POSTGRESQL
 
+#include "postgres_ext.h"	/* needed for NAMEDATALEN */
+
 /* -----------------------------------------------------------------------
  *
  *   PostgreSQL dependent defines and subroutines
@@ -215,7 +217,7 @@ db_close_database(JCR *jcr, B_DB *mdb)
  * Return the next unique index (auto-increment) for
  * the given table.  Return NULL on error.
  *  
- * For MySQL, NULL causes the auto-increment value
+ * For PostgreSQL, NULL causes the auto-increment value
  *  to be updated.
  */
 int db_next_index(JCR *jcr, B_DB *mdb, char *table, char *index)
@@ -245,7 +247,6 @@ db_escape_string(char *snew, char *old, int len)
 int db_sql_query(B_DB *mdb, char *query, DB_RESULT_HANDLER *result_handler, void *ctx)
 {
    SQL_ROW row;
-   int     numrows;
 
    Dmsg0(50, "db_sql_query started\n");
   
@@ -311,13 +312,17 @@ list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type type)
    unsigned int i, col_len, max_len = 0;
    char buf[2000], ewc[30];
 
+   Dmsg0(50, "list_result starts\n");
    if (mdb->result == NULL) {
       send(ctx, _("No results to list.\n"));
       return;
    }
+
+   Dmsg1(50, "list_result starts looking at %d fields\n", sql_num_fields(mdb));
    /* determine column display widths */
    sql_field_seek(mdb, 0);
    for (i = 0; i < sql_num_fields(mdb); i++) {
+      Dmsg1(50, "list_result processing field %d\n", i);
       field   = sql_fetch_field(mdb);
       col_len = strlen(field->name);
       if (type == VERT_LIST) {
@@ -338,14 +343,17 @@ list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type type)
       }
    }
 
+   Dmsg0(50, "list_result finished first loop\n");
    if (type == VERT_LIST) {
       goto vertical_list;
    }
 
+   Dmsg1(50, "list_result starts second loop looking at %d fields\n", sql_num_fields(mdb));
    list_dashes(mdb, send, ctx);
    send(ctx, "|");
    sql_field_seek(mdb, 0);
    for (i = 0; i < sql_num_fields(mdb); i++) {
+      Dmsg1(50, "list_result looking at field %d\n", i);
       field = sql_fetch_field(mdb);
       bsnprintf(buf, sizeof(buf), " %-*s |", (int)field->max_length, field->name);
       send(ctx, buf);
@@ -353,6 +361,7 @@ list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type type)
    send(ctx, "\n");
    list_dashes(mdb, send, ctx);
 
+   Dmsg1(50, "list_result starts third loop looking at %d fields\n", sql_num_fields(mdb));
    while ((row = sql_fetch_row(mdb)) != NULL) {
       sql_field_seek(mdb, 0);
       send(ctx, "|");
@@ -375,6 +384,7 @@ list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type type)
 
 vertical_list:
    
+   Dmsg1(50, "list_result starts vertical list at %d fields\n", sql_num_fields(mdb));
    while ((row = sql_fetch_row(mdb)) != NULL) {
       sql_field_seek(mdb, 0);
       for (i = 0; i < sql_num_fields(mdb); i++) {
@@ -395,21 +405,34 @@ vertical_list:
 }
 
 POSTGRESQL_ROW my_postgresql_fetch_row(B_DB *mdb) {
-	int            nFields;
 	int            j;
 	POSTGRESQL_ROW row = NULL; // by default, return NULL
 
 	Dmsg0(50, "my_postgresql_fetch_row start\n");
-	ASSERT(mdb->row != NULL);
+
+	if (mdb->row_number == -1 || mdb->row == NULL) {
+
+		Dmsg1(50, "we have need space of %d bytes\n", sizeof(char *) * mdb->num_fields);
+
+		if (mdb->row != NULL) {
+			Dmsg0(50, "my_postgresql_fetch_row freeing space\n");
+			free(mdb->row);
+			mdb->row = NULL;
+		}
+
+		mdb->row = (POSTGRESQL_ROW) malloc(sizeof(char *) * mdb->num_fields);
+
+		// now reset the row_number now that we have the space allocated
+		mdb->row_number = 0;
+	}
 
 	// if still within the result set
 	if (mdb->row_number < mdb->num_rows) {
 		Dmsg2(50, "my_postgresql_fetch_row row number '%d' is acceptable (0..%d)\n", mdb->row_number, mdb->num_rows);
-		// allocate space for one row
 		// get each value from this row
 		for (j = 0; j < mdb->num_fields; j++) {
 			mdb->row[j] = PQgetvalue(mdb->result, mdb->row_number, j);
-			Dmsg2(50, "my_postgresql_fetch_row field '%d' is '%s'\n", j, mdb->row[j]);
+			Dmsg2(50, "my_postgresql_fetch_row field '%d' has value '%s'\n", j, mdb->row[j]);
 		}
 		// increment the row number for the next call
 		mdb->row_number++;
@@ -433,7 +456,17 @@ POSTGRESQL_FIELD * my_postgresql_fetch_field(B_DB *mdb) {
 	// I am not sure this returns what we can use
 	mdb->field.type       = PQftype    (mdb->result, mdb->field_number);
 
-	mdb->field.flags      = PQgetisnull(mdb->result, mdb->row_number, mdb->field_number);
+//	if (mdb->num_rows > 0) {
+//		Dmsg1(50, "asking for information on field '%d' type='%d' and IsNull=%d\n",
+// 		mdb->field.flags  = PQgetisnull(mdb->result, mdb->row_number, mdb->field_number);
+// 	}
+	mdb->field.flags = 0;
+
+	Dmsg4(50, "my_postgresql_fetch_field finds field '%s' has length='%d' type='%d' and IsNull=%d\n", 
+		mdb->field.name, mdb->field.max_length, mdb->field.type, mdb->field.flags);
+
+	// increment this for the next time around
+	mdb->field_number++;
 
 	return &mdb->field;
 }
@@ -455,29 +488,23 @@ int my_postgresql_query(B_DB *mdb, char *query) {
 	mdb->row_number   = -1;
 	mdb->field_number = -1;
 
-	if (mdb->row) {
 
-		Dmsg0(50, "my_postgresql_query freeing space\n");
-		free(mdb->row);
-		mdb->row = NULL;
-	}
-
-
-	Dmsg1(50, "doing PQexec with '%s'\n", query);
+	Dmsg1(50, "my_postgresql_query starts with '%s'\n", query);
 	mdb->result = PQexec(mdb->db, query);
-	if (PQresultStatus(mdb->result) == PGRES_TUPLES_OK) {
+	mdb->status = PQresultStatus(mdb->result);
+	if (mdb->status == PGRES_TUPLES_OK || mdb->status == PGRES_COMMAND_OK) {
+		Dmsg1(50, "we have a result\n", query);
+
+		// how many fields in the set?
+		mdb->num_fields = (unsigned int) PQnfields(mdb->result);
+		Dmsg1(50, "we have %d fields\n", mdb->num_fields);
 
 		mdb->num_rows   = PQntuples(mdb->result);
-		// how many fields in the set?
-		mdb->num_fields = PQnfields(mdb->result);
+		Dmsg1(50, "we have %d rows\n", mdb->num_rows);
 
-		// point at the first row for the fetch row function
-		mdb->row_number = 0;
-
-		mdb->row = (POSTGRESQL_ROW) malloc(sizeof(char *) * mdb->num_fields);
-		Dmsg2(50, "PQexec was OK.  rows=%d columns=%d\n", mdb->num_rows, mdb->num_fields);
 		mdb->status = 0;
 	} else {
+		Dmsg1(50, "we failed\n", query);
 		mdb->status = 1;
 	}
 
@@ -487,9 +514,69 @@ int my_postgresql_query(B_DB *mdb, char *query) {
 }
 
 void my_postgresql_free_result (B_DB *mdb) {
-	PQclear(mdb->result);
-	free(mdb->row);
-	mdb->row = NULL;
+	if (mdb->result) {
+		PQclear(mdb->result);
+	}
+
+	if (mdb->row) {
+		free(mdb->row);
+		mdb->row = NULL;
+	}
+}
+
+int my_postgresql_currval(B_DB *mdb) {
+	// Obtain the current value of the sequence that
+	// provides the serial value for primary key of the table.
+
+	// currval is local to our session.  It is not affected by
+	// other transactions.
+
+	// Determine the name of the sequence.
+	// PostgreSQL automatically creates a sequence using
+	// <table>_<column>_seq.
+	// At the time of writing, all tables used this format for
+	// for their primary key: <table>id
+	// Except for basefiles which has a primary key on baseid.
+	// Therefore, we need to special case that one table.
+
+	// everything else can use the PostgreSQL formula.
+
+	char      sequence[NAMEDATALEN-1];
+	char      query   [NAMEDATALEN+50];
+//	POOLMEM  *query;
+	PGresult *result;
+	int       id = 0;
+
+	if (strcasecmp(mdb->table_name, "basefiles") == 0) {
+		strcpy(sequence, "basefiles_baseid");
+	} else {
+		strcpy(sequence, mdb->table_name);
+		strcat(sequence, "_");
+		strcat(sequence, mdb->table_name);
+		strcat(sequence, "id");
+	}
+
+	strcat(sequence, "_seq");
+	bsnprintf(query, sizeof(query), "SELECT currval('%s')", sequence);
+
+//	Mmsg(&query, "SELECT currval('%s')", sequence);
+	Dmsg1(50, "my_postgresql_currval invoked with '%s'\n", query);
+	result = PQexec(mdb->db, query);
+
+	Dmsg0(50, "exec done");
+
+	if (PQresultStatus(result) == PGRES_TUPLES_OK) {
+		Dmsg0(50, "getting value");
+		id = atoi(PQgetvalue(result, 0, 0));
+		Dmsg2(50, "got value '%s' which became %d\n", PQgetvalue(result, 0, 0), id);
+	} else {
+		Mmsg1(&mdb->errmsg, _("error fetching currval: %s\n"), PQerrorMessage(mdb->db));
+	}
+
+//	free_pool_memory(query);
+	PQclear(result);
+
+	return id;
 }
 
 
