@@ -96,7 +96,7 @@ static void callback_child_timer(watchdog_t *self)
       /* First kill attempt; try killing it softly (kill -SONG) first */
       wid->killed = true;
 
-      Dmsg2(200, "watchdog %p term PID %d\n", self, wid->pid);
+      Dmsg2(050, "watchdog %p term PID %d\n", self, wid->pid);
 
       /* Kill -TERM the specified PID, and reschedule a -KILL for 3 seconds
        * later.
@@ -105,7 +105,7 @@ static void callback_child_timer(watchdog_t *self)
       self->interval = 3;
    } else {
       /* This is the second call - terminate with prejudice. */
-      Dmsg2(200, "watchdog %p kill PID %d\n", self, wid->pid);
+      Dmsg2(050, "watchdog %p kill PID %d\n", self, wid->pid);
 
       kill(wid->pid, SIGKILL);
 
@@ -165,7 +165,8 @@ btimer_t *start_bsock_timer(BSOCK *bsock, uint32_t wait)
    wid->wd->interval = wait;
    register_watchdog(wid->wd);
 
-   Dmsg3(50, "Start bsock timer %p tip %p for %d secs.\n", wid, wid->tid, wait);
+   Dmsg4(50, "Start bsock timer %p tid=%p for %d secs at %d\n", wid, 
+	 wid->tid, wait, time(NULL));
 
    return wid;
 }
@@ -179,7 +180,7 @@ void stop_bsock_timer(btimer_t *wid)
       Dmsg0(200, "stop_bsock_timer called with NULL btimer_id\n");
       return;
    }
-   Dmsg2(50, "Stop bsock timer %p tid %p.\n", wid, wid->tid);
+   Dmsg3(50, "Stop bsock timer %p tid=%p at %d.\n", wid, wid->tid, time(NULL));
    stop_btimer(wid);
 }
 
@@ -193,7 +194,7 @@ void stop_thread_timer(btimer_t *wid)
       Dmsg0(200, "stop_thread_timer called with NULL btimer_id\n");
       return;
    }
-   Dmsg2(200, "Stop thread timer %p tid %p.\n", wid, wid->tid);
+   Dmsg2(200, "Stop thread timer %p tid=%p.\n", wid, wid->tid);
    stop_btimer(wid);
 }
 
@@ -210,10 +211,10 @@ static void callback_thread_timer(watchdog_t *self)
 {
    btimer_t *wid = (btimer_t *)self->data;
 
-   Dmsg2(50, "watchdog %p kill thread %d\n", self, wid->tid);
+   Dmsg4(50, "thread timer %p kill %s tid=%p at %d.\n", self, 
+      wid->type == TYPE_BSOCK ? "bsock" : "thread", wid->tid, time(NULL));
 
    if (wid->type == TYPE_BSOCK && wid->bsock) {
-      Dmsg0(50, "kill type bsock ...\n");
       wid->bsock->timed_out = true;
    }
    pthread_kill(wid->tid, TIMEOUT_SIGNAL);

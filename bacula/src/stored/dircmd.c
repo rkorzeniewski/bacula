@@ -182,7 +182,7 @@ void *handle_connection_request(void *arg)
       if ((bnet_stat = bnet_recv(bs)) <= 0) {
 	 break; 	      /* connection terminated */
       }
-      Dmsg1(9, "<dird: %s\n", bs->msg);
+      Dmsg1(199, "<dird: %s\n", bs->msg);
       found = false;
       for (i=0; cmds[i].cmd; i++) {
 	if (strncmp(cmds[i].cmd, bs->msg, strlen(cmds[i].cmd)) == 0) {
@@ -194,7 +194,7 @@ void *handle_connection_request(void *arg)
 	   }
 	   if (!cmds[i].func(jcr)) { /* do command */
 	      quit = true; /* error, get out */
-              Dmsg1(90, "Command %s requsts quit\n", cmds[i].cmd);
+              Dmsg1(190, "Command %s requsts quit\n", cmds[i].cmd);
 	   }
 	   found = true;	     /* indicate command found */
 	   break;
