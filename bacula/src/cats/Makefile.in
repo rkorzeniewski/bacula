@@ -1,0 +1,99 @@
+# 
+@MCOMMON@
+
+srcdir =	.
+.PATH:		.
+
+# one up
+basedir = ..
+# top dir
+topdir = ../..
+# this dir relative to top dir
+thisdir = src/cats
+
+DEBUG=@DEBUG@
+
+SQL_INC=@SQL_INCLUDE@
+
+first_rule: all
+dummy:
+
+#
+SVRSRCS = cats.c sql.c
+SVROBJS = cats.o sql.o
+
+LIBSRCS = mysql.c bdb.c bdb_create.c bdb_get.c bdb_update.c \
+	  bdb_delete.c bdb_find.c bdb_list.c \
+	  sql.c sql_create.c sql_delete.c sql_find.c \
+	  sql_get.c sql_list.c sql_update.c sqlite.c 
+LIBOBJS = mysql.o bdb.o bdb_create.o bdb_get.o bdb_update.o \
+	  bdb_delete.o bdb_find.o bdb_list.o \
+	  sql.o sql_create.o sql_delete.o sql_find.o \
+	  sql_get.o sql_list.o sql_update.o sqlite.o
+
+.SUFFIXES:	.c .o
+.PHONY:
+.DONTCARE:
+
+# inference rules
+.c.o:
+	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(SQL_INC) $(DINCLUDE) $(CFLAGS) $<
+#-------------------------------------------------------------------------
+all: Makefile libsql.a
+	@echo "==== Make of cats is good ===="
+	@echo " "
+
+libsql.a: $(LIBOBJS)
+	$(AR) rcs $@ $(LIBOBJS)
+	$(RANLIB) $@
+
+cats: $(SVROBJS) ../findlib/libfind.a
+	$(CC) $(LDFLAGS) -L../findlib -L../lib -o $@ $(SVROBJS) $(LIBS) $(DLIB) -lfind -lbac
+
+Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
+	cd $(topdir) \
+	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
+
+clean:
+	$(RMF) cats core a.out *.o *.a *.bak *~ *.intpro *.extpro 1 2 3
+
+realclean: clean
+	$(RMF) tags
+	$(RMF) make_mysql_tables grant_mysql_privileges drop_mysql_tables
+	$(RMF) create_mysql_database make_sqlite_tables sqlite
+
+distclean: realclean
+	if test $(srcdir) = .; then $(MAKE) realclean; fi
+	(cd $(srcdir); $(RMF) Makefile)
+
+install:
+	$(INSTALL_SCRIPT) create_mysql_database $(DESTDIR)$(sysconfdir)/create_mysql_database
+	$(INSTALL_SCRIPT) drop_mysql_tables $(DESTDIR)$(sysconfdir)/drop_mysql_tables
+	$(INSTALL_SCRIPT) make_mysql_tables $(DESTDIR)$(sysconfdir)/make_mysql_tables
+
+uninstall:
+	(cd $(DESTDIR)$(sysconfdir); $(RMF) create_mysql_database)
+	(cd $(DESTDIR)$(sysconfdir); $(RMF) drop_mysql_tables)
+	(cd $(DESTDIR)$(sysconfdir); $(RMF) make_mysql_tables)
+
+
+# Semi-automatic generation of dependencies:
+# Use gcc -MM because X11 `makedepend' doesn't work on all systems
+# and it also includes system headers.
+# `semi'-automatic since dependencies are generated at distribution time.
+
+depend:
+	@$(MV) Makefile Makefile.bak
+	@$(SED) "/^# DO NOT DELETE:/,$$ d" Makefile.bak > Makefile
+	@$(ECHO) "# DO NOT DELETE: nice dependency list follows" >> Makefile
+	@$(CC) -S -M $(CPPFLAGS) $(XINC) -I$(srcdir) -I$(basedir) $(SQL_INC) *.c >> Makefile
+	@if test -f Makefile ; then \
+	    $(RMF) Makefile.bak; \
+	else \
+	   $(MV) Makefile.bak Makefile; \
+	   echo -e "Something went wrong\n\a"; \
+	fi
+
+# -----------------------------------------------------------------------
+# DO NOT DELETE: nice dependency list follows

@@ -1,0 +1,86 @@
+#
+# This is the makefile template for the platform directory
+# which contains general platform installation.
+#
+#  15 November 2001 -- Kern Sibbald
+# 
+#   for Bacula release @VERSION@ (@DATE@) -- @DISTNAME@
+#
+
+
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL = @INSTALL@
+
+SUBDIRS = freebsd redhat solaris unknown hpux suse openbsd \
+		  slackware alpha netbsd caldera debian
+
+MAKE = make
+
+DISTNAME=@DISTNAME@
+DISTVER=@DISTVER@
+
+all:
+	@for subdir in ${SUBDIRS}; do \
+	    if [ -f $${subdir}/Makefile ]; then \
+	       (cd $${subdir}; make;) \
+	    fi; \
+	done
+
+
+install: install-autostart-dir install-autostart-fd install-autostart-sd
+
+install-autostart-dir:
+	@if test x$(DISTNAME) != x ; then \
+	   (cd $(DISTNAME); \
+	      $(MAKE) "DISTNAME=$(DISTNAME)" "DISTVER=$(DISTVER)" $@) \
+	fi
+
+install-autostart-fd:
+	@if test x$(DISTNAME) != x ; then \
+	   (cd $(DISTNAME); \
+	      $(MAKE) "DISTNAME=$(DISTNAME)" "DISTVER=$(DISTVER)" $@) \
+	fi
+
+install-autostart-sd:
+	@if test x$(DISTNAME) != x ; then \
+	   (cd $(DISTNAME); \
+	      $(MAKE) "DISTNAME=$(DISTNAME)" "DISTVER=$(DISTVER)" $@) \
+	fi
+
+uninstall: uninstall-autostart-dir uninstall-autostart-fd uninstall-autrun-sd
+
+uninstall-autostart-dir:
+	@if test x$(DISTNAME) != x ; then \
+	   (cd $(DISTNAME); \
+	     $(MAKE) "DISTNAME=$(DISTNAME)" "DISTVER=$(DISTVER)" $@) \
+	fi
+
+uninstall-autostart-fd:
+	@if test x$(DISTNAME) != x ; then \
+	   (cd $(DISTNAME); \
+	     $(MAKE) "DISTNAME=$(DISTNAME)" "DISTVER=$(DISTVER)" $@) \
+	fi
+
+uninstall-autostart-sd:
+	@if test x$(DISTNAME) != x ; then \
+	   (cd $(DISTNAME); \
+	     $(MAKE) "DISTNAME=$(DISTNAME)" "DISTVER=$(DISTVER)" $@) \
+	fi
+
+depend:
+
+clean:
+	@for subdir in ${SUBDIRS}; do \
+	    if [ -f $${subdir}/Makefile ]; then \
+		    (cd $${subdir}; make clean;) \
+	    fi; \
+	done
+	rm -f 1 2 3
+
+distclean:
+	rm -f Makefile
+	@for subdir in ${SUBDIRS}; do \
+	    if [ -f $${subdir}/Makefile ]; then \
+		     (cd $${subdir}; make distclean;) \
+	    fi; \
+	done

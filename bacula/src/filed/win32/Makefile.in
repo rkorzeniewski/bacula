@@ -1,0 +1,112 @@
+#
+# makefile to build Windows specific pieces of the Bacula File daemon
+#
+CFLAGS=@CFLAGS@
+CC = @CC@
+RANLIB = @RANLIB@
+SHELL = /bin/sh
+
+# Program to install `make'.
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+# Program to install the man page.
+INSTALL_DATA = @INSTALL_DATA@
+# Generic install program.
+INSTALL = @INSTALL@
+
+VERSION = @VERSION@
+
+
+# this dir
+srcdir = .
+# main dir
+topdir = ../../..
+# this dir relative to top dir
+thisdir = src/filed/win32
+
+# Common prefix for machine-independent installed files.
+prefix = @prefix@
+sysconfdir = @sysconfdir@
+sbindir = @sbindir@
+piddir = @piddir@
+
+SRCS =	shutdown.c
+
+OBJS =	shutdown.o
+
+BACOBJS = winabout.o winevents.o winservice.o winstat.o wintray.o winmain.o
+
+all: winlib.a winres.res 
+
+win32: winlib.a
+
+winlib.a: $(BACOBJS) winres.res
+	ar rc $@ $(BACOBJS)
+	$(RANLIB) $@
+
+winres.res: winres.rc bacula.ico winres.h idle.ico running.ico error.ico
+	windres $< -O coff -o $@
+
+winmain.o: winmain.cpp winbacula.h
+	$(CC) -c $(CFLAGS) $<
+
+email.o: email.c
+	$(CC) -c ${CFLAGS} $<
+
+email.exe: email.o libmymapi32.a
+	$(CC) ${CFLAGS} -L. -o email email.o -luser32 -lgdi32 -lmymapi32
+
+libmymapi32.a: mymapi32.def
+	dlltool --as=as -k --output-lib $@ --def $<
+
+Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
+	cd $(topdir) \
+	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
+clean:
+	rm -f *.exe *.o *.res *.a 1 2 3
+	rm -f bin/bacula-fd.exe bin/smtp.exe
+
+distclean: clean
+	rm -f Makefile
+
+install:
+	@mkdir -p $(sbindir) /tmp $(sbindir)/../working
+	@echo "Installing system binary files ..."
+	@strip ../bacula-fd.exe
+	@strip ../../lib/smtp.exe
+	@cp -f ../bacula-fd.exe bin/
+	@cp -f ../../lib/smtp.exe bin/
+	@cp -f bin/* $(sbindir)
+
+# Make a Win32 binary release 
+binary-release:
+	@rm -rf wr
+	@mkdir -p wr
+	@mkdir -p wr/$(prefix) wr/$(sbindir) wr/$(sbindir)/../working wr/$(sysconfdir) wr/tmp
+	@echo "Copying system binary files ..."
+	@cp bin/* wr/$(sbindir)
+	@strip ../bacula-fd.exe
+	@strip ../../lib/smtp.exe
+	@echo "Copying executables ..."
+	@cp -f ../bacula-fd.exe wr/$(sbindir)/bacula-fd.exe 
+	@cp -f ../../lib/smtp.exe wr/$(sbindir)/smtp.exe 
+	@echo "Copying bacula-fd.conf..."
+	@cp -f ../bacula-fd.conf wr/$(sysconfdir)/bacula-fd.conf
+# the two dummy files are necessary to insure that WinZip
+# actually creates the directories.
+	@echo "dummy" >wr/tmp/dummy.txt
+	@echo "dummy" >wr/$(sbindir)/../working/dummy.txt
+	@echo "Making tar file ..."
+	@tar cfz winbacula-${VERSION}.tar.gz -C wr bacula tmp
+	@mv -f winbacula-${VERSION}.tar.gz $(topdir)/..
+	@rm -rf wr
+	@(cd $(topdir)/..; \
+	   echo "Tar file in: `pwd`/winbacula-${VERSION}.tar.gz")
+
+dummy:
+
+.c.o:
+	$(CC) -c $(CFLAGS) $<
+
+.cpp.o:
+	$(CC) -c $(CFLAGS) $<

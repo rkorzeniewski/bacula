@@ -1,0 +1,92 @@
+/*
+ * Resource codes -- they must be sequential for indexing   
+ */
+/*
+   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License as
+   published by the Free Software Foundation; either version 2 of
+   the License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+   General Public License for more details.
+
+   You should have received a copy of the GNU General Public
+   License along with this program; if not, write to the Free
+   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+   MA 02111-1307, USA.
+
+ */
+
+#define R_FIRST                       3001
+
+#define R_DIRECTOR                    3001
+#define R_STORAGE                     3002
+#define R_DEVICE                      3003
+#define R_MSGS                        3004
+
+#define R_LAST                        R_MSGS
+
+
+#define R_NAME                        3020
+#define R_ADDRESS                     3021
+#define R_PASSWORD                    3022
+#define R_TYPE                        3023
+#define R_BACKUP                      3024
+
+#define STORAGE_DAEMON 1
+
+/* Definition of the contents of each Resource */
+struct s_res_dir {
+   RES   hdr;
+
+   char *password;                    /* Director password */
+   char *address;                     /* Director IP address or zero */
+};
+typedef struct s_res_dir DIRRES;
+
+
+/* Storage daemon "global" definitions */
+struct s_res_store {
+   RES   hdr;
+
+   char *address;
+   int   SDport;                      /* Where we listen for Directors */
+   int   SDDport;                     /* "Data" port where we listen for File daemons */
+   char *working_directory;           /* working directory for checkpoints */
+   char *pid_directory;
+   char *subsys_directory;
+   uint32_t max_concurrent_jobs;      /* maximum concurrent jobs to run */
+};
+typedef struct s_res_store STORES;
+
+/* Device specific definitions */
+struct s_res_dev {
+   RES   hdr;
+
+   char *media_type;
+   char *device_name;
+   int  cap_bits;
+   uint32_t max_rewind_wait;          /* maximum secs to wait for rewind */
+   uint32_t min_block_size;           /* min block size */
+   uint32_t max_block_size;           /* max block size */
+   uint32_t max_volume_jobs;          /* max jobs to put on one volume */
+   int64_t max_volume_files;          /* max files to put on one volume */
+   int64_t max_volume_size;           /* max bytes to put on one volume */
+   int64_t max_file_size;             /* max file size in bytes */
+   int64_t volume_capacity;           /* advisory capacity */
+   DEVICE *dev;
+};
+typedef struct s_res_dev DEVRES;
+
+union u_res {
+   struct s_res_dir     res_dir;
+   struct s_res_store   res_store;
+   struct s_res_dev     res_dev;
+   struct s_res_msgs    res_msgs;
+   RES hdr;
+};
+typedef union u_res URES;

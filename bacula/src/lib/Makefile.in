@@ -1,0 +1,139 @@
+# $Id$
+@MCOMMON@
+
+CWEB = @CWEB@
+CTANGLE = $(CWEB)/ctangle
+CWEAVE = $(CWEB)/cweave
+TEXINPUTS = TEXINPUTS=.:$(CWEB):
+
+# FIXME -- These should be found by autoconf
+TEX = tex
+PDFTEX = pdftex
+XDVI = xdvi
+DVIPS = dvips
+
+srcdir =	.
+VPATH = 	.
+.PATH:		.
+
+# one up
+basedir = ..
+# top dir
+topdir = ../..
+# this dir relative to top dir
+thisdir = src/lib
+
+
+DEBUG=@DEBUG@
+
+GMP_INC=@GMP_INC@
+
+first_rule: all
+dummy:
+
+LIBSRCS = alloc.c base64.c bmisc.c bnet.c bnet_server.c \
+	  bshm.c btime.c \
+	  cram-md5.c crc32.c create_file.c daemon.c fnmatch.c \
+	  hmac.c idcache.c jcr.c lex.c	\
+	  makepath.c \
+	  md5.c message.c mem_pool.c parse_conf.c \
+	  queue.c rwlock.c save-cwd.c serial.c \
+	  signal.c smartall.c util.c watchdog.c workq.c
+
+
+#	  immortal.c filesys.c
+
+LIBOBJS = alloc.o base64.o bmisc.o bnet.o bnet_server.o \
+	  bshm.o btime.o \
+	  cram-md5.o crc32.o create_file.o daemon.o fnmatch.o \
+	  hmac.o idcache.o jcr.o lex.o	\
+	  makepath.o \
+	  md5.o message.o mem_pool.o parse_conf.o \
+	  queue.o rwlock.o save-cwd.o serial.o \
+	  signal.o smartall.o util.o watchdog.o workq.o
+
+#	  immortal.o filesys.o
+
+EXTRAOBJS = @OBJLIST@
+
+
+.SUFFIXES:	.c .o .ch .dvi .pdf .tex .view .w .1
+.PHONY:
+.DONTCARE:
+
+# inference rules
+.c.o:
+	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(GMP_INC) $(CFLAGS) $<
+
+.cc.o:
+	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) @GMP_INC@ $(CFLAGS) $<
+
+.w.c:
+	$(CTANGLE) $<
+
+.w.tex:
+	$(CWEAVE) $<
+
+.tex.dvi:
+	( $(TEXINPUTS) ; export TEXINPUTS; $(TEX) $< )
+
+.tex.pdf:
+	( $(TEXINPUTS) ; export TEXINPUTS; $(PDFTEX) $< )
+
+.dvi.view:
+	$(XDVI) -s 0 $<
+
+#-------------------------------------------------------------------------
+all: Makefile libbac.a smtp
+	@echo "==== Make of lib is good ===="
+	@echo " "
+
+libbac.a: $(LIBOBJS)
+	$(AR) rcs $@ $(LIBOBJS)
+	$(RANLIB) $@
+
+
+Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
+	cd $(topdir) \
+	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
+smtp:	smtp.o
+	$(CXX) $(LDFLAGS) -L. -o $@ smtp.o  \
+	      $(LIBS) $(DLIB) -lbac -lm
+	 
+install:
+	$(INSTALL_PROGRAM) smtp $(DESTDIR)/$(sbindir)/smtp
+
+uninstall:
+	(cd $(DESTDIR)$(sbindir); $(RMF) smtp)
+
+clean:
+	$(RMF) *.a core a.out *.o *.bak *.tex *.pdf *~ *.intpro *.extpro 1 2 3
+	$(RMF) smtp
+
+realclean: clean
+	$(RMF) tags
+
+distclean: realclean
+	if test $(srcdir) = .; then $(MAKE) realclean; fi
+	(cd $(srcdir); $(RMF) Makefile)
+
+# Semi-automatic generation of dependencies:
+# Use gcc -MM because X11 `makedepend' doesn't work on all systems
+# and it also includes system headers.
+# `semi'-automatic since dependencies are generated at distribution time.
+
+depend:
+	@$(MV) Makefile Makefile.bak
+	@$(SED) "/^# DO NOT DELETE:/,$$ d" Makefile.bak > Makefile
+	@$(ECHO) "# DO NOT DELETE: nice dependency list follows" >> Makefile
+	@$(CXX) -S -M $(CPPFLAGS) $(XINC) -I$(srcdir) -I$(basedir) @GMP_INC@ $(SQL_INC) *.c >> Makefile
+	@if test -f Makefile ; then \
+	    $(RMF) Makefile.bak; \
+	else \
+	   $(MV) Makefile.bak Makefile; \
+	   echo -e "Something went wrong\n\a"; \
+	fi
+
+# -----------------------------------------------------------------------
+# DO NOT DELETE: nice dependency list follows

@@ -1,0 +1,121 @@
+#
+#  Bacula Director Makefile
+#  
+@MCOMMON@
+
+srcdir =	.
+VPATH = 	.
+.PATH:		.
+
+# one up
+basedir = ..
+# top dir
+topdir = ../..
+# this dir relative to top dir
+thisdir = src/dird
+
+DEBUG=@DEBUG@
+
+first_rule: all
+dummy:
+
+#
+SVRSRCS = dird.c authenticate.c backup.c catreq.c dird_conf.c \
+	  fd_cmds.c getmsg.c job.c \
+	  mountreq.c msgchan.c newvol.c run_conf.c restore.c \
+	  scheduler.c ua_cmds.c \
+	  ua_dotcmds.c \
+	  ua_db_query.c ua_retention.c \
+	  ua_input.c ua_output.c ua_run.c \
+	  ua_select.c ua_server.c \
+	  ua_status.c verify.c
+SVROBJS = dird.o authenticate.o backup.o catreq.o dird_conf.o \
+	  fd_cmds.o getmsg.o job.o \
+	  mountreq.o msgchan.o newvol.o run_conf.o restore.o \
+	  scheduler.o ua_cmds.o \
+	  ua_dotcmds.o \
+	  ua_db_query.o ua_retention.o \
+	  ua_input.o ua_output.o ua_run.o \
+	  ua_select.o ua_server.o \
+	  ua_status.o verify.o
+
+# these are the objects that are changed by the .configure process
+EXTRAOBJS = @OBJLIST@
+
+.SUFFIXES:	.c .o
+.PHONY:
+.DONTCARE:
+
+# inference rules
+.c.o:
+	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+#-------------------------------------------------------------------------
+all: Makefile bacula-dir
+	@echo "==== Make of dird is good ===="
+	@echo " "
+
+bacula-dir:  $(SVROBJS) ../lib/libbac.a ../cats/libsql.a
+	$(CXX) $(LDFLAGS) -L../lib -L../cats -o $@ $(SVROBJS) \
+	      -lsql $(LIBS) $(DLIB) -lbac -lm
+
+Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
+	cd $(topdir) \
+	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
+clean:
+	@$(RMF) dird bacula-dir core core.* a.out *.o *.bak *~ *.intpro *.extpro 1 2 3
+
+realclean: clean
+	@$(RMF) tags bacula-dir.conf
+
+distclean: realclean
+	if test $(srcdir) = .; then $(MAKE) realclean; fi
+	(cd $(srcdir); $(RMF) Makefile)
+
+install: all
+	$(INSTALL_PROGRAM) bacula-dir $(DESTDIR)$(sbindir)/bacula-dir
+	@srcconf=bacula-dir.conf; \
+	if  test -f ${DESTDIR}${sysconfdir}/$$srcconf; then \
+	   destconf=$$srcconf.new; \
+	   echo "  ==> Found existing $$srcconf, installing new conf file as $$destconf"; \
+	else \
+	   destconf=$$srcconf; \
+	fi; \
+	echo "${INSTALL_DATA} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf"; \
+	${INSTALL_DATA} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf
+	@srcconf=query.sql; \
+	if  test -f ${DESTDIR}${sysconfdir}/$$srcconf; then \
+	   destconf=$$srcconf.new; \
+	   echo "  ==> Found existing $$srcconf, installing new conf file as $$destconf"; \
+	else \
+	   destconf=$$srcconf; \
+	fi; \
+	echo "${INSTALL_DATA} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf"; \
+	${INSTALL_DATA} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf
+
+
+uninstall:
+	(cd $(DESTDIR)$(sbindir); $(RMF) bacula-dir)
+	(cd $(DESTDIR)$(sysconfdir); $(RMF) bacula-dir.conf)
+
+
+
+# Semi-automatic generation of dependencies:
+# Use gcc -MM because X11 `makedepend' doesn't work on all systems
+# and it also includes system headers.
+# `semi'-automatic since dependencies are generated at distribution time.
+
+depend:
+	@$(MV) Makefile Makefile.bak
+	@$(SED) "/^# DO NOT DELETE:/,$$ d" Makefile.bak > Makefile
+	@$(ECHO) "# DO NOT DELETE: nice dependency list follows" >> Makefile
+	@$(CC) -S -M $(CPPFLAGS) $(XINC) -I$(srcdir) -I$(basedir) $(SQL_INC) *.c >> Makefile
+	@if test -f Makefile ; then \
+	    $(RMF) Makefile.bak; \
+	else \
+	   $(MV) Makefile.bak Makefile; \
+	   echo -e "Something went wrong\n\a"; \
+	fi
+
+# -----------------------------------------------------------------------
+# DO NOT DELETE: nice dependency list follows

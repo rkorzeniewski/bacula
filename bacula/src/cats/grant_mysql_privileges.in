@@ -1,0 +1,25 @@
+#!/bin/sh
+#
+# shell script to create Bacula database(s)
+#
+
+bindir=@SQL_BINDIR@
+
+if $bindir/mysql -u root -f <<END-OF-DATA
+use mysql
+grant all privileges on *.* to kern@localhost with grant option;
+grant all privileges on *.* to kern@"%" with grant option;
+grant all privileges on *.* to kelvin@localhost with grant option;
+grant all privileges on *.* to kelvin@"%" with grant option;
+grant all privileges on *.* to bacula@localhost with grant option;
+grant all privileges on *.* to bacula@"%" with grant option;
+select * from user;
+flush privileges;
+END-OF-DATA
+then
+   echo "Privileges for kern, kelvin, and bacula granted."
+   exit 0
+else
+   echo "Error creating privileges."
+   exit 1
+fi

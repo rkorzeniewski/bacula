@@ -1,0 +1,35 @@
+--------------------------------------------------------------------------
+Using GNU autoconfig
+--------------------------------------------------------------------------
+  1.    Read the Compiling and Installing section of the HTML manual
+        in the "doc" directory.
+
+  2.    Run   ./configure   to generate config.h and the various Makefiles.
+        ./configure --help   gives a list of possible options with slightly
+        longer descriptions in README.configure
+
+        You might look at the "defaultconfig" file in the top directory.
+        It is an example of what is probably reasonable for defaults.
+
+        Some systems require unusual options for compilation or linking that
+        the `configure' script does not know about.  You can give `configure'
+        initial values for variables by setting them in the environment.  Using
+        a Bourne-compatible shell, you can do that on the command line like
+        this:
+                CC=c89 CFLAGS=-O2 LIBS=-lposix ./configure
+        Or on systems that have the `env' program, you can do it like this:
+                env CPPFLAGS=-I/usr/local/include LDFLAGS=-s ./configure
+        Or if you're using a non Bourne-compatible shell, you can do:
+                sh -c 'CFLAGS="-O2 -g" ./configure
+
+        A typical Bacula development configuration for Linux is:
+
+        CFLAGS="-g -Wall" ./configure --enable-smartalloc --enable-mysql
+          
+
+  3.    set any other main preferences (normally, you don't do this):
+            Edit "config.h"   if you didn't use ./configure options
+            If you're cross-compiling, edit the following in "config.h"
+
+  4.    Build it (repeat step 2 as desired):
+            make

@@ -1,0 +1,164 @@
+
+2002-04-22 Release 1.18
+- Applied Phil's configure.in fix for --prefix, ...
+- Fixed bug found by Phil (patch supplied) in updating
+  MD5 signatures (revert to 32 bit FileId, move "static"
+  variables into JCR) (catreq.c fd-cmds.c).
+- Reverted to using INTEGER for FileId in make_sql_tables
+  due to a bug in MySQL.
+- Change editing code to %d for FileId.
+- Remove sqlite in make distclean in cats directory.
+- Remove console.conf in console during make distclean
+- Remove gnome-console.conf during make distclean
+- Remove bacula-dir.conf during make distclean
+- Set default level when using Console if none specified.
+  Bug reported by Phil.
+- A simple . command from Console is ignored.   
+- Change program named from filed to bacual-fd in winmain.cpp
+- Change default config file for Win32 in winmain.cpp
+- Free namebuf on early return from find_one.c. Bug reported by
+  Phil.
+- Modify testfind.c to dump orphaned buffers.
+- Removed terabytes from parse_conf.c because of problems with
+  older gcc compilers.
+- Turn off gnome options in gnome-console by constructing empty
+  argv.
+
+2002-04-18 Release 1.17 Kern Sibbald
+- Ensure that platforms Makefiles are called for clean  
+  and distclean.
+- Hide a lot of Makefile messages with @
+- Applied Phil's configure.in patch. Thanks.
+- Doc updates, many to clarify points brought up by Phil.
+- Applied Phil's make_mysql_tables.in patch. Thanks.
+- Made authenticate.c in dird test bnet_send status.
+- Make label a bit more friendly with extra info message.
+- Add level 200 to debug info in run command.
+- Remove old code from findlib/testfind.c so that it compiles.
+- Add two minute max wait to cram-md5 authentication. Hopefully,
+  this will catch non-responding WinNT daemons.
+- Allow time and size modifiers to be upper or lower case.
+- Turn off old CYGWIN patch for pthread_cond_timedwait() bug that
+  now causes File daemon hangs on WinNT.
+- Fix mount messages for restore. Previous updates to save
+  broke the restore code.
+- By default write fixed block sizes rather than variable block
+  sizes.  My Sony DAT simply does not work (reread failures) with
+  variable block sizes.
+- Data split across tapes was not being correctly restored
+  (at least on DAT tapes). 
+- Implement MaximumBlockSize and MinumBlockSize statements in
+  Storage daemon so user can specify variable block sizes if
+  desired.
+- Return error if block checksum error on read (previously 
+  ignored).
+- Fixed some error messages in bls, and in some cases exit(1)
+  rather than ABORT. There remain ABORTs to be examined.
+- Made a local copy of tcpd.h and corrected the function 
+  prototype problem for C++.
+
+2002-04-14 First public release 1.16 Kern Sibbald
+ - Many intervening changes/updates.
+
+2001-09-29 Release 1.0 Kern Sibbald
+ - Fixes to problems found at John's
+   installation.
+ - See techlogs/kes25Sep01 for details
+
+2001-09-25 Release 1.0 Kern Sibbald
+ - Helped John install at his site.
+   He is backing up one Linux machine and
+   one Win2000 machine.
+
+2001-mm-dd Many releases
+ - Released internally.
+  
+2000-04-09 Release 0.4 Kern Sibbald
+ - Added a lot of Director configuration code. In      
+   part (a small part), the Director now uses the
+   bacula.conf file to know what to do. There still
+   remains a lot to do.
+ - The file search code is now integrated into the
+   MySQL database routines, and Bacula is now hooked
+   into the MySQL database (if so configured). Thus
+   all the database records are being created, though
+   there still remains some work in getting all the
+   details into the records (such as the Storage 
+   coordinates).
+ - I've defined how Volume pools work (see manual).
+ - I've defined error message handling though no code
+   is yet written.
+ - The following resources and records are implemented
+   in the Director configuration file (bacula.conf):
+    
+   Director
+     Name (passed to Storage daemon)
+   Client
+     Name, Address, Port
+     Password (not yet used)
+   Storage    
+     Name, Address, Port, Password, MediaType
+   Job
+     Name    
+     Type (not yet used)
+     Backup (only one permitted) 
+       Client, FileSet
+     Storage
+     Schedule, Messages, Pool (not used)
+   FileSet
+     Name  
+     Include (options ignored)
+     Exclude (no options)
+   Schedule (not used)
+     Name
+   Messages (not used)
+     Name       
+     Debug, syslog, mail, append (not used)
+   Catalog
+     Name
+     Address, Port, Password (not used)
+   Pool (not used)
+     Name
+     PoolType, MediaType (not used)
+
+ - Added Storage configuration routines.
+   Director
+     Name, password (verified against those sent by Director)
+   Storage
+     Name, Address, Port (address, port must correspond to Director's values)
+     Password, MediaType
+   Device
+     Name, MediaType (must correspond to those sent by Director)
+     Archive Device (defines device name)
+
+
+
+2000-03-10 Release 0.3 Kern Sibbald
+ - Implemented new base64 encoding for attributes.
+   This eliminates some of the error messages in the
+   sprintfs on the Solaris due to different stat() sizes.
+ - Implemented  the first cut of the file search routines for
+   the File daemon.  The exclusion lists work including wild
+   cards.   There is a lot of work to be done, but the basic
+   structure is now in place (wild cards do not yet work for
+   the include).
+ - Completed writing the memory pool code.  Now I must
+   implement it in the daemons.
+ - Modified the bacula start/stop script so that it has a
+   better chance of working on SGI and Solaris.
+ - The catalog code has not been converted to the new file
+   search code.
+
+2000-03-06 Release 0.2 Kern Sibbald
+ - Integrated John's fixes.
+ - Made Makefiles self configuring when Makefile.in is changed.
+ - Added a runit script in the top level that runs bacula
+ - Added a "bacula" script in the top level directory that
+   starts and stops the File daemon and the Storage daemon.
+
+2000-03-03 Release 0.1 Kern Sibbald
+ - Basic Director, File, and Storage daemons.
+   Standalone Catalog services using MySQL
+
+2000-01-22 Kern Sibbald
+   * Setup basic file structure with ./configure

@@ -1,0 +1,172 @@
+# 
+# 
+@MCOMMON@
+
+working_dir=@working_dir@
+
+srcdir =	@srcdir@
+VPATH = 	@srcdir@
+.PATH:		@srcdir@
+topdir = .
+thisdir = .
+
+
+first_rule: all
+dummy:
+
+subdirs = src doc src/lib src/findlib src/cats \
+	  @READLINE_SRC@ src/console src/dird src/filed \
+	  src/stored @GNOME_DIR@
+
+FDsubdirs = src/lib src/findlib src/filed
+
+DIST =	INSTALL README.configure configure Makefile Makefile.in ChangeLog
+
+DIST_CFG = autoconf/aclocal.m4 autoconf/configure.in \
+	autoconf/config.h.in  autoconf/acconfig.h  autoconf/Make.common.in \
+	autoconf/install-sh autoconf/mkinstalldirs
+
+MKDIR = $(srcdir)/autoconf/mkinstalldirs
+
+#-------------------------------------------------------------------------
+
+all: Makefile
+	@for I in ${subdirs}; \
+	  do (cd $$I; echo "==>Entering directory `pwd`"; $(MAKE) $@ || exit 1); done
+
+depend:
+	@for I in ${subdirs}; \
+	  do (cd $$I; echo "==>Entering directory `pwd`"; $(MAKE) $@ || exit 1); done
+	
+bacula-fd: Makefile	   
+	@for I in ${FDsubdirs}; \
+	  do (cd $$I; echo "==>Entering directory `pwd`"; $(MAKE) all || exit 1); done
+
+#-------------------------------------------------------------------------
+configure: autoconf/configure.in autoconf/aclocal.m4 autoconf/acconfig.h autoconf/config.h.in
+	cd $(srcdir);
+	autoconf --localdir=$(srcdir)/autoconf \
+	autoconf/configure.in > configure
+	chmod 755 configure
+
+config.status:
+	if test -x config.status; then config.status --recheck; \
+	else $(SHELL) configure; fi
+
+autoconf/config.h.in: autoconf/configure.in autoconf/acconfig.h
+	cd $(srcdir);
+	autoheader --localdir=$(srcdir)/autoconf \
+	autoconf/configure.in > autoconf/config.h.in
+	chmod 644 autoconf/config.h.in
+
+installdirs:
+	$(MKDIR) $(DESTDIR)$(sbindir)
+	$(MKDIR) $(DESTDIR)$(sysconfdir)
+	$(MKDIR) $(DESTDIR)$(working_dir)
+#	$(MKDIR) $(DESTDIR)$(mandir)
+
+install: installdirs
+	$(INSTALL_SCRIPT) startmysql $(DESTDIR)$(sysconfdir)/startmysql
+	$(INSTALL_SCRIPT) stopmysql $(DESTDIR)$(sysconfdir)/stopmysql
+	$(INSTALL_SCRIPT) console $(DESTDIR)$(sysconfdir)/console
+	$(INSTALL_SCRIPT) bacula $(DESTDIR)$(sysconfdir)/bacula
+	$(INSTALL_SCRIPT) fd $(DESTDIR)$(sysconfdir)/fd
+	$(INSTALL_SCRIPT) btraceback $(DESTDIR)$(sysconfdir)/btraceback
+	$(INSTALL_DATA)   btraceback.gdb $(DESTDIR)$(sysconfdir)/btraceback.gdb
+	@for I in $(subdirs); do (cd $$I; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1); done
+
+uninstall:
+	(cd $(DESTDIR)$(sysconfdir); $(RMF) startmysql)
+	(cd $(DESTDIR)$(sysconfdir); $(RMF) stopmysql)
+	(cd $(DESTDIR)$(sysconfdir); $(RMF) console)
+	(cd $(DESTDIR)$(sysconfdir); $(RMF) bacula)
+	(cd $(DESTDIR)$(sysconfdir); $(RMF) fd)
+	@for I in $(subdirs); do (cd $$I; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1); done
+
+install-autostart: install-autostart-dir install-autostart-fd install-autostart-sd
+
+install-autostart-dir:
+	(cd platforms; $(MAKE) $@ || exit 1) 
+
+install-autostart-fd:
+	(cd platforms; $(MAKE) $@ || exit 1) 
+
+install-autostart-sd:
+	(cd platforms; $(MAKE) $@ || exit 1) 
+
+uninstall-autostart: uninstall-autostart-dir uninstall-autostart-fd uninstall-autrun-sd
+
+uninstall-autostart-dir:
+	(cd platforms; $(MAKE) $@ || exit 1)
+
+uninstall-autostart-fd:
+	(cd platforms; $(MAKE) $@ || exit 1)
+
+uninstall-autostart-sd:
+	(cd platforms; $(MAKE) $@ || exit 1)
+
+Makefile: Makefile.in
+	cd $(topdir) \
+	    && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
+Makefiles:
+	$(SHELL) config.status
+	chmod 755 startmysql stopmysql bacula fd startit stopit btraceback
+	chmod 755 src/console/btraceback src/lib/btraceback	       
+	chmod 755 src/dird/btraceback src/filed/btraceback
+	chmod 755 src/stored/btraceback
+	chmod 755 src/cats/make_mysql_tables src/cats/drop_mysql_tables
+	chmod 755 src/cats/make_test_tables src/cats/drop_test_tables
+	chmod 755 src/cats/create_mysql_database
+	chmod 755 src/cats/grant_mysql_privileges
+	chmod 755 src/cats/make_sqlite_tables
+
+clean:
+	@for I in ${subdirs}; \
+	  do (cd $$I; echo "==>Entering directory `pwd`"; ${MAKE} $@ || exit 1); done
+	@(cd platforms; echo "==>Entering directory `pwd`"; ${MAKE} $@ || exit 1)
+	@$(RMF) *~ 1 2 3 core core.*
+
+# distclean goal is for making a clean source tree, but if you have run
+# configure from a different directory, then doesn't destroy all your
+# hardly compiled and linked stuff. That's why there is always $(srcdir)/
+# In that case most of those commands do nothing, except cleaning *~
+# and cleaning source links.
+distclean:
+	@for I in $(subdirs); do (cd $$I; $(MAKE) $@ || exit 1); done
+	@for I in $(subdirs); do (cd $$I; $(RMF) startit stopit btraceback btraceback.gdb); done
+	@(cd $(srcdir); $(RMF) *~ config.cache config.h config.log config.status)
+	@(cd $(srcdir); $(RMF) Makefile autoconf/Make.common)
+	@(cd platforms; echo "==>Entering directory `pwd`"; ${MAKE} $@ || exit 1)
+	@$(RMF) bacula fd Makefile startmysql stopmysql startit stopit btraceback
+	@$(RMF) *~ 1 2 3 core core.*
+	@$(RMF) working/*
+
+distdirs:
+	mkdir ../$(VERNAME);
+	mkdir ../$(VERNAME)/autoconf;
+	@for I in $(subdirs); do (cd $$I; $(MAKE) $@ || (echo "Failed to make distclean in $$I"; exit 0) ); done
+
+distcopy:
+	$(CP) -p $(DIST) ../$(VERNAME);
+	$(CP) -p $(DIST_CFG) ../$(VERNAME)/autoconf;
+	@for I in $(subdirs); do (cd $$I; $(MAKE) $@ || exit 1); done
+
+distrib: configure autoconf/config.h.in distdirs distcopy
+
+tar.gz:  ../$(VERNAME).tar.gz
+../$(VERNAME).tar.gz:
+	(cd ..; tar cvf - $(VERNAME) | gzip -f9 > $(VERNAME).tar.gz)
+
+tar.Z: ../$(VERNAME).tar.Z
+../$(VERNAME).tar.Z:
+	(cd ..; tar cvf - $(VERNAME) | compress > $(VERNAME).tar.Z)
+
+tar.bz2: ../$(VERNAME).tar.bz2
+../$(VERNAME).tar.bz2:
+	(cd ..; tar cvf - $(VERNAME) | bzip2 -f9 > $(VERNAME).tar.bz2)
+
+uuencode: tar.gz
+	uuencode ../$(VERNAME).tar.gz $(VERNAME).tar.gz > ../$(VERNAME).tgz.uu
+
+# ------------------------------------------------------------------------

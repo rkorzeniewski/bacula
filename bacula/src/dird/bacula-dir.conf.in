@@ -1,0 +1,133 @@
+#
+# Default Bacula Director Configuration file
+#
+#  The only thing that MUST be changed is to add one or more
+#   file or directory names in the Include directive of the
+#   FileSet resource.
+#
+#  For Bacula release @VERSION@ (@DATE@) -- @DISTNAME@ @DISTVER@
+#
+#  You might also want to change the default email address
+#   from root to your address.  See the "mail" and "operator"
+#   directives in the Messages resource.
+#
+
+Director {                            # define myself
+  Name = @hostname@-dir
+  DIRport = @dir_port@                # where we listen for UA connections
+  QueryFile = "@sysconfdir@/query.sql"
+  WorkingDirectory = "@working_dir@"
+  PidDirectory = "@piddir@"
+  SubSysDirectory = "@subsysdir@"
+  Maximum Concurrent Jobs = 1
+  Password = "@dir_password@"         # Console password
+}
+
+# Define the backup Job
+Job {
+  Name = "NightlySave"
+  Backup = Client=@hostname@-fd FileSet="Full Set"
+  Schedule = "WeeklyCycle"
+  Storage = DLTDrive
+  Messages = Standard
+  Pool = Default
+}
+
+# List of files to be backed up
+FileSet {
+  Name = "Full Set"
+  Include = signature=MD5 { 
+#    
+#  Put your list of files here, one per line or include an
+#    external list with:
+#
+#    @file-name
+#
+#  Note: / backs up everything
+
+  /
+
+  }
+  Exclude = { }
+}
+
+# When to do the backups
+Schedule {
+  Name = "WeeklyCycle"
+  Run = Full sun at 1:05
+  Run = Incremental mon-sat at 1:05
+}
+
+# Client (File Services) to backup
+Client {
+  Name = @hostname@-fd
+  Address = @hostname@
+  FDPort = @fd_port@
+  Catalog = MyCatalog
+  Password = "@fd_password@"          # password for FileDaemon
+}
+
+
+# Definition of DLT tape storage device
+Storage {
+  Name = DLTDrive
+  Address = @hostname@
+  SDPort = @sd_port@
+  Password = "@sd_password@"          # password for Storage daemon
+  Device = "HP DLT 80"                # must be same as Device in Storage daemon
+  Media Type = DLT8000                # must be same as MediaType in Storage daemon
+}
+
+# Definition of DDS tape storage device
+Storage {
+  Name = SDT-10000
+  Address = @hostname@
+  SDPort = @sd_port@
+  Password = "@sd_password@"          # password for Storage daemon
+  Device = SDT-10000                  # must be same as Device in Storage daemon
+  Media Type = DDS-4                  # must be same as MediaType in Storage daemon
+}
+
+# Definition of 8mm tape storage device
+Storage {
+  Name = "8mmDrive"
+  Address = @hostname@
+  SDPort = @sd_port@
+  Password = "@sd_password@"
+  Device = "Exabyte 8mm"
+  MediaType = "8mm"
+}
+
+# Definiton of file storage device
+Storage {
+  Name = File
+  Address = @hostname@
+  SDPort = @sd_port@
+  Password = "@sd_password@"
+  Device = FileStorage
+  Media Type = File
+}
+
+
+# Generic catalog service
+Catalog {
+  Name = MyCatalog
+  dbname = bacula; user = bacula; password = ""
+}
+
+# Reasonable message delivery -- send most everything to email address
+#  and to the console
+Messages {
+  Name = Standard
+  mailcommand = "@sbindir@/smtp -h @smtp_host@ -f \"Bacula <%r>\" -s \"Bacula: %t %e of %c %l\" %r"
+  operatorcommand = "@sbindir@/smtp -h @smtp_host@ -f \"Bacula <%r>\" -s \"Bacula: Intervention needed for %j\" %r"
+  mail = @job_email@ = all, !skipped, !terminate
+  operator = @job_email@ = mount
+  console = all, !skipped, !saved
+}
+    
+# Default pool definition
+Pool {
+  Name = Default
+  Pool Type = Backup
+}

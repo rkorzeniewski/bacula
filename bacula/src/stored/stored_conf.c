@@ -1,0 +1,348 @@
+/*
+ * Configuration file parser for Bacula Storage daemon
+ *
+ *     Kern Sibbald, March MM
+ */
+
+/*
+   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License as
+   published by the Free Software Foundation; either version 2 of
+   the License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+   General Public License for more details.
+
+   You should have received a copy of the GNU General Public
+   License along with this program; if not, write to the Free
+   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+   MA 02111-1307, USA.
+
+ */
+
+#include "bacula.h"
+#include "stored.h"
+
+extern int debug_level;
+
+
+/* First and last resource ids */
+int r_first = R_FIRST;
+int r_last  = R_LAST;
+pthread_mutex_t res_mutex =  PTHREAD_MUTEX_INITIALIZER;
+
+
+/* Forward referenced subroutines */
+
+/* We build the current resource here statically,
+ * then move it to dynamic memory */
+URES res_all;
+int res_all_size = sizeof(res_all);
+
+/* Definition of records permitted within each
+ * resource with the routine to process the record 
+ * information.
+ */ 
+
+/* Globals for the Storage daemon. */
+static struct res_items store_items[] = {
+   {"name",                  store_name, ITEM(res_store.hdr.name),   0, ITEM_REQUIRED, 0},
+   {"description",           store_str,  ITEM(res_dir.hdr.desc),     0, 0, 0},
+   {"address",               store_str,  ITEM(res_store.address),    0, ITEM_REQUIRED, 0},
+   {"sdport",                store_int,  ITEM(res_store.SDport),     0, ITEM_REQUIRED, 0},
+   {"sddport",               store_int,  ITEM(res_store.SDDport),    0, 0, 0}, /* depricated */
+   {"workingdirectory",      store_dir,  ITEM(res_store.working_directory), 0, ITEM_REQUIRED, 0},
+   {"piddirectory",          store_dir,  ITEM(res_store.pid_directory), 0, ITEM_REQUIRED, 0},
+   {"subsysdirectory",       store_dir,  ITEM(res_store.subsys_directory), 0, ITEM_REQUIRED, 0},
+   {"maximumconcurrentjobs", store_int,  ITEM(res_store.max_concurrent_jobs), 0, ITEM_DEFAULT, 1},
+   {NULL, NULL, 0, 0, 0, 0} 
+};
+
+
+/* Directors that can speak to the Storage daemon */
+static struct res_items dir_items[] = {
+   {"name",        store_name,     ITEM(res_dir.hdr.name),   0, ITEM_REQUIRED, 0},
+   {"description", store_str,      ITEM(res_dir.hdr.desc),   0, 0, 0},
+   {"password",    store_password, ITEM(res_dir.password),   0, ITEM_REQUIRED, 0},
+   {"address",     store_str,      ITEM(res_dir.address),    0, 0, 0},
+   {NULL, NULL, 0, 0, 0, 0} 
+};
+
+/* Device definition */
+static struct res_items dev_items[] = {
+   {"name",                  store_name,   ITEM(res_dev.hdr.name),        0, ITEM_REQUIRED, 0},
+   {"description",           store_str,    ITEM(res_dir.hdr.desc),        0, 0, 0},
+   {"mediatype",             store_strname,ITEM(res_dev.media_type),      0, ITEM_REQUIRED, 0},
+   {"archivedevice",         store_strname,ITEM(res_dev.device_name),     0, ITEM_REQUIRED, 0},
+   {"hardwareendoffile",     store_yesno,  ITEM(res_dev.cap_bits), CAP_EOF,  ITEM_DEFAULT, 1},
+   {"hardwareendofmedium",   store_yesno,  ITEM(res_dev.cap_bits), CAP_EOM,  ITEM_DEFAULT, 1},
+   {"backwardspacerecord",   store_yesno,  ITEM(res_dev.cap_bits), CAP_BSR,  ITEM_DEFAULT, 1},
+   {"backwardspacefile",     store_yesno,  ITEM(res_dev.cap_bits), CAP_BSF,  ITEM_DEFAULT, 1},
+   {"forwardspacerecord",    store_yesno,  ITEM(res_dev.cap_bits), CAP_FSR,  ITEM_DEFAULT, 1},
+   {"forwardspacefile",      store_yesno,  ITEM(res_dev.cap_bits), CAP_FSF,  ITEM_DEFAULT, 1},
+   {"removablemedia",        store_yesno,  ITEM(res_dev.cap_bits), CAP_REM,  ITEM_DEFAULT, 1},
+   {"randomaccess",          store_yesno,  ITEM(res_dev.cap_bits), CAP_RACCESS, 0, 0},
+   {"automaticmount",        store_yesno,  ITEM(res_dev.cap_bits), CAP_AUTOMOUNT,  ITEM_DEFAULT, 0},
+   {"labelmedia",            store_yesno,  ITEM(res_dev.cap_bits), CAP_LABEL,      ITEM_DEFAULT, 0},
+   {"mountanonymousvolumes", store_yesno,  ITEM(res_dev.cap_bits), CAP_ANONVOLS,   ITEM_DEFAULT, 0},
+   {"alwaysopen",            store_yesno,  ITEM(res_dev.cap_bits), CAP_ALWAYSOPEN, ITEM_DEFAULT, 1},
+   {"maximumrewindwait",     store_pint,   ITEM(res_dev.max_rewind_wait), 0, ITEM_DEFAULT, 5 * 60},
+   {"minimumblocksize",      store_pint,   ITEM(res_dev.min_block_size), 0, 0, 0},
+   {"maximumblocksize",      store_pint,   ITEM(res_dev.max_block_size), 0, 0, 0},
+   {"maximumvolumejobs",     store_pint,   ITEM(res_dev.max_volume_jobs), 0, 0, 0},
+   {"maximumvolumefiles",    store_int64,  ITEM(res_dev.max_volume_files), 0, 0, 0},
+   {"maximumvolumesize",     store_size,   ITEM(res_dev.max_volume_size), 0, 0, 0},
+   {"maximumfilesize",       store_size,   ITEM(res_dev.max_file_size), 0, 0, 0},
+   {"volumecapacity",        store_size,   ITEM(res_dev.volume_capacity), 0, 0, 0},
+   {NULL, NULL, 0, 0, 0, 0} 
+};
+
+/* Message resource */
+extern struct res_items msgs_items[];
+
+
+/* This is the master resource definition */
+struct s_res resources[] = {
+   {"director",      dir_items,   R_DIRECTOR,  NULL},
+   {"storage",       store_items, R_STORAGE,   NULL},
+   {"device",        dev_items,   R_DEVICE,    NULL},
+   {"messages",      msgs_items,  R_MSGS,      NULL},
+   {NULL,	     NULL,	  0,	       NULL}
+};
+
+
+
+/* Dump contents of resource */
+void dump_resource(int type, RES *reshdr, void sendit(void *sock, char *fmt, ...), void *sock)
+{
+   URES *res = (URES *)reshdr;
+   char buf[MAXSTRING];
+   int recurse = 1;
+   if (res == NULL) {
+      sendit(sock, _("Warning: no %s resource (%d) defined.\n"), res_to_str(type), type);
+      return;
+   }
+   sendit(sock, "dump_resource type=%d\n", type);
+   if (type < 0) {		      /* no recursion */
+      type = - type;
+      recurse = 0;
+   }
+   switch (type) {
+      case R_DIRECTOR:
+         sendit(sock, "Director: name=%s\n", res->res_dir.hdr.name);
+	 break;
+      case R_STORAGE:
+         sendit(sock, "Storage: name=%s address=%s SDport=%d SDDport=%d\n",
+	    res->res_store.hdr.name, res->res_store.address, 
+	    res->res_store.SDport, res->res_store.SDDport);
+	 break;
+      case R_DEVICE:
+         sendit(sock, "Device: name=%s MediaType=%s Device=%s\n",
+	    res->res_dev.hdr.name,
+	    res->res_dev.media_type, res->res_dev.device_name);
+         sendit(sock, "        rew_wait=%d min_bs=%d max_bs=%d\n",
+	    res->res_dev.max_rewind_wait, res->res_dev.min_block_size, 
+	    res->res_dev.max_block_size);
+         sendit(sock, "        max_jobs=%d max_files=%" lld " max_size=%" lld "\n",
+	    res->res_dev.max_volume_jobs, res->res_dev.max_volume_files,
+	    res->res_dev.max_volume_size);
+         sendit(sock, "        max_file_size=%" lld " capacity=%" lld "\n",
+	    res->res_dev.max_file_size, res->res_dev.volume_capacity);
+         strcpy(buf, "        ");
+	 if (res->res_dev.cap_bits & CAP_EOF) {
+            strcat(buf, "CAP_EOF ");
+	 }
+	 if (res->res_dev.cap_bits & CAP_BSR) {
+            strcat(buf, "CAP_BSR ");
+	 }
+	 if (res->res_dev.cap_bits & CAP_BSF) {
+            strcat(buf, "CAP_BSF ");
+	 }
+	 if (res->res_dev.cap_bits & CAP_FSR) {
+            strcat(buf, "CAP_FSR ");
+	 }
+	 if (res->res_dev.cap_bits & CAP_FSF) {
+            strcat(buf, "CAP_FSF ");
+	 }
+	 if (res->res_dev.cap_bits & CAP_EOM) {
+            strcat(buf, "CAP_EOM ");
+	 }
+	 if (res->res_dev.cap_bits & CAP_REM) {
+            strcat(buf, "CAP_REM ");
+	 }
+	 if (res->res_dev.cap_bits & CAP_RACCESS) {
+            strcat(buf, "CAP_RACCESS ");
+	 }
+	 if (res->res_dev.cap_bits & CAP_AUTOMOUNT) {
+            strcat(buf, "CAP_AUTOMOUNT ");
+	 }
+	 if (res->res_dev.cap_bits & CAP_LABEL) {
+            strcat(buf, "CAP_LABEL ");
+	 }
+	 if (res->res_dev.cap_bits & CAP_ANONVOLS) {
+            strcat(buf, "CAP_ANONVOLS ");
+	 }
+	 if (res->res_dev.cap_bits & CAP_ALWAYSOPEN) {
+            strcat(buf, "CAP_ALWAYSOPEN ");
+	 }
+         strcat(buf, "\n");
+	 sendit(sock, buf);
+	 break;
+      case R_MSGS:
+         sendit(sock, "Messages: name=%s\n", res->res_msgs.hdr.name);
+	 break;
+      default:
+         sendit(sock, _("Warning: unknown resource type %d\n"), type);
+	 break;
+   }
+   if (recurse && res->res_dir.hdr.next)
+      dump_resource(type, (RES *)res->res_dir.hdr.next, sendit, sock);
+}
+
+/* 
+ * Free memory of resource.  
+ * NB, we don't need to worry about freeing any references
+ * to other resources as they will be freed when that 
+ * resource chain is traversed.  Mainly we worry about freeing
+ * allocated strings (names).
+ */
+void free_resource(int type)
+{
+   URES *nres;
+   URES *res;
+   int rindex = type - r_first;
+   res = (URES *)resources[rindex].res_head;
+
+   if (res == NULL)
+      return;
+
+   /* common stuff -- free the resource name */
+   nres = (URES *)res->res_dir.hdr.next;
+   if (res->res_dir.hdr.name)
+      free(res->res_dir.hdr.name);
+
+   switch (type) {
+      case R_DIRECTOR:
+	 if (res->res_dir.password)
+	    free(res->res_dir.password);
+	 if (res->res_dir.address)
+	    free(res->res_dir.address);
+	 break;
+      case R_STORAGE:
+	 if (res->res_store.address)
+	    free(res->res_store.address);
+	 if (res->res_store.working_directory)
+	    free(res->res_store.working_directory);
+	 if (res->res_store.pid_directory)
+	    free(res->res_store.pid_directory);
+	 if (res->res_store.subsys_directory)
+	    free(res->res_store.subsys_directory);
+	 break;
+      case R_DEVICE:
+	 if (res->res_dev.media_type)
+	    free(res->res_dev.media_type);
+	 if (res->res_dev.device_name)
+	    free(res->res_dev.device_name);
+	 break;
+      case R_MSGS:
+	 if (res->res_msgs.mail_cmd)
+	    free(res->res_msgs.mail_cmd);
+	 if (res->res_msgs.operator_cmd)
+	    free(res->res_msgs.operator_cmd);
+	 break;
+      default:
+         Dmsg1(0, "Unknown resource type %d\n", type);
+	 break;
+   }
+   /* Common stuff again -- free the resource, recurse to next one */
+   free(res);
+   resources[rindex].res_head = (RES *)nres;
+   if (nres)
+      free_resource(type);
+}
+
+/* Save the new resource by chaining it into the head list for
+ * the resource. If this is pass 2, we update any resource
+ * pointers (currently only in the Job resource).
+ */
+void save_resource(int type, struct res_items *items, int pass)
+{
+   URES *res;
+   int rindex = type - r_first;
+   int i, size;
+   int error = 0;
+
+   /* 
+    * Ensure that all required items are present
+    */
+   for (i=0; items[i].name; i++) {
+      if (items[i].flags & ITEM_REQUIRED) {
+	 if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {  
+            Emsg2(M_ABORT, 0, _("%s item is required in %s resource, but not found.\n"),
+	      items[i].name, resources[rindex]);
+	  }
+      }
+      /* If this triggers, take a look at lib/parse_conf.h */
+      if (i >= MAX_RES_ITEMS) {
+         Emsg1(M_ABORT, 0, _("Too many items in %s resource\n"), resources[rindex]);
+      }
+   }
+
+   /* During pass 2, we looked up pointers to all the resources
+    * referrenced in the current resource, , now we
+    * must copy their address from the static record to the allocated
+    * record.
+    */
+   if (pass == 2) {
+      switch (type) {
+	 case R_DIRECTOR:
+	 case R_STORAGE:
+	 case R_DEVICE:
+	 case R_MSGS:
+	    break;
+	 default:
+            printf("Unknown resource type %d\n", type);
+	    error = 1;
+	    break;
+      }
+      if (res_all.res_dir.hdr.name) {
+	 free(res_all.res_dir.hdr.name);
+	 res_all.res_dir.hdr.name = NULL;
+      }
+      if (res_all.res_dir.hdr.desc) {
+	 free(res_all.res_dir.hdr.desc);
+	 res_all.res_dir.hdr.desc = NULL;
+      }
+      return;
+   }
+
+   switch (type) {
+      case R_DIRECTOR:
+	 size = sizeof(DIRRES);
+	 break;
+      case R_STORAGE:
+	 size = sizeof(STORES);
+	 break;
+      case R_DEVICE:
+	 size = sizeof(DEVRES);
+	 break;
+      case R_MSGS:
+	 size = sizeof(MSGS);	
+	 break;
+      default:
+         printf("Unknown resource type %d\n", type);
+	 error = 1;
+	 break;
+   }
+   /* Common */
+   if (!error) {
+      res = (URES *) malloc(size);
+      memcpy(res, &res_all, size);
+      res->res_dir.hdr.next = resources[rindex].res_head;
+      resources[rindex].res_head = (RES *)res;
+   }
+}

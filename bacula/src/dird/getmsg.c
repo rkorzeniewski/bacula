@@ -1,0 +1,222 @@
+/*
+ *
+ *   Bacula Director -- routines to receive network data and
+ *    handle network signals. These routines handle the connections
+ *    to the Storage daemon and the File daemon.
+ *
+ *     Kern Sibbald, August MM
+ *
+ *    This routine runs as a thread and must be thread reentrant.
+ *
+ *  Basic tasks done here:
+ *    Handle  network signals (signals).  
+ *	 Signals always have return status 0 from bnet_recv() and
+ *	 a zero or negative message length.
+ *    Pass appropriate messages back to the caller (responses).  
+ *	 Responses always have a digit as the first character.
+ *    Handle requests for message and catalog services (requests).  
+ *	 Requests are any message that does not begin with a digit.
+ *	 In affect, they are commands.
+ *
+ */
+/*
+   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License as
+   published by the Free Software Foundation; either version 2 of
+   the License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+   General Public License for more details.
+
+   You should have received a copy of the GNU General Public
+   License along with this program; if not, write to the Free
+   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+   MA 02111-1307, USA.
+
+ */
+
+#include "bacula.h"
+#include "dird.h"
+
+/* Forward referenced functions */
+static char *find_msg_start(char *msg);
+
+static char OK_msg[] = "1000 OK\n";
+
+/*
+ * Get a message
+ *  Call appropriate processing routine
+ *  If it is not a Jmsg or a ReqCat message,
+ *   return it to the caller.
+ *
+ *  This routine is called to get the next message from
+ *  another daemon. If the message is in canonical message
+ *  format and the type is known, it will be dispatched
+ *  to the appropriate handler.  If the message is
+ *  in any other format, it will be returned. 
+ *
+ */
+int32_t bget_msg(BSOCK *bs, int rtn)
+{
+   int32_t n;
+   char Job[MAX_NAME_LENGTH];
+   char MsgType[20];
+   int type, level;
+   JCR *jcr;
+   char *msg;
+
+   for (;;) {
+      n = bnet_recv(bs);
+      Dmsg2(120, "bget_msg %d: %s\n", n, bs->msg);
+
+      if (n < 0) {
+	 return n;		      /* error return */
+      }
+      if (n == 0) {		      /* handle signal */
+	 /* 0 return from bnet_recv() => network signal */
+	 switch (bs->msglen) {
+	    case BNET_EOF:		 /* deprecated */
+	    case BNET_EOD:		 /* end of data */
+	       return 0;
+	    case BNET_EOD_POLL:
+	       bnet_fsend(bs, OK_msg);	 /* send response */
+	       return 0;		 /* end of data */
+	    case BNET_TERMINATE:
+	       bs->terminated = 1;
+	       return 0;
+	    case BNET_POLL:
+	       bnet_fsend(bs, OK_msg);	 /* send response */
+	       break;
+	    case BNET_HEARTBEAT:
+	       bnet_sig(bs, BNET_HB_RESPONSE);
+	       break;
+	    case BNET_STATUS:
+	       /* *****FIXME***** Implement */
+               bnet_fsend(bs, "Status OK\n");
+	       bnet_sig(bs, BNET_EOD);
+	       break;
+	    default:
+               Emsg1(M_WARNING, 0, _("bget_msg: unknown signal %d\n"), bs->msglen);
+	       return 0;
+	 }
+	 continue;
+      }
+     
+      /* Handle normal data */
+
+      if (ISDIGIT(bs->msg[0])) {      /* response? */
+	 return n;		      /* yes, return it */
+      }
+	
+      /*
+       * If we get here, it must be a request.	Either
+       *  a message to dispatch, or a catalog request.
+       *  Try to fulfill it.
+       */
+      if (sscanf(bs->msg, "%020s Job=%127s ", MsgType, Job) != 2) {
+         Emsg1(M_ERROR, 0, _("Malformed message: %s\n"), bs->msg);
+	 continue;
+      }
+      if (!(jcr=get_jcr_by_full_name(Job))) {
+         Emsg1(M_ERROR, 0, _("Job not found: %s\n"), bs->msg);
+	 continue;
+      }
+
+      /* Skip past "Jmsg Job=nnn" */
+      if (!(msg=find_msg_start(bs->msg))) {
+         Emsg1(M_ERROR, 0, _("Malformed message: %s\n"), bs->msg);
+	 free_jcr(jcr);
+	 continue;
+      }
+
+      /* 
+       * Here we are expecting a message of the following format:
+       *   Jmsg Job=nnn type=nnn level=nnn Message-string
+       */
+      if (bs->msg[0] == 'J') {           /* Job message */
+         if (sscanf(bs->msg, "Jmsg Job=%127s type=%d level=%d", 
+		    Job, &type, &level) != 3) {
+            Emsg1(M_ERROR, 0, _("Malformed message: %s\n"), bs->msg);
+	    free_jcr(jcr);
+	    continue;
+	 }
+         Dmsg1(120, "Got msg: %s\n", bs->msg);
+	 skip_spaces(&msg);
+	 skip_nonspaces(&msg);	      /* skip type=nnn */
+	 skip_spaces(&msg);
+	 skip_nonspaces(&msg);	      /* skip level=nnn */
+         if (*msg == ' ') {
+	    msg++;		      /* skip leading space */
+	 }
+         Dmsg1(120, "Dispatch msg: %s", msg);
+	 dispatch_message(jcr, type, level, msg);
+	 free_jcr(jcr);
+	 continue;
+      }
+      /* 
+       * Here we expact a CatReq message
+       *   CatReq Job=nn Catalog-Request-Message
+       */
+      if (bs->msg[0] == 'C') {        /* Catalog request */
+         Dmsg1(120, "Catalog req: %s", bs->msg);
+	 catalog_request(jcr, bs, msg);
+	 free_jcr(jcr);
+	 continue;
+      }
+      if (bs->msg[0] == 'U') {        /* Catalog update */
+	 catalog_update(jcr, bs, msg);
+	 free_jcr(jcr);
+	 continue;
+      }
+      if (bs->msg[0] == 'M') {        /* Mount request */
+         Dmsg1(120, "Mount req: %s", bs->msg);
+	 mount_request(jcr, bs, msg);
+	 free_jcr(jcr);
+	 continue;
+      }
+      return n;
+   }
+}
+
+static char *find_msg_start(char *msg)
+{
+   char *p = msg;
+
+   skip_nonspaces(&p);		      /* skip message type */
+   skip_spaces(&p);
+   skip_nonspaces(&p);		      /* skip Job */
+   skip_spaces(&p);		      /* after spaces come the message */
+   return p;
+}
+
+/*
+ * Get response from File daemon to a command we
+ * sent. Check that the response agrees with what we expect.
+ *
+ *  Returns: 0 on failure
+ *	     1 on success
+ */
+int response(BSOCK *fd, char *resp, char *cmd)
+{
+   int n;
+
+   if (fd->errors) {
+      return 0;
+   }
+   if ((n = bget_msg(fd, 0)) > 0) {
+      Dmsg0(10, fd->msg);
+      if (strcmp(fd->msg, resp) == 0) {
+	 return 1;
+      }
+      Emsg3(M_FATAL, 0, _("<filed: bad response to %s command: wanted %s got: %s\n"),
+	 cmd, resp, fd->msg);
+      return 0;
+   } 
+   Emsg2(M_FATAL, 0, _("<filed: Socket error from Filed on %s command: ERR=%s\n"),
+	 cmd, bnet_strerror(fd));
+   return 0;
+}
