@@ -55,6 +55,12 @@ typedef struct s_record_hdr {
    uint32_t data_len;
 } RECORD_HDR;
 
+#define REC_NO_HEADER        0x01     /* No header read */
+#define REC_PARTIAL_RECORD   0x02     /* returning partial record */
+#define REC_BLOCK_EMPTY      0x04     /* not enough data in block */
+#define REC_NO_MATCH         0x08     /* No match on continuation data */
+#define REC_CONTINUATION     0x10     /* Continuation record found */
+
 /*
  * DEV_RECORD for reading and writing records.
  * It consists of a Record Header, and the Record Data
@@ -74,6 +80,7 @@ typedef struct s_dev_rec {
    int32_t  Stream;                   /* stream number */
    uint32_t data_len;                 /* current record length */
    uint32_t remainder;                /* remaining bytes to read/write */
+   uint32_t state;                    /* state bits */
    uint8_t  ser_buf[RECHDR_LENGTH];   /* serialized record header goes here */
    POOLMEM *data;                     /* Record data. This MUST be a memory pool item */
 } DEV_RECORD;

@@ -73,6 +73,32 @@ static void usage()
    exit(1);
 }
 
+static char *rec_state_to_str(DEV_RECORD *rec)
+{
+   static char buf[200]; 
+   buf[0] = 0;
+   if (rec->state & REC_NO_HEADER) {
+      strcat(buf, "Nohdr,");
+   }
+   if (rec->state & REC_PARTIAL_RECORD) {
+      strcat(buf, "partial,");
+   }
+   if (rec->state & REC_BLOCK_EMPTY) {
+      strcat(buf, "empty,");
+   }
+   if (rec->state & REC_NO_MATCH) {
+      strcat(buf, "Nomatch,");
+   }
+   if (rec->state & REC_CONTINUATION) {
+      strcat(buf, "cont,");
+   }
+   if (buf[0]) {
+      buf[strlen(buf)-1] = 0;
+   }
+   return buf;
+}
+
+
 
 int main (int argc, char *argv[])
 {
@@ -433,6 +459,8 @@ static void do_ls(char *infname)
    struct stat statp;
    int type;
    long record_file_index;
+   uint32_t num_files = 0;
+   int record;
 
    if (dump_label) {
       dump_volume_label(dev);
@@ -451,7 +479,7 @@ Warning, this Volume is a continuation of Volume %s\n",
    for ( ;; ) {
       SESSION_LABEL sessrec;
 
-      if (!read_record(dev, block, rec)) {
+      if (!read_block_from_device(dev, block)) {
          Dmsg0(20, "!read_record()\n");
 	 if (dev->state & ST_EOT) {
 	    if (!mount_next_volume(infname)) {
@@ -471,98 +499,157 @@ Warning, this Volume is a continuation of Volume %s\n",
 	 display_error_status();
 	 break;
       }
-
-      if (debug_level >= 30) {
-         Dmsg4(30, "VolSId=%ld FI=%s Strm=%s Size=%ld\n", rec->VolSessionId,
-	       FI_to_ascii(rec->FileIndex), stream_to_ascii(rec->Stream), 
-	       rec->data_len);
+      if (verbose) {
+         Dmsg2(10, "Block: %d blen=%d\n", block->BlockNumber, block->block_len);
       }
 
+      record = 0;
+      for ( ;; ) {
+	 if (!read_record_from_block(block, rec)) {
+	    if (rec->state & REC_NO_HEADER) {
+               Dmsg2(30, "!read,nohdr-break. stat=%s blk=%d\n", rec_state_to_str(rec), 
+		  block->BlockNumber);
+	       break;
+	    }
+	    if (rec->state & REC_NO_MATCH) {
+               Dmsg2(30, "!read,nomatch-break. stat=%s blk=%d\n", rec_state_to_str(rec), 
+		  block->BlockNumber);
+	       break;
+	    }
+	 }
+	 /*
+	  * At this point, we have at least a record header.
+	  *  Now decide if we want this record or not, but remember
+	  *  before accessing the record, we may need to read again to
+	  *  get all the data.
+	  */
+	 record++;
+	 if (verbose) {
+            Dmsg6(30, "recno=%d state=%s blk=%d SI=%d ST=%d FI=%d\n", record,
+	       rec_state_to_str(rec), block->BlockNumber,
+	       rec->VolSessionId, rec->VolSessionTime, rec->FileIndex);
+	 }
+	 if (debug_level >= 30) {
+            Dmsg4(30, "VolSId=%ld FI=%s Strm=%s Size=%ld\n", rec->VolSessionId,
+		  FI_to_ascii(rec->FileIndex), stream_to_ascii(rec->Stream), 
+		  rec->data_len);
+	 }
 
-      /*  
-       * Check for End of File record (all zeros)
-       *    NOTE: this no longer exists
-       */
-      if (rec->VolSessionId == 0 && rec->VolSessionTime == 0) {
-         Emsg0(M_ERROR_TERM, 0, "Zero VolSessionId and VolSessionTime. This shouldn't happen\n");
+	 /*  
+	  * Check for End of File record (all zeros)
+	  *    NOTE: this no longer exists
+	  */
+	 if (rec->VolSessionId == 0 && rec->VolSessionTime == 0) {
+            Emsg0(M_ERROR_TERM, 0, "Zero VolSessionId and VolSessionTime. This shouldn't happen\n");
+	 }
+
+	 /* 
+	  * Check for Start or End of Session Record 
+	  *
+	  */
+	 if (rec->FileIndex < 0) {
+	    char *rtype;
+	    memset(&sessrec, 0, sizeof(sessrec));
+	    switch (rec->FileIndex) {
+	       case PRE_LABEL:
+                  rtype = "Fresh Volume Label";   
+		  break;
+	       case VOL_LABEL:
+                  rtype = "Volume Label";
+		  unser_volume_label(dev, rec);
+		  break;
+	       case SOS_LABEL:
+                  rtype = "Begin Session";
+		  unser_session_label(&sessrec, rec);
+		  break;
+	       case EOS_LABEL:
+                  rtype = "End Session";
+		  break;
+	       case EOM_LABEL:
+                  rtype = "End of Media";
+		  break;
+	       default:
+                  rtype = "Unknown";
+		  break;
+	    }
+	    if (debug_level > 0) {
+               printf("%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
+		  rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
+	    }
+
+            Dmsg1(40, "Got label = %d\n", rec->FileIndex);
+	    if (rec->FileIndex == EOM_LABEL) { /* end of tape? */
+               Dmsg0(100, "EOM LABEL break\n");
+	       rec->remainder = 0;
+	       break;			      /* yes, get out */
+	    }
+	    rec->remainder = 0;
+	    if (rec->state & REC_BLOCK_EMPTY) {
+               Dmsg0(100, "Empty, break.\n");
+               break;                 /* don't want record, read next block */
+	    } else {
+               Dmsg0(100, "Label, continue.\n");
+               continue;              /* we don't want record, read next one */
+	    }
+	 } /* end if label record */
+
+	 /* 
+	  * Apply BSR filter
+	  */
+	 if (bsr && !match_bsr(bsr, rec, &dev->VolHdr, &sessrec)) {
+	    if (verbose) {
+               Dmsg5(10, "BSR no match rec=%d block=%d SessId=%d SessTime=%d FI=%d\n",
+		  record, block->BlockNumber, rec->VolSessionId, rec->VolSessionTime, 
+		  rec->FileIndex);
+	    }
+	    rec->remainder = 0;
+	    if (rec->state & REC_BLOCK_EMPTY) {
+               Dmsg0(100, "Empty, break.\n");
+               break;                 /* don't want record, read next block */
+	    } else {
+               Dmsg0(100, "BSR reject, continue.\n");
+               continue;              /* we don't want record, read next one */
+	    }
+	 }
+	 if (rec->state & REC_PARTIAL_RECORD) {
+            Dmsg6(10, "Partial, break. recno=%d state=%s blk=%d SI=%d ST=%d FI=%d\n", record,
+	       rec_state_to_str(rec), block->BlockNumber,
+	       rec->VolSessionId, rec->VolSessionTime, rec->FileIndex);
+	    break;		      /* read second part of record */
+	 }
+
+	 /* File Attributes stream */
+	 if (rec->Stream == STREAM_UNIX_ATTRIBUTES) {
+	    char *ap, *fp;
+            sscanf(rec->data, "%ld %d", &record_file_index, &type);
+	    if (record_file_index != rec->FileIndex) {
+               Emsg2(M_ERROR_TERM, 0, "Record header file index %ld not equal record index %ld\n",
+		  rec->FileIndex, record_file_index);
+	    }
+	    ap = rec->data;
+
+            while (*ap++ != ' ')         /* skip record file index */
+	       ;
+            while (*ap++ != ' ')         /* skip type */
+	       ;
+	    /* Save filename and position to attributes */
+	    fp = fname;
+	    while (*ap != 0) {
+	       *fp++  = *ap++;
+	    }
+	    *fp = *ap++;		 /* terminate filename & point to attribs */
+
+	    decode_stat(ap, &statp);
+	    /* Skip to link name */  
+	    while (*ap++ != 0)
+	       ;
+	    print_ls_output(fname, ap, type, &statp);
+	    num_files++;
+	 }
       }
-
-      /* 
-       * Check for Start or End of Session Record 
-       *
-       */
-      if (rec->FileIndex < 0) {
-	 char *rtype;
-	 memset(&sessrec, 0, sizeof(sessrec));
-	 switch (rec->FileIndex) {
-	    case PRE_LABEL:
-               rtype = "Fresh Volume Label";   
-	       break;
-	    case VOL_LABEL:
-               rtype = "Volume Label";
-	       unser_volume_label(dev, rec);
-	       break;
-	    case SOS_LABEL:
-               rtype = "Begin Session";
-	       unser_session_label(&sessrec, rec);
-	       break;
-	    case EOS_LABEL:
-               rtype = "End Session";
-	       break;
-	    case EOM_LABEL:
-               rtype = "End of Media";
-	       break;
-	    default:
-               rtype = "Unknown";
-	       break;
-	 }
-	 if (debug_level > 0) {
-            printf("%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
-	       rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
-	 }
-
-         Dmsg1(40, "Got label = %d\n", rec->FileIndex);
-	 if (rec->FileIndex == EOM_LABEL) { /* end of tape? */
-            Dmsg0(40, "Get EOM LABEL\n");
-	    break;			   /* yes, get out */
-	 }
-	 continue;			   /* ignore other labels */
-      } /* end if label record */
-
-      /* 
-       * Apply BSR filter
-       */
-      if (bsr && !match_bsr(bsr, rec, &dev->VolHdr, &sessrec)) {
-	 continue;
-      }
-
-      /* File Attributes stream */
-      if (rec->Stream == STREAM_UNIX_ATTRIBUTES) {
-	 char *ap, *fp;
-         sscanf(rec->data, "%ld %d", &record_file_index, &type);
-	 if (record_file_index != rec->FileIndex) {
-            Emsg2(M_ERROR_TERM, 0, "Record header file index %ld not equal record index %ld\n",
-	       rec->FileIndex, record_file_index);
-	 }
-	 ap = rec->data;
-
-         while (*ap++ != ' ')         /* skip record file index */
-	    ;
-         while (*ap++ != ' ')         /* skip type */
-	    ;
-	 /* Save filename and position to attributes */
-	 fp = fname;
-	 while (*ap != 0) {
-	    *fp++  = *ap++;
-	 }
-	 *fp = *ap++;		      /* terminate filename & point to attribs */
-
-	 decode_stat(ap, &statp);
-	 /* Skip to link name */  
-	 while (*ap++ != 0)
-	    ;
-	 print_ls_output(fname, ap, type, &statp);
-      }
+   }
+   if (verbose) {
+      printf("%u files found.\n", num_files);
    }
    return;
 }
