@@ -297,56 +297,21 @@ void db_end_transaction(JCR *jcr, B_DB *mdb)
  *  and filename parts. They are returned in pool memory
  *  in the mdb structure.
  */
-void split_path_and_filename(JCR *jcr, B_DB *mdb, char *fname)
+void split_path_and_file(JCR *jcr, B_DB *mdb, const char *fname)
 {
-   char *p, *f;
-
-   /* Find path without the filename.  
-    * I.e. everything after the last / is a "filename".
-    * OK, maybe it is a directory name, but we treat it like
-    * a filename. If we don't find a / then the whole name
-    * must be a path name (e.g. c:).
-    */
-   for (p=f=fname; *p; p++) {
-      if (*p == '/') {
-	 f = p; 		      /* set pos of last slash */
-      }
-   }
-   if (*f == '/') {                   /* did we find a slash? */
-      f++;			      /* yes, point to filename */
-   } else {			      /* no, whole thing must be path name */
-      f = p;
-   }
-
-   /* If filename doesn't exist (i.e. root directory), we
-    * simply create a blank name consisting of a single 
-    * space. This makes handling zero length filenames
-    * easier.
-    */
-   mdb->fnl = p - f;
-   if (mdb->fnl > 0) {
-      mdb->fname = check_pool_memory_size(mdb->fname, mdb->fnl+1);
-      memcpy(mdb->fname, f, mdb->fnl);	  /* copy filename */
-      mdb->fname[mdb->fnl] = 0;
-   } else {
+   split_path_and_filename(fname, &mdb->path, &mdb->pnl, &mdb->fname, &mdb->fnl);
+   if (mdb->fnl == 0) {
       mdb->fname[0] = ' ';            /* blank filename */
       mdb->fname[1] = 0;
       mdb->fnl = 1;
    }
-
-   mdb->pnl = f - fname;    
-   if (mdb->pnl > 0) {
-      mdb->path = check_pool_memory_size(mdb->path, mdb->pnl+1);
-      memcpy(mdb->path, fname, mdb->pnl);
-      mdb->path[mdb->pnl] = 0;
-   } else {
+   if (mdb->pnl == 0) {   
       Mmsg1(&mdb->errmsg, _("Path length is zero. File=%s\n"), fname);
       Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       mdb->path[0] = ' ';
       mdb->path[1] = 0;
       mdb->pnl = 1;
    }
-
    Dmsg2(400, "split path=%s file=%s\n", mdb->path, mdb->fname);
 }
 

@@ -20,7 +20,7 @@
 #define KEY_Right 65363
 
 gboolean
-on_app1_delete_event(GtkWidget *widget, GdkEvent *event, gpointer user_data)
+on_console_delete_event(GtkWidget *widget, GdkEvent *event, gpointer user_data)
 {
    gtk_main_quit();
    return FALSE;
@@ -77,14 +77,6 @@ on_clear1_activate(GtkMenuItem *menuitem, gpointer user_data)
 {
 
 }
-
-
-void
-on_properties1_activate(GtkMenuItem *menuitem, gpointer user_data)
-{
-
-}
-
 
 void
 on_preferences1_activate(GtkMenuItem *menuitem, gpointer user_data)
@@ -430,14 +422,6 @@ on_view_fileset_clicked(GtkButton *button, gpointer user_data)
 {
 }
 
-void
-on_restore_ok_clicked(GtkButton *button, gpointer user_data)
-{
-   gtk_widget_hide(restore_dialog);
-   gtk_main_quit();
-   set_status_ready();
-}
-
 
 void
 on_restore_cancel_clicked(GtkButton *button, gpointer user_data)
@@ -447,19 +431,6 @@ on_restore_cancel_clicked(GtkButton *button, gpointer user_data)
    set_status_ready();
 }
 
-void
-on_apply_button_clicked(GtkButton *button, gpointer user_data)
-{
-   gtk_widget_show(restore_files);
-   gtk_main();
-}
-
-void
-on_restore_file_clicked(GtkButton *button, gpointer user_data)
-{
-   gtk_widget_hide(restore_files);
-   gtk_main_quit();
-}
 
 void
 on_label_button_clicked(GtkButton *button, gpointer user_data)
@@ -501,4 +472,214 @@ on_label_cancel_clicked(GtkButton *button, gpointer user_data)
    gtk_widget_hide(label_dialog);
    gtk_main_quit();
    set_status_ready();
+}
+
+
+void
+on_select_files_button_clicked(GtkButton *button, gpointer user_data)
+{
+   char *job, *fileset, *client, *pool, *before, *storage;
+
+   gtk_widget_hide(restore_dialog);
+
+   job     = get_combo_text(restore_dialog, "combo_restore_job");
+   fileset = get_combo_text(restore_dialog, "combo_restore_fileset");
+   client  = get_combo_text(restore_dialog, "combo_restore_client");
+   pool    = get_combo_text(restore_dialog, "combo_restore_pool");
+   storage = get_combo_text(restore_dialog, "combo_restore_storage");
+
+   before  = get_entry_text(restore_dialog, "restore_before_entry");
+
+   if (!job || !fileset || !client || !pool || !storage || !before) {
+      set_status_ready();
+      return;
+   }
+      
+   bsnprintf(cmd, sizeof(cmd), 
+             "restore select current fileset=\"%s\" client=\"%s\" pool=\"%s\" "
+             "storage=\"%s\"", fileset, client, pool, storage);
+   write_director(cmd);
+   gtk_widget_show(restore_file_selection);
+   select_restore_files();	      /* put up select files dialog */
+}
+
+void
+on_restore_select_ok_clicked(GtkButton *button, gpointer user_data)
+{
+   gtk_widget_hide(restore_file_selection);
+   write_director("done");
+   gtk_main_quit();
+   set_status_ready();
+}
+
+
+void
+on_restore_select_cancel_clicked(GtkButton *button, gpointer user_data)
+{
+   gtk_widget_hide(restore_file_selection);
+   write_director("quit");
+   gtk_main_quit();
+   set_status_ready();
+}
+
+gboolean
+on_restore_files_delete_event(GtkWidget *widget, GdkEvent *event, gpointer user_data)
+{
+   gtk_widget_hide(restore_file_selection);
+   gtk_main_quit();
+   set_status_ready();
+   return FALSE;
+}
+
+
+void
+on_new1_activate		       (GtkMenuItem	*menuitem,
+					gpointer	 user_data)
+{
+
+}
+
+
+void
+on_open1_activate		       (GtkMenuItem	*menuitem,
+					gpointer	 user_data)
+{
+
+}
+
+
+void
+on_save1_activate		       (GtkMenuItem	*menuitem,
+					gpointer	 user_data)
+{
+
+}
+
+
+void
+on_save_as1_activate		       (GtkMenuItem	*menuitem,
+					gpointer	 user_data)
+{
+
+}
+
+
+void
+on_quit1_activate		       (GtkMenuItem	*menuitem,
+					gpointer	 user_data)
+{
+
+}
+
+
+void
+on_cut2_activate		       (GtkMenuItem	*menuitem,
+					gpointer	 user_data)
+{
+
+}
+
+
+void
+on_copy2_activate		       (GtkMenuItem	*menuitem,
+					gpointer	 user_data)
+{
+
+}
+
+
+void
+on_paste2_activate		       (GtkMenuItem	*menuitem,
+					gpointer	 user_data)
+{
+
+}
+
+
+void
+on_clear2_activate		       (GtkMenuItem	*menuitem,
+					gpointer	 user_data)
+{
+
+}
+
+
+void
+on_properties1_activate 	       (GtkMenuItem	*menuitem,
+					gpointer	 user_data)
+{
+
+}
+
+
+void
+on_preferences2_activate	       (GtkMenuItem	*menuitem,
+					gpointer	 user_data)
+{
+
+}
+
+
+void
+on_about2_activate		       (GtkMenuItem	*menuitem,
+					gpointer	 user_data)
+{
+
+}
+
+/*
+ * Set correct default values in the Restore dialog box
+ */
+void set_restore_dialog_defaults()
+{
+   GtkWidget *combo;
+   char *job, *def;
+   GList *item, *list;
+   char cmd[1000];
+   int pos;
+
+   stop_director_reader(NULL);
+
+   combo = lookup_widget(restore_dialog, "combo_restore_job");
+   job = (char *)gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(combo)->entry));
+   bsnprintf(cmd, sizeof(cmd), ".defaults job=\"%s\"", job);
+   write_director(cmd);
+   while (bnet_recv(UA_sock) > 0) {
+      def = strchr(UA_sock->msg, '=');
+      if (!def) {
+	 continue;
+      }
+      *def++ = 0;
+      if (strcmp(UA_sock->msg, "job") == 0 ||
+          strcmp(UA_sock->msg, "when") == 0 ||
+          strcmp(UA_sock->msg, "where") == 0 ||
+          strcmp(UA_sock->msg, "messages") == 0 ||
+          strcmp(UA_sock->msg, "level") == 0 ||
+          strcmp(UA_sock->msg, "type") == 0) {
+	 continue;
+      }
+
+      /* Now handle combo boxes */
+      list = find_combo_list(UA_sock->msg);
+      if (!list) {
+	 continue;
+      }
+      item = g_list_find_custom(list, def, compare_func);
+      bsnprintf(cmd, sizeof(cmd), "combo_restore_%s", UA_sock->msg);
+      combo = lookup_widget(restore_dialog, cmd);
+      if (!combo) {
+	 continue;
+      }
+      pos = g_list_position(list, item);
+      gtk_list_select_item(GTK_LIST(GTK_COMBO(combo)->list), pos);
+   }
+   start_director_reader(NULL);
+}
+
+
+void
+on_restore_job_entry_changed(GtkEditable *editable, gpointer user_data)
+{
+   /* Set defaults that correspond to new job selection */
+   set_restore_dialog_defaults();
 }

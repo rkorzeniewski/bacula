@@ -26,8 +26,10 @@ GNOME_LIBS = @GNOME_LIBS@
 
 
 #
-CONSSRCS = console.c console_conf.c authenticate.c support.c interface.c callbacks.c
-CONSOBJS = console.o console_conf.o authenticate.o support.o interface.o callbacks.o
+CONSSRCS = console.c console_conf.c authenticate.c support.c interface.c callbacks.c \
+	   restore.c
+CONSOBJS = console.o console_conf.o authenticate.o support.o interface.o callbacks.o \
+	   restore.o
 
 # these are the objects that are changed by the .configure process
 EXTRAOBJS = @OBJLIST@

@@ -24,10 +24,10 @@ extern GtkWidget *entry1;     /* entry box */
 extern GtkWidget *combo1;     /* Directory combo */
 extern GtkWidget *dir_dialog; 
 extern GtkWidget *dir_select;
-extern GtkWidget *run_dialog;       /* run dialog */
+extern GtkWidget *run_dialog;	    /* run dialog */
 extern GtkWidget *label_dialog;     
 extern GtkWidget *restore_dialog;   /* restore dialog */
-extern GtkWidget *restore_files;    /* restore files dialog */
+extern GtkWidget *restore_file_selection;   /* restore files dialog */
 extern GtkWidget *about1;
 extern GList *job_list, *client_list, *fileset_list;
 extern GList *messages_list, *pool_list, *storage_list;
@@ -57,5 +57,7 @@ void start_director_reader(gpointer data);
 void stop_director_reader(gpointer data);
 void write_director(gchar *msg);
 void read_director(gpointer data, gint fd, GdkInputCondition condition);
+void set_restore_dialog_defaults();
+void select_restore_files();
 
 #endif

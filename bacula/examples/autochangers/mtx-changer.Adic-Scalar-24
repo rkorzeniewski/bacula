@@ -1,0 +1,40 @@
+#!/bin/sh
+#
+# Bacula interface to mtx autoloader
+#
+#  mtx-changer "changer-device" "command" "slot"
+#
+#   Modified for Adic Scalar 24 with one LTO drive by
+#      M. Ludovic Strappozon
+#
+case "$2" in 
+   unload)
+#     echo "Doing mtx -f $1 $2"
+      mtx -f $1 $2
+      ;;
+
+   load)
+#     echo "Doing mtx -f $1 $2 $3"
+      mtx -f $1 $2 $3
+      sleep 20
+      ;;
+
+   list) 
+#     echo "Requested list"
+#     mtx -f $1 status | grep " *Storage Element [0-9]*:.*Full" | awk "{print \$3}" | sed "s/:.*$/ /g" | tr -d "[\r\n]"
+      mtx -f $1 status | grep " *Storage Element [0-9]*:.*Full" | awk "{print \$3 \$4}" | sed "s/Full *\(:VolumeTag=\)*//"
+      ;;
+
+   loaded)
+#     echo "Request loaded"
+      mtx -f $1 status >/tmp/mtx.$$
+      cat /tmp/mtx.$$ | grep "^Data Transfer Element 0:Full" | awk "{print \$7}"
+      cat /tmp/mtx.$$ | grep "^Data Transfer Element 0:Empty" | awk "{print 0}"
+      rm -f /tmp/mtx.$$
+      ;;
+
+   slots)
+#     echo "Request slots"
+      mtx -f $1 status | grep " *Storage Changer" | awk "{print \$5}"
+      ;;
+esac

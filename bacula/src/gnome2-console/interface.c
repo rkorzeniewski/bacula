@@ -164,9 +164,9 @@ static GnomeUIInfo menubar1_uiinfo[] =
 };
 
 GtkWidget*
-create_app1 (void)
+create_console (void)
 {
-  GtkWidget *app1;
+  GtkWidget *console;
   GtkWidget *vbox6;
   GtkWidget *handlebox1;
   GtkWidget *menubar1;
@@ -193,13 +193,14 @@ create_app1 (void)
 
   tooltips = gtk_tooltips_new ();
 
-  app1 = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title (GTK_WINDOW (app1), _("Bacula Console"));
-  gtk_window_set_position (GTK_WINDOW (app1), GTK_WIN_POS_CENTER);
+  console = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_title (GTK_WINDOW (console), _("Bacula Console"));
+  gtk_window_set_position (GTK_WINDOW (console), GTK_WIN_POS_CENTER);
+  gtk_window_set_default_size (GTK_WINDOW (console), 700, 600);
 
   vbox6 = gtk_vbox_new (FALSE, 0);
   gtk_widget_show (vbox6);
-  gtk_container_add (GTK_CONTAINER (app1), vbox6);
+  gtk_container_add (GTK_CONTAINER (console), vbox6);
 
   handlebox1 = gtk_handle_box_new ();
   gtk_widget_show (handlebox1);
@@ -322,14 +323,14 @@ create_app1 (void)
   gtk_widget_show (frame2);
   gtk_box_pack_start (GTK_BOX (hbox19), frame2, TRUE, TRUE, 0);
 
-  status1 = gtk_label_new ("");
+  status1 = gtk_label_new (_("  "));
   gtk_widget_show (status1);
   gtk_container_add (GTK_CONTAINER (frame2), status1);
   gtk_label_set_justify (GTK_LABEL (status1), GTK_JUSTIFY_LEFT);
   gtk_misc_set_alignment (GTK_MISC (status1), 0, 0.5);
 
-  g_signal_connect ((gpointer) app1, "delete_event",
-                    G_CALLBACK (on_app1_delete_event),
+  g_signal_connect ((gpointer) console, "delete_event",
+                    G_CALLBACK (on_console_delete_event),
                     NULL);
   g_signal_connect ((gpointer) connect_button1, "clicked",
                     G_CALLBACK (on_connect_button_clicked),
@@ -354,50 +355,50 @@ create_app1 (void)
                     NULL);
 
   /* Store pointers to all widgets, for use by lookup_widget(). */
-  GLADE_HOOKUP_OBJECT_NO_REF (app1, app1, "app1");
-  GLADE_HOOKUP_OBJECT (app1, vbox6, "vbox6");
-  GLADE_HOOKUP_OBJECT (app1, handlebox1, "handlebox1");
-  GLADE_HOOKUP_OBJECT (app1, menubar1, "menubar1");
-  GLADE_HOOKUP_OBJECT (app1, menubar1_uiinfo[0].widget, "file1");
-  GLADE_HOOKUP_OBJECT (app1, file1_menu_uiinfo[0].widget, "connect1");
-  GLADE_HOOKUP_OBJECT (app1, file1_menu_uiinfo[1].widget, "disconnect1");
-  GLADE_HOOKUP_OBJECT (app1, file1_menu_uiinfo[2].widget, "menuitem4");
-  GLADE_HOOKUP_OBJECT (app1, file1_menu_uiinfo[3].widget, "exit1");
-  GLADE_HOOKUP_OBJECT (app1, menubar1_uiinfo[1].widget, "edit1");
-  GLADE_HOOKUP_OBJECT (app1, edit1_menu_uiinfo[0].widget, "cut1");
-  GLADE_HOOKUP_OBJECT (app1, edit1_menu_uiinfo[1].widget, "copy1");
-  GLADE_HOOKUP_OBJECT (app1, edit1_menu_uiinfo[2].widget, "paste1");
-  GLADE_HOOKUP_OBJECT (app1, edit1_menu_uiinfo[3].widget, "clear1");
-  GLADE_HOOKUP_OBJECT (app1, edit1_menu_uiinfo[4].widget, "separator1");
-  GLADE_HOOKUP_OBJECT (app1, menubar1_uiinfo[2].widget, "item1");
-  GLADE_HOOKUP_OBJECT (app1, item1_menu_uiinfo[0].widget, "msgs");
-  GLADE_HOOKUP_OBJECT (app1, menubar1_uiinfo[3].widget, "settings1");
-  GLADE_HOOKUP_OBJECT (app1, settings1_menu_uiinfo[0].widget, "preferences1");
-  GLADE_HOOKUP_OBJECT (app1, menubar1_uiinfo[4].widget, "help1");
-  GLADE_HOOKUP_OBJECT (app1, help1_menu_uiinfo[0].widget, "about1");
-  GLADE_HOOKUP_OBJECT (app1, handlebox2, "handlebox2");
-  GLADE_HOOKUP_OBJECT (app1, toolbar2, "toolbar2");
-  GLADE_HOOKUP_OBJECT (app1, connect_button1, "connect_button1");
-  GLADE_HOOKUP_OBJECT (app1, run_button1, "run_button1");
-  GLADE_HOOKUP_OBJECT (app1, msgs_button, "msgs_button");
-  GLADE_HOOKUP_OBJECT (app1, restore_button, "restore_button");
-  GLADE_HOOKUP_OBJECT (app1, label_button, "label_button");
-  GLADE_HOOKUP_OBJECT (app1, vbox7, "vbox7");
-  GLADE_HOOKUP_OBJECT (app1, scroll1, "scroll1");
-  GLADE_HOOKUP_OBJECT (app1, text1, "text1");
-  GLADE_HOOKUP_OBJECT (app1, hbox18, "hbox18");
-  GLADE_HOOKUP_OBJECT (app1, label38, "label38");
-  GLADE_HOOKUP_OBJECT (app1, entry1, "entry1");
-  GLADE_HOOKUP_OBJECT (app1, hbox19, "hbox19");
-  GLADE_HOOKUP_OBJECT (app1, frame1, "frame1");
-  GLADE_HOOKUP_OBJECT (app1, label39, "label39");
-  GLADE_HOOKUP_OBJECT (app1, frame2, "frame2");
-  GLADE_HOOKUP_OBJECT (app1, status1, "status1");
-  GLADE_HOOKUP_OBJECT_NO_REF (app1, tooltips, "tooltips");
+  GLADE_HOOKUP_OBJECT_NO_REF (console, console, "console");
+  GLADE_HOOKUP_OBJECT (console, vbox6, "vbox6");
+  GLADE_HOOKUP_OBJECT (console, handlebox1, "handlebox1");
+  GLADE_HOOKUP_OBJECT (console, menubar1, "menubar1");
+  GLADE_HOOKUP_OBJECT (console, menubar1_uiinfo[0].widget, "file1");
+  GLADE_HOOKUP_OBJECT (console, file1_menu_uiinfo[0].widget, "connect1");
+  GLADE_HOOKUP_OBJECT (console, file1_menu_uiinfo[1].widget, "disconnect1");
+  GLADE_HOOKUP_OBJECT (console, file1_menu_uiinfo[2].widget, "menuitem4");
+  GLADE_HOOKUP_OBJECT (console, file1_menu_uiinfo[3].widget, "exit1");
+  GLADE_HOOKUP_OBJECT (console, menubar1_uiinfo[1].widget, "edit1");
+  GLADE_HOOKUP_OBJECT (console, edit1_menu_uiinfo[0].widget, "cut1");
+  GLADE_HOOKUP_OBJECT (console, edit1_menu_uiinfo[1].widget, "copy1");
+  GLADE_HOOKUP_OBJECT (console, edit1_menu_uiinfo[2].widget, "paste1");
+  GLADE_HOOKUP_OBJECT (console, edit1_menu_uiinfo[3].widget, "clear1");
+  GLADE_HOOKUP_OBJECT (console, edit1_menu_uiinfo[4].widget, "separator1");
+  GLADE_HOOKUP_OBJECT (console, menubar1_uiinfo[2].widget, "item1");
+  GLADE_HOOKUP_OBJECT (console, item1_menu_uiinfo[0].widget, "msgs");
+  GLADE_HOOKUP_OBJECT (console, menubar1_uiinfo[3].widget, "settings1");
+  GLADE_HOOKUP_OBJECT (console, settings1_menu_uiinfo[0].widget, "preferences1");
+  GLADE_HOOKUP_OBJECT (console, menubar1_uiinfo[4].widget, "help1");
+  GLADE_HOOKUP_OBJECT (console, help1_menu_uiinfo[0].widget, "about1");
+  GLADE_HOOKUP_OBJECT (console, handlebox2, "handlebox2");
+  GLADE_HOOKUP_OBJECT (console, toolbar2, "toolbar2");
+  GLADE_HOOKUP_OBJECT (console, connect_button1, "connect_button1");
+  GLADE_HOOKUP_OBJECT (console, run_button1, "run_button1");
+  GLADE_HOOKUP_OBJECT (console, msgs_button, "msgs_button");
+  GLADE_HOOKUP_OBJECT (console, restore_button, "restore_button");
+  GLADE_HOOKUP_OBJECT (console, label_button, "label_button");
+  GLADE_HOOKUP_OBJECT (console, vbox7, "vbox7");
+  GLADE_HOOKUP_OBJECT (console, scroll1, "scroll1");
+  GLADE_HOOKUP_OBJECT (console, text1, "text1");
+  GLADE_HOOKUP_OBJECT (console, hbox18, "hbox18");
+  GLADE_HOOKUP_OBJECT (console, label38, "label38");
+  GLADE_HOOKUP_OBJECT (console, entry1, "entry1");
+  GLADE_HOOKUP_OBJECT (console, hbox19, "hbox19");
+  GLADE_HOOKUP_OBJECT (console, frame1, "frame1");
+  GLADE_HOOKUP_OBJECT (console, label39, "label39");
+  GLADE_HOOKUP_OBJECT (console, frame2, "frame2");
+  GLADE_HOOKUP_OBJECT (console, status1, "status1");
+  GLADE_HOOKUP_OBJECT_NO_REF (console, tooltips, "tooltips");
 
   gtk_widget_grab_focus (entry1);
   gtk_widget_grab_default (entry1);
-  return app1;
+  return console;
 }
 
 GtkWidget*
@@ -432,7 +433,7 @@ create_about1 (void)
   gtk_widget_show (vbox9);
   gtk_box_pack_start (GTK_BOX (vbox8), vbox9, TRUE, TRUE, 0);
 
-  about_head = gtk_label_new (_("Bacula Console 1.32c (24 Oct 03)\n"));
+  about_head = gtk_label_new (_("Bacula Console 1.34.0 (16 Mar 04)\n"));
   gtk_widget_show (about_head);
   gtk_box_pack_start (GTK_BOX (vbox9), about_head, FALSE, FALSE, 0);
 
@@ -440,7 +441,7 @@ create_about1 (void)
   gtk_widget_show (hseparator1);
   gtk_box_pack_start (GTK_BOX (vbox9), hseparator1, FALSE, FALSE, 0);
 
-  copyright = gtk_label_new (_("Copyright (c) 1999 - 2002, Kern Sibbald and John Walker"));
+  copyright = gtk_label_new (_("Copyright (c) 2000 - 2004, Kern Sibbald and John Walker"));
   gtk_widget_show (copyright);
   gtk_box_pack_start (GTK_BOX (vbox9), copyright, TRUE, FALSE, 0);
   gtk_label_set_justify (GTK_LABEL (copyright), GTK_JUSTIFY_LEFT);
@@ -473,6 +474,7 @@ create_about1 (void)
   about_button = gtk_button_new_from_stock ("gtk-ok");
   gtk_widget_show (about_button);
   gtk_box_pack_start (GTK_BOX (hbox20), about_button, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (about_button, 400, 640);
   gtk_container_set_border_width (GTK_CONTAINER (about_button), 1);
   GTK_WIDGET_SET_FLAGS (about_button, GTK_CAN_DEFAULT);
 
@@ -1047,249 +1049,224 @@ create_RunDialog (void)
   return RunDialog;
 }
 
-GtkWidget*
-create_restore_files (void)
+static GnomeUIInfo file2_menu_uiinfo[] =
 {
-  GtkWidget *restore_files;
+  GNOMEUIINFO_MENU_NEW_ITEM (N_("_New"), NULL, on_new1_activate, NULL),
+  GNOMEUIINFO_MENU_OPEN_ITEM (on_open1_activate, NULL),
+  GNOMEUIINFO_MENU_SAVE_ITEM (on_save1_activate, NULL),
+  GNOMEUIINFO_MENU_SAVE_AS_ITEM (on_save_as1_activate, NULL),
+  GNOMEUIINFO_SEPARATOR,
+  GNOMEUIINFO_MENU_EXIT_ITEM (on_quit1_activate, NULL),
+  GNOMEUIINFO_END
+};
+
+static GnomeUIInfo edit2_menu_uiinfo[] =
+{
+  GNOMEUIINFO_MENU_CUT_ITEM (on_cut2_activate, NULL),
+  GNOMEUIINFO_MENU_COPY_ITEM (on_copy2_activate, NULL),
+  GNOMEUIINFO_MENU_PASTE_ITEM (on_paste2_activate, NULL),
+  GNOMEUIINFO_MENU_CLEAR_ITEM (on_clear2_activate, NULL),
+  GNOMEUIINFO_SEPARATOR,
+  GNOMEUIINFO_MENU_PROPERTIES_ITEM (on_properties1_activate, NULL),
+  GNOMEUIINFO_SEPARATOR,
+  GNOMEUIINFO_MENU_PREFERENCES_ITEM (on_preferences2_activate, NULL),
+  GNOMEUIINFO_END
+};
+
+static GnomeUIInfo view1_menu_uiinfo[] =
+{
+  GNOMEUIINFO_END
+};
+
+static GnomeUIInfo help2_menu_uiinfo[] =
+{
+  GNOMEUIINFO_MENU_ABOUT_ITEM (on_about2_activate, NULL),
+  GNOMEUIINFO_END
+};
+
+static GnomeUIInfo menubar2_uiinfo[] =
+{
+  GNOMEUIINFO_MENU_FILE_TREE (file2_menu_uiinfo),
+  GNOMEUIINFO_MENU_EDIT_TREE (edit2_menu_uiinfo),
+  GNOMEUIINFO_MENU_VIEW_TREE (view1_menu_uiinfo),
+  GNOMEUIINFO_MENU_HELP_TREE (help2_menu_uiinfo),
+  GNOMEUIINFO_END
+};
+
+GtkWidget*
+create_restore_file_selection (void)
+{
+  GtkWidget *restore_file_selection;
   GtkWidget *vbox13;
-  GtkWidget *scrolledwindow4;
-  GtkWidget *ctree2;
+  GtkWidget *handlebox4;
+  GtkWidget *menubar2;
+  GtkWidget *handlebox3;
+  GtkWidget *toolbar3;
+  GtkWidget *restore_up_button;
+  GtkWidget *restore_add_button;
+  GtkWidget *restore_remove_button;
   GtkWidget *hbox38;
   GtkWidget *label88;
-  GtkWidget *entry25;
+  GtkWidget *restore_dir;
+  GtkWidget *scrolled;
   GtkWidget *hbox44;
-  GtkWidget *label105;
-  GtkWidget *restore_file;
-  GtkTooltips *tooltips;
+  GtkWidget *label115;
+  GtkWidget *restore_select_ok;
+  GtkWidget *label116;
+  GtkWidget *restore_select_cancel;
+  GtkWidget *label117;
 
-  tooltips = gtk_tooltips_new ();
-
-  restore_files = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title (GTK_WINDOW (restore_files), _("Restore File Selection"));
-  gtk_window_set_modal (GTK_WINDOW (restore_files), TRUE);
+  restore_file_selection = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  gtk_widget_set_size_request (restore_file_selection, 640, 480);
+  gtk_window_set_title (GTK_WINDOW (restore_file_selection), _("Restore File Selection"));
+  gtk_window_set_modal (GTK_WINDOW (restore_file_selection), TRUE);
+  gtk_window_set_default_size (GTK_WINDOW (restore_file_selection), 640, 400);
 
   vbox13 = gtk_vbox_new (FALSE, 0);
   gtk_widget_show (vbox13);
-  gtk_container_add (GTK_CONTAINER (restore_files), vbox13);
+  gtk_container_add (GTK_CONTAINER (restore_file_selection), vbox13);
 
-  scrolledwindow4 = gtk_scrolled_window_new (NULL, NULL);
-  gtk_widget_show (scrolledwindow4);
-  gtk_box_pack_start (GTK_BOX (vbox13), scrolledwindow4, TRUE, TRUE, 0);
-  GTK_WIDGET_UNSET_FLAGS (scrolledwindow4, GTK_CAN_FOCUS);
-  gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (scrolledwindow4), GTK_SHADOW_IN);
+  handlebox4 = gtk_handle_box_new ();
+  gtk_widget_show (handlebox4);
+  gtk_box_pack_start (GTK_BOX (vbox13), handlebox4, FALSE, FALSE, 0);
 
-  ctree2 = gtk_tree_view_new ();
-  gtk_widget_show (ctree2);
-  gtk_container_add (GTK_CONTAINER (scrolledwindow4), ctree2);
+  menubar2 = gtk_menu_bar_new ();
+  gtk_widget_show (menubar2);
+  gtk_container_add (GTK_CONTAINER (handlebox4), menubar2);
+  gnome_app_fill_menu (GTK_MENU_SHELL (menubar2), menubar2_uiinfo,
+                       NULL, FALSE, 0);
+
+  handlebox3 = gtk_handle_box_new ();
+  gtk_widget_show (handlebox3);
+  gtk_box_pack_start (GTK_BOX (vbox13), handlebox3, FALSE, FALSE, 0);
+
+  toolbar3 = gtk_toolbar_new ();
+  gtk_widget_show (toolbar3);
+  gtk_container_add (GTK_CONTAINER (handlebox3), toolbar3);
+  gtk_toolbar_set_style (GTK_TOOLBAR (toolbar3), GTK_TOOLBAR_BOTH);
+
+  restore_up_button = gtk_toolbar_insert_stock (GTK_TOOLBAR (toolbar3),
+                                "gtk-go-up",
+                                NULL,
+                                NULL, NULL, NULL, -1);
+  gtk_widget_show (restore_up_button);
+
+  restore_add_button = gtk_toolbar_insert_stock (GTK_TOOLBAR (toolbar3),
+                                "gtk-add",
+                                NULL,
+                                NULL, NULL, NULL, -1);
+  gtk_widget_show (restore_add_button);
+
+  restore_remove_button = gtk_toolbar_insert_stock (GTK_TOOLBAR (toolbar3),
+                                "gtk-remove",
+                                NULL,
+                                NULL, NULL, NULL, -1);
+  gtk_widget_show (restore_remove_button);
 
   hbox38 = gtk_hbox_new (FALSE, 0);
   gtk_widget_show (hbox38);
   gtk_box_pack_start (GTK_BOX (vbox13), hbox38, FALSE, TRUE, 0);
 
-  label88 = gtk_label_new (_(" cwd:"));
+  label88 = gtk_label_new (_("Current dir:"));
   gtk_widget_show (label88);
   gtk_box_pack_start (GTK_BOX (hbox38), label88, FALSE, TRUE, 0);
 
-  entry25 = gtk_entry_new ();
-  gtk_widget_show (entry25);
-  gtk_box_pack_start (GTK_BOX (hbox38), entry25, TRUE, TRUE, 0);
-  GTK_WIDGET_SET_FLAGS (entry25, GTK_CAN_DEFAULT);
-  gtk_tooltips_set_tip (tooltips, entry25, _("Enter Commands Here"), NULL);
+  restore_dir = gtk_entry_new ();
+  gtk_widget_show (restore_dir);
+  gtk_box_pack_start (GTK_BOX (hbox38), restore_dir, TRUE, TRUE, 0);
 
-  hbox44 = gtk_hbox_new (FALSE, 0);
+  scrolled = gtk_scrolled_window_new (NULL, NULL);
+  gtk_widget_show (scrolled);
+  gtk_box_pack_start (GTK_BOX (vbox13), scrolled, TRUE, TRUE, 0);
+
+  hbox44 = gtk_hbox_new (TRUE, 0);
   gtk_widget_show (hbox44);
-  gtk_box_pack_start (GTK_BOX (vbox13), hbox44, FALSE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (vbox13), hbox44, FALSE, TRUE, 7);
 
-  label105 = gtk_label_new (_(" "));
-  gtk_widget_show (label105);
-  gtk_box_pack_start (GTK_BOX (hbox44), label105, TRUE, FALSE, 0);
-  gtk_label_set_justify (GTK_LABEL (label105), GTK_JUSTIFY_FILL);
-  gtk_misc_set_padding (GTK_MISC (label105), 59, 0);
+  label115 = gtk_label_new (_("             "));
+  gtk_widget_show (label115);
+  gtk_box_pack_start (GTK_BOX (hbox44), label115, TRUE, TRUE, 0);
+  gtk_label_set_justify (GTK_LABEL (label115), GTK_JUSTIFY_LEFT);
+  gtk_misc_set_alignment (GTK_MISC (label115), 0.94, 0.5);
 
-  restore_file = gtk_button_new_from_stock ("gtk-ok");
-  gtk_widget_show (restore_file);
-  gtk_box_pack_start (GTK_BOX (hbox44), restore_file, TRUE, FALSE, 0);
-  gtk_container_set_border_width (GTK_CONTAINER (restore_file), 9);
+  restore_select_ok = gtk_button_new_from_stock ("gtk-ok");
+  gtk_widget_show (restore_select_ok);
+  gtk_box_pack_start (GTK_BOX (hbox44), restore_select_ok, FALSE, TRUE, 0);
 
-  g_signal_connect ((gpointer) entry25, "key_press_event",
-                    G_CALLBACK (on_entry1_key_press_event),
+  label116 = gtk_label_new ("");
+  gtk_widget_show (label116);
+  gtk_box_pack_start (GTK_BOX (hbox44), label116, FALSE, FALSE, 0);
+  gtk_label_set_justify (GTK_LABEL (label116), GTK_JUSTIFY_LEFT);
+
+  restore_select_cancel = gtk_button_new_from_stock ("gtk-cancel");
+  gtk_widget_show (restore_select_cancel);
+  gtk_box_pack_start (GTK_BOX (hbox44), restore_select_cancel, FALSE, TRUE, 0);
+
+  label117 = gtk_label_new ("");
+  gtk_widget_show (label117);
+  gtk_box_pack_start (GTK_BOX (hbox44), label117, FALSE, FALSE, 0);
+  gtk_label_set_justify (GTK_LABEL (label117), GTK_JUSTIFY_LEFT);
+
+  g_signal_connect ((gpointer) restore_file_selection, "delete_event",
+                    G_CALLBACK (on_restore_files_delete_event),
                     NULL);
-  g_signal_connect ((gpointer) entry25, "key_release_event",
-                    G_CALLBACK (on_entry1_key_release_event),
+  g_signal_connect ((gpointer) restore_up_button, "clicked",
+                    G_CALLBACK (on_restore_up_button_clicked),
                     NULL);
-  g_signal_connect ((gpointer) restore_file, "clicked",
-                    G_CALLBACK (on_restore_file_clicked),
+  g_signal_connect ((gpointer) restore_add_button, "clicked",
+                    G_CALLBACK (on_restore_add_button_clicked),
                     NULL);
-
-  /* Store pointers to all widgets, for use by lookup_widget(). */
-  GLADE_HOOKUP_OBJECT_NO_REF (restore_files, restore_files, "restore_files");
-  GLADE_HOOKUP_OBJECT (restore_files, vbox13, "vbox13");
-  GLADE_HOOKUP_OBJECT (restore_files, scrolledwindow4, "scrolledwindow4");
-  GLADE_HOOKUP_OBJECT (restore_files, ctree2, "ctree2");
-  GLADE_HOOKUP_OBJECT (restore_files, hbox38, "hbox38");
-  GLADE_HOOKUP_OBJECT (restore_files, label88, "label88");
-  GLADE_HOOKUP_OBJECT (restore_files, entry25, "entry25");
-  GLADE_HOOKUP_OBJECT (restore_files, hbox44, "hbox44");
-  GLADE_HOOKUP_OBJECT (restore_files, label105, "label105");
-  GLADE_HOOKUP_OBJECT (restore_files, restore_file, "restore_file");
-  GLADE_HOOKUP_OBJECT_NO_REF (restore_files, tooltips, "tooltips");
-
-  gtk_widget_grab_focus (entry25);
-  gtk_widget_grab_default (entry25);
-  return restore_files;
-}
-
-GtkWidget*
-create_restore_dialog (void)
-{
-  GtkWidget *restore_dialog;
-  GtkWidget *dialog_vbox8;
-  GtkWidget *hbox42;
-  GtkWidget *frame3;
-  GtkWidget *hbox43;
-  GtkWidget *label102;
-  GtkWidget *vbox15;
-  GtkWidget *label103;
-  GtkWidget *rb_most_recent;
-  GSList *rb_most_recent_group = NULL;
-  GtkWidget *rb_jobs;
-  GSList *rb_jobs_group = NULL;
-  GtkWidget *rb_file;
-  GSList *rb_file_group = NULL;
-  GtkWidget *label104;
-  GtkWidget *label106;
-  GtkWidget *vbox14;
-  GtkWidget *apply_button;
-  GtkWidget *dialog_action_area7;
-  GtkWidget *hbuttonbox2;
-  GtkWidget *restore_ok;
-  GtkWidget *restore_cancel;
-
-  restore_dialog = gtk_dialog_new ();
-  gtk_window_set_title (GTK_WINDOW (restore_dialog), _("Restore Files"));
-  gtk_window_set_modal (GTK_WINDOW (restore_dialog), TRUE);
-
-  dialog_vbox8 = GTK_DIALOG (restore_dialog)->vbox;
-  gtk_widget_show (dialog_vbox8);
-
-  hbox42 = gtk_hbox_new (FALSE, 0);
-  gtk_widget_show (hbox42);
-  gtk_box_pack_start (GTK_BOX (dialog_vbox8), hbox42, TRUE, TRUE, 0);
-
-  frame3 = gtk_frame_new (NULL);
-  gtk_widget_show (frame3);
-  gtk_box_pack_start (GTK_BOX (hbox42), frame3, TRUE, TRUE, 0);
-  gtk_container_set_border_width (GTK_CONTAINER (frame3), 8);
-
-  hbox43 = gtk_hbox_new (FALSE, 0);
-  gtk_widget_show (hbox43);
-  gtk_container_add (GTK_CONTAINER (frame3), hbox43);
-
-  label102 = gtk_label_new (_("         "));
-  gtk_widget_show (label102);
-  gtk_box_pack_end (GTK_BOX (hbox43), label102, FALSE, FALSE, 0);
-
-  vbox15 = gtk_vbox_new (FALSE, 0);
-  gtk_widget_show (vbox15);
-  gtk_box_pack_start (GTK_BOX (hbox43), vbox15, TRUE, TRUE, 0);
-
-  label103 = gtk_label_new ("");
-  gtk_widget_show (label103);
-  gtk_box_pack_start (GTK_BOX (vbox15), label103, FALSE, FALSE, 0);
-  gtk_misc_set_padding (GTK_MISC (label103), 0, 2);
-
-  rb_most_recent = gtk_radio_button_new_with_mnemonic (NULL, _("Select most recent backup"));
-  gtk_widget_show (rb_most_recent);
-  gtk_box_pack_start (GTK_BOX (vbox15), rb_most_recent, FALSE, FALSE, 0);
-  gtk_container_set_border_width (GTK_CONTAINER (rb_most_recent), 3);
-  gtk_radio_button_set_group (GTK_RADIO_BUTTON (rb_most_recent), rb_most_recent_group);
-  rb_most_recent_group = gtk_radio_button_get_group (GTK_RADIO_BUTTON (rb_most_recent));
-  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (rb_most_recent), TRUE);
-
-  rb_jobs = gtk_radio_button_new_with_mnemonic (NULL, _("Select list of Jobs"));
-  gtk_widget_show (rb_jobs);
-  gtk_box_pack_start (GTK_BOX (vbox15), rb_jobs, FALSE, FALSE, 0);
-  gtk_container_set_border_width (GTK_CONTAINER (rb_jobs), 5);
-  gtk_radio_button_set_group (GTK_RADIO_BUTTON (rb_jobs), rb_jobs_group);
-  rb_jobs_group = gtk_radio_button_get_group (GTK_RADIO_BUTTON (rb_jobs));
-
-  rb_file = gtk_radio_button_new_with_mnemonic (NULL, _("Find a specific file"));
-  gtk_widget_show (rb_file);
-  gtk_box_pack_start (GTK_BOX (vbox15), rb_file, FALSE, FALSE, 0);
-  gtk_container_set_border_width (GTK_CONTAINER (rb_file), 4);
-  gtk_radio_button_set_group (GTK_RADIO_BUTTON (rb_file), rb_file_group);
-  rb_file_group = gtk_radio_button_get_group (GTK_RADIO_BUTTON (rb_file));
-
-  label104 = gtk_label_new ("");
-  gtk_widget_show (label104);
-  gtk_box_pack_start (GTK_BOX (vbox15), label104, FALSE, FALSE, 0);
-
-  label106 = gtk_label_new (_("Select by:"));
-  gtk_widget_show (label106);
-  gtk_frame_set_label_widget (GTK_FRAME (frame3), label106);
-  gtk_label_set_justify (GTK_LABEL (label106), GTK_JUSTIFY_LEFT);
-
-  vbox14 = gtk_vbox_new (FALSE, 0);
-  gtk_widget_show (vbox14);
-  gtk_box_pack_start (GTK_BOX (hbox42), vbox14, FALSE, FALSE, 0);
-
-  apply_button = gtk_button_new_from_stock ("gtk-apply");
-  gtk_widget_show (apply_button);
-  gtk_box_pack_start (GTK_BOX (vbox14), apply_button, FALSE, FALSE, 0);
-  gtk_container_set_border_width (GTK_CONTAINER (apply_button), 50);
-
-  dialog_action_area7 = GTK_DIALOG (restore_dialog)->action_area;
-  gtk_widget_show (dialog_action_area7);
-  gtk_button_box_set_layout (GTK_BUTTON_BOX (dialog_action_area7), GTK_BUTTONBOX_END);
-
-  hbuttonbox2 = gtk_hbutton_box_new ();
-  gtk_widget_show (hbuttonbox2);
-  gtk_container_add (GTK_CONTAINER (dialog_action_area7), hbuttonbox2);
-  gtk_button_box_set_layout (GTK_BUTTON_BOX (hbuttonbox2), GTK_BUTTONBOX_END);
-  gtk_box_set_spacing (GTK_BOX (hbuttonbox2), 8);
-
-  restore_ok = gtk_button_new_from_stock ("gtk-ok");
-  gtk_widget_show (restore_ok);
-  gtk_container_add (GTK_CONTAINER (hbuttonbox2), restore_ok);
-  GTK_WIDGET_SET_FLAGS (restore_ok, GTK_CAN_DEFAULT);
-
-  restore_cancel = gtk_button_new_from_stock ("gtk-cancel");
-  gtk_widget_show (restore_cancel);
-  gtk_container_add (GTK_CONTAINER (hbuttonbox2), restore_cancel);
-  GTK_WIDGET_SET_FLAGS (restore_cancel, GTK_CAN_DEFAULT);
-
-  g_signal_connect ((gpointer) apply_button, "clicked",
-                    G_CALLBACK (on_apply_button_clicked),
+  g_signal_connect ((gpointer) restore_remove_button, "clicked",
+                    G_CALLBACK (on_restore_remove_button_clicked),
                     NULL);
-  g_signal_connect ((gpointer) restore_ok, "clicked",
-                    G_CALLBACK (on_restore_ok_clicked),
+  g_signal_connect ((gpointer) restore_select_ok, "clicked",
+                    G_CALLBACK (on_restore_select_ok_clicked),
                     NULL);
-  g_signal_connect ((gpointer) restore_cancel, "clicked",
-                    G_CALLBACK (on_restore_cancel_clicked),
+  g_signal_connect ((gpointer) restore_select_cancel, "clicked",
+                    G_CALLBACK (on_restore_select_cancel_clicked),
                     NULL);
 
   /* Store pointers to all widgets, for use by lookup_widget(). */
-  GLADE_HOOKUP_OBJECT_NO_REF (restore_dialog, restore_dialog, "restore_dialog");
-  GLADE_HOOKUP_OBJECT_NO_REF (restore_dialog, dialog_vbox8, "dialog_vbox8");
-  GLADE_HOOKUP_OBJECT (restore_dialog, hbox42, "hbox42");
-  GLADE_HOOKUP_OBJECT (restore_dialog, frame3, "frame3");
-  GLADE_HOOKUP_OBJECT (restore_dialog, hbox43, "hbox43");
-  GLADE_HOOKUP_OBJECT (restore_dialog, label102, "label102");
-  GLADE_HOOKUP_OBJECT (restore_dialog, vbox15, "vbox15");
-  GLADE_HOOKUP_OBJECT (restore_dialog, label103, "label103");
-  GLADE_HOOKUP_OBJECT (restore_dialog, rb_most_recent, "rb_most_recent");
-  GLADE_HOOKUP_OBJECT (restore_dialog, rb_jobs, "rb_jobs");
-  GLADE_HOOKUP_OBJECT (restore_dialog, rb_file, "rb_file");
-  GLADE_HOOKUP_OBJECT (restore_dialog, label104, "label104");
-  GLADE_HOOKUP_OBJECT (restore_dialog, label106, "label106");
-  GLADE_HOOKUP_OBJECT (restore_dialog, vbox14, "vbox14");
-  GLADE_HOOKUP_OBJECT (restore_dialog, apply_button, "apply_button");
-  GLADE_HOOKUP_OBJECT_NO_REF (restore_dialog, dialog_action_area7, "dialog_action_area7");
-  GLADE_HOOKUP_OBJECT (restore_dialog, hbuttonbox2, "hbuttonbox2");
-  GLADE_HOOKUP_OBJECT (restore_dialog, restore_ok, "restore_ok");
-  GLADE_HOOKUP_OBJECT (restore_dialog, restore_cancel, "restore_cancel");
+  GLADE_HOOKUP_OBJECT_NO_REF (restore_file_selection, restore_file_selection, "restore_file_selection");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, vbox13, "vbox13");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, handlebox4, "handlebox4");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, menubar2, "menubar2");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, menubar2_uiinfo[0].widget, "file2");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, file2_menu_uiinfo[0].widget, "new1");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, file2_menu_uiinfo[1].widget, "open1");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, file2_menu_uiinfo[2].widget, "save1");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, file2_menu_uiinfo[3].widget, "save_as1");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, file2_menu_uiinfo[4].widget, "separator4");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, file2_menu_uiinfo[5].widget, "quit1");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, menubar2_uiinfo[1].widget, "edit2");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, edit2_menu_uiinfo[0].widget, "cut2");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, edit2_menu_uiinfo[1].widget, "copy2");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, edit2_menu_uiinfo[2].widget, "paste2");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, edit2_menu_uiinfo[3].widget, "clear2");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, edit2_menu_uiinfo[4].widget, "separator5");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, edit2_menu_uiinfo[5].widget, "properties1");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, edit2_menu_uiinfo[6].widget, "separator6");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, edit2_menu_uiinfo[7].widget, "preferences2");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, menubar2_uiinfo[2].widget, "view1");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, menubar2_uiinfo[3].widget, "help2");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, help2_menu_uiinfo[0].widget, "about2");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, handlebox3, "handlebox3");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, toolbar3, "toolbar3");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, restore_up_button, "restore_up_button");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, restore_add_button, "restore_add_button");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, restore_remove_button, "restore_remove_button");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, hbox38, "hbox38");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, label88, "label88");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, restore_dir, "restore_dir");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, scrolled, "scrolled");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, hbox44, "hbox44");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, label115, "label115");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, restore_select_ok, "restore_select_ok");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, label116, "label116");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, restore_select_cancel, "restore_select_cancel");
+  GLADE_HOOKUP_OBJECT (restore_file_selection, label117, "label117");
 
-  return restore_dialog;
+  return restore_file_selection;
 }
 
 GtkWidget*
@@ -1478,5 +1455,344 @@ create_label_dialog (void)
   GLADE_HOOKUP_OBJECT (label_dialog, label_cancel, "label_cancel");
 
   return label_dialog;
+}
+
+GtkWidget*
+create_RestoreDialog (void)
+{
+  GtkWidget *RestoreDialog;
+  GtkWidget *dialog_vbox10;
+  GtkWidget *vbox17;
+  GtkWidget *vbox18;
+  GtkWidget *label119;
+  GtkWidget *alignment3;
+  GtkWidget *hbox50;
+  GtkWidget *hbox51;
+  GtkWidget *label120;
+  GtkWidget *combo_restore_job;
+  GList *combo_restore_job_items = NULL;
+  GtkWidget *restore_job_entry;
+  GtkWidget *label122;
+  GtkWidget *hbox52;
+  GtkWidget *label125;
+  GtkWidget *combo_restore_client;
+  GList *combo_restore_client_items = NULL;
+  GtkWidget *restore_client_entry;
+  GtkWidget *label127;
+  GtkWidget *hbox53;
+  GtkWidget *label128;
+  GtkWidget *combo_restore_fileset;
+  GList *combo_restore_fileset_items = NULL;
+  GtkWidget *restore_fileset_entry;
+  GtkWidget *label130;
+  GtkWidget *hbox55;
+  GtkWidget *label135;
+  GtkWidget *combo_restore_pool;
+  GList *combo_restore_pool_items = NULL;
+  GtkWidget *restore_pool_entry;
+  GtkWidget *label138;
+  GtkWidget *hbox56;
+  GtkWidget *label139;
+  GtkWidget *combo_restore_storage;
+  GList *combo_restore_storage_items = NULL;
+  GtkWidget *restore_storage_entry;
+  GtkWidget *label142;
+  GtkWidget *hbox59;
+  GtkWidget *label148;
+  GtkWidget *restore_before_entry;
+  GtkWidget *label149;
+  GtkWidget *label150;
+  GtkWidget *dialog_action_area9;
+  GtkWidget *helpbutton1;
+  GtkWidget *select_files_button;
+  GtkWidget *alignment2;
+  GtkWidget *hbox49;
+  GtkWidget *image1;
+  GtkWidget *restore_select_button;
+  GtkWidget *restore_cancel;
+
+  RestoreDialog = gtk_dialog_new ();
+  gtk_window_set_title (GTK_WINDOW (RestoreDialog), _("Restore Files Dialog"));
+  gtk_window_set_default_size (GTK_WINDOW (RestoreDialog), 300, 200);
+
+  dialog_vbox10 = GTK_DIALOG (RestoreDialog)->vbox;
+  gtk_widget_show (dialog_vbox10);
+
+  vbox17 = gtk_vbox_new (FALSE, 0);
+  gtk_widget_show (vbox17);
+  gtk_box_pack_start (GTK_BOX (dialog_vbox10), vbox17, TRUE, TRUE, 0);
+
+  vbox18 = gtk_vbox_new (FALSE, 0);
+  gtk_widget_show (vbox18);
+  gtk_box_pack_start (GTK_BOX (vbox17), vbox18, TRUE, TRUE, 0);
+
+  label119 = gtk_label_new (_("Restore Files"));
+  gtk_widget_show (label119);
+  gtk_box_pack_start (GTK_BOX (vbox18), label119, FALSE, FALSE, 2);
+  gtk_misc_set_padding (GTK_MISC (label119), 0, 9);
+
+  alignment3 = gtk_alignment_new (0.5, 0.5, 1, 1);
+  gtk_widget_show (alignment3);
+  gtk_box_pack_start (GTK_BOX (vbox18), alignment3, FALSE, FALSE, 2);
+
+  hbox50 = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (hbox50);
+  gtk_container_add (GTK_CONTAINER (alignment3), hbox50);
+
+  hbox51 = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (hbox51);
+  gtk_box_pack_start (GTK_BOX (hbox50), hbox51, TRUE, TRUE, 0);
+
+  label120 = gtk_label_new (_("Job:"));
+  gtk_widget_show (label120);
+  gtk_box_pack_start (GTK_BOX (hbox51), label120, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (label120, 66, 16);
+  gtk_label_set_justify (GTK_LABEL (label120), GTK_JUSTIFY_RIGHT);
+
+  combo_restore_job = gtk_combo_new ();
+  g_object_set_data (G_OBJECT (GTK_COMBO (combo_restore_job)->popwin),
+                     "GladeParentKey", combo_restore_job);
+  gtk_widget_show (combo_restore_job);
+  gtk_box_pack_start (GTK_BOX (hbox51), combo_restore_job, TRUE, TRUE, 1);
+  gtk_combo_set_value_in_list (GTK_COMBO (combo_restore_job), TRUE, FALSE);
+  combo_restore_job_items = g_list_append (combo_restore_job_items, (gpointer) "");
+  gtk_combo_set_popdown_strings (GTK_COMBO (combo_restore_job), combo_restore_job_items);
+  g_list_free (combo_restore_job_items);
+
+  restore_job_entry = GTK_COMBO (combo_restore_job)->entry;
+  gtk_widget_show (restore_job_entry);
+  gtk_editable_set_editable (GTK_EDITABLE (restore_job_entry), FALSE);
+
+  label122 = gtk_label_new ("");
+  gtk_widget_show (label122);
+  gtk_box_pack_start (GTK_BOX (hbox51), label122, FALSE, FALSE, 27);
+
+  hbox52 = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (hbox52);
+  gtk_box_pack_start (GTK_BOX (vbox18), hbox52, TRUE, TRUE, 0);
+
+  label125 = gtk_label_new (_("Client:"));
+  gtk_widget_show (label125);
+  gtk_box_pack_start (GTK_BOX (hbox52), label125, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (label125, 66, 16);
+  gtk_label_set_justify (GTK_LABEL (label125), GTK_JUSTIFY_RIGHT);
+
+  combo_restore_client = gtk_combo_new ();
+  g_object_set_data (G_OBJECT (GTK_COMBO (combo_restore_client)->popwin),
+                     "GladeParentKey", combo_restore_client);
+  gtk_widget_show (combo_restore_client);
+  gtk_box_pack_start (GTK_BOX (hbox52), combo_restore_client, TRUE, TRUE, 1);
+  gtk_combo_set_value_in_list (GTK_COMBO (combo_restore_client), TRUE, FALSE);
+  combo_restore_client_items = g_list_append (combo_restore_client_items, (gpointer) "");
+  gtk_combo_set_popdown_strings (GTK_COMBO (combo_restore_client), combo_restore_client_items);
+  g_list_free (combo_restore_client_items);
+
+  restore_client_entry = GTK_COMBO (combo_restore_client)->entry;
+  gtk_widget_show (restore_client_entry);
+  gtk_editable_set_editable (GTK_EDITABLE (restore_client_entry), FALSE);
+
+  label127 = gtk_label_new (_(" "));
+  gtk_widget_show (label127);
+  gtk_box_pack_start (GTK_BOX (hbox52), label127, FALSE, FALSE, 25);
+
+  hbox53 = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (hbox53);
+  gtk_box_pack_start (GTK_BOX (vbox18), hbox53, TRUE, TRUE, 2);
+
+  label128 = gtk_label_new (_("FileSet: "));
+  gtk_widget_show (label128);
+  gtk_box_pack_start (GTK_BOX (hbox53), label128, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (label128, 66, 16);
+  gtk_label_set_justify (GTK_LABEL (label128), GTK_JUSTIFY_RIGHT);
+
+  combo_restore_fileset = gtk_combo_new ();
+  g_object_set_data (G_OBJECT (GTK_COMBO (combo_restore_fileset)->popwin),
+                     "GladeParentKey", combo_restore_fileset);
+  gtk_widget_show (combo_restore_fileset);
+  gtk_box_pack_start (GTK_BOX (hbox53), combo_restore_fileset, TRUE, TRUE, 0);
+  gtk_combo_set_value_in_list (GTK_COMBO (combo_restore_fileset), TRUE, FALSE);
+  combo_restore_fileset_items = g_list_append (combo_restore_fileset_items, (gpointer) "");
+  gtk_combo_set_popdown_strings (GTK_COMBO (combo_restore_fileset), combo_restore_fileset_items);
+  g_list_free (combo_restore_fileset_items);
+
+  restore_fileset_entry = GTK_COMBO (combo_restore_fileset)->entry;
+  gtk_widget_show (restore_fileset_entry);
+  gtk_editable_set_editable (GTK_EDITABLE (restore_fileset_entry), FALSE);
+
+  label130 = gtk_label_new (_("  "));
+  gtk_widget_show (label130);
+  gtk_box_pack_start (GTK_BOX (hbox53), label130, FALSE, FALSE, 23);
+
+  hbox55 = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (hbox55);
+  gtk_box_pack_start (GTK_BOX (vbox18), hbox55, TRUE, TRUE, 2);
+
+  label135 = gtk_label_new (_("Pool:"));
+  gtk_widget_show (label135);
+  gtk_box_pack_start (GTK_BOX (hbox55), label135, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (label135, 66, 16);
+
+  combo_restore_pool = gtk_combo_new ();
+  g_object_set_data (G_OBJECT (GTK_COMBO (combo_restore_pool)->popwin),
+                     "GladeParentKey", combo_restore_pool);
+  gtk_widget_show (combo_restore_pool);
+  gtk_box_pack_start (GTK_BOX (hbox55), combo_restore_pool, TRUE, TRUE, 0);
+  gtk_combo_set_value_in_list (GTK_COMBO (combo_restore_pool), TRUE, FALSE);
+  combo_restore_pool_items = g_list_append (combo_restore_pool_items, (gpointer) "");
+  combo_restore_pool_items = g_list_append (combo_restore_pool_items, (gpointer) "");
+  gtk_combo_set_popdown_strings (GTK_COMBO (combo_restore_pool), combo_restore_pool_items);
+  g_list_free (combo_restore_pool_items);
+
+  restore_pool_entry = GTK_COMBO (combo_restore_pool)->entry;
+  gtk_widget_show (restore_pool_entry);
+  gtk_editable_set_editable (GTK_EDITABLE (restore_pool_entry), FALSE);
+
+  label138 = gtk_label_new (_("   "));
+  gtk_widget_show (label138);
+  gtk_box_pack_start (GTK_BOX (hbox55), label138, FALSE, FALSE, 21);
+
+  hbox56 = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (hbox56);
+  gtk_box_pack_start (GTK_BOX (vbox18), hbox56, TRUE, TRUE, 0);
+
+  label139 = gtk_label_new (_("Storage:"));
+  gtk_widget_show (label139);
+  gtk_box_pack_start (GTK_BOX (hbox56), label139, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (label139, 66, 16);
+
+  combo_restore_storage = gtk_combo_new ();
+  g_object_set_data (G_OBJECT (GTK_COMBO (combo_restore_storage)->popwin),
+                     "GladeParentKey", combo_restore_storage);
+  gtk_widget_show (combo_restore_storage);
+  gtk_box_pack_start (GTK_BOX (hbox56), combo_restore_storage, TRUE, TRUE, 0);
+  gtk_combo_set_value_in_list (GTK_COMBO (combo_restore_storage), TRUE, FALSE);
+  combo_restore_storage_items = g_list_append (combo_restore_storage_items, (gpointer) "");
+  combo_restore_storage_items = g_list_append (combo_restore_storage_items, (gpointer) "");
+  gtk_combo_set_popdown_strings (GTK_COMBO (combo_restore_storage), combo_restore_storage_items);
+  g_list_free (combo_restore_storage_items);
+
+  restore_storage_entry = GTK_COMBO (combo_restore_storage)->entry;
+  gtk_widget_show (restore_storage_entry);
+  gtk_editable_set_editable (GTK_EDITABLE (restore_storage_entry), FALSE);
+
+  label142 = gtk_label_new (_("   "));
+  gtk_widget_show (label142);
+  gtk_box_pack_start (GTK_BOX (hbox56), label142, FALSE, FALSE, 21);
+
+  hbox59 = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (hbox59);
+  gtk_box_pack_start (GTK_BOX (vbox17), hbox59, TRUE, TRUE, 0);
+
+  label148 = gtk_label_new (_("Before:"));
+  gtk_widget_show (label148);
+  gtk_box_pack_start (GTK_BOX (hbox59), label148, FALSE, FALSE, 0);
+  gtk_widget_set_size_request (label148, 66, 16);
+
+  restore_before_entry = gtk_entry_new ();
+  gtk_widget_show (restore_before_entry);
+  gtk_box_pack_start (GTK_BOX (hbox59), restore_before_entry, TRUE, TRUE, 0);
+
+  label149 = gtk_label_new (_("   "));
+  gtk_widget_show (label149);
+  gtk_box_pack_start (GTK_BOX (hbox59), label149, FALSE, FALSE, 53);
+
+  label150 = gtk_label_new (_("   "));
+  gtk_widget_show (label150);
+  gtk_box_pack_start (GTK_BOX (vbox17), label150, FALSE, FALSE, 0);
+
+  dialog_action_area9 = GTK_DIALOG (RestoreDialog)->action_area;
+  gtk_widget_show (dialog_action_area9);
+  gtk_button_box_set_layout (GTK_BUTTON_BOX (dialog_action_area9), GTK_BUTTONBOX_END);
+
+  helpbutton1 = gtk_button_new_from_stock ("gtk-help");
+  gtk_widget_show (helpbutton1);
+  gtk_dialog_add_action_widget (GTK_DIALOG (RestoreDialog), helpbutton1, GTK_RESPONSE_HELP);
+  GTK_WIDGET_SET_FLAGS (helpbutton1, GTK_CAN_DEFAULT);
+
+  select_files_button = gtk_button_new ();
+  gtk_widget_show (select_files_button);
+  gtk_dialog_add_action_widget (GTK_DIALOG (RestoreDialog), select_files_button, 0);
+  GTK_WIDGET_SET_FLAGS (select_files_button, GTK_CAN_DEFAULT);
+
+  alignment2 = gtk_alignment_new (0.5, 0.5, 0, 0);
+  gtk_widget_show (alignment2);
+  gtk_container_add (GTK_CONTAINER (select_files_button), alignment2);
+
+  hbox49 = gtk_hbox_new (FALSE, 2);
+  gtk_widget_show (hbox49);
+  gtk_container_add (GTK_CONTAINER (alignment2), hbox49);
+
+  image1 = gtk_image_new_from_stock ("gtk-apply", GTK_ICON_SIZE_BUTTON);
+  gtk_widget_show (image1);
+  gtk_box_pack_start (GTK_BOX (hbox49), image1, FALSE, FALSE, 0);
+
+  restore_select_button = gtk_label_new_with_mnemonic (_("Select Files"));
+  gtk_widget_show (restore_select_button);
+  gtk_box_pack_start (GTK_BOX (hbox49), restore_select_button, FALSE, FALSE, 0);
+  gtk_label_set_justify (GTK_LABEL (restore_select_button), GTK_JUSTIFY_LEFT);
+
+  restore_cancel = gtk_button_new_from_stock ("gtk-cancel");
+  gtk_widget_show (restore_cancel);
+  gtk_dialog_add_action_widget (GTK_DIALOG (RestoreDialog), restore_cancel, GTK_RESPONSE_CANCEL);
+  GTK_WIDGET_SET_FLAGS (restore_cancel, GTK_CAN_DEFAULT);
+
+  g_signal_connect ((gpointer) restore_job_entry, "changed",
+                    G_CALLBACK (on_restore_job_entry_changed),
+                    NULL);
+  g_signal_connect ((gpointer) select_files_button, "clicked",
+                    G_CALLBACK (on_select_files_button_clicked),
+                    NULL);
+  g_signal_connect ((gpointer) restore_cancel, "clicked",
+                    G_CALLBACK (on_restore_cancel_clicked),
+                    NULL);
+
+  /* Store pointers to all widgets, for use by lookup_widget(). */
+  GLADE_HOOKUP_OBJECT_NO_REF (RestoreDialog, RestoreDialog, "RestoreDialog");
+  GLADE_HOOKUP_OBJECT_NO_REF (RestoreDialog, dialog_vbox10, "dialog_vbox10");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, vbox17, "vbox17");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, vbox18, "vbox18");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, label119, "label119");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, alignment3, "alignment3");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, hbox50, "hbox50");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, hbox51, "hbox51");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, label120, "label120");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, combo_restore_job, "combo_restore_job");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, restore_job_entry, "restore_job_entry");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, label122, "label122");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, hbox52, "hbox52");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, label125, "label125");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, combo_restore_client, "combo_restore_client");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, restore_client_entry, "restore_client_entry");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, label127, "label127");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, hbox53, "hbox53");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, label128, "label128");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, combo_restore_fileset, "combo_restore_fileset");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, restore_fileset_entry, "restore_fileset_entry");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, label130, "label130");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, hbox55, "hbox55");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, label135, "label135");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, combo_restore_pool, "combo_restore_pool");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, restore_pool_entry, "restore_pool_entry");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, label138, "label138");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, hbox56, "hbox56");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, label139, "label139");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, combo_restore_storage, "combo_restore_storage");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, restore_storage_entry, "restore_storage_entry");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, label142, "label142");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, hbox59, "hbox59");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, label148, "label148");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, restore_before_entry, "restore_before_entry");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, label149, "label149");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, label150, "label150");
+  GLADE_HOOKUP_OBJECT_NO_REF (RestoreDialog, dialog_action_area9, "dialog_action_area9");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, helpbutton1, "helpbutton1");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, select_files_button, "select_files_button");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, alignment2, "alignment2");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, hbox49, "hbox49");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, image1, "image1");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, restore_select_button, "restore_select_button");
+  GLADE_HOOKUP_OBJECT (RestoreDialog, restore_cancel, "restore_cancel");
+
+  return RestoreDialog;
 }
 

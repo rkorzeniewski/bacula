@@ -238,3 +238,105 @@ on_label_ok_clicked                    (GtkButton       *button,
 void
 on_label_cancel_clicked                (GtkButton       *button,
                                         gpointer         user_data);
+
+void
+on_new1_activate                       (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_open1_activate                      (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_save1_activate                      (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_save_as1_activate                   (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_quit1_activate                      (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_cut2_activate                       (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_copy2_activate                      (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_paste2_activate                     (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_clear2_activate                     (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_properties1_activate                (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_preferences2_activate               (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+void
+on_about2_activate                     (GtkMenuItem     *menuitem,
+                                        gpointer         user_data);
+
+gboolean
+on_restore_files_delete_event          (GtkWidget       *widget,
+                                        GdkEvent        *event,
+                                        gpointer         user_data);
+
+void
+on_restore_up_button_clicked           (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_restore_add_button_clicked          (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_restore_remove_button_clicked       (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_restore_ok_clicked                  (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_restore_cancel_clicked              (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_restore_select_ok_clicked           (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_restore_select_cancel_clicked       (GtkButton       *button,
+                                        gpointer         user_data);
+
+gboolean
+on_console_delete_event                (GtkWidget       *widget,
+                                        GdkEvent        *event,
+                                        gpointer         user_data);
+
+void
+on_select_files_button_clicked         (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_restore_job_entry_changed           (GtkEditable     *editable,
+                                        gpointer         user_data);
+
+void
+on_select_files_button_clicked         (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_restore_cancel_clicked              (GtkButton       *button,
+                                        gpointer         user_data);

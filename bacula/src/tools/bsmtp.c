@@ -68,7 +68,7 @@ static void get_response(void)
             Pmsg2(0, "Fatal malformed reply from %s: %s\n", mailhost, buf);
 	    exit(1);
 	}
-        if (buf[4] != '-') {
+        if (buf[3] != '-') {
 	    break;
 	}
     }

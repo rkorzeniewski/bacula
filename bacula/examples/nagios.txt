@@ -1,56 +1,6 @@
-From bacula-users-admin@lists.sourceforge.net Wed Mar  3 22:08:24 2004
-Return-Path: <bacula-users-admin@lists.sourceforge.net>
-Received: from sc8-sf-list2.sourceforge.net (lists.sourceforge.net
-	[66.35.250.206]) by matou.sibbald.com (8.12.10/8.12.10) with ESMTP id
-	i23L8Nb7003158 for <kern@sibbald.com>; Wed, 3 Mar 2004 22:08:24 +0100
-Received: from localhost ([127.0.0.1] helo=projects.sourceforge.net) by
-	sc8-sf-list2.sourceforge.net with esmtp (Exim 4.30) id 1Ayddz-0005F7-EZ;
-	Wed, 03 Mar 2004 13:11:07 -0800
-Received: from sc8-sf-mx1-b.sourceforge.net ([10.3.1.11]
-	helo=sc8-sf-mx1.sourceforge.net) by sc8-sf-list2.sourceforge.net with esmtp
-	(Exim 4.30) id 1AyddU-00058Y-25 for bacula-users@lists.sourceforge.net;
-	Wed, 03 Mar 2004 13:10:36 -0800
-Received: from zola.netways.de ([213.95.25.82]
-	helo=net-sql2.int.netways.de) by sc8-sf-mx1.sourceforge.net with esmtp
-	(Exim 4.30) id 1AydXy-0008Im-KW for bacula-users@lists.sourceforge.net;
-	Wed, 03 Mar 2004 13:04:54 -0800
-Content-class: urn:content-classes:message
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
 Subject: RE: [Bacula-users] monitoring bacula with Nagios
-X-MimeOLE: Produced By Microsoft Exchange V6.5.6944.0
-Message-ID: <2F6750F2110CAD41BE0BC33BB428B568FB9F@net-sql2.int.netways.de>
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-Thread-Topic: [Bacula-users] monitoring bacula with Nagios
-Thread-Index: AcPflloclgso3C9CREycI4VSOMnJBghyXnSwAACsf0A=
 From: "Julian Hein" <jhein@netways.de>
 To: <bacula-users@lists.sourceforge.net>
-X-Spam-Score: 0.0 (/)
-X-Spam-Report: Spam Filtering performed by sourceforge.net. See
-	http://spamassassin.org/tag/ for more details. Report problems to
-	http://sf.net/tracker/?func=add&group_id=1&atid=200001
-Sender: bacula-users-admin@lists.sourceforge.net
-Errors-To: bacula-users-admin@lists.sourceforge.net
-X-BeenThere: bacula-users@lists.sourceforge.net
-X-Mailman-Version: 2.0.9-sf.net
-Precedence: bulk
-List-Unsubscribe:
-	<https://lists.sourceforge.net/lists/listinfo/bacula-users>,
-	<mailto:bacula-users-request@lists.sourceforge.net?subject=unsubscribe>
-List-Id: Bacula user's email list for support and discussions
-	<bacula-users.lists.sourceforge.net>
-List-Post: <mailto:bacula-users@lists.sourceforge.net>
-List-Help: <mailto:bacula-users-request@lists.sourceforge.net?subject=help>
-List-Subscribe:
-	<https://lists.sourceforge.net/lists/listinfo/bacula-users>,
-	<mailto:bacula-users-request@lists.sourceforge.net?subject=subscribe>
-List-Archive:
-	<http://sourceforge.net/mailarchive/forum.php?forum=bacula-users>
-Date: Wed, 3 Mar 2004 22:04:49 +0100
-X-MIME-Autoconverted: from quoted-printable to 8bit by matou.sibbald.com id
-	i23L8Nb7003158
-Content-Transfer-Encoding: 8bit
 
 Hi,
 
@@ -127,20 +77,20 @@ use DBI;
 use Getopt::Long;
 use vars qw(
        $opt_help
-	   $opt_job
-	   $opt_critical
-	   $opt_warning
-	   $opt_hours
-	   $opt_usage
-	   $opt_version
-	   $out
-	   $sql
-	   $date_start
-	   $date_stop
-	   $state
-	   $count
-	   );
-	   
+           $opt_job
+           $opt_critical
+           $opt_warning
+           $opt_hours
+           $opt_usage
+           $opt_version
+           $out
+           $sql
+           $date_start
+           $date_stop
+           $state
+           $count
+           );
+           
 sub print_help();
 sub print_usage();
 sub get_now();
@@ -148,22 +98,22 @@ sub get_date;
 
 my $progname = basename($0);
 
-my %ERRORS = (	'UNKNOWN'	=>	'-1',
-		'OK'		=>	'0',
-		'WARNING'	=>	'1',
-		'CRITICAL'	=>	'2');
+my %ERRORS = (  'UNKNOWN'       =>      '-1',
+                'OK'            =>      '0',
+                'WARNING'       =>      '1',
+                'CRITICAL'      =>      '2');
 
 Getopt::Long::Configure('bundling');
 GetOptions
-	(
-	"c=s"	=>	\$opt_critical,	"critical=s"	=>	\$opt_critical,
-	"w=s"	=>	\$opt_warning,	"warning=s"	=>	\$opt_warning,
-	"H=s"	=>	\$opt_hours,	"hours=s"	=>	\$opt_hours,
-	"j=s"	=>	\$opt_job,	"job=s"		=>	\$opt_job,
-	"h"	=>	\$opt_help,	"help"		=>	\$opt_help,
-					"usage"		=>	\$opt_usage,
-	"V"	=>	\$opt_version,	"version"	=>	\$opt_version
-	) || die "Try '$progname --help' for more information.\n";
+        (
+        "c=s"   =>      \$opt_critical, "critical=s"    =>      \$opt_critical,
+        "w=s"   =>      \$opt_warning,  "warning=s"     =>      \$opt_warning,
+        "H=s"   =>      \$opt_hours,    "hours=s"       =>      \$opt_hours,
+        "j=s"   =>      \$opt_job,      "job=s"         =>      \$opt_job,
+        "h"     =>      \$opt_help,     "help"          =>      \$opt_help,
+                                        "usage"         =>      \$opt_usage,
+        "V"     =>      \$opt_version,  "version"       =>      \$opt_version
+        ) || die "Try '$progname --help' for more information.\n";
 
 sub print_help() {
 print "\n";
@@ -253,15 +203,3 @@ Fon.0911/92885-0              D-90429 Nürnberg
 Fax.0911/92885-31                                        
 jhein@netways.de              www.netways.de     
 
-
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: IBM Linux Tutorials
-Free Linux tutorial presented by Daniel Robbins, President and CEO of
-GenToo technologies. Learn everything from fundamentals to system
-administration.http://ads.osdn.com/?ad_id70&alloc_id638&opÌk
-_______________________________________________
-Bacula-users mailing list
-Bacula-users@lists.sourceforge.net
-https://lists.sourceforge.net/lists/listinfo/bacula-users

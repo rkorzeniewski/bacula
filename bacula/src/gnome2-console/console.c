@@ -33,9 +33,10 @@
 
 /* Imported functions */
 int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons);
+void select_restore_setup();
        
 /* Exported variables */
-GtkWidget *app1;	     /* application window */
+GtkWidget *console;   /* application window */
 GtkWidget *text1;	     /* text window */
 GtkWidget *entry1;	     /* entry box */
 GtkWidget *status1;	     /* status bar */
@@ -44,7 +45,7 @@ GtkWidget *scroll1;	     /* main scroll bar */
 GtkWidget *run_dialog;	     /* run dialog */
 GtkWidget *dir_dialog;	     /* director selection dialog */
 GtkWidget *restore_dialog;   /* restore dialog */
-GtkWidget *restore_files;    /* restore files dialog */
+GtkWidget *restore_file_selection;
 GtkWidget *dir_select;
 GtkWidget *about1;	     /* about box */
 GtkWidget *label_dialog;
@@ -69,7 +70,7 @@ static void set_scroll_bar_to_end(void);
 static char *configfile = NULL;
 static DIRRES *dir; 
 static int ndir;
-static int director_reader_running = FALSE;
+static bool director_reader_running = false;
 static bool at_prompt = false;
 static bool ready = false;
 static bool quit = false;
@@ -183,20 +184,21 @@ Without that I don't how to speak to the Director :-(\n"), configfile);
 
 
 
-   app1 = create_app1();
-   gtk_window_set_default_size(GTK_WINDOW(app1), 800, 700);
+   console = create_console();
+   gtk_window_set_default_size(GTK_WINDOW(console), 800, 700);
    run_dialog = create_RunDialog();
    label_dialog = create_label_dialog();
-   restore_dialog = create_restore_dialog();
-   restore_files  = create_restore_files();
+   restore_dialog = create_RestoreDialog();
    about1 = create_about1();
 
-   gtk_widget_show(app1);
+   text1 = lookup_widget(console, "text1");
+   entry1 = lookup_widget(console, "entry1");
+   status1 = lookup_widget(console, "status1");
+   scroll1 = lookup_widget(console, "scroll1");
 
-   text1 = lookup_widget(app1, "text1");
-   entry1 = lookup_widget(app1, "entry1");
-   status1 = lookup_widget(app1, "status1");
-   scroll1 = lookup_widget(app1, "scroll1");
+   select_restore_setup();
+
+   gtk_widget_show(console);
 
 /*
  * Thanks to Phil Stracchino for providing the font configuration code.
@@ -231,11 +233,11 @@ Without that I don't how to speak to the Director :-(\n"), configfile);
        text_font = gdk_font_load("-misc-fixed-medium-r-normal-*-*-130-*-*-c-*-iso8859-1");
    }
    font_desc = pango_font_description_from_string("LucidaTypewriter 9");
-   gtk_widget_modify_font (app1, font_desc);
-   gtk_widget_modify_font (text1, font_desc);
-   gtk_widget_modify_font (entry1, font_desc);
-   gtk_widget_modify_font (status1, font_desc);
-   pango_font_description_free (font_desc);
+   gtk_widget_modify_font(console, font_desc);
+   gtk_widget_modify_font(text1, font_desc);
+   gtk_widget_modify_font(entry1, font_desc);
+   gtk_widget_modify_font(status1, font_desc);
+   pango_font_description_free(font_desc);
 
    if (test_config) {
       terminate_console(0);
@@ -339,7 +341,6 @@ int connect_to_director(gpointer data)
 {
    GList *dirs = NULL;
    GtkWidget *combo;
-   char buf[1000];
    JCR jcr;
 
 
@@ -350,9 +351,6 @@ int connect_to_director(gpointer data)
    if (ndir > 1) {
       LockRes();
       foreach_res(dir, R_DIRECTOR) {
-         sprintf(buf, "%s at %s:%d", dir->hdr.name, dir->address,
-	    dir->DIRport);
-         printf("%s\n", buf);
 	 dirs = g_list_append(dirs, dir->hdr.name);
       }
       UnlockRes();
@@ -360,7 +358,6 @@ int connect_to_director(gpointer data)
       combo = lookup_widget(dir_dialog, "combo1");
       dir_select = lookup_widget(dir_dialog, "dirselect");
       gtk_combo_set_popdown_strings(GTK_COMBO(combo), dirs);   
-      printf("dialog run\n");
       gtk_widget_show(dir_dialog);
       gtk_main();
 
@@ -384,7 +381,6 @@ int connect_to_director(gpointer data)
    }
 
    if (!dir) {
-      printf("dir is NULL\n");
       return 0;
    }
 
@@ -436,8 +432,17 @@ int connect_to_director(gpointer data)
    type_list     = get_and_fill_combo(run_dialog, "combo_type", ".types");
    level_list    = get_and_fill_combo(run_dialog, "combo_level", ".levels");
 
+   /* Fill the label dialog combo boxes */
    fill_combo(label_dialog, "label_combo_storage", storage_list);
    fill_combo(label_dialog, "label_combo_pool", pool_list);
+
+
+   /* Fill the restore_dialog combo boxes */
+   fill_combo(restore_dialog, "combo_restore_job", job_list);
+   fill_combo(restore_dialog, "combo_restore_client", client_list);
+   fill_combo(restore_dialog, "combo_restore_fileset", fileset_list);
+   fill_combo(restore_dialog, "combo_restore_pool", pool_list);
+   fill_combo(restore_dialog, "combo_restore_storage", storage_list);
 
    set_status(" Connected");
    return 1;
@@ -497,9 +502,8 @@ void start_director_reader(gpointer data)
    if (director_reader_running || !UA_sock) {
       return;
    }
-   director_reader_running = TRUE;
-
    tag = gdk_input_add(UA_sock->fd, GDK_INPUT_READ, read_director, NULL);
+   director_reader_running = true;
 }
 
 void stop_director_reader(gpointer data)
@@ -508,7 +512,17 @@ void stop_director_reader(gpointer data)
       return;
    }
    gdk_input_remove(tag);
-   director_reader_running = FALSE;
+   gdk_input_remove(tag);
+   gdk_input_remove(tag);
+   gdk_input_remove(tag);
+   gdk_input_remove(tag);
+   gdk_input_remove(tag);
+   gdk_input_remove(tag);
+   gdk_input_remove(tag);
+   gdk_input_remove(tag);
+   gdk_input_remove(tag);
+   gdk_input_remove(tag);
+   director_reader_running = false;
 }
 
 

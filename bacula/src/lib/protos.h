@@ -180,9 +180,11 @@ void             strip_trailing_slashes  (char *dir);
 bool             skip_spaces             (char **msg);
 bool             skip_nonspaces          (char **msg);
 int              fstrsch                 (char *a, char *b);
+char            *next_arg(char **s);
 int              parse_args(POOLMEM *cmd, POOLMEM **args, int *argc, 
                         char **argk, char **argv, int max_args);
-char            *next_arg(char **s);
+void            split_path_and_filename(const char *fname, POOLMEM **path, 
+                        int *pnl, POOLMEM **file, int *fnl);
 
 /* util.c */
 int              is_buf_zero             (char *buf, int len);
