@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  25 June 2003 
+                  27 June 2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -17,8 +17,6 @@ Documentation to do: (any release a little bit at a time)
 - Document need to add "-u root" to most of MySQL script calls
   (./create_mys... ./make_my...).
 - Document c:/working directory better than /working directory.
-
-- Document Heart beat code 
 
           
 Testing to do: (painful)
@@ -1006,4 +1004,6 @@ Done: (see kernsdone for more)
 - Test multiple simultaneous Volumes
 - Document recycling algorithm.
 - Make Restore report an error if FD or SD term codes are not OK.
+- To link with mysqlclient_r may require -lssl -lcrypto
+- Document Heart beat code 
  

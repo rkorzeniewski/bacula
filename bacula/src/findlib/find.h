@@ -70,7 +70,9 @@ enum {
 };
 
 
-/* Options saved in "flag" of ff packet */
+/* Options saved int "options" of the include/exclude lists.
+ * They are directly jammed ito  "flag" of ff packet 
+ */
 #define FO_MD5          (1<<1)        /* Do MD5 checksum */
 #define FO_GZIP         (1<<2)        /* Do Zlib compression */
 #define FO_NO_RECURSION (1<<3)        /* no recursion in directories */
@@ -80,31 +82,14 @@ enum {
 #define FO_NOREPLACE    (1<<7)        /* never replace */
 #define FO_READFIFO     (1<<8)        /* read data from fifo */
 #define FO_SHA1         (1<<9)        /* Do SHA1 checksum */
-
-/*
- * Options saved in "options" of include list
- * These are now directly jammed into ff->flags, so the above
- *   FO_xxx options may be used
- *
- * ***FIXME*** replace all OPT_xxx with FO_xxx or vise-versa 
- */
-#define OPT_compute_MD5      FO_MD5           /* compute MD5 of file's data */
-#define OPT_GZIP_compression FO_GZIP          /* use GZIP compression */
-#define OPT_no_recursion     FO_NO_RECURSION  /* no recursion in directories */
-#define OPT_multifs          FO_MULTIFS       /* multiple file systems */
-#define OPT_sparse           FO_SPARSE        /* do sparse file checking */
-#define OPT_replace_if_newer FO_IF_NEWER      /* replace file if newer */
-#define OPT_never_replace    FO_NOREPLACE     /* never replace */
-#define OPT_read_fifo        FO_READFIFO      /* read data from fifo (named pipe) */
-#define OPT_compute_SHA1     FO_SHA1          /* compute SHA1 of file's data */
-
+#define FO_PORTABLE     (1<<10)       /* Use portable data format -- no BackupWrite */
 
 struct s_included_file {
    struct s_included_file *next;
-   int options;                       /* backup options */
+   uint32_t options;                  /* backup options */
    int level;                         /* compression level */
    int len;                           /* length of fname */
-   int pattern;                       /* set if pattern */
+   int pattern;                       /* set if wild card pattern */
    char VerifyOpts[20];               /* Options for verify */
    char fname[1];
 };
@@ -114,7 +99,6 @@ struct s_excluded_file {
    int len;
    char fname[1];
 };
-
 
 
 /*
@@ -130,7 +114,7 @@ typedef struct s_ff {
    uint32_t LinkFI;                   /* FileIndex of main hard linked file */
    struct f_link *linked;             /* Set if we are hard linked */
    int type;                          /* FT_ type from above */
-   int flags;                         /* control flags */
+   uint32_t flags;                    /* control flags */
    int ff_errno;                      /* errno */
    int incremental;                   /* do incremental save */
    BFILE bfd;                         /* Bacula file descriptor */

@@ -193,6 +193,9 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr)
    }
 
    binit(&ff_pkt->bfd);
+   if (ff_pkt->flags & FO_PORTABLE) {
+      set_win32_backup(&ff_pkt->bfd, 0); /* disable Win32 BackupRead() */
+   }
 
    /* 
     * Open any file with data that we intend to save.  

@@ -107,25 +107,28 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, char *fname)
             case '0':                 /* no option */
 	       break;
             case 'f':
-	       inc->options |= OPT_multifs;
+	       inc->options |= FO_MULTIFS;
 	       break;
             case 'h':                 /* no recursion */
-	       inc->options |= OPT_no_recursion;
+	       inc->options |= FO_NO_RECURSION;
 	       break;
             case 'M':                 /* MD5 */
-	       inc->options |= OPT_compute_MD5;
-	       break;
-            case 'S':
-	       inc->options |= OPT_compute_SHA1;
+	       inc->options |= FO_MD5;
 	       break;
             case 'n':
-	       inc->options |= OPT_never_replace;
+	       inc->options |= FO_NOREPLACE;
+	       break;
+            case 'p':                 /* use portable data format */
+	       inc->options |= FO_PORTABLE;
 	       break;
             case 'r':                 /* read fifo */
-	       inc->options |= OPT_read_fifo;
+	       inc->options |= FO_READFIFO;
+	       break;
+            case 'S':
+	       inc->options |= FO_SHA1;
 	       break;
             case 's':
-	       inc->options |= OPT_sparse;
+	       inc->options |= FO_SPARSE;
 	       break;
             case 'V':                  /* verify options */
 	       /* Copy Verify Options */
@@ -138,10 +141,10 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, char *fname)
 	       inc->VerifyOpts[j] = 0;
 	       break;
             case 'w':
-	       inc->options |= OPT_replace_if_newer;
+	       inc->options |= FO_IF_NEWER;
 	       break;
             case 'Z':                 /* gzip compression */
-	       inc->options |= OPT_GZIP_compression;
+	       inc->options |= FO_GZIP;
                inc->level = *++p - '0';
                Dmsg1(200, "Compression level=%d\n", inc->level);
 	       break;
