@@ -147,6 +147,8 @@ int authenticate_user_agent(UAContext *uac)
    bool ok;    
    BSOCK *ua = uac->UA_sock;
 
+//  Emsg4(M_INFO, 0, _("UA Hello from %s:%s:%d is invalid. Len=%d\n"), ua->who,
+//	    ua->host, ua->port, ua->msglen);
    if (ua->msglen < 16 || ua->msglen >= MAX_NAME_LENGTH + 15) {
       Emsg4(M_ERROR, 0, _("UA Hello from %s:%s:%d is invalid. Len=%d\n"), ua->who,
 	    ua->host, ua->port, ua->msglen);
@@ -159,7 +161,6 @@ int authenticate_user_agent(UAContext *uac)
 	    ua->host, ua->port, ua->msg);
       return 0;
    }
-// Dmsg2(000, "Console=%s addr=%s\n", name, inet_ntoa(ua->client_addr.sin_addr));
    name[sizeof(name)-1] = 0;		 /* terminate name */
    if (strcmp(name, "*UserAgent*") == 0) {  /* default console */
       ok = cram_md5_auth(ua, director->password, ssl_need) &&

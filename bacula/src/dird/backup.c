@@ -80,7 +80,7 @@ int do_backup(JCR *jcr)
 
    get_level_since_time(jcr, since, sizeof(since));
 
-   jcr->fname = (char *) get_pool_memory(PM_FNAME);
+   jcr->fname = (char *)get_pool_memory(PM_FNAME);
 
    /* 
     * Get the Pool record -- first apply any level defined pools  
@@ -445,6 +445,7 @@ Job:                    %s\n\
 Backup Level:           %s%s\n\
 Client:                 %s\n\
 FileSet:                \"%s\" %s\n\
+Pool:                   \"%s\"\n\
 Start time:             %s\n\
 End time:               %s\n\
 FD Files Written:       %s\n\
@@ -468,6 +469,7 @@ Termination:            %s\n\n"),
 	level_to_str(jcr->JobLevel), since,
 	jcr->client->hdr.name,
 	jcr->fileset->hdr.name, fsr->cCreateTime,
+	jcr->pool->hdr.name,
 	sdt,
 	edt,
 	edit_uint64_with_commas(jcr->jr.JobFiles, ec1),

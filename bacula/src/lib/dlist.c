@@ -34,6 +34,7 @@
 /* ===================================================================
  *    dlist
  */
+
 /*
  * Append an item to the list
  */
@@ -243,7 +244,7 @@ void dlist::remove(void *item)
    }
 }
 
-void * dlist::next(void *item)
+void * dlist::next(const void *item) const
 {
    if (item == NULL) {
       return head;
@@ -251,7 +252,7 @@ void * dlist::next(void *item)
    return ((dlink *)(((char *)item)+loffset))->next;
 }
 
-void * dlist::prev(void *item)
+void * dlist::prev(const void *item) const
 {
    if (item == NULL) {
       return tail;
@@ -332,7 +333,7 @@ int main()
    jcr_chain->destroy();
    free(jcr_chain);
 
-   jcr_chain = new dlist(jcr, &jcr->link);
+   jcr_chain = New(dlist(jcr, &jcr->link));
    printf("append 20 items 0-19\n");
    for (int i=0; i<20; i++) {
       sprintf(buf, "This is dlist item %d", i);
@@ -363,7 +364,7 @@ int main()
 
 
    /* Now do a binary insert for the list */
-   jcr_chain = new dlist(jcr, &jcr->link);
+   jcr_chain = New(dlist(jcr, &jcr->link));
 #define CNT 26
    printf("append %d items\n", CNT*CNT*CNT);
    strcpy(buf, "ZZZ");

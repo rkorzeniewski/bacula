@@ -78,7 +78,7 @@ JCR *wait_for_next_job(char *one_shot_job_to_run)
    if (first) {
       first = false;
       /* Create scheduled jobs list */
-      jobs_to_run = new dlist(next_job, &next_job->link);
+      jobs_to_run = New(dlist(next_job, &next_job->link));
       if (one_shot_job_to_run) {	    /* one shot */
 	 job = (JOB *)GetResWithName(R_JOB, one_shot_job_to_run);
 	 if (!job) {
@@ -142,19 +142,10 @@ JCR *wait_for_next_job(char *one_shot_job_to_run)
    ASSERT(job);
    set_jcr_defaults(jcr, job);
    if (run->level) {
-      jcr->JobLevel = run->level;	 /* override run level */
+      jcr->JobLevel = run->level;     /* override run level */
    }
    if (run->pool) {
       jcr->pool = run->pool;	      /* override pool */
-   }
-   if (run->full_pool) {
-      jcr->pool = run->full_pool;     /* override full pool */
-   }
-   if (run->inc_pool) {
-      jcr->pool = run->inc_pool;      /* override inc pool */
-   }
-   if (run->dif_pool) {
-      jcr->pool = run->dif_pool;      /* override dif pool */
    }
    if (run->storage) {
       jcr->store = run->storage;      /* override storage */

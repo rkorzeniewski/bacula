@@ -84,9 +84,9 @@ int jobq_init(jobq_t *jq, int threads, void *(*engine)(void *arg))
    jq->engine = engine; 	      /* routine to run */
    jq->valid = JOBQ_VALID; 
    /* Initialize the job queues */
-   jq->waiting_jobs = new dlist(item, &item->link);
-   jq->running_jobs = new dlist(item, &item->link);
-   jq->ready_jobs = new dlist(item, &item->link);
+   jq->waiting_jobs = New(dlist(item, &item->link));
+   jq->running_jobs = New(dlist(item, &item->link));
+   jq->ready_jobs = New(dlist(item, &item->link));
    return 0;
 }
 
@@ -420,6 +420,8 @@ void *jobq_server(void *arg)
 	 }
 	 jq->running_jobs->append(je);
          Dmsg1(300, "Took jobid=%d from ready and appended to run\n", jcr->JobId);
+
+	 /* Release job queue lock */
 	 if ((stat = pthread_mutex_unlock(&jq->mutex)) != 0) {
             Jmsg1(NULL, M_ERROR, 0, "pthread_mutex_unlock: ERR=%s\n", strerror(stat));
 	    jq->num_workers--;
@@ -431,6 +433,8 @@ void *jobq_server(void *arg)
 	 jq->engine(je->jcr);
 
          Dmsg1(300, "Back from user engine jobid=%d.\n", jcr->JobId);
+
+	 /* Reacquire job queue lock */
 	 if ((stat = pthread_mutex_lock(&jq->mutex)) != 0) {
             Jmsg1(NULL, M_ERROR, 0, "pthread_mutex_lock: ERR=%s\n", strerror(stat));
 	    jq->num_workers--;
@@ -453,6 +457,9 @@ void *jobq_server(void *arg)
 	    jcr->job->NumConcurrentJobs--;
 	 }
 
+	 /*
+	  * Reschedule the job if necessary and requested
+	  */
 	 if (jcr->job->RescheduleOnError && 
 	     jcr->JobStatus != JS_Terminated &&
 	     jcr->JobStatus != JS_Canceled && 
@@ -508,8 +515,10 @@ void *jobq_server(void *arg)
 	    jcr->db = NULL;
 	 }
          Dmsg1(300, "====== Termination job=%d\n", jcr->JobId);
+	 V(jq->mutex);		      /* release internal lock */
 	 free_jcr(jcr);
 	 free(je);		      /* release job entry */
+	 P(jq->mutex);		      /* reacquire job queue lock */
       }
       /*
        * If any job in the wait queue can be run,

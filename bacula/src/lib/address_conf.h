@@ -74,10 +74,6 @@ extern void store_addresses(LEX * lc, RES_ITEM * item, int index, int pass);
 extern void free_addresses(dlist * addrs);
 extern void store_addresses_address(LEX * lc, RES_ITEM * item, int index, int pass);
 extern void store_addresses_port(LEX * lc, RES_ITEM * item, int index, int pass);
-extern int add_address(dlist ** out, IPADDR::i_type type, unsigned short defaultport,
-                       int family, const char *hostname_str,
-                       const char *port_str, char **errstr);
-
 extern void init_default_addresses(dlist ** addr, int port);
 
 extern const char *get_first_address(dlist * addrs, char *outputbuf, int outlen);

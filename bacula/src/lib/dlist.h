@@ -28,6 +28,10 @@
  *
  */
 
+#define M_ABORT 1
+#undef  New
+#define New(type) new type
+
 /* In case you want to specifically specify the offset to the link */
 #define OFFSET(item, link) ((char *)(link) - (char *)(item))
 /* 
@@ -45,11 +49,11 @@
         for((var)=NULL; (((void *)(var))=(list)->next(var)); )
 #endif
 
+
 struct dlink {
    void *next;
    void *prev;
 };
-
 
 class dlist {
    void *head;
@@ -57,10 +61,10 @@ class dlist {
    int16_t loffset;
    uint32_t num_items;
 public:
-   dlist(void *item, void *link);
+   dlist(void *item, dlink *link);
    dlist(void);
    ~dlist() { destroy(); }
-   void init(void *item, void *link);
+   void init(void *item, dlink *link);
    void prepend(void *item);
    void append(void *item);
    void insert_before(void *item, void *where);
@@ -68,24 +72,27 @@ public:
    void *unique_binary_insert(void *item, int compare(void *item1, void *item2));
    void binary_insert(void *item, int compare(void *item1, void *item2));
    void remove(void *item);
-   bool empty();
-   int  size();
-   void *next(void *item);
-   void *prev(void *item);
+   bool empty() const;
+   int  size() const;
+   void *next(const void *item) const;
+   void *prev(const void *item) const;
    void destroy();
-   void *first();
-   void *last();
+   void *first() const;
+   void *last() const;
    void * operator new(size_t);
    void operator delete(void *);
 };
+
+dlist *new_dlist();
+dlist *new_dlist(void *item, dlink *link);
+
 
 /*                            
  * This allows us to do explicit initialization,
  *   allowing us to mix C++ classes inside malloc'ed
  *   C structures. Define before called in constructor.
  */
-#define M_ABORT 1
-inline void dlist::init(void *item, void *link) 
+inline void dlist::init(void *item, dlink *link) 
 {
    head = tail = NULL;
    loffset = (char *)link - (char *)item;
@@ -103,23 +110,22 @@ inline void dlist::init(void *item, void *link)
  *   then there is no need to specify the link address 
  *   since the offset is zero.
  */
-inline dlist::dlist(void *item, void *link)
+inline dlist::dlist(void *item, dlink *link)
 {
-   this->init(item, link);
+   init(item, link);
 }
 
 /* Constructor with link at head of item */
-inline dlist::dlist(void)
+inline dlist::dlist(void) : head(0), tail(0), loffset(0), num_items(0)
 {
-   memset(this, 0, sizeof(dlist));
 }
 
-inline bool dlist::empty()
+inline bool dlist::empty() const
 {
    return head == NULL;
 }
 
-inline int dlist::size()
+inline int dlist::size() const
 {
    return num_items;
 }
@@ -137,12 +143,12 @@ inline void dlist::operator delete(void  *item)
 }
  
 
-inline void * dlist::first()
+inline void * dlist::first() const
 {
    return head;
 }
 
-inline void * dlist::last()
+inline void * dlist::last() const
 {
    return tail;
 }

@@ -28,6 +28,10 @@
 
 #include "bacula.h"
 
+static int add_address(dlist **out, IPADDR::i_type type, unsigned short defaultport, int family,
+		const char *hostname_str, const char *port_str, char **errstr);
+
+
 IPADDR::IPADDR(const IPADDR &src) : type(src.type)
 {
   memcpy(&buf, &src.buf, sizeof(buf));
@@ -106,7 +110,7 @@ void IPADDR::set_port(unsigned short port)
 int IPADDR::get_family() const
 {
     return saddr->sa_family;
-}       
+}	
 
 struct sockaddr *IPADDR::get_sockaddr()
 {
@@ -168,8 +172,8 @@ const char *IPADDR::get_address(char *outputbuf, int outlen)
    outputbuf[0] = '\0';
 #if defined(HAVE_INET_NTOP) && defined(HAVE_IPV6)
    inet_ntop(saddr->sa_family, saddr->sa_family == AF_INET ?
-              (void*)&(saddr4->sin_addr) : (void*)&(saddr6->sin6_addr),
-              outputbuf, outlen);
+	      (void*)&(saddr4->sin_addr) : (void*)&(saddr6->sin6_addr),
+	      outputbuf, outlen);
 #else
    bstrncpy(outputbuf, inet_ntoa(saddr4->sin_addr), outlen);
 #endif
@@ -179,9 +183,9 @@ const char *IPADDR::get_address(char *outputbuf, int outlen)
 const char *IPADDR::build_address_str(char *buf, int blen) 
 {
    char tmp[1024];
-   snprintf(buf, blen, "host[%s:%s:%hu] ",
+   bsnprintf(buf, blen, "host[%s:%s:%hu] ",
             get_family() == AF_INET ? "ipv4" : "ipv6",
-            get_address(tmp, sizeof(tmp) - 1), ntohs(get_port()));
+	    get_address(tmp, sizeof(tmp) - 1), ntohs(get_port()));
    return buf;
 }
 
@@ -195,9 +199,9 @@ const char *build_addresses_str(dlist *addrs, char *buf, int blen)
    IPADDR *p;
    foreach_dlist(p, addrs) {
       char tmp[1024];
-      int len = snprintf(work, blen, "%s", p->build_address_str(tmp, sizeof(tmp)));
+      int len = bsnprintf(work, blen, "%s", p->build_address_str(tmp, sizeof(tmp)));
       if (len < 0)
-         break;
+	 break;
       work += len;
       blen -= len;
    }
@@ -211,7 +215,7 @@ const char *get_first_address(dlist * addrs, char *outputbuf, int outlen)
 
 int get_first_port(dlist * addrs)
 {
-   return ((IPADDR *)(addrs->first()))->get_port();
+   return ntohs(((IPADDR *)(addrs->first()))->get_port());				  
 }
 
 static int skip_to_next_not_eol(LEX * lc)
@@ -225,7 +229,7 @@ static int skip_to_next_not_eol(LEX * lc)
 }
 
 
-void init_default_addresses(dlist ** out, int port)
+void init_default_addresses(dlist **out, int port)
 {
    char *errstr;
    unsigned short sport = port;
@@ -235,8 +239,8 @@ void init_default_addresses(dlist ** out, int port)
    }
 }
 
-int add_address(dlist ** out, IPADDR::i_type type, unsigned short defaultport, int family,
-                const char *hostname_str, const char *port_str, char **errstr)
+static int add_address(dlist **out, IPADDR::i_type type, unsigned short defaultport, int family,
+		const char *hostname_str, const char *port_str, char **errstr)
 {
    IPADDR *iaddr;
    IPADDR *jaddr;
@@ -244,29 +248,29 @@ int add_address(dlist ** out, IPADDR::i_type type, unsigned short defaultport, i
    unsigned short port;
    IPADDR::i_type intype = type;
 
-   dlist *addrs = (dlist *) (*(out));
+   dlist *addrs = (dlist *)(*(out));
    if (!addrs) {
       IPADDR *tmp = 0;
-      addrs = *out = new dlist(tmp, &tmp->link);
+      addrs = *out = New(dlist(tmp, &tmp->link));
    }
 
    type = (type == IPADDR::R_SINGLE_PORT
-           || type == IPADDR::R_SINGLE_ADDR) ? IPADDR::R_SINGLE : type;
+	   || type == IPADDR::R_SINGLE_ADDR) ? IPADDR::R_SINGLE : type;
    if (type != IPADDR::R_DEFAULT) {
       IPADDR *def = 0;
       foreach_dlist(iaddr, addrs) {
-         if (iaddr->get_type() == IPADDR::R_DEFAULT) {
-            def = iaddr;
-         } else if (iaddr->get_type() != type) {
-            *errstr = (char *)malloc(1024);
-            bsnprintf(*errstr, 1023,
+	 if (iaddr->get_type() == IPADDR::R_DEFAULT) {
+	    def = iaddr;
+	 } else if (iaddr->get_type() != type) {
+	    *errstr = (char *)malloc(1024);
+	    bsnprintf(*errstr, 1023,
                       "the old style addresses could mixed with new style");
-            return 0;
-         }
+	    return 0;
+	 }
       }
       if (def) {
-         addrs->remove(def);
-         delete def;
+	 addrs->remove(def);
+	 delete def;
       }
    }
 
@@ -276,16 +280,16 @@ int add_address(dlist ** out, IPADDR::i_type type, unsigned short defaultport, i
    } else {
       int pnum = atol(port_str);
       if (0 < pnum && pnum < 0xffff) {
-         port = htons(pnum);
+	 port = htons(pnum);
       } else {
          struct servent *s = getservbyname(port_str, "tcp");
-         if (s) {
-            port = s->s_port;
-         } else {
-            *errstr = (char *)malloc(1024);
+	 if (s) {
+	    port = s->s_port;
+	 } else {
+	    *errstr = (char *)malloc(1024);
             bsnprintf(*errstr, 1023, "can't resolve service(%s)", port_str);
-            return 0;
-         }
+	    return 0;
+	 }
       }
    }
 
@@ -294,45 +298,45 @@ int add_address(dlist ** out, IPADDR::i_type type, unsigned short defaultport, i
    if (!hostaddrs) {
       *errstr = (char *)malloc(1024);
       bsnprintf(*errstr, 1023, "can't resolve hostname(%s) %s", hostname_str,
-                myerrstr);
+		myerrstr);
       return 0;
    }
 
    if (intype == IPADDR::R_SINGLE_PORT || intype == IPADDR::R_SINGLE_ADDR) {
       IPADDR *addr;
       if (addrs->size()) {
-         addr = (IPADDR *) addrs->first();
+	 addr = (IPADDR *)addrs->first();
       } else {
-         addr = new IPADDR(family);
-         addr->set_type(type);
-         addr->set_port(defaultport);
-         addr->set_addr_any();
-         addrs->append(addr);
+	 addr = new IPADDR(family); 
+	 addr->set_type(type);
+	 addr->set_port(defaultport);
+	 addr->set_addr_any();
+	 addrs->append(addr);
       }
       if (intype == IPADDR::R_SINGLE_PORT) {
-         addr->set_port(port);
+	 addr->set_port(port);
       }
       if (intype == IPADDR::R_SINGLE_ADDR) {
-         addr->copy_addr((IPADDR *) (hostaddrs->first()));
+	 addr->copy_addr((IPADDR *) (hostaddrs->first()));
       }
    } else {
       foreach_dlist(iaddr, hostaddrs) {
-         IPADDR *clone;
-         /* for duplicates */
-         foreach_dlist(jaddr, addrs) {
-            if (iaddr->get_sockaddr_len() == jaddr->get_sockaddr_len() &&
-            !memcmp(iaddr->get_sockaddr(), jaddr->get_sockaddr(), 
-                    iaddr->get_sockaddr_len()))
-                {
-               goto skip;          /* no price */
-            }
-         }
-         clone = new IPADDR(*iaddr);
-         clone->set_type(type);
-         clone->set_port(port);
-         addrs->append(clone);
+	 IPADDR *clone;
+	 /* for duplicates */
+	 foreach_dlist(jaddr, addrs) {
+	    if (iaddr->get_sockaddr_len() == jaddr->get_sockaddr_len() &&
+	    !memcmp(iaddr->get_sockaddr(), jaddr->get_sockaddr(), 
+		    iaddr->get_sockaddr_len()))
+		{
+	       goto skip;	   /* no price */
+	    }
+	 }
+	 clone = new IPADDR(*iaddr); 
+	 clone->set_type(type);
+	 clone->set_port(port);
+	 addrs->append(clone);
        skip:
-         continue;
+	 continue;
       }
    }
    free_addresses(hostaddrs);
@@ -350,35 +354,35 @@ void store_addresses(LEX * lc, RES_ITEM * item, int index, int pass)
 
    /*
     *   =  { [[ip|ipv4|ipv6] = { [[addr|port] = [^ ]+[\n;]+] }]+ }
-    *   or my tests
-    *   positiv
-    *   = { ip = { addr = 1.2.3.4; port = 1205; } ipv4 = { addr = 1.2.3.4; port = http; } }
-    *   = { ip = { 
-    *         addr = 1.2.3.4; port = 1205; } 
-    *     ipv4 = { 
-    *         addr = 1.2.3.4; port = http; } 
-    *     ipv6 = { 
-    *       addr = 1.2.3.4; 
-    *       port = 1205;
-    *     } 
-    *     ip = {
-    *       addr = 1.2.3.4
-    *       port = 1205
-    *     } 
-    *     ip = {
-    *       addr = 1.2.3.4
-    *     } 
-    *     ip = {
-    *       addr = 2001:220:222::2
-    *     } 
-    *     ip = {
-    *       addr = bluedot.thun.net
-    (     } 
-    *   }
-    *   negativ
-    *   = { ip = { } }
-    *   = { ipv4 { addr = doof.nowaytoheavenxyz.uhu; } }
-    *   = { ipv4 { port = 4711 } }
+    *	or my tests
+    *	positiv
+    *	= { ip = { addr = 1.2.3.4; port = 1205; } ipv4 = { addr = 1.2.3.4; port = http; } }
+    *	= { ip = { 
+    *	      addr = 1.2.3.4; port = 1205; } 
+    *	  ipv4 = { 
+    *	      addr = 1.2.3.4; port = http; } 
+    *	  ipv6 = { 
+    *	    addr = 1.2.3.4; 
+    *	    port = 1205;
+    *	  } 
+    *	  ip = {
+    *	    addr = 1.2.3.4
+    *	    port = 1205
+    *	  } 
+    *	  ip = {
+    *	    addr = 1.2.3.4
+    *	  } 
+    *	  ip = {
+    *	    addr = 2001:220:222::2
+    *	  } 
+    *	  ip = {
+    *	    addr = bluedot.thun.net
+    (	  } 
+    *	}
+    *	negativ
+    *	= { ip = { } }
+    *	= { ipv4 { addr = doof.nowaytoheavenxyz.uhu; } }
+    *	= { ipv4 { port = 4711 } }
     */
 
    token = skip_to_next_not_eol(lc);
@@ -395,11 +399,11 @@ void store_addresses(LEX * lc, RES_ITEM * item, int index, int pass)
          scan_err1(lc, _("Expected a string, got: %s"), lc->str);
       }
       if (!strcmp("ip", lc->str) || !strcmp("ipv4", lc->str)) {
-         family = AF_INET;
+	 family = AF_INET;
       }
 #ifdef HAVE_IPV6
       else if (!strcmp("ipv6", lc->str)) {
-         family = AF_INET6;
+	 family = AF_INET6;
       }
 #endif
       else {
@@ -417,62 +421,61 @@ void store_addresses(LEX * lc, RES_ITEM * item, int index, int pass)
       exist = EMPTYLINE;
       port_str[0] = hostname_str[0] = '\0';
       do {
-         if (token != T_IDENTIFIER) {
+	 if (token != T_IDENTIFIER) {
             scan_err1(lc, _("Expected a identifier [addr|port], got: %s"), lc->str);
-         }
+	 }
          if (!strcmp("port", lc->str)) {
-            next_line = PORTLINE;
-            if (exist & PORTLINE) {
+	    next_line = PORTLINE;
+	    if (exist & PORTLINE) {
                scan_err0(lc, _("Only one port per address block"));
-            }
-            exist |= PORTLINE;
+	    }
+	    exist |= PORTLINE;
          } else if (!strcmp("addr", lc->str)) {
-            next_line = ADDRLINE;
-            if (exist & ADDRLINE) {
+	    next_line = ADDRLINE;
+	    if (exist & ADDRLINE) {
                scan_err0(lc, _("Only one addr per address block"));
-            }
-            exist |= ADDRLINE;
-         } else {
+	    }
+	    exist |= ADDRLINE;
+	 } else {
             scan_err1(lc, _("Expected a identifier [addr|port], got: %s"), lc->str);
-         }
-         token = lex_get_token(lc, T_ALL);
-         if (token != T_EQUALS) {
+	 }
+	 token = lex_get_token(lc, T_ALL);
+	 if (token != T_EQUALS) {
             scan_err1(lc, _("Expected a equal =, got: %s"), lc->str);
-         }
-         token = lex_get_token(lc, T_ALL);
-         switch (next_line) {
-         case PORTLINE:
-            if (!
-                (token == T_UNQUOTED_STRING || token == T_NUMBER
-                 || token == T_IDENTIFIER)) {
+	 }
+	 token = lex_get_token(lc, T_ALL);
+	 switch (next_line) {
+	 case PORTLINE:
+	    if (!
+		(token == T_UNQUOTED_STRING || token == T_NUMBER
+		 || token == T_IDENTIFIER)) {
                scan_err1(lc, _("Expected a number or a string, got: %s"), lc->str);
-            }
-            bstrncpy(port_str, lc->str, sizeof(port_str));
-            break;
-         case ADDRLINE:
-            if (!(token == T_UNQUOTED_STRING || token == T_IDENTIFIER)) {
+	    }
+	    bstrncpy(port_str, lc->str, sizeof(port_str));
+	    break;
+	 case ADDRLINE:
+	    if (!(token == T_UNQUOTED_STRING || token == T_IDENTIFIER)) {
                scan_err1(lc, _("Expected a ipnumber or a hostname, got: %s"),
-                         lc->str);
-            }
-            bstrncpy(hostname_str, lc->str, sizeof(hostname_str));
-            break;
-         case EMPTYLINE:
+			 lc->str);
+	    }
+	    bstrncpy(hostname_str, lc->str, sizeof(hostname_str));
+	    break;
+	 case EMPTYLINE:
             scan_err0(lc, _("Statemachine missmatch"));
-            break;
-         }
-         token = skip_to_next_not_eol(lc);
+	    break;
+	 }
+	 token = skip_to_next_not_eol(lc);
       } while (token == T_IDENTIFIER);
       if (token != T_EOB) {
          scan_err1(lc, _("Expected a end of block }, got: %s"), lc->str);
       }
 
       char *errstr;
-      if (!add_address
-          ((dlist **) (item->value), IPADDR::R_MULTIPLE, htons(item->default_value),
-           family, hostname_str, port_str, &errstr)) {
+      if (!add_address((dlist **)(item->value), IPADDR::R_MULTIPLE, 
+	   htons(item->default_value), family, hostname_str, port_str, &errstr)) {
          scan_err3(lc, _("Can't add hostname(%s) and port(%s) to addrlist (%s)"),
-                   hostname_str, port_str, errstr);
-         free(errstr);
+		   hostname_str, port_str, errstr);
+	 free(errstr);
       }
       token = skip_to_next_not_eol(lc);
    } while ((token == T_IDENTIFIER || token == T_UNQUOTED_STRING));
@@ -489,7 +492,7 @@ void store_addresses_address(LEX * lc, RES_ITEM * item, int index, int pass)
    }
    char *errstr;
    if (!add_address((dlist **) (item->value), IPADDR::R_SINGLE_ADDR,
-                    htons(item->default_value), AF_INET, lc->str, 0, &errstr)) {
+		    htons(item->default_value), AF_INET, lc->str, 0, &errstr)) {
       scan_err2(lc, _("can't add port (%s) to (%s)"), lc->str, errstr);
       free(errstr);
    }
@@ -502,8 +505,8 @@ void store_addresses_port(LEX * lc, RES_ITEM * item, int index, int pass)
       scan_err1(lc, _("Expected a port nummer or string, got: %s"), lc->str);
    }
    char *errstr;
-   if (!add_address((dlist **) (item->value), IPADDR::R_SINGLE_PORT,
-                    htons(item->default_value), AF_INET, 0, lc->str, &errstr)) {
+   if (!add_address((dlist **)(item->value), IPADDR::R_SINGLE_PORT,
+		    htons(item->default_value), AF_INET, 0, lc->str, &errstr)) {
       scan_err2(lc, _("can't add port (%s) to (%s)"), lc->str, errstr);
       free(errstr);
    }
@@ -518,5 +521,3 @@ void free_addresses(dlist * addrs)
    }
    delete addrs;
 }
-
-

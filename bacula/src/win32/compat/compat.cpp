@@ -615,7 +615,6 @@ copyin(struct dirent &dp, const char *fname)
 int
 readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result)
 {
-
     _dir *dp = (_dir *)dirp;
     if (dp->valid) {
         entry->d_off = dp->offset;
@@ -633,28 +632,40 @@ readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result)
     return 0;
 }
 
+/*
+ * Dotted IP address to network address
+ *
+ * Returns 1 if  OK
+ *         0 on error
+ */
 int
 inet_aton(const char *a, struct in_addr *inp)
 {
+   const char *cp = a;
+   uint32_t acc = 0, tmp = 0;
+   int dotc = 0;
 
-    const char *cp = a;
-    uint32_t acc = 0, tmp = 0;
-    int dotc = 0;
-    if (!isdigit(*a)) return 0;
-    while (*cp) {
-        if (isdigit(*cp))
-            tmp = (tmp * 10) + (*cp -'0');
-        else if (*cp == '.') {
-            if (tmp > 255) return 0;
-            acc = (acc << 8) + tmp;
-            dotc++;
-        }
-        else return 0;
-    }
-
-    if (dotc != 3) return 0;
-    inp->s_addr = acc;
-    return 1;
+   if (!isdigit(*cp)) {         /* first char must be digit */
+      return 0;                 /* error */
+   }
+   do {
+      if (isdigit(*cp)) {
+         tmp = (tmp * 10) + (*cp -'0');
+      } else if (*cp == '.' || *cp == 0) {
+         if (tmp > 255) {
+            return 0;           /* error */
+         }
+         acc = (acc << 8) + tmp;
+         dotc++;
+      } else {
+         return 0;              /* error */
+      }
+   } while (*cp++ != 0);
+   if (dotc != 4) {              /* want 3 .'s plus EOS */
+      return 0;                  /* error */
+   }
+   inp->s_addr = htonl(acc);     /* store addr in network format */
+   return 1;
 }
 
 int
