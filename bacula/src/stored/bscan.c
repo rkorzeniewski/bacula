@@ -125,7 +125,7 @@ int main (int argc, char *argv[])
    init_msg(NULL, NULL);
 
 
-   while ((ch = getopt(argc, argv, "b:c:d:mn:p:rsu:vVw:?")) != -1) {
+   while ((ch = getopt(argc, argv, "b:c:d:mn:p:rsu:vV:w:?")) != -1) {
       switch (ch) {
       case 'b':
 	 bsr = parse_bsr(NULL, optarg);
