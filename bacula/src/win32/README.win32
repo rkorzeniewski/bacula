@@ -40,6 +40,7 @@ To build it:
 - You need the Platform SDK installed.
 - You need Visual Studio installed.
 - You need to load depkgs-win32, then
+    (make the two patches described below to in Nicolas' notes to wx)
     cd depkgs-win32
     make
     (after building zlib and pthreads, it fails in wx)
@@ -108,8 +109,9 @@ Instructions if you want to build wx-console :
 - Additional information on using the free Micrsosoft C++ see
   http://sapdb.2scale.net/moin.cgi/MS_20C_2b_2b_20Toolkit
 
-NOTE! I (Kern) cannot build wxWindows with the Makefile -- I had to use                
-VC Studio directly to do so following their instructions.
+NOTE! I (Kern) cannot build wxWindows with the Makefile until after
+I do a ./configure.  I can us VC Studio directly to do so
+following their instructions.
 
 Getting all the environment variables setup properly is not always so obvious.
 Here is what I have when I do a "set" in a rxvt window, in which I build

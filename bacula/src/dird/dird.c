@@ -579,59 +579,62 @@ Without that I don't know who I am :-(\n"), configfile);
             Emsg0(M_ERROR_TERM, 0, "Too many items in Job resource\n");
 	 }
       }
-      if (job->client && job->client->catalog) {
-	 CAT *catalog = job->client->catalog;
-	 B_DB *db;
+   } /* End loop over Job res */
 
-	 /*
-	  * Make sure we can open catalog, otherwise print a warning
-	  * message because the server is probably not running.
-	  */
-	 db = db_init_database(NULL, catalog->db_name, catalog->db_user,
-			    catalog->db_password, catalog->db_address,
-			    catalog->db_port, catalog->db_socket);
-	 if (!db || !db_open_database(NULL, db)) {
-            Jmsg(NULL, M_FATAL, 0, _("Could not open database \"%s\".\n"),
-		 catalog->db_name);
-	    if (db) {
-               Jmsg(NULL, M_FATAL, 0, _("%s"), db_strerror(db));
-	    }
-	    OK = false;
-	 } else {
-	    /* If a pool is defined for this job, create the pool DB	   
-	     *	record if it is not already created. 
-	     */
-	    if (job->pool) {
-	       create_pool(NULL, db, job->pool, POOL_OP_UPDATE);  /* update request */
-	    }
-	    /* Set default value in all counters */
-	    COUNTER *counter;
-	    foreach_res(counter, R_COUNTER) {
-	       /* Write to catalog? */
-	       if (!counter->created && counter->Catalog == catalog) {
-		  COUNTER_DBR cr;
-		  bstrncpy(cr.Counter, counter->hdr.name, sizeof(cr.Counter));
-		  cr.MinValue = counter->MinValue;
-		  cr.MaxValue = counter->MaxValue;
-		  cr.CurrentValue = counter->MinValue;
-		  if (counter->WrapCounter) {
-		     bstrncpy(cr.WrapCounter, counter->WrapCounter->hdr.name, sizeof(cr.WrapCounter));
-		  } else {
-		     cr.WrapCounter[0] = 0;  /* empty string */
-		  }
-		  if (db_create_counter_record(NULL, db, &cr)) {
-		     counter->CurrentValue = cr.CurrentValue;
-		     counter->created = true;
-                     Dmsg2(100, "Create counter %s val=%d\n", counter->hdr.name, counter->CurrentValue);
-		  }
-	       } 
-	       if (!counter->created) {
-		  counter->CurrentValue = counter->MinValue;  /* default value */
-	       }
-	    }
+   /* Loop over databases */
+   CAT *catalog;
+   foreach_res(catalog, R_CATALOG) {
+      B_DB *db;
+      /*
+       * Make sure we can open catalog, otherwise print a warning
+       * message because the server is probably not running.
+       */
+      db = db_init_database(NULL, catalog->db_name, catalog->db_user,
+			 catalog->db_password, catalog->db_address,
+			 catalog->db_port, catalog->db_socket);
+      if (!db || !db_open_database(NULL, db)) {
+         Jmsg(NULL, M_FATAL, 0, _("Could not open database \"%s\".\n"),
+	      catalog->db_name);
+	 if (db) {
+            Jmsg(NULL, M_FATAL, 0, _("%s"), db_strerror(db));
 	 }
-	 db_close_database(NULL, db);
+	 OK = false;
+	 continue;
+      } 
+
+      /* Loop over all pools, defining/updating them in each database */
+      POOL *pool;
+      foreach_res(pool, R_POOL) {
+	 create_pool(NULL, db, pool, POOL_OP_UPDATE);  /* update request */
+      }      
+      /* Loop over all counters, defining them in each database */
+
+      /* Set default value in all counters */
+      COUNTER *counter;
+      foreach_res(counter, R_COUNTER) {
+	 /* Write to catalog? */
+	 if (!counter->created && counter->Catalog == catalog) {
+	    COUNTER_DBR cr;
+	    bstrncpy(cr.Counter, counter->hdr.name, sizeof(cr.Counter));
+	    cr.MinValue = counter->MinValue;
+	    cr.MaxValue = counter->MaxValue;
+	    cr.CurrentValue = counter->MinValue;
+	    if (counter->WrapCounter) {
+	       bstrncpy(cr.WrapCounter, counter->WrapCounter->hdr.name, sizeof(cr.WrapCounter));
+	    } else {
+	       cr.WrapCounter[0] = 0;  /* empty string */
+	    }
+	    if (db_create_counter_record(NULL, db, &cr)) {
+	       counter->CurrentValue = cr.CurrentValue;
+	       counter->created = true;
+               Dmsg2(100, "Create counter %s val=%d\n", counter->hdr.name, counter->CurrentValue);
+	    }
+	 } 
+	 if (!counter->created) {
+	    counter->CurrentValue = counter->MinValue;	/* default value */
+	 }
       }
+      db_close_database(NULL, db);
    }
 
    UnlockRes();
