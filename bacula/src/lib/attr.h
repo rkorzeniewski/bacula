@@ -31,6 +31,7 @@ struct ATTR {
    int32_t data_stream;               /* id of data stream to follow */
    int32_t type;                      /* file type FT */
    int32_t file_index;                /* file index */
+   int32_t LinkFI;                    /* file index to data if hard link */
    struct stat statp;                 /* decoded stat packet */
    char *attr;                        /* attributes position */
    char *attrEx;                      /* extended attributes if any */

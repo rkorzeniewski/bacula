@@ -18,6 +18,8 @@ Documentation to do: (any release a little bit at a time)
   (./create_mys... ./make_my...).
 - Document c:/working directory better than /working directory.
 
+- Document Heart beat code 
+
           
 Testing to do: (painful)
 - that ALL console command line options work and are always implemented
@@ -32,7 +34,8 @@ Testing to do: (painful)
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
-- Finish Windows implementation.
+- Finish Windows implementation (add setting of correct type on restore,
+  add Portable Data Format flag).
 - Remove multiple simultaneous devices code in SD.
 - Check that Block number in JobMedia are correct.
 - Increment DB version prior to releasing.

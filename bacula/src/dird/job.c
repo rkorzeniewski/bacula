@@ -201,6 +201,7 @@ static void *job_thread(void *arg)
 	    
 	    before = edit_run_codes(jcr, before, jcr->job->RunBeforeJob);
             bpipe = open_bpipe(before, 0, "r");
+	    free_pool_memory(before);
 	    while (fgets(line, sizeof(line), bpipe->rfd)) {
                Jmsg(jcr, M_INFO, 0, _("RunBefore: %s"), line);
 	    }
@@ -210,10 +211,8 @@ static void *job_thread(void *arg)
 		  status);
 	       set_jcr_job_status(jcr, JS_FatalError);
 	       update_job_end_record(jcr);
-	       free_pool_memory(before);
 	       goto bail_out;
 	    }
-	    free_pool_memory(before);
 	 }
 	 switch (jcr->JobType) {
 	    case JT_BACKUP:
@@ -252,6 +251,7 @@ static void *job_thread(void *arg)
 	    
 	    after = edit_run_codes(jcr, after, jcr->job->RunAfterJob);
             bpipe = open_bpipe(after, 0, "r");
+	    free_pool_memory(after);
 	    while (fgets(line, sizeof(line), bpipe->rfd)) {
                Jmsg(jcr, M_INFO, 0, _("RunAfter: %s"), line);
 	    }
@@ -262,7 +262,6 @@ static void *job_thread(void *arg)
 	       set_jcr_job_status(jcr, JS_FatalError);
 	       update_job_end_record(jcr);
 	    }
-	    free_pool_memory(after);
 	 }
       }
 bail_out:
@@ -279,7 +278,7 @@ bail_out:
 	   */
 	 jcr->reschedule_count++;
 	 jcr->sched_time = time(NULL) + jcr->job->RescheduleInterval;
-         Dmsg2(000, "Reschedule Job %s in %d seconds.\n", jcr->Job,
+         Dmsg2(100, "Rescheduled Job %s to re-run in %d seconds.\n", jcr->Job,
 	    (int)jcr->job->RescheduleInterval);
 	 jcr->JobStatus = JS_Created; /* force new status */
 	 dird_free_jcr(jcr);	      /* partial cleanup old stuff */

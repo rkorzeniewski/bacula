@@ -342,8 +342,6 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
    /* File Attributes stream */
    if (rec->Stream == STREAM_UNIX_ATTRIBUTES || 
        rec->Stream == STREAM_UNIX_ATTRIBUTES_EX) {
-      uint32_t LinkFI;
-      int data_stream;
 
       if (!unpack_attributes_record(jcr, rec->Stream, rec->data, attr)) {
          Emsg0(M_ERROR_TERM, 0, _("Cannot continue.\n"));
@@ -354,11 +352,11 @@ static void record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	    rec->FileIndex, attr->file_index);
       }
 
-      data_stream = decode_stat(attr->attr, &attr->statp, &LinkFI);
-      if (!is_stream_supported(data_stream)) {
+      attr->data_stream = decode_stat(attr->attr, &attr->statp, &attr->LinkFI);
+      if (!is_stream_supported(attr->data_stream)) {
 	 if (!non_support_data++) {
             Jmsg(jcr, M_ERROR, 0, _("%s stream not supported on this Client.\n"),
-	       stream_to_ascii(data_stream));
+	       stream_to_ascii(attr->data_stream));
 	 }
 	 return;
       }

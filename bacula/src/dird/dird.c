@@ -162,7 +162,6 @@ int main (int argc, char *argv[])
    if (!no_signals) {
       init_signals(terminate_dird);
    }
-   signal(SIGCHLD, SIG_IGN);
 
    if (argc) {
       if (configfile != NULL) {

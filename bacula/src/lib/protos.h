@@ -54,8 +54,9 @@ void	  create_pid_file	 (char *dir, char *progname, int port);
 int	  delete_pid_file	 (char *dir, char *progname, int port);
 void	  drop			 (char *uid, char *gid);
 int	  bmicrosleep		 (time_t sec, long msec);
+char	 *bfgets		 (char *s, int size, FILE *fd);
 #ifndef HAVE_STRTOLL
-long long int strtoll(const char *ptr, char **endptr, int base);
+long long int strtoll		 (const char *ptr, char **endptr, int base);
 #endif
 
 /* bnet.c */

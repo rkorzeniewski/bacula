@@ -117,8 +117,6 @@ void do_restore(JCR *jcr)
       switch (stream) {
       case STREAM_UNIX_ATTRIBUTES:
       case STREAM_UNIX_ATTRIBUTES_EX:
-	 uint32_t LinkFI;
-	 int data_stream;
 
          Dmsg1(30, "Stream=Unix Attributes. extract=%d\n", extract);
 	 /* If extracting, it was from previous stream, so
@@ -146,12 +144,12 @@ void do_restore(JCR *jcr)
          Dmsg3(200, "File %s\nattrib=%s\nattribsEx=%s\n", attr->fname, 
 	       attr->attr, attr->attrEx);
 
-	 data_stream = decode_stat(attr->attr, &attr->statp, &LinkFI);
+	 attr->data_stream = decode_stat(attr->attr, &attr->statp, &attr->LinkFI);
 
-	 if (!is_stream_supported(data_stream)) {
+	 if (!is_stream_supported(attr->data_stream)) {
 	    if (!non_support_data++) {
                Jmsg(jcr, M_ERROR, 0, _("%s stream not supported on this Client.\n"),
-		  stream_to_ascii(data_stream));
+		  stream_to_ascii(attr->data_stream));
 	    }
 	    continue;
 	 }

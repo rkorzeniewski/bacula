@@ -393,7 +393,7 @@ void binit(BFILE *bfd)
 
 int set_win32_backup(BFILE *bfd, int enable)
 {
-   return 0;
+   return !enable;
 }
 
 int is_win32_backup(void)

@@ -33,7 +33,7 @@ struct s_mem {
 
 struct s_tree_node {
    char *fname;                       /* file name */
-   uint32_t FileIndex;                /* file index */
+   int32_t FileIndex;                 /* file index */
    uint32_t JobId;                    /* JobId */
    short type;                        /* node type */
    short extract;                     /* set if extracting */
@@ -46,7 +46,7 @@ typedef struct s_tree_node TREE_NODE;
 
 struct s_tree_root {
    char *fname;                       /* file name */
-   uint32_t FileIndex;                /* file index */
+   int32_t FileIndex;                 /* file index */
    uint32_t JobId;                    /* JobId */
    short type;                        /* node type */
    short extract;                     /* set if extracting */

@@ -146,7 +146,7 @@ void encode_stat(char *buf, FF_PKT *ff_pkt, int data_stream)
 
 
 /* Decode a stat packet from base64 characters */
-int decode_stat(char *buf, struct stat *statp, uint32_t *LinkFI) 
+int decode_stat(char *buf, struct stat *statp, int32_t *LinkFI) 
 {
    char *p = buf;
    int64_t val;

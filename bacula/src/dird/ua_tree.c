@@ -191,7 +191,7 @@ static void set_extract(UAContext *ua, TREE_NODE *node, TREE_CTX *tree, int valu
       fdbr.FileId = 0;
       fdbr.JobId = node->JobId;
       if (db_get_file_attributes_record(ua->jcr, ua->db, cwd, &fdbr)) {
-	 uint32_t LinkFI;
+	 int32_t LinkFI;
 	 decode_stat(fdbr.LStat, &statp, &LinkFI); /* decode stat pkt */
 	 /*
 	  * If we point to a hard linked file, traverse the tree to
@@ -334,7 +334,7 @@ static int dircmd(UAContext *ua, TREE_CTX *tree)
 	 fdbr.FileId = 0;
 	 fdbr.JobId = node->JobId;
 	 if (db_get_file_attributes_record(ua->jcr, ua->db, cwd, &fdbr)) {
-	    uint32_t LinkFI;
+	    int32_t LinkFI;
 	    decode_stat(fdbr.LStat, &statp, &LinkFI); /* decode stat pkt */
 	    ls_output(buf, cwd, node->extract, &statp);
             bsendmsg(ua, "%s\n", buf);

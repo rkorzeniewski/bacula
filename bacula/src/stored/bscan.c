@@ -550,8 +550,7 @@ static void record_cb(JCR *bjcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
       }
        
       if (verbose > 1) {
-	 uint32_t LinkFI;
-	 decode_stat(attr->attr, &attr->statp, &LinkFI);
+	 decode_stat(attr->attr, &attr->statp, &attr->LinkFI);
 	 build_attr_output_fnames(bjcr, attr);
 	 print_ls_output(bjcr, attr);
       }
