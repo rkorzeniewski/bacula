@@ -58,6 +58,7 @@ static int send_bootstrap_file(JCR *jcr);
 static int runbefore_cmd(JCR *jcr);
 static int runafter_cmd(JCR *jcr);
 static int run_cmd(JCR *jcr, char *cmd, const char *name);
+static void set_options(findFOPTS *fo, const char *opts);
 
 
 /* Exported functions */
@@ -585,7 +586,7 @@ static bool init_fileset(JCR *jcr)
    return true;
 }
 
-static findFOPTS *set_options(FF_PKT *ff)
+static findFOPTS *start_options(FF_PKT *ff)
 {
    int state = ff->fileset->state;
    findINCEXE *incexe = ff->fileset->incexe;
@@ -646,23 +647,23 @@ static void add_fileset(JCR *jcr, const char *item)
       fileset->incexe->name_list.append(bstrdup(item));
       break;
    case 'R':
-      current_opts = set_options(ff);
+      current_opts = start_options(ff);
       current_opts->regex.append(bstrdup(item));
       state = state_options;
       break;
    case 'B':
-      current_opts = set_options(ff);
+      current_opts = start_options(ff);
       current_opts->base.append(bstrdup(item));
       state = state_options;
       break;
    case 'W':
-      current_opts = set_options(ff);
+      current_opts = start_options(ff);
       current_opts->wild.append(bstrdup(item));
       state = state_options;
       break;
    case 'O':   
-      current_opts = set_options(ff);
-      bstrncpy(current_opts->opts, item, MAX_FOPTS);
+      current_opts = start_options(ff);
+      set_options(current_opts, item);
       state = state_options;
       break;
    default:
@@ -684,7 +685,6 @@ static bool term_fileset(JCR *jcr)
       Dmsg0(400, "I\n");
       for (j=0; j<incexe->opts_list.size(); j++) {
 	 findFOPTS *fo = (findFOPTS *)incexe->opts_list.get(j);
-         Dmsg1(400, "O %s\n", fo->opts);
 	 for (k=0; k<fo->regex.size(); k++) {
             Dmsg1(400, "R %s\n", (char *)fo->regex.get(k));
 	 }
@@ -704,7 +704,6 @@ static bool term_fileset(JCR *jcr)
       Dmsg0(400, "E\n");
       for (j=0; j<incexe->opts_list.size(); j++) {
 	 findFOPTS *fo = (findFOPTS *)incexe->opts_list.get(j);
-         Dmsg1(400, "O %s\n", fo->opts);
 	 for (k=0; k<fo->regex.size(); k++) {
             Dmsg1(400, "R %s\n", (char *)fo->regex.get(k));
 	 }
@@ -719,11 +718,82 @@ static bool term_fileset(JCR *jcr)
          Dmsg1(400, "F %s\n", (char *)incexe->name_list.get(j));
       }
    }
-
-
    return ff->fileset->state != state_error;
 }
 
+
+/*
+ * As an optimization, we should do this during
+ *  "compile" time in filed/job.c, and keep only a bit mask
+ *  and the Verify options.
+ */
+static void set_options(findFOPTS *fo, const char *opts)
+{
+   int j;
+   const char *p;
+
+   for (p=opts; *p; p++) {
+      switch (*p) {
+      case 'a':                 /* alway replace */
+      case '0':                 /* no option */
+	 break;
+      case 'e':
+	 fo->flags |= FO_EXCLUDE;
+	 break;
+      case 'f':
+	 fo->flags |= FO_MULTIFS;
+	 break;
+      case 'h':                 /* no recursion */
+	 fo->flags |= FO_NO_RECURSION;
+	 break;
+      case 'M':                 /* MD5 */
+	 fo->flags |= FO_MD5;
+	 break;
+      case 'n':
+	 fo->flags |= FO_NOREPLACE;
+	 break;
+      case 'p':                 /* use portable data format */
+	 fo->flags |= FO_PORTABLE;
+	 break;
+      case 'r':                 /* read fifo */
+	 fo->flags |= FO_READFIFO;
+	 break;
+      case 'S':
+	 fo->flags |= FO_SHA1;
+	 break;
+      case 's':
+	 fo->flags |= FO_SPARSE;
+	 break;
+      case 'm':
+	 fo->flags |= FO_MTIMEONLY;
+	 break;
+      case 'k':
+	 fo->flags |= FO_KEEPATIME;
+	 break;
+      case 'V':                  /* verify options */
+	 /* Copy Verify Options */
+         for (j=0; *p && *p != ':'; p++) {
+	    fo->VerifyOpts[j] = *p;
+	    if (j < (int)sizeof(fo->VerifyOpts) - 1) {
+	       j++;
+	    }
+	 }
+	 fo->VerifyOpts[j] = 0;
+	 break;
+      case 'w':
+	 fo->flags |= FO_IF_NEWER;
+	 break;
+      case 'Z':                 /* gzip compression */
+	 fo->flags |= FO_GZIP;
+         fo->GZIP_level = *++p - '0';
+         Dmsg1(200, "Compression level=%d\n", fo->GZIP_level);
+	 break;
+      default:
+         Emsg1(M_ERROR, 0, "Unknown include/exclude option: %c\n", *p);
+	 break;
+      }
+   }
+} 
 
 
 /*

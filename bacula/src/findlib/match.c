@@ -341,7 +341,7 @@ int file_is_excluded(FF_PKT *ff, char *file)
       /* Match from the beginning of a component only */
       if ((p == file || (*p != '/' && *(p-1) == '/'))
 	   && file_in_excluded_list(ff->excluded_files_list, p)) {
-	 return 1;
+	 return 1;   
       }
    }
    return 0;

@@ -495,6 +495,9 @@ int send_include_list(JCR *jcr)
 int send_exclude_list(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
+   if (jcr->fileset->new_include) {
+      return 1;
+   }
    bnet_fsend(fd, exc);
    return send_list(jcr, EXC_LIST);
 }

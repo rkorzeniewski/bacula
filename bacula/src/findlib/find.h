@@ -120,7 +120,6 @@ enum {
 
 /* File options structure */
 struct findFOPTS {
-   char opts[MAX_FOPTS];              /* options string */
    uint32_t flags;                    /* options in bits */
    int GZIP_level;                    /* GZIP level */
    char VerifyOpts[MAX_FOPTS];        /* verify options */

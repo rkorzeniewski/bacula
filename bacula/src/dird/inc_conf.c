@@ -60,7 +60,6 @@ static INCEXE res_incexe;
  */
 static RES_ITEM newinc_items[] = {
    {"file",            store_fname,   NULL,     0, 0, 0},
-   {"include",         store_fname,   NULL,     0, 0, 0},
    {"options",         options_res,   NULL,     0, 0, 0},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
@@ -241,7 +240,7 @@ void store_inc(LEX *lc, RES_ITEM *item, int index, int pass)
 
    /*
     * Decide if we are doing a new Include or an old include. The
-    *  new Include is followed immediately by {, whereas the
+    *  new Include is followed immediately by open brace, whereas the
     *  old include has options following the Include.
     */
    token = lex_get_token(lc, T_ALL);		
@@ -360,7 +359,7 @@ void store_inc(LEX *lc, RES_ITEM *item, int index, int pass)
 /*
  * Store FileSet FInclude/FExclude info   
  *  Note, when this routine is called, we are inside a FileSet
- *  resource.  We treat the Finclude/Fexeclude like a sort of
+ *  resource.  We treat the Include/Execlude like a sort of
  *  mini-resource within the FileSet resource.
  */
 static void store_newinc(LEX *lc, RES_ITEM *item, int index, int pass)
