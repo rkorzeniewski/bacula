@@ -31,6 +31,12 @@
 #include "stored.h"
 #include "findlib/find.h"
 
+#ifdef HAVE_CYGWIN
+int win32_client = 1;
+#else
+int win32_client = 0;
+#endif
+
 
 static void do_extract(char *fname, char *prefix);
 static void print_ls_output(char *fname, char *link, int type, struct stat *statp);
@@ -195,6 +201,7 @@ static void do_extract(char *devname, char *where)
    POOLMEM *lname;		      /* link name */
    int wherelen;		      /* prefix length */
    SESSION_LABEL sessrec;
+   uint32_t num_files = 0;
 
    if (strncmp(devname, "/dev/", 5) != 0) {
       /* Try stripping file part */
@@ -321,11 +328,11 @@ next_record:
 	    if (sizeof_pool_memory(fname) < rec->data_len) {
 	       fname = realloc_pool_memory(fname, rec->data_len + 1);
 	    }
-	    if (sizeof_pool_memory(ofile) < sizeof_pool_memory(fname) + wherelen + 1) {
-	       ofile = realloc_pool_memory(ofile, sizeof_pool_memory(fname) + wherelen + 1);
+	    if (sizeof_pool_memory(ofile) < rec->data_len + wherelen + 1) {
+	       ofile = realloc_pool_memory(ofile, rec->data_len + wherelen + 1);
 	    }
 	    if (sizeof_pool_memory(lname) < rec->data_len) {
-	       lname = realloc_pool_memory(lname, rec->data_len + 1);
+	       lname = realloc_pool_memory(lname, rec->data_len + wherelen + 1);
 	    }
 	    *fname = 0;
 	    *lname = 0;
@@ -356,14 +363,13 @@ next_record:
 	    *fp = *ap++;		 /* terminate filename & point to attribs */
 
 	    /* Skip to Link name */
-	    if (type == FT_LNK) {
+	    if (type == FT_LNK || type == FT_LNKSAVED) {
 	       lp = ap;
 	       while (*lp++ != 0) {
 		  ;
 	       }
-               strcat(lname, lp);        /* "save" link name */
 	    } else {
-	       *lname = 0;
+               lp = "";
 	    }
 
 	       
@@ -382,17 +388,38 @@ next_record:
 		*   colon (:), change it into a slash (/) -- this creates
 		*   a reasonable pathname on most systems.
 		*/
-	       strcpy(ofile, where);
-               if (fname[1] == ':') {
-                  fname[1] = '/';
-		  strcat(ofile, fname);
-                  fname[1] = ':';
+	       if (where[0] == 0 && win32_client) {
+		  strcpy(ofile, fname);
+		  strcpy(lname, lp);
 	       } else {
-		  strcat(ofile, fname);
+		  strcpy(ofile, where);
+                  if (fname[1] == ':') {
+                     fname[1] = '/';
+		     strcat(ofile, fname);
+                     fname[1] = ':';
+		  } else {
+		     strcat(ofile, fname);
+		  }
+		  /* Fixup link name */
+		  if (type == FT_LNK || type == FT_LNKSAVED) {
+                     if (lp[0] == '/') {      /* if absolute path */
+			strcpy(lname, where);
+		     }	     
+                     /* ***FIXME**** we shouldn't have links on Windoz */
+                     if (lp[1] == ':') {
+                        lp[1] = '/';
+			strcat(lname, lp);
+                        lp[1] = ':';
+		     } else {
+			strcat(lname, lp);
+		     }
+		  }
 	       }
+
    /*          Pmsg1(000, "Restoring: %s\n", ofile); */
 
 	       extract = create_file(jcr, fname, ofile, lname, type, &statp, &ofd);
+	       num_files++;
 
 	       if (extract) {
 		   print_ls_output(ofile, lname, type, &statp);   
@@ -468,6 +495,7 @@ next_record:
    term_dev(dev);
    free_block(block);
    free_record(rec);
+   printf("%u files restored.\n", num_files);
    return;
 }
 
