@@ -89,7 +89,7 @@ static MSGS *daemon_msgs;	       /* global messages */
  *  argv is NULL to avoid doing the path code twice.
  */
 #define BTRACE_EXTRA 20
-void my_name_is(int argc, char *argv[], char *name)
+void my_name_is(int argc, char *argv[], const char *name)
 {
    char *l, *p, *q;
    char cpath[400], npath[400];
@@ -730,7 +730,7 @@ void dispatch_message(JCR *jcr, int type, int level, char *msg)
  *  are not printed.
  */
 void 
-d_msg(char *file, int line, int level, char *fmt,...)
+d_msg(const char *file, int line, int level, const char *fmt,...)
 {
     char      buf[5000];
     int       len;
@@ -790,7 +790,7 @@ d_msg(char *file, int line, int level, char *fmt,...)
  *  are not printed.
  */
 void 
-p_msg(char *file, int line, int level, char *fmt,...)
+p_msg(const char *file, int line, int level, const char *fmt,...)
 {
     char      buf[5000];
     int       len;
@@ -823,7 +823,7 @@ p_msg(char *file, int line, int level, char *fmt,...)
  *  are not printed.
  */
 void 
-t_msg(char *file, int line, int level, char *fmt,...)
+t_msg(const char *file, int line, int level, const char *fmt,...)
 {
     char      buf[5000];
     int       len;
@@ -868,7 +868,7 @@ t_msg(char *file, int line, int level, char *fmt,...)
  *
  */
 void 
-e_msg(char *file, int line, int type, int level, char *fmt,...)
+e_msg(const char *file, int line, int type, int level, const char *fmt,...)
 {
     char     buf[5000];
     va_list   arg_ptr;
@@ -935,7 +935,7 @@ e_msg(char *file, int line, int type, int level, char *fmt,...)
  *
  */
 void 
-Jmsg(JCR *jcr, int type, int level, char *fmt,...)
+Jmsg(JCR *jcr, int type, int level, const char *fmt,...)
 {
     char     rbuf[5000];
     va_list   arg_ptr;
@@ -1030,7 +1030,7 @@ Jmsg(JCR *jcr, int type, int level, char *fmt,...)
  * If we come here, prefix the message with the file:line-number,
  *  then pass it on to the normal Jmsg routine.
  */
-void j_msg(char *file, int line, JCR *jcr, int type, int level, char *fmt,...)
+void j_msg(const char *file, int line, JCR *jcr, int type, int level, const char *fmt,...)
 {
    va_list   arg_ptr;
    int i, len, maxlen;
@@ -1057,7 +1057,7 @@ again:
 /*
  * Edit a message into a Pool memory buffer, with file:lineno
  */
-int m_msg(char *file, int line, POOLMEM **pool_buf, char *fmt, ...)
+int m_msg(const char *file, int line, POOLMEM **pool_buf, const char *fmt, ...)
 {
    va_list   arg_ptr;
    int i, len, maxlen;
@@ -1080,7 +1080,7 @@ again:
  * Edit a message into a Pool Memory buffer NO file:lineno
  *  Returns: string length of what was edited.
  */
-int Mmsg(POOLMEM **pool_buf, char *fmt, ...)
+int Mmsg(POOLMEM **pool_buf, const char *fmt, ...)
 {
    va_list   arg_ptr;
    int len, maxlen;
@@ -1104,7 +1104,7 @@ static pthread_mutex_t msg_queue_mutex = PTHREAD_MUTEX_INITIALIZER;
  *  is generally used in low level routines (msg handler, bnet)
  *  to prevent recursion.
  */
-void Qmsg(JCR *jcr, int type, int level, char *fmt,...)
+void Qmsg(JCR *jcr, int type, int level, const char *fmt,...)
 {
    va_list   arg_ptr;
    int len, maxlen;
@@ -1156,7 +1156,7 @@ void dequeue_messages(JCR *jcr)
  * If we come here, prefix the message with the file:line-number,
  *  then pass it on to the normal Qmsg routine.
  */
-void q_msg(char *file, int line, JCR *jcr, int type, int level, char *fmt,...)
+void q_msg(const char *file, int line, JCR *jcr, int type, int level, const char *fmt,...)
 {
    va_list   arg_ptr;
    int i, len, maxlen;

@@ -27,7 +27,7 @@
 enum {
    TYPE_CHILD = 1,
    TYPE_PTHREAD, 
-   TYPE_BSOCK,
+   TYPE_BSOCK 
 };
 
 #define TIMEOUT_SIGNAL SIGUSR2

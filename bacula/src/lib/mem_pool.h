@@ -32,23 +32,23 @@
 #ifdef SMARTALLOC
 
 #define get_pool_memory(pool) sm_get_pool_memory(__FILE__, __LINE__, pool)
-extern POOLMEM *sm_get_pool_memory(char *file, int line, int pool);
+extern POOLMEM *sm_get_pool_memory(const char *file, int line, int pool);
 
 #define get_memory(size) sm_get_memory(__FILE__, __LINE__, size)
-extern POOLMEM *sm_get_memory(char *fname, int line, int32_t size);
+extern POOLMEM *sm_get_memory(const char *fname, int line, int32_t size);
 
 #define sizeof_pool_memory(buf) sm_sizeof_pool_memory(__FILE__, __LINE__, buf)
-extern int32_t sm_sizeof_pool_memory(char *fname, int line, POOLMEM *buf);
+extern int32_t sm_sizeof_pool_memory(const char *fname, int line, POOLMEM *buf);
 
 #define realloc_pool_memory(buf,size) sm_realloc_pool_memory(__FILE__, __LINE__, buf, size)
-extern POOLMEM  *sm_realloc_pool_memory(char *fname, int line, POOLMEM *buf, int32_t size);
+extern POOLMEM  *sm_realloc_pool_memory(const char *fname, int line, POOLMEM *buf, int32_t size);
 
 #define check_pool_memory_size(buf,size) sm_check_pool_memory_size(__FILE__, __LINE__, buf, size)
-extern POOLMEM  *sm_check_pool_memory_size(char *fname, int line, POOLMEM *buf, int32_t size);
+extern POOLMEM  *sm_check_pool_memory_size(const char *fname, int line, POOLMEM *buf, int32_t size);
 
 #define free_pool_memory(x) sm_free_pool_memory(__FILE__, __LINE__, x) 
 #define free_memory(x) sm_free_pool_memory(__FILE__, __LINE__, x) 
-extern void sm_free_pool_memory(char *fname, int line, POOLMEM *buf);
+extern void sm_free_pool_memory(const char *fname, int line, POOLMEM *buf);
 
 
 #else

@@ -30,14 +30,17 @@
 
 /* In case you want to specifically specify the offset to the link */
 #define OFFSET(item, link) ((char *)(link) - (char *)(item))
-#ifdef HAVE_WIN32
-/* Extra ***& workaround for VisualC Studio */
-#define foreach_dlist(var, list) \
-    for((var)=NULL; (*((void **)&(var))=(void*)((list)->next(var))); )
-#else
-/*
+/* 
+ * There is a lot of extra casting here to work around the fact
+ * that some compilers (Sun and Visual C++) do not accept
+ * (void *) as an lvalue on the left side of an equal.
+ *
  * Loop var through each member of list
  */
+#define foreach_dlist(var, list) \
+    for((var)=NULL; (*((void **)&(var))=(void*)((list)->next(var))); )
+
+#ifdef the_old_way
 #define foreach_dlist(var, list) \
         for((var)=NULL; (((void *)(var))=(list)->next(var)); )
 #endif
