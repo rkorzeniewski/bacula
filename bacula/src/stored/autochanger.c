@@ -146,7 +146,7 @@ static int get_autochanger_loaded_slot(JCR *jcr)
    changer = edit_device_codes(jcr, changer, jcr->device->changer_command, 
                 "loaded");
    status = run_program(changer, timeout, results);
-   Dmsg3(000, "run_prog: %s stat=%d result=%s\n", changer, status, results);
+   Dmsg3(100, "run_prog: %s stat=%d result=%s\n", changer, status, results);
    if (status == 0) {
       loaded = atoi(results);
       if (loaded > 0) {
