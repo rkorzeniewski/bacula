@@ -44,6 +44,7 @@ Other items:
 - Added user supplied code to read the Directors's conf file in dbcheck so
   that remote databases could be contacted as well as the working directory
   and other catalog parameters obtained.
+- Fixed changing a Volume from one Pool to another in "update volumes".
 
 
 
