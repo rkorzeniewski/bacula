@@ -361,7 +361,7 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
    
    steal_device_lock(dev, &hold, BST_WRITING_LABEL);
    
-   strcpy(jcr->VolumeName, newname);
+   pm_strcpy(&jcr->VolumeName, newname);
    jcr->VolCatInfo.Slot = slot;
    autoload_device(jcr, dev, 0, dir);	   /* autoload if possible */
    block = new_block(dev);
@@ -695,7 +695,10 @@ static int autochanger_cmd(JCR *jcr)
 	 jcr->device = device;
 	 dev = device->dev;
 	 P(dev->mutex); 	      /* Use P to avoid indefinite block */
-	 if (!(dev->state & ST_OPENED)) {
+	 if (!dev_is_tape(dev)) {
+            bnet_fsend(dir, _("3995 Device %s is not an autochanger.\n"), 
+	       dev_name(dev));
+	 } else if (!(dev->state & ST_OPENED)) {
 	    if (open_dev(dev, NULL, READ_WRITE) < 0) {
                bnet_fsend(dir, _("3994 Connot open device: %s\n"), strerror_dev(dev));
 	    } else {
@@ -723,7 +726,7 @@ static int autochanger_cmd(JCR *jcr)
       } else {
          bnet_fsend(dir, _("3999 Device %s not found\n"), devname);
       }
-   } else {
+   } else {  /* error on scanf */
       pm_strcpy(&jcr->errmsg, dir->msg);
       bnet_fsend(dir, _("3907 Error scanning autocharger list command: %s\n"),
 	 jcr->errmsg);

@@ -30,7 +30,7 @@ SVRSRCS = dird.c admin.c authenticate.c \
 	  recycle.c restore.c run_conf.c \
 	  scheduler.c sql_cmds.c \
 	  ua_cmds.c ua_dotcmds.c \
-	  ua_db_query.c ua_retention.c \
+	  ua_query.c ua_retention.c \
 	  ua_input.c ua_label.c ua_output.c ua_prune.c \
 	  ua_purge.c ua_restore.c ua_run.c \
 	  ua_select.c ua_server.c \
@@ -43,7 +43,7 @@ SVROBJS = dird.o admin.o authenticate.o \
 	  recycle.o restore.o run_conf.o \
 	  scheduler.o sql_cmds.o \
 	  ua_cmds.o ua_dotcmds.o \
-	  ua_db_query.o ua_retention.o \
+	  ua_query.o ua_retention.o \
 	  ua_input.o ua_label.o ua_output.o ua_prune.o \
 	  ua_purge.o ua_restore.o ua_run.o \
 	  ua_select.o ua_server.o \

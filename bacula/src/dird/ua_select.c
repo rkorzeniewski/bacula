@@ -489,7 +489,7 @@ int select_media_dbr(UAContext *ua, MEDIA_DBR *mr)
 	 return 0;
       }
       mr->PoolId = pr.PoolId;
-      db_list_media_records(ua->jcr, ua->db, mr, prtit, ua, 0);
+      db_list_media_records(ua->jcr, ua->db, mr, prtit, ua, HORZ_LIST);
       if (!get_cmd(ua, _("Enter MediaId or Volume name: "))) {
 	 return 0;
       }
@@ -554,7 +554,7 @@ POOL *get_pool_resource(UAContext *ua)
  */
 int select_job_dbr(UAContext *ua, JOB_DBR *jr)
 {
-   db_list_job_records(ua->jcr, ua->db, jr, prtit, ua, 0);
+   db_list_job_records(ua->jcr, ua->db, jr, prtit, ua, HORZ_LIST);
    if (!get_pint(ua, _("Enter the JobId to select: "))) {
       return 0;
    }

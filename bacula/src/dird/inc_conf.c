@@ -297,7 +297,7 @@ void store_inc(LEX *lc, struct res_items *item, int index, int pass)
 	 }				   
       }
       /* Note, MD5Final is done in backup.c */
-   } else { /* pass 1 */
+   } else { /* pass 2 */
       while (lex_get_token(lc, T_ALL) != T_EOB) 
 	 {}
    }
@@ -318,6 +318,10 @@ void store_finc(LEX *lc, struct res_items *item, int index, int pass)
    int token, i;
    INCEXE *incexe;
 
+   if (!res_all.res_fs.have_MD5) {
+      MD5Init(&res_all.res_fs.md5c);
+      res_all.res_fs.have_MD5 = TRUE;
+   }
    res_all.res_fs.finclude = TRUE;
    token = lex_get_token(lc, T_ALL);		
    if (token != T_BOB) {

@@ -41,7 +41,7 @@ SELECT Job.JobId, StartTime AS JobStartTime, VolumeName, Client.Name AS ClientNa
 :List last 20 Full Backups for a Client:
 *Enter Client name:
 Select Job.JobId,Client.Name as Client,StartTime,JobFiles,JobBytes,
-JobMedia.StartFile as VolFile, VolumeName
+JobMedia.StartFile as VolFile,VolumeName
  FROM Client,Job,JobMedia,Media
  WHERE Client.Name='%1'
  AND Client.ClientId=Job.ClientId

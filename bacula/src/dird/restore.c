@@ -192,7 +192,7 @@ int do_restore(JCR *jcr)
    }
    bnet_fsend(fd, storaddr, jcr->store->address, jcr->store->SDDport);
    Dmsg1(6, "dird>filed: %s\n", fd->msg);
-   if (!response(fd, OKstore, "Storage", 1)) {
+   if (!response(jcr, fd, OKstore, "Storage", DISPLAY_ERROR)) {
       restore_cleanup(jcr, JS_ErrorTerminated);
       return 0;
    }
@@ -219,7 +219,7 @@ int do_restore(JCR *jcr)
 		rjr.VolSessionId, rjr.VolSessionTime, 
 		rjr.StartFile, rjr.EndFile, rjr.StartBlock, 
 		rjr.EndBlock);
-      if (!response(fd, OKsession, "Session", 1)) {
+      if (!response(jcr, fd, OKsession, "Session", DISPLAY_ERROR)) {
 	 restore_cleanup(jcr, JS_ErrorTerminated);
 	 return 0;
       }
@@ -246,7 +246,7 @@ int do_restore(JCR *jcr)
    bnet_fsend(fd, restorecmd, replace, where);
    unbash_spaces(where);
 
-   if (!response(fd, OKrestore, "Restore", 1)) {
+   if (!response(jcr, fd, OKrestore, "Restore", DISPLAY_ERROR)) {
       restore_cleanup(jcr, JS_ErrorTerminated);
       return 0;
    }
@@ -385,7 +385,7 @@ static int send_bootstrap_file(JCR *jcr)
    }
    bnet_sig(fd, BNET_EOD);
    fclose(bs);
-   if (!response(fd, OKbootstrap, "Bootstrap", 1)) {
+   if (!response(jcr, fd, OKbootstrap, "Bootstrap", DISPLAY_ERROR)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;
    }

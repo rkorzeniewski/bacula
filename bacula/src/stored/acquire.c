@@ -183,7 +183,7 @@ DEVICE * acquire_device_for_append(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
        *   otherwise mount desired volume obtained from
        *    dir_find_next_appendable_volume
        */
-      strcpy(jcr->VolumeName, dev->VolHdr.VolName);
+      pm_strcpy(&jcr->VolumeName, dev->VolHdr.VolName);
       if (!dir_get_volume_info(jcr, 1) &&
 	  !(dir_find_next_appendable_volume(jcr) &&
 	    strcmp(dev->VolHdr.VolName, jcr->VolumeName) == 0)) { /* wrong tape mounted */

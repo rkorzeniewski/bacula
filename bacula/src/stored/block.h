@@ -82,8 +82,8 @@
  *
  *  This is the memory structure for a device block.
  */
-typedef struct s_dev_block {
-   struct s_dev_block *next;          /* pointer to next one */
+struct DEV_BLOCK {
+   DEV_BLOCK *next;                   /* pointer to next one */
    void *dev;                         /* pointer to device (DEVICE not defined yet) */
    /* binbuf is the number of bytes remaining
     * in the buffer. For writes, it is bytes not yet written.
@@ -97,12 +97,13 @@ typedef struct s_dev_block {
    uint32_t VolSessionId;             /* */
    uint32_t VolSessionTime;           /* */
    int      BlockVer;                 /* block version 1 or 2 */
-   int failed_write;                  /* set if write failed */
+   bool     write_failed;             /* set if write failed */
+   bool     block_read;               /* set when block read */
    char *bufp;                        /* pointer into buffer */
    POOLMEM *buf;                      /* actual data buffer. This is a 
                                        * Pool buffer!   
                                        */
-} DEV_BLOCK;
+};
 
 #define block_is_empty(block) !((block)->read_len)
 

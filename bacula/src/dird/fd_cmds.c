@@ -233,10 +233,10 @@ static int send_list(JCR *jcr, int list)
    }
    bnet_sig(fd, BNET_EOD);	      /* end of data */
    if (list == INC_LIST) {
-      if (!response(fd, OKinc, "Include", 1)) {
+      if (!response(jcr, fd, OKinc, "Include", DISPLAY_ERROR)) {
 	 goto bail_out;
       }
-   } else if (!response(fd, OKexc, "Exclude", 1)) {
+   } else if (!response(jcr, fd, OKexc, "Exclude", DISPLAY_ERROR)) {
 	goto bail_out;
    }
    return 1;

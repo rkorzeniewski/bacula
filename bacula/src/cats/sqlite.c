@@ -406,7 +406,7 @@ list_dashes(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx)
  * list on one line horizontally.      
  */
 void
-list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, int full_list)
+list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type type)
 {
    SQL_FIELD *field;
    SQL_ROW row;
@@ -422,7 +422,7 @@ list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, int full_list)
    for (i = 0; i < sql_num_fields(mdb); i++) {
       field = sql_fetch_field(mdb);
       col_len = strlen(field->name);
-      if (full_list) {
+      if (type == VERT_LIST) {
 	 if (col_len > max_len) {
 	    max_len = col_len;
 	 }
@@ -440,8 +440,8 @@ list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, int full_list)
       }
    }
 
-   if (full_list) {
-      goto horizontal_list;
+   if (type == VERT_LIST) {
+      goto vertical_list;
    }
 
    list_dashes(mdb, send, ctx);
@@ -475,7 +475,7 @@ list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, int full_list)
    list_dashes(mdb, send, ctx);
    return;
 
-horizontal_list:
+vertical_list:
    
    while ((row = sql_fetch_row(mdb)) != NULL) {
       sql_field_seek(mdb, 0);

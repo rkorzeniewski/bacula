@@ -31,7 +31,7 @@ int       to_base64              (intmax_t value, char *where);
 int       from_base64            (intmax_t *value, char *where);
 int       bin_to_base64          (char *buf, char *bin, int len);
 
-/* bmisc.c */
+/* bsys.c */
 char     *bstrncpy               (char *dest, const char *src, int maxlen);
 char     *bstrncat               (char *dest, const char *src, int maxlen);
 void     *b_malloc               (char *file, int line, size_t size);
@@ -77,6 +77,11 @@ void       bnet_suppress_error_messages(BSOCK *bsock, int flag);
 
 /* bget_msg.c */
 int      bget_msg(BSOCK *sock);
+
+/* bpipe.c */
+BPIPE *          open_bpipe(char *prog, int wait, char *mode);
+int              close_wpipe(BPIPE *bpipe);
+int              close_bpipe(BPIPE *bpipe);
 
 /* cram-md5.c */
 int cram_md5_get_auth(BSOCK *bs, char *password, int ssl_need);
@@ -138,19 +143,24 @@ BSOCK *          bnet_accept             (BSOCK *bsock, char *who);
 void             init_signals             (void terminate(int sig));
 void             init_stack_dump          (void);
 
-/* util.c */
-void             lcase                   (char *str);
-void             bash_spaces             (char *str);
-void             unbash_spaces           (char *str);
+/* scan.c */
 void             strip_trailing_junk     (char *str);
 void             strip_trailing_slashes  (char *dir);
 int              skip_spaces             (char **msg);
 int              skip_nonspaces          (char **msg);
 int              fstrsch                 (char *a, char *b);
+int              parse_args(POOLMEM *cmd, POOLMEM *args, int *argc, 
+                        char **argk, char **argv, int max_args);
+char            *next_arg(char **s);
+
+/* util.c */
+int              is_buf_zero             (char *buf, int len);
+void             lcase                   (char *str);
+void             bash_spaces             (char *str);
+void             unbash_spaces           (char *str);
 char *           encode_time             (time_t time, char *buf);
 char *           encode_mode             (mode_t mode, char *buf);
 int              do_shell_expansion      (char *name, int name_len);
-int              is_buf_zero             (char *buf, int len);
 void             jobstatus_to_ascii      (int JobStatus, char *msg, int maxlen);
 void             pm_strcat               (POOLMEM **pm, char *str);
 void             pm_strcpy               (POOLMEM **pm, char *str);
@@ -158,15 +168,10 @@ int              run_program             (char *prog, int wait, POOLMEM *results
 char *           job_type_to_str         (int type);
 char *           job_status_to_str       (int stat);
 char *           job_level_to_str        (int level);
-void             makeSessionKey          (char *key, char *seed, int mode);
-BPIPE *          open_bpipe(char *prog, int wait, char *mode);
-int              close_wpipe(BPIPE *bpipe);
-int              close_bpipe(BPIPE *bpipe);
+void             make_session_key        (char *key, char *seed, int mode);
 POOLMEM         *edit_job_codes(JCR *jcr, char *omsg, char *imsg, char *to);  
-void             parse_command_args(POOLMEM *cmd, POOLMEM *args, int *argc, 
-                        char **argk, char **argv);
-char            *next_arg(char **s);
 void             set_working_directory(char *wd);
+
 
 /* watchdog.c */
 int start_watchdog(void);

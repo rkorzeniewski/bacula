@@ -131,5 +131,5 @@ int get_yesno(UAContext *ua, char *prompt)
 
 void parse_ua_args(UAContext *ua)
 {
-   return parse_command_args(ua->cmd, ua->args, &ua->argc, ua->argk, ua->argv);
+   parse_args(ua->cmd, ua->args, &ua->argc, ua->argk, ua->argv, MAX_CMD_ARGS);
 }

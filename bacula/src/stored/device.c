@@ -91,6 +91,9 @@ int fixup_device_block_write_error(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
        */
       Dmsg1(100, "Walk attached jcrs. Volume=%s\n", dev->VolCatInfo.VolCatName);
       for (JCR *mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
+	 if (mjcr->JobId == 0) {
+	    continue;		      /* ignore console */
+	 }
          Dmsg1(100, "create JobMedia for Job %s\n", mjcr->Job);
 	 if (dev->state & ST_TAPE) {
 	    mjcr->EndBlock = dev->EndBlock;

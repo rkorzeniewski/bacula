@@ -370,13 +370,13 @@ Without that I don't know who I am :-(\n"), configfile);
 			    catalog->db_password, catalog->db_address,
 			    catalog->db_port, catalog->db_socket);
 	 if (!db_open_database(NULL, db)) {
-            Jmsg(NULL, M_FATAL,  0, "%s", db_strerror(db));
+	    OK = FALSE; 	    /* Error message already printed */
 	 } else {
 	    /* If a pool is defined for this job, create the pool DB	   
 	     *	record if it is not already created. 
 	     */
 	    if (job->pool) {
-	       create_pool(NULL, db, job->pool, 0);  /* update request */
+	       create_pool(NULL, db, job->pool, POOL_OP_UPDATE);  /* update request */
 	    }
 	    db_close_database(NULL, db);
 	 }

@@ -81,14 +81,18 @@ int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cdbr);
 
 
 /* list.c */
-void db_list_pool_records(JCR *jcr, B_DB *db, DB_LIST_HANDLER sendit, void *ctx, int full);
-void db_list_job_records(JCR *jcr, B_DB *db, JOB_DBR *jr, DB_LIST_HANDLER sendit, void *ctx, int full);
+enum e_list_type {
+   HORZ_LIST,
+   VERT_LIST
+};
+void db_list_pool_records(JCR *jcr, B_DB *db, DB_LIST_HANDLER sendit, void *ctx, e_list_type type);
+void db_list_job_records(JCR *jcr, B_DB *db, JOB_DBR *jr, DB_LIST_HANDLER sendit, void *ctx, e_list_type type);
 void db_list_job_totals(JCR *jcr, B_DB *db, JOB_DBR *jr, DB_LIST_HANDLER sendit, void *ctx);
 void db_list_files_for_job(JCR *jcr, B_DB *db, uint32_t jobid, DB_LIST_HANDLER sendit, void *ctx);
-void db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr, DB_LIST_HANDLER *sendit, void *ctx, int full);
-void db_list_jobmedia_records(JCR *jcr, B_DB *mdb, uint32_t JobId, DB_LIST_HANDLER *sendit, void *ctx, int full);
-int  db_list_sql_query(JCR *jcr, B_DB *mdb, char *query, DB_LIST_HANDLER *sendit, void *ctx, int verbose, int full);
-void db_list_client_records(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, int full);
+void db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr, DB_LIST_HANDLER *sendit, void *ctx, e_list_type type);
+void db_list_jobmedia_records(JCR *jcr, B_DB *mdb, uint32_t JobId, DB_LIST_HANDLER *sendit, void *ctx, e_list_type type);
+int  db_list_sql_query(JCR *jcr, B_DB *mdb, char *query, DB_LIST_HANDLER *sendit, void *ctx, int verbose, e_list_type type);
+void db_list_client_records(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, e_list_type type);
 
 /* update.c */
 int  db_update_job_start_record(JCR *jcr, B_DB *db, JOB_DBR *jr);

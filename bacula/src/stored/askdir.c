@@ -115,7 +115,7 @@ int dir_get_volume_info(JCR *jcr, int writing)
 {
     BSOCK *dir = jcr->dir_bsock;
 
-    strcpy(jcr->VolCatInfo.VolCatName, jcr->VolumeName);
+    bstrncpy(jcr->VolCatInfo.VolCatName, jcr->VolumeName, sizeof(jcr->VolCatInfo.VolCatName));
     Dmsg1(200, "dir_get_volume_info=%s\n", jcr->VolCatInfo.VolCatName);
     bash_spaces(jcr->VolCatInfo.VolCatName);
     bnet_fsend(dir, Get_Vol_Info, jcr->Job, jcr->VolCatInfo.VolCatName, writing);

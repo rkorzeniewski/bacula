@@ -31,19 +31,10 @@
 /* Forward referenced subroutines */
 static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sessrec);
 
-/* Variables used by Child process */
-/* Global statistics */
-/* Note, these probably should be in shared memory so that 
- * they are truly global for all processes
- */
-extern struct s_shm *shm;	      /* shared memory structure */
-extern int  FiledDataChan;	      /* File daemon data channel (port) */
-
 
 /* Responses sent to the File daemon */
 static char OK_data[]    = "3000 OK data\n";
 static char rec_header[] = "rechdr %ld %ld %ld %ld %ld";
-
 
 /* 
  *  Read Data and send to File Daemon
@@ -61,6 +52,7 @@ int do_read_data(JCR *jcr)
    DEV_BLOCK *block;
    POOLMEM *hdr; 
    SESSION_LABEL sessrec;	       /* session record */
+   uint32_t BlockNumber = 0;
    
    Dmsg0(20, "Start read data.\n");
 
@@ -195,13 +187,24 @@ int do_read_data(JCR *jcr)
 	    }
 	 }
 
+	 if (block->block_read) {
+	    if (++BlockNumber != block->BlockNumber) {
+               Jmsg(jcr, M_ERROR, 0, _("Invalid block number. Expected %u, got %u\n"),
+		    BlockNumber, block->BlockNumber);
+	    }
+	    BlockNumber = block->BlockNumber;
+	    block->block_read = false;
+	 }
+
 	 if (is_partial_record(rec)) {
 	    break;		      /* Go read full record */
 	 }
 	  
-	 /* Generate Header parameters and send to File daemon
+	 /*
+          * We "finally" have a full record here. Now
+	  *   generate Header parameters and send to File daemon
 	  * Note, we build header in hdr buffer to avoid wiping
-	  * out the data record
+	  *   out the data record
 	  */
 	 ds->msg = hdr;
          Dmsg5(400, "Send to FD: SessId=%u SessTim=%u FI=%d Strm=%d, len=%d\n",
@@ -212,6 +215,8 @@ int do_read_data(JCR *jcr)
             Dmsg1(30, ">filed: Error Hdr=%s\n", ds->msg);
 	    hdr = ds->msg;
 	    ds->msg = rec->data;
+            Jmsg1(jcr, M_FATAL, 0, _("Error sending to File daemon. ERR=%s\n"),
+	       bnet_strerror(ds));
 	    ok = FALSE;
 	    break;
 	 } else {
@@ -233,8 +238,8 @@ int do_read_data(JCR *jcr)
 	    ok = FALSE;
 	    break;
 	 }
-      }
-   }
+      } /* end for loop reading records */
+   } /* end for loop reading blocks */
    /* Send end of data to FD */
    bnet_sig(ds, BNET_EOD);
 

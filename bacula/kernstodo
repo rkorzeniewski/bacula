@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  26 May  2003 
+                  30 May  2003 
 
 Documentation to do: (any release a little bit at a time)
 - Document running a test version.
@@ -13,6 +13,9 @@ Documentation to do: (any release a little bit at a time)
   hours of operation.
 - Lookup HP cleaning recommendations.
 - Lookup HP tape replacement recommendations (see trouble shooting autochanger)
+- Document FInclude ...
+- Document need to add "-u root" to most of MySQL script calls
+  (./create_mys... ./make_my...).
 
           
 Testing to do: (painful)
@@ -22,39 +25,74 @@ Testing to do: (painful)
 - Test if rewind at end of tape waits for tape to rewind.
 - Test cancel at EOM.       
 - Test not zeroing Autochanger slot when it is wrong.
+- Test multiple simultaneous Volumes
 
 - Figure out how to use ssh or stunnel to protect Bacula communications.
 
 For 1.31 release:
-- Currently in mount.c:236 the SD simply creates a Volume. It should have
-  explicit permission to do so.  It should also mark the tape in error
-  if there is an error.
+- Implement FileSet VolIndex.
+- Sort JobIds entered into recover tree.
+- Should Bacula make an Append tape as Purged when purging?
+- Test a second language e.g. french.
+- Start working on Base jobs.
+- Make "make binary-release" work from any directory.
+- Document c:/working directory better than /working directory.
+- Unsaved Flag in Job record.
+- Base Flag in Job record.
+- Implement UnsavedFiles DB record.
+- The "List last 20 Jobs run" doesnt work correctly.
+  It doesnt show the last 20 jobs , but some older ones.
 - The bsr for Dan's job has file indexes covering the whole range rather
   than only the range contained on the volume.
   Constrain FileIndex to be within range for Volume.
+- Fix Verify VolumeToCatalog to use BSRs -- it is broken.
+- Use switch() in backup.c and restore.c in FD instead of giant if statement.
+- Implement argc/argv for daemon command line scanning using table driven
+  stuff below.
+- Implement table driven single argc/argv scanner to pickup all arguments.
+  Much like xxx_conf.c scan table.
+  keyword, handler(store_routine), store_address, code, flags, default.
+- Make | and < work on FD side.
+- Pass prefix_links to FD.
+- Implement a M_SECURITY message class.
+- From Phil Stracchino:
+  It would probably be a per-client option, and would be called
+  something like, say, "Automatically purge obsoleted jobs".  What it
+  would do is, when you successfully complete a Differential backup of a
+  client, it would automatically purge all Incremental backups for that
+  client that are rendered redundant by that Differential.  Likewise,
+  when a Full backup on a client completed, it would automatically purge
+  all Differential and Incremental jobs obsoleted by that Full backup.
+  This would let people minimize the number of tapes they're keeping on
+  hand without having to master the art of retention times.
+- Prohibit backing up archive device (findlib/find_one.c:128)
+- Make Restore report an error if FD or SD term codes are not OK.
+- Add JobLevel in FD status (but make sure it is defined).
+- Make Pool resource handle Counter resources.
+- Restrict characters permitted in a Resource name, and don't permit
+  duplicate names.
+- Implement new serialize subroutines
+   send(socket, "string", &Vol, "uint32", &i, NULL)
+- Audit all UA commands to ensure that we always prompt where possible.
+
+
+After 1.31:
+- Currently in mount.c:236 the SD simply creates a Volume. It should have
+  explicit permission to do so.  It should also mark the tape in error
+  if there is an error.
 - Make sure all restore counters are working correctly in the FD.
 - SD Bytes Read is wrong.
 - Configure mtx-changer to have correct path to mtx.
 - Look at ALL higher level routines that call block.c to be sure
   they don't expect something in errmsg.
-
-- Fix Verify VolumeToCatalog to use BSRs -- it is broken.
-
-- Use switch() in backup.c and restore.c in FD instead of giant if statement.
 - Investigate doing RAW backup of Win32 partition.
 - Add JobName= to VerifyToCatalog so that all verifies can be done at the end.
 - Add thread specific data to hold the jcr -- send error messages from
   low level routines by accessing it and using Jmsg().
-- Default duration with no qualifier is sec should be 1 day
-- Find a solution for the multiple FileSet problem (when it is changed). Add date?
 - Cancel waiting for Client connect in SD if FD goes away.
 - Testing Tibs job erred and hung director on Storage resource.  This was
   because there were a whole pile of jobs hanging around in the SD  
   waiting for a connection from the FD that was never coming.
-- Make restore more robust in counting error and not immediately bailing
-  out. Also print error message once, but try to continue.
-- Add code to check that blocks are sequential on restore.
-- Should Bacula make an Append tape as Purged when purging?
 - Possibly update all client records at startup.
 
 - Add Progress command that periodically reports the progress of
@@ -63,15 +101,8 @@ For 1.31 release:
 - One block was orphaned in the SD probably after cancel.
 - Add all command line arguments to "update", e.g. slot=nn volStatus=append, ...
 
-- Implement argc/argv for daemon command line scanning using table driven
-  stuff below.
-- Implement table driven single argc/argv scanner to pickup all arguments.
-  Much like xxx_conf.c scan table.
-  keyword, handler(store_routine), store_address, code, flags, default.
 
 - Examine Bare Metal restore problem (a FD crash exists somewhere ...).
-- Test multiple simultaneous Volumes
-- Document FInclude ...
 - Implement timeout in response() when it should come quickly.
 - Implement console @echo command.
 - Implement a Slot priority (loaded/not loaded).
@@ -93,30 +124,16 @@ For 1.31 release:
 - Implement restore "current system", but take all files without
   doing selection tree -- so that jobs without File records can
   be restored.
-- Make | and < work on FD side.
-- Pass prefix_links to FD.
-- Implement a M_SECURITY message class.
 - Implement disk spooling. Two parts: 1. Spool to disk then
   immediately to tape to speed up tape operations. 2. Spool to
   disk only when the tape is full, then when a tape is hung move
   it to tape.
-- From Phil Stracchino:
-  It would probably be a per-client option, and would be called
-  something like, say, "Automatically purge obsoleted jobs".  What it
-  would do is, when you successfully complete a Differential backup of a
-  client, it would automatically purge all Incremental backups for that
-  client that are rendered redundant by that Differential.  Likewise,
-  when a Full backup on a client completed, it would automatically purge
-  all Differential and Incremental jobs obsoleted by that Full backup.
-  This would let people minimize the number of tapes they're keeping on
-  hand without having to master the art of retention times.
 - Implement a relocatable bacula.spec 
 - Allow multiple Storage specifications (or multiple names on
   a single Storage specification) in the Job record. Thus a job 
   can be backed up to a number of storage devices.
 - Implement dump/print label to UA
 - Add prefixlinks to where or not where absolute links to FD.
-- Look at Python for a Bacula scripting language -- www.python.org
 - Issue message to mount a new tape before the rewind.
 - Simplified client job initiation for portables.
 - If SD cannot open a drive, make it periodically retry.
@@ -159,20 +176,16 @@ For 1.31 release:
 - Program files (i.e. execute a program to read/write files).
   Pass read date of last backup, size of file last time.
 - Add Signature type to File DB record.
-- Make Restore report an error if FD or SD term codes are not OK.
 - CD into subdirectory when open()ing files for backup to
   speed up things.  Test with testfind().
 - Priority job to go to top of list.
-- Find out why Full saves run slower and slower (hashing?)
 - Why are save/restore of device different sizes (sparse?)   Yup! Fix it.
 - Implement some way for the Console to dynamically create a job.
 - Restore to a particular time -- e.g. before date, after date. 
 - Solaris -I on tar for include list
-- Prohibit backing up archive device (findlib/find_one.c:128)
 - Need a verbose mode in restore, perhaps to bsr.
 - bscan without -v is too quiet -- perhaps show jobs.
 - Add code to reject whole blocks if not wanted on restore.
-- Start working on Base jobs.
 - Check if we can increase Bacula FD priorty in Win2000
 - Make sure the MaxVolFiles is fully implemented in SD
 - Check if both CatalogFiles and UseCatalog are set to SD.
@@ -183,17 +196,11 @@ For 1.31 release:
 - Possibly add email to Watchdog if drive is unmounted too
   long and a job is waiting on the drive.
 - Use read_record.c in SD code.
-- Why don't we get an error message from Win32 FD when bootstrap 
-  file cannot be created for restore command?
-- When Marking a file in Restore that is a hard link, also
-  mark the link so that the data will be reloaded.
 - Restore program that errors in SD due to no tape reports
   OK incorrectly in output.
 - After unmount, if restore job started, ask to mount.
 - Convert all %x substitution variables, which are hard to remember
   and read to %(variable-name).  Idea from TMDA.
-- Add JobLevel in FD status (but make sure it is defined).
-- Make Pool resource handle Counter resources.
 - Remove NextId for SQLite. Optimize.
 - Move all SQL statements into a single location.
 - Add UA rc and history files.
@@ -202,15 +209,11 @@ For 1.31 release:
 - Enhance time and size scanning routines.
 - Fix Autoprune for Volumes to respect need for full save.
 - Fix Win32 config file definition name on /install
-- No READLINE_SRC if found in alternate directory.
-- Test a second language e.g. french.
 - Compare tape to Client files (attributes, or attributes and data) 
 - Make all database Ids 64 bit.
 - Write an applet for Linux.
 - Add estimate to Console commands
-- Find solution to blank filename (i.e. path only) problem.
 - Implement new daemon communications protocol.
-- Remove PoolId from Job table, it exists in Media.
 - Allow console commands to detach or run in background.
 - Fix status delay on storage daemon during rewind.
 - Add SD message variables to control operator wait time
@@ -222,31 +225,20 @@ For 1.31 release:
   Verify level=Catalog, level=InitCatalog
 - Events file
 - Add keyword search to show command in Console.
-- Fix Win2000 error with no messages during startup.
 - Events : tape has more than xxx bytes.
-- Restrict characters permitted in a Resource name.
 - Complete code in Bacula Resources -- this will permit
   reading a new config file at any time.
 - Handle ctl-c in Console
 - Implement script driven addition of File daemon to config files.
 - Think about how to make Bacula work better with File (non-tape) archives.
 - Write Unix emulator for Windows.
-- Implement new serialize subroutines
-   send(socket, "string", &Vol, "uint32", &i, NULL)
-- Audit all UA commands to ensure that we always prompt where possible.
-- If ./btape is called without /dev, assume argument is a Storage resource name.
 - Put memory utilization in Status output of each daemon
   if full status requested or if some level of debug on.
 - Make database type selectable by .conf files i.e. at runtime
 - Set flag for uname -a.  Add to Volume label.
 - Implement throttled work queue.
-- Check for EOT at ENOSPC or EIO or ENXIO (unix Pc)
 - Restore files modified after date
 - Restore file modified before date
-- Emergency restore info:
-  - Backup Bacula
-  - Backup working directory
-  - Backup Catalog
 - Restore -- do nothing but show what would happen
 - SET LD_RUN_PATH=$HOME/mysql/lib/mysql
 - Implement Restore FileSet=
@@ -254,16 +246,11 @@ For 1.31 release:
   are concentrated.
 - Remove duplicate fields from jcr (e.g. jcr.level and jcr.jr.Level, ...).
 - Timout a job or terminate if link goes down, or reopen link and query.
-- Find general solution for sscanf size problems (as well
-  as sprintf. Do at run time?
 - Concept of precious tapes (cannot be reused).
 - Make bcopy copy with a single tape drive.
 - Permit changing ownership during restore.
 
 - Autolabel should be specified by DIR instead of SD.
-- Find out how to get the system tape block limits, e.g.:
-  Apr 22 21:22:10 polymatou kernel: st1: Block limits 1 - 245760 bytes.  
-  Apr 22 21:22:10 polymatou kernel: st0: Block limits 2 - 16777214 bytes.
 - Storage daemon    
   - Add media capacity
   - AutoScan (check checksum of tape)
@@ -302,13 +289,6 @@ For 1.31 release:
   times out jobs by asking the deamons where they are.
 - Enhance Jmsg code to permit buffering and saving to disk.
 - device driver = "xxxx" for drives.
-- restart: paranoid: read label fsf to
-  eom read append block, and go
-  super-paranoid: read label, read all files
-  in between, read append block, and go
-  verify: backspace, read append block, and go
-  permissive: same as above but frees drive
-  if tape is not valid.
 - Verify from Volume
 - Ensure that /dev/null works
 - Need report class for messages. Perhaps
@@ -317,7 +297,7 @@ For 1.31 release:
   fill in code for "since" option 
 - Director needs a time after which the report status is sent
   anyway -- or better yet, a retry time for the job.
-  Don't reschedule a job if previous incarnation is still running.
+- Don't reschedule a job if previous incarnation is still running.
 - Some way to automatically backup everything is needed????
 - Need a structure for pending actions:
   - buffered messages
@@ -332,9 +312,6 @@ For 1.31 release:
 Longer term to do:
 - Design at hierarchial storage for Bacula. Migration and Clone. 
 - Implement FSM (File System Modules).
-- Identify unchanged or "system" files and save them to a
-  special tape thus removing them from the standard 
-  backup FileSet -- BASE backup.
 - Audit M_ error codes to ensure they are correct and consistent.
 - Add variable break characters to lex analyzer.
   Either a bit mask or a string of chars so that
@@ -917,3 +894,23 @@ Done: (see kernsdone for more)
 - Shell expansion fails for working_directory in SD from time to time.
 - File the Automatically selected: xxx
   to say Automatically selected Pool: xxx
+- Default duration with no qualifier is sec should be 1 day
+- zap sd_auth_key in SD after FD connection.
+- Find a solution for the multiple FileSet problem (when it is changed). Add date?
+- Look at Python for a Bacula scripting language -- www.python.org
+- When Marking a file in Restore that is a hard link, also
+  mark the link so that the data will be reloaded.
+- Emergency restore info:
+  - Backup Bacula
+  - Backup working directory
+  - Backup Catalog
+- Why don't we get an error message from Win32 FD when bootstrap 
+  file cannot be created for restore command?
+- Fix Win2000 error with no messages during startup.
+- Make restore more robust in counting error and not immediately bailing
+  out. Also print error message once, but try to continue.
+- Add code to check that blocks are sequential on restore.
+- Remove "rufus" and such references from regress.
+- No READLINE_SRC if found in alternate directory.
+- If ./btape is called without /dev, assume argument is a Storage resource name.
+- Find general solution for sscanf size problems (as well as sprintf. Do at run time?

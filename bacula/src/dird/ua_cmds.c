@@ -211,7 +211,7 @@ static int addcmd(UAContext *ua, char *cmd)
 
    /* Get media type */
    if ((store = get_storage_resource(ua, 0)) != NULL) {
-      strcpy(mr.MediaType, store->media_type);
+      bstrncpy(mr.MediaType, store->media_type, sizeof(mr.MediaType));
    } else if (!get_media_type(ua, mr.MediaType, sizeof(mr.MediaType))) {
       return 1;
    }
@@ -223,7 +223,7 @@ static int addcmd(UAContext *ua, char *cmd)
    }
    for (;;) {
       char buf[100]; 
-      sprintf(buf, _("Enter number of Volumes to create. 0=>fixed name. Max=%d: "), max);
+      bsnprintf(buf, sizeof(buf), _("Enter number of Volumes to create. 0=>fixed name. Max=%d: "), max);
       if (!get_pint(ua, buf)) {
 	 return 1;
       }
@@ -257,7 +257,7 @@ getVolName:
       goto getVolName;
    }
 
-   strcpy(name, ua->cmd);
+   bstrncpy(name, ua->cmd, sizeof(name));
    if (num > 0) {
       strcat(name, "%04d");
 
@@ -286,7 +286,7 @@ getVolName:
 	   
    set_pool_dbr_defaults_in_media_dbr(&mr, &pr);
    for (i=startnum; i < num+startnum; i++) { 
-      sprintf(mr.VolumeName, name, i);
+      bsnprintf(mr.VolumeName, sizeof(mr.VolumeName), name, i);
       mr.Slot = slot++;
       Dmsg1(200, "Create Volume %s\n", mr.VolumeName);
       if (!db_create_media_record(ua->jcr, ua->db, &mr)) {
@@ -484,10 +484,10 @@ static int cancelcmd(UAContext *ua, char *cmd)
  *   depending on if we are creating the Pool or we are
  *   simply bringing it into agreement with the resource (updage).
  */
-void set_pooldbr_from_poolres(POOL_DBR *pr, POOL *pool, int create)
+static void set_pooldbr_from_poolres(POOL_DBR *pr, POOL *pool, e_pool_op op)
 {
    strcpy(pr->PoolType, pool->pool_type);
-   if (create) {
+   if (op == POOL_OP_CREATE) {
       pr->MaxVols = pool->max_volumes;
       pr->NumVols = 0;
    } else {	     /* update pool */
@@ -523,7 +523,7 @@ void set_pooldbr_from_poolres(POOL_DBR *pr, POOL *pool, int create)
  *	     1	record created
  */
 
-int create_pool(JCR *jcr, B_DB *db, POOL *pool, int create)
+int create_pool(JCR *jcr, B_DB *db, POOL *pool, e_pool_op op)
 {
    POOL_DBR  pr;
 
@@ -533,14 +533,14 @@ int create_pool(JCR *jcr, B_DB *db, POOL *pool, int create)
 
    if (db_get_pool_record(jcr, db, &pr)) {
       /* Pool Exists */
-      if (!create) {  /* update request */
-	 set_pooldbr_from_poolres(&pr, pool, 0);
+      if (op == POOL_OP_UPDATE) {  /* update request */
+	 set_pooldbr_from_poolres(&pr, pool, op);
 	 db_update_pool_record(jcr, db, &pr);
       }
       return 0; 		      /* exists */
    }
 
-   set_pooldbr_from_poolres(&pr, pool, 1);
+   set_pooldbr_from_poolres(&pr, pool, op);
 
    if (!db_create_pool_record(jcr, db, &pr)) {
       return -1;		      /* error */
@@ -567,7 +567,7 @@ static int createcmd(UAContext *ua, char *cmd)
       return 1;
    }
 
-   switch (create_pool(ua->jcr, ua->db, pool, 1)) {
+   switch (create_pool(ua->jcr, ua->db, pool, POOL_OP_CREATE)) {
    case 0:
       bsendmsg(ua, _("Error: Pool %s already exists.\n\
 Use update to change it.\n"), pool->hdr.name);
@@ -911,7 +911,7 @@ static int update_pool(UAContext *ua)
       return 0;
    }
 
-   set_pooldbr_from_poolres(&pr, pool, 0); /* update */
+   set_pooldbr_from_poolres(&pr, pool, POOL_OP_UPDATE); /* update */
 
    id = db_update_pool_record(ua->jcr, ua->db, &pr);
    if (id <= 0) {
@@ -920,7 +920,7 @@ static int update_pool(UAContext *ua)
    }
    query = get_pool_memory(PM_MESSAGE);
    Mmsg(&query, list_pool, pr.PoolId);
-   db_list_sql_query(ua->jcr, ua->db, query, prtit, ua, 1, 0);
+   db_list_sql_query(ua->jcr, ua->db, query, prtit, ua, 1, HORZ_LIST);
    free_pool_memory(query);
    bsendmsg(ua, _("Pool DB record updated from resource.\n"));
    return 1;

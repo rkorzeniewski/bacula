@@ -94,8 +94,8 @@ int read_records(JCR *jcr,  DEVICE *dev,
 	    goto next_record;	      /* go read new tape */
 
 	 } else if (dev->state & ST_EOF) {
-            Jmsg(jcr, M_INFO, 0, "Got EOF on device %s, Volume \"%s\"\n", 
-		  dev_name(dev), jcr->VolumeName);
+            Jmsg(jcr, M_INFO, 0, "Got EOF at file %u  on device %s, Volume \"%s\"\n", 
+		  dev->file, dev_name(dev), jcr->VolumeName);
             Dmsg0(20, "read_record got eof. try again\n");
 	    continue;
 	 } else if (dev->state & ST_SHORT) {

@@ -191,7 +191,7 @@ static BSR *store_vol(LEX *lc, BSR *bsr)
       }
       volume = (BSR_VOLUME *)malloc(sizeof(BSR_VOLUME));
       memset(volume, 0, sizeof(BSR_VOLUME));
-      strcpy(volume->VolumeName, p);
+      bstrncpy(volume->VolumeName, p, sizeof(volume->VolumeName));
       /* Add it to the end of the volume chain */
       if (!bsr->volume) {
 	 bsr->volume = volume;
@@ -218,7 +218,7 @@ static BSR *store_client(LEX *lc, BSR *bsr)
       }
       client = (BSR_CLIENT *)malloc(sizeof(BSR_CLIENT));
       memset(client, 0, sizeof(BSR_CLIENT));
-      strcpy(client->ClientName, lc->str);
+      bstrncpy(client->ClientName, lc->str, sizeof(client->ClientName));
       /* Add it to the end of the client chain */
       if (!bsr->client) {
 	 bsr->client = client;
@@ -248,7 +248,7 @@ static BSR *store_job(LEX *lc, BSR *bsr)
       }
       job = (BSR_JOB *)malloc(sizeof(BSR_JOB));
       memset(job, 0, sizeof(BSR_JOB));
-      strcpy(job->Job, lc->str);
+      bstrncpy(job->Job, lc->str, sizeof(job->Job));
       /* Add it to the end of the client chain */
       if (!bsr->job) {
 	 bsr->job = job;
@@ -801,7 +801,7 @@ void create_vol_list(JCR *jcr)
 	 /* Now add volumes for this bsr */
 	 for (bsrvol = bsr->volume; bsrvol; bsrvol=bsrvol->next) {
 	    vol = new_vol();
-	    strcpy(vol->VolumeName, bsrvol->VolumeName);
+	    bstrncpy(vol->VolumeName, bsrvol->VolumeName, sizeof(vol->VolumeName));
 	    vol->start_file = sfile;
 	    if (add_vol(jcr, vol)) {
 	       jcr->NumVolumes++;
@@ -821,7 +821,7 @@ void create_vol_list(JCR *jcr)
 	    *n++ = 0;			 /* Terminate name */
 	 }
 	 vol = new_vol();
-	 strcpy(vol->VolumeName, p);
+	 bstrncpy(vol->VolumeName, p, sizeof(vol->VolumeName));
 	 if (add_vol(jcr, vol)) {
 	    jcr->NumVolumes++;
 	 } else {

@@ -52,7 +52,7 @@ static char EndBackup[] = "2801 End Backup Job TermCode=%d JobFiles=%u "
 
 
 /* Forward referenced functions */
-static void backup_cleanup(JCR *jcr, int TermCode, char *since);
+static void backup_cleanup(JCR *jcr, int TermCode, char *since, FILESET_DBR *fsr);
 static int wait_for_job_termination(JCR *jcr);		     
 
 /* External functions */
@@ -83,24 +83,28 @@ int do_backup(JCR *jcr)
     * Get or Create FileSet record
     */
    memset(&fsr, 0, sizeof(fsr));
-   strcpy(fsr.FileSet, jcr->fileset->hdr.name);
+   bstrncpy(fsr.FileSet, jcr->fileset->hdr.name, sizeof(fsr.FileSet));
    if (jcr->fileset->have_MD5) {
       struct MD5Context md5c;
       unsigned char signature[16];
       memcpy(&md5c, &jcr->fileset->md5c, sizeof(md5c));
       MD5Final(signature, &md5c);
       bin_to_base64(fsr.MD5, (char *)signature, 16); /* encode 16 bytes */
-      strcpy(jcr->fileset->MD5, fsr.MD5);
+      bstrncpy(jcr->fileset->MD5, fsr.MD5, sizeof(jcr->fileset->MD5));
    } else {
       Jmsg(jcr, M_WARNING, 0, _("FileSet MD5 signature not found.\n"));
    }
    if (!db_create_fileset_record(jcr, jcr->db, &fsr)) {
-      Jmsg(jcr, M_ERROR, 0, _("Could not create FileSet record. ERR=%s\n"), 
-	 db_strerror(jcr->db));
+      Jmsg(jcr, M_ERROR, 0, _("Could not create FileSet \"%s\" record. ERR=%s\n"), 
+	 fsr.FileSet, db_strerror(jcr->db));
       goto bail_out;
    }   
    jcr->jr.FileSetId = fsr.FileSetId;
-   Dmsg2(119, "Created FileSet %s record %d\n", jcr->fileset->hdr.name, 
+   if (fsr.created) {
+      Jmsg(jcr, M_INFO, 0, _("Created new FileSet record \"%s\" at %s\n"), 
+	 fsr.FileSet, fsr.cCreateTime);
+   }
+   Dmsg2(119, "Created FileSet %s record %u\n", jcr->fileset->hdr.name, 
       jcr->jr.FileSetId);
 
    /* Look up the last
@@ -116,10 +120,13 @@ int do_backup(JCR *jcr)
 	 /* Look up start time of last job */
 	 jcr->jr.JobId = 0;
 	 if (!db_find_job_start_time(jcr, jcr->db, &jcr->jr, &jcr->stime)) {
+            Jmsg(jcr, M_INFO, 0, "%s", db_strerror(jcr->db));
             Jmsg(jcr, M_INFO, 0, _("No prior or suitable FULL backup found. Doing FULL backup.\n"));
+            bsnprintf(since, sizeof(since), " (upgraded from %s)", 
+	       level_to_str(jcr->jr.Level));
 	    jcr->JobLevel = jcr->jr.Level = L_FULL;
 	 } else {
-            strcpy(since, ", since=");
+            bstrncpy(since, ", since=", sizeof(since));
 	    bstrncat(since, jcr->stime, sizeof(since));
 	 }
          Dmsg1(115, "Last start time = %s\n", jcr->stime);
@@ -136,17 +143,17 @@ int do_backup(JCR *jcr)
    jcr->fname = (char *) get_pool_memory(PM_FNAME);
 
    /* Print Job Start message */
-   Jmsg(jcr, M_INFO, 0, _("Start Backup JobId %d, Job=%s\n"),
+   Jmsg(jcr, M_INFO, 0, _("Start Backup JobId %u, Job=%s\n"),
 	jcr->JobId, jcr->Job);
 
    /* 
     * Get the Pool record  
     */
    memset(&pr, 0, sizeof(pr));
-   strcpy(pr.Name, jcr->pool->hdr.name);
+   bstrncpy(pr.Name, jcr->pool->hdr.name, sizeof(pr.Name));
    while (!db_get_pool_record(jcr, jcr->db, &pr)) { /* get by Name */
       /* Try to create the pool */
-      if (create_pool(jcr, jcr->db, jcr->pool, 1) < 0) {
+      if (create_pool(jcr, jcr->db, jcr->pool, POOL_OP_CREATE) < 0) {
          Jmsg(jcr, M_FATAL, 0, _("Pool %s not in database. %s"), pr.Name, 
 	    db_strerror(jcr->db));
 	 goto bail_out;
@@ -209,7 +216,7 @@ int do_backup(JCR *jcr)
    }
    bnet_fsend(fd, storaddr, jcr->store->address, jcr->store->SDDport,
 	      jcr->store->enable_ssl);
-   if (!response(fd, OKstore, "Storage", 1)) {
+   if (!response(jcr, fd, OKstore, "Storage", DISPLAY_ERROR)) {
       goto bail_out;
    }
 
@@ -236,19 +243,19 @@ int do_backup(JCR *jcr)
 	 goto bail_out;
    }
    Dmsg1(120, ">filed: %s", fd->msg);
-   if (!response(fd, OKlevel, "Level", 1)) {
+   if (!response(jcr, fd, OKlevel, "Level", DISPLAY_ERROR)) {
       goto bail_out;
    }
 
    /* Send backup command */
    bnet_fsend(fd, backupcmd);
-   if (!response(fd, OKbackup, "backup", 1)) {
+   if (!response(jcr, fd, OKbackup, "backup", DISPLAY_ERROR)) {
       goto bail_out;
    }
 
    /* Pickup Job termination data */	    
    stat = wait_for_job_termination(jcr);
-   backup_cleanup(jcr, stat, since);
+   backup_cleanup(jcr, stat, since, &fsr);
    return 1;
 
 bail_out:
@@ -256,7 +263,7 @@ bail_out:
       free_pool_memory(jcr->stime);
       jcr->stime = NULL;
    }
-   backup_cleanup(jcr, JS_ErrorTerminated, since);
+   backup_cleanup(jcr, JS_ErrorTerminated, since, &fsr);
    return 0;
 
 }
@@ -309,7 +316,7 @@ static int wait_for_job_termination(JCR *jcr)
 /*
  * Release resources allocated during backup.
  */
-static void backup_cleanup(JCR *jcr, int TermCode, char *since)
+static void backup_cleanup(JCR *jcr, int TermCode, char *since, FILESET_DBR *fsr) 
 {
    char sdt[50], edt[50];
    char ec1[30], ec2[30], ec3[30], compress[50];
@@ -332,7 +339,7 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
       set_jcr_job_status(jcr, JS_ErrorTerminated);
    }
 
-   strcpy(mr.VolumeName, jcr->VolumeName);
+   bstrncpy(mr.VolumeName, jcr->VolumeName, sizeof(mr.VolumeName));
    if (!db_get_media_record(jcr, jcr->db, &mr)) {
       Jmsg(jcr, M_WARNING, 0, _("Error getting Media record for Volume \"%s\": ERR=%s"), 
 	 mr.VolumeName, db_strerror(jcr->db));
@@ -440,13 +447,13 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
    }
 
    if (jcr->ReadBytes == 0) {
-      strcpy(compress, "None");
+      bstrncpy(compress, "None", sizeof(compress));
    } else {
       compression = (double)100 - 100.0 * ((double)jcr->JobBytes / (double)jcr->ReadBytes);
       if (compression < 0.5) {
-         strcpy(compress, "None");
+         bstrncpy(compress, "None", sizeof(compress));
       } else {
-         sprintf(compress, "%.1f %%", (float)compression);
+         bsnprintf(compress, sizeof(compress), "%.1f %%", (float)compression);
       }
    }
    jobstatus_to_ascii(jcr->FDJobStatus, fd_term_msg, sizeof(fd_term_msg));
@@ -455,9 +462,9 @@ static void backup_cleanup(JCR *jcr, int TermCode, char *since)
    Jmsg(jcr, msg_type, 0, _("Bacula " VERSION " (" LSMDATE "): %s\n\
 JobId:                  %d\n\
 Job:                    %s\n\
-FileSet:                %s\n\
 Backup Level:           %s%s\n\
 Client:                 %s\n\
+FileSet:                \"%s\" %s\n\
 Start time:             %s\n\
 End time:               %s\n\
 Files Written:          %s\n\
@@ -475,9 +482,9 @@ Termination:            %s\n\n"),
 	edt,
 	jcr->jr.JobId,
 	jcr->jr.Job,
-	jcr->fileset->hdr.name,
 	level_to_str(jcr->JobLevel), since,
 	jcr->client->hdr.name,
+	jcr->fileset->hdr.name, fsr->cCreateTime,
 	sdt,
 	edt,
 	edit_uint64_with_commas(jcr->jr.JobFiles, ec1),

@@ -1,7 +1,7 @@
 
           Release Notes for Bacula 1.31
 
-  Bacula code: Total files = 241 Total lines = 69,771 (*.h *.c *.in)
+  Bacula code: Total files = 243 Total lines = 70,151 (*.h *.c *.in)
 
 Major Changes this Release:
 - Support to save and restore all files on WinNT/2K/XP systems 
@@ -41,4 +41,3 @@ Items to note:  !!!!!
   option on the ./configure.
 - Version 1.31 and 1.30 daemons/Director are not compatible. You must
   upgrade all or nothing.
-

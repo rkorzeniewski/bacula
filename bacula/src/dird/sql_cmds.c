@@ -227,7 +227,7 @@ char *uar_sel_all_temp1 = "SELECT * FROM temp1";
 
 /* Select filesets for this Client */
 char *uar_sel_fileset = 
-   "SELECT FileSet.FileSetId,FileSet.FileSet,FileSet.MD5 FROM Job,"
+   "SELECT FileSet.FileSetId,FileSet.FileSet,FileSet.CreateTime FROM Job,"
    "Client,FileSet WHERE Job.FileSetId=FileSet.FileSetId "
    "AND Job.ClientId=%u AND Client.ClientId=%u "
    "GROUP BY FileSet.FileSetId ORDER BY FileSet.FileSetId";

@@ -47,8 +47,8 @@ struct res_items {
  * at the beginning of every resource
  * record.
  */
-struct s_reshdr {
-   struct s_reshdr *next;             /* pointer to next resource of this type */
+struct RES {
+   RES *next;                         /* pointer to next resource of this type */
    char *name;                        /* resource name */
    char *desc;                        /* resource description */
    int   rcode;                       /* resource id or type */
@@ -56,7 +56,6 @@ struct s_reshdr {
    char  item_present[MAX_RES_ITEMS]; /* set if item is present in conf file */
 };
 
-typedef struct s_reshdr RES;
 
 /* 
  * Master Resource configuration structure definition
@@ -79,25 +78,22 @@ struct s_res {
 #define ITEM_NO_EQUALS   0x4          /* Don't scan = after name */
 
 /* Message Resource */
-struct s_res_msgs {
+struct MSGS {
    RES   hdr;
    char *mail_cmd;                    /* mail command */
    char *operator_cmd;                /* Operator command */
    DEST *dest_chain;                  /* chain of destinations */
    char send_msg[nbytes_for_bits(M_MAX+1)];  /* bit array of types */
 };
-typedef struct s_res_msgs MSGS;
 
 
 /* Define the Union of all the above common
  * resource structure definitions.
  */
-union cu_res {
-   struct s_res_msgs    res_msgs;
+union CURES {
+   MSGS  res_msgs;
    RES hdr;
 };
-
-typedef union cu_res CURES;
 
 
 /* Configuration routines */

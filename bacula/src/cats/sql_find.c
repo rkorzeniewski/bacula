@@ -63,7 +63,7 @@ int
 db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
 {
    SQL_ROW row;
-   int JobId;
+   uint32_t JobId;
 
    db_lock(mdb);
 
@@ -73,16 +73,16 @@ db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
       /* Differential is since last Full backup */
       if (jr->Level == L_DIFFERENTIAL) {
 	 Mmsg(&mdb->cmd, 
-"SELECT JobId FROM Job WHERE JobStatus='T' AND Type='%c' AND \
-Level='%c' AND Name='%s' AND ClientId=%d AND FileSetId=%d \
-ORDER BY StartTime DESC LIMIT 1",
+"SELECT JobId FROM Job WHERE JobStatus='T' AND Type='%c' AND "
+"Level='%c' AND Name='%s' AND ClientId=%u AND FileSetId=%u "
+"ORDER BY StartTime DESC LIMIT 1",
 	   jr->Type, L_FULL, jr->Name, jr->ClientId, jr->FileSetId);
       /* Incremental is since last Full, Incremental, or Differential */
       } else if (jr->Level == L_INCREMENTAL) {
 	 Mmsg(&mdb->cmd, 
-"SELECT JobId FROM Job WHERE JobStatus='T' AND Type='%c' AND \
-Level IN ('%c','%c','%c') AND Name='%s' AND ClientId=%d \
-ORDER BY StartTime DESC LIMIT 1",
+"SELECT JobId FROM Job WHERE JobStatus='T' AND Type='%c' AND "
+"Level IN ('%c','%c','%c') AND Name='%s' AND ClientId=%u "
+"ORDER BY StartTime DESC LIMIT 1",
 	   jr->Type, L_INCREMENTAL, L_DIFFERENTIAL, L_FULL, jr->Name,
 	   jr->ClientId);
       } else {
@@ -92,12 +92,14 @@ ORDER BY StartTime DESC LIMIT 1",
       }
       Dmsg1(100, "Submitting: %s\n", mdb->cmd);
       if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
-         Mmsg1(&mdb->errmsg, _("Query error for start time request: %s\n"), mdb->cmd);
+         Mmsg2(&mdb->errmsg, _("Query error for start time request: ERR=%s\nCMD=%s\n"), 
+	    sql_strerror(mdb), mdb->cmd);
 	 db_unlock(mdb);
 	 return 0;
       }
       if ((row = sql_fetch_row(mdb)) == NULL) {
 	 sql_free_result(mdb);
+         Mmsg0(&mdb->errmsg, _("No Job Found.\n"));
 	 db_unlock(mdb);
 	 return 0;
       }
@@ -108,17 +110,18 @@ ORDER BY StartTime DESC LIMIT 1",
    }
 
    Dmsg1(100, "Submitting: %s\n", mdb->cmd);
-   Mmsg(&mdb->cmd, "SELECT StartTime FROM Job WHERE Job.JobId=%d", JobId);
+   Mmsg(&mdb->cmd, "SELECT StartTime FROM Job WHERE Job.JobId=%u", JobId);
 
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
-      Mmsg1(&mdb->errmsg, _("Query error for start time request: %s\n"), mdb->cmd);
+      pm_strcpy(stime, "");                   /* set EOS */
+      Mmsg2(&mdb->errmsg, _("Query error for start time request: ERR=%s\nCMD=%s\n"),
+	 sql_strerror(mdb),  mdb->cmd);
       db_unlock(mdb);
       return 0;
    }
 
    if ((row = sql_fetch_row(mdb)) == NULL) {
-      pm_strcpy(stime, "");                   /* set EOS */
-      Mmsg2(&mdb->errmsg, _("No Job found for JobId=%d: %s\n"), JobId, sql_strerror(mdb));
+      Mmsg2(&mdb->errmsg, _("No Job found for JobId=%u: ERR=%s\n"), JobId, sql_strerror(mdb));
       sql_free_result(mdb);
       db_unlock(mdb);
       return 0;
@@ -149,13 +152,13 @@ db_find_last_jobid(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    db_lock(mdb);
    if (jr->Level == L_VERIFY_CATALOG) {
       Mmsg(&mdb->cmd, 
-"SELECT JobId FROM Job WHERE Type='%c' AND Level='%c' AND Name='%s' AND \
-ClientId=%d ORDER BY StartTime DESC LIMIT 1",
+"SELECT JobId FROM Job WHERE Type='%c' AND Level='%c' AND Name='%s' AND "
+"ClientId=%u ORDER BY StartTime DESC LIMIT 1",
 	   JT_VERIFY, L_VERIFY_INIT, jr->Name, jr->ClientId);
    } else if (jr->Level == L_VERIFY_VOLUME_TO_CATALOG) {
       Mmsg(&mdb->cmd, 
-"SELECT JobId FROM Job WHERE Type='%c' AND \
-ClientId=%d ORDER BY StartTime DESC LIMIT 1",
+"SELECT JobId FROM Job WHERE Type='%c' AND "
+"ClientId=%u ORDER BY StartTime DESC LIMIT 1",
 	   JT_BACKUP, jr->ClientId);
    } else {
       Mmsg1(&mdb->errmsg, _("Unknown Job level=%c\n"), jr->Level);

@@ -44,7 +44,7 @@
 
 #ifdef HAVE_BACULA_DB
 
-char catalog_db[] = "Interal";
+uint32_t bacula_db_version = 0;
 
 /* Forward referenced functions */
 
@@ -228,6 +228,7 @@ Please reinitialize the working directory.\n"),
 	 BDB_VERSION, mdb->control.bdb_version);
       badctl = 1;
    }
+   bacula_db_version = mdb->control.bdb_version;
    if (badctl) {
       V(mutex);
       return 0;

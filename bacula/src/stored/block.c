@@ -144,7 +144,8 @@ void empty_block(DEV_BLOCK *block)
    block->binbuf = WRITE_BLKHDR_LENGTH;
    block->bufp = block->buf + block->binbuf;
    block->read_len = 0;
-   block->failed_write = FALSE;
+   block->write_failed = false;
+   block->block_read = false;
 }
 
 /*
@@ -355,7 +356,7 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       }
       Jmsg(jcr, M_INFO, 0, _("User defined maximum volume capacity %s exceeded on device %s.\n"),
 	    edit_uint64(max_cap, ed1),	dev->dev_name);
-      block->failed_write = TRUE;
+      block->write_failed = true;
       dev->EndBlock = dev->block_num;
       dev->EndFile  = dev->file;
       weof_dev(dev, 1); 	      /* end the tape */
@@ -401,7 +402,7 @@ int write_block_to_dev(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
          Jmsg3(jcr, M_INFO, 0, _("End of medium on device %s. Write of %u bytes got %d.\n"), 
 	    dev->dev_name, wlen, stat);
       }  
-      block->failed_write = TRUE;
+      block->write_failed = true;
       dev->EndBlock = dev->block_num;
       dev->EndFile  = dev->file;
       weof_dev(dev, 1); 	      /* end the tape */
@@ -516,7 +517,7 @@ reread:
       if (retry == 1) {
 	 dev->VolCatInfo.VolCatErrors++;   
       }
-   } while (stat == -1 && (errno == EINTR || errno == EIO) && retry++ < 6);
+   } while (stat == -1 && (errno == EINTR || errno == EIO) && retry++ < 11);
    if (stat < 0) {
       Dmsg1(90, "Read device got: ERR=%s\n", strerror(errno));
       clrerror_dev(dev, -1);
@@ -524,13 +525,16 @@ reread:
       Mmsg2(&dev->errmsg, _("Read error on device %s. ERR=%s.\n"), 
 	 dev->dev_name, strerror(dev->dev_errno));
       Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
+      if (dev->state & ST_EOF) {  /* EOF just seen? */
+	 dev->state |= ST_EOT;	  /* yes, error => EOT */
+      }
       return 0;
    }
    Dmsg1(90, "Read device got %d bytes\n", stat);
    if (stat == 0) {		/* Got EOF ! */
       dev->block_num = block->read_len = 0;
       Mmsg1(&dev->errmsg, _("Read zero bytes on device %s.\n"), dev->dev_name);
-      if (dev->state & ST_EOF) { /* EOF alread read? */
+      if (dev->state & ST_EOF) { /* EOF already read? */
 	 dev->state |= ST_EOT;	/* yes, 2 EOFs => EOT */
 	 block->read_len = 0;
 	 return 0;
@@ -556,15 +560,6 @@ reread:
       block->read_len = 0;
       return 0;
    }
-
-#ifdef somehow_working
-   if (check_block_numbers) {
-      if (BlockNumber != block->BlockNumber) {
-         Jmsg(jcr, M_ERROR, 0, _("Incorrect block sequence number. Expected %u, got %u\n"),
-	    BlockNumber, block->BlockNumber);
-      }
-   }
-#endif
 
    /*
     * If the block is bigger than the buffer, we reposition for
@@ -640,5 +635,6 @@ reread:
    }
    Dmsg2(200, "Exit read_block read_len=%d block_len=%d\n",
       block->read_len, block->block_len);
+   block->block_read = true;
    return 1;
 }

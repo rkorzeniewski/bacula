@@ -27,6 +27,7 @@
  */
 
 #include "bacula.h"
+#include <math.h>
 
 /* We assume ASCII input and don't worry about overflow */
 uint64_t str_to_uint64(char *str) 
@@ -189,7 +190,7 @@ int size_to_uint64(char *str, int str_len, uint64_t *rtn_value)
 		      1099511627776};/* terabyte */
 #endif
 
-   Dmsg0(400, "Enter sized to uint64\n");
+   Dmsg1(400, "Enter sized to uint64 str=%s\n", str);
 
    /* Look for modifier */
    ch = str[str_len - 1];
@@ -209,16 +210,15 @@ int size_to_uint64(char *str, int str_len, uint64_t *rtn_value)
    if (mod[i] == 0 || !is_a_number(str)) {
       return 0;
    }
-   Dmsg3(400, "size str=:%s: %f i=%d\n", str, strtod(str, NULL), i);
+   Dmsg3(400, "size str=:%s: %lf i=%d\n", str, strtod(str, NULL), i);
 
-   value = (uint64_t)strtod(str, NULL);
-   Dmsg1(400, "Int value = %d\n", (int)value);
+   value = strtod(str, NULL);
    if (errno != 0 || value < 0) {
       return 0;
    }
    *rtn_value = (uint64_t)(value * mult[i]);
-   Dmsg2(400, "Full value = %f %" lld "\n", strtod(str, NULL) * mult[i],
-       value *mult[i]);
+   Dmsg2(400, "Full value = %lf %" lld "\n", value * mult[i],  
+      (uint64_t)(value * mult[i]));
    return 1;
 }
 
@@ -228,13 +228,13 @@ int size_to_uint64(char *str, int str_len, uint64_t *rtn_value)
  */
 int is_a_number(const char *n)
 {
-   int digit_seen = 0;
+   bool digit_seen = false;
 
    if( *n == '-' || *n == '+' ) {
       n++;
    }
    while (B_ISDIGIT(*n)) {
-      digit_seen = 1;
+      digit_seen = true;
       n++;
    }
    if (digit_seen && *n == '.') {
@@ -254,9 +254,9 @@ int is_a_number(const char *n)
  */
 int is_an_integer(const char *n)
 {
-   int digit_seen = 0;
+   bool digit_seen = false;
    while (B_ISDIGIT(*n)) {
-      digit_seen = 1;
+      digit_seen = true;
       n++;
    }
    return digit_seen && *n==0;

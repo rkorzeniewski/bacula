@@ -44,7 +44,7 @@
  */
 
 /* Imported subroutines */
-extern void list_result(B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, int full_list);
+extern void list_result(B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, e_list_type type);
 extern int QueryDB(char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
 
 
@@ -52,7 +52,7 @@ extern int QueryDB(char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
  * Submit general SQL query
  */
 int db_list_sql_query(JCR *jcr, B_DB *mdb, char *query, DB_LIST_HANDLER *sendit, 
-		      void *ctx, int verbose, int full)
+		      void *ctx, int verbose, e_list_type type)
 {
    db_lock(mdb);
    if (sql_query(mdb, query) != 0) {
@@ -67,7 +67,7 @@ int db_list_sql_query(JCR *jcr, B_DB *mdb, char *query, DB_LIST_HANDLER *sendit,
    mdb->result = sql_store_result(mdb);
 
    if (mdb->result) {
-      list_result(mdb, sendit, ctx, full);
+      list_result(mdb, sendit, ctx, type);
       sql_free_result(mdb);
    }
    db_unlock(mdb);
@@ -75,10 +75,10 @@ int db_list_sql_query(JCR *jcr, B_DB *mdb, char *query, DB_LIST_HANDLER *sendit,
 }
 
 void
-db_list_pool_records(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, int full) 
+db_list_pool_records(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, e_list_type type) 
 {
    db_lock(mdb);
-   if (full) {
+   if (type == VERT_LIST) {
       Mmsg(&mdb->cmd, "SELECT PoolId,Name,NumVols,MaxVols,UseOnce,UseCatalog,"
          "AcceptAnyVolume,VolRetention,VolUseDuration,MaxVolJobs,MaxVolBytes,"
          "AutoPrune,Recycle,PoolType,LabelFormat "
@@ -93,17 +93,17 @@ db_list_pool_records(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, in
       return;
    }
 
-   list_result(mdb, sendit, ctx, full);
+   list_result(mdb, sendit, ctx, type);
    
    sql_free_result(mdb);
    db_unlock(mdb);
 }
 
 void
-db_list_client_records(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, int full)
+db_list_client_records(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, e_list_type type)
 {
    db_lock(mdb);
-   if (full) {
+   if (type == VERT_LIST) {
       Mmsg(&mdb->cmd, "SELECT ClientId,Name,Uname,AutoPrune,FileRetention,"
          "FileRetention,JobRetention "
          "FROM Client ORDER BY ClientId");
@@ -117,7 +117,7 @@ db_list_client_records(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, 
       return;
    }
 
-   list_result(mdb, sendit, ctx, full);
+   list_result(mdb, sendit, ctx, type);
    
    sql_free_result(mdb);
    db_unlock(mdb);
@@ -130,10 +130,10 @@ db_list_client_records(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, 
  */
 void
 db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr, 
-		      DB_LIST_HANDLER *sendit, void *ctx, int full)
+		      DB_LIST_HANDLER *sendit, void *ctx, e_list_type type)
 {
    db_lock(mdb);
-   if (full) {
+   if (type == VERT_LIST) {
       if (mdbr->VolumeName[0] != 0) {
          Mmsg(&mdb->cmd, "SELECT MediaId,VolumeName,Slot,PoolId,"
             "MediaType,FirstWritten,LastWritten,LabelDate,VolJobs,"
@@ -166,17 +166,17 @@ db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr,
       return;
    }
 
-   list_result(mdb, sendit, ctx, full);
+   list_result(mdb, sendit, ctx, type);
    
    sql_free_result(mdb);
    db_unlock(mdb);
 }
 
 void db_list_jobmedia_records(JCR *jcr, B_DB *mdb, uint32_t JobId, 
-			      DB_LIST_HANDLER *sendit, void *ctx, int full)
+			      DB_LIST_HANDLER *sendit, void *ctx, e_list_type type)
 {
    db_lock(mdb);
-   if (full) {
+   if (type == VERT_LIST) {
       if (JobId > 0) {			 /* do by JobId */
          Mmsg(&mdb->cmd, "SELECT JobMediaId,JobId,MediaId,Media.VolumeName,"
             "FirstIndex,LastIndex,StartFile,EndFile,StartBlock,EndBlock "
@@ -203,7 +203,7 @@ void db_list_jobmedia_records(JCR *jcr, B_DB *mdb, uint32_t JobId,
       return;
    }
 
-   list_result(mdb, sendit, ctx, full);
+   list_result(mdb, sendit, ctx, type);
    
    sql_free_result(mdb);
    db_unlock(mdb);
@@ -219,10 +219,10 @@ void db_list_jobmedia_records(JCR *jcr, B_DB *mdb, uint32_t JobId,
  */
 void
 db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, 
-		    void *ctx, int full)
+		    void *ctx, e_list_type type)
 {
    db_lock(mdb);
-   if (full) {
+   if (type == VERT_LIST) {
       if (jr->JobId == 0 && jr->Job[0] == 0) {
 	 Mmsg(&mdb->cmd, 
             "SELECT JobId,Job,Job.Name,PurgedFiles,Type,Level,"
@@ -258,7 +258,7 @@ db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
       db_unlock(mdb);
       return;
    }
-   list_result(mdb, sendit, ctx, full);
+   list_result(mdb, sendit, ctx, type);
    
    sql_free_result(mdb);
    db_unlock(mdb);
@@ -282,7 +282,7 @@ AS Files, sum(JobBytes) AS Bytes, Name AS Job FROM Job GROUP BY Name");
       return;
    }
 
-   list_result(mdb, sendit, ctx, 0);
+   list_result(mdb, sendit, ctx, HORZ_LIST);
    
    sql_free_result(mdb);
 
@@ -295,7 +295,7 @@ AS Files,sum(JobBytes) As Bytes FROM Job");
       return;
    }
 
-   list_result(mdb, sendit, ctx, 0);
+   list_result(mdb, sendit, ctx, HORZ_LIST);
    
    sql_free_result(mdb);
    db_unlock(mdb);
@@ -317,7 +317,7 @@ AND Path.PathId=File.PathId",
       return;
    }
 
-   list_result(mdb, sendit, ctx, 0);
+   list_result(mdb, sendit, ctx, HORZ_LIST);
    
    sql_free_result(mdb);
    db_unlock(mdb);

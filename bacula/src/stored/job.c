@@ -136,16 +136,18 @@ int job_cmd(JCR *jcr)
    srandom(tv.tv_usec + tv.tv_sec);
    sprintf(auth_key, "%ld", (long)random());
 #endif
-   makeSessionKey(auth_key, NULL, 1);
+   make_session_key(auth_key, NULL, 1);
    bnet_fsend(dir, OKjob, jcr->VolSessionId, jcr->VolSessionTime, auth_key);
    Dmsg1(110, ">dird: %s", dir->msg);
    jcr->sd_auth_key = bstrdup(auth_key);
+   memset(auth_key, 0, sizeof(auth_key));    
 
    /*
     * Wait for the device, media, and pool information
     */
    if (!use_device_cmd(jcr)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
+      memset(jcr->sd_auth_key, 0, strlen(jcr->sd_auth_key));
       return 0;
    }
 
@@ -171,6 +173,8 @@ int job_cmd(JCR *jcr)
    }
    V(jcr->mutex);
 
+   memset(jcr->sd_auth_key, 0, strlen(jcr->sd_auth_key));
+
    if (jcr->authenticated && !job_canceled(jcr)) {
       run_job(jcr);		      /* Run the job */
    }
@@ -181,7 +185,7 @@ int job_cmd(JCR *jcr)
  * This entry point is only called if we have a separate
  *   Storage Daemon Data port. Otherwise, the connection
  *   is made to the main port, and if it is a File daemon
- *   calling, handl_filed_connection() is called directly.
+ *   calling, handle_filed_connection() is called directly.
  */
 void connection_from_filed(void *arg)
 {
@@ -236,7 +240,7 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
 
    P(jcr->mutex);
    if (!jcr->authenticated) {
-      jcr->JobStatus = JS_ErrorTerminated;
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
    }
    pthread_cond_signal(&jcr->job_start_wait); /* wake waiting job */
    V(jcr->mutex);

@@ -623,11 +623,11 @@ int db_get_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
    db_lock(mdb);
    if (fsr->FileSetId != 0) {		    /* find by id */
       Mmsg(&mdb->cmd, 
-           "SELECT FileSetId, FileSet, MD5 FROM FileSet "
+           "SELECT FileSetId,FileSet,MD5,CreateTime FROM FileSet "
            "WHERE FileSetId=%u", fsr->FileSetId);
    } else {			      /* find by name */
       Mmsg(&mdb->cmd, 
-           "SELECT FileSetId, FileSet, MD5 FROM FileSet "
+           "SELECT FileSetId,FileSet,CreateTime MD5,FROM FileSet "
            "WHERE FileSet='%s'", fsr->FileSet);
    }  
 
@@ -645,6 +645,7 @@ int db_get_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
 	 fsr->FileSetId = atoi(row[0]);
          bstrncpy(fsr->FileSet, row[1]!=NULL?row[1]:"", sizeof(fsr->FileSet));
          bstrncpy(fsr->MD5, row[2]!=NULL?row[2]:"", sizeof(fsr->MD5));
+         bstrncpy(fsr->cCreateTime, row[3]!=NULL?row[3]:"", sizeof(fsr->cCreateTime));
 	 stat = fsr->FileSetId;
       }
       sql_free_result(mdb);

@@ -356,7 +356,7 @@ mount_error:
 		 dev_file(dev));
 	 } else {
             Jmsg(jcr, M_ERROR, 0, _("I canot write on this volume because:\n\
-The number of files mismatch! Volume=%d Catalog=%d\n"), 
+The number of files mismatch! Volume=%u Catalog=%u\n"), 
 		 dev_file(dev), dev->VolCatInfo.VolCatFiles);
             strcpy(dev->VolCatInfo.VolCatStatus, "Error");
             Dmsg0(200, "dir_update_vol_info. Set Error.\n");
@@ -386,7 +386,7 @@ int mount_next_read_volume(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       close_dev(dev);
       dev->state &= ~ST_READ; 
       if (!acquire_device_for_read(jcr, dev, block)) {
-         Emsg2(M_FATAL, 0, "Cannot open Dev=%s, Vol=%s\n", dev_name(dev),
+         Jmsg2(jcr, M_FATAL, 0, "Cannot open Dev=%s, Vol=%s\n", dev_name(dev),
 	       jcr->VolumeName);
 	 return 0;
       }

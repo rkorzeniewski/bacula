@@ -61,12 +61,12 @@
  */
 
 /* Record state bit definitions */
-#define REC_NO_HEADER        0x01     /* No header read */
-#define REC_PARTIAL_RECORD   0x02     /* returning partial record */
-#define REC_BLOCK_EMPTY      0x04     /* not enough data in block */
-#define REC_NO_MATCH         0x08     /* No match on continuation data */
-#define REC_CONTINUATION     0x10     /* Continuation record found */
-#define REC_ISTAPE           0x20     /* Set if device is tape */
+#define REC_NO_HEADER        (1<<0)   /* No header read */
+#define REC_PARTIAL_RECORD   (1<<1)   /* returning partial record */
+#define REC_BLOCK_EMPTY      (1<<2)   /* not enough data in block */
+#define REC_NO_MATCH         (1<<3)   /* No match on continuation data */
+#define REC_CONTINUATION     (1<<4)   /* Continuation record found */
+#define REC_ISTAPE           (1<<5)   /* Set if device is tape */
 
 #define is_partial_record(r) ((r)->state & REC_PARTIAL_RECORD)
 #define is_block_empty(r)    ((r)->state & REC_BLOCK_EMPTY)
@@ -77,7 +77,7 @@
  * 
  *  This is the memory structure for the record header.
  */
-typedef struct s_dev_rec {
+struct DEV_RECORD {
    int      sync;                     /* synchronous */
    /* File and Block are always returned on reading records, but
     *  only returned on writing if sync is set (obviously).
@@ -93,7 +93,7 @@ typedef struct s_dev_rec {
    uint32_t state;                    /* state bits */
    uint8_t  ser_buf[WRITE_RECHDR_LENGTH];   /* serialized record header goes here */
    POOLMEM *data;                     /* Record data. This MUST be a memory pool item */
-} DEV_RECORD;
+};           
 
 
 /*

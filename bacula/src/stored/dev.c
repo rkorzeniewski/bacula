@@ -227,7 +227,7 @@ open_dev(DEVICE *dev, char *VolName, int mode)
       return dev->fd;
    }
    if (VolName) {
-      strcpy(dev->VolCatInfo.VolCatName, VolName);
+      bstrncpy(dev->VolCatInfo.VolCatName, VolName, sizeof(dev->VolCatInfo.VolCatName));
    }
 
    Dmsg3(29, "open_dev: tape=%d dev_name=%s vol=%s\n", dev_is_tape(dev), 
@@ -288,6 +288,11 @@ open_dev(DEVICE *dev, char *VolName, int mode)
       /*
        * Handle opening of File Archive (not a tape)
        */
+      if (VolName == NULL || *VolName == 0) {
+         Mmsg(&dev->errmsg, _("Could not open file device %s. No Volume name given.\n"),
+	    dev->dev_name);
+	 return -1;
+      }
       archive_name = get_pool_memory(PM_FNAME);
       pm_strcpy(&archive_name, dev->dev_name);
       if (archive_name[strlen(archive_name)] != '/') {
@@ -1199,8 +1204,12 @@ term_dev(DEVICE *dev)
    }
 }
 
-
-
+/*
+ * We attach a jcr to the device so that when
+ *   the Volume is full during writing, a  
+ *   JobMedia record will be created for this 
+ *   Job.
+ */
 void attach_jcr_to_device(DEVICE *dev, JCR *jcr)
 {
    jcr->prev_dev = (JCR *)NULL;

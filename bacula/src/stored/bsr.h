@@ -34,13 +34,12 @@
  * List of Volume names to be read by Storage daemon.
  *  Formed by Storage daemon from BSR  
  */
-struct s_vol_list {
-   struct s_vol_list *next;
+struct VOL_LIST {
+   VOL_LIST *next;
    char VolumeName[MAX_NAME_LENGTH];
    int Slot; 
    int start_file;
 };
-typedef struct s_vol_list VOL_LIST;
 
 
 /*
@@ -52,80 +51,80 @@ typedef struct s_vol_list VOL_LIST;
  * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  */
 
-typedef struct s_bsr_volume {
-   struct s_bsr_volume *next;
+struct BSR_VOLUME {
+   BSR_VOLUME *next;
    char VolumeName[MAX_NAME_LENGTH];
-} BSR_VOLUME;
+};           
 
-typedef struct s_bsr_client {
-   struct s_bsr_client *next;
+struct BSR_CLIENT {
+   BSR_CLIENT *next;
    char ClientName[MAX_NAME_LENGTH];
-} BSR_CLIENT;
+};           
 
-typedef struct s_bsr_sessid {
-   struct s_bsr_sessid *next;
+struct BSR_SESSID {
+   BSR_SESSID *next;
    uint32_t sessid;
    uint32_t sessid2;
    int done;                          /* local done */
-} BSR_SESSID;
+};
 
-typedef struct s_bsr_sesstime {
-   struct s_bsr_sesstime *next;
+struct BSR_SESSTIME {
+   BSR_SESSTIME *next;
    uint32_t sesstime;
    int done;                          /* local done */
-} BSR_SESSTIME;
+};             
 
-typedef struct s_bsr_volfile {
-   struct s_bsr_volfile *next;
+struct BSR_VOLFILE {
+   BSR_VOLFILE *next;
    uint32_t sfile;                    /* start file */
    uint32_t efile;                    /* end file */
    int done;                          /* local done */
-} BSR_VOLFILE;
+};
 
-typedef struct s_bsr_volblock {
-   struct s_bsr_volblock *next;
+struct BSR_VOLBLOCK {
+   BSR_VOLBLOCK *next;
    uint32_t sblock;                   /* start block */
    uint32_t eblock;                   /* end block */
    int done;                          /* local done */
-} BSR_VOLBLOCK;
+};             
 
 
-typedef struct s_bsr_findex {
-   struct s_bsr_findex *next;
+struct BSR_FINDEX {
+   BSR_FINDEX *next;
    int32_t findex;                    /* start file index */
    int32_t findex2;                   /* end file index */
    int done;                          /* local done */
-} BSR_FINDEX;
+};           
 
-typedef struct s_bsr_jobid {
-   struct s_bsr_jobid *next;
+struct BSR_JOBID {
+   BSR_JOBID *next;
    uint32_t JobId;
    uint32_t JobId2;
-} BSR_JOBID;
+};          
 
-typedef struct s_bsr_jobtype {
-   struct s_bsr_jobtype *next;
+struct BSR_JOBTYPE {
+   BSR_JOBTYPE *next;
    uint32_t JobType;
-} BSR_JOBTYPE;
+};            
 
-typedef struct s_bsr_joblevel {
-   struct s_bsr_joblevel *next;
+struct BSR_JOBLEVEL {
+   BSR_JOBLEVEL *next;
    uint32_t JobLevel;
-} BSR_JOBLEVEL;
+};             
 
-typedef struct s_bsr_job {
-   struct s_bsr_job *next;
+struct BSR_JOB {
+   BSR_JOB *next;
    char Job[MAX_NAME_LENGTH];
    int done;
-} BSR_JOB;
+};
 
-typedef struct s_bsr_stream {
-   struct s_bsr_stream *next;
+struct BSR_STREAM {
+   BSR_STREAM *next;
    int32_t stream;                    /* stream desired */
-} BSR_STREAM;
+};           
 
-typedef struct s_bsr {
-   struct s_bsr *next;                /* pointer to next one */
+struct BSR {
+   BSR          *next;                /* pointer to next one */
    int           done;                /* set when everything found */
    BSR_VOLUME   *volume;
    int32_t       Slot;                /* Slot */
@@ -142,7 +141,7 @@ typedef struct s_bsr {
    BSR_JOBTYPE  *JobType;
    BSR_JOBLEVEL *JobLevel;
    BSR_STREAM   *stream;
-} BSR;
+};
 
 
 #endif

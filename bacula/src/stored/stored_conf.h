@@ -62,7 +62,7 @@ struct s_res_store {
    char *subsys_directory;
    int require_ssl;                   /* Require SSL on all connections */
    uint32_t max_concurrent_jobs;      /* maximum concurrent jobs to run */
-   struct s_res_msgs *messages;       /* Daemon message handler */
+   MSGS *messages;                    /* Daemon message handler */
    utime_t heartbeat_interval;        /* Interval to send hb to FD */
 };
 typedef struct s_res_store STORES;

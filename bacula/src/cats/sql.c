@@ -39,11 +39,7 @@
 
 #if    HAVE_MYSQL | HAVE_SQLITE
 
-#ifdef HAVE_MYSQL
-char catalog_db[] = "MySQL";
-#else
-char catalog_db[] = "SQLite";
-#endif
+uint32_t bacula_db_version = 0;
 
 /* Forward referenced subroutines */
 void print_dashes(B_DB *mdb);
@@ -73,14 +69,13 @@ static int int_handler(void *ctx, int num_fields, char **row)
 /* Check that the tables correspond to the version we want */
 int check_tables_version(JCR *jcr, B_DB *mdb)
 {
-   uint32_t version;
    char *query = "SELECT VersionId FROM Version";
   
-   version = 0;
-   db_sql_query(mdb, query, int_handler, (void *)&version);
-   if (version != BDB_VERSION) {
+   bacula_db_version = 0;
+   db_sql_query(mdb, query, int_handler, (void *)&bacula_db_version);
+   if (bacula_db_version != BDB_VERSION) {
       Mmsg(&mdb->errmsg, "Version error for database \"%s\". Wanted %d, got %d\n",
-	 mdb->db_name, BDB_VERSION, version);
+	 mdb->db_name, BDB_VERSION, bacula_db_version);
       Jmsg(jcr, M_FATAL, 0, "%s", mdb->errmsg);
       return 0;
    }

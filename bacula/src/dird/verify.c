@@ -220,7 +220,7 @@ int do_verify(JCR *jcr)
 	    jcr->store->SDDport = jcr->store->SDport;
 	 }
 	 bnet_fsend(fd, storaddr, jcr->store->address, jcr->store->SDDport);
-         if (!response(fd, OKstore, "Storage", 1)) {
+         if (!response(jcr, fd, OKstore, "Storage", DISPLAY_ERROR)) {
 	    goto bail_out;
 	 }
 	 /*
@@ -232,7 +232,7 @@ int do_verify(JCR *jcr)
 		   jr.VolSessionId, jr.VolSessionTime, 
 		   jr.StartFile, jr.EndFile, jr.StartBlock, 
 		   jr.EndBlock);
-         if (!response(fd, OKsession, "Session", 1)) {
+         if (!response(jcr, fd, OKsession, "Session", DISPLAY_ERROR)) {
 	    goto bail_out;
 	 }
          level = "volume";
@@ -249,7 +249,7 @@ int do_verify(JCR *jcr)
     * Send verify command/level to File daemon
     */
    bnet_fsend(fd, verifycmd, level);
-   if (!response(fd, OKverify, "Verify", 1)) {
+   if (!response(jcr, fd, OKverify, "Verify", DISPLAY_ERROR)) {
       goto bail_out;
    }
 

@@ -360,10 +360,12 @@ int db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
 {
    SQL_ROW row;
    int stat;
+   struct tm tm;
 
    db_lock(mdb);
-   Mmsg(&mdb->cmd, "SELECT FileSetId FROM FileSet WHERE \
-FileSet='%s' and MD5='%s'", fsr->FileSet, fsr->MD5);
+   fsr->created = false;
+   Mmsg(&mdb->cmd, "SELECT FileSetId,CreateTime FROM FileSet WHERE "
+"FileSet='%s' AND MD5='%s'", fsr->FileSet, fsr->MD5);
 
    fsr->FileSetId = 0;
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
@@ -383,6 +385,11 @@ FileSet='%s' and MD5='%s'", fsr->FileSet, fsr->MD5);
 	    return 0;
 	 }
 	 fsr->FileSetId = atoi(row[0]);
+	 if (row[1] == NULL) {
+	    fsr->cCreateTime[0] = 0;
+	 } else {
+	    bstrncpy(fsr->cCreateTime, row[1], sizeof(fsr->cCreateTime));
+	 }
 	 sql_free_result(mdb);
 	 db_unlock(mdb);
 	 return 1;
@@ -390,9 +397,15 @@ FileSet='%s' and MD5='%s'", fsr->FileSet, fsr->MD5);
       sql_free_result(mdb);
    }
 
+   if (fsr->CreateTime == 0 && fsr->cCreateTime[0] == 0) {
+      fsr->CreateTime = time(NULL);
+   }
+   localtime_r(&fsr->CreateTime, &tm);
+   strftime(fsr->cCreateTime, sizeof(fsr->cCreateTime), "%Y-%m-%d %T", &tm);
+
    /* Must create it */
-   Mmsg(&mdb->cmd, "INSERT INTO FileSet (FileSet, MD5) VALUES \
-('%s', '%s')", fsr->FileSet, fsr->MD5);
+      Mmsg(&mdb->cmd, "INSERT INTO FileSet (FileSet,MD5,CreateTime) "
+"VALUES ('%s','%s','%s')", fsr->FileSet, fsr->MD5, fsr->cCreateTime);
 
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create DB FileSet record %s failed. ERR=%s\n"),
@@ -402,6 +415,7 @@ FileSet='%s' and MD5='%s'", fsr->FileSet, fsr->MD5);
       stat = 0;
    } else {
       fsr->FileSetId = sql_insert_id(mdb);
+      fsr->created = true;
       stat = 1;
    }
 

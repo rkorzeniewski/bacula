@@ -456,7 +456,6 @@ void store_int64(LEX *lc, struct res_items *item, int index, int pass)
 void store_size(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token;
-   double dvalue;
    uint64_t uvalue;
 
    Dmsg0(400, "Enter store_size\n");
@@ -464,13 +463,6 @@ void store_size(LEX *lc, struct res_items *item, int index, int pass)
    errno = 0;
    switch (token) {
    case T_NUMBER:
-      Dmsg2(400, "size num=:%s: %f\n", lc->str, strtod(lc->str, NULL)); 
-      dvalue = strtod(lc->str, NULL);
-      if (errno != 0 || token < 0) {
-         scan_err1(lc, "expected a size number, got: %s", lc->str);
-      }
-      *(uint64_t *)(item->value) = (uint64_t)dvalue;
-      break;
    case T_IDENTIFIER:
    case T_UNQUOTED_STRING:
       if (!size_to_uint64(lc->str, lc->str_len, &uvalue)) {
@@ -492,19 +484,12 @@ void store_size(LEX *lc, struct res_items *item, int index, int pass)
 void store_time(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token; 
-   double value;
    utime_t utime;
 
    token = lex_get_token(lc, T_ALL);
    errno = 0;
    switch (token) {
    case T_NUMBER:
-      value = strtod(lc->str, NULL);
-      if (errno != 0 || value < 0) {
-         scan_err1(lc, "expected a time period, got: %s", lc->str);
-      }
-      *(utime_t *)(item->value) = (utime_t)value;
-      break;
    case T_IDENTIFIER:
    case T_UNQUOTED_STRING:
       if (!duration_to_utime(lc->str, &utime)) {

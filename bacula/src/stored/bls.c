@@ -239,7 +239,8 @@ static void do_blocks(char *infname)
          Dmsg1(100, "!read_block(): ERR=%s\n", strerror_dev(dev));
 	 if (dev->state & ST_EOT) {
 	    if (!mount_next_read_volume(jcr, dev, block)) {
-               printf("End of File on device\n");
+               Jmsg(jcr, M_INFO, 0, _("Got EOM at file %u on device %s, Volume \"%s\"\n"), 
+		  dev->file, dev_name(dev), jcr->VolumeName);
 	       break;
 	    }
 	    /* Read and discard Volume label */
@@ -249,10 +250,11 @@ static void do_blocks(char *infname)
 	    read_record_from_block(block, record);
 	    get_session_record(dev, record, &sessrec);
 	    free_record(record);
-            printf("Volume %s mounted.\n", jcr->VolumeName);
+            Jmsg(jcr, M_INFO, 0, _("Mounted Volume \"%s\".\n"), jcr->VolumeName);
 	    
 	 } else if (dev->state & ST_EOF) {
-            Jmsg(jcr, M_INFO, 0, "Got EOF on device %s\n", dev_name(dev));
+            Jmsg(jcr, M_INFO, 0, _("Got EOF at file %u on device %s, Volume \"%s\"\n"), 
+	       dev->file, dev_name(dev), jcr->VolumeName);
             Dmsg0(20, "read_record got eof. try again\n");
 	    continue;
 	 } else if (dev->state & ST_SHORT) {

@@ -30,31 +30,31 @@
 /*
  * Resource codes -- they must be sequential for indexing   
  */
-#define R_FIRST                       1001
+#define R_FIRST               1001
 
-#define R_DIRECTOR                    1001
-#define R_CLIENT                      1002
-#define R_JOB                         1003
-#define R_STORAGE                     1004
-#define R_CATALOG                     1005
-#define R_SCHEDULE                    1006
-#define R_FILESET                     1007
-#define R_GROUP                       1008
-#define R_POOL                        1009
-#define R_MSGS                        1010
-#define R_COUNTER                     1011
-#define R_CONSOLE                     1012
+#define R_DIRECTOR            1001
+#define R_CLIENT              1002
+#define R_JOB                 1003
+#define R_STORAGE             1004
+#define R_CATALOG             1005
+#define R_SCHEDULE            1006
+#define R_FILESET             1007
+#define R_GROUP               1008
+#define R_POOL                1009
+#define R_MSGS                1010
+#define R_COUNTER             1011
+#define R_CONSOLE             1012
 
-#define R_LAST                        R_CONSOLE
+#define R_LAST                R_CONSOLE
 
 /*
  * Some resource attributes
  */
-#define R_NAME                        1020
-#define R_ADDRESS                     1021
-#define R_PASSWORD                    1022
-#define R_TYPE                        1023
-#define R_BACKUP                      1024
+#define R_NAME                1020
+#define R_ADDRESS             1021
+#define R_PASSWORD            1022
+#define R_TYPE                1023
+#define R_BACKUP              1024
 
 
 /* Used for certain KeyWord tables */
@@ -99,7 +99,7 @@ struct DIRRES {
    char *pid_directory;               /* PidDirectory */
    char *subsys_directory;            /* SubsysDirectory */
    int require_ssl;                   /* Require SSL for all connections */
-   struct s_res_msgs *messages;       /* Daemon message handler */
+   MSGS *messages;                    /* Daemon message handler */
    uint32_t MaxConcurrentJobs;        /* Max concurrent jobs for whole director */
    utime_t FDConnectTimeout;          /* timeout for connect in seconds */
    utime_t SDConnectTimeout;          /* timeout in seconds */
@@ -306,19 +306,19 @@ struct POOL {
  * resource structure definitions.
  */
 union URES {
-   DIRRES               res_dir;
-   CONRES               res_con;
-   CLIENT               res_client;
-   STORE                res_store;
-   CAT                  res_cat;
-   JOB                  res_job;
-   FILESET              res_fs;
-   SCHED                res_sch;
-   GROUP                res_group;
-   POOL                 res_pool;
-   MSGS                 res_msgs;
-   COUNTER              res_counter;
-   RES hdr;
+   DIRRES     res_dir;
+   CONRES     res_con;
+   CLIENT     res_client;
+   STORE      res_store;
+   CAT        res_cat;
+   JOB        res_job;
+   FILESET    res_fs;
+   SCHED      res_sch;
+   GROUP      res_group;
+   POOL       res_pool;
+   MSGS       res_msgs;
+   COUNTER    res_counter;
+   RES        hdr;
 };
 
 

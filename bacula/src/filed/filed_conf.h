@@ -46,15 +46,14 @@
 
 
 /* Definition of the contents of each Resource */
-struct s_res_dir {
+struct DIRRES {
    RES   hdr;
    char *password;                    /* Director password */
    char *address;                     /* Director address or zero */
    int enable_ssl;                    /* Use SSL for this Director */
 };
-typedef struct s_res_dir DIRRES;
 
-struct s_res_client {
+struct CLIENT {
    RES   hdr;
    int   FDport;                      /* where we listen for Directors */ 
    char *FDaddr;                      /* bind address */
@@ -62,22 +61,20 @@ struct s_res_client {
    char *pid_directory;
    char *subsys_directory;
    int require_ssl;                   /* Require SSL on all connections */
-   struct s_res_msgs *messages;       /* daemon message handler */
+   MSGS *messages;                    /* daemon message handler */
    int MaxConcurrentJobs;
    utime_t heartbeat_interval;        /* Interval to send heartbeats to Dir */
 };
-typedef struct s_res_client CLIENT;
 
 
 
 /* Define the Union of all the above
  * resource structure definitions.
  */
-union u_res {
-   struct s_res_dir     res_dir;
-   struct s_res_client  res_client;
-   struct s_res_msgs    res_msgs;
-   RES hdr;
+union URES {
+   DIRRES res_dir;
+   CLIENT res_client;
+   MSGS   res_msgs;
+   RES    hdr;
 };
 
-typedef union u_res URES;

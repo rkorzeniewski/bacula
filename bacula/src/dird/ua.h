@@ -29,7 +29,7 @@
 #define __UA_H_ 1
 
 
-typedef struct s_ua_context {
+struct UAContext {
    BSOCK *UA_sock;
    BSOCK *sd;
    JCR *jcr;
@@ -50,6 +50,6 @@ typedef struct s_ua_context {
    int verbose;                       /* set for normal UA verbosity */
    uint32_t pint32_val;               /* positive integer */
    int32_t  int32_val;                /* positive/negative */
-} UAContext;
+};          
 
 #endif

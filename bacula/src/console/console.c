@@ -76,7 +76,7 @@ static int sleepcmd(FILE *input, BSOCK *UA_sock);
 
 static void usage()
 {
-   fprintf(stderr,
+   fprintf(stderr, _(
 "\nVersion: " VERSION " (" BDATE ")\n\n"
 "Usage: console [-s] [-c config_file] [-d debug_level] [config_file]\n"
 "       -c <file>   set configuration file to file\n"
@@ -84,7 +84,7 @@ static void usage()
 "       -s          no signals\n"
 "       -t          test - read configuration and exit\n"
 "       -?          print this message.\n"  
-"\n");
+"\n"));
 
    exit(1);
 }
@@ -196,7 +196,7 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
 	 at_prompt = FALSE;
 	 /* @ => internal command for us */
          if (UA_sock->msg[0] == '@') {
-	    parse_command_args(UA_sock->msg, args, &argc, argk, argv);
+	    parse_args(UA_sock->msg, args, &argc, argk, argv, MAX_CMD_ARGS);
 	    if (!do_a_command(input, UA_sock)) {
 	       break;
 	    }
@@ -313,8 +313,8 @@ int main(int argc, char *argv[])
    }
    UnlockRes();
    if (ndir == 0) {
-      Emsg1(M_ERROR_TERM, 0, "No Director resource defined in %s\n\
-Without that I don't how to speak to the Director :-(\n", configfile);
+      Emsg1(M_ERROR_TERM, 0, _("No Director resource defined in %s\n\
+Without that I don't how to speak to the Director :-(\n"), configfile);
    }
 
    if (test_config) {
@@ -327,20 +327,20 @@ Without that I don't how to speak to the Director :-(\n", configfile);
    if (ndir > 1) {
       UA_sock = init_bsock(NULL, 0, "", "", 0);
 try_again:
-      sendit("Available Directors:\n");
+      sendit(_("Available Directors:\n"));
       LockRes();
       ndir = 0;
       for (dir = NULL; (dir = (DIRRES *)GetNextRes(R_DIRECTOR, (RES *)dir)); ) {
-         fprintf(output, "%d  %s at %s:%d\n", 1+ndir++, dir->hdr.name, dir->address,
+         fprintf(output, _("%d  %s at %s:%d\n"), 1+ndir++, dir->hdr.name, dir->address,
 	    dir->DIRport);
       }
       UnlockRes();
-      if (get_cmd(stdin, "Select Director: ", UA_sock, 600) < 0) {
+      if (get_cmd(stdin, _("Select Director: "), UA_sock, 600) < 0) {
 	 return 1;
       }
       item = atoi(UA_sock->msg);
       if (item < 0 || item > ndir) {
-         sendit("You must enter a number between 1 and %d\n", ndir);
+         sendit(_("You must enter a number between 1 and %d\n"), ndir);
 	 goto try_again;
       }
       LockRes();
@@ -357,7 +357,7 @@ try_again:
    }
       
 
-   sendit("Connecting to Director %s:%d\n", dir->address,dir->DIRport);
+   sendit(_("Connecting to Director %s:%d\n"), dir->address,dir->DIRport);
    UA_sock = bnet_connect(NULL, 5, 15, "Director daemon", dir->address, 
 			  NULL, dir->DIRport, 0);
    if (UA_sock == NULL) {
@@ -512,16 +512,16 @@ static int inputcmd(FILE *input, BSOCK *UA_sock)
    FILE *fd;
 
    if (argc > 2) {
-      sendit("Too many arguments.\n");
+      sendit(_("Too many arguments.\n"));
       return 0;
    }
    if (argc == 1) {
-      sendit("First argument must be a filename.\n");
+      sendit(_("First argument must be a filename.\n"));
       return 0;
    }
    fd = fopen(argk[1], "r");
    if (!fd) {
-      sendit("Cannot open file. ERR=%s\n", strerror(errno));
+      sendit(_("Cannot open file. ERR=%s\n"), strerror(errno));
       return 0; 
    }
    read_and_process_input(fd, UA_sock);
@@ -548,7 +548,7 @@ static int do_outputcmd(FILE *input, BSOCK *UA_sock)
    char *mode = "a+";
 
    if (argc > 3) {
-      sendit("Too many arguments.\n");
+      sendit(_("Too many arguments.\n"));
       return 1;
    }
    if (argc == 1) {
@@ -564,7 +564,7 @@ static int do_outputcmd(FILE *input, BSOCK *UA_sock)
    }
    fd = fopen(argk[1], mode);
    if (!fd) {
-      sendit("Cannot open file. ERR=%s\n", strerror(errno));
+      sendit(_("Cannot open file. ERR=%s\n"), strerror(errno));
       return 1; 
    }
    output = fd;

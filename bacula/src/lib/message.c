@@ -33,21 +33,34 @@
 
 #define FULL_LOCATION 1 	      /* set for file:line in Debug messages */
 
+/* 
+ *  This is where we define "Globals" because all the
+ *    daemons include this file.
+ */
 char *working_directory = NULL;       /* working directory path stored here */
 int verbose = 0;		      /* increase User messages */
 int debug_level = 0;		      /* debug level */
 time_t daemon_start_time = 0;	      /* Daemon start time */
 char *version = VERSION " (" BDATE ")";
-
-char my_name[20];		      /* daemon name is stored here */
+char my_name[30];		      /* daemon name is stored here */
 char *exepath = (char *)NULL;
 char *exename = (char *)NULL;
 int console_msg_pending = 0;
 char con_fname[500];		      /* Console filename */
 FILE *con_fd = NULL;		      /* Console file descriptor */
 brwlock_t con_lock;		      /* Console lock structure */
-
 FILE *trace_fd = NULL;
+
+#ifdef HAVE_MYSQL
+char catalog_db[] = "MySQL";
+#endif
+#ifdef HAVE_SQLITE
+char catalog_db[] = "SQLite";
+#endif
+#ifdef HAVE_BACULA_DB
+char catlog_db[] = "Internal";
+#endif
+
 
 /* Forward referenced functions */
 

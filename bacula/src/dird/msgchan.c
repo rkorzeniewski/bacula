@@ -156,7 +156,7 @@ int start_storage_daemon_job(JCR *jcr)
       device_name_len + media_type_len + pool_type_len + pool_name_len);
    bnet_fsend(sd, use_device, device_name, media_type, pool_name, pool_type);
    Dmsg1(110, ">stored: %s", sd->msg);
-   status = response(sd, OK_device, "Use Device", 0);
+   status = response(jcr, sd, OK_device, "Use Device", NO_DISPLAY);
    if (!status) {
       pm_strcpy(&pool_type, sd->msg); /* save message */
       Jmsg(jcr, M_FATAL, 0, _("\n"

@@ -46,7 +46,7 @@ extern brwlock_t con_lock;
 /* Imported functions */
 
 /* Forward referenced functions */
-static int do_listcmd(UAContext *ua, char *cmd, int llist);
+static int do_listcmd(UAContext *ua, char *cmd, e_list_type llist);
 
 
 /*
@@ -194,16 +194,16 @@ int showcmd(UAContext *ua, char *cmd)
 /* Do long or full listing */
 int llistcmd(UAContext *ua, char *cmd)
 {
-   return do_listcmd(ua, cmd, 1);
+   return do_listcmd(ua, cmd, VERT_LIST);
 }
 
 /* Do short or summary listing */
 int listcmd(UAContext *ua, char *cmd)
 {
-   return do_listcmd(ua, cmd, 0);
+   return do_listcmd(ua, cmd, HORZ_LIST);
 }
 
-static int do_listcmd(UAContext *ua, char *cmd, int llist) 
+static int do_listcmd(UAContext *ua, char *cmd, e_list_type llist)
 {
    POOLMEM *VolumeName;
    int jobid, n;
