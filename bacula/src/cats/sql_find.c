@@ -214,7 +214,7 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, MEDIA_DBR *mr)
 "FirstWritten,LastWritten "
 "FROM Media WHERE PoolId=%u AND MediaType='%s' AND VolStatus IN ('Full',"
 "'Recycle','Purged','Used','Append') "
-"ORDER BY LastWritten", mr->PoolId, mr->MediaType); 
+"ORDER BY LastWritten LIMIT 1", mr->PoolId, mr->MediaType); 
      item = 1;
    } else {
       /* Find next available volume */

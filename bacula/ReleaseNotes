@@ -23,6 +23,7 @@ Major Changes this Release:
 
 
 Other Changes this Release:
+- Restore checks block numbers to ensure that no block is lost.
 - The new console var command allows testing variable expansion
   used in automatic tape name generation.
 - The new console estimate command allows you to test FileSets
