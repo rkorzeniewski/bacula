@@ -256,6 +256,8 @@ wxbMainFrame::wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSi
    EnableConsole(false);
    
    lockedbyconsole = false;
+   
+   consoleBuffer = "";
 }
 
 /*
@@ -334,6 +336,8 @@ void wxbMainFrame::Print(wxString str, int status)
    }
    
    if (status == CS_TERMINATED) {
+      consoleCtrl->AppendText(consoleBuffer);
+      consoleBuffer = "";
       SetStatusText("Console thread terminated.");
       ct = NULL;
       DisablePanels();
@@ -346,6 +350,8 @@ void wxbMainFrame::Print(wxString str, int status)
       return;
    }
    if (status == CS_DISCONNECTED) {
+      consoleCtrl->AppendText(consoleBuffer);
+      consoleBuffer = "";
       SetStatusText("Disconnected of the director.");
       DisablePanels();
       return;
@@ -417,15 +423,20 @@ void wxbMainFrame::Print(wxString str, int status)
    else {
       consoleCtrl->SetDefaultStyle(wxTextAttr(*wxBLACK));
    }
-   consoleCtrl->AppendText(str);
+   consoleBuffer << str;
    if (status == CS_PROMPT) {
       if (lockedbyconsole) {
          EnableConsole(true);
       }
-      consoleCtrl->AppendText("<P>");
+      consoleBuffer << "<P>";
    }
    
-   consoleCtrl->ScrollLines(3);
+   if ((status == CS_END) || (status == CS_PROMPT) || (str.Find("\n") > -1)) {
+      consoleCtrl->AppendText(consoleBuffer);
+      consoleBuffer = "";
+   
+      consoleCtrl->ScrollLines(3);
+   }
    
 //   consoleCtrl->ShowPosition(consoleCtrl->GetLastPosition());
    
