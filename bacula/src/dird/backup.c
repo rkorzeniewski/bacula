@@ -43,7 +43,7 @@
 
 /* Commands sent to File daemon */
 static char backupcmd[] = "backup\n";
-static char storaddr[]  = "storage address=%s port=%d\n";
+static char storaddr[]  = "storage address=%s port=%d ssl=%d\n";
 static char levelcmd[]  = "level = %s%s\n";
 
 /* Responses received from File daemon */
@@ -209,7 +209,8 @@ int do_backup(JCR *jcr)
    if (jcr->store->SDDport == 0) {
       jcr->store->SDDport = jcr->store->SDport;
    }
-   bnet_fsend(fd, storaddr, jcr->store->address, jcr->store->SDDport);
+   bnet_fsend(fd, storaddr, jcr->store->address, jcr->store->SDDport,
+	      jcr->store->enable_ssl);
    if (!response(fd, OKstore, "Storage", 1)) {
       goto bail_out;
    }

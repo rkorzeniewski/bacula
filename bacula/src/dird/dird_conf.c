@@ -93,8 +93,10 @@ static struct res_items dir_items[] = {
    {"diraddress",  store_str,      ITEM(res_dir.DIRaddr),  0, 0, 0},
    {"queryfile",   store_dir,      ITEM(res_dir.query_file), 0, ITEM_REQUIRED, 0},
    {"workingdirectory", store_dir, ITEM(res_dir.working_directory), 0, ITEM_REQUIRED, 0},
-   {"piddirectory", store_dir,     ITEM(res_dir.pid_directory), 0, ITEM_REQUIRED, 0},
+   {"piddirectory",store_dir,     ITEM(res_dir.pid_directory), 0, ITEM_REQUIRED, 0},
    {"subsysdirectory", store_dir,  ITEM(res_dir.subsys_directory), 0, ITEM_REQUIRED, 0},
+   {"sslcertificatedirectory", store_dir, ITEM(res_dir.ssl_certs), 0, 0, 0},
+   {"enablessl",   store_yesno,    ITEM(res_dir.enable_ssl), 1, ITEM_DEFAULT, 0},
    {"maximumconcurrentjobs", store_pint, ITEM(res_dir.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},
    {"password",    store_password, ITEM(res_dir.password), 0, ITEM_REQUIRED, 0},
    {"fdconnecttimeout", store_time,ITEM(res_dir.FDConnectTimeout), 0, ITEM_DEFAULT, 60 * 30},
@@ -118,6 +120,7 @@ static struct res_items cli_items[] = {
    {"fileretention", store_time,  ITEM(res_client.FileRetention), 0, ITEM_DEFAULT, 60*60*24*60},
    {"jobretention",  store_time,  ITEM(res_client.JobRetention),  0, ITEM_DEFAULT, 60*60*24*180},
    {"autoprune", store_yesno,     ITEM(res_client.AutoPrune), 1, ITEM_DEFAULT, 1},
+   {"enablessl", store_yesno,     ITEM(res_client.enable_ssl), 1, ITEM_DEFAULT, 0},
    {"maximumconcurrentjobs", store_pint, ITEM(res_client.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},
    {NULL, NULL, NULL, 0, 0, 0} 
 };
@@ -136,6 +139,7 @@ static struct res_items store_items[] = {
    {"device",    store_strname,  ITEM(res_store.dev_name),   0, ITEM_REQUIRED, 0},
    {"mediatype", store_strname,  ITEM(res_store.media_type), 0, ITEM_REQUIRED, 0},
    {"autochanger", store_yesno,  ITEM(res_store.autochanger), 1, ITEM_DEFAULT, 0},
+   {"enablessl", store_yesno,    ITEM(res_store.enable_ssl),  1, ITEM_DEFAULT, 0},
    {"maximumconcurrentjobs", store_pint, ITEM(res_store.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},
    {NULL, NULL, NULL, 0, 0, 0} 
 };

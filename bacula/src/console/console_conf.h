@@ -33,6 +33,7 @@ struct s_res_cons {
    RES   hdr;
    char *rc_file;                     /* startup file */
    char *hist_file;                   /* command history file */
+   char *ssl_certs;                   /* certificates directory */
 };
 typedef struct s_res_cons CONSRES;
 
@@ -42,6 +43,7 @@ struct s_res_dir {
    int   DIRport;                     /* UA server port */
    char *address;                     /* UA server address */
    char *password;                    /* UA server password */
+   int  enable_ssl;                   /* Use SSL */
 };
 typedef struct s_res_dir DIRRES;
 

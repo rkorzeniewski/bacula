@@ -88,7 +88,7 @@ static struct s_cmds cmds[] = {
 
 /* Commands received from director that need scanning */
 static char jobcmd[]      = "JobId=%d Job=%127s SDid=%d SDtime=%d Authorization=%100s";
-static char storaddr[]    = "storage address=%s port=%d\n";
+static char storaddr[]    = "storage address=%s port=%d ssl=%d\n";
 static char sessioncmd[]  = "session %127s %ld %ld %ld %ld %ld %ld\n";
 static char restorecmd[]  = "restore replace=%c where=%s\n";
 static char restorecmd1[] = "restore replace=%c where=\n";
@@ -466,15 +466,16 @@ static int session_cmd(JCR *jcr)
 static int storage_cmd(JCR *jcr)
 {
    int stored_port;		   /* storage daemon port */
+   int enable_ssl;		   /* enable ssl to sd */
    BSOCK *dir = jcr->dir_bsock;
    BSOCK *sd;			      /* storage daemon bsock */
 
    Dmsg1(100, "StorageCmd: %s", dir->msg);
-   if (sscanf(dir->msg, storaddr, &jcr->stored_addr, &stored_port) != 2) {
+   if (sscanf(dir->msg, storaddr, &jcr->stored_addr, &stored_port, &enable_ssl) != 3) {
       Jmsg(jcr, M_FATAL, 0, _("Bad storage command: %s"), dir->msg);
       return 0;
    }
-   Dmsg2(110, "Open storage: %s:%d\n", jcr->stored_addr, stored_port);
+   Dmsg3(110, "Open storage: %s:%d ssl=%d\n", jcr->stored_addr, stored_port, enable_ssl);
    /* Open command communications with Storage daemon */
    /* Try to connect for 1 hour at 10 second intervals */
    sd = bnet_connect(jcr, 10, 3600, _("Storage daemon"), 
