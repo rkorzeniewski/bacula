@@ -803,7 +803,7 @@ STORE *get_storage_resource(UAContext *ua, int use_default)
 
          } else if (strcasecmp(ua->argk[i], _("job")) == 0) {
 	    if (!ua->argv[i]) {
-               bsendmsg(ua, _("Job name not specified.\n"));
+               bsendmsg(ua, _("Expecting job=xxx, got: %s.\n"), ua->argk[i]);
 	       return NULL;
 	    }
 	    if (!(jcr=get_jcr_by_partial_name(ua->argv[i]))) {

@@ -85,7 +85,7 @@ int64_t str_to_int64(char *str)
  */
 char *edit_uint64_with_commas(uint64_t val, char *buf)
 {
-   sprintf(buf, "%" lld, val);
+   sprintf(buf, "%" llu, val);
    return add_commas(buf, buf);
 }
 
@@ -96,7 +96,7 @@ char *edit_uint64_with_commas(uint64_t val, char *buf)
  */
 char *edit_uint64(uint64_t val, char *buf)
 {
-   sprintf(buf, "%" lld, val);
+   sprintf(buf, "%" llu, val);
    return buf;
 }
 

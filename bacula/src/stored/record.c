@@ -193,7 +193,7 @@ int write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec)
    remlen = block->buf_len - block->binbuf;
 
    ASSERT(block->binbuf == (uint32_t) (block->bufp - block->buf));
-   ASSERT(remlen >= 0);
+   ASSERT(block->buf_len >= block->binbuf);
 
    Dmsg6(190, "write_record_to_block() FI=%s SessId=%d Strm=%s len=%d\n\
 rem=%d remainder=%d\n",

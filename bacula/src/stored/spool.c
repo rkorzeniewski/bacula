@@ -164,9 +164,10 @@ static bool close_data_spool_file(JCR *jcr)
    P(mutex);
    spool_stats.data_jobs--;
    spool_stats.total_data_jobs++;
-   spool_stats.data_size -= jcr->dcr->spool_size;
-   if (spool_stats.data_size < 0) {
+   if (spool_stats.data_size < jcr->dcr->spool_size) {
       spool_stats.data_size = 0;
+   } else {
+      spool_stats.data_size -= jcr->dcr->spool_size;
    }
    jcr->dcr->spool_size = 0;
    V(mutex);
@@ -237,9 +238,10 @@ static bool despool_data(DCR *dcr)
    }
 
    P(mutex);
-   spool_stats.data_size -= dcr->spool_size;
-   if (spool_stats.data_size < 0) {
+   if (spool_stats.data_size < dcr->spool_size) {
       spool_stats.data_size = 0;
+   } else {
+      spool_stats.data_size -= dcr->spool_size;
    }
    V(mutex);
    P(dcr->dev->spool_mutex);

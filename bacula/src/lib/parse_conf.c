@@ -103,7 +103,7 @@ RES_ITEM msgs_items[] = {
    {"director",    store_msgs, ITEM(res_msgs), MD_DIRECTOR, 0, 0},
    {"console",     store_msgs, ITEM(res_msgs), MD_CONSOLE,  0, 0},   
    {"operator",    store_msgs, ITEM(res_msgs), MD_OPERATOR, 0, 0},
-   {NULL, NULL,    NULL, 0}
+   {NULL, NULL,    NULL,       0,	       0}
 };
 
 struct s_mtypes {	
@@ -701,8 +701,8 @@ parse_config(const char *cf, int exit_on_error)
    for (pass=1; pass <= 2; pass++) {
       Dmsg1(300, "parse_config pass %d\n", pass);
       if ((lc = lex_open_file(lc, cf, NULL)) == NULL) {
-         set_exit_on_error(1); /* Never reached if exit_on_error == 1 */
-         return 0;
+	 set_exit_on_error(1); /* Never reached if exit_on_error == 1 */
+	 return 0;
       }
       while ((token=lex_get_token(lc, T_ALL)) != T_EOF) {
          Dmsg1(300, "parse got token=%s\n", lex_tok_to_str(token));
@@ -713,8 +713,8 @@ parse_config(const char *cf, int exit_on_error)
 	       }
 	       if (token != T_IDENTIFIER) {
                   scan_err1(lc, _("Expected a Resource name identifier, got: %s"), lc->str);
-                  set_exit_on_error(1); /* Never reached if exit_on_error == 1 */
-                  return 0;
+		  set_exit_on_error(1); /* Never reached if exit_on_error == 1 */
+		  return 0;
 	       }
 	       for (i=0; resources[i].name; i++)
 		  if (strcasecmp(resources[i].name, lc->str) == 0) {
@@ -726,8 +726,8 @@ parse_config(const char *cf, int exit_on_error)
 		  }
 	       if (state == p_none) {
                   scan_err1(lc, _("expected resource name, got: %s"), lc->str);
-                  set_exit_on_error(1); /* Never reached if exit_on_error == 1 */
-                  return 0;
+		  set_exit_on_error(1); /* Never reached if exit_on_error == 1 */
+		  return 0;
 	       }
 	       break;
 	    case p_resource:
@@ -738,8 +738,8 @@ parse_config(const char *cf, int exit_on_error)
 		  case T_IDENTIFIER:
 		     if (level != 1) {
                         scan_err1(lc, _("not in resource definition: %s"), lc->str);
-                        set_exit_on_error(1); /* Never reached if exit_on_error == 1 */
-                        return 0;
+			set_exit_on_error(1); /* Never reached if exit_on_error == 1 */
+			return 0;
 		     }
 		     for (i=0; items[i].name; i++) {
 			if (strcasecmp(items[i].name, lc->str) == 0) {
@@ -750,8 +750,8 @@ parse_config(const char *cf, int exit_on_error)
                               Dmsg1 (300, "in T_IDENT got token=%s\n", lex_tok_to_str(token));
 			      if (token != T_EQUALS) {
                                  scan_err1(lc, _("expected an equals, got: %s"), lc->str);
-                                 set_exit_on_error(1); /* Never reached if exit_on_error == 1 */
-                                 return 0;
+				 set_exit_on_error(1); /* Never reached if exit_on_error == 1 */
+				 return 0;
 			      }
 			   }
                            Dmsg1(300, "calling handler for %s\n", items[i].name);
@@ -766,8 +766,8 @@ parse_config(const char *cf, int exit_on_error)
                         Dmsg1(300, "Keyword = %s\n", lc->str);
                         scan_err1(lc, _("Keyword \"%s\" not permitted in this resource.\n"
                            "Perhaps you left the trailing brace off of the previous resource."), lc->str);
-                        set_exit_on_error(1); /* Never reached if exit_on_error == 1 */
-                        return 0;
+			set_exit_on_error(1); /* Never reached if exit_on_error == 1 */
+			return 0;
 		     }
 		     break;
 
@@ -784,20 +784,20 @@ parse_config(const char *cf, int exit_on_error)
 		  default:
                      scan_err2(lc, _("unexpected token %d %s in resource definition"),    
 			token, lex_tok_to_str(token));
-                     set_exit_on_error(1); /* Never reached if exit_on_error == 1 */
-                     return 0;
+		     set_exit_on_error(1); /* Never reached if exit_on_error == 1 */
+		     return 0;
 	       }
 	       break;
 	    default:
                scan_err1(lc, _("Unknown parser state %d\n"), state);
-               set_exit_on_error(1); /* Never reached if exit_on_error == 1 */
-               return 0;
+	       set_exit_on_error(1); /* Never reached if exit_on_error == 1 */
+	       return 0;
 	 }
       }
       if (state != p_none) {
          scan_err0(lc, _("End of conf file reached with unclosed resource."));
-         set_exit_on_error(1); /* Never reached if exit_on_error == 1 */
-         return 0;
+	 set_exit_on_error(1); /* Never reached if exit_on_error == 1 */
+	 return 0;
       }
       if (debug_level > 50 && pass == 2) {
 	 int i;
