@@ -130,7 +130,7 @@ int do_restore(JCR *jcr)
     *
     */
    Dmsg0(10, "Open connection with storage daemon\n");
-   set_jcr_job_status(jcr, JS_Blocked);
+   set_jcr_job_status(jcr, JS_WaitSD);
    /*
     * Start conversation with Storage daemon  
     */
@@ -157,6 +157,7 @@ int do_restore(JCR *jcr)
    /* 
     * Start conversation with File daemon  
     */
+   set_jcr_job_status(jcr, JS_WaitFD);
    if (!connect_to_file_daemon(jcr, 10, FDConnectTimeout, 1)) {
       restore_cleanup(jcr, JS_ErrorTerminated);
       return 0;
@@ -180,7 +181,6 @@ int do_restore(JCR *jcr)
     *	then wait for File daemon to make connection
     *	with Storage daemon.
     */
-   set_jcr_job_status(jcr, JS_Blocked);
    if (jcr->store->SDDport == 0) {
       jcr->store->SDDport = jcr->store->SDport;
    }
@@ -190,7 +190,6 @@ int do_restore(JCR *jcr)
       restore_cleanup(jcr, JS_ErrorTerminated);
       return 0;
    }
-   set_jcr_job_status(jcr, JS_Running);
 
    /* 
     * Send the bootstrap file -- what Volumes/files to restore

@@ -270,12 +270,12 @@ struct GROUP {
 struct COUNTER {
    RES   hdr;
 
-   int32_t MinValue;                  /* Minimum value */
-   int32_t MaxValue;                  /* Maximum value */
-   int32_t CurrentValue;              /* Current value */
-   CAT   *WrapCounter;                /* Wrap counter name */
-   CAT   *Catalog;                    /* Where to store */
-   bool    created;                   /* Created in DB */
+   int32_t  MinValue;                 /* Minimum value */
+   int32_t  MaxValue;                 /* Maximum value */
+   int32_t  CurrentValue;             /* Current value */
+   COUNTER *WrapCounter;              /* Wrap counter name */
+   CAT     *Catalog;                  /* Where to store */
+   bool     created;                  /* Created in DB */
 };
 
 /*
