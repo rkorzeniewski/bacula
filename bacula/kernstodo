@@ -3,6 +3,9 @@
 
 1.35 Items to do:
 - Require resource names to be unique.
+- Add new DCR calling sequences everywhere in SD.
+  This will permit simultaneous use of multiple 
+  devices by a single job.
 - Make btape release the drive during the "test" append.
 - Do tape alerts -- see tapealert.txt
 - Revisit and revise Disaster Recovery (fix SCSI and RAID 
@@ -1082,14 +1085,14 @@ Block Position: 0
   Add Dan's work to manual See ssl.txt
 
 ==== Done in 1.35.0
-- Implement fast tree insert (doubly linked list?)
+- Implement fast tree insert (doubly linked list)
 - Disallow using Internal database
-- Feedback while the tree is being built.    
-- Add detection of Whitebox
+- Feedback while the restore tree is being built.    
+- Add detection of Whitebox release in ./configure
 - Add InChanger to "list media"
 - Implement second cut of SIGHUP in Dir
   (Implement resources on a single pointer)
-- Add regular expressions to FileSets.
-- Test new I/O error despooling code.
+- Add regular expressions to FileSets (needs testing).
+- Test new despooling error recovery code when partition fills.
 - Sort Scheduled jobs status listing by start time.
 - Add priority to Scheduled jobs status listing.
