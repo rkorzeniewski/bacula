@@ -150,7 +150,7 @@ bool update_device_res(JCR *jcr, DEVICE *dev)
  */
 int start_storage_daemon_job(JCR *jcr, alist *store, int append)
 {
-   bool ok;
+   bool ok = false;
    STORE *storage;
    BSOCK *sd;
    char auth_key[100];
@@ -228,7 +228,6 @@ int start_storage_daemon_job(JCR *jcr, alist *store, int append)
 	    }
 	 } else {
 	    POOL_MEM err_msg;
-	    ok = false;
 	    pm_strcpy(err_msg, sd->msg); /* save message */
             Jmsg(jcr, M_WARNING, 0, _("\n"
                "     Storage daemon didn't accept Device \"%s\" because:\n     %s"),

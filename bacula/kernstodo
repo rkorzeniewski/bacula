@@ -27,6 +27,13 @@ Suggestions for Preben:
 - Optimized bootstrap.
 
 Autochangers:
+- Fix
+   Please use the "label"  command to create a new Volume for:
+       Storage:      DDS-4-changer
+       Media type:   
+       Pool:         Default
+   label
+   The defined Storage resources are:
 - Copy Changer Device and Changer Command from Autochanger
   to Device resource in SD if none given in Device resource.
 - Doc the following
@@ -1267,4 +1274,3 @@ Block Position: 0
 - Bootstrap from JobMedia records.
 - Implement WildFile and WildDir to solve problem of 
   saving only *.doc files.
-
