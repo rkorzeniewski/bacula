@@ -11,8 +11,8 @@ sed s%\^%${cwd}% ${cwd}/scripts/flist >${cwd}/tmp/restore2-list
 
 echo " "
 echo " "
-echo " === Starting restore2-by-file-test ==="
-echo " === Starting restore2-by-file-test ===" >>working/log
+echo " === Starting restore2-by-file-test `date +%R:%S` ==="
+echo " === Starting restore2-by-file-test `date +%R:%S` ===" >>working/log
 echo " "
 
 bin/bacula start 2>&1 >/dev/null

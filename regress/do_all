@@ -1,5 +1,5 @@
 #!/bin/sh
 make setup
 ./starttime
-./all-non-root-tests
+./all-tape-and-file-tests
 ./endtime

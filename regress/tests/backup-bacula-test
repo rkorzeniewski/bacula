@@ -9,8 +9,8 @@ scripts/cleanup
 
 echo " "
 echo " "
-echo " === Starting Backup Bacula Test ==="
-echo " === Starting Backup Bacula Test ===" >>working/log
+echo " === Starting Backup Bacula Test `date +%R:%S` ==="
+echo " === Starting Backup Bacula Test `date +%R:%S` ===" >>working/log
 echo " "
 
 #bin/bacula start 2>&1 >/dev/null

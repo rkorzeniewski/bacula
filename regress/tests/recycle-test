@@ -12,8 +12,8 @@ echo "${cwd}/build" >/tmp/file-list
 
 echo " "
 echo " "
-echo " === Starting recycle-test  ==="
-echo " === Starting recycle-test  ===" >working/log
+echo " === Starting recycle-test `date +%R:%S` ==="
+echo " === Starting recycle-test `date +%R:%S` ===" >working/log
 echo " "
 
 bin/bacula start 2>&1 >/dev/null

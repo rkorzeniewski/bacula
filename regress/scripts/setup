@@ -24,7 +24,15 @@ rm -f Makefile config.cache
 # Remove files that may be too big
 cd doc/latex
 make clean
-cd ../..
+cd ../latex-fr
+make clean
+cd ../images
+rm -f *.png *.jpg *.gif *.eps
+rm -rf hires
+cd ${cwd}/build
+cd rescue/linux/cdrom/cdtree
+rm -rf bacula-*
+cd ${cwd}/build
 # Run Bacula configuration, make, install
 ./regress-config ${cwd} $2 $3 $4
 make

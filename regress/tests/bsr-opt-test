@@ -13,8 +13,8 @@ echo "${cwd}/build" >/tmp/file-list
 
 echo " "
 echo " "
-echo " === Starting bsr-opt-test  ==="
-echo " === Starting bsr-opt-test  ===" >working/log
+echo " === Starting bsr-opt-test `date +%R:%S` ==="
+echo " === Starting bsr-opt-test `date +%R:%S` ===" >working/log
 echo " "
 
 bin/bacula start 2>&1 >/dev/null

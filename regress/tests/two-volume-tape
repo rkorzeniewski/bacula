@@ -20,8 +20,8 @@ sed -f ${out} ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
 
 echo " "
 echo " "
-echo " === Starting Two Volume Tape test ==="
-echo " === Starting Two Volume Tape test ===" >>working/log
+echo " === Starting Two Volume Tape test `date +%R:%S` ==="
+echo " === Starting Two Volume Tape test `date +%R:%S` ===" >>working/log
 echo " "
 
 bin/bacula start 2>&1 >/dev/null
