@@ -1,3 +1,17 @@
+2003-05-20 Version 1.31 Beta 22May03
+- I discovered that C++ permits "prototyping" structures e.g. struct A; is
+  a valid statement. This permitted me to eliminate all the void *jcr, in
+  favor of JCR *jcr, which pointed out a number of bugs in block.c.
+- Change lib/bmisc.c to bsys.c (system routines).
+- Add set_working_directory() to lib/util.c
+- Remove some unneeded setjcr_job_status() since Jmsg(jcr, M_FATAL,...)
+  already sets it.  
+- Do not increment jcr->Errors for Fatal errors -- they represent non-fatal
+  errors.
+- Fix a few more places in FD where Errors was not incremented.
+- Print unexpected (or incorrect) termination message returned from FD.
+- Use switch() instead of giant if statement in verify_vol.c
+- Protect overrun from do_shell_expansion() by passing max length.
 2003-05-20 Version 1.31 Beta 20May03
 - Add mandrake to platforms
 - Suppress error messages if no bytes written to tape.
