@@ -29,6 +29,7 @@
 #include "stored.h"
 
 /* Forward referenced subroutines */
+static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sessrec);
 
 /* Variables used by Child process */
 /* Global statistics */
@@ -113,10 +114,15 @@ int do_read_data(JCR *jcr)
       if (!read_block_from_device(dev, block)) {
          Dmsg1(500, "Main read record failed. rem=%d\n", rec->remainder);
 	 if (dev->state & ST_EOT) {
+	    DEV_RECORD *record;
 	    if (!mount_next_read_volume(jcr, dev, block)) {
 	       break;
 	    }
-	    continue;
+	    record = new_record();
+	    read_block_from_device(dev, block);
+	    read_record_from_block(block, record);
+	    get_session_record(dev, record, &sessrec);
+	    free_record(record);
 	 }
 	 if (dev->state & ST_EOF) {
             Dmsg0(90, "Got End of File. Trying again ...\n");
@@ -139,44 +145,18 @@ int do_read_data(JCR *jcr)
 	  *  get all the data.
 	  */
 
+	 if (rec->FileIndex == EOM_LABEL) { /* end of tape? */
+            Dmsg0(40, "Get EOM LABEL\n");
+	    rec->remainder = 0;
+	    break;			   /* yes, get out */
+	 }
+
 	 /* Some sort of label? */ 
 	 if (rec->FileIndex < 0) {
-	    char *rtype;
-	    memset(&sessrec, 0, sizeof(sessrec));
-	    switch (rec->FileIndex) {
-	       case PRE_LABEL:
-                  rtype = "Fresh Volume Label";   
-		  break;
-	       case VOL_LABEL:
-                  rtype = "Volume Label";
-		  unser_volume_label(dev, rec);
-		  break;
-	       case SOS_LABEL:
-                  rtype = "Begin Session";
-		  unser_session_label(&sessrec, rec);
-		  break;
-	       case EOS_LABEL:
-                  rtype = "End Session";
-		  break;
-	       case EOM_LABEL:
-                  rtype = "End of Media";
-		  break;
-	       default:
-                  rtype = "Unknown";
-		  break;
-	    }
-            Dmsg5(10, "%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
-		  rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
-
-            Dmsg1(40, "Got label = %d\n", rec->FileIndex);
-	    if (rec->FileIndex == EOM_LABEL) { /* end of tape? */
-               Dmsg0(40, "Get EOM LABEL\n");
-	       rec->remainder = 0;
-	       break;			      /* yes, get out */
-	    }
-	    rec->remainder = 0;
-	    continue;			      /* ignore other labels */
+	    get_session_record(dev, rec, &sessrec);
+	    continue;
 	 } /* end if label record */
+
 
 	 /* Match BSR against current record */
 	 if (jcr->bsr) {
@@ -245,4 +225,34 @@ int do_read_data(JCR *jcr)
    free_vol_list(jcr);
    Dmsg0(30, "Done reading.\n");
    return ok ? 1 : 0;
+}
+
+static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sessrec)
+{
+   char *rtype;
+   memset(sessrec, 0, sizeof(sessrec));
+   switch (rec->FileIndex) {
+      case PRE_LABEL:
+         rtype = "Fresh Volume Label";   
+	 break;
+      case VOL_LABEL:
+         rtype = "Volume Label";
+	 unser_volume_label(dev, rec);
+	 break;
+      case SOS_LABEL:
+         rtype = "Begin Session";
+	 unser_session_label(sessrec, rec);
+	 break;
+      case EOS_LABEL:
+         rtype = "End Session";
+	 break;
+      case EOM_LABEL:
+         rtype = "End of Media";
+	 break;
+      default:
+         rtype = "Unknown";
+	 break;
+   }
+   Dmsg5(10, "%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
+	 rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
 }

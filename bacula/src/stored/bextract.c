@@ -34,7 +34,7 @@
 
 static void do_extract(char *fname, char *prefix);
 static void print_ls_output(char *fname, char *link, int type, struct stat *statp);
-
+static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sessrec);
 
 static DEVICE *dev = NULL;
 static int ofd = -1;
@@ -155,6 +155,30 @@ int main (int argc, char *argv[])
    }
    return 0;
 }
+
+/*
+ * Device got an error, attempt to analyse it
+ */
+static void display_error_status()
+{
+   uint32_t status;
+
+   Emsg0(M_ERROR, 0, dev->errmsg);
+   status_dev(dev, &status);
+   Dmsg1(20, "Device status: %x\n", status);
+   if (status & MT_EOD)
+      Emsg0(M_ERROR_TERM, 0, "Unexpected End of Data\n");
+   else if (status & MT_EOT)
+      Emsg0(M_ERROR_TERM, 0, "Unexpected End of Tape\n");
+   else if (status & MT_EOF)
+      Emsg0(M_ERROR_TERM, 0, "Unexpected End of File\n");
+   else if (status & MT_DR_OPEN)
+      Emsg0(M_ERROR_TERM, 0, "Tape Door is Open\n");
+   else if (!(status & MT_ONLINE))
+      Emsg0(M_ERROR_TERM, 0, "Unexpected Tape is Off-line\n");
+   else
+      Emsg2(M_ERROR_TERM, 0, "Read error on Record Header %s: %s\n", dev_name(dev), strerror(errno));
+}
   
 
 static void do_extract(char *devname, char *where)
@@ -228,13 +252,18 @@ static void do_extract(char *devname, char *where)
 
    for ( ;; ) {
       if (!read_block_from_device(dev, block)) {
-	 uint32_t status;
          Dmsg1(500, "Main read record failed. rem=%d\n", rec->remainder);
 	 if (dev->state & ST_EOT) {
+	    DEV_RECORD *record;
 	    if (!mount_next_read_volume(jcr, dev, block)) {
 	       break;
 	    }
-	    continue;
+	    record = new_record();
+	    read_block_from_device(dev, block);
+	    read_record_from_block(block, record);
+	    get_session_record(dev, record, &sessrec);
+	    free_record(record);
+	    goto next_record;
 	 }
 	 if (dev->state & ST_EOF) {
 	    continue;		      /* try again */
@@ -242,75 +271,25 @@ static void do_extract(char *devname, char *where)
 	 if (dev->state & ST_SHORT) {
 	    continue;
 	 }
-         Pmsg0(0, "Read Record got a bad record\n");
-	 status_dev(dev, &status);
-         Dmsg1(20, "Device status: %x\n", status);
-	 if (status & MT_EOD)
-            Emsg0(M_ERROR_TERM, 0, "Unexpected End of Data\n");
-	 else if (status & MT_EOT)
-            Emsg0(M_ERROR_TERM, 0, "Unexpected End of Tape\n");
-	 else if (status & MT_EOF)
-            Emsg0(M_ERROR_TERM, 0, "Unexpected End of File\n");
-	 else if (status & MT_DR_OPEN)
-            Emsg0(M_ERROR_TERM, 0, "Tape Door is Open\n");
-	 else if (!(status & MT_ONLINE))
-            Emsg0(M_ERROR_TERM, 0, "Unexpected Tape is Off-line\n");
-	 else
-            Emsg3(M_ERROR_TERM, 0, "Read error %d on Record Header %s: %s\n", 
-	       status, dev_name(dev), strerror(errno));
+	 display_error_status();
       }
 
+next_record:
       for (rec->state=0; !is_block_empty(rec); ) {
 	 if (!read_record_from_block(block, rec)) {
 	    break;
 	 }
 
-	 /* This is no longer used */		     
-	 if (rec->VolSessionId == 0 && rec->VolSessionTime == 0) {
-            Emsg0(M_ERROR, 0, "Zero header record. This shouldn't happen.\n");
-	    break;			 /* END OF FILE */
+	 if (rec->FileIndex == EOM_LABEL) { /* end of tape? */
+            Dmsg0(40, "Get EOM LABEL\n");
+	    rec->remainder = 0;
+	    break;			   /* yes, get out */
 	 }
 
-	 /* 
-	  * Check for Start or End of Session Record 
-	  *
-	  */
+	 /* Some sort of label? */ 
 	 if (rec->FileIndex < 0) {
-	    char *rtype;
-	    memset(&sessrec, 0, sizeof(sessrec));
-	    switch (rec->FileIndex) {
-	       case PRE_LABEL:
-                  rtype = "Fresh Volume Label";   
-		  break;
-	       case VOL_LABEL:
-                  rtype = "Volume Label";
-		  unser_volume_label(dev, rec);
-		  break;
-	       case SOS_LABEL:
-                  rtype = "Begin Session";
-		  unser_session_label(&sessrec, rec);
-		  break;
-	       case EOS_LABEL:
-                  rtype = "End Session";
-		  break;
-	       case EOM_LABEL:
-                  rtype = "End of Media";
-		  break;
-	       default:
-                  rtype = "Unknown";
-		  break;
-	    }
-	    if (debug_level > 0) {
-               printf("%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
-		  rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
-	    }
-
-            Dmsg1(40, "Got label = %d\n", rec->FileIndex);
-	    if (rec->FileIndex == EOM_LABEL) { /* end of tape? */
-               Dmsg0(40, "Get EOM LABEL\n");
-	       break;			      /* yes, get out */
-	    }
-	    continue;			      /* ignore other labels */
+	    get_session_record(dev, rec, &sessrec);
+	    continue;
 	 } /* end if label record */
 
 	 /* Is this the file we want? */
@@ -527,6 +506,36 @@ static void print_ls_output(char *fname, char *link, int type, struct stat *stat
    *p++ = '\n';
    *p = 0;
    fputs(buf, stdout);
+}
+
+static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sessrec)
+{
+   char *rtype;
+   memset(sessrec, 0, sizeof(sessrec));
+   switch (rec->FileIndex) {
+      case PRE_LABEL:
+         rtype = "Fresh Volume Label";   
+	 break;
+      case VOL_LABEL:
+         rtype = "Volume Label";
+	 unser_volume_label(dev, rec);
+	 break;
+      case SOS_LABEL:
+         rtype = "Begin Session";
+	 unser_session_label(sessrec, rec);
+	 break;
+      case EOS_LABEL:
+         rtype = "End Session";
+	 break;
+      case EOM_LABEL:
+         rtype = "End of Media";
+	 break;
+      default:
+         rtype = "Unknown";
+	 break;
+   }
+   Dmsg5(10, "%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
+	 rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
 }
 
 /* Dummies to replace askdir.c */

@@ -34,6 +34,7 @@ static void do_ls(char *fname);
 static void print_ls_output(char *fname, char *link, int type, struct stat *statp);
 static void do_setup(char *infname);
 static void do_close();
+static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sessrec);
 
 static DEVICE *dev;
 static int default_tape = FALSE;
@@ -244,7 +245,7 @@ static void do_setup(char *infname)
 	 *p = 0;
       }
    }
-   Dmsg2(10, "Device=%s, Vol=%s.\n", infname, VolName);
+   Dmsg2(000, "Device=%s, Vol=%s.\n", infname, VolName);
    dev = init_dev(NULL, infname);
    if (!dev) {
       Emsg1(M_FATAL, 0, "Cannot open %s\n", infname);
@@ -263,7 +264,7 @@ static void do_setup(char *infname)
    NumVolumes = 0;
    CurVolume = 1;
    for (p = VolName; p && *p; ) {
-      p = strchr(p, '^');
+      p = strchr(p, '|');
       if (p) {
 	 *p++ = 0;
       }
@@ -488,10 +489,22 @@ Warning, this Volume is a continuation of Volume %s\n",
       if (!read_block_from_device(dev, block)) {
          Dmsg0(20, "!read_record()\n");
 	 if (dev->state & ST_EOT) {
+	    DEV_RECORD *record;
+            Dmsg3(000, "EOT. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
+		  block->BlockNumber, rec->remainder);
 	    if (!mount_next_volume(infname)) {
+               Dmsg3(000, "After mount next vol. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
+		  block->BlockNumber, rec->remainder);
 	       break;
 	    }
-	    continue;
+            Dmsg3(000, "After mount next vol. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
+		  block->BlockNumber, rec->remainder);
+	    record = new_record();
+	    read_block_from_device(dev, block);
+	    read_record_from_block(block, record);
+	    get_session_record(dev, record, &sessrec);
+	    free_record(record);
+	    goto next_record;
 	 }
 	 if (dev->state & ST_EOF) {
             Emsg1(M_INFO, 0, "Got EOF on device %s\n", dev_name(dev));
@@ -509,12 +522,12 @@ Warning, this Volume is a continuation of Volume %s\n",
          Dmsg2(10, "Block: %d blen=%d\n", block->BlockNumber, block->block_len);
       }
 
+next_record:
       record = 0;
       for (rec->state=0; !is_block_empty(rec); ) {
 	 if (!read_record_from_block(block, rec)) {
             Dmsg3(10, "!read-break. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
 		  block->BlockNumber, rec->remainder);
-//	    rec->remainder = 0;
 	    break;
 	 }
          Dmsg3(10, "read-OK. stat=%s blk=%d rem=%d\n", rec_state_to_str(rec), 
@@ -537,56 +550,16 @@ Warning, this Volume is a continuation of Volume %s\n",
 		  rec->data_len);
 	 }
 
-	 /*  
-	  * Check for End of File record (all zeros)
-	  *    NOTE: this no longer exists
-	  */
-	 if (rec->VolSessionId == 0 && rec->VolSessionTime == 0) {
-            Emsg0(M_ERROR_TERM, 0, "Zero VolSessionId and VolSessionTime. This shouldn't happen\n");
+	 if (rec->FileIndex == EOM_LABEL) { /* end of tape? */
+            Dmsg0(40, "Get EOM LABEL\n");
+	    rec->remainder = 0;
+	    break;			   /* yes, get out */
 	 }
 
-	 /* 
-	  * Check for Start or End of Session Record 
-	  *
-	  */
+	 /* Some sort of label? */ 
 	 if (rec->FileIndex < 0) {
-	    char *rtype;
-	    memset(&sessrec, 0, sizeof(sessrec));
-	    switch (rec->FileIndex) {
-	       case PRE_LABEL:
-                  rtype = "Fresh Volume Label";   
-		  break;
-	       case VOL_LABEL:
-                  rtype = "Volume Label";
-		  unser_volume_label(dev, rec);
-		  break;
-	       case SOS_LABEL:
-                  rtype = "Begin Session";
-		  unser_session_label(&sessrec, rec);
-		  break;
-	       case EOS_LABEL:
-                  rtype = "End Session";
-		  break;
-	       case EOM_LABEL:
-                  rtype = "End of Media";
-		  break;
-	       default:
-                  rtype = "Unknown";
-		  break;
-	    }
-	    if (debug_level > 0) {
-               printf("%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
-		  rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
-	    }
-
-            Dmsg1(40, "Got label = %d\n", rec->FileIndex);
-	    if (rec->FileIndex == EOM_LABEL) { /* end of tape? */
-               Dmsg0(100, "EOM LABEL break\n");
-	       rec->remainder = 0;
-	       break;			      /* yes, get out */
-	    }
-	    rec->remainder = 0;
-            continue;              /* we don't want record, read next one */
+	    get_session_record(dev, rec, &sessrec);
+	    continue;
 	 } /* end if label record */
 
 	 /* 
@@ -683,6 +656,37 @@ static void print_ls_output(char *fname, char *link, int type, struct stat *stat
    *p = 0;
    fputs(buf, stdout);
 }
+
+static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sessrec)
+{
+   char *rtype;
+   memset(sessrec, 0, sizeof(sessrec));
+   switch (rec->FileIndex) {
+      case PRE_LABEL:
+         rtype = "Fresh Volume Label";   
+	 break;
+      case VOL_LABEL:
+         rtype = "Volume Label";
+	 unser_volume_label(dev, rec);
+	 break;
+      case SOS_LABEL:
+         rtype = "Begin Session";
+	 unser_session_label(sessrec, rec);
+	 break;
+      case EOS_LABEL:
+         rtype = "End Session";
+	 break;
+      case EOM_LABEL:
+         rtype = "End of Media";
+	 break;
+      default:
+         rtype = "Unknown";
+	 break;
+   }
+   Dmsg5(10, "%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
+	 rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
+}
+
 
 /* Dummies to replace askdir.c */
 int	dir_get_volume_info(JCR *jcr) { return 1;}

@@ -80,6 +80,7 @@ static void *connect_thread(void *arg)
 
    pthread_detach(pthread_self());
 
+   /*  ****FIXME**** put # 5 on config parameter */
    bnet_thread_server(UA_port, 5, &ua_workq, handle_UA_client_request);
    return NULL;
 }

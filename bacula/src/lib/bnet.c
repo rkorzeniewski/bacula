@@ -281,7 +281,6 @@ bnet_send(BSOCK *bsock)
 	 bsock->b_errno = errno;
       }
       if (rc < 0) {
-	 /************FIXME********* use Pmsg() **/
          Jmsg4(bsock->jcr, M_ERROR, 0, _("Write error sending to %s:%s:%d: ERR=%s\n"), 
 	       bsock->who, bsock->host, bsock->port,  bnet_strerror(bsock));
       } else {
@@ -348,11 +347,12 @@ static uint32_t *bget_host_ip(void *jcr, char *host)
    } else {
       /******FIXME***** use gethostbyname_r or mutex ****/
       if ((hp = gethostbyname(host)) == NULL) {
-         Pmsg2(0, "gethostbyname() for %s failed: ERR=%s\n", host, strerror(errno));
+         Jmsg2(jcr, M_ERROR, 0, "gethostbyname() for %s failed: ERR=%s\n", 
+	       host, strerror(errno));
 	 return NULL;
       }
       if (hp->h_length != sizeof(inaddr.s_addr) || hp->h_addrtype != AF_INET) {
-          Jmsg2(jcr, M_WARNING, 0, _("gethostbyname() network address length error.\n\
+          Jmsg2(jcr, M_ERROR, 0, _("gethostbyname() network address length error.\n\
 Wanted %d got %d bytes for s_addr.\n"), sizeof(inaddr.s_addr), hp->h_length);
 	  return NULL;
       }
