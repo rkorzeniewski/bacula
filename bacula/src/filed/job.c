@@ -42,10 +42,8 @@ static int bootstrap_cmd(JCR *jcr);
 static int cancel_cmd(JCR *jcr);
 static int setdebug_cmd(JCR *jcr);
 static int estimate_cmd(JCR *jcr);
-static int exclude_cmd(JCR *jcr);
 static int hello_cmd(JCR *jcr);
 static int job_cmd(JCR *jcr);
-static int include_cmd(JCR *jcr);
 static int fileset_cmd(JCR *jcr);
 static int level_cmd(JCR *jcr);
 static int verify_cmd(JCR *jcr);
@@ -78,9 +76,7 @@ static struct s_cmds cmds[] = {
    {"cancel",       cancel_cmd,    0},
    {"setdebug=",    setdebug_cmd,  0},
    {"estimate",     estimate_cmd,  0},
-   {"exclude",      exclude_cmd,   0},
    {"Hello",        hello_cmd,     1},
-   {"include",      include_cmd,   0},
    {"fileset",      fileset_cmd,   0},
    {"JobId=",       job_cmd,       0},
    {"level = ",     level_cmd,     0},
@@ -113,7 +109,6 @@ static char no_auth[]     = "2998 No Authorization\n";
 static char illegal_cmd[] = "2997 Illegal command for a Director with Monitor directive enabled\n";
 static char OKinc[]       = "2000 OK include\n";
 static char OKest[]       = "2000 OK estimate files=%u bytes=%s\n";
-static char OKexc[]       = "2000 OK exclude\n";
 static char OKlevel[]     = "2000 OK level\n";
 static char OKbackup[]    = "2000 OK backup\n";
 static char OKbootstrap[] = "2000 OK bootstrap\n";
@@ -492,121 +487,6 @@ static bool run_cmd(JCR *jcr, char *cmd, const char *name)
       return false;
    }
    return true;
-}
-
-
-#define INC_LIST 0
-#define EXC_LIST 1
-
-static void add_fname_to_list(JCR *jcr, char *fname, int list)
-{
-   char *p, *q;
-   BPIPE *bpipe;
-   POOLMEM *fn;
-   FILE *ffd;
-   char buf[1000];
-   int optlen;
-   int stat;
-
-   /* Skip leading options -- currently ignored */
-   for (p=fname; *p && *p != ' '; p++)
-      { }
-   /* Skip spaces, and q points to first space */
-   for (q=NULL; *p && *p == ' '; p++) {
-      if (!q) {
-	 q = p;
-      }
-   }
-
-   switch (*p) {
-   case '|':
-      p++;			      /* skip over | */
-      fn = get_pool_memory(PM_FNAME);
-      fn = edit_job_codes(jcr, fn, p, "");
-      bpipe = open_bpipe(fn, 0, "r");
-      free_pool_memory(fn);
-      if (!bpipe) {
-         Jmsg(jcr, M_FATAL, 0, _("Cannot run program: %s. ERR=%s\n"),
-	    p, strerror(errno));
-	 return;
-      }
-      /* Copy File options */
-      if (list == INC_LIST) {
-	 *q = 0;		      /* terminate options */
-	 bstrncpy(buf, fname, sizeof(buf));
-         bstrncat(buf, " ", sizeof(buf));
-	 optlen = strlen(buf);
-      } else {
-	 optlen = 0;
-      }
-      while (fgets(buf+optlen, sizeof(buf)-optlen, bpipe->rfd)) {
-	 strip_trailing_junk(buf);
-	 if (list == INC_LIST) {
-	    add_fname_to_include_list((FF_PKT *)jcr->ff, 1, buf);
-	 } else {
-	    add_fname_to_exclude_list((FF_PKT *)jcr->ff, buf);
-	 }
-      }
-      if ((stat=close_bpipe(bpipe)) != 0) {
-         Jmsg(jcr, M_FATAL, 0, _("Error running program: %s. RtnStat=%d ERR=%s\n"),
-	    p, stat, strerror(errno));
-	 return;
-      }
-      break;
-   case '<':
-      p++;			/* skip over < */
-      if ((ffd = fopen(p, "r")) == NULL) {
-	 berrno be;
-         Jmsg(jcr, M_FATAL, 0, _("Cannot open %s file: %s. ERR=%s\n"),
-            list==INC_LIST?"included":"excluded", p, be.strerror());
-	 return;
-      }
-      /* Copy File options */
-      if (list == INC_LIST) {
-	 *q = 0;		      /* terminate options */
-	 bstrncpy(buf, fname, sizeof(buf));
-         bstrncat(buf, " ", sizeof(buf));
-	 optlen = strlen(buf);
-      } else {
-	 optlen = 0;
-      }
-      while (fgets(buf+optlen, sizeof(buf)-optlen, ffd)) {
-	 strip_trailing_junk(buf);
-	 if (list == INC_LIST) {
-	    add_fname_to_include_list((FF_PKT *)jcr->ff, 1, buf);
-	 } else {
-	    add_fname_to_exclude_list((FF_PKT *)jcr->ff, buf);
-	 }
-      }
-      fclose(ffd);
-      break;
-   default:
-      if (list == INC_LIST) {
-	 add_fname_to_include_list((FF_PKT *)jcr->ff, 1, fname);
-      } else {
-	 add_fname_to_exclude_list((FF_PKT *)jcr->ff, p);
-      }
-      break;
-   }
-}
-
-/*
- *
- * Get list of files/directories to include from Director
- *
- */
-static int include_cmd(JCR *jcr)
-{
-   BSOCK *dir = jcr->dir_bsock;
-
-   while (bnet_recv(dir) >= 0) {
-      dir->msg[dir->msglen] = 0;
-      strip_trailing_junk(dir->msg);
-      Dmsg1(010, "include file: %s\n", dir->msg);
-      add_fname_to_list(jcr, dir->msg, INC_LIST);
-   }
-
-   return bnet_fsend(dir, OKinc);
 }
 
 static bool init_fileset(JCR *jcr)
@@ -1038,25 +918,6 @@ static int fileset_cmd(JCR *jcr)
       return 0;
    }
    return bnet_fsend(dir, OKinc);
-}
-
-
-/*
- * Get list of files to exclude from Director
- *
- */
-static int exclude_cmd(JCR *jcr)
-{
-   BSOCK *dir = jcr->dir_bsock;
-
-   while (bnet_recv(dir) >= 0) {
-      dir->msg[dir->msglen] = 0;
-      strip_trailing_junk(dir->msg);
-      add_fname_to_list(jcr, dir->msg, EXC_LIST);
-      Dmsg1(110, "<dird: exclude file %s\n", dir->msg);
-   }
-
-   return bnet_fsend(dir, OKexc);
 }
 
 

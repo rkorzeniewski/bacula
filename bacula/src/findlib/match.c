@@ -4,13 +4,14 @@
  *
  *  Note, this file is used for the old style include and
  *   excludes, so is deprecated. The new style code is
- *   found in find.c
+ *   found in find.c.	
+ *  This code is still used for lists in testls and bextract.
  *
  *   Kern E. Sibbald, December MMI
  *
  */
 /*
-   Copyright (C) 2001-2004 Kern Sibbald
+   Copyright (C) 2001-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -53,12 +54,27 @@ static const int fnmode = 0;
 
 extern const int win32_client;
 
-/*
- * Initialize structures for filename matching
- */
-void init_include_exclude_files(FF_PKT *ff)
+int
+match_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt), void *his_pkt)
 {
+   ff->callback = callback;
+
+   struct s_included_file *inc = NULL;
+
+   /* This is the old deprecated way */
+   while (!job_canceled(jcr) && (inc = get_next_included_file(ff, inc))) {
+      /* Copy options for this file */
+      bstrncat(ff->VerifyOpts, inc->VerifyOpts, sizeof(ff->VerifyOpts));
+      Dmsg1(100, "find_files: file=%s\n", inc->fname);
+      if (!file_is_excluded(ff, inc->fname)) {
+	 if (find_one_file(jcr, ff, callback, his_pkt, inc->fname, (dev_t)-1, 1) ==0) {
+	    return 0;		       /* error return */
+	 }
+      }
+   }
+   return 1;
 }
+
 
 /*
  * Done doing filename matching, release all

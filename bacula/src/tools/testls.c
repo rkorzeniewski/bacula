@@ -112,7 +112,7 @@ main (int argc, char *const *argv)
       add_fname_to_include_list(ff, 0, "/"); /* default to / */
    } else {
       for (i=0; i < argc; i++) {
-	 if (strcmp(argv[i], "-") == 0) {
+         if (strcmp(argv[i], "-") == 0) {
 	     while (fgets(name, sizeof(name)-1, stdin)) {
 		strip_trailing_junk(name);
 		add_fname_to_include_list(ff, 0, name);
@@ -125,7 +125,7 @@ main (int argc, char *const *argv)
    if (inc) {
       fd = fopen(inc, "r");
       if (!fd) {
-	 printf("Could not open include file: %s\n", inc);
+         printf("Could not open include file: %s\n", inc);
 	 exit(1);
       }
       while (fgets(name, sizeof(name)-1, fd)) {
@@ -138,7 +138,7 @@ main (int argc, char *const *argv)
    if (exc) {
       fd = fopen(exc, "r");
       if (!fd) {
-	 printf("Could not open exclude file: %s\n", exc);
+         printf("Could not open exclude file: %s\n", exc);
 	 exit(1);
       }
       while (fgets(name, sizeof(name)-1, fd)) {
@@ -147,7 +147,8 @@ main (int argc, char *const *argv)
       }
       fclose(fd);
    }
-   find_files(jcr, ff, print_file, NULL);
+   match_files(jcr, ff, print_file, NULL);
+   term_include_exclude_files(ff);
    hard_links = term_find_files(ff);
 
    free_jcr(jcr);
