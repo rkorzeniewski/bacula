@@ -14,6 +14,9 @@ Version 1.35                Kern (see below)
   
 
 1.37 Items:
+- Look at correcting the time jump in the sceduler for daylight
+  savings time changes.
+- Add a "real" timer to network connections.
 - Tell the "restore" user when browsing is no longer possible.
 - Write non-optimized bsrs from the JobMedia and Media records,
   even after Files are pruned.

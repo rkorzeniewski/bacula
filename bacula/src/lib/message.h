@@ -37,6 +37,7 @@
 #undef  M_TERM
 #undef  M_RESTORED
 #undef  M_SECURITY
+#undef  M_ALERT
 
 /*
  * Most of these message levels are more or less obvious. 
@@ -65,6 +66,8 @@
  *  M_SECURITY    For security viloations. This is equivalent to FATAL.
  *                (note, this is currently being implemented in 1.33).
  *
+ *  M_ALERT       For Tape Alert messages.
+ *
  */
 
 enum {
@@ -82,10 +85,11 @@ enum {
    M_ERROR_TERM,                      /* Error termination request (no dump) */
    M_TERM,                            /* Terminating daemon normally */
    M_RESTORED,                        /* ls -l of restored files */
-   M_SECURITY                         /* security violation */
+   M_SECURITY,                        /* security violation */
+   M_ALERT                            /* tape alert messages */
 };
 
-#define M_MAX      M_SECURITY         /* keep this updated ! */
+#define M_MAX      M_ALERT            /* keep this updated ! */
 
 /* Define message destination structure */
 /* *** FIXME **** where should be extended to handle multiple values */

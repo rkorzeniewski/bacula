@@ -238,6 +238,8 @@ static uint32_t write_bsr(UAContext *ua, RBSR *bsr, FILE *fd)
 {
    uint32_t count = 0;
    uint32_t total_count = 0; 
+   uint32_t LastIndex = 0;
+   bool first = true;
    if (bsr) {
       /*
        * For a given volume, loop over all the JobMedia records.
@@ -273,6 +275,15 @@ static uint32_t write_bsr(UAContext *ua, RBSR *bsr, FILE *fd)
             fprintf(fd, "Count=%u\n", count);
 	 }
 	 total_count += count;
+	 /* If the same file is present on two tapes or in two files
+	  *   on a tape, it is a continuation, and should not be treated
+	  *   twice in the totals.
+	  */
+	 if (!first && LastIndex == bsr->VolParams[i].FirstIndex) {
+	    total_count--;
+	 }
+	 first = false;
+	 LastIndex = bsr->VolParams[i].LastIndex;
       }
       write_bsr(ua, bsr->next, fd);
    }

@@ -435,7 +435,7 @@ bool release_device(JCR *jcr)
       bpipe = open_bpipe(alert, 0, "r");
       if (bpipe) {
 	 while (fgets(line, sizeof(line), bpipe->rfd)) {
-            Jmsg(jcr, M_INFO, 0, _("Alert: %s"), line);
+            Jmsg(jcr, M_ALERT, 0, _("Alert: %s"), line);
 	 }
 	 status = close_bpipe(bpipe);
       } else {
@@ -443,7 +443,7 @@ bool release_device(JCR *jcr)
       }
       if (status != 0) {
 	 berrno be;
-         Jmsg(jcr, M_INFO, 0, _("3997 Bad alert command: %s: ERR=%s.\n"),
+         Jmsg(jcr, M_ALERT, 0, _("3997 Bad alert command: %s: ERR=%s.\n"),
 	      alert, be.strerror(status));
       }
 

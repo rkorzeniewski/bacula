@@ -1,8 +1,8 @@
 /* */
 #undef  VERSION
 #define VERSION "1.37.1"
-#define BDATE   "30 October 2004"
-#define LSMDATE "30Oct04"
+#define BDATE   "04 November 2004"
+#define LSMDATE "04Nov04"
 
 /* Debug flags */
 #undef  DEBUG
@@ -10,7 +10,7 @@
 #define TRACEBACK 1
 #define SMCHECK     
 #define TRACE_FILE 1  
-/* #define DEVELOPER 1 */
+#define DEVELOPER 1
 
 
 /* Debug flags not normally turned on */

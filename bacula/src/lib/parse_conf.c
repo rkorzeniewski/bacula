@@ -126,6 +126,8 @@ static struct s_mtypes msg_types[] = {
    {"mount",         M_MOUNT},
    {"terminate",     M_TERM},
    {"restored",      M_RESTORED},
+   {"security",      M_SECURITY},
+   {"alert",         M_ALERT},
    {"all",           M_MAX+1},
    {NULL,	     0}
 };
