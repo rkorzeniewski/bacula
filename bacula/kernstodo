@@ -43,6 +43,8 @@ For 1.33 Testing/Documentation:
 
 
 For version 1.35:
+- When unmarking a directory check if all files below are unmarked and
+  then remove the + flag -- in the restore tree.
 - Possibly implement: Action = Unmount Device="TapeDrive1" in Admin jobs.
 - Setup lrrd graphs: (http://www.linpro.no/projects/lrrd/) Mike Acar.
 - Revisit the question of multiple Volumes (disk) on a single device.

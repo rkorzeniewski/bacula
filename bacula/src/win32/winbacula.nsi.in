@@ -193,7 +193,7 @@ SectionEnd
   LangString DESC_SecService ${LANG_ENGLISH} "Install Bacula client on this system."
   LangString DESC_SecConsole ${LANG_ENGLISH} "Install Console program on this system."
   LangString DESC_SecWxConsole ${LANG_ENGLISH} "Install graphical console program on this system."
-  LangString DESC_SecDoc ${LANG_ENGLISH} "Install Documenation on this system."
+  LangString DESC_SecDoc ${LANG_ENGLISH} "Install Documentation on this system."
 
   !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
     !insertmacro MUI_DESCRIPTION_TEXT ${SecService} $(DESC_SecService)
