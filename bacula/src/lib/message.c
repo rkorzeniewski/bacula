@@ -499,7 +499,8 @@ void close_msg(void *vjcr)
 	     * kaboom.
 	     */
 	    if (stat < 0 && msgs != daemon_msgs) {
-               Emsg0(M_ERROR, 0, _("Mail program terminated in error.\n"));
+               Emsg1(M_ERROR, 0, _("Mail program terminated in error.\nCMD=%s\n"),
+		  cmd);
 	    }
 	    free_memory(line);
 rem_temp_file:
@@ -636,7 +637,6 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
                 Dmsg1(200, "OPERATOR for following err: %s\n", msg);
 		mcmd = get_pool_memory(PM_MESSAGE);
 		d->fd = open_mail_pipe(jcr, &mcmd, d);
-		free_pool_memory(mcmd);
 		if (d->fd) {
 		   int stat;
 		   fputs(msg, d->fd);
@@ -644,9 +644,11 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 		   stat = pclose(d->fd);
 		   d->fd = NULL;
 		   if (stat < 0) {
-                      Emsg0(M_ERROR, 0, _("Operator mail program terminated in error.\n"));
+                      Emsg1(M_ERROR, 0, _("Operator mail program terminated in error.\nCMD=%s\n"),
+			 mcmd);
 		   }
 		}
+		free_pool_memory(mcmd);
 		break;
 	     case MD_MAIL:
 	     case MD_MAIL_ON_ERROR:
