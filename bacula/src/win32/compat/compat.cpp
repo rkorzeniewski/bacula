@@ -657,6 +657,7 @@ inet_aton(const char *a, struct in_addr *inp)
          }
          acc = (acc << 8) + tmp;
          dotc++;
+         tmp = 0;
       } else {
          return 0;              /* error */
       }
