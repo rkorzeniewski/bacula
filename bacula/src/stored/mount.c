@@ -270,7 +270,7 @@ read_volume:
        *   previous tape (or nothing).
        */
       if (dev_cap(dev, CAP_LABEL) && (dcr->VolCatInfo.VolCatBytes == 0 ||
-	    (!dev_is_tape(dev) && strcmp(dcr->VolCatInfo.VolCatStatus,
+	    (!dev->is_tape() && strcmp(dcr->VolCatInfo.VolCatStatus,
                                    "Recycle") == 0))) {
          Dmsg0(100, "Create volume label\n");
 	 /* Create a new Volume label and write it to the device */

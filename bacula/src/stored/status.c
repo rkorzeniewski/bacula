@@ -98,7 +98,7 @@ bool status_cmd(JCR *jcr)
    LockRes();
    foreach_res(device, R_DEVICE) {
       dev = device->dev;
-      if (dev->is_open()) {
+      if (dev && dev->is_open()) {
 	 if (dev->is_labeled()) {
             bnet_fsend(user, _("Device \"%s\" is mounted with Volume \"%s\"\n"),
 	       dev_name(dev), dev->VolHdr.VolName);
@@ -136,18 +136,19 @@ bool status_cmd(JCR *jcr)
 	    edit_uint64_with_commas(dev->block_num, b2));
 
       } else {
-         bnet_fsend(user, _("Device \"%s\" is not open.\n"), dev_name(dev));
+         bnet_fsend(user, _("Archive \"%s\" is not open or does not exist.\n"), device->hdr.name);
 	 send_blocked_status(jcr, dev);
       }
    }
    UnlockRes();
 
-
-#ifdef xfull_status
-   bnet_fsend(user, "\n\n");
-   dump_resource(R_DEVICE, resources[R_DEVICE-r_first].res_head, sendit, user);
-#endif
+#ifdef xxx
+   if (debug_level > 0) {
+      bnet_fsend(user, "====\n\n");
+      dump_resource(R_DEVICE, resources[R_DEVICE-r_first].res_head, sendit, user);
+   }
    bnet_fsend(user, "====\n\n");
+#endif
 
    list_spool_stats(user);
 
@@ -160,6 +161,9 @@ static void send_blocked_status(JCR *jcr, DEVICE *dev)
    BSOCK *user = jcr->dir_bsock;
    DCR *dcr = jcr->dcr;
 
+   if (!dev) {
+      return;
+   }
    switch (dev->dev_blocked) {
    case BST_UNMOUNTED:
       bnet_fsend(user, _("    Device is BLOCKED. User unmounted.\n"));
