@@ -458,6 +458,7 @@ cp -p platforms/redhat/bacula-dir $RPM_BUILD_ROOT/etc/init.d/bacula-dir
 cp -p platforms/redhat/bacula-fd $RPM_BUILD_ROOT/etc/init.d/bacula-fd
 cp -p platforms/redhat/bacula-sd $RPM_BUILD_ROOT/etc/init.d/bacula-sd
 %endif
+chmod 0754 $RPM_BUILD_ROOT/etc/init.d/*
 
 # install the menu stuff
 cp -p scripts/bacula.png $RPM_BUILD_ROOT/usr/share/pixmaps/bacula.png
@@ -887,6 +888,7 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 * Mon Mar 1 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - replaced all cp commands with cp -p
 - removed addition of a+x permissions on gnome-console
+- corrected permissions on init scripts
 * Sat Feb 28 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - corrected creation of sqlite_bindir in install from !mysql to sqlite
 -
