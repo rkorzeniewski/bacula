@@ -31,6 +31,12 @@
 /* Responses sent to the File daemon */
 static char OK_data[]    = "3000 OK data\n";
 
+/* Forward referenced functions */
+static bool is_spooled(JCR *jcr);
+static int begin_attribute_spool(JCR *jcr);
+static int discard_attribute_spool(JCR *jcr);
+static int commit_attribute_spool(JCR *jcr);
+
 /* 
  *  Append Data sent from File daemon	
  *
@@ -51,15 +57,14 @@ int do_append_data(JCR *jcr)
    /* Tell File daemon to send data */
    bnet_fsend(fd_sock, OK_data);
 
-   if (!jcr->no_attributes && jcr->spool_attributes) {
-      open_spool_file(jcr, jcr->dir_bsock);
-   }
+   begin_attribute_spool(jcr);
 
    ds = fd_sock;
 
    if (!bnet_set_buffer_size(ds, MAX_NETWORK_BUFFER_SIZE, BNET_SETBUF_WRITE)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       Jmsg(jcr, M_FATAL, 0, _("Unable to set network buffer size.\n"));
+      discard_attribute_spool(jcr);
       return 0;
    }
 
@@ -77,6 +82,7 @@ int do_append_data(JCR *jcr)
    if (!(dev=acquire_device_for_append(jcr, dev, block))) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       free_block(block);
+      discard_attribute_spool(jcr);
       return 0;
    }
    Dmsg0(100, "Just after acquire_device_for_append\n");
@@ -205,7 +211,7 @@ int do_append_data(JCR *jcr)
 	 if (stream == STREAM_UNIX_ATTRIBUTES	 || stream == STREAM_MD5_SIGNATURE ||
 	     stream == STREAM_UNIX_ATTRIBUTES_EX || stream == STREAM_SHA1_SIGNATURE) { 
 	    if (!jcr->no_attributes) {
-	       if (jcr->spool_attributes && jcr->dir_bsock->spool_fd) {
+	       if (is_spooled(jcr)) {
 		  jcr->dir_bsock->spool = 1;
 	       }
                Dmsg0(200, "Send attributes.\n");
@@ -267,13 +273,43 @@ int do_append_data(JCR *jcr)
 
    free_block(block);
 
-   if (jcr->spool_attributes && jcr->dir_bsock->spool_fd) {
-      bnet_despool(jcr->dir_bsock);
-      close_spool_file(jcr, jcr->dir_bsock);
-   }
+   commit_attribute_spool(jcr);
 
    dir_send_job_status(jcr);	      /* update director */
 
    Dmsg1(100, "return from do_append_data() stat=%d\n", ok);
    return ok ? 1 : 0;
+}
+
+static bool is_spooled(JCR *jcr)
+{
+   if (jcr->spool_attributes && jcr->dir_bsock->spool_fd) {
+      return true;
+   }
+   return false;
+}
+
+static int begin_attribute_spool(JCR *jcr)
+{
+   if (!jcr->no_attributes && jcr->spool_attributes) {
+      return 0;
+   }
+   return open_spool_file(jcr, jcr->dir_bsock);
+}
+
+static int discard_attribute_spool(JCR *jcr)
+{
+   if (!is_spooled(jcr)) {
+      return 0;
+   }
+   return close_spool_file(jcr, jcr->dir_bsock);
+}
+
+static int commit_attribute_spool(JCR *jcr)
+{
+   if (!is_spooled(jcr)) {
+      return 0;
+   }
+   bnet_despool(jcr->dir_bsock);
+   return close_spool_file(jcr, jcr->dir_bsock);
 }
