@@ -9,7 +9,7 @@
  */
 
 /*
-   Copyright (C) 2002 Kern Sibbald and John Walker
+   Copyright (C) 2002-2003 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -409,6 +409,7 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
    /* Count Files to be deleted */
    strcpy(query, cnt_DelCand);
    Dmsg1(100, "select sql=%s\n", query);
+   cnt.count = 0;
    if (!db_sql_query(ua->db, query, count_handler, (void *)&cnt)) {
       bsendmsg(ua, "%s", db_strerror(ua->db));
       Dmsg0(050, "Count failed\n");

@@ -8,6 +8,7 @@ Documentation to do: (a little bit at a time)
 - Document fixing tape file after crash (update Media set VolFiles=xx
   where MediaId=yy; update status to append).
 - Document fifo and | and <
+- Document g++ needed
 
 
 Testing to do: (painful)
@@ -15,6 +16,8 @@ Testing to do: (painful)
 - blocksize recognition code.
 
 For 1.29 release:
+- Priority job to go to top of list.
+- Add Bar code reading capabilities (new mtx-changer)
 - Add include list to end of chain in findlib
 - Look into Pruning/purging problems or why there seem to
   be so many files listed each night.
@@ -662,5 +665,95 @@ Results:
   on a file by file basis (using regular expressions) what options are
   applied for the backup.
 ====================================
+
+=========================================
+Proposal by Bill Sellers
+
+Return-Path: <w.a.sellers@larc.nasa.gov>
+Received: from post.larc.nasa.gov (post.larc.nasa.gov [128.155.4.45]) by matou.sibbald.com (8.11.6/8.11.6) with ESMTP id h0ELUIm07622 for <kern@sibbald.com>; Tue, 14 Jan 2003 22:30:18 +0100
+Received: from Baron.larc.nasa.gov (baron.larc.nasa.gov [128.155.40.132]) by post.larc.nasa.gov (pohub4.6) with ESMTP id QAA09768 for <kern@sibbald.com>; Tue, 14 Jan 2003 16:30:14 -0500 (EST)
+Message-Id: <5.1.0.14.2.20030114153452.028dbae8@pop.larc.nasa.gov>
+X-Sender: w.a.sellers@pop.larc.nasa.gov
+X-Mailer: QUALCOMM Windows Eudora Version 5.1
+Date: Tue, 14 Jan 2003 16:30:18 -0500
+To: Kern Sibbald <kern@sibbald.com>
+From: Bill Sellers <w.a.sellers@larc.nasa.gov>
+Subject: Re: [Bacula-users] Bacula remote storage?
+In-Reply-To: <1042565382.1845.177.camel@rufus>
+References: <5.1.0.14.2.20030114113004.0293a210@pop.larc.nasa.gov> <5.1.0.14.2.20030113170650.028dad88@pop.larc.nasa.gov> <5.1.0.14.2.20030113170650.028dad88@pop.larc.nasa.gov> <5.1.0.14.2.20030114113004.0293a210@pop.larc.nasa.gov>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"; format=flowed
+X-Annoyance-Filter-Junk-Probability: 0
+X-Annoyance-Filter-Classification: Mail
+At 06:29 PM 1/14/2003 +0100, you wrote:
+>Hello Bill,
+>
+>Well, if you cannot put a Bacula client on the machine,
+>then it is a big problem.  If you know of some software
+>that can do what you want, let me know, because I
+>really just don't know how to do it -- at least not
+>directly.
+
+
+Hi Kern,
+
+We have been able to get Amanda to use the HSM as a storage 
+device.  Someone here wrote a driver for Amanda.  BUT, Amanda doesn't 
+handle Windows systems very well (or at all without Samba).  So I am 
+looking for a backup system that has a Windows client.  I really like the 
+Windows integration of Bacula.
+
+From the command line, its rather trivial to move the data around.  We use 
+something like-
+
+tar cf - ./files | gzip -c | rsh hsm dd of=path/file.tgz
+
+or if you use GNU tar:
+
+tar czf hsm:path/file.tgz ./files
+
+One idea for you to consider; Sendmail offers pipes in the aliases file; 
+(mailpipe:  "|/usr/bin/vacation root")  and Perl supports pipes in the 
+"open" statement (open FILE, "|/bin/nroff -man";)  Could you could make a 
+pipe available, as a storage device? Then we could use any command that 
+handles stdin as a  storage destination.
+
+Something like-
+
+Storage {
+        Name = HSM-RSH
+        Address = hsm
+        #Password is not used in rsh, but might be used in ftp.
+        Device = "| gzip -c | rsh hsm dd of=path/file.tgz"
+        MediaType = Pipe
+}
+
+Storage {
+        Name = HSM-FTP
+        Address = hsm
+        Password = "foobar&-"
+        Device = "| ncftpput -c hsm /path/file.bacula"
+        MediaType = Pipe
+}
+
+>If you have some local storage available, you could
+>use Bacula to backup to disk volumes, then use some
+>other software (ftp, scp) to move them to the HSM
+>machine. However, this is a bit kludgy.
+
+
+It is, but maybe worth a try.  Is there some function in Bacula to put 
+variables in filenames?  i.e. backup.2003-01-15.root
+
+Thanks!
+Bill
+
+
+
+---
+Bill Sellers
+w.a.sellers@larc.nasa.gov
+
+==============================================
 
 Done: (see kernsdone for more)

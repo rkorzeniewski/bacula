@@ -60,34 +60,38 @@
 
 
 /* Bits for device capabilities */
-#define CAP_EOF          0x0001       /* has MTWEOF */
-#define CAP_BSR          0x0002       /* has MTBSR */
-#define CAP_BSF          0x0004       /* has MTBSF */
-#define CAP_FSR          0x0008       /* has MTFSR */
-#define CAP_FSF          0x0010       /* has MTFSF */
-#define CAP_EOM          0x0020       /* has MTEOM */
-#define CAP_REM          0x0040       /* is removable media */
-#define CAP_RACCESS      0x0080       /* is random access device */
-#define CAP_AUTOMOUNT    0x0100       /* Read device at start to see what is there */
-#define CAP_LABEL        0x0200       /* Label blank tapes */
-#define CAP_ANONVOLS     0x0400       /* Mount without knowing volume name */
-#define CAP_ALWAYSOPEN   0x0800       /* always keep device open */
-#define CAP_AUTOCHANGER  0x1000       /* AutoChanger */
+#define CAP_EOF            0x0001     /* has MTWEOF */
+#define CAP_BSR            0x0002     /* has MTBSR */
+#define CAP_BSF            0x0004     /* has MTBSF */
+#define CAP_FSR            0x0008     /* has MTFSR */
+#define CAP_FSF            0x0010     /* has MTFSF */
+#define CAP_EOM            0x0020     /* has MTEOM */
+#define CAP_REM            0x0040     /* is removable media */
+#define CAP_RACCESS        0x0080     /* is random access device */
+#define CAP_AUTOMOUNT      0x0100     /* Read device at start to see what is there */
+#define CAP_LABEL          0x0200     /* Label blank tapes */
+#define CAP_ANONVOLS       0x0400     /* Mount without knowing volume name */
+#define CAP_ALWAYSOPEN     0x0800     /* always keep device open */
+#define CAP_AUTOCHANGER    0x1000     /* AutoChanger */
 #define CAP_OFFLINEUNMOUNT 0x2000     /* Offline before unmount */
+#define CAP_STREAM         0x4000     /* Stream device */
 
 
-/* Tape state bits */
-#define ST_OPENED    0x001            /* set when device opened */
-#define ST_TAPE      0x002            /* is a tape device */  
-#define ST_LABEL     0x004            /* label found */
-#define ST_MALLOC    0x008            /* dev packet malloc'ed in init_dev() */
-#define ST_APPEND    0x010            /* ready for Bacula append */
-#define ST_READ      0x020            /* ready for Bacula read */
-#define ST_EOT       0x040            /* at end of tape */
-#define ST_WEOT      0x080            /* Got EOT on write */
-#define ST_EOF       0x100            /* Read EOF i.e. zero bytes */
-#define ST_NEXTVOL   0x200            /* Start writing on next volume */
-#define ST_SHORT     0x400            /* Short block read */
+/* Device state bits */
+#define ST_OPENED    0x0001           /* set when device opened */
+#define ST_TAPE      0x0002           /* is a tape device */  
+#define ST_FILE      0x0004           /* is a file device */
+#define ST_FIFO      0x0008           /* is a fifo device */
+#define ST_PROG      0x0010           /* is a program device */
+#define ST_LABEL     0x0020           /* label found */
+#define ST_MALLOC    0x0040           /* dev packet malloc'ed in init_dev() */
+#define ST_APPEND    0x0080           /* ready for Bacula append */
+#define ST_READ      0x0100           /* ready for Bacula read */
+#define ST_EOT       0x0200           /* at end of tape */
+#define ST_WEOT      0x0400           /* Got EOT on write */
+#define ST_EOF       0x0800           /* Read EOF i.e. zero bytes */
+#define ST_NEXTVOL   0x1000           /* Start writing on next volume */
+#define ST_SHORT     0x2000           /* Short block read */
 
 /* dev_blocked states (mutually exclusive) */
 #define BST_NOT_BLOCKED       0       /* not blocked */

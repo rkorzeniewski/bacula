@@ -45,6 +45,10 @@ char con_fname[1000];
 FILE *con_fd = NULL;
 brwlock_t con_lock; 
 
+#ifdef TRACE_FILE
+FILE *trace_fd = NULL;
+#endif
+
 /* Forward referenced functions */
 
 /* Imported functions */
@@ -186,6 +190,7 @@ init_msg(void *vjcr, MSGS *msg)
       memcpy(daemon_msgs->send_msg, msg->send_msg, sizeof(msg->send_msg));
    }
    Dmsg2(050, "Copy message resource 0x%x to 0x%x\n", msg, temp_chain);
+
 }
 
 /* Initialize so that the console (User Agent) can
@@ -509,6 +514,10 @@ void term_msg()
       free(exename);
       exename = NULL;
    }
+   if (trace_fd) {
+      fclose(trace_fd);
+      trace_fd = NULL;
+   }
 }
 
 
@@ -519,7 +528,7 @@ void term_msg()
 void dispatch_message(void *vjcr, int type, int level, char *msg)
 {
     DEST *d;   
-    char cmd[MAXSTRING];
+    char dt[MAX_TIME_LENGTH];
     POOLMEM *mcmd;
     JCR *jcr = (JCR *) vjcr;
     int len;
@@ -529,7 +538,7 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
     Dmsg2(200, "Enter dispatch_msg type=%d msg=%s\n", type, msg);
 
     if (type == M_ABORT || type == M_ERROR_TERM) {
-       fprintf(stdout, "%s", msg);        /* print this here to INSURE that it is printed */
+       fputs(msg, stdout);	   /* print this here to INSURE that it is printed */
     }
 
     /* Now figure out where to send the message */
@@ -552,16 +561,19 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 		if (con_fd) {
 		   Pw(con_lock);      /* get write lock on console message file */
 		   errno = 0;
-		   bstrftime(cmd, sizeof(cmd), time(NULL));
-		   len = strlen(cmd);
-                   cmd[len++] = ' ';
-		   fwrite(cmd, len, 1, con_fd);
+		   bstrftime(dt, sizeof(dt), time(NULL));
+		   len = strlen(dt);
+                   dt[len++] = ' ';
+		   fwrite(dt, len, 1, con_fd);
 		   len = strlen(msg);
-                   if (len > 0 && msg[len-1] != '\n') {
-                      msg[len++] = '\n';
-		      msg[len] = 0;
+		   if (len > 0) {
+		      fwrite(msg, len, 1, con_fd);
+                      if (msg[len-1] != '\n') {
+                         fwrite("\n", 2, 1, con_fd);
+		      }
+		   } else {
+                      fwrite("\n", 2, 1, con_fd);
 		   }
-		   fwrite(msg, len, 1, con_fd);
 		   fflush(con_fd);
 		   console_msg_pending = TRUE;
 		   Vw(con_lock);
@@ -648,11 +660,11 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 	     case MD_STDOUT:
                 Dmsg1(400, "STDOUT for following msg: %s", msg);
 		if (type != M_ABORT && type != M_ERROR_TERM)  /* already printed */
-                   fprintf(stdout, "%s", msg);
+		   fputs(msg, stdout);
 		break;
 	     case MD_STDERR:
                 Dmsg1(400, "STDERR for following msg: %s", msg);
-                fprintf(stderr, "%s", msg);
+		fputs(msg, stderr);
 		break;
 	     default:
 		break;
@@ -675,7 +687,7 @@ void dispatch_message(void *vjcr, int type, int level, char *msg)
 void 
 d_msg(char *file, int line, int level, char *fmt,...)
 {
-    char      buf[2000];
+    char      buf[5000];
     int       i;
     va_list   arg_ptr;
     int       details = TRUE;
@@ -686,6 +698,58 @@ d_msg(char *file, int line, int level, char *fmt,...)
     }
 
     if (level <= debug_level) {
+#ifdef FULL_LOCATION
+       if (details) {
+          i= sprintf(buf, "%s: %s:%d ", my_name, file, line);
+       } else {
+	  i = 0;
+       }
+#else
+       i = 0;
+#endif
+       va_start(arg_ptr, fmt);
+       bvsnprintf(buf+i, sizeof(buf)-i, (char *)fmt, arg_ptr);
+       va_end(arg_ptr);
+
+       fputs(buf, stdout);
+    }
+}
+
+
+/*********************************************************************
+ *
+ *  subroutine writes a debug message to the trace file if the level number
+ *  is less than or equal the debug_level. File and line numbers
+ *  are included for more detail if desired, but not currently
+ *  printed.
+ *  
+ *  If the level is negative, the details of file and line number
+ *  are not printed.
+ */
+void 
+t_msg(char *file, int line, int level, char *fmt,...)
+{
+    char      buf[5000];
+    int       i;
+    va_list   arg_ptr;
+    int       details = TRUE;
+
+    return;
+
+    if (level < 0) {
+       details = FALSE;
+       level = -level;
+    }
+
+    if (level <= debug_level) {
+       if (!trace_fd) {
+          trace_fd = fopen("bacula.trace", "a+");
+	  if (!trace_fd) {
+             Emsg1(M_ABORT, 0, _("Cannot open bacula.trace: ERR=%s\n"),
+		  strerror(errno));
+	  }
+       }
+    
 #ifdef FULL_LOCATION
        if (details) {
           sprintf(buf, "%s: %s:%d ", my_name, file, line);
@@ -700,9 +764,11 @@ d_msg(char *file, int line, int level, char *fmt,...)
        bvsnprintf(buf+i, sizeof(buf)-i, (char *)fmt, arg_ptr);
        va_end(arg_ptr);
 
-       fprintf(stdout, "%s", buf);
+       fputs(buf, trace_fd);
+       fflush(trace_fd);
     }
 }
+
 
 
 /* *********************************************************
@@ -713,7 +779,7 @@ d_msg(char *file, int line, int level, char *fmt,...)
 void 
 e_msg(char *file, int line, int type, int level, char *fmt,...)
 {
-    char     buf[2000];
+    char     buf[5000];
     va_list   arg_ptr;
     int i;
 
@@ -722,8 +788,9 @@ e_msg(char *file, int line, int type, int level, char *fmt,...)
      * We always report M_ABORT and M_ERROR_TERM 
      */
     if (!daemon_msgs || ((type != M_ABORT && type != M_ERROR_TERM) && 
-			 !bit_is_set(type, daemon_msgs->send_msg)))
+			 !bit_is_set(type, daemon_msgs->send_msg))) {
        return;			      /* no destination */
+    }
     switch (type) {
        case M_ABORT:
           sprintf(buf, "%s: ABORTING due to ERROR in %s:%d\n", 
@@ -806,7 +873,14 @@ Jmsg(void *vjcr, int type, int level, char *fmt,...)
      * Check if we have a message destination defined.	
      * We always report M_ABORT and M_ERROR_TERM 
      */
-    if ((type != M_ABORT && type != M_ERROR_TERM) && msgs && !bit_is_set(type, msgs->send_msg)) {
+
+/*
+ *  Tmsg5(000, "jcr=%x msgs=%x type=%d send_msg=%x *msg=%x\n",
+ *	  jcr, msgs, type, msgs->send_msg, (int)msgs->send_msg[0]);
+ */
+
+    if ((type != M_ABORT && type != M_ERROR_TERM) && msgs && 
+	 !bit_is_set(type, msgs->send_msg)) {
        Dmsg1(200, "No bit set for type %d\n", type);
        return;			      /* no destination */
     }

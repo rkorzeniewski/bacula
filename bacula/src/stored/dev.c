@@ -104,7 +104,7 @@ DEVICE *
 init_dev(DEVICE *dev, DEVRES *device)
 {
    struct stat statp;
-   int tape;
+   int tape, fifo;
    int errstat;
 
    /* Check that device is available */
@@ -117,10 +117,13 @@ init_dev(DEVICE *dev, DEVRES *device)
       return NULL;
    }
    tape = FALSE;
+   fifo = FALSE;
    if (S_ISDIR(statp.st_mode)) {
       tape = FALSE;
    } else if (S_ISCHR(statp.st_mode)) {
       tape = TRUE;
+   } else if (S_ISFIFO(statp.st_mode)) {
+      fifo = TRUE;
    } else {
       if (dev) {
 	 dev->dev_errno = ENODEV;
@@ -135,9 +138,6 @@ init_dev(DEVICE *dev, DEVRES *device)
       dev->state = ST_MALLOC;
    } else {
       memset(dev, 0, sizeof(DEVICE));
-   }
-   if (tape) {
-      dev->state |= ST_TAPE;
    }
 
    /* Copy user supplied device parameters from Resource */
@@ -154,6 +154,15 @@ init_dev(DEVICE *dev, DEVRES *device)
    dev->max_rewind_wait = device->max_rewind_wait;
    dev->max_open_wait = device->max_open_wait;
    dev->device = device;
+
+   if (tape) {
+      dev->state |= ST_TAPE;
+   } else if (fifo) {
+      dev->state |= ST_FIFO;
+      dev->capabilities |= CAP_STREAM; /* set stream device */
+   } else {
+      dev->state |= ST_FILE;
+   }
 
    if (dev->max_block_size > 1000000) {
       Emsg3(M_ERROR, 0, _("Block size %u on device %s is too large, using default %u\n"), 
@@ -225,7 +234,7 @@ open_dev(DEVICE *dev, char *VolName, int mode)
    Dmsg3(29, "open_dev: tape=%d dev_name=%s vol=%s\n", dev_is_tape(dev), 
 	 dev->dev_name, dev->VolCatInfo.VolCatName);
    dev->state &= ~(ST_LABEL|ST_APPEND|ST_READ|ST_EOT|ST_WEOT|ST_EOF);
-   if (dev->state & ST_TAPE) {
+   if (dev->state & (ST_TAPE|ST_FIFO)) {
       int timeout;
       Dmsg0(29, "open_dev: device is tape\n");
       if (mode == READ_WRITE) {
@@ -331,7 +340,7 @@ int rewind_dev(DEVICE *dev)
 	 }
 	 break;
       }
-   } else {
+   } else if (dev->state & ST_FILE) {
       if (lseek(dev->fd, (off_t)0, SEEK_SET) < 0) {
 	 dev->dev_errno = errno;
          Mmsg2(&dev->errmsg, _("lseek error on %s. ERR=%s.\n"),
@@ -362,6 +371,9 @@ eod_dev(DEVICE *dev)
    dev->state &= ~(ST_EOF);  /* remove EOF flags */
    dev->block_num = dev->file = 0;
    dev->file_addr = 0;
+   if (dev->state & (ST_FIFO | ST_PROG)) {
+      return 1;
+   }
    if (!(dev->state & ST_TAPE)) {
       pos = lseek(dev->fd, (off_t)0, SEEK_END);
 //    Dmsg1(000, "====== Seek to %lld\n", pos);
@@ -413,15 +425,13 @@ eod_dev(DEVICE *dev)
 }
 
 /*
- * Set the position of the device.
+ * Set the position of the device -- only for files
+ *   For other devices, there is no generic way to do it.
  *  Returns: 1 on succes
  *	     0 on error
  */
 int update_pos_dev(DEVICE *dev)
 {
-#ifdef xxxx
-   struct mtget mt_stat;
-#endif
    off_t pos;
    int stat = 0;
 
@@ -433,7 +443,7 @@ int update_pos_dev(DEVICE *dev)
    }
 
    /* Find out where we are */
-   if (!(dev->state & ST_TAPE)) {
+   if (dev->state & ST_FILE) {
       dev->file = 0;
       dev->file_addr = 0;
       pos = lseek(dev->fd, (off_t)0, SEEK_CUR);
@@ -448,18 +458,6 @@ int update_pos_dev(DEVICE *dev)
       }
       return stat;
    }
-
-#ifdef REALLY_IMPLEMENTED
-   if (ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) < 0) {
-      Dmsg1(50, "MTIOCGET error: %s\n", strerror(dev->dev_errno));
-      dev->dev_errno = errno;
-      Mmsg2(&dev->errmsg, _("ioctl MTIOCGET error on %s. ERR=%s.\n"),
-	 dev->dev_name, strerror(dev->dev_errno));
-   } else {
-      stat = 1;
-   }
-   return stat;
-#endif
    return 1;
 }
 
@@ -1096,9 +1094,6 @@ term_dev(DEVICE *dev)
       free_pool_memory(dev->errmsg);
       dev->errmsg = NULL;
    }
-#ifdef NEW_LOCK
-   rwl_destroy(&dev->lock);
-#endif
    pthread_mutex_destroy(&dev->mutex);
    pthread_cond_destroy(&dev->wait);
    pthread_cond_destroy(&dev->wait_next_vol);

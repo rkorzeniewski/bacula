@@ -1,13 +1,14 @@
 /* */
 #define VERSION "1.29"
 #define VSTRING "1"
-#define DATE    "15 January 2003"
-#define LSMDATE "15Jan03"
+#define DATE    "16 January 2003"
+#define LSMDATE "16Jan03"
 
 /* Debug flags */
 #define DEBUG 1
 #define TRACEBACK 1
 #define SMCHECK     
+#define TRACE_FILE 1  
 
 /* IF you undefine this, Bacula will run 10X slower */
 #define NO_POLL_TEST 1
