@@ -451,11 +451,11 @@ static void eliminate_duplicate_filenames()
 	 /* Get all the Ids of each name */
 	 db_escape_string(esc_name, name_list.name[i], strlen(name_list.name[i]));
          sprintf(buf, "SELECT FilenameId FROM Filename WHERE Name='%s'", esc_name);
-	 if (verbose) {
-            printf("Doing: %s\n", name_list.name[i]);
-	 }
 	 if (!make_id_list(buf, &id_list)) {
 	    exit(1);
+	 }
+	 if (verbose) {
+            printf("Found %d for: %s\n", id_list.num_ids, name_list.name[i]);
 	 }
 	 /* Force all records to use the first id then delete the other ids */
 	 for (int j=1; j<id_list.num_ids; j++) {
@@ -496,11 +496,12 @@ static void eliminate_duplicate_paths()
 	 /* Get all the Ids of each name */
 	 db_escape_string(esc_name, name_list.name[i], strlen(name_list.name[i]));
          sprintf(buf, "SELECT PathId FROM Path WHERE Path='%s'", esc_name);
-	 if (verbose) {
-            printf("Doing: %s\n", name_list.name[i]);
-	 }
+	 id_list.num_ids = 0;
 	 if (!make_id_list(buf, &id_list)) {
 	    exit(1);
+	 }
+	 if (verbose) {
+            printf("Found %d for: %s\n", id_list.num_ids, name_list.name[i]);
 	 }
 	 /* Force all records to use the first id then delete the other ids */
 	 for (int j=1; j<id_list.num_ids; j++) {

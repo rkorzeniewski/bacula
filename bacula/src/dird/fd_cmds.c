@@ -85,6 +85,7 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
     */
    bnet_fsend(fd, jobcmd, jcr->JobId, jcr->Job, jcr->VolSessionId, 
       jcr->VolSessionTime, jcr->sd_auth_key);
+   memset(jcr->sd_auth_key, 0, strlen(jcr->sd_auth_key));
    Dmsg1(110, ">filed: %s", fd->msg);
    if (bnet_recv(fd) > 0) {
        Dmsg1(110, "<filed: %s", fd->msg);

@@ -111,6 +111,7 @@ int authenticate_storagedaemon(JCR *jcr)
 
    stat = cram_md5_get_auth(sd, jcr->sd_auth_key) &&
 	  cram_md5_auth(sd, jcr->sd_auth_key);
+   memset(jcr->sd_auth_key, 0, strlen(jcr->sd_auth_key));
    if (!stat) {
       Jmsg(jcr, M_FATAL, 0, _("Authorization key rejected by Storage daemon.\n"));
    }
