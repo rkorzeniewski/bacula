@@ -278,6 +278,14 @@ int set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    int stat = 1;
 
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
+   if (attr->stream == STREAM_UNIX_ATTRIBUTES_EX &&
+       set_win32_attributes(jcr, attr, ofd)) {
+       if (is_bopen(ofd)) {
+	   bclose(ofd); 
+       }
+       pm_strcpy(&attr->ofname, "*none*");
+       return 1;
+   }
    if (attr->data_stream == STREAM_WIN32_DATA ||
        attr->data_stream == STREAM_WIN32_GZIP_DATA) {
       if (is_bopen(ofd)) {
@@ -287,14 +295,7 @@ int set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
       return 1;
    }
 
-   if (attr->stream == STREAM_UNIX_ATTRIBUTES_EX &&
-       set_win32_attributes(jcr, attr, ofd)) {
-      if (is_bopen(ofd)) {
-	 bclose(ofd); 
-      }
-      pm_strcpy(&attr->ofname, "*none*");
-      return 1;
-   }
+
    /*
     * If Windows stuff failed, e.g. attempt to restore Unix file
     *  to Windows, simply fall through and we will do it the	 
