@@ -34,7 +34,9 @@ DCR *new_dcr(JCR *jcr, DEVICE *dev)
 {
    DCR *dcr = (DCR *)malloc(sizeof(DCR));
    memset(dcr, 0, sizeof(DCR));
-   jcr->dcr = dcr;
+   if (jcr) {
+      jcr->dcr = dcr;
+   }
    dcr->jcr = jcr;
    dcr->dev = dev;
    dcr->block = new_block(dev);
@@ -51,7 +53,9 @@ void free_dcr(DCR *dcr)
    if (dcr->record) {
       free_record(dcr->record);
    }
-   dcr->jcr->dcr = NULL;
+   if (dcr->jcr) {
+      dcr->jcr->dcr = NULL;
+   }
    free(dcr);
 }
 

@@ -68,13 +68,13 @@ db_init_database(JCR *jcr, char *db_name, char *db_user, char *db_password,
    /* Look to see if DB already open */
    for (mdb=NULL; (mdb=(B_DB *)qnext(&db_list, &mdb->bq)); ) {
       if (strcmp(mdb->db_name, db_name) == 0) {
-         Dmsg2(100, "DB REopen %d %s\n", mdb->ref_count, db_name);
+         Dmsg2(300, "DB REopen %d %s\n", mdb->ref_count, db_name);
 	 mdb->ref_count++;
 	 V(mutex);
 	 return mdb;		      /* already open */
       }
    }
-   Dmsg0(100, "db_open first time\n");
+   Dmsg0(300, "db_open first time\n");
    mdb = (B_DB *) malloc(sizeof(B_DB));
    memset(mdb, 0, sizeof(B_DB));
    mdb->db_name = bstrdup(db_name);
@@ -140,7 +140,7 @@ db_open_database(JCR *jcr, B_DB *mdb)
 	644,			      /* mode */
 	&mdb->sqlite_errmsg);	      /* error message */
 
-   Dmsg0(50, "sqlite_open\n");
+   Dmsg0(300, "sqlite_open\n");
   
    if (mdb->db == NULL) {
       Mmsg2(&mdb->errmsg, _("Unable to open Database=%s. ERR=%s\n"),

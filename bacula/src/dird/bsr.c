@@ -214,6 +214,10 @@ int write_bsr_file(UAContext *ua, RBSR *bsr)
       bsendmsg(ua, "   %s\n", ua->prompt[i]);
       free(ua->prompt[i]);
    }
+   if (ua->num_prompts == 0) {
+      bsendmsg(ua, _("No Volumes found to restore.\n"));
+      stat = 0;
+   }
    ua->num_prompts = 0;
    bsendmsg(ua, "\n");
    free_pool_memory(fname);

@@ -161,6 +161,7 @@ struct JCR {
    uint32_t SDErrors;                 /* Number of non-fatal errors */
    volatile int SDJobStatus;          /* Storage Job Status */
    volatile int FDJobStatus;          /* File daemon Job Status */
+   uint32_t ExpectedFiles;            /* Expected restore files */
    B_DB *db;                          /* database pointer */
    uint32_t MediaId;                  /* DB record IDs associated with this job */
    uint32_t PoolId;                   /* Pool record id */
@@ -177,6 +178,7 @@ struct JCR {
    bool acquired_resource_locks;      /* set if resource locks acquired */
    int NumVols;                       /* Number of Volume used in pool */
    int reschedule_count;              /* Number of times rescheduled */
+   bool spool_data;                   /* Spool data in SD */
 #endif /* DIRECTOR_DAEMON */
 
 
@@ -232,6 +234,7 @@ struct JCR {
    bool ignore_label_errors;          /* ignore Volume label errors */
    bool spool_attributes;             /* set if spooling attributes */
    bool no_attributes;                /* set if no attributes wanted */
+   bool spool_data;                   /* set to spool data */
    int CurVol;                        /* Current Volume count */
 
    uint32_t FileId;                   /* Last file id inserted */

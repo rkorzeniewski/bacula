@@ -37,8 +37,9 @@ extern uint32_t newVolSessionId();
 static int use_device_cmd(JCR *jcr);
 
 /* Requests from the Director daemon */
-static char jobcmd[]     = "JobId=%d job=%127s job_name=%127s client_name=%127s \
-type=%d level=%d FileSet=%127s NoAttr=%d SpoolAttr=%d FileSetMD5=%127s\n";
+static char jobcmd[]     = "JobId=%d job=%127s job_name=%127s client_name=%127s "
+         "type=%d level=%d FileSet=%127s NoAttr=%d SpoolAttr=%d FileSetMD5=%127s "
+         "SpoolData=%d";
 static char use_device[] = "use device=%s media_type=%s pool_name=%s pool_type=%s\n";
 
 /* Responses sent to Director daemon */
@@ -66,7 +67,7 @@ int job_cmd(JCR *jcr)
    char auth_key[100];
    BSOCK *dir = jcr->dir_bsock;
    POOLMEM *job_name, *client_name, *job, *fileset_name, *fileset_md5;
-   int JobType, level, spool_attributes, no_attributes;
+   int JobType, level, spool_attributes, no_attributes, spool_data;
    struct timeval tv;
    struct timezone tz;
    struct timespec timeout;
@@ -76,7 +77,7 @@ int job_cmd(JCR *jcr)
     * Get JobId and permissions from Director
     */
 
-   Dmsg1(130, "Job_cmd: %s\n", dir->msg);
+   Dmsg1(100, "Job_cmd: %s\n", dir->msg);
    job = get_memory(dir->msglen);
    job_name = get_memory(dir->msglen);
    client_name = get_memory(dir->msglen);
@@ -84,7 +85,7 @@ int job_cmd(JCR *jcr)
    fileset_md5 = get_memory(dir->msglen);
    if (sscanf(dir->msg, jobcmd, &JobId, job, job_name, client_name,
 	      &JobType, &level, fileset_name, &no_attributes,
-	      &spool_attributes, fileset_md5) != 10) {
+	      &spool_attributes, fileset_md5, &spool_data) != 11) {
       pm_strcpy(&jcr->errmsg, dir->msg);
       bnet_fsend(dir, BAD_job, jcr->errmsg);
       Emsg1(M_FATAL, 0, _("Bad Job Command from Director: %s\n"), jcr->errmsg);
@@ -123,6 +124,7 @@ int job_cmd(JCR *jcr)
    jcr->JobLevel = level;
    jcr->no_attributes = no_attributes;
    jcr->spool_attributes = spool_attributes;
+   jcr->spool_data = spool_data;
    jcr->fileset_md5 = get_pool_memory(PM_NAME);
    pm_strcpy(&jcr->fileset_md5, fileset_md5);
    free_memory(job);

@@ -693,6 +693,7 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    jcr->catalog = job->client->catalog;
    jcr->fileset = job->fileset;
    jcr->messages = job->messages; 
+   jcr->spool_data = job->spool_data;
    if (jcr->RestoreBootstrap) {
       free(jcr->RestoreBootstrap);
       jcr->RestoreBootstrap = NULL;

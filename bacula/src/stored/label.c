@@ -327,7 +327,6 @@ static void create_volume_label_record(JCR *jcr, DEVICE *dev, DEV_RECORD *rec)
  */
 void create_volume_label(DEVICE *dev, char *VolName, char *PoolName)
 {
-   struct date_time dt;
    DEVRES *device = (DEVRES *)dev->device;
 
    Dmsg0(90, "Start create_volume_label()\n");
@@ -336,9 +335,6 @@ void create_volume_label(DEVICE *dev, char *VolName, char *PoolName)
 
    memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
 
-   /* ***FIXME*** we really need to get the volume name,    
-    * pool name, and pool type from the database.
-    */
    bstrncpy(dev->VolHdr.Id, BaculaId, sizeof(dev->VolHdr.Id));
    dev->VolHdr.VerNum = BaculaTapeVersion;
    dev->VolHdr.LabelType = PRE_LABEL;  /* Mark tape as unused */
@@ -348,17 +344,9 @@ void create_volume_label(DEVICE *dev, char *VolName, char *PoolName)
 
    bstrncpy(dev->VolHdr.PoolType, "Backup", sizeof(dev->VolHdr.PoolType));
 
-   /* Put label time/date in header */
-   if (BaculaTapeVersion >= 11) {
-      dev->VolHdr.label_btime = get_current_btime();
-      dev->VolHdr.label_date = 0;
-      dev->VolHdr.label_time = 0;
-   } else {
-      /* OLD WAY DEPRECATED */
-      get_current_time(&dt);
-      dev->VolHdr.label_date = dt.julian_day_number;
-      dev->VolHdr.label_time = dt.julian_day_fraction;
-   }
+   dev->VolHdr.label_btime = get_current_btime();
+   dev->VolHdr.label_date = 0;
+   dev->VolHdr.label_time = 0;
 
    if (gethostname(dev->VolHdr.HostName, sizeof(dev->VolHdr.HostName)) != 0) {
       dev->VolHdr.HostName[0] = 0;

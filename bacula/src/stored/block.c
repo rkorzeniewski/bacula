@@ -316,13 +316,13 @@ int write_block_to_device(DCR *dcr, DEV_BLOCK *block)
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
 
-   lock_device(dev);
 
    if (dcr->spooling) {
       stat = write_block_to_spool_file(dcr, block);
-      unlock_device(dev);
       return stat;
    }
+
+   lock_device(dev);
 
    /*
     * If a new volume has been mounted since our last write

@@ -51,7 +51,7 @@ int run_cmd(UAContext *ua, char *cmd)
    char *where, *fileset_name, *client_name, *bootstrap, *replace;
    char *when, *verify_job_name;
    int Priority = 0;
-   int i, j, opt;
+   int i, j, opt, files = 0;
    bool kw_ok;
    JOB *job = NULL;
    JOB *verify_job = NULL;
@@ -224,7 +224,8 @@ int run_cmd(UAContext *ua, char *cmd)
 	       verify_job_name = ua->argv[i];
 	       kw_ok = true;
 	       break;
-	    case 16: /* files  -- ignore for now */
+	    case 16: /* files */
+	       files = atoi(ua->argv[i]);
 	       kw_ok = true;
 	       break;
 
@@ -353,6 +354,7 @@ int run_cmd(UAContext *ua, char *cmd)
    jcr->client = client;
    jcr->fileset = fileset;
    jcr->pool = pool;
+   jcr->ExpectedFiles = files;
    if (where) {
       if (jcr->where) {
 	 free(jcr->where);

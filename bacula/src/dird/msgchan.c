@@ -40,7 +40,7 @@
 
 /* Commands sent to Storage daemon */
 static char jobcmd[]     = "JobId=%d job=%s job_name=%s client_name=%s \
-type=%d level=%d FileSet=%s NoAttr=%d SpoolAttr=%d FileSetMD5=%s\n";
+type=%d level=%d FileSet=%s NoAttr=%d SpoolAttr=%d FileSetMD5=%s SpoolData=%d";
 static char use_device[] = "use device=%s media_type=%s pool_name=%s pool_type=%s\n";
 
 /* Response from Storage daemon */
@@ -110,7 +110,7 @@ int start_storage_daemon_job(JCR *jcr)
    bnet_fsend(sd, jobcmd, jcr->JobId, jcr->Job, jcr->job->hdr.name, 
 	      jcr->client->hdr.name, jcr->JobType, jcr->JobLevel, 
 	      jcr->fileset->hdr.name, !jcr->pool->catalog_files,
-	      jcr->job->SpoolAttributes, jcr->fileset->MD5);
+	      jcr->job->SpoolAttributes, jcr->fileset->MD5, jcr->spool_data);
    Dmsg1(200, "Jobcmd=%s\n", sd->msg);
    unbash_spaces(jcr->job->hdr.name);
    unbash_spaces(jcr->client->hdr.name);

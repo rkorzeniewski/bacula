@@ -116,7 +116,7 @@ db_create_jobmedia_record(JCR *jcr, B_DB *mdb, JOBMEDIA_DBR *jm)
    Mmsg(&mdb->cmd, "SELECT JobId, MediaId FROM JobMedia WHERE \
 JobId=%d AND MediaId=%d", jm->JobId, jm->MediaId);
 
-   Dmsg0(30, mdb->cmd);
+   Dmsg0(300, mdb->cmd);
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 0) {
@@ -146,7 +146,7 @@ VALUES (%u,%u,%u,%u,%u,%u,%u,%u,%u)",
        jm->JobId, jm->MediaId, jm->FirstIndex, jm->LastIndex,
        jm->StartFile, jm->EndFile, jm->StartBlock, jm->EndBlock,count);
 
-   Dmsg0(30, mdb->cmd);
+   Dmsg0(300, mdb->cmd);
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create db JobMedia record %s failed. ERR=%s\n"), mdb->cmd, 
 	 sql_strerror(mdb));
@@ -155,7 +155,7 @@ VALUES (%u,%u,%u,%u,%u,%u,%u,%u,%u)",
       stat = 1;
    }
    db_unlock(mdb);
-   Dmsg0(30, "Return from JobMedia\n");
+   Dmsg0(300, "Return from JobMedia\n");
    return stat;
 }
 
@@ -237,7 +237,7 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    db_lock(mdb);
    Mmsg(&mdb->cmd, "SELECT MediaId FROM Media WHERE VolumeName='%s'", 
 	   mr->VolumeName);
-   Dmsg1(110, "selectpool: %s\n", mdb->cmd);
+   Dmsg1(300, "selectpool: %s\n", mdb->cmd);
 
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
@@ -515,8 +515,8 @@ int db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
 int db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
 
-   Dmsg1(100, "Fname=%s\n", ar->fname);
-   Dmsg0(50, "put_file_into_catalog\n");
+   Dmsg1(300, "Fname=%s\n", ar->fname);
+   Dmsg0(500, "put_file_into_catalog\n");
    /*
     * Make sure we have an acceptable attributes record.
     */
@@ -551,7 +551,7 @@ int db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    }
    Dmsg0(500, "db_create_file_record OK\n");
 
-   Dmsg3(100, "CreateAttributes Path=%s File=%s FilenameId=%d\n", mdb->path, mdb->fname, ar->FilenameId);
+   Dmsg3(300, "CreateAttributes Path=%s File=%s FilenameId=%d\n", mdb->path, mdb->fname, ar->FilenameId);
    db_unlock(mdb);
    return 1;
 }

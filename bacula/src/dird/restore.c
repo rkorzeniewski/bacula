@@ -265,7 +265,7 @@ int do_restore(JCR *jcr)
 static void restore_cleanup(JCR *jcr, int TermCode)
 {
    char sdt[MAX_TIME_LENGTH], edt[MAX_TIME_LENGTH];
-   char ec1[30], ec2[30];
+   char ec1[30], ec2[30], ec3[30];
    char term_code[100], fd_term_msg[100], sd_term_msg[100];
    char *term_msg;
    int msg_type;
@@ -326,6 +326,7 @@ Job:                    %s\n\
 Client:                 %s\n\
 Start time:             %s\n\
 End time:               %s\n\
+Files Expected:         %s\n\
 Files Restored:         %s\n\
 Bytes Restored:         %s\n\
 Rate:                   %.1f KB/s\n\
@@ -339,8 +340,9 @@ Termination:            %s\n\n"),
 	jcr->client->hdr.name,
 	sdt,
 	edt,
-	edit_uint64_with_commas((uint64_t)jcr->jr.JobFiles, ec1),
-	edit_uint64_with_commas(jcr->jr.JobBytes, ec2),
+	edit_uint64_with_commas((uint64_t)jcr->ExpectedFiles, ec1),
+	edit_uint64_with_commas((uint64_t)jcr->jr.JobFiles, ec2),
+	edit_uint64_with_commas(jcr->jr.JobBytes, ec3),
 	(float)kbps,
 	jcr->Errors,
 	fd_term_msg,
