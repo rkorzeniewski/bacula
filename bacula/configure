@@ -5514,9 +5514,9 @@ _ACEOF
 	       got_readline="yes"
 
 else
-   { { echo "$as_me:$LINENO: error: *** readline library missing" >&5
-echo "$as_me: error: *** readline library missing" >&2;}
-   { (exit 1); exit 1; }; }
+   echo " "
+	       echo "readline.h not found. readline turned off ..."
+	       echo " "
 
 
 fi
@@ -5811,9 +5811,9 @@ _ACEOF
 		 PRTREADLINE_SRC="${TOP_DIR}/depkgs/readline"
 
 else
-   { { echo "$as_me:$LINENO: error: *** readline library missing" >&5
-echo "$as_me: error: *** readline library missing" >&2;}
-   { (exit 1); exit 1; }; }
+   echo " "
+		echo "readline.h not found. readline turned off ..."
+		echo " "
 
 
 fi

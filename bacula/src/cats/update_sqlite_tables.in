@@ -97,7 +97,7 @@ INSERT INTO Media (
    VolRetention, VolUseDuration, MaxVolJobs,
    MaxVolFiles, MaxVolBytes,
    InChanger, MediaAddressing,
-   VolReadTime, VolWriteTime,
+   VolReadTime, VolWriteTime)
    SELECT * FROM Media_backup;
 
 DROP TABLE Media_backup;
