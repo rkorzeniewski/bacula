@@ -374,9 +374,8 @@ void create_volume_label(DEVICE *dev, const char *VolName, const char *PoolName)
  *
  *  This routine should be used only when labeling a blank tape.
  */
-bool write_new_volume_label_to_dev(JCR *jcr, DEVRES *device, const char *VolName, const char *PoolName)
+bool write_new_volume_label_to_dev(JCR *jcr, DEVICE *dev, const char *VolName, const char *PoolName)
 {
-   DEVICE *dev = device->dev;
    DEV_RECORD rec;   
    DEV_BLOCK *block;
    bool stat = true;

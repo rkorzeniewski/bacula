@@ -38,7 +38,7 @@ int win32_client = 0;
 #endif
 
 static void do_extract(char *fname);
-static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
+static bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
 
 static DEVICE *dev = NULL;
 static BFILE bfd;
@@ -46,7 +46,7 @@ static JCR *jcr;
 static FF_PKT my_ff;
 static FF_PKT *ff = &my_ff;
 static BSR *bsr = NULL;
-static int extract = FALSE;
+static bool extract = false;
 static int non_support_data = 0;
 static long total = 0;
 static ATTR *attr;
@@ -239,12 +239,12 @@ static void do_extract(char *devname)
 /*
  * Called here for each record from read_records()
  */
-static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
+static bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 {
    int stat;
 
    if (rec->FileIndex < 0) {
-      return 1;                       /* we don't want labels */
+      return true;                    /* we don't want labels */
    }
 
    /* File Attributes stream */
@@ -261,7 +261,7 @@ static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
             Emsg0(M_ERROR, 0, _("Logic error output file should be open but is not.\n"));
 	 }
 	 set_attributes(jcr, attr, &bfd);
-	 extract = FALSE;
+	 extract = false;
       }
 
       if (!unpack_attributes_record(jcr, rec->Stream, rec->data, attr)) {
@@ -281,21 +281,21 @@ static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
                Jmsg(jcr, M_ERROR, 0, _("%s stream not supported on this Client.\n"),
 		  stream_to_ascii(attr->data_stream));
 	    }
-	    extract = FALSE;
-	    return 1;
+	    extract = false;
+	    return true;
 	 }
 
 
 	 build_attr_output_fnames(jcr, attr);
 
-	 extract = FALSE;
+	 extract = false;
 	 stat = create_file(jcr, attr, &bfd, REPLACE_ALWAYS);	
 	 switch (stat) {
 	 case CF_ERROR:
 	 case CF_SKIP:
 	    break;
 	 case CF_EXTRACT:
-	    extract = TRUE;
+	    extract = true;
 	    print_ls_output(jcr, attr);
 	    num_files++;
 	    fileAddr = 0;
@@ -366,8 +366,8 @@ static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	       if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
                   Emsg3(M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"), 
 		     edit_uint64(fileAddr, ec1), attr->ofname, berror(&bfd));
-		  extract = FALSE;
-		  return 1;
+		  extract = false;
+		  return true;
 	       }
 	    }
 	 } else {
@@ -378,8 +378,8 @@ static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 if ((stat=uncompress((Bytef *)compress_buf, &compress_len, 
 	       (const Bytef *)wbuf, (uLong)wsize) != Z_OK)) {
             Emsg1(M_ERROR, 0, _("Uncompression error. ERR=%d\n"), stat);
-	    extract = FALSE;
-	    return 1;
+	    extract = false;
+	    return true;
 	 }
 
          Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
@@ -387,8 +387,8 @@ static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
             Pmsg0(0, "===Write error===\n");
             Emsg2(M_ERROR, 0, _("Write error on %s: %s\n"), 
 	       attr->ofname, strerror(errno));
-	    extract = FALSE;
-	    return 1;
+	    extract = false;
+	    return true;
 	 }
 	 total += compress_len;
 	 fileAddr += compress_len;
@@ -398,8 +398,8 @@ static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 #else
       if (extract) {
          Emsg0(M_ERROR, 0, "GZIP data stream found, but GZIP not configured!\n");
-	 extract = FALSE;
-	 return 1;
+	 extract = false;
+	 return true;
       }
 #endif
       break;
@@ -423,14 +423,14 @@ static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
             Emsg0(M_ERROR, 0, "Logic error output file should be open but is not.\n");
 	 }
 	 set_attributes(jcr, attr, &bfd);
-	 extract = FALSE;
+	 extract = false;
       }
       Jmsg(jcr, M_ERROR, 0, _("Unknown stream=%d ignored. This shouldn't happen!\n"), 
 	 rec->Stream);
       break;
       
    } /* end switch */
-   return 1;
+   return true;
 }
 
 

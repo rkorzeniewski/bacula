@@ -1,5 +1,5 @@
                  Kern's ToDo List
-                  01 July 2004
+                   04 July 2004
 
 1.35 Items to do:
 - Make btape release the drive during the "test" append.
@@ -9,7 +9,6 @@
 - Document a get out of jail procedure if everything breaks if 
   you lost/broke the Catalog -- do the same for "I know my
   file is there how do I get it back?".
-- When restore started from console, report jobid.
 - Look at Win32 inc problem when new directory added files not saved???
 - Make FD run on Win95 if possible:
    The error I when I installed 1.34.2 clients:
@@ -54,17 +53,18 @@ Testing to do: (painful)
 - Test if rewind at end of tape waits for tape to rewind.
 - Test cancel at EOM.       
 
-For 1.33 Testing/Documentation:
-- Figure out how to use ssh or stunnel to protect Bacula communications.
-  Add Dan's work to manual See ssl.txt
+For 1.37 Testing/Documentation:
 - Add db check test to regression. Test each function like delete,
   purge, ...
 - If you use restore replace=never, the directory attributes for
   non-existent directories will not be restored properly.
 
 Wish list:  
-- Sort Scheduled jobs status listing by start time.
-- Add priority to Scheduled jobs status listing.
+- Compaction of Disk space by "migrating" Volumes that have pruned
+  Jobs (what criteria? size, #jobs, time).
+- Add prune all command
+- Document fact that purge can destroy a part of a restore by purging
+  one volume while others remain valid -- perhaps mark Jobs.
 - Add multiple-media-types.txt
 - look at mxt-changer.html
 - Make ? do a help command (no return needed).
@@ -1076,6 +1076,8 @@ Block Position: 0
   mount it.
 - Implement Fixed storage LabelFormat test.
 - Add reporting in attr despooling.
+- Figure out how to use ssh or stunnel to protect Bacula communications.
+  Add Dan's work to manual See ssl.txt
 
 ==== Done in 1.35.0
 - Implement fast tree insert (doubly linked list?)
@@ -1087,4 +1089,6 @@ Block Position: 0
   (Implement resources on a single pointer)
 - Add regular expressions to FileSets.
 - Test new I/O error despooling code.
+- Sort Scheduled jobs status listing by start time.
+- Add priority to Scheduled jobs status listing.
 

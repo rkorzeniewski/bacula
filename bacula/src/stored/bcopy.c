@@ -31,7 +31,7 @@
 #include "stored.h"
 
 /* Forward referenced functions */
-static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
+static bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
 
 
 /* Global variables */
@@ -186,7 +186,7 @@ int main (int argc, char *argv[])
 /*
  * read_records() calls back here for each record it gets
  */
-static int record_cb(JCR *in_jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
+static bool record_cb(JCR *in_jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 {
    if (list_records) {
       Pmsg5(000, _("Record: SessId=%u SessTim=%u FileIndex=%d Stream=%d len=%u\n"),
@@ -205,10 +205,10 @@ static int record_cb(JCR *in_jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec
       switch (rec->FileIndex) {
       case PRE_LABEL:
          Pmsg0(000, "Volume is prelabeled. This volume cannot be copied.\n");
-	 return 1;
+	 return false;
       case VOL_LABEL:
          Pmsg0(000, "Volume label not copied.\n");
-	 return 1;
+	 return true;
       case SOS_LABEL:
 	 jobs++;
 	 break;
@@ -232,10 +232,10 @@ static int record_cb(JCR *in_jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec
 	 break;
       case EOM_LABEL:
          Pmsg0(000, "EOM label not copied.\n");
-	 return 1;
+	 return true;
       case EOT_LABEL:		   /* end of all tapes */
          Pmsg0(000, "EOT label not copied.\n");
-	 return 1;
+	 return true;
       default:
 	 break;
       }
@@ -254,7 +254,7 @@ static int record_cb(JCR *in_jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec
 	 break;
       }
    }
-   return 1;
+   return true;
 }
 
 

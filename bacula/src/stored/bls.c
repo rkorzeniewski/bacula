@@ -39,7 +39,7 @@ static void do_jobs(char *infname);
 static void do_ls(char *fname);
 static void do_close(JCR *jcr);
 static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sessrec);
-static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
+static bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec);
 
 static DEVICE *dev;
 static int dump_label = FALSE;
@@ -313,13 +313,13 @@ static void do_blocks(char *infname)
 /*
  * We are only looking for labels or in particular Job Session records
  */
-static int jobs_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
+static bool jobs_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 {
    if (rec->FileIndex < 0) {
       dump_label_record(dev, rec, verbose);
    }
    rec->remainder = 0;
-   return 1;
+   return true;
 }
 
 /* Do list job records */
@@ -342,11 +342,11 @@ static void do_ls(char *infname)
 /*
  * Called here for each record from read_records()
  */
-static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
+static bool record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 {
    if (rec->FileIndex < 0) {
       get_session_record(dev, rec, &sessrec);
-      return 1;
+      return true;
    }
    /* File Attributes stream */
    if (rec->Stream == STREAM_UNIX_ATTRIBUTES || 
@@ -376,7 +376,7 @@ static int record_cb(JCR *jcr, DEVICE *dev, DEV_BLOCK *block, DEV_RECORD *rec)
 	 num_files++;
       }
    }
-   return 1;
+   return true;
 }
 
 

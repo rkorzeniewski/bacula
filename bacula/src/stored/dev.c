@@ -97,7 +97,7 @@ DEVICE *
 init_dev(DEVICE *dev, DEVRES *device)
 {
    struct stat statp;
-   int tape, fifo;
+   bool tape, fifo;
    int errstat;
    DCR *dcr = NULL;
 
@@ -110,14 +110,14 @@ init_dev(DEVICE *dev, DEVRES *device)
 	    strerror(errno));
       return NULL;
    }
-   tape = FALSE;
-   fifo = FALSE;
+   tape = false;
+   fifo = false;
    if (S_ISDIR(statp.st_mode)) {
-      tape = FALSE;
+      tape = false;
    } else if (S_ISCHR(statp.st_mode)) {
-      tape = TRUE;
+      tape = true;
    } else if (S_ISFIFO(statp.st_mode)) {
-      fifo = TRUE;
+      fifo = true;
    } else {
       if (dev) {
 	 dev->dev_errno = ENODEV;
