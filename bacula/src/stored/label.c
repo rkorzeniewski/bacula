@@ -987,7 +987,7 @@ bool write_ansi_ibm_label(DCR *dcr, const char *VolName)
       ser_begin(label, sizeof(label));
       ser_bytes("VOL1", 4);
       ser_bytes(VolName, len);
-      label[79] = '1';                /* ANSI label flag */
+      label[79] = '3';                /* ANSI label flag */
       /* Write VOL1 label */
       stat = write(dev->fd, label, sizeof(label));
       if (stat != sizeof(label)) {
@@ -1010,7 +1010,7 @@ bool write_ansi_ibm_label(DCR *dcr, const char *VolName)
       ser_begin(&label[21], sizeof(label)-21);
       ser_bytes(VolName, len);	      /* write Vol Ser No. */
       ser_begin(&label[27], sizeof(label)-27);
-      ser_bytes("000100010001", 12);  /* File section, File seq no, Generation no */
+      ser_bytes("00010001000100", 14);  /* File section, File seq no, Generation no */
       now = time(NULL);
       ser_bytes(ansi_date(now, date), 6); /* current date */
       ser_bytes(ansi_date(now - 24 * 3600, date), 6); /* created yesterday */
@@ -1100,6 +1100,6 @@ static char *ansi_date(time_t td, char *buf)
       td = time(NULL);
    }
    tm = gmtime(&td);
-   bsnprintf(buf, 10, "%d  ", 1000 * (tm->tm_year + 1900 - 2000) + tm->tm_yday);
+   bsnprintf(buf, 10, " %05d ", 1000 * (tm->tm_year + 1900 - 2000) + tm->tm_yday);
    return buf;
 }
