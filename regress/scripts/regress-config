@@ -7,11 +7,11 @@ CFLAGS="-g -O2 -Wall" \
  ./configure \
     --sbindir=$1/bin \
     --sysconfdir=$1/bin \
-    --with-pid-dir=$1/bin/working \
-    --with-subsys-dir=$1/bin/working \
+    --with-pid-dir=$1/working \
+    --with-subsys-dir=$1/working \
     --enable-smartalloc \
     --with-sqlite=$2 \
-    --with-working-dir=$1/bin/working \
+    --with-working-dir=$1/working \
     --with-dump-email=$3 \
     --with-job-email=$3 \
     --with-baseport=8101 

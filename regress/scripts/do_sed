@@ -4,7 +4,7 @@ cwd=`pwd`
 # Create sed command script
 echo "s%@sbindir@%${cwd}/bin%g" >${out}
 echo "s%@scriptdir@%${cwd}/bin%g" >>${out}
-echo "s%@working_dir@%${cwd}/bin/working%g" >>${out}
+echo "s%@working_dir@%${cwd}/working%g" >>${out}
 echo "s%@piddir@%${cwd}/bin/working%g" >>${out}
 echo "s%@subsysdir@%${cwd}/bin/working%g" >>${out}
 echo "s%@job_email@%${1}%g" >>${out}

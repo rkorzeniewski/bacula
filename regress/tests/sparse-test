@@ -5,7 +5,7 @@
 #
 cwd=`pwd`
 scripts/copy-test-confs
-rm -rf /tmp/TestVolume001 /tmp/bacula-restores
+scripts/cleanup
 echo "${cwd}/build" >/tmp/file-list
 bin/bacula stop 2>&1 >/dev/null
 bin/drop_sqlite_tables
@@ -14,6 +14,7 @@ bin/make_sqlite_tables
 echo " "
 echo " "
 echo " === Starting sparse-test ==="
+echo " === Starting sparse-test ===" >>tmp/log
 echo " "
 
 bin/bacula start
@@ -50,5 +51,5 @@ if [ $? != 0 ] ; then
 else
    echo "  ===== sparse-test Bacula source OK ===== "
    echo "  ===== sparse-test OK ===== " >>test.out
-   rm -rf /tmp/bacula-restores /tmp/TestVolume001
+   scripts/cleanup
 fi
