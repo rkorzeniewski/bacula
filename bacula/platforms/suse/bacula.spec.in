@@ -599,6 +599,10 @@ cp -p updatedb/* $RPM_BUILD_ROOT/etc/bacula/updatedb/
 # now clean up permissions that are left broken by the install
 chmod o-r $RPM_BUILD_ROOT/etc/bacula/query.sql
 chmod o-rwx $RPM_BUILD_ROOT/var/bacula
+%if ! %{rh7} && ! %{rh8}
+chmod 755 $RPM_BUILD_ROOT/usr/sbin/bacula-tray-monitor
+chmod 644 $RPM_BUILD_ROOT/etc/bacula/tray-monitor.conf
+%endif
 
 %clean
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf "$RPM_BUILD_ROOT"
@@ -1099,6 +1103,7 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 %changelog
 * Fri Oct 22 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - remove tray-monitor from RH8 build
+- fix permissions on tray-monitor files
 * Wed Oct 13 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - add Mandrake support and tray-monitor, misc changes for 1.35.8/1.36.0,
 - change database update to 7 to 8 upgrade,
