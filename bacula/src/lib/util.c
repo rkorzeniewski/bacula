@@ -300,113 +300,45 @@ char *encode_mode(mode_t mode, char *buf)
 
 int do_shell_expansion(char *name, int name_len)
 {
-/*  ****FIXME***** this should work for Win32 too */
-#define UNIX
-#ifdef UNIX
-#ifndef PATH_MAX
-#define PATH_MAX 512
-#endif
-
-   int pid, wpid, stat;
-   int waitstatus;
-   char *shellcmd;
-   int i;
-   char echout[PATH_MAX + 256];
-   int pfd[2];
    static char meta[] = "~\\$[]*?`'<>\"";
-   int found = FALSE;
-   int len;
+   bool found = false;
+   int len, i, stat;
+   POOLMEM *cmd;
+   BPIPE *bpipe;
+   char line[MAXSTRING];
+   char *shellcmd;
 
    /* Check if any meta characters are present */
    len = strlen(meta);
    for (i = 0; i < len; i++) {
       if (strchr(name, meta[i])) {
-	 found = TRUE;
+	 found = true;
 	 break;
       }
    }
-   stat = 0;
    if (found) {
-#ifdef nt
-       /* If the filename appears to be a DOS filename,
-          convert all backward slashes \ to Unix path
-          separators / and insert a \ infront of spaces. */
-       len = strlen(name);
-       if (len >= 3 && name[1] == ':' && name[2] == '\\') {
-	  for (i=2; i<len; i++)
-             if (name[i] == '\\')
-                name[i] = '/';
-       }
-#else
-       /* Pass string off to the shell for interpretation */
-       if (pipe(pfd) == -1)
-	  return 0;
-       switch(pid = fork()) {
-       case -1:
-	  break;
-
-       case 0:				  /* child */
-	  /* look for shell */
-          if ((shellcmd = getenv("SHELL")) == NULL) {
-             shellcmd = "/bin/sh";
-	  }
-	  close(pfd[0]);		  /* close stdin */
-	  dup2(pfd[1], 1);		  /* attach to stdout */
-	  dup2(pfd[1], 2);		  /* and stderr */
-          strcpy(echout, "echo ");        /* form echo command */
-	  bstrncat(echout, name, sizeof(echout));
-          execl(shellcmd, shellcmd, "-c", echout, NULL); /* give to shell */
-          exit(127);                      /* shouldn't get here */
-
-       default: 			  /* parent */
-	  /* read output from child */
-	  echout[0] = 0;
-	  do {
-	     i = read(pfd[0], echout, sizeof echout);
-	  } while (i == -1 && errno == EINTR); 
-
-	  if (i > 0) {
-	     echout[--i] = 0;		     /* set end of string */
-	     /* look for first line. */
-	     while (--i >= 0) {
-                if (echout[i] == '\n') {
-		   echout[i] = 0;	     /* keep only first one */
-		}
-	     }
-	  }
-	  /* wait for child to exit */
-	  while ((wpid = wait(&waitstatus)) != pid && wpid != -1)
-	     { ; }
-	  strip_trailing_junk(echout);
-	  if (strlen(echout) > 0) {
-	     bstrncpy(name, echout, name_len);
-	  }
-	  stat = 1;
-	  break;
-       }
-       close(pfd[0]);			  /* close pipe */
-       close(pfd[1]);
-#endif /* nt */
-   }
-   return stat;
-
-#endif /* UNIX */
-
-#if  MSC | MSDOS | __WATCOMC__
-
-   char prefix[100], *env, *getenv();
-
-   /* Home directory reference? */
-   if (*name == '~' && (env=getenv("HOME"))) {
-      strcpy(prefix, env);	      /* copy HOME directory name */
-      name++;			      /* skip over ~ in name */
-      strcat(prefix, name);
-      name--;			      /* get back to beginning */
-      strcpy(name, prefix);	      /* move back into name */
+      cmd =  get_pool_memory(PM_FNAME);
+      /* look for shell */
+      if ((shellcmd = getenv("SHELL")) == NULL) {
+         shellcmd = "/bin/sh";
+      }
+      pm_strcpy(&cmd, shellcmd);
+      pm_strcat(&cmd, " -c \"echo ");
+      pm_strcat(&cmd, name);
+      pm_strcat(&cmd, "\"");
+      Dmsg1(400, "Send: %s\n", cmd);
+      bpipe = open_bpipe(cmd, 0, "r");
+      *line = 0;
+      fgets(line, sizeof(line), bpipe->rfd);
+      strip_trailing_junk(line);
+      stat = close_bpipe(bpipe);
+      Dmsg2(400, "stat=%d got: %s\n", stat, line);
+      free_pool_memory(cmd);
+      if (stat == 0) {
+	 bstrncpy(name, line, name_len);
+      }
    }
    return 1;
-#endif
-
 }
 
 
