@@ -6,3 +6,11 @@ bacula.desktop.gnome2
 bconsole
 gconsole
 mtx-changer
+Makefile
+bacula
+btraceback
+fd
+startit
+startmysql
+stopit
+stopmysql
