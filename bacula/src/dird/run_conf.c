@@ -298,243 +298,243 @@ void store_run(LEX *lc, struct res_items *item, int index, int pass)
    for ( ; token != T_EOL; (token = lex_get_token(lc, T_ALL))) {
       int len, pm = 0;
       switch (token) {
-	 case T_NUMBER:
-	    state = s_mday;
-	    code = atoi(lc->str) - 1;
-	    if (code < 0 || code > 30) {
-               scan_err0(lc, _("Day number out of range (1-31)"));
-	    }
+      case T_NUMBER:
+	 state = s_mday;
+	 code = atoi(lc->str) - 1;
+	 if (code < 0 || code > 30) {
+            scan_err0(lc, _("Day number out of range (1-31)"));
+	 }
+	 break;
+      case T_NAME:		   /* this handles drop through from keyword */
+      case T_UNQUOTED_STRING:
+         if (strchr(lc->str, (int)'-')) {
+	    state = s_range;
 	    break;
-	 case T_NAME:		      /* this handles drop through from keyword */
-	 case T_UNQUOTED_STRING:
-            if (strchr(lc->str, (int)'-')) {
-	       state = s_range;
+	 }
+         if (strchr(lc->str, (int)':')) {
+	    state = s_time;
+	    break;
+	 }
+	 /* everything else must be a keyword */
+	 for (i=0; keyw[i].name; i++) {
+	    if (strcasecmp(lc->str, keyw[i].name) == 0) {
+	       state = keyw[i].state;
+	       code   = keyw[i].code;
+	       i = 0;
 	       break;
 	    }
-            if (strchr(lc->str, (int)':')) {
-	       state = s_time;
-	       break;
-	    }
-	    /* everything else must be a keyword */
-	    for (i=0; keyw[i].name; i++) {
-	       if (strcasecmp(lc->str, keyw[i].name) == 0) {
-		  state = keyw[i].state;
-		  code	 = keyw[i].code;
-		  i = 0;
-		  break;
-	       }
-	    }
-	    if (i != 0) {
-               scan_err1(lc, _("Job type field: %s in run record not found"), lc->str);
-	       /* NOT REACHED */
-	    }
-	    break;
-	 case T_COMMA:
-	    continue;
-	 default:
-            scan_err2(lc, _("Unexpected token: %d:%s"), token, lc->str);
+	 }
+	 if (i != 0) {
+            scan_err1(lc, _("Job type field: %s in run record not found"), lc->str);
 	    /* NOT REACHED */
-	    break;
+	 }
+	 break;
+      case T_COMMA:
+	 continue;
+      default:
+         scan_err2(lc, _("Unexpected token: %d:%s"), token, lc->str);
+	 /* NOT REACHED */
+	 break;
       }
       switch (state) {
-	 case s_none:
-	    continue;
-	 case s_mday:		      /* day of month */
+      case s_none:
+	 continue;
+      case s_mday:		   /* day of month */
+	 if (!have_mday) {
+	    clear_bits(0, 30, lrun.mday);
+	    clear_bits(0, 6, lrun.wday);
+	    have_mday = TRUE;
+	 }
+	 set_bit(code, lrun.mday);
+	 break;
+      case s_month:		   /* month of year */
+	 if (!have_month) {
+	    clear_bits(0, 11, lrun.month);
+	    have_month = TRUE;
+	 }
+	 set_bit(code, lrun.month);
+	 break;
+      case s_wday:		   /* week day */
+	 if (!have_wday) {
+	    clear_bits(0, 6, lrun.wday);
+	    clear_bits(0, 30, lrun.mday);
+	    have_wday = TRUE;
+	 }
+	 set_bit(code, lrun.wday);
+	 break;
+      case s_wpos:		   /* Week position 1st, ... */
+	 if (!have_wpos) {
+	    clear_bits(0, 4, lrun.wpos);
+	    have_wpos = TRUE;
+	 }
+	 set_bit(code, lrun.wpos);
+	 break;
+      case s_time:		   /* time */
+	 if (!have_at) {
+            scan_err0(lc, _("Time must be preceded by keyword AT."));
+	    /* NOT REACHED */
+	 }
+	 if (!have_hour) {
+	    clear_bit(0, lrun.hour);
+	 }
+         p = strchr(lc->str, ':');
+	 if (!p)  {
+            scan_err0(lc, _("Time logic error.\n"));
+	    /* NOT REACHED */
+	 }
+	 *p++ = 0;		   /* separate two halves */
+	 code = atoi(lc->str);
+	 len = strlen(p);
+         if (len > 2 && p[len-1] == 'm') {
+            if (p[len-2] == 'a') {
+	       pm = 0;
+            } else if (p[len-2] == 'p') {
+	       pm = 1;
+	    } else {
+               scan_err0(lc, _("Bad time specification."));
+	       /* NOT REACHED */
+	    }
+	 } else {
+	    pm = 0;
+	 }
+	 code2 = atoi(p);
+	 if (pm) {
+	    code += 12;
+	 }
+	 if (code < 0 || code > 23 || code2 < 0 || code2 > 59) {
+            scan_err0(lc, _("Bad time specification."));
+	    /* NOT REACHED */
+	 }
+	 set_bit(code, lrun.hour);
+	 lrun.minute = code2;
+	 have_hour = TRUE;
+	 break;
+      case s_at:
+	 have_at = TRUE;
+	 break;
+      case s_range:
+         p = strchr(lc->str, '-');
+	 if (!p) {
+            scan_err0(lc, _("Range logic error.\n"));
+	 }
+	 *p++ = 0;		   /* separate two halves */
+
+	 /* Check for day range */
+	 if (is_num(lc->str) && is_num(p)) {
+	    code = atoi(lc->str) - 1;
+	    code2 = atoi(p) - 1;
+	    if (code < 0 || code > 30 || code2 < 0 || code2 > 30) {
+               scan_err0(lc, _("Bad day range specification."));
+	    }
 	    if (!have_mday) {
 	       clear_bits(0, 30, lrun.mday);
 	       clear_bits(0, 6, lrun.wday);
 	       have_mday = TRUE;
 	    }
-	    set_bit(code, lrun.mday);
-	    break;
-	 case s_month:		      /* month of year */
-	    if (!have_month) {
-	       clear_bits(0, 11, lrun.month);
-	       have_month = TRUE;
+	    if (code < code2) {
+	       set_bits(code, code2, lrun.mday);
+	    } else {
+	       set_bits(code, 30, lrun.mday);
+	       set_bits(0, code2, lrun.mday);
 	    }
-	    set_bit(code, lrun.month);
 	    break;
-	 case s_wday:		      /* week day */
+	 }
+
+	 /* lookup first half of keyword range (week days or months) */
+	 lcase(lc->str);
+	 for (i=0; keyw[i].name; i++) {
+	    if (strcmp(lc->str, keyw[i].name) == 0) {
+	       state = keyw[i].state;
+	       code   = keyw[i].code;
+	       i = 0;
+	       break;
+	    }
+	 }
+	 if (i != 0 || (state != s_month && state != s_wday && state != s_wpos)) {
+            scan_err0(lc, _("Invalid month, week or position day range"));
+	    /* NOT REACHED */
+	 }
+
+	 /* Lookup end of range */
+	 lcase(p);
+	 for (i=0; keyw[i].name; i++) {
+	    if (strcmp(p, keyw[i].name) == 0) {
+	       state2  = keyw[i].state;
+	       code2   = keyw[i].code;
+	       i = 0;
+	       break;
+	    }
+	 }
+	 if (i != 0 || state != state2 || code == code2) {
+            scan_err0(lc, _("Invalid month, weekday or position range"));
+	    /* NOT REACHED */
+	 }
+	 if (state == s_wday) {
 	    if (!have_wday) {
 	       clear_bits(0, 6, lrun.wday);
 	       clear_bits(0, 30, lrun.mday);
 	       have_wday = TRUE;
 	    }
-	    set_bit(code, lrun.wday);
-	    break;
-	 case s_wpos:		      /* Week position 1st, ... */
+	    if (code < code2) {
+	       set_bits(code, code2, lrun.wday);
+	    } else {
+	       set_bits(code, 6, lrun.wday);
+	       set_bits(0, code2, lrun.wday);
+	    }
+	 } else if (state == s_month) {
+	    if (!have_month) {
+	       clear_bits(0, 30, lrun.month);
+	       have_month = TRUE;
+	    }
+	    if (code < code2) {
+	       set_bits(code, code2, lrun.month);
+	    } else {
+	       /* this is a bit odd, but we accept it anyway */
+	       set_bits(code, 30, lrun.month);
+	       set_bits(0, code2, lrun.month);
+	    }
+	 } else {
+	    /* Must be position */
 	    if (!have_wpos) {
 	       clear_bits(0, 4, lrun.wpos);
 	       have_wpos = TRUE;
 	    }
-	    set_bit(code, lrun.wpos);
-	    break;
-	 case s_time:		      /* time */
-	    if (!have_at) {
-               scan_err0(lc, _("Time must be preceded by keyword AT."));
-	       /* NOT REACHED */
-	    }
-	    if (!have_hour) {
-	       clear_bit(0, lrun.hour);
-	    }
-            p = strchr(lc->str, ':');
-	    if (!p)  {
-               scan_err0(lc, _("Time logic error.\n"));
-	       /* NOT REACHED */
-	    }
-	    *p++ = 0;		      /* separate two halves */
-	    code = atoi(lc->str);
-	    len = strlen(p);
-            if (len > 2 && p[len-1] == 'm') {
-               if (p[len-2] == 'a') {
-		  pm = 0;
-               } else if (p[len-2] == 'p') {
-		  pm = 1;
-	       } else {
-                  scan_err0(lc, _("Bad time specification."));
-		  /* NOT REACHED */
-	       }
+	    if (code < code2) {
+	       set_bits(code, code2, lrun.wpos);
 	    } else {
-	       pm = 0;
+	       set_bits(code, 4, lrun.wpos);
+	       set_bits(0, code2, lrun.wpos);
 	    }
-	    code2 = atoi(p);
-	    if (pm) {
-	       code += 12;
-	    }
-	    if (code < 0 || code > 23 || code2 < 0 || code2 > 59) {
-               scan_err0(lc, _("Bad time specification."));
-	       /* NOT REACHED */
-	    }
-	    set_bit(code, lrun.hour);
-	    lrun.minute = code2;
-	    have_hour = TRUE;
-	    break;
-	 case s_at:
-	    have_at = TRUE;
-	    break;
-	 case s_range:
-            p = strchr(lc->str, '-');
-	    if (!p) {
-               scan_err0(lc, _("Range logic error.\n"));
-	    }
-	    *p++ = 0;		      /* separate two halves */
-
-	    /* Check for day range */
-	    if (is_num(lc->str) && is_num(p)) {
-	       code = atoi(lc->str) - 1;
-	       code2 = atoi(p) - 1;
-	       if (code < 0 || code > 30 || code2 < 0 || code2 > 30) {
-                  scan_err0(lc, _("Bad day range specification."));
-	       }
-	       if (!have_mday) {
-		  clear_bits(0, 30, lrun.mday);
-		  clear_bits(0, 6, lrun.wday);
-		  have_mday = TRUE;
-	       }
-	       if (code < code2) {
-		  set_bits(code, code2, lrun.mday);
-	       } else {
-		  set_bits(code, 30, lrun.mday);
-		  set_bits(0, code2, lrun.mday);
-	       }
-	       break;
-	    }
-
-	    /* lookup first half of keyword range (week days or months) */
-	    lcase(lc->str);
-	    for (i=0; keyw[i].name; i++) {
-	       if (strcmp(lc->str, keyw[i].name) == 0) {
-		  state = keyw[i].state;
-		  code	 = keyw[i].code;
-		  i = 0;
-		  break;
-	       }
-	    }
-	    if (i != 0 || (state != s_month && state != s_wday && state != s_wpos)) {
-               scan_err0(lc, _("Invalid month, week or position day range"));
-	       /* NOT REACHED */
-	    }
-
-	    /* Lookup end of range */
-	    lcase(p);
-	    for (i=0; keyw[i].name; i++) {
-	       if (strcmp(p, keyw[i].name) == 0) {
-		  state2  = keyw[i].state;
-		  code2   = keyw[i].code;
-		  i = 0;
-		  break;
-	       }
-	    }
-	    if (i != 0 || state != state2 || code == code2) {
-               scan_err0(lc, _("Invalid month, weekday or position range"));
-	       /* NOT REACHED */
-	    }
-	    if (state == s_wday) {
-	       if (!have_wday) {
-		  clear_bits(0, 6, lrun.wday);
-		  clear_bits(0, 30, lrun.mday);
-		  have_wday = TRUE;
-	       }
-	       if (code < code2) {
-		  set_bits(code, code2, lrun.wday);
-	       } else {
-		  set_bits(code, 6, lrun.wday);
-		  set_bits(0, code2, lrun.wday);
-	       }
-	    } else if (state == s_month) {
-	       if (!have_month) {
-		  clear_bits(0, 30, lrun.month);
-		  have_month = TRUE;
-	       }
-	       if (code < code2) {
-		  set_bits(code, code2, lrun.month);
-	       } else {
-		  /* this is a bit odd, but we accept it anyway */
-		  set_bits(code, 30, lrun.month);
-		  set_bits(0, code2, lrun.month);
-	       }
-	    } else {
-	       /* Must be position */
-	       if (!have_wpos) {
-		  clear_bits(0, 4, lrun.wpos);
-		  have_wpos = TRUE;
-	       }
-	       if (code < code2) {
-		  set_bits(code, code2, lrun.wpos);
-	       } else {
-		  set_bits(code, 4, lrun.wpos);
-		  set_bits(0, code2, lrun.wpos);
-	       }
-	    }			   
-	    break;
-	 case s_hourly:
-	    clear_defaults();
-	    set_bits(0, 23, lrun.hour);
-	    set_bits(0, 30, lrun.mday);
-	    set_bits(0, 11, lrun.month);
-	    set_bits(0, 4, lrun.wpos);
-	    break;
-	 case s_weekly:
-	    clear_defaults();
-	    set_bit(0, lrun.wday);
-	    set_bits(0, 11, lrun.month);
-	    set_bits(0, 4, lrun.wpos);
-	    break;
-	 case s_daily:
-	    clear_defaults();
-	    set_bits(0, 30, lrun.mday);
-	    set_bits(0, 11, lrun.month);
-	    set_bits(0, 4,  lrun.wpos);
-	    break;
-	 case s_monthly:
-	    clear_defaults();
-	    set_bits(0, 11, lrun.month);
-	    set_bits(0, 4,  lrun.wpos);
-	    break;
-	 default:
-            scan_err0(lc, _("Unexpected run state\n"));
-	    /* NOT REACHED */
-	    break;
+	 }			
+	 break;
+      case s_hourly:
+	 clear_defaults();
+	 set_bits(0, 23, lrun.hour);
+	 set_bits(0, 30, lrun.mday);
+	 set_bits(0, 11, lrun.month);
+	 set_bits(0, 4, lrun.wpos);
+	 break;
+      case s_weekly:
+	 clear_defaults();
+	 set_bit(0, lrun.wday);
+	 set_bits(0, 11, lrun.month);
+	 set_bits(0, 4, lrun.wpos);
+	 break;
+      case s_daily:
+	 clear_defaults();
+	 set_bits(0, 30, lrun.mday);
+	 set_bits(0, 11, lrun.month);
+	 set_bits(0, 4,  lrun.wpos);
+	 break;
+      case s_monthly:
+	 clear_defaults();
+	 set_bits(0, 11, lrun.month);
+	 set_bits(0, 4,  lrun.wpos);
+	 break;
+      default:
+         scan_err0(lc, _("Unexpected run state\n"));
+	 /* NOT REACHED */
+	 break;
       }
    }
 

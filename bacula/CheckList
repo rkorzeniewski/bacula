@@ -8,7 +8,7 @@
 - Update ChangeLog (add release date)
 - Do a cvs commit
 - Do a cvs -q export -D now -d bacula-1.nn bacula
-- Build new bacula-1.nn to ensure everything is committed
+- Run the regression tests on the new bacula
 - Write ReleaseNotes
 - If everything is good
 - cd bacula/k
