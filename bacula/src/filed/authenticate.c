@@ -50,7 +50,7 @@ static int authenticate(int rcode, BSOCK *bs)
 
    if (sscanf(bs->msg, "Hello Director %s calling\n", name) != 1) {
       free_pool_memory(name);
-      Emsg1(M_FATAL, 0, _("Authentication failure: %s"), bs->msg);
+      Emsg1(M_FATAL, 0, _("Bad Hello command from Director: %s"), bs->msg);
       return 0;
    }
    director = NULL;
@@ -60,8 +60,14 @@ static int authenticate(int rcode, BSOCK *bs)
 	 break;
    }
    UnlockRes();
-   if (director && (!cram_md5_auth(bs, director->password) ||
-       !cram_md5_get_auth(bs, director->password))) {
+   if (!director) {
+      Emsg1(M_FATAL, 0, _("Connection from unknown Director %s rejected.\n"), name);
+      free_pool_memory(name);
+      return 0;
+   }
+   if (!cram_md5_auth(bs, director->password) ||
+       !cram_md5_get_auth(bs, director->password)) {
+      Emsg0(M_FATAL, 0, _("Incorrect password given by Director.\n"));
       director = NULL;
    }
    free_pool_memory(name);
@@ -82,7 +88,8 @@ int authenticate_director(JCR *jcr)
 
    if (!authenticate(R_DIRECTOR, dir)) {
       bnet_fsend(dir, "%s", Dir_sorry);
-      Emsg0(M_ERROR, 0, _("Unable to authenticate Director\n"));
+      Emsg0(M_FATAL, 0, _("Unable to authenticate Director\n"));
+      sleep(5);
       return 0;
    }
    return bnet_fsend(dir, "%s", OK_hello);
@@ -95,7 +102,12 @@ int authenticate_director(JCR *jcr)
 int authenticate_storagedaemon(JCR *jcr)
 {
    BSOCK *sd = jcr->store_bsock;
+   int stat;
 
-   return cram_md5_get_auth(sd, jcr->sd_auth_key) &&
+   stat = cram_md5_get_auth(sd, jcr->sd_auth_key) &&
 	  cram_md5_auth(sd, jcr->sd_auth_key);
+   if (!stat) {
+      Jmsg(jcr, M_FATAL, 0, _("Authorization key rejected by Storage daemon.\n"));
+   }
+   return stat;
 }

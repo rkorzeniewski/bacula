@@ -333,16 +333,10 @@ void store_name(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token;
 
+   lc->expect = T_NAME;
    token = lex_get_token(lc);
-   if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
-      scan_err1(lc, "expected an identifier or string, got: %s", lc->str);
-   } else if (lc->str_len > MAX_RES_NAME_LENGTH) {
-      scan_err3(lc, "name %s length %d too long, max is %d\n", lc->str, 
-	 lc->str_len, MAX_RES_NAME_LENGTH);
-   } else {
-      /* Store the name both pass 1 and pass 2 */
-      *(item->value) = bstrdup(lc->str);
-   }
+   /* Store the name both pass 1 and pass 2 */
+   *(item->value) = bstrdup(lc->str);
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
 }
@@ -356,16 +350,11 @@ void store_strname(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token;
 
+   lc->expect = T_NAME;
    token = lex_get_token(lc);
-   if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
-      scan_err1(lc, "expected an identifier or string, got: %s", lc->str);
-   } else if (lc->str_len > MAX_RES_NAME_LENGTH) {
-      scan_err3(lc, "name %s length %d too long, max is %d\n", lc->str, 
-	 lc->str_len, MAX_RES_NAME_LENGTH);
-   } else {
-      /* Store the name */
-      if (pass == 1)
-	 *(item->value) = bstrdup(lc->str);
+   /* Store the name */
+   if (pass == 1) {
+      *(item->value) = bstrdup(lc->str);
    }
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
@@ -488,17 +477,9 @@ void store_pint(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token;
 
+   lc->expect = T_PINT32;
    token = lex_get_token(lc);
-   if (token != T_NUMBER || !is_a_number(lc->str)) {
-      scan_err1(lc, "expected a positive integer number, got: %s", lc->str);
-   } else {
-      errno = 0;
-      token = (int)strtod(lc->str, NULL);
-      if (errno != 0 || token < 0) {
-         scan_err1(lc, "expected a postive integer number, got: %s", lc->str);
-      }
-      *(int *)(item->value) = token;
-   }
+   *(int *)(item->value) = lc->pint32_val;
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
 }
@@ -509,16 +490,9 @@ void store_int64(LEX *lc, struct res_items *item, int index, int pass)
 {
    int token;
 
+   lc->expect = T_INT64;
    token = lex_get_token(lc);
-   Dmsg2(400, "int64=:%s: %f\n", lc->str, strtod(lc->str, NULL)); 
-   if (token != T_NUMBER || !is_a_number(lc->str)) {
-      scan_err1(lc, "expected an integer number, got: %s", lc->str);
-   } else {
-      errno = 0;
-      *(int64_t *)(item->value) = (int64_t)strtod(lc->str, NULL);
-      if (errno != 0)
-         scan_err1(lc, "expected an integer number, got: %s", lc->str);
-   }
+   *(int64_t *)(item->value) = lc->int64_val;
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
 }

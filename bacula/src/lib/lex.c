@@ -38,7 +38,10 @@ void scan_to_eol(LEX *lc)
 {
    int token;
    Dmsg0(150, "start scan to eof\n");
-   while ((token = lex_get_token(lc)) != T_EOL) {
+   lc->expect = 0;		      /* clear expectations */
+   if (token != T_EOL) {
+      while ((token = lex_get_token(lc)) != T_EOL) {
+      }
    }
    Dmsg0(150, "done scan to eof\n");
 }
@@ -56,7 +59,7 @@ void s_err(char *file, int line, LEX *lc, char *msg, ...)
    bvsnprintf(buf, sizeof(buf), msg, arg_ptr);
    va_end(arg_ptr);
      
-   e_msg(file, line, M_ERROR_TERM, 0, "Config error: %s,\n\
+   e_msg(file, line, M_ERROR_TERM, 0, "Config error: %s\n\
             : Line %d, col %d of file %s\n%s\n",
       buf, lc->line_no, lc->col_no, lc->fname, lc->line);
 }
@@ -240,6 +243,21 @@ lex_tok_to_str(int token)
    }
 }
 
+static uint32_t scan_pint(LEX *lf, char *str)
+{
+   double dval;
+   if (!is_a_number(str)) {
+      scan_err1(lf, "expected a positive integer number, got: %s", str);
+   } else {
+      errno = 0;
+      dval = strtod(str, NULL);
+      if (errno != 0 || dval < 0) {
+         scan_err1(lf, "expected a postive integer number, got: %s", str);
+      }
+   }
+   return (uint32_t)dval;
+}
+
 /*	  
  * 
  * Get the next token from the input
@@ -417,5 +435,76 @@ lex_get_token(LEX *lf)
    }
    Dmsg2(290, "lex returning: line %d token: %s\n", lf->line_no, lex_tok_to_str(token));
    lf->token = token;
+
+   /* 
+    * Here is where we check to see if the user has set certain 
+    *  expectations (e.g. 32 bit integer). If so, we do type checking
+    *  and possible additional scanning (e.g. for range).
+    */
+   switch (lf->expect) {
+   case T_PINT32:
+      lf->pint32_val = scan_pint(lf, lf->str);
+      lf->pint32_val2 = lf->pint32_val;
+      token = T_PINT32;
+      break;
+
+   case T_PINT32_RANGE:
+      if (token == T_NUMBER) {
+	 lf->pint32_val = scan_pint(lf, lf->str);
+	 lf->pint32_val2 = lf->pint32_val;
+	 token = T_PINT32;
+      } else {
+         char *p = strchr(lf->str, '-');
+	 if (!p) {
+            scan_err1(lf, "expected an integer or a range, got: %s", lf->str);
+	 }
+	 *p++ = 0;			 /* terminate first half of range */
+	 lf->pint32_val  = scan_pint(lf, lf->str);
+	 lf->pint32_val2 = scan_pint(lf, p);
+	 token = T_PINT32_RANGE;
+      }
+      break;
+
+   case T_INT32:
+      if (token != T_NUMBER || !is_a_number(lf->str)) {
+         scan_err1(lf, "expected an integer number, got: %s", lf->str);
+      } else {
+	 errno = 0;
+	 lf->int32_val = (int32_t)strtod(lf->str, NULL);
+	 if (errno != 0) {
+            scan_err1(lf, "expected an integer number, got: %s", lf->str);
+	 }
+      }
+      token = T_INT32;
+      break;
+
+   case T_INT64:
+      Dmsg2(400, "int64=:%s: %f\n", lf->str, strtod(lf->str, NULL)); 
+      if (token != T_NUMBER || !is_a_number(lf->str)) {
+         scan_err1(lf, "expected an integer number, got: %s", lf->str);
+      } else {
+	 errno = 0;
+	 lf->int64_val = (int64_t)strtod(lf->str, NULL);
+	 if (errno != 0) {
+            scan_err1(lf, "expected an integer number, got: %s", lf->str);
+	 }
+      }
+      token = T_INT64;
+      break;
+
+   case T_NAME:
+      if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
+         scan_err1(lf, "expected a name: %s", lf->str);
+      } else if (lf->str_len > MAX_RES_NAME_LENGTH) {
+         scan_err3(lf, "name %s length %d too long, max is %d\n", lf->str, 
+	    lf->str_len, MAX_RES_NAME_LENGTH);
+      }
+      token = T_NAME;
+      break;
+
+   default:
+      break;			      /* no expectation given */
+   }
+   lf->token = token;		      /* set possible new token */
    return token;
 }

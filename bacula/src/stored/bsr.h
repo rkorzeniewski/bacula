@@ -48,11 +48,18 @@ typedef struct s_bsr_client {
 
 typedef struct s_bsr_sessid {
    struct s_bsr_sessid *next;
-   int type;
-   uint32_t sessid1;
+   uint32_t sessid;
    uint32_t sessid2;
    int found;
 } BSR_SESSID;
+
+typedef struct s_bsr_volfile {
+   struct s_bsr_volfile *next;
+   uint32_t sfile;                    /* start file */
+   uint32_t efile;                    /* end file */
+   int found;
+} BSR_VOLFILE;
+
 
 typedef struct s_bsr_sesstime {
    struct s_bsr_sesstime *next;
@@ -62,13 +69,15 @@ typedef struct s_bsr_sesstime {
 
 typedef struct s_bsr_findex {
    struct s_bsr_findex *next;
-   int32_t FileIndex;
+   int32_t findex;                    /* start file index */
+   int32_t findex2;                   /* end file index */
    int found;
 } BSR_FINDEX;
 
 typedef struct s_bsr_jobid {
    struct s_bsr_jobid *next;
    uint32_t JobId;
+   uint32_t JobId2;
    int found;
 } BSR_JOBID;
 
@@ -101,6 +110,7 @@ typedef struct s_bsr {
    BSR_JOBID    *JobId;
    BSR_JOBTYPE  *JobType;
    BSR_JOBLEVEL *JobLevel;
+   BSR_VOLFILE  *volfile;
    FF_PKT *ff;                        /* include/exclude */
 } BSR;
 

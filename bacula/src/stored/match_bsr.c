@@ -169,7 +169,7 @@ static int match_file_index(BSR_FINDEX *findex, DEV_RECORD *rec)
    if (!findex) {
       return 1; 		      /* no specification matches all */
    }
-   if (findex->FileIndex == rec->FileIndex) {
+   if (findex->findex >= rec->FileIndex && findex->findex2 <= rec->FileIndex) {
       findex->found++;
       return 1;
    }
@@ -185,7 +185,7 @@ static int match_sessid(BSR_SESSID *sessid, DEV_RECORD *rec)
    if (!sessid) {
       return 1; 		      /* no specification matches all */
    }
-   if (sessid->sessid1 == rec->VolSessionId) {
+   if (sessid->sessid >= rec->VolSessionId && sessid->sessid2 <= rec->VolSessionId) {
       sessid->found++;
       return 1;
    }

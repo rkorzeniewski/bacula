@@ -80,7 +80,7 @@ btape:	$(TAPEOBJS) ../lib/libbac.a ../cats/libsql.a
 bls:	../findlib/libfind.a $(BLSOBJS) ../lib/libbac.a
 	$(CXX) $(LDFLAGS) -L../lib -L../findlib -o $@ $(BLSOBJS) $(LIBS) $(DLIB) -lbac -lfind -lm
 
-bextract: ../findlib/libfind.a $(BEXTOBJS)
+bextract: ../findlib/libfind.a $(BEXTOBJS) ../lib/libbac.a
 	$(CXX) $(LDFLAGS) -L../lib -L../findlib -o $@ $(BEXTOBJS) $(LIBS) $(DLIB) $(FDLIBS) -lbac -lfind -lm
 
 bscan: ../findlib/libfind.a $(SCNOBJS) ../cats/libsql.a

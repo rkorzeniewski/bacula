@@ -109,6 +109,7 @@ int do_read_data(JCR *jcr)
     */
    for ( ;ok; ) {
       DEV_RECORD *record;	      /* for reading label of multi-volumes */
+      SESSION_LABEL sessrec;	       /* session record */
 
       if (job_cancelled(jcr)) {
 	 ok = FALSE;
@@ -156,12 +157,46 @@ int do_read_data(JCR *jcr)
 
       /* Some sort of label? */ 
       if (rec.FileIndex < 0) {
+	 char *rtype;
+	 switch (rec.FileIndex) {
+	    case PRE_LABEL:
+               rtype = "Fresh Volume Label";   
+	       break;
+	    case VOL_LABEL:
+               rtype = "Volume Label";
+	       unser_volume_label(dev, &rec);
+	       break;
+	    case SOS_LABEL:
+               rtype = "Begin Session";
+	       unser_session_label(&sessrec, &rec);
+	       break;
+	    case EOS_LABEL:
+               rtype = "End Session";
+	       break;
+	    case EOM_LABEL:
+               rtype = "End of Media";
+	       break;
+	    default:
+               rtype = "Unknown";
+	       break;
+	 }
+	 if (debug_level > 0) {
+            printf("%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
+	       rtype, rec.VolSessionId, rec.VolSessionTime, rec.Stream, rec.data_len);
+	 }
+
          Dmsg1(40, "Got label = %d\n", rec.FileIndex);
 	 if (rec.FileIndex == EOM_LABEL) { /* end of tape? */
             Dmsg0(40, "Get EOM LABEL\n");
 	    break;			   /* yes, get out */
 	 }
 	 continue;			   /* ignore other labels */
+      }
+
+      /* ****FIXME***** make sure we REALLY have a session record */
+      if (jcr->bsr && !match_bsr(jcr->bsr, &rec, &dev->VolHdr, &sessrec)) {
+         Dmsg0(50, "BSR rejected record\n");
+	 continue;
       }
 
       if (rec.VolSessionId != jcr->read_VolSessionId ||

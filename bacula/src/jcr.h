@@ -188,6 +188,7 @@ struct s_jcr {
    uint32_t end_file;                 /* End file written */
 
    /* Parmaters for Open Read Session */
+   BSR *bsr;                          /* Bootstrap record -- has everything */
    uint32_t read_VolSessionId;
    uint32_t read_VolSessionTime;
    uint32_t read_StartFile;

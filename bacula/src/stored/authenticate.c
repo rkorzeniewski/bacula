@@ -40,7 +40,7 @@ static char OK_hello[]  = "3000 OK Hello\n";
 static int authenticate(int rcode, BSOCK *bs)
 {
    char *name;
-   DIRRES *director;
+   DIRRES *director = NULL;
 
    if (rcode != R_DIRECTOR) {
       Emsg1(M_FATAL, 0, _("I only authenticate Directors, not %d\n"), rcode);
@@ -50,8 +50,7 @@ static int authenticate(int rcode, BSOCK *bs)
    name = (char *) check_pool_memory_size(name, bs->msglen);
 
    if (sscanf(bs->msg, "Hello Director %127s calling\n", name) != 1) {
-      free_pool_memory(name);
-      Emsg1(M_FATAL, 0, _("Authentication failure: %s\n"), bs->msg);
+      Emsg1(M_FATAL, 0, _("Bad Hello command from Director: %s\n"), bs->msg);
       return 0;
    }
    director = NULL;
@@ -61,12 +60,21 @@ static int authenticate(int rcode, BSOCK *bs)
 	 break;
    }
    UnlockRes();
-   if (director && (!cram_md5_auth(bs, director->password) ||
-       !cram_md5_get_auth(bs, director->password))) {
-      director = NULL;
+   if (!director) {
+      Emsg1(M_FATAL, 0, _("Connection from unknown Director %s rejected.\n"), name);
+      goto bail_out;
+   }
+   if (!cram_md5_auth(bs, director->password) ||
+       !cram_md5_get_auth(bs, director->password)) {
+      Emsg0(M_FATAL, 0, _("Incorrect password given by Director.\n"));
+      goto bail_out;
    }
    free_pool_memory(name);
-   return (director != NULL);
+   return 1;
+
+bail_out:
+   free_pool_memory(name);
+   return 0;
 }
 
 /*
@@ -88,6 +96,7 @@ int authenticate_director(JCR *jcr)
    if (!authenticate(R_DIRECTOR, dir)) {
       bnet_fsend(dir, "%s", Dir_sorry);
       Emsg0(M_ERROR, 0, _("Unable to authenticate Director\n"));
+      sleep(5);
       return 0;
    }
    return bnet_fsend(dir, "%s", OK_hello);
@@ -100,6 +109,9 @@ int authenticate_filed(JCR *jcr)
    if (cram_md5_auth(fd, jcr->sd_auth_key) &&
        cram_md5_get_auth(fd, jcr->sd_auth_key)) {
       jcr->authenticated = TRUE;
+   }
+   if (!jcr->authenticated) {
+      Jmsg(jcr, M_FATAL, 0, _("Incorrect authorization key from File daemon rejected.\n"));
    }
    return jcr->authenticated;
 }

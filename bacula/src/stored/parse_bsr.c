@@ -40,6 +40,7 @@ static BSR *store_jobtype(LEX *lc, BSR *bsr);
 static BSR *store_joblevel(LEX *lc, BSR *bsr);
 static BSR *store_file_index(LEX *lc, BSR *bsr);
 static BSR *store_sessid(LEX *lc, BSR *bsr);
+static BSR *store_volfile(LEX *lc, BSR *bsr);
 static BSR *store_sesstime(LEX *lc, BSR *bsr);
 static BSR *store_include(LEX *lc, BSR *bsr);
 static BSR *store_exclude(LEX *lc, BSR *bsr);
@@ -61,6 +62,7 @@ struct kw_items items[] = {
    {"volsessiontime", store_sesstime},
    {"include", store_include},
    {"exclude", store_exclude},
+   {"volfile", store_volfile},
    {NULL, NULL}
 
 };
@@ -101,7 +103,7 @@ BSR *parse_bsr(char *cf)
 	    if (token != T_EQUALS) {
                scan_err1(lc, "expected an equals, got: %s", lc->str);
 	    }
-            Dmsg1(150, "calling handler for %s\n", items[i].name);
+            Dmsg1(100, "calling handler for %s\n", items[i].name);
 	    /* Call item handler */
 	    bsr = items[i].handler(lc, bsr);
 	    i = -1;
@@ -145,13 +147,9 @@ static BSR *store_client(LEX *lc, BSR *bsr)
    int token;
    BSR_CLIENT *client;
     
-   token = lex_get_token(lc);
-   if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
-      scan_err1(lc, "expected an identifier or string, got: %s", lc->str);
-   } else if (lc->str_len > MAX_RES_NAME_LENGTH) {
-      scan_err3(lc, "name %s length %d too long, max is %d\n", lc->str, 
-	 lc->str_len, MAX_RES_NAME_LENGTH);
-   } else {
+   for (;;) {
+      lc->expect = T_NAME;
+      token = lex_get_token(lc);
       client = (BSR_CLIENT *)malloc(sizeof(BSR_CLIENT));
       memset(client, 0, sizeof(BSR_CLIENT));
       client->ClientName = bstrdup(lc->str);
@@ -169,8 +167,13 @@ static BSR *store_client(LEX *lc, BSR *bsr)
 	    }
 	 }
       }
+      lc->expect = 0;
+      token = lex_get_token(lc);
+      if (token != T_COMMA) {
+	 break;
+      }
    }
-   scan_to_eol(lc);
+// scan_to_eol(lc);
    return bsr;
 }
 
@@ -179,26 +182,20 @@ static BSR *store_job(LEX *lc, BSR *bsr)
    int token;
    BSR_JOB *job;
     
+   lc->expect = T_NAME;
    token = lex_get_token(lc);
-   if (token != T_IDENTIFIER && token != T_STRING && token != T_QUOTED_STRING) {
-      scan_err1(lc, "expected an identifier or string, got: %s", lc->str);
-   } else if (lc->str_len > MAX_RES_NAME_LENGTH) {
-      scan_err3(lc, "name %s length %d too long, max is %d\n", lc->str, 
-	 lc->str_len, MAX_RES_NAME_LENGTH);
+   job = (BSR_JOB *)malloc(sizeof(BSR_JOB));
+   memset(job, 0, sizeof(BSR_JOB));
+   job->Job = bstrdup(lc->str);
+   /* Add it to the end of the client chain */
+   if (!bsr->job) {
+      bsr->job = job;
    } else {
-      job = (BSR_JOB *)malloc(sizeof(BSR_JOB));
-      memset(job, 0, sizeof(BSR_JOB));
-      job->Job = bstrdup(lc->str);
-      /* Add it to the end of the client chain */
-      if (!bsr->job) {
-	 bsr->job = job;
-      } else {
-	 /* Add to end of chain */
-	 BSR_JOB *bc = bsr->job;
-	 for ( ;bc->next; bc=bc->next)
-	    { }
-	 bc->next = job;
-      }
+      /* Add to end of chain */
+      BSR_JOB *bc = bsr->job;
+      for ( ;bc->next; bc=bc->next)
+	 { }
+      bc->next = job;
    }
    scan_to_eol(lc);
    return bsr;
@@ -207,22 +204,15 @@ static BSR *store_job(LEX *lc, BSR *bsr)
 static BSR *store_file_index(LEX *lc, BSR *bsr)
 {
    int token;
-   int32_t FileIndex;
    BSR_FINDEX *findex;
 
-
-   token = lex_get_token(lc);
-   if (token != T_NUMBER || !is_a_number(lc->str)) {
-      scan_err1(lc, "expected a positive integer number, got: %s", lc->str);
-   } else {
-      errno = 0;
-      FileIndex = strtoul(lc->str, NULL, 10);
-      if (errno != 0) {
-         scan_err1(lc, "expected a integer number, got: %s", lc->str);
-      }
+   for (;;) {
+      lc->expect = T_PINT32_RANGE;
+      token = lex_get_token(lc);
       findex = (BSR_FINDEX *)malloc(sizeof(BSR_FINDEX));
       memset(findex, 0, sizeof(BSR_FINDEX));
-      findex->FileIndex = FileIndex;
+      findex->findex = lc->pint32_val;
+      findex->findex2 = lc->pint32_val2;
       /* Add it to the end of the chain */
       if (!bsr->FileIndex) {
 	 bsr->FileIndex = findex;
@@ -233,8 +223,13 @@ static BSR *store_file_index(LEX *lc, BSR *bsr)
 	   {  }
 	 bs->next = findex;
       }
+      lc->expect = 0;
+      token = lex_get_token(lc);
+      if (token != T_COMMA) {
+	 break;
+      }
    }
-   scan_to_eol(lc);
+// scan_to_eol(lc);
    return bsr;
 }
 
@@ -242,22 +237,15 @@ static BSR *store_file_index(LEX *lc, BSR *bsr)
 static BSR *store_jobid(LEX *lc, BSR *bsr)
 {
    int token;
-   uint32_t JobId;    
    BSR_JOBID *jobid;
 
-
-   token = lex_get_token(lc);
-   if (token != T_NUMBER || !is_a_number(lc->str)) {
-      scan_err1(lc, "expected a positive integer number, got: %s", lc->str);
-   } else {
-      errno = 0;
-      JobId = strtoul(lc->str, NULL, 10);
-      if (errno != 0) {
-         scan_err1(lc, "expected a integer number, got: %s", lc->str);
-      }
+   for (;;) {
+      lc->expect = T_PINT32_RANGE;
+      token = lex_get_token(lc);
       jobid = (BSR_JOBID *)malloc(sizeof(BSR_JOBID));
       memset(jobid, 0, sizeof(BSR_JOBID));
-      jobid->JobId = JobId;
+      jobid->JobId = lc->pint32_val;
+      jobid->JobId2 = lc->pint32_val2;
       /* Add it to the end of the chain */
       if (!bsr->JobId) {
 	 bsr->JobId = jobid;
@@ -268,8 +256,13 @@ static BSR *store_jobid(LEX *lc, BSR *bsr)
 	   {  }
 	 bs->next = jobid;
       }
+      lc->expect = 0;
+      token = lex_get_token(lc);
+      if (token != T_COMMA) {
+	 break;
+      }
    }
-   scan_to_eol(lc);
+// scan_to_eol(lc);
    return bsr;
 }
 
@@ -290,25 +283,56 @@ static BSR *store_joblevel(LEX *lc, BSR *bsr)
 
 
 
+
+/*
+ * Routine to handle Volume start/end file   
+ */
+static BSR *store_volfile(LEX *lc, BSR *bsr)
+{
+   int token;
+   BSR_VOLFILE *volfile;
+
+   for (;;) {
+      lc->expect = T_PINT32_RANGE;
+      token = lex_get_token(lc);
+      volfile = (BSR_VOLFILE *)malloc(sizeof(BSR_VOLFILE));
+      memset(volfile, 0, sizeof(BSR_VOLFILE));
+      volfile->sfile = lc->pint32_val;
+      volfile->efile = lc->pint32_val2;
+      /* Add it to the end of the chain */
+      if (!bsr->volfile) {
+	 bsr->volfile = volfile;
+      } else {
+	 /* Add to end of chain */
+	 BSR_VOLFILE *bs = bsr->volfile;
+	 for ( ;bs->next; bs=bs->next)
+	   {  }
+	 bs->next = volfile;
+      }
+      lc->expect = 0;
+      token = lex_get_token(lc);
+      if (token != T_COMMA) {
+	 break;
+      }
+   }
+// scan_to_eol(lc);
+   return bsr;
+}
+
+
+
 static BSR *store_sessid(LEX *lc, BSR *bsr)
 {
    int token;
-   uint32_t sessid1;
    BSR_SESSID *sid;
 
-
-   token = lex_get_token(lc);
-   if (token != T_NUMBER || !is_a_number(lc->str)) {
-      scan_err1(lc, "expected a positive integer number, got: %s", lc->str);
-   } else {
-      errno = 0;
-      sessid1 = strtoul(lc->str, NULL, 10);
-      if (errno != 0) {
-         scan_err1(lc, "expected a integer number, got: %s", lc->str);
-      }
+   for (;;) {
+      lc->expect = T_PINT32_RANGE;
+      token = lex_get_token(lc);
       sid = (BSR_SESSID *)malloc(sizeof(BSR_SESSID));
       memset(sid, 0, sizeof(BSR_SESSID));
-      sid->sessid1 = sessid1;
+      sid->sessid = lc->pint32_val;
+      sid->sessid2 = lc->pint32_val2;
       /* Add it to the end of the chain */
       if (!bsr->sessid) {
 	 bsr->sessid = sid;
@@ -319,40 +343,35 @@ static BSR *store_sessid(LEX *lc, BSR *bsr)
 	   {  }
 	 bs->next = sid;
       }
+      lc->expect = 0;
+      token = lex_get_token(lc);
+      if (token != T_COMMA) {
+	 break;
+      }
    }
-   scan_to_eol(lc);
+// scan_to_eol(lc);
    return bsr;
 }
 
 static BSR *store_sesstime(LEX *lc, BSR *bsr)
 {
    int token;
-   uint32_t sesstime;
    BSR_SESSTIME *stime;
 
-
+   lc->expect = T_PINT32;
    token = lex_get_token(lc);
-   if (token != T_NUMBER || !is_a_number(lc->str)) {
-      scan_err1(lc, "expected a positive integer number, got: %s", lc->str);
+   stime = (BSR_SESSTIME *)malloc(sizeof(BSR_SESSTIME));
+   memset(stime, 0, sizeof(BSR_SESSTIME));
+   stime->sesstime = lc->pint32_val;
+   /* Add it to the end of the chain */
+   if (!bsr->sesstime) {
+      bsr->sesstime = stime;
    } else {
-      errno = 0;
-      sesstime = strtoul(lc->str, NULL, 10);
-      if (errno != 0) {
-         scan_err1(lc, "expected a integer number, got: %s", lc->str);
-      }
-      stime = (BSR_SESSTIME *)malloc(sizeof(BSR_SESSTIME));
-      memset(stime, 0, sizeof(BSR_SESSTIME));
-      stime->sesstime = sesstime;
-      /* Add it to the end of the chain */
-      if (!bsr->sesstime) {
-	 bsr->sesstime = stime;
-      } else {
-	 /* Add to end of chain */
-	 BSR_SESSTIME *bs = bsr->sesstime;
-	 for ( ;bs->next; bs=bs->next)
-	    { }
-	 bs->next = stime;
-      }
+      /* Add to end of chain */
+      BSR_SESSTIME *bs = bsr->sesstime;
+      for ( ;bs->next; bs=bs->next)
+	 { }
+      bs->next = stime;
    }
    scan_to_eol(lc);
    return bsr;
@@ -370,34 +389,111 @@ static BSR *store_exclude(LEX *lc, BSR *bsr)
    return bsr;
 }
 
+void dump_volfile(BSR_VOLFILE *volfile)
+{
+   if (!volfile) {
+      return;
+   }
+   Dmsg2(-1,
+"VolFile     : %u-%u\n", volfile->sfile, volfile->efile);
+   dump_volfile(volfile->next);
+}
+
+void dump_findex(BSR_FINDEX *FileIndex)
+{
+   if (!FileIndex) {
+      return;
+   }
+   if (FileIndex->findex == FileIndex->findex2) {
+      Dmsg1(-1, "FileIndex   : %u\n", FileIndex->findex);
+   } else {
+      Dmsg2(-1, "FileIndex   : %u-%u\n", FileIndex->findex, FileIndex->findex2);
+   }
+   dump_findex(FileIndex->next);
+}
+
+void dump_jobid(BSR_JOBID *jobid)
+{
+   if (!jobid) {
+      return;
+   }
+   if (jobid->JobId == jobid->JobId2) {
+      Dmsg1(-1, "JobId       : %u\n", jobid->JobId);
+   } else {
+      Dmsg2(-1, "JobId       : %u-%u\n", jobid->JobId, jobid->JobId2);
+   }
+   dump_jobid(jobid->next);
+}
+
+void dump_sessid(BSR_SESSID *sessid)
+{
+   if (!sessid) {
+      return;
+   }
+   if (sessid->sessid == sessid->sessid2) {
+      Dmsg1(-1, "SessId      : %u\n", sessid->sessid);
+   } else {
+      Dmsg2(-1, "SessId      : %u-%u\n", sessid->sessid, sessid->sessid2);
+   }
+   dump_sessid(sessid->next);
+}
+
+
+void dump_client(BSR_CLIENT *client)
+{
+   if (!client) {
+      return;
+   }
+   Dmsg1(-1, "Client      : %s\n", client->ClientName);
+   dump_client(client->next);
+}
+
+void dump_job(BSR_JOB *job)
+{
+   if (!job) {
+      return;
+   }
+   Dmsg1(-1, "Job          : %s\n", job->Job);
+   dump_job(job->next);
+}
+
+void dump_sesstime(BSR_SESSTIME *sesstime)
+{
+   if (!sesstime) {
+      return;
+   }
+   Dmsg1(-1, "SessTime    : %u\n", sesstime->sesstime);
+   dump_sesstime(sesstime->next);
+}
+
+
+
+
+
 void dump_bsr(BSR *bsr)
 {
    if (!bsr) {
       Dmsg0(-1, "BSR is NULL\n");
       return;
    }
-   Dmsg8(-1,   
+   Dmsg2(-1,   
 "Next        : 0x%x\n"
-"VolumeName  : %s\n"
-"Client      : %s\n"
-"Job         : %s\n"
-"JobId       : %u\n"
-"SessId      : %u\n"
-"SessTime    : %u\n"
-"FileIndex   : %d\n",
+"VolumeName  : %s\n",
 		 bsr->next,
-                 bsr->VolumeName ? bsr->VolumeName : "*None*",
-                 bsr->client ? bsr->client->ClientName : "*None*",
-                 bsr->job ? bsr->job->Job : "*None*",
-		 bsr->JobId ? bsr->JobId->JobId : 0,
-		 bsr->sessid ? bsr->sessid->sessid1 : 0,
-		 bsr->sesstime ? bsr->sesstime->sesstime : 0,
-		 bsr->FileIndex ? bsr->FileIndex->FileIndex : 0);
+                 bsr->VolumeName ? bsr->VolumeName : "*None*");
+   dump_sessid(bsr->sessid);
+   dump_sesstime(bsr->sesstime);
+   dump_volfile(bsr->volfile);
+   dump_client(bsr->client);
+   dump_jobid(bsr->JobId);
+   dump_job(bsr->job);
+   dump_findex(bsr->FileIndex);
    if (bsr->next) {
       Dmsg0(-1, "\n");
       dump_bsr(bsr->next);
    }
 }
+
 
 
 /*********************************************************************
@@ -422,6 +518,7 @@ void free_bsr(BSR *bsr)
    free_bsr_item((BSR *)bsr->client);
    free_bsr_item((BSR *)bsr->sessid);
    free_bsr_item((BSR *)bsr->sesstime);
+   free_bsr_item((BSR *)bsr->volfile);
    if (bsr->VolumeName) {
       free(bsr->VolumeName);
    }

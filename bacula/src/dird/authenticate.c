@@ -60,11 +60,12 @@ int authenticate_storage_daemon(JCR *jcr)
     * Send my name to the Storage daemon then do authentication
     */
    if (!bnet_fsend(sd, hello, director->hdr.name)) {
-      Emsg1(M_FATAL, 0, _("Auth send error. ERR=%s\n"), bnet_strerror(sd));
+      Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to Storage daemon. ERR=%s\n"), bnet_strerror(sd));
+      return 0;
    }
    if (!cram_md5_get_auth(sd, jcr->store->password) || 
        !cram_md5_auth(sd, jcr->store->password)) {
-      Emsg0(M_FATAL, 0, _("Storage daemon authorization failed.\n"));
+      Jmsg0(jcr, M_FATAL, 0, _("Director and Storage daemon passwords not the same.\n"));
       return 0;
    }
    Dmsg1(6, ">stored: %s", sd->msg);
@@ -91,21 +92,24 @@ int authenticate_file_daemon(JCR *jcr)
    /* 
     * Send my name to the File daemon then do authentication
     */
-   bnet_fsend(fd, hello, director->hdr.name);
+   if (!bnet_fsend(fd, hello, director->hdr.name)) {
+      Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to File daemon. ERR=%s\n"), bnet_strerror(fd));
+      return 0;
+   }
    if (!cram_md5_get_auth(fd, jcr->client->password) || 
        !cram_md5_auth(fd, jcr->client->password)) {
-      Emsg0(M_FATAL, 0, _("File daemon authentication failed.\n"));
+      Jmsg(jcr, M_FATAL, 0, _("Director and File daemon passwords not the same.\n"));
       return 0;
    }
    Dmsg1(6, ">filed: %s", fd->msg);
    if (bnet_recv(fd) <= 0) {
-      Emsg1(M_FATAL, 0, _("bdird<filed: bad response to Hello command: ERR=%s\n"),
+      Jmsg(jcr, M_FATAL, 0, _("bdird<filed: bad response to Hello command: ERR=%s\n"),
 	 bnet_strerror(fd));
       return 0;
    }
    Dmsg1(10, "<stored: %s", fd->msg);
    if (strncmp(fd->msg, FDOKhello, sizeof(FDOKhello)) != 0) {
-      Emsg0(M_FATAL, 0, _("File daemon rejected Hello command\n"));
+      Jmsg(jcr, M_FATAL, 0, _("File daemon rejected Hello command\n"));
       return 0;
    }
    return 1;
@@ -131,6 +135,7 @@ int authenticate_user_agent(BSOCK *ua)
    if (!ok) {
       bnet_fsend(ua, "%s", _(Dir_sorry));
       Emsg0(M_WARNING, 0, _("Unable to authenticate User Agent\n"));
+      sleep(5);
       return 0;
    }
    bnet_fsend(ua, "1000 OK: %s Version: " VERSION " (" DATE ")\n", my_name);
