@@ -694,6 +694,7 @@ static void update_voluseduration(UAContext *ua, char *val, MEDIA_DBR *mr)
       bsendmsg(ua, _("Invalid use duration specified: %s\n"), val);
       return;
    }
+   query = get_pool_memory(PM_MESSAGE);
    Mmsg(&query, "UPDATE Media SET VolUseDuration=%s WHERE MediaId=%u",
       edit_uint64(mr->VolUseDuration, ed1), mr->MediaId);
    if (!db_sql_query(ua->db, query, NULL, NULL)) {  
@@ -789,13 +790,13 @@ static int update_volume(UAContext *ua)
    char ed1[30];
    bool done = false;
    char *kw[] = {
-      N_("VolStatus"),
-      N_("VolRetention"),
-      N_("VolUse"),
-      N_("MaxVolJobs"),
-      N_("MaxVolFiles"),
-      N_("MaxVolBytes"),
-      N_("Recycle"),
+      N_("VolStatus"),                /* 0 */
+      N_("VolRetention"),             /* 1 */
+      N_("VolUse"),                   /* 2 */
+      N_("MaxVolJobs"),               /* 3 */
+      N_("MaxVolFiles"),              /* 4 */
+      N_("MaxVolBytes"),              /* 5 */
+      N_("Recycle"),                  /* 6 */
       NULL };
 
    if (!select_media_dbr(ua, &mr)) {
