@@ -549,7 +549,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
 	 jcr->FileIndex = file_index;	 /* remember attribute file_index */
 	 decode_stat(attr, &statf, &LinkFIf);  /* decode file stat packet */
 	 do_SIG = NO_SIG;
-	 jcr->fn_printed = FALSE;
+	 jcr->fn_printed = false;
 	 pm_strcpy(&jcr->fname, fname);  /* move filename into JCR */
 
          Dmsg2(040, "dird<filed: stream=%d %s\n", stream, jcr->fname);
@@ -718,7 +718,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
    /* Now find all the files that are missing -- i.e. all files in
     *  the database where the MarkedId != current JobId
     */
-   jcr->fn_printed = FALSE;
+   jcr->fn_printed = false;
    sprintf(buf, 
 "SELECT Path.Path,Filename.Name FROM File,Path,Filename "
 "WHERE File.JobId=%d "
@@ -753,7 +753,7 @@ static int missing_handler(void *ctx, int num_fields, char **row)
    if (!jcr->fn_printed) {
       Jmsg(jcr, M_INFO, 0, "\n");
       Jmsg(jcr, M_INFO, 0, _("The following files are missing:\n"));
-      jcr->fn_printed = TRUE;
+      jcr->fn_printed = true;
    }
    Jmsg(jcr, M_INFO, 0, "      %s%s\n", row[0]?row[0]:"", row[1]?row[1]:"");
    return 0;

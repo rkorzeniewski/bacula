@@ -216,7 +216,7 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
       Dmsg1(100, "Authentication failed Job %s\n", jcr->Job);
       Jmsg(jcr, M_FATAL, 0, _("Unable to authenticate File daemon\n"));
    } else {
-      jcr->authenticated = TRUE;
+      jcr->authenticated = true;
       Dmsg1(110, "OK Authentication Job %s\n", jcr->Job);
    }
 

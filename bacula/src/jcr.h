@@ -103,7 +103,6 @@ struct JCR {
    JCR_free_HANDLER *daemon_free_jcr; /* Local free routine */
    dlist *msg_queue;                  /* Queued messages */
    alist job_end_push;                /* Job end pushed calls */
-   int reload_id;                     /* SIGHUP reload table id */
    bool dequeuing;                    /* dequeuing messages */
    POOLMEM *errmsg;                   /* edited error message */
    char Job[MAX_NAME_LENGTH];         /* Unique name of this Job */
@@ -119,7 +118,6 @@ struct JCR {
    int JobType;                       /* backup, restore, verify ... */
    int JobLevel;                      /* Job level */
    int JobPriority;                   /* Job priority */
-   int authenticated;                 /* set when client authenticated */
    time_t sched_time;                 /* job schedule time, i.e. when it should start */
    time_t start_time;                 /* when job actually started */
    time_t run_time;                   /* used for computing speed */
@@ -131,10 +129,11 @@ struct JCR {
    MSGS *jcr_msgs;                    /* Copy of message resource -- actually used */
    uint32_t ClientId;                 /* Client associated with Job */
    char *where;                       /* prefix to restore files to */
-   bool prefix_links;                 /* Prefix links with Where path */
-   bool gui;                          /* set if gui using console */
    int cached_pnl;                    /* cached path length */
    POOLMEM *cached_path;              /* cached path */
+   bool prefix_links;                 /* Prefix links with Where path */
+   bool gui;                          /* set if gui using console */
+   bool authenticated;                /* set when client authenticated */
 
    /* Daemon specific part of JCR */
    /* This should be empty in the library */
@@ -168,7 +167,6 @@ struct JCR {
    FileId_t FileId;                   /* Last file id inserted */
    uint32_t FileIndex;                /* Last FileIndex processed */
    POOLMEM *fname;                    /* name to put into catalog */
-   int fn_printed;                    /* printed filename */
    POOLMEM *stime;                    /* start time for incremental/differential */
    JOB_DBR jr;                        /* Job DB record for current job */
    JOB_DBR *verify_jr;                /* Pointer to target job */
@@ -176,10 +174,12 @@ struct JCR {
    POOLMEM *client_uname;             /* client uname */ 
    int replace;                       /* Replace option */
    int saveMaxConcurrentJobs;         /* save for restore jobs */
-   bool acquired_resource_locks;      /* set if resource locks acquired */
    int NumVols;                       /* Number of Volume used in pool */
    int reschedule_count;              /* Number of times rescheduled */
    bool spool_data;                   /* Spool data in SD */
+   bool acquired_resource_locks;      /* set if resource locks acquired */
+   bool term_wait_inited;             /* Set when cond var inited */
+   bool fn_printed;                   /* printed filename */
 #endif /* DIRECTOR_DAEMON */
 
 

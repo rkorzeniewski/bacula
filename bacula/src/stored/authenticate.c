@@ -124,7 +124,7 @@ int authenticate_filed(JCR *jcr)
    btimer_t *tid = start_bsock_timer(fd, 60 * 5);
    if (cram_md5_auth(fd, jcr->sd_auth_key, ssl_need) &&
        cram_md5_get_auth(fd, jcr->sd_auth_key, ssl_need)) {
-      jcr->authenticated = TRUE;
+      jcr->authenticated = true;
    }
    stop_bsock_timer(tid);
    if (!jcr->authenticated) {
