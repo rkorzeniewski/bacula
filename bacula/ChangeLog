@@ -1,5 +1,8 @@
 
-2003-10-15 Version 1.32c 22Oct03 Beta
+2003-10-24 Version 1.32c 24Oct03 Beta
+24Oct03
+- Fix non-portable varargs code in var.c
+- Make doc fixes/changes suggested by Dan Languille
 23Oct03
 - Document new features.
 - Implement mod of Verify Job at the run prompt.
