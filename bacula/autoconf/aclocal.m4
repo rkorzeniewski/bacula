@@ -168,7 +168,7 @@ fi])
 
 
 AC_DEFUN(BA_CHECK_OPSYS,
-[AC_MSG_CHECKING(for Operating System)
+[
 AC_CYGWIN
 if test $HAVE_UNAME=yes -a x`uname -s` = xSunOS
 then
@@ -265,8 +265,6 @@ then
 else
     AM_CONDITIONAL(HAVE_DARWIN_OS, $FALSEPRG)
 fi
-
-AC_MSG_RESULT(" ")
 ])
 
 AC_DEFUN(BA_CHECK_OPSYS_DISTNAME,
@@ -338,7 +336,7 @@ then
 else
         DISTNAME=unknown
 fi
-AC_MSG_RESULT(" ")
+AC_MSG_RESULT(done)
 ])
 
 AC_DEFUN(BA_CHECK_MYSQL_DB,
@@ -410,9 +408,8 @@ AC_ARG_WITH(mysql,
   else
         AC_MSG_RESULT(no)
   fi
-],[
-    AC_MSG_RESULT(no)
-])
+]
+)
 
 AC_ARG_WITH(embedded-mysql,
 [
@@ -475,9 +472,8 @@ AC_ARG_WITH(embedded-mysql,
   else
         AC_MSG_RESULT(no)
   fi
-],[
-  AC_MSG_RESULT(no)
-])
+]
+)
 
 
 AC_SUBST(SQL_LFLAGS)
@@ -619,17 +615,12 @@ dnl# CHECKING FOR VARIOUS DATABASES (thanks to UdmSearch team)
 dnl# --------------------------------------------------------------------------
 dnl Check for some DBMS backend
 dnl NOTE: we can use only one backend at a time
-AC_MSG_RESULT(" ")
-
 db_found=no
 db_name=none
-
-
 
 if test x$support_mysql = xyes; then
    cats=cats
 fi
-
 
 AC_MSG_CHECKING(for Berkeley DB support)
 AC_ARG_WITH(berkeleydb,

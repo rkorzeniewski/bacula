@@ -3777,8 +3777,7 @@ build_vendor=`echo $ac_cv_build | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\2/'`
 build_os=`echo $ac_cv_build | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\3/'`
 
 
-echo "$as_me:$LINENO: checking for Operating System" >&5
-echo $ECHO_N "checking for Operating System... $ECHO_C" >&6
+
 echo "$as_me:$LINENO: checking host system type" >&5
 echo $ECHO_N "checking host system type... $ECHO_C" >&6
 if test "${ac_cv_host+set}" = set; then
@@ -4130,9 +4129,6 @@ else
 fi
 fi
 
-echo "$as_me:$LINENO: result: \" \"" >&5
-echo "${ECHO_T}\" \"" >&6
-
 
 # -----------------------------------------------------------
 # ----------------------------------------------------------
@@ -4208,8 +4204,8 @@ _ACEOF
 else
         DISTNAME=unknown
 fi
-echo "$as_me:$LINENO: result: \" \"" >&5
-echo "${ECHO_T}\" \"" >&6
+echo "$as_me:$LINENO: result: done" >&5
+echo "${ECHO_T}done" >&6
 
 
 # -----------------------------------------------------------
@@ -7440,10 +7436,6 @@ echo "${ECHO_T}yes" >&6
 echo "${ECHO_T}no" >&6
   fi
 
-else
-
-    echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
 
 fi;
 
@@ -7522,10 +7514,6 @@ echo "${ECHO_T}yes" >&6
 echo "${ECHO_T}no" >&6
   fi
 
-else
-
-  echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
 
 fi;
 

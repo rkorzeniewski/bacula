@@ -120,7 +120,7 @@ void *dlist::binary_insert(void *item, int compare(void *item1, void *item2))
    if (num_items == 1) {
       comp = compare(item, first());	  
       if (comp < 0) {
-	 insert_before(item, first());
+	 prepend(item);
        //Dmsg0(000, "Insert before first.\n");
 	 return item;
       } else if (comp > 0) {
@@ -145,7 +145,7 @@ void *dlist::binary_insert(void *item, int compare(void *item1, void *item2))
    /* Check against first item */
    comp = compare(item, first());
    if (comp < 0) {
-      insert_before(item, first());
+      prepend(item);
     //Dmsg0(000, "Inserted item before.\n");
       return item;
    } else if (comp == 0) {
