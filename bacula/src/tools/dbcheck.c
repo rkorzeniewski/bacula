@@ -50,8 +50,8 @@ typedef struct s_name_ctx {
 
 
 /* Global variables */
-static int fix = FALSE;
-static int batch = FALSE;
+static bool fix = false;
+static bool batch = false;
 static B_DB *db;
 static ID_LIST id_list;
 static NAME_LIST name_list;
@@ -73,6 +73,8 @@ static void eliminate_orphaned_file_records();
 static void eliminate_orphaned_path_records();
 static void eliminate_orphaned_filename_records();
 static void eliminate_orphaned_fileset_records();
+static void repair_bad_paths();
+static void repair_bad_filenames();
 static void do_interactive_mode();
 static int yes_no(char *prompt);
 
@@ -104,7 +106,7 @@ int main (int argc, char *argv[])
    while ((ch = getopt(argc, argv, "bd:fv?")) != -1) {
       switch (ch) {
       case 'b':                    /* batch */
-	 batch = TRUE;
+	 batch = true;
 	 break;
 
       case 'd':                    /* debug level */
@@ -114,7 +116,7 @@ int main (int argc, char *argv[])
 	 break;
 
       case 'f':                    /* fix inconsistencies */
-	 fix = TRUE;
+	 fix = true;
 	 break;
 
       case 'v':
@@ -164,6 +166,8 @@ int main (int argc, char *argv[])
    }
 
    if (batch) {
+      repair_bad_paths();
+      repair_bad_filenames();
       eliminate_duplicate_filenames();
       eliminate_duplicate_paths();
       eliminate_orphaned_jobmedia_records();
@@ -183,7 +187,7 @@ int main (int argc, char *argv[])
 
 static void do_interactive_mode()
 {
-   int quit = FALSE;
+   bool quit = false;
    char *cmd;
 
    printf("Hello, this is the database check/correct program.\n\
@@ -196,28 +200,32 @@ Please select the fuction you want to perform.\n",
          printf(_("\n\
      1) Toggle modify database flag\n\
      2) Toggle verbose flag\n\
-     3) Eliminate duplicate Filename records\n\
-     4) Eliminate duplicate Path records\n\
-     5) Eliminate orphaned Jobmedia records\n\
-     6) Eliminate orphaned File records\n\
-     7) Eliminate orphaned Path records\n\
-     8) Eliminate orphaned Filename records\n\
-     9) Eliminate orphaned FileSet records\n\
-    10) All (3-9)\n\
-    11) Quit\n"));
+     3) Repair bad Filename records\n\
+     4) Repair bad Path records\n\
+     5) Eliminate duplicate Filename records\n\
+     6) Eliminate duplicate Path records\n\
+     7) Eliminate orphaned Jobmedia records\n\
+     8) Eliminate orphaned File records\n\
+     9) Eliminate orphaned Path records\n\
+    10) Eliminate orphaned Filename records\n\
+    11) Eliminate orphaned FileSet records\n\
+    12) All (3-11)\n\
+    13) Quit\n"));
        } else {
          printf(_("\n\
      1) Toggle modify database flag\n\
      2) Toggle verbose flag\n\
-     3) Check for duplicate Filename records\n\
-     4) Check for duplicate Path records\n\
-     5) Check for orphaned Jobmedia records\n\
-     6) Check for orphaned File records\n\
-     7) Check for orphaned Path records\n\
-     8) Check for orphaned Filename records\n\
-     9) Check for orphaned FileSet records\n\
-    10) All (3-9)\n\
-    11) Quit\n"));
+     3) Check for bad Filename records\n\
+     4) Check for bad Path records\n\
+     5) Check for duplicate Filename records\n\
+     6) Check for duplicate Path records\n\
+     7) Check for orphaned Jobmedia records\n\
+     8) Check for orphaned File records\n\
+     9) Check for orphaned Path records\n\
+    10) Check for orphaned Filename records\n\
+    11) Check for orphaned FileSet records\n\
+    12) All (3-11)\n\
+    13) Quit\n"));
        }
 
       cmd = get_cmd(_("Select function number: "));
@@ -233,27 +241,35 @@ Please select the fuction you want to perform.\n",
             printf(_("Verbose is %s\n"), verbose?_("On"):_("Off"));
 	    break;
 	 case 3:
-	    eliminate_duplicate_filenames();
+	    repair_bad_filenames();
 	    break;
 	 case 4:
-	    eliminate_duplicate_paths();
+	    repair_bad_paths();
 	    break;
 	 case 5:
-	    eliminate_orphaned_jobmedia_records();
+	    eliminate_duplicate_filenames();
 	    break;
 	 case 6:
-	    eliminate_orphaned_file_records();
+	    eliminate_duplicate_paths();
 	    break;
 	 case 7:
-	    eliminate_orphaned_path_records();
+	    eliminate_orphaned_jobmedia_records();
 	    break;
 	 case 8:
-	    eliminate_orphaned_filename_records();
+	    eliminate_orphaned_file_records();
 	    break;
 	 case 9:
-	    eliminate_orphaned_fileset_records();
+	    eliminate_orphaned_path_records();
 	    break;
 	 case 10:
+	    eliminate_orphaned_filename_records();
+	    break;
+	 case 11:
+	    eliminate_orphaned_fileset_records();
+	    break;
+	 case 12:
+	    repair_bad_filenames();
+	    repair_bad_paths();
 	    eliminate_duplicate_filenames();
 	    eliminate_duplicate_paths();
 	    eliminate_orphaned_jobmedia_records();
@@ -262,8 +278,8 @@ Please select the fuction you want to perform.\n",
 	    eliminate_orphaned_filename_records();
 	    eliminate_orphaned_fileset_records();
 	    break;
-	 case 11:
-	    quit = 1;
+	 case 13:
+	    quit = true;
 	    break;
 	 }
       }
@@ -277,6 +293,16 @@ static int print_name_handler(void *ctx, int num_fields, char **row)
    }
    return 0;
 }
+
+static int get_name_handler(void *ctx, int num_fields, char **row)
+{
+   POOLMEM *buf = (POOLMEM *)ctx;
+   if (row[0]) {
+      pm_strcpy(&buf, row[0]);
+   }
+   return 0;
+}
+
 
 static int print_jobmedia_handler(void *ctx, int num_fields, char **row)
 {
@@ -298,9 +324,6 @@ static int print_fileset_handler(void *ctx, int num_fields, char **row)
 	      NPRT(row[0]), NPRT(row[1]), NPRT(row[2]));
    return 0;
 }
-
-
-
 
   
 /*
@@ -645,6 +668,94 @@ static void eliminate_orphaned_fileset_records()
       delete_id_list("DELETE FROM FileSet WHERE FileSetId=%u", &id_list);
    }
 }
+
+static void repair_bad_filenames()
+{
+   char *query;
+   int i;
+
+   printf("Checking for Filenames with a trailing slash\n");
+   query = "SELECT FilenameId,Name from Filename "
+           "WHERE Name LIKE '%/'";
+   if (!make_id_list(query, &id_list)) {
+      exit(1);
+   }
+   printf("Found %d bad Filename records.\n", id_list.num_ids);
+   if (name_list.num_ids && verbose && yes_no("Print them? (yes/no): ")) {
+      for (i=0; i < id_list.num_ids; i++) {
+	 sprintf(buf, 
+            "SELECT Name FROM Filename WHERE FilenameId=%u", id_list.Id[i]);
+	 if (!db_sql_query(db, buf, print_name_handler, NULL)) {
+            printf("%s\n", db_strerror(db));
+	 }
+      }
+   }
+      
+   if (fix && id_list.num_ids > 0) {
+      POOLMEM *name = get_pool_memory(PM_FNAME);
+      char esc_name[5000];
+      printf("Reparing %d bad Filename records.\n", id_list.num_ids);
+      for (i=0; i < id_list.num_ids; i++) {
+	 int len;
+	 sprintf(buf, 
+            "SELECT Name FROM Filename WHERE FilenameId=%u", id_list.Id[i]);
+	 if (!db_sql_query(db, buf, get_name_handler, name)) {
+            printf("%s\n", db_strerror(db));
+	 }
+	 /* Strip trailing slash(es) */
+	 for (len=strlen(name); len > 1 && name[len-1]; len--)
+	    {  }
+	 db_escape_string(esc_name, name, len);
+	 bsnprintf(buf, sizeof(buf), 
+            "UPDATE Filename SET Name='%s' WHERE FilenameId=%u", id_list.Id[i]);
+	 db_sql_query(db, buf, NULL, NULL);
+      }
+   }
+}
+
+static void repair_bad_paths()
+{
+   char *query;
+   int i;
+
+   printf("Checking for Paths without a trailing slash\n");
+   query = "SELECT PathId,Path from Path "
+           "WHERE Path IS NOT LIKE '%/'";
+   if (!make_id_list(query, &id_list)) {
+      exit(1);
+   }
+   printf("Found %d bad Path records.\n", id_list.num_ids);
+   if (name_list.num_ids && verbose && yes_no("Print them? (yes/no): ")) {
+      for (i=0; i < id_list.num_ids; i++) {
+	 sprintf(buf, 
+            "SELECT Path FROM Path WHERE PathId=%u", id_list.Id[i]);
+	 if (!db_sql_query(db, buf, print_name_handler, NULL)) {
+            printf("%s\n", db_strerror(db));
+	 }
+      }
+   }
+      
+   if (fix && id_list.num_ids > 0) {
+      POOLMEM *name = get_pool_memory(PM_FNAME);
+      char esc_name[5000];
+      printf("Reparing %d bad Filename records.\n", id_list.num_ids);
+      for (i=0; i < id_list.num_ids; i++) {
+	 sprintf(buf, 
+            "SELECT Path FROM Path WHERE PathId=%u", id_list.Id[i]);
+	 if (!db_sql_query(db, buf, get_name_handler, name)) {
+            printf("%s\n", db_strerror(db));
+	 }
+	 /* Add trailing slash */
+         int len = pm_strcat(&name, "/");
+	 db_escape_string(esc_name, name, len);
+	 bsnprintf(buf, sizeof(buf), 
+            "UPDATE Path SET Path='%s' WHERE PathId=%u", id_list.Id[i]);
+	 db_sql_query(db, buf, NULL, NULL);
+      }
+   }
+}
+
+
 
 
 /*
