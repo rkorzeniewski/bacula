@@ -49,6 +49,7 @@ public:
    berrno(int pool=PM_EMSG);
    ~berrno();
    const char *strerror();
+   const char *strerror(int errnum);
    void set_errno(int errnum);
 };
 
@@ -63,6 +64,13 @@ inline berrno::~berrno()
 {   
    free_pool_memory(buf_);
 }
+
+inline const char *berrno::strerror(int errnum)
+{
+   berrno_ = errnum;
+   return berrno::strerror();
+}
+
 
 inline void berrno::set_errno(int errnum)
 {

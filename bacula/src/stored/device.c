@@ -363,14 +363,35 @@ void _lock_device(const char *file, int line, DEVICE *dev)
 /*
  * Check if the device is blocked or not
  */
-int device_is_unmounted(DEVICE *dev)
+bool device_is_unmounted(DEVICE *dev)
 {
-   int stat;
-   P(dev->mutex);
-   stat = (dev->dev_blocked == BST_UNMOUNTED) ||
-	  (dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP);
-   V(dev->mutex);
+   bool stat;
+   int blocked = dev->dev_blocked;
+   stat = (blocked == BST_UNMOUNTED) ||
+	  (blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP);
    return stat;
+}
+
+const char *edit_blocked_reason(DEVICE *dev)
+{
+   switch (dev->dev_blocked) {
+   case BST_NOT_BLOCKED:
+      return "not blocked";
+   case BST_UNMOUNTED:
+      return "user unmounted device";
+   case BST_WAITING_FOR_SYSOP:
+      return "waiting for operator action";      
+   case BST_DOING_ACQUIRE:
+      return "opening, validating, or positioning tape";
+   case BST_WRITING_LABEL:
+      return "labeling tape";
+   case BST_UNMOUNTED_WAITING_FOR_SYSOP:
+      return "closed by user during mount request";
+   case BST_MOUNT:
+      return "mount request";
+   default:
+      return "unknown blocked code";
+   }
 }
 
 void _unlock_device(const char *file, int line, DEVICE *dev) 
