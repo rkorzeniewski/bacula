@@ -258,7 +258,7 @@ int read_dev_volume_label_guess(DCR *dcr, bool write)
       if (!write || dcr->VolCatInfo.VolCatParts > 0) {
          Mmsg2(jcr->errmsg, _("Requested Volume \"%s\" on %s is not a Bacula labeled Volume."),
 	       dev->print_name(), dcr->VolumeName);
-         Dmsg0(100, "Leave read_dev_volume_label_guess VOL_IO_ERROR (!open_guess_name_dev)\n");
+         Dmsg0(100, "Leave read_dev_volume_label_guess VOL_NO_LABEL (!open_guess_name_dev)\n");
 	 return VOL_NO_LABEL;
       }
       
