@@ -136,7 +136,7 @@ init_dev(JCR *jcr, DEVICE *dev, DEVRES *device)
       tape = true;
    } else if (S_ISFIFO(statp.st_mode)) {
       fifo = true;
-   } else {
+   } else if (!(device->cap_bits & CAP_REQMOUNT)) {
       if (dev) {
 	 dev->dev_errno = ENODEV;
       }

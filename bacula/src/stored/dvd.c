@@ -209,9 +209,8 @@ int open_guess_name_dev(DEVICE *dev)
          Dmsg1(100, "open_guess_name_dev: device cannot be mounted, but it seems to be writable, returning 0. dev=%s\n", dev->dev_name);
          return 0;
       } else {
-         Dmsg1(100, "open_guess_name_dev: device cannot be mounted, and is not writable, returning 0. dev=%s\n", dev->dev_name);
-         /* read_dev_volume_label_guess must now check dev->free_space_errno to understand that the media is not writable. */
-         return 0;
+         Dmsg1(100, "open_guess_name_dev: device cannot be mounted, and is not writable, returning -1. dev=%s\n", dev->dev_name);
+         return -1;
       }
    }
       
