@@ -73,6 +73,34 @@ CREATE TABLE Storage (
    PRIMARY KEY(StorageId)
    );
 
+CREATE TABLE Status (
+   JobStatus CHAR(1) NOT NULL,
+   JobStatusLong TEXT, 
+   PRIMARY KEY (JobStatus)
+   );
+
+INSERT INTO Status (JobStatus,JobStatusLong) VALUES
+   ('C', 'Created, not yet running'),
+   ('R', 'Running'),
+   ('B', 'Blocked'),
+   ('T', 'Completed successfully'),
+   ('E', 'Terminated with errors'),
+   ('e', 'Non-fatal error'),
+   ('f', 'Fatal error'),
+   ('D', 'Verify found differences'),
+   ('A', 'Canceled by user'),
+   ('F', 'Waiting for Client'),
+   ('S', 'Waiting for Storage daemon'),
+   ('m', 'Waiting for new media'),
+   ('M', 'Waiting for media mount'),
+   ('s', 'Waiting for storage resource'),
+   ('j', 'Waiting for job resource'),
+   ('c', 'Waiting for client resource'),
+   ('d', 'Waiting on maximum jobs'),
+   ('t', 'Waiting on start time'),
+   ('p', 'Waiting on higher priority jobs');
+
+
 DELETE FROM version;
 INSERT INTO version (versionId) VALUES (9);
 

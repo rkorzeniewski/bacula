@@ -37,7 +37,7 @@
 
 /* ===============================================================
  *
- *	      U N I X	AND   W I N D O W S
+ *            U N I X   AND   W I N D O W S
  *
  * ===============================================================
  */
@@ -95,7 +95,7 @@ const char *stream_to_ascii(int stream)
 
 /* ===============================================================
  *
- *	      W I N D O W S
+ *            W I N D O W S
  *
  * ===============================================================
  */
@@ -158,7 +158,7 @@ int have_win32_api()
 
 /*
  * Return 1 if we support the stream
- *	  0 if we do not support the stream
+ *        0 if we do not support the stream
  */
 int is_stream_supported(int stream)
 {
@@ -190,7 +190,7 @@ int is_stream_supported(int stream)
    case STREAM_MACOS_FORK_DATA:
    case STREAM_HFSPLUS_ATTRIBUTES:
 #endif
-   case 0:			      /* compatibility with old tapes */
+   case 0:                            /* compatibility with old tapes */
       return 1;
    }
    return 0;
@@ -210,57 +210,57 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
    win32_fname = get_pool_memory(PM_FNAME);
    unix_name_to_win32(&win32_fname, (char *)fname);
 
-   if (flags & O_CREAT) {	      /* Create */
+   if (flags & O_CREAT) {             /* Create */
       if (bfd->use_backup_api) {
-	 dwaccess = GENERIC_WRITE|FILE_ALL_ACCESS|WRITE_OWNER|WRITE_DAC|ACCESS_SYSTEM_SECURITY;
-	 dwflags = FILE_FLAG_BACKUP_SEMANTICS;
+         dwaccess = GENERIC_WRITE|FILE_ALL_ACCESS|WRITE_OWNER|WRITE_DAC|ACCESS_SYSTEM_SECURITY;
+         dwflags = FILE_FLAG_BACKUP_SEMANTICS;
       } else {
-	 dwaccess = GENERIC_WRITE;
-	 dwflags = 0;
+         dwaccess = GENERIC_WRITE;
+         dwflags = 0;
       }
       bfd->fh = CreateFile(win32_fname,
-	     dwaccess,		      /* Requested access */
-	     0, 		      /* Shared mode */
-	     NULL,		      /* SecurityAttributes */
-	     CREATE_ALWAYS,	      /* CreationDisposition */
-	     dwflags,		      /* Flags and attributes */
-	     NULL);		      /* TemplateFile */
+             dwaccess,                /* Requested access */
+             0,                       /* Shared mode */
+             NULL,                    /* SecurityAttributes */
+             CREATE_ALWAYS,           /* CreationDisposition */
+             dwflags,                 /* Flags and attributes */
+             NULL);                   /* TemplateFile */
       bfd->mode = BF_WRITE;
 
    } else if (flags & O_WRONLY) {     /* Open existing for write */
       if (bfd->use_backup_api) {
-	 dwaccess = GENERIC_WRITE|WRITE_OWNER|WRITE_DAC;
-	 dwflags = FILE_FLAG_BACKUP_SEMANTICS;
+         dwaccess = GENERIC_WRITE|WRITE_OWNER|WRITE_DAC;
+         dwflags = FILE_FLAG_BACKUP_SEMANTICS;
       } else {
-	 dwaccess = GENERIC_WRITE;
-	 dwflags = 0;
+         dwaccess = GENERIC_WRITE;
+         dwflags = 0;
       }
       bfd->fh = CreateFile(win32_fname,
-	     dwaccess,		      /* Requested access */
-	     0, 		      /* Shared mode */
-	     NULL,		      /* SecurityAttributes */
-	     OPEN_EXISTING,	      /* CreationDisposition */
-	     dwflags,		      /* Flags and attributes */
-	     NULL);		      /* TemplateFile */
+             dwaccess,                /* Requested access */
+             0,                       /* Shared mode */
+             NULL,                    /* SecurityAttributes */
+             OPEN_EXISTING,           /* CreationDisposition */
+             dwflags,                 /* Flags and attributes */
+             NULL);                   /* TemplateFile */
       bfd->mode = BF_WRITE;
 
-   } else {			      /* Read */
+   } else {                           /* Read */
       if (bfd->use_backup_api) {
-	 dwaccess = GENERIC_READ|READ_CONTROL|ACCESS_SYSTEM_SECURITY;
-	 dwflags = FILE_FLAG_BACKUP_SEMANTICS;
-	 dwshare = FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE;
+         dwaccess = GENERIC_READ|READ_CONTROL|ACCESS_SYSTEM_SECURITY;
+         dwflags = FILE_FLAG_BACKUP_SEMANTICS;
+         dwshare = FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE;
       } else {
-	 dwaccess = GENERIC_READ;
-	 dwflags = 0;
-	 dwshare = FILE_SHARE_READ|FILE_SHARE_WRITE;
+         dwaccess = GENERIC_READ;
+         dwflags = 0;
+         dwshare = FILE_SHARE_READ|FILE_SHARE_WRITE;
       }
       bfd->fh = CreateFile(win32_fname,
-	     dwaccess,		      /* Requested access */
-	     dwshare,		      /* Share modes */
-	     NULL,		      /* SecurityAttributes */
-	     OPEN_EXISTING,	      /* CreationDisposition */
-	     dwflags,		      /* Flags and attributes */
-	     NULL);		      /* TemplateFile */
+             dwaccess,                /* Requested access */
+             dwshare,                 /* Share modes */
+             NULL,                    /* SecurityAttributes */
+             OPEN_EXISTING,           /* CreationDisposition */
+             dwflags,                 /* Flags and attributes */
+             NULL);                   /* TemplateFile */
       bfd->mode = BF_READ;
    }
 
@@ -278,7 +278,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 
 /*
  * Returns  0 on success
- *	   -1 on error
+ *         -1 on error
  */
 int bclose(BFILE *bfd)
 {
@@ -294,26 +294,26 @@ int bclose(BFILE *bfd)
    if (bfd->use_backup_api && bfd->mode == BF_READ) {
       BYTE buf[10];
       if (!bfd->lpContext && !p_BackupRead(bfd->fh,
-	      buf,		      /* buffer */
-	      (DWORD)0, 	      /* bytes to read */
-	      &bfd->rw_bytes,	      /* bytes read */
-	      1,		      /* Abort */
-	      1,		      /* ProcessSecurity */
-	      &bfd->lpContext)) {     /* Read context */
-	 errno = b_errno_win32;
-	 stat = -1;
+              buf,                    /* buffer */
+              (DWORD)0,               /* bytes to read */
+              &bfd->rw_bytes,         /* bytes read */
+              1,                      /* Abort */
+              1,                      /* ProcessSecurity */
+              &bfd->lpContext)) {     /* Read context */
+         errno = b_errno_win32;
+         stat = -1;
       }
    } else if (bfd->use_backup_api && bfd->mode == BF_WRITE) {
       BYTE buf[10];
       if (!bfd->lpContext && !p_BackupWrite(bfd->fh,
-	      buf,		      /* buffer */
-	      (DWORD)0, 	      /* bytes to read */
-	      &bfd->rw_bytes,	      /* bytes written */
-	      1,		      /* Abort */
-	      1,		      /* ProcessSecurity */
-	      &bfd->lpContext)) {     /* Write context */
-	 errno = b_errno_win32;
-	 stat = -1;
+              buf,                    /* buffer */
+              (DWORD)0,               /* bytes to read */
+              &bfd->rw_bytes,         /* bytes written */
+              1,                      /* Abort */
+              1,                      /* ProcessSecurity */
+              &bfd->lpContext)) {     /* Write context */
+         errno = b_errno_win32;
+         stat = -1;
       }
    }
    if (!CloseHandle(bfd->fh)) {
@@ -326,8 +326,8 @@ int bclose(BFILE *bfd)
 }
 
 /* Returns: bytes read on success
- *	     0	       on EOF
- *	    -1	       on error
+ *           0         on EOF
+ *          -1         on error
  */
 ssize_t bread(BFILE *bfd, void *buf, size_t count)
 {
@@ -335,27 +335,27 @@ ssize_t bread(BFILE *bfd, void *buf, size_t count)
 
    if (bfd->use_backup_api) {
       if (!p_BackupRead(bfd->fh,
-	   (BYTE *)buf,
-	   count,
-	   &bfd->rw_bytes,
-	   0,				/* no Abort */
-	   1,				/* Process Security */
-	   &bfd->lpContext)) {		/* Context */
-	 bfd->lerror = GetLastError();
-	 bfd->berrno = b_errno_win32;
-	 errno = b_errno_win32;
-	 return -1;
+           (BYTE *)buf,
+           count,
+           &bfd->rw_bytes,
+           0,                           /* no Abort */
+           1,                           /* Process Security */
+           &bfd->lpContext)) {          /* Context */
+         bfd->lerror = GetLastError();
+         bfd->berrno = b_errno_win32;
+         errno = b_errno_win32;
+         return -1;
       }
    } else {
       if (!ReadFile(bfd->fh,
-	   buf,
-	   count,
-	   &bfd->rw_bytes,
-	   NULL)) {
-	 bfd->lerror = GetLastError();
-	 bfd->berrno = b_errno_win32;
-	 errno = b_errno_win32;
-	 return -1;
+           buf,
+           count,
+           &bfd->rw_bytes,
+           NULL)) {
+         bfd->lerror = GetLastError();
+         bfd->berrno = b_errno_win32;
+         errno = b_errno_win32;
+         return -1;
       }
    }
 
@@ -368,27 +368,27 @@ ssize_t bwrite(BFILE *bfd, void *buf, size_t count)
 
    if (bfd->use_backup_api) {
       if (!p_BackupWrite(bfd->fh,
-	   (BYTE *)buf,
-	   count,
-	   &bfd->rw_bytes,
-	   0,				/* No abort */
-	   1,				/* Process Security */
-	   &bfd->lpContext)) {		/* Context */
-	 bfd->lerror = GetLastError();
-	 bfd->berrno = b_errno_win32;
-	 errno = b_errno_win32;
-	 return -1;
+           (BYTE *)buf,
+           count,
+           &bfd->rw_bytes,
+           0,                           /* No abort */
+           1,                           /* Process Security */
+           &bfd->lpContext)) {          /* Context */
+         bfd->lerror = GetLastError();
+         bfd->berrno = b_errno_win32;
+         errno = b_errno_win32;
+         return -1;
       }
    } else {
       if (!WriteFile(bfd->fh,
-	   buf,
-	   count,
-	   &bfd->rw_bytes,
-	   NULL)) {
-	 bfd->lerror = GetLastError();
-	 bfd->berrno = b_errno_win32;
-	 errno = b_errno_win32;
-	 return -1;
+           buf,
+           count,
+           &bfd->rw_bytes,
+           NULL)) {
+         bfd->lerror = GetLastError();
+         bfd->berrno = b_errno_win32;
+         errno = b_errno_win32;
+         return -1;
       }
    }
    return (ssize_t)bfd->rw_bytes;
@@ -409,7 +409,7 @@ off_t blseek(BFILE *bfd, off_t offset, int whence)
 
 /* ===============================================================
  *
- *	      U N I X
+ *            U N I X
  *
  * ===============================================================
  */
@@ -421,7 +421,7 @@ void binit(BFILE *bfd)
 
 int have_win32_api()
 {
-   return 0;			      /* no can do */
+   return 0;                          /* no can do */
 }
 
 /*
@@ -431,13 +431,13 @@ int have_win32_api()
  */
 int set_win32_backup(BFILE *bfd)
 {
-   return 0;			      /* no can do */
+   return 0;                          /* no can do */
 }
 
 
 int set_portable_backup(BFILE *bfd)
 {
-   return 1;			      /* no problem */
+   return 1;                          /* no problem */
 }
 
 /*
@@ -446,7 +446,7 @@ int set_portable_backup(BFILE *bfd)
  */
 int is_portable_backup(BFILE *bfd)
 {
-   return 1;			      /* portable by definition */
+   return 1;                          /* portable by definition */
 }
 
 void set_prog(BFILE *bfd, char *prog, JCR *jcr)
@@ -485,7 +485,7 @@ int is_stream_supported(int stream)
    case STREAM_MACOS_FORK_DATA:
    case STREAM_HFSPLUS_ATTRIBUTES:
 #endif
-   case 0:			      /* compatibility with old tapes */
+   case 0:                            /* compatibility with old tapes */
       return 1;
 
    }
@@ -495,31 +495,33 @@ int is_stream_supported(int stream)
 int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 {
    /* Open reader/writer program */
+#ifdef xxx
    if (bfd->prog) {
       POOLMEM *ecmd = get_pool_memory(PM_FNAME);
       ecmd = edit_job_codes(bfd->jcr, ecmd, bfd->prog, fname);
       const char *pmode;
       if (flags & O_RDONLY) {
-	 pmode = "r";
+         pmode = "r";
       } else {
-	 pmode = "w";
+         pmode = "w";
       }
       bfd->bpipe = open_bpipe(ecmd, 0, pmode);
       if (bfd->bpipe == NULL) {
-	 bfd->berrno = errno;
-	 bfd->fid = -1;
-	 free_pool_memory(ecmd);
-	 return -1;
+         bfd->berrno = errno;
+         bfd->fid = -1;
+         free_pool_memory(ecmd);
+         return -1;
       }
       free_pool_memory(ecmd);
       if (flags & O_RDONLY) {
-	 bfd->fid = fileno(bfd->bpipe->rfd);
+         bfd->fid = fileno(bfd->bpipe->rfd);
       } else {
-	 bfd->fid = fileno(bfd->bpipe->wfd);
+         bfd->fid = fileno(bfd->bpipe->wfd);
       }
       errno = 0;
       return bfd->fid;
    }
+#endif
 
    /* Normal file open */
    bfd->fid = open(fname, flags, mode);
@@ -555,6 +557,7 @@ int bclose(BFILE *bfd)
       return 0;
    }
    /* Close reader/writer program */
+#ifdef xxx
    if (bfd->prog && bfd->bpipe) {
       stat = close_bpipe(bfd->bpipe);
       bfd->berrno = errno;
@@ -562,6 +565,7 @@ int bclose(BFILE *bfd)
       bfd->bpipe = NULL;
       return stat;
    }
+#endif
 
    /* Close normal file */
    stat = close(bfd->fid);

@@ -64,6 +64,11 @@ For 1.37:
 - Add history file to console.
 
 Maybe in 1.37:
+- Ensure that you cannot exclude a directory or a file explicitly
+  Included with File.
+- Each file on tape creates a JobMedia record. Peter has 4 million
+  files spread over 10000 tape files and four tapes. A restore takes
+  16 hours to build the restore list.
 - By the way: on page http://www.bacula.org/?page=tapedrives , at the 
   bottom, the link to "Tape Testing Chapter" is broken. It goes to 
   /html-manual/... while the others point to /rel-manual/...

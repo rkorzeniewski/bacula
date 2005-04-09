@@ -7,6 +7,7 @@ Note! The DB has been upgraded from version 8 to 9 and requres
 a DB upgrade.
 
 Major Changes:
+- The Python interface has been updated to be object oriented.
 - This version has a new DIR <--> SD protocol. Both must be
   upgraded at the same time.
 - This version has a new database format that is not compatible
@@ -158,16 +159,16 @@ Other Items:
 
      import bacula
 
-  The script is called with one argument, typically called j. This
-  argument *must* be passed unchanged to each bacula function. The
+  The script is called with one argument, typically called jcr. This
+  argument *must* be used to access each bacula function. The
   format of the call is slightly different for reading Bacula
   variable and for writing bacula variables. See below.
 
   Bacula variables can be read with:
 
-     bacula.get(j, "Variable-name")
+     jcr.get("Variable-name")
 
-    where j is the argument passed to the function, and Variable-name
+    where jcr is the argument passed to the function, and Variable-name
     is on of the following:
 
      JobId, Client, Pool, Storage, Catalog, MediaType, NumVols, DirName,
@@ -175,7 +176,7 @@ Other Items:
 
    Bacula varibles can be set using Python keyword arguments:
 
-      bacula.set(jcr=j, VolumeName="xyz")
+      jcr.set(VolumeName="xyz")
 
     The two currently implemented writable "variables" are:
 
@@ -183,7 +184,7 @@ Other Items:
 
    It is possible to submit a Bacula run command with the following:
 
-     bacula.run(j, "run kernsave client=Matou storage=File")
+     jcr.run("run kernsave client=Matou storage=File")
 
    this function returns the JobId of the job that was started. If
    there is an error, the return value is zero.
@@ -193,12 +194,12 @@ Other Items:
 == File EndJob.py ===
 import bacula
 
-def EndJob(j):
-    jobid = bacula.get(j, "JobId")
-    client = bacula.get(j, "Client") 
-    bacula.set(jcr=j, JobReport="EndJob output: JobId=%d Client=%s.\n" % (jobid, client))
+def EndJob(jcr):
+    jobid = jcr.get("JobId")
+    client = jcr.get("Client") 
+    jcr.set(JobReport="EndJob output: JobId=%d Client=%s.\n" % (jobid, client))
     if (jobid < 5) :
-       startid = bacula.run(j, "run kernsave")
+       startid = jcr.run("run kernsave")
        print "Python started jobid=", startid
 
     return 1
@@ -207,14 +208,14 @@ def EndJob(j):
 == File NewVolume.py ===
 import bacula
 
-def NewVolume(j):
-    jobid = bacula.get(j, "JobId")
+def NewVolume(jcr):
+    jobid = jcr.get("JobId")
     print "JobId=", jobid
-    client = bacula.get(j, "Client") 
+    client = jcr.get("Client") 
     print "Client=" + client
-    numvol = bacula.get(j, "NumVols");
+    numvol = jcr.get("NumVols");
     print "NumVols=", numvol
-    bacula.set(jcr=j, JobReport="New Volume set for Job.\n") 
-    bacula.set(jcr=j, VolumeName="TestA-001")
+    jcr.set(JobReport="New Volume set for Job.\n") 
+    jcr.set(VolumeName="TestA-001")
     return 1
 ====

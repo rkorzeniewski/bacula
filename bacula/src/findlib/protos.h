@@ -36,8 +36,8 @@ int    create_file       (JCR *jcr, ATTR *attr, BFILE *ofd, int replace);
 /* From find.c */
 FF_PKT *init_find_files();
 void  set_find_options(FF_PKT *ff, int incremental, time_t mtime);
-int   find_files(JCR *jcr, FF_PKT *ff, int sub(FF_PKT *ff_pkt, void *hpkt), void *pkt);
-int   match_files(JCR *jcr, FF_PKT *ff, int sub(FF_PKT *ff_pkt, void *hpkt), void *pkt);
+int   find_files(JCR *jcr, FF_PKT *ff, int sub(FF_PKT *ff_pkt, void *hpkt, bool), void *pkt);
+int   match_files(JCR *jcr, FF_PKT *ff, int sub(FF_PKT *ff_pkt, void *hpkt, bool), void *pkt);
 int   term_find_files(FF_PKT *ff);
 
 /* From match.c */
@@ -51,8 +51,9 @@ struct s_included_file *get_next_included_file(FF_PKT *ff,
                            struct s_included_file *inc);
 
 /* From find_one.c */
-int   find_one_file(JCR *jcr, FF_PKT *ff, int handle_file(FF_PKT *ff_pkt, void *hpkt),
-               void *pkt, char *p, dev_t parent_device, int top_level);
+int   find_one_file(JCR *jcr, FF_PKT *ff, 
+               int handle_file(FF_PKT *ff_pkt, void *hpkt, bool top_level),
+               void *pkt, char *p, dev_t parent_device, bool top_level);
 int   term_find_one(FF_PKT *ff);
 
 

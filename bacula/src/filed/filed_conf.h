@@ -60,6 +60,7 @@ struct CLIENT {
    char *working_directory;
    char *pid_directory;
    char *subsys_directory;
+   char *scripts_directory;
    int require_ssl;                   /* Require SSL on all connections */
    MSGS *messages;                    /* daemon message handler */
    int MaxConcurrentJobs;

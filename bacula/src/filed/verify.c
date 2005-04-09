@@ -1,5 +1,5 @@
 /*
- *  Bacula File Daemon	verify.c  Verify files.
+ *  Bacula File Daemon  verify.c  Verify files.
  *
  *    Kern Sibbald, October MM
  *
@@ -29,7 +29,7 @@
 #include "bacula.h"
 #include "filed.h"
 
-static int verify_file(FF_PKT *ff_pkt, void *my_pkt);
+static int verify_file(FF_PKT *ff_pkt, void *my_pkt, bool);
 static int read_chksum(BFILE *bfd, CHKSUM *chksum, JCR *jcr);
 
 /*
@@ -43,7 +43,7 @@ void do_verify(JCR *jcr)
    jcr->buf_size = DEFAULT_NETWORK_BUFFER_SIZE;
    if ((jcr->big_buf = (char *) malloc(jcr->buf_size)) == NULL) {
       Jmsg1(jcr, M_ABORT, 0, _("Cannot malloc %d network read buffer\n"),
-	 DEFAULT_NETWORK_BUFFER_SIZE);
+         DEFAULT_NETWORK_BUFFER_SIZE);
    }
    set_find_options((FF_PKT *)jcr->ff, jcr->incremental, jcr->mtime);
    Dmsg0(10, "Start find files\n");
@@ -63,7 +63,7 @@ void do_verify(JCR *jcr)
  *
  *  Find the file, compute the MD5 or SHA1 and send it back to the Director
  */
-static int verify_file(FF_PKT *ff_pkt, void *pkt)
+static int verify_file(FF_PKT *ff_pkt, void *pkt, bool top_level)
 {
    char attribs[MAXSTRING];
    char attribsEx[MAXSTRING];
@@ -78,10 +78,10 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
    }
 
    dir = jcr->dir_bsock;
-   jcr->num_files_examined++;	      /* bump total file count */
+   jcr->num_files_examined++;         /* bump total file count */
 
    switch (ff_pkt->type) {
-   case FT_LNKSAVED:		      /* Hard linked, file already saved */
+   case FT_LNKSAVED:                  /* Hard linked, file already saved */
       Dmsg2(30, "FT_LNKSAVED saving: %s => %s\n", ff_pkt->fname, ff_pkt->link);
       break;
    case FT_REGE:
@@ -94,7 +94,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
       Dmsg2(30, "FT_LNK saving: %s -> %s\n", ff_pkt->fname, ff_pkt->link);
       break;
    case FT_DIRBEGIN:
-      return 1; 		      /* ignored */
+      return 1;                       /* ignored */
    case FT_DIREND:
       Dmsg1(30, "FT_DIR saving: %s\n", ff_pkt->fname);
       break;
@@ -159,18 +159,18 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
    encode_attribsEx(jcr, attribsEx, ff_pkt);
 
    P(jcr->mutex);
-   jcr->JobFiles++;		     /* increment number of files sent */
+   jcr->JobFiles++;                  /* increment number of files sent */
    pm_strcpy(jcr->last_fname, ff_pkt->fname);
    V(jcr->mutex);
 
    /*
     * Send file attributes to Director
-    *	File_index
-    *	Stream
-    *	Verify Options
-    *	Filename (full path)
-    *	Encoded attributes
-    *	Link name (if type==FT_LNK)
+    *   File_index
+    *   Stream
+    *   Verify Options
+    *   Filename (full path)
+    *   Encoded attributes
+    *   Link name (if type==FT_LNK)
     * For a directory, link is the same as fname, but with trailing
     * slash. For a linked file, link is the link.
     */
@@ -178,17 +178,17 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
    Dmsg2(400, "send ATTR inx=%d fname=%s\n", jcr->JobFiles, ff_pkt->fname);
    if (ff_pkt->type == FT_LNK || ff_pkt->type == FT_LNKSAVED) {
       stat = bnet_fsend(dir, "%d %d %s %s%c%s%c%s%c", jcr->JobFiles,
-	    STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->fname,
-	    0, attribs, 0, ff_pkt->link, 0);
+            STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->fname,
+            0, attribs, 0, ff_pkt->link, 0);
    } else if (ff_pkt->type == FT_DIREND) {
-	 /* Here link is the canonical filename (i.e. with trailing slash) */
-	 stat = bnet_fsend(dir,"%d %d %s %s%c%s%c%c", jcr->JobFiles,
-	       STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->link,
-	       0, attribs, 0, 0);
+         /* Here link is the canonical filename (i.e. with trailing slash) */
+         stat = bnet_fsend(dir,"%d %d %s %s%c%s%c%c", jcr->JobFiles,
+               STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->link,
+               0, attribs, 0, 0);
    } else {
       stat = bnet_fsend(dir,"%d %d %s %s%c%s%c%c", jcr->JobFiles,
-	    STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->fname,
-	    0, attribs, 0, 0);
+            STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->fname,
+            0, attribs, 0, 0);
    }
    Dmsg2(20, "bfiled>bdird: attribs len=%d: msg=%s\n", dir->msglen, dir->msg);
    if (!stat) {
@@ -201,64 +201,64 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt)
     * First we initialise, then we read files, other streams and Finder Info.
     */
    if (ff_pkt->type != FT_LNKSAVED && (S_ISREG(ff_pkt->statp.st_mode) &&
-	    ff_pkt->flags & (FO_MD5|FO_SHA1))) {
+            ff_pkt->flags & (FO_MD5|FO_SHA1))) {
       chksum_init(&chksum, ff_pkt->flags);
       binit(&bfd);
 
       if (ff_pkt->statp.st_size > 0 || ff_pkt->type == FT_RAW
-	    || ff_pkt->type == FT_FIFO) {
-	 if ((bopen(&bfd, ff_pkt->fname, O_RDONLY | O_BINARY, 0)) < 0) {
-	    ff_pkt->ff_errno = errno;
-	    berrno be;
-	    be.set_errno(bfd.berrno);
-	    Jmsg(jcr, M_NOTSAVED, 1, _("     Cannot open %s: ERR=%s.\n"),
-		 ff_pkt->fname, be.strerror());
-	    jcr->Errors++;
-	    return 1;
-	 }
-	 read_chksum(&bfd, &chksum, jcr);
-	 bclose(&bfd);
+            || ff_pkt->type == FT_FIFO) {
+         if ((bopen(&bfd, ff_pkt->fname, O_RDONLY | O_BINARY, 0)) < 0) {
+            ff_pkt->ff_errno = errno;
+            berrno be;
+            be.set_errno(bfd.berrno);
+            Jmsg(jcr, M_NOTSAVED, 1, _("     Cannot open %s: ERR=%s.\n"),
+                 ff_pkt->fname, be.strerror());
+            jcr->Errors++;
+            return 1;
+         }
+         read_chksum(&bfd, &chksum, jcr);
+         bclose(&bfd);
       }
 
 #ifdef HAVE_DARWIN_OS
       /* Open resource fork if necessary */
       if (ff_pkt->flags & FO_HFSPLUS && ff_pkt->hfsinfo.rsrclength > 0) {
-	 if (bopen_rsrc(&bfd, ff_pkt->fname, O_RDONLY | O_BINARY, 0) < 0) {
-	    ff_pkt->ff_errno = errno;
-	    berrno be;
-	    Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open resource fork for %s: ERR=%s\n"),
-		  ff_pkt->fname, be.strerror());
-	    jcr->Errors++;
-	    if (is_bopen(&ff_pkt->bfd)) {
-	       bclose(&ff_pkt->bfd);
-	    }
-	    return 1;
-	 }
-	 read_chksum(&bfd, &chksum, jcr);
-	 bclose(&bfd);
+         if (bopen_rsrc(&bfd, ff_pkt->fname, O_RDONLY | O_BINARY, 0) < 0) {
+            ff_pkt->ff_errno = errno;
+            berrno be;
+            Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open resource fork for %s: ERR=%s\n"),
+                  ff_pkt->fname, be.strerror());
+            jcr->Errors++;
+            if (is_bopen(&ff_pkt->bfd)) {
+               bclose(&ff_pkt->bfd);
+            }
+            return 1;
+         }
+         read_chksum(&bfd, &chksum, jcr);
+         bclose(&bfd);
       }
       if (ff_pkt->flags & FO_HFSPLUS) {
-	 chksum_update(&chksum, ((unsigned char *)ff_pkt->hfsinfo.fndrinfo), 32);
+         chksum_update(&chksum, ((unsigned char *)ff_pkt->hfsinfo.fndrinfo), 32);
       }
 #endif
 
       /* compute MD5 or SHA1 hash */
       if (chksum.updated) {
-	 char chksumbuf[40];		      /* 24 should do */
-	 int stream = 0;
+         char chksumbuf[40];                  /* 24 should do */
+         int stream = 0;
 
-	 chksum_final(&chksum);
-	 if (chksum.type == CHKSUM_MD5) {
-	    stream = STREAM_MD5_SIGNATURE;
-	 } else if (chksum.type == CHKSUM_SHA1) {
-	    stream = STREAM_SHA1_SIGNATURE;
-	 }
-	 bin_to_base64(chksumbuf, (char *)chksum.signature, chksum.length);
-	 Dmsg3(400, "send inx=%d %s=%s\n", jcr->JobFiles, chksum.name, chksumbuf);
-	 bnet_fsend(dir, "%d %d %s *%s-%d*", jcr->JobFiles, stream, chksumbuf,
-	       chksum.name, jcr->JobFiles);
-	 Dmsg3(20, "bfiled>bdird: %s len=%d: msg=%s\n", chksum.name,
-	       dir->msglen, dir->msg);
+         chksum_final(&chksum);
+         if (chksum.type == CHKSUM_MD5) {
+            stream = STREAM_MD5_SIGNATURE;
+         } else if (chksum.type == CHKSUM_SHA1) {
+            stream = STREAM_SHA1_SIGNATURE;
+         }
+         bin_to_base64(chksumbuf, (char *)chksum.signature, chksum.length);
+         Dmsg3(400, "send inx=%d %s=%s\n", jcr->JobFiles, chksum.name, chksumbuf);
+         bnet_fsend(dir, "%d %d %s *%s-%d*", jcr->JobFiles, stream, chksumbuf,
+               chksum.name, jcr->JobFiles);
+         Dmsg3(20, "bfiled>bdird: %s len=%d: msg=%s\n", chksum.name,
+               dir->msglen, dir->msg);
       }
    }
 
@@ -282,7 +282,7 @@ int read_chksum(BFILE *bfd, CHKSUM *chksum, JCR *jcr)
       berrno be;
       be.set_errno(bfd->berrno);
       Jmsg(jcr, M_ERROR, 1, _("Error reading file %s: ERR=%s\n"),
-	    jcr->last_fname, be.strerror());
+            jcr->last_fname, be.strerror());
       jcr->Errors++;
       return -1;
    }

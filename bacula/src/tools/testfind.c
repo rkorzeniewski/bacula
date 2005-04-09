@@ -43,7 +43,7 @@ static int attrs = 0;
 
 static JCR *jcr;
 
-static int print_file(FF_PKT *ff, void *pkt);
+static int print_file(FF_PKT *ff, void *pkt, bool);
 static void count_files(FF_PKT *ff);
 
 static void usage()
@@ -83,27 +83,27 @@ main (int argc, char *const *argv)
    while ((ch = getopt(argc, argv, "ad:e:i:?")) != -1) {
       switch (ch) {
          case 'a':                    /* print extended attributes *debug* */
-	    attrs = 1;
-	    break;
+            attrs = 1;
+            break;
 
          case 'd':                    /* set debug level */
-	    debug_level = atoi(optarg);
-	    if (debug_level <= 0) {
-	       debug_level = 1;
-	    }
-	    break;
+            debug_level = atoi(optarg);
+            if (debug_level <= 0) {
+               debug_level = 1;
+            }
+            break;
 
          case 'e':                    /* exclude patterns */
-	    exc = optarg;
-	    break;
+            exc = optarg;
+            break;
 
          case 'i':                    /* include patterns */
-	    inc = optarg;
-	    break;
+            inc = optarg;
+            break;
 
          case '?':
-	 default:
-	    usage();
+         default:
+            usage();
 
       }
    }
@@ -118,24 +118,24 @@ main (int argc, char *const *argv)
    } else {
       for (i=0; i < argc; i++) {
          if (strcmp(argv[i], "-") == 0) {
-	     while (fgets(name, sizeof(name)-1, stdin)) {
-		strip_trailing_junk(name);
-		add_fname_to_include_list(ff, 0, name);
-	      }
-	      continue;
-	 }
-	 add_fname_to_include_list(ff, 0, argv[i]);
+             while (fgets(name, sizeof(name)-1, stdin)) {
+                strip_trailing_junk(name);
+                add_fname_to_include_list(ff, 0, name);
+              }
+              continue;
+         }
+         add_fname_to_include_list(ff, 0, argv[i]);
       }
    }
    if (inc) {
       fd = fopen(inc, "r");
       if (!fd) {
          printf("Could not open include file: %s\n", inc);
-	 exit(1);
+         exit(1);
       }
       while (fgets(name, sizeof(name)-1, fd)) {
-	 strip_trailing_junk(name);
-	 add_fname_to_include_list(ff, 0, name);
+         strip_trailing_junk(name);
+         add_fname_to_include_list(ff, 0, name);
       }
       fclose(fd);
    }
@@ -144,11 +144,11 @@ main (int argc, char *const *argv)
       fd = fopen(exc, "r");
       if (!fd) {
          printf("Could not open exclude file: %s\n", exc);
-	 exit(1);
+         exit(1);
       }
       while (fgets(name, sizeof(name)-1, fd)) {
-	 strip_trailing_junk(name);
-	 add_fname_to_exclude_list(ff, name);
+         strip_trailing_junk(name);
+         add_fname_to_exclude_list(ff, name);
       }
       fclose(fd);
    }
@@ -172,7 +172,7 @@ main (int argc, char *const *argv)
   exit(0);
 }
 
-static int print_file(FF_PKT *ff, void *pkt)
+static int print_file(FF_PKT *ff, void *pkt, bool top_level) 
 {
 
    switch (ff->type) {
@@ -215,13 +215,13 @@ static int print_file(FF_PKT *ff, void *pkt)
    case FT_DIREND:
       if (debug_level) {
          char errmsg[100] = "";
-	 if (ff->type == FT_NORECURSE) {
+         if (ff->type == FT_NORECURSE) {
             bstrncpy(errmsg, "\t[will not descend: recursion turned off]", sizeof(errmsg));
-	 } else if (ff->type == FT_NOFSCHG) {
+         } else if (ff->type == FT_NOFSCHG) {
             bstrncpy(errmsg, "\t[will not descend: file system change not allowed]", sizeof(errmsg));
-	 } else if (ff->type == FT_INVALIDFS) {
+         } else if (ff->type == FT_INVALIDFS) {
             bstrncpy(errmsg, "\t[will not descend: disallowed file system]", sizeof(errmsg));
-	 }
+         }
          printf("%s%s%s\n", (debug_level > 1 ? "Dir: " : ""), ff->fname, errmsg);
       }
       ff->type = FT_DIREND;
@@ -285,12 +285,12 @@ static void count_files(FF_PKT *ar)
     */
    for (p=l=ar->fname; *p; p++) {
       if (*p == '/') {
-	 l = p; 		      /* set pos of last slash */
+         l = p;                       /* set pos of last slash */
       }
    }
    if (*l == '/') {                   /* did we find a slash? */
-      l++;			      /* yes, point to filename */
-   } else {			      /* no, whole thing must be path name */
+      l++;                            /* yes, point to filename */
+   } else {                           /* no, whole thing must be path name */
       l = p;
    }
 
@@ -309,7 +309,7 @@ static void count_files(FF_PKT *ar)
       trunc_fname++;
    }
    if (fnl > 0) {
-      strncpy(file, l, fnl);	      /* copy filename */
+      strncpy(file, l, fnl);          /* copy filename */
       file[fnl] = 0;
    } else {
       file[0] = ' ';                  /* blank filename */

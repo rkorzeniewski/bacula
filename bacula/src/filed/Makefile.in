@@ -19,6 +19,9 @@ thisdir = src/filed
 
 DEBUG=@DEBUG@
 
+PYTHON_LIBS = @PYTHON_LIBS@
+PYTHON_INC = @PYTHON_INCDIR@
+
 first_rule: all
 dummy:
 
