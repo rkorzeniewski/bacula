@@ -38,7 +38,7 @@ int attrs = 0;
 static JCR *jcr;
 
 
-static int print_file(FF_PKT *ff, void *pkt);
+static int print_file(FF_PKT *ff, void *pkt, bool);
 static void print_ls_output(char *fname, char *link, int type, struct stat *statp);
 
 static void usage()
@@ -78,27 +78,27 @@ main (int argc, char *const *argv)
    while ((ch = getopt(argc, argv, "ad:e:i:?")) != -1) {
       switch (ch) {
       case 'a':                       /* print extended attributes *debug* */
-	 attrs = 1;
-	 break;
+         attrs = 1;
+         break;
 
       case 'd':                       /* set debug level */
-	 debug_level = atoi(optarg);
-	 if (debug_level <= 0) {
-	    debug_level = 1;
-	 }
-	 break;
+         debug_level = atoi(optarg);
+         if (debug_level <= 0) {
+            debug_level = 1;
+         }
+         break;
 
       case 'e':                       /* exclude patterns */
-	 exc = optarg;
-	 break;
+         exc = optarg;
+         break;
 
       case 'i':                       /* include patterns */
-	 inc = optarg;
-	 break;
+         inc = optarg;
+         break;
 
       case '?':
       default:
-	 usage();
+         usage();
 
       }
    }
@@ -113,24 +113,24 @@ main (int argc, char *const *argv)
    } else {
       for (i=0; i < argc; i++) {
          if (strcmp(argv[i], "-") == 0) {
-	     while (fgets(name, sizeof(name)-1, stdin)) {
-		strip_trailing_junk(name);
-		add_fname_to_include_list(ff, 0, name);
-	      }
-	      continue;
-	 }
-	 add_fname_to_include_list(ff, 0, argv[i]);
+             while (fgets(name, sizeof(name)-1, stdin)) {
+                strip_trailing_junk(name);
+                add_fname_to_include_list(ff, 0, name);
+              }
+              continue;
+         }
+         add_fname_to_include_list(ff, 0, argv[i]);
       }
    }
    if (inc) {
       fd = fopen(inc, "r");
       if (!fd) {
          printf("Could not open include file: %s\n", inc);
-	 exit(1);
+         exit(1);
       }
       while (fgets(name, sizeof(name)-1, fd)) {
-	 strip_trailing_junk(name);
-	 add_fname_to_include_list(ff, 0, name);
+         strip_trailing_junk(name);
+         add_fname_to_include_list(ff, 0, name);
       }
       fclose(fd);
    }
@@ -139,11 +139,11 @@ main (int argc, char *const *argv)
       fd = fopen(exc, "r");
       if (!fd) {
          printf("Could not open exclude file: %s\n", exc);
-	 exit(1);
+         exit(1);
       }
       while (fgets(name, sizeof(name)-1, fd)) {
-	 strip_trailing_junk(name);
-	 add_fname_to_exclude_list(ff, name);
+         strip_trailing_junk(name);
+         add_fname_to_exclude_list(ff, name);
       }
       fclose(fd);
    }
@@ -157,7 +157,7 @@ main (int argc, char *const *argv)
    exit(0);
 }
 
-static int print_file(FF_PKT *ff, void *pkt)
+static int print_file(FF_PKT *ff, void *pkt, bool top_level) 
 {
 
    switch (ff->type) {
@@ -237,7 +237,7 @@ static void print_ls_output(char *fname, char *link, int type, struct stat *stat
       *p++ = ' ';
       /* Copy link name */
       for (f=link; *f && (p-buf) < (int)sizeof(buf); )
-	 *p++ = *f++;
+         *p++ = *f++;
    }
    *p++ = '\n';
    *p = 0;

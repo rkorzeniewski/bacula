@@ -39,7 +39,7 @@ extern time_t watchdog_sleep_time;
 void terminate_filed(int sig);
 
 /* Exported variables */
-CLIENT *me;			      /* my resource */
+CLIENT *me;                           /* my resource */
 char OK_msg[]   = "2000 OK\n";
 char TERM_msg[] = "2999 Terminate\n";
 bool no_signals = false;
@@ -56,7 +56,7 @@ const int win32_client = 0;
 static char *configfile = NULL;
 static bool foreground = false;
 static bool inetd_request = false;
-static workq_t dir_workq;	      /* queue of work from Director */
+static workq_t dir_workq;             /* queue of work from Director */
 static pthread_t server_tid;
 
 
@@ -107,49 +107,49 @@ int main (int argc, char *argv[])
    while ((ch = getopt(argc, argv, "c:d:fg:istu:v?")) != -1) {
       switch (ch) {
       case 'c':                    /* configuration file */
-	 if (configfile != NULL) {
-	    free(configfile);
-	 }
-	 configfile = bstrdup(optarg);
-	 break;
+         if (configfile != NULL) {
+            free(configfile);
+         }
+         configfile = bstrdup(optarg);
+         break;
 
       case 'd':                    /* debug level */
-	 debug_level = atoi(optarg);
-	 if (debug_level <= 0) {
-	    debug_level = 1;
-	 }
-	 break;
+         debug_level = atoi(optarg);
+         if (debug_level <= 0) {
+            debug_level = 1;
+         }
+         break;
 
       case 'f':                    /* run in foreground */
-	 foreground = true;
-	 break;
+         foreground = true;
+         break;
 
       case 'g':                    /* set group */
-	 gid = optarg;
-	 break;
+         gid = optarg;
+         break;
 
       case 'i':
-	 inetd_request = true;
-	 break;
+         inetd_request = true;
+         break;
       case 's':
-	 no_signals = true;
-	 break;
+         no_signals = true;
+         break;
 
       case 't':
-	 test_config = true;
-	 break;
+         test_config = true;
+         break;
 
       case 'u':                    /* set userid */
-	 uid = optarg;
-	 break;
+         uid = optarg;
+         break;
 
       case 'v':                    /* verbose */
-	 verbose++;
-	 break;
+         verbose++;
+         break;
 
       case '?':
       default:
-	 usage();
+         usage();
 
       }
    }
@@ -158,7 +158,7 @@ int main (int argc, char *argv[])
 
    if (argc) {
       if (configfile != NULL)
-	 free(configfile);
+         free(configfile);
       configfile = bstrdup(*argv);
       argc--;
       argv++;
@@ -186,7 +186,7 @@ int main (int argc, char *argv[])
    UnlockRes();
    if (!director) {
       Emsg1(M_ABORT, 0, _("No Director resource defined in %s\n"),
-	 configfile);
+         configfile);
    }
 
    LockRes();
@@ -198,14 +198,14 @@ int main (int argc, char *argv[])
    } else {
       my_name_is(0, NULL, me->hdr.name);
       if (!me->messages) {
-	 LockRes();
-	 me->messages = (MSGS *)GetNextRes(R_MSGS, NULL);
-	 UnlockRes();
-	 if (!me->messages) {
+         LockRes();
+         me->messages = (MSGS *)GetNextRes(R_MSGS, NULL);
+         UnlockRes();
+         if (!me->messages) {
              Emsg1(M_ABORT, 0, _("No Messages resource defined in %s\n"), configfile);
-	 }
+         }
       }
-      close_msg(NULL);		      /* close temp message handler */
+      close_msg(NULL);                /* close temp message handler */
       init_msg(NULL, me->messages);   /* open user specified message handler */
    }
 
@@ -217,7 +217,7 @@ int main (int argc, char *argv[])
 
    if (!foreground &&!inetd_request) {
       daemon_start();
-      init_stack_dump();	      /* set new pid */
+      init_stack_dump();              /* set new pid */
    }
 
    /* Maximum 1 daemon at a time */
@@ -230,11 +230,14 @@ int main (int argc, char *argv[])
    me += 1000000;
 #endif
 
+   init_python_interpreter(me->hdr.name, me->scripts_directory ?
+         me->scripts_directory : ".");
+
    set_thread_concurrency(10);
 
    if (!no_signals) {
-      start_watchdog(); 	      /* start watchdog thread */
-      init_jcr_subsystem();	      /* start JCR watchdogs etc. */
+      start_watchdog();               /* start watchdog thread */
+      init_jcr_subsystem();           /* start JCR watchdogs etc. */
    }
    server_tid = pthread_self();
 
@@ -244,8 +247,8 @@ int main (int argc, char *argv[])
       int port = -1;
       socklen_t client_addr_len = sizeof(client_addr);
       if (getsockname(0, &client_addr, &client_addr_len) == 0) {
-		/* MA BUG 6 remove ifdefs */
-		port = sockaddr_get_port_net_order(&client_addr);
+                /* MA BUG 6 remove ifdefs */
+                port = sockaddr_get_port_net_order(&client_addr);
       }
       BSOCK *bs = init_bsock(NULL, 0, "client", "unknown client", port, &client_addr);
       handle_client_request((void *)bs);
@@ -259,7 +262,7 @@ int main (int argc, char *argv[])
    }
 
    terminate_filed(0);
-   exit(0);			      /* should never get here */
+   exit(0);                           /* should never get here */
 }
 
 void terminate_filed(int sig)
@@ -276,7 +279,7 @@ void terminate_filed(int sig)
    free_config_resources();
    term_msg();
    stop_watchdog();
-   close_memory_pool(); 	      /* release free memory in pool */
-   sm_dump(false);		      /* dump orphaned buffers */
+   close_memory_pool();               /* release free memory in pool */
+   sm_dump(false);                    /* dump orphaned buffers */
    exit(sig);
 }

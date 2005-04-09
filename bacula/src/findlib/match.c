@@ -1,10 +1,12 @@
 /*
+ *     Old style 
+ *
  *  Routines used to keep and match include and exclude
  *   filename/pathname patterns.
  *
  *  Note, this file is used for the old style include and
  *   excludes, so is deprecated. The new style code is
- *   found in find.c.	
+ *   found in find.c.   
  *  This code is still used for lists in testls and bextract.
  *
  *   Kern E. Sibbald, December MMI
@@ -55,7 +57,7 @@ static const int fnmode = 0;
 extern const int win32_client;
 
 int
-match_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt), void *his_pkt)
+match_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt, bool), void *his_pkt)
 {
    ff->callback = callback;
 
@@ -67,9 +69,9 @@ match_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt), void
       bstrncat(ff->VerifyOpts, inc->VerifyOpts, sizeof(ff->VerifyOpts));
       Dmsg1(100, "find_files: file=%s\n", inc->fname);
       if (!file_is_excluded(ff, inc->fname)) {
-	 if (find_one_file(jcr, ff, callback, his_pkt, inc->fname, (dev_t)-1, 1) ==0) {
-	    return 0;		       /* error return */
-	 }
+         if (find_one_file(jcr, ff, callback, his_pkt, inc->fname, (dev_t)-1, 1) ==0) {
+            return 0;                  /* error return */
+         }
       }
    }
    return 1;
@@ -128,69 +130,69 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, const char *fname)
    /* prefixed = preceded with options */
    if (prefixed) {
       for (rp=fname; *rp && *rp != ' '; rp++) {
-	 switch (*rp) {
+         switch (*rp) {
          case 'a':                 /* alway replace */
          case '0':                 /* no option */
-	    break;
+            break;
          case 'f':
-	    inc->options |= FO_MULTIFS;
-	    break;
+            inc->options |= FO_MULTIFS;
+            break;
          case 'h':                 /* no recursion */
-	    inc->options |= FO_NO_RECURSION;
-	    break;
+            inc->options |= FO_NO_RECURSION;
+            break;
          case 'M':                 /* MD5 */
-	    inc->options |= FO_MD5;
-	    break;
+            inc->options |= FO_MD5;
+            break;
          case 'n':
-	    inc->options |= FO_NOREPLACE;
-	    break;
+            inc->options |= FO_NOREPLACE;
+            break;
          case 'p':                 /* use portable data format */
-	    inc->options |= FO_PORTABLE;
-	    break;
+            inc->options |= FO_PORTABLE;
+            break;
          case 'r':                 /* read fifo */
-	    inc->options |= FO_READFIFO;
-	    break;
+            inc->options |= FO_READFIFO;
+            break;
          case 'S':
-	    inc->options |= FO_SHA1;
-	    break;
+            inc->options |= FO_SHA1;
+            break;
          case 's':
-	    inc->options |= FO_SPARSE;
-	    break;
+            inc->options |= FO_SPARSE;
+            break;
          case 'm':
-	    inc->options |= FO_MTIMEONLY;
-	    break;
+            inc->options |= FO_MTIMEONLY;
+            break;
          case 'k':
-	    inc->options |= FO_KEEPATIME;
-	    break;
+            inc->options |= FO_KEEPATIME;
+            break;
          case 'V':                  /* verify options */
-	    /* Copy Verify Options */
+            /* Copy Verify Options */
             for (j=0; *rp && *rp != ':'; rp++) {
-	       inc->VerifyOpts[j] = *rp;
-	       if (j < (int)sizeof(inc->VerifyOpts) - 1) {
-		  j++;
-	       }
-	    }
-	    inc->VerifyOpts[j] = 0;
-	    break;
+               inc->VerifyOpts[j] = *rp;
+               if (j < (int)sizeof(inc->VerifyOpts) - 1) {
+                  j++;
+               }
+            }
+            inc->VerifyOpts[j] = 0;
+            break;
          case 'w':
-	    inc->options |= FO_IF_NEWER;
-	    break;
+            inc->options |= FO_IF_NEWER;
+            break;
          case 'A':
-	    inc->options |= FO_ACL;
-	    break;
+            inc->options |= FO_ACL;
+            break;
          case 'Z':                 /* gzip compression */
-	    inc->options |= FO_GZIP;
+            inc->options |= FO_GZIP;
             inc->level = *++rp - '0';
             Dmsg1(200, "Compression level=%d\n", inc->level);
-	    break;
-	 default:
+            break;
+         default:
             Emsg1(M_ERROR, 0, "Unknown include/exclude option: %c\n", *rp);
-	    break;
-	 }
+            break;
+         }
       }
       /* Skip past space(s) */
       for ( ; *rp == ' '; rp++)
-	 {}
+         {}
    } else {
       rp = fname;
    }
@@ -209,8 +211,8 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, const char *fname)
    inc->pattern = 0;
    for (p=inc->fname; *p; p++) {
       if (*p == '*' || *p == '[' || *p == '?') {
-	 inc->pattern = 1;
-	 break;
+         inc->pattern = 1;
+         break;
       }
    }
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
@@ -230,7 +232,7 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, const char *fname)
       struct s_included_file *next;
       /* Walk to end of list */
       for (next=ff->included_files_list; next->next; next=next->next)
-	 { }
+         { }
       next->next = inc;
    }
    Dmsg1(50, "add_fname_to_include fname=%s\n", inc->fname);
@@ -309,10 +311,10 @@ int file_is_included(FF_PKT *ff, const char *file)
 
    for ( ; inc; inc=inc->next ) {
       if (inc->pattern) {
-	 if (fnmatch(inc->fname, file, fnmode|FNM_LEADING_DIR) == 0) {
-	    return 1;
-	 }
-	 continue;
+         if (fnmatch(inc->fname, file, fnmode|FNM_LEADING_DIR) == 0) {
+            return 1;
+         }
+         continue;
       }
       /*
        * No wild cards. We accept a match to the
@@ -321,14 +323,14 @@ int file_is_included(FF_PKT *ff, const char *file)
       Dmsg2(900, "pat=%s file=%s\n", inc->fname, file);
       len = strlen(file);
       if (inc->len == len && strcmp(inc->fname, file) == 0) {
-	 return 1;
+         return 1;
       }
       if (inc->len < len && file[inc->len] == '/' &&
-	  strncmp(inc->fname, file, inc->len) == 0) {
-	 return 1;
+          strncmp(inc->fname, file, inc->len) == 0) {
+         return 1;
       }
       if (inc->len == 1 && inc->fname[0] == '/') {
-	 return 1;
+         return 1;
       }
    }
    return 0;
@@ -348,7 +350,7 @@ file_in_excluded_list(struct s_excluded_file *exc, const char *file)
    for ( ; exc; exc=exc->next ) {
       if (fnmatch(exc->fname, file, fnmode|FNM_PATHNAME) == 0) {
          Dmsg2(900, "Match exc pat=%s: file=%s:\n", exc->fname, file);
-	 return 1;
+         return 1;
       }
       Dmsg2(900, "No match exc pat=%s: file=%s:\n", exc->fname, file);
    }
@@ -382,8 +384,8 @@ int file_is_excluded(FF_PKT *ff, const char *file)
    for (p = file; *p; p++) {
       /* Match from the beginning of a component only */
       if ((p == file || (*p != '/' && *(p-1) == '/'))
-	   && file_in_excluded_list(ff->excluded_files_list, p)) {
-	 return 1;
+           && file_in_excluded_list(ff->excluded_files_list, p)) {
+         return 1;
       }
    }
    return 0;

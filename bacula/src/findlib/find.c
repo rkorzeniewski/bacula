@@ -33,14 +33,14 @@
 #include "bacula.h"
 #include "find.h"
 
-int32_t name_max;	       /* filename max length */
-int32_t path_max;	       /* path name max length */
+int32_t name_max;              /* filename max length */
+int32_t path_max;              /* path name max length */
 
 #ifdef DEBUG
 #undef bmalloc
 #define bmalloc(x) sm_malloc(__FILE__, __LINE__, x)
 #endif
-static int our_callback(FF_PKT *ff, void *hpkt);
+static int our_callback(FF_PKT *ff, void *hpkt, bool top_level);
 static bool accept_file(FF_PKT *ff);
 
 /* Fold case in fnmatch() on Win32 */
@@ -73,8 +73,8 @@ FF_PKT *init_find_files()
    if (name_max < 1024) {
       name_max = 1024;
    }
-   path_max++;			      /* add for EOS */
-   name_max++;			      /* add for EOS */
+   path_max++;                        /* add for EOS */
+   name_max++;                        /* add for EOS */
 
   Dmsg1(100, "init_find_files ff=%p\n", ff);
   return ff;
@@ -112,7 +112,8 @@ set_find_options(FF_PKT *ff, int incremental, time_t save_time)
  *
  */
 int
-find_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt), void *his_pkt)
+find_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt, bool top_level), 
+           void *his_pkt)
 {
    ff->callback = callback;
 
@@ -124,26 +125,26 @@ find_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt), void 
       ff->VerifyOpts[0] = 'V';
       ff->VerifyOpts[1] = 0;
       for (i=0; i<fileset->include_list.size(); i++) {
-	 findINCEXE *incexe = (findINCEXE *)fileset->include_list.get(i);
-	 fileset->incexe = incexe;
-	 /*
-	  * By setting all options, we in effect or the global options
-	  *   which is what we want.
-	  */
-	 for (j=0; j<incexe->opts_list.size(); j++) {
-	    findFOPTS *fo = (findFOPTS *)incexe->opts_list.get(j);
-	    ff->flags |= fo->flags;
-	    ff->GZIP_level = fo->GZIP_level;
-	    ff->fstypes = fo->fstype;
-	    bstrncat(ff->VerifyOpts, fo->VerifyOpts, sizeof(ff->VerifyOpts));
-	 }
-	 for (j=0; j<incexe->name_list.size(); j++) {
+         findINCEXE *incexe = (findINCEXE *)fileset->include_list.get(i);
+         fileset->incexe = incexe;
+         /*
+          * By setting all options, we in effect or the global options
+          *   which is what we want.
+          */
+         for (j=0; j<incexe->opts_list.size(); j++) {
+            findFOPTS *fo = (findFOPTS *)incexe->opts_list.get(j);
+            ff->flags |= fo->flags;
+            ff->GZIP_level = fo->GZIP_level;
+            ff->fstypes = fo->fstype;
+            bstrncat(ff->VerifyOpts, fo->VerifyOpts, sizeof(ff->VerifyOpts));
+         }
+         for (j=0; j<incexe->name_list.size(); j++) {
             Dmsg1(100, "F %s\n", (char *)incexe->name_list.get(j));
-	    char *fname = (char *)incexe->name_list.get(j);
-	    if (find_one_file(jcr, ff, our_callback, his_pkt, fname, (dev_t)-1, 1) == 0) {
-	       return 0;		  /* error return */
-	    }
-	 }
+            char *fname = (char *)incexe->name_list.get(j);
+            if (find_one_file(jcr, ff, our_callback, his_pkt, fname, (dev_t)-1, true) == 0) {
+               return 0;                  /* error return */
+            }
+         }
       }
    }
    return 1;
@@ -165,94 +166,105 @@ static bool accept_file(FF_PKT *ff)
       ff->fstypes = fo->fstype;
       ic = (ff->flags & FO_IGNORECASE) ? FNM_CASEFOLD : 0;
       if (S_ISDIR(ff->statp.st_mode)) {
-	 for (k=0; k<fo->wilddir.size(); k++) {
-	    if (fnmatch((char *)fo->wilddir.get(k), ff->fname, fnmode|ic) == 0) {
-	       if (ff->flags & FO_EXCLUDE) {
+         for (k=0; k<fo->wilddir.size(); k++) {
+            if (fnmatch((char *)fo->wilddir.get(k), ff->fname, fnmode|ic) == 0) {
+               if (ff->flags & FO_EXCLUDE) {
                   Dmsg2(100, "Exclude wilddir: %s file=%s\n", (char *)fo->wilddir.get(k),
-		     ff->fname);
-		  return false;       /* reject file */
-	       }
-	       return true;	      /* accept file */
-	    }
-	 }
+                     ff->fname);
+                  return false;       /* reject file */
+               }
+               return true;           /* accept file */
+            }
+         }
       } else {
-	 for (k=0; k<fo->wildfile.size(); k++) {
-	    if (fnmatch((char *)fo->wildfile.get(k), ff->fname, fnmode|ic) == 0) {
-	       if (ff->flags & FO_EXCLUDE) {
+         for (k=0; k<fo->wildfile.size(); k++) {
+            if (fnmatch((char *)fo->wildfile.get(k), ff->fname, fnmode|ic) == 0) {
+               if (ff->flags & FO_EXCLUDE) {
                   Dmsg2(100, "Exclude wildfile: %s file=%s\n", (char *)fo->wildfile.get(k),
-		     ff->fname);
-		  return false;       /* reject file */
-	       }
-	       return true;	      /* accept file */
-	    }
-	 }
+                     ff->fname);
+                  return false;       /* reject file */
+               }
+               return true;           /* accept file */
+            }
+         }
       }
       for (k=0; k<fo->wild.size(); k++) {
-	 if (fnmatch((char *)fo->wild.get(k), ff->fname, fnmode|ic) == 0) {
-	    if (ff->flags & FO_EXCLUDE) {
+         if (fnmatch((char *)fo->wild.get(k), ff->fname, fnmode|ic) == 0) {
+            if (ff->flags & FO_EXCLUDE) {
                Dmsg2(100, "Exclude wild: %s file=%s\n", (char *)fo->wild.get(k),
-		  ff->fname);
-	       return false;	      /* reject file */
-	    }
-	    return true;	      /* accept file */
-	 }
+                  ff->fname);
+               return false;          /* reject file */
+            }
+            return true;              /* accept file */
+         }
       }
 #ifndef WIN32
       if (S_ISDIR(ff->statp.st_mode)) {
-	 for (k=0; k<fo->regexdir.size(); k++) {
-	    const int nmatch = 30;
-	    regmatch_t pmatch[nmatch];
-	    if (regexec((regex_t *)fo->regexdir.get(k), ff->fname, nmatch, pmatch,  0) == 0) {
-	       if (ff->flags & FO_EXCLUDE) {
-		  return false;       /* reject file */
-	       }
-	       return true;	      /* accept file */
-	    }
-	 }
+         for (k=0; k<fo->regexdir.size(); k++) {
+            const int nmatch = 30;
+            regmatch_t pmatch[nmatch];
+            if (regexec((regex_t *)fo->regexdir.get(k), ff->fname, nmatch, pmatch,  0) == 0) {
+               if (ff->flags & FO_EXCLUDE) {
+                  return false;       /* reject file */
+               }
+               return true;           /* accept file */
+            }
+         }
       } else {
-	 for (k=0; k<fo->regexfile.size(); k++) {
-	    const int nmatch = 30;
-	    regmatch_t pmatch[nmatch];
-	    if (regexec((regex_t *)fo->regexfile.get(k), ff->fname, nmatch, pmatch,  0) == 0) {
-	       if (ff->flags & FO_EXCLUDE) {
-		  return false;       /* reject file */
-	       }
-	       return true;	      /* accept file */
-	    }
-	 }
+         for (k=0; k<fo->regexfile.size(); k++) {
+            const int nmatch = 30;
+            regmatch_t pmatch[nmatch];
+            if (regexec((regex_t *)fo->regexfile.get(k), ff->fname, nmatch, pmatch,  0) == 0) {
+               if (ff->flags & FO_EXCLUDE) {
+                  return false;       /* reject file */
+               }
+               return true;           /* accept file */
+            }
+         }
       }
       for (k=0; k<fo->regex.size(); k++) {
-	 const int nmatch = 30;
-	 regmatch_t pmatch[nmatch];
-	 if (regexec((regex_t *)fo->regex.get(k), ff->fname, nmatch, pmatch,  0) == 0) {
-	    if (ff->flags & FO_EXCLUDE) {
-	       return false;	      /* reject file */
-	    }
-	    return true;	      /* accept file */
-	 }
+         const int nmatch = 30;
+         regmatch_t pmatch[nmatch];
+         if (regexec((regex_t *)fo->regex.get(k), ff->fname, nmatch, pmatch,  0) == 0) {
+            if (ff->flags & FO_EXCLUDE) {
+               return false;          /* reject file */
+            }
+            return true;              /* accept file */
+         }
       }
 #endif
+      /*
+       * If we have an empty Options clause with exclude, then
+       *  exclude the file
+       */
+      if (ff->flags & FO_EXCLUDE &&
+          fo->regex.size() == 0     && fo->wild.size() == 0 &&
+          fo->regexdir.size() == 0  && fo->wilddir.size() == 0 &&
+          fo->regexfile.size() == 0 && fo->wildfile.size() == 0) {
+         return false;              /* reject file */
+      }
    }
 
+   /* Now apply the Exclude { } directive */
    for (i=0; i<fileset->exclude_list.size(); i++) {
       findINCEXE *incexe = (findINCEXE *)fileset->exclude_list.get(i);
       for (j=0; j<incexe->opts_list.size(); j++) {
-	 findFOPTS *fo = (findFOPTS *)incexe->opts_list.get(j);
-	 ic = (fo->flags & FO_IGNORECASE) ? FNM_CASEFOLD : 0;
-	 for (k=0; k<fo->wild.size(); k++) {
-	    if (fnmatch((char *)fo->wild.get(k), ff->fname, fnmode|ic) == 0) {
+         findFOPTS *fo = (findFOPTS *)incexe->opts_list.get(j);
+         ic = (fo->flags & FO_IGNORECASE) ? FNM_CASEFOLD : 0;
+         for (k=0; k<fo->wild.size(); k++) {
+            if (fnmatch((char *)fo->wild.get(k), ff->fname, fnmode|ic) == 0) {
                Dmsg1(100, "Reject wild1: %s\n", ff->fname);
-	       return false;	      /* reject file */
-	    }
-	 }
+               return false;          /* reject file */
+            }
+         }
       }
       ic = (incexe->current_opts != NULL && incexe->current_opts->flags & FO_IGNORECASE)
-	     ? FNM_CASEFOLD : 0;
+             ? FNM_CASEFOLD : 0;
       for (j=0; j<incexe->name_list.size(); j++) {
-	 if (fnmatch((char *)incexe->name_list.get(j), ff->fname, fnmode|ic) == 0) {
+         if (fnmatch((char *)incexe->name_list.get(j), ff->fname, fnmode|ic) == 0) {
             Dmsg1(100, "Reject wild2: %s\n", ff->fname);
-	    return false;	   /* reject file */
-	 }
+            return false;          /* reject file */
+         }
       }
    }
    return true;
@@ -263,8 +275,11 @@ static bool accept_file(FF_PKT *ff)
  * We filter the files, then call the user's callback if
  *    the file is included.
  */
-static int our_callback(FF_PKT *ff, void *hpkt)
+static int our_callback(FF_PKT *ff, void *hpkt, bool top_level)
 {
+   if (top_level) {
+      return ff->callback(ff, hpkt, top_level);   /* accept file */
+   }
    switch (ff->type) {
    case FT_NOACCESS:
    case FT_NOFOLLOW:
@@ -275,7 +290,7 @@ static int our_callback(FF_PKT *ff, void *hpkt)
    case FT_NOFSCHG:
    case FT_INVALIDFS:
    case FT_NOOPEN:
-//    return ff->callback(ff, hpkt);
+//    return ff->callback(ff, hpkt, top_level);
 
    /* These items can be filtered */
    case FT_LNKSAVED:
@@ -289,10 +304,10 @@ static int our_callback(FF_PKT *ff, void *hpkt)
    case FT_SPEC:
    case FT_DIRNOCHG:
       if (accept_file(ff)) {
-	 return ff->callback(ff, hpkt);
+         return ff->callback(ff, hpkt, top_level);
       } else {
          Dmsg1(100, "Skip file %s\n", ff->fname);
-	 return -1;		      /* ignore this file */
+         return -1;                   /* ignore this file */
       }
 
    default:

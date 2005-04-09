@@ -1,12 +1,12 @@
 import bacula
 
-def NewVolume(j):
-    jobid = bacula.get(j, "JobId")
+def NewVolume(jcr):
+    jobid = jcr.get("JobId")
     print "JobId=", jobid
-    client = bacula.get(j, "Client") 
+    client = jcr.get("Client") 
     print "Client=" + client
-    numvol = bacula.get(j, "NumVols");
+    numvol = jcr.get("NumVols");
     print "NumVols=", numvol
-    bacula.set(jcr=j, JobReport="Python New Volume set for Job.\n") 
-    bacula.set(jcr=j, VolumeName="TestA-001")
+    jcr.set(JobReport="Python New Volume set for Job.\n") 
+    jcr.set(VolumeName="TestA-001")
     return 1
