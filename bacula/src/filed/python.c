@@ -35,6 +35,8 @@
 #undef _POSIX_C_SOURCE
 #include <Python.h>
 
+extern JCR *get_jcr_from_PyObject(PyObject *self);
+
 PyObject *bacula_get(PyObject *self, PyObject *args);
 PyObject *bacula_set(PyObject *self, PyObject *args, PyObject *keyw);
 
@@ -43,7 +45,7 @@ PyMethodDef BaculaMethods[] = {
     {"get", bacula_get, METH_VARARGS, "Get Bacula FD variables."},
     {"set", (PyCFunction)bacula_set, METH_VARARGS|METH_KEYWORDS,
         "Set FD Bacula variables."},
-    {NULL, NULL, 0, NULL}	      /* last item */
+    {NULL, NULL, 0, NULL}             /* last item */
 };
 
 
@@ -61,27 +63,26 @@ static struct s_vars vars[] = {
    { N_("JobName"),    "s"},          /* 5 */
    { N_("JobStatus"),  "s"},          /* 6 */
 
-   { NULL,	       NULL}
+   { NULL,             NULL}
 };
 
 /* Return Bacula variables */
 PyObject *bacula_get(PyObject *self, PyObject *args)
 {
-   PyObject *CObject;
    JCR *jcr;
    char *item;
    bool found = false;
    int i;
    char buf[10];
 
-   if (!PyArg_ParseTuple(args, "Os:get", &CObject, &item)) {
+   if (!PyArg_ParseTuple(args, "s:get", &item)) {
       return NULL;
    }
-   jcr = (JCR *)PyCObject_AsVoidPtr(CObject);
+   jcr = get_jcr_from_PyObject(self);
    for (i=0; vars[i].name; i++) {
       if (strcmp(vars[i].name, item) == 0) {
-	 found = true;
-	 break;
+         found = true;
+         break;
       }
    }
    if (!found) {
@@ -90,17 +91,17 @@ PyObject *bacula_get(PyObject *self, PyObject *args)
    switch (i) {
    case 0:                            /* FD's name */
       return Py_BuildValue(vars[i].fmt, my_name);
-   case 1:			      /* level */
+   case 1:                            /* level */
       return Py_BuildValue(vars[i].fmt, job_level_to_str(jcr->JobLevel));
-   case 2:			      /* type */
+   case 2:                            /* type */
       return Py_BuildValue(vars[i].fmt, job_type_to_str(jcr->JobType));
-   case 3:			      /* JobId */
+   case 3:                            /* JobId */
       return Py_BuildValue(vars[i].fmt, jcr->JobId);
-   case 4:			      /* Client */
+   case 4:                            /* Client */
       return Py_BuildValue(vars[i].fmt, jcr->client_name);
-   case 5:			      /* JobName */
+   case 5:                            /* JobName */
       return Py_BuildValue(vars[i].fmt, jcr->Job);
-   case 6:			      /* JobStatus */
+   case 6:                            /* JobStatus */
       buf[1] = 0;
       buf[0] = jcr->JobStatus;
       return Py_BuildValue(vars[i].fmt, buf);
@@ -111,15 +112,16 @@ PyObject *bacula_get(PyObject *self, PyObject *args)
 /* Set Bacula variables */
 PyObject *bacula_set(PyObject *self, PyObject *args, PyObject *keyw)
 {
-   PyObject *CObject;
    JCR *jcr;
    char *msg = NULL;
-   static char *kwlist[] = {"jcr", "JobReport", NULL};
-   if (!PyArg_ParseTupleAndKeywords(args, keyw, "O|ss:set", kwlist,
-	&CObject, &msg)) {
+   static char *kwlist[] = {"JobReport", NULL};
+   
+   if (!PyArg_ParseTupleAndKeywords(args, keyw, "|s:set", kwlist,
+        &msg)) {
       return NULL;
    }
-   jcr = (JCR *)PyCObject_AsVoidPtr(CObject);
+   jcr = get_jcr_from_PyObject(self);
+   
 
    if (msg) {
       Jmsg(jcr, M_INFO, 0, "%s", msg);
