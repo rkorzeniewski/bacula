@@ -1102,7 +1102,7 @@ fsf_dev(DEVICE *dev, int num)
    } else {
       Dmsg0(200, "Doing FSR for FSF\n");
       while (num-- && !(dev->state & ST_EOT)) {
-         fsr_dev(dev, INT32_MAX);    /* returns -1 on EOF or EOT */
+         dev->fsr(INT32_MAX);    /* returns -1 on EOF or EOT */
       }
       if (dev->state & ST_EOT) {
          dev->dev_errno = 0;
@@ -1165,59 +1165,58 @@ bsf_dev(DEVICE *dev, int num)
 
 
 /*
- * Foward space a record
+ * Foward space num records
  *  Returns: false on failure
  *           true  on success
  */
-bool
-fsr_dev(DEVICE *dev, int num)
+bool DEVICE::fsr(int num)
 {
    struct mtop mt_com;
    int stat;
 
-   if (dev->fd < 0) {
-      dev->dev_errno = EBADF;
-      Mmsg0(dev->errmsg, _("Bad call to fsr_dev. Device not open\n"));
-      Emsg0(M_FATAL, 0, dev->errmsg);
+   if (fd < 0) {
+      dev_errno = EBADF;
+      Mmsg0(errmsg, _("Bad call to fsr. Device not open\n"));
+      Emsg0(M_FATAL, 0, errmsg);
       return false;
    }
 
-   if (!dev->is_tape()) {
+   if (!is_tape()) {
       return false;
    }
-   if (!dev_cap(dev, CAP_FSR)) {
-      Mmsg1(dev->errmsg, _("ioctl MTFSR not permitted on %s.\n"), dev->print_name());
+   if (!dev_cap(this, CAP_FSR)) {
+      Mmsg1(errmsg, _("ioctl MTFSR not permitted on %s.\n"), print_name());
       return false;
    }
 
-   Dmsg1(29, "fsr_dev %d\n", num);
+   Dmsg1(29, "fsr %d\n", num);
    mt_com.mt_op = MTFSR;
    mt_com.mt_count = num;
-   stat = ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
+   stat = ioctl(fd, MTIOCTOP, (char *)&mt_com);
    if (stat == 0) {
-      dev->state &= ~ST_EOF;
-      dev->block_num += num;
+      clear_eof();
+      block_num += num;
    } else {
       berrno be;
       struct mtget mt_stat;
-      clrerror_dev(dev, MTFSR);
+      clrerror_dev(this, MTFSR);
       Dmsg1(100, "FSF fail: ERR=%s\n", be.strerror());
-      if (dev_get_os_pos(dev, &mt_stat)) {
-         Dmsg4(100, "Adjust from %d:%d to %d:%d\n", dev->file,
-            dev->block_num, mt_stat.mt_fileno, mt_stat.mt_blkno);
-         dev->file = mt_stat.mt_fileno;
-         dev->block_num = mt_stat.mt_blkno;
+      if (dev_get_os_pos(this, &mt_stat)) {
+         Dmsg4(100, "Adjust from %d:%d to %d:%d\n", file,
+            block_num, mt_stat.mt_fileno, mt_stat.mt_blkno);
+         file = mt_stat.mt_fileno;
+         block_num = mt_stat.mt_blkno;
       } else {
-         if (dev->state & ST_EOF) {
-            dev->state |= ST_EOT;
+         if (at_eof()) {
+            state |= ST_EOT;
          } else {
-            dev->set_eof();
+            set_eof();
          }
       }
-      Mmsg2(dev->errmsg, _("ioctl MTFSR error on %s. ERR=%s.\n"),
-         dev->print_name(), be.strerror());
+      Mmsg3(errmsg, _("ioctl MTFSR %d error on %s. ERR=%s.\n"),
+         num, print_name(), be.strerror());
    }
-   update_pos_dev(dev);
+   update_pos_dev(this);
    return stat == 0;
 }
 
@@ -1321,7 +1320,7 @@ reposition_dev(DEVICE *dev, uint32_t file, uint32_t block)
    if (dev_cap(dev, CAP_POSITIONBLOCKS) && block > dev->block_num) {
       /* Ignore errors as Bacula can read to the correct block */
       Dmsg1(100, "fsr %d\n", block-dev->block_num);
-      return fsr_dev(dev, block-dev->block_num);
+      return dev->fsr(block-dev->block_num);
    }
    return true;
 }

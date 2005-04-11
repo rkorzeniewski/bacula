@@ -277,6 +277,7 @@ public:
                      dev_blocked == BST_WAITING_FOR_SYSOP ||
                      dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP); };
    bool weof() { return !weof_dev(this, 1); };
+   bool fsr(int num);   /* in dev.c */
    bool rewind() { return rewind_dev(this); };
    const char *strerror() const;
    const char *archive_name() const;
@@ -293,6 +294,7 @@ public:
    void clear_labeled() { state &= ~ST_LABEL; };
    void clear_offline() { state &= ~ST_OFFLINE; };
    void clear_eot() { state &= ~ST_EOT; };
+   void clear_eof() { state &= ~ST_EOF; };
    void block(int why); /* in dev.c */
    void unblock();      /* in dev.c */
 };
