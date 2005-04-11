@@ -24,7 +24,7 @@ setup: bacula
 # Some machines cannot handle the sticky bit and other garbage that
 #  is in weird-files, so we load and run it only on Linux machines.
 #
-bacula: all   
+bacula: all sed
 	@rm -rf bin build weird-files tmp
 	(if test x`uname` = xLinux -o x`uname` = xFreeBSD ; then \
 	   tar xfz weird-files.tar.gz ;\
@@ -32,6 +32,8 @@ bacula: all
 	rm -rf tmp working
 	mkdir tmp working
 	scripts/setup ${BACULA_SOURCE} ${EMAIL} ${WHICHDB} ${TCPWRAPPERS}
+
+sed:
 	scripts/do_sed ${EMAIL} ${TAPE_DRIVE} ${AUTOCHANGER} ${AUTOCHANGER_PATH}
 
 # Run all non-root userid tests

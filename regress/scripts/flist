@@ -1,4 +1,6 @@
-/build/doc/bacula.pdf
+/build/doc/Makefile.in
+/build/doc/latex/bacula.tex
+/build/doc/images/win32-welcome.pdf
 /build/configure
 /build/src/stored/bextract
 /build/src/tools/testfind
