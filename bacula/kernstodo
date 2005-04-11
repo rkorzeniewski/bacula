@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     11 March 2005
+                     09 April 2005
 
 Major development:      
 Project                     Developer
@@ -10,13 +10,13 @@ Version 1.37                Kern (see below)
 
 1.37 Major Projects:
 #3   Migration (Move, Copy, Archive Jobs)
-#4   Embedded Python Scripting 
-     (Implemented in Dir/SD)
 #7   Single Job Writing to Multiple Storage Devices
+     (probably not) 
 
 ##   Integrate web-bacula into a new Bacula project with
      bimagemgr.
 ##   Consider moving docs to their own project.
+##   Move rescue to its own project.
 
 Autochangers:
 - 3. Prevent two drives requesting the same Volume in any given
@@ -24,19 +24,13 @@ Autochangers:
      in an Autochanger.
 - 7. Implement new Console commands to allow offlining/reserving drives,
      and possibly manipulating the autochanger (much asked for).
+-    Make "update slots" when pointing to Autochanger, remove
+     all Volumes from other drives.  "update slots all-drives"?
   
 For 1.37:
-- Add disk seeking on restore.  
-- If the user puts "Purge Oldest Volume = yes" or "Recycle Oldest Volume = yes"
-  and there is only one volume in the pool, refuse to do it -- otherwise
-  he fills the Volume, then immediately starts reusing it.
+- Add disk seeking on restore; turn off seek on tapes.
+  stored/match_bsr.c
 - Implement "NewVolumeEachJob = yes|no" in Dir.
-- Make "update slots" when pointing to Autochanger, remove
-  all Volumes from other drives.  "update slots all-drives"?
-- Add Python writable variable for changing the Priority,
-    Client, Storage, JobStatus (error), ...
-- SD Python
-  - Solicit Events
 - FD Python
   - Python script to save with Python, not save, save with Bacula.
   - Python script to do backup.
@@ -45,27 +39,26 @@ For 1.37:
 - Look at adding full Volume and Pool information to a Volume 
   label so that bscan can get *all* the info. 
 - Implement Maximum Job Spool Size
-- 28-Mar 23:19 rufus-sd: acquire.c:379 Device "DDS-4" (/dev/nst0) 
-  is busy reading. Job 6 canceled.
 - Remove all old Device resource code in Dir and code to pass it
-  back in SD.
-- Fix code to either handle updating NumVol or to calculate it in
-  Dir next_vol.c
+  back in SD -- better, rework it to pass back device statistics.
 - Finish implementation of passing all Storage and Device needs to
   the SD.
 - Check locking of resources -- be sure to lock devices where previously
   resources were locked. 
 - Add global lock on all devices when creating a device structure.
-- Remove separate thread for opening devices in SD.  On the other
-  hand, don't block waiting for open() for devices.
 - Make sure that Python has access to Client address/port so that
   it can check if Clients are alive.
-- Implement copies and stripes.
-- Add history file to console.
+- Cleanup and complete Python scripting.
+  - What events?
+  - Change the Priority, Client, Storage, JobStatus (error) 
+    at the start of a job.
 
 Maybe in 1.37:
-- Ensure that you cannot exclude a directory or a file explicitly
-  Included with File.
+- If the user puts "Purge Oldest Volume = yes" or "Recycle Oldest Volume = yes"
+  and there is only one volume in the pool, refuse to do it -- otherwise
+  he fills the Volume, then immediately starts reusing it.
+- Implement copies and stripes.
+- Add history file to console.
 - Each file on tape creates a JobMedia record. Peter has 4 million
   files spread over 10000 tape files and four tapes. A restore takes
   16 hours to build the restore list.
@@ -157,6 +150,10 @@ Regression tests (Scott):
 - A HOLD command to stop all jobs from starting.
 - A PAUSE command to pause all running jobs ==> release the
   drive.
+- Media Type = LTO,LTO-2,LTO-3
+  Media Type Read = LTO,LTO2,LTO3
+  Media Type Write = LTO2, LTO3
+
 === From Carsten Menke <bootsy52@gmx.net>
 
 Following is a list of what I think in the situations where I'm faced with, 
@@ -1288,3 +1285,17 @@ Block Position: 0
   recycled and no label created. This happens when using   
   autolabeling -- even when Python doesn't generate the name.
 - Scratch Pool where the volumes can be re-assigned to any Pool.
+- 28-Mar 23:19 rufus-sd: acquire.c:379 Device "DDS-4" (/dev/nst0) 
+  is busy reading. Job 6 canceled.
+- Remove separate thread for opening devices in SD.  On the other
+  hand, don't block waiting for open() for devices.
+- Fix code to either handle updating NumVol or to calculate it in
+  Dir next_vol.c
+- Ensure that you cannot exclude a directory or a file explicitly
+  Included with File.
+#4   Embedded Python Scripting 
+     (Implemented in Dir/SD/FD)
+- Add Python writable variable for changing the Priority,
+    Client, Storage, JobStatus (error), ...
+- SD Python
+  - Solicit Events

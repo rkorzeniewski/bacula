@@ -125,7 +125,6 @@ bool     double_dev_wait_time(DEVICE *dev);
 char *   dev_vol_name(DEVICE *dev);
 uint32_t dev_block(DEVICE *dev);
 uint32_t dev_file(DEVICE *dev);
-bool     dev_is_tape(DEVICE *dev);
 
 /* From dvd.c */
 bool dvd_close_job(DCR *dcr);
