@@ -120,7 +120,7 @@ bool read_records(DCR *dcr,
             /* I/O error or strange end of tape */
             display_tape_error_status(jcr, dev);
             if (forge_on || jcr->ignore_label_errors) {
-               fsr_dev(dev, 1);       /* try skipping bad record */
+               dev->fsr(1);       /* try skipping bad record */
                Pmsg0(000, "Did fsr\n");
                continue;              /* try to continue */
             }

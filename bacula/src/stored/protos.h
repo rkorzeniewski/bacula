@@ -109,7 +109,6 @@ int      write_block(DEVICE *dev);
 uint32_t status_dev(DEVICE *dev);
 bool     eod_dev(DEVICE *dev);
 bool     fsf_dev(DEVICE *dev, int num);
-bool     fsr_dev(DEVICE *dev, int num);
 bool     bsf_dev(DEVICE *dev, int num);
 bool     bsr_dev(DEVICE *dev, int num);
 void     attach_jcr_to_device(DEVICE *dev, JCR *jcr);
