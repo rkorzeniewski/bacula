@@ -17,7 +17,7 @@ dummy:
 
 # --client-only directories
 fd_subdirs = src scripts doc src/lib src/findlib src/filed \
-	     @READLINE_SRC@ src/console rescue rescue/linux \
+	     @READLINE_SRC@ src/console \
 	     @GNOME_DIR@ @TRAY_MONITOR_DIR@ @WX_DIR@
 
 # Non-client-only directores
@@ -196,11 +196,11 @@ distclean:
 	@$(RMF) bconsole gconsole
 	@$(RMF) *~ 1 2 3 core core.* config.guess console.log console.sum
 	@$(RMF) working/*
-	@$(RMF) -r examples/devices/CVS autoconf/CVS autoconf/gnome-macros/CVS
-	@$(RMF) -r doc/techlogs/2002/CVS doc/techlogs/2001/CVS doc/techlogs/1.27/CVS
-	@$(RMF) -r examples/CVS intl/CVS scripts/CVS
-	@$(RMF) -r po/CVS src/immortal/CVS rescue/freebsd/CVS rescue/solaris/CVS
-	@$(RMF) -r CVS src/gnome-console/CVS src/tconsole/CVS
+#	@$(RMF) -r examples/devices/CVS autoconf/CVS autoconf/gnome-macros/CVS
+#	@$(RMF) -r doc/techlogs/2002/CVS doc/techlogs/2001/CVS doc/techlogs/1.27/CVS
+#	@$(RMF) -r examples/CVS intl/CVS scripts/CVS
+#	@$(RMF) -r po/CVS src/immortal/CVS rescue/freebsd/CVS rescue/solaris/CVS
+#	@$(RMF) -r CVS src/gnome-console/CVS src/tconsole/CVS
 
 devclean:
 	@for I in $(all_subdirs) doc/latex doc/latex-fr; do (cd $$I; $(MAKE) $@ || exit 1); done
