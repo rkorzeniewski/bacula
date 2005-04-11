@@ -401,7 +401,7 @@ bool reserve_device_for_append(DCR *dcr)
      dev->block(BST_DOING_ACQUIRE);
    }
 
-   Dmsg1(190, "reserve_append device is %s\n", dev_is_tape(dev)?"tape":"disk");
+   Dmsg1(190, "reserve_append device is %s\n", dev->is_tape()?"tape":"disk");
 
    for ( ;; ) {
       switch (can_reserve_drive(dcr)) {
@@ -504,7 +504,7 @@ DCR *acquire_device_for_append(DCR *dcr)
    init_device_wait_timers(dcr);
 
    dev->block(BST_DOING_ACQUIRE);
-   Dmsg1(190, "acquire_append device is %s\n", dev_is_tape(dev)?"tape":"disk");
+   Dmsg1(190, "acquire_append device is %s\n", dev->is_tape()?"tape":"disk");
 
    if (dcr->reserved_device) {
       dev->reserved_device--;
@@ -611,7 +611,7 @@ bool release_device(DCR *dcr)
    bool ok = true;
 
    lock_device(dev);
-   Dmsg1(100, "release_device device is %s\n", dev_is_tape(dev)?"tape":"disk");
+   Dmsg1(100, "release_device device is %s\n", dev->is_tape()?"tape":"disk");
 
    /* if device is reserved, job never started, so release the reserve here */
    if (dcr->reserved_device) {

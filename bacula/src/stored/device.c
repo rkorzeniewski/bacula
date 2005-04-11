@@ -6,11 +6,11 @@
  *  NOTE! In general, subroutines that have the word
  *        "device" in the name do locking.  Subroutines
  *        that have the word "dev" in the name do not
- *	  do locking.  Thus if xxx_device() calls
- *	  yyy_dev(), all is OK, but if xxx_device()
- *	  calls yyy_device(), everything will hang.
- *	  Obviously, no zzz_dev() is allowed to call
- *	  a www_device() or everything falls apart.
+ *        do locking.  Thus if xxx_device() calls
+ *        yyy_dev(), all is OK, but if xxx_device()
+ *        calls yyy_device(), everything will hang.
+ *        Obviously, no zzz_dev() is allowed to call
+ *        a www_device() or everything falls apart.
  *
  * Concerning the routines lock_device() and block_device()
  *  see the end of this module for details.  In general,
@@ -74,7 +74,7 @@ extern int debug_level;
  * Note, we are called only from one place in block.c
  *
  *  Returns: true  on success
- *	     false on failure
+ *           false on failure
  */
 bool fixup_device_block_write_error(DCR *dcr)
 {
@@ -108,18 +108,18 @@ bool fixup_device_block_write_error(DCR *dcr)
 
    /* Inform User about end of medium */
    Jmsg(jcr, M_INFO, 0, _("End of medium on Volume \"%s\" Bytes=%s Blocks=%s at %s.\n"),
-	PrevVolName, edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, b1),
-	edit_uint64_with_commas(dev->VolCatInfo.VolCatBlocks, b2),
-	bstrftime(dt, sizeof(dt), time(NULL)));
+        PrevVolName, edit_uint64_with_commas(dev->VolCatInfo.VolCatBytes, b1),
+        edit_uint64_with_commas(dev->VolCatInfo.VolCatBlocks, b2),
+        bstrftime(dt, sizeof(dt), time(NULL)));
 
    if (!mount_next_write_volume(dcr, 1)) {
       free_block(label_blk);
       dcr->block = block;
       P(dev->mutex);
       unblock_device(dev);
-      return false;		   /* device locked */
+      return false;                /* device locked */
    }
-   P(dev->mutex);		   /* lock again */
+   P(dev->mutex);                  /* lock again */
 
    Jmsg(jcr, M_INFO, 0, _("New volume \"%s\" mounted on device %s at %s.\n"),
       dcr->VolumeName, dev->print_name(), bstrftime(dt, sizeof(dt), time(NULL)));
@@ -134,11 +134,11 @@ bool fixup_device_block_write_error(DCR *dcr)
    if (!write_block_to_dev(dcr)) {
       berrno be;
       Pmsg1(0, "write_block_to_device Volume label failed. ERR=%s",
-	be.strerror(dev->dev_errno));
+        be.strerror(dev->dev_errno));
       free_block(label_blk);
       dcr->block = block;
       unblock_device(dev);
-      return false;		   /* device locked */
+      return false;                /* device locked */
    }
    free_block(label_blk);
    dcr->block = block;
@@ -152,11 +152,11 @@ bool fixup_device_block_write_error(DCR *dcr)
    foreach_dlist(mdcr, dev->attached_dcrs) {
       JCR *mjcr = mdcr->jcr;
       if (mjcr->JobId == 0) {
-	 continue;		   /* ignore console */
+         continue;                 /* ignore console */
       }
       mdcr->NewVol = true;
       if (jcr != mjcr) {
-	 bstrncpy(mdcr->VolumeName, dcr->VolumeName, sizeof(mdcr->VolumeName));
+         bstrncpy(mdcr->VolumeName, dcr->VolumeName, sizeof(mdcr->VolumeName));
       }
    }
 
@@ -171,13 +171,13 @@ bool fixup_device_block_write_error(DCR *dcr)
    if (!write_block_to_dev(dcr)) {
       berrno be;
       Pmsg1(0, "write_block_to_device overflow block failed. ERR=%s",
-	be.strerror(dev->dev_errno));
+        be.strerror(dev->dev_errno));
       unblock_device(dev);
-      return false;		   /* device locked */
+      return false;                /* device locked */
    }
 
    unblock_device(dev);
-   return true; 			    /* device locked */
+   return true;                             /* device locked */
 }
 
 /*
@@ -246,7 +246,7 @@ void set_new_file_parameters(DCR *dcr)
  *    a file is the directory only.
  *
  *   Returns: false on failure
- *	      true  on success
+ *            true  on success
  */
 bool first_open_device(DEVICE *dev)
 {
@@ -258,7 +258,7 @@ bool first_open_device(DEVICE *dev)
    lock_device(dev);
 
    /* Defer opening files */
-   if (!dev_is_tape(dev)) {
+   if (!dev->is_tape()) {
       Dmsg0(129, "Device is file, deferring open.\n");
       unlock_device(dev);
       return true;
@@ -267,17 +267,17 @@ bool first_open_device(DEVICE *dev)
    if (!dev->is_open()) {
        int mode;
        if (dev_cap(dev, CAP_STREAM)) {
-	  mode = OPEN_WRITE_ONLY;
+          mode = OPEN_WRITE_ONLY;
        } else {
-	  mode = OPEN_READ_WRITE;
+          mode = OPEN_READ_WRITE;
        }
       Dmsg0(129, "Opening device.\n");
       dev->open_nowait = true;
       if (open_dev(dev, NULL, mode) < 0) {
          Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), dev->errmsg);
-	 dev->open_nowait = false;
-	 unlock_device(dev);
-	 return false;
+         dev->open_nowait = false;
+         unlock_device(dev);
+         return false;
       }
    }
    Dmsg1(129, "open_dev %s OK\n", dev->print_name());
@@ -296,19 +296,19 @@ bool open_device(DCR *dcr)
    if  (!dev->is_open()) {
       int mode;
       if (dev_cap(dev, CAP_STREAM)) {
-	 mode = OPEN_WRITE_ONLY;
+         mode = OPEN_WRITE_ONLY;
       } else {
-	 mode = OPEN_READ_WRITE;
+         mode = OPEN_READ_WRITE;
       }
       if (open_dev(dev, dcr->VolCatInfo.VolCatName, mode) < 0) {
-	 /* If polling, ignore the error */
-	 if (!dev->poll) {
+         /* If polling, ignore the error */
+         if (!dev->poll) {
             Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open device %s: ERR=%s\n"),
-	       dev->print_name(), strerror_dev(dev));
+               dev->print_name(), strerror_dev(dev));
             Pmsg2(000, "Unable to open archive %s: ERR=%s\n", 
-	       dev->print_name(), strerror_dev(dev));
-	 }
-	 return false;
+               dev->print_name(), strerror_dev(dev));
+         }
+         return false;
       }
    }
    return true;
@@ -341,15 +341,15 @@ void _lock_device(const char *file, int line, DEVICE *dev)
    Dmsg3(500, "lock %d from %s:%d\n", dev->dev_blocked, file, line);
    P(dev->mutex);
    if (dev->dev_blocked && !pthread_equal(dev->no_wait_id, pthread_self())) {
-      dev->num_waiting++;	      /* indicate that I am waiting */
+      dev->num_waiting++;             /* indicate that I am waiting */
       while (dev->dev_blocked) {
-	 if ((stat = pthread_cond_wait(&dev->wait, &dev->mutex)) != 0) {
-	    V(dev->mutex);
+         if ((stat = pthread_cond_wait(&dev->wait, &dev->mutex)) != 0) {
+            V(dev->mutex);
             Emsg1(M_ABORT, 0, _("pthread_cond_wait failure. ERR=%s\n"),
-	       strerror(stat));
-	 }
+               strerror(stat));
+         }
       }
-      dev->num_waiting--;	      /* no longer waiting */
+      dev->num_waiting--;             /* no longer waiting */
    }
 }
 
@@ -361,7 +361,7 @@ bool device_is_unmounted(DEVICE *dev)
    bool stat;
    int blocked = dev->dev_blocked;
    stat = (blocked == BST_UNMOUNTED) ||
-	  (blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP);
+          (blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP);
    return stat;
 }
 
@@ -405,7 +405,7 @@ void _block_device(const char *file, int line, DEVICE *dev, int state)
 {
    Dmsg3(500, "block set %d from %s:%d\n", state, file, line);
    ASSERT(dev->dev_blocked == BST_NOT_BLOCKED);
-   dev->dev_blocked = state;	      /* make other threads wait */
+   dev->dev_blocked = state;          /* make other threads wait */
    dev->no_wait_id = pthread_self();  /* allow us to continue */
 }
 

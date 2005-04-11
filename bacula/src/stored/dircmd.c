@@ -609,7 +609,7 @@ static bool mount_cmd(JCR *jcr)
                              dev->print_name());
                }
             } else {
-               if (!dev_is_tape(dev)) {
+               if (!dev->is_tape()) {
                   bnet_fsend(dir, _("3906 cannot mount non-tape.\n"));
                   break;
                }
@@ -797,7 +797,7 @@ static bool autochanger_cmd(JCR *jcr)
       dcr = jcr->dcr;
       if (dev) {
          P(dev->mutex);               /* Use P to avoid indefinite block */
-         if (!dev_is_tape(dev)) {
+         if (!dev->is_tape()) {
             bnet_fsend(dir, _("3995 Device %s is not an autochanger.\n"), 
                dev->print_name());
          } else if (!dev->is_open()) {
