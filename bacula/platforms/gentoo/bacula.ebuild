@@ -29,6 +29,9 @@
 # new USE keywords bacula-clientonly bacula-split
 # add new logwatch scripts
 # 06 Mar 2005 D. Scott Barninger <barninger at fairfieldcomputers dot com>
+#
+# 1.36.3 doc changes
+# 17 Apr 2005 D. Scott Barninger <barninger at fairfieldcomputers dot com>
 
 DESCRIPTION="featureful client/server network backup suite"
 HOMEPAGE="http://www.bacula.org/"
@@ -58,7 +61,9 @@ DEPEND=">=sys-libs/zlib-1.1.4
 	X? ( virtual/x11 )
 	wxwindows? ( >=x11-libs/wxGTK-2.4.2 )
 	virtual/mta
-	dev-libs/gmp"
+	dev-libs/gmp
+	app-text/tetex
+	dev-tex/latex2html"
 RDEPEND="${DEPEND}
 	!bacula-clientonly? (
 		sys-apps/mtx
@@ -141,6 +146,11 @@ src_compile() {
 	# for the rescue package regardless of use static
 	cd ${S}/src/filed
 	make static-bacula-fd
+	cd ${S}
+
+	# make the docs
+	cd ${S}/doc/latex
+	make
 	cd ${S}
 
 	if use static
@@ -236,12 +246,12 @@ src_install() {
 	chmod 754 ${D}/etc/bacula/rescue/cdrom/bin/bacula-fd
 
 	# documentation
-	for a in ${S}/{Changelog,README,ReleaseNotes,kernstodo,LICENSE,doc/bacula.pdf}
+	for a in ${S}/{ChangeLog,README,ReleaseNotes,kernstodo,LICENSE,doc/latex/bacula.pdf}
 	do
 		dodoc $a
 	done
 
-	dohtml -r ${S}/doc/html-manual doc/home-page
+	dohtml -r ${S}/doc/latex/bacula
 	
 	# clean up permissions left broken by install
 	chmod o-r ${D}/etc/bacula/query.sql
