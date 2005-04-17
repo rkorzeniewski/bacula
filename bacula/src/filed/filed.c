@@ -231,7 +231,7 @@ int main (int argc, char *argv[])
 #endif
 
    init_python_interpreter(me->hdr.name, me->scripts_directory ?
-         me->scripts_directory : ".");
+         me->scripts_directory : ".", "FDStartUp");
 
    set_thread_concurrency(10);
 

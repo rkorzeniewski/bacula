@@ -55,7 +55,7 @@ static ATTR *attr;
 
 #define CONFIG_FILE "bacula-sd.conf"
 char *configfile;
-STORES *me = NULL;		      /* our Global resource */
+STORES *me = NULL;                    /* our Global resource */
 bool forge_on = false;
 pthread_mutex_t device_release_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t wait_device_release = PTHREAD_COND_INITIALIZER;
@@ -99,85 +99,85 @@ int main (int argc, char *argv[])
 
    working_directory = "/tmp";
    my_name_is(argc, argv, "bls");
-   init_msg(NULL, NULL);	      /* initialize message handler */
+   init_msg(NULL, NULL);              /* initialize message handler */
 
    ff = init_find_files();
 
    while ((ch = getopt(argc, argv, "b:c:d:e:i:jkLpvV:?")) != -1) {
       switch (ch) {
       case 'b':
-	 bsrName = optarg;
-	 break;
+         bsrName = optarg;
+         break;
 
       case 'c':                    /* specify config file */
-	 if (configfile != NULL) {
-	    free(configfile);
-	 }
-	 configfile = bstrdup(optarg);
-	 break;
+         if (configfile != NULL) {
+            free(configfile);
+         }
+         configfile = bstrdup(optarg);
+         break;
 
       case 'd':                    /* debug level */
-	 debug_level = atoi(optarg);
-	 if (debug_level <= 0)
-	    debug_level = 1;
-	 break;
+         debug_level = atoi(optarg);
+         if (debug_level <= 0)
+            debug_level = 1;
+         break;
 
       case 'e':                    /* exclude list */
          if ((fd = fopen(optarg, "r")) == NULL) {
             Pmsg2(0, _("Could not open exclude file: %s, ERR=%s\n"),
-	       optarg, strerror(errno));
-	    exit(1);
-	 }
-	 while (fgets(line, sizeof(line), fd) != NULL) {
-	    strip_trailing_junk(line);
+               optarg, strerror(errno));
+            exit(1);
+         }
+         while (fgets(line, sizeof(line), fd) != NULL) {
+            strip_trailing_junk(line);
             Dmsg1(100, "add_exclude %s\n", line);
-	    add_fname_to_exclude_list(ff, line);
-	 }
-	 fclose(fd);
-	 break;
+            add_fname_to_exclude_list(ff, line);
+         }
+         fclose(fd);
+         break;
 
       case 'i':                    /* include list */
          if ((fd = fopen(optarg, "r")) == NULL) {
             Pmsg2(0, "Could not open include file: %s, ERR=%s\n",
-	       optarg, strerror(errno));
-	    exit(1);
-	 }
-	 while (fgets(line, sizeof(line), fd) != NULL) {
-	    strip_trailing_junk(line);
+               optarg, strerror(errno));
+            exit(1);
+         }
+         while (fgets(line, sizeof(line), fd) != NULL) {
+            strip_trailing_junk(line);
             Dmsg1(100, "add_include %s\n", line);
-	    add_fname_to_include_list(ff, 0, line);
-	 }
-	 fclose(fd);
-	 break;
+            add_fname_to_include_list(ff, 0, line);
+         }
+         fclose(fd);
+         break;
 
       case 'j':
-	 list_jobs = true;
-	 break;
+         list_jobs = true;
+         break;
 
       case 'k':
-	 list_blocks = true;
-	 break;
+         list_blocks = true;
+         break;
 
       case 'L':
-	 dump_label = true;
-	 break;
+         dump_label = true;
+         break;
 
       case 'p':
-	 ignore_label_errors = true;
-	 forge_on = true;
-	 break;
+         ignore_label_errors = true;
+         forge_on = true;
+         break;
 
       case 'v':
-	 verbose++;
-	 break;
+         verbose++;
+         break;
 
       case 'V':                    /* Volume name */
-	 VolumeName = optarg;
-	 break;
+         VolumeName = optarg;
+         break;
 
       case '?':
       default:
-	 usage();
+         usage();
 
       } /* end switch */
    } /* end while */
@@ -201,16 +201,16 @@ int main (int argc, char *argv[])
 
    for (i=0; i < argc; i++) {
       if (bsrName) {
-	 bsr = parse_bsr(NULL, bsrName);
+         bsr = parse_bsr(NULL, bsrName);
       }
       jcr = setup_jcr("bls", argv[i], bsr, VolumeName, 1); /* acquire for read */
       if (!jcr) {
-	 exit(1);
+         exit(1);
       }
       jcr->ignore_label_errors = ignore_label_errors;
       dev = jcr->dcr->dev;
       if (!dev) {
-	 exit(1);
+         exit(1);
       }
       dcr = jcr->dcr;
       rec = new_record();
@@ -223,15 +223,15 @@ int main (int argc, char *argv[])
       if (dev->VolHdr.PrevVolName[0] != 0) { /* second volume */
          Pmsg1(0, "\n"
 "Warning, this Volume is a continuation of Volume %s\n",
-		dev->VolHdr.PrevVolName);
+                dev->VolHdr.PrevVolName);
       }
 
       if (list_blocks) {
-	 do_blocks(argv[i]);
+         do_blocks(argv[i]);
       } else if (list_jobs) {
-	 do_jobs(argv[i]);
+         do_jobs(argv[i]);
       } else {
-	 do_ls(argv[i]);
+         do_ls(argv[i]);
       }
       do_close(jcr);
    }
@@ -261,51 +261,51 @@ static void do_blocks(char *infname)
    for ( ;; ) {
       if (!read_block_from_device(dcr, NO_BLOCK_NUMBER_CHECK)) {
          Dmsg1(100, "!read_block(): ERR=%s\n", dev->strerror());
-	 if (dev->at_eot()) {
-	    if (!mount_next_read_volume(dcr)) {
+         if (dev->at_eot()) {
+            if (!mount_next_read_volume(dcr)) {
                Jmsg(jcr, M_INFO, 0, _("Got EOM at file %u on device %s, Volume \"%s\"\n"),
-		  dev->file, dev->print_name(), dcr->VolumeName);
-	       break;
-	    }
-	    /* Read and discard Volume label */
-	    DEV_RECORD *record;
-	    record = new_record();
-	    read_block_from_device(dcr, NO_BLOCK_NUMBER_CHECK);
-	    read_record_from_block(block, record);
-	    get_session_record(dev, record, &sessrec);
-	    free_record(record);
+                  dev->file, dev->print_name(), dcr->VolumeName);
+               break;
+            }
+            /* Read and discard Volume label */
+            DEV_RECORD *record;
+            record = new_record();
+            read_block_from_device(dcr, NO_BLOCK_NUMBER_CHECK);
+            read_record_from_block(block, record);
+            get_session_record(dev, record, &sessrec);
+            free_record(record);
             Jmsg(jcr, M_INFO, 0, _("Mounted Volume \"%s\".\n"), dcr->VolumeName);
-	 } else if (dev->at_eof()) {
+         } else if (dev->at_eof()) {
             Jmsg(jcr, M_INFO, 0, _("Got EOF at file %u on device %s, Volume \"%s\"\n"),
-	       dev->file, dev->print_name(), dcr->VolumeName);
+               dev->file, dev->print_name(), dcr->VolumeName);
             Dmsg0(20, "read_record got eof. try again\n");
-	    continue;
-	 } else if (dev->state & ST_SHORT) {
+            continue;
+         } else if (dev->state & ST_SHORT) {
             Jmsg(jcr, M_INFO, 0, "%s", dev->errmsg);
-	    continue;
-	 } else {
-	    /* I/O error */
-	    display_tape_error_status(jcr, dev);
-	    break;
-	 }
+            continue;
+         } else {
+            /* I/O error */
+            display_tape_error_status(jcr, dev);
+            break;
+         }
       }
       if (!match_bsr_block(bsr, block)) {
          Dmsg5(100, "reject Blk=%u blen=%u bVer=%d SessId=%u SessTim=%u\n",
-	    block->BlockNumber, block->block_len, block->BlockVer,
-	    block->VolSessionId, block->VolSessionTime);
-	 continue;
+            block->BlockNumber, block->block_len, block->BlockVer,
+            block->VolSessionId, block->VolSessionTime);
+         continue;
       }
       Dmsg5(100, "Blk=%u blen=%u bVer=%d SessId=%u SessTim=%u\n",
-	block->BlockNumber, block->block_len, block->BlockVer,
-	block->VolSessionId, block->VolSessionTime);
+        block->BlockNumber, block->block_len, block->BlockVer,
+        block->VolSessionId, block->VolSessionTime);
       if (verbose == 1) {
-	 read_record_from_block(block, rec);
+         read_record_from_block(block, rec);
          Pmsg9(-1, "File:blk=%u:%u blk_num=%u blen=%u First rec FI=%s SessId=%u SessTim=%u Strm=%s rlen=%d\n",
-	      dev->file, dev->block_num,
-	      block->BlockNumber, block->block_len,
-	      FI_to_ascii(rec->FileIndex), rec->VolSessionId, rec->VolSessionTime,
-	      stream_to_ascii(rec->Stream, rec->FileIndex), rec->data_len);
-	 rec->remainder = 0;
+              dev->file, dev->block_num,
+              block->BlockNumber, block->block_len,
+              FI_to_ascii(rec->FileIndex), rec->VolSessionId, rec->VolSessionTime,
+              stream_to_ascii(rec->Stream, rec->FileIndex), rec->data_len);
+         rec->remainder = 0;
       } else if (verbose > 1) {
          dump_block(block, "");
       } else {
@@ -359,28 +359,28 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
        rec->Stream == STREAM_UNIX_ATTRIBUTES_EX) {
 
       if (!unpack_attributes_record(jcr, rec->Stream, rec->data, attr)) {
-	 if (!forge_on) {
+         if (!forge_on) {
             Emsg0(M_ERROR_TERM, 0, _("Cannot continue.\n"));
-	 }
-	 num_files++;
-	 return true;
+         }
+         num_files++;
+         return true;
       }
 
       if (attr->file_index != rec->FileIndex) {
          Emsg2(forge_on?M_WARNING:M_ERROR_TERM, 0, _("Record header file index %ld not equal record index %ld\n"),
-	       rec->FileIndex, attr->file_index);
+               rec->FileIndex, attr->file_index);
       }
 
       attr->data_stream = decode_stat(attr->attr, &attr->statp, &attr->LinkFI);
       build_attr_output_fnames(jcr, attr);
 
       if (file_is_included(ff, attr->fname) && !file_is_excluded(ff, attr->fname)) {
-	 if (verbose) {
+         if (verbose) {
             Pmsg5(-1, "FileIndex=%d VolSessionId=%d VolSessionTime=%d Stream=%d DataLen=%d\n",
-		  rec->FileIndex, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
-	 }
-	 print_ls_output(jcr, attr);
-	 num_files++;
+                  rec->FileIndex, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
+         }
+         print_ls_output(jcr, attr);
+         num_files++;
       }
    }
    return true;
@@ -414,23 +414,24 @@ static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sess
       break;
    }
    Dmsg5(10, "%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
-	 rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
+         rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
    if (verbose) {
       Pmsg5(-1, "%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
-	    rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
+            rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
    }
 }
 
 
 /* Dummies to replace askdir.c */
-bool	dir_get_volume_info(DCR *dcr, enum get_vol_info_rw  writing) { return 1;}
-bool	dir_find_next_appendable_volume(DCR *dcr) { return 1;}
-bool	dir_update_volume_info(DCR *dcr, bool relabel) { return 1; }
-bool	dir_create_jobmedia_record(DCR *dcr) { return 1; }
-bool	dir_ask_sysop_to_create_appendable_volume(DCR *dcr) { return 1; }
-bool	dir_update_file_attributes(DCR *dcr, DEV_RECORD *rec) { return 1;}
-bool	dir_send_job_status(JCR *jcr) {return 1;}
-
+bool    dir_get_volume_info(DCR *dcr, enum get_vol_info_rw  writing) { return 1;}
+bool    dir_find_next_appendable_volume(DCR *dcr) { return 1;}
+bool    dir_update_volume_info(DCR *dcr, bool relabel) { return 1; }
+bool    dir_create_jobmedia_record(DCR *dcr) { return 1; }
+bool    dir_ask_sysop_to_create_appendable_volume(DCR *dcr) { return 1; }
+bool    dir_update_file_attributes(DCR *dcr, DEV_RECORD *rec) { return 1;}
+bool    dir_send_job_status(JCR *jcr) {return 1;}
+int     generate_job_event(JCR *jcr, const char *event) { return 1; }
+                           
 
 bool dir_ask_sysop_to_mount_volume(DCR *dcr)
 {

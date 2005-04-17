@@ -8,7 +8,7 @@
  *    This routine runs as a thread and must be thread reentrant.
  *
  *  Basic tasks done here:
- *	If possible create a new Media entry
+ *      If possible create a new Media entry
  *
  *   Version $Id$
  */
@@ -63,35 +63,35 @@ bool newVolume(JCR *jcr, MEDIA_DBR *mr)
       set_pool_dbr_defaults_in_media_dbr(mr, &pr);
       jcr->VolumeName[0] = 0;
       bstrncpy(mr->MediaType, jcr->store->media_type, sizeof(mr->MediaType));
-      if (generate_event(jcr, "NewVolume") == 1 && jcr->VolumeName[0] &&
-	  is_volume_name_legal(NULL, jcr->VolumeName)) {
-	 bstrncpy(mr->VolumeName, jcr->VolumeName, sizeof(mr->VolumeName));
+      if (generate_job_event(jcr, "NewVolume") == 1 && jcr->VolumeName[0] &&
+          is_volume_name_legal(NULL, jcr->VolumeName)) {
+         bstrncpy(mr->VolumeName, jcr->VolumeName, sizeof(mr->VolumeName));
       /* Check for special characters */
       } else if (pr.LabelFormat[0] && pr.LabelFormat[0] != '*') {
-	 if (is_volume_name_legal(NULL, pr.LabelFormat)) {
-	    /* No special characters, so apply simple algorithm */
-	    if (!create_simple_name(jcr, mr, &pr)) {
-	       goto bail_out;
-	    }
-	 } else {  /* try full substitution */
-	    /* Found special characters, so try substitution */
-	    if (!perform_full_name_substitution(jcr, mr, &pr)) {
-	       goto bail_out;
-	    }
-	    if (!is_volume_name_legal(NULL, mr->VolumeName)) {
+         if (is_volume_name_legal(NULL, pr.LabelFormat)) {
+            /* No special characters, so apply simple algorithm */
+            if (!create_simple_name(jcr, mr, &pr)) {
+               goto bail_out;
+            }
+         } else {  /* try full substitution */
+            /* Found special characters, so try substitution */
+            if (!perform_full_name_substitution(jcr, mr, &pr)) {
+               goto bail_out;
+            }
+            if (!is_volume_name_legal(NULL, mr->VolumeName)) {
                Jmsg(jcr, M_ERROR, 0, _("Illegal character in Volume name \"%s\"\n"),
-		  mr->VolumeName);
-	       goto bail_out;
-	    }
-	 }
+                  mr->VolumeName);
+               goto bail_out;
+            }
+         }
       }
       pr.NumVols++;
       if (db_create_media_record(jcr, jcr->db, mr) &&
-	 db_update_pool_record(jcr, jcr->db, &pr)) {
-	 db_unlock(jcr->db);
+         db_update_pool_record(jcr, jcr->db, &pr)) {
+         db_unlock(jcr->db);
          Jmsg(jcr, M_INFO, 0, _("Created new Volume \"%s\" in catalog.\n"), mr->VolumeName);
          Dmsg1(90, "Created new Volume=%s\n", mr->VolumeName);
-	 return true;
+         return true;
       } else {
          Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
       }
@@ -116,14 +116,14 @@ static bool create_simple_name(JCR *jcr, MEDIA_DBR *mr, POOL_DBR *pr)
       bstrncpy(tmr.VolumeName, name, sizeof(tmr.VolumeName));
       bstrncat(tmr.VolumeName, num, sizeof(tmr.VolumeName));
       if (db_get_media_record(jcr, jcr->db, &tmr)) {
-	 Jmsg(jcr, M_WARNING, 0,
+         Jmsg(jcr, M_WARNING, 0,
              _("Wanted to create Volume \"%s\", but it already exists. Trying again.\n"),
-	     tmr.VolumeName);
-	 continue;
+             tmr.VolumeName);
+         continue;
       }
       bstrncpy(mr->VolumeName, name, sizeof(mr->VolumeName));
       bstrncat(mr->VolumeName, num, sizeof(mr->VolumeName));
-      break;			/* Got good name */
+      break;                    /* Got good name */
    }
    if (mr->VolumeName[0] == 0) {
       Jmsg(jcr, M_ERROR, 0, _("Too many failures. Giving up creating Volume name.\n"));

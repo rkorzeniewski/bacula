@@ -240,7 +240,9 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       set_portable_backup(&ff_pkt->bfd); /* disable Win32 BackupRead() */
    }
    if (ff_pkt->reader) {
-      set_prog(&ff_pkt->bfd, ff_pkt->reader, jcr);
+      if (!set_prog(&ff_pkt->bfd, ff_pkt->reader, jcr)) {
+         return 0;
+      }
    }
 
    /*

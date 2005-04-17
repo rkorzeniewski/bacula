@@ -31,6 +31,8 @@
 #include "bacula.h"
 #include "find.h"
 
+extern int generate_job_event(JCR *jcr, const char *event);
+
 #ifdef HAVE_DARWIN_OS
 #include <sys/paths.h>
 #endif
@@ -42,14 +44,14 @@
  * ===============================================================
  */
 
-int is_win32_stream(int stream)
+bool is_win32_stream(int stream)
 {
    switch (stream) {
    case STREAM_WIN32_DATA:
    case STREAM_WIN32_GZIP_DATA:
-      return 1;
+      return true;
    }
-   return 0;
+   return false;
 }
 
 const char *stream_to_ascii(int stream)
@@ -120,7 +122,7 @@ void binit(BFILE *bfd)
  *   Returns 1 if function worked
  *   Returns 0 if failed (i.e. do not have Backup API on this machine)
  */
-int set_win32_backup(BFILE *bfd)
+bool set_win32_backup(BFILE *bfd)
 {
    /* We enable if possible here */
    bfd->use_backup_api = have_win32_api();
@@ -128,28 +130,29 @@ int set_win32_backup(BFILE *bfd)
 }
 
 
-int set_portable_backup(BFILE *bfd)
+bool set_portable_backup(BFILE *bfd)
 {
-   bfd->use_backup_api = 0;
-   return 1;
+   bfd->use_backup_api = false;
+   return true;
 }
 
-void set_prog(BFILE *bfd, char *prog, JCR *jcr)
+bool set_prog(BFILE *bfd, char *prog, JCR *jcr)
 {
    bfd->prog = prog;
    bfd->jcr = jcr;
+   return false;
 }
 
 /*
  * Return 1 if we are NOT using Win32 BackupWrite()
  * return 0 if are
  */
-int is_portable_backup(BFILE *bfd)
+bool is_portable_backup(BFILE *bfd)
 {
    return !bfd->use_backup_api;
 }
 
-int have_win32_api()
+bool have_win32_api()
 {
    return p_BackupRead && p_BackupWrite;
 }
@@ -160,7 +163,7 @@ int have_win32_api()
  * Return 1 if we support the stream
  *        0 if we do not support the stream
  */
-int is_stream_supported(int stream)
+bool is_stream_supported(int stream)
 {
    /* No Win32 backup on this machine */
    switch (stream) {
@@ -172,6 +175,10 @@ int is_stream_supported(int stream)
    case STREAM_WIN32_DATA:
    case STREAM_WIN32_GZIP_DATA:
       return have_win32_api();
+
+   case STREAM_MACOS_FORK_DATA:
+   case STREAM_HFSPLUS_ATTRIBUTES:
+      return false;
 
    /* Known streams */
 #ifdef HAVE_LIBZ
@@ -186,14 +193,10 @@ int is_stream_supported(int stream)
    case STREAM_PROGRAM_NAMES:
    case STREAM_PROGRAM_DATA:
    case STREAM_SHA1_SIGNATURE:
-#ifdef HAVE_DARWIN_OS
-   case STREAM_MACOS_FORK_DATA:
-   case STREAM_HFSPLUS_ATTRIBUTES:
-#endif
    case 0:                            /* compatibility with old tapes */
-      return 1;
+      return true;
    }
-   return 0;
+   return false;
 }
 
 HANDLE bget_handle(BFILE *bfd)
@@ -394,7 +397,7 @@ ssize_t bwrite(BFILE *bfd, void *buf, size_t count)
    return (ssize_t)bfd->rw_bytes;
 }
 
-int is_bopen(BFILE *bfd)
+bool is_bopen(BFILE *bfd)
 {
    return bfd->mode != BF_CLOSED;
 }
@@ -419,44 +422,54 @@ void binit(BFILE *bfd)
    bfd->fid = -1;
 }
 
-int have_win32_api()
+bool have_win32_api()
 {
-   return 0;                          /* no can do */
+   return false;                       /* no can do */
 }
 
 /*
  * Enables using the Backup API (win32_data).
- *   Returns 1 if function worked
- *   Returns 0 if failed (i.e. do not have Backup API on this machine)
+ *   Returns true  if function worked
+ *   Returns false if failed (i.e. do not have Backup API on this machine)
  */
-int set_win32_backup(BFILE *bfd)
+bool set_win32_backup(BFILE *bfd)
 {
-   return 0;                          /* no can do */
+   return false;                       /* no can do */
 }
 
 
-int set_portable_backup(BFILE *bfd)
+bool set_portable_backup(BFILE *bfd)
 {
-   return 1;                          /* no problem */
+   return true;                        /* no problem */
 }
 
 /*
- * Return 1 if we are writing in portable format
- * return 0 if not
+ * Return true  if we are writing in portable format
+ * return false if not
  */
-int is_portable_backup(BFILE *bfd)
+bool is_portable_backup(BFILE *bfd)
 {
-   return 1;                          /* portable by definition */
+   return true;                       /* portable by definition */
 }
 
-void set_prog(BFILE *bfd, char *prog, JCR *jcr)
+bool set_prog(BFILE *bfd, char *prog, JCR *jcr)
 {
-   bfd->prog = prog;
-   bfd->jcr = jcr;
+   if (bfd->prog && strcmp(prog, bfd->prog) == 0) {
+      return true;                    /* already setup */
+   }
+   int stat = generate_job_event(jcr, "Reader");
+   if (stat == 1 && bfd->pio.fo && bfd->pio.fr && bfd->pio.fc) {
+      bfd->prog = prog;
+      bfd->jcr = jcr;
+      return true;
+   }
+   bfd->prog = NULL;
+   return false;
+
 }
 
 
-int is_stream_supported(int stream)
+bool is_stream_supported(int stream)
 {
    /* No Win32 backup on this machine */
    switch (stream) {
@@ -466,7 +479,11 @@ int is_stream_supported(int stream)
 #endif
    case STREAM_WIN32_DATA:
    case STREAM_WIN32_GZIP_DATA:
-      return 0;
+#ifndef HAVE_DARWIN_OS
+   case STREAM_MACOS_FORK_DATA:
+   case STREAM_HFSPLUS_ATTRIBUTES:
+#endif
+      return false;
 
    /* Known streams */
 #ifdef HAVE_LIBZ
@@ -486,15 +503,13 @@ int is_stream_supported(int stream)
    case STREAM_HFSPLUS_ATTRIBUTES:
 #endif
    case 0:                            /* compatibility with old tapes */
-      return 1;
+      return true;
 
    }
    return 0;
 }
 
-int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
-{
-   /* Open reader/writer program */
+/* Old file reader code */
 #ifdef xxx
    if (bfd->prog) {
       POOLMEM *ecmd = get_pool_memory(PM_FNAME);
@@ -523,6 +538,15 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
    }
 #endif
 
+
+int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
+{
+   /* Open reader/writer program */
+   if (bfd->prog) {
+      errno = 0;
+      return 1;
+   }
+
    /* Normal file open */
    bfd->fid = open(fname, flags, mode);
    bfd->berrno = errno;
@@ -549,14 +573,7 @@ int bopen_rsrc(BFILE *bfd, const char *fname, int flags, mode_t mode)
 }
 #endif
 
-int bclose(BFILE *bfd)
-{
-   int stat;
-   Dmsg1(400, "Close file %d\n", bfd->fid);
-   if (bfd->fid == -1) {
-      return 0;
-   }
-   /* Close reader/writer program */
+/* Old prog close code */
 #ifdef xxx
    if (bfd->prog && bfd->bpipe) {
       stat = close_bpipe(bfd->bpipe);
@@ -566,6 +583,19 @@ int bclose(BFILE *bfd)
       return stat;
    }
 #endif
+
+
+int bclose(BFILE *bfd)
+{
+   int stat;
+   Dmsg1(400, "Close file %d\n", bfd->fid);
+   if (bfd->fid == -1) {
+      return 0;
+   }
+   /* Close reader/writer program */
+   if (bfd->prog) {
+      return 0;
+   }
 
    /* Close normal file */
    stat = close(bfd->fid);
@@ -590,7 +620,7 @@ ssize_t bwrite(BFILE *bfd, void *buf, size_t count)
    return stat;
 }
 
-int is_bopen(BFILE *bfd)
+bool is_bopen(BFILE *bfd)
 {
    return bfd->fid >= 0;
 }
@@ -601,12 +631,6 @@ off_t blseek(BFILE *bfd, off_t offset, int whence)
     pos = lseek(bfd->fid, offset, whence);
     bfd->berrno = errno;
     return pos;
-}
-
-/* DO NOT USE */
-char *xberror(BFILE *bfd)
-{
-    return strerror(bfd->berrno);
 }
 
 #endif

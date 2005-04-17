@@ -128,6 +128,10 @@ void check_if_volume_valid_or_recyclable(JCR *jcr, MEDIA_DBR *mr, const char **r
 /* newvol.c */
 bool newVolume(JCR *jcr, MEDIA_DBR *mr);
 
+/* python.c */
+int generate_job_event(JCR *jcr, const char *event);
+
+
 /* restore.c */
 extern bool do_restore(JCR *jcr);
 extern bool do_restore_init(JCR *jcr);

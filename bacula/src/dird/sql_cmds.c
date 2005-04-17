@@ -31,7 +31,7 @@
 #include "dird.h"
 
 /* For ua_cmds.c */
-const char *list_pool = "SELECT * FROM Pool WHERE PoolId=%u";
+const char *list_pool = "SELECT * FROM Pool WHERE PoolId=%s";
 
 /* For ua_dotcmds.c */
 const char *client_backups =
@@ -47,20 +47,20 @@ const char *client_backups =
 
 /* ====== ua_prune.c */
 
-const char *cnt_File     = "SELECT count(*) FROM File WHERE JobId=%u";
-const char *del_File     = "DELETE FROM File WHERE JobId=%u";
-const char *upd_Purged   = "UPDATE Job Set PurgedFiles=1 WHERE JobId=%u";
+const char *cnt_File     = "SELECT count(*) FROM File WHERE JobId=%s";
+const char *del_File     = "DELETE FROM File WHERE JobId=%s";
+const char *upd_Purged   = "UPDATE Job Set PurgedFiles=1 WHERE JobId=%s";
 const char *cnt_DelCand  = "SELECT count(*) FROM DelCandidates";
-const char *del_Job      = "DELETE FROM Job WHERE JobId=%u";
-const char *del_JobMedia = "DELETE FROM JobMedia WHERE JobId=%u";
-const char *cnt_JobMedia = "SELECT count(*) FROM JobMedia WHERE MediaId=%u";
-const char *sel_JobMedia = "SELECT JobId FROM JobMedia WHERE MediaId=%u";
+const char *del_Job      = "DELETE FROM Job WHERE JobId=%s";
+const char *del_JobMedia = "DELETE FROM JobMedia WHERE JobId=%s";
+const char *cnt_JobMedia = "SELECT count(*) FROM JobMedia WHERE MediaId=%s";
+const char *sel_JobMedia = "SELECT JobId FROM JobMedia WHERE MediaId=%s";
 
 /* Select JobIds for File deletion. */
 const char *select_job =
    "SELECT JobId from Job "
    "WHERE JobTDate<%s "
-   "AND ClientId=%u "
+   "AND ClientId=%s "
    "AND PurgedFiles=0";
 
 /* Delete temp tables and indexes  */
@@ -105,7 +105,7 @@ const char *insert_delcand =
    "SELECT JobId,PurgedFiles,FileSetId,JobFiles,JobStatus FROM Job "
    "WHERE Type='%c' "
    "AND JobTDate<%s "
-   "AND ClientId=%u";
+   "AND ClientId=%s";
 
 /* Select Jobs from the DelCandidates table that have a
  * more recent backup -- i.e. are not the only backup.
@@ -119,7 +119,7 @@ const char *select_backup_del =
    "WHERE (Job.JobTDate<%s AND ((DelCandidates.JobFiles=0) OR "
    "(DelCandidates.JobStatus!='T'))) OR "
    "(Job.JobTDate>%s "
-   "AND Job.ClientId=%u "
+   "AND Job.ClientId=%s "
    "AND Job.Type='B' "
    "AND Job.Level='F' "
    "AND Job.JobStatus='T' "
@@ -134,7 +134,7 @@ const char *select_verify_del =
    "FROM Job,DelCandidates "
    "WHERE (Job.JobTdate<%s AND DelCandidates.JobStatus!='T') OR "
    "(Job.JobTDate>%s "
-   "AND Job.ClientId=%u "
+   "AND Job.ClientId=%s "
    "AND Job.Type='V' "
    "AND Job.Level='V' "
    "AND Job.JobStatus='T' "
@@ -149,7 +149,7 @@ const char *select_restore_del =
    "FROM Job,DelCandidates "
    "WHERE (Job.JobTdate<%s AND DelCandidates.JobStatus!='T') OR "
    "(Job.JobTDate>%s "
-   "AND Job.ClientId=%u "
+   "AND Job.ClientId=%s "
    "AND Job.Type='R')";
 
 /* Select Jobs from the DelCandidates table.
@@ -160,13 +160,13 @@ const char *select_admin_del =
    "FROM Job,DelCandidates "
    "WHERE (Job.JobTdate<%s AND DelCandidates.JobStatus!='T') OR "
    "(Job.JobTDate>%s "
-   "AND Job.ClientId=%u "
+   "AND Job.ClientId=%s "
    "AND Job.Type='D')";
 
 
 /* ======= ua_restore.c */
 const char *uar_count_files =
-   "SELECT JobFiles FROM Job WHERE JobId=%u";
+   "SELECT JobFiles FROM Job WHERE JobId=%s";
 
 /* List last 20 Jobs */
 const char *uar_list_jobs =
@@ -206,7 +206,7 @@ const char *uar_file =
 const char *uar_sel_files =
    "SELECT Path.Path,Filename.Name,FileIndex,JobId,LStat "
    "FROM File,Filename,Path "
-   "WHERE File.JobId=%u AND Filename.FilenameId=File.FilenameId "
+   "WHERE File.JobId=%s AND Filename.FilenameId=File.FilenameId "
    "AND Path.PathId=File.PathId";
 
 const char *uar_del_temp  = "DROP TABLE temp";
@@ -252,8 +252,8 @@ const char *uar_create_temp1 =
 
 const char *uar_last_full =
    "INSERT INTO temp1 SELECT Job.JobId,JobTdate "
-   "FROM Client,Job,JobMedia,Media,FileSet WHERE Client.ClientId=%u "
-   "AND Job.ClientId=%u "
+   "FROM Client,Job,JobMedia,Media,FileSet WHERE Client.ClientId=%s "
+   "AND Job.ClientId=%s "
    "AND Job.StartTime<'%s' "
    "AND Level='F' AND JobStatus='T' "
    "AND JobMedia.JobId=Job.JobId "
@@ -279,7 +279,7 @@ const char *uar_dif =
    "Job.VolSessionId,Job.VolSessionTime "
    "FROM Job,JobMedia,Media,FileSet "
    "WHERE Job.JobTDate>%s AND Job.StartTime<'%s' "
-   "AND Job.ClientId=%u "
+   "AND Job.ClientId=%s "
    "AND JobMedia.JobId=Job.JobId "
    "AND JobMedia.MediaId=Media.MediaId "
    "AND Job.Level='D' AND JobStatus='T' "
@@ -295,7 +295,7 @@ const char *uar_inc =
    "Job.VolSessionId,Job.VolSessionTime "
    "FROM Job,JobMedia,Media,FileSet "
    "WHERE Job.JobTDate>%s AND Job.StartTime<'%s' "
-   "AND Job.ClientId=%u "
+   "AND Job.ClientId=%s "
    "AND JobMedia.JobId=Job.JobId "
    "AND JobMedia.MediaId=Media.MediaId "
    "AND Job.Level='I' AND JobStatus='T' "
@@ -321,12 +321,12 @@ const char *uar_sel_all_temp = "SELECT * FROM temp";
 const char *uar_sel_fileset =
    "SELECT DISTINCT FileSet.FileSet FROM Job,"
    "Client,FileSet WHERE Job.FileSetId=FileSet.FileSetId "
-   "AND Job.ClientId=%u AND Client.ClientId=%u "
+   "AND Job.ClientId=%s AND Client.ClientId=%s "
    "ORDER BY FileSet.FileSet";
 
 /* Find MediaType used by this Job */
 const char *uar_mediatype =
-   "SELECT MediaType FROM JobMedia,Media WHERE JobMedia.JobId=%u "
+   "SELECT MediaType FROM JobMedia,Media WHERE JobMedia.JobId=%s"
    "AND JobMedia.MediaId=Media.MediaId";
 
 /*

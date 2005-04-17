@@ -36,29 +36,41 @@
 #include <Python.h>
 
 extern JCR *get_jcr_from_PyObject(PyObject *self);
+extern PyObject *find_method(PyObject *eventsObject, PyObject *method, char *name);
 
-PyObject *bacula_get(PyObject *self, PyObject *args);
-PyObject *bacula_set(PyObject *self, PyObject *args, PyObject *keyw);
+static PyObject *jcr_get(PyObject *self, PyObject *args);
+static PyObject *jcr_write(PyObject *self, PyObject *args);
+static PyObject *jcr_set(PyObject *self, PyObject *args, PyObject *keyw);
+static PyObject *set_jcr_events(PyObject *self, PyObject *args);
+
 PyObject *bacula_run(PyObject *self, PyObject *args);
 
-/* Define Bacula entry points */
-PyMethodDef BaculaMethods[] = {
-    {"get", bacula_get, METH_VARARGS, "Get Bacula variables."},
-    {"set", (PyCFunction)bacula_set, METH_VARARGS|METH_KEYWORDS,
-        "Set Bacula variables."},
-    {"run", (PyCFunction)bacula_run, METH_VARARGS, "Run a Bacula command."},
+/* Define Job entry points */
+PyMethodDef JobMethods[] = {
+    {"get", jcr_get, METH_VARARGS, "Get Job variables."},
+    {"set", (PyCFunction)jcr_set, METH_VARARGS|METH_KEYWORDS,
+        "Set Job variables."},
+    {"set_events", set_jcr_events, METH_VARARGS, "Define Job events."},
+    {"write", jcr_write, METH_VARARGS, "Write output."},
+//  {"run", (PyCFunction)bacula_run, METH_VARARGS, "Run a Bacula command."},
     {NULL, NULL, 0, NULL}             /* last item */
 };
 
+
+static PyObject *open_method = NULL;
+static PyObject *read_method = NULL;
+static PyObject *close_method = NULL;
+static PyObject *volname_method = NULL;
 
 struct s_vars {
    const char *name;
    char *fmt;
 };
 
+/* Read-only variables */
 static struct s_vars vars[] = {
    { N_("Job"),        "s"},
-   { N_("Dir"),        "s"},
+   { N_("DirName"),    "s"},
    { N_("Level"),      "s"},
    { N_("Type"),       "s"},
    { N_("JobId"),      "i"},
@@ -74,8 +86,8 @@ static struct s_vars vars[] = {
    { NULL,             NULL}
 };
 
-/* Return Bacula variables */
-PyObject *bacula_get(PyObject *self, PyObject *args)
+/* Return Job variables */
+static PyObject *jcr_get(PyObject *self, PyObject *args)
 {
    JCR *jcr;
    char *item;
@@ -129,8 +141,8 @@ PyObject *bacula_get(PyObject *self, PyObject *args)
    return NULL;
 }
 
-/* Set Bacula variables */
-PyObject *bacula_set(PyObject *self, PyObject *args, PyObject *keyw)
+/* Set Job variables */
+static PyObject *jcr_set(PyObject *self, PyObject *args, PyObject *keyw)
 {
    JCR *jcr;
    char *msg = NULL;
@@ -145,16 +157,73 @@ PyObject *bacula_set(PyObject *self, PyObject *args, PyObject *keyw)
    if (msg) {
       Jmsg(jcr, M_INFO, 0, "%s", msg);
    }
-   if (VolumeName) {
-      if (is_volume_name_legal(NULL, VolumeName)) {
-         pm_strcpy(jcr->VolumeName, VolumeName);
-      } else {
-         return Py_BuildValue("i", 0);  /* invalid volume name */
-      }
+   /* Make sure VolumeName is valid and we are in VolumeName event */
+   if (VolumeName && strcmp("VolumeName", jcr->event) == 0 &&
+       is_volume_name_legal(NULL, VolumeName)) {
+      pm_strcpy(jcr->VolumeName, VolumeName);
+   } else {
+      jcr->VolumeName[0] = 0;
+      return Py_BuildValue("i", 0);  /* invalid volume name */
    }
    return Py_BuildValue("i", 1);
 }
 
+static PyObject *set_jcr_events(PyObject *self, PyObject *args)
+{
+   PyObject *eObject;
+   if (!PyArg_ParseTuple(args, "O:set_events_hook", &eObject)) {
+      return NULL;
+   }
+   Py_XINCREF(eObject);
+   open_method = find_method(eObject, open_method, "open");
+   read_method = find_method(eObject, read_method, "read");
+   close_method = find_method(eObject, close_method, "close");
+   volname_method = find_method(eObject, volname_method, "VolumeName");
+   Py_INCREF(Py_None);
+   return Py_None;
+}
+
+/* Write text to job output */
+static PyObject *jcr_write(PyObject *self, PyObject *args)
+{
+   char *text;
+   if (!PyArg_ParseTuple(args, "s:write", &text)) {
+      return NULL;
+   }
+   if (text) {
+      JCR *jcr = get_jcr_from_PyObject(self);
+      Jmsg(jcr, M_INFO, 0, "%s", text);
+   }
+        
+   Py_INCREF(Py_None);
+   return Py_None;
+}
+
+int generate_job_event(JCR *jcr, const char *event)
+{
+   PyEval_AcquireLock();
+
+   PyObject *result = PyObject_CallFunction(open_method, "s", "m.py");
+   if (result == NULL) {
+      PyErr_Print();
+      PyErr_Clear();
+   }
+   Py_XDECREF(result);
+
+   PyEval_ReleaseLock();
+   return 1;
+}
+
+#else
+
+/* Dummy if Python not configured */
+int generate_job_event(JCR *jcr, const char *event)
+{ return 1; }
+   
+
+#endif /* HAVE_PYTHON */
+
+#ifdef xxx
 /* Run a Bacula command */
 PyObject *bacula_run(PyObject *self, PyObject *args)
 {
@@ -174,6 +243,4 @@ PyObject *bacula_run(PyObject *self, PyObject *args)
    free_ua_context(ua);
    return Py_BuildValue("i", stat);
 }
-
-
-#endif /* HAVE_PYTHON */
+#endif

@@ -1629,23 +1629,6 @@ bool truncate_dev(DEVICE *dev)
    return true;
 }
 
-/*
- * return 1 if the device is read for write, and 0 otherwise
- *   This is meant for checking at the end of a job to see
- *   if we still have a tape (perhaps not if at end of tape
- *   and the job is canceled).
- */
-bool
-dev_can_write(DEVICE *dev)
-{
-   if (dev->is_open() &&  dev->can_append() &&
-       dev->is_labeled()  && !(dev->state & ST_WEOT)) {
-      return true;
-   } else {
-      return false;
-   }
-}
-
 /* Return the resource name for the device */
 const char *DEVICE::name() const
 {

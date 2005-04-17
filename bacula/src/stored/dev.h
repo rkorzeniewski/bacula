@@ -267,6 +267,13 @@ public:
    int at_eot() const { return state & ST_EOT; }
    int at_weot() const { return state & ST_WEOT; }
    int can_append() const { return state & ST_APPEND; }
+   /*
+    * can_write() is meant for checking at the end of a job to see
+    * if we still have a tape (perhaps not if at end of tape
+    * and the job is canceled).
+    */
+   int can_write() const { return is_open() && can_append() &&
+                            is_labeled() && !at_weot(); }
    int can_read() const   { return state & ST_READ; }
    bool can_steal_lock() const { return dev_blocked &&
                     (dev_blocked == BST_UNMOUNTED ||

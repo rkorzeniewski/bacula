@@ -114,7 +114,6 @@ bool     bsr_dev(DEVICE *dev, int num);
 void     attach_jcr_to_device(DEVICE *dev, JCR *jcr);
 void     detach_jcr_from_device(DEVICE *dev, JCR *jcr);
 JCR     *next_attached_jcr(DEVICE *dev, JCR *jcr);
-bool     dev_can_write(DEVICE *dev);
 bool     offline_or_rewind_dev(DEVICE *dev);
 bool     reposition_dev(DEVICE *dev, uint32_t file, uint32_t block);
 void     init_device_wait_timers(DCR *dcr);
