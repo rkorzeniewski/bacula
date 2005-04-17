@@ -115,7 +115,7 @@ URL: http://www.bacula.org/
 Vendor: The Bacula Team
 Distribution: %{_dist}
 Packager: D. Scott Barninger <barninger@fairfieldcomputers.com>
-BuildRequires: readline-devel, atk-devel, ncurses-devel, pango-devel
+BuildRequires: readline-devel, atk-devel, ncurses-devel, pango-devel, perl
 BuildRequires: libstdc++-devel, libxml2-devel, zlib-devel, pkgconfig
 %if %{rh7}
 BuildRequires: libtermcap-devel
@@ -126,6 +126,8 @@ BuildRequires: ORBit-devel
 BuildRequires: bonobo-devel
 BuildRequires: GConf-devel
 BuildRequires: freetype-devel
+BuildRequires: tetex
+BuildRequires: tetex-latex
 %endif
 %if %{su9}
 BuildRequires: termcap
@@ -141,6 +143,8 @@ BuildRequires: bonobo-activation-devel
 BuildRequires: gconf2-devel
 BuildRequires: linc-devel
 BuildRequires: freetype2-devel
+BuildRequires: tetex
+BuildRequires: latex2html
 %endif
 %if %{mdk}
 BuildRequires: libtermcap-devel
@@ -156,6 +160,8 @@ BuildRequires: libGConf2-devel
 BuildRequires: libstdc++-static-devel
 BuildRequires: glibc-static-devel
 BuildRequires: freetype2-devel
+BuildRequires: tetex
+BuildRequires: latex2html
 %endif
 %if %{fc3}
 BuildRequires: libtermcap-devel
@@ -169,6 +175,8 @@ BuildRequires: libbonoboui-devel >= 2.8
 BuildRequires: bonobo-activation-devel
 BuildRequires: GConf2-devel
 BuildRequires: freetype-devel
+BuildRequires: tetex
+BuildRequires: tetex-latex
 %endif
 %if ! %{rh7} && ! %{su9} && ! %{mdk} && ! %{fc3}
 BuildRequires: libtermcap-devel
@@ -183,6 +191,8 @@ BuildRequires: bonobo-activation-devel
 BuildRequires: GConf2-devel
 BuildRequires: linc-devel
 BuildRequires: freetype-devel
+BuildRequires: tetex
+BuildRequires: tetex-latex
 %endif
 
 %if %{mysql} && ! %{mysql4}
@@ -570,6 +580,10 @@ cd src/filed
 strip static-bacula-fd
 cd ../../
 
+cd doc/latex
+make
+cd ../../
+
 %install
  
 cwd=${PWD}
@@ -617,14 +631,11 @@ make \
         mtx-install
 cd ${cwd}
 
-# setup the manual for the doc dir and correct some broken CVS permissions
+# setup the manual for the doc dir
 mkdir html-manual
-cp -p doc/html-manual/*.html html-manual/
-cp -p doc/html-manual/*.jpg html-manual/
-cp -p doc/html-manual/*.gif html-manual/
-cp -p doc/html-manual/*.css html-manual/
-chmod 644 html-manual/*
-chmod 644 doc/bacula.pdf
+cp -p doc/latex/bacula/*.html html-manual/
+cp -p doc/latex/bacula/*.png html-manual/
+cp -p doc/latex/bacula/*.css html-manual/
 
 # fixme - make installs the mysql scripts for sqlite build
 %if %{sqlite}
@@ -773,7 +784,8 @@ chmod 644 $RPM_BUILD_ROOT/etc/bacula/tray-monitor.conf
 /etc/init.d/bacula-fd
 /etc/init.d/bacula-sd
 
-%doc COPYING ChangeLog ReleaseNotes VERIFYING kernstodo doc/bacula.pdf html-manual ../Release_Notes-%{version}-%{release}.txt
+%doc COPYING ChangeLog ReleaseNotes VERIFYING kernstodo 
+%doc doc/latex/bacula.pdf doc/latex/developers.pdf html-manual ../Release_Notes-%{version}-%{release}.txt
 /usr/man/man1/*
 
 /etc/logrotate.d/bacula
@@ -906,7 +918,8 @@ fi
 /etc/init.d/bacula-fd
 /etc/init.d/bacula-sd
 
-%doc COPYING ChangeLog ReleaseNotes VERIFYING kernstodo doc/bacula.pdf html-manual ../Release_Notes-%{version}-%{release}.txt
+%doc COPYING ChangeLog ReleaseNotes VERIFYING kernstodo 
+%doc doc/latex/bacula.pdf doc/latex/developers.pdf html-manual ../Release_Notes-%{version}-%{release}.txt
 /usr/man/man1/*
 
 /etc/logrotate.d/bacula
@@ -1047,7 +1060,8 @@ fi
 /etc/init.d/bacula-fd
 /etc/init.d/bacula-sd
 
-%doc COPYING ChangeLog ReleaseNotes VERIFYING kernstodo doc/bacula.pdf html-manual ../Release_Notes-%{version}-%{release}.txt
+%doc COPYING ChangeLog ReleaseNotes VERIFYING kernstodo 
+%doc doc/latex/bacula.pdf doc/latex/developers.pdf html-manual ../Release_Notes-%{version}-%{release}.txt
 /usr/man/man1/*
 
 /etc/logrotate.d/bacula
@@ -1152,7 +1166,8 @@ fi
 /etc/bacula/bconsole
 /etc/init.d/bacula-fd
 
-%doc COPYING ChangeLog ReleaseNotes VERIFYING kernstodo doc/bacula.pdf html-manual ../Release_Notes-%{version}-%{release}.txt
+%doc COPYING ChangeLog ReleaseNotes VERIFYING kernstodo 
+%doc doc/latex/bacula.pdf doc/latex/developers.pdf html-manual ../Release_Notes-%{version}-%{release}.txt
 /etc/logrotate.d/bacula
 
 %config(noreplace) /etc/bacula/bacula-fd.conf
@@ -1257,6 +1272,8 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 
 
 %changelog
+* Sun Apr 17 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- release 1.36.3 update docs
 * Tue Apr 05 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - add centos4 build tag
 - add x86_64 build tag
