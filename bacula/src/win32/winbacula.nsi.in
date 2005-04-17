@@ -1,8 +1,8 @@
 ; winbacula.nsi
 ;
-; Written by Michel Meyers (michel@tcnnet.dyndns.org)
+; Began as a version written by Michel Meyers (michel@tcnnet.dyndns.org)
 ;
-; Updated by Kern Sibbald for native Win32 Bacula
+; Adapted by Kern Sibbald for native Win32 Bacula
 ;    added a number of elements from Christopher Hull's installer
 ;
 ; D. Scott Barninger Nov 13 2004
@@ -16,6 +16,10 @@
 ;   - thanks to Jamie Ffolliott for pointing me at cacls
 ; added removal of working-dir files if user selects to remove config
 ; uninstall is now 100% clean
+;
+; D. Scott Barninger Apr 17 2005
+; 1.36.3 release docs update
+; add pdf manual and menu shortcut
 ;
 ; Command line options:
 ;
@@ -218,9 +222,13 @@ SectionEnd
 Section "Install Documentation" SecDoc
   SetOutPath "$INSTDIR\doc"
   CreateDirectory "$INSTDIR\doc"
-  File ..\..\doc\html-manual\*.html
-  File ..\..\doc\html-manual\*.gif
-  File ..\..\doc\html-manual\*.jpg
+  File ..\..\doc\latex\bacula\*.html
+  File ..\..\doc\latex\bacula\*.png
+  File ..\..\doc\latex\bacula\*.css
+  File ..\..\doc\latex\bacula.pdf
+  ; Create Start Menu entry
+  SetShellVarContext all
+  CreateShortCut "$SMPROGRAMS\Bacula\Manual.lnk" "$INSTDIR\doc\bacula.pdf"
 SectionEnd
 
 ;
