@@ -132,12 +132,12 @@ int db_get_file_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, FILE_DBR *fdbr)
       mdb->num_rows = sql_num_rows(mdb);
       Dmsg1(050, "get_file_record num_rows=%d\n", (int)mdb->num_rows);
       if (mdb->num_rows > 1) {
-         Mmsg1(&mdb->errmsg, _("get_file_record want 1 got rows=%d\n"),
+         Mmsg1(mdb->errmsg, _("get_file_record want 1 got rows=%d\n"),
             mdb->num_rows);
       }
       if (mdb->num_rows >= 1) {
          if ((row = sql_fetch_row(mdb)) == NULL) {
-            Mmsg1(&mdb->errmsg, _("Error fetching row: %s\n"), sql_strerror(mdb));
+            Mmsg1(mdb->errmsg, _("Error fetching row: %s\n"), sql_strerror(mdb));
          } else {
             fdbr->FileId = (FileId_t)str_to_int64(row[0]);
             bstrncpy(fdbr->LStat, row[1], sizeof(fdbr->LStat));
@@ -145,7 +145,7 @@ int db_get_file_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, FILE_DBR *fdbr)
             stat = 1;
          }
       } else {
-         Mmsg2(&mdb->errmsg, _("File record for PathId=%s FilenameId=%s not found.\n"),
+         Mmsg2(mdb->errmsg, _("File record for PathId=%s FilenameId=%s not found.\n"),
             edit_int64(fdbr->PathId, ed1), 
             edit_int64(fdbr->FilenameId, ed2));
       }
@@ -176,23 +176,23 @@ static int db_get_filename_record(JCR *jcr, B_DB *mdb)
       char ed1[30];
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 1) {
-         Mmsg2(&mdb->errmsg, _("More than one Filename!: %s for file: %s\n"),
+         Mmsg2(mdb->errmsg, _("More than one Filename!: %s for file: %s\n"),
             edit_uint64(mdb->num_rows, ed1), mdb->fname);
          Jmsg(jcr, M_WARNING, 0, "%s", mdb->errmsg);
       }
       if (mdb->num_rows >= 1) {
          if ((row = sql_fetch_row(mdb)) == NULL) {
-            Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
+            Mmsg1(mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
          } else {
             FilenameId = str_to_int64(row[0]);
             if (FilenameId <= 0) {
-               Mmsg2(&mdb->errmsg, _("Get DB Filename record %s found bad record: %d\n"),
+               Mmsg2(mdb->errmsg, _("Get DB Filename record %s found bad record: %d\n"),
                   mdb->cmd, FilenameId);
                FilenameId = 0;
             }
          }
       } else {
-         Mmsg1(&mdb->errmsg, _("Filename record: %s not found.\n"), mdb->fname);
+         Mmsg1(mdb->errmsg, _("Filename record: %s not found.\n"), mdb->fname);
       }
       sql_free_result(mdb);
    } else {
@@ -226,18 +226,18 @@ static int db_get_path_record(JCR *jcr, B_DB *mdb)
       char ed1[30];
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 1) {
-         Mmsg2(&mdb->errmsg, _("More than one Path!: %s for path: %s\n"),
+         Mmsg2(mdb->errmsg, _("More than one Path!: %s for path: %s\n"),
             edit_uint64(mdb->num_rows, ed1), mdb->path);
          Jmsg(jcr, M_WARNING, 0, "%s", mdb->errmsg);
       }
       /* Even if there are multiple paths, take the first one */
       if (mdb->num_rows >= 1) {
          if ((row = sql_fetch_row(mdb)) == NULL) {
-            Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
+            Mmsg1(mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
          } else {
             PathId = str_to_int64(row[0]);
             if (PathId <= 0) {
-               Mmsg2(&mdb->errmsg, _("Get DB path record %s found bad record: %s\n"),
+               Mmsg2(mdb->errmsg, _("Get DB path record %s found bad record: %s\n"),
                   mdb->cmd, edit_int64(PathId, ed1));
                PathId = 0;
             } else {
@@ -245,12 +245,12 @@ static int db_get_path_record(JCR *jcr, B_DB *mdb)
                if (PathId != mdb->cached_path_id) {
                   mdb->cached_path_id = PathId;
                   mdb->cached_path_len = mdb->pnl;
-                  pm_strcpy(&mdb->cached_path, mdb->path);
+                  pm_strcpy(mdb->cached_path, mdb->path);
                }
             }
          }
       } else {
-         Mmsg1(&mdb->errmsg, _("Path record: %s not found.\n"), mdb->path);
+         Mmsg1(mdb->errmsg, _("Path record: %s not found.\n"), mdb->path);
       }
       sql_free_result(mdb);
    } else {
@@ -289,7 +289,7 @@ int db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
       return 0;                       /* failed */
    }
    if ((row = sql_fetch_row(mdb)) == NULL) {
-      Mmsg1(&mdb->errmsg, _("No Job found for JobId %s\n"), edit_int64(jr->JobId, ed1));
+      Mmsg1(mdb->errmsg, _("No Job found for JobId %s\n"), edit_int64(jr->JobId, ed1));
       sql_free_result(mdb);
       db_unlock(mdb);
       return 0;                       /* failed */
@@ -345,13 +345,13 @@ int db_get_job_volume_names(JCR *jcr, B_DB *mdb, JobId_t JobId, POOLMEM **Volume
       mdb->num_rows = sql_num_rows(mdb);
       Dmsg1(130, "Num rows=%d\n", mdb->num_rows);
       if (mdb->num_rows <= 0) {
-         Mmsg1(&mdb->errmsg, _("No volumes found for JobId=%d\n"), JobId);
+         Mmsg1(mdb->errmsg, _("No volumes found for JobId=%d\n"), JobId);
          stat = 0;
       } else {
          stat = mdb->num_rows;
          for (i=0; i < stat; i++) {
             if ((row = sql_fetch_row(mdb)) == NULL) {
-               Mmsg2(&mdb->errmsg, _("Error fetching row %d: ERR=%s\n"), i, sql_strerror(mdb));
+               Mmsg2(mdb->errmsg, _("Error fetching row %d: ERR=%s\n"), i, sql_strerror(mdb));
                Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
                stat = 0;
                break;
@@ -400,7 +400,7 @@ int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, JobId_t JobId, VOL_PARAMS 
       mdb->num_rows = sql_num_rows(mdb);
       Dmsg1(130, "Num rows=%d\n", mdb->num_rows);
       if (mdb->num_rows <= 0) {
-         Mmsg1(&mdb->errmsg, _("No volumes found for JobId=%d\n"), JobId);
+         Mmsg1(mdb->errmsg, _("No volumes found for JobId=%d\n"), JobId);
          stat = 0;
       } else {
          stat = mdb->num_rows;
@@ -409,7 +409,7 @@ int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, JobId_t JobId, VOL_PARAMS 
          }
          for (i=0; i < stat; i++) {
             if ((row = sql_fetch_row(mdb)) == NULL) {
-               Mmsg2(&mdb->errmsg, _("Error fetching row %d: ERR=%s\n"), i, sql_strerror(mdb));
+               Mmsg2(mdb->errmsg, _("Error fetching row %d: ERR=%s\n"), i, sql_strerror(mdb));
                Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
                stat = 0;
                break;
@@ -560,12 +560,12 @@ bool db_get_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pdbr)
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 1) {
          char ed1[30];
-         Mmsg1(&mdb->errmsg, _("More than one Pool!: %s\n"),
+         Mmsg1(mdb->errmsg, _("More than one Pool!: %s\n"),
             edit_uint64(mdb->num_rows, ed1));
          Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       } else if (mdb->num_rows == 1) {
          if ((row = sql_fetch_row(mdb)) == NULL) {
-            Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
+            Mmsg1(mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
             Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
          } else {
             pdbr->PoolId = str_to_int64(row[0]);
@@ -630,12 +630,12 @@ int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cdbr)
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 1) {
-         Mmsg1(&mdb->errmsg, _("More than one Client!: %s\n"),
+         Mmsg1(mdb->errmsg, _("More than one Client!: %s\n"),
             edit_uint64(mdb->num_rows, ed1));
          Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       } else if (mdb->num_rows == 1) {
          if ((row = sql_fetch_row(mdb)) == NULL) {
-            Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
+            Mmsg1(mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
             Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
          } else {
             cdbr->ClientId = str_to_int64(row[0]);
@@ -676,12 +676,12 @@ int db_get_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
 
       /* If more than one, report error, but return first row */
       if (mdb->num_rows > 1) {
-         Mmsg1(&mdb->errmsg, _("More than one Counter!: %d\n"), (int)(mdb->num_rows));
+         Mmsg1(mdb->errmsg, _("More than one Counter!: %d\n"), (int)(mdb->num_rows));
          Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       }
       if (mdb->num_rows >= 1) {
          if ((row = sql_fetch_row(mdb)) == NULL) {
-            Mmsg1(&mdb->errmsg, _("error fetching Counter row: %s\n"), sql_strerror(mdb));
+            Mmsg1(mdb->errmsg, _("error fetching Counter row: %s\n"), sql_strerror(mdb));
             Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
             sql_free_result(mdb);
             db_unlock(mdb);
@@ -737,12 +737,12 @@ int db_get_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 1) {
          char ed1[30];
-         Mmsg1(&mdb->errmsg, _("Error got %s FileSets but expected only one!\n"),
+         Mmsg1(mdb->errmsg, _("Error got %s FileSets but expected only one!\n"),
             edit_uint64(mdb->num_rows, ed1));
          sql_data_seek(mdb, mdb->num_rows-1);
       }
       if ((row = sql_fetch_row(mdb)) == NULL) {
-         Mmsg1(&mdb->errmsg, _("FileSet record \"%s\" not found.\n"), fsr->FileSet);
+         Mmsg1(mdb->errmsg, _("FileSet record \"%s\" not found.\n"), fsr->FileSet);
       } else {
          fsr->FileSetId = str_to_int64(row[0]);
          bstrncpy(fsr->FileSet, row[1]!=NULL?row[1]:"", sizeof(fsr->FileSet));
@@ -857,12 +857,12 @@ int db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       char ed1[50];
       mdb->num_rows = sql_num_rows(mdb);
       if (mdb->num_rows > 1) {
-         Mmsg1(&mdb->errmsg, _("More than one Volume!: %s\n"),
+         Mmsg1(mdb->errmsg, _("More than one Volume!: %s\n"),
             edit_uint64(mdb->num_rows, ed1));
          Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       } else if (mdb->num_rows == 1) {
          if ((row = sql_fetch_row(mdb)) == NULL) {
-            Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
+            Mmsg1(mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
             Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
          } else {
             /* return values */
@@ -902,10 +902,10 @@ int db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
          }
       } else {
          if (mr->MediaId != 0) {
-            Mmsg1(&mdb->errmsg, _("Media record MediaId=%s not found.\n"), 
+            Mmsg1(mdb->errmsg, _("Media record MediaId=%s not found.\n"), 
                edit_int64(mr->MediaId, ed1));
          } else {
-            Mmsg1(&mdb->errmsg, _("Media record for Volume \"%s\" not found.\n"),
+            Mmsg1(mdb->errmsg, _("Media record for Volume \"%s\" not found.\n"),
                   mr->VolumeName);
          }
       }

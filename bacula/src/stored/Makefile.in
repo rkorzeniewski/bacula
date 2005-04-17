@@ -57,6 +57,7 @@ BLSOBJS = bls.o block.o butil.o device.o dev.o label.o match_bsr.o \
 BEXTOBJS = bextract.o block.o device.o dev.o label.o record.o \
 	   ansi_label.o dvd.o ebcdic.o \
 	   autochanger.o acquire.o mount.o match_bsr.o parse_bsr.o butil.o \
+	   python.o \
 	   read_record.o stored_conf.o spool.o wait.o
 
 # bscan
@@ -98,38 +99,48 @@ bacula-sd: $(SVROBJS) ../lib/libbac.a
 
 static-bacula-sd: $(SVROBJS) ../lib/libbac.a
 	$(CXX) $(WLDFLAGS) $(LDFLAGS) -static -L../lib -o $@ $(SVROBJS) $(FDLIBS) \
-	  -lbac -lm $(PYTHON_LIBS) $(DLIB) $(LIBS) 
+ -lbac -lm $(PYTHON_LIBS) $(DLIB) $(LIBS) 
 	strip $@
 
 btape.o: btape.c
-	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) \
+ -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 
 btape:	$(TAPEOBJS) ../lib/libbac.a ../cats/libsql.a
-	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../cats  -o $@ $(TAPEOBJS) -lsql $(DLIB) -lbac -lm $(LIBS) 
+	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../cats  -o $@ $(TAPEOBJS) \
+ -lsql $(DLIB) -lbac -lm $(PYTHON_LIBS) $(LIBS) 
 
 bls.o:	bls.c
-	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) \
+ -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 
 bls:	../findlib/libfind.a $(BLSOBJS) ../lib/libbac.a
-	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(BLSOBJS) $(DLIB) -lfind -lbac -lm $(LIBS) 
+	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(BLSOBJS) $(DLIB) -lfind \
+ -lbac -lm $(PYTHON_LIBS) $(LIBS) 
 
 bextract.o: bextract.c
-	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) \
+ -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 
 bextract: ../findlib/libfind.a $(BEXTOBJS) ../lib/libbac.a
-	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(BEXTOBJS) $(DLIB) $(FDLIBS) -lfind -lbac -lm $(LIBS) 
+	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(BEXTOBJS) $(DLIB) $(FDLIBS) \
+ -lfind -lbac -lm $(PYTHON_LIBS) $(LIBS) 
 
 bscan.o: bscan.c
-	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) \
+ -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 
 bscan:	../findlib/libfind.a $(SCNOBJS) ../cats/libsql.a
-	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../cats -L../findlib -o $@ $(SCNOBJS) -lsql $(DB_LIBS) $(FDLIBS) -lfind -lbac -lm $(LIBS) 
+	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../cats -L../findlib -o $@ $(SCNOBJS) \
+ -lsql $(DB_LIBS) $(FDLIBS) -lfind -lbac -lm $(PYTHON_LIBS) $(LIBS) 
 
 bcopy.o: bcopy.c
-	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) \
+ -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 
 bcopy:	$(COPYOBJS) ../findlib/libfind.a ../lib/libbac.a
-	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(COPYOBJS)  $(DB_LIBS) $(FDLIBS) -lfind -lbac -lm $(LIBS) 
+	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(COPYOBJS) \
+ $(DB_LIBS) $(FDLIBS) -lfind -lbac -lm $(PYTHON_LIBS) $(LIBS) 
 
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status

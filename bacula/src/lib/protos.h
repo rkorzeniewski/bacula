@@ -176,9 +176,10 @@ void free_getgroup_cache();
 
 /* python.c */
 typedef int (EVENT_HANDLER)(JCR *jcr, const char *event);
-void init_python_interpreter(const char *progname, const char *scripts);
+void init_python_interpreter(const char *progname, const char *scripts,
+                             const char *module);
 void term_python_interpreter();
-extern EVENT_HANDLER *generate_event;
+extern EVENT_HANDLER *generate_daemon_event;
 
 /* signal.c */
 void             init_signals             (void terminate(int sig));

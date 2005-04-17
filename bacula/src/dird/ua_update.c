@@ -32,7 +32,7 @@
 #include "dird.h"
 
 /* External variables */
-extern char *list_pool; 	      /* in sql_cmds.c */
+extern char *list_pool;               /* in sql_cmds.c */
 
 /* Imported functions */
 void set_pooldbr_from_poolres(POOL_DBR *pr, POOL *pool, e_pool_op op);
@@ -48,11 +48,11 @@ static int update_pool(UAContext *ua);
  *  It is always updated from the Resource record.
  *
  *    update pool=<pool-name>
- *	   updates pool from Pool resource
+ *         updates pool from Pool resource
  *    update media pool=<pool-name> volume=<volume-name>
- *	   changes pool info for volume
+ *         changes pool info for volume
  *    update slots [scan=...]
- *	   updates autochanger slots
+ *         updates autochanger slots
  */
 int update_cmd(UAContext *ua, const char *cmd)
 {
@@ -120,8 +120,8 @@ static void update_volstatus(UAContext *ua, const char *val, MEDIA_DBR *mr)
 
    for (i=0; kw[i]; i++) {
       if (strcasecmp(val, kw[i]) == 0) {
-	 found = true;
-	 break;
+         found = true;
+         break;
       }
    }
    if (!found) {
@@ -130,7 +130,7 @@ static void update_volstatus(UAContext *ua, const char *val, MEDIA_DBR *mr)
       char ed1[50];
       bstrncpy(mr->VolStatus, kw[i], sizeof(mr->VolStatus));
       Mmsg(query, "UPDATE Media SET VolStatus='%s' WHERE MediaId=%s",
-	 mr->VolStatus, edit_int64(mr->MediaId,ed1));
+         mr->VolStatus, edit_int64(mr->MediaId,ed1));
       if (!db_sql_query(ua->db, query, NULL, NULL)) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
       } else {
@@ -155,7 +155,7 @@ static void update_volretention(UAContext *ua, char *val, MEDIA_DBR *mr)
       bsendmsg(ua, "%s", db_strerror(ua->db));
    } else {
       bsendmsg(ua, _("New retention period is: %s\n"),
-	 edit_utime(mr->VolRetention, ed1, sizeof(ed1)));
+         edit_utime(mr->VolRetention, ed1, sizeof(ed1)));
    }
    free_pool_memory(query);
 }
@@ -176,7 +176,7 @@ static void update_voluseduration(UAContext *ua, char *val, MEDIA_DBR *mr)
       bsendmsg(ua, "%s", db_strerror(ua->db));
    } else {
       bsendmsg(ua, _("New use duration is: %s\n"),
-	 edit_utime(mr->VolUseDuration, ed1, sizeof(ed1)));
+         edit_utime(mr->VolUseDuration, ed1, sizeof(ed1)));
    }
    free_pool_memory(query);
 }
@@ -267,7 +267,7 @@ static void update_vol_pool(UAContext *ua, char *val, MEDIA_DBR *mr, POOL_DBR *o
    if (!get_pool_dbr(ua, &pr)) {
       return;
    }
-   mr->PoolId = pr.PoolId;	      /* set new PoolId */
+   mr->PoolId = pr.PoolId;            /* set new PoolId */
    /*
     */
    query = get_pool_memory(PM_MESSAGE);
@@ -310,7 +310,7 @@ static void update_volfrompool(UAContext *ua, MEDIA_DBR *mr)
       bsendmsg(ua, _("Error updating Volume record: ERR=%s"), db_strerror(ua->db));
    } else {
       bsendmsg(ua, _("Volume defaults updated from \"%s\" Pool record.\n"),
-	 pr.Name);
+         pr.Name);
    }
 }
 
@@ -368,54 +368,54 @@ static int update_volume(UAContext *ua)
       int j;
       POOL_DBR pr;
       if ((j=find_arg_with_value(ua, kw[i])) > 0) {
-	 if (i != 9 && !select_media_dbr(ua, &mr)) {
-	    return 0;
-	 }
-	 switch (i) {
-	 case 0:
-	    update_volstatus(ua, ua->argv[j], &mr);
-	    break;
-	 case 1:
-	    update_volretention(ua, ua->argv[j], &mr);
-	    break;
-	 case 2:
-	    update_voluseduration(ua, ua->argv[j], &mr);
-	    break;
-	 case 3:
-	    update_volmaxjobs(ua, ua->argv[j], &mr);
-	    break;
-	 case 4:
-	    update_volmaxfiles(ua, ua->argv[j], &mr);
-	    break;
-	 case 5:
-	    update_volmaxbytes(ua, ua->argv[j], &mr);
-	    break;
-	 case 6:
-	    update_volrecycle(ua, ua->argv[j], &mr);
-	    break;
-	 case 7:
-	    memset(&pr, 0, sizeof(POOL_DBR));
-	    pr.PoolId = mr.PoolId;
-	    if (!db_get_pool_record(ua->jcr, ua->db, &pr)) {
+         if (i != 9 && !select_media_dbr(ua, &mr)) {
+            return 0;
+         }
+         switch (i) {
+         case 0:
+            update_volstatus(ua, ua->argv[j], &mr);
+            break;
+         case 1:
+            update_volretention(ua, ua->argv[j], &mr);
+            break;
+         case 2:
+            update_voluseduration(ua, ua->argv[j], &mr);
+            break;
+         case 3:
+            update_volmaxjobs(ua, ua->argv[j], &mr);
+            break;
+         case 4:
+            update_volmaxfiles(ua, ua->argv[j], &mr);
+            break;
+         case 5:
+            update_volmaxbytes(ua, ua->argv[j], &mr);
+            break;
+         case 6:
+            update_volrecycle(ua, ua->argv[j], &mr);
+            break;
+         case 7:
+            memset(&pr, 0, sizeof(POOL_DBR));
+            pr.PoolId = mr.PoolId;
+            if (!db_get_pool_record(ua->jcr, ua->db, &pr)) {
                bsendmsg(ua, "%s", db_strerror(ua->db));
-	       break;
-	    }
-	    update_vol_pool(ua, ua->argv[j], &mr, &pr);
-	    break;
-	 case 8:
-	    update_volfrompool(ua, &mr);
-	    return 1;
-	 case 9:
-	    update_all_vols_from_pool(ua);
-	    return 1;
-	 }
-	 done = true;
+               break;
+            }
+            update_vol_pool(ua, ua->argv[j], &mr, &pr);
+            break;
+         case 8:
+            update_volfrompool(ua, &mr);
+            return 1;
+         case 9:
+            update_all_vols_from_pool(ua);
+            return 1;
+         }
+         done = true;
       }
    }
 
    for ( ; !done; ) {
       if (!select_media_dbr(ua, &mr)) {
-	 return 0;
+         return 0;
       }
       bsendmsg(ua, _("Updating Volume \"%s\"\n"), mr.VolumeName);
       start_prompt(ua, _("Parameters to modify:\n"));
@@ -434,8 +434,8 @@ static int update_volume(UAContext *ua)
       add_prompt(ua, _("All Volumes from Pool"));
       add_prompt(ua, _("Done"));
       switch (do_prompt(ua, "", _("Select parameter to modify"), NULL, 0)) {
-      case 0:			      /* Volume Status */
-	 /* Modify Volume Status */
+      case 0:                         /* Volume Status */
+         /* Modify Volume Status */
          bsendmsg(ua, _("Current Volume status is: %s\n"), mr.VolStatus);
          start_prompt(ua, _("Possible Values are:\n"));
          add_prompt(ua, "Append");      /* Better not translate these as */
@@ -446,163 +446,163 @@ static int update_volume(UAContext *ua)
          add_prompt(ua, "Cleaning");
          if (strcmp(mr.VolStatus, "Purged") == 0) {
             add_prompt(ua, "Recycle");
-	 }
+         }
          add_prompt(ua, "Read-Only");
          if (do_prompt(ua, "", _("Choose new Volume Status"), ua->cmd, sizeof(mr.VolStatus)) < 0) {
-	    return 1;
-	 }
-	 update_volstatus(ua, ua->cmd, &mr);
-	 break;
-      case 1:			      /* Retention */
+            return 1;
+         }
+         update_volstatus(ua, ua->cmd, &mr);
+         break;
+      case 1:                         /* Retention */
          bsendmsg(ua, _("Current retention period is: %s\n"),
-	    edit_utime(mr.VolRetention, ed1, sizeof(ed1)));
+            edit_utime(mr.VolRetention, ed1, sizeof(ed1)));
          if (!get_cmd(ua, _("Enter Volume Retention period: "))) {
-	    return 0;
-	 }
-	 update_volretention(ua, ua->cmd, &mr);
-	 break;
+            return 0;
+         }
+         update_volretention(ua, ua->cmd, &mr);
+         break;
 
-      case 2:			      /* Use Duration */
+      case 2:                         /* Use Duration */
          bsendmsg(ua, _("Current use duration is: %s\n"),
-	    edit_utime(mr.VolUseDuration, ed1, sizeof(ed1)));
+            edit_utime(mr.VolUseDuration, ed1, sizeof(ed1)));
          if (!get_cmd(ua, _("Enter Volume Use Duration: "))) {
-	    return 0;
-	 }
-	 update_voluseduration(ua, ua->cmd, &mr);
-	 break;
+            return 0;
+         }
+         update_voluseduration(ua, ua->cmd, &mr);
+         break;
 
-      case 3:			      /* Max Jobs */
+      case 3:                         /* Max Jobs */
          bsendmsg(ua, _("Current max jobs is: %u\n"), mr.MaxVolJobs);
          if (!get_pint(ua, _("Enter new Maximum Jobs: "))) {
-	    return 0;
-	 }
-	 update_volmaxjobs(ua, ua->cmd, &mr);
-	 break;
+            return 0;
+         }
+         update_volmaxjobs(ua, ua->cmd, &mr);
+         break;
 
-      case 4:			      /* Max Files */
+      case 4:                         /* Max Files */
          bsendmsg(ua, _("Current max files is: %u\n"), mr.MaxVolFiles);
          if (!get_pint(ua, _("Enter new Maximum Files: "))) {
-	    return 0;
-	 }
-	 update_volmaxfiles(ua, ua->cmd, &mr);
-	 break;
+            return 0;
+         }
+         update_volmaxfiles(ua, ua->cmd, &mr);
+         break;
 
-      case 5:			      /* Max Bytes */
+      case 5:                         /* Max Bytes */
          bsendmsg(ua, _("Current value is: %s\n"), edit_uint64(mr.MaxVolBytes, ed1));
          if (!get_cmd(ua, _("Enter new Maximum Bytes: "))) {
-	    return 0;
-	 }
-	 update_volmaxbytes(ua, ua->cmd, &mr);
-	 break;
+            return 0;
+         }
+         update_volmaxbytes(ua, ua->cmd, &mr);
+         break;
 
 
-      case 6:			      /* Recycle */
+      case 6:                         /* Recycle */
          bsendmsg(ua, _("Current recycle flag is: %s\n"),
             mr.Recycle==1?_("yes"):_("no"));
          if (!get_yesno(ua, _("Enter new Recycle status: "))) {
-	    return 0;
-	 }
-	 update_volrecycle(ua, ua->cmd, &mr);
-	 break;
+            return 0;
+         }
+         update_volrecycle(ua, ua->cmd, &mr);
+         break;
 
-      case 7:			      /* Slot */
-	 int Slot;
+      case 7:                         /* Slot */
+         int Slot;
 
-	 memset(&pr, 0, sizeof(POOL_DBR));
-	 pr.PoolId = mr.PoolId;
-	 if (!db_get_pool_record(ua->jcr, ua->db, &pr)) {
+         memset(&pr, 0, sizeof(POOL_DBR));
+         pr.PoolId = mr.PoolId;
+         if (!db_get_pool_record(ua->jcr, ua->db, &pr)) {
             bsendmsg(ua, "%s", db_strerror(ua->db));
-	    return 0;
-	 }
+            return 0;
+         }
          bsendmsg(ua, _("Current Slot is: %d\n"), mr.Slot);
          if (!get_pint(ua, _("Enter new Slot: "))) {
-	    return 0;
-	 }
-	 Slot = ua->pint32_val;
-	 if (pr.MaxVols > 0 && Slot > (int)pr.MaxVols) {
+            return 0;
+         }
+         Slot = ua->pint32_val;
+         if (pr.MaxVols > 0 && Slot > (int)pr.MaxVols) {
             bsendmsg(ua, _("Invalid slot, it must be between 0 and %d\n"),
-	       pr.MaxVols);
-	    break;
-	 }
-	 mr.Slot = Slot;
-	 /*
-	  * Make sure to use db_update... rather than doing this directly,
-	  *   so that any Slot is handled correctly.
-	  */
-	 if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
+               pr.MaxVols);
+            break;
+         }
+         mr.Slot = Slot;
+         /*
+          * Make sure to use db_update... rather than doing this directly,
+          *   so that any Slot is handled correctly.
+          */
+         if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
             bsendmsg(ua, _("Error updating media record Slot: ERR=%s"), db_strerror(ua->db));
-	 } else {
+         } else {
             bsendmsg(ua, _("New Slot is: %d\n"), mr.Slot);
-	 }
-	 break;
+         }
+         break;
 
-      case 8:			      /* InChanger */
+      case 8:                         /* InChanger */
          bsendmsg(ua, _("Current InChanger flag is: %d\n"), mr.InChanger);
          if (!get_yesno(ua, _("Set InChanger flag? yes/no: "))) {
-	    return 0;
-	 }
-	 mr.InChanger = ua->pint32_val;
-	 /*
-	  * Make sure to use db_update... rather than doing this directly,
-	  *   so that any Slot is handled correctly.
-	  */
-	 if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
+            return 0;
+         }
+         mr.InChanger = ua->pint32_val;
+         /*
+          * Make sure to use db_update... rather than doing this directly,
+          *   so that any Slot is handled correctly.
+          */
+         if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
             bsendmsg(ua, _("Error updating media record Slot: ERR=%s"), db_strerror(ua->db));
-	 } else {
+         } else {
             bsendmsg(ua, _("New InChanger flag is: %d\n"), mr.InChanger);
-	 }
-	 break;
+         }
+         break;
 
 
-      case 9:			      /* Volume Files */
-	 int32_t VolFiles;
+      case 9:                         /* Volume Files */
+         int32_t VolFiles;
          bsendmsg(ua, _("Warning changing Volume Files can result\n"
                         "in loss of data on your Volume\n\n"));
          bsendmsg(ua, _("Current Volume Files is: %u\n"), mr.VolFiles);
          if (!get_pint(ua, _("Enter new number of Files for Volume: "))) {
-	    return 0;
-	 }
-	 VolFiles = ua->pint32_val;
-	 if (VolFiles != (int)(mr.VolFiles + 1)) {
+            return 0;
+         }
+         VolFiles = ua->pint32_val;
+         if (VolFiles != (int)(mr.VolFiles + 1)) {
             bsendmsg(ua, _("Normally, you should only increase Volume Files by one!\n"));
             if (!get_yesno(ua, _("Continue? (yes/no): ")) || ua->pint32_val == 0) {
-	       break;
-	    }
-	 }
-	 query = get_pool_memory(PM_MESSAGE);
+               break;
+            }
+         }
+         query = get_pool_memory(PM_MESSAGE);
          Mmsg(query, "UPDATE Media SET VolFiles=%u WHERE MediaId=%s",
-	    VolFiles, edit_int64(mr.MediaId, ed1));
-	 if (!db_sql_query(ua->db, query, NULL, NULL)) {
+            VolFiles, edit_int64(mr.MediaId, ed1));
+         if (!db_sql_query(ua->db, query, NULL, NULL)) {
             bsendmsg(ua, "%s", db_strerror(ua->db));
-	 } else {
+         } else {
             bsendmsg(ua, _("New Volume Files is: %u\n"), VolFiles);
-	 }
-	 free_pool_memory(query);
-	 break;
+         }
+         free_pool_memory(query);
+         break;
 
       case 10:                        /* Volume's Pool */
-	 memset(&pr, 0, sizeof(POOL_DBR));
-	 pr.PoolId = mr.PoolId;
-	 if (!db_get_pool_record(ua->jcr, ua->db, &pr)) {
+         memset(&pr, 0, sizeof(POOL_DBR));
+         pr.PoolId = mr.PoolId;
+         if (!db_get_pool_record(ua->jcr, ua->db, &pr)) {
             bsendmsg(ua, "%s", db_strerror(ua->db));
-	    return 0;
-	 }
+            return 0;
+         }
          bsendmsg(ua, _("Current Pool is: %s\n"), pr.Name);
          if (!get_cmd(ua, _("Enter new Pool name: "))) {
-	    return 0;
-	 }
-	 update_vol_pool(ua, ua->cmd, &mr, &pr);
-	 return 1;
+            return 0;
+         }
+         update_vol_pool(ua, ua->cmd, &mr, &pr);
+         return 1;
 
       case 11:
-	 update_volfrompool(ua, &mr);
-	 return 1;
+         update_volfrompool(ua, &mr);
+         return 1;
       case 12:
-	 update_all_vols_from_pool(ua);
-	 return 1;
-      default:			      /* Done or error */
+         update_all_vols_from_pool(ua);
+         return 1;
+      default:                        /* Done or error */
          bsendmsg(ua, "Selection done.\n");
-	 return 1;
+         return 1;
       }
    }
    return 1;
@@ -617,6 +617,7 @@ static int update_pool(UAContext *ua)
    int id;
    POOL *pool;
    POOLMEM *query;
+   char ed1[50];
 
    pool = get_pool_resource(ua);
    if (!pool) {
@@ -634,10 +635,10 @@ static int update_pool(UAContext *ua)
    id = db_update_pool_record(ua->jcr, ua->db, &pr);
    if (id <= 0) {
       bsendmsg(ua, _("db_update_pool_record returned %d. ERR=%s\n"),
-	 id, db_strerror(ua->db));
+         id, db_strerror(ua->db));
    }
    query = get_pool_memory(PM_MESSAGE);
-   Mmsg(query, list_pool, pr.PoolId);
+   Mmsg(query, list_pool, edit_int64(pr.PoolId, ed1));
    db_list_sql_query(ua->jcr, ua->db, query, prtit, ua, 1, HORZ_LIST);
    free_pool_memory(query);
    bsendmsg(ua, _("Pool DB record updated from resource.\n"));

@@ -90,8 +90,10 @@
 #define SD_APPEND 1
 #define SD_READ   0
 
-
+/* Forward referenced structures */
 struct JCR;
+struct FF_PKT;
+
 typedef void (JCR_free_HANDLER)(JCR *jcr);
 
 /* Job Control Record (JCR) */
@@ -112,6 +114,7 @@ struct JCR {
    POOLMEM *VolumeName;               /* Volume name desired -- pool_memory */
    POOLMEM *errmsg;                   /* edited error message */
    char Job[MAX_NAME_LENGTH];         /* Unique name of this Job */
+   char event[MAX_NAME_LENGTH];       /* Current event */
    uint32_t JobId;                    /* Director's JobId */
    uint32_t VolSessionId;
    uint32_t VolSessionTime;
@@ -140,6 +143,7 @@ struct JCR {
    bool prefix_links;                 /* Prefix links with Where path */
    bool gui;                          /* set if gui using console */
    bool authenticated;                /* set when client authenticated */
+   void *Python_jcr;                  /* Python Job Object */
 
    /* Daemon specific part of JCR */
    /* This should be empty in the library */
@@ -209,7 +213,7 @@ struct JCR {
    int32_t compress_buf_size;         /* Length of compression buffer */
    int replace;                       /* Replace options */
    int buf_size;                      /* length of buffer */
-   void *ff;                          /* Find Files packet */
+   FF_PKT *ff;                        /* Find Files packet */
    char stored_addr[MAX_NAME_LENGTH]; /* storage daemon address */
    uint32_t StartFile;
    uint32_t EndFile;

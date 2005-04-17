@@ -28,8 +28,9 @@ Autochangers:
      all Volumes from other drives.  "update slots all-drives"?
   
 For 1.37:
-- Add disk seeking on restore; turn off seek on tapes.
-  stored/match_bsr.c
+- Implement some way to turn off automatic pruning in Jobs.
+- Implement a way an Admin Job can prune, possibly multiple
+  clients -- Python script?
 - Implement "NewVolumeEachJob = yes|no" in Dir.
 - FD Python
   - Python script to save with Python, not save, save with Bacula.
@@ -1299,3 +1300,6 @@ Block Position: 0
     Client, Storage, JobStatus (error), ...
 - SD Python
   - Solicit Events
+- Add disk seeking on restore; turn off seek on tapes.
+  stored/match_bsr.c
+

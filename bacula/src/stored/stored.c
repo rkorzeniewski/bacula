@@ -209,7 +209,7 @@ int main (int argc, char *argv[])
    }
 
    init_python_interpreter(me->hdr.name, me->scripts_directory ?
-         me->scripts_directory : ".");
+         me->scripts_directory : ".", "SDStartUp");
 
    /* Make sure on Solaris we can run concurrent, watch dog + servers + misc */
    set_thread_concurrency(me->max_concurrent_jobs * 2 + 4);

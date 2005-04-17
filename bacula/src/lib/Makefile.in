@@ -1,17 +1,6 @@
 # $Id$
 @MCOMMON@
 
-CWEB = @CWEB@
-CTANGLE = $(CWEB)/ctangle
-CWEAVE = $(CWEB)/cweave
-TEXINPUTS = TEXINPUTS=.:$(CWEB):
-
-# FIXME -- These should be found by autoconf
-TEX = tex
-PDFTEX = pdftex
-XDVI = xdvi
-DVIPS = dvips
-
 python = @PYTHON_INCDIR@
 
 srcdir =	.
@@ -27,8 +16,6 @@ thisdir = src/lib
 
 
 DEBUG=@DEBUG@
-
-GMP_INC=@GMP_INC@
 
 first_rule: all
 dummy:
@@ -66,25 +53,10 @@ EXTRAOBJS = @OBJLIST@
 
 # inference rules
 .c.o:
-	$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+	$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 
 .cc.o:
-	$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
-
-.w.c:
-	$(CTANGLE) $<
-
-.w.tex:
-	$(CWEAVE) $<
-
-.tex.dvi:
-	( $(TEXINPUTS) ; export TEXINPUTS; $(TEX) $< )
-
-.tex.pdf:
-	( $(TEXINPUTS) ; export TEXINPUTS; $(PDFTEX) $< )
-
-.dvi.view:
-	$(XDVI) -s 0 $<
+	$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 
 #-------------------------------------------------------------------------
 all: Makefile libbac.a
@@ -149,7 +121,7 @@ depend:
 	@$(MV) Makefile Makefile.bak
 	@$(SED) "/^# DO NOT DELETE:/,$$ d" Makefile.bak > Makefile
 	@$(ECHO) "# DO NOT DELETE: nice dependency list follows" >> Makefile
-	@$(CXX) -S -M $(CPPFLAGS) $(XINC) $(python) -I$(srcdir) -I$(basedir) $(SQL_INC) *.c >> Makefile
+	@$(CXX) -S -M $(CPPFLAGS) $(XINC) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(SQL_INC) *.c >> Makefile
 	@if test -f Makefile ; then \
 	    $(RMF) Makefile.bak; \
 	else \

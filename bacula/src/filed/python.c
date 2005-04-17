@@ -36,17 +36,28 @@
 #include <Python.h>
 
 extern JCR *get_jcr_from_PyObject(PyObject *self);
+extern PyObject *find_method(PyObject *eventsObject, PyObject *method, char *name);
 
-PyObject *bacula_get(PyObject *self, PyObject *args);
-PyObject *bacula_set(PyObject *self, PyObject *args, PyObject *keyw);
+static PyObject *jcr_get(PyObject *self, PyObject *args);
+static PyObject *jcr_write(PyObject *self, PyObject *args);
+static PyObject *jcr_set(PyObject *self, PyObject *args, PyObject *keyw);
+static PyObject *set_jcr_events(PyObject *self, PyObject *args);
 
-/* Define Bacula entry points */
-PyMethodDef BaculaMethods[] = {
-    {"get", bacula_get, METH_VARARGS, "Get Bacula FD variables."},
-    {"set", (PyCFunction)bacula_set, METH_VARARGS|METH_KEYWORDS,
-        "Set FD Bacula variables."},
+
+/* Define Job entry points */
+PyMethodDef JobMethods[] = {
+    {"get", jcr_get, METH_VARARGS, "Get Job variables."},
+    {"set", (PyCFunction)jcr_set, METH_VARARGS|METH_KEYWORDS,
+        "Set Job variables."},
+    {"set_events", set_jcr_events, METH_VARARGS, "Define Job events."},
+    {"write", jcr_write, METH_VARARGS, "Write output."},
     {NULL, NULL, 0, NULL}             /* last item */
 };
+
+
+static PyObject *open_method = NULL;
+static PyObject *read_method = NULL;
+static PyObject *close_method = NULL;
 
 
 struct s_vars {
@@ -54,6 +65,7 @@ struct s_vars {
    char *fmt;
 };
 
+/* Read-only variables */
 static struct s_vars vars[] = {
    { N_("FDName"),     "s"},          /* 0 */
    { N_("Level"),      "s"},          /* 1 */
@@ -66,8 +78,8 @@ static struct s_vars vars[] = {
    { NULL,             NULL}
 };
 
-/* Return Bacula variables */
-PyObject *bacula_get(PyObject *self, PyObject *args)
+/* Return Job variables */
+PyObject *jcr_get(PyObject *self, PyObject *args)
 {
    JCR *jcr;
    char *item;
@@ -109,24 +121,97 @@ PyObject *bacula_get(PyObject *self, PyObject *args)
    return NULL;
 }
 
-/* Set Bacula variables */
-PyObject *bacula_set(PyObject *self, PyObject *args, PyObject *keyw)
+/* Set Job variables */
+PyObject *jcr_set(PyObject *self, PyObject *args, PyObject *keyw)
 {
    JCR *jcr;
    char *msg = NULL;
-   static char *kwlist[] = {"JobReport", NULL};
+   PyObject *fo = NULL, *fr = NULL, *fc = NULL;
+   static char *kwlist[] = {"JobReport", 
+                 "FileOpen", "FileRead", "FileClose",
+                 NULL};
    
-   if (!PyArg_ParseTupleAndKeywords(args, keyw, "|s:set", kwlist,
-        &msg)) {
+   if (!PyArg_ParseTupleAndKeywords(args, keyw, "|sOOO:set", kwlist,
+        &msg, &fo, &fr, &fc)) {
       return NULL;
    }
    jcr = get_jcr_from_PyObject(self);
    
-
    if (msg) {
       Jmsg(jcr, M_INFO, 0, "%s", msg);
    }
+   if (strcmp("Reader", jcr->event) == 0) {
+      if (fo) {
+         if (PyCallable_Check(fo)) {
+            jcr->ff->bfd.pio.fo = fo;
+         } else {
+            Jmsg(jcr, M_ERROR, 0, _("Python FileOpen object not callable.\n"));
+         }
+      }
+      if (fr) {
+         if (PyCallable_Check(fo)) {
+            jcr->ff->bfd.pio.fr = fr;
+         } else {
+            Jmsg(jcr, M_ERROR, 0, _("Python FileRead object not callable.\n"));
+         }
+      }
+      if (fc) {
+         if (PyCallable_Check(fc)) {
+            jcr->ff->bfd.pio.fc = fc;
+         } else {
+            Jmsg(jcr, M_ERROR, 0, _("Python FileClose object not callable.\n"));
+         }
+      }
+   } 
    return Py_BuildValue("i", 1);
+}
+
+
+static PyObject *set_jcr_events(PyObject *self, PyObject *args)
+{
+   PyObject *eObject;
+   JCR *jcr;
+   if (!PyArg_ParseTuple(args, "O:set_events_hook", &eObject)) {
+      return NULL;
+   }
+   Py_XINCREF(eObject);
+   jcr = get_jcr_from_PyObject(self);
+   jcr->ff->bfd.pio.fo = find_method(eObject, open_method, "open");
+   jcr->ff->bfd.pio.fr = find_method(eObject, read_method, "read");
+   jcr->ff->bfd.pio.fc = find_method(eObject, close_method, "close");
+   Py_INCREF(Py_None);
+   return Py_None;
+}
+
+/* Write text to job output */
+static PyObject *jcr_write(PyObject *self, PyObject *args)
+{
+   char *text;
+   if (!PyArg_ParseTuple(args, "s:write", &text)) {
+      return NULL;
+   }
+   if (text) {
+      JCR *jcr = get_jcr_from_PyObject(self);
+      Jmsg(jcr, M_INFO, 0, "%s", text);
+   }
+        
+   Py_INCREF(Py_None);
+   return Py_None;
+}
+
+int generate_job_event(JCR *jcr, const char *event)
+{
+   PyEval_AcquireLock();
+
+   PyObject *result = PyObject_CallFunction(open_method, "s", "m.py");
+   if (result == NULL) {
+      PyErr_Print();
+      PyErr_Clear();
+   }
+   Py_XDECREF(result);
+
+   PyEval_ReleaseLock();
+   return 1;
 }
 
 #endif /* HAVE_PYTHON */
