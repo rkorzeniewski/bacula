@@ -22,6 +22,7 @@ drop table CDImages;
 drop table Devices;
 drop table Storage;
 drop table MediaType;
+drop table Status;
 END-OF-DATA
 then
    echo "Deletion of Bacula PostgreSQL tables succeeded."
