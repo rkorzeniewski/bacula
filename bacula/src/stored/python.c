@@ -197,4 +197,11 @@ int generate_job_event(JCR *jcr, const char *event)
    return 1;
 }
 
+#else
+
+/* Dummy if Python not configured */
+int generate_job_event(JCR *jcr, const char *event)
+{ return 1; }
+
+
 #endif /* HAVE_PYTHON */

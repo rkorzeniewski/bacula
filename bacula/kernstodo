@@ -28,6 +28,8 @@ Autochangers:
      all Volumes from other drives.  "update slots all-drives"?
   
 For 1.37:
+- Make a callback when Rerun failed levels is called.
+- Give Python program access to Scheduled jobs.
 - Implement some way to turn off automatic pruning in Jobs.
 - Implement a way an Admin Job can prune, possibly multiple
   clients -- Python script?
@@ -1302,4 +1304,3 @@ Block Position: 0
   - Solicit Events
 - Add disk seeking on restore; turn off seek on tapes.
   stored/match_bsr.c
-
