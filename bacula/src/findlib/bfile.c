@@ -454,15 +454,18 @@ bool is_portable_backup(BFILE *bfd)
 
 bool set_prog(BFILE *bfd, char *prog, JCR *jcr)
 {
+#ifdef HAVE_PYTHON
    if (bfd->prog && strcmp(prog, bfd->prog) == 0) {
       return true;                    /* already setup */
    }
+
    int stat = generate_job_event(jcr, "Reader");
    if (stat == 1 && bfd->pio.fo && bfd->pio.fr && bfd->pio.fc) {
       bfd->prog = prog;
       bfd->jcr = jcr;
       return true;
    }
+#endif
    bfd->prog = NULL;
    return false;
 
