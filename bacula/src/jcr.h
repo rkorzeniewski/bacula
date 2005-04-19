@@ -143,7 +143,8 @@ struct JCR {
    bool prefix_links;                 /* Prefix links with Where path */
    bool gui;                          /* set if gui using console */
    bool authenticated;                /* set when client authenticated */
-   void *Python_jcr;                  /* Python Job Object */
+   void *Python_job;                  /* Python Job Object */
+   void *Python_events;               /* Python Events Object */
 
    /* Daemon specific part of JCR */
    /* This should be empty in the library */

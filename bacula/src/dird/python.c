@@ -36,29 +36,26 @@
 #include <Python.h>
 
 extern JCR *get_jcr_from_PyObject(PyObject *self);
-extern PyObject *find_method(PyObject *eventsObject, PyObject *method, char *name);
+extern PyObject *find_method(PyObject *eventsObject, PyObject *method, 
+         const char *name);
 
-static PyObject *jcr_get(PyObject *self, PyObject *args);
+static PyObject *job_get(PyObject *self, PyObject *args);
 static PyObject *jcr_write(PyObject *self, PyObject *args);
 static PyObject *jcr_set(PyObject *self, PyObject *args, PyObject *keyw);
-static PyObject *set_jcr_events(PyObject *self, PyObject *args);
+static PyObject *set_job_events(PyObject *self, PyObject *args);
 static PyObject *jcr_run(PyObject *self, PyObject *args);
 
 /* Define Job entry points */
 PyMethodDef JobMethods[] = {
-    {"get", jcr_get, METH_VARARGS, "Get Job variables."},
+    {"get", job_get, METH_VARARGS, "Get Job variables."},
     {"set", (PyCFunction)jcr_set, METH_VARARGS|METH_KEYWORDS,
         "Set Job variables."},
-    {"set_events", set_jcr_events, METH_VARARGS, "Define Job events."},
+    {"set_events", set_job_events, METH_VARARGS, "Define Job events."},
     {"write", jcr_write, METH_VARARGS, "Write output."},
     {"run", (PyCFunction)jcr_run, METH_VARARGS, "Run a Bacula command."},
     {NULL, NULL, 0, NULL}             /* last item */
 };
 
-
-static PyObject *open_method = NULL;
-static PyObject *read_method = NULL;
-static PyObject *close_method = NULL;
 
 struct s_vars {
    const char *name;
@@ -85,7 +82,7 @@ static struct s_vars vars[] = {
 };
 
 /* Return Job variables */
-static PyObject *jcr_get(PyObject *self, PyObject *args)
+static PyObject *job_get(PyObject *self, PyObject *args)
 {
    JCR *jcr;
    char *item;
@@ -93,6 +90,7 @@ static PyObject *jcr_get(PyObject *self, PyObject *args)
    int i;
    char buf[10];
 
+   Dmsg0(100, "In jcr_get.\n");
    if (!PyArg_ParseTuple(args, "s:get", &item)) {
       return NULL;
    }
@@ -146,6 +144,8 @@ static PyObject *jcr_set(PyObject *self, PyObject *args, PyObject *keyw)
    char *msg = NULL;
    char *VolumeName = NULL;
    static char *kwlist[] = {"JobReport", "VolumeName", NULL};
+
+   Dmsg0(100, "In jcr_set.\n");
    if (!PyArg_ParseTupleAndKeywords(args, keyw, "|ss:set", kwlist,
         &msg, &VolumeName)) {
       return NULL;
@@ -155,27 +155,39 @@ static PyObject *jcr_set(PyObject *self, PyObject *args, PyObject *keyw)
    if (msg) {
       Jmsg(jcr, M_INFO, 0, "%s", msg);
    }
+
+   if (!VolumeName) {
+      Dmsg1(100, "No VolumeName. Event=%s\n", jcr->event);
+   } else {
+      Dmsg2(100, "Vol=%s Event=%s\n", VolumeName, jcr->event);
+   }
    /* Make sure VolumeName is valid and we are in VolumeName event */
-   if (VolumeName && strcmp("VolumeName", jcr->event) == 0 &&
+   if (VolumeName && strcmp("NewVolume", jcr->event) == 0 &&
        is_volume_name_legal(NULL, VolumeName)) {
       pm_strcpy(jcr->VolumeName, VolumeName);
-   } else {
+      Dmsg1(100, "Set Vol=%s\n", VolumeName);
+   } else if (VolumeName) {
       jcr->VolumeName[0] = 0;
+      Dmsg0(100, "Zap VolumeName.\n");
       return Py_BuildValue("i", 0);  /* invalid volume name */
    }
    return Py_BuildValue("i", 1);
 }
 
-static PyObject *set_jcr_events(PyObject *self, PyObject *args)
+static PyObject *set_job_events(PyObject *self, PyObject *args)
 {
    PyObject *eObject;
+   JCR *jcr;
+
+   Dmsg0(100, "In set_job_events.\n");
    if (!PyArg_ParseTuple(args, "O:set_events_hook", &eObject)) {
       return NULL;
    }
-   Py_XINCREF(eObject);
-   open_method = find_method(eObject, open_method, "open");
-   read_method = find_method(eObject, read_method, "read");
-   close_method = find_method(eObject, close_method, "close");
+   jcr = get_jcr_from_PyObject(self);
+   Py_XDECREF((PyObject *)jcr->Python_events);
+   Py_INCREF(eObject);
+   jcr->Python_events = (void *)eObject;
+
    Py_INCREF(Py_None);
    return Py_None;
 }
@@ -184,6 +196,7 @@ static PyObject *set_jcr_events(PyObject *self, PyObject *args)
 static PyObject *jcr_write(PyObject *self, PyObject *args)
 {
    char *text;
+
    if (!PyArg_ParseTuple(args, "s:write", &text)) {
       return NULL;
    }
@@ -219,22 +232,39 @@ static PyObject *jcr_run(PyObject *self, PyObject *args)
 
 int generate_job_event(JCR *jcr, const char *event)
 {
-#ifdef xxx
-   PyObject *eObject, *method;
+   PyObject *method = NULL;
+   PyObject *Job = (PyObject *)jcr->Python_job;
+   PyObject *result = NULL;
+   int stat = 0;
+
+   if (!Job) {
+      return 0;
+   }
+
    PyEval_AcquireLock();
 
-   method = find_method(eObject, method, event);
+   PyObject *events = (PyObject *)jcr->Python_events;
+   method = find_method(events, method, event);
+   if (!method) {
+      goto bail_out;
+   }
 
-   PyObject *result = PyObject_CallFunction(method, "s", "m.py");
+   bstrncpy(jcr->event, event, sizeof(jcr->event));
+   result = PyObject_CallFunction(method, "O", Job);
+   jcr->event[0] = 0;             /* no event in progress */
    if (result == NULL) {
-      PyErr_Print();
-      PyErr_Clear();
+      if (PyErr_Occurred()) {
+         PyErr_Print();
+         Dmsg1(000, "Error in Python method %s\n", event);
+      }
+   } else {
+      stat = 1;
    }
    Py_XDECREF(result);
 
+bail_out:
    PyEval_ReleaseLock();
-#endif
-   return 1;
+   return stat;
 }
 
 #else
