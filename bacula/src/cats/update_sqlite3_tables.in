@@ -291,24 +291,42 @@ CREATE TABLE Status (
    );
 
 INSERT INTO Status (JobStatus,JobStatusLong) VALUES
-   ('C', 'Created, not yet running'),
-   ('R', 'Running'),
-   ('B', 'Blocked'),
-   ('T', 'Completed successfully'),
-   ('E', 'Terminated with errors'),
-   ('e', 'Non-fatal error'),
-   ('f', 'Fatal error'),
-   ('D', 'Verify found differences'),
-   ('A', 'Canceled by user'),
-   ('F', 'Waiting for Client'),
-   ('S', 'Waiting for Storage daemon'),
-   ('m', 'Waiting for new media'),
-   ('M', 'Waiting for media mount'),
-   ('s', 'Waiting for storage resource'),
-   ('j', 'Waiting for job resource'),
-   ('c', 'Waiting for client resource'),
-   ('d', 'Waiting on maximum jobs'),
-   ('t', 'Waiting on start time'),
+   ('C', 'Created, not yet running');
+INSERT INTO Status (JobStatus,JobStatusLong) VALUES
+   ('R', 'Running');
+INSERT INTO Status (JobStatus,JobStatusLong) VALUES
+   ('B', 'Blocked');
+INSERT INTO Status (JobStatus,JobStatusLong) VALUES
+   ('T', 'Completed successfully');
+INSERT INTO Status (JobStatus,JobStatusLong) VALUES
+   ('E', 'Terminated with errors');
+INSERT INTO Status (JobStatus,JobStatusLong) VALUES
+   ('e', 'Non-fatal error');
+INSERT INTO Status (JobStatus,JobStatusLong) VALUES
+   ('f', 'Fatal error');
+INSERT INTO Status (JobStatus,JobStatusLong) VALUES
+   ('D', 'Verify found differences');
+INSERT INTO Status (JobStatus,JobStatusLong) VALUES
+   ('A', 'Canceled by user');
+INSERT INTO Status (JobStatus,JobStatusLong) VALUES
+   ('F', 'Waiting for Client');
+INSERT INTO Status (JobStatus,JobStatusLong) VALUES
+   ('S', 'Waiting for Storage daemon');
+INSERT INTO Status (JobStatus,JobStatusLong) VALUES
+   ('m', 'Waiting for new media');
+INSERT INTO Status (JobStatus,JobStatusLong) VALUES
+   ('M', 'Waiting for media mount');
+INSERT INTO Status (JobStatus,JobStatusLong) VALUES
+   ('s', 'Waiting for storage resource');
+INSERT INTO Status (JobStatus,JobStatusLong) VALUES
+   ('j', 'Waiting for job resource');
+INSERT INTO Status (JobStatus,JobStatusLong) VALUES
+   ('c', 'Waiting for client resource');
+INSERT INTO Status (JobStatus,JobStatusLong) VALUES
+   ('d', 'Waiting on maximum jobs');
+INSERT INTO Status (JobStatus,JobStatusLong) VALUES
+   ('t', 'Waiting on start time');
+INSERT INTO Status (JobStatus,JobStatusLong) VALUES
    ('p', 'Waiting on higher priority jobs');
 
 
