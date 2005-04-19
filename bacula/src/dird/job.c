@@ -93,7 +93,6 @@ JobId_t run_job(JCR *jcr)
    }
    jcr->term_wait_inited = true;
 
-   generate_daemon_event(jcr, "StartJob");
 
    /*
     * Open database
@@ -113,6 +112,7 @@ JobId_t run_job(JCR *jcr)
    }
    Dmsg0(50, "DB opened\n");
 
+
    /*
     * Create Job record
     */
@@ -124,9 +124,10 @@ JobId_t run_job(JCR *jcr)
       goto bail_out;
    }
    JobId = jcr->JobId = jcr->jr.JobId;
-
    Dmsg4(100, "Created job record JobId=%d Name=%s Type=%c Level=%c\n",
        jcr->JobId, jcr->Job, jcr->jr.JobType, jcr->jr.JobLevel);
+
+   generate_daemon_event(jcr, "JobStart");
 
    if (!get_or_create_client_record(jcr)) {
       goto bail_out;

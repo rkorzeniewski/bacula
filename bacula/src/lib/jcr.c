@@ -354,9 +354,6 @@ void free_jcr(JCR *jcr)
 #endif
 
    dequeue_messages(jcr);
-   if (jcr->JobId != 0) {
-      generate_daemon_event(jcr, "JobEnd");
-   }
    lock_jcr_chain();
    jcr->use_count--;                  /* decrement use count */
    if (jcr->use_count < 0) {
@@ -368,6 +365,14 @@ void free_jcr(JCR *jcr)
       unlock_jcr_chain();
       Dmsg2(3400, "free_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
       return;
+   }
+
+   /* 
+    * At this point, we are actually releasing the JCR, which
+    *  means that the job is complete.
+    */
+   if (jcr->JobId != 0) {
+      generate_daemon_event(jcr, "JobEnd");
    }
    remove_jcr(jcr);                   /* remove Jcr from chain */
    unlock_jcr_chain();

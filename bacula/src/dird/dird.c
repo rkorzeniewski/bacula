@@ -222,8 +222,8 @@ int main (int argc, char *argv[])
 
    init_console_msg(working_directory);
 
-   init_python_interpreter(director->hdr.name, director->scripts_directory ?
-      director->scripts_directory : ".", "DirStartUp");
+   init_python_interpreter(director->hdr.name, director->scripts_directory, 
+       "DirStartUp");
 
    set_thread_concurrency(director->MaxConcurrentJobs * 2 +
       4 /* UA */ + 4 /* sched+watchdog+jobsvr+misc */);
@@ -255,12 +255,13 @@ int main (int argc, char *argv[])
 /* Cleanup and then exit */
 static void terminate_dird(int sig)
 {
-   static int already_here = FALSE;
+   static bool already_here = false;
 
    if (already_here) {                /* avoid recursive temination problems */
       exit(1);
    }
-   already_here = TRUE;
+   already_here = true;
+   generate_daemon_event(NULL, "Exit");
    write_state_file(director->working_directory, "bacula-dir", get_first_port_host_order(director->DIRaddrs));
    delete_pid_file(director->pid_directory, "bacula-dir", get_first_port_host_order(director->DIRaddrs));
 // signal(SIGCHLD, SIG_IGN);          /* don't worry about children now */

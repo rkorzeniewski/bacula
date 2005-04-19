@@ -36,7 +36,8 @@
 #include <Python.h>
 
 extern JCR *get_jcr_from_PyObject(PyObject *self);
-extern PyObject *find_method(PyObject *eventsObject, PyObject *method, char *name);
+extern PyObject *find_method(PyObject *eventsObject, PyObject *method, 
+          const char *name);
 
 static PyObject *jcr_get(PyObject *self, PyObject *args);
 static PyObject *jcr_write(PyObject *self, PyObject *args);

@@ -571,8 +571,8 @@ static int python_cmd(UAContext *ua, const char *cmd)
 {
    if (strcasecmp(ua->argk[1], _("restart")) == 0) {
       term_python_interpreter();
-      init_python_interpreter(director->hdr.name, director->scripts_directory ?
-         director->scripts_directory : ".", "DirStartUp");
+      init_python_interpreter(director->hdr.name, 
+         director->scripts_directory, "DirStartUp");
       bsendmsg(ua, _("Python interpreter restarted.\n"));
    } else {
       bsendmsg(ua, _("Nothing done.\n"));
