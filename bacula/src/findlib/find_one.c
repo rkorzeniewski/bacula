@@ -30,6 +30,8 @@
 #include "bacula.h"
 #include "find.h"
 #ifdef HAVE_DARWIN_OS
+#include <sys/param.h>
+#include <sys/mount.h>
 #include <sys/attr.h>
 #endif
 
