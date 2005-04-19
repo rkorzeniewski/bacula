@@ -9,7 +9,7 @@
  */
 
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2004-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -42,8 +42,7 @@ static PyObject *jcr_get(PyObject *self, PyObject *args);
 static PyObject *jcr_write(PyObject *self, PyObject *args);
 static PyObject *jcr_set(PyObject *self, PyObject *args, PyObject *keyw);
 static PyObject *set_jcr_events(PyObject *self, PyObject *args);
-
-PyObject *bacula_run(PyObject *self, PyObject *args);
+static PyObject *jcr_run(PyObject *self, PyObject *args);
 
 /* Define Job entry points */
 PyMethodDef JobMethods[] = {
@@ -52,7 +51,7 @@ PyMethodDef JobMethods[] = {
         "Set Job variables."},
     {"set_events", set_jcr_events, METH_VARARGS, "Define Job events."},
     {"write", jcr_write, METH_VARARGS, "Write output."},
-//  {"run", (PyCFunction)bacula_run, METH_VARARGS, "Run a Bacula command."},
+    {"run", (PyCFunction)jcr_run, METH_VARARGS, "Run a Bacula command."},
     {NULL, NULL, 0, NULL}             /* last item */
 };
 
@@ -60,7 +59,6 @@ PyMethodDef JobMethods[] = {
 static PyObject *open_method = NULL;
 static PyObject *read_method = NULL;
 static PyObject *close_method = NULL;
-static PyObject *volname_method = NULL;
 
 struct s_vars {
    const char *name;
@@ -178,7 +176,6 @@ static PyObject *set_jcr_events(PyObject *self, PyObject *args)
    open_method = find_method(eObject, open_method, "open");
    read_method = find_method(eObject, read_method, "read");
    close_method = find_method(eObject, close_method, "close");
-   volname_method = find_method(eObject, volname_method, "VolumeName");
    Py_INCREF(Py_None);
    return Py_None;
 }
@@ -199,33 +196,8 @@ static PyObject *jcr_write(PyObject *self, PyObject *args)
    return Py_None;
 }
 
-int generate_job_event(JCR *jcr, const char *event)
-{
-   PyEval_AcquireLock();
-
-   PyObject *result = PyObject_CallFunction(open_method, "s", "m.py");
-   if (result == NULL) {
-      PyErr_Print();
-      PyErr_Clear();
-   }
-   Py_XDECREF(result);
-
-   PyEval_ReleaseLock();
-   return 1;
-}
-
-#else
-
-/* Dummy if Python not configured */
-int generate_job_event(JCR *jcr, const char *event)
-{ return 1; }
-   
-
-#endif /* HAVE_PYTHON */
-
-#ifdef xxx
 /* Run a Bacula command */
-PyObject *bacula_run(PyObject *self, PyObject *args)
+static PyObject *jcr_run(PyObject *self, PyObject *args)
 {
    JCR *jcr;
    char *item;
@@ -243,4 +215,32 @@ PyObject *bacula_run(PyObject *self, PyObject *args)
    free_ua_context(ua);
    return Py_BuildValue("i", stat);
 }
+
+
+int generate_job_event(JCR *jcr, const char *event)
+{
+#ifdef xxx
+   PyObject *eObject, *method;
+   PyEval_AcquireLock();
+
+   method = find_method(eObject, method, event);
+
+   PyObject *result = PyObject_CallFunction(method, "s", "m.py");
+   if (result == NULL) {
+      PyErr_Print();
+      PyErr_Clear();
+   }
+   Py_XDECREF(result);
+
+   PyEval_ReleaseLock();
 #endif
+   return 1;
+}
+
+#else
+
+/* Dummy if Python not configured */
+int generate_job_event(JCR *jcr, const char *event) { return 1; }
+   
+
+#endif /* HAVE_PYTHON */

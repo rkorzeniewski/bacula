@@ -84,6 +84,8 @@ bool newVolume(JCR *jcr, MEDIA_DBR *mr)
                goto bail_out;
             }
          }
+      } else {                                       
+         goto bail_out;
       }
       pr.NumVols++;
       if (db_create_media_record(jcr, jcr->db, mr) &&

@@ -28,6 +28,8 @@ Autochangers:
      all Volumes from other drives.  "update slots all-drives"?
   
 For 1.37:
+- Look at dird_conf.c:1000: warning: `int size' 
+  might be used uninitialized in this function
 - Make a callback when Rerun failed levels is called.
 - Give Python program access to Scheduled jobs.
 - Implement some way to turn off automatic pruning in Jobs.

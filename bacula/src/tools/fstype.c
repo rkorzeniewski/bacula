@@ -30,6 +30,10 @@
 #include "bacula.h"
 #include "findlib/find.h"
 
+/* Dummy functions */
+int generate_daemon_event(JCR *jcr, const char *event) 
+   { return 1; }
+
 static void usage()
 {
    fprintf(stderr, _(
@@ -58,11 +62,11 @@ main (int argc, char *const *argv)
    while ((ch = getopt(argc, argv, "v?")) != -1) {
       switch (ch) {
          case 'v':
-	    verbose = 1;
-	    break;
+            verbose = 1;
+            break;
          case '?':
-	 default:
-	    usage();
+         default:
+            usage();
 
       }
    }
@@ -75,14 +79,14 @@ main (int argc, char *const *argv)
 
    for (i = 0; i < argc; --argc, ++argv) {
       if (fstype(*argv, fs, sizeof(fs))) {
-	 if (verbose) {
+         if (verbose) {
             printf("%s: %s\n", *argv, fs);
-	 } else {
-	    puts(fs);
-	 }
+         } else {
+            puts(fs);
+         }
       } else {
          fprintf(stderr, "%s: unknown\n", *argv);
-	 status = 1;
+         status = 1;
       }
    }
 

@@ -108,7 +108,7 @@ btape.o: btape.c
 
 btape:	$(TAPEOBJS) ../lib/libbac.a ../cats/libsql.a
 	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../cats  -o $@ $(TAPEOBJS) \
- -lsql $(DLIB) -lbac -lm $(PYTHON_LIBS) $(LIBS) 
+ -lsql $(DLIB) -lbac -lm $(LIBS) 
 
 bls.o:	bls.c
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) \
@@ -116,7 +116,7 @@ bls.o:	bls.c
 
 bls:	../findlib/libfind.a $(BLSOBJS) ../lib/libbac.a
 	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(BLSOBJS) $(DLIB) -lfind \
- -lbac -lm $(PYTHON_LIBS) $(LIBS) 
+ -lbac -lm $(LIBS) 
 
 bextract.o: bextract.c
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) \
@@ -132,15 +132,15 @@ bscan.o: bscan.c
 
 bscan:	../findlib/libfind.a $(SCNOBJS) ../cats/libsql.a
 	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../cats -L../findlib -o $@ $(SCNOBJS) \
- -lsql $(DB_LIBS) $(FDLIBS) -lfind -lbac -lm $(PYTHON_LIBS) $(LIBS) 
+ -lsql $(DB_LIBS) $(FDLIBS) -lfind -lbac -lm $(LIBS) 
 
 bcopy.o: bcopy.c
-	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) \
+	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) \
  -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 
 bcopy:	$(COPYOBJS) ../findlib/libfind.a ../lib/libbac.a
 	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(COPYOBJS) \
- $(DB_LIBS) $(FDLIBS) -lfind -lbac -lm $(PYTHON_LIBS) $(LIBS) 
+ $(DB_LIBS) $(FDLIBS) -lfind -lbac -lm $(LIBS) 
 
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status

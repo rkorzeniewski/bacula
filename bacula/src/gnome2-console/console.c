@@ -35,24 +35,27 @@
 int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons);
 void select_restore_setup();
 
+/* Dummy functions */
+int generate_daemon_event(JCR *jcr, const char *event) { return 1; }
+
 /* Exported variables */
 GtkWidget *console;   /* application window */
-GtkWidget *text1;	     /* text window */
-GtkWidget *entry1;	     /* entry box */
-GtkWidget *status1;	     /* status bar */
-GtkWidget *combo1;	     /* director combo */
-GtkWidget *scroll1;	     /* main scroll bar */
-GtkWidget *run_dialog;	     /* run dialog */
-GtkWidget *dir_dialog;	     /* director selection dialog */
+GtkWidget *text1;            /* text window */
+GtkWidget *entry1;           /* entry box */
+GtkWidget *status1;          /* status bar */
+GtkWidget *combo1;           /* director combo */
+GtkWidget *scroll1;          /* main scroll bar */
+GtkWidget *run_dialog;       /* run dialog */
+GtkWidget *dir_dialog;       /* director selection dialog */
 GtkWidget *restore_dialog;   /* restore dialog */
 GtkWidget *restore_file_selection;
 GtkWidget *dir_select;
-GtkWidget *about1;	     /* about box */
+GtkWidget *about1;           /* about box */
 GtkWidget *label_dialog;
 GdkFont   *text_font = NULL;
 PangoFontDescription *font_desc;
 pthread_mutex_t cmd_mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t	cmd_wait;
+pthread_cond_t  cmd_wait;
 char cmd[1000];
 int reply;
 BSOCK *UA_sock = NULL;
@@ -101,7 +104,7 @@ static void usage()
 
 /*********************************************************************
  *
- *	   Main Bacula GNOME Console -- User Interface Program
+ *         Main Bacula GNOME Console -- User Interface Program
  *
  */
 int main(int argc, char *argv[])
@@ -126,7 +129,7 @@ int main(int argc, char *argv[])
 
    if ((stat=pthread_cond_init(&cmd_wait, NULL)) != 0) {
       Emsg1(M_ABORT, 0, _("Pthread cond init error = %s\n"),
-	 strerror(stat));
+         strerror(stat));
    }
 
    gnome_init("bacula", VERSION, gargc, (char **)&gargv);
@@ -134,28 +137,28 @@ int main(int argc, char *argv[])
    while ((ch = getopt(argc, argv, "bc:d:r:st?")) != -1) {
       switch (ch) {
       case 'c':                    /* configuration file */
-	 if (configfile != NULL)
-	    free(configfile);
-	 configfile = bstrdup(optarg);
-	 break;
+         if (configfile != NULL)
+            free(configfile);
+         configfile = bstrdup(optarg);
+         break;
 
       case 'd':
-	 debug_level = atoi(optarg);
-	 if (debug_level <= 0)
-	    debug_level = 1;
-	 break;
+         debug_level = atoi(optarg);
+         if (debug_level <= 0)
+            debug_level = 1;
+         break;
 
       case 's':                    /* turn off signals */
-	 no_signals = TRUE;
-	 break;
+         no_signals = TRUE;
+         break;
 
       case 't':
-	 test_config = TRUE;
-	 break;
+         test_config = TRUE;
+         break;
 
       case '?':
       default:
-	 usage();
+         usage();
       }
    }
    argc -= optind;
@@ -217,24 +220,24 @@ int main(int argc, char *argv[])
    LockRes();
    foreach_res(con_font, R_CONSOLE_FONT) {
        if (!con_font->fontface) {
-	  Dmsg1(400, "No fontface for %s\n", con_font->hdr.name);
-	  continue;
+          Dmsg1(400, "No fontface for %s\n", con_font->hdr.name);
+          continue;
        }
        text_font = gdk_font_load(con_font->fontface);
        if (text_font == NULL) {
-	   Dmsg2(400, "Load of requested ConsoleFont \"%s\" (%s) failed!\n",
-		  con_font->hdr.name, con_font->fontface);
+           Dmsg2(400, "Load of requested ConsoleFont \"%s\" (%s) failed!\n",
+                  con_font->hdr.name, con_font->fontface);
        } else {
-	   Dmsg2(400, "ConsoleFont \"%s\" (%s) loaded.\n",
-		  con_font->hdr.name, con_font->fontface);
-	   break;
+           Dmsg2(400, "ConsoleFont \"%s\" (%s) loaded.\n",
+                  con_font->hdr.name, con_font->fontface);
+           break;
        }
    }
    UnlockRes();
 
    if (text_font == NULL) {
        Dmsg1(400, "Attempting to load fallback font %s\n",
-	      "-misc-fixed-medium-r-normal-*-*-130-*-*-c-*-iso8859-1");
+              "-misc-fixed-medium-r-normal-*-*-130-*-*-c-*-iso8859-1");
        text_font = gdk_font_load("-misc-fixed-medium-r-normal-*-*-130-*-*-c-*-iso8859-1");
    }
    font_desc = pango_font_description_from_string("LucidaTypewriter 9");
@@ -356,27 +359,27 @@ int connect_to_director(gpointer data)
    if (ndir > 1) {
       LockRes();
       foreach_res(dir, R_DIRECTOR) {
-	 dirs = g_list_append(dirs, dir->hdr.name);
+         dirs = g_list_append(dirs, dir->hdr.name);
       }
       UnlockRes();
       dir_dialog = create_SelectDirectorDialog();
       combo = lookup_widget(dir_dialog, "combo1");
       dir_select = lookup_widget(dir_dialog, "dirselect");
       if (dirs) {
-	 gtk_combo_set_popdown_strings(GTK_COMBO(combo), dirs);
+         gtk_combo_set_popdown_strings(GTK_COMBO(combo), dirs);
       }
       gtk_widget_show(dir_dialog);
       gtk_main();
 
       if (reply == OK) {
-	 gchar *ecmd = gtk_editable_get_chars((GtkEditable *)dir_select, 0, -1);
-	 dir = (DIRRES *)GetResWithName(R_DIRECTOR, ecmd);
-	 if (ecmd) {
-	    g_free(ecmd);	      /* release director name string */
-	 }
+         gchar *ecmd = gtk_editable_get_chars((GtkEditable *)dir_select, 0, -1);
+         dir = (DIRRES *)GetResWithName(R_DIRECTOR, ecmd);
+         if (ecmd) {
+            g_free(ecmd);             /* release director name string */
+         }
       }
       if (dirs) {
-	 g_free(dirs);
+         g_free(dirs);
       }
       gtk_widget_destroy(dir_dialog);
       dir_dialog = NULL;
@@ -400,7 +403,7 @@ int connect_to_director(gpointer data)
       gtk_main_iteration();
    }
    UA_sock = bnet_connect(NULL, 5, 15, "Director daemon", dir->address,
-			  NULL, dir->DIRport, 0);
+                          NULL, dir->DIRport, 0);
    if (UA_sock == NULL) {
       return 0;
    }
@@ -481,13 +484,13 @@ void read_director(gpointer data, gint fd, GdkInputCondition condition)
    stat = bnet_recv(UA_sock);
    if (stat >= 0) {
       if (at_prompt) {
-	 set_text("\n", 1);
-	 at_prompt = false;
+         set_text("\n", 1);
+         at_prompt = false;
       }
       set_text(UA_sock->msg, UA_sock->msglen);
       return;
    }
-   if (is_bnet_stop(UA_sock)) { 	/* error or term request */
+   if (is_bnet_stop(UA_sock)) {         /* error or term request */
       gtk_main_quit();
       return;
    }
@@ -540,7 +543,7 @@ void terminate_console(int sig)
 {
    static int already_here = FALSE;
 
-   if (already_here)		      /* avoid recursive temination problems */
+   if (already_here)                  /* avoid recursive temination problems */
       exit(1);
    already_here = TRUE;
    disconnect_from_director((gpointer)NULL);
@@ -550,7 +553,7 @@ void terminate_console(int sig)
 
 
 /* Buffer approx 2000 lines -- assume 60 chars/line */
-#define MAX_TEXT_CHARS	 (2000 * 60)
+#define MAX_TEXT_CHARS   (2000 * 60)
 static int text_chars = 0;
 
 static void truncate_text_chars()
@@ -637,6 +640,6 @@ static void set_scroll_bar_to_end(void)
    gtk_text_iter_set_offset(&iter, buf_len);
    gtk_text_buffer_place_cursor(textbuf, &iter);
    gtk_text_view_scroll_to_mark(GTK_TEXT_VIEW(text1),
-	      gtk_text_buffer_get_mark(textbuf, "insert"),
-	      0, TRUE, 0.0, 1.0);
+              gtk_text_buffer_get_mark(textbuf, "insert"),
+              0, TRUE, 0.0, 1.0);
 }
