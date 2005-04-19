@@ -31,8 +31,6 @@
 #include "bacula.h"
 #include "jcr.h"
 
-EVENT_HANDLER *generate_daemon_event;
-
 #ifdef HAVE_PYTHON
 
 #undef _POSIX_C_SOURCE
@@ -49,7 +47,6 @@ static PyObject *Exit_method = NULL;
 
 static PyObject *set_bacula_events(PyObject *self, PyObject *args);
 static PyObject *bacula_write(PyObject *self, PyObject *args);
-int _generate_daemon_event(JCR *jcr, const char *event);
 
 PyObject *find_method(PyObject *eventsObject, PyObject *method, char *name);
 
@@ -59,10 +56,6 @@ static PyMethodDef BaculaMethods[] = {
     {"write", bacula_write, METH_VARARGS, "Write output."},
     {NULL, NULL, 0, NULL}             /* last item */
 };
-
-
-/* Pull in Bacula entry points */
-extern PyMethodDef JobMethods[];
 
 
 /*
@@ -153,9 +146,7 @@ void init_python_interpreter(const char *progname, const char *scripts,
       PyErr_Clear();
    }
    PyEval_ReleaseLock();
-   generate_daemon_event = _generate_daemon_event;
 }
-
 
 
 void term_python_interpreter()
@@ -222,7 +213,7 @@ PyObject *find_method(PyObject *eventsObject, PyObject *method, char *name)
  *          -1 on Python error
  *           1 OK
  */
-int _generate_daemon_event(JCR *jcr, const char *event)
+int generate_daemon_event(JCR *jcr, const char *event)
 {
    PyObject *pJCR;
    int stat = -1;
@@ -357,16 +348,10 @@ bail_out:
  *  No Python configured -- create external entry points and
  *    dummy routines so that library code can call this without
  *    problems even if it is not configured.
-
  */
-
-int _generate_daemon_event(JCR *jcr, const char *event) { return 0; }
+int generate_daemon_event(JCR *jcr, const char *event) { return 0; }
 void init_python_interpreter(const char *progname, const char *scripts,
-         const char *module) 
-{
-   generate_daemon_event = _generate_daemon_event;   
-}
+         const char *module) { }
 void term_python_interpreter() { }
-
 
 #endif /* HAVE_PYTHON */

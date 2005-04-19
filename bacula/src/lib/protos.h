@@ -179,7 +179,8 @@ typedef int (EVENT_HANDLER)(JCR *jcr, const char *event);
 void init_python_interpreter(const char *progname, const char *scripts,
                              const char *module);
 void term_python_interpreter();
-extern EVENT_HANDLER *generate_daemon_event;
+//extern EVENT_HANDLER *generate_daemon_event;
+int generate_daemon_event(JCR *jcr, const char *event);
 
 /* signal.c */
 void             init_signals             (void terminate(int sig));

@@ -51,6 +51,9 @@ UPSINFO *core_ups = &myUPS;
 
 #endif
 
+/* Dummy functions */
+int generate_daemon_event(JCR *jcr, const char *event) 
+   { return 1; }
 
 #ifndef MAXSTRING
 #define MAXSTRING 254
@@ -79,18 +82,18 @@ static void get_response(void)
     Dmsg0(50, "Calling fgets on read socket rfp.\n");
     buf[3] = 0;
     while (fgets(buf, sizeof(buf), rfp)) {
-	int len = strlen(buf);
-	if (len > 0) {
-	   buf[len-1] = 0;
-	}
-	Dmsg2(10, "%s --> %s\n", mailhost, buf);
-	if (!isdigit((int)buf[0]) || buf[0] > '3') {
-	    Pmsg2(0, "Fatal malformed reply from %s: %s\n", mailhost, buf);
-	    exit(1);
-	}
-	if (buf[3] != '-') {
-	    break;
-	}
+        int len = strlen(buf);
+        if (len > 0) {
+           buf[len-1] = 0;
+        }
+        Dmsg2(10, "%s --> %s\n", mailhost, buf);
+        if (!isdigit((int)buf[0]) || buf[0] > '3') {
+            Pmsg2(0, "Fatal malformed reply from %s: %s\n", mailhost, buf);
+            exit(1);
+        }
+        if (buf[3] != '-') {
+            break;
+        }
     }
     return;
 }
@@ -155,44 +158,44 @@ int main (int argc, char *argv[])
    while ((ch = getopt(argc, argv, "c:d:f:h:r:s:?")) != -1) {
       switch (ch) {
       case 'c':
-	 Dmsg1(20, "cc=%s\n", optarg);
-	 cc_addr = optarg;
-	 break;
+         Dmsg1(20, "cc=%s\n", optarg);
+         cc_addr = optarg;
+         break;
 
       case 'd':                    /* set debug level */
-	 debug_level = atoi(optarg);
-	 if (debug_level <= 0) {
-	    debug_level = 1;
-	 }
-	 Dmsg1(20, "Debug level = %d\n", debug_level);
-	 break;
+         debug_level = atoi(optarg);
+         if (debug_level <= 0) {
+            debug_level = 1;
+         }
+         Dmsg1(20, "Debug level = %d\n", debug_level);
+         break;
 
       case 'f':                    /* from */
-	 from_addr = optarg;
-	 break;
+         from_addr = optarg;
+         break;
 
       case 'h':                    /* smtp host */
-	 Dmsg1(20, "host=%s\n", optarg);
-	 p = strchr(optarg, ':');
-	 if (p) {
-	    *p++ = 0;
-	    mailport = atoi(p);
-	 }
-	 mailhost = optarg;
-	 break;
+         Dmsg1(20, "host=%s\n", optarg);
+         p = strchr(optarg, ':');
+         if (p) {
+            *p++ = 0;
+            mailport = atoi(p);
+         }
+         mailhost = optarg;
+         break;
 
       case 's':                    /* subject */
-	 Dmsg1(20, "subject=%s\n", optarg);
-	 subject = optarg;
-	 break;
+         Dmsg1(20, "subject=%s\n", optarg);
+         subject = optarg;
+         break;
 
       case 'r':                    /* reply address */
-	 reply_addr = optarg;
-	 break;
+         reply_addr = optarg;
+         break;
 
       case '?':
       default:
-	 usage();
+         usage();
 
       }
    }
@@ -210,9 +213,9 @@ int main (int argc, char *argv[])
     */
    if (mailhost == NULL) {
       if ((cp = getenv("SMTPSERVER")) != NULL) {
-	 mailhost = cp;
+         mailhost = cp;
       } else {
-	 mailhost = "localhost";
+         mailhost = "localhost";
       }
    }
 
@@ -226,7 +229,7 @@ int main (int argc, char *argv[])
    }
    if ((hp = gethostbyname(my_hostname)) == NULL) {
       Pmsg2(0, "Fatal gethostbyname for myself failed \"%s\": ERR=%s\n", my_hostname,
-	 strerror(errno));
+         strerror(errno));
       exit(1);
    }
    strcpy(my_hostname, hp->h_name);
@@ -237,9 +240,9 @@ int main (int argc, char *argv[])
     */
    if (from_addr == NULL) {
       if ((pwd = getpwuid(getuid())) == 0) {
-	 sprintf(buf, "userid-%d@%s", (int)getuid(), my_hostname);
+         sprintf(buf, "userid-%d@%s", (int)getuid(), my_hostname);
       } else {
-	 sprintf(buf, "%s@%s", pwd->pw_name, my_hostname);
+         sprintf(buf, "%s@%s", pwd->pw_name, my_hostname);
       }
       from_addr = bstrdup(buf);
    }
@@ -251,11 +254,11 @@ int main (int argc, char *argv[])
 hp:
    if ((hp = gethostbyname(mailhost)) == NULL) {
       Pmsg2(0, "Error unknown mail host \"%s\": ERR=%s\n", mailhost,
-	 strerror(errno));
+         strerror(errno));
       if (strcasecmp(mailhost, "localhost") != 0) {
-	 Pmsg0(0, "Retrying connection using \"localhost\".\n");
-	 mailhost = "localhost";
-	 goto hp;
+         Pmsg0(0, "Retrying connection using \"localhost\".\n");
+         mailhost = "localhost";
+         goto hp;
       }
       exit(1);
    }
@@ -350,9 +353,9 @@ hp:
    while (fgets(buf, sizeof(buf), stdin)) {
       buf[strlen(buf)-1] = 0;
       if (strcmp(buf, ".") == 0) { /* quote lone dots */
-	 fprintf(sfp, "..\r\n");
-      } else {			   /* pass body through unchanged */
-	 fprintf(sfp, "%s\r\n", buf);
+         fprintf(sfp, "..\r\n");
+      } else {                     /* pass body through unchanged */
+         fprintf(sfp, "%s\r\n", buf);
       }
    }
 

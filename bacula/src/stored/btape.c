@@ -36,6 +36,8 @@
 #include "bacula.h"
 #include "stored.h"
 
+/* Dummy functions */
+int generate_daemon_event(JCR *jcr, const char *event) { return 1; }
 
 /* External subroutines */
 extern void free_config_resources();

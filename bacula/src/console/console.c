@@ -59,7 +59,8 @@ extern int rl_catch_signals;
 /* Imported functions */
 int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons);
 
-
+/* Dummy functions */
+int generate_daemon_event(JCR *jcr, const char *event) { return 1; }
 
 /* Forward referenced functions */
 static void terminate_console(int sig);
@@ -79,7 +80,7 @@ static char *configfile = NULL;
 static BSOCK *UA_sock = NULL;
 static DIRRES *dir;
 static FILE *output = stdout;
-static bool tee = false;		  /* output to output and stdout */
+static bool tee = false;                  /* output to output and stdout */
 static bool stop = false;
 static int argc;
 static POOLMEM *args;
@@ -159,7 +160,7 @@ static struct cmdstruct commands[] = {
  { N_("version"),    versioncmd,   _("print Console's version")},
  { N_("exit"),       quitcmd,      _("exit = quit")},
  { N_("zed_keyst"),  zed_keyscmd,  _("zed_keys = use zed keys instead of bash keys")},
-	     };
+             };
 #define comsize (sizeof(commands)/sizeof(struct cmdstruct))
 
 static int do_a_command(FILE *input, BSOCK *UA_sock)
@@ -183,11 +184,11 @@ static int do_a_command(FILE *input, BSOCK *UA_sock)
       return 1;
    }
    len = strlen(cmd);
-   for (i=0; i<comsize; i++) {	   /* search for command */
+   for (i=0; i<comsize; i++) {     /* search for command */
       if (strncasecmp(cmd,  _(commands[i].key), len) == 0) {
-	 stat = (*commands[i].func)(input, UA_sock);   /* go execute command */
-	 found = 1;
-	 break;
+         stat = (*commands[i].func)(input, UA_sock);   /* go execute command */
+         found = 1;
+         break;
       }
    }
    if (!found) {
@@ -211,82 +212,82 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
          prompt = "";
       } else {
          prompt = "*";
-	 at_prompt = true;
+         at_prompt = true;
       }
       if (tty_input) {
-	 stat = get_cmd(input, prompt, UA_sock, 30);
-	 if (usrbrk() == 1) {
-	    clrbrk();
-	 }
-	 if (usrbrk()) {
-	    break;
-	 }
+         stat = get_cmd(input, prompt, UA_sock, 30);
+         if (usrbrk() == 1) {
+            clrbrk();
+         }
+         if (usrbrk()) {
+            break;
+         }
       } else {
-	 /* Reading input from a file */
-	 int len = sizeof_pool_memory(UA_sock->msg) - 1;
-	 if (usrbrk()) {
-	    break;
-	 }
-	 if (fgets(UA_sock->msg, len, input) == NULL) {
-	    stat = -1;
-	 } else {
-	    sendit(UA_sock->msg);  /* echo to terminal */
-	    strip_trailing_junk(UA_sock->msg);
-	    UA_sock->msglen = strlen(UA_sock->msg);
-	    stat = 1;
-	 }
+         /* Reading input from a file */
+         int len = sizeof_pool_memory(UA_sock->msg) - 1;
+         if (usrbrk()) {
+            break;
+         }
+         if (fgets(UA_sock->msg, len, input) == NULL) {
+            stat = -1;
+         } else {
+            sendit(UA_sock->msg);  /* echo to terminal */
+            strip_trailing_junk(UA_sock->msg);
+            UA_sock->msglen = strlen(UA_sock->msg);
+            stat = 1;
+         }
       }
       if (stat < 0) {
-	 break; 		      /* error or interrupt */
-      } else if (stat == 0) {	      /* timeout */
+         break;                       /* error or interrupt */
+      } else if (stat == 0) {         /* timeout */
          if (strcmp(prompt, "*") == 0) {
             bnet_fsend(UA_sock, ".messages");
-	 } else {
-	    continue;
-	 }
+         } else {
+            continue;
+         }
       } else {
-	 at_prompt = FALSE;
-	 /* @ => internal command for us */
+         at_prompt = FALSE;
+         /* @ => internal command for us */
          if (UA_sock->msg[0] == '@') {
-	    parse_args(UA_sock->msg, &args, &argc, argk, argv, MAX_CMD_ARGS);
-	    if (!do_a_command(input, UA_sock)) {
-	       break;
-	    }
-	    continue;
-	 }
-	 if (!bnet_send(UA_sock)) {   /* send command */
-	    break;		      /* error */
-	 }
+            parse_args(UA_sock->msg, &args, &argc, argk, argv, MAX_CMD_ARGS);
+            if (!do_a_command(input, UA_sock)) {
+               break;
+            }
+            continue;
+         }
+         if (!bnet_send(UA_sock)) {   /* send command */
+            break;                    /* error */
+         }
       }
       if (strcmp(UA_sock->msg, ".quit") == 0 || strcmp(UA_sock->msg, ".exit") == 0) {
-	 break;
+         break;
       }
       while ((stat = bnet_recv(UA_sock)) >= 0) {
-	 if (at_prompt) {
-	    if (!stop) {
+         if (at_prompt) {
+            if (!stop) {
                sendit("\n");
-	    }
-	    at_prompt = false;
-	 }
-	 /* Suppress output if running in background or user hit ctl-c */
-	 if (!stop && !usrbrk()) {
-	    sendit(UA_sock->msg);
-	 }
+            }
+            at_prompt = false;
+         }
+         /* Suppress output if running in background or user hit ctl-c */
+         if (!stop && !usrbrk()) {
+            sendit(UA_sock->msg);
+         }
       }
       if (usrbrk() > 1) {
-	 break;
+         break;
       } else {
-	 clrbrk();
+         clrbrk();
       }
       if (!stop) {
-	 fflush(stdout);
+         fflush(stdout);
       }
       if (is_bnet_stop(UA_sock)) {
-	 break; 		      /* error or term */
+         break;                       /* error or term */
       } else if (stat == BNET_SIGNAL) {
-	 if (UA_sock->msglen == BNET_PROMPT) {
-	    at_prompt = true;
-	 }
+         if (UA_sock->msglen == BNET_PROMPT) {
+            at_prompt = true;
+         }
          Dmsg1(100, "Got poll %s\n", bnet_sig_to_ascii(UA_sock));
       }
    }
@@ -295,7 +296,7 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
 
 /*********************************************************************
  *
- *	   Main Bacula Console -- User Interface Program
+ *         Main Bacula Console -- User Interface Program
  *
  */
 int main(int argc, char *argv[])
@@ -316,32 +317,32 @@ int main(int argc, char *argv[])
    while ((ch = getopt(argc, argv, "bc:d:r:st?")) != -1) {
       switch (ch) {
       case 'c':                    /* configuration file */
-	 if (configfile != NULL) {
-	    free(configfile);
-	 }
-	 configfile = bstrdup(optarg);
-	 break;
+         if (configfile != NULL) {
+            free(configfile);
+         }
+         configfile = bstrdup(optarg);
+         break;
 
       case 'd':
-	 debug_level = atoi(optarg);
-	 if (debug_level <= 0) {
-	    debug_level = 1;
-	 }
-	 break;
+         debug_level = atoi(optarg);
+         if (debug_level <= 0) {
+            debug_level = 1;
+         }
+         break;
 
       case 's':                    /* turn off signals */
-	 no_signals = true;
-	 break;
+         no_signals = true;
+         break;
 
       case 't':
-	 test_config = true;
-	 break;
+         test_config = true;
+         break;
 
       case '?':
       default:
-	 usage();
-	 con_term();
-	 exit(1);
+         usage();
+         con_term();
+         exit(1);
       }
    }
    argc -= optind;
@@ -393,7 +394,7 @@ int main(int argc, char *argv[])
 
    memset(&jcr, 0, sizeof(jcr));
 
-   (void)WSA_Init();			    /* Initialize Windows sockets */
+   (void)WSA_Init();                        /* Initialize Windows sockets */
 
    if (ndir > 1) {
       struct sockaddr client_addr;
@@ -405,22 +406,22 @@ try_again:
       ndir = 0;
       foreach_res(dir, R_DIRECTOR) {
          senditf( _("%d  %s at %s:%d\n"), 1+ndir++, dir->hdr.name, dir->address,
-	    dir->DIRport);
+            dir->DIRport);
       }
       UnlockRes();
       if (get_cmd(stdin, _("Select Director: "), UA_sock, 600) < 0) {
-	 (void)WSACleanup();		   /* Cleanup Windows sockets */
-	 return 1;
+         (void)WSACleanup();               /* Cleanup Windows sockets */
+         return 1;
       }
       item = atoi(UA_sock->msg);
       if (item < 0 || item > ndir) {
          senditf(_("You must enter a number between 1 and %d\n"), ndir);
-	 goto try_again;
+         goto try_again;
       }
       LockRes();
       dir = NULL;
       for (i=0; i<item; i++) {
-	 dir = (DIRRES *)GetNextRes(R_DIRECTOR, (RES *)dir);
+         dir = (DIRRES *)GetNextRes(R_DIRECTOR, (RES *)dir);
       }
       UnlockRes();
       term_bsock(UA_sock);
@@ -432,7 +433,7 @@ try_again:
 
    senditf(_("Connecting to Director %s:%d\n"), dir->address,dir->DIRport);
    UA_sock = bnet_connect(NULL, 5, 15, "Director daemon", dir->address,
-			  NULL, dir->DIRport, 0);
+                          NULL, dir->DIRport, 0);
    if (UA_sock == NULL) {
       terminate_console(0);
       return 1;
@@ -461,8 +462,8 @@ try_again:
       pm_strcat(&UA_sock->msg, "/.bconsolerc");
       fd = fopen(UA_sock->msg, "r");
       if (fd) {
-	 read_and_process_input(fd, UA_sock);
-	 fclose(fd);
+         read_and_process_input(fd, UA_sock);
+         fclose(fd);
       }
    }
 
@@ -484,13 +485,13 @@ static void terminate_console(int sig)
 
    static bool already_here = false;
 
-   if (already_here) {		      /* avoid recursive temination problems */
+   if (already_here) {                /* avoid recursive temination problems */
       exit(1);
    }
    already_here = true;
    free_pool_memory(args);
    con_term();
-   (void)WSACleanup();		     /* Cleanup Windows sockets */
+   (void)WSACleanup();               /* Cleanup Windows sockets */
    if (sig != 0) {
       exit(1);
    }
@@ -509,7 +510,7 @@ get_cmd(FILE *input, const char *prompt, BSOCK *sock, int sec)
 {
    char *line;
 
-   rl_catch_signals = 0;	      /* do it ourselves */
+   rl_catch_signals = 0;              /* do it ourselves */
    line = readline((char *)prompt);   /* cast needed for old readlines */
 
    if (!line) {
@@ -528,8 +529,8 @@ get_cmd(FILE *input, const char *prompt, BSOCK *sock, int sec)
 
 /*
  *   Returns: 1 if data available
- *	      0 if timeout
- *	     -1 if error
+ *            0 if timeout
+ *           -1 if error
  */
 static int
 wait_for_data(int fd, int sec)
@@ -546,15 +547,15 @@ wait_for_data(int fd, int sec)
       FD_ZERO(&fdset);
       FD_SET((unsigned)fd, &fdset);
       switch(select(fd + 1, &fdset, NULL, NULL, &tv)) {
-      case 0:			      /* timeout */
-	 return 0;
+      case 0:                         /* timeout */
+         return 0;
       case -1:
-	 if (errno == EINTR || errno == EAGAIN) {
-	    continue;
-	 }
-	 return -1;		     /* error return */
+         if (errno == EINTR || errno == EAGAIN) {
+            continue;
+         }
+         return -1;                  /* error return */
       default:
-	 return 1;
+         return 1;
       }
    }
 }
@@ -563,8 +564,8 @@ wait_for_data(int fd, int sec)
  * Get next input command from terminal.
  *
  *   Returns: 1 if got input
- *	      0 if timeout
- *	     -1 if EOF or error
+ *            0 if timeout
+ *           -1 if EOF or error
  */
 int
 get_cmd(FILE *input, const char *prompt, BSOCK *sock, int sec)
@@ -572,29 +573,29 @@ get_cmd(FILE *input, const char *prompt, BSOCK *sock, int sec)
    int len;
    if (!stop) {
       if (output == stdout || tee) {
-	 sendit(prompt);
+         sendit(prompt);
       }
    }
 again:
    switch (wait_for_data(fileno(input), sec)) {
    case 0:
-      return 0; 		   /* timeout */
+      return 0;                    /* timeout */
    case -1:
-      return -1;		   /* error */
+      return -1;                   /* error */
    default:
       len = sizeof_pool_memory(sock->msg) - 1;
       if (stop) {
-	 sleep(1);
-	 goto again;
+         sleep(1);
+         goto again;
       }
 #ifdef HAVE_CONIO
       if (isatty(fileno(input))) {
-	 input_line(sock->msg, len);
-	 break;
+         input_line(sock->msg, len);
+         break;
       }
 #endif
       if (fgets(sock->msg, len, input) == NULL) {
-	 return -1;
+         return -1;
       }
       break;
    }
@@ -630,7 +631,7 @@ static int inputcmd(FILE *input, BSOCK *UA_sock)
    fd = fopen(argk[1], "r");
    if (!fd) {
       senditf(_("Cannot open file %s for input. ERR=%s\n"),
-	 argk[1], strerror(errno));
+         argk[1], strerror(errno));
       return 1;
    }
    read_and_process_input(fd, UA_sock);
@@ -664,9 +665,9 @@ static int do_outputcmd(FILE *input, BSOCK *UA_sock)
    }
    if (argc == 1) {
       if (output != stdout) {
-	 fclose(output);
-	 output = stdout;
-	 tee = false;
+         fclose(output);
+         output = stdout;
+         tee = false;
       }
       return 1;
    }
@@ -676,7 +677,7 @@ static int do_outputcmd(FILE *input, BSOCK *UA_sock)
    fd = fopen(argk[1], mode);
    if (!fd) {
       senditf(_("Cannot open file %s for output. ERR=%s\n"),
-	 argk[1], strerror(errno));
+         argk[1], strerror(errno));
       return 1;
    }
    output = fd;
@@ -729,18 +730,18 @@ void sendit(const char *buf)
        char *p, *q;
        /*
         * Here, we convert every \n into \r\n because the
-	*  terminal is in raw mode when we are using
-	*  conio.
-	*/
+        *  terminal is in raw mode when we are using
+        *  conio.
+        */
        for (p=q=buf; (p=strchr(q, '\n')); ) {
-	  if (p-q > 0) {
-	     t_sendl(q, p-q);
-	  }
+          if (p-q > 0) {
+             t_sendl(q, p-q);
+          }
           t_sendl("\r\n", 2);
           q = ++p;                    /* point after \n */
        }
        if (*q) {
-	  t_send(q);
+          t_send(q);
        }
     }
     if (output != stdout) {

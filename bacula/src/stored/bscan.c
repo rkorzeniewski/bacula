@@ -33,6 +33,9 @@
 #include "stored.h"
 #include "findlib/find.h"
 #include "cats/cats.h"
+ 
+/* Dummy functions */
+int generate_daemon_event(JCR *jcr, const char *event) { return 1; }
 
 /* Forward referenced functions */
 static void do_scan(void);

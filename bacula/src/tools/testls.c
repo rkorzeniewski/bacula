@@ -31,6 +31,10 @@ int win32_client = 1;
 int win32_client = 0;
 #endif
 
+/* Dummy functions */
+int generate_daemon_event(JCR *jcr, const char *event) { return 1; }
+int generate_job_event(JCR *jcr, const char *event) { return 1; }
+
 
 /* Global variables */
 int attrs = 0;
