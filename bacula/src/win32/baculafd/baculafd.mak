@@ -88,8 +88,10 @@ CLEAN :
         -@erase "$(INTDIR)\message.obj"
         -@erase "$(INTDIR)\parse_conf.obj"
         -@erase "$(INTDIR)\print.obj"
+        -@erase "$(INTDIR)\pythonlib.obj"
         -@erase "$(INTDIR)\queue.obj"
         -@erase "$(INTDIR)\restore.obj"
+        -@erase "$(INTDIR)\res.obj"
         -@erase "$(INTDIR)\rwlock.obj"
         -@erase "$(INTDIR)\save-cwd.obj"
         -@erase "$(INTDIR)\scan.obj"
@@ -178,8 +180,10 @@ LINK32_OBJS= \
         "$(INTDIR)\message.obj" \
         "$(INTDIR)\parse_conf.obj" \
         "$(INTDIR)\print.obj" \
+        "$(INTDIR)\pythonlib.obj" \
         "$(INTDIR)\queue.obj" \
         "$(INTDIR)\restore.obj" \
+        "$(INTDIR)\res.obj" \
         "$(INTDIR)\rwlock.obj" \
         "$(INTDIR)\save-cwd.obj" \
         "$(INTDIR)\scan.obj" \
@@ -319,10 +323,14 @@ CLEAN :
         -@erase "$(INTDIR)\parse_conf.sbr"
         -@erase "$(INTDIR)\print.obj"
         -@erase "$(INTDIR)\print.sbr"
+        -@erase "$(INTDIR)\pythonlib.obj"
+        -@erase "$(INTDIR)\pythonlib.sbr"
         -@erase "$(INTDIR)\queue.obj"
         -@erase "$(INTDIR)\queue.sbr"
         -@erase "$(INTDIR)\restore.obj"
         -@erase "$(INTDIR)\restore.sbr"
+        -@erase "$(INTDIR)\res.obj"
+        -@erase "$(INTDIR)\res.sbr"
         -@erase "$(INTDIR)\rwlock.obj"
         -@erase "$(INTDIR)\rwlock.sbr"
         -@erase "$(INTDIR)\save-cwd.obj"
@@ -433,8 +441,10 @@ BSC32_SBRS= \
         "$(INTDIR)\message.sbr" \
         "$(INTDIR)\parse_conf.sbr" \
         "$(INTDIR)\print.sbr" \
+        "$(INTDIR)\pythonlib.sbr" \
         "$(INTDIR)\queue.sbr" \
         "$(INTDIR)\restore.sbr" \
+        "$(INTDIR)\res.sbr" \
         "$(INTDIR)\rwlock.sbr" \
         "$(INTDIR)\save-cwd.sbr" \
         "$(INTDIR)\scan.sbr" \
@@ -516,8 +526,10 @@ LINK32_OBJS= \
         "$(INTDIR)\message.obj" \
         "$(INTDIR)\parse_conf.obj" \
         "$(INTDIR)\print.obj" \
+        "$(INTDIR)\pythonlib.obj" \
         "$(INTDIR)\queue.obj" \
         "$(INTDIR)\restore.obj" \
+        "$(INTDIR)\res.obj" \
         "$(INTDIR)\rwlock.obj" \
         "$(INTDIR)\save-cwd.obj" \
         "$(INTDIR)\scan.obj" \
@@ -1462,6 +1474,25 @@ SOURCE=..\compat\print.cpp
 
 !ENDIF 
 
+SOURCE=..\lib\pythonlib.cpp
+
+!IF  "$(CFG)" == "baculafd - Win32 Release"
+
+
+"$(INTDIR)\pythonlib.obj" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
+
+
+"$(INTDIR)\pythonlib.obj"   "$(INTDIR)\pythonlib.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+
 SOURCE=..\lib\queue.cpp
 
 !IF  "$(CFG)" == "baculafd - Win32 Release"
@@ -1497,6 +1528,25 @@ SOURCE=..\filed\restore.cpp
 
 
 !ENDIF 
+
+SOURCE=..\lib\res.cpp
+
+!IF  "$(CFG)" == "baculafd - Win32 Release"
+
+
+"$(INTDIR)\res.obj" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
+
+
+"$(INTDIR)\res.obj" "$(INTDIR)\res.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 
 SOURCE=..\lib\rwlock.cpp
 

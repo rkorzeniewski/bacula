@@ -52,3 +52,9 @@ run_clean
 run_two_broken
 run_two
 run_clean_tape
+newdb
+kerns-nopython-conf
+newtape
+time.py
+time.pyc
+test.out

@@ -68,6 +68,7 @@ CLEAN :
         -@erase "$(INTDIR)\print.obj"
         -@erase "$(INTDIR)\queue.obj"
         -@erase "$(INTDIR)\rwlock.obj"
+        -@erase "$(INTDIR)\res.obj"
         -@erase "$(INTDIR)\scan.obj"
         -@erase "$(INTDIR)\serial.obj"
         -@erase "$(INTDIR)\sha1.obj"
@@ -117,6 +118,7 @@ LINK32_OBJS= \
         "$(INTDIR)\print.obj" \
         "$(INTDIR)\queue.obj" \
         "$(INTDIR)\rwlock.obj" \
+        "$(INTDIR)\res.obj" \
         "$(INTDIR)\scan.obj" \
         "$(INTDIR)\serial.obj" \
         "$(INTDIR)\sha1.obj" \
@@ -171,6 +173,7 @@ CLEAN :
         -@erase "$(INTDIR)\print.obj"
         -@erase "$(INTDIR)\queue.obj"
         -@erase "$(INTDIR)\rwlock.obj"
+        -@erase "$(INTDIR)\res.obj"
         -@erase "$(INTDIR)\scan.obj"
         -@erase "$(INTDIR)\serial.obj"
         -@erase "$(INTDIR)\sha1.obj"
@@ -221,6 +224,7 @@ LINK32_OBJS= \
         "$(INTDIR)\print.obj" \
         "$(INTDIR)\queue.obj" \
         "$(INTDIR)\rwlock.obj" \
+        "$(INTDIR)\res.obj" \
         "$(INTDIR)\scan.obj" \
         "$(INTDIR)\serial.obj" \
         "$(INTDIR)\sha1.obj" \
@@ -436,6 +440,12 @@ SOURCE=..\lib\rwlock.cpp
 
 "$(INTDIR)\rwlock.obj" : $(SOURCE) "$(INTDIR)"
         $(CPP) $(CPP_PROJ) $(SOURCE)
+
+SOURCE=..\lib\res.cpp
+
+"$(INTDIR)\res.obj" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
+
 
 
 SOURCE=..\lib\scan.cpp

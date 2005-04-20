@@ -118,10 +118,12 @@ int lchown(const char *k, uid_t, gid_t)
    return 0;
 }
 
+#ifdef needed
 bool fstype(const char *fname, char *fs, int fslen)
 {
    return true;                       /* accept anything */
 }
+#endif
 
 
 long int

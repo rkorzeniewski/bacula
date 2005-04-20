@@ -27,6 +27,7 @@
 ..\lib\message
 ..\lib\parse_conf
 ..\lib\queue
+..\lib\res
 ..\lib\rwlock
 ..\lib\scan
 ..\lib\semlock
