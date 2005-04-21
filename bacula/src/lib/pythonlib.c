@@ -142,7 +142,7 @@ void init_python_interpreter(const char *progname, const char *scripts,
       Jmsg1(NULL, M_ERROR_TERM, 0, "Could not Run Python string %s\n", buf);
    }   
    JobType.tp_methods = JobMethods;
-   if(PyType_Ready(&JobType) != 0) {
+   if (PyType_Ready(&JobType) != 0) {
       Jmsg0(NULL, M_ERROR_TERM, 0, "Could not initialize Python Job type.\n");
       PyErr_Print();
    }   

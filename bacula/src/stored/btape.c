@@ -1124,7 +1124,8 @@ try_again:
    dcr->VolCatInfo.Slot = slot;
    /* Find out what is loaded, zero means device is unloaded */
    Pmsg0(-1, _("3301 Issuing autochanger \"loaded\" command.\n"));
-   changer = edit_device_codes(dcr, changer, "loaded");
+   changer = edit_device_codes(dcr, changer, 
+                dcr->device->changer_command, "loaded");
    status = run_program(changer, timeout, results);
    Dmsg3(100, "run_prog: %s stat=%d result=\"%s\"\n", changer, status, results);
    if (status == 0) {
@@ -1148,7 +1149,8 @@ try_again:
       force_close_dev(dev);
       Pmsg2(-1, _("3302 Issuing autochanger \"unload %d %d\" command.\n"),
          loaded, dev->drive_index);
-      changer = edit_device_codes(dcr, changer, "unload");
+      changer = edit_device_codes(dcr, changer, 
+                   dcr->device->changer_command, "unload");
       status = run_program(changer, timeout, results);
       Pmsg2(-1, "unload status=%s %d\n", status==0?"OK":"Bad", status);
       if (status != 0) {
@@ -1166,7 +1168,8 @@ try_again:
    dcr->VolCatInfo.Slot = slot;
    Pmsg2(-1, _("3303 Issuing autochanger \"load slot %d %d\" command.\n"),
       slot, dev->drive_index);
-   changer = edit_device_codes(dcr, changer, "load");
+   changer = edit_device_codes(dcr, changer, 
+                dcr->device->changer_command, "load");
    Dmsg1(100, "Changer=%s\n", changer);
    force_close_dev(dev);
    status = run_program(changer, timeout, results);
