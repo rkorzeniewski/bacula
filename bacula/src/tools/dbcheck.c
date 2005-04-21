@@ -9,7 +9,7 @@
  *
  */
 /*
-   Copyright (C) 2002-2004 Kern Sibbald and John Walker
+   Copyright (C) 2002-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -1064,8 +1064,6 @@ static void repair_bad_paths()
 }
 
 
-
-
 /*
  * Gen next input command from the terminal
  */
@@ -1087,3 +1085,5 @@ static int yes_no(const char *prompt)
    cmd = get_cmd(prompt);
    return strcasecmp(cmd, "yes") == 0;
 }
+
+bool python_set_prog(JCR*, char const*) { return false; }

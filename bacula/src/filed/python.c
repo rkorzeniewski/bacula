@@ -39,27 +39,21 @@ extern JCR *get_jcr_from_PyObject(PyObject *self);
 extern PyObject *find_method(PyObject *eventsObject, PyObject *method, 
           const char *name);
 
-static PyObject *jcr_get(PyObject *self, PyObject *args);
-static PyObject *jcr_write(PyObject *self, PyObject *args);
-static PyObject *jcr_set(PyObject *self, PyObject *args, PyObject *keyw);
+static PyObject *job_get(PyObject *self, PyObject *args);
+static PyObject *job_write(PyObject *self, PyObject *args);
+static PyObject *job_set(PyObject *self, PyObject *args, PyObject *keyw);
 static PyObject *set_job_events(PyObject *self, PyObject *args);
 
 
 /* Define Job entry points */
 PyMethodDef JobMethods[] = {
-    {"get", jcr_get, METH_VARARGS, "Get Job variables."},
-    {"set", (PyCFunction)jcr_set, METH_VARARGS|METH_KEYWORDS,
+    {"get", job_get, METH_VARARGS, "Get Job variables."},
+    {"set", (PyCFunction)job_set, METH_VARARGS|METH_KEYWORDS,
         "Set Job variables."},
     {"set_events", set_job_events, METH_VARARGS, "Define Job events."},
-    {"write", jcr_write, METH_VARARGS, "Write output."},
+    {"write", job_write, METH_VARARGS, "Write output."},
     {NULL, NULL, 0, NULL}             /* last item */
 };
-
-
-static PyObject *open_method = NULL;
-static PyObject *read_method = NULL;
-static PyObject *close_method = NULL;
-
 
 struct s_vars {
    const char *name;
@@ -80,7 +74,7 @@ static struct s_vars vars[] = {
 };
 
 /* Return Job variables */
-PyObject *jcr_get(PyObject *self, PyObject *args)
+PyObject *job_get(PyObject *self, PyObject *args)
 {
    JCR *jcr;
    char *item;
@@ -123,17 +117,14 @@ PyObject *jcr_get(PyObject *self, PyObject *args)
 }
 
 /* Set Job variables */
-PyObject *jcr_set(PyObject *self, PyObject *args, PyObject *keyw)
+PyObject *job_set(PyObject *self, PyObject *args, PyObject *keyw)
 {
    JCR *jcr;
    char *msg = NULL;
-   PyObject *fo = NULL, *fr = NULL, *fc = NULL;
-   static char *kwlist[] = {"JobReport", 
-                 "FileOpen", "FileRead", "FileClose",
-                 NULL};
+   static char *kwlist[] = {"JobReport", NULL};
    
-   if (!PyArg_ParseTupleAndKeywords(args, keyw, "|sOOO:set", kwlist,
-        &msg, &fo, &fr, &fc)) {
+   if (!PyArg_ParseTupleAndKeywords(args, keyw, "|s:set", kwlist,
+        &msg)) {
       return NULL;
    }
    jcr = get_jcr_from_PyObject(self);
@@ -141,29 +132,6 @@ PyObject *jcr_set(PyObject *self, PyObject *args, PyObject *keyw)
    if (msg) {
       Jmsg(jcr, M_INFO, 0, "%s", msg);
    }
-   if (strcmp("Reader", jcr->event) == 0) {
-      if (fo) {
-         if (PyCallable_Check(fo)) {
-            jcr->ff->bfd.pio.fo = fo;
-         } else {
-            Jmsg(jcr, M_ERROR, 0, _("Python FileOpen object not callable.\n"));
-         }
-      }
-      if (fr) {
-         if (PyCallable_Check(fo)) {
-            jcr->ff->bfd.pio.fr = fr;
-         } else {
-            Jmsg(jcr, M_ERROR, 0, _("Python FileRead object not callable.\n"));
-         }
-      }
-      if (fc) {
-         if (PyCallable_Check(fc)) {
-            jcr->ff->bfd.pio.fc = fc;
-         } else {
-            Jmsg(jcr, M_ERROR, 0, _("Python FileClose object not callable.\n"));
-         }
-      }
-   } 
    return Py_BuildValue("i", 1);
 }
 
@@ -172,22 +140,26 @@ static PyObject *set_job_events(PyObject *self, PyObject *args)
 {
    PyObject *eObject;
    JCR *jcr;
+
+   Dmsg0(100, "In set_job_events.\n");
+
    if (!PyArg_ParseTuple(args, "O:set_events", &eObject)) {
       return NULL;
    }
-   Py_XINCREF(eObject);
    jcr = get_jcr_from_PyObject(self);
-   jcr->ff->bfd.pio.fo = find_method(eObject, open_method, "open");
-   jcr->ff->bfd.pio.fr = find_method(eObject, read_method, "read");
-   jcr->ff->bfd.pio.fc = find_method(eObject, close_method, "close");
+   Py_XDECREF((PyObject *)jcr->Python_events);
+   Py_INCREF(eObject);
+   jcr->Python_events = (void *)eObject;
+
    Py_INCREF(Py_None);
    return Py_None;
 }
 
 /* Write text to job output */
-static PyObject *jcr_write(PyObject *self, PyObject *args)
+static PyObject *job_write(PyObject *self, PyObject *args)
 {
-   char *text;
+   char *text = NULL;
+
    if (!PyArg_ParseTuple(args, "s:write", &text)) {
       return NULL;
    }
@@ -202,18 +174,67 @@ static PyObject *jcr_write(PyObject *self, PyObject *args)
 
 int generate_job_event(JCR *jcr, const char *event)
 {
+   PyObject *method = NULL;
+   PyObject *Job = (PyObject *)jcr->Python_job;
+   PyObject *result = NULL;
+   int stat = 0;
+
+   if (!Job) {
+      return 0;
+   }
+
    PyEval_AcquireLock();
 
-   PyObject *result = PyObject_CallFunction(open_method, "s", "m.py");
+   PyObject *events = (PyObject *)jcr->Python_events;
+   method = find_method(events, method, event);
+   if (!method) {
+      goto bail_out;
+   }
+
+   bstrncpy(jcr->event, event, sizeof(jcr->event));
+   result = PyObject_CallFunction(method, "O", Job);
+   jcr->event[0] = 0;             /* no event in progress */
    if (result == NULL) {
-      PyErr_Print();
-      PyErr_Clear();
+      if (PyErr_Occurred()) {
+         PyErr_Print();
+         Dmsg1(000, "Error in Python method %s\n", event);
+      }
+   } else {
+      stat = 1;
    }
    Py_XDECREF(result);
 
+bail_out:
    PyEval_ReleaseLock();
-   return 1;
+   return stat;
 }
+
+
+bool python_set_prog(JCR *jcr, const char *prog)
+{
+   PyObject *events = (PyObject *)jcr->Python_events;
+   BFILE *bfd = &jcr->ff->bfd;
+   char method[MAX_NAME_LENGTH];
+
+   if (!events) {
+      return false;
+   }
+   bstrncpy(method, prog, sizeof(method));
+   bstrncat(method, "_", sizeof(method));
+   bstrncat(method, "open", sizeof(method));
+   bfd->pio.fo = find_method(events, bfd->pio.fo, method);
+   bstrncpy(method, prog, sizeof(method));
+   bstrncat(method, "_", sizeof(method));
+   bstrncat(method, "read", sizeof(method));
+   bfd->pio.fr = find_method(events, bfd->pio.fr, method);
+   bstrncpy(method, prog, sizeof(method));
+   bstrncat(method, "_", sizeof(method));
+   bstrncat(method, "close", sizeof(method));
+   bfd->pio.fc = find_method(events, bfd->pio.fc, method);
+   return bfd->pio.fo && bfd->pio.fr && bfd->pio.fc;
+}
+
+
 
 #else
 

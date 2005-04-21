@@ -367,13 +367,6 @@ void free_jcr(JCR *jcr)
       return;
    }
 
-   /* 
-    * At this point, we are actually releasing the JCR, which
-    *  means that the job is complete.
-    */
-   if (jcr->JobId != 0) {
-      generate_daemon_event(jcr, "JobEnd");
-   }
    remove_jcr(jcr);                   /* remove Jcr from chain */
    unlock_jcr_chain();
 

@@ -40,18 +40,18 @@ extern PyObject *find_method(PyObject *eventsObject, PyObject *method,
          const char *name);
 
 static PyObject *job_get(PyObject *self, PyObject *args);
-static PyObject *jcr_write(PyObject *self, PyObject *args);
-static PyObject *jcr_set(PyObject *self, PyObject *args, PyObject *keyw);
+static PyObject *job_write(PyObject *self, PyObject *args);
+static PyObject *job_set(PyObject *self, PyObject *args, PyObject *keyw);
 static PyObject *set_job_events(PyObject *self, PyObject *args);
 static PyObject *jcr_run(PyObject *self, PyObject *args);
 
 /* Define Job entry points */
 PyMethodDef JobMethods[] = {
     {"get", job_get, METH_VARARGS, "Get Job variables."},
-    {"set", (PyCFunction)jcr_set, METH_VARARGS|METH_KEYWORDS,
+    {"set", (PyCFunction)job_set, METH_VARARGS|METH_KEYWORDS,
         "Set Job variables."},
     {"set_events", set_job_events, METH_VARARGS, "Define Job events."},
-    {"write", jcr_write, METH_VARARGS, "Write output."},
+    {"write", job_write, METH_VARARGS, "Write output."},
     {"run", (PyCFunction)jcr_run, METH_VARARGS, "Run a Bacula command."},
     {NULL, NULL, 0, NULL}             /* last item */
 };
@@ -90,7 +90,7 @@ static PyObject *job_get(PyObject *self, PyObject *args)
    int i;
    char buf[10];
 
-   Dmsg0(100, "In jcr_get.\n");
+   Dmsg0(100, "In job_get.\n");
    if (!PyArg_ParseTuple(args, "s:get", &item)) {
       return NULL;
    }
@@ -138,14 +138,14 @@ static PyObject *job_get(PyObject *self, PyObject *args)
 }
 
 /* Set Job variables */
-static PyObject *jcr_set(PyObject *self, PyObject *args, PyObject *keyw)
+static PyObject *job_set(PyObject *self, PyObject *args, PyObject *keyw)
 {
    JCR *jcr;
    char *msg = NULL;
    char *VolumeName = NULL;
    static char *kwlist[] = {"JobReport", "VolumeName", NULL};
 
-   Dmsg0(100, "In jcr_set.\n");
+   Dmsg0(100, "In job_set.\n");
    if (!PyArg_ParseTupleAndKeywords(args, keyw, "|ss:set", kwlist,
         &msg, &VolumeName)) {
       return NULL;
@@ -180,7 +180,7 @@ static PyObject *set_job_events(PyObject *self, PyObject *args)
    JCR *jcr;
 
    Dmsg0(100, "In set_job_events.\n");
-   if (!PyArg_ParseTuple(args, "O:set_events_hook", &eObject)) {
+   if (!PyArg_ParseTuple(args, "O:set_events", &eObject)) {
       return NULL;
    }
    jcr = get_jcr_from_PyObject(self);
@@ -193,7 +193,7 @@ static PyObject *set_job_events(PyObject *self, PyObject *args)
 }
 
 /* Write text to job output */
-static PyObject *jcr_write(PyObject *self, PyObject *args)
+static PyObject *job_write(PyObject *self, PyObject *args)
 {
    char *text;
 
@@ -266,6 +266,8 @@ bail_out:
    PyEval_ReleaseLock();
    return stat;
 }
+
+bool python_set_prog(JCR*, char const*) { return false; }
 
 #else
 

@@ -190,13 +190,13 @@ JobId_t run_job(JCR *jcr)
    return JobId;
 
 bail_out:
+   generate_daemon_event(jcr, "JobEnd");
    if (jcr->fname) {
       free_memory(jcr->fname);
       jcr->fname = NULL;
    }
    V(jcr->mutex);
    return JobId;
-
 }
 
 
@@ -335,7 +335,7 @@ static void *job_thread(void *arg)
 bail_out:
       break;
    }
-
+   generate_daemon_event(jcr, "JobEnd");
    Dmsg1(50, "======== End Job stat=%c ==========\n", jcr->JobStatus);
    sm_check(__FILE__, __LINE__, true);
    return NULL;

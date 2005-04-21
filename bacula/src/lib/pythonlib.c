@@ -126,8 +126,10 @@ void init_python_interpreter(const char *progname, const char *scripts,
    char buf[MAXSTRING];
 
    if (!scripts || scripts[0] == 0) {
+      Dmsg1(100, "No script dir. prog=%s\n", module);
       return;
    }
+   Dmsg2(100, "Script dir=%s prog=%s\n", scripts, module);
 
    Py_SetProgramName((char *)progname);
    Py_Initialize();
@@ -234,9 +236,11 @@ int generate_daemon_event(JCR *jcr, const char *event)
    PyObject *result = NULL;
 
    if (!StartUp_module) {
+      Dmsg0(100, "No startup module.\n");
       return 0;
    }
 
+   Dmsg1(100, "event=%s\n", event);
    PyEval_AcquireLock();
    if (strcmp(event, "JobStart") == 0) {
       if (!JobStart_method) {
@@ -268,11 +272,13 @@ int generate_daemon_event(JCR *jcr, const char *event)
       goto jobstart_ok;
 
    } else if (strcmp(event, "JobEnd") == 0) {
-      if (!JobEnd_method) {
+      if (!JobEnd_method || !jcr->Python_job) {
+         Dmsg0(100, "No JobEnd method\n");
          stat = 0;
          goto bail_out;
       }
       bstrncpy(jcr->event, event, sizeof(jcr->event));
+      Dmsg1(100, "Call event=%s\n", event);
       result = PyObject_CallFunction(JobEnd_method, "O", jcr->Python_job);
       jcr->event[0] = 0;             /* no event in progress */
       if (result == NULL) {

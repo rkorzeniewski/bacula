@@ -341,3 +341,5 @@ static void count_files(FF_PKT *ar)
    }
 
 }
+
+bool python_set_prog(JCR*, char const*) { return false; }

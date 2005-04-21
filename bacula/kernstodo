@@ -28,6 +28,7 @@ Autochangers:
      all Volumes from other drives.  "update slots all-drives"?
   
 For 1.37:
+- Fix FD JobType to be set before RunBeforeJob in FD.
 - SD crashes after a tape restore then doing a backup. 
 - Look at dird_conf.c:1000: warning: `int size' 
   might be used uninitialized in this function

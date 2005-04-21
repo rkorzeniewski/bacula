@@ -198,6 +198,8 @@ int generate_job_event(JCR *jcr, const char *event)
    return 1;
 }
 
+bool python_set_prog(JCR*, char const*) { return false; }
+
 #else
 
 /* Dummy if Python not configured */

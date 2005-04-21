@@ -267,8 +267,10 @@ int main (int argc, char *argv[])
 void terminate_filed(int sig)
 {
    bnet_stop_thread_server(server_tid);
+   generate_daemon_event(NULL, "Exit");
    write_state_file(me->working_directory, "bacula-fd", get_first_port_host_order(me->FDaddrs));
    delete_pid_file(me->pid_directory, "bacula-fd", get_first_port_host_order(me->FDaddrs));
+
    if (configfile != NULL) {
       free(configfile);
    }
