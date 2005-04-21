@@ -60,7 +60,7 @@ int     authenticate_filed(JCR *jcr);
 int      autoload_device(DCR *dcr, int writing, BSOCK *dir);
 bool     autochanger_cmd(DCR *dcr, BSOCK *dir, const char *cmd);
 void     mark_volume_not_inchanger(DCR *dcr);
-char    *edit_device_codes(DCR *dcr, char *omsg, const char *cmd);
+char    *edit_device_codes(DCR *dcr, char *omsg, const char *imsg, const char *cmd);
 
 /* From block.c */
 void    dump_block(DEV_BLOCK *b, const char *msg);

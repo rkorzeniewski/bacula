@@ -42,7 +42,7 @@ extern PyObject *find_method(PyObject *eventsObject, PyObject *method,
 static PyObject *jcr_get(PyObject *self, PyObject *args);
 static PyObject *jcr_write(PyObject *self, PyObject *args);
 static PyObject *jcr_set(PyObject *self, PyObject *args, PyObject *keyw);
-static PyObject *set_jcr_events(PyObject *self, PyObject *args);
+static PyObject *set_job_events(PyObject *self, PyObject *args);
 
 
 /* Define Job entry points */
@@ -50,7 +50,7 @@ PyMethodDef JobMethods[] = {
     {"get", jcr_get, METH_VARARGS, "Get Job variables."},
     {"set", (PyCFunction)jcr_set, METH_VARARGS|METH_KEYWORDS,
         "Set Job variables."},
-    {"set_events", set_jcr_events, METH_VARARGS, "Define Job events."},
+    {"set_events", set_job_events, METH_VARARGS, "Define Job events."},
     {"write", jcr_write, METH_VARARGS, "Write output."},
     {NULL, NULL, 0, NULL}             /* last item */
 };
@@ -168,11 +168,11 @@ PyObject *jcr_set(PyObject *self, PyObject *args, PyObject *keyw)
 }
 
 
-static PyObject *set_jcr_events(PyObject *self, PyObject *args)
+static PyObject *set_job_events(PyObject *self, PyObject *args)
 {
    PyObject *eObject;
    JCR *jcr;
-   if (!PyArg_ParseTuple(args, "O:set_events_hook", &eObject)) {
+   if (!PyArg_ParseTuple(args, "O:set_events", &eObject)) {
       return NULL;
    }
    Py_XINCREF(eObject);

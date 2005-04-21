@@ -69,6 +69,7 @@ CLEAN :
 	-@erase "$(INTDIR)\message.obj"
 	-@erase "$(INTDIR)\parse_conf.obj"
 	-@erase "$(INTDIR)\queue.obj"
+	-@erase "$(INTDIR)\res.obj"
 	-@erase "$(INTDIR)\rwlock.obj"
 	-@erase "$(INTDIR)\scan.obj"
 	-@erase "$(INTDIR)\semlock.obj"
@@ -143,6 +144,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\message.obj" \
 	"$(INTDIR)\parse_conf.obj" \
 	"$(INTDIR)\queue.obj" \
+	"$(INTDIR)\res.obj" \
 	"$(INTDIR)\rwlock.obj" \
 	"$(INTDIR)\scan.obj" \
 	"$(INTDIR)\semlock.obj" \
@@ -247,6 +249,8 @@ CLEAN :
 	-@erase "$(INTDIR)\parse_conf.sbr"
 	-@erase "$(INTDIR)\queue.obj
 	-@erase "$(INTDIR)\queue.sbr"
+	-@erase "$(INTDIR)\res.obj
+	-@erase "$(INTDIR)\res.sbr"
 	-@erase "$(INTDIR)\rwlock.obj
 	-@erase "$(INTDIR)\rwlock.sbr"
 	-@erase "$(INTDIR)\scan.obj
@@ -344,6 +348,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\message.sbr" \
 	"$(INTDIR)\parse_conf.sbr" \
 	"$(INTDIR)\queue.sbr" \
+	"$(INTDIR)\res.sbr" \
 	"$(INTDIR)\rwlock.sbr" \
 	"$(INTDIR)\scan.sbr" \
 	"$(INTDIR)\semlock.sbr" \
@@ -413,6 +418,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\message.obj" \
 	"$(INTDIR)\parse_conf.obj" \
 	"$(INTDIR)\queue.obj" \
+	"$(INTDIR)\res.obj" \
 	"$(INTDIR)\rwlock.obj" \
 	"$(INTDIR)\scan.obj" \
 	"$(INTDIR)\semlock.obj" \
@@ -1028,6 +1034,25 @@ SOURCE=..\lib\parse_conf.cpp
 
 FILENAME=queue
 SOURCE=..\lib\queue.cpp
+!IF  "$(CFG)" == "wx-console - Win32 Release"
+
+
+"$(INTDIR)\$(FILENAME).obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "wx-console - Win32 Debug"
+
+
+"$(INTDIR)\$(FILENAME).obj"	"$(INTDIR)\$(FILENAME).sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+
+FILENAME=res
+SOURCE=..\lib\res.cpp
 !IF  "$(CFG)" == "wx-console - Win32 Release"
 
 

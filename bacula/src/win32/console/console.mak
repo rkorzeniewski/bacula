@@ -441,11 +441,11 @@ SOURCE=..\lib\rwlock.cpp
 "$(INTDIR)\rwlock.obj" : $(SOURCE) "$(INTDIR)"
         $(CPP) $(CPP_PROJ) $(SOURCE)
 
+
 SOURCE=..\lib\res.cpp
 
 "$(INTDIR)\res.obj" : $(SOURCE) "$(INTDIR)"
         $(CPP) $(CPP_PROJ) $(SOURCE)
-
 
 
 SOURCE=..\lib\scan.cpp

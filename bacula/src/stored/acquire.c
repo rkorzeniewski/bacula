@@ -675,7 +675,7 @@ bool release_device(DCR *dcr)
       BPIPE *bpipe;
       char line[MAXSTRING];
       alert = get_pool_memory(PM_FNAME);
-      alert = edit_device_codes(dcr, alert, "");
+      alert = edit_device_codes(dcr, alert, dcr->device->alert_command, "");
       bpipe = open_bpipe(alert, 0, "r");
       if (bpipe) {
          while (fgets(line, sizeof(line), bpipe->rfd)) {
