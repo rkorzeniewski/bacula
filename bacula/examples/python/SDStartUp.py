@@ -1,7 +1,6 @@
 #
-# Bacula Python interface script
+# Bacula Python interface script for the Storage Daemon
 #
-
 # You must import both sys and bacula
 import sys, bacula
 
@@ -26,18 +25,15 @@ class BaculaEvents:
      sys.stdout = events          # send stdout to Bacula
      jobid = job.get("JobId")
      client = job.get("Client")
-     numvols = job.get("NumVols") 
-     job.set(JobReport="Python StartJob: JobId=%d Client=%s NumVols=%d\n" % (jobid,client,numvols))
+     job.set(JobReport="Python SD StartJob: JobId=%d Client=%s \n" % (jobid,client))
      return 1
 
   # Bacula Job is going to terminate
   def JobEnd(self, job):    
      jobid = job.get("JobId")
      client = job.get("Client") 
-     job.set(JobReport="Python EndJob output: JobId=%d Client=%s.\n" % (jobid, client))
-     if (jobid < 2) :
-        startid = job.run("run kernsave")
-        print "Python started new Job: jobid=", startid
+     job.set(JobReport="Python SD EndJob output: JobId=%d Client=%s.\n" % (jobid, client))
+     print "Python SD JobEnd\n"  
      return 1
 
   # Called here when the Bacula daemon is going to exit
@@ -55,38 +51,7 @@ class JobEvents:
      # normally used
      noop = 1
 
-  def NewVolume(self, job):
-     jobid = job.get("JobId")
-     print "JobId=", jobid
-     client = job.get("Client") 
-     print "Client=" + client
-     numvol = job.get("NumVols");
-     print "NumVols=", numvol
-     job.set(JobReport="Python New Volume set for Job.\n") 
-     job.set(VolumeName="TestA-001")
-     return 1
-
-
   # Pass output back to Bacula
   def write(self, text):
      self.job.write(text)
 
-  # Open file to be backed up. file is the filename
-  def open(self, file):
-     print "Open %s called" % file
-     self.fd = open('m.py', 'rb')
-     jobid = self.job.get("JobId")
-     print "Open: JobId=%d" % jobid
-     print "name=%s" % bacula.name
-
-  # Read file data into Bacula memory buffer (mem)
-  #  return length read. 0 => EOF, -1 => error
-  def read(self, mem):
-     print "Read called\n"
-     len = self.fd.readinto(mem)
-     print "Read %s bytes into mem.\n" % len
-     return len
-
-  # Close file
-  def close(self):
-     self.fd.close()

@@ -1,5 +1,5 @@
 #
-# Bacula Python interface script
+# Bacula Python interface script for the Director
 #
 
 # You must import both sys and bacula

@@ -247,3 +247,5 @@ static void print_ls_output(char *fname, char *link, int type, struct stat *stat
    *p = 0;
    fputs(buf, stdout);
 }
+
+bool python_set_prog(JCR*, char const*) { return false; }

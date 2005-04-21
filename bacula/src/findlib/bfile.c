@@ -9,7 +9,7 @@
  *
  */
 /*
-   Copyright (C) 2003-2004 Kern Sibbald and John Walker
+   Copyright (C) 2003-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -31,7 +31,7 @@
 #include "bacula.h"
 #include "find.h"
 
-extern int generate_job_event(JCR *jcr, const char *event);
+extern bool python_set_prog(JCR *jcr, const char *prog);
 
 #ifdef HAVE_DARWIN_OS
 #include <sys/paths.h>
@@ -459,13 +459,14 @@ bool set_prog(BFILE *bfd, char *prog, JCR *jcr)
       return true;                    /* already setup */
    }
 
-   int stat = generate_job_event(jcr, "Reader");
-   if (stat == 1 && bfd->pio.fo && bfd->pio.fr && bfd->pio.fc) {
+   if (python_set_prog(jcr, prog)) {
+      Dmsg1(000, "Set prog=%s\n", prog);
       bfd->prog = prog;
       bfd->jcr = jcr;
       return true;
    }
 #endif
+   Dmsg0(000, "No prog set\n");
    bfd->prog = NULL;
    return false;
 
