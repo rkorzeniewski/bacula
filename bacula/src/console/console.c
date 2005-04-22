@@ -323,7 +323,6 @@ int main(int argc, char *argv[])
    int ch, i, item;
    bool no_signals = false;
    bool test_config = false;
-   char buf[1024];
    JCR jcr;
 
    init_stack_dump();
@@ -456,6 +455,7 @@ try_again:
    senditf(_("Connecting to Director %s:%d\n"), dir->address,dir->DIRport);
 
 #ifdef HAVE_TLS
+   char buf[1024];
    /* Initialize Console TLS context */
    if (cons && (cons->tls_enable || cons->tls_require)) {
       /* Generate passphrase prompt */
@@ -466,13 +466,13 @@ try_again:
        * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */
       cons->tls_ctx = new_tls_context(cons->tls_ca_certfile,
          cons->tls_ca_certdir, cons->tls_certfile,
-	 cons->tls_keyfile, tls_pem_callback, &buf, NULL, true);
+         cons->tls_keyfile, tls_pem_callback, &buf, NULL, true);
 
       if (!cons->tls_ctx) {
-	 senditf(_("Failed to initialize TLS context for Console \"%s\".\n"),
-	    dir->hdr.name);
-	 terminate_console(0);
-	 return 1;
+         senditf(_("Failed to initialize TLS context for Console \"%s\".\n"),
+            dir->hdr.name);
+         terminate_console(0);
+         return 1;
       }
 
    }
@@ -487,13 +487,13 @@ try_again:
        * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */
       dir->tls_ctx = new_tls_context(dir->tls_ca_certfile,
          dir->tls_ca_certdir, dir->tls_certfile,
-	 dir->tls_keyfile, tls_pem_callback, &buf, NULL, true);
+         dir->tls_keyfile, tls_pem_callback, &buf, NULL, true);
 
       if (!dir->tls_ctx) {
-	 senditf(_("Failed to initialize TLS context for Director \"%s\".\n"),
-	    dir->hdr.name);
-	 terminate_console(0);
-	 return 1;
+         senditf(_("Failed to initialize TLS context for Director \"%s\".\n"),
+            dir->hdr.name);
+         terminate_console(0);
+         return 1;
       }
    }
 #endif /* HAVE_TLS */
@@ -570,7 +570,6 @@ static void terminate_console(int sig)
 static int check_resources()
 {
    bool OK = true;
-   CONRES *cons;
    DIRRES *director;
 
    LockRes();
@@ -582,38 +581,39 @@ static int check_resources()
 #ifdef HAVE_TLS
       /* tls_require implies tls_enable */
       if (director->tls_require) {
-	 director->tls_enable = true;
+         director->tls_enable = true;
       }
 
       if ((!director->tls_ca_certfile && !director->tls_ca_certdir) && director->tls_enable) {
-	 Emsg2(M_FATAL, 0, _("Neither \"TLS CA Certificate\""
-			     " or \"TLS CA Certificate Dir\" are defined for Director \"%s\" in %s."
-			     " At least one CA certificate store is required.\n"),
-			     director->hdr.name, configfile);
-	 OK = false;
+         Emsg2(M_FATAL, 0, _("Neither \"TLS CA Certificate\""
+                             " or \"TLS CA Certificate Dir\" are defined for Director \"%s\" in %s."
+                             " At least one CA certificate store is required.\n"),
+                             director->hdr.name, configfile);
+         OK = false;
       }
 #endif /* HAVE_TLS */
    }
    
    if (numdir == 0) {
       Emsg1(M_FATAL, 0, _("No Director resource defined in %s\n"
-			  "Without that I don't how to speak to the Director :-(\n"), configfile);
+                          "Without that I don't how to speak to the Director :-(\n"), configfile);
       OK = false;
    }
 
 #ifdef HAVE_TLS
+   CONRES *cons;
    /* Loop over Consoles */
    foreach_res(cons, R_CONSOLE) {
       /* tls_require implies tls_enable */
       if (cons->tls_require) {
-	 cons->tls_enable = true;
+         cons->tls_enable = true;
       }
 
       if ((!cons->tls_ca_certfile && !cons->tls_ca_certdir) && cons->tls_enable) {
-	 Emsg2(M_FATAL, 0, _("Neither \"TLS CA Certificate\""
-			     " or \"TLS CA Certificate Dir\" are defined for Console \"%s\" in %s.\n"),
-			     cons->hdr.name, configfile);
-	 OK = false;
+         Emsg2(M_FATAL, 0, _("Neither \"TLS CA Certificate\""
+                             " or \"TLS CA Certificate Dir\" are defined for Console \"%s\" in %s.\n"),
+                             cons->hdr.name, configfile);
+         OK = false;
       }
    }
 #endif /* HAVE_TLS */
