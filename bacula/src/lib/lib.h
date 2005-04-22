@@ -37,6 +37,7 @@
 #include "message.h"
 #include "lex.h"
 #include "parse_conf.h"
+#include "tls.h"
 #include "bsock.h"
 #include "bshm.h"
 #include "workq.h"

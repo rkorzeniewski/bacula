@@ -41,8 +41,12 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
 {
    POOLMEM *dirname;
    DIRRES *director = NULL;
-   int ssl_need = BNET_SSL_NONE;
-   bool auth, get_auth = false;
+   int tls_local_need = BNET_TLS_NONE;
+   int tls_remote_need = BNET_TLS_NONE;
+   bool auth_success = false;
+#ifdef HAVE_TLS
+   alist *verify_list = NULL;
+#endif
 
    if (rcode != R_DIRECTOR) {
       Dmsg1(50, _("I only authenticate Directors, not %d\n"), rcode);
@@ -85,28 +89,71 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
       return 0;
    }
 
+#ifdef HAVE_TLS
+   /* TLS Requirement */
+   if (director->tls_enable) {
+      if (director->tls_require) {
+         tls_local_need = BNET_TLS_REQUIRED;
+      } else {
+	 tls_local_need = BNET_TLS_OK;
+      }
+   }
+
+   if (director->tls_verify_peer) {
+      verify_list = director->tls_allowed_cns;
+   }
+#endif /* HAVE_TLS */
+
    /* Timeout Hello after 10 mins */
    btimer_t *tid = start_bsock_timer(bs, AUTH_TIMEOUT);
-   auth = cram_md5_auth(bs, director->password, ssl_need);
-   if (auth) {
-      get_auth = cram_md5_get_auth(bs, director->password, ssl_need);
-      if (!get_auth) {
+   auth_success = cram_md5_auth(bs, director->password, tls_local_need);
+   if (auth_success) {
+      auth_success = cram_md5_get_auth(bs, director->password, &tls_remote_need);
+      if (!auth_success) {
 	 Dmsg1(50, "cram_get_auth failed with %s\n", bs->who);
       }
    } else {
       Dmsg1(50, "cram_auth failed with %s\n", bs->who);
    }
-   if (!auth || !get_auth) {
-      stop_bsock_timer(tid);
+
+   if (!auth_success) {
       Emsg0(M_FATAL, 0, _("Incorrect password given by Director.\n"
        "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"));
-      free_pool_memory(dirname);
-      return 0;
+      auth_success = false;
+      goto auth_fatal;
    }
+
+   /* Verify that the remote host is willing to meet our TLS requirements */
+   if (tls_remote_need < tls_local_need && tls_local_need != BNET_TLS_OK && tls_remote_need != BNET_TLS_OK) {
+      Emsg0(M_FATAL, 0, _("Authorization problem: Remote server did not" 
+	   " advertise required TLS support.\n"));
+      auth_success = false;
+      goto auth_fatal;
+   }
+
+   /* Verify that we are willing to meet the remote host's requirements */
+   if (tls_remote_need > tls_local_need && tls_local_need != BNET_TLS_OK && tls_remote_need != BNET_TLS_OK) {
+      Emsg0(M_FATAL, 0, _("Authorization problem: Remote server requires TLS.\n"));
+      auth_success = false;
+      goto auth_fatal;
+   }
+
+#ifdef HAVE_TLS
+   if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
+      /* Engage TLS! Full Speed Ahead! */
+      if (!bnet_tls_server(director->tls_ctx, bs, verify_list)) {
+	 Emsg0(M_FATAL, 0, "TLS negotiation failed.\n");
+	 auth_success = false;
+	 goto auth_fatal;
+      }
+   }
+#endif /* HAVE_TLS */
+
+auth_fatal:
    stop_bsock_timer(tid);
    free_pool_memory(dirname);
    jcr->director = director;
-   return 1;
+   return auth_success;
 }
 
 /*
@@ -138,28 +185,81 @@ int authenticate_director(JCR *jcr)
 int authenticate_filed(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
-   int ssl_need = BNET_SSL_NONE;
-   bool auth, get_auth = false;
+   int tls_local_need = BNET_TLS_NONE;
+   int tls_remote_need = BNET_TLS_NONE;
+   bool auth_success = false;
+#ifdef HAVE_TLS
+   alist *verify_list = NULL;
+#endif
+
+#ifdef HAVE_TLS
+   /* TLS Requirement */
+   if (me->tls_enable) {
+      if (me->tls_require) {
+         tls_local_need = BNET_TLS_REQUIRED;
+      } else {
+	 tls_local_need = BNET_TLS_OK;
+      }
+   }
+
+   if (me->tls_verify_peer) {
+      verify_list = me->tls_allowed_cns;
+   }
+#endif /* HAVE_TLS */
 
    /* Timeout Hello after 5 mins */
    btimer_t *tid = start_bsock_timer(fd, AUTH_TIMEOUT);
-   auth = cram_md5_auth(fd, jcr->sd_auth_key, ssl_need);
-   if (auth) {
-       get_auth = cram_md5_get_auth(fd, jcr->sd_auth_key, ssl_need);
-       if (!get_auth) {
+   auth_success = cram_md5_auth(fd, jcr->sd_auth_key, tls_local_need);
+   if (auth_success) {
+       auth_success = cram_md5_get_auth(fd, jcr->sd_auth_key, &tls_remote_need);
+       if (!auth_success) {
 	  Dmsg1(50, "cram-get-auth failed with %s\n", fd->who);
        }
    } else {
       Dmsg1(50, "cram-auth failed with %s\n", fd->who);
    }
-   if (auth && get_auth) {
-      jcr->authenticated = true;
+
+   if (!auth_success) {
+      Jmsg(jcr, M_FATAL, 0, _("Incorrect authorization key from File daemon at %s rejected.\n"
+       "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"),
+	   fd->who);
+      auth_success = false;
+      goto auth_fatal;
    }
+
+   /* Verify that the remote host is willing to meet our TLS requirements */
+   if (tls_remote_need < tls_local_need && tls_local_need != BNET_TLS_OK && tls_remote_need != BNET_TLS_OK) {
+      Jmsg(jcr, M_FATAL, 0, _("Authorization problem: Remote server did not" 
+	   " advertise required TLS support.\n"));
+      auth_success = false;
+      goto auth_fatal;
+   }
+
+   /* Verify that we are willing to meet the remote host's requirements */
+   if (tls_remote_need > tls_local_need && tls_local_need != BNET_TLS_OK && tls_remote_need != BNET_TLS_OK) {
+      Jmsg(jcr, M_FATAL, 0, _("Authorization problem: Remote server requires TLS.\n"));
+      auth_success = false;
+      goto auth_fatal;
+   }
+
+#ifdef HAVE_TLS
+   if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
+      /* Engage TLS! Full Speed Ahead! */
+      if (!bnet_tls_server(me->tls_ctx, fd, verify_list)) {
+	 Jmsg(jcr, M_FATAL, 0, "TLS negotiation failed.\n");
+	 auth_success = false;
+	 goto auth_fatal;
+      }
+   }
+#endif /* HAVE_TLS */
+
+auth_fatal:
    stop_bsock_timer(tid);
-   if (!jcr->authenticated) {
+   if (!auth_success) {
       Jmsg(jcr, M_FATAL, 0, _("Incorrect authorization key from File daemon at %s rejected.\n"
        "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"),
 	   fd->who);
    }
-   return jcr->authenticated;
+   jcr->authenticated = auth_success;
+   return auth_success;
 }

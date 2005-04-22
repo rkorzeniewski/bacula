@@ -27,7 +27,7 @@ LIBSRCS = alloc.c attr.c base64.c berrno.c bsys.c bget_msg.c \
 	  hmac.c idcache.c jcr.c lex.c alist.c dlist.c \
 	  md5.c message.c mem_pool.c parse_conf.c \
 	  queue.c res.c rwlock.c scan.c serial.c sha1.c \
-	  semlock.c signal.c smartall.c tree.c \
+	  semlock.c signal.c smartall.c tls.c tree.c \
 	  util.c var.c watchdog.c workq.c btimers.c \
 	  address_conf.c pythonlib.c 
 
@@ -39,7 +39,7 @@ LIBOBJS = alloc.o attr.o base64.o berrno.o bsys.o bget_msg.o \
 	  hmac.o idcache.o jcr.o lex.o alist.o dlist.o \
 	  md5.o message.o mem_pool.o parse_conf.o \
 	  queue.o res.o rwlock.o scan.o serial.o sha1.o \
-	  semlock.o signal.o smartall.o tree.o \
+	  semlock.o signal.o smartall.o tls.o tree.o \
 	  util.o var.o watchdog.o workq.o btimers.o \
 	  address_conf.o pythonlib.o
 

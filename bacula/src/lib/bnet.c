@@ -65,6 +65,13 @@ static int32_t read_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
 {
    int32_t nleft, nread;
 
+#ifdef HAVE_TLS
+   if (bsock->tls) {
+      /* TLS enabled */
+      return (tls_bsock_readn(bsock, ptr, nbytes));
+   }
+#endif /* HAVE_TLS */
+
    nleft = nbytes;
    while (nleft > 0) {
       do {
@@ -105,6 +112,14 @@ static int32_t write_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
       }
       return nbytes;
    }
+
+#ifdef HAVE_TLS
+   if (bsock->tls) {
+      /* TLS enabled */
+      return (tls_bsock_writen(bsock, ptr, nbytes));
+   }
+#endif /* HAVE_TLS */
+
    nleft = nbytes;
    while (nleft > 0) {
       do {
@@ -416,28 +431,81 @@ bool bnet_send(BSOCK * bsock)
 }
 
 /*
- * Establish an SSL connection -- server side
- *  Codes that ssl_need and ssl_has can take
- *    BNET_SSL_NONE	 I cannot do ssl
- *    BNET_SSL_OK	 I can do ssl, but it is not required on my end
- *    BNET_SSL_REQUIRED  ssl is required on my end
+ * Establish a TLS connection -- server side
+ *  Returns: 1 on success
+ *           0 failure
  */
-int bnet_ssl_server(BSOCK * bsock, char *password, int ssl_need, int ssl_has)
+#ifdef HAVE_TLS
+int bnet_tls_server(TLS_CONTEXT *ctx, BSOCK * bsock, alist *verify_list)
 {
-   /* Check to see if what we need (ssl_need) corresponds to what he has (ssl_has) */
-   /* The other side expects a response from us */
+   TLS_CONNECTION *tls;
+   
+   tls = new_tls_connection(ctx, bsock->fd);
+   if (!tls) {
+      Qmsg0(bsock->jcr, M_FATAL, 0, _("TLS connection initialization failed.\n"));
+      return 0;
+   }
+
+   bsock->tls = tls;
+
+   /* Initiate TLS Negotiation */
+   if (!tls_bsock_accept(bsock)) {
+      Qmsg0(bsock->jcr, M_FATAL, 0, _("TLS Negotiation failed.\n"));
+      goto err;
+   }
+
+   if (verify_list) {
+      if (!tls_postconnect_verify_cn(tls, verify_list)) {
+	 Qmsg1(bsock->jcr, M_FATAL, 0, _("TLS certificate verification failed."
+	 				 " Peer certificate did not match a required commonName\n"),
+					 bsock->host);
+	 goto err;
+      }
+   }
+ 
    return 1;
+
+err:
+   free_tls_connection(tls);
+   bsock->tls = NULL;
+   return 0;
 }
 
 /*
- * Establish an SSL connection -- client side
+ * Establish a TLS connection -- client side
+ * Returns: 1 on success
+ *          0 failure
  */
-int bnet_ssl_client(BSOCK * bsock, char *password, int ssl_need)
+int bnet_tls_client(TLS_CONTEXT *ctx, BSOCK * bsock)
 {
-   /* We are the client so we must wait for the server to notify us */
-   return 1;
-}
+   TLS_CONNECTION *tls;
 
+   tls  = new_tls_connection(ctx, bsock->fd);
+   if (!tls) {
+      Qmsg0(bsock->jcr, M_FATAL, 0, _("TLS connection initialization failed.\n"));
+      return 0;
+   }
+
+   bsock->tls = tls;
+
+   /* Initiate TLS Negotiation */
+   if (!tls_bsock_connect(bsock)) {
+      goto err;
+   }
+
+   if (!tls_postconnect_verify_host(tls, bsock->host)) {
+      Qmsg1(bsock->jcr, M_FATAL, 0, _("TLS host certificate verification failed. Host %s did not match presented certificate\n"), bsock->host);
+      goto err;
+   }
+ 
+   return 1;
+
+err:
+   free_tls_connection(tls);
+   bsock->tls = NULL;
+   return 0;
+}
+#endif /* HAVE_TLS */
 
 /*
  * Wait for a specified time for data to appear on
@@ -900,6 +968,89 @@ bool bnet_set_buffer_size(BSOCK * bs, uint32_t size, int rw)
 }
 
 /*
+ * Set socket non-blocking
+ * Returns previous socket flag
+ */
+int bnet_set_nonblocking (BSOCK *bsock) {
+#ifndef WIN32
+   int oflags;
+
+   /* Get current flags */
+   if((oflags = fcntl(bsock->fd, F_GETFL, 0)) < 0) {
+      Emsg1(M_ABORT, 0, "fcntl F_GETFL error. ERR=%s\n", strerror(errno));
+   }
+
+   /* Set O_NONBLOCK flag */
+   if((fcntl(bsock->fd, F_SETFL, oflags|O_NONBLOCK)) < 0) {
+      Emsg1(M_ABORT, 0, "fcntl F_SETFL error. ERR=%s\n", strerror(errno));
+   }
+
+   bsock->blocking = 0;
+   return oflags;
+#else
+   int flags;
+   u_long ioctlArg = 1;
+
+   flags = bsock->blocking;
+   ioctlsocket(bsock->fd, FIONBIO, &ioctlArg);
+   bsock->blocking = 0;
+
+   return (flags);
+#endif
+}
+
+/*
+ * Set socket blocking
+ * Returns previous socket flags
+ */
+int bnet_set_blocking (BSOCK *bsock) {
+#ifndef WIN32
+   int oflags;
+   /* Get current flags */
+   if((oflags = fcntl(bsock->fd, F_GETFL, 0)) < 0) {
+      Emsg1(M_ABORT, 0, "fcntl F_GETFL error. ERR=%s\n", strerror(errno));
+   }
+
+   /* Set O_NONBLOCK flag */
+   if((fcntl(bsock->fd, F_SETFL, oflags & ~O_NONBLOCK)) < 0) {
+      Emsg1(M_ABORT, 0, "fcntl F_SETFL error. ERR=%s\n", strerror(errno));
+   }
+
+   bsock->blocking = 1;
+   return (oflags);
+#else
+   int flags;
+   u_long ioctlArg = 0;
+
+   flags = bsock->blocking;
+   ioctlsocket(bsock->fd, FIONBIO, &ioctlArg);
+   bsock->blocking = 1;
+
+   return (flags);
+#endif
+}
+
+/*
+ * Restores socket flags
+ */
+void bnet_restore_blocking (BSOCK *bsock, int flags) {
+#ifndef WIN32
+   if((fcntl(bsock->fd, F_SETFL, flags)) < 0) {
+      Emsg1(M_ABORT, 0, "fcntl F_SETFL error. ERR=%s\n", strerror(errno));
+   }
+
+   bsock->blocking = (flags & O_NONBLOCK);
+#else
+   int flags;
+   u_long ioctlArg = flags;
+
+   ioctlsocket(bsock->fd, FIONBIO, &ioctlArg);
+   bsock->blocking = 1;
+#endif
+}
+
+
+/*
  * Send a network "signal" to the other end
  *  This consists of sending a negative packet length
  *
@@ -953,7 +1104,9 @@ BSOCK *init_bsock(JCR * jcr, int sockfd, const char *who, const char *host, int 
    BSOCK *bsock = (BSOCK *)malloc(sizeof(BSOCK));
    memset(bsock, 0, sizeof(BSOCK));
    bsock->fd = sockfd;
+   bsock->tls = NULL;
    bsock->errors = 0;
+   bsock->blocking = 1;
    bsock->msg = get_pool_memory(PM_MESSAGE);
    bsock->errmsg = get_pool_memory(PM_MESSAGE);
    bsock->who = bstrdup(who);
@@ -993,6 +1146,14 @@ void bnet_close(BSOCK * bsock)
    for (; bsock != NULL; bsock = next) {
       next = bsock->next;
       if (!bsock->duped) {
+#ifdef HAVE_TLS
+	 /* Shutdown tls cleanly. */
+	 if (bsock->tls) {
+	    tls_bsock_shutdown(bsock);
+	    free_tls_connection(bsock->tls);
+	    bsock->tls = NULL;
+	 }
+#endif /* HAVE_TLS */
 	 if (bsock->timed_out) {
 	    shutdown(bsock->fd, 2);	/* discard any pending I/O */
 	 }

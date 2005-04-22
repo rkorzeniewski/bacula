@@ -90,12 +90,19 @@ static RES_ITEM cli_items[] = {
    {"piddirectory",  store_dir,     ITEM(res_client.pid_directory),     0, ITEM_REQUIRED, 0},
    {"subsysdirectory",  store_dir,  ITEM(res_client.subsys_directory),  0, 0, 0},
    {"scriptsdirectory",  store_dir,  ITEM(res_client.scripts_directory),  0, 0, 0},
-   {"requiressl",  store_yesno,     ITEM(res_client.require_ssl),       1, ITEM_DEFAULT, 0},
    {"maximumconcurrentjobs", store_pint,  ITEM(res_client.MaxConcurrentJobs), 0, ITEM_DEFAULT, 10},
    {"messages",      store_res, ITEM(res_client.messages), R_MSGS, 0, 0},
    {"heartbeatinterval", store_time, ITEM(res_client.heartbeat_interval), 0, ITEM_DEFAULT, 0},
    {"sdconnecttimeout", store_time,ITEM(res_client.SDConnectTimeout), 0, ITEM_DEFAULT, 60 * 30},
    {"maximumnetworkbuffersize", store_pint, ITEM(res_client.max_network_buffer_size), 0, 0, 0},
+#ifdef HAVE_TLS
+   {"tlsenable",            store_yesno,     ITEM(res_client.tls_enable), 1, ITEM_DEFAULT, 0},
+   {"tlsrequire",           store_yesno,     ITEM(res_client.tls_require), 1, ITEM_DEFAULT, 0},
+   {"tlscacertificatefile", store_dir,       ITEM(res_client.tls_ca_certfile), 0, 0, 0},
+   {"tlscacertificatedir",  store_dir,       ITEM(res_client.tls_ca_certdir), 0, 0, 0},
+   {"tlscertificate",       store_dir,       ITEM(res_client.tls_certfile), 0, 0, 0},
+   {"tlskey",               store_dir,       ITEM(res_client.tls_keyfile), 0, 0, 0},
+#endif /* HAVE_TLS */
    {NULL, NULL, NULL, 0, 0, 0}
 };
 
@@ -105,8 +112,18 @@ static RES_ITEM dir_items[] = {
    {"description", store_str,      ITEM(res_dir.hdr.desc),  0, 0, 0},
    {"password",    store_password, ITEM(res_dir.password),  0, ITEM_REQUIRED, 0},
    {"address",     store_str,      ITEM(res_dir.address),   0, 0, 0},
-   {"enablessl",   store_yesno,    ITEM(res_dir.enable_ssl),1, ITEM_DEFAULT, 0},
    {"monitor",     store_yesno,    ITEM(res_dir.monitor),   1, ITEM_DEFAULT, 0},
+#ifdef HAVE_TLS
+   {"tlsenable",            store_yesno,     ITEM(res_dir.tls_enable), 1, ITEM_DEFAULT, 0},
+   {"tlsrequire",           store_yesno,     ITEM(res_dir.tls_require), 1, ITEM_DEFAULT, 0},
+   {"tlsverifypeer",        store_yesno,     ITEM(res_dir.tls_verify_peer), 1, ITEM_DEFAULT, 0},
+   {"tlscacertificatefile", store_dir,       ITEM(res_dir.tls_ca_certfile), 0, 0, 0},
+   {"tlscacertificatedir",  store_dir,       ITEM(res_dir.tls_ca_certdir), 0, 0, 0},
+   {"tlscertificate",       store_dir,       ITEM(res_dir.tls_certfile), 0, 0, 0},
+   {"tlskey",               store_dir,       ITEM(res_dir.tls_keyfile), 0, 0, 0},
+   {"tlsdhfile",            store_dir,       ITEM(res_dir.tls_dhfile), 0, 0, 0},
+   {"tlsallowedcn",         store_alist_str, ITEM(res_dir.tls_allowed_cns), 0, 0, 0},
+#endif /* HAVE_TLS */
    {NULL, NULL, NULL, 0, 0, 0}
 };
 
@@ -195,6 +212,29 @@ void free_resource(RES *sres, int type)
       if (res->res_dir.address) {
          free(res->res_dir.address);
       }
+#ifdef HAVE_TLS
+      if (res->res_dir.tls_ctx) { 
+         free_tls_context(res->res_dir.tls_ctx);
+      }
+      if (res->res_dir.tls_ca_certfile) {
+	 free(res->res_dir.tls_ca_certfile);
+      }
+      if (res->res_dir.tls_ca_certdir) {
+	 free(res->res_dir.tls_ca_certdir);
+      }
+      if (res->res_dir.tls_certfile) {
+	 free(res->res_dir.tls_certfile);
+      }
+      if (res->res_dir.tls_keyfile) {
+	 free(res->res_dir.tls_keyfile);
+      }
+      if (res->res_dir.tls_dhfile) {
+	 free(res->res_dir.tls_dhfile);
+      }
+      if (res->res_dir.tls_allowed_cns) {
+	 delete res->res_dir.tls_allowed_cns;
+      }
+#endif /* HAVE_TLS */
       break;
    case R_CLIENT:
       if (res->res_client.working_directory) {
@@ -212,6 +252,23 @@ void free_resource(RES *sres, int type)
       if (res->res_client.FDaddrs) {
          free_addresses(res->res_client.FDaddrs);
       }
+#ifdef HAVE_TLS
+      if (res->res_client.tls_ctx) { 
+         free_tls_context(res->res_client.tls_ctx);
+      }
+      if (res->res_client.tls_ca_certfile) {
+	 free(res->res_client.tls_ca_certfile);
+      }
+      if (res->res_client.tls_ca_certdir) {
+	 free(res->res_client.tls_ca_certdir);
+      }
+      if (res->res_client.tls_certfile) {
+	 free(res->res_client.tls_certfile);
+      }
+      if (res->res_client.tls_keyfile) {
+	 free(res->res_client.tls_keyfile);
+      }
+#endif /* HAVE_TLS */
       break;
    case R_MSGS:
       if (res->res_msgs.mail_cmd)
@@ -265,10 +322,17 @@ void save_resource(int type, RES_ITEM *items, int pass)
       switch (type) {
          /* Resources not containing a resource */
          case R_MSGS:
-         case R_DIRECTOR:
             break;
 
          /* Resources containing another resource */
+	 case R_DIRECTOR:
+            if ((res = (URES *)GetResWithName(R_DIRECTOR, res_all.res_dir.hdr.name)) == NULL) {
+               Emsg1(M_ABORT, 0, "Cannot find Director resource %s\n", res_all.res_dir.hdr.name);
+            }
+#ifdef HAVE_TLS
+	    res->res_dir.tls_allowed_cns = res_all.res_dir.tls_allowed_cns;
+#endif
+	    break;
          case R_CLIENT:
             if ((res = (URES *)GetResWithName(R_CLIENT, res_all.res_dir.hdr.name)) == NULL) {
                Emsg1(M_ABORT, 0, "Cannot find Client resource %s\n", res_all.res_dir.hdr.name);

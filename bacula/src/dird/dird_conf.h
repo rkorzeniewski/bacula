@@ -98,17 +98,28 @@ public:
    RES   hdr;
    dlist *DIRaddrs;
    char *password;                    /* Password for UA access */
-   int enable_ssl;                    /* Use SSL for UA */
    char *query_file;                  /* SQL query file */
    char *working_directory;           /* WorkingDirectory */
    const char *scripts_directory;     /* ScriptsDirectory */
    char *pid_directory;               /* PidDirectory */
    char *subsys_directory;            /* SubsysDirectory */
-   int require_ssl;                   /* Require SSL for all connections */
    MSGS *messages;                    /* Daemon message handler */
    uint32_t MaxConcurrentJobs;        /* Max concurrent jobs for whole director */
    utime_t FDConnectTimeout;          /* timeout for connect in seconds */
    utime_t SDConnectTimeout;          /* timeout in seconds */
+#ifdef HAVE_TLS
+   int tls_enable;                    /* Enable TLS */
+   int tls_require;		      /* Require TLS */
+   int tls_verify_peer;              /* TLS Verify Client Certificate */
+   char *tls_ca_certfile;             /* TLS CA Certificate File */
+   char *tls_ca_certdir;              /* TLS CA Certificate Directory */
+   char *tls_certfile;                /* TLS Server Certificate File */
+   char *tls_keyfile;                 /* TLS Server Key File */
+   char *tls_dhfile;                  /* TLS Diffie-Hellman Parameters */
+   alist *tls_allowed_cns;            /* TLS Allowed Clients */
+
+   TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
+#endif /* HAVE_TLS */
 };
 
 /*
@@ -164,8 +175,20 @@ class CONRES {
 public:
    RES   hdr;
    char *password;                    /* UA server password */
-   int enable_ssl;                    /* Use SSL */
    alist *ACL_lists[Num_ACL];         /* pointers to ACLs */
+#ifdef HAVE_TLS
+   int tls_enable;		      /* Enable TLS */
+   int tls_require;		      /* Require TLS */
+   int tls_verify_peer;              /* TLS Verify Client Certificate */
+   char *tls_ca_certfile;             /* TLS CA Certificate File */
+   char *tls_ca_certdir;              /* TLS CA Certificate Directory */
+   char *tls_certfile;                /* TLS Server Certificate File */
+   char *tls_keyfile;                 /* TLS Server Key File */
+   char *tls_dhfile;                  /* TLS Diffie-Hellman Parameters */
+   alist *tls_allowed_cns;            /* TLS Allowed Clients */
+
+   TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
+#endif /* HAVE_TLS */
 };
 
 
@@ -204,7 +227,16 @@ public:
    CAT *catalog;                      /* Catalog resource */
    uint32_t MaxConcurrentJobs;        /* Maximume concurrent jobs */
    uint32_t NumConcurrentJobs;        /* number of concurrent jobs running */
-   int enable_ssl;                    /* Use SSL */
+#ifdef HAVE_TLS
+   int tls_enable;                    /* Enable TLS */
+   int tls_require;		      /* Require TLS */
+   char *tls_ca_certfile;             /* TLS CA Certificate File */
+   char *tls_ca_certdir;              /* TLS CA Certificate Directory */
+   char *tls_certfile;                /* TLS Client Certificate File */
+   char *tls_keyfile;                 /* TLS Client Key File */
+
+   TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
+#endif /* HAVE_TLS */
 };
 
 /*
@@ -224,7 +256,16 @@ public:
    int  autochanger;                  /* set if autochanger */
    uint32_t MaxConcurrentJobs;        /* Maximume concurrent jobs */
    uint32_t NumConcurrentJobs;        /* number of concurrent jobs running */
-   int enable_ssl;                    /* Use SSL */
+#ifdef HAVE_TLS
+   int tls_enable;                    /* Enable TLS */
+   int tls_require;		      /* Require TLS */
+   char *tls_ca_certfile;             /* TLS CA Certificate File */
+   char *tls_ca_certdir;              /* TLS CA Certificate Directory */
+   char *tls_certfile;                /* TLS Client Certificate File */
+   char *tls_keyfile;                 /* TLS Client Key File */
+
+   TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
+#endif /* HAVE_TLS */
 
    int64_t StorageId;                 /* Set from Storage DB record */
 

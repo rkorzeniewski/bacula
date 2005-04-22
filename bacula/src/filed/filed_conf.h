@@ -50,8 +50,20 @@ struct DIRRES {
    RES   hdr;
    char *password;                    /* Director password */
    char *address;                     /* Director address or zero */
-   int enable_ssl;                    /* Use SSL for this Director */
    int monitor;                       /* Have only access to status and .status functions */
+#ifdef HAVE_TLS
+   int tls_enable;                    /* Enable TLS */
+   int tls_require;		      /* Require TLS */
+   int tls_verify_peer;              /* TLS Verify Client Certificate */
+   char *tls_ca_certfile;             /* TLS CA Certificate File */
+   char *tls_ca_certdir;              /* TLS CA Certificate Directory */
+   char *tls_certfile;                /* TLS Server Certificate File */
+   char *tls_keyfile;                 /* TLS Server Key File */
+   char *tls_dhfile;                  /* TLS Diffie-Hellman Parameters */
+   alist *tls_allowed_cns;            /* TLS Allowed Clients */
+
+   TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
+#endif /* HAVE_TLS */
 };
 
 struct CLIENT {
@@ -61,12 +73,21 @@ struct CLIENT {
    char *pid_directory;
    char *subsys_directory;
    char *scripts_directory;
-   int require_ssl;                   /* Require SSL on all connections */
    MSGS *messages;                    /* daemon message handler */
    int MaxConcurrentJobs;
    utime_t heartbeat_interval;        /* Interval to send heartbeats to Dir */
    utime_t SDConnectTimeout;          /* timeout in seconds */
    uint32_t max_network_buffer_size;  /* max network buf size */
+#ifdef HAVE_TLS
+   int tls_enable;                    /* Enable TLS */
+   int tls_require;		      /* Require TLS */
+   char *tls_ca_certfile;             /* TLS CA Certificate File */
+   char *tls_ca_certdir;              /* TLS CA Certificate Directory */
+   char *tls_certfile;                /* TLS Client Certificate File */
+   char *tls_keyfile;                 /* TLS Client Key File */
+
+   TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
+#endif /* HAVE_TLS */
 };
 
 

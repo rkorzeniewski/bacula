@@ -51,7 +51,8 @@ static char OKhello[]   = "1000 OK:";
 int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
 {
    BSOCK *dir = jcr->dir_bsock;
-   int ssl_need = BNET_SSL_NONE;
+   int tls_local_need = BNET_TLS_NONE;
+   int tls_remote_need = BNET_TLS_NONE;
    char bashed_name[MAX_NAME_LENGTH];
    char *password;
 
@@ -70,8 +71,8 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
    btimer_t *tid = start_bsock_timer(dir, 60 * 5);
    bnet_fsend(dir, hello, bashed_name);
 
-   if (!cram_md5_get_auth(dir, password, ssl_need) ||
-       !cram_md5_auth(dir, password, ssl_need)) {
+   if (!cram_md5_get_auth(dir, password, &tls_remote_need) ||
+       !cram_md5_auth(dir, password, tls_local_need)) {
       stop_bsock_timer(tid);
       csprint("Director authorization problem.\nMost likely the passwords do not agree.\n", CS_DATA);
       csprint(

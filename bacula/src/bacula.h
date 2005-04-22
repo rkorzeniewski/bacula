@@ -112,6 +112,13 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 
+#ifdef HAVE_OPENSSL
+#include <openssl/ssl.h>
+#include <openssl/x509v3.h>
+#include <openssl/rand.h>
+#include <openssl/err.h>
+#endif
+
 /* Local Bacula includes. Be sure to put all the system
  *  includes before these.
  */

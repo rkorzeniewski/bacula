@@ -36,8 +36,17 @@ struct CONRES {
    RES	 hdr;
    char *rc_file;		      /* startup file */
    char *hist_file;		      /* command history file */
-   int require_ssl;		      /* Require SSL on all connections */
    char *password;		      /* UA server password */
+#ifdef HAVE_TLS
+   int tls_enable;                    /* Enable TLS on all connections */
+   int tls_require;                   /* Require TLS on all connections */
+   char *tls_ca_certfile;             /* TLS CA Certificate File */
+   char *tls_ca_certdir;              /* TLS CA Certificate Directory */
+   char *tls_certfile;                /* TLS Client Certificate File */
+   char *tls_keyfile;                 /* TLS Client Key File */
+
+   TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
+#endif /* HAVE_TLS */
 };
 
 /* Director */
@@ -46,7 +55,16 @@ struct DIRRES {
    int	 DIRport;		      /* UA server port */
    char *address;		      /* UA server address */
    char *password;		      /* UA server password */
-   int	enable_ssl;		      /* Use SSL */
+#ifdef HAVE_TLS
+   int tls_enable;                    /* Enable TLS */
+   int tls_require;                   /* Require TLS */
+   char *tls_ca_certfile;             /* TLS CA Certificate File */
+   char *tls_ca_certdir;              /* TLS CA Certificate Directory */
+   char *tls_certfile;                /* TLS Client Certificate File */
+   char *tls_keyfile;                 /* TLS Client Key File */
+
+   TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
+#endif /* HAVE_TLS */
 };
 
 

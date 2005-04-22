@@ -49,8 +49,20 @@ public:
 
    char *password;                    /* Director password */
    char *address;                     /* Director IP address or zero */
-   int enable_ssl;                    /* Use SSL with this Director */
    int monitor;                       /* Have only access to status and .status functions */
+#ifdef HAVE_TLS
+   int tls_enable;                    /* Enable TLS */
+   int tls_require;		      /* Require TLS */
+   int tls_verify_peer;              /* TLS Verify Client Certificate */
+   char *tls_ca_certfile;             /* TLS CA Certificate File */
+   char *tls_ca_certdir;              /* TLS CA Certificate Directory */
+   char *tls_certfile;                /* TLS Server Certificate File */
+   char *tls_keyfile;                 /* TLS Server Key File */
+   char *tls_dhfile;                  /* TLS Diffie-Hellman Parameters */
+   alist *tls_allowed_cns;            /* TLS Allowed Clients */
+
+   TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
+#endif /* HAVE_TLS */
 };
 
 
@@ -65,10 +77,22 @@ public:
    char *pid_directory;
    char *subsys_directory;
    char *scripts_directory;
-   int require_ssl;                   /* Require SSL on all connections */
    uint32_t max_concurrent_jobs;      /* maximum concurrent jobs to run */
    MSGS *messages;                    /* Daemon message handler */
    utime_t heartbeat_interval;        /* Interval to send hb to FD */
+#ifdef HAVE_TLS
+   int tls_enable;                    /* Enable TLS */
+   int tls_require;		      /* Require TLS */
+   int tls_verify_peer;              /* TLS Verify Client Certificate */
+   char *tls_ca_certfile;             /* TLS CA Certificate File */
+   char *tls_ca_certdir;              /* TLS CA Certificate Directory */
+   char *tls_certfile;                /* TLS Server Certificate File */
+   char *tls_keyfile;                 /* TLS Server Key File */
+   char *tls_dhfile;                  /* TLS Diffie-Hellman Parameters */
+   alist *tls_allowed_cns;            /* TLS Allowed Clients */
+
+   TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
+#endif /* HAVE_TLS */
 };
 typedef struct s_res_store STORES;
 

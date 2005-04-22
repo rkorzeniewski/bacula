@@ -70,9 +70,12 @@ bool       bnet_send             (BSOCK *bsock);
 bool       bnet_fsend            (BSOCK *bs, const char *fmt, ...);
 bool       bnet_set_buffer_size  (BSOCK *bs, uint32_t size, int rw);
 bool       bnet_sig              (BSOCK *bs, int sig);
-int        bnet_ssl_server       (BSOCK *bsock, char *password, int ssl_need, int ssl_has);
-int        bnet_ssl_client       (BSOCK *bsock, char *password, int ssl_need);
-BSOCK *    bnet_connect            (JCR *jcr, int retry_interval,
+#ifdef HAVE_TLS
+int        bnet_tls_server       (TLS_CONTEXT *ctx, BSOCK *bsock,
+				  alist *verify_list);
+int        bnet_tls_client       (TLS_CONTEXT *ctx, BSOCK *bsock);
+#endif /* HAVE_TLS */
+BSOCK *    bnet_connect          (JCR *jcr, int retry_interval,
                int max_retry_time, const char *name, char *host, char *service,
                int port, int verbose);
 void       bnet_close            (BSOCK *bsock);
@@ -89,6 +92,9 @@ bool       is_bnet_stop          (BSOCK *bsock);
 int        is_bnet_error         (BSOCK *bsock);
 void       bnet_suppress_error_messages(BSOCK *bsock, bool flag);
 dlist *bnet_host2ipaddrs(const char *host, int family, const char **errstr);
+int        bnet_set_blocking     (BSOCK *sock);
+int        bnet_set_nonblocking  (BSOCK *sock);
+void       bnet_restore_blocking (BSOCK *sock, int flags);
 
 /* bget_msg.c */
 int      bget_msg(BSOCK *sock);
@@ -99,8 +105,8 @@ int              close_wpipe(BPIPE *bpipe);
 int              close_bpipe(BPIPE *bpipe);
 
 /* cram-md5.c */
-int cram_md5_get_auth(BSOCK *bs, char *password, int ssl_need);
-int cram_md5_auth(BSOCK *bs, char *password, int ssl_need);
+int cram_md5_get_auth(BSOCK *bs, char *password, int *tls_remote_need);
+int cram_md5_auth(BSOCK *bs, char *password, int tls_local_need);
 void hmac_md5(uint8_t* text, int text_len, uint8_t*  key,
               int key_len, uint8_t *hmac);
 
@@ -198,6 +204,33 @@ int              parse_args(POOLMEM *cmd, POOLMEM **args, int *argc,
 void            split_path_and_filename(const char *fname, POOLMEM **path,
                         int *pnl, POOLMEM **file, int *fnl);
 int             bsscanf(const char *buf, const char *fmt, ...);
+
+
+/* tls.c */
+#ifdef HAVE_TLS
+int              init_tls                (void);
+int              cleanup_tls             (void);
+TLS_CONTEXT      *new_tls_context        (const char *ca_certfile,
+                                          const char *ca_certdir,
+					  const char *certfile,
+					  const char *keyfile,
+					  TLS_PEM_PASSWD_CB *pem_callback,
+					  const void *pem_userdata,
+					  const char *dhfile,
+					  bool verify_peer);
+void             free_tls_context        (TLS_CONTEXT *ctx);
+bool		 tls_postconnect_verify_host  (TLS_CONNECTION *tls,
+					       const char *host);
+bool		 tls_postconnect_verify_cn    (TLS_CONNECTION *tls,
+					       alist *verify_list);
+TLS_CONNECTION   *new_tls_connection     (TLS_CONTEXT *ctx, int fd);
+void             free_tls_connection     (TLS_CONNECTION *tls);
+bool             tls_bsock_connect       (BSOCK *bsock);
+bool             tls_bsock_accept        (BSOCK *bsock);
+void             tls_bsock_shutdown      (BSOCK *bsock);
+int		 tls_bsock_writen	 (BSOCK *bsock, char *ptr, int32_t nbytes);
+int		 tls_bsock_readn	 (BSOCK *bsock, char *ptr, int32_t nbytes);
+#endif /* HAVE_TLS */
 
 
 /* util.c */

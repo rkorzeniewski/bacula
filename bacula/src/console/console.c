@@ -64,6 +64,7 @@ int generate_daemon_event(JCR *jcr, const char *event) { return 1; }
 
 /* Forward referenced functions */
 static void terminate_console(int sig);
+static int check_resources();
 int get_cmd(FILE *input, const char *prompt, BSOCK *sock, int sec);
 static int do_outputcmd(FILE *input, BSOCK *UA_sock);
 void senditf(const char *fmt, ...);
@@ -83,6 +84,7 @@ static FILE *output = stdout;
 static bool tee = false;                  /* output to output and stdout */
 static bool stop = false;
 static int argc;
+static int numdir;
 static POOLMEM *args;
 static char *argk[MAX_CMD_ARGS];
 static char *argv[MAX_CMD_ARGS];
@@ -293,6 +295,23 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
    }
 }
 
+#ifdef HAVE_TLS
+/*
+ * Call-back for reading a passphrase for an encrypted PEM file
+ * This function uses getpass(), which uses a static buffer and is NOT thread-safe.
+ */
+static int tls_pem_callback(char *buf, int size, const void *userdata)
+{
+   const char *prompt = (const char *) userdata;
+   char *passwd;
+
+   passwd = getpass(prompt);
+   bstrncpy(buf, passwd, size);
+
+   return (strlen(buf));
+}
+#endif
+
 
 /*********************************************************************
  *
@@ -301,9 +320,10 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
  */
 int main(int argc, char *argv[])
 {
-   int ch, i, ndir, item;
+   int ch, i, item;
    bool no_signals = false;
    bool test_config = false;
+   char buf[1024];
    JCR jcr;
 
    init_stack_dump();
@@ -375,16 +395,14 @@ int main(int argc, char *argv[])
 
    parse_config(configfile);
 
-   LockRes();
-   ndir = 0;
-   foreach_res(dir, R_DIRECTOR) {
-      ndir++;
+#ifdef HAVE_TLS
+   if (init_tls() != 0) {
+      Emsg0(M_ERROR_TERM, 0, _("TLS library initialization failed.\n"));
    }
-   UnlockRes();
-   if (ndir == 0) {
-      con_term();
-      Emsg1(M_ERROR_TERM, 0, _("No Director resource defined in %s\n"
-"Without that I don't how to speak to the Director :-(\n"), configfile);
+#endif
+
+   if (!check_resources()) {
+      Emsg1(M_ERROR_TERM, 0, _("Please correct configuration file: %s\n"), configfile);
    }
 
    if (test_config) {
@@ -396,16 +414,16 @@ int main(int argc, char *argv[])
 
    (void)WSA_Init();                        /* Initialize Windows sockets */
 
-   if (ndir > 1) {
+   if (numdir > 1) {
       struct sockaddr client_addr;
       memset(&client_addr, 0, sizeof(client_addr));
       UA_sock = init_bsock(NULL, 0, "", "", 0, &client_addr);
 try_again:
       sendit(_("Available Directors:\n"));
       LockRes();
-      ndir = 0;
+      numdir = 0;
       foreach_res(dir, R_DIRECTOR) {
-         senditf( _("%d  %s at %s:%d\n"), 1+ndir++, dir->hdr.name, dir->address,
+         senditf( _("%d  %s at %s:%d\n"), 1+numdir++, dir->hdr.name, dir->address,
             dir->DIRport);
       }
       UnlockRes();
@@ -414,8 +432,8 @@ try_again:
          return 1;
       }
       item = atoi(UA_sock->msg);
-      if (item < 0 || item > ndir) {
-         senditf(_("You must enter a number between 1 and %d\n"), ndir);
+      if (item < 0 || item > numdir) {
+         senditf(_("You must enter a number between 1 and %d\n"), numdir);
          goto try_again;
       }
       LockRes();
@@ -431,7 +449,55 @@ try_again:
       UnlockRes();
    }
 
+   LockRes();
+   CONRES *cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)NULL);
+   UnlockRes();
+
    senditf(_("Connecting to Director %s:%d\n"), dir->address,dir->DIRport);
+
+#ifdef HAVE_TLS
+   /* Initialize Console TLS context */
+   if (cons && (cons->tls_enable || cons->tls_require)) {
+      /* Generate passphrase prompt */
+      bsnprintf(buf, sizeof(buf), "Passphrase for Console \"%s\" TLS private key: ", cons->hdr.name);
+
+      /* Initialize TLS context:
+       * Args: CA certfile, CA certdir, Certfile, Keyfile,
+       * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */
+      cons->tls_ctx = new_tls_context(cons->tls_ca_certfile,
+         cons->tls_ca_certdir, cons->tls_certfile,
+	 cons->tls_keyfile, tls_pem_callback, &buf, NULL, true);
+
+      if (!cons->tls_ctx) {
+	 senditf(_("Failed to initialize TLS context for Console \"%s\".\n"),
+	    dir->hdr.name);
+	 terminate_console(0);
+	 return 1;
+      }
+
+   }
+
+   /* Initialize Director TLS context */
+   if (dir->tls_enable || dir->tls_require) {
+      /* Generate passphrase prompt */
+      bsnprintf(buf, sizeof(buf), "Passphrase for Director \"%s\" TLS private key: ", dir->hdr.name);
+
+      /* Initialize TLS context:
+       * Args: CA certfile, CA certdir, Certfile, Keyfile,
+       * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */
+      dir->tls_ctx = new_tls_context(dir->tls_ca_certfile,
+         dir->tls_ca_certdir, dir->tls_certfile,
+	 dir->tls_keyfile, tls_pem_callback, &buf, NULL, true);
+
+      if (!dir->tls_ctx) {
+	 senditf(_("Failed to initialize TLS context for Director \"%s\".\n"),
+	    dir->hdr.name);
+	 terminate_console(0);
+	 return 1;
+      }
+   }
+#endif /* HAVE_TLS */
+
    UA_sock = bnet_connect(NULL, 5, 15, "Director daemon", dir->address,
                           NULL, dir->DIRport, 0);
    if (UA_sock == NULL) {
@@ -440,12 +506,8 @@ try_again:
    }
    jcr.dir_bsock = UA_sock;
 
-   LockRes();
-   CONRES *cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)NULL);
-   UnlockRes();
    /* If cons==NULL, default console will be used */
    if (!authenticate_director(&jcr, dir, cons)) {
-      fprintf(stderr, "ERR=%s", UA_sock->msg);
       terminate_console(0);
       return 1;
    }
@@ -489,6 +551,9 @@ static void terminate_console(int sig)
       exit(1);
    }
    already_here = true;
+#ifdef HAVE_TLS
+   cleanup_tls();
+#endif
    free_pool_memory(args);
    con_term();
    (void)WSACleanup();               /* Cleanup Windows sockets */
@@ -497,6 +562,67 @@ static void terminate_console(int sig)
    }
    return;
 }
+
+/*
+ * Make a quick check to see that we have all the
+ * resources needed.
+ */
+static int check_resources()
+{
+   bool OK = true;
+   CONRES *cons;
+   DIRRES *director;
+
+   LockRes();
+
+   numdir = 0;
+   foreach_res(director, R_DIRECTOR) {
+
+      numdir++;
+#ifdef HAVE_TLS
+      /* tls_require implies tls_enable */
+      if (director->tls_require) {
+	 director->tls_enable = true;
+      }
+
+      if ((!director->tls_ca_certfile && !director->tls_ca_certdir) && director->tls_enable) {
+	 Emsg2(M_FATAL, 0, _("Neither \"TLS CA Certificate\""
+			     " or \"TLS CA Certificate Dir\" are defined for Director \"%s\" in %s."
+			     " At least one CA certificate store is required.\n"),
+			     director->hdr.name, configfile);
+	 OK = false;
+      }
+#endif /* HAVE_TLS */
+   }
+   
+   if (numdir == 0) {
+      Emsg1(M_FATAL, 0, _("No Director resource defined in %s\n"
+			  "Without that I don't how to speak to the Director :-(\n"), configfile);
+      OK = false;
+   }
+
+#ifdef HAVE_TLS
+   /* Loop over Consoles */
+   foreach_res(cons, R_CONSOLE) {
+      /* tls_require implies tls_enable */
+      if (cons->tls_require) {
+	 cons->tls_enable = true;
+      }
+
+      if ((!cons->tls_ca_certfile && !cons->tls_ca_certdir) && cons->tls_enable) {
+	 Emsg2(M_FATAL, 0, _("Neither \"TLS CA Certificate\""
+			     " or \"TLS CA Certificate Dir\" are defined for Console \"%s\" in %s.\n"),
+			     cons->hdr.name, configfile);
+	 OK = false;
+      }
+   }
+#endif /* HAVE_TLS */
+
+   UnlockRes();
+
+   return OK;
+}
+
 
 #ifdef HAVE_READLINE
 #define READLINE_LIBRARY 1

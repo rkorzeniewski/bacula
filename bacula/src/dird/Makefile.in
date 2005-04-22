@@ -18,6 +18,9 @@ thisdir = src/dird
 
 DEBUG=@DEBUG@
 
+OPENSSL_LIBS = @OPENSSL_LIBS@
+OPENSSL_INC = @OPENSSL_INC@
+
 PYTHON_LIBS = @PYTHON_LIBS@
 PYTHON_INC = @PYTHON_INCDIR@
 
@@ -65,7 +68,7 @@ EXTRAOBJS = @OBJLIST@
 
 # inference rules
 .c.o:
-	$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+	$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(PYTHON_INC) $(OPENSSL_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
 all: Makefile bacula-dir @STATIC_DIR@
 	@echo "==== Make of dird is good ===="
@@ -73,11 +76,11 @@ all: Makefile bacula-dir @STATIC_DIR@
 
 bacula-dir:  $(SVROBJS) ../lib/libbac.a ../cats/libsql.a ../findlib/libfind.a
 	$(CXX) $(WLDFLAGS) $(LDFLAGS) -L../lib -L../cats -L../findlib -o $@ $(SVROBJS) \
-	      -lsql -lfind -lbac -lm $(PYTHON_LIBS) $(DLIB) $(DB_LIBS) $(LIBS)
+	      -lsql -lfind -lbac -lm $(PYTHON_LIBS) $(OPENSSL_LIBS) $(DLIB) $(DB_LIBS) $(LIBS)
 
 static-bacula-dir:  $(SVROBJS) ../lib/libbac.a ../cats/libsql.a ../findlib/libfind.a
 	$(CXX) $(WLDFLAGS) $(LDFLAGS) -static -L../lib -L../cats -L../findlib -o $@ $(SVROBJS) \
-	      -lsql -lbac -lfind -lm $(PYTHON_LIBS) $(DLIB) $(DB_LIBS) $(LIBS) 
+	      -lsql -lbac -lfind -lm $(PYTHON_LIBS) $(OPENSSL_LIBS) $(DLIB) $(DB_LIBS) $(LIBS) 
 	strip $@
 
 
@@ -137,7 +140,7 @@ depend:
 	@$(MV) Makefile Makefile.bak
 	@$(SED) "/^# DO NOT DELETE:/,$$ d" Makefile.bak > Makefile
 	@$(ECHO) "# DO NOT DELETE: nice dependency list follows" >> Makefile
-	@$(CXX) -S -M $(CPPFLAGS) $(XINC) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(SQL_INC) *.c >> Makefile
+	@$(CXX) -S -M $(CPPFLAGS) $(XINC) $(PYTHON_INC) $(OPENSSL_INC) -I$(srcdir) -I$(basedir) $(SQL_INC) *.c >> Makefile
 	@if test -f Makefile ; then \
 	    $(RMF) Makefile.bak; \
 	else \
