@@ -499,10 +499,9 @@ int open_next_part(DEVICE *dev) {
    
    if (open_dev(dev, dev->VolCatInfo.VolCatName, dev->openmode) < 0) {
       return -1;
-   } else {
-      dev->state = state;
-      return dev->fd;
-   }
+   } 
+   dev->state = state;
+   return dev->fd;
 }
 
 /* Open the first part file.
@@ -524,12 +523,11 @@ int open_first_part(DEVICE *dev) {
    dev->part_start = 0;
    dev->part = 0;
    
-   if (open_dev(dev, dev->VolCatInfo.VolCatName, dev->openmode)) {
-      dev->state = state;
-      return dev->fd;
-   } else {
-      return 0;
+   if (open_dev(dev, dev->VolCatInfo.VolCatName, dev->openmode) < 0) {
+      return -1;
    }
+   dev->state = state;
+   return dev->fd;
 }
 
 

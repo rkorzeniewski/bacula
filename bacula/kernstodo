@@ -26,8 +26,15 @@ Autochangers:
      and possibly manipulating the autochanger (much asked for).
 -    Make "update slots" when pointing to Autochanger, remove
      all Volumes from other drives.  "update slots all-drives"?
+
+Idea:
+- Use non-blocking network I/O but if no data is available, use
+  select().
+- Use gather write() for network I/O.
   
 For 1.37:
+- If drive is opened read/write, close it and re-open
+  read-only if doing a restore, and vice-versa.
 - Fix FD JobType to be set before RunBeforeJob in FD.
 - SD crashes after a tape restore then doing a backup. 
 - Look at dird_conf.c:1000: warning: `int size' 

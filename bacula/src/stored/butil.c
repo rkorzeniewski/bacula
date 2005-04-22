@@ -74,7 +74,7 @@ char *rec_state_to_str(DEV_RECORD *rec)
  *  tools (e.g. bls, bextract, bscan, ...)
  */
 JCR *setup_jcr(const char *name, char *dev_name, BSR *bsr,
-	       const char *VolumeName, int mode)
+               const char *VolumeName, int mode)
 {
    DCR *dcr;
    JCR *jcr = new_jcr(sizeof(JCR), my_free_jcr);
@@ -114,7 +114,8 @@ JCR *setup_jcr(const char *name, char *dev_name, BSR *bsr,
  *   If the caller wants read access, acquire the device, otherwise,
  *     the caller will do it.
  */
-static DCR *setup_to_access_device(JCR *jcr, char *dev_name, const char *VolumeName, int mode)
+static DCR *setup_to_access_device(JCR *jcr, char *dev_name, 
+              const char *VolumeName, int mode)
 {
    DEVICE *dev;
    char *p;
@@ -133,21 +134,21 @@ static DCR *setup_to_access_device(JCR *jcr, char *dev_name, const char *VolumeN
    }
    if (!jcr->bsr && VolName[0] == 0) {
       if (strncmp(dev_name, "/dev/", 5) != 0) {
-	 /* Try stripping file part */
-	 p = dev_name + strlen(dev_name);
+         /* Try stripping file part */
+         p = dev_name + strlen(dev_name);
 
          while (p >= dev_name && *p != '/')
-	    p--;
+            p--;
          if (*p == '/') {
-	    bstrncpy(VolName, p+1, sizeof(VolName));
-	    *p = 0;
-	 }
+            bstrncpy(VolName, p+1, sizeof(VolName));
+            *p = 0;
+         }
       }
    }
 
    if ((device=find_device_res(dev_name, mode)) == NULL) {
       Jmsg2(jcr, M_FATAL, 0, _("Cannot find device \"%s\" in config file %s.\n"),
-	   dev_name, configfile);
+           dev_name, configfile);
       return NULL;
    }
 
@@ -162,17 +163,17 @@ static DCR *setup_to_access_device(JCR *jcr, char *dev_name, const char *VolumeN
       bstrncpy(dcr->VolumeName, VolName, sizeof(dcr->VolumeName));
    }
    bstrncpy(dcr->dev_name, device->device_name, sizeof(dcr->dev_name));
-   if (!first_open_device(dev)) {
-      Jmsg1(jcr, M_FATAL, 0, _("Cannot open %s\n"), dcr->dev_name);
-      return NULL;
-   }
-   Dmsg0(90, "Device opened for read.\n");
 
    create_vol_list(jcr);
 
-   if (mode) {			      /* read only access? */
+   if (mode) {                        /* read only access? */
       if (!acquire_device_for_read(dcr)) {
-	 return NULL;
+         return NULL;
+      }
+   } else {
+      if (!first_open_device(dev)) {
+         Jmsg1(jcr, M_FATAL, 0, _("Cannot open %s\n"), dcr->dev_name);
+         return NULL;
       }
    }
    return dcr;
@@ -217,7 +218,7 @@ static void my_free_jcr(JCR *jcr)
  * device name on command line (or default).
  *
  * Returns: NULL on failure
- *	    Device resource pointer on success
+ *          Device resource pointer on success
  */
 static DEVRES *find_device_res(char *device_name, int read_access)
 {
@@ -227,31 +228,31 @@ static DEVRES *find_device_res(char *device_name, int read_access)
    LockRes();
    foreach_res(device, R_DEVICE) {
       if (strcmp(device->device_name, device_name) == 0) {
-	 found = true;
-	 break;
+         found = true;
+         break;
       }
    }
    if (!found) {
       /* Search for name of Device resource rather than archive name */
       if (device_name[0] == '"') {
-	 int len = strlen(device_name);
-	 bstrncpy(device_name, device_name+1, len+1);
-	 len--;
-	 if (len > 0) {
+         int len = strlen(device_name);
+         bstrncpy(device_name, device_name+1, len+1);
+         len--;
+         if (len > 0) {
             device_name[len-1] = 0;   /* zap trailing " */
-	 }
+         }
       }
       foreach_res(device, R_DEVICE) {
-	 if (strcmp(device->hdr.name, device_name) == 0) {
-	    found = true;
-	    break;
-	 }
+         if (strcmp(device->hdr.name, device_name) == 0) {
+            found = true;
+            break;
+         }
       }
    }
    UnlockRes();
    if (!found) {
       Pmsg2(0, _("Could not find device \"%s\" in config file %s.\n"), device_name,
-	    configfile);
+            configfile);
       return NULL;
    }
    Pmsg2(0, _("Using device: \"%s\" for %s.\n"), device_name,
