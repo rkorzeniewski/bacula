@@ -33,6 +33,7 @@ Idea:
 - Use gather write() for network I/O.
   
 For 1.37:
+- Indicate when a Job is purged/pruned.
 - If drive is opened read/write, close it and re-open
   read-only if doing a restore, and vice-versa.
 - Fix FD JobType to be set before RunBeforeJob in FD.
