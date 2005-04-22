@@ -167,6 +167,7 @@ support_readline=yes
 support_conio=yes
 support_gnome=no
 support_wx_console=no
+support_tls=no
 gnome_version=
 support_static_tools=no
 support_static_fd=no
@@ -633,6 +634,56 @@ AC_ARG_WITH(tcp-wrappers,
     fi
   ]
 )
+
+# -----------------------------------------------------------
+# Check whether OpenSSL is available
+# -----------------------------------------------------------
+AC_MSG_CHECKING([for OpenSSL])
+dnl The following uses quadrigraphs:
+dnl '@<:@' = '['
+dnl '@:>@' = ']'
+AC_ARG_WITH(openssl,
+	AC_HELP_STRING([--with-openssl@<:@=DIR@:>@], [Include OpenSSL support. DIR is the OpenSSL base]),
+	[with_openssl_directory=${withval}])
+
+if test "x$with_openssl_directory" != "xno"; then
+	OPENSSL_LIBS="-lssl -lcrypto"
+	OPENSSL_INC=""
+
+	if test "x$with_openssl_directory" != "xyes" && test x"${with_openssl_directory}" != "x"; then
+		OPENSSL_LIBS="-L$with_openssl_directory/lib $OPENSSL_LIBS"
+		OPENSSL_INC="-I$with_openssl_directory/include $OPENSSL_INC"
+	fi
+
+	saved_LIBS="$LIBS"
+	saved_CFLAGS="$CFLAGS"
+	LIBS="$saved_LIBS $OPENSSL_LIBS"
+	CFLAGS="$saved_CFLAGS $OPENSSL_INC"
+
+	AC_TRY_LINK([ #include <openssl/ssl.h> ],
+		[ CRYPTO_set_id_callback(NULL); ],
+		[ support_tls="yes" ],
+		[ support_tls="no" ]
+	)
+
+	LIBS="$saved_LIBS"
+	CFLAGS="$saved_CFLAGS"
+
+	if test "$support_tls" = "yes"; then
+		AC_DEFINE(HAVE_OPENSSL, 1, [Define if OpenSSL library is available])
+		AC_DEFINE(HAVE_TLS, 1, [Define if TLS support should be enabled])
+	fi
+else
+	support_tls="no"
+	OPENSSL_LIBS=""
+	OPENSSL_INC=""
+fi
+
+AC_MSG_RESULT([$support_tls])
+AC_SUBST(OPENSSL_LIBS)
+AC_SUBST(OPENSSL_INC)
+
+
 
 # ------------------------------------------
 # Where to place working dir
@@ -2027,6 +2078,7 @@ Configuration on `date`:
   Bacula conio support:       ${got_conio} ${CONS_LIBS}
   readline support:	      ${got_readline} ${PRTREADLINE_SRC}
   TCP Wrappers support:       ${TCPW_MSG}
+  TLS support:                ${support_tls}
   ZLIB support: 	      ${have_zlib}
   enable-smartalloc:	      ${support_smartalloc} 
   enable-gnome: 	      ${support_gnome} ${gnome_version}

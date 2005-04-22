@@ -29,8 +29,13 @@
 
 #include "bacula.h"
 
-/* Authorize other end */
-int cram_md5_auth(BSOCK *bs, char *password, int ssl_need)
+/* Authorize other end
+ * Codes that tls_local_need and tls_remote_need can take:
+ *   BNET_TLS_NONE     I cannot do tls
+ *   BNET_TLS_OK       I can do tls, but it is not required on my end
+ *   BNET_TLS_REQUIRED  tls is required on my end
+ */
+int cram_md5_auth(BSOCK *bs, char *password, int tls_local_need)
 {
    struct timeval t1;
    struct timeval t2;
@@ -49,15 +54,12 @@ int cram_md5_auth(BSOCK *bs, char *password, int ssl_need)
       bstrncpy(host, my_name, sizeof(host));
    }
    bsnprintf(chal, sizeof(chal), "<%u.%u@%s>", (uint32_t)random(), (uint32_t)time(NULL), host);
-   Dmsg2(50, "send: auth cram-md5 %s ssl=%d\n", chal, ssl_need);
-   if (!bnet_fsend(bs, "auth cram-md5 %s ssl=%d\n", chal, ssl_need)) {
+   Dmsg2(50, "send: auth cram-md5 %s ssl=%d\n", chal, tls_local_need);
+   if (!bnet_fsend(bs, "auth cram-md5 %s ssl=%d\n", chal, tls_local_need)) {
       Dmsg1(50, "Bnet send challenge error.\n", bnet_strerror(bs));
       return 0;
    }
 
-   if (!bnet_ssl_client(bs, password, ssl_need)) {
-      return 0;
-   }
    if (bnet_wait_data(bs, 180) <= 0 || bnet_recv(bs) <= 0) {
       Dmsg1(50, "Bnet receive challenge response error.\n", bnet_strerror(bs));
       bmicrosleep(5, 0);
@@ -82,11 +84,10 @@ int cram_md5_auth(BSOCK *bs, char *password, int ssl_need)
 }
 
 /* Get authorization from other end */
-int cram_md5_get_auth(BSOCK *bs, char *password, int ssl_need)
+int cram_md5_get_auth(BSOCK *bs, char *password, int *tls_remote_need)
 {
    char chal[MAXSTRING];
    uint8_t hmac[20];
-   int ssl_has; 		      /* This is what the other end has */
 
    if (bnet_recv(bs) <= 0) {
       bmicrosleep(5, 0);
@@ -98,17 +99,13 @@ int cram_md5_get_auth(BSOCK *bs, char *password, int ssl_need)
       return 0;
    }
    Dmsg1(100, "cram-get: %s", bs->msg);
-   if (sscanf(bs->msg, "auth cram-md5 %s ssl=%d\n", chal, &ssl_has) != 2) {
-      ssl_has = BNET_SSL_NONE;
+   if (sscanf(bs->msg, "auth cram-md5 %s ssl=%d\n", chal, tls_remote_need) != 2) {
       if (sscanf(bs->msg, "auth cram-md5 %s\n", chal) != 1) {
 	 Dmsg1(50, "Cannot scan challenge: %s", bs->msg);
 	 bnet_fsend(bs, "1999 Authorization failed.\n");
 	 bmicrosleep(5, 0);
 	 return 0;
       }
-   }
-   if (!bnet_ssl_server(bs, password, ssl_need, ssl_has)) {
-      return 0;
    }
 
    hmac_md5((uint8_t *)chal, strlen(chal), (uint8_t *)password, strlen(password), hmac);

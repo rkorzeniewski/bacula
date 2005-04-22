@@ -36,9 +36,11 @@ struct BSOCK {
    uint32_t in_msg_no;                /* input message number */
    uint32_t out_msg_no;               /* output message number */
    int fd;                            /* socket file descriptor */
+   TLS_CONNECTION *tls;               /* associated tls connection */
    int32_t msglen;                    /* message length */
    int b_errno;                       /* bsock errno */
    int port;                          /* desired port */
+   int blocking;                      /* blocking state (0 = nonblocking, 1 = blocking) */
    volatile int errors;               /* incremented for each error on socket */
    volatile bool suppress_error_msgs: 1; /* set to suppress error messages */
    volatile bool timed_out: 1;        /* timed out in read/write */
@@ -80,10 +82,13 @@ enum {
 #define BNET_HARDEOF -2
 #define BNET_ERROR   -3
 
-/* SSL enabling values */
-#define BNET_SSL_NONE     0           /* cannot do SSL */
-#define BNET_SSL_OK       1           /* can do, but not required on my end */
-#define BNET_SSL_REQUIRED 2           /* SSL is required */
+/*
+ * TLS enabling values. Value is important for comparison, ie:
+ * if (tls_remote_need < BNET_TLS_REQUIRED) { ... }
+ */
+#define BNET_TLS_NONE     0           /* cannot do TLS */
+#define BNET_TLS_OK       1           /* can do, but not required on my end */
+#define BNET_TLS_REQUIRED 2           /* TLS is required */
 
 /*
  * This is the structure of the in memory BPKT

@@ -139,6 +139,7 @@ bool do_backup_init(JCR *jcr)
 bool do_backup(JCR *jcr)
 {
    int stat;
+   int tls_need = BNET_TLS_NONE;
    BSOCK   *fd;
    STORE *store;
 
@@ -209,8 +210,20 @@ bool do_backup(JCR *jcr)
    if (store->SDDport == 0) {
       store->SDDport = store->SDport;
    }
+
+#ifdef HAVE_TLS
+   /* TLS Requirement */
+   if (store->tls_enable) {
+      if (store->tls_require) {
+	 tls_need = BNET_TLS_REQUIRED;
+      } else {
+	 tls_need = BNET_TLS_OK;
+      }
+   }
+#endif
+
    bnet_fsend(fd, storaddr, store->address, store->SDDport,
-	      store->enable_ssl);
+	      tls_need);
    if (!response(jcr, fd, OKstore, "Storage", DISPLAY_ERROR)) {
       return false;
    }

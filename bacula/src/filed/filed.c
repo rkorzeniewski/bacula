@@ -37,6 +37,7 @@ extern time_t watchdog_sleep_time;
 
 /* Forward referenced functions */
 void terminate_filed(int sig);
+static int check_resources();
 
 /* Exported variables */
 CLIENT *me;                           /* my resource */
@@ -94,7 +95,6 @@ int main (int argc, char *argv[])
 {
    int ch;
    bool test_config = false;
-   DIRRES *director;
    char *uid = NULL;
    char *gid = NULL;
 
@@ -181,32 +181,16 @@ int main (int argc, char *argv[])
 
    parse_config(configfile);
 
-   LockRes();
-   director = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
-   UnlockRes();
-   if (!director) {
-      Emsg1(M_ABORT, 0, _("No Director resource defined in %s\n"),
-         configfile);
+#ifdef HAVE_TLS
+   if (init_tls() != 0) {
+      Emsg0(M_ERROR, 0, _("TLS library initialization failed.\n"));
+      terminate_filed(1);
    }
+#endif
 
-   LockRes();
-   me = (CLIENT *)GetNextRes(R_CLIENT, NULL);
-   UnlockRes();
-   if (!me) {
-      Emsg1(M_ABORT, 0, _("No File daemon resource defined in %s\n"
-"Without that I don't know who I am :-(\n"), configfile);
-   } else {
-      my_name_is(0, NULL, me->hdr.name);
-      if (!me->messages) {
-         LockRes();
-         me->messages = (MSGS *)GetNextRes(R_MSGS, NULL);
-         UnlockRes();
-         if (!me->messages) {
-             Emsg1(M_ABORT, 0, _("No Messages resource defined in %s\n"), configfile);
-         }
-      }
-      close_msg(NULL);                /* close temp message handler */
-      init_msg(NULL, me->messages);   /* open user specified message handler */
+   if (!check_resources()) {
+      Emsg1(M_ERROR, 0, _("Please correct configuration file: %s\n"), configfile);
+      terminate_filed(1);
    }
 
    set_working_directory(me->working_directory);
@@ -280,7 +264,141 @@ void terminate_filed(int sig)
    free_config_resources();
    term_msg();
    stop_watchdog();
+#ifdef HAVE_TLS
+   cleanup_tls();
+#endif
    close_memory_pool();               /* release free memory in pool */
    sm_dump(false);                    /* dump orphaned buffers */
    exit(sig);
 }
+
+/*
+* Make a quick check to see that we have all the
+* resources needed.
+*/
+static int check_resources()
+{
+   bool OK = true;
+   DIRRES *director;
+
+   LockRes();
+
+   me = (CLIENT *)GetNextRes(R_CLIENT, NULL);
+   if (!me) {
+      Emsg1(M_FATAL, 0, _("No File daemon resource defined in %s\n"
+            "Without that I don't know who I am :-(\n"), configfile);
+      OK = false;
+   } else {
+      if (GetNextRes(R_CLIENT, (RES *) me) != NULL) {
+	 Emsg1(M_FATAL, 0, _("Only one Client resource permitted in %s\n"),
+	      configfile);
+	 OK = false;
+      }
+      my_name_is(0, NULL, me->hdr.name);
+      if (!me->messages) {
+	 me->messages = (MSGS *)GetNextRes(R_MSGS, NULL);
+         if (!me->messages) {
+             Emsg1(M_FATAL, 0, _("No Messages resource defined in %s\n"), configfile);
+	     OK = false;
+         }
+      }
+#ifdef HAVE_TLS
+      /* tls_require implies tls_enable */
+      if (me->tls_require) {
+	 me->tls_enable = true;
+      }
+
+      if ((!me->tls_ca_certfile && !me->tls_ca_certdir) && me->tls_enable) {
+	 Emsg1(M_FATAL, 0, _("Neither \"TLS CA Certificate\""
+	    " or \"TLS CA Certificate Dir\" are defined for File daemon in %s.\n"),
+			    configfile);
+	OK = false;
+      }
+
+      /* If everything is well, attempt to initialize our per-resource TLS context */
+      if (OK && (me->tls_enable || me->tls_require)) {
+	 /* Initialize TLS context:
+	  * Args: CA certfile, CA certdir, Certfile, Keyfile,
+	  * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */
+	 me->tls_ctx = new_tls_context(me->tls_ca_certfile,
+	    me->tls_ca_certdir, me->tls_certfile, me->tls_keyfile,
+	    NULL, NULL, NULL, true);
+
+	 if (!me->tls_ctx) { 
+	    Emsg2(M_FATAL, 0, _("Failed to initialize TLS context for File daemon \"%s\" in %s.\n"),
+	                        me->hdr.name, configfile);
+	    OK = false;
+	 }
+      }
+
+#endif /* HAVE_TLS */
+   }
+
+
+   /* Verify that a director record exists */
+   LockRes();
+   director = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
+   UnlockRes();
+   if (!director) {
+      Emsg1(M_FATAL, 0, _("No Director resource defined in %s\n"),
+	    configfile);
+      OK = false;
+   }
+
+#ifdef HAVE_TLS
+   foreach_res(director, R_DIRECTOR) { 
+      /* tls_require implies tls_enable */
+      if (director->tls_require) {
+	 director->tls_enable = true;
+      }
+
+      if (!director->tls_certfile && director->tls_enable) {
+	 Emsg2(M_FATAL, 0, _("\"TLS Certificate\" file not defined for Director \"%s\" in %s.\n"),
+	       director->hdr.name, configfile);
+	 OK = false;
+      }
+
+      if (!director->tls_keyfile && director->tls_enable) {
+	 Emsg2(M_FATAL, 0, _("\"TLS Key\" file not defined for Director \"%s\" in %s.\n"),
+	       director->hdr.name, configfile);
+	 OK = false;
+      }
+
+      if ((!director->tls_ca_certfile && !director->tls_ca_certdir) && director->tls_enable && director->tls_verify_peer) {
+	 Emsg2(M_FATAL, 0, _("Neither \"TLS CA Certificate\""
+			     " or \"TLS CA Certificate Dir\" are defined for Director \"%s\" in %s."
+			     " At least one CA certificate store is required"
+			     " when using \"TLS Verify Peer\".\n"),
+			     director->hdr.name, configfile);
+	 OK = false;
+      }
+
+      /* If everything is well, attempt to initialize our per-resource TLS context */
+      if (OK && (director->tls_enable || director->tls_require)) {
+	 /* Initialize TLS context:
+	  * Args: CA certfile, CA certdir, Certfile, Keyfile,
+	  * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */
+	 director->tls_ctx = new_tls_context(director->tls_ca_certfile,
+	    director->tls_ca_certdir, director->tls_certfile,
+	    director->tls_keyfile, NULL, NULL, director->tls_dhfile,
+	    director->tls_verify_peer);
+
+	 if (!director->tls_ctx) { 
+	    Emsg2(M_FATAL, 0, _("Failed to initialize TLS context for Director \"%s\" in %s.\n"),
+	                        director->hdr.name, configfile);
+	    OK = false;
+	 }
+      }
+   }
+#endif /* HAVE_TLS */
+
+   UnlockRes();
+
+   if (OK) {
+      close_msg(NULL);                /* close temp message handler */
+      init_msg(NULL, me->messages);   /* open user specified message handler */
+   }
+
+   return OK;
+}
+

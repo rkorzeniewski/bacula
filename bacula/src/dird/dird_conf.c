@@ -98,12 +98,21 @@ static RES_ITEM dir_items[] = {
    {"scriptsdirectory", store_dir, ITEM(res_dir.scripts_directory), 0, 0, 0},
    {"piddirectory",store_dir,     ITEM(res_dir.pid_directory), 0, ITEM_REQUIRED, 0},
    {"subsysdirectory", store_dir,  ITEM(res_dir.subsys_directory), 0, 0, 0},
-   {"requiressl",  store_yesno,    ITEM(res_dir.require_ssl), 1, ITEM_DEFAULT, 0},
-   {"enablessl",   store_yesno,    ITEM(res_dir.enable_ssl), 1, ITEM_DEFAULT, 0},
    {"maximumconcurrentjobs", store_pint, ITEM(res_dir.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},
    {"password",    store_password, ITEM(res_dir.password), 0, ITEM_REQUIRED, 0},
    {"fdconnecttimeout", store_time,ITEM(res_dir.FDConnectTimeout), 0, ITEM_DEFAULT, 60 * 30},
    {"sdconnecttimeout", store_time,ITEM(res_dir.SDConnectTimeout), 0, ITEM_DEFAULT, 60 * 30},
+#ifdef HAVE_TLS
+   {"tlsenable",            store_yesno,     ITEM(res_dir.tls_enable), 1, ITEM_DEFAULT, 0},
+   {"tlsrequire",           store_yesno,     ITEM(res_dir.tls_require), 1, ITEM_DEFAULT, 0},
+   {"tlsverifypeer",        store_yesno,     ITEM(res_dir.tls_verify_peer), 1, ITEM_DEFAULT, 0},
+   {"tlscacertificatefile", store_dir,       ITEM(res_dir.tls_ca_certfile), 0, 0, 0},
+   {"tlscacertificatedir",  store_dir,       ITEM(res_dir.tls_ca_certdir), 0, 0, 0},
+   {"tlscertificate",       store_dir,       ITEM(res_dir.tls_certfile), 0, 0, 0},
+   {"tlskey",               store_dir,       ITEM(res_dir.tls_keyfile), 0, 0, 0},
+   {"tlsdhfile",            store_dir,       ITEM(res_dir.tls_dhfile), 0, 0, 0},
+   {"tlsallowedcn",         store_alist_str, ITEM(res_dir.tls_allowed_cns), 0, 0, 0},
+#endif /* HAVE_TLS */
    {NULL, NULL, NULL, 0, 0, 0}
 };
 
@@ -115,7 +124,6 @@ static RES_ITEM dir_items[] = {
 static RES_ITEM con_items[] = {
    {"name",        store_name,     ITEM(res_con.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,      ITEM(res_con.hdr.desc), 0, 0, 0},
-   {"enablessl",   store_yesno,    ITEM(res_con.enable_ssl), 1, ITEM_DEFAULT, 0},
    {"password",    store_password, ITEM(res_con.password), 0, ITEM_REQUIRED, 0},
    {"jobacl",      store_acl,      ITEM(res_con.ACL_lists), Job_ACL, 0, 0},
    {"clientacl",   store_acl,      ITEM(res_con.ACL_lists), Client_ACL, 0, 0},
@@ -126,6 +134,17 @@ static RES_ITEM con_items[] = {
    {"commandacl",  store_acl,      ITEM(res_con.ACL_lists), Command_ACL, 0, 0},
    {"filesetacl",  store_acl,      ITEM(res_con.ACL_lists), FileSet_ACL, 0, 0},
    {"catalogacl",  store_acl,      ITEM(res_con.ACL_lists), Catalog_ACL, 0, 0},
+#ifdef HAVE_TLS
+   {"tlsenable",            store_yesno,     ITEM(res_con.tls_enable), 1, ITEM_DEFAULT, 0},
+   {"tlsrequire",           store_yesno,     ITEM(res_con.tls_require), 1, ITEM_DEFAULT, 0},
+   {"tlsverifypeer",        store_yesno,     ITEM(res_con.tls_verify_peer), 1, ITEM_DEFAULT, 0},
+   {"tlscacertificatefile", store_dir,       ITEM(res_con.tls_ca_certfile), 0, 0, 0},
+   {"tlscacertificatedir",  store_dir,       ITEM(res_con.tls_ca_certdir), 0, 0, 0},
+   {"tlscertificate",       store_dir,       ITEM(res_con.tls_certfile), 0, 0, 0},
+   {"tlskey",               store_dir,       ITEM(res_con.tls_keyfile), 0, 0, 0},
+   {"tlsdhfile",            store_dir,       ITEM(res_con.tls_dhfile), 0, 0, 0},
+   {"tlsallowedcn",         store_alist_str, ITEM(res_con.tls_allowed_cns), 0, 0, 0},
+#endif /* HAVE_TLS */
    {NULL, NULL, NULL, 0, 0, 0}
 };
 
@@ -148,8 +167,15 @@ static RES_ITEM cli_items[] = {
    {"fileretention", store_time,  ITEM(res_client.FileRetention), 0, ITEM_DEFAULT, 60*60*24*60},
    {"jobretention",  store_time,  ITEM(res_client.JobRetention),  0, ITEM_DEFAULT, 60*60*24*180},
    {"autoprune", store_yesno,     ITEM(res_client.AutoPrune), 1, ITEM_DEFAULT, 1},
-   {"enablessl", store_yesno,     ITEM(res_client.enable_ssl), 1, ITEM_DEFAULT, 0},
    {"maximumconcurrentjobs", store_pint, ITEM(res_client.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},
+#ifdef HAVE_TLS
+   {"tlsenable",            store_yesno,     ITEM(res_client.tls_enable), 1, ITEM_DEFAULT, 0},
+   {"tlsrequire",           store_yesno,     ITEM(res_client.tls_require), 1, ITEM_DEFAULT, 0},
+   {"tlscacertificatefile", store_dir,       ITEM(res_client.tls_ca_certfile), 0, 0, 0},
+   {"tlscacertificatedir",  store_dir,       ITEM(res_client.tls_ca_certdir), 0, 0, 0},
+   {"tlscertificate",       store_dir,       ITEM(res_client.tls_certfile), 0, 0, 0},
+   {"tlskey",               store_dir,       ITEM(res_client.tls_keyfile), 0, 0, 0},
+#endif /* HAVE_TLS */
    {NULL, NULL, NULL, 0, 0, 0}
 };
 
@@ -168,9 +194,16 @@ static RES_ITEM store_items[] = {
    {"device",      store_device,   ITEM(res_store.device),     R_DEVICE, ITEM_REQUIRED, 0},
    {"mediatype",   store_strname,  ITEM(res_store.media_type), 0, ITEM_REQUIRED, 0},
    {"autochanger", store_yesno,    ITEM(res_store.autochanger), 1, ITEM_DEFAULT, 0},
-   {"enablessl",   store_yesno,    ITEM(res_store.enable_ssl),  1, ITEM_DEFAULT, 0},
    {"maximumconcurrentjobs", store_pint, ITEM(res_store.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},
    {"sddport", store_pint, ITEM(res_store.SDDport), 0, 0, 0}, /* deprecated */
+#ifdef HAVE_TLS
+   {"tlsenable",            store_yesno,     ITEM(res_store.tls_enable), 1, ITEM_DEFAULT, 0},
+   {"tlsrequire",           store_yesno,     ITEM(res_store.tls_require), 1, ITEM_DEFAULT, 0},
+   {"tlscacertificatefile", store_dir,       ITEM(res_store.tls_ca_certfile), 0, 0, 0},
+   {"tlscacertificatedir",  store_dir,       ITEM(res_store.tls_ca_certdir), 0, 0, 0},
+   {"tlscertificate",       store_dir,       ITEM(res_store.tls_certfile), 0, 0, 0},
+   {"tlskey",               store_dir,       ITEM(res_store.tls_keyfile), 0, 0, 0},
+#endif /* HAVE_TLS */
    {NULL, NULL, NULL, 0, 0, 0}
 };
 
@@ -439,8 +472,13 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       }
       break;
    case R_CONSOLE:
+#ifdef HAVE_TLS
       sendit(sock, "Console: name=%s SSL=%d\n",
-         res->res_con.hdr.name, res->res_con.enable_ssl);
+         res->res_con.hdr.name, res->res_con.tls_enable);
+#else
+      sendit(sock, "Console: name=%s SSL=%d\n",
+         res->res_con.hdr.name, BNET_TLS_NONE);
+#endif
       break;
    case R_COUNTER:
       if (res->res_counter.WrapCounter) {
@@ -840,6 +878,29 @@ void free_resource(RES *sres, int type)
       if (res->res_dir.DIRaddrs) {
          free_addresses(res->res_dir.DIRaddrs);
       }
+#ifdef HAVE_TLS
+      if (res->res_dir.tls_ctx) { 
+         free_tls_context(res->res_dir.tls_ctx);
+      }
+      if (res->res_dir.tls_ca_certfile) {
+	 free(res->res_dir.tls_ca_certfile);
+      }
+      if (res->res_dir.tls_ca_certdir) {
+	 free(res->res_dir.tls_ca_certdir);
+      }
+      if (res->res_dir.tls_certfile) {
+	 free(res->res_dir.tls_certfile);
+      }
+      if (res->res_dir.tls_keyfile) {
+	 free(res->res_dir.tls_keyfile);
+      }
+      if (res->res_dir.tls_dhfile) {
+	 free(res->res_dir.tls_dhfile);
+      }
+      if (res->res_dir.tls_allowed_cns) {
+	 delete res->res_dir.tls_allowed_cns;
+      }
+#endif /* HAVE_TLS */
       break;
    case R_DEVICE:
    case R_COUNTER:
@@ -848,6 +909,29 @@ void free_resource(RES *sres, int type)
       if (res->res_con.password) {
          free(res->res_con.password);
       }
+#ifdef HAVE_TLS
+      if (res->res_con.tls_ctx) { 
+         free_tls_context(res->res_con.tls_ctx);
+      }
+      if (res->res_con.tls_ca_certfile) {
+	 free(res->res_con.tls_ca_certfile);
+      }
+      if (res->res_con.tls_ca_certdir) {
+	 free(res->res_con.tls_ca_certdir);
+      }
+      if (res->res_con.tls_certfile) {
+	 free(res->res_con.tls_certfile);
+      }
+      if (res->res_con.tls_keyfile) {
+	 free(res->res_con.tls_keyfile);
+      }
+      if (res->res_con.tls_dhfile) {
+	 free(res->res_con.tls_dhfile);
+      }
+      if (res->res_con.tls_allowed_cns) {
+	 delete res->res_con.tls_allowed_cns;
+      }
+#endif /* HAVE_TLS */
       for (int i=0; i<Num_ACL; i++) {
          if (res->res_con.ACL_lists[i]) {
             delete res->res_con.ACL_lists[i];
@@ -862,6 +946,23 @@ void free_resource(RES *sres, int type)
       if (res->res_client.password) {
          free(res->res_client.password);
       }
+#ifdef HAVE_TLS
+      if (res->res_client.tls_ctx) { 
+         free_tls_context(res->res_client.tls_ctx);
+      }
+      if (res->res_client.tls_ca_certfile) {
+	 free(res->res_client.tls_ca_certfile);
+      }
+      if (res->res_client.tls_ca_certdir) {
+	 free(res->res_client.tls_ca_certdir);
+      }
+      if (res->res_client.tls_certfile) {
+	 free(res->res_client.tls_certfile);
+      }
+      if (res->res_client.tls_keyfile) {
+	 free(res->res_client.tls_keyfile);
+      }
+#endif /* HAVE_TLS */
       break;
    case R_STORAGE:
       if (res->res_store.address) {
@@ -876,6 +977,23 @@ void free_resource(RES *sres, int type)
       if (res->res_store.device) {
          delete res->res_store.device;
       }
+#ifdef HAVE_TLS
+      if (res->res_store.tls_ctx) { 
+         free_tls_context(res->res_store.tls_ctx);
+      }
+      if (res->res_store.tls_ca_certfile) {
+	 free(res->res_store.tls_ca_certfile);
+      }
+      if (res->res_store.tls_ca_certdir) {
+	 free(res->res_store.tls_ca_certdir);
+      }
+      if (res->res_store.tls_certfile) {
+	 free(res->res_store.tls_certfile);
+      }
+      if (res->res_store.tls_keyfile) {
+	 free(res->res_store.tls_keyfile);
+      }
+#endif /* HAVE_TLS */
       break;
    case R_CATALOG:
       if (res->res_cat.db_address) {
@@ -1038,7 +1156,6 @@ void save_resource(int type, RES_ITEM *items, int pass)
    if (pass == 2) {
       switch (type) {
       /* Resources not containing a resource */
-      case R_CONSOLE:
       case R_CATALOG:
       case R_POOL:
       case R_MSGS:
@@ -1047,11 +1164,22 @@ void save_resource(int type, RES_ITEM *items, int pass)
          break;
 
       /* Resources containing another resource or alist */
+      case R_CONSOLE:
+	 if ((res = (URES *)GetResWithName(R_CONSOLE, res_all.res_con.hdr.name)) == NULL) {
+	    Emsg1(M_ERROR_TERM, 0, "Cannot find Console resource %s\n", res_all.res_con.hdr.name);
+	 }
+#ifdef HAVE_TLS
+	 res->res_con.tls_allowed_cns = res_all.res_con.tls_allowed_cns;
+#endif
+	 break;
       case R_DIRECTOR:
          if ((res = (URES *)GetResWithName(R_DIRECTOR, res_all.res_dir.hdr.name)) == NULL) {
             Emsg1(M_ERROR_TERM, 0, "Cannot find Director resource %s\n", res_all.res_dir.hdr.name);
          }
          res->res_dir.messages = res_all.res_dir.messages;
+#ifdef HAVE_TLS
+	 res->res_dir.tls_allowed_cns = res_all.res_dir.tls_allowed_cns;
+#endif
          break;
       case R_STORAGE:
          if ((res = (URES *)GetResWithName(type, res_all.res_store.hdr.name)) == NULL) {

@@ -14,6 +14,9 @@ thisdir = src/stored
 
 DEBUG=@DEBUG@
 
+OPENSSL_LIBS = @OPENSSL_LIBS@
+OPENSSL_INC = @OPENSSL_INC@
+
 first_rule: all
 dummy:
 
@@ -86,7 +89,7 @@ FDLIBS=@FDLIBS@
 
 # inference rules
 .c.o:
-	$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+	$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(PYTHON_INC) $(OPENSSL_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
 
 all: Makefile bacula-sd @STATIC_SD@ bls bextract bscan btape bcopy
@@ -95,52 +98,52 @@ all: Makefile bacula-sd @STATIC_SD@ bls bextract bscan btape bcopy
 
 bacula-sd: $(SVROBJS) ../lib/libbac.a
 	$(CXX) $(WLDFLAGS) $(LDFLAGS) -L../lib -o $@ $(SVROBJS) $(FDLIBS) \
-	  -lbac -lm $(PYTHON_LIBS) $(DLIB) $(LIBS) 
+	  -lbac -lm $(PYTHON_LIBS) $(OPENSSL_LIBS) $(DLIB) $(LIBS) 
 
 static-bacula-sd: $(SVROBJS) ../lib/libbac.a
 	$(CXX) $(WLDFLAGS) $(LDFLAGS) -static -L../lib -o $@ $(SVROBJS) $(FDLIBS) \
- -lbac -lm $(PYTHON_LIBS) $(DLIB) $(LIBS) 
+ -lbac -lm $(PYTHON_LIBS) $(OPENSSL_LIBS) $(DLIB) $(LIBS) 
 	strip $@
 
 btape.o: btape.c
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) \
- -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+ -I$(basedir) $(OPENSSL_INC) $(DINCLUDE) $(CFLAGS) $<
 
 btape:	$(TAPEOBJS) ../lib/libbac.a ../cats/libsql.a
 	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../cats  -o $@ $(TAPEOBJS) \
- -lsql $(DLIB) -lbac -lm $(LIBS) 
+ -lsql $(OPENSSL_LIBS) $(DLIB) -lbac -lm $(LIBS) 
 
 bls.o:	bls.c
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) \
- -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+ -I$(basedir) $(OPENSSL_INC) $(DINCLUDE) $(CFLAGS) $<
 
 bls:	../findlib/libfind.a $(BLSOBJS) ../lib/libbac.a
-	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(BLSOBJS) $(DLIB) -lfind \
- -lbac -lm $(LIBS) 
+	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(BLSOBJS) $(OPENSSL_LIBS) $(DLIB) -lfind \
+ -lbac -lm $(OPENSSL_LIBS) $(LIBS) 
 
 bextract.o: bextract.c
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) \
- -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+ -I$(basedir) $(OPENSSL_INC) $(DINCLUDE) $(CFLAGS) $<
 
 bextract: ../findlib/libfind.a $(BEXTOBJS) ../lib/libbac.a
 	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(BEXTOBJS) $(DLIB) $(FDLIBS) \
- -lfind -lbac -lm $(PYTHON_LIBS) $(LIBS) 
+ -lfind -lbac -lm $(PYTHON_LIBS) $(OPENSSL_LIBS) $(LIBS) 
 
 bscan.o: bscan.c
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) \
- -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+ -I$(basedir) $(OPENSSL_INC) $(DINCLUDE) $(CFLAGS) $<
 
 bscan:	../findlib/libfind.a $(SCNOBJS) ../cats/libsql.a
 	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../cats -L../findlib -o $@ $(SCNOBJS) \
- -lsql $(DB_LIBS) $(FDLIBS) -lfind -lbac -lm $(LIBS) 
+ -lsql $(OPENSSL_LIBS) $(DB_LIBS) $(FDLIBS) -lfind -lbac -lm $(LIBS) 
 
 bcopy.o: bcopy.c
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) \
- -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+ -I$(basedir) $(OPENSSL_INC) $(DINCLUDE) $(CFLAGS) $<
 
 bcopy:	$(COPYOBJS) ../findlib/libfind.a ../lib/libbac.a
 	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(COPYOBJS) \
- $(DB_LIBS) $(FDLIBS) -lfind -lbac -lm $(LIBS) 
+ $(OPENSSL_LIBS) $(DB_LIBS) $(FDLIBS) -lfind -lbac -lm $(LIBS) 
 
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
@@ -201,7 +204,7 @@ depend:
 	@$(MV) Makefile Makefile.bak
 	@$(SED) "/^# DO NOT DELETE:/,$$ d" Makefile.bak > Makefile
 	@$(ECHO) "# DO NOT DELETE: nice dependency list follows" >> Makefile
-	@$(CXX) -S -M $(CPPFLAGS) $(XINC) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(SQL_INC) *.c >> Makefile
+	@$(CXX) -S -M $(CPPFLAGS) $(XINC) $(PYTHON_INC) $(OPENSSL_INC) -I$(srcdir) -I$(basedir) $(SQL_INC) *.c >> Makefile
 	@if test -f Makefile ; then \
 	    $(RMF) Makefile.bak; \
 	else \

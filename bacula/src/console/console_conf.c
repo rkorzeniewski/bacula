@@ -75,24 +75,38 @@ int  res_all_size = sizeof(res_all);
 
 /*  Console "globals" */
 static RES_ITEM cons_items[] = {
-   {"name",        store_name,     ITEM(res_cons.hdr.name), 0, ITEM_REQUIRED, 0},
-   {"description", store_str,      ITEM(res_cons.hdr.desc), 0, 0, 0},
-   {"rcfile",      store_dir,      ITEM(res_cons.rc_file), 0, 0, 0},
-   {"historyfile", store_dir,      ITEM(res_cons.hist_file), 0, 0, 0},
-   {"requiressl",  store_yesno,    ITEM(res_cons.require_ssl), 1, ITEM_DEFAULT, 0},
-   {"password",    store_password, ITEM(res_cons.password), 0, ITEM_REQUIRED, 0},
+   {"name",           store_name,     ITEM(res_cons.hdr.name), 0, ITEM_REQUIRED, 0},
+   {"description",    store_str,      ITEM(res_cons.hdr.desc), 0, 0, 0},
+   {"rcfile",         store_dir,      ITEM(res_cons.rc_file), 0, 0, 0},
+   {"historyfile",    store_dir,      ITEM(res_cons.hist_file), 0, 0, 0},
+   {"password",       store_password, ITEM(res_cons.password), 0, ITEM_REQUIRED, 0},
+#ifdef HAVE_TLS
+   {"tlsenable",      store_yesno,     ITEM(res_cons.tls_enable), 1, ITEM_DEFAULT, 0},
+   {"tlsrequire",     store_yesno,     ITEM(res_cons.tls_require), 1, ITEM_DEFAULT, 0},
+   {"tlscacertificatefile", store_dir, ITEM(res_cons.tls_ca_certfile), 0, 0, 0},
+   {"tlscacertificatedir", store_dir,  ITEM(res_cons.tls_ca_certdir), 0, 0, 0},
+   {"tlscertificate", store_dir,       ITEM(res_cons.tls_certfile), 0, 0, 0},
+   {"tlskey",         store_dir,       ITEM(res_cons.tls_keyfile), 0, 0, 0},
+#endif
    {NULL, NULL, NULL, 0, 0, 0}
 };
 
 
 /*  Director's that we can contact */
 static RES_ITEM dir_items[] = {
-   {"name",        store_name,     ITEM(res_dir.hdr.name), 0, ITEM_REQUIRED, 0},
-   {"description", store_str,      ITEM(res_dir.hdr.desc), 0, 0, 0},
-   {"dirport",     store_int,      ITEM(res_dir.DIRport),  0, ITEM_DEFAULT, 9101},
-   {"address",     store_str,      ITEM(res_dir.address),  0, 0, 0},
-   {"password",    store_password, ITEM(res_dir.password), 0, ITEM_REQUIRED, 0},
-   {"enablessl",   store_yesno,    ITEM(res_dir.enable_ssl), 1, ITEM_DEFAULT, 0},
+   {"name",           store_name,      ITEM(res_dir.hdr.name), 0, ITEM_REQUIRED, 0},
+   {"description",    store_str,       ITEM(res_dir.hdr.desc), 0, 0, 0},
+   {"dirport",        store_int,       ITEM(res_dir.DIRport),  0, ITEM_DEFAULT, 9101},
+   {"address",        store_str,       ITEM(res_dir.address),  0, 0, 0},
+   {"password",       store_password,  ITEM(res_dir.password), 0, ITEM_REQUIRED, 0},
+#ifdef HAVE_TLS
+   {"tlsenable",      store_yesno,     ITEM(res_dir.tls_enable), 1, ITEM_DEFAULT, 0},
+   {"tlsrequire",     store_yesno,     ITEM(res_dir.tls_require), 1, ITEM_DEFAULT, 0},
+   {"tlscacertificatefile", store_dir, ITEM(res_dir.tls_ca_certfile), 0, 0, 0},
+   {"tlscacertificatedir", store_dir,  ITEM(res_dir.tls_ca_certdir), 0, 0, 0},
+   {"tlscertificate", store_dir,       ITEM(res_dir.tls_certfile), 0, 0, 0},
+   {"tlskey",         store_dir,       ITEM(res_dir.tls_keyfile), 0, 0, 0},
+#endif
    {NULL, NULL, NULL, 0, 0, 0}
 };
 
@@ -170,9 +184,44 @@ void free_resource(RES *sres, int type)
       if (res->res_cons.hist_file) {
 	 free(res->res_cons.hist_file);
       }
+#ifdef HAVE_TLS
+      if (res->res_cons.tls_ctx) { 
+         free_tls_context(res->res_cons.tls_ctx);
+      }
+      if (res->res_cons.tls_ca_certfile) {
+	 free(res->res_cons.tls_ca_certfile);
+      }
+      if (res->res_cons.tls_ca_certdir) {
+	 free(res->res_cons.tls_ca_certdir);
+      }
+      if (res->res_cons.tls_certfile) {
+	 free(res->res_cons.tls_certfile);
+      }
+      if (res->res_cons.tls_keyfile) {
+	 free(res->res_cons.tls_keyfile);
+      }
+#endif /* HAVE_TLS */
+      break;
    case R_DIRECTOR:
       if (res->res_dir.address)
 	 free(res->res_dir.address);
+#ifdef HAVE_TLS
+      if (res->res_dir.tls_ctx) { 
+         free_tls_context(res->res_dir.tls_ctx);
+      }
+      if (res->res_dir.tls_ca_certfile) {
+	 free(res->res_dir.tls_ca_certfile);
+      }
+      if (res->res_dir.tls_ca_certdir) {
+	 free(res->res_dir.tls_ca_certdir);
+      }
+      if (res->res_dir.tls_certfile) {
+	 free(res->res_dir.tls_certfile);
+      }
+      if (res->res_dir.tls_keyfile) {
+	 free(res->res_dir.tls_keyfile);
+      }
+#endif /* HAVE_TLS */
       break;
    default:
       printf("Unknown resource type %d\n", type);
