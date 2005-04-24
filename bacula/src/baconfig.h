@@ -442,8 +442,10 @@ int  m_msg(const char *file, int line, POOLMEM *&pool_buf, const char *fmt, ...)
 
 
 /* Use our strdup with smartalloc */
+#ifndef __WXGTK__
 #undef strdup
 #define strdup(buf) bad_call_on_strdup_use_bstrdup(buf)
+#endif
 
 /* Use our fgets which handles interrupts */
 #undef fgets
