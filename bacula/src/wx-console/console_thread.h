@@ -29,6 +29,7 @@
 
 #include <wx/wxprec.h>
 
+#include <wx/string.h>
 #include <wx/thread.h> // inheriting class's header file
 #include "bacula.h"
 #include "jcr.h"
