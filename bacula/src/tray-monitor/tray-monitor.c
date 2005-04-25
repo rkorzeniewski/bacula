@@ -452,7 +452,20 @@ int main(int argc, char *argv[])
 
    for (i = 0; i < nitems; i++) {
       if (items[i].D_sock) {
-         writecmd(&items[i], "quit");
+         switch (items[i].type) {
+         case R_DIRECTOR:
+            trayMessage("Disconnecting from Director %s:%d\n", ((DIRRES*)items[i].resource)->address, ((DIRRES*)items[i].resource)->DIRport);
+            break;
+         case R_CLIENT:
+            trayMessage("Disconnecting from Client %s:%d\n", ((CLIENT*)items[i].resource)->address, ((CLIENT*)items[i].resource)->FDport);
+            break;
+         case R_STORAGE:
+            trayMessage("Disconnecting from Storage %s:%d\n", ((STORE*)items[i].resource)->address, ((STORE*)items[i].resource)->SDport);
+            break;          
+         default:
+            break;
+         }
+         //writecmd(&items[i], "quit");
          bnet_sig(items[i].D_sock, BNET_TERMINATE); /* send EOF */
          bnet_close(items[i].D_sock);
       }
