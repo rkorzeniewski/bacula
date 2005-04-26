@@ -599,8 +599,8 @@ struct VOL_PARAMS {
    uint32_t EndFile;                  /* End file on Volume */
    uint32_t StartBlock;               /* start block on tape */
    uint32_t EndBlock;                 /* last block */
-   uint32_t Copy;                     /* identical copy */
-   uint32_t Stripe;                   /* RAIT strip number */
+// uint32_t Copy;                     /* identical copy */
+// uint32_t Stripe;                   /* RAIT strip number */
 };
 
 

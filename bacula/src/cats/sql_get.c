@@ -422,8 +422,8 @@ int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, JobId_t JobId, VOL_PARAMS 
                Vols[i].EndFile = str_to_uint64(row[5]);
                Vols[i].StartBlock = str_to_uint64(row[6]);
                Vols[i].EndBlock = str_to_uint64(row[7]);
-               Vols[i].Copy = str_to_uint64(row[8]);
-               Vols[i].Stripe = str_to_uint64(row[9]);
+//             Vols[i].Copy = str_to_uint64(row[8]);
+//             Vols[i].Stripe = str_to_uint64(row[9]);
             }
          }
       }

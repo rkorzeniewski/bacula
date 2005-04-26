@@ -66,7 +66,7 @@ struct RESTORE_CTX {
    uint32_t TotalFiles;
    uint32_t JobId;
    char ClientName[MAX_NAME_LENGTH];
-   char last_jobid[10];
+   char last_jobid[20];
    POOLMEM *JobIds;                   /* User entered string of JobIds */
    STORE  *store;
    JOB *restore_job;
@@ -448,13 +448,16 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
          done = false;
          break;
       case 1:                         /* list where a file is saved */
+         if (!get_client_name(ua, rx)) {
+            return 0;
+         }
          if (!get_cmd(ua, _("Enter Filename (no path):"))) {
             return 0;
          }
          len = strlen(ua->cmd);
          fname = (char *)malloc(len * 2 + 1);
          db_escape_string(fname, ua->cmd, len);
-         Mmsg(rx->query, uar_file, fname);
+         Mmsg(rx->query, uar_file, rx->ClientName, fname);
          free(fname);
          gui_save = ua->jcr->gui;
          ua->jcr->gui = true;
