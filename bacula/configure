@@ -5174,8 +5174,8 @@ if test x$support_wx_console = xyes; then
   abc=`$WXCONFIG --cppflags`
   pkg=$?
   if test $pkg = 0; then
-     WXCONS_CPPFLAGS=`$WXCONFIG --cppflags`
-     WXCONS_LDFLAGS=`$WXCONFIG --libs`
+     WXCONS_CPPFLAGS=`$WXCONFIG --unicode=no --cppflags`
+     WXCONS_LDFLAGS=`$WXCONFIG --unicode=no --libs`
 
 
      WX_DIR=src/wx-console
