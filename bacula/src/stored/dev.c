@@ -281,20 +281,11 @@ int
 open_dev(DEVICE *dev, char *VolName, int mode)
 {
    if (dev->is_open()) {
-      /*
-       *  *****FIXME***** how to handle two threads wanting
-       *  different volumes mounted???? E.g. one is waiting
-       *  for the next volume to be mounted, and a new job
-       *  starts and snatches up the device.
-       */
-      if (VolName && strcmp(dev->VolCatInfo.VolCatName, VolName) != 0) {
-         return -1;
+      if (dev->openmode == mode) {
+         return dev->fd;
+      } else {
+         close(dev->fd);              /* close so correct mode will be used */
       }
-      dev->use_count++;
-      Mmsg2(dev->errmsg, _("WARNING!!!! device %s opened %d times!!!\n"),
-            dev->print_name(), dev->use_count);
-      Emsg1(M_WARNING, 0, "%s", dev->errmsg);
-      return dev->fd;
    }
    if (VolName) {
       bstrncpy(dev->VolCatInfo.VolCatName, VolName, sizeof(dev->VolCatInfo.VolCatName));
@@ -321,6 +312,7 @@ static void open_tape_device(DEVICE *dev, int mode)
    int timeout;
    int ioerrcnt = 10;
    Dmsg0(29, "open_dev: device is tape\n");
+
    if (mode == OPEN_READ_WRITE) {
       dev->mode = O_RDWR | O_BINARY;
    } else if (mode == OPEN_READ_ONLY) {
@@ -376,16 +368,17 @@ open_again:
       break;
    }
    if (dev->fd >= 0) {
-      if (mode != 0) {
-         /* If opened in non-block mode, close it an open it normally */
-         mode = 0;
+      /* If opened in non-block mode, close it an open it normally */
+      if (nonblocking) {
+         nonblocking = 0;
          close(dev->fd);
          goto open_again;
       }
+      dev->openmode = mode;               /* save open mode */
       dev->dev_errno = 0;
       dev->state |= ST_OPENED;
       dev->use_count = 1;
-      update_pos_dev(dev);             /* update position */
+      update_pos_dev(dev);                /* update position */
       set_os_device_parameters(dev);      /* do system dependent stuff */
       Dmsg0(500, "Open OK\n");
    }
@@ -1557,6 +1550,7 @@ static void do_close(DEVICE *dev)
       dev->tid = 0;
    }
    dev->use_count = 0;
+   dev->openmode = 0;
 }
 
 /*

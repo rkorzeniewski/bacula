@@ -3986,7 +3986,7 @@ do
 done
 done
 
-  test -z "$ac_cv_path_WXCONFIG" && ac_cv_path_WXCONFIG="/opt/gnome/bin/wx-config"
+  test -z "$ac_cv_path_WXCONFIG" && ac_cv_path_WXCONFIG="wx-config"
   ;;
 esac
 fi

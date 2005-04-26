@@ -66,7 +66,7 @@ AC_PATH_PROG(PYTHON, python, python)
 AC_PATH_PROG(GROWISOFS, growisofs, growisofs)
 AC_PATH_PROG(DVDRWMEDIAINFO, dvd+rw-mediainfo, dvd+rw-mediainfo)
 AC_PATH_PROG(PKGCONFIG, pkg-config, pkg-config)
-AC_PATH_PROG(WXCONFIG, wx-config, /opt/gnome/bin/wx-config)
+AC_PATH_PROG(WXCONFIG, wx-config, wx-config)
 AC_PATH_PROG(CDRECORD, cdrecord, cdrecord)
 AC_PATH_PROG(PIDOF, pidof, pidof)
 AC_PROG_AWK

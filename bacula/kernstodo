@@ -32,6 +32,8 @@ Autochangers:
 -    Make "update slots" when pointing to Autochanger, remove
      all Volumes from other drives.  "update slots all-drives"?
 
+Document:
+- Pruning with Admin job.
 
 For 1.37:
 - Python:
@@ -47,12 +49,7 @@ For 1.37:
 
 - If drive is opened read/write, close it and re-open
   read-only if doing a restore, and vice-versa.
-- SD crashes after a tape restore then doing a backup. 
-- Implement some way to turn off automatic pruning in Jobs.
-- Implement a way an Admin Job can prune, possibly multiple
-  clients -- Python script?
 - Implement "NewVolumeEachJob = yes|no" in Dir.
-- Look at Preben's acl.c error handling code.
 - Implement Maximum Job Spool Size
 - Remove all old Device resource code in Dir and code to pass it
   back in SD -- better, rework it to pass back device statistics.
@@ -61,8 +58,6 @@ For 1.37:
 - Check locking of resources -- be sure to lock devices where previously
   resources were locked. 
 - Add global lock on all devices when creating a device structure.
-- Look at adding full Volume and Pool information to a Volume 
-  label so that bscan can get *all* the info. 
 - Fix FD JobType to be set before RunBeforeJob in FD.
 
 
@@ -73,6 +68,8 @@ Ideas:
 - Autorestart on crash.
 
 Maybe in 1.37:
+- Look at adding full Volume and Pool information to a Volume 
+  label so that bscan can get *all* the info. 
 - If the user puts "Purge Oldest Volume = yes" or "Recycle Oldest Volume = yes"
   and there is only one volume in the pool, refuse to do it -- otherwise
   he fills the Volume, then immediately starts reusing it.
@@ -1323,3 +1320,9 @@ Block Position: 0
 - Look at dird_conf.c:1000: warning: `int size' 
   might be used uninitialized in this function
 - Indicate when a Job is purged/pruned during restore.
+- Implement some way to turn off automatic pruning in Jobs.
+- Implement a way an Admin Job can prune, possibly multiple
+  clients -- Python script?
+- Look at Preben's acl.c error handling code.
+- SD crashes after a tape restore then doing a backup. 
+
