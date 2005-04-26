@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     09 April 2005
+                     22 April 2005
 
 Major development:      
 Project                     Developer
@@ -27,11 +27,12 @@ Autochangers:
 -    Make "update slots" when pointing to Autochanger, remove
      all Volumes from other drives.  "update slots all-drives"?
 
-Idea:
+Ideas:
 - Use non-blocking network I/O but if no data is available, use
   select().
 - Use gather write() for network I/O.
-  
+- Autorestart on crash.
+
 For 1.37:
 - Indicate when a Job is purged/pruned.
 - If drive is opened read/write, close it and re-open
@@ -323,15 +324,15 @@ Documentation to do: (any release a little bit at a time)
   hours of operation.
   From Phil:
     In this context, it should be noted that Exabyte has a command-line
-    vxatool utility available for free download.  (The current version is
+    vxatool utility available for free download. (The current version is
     vxatool-3.72.) It can get diagnostic info, read, write and erase tapes,
     test the drive, unload tapes, change drive settings, flash new firmware,
     etc.
     Of particular interest in this context is that vxatool <device> -i will
     report, among other details, the time since last cleaning in tape motion
-    minutes.  This information can be retrieved (and settings changed, for
+    minutes. This information can be retrieved (and settings changed, for
     that matter) through the generic-SCSI device even when Bacula has the
-    regular tape device locked.  (Needless to say, I don't recommend
+    regular tape device locked. (Needless to say, I don't recommend
     changing tape settings while a job is running.)
 - Lookup HP cleaning recommendations.
 - Lookup HP tape replacement recommendations (see trouble shooting autochanger)
@@ -386,19 +387,19 @@ For 1.37 Testing/Documentation:
 - the help-command should be more verbose
   (it should explain the paramters of the different 
   commands in detail)
-  -> it´s time-comsuming to consult the manual anytime
+  -> its time-comsuming to consult the manual anytime
      you need a special parameter
-  -> maybe it´s more easy to maintain this, if the
+  -> maybe its more easy to maintain this, if the
      descriptions of that commands are outsourced to
      a ceratin-file
 - the cd-command should allow complete paths
   i.e. cd /foo/bar/foo/bar
   -> if a customer mails me the path to a certain file,
-     it´s faster to enter the specified directory
+     its faster to enter the specified directory
 - if the password is not configured in bconsole.conf
   you should be asked for it.
   -> sometimes you like to do restore on a customer-machine
-     which shouldn´t know the password for bacula.
+     which shouldnt know the password for bacula.
   -> adding the password to the file favours admins
      to forget to remove the password after usage
   -> security-aspects
@@ -587,7 +588,7 @@ For 1.37 Testing/Documentation:
 - Look at adding SQL server and Exchange support for Windows. 
 - Each DVD-RAM disk would be a volume, just like each tape is 
   a volume. It's a 4.7GB media with random access, but there's nothing about 
-  it that I can see that makes it so different than a tape from  bacula's 
+  it that I can see that makes it so different than a tape from bacula's 
   perspective. Why couldn't I back up to a bare floppy as a volume (ignoring 
   the media capacity?)
 - Make dev->file and dev->block_num signed integers so that -1 can

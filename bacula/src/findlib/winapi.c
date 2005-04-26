@@ -36,7 +36,8 @@ t_OpenProcessToken	p_OpenProcessToken = NULL;
 t_AdjustTokenPrivileges p_AdjustTokenPrivileges = NULL;
 t_LookupPrivilegeValue	p_LookupPrivilegeValue = NULL;
 
-t_GetFileAttributesEx	p_GetFileAttributesEx = NULL;
+t_GetFileAttributesExA	p_GetFileAttributesExA = NULL;
+t_GetFileAttributesExW	p_GetFileAttributesExW = NULL;
 t_BackupRead		p_BackupRead = NULL;
 t_BackupWrite		p_BackupWrite = NULL;
 t_SetProcessShutdownParameters p_SetProcessShutdownParameters = NULL;

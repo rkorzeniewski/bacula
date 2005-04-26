@@ -204,7 +204,7 @@ void *handle_client_request(void *dirp)
             Dmsg1(100, "Executing %s command.\n", cmds[i].cmd);
             if (!cmds[i].func(jcr)) {         /* do command */
                quit = true;         /* error or fully terminated, get out */
-               Dmsg0(20, "Quit command loop due to command error or Job done.\n");
+               Dmsg1(20, "Quit command loop. Canceled=%d\n", job_canceled(jcr));
             }
             break;
          }
@@ -1203,6 +1203,7 @@ static int backup_cmd(JCR *jcr)
    if (!blast_data_to_storage_daemon(jcr, NULL)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       bnet_suppress_error_messages(sd, 1);
+      bget_msg(sd);                   /* Read final response from append_data */
       Dmsg0(110, "Error in blast_data.\n");
    } else {
       set_jcr_job_status(jcr, JS_Terminated);

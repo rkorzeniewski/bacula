@@ -35,14 +35,27 @@
 #undef _POSIX_C_SOURCE
 #include <Python.h>
 
+/* External function pointers to be set */
+extern bool    (*python_set_prog)(JCR *jcr, const char *prog);
+extern int     (*python_open)(BFILE *bfd, const char *fname, int flags, mode_t mode);
+extern int     (*python_close)(BFILE *bfd);
+extern ssize_t (*python_read)(BFILE *bfd, void *buf, size_t count);
+
+
 extern JCR *get_jcr_from_PyObject(PyObject *self);
 extern PyObject *find_method(PyObject *eventsObject, PyObject *method, 
           const char *name);
 
+/* Forward referenced functions */
 static PyObject *job_get(PyObject *self, PyObject *args);
 static PyObject *job_write(PyObject *self, PyObject *args);
 static PyObject *job_set(PyObject *self, PyObject *args, PyObject *keyw);
 static PyObject *set_job_events(PyObject *self, PyObject *args);
+
+bool my_python_set_prog(JCR *jcr, const char *prog);
+int my_python_open(BFILE *bfd, const char *fname, int flags, mode_t mode);
+int my_python_close(BFILE *bfd);
+ssize_t my_python_read(BFILE *bfd, void *buf, size_t count);
 
 
 /* Define Job entry points */
@@ -151,6 +164,12 @@ static PyObject *set_job_events(PyObject *self, PyObject *args)
    Py_INCREF(eObject);
    jcr->Python_events = (void *)eObject;
 
+   /* Set function pointers to call here */
+   python_set_prog = my_python_set_prog;
+   python_open     = my_python_open;
+   python_close    = my_python_close;
+   python_read     = my_python_read;
+
    Py_INCREF(Py_None);
    return Py_None;
 }
@@ -210,7 +229,7 @@ bail_out:
 }
 
 
-bool python_set_prog(JCR *jcr, const char *prog)
+bool my_python_set_prog(JCR *jcr, const char *prog)
 {
    PyObject *events = (PyObject *)jcr->Python_events;
    BFILE *bfd = &jcr->ff->bfd;
@@ -234,7 +253,20 @@ bool python_set_prog(JCR *jcr, const char *prog)
    return bfd->pio.fo && bfd->pio.fr && bfd->pio.fc;
 }
 
+int my_python_open(BFILE *bfd, const char *fname, int flags, mode_t mode)
+{
+   return -1;
+}
 
+int my_python_close(BFILE *bfd) 
+{
+   return 0;
+}
+
+ssize_t my_python_read(BFILE *bfd, void *buf, size_t count)
+{
+   return -1;
+}
 
 #else
 

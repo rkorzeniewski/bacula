@@ -297,6 +297,6 @@ bool do_append_data(JCR *jcr)
 
    dir_send_job_status(jcr);          /* update director */
 
-   Dmsg1(100, "return from do_append_data() stat=%d\n", ok);
+   Dmsg1(100, "return from do_append_data() ok=%d\n", ok);
    return ok;
 }

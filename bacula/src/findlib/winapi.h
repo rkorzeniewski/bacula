@@ -48,13 +48,16 @@ extern t_AdjustTokenPrivileges p_AdjustTokenPrivileges;
 extern t_LookupPrivilegeValue  p_LookupPrivilegeValue;
 
 /* In KERNEL32.DLL */
-typedef BOOL (WINAPI * t_GetFileAttributesEx)(LPCTSTR, GET_FILEEX_INFO_LEVELS,
+typedef BOOL (WINAPI * t_GetFileAttributesExA)(LPCSTR, GET_FILEEX_INFO_LEVELS,
+       LPVOID);
+typedef BOOL (WINAPI * t_GetFileAttributesExW)(LPCWSTR, GET_FILEEX_INFO_LEVELS,
        LPVOID);
 typedef BOOL (WINAPI * t_SetProcessShutdownParameters)(DWORD, DWORD);
 typedef BOOL (WINAPI * t_BackupRead)(HANDLE,LPBYTE,DWORD,LPDWORD,BOOL,BOOL,LPVOID*);
 typedef BOOL (WINAPI * t_BackupWrite)(HANDLE,LPBYTE,DWORD,LPDWORD,BOOL,BOOL,LPVOID*);
 
-extern t_GetFileAttributesEx   p_GetFileAttributesEx;
+extern t_GetFileAttributesExA   p_GetFileAttributesExA;
+extern t_GetFileAttributesExW   p_GetFileAttributesExW;
 extern t_SetProcessShutdownParameters p_SetProcessShutdownParameters;
 extern t_BackupRead         p_BackupRead;
 extern t_BackupWrite        p_BackupWrite;

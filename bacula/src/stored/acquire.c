@@ -643,7 +643,6 @@ bool release_device(DCR *dcr)
          if (!dev->num_writers && dev->can_write()) {
             weof_dev(dev, 1);
             write_ansi_ibm_labels(dcr, ANSI_EOF_LABEL, dev->VolHdr.VolName);
-            Dmsg0(100, "==== write ansi eof label \n");
          }
          if (!dev->at_weot()) {
             dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */

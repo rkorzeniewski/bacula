@@ -304,8 +304,10 @@ int BaculaAppMain()
    WSA_Init();
    HINSTANCE hLib = LoadLibrary("KERNEL32.DLL");
    if (hLib) {
-      p_GetFileAttributesEx = (t_GetFileAttributesEx)
+      p_GetFileAttributesExA = (t_GetFileAttributesExA)
           GetProcAddress(hLib, "GetFileAttributesExA");
+	  p_GetFileAttributesExW = (t_GetFileAttributesExW)
+          GetProcAddress(hLib, "GetFileAttributesExW");
       p_SetProcessShutdownParameters = (t_SetProcessShutdownParameters)
           GetProcAddress(hLib, "SetProcessShutdownParameters");
       p_BackupRead = (t_BackupRead)

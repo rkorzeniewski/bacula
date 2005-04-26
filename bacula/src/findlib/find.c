@@ -304,6 +304,7 @@ static int our_callback(FF_PKT *ff, void *hpkt, bool top_level)
    case FT_SPEC:
    case FT_DIRNOCHG:
       if (accept_file(ff)) {
+//       Dmsg2(000, "Accept file %s; reader=%s\n", ff->fname, NPRT(ff->reader));
          return ff->callback(ff, hpkt, top_level);
       } else {
          Dmsg1(100, "Skip file %s\n", ff->fname);
