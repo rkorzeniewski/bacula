@@ -72,6 +72,27 @@ cygwin_conv_to_win32_path(const char *name, char *win32_name)
     }
 }
 
+#if USE_WIN32_UNICODE
+
+int 
+wchar_2_UTF8(char *pszUTF, const WCHAR *pszUCS, int cchChar)
+{
+	/* the return value is the number of bytes written to the buffer. 
+	   The number includes the byte for the null terminator. */
+
+	return WideCharToMultiByte (CP_UTF8,0,pszUCS,-1,pszUTF,cchChar,NULL,NULL);
+}
+
+int 
+UTF8_2_wchar(WCHAR *pszUCS, const char *pszUTF, int cchWideChar)
+{
+	/*  the return value is the number of wide characters written to the buffer. */
+	/* convert null terminated string from utf-8 to ucs2*/
+	return MultiByteToWideChar(CP_UTF8, 0, pszUTF, -1, pszUCS,cchWideChar);
+}
+
+#endif
+
 
 void
 wchar_win32_path(const char *name, WCHAR *win32_name)
@@ -191,7 +212,11 @@ errorString(void)
 static int
 statDir(const char *file, struct stat *sb)
 {
+#if USE_WIN32_UNICODE
+	WIN32_FIND_DATAW info;       // window's file info
+#else
     WIN32_FIND_DATA info;       // window's file info
+#endif
 
     if (file[1] == ':' && file[2] == 0) {
         d_msg(__FILE__, __LINE__, 99, "faking ROOT attrs(%s).\n", file);
@@ -202,7 +227,15 @@ statDir(const char *file, struct stat *sb)
         time(&sb->st_atime);
         return 0;
     }
+
+#if USE_WIN32_UNICODE
+	WCHAR szBuf[MAX_PATH_UNICODE];
+	UTF8_2_wchar(szBuf, file, MAX_PATH_UNICODE);
+	
+	HANDLE h = FindFirstFileW(szBuf, &info);
+#else
     HANDLE h = FindFirstFile(file, &info);
+#endif
 
     if (h == INVALID_HANDLE_VALUE) {
         const char *err = errorString();
@@ -244,7 +277,14 @@ stat2(const char *file, struct stat *sb)
     char tmpbuf[1024];
     cygwin_conv_to_win32_path(file, tmpbuf);
 
+#if USE_WIN32_UNICODE
+	WCHAR szBuf[MAX_PATH_UNICODE];
+	UTF8_2_wchar(szBuf, tmpbuf, MAX_PATH_UNICODE);
+	
+	DWORD attr = GetFileAttributesW(szBuf);
+#else
     DWORD attr = GetFileAttributes(tmpbuf);
+#endif
 
     if (attr == -1) {
         const char *err = errorString();
@@ -338,8 +378,15 @@ stat(const char *file, struct stat *sb)
     if (!GetFileAttributesExW((WCHAR *)buf, GetFileExInfoStandard, &data))
         return stat2(file, sb);
 #else
+#if USE_WIN32_UNICODE
+	WCHAR buf[MAX_PATH_UNICODE];
+	UTF8_2_wchar(buf, file, MAX_PATH_UNICODE);
+	if (!GetFileAttributesExW(buf, GetFileExInfoStandard, &data))
+        return stat2(file, sb);
+#else
     if (!GetFileAttributesEx(file, GetFileExInfoStandard, &data))
         return stat2(file, sb);
+#endif
 #endif
 
     sb->st_mode = 0777;               /* start with everything */
@@ -521,7 +568,11 @@ getgrgid(uid_t)
 // implement opendir/readdir/closedir on top of window's API
 typedef struct _dir
 {
+#if USE_WIN32_UNICODE
+    WIN32_FIND_DATAW data;       // window's file info
+#else
     WIN32_FIND_DATA data;       // window's file info
+#endif
     const char *spec;           // the directory we're traversing
     HANDLE      dirh;           // the search handle
     BOOL        valid;          // the info in data field is valid
@@ -558,7 +609,15 @@ opendir(const char *path)
     strncat(tspec, "\\*", max_len);
     rval->spec = tspec;
 
+	// convert to WCHAR
+#if USE_WIN32_UNICODE
+	WCHAR wcBuf[MAX_PATH_UNICODE];
+	UTF8_2_wchar(wcBuf,rval->spec, MAX_PATH_UNICODE);
+	rval->dirh = FindFirstFileW(wcBuf, &rval->data);	
+#else
     rval->dirh = FindFirstFile(rval->spec, &rval->data);
+#endif
+
     d_msg(__FILE__, __LINE__,
           99, "opendir(%s)\n\tspec=%s,\n\tFindFirstFile returns %d\n",
           path, rval->spec, rval->dirh);
@@ -623,7 +682,15 @@ readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result)
     _dir *dp = (_dir *)dirp;
     if (dp->valid) {
         entry->d_off = dp->offset;
+		
+#if USE_WIN32_UNICODE
+		char szBuf[MAX_PATH_UTF8];
+		wchar_2_UTF8(szBuf,dp->data.cFileName);
+		dp->offset += copyin(*entry, szBuf);
+#else
         dp->offset += copyin(*entry, dp->data.cFileName);
+#endif
+		
         *result = entry;              /* return entry address */
         d_msg(__FILE__, __LINE__,
               99, "readdir_r(%p, { d_name=\"%s\", d_reclen=%d, d_off=%d\n",
@@ -633,7 +700,13 @@ readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result)
         errno = b_errno_win32;
         return -1;
     }
-    dp->valid = FindNextFile(dp->dirh, &dp->data);
+
+#if USE_WIN32_UNICODE
+	dp->valid = FindNextFileW(dp->dirh, &dp->data);
+#else
+	dp->valid = FindNextFileA(dp->dirh, &dp->data);
+#endif
+    
     return 0;
 }
 
@@ -732,17 +805,48 @@ WSA_Init(void)
 int
 win32_chdir(const char *dir)
 {
-    if (0 == SetCurrentDirectory(dir)) {
+#if USE_WIN32_UNICODE
+	WCHAR szBuf[MAX_PATH_UNICODE];
+	UTF8_2_wchar(szBuf, dir, MAX_PATH_UNICODE);
+
+	if (0 == SetCurrentDirectoryW(szBuf)) {
        errno = b_errno_win32;
        return -1;
     }
+#else
+	if (0 == SetCurrentDirectoryA(dir)) {
+       errno = b_errno_win32;
+       return -1;
+    }
+#endif
+   
     return 0;
 }
+
+int
+win32_mkdir(const char *dir)
+{
+#if USE_WIN32_UNICODE
+	WCHAR szBuf[MAX_PATH_UNICODE];
+	UTF8_2_wchar(szBuf, dir, MAX_PATH_UNICODE);
+
+	return _wmkdir(szBuf);
+#else
+	return _mkdir(dir);	
+#endif
+}
+
 
 char *
 win32_getcwd(char *buf, int maxlen)
 {
+#if USE_WIN32_UNICODE
+	WCHAR szBuf[MAX_PATH_UNICODE];
+	int n = GetCurrentDirectoryW(maxlen, szBuf);
+	n = wchar_2_UTF8 (buf, szBuf, maxlen)-1;
+#else
    int n =  GetCurrentDirectory(maxlen, buf);
+#endif
 
    if (n == 0 || n > maxlen) return NULL;
 
@@ -1175,6 +1279,19 @@ utime(const char *fname, struct utimbuf *times)
     cvt_utime_to_ftime(times->actime, acc);
     cvt_utime_to_ftime(times->modtime, mod);
 
+
+#if USE_WIN32_UNICODE
+	WCHAR szBuf[MAX_PATH_UNICODE];
+	UTF8_2_wchar(szBuf, tmpbuf, MAX_PATH_UNICODE);
+
+	HANDLE h = CreateFileW(szBuf,
+                          FILE_WRITE_ATTRIBUTES,
+                          FILE_SHARE_WRITE,
+                          NULL,
+                          OPEN_EXISTING,
+                          0,
+                          NULL);
+#else
     HANDLE h = CreateFile(tmpbuf,
                           FILE_WRITE_ATTRIBUTES,
                           FILE_SHARE_WRITE,
@@ -1182,6 +1299,9 @@ utime(const char *fname, struct utimbuf *times)
                           OPEN_EXISTING,
                           0,
                           NULL);
+
+#endif
+
 
     if (h == INVALID_HANDLE_VALUE) {
         const char *err = errorString();
@@ -1205,8 +1325,14 @@ utime(const char *fname, struct utimbuf *times)
 int
 open(const char *file, int flags, int mode)
 {
-    return _open(file, flags|_O_BINARY, mode);
+#if USE_WIN32_UNICODE
+	WCHAR szBuf[MAX_PATH_UNICODE];
+	UTF8_2_wchar(szBuf, file, MAX_PATH_UNICODE);
 
+	return _wopen(szBuf, flags|_O_BINARY, mode);
+#else
+    return _open(file, flags|_O_BINARY, mode);
+#endif
 }
 
 /*
@@ -1274,7 +1400,17 @@ open(const char *file, int flags, int mode)
         exit(-1);
     }
 
+
+#if USE_WIN32_UNICODE
+	WCHAR szBuf[MAX_PATH_UNICODE];
+	UTF8_2_wchar(szBuf, file, MAX_PATH_UNICODE);
+
+	foo = CreateFileW(szBuf, access, shareMode, NULL, create, msflags, NULL);
+#else
     foo = CreateFile(file, access, shareMode, NULL, create, msflags, NULL);
+#endif
+
+
     if (INVALID_HANDLE_VALUE == foo) {
         errno = b_errno_win32;
         return(int) -1;

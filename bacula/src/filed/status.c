@@ -75,11 +75,12 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
 	 privs = enable_backup_privileges(NULL, 1);
       }
       len = Mmsg(msg,
-	 _(" Priv 0x%x APIs=%sOPT,%sATP,%sLPV,%sGFAE,%sBR,%sBW,%sSPSP\n"), privs,
+     _(" Priv 0x%x APIs=%sOPT,%sATP,%sLPV,%sGFAEA,%sGFAEW,%sBR,%sBW,%sSPSP\n"), privs,
 	 p_OpenProcessToken?"":"!",
 	 p_AdjustTokenPrivileges?"":"!",
 	 p_LookupPrivilegeValue?"":"!",
-	 p_GetFileAttributesEx?"":"!",
+     p_GetFileAttributesExA?"":"!",
+	 p_GetFileAttributesExW?"":"!",
 	 p_BackupRead?"":"!",
 	 p_BackupWrite?"":"!",
 	 p_SetProcessShutdownParameters?"":"!");

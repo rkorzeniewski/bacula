@@ -31,7 +31,11 @@
 #include "bacula.h"
 #include "find.h"
 
-extern bool python_set_prog(JCR *jcr, const char *prog);
+bool    (*python_set_prog)(JCR *jcr, const char *prog) = NULL;
+int     (*python_open)(BFILE *bfd, const char *fname, int flags, mode_t mode) = NULL;
+int     (*python_close)(BFILE *bfd) = NULL;
+ssize_t (*python_read)(BFILE *bfd, void *buf, size_t count) = NULL;
+ssize_t (*python_write)(BFILE *bfd, void *buf, size_t count) = NULL;
 
 #ifdef HAVE_DARWIN_OS
 #include <sys/paths.h>
@@ -213,6 +217,11 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
    win32_fname = get_pool_memory(PM_FNAME);
    unix_name_to_win32(&win32_fname, (char *)fname);
 
+#if USE_WIN32_UNICODE
+   WCHAR win32_fname_wchar[MAX_PATH_UNICODE];
+   UTF8_2_wchar(win32_fname_wchar, win32_fname, MAX_PATH_UNICODE);
+#endif
+
    if (flags & O_CREAT) {             /* Create */
       if (bfd->use_backup_api) {
          dwaccess = GENERIC_WRITE|FILE_ALL_ACCESS|WRITE_OWNER|WRITE_DAC|ACCESS_SYSTEM_SECURITY;
@@ -221,7 +230,13 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
          dwaccess = GENERIC_WRITE;
          dwflags = 0;
       }
+
+
+#if USE_WIN32_UNICODE   
+        bfd->fh = CreateFileW(win32_fname_wchar,
+#else
       bfd->fh = CreateFile(win32_fname,
+#endif
              dwaccess,                /* Requested access */
              0,                       /* Shared mode */
              NULL,                    /* SecurityAttributes */
@@ -238,7 +253,12 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
          dwaccess = GENERIC_WRITE;
          dwflags = 0;
       }
+
+#if USE_WIN32_UNICODE
+          bfd->fh = CreateFileW(win32_fname_wchar,
+#else
       bfd->fh = CreateFile(win32_fname,
+#endif
              dwaccess,                /* Requested access */
              0,                       /* Shared mode */
              NULL,                    /* SecurityAttributes */
@@ -257,7 +277,12 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
          dwflags = 0;
          dwshare = FILE_SHARE_READ|FILE_SHARE_WRITE;
       }
+
+#if USE_WIN32_UNICODE
+          bfd->fh = CreateFileW(win32_fname_wchar,
+#else
       bfd->fh = CreateFile(win32_fname,
+#endif      
              dwaccess,                /* Requested access */
              dwshare,                 /* Share modes */
              NULL,                    /* SecurityAttributes */
@@ -547,8 +572,8 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 {
    /* Open reader/writer program */
    if (bfd->prog) {
-      errno = 0;
-      return 1;
+      Dmsg1(000, "Open file %d\n", bfd->fid);
+      return python_open(bfd, fname, flags, mode);
    }
 
    /* Normal file open */
@@ -577,27 +602,19 @@ int bopen_rsrc(BFILE *bfd, const char *fname, int flags, mode_t mode)
 }
 #endif
 
-/* Old prog close code */
-#ifdef xxx
-   if (bfd->prog && bfd->bpipe) {
-      stat = close_bpipe(bfd->bpipe);
-      bfd->berrno = errno;
-      bfd->fid = -1;
-      bfd->bpipe = NULL;
-      return stat;
-   }
-#endif
-
 
 int bclose(BFILE *bfd)
 {
    int stat;
+
    Dmsg1(400, "Close file %d\n", bfd->fid);
-   if (bfd->fid == -1) {
-      return 0;
-   }
+
    /* Close reader/writer program */
    if (bfd->prog) {
+      return python_close(bfd);
+   }
+
+   if (bfd->fid == -1) {
       return 0;
    }
 
@@ -611,6 +628,10 @@ int bclose(BFILE *bfd)
 ssize_t bread(BFILE *bfd, void *buf, size_t count)
 {
    ssize_t stat;
+
+   if (bfd->prog) {
+      return python_read(bfd, buf, count);
+   }
    stat = read(bfd->fid, buf, count);
    bfd->berrno = errno;
    return stat;
@@ -619,6 +640,10 @@ ssize_t bread(BFILE *bfd, void *buf, size_t count)
 ssize_t bwrite(BFILE *bfd, void *buf, size_t count)
 {
    ssize_t stat;
+
+   if (bfd->prog) {
+      return python_write(bfd, buf, count);
+   }
    stat = write(bfd->fid, buf, count);
    bfd->berrno = errno;
    return stat;

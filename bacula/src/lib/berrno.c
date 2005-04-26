@@ -2,7 +2,7 @@
  *  Bacula errno handler
  *
  *    berrno is a simplistic errno handler that works for
- *	Unix, Win32, and Bacula bpipes.
+ *      Unix, Win32, and Bacula bpipes.
  *
  *    See berrno.h for how to use berrno.
  *
@@ -47,13 +47,13 @@ const char *berrno::strerror()
 
    if (berrno_ && b_errno_win32) {
       FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
-	  FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-	  NULL,
-	  GetLastError(),
-	  MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-	  (LPTSTR)&msg,
-	  0,
-	  NULL);
+          FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+          NULL,
+          GetLastError(),
+          MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+          (LPTSTR)&msg,
+          0,
+          NULL);
 
       pm_strcpy(&buf_, (const char *)msg);
       LocalFree(msg);
@@ -63,31 +63,31 @@ const char *berrno::strerror()
    if (berrno_ & b_errno_exit) {
       stat = (berrno_ & ~b_errno_exit);       /* remove bit */
       if (stat == 0) {
-	 return "Child exited normally.";    /* this really shouldn't happen */
+         return "Child exited normally.";    /* this really shouldn't happen */
       } else {
-	 /* Maybe an execvp failure */
-	 if (stat >= 200) {
-	    if (stat < 200 + num_execvp_errors) {
-	       berrno_ = execvp_errors[stat - 200];
-	    } else {
-	       return "Unknown error during program execvp";
-	    }
-	 } else {
-	    Mmsg(&buf_, "Child exited with code %d", stat);
-	    return buf_;
-	 }
-	 /* If we drop out here, berrno_ is set to an execvp errno */
+         /* Maybe an execvp failure */
+         if (stat >= 200) {
+            if (stat < 200 + num_execvp_errors) {
+               berrno_ = execvp_errors[stat - 200];
+            } else {
+               return "Unknown error during program execvp";
+            }
+         } else {
+            Mmsg(&buf_, "Child exited with code %d", stat);
+            return buf_;
+         }
+         /* If we drop out here, berrno_ is set to an execvp errno */
       }
    }
    if (berrno_ & b_errno_signal) {
-      stat = (berrno_ & ~b_errno_signal);	 /* remove bit */
+      stat = (berrno_ & ~b_errno_signal);        /* remove bit */
       Mmsg(&buf_, "Child died from signal %d: %s", stat, get_signal_name(stat));
       return buf_;
    }
 #endif
    /* Normal errno */
    if (bstrerror(berrno_, buf_, 1024) < 0) {
-      return "Invalid errno. No error message possible.";
+      return _("Invalid errno. No error message possible.");
    }
    return buf_;
 }

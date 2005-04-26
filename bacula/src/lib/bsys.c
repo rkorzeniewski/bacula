@@ -79,7 +79,7 @@ int bmicrosleep(time_t sec, long usec)
    if (stat != 0) {
       berrno be;
       Dmsg2(200, "pthread_cond_timedwait stat=%d ERR=%s\n", stat,
-	 be.strerror(stat));
+         be.strerror(stat));
    }
    V(timer_mutex);
    return stat;
@@ -208,7 +208,7 @@ int bvsnprintf(char *str, int32_t size, const char  *format, va_list ap)
       Emsg0(M_ABORT, 0, _("Buffer overflow.\n"));
    }
    memcpy(str, buf, len);
-   str[len] = 0;		/* len excludes the null */
+   str[len] = 0;                /* len excludes the null */
    free_memory(buf);
    return len;
 #endif
@@ -218,17 +218,10 @@ int bvsnprintf(char *str, int32_t size, const char  *format, va_list ap)
 
 struct tm *localtime_r(const time_t *timep, struct tm *tm)
 {
-    static pthread_mutex_t mutex;
-    static bool first = true;
+    static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
     struct tm *ltm,
 
-    if (first) {
-       pthread_mutex_init(&mutex, NULL);
-       first = false;
-    }
-
     P(mutex);
-
     ltm = localtime(timep);
     if (ltm) {
        memcpy(tm, ltm, sizeof(struct tm));
@@ -244,15 +237,10 @@ struct tm *localtime_r(const time_t *timep, struct tm *tm)
 
 int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result)
 {
-    static pthread_mutex_t mutex;
-    static int first = 1;
+    static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
     struct dirent *ndir;
     int stat;
 
-    if (first) {
-       pthread_mutex_init(&mutex, NULL);
-       first = 0;
-    }
     P(mutex);
     errno = 0;
     ndir = readdir(dirp);
@@ -274,15 +262,10 @@ int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result)
 
 int bstrerror(int errnum, char *buf, size_t bufsiz)
 {
-    static pthread_mutex_t mutex;
-    static int first = 1;
+    static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
     int stat = 0;
     const char *msg;
 
-    if (first) {
-       pthread_mutex_init(&mutex, NULL);
-       first = 0;
-    }
     P(mutex);
 
     msg = strerror(errnum);
@@ -307,9 +290,9 @@ void _p(char *file, int line, pthread_mutex_t *m)
       e_msg(file, line, M_ERROR, 0, _("Possible mutex deadlock.\n"));
       /* We didn't get the lock, so do it definitely now */
       if ((errstat=pthread_mutex_lock(m))) {
-	 berrno be;
+         berrno be;
          e_msg(file, line, M_ABORT, 0, _("Mutex lock failure. ERR=%s\n"),
-	       be.strerror(errstat));
+               be.strerror(errstat));
       } else {
          e_msg(file, line, M_ERROR, 0, _("Possible mutex deadlock resolved.\n"));
       }
@@ -324,12 +307,12 @@ void _v(char *file, int line, pthread_mutex_t *m)
    if ((errstat=pthread_mutex_trylock(m)) == 0) {
       berrno be;
       e_msg(file, line, M_ERROR, 0, _("Mutex unlock not locked. ERR=%s\n"),
-	   be.strerror(errstat));
+           be.strerror(errstat));
     }
     if ((errstat=pthread_mutex_unlock(m))) {
        berrno be;
        e_msg(file, line, M_ABORT, 0, _("Mutex unlock failure. ERR=%s\n"),
-	      be.strerror(errstat));
+              be.strerror(errstat));
     }
 }
 
@@ -341,7 +324,7 @@ void _p(pthread_mutex_t *m)
    if ((errstat=pthread_mutex_lock(m))) {
       berrno be;
       e_msg(__FILE__, __LINE__, M_ABORT, 0, _("Mutex lock failure. ERR=%s\n"),
-	    be.strerror(errstat));
+            be.strerror(errstat));
    }
 }
 
@@ -351,7 +334,7 @@ void _v(pthread_mutex_t *m)
    if ((errstat=pthread_mutex_unlock(m))) {
       berrno be;
       e_msg(__FILE__, __LINE__, M_ABORT, 0, _("Mutex unlock failure. ERR=%s\n"),
-	    be.strerror(errstat));
+            be.strerror(errstat));
    }
 }
 
@@ -391,24 +374,24 @@ void create_pid_file(char *dir, const char *progname, int port)
       /* File exists, see what we have */
       *pidbuf = 0;
       if ((pidfd = open(fname, O_RDONLY|O_BINARY, 0)) < 0 ||
-	   read(pidfd, &pidbuf, sizeof(pidbuf)) < 0 ||
+           read(pidfd, &pidbuf, sizeof(pidbuf)) < 0 ||
            sscanf(pidbuf, "%d", &oldpid) != 1) {
          Emsg2(M_ERROR_TERM, 0, _("Cannot open pid file. %s ERR=%s\n"), fname, strerror(errno));
       }
       /* See if other Bacula is still alive */
       if (kill(oldpid, 0) != -1 || errno != ESRCH) {
          Emsg3(M_ERROR_TERM, 0, _("%s is already running. pid=%d\nCheck file %s\n"),
-	       progname, oldpid, fname);
+               progname, oldpid, fname);
       }
       /* He is not alive, so take over file ownership */
-      unlink(fname);		      /* remove stale pid file */
+      unlink(fname);                  /* remove stale pid file */
    }
    /* Create new pid file */
    if ((pidfd = open(fname, O_CREAT|O_TRUNC|O_WRONLY|O_BINARY, 0640)) >= 0) {
       len = sprintf(pidbuf, "%d\n", (int)getpid());
       write(pidfd, pidbuf, len);
       close(pidfd);
-      del_pid_file_ok = TRUE;	      /* we created it so we can delete it */
+      del_pid_file_ok = TRUE;         /* we created it so we can delete it */
    } else {
       Emsg2(M_ERROR_TERM, 0, _("Could not open pid file. %s ERR=%s\n"), fname, strerror(errno));
    }
@@ -466,17 +449,17 @@ void read_state_file(char *dir, const char *progname, int port)
 // Dmsg1(10, "O_BINARY=%d\n", O_BINARY);
    if ((sfd = open(fname, O_RDONLY|O_BINARY, 0)) < 0) {
       Dmsg3(010, "Could not open state file. sfd=%d size=%d: ERR=%s\n",
-		    sfd, sizeof(hdr), strerror(errno));
-	   goto bail_out;
+                    sfd, sizeof(hdr), strerror(errno));
+           goto bail_out;
    }
    if ((stat=read(sfd, &hdr, hdr_size)) != hdr_size) {
       Dmsg4(010, "Could not read state file. sfd=%d stat=%d size=%d: ERR=%s\n",
-		    sfd, (int)stat, hdr_size, strerror(errno));
+                    sfd, (int)stat, hdr_size, strerror(errno));
       goto bail_out;
    }
    if (hdr.version != state_hdr.version) {
       Dmsg2(010, "Bad hdr version. Wanted %d got %d\n",
-	 state_hdr.version, hdr.version);
+         state_hdr.version, hdr.version);
    }
    hdr.id[13] = 0;
    if (strcmp(hdr.id, state_hdr.id) != 0) {
@@ -590,31 +573,31 @@ char *bfgets(char *s, int size, FILE *fd)
    *p = 0;
    for (int i=0; i < size-1; i++) {
       do {
-	 errno = 0;
-	 ch = fgetc(fd);
+         errno = 0;
+         ch = fgetc(fd);
       } while (ch == -1 && (errno == EINTR || errno == EAGAIN));
       if (ch == -1) {
-	 if (i == 0) {
-	    return NULL;
-	 } else {
-	    return s;
-	 }
+         if (i == 0) {
+            return NULL;
+         } else {
+            return s;
+         }
       }
       *p++ = ch;
       *p = 0;
       if (ch == '\r') { /* Support for Mac/Windows file format */
-	 ch = fgetc(fd);
+         ch = fgetc(fd);
          if (ch == '\n') { /* Windows (\r\n) */
-	    *p++ = ch;
-	    *p = 0;
-	 }
+            *p++ = ch;
+            *p = 0;
+         }
          else { /* Mac (\r only) */
-	    ungetc(ch, fd); /* Push next character back to fd */
-	 }
-	 break;
+            ungetc(ch, fd); /* Push next character back to fd */
+         }
+         break;
       }
       if (ch == '\n') {
-	 break;
+         break;
       }
    }
    return s;

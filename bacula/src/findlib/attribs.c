@@ -33,6 +33,8 @@
 
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 
+#include "compat.h"
+
 /* Forward referenced subroutines */
 static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd);
 void unix_name_to_win32(POOLMEM **win32_name, char *name);
@@ -457,16 +459,32 @@ int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
 
    attribsEx[0] = 0;		      /* no extended attributes */
 
-   if (!p_GetFileAttributesEx) {
+#if USE_WIN32_UNICODE
+   if (!p_GetFileAttributesExW)
       return STREAM_UNIX_ATTRIBUTES;
-   }
 
    unix_name_to_win32(&ff_pkt->sys_fname, ff_pkt->fname);
-   if (!p_GetFileAttributesEx(ff_pkt->sys_fname, GetFileExInfoStandard,
+
+   WCHAR szBuf[MAX_PATH_UNICODE];
+   UTF8_2_wchar(szBuf, ff_pkt->sys_fname, MAX_PATH_UNICODE);
+
+   if (!p_GetFileAttributesExW(szBuf, GetFileExInfoStandard,
 			    (LPVOID)&atts)) {
-      win_error(jcr, "GetFileAttributesEx:", ff_pkt->sys_fname);
+      win_error(jcr, "GetFileAttributesExW:", ff_pkt->sys_fname);
       return STREAM_UNIX_ATTRIBUTES;
    }
+#else
+   if (!p_GetFileAttributesExA)
+      return STREAM_UNIX_ATTRIBUTES;
+
+   unix_name_to_win32(&ff_pkt->sys_fname, ff_pkt->fname);
+
+   if (!p_GetFileAttributesExA(ff_pkt->sys_fname, GetFileExInfoStandard,
+			    (LPVOID)&atts)) {
+      win_error(jcr, "GetFileAttributesExA:", ff_pkt->sys_fname);
+      return STREAM_UNIX_ATTRIBUTES;
+   }
+#endif
 
    p += to_base64((uint64_t)atts.dwFileAttributes, p);
    *p++ = ' ';                        /* separate fields with a space */
@@ -518,9 +536,14 @@ static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    ULARGE_INTEGER li;
    POOLMEM *win32_ofile;
 
-   if (!p_GetFileAttributesEx) {
+#if USE_WIN32_UNICODE
+   if (!p_GetFileAttributesExW)
       return false;
-   }
+#else
+   if (!p_GetFileAttributesExA)				 
+      return false;
+#endif
+   
 
    if (!p || !*p) {		      /* we should have attributes */
       Dmsg2(100, "Attributes missing. of=%s ofd=%d\n", attr->ofname, ofd->fid);
@@ -581,9 +604,18 @@ static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    }
 
    Dmsg1(100, "SetFileAtts %s\n", attr->ofname);
-   if (!(atts.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+   if (!(atts.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) 
+   {
+#if USE_WIN32_UNICODE
+   WCHAR szBuf[MAX_PATH_UNICODE];
+   UTF8_2_wchar(szBuf, win32_ofile, MAX_PATH_UNICODE);
+
+   if (!SetFileAttributesW(szBuf, atts.dwFileAttributes & SET_ATTRS)) {
+         win_error(jcr, "SetFileAttributesW:", win32_ofile);
+#else
       if (!SetFileAttributes(win32_ofile, atts.dwFileAttributes & SET_ATTRS)) {
-         win_error(jcr, "SetFileAttributes:", win32_ofile);
+         win_error(jcr, "SetFileAttributesA:", win32_ofile);
+#endif
       }
    }
    free_pool_memory(win32_ofile);

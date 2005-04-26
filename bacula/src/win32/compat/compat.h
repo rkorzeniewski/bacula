@@ -24,8 +24,8 @@
  *
  * Author          : Christopher S. Hull
  * Created On      : Fri Jan 30 13:00:51 2004
- * Last Modified By: Nicolas Boichat
- * Last Modified On: Sat Apr 17 19:30:00 2004
+ * Last Modified By: Thorsten Engel
+ * Last Modified On: Fri Apr 22 19:30:00 2004
  * Update Count    : 218
  * $Id$
  */
@@ -74,6 +74,18 @@
 #include "getopt.h"
 
 #define HAVE_WIN32 1
+
+// unicode enabling of win 32 needs some defines and functions
+#define MAX_PATH_UNICODE 32767
+#define MAX_PATH_UTF8    MAX_PATH*3
+#define USE_WIN32_UNICODE 1
+
+#if USE_WIN32_UNICODE
+int wchar_2_UTF8(char *pszUTF, const WCHAR *pszUCS, int cchChar = MAX_PATH_UTF8);
+int UTF8_2_wchar(WCHAR *pszUCS, const char *pszUTF, int cchWideChar = MAX_PATH);
+#endif
+
+
 
 #ifndef HAVE_MINGW
 #ifdef HAVE_CYGWIN
@@ -324,7 +336,7 @@ struct sigaction {
 #define sigfillset(x)
 #define sigaction(a, b, c)
 
-#define mkdir(p, m) _mkdir(p)
+#define mkdir(p, m) win32_mkdir(p)
 #define chdir win32_chdir
 int syslog(int, const char *, const char *);
 #define LOG_DAEMON 0
@@ -351,6 +363,7 @@ extern "C" void *  __cdecl _alloca(size_t);
 #define chdir win32_chdir
 char *win32_getcwd(char *buf, int maxlen);
 int win32_chdir(const char *buf);
+int win32_mkdir(const char *buf);
 
 int WSA_Init(void);
 

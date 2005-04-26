@@ -101,9 +101,9 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
 
    free_pool_memory(jcr->acl_text);
 
-   stop_heartbeat_monitor(jcr);
+   bnet_sig(sd, BNET_EOD);            /* end of sending data */
 
-   bnet_sig(sd, BNET_EOD);            /* end data connection */
+   stop_heartbeat_monitor(jcr);
 
    if (jcr->big_buf) {
       free(jcr->big_buf);
@@ -113,7 +113,7 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
       free_pool_memory(jcr->compress_buf);
       jcr->compress_buf = NULL;
    }
-   Dmsg1(300, "end blast_data stat=%d\n", ok);
+   Dmsg1(100, "end blast_data ok=%d\n", ok);
    return ok;
 }
 
@@ -241,6 +241,8 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
    }
    if (ff_pkt->reader) {
       if (!set_prog(&ff_pkt->bfd, ff_pkt->reader, jcr)) {
+         Jmsg(jcr, M_FATAL, 0, _("Python reader program \"%s\" not found.\n"), 
+            ff_pkt->reader);
          return 0;
       }
    }
@@ -502,6 +504,10 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, struct CHKSUM *chksum)
       berrno be;
       Jmsg(jcr, M_ERROR, 0, _("Read error on file %s. ERR=%s\n"),
          ff_pkt->fname, be.strerror(ff_pkt->bfd.berrno));
+      if (jcr->Errors++ > 1000) {       /* insanity check */
+         Jmsg(jcr, M_FATAL, 0, _("Too many errors.\n"));
+      }
+
    }
 
    if (!bnet_sig(sd, BNET_EOD)) {        /* indicate end of file data */

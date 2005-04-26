@@ -1205,7 +1205,6 @@ bool    dir_ask_sysop_to_create_appendable_volume(DCR *dcr) { return 1; }
 bool    dir_update_file_attributes(DCR *dcr, DEV_RECORD *rec) { return 1;}
 bool    dir_send_job_status(JCR *jcr) {return 1;}
 int     generate_job_event(JCR *jcr, const char *event) { return 1; }
-bool    python_set_prog(JCR*, char const*) { return false; }
 
 bool dir_ask_sysop_to_mount_volume(DCR *dcr)
 {
