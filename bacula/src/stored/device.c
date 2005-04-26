@@ -264,21 +264,19 @@ bool first_open_device(DEVICE *dev)
       return true;
    }
 
-   if (!dev->is_open()) {
-       int mode;
-       if (dev_cap(dev, CAP_STREAM)) {
-          mode = OPEN_WRITE_ONLY;
-       } else {
-          mode = OPEN_READ_WRITE;
-       }
-      Dmsg0(129, "Opening device.\n");
-      dev->open_nowait = true;
-      if (open_dev(dev, NULL, mode) < 0) {
-         Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), dev->errmsg);
-         dev->open_nowait = false;
-         unlock_device(dev);
-         return false;
-      }
+    int mode;
+    if (dev_cap(dev, CAP_STREAM)) {
+       mode = OPEN_WRITE_ONLY;
+    } else {
+       mode = OPEN_READ_WRITE;
+    }
+   Dmsg0(129, "Opening device.\n");
+   dev->open_nowait = true;
+   if (open_dev(dev, NULL, mode) < 0) {
+      Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), dev->errmsg);
+      dev->open_nowait = false;
+      unlock_device(dev);
+      return false;
    }
    Dmsg1(129, "open_dev %s OK\n", dev->print_name());
    dev->open_nowait = false;
@@ -293,23 +291,21 @@ bool open_device(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
    /* Open device */
-   if  (!dev->is_open()) {
-      int mode;
-      if (dev_cap(dev, CAP_STREAM)) {
-         mode = OPEN_WRITE_ONLY;
-      } else {
-         mode = OPEN_READ_WRITE;
+   int mode;
+   if (dev_cap(dev, CAP_STREAM)) {
+      mode = OPEN_WRITE_ONLY;
+   } else {
+      mode = OPEN_READ_WRITE;
+   }
+   if (open_dev(dev, dcr->VolCatInfo.VolCatName, mode) < 0) {
+      /* If polling, ignore the error */
+      if (!dev->poll) {
+         Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open device %s: ERR=%s\n"),
+            dev->print_name(), strerror_dev(dev));
+         Pmsg2(000, "Unable to open archive %s: ERR=%s\n", 
+            dev->print_name(), strerror_dev(dev));
       }
-      if (open_dev(dev, dcr->VolCatInfo.VolCatName, mode) < 0) {
-         /* If polling, ignore the error */
-         if (!dev->poll) {
-            Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open device %s: ERR=%s\n"),
-               dev->print_name(), strerror_dev(dev));
-            Pmsg2(000, "Unable to open archive %s: ERR=%s\n", 
-               dev->print_name(), strerror_dev(dev));
-         }
-         return false;
-      }
+      return false;
    }
    return true;
 }

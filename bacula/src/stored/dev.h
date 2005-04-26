@@ -189,7 +189,7 @@ public:
    /* New access control in process of being implemented */
    brwlock_t lock;                    /* New mutual exclusion lock */
 
-   int use_count;                     /* usage count on this device */
+   int use_count;                     /* usage count on this device 0 or 1 */
    int fd;                            /* file descriptor */
    int capabilities;                  /* capabilities mask */
    int state;                         /* state mask */

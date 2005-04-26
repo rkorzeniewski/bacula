@@ -19,13 +19,18 @@ Major Changes:
 - New communications protocol between DIR and SD to reserve 
   drives. The DIR and SD are no longer compatible with 1.36 or
   lower versions.
-- Preliminary Python Event support has been added. See below for
+- Python Event support has been added. See below for
   configuration and details.
 - DVD writing support, using parts, and a lot of new directives in
   the Device resource of the Storage configuration file.
 - Seven new options keywords in a FileSet resource:
   ignorecase, fstype, hfsplussupport, wilddir, wildfile, regexdir,
   and regexfile. See below for details.
+- Restore of all files for a Job or set of jobs even if the file
+  records have been removed from the catalog.
+- Restore of a directory (non-recursive, i.e. only one level).
+- Support for Unicode filenames on Win32.
+- Support for TLS (ssl) between all the daemon connections.
 
 New Directives:
 - New Run directive in Job resource of DIR. It permits
@@ -139,6 +144,8 @@ Other Items:
   (http://fy.chalmers.se/~appro/linux/DVD+RW/).
 - Part files support: File volumes can now be splitted in multiple
   files, called "parts".
+
+NOTE THE FOLLOWING IS NOW OUT OF DATE!!!!
 - Python scripting support:
   A Python script will be called at particular points or conditions
   in Bacula called Events. The currently defined Events are called:

@@ -610,7 +610,7 @@ static bool mount_cmd(JCR *jcr)
                }
             } else {
                if (!dev->is_tape()) {
-                  bnet_fsend(dir, _("3906 cannot mount non-tape.\n"));
+                  /* Nothing to do */
                   break;
                }
                if (open_dev(dev, NULL, OPEN_READ_WRITE) < 0) {
@@ -667,7 +667,6 @@ static bool unmount_cmd(JCR *jcr)
          } else if (dev->dev_blocked == BST_WAITING_FOR_SYSOP) {
             Dmsg2(90, "%d waiter dev_block=%d. doing unmount\n", dev->num_waiting,
                dev->dev_blocked);
-            open_dev(dev, NULL, 0);     /* fake open for close */
             offline_or_rewind_dev(dev);
             force_close_dev(dev);
             dev->dev_blocked = BST_UNMOUNTED_WAITING_FOR_SYSOP;
@@ -694,7 +693,6 @@ static bool unmount_cmd(JCR *jcr)
             /*  block_device(dev, BST_UNMOUNTED); replace with 2 lines below */
             dev->dev_blocked = BST_UNMOUNTED;
             dev->no_wait_id = 0;
-            open_dev(dev, NULL, 0);     /* fake open for close */
             offline_or_rewind_dev(dev);
             force_close_dev(dev);
             bnet_fsend(dir, _("3002 Device %s unmounted.\n"), 
