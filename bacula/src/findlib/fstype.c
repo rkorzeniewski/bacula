@@ -223,12 +223,35 @@ bool fstype(const char *fname, char *fs, int fslen)
    return false;
 }
 
+#elif defined (__digital__) && defined (__unix__)  /* Tru64 */
+/* Tru64 */
+#include <sys/stat.h>
+#include <sys/mount.h>
+
+bool fstype(const char *fname, char *fs, int fslen)
+{
+   struct statfs st;
+   if (statfs((char *)fname, &st) == 0) {
+      switch (st.f_type) {
+      /* Known good values */
+      case 0xa:         bstrncpy(fs, "advfs", fslen); return true;        /* Tru64 AdvFS */
+      case 0xe:         bstrncpy(fs, "nfs", fslen); return true;          /* Tru64 NFS   */
+      default:
+         Dmsg2(10, "Unknown file system type \"0x%x\" for \"%s\".\n", st.f_type,
+               fname);
+         return false;
+      }
+   }
+   Dmsg1(50, "statfs() failed for \"%s\"\n", fname);
+   return false;
+}
+/* Tru64 */
+
 #else	 /* No recognised OS */
 
 bool fstype(const char *fname, char *fs, int fslen)
 {
    Dmsg0(10, "!!! fstype() not implemented for this OS. !!!\n");
-
 #ifdef TEST_PROGRAM
    Dmsg1(10, "Please define one of the following when compiling:\n\n%s\n",
 	 SUPPORTEDOSES);

@@ -306,7 +306,9 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       "Select backup for a client before a specified time",
       "Enter a list of files to restore",
       "Enter a list of files to restore before a specified time",
-      "Enter a list of directories to restore for a given JobId",
+      "Find the JobIds of the most recent backup for a client",
+      "Find the JobIds for a backup for a client before a specified time",
+      "Enter a list of directories to restore for given JobIds",
       "Cancel",
       NULL };
 
@@ -539,15 +541,36 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
          }
          return 2;
 
-      case 8:                         /* Enter directories */
-         if (get_cmd(ua, _("Enter JobId(s), comma separated, to restore: "))) {
-            if (*rx->JobIds != 0) {
+      case 8:                         /* Find JobIds for current backup */
+         bstrutime(date, sizeof(date), time(NULL));
+         if (!select_backups_before_date(ua, rx, date)) {
+            return 0;
+         }
+         done = false;
+         break;
+
+      case 9:                         /* Find JobIds for give date */
+         if (!get_date(ua, date, sizeof(date))) {
+            return 0;
+         }
+         if (!select_backups_before_date(ua, rx, date)) {
+            return 0;
+         }
+         done = false;
+         break;
+
+      case 10:                        /* Enter directories */
+         if (*rx->JobIds != 0) {
+            bsendmsg(ua, _("You have already seleted the following JobIds: %s\n"),
+               rx->JobIds);
+         } else if (get_cmd(ua, _("Enter JobId(s), comma separated, to restore: "))) {
+            if (*rx->JobIds != 0 && *ua->cmd) {
                pm_strcat(rx->JobIds, ",");
             }
-            pm_strcpy(rx->JobIds, ua->cmd);
+            pm_strcat(rx->JobIds, ua->cmd);
          }
-         if (*rx->JobIds != 0) {
-            return 0;
+         if (*rx->JobIds == 0 || *rx->JobIds == '.') {
+            return 0;                 /* nothing entered, return */
          }
          bstrutime(date, sizeof(date), time(NULL));
          if (!get_client_name(ua, rx)) {
@@ -557,12 +580,15 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
                         "containg a list of directories and terminate\n"
                         "them with a blank line.\n"));
          for ( ;; ) {
-            if (!get_cmd(ua, _("Enter full filename: "))) {
+            if (!get_cmd(ua, _("Enter directory name: "))) {
                return 0;
             }
             len = strlen(ua->cmd);
             if (len == 0) {
                break;
+            }
+            if (ua->cmd[len-1] != '/') {
+               strcat(ua->cmd, "/");
             }
             insert_one_file_or_dir(ua, rx, date, true);
          }
@@ -572,7 +598,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
          }
          return 2;
 
-      case 9:                         /* Cancel or quit */
+      case 11:                        /* Cancel or quit */
          return 0;
       }
    }
@@ -726,6 +752,8 @@ static bool insert_file_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *f
 static bool insert_dir_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *dir,
                                         char *date)
 {
+   char ed1[50];
+
    strip_trailing_junk(dir);
    if (*rx->JobIds == 0) {
       bsendmsg(ua, _("No JobId specified cannot continue.\n"));
@@ -747,7 +775,7 @@ static bool insert_dir_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *di
    /*
     * Find the MediaTypes for this JobId and add to the name_list
     */
-   Mmsg(rx->query, uar_mediatype, rx->JobId);
+   Mmsg(rx->query, uar_mediatype, edit_int64(rx->JobId, ed1));
    if (!db_sql_query(ua->db, rx->query, unique_name_list_handler, (void *)&rx->name_list)) {
       bsendmsg(ua, "%s", db_strerror(ua->db));
       return false;
@@ -867,7 +895,7 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
    }
    if (tree.FileCount == 0) {
       bsendmsg(ua, "\nThere were no files inserted into the tree, so file selection\n"
-         "is not possible.\n");
+         "is not possible.\nMost likely your retention policy pruned the files\n");
       if (!get_yesno(ua, _("Do you want to restore all the files? (yes|no): "))) {
          OK = false;
       } else {

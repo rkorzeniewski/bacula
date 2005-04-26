@@ -1,4 +1,40 @@
 
+Changes to 1.37.14:
+26Apr05
+- Apply Tru64 patch supplied by Pascal Pederiva <freebsd@paped.com>
+- Apply Unicode fixes for Win32 from "Thorsten Engel" 
+  <thorsten.engel@matrix-computer.com>
+- More work on Python read feature in FD.
+22Apr05
+- Fix (hopefully) the ftello() overflow reported by Peter.
+- Landon Fuller committed his TLS patch.
+- Fixed two minor warnings in console.c with TLS turned off.
+- Updated the Makefile.in for wx-windows and tray-monitor
+  to handle TLS. I can only build the tray-monitor.
+- Fix bscan to open tape in read-only mode (actually fix
+  it so that it doesn't use the standard open routine).
+- Correct what appears to be an error in setting the
+  return value in dvd.c
+21Apr05
+- Get FD Python running -- design Python backup interface.
+- Fix seg fault in SD when referencing Alert Command.
+- More documentation.
+- Fix one more thing in Win32 build.
+20Apr05
+- Doc updates
+- Fix Win32 build
+- Put in production here
+
+Changes to 1.37.13:
+19Apr05
+- Fix SQLite and PostgreSQL table creation script syntax
+  problems.
+- Fix new Python code to work for Director.
+- Move lib/python.c to lib/pythonlib.c so that debug output
+  is easier to read (can distinguish lib from dird, ...).
+- Cleanup Python build so that Python is not dragged
+  into programs that don't use it.
+
 Changes to 1.37.12:
 02Apr05
 - Reset NumVols in Pool record from database on every update

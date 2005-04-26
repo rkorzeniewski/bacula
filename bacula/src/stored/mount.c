@@ -341,7 +341,11 @@ read_volume:
       Dmsg0(200, "Device previously written, moving to end of data\n");
       Jmsg(jcr, M_INFO, 0, _("Volume \"%s\" previously written, moving to end of data.\n"),
          dcr->VolumeName);
+#if defined (__digital__) && defined (__unix__)
+      if (!fsf_dev(dev,dev->VolCatInfo.VolCatFiles)) {
+#else
       if (!eod_dev(dev)) {
+#endif
          Jmsg(jcr, M_ERROR, 0, _("Unable to position to end of data on device %s: ERR=%s\n"),
             dev->print_name(), strerror_dev(dev));
          mark_volume_in_error(dcr);

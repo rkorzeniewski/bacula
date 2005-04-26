@@ -490,6 +490,14 @@ int  m_msg(const char *file, int line, POOLMEM *&pool_buf, const char *fmt, ...)
 #define ftello ftell
 #endif
 
+#if defined (__digital__) && defined (__unix__)
+/* Tru64 - it does have fseeko and ftello , but since ftell/fseek are also 64 bit */
+/* take this 'shortcut' */
+#define fseeko fseek
+#define ftello ftell
+#endif
+
+
 #ifdef __alpha__
 #define OSF 1
 #endif

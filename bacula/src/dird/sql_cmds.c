@@ -326,7 +326,7 @@ const char *uar_sel_fileset =
 
 /* Find MediaType used by this Job */
 const char *uar_mediatype =
-   "SELECT MediaType FROM JobMedia,Media WHERE JobMedia.JobId=%s"
+   "SELECT MediaType FROM JobMedia,Media WHERE JobMedia.JobId=%s "
    "AND JobMedia.MediaId=Media.MediaId";
 
 /*
@@ -362,7 +362,7 @@ const char *uar_jobids_fileindex =
 const char *uar_jobid_fileindex_from_dir = 
    "SELECT Job.JobId,File.FileIndex FROM Job,File,Path,Filename,Client "
    "WHERE Job.JobId IN (%s) "
-   "WHERE Job.JobId=File.JobId "
+   "AND Job.JobId=File.JobId "
    "AND Path.Path='%s' "
    "AND Client.Name='%s' "
    "AND Job.ClientId=Client.ClientId "

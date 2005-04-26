@@ -48,11 +48,11 @@ all: Makefile bconsole @STATIC_CONS@
 
 bconsole: $(CONSOBJS) ../lib/libbac.a
 	$(CXX) $(LDFLAGS) $(CONS_LDFLAGS) -L../lib -L../cats -o $@ $(CONSOBJS) \
-	      $(DLIB) $(CONS_LIBS)  $(OPENSSL_LIBS) -lbac -lm $(LIBS) 
+	      $(DLIB) $(CONS_LIBS)  -lbac -lm $(LIBS) $(OPENSSL_LIBS)
 
 static-bconsole: $(CONSOBJS) ../lib/libbac.a
 	$(CXX) -static $(LDFLAGS) $(CONS_LDFLAGS) -L../lib -L../cats -o $@ $(CONSOBJS) \
-	      $(DLIB) $(CONS_LIBS)  $(OPENSSL_LIBS) -lbac -lm $(LIBS) 
+	      $(DLIB) $(CONS_LIBS)  -lbac -lm $(LIBS) $(OPENSSL_LIBS)
 	strip $@
 
 
