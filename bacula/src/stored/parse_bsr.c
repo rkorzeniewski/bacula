@@ -129,7 +129,11 @@ BSR *parse_bsr(JCR *jcr, char *fname)
    BSR *bsr = root_bsr;
 
    Dmsg1(200, "Enter parse_bsf %s\n", fname);
-   lc = lex_open_file(lc, fname, s_err);
+   if ((lc = lex_open_file(lc, fname, s_err)) == NULL) {
+      berrno be;
+      Emsg2(M_ERROR_TERM, 0, _("Cannot open bootstrap file %s: %s\n"),
+            fname, be.strerror());
+   }
    lc->caller_ctx = (void *)jcr;
    while ((token=lex_get_token(lc, T_ALL)) != T_EOF) {
       Dmsg1(200, "parse got token=%s\n", lex_tok_to_str(token));

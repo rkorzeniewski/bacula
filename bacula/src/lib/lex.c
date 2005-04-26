@@ -135,10 +135,7 @@ LEX *lex_open_file(LEX *lf, const char *filename, LEX_ERROR_HANDLER *scan_error)
 
 
    if ((fd = fopen(fname, "r")) == NULL) {
-      berrno be;
-      Emsg2(M_ERROR_TERM, 0, _("Cannot open config file %s: %s\n"),
-            fname, be.strerror());
-      return NULL; /* Never reached if exit_on_error == 1 */
+      return NULL;
    }
    Dmsg1(2000, "Open config file: %s\n", fname);
    nf = (LEX *)malloc(sizeof(LEX));
@@ -488,11 +485,17 @@ lex_get_token(LEX *lf, int expect)
          }
          if (B_ISSPACE(ch) || ch == '\n' || ch == L_EOL || ch == '}' || ch == '{' ||
              ch == ';' || ch == ','   || ch == '"' || ch == '#') {
+            /* Keep the original LEX so we can print an error if the included file can't be opened. */
+            LEX* lfori = lf;
+            
             lf->state = lex_none;
             lf = lex_open_file(lf, lf->str, NULL);
-       if (lf == NULL) {
-         return T_ERROR;
-       }
+            if (lf == NULL) {
+               berrno be;
+               scan_err2(lfori, _("Cannot open included config file %s: %s\n"),
+                  lfori->str, be.strerror());
+               return T_ERROR;
+            }
             break;
          }
          add_str(lf, ch);

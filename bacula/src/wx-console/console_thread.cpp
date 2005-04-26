@@ -85,6 +85,34 @@ void console_thread::FreeLib() {
    }
 }
 
+wxString errmsg;
+
+/*
+ * Format a scanner error message
+ */
+static void scan_err(const char *file, int line, LEX *lc, const char *msg, ...)
+{
+   va_list arg_ptr;
+   char buf[MAXSTRING];
+   char more[MAXSTRING];
+   char err[MAXSTRING];
+   
+   va_start(arg_ptr, msg);
+   bvsnprintf(buf, sizeof(buf), msg, arg_ptr);
+   va_end(arg_ptr);
+
+   if (lc->line_no > lc->begin_line_no) {
+      bsnprintf(more, sizeof(more),
+                _("Problem probably begins at line %d.\n"), lc->begin_line_no);
+   } else {
+      more[0] = 0;
+   }
+   bsnprintf(err, sizeof(err), _("Config error: %s\n"
+"            : line %d, col %d of file %s\n%s\n%s"),
+      buf, lc->line_no, lc->col_no, lc->fname, lc->line, more);
+   errmsg << err; 
+}
+
 wxString console_thread::LoadConfig(wxString configfile) {
    if (!inited) {
       InitLib();
@@ -107,24 +135,11 @@ wxString console_thread::LoadConfig(wxString configfile) {
    init_msg(NULL, msgs);
    init_console_msg(console_thread::working_dir);
 
-   if (!parse_config(configfile.c_str(), 0)) {
+   errmsg = "";
+   if (!parse_config(configfile.c_str(), &scan_err)) {
       configloaded = false;
-      wxFile file(console_thread::working_dir + "/wx-console.conmsg");
-      if (!file.IsOpened())
-         return "Unable to retrieve error message.";
-      wxString err = "";
-      wxChar buffer[513];
-      off_t len;
-      while ((len = file.Read(buffer, 512)) > -1) {
-         buffer[len] = (wxChar)0;
-         err += buffer;
-         if (file.Eof())
-            break;
-      }
-      file.Close();
       term_msg();
-      wxRemoveFile(console_thread::working_dir + "/wx-console.conmsg");
-      return err;
+      return errmsg;
    }
    
    term_msg();

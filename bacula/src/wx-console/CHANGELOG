@@ -1,4 +1,5 @@
 26-04-2005 :
+ - Improve error handling when reading configuration file.
  - Fixes compile error with unicode-enabled wxWidgets.
 
 25-04-2005 :

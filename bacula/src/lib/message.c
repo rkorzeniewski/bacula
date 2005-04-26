@@ -91,8 +91,6 @@ static bool trace = false;
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static MSGS *daemon_msgs;	       /* global messages */
 
-/* Define if e_msg must exit when M_ERROR_TERM is received */
-static int exit_on_error = 1;
 
 /*
  * Set daemon name. Also, find canonical execution
@@ -597,14 +595,6 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
        fputs(msg, stdout);	   /* print this here to INSURE that it is printed */
        fflush(stdout);
 #endif
-#if !defined(HAVE_CONSOLE)
-#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
-       /* If we don't exit on error, error messages are parsed by UA */
-       if (exit_on_error) {
-          MessageBox(NULL, msg, "Bacula", MB_OK);
-       }
-#endif
-#endif
     }
 
     /* Now figure out where to send the message */
@@ -982,7 +972,7 @@ e_msg(const char *file, int line, int type, int level, const char *fmt,...)
        char *p = 0;
        p[0] = 0;		      /* generate segmentation violation */
     }
-    if ((type == M_ERROR_TERM) && exit_on_error) {
+    if (type == M_ERROR_TERM) {
        exit(1);
     }
 }
@@ -1079,7 +1069,7 @@ Jmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...)
        char *p = 0;
        p[0] = 0;		      /* generate segmentation violation */
     }
-    if ((type == M_ERROR_TERM) && exit_on_error) {
+    if (type == M_ERROR_TERM) {
        exit(1);
     }
 }
@@ -1315,11 +1305,4 @@ void q_msg(const char *file, int line, JCR *jcr, int type, time_t mtime, const c
 
    Qmsg(jcr, type, mtime, "%s", pool_buf);
    free_memory(pool_buf);
-}
-
-/*
- * Define if e_msg must exit when M_ERROR_TERM is received
- */
-void set_exit_on_error(int value) {
-   exit_on_error = value;
 }
