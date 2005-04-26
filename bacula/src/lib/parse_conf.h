@@ -96,7 +96,7 @@ union CURES {
 
 
 /* Configuration routines */
-int	parse_config(const char *cf, int exit_on_error = 1);
+int   parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error = NULL);
 void	free_config_resources(void);
 RES   **save_config_resources(void);
 RES   **new_res_head();
