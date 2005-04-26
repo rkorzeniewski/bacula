@@ -895,8 +895,8 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
    }
    if (tree.FileCount == 0) {
       bsendmsg(ua, "\nThere were no files inserted into the tree, so file selection\n"
-         "is not possible.\nMost likely your retention policy pruned the files\n");
-      if (!get_yesno(ua, _("Do you want to restore all the files? (yes|no): "))) {
+         "is not possible.Most likely your retention policy pruned the files\n");
+      if (!get_yesno(ua, _("\nDo you want to restore all the files? (yes|no): "))) {
          OK = false;
       } else {
          last_JobId = 0;
