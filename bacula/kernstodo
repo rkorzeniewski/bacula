@@ -1,17 +1,21 @@
                     Kern's ToDo List
-                     22 April 2005
+                     26 April 2005
 
 Major development:      
 Project                     Developer
 =======                     =========                         
 IPv6_2                      Meno Abels
+TLS                         Landon Fuller
+Unicode in Win32            Thorsten Engle
+VSS                         Thorsten Engle (under consideration)
 Version 1.37                Kern (see below)
 ========================================================
 
 1.37 Major Projects:
 #3   Migration (Move, Copy, Archive Jobs)
+     (probably not this version)
 #7   Single Job Writing to Multiple Storage Devices
-     (probably not) 
+     (probably not this version)
 
 ##   Integrate web-bacula into a new Bacula project with
      bimagemgr.
@@ -27,33 +31,28 @@ Autochangers:
 -    Make "update slots" when pointing to Autochanger, remove
      all Volumes from other drives.  "update slots all-drives"?
 
-Ideas:
-- Use non-blocking network I/O but if no data is available, use
-  select().
-- Use gather write() for network I/O.
-- Autorestart on crash.
 
 For 1.37:
-- Indicate when a Job is purged/pruned.
+- Python:
+  - Make a callback when Rerun failed levels is called.
+  - Give Python program access to Scheduled jobs.
+  - Python script to save with Python, not save, save with Bacula.
+  - Python script to do backup.
+  - What events?
+  - Change the Priority, Client, Storage, JobStatus (error) 
+    at the start of a job.
+  - Make sure that Python has access to Client address/port so that
+    it can check if Clients are alive.
+
 - If drive is opened read/write, close it and re-open
   read-only if doing a restore, and vice-versa.
-- Fix FD JobType to be set before RunBeforeJob in FD.
 - SD crashes after a tape restore then doing a backup. 
-- Look at dird_conf.c:1000: warning: `int size' 
-  might be used uninitialized in this function
-- Make a callback when Rerun failed levels is called.
-- Give Python program access to Scheduled jobs.
 - Implement some way to turn off automatic pruning in Jobs.
 - Implement a way an Admin Job can prune, possibly multiple
   clients -- Python script?
 - Implement "NewVolumeEachJob = yes|no" in Dir.
-- FD Python
-  - Python script to save with Python, not save, save with Bacula.
-  - Python script to do backup.
 - Create a new GUI chapter explaining all the GUI programs.
 - Look at Preben's acl.c error handling code.
-- Look at adding full Volume and Pool information to a Volume 
-  label so that bscan can get *all* the info. 
 - Implement Maximum Job Spool Size
 - Remove all old Device resource code in Dir and code to pass it
   back in SD -- better, rework it to pass back device statistics.
@@ -62,12 +61,16 @@ For 1.37:
 - Check locking of resources -- be sure to lock devices where previously
   resources were locked. 
 - Add global lock on all devices when creating a device structure.
-- Make sure that Python has access to Client address/port so that
-  it can check if Clients are alive.
-- Cleanup and complete Python scripting.
-  - What events?
-  - Change the Priority, Client, Storage, JobStatus (error) 
-    at the start of a job.
+- Look at adding full Volume and Pool information to a Volume 
+  label so that bscan can get *all* the info. 
+- Fix FD JobType to be set before RunBeforeJob in FD.
+
+
+Ideas:
+- Use non-blocking network I/O but if no data is available, use
+  select().
+- Use gather write() for network I/O.
+- Autorestart on crash.
 
 Maybe in 1.37:
 - If the user puts "Purge Oldest Volume = yes" or "Recycle Oldest Volume = yes"
@@ -1317,3 +1320,7 @@ Block Position: 0
   - Solicit Events
 - Add disk seeking on restore; turn off seek on tapes.
   stored/match_bsr.c
+- Look at dird_conf.c:1000: warning: `int size' 
+  might be used uninitialized in this function
+- Indicate when a Job is purged/pruned during restore.
+

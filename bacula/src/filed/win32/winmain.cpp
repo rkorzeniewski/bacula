@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -306,7 +306,7 @@ int BaculaAppMain()
    if (hLib) {
       p_GetFileAttributesExA = (t_GetFileAttributesExA)
           GetProcAddress(hLib, "GetFileAttributesExA");
-	  p_GetFileAttributesExW = (t_GetFileAttributesExW)
+          p_GetFileAttributesExW = (t_GetFileAttributesExW)
           GetProcAddress(hLib, "GetFileAttributesExW");
       p_SetProcessShutdownParameters = (t_SetProcessShutdownParameters)
           GetProcAddress(hLib, "SetProcessShutdownParameters");

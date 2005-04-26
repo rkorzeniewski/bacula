@@ -47,7 +47,7 @@ all: Makefile bacula-tray-monitor @STATIC_CONS@
 
 bacula-tray-monitor: $(MONITOROBJS) ../lib/libbac.a
 	$(CXX) $(LDFLAGS) $(MONITOR_LDFLAGS) -L../lib -L../cats -o $@ \
- $(MONITOROBJS) $(DLIB) $(OPENSSL_LIBS) -lbac -lm $(LIBS) 
+ $(MONITOROBJS) $(DLIB) -lbac -lm $(LIBS) $(OPENSSL_LIBS)
 
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status

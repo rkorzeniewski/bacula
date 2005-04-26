@@ -48,21 +48,21 @@ all: Makefile bsmtp dbcheck fstype testfind testls
 	@echo " "
 
 bsmtp:	bsmtp.o ../lib/libbac.a        
-	$(CXX) $(LDFLAGS) -L../lib -o $@ bsmtp.o -lbac -lm $(OPENSSL_LIBS) $(DLIB) $(LIBS) 
+	$(CXX) $(LDFLAGS) -L../lib -o $@ bsmtp.o -lbac -lm $(DLIB) $(LIBS) $(OPENSSL_LIBS)
 
 dbcheck: dbcheck.o ../lib/libbac.a ../cats/libsql.a $(DIRCONFOBJS)
-	$(CXX) $(LDFLAGS) -L../lib -L../cats -o $@ dbcheck.o $(DIRCONFOBJS) -lsql -lbac -lm $(OPENSSL_LIBS) $(DB_LIBS) $(LIBS) 
+	$(CXX) $(LDFLAGS) -L../lib -L../cats -o $@ dbcheck.o $(DIRCONFOBJS) -lsql -lbac -lm $(DB_LIBS) $(LIBS) $(OPENSSL_LIBS)
 
 fstype: fstype.o ../lib/libbac.a ../findlib/libfind.a
-	$(CXX) $(LDFLAGS) -L../lib -L../findlib -o $@ fstype.o -lfind -lbac -lm $(OPENSSL_LIBS) $(DLIB) $(LIBS) 
+	$(CXX) $(LDFLAGS) -L../lib -L../findlib -o $@ fstype.o -lfind -lbac -lm $(DLIB) $(LIBS) $(OPENSSL_LIBS)
 
 testfind: ../findlib/libfind.a ../lib/libbac.a $(FINDOBJS)
 	$(CXX) -g $(LDFLAGS) -L. -L../lib -L../findlib -o $@ $(FINDOBJS) \
-	  $(OPENSSL_LIBS) $(DLIB) -lfind -lbac -lm $(LIBS) 
+	  $(DLIB) -lfind -lbac -lm $(LIBS) $(OPENSSL_LIBS)
 
 testls: ../findlib/libfind.a ../lib/libbac.a testls.o
 	$(CXX) -g $(LDFLAGS) -L. -L../lib -L../findlib -o $@ testls.o \
-	  $(OPENSSL_LIBS) $(DLIB) -lfind -lbac -lm $(LIBS) 
+	  $(DLIB) -lfind -lbac -lm $(LIBS) $(OPENSSL_LIBS)
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	cd $(topdir) \

@@ -83,7 +83,7 @@ wx-console.app: wx-console
 
 wx-console: $(CONSOBJS) @WIN32@ ../lib/libbac.a
 	$(CXX) $(CONSOBJS) $(WIN32RES) -o $@ $(LIBS) -L../lib $(CONS_LDFLAGS) \
- $(OPENSSL_LIBS) -lbac
+ -lbac $(OPENSSL_LIBS)
 
 win32: wx-console_private.res
 	
