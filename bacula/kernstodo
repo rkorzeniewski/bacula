@@ -4,7 +4,6 @@
 Major development:      
 Project                     Developer
 =======                     =========                         
-IPv6_2                      Meno Abels
 TLS                         Landon Fuller
 Unicode in Win32            Thorsten Engle
 VSS                         Thorsten Engle (under consideration)
@@ -34,53 +33,7 @@ Autochangers:
 
 Document:
 - Pruning with Admin job.
-
-For 1.37:
-- Python:
-  - Make a callback when Rerun failed levels is called.
-  - Give Python program access to Scheduled jobs.
-  - Python script to save with Python, not save, save with Bacula.
-  - Python script to do backup.
-  - What events?
-  - Change the Priority, Client, Storage, JobStatus (error) 
-    at the start of a job.
-  - Make sure that Python has access to Client address/port so that
-    it can check if Clients are alive.
-
-- If drive is opened read/write, close it and re-open
-  read-only if doing a restore, and vice-versa.
-- Implement "NewVolumeEachJob = yes|no" in Dir.
-- Implement Maximum Job Spool Size
-- Remove all old Device resource code in Dir and code to pass it
-  back in SD -- better, rework it to pass back device statistics.
-- Finish implementation of passing all Storage and Device needs to
-  the SD.
-- Check locking of resources -- be sure to lock devices where previously
-  resources were locked. 
-- Add global lock on all devices when creating a device structure.
-- Fix FD JobType to be set before RunBeforeJob in FD.
-
-
-Ideas:
-- Use non-blocking network I/O but if no data is available, use
-  select().
-- Use gather write() for network I/O.
-- Autorestart on crash.
-
-Maybe in 1.37:
-- Look at adding full Volume and Pool information to a Volume 
-  label so that bscan can get *all* the info. 
-- If the user puts "Purge Oldest Volume = yes" or "Recycle Oldest Volume = yes"
-  and there is only one volume in the pool, refuse to do it -- otherwise
-  he fills the Volume, then immediately starts reusing it.
-- Implement copies and stripes.
-- Add history file to console.
-- Each file on tape creates a JobMedia record. Peter has 4 million
-  files spread over 10000 tape files and four tapes. A restore takes
-  16 hours to build the restore list.
-- By the way: on page http://www.bacula.org/?page=tapedrives , at the 
-  bottom, the link to "Tape Testing Chapter" is broken. It goes to 
-  /html-manual/... while the others point to /rel-manual/...
+- Add better documentation on how restores can be done
 - OS linux 2.4
   1) ADIC, DLT, FastStor 4000, 7*20GB
   2) Sun, DDS, (Suns name unknown - Archive Python DDS drive), 1.2GB
@@ -95,26 +48,55 @@ Maybe in 1.37:
   disable or activate compression. Start this tool without any options for 
   a small reference.
 - Linux Sony LIB-D81, AIT-3 library works.
+- Document PostgreSQL performance problems bug 131.
+- Document testing
+- Document that ChangerDevice is used for Alert command.
+
+For 1.37:
+- Python:
+  - Make a callback when Rerun failed levels is called.
+  - Give Python program access to Scheduled jobs.
+  - Python script to save with Python, not save, save with Bacula.
+  - Python script to do backup.
+  - What events?
+  - Change the Priority, Client, Storage, JobStatus (error) 
+    at the start of a job.
+  - Make sure that Python has access to Client address/port so that
+    it can check if Clients are alive.
+
+- Implement "NewVolumeEachJob = yes|no" in Dir.
+- Implement Maximum Job Spool Size
+- Remove all old Device resource code in Dir and code to pass it
+  back in SD -- better, rework it to pass back device statistics.
+- Finish implementation of passing all Storage and Device needs to
+  the SD.
+- Check locking of resources -- be sure to lock devices where previously
+  resources were locked. 
+- Add global lock on all devices when creating a device structure.
+
+
+Maybe in 1.37:
+- Fix FD JobType to be set before RunBeforeJob in FD.
+- Look at adding full Volume and Pool information to a Volume 
+  label so that bscan can get *all* the info. 
+- If the user puts "Purge Oldest Volume = yes" or "Recycle Oldest Volume = yes"
+  and there is only one volume in the pool, refuse to do it -- otherwise
+  he fills the Volume, then immediately starts reusing it.
+- Implement copies and stripes.
+- Add history file to console.
+- Each file on tape creates a JobMedia record. Peter has 4 million
+  files spread over 10000 tape files and four tapes. A restore takes
+  16 hours to build the restore list.
+- By the way: on page http://www.bacula.org/?page=tapedrives , at the 
+  bottom, the link to "Tape Testing Chapter" is broken. It goes to 
+  /html-manual/... while the others point to /rel-manual/...
 - Device resource needs the "name" of the SD.
 - Add and option to see if the file size changed during backup.
-- Windows restore:
-  data-fd: RestoreFiles.2004-12-07_15.56.42 Error:
-  > ..\findlib\../../findlib/create_file.c:275 Could not open e:/: ERR=Der
-  > Prozess kann nicht auf die Datei zugreifen, da sie von einem anderen
-  > Prozess verwendet wird.
-  Restore restores all files, but then fails at the end trying
-  to set the attributes of e:
-- Add better documentation on how restores can be done
-  from failed jobs.
-- Resolve the problem between Device name and Archive name,
-  and fix SD messages.
 - Make sure SD deletes spool files on error exit.
 - Delete old spool files when SD starts.
-- Add a restore directory-x
 - When labeling tapes, if you enter 000026, Bacula uses
   the tape index rather than the Volume name 000026.
 - Max Vols limit in Pool off by one?
-- Tell the "restore" user when browsing is no longer possible.
 - Require restore via the restore command or make a restore Job
   get the bootstrap file.
 - Make bootstrap file handle multiple MediaTypes (SD)
@@ -136,7 +118,6 @@ Maybe in 1.37:
   dev.c:1207 ioctl MTWEOF error on /dev/nst0. ERR=Permission denied.
   askdir.c:219 NULL Volume name. This shouldn't happen!!!
   3912 Failed to label Volume: ERR=dev.c:1207 ioctl MTWEOF error on /dev/nst0. ERR=Permission denied.
-
   Label command failed for Volume DLT-20Dec04.
   Do not forget to mount the drive!!!
 - Bug: if a job is manually scheduled to run later, it does not appear
@@ -281,9 +262,6 @@ Cap: 200GB
   bacula 1.36.0/1 works with blocksize 16k INSIDE bacula-sd.conf.
 - Add regex from http://www.pcre.org to Bacula for Win32.
 - Use only shell tools no make in CDROM package.
-- Document PostgreSQL performance problems bug 131.
-- Document testing
-- Document that ChangerDevice is used for Alert command.
 - Include within include does it work?
 - Implement a Pool of type Cleaning?
 - Implement VolReadTime and VolWriteTime in SD
@@ -292,8 +270,6 @@ Cap: 200GB
 - Look at correcting the time jump in the scheduler for daylight
   savings time changes.
 - Add a "real" timer to network connections.
-- Write non-optimized bsrs from the JobMedia and Media records,
-  even after Files are pruned.
 - Promote to Full = Time period 
 - Despool attributes simultaneously with data in a separate
   thread, rejoined at end of data spooling.
@@ -337,12 +313,14 @@ Documentation to do: (any release a little bit at a time)
 - Lookup HP cleaning recommendations.
 - Lookup HP tape replacement recommendations (see trouble shooting autochanger)
 - Document doing table repair
+
+
+===================================
   
-          
-Testing to do: (painful)
-
-
-For 1.37 Testing/Documentation:
+- Use non-blocking network I/O but if no data is available, use
+  select().
+- Use gather write() for network I/O.
+- Autorestart on crash.
 - Add bandwidth limiting.
 - Add acks every once and a while from the SD to keep
   the line from timing out.
@@ -354,7 +332,6 @@ For 1.37 Testing/Documentation:
   units, perhaps via a directive.
 - If opening a tape in read/write mode fails attempt to open
   it in read-only mode, and mark the tape for read only.
-- Add a read-only mode to the mount option.
 - Allow Simultaneous Priorities = yes  => run up to Max concurrent jobs even
   with multiple priorities.
 - If you use restore replace=never, the directory attributes for
@@ -464,10 +441,7 @@ For 1.37 Testing/Documentation:
    should).  None of the values 12:00pm - 12:59pm work for that matter.
 - Add level to estimate command.
 - For each job type (Admin, Restore, ...) require only the really necessary
-  fields.
-- Fix option 2 of restore -- list where file is backed up -- require Client,
-  then list last 20 backups.
-- Pass Director resource name as an option to the Console.
+  fields.- Pass Director resource name as an option to the Console.
 - Add a "batch" mode to the Console (no unsolicited queries, ...).
 - Add a .list all files in the restore tree (probably also a list all files)
   Do both a long and short form.
@@ -1325,4 +1299,21 @@ Block Position: 0
   clients -- Python script?
 - Look at Preben's acl.c error handling code.
 - SD crashes after a tape restore then doing a backup. 
-
+- If drive is opened read/write, close it and re-open
+  read-only if doing a restore, and vice-versa.
+- Windows restore:
+  data-fd: RestoreFiles.2004-12-07_15.56.42 Error:
+  > ..\findlib\../../findlib/create_file.c:275 Could not open e:/: ERR=Der
+  > Prozess kann nicht auf die Datei zugreifen, da sie von einem anderen
+  > Prozess verwendet wird.
+  Restore restores all files, but then fails at the end trying
+  to set the attributes of e:
+  from failed jobs.- Resolve the problem between Device name and Archive name,
+  and fix SD messages.
+- Tell the "restore" user when browsing is no longer possible.
+- Add a restore directory-x
+- Write non-optimized bsrs from the JobMedia and Media records,
+  even after Files are pruned.
+- Delete Stripe and Copy from VolParams to save space.
+- Fix option 2 of restore -- list where file is backed up -- require Client,
+  then list last 20 backups.

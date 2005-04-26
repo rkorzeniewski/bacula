@@ -179,24 +179,26 @@ const char *uar_list_jobs =
 /*  MYSQL IS NOT STANDARD SQL !!!!! */
 /* List Jobs where a particular file is saved */
 const char *uar_file =
-   "SELECT Job.JobId as JobId, Client.Name as Client, "
+   "SELECT Job.JobId as JobId,"
    "CONCAT(Path.Path,Filename.Name) as Name, "
-   "StartTime,Type as JobType,JobFiles,JobBytes "
-   "FROM Client,Job,File,Filename,Path WHERE Client.ClientId=Job.ClientId "
-   "AND JobStatus='T' AND Job.JobId=File.JobId "
+   "StartTime,Type as JobType,JobStatus,JobFiles,JobBytes "
+   "FROM Client,Job,File,Filename,Path WHERE Client.Name='%s' "
+   "AND Client.ClientId=Job.ClientId "
+   "AND Job.JobId=File.JobId "
    "AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId "
    "AND Filename.Name='%s' ORDER BY StartTime DESC LIMIT 20";
 #else
 /* List Jobs where a particular file is saved */
 const char *uar_file =
-   "SELECT Job.JobId as JobId, Client.Name as Client, "
+   "SELECT Job.JobId as JobId,"
    "Path.Path||Filename.Name as Name, "
-   "StartTime,Type as JobType,JobFiles,JobBytes "
-   "FROM Client,Job,File,Filename,Path WHERE Client.ClientId=Job.ClientId "
-   "AND JobStatus='T' AND Job.JobId=File.JobId "
+   "StartTime,Type as JobType,JobStatus,JobFiles,JobBytes "
+   "FROM Client,Job,File,Filename,Path WHERE Client.Name='%s' "
+   "AND Client.ClientId=Job.ClientId "
+   "AND Job.JobId=File.JobId "
    "AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId "
    "AND Filename.Name='%s' ORDER BY StartTime DESC LIMIT 20";
-#endif
+ #endif
 
 
 /*
