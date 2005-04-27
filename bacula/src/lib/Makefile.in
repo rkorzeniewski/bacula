@@ -14,6 +14,8 @@ topdir = ../..
 # this dir relative to top dir
 thisdir = src/lib
 
+OPENSSL_LIBS = @OPENSSL_LIBS@
+OPENSSL_INC = @OPENSSL_INC@
 
 DEBUG=@DEBUG@
 
@@ -53,10 +55,10 @@ EXTRAOBJS = @OBJLIST@
 
 # inference rules
 .c.o:
-	$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+	$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(OPENSSL_INC) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 
 .cc.o:
-	$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+	$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(OPENSSL_INC) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 
 #-------------------------------------------------------------------------
 all: Makefile libbac.a
@@ -82,18 +84,18 @@ rwlock_test:
 	rm -f rwlock.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) rwlock.c
 
-md5sum:
+md5sum: md5.o	
 	rm -f md5.o
 	$(CXX) -DMD5_SUM $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)  $(CFLAGS) md5.c
-	$(CXX) $(LDFLAGS) -L. -o $@ md5.o $(LIBS) $(DLIB) -lbac -lm
+	$(CXX) $(LDFLAGS) -L. -o $@ md5.o $(LIBS) $(DLIB) -lbac $(OPENSSL_LIBS) -lm
 	rm -f md5.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) md5.c
 
 
-sha1sum:
+sha1sum: sha1.o
 	rm -f sha1.o
 	$(CXX) -DSHA1_SUM $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE)	$(CFLAGS) sha1.c
-	$(CXX) $(LDFLAGS) -L. -o $@ sha1.o $(LIBS) $(DLIB) -lbac -lm
+	$(CXX) $(LDFLAGS) -L. -o $@ sha1.o $(LIBS) $(DLIB) -lbac $(OPENSSL_LIBS) -lm
 	rm -f sha1.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) md5.c
 	 
