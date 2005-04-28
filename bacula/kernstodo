@@ -1,12 +1,12 @@
                     Kern's ToDo List
-                     26 April 2005
+                     28 April 2005
 
 Major development:      
 Project                     Developer
 =======                     =========                         
 TLS                         Landon Fuller
-Unicode in Win32            Thorsten Engle
-VSS                         Thorsten Engle (under consideration)
+Unicode in Win32            Thorsten Engel
+VSS                         Thorsten Engel (under consideration)
 Version 1.37                Kern (see below)
 ========================================================
 
@@ -68,12 +68,10 @@ For 1.37:
 - Implement Maximum Job Spool Size
 - Remove all old Device resource code in Dir and code to pass it
   back in SD -- better, rework it to pass back device statistics.
-- Finish implementation of passing all Storage and Device needs to
-  the SD.
 - Check locking of resources -- be sure to lock devices where previously
   resources were locked. 
 - Add global lock on all devices when creating a device structure.
-
+- Fix the Rescue CDROM.
 
 Maybe in 1.37:
 - Fix FD JobType to be set before RunBeforeJob in FD.
@@ -1317,3 +1315,5 @@ Block Position: 0
 - Delete Stripe and Copy from VolParams to save space.
 - Fix option 2 of restore -- list where file is backed up -- require Client,
   then list last 20 backups.
+- Finish implementation of passing all Storage and Device needs to
+  the SD.
