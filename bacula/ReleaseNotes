@@ -1,36 +1,46 @@
 
-          Release Notes for Bacula 1.37.12
+          Release Notes for Bacula 1.37.14
 
-  Bacula code: Total files = 419 Total lines = 124,877 (*.h *.c *.in)
+  Bacula code: Total files = 422 Total lines = 129,844 (*.h *.c *.in)
 
 Note! The DB has been upgraded from version 8 to 9 and requres
 a DB upgrade.
 
 Major Changes:
-- The Python interface has been updated to be object oriented.
 - This version has a new DIR <--> SD protocol. Both must be
-  upgraded at the same time.
-- This version has a new database format that is not compatible
-  with previous databases. The upgrade scripts should work, but
-  they are not yet tested.
+  upgraded at the same time. Deamons are not compatible with
+  prior versions. All FDs must be upgraded.
+- There is a new database format that is not compatible
+  with previous databases.
 - SQLite3 support, but it seems to run at 1/2 to 1/4 the speed of
   SQLite2.
-- First cut at ANSI labels.
+- Multiple drive autochanger support.
+- Support for ANSI/IBM labels.
 - New communications protocol between DIR and SD to reserve 
-  drives. The DIR and SD are no longer compatible with 1.36 or
-  lower versions.
+  drives.
 - Python Event support has been added. See below for
   configuration and details.
 - DVD writing support, using parts, and a lot of new directives in
-  the Device resource of the Storage configuration file.
+  the Device resource of the Storage configuration file thanks
+  to Nicolas Boichat.
 - Seven new options keywords in a FileSet resource:
   ignorecase, fstype, hfsplussupport, wilddir, wildfile, regexdir,
-  and regexfile. See below for details.
+  and regexfile thanks to Pruben Guldberg). See below for details.
 - Restore of all files for a Job or set of jobs even if the file
   records have been removed from the catalog.
 - Restore of a directory (non-recursive, i.e. only one level).
-- Support for Unicode filenames on Win32.
-- Support for TLS (ssl) between all the daemon connections.
+- Support for TLS (ssl) between all the daemon connections thanks
+  to Landon Fuller.
+- Any Volume in the Pool named Scratch may be reassigned to any
+  other Pool when a new Volume is needed.
+- You may clone a Job and thus write (almost) the same data
+  to multiple Volumes simultaneously (see below). Actually, 
+  any Job may start any other Job with this mechanism, so it
+  also be used to group jobs.
+- Unicode filename support for Win32 (thanks to Thorsten Engel)
+- New manual format with an index (thanks to Karl Cunningham).
+- New Web site format (thanks to Michael Scherer).
+- Seeking on disk Volumes during restore.
 
 New Directives:
 - New Run directive in Job resource of DIR. It permits
@@ -135,7 +145,7 @@ Items to note!!!
   libraries.
 - With Python 2.3, there are a few compiler warnings.
 - You must either create a new catalog database or upgrade your
-  old database (upgrade scripts not yet tested).
+  old database (the PostgreSQL upgrade scripts not yet tested).
 
 Other Items:
 - 2 new scripts, dvd-writepart and dvd-freespace, in the scripts directory,
