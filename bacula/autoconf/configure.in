@@ -646,7 +646,7 @@ AC_ARG_WITH(openssl,
 	AC_HELP_STRING([--with-openssl@<:@=DIR@:>@], [Include OpenSSL support. DIR is the OpenSSL base]),
 	[with_openssl_directory=${withval}])
 
-if test "x$with_openssl_directory" != "xno"; then
+if test "x$with_openssl_directory" != "x"; then
 	OPENSSL_LIBS="-lssl -lcrypto"
 	OPENSSL_INC=""
 
