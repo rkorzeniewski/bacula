@@ -21,7 +21,8 @@ class BaculaEvents:
      """
      events = JobEvents()         # create instance of Job class
      events.job = job             # save Bacula's job pointer
-     job.set_events = events      # register events desired
+#    job.set_events = events      # register events desired
+     job.set_events(events)     # register events desired
      sys.stderr = events          # send error output to Bacula
      sys.stdout = events          # send stdout to Bacula
      jobid = job.JobId; client = job.Client

@@ -39,8 +39,24 @@ extern JCR *get_jcr_from_PyObject(PyObject *self);
 extern PyObject *find_method(PyObject *eventsObject, PyObject *method, 
          const char *name);
 
+
 static int set_job_events(PyObject *self, PyObject *arg);
 static int job_run(PyObject *self, PyObject *arg);
+
+#ifdef needed
+static PyObject *set_bacula_job_events(PyObject *self, PyObject *arg)
+{
+   Dmsg2(000, "In set_bacula_job_events self=%p arg=%p\n",
+      self, arg);
+   Py_INCREF(Py_None);
+   return Py_None;
+}
+PyMethodDef JobMethods[] = {
+    {"set_events", set_bacula_job_events, METH_VARARGS, "Define Bacula events."},
+    {NULL, NULL, 0, NULL}             /* last item */
+};
+#endif
+ 
 
 struct s_vars {
    const char *name;
@@ -204,6 +220,16 @@ bail_out:
    PyErr_SetString(PyExc_AttributeError, attrname);
    return -1;
 }
+
+#ifdef needed
+static PyObject *set_bacula_job_events(PyObject *self, PyObject *arg)
+{
+   Dmsg2(000, "In set_bacula_job_events self=%p arg=%p\n",
+      self, arg);
+   Py_INCREF(Py_None);
+   return Py_None;
+}
+#endif
 
 
 static int set_job_events(PyObject *self, PyObject *arg)

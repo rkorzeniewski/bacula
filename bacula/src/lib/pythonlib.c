@@ -120,7 +120,7 @@ void init_python_interpreter(const char *progname, const char *scripts,
    JobType.tp_doc = "Bacula Job object";
    JobType.tp_getattr = job_getattr;
    JobType.tp_setattr = job_setattr;
-   
+
    if (PyType_Ready(&JobType) != 0) {
       Jmsg0(NULL, M_ERROR_TERM, 0, "Could not initialize Python Job type.\n");
       PyErr_Print();
@@ -262,8 +262,8 @@ int generate_daemon_event(JCR *jcr, const char *event)
          if (PyErr_Occurred()) {
             PyErr_Print();
             Dmsg2(000, "Python JobEnd error. job=%p JobId=%d\n", jcr->Python_job,
-	       jcr->JobId);
-	    JobEnd_method = NULL;
+               jcr->JobId);
+            JobEnd_method = NULL;
          }
          Jmsg(jcr, M_ERROR, 0, "Python function \"%s\" not found.\n", event);
          goto bail_out;
