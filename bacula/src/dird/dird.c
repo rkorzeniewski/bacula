@@ -194,11 +194,9 @@ int main (int argc, char *argv[])
 
    parse_config(configfile);
 
-#ifdef HAVE_TLS
    if (init_tls() != 0) {
       Jmsg((JCR *)NULL, M_ERROR_TERM, 0, _("TLS library initialization failed.\n"));
    }
-#endif
 
    if (!check_resources()) {
       Jmsg((JCR *)NULL, M_ERROR_TERM, 0, _("Please correct configuration file: %s\n"), configfile);

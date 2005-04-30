@@ -47,10 +47,7 @@ extern PyObject *find_method(PyObject *eventsObject, PyObject *method,
           const char *name);
 
 /* Forward referenced functions */
-static PyObject *job_get(PyObject *self, PyObject *args);
-static PyObject *job_write(PyObject *self, PyObject *args);
-static PyObject *job_set(PyObject *self, PyObject *args, PyObject *keyw);
-static PyObject *set_job_events(PyObject *self, PyObject *args);
+static int set_job_events(PyObject *self, PyObject *arg);
 
 bool my_python_set_prog(JCR *jcr, const char *prog);
 int my_python_open(BFILE *bfd, const char *fname, int flags, mode_t mode);
@@ -58,23 +55,13 @@ int my_python_close(BFILE *bfd);
 ssize_t my_python_read(BFILE *bfd, void *buf, size_t count);
 
 
-/* Define Job entry points */
-PyMethodDef JobMethods[] = {
-    {"get", job_get, METH_VARARGS, "Get Job variables."},
-    {"set", (PyCFunction)job_set, METH_VARARGS|METH_KEYWORDS,
-        "Set Job variables."},
-    {"set_events", set_job_events, METH_VARARGS, "Define Job events."},
-    {"write", job_write, METH_VARARGS, "Write output."},
-    {NULL, NULL, 0, NULL}             /* last item */
-};
-
 struct s_vars {
    const char *name;
    char *fmt;
 };
 
 /* Read-only variables */
-static struct s_vars vars[] = {
+static struct s_vars getvars[] = {
    { N_("FDName"),     "s"},          /* 0 */
    { N_("Level"),      "s"},          /* 1 */
    { N_("Type"),       "s"},          /* 2 */
@@ -86,83 +73,138 @@ static struct s_vars vars[] = {
    { NULL,             NULL}
 };
 
+/* Writable variables */
+static struct s_vars setvars[] = {
+   { N_("set_events"), NULL},
+   { N_("JobReport"),   "s"},
+   { N_("write"),       "s"},
+
+   { NULL,             NULL}
+};
+
 /* Return Job variables */
-PyObject *job_get(PyObject *self, PyObject *args)
+PyObject *job_getattr(PyObject *self, char *attrname)
 {
    JCR *jcr;
-   char *item;
    bool found = false;
    int i;
    char buf[10];
+   char errmsg[200];
 
-   if (!PyArg_ParseTuple(args, "s:get", &item)) {
-      return NULL;
-   }
    jcr = get_jcr_from_PyObject(self);
-   for (i=0; vars[i].name; i++) {
-      if (strcmp(vars[i].name, item) == 0) {
+   if (!jcr) {
+      bstrncpy(errmsg, "Job pointer not found.", sizeof(errmsg));
+      goto bail_out;
+   }
+   for (i=0; getvars[i].name; i++) {
+      if (strcmp(getvars[i].name, attrname) == 0) {
          found = true;
          break;
       }
    }
    if (!found) {
-      return NULL;
+      goto not_found;
    }
    switch (i) {
    case 0:                            /* FD's name */
-      return Py_BuildValue(vars[i].fmt, my_name);
+      return Py_BuildValue(getvars[i].fmt, my_name);
    case 1:                            /* level */
-      return Py_BuildValue(vars[i].fmt, job_level_to_str(jcr->JobLevel));
+      return Py_BuildValue(getvars[i].fmt, job_level_to_str(jcr->JobLevel));
    case 2:                            /* type */
-      return Py_BuildValue(vars[i].fmt, job_type_to_str(jcr->JobType));
+      return Py_BuildValue(getvars[i].fmt, job_type_to_str(jcr->JobType));
    case 3:                            /* JobId */
-      return Py_BuildValue(vars[i].fmt, jcr->JobId);
+      return Py_BuildValue(getvars[i].fmt, jcr->JobId);
    case 4:                            /* Client */
-      return Py_BuildValue(vars[i].fmt, jcr->client_name);
+      return Py_BuildValue(getvars[i].fmt, jcr->client_name);
    case 5:                            /* JobName */
-      return Py_BuildValue(vars[i].fmt, jcr->Job);
+      return Py_BuildValue(getvars[i].fmt, jcr->Job);
    case 6:                            /* JobStatus */
       buf[1] = 0;
       buf[0] = jcr->JobStatus;
-      return Py_BuildValue(vars[i].fmt, buf);
+      return Py_BuildValue(getvars[i].fmt, buf);
    }
+not_found:
+   bsnprintf(errmsg, sizeof(errmsg), "Attribute %s not found.", attrname);
+bail_out:
+   PyErr_SetString(PyExc_AttributeError, errmsg);
    return NULL;
 }
 
-/* Set Job variables */
-PyObject *job_set(PyObject *self, PyObject *args, PyObject *keyw)
+int job_setattr(PyObject *self, char *attrname, PyObject *value)
 {
-   JCR *jcr;
-   char *msg = NULL;
-   static char *kwlist[] = {"JobReport", NULL};
-   
-   if (!PyArg_ParseTupleAndKeywords(args, keyw, "|s:set", kwlist,
-        &msg)) {
-      return NULL;
+  JCR *jcr;
+   bool found = false;
+   char *strval = NULL;
+   char buf[200];
+   char *errmsg;
+   int i;
+
+   Dmsg2(100, "In job_setattr=%s val=%p.\n", attrname, value);
+   if (value == NULL) {                /* Cannot delete variables */
+      bsnprintf(buf, sizeof(buf), "Cannot delete attribute %s", attrname);
+      errmsg = buf;
+      goto bail_out;
    }
    jcr = get_jcr_from_PyObject(self);
-   
-   if (msg) {
-      Jmsg(jcr, M_INFO, 0, "%s", msg);
+   if (!jcr) {
+      errmsg = "Job pointer not found.";
+      goto bail_out;
    }
-   return Py_BuildValue("i", 1);
+
+   /* Find attribute name in list */
+   for (i=0; setvars[i].name; i++) {
+      if (strcmp(setvars[i].name, attrname) == 0) {
+         found = true;
+         break;
+      }
+   }
+   if (!found) {
+      bsnprintf(buf, sizeof(buf), "Cannot find attribute %s", attrname);
+      errmsg = buf;
+      goto bail_out;
+   }
+   /* Get argument value ***FIXME*** handle other formats */
+   if (setvars[i].fmt != NULL) {
+      if (!PyArg_Parse(value, setvars[i].fmt, &strval)) {
+         PyErr_SetString(PyExc_TypeError, "Read-only attribute");
+         return -1;
+      }
+   }   
+   switch (i) {
+   case 0:                            /* set_events */
+      return set_job_events(self, value);
+   case 1:                            /* JobReport */
+   case 2:                            /* write */
+      Jmsg(jcr, M_INFO, 0, "%s", strval);
+      return 0;
+   }
+   bsnprintf(buf, sizeof(buf), "Cannot find attribute %s", attrname);
+   errmsg = buf;
+bail_out:
+   PyErr_SetString(PyExc_AttributeError, errmsg);
+   return -1;
 }
 
 
-static PyObject *set_job_events(PyObject *self, PyObject *args)
+
+static int set_job_events(PyObject *self, PyObject *arg)
 {
    PyObject *eObject;
    JCR *jcr;
 
    Dmsg0(100, "In set_job_events.\n");
-
-   if (!PyArg_ParseTuple(args, "O:set_events", &eObject)) {
-      return NULL;
+   if (!PyArg_Parse(arg, "O", &eObject)) {
+      Dmsg0(000, "Parse error looking for Object argument\n");
+      return -1;
    }
    jcr = get_jcr_from_PyObject(self);
-   Py_XDECREF((PyObject *)jcr->Python_events);
+   if (!jcr) {
+      PyErr_SetString(PyExc_AttributeError, "Job pointer not found.");
+      return -1;
+   }
+   Py_XDECREF((PyObject *)jcr->Python_events);  /* release any old events Object */
    Py_INCREF(eObject);
-   jcr->Python_events = (void *)eObject;
+   jcr->Python_events = (void *)eObject;        /* set new events */
 
    /* Set function pointers to call here */
    python_set_prog = my_python_set_prog;
@@ -170,26 +212,9 @@ static PyObject *set_job_events(PyObject *self, PyObject *args)
    python_close    = my_python_close;
    python_read     = my_python_read;
 
-   Py_INCREF(Py_None);
-   return Py_None;
+   return 0;
 }
 
-/* Write text to job output */
-static PyObject *job_write(PyObject *self, PyObject *args)
-{
-   char *text = NULL;
-
-   if (!PyArg_ParseTuple(args, "s:write", &text)) {
-      return NULL;
-   }
-   if (text) {
-      JCR *jcr = get_jcr_from_PyObject(self);
-      Jmsg(jcr, M_INFO, 0, "%s", text);
-   }
-        
-   Py_INCREF(Py_None);
-   return Py_None;
-}
 
 int generate_job_event(JCR *jcr, const char *event)
 {

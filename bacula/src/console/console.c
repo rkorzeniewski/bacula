@@ -394,11 +394,9 @@ int main(int argc, char *argv[])
 
    parse_config(configfile);
 
-#ifdef HAVE_TLS
    if (init_tls() != 0) {
       Emsg0(M_ERROR_TERM, 0, _("TLS library initialization failed.\n"));
    }
-#endif
 
    if (!check_resources()) {
       Emsg1(M_ERROR_TERM, 0, _("Please correct configuration file: %s\n"), configfile);
@@ -551,9 +549,7 @@ static void terminate_console(int sig)
       exit(1);
    }
    already_here = true;
-#ifdef HAVE_TLS
    cleanup_tls();
-#endif
    free_pool_memory(args);
    con_term();
    (void)WSACleanup();               /* Cleanup Windows sockets */

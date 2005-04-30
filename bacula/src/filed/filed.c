@@ -181,12 +181,10 @@ int main (int argc, char *argv[])
 
    parse_config(configfile);
 
-#ifdef HAVE_TLS
    if (init_tls() != 0) {
       Emsg0(M_ERROR, 0, _("TLS library initialization failed.\n"));
       terminate_filed(1);
    }
-#endif
 
    if (!check_resources()) {
       Emsg1(M_ERROR, 0, _("Please correct configuration file: %s\n"), configfile);

@@ -34,7 +34,7 @@ SVRSRCS = dird.c admin.c authenticate.c \
 	  fd_cmds.c getmsg.c inc_conf.c job.c \
 	  jobq.c mac.c \
 	  mountreq.c msgchan.c next_vol.c newvol.c \
-	  python.c \
+	  pythondir.c \
 	  recycle.c restore.c run_conf.c \
 	  scheduler.c sql_cmds.c \
 	  ua_acl.c ua_cmds.c ua_dotcmds.c \
@@ -49,7 +49,7 @@ SVROBJS = dird.o admin.o authenticate.o \
 	  fd_cmds.o getmsg.o inc_conf.o job.o \
 	  jobq.o mac.o \
 	  mountreq.o msgchan.o next_vol.o newvol.o \
-	  python.o \
+	  pythondir.o \
 	  recycle.o restore.o run_conf.o \
 	  scheduler.o sql_cmds.o \
 	  ua_acl.o ua_cmds.o ua_dotcmds.o \
