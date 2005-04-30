@@ -139,6 +139,7 @@ bool job_cmd(JCR *jcr)
    Dmsg1(100, ">dird: %s", dir->msg);
    jcr->sd_auth_key = bstrdup(auth_key);
    memset(auth_key, 0, sizeof(auth_key));
+   generate_daemon_event(jcr, "JobStart");
    return true;
 }
 

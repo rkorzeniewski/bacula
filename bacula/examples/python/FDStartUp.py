@@ -20,23 +20,23 @@ class BaculaEvents:
      """
      events = JobEvents()         # create instance of Job class
      events.job = job             # save Bacula's job pointer
-     job.set_events(events)       # register events desired
+     job.set_events = events      # register events desired
      sys.stderr = events          # send error output to Bacula
      sys.stdout = events          # send stdout to Bacula
-     jobid = job.get("JobId")
-     client = job.get("Client")
-     job.set(JobReport="Python FD StartJob: JobId=%d Client=%s \n" % (jobid,client))
+     jobid = job.JobId
+     client = job.Client
+     job.JobReport="Python FD JobStart: JobId=%d Client=%s \n" % (jobid,client)
      return 1
 
   # Bacula Job is going to terminate
   def JobEnd(self, job):    
-     jobid = job.get("JobId")
-     client = job.get("Client") 
-     job.set(JobReport="Python FD EndJob output: JobId=%d Client=%s.\n" % (jobid, client))
+     jobid = job.JobId
+     client = job.Client 
+     job.JobReport="Python FD JobEnd output: JobId=%d Client=%s.\n" % (jobid, client)
      return 1
 
   # Called here when the Bacula daemon is going to exit
-  def Exit(self, job):
+  def Exit(self):
       noop = 1
      
 bacula.set_events(BaculaEvents()) # register daemon events desired
@@ -58,7 +58,7 @@ class JobEvents:
   def Python_open(self, file):
      print "Open %s called" % file
      self.fd = open(file, 'rb')
-     jobid = self.job.get("JobId")
+     jobid = self.job.JobId
      print "Open: %s" % file
  
   # Read file data into Bacula memory buffer (mem)

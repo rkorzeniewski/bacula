@@ -30,10 +30,10 @@ dummy:
 
 #
 SVRSRCS = filed.c authenticate.c acl.c backup.c chksum.c estimate.c \
-	  filed_conf.c heartbeat.c job.c python.c \
+	  filed_conf.c heartbeat.c job.c pythonfd.c \
 	  restore.c status.c verify.c verify_vol.c
 SVROBJS = filed.o authenticate.o acl.o backup.o chksum.o estimate.o \
-	  filed_conf.o heartbeat.o job.o python.o \
+	  filed_conf.o heartbeat.o job.o pythonfd.o \
 	  restore.o status.o verify.o verify_vol.o
 
 # these are the objects that are changed by the .configure process

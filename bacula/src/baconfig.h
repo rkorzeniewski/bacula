@@ -71,6 +71,11 @@
 /* #define bindtextdomain(p, d) */
 #endif
 
+#ifndef HAVE_TLS
+#define init_tls(x) 0
+#define cleanup_tls()
+#endif
+
 
 /* This should go away! ****FIXME***** */
 #define MAXSTRING 500

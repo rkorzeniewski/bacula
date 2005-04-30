@@ -37,7 +37,9 @@
 #include <Python.h>
 
 /* Imported subroutines */
-extern PyMethodDef JobMethods[];
+//extern PyMethodDef JobMethods[];
+extern PyObject *job_getattr(PyObject *self, char *attrname);
+extern int job_setattr(PyObject *self, char *attrname, PyObject *value);
 
 static PyObject *bacula_module = NULL;    /* We create this */
 static PyObject *StartUp_module = NULL;   /* We import this */
@@ -72,49 +74,15 @@ typedef struct s_JobObject {
 
 static PyTypeObject JobType = {
     PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
-    "bacula.jcr",              /*tp_name*/
-    sizeof(JobObject),         /*tp_basicsize*/
-    0,                         /*tp_itemsize*/
-    0,                         /*tp_dealloc*/
-    0,                         /*tp_print*/
-    0,                         /*tp_getattr*/
-    0,                         /*tp_setattr*/
-    0,                         /*tp_compare*/
-    0,                         /*tp_repr*/
-    0,                         /*tp_as_number*/
-    0,                         /*tp_as_sequence*/
-    0,                         /*tp_as_mapping*/
-    0,                         /*tp_hash */
-    0,                         /*tp_call*/
-    0,                         /*tp_str*/
-    0,                         /*tp_getattro*/
-    0,                         /*tp_setattro*/
-    0,                         /*tp_as_buffer*/
-    Py_TPFLAGS_DEFAULT, /*tp_flags*/
-    "Job objects",             /* tp_doc */
-    0,                         /* tp_traverse */
-    0,                         /* tp_clear */
-    0,                         /* tp_richcompare */
-    0,                         /* tp_weaklistoffset */
-    0,                         /* tp_iter */
-    0,                         /* tp_iternext */
-    JobMethods,                /* tp_methods */
-    0,                         /* tp_members */
-    0,                         /* tp_getset */
-    0,                         /* tp_base */
-    0,                         /* tp_dict */
-    0,                         /* tp_descr_get */
-    0,                         /* tp_descr_set */
-    0,                         /* tp_dictoffset */
-    0,                         /* tp_init */
-    0,                         /* tp_alloc */
-    0,                         /* tp_new */
+    /* Other items filled in in code below */
 };
 
 /* Return the JCR pointer from the JobObject */
 JCR *get_jcr_from_PyObject(PyObject *self)
 {
+   if (!self) {
+      return NULL;
+   }
    return ((JobObject *)self)->jcr;
 }
 
@@ -135,6 +103,7 @@ void init_python_interpreter(const char *progname, const char *scripts,
    Py_Initialize();
    PyEval_InitThreads();
    bacula_module = Py_InitModule("bacula", BaculaMethods);
+   PyModule_AddStringConstant(bacula_module, "name", my_name);
    if (!bacula_module) {
       Jmsg0(NULL, M_ERROR_TERM, 0, "Could not initialize Python\n");
    }
@@ -143,7 +112,15 @@ void init_python_interpreter(const char *progname, const char *scripts,
    if (PyRun_SimpleString(buf) != 0) {
       Jmsg1(NULL, M_ERROR_TERM, 0, "Could not Run Python string %s\n", buf);
    }   
-   JobType.tp_methods = JobMethods;
+
+   /* Explicitly set values we want */
+   JobType.tp_name = "Bacula.Job";
+   JobType.tp_basicsize = sizeof(JobObject);
+   JobType.tp_flags = Py_TPFLAGS_DEFAULT;
+   JobType.tp_doc = "Bacula Job object";
+   JobType.tp_getattr = job_getattr;
+   JobType.tp_setattr = job_setattr;
+   
    if (PyType_Ready(&JobType) != 0) {
       Jmsg0(NULL, M_ERROR_TERM, 0, "Could not initialize Python Job type.\n");
       PyErr_Print();
@@ -273,19 +250,20 @@ int generate_daemon_event(JCR *jcr, const char *event)
 
    } else if (strcmp(event, "JobEnd") == 0) {
       if (!JobEnd_method || !jcr->Python_job) {
-         Dmsg0(100, "No JobEnd method\n");
+         Dmsg2(000, "No JobEnd method=%p Job=%p\n", JobEnd_method, jcr->Python_job);
          stat = 0;
          goto bail_out;
       }
       bstrncpy(jcr->event, event, sizeof(jcr->event));
-      Dmsg1(100, "Call event=%s\n", event);
+      Dmsg1(100, "Call daemon event=%s\n", event);
       result = PyObject_CallFunction(JobEnd_method, "O", jcr->Python_job);
       jcr->event[0] = 0;             /* no event in progress */
       if (result == NULL) {
-         JobEnd_method = NULL;
          if (PyErr_Occurred()) {
             PyErr_Print();
-            Dmsg1(000, "Python JobEnd error. JobId=%d\n", jcr->JobId);
+            Dmsg2(000, "Python JobEnd error. job=%p JobId=%d\n", jcr->Python_job,
+	       jcr->JobId);
+	    JobEnd_method = NULL;
          }
          Jmsg(jcr, M_ERROR, 0, "Python function \"%s\" not found.\n", event);
          goto bail_out;
@@ -296,13 +274,13 @@ int generate_daemon_event(JCR *jcr, const char *event)
          stat = 0;
          goto bail_out;
       }
-      result = PyObject_CallFunction(JobEnd_method, NULL);
+      result = PyObject_CallFunction(Exit_method, NULL);
       if (result == NULL) {
          goto bail_out;
       }
       stat = 1;                    /* OK */
    } else {
-      Emsg1(M_ABORT, 0, "Unknown Python daemon event %s\n", event);
+      Jmsg1(jcr, M_ABORT, 0, "Unknown Python daemon event %s\n", event);
    }
 
 bail_out:
@@ -316,74 +294,6 @@ jobstart_ok:
    PyEval_ReleaseLock();
    return stat; 
 }
-
-#ifdef xxx
-   PyObject *pName, *pModule, *pDict, *pFunc;
-   PyObject *pArgs, *pJCR, *pCall;
-   
-   Dmsg1(100, "Generate event %s\n", event);
-   pName = PyString_FromString(event);
-   if (!pName) {
-      Jmsg(jcr, M_ERROR, 0, "Could not convert \"%s\" to Python string.\n", event);
-      return -1;                      /* Could not convert string */
-   }
-
-   pModule = PyImport_Import(pName);
-   Py_DECREF(pName);                  /* release pName */
-
-   if (pModule != NULL) {
-      pDict = PyModule_GetDict(pModule);
-      /* pDict is a borrowed reference */
-
-      pFunc = PyDict_GetItemString(pDict, (char *)event);
-      /* pFun: Borrowed reference */
-
-      if (pFunc && PyCallable_Check(pFunc)) {
-          /* Create JCR argument to send to function */
-          pArgs = PyTuple_New(1);
-          pJCR = (PyObject *)PyObject_New(JCRObject, &JCRType);
-          ((JCRObject *)pJCR)->jcr = jcr;
-          if (!pJCR) {
-             Py_DECREF(pArgs);
-             Py_DECREF(pModule);
-             Jmsg0(jcr, M_ERROR, 0, "Could not create JCR Python Object.\n");
-             return -1;
-          }
-          Py_INCREF(pJCR);
-          /* pJCR reference stolen here: */
-          PyTuple_SetItem(pArgs, 0, pJCR);
-
-          /* Finally, we call the module here */
-          bstrncpy(jcr->event, event, sizeof(jcr->event));
-          pCall = PyObject_CallObject(pFunc, pArgs);
-          jcr->event[0] = 0;             /* no event in progress */
-          Py_DECREF(pArgs);
-          Py_DECREF(pJCR);
-          if (pCall != NULL) {
-             Py_DECREF(pCall);
-          } else {
-             Py_DECREF(pModule);
-             PyErr_Print();
-             Jmsg1(jcr, M_ERROR, 0, "Error running Python module: %s\n", event);
-             return 0;                /* error running function */
-          }
-          /* pDict and pFunc are borrowed and must not be Py_DECREF-ed */
-      } else {
-         if (PyErr_Occurred()) {
-            PyErr_Print();
-            Dmsg1(000, "Python event %s function not callable.\n", event);
-         }
-         Jmsg1(jcr, M_ERROR, 0, "Python function \"%s\" not found in module.\n", event);
-         return -1;                   /* function not found */
-      }
-      Py_DECREF(pModule);
-   } else {
-      return 0;                       /* Module not present */
-   }
-   Dmsg0(100, "Generate event OK\n");
-   return 1;
-}
-#endif
 
 #else
 

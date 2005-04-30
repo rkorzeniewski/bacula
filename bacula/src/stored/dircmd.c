@@ -219,6 +219,7 @@ void *handle_connection_request(void *arg)
       }
    }
 bail_out:
+   generate_daemon_event(jcr, "JobEnd");
    dequeue_messages(jcr);             /* send any queued messages */
    bnet_sig(bs, BNET_TERMINATE);
    free_jcr(jcr);
