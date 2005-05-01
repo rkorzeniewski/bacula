@@ -90,6 +90,7 @@ CLEAN :
         -@erase "$(INTDIR)\print.obj"
         -@erase "$(INTDIR)\pythonlib.obj"
         -@erase "$(INTDIR)\queue.obj"
+        -@erase "$(INTDIR)\regex.obj"
         -@erase "$(INTDIR)\restore.obj"
         -@erase "$(INTDIR)\res.obj"
         -@erase "$(INTDIR)\rwlock.obj"
@@ -182,6 +183,7 @@ LINK32_OBJS= \
         "$(INTDIR)\print.obj" \
         "$(INTDIR)\pythonlib.obj" \
         "$(INTDIR)\queue.obj" \
+        "$(INTDIR)\regex.obj" \
         "$(INTDIR)\restore.obj" \
         "$(INTDIR)\res.obj" \
         "$(INTDIR)\rwlock.obj" \
@@ -327,6 +329,8 @@ CLEAN :
         -@erase "$(INTDIR)\pythonlib.sbr"
         -@erase "$(INTDIR)\queue.obj"
         -@erase "$(INTDIR)\queue.sbr"
+        -@erase "$(INTDIR)\regex.obj"
+        -@erase "$(INTDIR)\regex.sbr"
         -@erase "$(INTDIR)\restore.obj"
         -@erase "$(INTDIR)\restore.sbr"
         -@erase "$(INTDIR)\res.obj"
@@ -443,6 +447,7 @@ BSC32_SBRS= \
         "$(INTDIR)\print.sbr" \
         "$(INTDIR)\pythonlib.sbr" \
         "$(INTDIR)\queue.sbr" \
+        "$(INTDIR)\regex.sbr" \
         "$(INTDIR)\restore.sbr" \
         "$(INTDIR)\res.sbr" \
         "$(INTDIR)\rwlock.sbr" \
@@ -528,6 +533,7 @@ LINK32_OBJS= \
         "$(INTDIR)\print.obj" \
         "$(INTDIR)\pythonlib.obj" \
         "$(INTDIR)\queue.obj" \
+        "$(INTDIR)\regex.obj" \
         "$(INTDIR)\restore.obj" \
         "$(INTDIR)\res.obj" \
         "$(INTDIR)\rwlock.obj" \
@@ -1510,6 +1516,25 @@ SOURCE=..\lib\queue.cpp
 
 
 !ENDIF 
+
+SOURCE=..\lib\regex.cpp
+
+!IF  "$(CFG)" == "baculafd - Win32 Release"
+
+
+"$(INTDIR)\regex.obj" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
+
+
+"$(INTDIR)\regex.obj"   "$(INTDIR)\regex.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 
 SOURCE=..\filed\restore.cpp
 
