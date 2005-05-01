@@ -549,10 +549,12 @@ static void add_file_to_fileset(JCR *jcr, const char *fname, findFILESET *filese
    POOLMEM *fn;
    FILE *ffd;
    char buf[1000];
+   int ch;
    int stat;
 
    p = (char *)fname;
-   switch (*p) {
+   ch = (uint8_t)*p;
+   switch (ch) {
    case '|':
       p++;                            /* skip over | */
       fn = get_pool_memory(PM_FNAME);

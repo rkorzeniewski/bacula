@@ -8,7 +8,7 @@
  */
 
 /*
-   Copyright (C) 2000-2004 Kern Sibbald
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -183,7 +183,7 @@ int lex_get_char(LEX *lf)
       lf->line_no++;
       lf->col_no = 0;
    }
-   lf->ch = lf->line[lf->col_no];
+   lf->ch = (uint8_t)lf->line[lf->col_no];
    if (lf->ch == 0) {
       lf->ch = L_EOL;
    } else {
