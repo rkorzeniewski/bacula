@@ -198,7 +198,7 @@ static bool accept_file(FF_PKT *ff)
             return true;              /* accept file */
          }
       }
-//#ifndef WIN32
+#ifndef WIN32
       if (S_ISDIR(ff->statp.st_mode)) {
          for (k=0; k<fo->regexdir.size(); k++) {
             const int nmatch = 30;
@@ -232,7 +232,7 @@ static bool accept_file(FF_PKT *ff)
             return true;              /* accept file */
          }
       }
-//#endif
+#endif
       /*
        * If we have an empty Options clause with exclude, then
        *  exclude the file
