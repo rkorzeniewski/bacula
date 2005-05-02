@@ -112,7 +112,6 @@ JobId_t run_job(JCR *jcr)
    }
    Dmsg0(50, "DB opened\n");
 
-
    /*
     * Create Job record
     */
@@ -133,44 +132,6 @@ JobId_t run_job(JCR *jcr)
       goto bail_out;
    }
 
-   if (!jcr->fname) {
-      jcr->fname = get_pool_memory(PM_FNAME);
-   }
-
-   /* Now, do pre-run stuff, like setting job level (Inc/diff, ...) */
-   switch (jcr->JobType) {
-   case JT_BACKUP:
-      if (!do_backup_init(jcr)) {
-         backup_cleanup(jcr, JS_ErrorTerminated);
-      }
-      break;
-   case JT_VERIFY:
-      if (!do_verify_init(jcr)) {
-         verify_cleanup(jcr, JS_ErrorTerminated);
-      }
-      break;
-   case JT_RESTORE:
-      if (!do_restore_init(jcr)) {
-         restore_cleanup(jcr, JS_ErrorTerminated);
-      }
-      break;
-   case JT_ADMIN:
-      if (!do_admin_init(jcr)) {
-         admin_cleanup(jcr, JS_ErrorTerminated);
-      }
-      break;
-   case JT_MIGRATION:
-   case JT_COPY:
-   case JT_ARCHIVE:
-      if (!do_mac_init(jcr)) {             /* migration, archive, copy */
-         mac_cleanup(jcr, JS_ErrorTerminated);
-      }
-      break;
-   default:
-      Pmsg1(0, "Unimplemented job type: %d\n", jcr->JobType);
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
-      break;
-   }
    if (job_canceled(jcr)) {
       goto bail_out;
    }
@@ -214,127 +175,170 @@ static void *job_thread(void *arg)
    pthread_detach(jcr->my_thread_id);
    sm_check(__FILE__, __LINE__, true);
 
-   for ( ;; ) {
-      Dmsg0(200, "=====Start Job=========\n");
-      jcr->start_time = time(NULL);      /* set the real start time */
-      jcr->jr.StartTime = jcr->start_time;
-      set_jcr_job_status(jcr, JS_Running);
-      if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
-         Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
+   Dmsg0(200, "=====Start Job=========\n");
+   jcr->start_time = time(NULL);      /* set the real start time */
+   jcr->jr.StartTime = jcr->start_time;
+   set_jcr_job_status(jcr, JS_Running);
+
+   if (!jcr->fname) {
+      jcr->fname = get_pool_memory(PM_FNAME);
+   }
+
+   /*
+    * Now, do pre-run stuff, like setting job level (Inc/diff, ...)
+    *  this allows us to setup a proper job start record for restarting
+    *  in case of later errors.
+    */
+   switch (jcr->JobType) {
+   case JT_BACKUP:
+      if (!do_backup_init(jcr)) {
+         backup_cleanup(jcr, JS_ErrorTerminated);
       }
-
-      if (job_canceled(jcr)) {
-         update_job_end_record(jcr);
-      } else if (jcr->job->MaxStartDelay != 0 && jcr->job->MaxStartDelay <
-          (utime_t)(jcr->start_time - jcr->sched_time)) {
-         Jmsg(jcr, M_FATAL, 0, _("Job canceled because max start delay time exceeded.\n"));
-         set_jcr_job_status(jcr, JS_Canceled);
-         update_job_end_record(jcr);
-      } else {
-
-         /* Run Job */
-         if (jcr->job->RunBeforeJob) {
-            POOLMEM *before = get_pool_memory(PM_FNAME);
-            int status;
-            BPIPE *bpipe;
-            char line[MAXSTRING];
-
-            before = edit_job_codes(jcr, before, jcr->job->RunBeforeJob, "");
-            bpipe = open_bpipe(before, 0, "r");
-            free_pool_memory(before);
-            while (fgets(line, sizeof(line), bpipe->rfd)) {
-               Jmsg(jcr, M_INFO, 0, _("RunBefore: %s"), line);
-            }
-            status = close_bpipe(bpipe);
-            if (status != 0) {
-               berrno be;
-               Jmsg(jcr, M_FATAL, 0, _("RunBeforeJob error: ERR=%s\n"), be.strerror(status));
-               set_jcr_job_status(jcr, JS_FatalError);
-               update_job_end_record(jcr);
-               goto bail_out;
-            }
-         }
-         switch (jcr->JobType) {
-         case JT_BACKUP:
-            if (do_backup(jcr)) {
-               do_autoprune(jcr);
-            } else {
-               backup_cleanup(jcr, JS_ErrorTerminated);
-            }
-            break;
-         case JT_VERIFY:
-            if (do_verify(jcr)) {
-               do_autoprune(jcr);
-            } else {
-               verify_cleanup(jcr, JS_ErrorTerminated);
-            }
-            break;
-         case JT_RESTORE:
-            if (do_restore(jcr)) {
-               do_autoprune(jcr);
-            } else {
-               restore_cleanup(jcr, JS_ErrorTerminated);
-            }
-            break;
-         case JT_ADMIN:
-            if (do_admin(jcr)) {
-               do_autoprune(jcr);
-            } else {
-               admin_cleanup(jcr, JS_ErrorTerminated);
-            }
-            break;
-         case JT_MIGRATION:
-         case JT_COPY:
-         case JT_ARCHIVE:
-            if (do_mac(jcr)) {              /* migration, archive, copy */
-               do_autoprune(jcr);
-            } else {
-               mac_cleanup(jcr, JS_ErrorTerminated);
-            }
-            break;
-         default:
-            Pmsg1(0, "Unimplemented job type: %d\n", jcr->JobType);
-            break;
-         }
-         if ((jcr->job->RunAfterJob && jcr->JobStatus == JS_Terminated) ||
-             (jcr->job->RunAfterFailedJob && jcr->JobStatus != JS_Terminated)) {
-            POOLMEM *after = get_pool_memory(PM_FNAME);
-            int status;
-            BPIPE *bpipe;
-            char line[MAXSTRING];
-
-            if (jcr->JobStatus == JS_Terminated) {
-               after = edit_job_codes(jcr, after, jcr->job->RunAfterJob, "");
-            } else {
-               after = edit_job_codes(jcr, after, jcr->job->RunAfterFailedJob, "");
-            }
-            bpipe = open_bpipe(after, 0, "r");
-            free_pool_memory(after);
-            while (fgets(line, sizeof(line), bpipe->rfd)) {
-               Jmsg(jcr, M_INFO, 0, _("RunAfter: %s"), line);
-            }
-            status = close_bpipe(bpipe);
-            /*
-             * Note, if we get an error here, do not mark the
-             *  job in error, simply report the error condition.
-             */
-            if (status != 0) {
-               berrno be;
-               if (jcr->JobStatus == JS_Terminated) {
-                  Jmsg(jcr, M_WARNING, 0, _("RunAfterJob error: ERR=%s\n"), be.strerror(status));
-               } else {
-                  Jmsg(jcr, M_FATAL, 0, _("RunAfterFailedJob error: ERR=%s\n"), be.strerror(status));
-               }
-            }
-         }
-         /* Send off any queued messages */
-         if (jcr->msg_queue->size() > 0) {
-            dequeue_messages(jcr);
-         }
+      break;
+   case JT_VERIFY:
+      if (!do_verify_init(jcr)) {
+         verify_cleanup(jcr, JS_ErrorTerminated);
       }
-bail_out:
+      break;
+   case JT_RESTORE:
+      if (!do_restore_init(jcr)) {
+         restore_cleanup(jcr, JS_ErrorTerminated);
+      }
+      break;
+   case JT_ADMIN:
+      if (!do_admin_init(jcr)) {
+         admin_cleanup(jcr, JS_ErrorTerminated);
+      }
+      break;
+   case JT_MIGRATION:
+   case JT_COPY:
+   case JT_ARCHIVE:
+      if (!do_mac_init(jcr)) {             /* migration, archive, copy */
+         mac_cleanup(jcr, JS_ErrorTerminated);
+      }
+      break;
+   default:
+      Pmsg1(0, "Unimplemented job type: %d\n", jcr->JobType);
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       break;
    }
+
+   if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
+      Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
+   }
+
+   if (job_canceled(jcr)) {
+      update_job_end_record(jcr);
+
+   } else if (jcr->job->MaxStartDelay != 0 && jcr->job->MaxStartDelay <
+       (utime_t)(jcr->start_time - jcr->sched_time)) {
+      Jmsg(jcr, M_FATAL, 0, _("Job canceled because max start delay time exceeded.\n"));
+      set_jcr_job_status(jcr, JS_Canceled);
+      update_job_end_record(jcr);
+
+   } else {
+
+      /* Run Job */
+      if (jcr->job->RunBeforeJob) {
+         POOLMEM *before = get_pool_memory(PM_FNAME);
+         int status;
+         BPIPE *bpipe;
+         char line[MAXSTRING];
+
+         before = edit_job_codes(jcr, before, jcr->job->RunBeforeJob, "");
+         bpipe = open_bpipe(before, 0, "r");
+         free_pool_memory(before);
+         while (fgets(line, sizeof(line), bpipe->rfd)) {
+            Jmsg(jcr, M_INFO, 0, _("RunBefore: %s"), line);
+         }
+         status = close_bpipe(bpipe);
+         if (status != 0) {
+            berrno be;
+            Jmsg(jcr, M_FATAL, 0, _("RunBeforeJob error: ERR=%s\n"), be.strerror(status));
+            set_jcr_job_status(jcr, JS_FatalError);
+            update_job_end_record(jcr);
+            goto bail_out;
+         }
+      }
+      switch (jcr->JobType) {
+      case JT_BACKUP:
+         if (do_backup(jcr)) {
+            do_autoprune(jcr);
+         } else {
+            backup_cleanup(jcr, JS_ErrorTerminated);
+         }
+         break;
+      case JT_VERIFY:
+         if (do_verify(jcr)) {
+            do_autoprune(jcr);
+         } else {
+            verify_cleanup(jcr, JS_ErrorTerminated);
+         }
+         break;
+      case JT_RESTORE:
+         if (do_restore(jcr)) {
+            do_autoprune(jcr);
+         } else {
+            restore_cleanup(jcr, JS_ErrorTerminated);
+         }
+         break;
+      case JT_ADMIN:
+         if (do_admin(jcr)) {
+            do_autoprune(jcr);
+         } else {
+            admin_cleanup(jcr, JS_ErrorTerminated);
+         }
+         break;
+      case JT_MIGRATION:
+      case JT_COPY:
+      case JT_ARCHIVE:
+         if (do_mac(jcr)) {              /* migration, archive, copy */
+            do_autoprune(jcr);
+         } else {
+            mac_cleanup(jcr, JS_ErrorTerminated);
+         }
+         break;
+      default:
+         Pmsg1(0, "Unimplemented job type: %d\n", jcr->JobType);
+         break;
+      }
+      if ((jcr->job->RunAfterJob && jcr->JobStatus == JS_Terminated) ||
+          (jcr->job->RunAfterFailedJob && jcr->JobStatus != JS_Terminated)) {
+         POOLMEM *after = get_pool_memory(PM_FNAME);
+         int status;
+         BPIPE *bpipe;
+         char line[MAXSTRING];
+
+         if (jcr->JobStatus == JS_Terminated) {
+            after = edit_job_codes(jcr, after, jcr->job->RunAfterJob, "");
+         } else {
+            after = edit_job_codes(jcr, after, jcr->job->RunAfterFailedJob, "");
+         }
+         bpipe = open_bpipe(after, 0, "r");
+         free_pool_memory(after);
+         while (fgets(line, sizeof(line), bpipe->rfd)) {
+            Jmsg(jcr, M_INFO, 0, _("RunAfter: %s"), line);
+         }
+         status = close_bpipe(bpipe);
+         /*
+          * Note, if we get an error here, do not mark the
+          *  job in error, simply report the error condition.
+          */
+         if (status != 0) {
+            berrno be;
+            if (jcr->JobStatus == JS_Terminated) {
+               Jmsg(jcr, M_WARNING, 0, _("RunAfterJob error: ERR=%s\n"), be.strerror(status));
+            } else {
+               Jmsg(jcr, M_FATAL, 0, _("RunAfterFailedJob error: ERR=%s\n"), be.strerror(status));
+            }
+         }
+      }
+      /* Send off any queued messages */
+      if (jcr->msg_queue->size() > 0) {
+         dequeue_messages(jcr);
+      }
+   }
+bail_out:
    generate_daemon_event(jcr, "JobEnd");
    Dmsg1(50, "======== End Job stat=%c ==========\n", jcr->JobStatus);
    sm_check(__FILE__, __LINE__, true);
