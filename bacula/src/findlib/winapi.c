@@ -36,10 +36,36 @@ t_OpenProcessToken	p_OpenProcessToken = NULL;
 t_AdjustTokenPrivileges p_AdjustTokenPrivileges = NULL;
 t_LookupPrivilegeValue	p_LookupPrivilegeValue = NULL;
 
-t_GetFileAttributesExA	p_GetFileAttributesExA = NULL;
-t_GetFileAttributesExW	p_GetFileAttributesExW = NULL;
-t_BackupRead		p_BackupRead = NULL;
-t_BackupWrite		p_BackupWrite = NULL;
 t_SetProcessShutdownParameters p_SetProcessShutdownParameters = NULL;
 
+t_CreateFileA	p_CreateFileA = NULL;
+t_CreateFileW	p_CreateFileW = NULL;
+
+t_wunlink p_wunlink = NULL;
+t_wmkdir p_wmkdir = NULL;
+t_wopen p_wopen = NULL;
+t_GetFileAttributesA	p_GetFileAttributesA = NULL;
+t_GetFileAttributesW	p_GetFileAttributesW = NULL;
+
+t_GetFileAttributesExA	p_GetFileAttributesExA = NULL;
+t_GetFileAttributesExW	p_GetFileAttributesExW = NULL;
+
+t_SetFileAttributesA	p_SetFileAttributesA = NULL;
+t_SetFileAttributesW	p_SetFileAttributesW = NULL;
+t_BackupRead		p_BackupRead = NULL;
+t_BackupWrite		p_BackupWrite = NULL;
+t_WideCharToMultiByte p_WideCharToMultiByte = NULL;
+t_MultiByteToWideChar p_MultiByteToWideChar = NULL;
+
+t_FindFirstFileA p_FindFirstFileA = NULL;
+t_FindFirstFileW p_FindFirstFileW = NULL;
+
+t_FindNextFileA p_FindNextFileA = NULL;
+t_FindNextFileW p_FindNextFileW = NULL;
+
+t_SetCurrentDirectoryA p_SetCurrentDirectoryA = NULL;
+t_SetCurrentDirectoryW p_SetCurrentDirectoryW = NULL;
+
+t_GetCurrentDirectoryA p_GetCurrentDirectoryA = NULL;
+t_GetCurrentDirectoryW p_GetCurrentDirectoryW = NULL;
 #endif

@@ -30,6 +30,7 @@
 
 #include "compat.h"
 #include "pthread.h"
+#include "../../findlib/winapi.h"
 
 #define b_errno_win32 (1<<29)
 
@@ -72,26 +73,29 @@ cygwin_conv_to_win32_path(const char *name, char *win32_name)
     }
 }
 
-#if USE_WIN32_UNICODE
-
 int 
 wchar_2_UTF8(char *pszUTF, const WCHAR *pszUCS, int cchChar)
 {
-        /* the return value is the number of bytes written to the buffer. 
-           The number includes the byte for the null terminator. */
+   /* the return value is the number of bytes written to the buffer. 
+      The number includes the byte for the null terminator. */
 
-        return WideCharToMultiByte (CP_UTF8,0,pszUCS,-1,pszUTF,cchChar,NULL,NULL);
+   if (p_WideCharToMultiByte)
+      return p_WideCharToMultiByte(CP_UTF8,0,pszUCS,-1,pszUTF,cchChar,NULL,NULL);
+   else
+      return NULL;
 }
 
 int 
 UTF8_2_wchar(WCHAR *pszUCS, const char *pszUTF, int cchWideChar)
 {
-        /*  the return value is the number of wide characters written to the buffer. */
-        /* convert null terminated string from utf-8 to ucs2*/
-        return MultiByteToWideChar(CP_UTF8, 0, pszUTF, -1, pszUCS,cchWideChar);
-}
+   /*  the return value is the number of wide characters written to the buffer. */
+   /* convert null terminated string from utf-8 to ucs2*/
 
-#endif
+   if (p_MultiByteToWideChar)
+      return p_MultiByteToWideChar(CP_UTF8, 0, pszUTF, -1, pszUCS,cchWideChar);
+   else
+      return NULL;
+}
 
 
 void
@@ -212,13 +216,18 @@ errorString(void)
 static int
 statDir(const char *file, struct stat *sb)
 {
-#if USE_WIN32_UNICODE
-        WIN32_FIND_DATAW info;       // window's file info
-#else
-    WIN32_FIND_DATA info;       // window's file info
-#endif
+   WIN32_FIND_DATAW info_w;       // window's file info
+   WIN32_FIND_DATA info_a;       // window's file info
 
-    if (file[1] == ':' && file[2] == 0) {
+   // cache some common vars to make code more transparent
+   DWORD* pdwFileAttributes;
+   DWORD* pnFileSizeHigh;
+   DWORD* pnFileSizeLow;
+   FILETIME* pftLastAccessTime;
+   FILETIME* pftLastWriteTime;
+   FILETIME* pftCreationTime;
+
+   if (file[1] == ':' && file[2] == 0) {
         d_msg(__FILE__, __LINE__, 99, "faking ROOT attrs(%s).\n", file);
         sb->st_mode = S_IFDIR;
         sb->st_mode |= S_IREAD|S_IEXEC|S_IWRITE;
@@ -228,14 +237,32 @@ statDir(const char *file, struct stat *sb)
         return 0;
     }
 
-#if USE_WIN32_UNICODE
-        WCHAR szBuf[MAX_PATH_UNICODE];
-        UTF8_2_wchar(szBuf, file, MAX_PATH_UNICODE);
-        
-        HANDLE h = FindFirstFileW(szBuf, &info);
-#else
-    HANDLE h = FindFirstFile(file, &info);
-#endif
+   HANDLE h = INVALID_HANDLE_VALUE;
+
+   // use unicode or ascii
+   if (p_FindFirstFileW) {
+      WCHAR szBuf[MAX_PATH_UNICODE];
+      UTF8_2_wchar(szBuf, file, MAX_PATH_UNICODE);
+      
+      h = p_FindFirstFileW(szBuf, &info_w);
+
+      pdwFileAttributes = &info_w.dwFileAttributes;
+      pnFileSizeHigh    = &info_w.nFileSizeHigh;
+      pnFileSizeLow     = &info_w.nFileSizeLow;
+      pftLastAccessTime = &info_w.ftLastAccessTime;
+      pftLastWriteTime  = &info_w.ftLastWriteTime;
+      pftCreationTime   = &info_w.ftCreationTime;
+   }
+   else if (p_FindFirstFileA) {
+      h = p_FindFirstFileA(file, &info_a);
+
+      pdwFileAttributes = &info_a.dwFileAttributes;
+      pnFileSizeHigh    = &info_a.nFileSizeHigh;
+      pnFileSizeLow     = &info_a.nFileSizeLow;
+      pftLastAccessTime = &info_a.ftLastAccessTime;
+      pftLastWriteTime  = &info_a.ftLastWriteTime;
+      pftCreationTime   = &info_a.ftCreationTime;
+   }
 
     if (h == INVALID_HANDLE_VALUE) {
         const char *err = errorString();
@@ -246,23 +273,23 @@ statDir(const char *file, struct stat *sb)
     }
 
     sb->st_mode = 0777;               /* start with everything */
-    if (info.dwFileAttributes & FILE_ATTRIBUTE_READONLY)
+    if (*pdwFileAttributes & FILE_ATTRIBUTE_READONLY)
         sb->st_mode &= ~(S_IRUSR|S_IRGRP|S_IROTH);
-    if (info.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM)
+    if (*pdwFileAttributes & FILE_ATTRIBUTE_SYSTEM)
         sb->st_mode &= ~S_IRWXO; /* remove everything for other */
-    if (info.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN)
+    if (*pdwFileAttributes & FILE_ATTRIBUTE_HIDDEN)
         sb->st_mode |= S_ISVTX; /* use sticky bit -> hidden */
     sb->st_mode |= S_IFDIR;
 
-    sb->st_size = info.nFileSizeHigh;
+    sb->st_size = *pnFileSizeHigh;
     sb->st_size <<= 32;
-    sb->st_size |= info.nFileSizeLow;
+    sb->st_size |= *pnFileSizeLow;
     sb->st_blksize = 4096;
     sb->st_blocks = (uint32_t)(sb->st_size + 4095)/4096;
 
-    sb->st_atime = cvt_ftime_to_utime(info.ftLastAccessTime);
-    sb->st_mtime = cvt_ftime_to_utime(info.ftLastWriteTime);
-    sb->st_ctime = cvt_ftime_to_utime(info.ftCreationTime);
+    sb->st_atime = cvt_ftime_to_utime(*pftLastAccessTime);
+    sb->st_mtime = cvt_ftime_to_utime(*pftLastWriteTime);
+    sb->st_ctime = cvt_ftime_to_utime(*pftCreationTime);
     FindClose(h);
 
     return 0;
@@ -277,14 +304,17 @@ stat2(const char *file, struct stat *sb)
     char tmpbuf[1024];
     cygwin_conv_to_win32_path(file, tmpbuf);
 
-#if USE_WIN32_UNICODE
-        WCHAR szBuf[MAX_PATH_UNICODE];
-        UTF8_2_wchar(szBuf, tmpbuf, MAX_PATH_UNICODE);
-        
-        DWORD attr = GetFileAttributesW(szBuf);
-#else
-    DWORD attr = GetFileAttributes(tmpbuf);
-#endif
+    DWORD attr = -1;
+
+    if (p_GetFileAttributesW) {
+      WCHAR szBuf[MAX_PATH_UNICODE];
+      UTF8_2_wchar(szBuf, tmpbuf, MAX_PATH_UNICODE);
+      
+      attr = p_GetFileAttributesW(szBuf);
+    }
+    else if (p_GetFileAttributesA) {
+       attr = p_GetFileAttributesA(tmpbuf);
+    }
 
     if (attr == -1) {
         const char *err = errorString();
@@ -378,15 +408,19 @@ stat(const char *file, struct stat *sb)
     if (!GetFileAttributesExW((WCHAR *)buf, GetFileExInfoStandard, &data))
         return stat2(file, sb);
 #else
-#if USE_WIN32_UNICODE
-        WCHAR buf[MAX_PATH_UNICODE];
-        UTF8_2_wchar(buf, file, MAX_PATH_UNICODE);
-        if (!GetFileAttributesExW(buf, GetFileExInfoStandard, &data))
-        return stat2(file, sb);
-#else
-    if (!GetFileAttributesEx(file, GetFileExInfoStandard, &data))
-        return stat2(file, sb);
-#endif
+
+    if (p_GetFileAttributesExW) {
+      WCHAR buf[MAX_PATH_UNICODE];
+      UTF8_2_wchar(buf, file, MAX_PATH_UNICODE);
+      if (!p_GetFileAttributesExW(buf, GetFileExInfoStandard, &data))
+         return stat2(file, sb);
+    } else if (p_GetFileAttributesExA) {
+         if (!p_GetFileAttributesExA(file, GetFileExInfoStandard, &data))
+            return stat2(file, sb);
+    }
+    else
+       return stat2(file, sb);
+
 #endif
 
     sb->st_mode = 0777;               /* start with everything */
@@ -566,16 +600,15 @@ getgrgid(uid_t)
 }
 
 // implement opendir/readdir/closedir on top of window's API
+
 typedef struct _dir
 {
-#if USE_WIN32_UNICODE
-    WIN32_FIND_DATAW data;       // window's file info
-#else
-    WIN32_FIND_DATA data;       // window's file info
-#endif
+    WIN32_FIND_DATA  data_a;    // window's file info (ansii version)
+    WIN32_FIND_DATAW data_w;    // window's file info (wchar version)
     const char *spec;           // the directory we're traversing
     HANDLE      dirh;           // the search handle
-    BOOL        valid;          // the info in data field is valid
+    BOOL        valid_a;        // the info in data_a field is valid
+    BOOL        valid_w;        // the info in data_w field is valid
     UINT32      offset;         // pseudo offset for d_off
 } _dir;
 
@@ -590,6 +623,7 @@ opendir(const char *path)
     }
 
     rval = (_dir *)malloc(sizeof(_dir));
+    memset (rval, 0, sizeof (_dir));
     if (rval == NULL) return NULL;
     char *tspec = (char *)malloc(max_len);
     if (tspec == NULL) return NULL;
@@ -609,14 +643,21 @@ opendir(const char *path)
     strncat(tspec, "\\*", max_len);
     rval->spec = tspec;
 
-        // convert to WCHAR
-#if USE_WIN32_UNICODE
-        WCHAR wcBuf[MAX_PATH_UNICODE];
-        UTF8_2_wchar(wcBuf,rval->spec, MAX_PATH_UNICODE);
-        rval->dirh = FindFirstFileW(wcBuf, &rval->data);        
-#else
-    rval->dirh = FindFirstFile(rval->spec, &rval->data);
-#endif
+    // convert to WCHAR
+    if (p_FindFirstFileW) {
+      WCHAR wcBuf[MAX_PATH_UNICODE];
+      UTF8_2_wchar(wcBuf,rval->spec, MAX_PATH_UNICODE);
+      rval->dirh = p_FindFirstFileW(wcBuf, &rval->data_w);   
+
+      if (rval->dirh != INVALID_HANDLE_VALUE)
+        rval->valid_w = 1;
+    } else if (p_FindFirstFileA) {
+      rval->dirh = p_FindFirstFileA(rval->spec, &rval->data_a);
+      
+      if (rval->dirh != INVALID_HANDLE_VALUE)
+        rval->valid_a = 1;
+    } else goto err;
+
 
     d_msg(__FILE__, __LINE__,
           99, "opendir(%s)\n\tspec=%s,\n\tFindFirstFile returns %d\n",
@@ -625,9 +666,15 @@ opendir(const char *path)
     rval->offset = 0;
     if (rval->dirh == INVALID_HANDLE_VALUE)
         goto err;
-    rval->valid = 1;
-    d_msg(__FILE__, __LINE__,
-          99, "\tFirstFile=%s\n", rval->data.cFileName);
+
+    if (rval->valid_w)
+      d_msg(__FILE__, __LINE__,
+            99, "\tFirstFile=%s\n", rval->data_w.cFileName);
+
+    if (rval->valid_a)
+      d_msg(__FILE__, __LINE__,
+            99, "\tFirstFile=%s\n", rval->data_a.cFileName);
+
     return (DIR *)rval;
 
 err:
@@ -680,33 +727,38 @@ int
 readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result)
 {
     _dir *dp = (_dir *)dirp;
-    if (dp->valid) {
-        entry->d_off = dp->offset;
+    if (dp->valid_w || dp->valid_a) {
+      entry->d_off = dp->offset;
                 
-#if USE_WIN32_UNICODE
-                char szBuf[MAX_PATH_UTF8];
-                wchar_2_UTF8(szBuf,dp->data.cFileName);
-                dp->offset += copyin(*entry, szBuf);
-#else
-        dp->offset += copyin(*entry, dp->data.cFileName);
-#endif
+      // copy unicode
+      if (dp->valid_w) {
+         char szBuf[MAX_PATH_UTF8];
+         wchar_2_UTF8(szBuf,dp->data_w.cFileName);
+         dp->offset += copyin(*entry, szBuf);
+      } else if (dp->valid_a) { // copy ansi (only 1 will be valid)
+         dp->offset += copyin(*entry, dp->data_a.cFileName);
+      }
                 
-        *result = entry;              /* return entry address */
-        d_msg(__FILE__, __LINE__,
-              99, "readdir_r(%p, { d_name=\"%s\", d_reclen=%d, d_off=%d\n",
-              dirp, entry->d_name, entry->d_reclen, entry->d_off);
+      *result = entry;              /* return entry address */
+      d_msg(__FILE__, __LINE__,
+            99, "readdir_r(%p, { d_name=\"%s\", d_reclen=%d, d_off=%d\n",
+            dirp, entry->d_name, entry->d_reclen, entry->d_off);
     } else {
 //      d_msg(__FILE__, __LINE__, 99, "readdir_r !valid\n");
         errno = b_errno_win32;
         return -1;
     }
 
-#if USE_WIN32_UNICODE
-        dp->valid = FindNextFileW(dp->dirh, &dp->data);
-#else
-        dp->valid = FindNextFileA(dp->dirh, &dp->data);
-#endif
-    
+    // get next file, try unicode first
+    if (p_FindNextFileW) 
+       dp->valid_w = p_FindNextFileW(dp->dirh, &dp->data_w);
+    else if (p_FindNextFileA)
+       dp->valid_a = p_FindNextFileA(dp->dirh, &dp->data_a);
+    else {
+       dp->valid_a = FALSE;
+       dp->valid_w = FALSE;
+    }
+
     return 0;
 }
 
@@ -805,48 +857,50 @@ WSA_Init(void)
 int
 win32_chdir(const char *dir)
 {
-#if USE_WIN32_UNICODE
-        WCHAR szBuf[MAX_PATH_UNICODE];
-        UTF8_2_wchar(szBuf, dir, MAX_PATH_UNICODE);
+   if (p_SetCurrentDirectoryW) {
+      WCHAR szBuf[MAX_PATH_UNICODE];
+      UTF8_2_wchar(szBuf, dir, MAX_PATH_UNICODE);
 
-        if (0 == SetCurrentDirectoryW(szBuf)) {
-       errno = b_errno_win32;
-       return -1;
-    }
-#else
-        if (0 == SetCurrentDirectoryA(dir)) {
-       errno = b_errno_win32;
-       return -1;
-    }
-#endif
+      if (0 == p_SetCurrentDirectoryW(szBuf)) {
+         errno = b_errno_win32;
+         return -1;
+      }
+   }
+   else if (p_SetCurrentDirectoryA) {
+      if (0 == p_SetCurrentDirectoryA(dir)) {
+         errno = b_errno_win32;
+         return -1;
+      }
+   }
+   else return -1;
    
-    return 0;
+   return 0;
 }
 
 int
 win32_mkdir(const char *dir)
 {
-#if USE_WIN32_UNICODE
-        WCHAR szBuf[MAX_PATH_UNICODE];
-        UTF8_2_wchar(szBuf, dir, MAX_PATH_UNICODE);
+   if (p_wmkdir){
+      WCHAR szBuf[MAX_PATH_UNICODE];
+      UTF8_2_wchar(szBuf, dir, MAX_PATH_UNICODE);
+      return p_wmkdir(szBuf);
+   }
 
-        return _wmkdir(szBuf);
-#else
-        return _mkdir(dir);     
-#endif
+   return _mkdir(dir);        
 }
 
 
 char *
 win32_getcwd(char *buf, int maxlen)
 {
-#if USE_WIN32_UNICODE
-        WCHAR szBuf[MAX_PATH_UNICODE];
-        int n = GetCurrentDirectoryW(maxlen, szBuf);
-        n = wchar_2_UTF8 (buf, szBuf, maxlen)-1;
-#else
-   int n =  GetCurrentDirectory(maxlen, buf);
-#endif
+   int n=0;
+
+   if (p_GetCurrentDirectoryW) {
+      WCHAR szBuf[MAX_PATH_UNICODE];
+      n = p_GetCurrentDirectoryW(maxlen, szBuf);
+      n = wchar_2_UTF8 (buf, szBuf, maxlen)-1;
+   } else if (p_GetCurrentDirectoryA)
+      n = p_GetCurrentDirectoryA(maxlen, buf);
 
    if (n == 0 || n > maxlen) return NULL;
 
@@ -1279,29 +1333,28 @@ utime(const char *fname, struct utimbuf *times)
     cvt_utime_to_ftime(times->actime, acc);
     cvt_utime_to_ftime(times->modtime, mod);
 
+    HANDLE h = INVALID_HANDLE_VALUE;
 
-#if USE_WIN32_UNICODE
-        WCHAR szBuf[MAX_PATH_UNICODE];
-        UTF8_2_wchar(szBuf, tmpbuf, MAX_PATH_UNICODE);
+    if (p_CreateFileW) {
+      WCHAR szBuf[MAX_PATH_UNICODE];
+      UTF8_2_wchar(szBuf, tmpbuf, MAX_PATH_UNICODE);
 
-        HANDLE h = CreateFileW(szBuf,
-                          FILE_WRITE_ATTRIBUTES,
-                          FILE_SHARE_WRITE,
-                          NULL,
-                          OPEN_EXISTING,
-                          0,
-                          NULL);
-#else
-    HANDLE h = CreateFile(tmpbuf,
-                          FILE_WRITE_ATTRIBUTES,
-                          FILE_SHARE_WRITE,
-                          NULL,
-                          OPEN_EXISTING,
-                          0,
-                          NULL);
-
-#endif
-
+      h = p_CreateFileW(szBuf,
+                        FILE_WRITE_ATTRIBUTES,
+                        FILE_SHARE_WRITE,
+                        NULL,
+                        OPEN_EXISTING,
+                        0,
+                        NULL);
+    } else if (p_CreateFileA) {
+      h = CreateFile(tmpbuf,
+                        FILE_WRITE_ATTRIBUTES,
+                        FILE_SHARE_WRITE,
+                        NULL,
+                        OPEN_EXISTING,
+                        0,
+                        NULL);
+    }
 
     if (h == INVALID_HANDLE_VALUE) {
         const char *err = errorString();
@@ -1325,14 +1378,14 @@ utime(const char *fname, struct utimbuf *times)
 int
 open(const char *file, int flags, int mode)
 {
-#if USE_WIN32_UNICODE
-        WCHAR szBuf[MAX_PATH_UNICODE];
-        UTF8_2_wchar(szBuf, file, MAX_PATH_UNICODE);
+   if (p_wopen) {
+      WCHAR szBuf[MAX_PATH_UNICODE];
+      UTF8_2_wchar(szBuf, file, MAX_PATH_UNICODE);
 
-        return _wopen(szBuf, flags|_O_BINARY, mode);
-#else
-    return _open(file, flags|_O_BINARY, mode);
-#endif
+      return p_wopen(szBuf, flags|_O_BINARY, mode);
+   }
+
+   return _open(file, flags|_O_BINARY, mode);
 }
 
 /*
@@ -1380,7 +1433,7 @@ open(const char *file, int flags, int mode)
     DWORD shareMode = 0;
     DWORD create = 0;
     DWORD msflags = 0;
-    HANDLE foo;
+    HANDLE foo = INVALID_HANDLE_VALUE;
     const char *remap = file;
 
     if (flags & O_WRONLY) access = GENERIC_WRITE;
@@ -1400,16 +1453,14 @@ open(const char *file, int flags, int mode)
         exit(-1);
     }
 
-
-#if USE_WIN32_UNICODE
+    if (p_CreateFileW) {
         WCHAR szBuf[MAX_PATH_UNICODE];
         UTF8_2_wchar(szBuf, file, MAX_PATH_UNICODE);
 
-        foo = CreateFileW(szBuf, access, shareMode, NULL, create, msflags, NULL);
-#else
-    foo = CreateFile(file, access, shareMode, NULL, create, msflags, NULL);
-#endif
-
+        foo = p_CreateFileW(szBuf, access, shareMode, NULL, create, msflags, NULL);
+    }
+    else if (p_CreateFileA)
+       foo = CreateFile(file, access, shareMode, NULL, create, msflags, NULL);
 
     if (INVALID_HANDLE_VALUE == foo) {
         errno = b_errno_win32;

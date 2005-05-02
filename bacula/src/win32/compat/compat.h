@@ -78,14 +78,9 @@
 // unicode enabling of win 32 needs some defines and functions
 #define MAX_PATH_UNICODE 32767
 #define MAX_PATH_UTF8    MAX_PATH*3
-#define USE_WIN32_UNICODE 1
 
-#if USE_WIN32_UNICODE
 int wchar_2_UTF8(char *pszUTF, const WCHAR *pszUCS, int cchChar = MAX_PATH_UTF8);
 int UTF8_2_wchar(WCHAR *pszUCS, const char *pszUTF, int cchWideChar = MAX_PATH);
-#endif
-
-
 
 #ifndef HAVE_MINGW
 #ifdef HAVE_CYGWIN
