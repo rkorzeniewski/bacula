@@ -87,7 +87,6 @@ New Directives:
   Implemented in Director Pool resource and in SD Device resource.
   If it is specified in the SD Device resource, it will take
   precedence over the value passed from the Director to the SD.
-  IBM is not yet implemented.
 - Check Labels = yes | no
   Implemented in the SD Device resource. If you intend to read
   ANSI or IBM labels, this *must* be set. Even if the volume
@@ -146,6 +145,8 @@ Items to note!!!
 - With Python 2.3, there are a few compiler warnings.
 - You must either create a new catalog database or upgrade your
   old database (the PostgreSQL upgrade scripts not yet tested).
+- You must add --with-openssl to the configure command line if
+  you want TLS communications encryption support.
 
 Other Items:
 - 2 new scripts, dvd-writepart and dvd-freespace, in the scripts directory,
@@ -155,84 +156,5 @@ Other Items:
 - Part files support: File volumes can now be splitted in multiple
   files, called "parts".
 
-NOTE THE FOLLOWING IS NOW OUT OF DATE!!!!
-- Python scripting support:
-  A Python script will be called at particular points or conditions
-  in Bacula called Events. The currently defined Events are called:
-
-  StartJob, EndJob, NewVolume
-
-  Where StartJob is called before the RunBeforeJob, EndJob is called 
-  after RunAfterJob, and NewVolume, is called before all other 
-  "methods" of obtaining a new Volume name, when one is needed.
-
-  The Python script of the same name as the Event name (but with a .py) 
-  is called from the Scripts Directory (a directive defined in the
-  Director resource).  Note, both the Filename, and the name of
-  the function in the file must correspond to the Event name.
-
-  Once the Python script gets control, it can have access to Bacula
-  variables by doing:
-
-     import bacula
-
-  The script is called with one argument, typically called jcr. This
-  argument *must* be used to access each bacula function. The
-  format of the call is slightly different for reading Bacula
-  variable and for writing bacula variables. See below.
-
-  Bacula variables can be read with:
-
-     jcr.get("Variable-name")
-
-    where jcr is the argument passed to the function, and Variable-name
-    is on of the following:
-
-     JobId, Client, Pool, Storage, Catalog, MediaType, NumVols, DirName,
-       Level, Type, Job, JobName, JobStatus
-
-   Bacula varibles can be set using Python keyword arguments:
-
-      jcr.set(VolumeName="xyz")
-
-    The two currently implemented writable "variables" are:
-
-    VolumeName and JobReport
-
-   It is possible to submit a Bacula run command with the following:
-
-     jcr.run("run kernsave client=Matou storage=File")
-
-   this function returns the JobId of the job that was started. If
-   there is an error, the return value is zero.
-
-   Example:
-
-== File EndJob.py ===
-import bacula
-
-def EndJob(jcr):
-    jobid = jcr.get("JobId")
-    client = jcr.get("Client") 
-    jcr.set(JobReport="EndJob output: JobId=%d Client=%s.\n" % (jobid, client))
-    if (jobid < 5) :
-       startid = jcr.run("run kernsave")
-       print "Python started jobid=", startid
-
-    return 1
-====
-
-== File NewVolume.py ===
-import bacula
-
-def NewVolume(jcr):
-    jobid = jcr.get("JobId")
-    print "JobId=", jobid
-    client = jcr.get("Client") 
-    print "Client=" + client
-    numvol = jcr.get("NumVols");
-    print "NumVols=", numvol
-    jcr.set(JobReport="New Volume set for Job.\n") 
-    jcr.set(VolumeName="TestA-001")
-    return 1
-====
+- For the details of the Python scripting support, please see the new
+  Python Scripting chapter in the manual.
