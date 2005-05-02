@@ -70,20 +70,53 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
 	dt, num_jobs_run, num_jobs_run == 1 ? "" : "s");
    sendit(msg, len, arg);
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
-   if (debug_level > 0) {
+   if (/*debug_level > 0*/ true) {
       if (!privs) {
 	 privs = enable_backup_privileges(NULL, 1);
       }
       len = Mmsg(msg,
-     _(" Priv 0x%x APIs=%sOPT,%sATP,%sLPV,%sGFAEA,%sGFAEW,%sBR,%sBW,%sSPSP\n"), privs,
+     _(" Priv 0x%x\n APIs=%sOPT,%sATP,%sLPV,%sCFA,%sCFW,\n"
+     " %sWUL,%sWMKD,%sWOP,%sGFAA,%sGFAW,%sGFAEA,%sGFAEW,%sSFAA,%sSFAW,%sBR,%sBW,%sSPSP,\n" 
+     " %sWC2MB,%sMB2WC,%sFFFA,%sFFFW,%sFNFA,%sFNFW,%sSCDA,%sSCDW,\n"
+     " %sGCDA,%sGCDW\n"), 
+     privs,
 	 p_OpenProcessToken?"":"!",
 	 p_AdjustTokenPrivileges?"":"!",
 	 p_LookupPrivilegeValue?"":"!",
-     p_GetFileAttributesExA?"":"!",
+
+    p_CreateFileA?"":"!",
+	 p_CreateFileW?"":"!",
+
+    p_wunlink?"":"!",
+    p_wmkdir?"":"!",
+    p_wopen?"":"!",
+
+    p_GetFileAttributesA?"":"!",
+    p_GetFileAttributesW?"":"!",
+
+    p_GetFileAttributesExA?"":"!",
 	 p_GetFileAttributesExW?"":"!",
+
+    p_SetFileAttributesA?"":"!",
+	 p_SetFileAttributesW?"":"!",
 	 p_BackupRead?"":"!",
 	 p_BackupWrite?"":"!",
-	 p_SetProcessShutdownParameters?"":"!");
+	 p_SetProcessShutdownParameters?"":"!",
+
+    p_WideCharToMultiByte?"":"!",
+    p_MultiByteToWideChar?"":"!",
+
+    p_FindFirstFileA?"":"!",
+    p_FindFirstFileW?"":"!",
+
+    p_FindNextFileA?"":"!",
+    p_FindNextFileW?"":"!",
+
+    p_SetCurrentDirectoryA?"":"!",
+    p_SetCurrentDirectoryW?"":"!",
+
+    p_GetCurrentDirectoryA?"":"!",
+    p_GetCurrentDirectoryW?"":"!");
       sendit(msg, len, arg);
    }
 #endif

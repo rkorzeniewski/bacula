@@ -299,23 +299,82 @@ void *Main_Msg_Loop(LPVOID lpwThreadParam)
  */
 int BaculaAppMain()
 {
-/* DWORD dwThreadID; */
+ /* DWORD dwThreadID; */
    pthread_t tid;
-   WSA_Init();
-   HINSTANCE hLib = LoadLibrary("KERNEL32.DLL");
+
+   HMODULE hLib = LoadLibrary("KERNEL32.DLL");
    if (hLib) {
+      /* create file calls */
+      p_CreateFileA = (t_CreateFileA)
+          GetProcAddress(hLib, "CreateFileA");
+      p_CreateFileW = (t_CreateFileW)
+          GetProcAddress(hLib, "CreateFileW");      
+
+      /* attribute calls */
+      p_GetFileAttributesA = (t_GetFileAttributesA)
+          GetProcAddress(hLib, "GetFileAttributesA");
+      p_GetFileAttributesW = (t_GetFileAttributesW)
+          GetProcAddress(hLib, "GetFileAttributesW");
       p_GetFileAttributesExA = (t_GetFileAttributesExA)
           GetProcAddress(hLib, "GetFileAttributesExA");
-          p_GetFileAttributesExW = (t_GetFileAttributesExW)
+      p_GetFileAttributesExW = (t_GetFileAttributesExW)
           GetProcAddress(hLib, "GetFileAttributesExW");
+      p_SetFileAttributesA = (t_SetFileAttributesA)
+          GetProcAddress(hLib, "SetFileAttributesA");
+      p_SetFileAttributesW = (t_SetFileAttributesW)
+          GetProcAddress(hLib, "SetFileAttributesW");
+      /* process calls */
       p_SetProcessShutdownParameters = (t_SetProcessShutdownParameters)
           GetProcAddress(hLib, "SetProcessShutdownParameters");
+      /* backup calls */
       p_BackupRead = (t_BackupRead)
           GetProcAddress(hLib, "BackupRead");
       p_BackupWrite = (t_BackupWrite)
           GetProcAddress(hLib, "BackupWrite");
+      /* char conversion calls */
+      p_WideCharToMultiByte = (t_WideCharToMultiByte)
+          GetProcAddress(hLib, "WideCharToMultiByte");
+      p_MultiByteToWideChar = (t_MultiByteToWideChar)
+          GetProcAddress(hLib, "MultiByteToWideChar");
+
+      /* find files */
+      p_FindFirstFileA = (t_FindFirstFileA)
+          GetProcAddress(hLib, "FindFirstFileA"); 
+      p_FindFirstFileW = (t_FindFirstFileW)
+          GetProcAddress(hLib, "FindFirstFileW");       
+      p_FindNextFileA = (t_FindNextFileA)
+          GetProcAddress(hLib, "FindNextFileA");
+      p_FindNextFileW = (t_FindNextFileW)
+          GetProcAddress(hLib, "FindNextFileW");
+      /* set and get directory */
+      p_SetCurrentDirectoryA = (t_SetCurrentDirectoryA)
+          GetProcAddress(hLib, "SetCurrentDirectoryA");
+      p_SetCurrentDirectoryW = (t_SetCurrentDirectoryW)
+          GetProcAddress(hLib, "SetCurrentDirectoryW");       
+      p_GetCurrentDirectoryA = (t_GetCurrentDirectoryA)
+          GetProcAddress(hLib, "GetCurrentDirectoryA");
+      p_GetCurrentDirectoryW = (t_GetCurrentDirectoryW)
+          GetProcAddress(hLib, "GetCurrentDirectoryW");      
       FreeLibrary(hLib);
    }
+
+   
+   hLib = LoadLibrary("MSVCRT.DLL");
+   if (hLib) {
+      /* unlink */
+      p_wunlink = (t_wunlink)
+      GetProcAddress(hLib, "_wunlink");
+      /* wmkdir */
+      p_wmkdir = (t_wmkdir)
+      GetProcAddress(hLib, "_wmkdir");
+      /* wopen */
+      p_wopen = (t_wopen)
+      GetProcAddress(hLib, "_wopen");
+
+      FreeLibrary(hLib);
+   }
+
+   
    hLib = LoadLibrary("ADVAPI32.DLL");
    if (hLib) {
       p_OpenProcessToken = (t_OpenProcessToken)
@@ -326,6 +385,8 @@ int BaculaAppMain()
          GetProcAddress(hLib, "LookupPrivilegeValueA");
       FreeLibrary(hLib);
    }
+
+   WSA_Init();
    /*  
     * Even if these are defined, don't use on old 
     *  platforms.
@@ -333,6 +394,21 @@ int BaculaAppMain()
    if (bacService::IsWin95()) {
       p_BackupRead = NULL;
       p_BackupWrite = NULL;
+
+      p_CreateFileW = NULL;          
+      p_GetFileAttributesW = NULL;          
+      p_GetFileAttributesExW = NULL;
+          
+      p_SetFileAttributesW = NULL;
+                
+      p_FindFirstFileW = NULL;
+      p_FindNextFileW = NULL;
+      p_SetCurrentDirectoryW = NULL;
+      p_GetCurrentDirectoryW = NULL;
+
+      p_wunlink = NULL;
+      p_wmkdir = NULL;
+      p_wopen = NULL;
    }
 
    /* Set this process to be the last application to be shut down. */
@@ -346,6 +422,7 @@ int BaculaAppMain()
       MessageBox(NULL, "Another instance of Bacula is already running", szAppName, MB_OK);
       _exit(0);
    }
+
 
    /* Create a thread to handle the Windows messages */
 // (void)CreateThread(NULL, 0, Main_Msg_Loop, NULL, 0, &dwThreadID);

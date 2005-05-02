@@ -212,15 +212,18 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 {
    POOLMEM *win32_fname;
    DWORD dwaccess, dwflags, dwshare;
+   WCHAR win32_fname_wchar[MAX_PATH_UNICODE];
 
    /* Convert to Windows path format */
    win32_fname = get_pool_memory(PM_FNAME);
    unix_name_to_win32(&win32_fname, (char *)fname);
 
-#if USE_WIN32_UNICODE
-   WCHAR win32_fname_wchar[MAX_PATH_UNICODE];
+   if (!(p_CreateFileA || p_CreateFileW))
+      return 0;
+
+   if (p_CreateFileW){         
    UTF8_2_wchar(win32_fname_wchar, win32_fname, MAX_PATH_UNICODE);
-#endif
+   }
 
    if (flags & O_CREAT) {             /* Create */
       if (bfd->use_backup_api) {
@@ -231,18 +234,27 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
          dwflags = 0;
       }
 
-
-#if USE_WIN32_UNICODE   
-        bfd->fh = CreateFileW(win32_fname_wchar,
-#else
-      bfd->fh = CreateFile(win32_fname,
-#endif
+   // unicode or ansii open for create write
+   if (p_CreateFileW) {   
+      bfd->fh = p_CreateFileW(win32_fname_wchar,
              dwaccess,                /* Requested access */
              0,                       /* Shared mode */
              NULL,                    /* SecurityAttributes */
              CREATE_ALWAYS,           /* CreationDisposition */
              dwflags,                 /* Flags and attributes */
              NULL);                   /* TemplateFile */
+   }
+   else {
+      bfd->fh = p_CreateFileA(win32_fname,
+             dwaccess,                /* Requested access */
+             0,                       /* Shared mode */
+             NULL,                    /* SecurityAttributes */
+             CREATE_ALWAYS,           /* CreationDisposition */
+             dwflags,                 /* Flags and attributes */
+             NULL);                   /* TemplateFile */
+   }
+
+
       bfd->mode = BF_WRITE;
 
    } else if (flags & O_WRONLY) {     /* Open existing for write */
@@ -254,17 +266,27 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
          dwflags = 0;
       }
 
-#if USE_WIN32_UNICODE
-          bfd->fh = CreateFileW(win32_fname_wchar,
-#else
-      bfd->fh = CreateFile(win32_fname,
-#endif
+   // unicode or ansii open for open existing write
+   if (p_CreateFileW) {   
+      bfd->fh = p_CreateFileW(win32_fname_wchar,
              dwaccess,                /* Requested access */
              0,                       /* Shared mode */
              NULL,                    /* SecurityAttributes */
              OPEN_EXISTING,           /* CreationDisposition */
              dwflags,                 /* Flags and attributes */
              NULL);                   /* TemplateFile */
+   }
+   else {
+      bfd->fh = p_CreateFileA(win32_fname,
+             dwaccess,                /* Requested access */
+             0,                       /* Shared mode */
+             NULL,                    /* SecurityAttributes */
+             OPEN_EXISTING,           /* CreationDisposition */
+             dwflags,                 /* Flags and attributes */
+             NULL);                   /* TemplateFile */
+
+   }
+
       bfd->mode = BF_WRITE;
 
    } else {                           /* Read */
@@ -278,17 +300,26 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
          dwshare = FILE_SHARE_READ|FILE_SHARE_WRITE;
       }
 
-#if USE_WIN32_UNICODE
-          bfd->fh = CreateFileW(win32_fname_wchar,
-#else
-      bfd->fh = CreateFile(win32_fname,
-#endif      
+      // unicode or ansii open for open existing read
+   if (p_CreateFileW) {   
+      bfd->fh = p_CreateFileW(win32_fname_wchar,
              dwaccess,                /* Requested access */
              dwshare,                 /* Share modes */
              NULL,                    /* SecurityAttributes */
              OPEN_EXISTING,           /* CreationDisposition */
              dwflags,                 /* Flags and attributes */
              NULL);                   /* TemplateFile */
+   }
+   else {
+      bfd->fh = p_CreateFileA(win32_fname,
+             dwaccess,                /* Requested access */
+             dwshare,                 /* Share modes */
+             NULL,                    /* SecurityAttributes */
+             OPEN_EXISTING,           /* CreationDisposition */
+             dwflags,                 /* Flags and attributes */
+             NULL);                   /* TemplateFile */
+   }
+
       bfd->mode = BF_READ;
    }
 

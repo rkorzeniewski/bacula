@@ -118,15 +118,19 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
    case FT_REG: 		      /* regular file */
       if (exists) {
 	 /* Get rid of old copy */
+   int nRetCode;
 
-
-#if USE_WIN32_UNICODE
+   if (p_wunlink)
+   {
      WCHAR szBuf[MAX_PATH_UNICODE];
      UTF8_2_wchar(szBuf, attr->ofname, MAX_PATH_UNICODE);
-	 if (_wunlink(szBuf) == -1) {
-#else
-	 if (unlink(attr->ofname) == -1) {
-#endif 
+
+     nRetCode = _wunlink(szBuf);
+   }
+   else
+      nRetCode = unlink(attr->ofname);
+   
+   if (nRetCode == -1) {
 	    berrno be;
             Jmsg(jcr, M_ERROR, 0, _("File %s already exists and could not be replaced. ERR=%s.\n"),
 	       attr->ofname, be.strerror());
