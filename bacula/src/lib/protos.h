@@ -72,7 +72,7 @@ bool       bnet_set_buffer_size  (BSOCK *bs, uint32_t size, int rw);
 bool       bnet_sig              (BSOCK *bs, int sig);
 #ifdef HAVE_TLS
 int        bnet_tls_server       (TLS_CONTEXT *ctx, BSOCK *bsock,
-				  alist *verify_list);
+                                  alist *verify_list);
 int        bnet_tls_client       (TLS_CONTEXT *ctx, BSOCK *bsock);
 #endif /* HAVE_TLS */
 BSOCK *    bnet_connect          (JCR *jcr, int retry_interval,
@@ -206,29 +206,30 @@ int             bsscanf(const char *buf, const char *fmt, ...);
 
 
 /* tls.c */
-#ifdef HAVE_TLS
 int              init_tls                (void);
 int              cleanup_tls             (void);
+
+#ifdef HAVE_TLS
 TLS_CONTEXT      *new_tls_context        (const char *ca_certfile,
                                           const char *ca_certdir,
-					  const char *certfile,
-					  const char *keyfile,
-					  TLS_PEM_PASSWD_CB *pem_callback,
-					  const void *pem_userdata,
-					  const char *dhfile,
-					  bool verify_peer);
+                                          const char *certfile,
+                                          const char *keyfile,
+                                          TLS_PEM_PASSWD_CB *pem_callback,
+                                          const void *pem_userdata,
+                                          const char *dhfile,
+                                          bool verify_peer);
 void             free_tls_context        (TLS_CONTEXT *ctx);
-bool		 tls_postconnect_verify_host  (TLS_CONNECTION *tls,
-					       const char *host);
-bool		 tls_postconnect_verify_cn    (TLS_CONNECTION *tls,
-					       alist *verify_list);
+bool             tls_postconnect_verify_host  (TLS_CONNECTION *tls,
+                                               const char *host);
+bool             tls_postconnect_verify_cn    (TLS_CONNECTION *tls,
+                                               alist *verify_list);
 TLS_CONNECTION   *new_tls_connection     (TLS_CONTEXT *ctx, int fd);
 void             free_tls_connection     (TLS_CONNECTION *tls);
 bool             tls_bsock_connect       (BSOCK *bsock);
 bool             tls_bsock_accept        (BSOCK *bsock);
 void             tls_bsock_shutdown      (BSOCK *bsock);
-int		 tls_bsock_writen	 (BSOCK *bsock, char *ptr, int32_t nbytes);
-int		 tls_bsock_readn	 (BSOCK *bsock, char *ptr, int32_t nbytes);
+int              tls_bsock_writen        (BSOCK *bsock, char *ptr, int32_t nbytes);
+int              tls_bsock_readn         (BSOCK *bsock, char *ptr, int32_t nbytes);
 #endif /* HAVE_TLS */
 
 
