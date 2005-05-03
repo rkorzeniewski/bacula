@@ -106,8 +106,8 @@ static int openssl_verify_peer(int ok, X509_STORE_CTX *store)
       X509_NAME_oneline(X509_get_subject_name(cert), subject, 256);
 
       Emsg5(M_ERROR, 0, _("Error with certificate at depth: %d, issuer = %s,"
-			  " subject = %s, ERR=%d:%s\n"), depth, issuer,
-			  subject, err, X509_verify_cert_error_string(err));
+                          " subject = %s, ERR=%d:%s\n"), depth, issuer,
+                          subject, err, X509_verify_cert_error_string(err));
 
    }
 
@@ -138,9 +138,9 @@ static int openssl_pem_callback_dispatch (char *buf, int size, int rwflag, void 
  */
 TLS_CONTEXT *new_tls_context(const char *ca_certfile, const char *ca_certdir,
                              const char *certfile, const char *keyfile,
-			     TLS_PEM_PASSWD_CB *pem_callback,
-			     const void *pem_userdata, const char *dhfile,
-			     bool verify_peer)
+                             TLS_PEM_PASSWD_CB *pem_callback,
+                             const void *pem_userdata, const char *dhfile,
+                             bool verify_peer)
 {
    TLS_CONTEXT *ctx;
    BIO *bio;
@@ -173,8 +173,8 @@ TLS_CONTEXT *new_tls_context(const char *ca_certfile, const char *ca_certdir,
     */
    if (ca_certfile || ca_certdir) {
       if (!SSL_CTX_load_verify_locations(ctx->openssl, ca_certfile, ca_certdir)) {
-	 openssl_post_errors(M_ERROR, _("Error loading certificate verification stores"));
-	 goto err;
+         openssl_post_errors(M_ERROR, _("Error loading certificate verification stores"));
+         goto err;
       }
    } else if (verify_peer) {
       /* At least one CA is required for peer verification */
@@ -189,35 +189,35 @@ TLS_CONTEXT *new_tls_context(const char *ca_certfile, const char *ca_certdir,
     */
    if (certfile) {
       if (!SSL_CTX_use_certificate_chain_file(ctx->openssl, certfile)) {
-	 openssl_post_errors(M_ERROR, _("Error loading certificate file"));
-	 goto err;
+         openssl_post_errors(M_ERROR, _("Error loading certificate file"));
+         goto err;
       }
    }
 
    /* Load our private key. */
    if (keyfile) {
       if (!SSL_CTX_use_PrivateKey_file(ctx->openssl, keyfile, SSL_FILETYPE_PEM)) {
-	 openssl_post_errors(M_ERROR, _("Error loading private key"));
-	 goto err;
+         openssl_post_errors(M_ERROR, _("Error loading private key"));
+         goto err;
       }
    }
 
    /* Load Diffie-Hellman Parameters. */
    if (dhfile) {
       if (!(bio = BIO_new_file(dhfile, "r"))) {
-	 openssl_post_errors(M_ERROR, _("Unable to open DH parameters file"));
-	 goto err;
+         openssl_post_errors(M_ERROR, _("Unable to open DH parameters file"));
+         goto err;
       }
       dh = PEM_read_bio_DHparams(bio, NULL, NULL, NULL);
       BIO_free(bio);
       if (!dh) {
-	 openssl_post_errors(M_ERROR, _("Unable to load DH parameters from specified file"));
-	 goto err;
+         openssl_post_errors(M_ERROR, _("Unable to load DH parameters from specified file"));
+         goto err;
       }
       if (!SSL_CTX_set_tmp_dh(ctx->openssl, dh)) {
-	 openssl_post_errors(M_ERROR, _("Failed to set TLS Diffie-Hellman parameters"));
-	 DH_free(dh);
-	 goto err;
+         openssl_post_errors(M_ERROR, _("Failed to set TLS Diffie-Hellman parameters"));
+         DH_free(dh);
+         goto err;
       }
       /* Enable Single-Use DH for Ephemeral Keying */
       SSL_CTX_set_options(ctx->openssl, SSL_OP_SINGLE_DH_USE);
@@ -230,10 +230,10 @@ TLS_CONTEXT *new_tls_context(const char *ca_certfile, const char *ca_certdir,
 
    /* Verify Peer Certificate */
    if (verify_peer) {
-	   /* SSL_VERIFY_FAIL_IF_NO_PEER_CERT has no effect in client mode */
-	   SSL_CTX_set_verify(ctx->openssl,
-	                      SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT,
-			      openssl_verify_peer);
+           /* SSL_VERIFY_FAIL_IF_NO_PEER_CERT has no effect in client mode */
+           SSL_CTX_set_verify(ctx->openssl,
+                              SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT,
+                              openssl_verify_peer);
    }
 
    return ctx;
@@ -278,16 +278,16 @@ bool tls_postconnect_verify_cn(TLS_CONNECTION *tls, alist *verify_list)
 
    if ((subject = X509_get_subject_name(cert)) != NULL) {
       if (X509_NAME_get_text_by_NID(subject, NID_commonName, data, sizeof(data)) > 0) {
-	 char *cn;
-	 /* NULL terminate data */
-	 data[255] = 0;
+         char *cn;
+         /* NULL terminate data */
+         data[255] = 0;
 
-	 /* Try all the CNs in the list */
-	 foreach_alist(cn, verify_list) {
-	    if (strcasecmp(data, cn) == 0) {
-	       auth_success = true;
-	    }
-	 }
+         /* Try all the CNs in the list */
+         foreach_alist(cn, verify_list) {
+            if (strcasecmp(data, cn) == 0) {
+               auth_success = true;
+            }
+         }
       }
    }
 
@@ -321,71 +321,71 @@ bool tls_postconnect_verify_host(TLS_CONNECTION *tls, const char *host)
    /* Check subjectAltName extensions first */
    if ((extensions = X509_get_ext_count(cert)) > 0) {
       for (i = 0; i < extensions; i++) {
-	 X509_EXTENSION *ext;
-	 const char *extname;
+         X509_EXTENSION *ext;
+         const char *extname;
 
-	 ext = X509_get_ext(cert, i);
-	 extname = OBJ_nid2sn(OBJ_obj2nid(X509_EXTENSION_get_object(ext)));
+         ext = X509_get_ext(cert, i);
+         extname = OBJ_nid2sn(OBJ_obj2nid(X509_EXTENSION_get_object(ext)));
 
-	 if (strcmp(extname, "subjectAltName") == 0) {
-	    X509V3_EXT_METHOD *method;
-	    STACK_OF(CONF_VALUE) *val;
-	    CONF_VALUE *nval;
-	    unsigned char *data;
-	    void *extstr = NULL;
+         if (strcmp(extname, "subjectAltName") == 0) {
+            X509V3_EXT_METHOD *method;
+            STACK_OF(CONF_VALUE) *val;
+            CONF_VALUE *nval;
+            unsigned char *data;
+            void *extstr = NULL;
 
             /* Get x509 extension method structure */
-	    if (!(method = X509V3_EXT_get(ext))) {
-	       break;
-	    }
+            if (!(method = X509V3_EXT_get(ext))) {
+               break;
+            }
 
-	    data = ext->value->data;
+            data = ext->value->data;
 
 #if (OPENSSL_VERSION_NUMBER > 0x00907000L)
-	    if (method->it) {
-	       /* New style ASN1 */
+            if (method->it) {
+               /* New style ASN1 */
 
-	       /* Decode ASN1 item in data */
-	       extstr = ASN1_item_d2i(NULL, &data, ext->value->length,
-	                              ASN1_ITEM_ptr(method->it));
-	    } else {
-	       /* Old style ASN1 */
+               /* Decode ASN1 item in data */
+               extstr = ASN1_item_d2i(NULL, &data, ext->value->length,
+                                      ASN1_ITEM_ptr(method->it));
+            } else {
+               /* Old style ASN1 */
 
-	       /* Decode ASN1 item in data */
-	       extstr = method->d2i(NULL, &data, ext->value->length);
-	    }
+               /* Decode ASN1 item in data */
+               extstr = method->d2i(NULL, &data, ext->value->length);
+            }
 
 #else
-	    extstr = method->d2i(NULL, &data, ext->value->length);
+            extstr = method->d2i(NULL, &data, ext->value->length);
 #endif
 
-	    /* Iterate through to find the dNSName field(s) */
-	    val = method->i2v(method, extstr, NULL);
+            /* Iterate through to find the dNSName field(s) */
+            val = method->i2v(method, extstr, NULL);
 
-	    /* dNSName shortname is "DNS" */
-	    for (j = 0; j < sk_CONF_VALUE_num(val); j++) {
-	       nval = sk_CONF_VALUE_value(val, j);
-	       if (strcmp(nval->name, "DNS") == 0) {
-		  if (strcasecmp(nval->name, host) == 0) {
-		     auth_success = true;
-		     goto success;
-		  }
-	       }
-	    }
-	 }
+            /* dNSName shortname is "DNS" */
+            for (j = 0; j < sk_CONF_VALUE_num(val); j++) {
+               nval = sk_CONF_VALUE_value(val, j);
+               if (strcmp(nval->name, "DNS") == 0) {
+                  if (strcasecmp(nval->name, host) == 0) {
+                     auth_success = true;
+                     goto success;
+                  }
+               }
+            }
+         }
       }
    }
 
    /* Try verifying against the subject name */
    if (!auth_success) {
       if ((subject = X509_get_subject_name(cert)) != NULL) {
-	 if (X509_NAME_get_text_by_NID(subject, NID_commonName, data, sizeof(data)) > 0) {
-	    /* NULL terminate data */
-	    data[255] = 0;
-	    if (strcasecmp(data, host) == 0) {
-	       auth_success = true;
-	    }
-	 }
+         if (X509_NAME_get_text_by_NID(subject, NID_commonName, data, sizeof(data)) > 0) {
+            /* NULL terminate data */
+            data[255] = 0;
+            if (strcasecmp(data, host) == 0) {
+               auth_success = true;
+            }
+         }
       }
    }
 
@@ -478,42 +478,42 @@ static inline bool openssl_bsock_session_start(BSOCK *bsock, bool server)
 
    for (;;) { 
       if (server) {
-	 err = SSL_accept(tls->openssl);
+         err = SSL_accept(tls->openssl);
       } else {
-	 err = SSL_connect(tls->openssl);
+         err = SSL_connect(tls->openssl);
       }
 
       /* Handle errors */
       switch (SSL_get_error(tls->openssl, err)) {
-	   case SSL_ERROR_NONE:
-	      stat = true;
-	      goto cleanup;
-	   case SSL_ERROR_ZERO_RETURN:
-	      /* TLS connection was cleanly shut down */
-	      openssl_post_errors(M_ERROR, "Connect failure");
-	      stat = false;
-	      goto cleanup;
-	   case SSL_ERROR_WANT_READ:
-	      /* If we timeout of a select, this will be unset */
-	      FD_SET((unsigned) bsock->fd, &fdset);
-	      /* Block until we can read */
-	      select(fdmax, &fdset, NULL, &fdset, &tv);
-	      break;
-	   case SSL_ERROR_WANT_WRITE:
-	      /* If we timeout of a select, this will be unset */
-	      FD_SET((unsigned) bsock->fd, &fdset);
-	      /* Block until we can write */
-	      select(fdmax, NULL, &fdset, &fdset, &tv);
-	      break;
-	   default:
-	      /* Socket Error Occured */
-	      openssl_post_errors(M_ERROR, "Connect failure");
-	      stat = false;
-	      goto cleanup;
+           case SSL_ERROR_NONE:
+              stat = true;
+              goto cleanup;
+           case SSL_ERROR_ZERO_RETURN:
+              /* TLS connection was cleanly shut down */
+              openssl_post_errors(M_ERROR, "Connect failure");
+              stat = false;
+              goto cleanup;
+           case SSL_ERROR_WANT_READ:
+              /* If we timeout of a select, this will be unset */
+              FD_SET((unsigned) bsock->fd, &fdset);
+              /* Block until we can read */
+              select(fdmax, &fdset, NULL, &fdset, &tv);
+              break;
+           case SSL_ERROR_WANT_WRITE:
+              /* If we timeout of a select, this will be unset */
+              FD_SET((unsigned) bsock->fd, &fdset);
+              /* Block until we can write */
+              select(fdmax, NULL, &fdset, &fdset, &tv);
+              break;
+           default:
+              /* Socket Error Occured */
+              openssl_post_errors(M_ERROR, "Connect failure");
+              stat = false;
+              goto cleanup;
       }
 
       if (bsock->timed_out) {
-	 goto cleanup;
+         goto cleanup;
       }
    }
 
@@ -581,15 +581,15 @@ void tls_bsock_shutdown (BSOCK *bsock)
 
    switch (SSL_get_error(bsock->tls->openssl, err)) {
       case SSL_ERROR_NONE:
-	 break;
+         break;
       case SSL_ERROR_ZERO_RETURN:
-	 /* TLS connection was shut down on us via a TLS protocol-level closure */
-	 openssl_post_errors(M_ERROR, _("TLS shutdown failure."));
-	 break;
+         /* TLS connection was shut down on us via a TLS protocol-level closure */
+         openssl_post_errors(M_ERROR, _("TLS shutdown failure."));
+         break;
       default:
-	 /* Socket Error Occured */
-	 openssl_post_errors(M_ERROR, _("TLS shutdown failure."));
-	 break;
+         /* Socket Error Occured */
+         openssl_post_errors(M_ERROR, _("TLS shutdown failure."));
+         break;
    }
 
    /* Restore saved flags */
@@ -624,49 +624,49 @@ static inline int openssl_bsock_readwrite(BSOCK *bsock, char *ptr, int nbytes, b
    while (nleft > 0) { 
 
       if (write) {
-	 nwritten = SSL_write(tls->openssl, ptr, nleft);
+         nwritten = SSL_write(tls->openssl, ptr, nleft);
       } else {
-	 nwritten = SSL_read(tls->openssl, ptr, nleft);
+         nwritten = SSL_read(tls->openssl, ptr, nleft);
       }
 
       /* Handle errors */
       switch (SSL_get_error(tls->openssl, nwritten)) {
-	 case SSL_ERROR_NONE:
-	    nleft -= nwritten;
-	    if (nleft) {
-	       ptr += nwritten;
-	    }
-	    break;
-	 case SSL_ERROR_ZERO_RETURN:
-	    /* TLS connection was cleanly shut down */
-	    openssl_post_errors(M_ERROR, _("TLS read/write failure."));
-	    goto cleanup;
-	 case SSL_ERROR_WANT_READ:
-	    /* If we timeout of a select, this will be unset */
-	    FD_SET((unsigned) bsock->fd, &fdset);
-	    /* Block until we can read */
-	    select(fdmax, &fdset, NULL, &fdset, &tv);
-	    break;
-	 case SSL_ERROR_WANT_WRITE:
-	    /* If we timeout of a select, this will be unset */
-	    FD_SET((unsigned) bsock->fd, &fdset);
-	    /* Block until we can write */
-	    select(fdmax, NULL, &fdset, &fdset, &tv);
-	    break;
-	 default:
-	    /* Socket Error Occured */
-	    openssl_post_errors(M_ERROR, _("TLS read/write failure."));
-	    goto cleanup;
+         case SSL_ERROR_NONE:
+            nleft -= nwritten;
+            if (nleft) {
+               ptr += nwritten;
+            }
+            break;
+         case SSL_ERROR_ZERO_RETURN:
+            /* TLS connection was cleanly shut down */
+            openssl_post_errors(M_ERROR, _("TLS read/write failure."));
+            goto cleanup;
+         case SSL_ERROR_WANT_READ:
+            /* If we timeout of a select, this will be unset */
+            FD_SET((unsigned) bsock->fd, &fdset);
+            /* Block until we can read */
+            select(fdmax, &fdset, NULL, &fdset, &tv);
+            break;
+         case SSL_ERROR_WANT_WRITE:
+            /* If we timeout of a select, this will be unset */
+            FD_SET((unsigned) bsock->fd, &fdset);
+            /* Block until we can write */
+            select(fdmax, NULL, &fdset, &fdset, &tv);
+            break;
+         default:
+            /* Socket Error Occured */
+            openssl_post_errors(M_ERROR, _("TLS read/write failure."));
+            goto cleanup;
       }
 
       /* Everything done? */
       if (nleft == 0) {
-	 goto cleanup;
+         goto cleanup;
       }
 
       /* Timeout/Termination, let's take what we can get */
       if (bsock->timed_out || bsock->terminated) {
-	 goto cleanup;
+         goto cleanup;
       }
    }
 
@@ -770,8 +770,8 @@ static int openssl_init_threads (void)
    mutexes = (pthread_mutex_t *) malloc(numlocks * sizeof(pthread_mutex_t));
    for (i = 0; i < numlocks; i++) {
       if ((stat = pthread_mutex_init(&mutexes[i], NULL)) != 0) {
-	 Emsg1(M_ERROR, 0, "Unable to init mutex: ERR=%s\n", strerror(stat));
-	 return stat;
+         Emsg1(M_ERROR, 0, "Unable to init mutex: ERR=%s\n", strerror(stat));
+         return stat;
       }
    }
 
@@ -801,8 +801,8 @@ static void openssl_cleanup_threads (void)
    numlocks = CRYPTO_num_locks();
    for (i = 0; i < numlocks; i++) {
       if ((stat = pthread_mutex_destroy(&mutexes[i])) != 0) {
-	 /* We don't halt execution, reporting the error should be sufficient */
-	 Emsg1(M_ERROR, 0, "Unable to destroy mutex: ERR=%s\n", strerror(stat));
+         /* We don't halt execution, reporting the error should be sufficient */
+         Emsg1(M_ERROR, 0, "Unable to destroy mutex: ERR=%s\n", strerror(stat));
       }
    }
 
@@ -835,8 +835,8 @@ static int seed_tls_prng (void)
 
    for (i = 0; names[i]; i++) {
       if (RAND_load_file(names[i], 1024) != -1) {
-	 /* Success */
-	 return 1;
+         /* Success */
+         return 1;
       }
    }
 
@@ -922,5 +922,10 @@ int cleanup_tls (void)
 #else /* HAVE_OPENSSL */
 # error No TLS implementation available.
 #endif /* !HAVE_OPENSSL */
+
+#else
+
+int init_tls(void) { return 0; }
+
 
 #endif /* HAVE_TLS */
