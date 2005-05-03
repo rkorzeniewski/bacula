@@ -32,7 +32,7 @@
 #include "winservice.h"
 #include <signal.h>
 #include <pthread.h>
-#include "../../findlib/winapi.h"
+#include "../../lib/winapi.h"
 
 extern int BaculaMain(int argc, char *argv[]);
 extern void terminate_filed(int sig);

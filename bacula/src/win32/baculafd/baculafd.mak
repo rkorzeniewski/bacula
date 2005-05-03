@@ -1877,7 +1877,7 @@ SOURCE=..\..\filed\win32\winabout.cpp
 
 !ENDIF 
 
-SOURCE=..\findlib\winapi.cpp
+SOURCE=..\lib\winapi.cpp
 
 !IF  "$(CFG)" == "baculafd - Win32 Release"
 

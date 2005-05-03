@@ -78,6 +78,7 @@ CLEAN :
         -@erase "$(INTDIR)\util.obj"
         -@erase "$(INTDIR)\vc60.idb"
         -@erase "$(INTDIR)\watchdog.obj"
+        -@erase "$(INTDIR)\winapi.obj"
         -@erase "$(OUTDIR)\bconsole.exe"
 
 "$(OUTDIR)" :
@@ -126,7 +127,8 @@ LINK32_OBJS= \
         "$(INTDIR)\StdAfx.obj" \
         "$(INTDIR)\btimers.obj" \
         "$(INTDIR)\util.obj" \
-        "$(INTDIR)\watchdog.obj"
+        "$(INTDIR)\watchdog.obj" \
+        "$(INTDIR)\winapi.obj"
 
 "$(OUTDIR)\bconsole.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -184,6 +186,7 @@ CLEAN :
         -@erase "$(INTDIR)\vc60.idb"
         -@erase "$(INTDIR)\vc60.pdb"
         -@erase "$(INTDIR)\watchdog.obj"
+        -@erase "$(INTDIR)\winapi.obj"
         -@erase "$(OUTDIR)\bconsole.exe"
 
 "$(OUTDIR)" :
@@ -232,7 +235,8 @@ LINK32_OBJS= \
         "$(INTDIR)\StdAfx.obj" \
         "$(INTDIR)\btimers.obj" \
         "$(INTDIR)\util.obj" \
-        "$(INTDIR)\watchdog.obj"
+        "$(INTDIR)\watchdog.obj" \
+        "$(INTDIR)\winapi.obj"
 
 "$(OUTDIR)\bconsole.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -512,6 +516,13 @@ SOURCE=..\lib\watchdog.cpp
 
 "$(INTDIR)\watchdog.obj" : $(SOURCE) "$(INTDIR)"
         $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+SOURCE=..\lib\winapi.cpp
+
+"$(INTDIR)\winapi.obj" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
+
 
 
 

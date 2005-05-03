@@ -30,7 +30,7 @@
 
 #include "compat.h"
 #include "pthread.h"
-#include "../../findlib/winapi.h"
+#include "../../lib/winapi.h"
 
 #define b_errno_win32 (1<<29)
 

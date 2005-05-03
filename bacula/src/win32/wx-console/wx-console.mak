@@ -82,6 +82,7 @@ CLEAN :
 	-@erase "$(INTDIR)\util.obj"
 	-@erase "$(INTDIR)\var.obj"
 	-@erase "$(INTDIR)\watchdog.obj"
+	-@erase "$(INTDIR)\winapi.obj"
 	-@erase "$(INTDIR)\workq.obj"
 	-@erase "$(INTDIR)\compat.obj"
 	-@erase "$(INTDIR)\print.obj"
@@ -157,6 +158,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\util.obj" \
 	"$(INTDIR)\var.obj" \
 	"$(INTDIR)\watchdog.obj" \
+	"$(INTDIR)\winapi.obj" \
 	"$(INTDIR)\workq.obj" \
 	"$(INTDIR)\compat.obj" \
 	"$(INTDIR)\print.obj" \
@@ -275,6 +277,8 @@ CLEAN :
 	-@erase "$(INTDIR)\var.sbr"
 	-@erase "$(INTDIR)\watchdog.obj
 	-@erase "$(INTDIR)\watchdog.sbr"
+	-@erase "$(INTDIR)\winapi.obj
+	-@erase "$(INTDIR)\winapi.sbr"
 	-@erase "$(INTDIR)\workq.obj
 	-@erase "$(INTDIR)\workq.sbr"
 	-@erase "$(INTDIR)\compat.obj
@@ -361,6 +365,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\util.sbr" \
 	"$(INTDIR)\var.sbr" \
 	"$(INTDIR)\watchdog.sbr" \
+	"$(INTDIR)\winapi.sbr" \
 	"$(INTDIR)\workq.sbr" \
 	"$(INTDIR)\compat.sbr" \
 	"$(INTDIR)\print.sbr" \
@@ -431,6 +436,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\util.obj" \
 	"$(INTDIR)\var.obj" \
 	"$(INTDIR)\watchdog.obj" \
+	"$(INTDIR)\winapi.obj" \
 	"$(INTDIR)\workq.obj" \
 	"$(INTDIR)\compat.obj" \
 	"$(INTDIR)\print.obj" \
@@ -1281,6 +1287,25 @@ SOURCE=..\lib\var.cpp
 
 FILENAME=watchdog
 SOURCE=..\lib\watchdog.cpp
+!IF  "$(CFG)" == "wx-console - Win32 Release"
+
+
+"$(INTDIR)\$(FILENAME).obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "wx-console - Win32 Debug"
+
+
+"$(INTDIR)\$(FILENAME).obj"	"$(INTDIR)\$(FILENAME).sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+
+FILENAME=winapi
+SOURCE=..\lib\winapi.cpp
 !IF  "$(CFG)" == "wx-console - Win32 Release"
 
 

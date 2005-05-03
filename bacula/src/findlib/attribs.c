@@ -33,7 +33,8 @@
 
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 
-#include "compat.h"
+#include "../lib/winapi.h"
+
 
 /* Forward referenced subroutines */
 static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd);
@@ -48,9 +49,9 @@ HANDLE bget_handle(BFILE *bfd);
 #endif
 
 /*=============================================================*/
-/*                                                             */
-/*             ***  A l l  S y s t e m s ***                   */
-/*                                                             */
+/*							       */
+/*	       ***  A l l  S y s t e m s ***		       */
+/*							       */
 /*=============================================================*/
 
 /*
@@ -72,11 +73,11 @@ int select_data_stream(FF_PKT *ff_pkt)
 #ifdef HAVE_LIBZ
    if (ff_pkt->flags & FO_GZIP) {
       if (stream == STREAM_WIN32_DATA) {
-         stream = STREAM_WIN32_GZIP_DATA;
+	 stream = STREAM_WIN32_GZIP_DATA;
       } else if (stream == STREAM_FILE_DATA) {
-         stream = STREAM_GZIP_DATA;
+	 stream = STREAM_GZIP_DATA;
       } else {
-         stream = STREAM_SPARSE_GZIP_DATA;
+	 stream = STREAM_SPARSE_GZIP_DATA;
       }
    }
 #endif
@@ -101,7 +102,7 @@ void encode_stat(char *buf, FF_PKT *ff_pkt, int data_stream)
    struct stat *statp = &ff_pkt->statp;
    /*
     *  Encode a stat packet.  I should have done this more intelligently
-    *   with a length so that it could be easily expanded.
+    *	with a length so that it could be easily expanded.
     */
    p += to_base64((int64_t)statp->st_dev, p);
    *p++ = ' ';                        /* separate fields with a space */
@@ -154,7 +155,7 @@ void encode_stat(char *buf, FF_PKT *ff_pkt, int data_stream)
 
 /* Do casting according to unknown type to keep compiler happy */
 #if !HAVE_GCC & HAVE_SUN_OS
-#define plug(st, val) st = val        /* brain damaged compiler */
+#define plug(st, val) st = val	      /* brain damaged compiler */
 #else
 template <class T> void plug(T &st, uint64_t val)
     { st = static_cast<T>(val); }
@@ -252,32 +253,32 @@ int32_t decode_LinkFI(char *buf, struct stat *statp)
    char *p = buf;
    int64_t val;
 
-   skip_nonspaces(&p);                /* st_dev */
-   p++;                               /* skip space */
-   skip_nonspaces(&p);                /* st_ino */
+   skip_nonspaces(&p);		      /* st_dev */
+   p++; 			      /* skip space */
+   skip_nonspaces(&p);		      /* st_ino */
    p++;
    p += from_base64(&val, p);
-   plug(statp->st_mode, val);         /* st_mode */
+   plug(statp->st_mode, val);	      /* st_mode */
    p++;
-   skip_nonspaces(&p);                /* st_nlink */
+   skip_nonspaces(&p);		      /* st_nlink */
    p++;
-   skip_nonspaces(&p);                /* st_uid */
+   skip_nonspaces(&p);		      /* st_uid */
    p++;
-   skip_nonspaces(&p);                /* st_gid */
+   skip_nonspaces(&p);		      /* st_gid */
    p++;
-   skip_nonspaces(&p);                /* st_rdev */
+   skip_nonspaces(&p);		      /* st_rdev */
    p++;
-   skip_nonspaces(&p);                /* st_size */
+   skip_nonspaces(&p);		      /* st_size */
    p++;
-   skip_nonspaces(&p);                /* st_blksize */
+   skip_nonspaces(&p);		      /* st_blksize */
    p++;
-   skip_nonspaces(&p);                /* st_blocks */
+   skip_nonspaces(&p);		      /* st_blocks */
    p++;
-   skip_nonspaces(&p);                /* st_atime */
+   skip_nonspaces(&p);		      /* st_atime */
    p++;
-   skip_nonspaces(&p);                /* st_mtime */
+   skip_nonspaces(&p);		      /* st_mtime */
    p++;
-   skip_nonspaces(&p);                /* st_ctime */
+   skip_nonspaces(&p);		      /* st_ctime */
 
    /* Optional FileIndex of hard linked file data */
    if (*p == ' ' || (*p != 0 && *(p+1) == ' ')) {
@@ -295,7 +296,7 @@ int32_t decode_LinkFI(char *buf, struct stat *statp)
  *  ofile is the output filename (may be in a different directory)
  *
  * Returns:  true  on success
- *           false on failure
+ *	     false on failure
  */
 bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
 {
@@ -308,7 +309,7 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    if (attr->stream == STREAM_UNIX_ATTRIBUTES_EX &&
        set_win32_attributes(jcr, attr, ofd)) {
        if (is_bopen(ofd)) {
-           bclose(ofd);
+	   bclose(ofd);
        }
        pm_strcpy(attr->ofname, "*none*");
        return true;
@@ -316,7 +317,7 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    if (attr->data_stream == STREAM_WIN32_DATA ||
        attr->data_stream == STREAM_WIN32_GZIP_DATA) {
       if (is_bopen(ofd)) {
-         bclose(ofd);
+	 bclose(ofd);
       }
       pm_strcpy(attr->ofname, "*none*");
       return true;
@@ -334,11 +335,11 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    if (is_bopen(ofd)) {
       char ec1[50], ec2[50];
       fsize = blseek(ofd, 0, SEEK_CUR);
-      bclose(ofd);                    /* first close file */
-      if (fsize > 0 && fsize != attr->statp.st_size) {
+      bclose(ofd);		      /* first close file */
+      if (fsize > 0 && fsize != (off_t)attr->statp.st_size) {
          Jmsg3(jcr, M_ERROR, 0, _("File size of restored file %s not correct. Original %s, restored %s.\n"),
-            attr->ofname, edit_uint64(attr->statp.st_size, ec1),
-            edit_uint64(fsize, ec2));
+	    attr->ofname, edit_uint64(attr->statp.st_size, ec1),
+	    edit_uint64(fsize, ec2));
       }
    }
 
@@ -348,38 +349,38 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    /* ***FIXME**** optimize -- don't do if already correct */
    /*
     * For link, change owner of link using lchown, but don't
-    *   try to do a chmod as that will update the file behind it.
+    *	try to do a chmod as that will update the file behind it.
     */
    if (attr->type == FT_LNK) {
       /* Change owner of link, not of real file */
       if (lchown(attr->ofname, attr->statp.st_uid, attr->statp.st_gid) < 0) {
-         berrno be;
+	 berrno be;
          Jmsg2(jcr, M_ERROR, 0, _("Unable to set file owner %s: ERR=%s\n"),
-            attr->ofname, be.strerror());
-         ok = false;
+	    attr->ofname, be.strerror());
+	 ok = false;
       }
    } else {
       if (chown(attr->ofname, attr->statp.st_uid, attr->statp.st_gid) < 0) {
-         berrno be;
+	 berrno be;
          Jmsg2(jcr, M_ERROR, 0, _("Unable to set file owner %s: ERR=%s\n"),
-            attr->ofname, be.strerror());
-         ok = false;
+	    attr->ofname, be.strerror());
+	 ok = false;
       }
       if (chmod(attr->ofname, attr->statp.st_mode) < 0) {
-         berrno be;
+	 berrno be;
          Jmsg2(jcr, M_ERROR, 0, _("Unable to set file modes %s: ERR=%s\n"),
-            attr->ofname, be.strerror());
-         ok = false;
+	    attr->ofname, be.strerror());
+	 ok = false;
       }
 
       /*
        * Reset file times.
        */
       if (utime(attr->ofname, &ut) < 0) {
-         berrno be;
+	 berrno be;
          Jmsg2(jcr, M_ERROR, 0, _("Unable to set file times %s: ERR=%s\n"),
-            attr->ofname, be.strerror());
-         ok = false;
+	    attr->ofname, be.strerror());
+	 ok = false;
       }
 #ifdef HAVE_CHFLAGS
       /*
@@ -390,10 +391,10 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
        *  fail.
        */
       if (chflags(attr->ofname, attr->statp.st_flags) < 0) {
-         berrno be;
+	 berrno be;
          Jmsg2(jcr, M_ERROR, 0, _("Unable to set file flags %s: ERR=%s\n"),
-            attr->ofname, be.strerror());
-         ok = false;
+	    attr->ofname, be.strerror());
+	 ok = false;
       }
 #endif
    }
@@ -404,9 +405,9 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
 
 
 /*=============================================================*/
-/*                                                             */
-/*                 * * *  U n i x * * * *                      */
-/*                                                             */
+/*							       */
+/*		   * * *  U n i x * * * *		       */
+/*							       */
 /*=============================================================*/
 
 #if !defined(HAVE_CYGWIN) && !defined(HAVE_WIN32)
@@ -417,7 +418,7 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
  *   here.  They must be "self-contained" (i.e. you keep track
  *   of your own length), and they must be in ASCII string
  *   format. Using this feature is not recommended.
- * The code below shows how to return nothing.  See the Win32
+ * The code below shows how to return nothing.	See the Win32
  *   code below for returning something in the attributes.
  */
 int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
@@ -434,7 +435,7 @@ int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
    }
    *p = 0;
 #else
-   *attribsEx = 0;                    /* no extended attributes */
+   *attribsEx = 0;		      /* no extended attributes */
 #endif
    return STREAM_UNIX_ATTRIBUTES;
 }
@@ -444,9 +445,9 @@ int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
 
 
 /*=============================================================*/
-/*                                                             */
-/*                 * * *  W i n 3 2 * * * *                    */
-/*                                                             */
+/*							       */
+/*		   * * *  W i n 3 2 * * * *		       */
+/*							       */
 /*=============================================================*/
 
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
@@ -457,31 +458,31 @@ int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
    WIN32_FILE_ATTRIBUTE_DATA atts;
    ULARGE_INTEGER li;
 
-   attribsEx[0] = 0;                  /* no extended attributes */
+   attribsEx[0] = 0;		      /* no extended attributes */
 
    // try unicode version
-   if (p_GetFileAttributesExW)  {
+   if (p_GetFileAttributesExW)	{
       unix_name_to_win32(&ff_pkt->sys_fname, ff_pkt->fname);
 
       WCHAR szBuf[MAX_PATH_UNICODE];
       UTF8_2_wchar(szBuf, ff_pkt->sys_fname, MAX_PATH_UNICODE);
 
       if (!p_GetFileAttributesExW(szBuf, GetFileExInfoStandard,
-                              (LPVOID)&atts)) {
+			      (LPVOID)&atts)) {
          win_error(jcr, "GetFileAttributesExW:", ff_pkt->sys_fname);
-         return STREAM_UNIX_ATTRIBUTES;
+	 return STREAM_UNIX_ATTRIBUTES;
       }
    }
    else   {
       if (!p_GetFileAttributesExA)
-         return STREAM_UNIX_ATTRIBUTES;
+	 return STREAM_UNIX_ATTRIBUTES;
 
       unix_name_to_win32(&ff_pkt->sys_fname, ff_pkt->fname);
 
       if (!p_GetFileAttributesExA(ff_pkt->sys_fname, GetFileExInfoStandard,
-                              (LPVOID)&atts)) {
+			      (LPVOID)&atts)) {
          win_error(jcr, "GetFileAttributesExA:", ff_pkt->sys_fname);
-         return STREAM_UNIX_ATTRIBUTES;
+	 return STREAM_UNIX_ATTRIBUTES;
       }
    }
 
@@ -515,7 +516,7 @@ int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
          FILE_ATTRIBUTE_OFFLINE| \
          FILE_ATTRIBUTE_READONLY| \
          FILE_ATTRIBUTE_SYSTEM| \
-         FILE_ATTRIBUTE_TEMPORARY)
+	 FILE_ATTRIBUTE_TEMPORARY)
 
 
 /*
@@ -525,7 +526,7 @@ int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
  *  ofile is the output filename (may be in a different directory)
  *
  * Returns:  true  on success
- *           false on failure
+ *	     false on failure
  */
 static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
 {
@@ -539,10 +540,10 @@ static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    if (!(p_SetFileAttributesW || p_SetFileAttributesA))
       return false;
 
-   if (!p || !*p) {                   /* we should have attributes */
+   if (!p || !*p) {		      /* we should have attributes */
       Dmsg2(100, "Attributes missing. of=%s ofd=%d\n", attr->ofname, ofd->fid);
       if (is_bopen(ofd)) {
-         bclose(ofd);
+	 bclose(ofd);
       }
       return false;
    } else {
@@ -551,17 +552,17 @@ static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
 
    p += from_base64(&val, p);
    plug(atts.dwFileAttributes, val);
-   p++;                               /* skip space */
+   p++; 			      /* skip space */
    p += from_base64(&val, p);
    li.QuadPart = val;
    atts.ftCreationTime.dwLowDateTime = li.LowPart;
    atts.ftCreationTime.dwHighDateTime = li.HighPart;
-   p++;                               /* skip space */
+   p++; 			      /* skip space */
    p += from_base64(&val, p);
    li.QuadPart = val;
    atts.ftLastAccessTime.dwLowDateTime = li.LowPart;
    atts.ftLastAccessTime.dwHighDateTime = li.HighPart;
-   p++;                               /* skip space */
+   p++; 			      /* skip space */
    p += from_base64(&val, p);
    li.QuadPart = val;
    atts.ftLastWriteTime.dwLowDateTime = li.LowPart;
@@ -583,15 +584,15 @@ static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
 
    if (!is_bopen(ofd)) {
       Dmsg1(100, "File not open: %s\n", attr->ofname);
-      bopen(ofd, attr->ofname, O_WRONLY|O_BINARY, 0);   /* attempt to open the file */
+      bopen(ofd, attr->ofname, O_WRONLY|O_BINARY, 0);	/* attempt to open the file */
    }
 
    if (is_bopen(ofd)) {
       Dmsg1(100, "SetFileTime %s\n", attr->ofname);
       if (!SetFileTime(bget_handle(ofd),
-                         &atts.ftCreationTime,
-                         &atts.ftLastAccessTime,
-                         &atts.ftLastWriteTime)) {
+			 &atts.ftCreationTime,
+			 &atts.ftLastAccessTime,
+			 &atts.ftLastWriteTime)) {
          win_error(jcr, "SetFileTime:", win32_ofile);
       }
       bclose(ofd);
@@ -606,12 +607,12 @@ static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
 
    if (!SetFileAttributesW(szBuf, atts.dwFileAttributes & SET_ATTRS)) {
          win_error(jcr, "SetFileAttributesW:", win32_ofile);
-        }
+	}
       }
       else {
       if (!SetFileAttributes(win32_ofile, atts.dwFileAttributes & SET_ATTRS)) {
          win_error(jcr, "SetFileAttributesA:", win32_ofile);
-         }
+	 }
       }
    }
    free_pool_memory(win32_ofile);
@@ -623,13 +624,13 @@ void win_error(JCR *jcr, char *prefix, POOLMEM *win32_ofile)
    DWORD lerror = GetLastError();
    LPTSTR msg;
    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|
-                 FORMAT_MESSAGE_FROM_SYSTEM,
-                 NULL,
-                 lerror,
-                 0,
-                 (LPTSTR)&msg,
-                 0,
-                 NULL);
+		 FORMAT_MESSAGE_FROM_SYSTEM,
+		 NULL,
+		 lerror,
+		 0,
+		 (LPTSTR)&msg,
+		 0,
+		 NULL);
    Dmsg3(100, "Error in %s on file %s: ERR=%s\n", prefix, win32_ofile, msg);
    strip_trailing_junk(msg);
    Jmsg(jcr, M_ERROR, 0, _("Error in %s file %s: ERR=%s\n"), prefix, win32_ofile, msg);
@@ -640,13 +641,13 @@ void win_error(JCR *jcr, char *prefix, DWORD lerror)
 {
    LPTSTR msg;
    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|
-                 FORMAT_MESSAGE_FROM_SYSTEM,
-                 NULL,
-                 lerror,
-                 0,
-                 (LPTSTR)&msg,
-                 0,
-                 NULL);
+		 FORMAT_MESSAGE_FROM_SYSTEM,
+		 NULL,
+		 lerror,
+		 0,
+		 (LPTSTR)&msg,
+		 0,
+		 NULL);
    strip_trailing_junk(msg);
    if (jcr) {
       Jmsg2(jcr, M_ERROR, 0, _("Error in %s: ERR=%s\n"), prefix, msg);
@@ -667,4 +668,4 @@ void unix_name_to_win32(POOLMEM **win32_name, char *name)
    cygwin_conv_to_win32_path(name, *win32_name);
 }
 
-#endif  /* HAVE_CYGWIN */
+#endif	/* HAVE_CYGWIN */

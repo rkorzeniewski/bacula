@@ -308,8 +308,8 @@ static int read_block_from_spool_file(DCR *dcr)
          Jmsg(dcr->jcr, M_FATAL, 0, _("Spool header read error. ERR=%s\n"),
               be.strerror());
       } else {
-         Pmsg2(000, "Spool read error. Wanted %u bytes, got %u\n", rlen, stat);
-         Jmsg2(dcr->jcr, M_FATAL, 0, _("Spool header read error. Wanted %u bytes, got %u\n"), rlen, stat);
+         Pmsg2(000, "Spool read error. Wanted %u bytes, got %d\n", rlen, stat);
+         Jmsg2(dcr->jcr, M_FATAL, 0, _("Spool header read error. Wanted %u bytes, got %d\n"), rlen, stat);
       }
       return RB_ERROR;
    }
@@ -321,8 +321,8 @@ static int read_block_from_spool_file(DCR *dcr)
    }
    stat = read(dcr->spool_fd, (char *)block->buf, (size_t)rlen);
    if (stat != (ssize_t)rlen) {
-      Pmsg2(000, "Spool data read error. Wanted %u bytes, got %u\n", rlen, stat);
-      Jmsg2(dcr->jcr, M_FATAL, 0, _("Spool data read error. Wanted %u bytes, got %u\n"), rlen, stat);
+      Pmsg2(000, "Spool data read error. Wanted %u bytes, got %d\n", rlen, stat);
+      Jmsg2(dcr->jcr, M_FATAL, 0, _("Spool data read error. Wanted %u bytes, got %d\n"), rlen, stat);
       return RB_ERROR;
    }
    /* Setup write pointers */
