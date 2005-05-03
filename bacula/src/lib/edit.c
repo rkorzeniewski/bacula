@@ -98,7 +98,7 @@ char *edit_uint64_with_commas(uint64_t val, char *buf)
          val /= 10;
       }
    }
-   bstrncpy(buf, &mbuf[i+1], sizeof(buf));
+   bstrncpy(buf, &mbuf[i+1], 27);
    return add_commas(buf, buf);
 }
 
@@ -123,7 +123,7 @@ char *edit_uint64(uint64_t val, char *buf)
          val /= 10;
       }
    }
-   strcpy(buf, &mbuf[i+1]);
+   bstrncpy(buf, &mbuf[i+1], 27);
    return buf;
 }
 
@@ -151,7 +151,7 @@ char *edit_int64(int64_t val, char *buf)
    if (negative) {
       mbuf[i--] = '-';
    }
-   strcpy(buf, &mbuf[i+1]);
+   bstrncpy(buf, &mbuf[i+1], 27);
    return buf;
 }
 
