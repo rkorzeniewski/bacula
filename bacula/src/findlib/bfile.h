@@ -50,7 +50,7 @@ struct Python_IO {
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 
 #include <windows.h>
-#include "winapi.h"
+#include "../lib/winapi.h"
 
 enum {
    BF_CLOSED,
