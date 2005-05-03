@@ -1381,11 +1381,10 @@ unlink(const char *file)
    int nRetCode;
    if (p_wunlink) {
       WCHAR szBuf[MAX_PATH_UNICODE];
-      UTF8_2_wchar(szBuf, attr->ofname, MAX_PATH_UNICODE);
-
+      UTF8_2_wchar(szBuf, file, MAX_PATH_UNICODE);
       nRetCode = _wunlink(szBuf);
    } else {
-      nRetCode = _unlink(attr->ofname);
+      nRetCode = _unlink(file);
    }
    return nRetCode;
 }
