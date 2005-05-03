@@ -63,6 +63,9 @@ class wxbUtils
        * if keepresults is true, returns a valid pointer to a wxbPromptParser
        * containing the data. */
       static wxbPromptParser* WaitForPrompt(wxString cmd, bool keepresults = false);
+      
+      /* Sleeps during milliseconds (wrapper for wxUsleep (2.4) or wxMilliSleep (2.6)) */
+      static void MilliSleep(unsigned long milliseconds);
 
    private:
       static bool inited;

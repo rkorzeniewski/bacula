@@ -37,6 +37,15 @@
 
 bool wxbUtils::inited = false;
 
+/* Sleeps during milliseconds (wrapper for wxUsleep (2.4) or wxMilliSleep (2.6)) */
+void wxbUtils::MilliSleep(unsigned long milliseconds) {
+#if wxCHECK_VERSION(2, 6, 0)
+   ::wxMilliSleep(milliseconds);
+#else
+   ::wxUsleep(milliseconds);
+#endif
+}
+
 /* Initialization */
 void wxbUtils::Init() {
    inited = true;
@@ -57,7 +66,7 @@ wxbTableParser* wxbUtils::CreateAndWaitForParser(wxString cmd) {
    while (!tableParser->hasFinished()) {
       //innerThread->Yield();
       wxTheApp->Yield(true);
-      ::wxUsleep(100);
+      wxbUtils::MilliSleep(100);
       //if (base+15 < wxDateTime::Now().GetTicks()) break;
    }
    return tableParser;
@@ -75,7 +84,7 @@ wxbPromptParser* wxbUtils::WaitForPrompt(wxString cmd, bool keepresults) {
    while (!promptParser->hasFinished()) {
       //innerThread->Yield();
       wxTheApp->Yield(true);
-      ::wxUsleep(100);
+      wxbUtils::MilliSleep(100);
       //if (base+15 < wxDateTime::Now().GetTicks()) break;
    }
      
@@ -100,7 +109,7 @@ wxbDataTokenizer* wxbUtils::WaitForEnd(wxString cmd, bool keepresults, bool line
    while (!datatokenizer->hasFinished()) {
       //innerThread->Yield();
       wxTheApp->Yield(true);
-      ::wxUsleep(100);
+      wxbUtils::MilliSleep(100);
       //if (base+15 < wxDateTime::Now().GetTicks()) break;
    }
    

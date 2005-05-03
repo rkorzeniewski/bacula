@@ -301,7 +301,11 @@ wxbMainFrame::wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSi
 
    wxBoxSizer* globalSizer = new wxBoxSizer(wxHORIZONTAL);
 
+#if wxCHECK_VERSION(2, 6, 0)
+   globalSizer->Add(notebook, 1, wxEXPAND, 0);
+#else
    globalSizer->Add(new wxNotebookSizer(notebook), 1, wxEXPAND, 0);
+#endif
 
    global->SetSizer( globalSizer );
    globalSizer->SetSizeHints( global );

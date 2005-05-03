@@ -610,7 +610,7 @@ void wxbRestorePanel::CmdStart() {
    
       while (!tableparser->hasFinished() && !dt->hasFinished()) {
          wxTheApp->Yield(true);
-         ::wxUsleep(100);
+         wxbUtils::MilliSleep(100);
       }
       
       wxString str;
@@ -690,7 +690,7 @@ void wxbRestorePanel::CmdStart() {
             }
          }
          wxTheApp->Yield(true);
-         ::wxUsleep(1);
+         wxbUtils::MilliSleep(1);
       }
 
       gauge->SetValue(tot);
@@ -947,7 +947,7 @@ void wxbRestorePanel::CmdStart() {
          wxStopWatch sw2;
          while (sw2.Time() < 10000) {  
             wxTheApp->Yield(true);
-            ::wxUsleep(100);
+            wxbUtils::MilliSleep(100);
          }
          
          if (ended) {
@@ -988,7 +988,7 @@ void wxbRestorePanel::CmdCancel() {
    wxStopWatch sw;
    while ((IsWorking()) && (cancelled != 2)) {
       wxTheApp->Yield(true);
-      ::wxUsleep(100);
+      wxbUtils::MilliSleep(100);
       if (sw.Time() > 30000) { /* 30 seconds timeout */
          if (status == choosing) {
             wxbMainFrame::GetInstance()->Send("quit\n");
@@ -1000,7 +1000,7 @@ void wxbRestorePanel::CmdCancel() {
             
          }
          SetStatus(finished);
-         ::wxUsleep(1000);
+         wxbUtils::MilliSleep(1000);
          return;
       }
    }
@@ -1015,7 +1015,7 @@ void wxbRestorePanel::CmdCancel() {
    default:
       break;
    }
-   ::wxUsleep(1000);
+   wxbUtils::MilliSleep(1000);
    SetStatus(finished);
 }
 
@@ -1178,7 +1178,7 @@ void wxbRestorePanel::CmdListJobs() {
 
       while (!tableparser->hasFinished()) {
          wxTheApp->Yield(true);
-         ::wxUsleep(100);
+         wxbUtils::MilliSleep(100);
       }
          
       if (!tableparser->GetCount() == 0) {
@@ -1414,7 +1414,12 @@ void wxbRestorePanel::UpdateTreeItem(wxTreeItemId item, bool updatelist, bool re
       if (file[8].GetChar(file[8].Length()-1) == '/') {
          wxString itemStr;
 
+#if wxCHECK_VERSION(2, 6, 0)
+         wxTreeItemIdValue cookie;
+#else
          long cookie;
+#endif
+         
          treeid = tree->GetFirstChild(item, cookie);
 
          bool updated = false;
@@ -1521,7 +1526,11 @@ void wxbRestorePanel::SetListItemState(long listitem, int newstate) {
 
 /* Sets a tree item state, and update its children, parents and list (if necessary) */
 void wxbRestorePanel::SetTreeItemState(wxTreeItemId item, int newstate) {
+#if wxCHECK_VERSION(2, 6, 0)
+   wxTreeItemIdValue cookie;
+#else
    long cookie;
+#endif
    wxTreeItemId currentChild = tree->GetFirstChild(item, cookie);
 
    wxbTreeItemData* itemdata;
@@ -1563,7 +1572,11 @@ void wxbRestorePanel::UpdateTreeItemState(wxTreeItemId item) {
    
    int state = 0;
        
+#if wxCHECK_VERSION(2, 6, 0)
+   wxTreeItemIdValue cookie;
+#else
    long cookie;
+#endif
    wxTreeItemId currentChild = tree->GetFirstChild(item, cookie);
 
    bool onechildmarked = false;
@@ -1665,7 +1678,11 @@ void wxbRestorePanel::RefreshTree() {
    bool match;
    
    for (int i = current.Count()-1; i >= 0; i--) {
+#if wxCHECK_VERSION(2, 6, 0)
+      wxTreeItemIdValue cookie;
+#else
       long cookie;
+#endif
       wxTreeItemId currentChild = tree->GetFirstChild(item, cookie);
       
       match = false;
@@ -2150,7 +2167,11 @@ void wxbRestorePanel::OnListActivated(wxListEvent& event) {
 
       wxString itemStr;
 
+#if wxCHECK_VERSION(2, 6, 0)
+      wxTreeItemIdValue cookie;
+#else
       long cookie;
+#endif
 
       if (name.GetChar(name.Length()-1) == '/') {
          wxTreeItemId currentChild = tree->GetFirstChild(currentTreeItem, cookie);
