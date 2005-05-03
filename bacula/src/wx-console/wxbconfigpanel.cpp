@@ -65,7 +65,7 @@ wxbConfigParam::~wxbConfigParam() {
 }
   
 void wxbConfigParam::AddControl(wxWindow* parent, wxSizer* sizer) {
-   sizer->Add(new wxStaticText(parent, -1, title + ": ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 0, wxEXPAND | wxALIGN_CENTER_HORIZONTAL);
+   sizer->Add(new wxStaticText(parent, -1, title + ": ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 0, wxALIGN_CENTER_VERTICAL);
    switch (type) {
    case text:
       statictext = new wxStaticText(parent, -1, value, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
@@ -76,7 +76,12 @@ void wxbConfigParam::AddControl(wxWindow* parent, wxSizer* sizer) {
       sizer->Add(textctrl, 1, wxEXPAND | wxADJUST_MINSIZE);
       break;
    case choice:
-      choicectrl = new wxChoice(parent, id, wxDefaultPosition, wxSize(150, 20), nvalues, values);
+#if defined __WXGTK20__ /* Choices are taller under GTK+-2.0 */
+      wxSize size = wxSize(150, 25);
+#else
+      wxSize size = wxSize(150, 20);
+#endif
+      choicectrl = new wxChoice(parent, id, wxDefaultPosition, size, nvalues, values);
       sizer->Add(choicectrl, 1, wxEXPAND);
       break;
    }

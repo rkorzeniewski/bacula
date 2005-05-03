@@ -1,3 +1,6 @@
+03-05-2005:
+ - Fix wxChoice height problem under wxGTK-2.6.0 (GTK+-2.0).
+
 26-04-2005 :
  - Improve error handling when reading configuration file.
  - Fixes compile error with unicode-enabled wxWidgets.
