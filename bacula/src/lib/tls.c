@@ -925,7 +925,9 @@ int cleanup_tls (void)
 
 #else
 
+/* Dummy routines */
 int init_tls(void) { return 0; }
+int cleanup_tls (void) { return 0; }
 
 
 #endif /* HAVE_TLS */

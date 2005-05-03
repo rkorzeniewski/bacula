@@ -262,10 +262,6 @@ static int check_resources()
 {
    bool OK = true;
    AUTOCHANGER *changer;
-#ifdef HAVE_TLS
-   DIRRES *director;
-   STORES *store;
-#endif
 
    LockRes();
 
@@ -297,7 +293,7 @@ static int check_resources()
       if (!me->messages) {
          Jmsg1(NULL, M_ERROR, 0, _("No Messages resource defined in %s. Cannot continue.\n"),
             configfile);
-	 OK = false;
+         OK = false;
       }
    }
 
@@ -308,96 +304,95 @@ static int check_resources()
    }
 
 #ifdef HAVE_TLS
+   DIRRES *director;
+   STORES *store;
    foreach_res(store, R_STORAGE) { 
       /* tls_require implies tls_enable */
       if (store->tls_require) {
-	 store->tls_enable = true;
+         store->tls_enable = true;
       }
 
       if (!store->tls_certfile && store->tls_enable) {
-	 Jmsg(NULL, M_FATAL, 0, _("\"TLS Certificate\" file not defined for Storage \"%s\" in %s.\n"),
-	      store->hdr.name, configfile);
-	 OK = false;
+         Jmsg(NULL, M_FATAL, 0, _("\"TLS Certificate\" file not defined for Storage \"%s\" in %s.\n"),
+              store->hdr.name, configfile);
+         OK = false;
       }
 
       if (!store->tls_keyfile && store->tls_enable) {
-	 Jmsg(NULL, M_FATAL, 0, _("\"TLS Key\" file not defined for Storage \"%s\" in %s.\n"),
-	      store->hdr.name, configfile);
-	 OK = false;
+         Jmsg(NULL, M_FATAL, 0, _("\"TLS Key\" file not defined for Storage \"%s\" in %s.\n"),
+              store->hdr.name, configfile);
+         OK = false;
       }
 
       if ((!store->tls_ca_certfile && !store->tls_ca_certdir) && store->tls_enable && store->tls_verify_peer) {
-	 Jmsg(NULL, M_FATAL, 0, _("Neither \"TLS CA Certificate\""
-	      " or \"TLS CA Certificate Dir\" are defined for Storage \"%s\" in %s."
-	      " At least one CA certificate store is required"
-	      " when using \"TLS Verify Peer\".\n"),
-	      store->hdr.name, configfile);
-	 OK = false;
+         Jmsg(NULL, M_FATAL, 0, _("Neither \"TLS CA Certificate\""
+              " or \"TLS CA Certificate Dir\" are defined for Storage \"%s\" in %s."
+              " At least one CA certificate store is required"
+              " when using \"TLS Verify Peer\".\n"),
+              store->hdr.name, configfile);
+         OK = false;
       }
 
       /* If everything is well, attempt to initialize our per-resource TLS context */
       if (OK && (store->tls_enable || store->tls_require)) {
-	 /* Initialize TLS context:
-	  * Args: CA certfile, CA certdir, Certfile, Keyfile,
-	  * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */
-	 store->tls_ctx = new_tls_context(store->tls_ca_certfile,
-	    store->tls_ca_certdir, store->tls_certfile,
-	    store->tls_keyfile, NULL, NULL, store->tls_dhfile,
-	    store->tls_verify_peer);
+         /* Initialize TLS context:
+          * Args: CA certfile, CA certdir, Certfile, Keyfile,
+          * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */
+         store->tls_ctx = new_tls_context(store->tls_ca_certfile,
+            store->tls_ca_certdir, store->tls_certfile,
+            store->tls_keyfile, NULL, NULL, store->tls_dhfile,
+            store->tls_verify_peer);
 
-	 if (!store->tls_ctx) { 
-	    Jmsg(NULL, M_FATAL, 0, _("Failed to initialize TLS context for Storage \"%s\" in %s.\n"),
-		 store->hdr.name, configfile);
-	    OK = false;
-	 }
+         if (!store->tls_ctx) { 
+            Jmsg(NULL, M_FATAL, 0, _("Failed to initialize TLS context for Storage \"%s\" in %s.\n"),
+                 store->hdr.name, configfile);
+            OK = false;
+         }
       }
    }
-#endif /* HAVE_TLS */
 
-
-#ifdef HAVE_TLS
    foreach_res(director, R_DIRECTOR) { 
       /* tls_require implies tls_enable */
       if (director->tls_require) {
-	 director->tls_enable = true;
+         director->tls_enable = true;
       }
 
       if (!director->tls_certfile && director->tls_enable) {
-	 Jmsg(NULL, M_FATAL, 0, _("\"TLS Certificate\" file not defined for Director \"%s\" in %s.\n"),
-	      director->hdr.name, configfile);
-	 OK = false;
+         Jmsg(NULL, M_FATAL, 0, _("\"TLS Certificate\" file not defined for Director \"%s\" in %s.\n"),
+              director->hdr.name, configfile);
+         OK = false;
       }
 
       if (!director->tls_keyfile && director->tls_enable) {
-	 Jmsg(NULL, M_FATAL, 0, _("\"TLS Key\" file not defined for Director \"%s\" in %s.\n"),
-	      director->hdr.name, configfile);
-	 OK = false;
+         Jmsg(NULL, M_FATAL, 0, _("\"TLS Key\" file not defined for Director \"%s\" in %s.\n"),
+              director->hdr.name, configfile);
+         OK = false;
       }
 
       if ((!director->tls_ca_certfile && !director->tls_ca_certdir) && director->tls_enable && director->tls_verify_peer) {
-	 Jmsg(NULL, M_FATAL, 0, _("Neither \"TLS CA Certificate\""
-	      " or \"TLS CA Certificate Dir\" are defined for Director \"%s\" in %s."
-	      " At least one CA certificate store is required"
-	      " when using \"TLS Verify Peer\".\n"),
-	      director->hdr.name, configfile);
-	 OK = false;
+         Jmsg(NULL, M_FATAL, 0, _("Neither \"TLS CA Certificate\""
+              " or \"TLS CA Certificate Dir\" are defined for Director \"%s\" in %s."
+              " At least one CA certificate store is required"
+              " when using \"TLS Verify Peer\".\n"),
+              director->hdr.name, configfile);
+         OK = false;
       }
 
       /* If everything is well, attempt to initialize our per-resource TLS context */
       if (OK && (director->tls_enable || director->tls_require)) {
-	 /* Initialize TLS context:
-	  * Args: CA certfile, CA certdir, Certfile, Keyfile,
-	  * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */
-	 director->tls_ctx = new_tls_context(director->tls_ca_certfile,
-	    director->tls_ca_certdir, director->tls_certfile,
-	    director->tls_keyfile, NULL, NULL, director->tls_dhfile,
-	    director->tls_verify_peer);
+         /* Initialize TLS context:
+          * Args: CA certfile, CA certdir, Certfile, Keyfile,
+          * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */
+         director->tls_ctx = new_tls_context(director->tls_ca_certfile,
+            director->tls_ca_certdir, director->tls_certfile,
+            director->tls_keyfile, NULL, NULL, director->tls_dhfile,
+            director->tls_verify_peer);
 
-	 if (!director->tls_ctx) { 
-	    Jmsg(NULL, M_FATAL, 0, _("Failed to initialize TLS context for Director \"%s\" in %s.\n"),
-		 director->hdr.name, configfile);
-	    OK = false;
-	 }
+         if (!director->tls_ctx) { 
+            Jmsg(NULL, M_FATAL, 0, _("Failed to initialize TLS context for Director \"%s\" in %s.\n"),
+                 director->hdr.name, configfile);
+            OK = false;
+         }
       }
    }
 #endif /* HAVE_TLS */
@@ -415,8 +410,8 @@ static int check_resources()
             Jmsg(NULL, M_ERROR, 0, 
                _("Media Type not the same for all devices in changer %s. Cannot continue.\n"),
                changer->hdr.name);
-	    OK = false;
-	    continue;
+            OK = false;
+            continue;
          }
          /*
           * If the device does not have a changer name or changer command
@@ -563,9 +558,7 @@ void terminate_stored(int sig)
    }
    term_msg();
    stop_watchdog();
-#ifdef HAVE_TLS
    cleanup_tls();
-#endif
    close_memory_pool();
 
    sm_dump(false);                    /* dump orphaned buffers */
