@@ -1376,6 +1376,22 @@ utime(const char *fname, struct utimbuf *times)
 #if USE_WIN32_COMPAT_IO
 
 int
+unlink(const char *file)
+{
+   int nRetCode;
+   if (p_wunlink) {
+      WCHAR szBuf[MAX_PATH_UNICODE];
+      UTF8_2_wchar(szBuf, attr->ofname, MAX_PATH_UNICODE);
+
+      nRetCode = _wunlink(szBuf);
+   } else {
+      nRetCode = _unlink(attr->ofname);
+   }
+   return nRetCode;
+}
+
+
+int
 open(const char *file, int flags, int mode)
 {
    if (p_wopen) {
@@ -1413,6 +1429,7 @@ write(int fd, const void *buf, ssize_t len)
     return _write(fd, buf, (size_t)len);
 }
 #endif
+
 
 off_t
 lseek(int fd, off_t offset, int whence)
