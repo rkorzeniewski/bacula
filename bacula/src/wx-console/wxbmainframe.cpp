@@ -195,6 +195,11 @@ wxbMainFrame* wxbMainFrame::GetInstance()
  */
 wxbMainFrame::~wxbMainFrame()
 {
+   wxConfig::Get()->Write("/Position/X", (long)GetPosition().x);
+   wxConfig::Get()->Write("/Position/Y", (long)GetPosition().y);
+   wxConfig::Get()->Write("/Size/Width", (long)GetSize().GetWidth());
+   wxConfig::Get()->Write("/Size/Height", (long)GetSize().GetHeight());
+
    if (ct != NULL) { // && (!ct->IsRunning())
       ct->Delete();
    }

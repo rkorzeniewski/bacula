@@ -1,4 +1,7 @@
-03-05-2005:
+04-05-2005 :
+ - Remember the last window position and size.
+
+03-05-2005 :
  - Fix compilation warnings with wxWidgets 2.6.0.
  - Fix wxChoice height problem under wxGTK-2.6.0 (GTK+-2.0).
 

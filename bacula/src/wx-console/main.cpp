@@ -33,6 +33,7 @@
 // ----------------------------------------------------------------------------
 
 #include <wx/wxprec.h>
+#include <wx/config.h>
 
 #include "wxbmainframe.h"
 
@@ -66,8 +67,30 @@ IMPLEMENT_APP(MyApp)
 // 'Main program' equivalent: the program execution "starts" here
 bool MyApp::OnInit()
 {
+   long posx, posy, sizex, sizey;
+   int displayx, displayy;
+   wxConfig::Get()->Read("/Position/X", &posx, 50);
+   wxConfig::Get()->Read("/Position/Y", &posy, 50);
+   wxConfig::Get()->Read("/Size/Width", &sizex, 780);
+   wxConfig::Get()->Read("/Size/Height", &sizey, 500);
+   
+   wxDisplaySize(&displayx, &displayy);
+   
+   /* Check if we are on the screen... */
+   if ((posx+sizex > displayx) || (posy+sizey > displayy)) {
+      /* Try to move the top-left corner first */
+      posx = 50;
+      posy = 50;
+      if ((posx+sizex > displayx) || (posy+sizey > displayy)) {
+         posx = 25;
+         posy = 25;
+         sizex = displayx - 50;
+         sizey = displayy - 50;
+      }
+   }
+
    wxbMainFrame *frame = wxbMainFrame::CreateInstance(_T("Bacula wx-console"),
-                         wxPoint(50, 50), wxSize(780, 500));
+                         wxPoint(posx, posy), wxSize(sizex, sizey));
 
    frame->Show(TRUE);
 
