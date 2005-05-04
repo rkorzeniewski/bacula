@@ -53,6 +53,8 @@ Document:
 - Document that ChangerDevice is used for Alert command.
 
 For 1.37:
+- --without-openssl breaks at least on Solaris.
+- Move test for max wait time exceeded in job.c up -- Peter's idea.
 - Python:
   - Make a callback when Rerun failed levels is called.
   - Give Python program access to Scheduled jobs.
