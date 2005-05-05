@@ -1,5 +1,40 @@
 
+Changes to 1.37.16 (03May05): released 05May05
+03May05
+- Make a few tls ifdef tweaks.
+- Fix create_file.c Win32 problem pointed out by
+  Peter Sjoberg.
+- Fix really ugly bstrncpy() but found by Thorsten.
+- Move winapi.h/c from findlib to lib for inclusion in 
+  multiple places.
+02May05
+- Thorsten Engel finished his work on Win32 Unicode. We
+  now have a single executable that runs on all Win32 machines.
+- Move job initialization code after job scheduling so that
+  Verify jobs check for the prior JobId after they are really
+  started rather than before.
+- Fix lib/fnmatch.c so that it does proper testing before folding.
+- More documentation -- at tls and ansi labels chapters.
+- Fix fileset_convert.pl to handle empty Exclude statements.
+- Turn regex back off in Win32
+01May05
+- Fix sign extension problem in lex.c that reads UTF-8 
+  with Chinese characters incorrectly.
+
 Changes to 1.37.14:
+30Apr05
+- Remove a few HAVE_TLS #ifdefs
+- Implement final Python style interface. More implemention to
+  be done, but the interface should change little if at all.
+28Apr05
+- Make default no tls support. You must add 
+  --with-openssl to get tls support.
+27Apr05
+- Update Web header to include google search in the search
+  box -- thanks to input from Michel Meyers.
+- Fix md5sum so that it builds with the new openssl stuff.
+- Take some enhancements to the md5sum test program proposed
+  by a user.
 26Apr05
 - Apply Tru64 patch supplied by Pascal Pederiva <freebsd@paped.com>
 - Apply Unicode fixes for Win32 from "Thorsten Engel" 
