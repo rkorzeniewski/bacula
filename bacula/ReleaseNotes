@@ -1,7 +1,7 @@
 
-          Release Notes for Bacula 1.37.14
+          Release Notes for Bacula 1.37.16
 
-  Bacula code: Total files = 422 Total lines = 129,844 (*.h *.c *.in)
+  Bacula code: Total files = 425 Total lines = 137,071 (*.h *.c *.in)
 
 Note! The DB has been upgraded from version 8 to 9 and requres
 a DB upgrade.
@@ -19,7 +19,9 @@ Major Changes:
 - New communications protocol between DIR and SD to reserve 
   drives.
 - Python Event support has been added. See below for
-  configuration and details.
+  configuration and details. Unfortunately, it is not yet complete
+  and the only really useful function is defining a new
+  Volume name.
 - DVD writing support, using parts, and a lot of new directives in
   the Device resource of the Storage configuration file thanks
   to Nicolas Boichat.
