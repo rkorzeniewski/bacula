@@ -692,7 +692,7 @@ void wxbMainFrame::Print(wxString str, int status)
    else {
       consoleCtrl->SetDefaultStyle(wxTextAttr(*wxBLACK));
    }
-   consoleBuffer << str;
+   consoleBuffer << wxbUtils::ConvertToPrintable(str);
    if (status == CS_PROMPT) {
       if (lockedbyconsole) {
          EnableConsole(true);
@@ -732,7 +732,7 @@ void wxbMainFrame::Send(wxString str)
       ct->Write((const char*)str);
       typeCtrl->SetValue("");
       consoleCtrl->SetDefaultStyle(wxTextAttr(*wxRED));
-      consoleCtrl->AppendText(str);
+      consoleCtrl->AppendText(wxbUtils::ConvertToPrintable(str));
       consoleCtrl->ScrollLines(3);
    }
    

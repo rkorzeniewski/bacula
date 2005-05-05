@@ -37,6 +37,23 @@
 
 bool wxbUtils::inited = false;
 
+wxString wxbUtils::ConvertToPrintable(wxString& str) {
+   /* FIXME : Unicode support should be added to fix this problem */
+#if wxUSE_UNICODE == 0
+   wxString strnew(str);
+   /* Convert the string to something printable without unicode */
+   for (unsigned int i = 0; i < strnew.Length(); i++) {
+      /* If the character is not ASCII, print a ? */
+      if (((unsigned char)strnew[i] > (unsigned char)127)) {
+         strnew[i] = '?';
+      }
+   }
+   return strnew;
+#else
+   return str;
+#endif   
+}
+
 /* Sleeps during milliseconds (wrapper for wxUsleep (2.4) or wxMilliSleep (2.6)) */
 void wxbUtils::MilliSleep(unsigned long milliseconds) {
 #if wxCHECK_VERSION(2, 6, 0)

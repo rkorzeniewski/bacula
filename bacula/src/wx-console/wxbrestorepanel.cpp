@@ -1425,7 +1425,7 @@ void wxbRestorePanel::UpdateTreeItem(wxTreeItemId item, bool updatelist, bool re
          bool updated = false;
 
          while (treeid.IsOk()) {
-            itemStr = tree->GetItemText(treeid);
+            itemStr = ((wxbTreeItemData*)tree->GetItemData(treeid))->GetName();
             if (file[8] == itemStr) {
                int stat = wxbTreeItemData::GetMarkedStatus(file[6]);
                if (static_cast<wxbTreeItemData*>(tree->GetItemData(treeid))->GetMarked() != stat) {
@@ -1444,7 +1444,7 @@ void wxbRestorePanel::UpdateTreeItem(wxTreeItemId item, bool updatelist, bool re
 
          if (!updated) {
             int img = wxbTreeItemData::GetMarkedStatus(file[6]);
-            treeid = tree->AppendItem(item, file[8], img, img, new wxbTreeItemData(file[7], file[8], file[6]));
+            treeid = tree->AppendItem(item, wxbUtils::ConvertToPrintable(file[8]), img, img, new wxbTreeItemData(file[7], file[8], file[6]));
          }
       }
 
@@ -1453,7 +1453,7 @@ void wxbRestorePanel::UpdateTreeItem(wxTreeItemId item, bool updatelist, bool re
          wxbTreeItemData* data = new wxbTreeItemData(file[7], file[8], file[6], ind);
          data->SetId(treeid);
          list->SetItemData(ind, (long)data);
-         list->SetItem(ind, 1, file[8]); // filename
+         list->SetItem(ind, 1, wxbUtils::ConvertToPrintable(file[8])); // filename
          list->SetItem(ind, 2, file[4]); //Size
          list->SetItem(ind, 3, file[5]); //date
          list->SetItem(ind, 4, file[0]); //perm
@@ -1491,7 +1491,7 @@ wxString* wxbRestorePanel::ParseList(wxString line) {
    ret[5] = line.Mid(42, 19).Trim();
    ret[6] = line.Mid(62, 1);
    ret[7] = line.Mid(63).Trim();
-
+   
    if (ret[6] == " ") ret[6] = "";
 
    if (ret[7].GetChar(ret[7].Length()-1) == '/') {
@@ -1688,7 +1688,7 @@ void wxbRestorePanel::RefreshTree() {
       match = false;
       
       while (currentChild.IsOk()) {
-         if (tree->GetItemText(currentChild) == current[i]) {
+         if (((wxbTreeItemData*)tree->GetItemData(currentChild))->GetName() == current[i]) {
             item = currentChild;
             match = true;
             break;
@@ -2177,7 +2177,7 @@ void wxbRestorePanel::OnListActivated(wxListEvent& event) {
          wxTreeItemId currentChild = tree->GetFirstChild(currentTreeItem, cookie);
 
          while (currentChild.IsOk()) {
-            wxString name2 = tree->GetItemText(currentChild);
+            wxString name2 = ((wxbTreeItemData*)tree->GetItemData(currentChild))->GetName();
             if (name2 == name) {
                //tree->UnselectAll();
                SetWorking(false);
