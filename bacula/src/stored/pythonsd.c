@@ -39,7 +39,14 @@ extern JCR *get_jcr_from_PyObject(PyObject *self);
 extern PyObject *find_method(PyObject *eventsObject, PyObject *method, 
          const char *name);
 
-static int set_job_events(PyObject *self, PyObject *arg);
+static PyObject *set_job_events(PyObject *self, PyObject *arg);
+static PyObject *job_write(PyObject *self, PyObject *arg);
+
+PyMethodDef JobMethods[] = {
+    {"set_events", set_job_events, METH_VARARGS, "Set Job events"},
+    {"write", job_write, METH_VARARGS, "Write to output"},
+    {NULL, NULL, 0, NULL}             /* last item */
+};
 
 
 struct s_vars {
@@ -67,9 +74,7 @@ static struct s_vars getvars[] = {
 
 /* Writable variables */
 static struct s_vars setvars[] = {
-   { N_("set_events"), NULL},
    { N_("JobReport"),   "s"},
-   { N_("write"),       "s"},
 
    { NULL,             NULL}
 };
@@ -98,7 +103,8 @@ PyObject *job_getattr(PyObject *self, char *attrname)
       }
    }
    if (!found) {
-      goto not_found;
+      /* Try our methods */
+      return Py_FindMethod(JobMethods, self, attrname);
    }  
    switch (i) {
    case 0:                            /* Job */
@@ -128,7 +134,6 @@ PyObject *job_getattr(PyObject *self, char *attrname)
    case 11:
       return Py_BuildValue(getvars[i].fmt, jcr->dcr->dev_name);
    }
-not_found:
    bsnprintf(errmsg, sizeof(errmsg), "Attribute %s not found.", attrname);
 bail_out:
    PyErr_SetString(PyExc_AttributeError, errmsg);
@@ -174,10 +179,7 @@ int job_setattr(PyObject *self, char *attrname, PyObject *value)
       }
    }   
    switch (i) {
-   case 0:                            /* set_events */
-      return set_job_events(self, value);
-   case 1:                            /* JobReport */
-   case 2:                            /* write */
+   case 0:                            /* JobReport */
       Jmsg(jcr, M_INFO, 0, "%s", strval);
       return 0;
    }
@@ -190,26 +192,37 @@ bail_out:
 }
 
 
-static int set_job_events(PyObject *self, PyObject *arg)
+static PyObject *set_job_events(PyObject *self, PyObject *arg)
 {
    PyObject *eObject;
    JCR *jcr;
 
    Dmsg0(100, "In set_job_events.\n");
-   if (!PyArg_Parse(arg, "O", &eObject)) {
-      Dmsg0(000, "Parse error looking for Object argument\n");
-      return -1;
+   if (!PyArg_ParseTuple(arg, "O:set_events", &eObject)) {
+      Dmsg0(000, "Error in ParseTuple\n");
+      return NULL;
    }
    jcr = get_jcr_from_PyObject(self);
-   if (!jcr) {
-      PyErr_SetString(PyExc_AttributeError, "Job pointer not found.");
-      return -1;
-   }
-   Py_XDECREF((PyObject *)jcr->Python_events);  /* release any old events Object */
+   Py_XDECREF((PyObject *)jcr->Python_events);
    Py_INCREF(eObject);
-   jcr->Python_events = (void *)eObject;        /* set new events */
+   jcr->Python_events = (void *)eObject;
+   Py_INCREF(Py_None);
+   return Py_None;
+}
 
-   return 0;
+static PyObject *job_write(PyObject *self, PyObject *args)
+{
+   char *text = NULL;
+
+   if (!PyArg_ParseTuple(args, "s:write", &text)) {
+      Dmsg0(000, "Parse tuple error in job_write\n");
+      return NULL;
+   }
+   if (text) {
+      Jmsg(NULL, M_INFO, 0, "%s", text);
+   }
+   Py_INCREF(Py_None);
+   return Py_None;
 }
 
 
@@ -217,16 +230,16 @@ int generate_job_event(JCR *jcr, const char *event)
 {
    PyObject *method = NULL;
    PyObject *Job = (PyObject *)jcr->Python_job;
+   PyObject *events = (PyObject *)jcr->Python_events;
    PyObject *result = NULL;
    int stat = 0;
 
-   if (!Job) {
+   if (!Job || !events) {
       return 0;
    }
 
    PyEval_AcquireLock();
 
-   PyObject *events = (PyObject *)jcr->Python_events;
    method = find_method(events, method, event);
    if (!method) {
       goto bail_out;

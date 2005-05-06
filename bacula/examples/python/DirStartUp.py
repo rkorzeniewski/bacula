@@ -21,23 +21,18 @@ class BaculaEvents:
      """
      events = JobEvents()         # create instance of Job class
      events.job = job             # save Bacula's job pointer
-     job.set_events = events      # register events desired
+     job.set_events(events)       # register events desired
      sys.stderr = events          # send error output to Bacula
      sys.stdout = events          # send stdout to Bacula
      jobid = job.JobId; client = job.Client
      numvols = job.NumVols 
      job.JobReport="Python Dir JobStart: JobId=%d Client=%s NumVols=%d\n" % (jobid,client,numvols) 
-     return 1
 
   # Bacula Job is going to terminate
   def JobEnd(self, job):    
      jobid = job.JobId
      client = job.Client 
-     job.JobReport="Python Dir JobEnd output: JobId=%d Client=%s.\n" % (jobid, client) 
-     if (jobid < 2) :
-        startid = job.run("run kernsave")
-        print "Python started new Job: jobid=", startid
-     return 1
+     job.JobReport="Python Dir JobEnd output: JobId=%d Status=%s Client=%s.\n" % (jobid, job.JobStatus, client) 
 
   # Called here when the Bacula daemon is going to exit
   def Exit(self, job):
@@ -54,11 +49,20 @@ class JobEvents:
      # normally used
      noop = 1
 
+  def JobInit(self, job):
+     noop = 1
+     if (job.JobId < 2):
+        startid = job.run("run kernsave")
+        job.JobReport = "Python started new Job: jobid=%d\n" % startid
+
+  def JobRun(self, job):
+     noop = 1
+
   def NewVolume(self, job):
      jobid = job.JobId
      client = job.Client 
      numvol = job.NumVols;
-     print "JobId=%d Client=%s NumVols=%d" % (jobid, client, numvol)
+     job.JobReport = "JobId=%d Client=%s NumVols=%d" % (jobid, client, numvol)
      job.JobReport="Python before New Volume set for Job.\n"
      job.VolumeName="TestA-001"
      job.JobReport="Python after New Volume set for Job.\n"  

@@ -40,22 +40,16 @@ extern PyObject *find_method(PyObject *eventsObject, PyObject *method,
          const char *name);
 
 
-static int set_job_events(PyObject *self, PyObject *arg);
-static int job_run(PyObject *self, PyObject *arg);
+static PyObject *set_job_events(PyObject *self, PyObject *arg);
+static PyObject *job_run(PyObject *self, PyObject *arg);
+static PyObject *job_write(PyObject *self, PyObject *arg);
 
-#ifdef needed
-static PyObject *set_bacula_job_events(PyObject *self, PyObject *arg)
-{
-   Dmsg2(000, "In set_bacula_job_events self=%p arg=%p\n",
-      self, arg);
-   Py_INCREF(Py_None);
-   return Py_None;
-}
 PyMethodDef JobMethods[] = {
-    {"set_events", set_bacula_job_events, METH_VARARGS, "Define Bacula events."},
+    {"set_events", set_job_events, METH_VARARGS, "Set Job events"},
+    {"run", job_run, METH_VARARGS, "Run a Job"},
+    {"write", job_write, METH_VARARGS, "Write to output"},
     {NULL, NULL, 0, NULL}             /* last item */
 };
-#endif
  
 
 struct s_vars {
@@ -78,17 +72,16 @@ static struct s_vars getvars[] = {
    { N_("MediaType"),  "s"},
    { N_("JobName"),    "s"},
    { N_("JobStatus"),  "s"},
+   { N_("Priority"),   "i"},
 
    { NULL,             NULL}
 };
 
 /* Writable variables */
 static struct s_vars setvars[] = {
-   { N_("set_events"), NULL},
-   { N_("run"),        NULL},
    { N_("JobReport"),   "s"},
-   { N_("write"),       "s"},
-   { N_("VolumeName") , "s"},
+   { N_("VolumeName"),  "s"},
+   { N_("Priority"),    "i"},
 
    { NULL,             NULL}
 };
@@ -119,7 +112,8 @@ PyObject *job_getattr(PyObject *self, char *attrname)
       }
    }
    if (!found) {
-      goto not_found;
+      /* Try our methods */
+      return Py_FindMethod(JobMethods, self, attrname);
    }
    switch (i) {
    case 0:                            /* Job */
@@ -150,8 +144,9 @@ PyObject *job_getattr(PyObject *self, char *attrname)
       buf[1] = 0;
       buf[0] = jcr->JobStatus;
       return Py_BuildValue(getvars[i].fmt, buf);
+   case 13:                           /* Priority */
+      return Py_BuildValue(getvars[i].fmt, jcr->JobPriority);
    }
-not_found:
    bsnprintf(errmsg, sizeof(errmsg), "Attribute %s not found.", attrname);
 bail_out:
    PyErr_SetString(PyExc_AttributeError, errmsg);
@@ -168,6 +163,7 @@ int job_setattr(PyObject *self, char *attrname, PyObject *value)
    JCR *jcr;
    bool found = false;
    char *strval = NULL;
+   int intval = 0;
    int i;
 
    Dmsg2(100, "In job_setattr=%s val=%p.\n", attrname, value);
@@ -189,23 +185,28 @@ int job_setattr(PyObject *self, char *attrname, PyObject *value)
    if (!found) {
       goto bail_out;
    }
-   /* Get argument value ***FIXME*** handle other formats */
+   /* Get argument value */
    if (setvars[i].fmt != NULL) {
-      if (!PyArg_Parse(value, setvars[i].fmt, &strval)) {
-         PyErr_SetString(PyExc_TypeError, "Read-only attribute");
-         return -1;
+      switch (setvars[i].fmt[0]) {
+      case 's':
+         if (!PyArg_Parse(value, setvars[i].fmt, &strval)) {
+            PyErr_SetString(PyExc_TypeError, "Read-only attribute");
+            return -1;
+         }
+         break;
+      case 'i':
+         if (!PyArg_Parse(value, setvars[i].fmt, &intval)) {
+            PyErr_SetString(PyExc_TypeError, "Read-only attribute");
+            return -1;
+         }
+         break;
       }
    }   
    switch (i) {
-   case 0:                            /* set_events */
-      return set_job_events(self, value);
-   case 1:                            /* run */
-      return job_run(self, value);
-   case 2:                            /* JobReport */
-   case 3:                            /* write */
+   case 0:                            /* JobReport */
       Jmsg(jcr, M_INFO, 0, "%s", strval);
       return 0;
-   case 4:                            /* VolumeName */
+   case 1:                            /* VolumeName */
       /* Make sure VolumeName is valid and we are in VolumeName event */
       if (strcmp("NewVolume", jcr->event) == 0 &&
           is_volume_name_legal(NULL, strval)) {
@@ -215,49 +216,48 @@ int job_setattr(PyObject *self, char *attrname, PyObject *value)
       } else {
          jcr->VolumeName[0] = 0;
       }
+      break;
+   case 2:                            /* Priority */
+      Dmsg1(000, "Set priority=%d\n", intval);
+      return 0;
    }
 bail_out:
    PyErr_SetString(PyExc_AttributeError, attrname);
    return -1;
 }
 
-#ifdef needed
-static PyObject *set_bacula_job_events(PyObject *self, PyObject *arg)
-{
-   Dmsg2(000, "In set_bacula_job_events self=%p arg=%p\n",
-      self, arg);
-   Py_INCREF(Py_None);
-   return Py_None;
-}
-#endif
 
-
-static int set_job_events(PyObject *self, PyObject *arg)
+static PyObject *set_job_events(PyObject *self, PyObject *arg)
 {
    PyObject *eObject;
    JCR *jcr;
 
    Dmsg0(100, "In set_job_events.\n");
-   if (!PyArg_Parse(arg, "O", &eObject)) {
-      return -1;
+   if (!PyArg_ParseTuple(arg, "O:set_events", &eObject)) {
+      Dmsg0(000, "Error in ParseTuple\n");
+      return NULL;
    }
    jcr = get_jcr_from_PyObject(self);
    Py_XDECREF((PyObject *)jcr->Python_events);
    Py_INCREF(eObject);
    jcr->Python_events = (void *)eObject;
-   return 0;                    /* good return */
+   Py_INCREF(Py_None);
+   return Py_None;
 }
 
 /* Run a Bacula command */
-static int job_run(PyObject *self, PyObject *arg)
+static PyObject *job_run(PyObject *self, PyObject *arg)
 {
    JCR *jcr;
    char *item;
    int stat;
 
-   if (!PyArg_Parse(arg, "s", &item)) {
-      return -1;
+   if (!PyArg_ParseTuple(arg, "s:run", &item)) {
+      Dmsg0(000, "Error in ParseTuple\n");
+      return NULL;
    }
+   /* Release lock due to recursion */
+   PyEval_ReleaseLock();
    jcr = get_jcr_from_PyObject(self);
    UAContext *ua = new_ua_context(jcr);
    ua->batch = true;
@@ -265,25 +265,45 @@ static int job_run(PyObject *self, PyObject *arg)
    parse_ua_args(ua);                 /* parse command */
    stat = run_cmd(ua, ua->cmd);
    free_ua_context(ua);
-   /* ***FIXME*** check stat */
-   return 0;
+   PyEval_AcquireLock();
+   return PyInt_FromLong((long)stat);
+}
+
+static PyObject *job_write(PyObject *self, PyObject *args)
+{
+   char *text = NULL;
+
+   if (!PyArg_ParseTuple(args, "s:write", &text)) {
+      Dmsg0(000, "Parse tuple error in job_write\n");
+      return NULL;
+   }
+   if (text) {
+      Jmsg(NULL, M_INFO, 0, "%s", text);
+   }
+   Py_INCREF(Py_None);
+   return Py_None;
 }
 
 
+/*
+ * Generate a Job event, which means look up the event
+ *  method defined by the user, and if it exists, 
+ *  call it.
+ */
 int generate_job_event(JCR *jcr, const char *event)
 {
    PyObject *method = NULL;
    PyObject *Job = (PyObject *)jcr->Python_job;
+   PyObject *events = (PyObject *)jcr->Python_events;
    PyObject *result = NULL;
    int stat = 0;
 
-   if (!Job) {
+   if (!Job || !events) {
       return 0;
    }
 
    PyEval_AcquireLock();
 
-   PyObject *events = (PyObject *)jcr->Python_events;
    method = find_method(events, method, event);
    if (!method) {
       goto bail_out;

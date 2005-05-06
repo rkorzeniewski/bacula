@@ -151,7 +151,6 @@ JobId_t run_job(JCR *jcr)
    return JobId;
 
 bail_out:
-   generate_daemon_event(jcr, "JobEnd");
    if (jcr->fname) {
       free_memory(jcr->fname);
       jcr->fname = NULL;
@@ -178,7 +177,21 @@ static void *job_thread(void *arg)
    Dmsg0(200, "=====Start Job=========\n");
    jcr->start_time = time(NULL);      /* set the real start time */
    jcr->jr.StartTime = jcr->start_time;
-   set_jcr_job_status(jcr, JS_Running);
+
+   if (jcr->job->MaxStartDelay != 0 && jcr->job->MaxStartDelay <
+       (utime_t)(jcr->start_time - jcr->sched_time)) {
+      Jmsg(jcr, M_FATAL, 0, _("Job canceled because max start delay time exceeded.\n"));
+      set_jcr_job_status(jcr, JS_Canceled);
+   }
+
+   /*                                
+    * Note, we continue, even if the job is canceled above. This
+    *  will permit proper setting of the job start record and
+    *  the error (cancel) will be picked up below.
+    */
+
+   generate_job_event(jcr, "JobInit");
+   set_jcr_job_status(jcr, JS_Running);   /* this will be set only if no error */
 
    if (!jcr->fname) {
       jcr->fname = get_pool_memory(PM_FNAME);
@@ -230,12 +243,6 @@ static void *job_thread(void *arg)
    if (job_canceled(jcr)) {
       update_job_end_record(jcr);
 
-   } else if (jcr->job->MaxStartDelay != 0 && jcr->job->MaxStartDelay <
-       (utime_t)(jcr->start_time - jcr->sched_time)) {
-      Jmsg(jcr, M_FATAL, 0, _("Job canceled because max start delay time exceeded.\n"));
-      set_jcr_job_status(jcr, JS_Canceled);
-      update_job_end_record(jcr);
-
    } else {
 
       /* Run Job */
@@ -260,6 +267,9 @@ static void *job_thread(void *arg)
             goto bail_out;
          }
       }
+
+      generate_job_event(jcr, "JobRun");
+
       switch (jcr->JobType) {
       case JT_BACKUP:
          if (do_backup(jcr)) {
@@ -338,6 +348,7 @@ static void *job_thread(void *arg)
          dequeue_messages(jcr);
       }
    }
+
 bail_out:
    generate_daemon_event(jcr, "JobEnd");
    Dmsg1(50, "======== End Job stat=%c ==========\n", jcr->JobStatus);
@@ -357,6 +368,8 @@ int cancel_job(UAContext *ua, JCR *jcr)
 {
    BSOCK *sd, *fd;
 
+   set_jcr_job_status(jcr, JS_Canceled);
+
    switch (jcr->JobStatus) {
    case JS_Created:
    case JS_WaitJobRes:
@@ -365,14 +378,12 @@ int cancel_job(UAContext *ua, JCR *jcr)
    case JS_WaitPriority:
    case JS_WaitMaxJobs:
    case JS_WaitStartTime:
-      set_jcr_job_status(jcr, JS_Canceled);
       bsendmsg(ua, _("JobId %d, Job %s marked to be canceled.\n"),
               jcr->JobId, jcr->Job);
       jobq_remove(&job_queue, jcr); /* attempt to remove it from queue */
       return 1;
 
    default:
-      set_jcr_job_status(jcr, JS_Canceled);
 
       /* Cancel File daemon */
       if (jcr->file_bsock) {

@@ -74,7 +74,7 @@ static struct s_cmds fd_cmds[] = {
    {"read data",    read_data_cmd},
    {"read close",   read_close_session},
    {"bootstrap",    bootstrap_cmd},
-   {NULL,	    NULL}		   /* list terminator */
+   {NULL,           NULL}                  /* list terminator */
 };
 
 /* Commands from the File daemon that require additional scanning */
@@ -93,7 +93,7 @@ static char ERROR_bootstrap[] = "3904 Error bootstrap\n";
 
 /* Information sent to the Director */
 static char Job_start[] = "3010 Job %s start\n";
-static char Job_end[]	=
+static char Job_end[]   =
    "3099 Job %s end JobStatus=%d JobFiles=%d JobBytes=%s\n";
 
 /*
@@ -120,43 +120,44 @@ void run_job(JCR *jcr)
    jcr->start_time = time(NULL);
    jcr->run_time = jcr->start_time;
    set_jcr_job_status(jcr, JS_Running);
-   dir_send_job_status(jcr);	      /* update director */
+   dir_send_job_status(jcr);          /* update director */
    for (quit=false; !quit;) {
       int stat;
 
       /* Read command coming from the File daemon */
       stat = bnet_recv(fd);
-      if (is_bnet_stop(fd)) {	      /* hardeof or error */
-	 break; 		      /* connection terminated */
+      if (is_bnet_stop(fd)) {         /* hardeof or error */
+         break;                       /* connection terminated */
       }
       if (stat <= 0) {
-	 continue;		      /* ignore signals and zero length msgs */
+         continue;                    /* ignore signals and zero length msgs */
       }
       Dmsg1(110, "<filed: %s", fd->msg);
       found = false;
       for (i=0; fd_cmds[i].cmd; i++) {
-	 if (strncmp(fd_cmds[i].cmd, fd->msg, strlen(fd_cmds[i].cmd)) == 0) {
-	    found = true;		/* indicate command found */
-	    if (!fd_cmds[i].func(jcr)) {    /* do command */
-	       set_jcr_job_status(jcr, JS_ErrorTerminated);
-	       quit = true;
-	    }
-	    break;
-	 }
+         if (strncmp(fd_cmds[i].cmd, fd->msg, strlen(fd_cmds[i].cmd)) == 0) {
+            found = true;               /* indicate command found */
+            if (!fd_cmds[i].func(jcr)) {    /* do command */
+               set_jcr_job_status(jcr, JS_ErrorTerminated);
+               quit = true;
+            }
+            break;
+         }
       }
-      if (!found) {		      /* command not found */
+      if (!found) {                   /* command not found */
          Dmsg1(110, "<filed: Command not found: %s\n", fd->msg);
-	 bnet_fsend(fd, ferrmsg);
-	 break;
+         bnet_fsend(fd, ferrmsg);
+         break;
       }
    }
    bnet_sig(fd, BNET_TERMINATE);      /* signal to FD job is done */
    jcr->end_time = time(NULL);
-   dequeue_messages(jcr);	      /* send any queued messages */
+   dequeue_messages(jcr);             /* send any queued messages */
    set_jcr_job_status(jcr, JS_Terminated);
+   generate_daemon_event(jcr, "JobEnd");
    bnet_fsend(dir, Job_end, jcr->Job, jcr->JobStatus, jcr->JobFiles,
       edit_uint64(jcr->JobBytes, ec1));
-   bnet_sig(dir, BNET_EOD);	      /* send EOD to Director daemon */
+   bnet_sig(dir, BNET_EOD);           /* send EOD to Director daemon */
    return;
 }
 
@@ -175,10 +176,10 @@ static bool append_data_cmd(JCR *jcr)
       Dmsg1(110, "<bfiled: %s", fd->msg);
       jcr->JobType = JT_BACKUP;
       if (do_append_data(jcr)) {
-	 return bnet_fsend(fd, OK_append);
+         return bnet_fsend(fd, OK_append);
       } else {
-	 bnet_suppress_error_messages(fd, 1); /* ignore errors at this point */
-	 bnet_fsend(fd, ERROR_append);
+         bnet_suppress_error_messages(fd, 1); /* ignore errors at this point */
+         bnet_fsend(fd, ERROR_append);
       }
    } else {
       bnet_fsend(fd, NOT_opened);
@@ -225,8 +226,8 @@ static bool append_open_session(JCR *jcr)
 
 /*
  *   Append Close session command
- *	Close the append session and send back Statistics
- *	   (need to fix statistics)
+ *      Close the append session and send back Statistics
+ *         (need to fix statistics)
  */
 static bool append_close_session(JCR *jcr)
 {
@@ -241,7 +242,7 @@ static bool append_close_session(JCR *jcr)
    bnet_fsend(fd, OK_close, jcr->JobStatus);
    Dmsg1(120, ">filed: %s", fd->msg);
 
-   bnet_sig(fd, BNET_EOD);	      /* send EOD to File daemon */
+   bnet_sig(fd, BNET_EOD);            /* send EOD to File daemon */
 
    jcr->session_opened = false;
    return true;
@@ -284,18 +285,18 @@ static bool read_open_session(JCR *jcr)
    }
 
    if (sscanf(fd->msg, read_open, jcr->dcr->VolumeName, &jcr->read_VolSessionId,
-	 &jcr->read_VolSessionTime, &jcr->read_StartFile, &jcr->read_EndFile,
-	 &jcr->read_StartBlock, &jcr->read_EndBlock) == 7) {
+         &jcr->read_VolSessionTime, &jcr->read_StartFile, &jcr->read_EndFile,
+         &jcr->read_StartBlock, &jcr->read_EndBlock) == 7) {
       if (jcr->session_opened) {
-	 bnet_fsend(fd, NOT_opened);
-	 return false;
+         bnet_fsend(fd, NOT_opened);
+         return false;
       }
       Dmsg4(100, "read_open_session got: JobId=%d Vol=%s VolSessId=%ld VolSessT=%ld\n",
-	 jcr->JobId, jcr->dcr->VolumeName, jcr->read_VolSessionId,
-	 jcr->read_VolSessionTime);
+         jcr->JobId, jcr->dcr->VolumeName, jcr->read_VolSessionId,
+         jcr->read_VolSessionTime);
       Dmsg4(100, "  StartF=%ld EndF=%ld StartB=%ld EndB=%ld\n",
-	 jcr->read_StartFile, jcr->read_EndFile, jcr->read_StartBlock,
-	 jcr->read_EndBlock);
+         jcr->read_StartFile, jcr->read_EndFile, jcr->read_StartBlock,
+         jcr->read_EndBlock);
    }
 
    jcr->session_opened = true;
@@ -326,7 +327,7 @@ bool bootstrap_cmd(JCR *jcr)
    bs = fopen(fname, "a+");           /* create file */
    if (!bs) {
       Jmsg(jcr, M_FATAL, 0, _("Could not create bootstrap file %s: ERR=%s\n"),
-	 jcr->RestoreBootstrap, strerror(errno));
+         jcr->RestoreBootstrap, strerror(errno));
       goto bail_out;
    }
    while (bnet_recv(fd) >= 0) {
@@ -358,7 +359,7 @@ bail_out:
 
 /*
  *   Read Close session command
- *	Close the read session
+ *      Close the read session
  */
 static bool read_close_session(JCR *jcr)
 {
@@ -373,7 +374,7 @@ static bool read_close_session(JCR *jcr)
    bnet_fsend(fd, OK_close);
    Dmsg1(160, ">filed: %s\n", fd->msg);
 
-   bnet_sig(fd, BNET_EOD);	    /* send EOD to File daemon */
+   bnet_sig(fd, BNET_EOD);          /* send EOD to File daemon */
 
    jcr->session_opened = false;
    return true;
