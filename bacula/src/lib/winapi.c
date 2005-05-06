@@ -69,4 +69,124 @@ t_SetCurrentDirectoryW p_SetCurrentDirectoryW = NULL;
 
 t_GetCurrentDirectoryA p_GetCurrentDirectoryA = NULL;
 t_GetCurrentDirectoryW p_GetCurrentDirectoryW = NULL;
+
+void 
+InitWinAPIWrapper() 
+{
+   HMODULE hLib = LoadLibraryA("KERNEL32.DLL");
+   if (hLib) {
+      /* create file calls */
+      p_CreateFileA = (t_CreateFileA)
+          GetProcAddress(hLib, "CreateFileA");
+      p_CreateFileW = (t_CreateFileW)
+          GetProcAddress(hLib, "CreateFileW");      
+
+      /* attribute calls */
+      p_GetFileAttributesA = (t_GetFileAttributesA)
+          GetProcAddress(hLib, "GetFileAttributesA");
+      p_GetFileAttributesW = (t_GetFileAttributesW)
+          GetProcAddress(hLib, "GetFileAttributesW");
+      p_GetFileAttributesExA = (t_GetFileAttributesExA)
+          GetProcAddress(hLib, "GetFileAttributesExA");
+      p_GetFileAttributesExW = (t_GetFileAttributesExW)
+          GetProcAddress(hLib, "GetFileAttributesExW");
+      p_SetFileAttributesA = (t_SetFileAttributesA)
+          GetProcAddress(hLib, "SetFileAttributesA");
+      p_SetFileAttributesW = (t_SetFileAttributesW)
+          GetProcAddress(hLib, "SetFileAttributesW");
+      /* process calls */
+      p_SetProcessShutdownParameters = (t_SetProcessShutdownParameters)
+          GetProcAddress(hLib, "SetProcessShutdownParameters");
+      /* backup calls */
+      p_BackupRead = (t_BackupRead)
+          GetProcAddress(hLib, "BackupRead");
+      p_BackupWrite = (t_BackupWrite)
+          GetProcAddress(hLib, "BackupWrite");
+      /* char conversion calls */
+      p_WideCharToMultiByte = (t_WideCharToMultiByte)
+          GetProcAddress(hLib, "WideCharToMultiByte");
+      p_MultiByteToWideChar = (t_MultiByteToWideChar)
+          GetProcAddress(hLib, "MultiByteToWideChar");
+
+      /* find files */
+      p_FindFirstFileA = (t_FindFirstFileA)
+          GetProcAddress(hLib, "FindFirstFileA"); 
+      p_FindFirstFileW = (t_FindFirstFileW)
+          GetProcAddress(hLib, "FindFirstFileW");       
+      p_FindNextFileA = (t_FindNextFileA)
+          GetProcAddress(hLib, "FindNextFileA");
+      p_FindNextFileW = (t_FindNextFileW)
+          GetProcAddress(hLib, "FindNextFileW");
+      /* set and get directory */
+      p_SetCurrentDirectoryA = (t_SetCurrentDirectoryA)
+          GetProcAddress(hLib, "SetCurrentDirectoryA");
+      p_SetCurrentDirectoryW = (t_SetCurrentDirectoryW)
+          GetProcAddress(hLib, "SetCurrentDirectoryW");       
+      p_GetCurrentDirectoryA = (t_GetCurrentDirectoryA)
+          GetProcAddress(hLib, "GetCurrentDirectoryA");
+      p_GetCurrentDirectoryW = (t_GetCurrentDirectoryW)
+          GetProcAddress(hLib, "GetCurrentDirectoryW");      
+      FreeLibrary(hLib);
+   }
+   
+   hLib = LoadLibraryA("MSVCRT.DLL");
+   if (hLib) {
+      /* unlink */
+      p_wunlink = (t_wunlink)
+      GetProcAddress(hLib, "_wunlink");
+      /* wmkdir */
+      p_wmkdir = (t_wmkdir)
+      GetProcAddress(hLib, "_wmkdir");
+      /* wopen */
+      p_wopen = (t_wopen)
+      GetProcAddress(hLib, "_wopen");
+
+      FreeLibrary(hLib);
+   }
+   
+   hLib = LoadLibraryA("ADVAPI32.DLL");
+   if (hLib) {
+      p_OpenProcessToken = (t_OpenProcessToken)
+         GetProcAddress(hLib, "OpenProcessToken");
+      p_AdjustTokenPrivileges = (t_AdjustTokenPrivileges)
+         GetProcAddress(hLib, "AdjustTokenPrivileges");
+      p_LookupPrivilegeValue = (t_LookupPrivilegeValue)
+         GetProcAddress(hLib, "LookupPrivilegeValueA");
+      FreeLibrary(hLib);
+   }
+
+   // do we run on win 9x ???
+
+   DWORD   dw_platform_id;
+
+   OSVERSIONINFO osversioninfo;
+   osversioninfo.dwOSVersionInfoSize = sizeof(osversioninfo);
+
+   // Get the current OS version
+   if (!GetVersionEx(&osversioninfo)) {
+      dw_platform_id = 0;
+   } else {
+      dw_platform_id = osversioninfo.dwPlatformId;
+   }
+
+   if (dw_platform_id == VER_PLATFORM_WIN32_WINDOWS) {
+      p_BackupRead = NULL;
+      p_BackupWrite = NULL;
+
+      p_CreateFileW = NULL;          
+      p_GetFileAttributesW = NULL;          
+      p_GetFileAttributesExW = NULL;
+          
+      p_SetFileAttributesW = NULL;
+                
+      p_FindFirstFileW = NULL;
+      p_FindNextFileW = NULL;
+      p_SetCurrentDirectoryW = NULL;
+      p_GetCurrentDirectoryW = NULL;
+
+      p_wunlink = NULL;
+      p_wmkdir = NULL;
+      p_wopen = NULL;
+   }   
+}
 #endif

@@ -134,6 +134,8 @@ extern t_SetCurrentDirectoryW p_SetCurrentDirectoryW;
 
 extern t_GetCurrentDirectoryA p_GetCurrentDirectoryA;
 extern t_GetCurrentDirectoryW p_GetCurrentDirectoryW;
+
+void InitWinAPIWrapper();
 #endif
 
 #endif /* __WINAPI_H */
