@@ -250,8 +250,7 @@ int generate_daemon_event(JCR *jcr, const char *event)
 
    } else if (strcmp(event, "JobEnd") == 0) {
       if (!JobEnd_method || !jcr->Python_job) {
-         Dmsg2(000, "No JobEnd method=%p Job=%p\n", JobEnd_method, jcr->Python_job);
-         stat = 0;
+         stat = 0;                    /* probably already here */
          goto bail_out;
       }
       bstrncpy(jcr->event, event, sizeof(jcr->event));

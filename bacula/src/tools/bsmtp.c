@@ -125,7 +125,7 @@ static void usage()
 {
    fprintf(stderr,
 "\n"
-"Usage: %s [-f from] [-h mailhost] [-s subject] [-c copy] [recepient ...]\n"
+"Usage: %s [-f from] [-h mailhost] [-s subject] [-c copy] [recipient ...]\n"
 "       -c          set the Cc: field\n"
 "       -dnn        set debug level to nn\n"
 "       -f          set the From: field\n"

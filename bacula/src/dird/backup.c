@@ -8,7 +8,7 @@
  *     Open DB and create records for this job.
  *     Open Message Channel with Storage daemon to tell him a job will be starting.
  *     Open connection with File daemon and pass him commands
- *	 to do the backup.
+ *       to do the backup.
  *     When the File daemon finishes the job, update the DB.
  *
  *   Version $Id$
@@ -62,17 +62,17 @@ bool do_backup_init(JCR *jcr)
    switch (jcr->JobLevel) {
    case L_FULL:
       if (jcr->full_pool) {
-	 jcr->pool = jcr->full_pool;
+         jcr->pool = jcr->full_pool;
       }
       break;
    case L_INCREMENTAL:
       if (jcr->inc_pool) {
-	 jcr->pool = jcr->inc_pool;
+         jcr->pool = jcr->inc_pool;
       }
       break;
    case L_DIFFERENTIAL:
       if (jcr->dif_pool) {
-	 jcr->pool = jcr->dif_pool;
+         jcr->pool = jcr->dif_pool;
       }
       break;
    }
@@ -83,18 +83,18 @@ bool do_backup_init(JCR *jcr)
       /* Try to create the pool */
       if (create_pool(jcr, jcr->db, jcr->pool, POOL_OP_CREATE) < 0) {
          Jmsg(jcr, M_FATAL, 0, _("Pool %s not in database. %s"), pr.Name,
-	    db_strerror(jcr->db));
-	 return false;
+            db_strerror(jcr->db));
+         return false;
       } else {
          Jmsg(jcr, M_INFO, 0, _("Pool %s created in database.\n"), pr.Name);
-	 if (!db_get_pool_record(jcr, jcr->db, &pr)) { /* get by Name */
+         if (!db_get_pool_record(jcr, jcr->db, &pr)) { /* get by Name */
             Jmsg(jcr, M_FATAL, 0, _("Pool %s not in database. %s"), pr.Name,
-	       db_strerror(jcr->db));
-	    return false;
-	 }
+               db_strerror(jcr->db));
+            return false;
+         }
       }
    }
-   jcr->PoolId = pr.PoolId;		  /****FIXME**** this can go away */
+   jcr->PoolId = pr.PoolId;               /****FIXME**** this can go away */
    jcr->jr.PoolId = pr.PoolId;
 
    if (!get_or_create_fileset_record(jcr, &fsr)) {
@@ -115,13 +115,13 @@ bool do_backup_init(JCR *jcr)
          cmd = edit_job_codes(jcr, cmd, runcmd, "");              
          Mmsg(ua->cmd, "run %s cloned=yes", cmd);
          Dmsg1(900, "=============== Clone cmd=%s\n", ua->cmd);
-	 parse_ua_args(ua);		    /* parse command */
-	 int stat = run_cmd(ua, ua->cmd);
-	 if (stat == 0) {
+         parse_ua_args(ua);                 /* parse command */
+         int stat = run_cmd(ua, ua->cmd);
+         if (stat == 0) {
             Jmsg(jcr, M_ERROR, 0, _("Could not start clone job.\n"));
-	 } else {
+         } else {
             Jmsg(jcr, M_INFO, 0, _("Clone JobId %d started.\n"), stat);
-	 }
+         }
       }
       free_ua_context(ua);
       free_pool_memory(cmd);
@@ -134,7 +134,7 @@ bool do_backup_init(JCR *jcr)
  * Do a backup of the specified FileSet
  *
  *  Returns:  false on failure
- *	      true  on success
+ *            true  on success
  */
 bool do_backup(JCR *jcr)
 {
@@ -146,7 +146,7 @@ bool do_backup(JCR *jcr)
 
    /* Print Job Start message */
    Jmsg(jcr, M_INFO, 0, _("Start Backup JobId %u, Job=%s\n"),
-	jcr->JobId, jcr->Job);
+        jcr->JobId, jcr->Job);
 
    set_jcr_job_status(jcr, JS_Running);
    Dmsg2(100, "JobId=%d JobLevel=%c\n", jcr->jr.JobId, jcr->jr.JobLevel);
@@ -215,15 +215,15 @@ bool do_backup(JCR *jcr)
    /* TLS Requirement */
    if (store->tls_enable) {
       if (store->tls_require) {
-	 tls_need = BNET_TLS_REQUIRED;
+         tls_need = BNET_TLS_REQUIRED;
       } else {
-	 tls_need = BNET_TLS_OK;
+         tls_need = BNET_TLS_OK;
       }
    }
 #endif
 
    bnet_fsend(fd, storaddr, store->address, store->SDDport,
-	      tls_need);
+              tls_need);
    if (!response(jcr, fd, OKstore, "Storage", DISPLAY_ERROR)) {
       return false;
    }
@@ -244,7 +244,7 @@ bool do_backup(JCR *jcr)
    if (stat == JS_Terminated) {
       backup_cleanup(jcr, stat);
       return true;
-   }	 
+   }     
    return false;
 }
 
@@ -267,21 +267,21 @@ int wait_for_job_termination(JCR *jcr)
    /* Wait for Client to terminate */
    while ((n = bget_dirmsg(fd)) >= 0) {
       if (!fd_ok && sscanf(fd->msg, EndJob, &jcr->FDJobStatus, &JobFiles,
-	  &ReadBytes, &JobBytes, &Errors) == 5) {
-	 fd_ok = true;
-	 set_jcr_job_status(jcr, jcr->FDJobStatus);
+          &ReadBytes, &JobBytes, &Errors) == 5) {
+         fd_ok = true;
+         set_jcr_job_status(jcr, jcr->FDJobStatus);
          Dmsg1(100, "FDStatus=%c\n", (char)jcr->JobStatus);
       } else {
          Jmsg(jcr, M_WARNING, 0, _("Unexpected Client Job message: %s\n"),
-	    fd->msg);
+            fd->msg);
       }
       if (job_canceled(jcr)) {
-	 break;
+         break;
       }
    }
    if (is_bnet_error(fd)) {
       Jmsg(jcr, M_FATAL, 0, _("Network error with FD during %s: ERR=%s\n"),
-	  job_type_to_str(jcr->JobType), bnet_strerror(fd));
+          job_type_to_str(jcr->JobType), bnet_strerror(fd));
    }
    bnet_sig(fd, BNET_TERMINATE);   /* tell Client we are terminating */
 
@@ -320,7 +320,7 @@ int wait_for_job_termination(JCR *jcr)
  */
 void backup_cleanup(JCR *jcr, int TermCode)
 {
-   char sdt[50], edt[50];
+   char sdt[50], edt[50], schedt[50];
    char ec1[30], ec2[30], ec3[30], ec4[30], ec5[30], compress[50];
    char term_code[100], fd_term_msg[100], sd_term_msg[100];
    const char *term_msg;
@@ -330,22 +330,22 @@ void backup_cleanup(JCR *jcr, int TermCode)
    utime_t RunTime;
 
    Dmsg2(100, "Enter backup_cleanup %d %c\n", TermCode, TermCode);
-   dequeue_messages(jcr);	      /* display any queued messages */
+   dequeue_messages(jcr);             /* display any queued messages */
    memset(&mr, 0, sizeof(mr));
    set_jcr_job_status(jcr, TermCode);
 
-   update_job_end_record(jcr);	      /* update database */
+   update_job_end_record(jcr);        /* update database */
 
    if (!db_get_job_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_WARNING, 0, _("Error getting job record for stats: %s"),
-	 db_strerror(jcr->db));
+         db_strerror(jcr->db));
       set_jcr_job_status(jcr, JS_ErrorTerminated);
    }
 
    bstrncpy(mr.VolumeName, jcr->VolumeName, sizeof(mr.VolumeName));
    if (!db_get_media_record(jcr, jcr->db, &mr)) {
       Jmsg(jcr, M_WARNING, 0, _("Error getting Media record for Volume \"%s\": ERR=%s"),
-	 mr.VolumeName, db_strerror(jcr->db));
+         mr.VolumeName, db_strerror(jcr->db));
       set_jcr_job_status(jcr, JS_ErrorTerminated);
    }
 
@@ -360,88 +360,89 @@ void backup_cleanup(JCR *jcr, int TermCode)
       int VolCount;
 
       if (*fname == '|') {
-	 fname++;
-	 got_pipe = 1;
+         fname++;
+         got_pipe = 1;
          bpipe = open_bpipe(fname, 0, "w");
-	 fd = bpipe ? bpipe->wfd : NULL;
+         fd = bpipe ? bpipe->wfd : NULL;
       } else {
-	 /* ***FIXME*** handle BASE */
+         /* ***FIXME*** handle BASE */
          fd = fopen(fname, jcr->JobLevel==L_FULL?"w+":"a+");
       }
       if (fd) {
-	 VolCount = db_get_job_volume_parameters(jcr, jcr->db, jcr->JobId,
-		    &VolParams);
-	 if (VolCount == 0) {
+         VolCount = db_get_job_volume_parameters(jcr, jcr->db, jcr->JobId,
+                    &VolParams);
+         if (VolCount == 0) {
             Jmsg(jcr, M_ERROR, 0, _("Could not get Job Volume Parameters to "
                  "update Bootstrap file. ERR=%s\n"), db_strerror(jcr->db));
-	     if (jcr->SDJobFiles != 0) {
-		set_jcr_job_status(jcr, JS_ErrorTerminated);
-	     }
+             if (jcr->SDJobFiles != 0) {
+                set_jcr_job_status(jcr, JS_ErrorTerminated);
+             }
 
-	 }
-	 for (int i=0; i < VolCount; i++) {
-	    /* Write the record */
+         }
+         for (int i=0; i < VolCount; i++) {
+            /* Write the record */
             fprintf(fd, "Volume=\"%s\"\n", VolParams[i].VolumeName);
             fprintf(fd, "MediaType=\"%s\"\n", VolParams[i].MediaType);
             fprintf(fd, "VolSessionId=%u\n", jcr->VolSessionId);
             fprintf(fd, "VolSessionTime=%u\n", jcr->VolSessionTime);
             fprintf(fd, "VolFile=%u-%u\n", VolParams[i].StartFile,
-			 VolParams[i].EndFile);
+                         VolParams[i].EndFile);
             fprintf(fd, "VolBlock=%u-%u\n", VolParams[i].StartBlock,
-			 VolParams[i].EndBlock);
+                         VolParams[i].EndBlock);
             fprintf(fd, "FileIndex=%d-%d\n", VolParams[i].FirstIndex,
-			 VolParams[i].LastIndex);
-	 }
-	 if (VolParams) {
-	    free(VolParams);
-	 }
-	 if (got_pipe) {
-	    close_bpipe(bpipe);
-	 } else {
-	    fclose(fd);
-	 }
+                         VolParams[i].LastIndex);
+         }
+         if (VolParams) {
+            free(VolParams);
+         }
+         if (got_pipe) {
+            close_bpipe(bpipe);
+         } else {
+            fclose(fd);
+         }
       } else {
-	 berrno be;
+         berrno be;
          Jmsg(jcr, M_ERROR, 0, _("Could not open WriteBootstrap file:\n"
               "%s: ERR=%s\n"), fname, be.strerror());
-	 set_jcr_job_status(jcr, JS_ErrorTerminated);
+         set_jcr_job_status(jcr, JS_ErrorTerminated);
       }
    }
 
-   msg_type = M_INFO;		      /* by default INFO message */
+   msg_type = M_INFO;                 /* by default INFO message */
    switch (jcr->JobStatus) {
       case JS_Terminated:
-	 if (jcr->Errors || jcr->SDErrors) {
+         if (jcr->Errors || jcr->SDErrors) {
             term_msg = _("Backup OK -- with warnings");
-	 } else {
+         } else {
             term_msg = _("Backup OK");
-	 }
-	 break;
+         }
+         break;
       case JS_FatalError:
       case JS_ErrorTerminated:
          term_msg = _("*** Backup Error ***");
-	 msg_type = M_ERROR;	      /* Generate error message */
-	 if (jcr->store_bsock) {
-	    bnet_sig(jcr->store_bsock, BNET_TERMINATE);
-	    if (jcr->SD_msg_chan) {
-	       pthread_cancel(jcr->SD_msg_chan);
-	    }
-	 }
-	 break;
+         msg_type = M_ERROR;          /* Generate error message */
+         if (jcr->store_bsock) {
+            bnet_sig(jcr->store_bsock, BNET_TERMINATE);
+            if (jcr->SD_msg_chan) {
+               pthread_cancel(jcr->SD_msg_chan);
+            }
+         }
+         break;
       case JS_Canceled:
          term_msg = _("Backup Canceled");
-	 if (jcr->store_bsock) {
-	    bnet_sig(jcr->store_bsock, BNET_TERMINATE);
-	    if (jcr->SD_msg_chan) {
-	       pthread_cancel(jcr->SD_msg_chan);
-	    }
-	 }
-	 break;
+         if (jcr->store_bsock) {
+            bnet_sig(jcr->store_bsock, BNET_TERMINATE);
+            if (jcr->SD_msg_chan) {
+               pthread_cancel(jcr->SD_msg_chan);
+            }
+         }
+         break;
       default:
-	 term_msg = term_code;
+         term_msg = term_code;
          sprintf(term_code, _("Inappropriate term code: %c\n"), jcr->JobStatus);
-	 break;
+         break;
    }
+   bstrftimes(schedt, sizeof(schedt), jcr->jr.SchedTime);
    bstrftimes(sdt, sizeof(sdt), jcr->jr.StartTime);
    bstrftimes(edt, sizeof(edt), jcr->jr.EndTime);
    RunTime = jcr->jr.EndTime - jcr->jr.StartTime;
@@ -460,7 +461,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
       if (jcr->JobStatus == JS_Terminated && jcr->jr.JobBytes) {
          Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
       }
-      jcr->VolumeName[0] = 0;	      /* none */
+      jcr->VolumeName[0] = 0;         /* none */
    }
 
    if (jcr->ReadBytes == 0) {
@@ -476,7 +477,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
    jobstatus_to_ascii(jcr->FDJobStatus, fd_term_msg, sizeof(fd_term_msg));
    jobstatus_to_ascii(jcr->SDJobStatus, sd_term_msg, sizeof(sd_term_msg));
 
-// bmicrosleep(15, 0);		      /* for debugging SIGHUP */
+// bmicrosleep(15, 0);                /* for debugging SIGHUP */
 
    Jmsg(jcr, msg_type, 0, _("Bacula " VERSION " (" LSMDATE "): %s\n"
 "  JobId:                  %d\n"
@@ -486,8 +487,10 @@ void backup_cleanup(JCR *jcr, int TermCode)
 "  FileSet:                \"%s\" %s\n"
 "  Pool:                   \"%s\"\n"
 "  Storage:                \"%s\"\n"
+"  Scheduled time:         %s\n"
 "  Start time:             %s\n"
 "  End time:               %s\n"
+"  Priority:               %d\n"
 "  FD Files Written:       %s\n"
 "  SD Files Written:       %s\n"
 "  FD Bytes Written:       %s\n"
@@ -503,31 +506,33 @@ void backup_cleanup(JCR *jcr, int TermCode)
 "  FD termination status:  %s\n"
 "  SD termination status:  %s\n"
 "  Termination:            %s\n\n"),
-	edt,
-	jcr->jr.JobId,
-	jcr->jr.Job,
-	level_to_str(jcr->JobLevel), jcr->since,
-	jcr->client->hdr.name,
-	jcr->fileset->hdr.name, jcr->FSCreateTime,
-	jcr->pool->hdr.name,
-	jcr->store->hdr.name,
-	sdt,
-	edt,
-	edit_uint64_with_commas(jcr->jr.JobFiles, ec1),
-	edit_uint64_with_commas(jcr->SDJobFiles, ec4),
-	edit_uint64_with_commas(jcr->jr.JobBytes, ec2),
-	edit_uint64_with_commas(jcr->SDJobBytes, ec5),
-	(float)kbps,
-	compress,
-	jcr->VolumeName,
-	jcr->VolSessionId,
-	jcr->VolSessionTime,
-	edit_uint64_with_commas(mr.VolBytes, ec3),
-	jcr->Errors,
-	jcr->SDErrors,
-	fd_term_msg,
-	sd_term_msg,
-	term_msg);
+        edt,
+        jcr->jr.JobId,
+        jcr->jr.Job,
+        level_to_str(jcr->JobLevel), jcr->since,
+        jcr->client->hdr.name,
+        jcr->fileset->hdr.name, jcr->FSCreateTime,
+        jcr->pool->hdr.name,
+        jcr->store->hdr.name,
+        schedt,
+        sdt,
+        edt,
+        jcr->JobPriority,
+        edit_uint64_with_commas(jcr->jr.JobFiles, ec1),
+        edit_uint64_with_commas(jcr->SDJobFiles, ec4),
+        edit_uint64_with_commas(jcr->jr.JobBytes, ec2),
+        edit_uint64_with_commas(jcr->SDJobBytes, ec5),
+        (float)kbps,
+        compress,
+        jcr->VolumeName,
+        jcr->VolSessionId,
+        jcr->VolSessionTime,
+        edit_uint64_with_commas(mr.VolBytes, ec3),
+        jcr->Errors,
+        jcr->SDErrors,
+        fd_term_msg,
+        sd_term_msg,
+        term_msg);
 
    Dmsg0(100, "Leave backup_cleanup()\n");
 }
