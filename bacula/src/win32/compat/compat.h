@@ -325,6 +325,7 @@ struct sigaction {
 #define sigaction(a, b, c)
 
 #define mkdir(p, m) win32_mkdir(p)
+#define unlink win32_unlink
 #define chdir win32_chdir
 int syslog(int, const char *, const char *);
 #define LOG_DAEMON 0
@@ -349,9 +350,15 @@ extern "C" void *  __cdecl _alloca(size_t);
 
 #define getcwd win32_getcwd
 #define chdir win32_chdir
+#define fputs win32_fputs
 char *win32_getcwd(char *buf, int maxlen);
 int win32_chdir(const char *buf);
 int win32_mkdir(const char *buf);
+int win32_fputs(const char *string, FILE *stream);
+int win32_unlink(const char *filename);
+
+char* win32_cgets (char* buffer, int len);
+
 
 int WSA_Init(void);
 
