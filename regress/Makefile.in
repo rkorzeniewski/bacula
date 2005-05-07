@@ -31,9 +31,11 @@ bacula: all sed
 	 fi)
 	rm -rf tmp working
 	mkdir tmp working
+	echo "Doing: scripts/setup ${BACULA_SOURCE} ${EMAIL} ${WHICHDB} ${TCPWRAPPERS}"
 	scripts/setup ${BACULA_SOURCE} ${EMAIL} ${WHICHDB} ${TCPWRAPPERS}
 
 sed:
+	echo "Doing: scripts/do_sed ${EMAIL} ${TAPE_DRIVE} ${AUTOCHANGER} ${AUTOCHANGER_PATH}"
 	scripts/do_sed ${EMAIL} ${TAPE_DRIVE} ${AUTOCHANGER} ${AUTOCHANGER_PATH}
 
 # Run all non-root userid tests

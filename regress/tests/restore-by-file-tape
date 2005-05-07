@@ -22,7 +22,7 @@ echo " === Starting restore-by-file-tape test at `date +%R:%S` ===" >>working/lo
 echo " "
 
 bin/bacula start 2>&1 >/dev/null
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
 @output /dev/null
 messages
 @output tmp/log1.out
@@ -74,7 +74,7 @@ rm -rf ${cwd}/tmp/bacula-restores
 #
 # Now do a second backup and restore
 #
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
 @output /dev/null
 messages
 @output tmp/log1.out

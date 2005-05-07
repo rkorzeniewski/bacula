@@ -3,7 +3,7 @@
 # Check for zombie jobs (not terminated).
 # Also scan logs for ERROR messages
 #
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
 @output tmp/dir.out
 status dir
 @output tmp/fd.out
@@ -48,5 +48,4 @@ if [ $? = 0 ] ; then
   echo "  !!!! Fatal Error in log output !!!!" >>test.out
   echo " "
 fi
-
 
