@@ -16,7 +16,7 @@ echo " "
 
 bin/bacula start 2>&1 >/dev/null
 exit
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
 @tee /dev/null
 status all
 status all

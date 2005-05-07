@@ -37,7 +37,7 @@ echo " === Starting restore-disk-seek-test at `date +%R:%S` ===" >>working/log
 echo " "
 
 bin/bacula start -v -v 2>&1 >/dev/null
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
 @output /dev/null
 messages
 @output tmp/log1.out

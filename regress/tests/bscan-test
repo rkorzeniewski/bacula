@@ -17,7 +17,7 @@ echo " === Starting bscan-test at `date +%R:%S` ===" >working/log
 echo " "
 
 bin/bacula start 2>&1 >/dev/null
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
 @output /dev/null
 messages
 @output tmp/log1.out
@@ -48,7 +48,7 @@ bin/bacula stop 2>&1 >/dev/null
 echo "volume=TestVolume001|TestVolume002" >tmp/bscan.bsr
 bin/bscan -w working -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf ${cwd}/tmp 2>&1 >/dev/null
 bin/bacula start 2>&1 >/dev/null
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
 @output /dev/null
 messages
 @output tmp/log2.out

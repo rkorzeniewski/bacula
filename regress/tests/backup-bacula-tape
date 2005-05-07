@@ -17,7 +17,7 @@ echo " === Starting Backup Bacula tape test at `date +%R:%S` ===" >>working/log
 echo " "
 
 bin/bacula start 2>&1 >/dev/null
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
 @output /dev/null
 messages
 @output tmp/log1.out
@@ -75,7 +75,7 @@ bin/bacula stop 2>&1 >/dev/null
 touch ${cwd}/build/src/dird/*.c
 echo "test test" > ${cwd}/build/src/dird/xxx
 bin/bacula start 2>&1 >/dev/null
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
 @output /dev/null
 messages
 @output tmp/log1.out
