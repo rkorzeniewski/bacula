@@ -103,6 +103,7 @@ CLEAN :
         -@erase "$(INTDIR)\smartall.obj"
         -@erase "$(INTDIR)\status.obj"
         -@erase "$(INTDIR)\StdAfx.obj"
+        -@erase "$(INTDIR)\tls.obj"
         -@erase "$(INTDIR)\tree.obj"
         -@erase "$(INTDIR)\util.obj"
         -@erase "$(INTDIR)\var.obj"
@@ -196,6 +197,7 @@ LINK32_OBJS= \
         "$(INTDIR)\smartall.obj" \
         "$(INTDIR)\status.obj" \
         "$(INTDIR)\StdAfx.obj" \
+        "$(INTDIR)\tls.obj" \
         "$(INTDIR)\tree.obj" \
         "$(INTDIR)\util.obj" \
         "$(INTDIR)\var.obj" \
@@ -355,6 +357,8 @@ CLEAN :
         -@erase "$(INTDIR)\status.sbr"
         -@erase "$(INTDIR)\StdAfx.obj"
         -@erase "$(INTDIR)\StdAfx.sbr"
+        -@erase "$(INTDIR)\tls.obj"
+        -@erase "$(INTDIR)\tls.sbr"
         -@erase "$(INTDIR)\tree.obj"
         -@erase "$(INTDIR)\tree.sbr"
         -@erase "$(INTDIR)\util.obj"
@@ -460,6 +464,7 @@ BSC32_SBRS= \
         "$(INTDIR)\smartall.sbr" \
         "$(INTDIR)\status.sbr" \
         "$(INTDIR)\StdAfx.sbr" \
+        "$(INTDIR)\tls.sbr" \
         "$(INTDIR)\tree.sbr" \
         "$(INTDIR)\util.sbr" \
         "$(INTDIR)\var.sbr" \
@@ -546,6 +551,7 @@ LINK32_OBJS= \
         "$(INTDIR)\smartall.obj" \
         "$(INTDIR)\status.obj" \
         "$(INTDIR)\StdAfx.obj" \
+        "$(INTDIR)\tls.obj" \
         "$(INTDIR)\tree.obj" \
         "$(INTDIR)\util.obj" \
         "$(INTDIR)\var.obj" \
@@ -1751,6 +1757,25 @@ SOURCE=.\StdAfx.cpp
 
 !ENDIF 
 
+SOURCE=..\lib\tls.cpp
+
+!IF  "$(CFG)" == "baculafd - Win32 Release"
+
+
+"$(INTDIR)\tls.obj" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
+
+
+"$(INTDIR)\tls.obj"     "$(INTDIR)\tls.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+
 SOURCE=..\lib\tree.cpp
 
 !IF  "$(CFG)" == "baculafd - Win32 Release"
@@ -1787,6 +1812,7 @@ SOURCE=..\lib\util.cpp
 
 !ENDIF 
 
+
 SOURCE=..\lib\var.cpp
 
 !IF  "$(CFG)" == "baculafd - Win32 Release"
@@ -1804,6 +1830,8 @@ SOURCE=..\lib\var.cpp
 
 
 !ENDIF 
+
+
 
 SOURCE=..\filed\verify.cpp
 

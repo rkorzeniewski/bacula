@@ -5,6 +5,7 @@
 ..\lib\bnet
 ..\lib\bsys
 ..\lib\btime
+..\lib\btimers
 ..\lib\cram-md5
 ..\lib\crc32
 ..\lib\dlist
@@ -25,7 +26,7 @@
 ..\lib\serial
 ..\lib\sha1
 ..\lib\smartall
-..\lib\btimers
+..\lib\tls
 ..\lib\util
 ..\lib\watchdog
 ..\lib\winapi

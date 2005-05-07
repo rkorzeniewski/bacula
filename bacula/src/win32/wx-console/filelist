@@ -36,6 +36,7 @@
 ..\lib\signal
 ..\lib\smartall
 ..\lib\btimers
+..\lib\tls
 ..\lib\tree
 ..\lib\util
 ..\lib\var

@@ -78,6 +78,7 @@ CLEAN :
 	-@erase "$(INTDIR)\signal.obj"
 	-@erase "$(INTDIR)\smartall.obj"
 	-@erase "$(INTDIR)\btimers.obj"
+	-@erase "$(INTDIR)\tls.obj"
 	-@erase "$(INTDIR)\tree.obj"
 	-@erase "$(INTDIR)\util.obj"
 	-@erase "$(INTDIR)\var.obj"
@@ -154,6 +155,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\signal.obj" \
 	"$(INTDIR)\smartall.obj" \
 	"$(INTDIR)\btimers.obj" \
+	"$(INTDIR)\tls.obj" \
 	"$(INTDIR)\tree.obj" \
 	"$(INTDIR)\util.obj" \
 	"$(INTDIR)\var.obj" \
@@ -269,6 +271,8 @@ CLEAN :
 	-@erase "$(INTDIR)\smartall.sbr"
 	-@erase "$(INTDIR)\btimers.obj
 	-@erase "$(INTDIR)\btimers.sbr"
+	-@erase "$(INTDIR)\tls.obj
+	-@erase "$(INTDIR)\tls.sbr"
 	-@erase "$(INTDIR)\tree.obj
 	-@erase "$(INTDIR)\tree.sbr"
 	-@erase "$(INTDIR)\util.obj
@@ -361,6 +365,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\signal.sbr" \
 	"$(INTDIR)\smartall.sbr" \
 	"$(INTDIR)\btimers.sbr" \
+	"$(INTDIR)\tls.sbr" \
 	"$(INTDIR)\tree.sbr" \
 	"$(INTDIR)\util.sbr" \
 	"$(INTDIR)\var.sbr" \
@@ -432,6 +437,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\signal.obj" \
 	"$(INTDIR)\smartall.obj" \
 	"$(INTDIR)\btimers.obj" \
+	"$(INTDIR)\tls.obj" \
 	"$(INTDIR)\tree.obj" \
 	"$(INTDIR)\util.obj" \
 	"$(INTDIR)\var.obj" \
@@ -1211,6 +1217,25 @@ SOURCE=..\lib\smartall.cpp
 
 FILENAME=btimers
 SOURCE=..\lib\btimers.cpp
+!IF  "$(CFG)" == "wx-console - Win32 Release"
+
+
+"$(INTDIR)\$(FILENAME).obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "wx-console - Win32 Debug"
+
+
+"$(INTDIR)\$(FILENAME).obj"	"$(INTDIR)\$(FILENAME).sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+
+FILENAME=tls
+SOURCE=..\lib\tls.cpp
 !IF  "$(CFG)" == "wx-console - Win32 Release"
 
 

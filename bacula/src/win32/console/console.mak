@@ -73,6 +73,7 @@ CLEAN :
         -@erase "$(INTDIR)\serial.obj"
         -@erase "$(INTDIR)\sha1.obj"
         -@erase "$(INTDIR)\smartall.obj"
+        -@erase "$(INTDIR)\tls.obj"
         -@erase "$(INTDIR)\StdAfx.obj"
         -@erase "$(INTDIR)\btimers.obj"
         -@erase "$(INTDIR)\util.obj"
@@ -124,6 +125,7 @@ LINK32_OBJS= \
         "$(INTDIR)\serial.obj" \
         "$(INTDIR)\sha1.obj" \
         "$(INTDIR)\smartall.obj" \
+        "$(INTDIR)\tls.obj" \
         "$(INTDIR)\StdAfx.obj" \
         "$(INTDIR)\btimers.obj" \
         "$(INTDIR)\util.obj" \
@@ -180,6 +182,7 @@ CLEAN :
         -@erase "$(INTDIR)\serial.obj"
         -@erase "$(INTDIR)\sha1.obj"
         -@erase "$(INTDIR)\smartall.obj"
+        -@erase "$(INTDIR)\tls.obj"
         -@erase "$(INTDIR)\StdAfx.obj"
         -@erase "$(INTDIR)\btimers.obj"
         -@erase "$(INTDIR)\util.obj"
@@ -232,6 +235,7 @@ LINK32_OBJS= \
         "$(INTDIR)\serial.obj" \
         "$(INTDIR)\sha1.obj" \
         "$(INTDIR)\smartall.obj" \
+        "$(INTDIR)\tls.obj" \
         "$(INTDIR)\StdAfx.obj" \
         "$(INTDIR)\btimers.obj" \
         "$(INTDIR)\util.obj" \
@@ -473,6 +477,11 @@ SOURCE=..\lib\sha1.cpp
 SOURCE=..\lib\smartall.cpp
 
 "$(INTDIR)\smartall.obj" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
+
+SOURCE=..\lib\tls.cpp
+
+"$(INTDIR)\tls.obj" : $(SOURCE) "$(INTDIR)"
         $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
