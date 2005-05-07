@@ -2,7 +2,7 @@
  * Bacula Catalog Database interface routines
  *
  *     Almost generic set of SQL database interface routines
- *	(with a little more work)
+ *      (with a little more work)
  *
  *    Kern Sibbald, March 2000
  *
@@ -32,7 +32,7 @@
 /* The following is necessary so that we do not include
  * the dummy external definition of B_DB.
  */
-#define __SQL_C 		      /* indicate that this is sql.c */
+#define __SQL_C                       /* indicate that this is sql.c */
 
 #include "bacula.h"
 #include "cats.h"
@@ -80,7 +80,7 @@ int check_tables_version(JCR *jcr, B_DB *mdb)
    db_sql_query(mdb, query, int_handler, (void *)&bacula_db_version);
    if (bacula_db_version != BDB_VERSION) {
       Mmsg(mdb->errmsg, "Version error for database \"%s\". Wanted %d, got %d\n",
-	  mdb->db_name, BDB_VERSION, bacula_db_version);
+          mdb->db_name, BDB_VERSION, bacula_db_version);
       Jmsg(jcr, M_FATAL, 0, "%s", mdb->errmsg);
       return 0;
    }
@@ -109,7 +109,7 @@ QueryDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
 /*
  * Utility routine to do inserts
  * Returns: 0 on failure
- *	    1 on success
+ *          1 on success
  */
 int
 InsertDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
@@ -130,7 +130,7 @@ InsertDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
    if (mdb->num_rows != 1) {
       char ed1[30];
       m_msg(file, line, &mdb->errmsg, _("Insertion problem: affected_rows=%s\n"),
-	 edit_uint64(mdb->num_rows, ed1));
+         edit_uint64(mdb->num_rows, ed1));
       if (verbose) {
          j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
       }
@@ -142,7 +142,7 @@ InsertDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
 
 /* Utility routine for updates.
  *  Returns: 0 on failure
- *	     1 on success
+ *           1 on success
  */
 int
 UpdateDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
@@ -160,7 +160,7 @@ UpdateDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
    if (mdb->num_rows < 1) {
       char ed1[30];
       m_msg(file, line, &mdb->errmsg, _("Update problem: affected_rows=%s\n"),
-	 edit_uint64(mdb->num_rows, ed1));
+         edit_uint64(mdb->num_rows, ed1));
       if (verbose) {
 //       j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
       }
@@ -173,7 +173,7 @@ UpdateDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
 /* Utility routine for deletes
  *
  * Returns: -1 on error
- *	     n number of rows affected
+ *           n number of rows affected
  */
 int
 DeleteDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
@@ -197,7 +197,7 @@ DeleteDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
  *  No locking done
  *
  * Returns: -1 on failure
- *	    count on success
+ *          count on success
  */
 int get_sql_record_max(JCR *jcr, B_DB *mdb)
 {
@@ -207,9 +207,9 @@ int get_sql_record_max(JCR *jcr, B_DB *mdb)
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       if ((row = sql_fetch_row(mdb)) == NULL) {
          Mmsg1(&mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
-	 stat = -1;
+         stat = -1;
       } else {
-	 stat = str_to_int64(row[0]);
+         stat = str_to_int64(row[0]);
       }
       sql_free_result(mdb);
    } else {
@@ -238,7 +238,7 @@ void _db_lock(const char *file, int line, B_DB *mdb)
    if ((errstat=rwl_writelock(&mdb->lock)) != 0) {
       berrno be;
       e_msg(file, line, M_ABORT, 0, "rwl_writelock failure. ERR=%s\n",
-	   be.strerror(errstat));
+           be.strerror(errstat));
    }
 }
 
@@ -253,7 +253,7 @@ void _db_unlock(const char *file, int line, B_DB *mdb)
    if ((errstat=rwl_writeunlock(&mdb->lock)) != 0) {
       berrno be;
       e_msg(file, line, M_ABORT, 0, "rwl_writeunlock failure. ERR=%s\n",
-	   be.strerror(errstat));
+           be.strerror(errstat));
    }
 }
 
@@ -264,6 +264,9 @@ void _db_unlock(const char *file, int line, B_DB *mdb)
  */
 void db_start_transaction(JCR *jcr, B_DB *mdb)
 {
+   if (!jcr->attr) {
+      jcr->attr = get_pool_memory(PM_FNAME);
+   }
 #ifdef HAVE_SQLITE
    if (!mdb->allow_transactions) {
       return;
@@ -307,11 +310,20 @@ void db_end_transaction(JCR *jcr, B_DB *mdb)
 {
    /*
     * This can be called during thread cleanup and
-    *	the db may already be closed.  So simply return.
+    *   the db may already be closed.  So simply return.
     */
    if (!mdb) {
       return;
    }
+   if (jcr->cached_attribute) {
+      if (!db_create_file_attributes_record(jcr, jcr->db, &jcr->ar)) {
+         Jmsg1(jcr, M_FATAL, 0, _("Attribute create error. %s"), db_strerror(jcr->db));
+      }
+      jcr->cached_attribute = false;
+   }
+   if (jcr->attr) {
+      free_pool_memory(jcr->attr);
+   }  
 #ifdef HAVE_SQLITE
    if (!mdb->allow_transactions) {
       return;
@@ -358,12 +370,12 @@ void split_path_and_file(JCR *jcr, B_DB *mdb, const char *fname)
     */
    for (p=f=fname; *p; p++) {
       if (*p == '/') {
-	 f = p; 		      /* set pos of last slash */
+         f = p;                       /* set pos of last slash */
       }
    }
    if (*f == '/') {                   /* did we find a slash? */
-      f++;			      /* yes, point to filename */
-   } else {			      /* no, whole thing must be path name */
+      f++;                            /* yes, point to filename */
+   } else {                           /* no, whole thing must be path name */
       f = p;
    }
 
@@ -375,7 +387,7 @@ void split_path_and_file(JCR *jcr, B_DB *mdb, const char *fname)
    mdb->fnl = p - f;
    if (mdb->fnl > 0) {
       mdb->fname = check_pool_memory_size(mdb->fname, mdb->fnl+1);
-      memcpy(mdb->fname, f, mdb->fnl);	  /* copy filename */
+      memcpy(mdb->fname, f, mdb->fnl);    /* copy filename */
       mdb->fname[mdb->fnl] = 0;
    } else {
       mdb->fname[0] = 0;
@@ -442,22 +454,22 @@ list_result(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type t
    for (i = 0; i < sql_num_fields(mdb); i++) {
       Dmsg1(800, "list_result processing field %d\n", i);
       field = sql_fetch_field(mdb);
-      col_len = strlen(field->name);
+      col_len = cstrlen(field->name);
       if (type == VERT_LIST) {
-	 if (col_len > max_len) {
-	    max_len = col_len;
-	 }
+         if (col_len > max_len) {
+            max_len = col_len;
+         }
       } else {
-	 if (IS_NUM(field->type) && (int)field->max_length > 0) { /* fixup for commas */
-	    field->max_length += (field->max_length - 1) / 3;
-	 }
-	 if (col_len < (int)field->max_length) {
-	    col_len = field->max_length;
-	 }
-	 if (col_len < 4 && !IS_NOT_NULL(field->flags)) {
+         if (IS_NUM(field->type) && (int)field->max_length > 0) { /* fixup for commas */
+            field->max_length += (field->max_length - 1) / 3;
+         }
+         if (col_len < (int)field->max_length) {
+            col_len = field->max_length;
+         }
+         if (col_len < 4 && !IS_NOT_NULL(field->flags)) {
             col_len = 4;                 /* 4 = length of the word "NULL" */
-	 }
-	 field->max_length = col_len;	 /* reset column info */
+         }
+         field->max_length = col_len;    /* reset column info */
       }
    }
 
@@ -484,16 +496,16 @@ list_result(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type t
       sql_field_seek(mdb, 0);
       send(ctx, "|");
       for (i = 0; i < sql_num_fields(mdb); i++) {
-	 field = sql_fetch_field(mdb);
-	 if (row[i] == NULL) {
+         field = sql_fetch_field(mdb);
+         if (row[i] == NULL) {
             bsnprintf(buf, sizeof(buf), " %-*s |", (int)field->max_length, "NULL");
-	 } else if (IS_NUM(field->type) && !jcr->gui && is_an_integer(row[i])) {
+         } else if (IS_NUM(field->type) && !jcr->gui && is_an_integer(row[i])) {
             bsnprintf(buf, sizeof(buf), " %*s |", (int)field->max_length,
-		      add_commas(row[i], ewc));
-	 } else {
+                      add_commas(row[i], ewc));
+         } else {
             bsnprintf(buf, sizeof(buf), " %-*s |", (int)field->max_length, row[i]);
-	 }
-	 send(ctx, buf);
+         }
+         send(ctx, buf);
       }
       send(ctx, "\n");
    }
@@ -506,16 +518,16 @@ vertical_list:
    while ((row = sql_fetch_row(mdb)) != NULL) {
       sql_field_seek(mdb, 0);
       for (i = 0; i < sql_num_fields(mdb); i++) {
-	 field = sql_fetch_field(mdb);
-	 if (row[i] == NULL) {
+         field = sql_fetch_field(mdb);
+         if (row[i] == NULL) {
             bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name, "NULL");
-	 } else if (IS_NUM(field->type) && !jcr->gui && is_an_integer(row[i])) {
+         } else if (IS_NUM(field->type) && !jcr->gui && is_an_integer(row[i])) {
             bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name,
-		add_commas(row[i], ewc));
-	 } else {
+                add_commas(row[i], ewc));
+         } else {
             bsnprintf(buf, sizeof(buf), " %*s: %s\n", max_len, field->name, row[i]);
-	 }
-	 send(ctx, buf);
+         }
+         send(ctx, buf);
       }
       send(ctx, "\n");
    }

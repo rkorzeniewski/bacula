@@ -619,6 +619,8 @@ struct ATTR_DBR {
    DBId_t PathId;
    DBId_t FilenameId;
    FileId_t FileId;
+   char *Sig;
+   int SigType;
 };
 
 

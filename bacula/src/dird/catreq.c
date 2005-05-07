@@ -323,15 +323,18 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
    int32_t Stream;
    uint32_t FileIndex;
    uint32_t data_len;
-   char *p = bs->msg;
+   char *p;
    int len;
    char *fname, *attr;
-   ATTR_DBR ar;
+   ATTR_DBR *ar = &jcr->ar;
 
    if (!jcr->pool->catalog_files) {
       return;
    }
    db_start_transaction(jcr, jcr->db);     /* start transaction if not already open */
+   jcr->attr = check_pool_memory_size(jcr->attr, bs->msglen);
+   memcpy(jcr->attr, bs->msg, bs->msglen);
+   p = jcr->attr;
    skip_nonspaces(&p);                /* UpdCat */
    skip_spaces(&p);
    skip_nonspaces(&p);                /* Job=nnn */
@@ -361,25 +364,24 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
 
       Dmsg2(400, "dird<stored: stream=%d %s\n", Stream, fname);
       Dmsg1(400, "dird<stored: attr=%s\n", attr);
-      ar.attr = attr;
-      ar.fname = fname;
-      ar.FileIndex = FileIndex;
-      ar.Stream = Stream;
-      ar.link = NULL;
-      ar.JobId = jcr->JobId;
+      ar->attr = attr;
+      ar->fname = fname;
+      ar->FileIndex = FileIndex;
+      ar->Stream = Stream;
+      ar->link = NULL;
+      ar->JobId = jcr->JobId;
+      ar->Sig = NULL;
+      ar->SigType = 0;
 
       Dmsg2(400, "dird<filed: stream=%d %s\n", Stream, fname);
       Dmsg1(400, "dird<filed: attr=%s\n", attr);
 
-      if (!db_create_file_attributes_record(jcr, jcr->db, &ar)) {
+      if (!db_create_file_attributes_record(jcr, jcr->db, ar)) {
          Jmsg1(jcr, M_FATAL, 0, _("Attribute create error. %s"), db_strerror(jcr->db));
       }
-      /* Save values for SIG update */
-      jcr->FileId = ar.FileId;
-      jcr->FileIndex = FileIndex;
    } else if (Stream == STREAM_MD5_SIGNATURE || Stream == STREAM_SHA1_SIGNATURE) {
       fname = p;
-      if (jcr->FileIndex != FileIndex) {
+      if (ar->FileIndex != FileIndex) {
          Jmsg(jcr, M_WARNING, 0, "Got MD5/SHA1 but not same File as attributes\n");
       } else {
          /* Update signature in catalog */
@@ -394,7 +396,7 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
          }
          bin_to_base64(SIGbuf, fname, len);
          Dmsg3(400, "SIGlen=%d SIG=%s type=%d\n", strlen(SIGbuf), SIGbuf, Stream);
-         if (!db_add_SIG_to_file_record(jcr, jcr->db, jcr->FileId, SIGbuf, type)) {
+         if (!db_add_SIG_to_file_record(jcr, jcr->db, ar->FileId, SIGbuf, type)) {
             Jmsg(jcr, M_ERROR, 0, _("Catalog error updating MD5/SHA1. %s"),
                db_strerror(jcr->db));
          }
