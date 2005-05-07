@@ -43,6 +43,7 @@ char     *bstrncpy               (char *dest, const char *src, int maxlen);
 char     *bstrncpy               (char *dest, POOL_MEM &src, int maxlen);
 char     *bstrncat               (char *dest, const char *src, int maxlen);
 char     *bstrncat               (char *dest, POOL_MEM &src, int maxlen);
+int       cstrlen                (const char *str);
 void     *b_malloc               (const char *file, int line, size_t size);
 #ifndef DEBUG
 void     *bmalloc                (size_t size);
