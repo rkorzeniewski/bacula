@@ -44,8 +44,8 @@
 
 #ifdef HAVE_WIN32
 #include <windows.h>
+#include "../lib/winapi.h"
 #define isatty(fd) (fd==0)
-DWORD  g_platform_id = VER_PLATFORM_WIN32_WINDOWS;
 #endif
 
 /* Exported variables */
@@ -380,7 +380,10 @@ int main(int argc, char *argv[])
    signal(SIGTTIN, got_sigtin);
    signal(SIGTTOU, got_sigtout);
    trapctlc();
+#else
+   InitWinAPIWrapper();
 #endif
+     
 
    if (argc) {
       usage();
@@ -716,8 +719,17 @@ again:
          break;
       }
 #endif
+#ifdef HAVE_WIN32 /* use special console for input on win32 */
+      if (input == stdin) {
+         if (win32_cgets(sock->msg, len) == NULL) {
+            return -1;
+         }
+      }
+      else
+#endif
       if (fgets(sock->msg, len, input) == NULL) {
          return -1;
+
       }
       break;
    }
@@ -870,6 +882,7 @@ void sendit(const char *buf)
        fputs(buf, output);
     }
 #else
+
     fputs(buf, output);
     fflush(output);
     if (tee) {
