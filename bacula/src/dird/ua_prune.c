@@ -246,7 +246,7 @@ int prune_files(UAContext *ua, CLIENT *client)
 
    /* Select Jobs -- for counting */
    Mmsg(query, select_job, edit_uint64(now - period, ed1), 
-        edit_int64(cr.ClientId, ed1));
+        edit_int64(cr.ClientId, ed2));
    Dmsg1(050, "select sql=%s\n", query);
    if (!db_sql_query(ua->db, query, file_count_handler, (void *)&del)) {
       if (ua->verbose) {
@@ -276,12 +276,7 @@ int prune_files(UAContext *ua, CLIENT *client)
    db_sql_query(ua->db, query, file_delete_handler, (void *)&del);
 
    for (i=0; i < del.num_ids; i++) {
-      struct s_count_ctx cnt;
       Dmsg1(050, "Delete JobId=%u\n", del.JobId[i]);
-      Mmsg(query, cnt_File, edit_int64(del.JobId[i], ed1));
-      cnt.count = 0;
-      db_sql_query(ua->db, query, count_handler, (void *)&cnt);
-      del.tot_ids += cnt.count;
       Mmsg(query, del_File, edit_int64(del.JobId[i], ed1));
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       /*
@@ -294,10 +289,9 @@ int prune_files(UAContext *ua, CLIENT *client)
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       Dmsg1(050, "Del sql=%s\n", query);
    }
-   edit_uint64_with_commas(del.tot_ids, ed1);
-   edit_uint64_with_commas(del.num_ids, ed2);
-   bsendmsg(ua, _("Pruned %s Files from %s Jobs for client %s from catalog.\n"),
-      ed1, ed2, client->hdr.name);
+   edit_uint64_with_commas(del.num_ids, ed1);
+   bsendmsg(ua, _("Pruned Files from %s Jobs for client %s from catalog.\n"),
+      ed1, client->hdr.name);
 
 bail_out:
    db_unlock(ua->db);

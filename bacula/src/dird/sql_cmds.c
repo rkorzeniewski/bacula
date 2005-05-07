@@ -47,7 +47,6 @@ const char *client_backups =
 
 /* ====== ua_prune.c */
 
-const char *cnt_File     = "SELECT count(*) FROM File WHERE JobId=%s";
 const char *del_File     = "DELETE FROM File WHERE JobId=%s";
 const char *upd_Purged   = "UPDATE Job Set PurgedFiles=1 WHERE JobId=%s";
 const char *cnt_DelCand  = "SELECT count(*) FROM DelCandidates";
