@@ -29,8 +29,14 @@
 #include <stdio.h>
 
 #include "compat.h"
+#ifdef WIN32_VSS
+#include "vss.h"
+#endif 
 #include "pthread.h"
 #include "../../lib/winapi.h"
+
+/* to allow the usage of the original version in this file here */
+#undef fputs
 
 #define b_errno_win32 (1<<29)
 
@@ -49,9 +55,10 @@ extern DWORD   g_platform_id;
 #define WIN32_FILETIME_SCALE  10000000             // 100ns/second
 
 extern "C" void
-cygwin_conv_to_win32_path(const char *name, char *win32_name)
+cygwin_conv_to_win32_path(const char *name, char *win32_name, DWORD dwSize)
 {
     const char *fname = name;
+    char *tname = win32_name;
     while (*name) {
         /* Check for Unix separator and convert to Win32 */
         if (*name == '/') {
@@ -71,6 +78,13 @@ cygwin_conv_to_win32_path(const char *name, char *win32_name)
     } else {
         *win32_name = 0;
     }
+
+#ifdef WIN32_VSS
+    /* here we convert to VSS specific file name */    
+    char szFile[MAX_PATH_UNICODE];
+    strncpy (szFile, tname, MAX_PATH_UNICODE-1);
+    g_VSSClient.GetShadowPath(szFile,tname,dwSize);
+#endif
 }
 
 int 
@@ -217,7 +231,7 @@ static int
 statDir(const char *file, struct stat *sb)
 {
    WIN32_FIND_DATAW info_w;       // window's file info
-   WIN32_FIND_DATA info_a;       // window's file info
+   WIN32_FIND_DATAA info_a;       // window's file info
 
    // cache some common vars to make code more transparent
    DWORD* pdwFileAttributes;
@@ -302,7 +316,7 @@ stat2(const char *file, struct stat *sb)
     HANDLE h;
     int rval = 0;
     char tmpbuf[1024];
-    cygwin_conv_to_win32_path(file, tmpbuf);
+    cygwin_conv_to_win32_path(file, tmpbuf, 1024);
 
     DWORD attr = -1;
 
@@ -328,7 +342,7 @@ stat2(const char *file, struct stat *sb)
     if (attr & FILE_ATTRIBUTE_DIRECTORY)
         return statDir(tmpbuf, sb);
 
-    h = CreateFile(tmpbuf, GENERIC_READ,
+    h = CreateFileA(tmpbuf, GENERIC_READ,
                    FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
 
     if (h == INVALID_HANDLE_VALUE) {
@@ -603,7 +617,7 @@ getgrgid(uid_t)
 
 typedef struct _dir
 {
-    WIN32_FIND_DATA  data_a;    // window's file info (ansii version)
+    WIN32_FIND_DATAA data_a;    // window's file info (ansii version)
     WIN32_FIND_DATAW data_w;    // window's file info (wchar version)
     const char *spec;           // the directory we're traversing
     HANDLE      dirh;           // the search handle
@@ -615,7 +629,8 @@ typedef struct _dir
 DIR *
 opendir(const char *path)
 {
-    int max_len = strlen(path) + 16;
+    /* enough space for VSS !*/
+    int max_len = strlen(path) + MAX_PATH;
     _dir *rval = NULL;
     if (path == NULL) {
        errno = ENOENT;
@@ -635,9 +650,9 @@ opendir(const char *path)
         tspec[2] = '?';
         tspec[3] = '\\';
         tspec[4] = 0;
-        cygwin_conv_to_win32_path(path, tspec+4);
+        cygwin_conv_to_win32_path(path, tspec+4, max_len-4);
     } else {
-        cygwin_conv_to_win32_path(path, tspec);
+        cygwin_conv_to_win32_path(path, tspec, max_len);
     }
 
     strncat(tspec, "\\*", max_len);
@@ -912,6 +927,81 @@ win32_getcwd(char *buf, int maxlen)
    return buf;
 }
 
+int 
+win32_fputs(const char *string, FILE *stream)
+{
+   /* we use _cwprintf (console printf)
+      so we can be sure that unicode support works on win32.
+      this works under nt and 98 (95 and me not tested)
+   */
+
+   if (p_MultiByteToWideChar && (stream == stdout)) {
+      WCHAR szBuf[MAX_PATH_UNICODE];
+      UTF8_2_wchar(szBuf, string, MAX_PATH_UNICODE);
+      return _cwprintf (szBuf);
+   }
+
+   return fputs(string, stream);
+}
+
+char*
+win32_cgets (char* buffer, int len)
+{
+   /* we use console gets / getws to be able to read unicode
+      from the win32 console */
+
+   /* nt and unicode conversion */
+   if ((g_platform_id == VER_PLATFORM_WIN32_NT) && p_WideCharToMultiByte) {      
+      WCHAR szBuf[260];
+      szBuf[0] = min (255, len); /* max len, must be smaller than buffer */
+      if (!_cgetws (szBuf))
+         return NULL;
+
+      if (wchar_2_UTF8(buffer, &szBuf[2], len))
+         return buffer;
+      else
+         return NULL;
+   }
+
+   /* win 9x and unicode conversion */
+   if ((g_platform_id == VER_PLATFORM_WIN32_WINDOWS) && p_WideCharToMultiByte && p_MultiByteToWideChar) {
+      char szBuf[260];
+      szBuf[0] = min (255, len); /* max len, must be smaller than buffer */
+      if (!_cgets (szBuf))
+         return NULL;
+
+      /* back and forth to get UTF-8 from ANSI */
+      WCHAR wszBuf[260];
+      p_MultiByteToWideChar(CP_OEMCP, 0, &szBuf[2], -1, wszBuf,260);
+
+      if (wchar_2_UTF8(buffer, wszBuf, len))
+         return buffer;
+      else
+         return NULL;
+   }
+
+   /* fallback */
+   if (fgets(buffer, len, stdin)) 
+      return buffer;   
+   else
+      return NULL;
+}
+
+int
+win32_unlink(const char *filename)
+{
+   int nRetCode;
+   if (p_wunlink) {
+      WCHAR szBuf[MAX_PATH_UNICODE];
+      UTF8_2_wchar(szBuf, filename, MAX_PATH_UNICODE);
+      nRetCode = _wunlink(szBuf);
+   } else {
+      nRetCode = _unlink(filename);
+   }
+   return nRetCode;
+}
+
+
 #include "mswinver.h"
 
 char WIN_VERSION_LONG[64];
@@ -973,7 +1063,7 @@ winver::winver(void)
 BOOL CreateChildProcess(VOID);
 VOID WriteToPipe(VOID);
 VOID ReadFromPipe(VOID);
-VOID ErrorExit(LPTSTR);
+VOID ErrorExit(LPCSTR);
 VOID ErrMsg(LPTSTR, BOOL);
 
 /**
@@ -1021,7 +1111,7 @@ HANDLE
 CreateChildProcess(const char *cmdline, HANDLE in, HANDLE out, HANDLE err)
 {
     PROCESS_INFORMATION piProcInfo;
-    STARTUPINFO siStartInfo;
+    STARTUPINFOA siStartInfo;
     BOOL bFuncRetn = FALSE;
 
     // Set up members of the PROCESS_INFORMATION structure.
@@ -1067,7 +1157,7 @@ CreateChildProcess(const char *cmdline, HANDLE in, HANDLE out, HANDLE err)
     strcat(cmdLine, cmdline);
 
     // try to execute program
-    bFuncRetn = CreateProcess(exeFile,
+    bFuncRetn = CreateProcessA(exeFile,
                               cmdLine, // command line
                               NULL, // process security attributes
                               NULL, // primary thread security attributes
@@ -1095,7 +1185,7 @@ CreateChildProcess(const char *cmdline, HANDLE in, HANDLE out, HANDLE err)
 
 
 void
-ErrorExit (LPTSTR lpszMessage)
+ErrorExit (LPCSTR lpszMessage)
 {
     d_msg(__FILE__, __LINE__, 0, "%s", lpszMessage);
 }
@@ -1328,7 +1418,7 @@ utime(const char *fname, struct utimbuf *times)
     FILETIME acc, mod;
     char tmpbuf[1024];
 
-    cygwin_conv_to_win32_path(fname, tmpbuf);
+    cygwin_conv_to_win32_path(fname, tmpbuf, 1024);
 
     cvt_utime_to_ftime(times->actime, acc);
     cvt_utime_to_ftime(times->modtime, mod);
@@ -1347,7 +1437,7 @@ utime(const char *fname, struct utimbuf *times)
                         0,
                         NULL);
     } else if (p_CreateFileA) {
-      h = CreateFile(tmpbuf,
+      h = p_CreateFileA(tmpbuf,
                         FILE_WRITE_ATTRIBUTES,
                         FILE_SHARE_WRITE,
                         NULL,
@@ -1374,21 +1464,6 @@ utime(const char *fname, struct utimbuf *times)
 }
 
 #if USE_WIN32_COMPAT_IO
-
-int
-unlink(const char *file)
-{
-   int nRetCode;
-   if (p_wunlink) {
-      WCHAR szBuf[MAX_PATH_UNICODE];
-      UTF8_2_wchar(szBuf, file, MAX_PATH_UNICODE);
-      nRetCode = _wunlink(szBuf);
-   } else {
-      nRetCode = _unlink(file);
-   }
-   return nRetCode;
-}
-
 
 int
 open(const char *file, int flags, int mode)
