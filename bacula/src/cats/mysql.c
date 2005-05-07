@@ -9,7 +9,7 @@
  */
 
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -32,7 +32,7 @@
 /* The following is necessary so that we do not include
  * the dummy external definition of DB.
  */
-#define __SQL_C 		      /* indicate that this is sql.c */
+#define __SQL_C                       /* indicate that this is sql.c */
 
 #include "bacula.h"
 #include "cats.h"
@@ -57,8 +57,8 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
  */
 B_DB *
 db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char *db_password,
-		 const char *db_address, int db_port, const char *db_socket,
-		 int mult_db_connections)
+                 const char *db_address, int db_port, const char *db_socket,
+                 int mult_db_connections)
 {
    B_DB *mdb;
 
@@ -66,16 +66,16 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
       Jmsg(jcr, M_FATAL, 0, _("A user name for MySQL must be supplied.\n"));
       return NULL;
    }
-   P(mutex);			      /* lock DB queue */
+   P(mutex);                          /* lock DB queue */
    /* Look to see if DB already open */
    if (!mult_db_connections) {
       for (mdb=NULL; (mdb=(B_DB *)qnext(&db_list, &mdb->bq)); ) {
-	 if (strcmp(mdb->db_name, db_name) == 0) {
-	    Dmsg2(100, "DB REopen %d %s\n", mdb->ref_count, db_name);
-	    mdb->ref_count++;
-	    V(mutex);
-	    return mdb; 		 /* already open */
-	 }
+         if (strcmp(mdb->db_name, db_name) == 0) {
+            Dmsg2(100, "DB REopen %d %s\n", mdb->ref_count, db_name);
+            mdb->ref_count++;
+            V(mutex);
+            return mdb;                  /* already open */
+         }
       }
    }
    Dmsg0(100, "db_open first time\n");
@@ -103,7 +103,7 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
    mdb->fname = get_pool_memory(PM_FNAME);
    mdb->path = get_pool_memory(PM_FNAME);
    mdb->esc_name = get_pool_memory(PM_FNAME);
-   qinsert(&db_list, &mdb->bq); 	   /* put db in list */
+   qinsert(&db_list, &mdb->bq);            /* put db in list */
    V(mutex);
    return mdb;
 }
@@ -128,7 +128,7 @@ db_open_database(JCR *jcr, B_DB *mdb)
 
    if ((errstat=rwl_init(&mdb->lock)) != 0) {
       Mmsg1(&mdb->errmsg, _("Unable to initialize DB lock. ERR=%s\n"),
-	    strerror(errstat));
+            strerror(errstat));
       V(mutex);
       return 0;
    }
@@ -142,31 +142,31 @@ db_open_database(JCR *jcr, B_DB *mdb)
    /* If connection fails, try at 5 sec intervals for 30 seconds. */
    for (int retry=0; retry < 6; retry++) {
       mdb->db = mysql_real_connect(
-	   &(mdb->mysql),		 /* db */
-	   mdb->db_address,		 /* default = localhost */
-	   mdb->db_user,		 /*  login name */
-	   mdb->db_password,		 /*  password */
-	   mdb->db_name,		 /* database name */
-	   mdb->db_port,		 /* default port */
-	   mdb->db_socket,		 /* default = socket */
-	   CLIENT_FOUND_ROWS);		 /* flags */
+           &(mdb->mysql),                /* db */
+           mdb->db_address,              /* default = localhost */
+           mdb->db_user,                 /*  login name */
+           mdb->db_password,             /*  password */
+           mdb->db_name,                 /* database name */
+           mdb->db_port,                 /* default port */
+           mdb->db_socket,               /* default = socket */
+           CLIENT_FOUND_ROWS);           /* flags */
 
       /* If no connect, try once more in case it is a timing problem */
       if (mdb->db != NULL) {
-	 break;
+         break;
       }
       bmicrosleep(5,0);
    }
 
    Dmsg0(50, "mysql_real_connect done\n");
    Dmsg3(50, "db_user=%s db_name=%s db_password=%s\n", mdb->db_user, mdb->db_name,
-	    mdb->db_password==NULL?"(NULL)":mdb->db_password);
+            mdb->db_password==NULL?"(NULL)":mdb->db_password);
 
    if (mdb->db == NULL) {
       Mmsg2(&mdb->errmsg, _("Unable to connect to MySQL server. \n"
 "Database=%s User=%s\n"
 "It is probably not running or your password is incorrect.\n"),
-	 mdb->db_name, mdb->db_user);
+         mdb->db_name, mdb->db_user);
       V(mutex);
       return 0;
    }
@@ -191,6 +191,7 @@ db_close_database(JCR *jcr, B_DB *mdb)
    if (!mdb) {
       return;
    }
+   db_end_transaction(jcr, mdb);
    P(mutex);
    mdb->ref_count--;
 #ifdef HAVE_TREAD_SAFE_MYSQL
@@ -199,9 +200,9 @@ db_close_database(JCR *jcr, B_DB *mdb)
    if (mdb->ref_count == 0) {
       qdchain(&mdb->bq);
       if (mdb->connected && mdb->db) {
-	 sql_close(mdb);
+         sql_close(mdb);
 #ifdef HAVE_EMBEDDED_MYSQL
-	 mysql_server_end();
+         mysql_server_end();
 #endif
       }
       rwl_destroy(&mdb->lock);
@@ -212,19 +213,19 @@ db_close_database(JCR *jcr, B_DB *mdb)
       free_pool_memory(mdb->path);
       free_pool_memory(mdb->esc_name);
       if (mdb->db_name) {
-	 free(mdb->db_name);
+         free(mdb->db_name);
       }
       if (mdb->db_user) {
-	 free(mdb->db_user);
+         free(mdb->db_user);
       }
       if (mdb->db_password) {
-	 free(mdb->db_password);
+         free(mdb->db_password);
       }
       if (mdb->db_address) {
-	 free(mdb->db_address);
+         free(mdb->db_address);
       }
       if (mdb->db_socket) {
-	 free(mdb->db_socket);
+         free(mdb->db_socket);
       }
       free(mdb);
    }
@@ -249,8 +250,8 @@ int db_next_index(JCR *jcr, B_DB *mdb, char *table, char *index)
  * Escape strings so that MySQL is happy
  *
  *   NOTE! len is the length of the old string. Your new
- *	   string must be long enough (max 2*old+1) to hold
- *	   the escaped output.
+ *         string must be long enough (max 2*old+1) to hold
+ *         the escaped output.
  */
 void
 db_escape_string(char *snew, char *old, int len)
@@ -269,42 +270,42 @@ unsigned long mysql_real_escape_string(MYSQL *mysql, char *to, const char *from,
    while (len--) {
       switch (*o) {
       case 0:
-	 *n++= '\\';
-	 *n++= '0';
-	 o++;
-	 break;
+         *n++= '\\';
+         *n++= '0';
+         o++;
+         break;
       case '\n':
-	 *n++= '\\';
-	 *n++= 'n';
-	 o++;
-	 break;
+         *n++= '\\';
+         *n++= 'n';
+         o++;
+         break;
       case '\r':
-	 *n++= '\\';
-	 *n++= 'r';
-	 o++;
-	 break;
+         *n++= '\\';
+         *n++= 'r';
+         o++;
+         break;
       case '\\':
-	 *n++= '\\';
-	 *n++= '\\';
-	 o++;
-	 break;
+         *n++= '\\';
+         *n++= '\\';
+         o++;
+         break;
       case '\'':
-	 *n++= '\\';
-	 *n++= '\'';
-	 o++;
-	 break;
+         *n++= '\\';
+         *n++= '\'';
+         o++;
+         break;
       case '"':
-	 *n++= '\\';
-	 *n++= '"';
-	 o++;
-	 break;
+         *n++= '\\';
+         *n++= '"';
+         o++;
+         break;
       case '\032':
-	 *n++= '\\';
-	 *n++= 'Z';
-	 o++;
-	 break;
+         *n++= '\\';
+         *n++= 'Z';
+         o++;
+         break;
       default:
-	 *n++= *o++;
+         *n++= *o++;
       }
    }
    *n = 0;
@@ -327,14 +328,14 @@ int db_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handler
    }
    if (result_handler != NULL) {
       if ((mdb->result = sql_store_result(mdb)) != NULL) {
-	 int num_fields = sql_num_fields(mdb);
+         int num_fields = sql_num_fields(mdb);
 
-	 while ((row = sql_fetch_row(mdb)) != NULL) {
-	    if (result_handler(ctx, num_fields, row))
-	       break;
-	 }
+         while ((row = sql_fetch_row(mdb)) != NULL) {
+            if (result_handler(ctx, num_fields, row))
+               break;
+         }
 
-	 sql_free_result(mdb);
+         sql_free_result(mdb);
       }
    }
    db_unlock(mdb);
