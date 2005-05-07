@@ -54,7 +54,7 @@ void set_service_description(SC_HANDLE hSCManager, SC_HANDLE hService,
 
 bacService init;
 
-DWORD   g_platform_id;
+extern DWORD   g_platform_id;
 
 bacService::bacService()
 {

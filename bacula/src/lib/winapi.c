@@ -31,6 +31,10 @@
 
 #include "winapi.h"
 
+// init with win9x, but maybe set to NT in InitWinAPI
+DWORD  g_platform_id = VER_PLATFORM_WIN32_WINDOWS;
+
+
 /* API Pointers */
 
 t_OpenProcessToken      p_OpenProcessToken = NULL;
@@ -69,6 +73,7 @@ t_SetCurrentDirectoryW p_SetCurrentDirectoryW = NULL;
 
 t_GetCurrentDirectoryA p_GetCurrentDirectoryA = NULL;
 t_GetCurrentDirectoryW p_GetCurrentDirectoryW = NULL;
+
 
 void 
 InitWinAPIWrapper() 
@@ -156,20 +161,17 @@ InitWinAPIWrapper()
    }
 
    // do we run on win 9x ???
-
-   DWORD   dw_platform_id;
-
    OSVERSIONINFO osversioninfo;
    osversioninfo.dwOSVersionInfoSize = sizeof(osversioninfo);
 
    // Get the current OS version
    if (!GetVersionEx(&osversioninfo)) {
-      dw_platform_id = 0;
+      g_platform_id = 0;
    } else {
-      dw_platform_id = osversioninfo.dwPlatformId;
+      g_platform_id = osversioninfo.dwPlatformId;
    }
 
-   if (dw_platform_id == VER_PLATFORM_WIN32_WINDOWS) {
+   if (g_platform_id == VER_PLATFORM_WIN32_WINDOWS) {
       p_BackupRead = NULL;
       p_BackupWrite = NULL;
 
