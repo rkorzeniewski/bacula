@@ -7,7 +7,7 @@
 %define depkgs ../depkgs
 %define depkgs_version 29Oct04
 %define tomsrtbt tomsrtbt-2.0.103
-%define sqlite_bindir /usr/lib/sqlite
+%define sqlite_bindir /usr/lib/bacula/sqlite
 %define working_dir /var/bacula
 %define daemon_user root
 %define daemon_group bacula
@@ -115,7 +115,7 @@ URL: http://www.bacula.org/
 Vendor: The Bacula Team
 Distribution: %{_dist}
 Packager: D. Scott Barninger <barninger@fairfieldcomputers.com>
-BuildRequires: readline-devel, atk-devel, ncurses-devel, pango-devel, perl
+BuildRequires: atk-devel, ncurses-devel, pango-devel, perl
 BuildRequires: libstdc++-devel, libxml2-devel, zlib-devel, pkgconfig
 %if %{rh7}
 BuildRequires: libtermcap-devel
@@ -236,10 +236,11 @@ Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
 Provides: bacula-dir, bacula-sd, bacula-fd, bacula-server
 Conflicts: bacula-client
-Requires: readline, ncurses, libstdc++, zlib
-%if %{sqlite}
-Conflicts: sqlite, sqlite-tools
-%endif
+Requires: ncurses, libstdc++, zlib
+# sqlite binary now installed to /usr/lib/bacula/sqlite
+#%if %{sqlite}
+#Conflicts: sqlite, sqlite-tools
+#%endif
 
 %if %{rh7}
 Requires: glibc >= 2.2
@@ -324,7 +325,7 @@ This build incorporates sqlite as the catalog database, statically compiled.
 Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
 Provides: bacula-fd
-Requires: readline, libstdc++, zlib
+Requires: libstdc++, zlib
 
 %if %{rh7}
 Requires: glibc >= 2.2
@@ -415,7 +416,7 @@ database.
 %package gconsole
 Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
-Requires: readline, atk, libstdc++, zlib, pango, libxml2, bacula-fd
+Requires: atk, libstdc++, zlib, pango, libxml2, bacula-fd
 
 %if %{rh7}
 Requires: gtk+ >= 1.2
@@ -1272,6 +1273,9 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 
 
 %changelog
+* Sat May 07 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- move sqlite installation bindir to /usr/lib/bacula/sqlite and remove
+- conflict with sqlite packages. remove readline dependency.
 * Sun Apr 17 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - release 1.36.3 update docs
 * Tue Apr 05 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
