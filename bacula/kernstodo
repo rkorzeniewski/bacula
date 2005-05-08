@@ -76,6 +76,10 @@ For 1.37:
 - Fix the Rescue CDROM.
 
 Maybe in 1.37:
+- To mark files as deleted, run essentially a Verify to disk, and
+  when a file is found missing (MarkId != JobId), then create
+  a new File record with FileIndex == -1. This could be done
+  by the FD at the same time as the backup.
 - Fix FD JobType to be set before RunBeforeJob in FD.
 - Look at adding full Volume and Pool information to a Volume 
   label so that bscan can get *all* the info. 

@@ -146,6 +146,9 @@ struct JCR {
    void *Python_job;                  /* Python Job Object */
    void *Python_events;               /* Python Events Object */
 
+   bool cached_attribute;             /* set if attribute is cached */
+   POOLMEM *attr;                     /* Attribute string from SD */
+
    /* Daemon specific part of JCR */
    /* This should be empty in the library */
 
@@ -196,9 +199,7 @@ struct JCR {
    bool write_part_after_job;         /* Write part after job in SD */
    bool needs_sd;                     /* set if SD needed by Job */
    bool cloned;                       /* set if cloned */
-   bool cached_attribute;             /* set if attribute is cached */
    ATTR_DBR ar;                       /* DB attribute record */
-   POOLMEM *attr;                     /* Attribute string from SD */
 #endif /* DIRECTOR_DAEMON */
 
 

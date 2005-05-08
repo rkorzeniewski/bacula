@@ -883,22 +883,22 @@ void free_resource(RES *sres, int type)
          free_tls_context(res->res_dir.tls_ctx);
       }
       if (res->res_dir.tls_ca_certfile) {
-	 free(res->res_dir.tls_ca_certfile);
+         free(res->res_dir.tls_ca_certfile);
       }
       if (res->res_dir.tls_ca_certdir) {
-	 free(res->res_dir.tls_ca_certdir);
+         free(res->res_dir.tls_ca_certdir);
       }
       if (res->res_dir.tls_certfile) {
-	 free(res->res_dir.tls_certfile);
+         free(res->res_dir.tls_certfile);
       }
       if (res->res_dir.tls_keyfile) {
-	 free(res->res_dir.tls_keyfile);
+         free(res->res_dir.tls_keyfile);
       }
       if (res->res_dir.tls_dhfile) {
-	 free(res->res_dir.tls_dhfile);
+         free(res->res_dir.tls_dhfile);
       }
       if (res->res_dir.tls_allowed_cns) {
-	 delete res->res_dir.tls_allowed_cns;
+         delete res->res_dir.tls_allowed_cns;
       }
 #endif /* HAVE_TLS */
       break;
@@ -914,22 +914,22 @@ void free_resource(RES *sres, int type)
          free_tls_context(res->res_con.tls_ctx);
       }
       if (res->res_con.tls_ca_certfile) {
-	 free(res->res_con.tls_ca_certfile);
+         free(res->res_con.tls_ca_certfile);
       }
       if (res->res_con.tls_ca_certdir) {
-	 free(res->res_con.tls_ca_certdir);
+         free(res->res_con.tls_ca_certdir);
       }
       if (res->res_con.tls_certfile) {
-	 free(res->res_con.tls_certfile);
+         free(res->res_con.tls_certfile);
       }
       if (res->res_con.tls_keyfile) {
-	 free(res->res_con.tls_keyfile);
+         free(res->res_con.tls_keyfile);
       }
       if (res->res_con.tls_dhfile) {
-	 free(res->res_con.tls_dhfile);
+         free(res->res_con.tls_dhfile);
       }
       if (res->res_con.tls_allowed_cns) {
-	 delete res->res_con.tls_allowed_cns;
+         delete res->res_con.tls_allowed_cns;
       }
 #endif /* HAVE_TLS */
       for (int i=0; i<Num_ACL; i++) {
@@ -951,16 +951,16 @@ void free_resource(RES *sres, int type)
          free_tls_context(res->res_client.tls_ctx);
       }
       if (res->res_client.tls_ca_certfile) {
-	 free(res->res_client.tls_ca_certfile);
+         free(res->res_client.tls_ca_certfile);
       }
       if (res->res_client.tls_ca_certdir) {
-	 free(res->res_client.tls_ca_certdir);
+         free(res->res_client.tls_ca_certdir);
       }
       if (res->res_client.tls_certfile) {
-	 free(res->res_client.tls_certfile);
+         free(res->res_client.tls_certfile);
       }
       if (res->res_client.tls_keyfile) {
-	 free(res->res_client.tls_keyfile);
+         free(res->res_client.tls_keyfile);
       }
 #endif /* HAVE_TLS */
       break;
@@ -982,16 +982,16 @@ void free_resource(RES *sres, int type)
          free_tls_context(res->res_store.tls_ctx);
       }
       if (res->res_store.tls_ca_certfile) {
-	 free(res->res_store.tls_ca_certfile);
+         free(res->res_store.tls_ca_certfile);
       }
       if (res->res_store.tls_ca_certdir) {
-	 free(res->res_store.tls_ca_certdir);
+         free(res->res_store.tls_ca_certdir);
       }
       if (res->res_store.tls_certfile) {
-	 free(res->res_store.tls_certfile);
+         free(res->res_store.tls_certfile);
       }
       if (res->res_store.tls_keyfile) {
-	 free(res->res_store.tls_keyfile);
+         free(res->res_store.tls_keyfile);
       }
 #endif /* HAVE_TLS */
       break;
@@ -1115,7 +1115,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
 {
    URES *res;
    int rindex = type - r_first;
-   int i, size;
+   int i, size = 0;
    bool error = false;
 
    /* Check Job requirements after applying JobDefs */
@@ -1165,20 +1165,20 @@ void save_resource(int type, RES_ITEM *items, int pass)
 
       /* Resources containing another resource or alist */
       case R_CONSOLE:
-	 if ((res = (URES *)GetResWithName(R_CONSOLE, res_all.res_con.hdr.name)) == NULL) {
-	    Emsg1(M_ERROR_TERM, 0, "Cannot find Console resource %s\n", res_all.res_con.hdr.name);
-	 }
+         if ((res = (URES *)GetResWithName(R_CONSOLE, res_all.res_con.hdr.name)) == NULL) {
+            Emsg1(M_ERROR_TERM, 0, "Cannot find Console resource %s\n", res_all.res_con.hdr.name);
+         }
 #ifdef HAVE_TLS
-	 res->res_con.tls_allowed_cns = res_all.res_con.tls_allowed_cns;
+         res->res_con.tls_allowed_cns = res_all.res_con.tls_allowed_cns;
 #endif
-	 break;
+         break;
       case R_DIRECTOR:
          if ((res = (URES *)GetResWithName(R_DIRECTOR, res_all.res_dir.hdr.name)) == NULL) {
             Emsg1(M_ERROR_TERM, 0, "Cannot find Director resource %s\n", res_all.res_dir.hdr.name);
          }
          res->res_dir.messages = res_all.res_dir.messages;
 #ifdef HAVE_TLS
-	 res->res_dir.tls_allowed_cns = res_all.res_dir.tls_allowed_cns;
+         res->res_dir.tls_allowed_cns = res_all.res_dir.tls_allowed_cns;
 #endif
          break;
       case R_STORAGE:
