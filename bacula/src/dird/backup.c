@@ -326,12 +326,14 @@ void backup_cleanup(JCR *jcr, int TermCode)
    const char *term_msg;
    int msg_type;
    MEDIA_DBR mr;
+   CLIENT_DBR cr;
    double kbps, compression;
    utime_t RunTime;
 
    Dmsg2(100, "Enter backup_cleanup %d %c\n", TermCode, TermCode);
    dequeue_messages(jcr);             /* display any queued messages */
    memset(&mr, 0, sizeof(mr));
+   memset(&cr, 0, sizeof(cr));
    set_jcr_job_status(jcr, TermCode);
 
    update_job_end_record(jcr);        /* update database */
@@ -340,6 +342,12 @@ void backup_cleanup(JCR *jcr, int TermCode)
       Jmsg(jcr, M_WARNING, 0, _("Error getting job record for stats: %s"),
          db_strerror(jcr->db));
       set_jcr_job_status(jcr, JS_ErrorTerminated);
+   }
+
+   bstrncpy(cr.Name, jcr->client->hdr.name, sizeof(cr.Name));
+   if (!db_get_client_record(jcr, jcr->db, &cr)) {
+      Jmsg(jcr, M_WARNING, 0, _("Error getting client record for stats: %s"),
+         db_strerror(jcr->db));
    }
 
    bstrncpy(mr.VolumeName, jcr->VolumeName, sizeof(mr.VolumeName));
@@ -483,7 +491,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
 "  JobId:                  %d\n"
 "  Job:                    %s\n"
 "  Backup Level:           %s%s\n"
-"  Client:                 %s\n"
+"  Client:                 \"%s\" %s\n"
 "  FileSet:                \"%s\" %s\n"
 "  Pool:                   \"%s\"\n"
 "  Storage:                \"%s\"\n"
@@ -510,7 +518,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
         jcr->jr.JobId,
         jcr->jr.Job,
         level_to_str(jcr->JobLevel), jcr->since,
-        jcr->client->hdr.name,
+        jcr->client->hdr.name, cr.Uname,
         jcr->fileset->hdr.name, jcr->FSCreateTime,
         jcr->pool->hdr.name,
         jcr->store->hdr.name,

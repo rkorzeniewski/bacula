@@ -234,11 +234,11 @@ if test x$support_wx_console = xyes; then
   if test $pkg = 0; then
      WXRELEASE=`$WXCONFIG --release`
      if test $WXRELEASE = 2.6; then
-        WXCONS_CPPFLAGS=`$WXCONFIG --cppflags --unicode=no`
-        WXCONS_LDFLAGS=`$WXCONFIG --libs --unicode=no`
+	WXCONS_CPPFLAGS=`$WXCONFIG --cppflags --unicode=no`
+	WXCONS_LDFLAGS=`$WXCONFIG --libs --unicode=no`
      else
-        WXCONS_CPPFLAGS=`$WXCONFIG --cppflags`
-        WXCONS_LDFLAGS=`$WXCONFIG --libs`
+	WXCONS_CPPFLAGS=`$WXCONFIG --cppflags`
+	WXCONS_LDFLAGS=`$WXCONFIG --libs`
      fi
 
      AC_SUBST(WXCONS_CPPFLAGS)
@@ -1895,6 +1895,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   scripts/logwatch/Makefile \
 	   scripts/logwatch/logfile.bacula.conf \
 	   doc/Makefile \
+	   doc/latex/version.tex \
 	   src/Makefile \
 	   src/host.h \
 	   src/console/Makefile \

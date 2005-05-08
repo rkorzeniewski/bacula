@@ -640,7 +640,7 @@ int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cdbr)
          } else {
             cdbr->ClientId = str_to_int64(row[0]);
             bstrncpy(cdbr->Name, row[1]!=NULL?row[1]:"", sizeof(cdbr->Name));
-            bstrncpy(cdbr->Uname, row[2]!=NULL?row[1]:"", sizeof(cdbr->Uname));
+            bstrncpy(cdbr->Uname, row[2]!=NULL?row[2]:"", sizeof(cdbr->Uname));
             cdbr->AutoPrune = str_to_int64(row[3]);
             cdbr->FileRetention = str_to_int64(row[4]);
             cdbr->JobRetention = str_to_int64(row[5]);
