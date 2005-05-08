@@ -1,3 +1,31 @@
+Changes to 1.37.18 release 08May05:
+08May05
+- Correct attribute definition compile error in 1.37.17
+- Correct inverted order of CreateTime and MD5 pointed out
+  by a user in a bug report in FileSet db routine causing
+  the MD5 to print in the output instead of the time/date.
+
+Changes to 1.37.17:
+07May05
+- Implement cstrlen() in sql list routines.
+- Implement caching of attributes to add the        
+  signature so that only one DB call will be made
+  per file. Not yet turned on.
+- Fix Win32 build for TLS.
+- Optimize File pruning to eliminate one database call. 
+- Fix bug that prevented File pruning from working.
+- Implement a cstrlen() which returns the character
+  length of a UTF-8 string.
+06May05
+- Move test for MaxStartDelay as suggested by Peter.
+- Implement Python methods (I had to read the Python source
+  code).
+- Implement run() method in Director.
+- Add Priority and Scheduled time to Job report.
+- Add JobInit and JobRun events.
+- Add Priority as Python read/write attribute to Job.
+- Correct typo in bsmtp reported by Jo.
+
 Changes to 1.37.16 (07May05): released 07May05
 07May05
 - Implement cstrlen() in sql list routines.
