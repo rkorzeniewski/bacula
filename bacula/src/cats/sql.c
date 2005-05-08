@@ -315,15 +315,14 @@ void db_end_transaction(JCR *jcr, B_DB *mdb)
    if (!mdb) {
       return;
    }
-   if (jcr->cached_attribute) {
+#ifdef xxx
+   if (jcr && jcr->cached_attribute) {
       if (!db_create_file_attributes_record(jcr, jcr->db, &jcr->ar)) {
          Jmsg1(jcr, M_FATAL, 0, _("Attribute create error. %s"), db_strerror(jcr->db));
       }
       jcr->cached_attribute = false;
    }
-   if (jcr->attr) {
-      free_pool_memory(jcr->attr);
-   }  
+#endif
 #ifdef HAVE_SQLITE
    if (!mdb->allow_transactions) {
       return;

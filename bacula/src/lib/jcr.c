@@ -305,6 +305,11 @@ static void free_common_jcr(JCR *jcr)
       jcr->client_name = NULL;
    }
 
+   if (jcr->attr) {
+      free_pool_memory(jcr->attr);
+      jcr->attr = NULL;
+   }
+
    if (jcr->sd_auth_key) {
       free(jcr->sd_auth_key);
       jcr->sd_auth_key = NULL;
