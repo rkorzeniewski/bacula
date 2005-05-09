@@ -9,3 +9,4 @@ btraceback.gdb
 startit
 stopit
 dird.conf
+filelist.exc
