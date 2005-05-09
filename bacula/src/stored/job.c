@@ -334,7 +334,7 @@ static bool use_storage_cmd(JCR *jcr)
 
 
    if (ok) {
-      LockRes();
+//    LockRes();
       store = (DIRSTORE *)dirstore->first();
       foreach_alist(device_name, store->device) {
          foreach_res(device, R_DEVICE) {
@@ -343,7 +343,7 @@ static bool use_storage_cmd(JCR *jcr)
                 strcmp(device->media_type, store->media_type) == 0) {
                const int name_len = MAX_NAME_LENGTH;
                DCR *dcr;
-               UnlockRes();
+//             UnlockRes();
                if (!device->dev) {
                   device->dev = init_dev(jcr, NULL, device);
                }
@@ -412,7 +412,7 @@ static bool use_storage_cmd(JCR *jcr)
                   if (!dcr) {
                      bnet_fsend(dir, _("3926 Could not get dcr for device: %s\n"), dev_name.c_str());
                      Dmsg1(100, ">dird: %s\n", dir->msg);
-                     UnlockRes();
+//                   UnlockRes();
                      ok = false;
                      goto get_out;
                   }
@@ -433,7 +433,7 @@ static bool use_storage_cmd(JCR *jcr)
                      continue;
                   }
                   Dmsg1(100, "Device %s opened.\n", device_name);
-                  UnlockRes();
+//                UnlockRes();
                   pm_strcpy(dev_name, device->hdr.name);
                   bash_spaces(dev_name);
                   ok = bnet_fsend(dir, OK_device, dev_name.c_str());
@@ -445,7 +445,7 @@ static bool use_storage_cmd(JCR *jcr)
          }
       }
 
-      UnlockRes();
+//    UnlockRes();
       if (verbose) {
          unbash_spaces(dir->msg);
          pm_strcpy(jcr->errmsg, dir->msg);
@@ -500,7 +500,7 @@ bool query_cmd(JCR *jcr)
    Dmsg1(100, "<dird: %s\n", dir->msg);
    if (ok) {
       unbash_spaces(dev_name);
-      LockRes();
+//    LockRes();
       foreach_res(device, R_DEVICE) {
          /* Find resource, and make sure we were able to open it */
          if (fnmatch(dev_name.c_str(), device->hdr.name, 0) == 0) {
@@ -510,7 +510,7 @@ bool query_cmd(JCR *jcr)
             if (!device->dev) {
                break;
             }  
-            UnlockRes();
+//          UnlockRes();
             ok = dir_update_device(jcr, device->dev);
             if (ok) {
                ok = bnet_fsend(dir, OK_query);
@@ -523,7 +523,7 @@ bool query_cmd(JCR *jcr)
       foreach_res(changer, R_AUTOCHANGER) {
          /* Find resource, and make sure we were able to open it */
          if (fnmatch(dev_name.c_str(), changer->hdr.name, 0) == 0) {
-            UnlockRes();
+//          UnlockRes();
             if (!changer->device || changer->device->size() == 0) {
                continue;              /* no devices */
             }
@@ -537,7 +537,7 @@ bool query_cmd(JCR *jcr)
          }
       }
       /* If we get here, the device/autochanger was not found */
-      UnlockRes();
+//    UnlockRes();
       unbash_spaces(dir->msg);
       pm_strcpy(jcr->errmsg, dir->msg);
       bnet_fsend(dir, NO_device, dev_name.c_str());
