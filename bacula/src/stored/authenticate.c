@@ -55,9 +55,9 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
    }
    if (bs->msglen < 25 || bs->msglen > 200) {
       Dmsg2(50, _("Bad Hello command from Director at %s. Len=%d.\n"),
-	    bs->who, bs->msglen);
+            bs->who, bs->msglen);
       Emsg2(M_FATAL, 0, _("Bad Hello command from Director at %s. Len=%d.\n"),
-	    bs->who, bs->msglen);
+            bs->who, bs->msglen);
       return 0;
    }
    dirname = get_pool_memory(PM_MESSAGE);
@@ -66,25 +66,25 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
    if (sscanf(bs->msg, "Hello Director %127s calling\n", dirname) != 1) {
       bs->msg[100] = 0;
       Dmsg2(50, _("Bad Hello command from Director at %s: %s\n"),
-	    bs->who, bs->msg);
+            bs->who, bs->msg);
       Emsg2(M_FATAL, 0, _("Bad Hello command from Director at %s: %s\n"),
-	    bs->who, bs->msg);
+            bs->who, bs->msg);
       return 0;
    }
    director = NULL;
    unbash_spaces(dirname);
-   LockRes();
+// LockRes();
    foreach_res(director, rcode) {
       if (strcmp(director->hdr.name, dirname) == 0)
-	 break;
+         break;
    }
-   UnlockRes();
+// UnlockRes();
    if (!director) {
       Dmsg2(50, _("Connection from unknown Director %s at %s rejected.\n"),
-	    dirname, bs->who);
+            dirname, bs->who);
       Emsg2(M_FATAL, 0, _("Connection from unknown Director %s at %s rejected.\n"
        "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"),
-	    dirname, bs->who);
+            dirname, bs->who);
       free_pool_memory(dirname);
       return 0;
    }
@@ -95,7 +95,7 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
       if (director->tls_require) {
          tls_local_need = BNET_TLS_REQUIRED;
       } else {
-	 tls_local_need = BNET_TLS_OK;
+         tls_local_need = BNET_TLS_OK;
       }
    }
 
@@ -110,7 +110,7 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
    if (auth_success) {
       auth_success = cram_md5_get_auth(bs, director->password, &tls_remote_need);
       if (!auth_success) {
-	 Dmsg1(50, "cram_get_auth failed with %s\n", bs->who);
+         Dmsg1(50, "cram_get_auth failed with %s\n", bs->who);
       }
    } else {
       Dmsg1(50, "cram_auth failed with %s\n", bs->who);
@@ -126,7 +126,7 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
    /* Verify that the remote host is willing to meet our TLS requirements */
    if (tls_remote_need < tls_local_need && tls_local_need != BNET_TLS_OK && tls_remote_need != BNET_TLS_OK) {
       Emsg0(M_FATAL, 0, _("Authorization problem: Remote server did not" 
-	   " advertise required TLS support.\n"));
+           " advertise required TLS support.\n"));
       auth_success = false;
       goto auth_fatal;
    }
@@ -142,9 +142,9 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
    if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
       /* Engage TLS! Full Speed Ahead! */
       if (!bnet_tls_server(director->tls_ctx, bs, verify_list)) {
-	 Emsg0(M_FATAL, 0, "TLS negotiation failed.\n");
-	 auth_success = false;
-	 goto auth_fatal;
+         Emsg0(M_FATAL, 0, "TLS negotiation failed.\n");
+         auth_success = false;
+         goto auth_fatal;
       }
    }
 #endif /* HAVE_TLS */
@@ -162,7 +162,7 @@ auth_fatal:
  *
  * Basic tasks done here:
  *   Assume the Hello message is already in the input
- *     buffer.	We then authenticate him.
+ *     buffer.  We then authenticate him.
  *   Get device, media, and pool information from Director
  *
  *   This is the channel across which we will send error
@@ -198,7 +198,7 @@ int authenticate_filed(JCR *jcr)
       if (me->tls_require) {
          tls_local_need = BNET_TLS_REQUIRED;
       } else {
-	 tls_local_need = BNET_TLS_OK;
+         tls_local_need = BNET_TLS_OK;
       }
    }
 
@@ -213,7 +213,7 @@ int authenticate_filed(JCR *jcr)
    if (auth_success) {
        auth_success = cram_md5_get_auth(fd, jcr->sd_auth_key, &tls_remote_need);
        if (!auth_success) {
-	  Dmsg1(50, "cram-get-auth failed with %s\n", fd->who);
+          Dmsg1(50, "cram-get-auth failed with %s\n", fd->who);
        }
    } else {
       Dmsg1(50, "cram-auth failed with %s\n", fd->who);
@@ -222,7 +222,7 @@ int authenticate_filed(JCR *jcr)
    if (!auth_success) {
       Jmsg(jcr, M_FATAL, 0, _("Incorrect authorization key from File daemon at %s rejected.\n"
        "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"),
-	   fd->who);
+           fd->who);
       auth_success = false;
       goto auth_fatal;
    }
@@ -230,7 +230,7 @@ int authenticate_filed(JCR *jcr)
    /* Verify that the remote host is willing to meet our TLS requirements */
    if (tls_remote_need < tls_local_need && tls_local_need != BNET_TLS_OK && tls_remote_need != BNET_TLS_OK) {
       Jmsg(jcr, M_FATAL, 0, _("Authorization problem: Remote server did not" 
-	   " advertise required TLS support.\n"));
+           " advertise required TLS support.\n"));
       auth_success = false;
       goto auth_fatal;
    }
@@ -246,9 +246,9 @@ int authenticate_filed(JCR *jcr)
    if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
       /* Engage TLS! Full Speed Ahead! */
       if (!bnet_tls_server(me->tls_ctx, fd, verify_list)) {
-	 Jmsg(jcr, M_FATAL, 0, "TLS negotiation failed.\n");
-	 auth_success = false;
-	 goto auth_fatal;
+         Jmsg(jcr, M_FATAL, 0, "TLS negotiation failed.\n");
+         auth_success = false;
+         goto auth_fatal;
       }
    }
 #endif /* HAVE_TLS */
@@ -258,7 +258,7 @@ auth_fatal:
    if (!auth_success) {
       Jmsg(jcr, M_FATAL, 0, _("Incorrect authorization key from File daemon at %s rejected.\n"
        "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"),
-	   fd->who);
+           fd->who);
    }
    jcr->authenticated = auth_success;
    return auth_success;

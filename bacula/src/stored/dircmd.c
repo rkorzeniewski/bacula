@@ -476,7 +476,7 @@ static DEVICE *find_device(JCR *jcr, POOL_MEM &devname)
    bool found = false;
 
    unbash_spaces(devname);
-   LockRes();
+// LockRes();
    foreach_res(device, R_DEVICE) {
       /* Find resource, and make sure we were able to open it */
       if (fnmatch(device->hdr.name, devname.c_str(), 0) == 0) {
@@ -523,11 +523,11 @@ static DEVICE *find_device(JCR *jcr, POOL_MEM &devname)
 
    if (found) {
       jcr->dcr = new_dcr(jcr, device->dev);
-      UnlockRes();
+//    UnlockRes();
       jcr->dcr->device = device;
       return jcr->dcr->dev;
    }
-   UnlockRes();
+// UnlockRes();
    return NULL;
 }
 

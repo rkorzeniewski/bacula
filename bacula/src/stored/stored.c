@@ -239,6 +239,10 @@ int main (int argc, char *argv[])
     */
    bmicrosleep(1, 0);
 
+   /* Wait for device initialization to complete */
+   LockRes();
+   UnlockRes();
+
    /* Single server used for Director and File daemon */
    bnet_thread_server(me->sdaddrs, me->max_concurrent_jobs * 2 + 1,
                       &dird_workq, handle_connection_request);
@@ -263,7 +267,7 @@ static int check_resources()
    bool OK = true;
    AUTOCHANGER *changer;
 
-   LockRes();
+// LockRes();
 
    me = (STORES *)GetNextRes(R_STORAGE, NULL);
    if (!me) {
@@ -426,7 +430,7 @@ static int check_resources()
       }
    }
    
-   UnlockRes();
+// UnlockRes();
 
    if (OK) {
       close_msg(NULL);                   /* close temp message handler */
@@ -541,13 +545,13 @@ void terminate_stored(int sig)
 
    Dmsg1(200, "In terminate_stored() sig=%d\n", sig);
 
-   LockRes();
+// LockRes();
    foreach_res(device, R_DEVICE) {
       if (device->dev) {
          term_dev(device->dev);
       }
    }
-   UnlockRes();
+// UnlockRes();
 
    if (configfile)
    free(configfile);

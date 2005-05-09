@@ -28,6 +28,8 @@
 #
 
 MTX=@MTX@
+# Set this to a directory that only the SD can read/write
+TMPDIR=@working_dir@
 
 #
 # The purpose of this function to wait a maximum 
@@ -130,11 +132,11 @@ case $cmd in
       ;;
 
    loaded)
-      ${MTX} -f $ctl status >/tmp/mtx.$$
+      ${MTX} -f $ctl status >${TMPDIR}/mtx.$$
       rtn=$?
-      cat /tmp/mtx.$$ | grep "^Data Transfer Element $drive:Full" | awk "{print \$7}"
-      cat /tmp/mtx.$$ | grep "^Data Transfer Element $drive:Empty" | awk "{print 0}"
-      rm -f /tmp/mtx.$$
+      cat ${TMPDIR}/mtx.$$ | grep "^Data Transfer Element $drive:Full" | awk "{print \$7}"
+      cat ${TMPDIR}/mtx.$$ | grep "^Data Transfer Element $drive:Empty" | awk "{print 0}"
+      rm -f ${TMPDIR}/mtx.$$
       exit $rtn
       ;;
 

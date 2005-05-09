@@ -463,7 +463,18 @@ static int can_reserve_drive(DCR *dcr)
    }
 
    /*
-    * Now check if the device is in append mode 
+    * Check if device in append mode with no writers (i.e. available)
+    */
+   if (dev->can_append() && dev->num_writers == 0) {
+      /* Device is available but not yet reserved, reserve it for us */
+      bstrncpy(dev->pool_name, dcr->pool_name, sizeof(dev->pool_name));
+      bstrncpy(dev->pool_type, dcr->pool_type, sizeof(dev->pool_type));
+      return 1;
+   }
+
+   /*
+    * Now check if the device is in append mode with writers (i.e.
+    *  available if pool is the same).
     */
    if (dev->can_append() || dev->num_writers > 0) {
       Dmsg0(190, "device already in append.\n");
