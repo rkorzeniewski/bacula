@@ -30,6 +30,8 @@
 #include "bacula.h"                   /* pull in global headers */
 #include "stored.h"                   /* pull in Storage Deamon headers */
 
+static void mark_volume_not_inchanger(DCR *dcr);
+
 
 /*
  * If release is set, we rewind the current volume,
@@ -112,8 +114,6 @@ mount_next_vol:
     * If the device is a file, we create the output
     * file. If it is a tape, we check the volume name
     * and move the tape to the end of data.
-    *
-    * It assumes that the device is not already in use!
     *
     */
    if (autoload_device(dcr, 1, NULL) > 0) {
@@ -209,7 +209,7 @@ read_volume:
       recycle = strcmp(dev->VolCatInfo.VolCatStatus, "Recycle") == 0;
       break;                    /* got a Volume */
    case VOL_NAME_ERROR:
-      VOLUME_CAT_INFO VolCatInfo;
+      VOLUME_CAT_INFO VolCatInfo, devVolCatInfo;
 
       /* If not removable, Volume is broken */
       if (!dev_cap(dev, CAP_REM)) {
@@ -229,25 +229,33 @@ read_volume:
       }
       /*
        * OK, we got a different volume mounted. First save the
-       *  requested Volume info (jcr) structure, then query if
+       *  requested Volume info (dcr) structure, then query if
        *  this volume is really OK. If not, put back the desired
-       *  volume name and continue.
+       *  volume name, mark it not in changer and continue.
        */
       memcpy(&VolCatInfo, &dcr->VolCatInfo, sizeof(VolCatInfo));
+      memcpy(&devVolCatInfo, &dev->VolCatInfo, sizeof(devVolCatInfo));
       /* Check if this is a valid Volume in the pool */
       bstrncpy(dcr->VolumeName, dev->VolHdr.VolName, sizeof(dcr->VolumeName));
       if (!dir_get_volume_info(dcr, GET_VOL_INFO_FOR_WRITE)) {
+         /* Restore desired volume name, note device info out of sync */
+         /* This gets the info regardless of the Pool */
+         if (autochanger && dir_get_volume_info(dcr, GET_VOL_INFO_FOR_READ)) {
+            mark_volume_not_inchanger(dcr);
+         }
+         memcpy(&dev->VolCatInfo, &devVolCatInfo, sizeof(dev->VolCatInfo));
          bstrncpy(dev->BadVolName, dev->VolHdr.VolName, sizeof(dev->BadVolName));
          Jmsg(jcr, M_WARNING, 0, _("Director wanted Volume \"%s\".\n"
               "    Current Volume \"%s\" not acceptable because:\n"
               "    %s"),
              VolCatInfo.VolCatName, dev->VolHdr.VolName,
              jcr->dir_bsock->msg);
-         /* Restore desired volume name, note device info out of sync */
-         memcpy(&dcr->VolCatInfo, &VolCatInfo, sizeof(dcr->VolCatInfo));
          ask = true;
          goto mount_next_vol;
       }
+      /* This was not the volume we expected, but it is OK with
+       * the Director, so use it.
+       */
       Dmsg1(100, "want new name=%s\n", dcr->VolumeName);
       memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
       recycle = strcmp(dev->VolCatInfo.VolCatStatus, "Recycle") == 0;
@@ -276,6 +284,7 @@ read_volume:
          if (!write_new_volume_label_to_dev(dcr, dcr->VolumeName,
                 dcr->pool_name)) {
             Dmsg0(100, "!write_vol_label\n");
+            mark_volume_in_error(dcr);
             goto mount_next_vol;
          }
          Dmsg0(100, "dir_update_vol_info. Set Append\n");
@@ -293,9 +302,6 @@ read_volume:
          Jmsg(jcr, M_WARNING, 0, _("Volume \"%s\" not on device %s.\n"),
             dcr->VolumeName, dev->print_name());
          mark_volume_in_error(dcr);
-         if (autochanger) {
-            mark_volume_not_inchanger(dcr);
-         }
          goto mount_next_vol;
       }
       /* NOTE! Fall-through wanted. */
@@ -330,6 +336,7 @@ read_volume:
     */
    if (dev->VolHdr.LabelType == PRE_LABEL || recycle) {
       if (!rewrite_volume_label(dcr, recycle)) {
+         mark_volume_in_error(dcr);
          goto mount_next_vol;
       }
    } else {
@@ -391,10 +398,30 @@ void mark_volume_in_error(DCR *dcr)
    DEVICE *dev = dcr->dev;
    Jmsg(dcr->jcr, M_INFO, 0, _("Marking Volume \"%s\" in Error in Catalog.\n"),
         dcr->VolumeName);
+   memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
    bstrncpy(dev->VolCatInfo.VolCatStatus, "Error", sizeof(dev->VolCatInfo.VolCatStatus));
    Dmsg0(100, "dir_update_vol_info. Set Error.\n");
    dir_update_volume_info(dcr, false);
 }
+
+/*
+ * The Volume is not in the correct slot, so mark this
+ *   Volume as not being in the Changer.
+ */
+static void mark_volume_not_inchanger(DCR *dcr)
+{
+   JCR *jcr = dcr->jcr;
+   DEVICE *dev = dcr->dev;
+   Jmsg(jcr, M_ERROR, 0, _("Autochanger Volume \"%s\" not found in slot %d.\n"
+"    Setting InChanger to zero in catalog.\n"),
+        dcr->VolCatInfo.VolCatName, dcr->VolCatInfo.Slot);
+   memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
+   dcr->VolCatInfo.InChanger = false;
+   dev->VolCatInfo.InChanger = false;
+   Dmsg0(400, "update vol info in mount\n");
+   dir_update_volume_info(dcr, true);  /* set new status */
+}
+
 
 /*
  * If we are reading, we come here at the end of the tape
