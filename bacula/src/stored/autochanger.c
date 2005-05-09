@@ -211,23 +211,6 @@ static void unlock_changer(DCR *dcr)
 
 
 /*
- * The Volume is not in the correct slot, so mark this
- *   Volume as not being in the Changer.
- */
-void mark_volume_not_inchanger(DCR *dcr)
-{
-   JCR *jcr = dcr->jcr;
-   DEVICE *dev = dcr->dev;
-   Jmsg(jcr, M_ERROR, 0, _("Autochanger Volume \"%s\" not found in slot %d.\n"
-"    Setting InChanger to zero in catalog.\n"),
-        dcr->VolCatInfo.VolCatName, dcr->VolCatInfo.Slot);
-   dcr->VolCatInfo.InChanger = false;
-   dev->VolCatInfo.InChanger = false;
-   Dmsg0(400, "update vol info in mount\n");
-   dir_update_volume_info(dcr, true);  /* set new status */
-}
-
-/*
  * List the Volumes that are in the autoloader possibly
  *   with their barcodes.
  *   We assume that it is always the Console that is calling us.

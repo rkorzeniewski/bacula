@@ -202,7 +202,7 @@ static bool do_get_volume_info(DCR *dcr)
  *                             VolStatus==Recycle)
  *          false on failure
  *
- *          Volume information returned in jcr
+ *          Volume information returned in dcr->VolCatInfo
  */
 bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw writing)
 {
