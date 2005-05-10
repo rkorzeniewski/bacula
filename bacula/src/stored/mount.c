@@ -236,10 +236,10 @@ read_volume:
       memcpy(&VolCatInfo, &dcr->VolCatInfo, sizeof(VolCatInfo));
       memcpy(&devVolCatInfo, &dev->VolCatInfo, sizeof(devVolCatInfo));
       /* Check if this is a valid Volume in the pool */
-      bstrncpy(dcr->VolumeName, dev->VolHdr.VolName, sizeof(dcr->VolumeName));
       if (!dir_get_volume_info(dcr, GET_VOL_INFO_FOR_WRITE)) {
          /* Restore desired volume name, note device info out of sync */
          /* This gets the info regardless of the Pool */
+         bstrncpy(dcr->VolumeName, dev->VolHdr.VolName, sizeof(dcr->VolumeName));
          if (autochanger && dir_get_volume_info(dcr, GET_VOL_INFO_FOR_READ)) {
             mark_volume_not_inchanger(dcr);
          }

@@ -150,7 +150,7 @@ int       lex_get_char           (LEX *lf);
 void      lex_unget_char         (LEX *lf);
 const char *  lex_tok_to_str     (int token);
 int       lex_get_token          (LEX *lf, int expect);
-void      s_err(const char *file, int line, LEX *lc, const char *msg, ...);
+void      lex_set_default_error_handler (LEX *lf);
 
 /* message.c */
 void       my_name_is            (int argc, char *argv[], const char *name);

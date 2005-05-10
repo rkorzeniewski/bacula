@@ -61,11 +61,10 @@ int scan_to_next_not_eol(LEX * lc)
    return token;
 }
 
-
 /*
  * Format a scanner error message
  */
-void s_err(const char *file, int line, LEX *lc, const char *msg, ...)
+static void s_err(const char *file, int line, LEX *lc, const char *msg, ...)
 {
    va_list arg_ptr;
    char buf[MAXSTRING];
@@ -88,6 +87,11 @@ void s_err(const char *file, int line, LEX *lc, const char *msg, ...)
    } else {
       e_msg(file, line, M_ERROR_TERM, 0, _("Config error: %s\n"), buf);
    }
+}
+
+void lex_set_default_error_handler(LEX *lf)
+{
+   lf->scan_error = s_err;
 }
 
 
@@ -152,15 +156,15 @@ LEX *lex_open_file(LEX *lf, const char *filename, LEX_ERROR_HANDLER *scan_error)
       lf = nf;                        /* start new packet */
       memset(lf, 0, sizeof(LEX));
    }
+   if (scan_error) {
+      lf->scan_error = scan_error;
+   } else {
+      lex_set_default_error_handler(lf);
+   }
    lf->fd = fd;
    lf->fname = fname;
    lf->state = lex_none;
    lf->ch = L_EOL;
-   if (scan_error) {
-      lf->scan_error = scan_error;
-   } else {
-      lf->scan_error = s_err;
-   }
    Dmsg1(2000, "Return lex=%x\n", lf);
    return lf;
 }
