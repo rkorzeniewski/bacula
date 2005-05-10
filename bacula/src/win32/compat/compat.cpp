@@ -935,10 +935,10 @@ win32_fputs(const char *string, FILE *stream)
       this works under nt and 98 (95 and me not tested)
    */
 
-   if (p_MultiByteToWideChar && (stream == stdout)) {
+   if (p_MultiByteToWideChar && (stream == stdout) && p_cwprintf) {
       WCHAR szBuf[MAX_PATH_UNICODE];
       UTF8_2_wchar(szBuf, string, MAX_PATH_UNICODE);
-      return _cwprintf (szBuf);
+      return p_cwprintf (szBuf);
    }
 
    return fputs(string, stream);
@@ -951,10 +951,10 @@ win32_cgets (char* buffer, int len)
       from the win32 console */
 
    /* nt and unicode conversion */
-   if ((g_platform_id == VER_PLATFORM_WIN32_NT) && p_WideCharToMultiByte) {      
+   if ((g_platform_id == VER_PLATFORM_WIN32_NT) && p_WideCharToMultiByte && p_cgetws) {      
       WCHAR szBuf[260];
       szBuf[0] = min (255, len); /* max len, must be smaller than buffer */
-      if (!_cgetws (szBuf))
+      if (!p_cgetws (szBuf))
          return NULL;
 
       if (wchar_2_UTF8(buffer, &szBuf[2], len))
