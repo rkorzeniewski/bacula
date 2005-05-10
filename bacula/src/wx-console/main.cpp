@@ -7,7 +7,7 @@
  *    Version $Id$
  */
 /*
-   Copyright (C) 2004 Kern Sibbald and John Walker
+   Copyright (C) 2004-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -39,6 +39,8 @@
 
 #include "csprint.h"
 
+void InitWinAPIWrapper();
+
 /* Dummy functions */
 int generate_daemon_event(JCR *jcr, const char *event) { return 1; }
 int generate_job_event(JCR *jcr, const char *event) { return 1; }
@@ -69,6 +71,7 @@ bool MyApp::OnInit()
 {
    long posx, posy, sizex, sizey;
    int displayx, displayy;
+   InitWinAPIWrapper();
    wxConfig::Get()->Read("/Position/X", &posx, 50);
    wxConfig::Get()->Read("/Position/Y", &posy, 50);
    wxConfig::Get()->Read("/Size/Width", &sizex, 780);

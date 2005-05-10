@@ -39,7 +39,7 @@ bool wxbUtils::inited = false;
 
 wxString wxbUtils::ConvertToPrintable(wxString& str) {
    /* FIXME : Unicode support should be added to fix this problem */
-#if wxUSE_UNICODE == 0
+#if needed // wxUSE_UNICODE == 0
    wxString strnew(str);
    /* Convert the string to something printable without unicode */
    for (unsigned int i = 0; i < strnew.Length(); i++) {
