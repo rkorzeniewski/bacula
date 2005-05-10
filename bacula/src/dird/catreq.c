@@ -141,7 +141,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
     * Request to find specific Volume information
     */
    } else if (sscanf(bs->msg, Get_Vol_Info, &Job, &mr.VolumeName, &writing) == 3) {
-      Dmsg1(500, "CatReq GetVolInfo Vol=%s\n", mr.VolumeName);
+      Dmsg1(100, "CatReq GetVolInfo Vol=%s\n", mr.VolumeName);
       /*
        * Find the Volume
        */
@@ -195,7 +195,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
 
       } else {
          bnet_fsend(bs, "1997 Volume \"%s\" not in catalog.\n", mr.VolumeName);
-         Dmsg1(400, "1997 Volume \"%s\" not in catalog.\n", mr.VolumeName);
+         Dmsg1(100, "1997 Volume \"%s\" not in catalog.\n", mr.VolumeName);
       }
 
    /*

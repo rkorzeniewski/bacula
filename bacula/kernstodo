@@ -54,7 +54,6 @@ Document:
 
 For 1.37:
 - --without-openssl breaks at least on Solaris.
-- Move test for max wait time exceeded in job.c up -- Peter's idea.
 - Python:
   - Make a callback when Rerun failed levels is called.
   - Give Python program access to Scheduled jobs.
@@ -1323,3 +1322,5 @@ Block Position: 0
   then list last 20 backups.
 - Finish implementation of passing all Storage and Device needs to
   the SD.
+- Move test for max wait time exceeded in job.c up -- Peter's idea.
+

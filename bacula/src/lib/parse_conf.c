@@ -755,16 +755,17 @@ parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error)
    for (pass=1; pass <= 2; pass++) {
       Dmsg1(900, "parse_config pass %d\n", pass);
       if ((lc = lex_open_file(lc, cf, scan_error)) == NULL) {
+         berrno be;
+         /* We must create a lex packet to print the error */
          lc = (LEX *)malloc(sizeof(LEX));
          memset(lc, 0, sizeof(LEX));
          if (scan_error) {
             lc->scan_error = scan_error;
          } else {
-            lc->scan_error = s_err;
+            lex_set_default_error_handler(lc);
          }
          bstrncpy(lc->str, cf, sizeof(lc->str));
          lc->fname = lc->str;
-         berrno be;
          scan_err2(lc, _("Cannot open config file %s: %s\n"),
             lc->str, be.strerror());
          free(lc);

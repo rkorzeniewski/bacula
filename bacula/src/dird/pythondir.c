@@ -43,11 +43,13 @@ extern PyObject *find_method(PyObject *eventsObject, PyObject *method,
 static PyObject *set_job_events(PyObject *self, PyObject *arg);
 static PyObject *job_run(PyObject *self, PyObject *arg);
 static PyObject *job_write(PyObject *self, PyObject *arg);
+static PyObject *job_cancel(PyObject *self, PyObject *arg);
 
 PyMethodDef JobMethods[] = {
     {"set_events", set_job_events, METH_VARARGS, "Set Job events"},
     {"run", job_run, METH_VARARGS, "Run a Job"},
     {"write", job_write, METH_VARARGS, "Write to output"},
+    {"cancel", job_cancel, METH_VARARGS, "Cancel a Job"},
     {NULL, NULL, 0, NULL}             /* last item */
 };
  
@@ -284,6 +286,46 @@ static PyObject *job_write(PyObject *self, PyObject *args)
    return Py_None;
 }
 
+static PyObject *job_cancel(PyObject *self, PyObject *args)
+{
+   JobId_t JobId = 0;
+   JCR *jcr;
+   bool found = false;
+
+   if (!PyArg_ParseTuple(args, "i:cancel", &JobId)) {
+      Dmsg0(000, "Parse tuple error in job_write\n");
+      return NULL;
+   }
+   lock_jcr_chain();
+   foreach_jcr(jcr) {
+      if (jcr->JobId == 0) {
+	 free_locked_jcr(jcr);           /* OK to free now cuz chain is locked */
+         continue;
+      }
+      if (jcr->JobId == JobId) {
+         found = true;
+	 break;
+      }
+   }
+   if (!found) {
+      unlock_jcr_chain();
+      /* ***FIXME*** raise exception */
+      return NULL;
+   }
+   unlock_jcr_chain();
+   PyEval_ReleaseLock();
+   UAContext *ua = new_ua_context(jcr);
+   ua->batch = true;
+   if (!cancel_job(ua, jcr)) {
+      /* ***FIXME*** raise exception */
+      return NULL;
+   }
+   free_ua_context(ua);
+   free_locked_jcr(jcr);
+   PyEval_AcquireLock();   
+   Py_INCREF(Py_None);
+   return Py_None;
+}
 
 /*
  * Generate a Job event, which means look up the event
