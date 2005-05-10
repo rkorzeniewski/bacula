@@ -954,30 +954,21 @@ win32_cgets (char* buffer, int len)
    if ((g_platform_id == VER_PLATFORM_WIN32_NT) && p_WideCharToMultiByte && p_cgetws) {      
       WCHAR szBuf[260];
       szBuf[0] = min (255, len); /* max len, must be smaller than buffer */
-      if (!p_cgetws (szBuf))
-         return NULL;
-
-      if (wchar_2_UTF8(buffer, &szBuf[2], len))
+      if (p_cgetws(szBuf) && wchar_2_UTF8(buffer, &szBuf[2], len))
          return buffer;
-      else
-         return NULL;
    }
 
    /* win 9x and unicode conversion */
    if ((g_platform_id == VER_PLATFORM_WIN32_WINDOWS) && p_WideCharToMultiByte && p_MultiByteToWideChar) {
       char szBuf[260];
-      szBuf[0] = min (255, len); /* max len, must be smaller than buffer */
-      if (!_cgets (szBuf))
-         return NULL;
+      szBuf[0] = min(255, len); /* max len, must be smaller than buffer */
+      if (_cgets(szBuf)) {  
+         WCHAR wszBuf[260];
+         p_MultiByteToWideChar(CP_OEMCP, 0, &szBuf[2], -1, wszBuf,260);
 
-      /* back and forth to get UTF-8 from ANSI */
-      WCHAR wszBuf[260];
-      p_MultiByteToWideChar(CP_OEMCP, 0, &szBuf[2], -1, wszBuf,260);
-
-      if (wchar_2_UTF8(buffer, wszBuf, len))
-         return buffer;
-      else
-         return NULL;
+         if (wchar_2_UTF8(buffer, wszBuf, len))
+            return buffer;
+      }
    }
 
    /* fallback */
