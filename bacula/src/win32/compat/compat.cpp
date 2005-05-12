@@ -930,15 +930,31 @@ win32_getcwd(char *buf, int maxlen)
 int 
 win32_fputs(const char *string, FILE *stream)
 {
-   /* we use _cwprintf (console printf)
+   /* we use WriteConsoleA / WriteConsoleA
       so we can be sure that unicode support works on win32.
-      this works under nt and 98 (95 and me not tested)
-   */
+      with fallback if something fails
+   */   
 
-   if (p_MultiByteToWideChar && (stream == stdout) && p_cwprintf) {
-      WCHAR szBuf[MAX_PATH_UNICODE];
-      UTF8_2_wchar(szBuf, string, MAX_PATH_UNICODE);
-      return p_cwprintf (szBuf);
+   HANDLE hOut = GetStdHandle (STD_OUTPUT_HANDLE);
+   if (hOut && (hOut != INVALID_HANDLE_VALUE) && p_WideCharToMultiByte && 
+       p_MultiByteToWideChar && (stream == stdout)) {
+      
+      WCHAR wszBuf[MAX_PATH_UNICODE];
+      char szBuf[MAX_PATH_UNICODE];
+      DWORD dwCharsWritten;
+      DWORD dwChars;
+         
+      dwChars = UTF8_2_wchar(wszBuf, string, MAX_PATH_UNICODE);
+
+      /* try WriteConsoleW */
+      if (WriteConsoleW (hOut, wszBuf, dwChars-1, &dwCharsWritten, NULL))
+         return dwCharsWritten;   
+      
+      /* convert to local codepage and try WriteConsoleA */      
+      dwChars = p_WideCharToMultiByte(GetConsoleOutputCP(),0,wszBuf,-1,szBuf,MAX_PATH_UNICODE,NULL,NULL);
+      if (WriteConsoleA (hOut, szBuf, dwChars-1, &dwCharsWritten, NULL))
+         return dwCharsWritten;   
+
    }
 
    return fputs(string, stream);
@@ -947,27 +963,52 @@ win32_fputs(const char *string, FILE *stream)
 char*
 win32_cgets (char* buffer, int len)
 {
-   /* we use console gets / getws to be able to read unicode
-      from the win32 console */
+   /* we use console ReadConsoleA / ReadConsoleW to be able to read unicode
+      from the win32 console and fallback if seomething fails */
 
-   /* nt and unicode conversion */
-   if ((g_platform_id == VER_PLATFORM_WIN32_NT) && p_WideCharToMultiByte && p_cgetws) {      
-      WCHAR szBuf[260];
-      szBuf[0] = min (255, len); /* max len, must be smaller than buffer */
-      if (p_cgetws(szBuf) && wchar_2_UTF8(buffer, &szBuf[2], len))
+   HANDLE hIn = GetStdHandle (STD_INPUT_HANDLE);
+   if (hIn && (hIn != INVALID_HANDLE_VALUE) && p_WideCharToMultiByte && p_MultiByteToWideChar) {            
+      DWORD dwRead;
+      WCHAR wszBuf[1024];
+      char  szBuf[1024];    
+
+      /* nt and unicode conversion */
+      if (ReadConsoleW (hIn, wszBuf, 1024, &dwRead, NULL)) {
+
+         /* null terminate at end */                
+         if (wszBuf[dwRead-1] == L'\n') {
+            wszBuf[dwRead-1] = L'\0';
+            dwRead --;
+         }
+
+         if (wszBuf[dwRead-1] == L'\r') {
+            wszBuf[dwRead-1] = L'\0';
+            dwRead --;
+         }
+         
+         wchar_2_UTF8(buffer, wszBuf, len);
          return buffer;
-   }
+      }    
+      
+      /* win 9x and unicode conversion */
+      if (ReadConsoleA (hIn, szBuf, 1024, &dwRead, NULL)) {
 
-   /* win 9x and unicode conversion */
-   if ((g_platform_id == VER_PLATFORM_WIN32_WINDOWS) && p_WideCharToMultiByte && p_MultiByteToWideChar) {
-      char szBuf[260];
-      szBuf[0] = min(255, len); /* max len, must be smaller than buffer */
-      if (_cgets(szBuf)) {  
-         WCHAR wszBuf[260];
-         p_MultiByteToWideChar(CP_OEMCP, 0, &szBuf[2], -1, wszBuf,260);
+         /* null terminate at end */                
+         if (szBuf[dwRead-1] == L'\n') {
+            szBuf[dwRead-1] = L'\0';
+            dwRead --;
+         }
 
+         if (szBuf[dwRead-1] == L'\r') {
+            szBuf[dwRead-1] = L'\0';
+            dwRead --;
+         }
+
+         /* convert from ansii to WCHAR */
+         p_MultiByteToWideChar(GetConsoleCP(), 0, szBuf, -1, wszBuf,1024);
+         /* convert from WCHAR to UTF-8 */
          if (wchar_2_UTF8(buffer, wszBuf, len))
-            return buffer;
+            return buffer;         
       }
    }
 

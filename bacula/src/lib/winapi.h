@@ -66,15 +66,10 @@ typedef int (__cdecl * t_wunlink) (const wchar_t *);
 typedef int (__cdecl * t_wmkdir) (const wchar_t *);
 typedef int (__cdecl * t_wopen)  (const wchar_t *, int, ...);
 
-typedef wchar_t* (__cdecl *t_cgetws) (wchar_t *);
-typedef int      (__cdecl *t_cwprintf) (const wchar_t *, ...);
-
 extern t_wunlink   p_wunlink;
 extern t_wmkdir    p_wmkdir;
 extern t_wopen     p_wopen;
 
-extern t_cgetws    p_cgetws;
-extern t_cwprintf  p_cwprintf;
 /* In KERNEL32.DLL */
 typedef BOOL (WINAPI * t_GetFileAttributesExA)(LPCSTR, GET_FILEEX_INFO_LEVELS,
        LPVOID);
