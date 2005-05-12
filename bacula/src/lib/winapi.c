@@ -50,9 +50,6 @@ t_wunlink p_wunlink = NULL;
 t_wmkdir p_wmkdir = NULL;
 t_wopen p_wopen = NULL;
 
-t_cgetws p_cgetws = NULL;
-t_cwprintf p_cwprintf = NULL;
-
 t_GetFileAttributesA    p_GetFileAttributesA = NULL;
 t_GetFileAttributesW    p_GetFileAttributesW = NULL;
 
@@ -149,14 +146,7 @@ InitWinAPIWrapper()
       /* wopen */
       p_wopen = (t_wopen)
       GetProcAddress(hLib, "_wopen");
-      
-      /* cgetws */
-      p_cgetws = (t_cgetws)
-      GetProcAddress (hLib, "_cgetws");
-      /* cwprintf */
-      p_cwprintf = (t_cwprintf)
-      GetProcAddress (hLib, "_cwprintf");
-      
+        
       FreeLibrary(hLib);
    }
    
