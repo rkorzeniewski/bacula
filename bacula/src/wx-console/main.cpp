@@ -103,3 +103,7 @@ bool MyApp::OnInit()
    
    return TRUE;
 }
+
+#ifndef HAVE_WIN32
+void InitWinAPIWrapper() { };
+#endif
