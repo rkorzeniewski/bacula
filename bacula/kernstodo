@@ -75,6 +75,7 @@ For 1.37:
 - Fix the Rescue CDROM.
 
 Maybe in 1.37:
+- Print more info when bextract -p accepts a bad block.
 - To mark files as deleted, run essentially a Verify to disk, and
   when a file is found missing (MarkId != JobId), then create
   a new File record with FileIndex == -1. This could be done
@@ -238,6 +239,18 @@ Why:
     format string. Then I have the tape labeled automatically with weekday
     name in the correct language.
 ==========
+-  Yes, that is surely the case. I probably should turn those into Warning
+   errors. In addition, you just made me think that it might not be bad to
+   add an option to check the file size after backing up the file and
+   report if it changes. This would be done as an option because it would
+   add extra overhead.
+ 
+   Kern, good idea.  If you do do that, mention in the output: file 
+   shrunk, or file expanded, just to make it obvious to the user 
+   (without having to the refer to file size), just how the file size 
+   changed.
+ 
+   Would this option be for all file, or just one file?  Or a fileset?
 - Make output from status use html table tags for nicely 
   presenting in a browser.
 - Can one write tapes faster with 8192 byte block sizes?
@@ -1323,4 +1336,3 @@ Block Position: 0
 - Finish implementation of passing all Storage and Device needs to
   the SD.
 - Move test for max wait time exceeded in job.c up -- Peter's idea.
-
