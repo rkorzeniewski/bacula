@@ -38,6 +38,9 @@
 #define CS_TERMINATED   99 /* used to signal that the thread is terminated */
 
 /* function called by console_thread to send events back to the GUI */
+class wxString;
+
 void csprint(const char* str, int status=CS_DATA);
+void csprint(wxString str, int status=CS_DATA);
 
 #endif

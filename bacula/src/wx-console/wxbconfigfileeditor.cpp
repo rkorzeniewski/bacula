@@ -41,11 +41,11 @@ BEGIN_EVENT_TABLE(wxbConfigFileEditor, wxDialog)
 END_EVENT_TABLE()
 
 wxbConfigFileEditor::wxbConfigFileEditor(wxWindow* parent, wxString filename):
-      wxDialog(parent, -1, "Config file editor", wxDefaultPosition, wxSize(500, 300),
+      wxDialog(parent, -1, wxT("Config file editor"), wxDefaultPosition, wxSize(500, 300),
                    wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER) {
    this->filename = filename;
    
-   textCtrl = new wxTextCtrl(this,-1,"",wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_RICH | wxTE_DONTWRAP);
+   textCtrl = new wxTextCtrl(this,-1,wxT(""),wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_RICH | wxTE_DONTWRAP);
    wxFont font(10, wxMODERN, wxNORMAL, wxNORMAL);
 #if defined __WXGTK12__ && !defined __WXGTK20__ // Fix for "chinese" fonts under gtk+ 1.2
    font.SetDefaultEncoding(wxFONTENCODING_ISO8859_1);
@@ -57,8 +57,8 @@ wxbConfigFileEditor::wxbConfigFileEditor(wxWindow* parent, wxString filename):
    mainSizer->AddGrowableRow(0);
    
    wxBoxSizer *bottomsizer = new wxBoxSizer(wxHORIZONTAL);
-   bottomsizer->Add(new wxButton(this, Save, "Save and close"), 0, wxALL, 10);
-   bottomsizer->Add(new wxButton(this, Quit, "Close without saving"), 0, wxALL, 10);
+   bottomsizer->Add(new wxButton(this, Save, wxT("Save and close")), 0, wxALL, 10);
+   bottomsizer->Add(new wxButton(this, Quit, wxT("Close without saving")), 0, wxALL, 10);
    
    mainSizer->Add(textCtrl, 1, wxEXPAND);
    mainSizer->Add(bottomsizer, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL);
@@ -68,16 +68,16 @@ wxbConfigFileEditor::wxbConfigFileEditor(wxWindow* parent, wxString filename):
    wxFileName filen(filename);
    
    if (!filen.FileExists()) {
-      (*textCtrl) << "#\n";
-      (*textCtrl) << "# Bacula wx-console Configuration File\n";
-      (*textCtrl) << "#\n";
-      (*textCtrl) << "\n";
-      (*textCtrl) << "Director {\n";
-      (*textCtrl) << "  Name = <hostname>-dir\n";
-      (*textCtrl) << "  DIRport = 9101\n";
-      (*textCtrl) << "  address = <hostname>\n";
-      (*textCtrl) << "  Password = \"<dir_password>\"\n";
-      (*textCtrl) << "}\n";
+      (*textCtrl) << wxT("#\n");
+      (*textCtrl) << wxT("# Bacula wx-console Configuration File\n");
+      (*textCtrl) << wxT("#\n");
+      (*textCtrl) << wxT("\n");
+      (*textCtrl) << wxT("Director {\n");
+      (*textCtrl) << wxT("  Name = <hostname>-dir\n");
+      (*textCtrl) << wxT("  DIRport = 9101\n");
+      (*textCtrl) << wxT("  address = <hostname>\n");
+      (*textCtrl) << wxT("  Password = \"<dir_password>\"\n");
+      (*textCtrl) << wxT("}\n");
    }
    else {
       wxFile file(filename);
@@ -100,7 +100,7 @@ wxbConfigFileEditor::~wxbConfigFileEditor() {
 void wxbConfigFileEditor::OnSave(wxCommandEvent& event) {
    wxFile file(filename, wxFile::write);
    if (!file.IsOpened()) {
-      wxMessageBox(wxString("Unable to write to ") << filename << "\n", "Error while saving",
+      wxMessageBox(wxString(wxT("Unable to write to ")) << filename << wxT("\n"), wxT("Error while saving"),
                         wxOK | wxICON_ERROR, this);
       EndModal(wxCANCEL);
       return;

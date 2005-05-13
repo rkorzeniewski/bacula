@@ -50,7 +50,7 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons);
 
 bool console_thread::inited = false;
 bool console_thread::configloaded = false;
-wxString console_thread::working_dir = ".";
+wxString console_thread::working_dir = wxT(".");
 
 void console_thread::SetWorkingDirectory(wxString w_dir) {
    if ((w_dir.Last() == '/') || (w_dir.Last() == '\\')) {
@@ -71,7 +71,7 @@ void console_thread::InitLib() {
    init_stack_dump();
    my_name_is(0, NULL, "wx-console");
    //textdomain("bacula-console");
-   working_directory = console_thread::working_dir;
+   working_directory = (const char*) console_thread::working_dir.GetData();
    
    inited = true;
 }
@@ -94,7 +94,7 @@ static void scan_err(const char *file, int line, LEX *lc, const char *msg, ...)
    va_list arg_ptr;
    char buf[MAXSTRING];
    char more[MAXSTRING];
-   char err[MAXSTRING];
+   wxString err;
    
    va_start(arg_ptr, msg);
    bvsnprintf(buf, sizeof(buf), msg, arg_ptr);
@@ -106,9 +106,10 @@ static void scan_err(const char *file, int line, LEX *lc, const char *msg, ...)
    } else {
       more[0] = 0;
    }
-   bsnprintf(err, sizeof(err), _("Config error: %s\n"
-"            : line %d, col %d of file %s\n%s\n%s"),
+
+   err.Format(wxT("Config error: %s\n            : line %d, col %d of file %s\n%s\n%s"),
       buf, lc->line_no, lc->col_no, lc->fname, lc->line, more);
+     
    errmsg << err; 
 }
 
@@ -116,7 +117,7 @@ wxString console_thread::LoadConfig(wxString configfile) {
    if (!inited) {
       InitLib();
       if (!inited)
-         return "Error while initializing library.";
+         return wxT("Error while initializing library.");
    }
    
    free_config_resources();
@@ -132,22 +133,22 @@ wxString console_thread::LoadConfig(wxString configfile) {
    }
    
    init_msg(NULL, msgs);
-   init_console_msg(console_thread::working_dir);
+   init_console_msg(console_thread::working_dir.mb_str(*wxConvCurrent));
 
-   errmsg = "";
-   if (!parse_config(configfile.c_str(), &scan_err)) {
+   errmsg = wxT("");
+   if (!parse_config(configfile.mb_str(*wxConvCurrent), &scan_err)) {
       configloaded = false;
       term_msg();
       return errmsg;
    }
    
    term_msg();
-   wxRemoveFile(console_thread::working_dir + "/wx-console.conmsg");
+   wxRemoveFile(console_thread::working_dir + wxT("/wx-console.conmsg"));
    init_msg(NULL, NULL);
    
    configloaded = true;
    
-   return "";
+   return wxT("");
 }
 
 // class constructor
@@ -225,13 +226,13 @@ void* console_thread::Entry() {
          csprint("Multiple directors found in your config file.\n");
          for (int i = 0; i < count; i++) {
             if (i < 9) {
-               csprint(wxString("    ") << (i+1) << ": " << res[i]->hdr.name << "\n");
+               csprint(wxString(wxT("    ")) << (i+1) << wxT(": ") << wxString(res[i]->hdr.name,*wxConvCurrent) << wxT("\n"));
             }
             else {
-               csprint(wxString("   ") <<  (i+1) << ": " << res[i]->hdr.name << "\n");
+               csprint(wxString(wxT("   ")) <<  (i+1) << wxT(": ") << wxString(res[i]->hdr.name,*wxConvCurrent) << wxT("\n"));
             }
          }
-         csprint(wxString("Please choose a director (1-") << count << ") : ");
+         csprint(wxString(wxT("Please choose a director (1-")) << count << wxT(") : "),CS_DATA);
          csprint(NULL, CS_PROMPT);
          choosingdirector = true;
          directorchoosen = -1;
@@ -344,10 +345,13 @@ void console_thread::Write(const char* str) {
        bnet_send(UA_sock);
    }
    else if (choosingdirector) {
-      wxString number = str;
-      number.RemoveLast(); /* Removes \n */
+
+//      wxString number = str;
+//      number.RemoveLast(); /* Removes \n */
       long val;
-      if (number.ToLong(&val)) {
+      
+//      if (number.ToLong(&val)) {
+      if (val = atol(str)) {
          directorchoosen = (int)val;
       }
       else {

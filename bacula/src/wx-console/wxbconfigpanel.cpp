@@ -65,7 +65,7 @@ wxbConfigParam::~wxbConfigParam() {
 }
   
 void wxbConfigParam::AddControl(wxWindow* parent, wxSizer* sizer) {
-   sizer->Add(new wxStaticText(parent, -1, title + ": ", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 0, wxALIGN_CENTER_VERTICAL);
+   sizer->Add(new wxStaticText(parent, -1, title + wxT(": "), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT), 0, wxALIGN_CENTER_VERTICAL);
    switch (type) {
    case text:
       statictext = new wxStaticText(parent, -1, value, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
@@ -94,16 +94,16 @@ wxString wxbConfigParam::GetTitle() {
 wxString wxbConfigParam::GetValue() {
    switch (type) {
    case text:
-      return (statictext != NULL) ? statictext->GetLabel() : wxString("");
+      return (statictext != NULL) ? statictext->GetLabel() : wxString(wxT(""));
       break;
    case modifiableText:
-      return (textctrl != NULL) ? textctrl->GetValue() : wxString("");      
+      return (textctrl != NULL) ? textctrl->GetValue() : wxString(wxT(""));      
       break;
    case choice:
-      return (choicectrl != NULL) ? choicectrl->GetStringSelection() : wxString("");
+      return (choicectrl != NULL) ? choicectrl->GetStringSelection() : wxString(wxT(""));
       break;      
    }
-   return "";
+   return wxT("");
 }
 
 void wxbConfigParam::SetValue(wxString str) {
@@ -180,18 +180,18 @@ wxbConfigPanel::wxbConfigPanel(wxWindow* parent, wxbConfig* config, wxString tit
    
    wxBoxSizer* restoreBottomSizer = new wxBoxSizer(wxHORIZONTAL);
    
-   cfgOk = new wxButton(this, ok, "OK", wxDefaultPosition, wxSize(70, 25));
+   cfgOk = new wxButton(this, ok, wxT("OK"), wxDefaultPosition, wxSize(70, 25));
    restoreBottomSizer->Add(cfgOk, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, 10);
 
    if (apply != -1) {
-      cfgApply = new wxButton(this, apply, "Apply", wxDefaultPosition, wxSize(70, 25));
+      cfgApply = new wxButton(this, apply, wxT("Apply"), wxDefaultPosition, wxSize(70, 25));
       restoreBottomSizer->Add(cfgApply, 1, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 10);
    }
    else {
       cfgApply = NULL;
    }
 
-   cfgCancel = new wxButton(this, cancel, "Cancel", wxDefaultPosition, wxSize(70, 25));
+   cfgCancel = new wxButton(this, cancel, wxT("Cancel"), wxDefaultPosition, wxSize(70, 25));
    restoreBottomSizer->Add(cfgCancel, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, 10);
    
    mainSizer->Add(restoreBottomSizer, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL | wxALL, 5);
@@ -206,29 +206,29 @@ wxbConfigPanel::~wxbConfigPanel() {
    delete config;
 }
    
-void wxbConfigPanel::SetRowString(const char* title, wxString value) {
+void wxbConfigPanel::SetRowString(const wxChar* title, wxString value) {
    int i;
    if ((i = FindRow(title)) > -1) {
       (*config)[i].SetValue(value);
    }
 }
 
-wxString wxbConfigPanel::GetRowString(const char* title) {
+wxString wxbConfigPanel::GetRowString(const wxChar* title) {
    int i;
    if ((i = FindRow(title)) > -1) {
       return (*config)[i].GetValue();
    }
-   return "";
+   return wxT("");
 }
 
-void wxbConfigPanel::SetRowSelection(const char* title, int ind) {
+void wxbConfigPanel::SetRowSelection(const wxChar* title, int ind) {
    int i;
    if ((i = FindRow(title)) > -1) {
       (*config)[i].SetIndex(ind);
    }
 }
 
-int wxbConfigPanel::GetRowSelection(const char* title) {
+int wxbConfigPanel::GetRowSelection(const wxChar* title) {
    int i;
    if ((i = FindRow(title)) > -1) {
       return (*config)[i].GetIndex();
@@ -236,21 +236,21 @@ int wxbConfigPanel::GetRowSelection(const char* title) {
    return -1;
 }
 
-void wxbConfigPanel::ClearRowChoices(const char* title) {
+void wxbConfigPanel::ClearRowChoices(const wxChar* title) {
    int i;
    if ((i = FindRow(title)) > -1) {
       (*config)[i].Clear();
    }  
 }
 
-void wxbConfigPanel::AddRowChoice(const char* title, wxString value) {
+void wxbConfigPanel::AddRowChoice(const wxChar* title, wxString value) {
    int i;
    if ((i = FindRow(title)) > -1) {
       (*config)[i].Add(value);
    }  
 }
 
-int wxbConfigPanel::FindRow(const char* title) {
+int wxbConfigPanel::FindRow(const wxChar* title) {
    unsigned int i;
    
    for (i = last; i < config->GetCount(); i++) {

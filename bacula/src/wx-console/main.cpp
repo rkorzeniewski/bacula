@@ -72,10 +72,10 @@ bool MyApp::OnInit()
    long posx, posy, sizex, sizey;
    int displayx, displayy;
    InitWinAPIWrapper();
-   wxConfig::Get()->Read("/Position/X", &posx, 50);
-   wxConfig::Get()->Read("/Position/Y", &posy, 50);
-   wxConfig::Get()->Read("/Size/Width", &sizex, 780);
-   wxConfig::Get()->Read("/Size/Height", &sizey, 500);
+   wxConfig::Get()->Read(wxT("/Position/X"), &posx, 50);
+   wxConfig::Get()->Read(wxT("/Position/Y"), &posy, 50);
+   wxConfig::Get()->Read(wxT("/Size/Width"), &sizex, 780);
+   wxConfig::Get()->Read(wxT("/Size/Height"), &sizey, 500);
    
    wxDisplaySize(&displayx, &displayy);
    
@@ -92,14 +92,14 @@ bool MyApp::OnInit()
       }
    }
 
-   wxbMainFrame *frame = wxbMainFrame::CreateInstance(_T("Bacula wx-console"),
+   wxbMainFrame *frame = wxbMainFrame::CreateInstance(wxT("Bacula wx-console"),
                          wxPoint(posx, posy), wxSize(sizex, sizey));
 
    frame->Show(TRUE);
 
-   frame->Print(wxString("Welcome to bacula wx-console ") << VERSION << " (" << BDATE << ")!\n", CS_DEBUG);
+   frame->Print(wxString(wxT("Welcome to bacula wx-console ")) << wxT(VERSION) << wxT(" (") << wxT(BDATE) << wxT(")!\n"), CS_DEBUG);
 
-   frame->StartConsoleThread("");
+   frame->StartConsoleThread(wxT(""));
    
    return TRUE;
 }

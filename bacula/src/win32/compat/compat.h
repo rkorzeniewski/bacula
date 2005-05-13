@@ -168,6 +168,8 @@ int gettimeofday(struct timeval *, struct timezone *);
 #define ETIMEDOUT 55
 
 #ifndef HAVE_MINGW
+
+#ifndef _STAT_DEFINED
 struct stat
 {
     _dev_t      st_dev;
@@ -184,6 +186,7 @@ struct stat
     uint32_t    st_blksize;
     uint64_t    st_blocks;
 };
+#endif
 
 #undef  S_IFMT
 #define S_IFMT         0170000         /* file type mask */

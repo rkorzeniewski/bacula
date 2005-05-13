@@ -41,7 +41,7 @@ wxbHistoryTextCtrl::wxbHistoryTextCtrl(wxStaticText* help,
             wxTE_PROCESS_ENTER, validator, name) {
    this->help = help;
    index = 0;
-   history.Add("");
+   history.Add(wxT(""));
 }
 
 void wxbHistoryTextCtrl::AddCommand(wxString cmd, wxString description) {
@@ -53,15 +53,15 @@ void wxbHistoryTextCtrl::ClearCommandList() {
 }
 
 void wxbHistoryTextCtrl::HistoryAdd(wxString cmd) {
-   if (cmd == "") return;
+   if (cmd == wxT("")) return;
    index = history.Count();
    history[index-1] = cmd;
-   history.Add("");
+   history.Add(wxT(""));
 }
 
 void wxbHistoryTextCtrl::SetValue(const wxString& value) {
-   if (value == "") {
-      help->SetLabel("Type your command below:");
+   if (value == wxT("")) {
+      help->SetLabel(wxT("Type your command below:"));
    }
    wxTextCtrl::SetValue(value);
 }
@@ -93,27 +93,27 @@ void wxbHistoryTextCtrl::OnKeyUp(wxKeyEvent& event) {
          SetInsertionPointEnd();
       }      
    }
-   else if (GetValue() != "") {
+   else if (GetValue() != wxT("")) {
       wxbCommands::iterator it;
       wxString key;
-      wxString helptext = "Unknown command.";
+      wxString helptext = wxT("Unknown command.");
       int found = 0;      
       for( it = commands.begin(); it != commands.end(); ++it ) {         
          if (it->first.Find(GetValue()) == 0) {
             found++;
             if (found > 2) {
-               helptext += " " + it->first;
+               helptext += wxT(" ") + it->first;
             }
             else if (found > 1) {
-               helptext = "Possible completions: " + key + " " + it->first;
+               helptext = wxT("Possible completions: ") + key + wxT(" ") + it->first;
             }
             else { // (found == 1)
-               helptext = it->first + ": " + it->second;
+               helptext = it->first + wxT(": ") + it->second;
                key = it->first;
             }
          }
          else if (GetValue().Find(it->first) == 0) {
-            helptext = it->first + ": " + it->second;
+            helptext = it->first + wxT(": ") + it->second;
             found = 0;
             break;
          }
@@ -132,7 +132,7 @@ void wxbHistoryTextCtrl::OnKeyUp(wxKeyEvent& event) {
       }
    }
    else {
-      help->SetLabel("Type your command below:");
+      help->SetLabel(wxT("Type your command below:"));
       event.Skip();
    }
 }

@@ -41,7 +41,7 @@ WX_DECLARE_STRING_HASH_MAP( wxString, wxbCommands );
 class wxbHistoryTextCtrl: public wxTextCtrl {
    public:
       wxbHistoryTextCtrl(wxStaticText* help, wxWindow* parent, wxWindowID id,
-	 const wxString& value = "", const wxPoint& pos = wxDefaultPosition,
+	 const wxString& value = wxT(""), const wxPoint& pos = wxDefaultPosition,
 	 const wxSize& size = wxDefaultSize,
 	 const wxValidator& validator = wxDefaultValidator,
 	 const wxString& name = wxTextCtrlNameStr);

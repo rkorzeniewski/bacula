@@ -91,7 +91,7 @@ bool wxbTableParser::Analyse(wxString str, int status) {
 
       if ((str.GetChar(0) == '|') && (str.GetChar(str.Length()-2) == '|') && (str.GetChar(str.Length()-1) == '\n')) {
          str.RemoveLast();
-         wxStringTokenizer tkz(str, "|", wxTOKEN_STRTOK);
+         wxStringTokenizer tkz(str, wxT("|"), wxTOKEN_STRTOK);
 
          if (separatorNum == 1) {
             while ( tkz.HasMoreTokens() ) {
