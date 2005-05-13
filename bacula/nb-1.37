@@ -1,0 +1,47 @@
+              Technical notes on version 1.37  
+                      Nicolas Boichat
+
+General:
+
+Changes to 1.37.*:
+26Apr05
+ - Modify parse_config to get a LEX_ERROR_HANDLER as a parameter 
+ - lex_open_file now returns NULL if the file can't be opened. All calling functions have
+   been adapted.
+ - Remove set_exit_on_error function
+07Apr05
+ - Fix "unknown device type" problem with DVD devices.
+ - Fix crash when there is no media in the DVD drive.
+09Jan05
+ - Update the documentation and ReleaseNotes.
+05Jan05
+ - Add FreeSpaceCommand in Device (SD configuration file) and implement it.
+ - Some modifications (again) on how guessed volume names are handled (now it should work).
+ - Part files on the hard disk are removed if they are empty.
+04Jan05
+ - Major fixes on how guessed volume names are handled.
+ - Minor fix in src/stored/append.c.
+ - Replace, when possible, POOLMEM by POOL_MEM in the new code of src/stored/dev.c.
+ - New script, scripts/dvd-freespace, which gets the free space available on a writable DVD.
+03Jan05
+ - Add WritePartAfterJob directive in Job resource (Director)
+ - Add WritePartAfterJob directive in Schedule Resource (Director)
+ - Implement these new directives
+02Jan05
+ - New function, open_guess_name_dev in src/stored/dev.c, which tries to guess the volume
+   name of a mounted device, so the label can be read.  
+ - New script, scripts/dvd-writepart, which write parts to DVD+/-R(W).
+ - Removed WriteFirstPartCommand directive in Device (SD configuration file).
+ - Use readdir_r instead of readdir (src/stored/dev.c:open_guess_name_dev).
+01Jan05
+ - Add RequiresMount, MountPoint, MountCommand, UnmountCommand directives in Device (SD configuration file).
+ - Implement these directives (volumes can now be restored from a manually written DVD). 
+ - Add WriteFirstPartCommand, WritePartCommand directives in Device (SD configuration file).
+ - Implement these directives (DVD writing now works).
+ - New function run_program_full_output in src/lib/bpipe.c.
+ - Lots of bugfixes and cleanups in the new code.
+29Dec04
+ - Add VolParts field in Media table
+ - Add MaximumPartSize directive in Device (SD configuration file)
+ - File Volumes can now be splitted in multiple files ("parts")
+ - Fix SQL error in sql_list while doing "llist jobmedia"
