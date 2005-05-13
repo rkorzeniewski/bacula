@@ -16,7 +16,7 @@ first_rule: all
 dummy:
 
 # --client-only directories
-fd_subdirs = src scripts doc src/lib src/findlib src/filed \
+fd_subdirs = src scripts src/lib src/findlib src/filed \
 	     @READLINE_SRC@ src/console \
 	     @GNOME_DIR@ @TRAY_MONITOR_DIR@ @WX_DIR@
 
@@ -176,7 +176,7 @@ Makefiles:
 	chmod 755 make_catalog_backup delete_catalog_backup)
 
 clean:
-	@for I in ${all_subdirs} doc/latex doc/latex-fr; \
+	@for I in ${all_subdirs}; \
 	  do (cd $$I; echo "==>Entering directory `pwd`"; ${MAKE} $@ || exit 1); done
 	@(cd platforms; echo "==>Entering directory `pwd`"; ${MAKE} $@ || exit 1)
 	@$(RMF) *~ 1 2 3 core core.* config.guess console.log console.sum
@@ -187,7 +187,7 @@ clean:
 
 # clean for distribution
 distclean:
-	@for I in $(all_subdirs) doc/latex doc/latex-fr; do (cd $$I; $(MAKE) $@ || exit 1); done
+	@for I in $(all_subdirs); do (cd $$I; $(MAKE) $@ || exit 1); done
 	@for I in $(all_subdirs); do (cd $$I; $(RMF) startit stopit btraceback); done
 	@(cd $(srcdir); $(RMF) *~ config.cache config.h config.log config.status config.out)
 	@(cd $(srcdir); $(RMF) Makefile autoconf/Make.common)
@@ -197,13 +197,12 @@ distclean:
 	@$(RMF) *~ 1 2 3 core core.* config.guess console.log console.sum
 	@$(RMF) working/*
 #	@$(RMF) -r examples/devices/CVS autoconf/CVS autoconf/gnome-macros/CVS
-#	@$(RMF) -r doc/techlogs/2002/CVS doc/techlogs/2001/CVS doc/techlogs/1.27/CVS
 #	@$(RMF) -r examples/CVS intl/CVS scripts/CVS
 #	@$(RMF) -r po/CVS src/immortal/CVS rescue/freebsd/CVS rescue/solaris/CVS
 #	@$(RMF) -r CVS src/gnome-console/CVS src/tconsole/CVS
 
 devclean:
-	@for I in $(all_subdirs) doc/latex doc/latex-fr; do (cd $$I; $(MAKE) $@ || exit 1); done
+	@for I in $(all_subdirs); do (cd $$I; $(MAKE) $@ || exit 1); done
 	@for I in $(all_subdirs); do (cd $$I; $(RMF) startit stopit btraceback); done
 	@(cd $(srcdir); $(RMF) *~ config.cache config.h config.log config.status config.out)
 	@(cd $(srcdir); $(RMF) Makefile autoconf/Make.common)
