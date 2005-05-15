@@ -51,7 +51,7 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, bool create)
    Dmsg2(100, "CatReq FindMedia: Id=%d, MediaType=%s\n", (int)mr->PoolId, mr->MediaType);
    /*
     * If we are using an Autochanger, restrict Volume
-    *	search to the Autochanger on the first pass
+    *   search to the Autochanger on the first pass
     */
    InChanger = store->autochanger;
    /*
@@ -66,110 +66,113 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, bool create)
       ok = db_find_next_volume(jcr, jcr->db, 1, InChanger, mr);
       Dmsg2(100, "catreq after find_next_vol ok=%d FW=%d\n", ok, mr->FirstWritten);
       if (!ok) {
-	 /*
-	  * 2. Try finding a recycled volume
-	  */
-	 ok = find_recycled_volume(jcr, InChanger, mr);
+         /*
+          * 2. Try finding a recycled volume
+          */
+         ok = find_recycled_volume(jcr, InChanger, mr);
          Dmsg2(100, "find_recycled_volume %d FW=%d\n", ok, mr->FirstWritten);
-	 if (!ok) {
-	    /*
-	     * 3. Try recycling any purged volume
-	     */
-	    ok = recycle_oldest_purged_volume(jcr, InChanger, mr);
-	    if (!ok) {
-	       /*
-		* 4. Try pruning Volumes
-		*/
-	       prune_volumes(jcr);
-	       ok = recycle_oldest_purged_volume(jcr, InChanger, mr);
-	       if (InChanger) {
-		  InChanger = false;
-		  if (!ok) {
-		     continue;		 /* retry again accepting any volume */
-		  }
-	       }
+         if (!ok) {
+            /*
+             * 3. Try recycling any purged volume
+             */
+            ok = recycle_oldest_purged_volume(jcr, InChanger, mr);
+            if (!ok) {
+               /*
+                * 4. Try pruning Volumes
+                */
+               prune_volumes(jcr);
+               ok = recycle_oldest_purged_volume(jcr, InChanger, mr);
+               if (InChanger) {
+                  InChanger = false;
+                  if (!ok) {
+                     continue;           /* retry again accepting any volume */
+                  }
+               }
                Dmsg2(200, "find_recycled_volume2 %d FW=%d\n", ok, mr->FirstWritten);
-	       if (!ok && create) {
-		  /*
+               if (!ok && create) {
+                  /*
                    * 5. Try "creating" a new Volume
-		   */
-		  ok = newVolume(jcr, mr);
-	       }
-	    }
-	 }
+                   */
+                  ok = newVolume(jcr, mr);
+               }
+            }
+         }
 
-	 if (!ok) {
-	    MEDIA_DBR smr;
-	    POOL_DBR pr;
-	    POOLMEM *query;
-	    char ed1[50], ed2[50];
-	    /*
-	     * 6. Try pulling a volume from the Scratch pool
-	     */ 
-	     memset(&pr, 0, sizeof(pr));
+         if (!ok) {
+            MEDIA_DBR smr;
+            POOL_DBR pr;
+            POOLMEM *query;
+            char ed1[50], ed2[50];
+            /*
+             * 6. Try pulling a volume from the Scratch pool
+             */ 
+             memset(&pr, 0, sizeof(pr));
              bstrncpy(pr.Name, "Scratch", sizeof(pr.Name));
-	     if (db_get_pool_record(jcr, jcr->db, &pr)) {
-		memset(&smr, 0, sizeof(smr));
-		smr.PoolId = pr.PoolId;
+             if (db_get_pool_record(jcr, jcr->db, &pr)) {
+                memset(&smr, 0, sizeof(smr));
+                smr.PoolId = pr.PoolId;
                 bstrncpy(smr.VolStatus, "Append", sizeof(smr.VolStatus));  /* want only appendable volumes */
-		bstrncpy(smr.MediaType, mr->MediaType, sizeof(smr.MediaType));
-		if (db_find_next_volume(jcr, jcr->db, 1, InChanger, &smr)) {
-		   query = get_pool_memory(PM_MESSAGE);
-		   db_lock(jcr->db);
+                bstrncpy(smr.MediaType, mr->MediaType, sizeof(smr.MediaType));
+                if (db_find_next_volume(jcr, jcr->db, 1, InChanger, &smr)) {
+                   query = get_pool_memory(PM_MESSAGE);
+                   db_lock(jcr->db);
                    Mmsg(query, "UPDATE Media SET PoolId=%s WHERE MediaId=%s",
-			edit_int64(mr->PoolId, ed1),
-			edit_int64(mr->MediaId, ed2));
-		   ok = db_sql_query(jcr->db, query, NULL, NULL);  
-		   db_unlock(jcr->db);
-		}
-	     }
-	 }
-	 /*
-	  *  Look at more drastic ways to find an Appendable Volume
-	  */
-	 if (!ok && (jcr->pool->purge_oldest_volume ||
-		     jcr->pool->recycle_oldest_volume)) {
+                        edit_int64(mr->PoolId, ed1),
+                        edit_int64(smr.MediaId, ed2));
+                   ok = db_sql_query(jcr->db, query, NULL, NULL);  
+                   db_unlock(jcr->db);
+                   /* Set new Pool Id in smr record, then copy it to mr */
+                   smr.PoolId = mr->PoolId;
+                   memcpy(mr, &smr, sizeof(MEDIA_DBR));
+                }
+             }
+         }
+         /*
+          *  Look at more drastic ways to find an Appendable Volume
+          */
+         if (!ok && (jcr->pool->purge_oldest_volume ||
+                     jcr->pool->recycle_oldest_volume)) {
             Dmsg2(200, "No next volume found. PurgeOldest=%d\n RecyleOldest=%d",
-		jcr->pool->purge_oldest_volume, jcr->pool->recycle_oldest_volume);
-	    /* Find oldest volume to recycle */
-	    ok = db_find_next_volume(jcr, jcr->db, -1, InChanger, mr);
+                jcr->pool->purge_oldest_volume, jcr->pool->recycle_oldest_volume);
+            /* Find oldest volume to recycle */
+            ok = db_find_next_volume(jcr, jcr->db, -1, InChanger, mr);
             Dmsg1(400, "Find oldest=%d\n", ok);
-	    if (ok) {
-	       UAContext *ua;
+            if (ok) {
+               UAContext *ua;
                Dmsg0(400, "Try purge.\n");
-	       /*
-		* 5.  Try to purging oldest volume only if not UA calling us.
-		*/
-	       ua = new_ua_context(jcr);
-	       if (jcr->pool->purge_oldest_volume && create) {
+               /*
+                * 5.  Try to purging oldest volume only if not UA calling us.
+                */
+               ua = new_ua_context(jcr);
+               if (jcr->pool->purge_oldest_volume && create) {
                   Jmsg(jcr, M_INFO, 0, _("Purging oldest volume \"%s\"\n"), mr->VolumeName);
-		  ok = purge_jobs_from_volume(ua, mr);
-	       /*
-		* 5. or try recycling the oldest volume
-		*/
-	       } else if (jcr->pool->recycle_oldest_volume) {
+                  ok = purge_jobs_from_volume(ua, mr);
+               /*
+                * 5. or try recycling the oldest volume
+                */
+               } else if (jcr->pool->recycle_oldest_volume) {
                   Jmsg(jcr, M_INFO, 0, _("Pruning oldest volume \"%s\"\n"), mr->VolumeName);
-		  ok = prune_volume(ua, mr);
-	       }
-	       free_ua_context(ua);
-	       if (ok) {
-		  ok = recycle_volume(jcr, mr);
+                  ok = prune_volume(ua, mr);
+               }
+               free_ua_context(ua);
+               if (ok) {
+                  ok = recycle_volume(jcr, mr);
                   Dmsg1(400, "Recycle after purge oldest=%d\n", ok);
-	       }
-	    }
-	 }
+               }
+            }
+         }
       }
       Dmsg2(100, "VolJobs=%d FirstWritten=%d\n", mr->VolJobs, mr->FirstWritten);
       if (ok) {
-	 /* If we can use the volume, check if it is expired */
-	 if (has_volume_expired(jcr, mr)) {
-	    if (retry++ < 200) {	    /* sanity check */
-	       continue;		    /* try again from the top */
-	    } else {
-	       Jmsg(jcr, M_ERROR, 0, _(
+         /* If we can use the volume, check if it is expired */
+         if (has_volume_expired(jcr, mr)) {
+            if (retry++ < 200) {            /* sanity check */
+               continue;                    /* try again from the top */
+            } else {
+               Jmsg(jcr, M_ERROR, 0, _(
 "We seem to be looping trying to find the next volume. I give up.\n"));
-	    }
-	 }
+            }
+         }
       }
       break;
    } /* end for loop */
@@ -195,46 +198,46 @@ bool has_volume_expired(JCR *jcr, MEDIA_DBR *mr)
          Jmsg(jcr, M_INFO, 0, _("Max Volume bytes exceeded. "
              "Marking Volume \"%s\" as Full.\n"), mr->VolumeName);
          bstrncpy(mr->VolStatus, "Full", sizeof(mr->VolStatus));
-	 expired = true;
+         expired = true;
 
       /* Now see if Volume should only be used once */
       } else if (mr->VolBytes > 0 && jcr->pool->use_volume_once) {
          Jmsg(jcr, M_INFO, 0, _("Volume used once. "
              "Marking Volume \"%s\" as Used.\n"), mr->VolumeName);
          bstrncpy(mr->VolStatus, "Used", sizeof(mr->VolStatus));
-	 expired = true;
+         expired = true;
 
       /* Now see if Max Jobs written to volume */
       } else if (mr->MaxVolJobs > 0 && mr->MaxVolJobs <= mr->VolJobs) {
          Jmsg(jcr, M_INFO, 0, _("Max Volume jobs exceeded. "
              "Marking Volume \"%s\" as Used.\n"), mr->VolumeName);
          bstrncpy(mr->VolStatus, "Used", sizeof(mr->VolStatus));
-	 expired = true;
+         expired = true;
 
       /* Now see if Max Files written to volume */
       } else if (mr->MaxVolFiles > 0 && mr->MaxVolFiles <= mr->VolFiles) {
          Jmsg(jcr, M_INFO, 0, _("Max Volume files exceeded. "
              "Marking Volume \"%s\" as Used.\n"), mr->VolumeName);
          bstrncpy(mr->VolStatus, "Used", sizeof(mr->VolStatus));
-	 expired = true;
+         expired = true;
 
       /* Finally, check Use duration expiration */
       } else if (mr->VolUseDuration > 0) {
-	 utime_t now = time(NULL);
-	 /* See if Vol Use has expired */
-	 if (mr->VolUseDuration <= (now - mr->FirstWritten)) {
+         utime_t now = time(NULL);
+         /* See if Vol Use has expired */
+         if (mr->VolUseDuration <= (now - mr->FirstWritten)) {
             Jmsg(jcr, M_INFO, 0, _("Max configured use duration exceeded. "
                "Marking Volume \"%s\" as Used.\n"), mr->VolumeName);
             bstrncpy(mr->VolStatus, "Used", sizeof(mr->VolStatus));
-	    expired = true;
-	 }
+            expired = true;
+         }
       }
    }
    if (expired) {
       /* Need to update media */
       if (!db_update_media_record(jcr, jcr->db, mr)) {
          Jmsg(jcr, M_ERROR, 0, _("Catalog error updating volume \"%s\". ERR=%s"),
-	      mr->VolumeName, db_strerror(jcr->db));
+              mr->VolumeName, db_strerror(jcr->db));
       }
    }
    return expired;
@@ -244,7 +247,7 @@ bool has_volume_expired(JCR *jcr, MEDIA_DBR *mr)
  * Try hard to recycle the current volume
  *
  *  Returns: on failure - reason = NULL
- *	     on success - reason - pointer to reason
+ *           on success - reason - pointer to reason
  */
 void check_if_volume_valid_or_recyclable(JCR *jcr, MEDIA_DBR *mr, const char **reason)
 {
@@ -273,12 +276,12 @@ void check_if_volume_valid_or_recyclable(JCR *jcr, MEDIA_DBR *mr, const char **r
    if (strcmp(mr->VolStatus, "Purged") == 0) {
       if (recycle_volume(jcr, mr)) {
          Jmsg(jcr, M_INFO, 0, "Recycled current volume \"%s\"\n", mr->VolumeName);
-	 *reason = NULL;
-	 return;
+         *reason = NULL;
+         return;
       } else {
          /* In principle this shouldn't happen */
          *reason = "and recycling of current volume failed";
-	 return;
+         return;
       }
    }
 
@@ -292,7 +295,7 @@ void check_if_volume_valid_or_recyclable(JCR *jcr, MEDIA_DBR *mr, const char **r
     * needed for?
     */
    if ((mr->LastWritten + mr->VolRetention) < (utime_t)time(NULL)
-	 && mr->Recycle && jcr->pool->recycle_current_volume
+         && mr->Recycle && jcr->pool->recycle_current_volume
          && (strcmp(mr->VolStatus, "Full") == 0 ||
             strcmp(mr->VolStatus, "Used") == 0)) {
       /*
@@ -306,14 +309,14 @@ void check_if_volume_valid_or_recyclable(JCR *jcr, MEDIA_DBR *mr, const char **r
       free_ua_context(ua);
 
       if (ok) {
-	 /* If fully purged, recycle current volume */
-	 if (recycle_volume(jcr, mr)) {
+         /* If fully purged, recycle current volume */
+         if (recycle_volume(jcr, mr)) {
             Jmsg(jcr, M_INFO, 0, "Recycled current volume \"%s\"\n", mr->VolumeName);
-	    *reason = NULL;
-	 } else {
+            *reason = NULL;
+         } else {
             *reason = "but should be Append, Purged or Recycle (recycling of the "
                "current volume failed)";
-	 }
+         }
       } else {
          *reason = "but should be Append, Purged or Recycle (cannot automatically "
             "recycle current volume, as it still contains unpruned data)";

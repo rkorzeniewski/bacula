@@ -1054,14 +1054,13 @@ static int reload_cmd(UAContext *ua, const char *cmd)
  *
  *  delete pool=<pool-name>
  *  delete volume pool=<pool-name> volume=<name>
- *  delete job jobid=xxx
+ *  delete jobid=xxx
  */
 static int delete_cmd(UAContext *ua, const char *cmd)
 {
    static const char *keywords[] = {
       N_("volume"),
       N_("pool"),
-      N_("job"),
       N_("jobid"),
       NULL};
 
@@ -1077,7 +1076,6 @@ static int delete_cmd(UAContext *ua, const char *cmd)
       delete_pool(ua);
       return 1;
    case 2:
-   case 3:
       int i;
       while ((i=find_arg(ua, _("jobid"))) > 0) {
          delete_job(ua);

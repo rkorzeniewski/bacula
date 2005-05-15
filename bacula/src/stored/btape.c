@@ -91,7 +91,7 @@ static void do_unfill();
 
 /* Static variables */
 #define CONFIG_FILE "bacula-sd.conf"
-char *configfile;
+char *configfile = NULL;
 
 #define MAX_CMD_ARGS 30
 static POOLMEM *cmd;

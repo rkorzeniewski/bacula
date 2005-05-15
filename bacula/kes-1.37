@@ -4,6 +4,15 @@
 General:
 
 Changes to 1.37.18:
+15May05
+- Set reconnect flag in MySQL packet to 1 to ensure that connection
+  is re-established.  MySQL 5 changed default to 0. Fixes bug report.
+- Fix Scratch pool handling as reported in a bug by Eric Bollengier
+  by applying his patch.
+- Remove delete job in favor of delete jobid.
+- Add = NULL to configfile definitions as reported by Eric in a bug
+  report.
+- Update winbacula.nsi.in to reflect new manual file structure.
 10May05
 - Correct a minor build problem with wx-console.
 - Add cancel() to Dir Python scripting.
