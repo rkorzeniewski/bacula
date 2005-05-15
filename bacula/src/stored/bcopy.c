@@ -50,7 +50,7 @@ static uint32_t jobs = 0;
 static DEV_BLOCK *out_block;
 
 #define CONFIG_FILE "bacula-sd.conf"
-char *configfile;
+char *configfile = NULL;
 STORES *me = NULL;                    /* our Global resource */
 bool forge_on = false;                /* proceed inspite of I/O errors */
 pthread_mutex_t device_release_mutex = PTHREAD_MUTEX_INITIALIZER;

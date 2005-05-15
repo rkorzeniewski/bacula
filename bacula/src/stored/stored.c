@@ -54,7 +54,7 @@ pthread_cond_t wait_device_release = PTHREAD_COND_INITIALIZER;
 
 static uint32_t VolSessionId = 0;
 uint32_t VolSessionTime;
-char *configfile;
+char *configfile = NULL;
 
 /* Global static variables */
 static int foreground = 0;

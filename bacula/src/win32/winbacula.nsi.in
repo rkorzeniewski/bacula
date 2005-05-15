@@ -222,10 +222,10 @@ SectionEnd
 Section "Install Documentation" SecDoc
   SetOutPath "$INSTDIR\doc"
   CreateDirectory "$INSTDIR\doc"
-  File ..\..\doc\latex\bacula\*.html
-  File ..\..\doc\latex\bacula\*.png
-  File ..\..\doc\latex\bacula\*.css
-  File ..\..\doc\latex\bacula.pdf
+  File ..\..\..\docs\manual\bacula\*.html
+  File ..\..\..\docs\manual\bacula\*.png
+  File ..\..\..\docs\manual\bacula\*.css
+  File ..\..\..\docs\manual\bacula.pdf
   ; Create Start Menu entry
   SetShellVarContext all
   CreateShortCut "$SMPROGRAMS\Bacula\Manual.lnk" "$INSTDIR\doc\bacula.pdf"
