@@ -61,6 +61,7 @@ static const char *level_to_str(int level);
 bool status_cmd(JCR *jcr)
 {
    DEVRES *device;
+   AUTOCHANGER *changer;
    DEVICE *dev;
    BSOCK *user = jcr->dir_bsock;
    char dt[MAX_TIME_LENGTH];
@@ -96,6 +97,17 @@ bool status_cmd(JCR *jcr)
     */
    bnet_fsend(user, _("\nDevice status:\n"));
 // LockRes();
+   foreach_res(changer, R_AUTOCHANGER) {
+      bnet_fsend(user, _("Autochanger \"%s\" with devices:\n"),
+         changer->hdr.name);
+      foreach_alist(device, changer->device) {
+         if (device->dev) {
+            bnet_fsend(user, "   %s\n", device->dev->print_name());
+         } else {
+            bnet_fsend(user, "   %s\n", device->hdr.name);
+         }
+      }
+   }
    foreach_res(device, R_DEVICE) {
       dev = device->dev;
       if (dev && dev->is_open()) {
