@@ -8,12 +8,12 @@
  */
 
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
+   version 2.1 of the License.
 
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -105,7 +105,7 @@ static int sleepcmd(FILE *input, BSOCK *UA_sock);
 static void usage()
 {
    fprintf(stderr, _(
-"Copyright (C) 2000-2004 Kern Sibbald and John Walker\n"
+"Copyright (C) 2000-2005 Kern Sibbald\n"
 "\nVersion: " VERSION " (" BDATE ") %s %s %s\n\n"
 "Usage: bconsole [-s] [-c config_file] [-d debug_level]\n"
 "       -c <file>   set configuration file to file\n"

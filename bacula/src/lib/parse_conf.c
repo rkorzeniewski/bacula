@@ -737,6 +737,8 @@ enum parse_state {
  * Parse configuration file
  *
  * Return 0 if reading failed, 1 otherwise
+ *  Note, the default behavior unless you have set an alternate
+ *  scan_error handler is to die on an error.
  */
 int
 parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error)
@@ -766,7 +768,7 @@ parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error)
          }
          bstrncpy(lc->str, cf, sizeof(lc->str));
          lc->fname = lc->str;
-         scan_err2(lc, _("Cannot open config file %s: %s\n"),
+         scan_err2(lc, _("Cannot open config file \"%s\": %s\n"),
             lc->str, be.strerror());
          free(lc);
          return 0;

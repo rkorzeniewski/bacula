@@ -4,7 +4,15 @@
 General:
 
 Changes to 1.37.18:
+16May05
+- Add Scratch to PoolType in PostgreSQL make...tables and do not
+  permit NULL PoolTypes. Fix for bug 319 reported by Eric.
+- Update LICENSE.
+- Add quotes around filename in parse_config error message. Bug
+  reported by Eric.
 15May05
+- Change nested \include to \input so that sections are properly
+  included in the pdf manual -- update the Web site.
 - Set reconnect flag in MySQL packet to 1 to ensure that connection
   is re-established.  MySQL 5 changed default to 0. Fixes bug report.
 - Fix Scratch pool handling as reported in a bug by Eric Bollengier
