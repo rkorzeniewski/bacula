@@ -229,7 +229,8 @@ bool autochanger_cmd(DCR *dcr, BSOCK *dir, const char *cmd)
 
    if (!dev_cap(dev, CAP_AUTOCHANGER) || !dcr->device->changer_name ||
        !dcr->device->changer_command) {
-      bnet_fsend(dir, _("3993 Not a autochanger device.\n"));
+      bnet_fsend(dir, _("3993 Device %s not an autochanger device.\n"),
+         dev->print_name());
       return false;
    }
 
@@ -273,7 +274,7 @@ bool autochanger_cmd(DCR *dcr, BSOCK *dir, const char *cmd)
    bpipe = open_bpipe(changer, timeout, "r");
    if (!bpipe) {
       unlock_changer(dcr);
-      bnet_fsend(dir, _("3993 Open bpipe failed.\n"));
+      bnet_fsend(dir, _("3996 Open bpipe failed.\n"));
       goto bail_out;
    }
    if (strcmp(cmd, "list") == 0) {

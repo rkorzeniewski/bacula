@@ -75,6 +75,7 @@ For 1.37:
 - Fix the Rescue CDROM.
 
 Maybe in 1.37:
+- Add ClientDefs similar to JobDefs.
 - Print more info when bextract -p accepts a bad block.
 - To mark files as deleted, run essentially a Verify to disk, and
   when a file is found missing (MarkId != JobId), then create
@@ -332,7 +333,9 @@ Documentation to do: (any release a little bit at a time)
 
 
 ===================================
-  
+- Add macro expansions in JobDefs.
+  Run Before Job = "SomeFile %{Level} %{Client}"
+  Write Bootstrap="/some/dir/%{JobName}_%{Client}.bsr"
 - Use non-blocking network I/O but if no data is available, use
   select().
 - Use gather write() for network I/O.

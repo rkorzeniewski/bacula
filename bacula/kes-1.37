@@ -5,6 +5,7 @@ General:
 
 Changes to 1.37.18:
 16May05
+- Add more debug to SD for Autochangers + status output.
 - Add Scratch to PoolType in PostgreSQL make...tables and do not
   permit NULL PoolTypes. Fix for bug 319 reported by Eric.
 - Update LICENSE.

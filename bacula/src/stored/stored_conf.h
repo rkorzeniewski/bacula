@@ -52,7 +52,7 @@ public:
    int monitor;                       /* Have only access to status and .status functions */
 #ifdef HAVE_TLS
    int tls_enable;                    /* Enable TLS */
-   int tls_require;		      /* Require TLS */
+   int tls_require;                   /* Require TLS */
    int tls_verify_peer;              /* TLS Verify Client Certificate */
    char *tls_ca_certfile;             /* TLS CA Certificate File */
    char *tls_ca_certdir;              /* TLS CA Certificate Directory */
@@ -82,7 +82,7 @@ public:
    utime_t heartbeat_interval;        /* Interval to send hb to FD */
 #ifdef HAVE_TLS
    int tls_enable;                    /* Enable TLS */
-   int tls_require;		      /* Require TLS */
+   int tls_require;                   /* Require TLS */
    int tls_verify_peer;              /* TLS Verify Client Certificate */
    char *tls_ca_certfile;             /* TLS CA Certificate File */
    char *tls_ca_certdir;              /* TLS CA Certificate Directory */
@@ -99,7 +99,7 @@ typedef struct s_res_store STORES;
 class AUTOCHANGER {
 public:
    RES hdr;
-   alist *device;
+   alist *device;                     /* List of DEVRES device pointers */
    char *changer_name;                /* Changer device name */
    char *changer_command;             /* Changer command  -- external program */
    pthread_mutex_t changer_mutex;     /* One changer operation at a time */

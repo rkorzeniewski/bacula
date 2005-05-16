@@ -125,7 +125,7 @@ static struct cmdstruct commands[] = {
  { N_("trace"),      trace_cmd,     _("turn on/off trace to file")},
  { N_("unmount"),    unmount_cmd,   _("unmount <storage-name>")},
  { N_("umount"),     unmount_cmd,   _("umount <storage-name> for old-time Unix guys")},
- { N_("update"),     update_cmd,    _("update Volume or Pool")},
+ { N_("update"),     update_cmd,    _("update Volume, Pool or slots")},
  { N_("use"),        use_cmd,       _("use catalog xxx")},
  { N_("var"),        var_cmd,       _("does variable expansion")},
  { N_("version"),    version_cmd,   _("print Director version")},
