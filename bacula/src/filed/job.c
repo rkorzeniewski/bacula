@@ -1208,10 +1208,10 @@ static int backup_cmd(JCR *jcr)
    /* tell vss which drives to snapshot */   
    char szWinDriveLetters[27];   
    if (get_win32_driveletters((FF_PKT *)jcr->ff, szWinDriveLetters)) {
-      Jmsg(jcr, M_INFO, 0, _("Generate VSS snapshots. Drives=%s\n"), szWinDriveLetters);                 
+      Jmsg(jcr, M_INFO, 0, _("Generate VSS snapshots. Drives=%s\n"), szWinDriveLetters);
       g_VSSClient.CreateSnapshots(szWinDriveLetters);
 
-      for (int i=0; i<=strlen (szWinDriveLetters); i++) {
+      for (int i=0; i<strlen (szWinDriveLetters); i++) {
          if (islower(szWinDriveLetters[i]))
             Jmsg(jcr, M_WARNING, 0, _("Generate VSS snapshot of drive %c: failed\n"), szWinDriveLetters[i]);
       }
