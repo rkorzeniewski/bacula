@@ -464,16 +464,18 @@ int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
    if (p_GetFileAttributesExW)	{
       unix_name_to_win32(&ff_pkt->sys_fname, ff_pkt->fname);
 
-      WCHAR szBuf[MAX_PATH_UNICODE];
-      UTF8_2_wchar(szBuf, ff_pkt->sys_fname, MAX_PATH_UNICODE);
+      POOLMEM* pwszBuf = get_pool_memory (PM_FNAME);   
+      UTF8_2_wchar(&pwszBuf, ff_pkt->sys_fname);
 
-      if (!p_GetFileAttributesExW(szBuf, GetFileExInfoStandard,
-			      (LPVOID)&atts)) {
+      BOOL b=p_GetFileAttributesExW((LPCWSTR) pwszBuf, GetFileExInfoStandard, (LPVOID)&atts);
+      free_pool_memory(pwszBuf);
+
+      if (!b) {
          win_error(jcr, "GetFileAttributesExW:", ff_pkt->sys_fname);
 	 return STREAM_UNIX_ATTRIBUTES;
       }
    }
-   else   {
+   else {
       if (!p_GetFileAttributesExA)
 	 return STREAM_UNIX_ATTRIBUTES;
 
@@ -602,16 +604,18 @@ static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    if (!(atts.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) 
    {
       if (p_SetFileAttributesW) {
-   WCHAR szBuf[MAX_PATH_UNICODE];
-   UTF8_2_wchar(szBuf, win32_ofile, MAX_PATH_UNICODE);
+         POOLMEM* pwszBuf = get_pool_memory (PM_FNAME);   
+         UTF8_2_wchar(&pwszBuf, win32_ofile);
 
-   if (!SetFileAttributesW(szBuf, atts.dwFileAttributes & SET_ATTRS)) {
-         win_error(jcr, "SetFileAttributesW:", win32_ofile);
-	}
+         BOOL b=SetFileAttributesW((LPCWSTR)pwszBuf, atts.dwFileAttributes & SET_ATTRS);
+         free_pool_memory(pwszBuf);
+      
+         if (!b) 
+            win_error(jcr, "SetFileAttributesW:", win32_ofile);	
       }
       else {
-      if (!SetFileAttributes(win32_ofile, atts.dwFileAttributes & SET_ATTRS)) {
-         win_error(jcr, "SetFileAttributesA:", win32_ofile);
+         if (!SetFileAttributes(win32_ofile, atts.dwFileAttributes & SET_ATTRS)) {
+            win_error(jcr, "SetFileAttributesA:", win32_ofile);
 	 }
       }
    }

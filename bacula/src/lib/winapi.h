@@ -42,12 +42,15 @@
 
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 
+#ifndef POOLMEM
+typedef char POOLMEM;
+#endif
+
 // unicode enabling of win 32 needs some defines and functions
-#define MAX_PATH_UNICODE 32767
 #define MAX_PATH_UTF8    MAX_PATH*3
 
 int wchar_2_UTF8(char *pszUTF, const WCHAR *pszUCS, int cchChar = MAX_PATH_UTF8);
-int UTF8_2_wchar(WCHAR *pszUCS, const char *pszUTF, int cchWideChar = MAX_PATH);
+int UTF8_2_wchar(POOLMEM **pszUCS, const char *pszUTF);
 
 
 /* In ADVAPI32.DLL */
