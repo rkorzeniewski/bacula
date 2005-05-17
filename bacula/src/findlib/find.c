@@ -94,6 +94,55 @@ set_find_options(FF_PKT *ff, int incremental, time_t save_time)
   Dmsg0(100, "Leave set_find_options()\n");
 }
 
+/*
+ * For VSS we need to know which windows drives
+ * are used, because we create a snapshot of all used
+ * drives before operation
+ *
+ * the function returns the number of used drives and
+ * fills "drives" with up to 26 (A..Z) drive names
+ *
+ */
+int
+get_win32_driveletters(FF_PKT *ff, char* szDrives)
+{
+   /* szDrives must be at least 27 bytes long */
+
+#ifndef WIN32
+   return 0;
+#endif
+
+   szDrives[0] = 0; /* make empty */
+   int nCount = 0;
+    
+   findFILESET *fileset = ff->fileset;
+   if (fileset) {
+      int i, j;
+      
+      for (i=0; i<fileset->include_list.size(); i++) {
+         findINCEXE *incexe = (findINCEXE *)fileset->include_list.get(i);
+         
+         /* look through all files and check */
+         for (j=0; j<incexe->name_list.size(); j++) {
+            char *fname = (char *)incexe->name_list.get(j);
+            /* fname should match x:/ */
+            if (strlen (fname) > 3 && B_ISALPHA (fname[0]) 
+               && fname[1] == ':' && fname[2] == '/') {
+               
+               /* always add in uppercase */
+               char ch = toupper(fname[0]);
+               /* if not found in string, add drive letter */
+               if (!strchr(szDrives,ch)) {
+                  szDrives[nCount] = ch;
+                  szDrives[nCount+1] = 0;
+                  nCount++;
+               }                                
+            }            
+         }
+      }
+   }
+   return nCount;
+}
 
 /*
  * Find all specified files (determined by calls to name_add()

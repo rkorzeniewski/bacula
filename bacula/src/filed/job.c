@@ -29,6 +29,10 @@
 #include "bacula.h"
 #include "filed.h"
 
+#ifdef WIN32_VSS
+#include "vss.h"   
+#endif
+
 extern char my_name[];
 extern CLIENT *me;                    /* our client resource */
 
@@ -1195,8 +1199,24 @@ static int backup_cmd(JCR *jcr)
    if (!response(jcr, sd, OK_data, "Append Data")) {
       goto cleanup;
    }
-
+   
    generate_daemon_event(jcr, "JobStart");
+
+#ifdef WIN32_VSS
+   /* START VSS ON WIN 32 */
+   g_VSSClient.InitializeForBackup();
+   /* tell vss which drives to snapshot */   
+   char szWinDriveLetters[27];   
+   if (get_win32_driveletters((FF_PKT *)jcr->ff, szWinDriveLetters)) {
+      Jmsg(jcr, M_INFO, 0, _("Generate VSS snapshots. Drives=%s\n"), szWinDriveLetters);                 
+      g_VSSClient.CreateSnapshots(szWinDriveLetters);
+
+      for (int i=0; i<=strlen (szWinDriveLetters); i++) {
+         if (islower(szWinDriveLetters[i]))
+            Jmsg(jcr, M_WARNING, 0, _("Generate VSS snapshot of drive %c: failed\n"), szWinDriveLetters[i]);
+      }
+   }
+#endif
 
    /*
     * Send Files to Storage daemon
@@ -1252,11 +1272,17 @@ static int backup_cmd(JCR *jcr)
    }
 
 cleanup:
+#ifdef WIN32_VSS
+   /* tell vss to close the backup session */
+   g_VSSClient.CloseBackup();
+#endif
+
    bnet_fsend(dir, EndJob, jcr->JobStatus, jcr->JobFiles,
       edit_uint64(jcr->ReadBytes, ed1),
       edit_uint64(jcr->JobBytes, ed2), jcr->Errors);
    Dmsg1(110, "End FD msg: %s\n", dir->msg);
 
+   /* STOP VSS ON WIN 32 */
    return 0;                          /* return and stop command loop */
 }
 
