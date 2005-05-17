@@ -80,10 +80,16 @@ cygwin_conv_to_win32_path(const char *name, char *win32_name, DWORD dwSize)
     }
 
 #ifdef WIN32_VSS
-    /* here we convert to VSS specific file name */    
-    char szFile[MAX_PATH_UNICODE];
-    strncpy (szFile, tname, MAX_PATH_UNICODE-1);
-    g_VSSClient.GetShadowPath(szFile,tname,dwSize);
+    /* here we convert to VSS specific file name which
+       can get longer because VSS will make something like
+       \\\\?\\GLOBALROOT\\Device\\HarddiskVolumeShadowCopy1\\bacula\\uninstall.exe
+       from c:\bacula\uninstall.exe
+    */    
+    POOLMEM* pszBuf = get_pool_memory (PM_FNAME);
+    pszBuf = check_pool_memory_size(pszBuf, dwSize);
+    bstrncpy (pszBuf, tname, strlen(tname)+1);
+    g_VSSClient.GetShadowPath(pszBuf,tname,dwSize);
+    free_pool_memory(pszBuf);
 #endif
 }
 
@@ -662,15 +668,20 @@ opendir(const char *path)
     if (tspec == NULL) return NULL;
 
     if (g_platform_id != VER_PLATFORM_WIN32_WINDOWS) {
-        // allow path to be 32767 bytes
-        tspec[0] = '\\';
-        tspec[1] = '\\';
-        tspec[2] = '?';
-        tspec[3] = '\\';
-        tspec[4] = 0;
-        cygwin_conv_to_win32_path(path, tspec+4, max_len-4);
+#ifdef WIN32_VSS
+       /* will append \\?\ at front itself */
+       cygwin_conv_to_win32_path(path, tspec, max_len-4);
+#else
+       /* allow path to be 32767 bytes */
+       tspec[0] = '\\';
+       tspec[1] = '\\';
+       tspec[2] = '?';
+       tspec[3] = '\\';
+       tspec[4] = 0;
+       cygwin_conv_to_win32_path(path, tspec+4, max_len-4);
+#endif
     } else {
-        cygwin_conv_to_win32_path(path, tspec, max_len);
+       cygwin_conv_to_win32_path(path, tspec, max_len);
     }
 
     strncat(tspec, "\\*", max_len);
