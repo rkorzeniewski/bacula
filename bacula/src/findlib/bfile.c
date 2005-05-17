@@ -211,19 +211,21 @@ HANDLE bget_handle(BFILE *bfd)
 int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 {
    POOLMEM *win32_fname;
-   DWORD dwaccess, dwflags, dwshare;
-   WCHAR win32_fname_wchar[MAX_PATH_UNICODE];
+   POOLMEM *win32_fname_wchar;
 
+   DWORD dwaccess, dwflags, dwshare;
+   
    /* Convert to Windows path format */
    win32_fname = get_pool_memory(PM_FNAME);
+   win32_fname_wchar = get_pool_memory(PM_FNAME);
+   
    unix_name_to_win32(&win32_fname, (char *)fname);
 
    if (!(p_CreateFileA || p_CreateFileW))
       return 0;
 
-   if (p_CreateFileW){         
-   UTF8_2_wchar(win32_fname_wchar, win32_fname, MAX_PATH_UNICODE);
-   }
+   if (p_CreateFileW && p_MultiByteToWideChar)               
+      UTF8_2_wchar(&win32_fname_wchar, win32_fname);
 
    if (flags & O_CREAT) {             /* Create */
       if (bfd->use_backup_api) {
@@ -235,8 +237,8 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
       }
 
    // unicode or ansii open for create write
-   if (p_CreateFileW) {   
-      bfd->fh = p_CreateFileW(win32_fname_wchar,
+   if (p_CreateFileW && p_MultiByteToWideChar) {   
+      bfd->fh = p_CreateFileW((LPCWSTR)win32_fname_wchar,
              dwaccess,                /* Requested access */
              0,                       /* Shared mode */
              NULL,                    /* SecurityAttributes */
@@ -267,8 +269,8 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
       }
 
    // unicode or ansii open for open existing write
-   if (p_CreateFileW) {   
-      bfd->fh = p_CreateFileW(win32_fname_wchar,
+   if (p_CreateFileW && p_MultiByteToWideChar) {   
+      bfd->fh = p_CreateFileW((LPCWSTR)win32_fname_wchar,
              dwaccess,                /* Requested access */
              0,                       /* Shared mode */
              NULL,                    /* SecurityAttributes */
@@ -301,8 +303,8 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
       }
 
       // unicode or ansii open for open existing read
-   if (p_CreateFileW) {   
-      bfd->fh = p_CreateFileW(win32_fname_wchar,
+   if (p_CreateFileW && p_MultiByteToWideChar) {   
+      bfd->fh = p_CreateFileW((LPCWSTR)win32_fname_wchar,
              dwaccess,                /* Requested access */
              dwshare,                 /* Share modes */
              NULL,                    /* SecurityAttributes */
@@ -331,6 +333,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
    }
    bfd->errmsg = NULL;
    bfd->lpContext = NULL;
+   free_pool_memory(win32_fname_wchar);
    free_pool_memory(win32_fname);
    return bfd->mode == BF_CLOSED ? -1 : 1;
 }

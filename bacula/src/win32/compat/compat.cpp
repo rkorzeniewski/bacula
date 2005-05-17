@@ -26,14 +26,14 @@
 // Created On      : Sat Jan 31 15:55:00 2004
 // $Id$
 
-#include <stdio.h>
+#include "bacula.h"
 
-#include "compat.h"
 #ifdef WIN32_VSS
 #include "vss.h"
 #endif 
-#include "pthread.h"
+
 #include "../../lib/winapi.h"
+
 
 /* to allow the usage of the original version in this file here */
 #undef fputs
@@ -93,20 +93,30 @@ wchar_2_UTF8(char *pszUTF, const WCHAR *pszUCS, int cchChar)
    /* the return value is the number of bytes written to the buffer. 
       The number includes the byte for the null terminator. */
 
-   if (p_WideCharToMultiByte)
-      return p_WideCharToMultiByte(CP_UTF8,0,pszUCS,-1,pszUTF,cchChar,NULL,NULL);
+   if (p_WideCharToMultiByte) {
+         int nRet = p_WideCharToMultiByte(CP_UTF8,0,pszUCS,-1,pszUTF,cchChar,NULL,NULL);
+         ASSERT (nRet > 0);
+         return nRet;
+      }
    else
       return NULL;
 }
 
 int 
-UTF8_2_wchar(WCHAR *pszUCS, const char *pszUTF, int cchWideChar)
+UTF8_2_wchar(POOLMEM **ppszUCS, const char *pszUTF)
 {
-   /*  the return value is the number of wide characters written to the buffer. */
-   /* convert null terminated string from utf-8 to ucs2*/
+   /* the return value is the number of wide characters written to the buffer. */
+   /* convert null terminated string from utf-8 to ucs2, enlarge buffer if necessary */
 
-   if (p_MultiByteToWideChar)
-      return p_MultiByteToWideChar(CP_UTF8, 0, pszUTF, -1, pszUCS,cchWideChar);
+   if (p_MultiByteToWideChar) {
+      /* strlen of UTF8 +1 is enough */ 
+      DWORD cchSize = (strlen(pszUTF)+1);
+      *ppszUCS = check_pool_memory_size(*ppszUCS, cchSize*sizeof (WCHAR));
+      
+      int nRet = p_MultiByteToWideChar(CP_UTF8, 0, pszUTF, -1, (LPWSTR) *ppszUCS,cchSize);
+      ASSERT (nRet > 0);
+      return nRet;
+   }
    else
       return NULL;
 }
@@ -255,10 +265,11 @@ statDir(const char *file, struct stat *sb)
 
    // use unicode or ascii
    if (p_FindFirstFileW) {
-      WCHAR szBuf[MAX_PATH_UNICODE];
-      UTF8_2_wchar(szBuf, file, MAX_PATH_UNICODE);
+      POOLMEM* pwszBuf = get_pool_memory (PM_FNAME);         
+      UTF8_2_wchar(&pwszBuf, file);
       
-      h = p_FindFirstFileW(szBuf, &info_w);
+      h = p_FindFirstFileW((LPCWSTR) pwszBuf, &info_w);
+      free_pool_memory(pwszBuf);
 
       pdwFileAttributes = &info_w.dwFileAttributes;
       pnFileSizeHigh    = &info_w.nFileSizeHigh;
@@ -321,10 +332,11 @@ stat2(const char *file, struct stat *sb)
     DWORD attr = -1;
 
     if (p_GetFileAttributesW) {
-      WCHAR szBuf[MAX_PATH_UNICODE];
-      UTF8_2_wchar(szBuf, tmpbuf, MAX_PATH_UNICODE);
+      POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
+      UTF8_2_wchar(&pwszBuf, tmpbuf);
       
-      attr = p_GetFileAttributesW(szBuf);
+      attr = p_GetFileAttributesW((LPCWSTR) pwszBuf);
+      free_pool_memory(pwszBuf);
     }
     else if (p_GetFileAttributesA) {
        attr = p_GetFileAttributesA(tmpbuf);
@@ -424,10 +436,16 @@ stat(const char *file, struct stat *sb)
 #else
 
     if (p_GetFileAttributesExW) {
-      WCHAR buf[MAX_PATH_UNICODE];
-      UTF8_2_wchar(buf, file, MAX_PATH_UNICODE);
-      if (!p_GetFileAttributesExW(buf, GetFileExInfoStandard, &data))
+      /* dynamically allocate enough space for UCS2 filename */
+      POOLMEM* pwszBuf = get_pool_memory (PM_FNAME);          
+      UTF8_2_wchar(&pwszBuf, file);
+
+      BOOL b = p_GetFileAttributesExW((LPCWSTR) pwszBuf, GetFileExInfoStandard, &data);
+      free_pool_memory(pwszBuf);
+                        
+      if (!b) 
          return stat2(file, sb);
+      
     } else if (p_GetFileAttributesExA) {
          if (!p_GetFileAttributesExA(file, GetFileExInfoStandard, &data))
             return stat2(file, sb);
@@ -660,9 +678,11 @@ opendir(const char *path)
 
     // convert to WCHAR
     if (p_FindFirstFileW) {
-      WCHAR wcBuf[MAX_PATH_UNICODE];
-      UTF8_2_wchar(wcBuf,rval->spec, MAX_PATH_UNICODE);
-      rval->dirh = p_FindFirstFileW(wcBuf, &rval->data_w);   
+      POOLMEM* pwcBuf = get_pool_memory(PM_FNAME);;
+      UTF8_2_wchar(&pwcBuf,rval->spec);
+      rval->dirh = p_FindFirstFileW((LPCWSTR)pwcBuf, &rval->data_w);   
+
+      free_pool_memory(pwcBuf);
 
       if (rval->dirh != INVALID_HANDLE_VALUE)
         rval->valid_w = 1;
@@ -873,10 +893,13 @@ int
 win32_chdir(const char *dir)
 {
    if (p_SetCurrentDirectoryW) {
-      WCHAR szBuf[MAX_PATH_UNICODE];
-      UTF8_2_wchar(szBuf, dir, MAX_PATH_UNICODE);
+      POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
+      UTF8_2_wchar(&pwszBuf, dir);
 
-      if (0 == p_SetCurrentDirectoryW(szBuf)) {
+      BOOL b=p_SetCurrentDirectoryW((LPCWSTR)pwszBuf);
+      free_pool_memory(pwszBuf);
+
+      if (!b) {
          errno = b_errno_win32;
          return -1;
       }
@@ -896,9 +919,12 @@ int
 win32_mkdir(const char *dir)
 {
    if (p_wmkdir){
-      WCHAR szBuf[MAX_PATH_UNICODE];
-      UTF8_2_wchar(szBuf, dir, MAX_PATH_UNICODE);
-      return p_wmkdir(szBuf);
+      POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
+      UTF8_2_wchar(&pwszBuf, dir);
+
+      int n=p_wmkdir((LPCWSTR)pwszBuf);
+      free_pool_memory(pwszBuf);      
+      return n;
    }
 
    return _mkdir(dir);        
@@ -911,9 +937,13 @@ win32_getcwd(char *buf, int maxlen)
    int n=0;
 
    if (p_GetCurrentDirectoryW) {
-      WCHAR szBuf[MAX_PATH_UNICODE];
-      n = p_GetCurrentDirectoryW(maxlen, szBuf);
-      n = wchar_2_UTF8 (buf, szBuf, maxlen)-1;
+      POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
+      pwszBuf = check_pool_memory_size (pwszBuf, maxlen*sizeof(WCHAR));
+
+      n = p_GetCurrentDirectoryW(maxlen, (LPWSTR) pwszBuf);
+      n = wchar_2_UTF8 (buf, (WCHAR*)pwszBuf, maxlen)-1;
+      free_pool_memory(pwszBuf);
+
    } else if (p_GetCurrentDirectoryA)
       n = p_GetCurrentDirectoryA(maxlen, buf);
 
@@ -939,22 +969,30 @@ win32_fputs(const char *string, FILE *stream)
    if (hOut && (hOut != INVALID_HANDLE_VALUE) && p_WideCharToMultiByte && 
        p_MultiByteToWideChar && (stream == stdout)) {
       
-      WCHAR wszBuf[MAX_PATH_UNICODE];
-      char szBuf[MAX_PATH_UNICODE];
+      POOLMEM* pwszBuf = get_pool_memory(PM_MESSAGE);
+      
       DWORD dwCharsWritten;
       DWORD dwChars;
          
-      dwChars = UTF8_2_wchar(wszBuf, string, MAX_PATH_UNICODE);
+      dwChars = UTF8_2_wchar(&pwszBuf, string);
 
       /* try WriteConsoleW */
-      if (WriteConsoleW (hOut, wszBuf, dwChars-1, &dwCharsWritten, NULL))
+      if (WriteConsoleW (hOut, pwszBuf, dwChars-1, &dwCharsWritten, NULL)) {
+         free_pool_memory(pwszBuf);
          return dwCharsWritten;   
+      }
       
       /* convert to local codepage and try WriteConsoleA */      
-      dwChars = p_WideCharToMultiByte(GetConsoleOutputCP(),0,wszBuf,-1,szBuf,MAX_PATH_UNICODE,NULL,NULL);
-      if (WriteConsoleA (hOut, szBuf, dwChars-1, &dwCharsWritten, NULL))
-         return dwCharsWritten;   
+      POOLMEM* pszBuf = get_pool_memory(PM_MESSAGE);         
+      pszBuf = check_pool_memory_size(pszBuf, dwChars+1);
 
+      dwChars = p_WideCharToMultiByte(GetConsoleOutputCP(),0,(LPCWSTR) pwszBuf,-1,pszBuf,dwChars,NULL,NULL);      
+      free_pool_memory(pwszBuf);
+
+      if (WriteConsoleA (hOut, pszBuf, dwChars-1, &dwCharsWritten, NULL)) {
+         free_pool_memory(pszBuf);
+         return dwCharsWritten;   
+      }
    }
 
    return fputs(string, stream);
@@ -1024,9 +1062,10 @@ win32_unlink(const char *filename)
 {
    int nRetCode;
    if (p_wunlink) {
-      WCHAR szBuf[MAX_PATH_UNICODE];
-      UTF8_2_wchar(szBuf, filename, MAX_PATH_UNICODE);
-      nRetCode = _wunlink(szBuf);
+      POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);      
+      UTF8_2_wchar(&pwszBuf, filename);
+      nRetCode = _wunlink((LPCWSTR) pwszBuf);
+      free_pool_memory(pwszBuf);
    } else {
       nRetCode = _unlink(filename);
    }
@@ -1458,16 +1497,18 @@ utime(const char *fname, struct utimbuf *times)
     HANDLE h = INVALID_HANDLE_VALUE;
 
     if (p_CreateFileW) {
-      WCHAR szBuf[MAX_PATH_UNICODE];
-      UTF8_2_wchar(szBuf, tmpbuf, MAX_PATH_UNICODE);
+      POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
+      UTF8_2_wchar(&pwszBuf, tmpbuf);
 
-      h = p_CreateFileW(szBuf,
+      h = p_CreateFileW((LPCWSTR) pwszBuf,
                         FILE_WRITE_ATTRIBUTES,
                         FILE_SHARE_WRITE,
                         NULL,
                         OPEN_EXISTING,
                         0,
                         NULL);
+     
+      free_pool_memory(pwszBuf);
     } else if (p_CreateFileA) {
       h = p_CreateFileA(tmpbuf,
                         FILE_WRITE_ATTRIBUTES,
@@ -1501,10 +1542,13 @@ int
 open(const char *file, int flags, int mode)
 {
    if (p_wopen) {
-      WCHAR szBuf[MAX_PATH_UNICODE];
-      UTF8_2_wchar(szBuf, file, MAX_PATH_UNICODE);
+      POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);      
+      UTF8_2_wchar(&pwszBuf, file);
 
-      return p_wopen(szBuf, flags|_O_BINARY, mode);
+      int nRet = p_wopen((LPCWSTR) pwszBuf, flags|_O_BINARY, mode);
+      free_pool_memory(pwszBuf);
+
+      return nRet;
    }
 
    return _open(file, flags|_O_BINARY, mode);
@@ -1577,10 +1621,11 @@ open(const char *file, int flags, int mode)
     }
 
     if (p_CreateFileW) {
-        WCHAR szBuf[MAX_PATH_UNICODE];
-        UTF8_2_wchar(szBuf, file, MAX_PATH_UNICODE);
+       POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);       
+       UTF8_2_wchar(pwszBuf, file);
 
-        foo = p_CreateFileW(szBuf, access, shareMode, NULL, create, msflags, NULL);
+       foo = p_CreateFileW((LPCWSTR) pwszBuf, access, shareMode, NULL, create, msflags, NULL);
+       free_pool_memory(pwszBuf);
     }
     else if (p_CreateFileA)
        foo = CreateFile(file, access, shareMode, NULL, create, msflags, NULL);
