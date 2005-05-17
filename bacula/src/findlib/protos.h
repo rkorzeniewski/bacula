@@ -39,6 +39,7 @@ void  set_find_options(FF_PKT *ff, int incremental, time_t mtime);
 int   find_files(JCR *jcr, FF_PKT *ff, int sub(FF_PKT *ff_pkt, void *hpkt, bool), void *pkt);
 int   match_files(JCR *jcr, FF_PKT *ff, int sub(FF_PKT *ff_pkt, void *hpkt, bool), void *pkt);
 int   term_find_files(FF_PKT *ff);
+int   get_win32_driveletters(FF_PKT *ff, char* szDrives);
 
 /* From match.c */
 void  init_include_exclude_files(FF_PKT *ff);
