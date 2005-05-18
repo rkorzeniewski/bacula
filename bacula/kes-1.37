@@ -3,6 +3,11 @@
 
 General:
 
+Changes to 1.37.19:
+18May05
+- Modify wait during use_device to happen only after all devices
+  have been examined rather than in the reserve_device code.  
+
 Changes to 1.37.18:
 16May05
 - Add more debug to SD for Autochangers + status output.

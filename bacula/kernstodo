@@ -53,6 +53,8 @@ Document:
 - Document that ChangerDevice is used for Alert command.
 
 For 1.37:
+- Fix 3993 error in SD. It forgets to look at autochanger
+  resource for device command, ...
 - --without-openssl breaks at least on Solaris.
 - Python:
   - Make a callback when Rerun failed levels is called.

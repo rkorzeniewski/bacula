@@ -10,19 +10,14 @@
    Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -52,7 +47,7 @@ static char use_device[]  = "use device=%127s\n";
 static char OKjob[]     = "3000 OK Job SDid=%u SDtime=%u Authorization=%s\n";
 static char OK_device[] = "3000 OK use device device=%s\n";
 static char NO_device[] = "3924 Device \"%s\" not in SD Device resources.\n";
-static char NOT_open[]  = "3925 Device \"%s\" could not be opened or does not exist.\n";
+//static char NOT_open[]  = "3925 Device \"%s\" could not be opened or does not exist.\n";
 static char BAD_use[]   = "3913 Bad use command: %s\n";
 static char BAD_job[]   = "3915 Bad Job command: %s\n";
 //static char OK_query[]  = "3001 OK query\n";
@@ -344,15 +339,33 @@ static bool use_storage_cmd(JCR *jcr)
     * Wiffle through them and find one that can do the backup.
     */
    if (ok) {
-      store = (DIRSTORE *)dirstore->first();
-      foreach_alist(device_name, store->device) {
-         if (search_res_for_device(jcr, store, device_name, append) == 1) {
-            dcr = jcr->dcr;
-            dcr->Copy = Copy;
-            dcr->Stripe = Stripe;
-            ok = true;
-            goto done;
+      bool first = true;
+      init_jcr_device_wait_timers(jcr);
+      for ( ;; ) {
+         int need_wait = false;
+         foreach_alist(store, dirstore) {
+            foreach_alist(device_name, store->device) {
+               int stat;
+               stat = search_res_for_device(jcr, store, device_name, append);
+               if (stat == 1) {             /* found available device */
+                  dcr = jcr->dcr;
+                  dcr->Copy = Copy;
+                  dcr->Stripe = Stripe;
+                  ok = true;
+                  goto done;
+               } else if (stat == 0) {      /* device busy */
+                  need_wait = true;
+               }
+            }
          }
+         /*
+          * If there is some device for which we can wait, then
+          *  wait and try again until the wait time expires
+          */
+         if (!need_wait || !wait_for_device(jcr, jcr->errmsg, first)) {
+            break;
+         }
+         first = false;
       }
       if (verbose) {
          unbash_spaces(dir->msg);
@@ -416,9 +429,7 @@ static int search_res_for_device(JCR *jcr, DIRSTORE *store, char *device_name, i
             Jmsg(jcr, M_WARNING, 0, _("\n"
                "     Device \"%s\" requested by DIR could not be opened or does not exist.\n"),
                  device_name);
-            bnet_fsend(dir, NOT_open, device_name);
-            Dmsg1(100, ">dird: %s\n", dir->msg);
-            return -1;
+            return 0;
          }  
          Dmsg1(100, "Found device %s\n", device->hdr.name);
          dcr = new_dcr(jcr, device->dev);
@@ -438,8 +449,6 @@ static int search_res_for_device(JCR *jcr, DIRSTORE *store, char *device_name, i
             ok = reserve_device_for_read(dcr);
          }
          if (!ok) {
-            bnet_fsend(dir, _("3927 Could not reserve device: %s\n"), device_name);
-            Dmsg1(100, ">dird: %s\n", dir->msg);
             free_dcr(jcr->dcr);
             return 0;
          }
@@ -447,7 +456,7 @@ static int search_res_for_device(JCR *jcr, DIRSTORE *store, char *device_name, i
          bash_spaces(device_name);
          ok = bnet_fsend(dir, OK_device, device_name);
          Dmsg1(100, ">dird: %s\n", dir->msg);
-         return ok;
+         return ok ? 1 : -1;
       }
    }
    foreach_res(changer, R_AUTOCHANGER) {
@@ -499,11 +508,11 @@ static int search_res_for_device(JCR *jcr, DIRSTORE *store, char *device_name, i
             bash_spaces(dev_name);
             ok = bnet_fsend(dir, OK_device, dev_name.c_str());  /* Return real device name */
             Dmsg1(100, ">dird: %s\n", dir->msg);
-            return ok;
+            return ok ? 1 : -1;
          }
       }
    }
-   return 0;
+   return 0;                    /* nothing found */
 }
 
 
