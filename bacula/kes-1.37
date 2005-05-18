@@ -7,6 +7,7 @@ Changes to 1.37.19:
 18May05
 - Modify wait during use_device to happen only after all devices
   have been examined rather than in the reserve_device code.  
+- Correct updating count of number of Volumes in a pool.
 
 Changes to 1.37.18:
 16May05

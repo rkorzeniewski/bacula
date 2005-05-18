@@ -13,19 +13,14 @@
    Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -587,16 +582,21 @@ bool db_get_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pdbr)
             bstrncpy(pdbr->LabelFormat, row[16]!=NULL?row[16]:"", sizeof(pdbr->LabelFormat));
             ok = true;
          }
-      } else {
-         Mmsg(mdb->errmsg, _("Pool record not found in Catalog.\n"));
       }
       sql_free_result(mdb);
-   } else {
-      Mmsg(mdb->errmsg, _("Pool record not found in Catalog.\n"));
    }
    if (ok) {
-      Mmsg(mdb->cmd, "SELECT count(*) from Pool");
-      pdbr->NumVols = get_sql_record_max(jcr, mdb);
+      uint32_t NumVols;
+      Mmsg(mdb->cmd, "SELECT count(*) from Media WHERE PoolId=%s",
+         edit_int64(pdbr->PoolId, ed1));
+      NumVols = get_sql_record_max(jcr, mdb);
+      Dmsg2(400, "Actual NumVols=%d Pool NumVols=%d\n", NumVols, pdbr->NumVols);
+      if (NumVols != pdbr->NumVols) {
+         pdbr->NumVols = NumVols;
+         db_update_pool_record(jcr, mdb, pdbr);
+      }
+   } else {
+      Mmsg(mdb->errmsg, _("Pool record not found in Catalog.\n"));
    }
    db_unlock(mdb);
    return ok;
