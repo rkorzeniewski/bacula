@@ -238,8 +238,10 @@ db_update_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
    char ed1[50], ed2[50], ed3[50], ed4[50];
 
    db_lock(mdb);
-   Mmsg(mdb->cmd, "SELECT count(*) from Pool");
+   Mmsg(mdb->cmd, "SELECT count(*) from Media WHERE PoolId=%s",
+      edit_int64(pr->PoolId, ed4));
    pr->NumVols = get_sql_record_max(jcr, mdb);
+   Dmsg1(400, "NumVols=%d\n", pr->NumVols);
 
    Mmsg(mdb->cmd,
 "UPDATE Pool SET NumVols=%u,MaxVols=%u,UseOnce=%d,UseCatalog=%d,"
@@ -253,7 +255,7 @@ db_update_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
       edit_uint64(pr->MaxVolBytes, ed3),
       pr->Recycle, pr->AutoPrune, pr->LabelType,
       pr->LabelFormat, 
-      edit_int64(pr->PoolId, ed4));
+      ed4);
 
    stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    db_unlock(mdb);
