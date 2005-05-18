@@ -133,45 +133,37 @@ void free_dcr(DCR *dcr)
  * We "reserve" the drive by setting the ST_READ bit. No one else
  *  should touch the drive until that is cleared.
  *  This allows the DIR to "reserve" the device before actually
- *  starting the job. If the device is not available, the DIR
- *  can wait (to be implemented 1/05).
+ *  starting the job. 
  */
 bool reserve_device_for_read(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
-   bool first;
+   bool ok = false;
 
    ASSERT(dcr);
 
-   init_device_wait_timers(dcr);
-
    dev->block(BST_DOING_ACQUIRE);
 
-   Mmsg(jcr->errmsg, _("Device %s is BLOCKED due to user unmount.\n"),
-        dev->print_name());
-   for (first=true; device_is_unmounted(dev); first=false) {
-      dev->unblock();
-      if (!wait_for_device(dcr, jcr->errmsg, first))  {
-         return false;
-      }
-     dev->block(BST_DOING_ACQUIRE);
+   if (device_is_unmounted(dev)) {             
+      Mmsg(jcr->errmsg, _("Device %s is BLOCKED due to user unmount.\n"),
+           dev->print_name());
+      goto bail_out;
    }
 
-   Mmsg2(jcr->errmsg, _("Device %s is busy. Job %d canceled.\n"),
-         dev->print_name(), jcr->JobId);
-   for (first=true; dev->is_busy(); first=false) {
-      dev->unblock();
-      if (!wait_for_device(dcr, jcr->errmsg, first)) {
-         return false;
-      }
-      dev->block(BST_DOING_ACQUIRE);
+   if (dev->is_busy()) {
+      Mmsg1(jcr->errmsg, _("Device %s is busy.\n"),
+            dev->print_name());
+      goto bail_out;
    }
 
    dev->clear_append();
    dev->set_read();
+   ok = true;
+
+bail_out:
    dev->unblock();
-   return true;
+   return ok;
 }
 
 
@@ -372,55 +364,27 @@ bool reserve_device_for_append(DCR *dcr)
    JCR *jcr = dcr->jcr;
    DEVICE *dev = dcr->dev;
    bool ok = false;
-   bool first;
 
    ASSERT(dcr);
 
-   init_device_wait_timers(dcr);
-
    dev->block(BST_DOING_ACQUIRE);
 
-   Mmsg1(jcr->errmsg, _("Device %s is busy reading.\n"),
-         dev->print_name());
-   for (first=true; dev->can_read(); first=false) {
-      dev->unblock();
-      if (!wait_for_device(dcr, jcr->errmsg, first)) {
-         return false;
-      }
-      dev->block(BST_DOING_ACQUIRE);
+   if (dev->can_read()) {
+      Mmsg1(jcr->errmsg, _("Device %s is busy reading.\n"), dev->print_name());
+      goto bail_out;
    }
 
-
-   Mmsg(jcr->errmsg, _("Device %s is BLOCKED due to user unmount.\n"),
-        dev->print_name());
-   for (first=true; device_is_unmounted(dev); first=false) {
-      dev->unblock();      
-      if (!wait_for_device(dcr, jcr->errmsg, first))  {
-         return false;
-      }
-     dev->block(BST_DOING_ACQUIRE);
+   if (device_is_unmounted(dev)) {
+      Mmsg(jcr->errmsg, _("Device %s is BLOCKED due to user unmount.\n"), dev->print_name());
+      goto bail_out;
    }
 
    Dmsg1(190, "reserve_append device is %s\n", dev->is_tape()?"tape":"disk");
 
-   for ( ;; ) {
-      switch (can_reserve_drive(dcr)) {
-      case 0:
-         Mmsg1(jcr->errmsg, _("Device %s is busy writing on another Volume.\n"), dev->print_name());
-         dev->unblock();      
-         if (!wait_for_device(dcr, jcr->errmsg, first))  {
-            return false;
-         }
-         dev->block(BST_DOING_ACQUIRE);
-         continue;
-      case -1:
-         goto bail_out;               /* error */
-      default:
-         break;                       /* OK, reserve drive */
-      }
-      break;
+   if (can_reserve_drive(dcr) != 1) {
+      Mmsg1(jcr->errmsg, _("Device %s is busy writing on another Volume.\n"), dev->print_name());
+      goto bail_out;
    }
-
 
    dev->reserved_device++;
    dcr->reserved_device = true;

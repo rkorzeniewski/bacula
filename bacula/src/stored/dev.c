@@ -1714,6 +1714,18 @@ void init_device_wait_timers(DCR *dcr)
 
 }
 
+void init_jcr_device_wait_timers(JCR *jcr)
+{
+   /* ******FIXME******* put these on config variables */
+   jcr->min_wait = 60 * 60;
+   jcr->max_wait = 24 * 60 * 60;
+   jcr->max_num_wait = 9;              /* 5 waits =~ 1 day, then 1 day at a time */
+   jcr->wait_sec = jcr->min_wait;
+   jcr->rem_wait_sec = jcr->wait_sec;
+   jcr->num_wait = 0;
+}
+
+
 /*
  * The dev timers are used for waiting on a particular device 
  *

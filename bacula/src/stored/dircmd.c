@@ -258,7 +258,7 @@ static bool cancel_cmd(JCR *cjcr)
 
    if (sscanf(dir->msg, "cancel Job=%127s", Job) == 1) {
       if (!(jcr=get_jcr_by_full_name(Job))) {
-         bnet_fsend(dir, _("3992 Job %s not found.\n"), Job);
+         bnet_fsend(dir, _("3902 Job %s not found.\n"), Job);
       } else {
          P(jcr->mutex);
          oldStatus = jcr->JobStatus;
@@ -279,7 +279,7 @@ static bool cancel_cmd(JCR *cjcr)
          free_jcr(jcr);
       }
    } else {
-      bnet_fsend(dir, _("3993 Error scanning cancel command.\n"));
+      bnet_fsend(dir, _("3903 Error scanning cancel command.\n"));
    }
    bnet_sig(dir, BNET_EOD);
    return 1;

@@ -12,19 +12,14 @@
    Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -54,14 +49,14 @@ int wait_for_sysop(DCR *dcr)
 
    P(dev->mutex);
    unmounted = (dev->dev_blocked == BST_UNMOUNTED) ||
-		(dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP);
+                (dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP);
 
    dev->poll = false;
    /*
-    * Wait requested time (dev->rem_wait_sec).	However, we also wake up every
-    *	 HB_TIME seconds and send a heartbeat to the FD and the Director
-    *	 to keep stateful firewalls from closing them down while waiting
-    *	 for the operator.
+    * Wait requested time (dev->rem_wait_sec).  However, we also wake up every
+    *    HB_TIME seconds and send a heartbeat to the FD and the Director
+    *    to keep stateful firewalls from closing them down while waiting
+    *    for the operator.
     */
    add_wait = dev->rem_wait_sec;
    if (me->heartbeat_interval && add_wait > me->heartbeat_interval) {
@@ -87,7 +82,7 @@ int wait_for_sysop(DCR *dcr)
       timeout.tv_sec = tv.tv_sec + add_wait;
 
       Dmsg3(400, "I'm going to sleep on device %s. HB=%d wait=%d\n", dev->print_name(),
-	 (int)me->heartbeat_interval, dev->wait_sec);
+         (int)me->heartbeat_interval, dev->wait_sec);
       start = time(NULL);
       /* Wait required time */
       stat = pthread_cond_timedwait(&dev->wait_next_vol, &dev->mutex, &timeout);
@@ -98,53 +93,53 @@ int wait_for_sysop(DCR *dcr)
 
       /* Note, this always triggers the first time. We want that. */
       if (me->heartbeat_interval) {
-	 if (now - last_heartbeat >= me->heartbeat_interval) {
-	    /* send heartbeats */
-	    if (jcr->file_bsock) {
-	       bnet_sig(jcr->file_bsock, BNET_HEARTBEAT);
+         if (now - last_heartbeat >= me->heartbeat_interval) {
+            /* send heartbeats */
+            if (jcr->file_bsock) {
+               bnet_sig(jcr->file_bsock, BNET_HEARTBEAT);
                Dmsg0(400, "Send heartbeat to FD.\n");
-	    }
-	    if (jcr->dir_bsock) {
-	       bnet_sig(jcr->dir_bsock, BNET_HEARTBEAT);
-	    }
-	    last_heartbeat = now;
-	 }
+            }
+            if (jcr->dir_bsock) {
+               bnet_sig(jcr->dir_bsock, BNET_HEARTBEAT);
+            }
+            last_heartbeat = now;
+         }
       }
 
       /*
        * Check if user unmounted the device while we were waiting
        */
       unmounted = (dev->dev_blocked == BST_UNMOUNTED) ||
-		   (dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP);
+                   (dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP);
 
-      if (stat != ETIMEDOUT) {	   /* we blocked the device */
-	 break; 		   /* on error return */
+      if (stat != ETIMEDOUT) {     /* we blocked the device */
+         break;                    /* on error return */
       }
       if (dev->rem_wait_sec <= 0) {  /* on exceeding wait time return */
          Dmsg0(400, "Exceed wait time.\n");
-	 break;
+         break;
       }
 
       if (!unmounted && dev->vol_poll_interval &&
-	  (now - first_start >= dev->vol_poll_interval)) {
+          (now - first_start >= dev->vol_poll_interval)) {
          Dmsg1(400, "In wait blocked=%s\n", edit_blocked_reason(dev));
-	 dev->poll = true;	      /* returning a poll event */
-	 break;
+         dev->poll = true;            /* returning a poll event */
+         break;
       }
       /*
        * Check if user mounted the device while we were waiting
        */
       if (dev->dev_blocked == BST_MOUNT) {   /* mount request ? */
-	 stat = 0;
-	 break;
+         stat = 0;
+         break;
       }
 
       add_wait = dev->wait_sec - (now - start);
       if (add_wait < 0) {
-	 add_wait = 0;
+         add_wait = 0;
       }
       if (me->heartbeat_interval && add_wait > me->heartbeat_interval) {
-	 add_wait = me->heartbeat_interval;
+         add_wait = me->heartbeat_interval;
       }
    }
 
@@ -157,10 +152,13 @@ int wait_for_sysop(DCR *dcr)
 
 
 /*
- * Wait for Device to be released
- *
+ * Wait for any device to be released, then we return, so 
+ *  higher level code can rescan possible devices.
+ * 
+ * Returns: true  if a device has changed state
+ *          false if the total wait time has expired.
  */
-bool wait_for_device(DCR *dcr, const char *msg, bool first)
+bool wait_for_device(JCR *jcr, const char *msg, bool first)
 {
    struct timeval tv;
    struct timezone tz;
@@ -168,8 +166,6 @@ bool wait_for_device(DCR *dcr, const char *msg, bool first)
 // time_t last_heartbeat = 0;
    int stat = 0;
    int add_wait;
-   DEVICE *dev = dcr->dev;
-   JCR *jcr = dcr->jcr;
    bool ok = false;
 
    Dmsg0(100, "Enter wait_for_device\n");
@@ -180,10 +176,10 @@ bool wait_for_device(DCR *dcr, const char *msg, bool first)
    }
 
    /*
-    * Wait requested time (dev->rem_wait_sec).	However, we also wake up every
-    *	 HB_TIME seconds and send a heartbeat to the FD and the Director
-    *	 to keep stateful firewalls from closing them down while waiting
-    *	 for the operator.
+    * Wait requested time (dev->rem_wait_sec).  However, we also wake up every
+    *    HB_TIME seconds and send a heartbeat to the FD and the Director
+    *    to keep stateful firewalls from closing them down while waiting
+    *    for the operator.
     */
    add_wait = jcr->rem_wait_sec;
    if (me->heartbeat_interval && add_wait > me->heartbeat_interval) {
@@ -197,8 +193,8 @@ bool wait_for_device(DCR *dcr, const char *msg, bool first)
       timeout.tv_nsec = tv.tv_usec * 1000;
       timeout.tv_sec = tv.tv_sec + add_wait;
 
-      Dmsg4(100, "I'm going to sleep on device %s. HB=%d wait=%d remwait=%d\n", dev->print_name(),
-	 (int)me->heartbeat_interval, jcr->wait_sec, jcr->rem_wait_sec);
+      Dmsg3(100, "I'm going to wait for a device. HB=%d wait=%d remwait=%d\n", 
+         (int)me->heartbeat_interval, jcr->wait_sec, jcr->rem_wait_sec);
       start = time(NULL);
       /* Wait required time */
       stat = pthread_cond_timedwait(&wait_device_release, &device_release_mutex, &timeout);
@@ -210,38 +206,38 @@ bool wait_for_device(DCR *dcr, const char *msg, bool first)
 #ifdef needed
       /* Note, this always triggers the first time. We want that. */
       if (me->heartbeat_interval) {
-	 if (now - last_heartbeat >= me->heartbeat_interval) {
-	    /* send heartbeats */
-	    if (jcr->file_bsock) {
-	       bnet_sig(jcr->file_bsock, BNET_HEARTBEAT);
+         if (now - last_heartbeat >= me->heartbeat_interval) {
+            /* send heartbeats */
+            if (jcr->file_bsock) {
+               bnet_sig(jcr->file_bsock, BNET_HEARTBEAT);
                Dmsg0(400, "Send heartbeat to FD.\n");
-	    }
-	    if (jcr->dir_bsock) {
-	       bnet_sig(jcr->dir_bsock, BNET_HEARTBEAT);
-	    }
-	    last_heartbeat = now;
-	 }
+            }
+            if (jcr->dir_bsock) {
+               bnet_sig(jcr->dir_bsock, BNET_HEARTBEAT);
+            }
+            last_heartbeat = now;
+         }
       }
 #endif
 
-      if (stat != ETIMEDOUT) {	   /* if someone woke us up */
-	 ok = true;
-	 break; 		   /* allow caller to examine device */
+      if (stat != ETIMEDOUT) {     /* if someone woke us up */
+         ok = true;
+         break;                    /* allow caller to examine device */
       }
       if (jcr->rem_wait_sec <= 0) {  /* on exceeding wait time return */
          Dmsg0(400, "Exceed wait time.\n");
-	 if (!double_jcr_wait_time(jcr)) {
-	    break;		   /* give up */
-	 }
-	 Jmsg(jcr, M_MOUNT, 0, msg);
+         if (!double_jcr_wait_time(jcr)) {
+            break;                 /* give up */
+         }
+         Jmsg(jcr, M_MOUNT, 0, msg);
       }
 
       add_wait = jcr->wait_sec - (now - start);
       if (add_wait < 0) {
-	 add_wait = 0;
+         add_wait = 0;
       }
       if (me->heartbeat_interval && add_wait > me->heartbeat_interval) {
-	 add_wait = me->heartbeat_interval;
+         add_wait = me->heartbeat_interval;
       }
    }
 
@@ -254,11 +250,11 @@ bool wait_for_device(DCR *dcr, const char *msg, bool first)
  * The jcr timers are used for waiting on any device
  *
  * Returns: true if time doubled
- *	    false if max time expired
+ *          false if max time expired
  */
 static bool double_jcr_wait_time(JCR *jcr)
 {
-   jcr->wait_sec *= 2;		     /* double wait time */
+   jcr->wait_sec *= 2;               /* double wait time */
    if (jcr->wait_sec > jcr->max_wait) {   /* but not longer than maxtime */
       jcr->wait_sec = jcr->max_wait;
    }

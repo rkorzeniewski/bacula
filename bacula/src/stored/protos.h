@@ -116,6 +116,7 @@ JCR     *next_attached_jcr(DEVICE *dev, JCR *jcr);
 bool     offline_or_rewind_dev(DEVICE *dev);
 bool     reposition_dev(DEVICE *dev, uint32_t file, uint32_t block);
 void     init_device_wait_timers(DCR *dcr);
+void     init_jcr_device_wait_timers(JCR *jcr);
 bool     double_dev_wait_time(DEVICE *dev);
 
 /* Get info about device */
@@ -227,4 +228,4 @@ void    list_spool_stats          (BSOCK *bs);
 
 /* From wait.c */
 int wait_for_sysop(DCR *dcr);
-bool wait_for_device(DCR *dcr, const char *msg, bool first);
+bool wait_for_device(JCR *jcr, const char *msg, bool first);
