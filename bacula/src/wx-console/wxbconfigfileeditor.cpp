@@ -81,11 +81,11 @@ wxbConfigFileEditor::wxbConfigFileEditor(wxWindow* parent, wxString filename):
    }
    else {
       wxFile file(filename);
-      wxChar buffer[2049];
+      char buffer[2049];
       off_t len;
       while ((len = file.Read(buffer, 2048)) > -1) {
-         buffer[len] = (wxChar)0;
-         (*textCtrl) << buffer;
+         buffer[len] = 0;
+         (*textCtrl) << wxString(buffer,wxConvLocal);
          if (file.Eof())
             break;
       }
@@ -106,7 +106,7 @@ void wxbConfigFileEditor::OnSave(wxCommandEvent& event) {
       return;
    }
    
-   file.Write(textCtrl->GetValue());
+   file.Write(textCtrl->GetValue(),wxConvLocal);
    
    file.Flush();
    file.Close();
