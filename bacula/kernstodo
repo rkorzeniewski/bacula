@@ -1,12 +1,12 @@
                     Kern's ToDo List
-                     28 April 2005
+                     20 May 2005
 
 Major development:      
 Project                     Developer
 =======                     =========                         
 TLS                         Landon Fuller
-Unicode in Win32            Thorsten Engel
-VSS                         Thorsten Engel (under consideration)
+Unicode in Win32            Thorsten Engel (done)
+VSS                         Thorsten Engel (being implemented)
 Version 1.37                Kern (see below)
 ========================================================
 
@@ -18,8 +18,6 @@ Version 1.37                Kern (see below)
 
 ##   Integrate web-bacula into a new Bacula project with
      bimagemgr.
-##   Consider moving docs to their own project.
-##   Move rescue to its own project.
 ##   Create a new GUI chapter explaining all the GUI programs.
 
 Autochangers:
@@ -32,6 +30,8 @@ Autochangers:
      all Volumes from other drives.  "update slots all-drives"?
 
 Document:
+- Document that Bootstrap files can be written with cataloging
+  turned off.
 - Pruning with Admin job.
 - Add better documentation on how restores can be done
 - OS linux 2.4
@@ -51,8 +51,35 @@ Document:
 - Document PostgreSQL performance problems bug 131.
 - Document testing
 - Document that ChangerDevice is used for Alert command.
+- Document new CDROM directory.
 
 For 1.37:
+- Make bootstrap filename unique.
+- From Chris Hull:
+   it seems to be complaining about 12:00pm which should be a valid 12
+   hour time.  I changed the time to 11:59am and everything works fine.
+   Also 12:00am works fine.  0:00pm also works (which I don't think
+   should).  None of the values 12:00pm - 12:59pm work for that matter.
+=== rate design
+  jcr->last_rate
+  jcr->last_runtime
+  MA = (last_MA * 3 + rate) / 4
+  rate = (bytes - last_bytes) / (runtime - last_runtime)
+- Add "limit=n" for "list jobs"
+- Make Dmsg look at global before calling subroutine.
+- Despool attributes simultaneously with data in a separate
+  thread, rejoined at end of data spooling.
+- Implement Files/Bytes,... stats for restore job.
+- Implement Total Bytes Written, ... for restore job.
+- Add setting Volume State via Python.
+- Upgrade to MySQL 4.1.1 See:  
+  http://dev.mysql.com/doc/mysql/en/Server_SQL_mode.html
+- Max Vols limit in Pool off by one?
+- Require restore via the restore command or make a restore Job
+  get the bootstrap file.
+- Make bootstrap file handle multiple MediaTypes (SD)
+- Test restoring into a user restricted directory on Win32 -- see
+  bug report.
 - Fix 3993 error in SD. It forgets to look at autochanger
   resource for device command, ...
 - --without-openssl breaks at least on Solaris.
@@ -74,7 +101,6 @@ For 1.37:
 - Check locking of resources -- be sure to lock devices where previously
   resources were locked. 
 - Add global lock on all devices when creating a device structure.
-- Fix the Rescue CDROM.
 
 Maybe in 1.37:
 - Add ClientDefs similar to JobDefs.
@@ -94,26 +120,12 @@ Maybe in 1.37:
 - Each file on tape creates a JobMedia record. Peter has 4 million
   files spread over 10000 tape files and four tapes. A restore takes
   16 hours to build the restore list.
-- By the way: on page http://www.bacula.org/?page=tapedrives , at the 
-  bottom, the link to "Tape Testing Chapter" is broken. It goes to 
-  /html-manual/... while the others point to /rel-manual/...
-- Device resource needs the "name" of the SD.
-- Add and option to see if the file size changed during backup.
+- Add and option to check if the file size changed during backup.
 - Make sure SD deletes spool files on error exit.
 - Delete old spool files when SD starts.
 - When labeling tapes, if you enter 000026, Bacula uses
   the tape index rather than the Volume name 000026.
-- Max Vols limit in Pool off by one?
-- Require restore via the restore command or make a restore Job
-  get the bootstrap file.
-- Make bootstrap file handle multiple MediaTypes (SD)
 - Add offline tape command to Bacula console.
-- Document that Bootstrap files can be written with cataloging
-  turned off.
-- Upgrade to MySQL 4.1.1 See:  
-  http://dev.mysql.com/doc/mysql/en/Server_SQL_mode.html
-- Add client version to the Client name line that prints in
-  the Job report.
 - Bug: 
   Enter MediaId or Volume name: 32
   Enter new Volume name: DLT-20Dec04
@@ -257,7 +269,6 @@ Why:
 - Make output from status use html table tags for nicely 
   presenting in a browser.
 - Can one write tapes faster with 8192 byte block sizes?
-- Specify a single directory to restore.
 - Document security problems with the same password for everyone in
   rpm and Win32 releases.
 - Browse generations of files.
@@ -290,10 +301,6 @@ Cap: 200GB
   savings time changes.
 - Add a "real" timer to network connections.
 - Promote to Full = Time period 
-- Despool attributes simultaneously with data in a separate
-  thread, rejoined at end of data spooling.
-- Implement Files/Bytes,... stats for restore job.
-- Implement Total Bytes Written, ... for restore job.
 - Check dates entered by user for correctness (month/day/... ranges)
 - Compress restore Volume listing by date and first file.
 - Look at patches/bacula_db.b2z postgresql that loops during restore.
@@ -375,11 +382,6 @@ Documentation to do: (any release a little bit at a time)
   perhaps if password is undefined.
 - Implement "from ISO-date/time every x hours/days/weeks/months" in
   schedules.
-=== rate design
-  jcr->last_rate
-  jcr->last_runtime
-  MA = (last_MA * 3 + rate) / 4
-  rate = (bytes - last_bytes) / (runtime - last_runtime)
 
 ==== from Marc Schoechlin
 - the help-command should be more verbose
@@ -455,12 +457,6 @@ Documentation to do: (any release a little bit at a time)
 - Investigate adding Mac Resource Forks.
 - Finish work on Gnome restore GUI.
 - Fix "llist jobid=xx" where no fileset or client exists.
-- From Chris Hull:
-   it seems to be complaining about 12:00pm which should be a valid 12
-   hour time.  I changed the time to 11:59am and everything works fine.
-   Also 12:00am works fine.  0:00pm also works (which I don't think
-   should).  None of the values 12:00pm - 12:59pm work for that matter.
-- Add level to estimate command.
 - For each job type (Admin, Restore, ...) require only the really necessary
   fields.- Pass Director resource name as an option to the Console.
 - Add a "batch" mode to the Console (no unsolicited queries, ...).
@@ -472,7 +468,6 @@ Documentation to do: (any release a little bit at a time)
   did not exist.
 - Use SHA1 on authentication if possible.
 - See comtest-xxx.zip for Windows code to talk to USB.
-- Add Events and Perl scripting.
 - Add John's appended files:
    Appended = {     /files/server/logs/http/*log   }
    and such files would be treated as follows.On a FULL backup, they would
@@ -485,9 +480,6 @@ Documentation to do: (any release a little bit at a time)
    creation date of files, we can be evensmarter about this and not count
    entirely upon the length.On a restore, the full and all incrementals
    since it will beapplied in sequence to restore the file.  
-- Allow for optional cancelling of SD and FD in case DIR
-  gets a fatal error. Requested by Jesse Guardiani <jesse@wingnet.net>
-- Add "limit=n" for "list jobs"
 - Check new HAVE_WIN32 open bits.    
 - Check if the tape has moved before writing.  
 - Handling removable disks -- see below:
@@ -510,7 +502,6 @@ Documentation to do: (any release a little bit at a time)
   and form it from VolFile and VolBlock.
 - Make multiple restore jobs for multiple media types specifying 
   the proper storage type.
-- Implement MediaType keyword in bsr?   
 - Fix fast block rejection (stored/read_record.c:118). It passes a null
   pointer (rec) to try_repositioning().
 - Look at extracting Win data from BackupRead.
@@ -581,11 +572,6 @@ Documentation to do: (any release a little bit at a time)
    support for Oracle database ??
 ===
 - Look at adding SQL server and Exchange support for Windows. 
-- Each DVD-RAM disk would be a volume, just like each tape is 
-  a volume. It's a 4.7GB media with random access, but there's nothing about 
-  it that I can see that makes it so different than a tape from bacula's 
-  perspective. Why couldn't I back up to a bare floppy as a volume (ignoring 
-  the media capacity?)
 - Make dev->file and dev->block_num signed integers so that -1 can
   be an invalid value which happens with BSR.
 - Create VolAddr for disk files in place of VolFile and VolBlock. This
@@ -593,8 +579,6 @@ Documentation to do: (any release a little bit at a time)
 - Add progress of files/bytes to SD and FD.
 - Print warning message if FileId > 4 billion
 - do a "messages" before the first prompt in Console
-- Add a date and time stamp at the beginning of every line in the 
-  Job report (Volker Sauer).
 - Client does not show busy during Estimate command.
 - Implement Console mtx commands.
 - Implement a Mount Command and an Unmount Command where
@@ -625,9 +609,6 @@ Documentation to do: (any release a little bit at a time)
   an officially adopted standard, has survived peer
   review, and provides keys up to 256 bits.
 - Take a careful look at SetACL http://setacl.sourceforge.net     
-- Take a careful look at Level for the estimate command, maybe make
-  it a command line option.
-- Add Volume name to "I cannot write on this volume because"
 - Make tree walk routines like cd, ls, ... more user friendly
   by handling spaces better.
 - Make sure that Bacula rechecks the tape after the 20 min wait.
@@ -644,7 +625,6 @@ Documentation to do: (any release a little bit at a time)
     in the "short" pool to the "long" pool if this pool runs out of volume 
     space?
 - What to do about "list files job=xxx".
-- Make Dmsg look at global before calling subroutine.
 - Get and test MySQL 4.0
 - Look at how fuser works and /proc/PID/fd that is how Nic found the
   file descriptor leak in Bacula.
@@ -654,8 +634,6 @@ Documentation to do: (any release a little bit at a time)
 - If pool specified to label command and Label Format is specified,
   automatically generate the Volume name.
 - Why can't SQL do the filename sort for restore?
-- Look into Microsoft Volume Shadowcopy Service VSS for backing
-  up system state components (Active Directory, System Volume, ...)
 - Add ExhautiveRestoreSearch
 - Look at the possibility of loading only the necessary 
   data into the restore tree (i.e. do it one directory at a
@@ -672,24 +650,14 @@ Documentation to do: (any release a little bit at a time)
   Windows.
 - Implement migrate
 - Use autochanger to handle multiple devices.
-- Add SuSE install doc to list.
-- Check and rechedk "Invalid block number"
-- User wants to NOT backup up certain big files (email files).
-- Maybe remove multiple simultaneous devices code in SD.
 - On Windows with very long path names, it may be impossible to create 
   a file (and thus restore it) because the total length is too long.
   We must cd into the directory then create the file without the
   full path name.
 - Implement a Recycle command
-- Add client name to cram-md5 challenge so Director can immediately
-  verify if it is the correct client.
-- Audit all UA commands to ensure that we always prompt where possible.
-- Make bootstrap filename unique.
 - Test a second language e.g. french.
 - Start working on Base jobs.
 - Implement UnsavedFiles DB record.
-- Implement argc/argv for daemon command line scanning using table driven
-  stuff below.
 - From Phil Stracchino:
   It would probably be a per-client option, and would be called
   something like, say, "Automatically purge obsoleted jobs".  What it
@@ -700,26 +668,17 @@ Documentation to do: (any release a little bit at a time)
   all Differential and Incremental jobs obsoleted by that Full backup.
   This would let people minimize the number of tapes they're keeping on
   hand without having to master the art of retention times.
-- Implement a M_SECURITY message class.
 - When doing a Backup send all attributes back to the Director, who
   would then figure out what files have been deleted.
 - Currently in mount.c:236 the SD simply creates a Volume. It should have
   explicit permission to do so.  It should also mark the tape in error
   if there is an error.
-- SD Bytes Read is wrong.
-- Investigate doing RAW backup of Win32 partition.
 - Cancel waiting for Client connect in SD if FD goes away.
 
 - Implement timeout in response() when it should come quickly.
-- Implement console @echo command.
 - Implement a Slot priority (loaded/not loaded).
 - Implement "vacation" Incremental only saves.
-- Implement single pane restore (much like the Gftp panes).
-- Implement Automatic Mount even in operator wait.
 - Implement create "FileSet"?
-- Implement restore "current system", but take all files without
-  doing selection tree -- so that jobs without File records can
-  be restored.
 - Add prefixlinks to where or not where absolute links to FD.
 - Issue message to mount a new tape before the rewind.
 - Simplified client job initiation for portables.
@@ -749,7 +708,6 @@ Documentation to do: (any release a little bit at a time)
 - Priority job to go to top of list.
 - Why are save/restore of device different sizes (sparse?)   Yup! Fix it.
 - Implement some way for the Console to dynamically create a job.
-- Restore to a particular time -- e.g. before date, after date. 
 - Solaris -I on tar for include list
 - Need a verbose mode in restore, perhaps to bsr.
 - bscan without -v is too quiet -- perhaps show jobs.
@@ -757,22 +715,15 @@ Documentation to do: (any release a little bit at a time)
 - Check if we can increase Bacula FD priorty in Win2000
 - Make sure the MaxVolFiles is fully implemented in SD
 - Check if both CatalogFiles and UseCatalog are set to SD.
-- Figure out how to do a bare metal Windows restore
 - Possibly add email to Watchdog if drive is unmounted too
   long and a job is waiting on the drive.
 - After unmount, if restore job started, ask to mount.
-- Convert all %x substitution variables, which are hard to remember
-  and read to %(variable-name).  Idea from TMDA.
-- Remove NextId for SQLite. Optimize.
-- Move all SQL statements into a single location.
 - Add UA rc and history files.
 - put termcap (used by console) in ./configure and
   allow -with-termcap-dir.
 - Fix Autoprune for Volumes to respect need for full save.
-- Fix Win32 config file definition name on /install
 - Compare tape to Client files (attributes, or attributes and data) 
 - Make all database Ids 64 bit.
-- Write an applet for Linux.
 - Allow console commands to detach or run in background.
 - Fix status delay on storage daemon during rewind.
 - Add SD message variables to control operator wait time
@@ -1080,28 +1031,6 @@ Need:
 =============================================================
 
 
-Done: (see kernsdone for more)
-
-=== after 1.32c
-- John's Full save failed with 1.32c FD and 1.31 Dir no FD status,
-  and no error message.
-- Add fd and st as Console keywords.
-- Recycling volume with a Slot requires an operator intervention:
-    rufus-dir: Start Backup JobId 18, Job=kernsave.2003-11-01_21.23.52
-    rufus-dir: Pruned 1 Job on Volume Vol01 from catalog.
-    rufus-dir: There are no Jobs associated with Volume Vol01. Marking it purged.
-    rufus-dir: Recycled volume "Vol01"
-    rufus-sd: Please mount Volume "Vol01" on Storage Device "DDS-4" for Job kernsave.2003-11-01_21.23.52
-    Use "mount" command to release Job.
-- Implement Dan's bacula script (email of 26 Oct).
-- Add JobName= to VerifyToCatalog so that all verifies can be done at the end.
-- Edit the Client/Storage name into authentication failure messages.
-- Fix packet too big problem. This is most likely a Windows TCP stack 
-  problem.
-- Implement ClientRunBeforeJob and ClientRunAfterJob.
-- Implement forward spacing block/file: position_device(bsr) --
-  just before read_block_from_device();
-
 =====
    Multiple drive autochanger data:  see Alan Brown
    mtx -f xxx unloadStorage Element 1 is Already Full(drive 0 was empty)
@@ -1341,3 +1270,18 @@ Block Position: 0
 - Finish implementation of passing all Storage and Device needs to
   the SD.
 - Move test for max wait time exceeded in job.c up -- Peter's idea.
+##   Consider moving docs to their own project.
+##   Move rescue to its own project.
+- Add client version to the Client name line that prints in
+  the Job report.
+- Fix the Rescue CDROM.
+- By the way: on page http://www.bacula.org/?page=tapedrives , at the 
+  bottom, the link to "Tape Testing Chapter" is broken. It goes to 
+  /html-manual/... while the others point to /rel-manual/...
+- Device resource needs the "name" of the SD.
+- Specify a single directory to restore.
+- Implement MediaType keyword in bsr?   
+- Add a date and time stamp at the beginning of every line in the 
+  Job report (Volker Sauer).
+- Add level to estimate command.
+
