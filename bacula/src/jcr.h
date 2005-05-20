@@ -239,7 +239,6 @@ struct JCR {
    int type;
    DCR *dcr;                          /* device context record */
    alist *dcrs;                       /* list of dcrs open */
-// DEVRES *device;                    /* device resource to use */
    POOLMEM *job_name;                 /* base Job name (not unique) */
    POOLMEM *fileset_name;             /* FileSet */
    POOLMEM *fileset_md5;              /* MD5 for FileSet */
