@@ -47,6 +47,7 @@ DWORD           mainthreadId;
 
 /* Imported variables */
 extern DWORD    g_servicethread;
+extern DWORD    g_platform_id;
 
 #define MAX_COMMAND_ARGS 100
 static char *command_args[MAX_COMMAND_ARGS] = {"bacula-fd", NULL};
@@ -164,6 +165,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
       argfound = true;
 
       /* Now check for command-line arguments */
+
+      /* /service helper - probably only needed on win9x */
+      if (strncmp(&szCmdLine[i], BaculaRunServiceHelper, strlen(BaculaRunServiceHelper)) == 0
+          && g_platform_id == VER_PLATFORM_WIN32_NT) {
+         /* exit with result "okay" */
+         return 0;          
+      }
 
       /* /service start service */
       if (strncmp(&szCmdLine[i], BaculaRunService, strlen(BaculaRunService)) == 0) {
