@@ -267,6 +267,7 @@ public:
 };
 
 static int search_res_for_device(JCR *jcr, DIRSTORE *store, char *device_name, int append);
+static int reserve_device(JCR *jcr, DIRSTORE *store, DEVRES *device, char *device_name, int append);
 
 static bool use_storage_cmd(JCR *jcr)
 {
@@ -402,18 +403,13 @@ done:
    return ok;
 }
 
-/*
- *  Returns: 1 -- OK, have DCR
- *           0 -- must wait
- *          -1 -- fatal error
- */
 static int search_res_for_device(JCR *jcr, DIRSTORE *store, char *device_name, int append)
 {
    DEVRES *device;
    AUTOCHANGER *changer;
    BSOCK *dir = jcr->dir_bsock;
    bool ok;
-   DCR *dcr;
+   int stat;
 
    Dmsg1(100, "Search res for %s\n", device_name);
    foreach_res(device, R_DEVICE) {
@@ -421,36 +417,9 @@ static int search_res_for_device(JCR *jcr, DIRSTORE *store, char *device_name, i
       /* Find resource, and make sure we were able to open it */
       if (fnmatch(device_name, device->hdr.name, 0) == 0 &&
           strcmp(device->media_type, store->media_type) == 0) {
-         const int name_len = MAX_NAME_LENGTH;
-         if (!device->dev) {
-            device->dev = init_dev(jcr, NULL, device);
-         }
-         if (!device->dev) {
-            Jmsg(jcr, M_WARNING, 0, _("\n"
-               "     Device \"%s\" requested by DIR could not be opened or does not exist.\n"),
-                 device_name);
-            return 0;
-         }  
-         Dmsg1(100, "Found device %s\n", device->hdr.name);
-         dcr = new_dcr(jcr, device->dev);
-         if (!dcr) {
-            bnet_fsend(dir, _("3926 Could not get dcr for device: %s\n"), device_name);
-            Dmsg1(100, ">dird: %s\n", dir->msg);
-            return -1;
-         }
-         jcr->dcr = dcr;
-         bstrncpy(dcr->pool_name, store->pool_name, name_len);
-         bstrncpy(dcr->pool_type, store->pool_type, name_len);
-         bstrncpy(dcr->media_type, store->media_type, name_len);
-         bstrncpy(dcr->dev_name, device_name, name_len);
-         if (append == SD_APPEND) {
-            ok = reserve_device_for_append(dcr);
-         } else {
-            ok = reserve_device_for_read(dcr);
-         }
-         if (!ok) {
-            free_dcr(jcr->dcr);
-            return 0;
+         stat = reserve_device(jcr, store, device, device_name, append);
+         if (stat != 1) {
+            return stat;
          }
          Dmsg1(220, "Got: %s", dir->msg);
          bash_spaces(device_name);
@@ -463,43 +432,14 @@ static int search_res_for_device(JCR *jcr, DIRSTORE *store, char *device_name, i
       Dmsg1(100, "Try changer res=%s\n", changer->hdr.name);
       /* Find resource, and make sure we were able to open it */
       if (fnmatch(device_name, changer->hdr.name, 0) == 0) {
-         const int name_len = MAX_NAME_LENGTH;
          /* Try each device in this AutoChanger */
          foreach_alist(device, changer->device) {
             Dmsg1(100, "Try changer device %s\n", device->hdr.name);
-            if (!device->dev) {
-               device->dev = init_dev(jcr, NULL, device);
-            }
-            if (!device->dev) {
-               Dmsg1(100, "Device %s could not be opened. Skipped\n", device_name);
-               Jmsg(jcr, M_WARNING, 0, _("\n"
-                  "     Device \"%s\" in changer \"%s\" requested by DIR could not be opened or does not exist.\n"),
-                    device->hdr.name, device_name);
-               continue;
-            }
-            if (!device->dev->autoselect) {
-               continue;           /* device is not available */
-            }
-            dcr = new_dcr(jcr, device->dev);
-            if (!dcr) {
-               bnet_fsend(dir, _("3926 Could not get dcr for device: %s\n"), device_name);
-               Dmsg1(100, ">dird: %s\n", dir->msg);
+            stat = reserve_device(jcr, store, device, device_name, append);
+            if (stat == -1) {            /* hard error */
                return -1;
             }
-            Dmsg1(100, "Found changer device %s\n", device->hdr.name);
-            bstrncpy(dcr->pool_name, store->pool_name, name_len);
-            bstrncpy(dcr->pool_type, store->pool_type, name_len);
-            bstrncpy(dcr->media_type, store->media_type, name_len);
-            bstrncpy(dcr->dev_name, device_name, name_len);
-            jcr->dcr = dcr;
-            if (append == SD_APPEND) {
-               ok = reserve_device_for_append(dcr);
-            } else {
-               ok = reserve_device_for_read(dcr);
-            }
-            if (!ok) {
-               Jmsg(jcr, M_WARNING, 0, _("Could not reserve device: %s\n"), device_name);
-               free_dcr(jcr->dcr);
+            if (stat == 0) {             /* must wait, try next one */
                continue;
             }
             POOL_MEM dev_name;
@@ -513,6 +453,56 @@ static int search_res_for_device(JCR *jcr, DIRSTORE *store, char *device_name, i
       }
    }
    return 0;                    /* nothing found */
+}
+
+/*
+ *  Returns: 1 -- OK, have DCR
+ *           0 -- must wait
+ *          -1 -- fatal error
+ */
+static int reserve_device(JCR *jcr, DIRSTORE *store, DEVRES *device, char *device_name, int append)
+{
+   bool ok;
+   DCR *dcr;
+   const int name_len = MAX_NAME_LENGTH;
+   if (!device->dev) {
+      device->dev = init_dev(jcr, NULL, device);
+   }
+   if (!device->dev) {
+      if (dev_cap(device->dev, CAP_AUTOCHANGER)) {
+        Jmsg(jcr, M_WARNING, 0, _("\n"
+           "     Device \"%s\" in changer \"%s\" requested by DIR could not be opened or does not exist.\n"),
+             device->hdr.name, device_name);
+      } else {
+         Jmsg(jcr, M_WARNING, 0, _("\n"
+            "     Device \"%s\" requested by DIR could not be opened or does not exist.\n"),
+              device_name);
+      }
+      return 0;
+   }  
+   Dmsg1(100, "Found device %s\n", device->hdr.name);
+   dcr = new_dcr(jcr, device->dev);
+   if (!dcr) {
+      BSOCK *dir = jcr->dir_bsock;
+      bnet_fsend(dir, _("3926 Could not get dcr for device: %s\n"), device_name);
+      Dmsg1(100, ">dird: %s\n", dir->msg);
+      return -1;
+   }
+   jcr->dcr = dcr;
+   bstrncpy(dcr->pool_name, store->pool_name, name_len);
+   bstrncpy(dcr->pool_type, store->pool_type, name_len);
+   bstrncpy(dcr->media_type, store->media_type, name_len);
+   bstrncpy(dcr->dev_name, device_name, name_len);
+   if (append == SD_APPEND) {
+      ok = reserve_device_for_append(dcr);
+   } else {
+      ok = reserve_device_for_read(dcr);
+   }
+   if (!ok) {
+      free_dcr(jcr->dcr);
+      return 0;
+   }
+   return 1;
 }
 
 
