@@ -571,7 +571,7 @@ void wxbMainFrame::Print(wxString str, int status)
       consoleCtrl->AppendText(consoleBuffer);
       consoleBuffer = wxT("");
       SetStatusText(wxT("Console thread terminated."));
-      consoleCtrl->ScrollLines(3);
+      consoleCtrl->PageDown();
       ct = NULL;
       DisablePanels();
       int answer = wxMessageBox(wxT("Connection to the director lost. Quit program?"), wxT("Connection lost"),
@@ -614,7 +614,7 @@ void wxbMainFrame::Print(wxString str, int status)
    if (status == CS_DISCONNECTED) {
       consoleCtrl->AppendText(consoleBuffer);
       consoleBuffer = wxT("");
-      consoleCtrl->ScrollLines(3);
+      consoleCtrl->PageDown();
       SetStatusText(wxT("Disconnected of the director."));
       DisablePanels();
       return;
@@ -688,7 +688,7 @@ void wxbMainFrame::Print(wxString str, int status)
    if (status == CS_DEBUG) {
       consoleCtrl->AppendText(consoleBuffer);
       consoleBuffer = wxT("");
-      consoleCtrl->ScrollLines(3);
+      consoleCtrl->PageDown();
       consoleCtrl->SetDefaultStyle(wxTextAttr(wxColour(0, 128, 0)));
    }
    else {
@@ -706,10 +706,10 @@ void wxbMainFrame::Print(wxString str, int status)
       consoleCtrl->AppendText(consoleBuffer);
       consoleBuffer = wxT("");
    
-      consoleCtrl->ScrollLines(3);
+      consoleCtrl->PageDown();
    }
    
-//   consoleCtrl->ShowPosition(consoleCtrl->GetLastPosition());
+   // consoleCtrl->ShowPosition(consoleCtrl->GetLastPosition());
    
    /*if (status != CS_DEBUG) {
       consoleCtrl->AppendText("@");
@@ -734,8 +734,8 @@ void wxbMainFrame::Send(wxString str)
       ct->Write(str.mb_str(wxConvUTF8));
       typeCtrl->SetValue(wxT(""));
       consoleCtrl->SetDefaultStyle(wxTextAttr(*wxRED));
-      consoleCtrl->AppendText(wxbUtils::ConvertToPrintable(str));
-      consoleCtrl->ScrollLines(3);
+      consoleCtrl->AppendText(wxbUtils::ConvertToPrintable(str));      
+      consoleCtrl->PageDown();
    }
    
 /*   if ((consoleCtrl->GetNumberOfLines()-1) > nlines) {
