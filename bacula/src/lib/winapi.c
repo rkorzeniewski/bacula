@@ -31,8 +31,14 @@
 
 #include "winapi.h"
 
+#ifdef WIN32_VSS
+#include "vss.h"   
+#endif
+
 // init with win9x, but maybe set to NT in InitWinAPI
 DWORD  g_platform_id = VER_PLATFORM_WIN32_WINDOWS;
+/* preset VSSClient to NULL */
+VSSClient* g_pVSSClient = NULL;
 
 
 /* API Pointers */
@@ -75,6 +81,14 @@ t_SetCurrentDirectoryW p_SetCurrentDirectoryW = NULL;
 t_GetCurrentDirectoryA p_GetCurrentDirectoryA = NULL;
 t_GetCurrentDirectoryW p_GetCurrentDirectoryW = NULL;
 
+#ifdef WIN32_VSS
+void 
+VSSCleanup()
+{
+   if (g_pVSSClient)
+      delete (g_pVSSClient);
+}
+#endif
 
 void 
 InitWinAPIWrapper() 
@@ -162,16 +176,21 @@ InitWinAPIWrapper()
    }
 
    // do we run on win 9x ???
-   OSVERSIONINFO osversioninfo;
+   OSVERSIONINFO osversioninfo;   
    osversioninfo.dwOSVersionInfoSize = sizeof(osversioninfo);
+
+   DWORD dwMinorVersion;
 
    // Get the current OS version
    if (!GetVersionEx(&osversioninfo)) {
       g_platform_id = 0;
+      dwMinorVersion = 0;
    } else {
       g_platform_id = osversioninfo.dwPlatformId;
+      dwMinorVersion = osversioninfo.dwMinorVersion;
    }
 
+   /* deinitialize some routines on win95 - they're not implemented well */
    if (g_platform_id == VER_PLATFORM_WIN32_WINDOWS) {
       p_BackupRead = NULL;
       p_BackupWrite = NULL;
@@ -191,5 +210,20 @@ InitWinAPIWrapper()
       p_wmkdir = NULL;
       p_wopen = NULL;
    }   
+
+   /* decide which vss class to initialize */
+#ifdef WIN32_VSS
+   switch (dwMinorVersion) {
+      case 1: 
+         g_pVSSClient = new VSSClientXP();
+         atexit(VSSCleanup);
+         break;
+      case 2: 
+         g_pVSSClient = new VSSClient2003();
+         atexit(VSSCleanup);
+         break;
+   }
+#endif
 }
+
 #endif

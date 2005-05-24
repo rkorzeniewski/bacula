@@ -140,8 +140,8 @@ extern t_GetCurrentDirectoryA p_GetCurrentDirectoryA;
 extern t_GetCurrentDirectoryW p_GetCurrentDirectoryW;
 
 #ifdef WIN32_VSS
-class VSSClient;
-extern VSSClient g_VSSClient;
+class  VSSClient;
+extern VSSClient* g_pVSSClient;
 #endif
 
 void InitWinAPIWrapper();
