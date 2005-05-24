@@ -84,12 +84,14 @@ cygwin_conv_to_win32_path(const char *name, char *win32_name, DWORD dwSize)
        can get longer because VSS will make something like
        \\\\?\\GLOBALROOT\\Device\\HarddiskVolumeShadowCopy1\\bacula\\uninstall.exe
        from c:\bacula\uninstall.exe
-    */    
-    POOLMEM* pszBuf = get_pool_memory (PM_FNAME);
-    pszBuf = check_pool_memory_size(pszBuf, dwSize);
-    bstrncpy (pszBuf, tname, strlen(tname)+1);
-    g_VSSClient.GetShadowPath(pszBuf,tname,dwSize);
-    free_pool_memory(pszBuf);
+    */ 
+    if (g_pVSSClient) {
+      POOLMEM* pszBuf = get_pool_memory (PM_FNAME);
+      pszBuf = check_pool_memory_size(pszBuf, dwSize);
+      bstrncpy (pszBuf, tname, strlen(tname)+1);
+      g_pVSSClient->GetShadowPath(pszBuf,tname,dwSize);
+      free_pool_memory(pszBuf);
+    }
 #endif
 }
 

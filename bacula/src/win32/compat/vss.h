@@ -34,7 +34,6 @@
 #define __VSS_H_
 
 // some forward declarations
-class IVssBackupComponents;
 struct IVssAsync;
 
 class VSSClient
@@ -45,33 +44,60 @@ public:
 
     // Backup Process
     BOOL InitializeForBackup();
-    BOOL CreateSnapshots(char* szDriveLetters);
+    virtual BOOL CreateSnapshots(char* szDriveLetters) = 0;
+    virtual BOOL CloseBackup() = 0;
+    virtual const char* GetDriverName() = 0;
     BOOL GetShadowPath (const char* szFilePath, char* szShadowPath, int nBuflen);
-    BOOL CloseBackup();
-    
+
+         
 private:
+    virtual BOOL Initialize(DWORD dwContext, BOOL bDuringRestore = FALSE) = 0;
+    virtual void WaitAndCheckForAsyncOperation(IVssAsync*  pAsync) = 0;
+    virtual void QuerySnapshotSet(GUID snapshotSetID) = 0;
 
-   BOOL Initialize(DWORD dwContext, bool bDuringRestore = false);
-   void WaitAndCheckForAsyncOperation(IVssAsync*  pAsync);
-   void QuerySnapshotSet(GUID snapshotSetID);
+protected:
+    HMODULE                         m_hLib;
 
-private:
-
-    bool                            m_bCoInitializeCalled;
+    BOOL                            m_bCoInitializeCalled;
     DWORD                           m_dwContext;
 
-    IVssBackupComponents*           m_pVssObject;
+    IUnknown*                       m_pVssObject;
     // TRUE if we are during restore
-    bool                            m_bDuringRestore;
-    bool                            m_bBackupIsInitialized;
+    BOOL                            m_bDuringRestore;
+    BOOL                            m_bBackupIsInitialized;
 
     // drive A will be stored on position 0,Z on pos. 25
     WCHAR                           m_wszUniqueVolumeName[26][MAX_PATH]; // approx. 7 KB
     char /* in utf-8 */             m_szShadowCopyName[26][MAX_PATH*2]; // approx. 7 KB
 };
 
-// define global VssClient
-extern VSSClient g_VSSClient;
+class VSSClientXP:public VSSClient
+{
+public:
+   VSSClientXP();
+   virtual ~VSSClientXP();
+   virtual BOOL CreateSnapshots(char* szDriveLetters);
+   virtual BOOL CloseBackup();
+   virtual const char* GetDriverName() { return "VSS WinXP"; };
+private:
+   virtual BOOL Initialize(DWORD dwContext, BOOL bDuringRestore);
+   virtual void WaitAndCheckForAsyncOperation(IVssAsync* pAsync);
+   virtual void QuerySnapshotSet(GUID snapshotSetID);
+};
+
+class VSSClient2003:public VSSClient
+{
+public:
+   VSSClient2003();
+   virtual ~VSSClient2003();
+   virtual BOOL CreateSnapshots(char* szDriveLetters);
+   virtual BOOL CloseBackup();   
+   virtual const char* GetDriverName() { return "VSS Win 2003"; };
+private:
+   virtual BOOL Initialize(DWORD dwContext, BOOL bDuringRestore);
+   virtual void WaitAndCheckForAsyncOperation(IVssAsync*  pAsync);
+   virtual void QuerySnapshotSet(GUID snapshotSetID);
+};
 
 
 #endif /* __VSS_H_ */

@@ -1204,17 +1204,27 @@ static int backup_cmd(JCR *jcr)
 
 #ifdef WIN32_VSS
    /* START VSS ON WIN 32 */
-   g_VSSClient.InitializeForBackup();
-   /* tell vss which drives to snapshot */   
-   char szWinDriveLetters[27];   
-   if (get_win32_driveletters((FF_PKT *)jcr->ff, szWinDriveLetters)) {
-      Jmsg(jcr, M_INFO, 0, _("Generate VSS snapshots. Drives=%s\n"), szWinDriveLetters);
-      g_VSSClient.CreateSnapshots(szWinDriveLetters);
+   if (g_pVSSClient) {
+      if (g_pVSSClient->InitializeForBackup()) {
+         /* tell vss which drives to snapshot */   
+         char szWinDriveLetters[27];   
+         if (get_win32_driveletters((FF_PKT *)jcr->ff, szWinDriveLetters)) {
+            Jmsg(jcr, M_INFO, 0, _("Generate VSS snapshots. Driver=%s, Drive(s)=%s\n"), g_pVSSClient->GetDriverName(), szWinDriveLetters);
 
-      for (int i=0; i<strlen (szWinDriveLetters); i++) {
-         if (islower(szWinDriveLetters[i]))
-            Jmsg(jcr, M_WARNING, 0, _("Generate VSS snapshot of drive %c: failed\n"), szWinDriveLetters[i]);
+            if (!g_pVSSClient->CreateSnapshots(szWinDriveLetters)) {
+                  Jmsg(jcr, M_WARNING, 0, _("Generate VSS snapshots failed\n"));
+            }
+            else {
+               for (int i=0; i<strlen (szWinDriveLetters); i++) {
+                  if (islower(szWinDriveLetters[i]))
+                     Jmsg(jcr, M_WARNING, 0, _("Generate VSS snapshot of drive %c: failed\n"), szWinDriveLetters[i]);
+               }
+            }
+         }
+      } else {
+         Jmsg(jcr, M_WARNING, 0, _("VSS was not initialized properly. VSS support is disabled."));
       }
+
    }
 #endif
 
@@ -1274,7 +1284,8 @@ static int backup_cmd(JCR *jcr)
 cleanup:
 #ifdef WIN32_VSS
    /* tell vss to close the backup session */
-   g_VSSClient.CloseBackup();
+   if (g_pVSSClient)
+      g_pVSSClient->CloseBackup();
 #endif
 
    bnet_fsend(dir, EndJob, jcr->JobStatus, jcr->JobFiles,
