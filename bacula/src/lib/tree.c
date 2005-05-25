@@ -5,22 +5,17 @@
  *
 */
 /*
-   Copyright (C) 2002-2004 Kern Sibbald and John Walker
+   Copyright (C) 2002-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -205,7 +200,7 @@ TREE_NODE *insert_tree_node(char *path, char *fname, int type,
    }
    if (*fname) {
       if (!parent) {		      /* if no parent, we need to make one */
-	 Dmsg1(100, "make_tree_path for %s\n", path);
+         Dmsg1(100, "make_tree_path for %s\n", path);
 	 path_len = strlen(path);     /* get new length */
 	 if (path_len == root->cached_path_len &&
 	     strcmp(path, root->cached_path) == 0) {
@@ -216,7 +211,7 @@ TREE_NODE *insert_tree_node(char *path, char *fname, int type,
 	    parent = make_tree_path(path, root);
 	    root->cached_parent = parent;
 	 }
-	 Dmsg1(100, "parent=%s\n", parent->fname);
+         Dmsg1(100, "parent=%s\n", parent->fname);
       }
    } else {
       fname = path;
@@ -336,7 +331,7 @@ static TREE_NODE *search_and_insert_tree_node(char *fname, int type,
 	 if (sibling == first_child(parent)) { /* if sibling was at head of list */
 	    parent->child_ = NULL;	  /* force parent to be updated below */
 	 }
-	 Dmsg2(000, "insert before sibling->fname=%s fname=%s\n", sibling->fname, fname);
+         Dmsg2(000, "insert before sibling->fname=%s fname=%s\n", sibling->fname, fname);
 	 break;
       }
       /* Found it */
@@ -555,7 +550,7 @@ void FillDirectoryTree(char *path, TREE_ROOT *root, TREE_NODE *parent)
       bstrncpy(file, dir->d_name, sizeof(file));
       snprintf(pathbuf, MAXPATHLEN-1, "%s/%s", path, file);
       if (lstat(pathbuf, &statbuf) < 0) {
-	 printf("lstat() failed. ERR=%s\n", strerror(errno));
+         printf("lstat() failed. ERR=%s\n", strerror(errno));
 	 continue;
       }
 //      printf("got file=%s, pathbuf=%s\n", file, pathbuf);
@@ -576,7 +571,7 @@ void FillDirectoryTree(char *path, TREE_ROOT *root, TREE_NODE *parent)
 	 type = TN_FILE; /* sock */
       else {
 	 type = TN_FILE;
-	 printf("Unknown file type: 0x%x\n", statbuf.st_mode);
+         printf("Unknown file type: 0x%x\n", statbuf.st_mode);
       }
 
       Dmsg2(100, "Doing: %d %s\n", type, pathbuf);
@@ -584,7 +579,7 @@ void FillDirectoryTree(char *path, TREE_ROOT *root, TREE_NODE *parent)
       node->FileIndex = ++FileIndex;
       parent = insert_tree_node(pathbuf, node, root, parent);
       if (S_ISDIR(statbuf.st_mode) && !S_ISLNK(statbuf.st_mode)) {
-	 Dmsg2(100, "calling fill. pathbuf=%s, file=%s\n", pathbuf, file);
+         Dmsg2(100, "calling fill. pathbuf=%s, file=%s\n", pathbuf, file);
 	 FillDirectoryTree(pathbuf, root, node);
       }
    }
@@ -615,7 +610,7 @@ void print_tree(char *path, TREE_NODE *tree)
       termchr = "";
       break;
    }
-   Dmsg3(-1, "%s/%s%s\n", path, tree->fname, termchr);
+   Pmsg3(-1, "%s/%s%s\n", path, tree->fname, termchr);
    switch (tree->type) {
    case TN_FILE:
    case TN_NEWDIR:

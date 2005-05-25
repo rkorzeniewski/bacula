@@ -17,26 +17,21 @@
  *
  *   Version $Id$
  */
-
 /*
    Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
+
 
 #include "bacula.h"
 #include "dird.h"
@@ -44,12 +39,10 @@
 /* Commands sent to File daemon */
 static char restorecmd[]   = "restore replace=%c prelinks=%d where=%s\n";
 static char storaddr[]     = "storage address=%s port=%d ssl=0\n";
-static char sessioncmd[]   = "session %s %ld %ld %ld %ld %ld %ld\n";
 
 /* Responses received from File daemon */
 static char OKrestore[]   = "2000 OK restore\n";
 static char OKstore[]     = "2000 OK storage\n";
-static char OKsession[]   = "2000 OK session\n";
 
 /*
  * Do a restore of the specified files
@@ -73,39 +66,10 @@ bool do_restore(JCR *jcr)
 
    Dmsg1(20, "RestoreJobId=%d\n", jcr->job->RestoreJobId);
 
-   /*
-    * The following code is kept temporarily for compatibility.
-    * It is the predecessor to the Bootstrap file.
-    *	DEPRECATED
-    */
    if (!jcr->RestoreBootstrap) {
-      /*
-       * Find Job Record for Files to be restored
-       */
-      if (jcr->RestoreJobId != 0) {
-	 rjr.JobId = jcr->RestoreJobId;     /* specified by UA */
-      } else {
-	 rjr.JobId = jcr->job->RestoreJobId; /* specified by Job Resource */
-      }
-      if (!db_get_job_record(jcr, jcr->db, &rjr)) {
-         Jmsg2(jcr, M_FATAL, 0, _("Cannot get job record id=%d %s"), rjr.JobId,
-	    db_strerror(jcr->db));
-	 restore_cleanup(jcr, JS_ErrorTerminated);
-	 return false;
-      }
-
-      /*
-       * Now find the Volumes we will need for the Restore
-       */
-      jcr->VolumeName[0] = 0;
-      if (!db_get_job_volume_names(jcr, jcr->db, rjr.JobId, &jcr->VolumeName) ||
-	   jcr->VolumeName[0] == 0) {
-         Jmsg(jcr, M_FATAL, 0, _("Cannot find Volume names for restore Job %d. %s"),
-	    rjr.JobId, db_strerror(jcr->db));
-	 restore_cleanup(jcr, JS_ErrorTerminated);
-	 return false;
-      }
-      Dmsg1(20, "Got job Volume Names: %s\n", jcr->VolumeName);
+      Jmsg0(jcr, M_FATAL, 0, _("Cannot restore without bootstrap file.\n"));
+      restore_cleanup(jcr, JS_ErrorTerminated);
+      return false;
    }
 
 
@@ -188,24 +152,6 @@ bool do_restore(JCR *jcr)
       return false;
    }
 
-   /*
-    * The following code is deprecated
-    */
-   if (!jcr->RestoreBootstrap) {
-      /*
-       * Pass the VolSessionId, VolSessionTime, Start and
-       * end File and Blocks on the session command.
-       */
-      bnet_fsend(fd, sessioncmd,
-		jcr->VolumeName,
-		rjr.VolSessionId, rjr.VolSessionTime,
-		rjr.StartFile, rjr.EndFile, rjr.StartBlock,
-		rjr.EndBlock);
-      if (!response(jcr, fd, OKsession, "Session", DISPLAY_ERROR)) {
-	 restore_cleanup(jcr, JS_ErrorTerminated);
-	 return false;
-      }
-   }
 
    if (!send_run_before_and_after_commands(jcr)) {
       restore_cleanup(jcr, JS_ErrorTerminated);
@@ -268,6 +214,11 @@ void restore_cleanup(JCR *jcr, int TermCode)
    Dmsg0(20, "In restore_cleanup\n");
    dequeue_messages(jcr);	      /* display any queued messages */
    set_jcr_job_status(jcr, TermCode);
+
+   if (jcr->unlink_bsr && jcr->RestoreBootstrap) {
+      unlink(jcr->RestoreBootstrap);
+      jcr->unlink_bsr = false;
+   }
 
    update_job_end_record(jcr);
 

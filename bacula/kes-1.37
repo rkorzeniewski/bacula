@@ -4,6 +4,18 @@
 General:
 
 Changes to 1.37.19:
+25May05
+- Put Dmsg() on inside if() to avoid calling subroutine.
+- Make restore.bsr have unique name.
+- Allow user to define bsr filename on restore command line
+  with bootstrap=xxx.bsr
+- Add limit=nnn to "list jobs" command.
+- Remove old restore code that did not use .bsr file.
+- unlink automatically generated bsr file.
+- Cleanup heartbeat code so that duped fd is almost sure
+  to be released. Previously under certain conditions, the
+  memory was not released due to race conditions.
+- Shorten copyright.
 20May05
 - Unify the reserve_device() for a single device into one subroutine.
 18May05
