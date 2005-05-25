@@ -4,7 +4,7 @@ BUGS
 Reported by Thorsten (May 15 2005 4:23 PM):
 During my work (I used vs.net 2003) I noticed a few smaller glitches, but don't know if the problems lie within wx-console or the wxWindows library:
 - start wx-console -> enter quit -> memory leaks
-- start wx-xonsole in debug mode -> drawing error (empty console screen), one click to a scrollbar -> text is back
+- start wx-xonsole in debug mode -> drawing error (empty console screen), one click to a scrollbar -> text is back (fixed, t.engel)
 - after "quit" of console -> director claims unexpected communication interruption
 
 
