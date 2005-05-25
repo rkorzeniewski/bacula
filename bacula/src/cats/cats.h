@@ -566,6 +566,7 @@ struct JOB_DBR {
    char cStartTime[MAX_TIME_LENGTH];
    char cEndTime[MAX_TIME_LENGTH];
    /* Extra stuff not in DB */
+   int limit;                         /* limit records to display */
    faddr_t rec_addr;
 };
 

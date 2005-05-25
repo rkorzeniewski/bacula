@@ -6,26 +6,21 @@
  *
  *   Version $Id$
  */
-
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2002-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
+
 
 #include "bacula.h"
 #include "stored.h"
@@ -71,22 +66,22 @@ void position_bsr_block(BSR *bsr, DEV_BLOCK *block)
  *    so can do fast rejection.
  *
  *   returns:  1 if block may contain valid records
- *             0 if block may be skipped (i.e. it contains no records of
- *                  that can match the bsr).
+ *	       0 if block may be skipped (i.e. it contains no records of
+ *		    that can match the bsr).
  *
  */
 int match_bsr_block(BSR *bsr, DEV_BLOCK *block)
 {
    if (!bsr || !bsr->use_fast_rejection || (block->BlockVer < 2)) {
-      return 1;                       /* cannot fast reject */
+      return 1; 		      /* cannot fast reject */
    }
 
    for ( ; bsr; bsr=bsr->next) {
       if (!match_block_sesstime(bsr, bsr->sesstime, block)) {
-         continue;
+	 continue;
       }
       if (!match_block_sessid(bsr, bsr->sessid, block)) {
-         continue;
+	 continue;
       }
       return 1;
    }
@@ -96,7 +91,7 @@ int match_bsr_block(BSR *bsr, DEV_BLOCK *block)
 static int match_block_sesstime(BSR *bsr, BSR_SESSTIME *sesstime, DEV_BLOCK *block)
 {
    if (!sesstime) {
-      return 1;                       /* no specification matches all */
+      return 1; 		      /* no specification matches all */
    }
    if (sesstime->sesstime == block->VolSessionTime) {
       return 1;
@@ -110,7 +105,7 @@ static int match_block_sesstime(BSR *bsr, BSR_SESSTIME *sesstime, DEV_BLOCK *blo
 static int match_block_sessid(BSR *bsr, BSR_SESSID *sessid, DEV_BLOCK *block)
 {
    if (!sessid) {
-      return 1;                       /* no specification matches all */
+      return 1; 		      /* no specification matches all */
    }
    if (sessid->sessid <= block->VolSessionId && sessid->sessid2 >= block->VolSessionId) {
       return 1;
@@ -124,11 +119,11 @@ static int match_block_sessid(BSR *bsr, BSR_SESSID *sessid, DEV_BLOCK *block)
 
 /*********************************************************************
  *
- *      Match Bootstrap records
- *        returns  1 on match
- *        returns  0 no match and reposition is set if we should
- *                      reposition the tape
- *       returns -1 no additional matches possible
+ *	Match Bootstrap records
+ *	  returns  1 on match
+ *	  returns  0 no match and reposition is set if we should
+ *			reposition the tape
+ *	 returns -1 no additional matches possible
  */
 int match_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSION_LABEL *sessrec)
 {
@@ -136,8 +131,8 @@ int match_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSION_LABEL *se
 
    /*
     * The bsr->reposition flag is set any time a bsr is done.
-    *   In this case, we can probably reposition the
-    *   tape to the next available bsr position.
+    *	In this case, we can probably reposition the
+    *	tape to the next available bsr position.
     */
    if (bsr) {
       bsr->reposition = false;
@@ -148,10 +143,10 @@ int match_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSION_LABEL *se
        *  found or if we cannot use positioning
        */
       if (stat != 0 || !bsr->use_positioning) {
-         bsr->reposition = false;
+	 bsr->reposition = false;
       }
    } else {
-      stat = 1;                       /* no bsr => match all */
+      stat = 1; 		      /* no bsr => match all */
    }
    return stat;
 }
@@ -174,12 +169,12 @@ BSR *find_next_bsr(BSR *root_bsr, DEVICE *dev)
    root_bsr->mount_next_volume = false;
    for (bsr=root_bsr; bsr; bsr=bsr->next) {
       if (bsr->done || !match_volume(bsr, bsr->volume, &dev->VolHdr, 1)) {
-         continue;
+	 continue;
       }
       if (found_bsr == NULL) {
-         found_bsr = bsr;
+	 found_bsr = bsr;
       } else {
-         found_bsr = find_smallest_volfile(found_bsr, bsr);
+	 found_bsr = find_smallest_volfile(found_bsr, bsr);
       }
    }
    /*
@@ -205,14 +200,14 @@ static BSR *find_smallest_volfile(BSR *found_bsr, BSR *bsr)
    found_bsr_sfile = vf->sfile;
    while ( (vf=vf->next) ) {
       if (vf->sfile < found_bsr_sfile) {
-         found_bsr_sfile = vf->sfile;
+	 found_bsr_sfile = vf->sfile;
       }
    }
    vf = bsr->volfile;
    bsr_sfile = vf->sfile;
    while ( (vf=vf->next) ) {
       if (vf->sfile < bsr_sfile) {
-         bsr_sfile = vf->sfile;
+	 bsr_sfile = vf->sfile;
       }
    }
    if (found_bsr_sfile > bsr_sfile) {
@@ -222,19 +217,19 @@ static BSR *find_smallest_volfile(BSR *found_bsr, BSR *bsr)
       vb = found_bsr->volblock;
       found_bsr_sblock = vb->sblock;
       while ( (vb=vb->next) ) {
-         if (vb->sblock < found_bsr_sblock) {
-            found_bsr_sblock = vb->sblock;
-         }
+	 if (vb->sblock < found_bsr_sblock) {
+	    found_bsr_sblock = vb->sblock;
+	 }
       }
       vb = bsr->volblock;
       bsr_sblock = vb->sblock;
       while ( (vb=vb->next) ) {
-         if (vb->sblock < bsr_sblock) {
-            bsr_sblock = vb->sblock;
-         }
+	 if (vb->sblock < bsr_sblock) {
+	    bsr_sblock = vb->sblock;
+	 }
       }
       if (found_bsr_sblock > bsr_sblock) {
-         return_bsr = bsr;
+	 return_bsr = bsr;
       }
    }
 
@@ -248,7 +243,7 @@ static BSR *find_smallest_volfile(BSR *found_bsr, BSR *bsr)
  *    for consistency with the other match calls.
  *
  * Returns: true if we should reposition
- *        : false otherwise.
+ *	  : false otherwise.
  */
 bool match_set_eof(BSR *bsr, DEV_RECORD *rec)
 {
@@ -263,7 +258,7 @@ bool match_set_eof(BSR *bsr, DEV_RECORD *rec)
       rbsr->done = true;
       rbsr->root->reposition = true;
       Dmsg2(100, "match_set_eof reposition count=%d found=%d\n",
-         rbsr->count, rbsr->found);
+	 rbsr->count, rbsr->found);
       return true;
    }
    return false;
@@ -276,7 +271,7 @@ bool match_set_eof(BSR *bsr, DEV_RECORD *rec)
  *   returns -1 no additional matches possible
  */
 static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
-                     SESSION_LABEL *sessrec, bool done)
+		     SESSION_LABEL *sessrec, bool done)
 {
    if (bsr->done) {
       goto no_match;
@@ -286,45 +281,45 @@ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
    }
    if (!match_volfile(bsr, bsr->volfile, rec, 1)) {
       Dmsg2(100, "Fail on file. bsr=%d rec=%d\n", bsr->volfile->efile,
-         rec->File);
+	 rec->File);
       goto no_match;
    }
    if (!match_sesstime(bsr, bsr->sesstime, rec, 1)) {
       Dmsg2(100, "Fail on sesstime. bsr=%d rec=%d\n",
-         bsr->sesstime->sesstime, rec->VolSessionTime);
+	 bsr->sesstime->sesstime, rec->VolSessionTime);
       goto no_match;
    }
 
    /* NOTE!! This test MUST come after the sesstime test */
    if (!match_sessid(bsr, bsr->sessid, rec)) {
       Dmsg2(100, "Fail on sessid. bsr=%d rec=%d\n",
-         bsr->sessid->sessid, rec->VolSessionId);
+	 bsr->sessid->sessid, rec->VolSessionId);
       goto no_match;
    }
 
    /* NOTE!! This test MUST come after sesstime and sessid tests */
    if (!match_findex(bsr, bsr->FileIndex, rec, 1)) {
       Dmsg2(100, "Fail on findex. bsr=%d rec=%d\n",
-         bsr->FileIndex->findex2, rec->FileIndex);
+	 bsr->FileIndex->findex2, rec->FileIndex);
       goto no_match;
    }
    /*
     * If a count was specified and we have a FileIndex, assume
-    *   it is a Bacula created bsr (or the equivalent). We
-    *   then save the bsr where the match occurred so that
-    *   after processing the record or records, we can update
-    *   the found count. I.e. rec->bsr points to the bsr that
-    *   satisfied the match.
+    *	it is a Bacula created bsr (or the equivalent). We
+    *	then save the bsr where the match occurred so that
+    *	after processing the record or records, we can update
+    *	the found count. I.e. rec->bsr points to the bsr that
+    *	satisfied the match.
     */
    if (bsr->count && bsr->FileIndex) {
       rec->bsr = bsr;
-      return 1;                       /* this is a complete match */
+      return 1; 		      /* this is a complete match */
    }
 
    /*
     * The selections below are not used by Bacula's
     *   restore command, and don't work because of
-    *   the rec->bsr = bsr optimization above.
+    *	the rec->bsr = bsr optimization above.
     */
    if (!match_jobid(bsr, bsr->JobId, sessrec, 1)) {
       goto no_match;
@@ -360,7 +355,7 @@ no_match:
 static int match_volume(BSR *bsr, BSR_VOLUME *volume, VOLUME_LABEL *volrec, bool done)
 {
    if (!volume) {
-      return 0;                       /* Volume must match */
+      return 0; 		      /* Volume must match */
    }
    if (strcmp(volume->VolumeName, volrec->VolName) == 0) {
       return 1;
@@ -374,7 +369,7 @@ static int match_volume(BSR *bsr, BSR_VOLUME *volume, VOLUME_LABEL *volrec, bool
 static int match_client(BSR *bsr, BSR_CLIENT *client, SESSION_LABEL *sessrec, bool done)
 {
    if (!client) {
-      return 1;                       /* no specification matches all */
+      return 1; 		      /* no specification matches all */
    }
    if (fnmatch(client->ClientName, sessrec->ClientName, 0) == 0) {
       return 1;
@@ -388,7 +383,7 @@ static int match_client(BSR *bsr, BSR_CLIENT *client, SESSION_LABEL *sessrec, bo
 static int match_job(BSR *bsr, BSR_JOB *job, SESSION_LABEL *sessrec, bool done)
 {
    if (!job) {
-      return 1;                       /* no specification matches all */
+      return 1; 		      /* no specification matches all */
    }
    if (fnmatch(job->Job, sessrec->Job, 0) == 0) {
       return 1;
@@ -402,7 +397,7 @@ static int match_job(BSR *bsr, BSR_JOB *job, SESSION_LABEL *sessrec, bool done)
 static int match_job_type(BSR *bsr, BSR_JOBTYPE *job_type, SESSION_LABEL *sessrec, bool done)
 {
    if (!job_type) {
-      return 1;                       /* no specification matches all */
+      return 1; 		      /* no specification matches all */
    }
    if (job_type->JobType == sessrec->JobType) {
       return 1;
@@ -416,7 +411,7 @@ static int match_job_type(BSR *bsr, BSR_JOBTYPE *job_type, SESSION_LABEL *sessre
 static int match_job_level(BSR *bsr, BSR_JOBLEVEL *job_level, SESSION_LABEL *sessrec, bool done)
 {
    if (!job_level) {
-      return 1;                       /* no specification matches all */
+      return 1; 		      /* no specification matches all */
    }
    if (job_level->JobLevel == sessrec->JobLevel) {
       return 1;
@@ -430,7 +425,7 @@ static int match_job_level(BSR *bsr, BSR_JOBLEVEL *job_level, SESSION_LABEL *ses
 static int match_jobid(BSR *bsr, BSR_JOBID *jobid, SESSION_LABEL *sessrec, bool done)
 {
    if (!jobid) {
-      return 1;                       /* no specification matches all */
+      return 1; 		      /* no specification matches all */
    }
    if (jobid->JobId <= sessrec->JobId && jobid->JobId2 >= sessrec->JobId) {
       return 1;
@@ -444,20 +439,20 @@ static int match_jobid(BSR *bsr, BSR_JOBID *jobid, SESSION_LABEL *sessrec, bool 
 static int match_volfile(BSR *bsr, BSR_VOLFILE *volfile, DEV_RECORD *rec, bool done)
 {
    if (!volfile) {
-      return 1;                       /* no specification matches all */
+      return 1; 		      /* no specification matches all */
    }
    /* For the moment, these tests work only with tapes. */
    if (!(rec->state & REC_ISTAPE)) {
-      return 1;                       /* All File records OK for this match */
+      return 1; 		      /* All File records OK for this match */
    }
 // Dmsg3(100, "match_volfile: sfile=%d efile=%d recfile=%d\n",
-//             volfile->sfile, volfile->efile, rec->File);
+//	       volfile->sfile, volfile->efile, rec->File);
    if (volfile->sfile <= rec->File && volfile->efile >= rec->File) {
       return 1;
    }
    /* Once we get past last efile, we are done */
    if (rec->File > volfile->efile) {
-      volfile->done = true;              /* set local done */
+      volfile->done = true;		 /* set local done */
    }
    if (volfile->next) {
       return match_volfile(bsr, volfile->next, rec, volfile->done && done);
@@ -468,7 +463,7 @@ static int match_volfile(BSR *bsr, BSR_VOLFILE *volfile, DEV_RECORD *rec, bool d
       bsr->done = true;
       bsr->root->reposition = true;
       Dmsg2(100, "bsr done from volfile rec=%d volefile=%d\n",
-         rec->File, volfile->efile);
+	 rec->File, volfile->efile);
    }
    return 0;
 }
@@ -476,7 +471,7 @@ static int match_volfile(BSR *bsr, BSR_VOLFILE *volfile, DEV_RECORD *rec, bool d
 static int match_stream(BSR *bsr, BSR_STREAM *stream, DEV_RECORD *rec, bool done)
 {
    if (!stream) {
-      return 1;                       /* no specification matches all */
+      return 1; 		      /* no specification matches all */
    }
    if (stream->stream == rec->Stream) {
       return 1;
@@ -490,7 +485,7 @@ static int match_stream(BSR *bsr, BSR_STREAM *stream, DEV_RECORD *rec, bool done
 static int match_sesstime(BSR *bsr, BSR_SESSTIME *sesstime, DEV_RECORD *rec, bool done)
 {
    if (!sesstime) {
-      return 1;                       /* no specification matches all */
+      return 1; 		      /* no specification matches all */
    }
    if (sesstime->sesstime == rec->VolSessionTime) {
       return 1;
@@ -512,7 +507,7 @@ static int match_sesstime(BSR *bsr, BSR_SESSTIME *sesstime, DEV_RECORD *rec, boo
 static int match_sessid(BSR *bsr, BSR_SESSID *sessid, DEV_RECORD *rec)
 {
    if (!sessid) {
-      return 1;                       /* no specification matches all */
+      return 1; 		      /* no specification matches all */
    }
    if (sessid->sessid <= rec->VolSessionId && sessid->sessid2 >= rec->VolSessionId) {
       return 1;
@@ -530,13 +525,13 @@ static int match_sessid(BSR *bsr, BSR_SESSID *sessid, DEV_RECORD *rec)
  *  ***FIXME*** optimizations
  * We could optimize a lot here by removing the recursion, and 
  *   stopping the search earlier -- say when rec->FileIndex > findex->findex2
- *   and findex->next == NULL.  Also, the current entry tests could be skipped
+ *   and findex->next == NULL.	Also, the current entry tests could be skipped
  *   if findex->done is set.
  */
 static int match_findex(BSR *bsr, BSR_FINDEX *findex, DEV_RECORD *rec, bool done)
 {
    if (!findex) {
-      return 1;                       /* no specification matches all */
+      return 1; 		      /* no specification matches all */
    }
    if (findex->findex <= rec->FileIndex && findex->findex2 >= rec->FileIndex) {
       return 1;

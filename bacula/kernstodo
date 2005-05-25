@@ -54,7 +54,6 @@ Document:
 - Document new CDROM directory.
 
 For 1.37:
-- Make bootstrap filename unique.
 - From Chris Hull:
    it seems to be complaining about 12:00pm which should be a valid 12
    hour time.  I changed the time to 11:59am and everything works fine.
@@ -65,8 +64,6 @@ For 1.37:
   jcr->last_runtime
   MA = (last_MA * 3 + rate) / 4
   rate = (bytes - last_bytes) / (runtime - last_runtime)
-- Add "limit=n" for "list jobs"
-- Make Dmsg look at global before calling subroutine.
 - Despool attributes simultaneously with data in a separate
   thread, rejoined at end of data spooling.
 - Implement Files/Bytes,... stats for restore job.
@@ -1284,4 +1281,6 @@ Block Position: 0
 - Add a date and time stamp at the beginning of every line in the 
   Job report (Volker Sauer).
 - Add level to estimate command.
-
+- Add "limit=n" for "list jobs"
+- Make bootstrap filename unique.
+- Make Dmsg look at global before calling subroutine.

@@ -8,26 +8,21 @@
  *
  *   Version $Id$
  */
-
 /*
    Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
+
 
 #ifndef __JCR_H_
 #define __JCR_H_ 1
@@ -199,6 +194,7 @@ struct JCR {
    bool write_part_after_job;         /* Write part after job in SD */
    bool needs_sd;                     /* set if SD needed by Job */
    bool cloned;                       /* set if cloned */
+   bool unlink_bsr;                   /* Unlink bsr file created */
    ATTR_DBR ar;                       /* DB attribute record */
 #endif /* DIRECTOR_DAEMON */
 
@@ -226,6 +222,7 @@ struct JCR {
    uint32_t EndBlock;
    pthread_t heartbeat_id;            /* id of heartbeat thread */
    volatile BSOCK *hb_bsock;          /* duped SD socket */
+   volatile BSOCK *hb_dir_bsock;      /* duped DIR socket */
    POOLMEM *RunAfterJob;              /* Command to run after job */
    DIRRES* director;                  /* Director resource */
 #endif /* FILE_DAEMON */

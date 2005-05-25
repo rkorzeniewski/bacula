@@ -395,12 +395,12 @@ static const char *pool_name(int pool)
  */
 void print_memory_pool_stats()
 {
-   Dmsg0(-1, "Pool   Maxsize  Maxused  Inuse\n");
+   Pmsg0(-1, "Pool   Maxsize  Maxused  Inuse\n");
    for (int i=0; i<=PM_MAX; i++)
-      Dmsg4(-1, "%5s  %7d  %7d  %5d\n", pool_name(i), pool_ctl[i].max_allocated,
+      Pmsg4(-1, "%5s  %7d  %7d  %5d\n", pool_name(i), pool_ctl[i].max_allocated,
 	 pool_ctl[i].max_used, pool_ctl[i].in_use);
 
-   Dmsg0(-1, "\n");
+   Pmsg0(-1, "\n");
 }
 
 #else
