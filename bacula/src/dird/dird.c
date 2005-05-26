@@ -392,8 +392,6 @@ void reload_config(int sig)
    sigaddset(&set, SIGHUP);
    sigprocmask(SIG_BLOCK, &set, NULL);
 
-// Jmsg(NULL, M_INFO, 0, "Entering experimental reload config code. Bug reports will not be accepted.\n");
-
    lock_jcr_chain();
    LockRes();
 
@@ -437,7 +435,7 @@ void reload_config(int sig)
             job_end_push(jcr, reload_job_end_cb, (void *)((long int)table));
             njobs++;
          }
-         free_locked_jcr(jcr);
+         free_jcr(jcr);
       }
    }
 
@@ -446,8 +444,6 @@ void reload_config(int sig)
    FDConnectTimeout = director->FDConnectTimeout;
    SDConnectTimeout = director->SDConnectTimeout;
    Dmsg0(0, "Director's configuration file reread.\n");
-
-// init_device_resources();           /* Update Device resources */
 
    /* Now release saved resources, if no jobs using the resources */
    if (njobs == 0) {

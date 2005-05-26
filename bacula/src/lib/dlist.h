@@ -2,7 +2,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2003-2005 Kern Sibbald
+   Copyright (C) 2004-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -41,7 +41,7 @@
 
 #ifdef the_old_way
 #define foreach_dlist(var, list) \
-	for((var)=NULL; (((void *)(var))=(list)->next(var)); )
+        for((var)=NULL; (((void *)(var))=(list)->next(var)); )
 #endif
 
 
@@ -68,7 +68,7 @@ public:
    void binary_insert(void *item, int compare(void *item1, void *item2));
    void remove(void *item);
    bool empty() const;
-   int	size() const;
+   int  size() const;
    void *next(const void *item) const;
    void *prev(const void *item) const;
    void destroy();

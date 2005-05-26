@@ -30,7 +30,7 @@
 #include "jcr.h"
 
 /* Exported globals */
-time_t watchdog_time = 0;	      /* this has granularity of SLEEP_TIME */
+time_t watchdog_time = 0;             /* this has granularity of SLEEP_TIME */
 time_t watchdog_sleep_time = 60;      /* examine things every 60 seconds */
 
 /* Locals */
@@ -46,7 +46,7 @@ static void wd_unlock();
 /* Static globals */
 static bool quit = false;;
 static bool wd_is_init = false;
-static brwlock_t lock;		      /* watchdog lock */
+static brwlock_t lock;                /* watchdog lock */
 
 static pthread_t wd_tid;
 static dlist *wd_queue;
@@ -56,7 +56,7 @@ static dlist *wd_inactive;
  * Start watchdog thread
  *
  *  Returns: 0 on success
- *	     errno on failure
+ *           errno on failure
  */
 int start_watchdog(void)
 {
@@ -72,7 +72,7 @@ int start_watchdog(void)
 
    if ((errstat=rwl_init(&lock)) != 0) {
       Emsg1(M_ABORT, 0, _("Unable to initialize watchdog lock. ERR=%s\n"),
-	    strerror(errstat));
+            strerror(errstat));
    }
    wd_queue = New(dlist(dummy, &dummy->link));
    wd_inactive = New(dlist(dummy, &dummy->link));
@@ -99,7 +99,7 @@ static void ping_watchdog()
  * Terminate the watchdog thread
  *
  * Returns: 0 on success
- *	    errno on failure
+ *          errno on failure
  */
 int stop_watchdog(void)
 {
@@ -110,7 +110,7 @@ int stop_watchdog(void)
       return 0;
    }
 
-   quit = true; 		      /* notify watchdog thread to stop */
+   quit = true;                       /* notify watchdog thread to stop */
    wd_is_init = false;
 
    ping_watchdog();
@@ -121,7 +121,7 @@ int stop_watchdog(void)
       wd_queue->remove(item);
       p = (watchdog_t *)item;
       if (p->destructor != NULL) {
-	 p->destructor(p);
+         p->destructor(p);
       }
       free(p);
    }
@@ -133,7 +133,7 @@ int stop_watchdog(void)
       wd_inactive->remove(item);
       p = (watchdog_t *)item;
       if (p->destructor != NULL) {
-	 p->destructor(p);
+         p->destructor(p);
       }
       free(p);
    }
@@ -199,19 +199,19 @@ bool unregister_watchdog(watchdog_t *wd)
    wd_lock();
    foreach_dlist(p, wd_queue) {
       if (wd == p) {
-	 wd_queue->remove(wd);
+         wd_queue->remove(wd);
          Dmsg1(800, "Unregistered watchdog %p\n", wd);
-	 ok = true;
-	 goto get_out;
+         ok = true;
+         goto get_out;
       }
    }
 
    foreach_dlist(p, wd_inactive) {
       if (wd == p) {
-	 wd_inactive->remove(wd);
+         wd_inactive->remove(wd);
          Dmsg1(800, "Unregistered inactive watchdog %p\n", wd);
-	 ok = true;
-	 goto get_out;
+         ok = true;
+         goto get_out;
       }
    }
 
@@ -242,6 +242,10 @@ extern "C" void *watchdog_thread(void *arg)
       watchdog_t *p;
 
       /*
+       *
+       *  NOTE. lock_jcr_chain removed, but the message below
+       *   was left until we are sure there are no deadlocks.
+       *  
        * We lock the jcr chain here because a good number of the
        *   callback routines lock the jcr chain. We need to lock
        *   it here *before* the watchdog lock because the SD message
@@ -250,32 +254,30 @@ extern "C" void *watchdog_thread(void *arg)
        *   lock in the same order, we get a deadlock -- each holds
        *   the other's needed lock.
        */
-      lock_jcr_chain();
       wd_lock();
 
 walk_list:
       watchdog_time = time(NULL);
       next_time = watchdog_time + watchdog_sleep_time;
       foreach_dlist(p, wd_queue) {
-	 if (p->next_fire <= watchdog_time) {
-	    /* Run the callback */
-	    p->callback(p);
+         if (p->next_fire <= watchdog_time) {
+            /* Run the callback */
+            p->callback(p);
 
             /* Reschedule (or move to inactive list if it's a one-shot timer) */
-	    if (p->one_shot) {
-	       wd_queue->remove(p);
-	       wd_inactive->append(p);
-	       goto walk_list;
-	    } else {
-	       p->next_fire = watchdog_time + p->interval;
-	    }
-	 }
-	 if (p->next_fire < next_time) {
-	    next_time = p->next_fire;
-	 }
+            if (p->one_shot) {
+               wd_queue->remove(p);
+               wd_inactive->append(p);
+               goto walk_list;
+            } else {
+               p->next_fire = watchdog_time + p->interval;
+            }
+         }
+         if (p->next_fire < next_time) {
+            next_time = p->next_fire;
+         }
       }
       wd_unlock();
-      unlock_jcr_chain();
 
       /*
        * Wait sleep time or until someone wakes us
@@ -284,8 +286,8 @@ walk_list:
       timeout.tv_nsec = tv.tv_usec * 1000;
       timeout.tv_sec = tv.tv_sec + next_time - time(NULL);
       while (timeout.tv_nsec >= 1000000000) {
-	 timeout.tv_nsec -= 1000000000;
-	 timeout.tv_sec++;
+         timeout.tv_nsec -= 1000000000;
+         timeout.tv_sec++;
       }
 
       Dmsg1(1900, "pthread_cond_timedwait %d\n", timeout.tv_sec - tv.tv_sec);
@@ -309,7 +311,7 @@ static void wd_lock()
    int errstat;
    if ((errstat=rwl_writelock(&lock)) != 0) {
       Emsg1(M_ABORT, 0, "rwl_writelock failure. ERR=%s\n",
-	   strerror(errstat));
+           strerror(errstat));
    }
 }
 
@@ -323,6 +325,6 @@ static void wd_unlock()
    int errstat;
    if ((errstat=rwl_writeunlock(&lock)) != 0) {
       Emsg1(M_ABORT, 0, "rwl_writeunlock failure. ERR=%s\n",
-	   strerror(errstat));
+           strerror(errstat));
    }
 }

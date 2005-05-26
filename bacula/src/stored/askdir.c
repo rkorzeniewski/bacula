@@ -255,22 +255,20 @@ bool dir_find_next_appendable_volume(DCR *dcr)
            * This would be better done by walking through
            *  all the devices.
            */
-          lock_jcr_chain();
           foreach_jcr(njcr) {
              if (jcr == njcr) {
-                free_locked_jcr(njcr);
+                free_jcr(njcr);
                 continue;             /* us */
              }
              Dmsg2(300, "Compare to JobId=%d using Vol=%s\n", njcr->JobId, njcr->dcr->VolumeName);
              if (njcr->dcr && strcmp(dcr->VolumeName, njcr->dcr->VolumeName) == 0) {
                 found = true;
                 Dmsg1(400, "Vol in use by JobId=%u\n", njcr->JobId);
-                free_locked_jcr(njcr);
+                free_jcr(njcr);
                 break;
              }
-             free_locked_jcr(njcr);
+             free_jcr(njcr);
           }
-          unlock_jcr_chain();
           if (!found) {
              Dmsg0(400, "dir_find_next_appendable_volume return true\n");
              return true;             /* Got good Volume */

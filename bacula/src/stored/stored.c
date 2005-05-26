@@ -515,11 +515,10 @@ void terminate_stored(int sig)
        *   them up so that they will report back the correct
        *   volume status.
        */
-      lock_jcr_chain();
       foreach_jcr(jcr) {
          BSOCK *fd;
-         free_locked_jcr(jcr);
          if (jcr->JobId == 0) {
+            free_jcr(jcr);
             continue;                 /* ignore console */
          }
          set_jcr_job_status(jcr, JS_Canceled);
@@ -534,9 +533,9 @@ void terminate_stored(int sig)
                pthread_cond_broadcast(&wait_device_release);
             }
             bmicrosleep(0, 50000);
-          }
+         }
+         free_jcr(jcr);
       }
-      unlock_jcr_chain();
       bmicrosleep(0, 500000);         /* give them 1/2 sec to clean up */
    }
 
@@ -545,13 +544,11 @@ void terminate_stored(int sig)
 
    Dmsg1(200, "In terminate_stored() sig=%d\n", sig);
 
-// LockRes();
    foreach_res(device, R_DEVICE) {
       if (device->dev) {
          term_dev(device->dev);
       }
    }
-// UnlockRes();
 
    if (configfile)
    free(configfile);

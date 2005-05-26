@@ -7,24 +7,18 @@
  *   Version $Id$
  *
  */
-
 /*
    Copyright (C) 2004-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -296,23 +290,20 @@ static PyObject *job_cancel(PyObject *self, PyObject *args)
       Dmsg0(000, "Parse tuple error in job_write\n");
       return NULL;
    }
-   lock_jcr_chain();
    foreach_jcr(jcr) {
       if (jcr->JobId == 0) {
-	 free_locked_jcr(jcr);           /* OK to free now cuz chain is locked */
+         free_jcr(jcr);
          continue;
       }
       if (jcr->JobId == JobId) {
          found = true;
-	 break;
+         break;
       }
    }
    if (!found) {
-      unlock_jcr_chain();
       /* ***FIXME*** raise exception */
       return NULL;
    }
-   unlock_jcr_chain();
    PyEval_ReleaseLock();
    UAContext *ua = new_ua_context(jcr);
    ua->batch = true;
@@ -321,7 +312,7 @@ static PyObject *job_cancel(PyObject *self, PyObject *args)
       return NULL;
    }
    free_ua_context(ua);
-   free_locked_jcr(jcr);
+   free_jcr(jcr);
    PyEval_AcquireLock();   
    Py_INCREF(Py_None);
    return Py_None;
