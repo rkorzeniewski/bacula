@@ -117,6 +117,7 @@ int restore_cmd(UAContext *ua, const char *cmd)
    RESTORE_CTX rx;		      /* restore context */
    JOB *job;
    int i;
+   POOLMEM *fname;
 
    memset(&rx, 0, sizeof(rx));
    rx.path = get_pool_memory(PM_FNAME);
@@ -203,7 +204,7 @@ int restore_cmd(UAContext *ua, const char *cmd)
    }
 
    /* Build run command */
-   POOLMEM *fname = get_pool_memory(PM_MESSAGE);
+   fname = get_pool_memory(PM_MESSAGE);
    make_unique_restore_filename(ua, &fname);
    if (rx.where) {
       Mmsg(ua->cmd,

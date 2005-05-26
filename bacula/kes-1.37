@@ -4,6 +4,8 @@
 General:
 
 Changes to 1.37.19:
+26May05
+- Fix compile problem of ua_restore.c on broken compilers.
 25May05
 - Put Dmsg() on inside if() to avoid calling subroutine.
 - Make restore.bsr have unique name.
