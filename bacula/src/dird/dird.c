@@ -10,19 +10,14 @@
    Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -241,8 +236,6 @@ int main (int argc, char *argv[])
 
    init_job_server(director->MaxConcurrentJobs);
 
-// init_device_resources();
-
    Dmsg0(200, "wait for next job\n");
    /* Main loop -- call scheduler to get next job to run */
    while ((jcr = wait_for_next_job(runjob))) {
@@ -334,13 +327,13 @@ static void reload_job_end_cb(JCR *jcr, void *ctx)
    int reload_id = (int)((long int)ctx);
    Dmsg3(100, "reload job_end JobId=%d table=%d cnt=%d\n", jcr->JobId,
       reload_id, reload_table[reload_id].job_count);
-   lock_jcr_chain();
+   lock_jobs();
    LockRes();
    if (--reload_table[reload_id].job_count <= 0) {
       free_saved_resources(reload_id);
    }
    UnlockRes();
-   unlock_jcr_chain();
+   unlock_jobs();
 }
 
 static int find_free_reload_table_entry()
@@ -392,7 +385,7 @@ void reload_config(int sig)
    sigaddset(&set, SIGHUP);
    sigprocmask(SIG_BLOCK, &set, NULL);
 
-   lock_jcr_chain();
+   lock_jobs();
    LockRes();
 
    table = find_free_reload_table_entry();
@@ -452,7 +445,7 @@ void reload_config(int sig)
 
 bail_out:
    UnlockRes();
-   unlock_jcr_chain();
+   unlock_jobs();
    sigprocmask(SIG_UNBLOCK, &set, NULL);
    signal(SIGHUP, reload_config);
    already_here = false;

@@ -5,6 +5,7 @@ General:
 
 Changes to 1.37.20:
 26May05
+- Use light weight non-recursive locking on jcr chain.
 - Make JCR a class and implement inc_use_count() and
   dec_use_count() methods that ensure that the jcr is
   locked when inc/dec the use count.

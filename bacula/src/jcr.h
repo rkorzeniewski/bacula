@@ -316,16 +316,6 @@ extern JCR *get_jcr_by_full_name(char *Job);
 extern JCR *get_next_jcr(JCR *jcr);
 extern void set_jcr_job_status(JCR *jcr, int JobStatus);
 
-#ifdef TRACE_JCR_CHAIN
-extern void b_lock_jcr_chain(const char *filen, int line);
-extern void b_unlock_jcr_chain(const char *filen, int line);
-#define lock_jcr_chain() b_lock_jcr_chain(__FILE__, __LINE__);
-#define unlock_jcr_chain() b_unlock_jcr_chain(__FILE__, __LINE__);
-#else
-extern void lock_jcr_chain();
-extern void unlock_jcr_chain();
-#endif
-
 #ifdef DEBUG
 extern void b_free_jcr(const char *file, int line, JCR *jcr);
 #define free_jcr(jcr) b_free_jcr(__FILE__, __LINE__, (jcr))
