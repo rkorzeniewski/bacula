@@ -10,22 +10,17 @@
  *
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -374,17 +369,17 @@ int main()
 	 for (int k=0; k<CNT; k++) {
 	    count++;
 	    if ((count & 0x3FF) == 0) {
-	       Dmsg1(000, "At %d\n", count);
+               Dmsg1(000, "At %d\n", count);
 	    }
 	    jcr = (MYJCR *)malloc(sizeof(MYJCR));
 	    jcr->buf = bstrdup(buf);
 	    jcr1 = (MYJCR *)jcr_chain->binary_insert(jcr, my_compare);
 	    if (jcr != jcr1) {
-	       Dmsg2(000, "Insert of %s vs %s failed.\n", jcr->buf, jcr1->buf);
+               Dmsg2(000, "Insert of %s vs %s failed.\n", jcr->buf, jcr1->buf);
 	    }
 	    buf[1]--;
 	 }
-	 buf[1] = 'Z';
+         buf[1] = 'Z';
 	 buf[2]--;
       }
       buf[2] = 'Z';
