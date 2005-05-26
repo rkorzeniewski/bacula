@@ -45,27 +45,49 @@ extern time_t watchdog_time;
 
 /* Forward referenced functions */
 extern "C" void timeout_handler(int sig);
-
 static void jcr_timeout_check(watchdog_t *self);
+#ifdef TRACE_JCR_CHAIN
+static void b_lock_jcr_chain(const char *filen, int line);
+static void b_unlock_jcr_chain(const char *filen, int line);
+#define lock_jcr_chain() b_lock_jcr_chain(__FILE__, __LINE__);
+#define unlock_jcr_chain() b_unlock_jcr_chain(__FILE__, __LINE__);
+#else
+static void lock_jcr_chain();
+static void unlock_jcr_chain();
+#endif
+
 
 int num_jobs_run;
 dlist *last_jobs = NULL;
 const int max_last_jobs = 10;
  
 static dlist *jcrs = NULL;            /* JCR chain */
-static brwlock_t lock;                /* lock for last jobs and JCR chain */
+//static brwlock_t lock;                /* lock for last jobs and JCR chain */
+static pthread_mutex_t jcr_lock = PTHREAD_MUTEX_INITIALIZER;
+
+static pthread_mutex_t job_start_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+void lock_jobs()
+{
+   P(job_start_mutex);
+}
+
+void unlock_jobs()
+{
+   V(job_start_mutex);
+}
 
 void init_last_jobs_list()
 {
-   int errstat;
+// int errstat;
    JCR *jcr;
    struct s_last_job *job_entry = NULL;
    if (!last_jobs) {
       last_jobs = New(dlist(job_entry, &job_entry->link));
-      if ((errstat=rwl_init(&lock)) != 0) {
-         Emsg1(M_ABORT, 0, _("Unable to initialize jcr_chain lock. ERR=%s\n"),
-               strerror(errstat));
-      }
+//    if ((errstat=rwl_init(&lock)) != 0) {
+//       Emsg1(M_ABORT, 0, _("Unable to initialize jcr_chain lock. ERR=%s\n"),
+//             strerror(errstat));
+//    }
    }
    if (!jcrs) {
       jcrs = New(dlist(jcr, &jcr->link));
@@ -82,7 +104,7 @@ void term_last_jobs_list()
       }
       delete last_jobs;
       last_jobs = NULL;
-      rwl_destroy(&lock);
+//    rwl_destroy(&lock);
       delete jcrs;
    }
 }
@@ -228,12 +250,20 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    sigfillset(&sigtimer.sa_mask);
    sigaction(TIMEOUT_SIGNAL, &sigtimer, NULL);
 
+   /*
+    * Locking jobs is a global lock that is needed
+    * so that the Director can stop new jobs from being
+    * added to the jcr chain while it processes a new
+    * conf file and does the job_end_push().
+    */
+   lock_jobs();
    lock_jcr_chain();
    if (!jcrs) {
       jcrs = New(dlist(jcr, &jcr->link));
    }
    jcrs->append(jcr);
    unlock_jcr_chain();
+   unlock_jobs();
 
    return jcr;
 }
@@ -516,40 +546,42 @@ static int lock_count = 0;
  * Lock the chain
  */
 #ifdef TRACE_JCR_CHAIN
-void b_lock_jcr_chain(const char *fname, int line)
+static void b_lock_jcr_chain(const char *fname, int line)
 #else
-void lock_jcr_chain()
+static void lock_jcr_chain()
 #endif
 {
-   int errstat;
+// int errstat;
 #ifdef TRACE_JCR_CHAIN
    Dmsg3(3400, "Lock jcr chain %d from %s:%d\n", ++lock_count,
       fname, line);
 #endif
-   if ((errstat=rwl_writelock(&lock)) != 0) {
-      Emsg1(M_ABORT, 0, "rwl_writelock failure. ERR=%s\n",
-           strerror(errstat));
-   }
+// if ((errstat=rwl_writelock(&lock)) != 0) {
+//    Emsg1(M_ABORT, 0, "rwl_writelock failure. ERR=%s\n",
+//         strerror(errstat));
+// }
+   P(jcr_lock);
 }
 
 /*
  * Unlock the chain
  */
 #ifdef TRACE_JCR_CHAIN
-void b_unlock_jcr_chain(const char *fname, int line)
+static void b_unlock_jcr_chain(const char *fname, int line)
 #else
-void unlock_jcr_chain()
+static void unlock_jcr_chain()
 #endif
 {
-   int errstat;
+// int errstat;
 #ifdef TRACE_JCR_CHAIN
    Dmsg3(3400, "Unlock jcr chain %d from %s:%d\n", lock_count--,
       fname, line);
 #endif
-   if ((errstat=rwl_writeunlock(&lock)) != 0) {
-      Emsg1(M_ABORT, 0, "rwl_writeunlock failure. ERR=%s\n",
-           strerror(errstat));
-   }
+// if ((errstat=rwl_writeunlock(&lock)) != 0) {
+//    Emsg1(M_ABORT, 0, "rwl_writeunlock failure. ERR=%s\n",
+//         strerror(errstat));
+// }
+   V(jcr_lock);
 }
 
 
