@@ -229,7 +229,6 @@ int jobq_add(jobq_t *jq, JCR *jcr)
       sched_pkt = (wait_pkt *)malloc(sizeof(wait_pkt));
       sched_pkt->jcr = jcr;
       sched_pkt->jq = jq;
-//    jcr->use_count--;            /* release our use of jcr */
       stat = pthread_create(&id, &jq->attr, sched_wait, (void *)sched_pkt);        
       if (stat != 0) {                /* thread not created */
          berrno be;

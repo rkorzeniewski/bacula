@@ -86,16 +86,19 @@
 #define SD_READ   0
 
 /* Forward referenced structures */
-struct JCR;
+class JCR;
 struct FF_PKT;
 
 typedef void (JCR_free_HANDLER)(JCR *jcr);
 
 /* Job Control Record (JCR) */
-struct JCR {
+class JCR {
+public:
+   void inc_use_count(void) {P(mutex); use_count++; V(mutex); };
+   void dec_use_count(void) {P(mutex); use_count--; V(mutex); };
+
    /* Global part of JCR common to all daemons */
-   JCR *next;
-   JCR *prev;
+   dlink link;                        /* JCR chain link */
    volatile int use_count;            /* use count */
    pthread_t my_thread_id;            /* id of thread controlling jcr */
    pthread_mutex_t mutex;             /* jcr mutex */
@@ -306,7 +309,6 @@ extern dlist *last_jobs;
 /* The following routines are found in lib/jcr.c */
 extern bool init_jcr_subsystem(void);
 extern JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr);
-extern void free_locked_jcr(JCR *jcr);
 extern JCR *get_jcr_by_id(uint32_t JobId);
 extern JCR *get_jcr_by_session(uint32_t SessionId, uint32_t SessionTime);
 extern JCR *get_jcr_by_partial_name(char *Job);

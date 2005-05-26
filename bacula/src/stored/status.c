@@ -252,7 +252,6 @@ static void list_running_jobs(BSOCK *user)
    char b1[30], b2[30], b3[30];
 
    bnet_fsend(user, _("\nRunning Jobs:\n"));
-   lock_jcr_chain();
    foreach_jcr(jcr) {
       if (jcr->JobStatus == JS_WaitFD) {
          bnet_fsend(user, _("%s Job %s waiting for Client connection.\n"),
@@ -295,9 +294,8 @@ static void list_running_jobs(BSOCK *user)
          }
 #endif
       }
-      free_locked_jcr(jcr);
+      free_jcr(jcr);
    }
-   unlock_jcr_chain();
    if (!found) {
       bnet_fsend(user, _("No Jobs running.\n"));
    }
@@ -461,14 +459,12 @@ bool qstatus_cmd(JCR *jcr)
 
    if (strcmp(time.c_str(), "current") == 0) {
       bnet_fsend(dir, OKqstatus, time.c_str());
-      lock_jcr_chain();
       foreach_jcr(njcr) {
          if (njcr->JobId != 0) {
             bnet_fsend(dir, DotStatusJob, njcr->JobId, njcr->JobStatus, njcr->JobErrors);
          }
-         free_locked_jcr(njcr);
+         free_jcr(njcr);
       }
-      unlock_jcr_chain();
    }
    else if (strcmp(time.c_str(), "last") == 0) {
       bnet_fsend(dir, OKqstatus, time.c_str());

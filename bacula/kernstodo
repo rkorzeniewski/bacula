@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     20 May 2005
+                     26 May 2005
 
 Major development:      
 Project                     Developer
@@ -52,13 +52,9 @@ Document:
 - Document testing
 - Document that ChangerDevice is used for Alert command.
 - Document new CDROM directory.
+- Document Heartbeat Interval in the dealing with firewalls section.
 
 For 1.37:
-- From Chris Hull:
-   it seems to be complaining about 12:00pm which should be a valid 12
-   hour time.  I changed the time to 11:59am and everything works fine.
-   Also 12:00am works fine.  0:00pm also works (which I don't think
-   should).  None of the values 12:00pm - 12:59pm work for that matter.
 === rate design
   jcr->last_rate
   jcr->last_runtime
@@ -1284,3 +1280,9 @@ Block Position: 0
 - Add "limit=n" for "list jobs"
 - Make bootstrap filename unique.
 - Make Dmsg look at global before calling subroutine.
+- From Chris Hull:
+   it seems to be complaining about 12:00pm which should be a valid 12
+   hour time.  I changed the time to 11:59am and everything works fine.
+   Also 12:00am works fine.  0:00pm also works (which I don't think
+   should).  None of the values 12:00pm - 12:59pm work for that matter.
+

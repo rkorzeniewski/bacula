@@ -3,6 +3,18 @@
 
 General:
 
+Changes to 1.37.20:
+26May05
+- Make JCR a class and implement inc_use_count() and
+  dec_use_count() methods that ensure that the jcr is
+  locked when inc/dec the use count.
+- Remove the global jcr lock when traversing the jcr
+  chain.   
+- Use dlist to implement the jcr chain rather than hand
+  crafted next and prev links.
+- Lock the jcr chain inside each function that modifies
+  the chain.
+
 Changes to 1.37.19:
 26May05
 - Fix compile problem of ua_restore.c on broken compilers.

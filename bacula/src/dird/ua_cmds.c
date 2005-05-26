@@ -6,24 +6,18 @@
  *
  *   Version $Id$
  */
-
 /*
    Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -399,33 +393,29 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
    if (!jcr) {
       char buf[1000];
       /* Count Jobs running */
-      lock_jcr_chain();
       foreach_jcr(jcr) {
          if (jcr->JobId == 0) {      /* this is us */
-            free_locked_jcr(jcr);
+            free_jcr(jcr);
             continue;
          }
-         free_locked_jcr(jcr);
+         free_jcr(jcr);
          njobs++;
       }
-      unlock_jcr_chain();
 
       if (njobs == 0) {
          bsendmsg(ua, _("No Jobs running.\n"));
          return 1;
       }
       start_prompt(ua, _("Select Job:\n"));
-      lock_jcr_chain();
       foreach_jcr(jcr) {
          if (jcr->JobId == 0) {      /* this is us */
-            free_locked_jcr(jcr);
+            free_jcr(jcr);
             continue;
          }
          bsnprintf(buf, sizeof(buf), "JobId=%d Job=%s", jcr->JobId, jcr->Job);
          add_prompt(ua, buf);
-         free_locked_jcr(jcr);
+         free_jcr(jcr);
       }
-      unlock_jcr_chain();
 
       if (do_prompt(ua, _("Job"),  _("Choose Job to cancel"), buf, sizeof(buf)) < 0) {
          return 1;
@@ -1355,16 +1345,14 @@ int wait_cmd(UAContext *ua, const char *cmd)
    bmicrosleep(0, 200000);            /* let job actually start */
    for (bool running=true; running; ) {
       running = false;
-      lock_jcr_chain();
       foreach_jcr(jcr) {
          if (jcr->JobId != 0) {
             running = true;
-            free_locked_jcr(jcr);
+            free_jcr(jcr);
             break;
          }
-         free_locked_jcr(jcr);
+         free_jcr(jcr);
       }
-      unlock_jcr_chain();
       if (running) {
          bmicrosleep(1, 0);
       }
