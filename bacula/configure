@@ -21308,7 +21308,7 @@ bsdi)
 	TAPEDRIVE="/dev/nrmt0"
 	PTHREAD_LIB="-pthread"
 	CFLAGS="${CFLAGS} -pthread"
-	PSCMD="ps -x -o pid,command"
+	PSCMD="ps -ax -o pid,command"
 	lld="qd"
 	llu="qu"
 	PFILES="${PFILES} \
@@ -21348,7 +21348,7 @@ freebsd)
 	lld="qd"
 	llu="qu"
 	TAPEDRIVE="/dev/nrsa0"
-	PSCMD="ps -x -o pid,command"
+	PSCMD="ps -ax -o pid,command"
 	PFILES="${PFILES} \
 	    platforms/freebsd/Makefile \
 	    platforms/freebsd/bacula-fd \
@@ -21382,7 +21382,7 @@ netbsd)
 	lld="qd"
 	llu="qu"
 	TAPEDRIVE="/dev/nrst0"
-	PSCMD="ps -a -o pid,command"
+	PSCMD="ps -ax -o pid,command"
 	PTHREAD_LIB="-pthread"
 	CFLAGS="${CFLAGS} -pthread"
   ;;
