@@ -7,6 +7,7 @@ Changes to 1.37.19:
 26May05
 - Fix compile problem of ua_restore.c on broken compilers.
 - Apply patch from bug 326 to permit bacula status by any user.
+- Fix bug 325 -- conversion of 12:30pm to 24hour time.
 25May05
 - Put Dmsg() on inside if() to avoid calling subroutine.
 - Make restore.bsr have unique name.
