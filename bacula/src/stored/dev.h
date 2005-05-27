@@ -215,7 +215,7 @@ public:
    uint64_t max_file_size;            /* max file size to put in one file on volume */
    uint64_t volume_capacity;          /* advisory capacity */
    uint64_t max_spool_size;           /* maximum spool file size */
-   uint64_t spool_size;               /* current spool size */
+   uint64_t spool_size;               /* current spool size for this device */
    uint32_t max_rewind_wait;          /* max secs to allow for rewind */
    uint32_t max_open_wait;            /* max secs to allow for open */
    uint32_t max_open_vols;            /* max simultaneous open volumes */
@@ -342,8 +342,8 @@ public:
    uint32_t StartFile;                /* Start write file */
    uint32_t StartBlock;               /* Start write block */
    uint32_t EndBlock;                 /* Ending block written */
-   int64_t spool_size;                /* Current spool size */
-   int64_t max_spool_size;            /* Max job spool size */
+   int64_t job_spool_size;            /* Current job spool size */
+   int64_t max_job_spool_size;        /* Max job spool size */
    char VolumeName[MAX_NAME_LENGTH];  /* Volume name */
    char pool_name[MAX_NAME_LENGTH];   /* pool name */
    char pool_type[MAX_NAME_LENGTH];   /* pool type */

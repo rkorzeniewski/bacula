@@ -5,24 +5,18 @@
  *
  *   Version $Id$
  */
-
 /*
    Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -353,22 +347,22 @@ void free_resource(RES *sres, int type)
          free_tls_context(res->res_dir.tls_ctx);
       }
       if (res->res_dir.tls_ca_certfile) {
-	 free(res->res_dir.tls_ca_certfile);
+         free(res->res_dir.tls_ca_certfile);
       }
       if (res->res_dir.tls_ca_certdir) {
-	 free(res->res_dir.tls_ca_certdir);
+         free(res->res_dir.tls_ca_certdir);
       }
       if (res->res_dir.tls_certfile) {
-	 free(res->res_dir.tls_certfile);
+         free(res->res_dir.tls_certfile);
       }
       if (res->res_dir.tls_keyfile) {
-	 free(res->res_dir.tls_keyfile);
+         free(res->res_dir.tls_keyfile);
       }
       if (res->res_dir.tls_dhfile) {
-	 free(res->res_dir.tls_dhfile);
+         free(res->res_dir.tls_dhfile);
       }
       if (res->res_dir.tls_allowed_cns) {
-	 delete res->res_dir.tls_allowed_cns;
+         delete res->res_dir.tls_allowed_cns;
       }
 #endif /* HAVE_TLS */
       break;
@@ -407,22 +401,22 @@ void free_resource(RES *sres, int type)
          free_tls_context(res->res_store.tls_ctx);
       }
       if (res->res_store.tls_ca_certfile) {
-	 free(res->res_store.tls_ca_certfile);
+         free(res->res_store.tls_ca_certfile);
       }
       if (res->res_store.tls_ca_certdir) {
-	 free(res->res_store.tls_ca_certdir);
+         free(res->res_store.tls_ca_certdir);
       }
       if (res->res_store.tls_certfile) {
-	 free(res->res_store.tls_certfile);
+         free(res->res_store.tls_certfile);
       }
       if (res->res_store.tls_keyfile) {
-	 free(res->res_store.tls_keyfile);
+         free(res->res_store.tls_keyfile);
       }
       if (res->res_store.tls_dhfile) {
-	 free(res->res_store.tls_dhfile);
+         free(res->res_store.tls_dhfile);
       }
       if (res->res_store.tls_allowed_cns) {
-	 delete res->res_store.tls_allowed_cns;
+         delete res->res_store.tls_allowed_cns;
       }
 #endif /* HAVE_TLS */
       break;
@@ -531,7 +525,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
             Emsg1(M_ERROR_TERM, 0, "Cannot find Director resource \"%s\"\n", res_all.res_dir.hdr.name);
          }
 #ifdef HAVE_TLS
-	 res->res_dir.tls_allowed_cns = res_all.res_dir.tls_allowed_cns;
+         res->res_dir.tls_allowed_cns = res_all.res_dir.tls_allowed_cns;
 #endif
          break;
       case R_STORAGE:
@@ -540,7 +534,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
          }
          res->res_store.messages = res_all.res_store.messages;
 #ifdef HAVE_TLS
-	 res->res_store.tls_allowed_cns = res_all.res_store.tls_allowed_cns;
+         res->res_store.tls_allowed_cns = res_all.res_store.tls_allowed_cns;
 #endif
          break;
       case R_AUTOCHANGER:
