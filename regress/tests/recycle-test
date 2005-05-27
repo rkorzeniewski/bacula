@@ -16,7 +16,8 @@ echo " === Starting recycle-test at `date +%R:%S` ==="
 echo " === Starting recycle-test at `date +%R:%S` ===" >working/log
 echo " "
 
-bin/bacula start 2>&1 >/dev/null
+#bin/bacula start 2>&1 >/dev/null
+bin/bacula start
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
 @output /dev/null
 messages

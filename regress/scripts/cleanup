@@ -9,6 +9,7 @@ rm -rf /tmp/sed_tmp /tmp/file-list
 rm -rf tmp/build tmp/restore-list tmp/restore2-list
 rm -rf tmp/fd.out tmp/dir.out tmp/sd.out
 rm -rf working/log tmp/TEST-*
+rm -rf working/*restore*.bsr
 
 bin/bacula stop 2>&1 >/dev/null
 cd bin

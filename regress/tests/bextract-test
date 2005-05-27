@@ -30,7 +30,7 @@ messages
 @# now build the bsr file
 @#
 @output tmp/log2.out
-restore where=${cwd}/tmp/bacula-restores select all storage=File1 done
+restore bootstrap=${cwd}/working/restore.bsr where=${cwd}/tmp/bacula-restores select all storage=File1 done
 no
 wait
 messages
