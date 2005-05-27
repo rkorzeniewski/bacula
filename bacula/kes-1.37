@@ -4,6 +4,8 @@
 General:
 
 Changes to 1.37.20:
+27May05
+- Implement Maximum Job Spool Size (actually DCR based)
 26May05
 - Use light weight non-recursive locking on jcr chain.
 - Make JCR a class and implement inc_use_count() and

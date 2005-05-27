@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     26 May 2005
+                     27 May 2005
 
 Major development:      
 Project                     Developer
@@ -68,8 +68,6 @@ For 1.37:
 - Upgrade to MySQL 4.1.1 See:  
   http://dev.mysql.com/doc/mysql/en/Server_SQL_mode.html
 - Max Vols limit in Pool off by one?
-- Require restore via the restore command or make a restore Job
-  get the bootstrap file.
 - Make bootstrap file handle multiple MediaTypes (SD)
 - Test restoring into a user restricted directory on Win32 -- see
   bug report.
@@ -88,7 +86,6 @@ For 1.37:
     it can check if Clients are alive.
 
 - Implement "NewVolumeEachJob = yes|no" in Dir.
-- Implement Maximum Job Spool Size
 - Remove all old Device resource code in Dir and code to pass it
   back in SD -- better, rework it to pass back device statistics.
 - Check locking of resources -- be sure to lock devices where previously
@@ -1285,4 +1282,7 @@ Block Position: 0
    hour time.  I changed the time to 11:59am and everything works fine.
    Also 12:00am works fine.  0:00pm also works (which I don't think
    should).  None of the values 12:00pm - 12:59pm work for that matter.
+- Require restore via the restore command or make a restore Job
+  get the bootstrap file.
+- Implement Maximum Job Spool Size
 
