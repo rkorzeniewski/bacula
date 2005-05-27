@@ -28,9 +28,9 @@ echo " "
 
 bin/bacula start 2>&1 >/dev/null
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
-@output /dev/null
+@tee /dev/null
 messages
-@output tmp/log1.out
+@tee tmp/log1.out
 label storage=File
 TestVolume001
 run job=NightlySave
@@ -40,7 +40,7 @@ messages
 @# 
 @# now do a restore
 @#
-@output tmp/log2.out
+@tee tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select storage=File
 unmark *
 mark *
@@ -48,7 +48,7 @@ done
 yes
 wait
 messages
-@output
+@tee
 quit
 END_OF_DATA
 scripts/check_for_zombie_jobs storage=File 

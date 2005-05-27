@@ -1,6 +1,3 @@
-/build/doc/Makefile.in
-/build/doc/latex/bacula.tex
-/build/doc/images/win32-welcome.pdf
 /build/configure
 /build/src/stored/bextract
 /build/src/tools/testfind
@@ -16,3 +13,6 @@
 /build/src/filed/win32/bin/cygwin1.dll
 /build/src/filed/win32/winservice.cpp
 /build/src/filed/restore.c
+/build/autoconf/configure.in
+/build/examples/afs-bacula
+/build/src/win32/winbacula.nsi.in
