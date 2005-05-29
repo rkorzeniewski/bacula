@@ -4,6 +4,9 @@
 General:
 
 Changes to 1.37.20:
+29May05
+- Remove old code in jcr.c
+- Make testls release jcr chain when terminating.
 27May05
 - Implement Maximum Job Spool Size (actually DCR based)
 26May05
