@@ -62,7 +62,6 @@ dlist *last_jobs = NULL;
 const int max_last_jobs = 10;
  
 static dlist *jcrs = NULL;            /* JCR chain */
-//static brwlock_t lock;                /* lock for last jobs and JCR chain */
 static pthread_mutex_t jcr_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static pthread_mutex_t job_start_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -79,15 +78,10 @@ void unlock_jobs()
 
 void init_last_jobs_list()
 {
-// int errstat;
    JCR *jcr;
    struct s_last_job *job_entry = NULL;
    if (!last_jobs) {
       last_jobs = New(dlist(job_entry, &job_entry->link));
-//    if ((errstat=rwl_init(&lock)) != 0) {
-//       Emsg1(M_ABORT, 0, _("Unable to initialize jcr_chain lock. ERR=%s\n"),
-//             strerror(errstat));
-//    }
    }
    if (!jcrs) {
       jcrs = New(dlist(jcr, &jcr->link));
@@ -104,8 +98,10 @@ void term_last_jobs_list()
       }
       delete last_jobs;
       last_jobs = NULL;
-//    rwl_destroy(&lock);
+   }
+   if (jcrs) {
       delete jcrs;
+      jcrs = NULL;
    }
 }
 
@@ -551,15 +547,10 @@ static void b_lock_jcr_chain(const char *fname, int line)
 static void lock_jcr_chain()
 #endif
 {
-// int errstat;
 #ifdef TRACE_JCR_CHAIN
    Dmsg3(3400, "Lock jcr chain %d from %s:%d\n", ++lock_count,
       fname, line);
 #endif
-// if ((errstat=rwl_writelock(&lock)) != 0) {
-//    Emsg1(M_ABORT, 0, "rwl_writelock failure. ERR=%s\n",
-//         strerror(errstat));
-// }
    P(jcr_lock);
 }
 
@@ -572,15 +563,10 @@ static void b_unlock_jcr_chain(const char *fname, int line)
 static void unlock_jcr_chain()
 #endif
 {
-// int errstat;
 #ifdef TRACE_JCR_CHAIN
    Dmsg3(3400, "Unlock jcr chain %d from %s:%d\n", lock_count--,
       fname, line);
 #endif
-// if ((errstat=rwl_writeunlock(&lock)) != 0) {
-//    Emsg1(M_ABORT, 0, "rwl_writeunlock failure. ERR=%s\n",
-//         strerror(errstat));
-// }
    V(jcr_lock);
 }
 
