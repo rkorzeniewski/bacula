@@ -22,6 +22,7 @@
 
  */
 
+#include "bacula.h"
 #include "stored.h"
 #include "findlib/find.h"
 

@@ -7,19 +7,14 @@
    Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -47,7 +42,7 @@
 #include "jcr.h"
 #include "protos.h"
 #ifdef HAVE_LIBZ
-#include <zlib.h>		      /* compression headers */
+#include <zlib.h>                     /* compression headers */
 #else
 #define uLongf uint32_t
 #endif
@@ -66,9 +61,9 @@ int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
 
 /* Daemon globals from stored.c */
 extern STORES *me;                    /* "Global" daemon resource */
-extern bool forge_on;		      /* proceed inspite of I/O errors */
+extern bool forge_on;                 /* proceed inspite of I/O errors */
 extern pthread_mutex_t device_release_mutex;
-extern pthread_cond_t wait_device_release; /* wait for any device to be released */			      
+extern pthread_cond_t wait_device_release; /* wait for any device to be released */                           
 
 #ifdef debug_tracing
 extern int _rewind_dev(char *file, int line, DEVICE *dev);

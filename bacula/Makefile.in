@@ -195,11 +195,8 @@ distclean:
 	@$(RMF) bacula fd Makefile startmysql stopmysql startit stopit btraceback
 	@$(RMF) bconsole gconsole
 	@$(RMF) *~ 1 2 3 core core.* config.guess console.log console.sum
-	@$(RMF) working/*
-#	@$(RMF) -r examples/devices/CVS autoconf/CVS autoconf/gnome-macros/CVS
-#	@$(RMF) -r examples/CVS intl/CVS scripts/CVS
-#	@$(RMF) -r po/CVS src/immortal/CVS rescue/freebsd/CVS rescue/solaris/CVS
-#	@$(RMF) -r CVS src/gnome-console/CVS src/tconsole/CVS
+	@$(RMF) working/* kerns-* 
+	@$(RMF) -rf txt diff src/python src/testprogs
 
 devclean:
 	@for I in $(all_subdirs); do (cd $$I; $(MAKE) $@ || exit 1); done

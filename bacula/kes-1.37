@@ -4,6 +4,10 @@
 General:
 
 Changes to 1.37.20:
+30May05
+- Fix bextract.c compile problem
+- Create bacula.man 
+- Make make distclean clean a bit better
 29May05
 - Remove old code in jcr.c
 - Make testls release jcr chain when terminating.
