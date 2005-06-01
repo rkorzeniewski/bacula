@@ -70,11 +70,11 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
 #ifdef HAVE_TLS
       /* TLS Requirement */
       if (cons->tls_enable) {
-	 if (cons->tls_require) {
-	    tls_local_need = BNET_TLS_REQUIRED;
-	 } else {
-	    tls_local_need = BNET_TLS_OK;
-	 }
+         if (cons->tls_require) {
+            tls_local_need = BNET_TLS_REQUIRED;
+         } else {
+            tls_local_need = BNET_TLS_OK;
+         }
       }
 
       tls_ctx = cons->tls_ctx;
@@ -85,11 +85,11 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
 #ifdef HAVE_TLS
       /* TLS Requirement */
       if (director->tls_enable) {
-	 if (director->tls_require) {
-	    tls_local_need = BNET_TLS_REQUIRED;
-	 } else {
-	    tls_local_need = BNET_TLS_OK;
-	 }
+         if (director->tls_require) {
+            tls_local_need = BNET_TLS_REQUIRED;
+         } else {
+            tls_local_need = BNET_TLS_OK;
+         }
       }
 
       tls_ctx = director->tls_ctx;
@@ -131,9 +131,9 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
    if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
       /* Engage TLS! Full Speed Ahead! */
       if (!bnet_tls_client(tls_ctx, dir)) {
-	 sendit(_("TLS negotiation failed\n"));
-	 auth_success = false;
-	 goto auth_done;
+         sendit(_("TLS negotiation failed\n"));
+         auth_success = false;
+         goto auth_done;
       }
       auth_success = true;
    }
@@ -144,9 +144,9 @@ auth_done:
    if (!auth_success) {
       stop_bsock_timer(tid);
       sendit( _("Director authorization problem.\n"
-	     "Most likely the passwords do not agree.\n"
-	     "If you are using TLS, there may have been a certificate validation error during the TLS handshake.\n"
-	     "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"));
+             "Most likely the passwords do not agree.\n"
+             "If you are using TLS, there may have been a certificate validation error during the TLS handshake.\n"
+             "Please see http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors for help.\n"));
       return 0;
    }
 
@@ -158,7 +158,7 @@ auth_done:
    if (bnet_recv(dir) <= 0) {
       stop_bsock_timer(tid);
       senditf(_("Bad response to Hello command: ERR=%s\n"),
-	 bnet_strerror(dir));
+         bnet_strerror(dir));
       senditf(_("If you are using TLS, it is possible that your client"
               " certificate was not accepted. Check the server messages.\n"));
       return 0;

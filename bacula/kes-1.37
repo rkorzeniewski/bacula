@@ -4,6 +4,18 @@
 General:
 
 Changes to 1.37.20:
+01Jun05
+- Add more documentation to mtx-changer.in
+- Correct link to manual in authenticate.c in various
+  directories.
+- Create a new src/stored/reserve.c file where the 
+  Use Storage command is processed and drives are
+  reserved.
+- Modify src/stored/autochanger.c to keep track of each
+  Slot that is loaded for each device.
+- Ensure that changer_command and changer_name are picked
+  up from Autochanger resource if not specified, and if
+  neither is specified, err.
 30May05
 - Fix bextract.c compile problem
 - Create bacula.man 

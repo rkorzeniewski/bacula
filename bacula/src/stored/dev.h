@@ -199,7 +199,8 @@ public:
    bool autoselect;                   /* Autoselect in autochanger */
    bool open_nowait;                  /* If set, don t wait on open */
    int label_type;                    /* Bacula/ANSI/IBM label types */
-   uint32_t drive_index;              /* Autochanger drive index */
+   uint32_t drive_index;              /* Autochanger drive index (base 0) */
+   int32_t  Slot;                     /* Slot currently in drive (base 1) */
    POOLMEM *dev_name;                 /* Physical device name */
    POOLMEM *prt_name;                 /* Name used for display purposes */
    char *errmsg;                      /* nicely edited error message */
@@ -239,10 +240,6 @@ public:
    VOLUME_LABEL VolHdr;               /* Actual volume label */
    char pool_name[MAX_NAME_LENGTH];   /* pool name */
    char pool_type[MAX_NAME_LENGTH];   /* pool type */
-
-
-
-
 
    /* Device wait times ***FIXME*** look at durations */
    char BadVolName[MAX_NAME_LENGTH];  /* Last wrong Volume mounted */

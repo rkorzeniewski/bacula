@@ -13,19 +13,14 @@
    Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -406,10 +401,34 @@ static int check_resources()
       DEVRES *device;
       char *media_type = NULL;
       foreach_alist(device, changer->device) {
+         /*
+          * If the device does not have a changer name or changer command
+          *   defined, used the one from the Autochanger resource 
+          */
+         if (!device->changer_name && changer->changer_name) {
+            device->changer_name = bstrdup(changer->changer_name);
+         }
+         if (!device->changer_command && changer->changer_command) {
+            device->changer_command = bstrdup(changer->changer_command);
+         }
+         if (!device->changer_name) {
+            Jmsg(NULL, M_ERROR, 0, 
+               _("No Changer Name given for device %s. Cannot continue.\n"),
+               device->hdr.name);
+            OK = false;
+         }   
+         if (!device->changer_command) {
+            Jmsg(NULL, M_ERROR, 0, 
+               _("No Changer Command given for device %s. Cannot continue.\n"),
+               device->hdr.name);
+            OK = false;
+         }   
+
          if (media_type == NULL) {
-            media_type = device->media_type;
+            media_type = device->media_type;     /* get Media Type of first device */
             continue;
          }     
+         /* Ensure that other devices Media Types are the same */
          if (strcmp(media_type, device->media_type) != 0) {
             Jmsg(NULL, M_ERROR, 0, 
                _("Media Type not the same for all devices in changer %s. Cannot continue.\n"),
@@ -417,21 +436,9 @@ static int check_resources()
             OK = false;
             continue;
          }
-         /*
-          * If the device does not have a changer name or changer command
-          * defined, used the one from the Autochanger resource 
-          */
-         if (!device->changer_name) {
-            device->changer_name = bstrdup(changer->changer_name);
-         }
-         if (!device->changer_command) {
-            device->changer_command = bstrdup(changer->changer_command);
-         }
       }
    }
    
-// UnlockRes();
-
    if (OK) {
       close_msg(NULL);                   /* close temp message handler */
       init_msg(NULL, me->messages);      /* open daemon message handler */
