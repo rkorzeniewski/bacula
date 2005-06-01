@@ -76,7 +76,7 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
       stop_bsock_timer(tid);
       csprint("Director authorization problem.\nMost likely the passwords do not agree.\n", CS_DATA);
       csprint(
-       "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n", CS_DATA);
+       "Please see http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors for help.\n", CS_DATA);
       return 0;
    }
 
@@ -98,4 +98,3 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
    }
    return 1;
 }
-

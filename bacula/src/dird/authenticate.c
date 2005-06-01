@@ -78,9 +78,9 @@ bool authenticate_storage_daemon(JCR *jcr, STORE *store)
    /* TLS Requirement */
    if (store->tls_enable) {
      if (store->tls_require) {
-	tls_local_need = BNET_TLS_REQUIRED;
+        tls_local_need = BNET_TLS_REQUIRED;
      } else {
-	tls_local_need = BNET_TLS_OK;
+        tls_local_need = BNET_TLS_OK;
      }
    }
 #endif
@@ -89,7 +89,7 @@ bool authenticate_storage_daemon(JCR *jcr, STORE *store)
    if (auth_success) {
       auth_success = cram_md5_auth(sd, store->password, tls_local_need);
       if (!auth_success) {
-	 Dmsg1(50, "cram_auth failed for %s\n", sd->who);
+         Dmsg1(50, "cram_auth failed for %s\n", sd->who);
       }
    } else {
       Dmsg1(50, "cram_get_auth failed for %s\n", sd->who);
@@ -99,11 +99,11 @@ bool authenticate_storage_daemon(JCR *jcr, STORE *store)
       stop_bsock_timer(tid);
       Dmsg0(50, _("Director and Storage daemon passwords or names not the same.\n"));
       Jmsg0(jcr, M_FATAL, 0,
-	    _("Unable to authenticate with Storage daemon. Possible causes:\n"
-	    "Passwords or names not the same or\n"
-	    "Maximum Concurrent Jobs exceeded on the SD or\n"
-	    "SD networking messed up (restart daemon).\n"
-	    "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"));
+            _("Unable to authenticate with Storage daemon. Possible causes:\n"
+            "Passwords or names not the same or\n"
+            "Maximum Concurrent Jobs exceeded on the SD or\n"
+            "SD networking messed up (restart daemon).\n"
+            "Please see http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors for help.\n"));
       return 0;
    }
 
@@ -126,9 +126,9 @@ bool authenticate_storage_daemon(JCR *jcr, STORE *store)
    if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
       /* Engage TLS! Full Speed Ahead! */
       if (!bnet_tls_client(store->tls_ctx, sd)) {
-	 stop_bsock_timer(tid);
-	 Jmsg(jcr, M_FATAL, 0, _("TLS negotiation failed.\n"));
-	 return 0;
+         stop_bsock_timer(tid);
+         Jmsg(jcr, M_FATAL, 0, _("TLS negotiation failed.\n"));
+         return 0;
       }
    }
 #endif
@@ -137,7 +137,7 @@ bool authenticate_storage_daemon(JCR *jcr, STORE *store)
    if (bnet_recv(sd) <= 0) {
       stop_bsock_timer(tid);
       Jmsg1(jcr, M_FATAL, 0, _("bdird<stored: bad response to Hello command: ERR=%s\n"),
-	 bnet_strerror(sd));
+         bnet_strerror(sd));
       return 0;
    }
    Dmsg1(110, "<stored: %s", sd->msg);
@@ -179,9 +179,9 @@ int authenticate_file_daemon(JCR *jcr)
    /* TLS Requirement */
    if (client->tls_enable) {
      if (client->tls_require) {
-	tls_local_need = BNET_TLS_REQUIRED;
+        tls_local_need = BNET_TLS_REQUIRED;
      } else {
-	tls_local_need = BNET_TLS_OK;
+        tls_local_need = BNET_TLS_OK;
      }
    }
 #endif
@@ -190,7 +190,7 @@ int authenticate_file_daemon(JCR *jcr)
    if (auth_success) {
       auth_success = cram_md5_auth(fd, client->password, tls_local_need);
       if (!auth_success) {
-	 Dmsg1(50, "cram_auth failed for %s\n", fd->who);
+         Dmsg1(50, "cram_auth failed for %s\n", fd->who);
       }
    } else {
       Dmsg1(50, "cram_get_auth failed for %s\n", fd->who);
@@ -199,11 +199,11 @@ int authenticate_file_daemon(JCR *jcr)
       stop_bsock_timer(tid);
       Dmsg0(50, _("Director and File daemon passwords or names not the same.\n"));
       Jmsg(jcr, M_FATAL, 0,
-	    _("Unable to authenticate with File daemon. Possible causes:\n"
-	    "Passwords or names not the same or\n"
-	    "Maximum Concurrent Jobs exceeded on the FD or\n"
-	    "FD networking messed up (restart daemon).\n"
-	    "Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors for help.\n"));
+            _("Unable to authenticate with File daemon. Possible causes:\n"
+            "Passwords or names not the same or\n"
+            "Maximum Concurrent Jobs exceeded on the FD or\n"
+            "FD networking messed up (restart daemon).\n"
+            "Please see http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors for help.\n"));
       return 0;
    }
 
@@ -226,9 +226,9 @@ int authenticate_file_daemon(JCR *jcr)
    if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
       /* Engage TLS! Full Speed Ahead! */
       if (!bnet_tls_client(client->tls_ctx, fd)) {
-	 stop_bsock_timer(tid);
-	 Jmsg(jcr, M_FATAL, 0, _("TLS negotiation failed.\n"));
-	 return 0;
+         stop_bsock_timer(tid);
+         Jmsg(jcr, M_FATAL, 0, _("TLS negotiation failed.\n"));
+         return 0;
       }
    }
 #endif
@@ -237,9 +237,9 @@ int authenticate_file_daemon(JCR *jcr)
    if (bnet_recv(fd) <= 0) {
       stop_bsock_timer(tid);
       Dmsg1(50, _("Bad response from File daemon to Hello command: ERR=%s\n"),
-	 bnet_strerror(fd));
+         bnet_strerror(fd));
       Jmsg(jcr, M_FATAL, 0, _("Bad response from File daemon to Hello command: ERR=%s\n"),
-	 bnet_strerror(fd));
+         bnet_strerror(fd));
       return 0;
    }
    Dmsg1(110, "<stored: %s", fd->msg);
@@ -270,21 +270,21 @@ int authenticate_user_agent(UAContext *uac)
  
 
 //  Emsg4(M_INFO, 0, _("UA Hello from %s:%s:%d is invalid. Len=%d\n"), ua->who,
-//	    ua->host, ua->port, ua->msglen);
+//          ua->host, ua->port, ua->msglen);
    if (ua->msglen < 16 || ua->msglen >= MAX_NAME_LENGTH + 15) {
       Emsg4(M_ERROR, 0, _("UA Hello from %s:%s:%d is invalid. Len=%d\n"), ua->who,
-	    ua->host, ua->port, ua->msglen);
+            ua->host, ua->port, ua->msglen);
       return 0;
    }
 
    if (sscanf(ua->msg, "Hello %127s calling\n", name) != 1) {
-      ua->msg[100] = 0; 	      /* terminate string */
+      ua->msg[100] = 0;               /* terminate string */
       Emsg4(M_ERROR, 0, _("UA Hello from %s:%s:%d is invalid. Got: %s\n"), ua->who,
-	    ua->host, ua->port, ua->msg);
+            ua->host, ua->port, ua->msg);
       return 0;
    }
 
-   name[sizeof(name)-1] = 0;		 /* terminate name */
+   name[sizeof(name)-1] = 0;             /* terminate name */
    if (strcmp(name, "*UserAgent*") == 0) {  /* default console */
 #ifdef HAVE_TLS
       /* TLS Requirement */
@@ -292,7 +292,7 @@ int authenticate_user_agent(UAContext *uac)
          if (director->tls_require) {
             tls_local_need = BNET_TLS_REQUIRED;
          } else {
-	    tls_local_need = BNET_TLS_OK;
+            tls_local_need = BNET_TLS_OK;
          }
       }
 
@@ -302,35 +302,35 @@ int authenticate_user_agent(UAContext *uac)
 #endif /* HAVE_TLS */
 
       auth_success = cram_md5_auth(ua, director->password, tls_local_need) &&
-	   cram_md5_get_auth(ua, director->password, &tls_remote_need);
+           cram_md5_get_auth(ua, director->password, &tls_remote_need);
    } else {
       unbash_spaces(name);
       cons = (CONRES *)GetResWithName(R_CONSOLE, name);
       if (cons) {
 #ifdef HAVE_TLS
-	 /* TLS Requirement */
+         /* TLS Requirement */
          if (cons->tls_enable) {
             if (cons->tls_require) {
-	       tls_local_need = BNET_TLS_REQUIRED;
+               tls_local_need = BNET_TLS_REQUIRED;
             } else {
-	       tls_local_need = BNET_TLS_OK;
+               tls_local_need = BNET_TLS_OK;
             }
          }
 
-	 if (cons->tls_verify_peer) {
+         if (cons->tls_verify_peer) {
             verify_list = cons->tls_allowed_cns;
-	 }
+         }
 #endif /* HAVE_TLS */
 
-	 auth_success = cram_md5_auth(ua, cons->password, tls_local_need) &&
-	      cram_md5_get_auth(ua, cons->password, &tls_remote_need);
+         auth_success = cram_md5_auth(ua, cons->password, tls_local_need) &&
+              cram_md5_get_auth(ua, cons->password, &tls_remote_need);
 
-	 if (auth_success) {
-	    uac->cons = cons;	      /* save console resource pointer */
-	 }
+         if (auth_success) {
+            uac->cons = cons;         /* save console resource pointer */
+         }
       } else {
-	 auth_success = false;
-	 goto auth_done;
+         auth_success = false;
+         goto auth_done;
       }
    }
 
@@ -353,16 +353,16 @@ int authenticate_user_agent(UAContext *uac)
 #ifdef HAVE_TLS
    if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
       if (cons) {
-	 tls_ctx = cons->tls_ctx;
+         tls_ctx = cons->tls_ctx;
       } else {
-	 tls_ctx = director->tls_ctx;
+         tls_ctx = director->tls_ctx;
       }
 
       /* Engage TLS! Full Speed Ahead! */
       if (!bnet_tls_server(tls_ctx, ua, verify_list)) {
-	 Emsg0(M_ERROR, 0, "TLS negotiation failed.\n");
-	 auth_success = false;
-	 goto auth_done;
+         Emsg0(M_ERROR, 0, "TLS negotiation failed.\n");
+         auth_success = false;
+         goto auth_done;
       }
    }
 #endif /* HAVE_TLS */
@@ -373,7 +373,7 @@ auth_done:
    if (!auth_success) {
       bnet_fsend(ua, "%s", _(Dir_sorry));
       Emsg4(M_ERROR, 0, _("Unable to authenticate console \"%s\" at %s:%s:%d.\n"),
-	    name, ua->who, ua->host, ua->port);
+            name, ua->who, ua->host, ua->port);
       sleep(5);
       return 0;
    }

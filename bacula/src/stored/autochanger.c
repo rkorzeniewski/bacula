@@ -7,22 +7,17 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2002-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -60,7 +55,7 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
    slot = dcr->VolCatInfo.InChanger ? dcr->VolCatInfo.Slot : 0;
    /*
     * Handle autoloaders here.  If we cannot autoload it, we
-    *  will return FALSE to ask the sysop.
+    *  will return 0 so that the sysop will be asked to load it.
     */
    if (writing && dev_cap(dev, CAP_AUTOCHANGER) && slot <= 0) {
       if (dir) {
@@ -102,8 +97,9 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
                Jmsg(jcr, M_FATAL, 0, _("3992 Bad autochanger \"unload slot %d, drive %d\": ERR=%s.\n"),
                     slot, drive, be.strerror());
                goto bail_out;
+            } else {
+               dev->Slot = 0;            /* nothing loaded now */
             }
-
             Dmsg1(400, "unload status=%d\n", status);
          }
          /*
@@ -120,6 +116,7 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
          if (status == 0) {
             Jmsg(jcr, M_INFO, 0, _("3305 Autochanger \"load slot %d, drive %d\", status is OK.\n"),
                     slot, drive);
+            dev->Slot = slot;         /* set currently loaded slot */
          } else {
            berrno be;
            be.set_errno(status);
@@ -131,6 +128,7 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
          Dmsg2(400, "load slot %d status=%d\n", slot, status);
       } else {
          status = 0;                  /* we got what we want */
+         dev->Slot = slot;            /* set currently loaded slot */
       }
       Dmsg1(400, "After changer, status=%d\n", status);
       if (status == 0) {              /* did we succeed? */
@@ -174,9 +172,11 @@ static int get_autochanger_loaded_slot(DCR *dcr)
       if (loaded > 0) {
          Jmsg(jcr, M_INFO, 0, _("3302 Autochanger \"loaded drive %d\", result is Slot %d.\n"),
               drive, loaded);
+         dcr->dev->Slot = loaded;
       } else {
          Jmsg(jcr, M_INFO, 0, _("3302 Autochanger \"loaded drive %d\", result: nothing loaded.\n"),
               drive);
+         dcr->dev->Slot = 0;
       }
    } else {
       berrno be;
@@ -261,6 +261,8 @@ bool autochanger_cmd(DCR *dcr, BSOCK *dir, const char *cmd)
             be.set_errno(stat);
             Jmsg(jcr, M_INFO, 0, _("3995 Bad autochanger \"unload slot %d, drive %d\": ERR=%s.\n"),
                     slot, drive, be.strerror());
+         } else {
+            dev->Slot = 0;            /* nothing loaded */
          }
          dcr->VolCatInfo.Slot = slot;
       }

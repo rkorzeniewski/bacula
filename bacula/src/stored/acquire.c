@@ -23,8 +23,6 @@
 #include "bacula.h"                   /* pull in global headers */
 #include "stored.h"                   /* pull in Storage Deamon headers */
 
-static int can_reserve_drive(DCR *dcr);
-
 /*
  * Create a new Device Control Record and attach
  *   it to the device (if this is a real job).
@@ -122,45 +120,6 @@ void free_dcr(DCR *dcr)
    }
    free(dcr);
 }
-
-
-/*
- * We "reserve" the drive by setting the ST_READ bit. No one else
- *  should touch the drive until that is cleared.
- *  This allows the DIR to "reserve" the device before actually
- *  starting the job. 
- */
-bool reserve_device_for_read(DCR *dcr)
-{
-   DEVICE *dev = dcr->dev;
-   JCR *jcr = dcr->jcr;
-   bool ok = false;
-
-   ASSERT(dcr);
-
-   dev->block(BST_DOING_ACQUIRE);
-
-   if (device_is_unmounted(dev)) {             
-      Mmsg(jcr->errmsg, _("Device %s is BLOCKED due to user unmount.\n"),
-           dev->print_name());
-      goto bail_out;
-   }
-
-   if (dev->is_busy()) {
-      Mmsg1(jcr->errmsg, _("Device %s is busy.\n"),
-            dev->print_name());
-      goto bail_out;
-   }
-
-   dev->clear_append();
-   dev->set_read();
-   ok = true;
-
-bail_out:
-   dev->unblock();
-   return ok;
-}
-
 
 /*********************************************************************
  * Acquire device for reading. 
@@ -338,120 +297,6 @@ get_out:
    return dcr;
 }
 
-/*
- * We reserve the device for appending by incrementing the 
- *  reserved_device. We do virtually all the same work that
- *  is done in acquire_device_for_append(), but we do
- *  not attempt to mount the device. This routine allows
- *  the DIR to reserve multiple devices before *really* 
- *  starting the job. It also permits the SD to refuse 
- *  certain devices (not up, ...).
- *
- * Note, in reserving a device, if the device is for the
- *  same pool and the same pool type, then it is acceptable.
- *  The Media Type has already been checked. If we are
- *  the first tor reserve the device, we put the pool
- *  name and pool type in the device record.
- */
-bool reserve_device_for_append(DCR *dcr)
-{
-   JCR *jcr = dcr->jcr;
-   DEVICE *dev = dcr->dev;
-   bool ok = false;
-
-   ASSERT(dcr);
-
-   dev->block(BST_DOING_ACQUIRE);
-
-   if (dev->can_read()) {
-      Mmsg1(jcr->errmsg, _("Device %s is busy reading.\n"), dev->print_name());
-      goto bail_out;
-   }
-
-   if (device_is_unmounted(dev)) {
-      Mmsg(jcr->errmsg, _("Device %s is BLOCKED due to user unmount.\n"), dev->print_name());
-      goto bail_out;
-   }
-
-   Dmsg1(190, "reserve_append device is %s\n", dev->is_tape()?"tape":"disk");
-
-   if (can_reserve_drive(dcr) != 1) {
-      Mmsg1(jcr->errmsg, _("Device %s is busy writing on another Volume.\n"), dev->print_name());
-      goto bail_out;
-   }
-
-   dev->reserved_device++;
-   dcr->reserved_device = true;
-   ok = true;
-
-bail_out:
-   dev->unblock();
-   return ok;
-}
-
-/*
- * Returns: 1 if drive can be reserved
- *          0 if we should wait
- *         -1 on error
- */
-static int can_reserve_drive(DCR *dcr) 
-{
-   DEVICE *dev = dcr->dev;
-   JCR *jcr = dcr->jcr;
-   /*
-    * First handle the case that the drive is not yet in append mode
-    */
-   if (!dev->can_append() && dev->num_writers == 0) {
-      /* Now check if there are any reservations on the drive */
-      if (dev->reserved_device) {           
-         /* Yes, now check if we want the same Pool and pool type */
-         if (strcmp(dev->pool_name, dcr->pool_name) == 0 &&
-             strcmp(dev->pool_type, dcr->pool_type) == 0) {
-            /* OK, compatible device */
-         } else {
-            /* Drive not suitable for us */
-            return 0;                 /* wait */
-         }
-      } else {
-         /* Device is available but not yet reserved, reserve it for us */
-         bstrncpy(dev->pool_name, dcr->pool_name, sizeof(dev->pool_name));
-         bstrncpy(dev->pool_type, dcr->pool_type, sizeof(dev->pool_type));
-      }
-      return 1;                       /* reserve drive */
-   }
-
-   /*
-    * Check if device in append mode with no writers (i.e. available)
-    */
-   if (dev->can_append() && dev->num_writers == 0) {
-      /* Device is available but not yet reserved, reserve it for us */
-      bstrncpy(dev->pool_name, dcr->pool_name, sizeof(dev->pool_name));
-      bstrncpy(dev->pool_type, dcr->pool_type, sizeof(dev->pool_type));
-      return 1;
-   }
-
-   /*
-    * Now check if the device is in append mode with writers (i.e.
-    *  available if pool is the same).
-    */
-   if (dev->can_append() || dev->num_writers > 0) {
-      Dmsg0(190, "device already in append.\n");
-      /* Yes, now check if we want the same Pool and pool type */
-      if (strcmp(dev->pool_name, dcr->pool_name) == 0 &&
-          strcmp(dev->pool_type, dcr->pool_type) == 0) {
-         /* OK, compatible device */
-      } else {
-         /* Drive not suitable for us */
-         Jmsg(jcr, M_WARNING, 0, _("Device %s is busy writing on another Volume.\n"), dev->print_name());
-         return 0;                    /* wait */
-      }
-   } else {
-      Pmsg0(000, "Logic error!!!! Should not get here.\n");
-      Jmsg0(jcr, M_FATAL, 0, _("Logic error!!!! Should not get here.\n"));
-      return -1;                      /* error, should not get here */
-   }
-   return 1;                          /* reserve drive */
-}
 
 /*
  * Acquire device for writing. We permit multiple writers.
