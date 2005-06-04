@@ -791,6 +791,14 @@ void dird_free_jcr_pointers(JCR *jcr)
       pthread_cond_destroy(&jcr->term_wait);
       jcr->term_wait_inited = false;
    }
+   if (jcr->attr) {
+      free_pool_memory(jcr->attr);
+      jcr->attr = NULL;
+   }
+   if (jcr->ar) {
+      free(jcr->ar);
+      jcr->ar = NULL;
+   }
 }
 
 /*

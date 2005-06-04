@@ -88,6 +88,8 @@
 /* Forward referenced structures */
 class JCR;
 struct FF_PKT;
+struct B_DB;
+struct ATTR_DBR;
 
 typedef void (JCR_free_HANDLER)(JCR *jcr);
 
@@ -146,6 +148,8 @@ public:
 
    bool cached_attribute;             /* set if attribute is cached */
    POOLMEM *attr;                     /* Attribute string from SD */
+   B_DB *db;                          /* database pointer */
+   ATTR_DBR *ar;                      /* DB attribute record */
 
    /* Daemon specific part of JCR */
    /* This should be empty in the library */
@@ -175,7 +179,6 @@ public:
    volatile int SDJobStatus;          /* Storage Job Status */
    volatile int FDJobStatus;          /* File daemon Job Status */
    uint32_t ExpectedFiles;            /* Expected restore files */
-   B_DB *db;                          /* database pointer */
    uint32_t MediaId;                  /* DB record IDs associated with this job */
    uint32_t PoolId;                   /* Pool record id */
    FileId_t FileId;                   /* Last file id inserted */
@@ -198,7 +201,6 @@ public:
    bool needs_sd;                     /* set if SD needed by Job */
    bool cloned;                       /* set if cloned */
    bool unlink_bsr;                   /* Unlink bsr file created */
-   ATTR_DBR ar;                       /* DB attribute record */
 #endif /* DIRECTOR_DAEMON */
 
 
@@ -255,7 +257,7 @@ public:
    int CurVol;                        /* Current Volume count */
    DIRRES* director;                  /* Director resource */
    bool write_part_after_job;         /* Set to write part after job */
-   bool NewVolEachJob;                /* Allow using new volume */
+   bool PreferMountedVols;            /* Prefer mounted vols rather than new */
    
    uint32_t FileId;                   /* Last file id inserted */
 

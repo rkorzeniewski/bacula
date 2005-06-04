@@ -33,7 +33,7 @@ extern uint32_t newVolSessionId();
 /* Requests from the Director daemon */
 static char jobcmd[] = "JobId=%d job=%127s job_name=%127s client_name=%127s "
       "type=%d level=%d FileSet=%127s NoAttr=%d SpoolAttr=%d FileSetMD5=%127s "
-      "SpoolData=%d WritePartAfterJob=%d NewVol=%d\n";
+      "SpoolData=%d WritePartAfterJob=%d PreferMountedVols=%d\n";
 
 
 /* Responses sent to Director daemon */
@@ -60,7 +60,7 @@ bool job_cmd(JCR *jcr)
    BSOCK *dir = jcr->dir_bsock;
    POOL_MEM job_name, client_name, job, fileset_name, fileset_md5;
    int JobType, level, spool_attributes, no_attributes, spool_data;
-   int write_part_after_job, NewVol;
+   int write_part_after_job, PreferMountedVols;
 
    JCR *ojcr;
 
@@ -72,7 +72,7 @@ bool job_cmd(JCR *jcr)
               client_name.c_str(),
               &JobType, &level, fileset_name.c_str(), &no_attributes,
               &spool_attributes, fileset_md5.c_str(), &spool_data, 
-              &write_part_after_job, &NewVol) != 13) {
+              &write_part_after_job, &PreferMountedVols) != 13) {
       pm_strcpy(jcr->errmsg, dir->msg);
       bnet_fsend(dir, BAD_job, jcr->errmsg);
       Dmsg1(100, ">dird: %s\n", dir->msg);
@@ -111,7 +111,7 @@ bool job_cmd(JCR *jcr)
    jcr->write_part_after_job = write_part_after_job;
    jcr->fileset_md5 = get_pool_memory(PM_NAME);
    pm_strcpy(jcr->fileset_md5, fileset_md5);
-   jcr->NewVolEachJob = NewVol;
+   jcr->PreferMountedVols = PreferMountedVols;
 
    jcr->authenticated = false;
 

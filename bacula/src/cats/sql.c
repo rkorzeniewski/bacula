@@ -267,6 +267,10 @@ void db_start_transaction(JCR *jcr, B_DB *mdb)
    if (!jcr->attr) {
       jcr->attr = get_pool_memory(PM_FNAME);
    }
+   if (!jcr->ar) {
+      jcr->ar = (ATTR_DBR *)malloc(sizeof(ATTR_DBR));
+   }
+
 #ifdef HAVE_SQLITE
    if (!mdb->allow_transactions) {
       return;
@@ -315,14 +319,15 @@ void db_end_transaction(JCR *jcr, B_DB *mdb)
    if (!mdb) {
       return;
    }
-#ifdef xxx
+
    if (jcr && jcr->cached_attribute) {
-      if (!db_create_file_attributes_record(jcr, jcr->db, &jcr->ar)) {
+      Dmsg0(400, "Flush last cached attribute.\n");
+      if (!db_create_file_attributes_record(jcr, mdb, jcr->ar)) {
          Jmsg1(jcr, M_FATAL, 0, _("Attribute create error. %s"), db_strerror(jcr->db));
       }
       jcr->cached_attribute = false;
    }
-#endif
+
 #ifdef HAVE_SQLITE
    if (!mdb->allow_transactions) {
       return;

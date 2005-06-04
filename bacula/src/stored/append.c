@@ -49,7 +49,7 @@ bool do_append_data(JCR *jcr)
    DEVICE *dev = dcr->dev;
 
 
-   Dmsg0(10, "Start append data.\n");
+   Dmsg0(100, "Start append data.\n");
 
    memset(&rec, 0, sizeof(rec));
 

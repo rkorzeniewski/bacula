@@ -13,22 +13,17 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2001-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -326,15 +321,20 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
    char *p;
    int len;
    char *fname, *attr;
-   ATTR_DBR *ar = &jcr->ar;
+   ATTR_DBR *ar = NULL;
 
    if (!jcr->pool->catalog_files) {
-      return;
+      return;                         /* user disabled cataloging */
    }
+   /* Start transaction allocates jcr->attr and jcr->ar if needed */
    db_start_transaction(jcr, jcr->db);     /* start transaction if not already open */
-   jcr->attr = check_pool_memory_size(jcr->attr, bs->msglen);
-   memcpy(jcr->attr, bs->msg, bs->msglen);
-   p = jcr->attr;
+   ar = jcr->ar;      
+
+   /* Start by scanning directly in the message buffer to get Stream   
+    *  there may be a cached attr so we cannot yet write into
+    *  jcr->attr or jcr->ar  
+    */
+   p = bs->msg;
    skip_nonspaces(&p);                /* UpdCat */
    skip_spaces(&p);
    skip_nonspaces(&p);                /* Job=nnn */
@@ -354,6 +354,16 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
       VolSessionId, VolSessionTime, FileIndex, Stream, data_len);
 
    if (Stream == STREAM_UNIX_ATTRIBUTES || Stream == STREAM_UNIX_ATTRIBUTES_EX) {
+      if (jcr->cached_attribute) {
+         Dmsg2(400, "Cached attr. Stream=%d fname=%s\n", ar->Stream, ar->fname);
+         if (!db_create_file_attributes_record(jcr, jcr->db, ar)) {
+            Jmsg1(jcr, M_FATAL, 0, _("Attribute create error. %s"), db_strerror(jcr->db));
+         }
+      }
+      /* Any cached attr is flushed so we can reuse jcr->attr and jcr->ar */
+      jcr->attr = check_pool_memory_size(jcr->attr, bs->msglen);
+      memcpy(jcr->attr, bs->msg, bs->msglen);
+      p = jcr->attr - bs->msg + p;    /* point p into jcr->attr */
       skip_nonspaces(&p);             /* skip FileIndex */
       skip_spaces(&p);
       skip_nonspaces(&p);             /* skip FileType */
@@ -372,13 +382,16 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
       ar->JobId = jcr->JobId;
       ar->Sig = NULL;
       ar->SigType = 0;
+      jcr->cached_attribute = true;
 
       Dmsg2(400, "dird<filed: stream=%d %s\n", Stream, fname);
       Dmsg1(400, "dird<filed: attr=%s\n", attr);
 
+#ifdef xxx
       if (!db_create_file_attributes_record(jcr, jcr->db, ar)) {
          Jmsg1(jcr, M_FATAL, 0, _("Attribute create error. %s"), db_strerror(jcr->db));
       }
+#endif
    } else if (Stream == STREAM_MD5_SIGNATURE || Stream == STREAM_SHA1_SIGNATURE) {
       fname = p;
       if (ar->FileIndex != FileIndex) {
@@ -396,9 +409,19 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
          }
          bin_to_base64(SIGbuf, fname, len);
          Dmsg3(400, "SIGlen=%d SIG=%s type=%d\n", strlen(SIGbuf), SIGbuf, Stream);
-         if (!db_add_SIG_to_file_record(jcr, jcr->db, ar->FileId, SIGbuf, type)) {
-            Jmsg(jcr, M_ERROR, 0, _("Catalog error updating MD5/SHA1. %s"),
-               db_strerror(jcr->db));
+         if (jcr->cached_attribute) {
+            ar->Sig = SIGbuf;
+            ar->SigType = type;
+            Dmsg2(400, "Cached attr with SIG. Stream=%d fname=%s\n", ar->Stream, ar->fname);
+            if (!db_create_file_attributes_record(jcr, jcr->db, ar)) {
+               Jmsg1(jcr, M_FATAL, 0, _("Attribute create error. %s"), db_strerror(jcr->db));
+            }
+            jcr->cached_attribute = false; 
+         } else {
+            if (!db_add_SIG_to_file_record(jcr, jcr->db, ar->FileId, SIGbuf, type)) {
+               Jmsg(jcr, M_ERROR, 0, _("Catalog error updating MD5/SHA1. %s"),
+                  db_strerror(jcr->db));
+            }
          }
       }
    }
