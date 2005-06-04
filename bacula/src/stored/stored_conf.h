@@ -50,7 +50,6 @@ public:
    char *password;                    /* Director password */
    char *address;                     /* Director IP address or zero */
    int monitor;                       /* Have only access to status and .status functions */
-#ifdef HAVE_TLS
    int tls_enable;                    /* Enable TLS */
    int tls_require;                   /* Require TLS */
    int tls_verify_peer;              /* TLS Verify Client Certificate */
@@ -62,7 +61,6 @@ public:
    alist *tls_allowed_cns;            /* TLS Allowed Clients */
 
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
-#endif /* HAVE_TLS */
 };
 
 
@@ -80,7 +78,6 @@ public:
    uint32_t max_concurrent_jobs;      /* maximum concurrent jobs to run */
    MSGS *messages;                    /* Daemon message handler */
    utime_t heartbeat_interval;        /* Interval to send hb to FD */
-#ifdef HAVE_TLS
    int tls_enable;                    /* Enable TLS */
    int tls_require;                   /* Require TLS */
    int tls_verify_peer;              /* TLS Verify Client Certificate */
@@ -92,7 +89,6 @@ public:
    alist *tls_allowed_cns;            /* TLS Allowed Clients */
 
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
-#endif /* HAVE_TLS */
 };
 typedef struct s_res_store STORES;
 

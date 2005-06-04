@@ -37,35 +37,37 @@
 
 // init with win9x, but maybe set to NT in InitWinAPI
 DWORD  g_platform_id = VER_PLATFORM_WIN32_WINDOWS;
+#ifdef WIN32_VSS
 /* preset VSSClient to NULL */
 VSSClient* g_pVSSClient = NULL;
+#endif
 
 
 /* API Pointers */
 
-t_OpenProcessToken      p_OpenProcessToken = NULL;
+t_OpenProcessToken	p_OpenProcessToken = NULL;
 t_AdjustTokenPrivileges p_AdjustTokenPrivileges = NULL;
-t_LookupPrivilegeValue  p_LookupPrivilegeValue = NULL;
+t_LookupPrivilegeValue	p_LookupPrivilegeValue = NULL;
 
 t_SetProcessShutdownParameters p_SetProcessShutdownParameters = NULL;
 
-t_CreateFileA   p_CreateFileA = NULL;
-t_CreateFileW   p_CreateFileW = NULL;
+t_CreateFileA	p_CreateFileA = NULL;
+t_CreateFileW	p_CreateFileW = NULL;
 
 t_wunlink p_wunlink = NULL;
 t_wmkdir p_wmkdir = NULL;
 t_wopen p_wopen = NULL;
 
-t_GetFileAttributesA    p_GetFileAttributesA = NULL;
-t_GetFileAttributesW    p_GetFileAttributesW = NULL;
+t_GetFileAttributesA	p_GetFileAttributesA = NULL;
+t_GetFileAttributesW	p_GetFileAttributesW = NULL;
 
-t_GetFileAttributesExA  p_GetFileAttributesExA = NULL;
-t_GetFileAttributesExW  p_GetFileAttributesExW = NULL;
+t_GetFileAttributesExA	p_GetFileAttributesExA = NULL;
+t_GetFileAttributesExW	p_GetFileAttributesExW = NULL;
 
-t_SetFileAttributesA    p_SetFileAttributesA = NULL;
-t_SetFileAttributesW    p_SetFileAttributesW = NULL;
-t_BackupRead            p_BackupRead = NULL;
-t_BackupWrite           p_BackupWrite = NULL;
+t_SetFileAttributesA	p_SetFileAttributesA = NULL;
+t_SetFileAttributesW	p_SetFileAttributesW = NULL;
+t_BackupRead		p_BackupRead = NULL;
+t_BackupWrite		p_BackupWrite = NULL;
 t_WideCharToMultiByte p_WideCharToMultiByte = NULL;
 t_MultiByteToWideChar p_MultiByteToWideChar = NULL;
 
@@ -160,7 +162,7 @@ InitWinAPIWrapper()
       /* wopen */
       p_wopen = (t_wopen)
       GetProcAddress(hLib, "_wopen");
-        
+	
       FreeLibrary(hLib);
    }
    
@@ -195,12 +197,12 @@ InitWinAPIWrapper()
       p_BackupRead = NULL;
       p_BackupWrite = NULL;
 
-      p_CreateFileW = NULL;          
-      p_GetFileAttributesW = NULL;          
+      p_CreateFileW = NULL;	     
+      p_GetFileAttributesW = NULL;	    
       p_GetFileAttributesExW = NULL;
-          
+	  
       p_SetFileAttributesW = NULL;
-                
+		
       p_FindFirstFileW = NULL;
       p_FindNextFileW = NULL;
       p_SetCurrentDirectoryW = NULL;
@@ -215,13 +217,13 @@ InitWinAPIWrapper()
 #ifdef WIN32_VSS
    switch (dwMinorVersion) {
       case 1: 
-         g_pVSSClient = new VSSClientXP();
-         atexit(VSSCleanup);
-         break;
+	 g_pVSSClient = new VSSClientXP();
+	 atexit(VSSCleanup);
+	 break;
       case 2: 
-         g_pVSSClient = new VSSClient2003();
-         atexit(VSSCleanup);
-         break;
+	 g_pVSSClient = new VSSClient2003();
+	 atexit(VSSCleanup);
+	 break;
    }
 #endif
 }

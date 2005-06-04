@@ -4,6 +4,9 @@
 General:
 
 Changes to 1.37.21:
+- Fix compile problems on Win32
+- Start writing Volume reservation list (already exists, but
+  is not really very good).
 - Implement attribute caching to put Signature into database     
   at the same time as the file attributes thus eliminating a
   number of database accesses.

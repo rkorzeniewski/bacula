@@ -928,6 +928,14 @@ int cleanup_tls (void)
 /* Dummy routines */
 int init_tls(void) { return 0; }
 int cleanup_tls (void) { return 0; }
-
+TLS_CONTEXT *new_tls_context(const char *ca_certfile, const char *ca_certdir,
+                             const char *certfile, const char *keyfile,
+                             TLS_PEM_PASSWD_CB *pem_callback,
+                             const void *pem_userdata, const char *dhfile,
+                             bool verify_peer)
+{
+   return NULL;
+}
+void free_tls_context(TLS_CONTEXT *ctx) { }
 
 #endif /* HAVE_TLS */
