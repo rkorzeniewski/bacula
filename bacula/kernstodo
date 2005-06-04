@@ -55,6 +55,7 @@ Document:
 - Document Heartbeat Interval in the dealing with firewalls section.
 
 For 1.37:
+- Implement "PreferMountedVolumes = yes|no" in Job resource.
 === rate design
   jcr->last_rate
   jcr->last_runtime
@@ -71,8 +72,6 @@ For 1.37:
 - Make bootstrap file handle multiple MediaTypes (SD)
 - Test restoring into a user restricted directory on Win32 -- see
   bug report.
-- Fix 3993 error in SD. It forgets to look at autochanger
-  resource for device command, ...
 - --without-openssl breaks at least on Solaris.
 - Python:
   - Make a callback when Rerun failed levels is called.
@@ -85,7 +84,6 @@ For 1.37:
   - Make sure that Python has access to Client address/port so that
     it can check if Clients are alive.
 
-- Implement "NewVolumeEachJob = yes|no" in Dir.
 - Remove all old Device resource code in Dir and code to pass it
   back in SD -- better, rework it to pass back device statistics.
 - Check locking of resources -- be sure to lock devices where previously
@@ -1285,4 +1283,5 @@ Block Position: 0
 - Require restore via the restore command or make a restore Job
   get the bootstrap file.
 - Implement Maximum Job Spool Size
-
+- Fix 3993 error in SD. It forgets to look at autochanger
+  resource for device command, ...

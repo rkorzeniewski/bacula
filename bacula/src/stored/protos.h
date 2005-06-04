@@ -226,4 +226,4 @@ void    list_spool_stats          (BSOCK *bs);
 
 /* From wait.c */
 int wait_for_sysop(DCR *dcr);
-bool wait_for_device(JCR *jcr, const char *msg, bool first);
+bool wait_for_device(JCR *jcr, bool first);
