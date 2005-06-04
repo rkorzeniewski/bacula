@@ -44,15 +44,17 @@ extern "C" void *sd_heartbeat_thread(void *arg)
    BSOCK *sd, *dir;
    time_t last_heartbeat = time(NULL);
    time_t now;
-   int oflags;
 
    pthread_detach(pthread_self());
 
    /* Get our own local copy */
    sd = dup_bsock(jcr->store_bsock);
+#ifndef WIN32
+   int oflags;
    if ((oflags = fcntl(sd->fd, F_GETFL, 0)) != -1) {
       fcntl(sd->fd, F_SETFL, oflags|O_NONBLOCK);
    }
+#endif
    dir = dup_bsock(jcr->dir_bsock);
 
    jcr->hb_bsock = sd;

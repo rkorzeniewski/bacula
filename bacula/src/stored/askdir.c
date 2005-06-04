@@ -10,19 +10,14 @@
    Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -217,6 +212,37 @@ bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw writing)
     return do_get_volume_info(dcr);
 }
 
+/*
+ * Rewrite this to use a list, but need something to add
+ *   and remove volumes from the list.
+ */
+static bool is_volume_in_use(JCR *jcr, const char *VolumeName) {
+    bool in_use = false;
+    JCR *njcr;
+    Dmsg2(300, "JobId=%d got possible Vol=%s\n", jcr->JobId, VolumeName);
+    /*
+     * Walk through all jobs and see if the volume is
+     *  already mounted. If so, try a different one.
+     * This would be better done by walking through
+     *  all the devices.
+     */
+    foreach_jcr(njcr) {
+       if (jcr == njcr) {
+          free_jcr(njcr);
+          continue;             /* us */
+       }
+       Dmsg2(300, "Compare to JobId=%d using Vol=%s\n", njcr->JobId, njcr->dcr->VolumeName);
+       if (njcr->dcr && strcmp(VolumeName, njcr->dcr->VolumeName) == 0) {
+          in_use = true;
+          Dmsg1(400, "Vol in use by JobId=%u\n", njcr->JobId);
+          free_jcr(njcr);
+          break;
+       }
+       free_jcr(njcr);
+    }
+    return in_use;
+ }
+
 
 
 /*
@@ -231,15 +257,14 @@ bool dir_find_next_appendable_volume(DCR *dcr)
 {
     JCR *jcr = dcr->jcr;
     BSOCK *dir = jcr->dir_bsock;
-    JCR *njcr;
 
     Dmsg0(200, "dir_find_next_appendable_volume\n");
     /*
-     * Try the three oldest or most available volumes.  Note,
+     * Try the twenty oldest or most available volumes.  Note,
      *   the most available could already be mounted on another
      *   drive, so we continue looking for a not in use Volume.
      */
-    for (int vol_index=1;  vol_index < 3; vol_index++) {
+    for (int vol_index=1;  vol_index < 20; vol_index++) {
        bash_spaces(dcr->media_type);
        bash_spaces(dcr->pool_name);
        bnet_fsend(dir, Find_media, jcr->Job, vol_index, dcr->pool_name, dcr->media_type);
@@ -247,31 +272,10 @@ bool dir_find_next_appendable_volume(DCR *dcr)
        unbash_spaces(dcr->pool_name);
        Dmsg1(100, ">dird: %s", dir->msg);
        if (do_get_volume_info(dcr)) {
-          Dmsg2(300, "JobId=%d got possible Vol=%s\n", jcr->JobId, dcr->VolumeName);
-          bool found = false;
-          /*
-           * Walk through all jobs and see if the volume is
-           *  already mounted. If so, try a different one.
-           * This would be better done by walking through
-           *  all the devices.
-           */
-          foreach_jcr(njcr) {
-             if (jcr == njcr) {
-                free_jcr(njcr);
-                continue;             /* us */
-             }
-             Dmsg2(300, "Compare to JobId=%d using Vol=%s\n", njcr->JobId, njcr->dcr->VolumeName);
-             if (njcr->dcr && strcmp(dcr->VolumeName, njcr->dcr->VolumeName) == 0) {
-                found = true;
-                Dmsg1(400, "Vol in use by JobId=%u\n", njcr->JobId);
-                free_jcr(njcr);
-                break;
-             }
-             free_jcr(njcr);
-          }
-          if (!found) {
-             Dmsg0(400, "dir_find_next_appendable_volume return true\n");
-             return true;             /* Got good Volume */
+          if (is_volume_in_use(jcr, dcr->VolumeName)) {
+             continue;
+          } else {
+             break;
           }
        } else {
           Dmsg0(200, "No volume info, return false\n");

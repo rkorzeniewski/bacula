@@ -425,7 +425,7 @@ int  Mmsg(POOLMEM *&msgbuf, const char *fmt,...);
 int  Mmsg(POOL_MEM &msgbuf, const char *fmt,...);
 
 
-struct JCR;
+class JCR;
 void d_msg(const char *file, int line, int level, const char *fmt,...);
 void p_msg(const char *file, int line, int level, const char *fmt,...);
 void e_msg(const char *file, int line, int type, int level, const char *fmt,...);

@@ -302,13 +302,18 @@ static int check_resources()
       OK = false;
    }
 
-#ifdef HAVE_TLS
    DIRRES *director;
    STORES *store;
    foreach_res(store, R_STORAGE) { 
       /* tls_require implies tls_enable */
       if (store->tls_require) {
+#ifndef HAVE_TLS
+         Jmsg(NULL, M_FATAL, 0, _("TLS required but not configured in Bacula.\n"));
+         OK = false;
+         continue;
+#else
          store->tls_enable = true;
+#endif
       }
 
       if (!store->tls_certfile && store->tls_enable) {
@@ -394,7 +399,6 @@ static int check_resources()
          }
       }
    }
-#endif /* HAVE_TLS */
 
    /* Ensure that the media_type for each device is the same */
    foreach_res(changer, R_AUTOCHANGER) {

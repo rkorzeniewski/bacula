@@ -23,7 +23,7 @@
 
  */
 
-struct JCR;
+class JCR;
 
 /* attr.c */
 ATTR     *new_attr();
@@ -213,7 +213,6 @@ int             bsscanf(const char *buf, const char *fmt, ...);
 int              init_tls                (void);
 int              cleanup_tls             (void);
 
-#ifdef HAVE_TLS
 TLS_CONTEXT      *new_tls_context        (const char *ca_certfile,
                                           const char *ca_certdir,
                                           const char *certfile,
@@ -223,6 +222,7 @@ TLS_CONTEXT      *new_tls_context        (const char *ca_certfile,
                                           const char *dhfile,
                                           bool verify_peer);
 void             free_tls_context        (TLS_CONTEXT *ctx);
+#ifdef HAVE_TLS
 bool             tls_postconnect_verify_host  (TLS_CONNECTION *tls,
                                                const char *host);
 bool             tls_postconnect_verify_cn    (TLS_CONNECTION *tls,
