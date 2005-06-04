@@ -77,6 +77,10 @@ public:
    int size() const;
    void destroy();
    void grow(int num);
+
+   /* Use it as a stack, pushing and poping from the end */
+   void push(void *item) { append(item); };
+   void pop() { num_items?NULL:remove(num_items-1); };
 };
 
 inline void * alist::operator [](int index) const {

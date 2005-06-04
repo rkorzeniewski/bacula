@@ -158,7 +158,7 @@ int wait_for_sysop(DCR *dcr)
  * Returns: true  if a device has changed state
  *          false if the total wait time has expired.
  */
-bool wait_for_device(JCR *jcr, const char *msg, bool first)
+bool wait_for_device(JCR *jcr, bool first)
 {
    struct timeval tv;
    struct timezone tz;
@@ -172,7 +172,7 @@ bool wait_for_device(JCR *jcr, const char *msg, bool first)
    P(device_release_mutex);
 
    if (first) {
-      Jmsg(jcr, M_MOUNT, 0, msg);
+      Jmsg(jcr, M_MOUNT, 0, _("Job %s waiting to obtain a device.\n"), jcr->Job);
    }
 
    /*
@@ -229,7 +229,7 @@ bool wait_for_device(JCR *jcr, const char *msg, bool first)
          if (!double_jcr_wait_time(jcr)) {
             break;                 /* give up */
          }
-         Jmsg(jcr, M_MOUNT, 0, msg);
+         Jmsg(jcr, M_MOUNT, 0, _("Job %s waiting to obtain a device.\n"), jcr->Job);
       }
 
       add_wait = jcr->wait_sec - (now - start);
@@ -247,8 +247,7 @@ bool wait_for_device(JCR *jcr, const char *msg, bool first)
 }
 
 /*
- * The jcr timers are used for waiting on any device
- *
+ * The jcr timers are used for waiting on any device *
  * Returns: true if time doubled
  *          false if max time expired
  */

@@ -4,6 +4,8 @@
 General:
 
 Changes to 1.37.20:
+04Jun05
+- Minor changes
 01Jun05
 - Add more documentation to mtx-changer.in
 - Correct link to manual in authenticate.c in various

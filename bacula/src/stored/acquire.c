@@ -329,7 +329,7 @@ DCR *acquire_device_for_append(DCR *dcr)
     * With the reservation system, this should not happen
     */
    if (dev->can_read()) {
-      Jmsg(jcr, M_FATAL, 0, _("Device %s is busy reading.\n"), dev->print_name());
+      Jmsg1(jcr, M_FATAL, 0, _("Device %s is busy reading.\n"), dev->print_name());
       goto get_out;
    }
 
