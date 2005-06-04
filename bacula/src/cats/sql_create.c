@@ -672,7 +672,8 @@ int db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
     */
    if (!(ar->Stream == STREAM_UNIX_ATTRIBUTES ||
          ar->Stream == STREAM_UNIX_ATTRIBUTES_EX)) {
-      Mmsg0(&mdb->errmsg, _("Attempt to put non-attributes into catalog\n"));
+      Mmsg1(&mdb->errmsg, _("Attempt to put non-attributes into catalog. Stream=%d\n"),
+         ar->Stream);
       Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       goto bail_out;
    }

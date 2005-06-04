@@ -3,6 +3,14 @@
 
 General:
 
+Changes to 1.37.21:
+- Implement attribute caching to put Signature into database     
+  at the same time as the file attributes thus eliminating a
+  number of database accesses.
+- Correct a reservation problem.
+- Implement full Dir Storage use.
+- Reduce a bit of TLS #ifdeffing.
+
 Changes to 1.37.20:
 04Jun05
 - Minor changes

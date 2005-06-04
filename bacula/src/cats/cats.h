@@ -13,24 +13,18 @@
  *
  *    Version $Id$
  */
-
 /*
    Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -99,7 +93,7 @@ typedef struct s_sql_field {
  * subroutines.
  *                    S Q L I T E
  */
-typedef struct s_db {
+struct B_DB {
    BQUEUE bq;                         /* queue control */
    brwlock_t lock;                    /* transaction lock */
    struct sqlite *db;
@@ -135,7 +129,7 @@ typedef struct s_db {
    POOLMEM *esc_name;                 /* Escaped file/path name */
    int fnl;                           /* file name length */
    int pnl;                           /* path name length */
-} B_DB;
+};
 
 
 /*
@@ -207,7 +201,7 @@ typedef struct s_sql_field {
  * subroutines.
  *                    S Q L I T E
  */
-typedef struct s_db {
+struct B_DB {
    BQUEUE bq;                         /* queue control */
    brwlock_t lock;                    /* transaction lock */
    struct sqlite3 *db;
@@ -243,7 +237,7 @@ typedef struct s_db {
    POOLMEM *esc_name;                 /* Escaped file/path name */
    int fnl;                           /* file name length */
    int pnl;                           /* path name length */
-} B_DB;
+};
 
 /*
  * Conversion of sqlite 2 names to sqlite3
@@ -307,7 +301,7 @@ SQL_FIELD *my_sqlite_fetch_field(B_DB *mdb);
  *
  *                     M Y S Q L
  */
-typedef struct s_db {
+struct B_DB {
    BQUEUE bq;                         /* queue control */
    brwlock_t lock;                    /* transaction lock */
    MYSQL mysql;
@@ -335,7 +329,7 @@ typedef struct s_db {
    POOLMEM *esc_name;                 /* Escaped file/path name */
    int fnl;                           /* file name length */
    int pnl;                           /* path name length */
-} B_DB;
+};
 
 #define DB_STATUS int
 
@@ -384,7 +378,7 @@ typedef struct pg_field {
  *
  *                     P O S T G R E S Q L
  */
-typedef struct s_db {
+struct B_DB {
    BQUEUE bq;                         /* queue control */
    brwlock_t lock;                    /* transaction lock */
    PGconn *db;
@@ -418,7 +412,7 @@ typedef struct s_db {
    POOLMEM *esc_name;             /* Escaped file/path name */
    int fnl;                       /* file name length */
    int pnl;                       /* path name length */
-} B_DB;
+};     
 
 void               my_postgresql_free_result(B_DB *mdb);
 POSTGRESQL_ROW     my_postgresql_fetch_row  (B_DB *mdb);
@@ -470,7 +464,7 @@ struct s_control {
 /* This is the REAL definition for using the
  *  Bacula internal DB
  */
-typedef struct s_db {
+struct B_DB {
    BQUEUE bq;                         /* queue control */
 /* pthread_mutex_t mutex;  */         /* single thread lock */
    brwlock_t lock;                    /* transaction lock */
@@ -489,7 +483,7 @@ typedef struct s_db {
    POOLMEM *cached_path;
    int cached_path_len;               /* length of cached path */
    uint32_t cached_path_id;
-} B_DB;
+};
 
 #endif /* HAVE_SQLITE3 */
 #endif /* HAVE_MYSQL */
@@ -507,9 +501,9 @@ typedef struct s_db {
 
 /* This is a "dummy" definition for use outside of sql.c
  */
-typedef struct s_db {
+struct B_DB {
    int dummy;                         /* for SunOS compiler */
-} B_DB;
+};     
 
 #endif /*  __SQL_C */
 
