@@ -130,7 +130,7 @@ Maybe in 1.37:
 - Bug: if a job is manually scheduled to run later, it does not appear
   in any status report and cannot be cancelled.
 
-Regression tests (Scott):
+Regression tests:
 - Add Pool/Storage override regression test.
 - Add delete JobId to regression.
 - Add a regression test for dbcheck.  
