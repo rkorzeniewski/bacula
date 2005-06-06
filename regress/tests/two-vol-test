@@ -15,7 +15,9 @@ echo " === Starting two-vol-test at `date +%R:%S` ===" >working/log
 echo " "
 
 bin/bacula start 2>&1 >/dev/null
+# bin/bacula start
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+#bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
 messages
 @output tmp/log1.out

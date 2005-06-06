@@ -10,9 +10,13 @@
 /build/platforms/Makefile.in
 /build/platforms/redhat/Makefile.in
 /build/scripts/Makefile.in
-/build/src/filed/win32/bin/cygwin1.dll
 /build/src/filed/win32/winservice.cpp
 /build/src/filed/restore.c
 /build/autoconf/configure.in
 /build/examples/afs-bacula
 /build/src/win32/winbacula.nsi.in
+/build/autoconf/configure.in
+/build/src/version.h
+/build/src/lib/message.c
+/build/src/lib/bnet_server.c
+/build/src/lib/libbac.a
