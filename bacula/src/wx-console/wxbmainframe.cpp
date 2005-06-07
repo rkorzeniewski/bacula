@@ -264,9 +264,12 @@ wxbMainFrame::wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSi
 #if defined __WXGTK12__ && !defined __WXGTK20__ // Fix for "chinese" fonts under gtk+ 1.2
    font.SetDefaultEncoding(wxFONTENCODING_ISO8859_1);
    consoleCtrl->SetDefaultStyle(wxTextAttr(*wxBLACK, wxNullColour, font));
-   Print("Warning : Unicode is disabled because you are using wxWidgets for GTK+ 1.2.\n", CS_DEBUG);
-#else
+   Print(wxT("Warning : Unicode is disabled because you are using wxWidgets for GTK+ 1.2.\n"), CS_DEBUG);
+#else 
    consoleCtrl->SetDefaultStyle(wxTextAttr(*wxBLACK, wxNullColour, font));
+#if (wxUSE_UNICODE == 0) && __WXGTK20__
+   Print(wxT("Warning : There is a problem with wxWidgets for GTK+ 2.0 without Unicode support when handling non-ASCII filenames: Every non-ASCII character in such filenames will be replaced by an interrogation mark.\nIf this behaviour disturbs you, please build wx-console against a Unicode version of wxWidgets for GTK+ 2.0.\n---\n"), CS_DEBUG);   
+#endif
 #endif
 
    helpCtrl = new wxStaticText(consolePanel, -1, wxT("Type your command below:"));
