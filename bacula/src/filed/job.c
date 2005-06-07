@@ -1210,7 +1210,7 @@ static int backup_cmd(JCR *jcr)
                   Jmsg(jcr, M_WARNING, 0, _("Generate VSS snapshots failed\n"));
 	    }
 	    else {
-	       for (int i=0; i<strlen (szWinDriveLetters); i++) {
+	       for (size_t i=0; i<strlen (szWinDriveLetters); i++) {
 		  if (islower(szWinDriveLetters[i]))
                      Jmsg(jcr, M_WARNING, 0, _("Generate VSS snapshot of drive %c: failed\n"), szWinDriveLetters[i]);
 	       }
@@ -1277,6 +1277,7 @@ static int backup_cmd(JCR *jcr)
 
 cleanup:
 #ifdef WIN32_VSS
+   /* STOP VSS ON WIN 32 */
    /* tell vss to close the backup session */
    if (g_pVSSClient)
       g_pVSSClient->CloseBackup();
@@ -1286,8 +1287,7 @@ cleanup:
       edit_uint64(jcr->ReadBytes, ed1),
       edit_uint64(jcr->JobBytes, ed2), jcr->Errors);
    Dmsg1(110, "End FD msg: %s\n", dir->msg);
-
-   /* STOP VSS ON WIN 32 */
+   
    return 0;			      /* return and stop command loop */
 }
 
