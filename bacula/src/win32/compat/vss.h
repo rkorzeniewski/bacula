@@ -49,6 +49,9 @@ public:
     virtual const char* GetDriverName() = 0;
     BOOL GetShadowPath (const char* szFilePath, char* szShadowPath, int nBuflen);
 
+    const size_t GetWriterCount();
+    const char* GetWriterInfo(size_t nIndex);
+    const int   GetWriterState(size_t nIndex);
          
 private:
     virtual BOOL Initialize(DWORD dwContext, BOOL bDuringRestore = FALSE) = 0;
@@ -62,6 +65,7 @@ protected:
     DWORD                           m_dwContext;
 
     IUnknown*                       m_pVssObject;
+    GUID                            m_uidCurrentSnapshotSet;
     // TRUE if we are during restore
     BOOL                            m_bDuringRestore;
     BOOL                            m_bBackupIsInitialized;
@@ -69,6 +73,9 @@ protected:
     // drive A will be stored on position 0,Z on pos. 25
     WCHAR                           m_wszUniqueVolumeName[26][MAX_PATH]; // approx. 7 KB
     char /* in utf-8 */             m_szShadowCopyName[26][MAX_PATH*2]; // approx. 7 KB
+
+    void*                           m_pVectorWriterStates;
+    void*                           m_pVectorWriterInfo;
 };
 
 class VSSClientXP:public VSSClient
@@ -83,6 +90,7 @@ private:
    virtual BOOL Initialize(DWORD dwContext, BOOL bDuringRestore);
    virtual void WaitAndCheckForAsyncOperation(IVssAsync* pAsync);
    virtual void QuerySnapshotSet(GUID snapshotSetID);
+   BOOL CheckWriterStatus();   
 };
 
 class VSSClient2003:public VSSClient
@@ -97,6 +105,7 @@ private:
    virtual BOOL Initialize(DWORD dwContext, BOOL bDuringRestore);
    virtual void WaitAndCheckForAsyncOperation(IVssAsync*  pAsync);
    virtual void QuerySnapshotSet(GUID snapshotSetID);
+   BOOL CheckWriterStatus();
 };
 
 

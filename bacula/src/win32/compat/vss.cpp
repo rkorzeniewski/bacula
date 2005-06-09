@@ -80,6 +80,9 @@ VSSClient::VSSClient()
     m_bDuringRestore = false;
     m_bBackupIsInitialized = false;
     m_pVssObject = NULL;
+    m_pVectorWriterStates = new vector<int>;
+    m_pVectorWriterInfo = new vector<string>;
+    m_uidCurrentSnapshotSet = GUID_NULL;
     memset (m_wszUniqueVolumeName,0,sizeof (m_wszUniqueVolumeName));
     memset (m_szShadowCopyName,0,sizeof (m_szShadowCopyName));
 }
@@ -93,6 +96,12 @@ VSSClient::~VSSClient()
       m_pVssObject->Release();
       m_pVssObject = NULL;
    }
+
+   if (m_pVectorWriterStates)
+      delete (m_pVectorWriterStates);
+
+   if (m_pVectorWriterInfo)
+      delete (m_pVectorWriterInfo);
 
    // Call CoUninitialize if the CoInitialize was performed sucesfully
    if (m_bCoInitializeCalled)
@@ -135,4 +144,24 @@ BOOL VSSClient::GetShadowPath (const char* szFilePath, char* szShadowPath, int n
    
    strncpy (szShadowPath,  szFilePath, nBuflen);
    return FALSE;   
+}
+
+
+const size_t VSSClient::GetWriterCount()
+{
+   vector<int>* pV = (vector<int>*) m_pVectorWriterStates;
+   return pV->size();
+}
+
+const char* VSSClient::GetWriterInfo(size_t nIndex)
+{
+   vector<string>* pV = (vector<string>*) m_pVectorWriterInfo;   
+   return pV->at(nIndex).c_str();
+}
+
+
+const int VSSClient::GetWriterState(size_t nIndex)
+{
+   vector<int>* pV = (vector<int>*) m_pVectorWriterStates;   
+   return pV->at(nIndex);
 }

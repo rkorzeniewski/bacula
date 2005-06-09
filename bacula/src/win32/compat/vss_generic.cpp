@@ -56,6 +56,7 @@
 #include <vector>
 #include <algorithm>
 #include <string>
+#include <sstream>
 #include <fstream>
 using namespace std;   
 
@@ -148,6 +149,38 @@ inline wstring GetUniqueVolumeNameForPath(wstring path)
 }
 
 
+// Helper macro for quick treatment of case statements for error codes
+#define GEN_MERGE(A, B) A##B
+#define GEN_MAKE_W(A) GEN_MERGE(L, A)
+
+#define CHECK_CASE_FOR_CONSTANT(value)                      \
+    case value: return wstring(GEN_MAKE_W(#value));
+
+
+// Convert a writer status into a string
+inline wstring GetStringFromWriterStatus(VSS_WRITER_STATE eWriterStatus)
+{
+    switch (eWriterStatus)
+    {
+    CHECK_CASE_FOR_CONSTANT(VSS_WS_STABLE);
+    CHECK_CASE_FOR_CONSTANT(VSS_WS_WAITING_FOR_FREEZE);
+    CHECK_CASE_FOR_CONSTANT(VSS_WS_WAITING_FOR_THAW);
+    CHECK_CASE_FOR_CONSTANT(VSS_WS_WAITING_FOR_POST_SNAPSHOT);
+    CHECK_CASE_FOR_CONSTANT(VSS_WS_WAITING_FOR_BACKUP_COMPLETE);
+    CHECK_CASE_FOR_CONSTANT(VSS_WS_FAILED_AT_IDENTIFY);
+    CHECK_CASE_FOR_CONSTANT(VSS_WS_FAILED_AT_PREPARE_BACKUP);
+    CHECK_CASE_FOR_CONSTANT(VSS_WS_FAILED_AT_PREPARE_SNAPSHOT);
+    CHECK_CASE_FOR_CONSTANT(VSS_WS_FAILED_AT_FREEZE);
+    CHECK_CASE_FOR_CONSTANT(VSS_WS_FAILED_AT_THAW);
+    CHECK_CASE_FOR_CONSTANT(VSS_WS_FAILED_AT_POST_SNAPSHOT);
+    CHECK_CASE_FOR_CONSTANT(VSS_WS_FAILED_AT_BACKUP_COMPLETE);
+    CHECK_CASE_FOR_CONSTANT(VSS_WS_FAILED_AT_PRE_RESTORE);
+    CHECK_CASE_FOR_CONSTANT(VSS_WS_FAILED_AT_POST_RESTORE);
+
+    default:
+        return wstring(L"Undefined");
+    }
+}
 
 // Constructor
 
@@ -203,18 +236,25 @@ BOOL VSSClientGeneric::Initialize(DWORD dwContext, BOOL bDuringRestore)
       if (FAILED(hr))
          return FALSE;
    }
-
-   IVssBackupComponents* pVss = (IVssBackupComponents*) m_pVssObject;
+   
    // Release the IVssBackupComponents interface 
-   if (pVss) {
-      pVss->Release();
-      pVss = NULL;
+   if (m_pVssObject) {
+      m_pVssObject->Release();
+      m_pVssObject = NULL;
    }
 
    // Create the internal backup components object
    hr = p_CreateVssBackupComponents((IVssBackupComponents**) &m_pVssObject);
    if (FAILED(hr))
       return FALSE;
+
+#ifdef B_VSS_W2K3
+   if (dwContext != VSS_CTX_BACKUP) {
+      hr = ((IVssBackupComponents*) m_pVssObject)->SetContext(dwContext);
+      if (FAILED(hr))
+         return FALSE;
+   }
+#endif
 
    // We are during restore now?
    m_bDuringRestore = bDuringRestore;
@@ -254,7 +294,6 @@ void VSSClientGeneric::WaitAndCheckForAsyncOperation(IVssAsync* pAsync)
     
          LocalFree(pwszBuffer);         
       }
-      throw(hrReturned);
     }
 }
 
@@ -265,7 +304,9 @@ BOOL VSSClientGeneric::CreateSnapshots(char* szDriveLetters)
    /* http://msdn.microsoft.com/library/default.asp?url=/library/en-us/vss/base/ivssbackupcomponents_startsnapshotset.asp */
    
    if (!m_pVssObject || m_bBackupIsInitialized)
-      return FALSE;      
+      return FALSE;  
+
+   m_uidCurrentSnapshotSet = GUID_NULL;
 
    IVssBackupComponents* pVss = (IVssBackupComponents*) m_pVssObject;
 
@@ -280,13 +321,23 @@ BOOL VSSClientGeneric::CreateSnapshots(char* szDriveLetters)
       return FALSE;
 
    CComPtr<IVssAsync>  pAsync1;
-   CComPtr<IVssAsync>  pAsync2;
-   VSS_ID latestSnapshotSetID;
+   CComPtr<IVssAsync>  pAsync2;   
+   CComPtr<IVssAsync>  pAsync3;   
    VSS_ID pid;
 
-   // 3. startSnapshotSet
+   // 3. GatherWriterMetaData
+   hr = pVss->GatherWriterMetadata(&pAsync3);
+   if (FAILED(hr))
+      return FALSE;
 
-   pVss->StartSnapshotSet(&latestSnapshotSetID);
+   // Waits for the async operation to finish and checks the result
+   WaitAndCheckForAsyncOperation(pAsync3);
+
+   CheckWriterStatus();
+
+   // 4. startSnapshotSet
+
+   pVss->StartSnapshotSet(&m_uidCurrentSnapshotSet);
 
    // 4. AddToSnapshotSet
 
@@ -307,22 +358,19 @@ BOOL VSSClientGeneric::CreateSnapshots(char* szDriveLetters)
    }
 
    // 5. PrepareForBackup
-
    pVss->PrepareForBackup(&pAsync1);
-
+   
    // Waits for the async operation to finish and checks the result
    WaitAndCheckForAsyncOperation(pAsync1);
 
-
    // 6. DoSnapShotSet
-
    pVss->DoSnapshotSet(&pAsync2);
 
    // Waits for the async operation to finish and checks the result
    WaitAndCheckForAsyncOperation(pAsync2); 
    
    /* query snapshot info */
-   QuerySnapshotSet(latestSnapshotSetID);
+   QuerySnapshotSet(m_uidCurrentSnapshotSet);
 
    m_bBackupIsInitialized = true;
 
@@ -349,6 +397,21 @@ BOOL VSSClientGeneric::CloseBackup()
       pVss->AbortBackup();
    }
 
+   if (m_uidCurrentSnapshotSet != GUID_NULL) {
+      VSS_ID idNonDeletedSnapshotID = GUID_NULL;
+      LONG lSnapshots;
+
+      pVss->DeleteSnapshots(
+         m_uidCurrentSnapshotSet, 
+         VSS_OBJECT_SNAPSHOT_SET,
+         FALSE,
+         &lSnapshots,
+         &idNonDeletedSnapshotID);
+
+      m_uidCurrentSnapshotSet = GUID_NULL;
+   }
+
+
    pVss->Release();
    m_pVssObject = NULL;
 
@@ -367,8 +430,7 @@ void VSSClientGeneric::QuerySnapshotSet(GUID snapshotSetID)
       return;
 
    IVssBackupComponents* pVss = (IVssBackupComponents*) m_pVssObject;
-
-            
+               
    // Get list all shadow copies. 
    CComPtr<IVssEnumObject> pIEnumSnapshots;
    HRESULT hr = pVss->Query( GUID_NULL, 
@@ -408,3 +470,80 @@ void VSSClientGeneric::QuerySnapshotSet(GUID snapshotSetID)
    }
 }
 
+// Check the status for all selected writers
+BOOL VSSClientGeneric::CheckWriterStatus()
+{
+    IVssBackupComponents* pVss = (IVssBackupComponents*) m_pVssObject;
+    vector<int>* pVWriterStates = (vector<int>*) m_pVectorWriterStates;
+    vector<string>* pVWriterInfo = (vector<string>*) m_pVectorWriterInfo;   
+
+    pVWriterStates->clear();
+    pVWriterInfo->clear();
+
+    // Gather writer status to detect potential errors
+    CComPtr<IVssAsync>  pAsync;
+    
+    HRESULT hr = pVss->GatherWriterStatus(&pAsync);
+    if (FAILED(hr))
+      return FALSE;
+
+    // Waits for the async operation to finish and checks the result
+    WaitAndCheckForAsyncOperation(pAsync);
+      
+    unsigned cWriters = 0;
+
+    hr = pVss->GetWriterStatusCount(&cWriters);
+    if (FAILED(hr))
+      return FALSE;
+    
+    // Enumerate each writer
+    for(unsigned iWriter = 0; iWriter < cWriters; iWriter++)
+    {
+        VSS_ID idInstance = GUID_NULL;
+        VSS_ID idWriter= GUID_NULL;
+        VSS_WRITER_STATE eWriterStatus = VSS_WS_UNKNOWN;
+        CComBSTR bstrWriterName;
+        HRESULT hrWriterFailure = S_OK;
+
+        // Get writer status
+        hr = pVss->GetWriterStatus(iWriter,
+                             &idInstance,
+                             &idWriter,
+                             &bstrWriterName,
+                             &eWriterStatus,
+                             &hrWriterFailure);
+        if (FAILED(hr))
+           continue;
+        
+        // If the writer is in non-stable state, break
+        switch(eWriterStatus)
+        {
+            case VSS_WS_FAILED_AT_IDENTIFY:
+            case VSS_WS_FAILED_AT_PREPARE_BACKUP:
+            case VSS_WS_FAILED_AT_PREPARE_SNAPSHOT:
+            case VSS_WS_FAILED_AT_FREEZE:
+            case VSS_WS_FAILED_AT_THAW:
+            case VSS_WS_FAILED_AT_POST_SNAPSHOT:
+            case VSS_WS_FAILED_AT_BACKUP_COMPLETE:
+            case VSS_WS_FAILED_AT_PRE_RESTORE:
+            case VSS_WS_FAILED_AT_POST_RESTORE:
+#ifdef B_VSS_W2K3
+            case VSS_WS_FAILED_AT_BACKUPSHUTDOWN:
+#endif
+               /* failed */
+               pVWriterStates->push_back(-1);
+               break;
+
+            default:
+                /* okay */
+                pVWriterStates->push_back(1);                
+        }
+
+               
+        stringstream osf;      
+        osf << "\"" << CW2A(bstrWriterName) << "\", State: " << eWriterStatus << " (" << CW2A(GetStringFromWriterStatus(eWriterStatus).c_str()) << ")";
+    
+        pVWriterInfo->push_back(osf.str());
+    }
+    return TRUE;
+}
