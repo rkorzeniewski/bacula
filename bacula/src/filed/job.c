@@ -1204,16 +1204,25 @@ static int backup_cmd(JCR *jcr)
 	 /* tell vss which drives to snapshot */   
 	 char szWinDriveLetters[27];   
 	 if (get_win32_driveletters((FF_PKT *)jcr->ff, szWinDriveLetters)) {
-            Jmsg(jcr, M_INFO, 0, _("Generate VSS snapshots. Driver=%s, Drive(s)=%s\n"), g_pVSSClient->GetDriverName(), szWinDriveLetters);
+            Jmsg(jcr, M_INFO, 0, _("Generate VSS snapshots. Driver=\"%s\", Drive(s)=\"%s\"\n"), g_pVSSClient->GetDriverName(), szWinDriveLetters);
 
 	    if (!g_pVSSClient->CreateSnapshots(szWinDriveLetters)) {
                   Jmsg(jcr, M_WARNING, 0, _("Generate VSS snapshots failed\n"));
 	    }
 	    else {
+               /* tell user if snapshot creation of a specific drive failed */
 	       for (size_t i=0; i<strlen (szWinDriveLetters); i++) {
 		  if (islower(szWinDriveLetters[i]))
-                     Jmsg(jcr, M_WARNING, 0, _("Generate VSS snapshot of drive %c: failed\n"), szWinDriveLetters[i]);
+                     Jmsg(jcr, M_WARNING, 0, _("Generate VSS snapshot of drive \"%c:\\\" failed\n"), szWinDriveLetters[i]);
 	       }
+               /* inform user about writer states */
+               for (size_t i=0; i<g_pVSSClient->GetWriterCount(); i++) {
+                  int msg_type = M_INFO;
+                  if (g_pVSSClient->GetWriterState(i) < 0)
+                     msg_type = M_WARNING;
+
+                  Jmsg(jcr, msg_type, 0, _("VSS Writer: %s\n"), g_pVSSClient->GetWriterInfo(i));
+               }
 	    }
 	 }
       } else {
