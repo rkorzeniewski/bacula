@@ -59,7 +59,7 @@ To build it:
 
 Instructions if you want to build bacula-fd with VSS (Volume Shadow Copy Service) support:
 - VSS support is right now (June 2005) available for MS-Windows XP (beta)
-- VSS support is right now (June 2005) available for MS-Windows 2003 (early alpha)
+- VSS support is right now (June 2005) available for MS-Windows 2003 (beta)
 - you need to get the VSS SDK: 
   http://www.microsoft.com/downloads/details.aspx?FamilyID=0B4F56E4-0CCC-4626-826A-ED2C4C95C871&displaylang=en
 - copy the 'inc' and 'lib' directories from this SDK to 'bacula/src/win32/compat/vss'
