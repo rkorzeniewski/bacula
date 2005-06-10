@@ -55,6 +55,8 @@ public:
    DEVRES   *device;
 };
 
+static dlist *vol_list = NULL;
+static pthread_mutex_t vol_list_lock = PTHREAD_MUTEX_INITIALIZER;
 
 /* Forward referenced functions */
 static int can_reserve_drive(DCR *dcr); 
@@ -74,7 +76,6 @@ static char OK_device[] = "3000 OK use device device=%s\n";
 static char NO_device[] = "3924 Device \"%s\" not in SD Device resources.\n";
 static char BAD_use[]   = "3913 Bad use command: %s\n";
 
-
 bool use_cmd(JCR *jcr) 
 {
    /*
@@ -87,6 +88,132 @@ bool use_cmd(JCR *jcr)
    }
    return true;
 }
+
+static int my_compare(void *item1, void *item2)
+{
+   return strcmp(((VOLRES *)item1)->vol_name, ((VOLRES *)item2)->vol_name);
+}
+
+
+/*
+ * Put a new Volume entry in the Volume list. This
+ *  effectively reserves the volume so that it will
+ *  not be mounted again.
+ *
+ *  Return: VOLRES entry on success
+ *          NULL if the Volume is already in the list
+ */
+VOLRES *new_volume(const char *VolumeName, DEVICE *dev)
+{
+   VOLRES *vol, *nvol;
+   vol = (VOLRES *)malloc(sizeof(VOLRES));
+   memset(vol, 0, sizeof(VOLRES));
+   vol->vol_name = bstrdup(VolumeName);
+   vol->dev = dev;
+   P(vol_list_lock);
+   nvol = (VOLRES *)vol_list->binary_insert(vol, my_compare);
+   V(vol_list_lock);
+   if (nvol != vol) {
+      free(vol->vol_name);
+      free(vol);
+      if (dev) {
+         nvol->dev = dev;
+      }
+      return NULL;
+   }
+   return vol;
+}
+
+/*
+ * Search for a Volume name in the Volume list.
+ *
+ *  Returns: VOLRES entry on success
+ *           NULL if the Volume is not in the list
+ */
+VOLRES *find_volume(const char *VolumeName)
+{
+   VOLRES vol, *fvol;
+   vol.vol_name = bstrdup(VolumeName);
+   P(vol_list_lock);
+   fvol = (VOLRES *)vol_list->binary_search(&vol, my_compare);
+   V(vol_list_lock);
+   free(vol.vol_name);
+   return fvol;
+}
+
+/*  
+ * Free a Volume from the Volume list
+ *
+ *  Returns: true if the Volume found and removed from the list
+ *           false if the Volume is not in the list
+ */
+bool free_volume(DEVICE *dev)
+{
+   VOLRES vol, *fvol;
+
+   if (dev->VolHdr.VolName[0] == 0) {
+      return false;
+   }
+   vol.vol_name = bstrdup(dev->VolHdr.VolName);
+   P(vol_list_lock);
+   fvol = (VOLRES *)vol_list->binary_search(&vol, my_compare);
+   if (fvol) {
+      vol_list->remove(fvol);
+      free(fvol->vol_name);
+      free(fvol);
+   }
+   V(vol_list_lock);
+   free(vol.vol_name);
+   dev->VolHdr.VolName[0] = 0;
+   return fvol != NULL;
+}
+
+/*
+ * List Volumes -- this should be moved to status.c
+ */
+void list_volumes(BSOCK *user)  
+{
+   VOLRES *vol;
+   for (vol=(VOLRES *)vol_list->first(); vol; vol=(VOLRES *)vol_list->next(vol)) {
+      bnet_fsend(user, "%s\n", vol->vol_name);
+   }
+}
+      
+/* Create the Volume list */
+void create_volume_list()
+{
+   VOLRES *dummy;
+   if (vol_list == NULL) {
+      vol_list = New(dlist(dummy, &dummy->link));
+   }
+}
+
+/* Release all Volumes from the list */
+void free_volume_list()
+{
+   VOLRES *vol;
+   for (vol=(VOLRES *)vol_list->first(); vol; vol=(VOLRES *)vol_list->next(vol)) {
+      Dmsg1(000, "Unreleased Volume=%s\n", vol->vol_name);
+   }
+   delete vol_list;
+   vol_list = NULL;
+}
+
+bool is_volume_in_use(const char *VolumeName) 
+{
+   VOLRES *vol = find_volume(VolumeName);
+   if (!vol) {
+      return false;                   /* vol not in list */
+   }
+   if (!vol->dev) {                   /* vol not attached to device */
+      return false;
+   }
+   if (!vol->dev->is_busy()) {
+      return false;
+   }
+   return true;
+}
+
 
 static bool use_storage_cmd(JCR *jcr)
 {
@@ -241,6 +368,9 @@ done:
    }
    return ok;
 }
+
+
+
 
 /*
  * Search for a particular storage device with particular storage

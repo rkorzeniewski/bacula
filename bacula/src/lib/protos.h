@@ -71,11 +71,9 @@ bool       bnet_send             (BSOCK *bsock);
 bool       bnet_fsend            (BSOCK *bs, const char *fmt, ...);
 bool       bnet_set_buffer_size  (BSOCK *bs, uint32_t size, int rw);
 bool       bnet_sig              (BSOCK *bs, int sig);
-#ifdef HAVE_TLS
 int        bnet_tls_server       (TLS_CONTEXT *ctx, BSOCK *bsock,
                                   alist *verify_list);
 int        bnet_tls_client       (TLS_CONTEXT *ctx, BSOCK *bsock);
-#endif /* HAVE_TLS */
 BSOCK *    bnet_connect          (JCR *jcr, int retry_interval,
                int max_retry_time, const char *name, char *host, char *service,
                int port, int verbose);

@@ -28,7 +28,7 @@
 #define M_ABORT 1
 
 /* In case you want to specifically specify the offset to the link */
-#define OFFSET(item, link) ((char *)(link) - (char *)(item))
+#define OFFSET(item, link) (int)((char *)(link) - (char *)(item))
 /*
  * There is a lot of extra casting here to work around the fact
  * that some compilers (Sun and Visual C++) do not accept
@@ -64,8 +64,9 @@ public:
    void append(void *item);
    void insert_before(void *item, void *where);
    void insert_after(void *item, void *where);
-   void *unique_binary_insert(void *item, int compare(void *item1, void *item2));
-   void binary_insert(void *item, int compare(void *item1, void *item2));
+   void *binary_insert(void *item, int compare(void *item1, void *item2));
+   void *binary_search(void *item, int compare(void *item1, void *item2));
+   void binary_insert_multiple(void *item, int compare(void *item1, void *item2));
    void remove(void *item);
    bool empty() const;
    int  size() const;
@@ -85,7 +86,7 @@ public:
 inline void dlist::init(void *item, dlink *link)
 {
    head = tail = NULL;
-   loffset = (char *)link - (char *)item;
+   loffset = (int)((char *)link - (char *)item);
    if (loffset < 0 || loffset > 5000) {
       Emsg0(M_ABORT, 0, "Improper dlist initialization.\n");
    }

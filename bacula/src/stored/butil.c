@@ -159,7 +159,7 @@ static DCR *setup_to_access_device(JCR *jcr, char *dev_name,
    }
    bstrncpy(dcr->dev_name, device->device_name, sizeof(dcr->dev_name));
 
-   create_vol_list(jcr);
+   create_restore_volume_list(jcr);
 
    if (mode) {                        /* read only access? */
       if (!acquire_device_for_read(dcr)) {
@@ -198,7 +198,7 @@ static void my_free_jcr(JCR *jcr)
       jcr->fileset_md5 = NULL;
    }
    if (jcr->VolList) {
-      free_vol_list(jcr);
+      free_restore_volume_list(jcr);
    }
    if (jcr->dcr) {
       free_dcr(jcr->dcr);

@@ -80,7 +80,7 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
       if (loaded != slot) {
          offline_or_rewind_dev(dev);
          /* We are going to load a new tape, so close the device */
-         force_close_dev(dev);
+         force_close_device(dev);
          lock_changer(dcr);
          if (loaded != 0 && loaded != -1) {        /* must unload drive */
             Dmsg0(400, "Doing changer unload.\n");
@@ -241,7 +241,7 @@ bool autochanger_cmd(DCR *dcr, BSOCK *dir, const char *cmd)
       /* Yes, to get a good listing, we unload any volumes */
       offline_or_rewind_dev(dev);
       /* We are going to load a new tape, so close the device */
-      force_close_dev(dev);
+      force_close_device(dev);
 
       /* First unload any tape */
       loaded = get_autochanger_loaded_slot(dcr);

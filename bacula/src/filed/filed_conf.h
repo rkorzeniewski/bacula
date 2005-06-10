@@ -6,22 +6,17 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -51,9 +46,8 @@ struct DIRRES {
    char *password;                    /* Director password */
    char *address;                     /* Director address or zero */
    int monitor;                       /* Have only access to status and .status functions */
-#ifdef HAVE_TLS
    int tls_enable;                    /* Enable TLS */
-   int tls_require;		      /* Require TLS */
+   int tls_require;                   /* Require TLS */
    int tls_verify_peer;              /* TLS Verify Client Certificate */
    char *tls_ca_certfile;             /* TLS CA Certificate File */
    char *tls_ca_certdir;              /* TLS CA Certificate Directory */
@@ -63,7 +57,6 @@ struct DIRRES {
    alist *tls_allowed_cns;            /* TLS Allowed Clients */
 
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
-#endif /* HAVE_TLS */
 };
 
 struct CLIENT {
@@ -78,16 +71,14 @@ struct CLIENT {
    utime_t heartbeat_interval;        /* Interval to send heartbeats to Dir */
    utime_t SDConnectTimeout;          /* timeout in seconds */
    uint32_t max_network_buffer_size;  /* max network buf size */
-#ifdef HAVE_TLS
    int tls_enable;                    /* Enable TLS */
-   int tls_require;		      /* Require TLS */
+   int tls_require;                   /* Require TLS */
    char *tls_ca_certfile;             /* TLS CA Certificate File */
    char *tls_ca_certdir;              /* TLS CA Certificate Directory */
    char *tls_certfile;                /* TLS Client Certificate File */
    char *tls_keyfile;                 /* TLS Client Key File */
 
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
-#endif /* HAVE_TLS */
 };
 
 

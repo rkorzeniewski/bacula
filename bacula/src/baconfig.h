@@ -30,6 +30,12 @@
 #define TRUE  1
 #define FALSE 0
 
+#ifdef HAVE_TLS
+#define have_tls 1
+#else
+#define have_tls 0
+#endif
+
 #ifndef ETIME
 #define ETIME ETIMEDOUT
 #endif

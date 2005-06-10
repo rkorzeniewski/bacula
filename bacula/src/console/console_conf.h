@@ -5,6 +5,20 @@
  *
  *     Version $Id$
  */
+/*
+   Copyright (C) 2000-2005 Kern Sibbald
+
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
+
+ */
 
 /*
  * Resource codes -- they must be sequential for indexing
@@ -14,7 +28,7 @@ enum {
    R_CONSOLE   = 1001,
    R_DIRECTOR,
    R_FIRST     = R_CONSOLE,
-   R_LAST      = R_DIRECTOR	      /* Keep this updated */
+   R_LAST      = R_DIRECTOR           /* Keep this updated */
 };
 
 /*
@@ -33,11 +47,10 @@ enum {
 
 /* Console "globals" */
 struct CONRES {
-   RES	 hdr;
-   char *rc_file;		      /* startup file */
-   char *hist_file;		      /* command history file */
-   char *password;		      /* UA server password */
-#ifdef HAVE_TLS
+   RES   hdr;
+   char *rc_file;                     /* startup file */
+   char *hist_file;                   /* command history file */
+   char *password;                    /* UA server password */
    int tls_enable;                    /* Enable TLS on all connections */
    int tls_require;                   /* Require TLS on all connections */
    char *tls_ca_certfile;             /* TLS CA Certificate File */
@@ -46,16 +59,14 @@ struct CONRES {
    char *tls_keyfile;                 /* TLS Client Key File */
 
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
-#endif /* HAVE_TLS */
 };
 
 /* Director */
 struct DIRRES {
-   RES	 hdr;
-   int	 DIRport;		      /* UA server port */
-   char *address;		      /* UA server address */
-   char *password;		      /* UA server password */
-#ifdef HAVE_TLS
+   RES   hdr;
+   int   DIRport;                     /* UA server port */
+   char *address;                     /* UA server address */
+   char *password;                    /* UA server password */
    int tls_enable;                    /* Enable TLS */
    int tls_require;                   /* Require TLS */
    char *tls_ca_certfile;             /* TLS CA Certificate File */
@@ -64,7 +75,6 @@ struct DIRRES {
    char *tls_keyfile;                 /* TLS Client Key File */
 
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
-#endif /* HAVE_TLS */
 };
 
 

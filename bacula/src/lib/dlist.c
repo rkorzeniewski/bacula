@@ -10,7 +10,7 @@
  *
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2003-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -105,7 +105,7 @@ void dlist::insert_after(void *item, void *where)
  * Returns: item	 if item inserted
  *	    other_item	 if same value already exists (item not inserted)
  */
-void *dlist::unique_binary_insert(void *item, int compare(void *item1, void *item2))
+void *dlist::binary_insert(void *item, int compare(void *item1, void *item2))
 {
    int comp;
    int low, high, cur;
@@ -195,18 +195,82 @@ void *dlist::unique_binary_insert(void *item, int compare(void *item1, void *ite
    return item;
 }
 
-
 /*
  *  Insert an item in the list, regardless if it is unique
  *  or not.
  */
-void dlist::binary_insert(void *item, int compare(void *item1, void *item2))
+void dlist::binary_insert_multiple(void *item, int compare(void *item1, void *item2))
 {
-   void *ins_item = unique_binary_insert(item, compare);
+   void *ins_item = binary_insert(item, compare);
    /* If identical, insert after the one found */
    if (ins_item != item) {
       insert_after(item, ins_item);
    }
+}
+
+/*
+ * Search for item
+ */
+void *dlist::binary_search(void *item, int compare(void *item1, void *item2))
+{
+   int comp;
+   int low, high, cur;
+   void *cur_item;
+
+
+   if (num_items == 0) {
+      return NULL;
+   }
+   cur_item = first();
+   if (num_items == 1) {
+      comp = compare(item, cur_item);
+      if (comp == 0) {
+	 return cur_item;
+      } else {
+	 return NULL;
+      }
+   }
+   low = 1;
+   high = num_items;
+   cur = 1;
+   cur_item = first();
+   while (low < high) {
+      int nxt;
+      nxt = (low + high) / 2;
+      /* Now get cur pointing to nxt */
+      while (nxt > cur) {
+	 cur_item = next(cur_item);
+	 cur++;
+      }
+      while (nxt < cur) {
+	 cur_item = prev(cur_item);
+	 cur--;
+      }
+      comp = compare(item, cur_item);
+      //Dmsg2(000, "Compare item to %d = %d\n", cur, comp);
+      if (comp < 0) {
+	 high = cur;
+         //Dmsg2(000, "set high; low=%d high=%d\n", low, high);
+      } else if (comp > 0) {
+	 low = cur + 1;
+         //Dmsg2(000, "set low; low=%d high=%d\n", low, high);
+      } else {
+	 return cur_item;
+      }
+   }
+   /*
+    * low == high can only happen if low just 
+    *	got incremented from cur, and we have
+    *	not yet tested cur+1
+    */
+   if (low == high) {
+      cur_item = next(cur_item);
+      comp = compare(item, cur_item);
+      if (comp == 0) {
+	 return cur_item;
+      }
+   }
+   return NULL;
 }
 
 
@@ -313,15 +377,16 @@ int main()
 
    next_jcr = (MYJCR *)jcr_chain->next(save_jcr);
    printf("11th item=%s\n", next_jcr->buf);
-   jcr = (MYJCR *)malloc(sizeof(MYJCR));
-   jcr->buf = save_jcr->buf;
+   jcr1 = (MYJCR *)malloc(sizeof(MYJCR));
+   jcr1->buf = save_jcr->buf;
    printf("Remove 10th item\n");
    jcr_chain->remove(save_jcr);
+   free(save_jcr);
    printf("Re-insert 10th item\n");
-   jcr_chain->insert_before(jcr, next_jcr);
+   jcr_chain->insert_before(jcr1, next_jcr);
 
    printf("Print remaining list.\n");
-   foreach_dlist (jcr, jcr_chain) {
+   foreach_dlist(jcr, jcr_chain) {
       printf("Dlist item = %s\n", jcr->buf);
       free(jcr->buf);
    }
@@ -346,6 +411,7 @@ int main()
    jcr->buf = save_jcr->buf;
    printf("Remove 10th item\n");
    jcr_chain->remove(save_jcr);
+   free(save_jcr);
    printf("Re-insert 10th item\n");
    jcr_chain->insert_before(jcr, next_jcr);
 
@@ -386,12 +452,37 @@ int main()
       buf[0]--;
    }
 
-   printf("Print sorted list.\n");
-   foreach_dlist (jcr, jcr_chain) {
-      printf("Dlist item = %s\n", jcr->buf);
-      free(jcr->buf);
+   jcr = (MYJCR *)malloc(sizeof(MYJCR));
+   strcpy(buf, "a");
+   jcr->buf = bstrdup(buf);
+   if (jcr_chain->binary_search(jcr, my_compare)) {
+      printf("One less failed!!!!\n");
+   } else {
+      printf("One less: OK\n");
    }
+   free(jcr->buf);
+   strcpy(buf, "ZZZZZZZZZZZZZZZZ");
+   jcr->buf = bstrdup(buf);
+   if (jcr_chain->binary_search(jcr, my_compare)) {
+      printf("One greater failed!!!!\n");
+   } else {
+      printf("One greater: OK\n");
+   }
+   free(jcr->buf);
+   free(jcr);
 
+
+   printf("Find each of %d items in list.\n", count);
+   foreach_dlist (jcr, jcr_chain) {
+      if (!jcr_chain->binary_search(jcr, my_compare)) {
+         printf("Dlist binary_search item not found = %s\n", jcr->buf);
+      }
+   }
+   printf("Free each of %d items in list.\n", count);
+   foreach_dlist (jcr, jcr_chain) {
+      free(jcr->buf);
+      jcr->buf = NULL;
+   }
    delete jcr_chain;
 
 

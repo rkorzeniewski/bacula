@@ -3,24 +3,18 @@
  *
  *   Version $Id$
  */
-
 /*
    Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -90,8 +84,6 @@ off_t    lseek_dev(DEVICE *dev, off_t offset, int whence);
 int      open_first_part(DEVICE *dev);
 int      open_next_part(DEVICE *dev);
 int      open_guess_name_dev(DEVICE *dev);
-void     close_dev(DEVICE *dev);
-void     force_close_dev(DEVICE *dev);
 bool     truncate_dev(DEVICE *dev);
 void     term_dev(DEVICE *dev);
 char *   strerror_dev(DEVICE *dev);
@@ -128,6 +120,8 @@ bool dvd_close_job(DCR *dcr);
 
 /* From device.c */
 bool     open_device(DCR *dcr);
+void     close_device(DEVICE *dev);
+void     force_close_device(DEVICE *dev);
 bool     first_open_device(DEVICE *dev);
 bool     fixup_device_block_write_error(DCR *dcr);
 void     _lock_device(const char *file, int line, DEVICE *dev);
@@ -186,17 +180,16 @@ bool     match_set_eof(BSR *bsr, DEV_RECORD *rec);
 /* From mount.c */
 bool     mount_next_write_volume(DCR *dcr, bool release);
 bool     mount_next_read_volume(DCR *dcr);
-void     release_volume(DCR *ddr);
 void     mark_volume_in_error(DCR *dcr);
 
 /* From parse_bsr.c */
 BSR     *parse_bsr(JCR *jcr, char *lf);
 void     dump_bsr(BSR *bsr, bool recurse);
 void     free_bsr(BSR *bsr);
-VOL_LIST *new_vol();
-int      add_vol(JCR *jcr, VOL_LIST *vol);
-void     free_vol_list(JCR *jcr);
-void     create_vol_list(JCR *jcr);
+VOL_LIST *new_restore_volume();
+int      add_restore_volume(JCR *jcr, VOL_LIST *vol);
+void     free_restore_volume_list(JCR *jcr);
+void     create_restore_volume_list(JCR *jcr);
 
 /* From record.c */
 const char *FI_to_ascii(int fi);
@@ -212,6 +205,17 @@ void        empty_record(DEV_RECORD *rec);
 bool read_records(DCR *dcr,
        bool record_cb(DCR *dcr, DEV_RECORD *rec),
        bool mount_cb(DCR *dcr));
+
+/* From reserve.c */
+void    release_volume(DCR *dcr);
+VOLRES *new_volume(const char *VolumeName, DEVICE *dev);
+VOLRES *find_volume(const char *VolumeName);
+bool    free_volume(DEVICE *dev);
+void    create_volume_list();
+void    free_volume_list();
+void    list_volumes(BSOCK *user);
+bool    is_volume_in_use(const char *VolumeName);
+
 
 /* From spool.c */
 bool    begin_data_spool          (DCR *dcr);

@@ -1,22 +1,19 @@
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+ * Version $Id$
+ */
+/*
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
-/*
- * Version $Id$
  */
 
 #ifndef CONSOLECONF_H
@@ -52,8 +49,15 @@ struct s_res_con {
    RES   hdr;
    char *rc_file;                     /* startup file */
    char *hist_file;                   /* command history file */
-   int require_ssl;                   /* Require SSL on all connections */
    char *password;                    /* UA server password */
+   int tls_enable;                    /* Enable TLS on all connections */
+   int tls_require;                   /* Require TLS on all connections */
+   char *tls_ca_certfile;             /* TLS CA Certificate File */
+   char *tls_ca_certdir;              /* TLS CA Certificate Directory */
+   char *tls_certfile;                /* TLS Client Certificate File */
+   char *tls_keyfile;                 /* TLS Client Key File */
+
+   TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
 };
 typedef struct s_res_con CONRES;
 
@@ -63,7 +67,14 @@ struct s_res_dir {
    int   DIRport;                     /* UA server port */
    char *address;                     /* UA server address */
    char *password;                    /* UA server password */
-   int  enable_ssl;                   /* Use SSL */
+   int tls_enable;                    /* Enable TLS on all connections */
+   int tls_require;                   /* Require TLS on all connections */
+   char *tls_ca_certfile;             /* TLS CA Certificate File */
+   char *tls_ca_certdir;              /* TLS CA Certificate Directory */
+   char *tls_certfile;                /* TLS Client Certificate File */
+   char *tls_keyfile;                 /* TLS Client Key File */
+
+   TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
 };
 typedef struct s_res_dir DIRRES;
 

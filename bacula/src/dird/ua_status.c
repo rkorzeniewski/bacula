@@ -462,7 +462,7 @@ static void list_scheduled_jobs(UAContext *ua)
          sp->priority = priority;
          sp->runtime = runtime;
          sp->pool = run->pool;
-         sched.binary_insert(sp, my_compare);
+         sched.binary_insert_multiple(sp, my_compare);
          num_jobs++;
       }
    } /* end for loop over resources */

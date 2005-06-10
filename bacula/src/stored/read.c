@@ -35,7 +35,7 @@ static char rec_header[] = "rechdr %ld %ld %ld %ld %ld";
 /*
  *  Read Data and send to File Daemon
  *   Returns: false on failure
- *	      true  on success
+ *            true  on success
  */
 bool do_read_data(JCR *jcr)
 {
@@ -50,10 +50,10 @@ bool do_read_data(JCR *jcr)
    }
 
 
-   create_vol_list(jcr);
+   create_restore_volume_list(jcr);
    if (jcr->NumVolumes == 0) {
       Jmsg(jcr, M_FATAL, 0, _("No Volume names found for restore.\n"));
-      free_vol_list(jcr);
+      free_restore_volume_list(jcr);
       bnet_fsend(fd, FD_error);
       return false;
    }
@@ -63,7 +63,7 @@ bool do_read_data(JCR *jcr)
 
    /* Ready device for reading */
    if (!acquire_device_for_read(dcr)) {
-      free_vol_list(jcr);
+      free_restore_volume_list(jcr);
       bnet_fsend(fd, FD_error);
       return false;
    }
@@ -79,7 +79,7 @@ bool do_read_data(JCR *jcr)
       ok = false;
    }
 
-   free_vol_list(jcr);
+   free_restore_volume_list(jcr);
    Dmsg0(30, "Done reading.\n");
    return ok;
 }
@@ -87,7 +87,7 @@ bool do_read_data(JCR *jcr)
 /*
  * Called here for each record from read_records()
  *  Returns: true if OK
- *	     false if error
+ *           false if error
  */
 static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 {
@@ -105,10 +105,10 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 
    /* Send record header to File daemon */
    if (!bnet_fsend(fd, rec_header, rec->VolSessionId, rec->VolSessionTime,
-	  rec->FileIndex, rec->Stream, rec->data_len)) {
+          rec->FileIndex, rec->Stream, rec->data_len)) {
       Dmsg1(30, ">filed: Error Hdr=%s\n", fd->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Error sending to File daemon. ERR=%s\n"),
-	 bnet_strerror(fd));
+         bnet_strerror(fd));
       return false;
    } else {
       Dmsg1(31, ">filed: Hdr=%s\n", fd->msg);
@@ -116,17 +116,17 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 
 
    /* Send data record to File daemon */
-   save_msg = fd->msg;		/* save fd message pointer */
-   fd->msg = rec->data; 	/* pass data directly to bnet_send */
+   save_msg = fd->msg;          /* save fd message pointer */
+   fd->msg = rec->data;         /* pass data directly to bnet_send */
    fd->msglen = rec->data_len;
    Dmsg1(31, ">filed: send %d bytes data.\n", fd->msglen);
    if (!bnet_send(fd)) {
       Pmsg1(000, "Error sending to FD. ERR=%s\n", bnet_strerror(fd));
       Jmsg1(jcr, M_FATAL, 0, _("Error sending to File daemon. ERR=%s\n"),
-	 bnet_strerror(fd));
+         bnet_strerror(fd));
 
       ok = false;
    }
-   fd->msg = save_msg;		      /* restore fd message pointer */
+   fd->msg = save_msg;                /* restore fd message pointer */
    return ok;
 }
