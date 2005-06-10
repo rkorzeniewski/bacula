@@ -217,6 +217,7 @@ int main (int argc, char *argv[])
    /* Make sure on Solaris we can run concurrent, watch dog + servers + misc */
    set_thread_concurrency(me->max_concurrent_jobs * 2 + 4);
 
+   create_volume_list();
     /*
      * Start the device allocation thread
      */
@@ -307,13 +308,13 @@ static int check_resources()
    foreach_res(store, R_STORAGE) { 
       /* tls_require implies tls_enable */
       if (store->tls_require) {
-#ifndef HAVE_TLS
-         Jmsg(NULL, M_FATAL, 0, _("TLS required but not configured in Bacula.\n"));
-         OK = false;
-         continue;
-#else
-         store->tls_enable = true;
-#endif
+         if (have_tls) {
+            store->tls_enable = true;
+         } else {
+            Jmsg(NULL, M_FATAL, 0, _("TLS required but not configured in Bacula.\n"));
+            OK = false;
+            continue;
+         }
       }
 
       if (!store->tls_certfile && store->tls_enable) {
@@ -557,12 +558,15 @@ void terminate_stored(int sig)
 
    foreach_res(device, R_DEVICE) {
       if (device->dev) {
+         free_volume(device->dev);
          term_dev(device->dev);
       }
    }
 
-   if (configfile)
-   free(configfile);
+   if (configfile) {
+      free(configfile);
+      configfile = NULL;
+   }
    free_config_resources();
 
    if (debug_level > 10) {
@@ -571,6 +575,7 @@ void terminate_stored(int sig)
    term_msg();
    stop_watchdog();
    cleanup_tls();
+   free_volume_list();
    close_memory_pool();
 
    sm_dump(false);                    /* dump orphaned buffers */

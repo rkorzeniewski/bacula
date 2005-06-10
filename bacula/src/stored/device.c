@@ -32,19 +32,14 @@
    Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -309,6 +304,36 @@ bool open_device(DCR *dcr)
    }
    return true;
 }
+
+/*
+ * Release any Volume attached to this device 
+ *  then close the device.
+ */
+void close_device(DEVICE *dev)
+{
+   free_volume(dev);
+   dev->close();
+}
+
+/*
+ * Used when unmounting the device, ignore use_count
+ */
+void force_close_device(DEVICE *dev)
+{
+   if (!dev) {
+      Mmsg0(dev->errmsg, _("Bad call to force_close_dev. Device not open\n"));
+      Emsg0(M_FATAL, 0, dev->errmsg);
+      return;
+   }
+   Dmsg1(29, "Force close_dev %s\n", dev->print_name());
+   dev->use_count = 1;
+   dev->close();
+
+#ifdef FULL_DEBUG
+   ASSERT(dev->use_count >= 0);
+#endif
+}
+
 
 void dev_lock(DEVICE *dev)
 {

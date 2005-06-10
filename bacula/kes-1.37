@@ -3,7 +3,23 @@
 
 General:
 
+Changes to 1.37.22:
+10Jun05
+- Start removing #ifdef HAVE_TLS by sneaky tricks.
+- Begin implementation of TLS in wx-console
+- Remove ignoring SIGCHLD from console.
+- Rework the dlist binary search routines for implemenation
+  of the Volume reservation code -- make it more general.
+- Strip double slashes // from Win32 filenames in an attempt
+  to resolve restore problems on some systems.
+- Fix a minor bugs in the trace code that caused the first
+  line output to be lost.
+- Implement a good first cut at adding Volume reservation code
+  to the storage daemon (in file reserve.c).
+- Remove old unused code from the tree.c routines.
+
 Changes to 1.37.21:
+06Jun05
 - Fix compile problems on Win32
 - Start writing Volume reservation list (already exists, but
   is not really very good).

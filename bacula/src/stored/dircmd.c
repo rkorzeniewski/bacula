@@ -22,19 +22,14 @@
    Copyright (C) 2001-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -335,7 +330,7 @@ static bool do_label(JCR *jcr, int relabel)
          P(dev->mutex);               /* Use P to avoid indefinite block */
          if (!dev->is_open()) {
             label_volume_if_ok(jcr, dev, oldname, newname, poolname, slot, relabel);
-            force_close_dev(dev);
+            force_close_device(dev);
          /* Under certain "safe" conditions, we can steal the lock */
          } else if (dev->can_steal_lock()) {
             label_volume_if_ok(jcr, dev, oldname, newname, poolname, slot, relabel);
@@ -669,7 +664,7 @@ static bool unmount_cmd(JCR *jcr)
             Dmsg2(90, "%d waiter dev_block=%d. doing unmount\n", dev->num_waiting,
                dev->dev_blocked);
             offline_or_rewind_dev(dev);
-            force_close_dev(dev);
+            force_close_device(dev);
             dev->dev_blocked = BST_UNMOUNTED_WAITING_FOR_SYSOP;
             bnet_fsend(dir, _("3001 Device %s unmounted.\n"), 
                dev->print_name());
@@ -695,7 +690,7 @@ static bool unmount_cmd(JCR *jcr)
             dev->dev_blocked = BST_UNMOUNTED;
             dev->no_wait_id = 0;
             offline_or_rewind_dev(dev);
-            force_close_dev(dev);
+            force_close_device(dev);
             bnet_fsend(dir, _("3002 Device %s unmounted.\n"), 
                dev->print_name());
          }
@@ -838,7 +833,7 @@ static bool readlabel_cmd(JCR *jcr)
          P(dev->mutex);               /* Use P to avoid indefinite block */
          if (!dev->is_open()) {
             read_volume_label(jcr, dev, Slot);
-            force_close_dev(dev);
+            force_close_device(dev);
          /* Under certain "safe" conditions, we can steal the lock */
          } else if (dev->can_steal_lock()) {
             read_volume_label(jcr, dev, Slot);

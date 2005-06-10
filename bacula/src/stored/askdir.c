@@ -213,39 +213,6 @@ bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw writing)
 }
 
 /*
- * Rewrite this to use a list, but need something to add
- *   and remove volumes from the list.
- */
-static bool is_volume_in_use(JCR *jcr, const char *VolumeName) {
-    bool in_use = false;
-    JCR *njcr;
-    Dmsg2(300, "JobId=%d got possible Vol=%s\n", jcr->JobId, VolumeName);
-    /*
-     * Walk through all jobs and see if the volume is
-     *  already mounted. If so, try a different one.
-     * This would be better done by walking through
-     *  all the devices.
-     */
-    foreach_jcr(njcr) {
-       if (jcr == njcr) {
-          free_jcr(njcr);
-          continue;             /* us */
-       }
-       Dmsg2(300, "Compare to JobId=%d using Vol=%s\n", njcr->JobId, njcr->dcr->VolumeName);
-       if (njcr->dcr && strcmp(VolumeName, njcr->dcr->VolumeName) == 0) {
-          in_use = true;
-          Dmsg1(400, "Vol in use by JobId=%u\n", njcr->JobId);
-          free_jcr(njcr);
-          break;
-       }
-       free_jcr(njcr);
-    }
-    return in_use;
- }
-
-
-
-/*
  * Get info on the next appendable volume in the Director's database
  * Returns: true  on success
  *          false on failure
@@ -257,6 +224,7 @@ bool dir_find_next_appendable_volume(DCR *dcr)
 {
     JCR *jcr = dcr->jcr;
     BSOCK *dir = jcr->dir_bsock;
+    bool found = false;
 
     Dmsg0(200, "dir_find_next_appendable_volume\n");
     /*
@@ -272,9 +240,10 @@ bool dir_find_next_appendable_volume(DCR *dcr)
        unbash_spaces(dcr->pool_name);
        Dmsg1(100, ">dird: %s", dir->msg);
        if (do_get_volume_info(dcr)) {
-          if (is_volume_in_use(jcr, dcr->VolumeName)) {
+          if (is_volume_in_use(dcr->VolumeName)) {
              continue;
           } else {
+             found = true;
              break;
           }
        } else {
@@ -282,8 +251,12 @@ bool dir_find_next_appendable_volume(DCR *dcr)
           return false;
        }
     }
-    Dmsg0(400, "dir_find_next_appendable_volume return true\n");
-    return true;
+    if (found) {
+       Dmsg0(400, "dir_find_next_appendable_volume return true\n");
+       new_volume(dcr->VolumeName, NULL);   /* reserve volume */
+       return true;
+    }
+    return false;
 }
 
 

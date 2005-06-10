@@ -8,22 +8,17 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2002-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -150,7 +145,7 @@ mount_next_vol:
    Dmsg1(100, "want vol=%s\n", dcr->VolumeName);
 
    if (dev->poll && dev_cap(dev, CAP_CLOSEONPOLL)) {
-      force_close_dev(dev);
+      force_close_device(dev);
    }
 
    /* Ensure the device is open */
@@ -316,7 +311,7 @@ read_volume:
       ask = true;
       /* Needed, so the medium can be changed */
       if (dev_cap(dev, CAP_REQMOUNT)) {
-         close_dev(dev);  
+         close_device(dev);  
       }
       goto mount_next_vol;
    }
@@ -348,11 +343,7 @@ read_volume:
       Dmsg0(200, "Device previously written, moving to end of data\n");
       Jmsg(jcr, M_INFO, 0, _("Volume \"%s\" previously written, moving to end of data.\n"),
          dcr->VolumeName);
-#if defined (__digital__) && defined (__unix__)
-      if (!fsf_dev(dev,dev->VolCatInfo.VolCatFiles)) {
-#else
       if (!eod_dev(dev)) {
-#endif
          Jmsg(jcr, M_ERROR, 0, _("Unable to position to end of data on device %s: ERR=%s\n"),
             dev->print_name(), strerror_dev(dev));
          mark_volume_in_error(dcr);
@@ -422,33 +413,6 @@ static void mark_volume_not_inchanger(DCR *dcr)
    dir_update_volume_info(dcr, true);  /* set new status */
 }
 
-
-/*
- * If we are reading, we come here at the end of the tape
- *  and see if there are more volumes to be mounted.
- */
-bool mount_next_read_volume(DCR *dcr)
-{
-   DEVICE *dev = dcr->dev;
-   JCR *jcr = dcr->jcr;
-   Dmsg2(90, "NumVolumes=%d CurVolume=%d\n", jcr->NumVolumes, jcr->CurVolume);
-   /*
-    * End Of Tape -- mount next Volume (if another specified)
-    */
-   if (jcr->NumVolumes > 1 && jcr->CurVolume < jcr->NumVolumes) {
-      close_dev(dev);
-      dev->clear_read();
-      if (!acquire_device_for_read(dcr)) {
-         Jmsg2(jcr, M_FATAL, 0, "Cannot open Dev=%s, Vol=%s\n", dev->print_name(),
-               dcr->VolumeName);
-         return false;
-      }
-      return true;                    /* next volume mounted */
-   }
-   Dmsg0(90, "End of Device reached.\n");
-   return false;
-}
-
 /*
  * Either because we are going to hang a new volume, or because
  *  of explicit user request, we release the current volume.
@@ -468,6 +432,7 @@ void release_volume(DCR *dcr)
    dev->EndBlock = dev->EndFile = 0;
    memset(&dev->VolCatInfo, 0, sizeof(dev->VolCatInfo));
    memset(&dcr->VolCatInfo, 0, sizeof(dcr->VolCatInfo));
+   free_volume(dev);
    memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
    /* Force re-read of label */
    dev->state &= ~(ST_LABEL|ST_READ|ST_APPEND);
@@ -476,7 +441,7 @@ void release_volume(DCR *dcr)
 
    if (dev->is_open() && (!dev->is_tape() || !dev_cap(dev, CAP_ALWAYSOPEN))) {
       offline_or_rewind_dev(dev);
-      close_dev(dev);
+      close_device(dev);
    }
 
    /* If we have not closed the device, then at least rewind the tape */
@@ -484,4 +449,30 @@ void release_volume(DCR *dcr)
       offline_or_rewind_dev(dev);
    }
    Dmsg0(190, "===== release_volume ---");
+}
+
+/*
+ * If we are reading, we come here at the end of the tape
+ *  and see if there are more volumes to be mounted.
+ */
+bool mount_next_read_volume(DCR *dcr)
+{
+   DEVICE *dev = dcr->dev;
+   JCR *jcr = dcr->jcr;
+   Dmsg2(90, "NumVolumes=%d CurVolume=%d\n", jcr->NumVolumes, jcr->CurVolume);
+   /*
+    * End Of Tape -- mount next Volume (if another specified)
+    */
+   if (jcr->NumVolumes > 1 && jcr->CurVolume < jcr->NumVolumes) {
+      close_device(dev);
+      dev->clear_read();
+      if (!acquire_device_for_read(dcr)) {
+         Jmsg2(jcr, M_FATAL, 0, "Cannot open Dev=%s, Vol=%s\n", dev->print_name(),
+               dcr->VolumeName);
+         return false;
+      }
+      return true;                    /* next volume mounted */
+   }
+   Dmsg0(90, "End of Device reached.\n");
+   return false;
 }

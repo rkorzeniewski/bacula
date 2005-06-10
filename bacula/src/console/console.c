@@ -6,24 +6,18 @@
  *
  *     Version $Id$
  */
-
 /*
    Copyright (C) 2000-2005 Kern Sibbald
 
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License.
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
-   This library is distributed in the hope that it will be useful,
+   This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
-
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -295,7 +289,6 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
    }
 }
 
-#ifdef HAVE_TLS
 /*
  * Call-back for reading a passphrase for an encrypted PEM file
  * This function uses getpass(), which uses a static buffer and is NOT thread-safe.
@@ -310,7 +303,6 @@ static int tls_pem_callback(char *buf, int size, const void *userdata)
 
    return (strlen(buf));
 }
-#endif
 
 
 /*********************************************************************
@@ -373,7 +365,7 @@ int main(int argc, char *argv[])
 
 #if !defined(HAVE_WIN32)
    /* Override Bacula default signals */
-   signal(SIGCHLD, SIG_IGN);
+// signal(SIGCHLD, SIG_IGN);
    signal(SIGQUIT, SIG_IGN);
    signal(SIGTSTP, got_sigstop);
    signal(SIGCONT, got_sigcontinue);
@@ -455,7 +447,6 @@ try_again:
 
    senditf(_("Connecting to Director %s:%d\n"), dir->address,dir->DIRport);
 
-#ifdef HAVE_TLS
    char buf[1024];
    /* Initialize Console TLS context */
    if (cons && (cons->tls_enable || cons->tls_require)) {
@@ -497,7 +488,6 @@ try_again:
          return 1;
       }
    }
-#endif /* HAVE_TLS */
 
    UA_sock = bnet_connect(NULL, 5, 15, "Director daemon", dir->address,
                           NULL, dir->DIRport, 0);
@@ -577,10 +567,15 @@ static int check_resources()
    foreach_res(director, R_DIRECTOR) {
 
       numdir++;
-#ifdef HAVE_TLS
       /* tls_require implies tls_enable */
       if (director->tls_require) {
-         director->tls_enable = true;
+         if (have_tls) {
+            director->tls_enable = true;
+         } else {
+            Jmsg(NULL, M_FATAL, 0, _("TLS required but not configured in Bacula.\n"));
+            OK = false;
+            continue;
+         }
       }
 
       if ((!director->tls_ca_certfile && !director->tls_ca_certdir) && director->tls_enable) {
@@ -590,7 +585,6 @@ static int check_resources()
                              director->hdr.name, configfile);
          OK = false;
       }
-#endif /* HAVE_TLS */
    }
    
    if (numdir == 0) {
@@ -599,13 +593,18 @@ static int check_resources()
       OK = false;
    }
 
-#ifdef HAVE_TLS
    CONRES *cons;
    /* Loop over Consoles */
    foreach_res(cons, R_CONSOLE) {
       /* tls_require implies tls_enable */
       if (cons->tls_require) {
-         cons->tls_enable = true;
+         if (have_tls) {
+            cons->tls_enable = true;
+         } else {
+            Jmsg(NULL, M_FATAL, 0, _("TLS required but not configured in Bacula.\n"));
+            OK = false;
+            continue;
+         }
       }
 
       if ((!cons->tls_ca_certfile && !cons->tls_ca_certdir) && cons->tls_enable) {
@@ -615,7 +614,6 @@ static int check_resources()
          OK = false;
       }
    }
-#endif /* HAVE_TLS */
 
    UnlockRes();
 

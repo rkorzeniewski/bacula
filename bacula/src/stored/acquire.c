@@ -247,7 +247,7 @@ default_path:
          /* If the device requires mount, close it, so the device can be ejected.
           * FIXME: This should perhaps be done for all devices. */
          if (dev_cap(dev, CAP_REQMOUNT)) {
-            force_close_dev(dev);
+            force_close_device(dev);
          }
          
          /* Call autochanger only once unless ask_sysop called */
@@ -477,7 +477,7 @@ bool release_device(DCR *dcr)
    /* If no writers, close if file or !CAP_ALWAYS_OPEN */
    if (dev->num_writers == 0 && (!dev->is_tape() || !dev_cap(dev, CAP_ALWAYSOPEN))) {
       offline_or_rewind_dev(dev);
-      close_dev(dev);
+      close_device(dev);
    }
 
    /* Fire off Alert command and include any output */

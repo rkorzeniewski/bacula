@@ -10,19 +10,14 @@
    Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -298,10 +293,14 @@ static int check_resources()
              OK = false;
          }
       }
-#ifdef HAVE_TLS
       /* tls_require implies tls_enable */
       if (me->tls_require) {
+#ifndef HAVE_TLS
+         Jmsg(NULL, M_FATAL, 0, _("TLS required but not configured in Bacula.\n"));
+         OK = false;
+#else
          me->tls_enable = true;
+#endif
       }
 
       if ((!me->tls_ca_certfile && !me->tls_ca_certdir) && me->tls_enable) {
@@ -326,8 +325,6 @@ static int check_resources()
             OK = false;
          }
       }
-
-#endif /* HAVE_TLS */
    }
 
 
@@ -341,11 +338,16 @@ static int check_resources()
       OK = false;
    }
 
-#ifdef HAVE_TLS
    foreach_res(director, R_DIRECTOR) { 
       /* tls_require implies tls_enable */
       if (director->tls_require) {
+#ifndef HAVE_TLS
+         Jmsg(NULL, M_FATAL, 0, _("TLS required but not configured in Bacula.\n"));
+         OK = false;
+         continue;
+#else
          director->tls_enable = true;
+#endif
       }
 
       if (!director->tls_certfile && director->tls_enable) {
@@ -386,7 +388,6 @@ static int check_resources()
          }
       }
    }
-#endif /* HAVE_TLS */
 
    UnlockRes();
 

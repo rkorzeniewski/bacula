@@ -296,6 +296,7 @@ public:
    void clear_eof() { state &= ~ST_EOF; };
    void block(int why); /* in dev.c */
    void unblock();      /* in dev.c */
+   void close();        /* in dev.c */
 };
 
 /* Note, these return int not bool! */
@@ -343,6 +344,16 @@ public:
    int Copy;                          /* identical copy number */
    int Stripe;                        /* RAIT stripe */
    VOLUME_CAT_INFO VolCatInfo;        /* Catalog info for desired volume */
+};
+
+/*
+ * Volume reservation class -- see reserve.c
+ */
+class VOLRES { 
+public:
+   dlink link;
+   char *vol_name;
+   DEVICE *dev;
 };
 
 

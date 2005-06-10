@@ -1200,6 +1200,8 @@ bool    dir_ask_sysop_to_create_appendable_volume(DCR *dcr) { return 1; }
 bool    dir_update_file_attributes(DCR *dcr, DEV_RECORD *rec) { return 1;}
 bool    dir_send_job_status(JCR *jcr) {return 1;}
 int     generate_job_event(JCR *jcr, const char *event) { return 1; }
+VOLRES *new_volume(const char *VolumeName, DEVICE *dev) { return NULL; }
+bool    free_volume(DEVICE *dev) { return true; }
 
 bool dir_ask_sysop_to_mount_volume(DCR *dcr)
 {
@@ -1209,7 +1211,7 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
    if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
       offline_dev(dev);
    }
-   force_close_dev(dev);
+   force_close_device(dev);
    fprintf(stderr, "Mount Volume \"%s\" on device %s and press return when ready: ",
          dcr->VolumeName, dev->print_name());
    getchar();

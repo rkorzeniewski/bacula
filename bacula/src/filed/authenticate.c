@@ -43,9 +43,7 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
    int tls_local_need = BNET_TLS_NONE;
    int tls_remote_need = BNET_TLS_NONE;
    bool auth_success = false;
-#ifdef HAVE_TLS
    alist *verify_list = NULL;
-#endif /* HAVE_TLS */
 
    if (rcode != R_DIRECTOR) {
       Dmsg1(50, _("I only authenticate directors, not %d\n"), rcode);
@@ -88,20 +86,20 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
       return 0;
    }
 
-#ifdef HAVE_TLS
-   /* TLS Requirement */
-   if (director->tls_enable) {
-      if (director->tls_require) {
-         tls_local_need = BNET_TLS_REQUIRED;
-      } else {
-         tls_local_need = BNET_TLS_OK;
+   if (have_tls) {
+      /* TLS Requirement */
+      if (director->tls_enable) {
+         if (director->tls_require) {
+            tls_local_need = BNET_TLS_REQUIRED;
+         } else {
+            tls_local_need = BNET_TLS_OK;
+         }
+      }
+
+      if (director->tls_verify_peer) {
+         verify_list = director->tls_allowed_cns;
       }
    }
-
-   if (director->tls_verify_peer) {
-      verify_list = director->tls_allowed_cns;
-   }
-#endif /* HAVE_TLS */
 
    btimer_t *tid = start_bsock_timer(bs, AUTH_TIMEOUT);
    auth_success = cram_md5_auth(bs, director->password, tls_local_need);
@@ -136,16 +134,16 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
       goto auth_fatal;
    }
 
-#ifdef HAVE_TLS
-   if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
-      /* Engage TLS! Full Speed Ahead! */
-      if (!bnet_tls_server(director->tls_ctx, bs, verify_list)) {
-         Emsg0(M_FATAL, 0, "TLS negotiation failed.\n");
-         director = NULL;
-         goto auth_fatal;
+   if (have_tls) {
+      if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
+         /* Engage TLS! Full Speed Ahead! */
+         if (!bnet_tls_server(director->tls_ctx, bs, verify_list)) {
+            Emsg0(M_FATAL, 0, "TLS negotiation failed.\n");
+            director = NULL;
+            goto auth_fatal;
+         }
       }
    }
-#endif /* HAVE_TLS */
 
 auth_fatal:
    stop_bsock_timer(tid);

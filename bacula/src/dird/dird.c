@@ -485,10 +485,14 @@ static int check_resources()
             configfile);
          OK = false;
       }
-#ifdef HAVE_TLS
       /* tls_require implies tls_enable */
       if (director->tls_require) {
-         director->tls_enable = true;
+         if (have_tls) {
+            director->tls_enable = true;
+         } else {
+            Jmsg(NULL, M_FATAL, 0, _("TLS required but not configured in Bacula.\n"));
+            OK = false;
+         }
       }
 
       if (!director->tls_certfile && director->tls_enable) {
@@ -528,7 +532,6 @@ static int check_resources()
             OK = false;
          }
       }
-#endif /* HAVE_TLS */
    }
 
    if (!job) {
@@ -697,10 +700,14 @@ static int check_resources()
             db_update_storage_record(NULL, db, &sr);
          }
 
-#ifdef HAVE_TLS
          /* tls_require implies tls_enable */
          if (store->tls_require) {
-            store->tls_enable = true;
+            if (have_tls) {
+               store->tls_enable = true;
+            } else {
+               Jmsg(NULL, M_FATAL, 0, _("TLS required but not configured in Bacula.\n"));
+               OK = false;
+            }
          } 
 
          if ((!store->tls_ca_certfile && !store->tls_ca_certdir) && store->tls_enable) {
@@ -725,7 +732,6 @@ static int check_resources()
                OK = false;
             }
          }
-#endif /* HAVE_TLS */
       }
 
       /* Loop over all counters, defining them in each database */
@@ -757,13 +763,18 @@ static int check_resources()
       db_close_database(NULL, db);
    }
 
-#ifdef HAVE_TLS
    /* Loop over Consoles */
    CONRES *cons;
    foreach_res(cons, R_CONSOLE) {
       /* tls_require implies tls_enable */
       if (cons->tls_require) {
-         cons->tls_enable = true;
+         if (have_tls) {
+            cons->tls_enable = true;
+         } else {
+            Jmsg(NULL, M_FATAL, 0, _("TLS required but not configured in Bacula.\n"));
+            OK = false;
+            continue;
+         }
       }
 
       if (!cons->tls_certfile && cons->tls_enable) {
@@ -803,15 +814,19 @@ static int check_resources()
       }
 
    }
-#endif /* HAVE_TLS */
 
-#ifdef HAVE_TLS
    /* Loop over Clients */
    CLIENT *client;
    foreach_res(client, R_CLIENT) {
       /* tls_require implies tls_enable */
       if (client->tls_require) {
-         client->tls_enable = true;
+         if (have_tls) {
+            client->tls_enable = true;
+         } else {
+            Jmsg(NULL, M_FATAL, 0, _("TLS required but not configured in Bacula.\n"));
+            OK = false;
+            continue;
+         }
       }
 
       if ((!client->tls_ca_certfile && !client->tls_ca_certdir) && client->tls_enable) {
@@ -838,7 +853,6 @@ static int check_resources()
          }
       }
    }
-#endif /* HAVE_TLS */
 
    UnlockRes();
    if (OK) {

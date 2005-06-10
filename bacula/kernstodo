@@ -91,6 +91,7 @@ For 1.37:
 - Add global lock on all devices when creating a device structure.
 
 Maybe in 1.37:
+- Add start/end date editing in messages (%t %T, %e?) ...
 - Add ClientDefs similar to JobDefs.
 - Print more info when bextract -p accepts a bad block.
 - To mark files as deleted, run essentially a Verify to disk, and
