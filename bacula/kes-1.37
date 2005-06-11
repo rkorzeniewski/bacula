@@ -5,6 +5,8 @@ General:
 
 Changes to 1.37.22:
 10Jun05
+- Correct some reservation problems in SD when no devices
+  are available.
 - Start removing #ifdef HAVE_TLS by sneaky tricks.
 - Begin implementation of TLS in wx-console
 - Remove ignoring SIGCHLD from console.

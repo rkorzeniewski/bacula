@@ -27,7 +27,6 @@
 
 static void mark_volume_not_inchanger(DCR *dcr);
 
-
 /*
  * If release is set, we rewind the current volume,
  * which we no longer want, and ask the user (console)
