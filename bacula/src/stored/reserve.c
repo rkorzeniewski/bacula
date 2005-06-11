@@ -48,7 +48,7 @@ public:
 /* Reserve context */
 class RCTX {
 public:
-   alist errors;
+   alist *errors;
    JCR *jcr;
    char *device_name;
    DIRSTORE *store;
@@ -228,7 +228,9 @@ static bool use_storage_cmd(JCR *jcr)
    DCR *dcr = NULL;
    RCTX rctx;
    rctx.jcr = jcr;
+#ifdef implemented
    char *error;
+#endif
 
    /*
     * If there are multiple devices, the director sends us
@@ -310,7 +312,7 @@ static bool use_storage_cmd(JCR *jcr)
                } else if (stat == 0) {      /* device busy */
                   need_wait = true;
                }
-               rctx.errors.push(bstrdup(jcr->errmsg));
+//             rctx->errors.push(bstrdup(jcr->errmsg));
             }
          }
          /*
@@ -320,11 +322,13 @@ static bool use_storage_cmd(JCR *jcr)
          if (!need_wait || !wait_for_device(jcr, first)) {
             break;
          }
+#ifdef implemented
          first = false;
-         for (error=(char*)rctx.errors.first(); error;
-              error=(char*)rctx.errors.next()) {
+         for (error=(char*)rctx->errors.first(); error;
+              error=(char*)rctx->errors.next()) {
             free(error);
          }
+#endif
       }
       if (verbose) {
          unbash_spaces(dir->msg);
@@ -344,10 +348,12 @@ static bool use_storage_cmd(JCR *jcr)
          Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
       }
       Jmsg(jcr, M_FATAL, 0, _("Could not find an available device.\n"));
-      for (error=(char*)rctx.errors.first(); error;
-           error=(char*)rctx.errors.next()) {
+#ifdef implemented
+      for (error=(char*)rctx->errors.first(); error;
+           error=(char*)rctx->errors.next()) {
          Jmsg(jcr, M_INFO, 0, "%s", error);
       }
+#endif
       bnet_fsend(dir, BAD_use, jcr->errmsg);
       Dmsg1(100, ">dird: %s\n", dir->msg);
       ok = false;
@@ -362,10 +368,12 @@ done:
    if (!ok && dcr) {
       free_dcr(dcr);
    }
-   for (error=(char*)rctx.errors.first(); error;
-        error=(char*)rctx.errors.next()) {
+#ifdef implemented
+   for (error=(char*)rctx->errors.first(); error;
+        error=(char*)rctx->errors.next()) {
       free(error);
    }
+#endif
    return ok;
 }
 
@@ -443,7 +451,7 @@ static int reserve_device(RCTX &rctx)
       rctx.device->dev = init_dev(rctx.jcr, NULL, rctx.device);
    }
    if (!rctx.device->dev) {
-      if (dev_cap(rctx.device->dev, CAP_AUTOCHANGER)) {
+      if (rctx.device->changer_res) {
         Jmsg(rctx.jcr, M_WARNING, 0, _("\n"
            "     Device \"%s\" in changer \"%s\" requested by DIR could not be opened or does not exist.\n"),
              rctx.device->hdr.name, rctx.device_name);
@@ -452,7 +460,7 @@ static int reserve_device(RCTX &rctx)
             "     Device \"%s\" requested by DIR could not be opened or does not exist.\n"),
               rctx.device_name);
       }
-      return 0;
+      return -1;  /* no use waiting */
    }  
    Dmsg1(100, "Found device %s\n", rctx.device->hdr.name);
    dcr = new_dcr(rctx.jcr, rctx.device->dev);
