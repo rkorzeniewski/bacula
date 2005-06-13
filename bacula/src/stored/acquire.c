@@ -315,7 +315,8 @@ DCR *acquire_device_for_append(DCR *dcr)
    init_device_wait_timers(dcr);
 
    dev->block(BST_DOING_ACQUIRE);
-   Dmsg1(190, "acquire_append device is %s\n", dev->is_tape()?"tape":"disk");
+   Dmsg1(190, "acquire_append device is %s\n", dev->is_tape()?"tape":
+        (dev->is_dvd()?"DVD":"disk"));
 
    if (dcr->reserved_device) {
       dev->reserved_device--;

@@ -11,19 +11,14 @@
    Copyright (C) 2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -327,6 +322,7 @@ void update_free_space_dev(DEVICE* dev)
    char* icmd;
    int timeout;
    long long int free;
+   char ed1[50];
    
    icmd = dev->device->free_space_command;
    
@@ -347,7 +343,6 @@ void update_free_space_dev(DEVICE* dev)
    timeout = 3;
    
    while (1) {
-      char ed1[50];
       if (run_program_full_output(ocmd.c_str(), dev->max_open_wait/2, results) == 0) {
          Dmsg1(100, "Free space program run : %s\n", results);
          free = str_to_int64(results);
@@ -380,7 +375,8 @@ void update_free_space_dev(DEVICE* dev)
    }
    
    free_pool_memory(results);
-   Dmsg2(29, "update_free_space_dev: free_space=%lld, free_space_errno=%d\n", dev->free_space, dev->free_space_errno);
+   Dmsg2(29, "update_free_space_dev: free_space=%s, free_space_errno=%d\n", 
+      edit_uint64(dev->free_space, ed1), dev->free_space_errno);
    return;
 }
 
@@ -508,25 +504,25 @@ int open_next_part(DEVICE *dev) {
  *  - Close the fd
  *  - Reopen the device
  */
-int open_first_part(DEVICE *dev) {
-   int state;
-      
+int open_first_part(DEVICE *dev) 
+{
    Dmsg3(29, "open_first_part %s %s %d\n", dev->dev_name, dev->VolCatInfo.VolCatName, dev->openmode);
    if (dev->fd >= 0) {
       close(dev->fd);
    }
-   
    dev->fd = -1;
-   state = dev->state;
    dev->state &= ~ST_OPENED;
    
    dev->part_start = 0;
    dev->part = 0;
    
+   Dmsg2(50, "Call open_dev(dev, vol=%s, mode=%d",
+        dev->VolCatInfo.VolCatName, dev->openmode);
    if (open_dev(dev, dev->VolCatInfo.VolCatName, dev->openmode) < 0) {
+      Dmsg0(50, "open_dev() failed\n");
       return -1;
    }
-   dev->state = state;
+   Dmsg1(50, "Leave open_first_part state=%s\n", dev->is_open()?"open":"not open");
    return dev->fd;
 }
 

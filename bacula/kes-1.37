@@ -5,6 +5,9 @@ General:
 
 Changes to 1.37.22:
 13Jun05
+- Add more debug code and clarify debug code for DVDs.
+- Do not save and restore state in open_first_part() 
+  since state should be properly set after open_dev().
 - Make default mandir /usr/share/man
 - Install Bacula man page.
 - Implement passing of FileSet Enable VSS to FD.
