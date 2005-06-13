@@ -427,7 +427,8 @@ static void open_file_device(DEVICE *dev, int mode)
       return;
    }
          
-   Dmsg2(29, "open_dev: device is disk %s (mode:%d)\n", archive_name.c_str(), mode);
+   Dmsg3(29, "open_dev: device is %s (mode:%d)\n", dev->is_dvd()?"DVD":"disk",
+         archive_name.c_str(), mode);
    dev->openmode = mode;
    
    /*
@@ -448,6 +449,7 @@ static void open_file_device(DEVICE *dev, int mode)
       Emsg0(M_ABORT, 0, _("Illegal mode given to open_dev.\n"));
    }
    /* If creating file, give 0640 permissions */
+   Dmsg2(29, "open(%s, 0x%x, 0640)\n", archive_name.c_str(), dev->mode);
    if ((dev->fd = open(archive_name.c_str(), dev->mode, 0640)) < 0) {
       berrno be;
       dev->dev_errno = errno;
@@ -469,7 +471,9 @@ static void open_file_device(DEVICE *dev, int mode)
          dev->part_size = filestat.st_size;
       }
    }
-   Dmsg4(29, "open_dev: disk fd=%d opened, part=%d/%d, part_size=%u\n", dev->fd, dev->part, dev->num_parts, dev->part_size);
+   Dmsg5(29, "open_dev: %s fd=%d opened, part=%d/%d, part_size=%u\n", 
+      dev->is_dvd()?"DVD":"disk", dev->fd, dev->part, dev->num_parts, 
+      dev->part_size);
    if (dev->is_dvd() && (dev->mode != OPEN_READ_ONLY) && 
        (dev->free_space_errno == 0 || dev->num_parts == dev->part)) {
       update_free_space_dev(dev);
