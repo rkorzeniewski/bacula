@@ -111,7 +111,6 @@ public:
    char *tls_keyfile;                 /* TLS Server Key File */
    char *tls_dhfile;                  /* TLS Diffie-Hellman Parameters */
    alist *tls_allowed_cns;            /* TLS Allowed Clients */
-
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
 };
 
@@ -178,7 +177,6 @@ public:
    char *tls_keyfile;                 /* TLS Server Key File */
    char *tls_dhfile;                  /* TLS Diffie-Hellman Parameters */
    alist *tls_allowed_cns;            /* TLS Allowed Clients */
-
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
 };
 
@@ -224,7 +222,6 @@ public:
    char *tls_ca_certdir;              /* TLS CA Certificate Directory */
    char *tls_certfile;                /* TLS Client Certificate File */
    char *tls_keyfile;                 /* TLS Client Key File */
-
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
 };
 
@@ -251,9 +248,7 @@ public:
    char *tls_ca_certdir;              /* TLS CA Certificate Directory */
    char *tls_certfile;                /* TLS Client Certificate File */
    char *tls_keyfile;                 /* TLS Client Key File */
-
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
-
    int64_t StorageId;                 /* Set from Storage DB record */
 
    /* Methods */
@@ -370,6 +365,7 @@ public:
    struct MD5Context md5c;            /* MD5 of include/exclude */
    char MD5[30];                      /* base 64 representation of MD5 */
    int ignore_fs_changes;             /* Don't force Full if FS changed */
+   int enable_vss;                    /* Enable Volume Shadow Copy */
 };
 
 

@@ -286,6 +286,7 @@ static RES_ITEM fs_items[] = {
    {"include",     store_inc,  NULL,                  0, ITEM_NO_EQUALS, 0},
    {"exclude",     store_inc,  NULL,                  1, ITEM_NO_EQUALS, 0},
    {"ignorefilesetchanges", store_yesno, ITEM(res_fs.ignore_fs_changes), 1, ITEM_DEFAULT, 0},
+   {"enablevss",   store_yesno, ITEM(res_fs.enable_vss), 1, ITEM_DEFAULT, 0},
    {NULL,          NULL,       NULL,                  0, 0, 0}
 };
 

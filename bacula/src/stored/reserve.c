@@ -65,6 +65,7 @@ static int reserve_device(RCTX &rctx);
 static bool reserve_device_for_read(DCR *dcr);
 static bool reserve_device_for_append(DCR *dcr);
 static bool use_storage_cmd(JCR *jcr);
+bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx);
 
 /* Requests from the Director daemon */
 static char use_storage[]  = "use storage=%127s media_type=%127s "
@@ -222,10 +223,8 @@ static bool use_storage_cmd(JCR *jcr)
    int append;
    bool ok;       
    int Copy, Stripe;
-   alist *dirstore;   
    DIRSTORE *store;
    char *device_name;
-   DCR *dcr = NULL;
    RCTX rctx;
    rctx.jcr = jcr;
 #ifdef implemented
@@ -237,7 +236,7 @@ static bool use_storage_cmd(JCR *jcr)
     *   use_device for each device that it wants to use.
     */
    Dmsg1(100, "<dird: %s", dir->msg);
-   dirstore = New(alist(10, not_owned_by_alist));
+   jcr->dirstore = New(alist(10, not_owned_by_alist));
    do {
       ok = sscanf(dir->msg, use_storage, store_name.c_str(), 
                   media_type.c_str(), pool_name.c_str(), 
@@ -250,7 +249,7 @@ static bool use_storage_cmd(JCR *jcr)
       unbash_spaces(pool_name);
       unbash_spaces(pool_type);
       store = new DIRSTORE;
-      dirstore->append(store);
+      jcr->dirstore->append(store);
       memset(store, 0, sizeof(DIRSTORE));
       store->device = New(alist(10));
       bstrncpy(store->name, store_name, sizeof(store->name));
@@ -273,7 +272,7 @@ static bool use_storage_cmd(JCR *jcr)
 #ifdef DEVELOPER
    /* This loop is debug code and can be removed */
    /* ***FIXME**** remove after 1.38 release */
-   foreach_alist(store, dirstore) {
+   foreach_alist(store, jcr->dirstore) {
       Dmsg4(100, "Storage=%s media_type=%s pool=%s pool_type=%s\n", 
          store->name, store->media_type, store->pool_name, 
          store->pool_type);
@@ -293,42 +292,9 @@ static bool use_storage_cmd(JCR *jcr)
     * Wiffle through them and find one that can do the backup.
     */
    if (ok) {
-      bool first = true;
-      init_jcr_device_wait_timers(jcr);
-      for ( ;; ) {
-         int need_wait = false;
-         foreach_alist(store, dirstore) {
-            rctx.store = store;
-            foreach_alist(device_name, store->device) {
-               int stat;
-               rctx.device_name = device_name;
-               stat = search_res_for_device(rctx); 
-               if (stat == 1) {             /* found available device */
-                  dcr = jcr->dcr;
-                  dcr->Copy = Copy;
-                  dcr->Stripe = Stripe;
-                  ok = true;
-                  goto done;
-               } else if (stat == 0) {      /* device busy */
-                  need_wait = true;
-               }
-//             rctx->errors.push(bstrdup(jcr->errmsg));
-            }
-         }
-         /*
-          * If there is some device for which we can wait, then
-          *  wait and try again until the wait time expires
-          */
-         if (!need_wait || !wait_for_device(jcr, first)) {
-            break;
-         }
-#ifdef implemented
-         first = false;
-         for (error=(char*)rctx->errors.first(); error;
-              error=(char*)rctx->errors.next()) {
-            free(error);
-         }
-#endif
+      ok = find_suitable_device_for_job(jcr, rctx);
+      if (ok) {
+         goto done;
       }
       if (verbose) {
          unbash_spaces(dir->msg);
@@ -339,35 +305,29 @@ static bool use_storage_cmd(JCR *jcr)
          "     Device \"%s\" with MediaType \"%s\" requested by DIR not found in SD Device resources.\n"),
            dev_name.c_str(), media_type.c_str());
       bnet_fsend(dir, NO_device, dev_name.c_str());
-      Dmsg1(100, ">dird: %s\n", dir->msg);
-      ok = false;
-   } else {
-      unbash_spaces(dir->msg);
-      pm_strcpy(jcr->errmsg, dir->msg);
-      if (verbose) {
-         Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
-      }
-      Jmsg(jcr, M_FATAL, 0, _("Could not find an available device.\n"));
 #ifdef implemented
       for (error=(char*)rctx->errors.first(); error;
            error=(char*)rctx->errors.next()) {
          Jmsg(jcr, M_INFO, 0, "%s", error);
       }
 #endif
+      Dmsg1(100, ">dird: %s\n", dir->msg);
+   } else {
+      unbash_spaces(dir->msg);
+      pm_strcpy(jcr->errmsg, dir->msg);
+      if (verbose) {
+         Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
+      }
       bnet_fsend(dir, BAD_use, jcr->errmsg);
       Dmsg1(100, ">dird: %s\n", dir->msg);
-      ok = false;
    }
 
 done:
-   foreach_alist(store, dirstore) {
+   foreach_alist(store, jcr->dirstore) {
       delete store->device;
       delete store;
    }
-   delete dirstore;
-   if (!ok && dcr) {
-      free_dcr(dcr);
-   }
+   delete jcr->dirstore;
 #ifdef implemented
    for (error=(char*)rctx->errors.first(); error;
         error=(char*)rctx->errors.next()) {
@@ -378,7 +338,58 @@ done:
 }
 
 
+/*
+ * Search for a device suitable for this job.
+ */
+bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
+{
+   bool first = true;
+   bool ok = false;
+   DCR *dcr = NULL;
+   DIRSTORE *store;
+   char *device_name;
 
+   init_jcr_device_wait_timers(jcr);
+   for ( ;; ) {
+      int need_wait = false;
+      foreach_alist(store, jcr->dirstore) {
+         rctx.store = store;
+         foreach_alist(device_name, store->device) {
+            int stat;
+            rctx.device_name = device_name;
+            stat = search_res_for_device(rctx); 
+            if (stat == 1) {             /* found available device */
+               dcr = jcr->dcr;
+               ok = true;
+               break;
+            } else if (stat == 0) {      /* device busy */
+               need_wait = true;
+            }
+            /* otherwise error */
+//             rctx->errors.push(bstrdup(jcr->errmsg));
+         }
+      }
+      /*
+       * If there is some device for which we can wait, then
+       *  wait and try again until the wait time expires
+       */
+      if (!need_wait || !wait_for_device(jcr, first)) {
+         break;
+      }
+      first = false;
+#ifdef implemented
+      for (error=(char*)rctx->errors.first(); error;
+           error=(char*)rctx->errors.next()) {
+         free(error);
+      }
+#endif
+   }
+   if (!ok && dcr) {
+      free_dcr(dcr);
+   }
+
+   return ok;
+}
 
 /*
  * Search for a particular storage device with particular storage

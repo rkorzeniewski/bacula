@@ -23,8 +23,8 @@ manprefix =
 sbindir = @sbindir@
 sysconfdir = @sysconfdir@
 scriptdir = @scriptdir@
-mandir = @mandir@/man1
-manext = 1
+mandir = @mandir@/man8
+manext = 8
 
 # Tools & program stuff
 CC = @CC@
