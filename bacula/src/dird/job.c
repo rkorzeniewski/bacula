@@ -660,12 +660,6 @@ bool get_or_create_fileset_record(JCR *jcr, FILESET_DBR *fsr)
       }
    }
    jcr->jr.FileSetId = fsr->FileSetId;
-#ifdef needed
-   if (fsr->created && jcr != NULL) {
-      Jmsg(jcr, M_INFO, 0, _("Created new FileSet record \"%s\" %s\n"),
-         fsr->FileSet, fsr->cCreateTime);
-   }
-#endif
    Dmsg2(119, "Created FileSet %s record %u\n", jcr->fileset->hdr.name,
       jcr->jr.FileSetId);
    return true;

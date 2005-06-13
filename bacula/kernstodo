@@ -1,12 +1,12 @@
                     Kern's ToDo List
-                     27 May 2005
+                     12 June 2005
 
 Major development:      
 Project                     Developer
 =======                     =========                         
 TLS                         Landon Fuller
 Unicode in Win32            Thorsten Engel (done)
-VSS                         Thorsten Engel (being implemented)
+VSS                         Thorsten Engel (in beta testing)
 Version 1.37                Kern (see below)
 ========================================================
 
@@ -21,9 +21,6 @@ Version 1.37                Kern (see below)
 ##   Create a new GUI chapter explaining all the GUI programs.
 
 Autochangers:
-- 3. Prevent two drives requesting the same Volume in any given
-     autochanger, by checking if a Volume is mounted on another drive
-     in an Autochanger.
 - 7. Implement new Console commands to allow offlining/reserving drives,
      and possibly manipulating the autochanger (much asked for).
 -    Make "update slots" when pointing to Autochanger, remove
@@ -53,6 +50,7 @@ Document:
 - Document that ChangerDevice is used for Alert command.
 - Document new CDROM directory.
 - Document Heartbeat Interval in the dealing with firewalls section.
+- Document the multiple-drive-changer.txt script.
 
 For 1.37:
 - Implement "PreferMountedVolumes = yes|no" in Job resource.
@@ -66,8 +64,6 @@ For 1.37:
 - Implement Files/Bytes,... stats for restore job.
 - Implement Total Bytes Written, ... for restore job.
 - Add setting Volume State via Python.
-- Upgrade to MySQL 4.1.1 See:  
-  http://dev.mysql.com/doc/mysql/en/Server_SQL_mode.html
 - Max Vols limit in Pool off by one?
 - Make bootstrap file handle multiple MediaTypes (SD)
 - Test restoring into a user restricted directory on Win32 -- see
@@ -1286,3 +1282,8 @@ Block Position: 0
 - Implement Maximum Job Spool Size
 - Fix 3993 error in SD. It forgets to look at autochanger
   resource for device command, ...
+- 3. Prevent two drives requesting the same Volume in any given
+     autochanger, by checking if a Volume is mounted on another drive
+     in an Autochanger.
+- Upgrade to MySQL 4.1.12 See:  
+  http://dev.mysql.com/doc/mysql/en/Server_SQL_mode.html

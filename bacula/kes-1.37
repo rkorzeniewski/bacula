@@ -4,6 +4,15 @@
 General:
 
 Changes to 1.37.22:
+13Jun05
+- Make default mandir /usr/share/man
+- Install Bacula man page.
+- Implement passing of FileSet Enable VSS to FD.
+- Move main body of reserve drive code into subroutine
+  so that it can be called multiple times.
+12Jun05
+- Eliminate getpass() for Win32 builds in console as the
+  function does not exist.
 10Jun05
 - Correct some reservation problems in SD when no devices
   are available.

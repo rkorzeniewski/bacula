@@ -40,9 +40,12 @@ AC_PROG_CXX
 AC_PROG_CC_C_O			dnl Determine if C compiler support -c -o.
 AC_PROG_GCC_TRADITIONAL 	dnl Determine if ioctl() need -traditional.
 
-if test "x$CC" = xgcc
-then
+if test "x$CC" = xgcc; then
    AC_DEFINE(HAVE_GCC)
+fi
+AC_PATH_PROG(CXX, $CXX, $CXX)
+if test ! -e $CXX; then
+   AC_MSG_ERROR(Unable to find C++ compiler)
 fi
 
 dnl -------------------------------------------------------
@@ -145,6 +148,14 @@ if test x$sbindir = x'${exec_prefix}/sbin' ; then
     sbindir=${exec_prefix}/sbin
 fi
 sbindir=`eval echo ${sbindir}`
+
+# -------------------------------------------------------------------------
+#  If the user has not set --mandir, we default to /usr/share/man
+# -------------------------------------------------------------------------
+if test x$mandir = x'${prefix}/man' ; then
+   mandir=/usr/share/man
+fi
+
 		      
 # ------------------------------------------------------------------
 # All list of languages for which a translation exist. Each
@@ -2051,6 +2062,7 @@ Configuration on `date`:
   Working directory:	      ${working_dir}
   PID directory:	      ${piddir}
   Subsys directory:	      ${subsysdir}
+  Man directory:	      ${mandir}
   C Compiler:		      ${CC} ${CCVERSION}
   C++ Compiler: 	      ${CXX} ${CXXVERSION}
   Compiler flags:	      ${WCFLAGS} ${CFLAGS} 

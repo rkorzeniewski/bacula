@@ -295,13 +295,18 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
  */
 static int tls_pem_callback(char *buf, int size, const void *userdata)
 {
+#ifdef HAVE_TLS
    const char *prompt = (const char *) userdata;
    char *passwd;
 
    passwd = getpass(prompt);
    bstrncpy(buf, passwd, size);
-
    return (strlen(buf));
+#else
+   buf[0] = 0;
+   return 0;
+#endif
+
 }
 
 
