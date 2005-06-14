@@ -78,7 +78,7 @@ void get_filename(DEVICE *dev, char *VolName, POOL_MEM& archive_name)
  */
 int mount_dev(DEVICE* dev, int timeout) 
 {
-   if (dev->state & ST_MOUNTED) {
+   if (dev->is_mounted()) {
       Dmsg0(100, "mount_dev: Device already mounted\n");
       return 0;
    } else if (dev_cap(dev, CAP_REQMOUNT)) {
@@ -93,7 +93,7 @@ int mount_dev(DEVICE* dev, int timeout)
  */
 int unmount_dev(DEVICE *dev, int timeout) 
 {
-   if (dev->state & ST_MOUNTED) {
+   if (dev->is_mounted()) {
       return do_mount_dev(dev, 0, timeout);
    }
    Dmsg0(100, "mount_dev: Device already unmounted\n");
@@ -101,7 +101,8 @@ int unmount_dev(DEVICE *dev, int timeout)
 }
 
 /* (Un)mount the device */
-static int do_mount_dev(DEVICE* dev, int mount, int dotimeout) {
+static int do_mount_dev(DEVICE* dev, int mount, int dotimeout) 
+{
    POOL_MEM ocmd(PM_FNAME);
    POOLMEM* results;
    results = get_pool_memory(PM_MESSAGE);
@@ -117,7 +118,7 @@ static int do_mount_dev(DEVICE* dev, int mount, int dotimeout) {
    
    edit_device_codes_dev(dev, ocmd.c_str(), icmd);
    
-   Dmsg2(29, "do_mount_dev: cmd=%s state=%d\n", ocmd.c_str(), dev->state & ST_MOUNTED);
+   Dmsg2(29, "do_mount_dev: cmd=%s state=%d\n", ocmd.c_str(), dev->is_mounted());
 
    if (dotimeout) {
       /* Try at most 5 times to (un)mount the device. This should perhaps be configurable. */
@@ -127,7 +128,8 @@ static int do_mount_dev(DEVICE* dev, int mount, int dotimeout) {
       timeout = 0;
    }
    /* If busy retry each second */
-   while ((status = run_program_full_output(ocmd.c_str(), dev->max_open_wait/2, results)) != 0) {
+   while ((status = run_program_full_output(ocmd.c_str(), 
+                       dev->max_open_wait/2, results)) != 0) {
       if (--timeout > 0) {
          Dmsg2(40, "Device %s cannot be (un)mounted. Retrying... ERR=%s\n", dev->dev_name, results);
          /* Sometimes the device cannot be mounted because it is already mounted.
@@ -144,28 +146,28 @@ static int do_mount_dev(DEVICE* dev, int mount, int dotimeout) {
       return -1;
    }
    
-   if (mount) {
-     dev->state |= ST_MOUNTED;
-   } else {
-     dev->state &= ~ST_MOUNTED;
-   }
+   dev->set_mounted(mount);              /* set/clear mounted flag */
+
    free_pool_memory(results);
    
-   Dmsg1(29, "do_mount_dev: end_state=%d\n", dev->state & ST_MOUNTED);
+   Dmsg1(29, "do_mount_dev: end_state=%d\n", dev->is_mounted());
    return 0;
 }
 
 /* Only for devices that require a mount.
- * Try to find the volume name of the loaded device, and open the
+ * Try to find the Volume name of the loaded device, and open the
  * first part of this volume. 
  *
  * Returns 0 if read_dev_volume_label can now read the label,
- * -1 if an error occured, and read_dev_volume_label_guess must abort with an IO_ERROR.
+ *        -1 if an error occured,  and read_dvd_volume_label
+ *            must abort with an IO_ERROR.
  *
- * To guess the device name, it lists all the files on the DVD, and searches for a 
- * file which has a minimum size (500 bytes). If this file has a numeric extension,
- * like part files, try to open the file which has no extension (e.g. the first
- * part file).
+ * To find the Volume name, it lists all the files on the DVD,
+ * and searches for a file which has a minimum size (500 bytes).
+ * If this file has a numeric extension, like part files, try to
+ * open the file which has no extension (e.g.  the first part
+ * file).
+ *
  * So, if the DVD does not contains a Bacula volume, a random file is opened,
  * and no valid label could be read from this file.
  *
@@ -173,12 +175,12 @@ static int do_mount_dev(DEVICE* dev, int mount, int dotimeout) {
  * the label name of the current volume. We can also check that the currently
  * mounted disk is writable. (See also read_dev_volume_label_guess in label.c).
  *
- * Note that if the right volume is mounted, open_guess_name_dev returns the same
- * result as an usual open_dev.
+ * Note that if the right volume is mounted, open_mounted_dev returns 
+ *  the same result as an usual open_dev.
  */
-int open_guess_name_dev(DEVICE *dev) 
+int open_mounted_dev(DEVICE *dev) 
 {
-   Dmsg1(29, "open_guess_name_dev: dev=%s\n", dev->dev_name);
+   Dmsg1(29, "open_mounted_dev: dev=%s\n", dev->dev_name);
    POOL_MEM guessedname(PM_FNAME);
    DIR* dp;
    struct dirent *entry, *result;
@@ -187,12 +189,12 @@ int open_guess_name_dev(DEVICE *dev)
    int name_max;
    
    if (!dev->is_dvd()) {
-      Dmsg1(100, "open_guess_name_dev: device does not require mount, returning 0. dev=%s\n", dev->dev_name);
+      Dmsg1(100, "open_mounted_dev: device does not require mount, returning 0. dev=%s\n", dev->dev_name);
       return 0;
    }
 
 #ifndef HAVE_DIRENT_H
-   Dmsg0(29, "open_guess_name_dev: readdir not available, cannot guess volume name\n");
+   Dmsg0(29, "open_mounted_dev: readdir not available, cannot guess volume name\n");
    return 0; 
 #endif
    
@@ -201,10 +203,10 @@ int open_guess_name_dev(DEVICE *dev)
    if (mount_dev(dev, 1) < 0) {
       /* If the device cannot be mounted, check if it is writable */
       if (dev->free_space_errno >= 0) {
-         Dmsg1(100, "open_guess_name_dev: device cannot be mounted, but it seems to be writable, returning 0. dev=%s\n", dev->dev_name);
+         Dmsg1(100, "open_mounted_dev: device cannot be mounted, but it seems to be writable, returning 0. dev=%s\n", dev->dev_name);
          return 0;
       } else {
-         Dmsg1(100, "open_guess_name_dev: device cannot be mounted, and is not writable, returning -1. dev=%s\n", dev->dev_name);
+         Dmsg1(100, "open_mounted_dev: device cannot be mounted, and is not writable, returning -1. dev=%s\n", dev->dev_name);
          return -1;
       }
    }
@@ -217,7 +219,7 @@ int open_guess_name_dev(DEVICE *dev)
    if (!(dp = opendir(dev->device->mount_point))) {
       berrno be;
       dev->dev_errno = errno;
-      Dmsg3(29, "open_guess_name_dev: failed to open dir %s (dev=%s), ERR=%s\n", dev->device->mount_point, dev->dev_name, be.strerror());
+      Dmsg3(29, "open_mounted_dev: failed to open dir %s (dev=%s), ERR=%s\n", dev->device->mount_point, dev->dev_name, be.strerror());
       return -1;
    }
    
@@ -225,7 +227,7 @@ int open_guess_name_dev(DEVICE *dev)
    while (1) {
       if ((readdir_r(dp, entry, &result) != 0) || (result == NULL)) {
          dev->dev_errno = ENOENT;
-         Dmsg2(29, "open_guess_name_dev: failed to find suitable file in dir %s (dev=%s)\n", dev->device->mount_point, dev->dev_name);
+         Dmsg2(29, "open_mounted_dev: failed to find suitable file in dir %s (dev=%s)\n", dev->device->mount_point, dev->dev_name);
          closedir(dp);
          return -1;
       }
@@ -244,13 +246,13 @@ int open_guess_name_dev(DEVICE *dev)
       
       if (stat(guessedname.c_str(), &statp) < 0) {
          berrno be;
-         Dmsg3(29, "open_guess_name_dev: failed to stat %s (dev=%s), ERR=%s\n",
+         Dmsg3(29, "open_mounted_dev: failed to stat %s (dev=%s), ERR=%s\n",
                guessedname.c_str(), dev->dev_name, be.strerror());
          continue;
       }
       
       if (!S_ISREG(statp.st_mode) || (statp.st_size < 500)) {
-         Dmsg2(100, "open_guess_name_dev: %s is not a regular file, or less than 500 bytes (dev=%s)\n", 
+         Dmsg2(100, "open_mounted_dev: %s is not a regular file, or less than 500 bytes (dev=%s)\n", 
                guessedname.c_str(), dev->dev_name);
          continue;
       }
@@ -271,7 +273,7 @@ int open_guess_name_dev(DEVICE *dev)
       if ((stat(guessedname.c_str(), &statp) < 0) || (statp.st_size < 500)) {
          /* The file with extension truncated does not exists or is too small, so use it with its extension. */
          berrno be;
-         Dmsg3(100, "open_guess_name_dev: failed to stat %s (dev=%s), using the file with its extension, ERR=%s\n", 
+         Dmsg3(100, "open_mounted_dev: failed to stat %s (dev=%s), using the file with its extension, ERR=%s\n", 
                guessedname.c_str(), dev->dev_name, be.strerror());
          pm_strcpy(guessedname, dev->device->mount_point);
          if (guessedname.c_str()[strlen(guessedname.c_str())-1] != '/') {
@@ -292,7 +294,7 @@ int open_guess_name_dev(DEVICE *dev)
    if ((dev->fd = open(guessedname.c_str(), O_RDONLY | O_BINARY)) < 0) {
       berrno be;
       dev->dev_errno = errno;
-      Dmsg3(29, "open_guess_name_dev: failed to open %s (dev=%s), ERR=%s\n", 
+      Dmsg3(29, "open_mounted_dev: failed to open %s (dev=%s), ERR=%s\n", 
             guessedname.c_str(), dev->dev_name, be.strerror());
       if (open_first_part(dev) < 0) {
          berrno be;
@@ -305,10 +307,10 @@ int open_guess_name_dev(DEVICE *dev)
    dev->part_start = 0;
    dev->part_size = statp.st_size;
    dev->part = 0;
-   dev->state |= ST_OPENED;
+   dev->set_opened();
    dev->use_count = 1;
    
-   Dmsg2(29, "open_guess_name_dev: %s opened (dev=%s)\n", guessedname.c_str(), dev->dev_name);
+   Dmsg2(29, "open_mounted_dev: %s opened (dev=%s)\n", guessedname.c_str(), dev->dev_name);
    
    return 0;
 }
@@ -428,8 +430,8 @@ static int dvd_write_part(DEVICE *dev)
  *  - Increment part number 
  *  - Reopen the device
  */
-int open_next_part(DEVICE *dev) {
-   int state;
+int open_next_part(DEVICE *dev)
+{
       
    Dmsg3(29, "open_next_part %s %s %d\n", dev->dev_name, dev->VolCatInfo.VolCatName, dev->openmode);
    /* When appending, do not open a new part if the current is empty */
@@ -444,9 +446,7 @@ int open_next_part(DEVICE *dev) {
    }
    
    dev->fd = -1;
-   
-   state = dev->state;
-   dev->state &= ~ST_OPENED;
+   dev->clear_opened();
    
    if (dev->is_dvd() && (dev->part == dev->num_parts) && dev->can_append()) {
       if (dvd_write_part(dev) < 0) {
@@ -493,10 +493,11 @@ int open_next_part(DEVICE *dev) {
       }
    }
    
+   Dmsg2(50, "Call open_dev(dev, vol=%s, mode=%d", dev->VolCatInfo.VolCatName, 
+         dev->openmode);
    if (open_dev(dev, dev->VolCatInfo.VolCatName, dev->openmode) < 0) {
       return -1;
    } 
-   dev->state = state;
    return dev->fd;
 }
 
@@ -511,13 +512,13 @@ int open_first_part(DEVICE *dev)
       close(dev->fd);
    }
    dev->fd = -1;
-   dev->state &= ~ST_OPENED;
+   dev->clear_opened();
    
    dev->part_start = 0;
    dev->part = 0;
    
-   Dmsg2(50, "Call open_dev(dev, vol=%s, mode=%d",
-        dev->VolCatInfo.VolCatName, dev->openmode);
+   Dmsg2(50, "Call open_dev(dev, vol=%s, mode=%d", dev->VolCatInfo.VolCatName, 
+         dev->openmode);
    if (open_dev(dev, dev->VolCatInfo.VolCatName, dev->openmode) < 0) {
       Dmsg0(50, "open_dev() failed\n");
       return -1;
@@ -683,28 +684,28 @@ static char *edit_device_codes_dev(DEVICE* dev, char *omsg, const char *imsg)
    for (p=imsg; *p; p++) {
       if (*p == '%') {
          switch (*++p) {
-            case '%':
-               str = "%";
-               break;
-            case 'n':
-               bsnprintf(add, sizeof(add), "%d", dev->part);
-               str = add;
-               break;
-            case 'a':
-               str = dev->dev_name;
-               break;
-            case 'm':
-               str = dev->device->mount_point;
-               break;
-            case 'v':
-               str = archive_name.c_str();
-               break;
-            default:
-               add[0] = '%';
-               add[1] = *p;
-               add[2] = 0;
-               str = add;
-               break;
+         case '%':
+            str = "%";
+            break;
+         case 'n':
+            bsnprintf(add, sizeof(add), "%d", dev->part);
+            str = add;
+            break;
+         case 'a':
+            str = dev->dev_name;
+            break;
+         case 'm':
+            str = dev->device->mount_point;
+            break;
+         case 'v':
+            str = archive_name.c_str();
+            break;
+         default:
+            add[0] = '%';
+            add[1] = *p;
+            add[2] = 0;
+            str = add;
+            break;
          }
       } else {
          add[0] = *p;

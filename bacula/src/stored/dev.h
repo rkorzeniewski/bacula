@@ -254,6 +254,8 @@ public:
    int is_open() const { return state & ST_OPENED; }
    int is_offline() const { return state & ST_OFFLINE; }
    int is_labeled() const { return state & ST_LABEL; }
+   int is_mounted() const { return state & ST_MOUNTED; }
+   int is_short_block() const { return state & ST_SHORT; }
    int is_busy() const { return state & ST_READ || num_writers || reserved_device; }
    int at_eof() const { return state & ST_EOF; }
    int at_eot() const { return state & ST_EOT; }
@@ -282,21 +284,34 @@ public:
    const char *archive_name() const;
    const char *name() const;
    const char *print_name() const;    /* Name for display purposes */
-   void set_eof(); /* in dev.c */
-   void set_eot(); /* in dev.c */
+   void set_ateof(); /* in dev.c */
+   void set_ateot(); /* in dev.c */
+   void set_eot() { state |= ST_EOT; };
+   void set_eof() { state |= ST_EOF; };
    void set_append() { state |= ST_APPEND; };
    void set_labeled() { state |= ST_LABEL; };
    void set_read() { state |= ST_READ; };
    void set_offline() { state |= ST_OFFLINE; };
+   void set_opened() { state |= ST_OPENED; };
+   void set_mounted() { state |= ST_MOUNTED; };
+   void set_short_block() { state |= ST_SHORT; };
+   void set_mounted(int val) { if (val) state |= ST_MOUNTED; \
+          else state &= ~ST_MOUNTED; };
    void clear_append() { state &= ~ST_APPEND; };
    void clear_read() { state &= ~ST_READ; };
    void clear_labeled() { state &= ~ST_LABEL; };
    void clear_offline() { state &= ~ST_OFFLINE; };
    void clear_eot() { state &= ~ST_EOT; };
    void clear_eof() { state &= ~ST_EOF; };
+   void clear_opened() { state &= ~ST_OPENED; };
+   void clear_mounted() { state &= ~ST_MOUNTED; };
+   void clear_short_block() { state &= ~ST_SHORT; };
    void block(int why); /* in dev.c */
    void unblock();      /* in dev.c */
    void close();        /* in dev.c */
+
+   void set_blocked(int block) { dev_blocked = block; };
+   int  get_blocked() const { return dev_blocked; };
 };
 
 /* Note, these return int not bool! */

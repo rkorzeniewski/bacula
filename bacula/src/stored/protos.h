@@ -78,12 +78,12 @@ void    display_tape_error_status(JCR *jcr, DEVICE *dev);
 
 
 /* From dev.c */
-DEVICE  *init_dev(JCR *jcr, DEVICE *dev, DEVRES *device);
+DEVICE  *init_dev(JCR *jcr, DEVRES *device);
 int      open_dev(DEVICE *dev, char *VolName, int mode);
 off_t    lseek_dev(DEVICE *dev, off_t offset, int whence);
 int      open_first_part(DEVICE *dev);
 int      open_next_part(DEVICE *dev);
-int      open_guess_name_dev(DEVICE *dev);
+int      open_mounted_dev(DEVICE *dev);
 bool     truncate_dev(DEVICE *dev);
 void     term_dev(DEVICE *dev);
 char *   strerror_dev(DEVICE *dev);
@@ -152,7 +152,7 @@ void     handle_filed_connection(BSOCK *fd, char *job_name);
 
 /* From label.c */
 int      read_dev_volume_label(DCR *dcr);
-int      read_dev_volume_label_guess(DCR *dcr, bool write);
+int      read_dvd_volume_label(DCR *dcr, bool write);
 void     create_session_label(DCR *dcr, DEV_RECORD *rec, int label);
 void     create_volume_label(DEVICE *dev, const char *VolName, const char *PoolName);
 bool     write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *PoolName);

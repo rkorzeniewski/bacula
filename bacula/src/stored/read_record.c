@@ -113,7 +113,7 @@ bool read_records(DCR *dcr,
             Dmsg3(200, "Got EOF at file %u  on device %s, Volume \"%s\"\n",
                   dev->file, dev->print_name(), dcr->VolumeName);
             continue;
-         } else if (dev_state(dev, ST_SHORT)) {
+         } else if (dev->is_short_block()) {
             Jmsg1(jcr, M_ERROR, 0, "%s", dev->errmsg);
             continue;
          } else {
@@ -270,7 +270,7 @@ static bool try_repositioning(JCR *jcr, DEV_RECORD *rec, DEVICE *dev)
       if (!dev->at_eot()) {
          /* Set EOT flag to force mount of next Volume */
          jcr->mount_next_volume = true;
-         dev->state |= ST_EOT;
+         dev->set_eot();
       }
       rec->Block = 0;
       return true;

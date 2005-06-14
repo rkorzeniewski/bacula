@@ -4,6 +4,9 @@
 General:
 
 Changes to 1.37.22:
+14Jun05
+- Fix the same state variable problem in open_next_part().
+- C++ify the SD code a bit more.
 13Jun05
 - Add more debug code and clarify debug code for DVDs.
 - Do not save and restore state in open_first_part() 

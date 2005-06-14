@@ -403,7 +403,7 @@ bool write_block_to_dev(DCR *dcr)
    ASSERT(block->binbuf == ((uint32_t) (block->bufp - block->buf)));
 
    /* dump_block(block, "before write"); */
-   if (dev->state & ST_WEOT) {
+   if (dev->at_weot()) {
       Dmsg0(100, "return write_block_to_dev with ST_WEOT\n");
       dev->dev_errno = ENOSPC;
       Jmsg(jcr, M_FATAL, 0,  _("Cannot write block. Device at EOM.\n"));
@@ -718,7 +718,7 @@ static bool terminate_writing_volume(DCR *dcr)
       Jmsg(dcr->jcr, M_ERROR, 0, "%s", dev->errmsg);
    }
 bail_out:
-   dev->set_eot();                    /* no more writing this tape */
+   dev->set_ateot();                  /* no more writing this tape */
    Dmsg1(100, "Leave terminate_writing_volume -- %s\n", ok?"OK":"ERROR");
    return ok;
 }
@@ -777,8 +777,10 @@ static bool do_dvd_size_checks(DCR *dcr)
    JCR *jcr = dcr->jcr;
    DEV_BLOCK *block = dcr->block;
 
-   /* Limit maximum part size to value specified by user (not applicable to tapes/fifos) */
-   if (!(dev->state & (ST_TAPE|ST_FIFO)) && dev->max_part_size > 0 &&
+   /* Limit maximum part size to value specified by user 
+    * (not applicable to tapes/fifos)   
+    */
+   if (!(dev->is_tape() || dev->is_fifo()) && dev->max_part_size > 0 &&
         (dev->part_size + block->binbuf) >= dev->max_part_size) {
       if (dev->part < dev->num_parts) {
          Jmsg3(dcr->jcr, M_FATAL, 0, _("Error while writing, current part number is less than the total number of parts (%d/%d, device=%s)\n"),
@@ -921,7 +923,7 @@ reread:
          dev->file, dev->block_num, dev->dev_name, be.strerror());
       Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       if (dev->at_eof()) {        /* EOF just seen? */
-         dev->state |= ST_EOT;    /* yes, error => EOT */
+         dev->set_eot();          /* yes, error => EOT */
       }
       return false;
    }
@@ -933,10 +935,10 @@ reread:
       Mmsg3(dev->errmsg, _("Read zero bytes at %u:%u on device %s.\n"),
          dev->file, dev->block_num, dev->dev_name);
       if (dev->at_eof()) {       /* EOF already read? */
-         dev->state |= ST_EOT;  /* yes, 2 EOFs => EOT */
+         dev->set_eot();         /* yes, 2 EOFs => EOT */
          return 0;
       }
-      dev->set_eof();
+      dev->set_ateof();
       return false;             /* return eof */
    }
    /* Continue here for successful read */
@@ -946,7 +948,7 @@ reread:
       Mmsg4(dev->errmsg, _("Volume data error at %u:%u! Very short block of %d bytes on device %s discarded.\n"),
          dev->file, dev->block_num, block->read_len, dev->dev_name);
       Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
-      dev->state |= ST_SHORT;   /* set short block */
+      dev->set_short_block();   
       block->read_len = block->binbuf = 0;
       return false;             /* return error */
    }
@@ -1005,12 +1007,13 @@ reread:
       Mmsg4(dev->errmsg, _("Volume data error at %u:%u! Short block of %d bytes on device %s discarded.\n"),
          dev->file, dev->block_num, block->read_len, dev->dev_name);
       Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
-      dev->state |= ST_SHORT;   /* set short block */
+      dev->set_short_block();
       block->read_len = block->binbuf = 0;
       return false;             /* return error */
    }
 
-   dev->state &= ~(ST_EOF|ST_SHORT); /* clear EOF and short block */
+   dev->clear_short_block();
+   dev->clear_eof();
    dev->VolCatInfo.VolCatReads++;
    dev->VolCatInfo.VolCatRBytes += block->read_len;
 

@@ -188,7 +188,7 @@ void set_new_volume_parameters(DCR *dcr)
       Jmsg1(jcr, M_ERROR, 0, "%s", jcr->errmsg);
    }
    /* Set new start/end positions */
-   if (dev_state(dev, ST_TAPE)) {
+   if (dev->is_tape()) {
       dcr->StartBlock = dev->block_num;
       dcr->StartFile = dev->file;
    } else {
@@ -213,7 +213,7 @@ void set_new_file_parameters(DCR *dcr)
    DEVICE *dev = dcr->dev;
 
    /* Set new start/end positions */
-   if (dev_state(dev, ST_TAPE)) {
+   if (dev->is_tape()) {
       dcr->StartBlock = dev->block_num;
       dcr->StartFile = dev->file;
    } else {
@@ -425,8 +425,8 @@ void _unlock_device(const char *file, int line, DEVICE *dev)
 void _block_device(const char *file, int line, DEVICE *dev, int state)
 {
    Dmsg3(500, "block set %d from %s:%d\n", state, file, line);
-   ASSERT(dev->dev_blocked == BST_NOT_BLOCKED);
-   dev->dev_blocked = state;          /* make other threads wait */
+   ASSERT(dev->get_blocked() == BST_NOT_BLOCKED);
+   dev->set_blocked(state);           /* make other threads wait */
    dev->no_wait_id = pthread_self();  /* allow us to continue */
 }
 
@@ -439,7 +439,7 @@ void _unblock_device(const char *file, int line, DEVICE *dev)
 {
    Dmsg3(500, "unblock %d from %s:%d\n", dev->dev_blocked, file, line);
    ASSERT(dev->dev_blocked);
-   dev->dev_blocked = BST_NOT_BLOCKED;
+   dev->set_blocked(BST_NOT_BLOCKED);
    dev->no_wait_id = 0;
    if (dev->num_waiting > 0) {
       pthread_cond_broadcast(&dev->wait); /* wake them up */
@@ -454,10 +454,10 @@ void _steal_device_lock(const char *file, int line, DEVICE *dev, bsteal_lock_t *
 {
    Dmsg4(500, "steal lock. old=%d new=%d from %s:%d\n", dev->dev_blocked, state,
       file, line);
-   hold->dev_blocked = dev->dev_blocked;
+   hold->dev_blocked = dev->get_blocked();
    hold->dev_prev_blocked = dev->dev_prev_blocked;
    hold->no_wait_id = dev->no_wait_id;
-   dev->dev_blocked = state;
+   dev->set_blocked(state);
    dev->no_wait_id = pthread_self();
    V(dev->mutex);
 }

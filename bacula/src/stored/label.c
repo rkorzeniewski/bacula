@@ -89,7 +89,9 @@ int read_dev_volume_label(DCR *dcr)
       return VOL_OK;       /* label already read */
    }
 
-   dev->state &= ~(ST_LABEL|ST_APPEND|ST_READ);  /* set no label, no append */
+   dev->clear_labeled();
+   dev->clear_append();
+   dev->clear_read();
    dev->label_type = B_BACULA_LABEL;
 
    if (!rewind_dev(dev)) {
@@ -230,55 +232,60 @@ int read_dev_volume_label(DCR *dcr)
  *  Writing : returns the label of the current file (on the harddisk).
  *  Reading : returns an error
  */
-int read_dev_volume_label_guess(DCR *dcr, bool write) 
+int read_dvd_volume_label(DCR *dcr, bool write) 
 {
    int vol_label_status;
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
-   Dmsg3(100, "Enter read_dev_volume_label_guess device=%s vol=%s dev_Vol=%s\n",
+   Dmsg3(100, "Enter read_dvd_volume_label device=%s vol=%s dev_Vol=%s\n",
          dev->print_name(), dcr->VolumeName, dev->VolHdr.VolName);
    
-   if (!dev->is_dvd()) {
-      Dmsg0(100, "Leave read_dev_volume_label_guess !CAP_REQMOUNT\n");
-      return read_dev_volume_label(dcr);
+   if (!dev->is_dvd()) {  
+      Jmsg1(jcr, M_ABORT, 0, _("Device %s is not a DVD.\n"), dev->print_name());
+      return -1;    /* for compiler, won't get here */
    }
    
    if (!write && (dcr->VolCatInfo.VolCatParts == 0)) {
-      Dmsg0(100, "Leave read_dev_volume_label_guess !writing, and VolCatParts == 0\n");
+      Dmsg0(100, "Leave read_dvd_volume_label !writing, and VolCatParts == 0\n");
       return read_dev_volume_label(dcr);
    }
    
-   /* For mounted devices, tries to guess the volume name, and read the label if possible.
-   */
-   if (open_guess_name_dev(dev) < 0) {     
+   /*
+    * For mounted devices, try to guess the Volume name
+    * and read the label if possible.
+    */
+   if (open_mounted_dev(dev) < 0) {     
       if (!write || dcr->VolCatInfo.VolCatParts > 0) {
          Mmsg2(jcr->errmsg, _("Requested Volume \"%s\" on %s is not a Bacula labeled Volume."),
                dev->print_name(), dcr->VolumeName);
-         Dmsg0(100, "Leave read_dev_volume_label_guess VOL_NO_LABEL (!open_guess_name_dev)\n");
+         Dmsg0(100, "Leave read_dvd_volume_label VOL_NO_LABEL (!open_mounted_dev)\n");
          return VOL_NO_LABEL;
       }
       
       if (write && dev->free_space_errno < 0) {
-         Dmsg0(100, "Leave read_dev_volume_label_guess !free_space VOL_NO_MEDIA\n");
+         Dmsg0(100, "Leave read_dvd_volume_label !free_space VOL_NO_MEDIA\n");
          Mmsg2(jcr->errmsg, _("free_space error on %s. The current medium is probably not writable: ERR=%s.\n"),
                dev->print_name(), dev->errmsg);
          return VOL_NO_MEDIA;
       }
       
-      /* If we can't guess the name, and we are writing, just reopen the right file with open_first_part. */
+      /* 
+       * If we can't guess the name, and we are writing, 
+       * just reopen the right file with open_first_part.
+       */
       if (open_first_part(dev) < 0) {
          berrno be;
          Mmsg2(jcr->errmsg, _("open_first_part error on %s: ERR=%s.\n"),
                dev->print_name(), be.strerror());
-         Dmsg0(100, "Leave read_dev_volume_label_guess VOL_IO_ERROR (!open_guess_name_dev && !open_first_part)\n");
+         Dmsg0(100, "Leave read_dvd_volume_label VOL_IO_ERROR (!open_mounted_dev && !open_first_part)\n");
          return VOL_IO_ERROR;
       }
       
-      Dmsg0(100, "Leave read_dev_volume_label_guess !open_guess_name_dev\n");
+      Dmsg0(100, "Leave read_dvd_volume_label !open_mounted_dev\n");
       return read_dev_volume_label(dcr);
    } else {
       if (write && dcr->dev->free_space_errno < 0) {
-         Dmsg0(100, "Leave read_dev_volume_label_guess !free_space VOL_NO_MEDIA\n");
+         Dmsg0(100, "Leave read_dvd_volume_label !free_space VOL_NO_MEDIA\n");
          Mmsg2(jcr->errmsg, _("free_space error on %s. The current medium is probably not writable: ERR=%s.\n"),
                dev->print_name(), dev->errmsg);
          return VOL_NO_MEDIA;
@@ -287,7 +294,7 @@ int read_dev_volume_label_guess(DCR *dcr, bool write)
       vol_label_status = read_dev_volume_label(dcr);
 
       if (!write || dcr->VolCatInfo.VolCatParts > 0) {
-         Dmsg0(100, "Leave read_dev_volume_label_guess (open_guess_name_dev && (!write || dcr->VolCatInfo.VolCatParts > 0))\n");
+         Dmsg0(100, "Leave read_dvd_volume_label (open_mounted_dev && (!write || dcr->VolCatInfo.VolCatParts > 0))\n");
          return vol_label_status;
       }
       
@@ -295,19 +302,19 @@ int read_dev_volume_label_guess(DCR *dcr, bool write)
          berrno be;
          Mmsg2(jcr->errmsg, _("open_first_part error on %s: ERR=%s.\n"),
                dev->print_name(), be.strerror());
-         Dmsg0(100, "Leave read_dev_volume_label_guess VOL_IO_ERROR (open_guess_name_dev && !open_first_part)\n");
+         Dmsg0(100, "Leave read_dvd_volume_label VOL_IO_ERROR (open_mounted_dev && !open_first_part)\n");
          return VOL_IO_ERROR;
       }
       
-      /* When writing, if the guessed volume name is no the right volume name, 
+      /* When writing, if the guessed volume name is not the right volume name, 
        * report the error, otherwise, just continue with the right file.
        */
       if (vol_label_status != VOL_NAME_ERROR) {
-         Dmsg0(100, "Leave read_dev_volume_label_guess (open_guess_name_dev && !VOL_NAME_ERROR)\n");
+         Dmsg0(100, "Leave read_dvd_volume_label (open_mounted_dev && !VOL_NAME_ERROR)\n");
          dev->clear_labeled();   
          return read_dev_volume_label(dcr);
       } else {
-         Dmsg0(100, "Leave read_dev_volume_label_guess (open_guess_name_dev && VOL_NAME_ERROR)\n");
+         Dmsg0(100, "Leave read_dvd_volume_label (open_mounted_dev && VOL_NAME_ERROR)\n");
          return vol_label_status;
       }
    }
@@ -475,7 +482,7 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
             rewind_dev(dev);
             return false;
          }
-      } else if (!write_ansi_ibm_labels (dcr, ANSI_VOL_LABEL, dev->VolHdr.VolName)) {
+      } else if (!write_ansi_ibm_labels(dcr, ANSI_VOL_LABEL, dev->VolHdr.VolName)) {
          return false;
       }
 

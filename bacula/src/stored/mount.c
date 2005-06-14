@@ -182,7 +182,7 @@ read_volume:
       create_volume_label(dev, dcr->VolumeName, "Default");
       dev->VolHdr.LabelType = PRE_LABEL;
    } else if (dev->is_dvd()) {
-      vol_label_status = read_dev_volume_label_guess(dcr, 1);
+      vol_label_status = read_dvd_volume_label(dcr, /*write*/true);
    } else {
       vol_label_status = read_dev_volume_label(dcr);
    }
@@ -434,7 +434,9 @@ void release_volume(DCR *dcr)
    free_volume(dev);
    memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
    /* Force re-read of label */
-   dev->state &= ~(ST_LABEL|ST_READ|ST_APPEND);
+   dev->clear_labeled();
+   dev->clear_read();
+   dev->clear_append();
    dev->label_type = B_BACULA_LABEL;
    dcr->VolumeName[0] = 0;
 
