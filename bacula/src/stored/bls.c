@@ -278,7 +278,7 @@ static void do_blocks(char *infname)
                dev->file, dev->print_name(), dcr->VolumeName);
             Dmsg0(20, "read_record got eof. try again\n");
             continue;
-         } else if (dev->state & ST_SHORT) {
+         } else if (dev->is_short_block()) {
             Jmsg(jcr, M_INFO, 0, "%s", dev->errmsg);
             continue;
          } else {

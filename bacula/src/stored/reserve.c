@@ -459,7 +459,7 @@ static int reserve_device(RCTX &rctx)
    DCR *dcr;
    const int name_len = MAX_NAME_LENGTH;
    if (!rctx.device->dev) {
-      rctx.device->dev = init_dev(rctx.jcr, NULL, rctx.device);
+      rctx.device->dev = init_dev(rctx.jcr, rctx.device);
    }
    if (!rctx.device->dev) {
       if (rctx.device->changer_res) {

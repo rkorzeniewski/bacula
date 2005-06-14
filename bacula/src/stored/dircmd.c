@@ -380,7 +380,7 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
 
    /* See what we have for a Volume */
    if (dev->is_dvd()) {
-      label_status = read_dev_volume_label_guess(dcr, 1);
+      label_status = read_dvd_volume_label(dcr, /*write*/true);
    } else {
       label_status = read_dev_volume_label(dcr);
    }
@@ -476,7 +476,7 @@ static DEVICE *find_device(JCR *jcr, POOL_MEM &devname)
       /* Find resource, and make sure we were able to open it */
       if (fnmatch(device->hdr.name, devname.c_str(), 0) == 0) {
          if (!device->dev) {
-            device->dev = init_dev(jcr, NULL, device);
+            device->dev = init_dev(jcr, device);
          }
          if (!device->dev) {
             Jmsg(jcr, M_WARNING, 0, _("\n"
@@ -496,7 +496,7 @@ static DEVICE *find_device(JCR *jcr, POOL_MEM &devname)
          foreach_alist(device, changer->device) {
             Dmsg1(100, "Try changer device %s\n", device->hdr.name);
             if (!device->dev) {
-               device->dev = init_dev(jcr, NULL, device);
+               device->dev = init_dev(jcr, device);
             }
             if (!device->dev) {
                Dmsg1(100, "Device %s could not be opened. Skipped\n", devname.c_str());

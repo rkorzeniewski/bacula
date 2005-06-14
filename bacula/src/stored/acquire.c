@@ -212,7 +212,7 @@ DCR *acquire_device_for_read(DCR *dcr)
       }
       
       if (dev->is_dvd()) {
-         vol_label_status = read_dev_volume_label_guess(dcr, 0);
+         vol_label_status = read_dvd_volume_label(dcr, /*read*/false);
       } else {
          vol_label_status = read_dev_volume_label(dcr);
       }

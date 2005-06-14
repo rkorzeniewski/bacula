@@ -71,7 +71,7 @@ int wait_for_sysop(DCR *dcr)
 
    if (!unmounted) {
       dev->dev_prev_blocked = dev->dev_blocked;
-      dev->dev_blocked = BST_WAITING_FOR_SYSOP; /* indicate waiting for mount */
+      dev->set_blocked(BST_WAITING_FOR_SYSOP); /* indicate waiting for mount */
    }
 
    for ( ; !job_canceled(jcr); ) {
@@ -144,7 +144,7 @@ int wait_for_sysop(DCR *dcr)
    }
 
    if (!unmounted) {
-      dev->dev_blocked = dev->dev_prev_blocked;    /* restore entry state */
+      dev->set_blocked(dev->dev_prev_blocked);    /* restore entry state */
    }
    V(dev->mutex);
    return stat;

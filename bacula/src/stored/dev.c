@@ -32,19 +32,14 @@
    Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -109,19 +104,17 @@ static void open_file_device(DEVICE *dev, int mode);
  *
  */
 DEVICE *
-init_dev(JCR *jcr, DEVICE *dev, DEVRES *device)
+init_dev(JCR *jcr, DEVRES *device)
 {
    struct stat statp;
    bool tape, fifo;
    int errstat;
    DCR *dcr = NULL;
+   DEVICE *dev;
 
    /* Check that device is available */
    if (stat(device->device_name, &statp) < 0) {
       berrno be;
-      if (dev) {
-         dev->dev_errno = errno;
-      }
       Jmsg2(jcr, M_ERROR, 0, _("Unable to stat device %s: ERR=%s\n"), 
          device->device_name, be.strerror());
       return NULL;
@@ -137,20 +130,14 @@ init_dev(JCR *jcr, DEVICE *dev, DEVRES *device)
    } else if (S_ISFIFO(statp.st_mode)) {
       fifo = true;
    } else if (!(device->cap_bits & CAP_REQMOUNT)) {
-      if (dev) {
-         dev->dev_errno = ENODEV;
-      }
       Jmsg2(jcr, M_ERROR, 0, _("%s is an unknown device type. Must be tape or directory. st_mode=%x\n"),
          device->device_name, statp.st_mode);
       return NULL;
    }
-   if (!dev) {
-      dev = (DEVICE *)get_memory(sizeof(DEVICE));
-      memset(dev, 0, sizeof(DEVICE));
-      dev->state = ST_MALLOC;
-   } else {
-      memset(dev, 0, sizeof(DEVICE));
-   }
+
+   dev = (DEVICE *)get_memory(sizeof(DEVICE));
+   memset(dev, 0, sizeof(DEVICE));
+   dev->state = ST_MALLOC;
 
    /* Copy user supplied device parameters from Resource */
    dev->dev_name = get_memory(strlen(device->device_name)+1);
@@ -566,9 +553,9 @@ void DEVICE::unblock()
  * Called to indicate that we have just read an
  *  EOF from the device.
  */
-void DEVICE::set_eof() 
+void DEVICE::set_ateof() 
 { 
-   state |= ST_EOF;
+   set_eof();
    file++;
    file_addr = 0;
    file_size = 0;
@@ -579,10 +566,11 @@ void DEVICE::set_eof()
  * Called to indicate we are now at the end of the tape, and
  *   writing is not possible.
  */
-void DEVICE::set_eot() 
+void DEVICE::set_ateot() 
 {
+   /* Make tape effectively read-only */
    state |= (ST_EOF|ST_EOT|ST_WEOT);
-   state &= ~ST_APPEND;          /* make tape read-only */
+   clear_append();
 }
 
 /*
@@ -679,7 +667,7 @@ eod_dev(DEVICE *dev)
          return false;
       }
       Dmsg2(100, "EOD file=%d block=%d\n", mt_stat.mt_fileno, mt_stat.mt_blkno);
-      dev->set_eof();
+      dev->set_ateof();
       dev->file = mt_stat.mt_fileno;
    } else {
 #else
@@ -710,7 +698,7 @@ eod_dev(DEVICE *dev)
             Dmsg1(100, "fsf_dev did not advance from file %d\n", file_num);
             if (dev_get_os_pos(dev, &mt_stat)) {
                Dmsg2(100, "Adjust file from %d to %d\n", dev->file , mt_stat.mt_fileno);
-               dev->set_eof();
+               dev->set_ateof();
                dev->file = mt_stat.mt_fileno;
             }
             return false;
@@ -1025,7 +1013,7 @@ fsf_dev(DEVICE *dev, int num)
          return false;
       }
       Dmsg2(200, "fsf file=%d block=%d\n", mt_stat.mt_fileno, mt_stat.mt_blkno);
-      dev->set_eof();
+      dev->set_ateof();
       dev->file = mt_stat.mt_fileno;
       return true;
 
@@ -1074,7 +1062,7 @@ fsf_dev(DEVICE *dev, int num)
                Dmsg0(100, "Set ST_EOT\n");
                break;
             } else {
-               dev->set_eof();
+               dev->set_ateof();
                continue;
             }
          } else {                        /* Got data */
@@ -1093,7 +1081,7 @@ fsf_dev(DEVICE *dev, int num)
             Dmsg0(100, "Got < 0 for MTFSF\n");
             Dmsg1(100, "%s", dev->errmsg);
          } else {
-            dev->set_eof();
+            dev->set_ateof();
          }
       }
       free_memory(rbuf);
@@ -1210,9 +1198,9 @@ bool DEVICE::fsr(int num)
          block_num = mt_stat.mt_blkno;
       } else {
          if (at_eof()) {
-            state |= ST_EOT;
+            set_eot();
          } else {
-            set_eof();
+            set_ateof();
          }
       }
       Mmsg3(errmsg, _("ioctl MTFSR %d error on %s. ERR=%s.\n"),

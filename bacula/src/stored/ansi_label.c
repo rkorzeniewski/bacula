@@ -88,12 +88,12 @@ int read_ansi_ibm_label(DCR *dcr)
       }
       if (stat == 0) {
          if (dev->at_eof()) {
-            dev->state |= ST_EOT;
+            dev->set_eot();           /* second eof, set eot bit */
             Dmsg0(100, "EOM on ANSI label\n");
             Mmsg0(jcr->errmsg, _("Insane! End of tape while reading ANSI label.\n"));
             return VOL_LABEL_ERROR;   /* at EOM this shouldn't happen */
          } else {
-            dev->set_eof();
+            dev->set_ateof();        /* set eof state */
          }
       }
       switch (i) {
