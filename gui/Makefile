@@ -81,10 +81,6 @@ configure: autoconf/configure.in autoconf/aclocal.m4 autoconf/acconfig.h autocon
 	autoconf/configure.in > configure
 	chmod 755 configure
 
-Makefile: Makefile.in
-	cd $(topdir) \
-	    && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
-
 Makefiles:
 	$(SHELL) config.status
 
