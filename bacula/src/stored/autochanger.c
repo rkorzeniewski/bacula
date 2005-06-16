@@ -57,7 +57,7 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
     * Handle autoloaders here.  If we cannot autoload it, we
     *  will return 0 so that the sysop will be asked to load it.
     */
-   if (writing && dev_cap(dev, CAP_AUTOCHANGER) && slot <= 0) {
+   if (writing && dev->is_autochanger() && slot <= 0) {
       if (dir) {
          return 0;                    /* For user, bail out right now */
       }
@@ -227,7 +227,7 @@ bool autochanger_cmd(DCR *dcr, BSOCK *dir, const char *cmd)
    bool ok = false;
    int stat;
 
-   if (!dev_cap(dev, CAP_AUTOCHANGER) || !dcr->device->changer_name ||
+   if (!dev->is_autochanger() || !dcr->device->changer_name ||
        !dcr->device->changer_command) {
       bnet_fsend(dir, _("3993 Device %s not an autochanger device.\n"),
          dev->print_name());

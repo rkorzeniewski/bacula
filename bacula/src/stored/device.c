@@ -96,7 +96,7 @@ bool fixup_device_block_write_error(DCR *dcr)
    unlock_device(dev);
 
    bstrncpy(PrevVolName, dev->VolCatInfo.VolCatName, sizeof(PrevVolName));
-   bstrncpy(dev->VolHdr.PrevVolName, PrevVolName, sizeof(dev->VolHdr.PrevVolName));
+   bstrncpy(dev->VolHdr.PrevVolumeName, PrevVolName, sizeof(dev->VolHdr.PrevVolumeName));
 
    label_blk = new_block(dev);
    dcr->block = label_blk;
@@ -267,13 +267,13 @@ bool first_open_device(DEVICE *dev)
     }
    Dmsg0(129, "Opening device.\n");
    dev->open_nowait = true;
-   if (open_dev(dev, NULL, mode) < 0) {
+   if (dev->open(NULL, mode) < 0) {
       Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), dev->errmsg);
       dev->open_nowait = false;
       unlock_device(dev);
       return false;
    }
-   Dmsg1(129, "open_dev %s OK\n", dev->print_name());
+   Dmsg1(129, "open dev %s OK\n", dev->print_name());
    dev->open_nowait = false;
    unlock_device(dev);
    return true;
@@ -292,7 +292,7 @@ bool open_device(DCR *dcr)
    } else {
       mode = OPEN_READ_WRITE;
    }
-   if (open_dev(dev, dcr->VolCatInfo.VolCatName, mode) < 0) {
+   if (dev->open(dcr->VolCatInfo.VolCatName, mode) < 0) {
       /* If polling, ignore the error */
       if (!dev->poll) {
          Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open device %s: ERR=%s\n"),

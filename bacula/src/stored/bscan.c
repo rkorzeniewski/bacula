@@ -424,7 +424,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 
          /* Check Media Info */
          memset(&mr, 0, sizeof(mr));
-         bstrncpy(mr.VolumeName, dev->VolHdr.VolName, sizeof(mr.VolumeName));
+         bstrncpy(mr.VolumeName, dev->VolHdr.VolumeName, sizeof(mr.VolumeName));
          mr.PoolId = pr.PoolId;
          num_media++;
          if (db_get_media_record(bjcr, db, &mr)) {
@@ -732,7 +732,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
  */
 static void bscan_free_jcr(JCR *jcr)
 {
-   Dmsg0(200, "Start dird free_jcr\n");
+   Dmsg0(200, "Start bscan free_jcr\n");
 
    if (jcr->file_bsock) {
       Dmsg0(200, "Close File bsock\n");
@@ -749,7 +749,7 @@ static void bscan_free_jcr(JCR *jcr)
       free_dcr(jcr->dcr);
       jcr->dcr = NULL;
    }
-   Dmsg0(200, "End dird free_jcr\n");
+   Dmsg0(200, "End bscan free_jcr\n");
 }
 
 /*

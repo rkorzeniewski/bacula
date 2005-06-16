@@ -3,6 +3,28 @@
 
 General:
 
+Changes to 1.37.24:
+16Jun05
+- Add Date, Job, level to updates to .bsr file in 
+  dird/backup.c
+- Add debug info to dvd-freespace.in
+- Fix hard coded bacula.sql in make_catalog_backup reported
+  by a user.
+- Make sure a verify volume to catalog never reports an error
+  if there are zero files to verify.
+- Remove confusing debug info in filed/backup.c on network
+  error.
+- Make sure output from console is not sent to system log.
+- Convert open_dev() into a class method.
+- Change VolHdr.VolName to VolHdr.VolumeName.
+- Add a flag in the device state word to indicate that
+  we found Media in the drive (DVD). 
+- Make mount_dev() and unmount_dev() return bool.
+
+Changes to 1.37.23:
+- Renamed to make unique version for open_next_part()
+  changes.
+
 Changes to 1.37.22:
 14Jun05
 - Fix the same state variable problem in open_next_part().

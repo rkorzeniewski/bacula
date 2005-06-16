@@ -215,7 +215,7 @@ read_volume:
 
       Dmsg1(100, "Vol NAME Error Name=%s\n", dcr->VolumeName);
       /* If polling and got a previous bad name, ignore it */
-      if (dev->poll && strcmp(dev->BadVolName, dev->VolHdr.VolName) == 0) {
+      if (dev->poll && strcmp(dev->BadVolName, dev->VolHdr.VolumeName) == 0) {
          ask = true;
          Dmsg1(200, "Vol Name error supress due to poll. Name=%s\n",
             dcr->VolumeName);
@@ -233,16 +233,16 @@ read_volume:
       if (!dir_get_volume_info(dcr, GET_VOL_INFO_FOR_WRITE)) {
          /* Restore desired volume name, note device info out of sync */
          /* This gets the info regardless of the Pool */
-         bstrncpy(dcr->VolumeName, dev->VolHdr.VolName, sizeof(dcr->VolumeName));
+         bstrncpy(dcr->VolumeName, dev->VolHdr.VolumeName, sizeof(dcr->VolumeName));
          if (autochanger && dir_get_volume_info(dcr, GET_VOL_INFO_FOR_READ)) {
             mark_volume_not_inchanger(dcr);
          }
          memcpy(&dev->VolCatInfo, &devVolCatInfo, sizeof(dev->VolCatInfo));
-         bstrncpy(dev->BadVolName, dev->VolHdr.VolName, sizeof(dev->BadVolName));
+         bstrncpy(dev->BadVolName, dev->VolHdr.VolumeName, sizeof(dev->BadVolName));
          Jmsg(jcr, M_WARNING, 0, _("Director wanted Volume \"%s\".\n"
               "    Current Volume \"%s\" not acceptable because:\n"
               "    %s"),
-             VolCatInfo.VolCatName, dev->VolHdr.VolName,
+             VolCatInfo.VolCatName, dev->VolHdr.VolumeName,
              jcr->dir_bsock->msg);
          ask = true;
          goto mount_next_vol;

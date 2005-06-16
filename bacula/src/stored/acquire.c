@@ -190,7 +190,7 @@ DCR *acquire_device_for_read(DCR *dcr)
        */
       for ( ; !dev->is_open(); ) {
          Dmsg1(120, "bstored: open vol=%s\n", dcr->VolumeName);
-         if (open_dev(dev, dcr->VolumeName, OPEN_READ_ONLY) < 0) {
+         if (dev->open(dcr->VolumeName, OPEN_READ_ONLY) < 0) {
             if (dev->dev_errno == EIO) {   /* no tape loaded */
               Jmsg3(jcr, M_WARNING, 0, _("Open device %s Volume \"%s\" failed: ERR=%s\n"),
                     dev->print_name(), dcr->VolumeName, strerror_dev(dev));
@@ -208,7 +208,7 @@ DCR *acquire_device_for_read(DCR *dcr)
                 dev->print_name(), dcr->VolumeName, strerror_dev(dev));
             goto get_out;
          }
-         Dmsg1(129, "open_dev %s OK\n", dev->print_name());
+         Dmsg1(129, "opened dev %s OK\n", dev->print_name());
       }
       
       if (dev->is_dvd()) {
@@ -343,10 +343,10 @@ DCR *acquire_device_for_append(DCR *dcr)
        *   otherwise mount desired volume obtained from
        *    dir_find_next_appendable_volume
        */
-      bstrncpy(dcr->VolumeName, dev->VolHdr.VolName, sizeof(dcr->VolumeName));
+      bstrncpy(dcr->VolumeName, dev->VolHdr.VolumeName, sizeof(dcr->VolumeName));
       if (!dir_get_volume_info(dcr, GET_VOL_INFO_FOR_WRITE) &&
           !(dir_find_next_appendable_volume(dcr) &&
-            strcmp(dev->VolHdr.VolName, dcr->VolumeName) == 0)) { /* wrong tape mounted */
+            strcmp(dev->VolHdr.VolumeName, dcr->VolumeName) == 0)) { /* wrong tape mounted */
          Dmsg0(190, "Wrong tape mounted.\n");
          if (dev->num_writers != 0 || dev->reserved_device) {
             Jmsg(jcr, M_FATAL, 0, _("Device %s is busy writing on another Volume.\n"), dev->print_name());
@@ -367,7 +367,7 @@ DCR *acquire_device_for_append(DCR *dcr)
           if (recycle && dev->num_writers != 0) {
              Jmsg(jcr, M_FATAL, 0, _("Cannot recycle volume \"%s\""
                   " on device %s because it is in use by another job.\n"),
-                  dev->VolHdr.VolName, dev->print_name());
+                  dev->VolHdr.VolumeName, dev->print_name());
              goto get_out;
           }
           if (dev->num_writers == 0) {
@@ -456,7 +456,7 @@ bool release_device(DCR *dcr)
          /* If no more writers, write an EOF */
          if (!dev->num_writers && dev->can_write()) {
             weof_dev(dev, 1);
-            write_ansi_ibm_labels(dcr, ANSI_EOF_LABEL, dev->VolHdr.VolName);
+            write_ansi_ibm_labels(dcr, ANSI_EOF_LABEL, dev->VolHdr.VolumeName);
          }
          if (!dev->at_weot()) {
             dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */

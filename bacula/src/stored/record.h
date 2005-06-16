@@ -147,8 +147,8 @@ struct Volume_Label {
   float64_t write_date;               /* Date this label written */
   float64_t write_time;               /* Time this label written */
 
-  char VolName[MAX_NAME_LENGTH];      /* Volume name */
-  char PrevVolName[MAX_NAME_LENGTH];  /* Previous Volume Name */
+  char VolumeName[MAX_NAME_LENGTH];   /* Volume name */
+  char PrevVolumeName[MAX_NAME_LENGTH]; /* Previous Volume Name */
   char PoolName[MAX_NAME_LENGTH];     /* Pool name */
   char PoolType[MAX_NAME_LENGTH];     /* Pool type */
   char MediaType[MAX_NAME_LENGTH];    /* Type of this media */

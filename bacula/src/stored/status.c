@@ -108,7 +108,7 @@ bool status_cmd(JCR *jcr)
       if (dev && dev->is_open()) {
          if (dev->is_labeled()) {
             bnet_fsend(user, _("Device %s is mounted with Volume \"%s\"\n"),
-               dev->print_name(), dev->VolHdr.VolName);
+               dev->print_name(), dev->VolHdr.VolumeName);
          } else {
             bnet_fsend(user, _("Device %s open but no Bacula volume is mounted.\n"), 
                dev->print_name());

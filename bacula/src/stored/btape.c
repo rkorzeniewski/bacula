@@ -326,14 +326,14 @@ static bool open_the_device()
    lock_device(dev);
    if (!dev->is_open()) {
       Dmsg1(200, "Opening device %s\n", dcr->VolumeName);
-      if (open_dev(dev, dcr->VolumeName, OPEN_READ_WRITE) < 0) {
+      if (dev->open(dcr->VolumeName, OPEN_READ_WRITE) < 0) {
          Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), dev->errmsg);
          unlock_device(dev);
          free_block(block);
          return false;
       }
    }
-   Pmsg1(000, "open_dev %s OK\n", dev->print_name());
+   Pmsg1(000, "open_ ev %s OK\n", dev->print_name());
    dev->set_append();                 /* put volume in append mode */
    unlock_device(dev);
    free_block(block);

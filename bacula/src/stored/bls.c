@@ -218,10 +218,10 @@ int main (int argc, char *argv[])
        * Assume that we have already read the volume label.
        * If on second or subsequent volume, adjust buffer pointer
        */
-      if (dev->VolHdr.PrevVolName[0] != 0) { /* second volume */
+      if (dev->VolHdr.PrevVolumeName[0] != 0) { /* second volume */
          Pmsg1(0, "\n"
 "Warning, this Volume is a continuation of Volume %s\n",
-                dev->VolHdr.PrevVolName);
+                dev->VolHdr.PrevVolumeName);
       }
 
       if (list_blocks) {

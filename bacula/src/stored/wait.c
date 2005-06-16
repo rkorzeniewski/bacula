@@ -172,7 +172,7 @@ bool wait_for_device(JCR *jcr, bool first)
    P(device_release_mutex);
 
    if (first) {
-      Jmsg(jcr, M_MOUNT, 0, _("Job %s waiting to obtain a device.\n"), jcr->Job);
+      Jmsg(jcr, M_MOUNT, 0, _("Job %s waiting to reserve a device.\n"), jcr->Job);
    }
 
    /*
@@ -229,7 +229,7 @@ bool wait_for_device(JCR *jcr, bool first)
          if (!double_jcr_wait_time(jcr)) {
             break;                 /* give up */
          }
-         Jmsg(jcr, M_MOUNT, 0, _("Job %s waiting to obtain a device.\n"), jcr->Job);
+         Jmsg(jcr, M_MOUNT, 0, _("Job %s waiting to reserve a device.\n"), jcr->Job);
       }
 
       add_wait = jcr->wait_sec - (now - start);

@@ -192,12 +192,11 @@ init_msg(JCR *jcr, MSGS *msg)
    if (msg == NULL) {
       daemon_msgs = (MSGS *)malloc(sizeof(MSGS));
       memset(daemon_msgs, 0, sizeof(MSGS));
-      for (i=1; i<=M_MAX; i++) {
 #ifndef WIN32
+      for (i=1; i<=M_MAX; i++) {
          add_msg_dest(daemon_msgs, MD_STDOUT, i, NULL, NULL);
-#endif
-         add_msg_dest(daemon_msgs, MD_SYSLOG, i, NULL, NULL);
       }
+#endif
       Dmsg1(050, "Create daemon global message resource 0x%x\n", daemon_msgs);
       return;
    }

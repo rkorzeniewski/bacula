@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     12 June 2005
+                     16 June 2005
 
 Major development:      
 Project                     Developer
@@ -53,6 +53,7 @@ Document:
 - Document the multiple-drive-changer.txt script.
 
 For 1.37:
+- Add # Job Level date to bsr file
 - Implement "PreferMountedVolumes = yes|no" in Job resource.
 === rate design
   jcr->last_rate

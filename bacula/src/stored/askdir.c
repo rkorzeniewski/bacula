@@ -72,7 +72,7 @@ bool dir_update_device(JCR *jcr, DEVICE *dev)
    pm_strcpy(dev_name, device->hdr.name);
    bash_spaces(dev_name);
    if (dev->is_labeled()) {
-      pm_strcpy(VolumeName, dev->VolHdr.VolName);
+      pm_strcpy(VolumeName, dev->VolHdr.VolumeName);
    } else {
       pm_strcpy(VolumeName, "*");
    }
@@ -192,9 +192,9 @@ static bool do_get_volume_info(DCR *dcr)
 /*
  * Get Volume info for a specific volume from the Director's Database
  *
- * Returns: true  on success   (not Director guarantees that Pool and MediaType
- *                             are correct and VolStatus==Append or
- *                             VolStatus==Recycle)
+ * Returns: true  on success   (Director guarantees that Pool and MediaType
+ *                              are correct and VolStatus==Append or
+ *                              VolStatus==Recycle)
  *          false on failure
  *
  *          Volume information returned in dcr->VolCatInfo

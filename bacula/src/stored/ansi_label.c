@@ -122,14 +122,14 @@ int read_ansi_ibm_label(DCR *dcr)
          if (VolName && *VolName && *VolName != '*') { 
             if (!same_label_names(VolName, &label[4])) {
                char *p = &label[4];
-               char *q = dev->VolHdr.VolName;
+               char *q = dev->VolHdr.VolumeName;
                for (int i=0; *p != ' ' && i < 6; i++) {
                   *q++ = *p++;
                }
                *q = 0;
-               new_volume(dev->VolHdr.VolName, dev);
-               Dmsg2(100, "Wanted ANSI Vol %s got %6s\n", VolName, dev->VolHdr.VolName);
-               Mmsg2(jcr->errmsg, "Wanted ANSI Volume \"%s\" got \"%s\"\n", VolName, dev->VolHdr.VolName);
+               new_volume(dev->VolHdr.VolumeName, dev);
+               Dmsg2(100, "Wanted ANSI Vol %s got %6s\n", VolName, dev->VolHdr.VolumeName);
+               Mmsg2(jcr->errmsg, "Wanted ANSI Volume \"%s\" got \"%s\"\n", VolName, dev->VolHdr.VolumeName);
                return VOL_NAME_ERROR;
             }
          }
@@ -147,7 +147,7 @@ int read_ansi_ibm_label(DCR *dcr)
             Dmsg1(100, "HD1 not Bacula label. Wanted  BACULA.DATA got %11s\n",
                &label[4]);
             Mmsg1(jcr->errmsg, _("ANSI/IBM Volume \"%s\" does not belong to Bacula.\n"),
-               dev->VolHdr.VolName);
+               dev->VolHdr.VolumeName);
             return VOL_NAME_ERROR;     /* Not a Bacula label */
          }
          break;

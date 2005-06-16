@@ -110,7 +110,7 @@ Device {
 # A DVD device
 #
 #Device {
-#  Name = "NEC ND-1300A"
+#  Name = "DVD-WRITER"
 #  Media Type = DVD
 #  Archive Device = /dev/hdc
 #  LabelMedia = yes;                   # lets Bacula label unlabeled media

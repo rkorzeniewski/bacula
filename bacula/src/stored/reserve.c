@@ -53,17 +53,18 @@ public:
    char *device_name;
    DIRSTORE *store;
    DEVRES   *device;
+   bool PreferMountedVols;
 };
 
 static dlist *vol_list = NULL;
 static pthread_mutex_t vol_list_lock = PTHREAD_MUTEX_INITIALIZER;
 
 /* Forward referenced functions */
-static int can_reserve_drive(DCR *dcr); 
+static int can_reserve_drive(DCR *dcr, bool PerferMountedVols);
 static int search_res_for_device(RCTX &rctx);
 static int reserve_device(RCTX &rctx);
 static bool reserve_device_for_read(DCR *dcr);
-static bool reserve_device_for_append(DCR *dcr);
+static bool reserve_device_for_append(DCR *dcr, bool PreferMountedVols);
 static bool use_storage_cmd(JCR *jcr);
 bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx);
 
@@ -80,7 +81,7 @@ static char BAD_use[]   = "3913 Bad use command: %s\n";
 bool use_cmd(JCR *jcr) 
 {
    /*
-    * Wait for the device, media, and pool information
+    * Get the device, media, and pool information
     */
    if (!use_storage_cmd(jcr)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
@@ -152,10 +153,10 @@ bool free_volume(DEVICE *dev)
 {
    VOLRES vol, *fvol;
 
-   if (dev->VolHdr.VolName[0] == 0) {
+   if (dev->VolHdr.VolumeName[0] == 0) {
       return false;
    }
-   vol.vol_name = bstrdup(dev->VolHdr.VolName);
+   vol.vol_name = bstrdup(dev->VolHdr.VolumeName);
    P(vol_list_lock);
    fvol = (VOLRES *)vol_list->binary_search(&vol, my_compare);
    if (fvol) {
@@ -165,7 +166,7 @@ bool free_volume(DEVICE *dev)
    }
    V(vol_list_lock);
    free(vol.vol_name);
-   dev->VolHdr.VolName[0] = 0;
+   dev->VolHdr.VolumeName[0] = 0;
    return fvol != NULL;
 }
 
@@ -292,9 +293,23 @@ static bool use_storage_cmd(JCR *jcr)
     * Wiffle through them and find one that can do the backup.
     */
    if (ok) {
+      /*
+       * Make up to two passes. The first with PreferMountedVols possibly
+       *   set to true.  In that case, we look only for an available 
+       *   drive with something mounted. If that fails, then we
+       *   do a second pass with PerferMountedVols set false.
+       */
+      rctx.PreferMountedVols = jcr->PreferMountedVols;
       ok = find_suitable_device_for_job(jcr, rctx);
       if (ok) {
          goto done;
+      }
+      if (rctx.PreferMountedVols) {
+         rctx.PreferMountedVols = false;
+         ok = find_suitable_device_for_job(jcr, rctx);
+         if (ok) {
+            goto done;
+         }
       }
       if (verbose) {
          unbash_spaces(dir->msg);
@@ -487,7 +502,7 @@ static int reserve_device(RCTX &rctx)
    bstrncpy(dcr->media_type, rctx.store->media_type, name_len);
    bstrncpy(dcr->dev_name, rctx.device_name, name_len);
    if (rctx.store->append == SD_APPEND) {
-      ok = reserve_device_for_append(dcr);
+      ok = reserve_device_for_append(dcr, rctx.PreferMountedVols);
       Dmsg3(200, "dev_name=%s mediatype=%s ok=%d\n", dcr->dev_name, dcr->media_type, ok);
    } else {
       ok = reserve_device_for_read(dcr);
@@ -555,7 +570,7 @@ bail_out:
  *  the first tor reserve the device, we put the pool
  *  name and pool type in the device record.
  */
-static bool reserve_device_for_append(DCR *dcr)
+static bool reserve_device_for_append(DCR *dcr, bool PreferMountedVols) 
 {
    JCR *jcr = dcr->jcr;
    DEVICE *dev = dcr->dev;
@@ -567,18 +582,21 @@ static bool reserve_device_for_append(DCR *dcr)
 
    if (dev->can_read()) {
       Mmsg1(jcr->errmsg, _("Device %s is busy reading.\n"), dev->print_name());
+      Dmsg1(100, "%s", jcr->errmsg);
       goto bail_out;
    }
 
    if (device_is_unmounted(dev)) {
       Mmsg(jcr->errmsg, _("Device %s is BLOCKED due to user unmount.\n"), dev->print_name());
+      Dmsg1(100, "%s", jcr->errmsg);
       goto bail_out;
    }
 
    Dmsg1(190, "reserve_append device is %s\n", dev->is_tape()?"tape":"disk");
 
-   if (can_reserve_drive(dcr) != 1) {
+   if (can_reserve_drive(dcr, PreferMountedVols) != 1) {
       Mmsg1(jcr->errmsg, _("Device %s is busy writing on another Volume.\n"), dev->print_name());
+      Dmsg1(100, "%s", jcr->errmsg);
       goto bail_out;
    }
 
@@ -597,12 +615,18 @@ bail_out:
  *          0 if we should wait
  *         -1 on error
  */
-static int can_reserve_drive(DCR *dcr) 
+static int can_reserve_drive(DCR *dcr, bool PreferMountedVols) 
 {
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
+
+   if (PreferMountedVols && !dev->VolHdr.VolumeName[0] &&
+       dev->is_tape() && !dev->is_autochanger()) {
+      return 0;                 /* No volume mounted */
+   }
+
    /*
-    * First handle the case that the drive is not yet in append mode
+    * Handle the case that the drive is not yet in append mode
     */
    if (!dev->can_append() && dev->num_writers == 0) {
       /* Now check if there are any reservations on the drive */
@@ -632,9 +656,8 @@ static int can_reserve_drive(DCR *dcr)
       bstrncpy(dev->pool_type, dcr->pool_type, sizeof(dev->pool_type));
       return 1;
    }
-
    /*
-    * Now check if the device is in append mode with writers (i.e.
+    * Check if the device is in append mode with writers (i.e.
     *  available if pool is the same).
     */
    if (dev->can_append() || dev->num_writers > 0) {
@@ -643,6 +666,7 @@ static int can_reserve_drive(DCR *dcr)
       if (strcmp(dev->pool_name, dcr->pool_name) == 0 &&
           strcmp(dev->pool_type, dcr->pool_type) == 0) {
          /* OK, compatible device */
+         return 1;
       } else {
          /* Drive not suitable for us */
          Jmsg(jcr, M_WARNING, 0, _("Device %s is busy writing on another Volume.\n"), dev->print_name());
@@ -653,5 +677,6 @@ static int can_reserve_drive(DCR *dcr)
       Jmsg0(jcr, M_FATAL, 0, _("Logic error!!!! Should not get here.\n"));
       return -1;                      /* error, should not get here */
    }
-   return 1;                          /* reserve drive */
+
+   return 0;
 }
