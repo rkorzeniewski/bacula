@@ -81,8 +81,6 @@
 
 /* Functions in dvd.c */ 
 void get_filename(DEVICE *dev, char *VolName, POOL_MEM& archive_name);
-int mount_dev(DEVICE* dev, int timeout);
-int unmount_dev(DEVICE *dev, int timeout);
 void update_free_space_dev(DEVICE* dev);
 
 
@@ -265,31 +263,31 @@ init_dev(JCR *jcr, DEVRES *device)
  *    (archive_name) with the VolName concatenated.
  */
 int
-open_dev(DEVICE *dev, char *VolName, int mode)
+DEVICE::open(char *VolName, int mode)
 {
-   if (dev->is_open()) {
-      if (dev->openmode == mode) {
-         return dev->fd;
+   if (is_open()) {
+      if (openmode == mode) {
+         return fd;
       } else {
-         close(dev->fd);              /* close so correct mode will be used */
+        ::close(fd); /* use system close so correct mode will be used on open */
       }
    }
    if (VolName) {
-      bstrncpy(dev->VolCatInfo.VolCatName, VolName, sizeof(dev->VolCatInfo.VolCatName));
+      bstrncpy(VolCatInfo.VolCatName, VolName, sizeof(VolCatInfo.VolCatName));
    } else {
-      dev->VolCatInfo.VolCatName[0] = 0;
+      VolCatInfo.VolCatName[0] = 0;
    }
 
-   Dmsg3(29, "open_dev: tape=%d dev_name=%s vol=%s\n", dev->is_tape(),
-         dev->dev_name, dev->VolCatInfo.VolCatName);
-   dev->state &= ~(ST_LABEL|ST_APPEND|ST_READ|ST_EOT|ST_WEOT|ST_EOF);
-   dev->label_type = B_BACULA_LABEL;
-   if (dev->is_tape() || dev->is_fifo()) {
-      open_tape_device(dev, mode);
+   Dmsg3(29, "open dev: tape=%d dev_name=%s vol=%s\n", is_tape(),
+         dev_name, VolCatInfo.VolCatName);
+   state &= ~(ST_LABEL|ST_APPEND|ST_READ|ST_EOT|ST_WEOT|ST_EOF);
+   label_type = B_BACULA_LABEL;
+   if (is_tape() || is_fifo()) {
+      open_tape_device(this, mode);
    } else {
-      open_file_device(dev, mode);
+      open_file_device(this, mode);
    }
-   return dev->fd;
+   return fd;
 }
 
 static void open_tape_device(DEVICE *dev, int mode) 
@@ -298,7 +296,7 @@ static void open_tape_device(DEVICE *dev, int mode)
    dev->file_size = 0;
    int timeout;
    int ioerrcnt = 10;
-   Dmsg0(29, "open_dev: device is tape\n");
+   Dmsg0(29, "open dev: device is tape\n");
 
    if (mode == OPEN_READ_WRITE) {
       dev->mode = O_RDWR | O_BINARY;
@@ -307,7 +305,7 @@ static void open_tape_device(DEVICE *dev, int mode)
    } else if (mode == OPEN_WRITE_ONLY) {
       dev->mode = O_WRONLY | O_BINARY;
    } else {
-      Emsg0(M_ABORT, 0, _("Illegal mode given to open_dev.\n"));
+      Emsg0(M_ABORT, 0, _("Illegal mode given to open dev.\n"));
    }
    timeout = dev->max_open_wait;
    errno = 0;
@@ -374,7 +372,7 @@ open_again:
       stop_thread_timer(dev->tid);
       dev->tid = 0;
    }
-   Dmsg1(29, "open_dev: tape %d opened\n", dev->fd);
+   Dmsg1(29, "open dev: tape %d opened\n", dev->fd);
 }
 
 /*
@@ -414,7 +412,7 @@ static void open_file_device(DEVICE *dev, int mode)
       return;
    }
          
-   Dmsg3(29, "open_dev: device is %s (mode:%d)\n", dev->is_dvd()?"DVD":"disk",
+   Dmsg3(29, "open dev: device is %s (mode:%d)\n", dev->is_dvd()?"DVD":"disk",
          archive_name.c_str(), mode);
    dev->openmode = mode;
    
@@ -433,7 +431,7 @@ static void open_file_device(DEVICE *dev, int mode)
    } else if (mode == OPEN_WRITE_ONLY) {
       dev->mode = O_WRONLY | O_BINARY;
    } else {
-      Emsg0(M_ABORT, 0, _("Illegal mode given to open_dev.\n"));
+      Emsg0(M_ABORT, 0, _("Illegal mode given to open dev.\n"));
    }
    /* If creating file, give 0640 permissions */
    Dmsg2(29, "open(%s, 0x%x, 0640)\n", archive_name.c_str(), dev->mode);
@@ -458,7 +456,7 @@ static void open_file_device(DEVICE *dev, int mode)
          dev->part_size = filestat.st_size;
       }
    }
-   Dmsg5(29, "open_dev: %s fd=%d opened, part=%d/%d, part_size=%u\n", 
+   Dmsg5(29, "open dev: %s fd=%d opened, part=%d/%d, part_size=%u\n", 
       dev->is_dvd()?"DVD":"disk", dev->fd, dev->part, dev->num_parts, 
       dev->part_size);
    if (dev->is_dvd() && (dev->mode != OPEN_READ_ONLY) && 

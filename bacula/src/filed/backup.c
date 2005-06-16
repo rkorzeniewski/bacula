@@ -485,8 +485,8 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, struct CHKSUM *chksum)
          }
          sd->msg = wbuf;              /* set correct write buffer */
          if (!bnet_send(sd)) {
-            Jmsg2(jcr, M_FATAL, 0, _("Network send error %d to SD. ERR=%s\n"),
-                  sd->msglen, bnet_strerror(sd));
+            Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+                  bnet_strerror(sd));
             sd->msg = msgsave;     /* restore bnet buffer */
             sd->msglen = 0;
             return 0;

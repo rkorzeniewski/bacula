@@ -79,7 +79,6 @@ void    display_tape_error_status(JCR *jcr, DEVICE *dev);
 
 /* From dev.c */
 DEVICE  *init_dev(JCR *jcr, DEVRES *device);
-int      open_dev(DEVICE *dev, char *VolName, int mode);
 off_t    lseek_dev(DEVICE *dev, off_t offset, int whence);
 int      open_first_part(DEVICE *dev);
 int      open_next_part(DEVICE *dev);
@@ -116,7 +115,10 @@ uint32_t dev_file(DEVICE *dev);
 
 /* From dvd.c */
 bool dvd_close_job(DCR *dcr);
-
+bool mount_dev(DEVICE* dev, int timeout);
+bool unmount_dev(DEVICE* dev, int timeout);
+void update_free_space_dev(DEVICE *dev);
+void get_filename(DEVICE *dev, char *VolName, POOL_MEM& archive_name);
 
 /* From device.c */
 bool     open_device(DCR *dcr);

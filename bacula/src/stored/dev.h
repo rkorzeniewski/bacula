@@ -109,7 +109,8 @@ enum {
 #define ST_NEXTVOL         (1<<13)    /* Start writing on next volume */
 #define ST_SHORT           (1<<14)    /* Short block read */
 #define ST_MOUNTED         (1<<15)    /* the device is mounted to the mount point */
-#define ST_OFFLINE         (1<<16)    /* set offline by operator */
+#define ST_MEDIA           (1<<16)    /* Media found in mounted device */
+#define ST_OFFLINE         (1<<17)    /* set offline by operator */
 
 /* dev_blocked states (mutually exclusive) */
 enum {
@@ -247,6 +248,7 @@ public:
    int num_wait;
 
    /* Methods */
+   int is_autochanger() const { return capabilities & CAP_AUTOCHANGER; }
    int is_tape() const { return state & ST_TAPE; }
    int is_file() const { return state & ST_FILE; }
    int is_fifo() const { return state & ST_FIFO; }
@@ -255,6 +257,7 @@ public:
    int is_offline() const { return state & ST_OFFLINE; }
    int is_labeled() const { return state & ST_LABEL; }
    int is_mounted() const { return state & ST_MOUNTED; }
+   int have_media() const { return state & ST_MEDIA; }
    int is_short_block() const { return state & ST_SHORT; }
    int is_busy() const { return state & ST_READ || num_writers || reserved_device; }
    int at_eof() const { return state & ST_EOF; }
@@ -294,6 +297,7 @@ public:
    void set_offline() { state |= ST_OFFLINE; };
    void set_opened() { state |= ST_OPENED; };
    void set_mounted() { state |= ST_MOUNTED; };
+   void set_media() { state |= ST_MEDIA; };
    void set_short_block() { state |= ST_SHORT; };
    void set_mounted(int val) { if (val) state |= ST_MOUNTED; \
           else state &= ~ST_MOUNTED; };
@@ -305,10 +309,12 @@ public:
    void clear_eof() { state &= ~ST_EOF; };
    void clear_opened() { state &= ~ST_OPENED; };
    void clear_mounted() { state &= ~ST_MOUNTED; };
+   void clear_media() { state &= ~ST_MEDIA; };
    void clear_short_block() { state &= ~ST_SHORT; };
    void block(int why); /* in dev.c */
    void unblock();      /* in dev.c */
    void close();        /* in dev.c */
+   int open(char *VolName, int mode); /* in dev.c */
 
    void set_blocked(int block) { dev_blocked = block; };
    int  get_blocked() const { return dev_blocked; };

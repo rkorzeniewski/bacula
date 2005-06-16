@@ -124,6 +124,9 @@ static DCR *setup_to_access_device(JCR *jcr, char *dev_name,
     */
    if (VolumeName) {
       bstrncpy(VolName, VolumeName, sizeof(VolName));
+      if (strlen(VolumeName) >= MAX_NAME_LENGTH) {
+         Jmsg0(jcr, M_ERROR, 0, _("Volume name or names is too long. Please use a .bsr file.\n"));
+      }
    } else {
       VolName[0] = 0;
    }

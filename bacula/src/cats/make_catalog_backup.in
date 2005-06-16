@@ -10,7 +10,7 @@
 #
 #
 cd @working_dir@
-rm -f bacula.sql
+rm -f $1.sql
 if test xsqlite = x@DB_NAME@ ; then
   echo ".dump" | @SQL_BINDIR@/sqlite $1.db >$1.sql
 else

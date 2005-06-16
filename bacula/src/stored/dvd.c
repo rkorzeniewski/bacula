@@ -25,21 +25,16 @@
 #include "bacula.h"
 #include "stored.h"
 
-int mount_dev(DEVICE *dev, int timeout);
-int unmount_dev(DEVICE *dev, int timeout);
-void update_free_space_dev(DEVICE *dev);
-void get_filename(DEVICE *dev, char *VolName, POOL_MEM& archive_name);
-
 /* Forward referenced functions */
 static char *edit_device_codes_dev(DEVICE *dev, char *omsg, const char *imsg);
-static int do_mount_dev(DEVICE* dev, int mount, int dotimeout);
+static bool do_mount_dev(DEVICE* dev, int mount, int dotimeout);
 static int dvd_write_part(DEVICE *dev);
 
 
 /* 
  * Write the current volume/part filename to archive_name.
  */
-void get_filename(DEVICE *dev, char *VolName, POOL_MEM& archive_name) 
+void get_filename(DEVICE *dev, char *VolumeName, POOL_MEM& archive_name) 
 {
    char partnumber[20];
    
@@ -63,7 +58,7 @@ void get_filename(DEVICE *dev, char *VolName, POOL_MEM& archive_name)
    if (archive_name.c_str()[strlen(archive_name.c_str())-1] != '/') {
       pm_strcat(archive_name, "/");
    }
-   pm_strcat(archive_name, VolName);
+   pm_strcat(archive_name, VolumeName);
    /* if part != 0, append .# to the filename (where # is the part number) */
    if (dev->is_dvd() && dev->part != 0) {
       pm_strcat(archive_name, ".");
@@ -76,32 +71,32 @@ void get_filename(DEVICE *dev, char *VolName, POOL_MEM& archive_name)
  * If timeout, wait until the mount command returns 0.
  * If !timeout, try to mount the device only once.
  */
-int mount_dev(DEVICE* dev, int timeout) 
+bool mount_dev(DEVICE* dev, int timeout) 
 {
    if (dev->is_mounted()) {
       Dmsg0(100, "mount_dev: Device already mounted\n");
-      return 0;
+      return true;
    } else if (dev_cap(dev, CAP_REQMOUNT)) {
       return do_mount_dev(dev, 1, timeout);
    }       
-   return 0;
+   return true;
 }
 
 /* Unmount the device
  * If timeout, wait until the unmount command returns 0.
  * If !timeout, try to unmount the device only once.
  */
-int unmount_dev(DEVICE *dev, int timeout) 
+bool unmount_dev(DEVICE *dev, int timeout) 
 {
    if (dev->is_mounted()) {
       return do_mount_dev(dev, 0, timeout);
    }
    Dmsg0(100, "mount_dev: Device already unmounted\n");
-   return 0;
+   return true;
 }
 
 /* (Un)mount the device */
-static int do_mount_dev(DEVICE* dev, int mount, int dotimeout) 
+static bool do_mount_dev(DEVICE* dev, int mount, int dotimeout) 
 {
    POOL_MEM ocmd(PM_FNAME);
    POOLMEM* results;
@@ -110,9 +105,14 @@ static int do_mount_dev(DEVICE* dev, int mount, int dotimeout)
    int status, timeout;
    
    if (mount) {
+      if (dev->is_mounted()) {
+         goto get_out;
+      }
       icmd = dev->device->mount_command;
-   }
-   else {
+   } else {
+      if (!dev->is_mounted()) {
+         goto get_out;
+      }
       icmd = dev->device->unmount_command;
    }
    
@@ -141,17 +141,19 @@ static int do_mount_dev(DEVICE* dev, int mount, int dotimeout)
          bmicrosleep(1, 0);
          continue;
       }
+      Dmsg2(40, "Device %s cannot be mounted. ERR=%s\n", dev->print_name(), results);
+      Mmsg(dev->errmsg, "Device %s cannot be mounted. ERR=%s\n", 
+           dev->print_name(), results);
       free_pool_memory(results);
-      Dmsg2(40, "Device %s cannot be mounted. ERR=%s\n", dev->dev_name, results);
-      return -1;
+      return false;
    }
    
    dev->set_mounted(mount);              /* set/clear mounted flag */
 
+get_out:
    free_pool_memory(results);
-   
    Dmsg1(29, "do_mount_dev: end_state=%d\n", dev->is_mounted());
-   return 0;
+   return true;
 }
 
 /* Only for devices that require a mount.
@@ -176,7 +178,7 @@ static int do_mount_dev(DEVICE* dev, int mount, int dotimeout)
  * mounted disk is writable. (See also read_dev_volume_label_guess in label.c).
  *
  * Note that if the right volume is mounted, open_mounted_dev returns 
- *  the same result as an usual open_dev.
+ *  the same result as an usual dev->open().
  */
 int open_mounted_dev(DEVICE *dev) 
 {
@@ -202,7 +204,7 @@ int open_mounted_dev(DEVICE *dev)
 
    if (mount_dev(dev, 1) < 0) {
       /* If the device cannot be mounted, check if it is writable */
-      if (dev->free_space_errno >= 0) {
+      if (dev->have_media()) {
          Dmsg1(100, "open_mounted_dev: device cannot be mounted, but it seems to be writable, returning 0. dev=%s\n", dev->dev_name);
          return 0;
       } else {
@@ -331,6 +333,7 @@ void update_free_space_dev(DEVICE* dev)
    if (!icmd) {
       dev->free_space = 0;
       dev->free_space_errno = 0;
+      dev->clear_media();
       Dmsg2(29, "update_free_space_dev: free_space=%d, free_space_errno=%d (!icmd)\n", dev->free_space, dev->free_space_errno);
       return;
    }
@@ -351,6 +354,7 @@ void update_free_space_dev(DEVICE* dev)
          if (free >= 0) {
             dev->free_space = free;
             dev->free_space_errno = 1;
+            dev->set_media();
             Mmsg0(dev->errmsg, "");
             break;
          }
@@ -377,8 +381,8 @@ void update_free_space_dev(DEVICE* dev)
    }
    
    free_pool_memory(results);
-   Dmsg2(29, "update_free_space_dev: free_space=%s, free_space_errno=%d\n", 
-      edit_uint64(dev->free_space, ed1), dev->free_space_errno);
+   Dmsg3(29, "update_free_space_dev: free_space=%s, free_space_errno=%d have_media=%d\n", 
+      edit_uint64(dev->free_space, ed1), dev->free_space_errno, dev->have_media());
    return;
 }
 
@@ -493,9 +497,9 @@ int open_next_part(DEVICE *dev)
       }
    }
    
-   Dmsg2(50, "Call open_dev(dev, vol=%s, mode=%d", dev->VolCatInfo.VolCatName, 
+   Dmsg2(50, "Call dev->open(vol=%s, mode=%d", dev->VolCatInfo.VolCatName, 
          dev->openmode);
-   if (open_dev(dev, dev->VolCatInfo.VolCatName, dev->openmode) < 0) {
+   if (dev->open(dev->VolCatInfo.VolCatName, dev->openmode) < 0) {
       return -1;
    } 
    return dev->fd;
@@ -517,10 +521,10 @@ int open_first_part(DEVICE *dev)
    dev->part_start = 0;
    dev->part = 0;
    
-   Dmsg2(50, "Call open_dev(dev, vol=%s, mode=%d", dev->VolCatInfo.VolCatName, 
+   Dmsg2(50, "Call dev->open(vol=%s, mode=%d", dev->VolCatInfo.VolCatName, 
          dev->openmode);
-   if (open_dev(dev, dev->VolCatInfo.VolCatName, dev->openmode) < 0) {
-      Dmsg0(50, "open_dev() failed\n");
+   if (dev->open(dev->VolCatInfo.VolCatName, dev->openmode) < 0) {
+      Dmsg0(50, "open dev() failed\n");
       return -1;
    }
    Dmsg1(50, "Leave open_first_part state=%s\n", dev->is_open()?"open":"not open");

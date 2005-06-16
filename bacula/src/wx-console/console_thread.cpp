@@ -11,17 +11,14 @@
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
 // http://66.102.9.104/search?q=cache:Djc1mPF3hRoJ:cvs.sourceforge.net/viewcvs.py/audacity/audacity-src/src/AudioIO.cpp%3Frev%3D1.102+macos+x+wxthread&hl=fr
@@ -128,7 +125,7 @@ wxString console_thread::LoadConfig(wxString configfile) {
 #ifndef WIN32
       add_msg_dest(msgs, MD_STDOUT, i, NULL, NULL);
 #endif
-      add_msg_dest(msgs, MD_SYSLOG, i, NULL, NULL);
+//    add_msg_dest(msgs, MD_SYSLOG, i, NULL, NULL);
       add_msg_dest(msgs, MD_CONSOLE, i, NULL, NULL);
    }
    

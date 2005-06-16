@@ -66,16 +66,16 @@ int read_dev_volume_label(DCR *dcr)
    bool want_ansi_label;
 
    Dmsg3(100, "Enter read_volume_label device=%s vol=%s dev_Vol=%s\n",
-      dev->name(), VolName, dev->VolHdr.VolName);
+      dev->name(), VolName, dev->VolHdr.VolumeName);
 
    if (!dev->is_open()) {
       Emsg0(M_ABORT, 0, _("BAD call to read_dev_volume_label\n"));
    }
    if (dev->is_labeled()) {              /* did we already read label? */
       /* Compare Volume Names allow special wild card */
-      if (VolName && *VolName && *VolName != '*' && strcmp(dev->VolHdr.VolName, VolName) != 0) {
+      if (VolName && *VolName && *VolName != '*' && strcmp(dev->VolHdr.VolumeName, VolName) != 0) {
          Mmsg(jcr->errmsg, _("Wrong Volume mounted on device %s: Wanted %s have %s\n"),
-            dev->print_name(), VolName, dev->VolHdr.VolName);
+            dev->print_name(), VolName, dev->VolHdr.VolumeName);
          /*
           * Cancel Job if too many label errors
           *  => we are in a loop
@@ -116,7 +116,7 @@ int read_dev_volume_label(DCR *dcr)
       }
       if (stat == VOL_NAME_ERROR || stat == VOL_LABEL_ERROR) {
          Mmsg(jcr->errmsg, _("Wrong Volume mounted on device %s: Wanted %s have %s\n"),
-              dev->print_name(), VolName, dev->VolHdr.VolName);
+              dev->print_name(), VolName, dev->VolHdr.VolumeName);
          if (!dev->poll && jcr->label_errors++ > 100) {
             Jmsg(jcr, M_FATAL, 0, "Too many tries: %s", jcr->errmsg);
          }
@@ -199,13 +199,13 @@ int read_dev_volume_label(DCR *dcr)
    }
 
    dev->set_labeled();               /* set has Bacula label */
-   new_volume(dev->VolHdr.VolName, dev);
+   new_volume(dev->VolHdr.VolumeName, dev);
 
    /* Compare Volume Names */
-   Dmsg2(30, "Compare Vol names: VolName=%s hdr=%s\n", VolName?VolName:"*", dev->VolHdr.VolName);
-   if (VolName && *VolName && *VolName != '*' && strcmp(dev->VolHdr.VolName, VolName) != 0) {
+   Dmsg2(30, "Compare Vol names: VolName=%s hdr=%s\n", VolName?VolName:"*", dev->VolHdr.VolumeName);
+   if (VolName && *VolName && *VolName != '*' && strcmp(dev->VolHdr.VolumeName, VolName) != 0) {
       Mmsg(jcr->errmsg, _("Wrong Volume mounted on device %s: Wanted %s have %s\n"),
-           dev->print_name(), VolName, dev->VolHdr.VolName);
+           dev->print_name(), VolName, dev->VolHdr.VolumeName);
       Dmsg1(30, "%s", jcr->errmsg);
       /*
        * Cancel Job if too many label errors
@@ -216,7 +216,7 @@ int read_dev_volume_label(DCR *dcr)
       }
       return VOL_NAME_ERROR;
    }
-   Dmsg1(30, "Copy vol_name=%s\n", dev->VolHdr.VolName);
+   Dmsg1(30, "Copy vol_name=%s\n", dev->VolHdr.VolumeName);
 
    if (debug_level >= 10) {
       dump_volume_label(dev);
@@ -238,7 +238,7 @@ int read_dvd_volume_label(DCR *dcr, bool write)
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
    Dmsg3(100, "Enter read_dvd_volume_label device=%s vol=%s dev_Vol=%s\n",
-         dev->print_name(), dcr->VolumeName, dev->VolHdr.VolName);
+         dev->print_name(), dcr->VolumeName, dev->VolHdr.VolumeName);
    
    if (!dev->is_dvd()) {  
       Jmsg1(jcr, M_ABORT, 0, _("Device %s is not a DVD.\n"), dev->print_name());
@@ -420,7 +420,7 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *Po
 
    if (weof_dev(dev, 1) == 0) {
       dev->set_labeled();
-      write_ansi_ibm_labels(dcr, ANSI_EOF_LABEL, dev->VolHdr.VolName);
+      write_ansi_ibm_labels(dcr, ANSI_EOF_LABEL, dev->VolHdr.VolumeName);
    }
 
    if (debug_level >= 20)  {
@@ -482,7 +482,7 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
             rewind_dev(dev);
             return false;
          }
-      } else if (!write_ansi_ibm_labels(dcr, ANSI_VOL_LABEL, dev->VolHdr.VolName)) {
+      } else if (!write_ansi_ibm_labels(dcr, ANSI_VOL_LABEL, dev->VolHdr.VolumeName)) {
          return false;
       }
 
@@ -570,8 +570,8 @@ static void create_volume_label_record(DCR *dcr, DEV_RECORD *rec)
    ser_float64(dev->VolHdr.write_date);   /* 0 if VerNum >= 11 */
    ser_float64(dev->VolHdr.write_time);   /* 0  if VerNum >= 11 */
 
-   ser_string(dev->VolHdr.VolName);
-   ser_string(dev->VolHdr.PrevVolName);
+   ser_string(dev->VolHdr.VolumeName);
+   ser_string(dev->VolHdr.PrevVolumeName);
    ser_string(dev->VolHdr.PoolName);
    ser_string(dev->VolHdr.PoolType);
    ser_string(dev->VolHdr.MediaType);
@@ -608,7 +608,7 @@ void create_volume_label(DEVICE *dev, const char *VolName, const char *PoolName)
    bstrncpy(dev->VolHdr.Id, BaculaId, sizeof(dev->VolHdr.Id));
    dev->VolHdr.VerNum = BaculaTapeVersion;
    dev->VolHdr.LabelType = PRE_LABEL;  /* Mark tape as unused */
-   bstrncpy(dev->VolHdr.VolName, VolName, sizeof(dev->VolHdr.VolName));
+   bstrncpy(dev->VolHdr.VolumeName, VolName, sizeof(dev->VolHdr.VolumeName));
    bstrncpy(dev->VolHdr.PoolName, PoolName, sizeof(dev->VolHdr.PoolName));
    bstrncpy(dev->VolHdr.MediaType, device->media_type, sizeof(dev->VolHdr.MediaType));
 
@@ -804,8 +804,8 @@ bool unser_volume_label(DEVICE *dev, DEV_RECORD *rec)
    unser_float64(dev->VolHdr.write_date);    /* Unused with VerNum >= 11 */
    unser_float64(dev->VolHdr.write_time);    /* Unused with VerNum >= 11 */
 
-   unser_string(dev->VolHdr.VolName);
-   unser_string(dev->VolHdr.PrevVolName);
+   unser_string(dev->VolHdr.VolumeName);
+   unser_string(dev->VolHdr.PrevVolumeName);
    unser_string(dev->VolHdr.PoolName);
    unser_string(dev->VolHdr.PoolType);
    unser_string(dev->VolHdr.MediaType);
@@ -920,7 +920,7 @@ void dump_volume_label(DEVICE *dev)
 "HostName          : %s\n"
 "",
              dev->VolHdr.Id, dev->VolHdr.VerNum,
-             dev->VolHdr.VolName, dev->VolHdr.PrevVolName,
+             dev->VolHdr.VolumeName, dev->VolHdr.PrevVolumeName,
              File, LabelType, dev->VolHdr.LabelSize,
              dev->VolHdr.PoolName, dev->VolHdr.MediaType,
              dev->VolHdr.PoolType, dev->VolHdr.HostName);

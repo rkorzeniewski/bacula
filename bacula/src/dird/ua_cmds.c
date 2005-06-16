@@ -1101,7 +1101,7 @@ static int delete_cmd(UAContext *ua, const char *cmd)
 /*
  * delete_job has been modified to parse JobID lists like the
  * following:
- * delete job JobID=3,4,6,7-11,14
+ * delete JobID=3,4,6,7-11,14
  *
  * Thanks to Phil Stracchino for the above addition.
  */

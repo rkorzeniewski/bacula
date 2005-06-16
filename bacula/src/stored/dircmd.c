@@ -393,11 +393,11 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
       if (!relabel) {
          bnet_fsend(dir, _(
             "3920 Cannot label Volume because it is already labeled: \"%s\"\n"),
-             dev->VolHdr.VolName);
+             dev->VolHdr.VolumeName);
          break;
       }
       /* Relabel request. If oldname matches, continue */
-      if (strcmp(oldname, dev->VolHdr.VolName) != 0) {
+      if (strcmp(oldname, dev->VolHdr.VolumeName) != 0) {
          bnet_fsend(dir, _("3921 Wrong volume mounted.\n"));
          break;
       }
@@ -451,7 +451,7 @@ static bool read_label(DCR *dcr)
    dev->clear_labeled();              /* force read of label */
    switch (read_dev_volume_label(dcr)) {
    case VOL_OK:
-      bnet_fsend(dir, _("3001 Mounted Volume: %s\n"), dev->VolHdr.VolName);
+      bnet_fsend(dir, _("3001 Mounted Volume: %s\n"), dev->VolHdr.VolumeName);
       ok = true;
       break;
    default:
@@ -557,7 +557,7 @@ static bool mount_cmd(JCR *jcr)
          case BST_UNMOUNTED_WAITING_FOR_SYSOP:
          case BST_UNMOUNTED:
             /* We freed the device, so reopen it and wake any waiting threads */
-            if (open_dev(dev, NULL, OPEN_READ_WRITE) < 0) {
+            if (dev->open(NULL, OPEN_READ_WRITE) < 0) {
                bnet_fsend(dir, _("3901 open device failed: ERR=%s\n"),
                   strerror_dev(dev));
                break;
@@ -574,7 +574,7 @@ static bool mount_cmd(JCR *jcr)
             }
             if (dev->is_labeled()) {
                bnet_fsend(dir, _("3001 Device %s is mounted with Volume \"%s\"\n"),
-                  dev->print_name(), dev->VolHdr.VolName);
+                  dev->print_name(), dev->VolHdr.VolumeName);
             } else {
                bnet_fsend(dir, _("3905 Device %s open but no Bacula volume is mounted.\n"
                                  "If this is not a blank tape, try unmounting and remounting the Volume.\n"),
@@ -598,7 +598,7 @@ static bool mount_cmd(JCR *jcr)
             if (dev->is_open()) {
                if (dev->is_labeled()) {
                   bnet_fsend(dir, _("3001 Device %s is mounted with Volume \"%s\"\n"),
-                     dev->print_name(), dev->VolHdr.VolName);
+                     dev->print_name(), dev->VolHdr.VolumeName);
                } else {
                   bnet_fsend(dir, _("3905 Device %s open but no Bacula volume is mounted.\n"
                                  "If this is not a blank tape, try unmounting and remounting the Volume.\n"),
@@ -609,7 +609,7 @@ static bool mount_cmd(JCR *jcr)
                   /* Nothing to do */
                   break;
                }
-               if (open_dev(dev, NULL, OPEN_READ_WRITE) < 0) {
+               if (dev->open(NULL, OPEN_READ_WRITE) < 0) {
                   bnet_fsend(dir, _("3901 open device failed: ERR=%s\n"),
                      strerror_dev(dev));
                   break;
@@ -617,7 +617,7 @@ static bool mount_cmd(JCR *jcr)
                read_label(dcr);
                if (dev->is_labeled()) {
                   bnet_fsend(dir, _("3001 Device %s is already mounted with Volume \"%s\"\n"),
-                     dev->print_name(), dev->VolHdr.VolName);
+                     dev->print_name(), dev->VolHdr.VolumeName);
                } else {
                   bnet_fsend(dir, _("3905 Device %s open but no Bacula volume is mounted.\n"
                                     "If this is not a blank tape, try unmounting and remounting the Volume.\n"),
@@ -876,8 +876,8 @@ static void read_volume_label(JCR *jcr, DEVICE *dev, int Slot)
    switch (read_dev_volume_label(dcr)) {
    case VOL_OK:
       /* DO NOT add quotes around the Volume name. It is scanned in the DIR */
-      bnet_fsend(dir, _("3001 Volume=%s Slot=%d\n"), dev->VolHdr.VolName, Slot);
-      Dmsg1(100, "Volume: %s\n", dev->VolHdr.VolName);
+      bnet_fsend(dir, _("3001 Volume=%s Slot=%d\n"), dev->VolHdr.VolumeName, Slot);
+      Dmsg1(100, "Volume: %s\n", dev->VolHdr.VolumeName);
       break;
    default:
       bnet_fsend(dir, _("3902 Cannot mount Volume on Storage Device %s because:\n%s"),
@@ -905,7 +905,7 @@ static bool try_autoload_device(JCR *jcr, int slot, const char *VolName)
 
    /* Ensure that the device is open -- autoload_device() closes it */
    for ( ; !dev->is_open(); ) {
-      if (open_dev(dev, dcr->VolumeName, OPEN_READ_WRITE) < 0) {
+      if (dev->open(dcr->VolumeName, OPEN_READ_WRITE) < 0) {
          bnet_fsend(dir, _("3910 Unable to open device %s: ERR=%s\n"),
             dev->print_name(), dev->strerror());
          return false;

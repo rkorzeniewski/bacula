@@ -484,7 +484,7 @@ bool write_block_to_dev(DCR *dcr)
          dev->dev_errno = ENOSPC;
          return false;
       }
-      if (!write_ansi_ibm_labels(dcr, ANSI_EOF_LABEL, dev->VolHdr.VolName)) {
+      if (!write_ansi_ibm_labels(dcr, ANSI_EOF_LABEL, dev->VolHdr.VolumeName)) {
          return false;
       }
 
@@ -683,7 +683,7 @@ static bool terminate_writing_volume(DCR *dcr)
       Dmsg0(100, "WEOF error.\n");
    }
    if (ok) {
-      ok = write_ansi_ibm_labels(dcr, ANSI_EOV_LABEL, dev->VolHdr.VolName);
+      ok = write_ansi_ibm_labels(dcr, ANSI_EOV_LABEL, dev->VolHdr.VolumeName);
    }
    bstrncpy(dev->VolCatInfo.VolCatStatus, "Full", sizeof(dev->VolCatInfo.VolCatStatus));
    dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */
@@ -808,7 +808,8 @@ static bool do_dvd_size_checks(DCR *dcr)
    if (dev->free_space_errno < 0) { /* Error while getting free space */
       char ed1[50], ed2[50];
       Dmsg1(10, "Cannot get free space on the device ERR=%s.\n", dev->errmsg);
-      Jmsg(jcr, M_FATAL, 0, _("End of Volume \"%s\" at %u:%u on device %s (part_size=%s, free_space=%s, free_space_errno=%d, errmsg=%s).\n"),
+      Jmsg(jcr, M_FATAL, 0, _("End of Volume \"%s\" at %u:%u on device %s "
+         "(part_size=%s, free_space=%s, free_space_errno=%d, errmsg=%s).\n"),
            dev->VolCatInfo.VolCatName,
            dev->file, dev->block_num, dev->print_name(),
            edit_uint64_with_commas(dev->part_size, ed1), edit_uint64_with_commas(dev->free_space, ed2),
@@ -820,7 +821,8 @@ static bool do_dvd_size_checks(DCR *dcr)
    if ((dev->free_space_errno > 0 && (dev->part_size + block->binbuf) >= dev->free_space)) {
       char ed1[50], ed2[50];
       Dmsg0(10, "==== Just enough free space on the device to write the current part...\n");
-      Jmsg(jcr, M_INFO, 0, _("End of Volume \"%s\" at %u:%u on device %s (part_size=%s, free_space=%s, free_space_errno=%d).\n"),
+      Jmsg(jcr, M_INFO, 0, _("End of Volume \"%s\" at %u:%u on device %s "
+         "(part_size=%s, free_space=%s, free_space_errno=%d).\n"),
             dev->VolCatInfo.VolCatName,
             dev->file, dev->block_num, dev->print_name(),
             edit_uint64_with_commas(dev->part_size, ed1), edit_uint64_with_commas(dev->free_space, ed2),
