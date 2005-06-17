@@ -1,3 +1,216 @@
+
+Changes to 1.37.24:
+16Jun05
+- Add Date, Job, level to updates to .bsr file in 
+  dird/backup.c
+- Add debug info to dvd-freespace.in
+- Fix hard coded bacula.sql in make_catalog_backup reported
+  by a user.
+- Make sure a verify volume to catalog never reports an error
+  if there are zero files to verify.
+- Remove confusing debug info in filed/backup.c on network
+  error.
+- Make sure output from console is not sent to system log.
+- Convert open_dev() into a class method.
+- Change VolHdr.VolName to VolHdr.VolumeName.
+- Add a flag in the device state word to indicate that
+  we found Media in the drive (DVD). 
+- Make mount_dev() and unmount_dev() return bool.
+
+Changes from Nicolas Boichat:
+26Apr05
+ - Modify parse_config to get a LEX_ERROR_HANDLER as a parameter 
+ - lex_open_file now returns NULL if the file can't be opened. All calling functions have
+   been adapted.
+ - Remove set_exit_on_error function
+07Apr05
+ - Fix "unknown device type" problem with DVD devices.
+ - Fix crash when there is no media in the DVD drive.
+09Jan05
+ - Update the documentation and ReleaseNotes.
+05Jan05
+ - Add FreeSpaceCommand in Device (SD configuration file) and implement it.
+ - Some modifications (again) on how guessed volume names are handled (now it should work).
+ - Part files on the hard disk are removed if they are empty.
+04Jan05
+ - Major fixes on how guessed volume names are handled.
+ - Minor fix in src/stored/append.c.
+ - Replace, when possible, POOLMEM by POOL_MEM in the new code of src/stored/dev.c.
+ - New script, scripts/dvd-freespace, which gets the free space available on a writable DVD.
+03Jan05
+ - Add WritePartAfterJob directive in Job resource (Director)
+ - Add WritePartAfterJob directive in Schedule Resource (Director)
+ - Implement these new directives
+02Jan05
+ - New function, open_guess_name_dev in src/stored/dev.c, which tries to guess the volume
+   name of a mounted device, so the label can be read.  
+ - New script, scripts/dvd-writepart, which write parts to DVD+/-R(W).
+ - Removed WriteFirstPartCommand directive in Device (SD configuration file).
+ - Use readdir_r instead of readdir (src/stored/dev.c:open_guess_name_dev).
+01Jan05
+ - Add RequiresMount, MountPoint, MountCommand, UnmountCommand directives in Device (SD configuration file).
+ - Implement these directives (volumes can now be restored from a manually written DVD). 
+ - Add WriteFirstPartCommand, WritePartCommand directives in Device (SD configuration file).
+ - Implement these directives (DVD writing now works).
+ - New function run_program_full_output in src/lib/bpipe.c.
+ - Lots of bugfixes and cleanups in the new code.
+29Dec04
+ - Add VolParts field in Media table
+ - Add MaximumPartSize directive in Device (SD configuration file)
+ - File Volumes can now be splitted in multiple files ("parts")
+ - Fix SQL error in sql_list while doing "llist jobmedia"
+
+Changes to 1.37.23:
+- Renamed to make unique version for open_next_part()
+  changes.
+
+Changes to 1.37.23:
+- Renamed to make unique version for open_next_part()
+  changes.
+
+Changes to 1.37.22:
+14Jun05
+- Fix the same state variable problem in open_next_part().
+- C++ify the SD code a bit more.
+13Jun05
+- Add more debug code and clarify debug code for DVDs.
+- Do not save and restore state in open_first_part() 
+  since state should be properly set after open_dev().
+- Make default mandir /usr/share/man
+- Install Bacula man page.
+- Implement passing of FileSet Enable VSS to FD.
+- Move main body of reserve drive code into subroutine
+  so that it can be called multiple times.
+12Jun05
+- Eliminate getpass() for Win32 builds in console as the
+  function does not exist.
+10Jun05
+- Correct some reservation problems in SD when no devices
+  are available.
+- Start removing #ifdef HAVE_TLS by sneaky tricks.
+- Begin implementation of TLS in wx-console
+- Remove ignoring SIGCHLD from console.
+- Rework the dlist binary search routines for implemenation
+  of the Volume reservation code -- make it more general.
+- Strip double slashes // from Win32 filenames in an attempt
+  to resolve restore problems on some systems.
+- Fix a minor bugs in the trace code that caused the first
+  line output to be lost.
+- Implement a good first cut at adding Volume reservation code
+  to the storage daemon (in file reserve.c).
+- Remove old unused code from the tree.c routines.
+
+Changes to 1.37.21:
+06Jun05
+- Fix compile problems on Win32
+- Start writing Volume reservation list (already exists, but
+  is not really very good).
+- Implement attribute caching to put Signature into database     
+  at the same time as the file attributes thus eliminating a
+  number of database accesses.
+- Correct a reservation problem.
+- Implement full Dir Storage use.
+- Reduce a bit of TLS #ifdeffing.
+
+Changes to 1.37.20:
+04Jun05
+- Minor changes
+01Jun05
+- Add more documentation to mtx-changer.in
+- Correct link to manual in authenticate.c in various
+  directories.
+- Create a new src/stored/reserve.c file where the 
+  Use Storage command is processed and drives are
+  reserved.
+- Modify src/stored/autochanger.c to keep track of each
+  Slot that is loaded for each device.
+- Ensure that changer_command and changer_name are picked
+  up from Autochanger resource if not specified, and if
+  neither is specified, err.
+30May05
+- Fix bextract.c compile problem
+- Create bacula.man 
+- Make make distclean clean a bit better
+29May05
+- Remove old code in jcr.c
+- Make testls release jcr chain when terminating.
+27May05
+- Implement Maximum Job Spool Size (actually DCR based)
+26May05
+- Use light weight non-recursive locking on jcr chain.
+- Make JCR a class and implement inc_use_count() and
+  dec_use_count() methods that ensure that the jcr is
+  locked when inc/dec the use count.
+- Remove the global jcr lock when traversing the jcr
+  chain.   
+- Use dlist to implement the jcr chain rather than hand
+  crafted next and prev links.
+- Lock the jcr chain inside each function that modifies
+  the chain.
+
+Changes to 1.37.19:
+26May05
+- Fix compile problem of ua_restore.c on broken compilers.
+- Apply patch from bug 326 to permit bacula status by any user.
+- Fix bug 325 -- conversion of 12:30pm to 24hour time.
+25May05
+- Put Dmsg() on inside if() to avoid calling subroutine.
+- Make restore.bsr have unique name.
+- Allow user to define bsr filename on restore command line
+  with bootstrap=xxx.bsr
+- Add limit=nnn to "list jobs" command.
+- Remove old restore code that did not use .bsr file.
+- unlink automatically generated bsr file.
+- Cleanup heartbeat code so that duped fd is almost sure
+  to be released. Previously under certain conditions, the
+  memory was not released due to race conditions.
+- Shorten copyright.
+20May05
+- Unify the reserve_device() for a single device into one subroutine.
+18May05
+- Modify wait during use_device to happen only after all devices
+  have been examined rather than in the reserve_device code.  
+- Correct updating count of number of Volumes in a pool.
+
+Changes to 1.37.18:
+16May05
+- Add more debug to SD for Autochangers + status output.
+- Add Scratch to PoolType in PostgreSQL make...tables and do not
+  permit NULL PoolTypes. Fix for bug 319 reported by Eric.
+- Update LICENSE.
+- Add quotes around filename in parse_config error message. Bug
+  reported by Eric.
+15May05
+- Change nested \include to \input so that sections are properly
+  included in the pdf manual -- update the Web site.
+- Set reconnect flag in MySQL packet to 1 to ensure that connection
+  is re-established.  MySQL 5 changed default to 0. Fixes bug report.
+- Fix Scratch pool handling as reported in a bug by Eric Bollengier
+  by applying his patch.
+- Remove delete job in favor of delete jobid.
+- Add = NULL to configfile definitions as reported by Eric in a bug
+  report.
+- Update winbacula.nsi.in to reflect new manual file structure.
+10May05
+- Correct a minor build problem with wx-console.
+- Add cancel() to Dir Python scripting.
+- Re-correct bug in parse-config error handling.
+- Reorganization of use_command in SD to permit
+  waiting and multiple drive autochanger support.
+09May05
+- Correct bug in parse_config error handling.
+- Where ever possible mark a volume in error or not   
+  InChanger in mount.c
+- Fix bug in changing tape pools after first backup. Reported
+  by Peter Sjoberg.
+- Enhance mtx-changer to use Working Directory as temp.
+- Remove all but initial setup locking of Res in SD.
+08May05
+- Add Client OS type to Job report.
+- Add version to manual 
+- Update the Web site to have a single page for
+  the documentation links.
+
 Changes to 1.37.18 release 08May05:
 08May05
 - Correct attribute definition compile error in 1.37.17
