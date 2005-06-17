@@ -1,10 +1,7 @@
 
-          Release Notes for Bacula 1.37.18
+          Release Notes for Bacula 1.37.24
 
-  Bacula code: Total files = 425 Total lines = 137,071 (*.h *.c *.in)
-
-Note! The DB has been upgraded from version 8 to 9 and requres
-a DB upgrade.
+  Bacula code: Total files = 433 Total lines = 140,329 (*.h *.c *.in)
 
 Major Changes:
 - This version has a new DIR <--> SD protocol. Both must be
@@ -18,6 +15,8 @@ Major Changes:
 - Support for ANSI/IBM labels.
 - New communications protocol between DIR and SD to reserve 
   drives.
+- Faster database inserts due to combining the MD5/SHA1 into
+  the attributes record, eliminating one INSERT/file backed up.
 - Python Event support has been added. See below for
   configuration and details. Unfortunately, it is not yet complete
   and the only really useful function is defining a new
@@ -40,11 +39,17 @@ Major Changes:
   any Job may start any other Job with this mechanism, so it
   also be used to group jobs.
 - Unicode filename support for Win32 (thanks to Thorsten Engel)
+- Volume Shadow Copy support for Win32 thus the capability to
+  backup exclusively opened files (thanks to Thorsten Engel).
 - New manual format with an index (thanks to Karl Cunningham).
 - New Web site format (thanks to Michael Scherer).
 - Seeking on disk Volumes during restore.
 
 New Directives:
+- New Job directive "Prefer Mounted Volumes = yes|no" causes the
+  SD to select either an Autochanger or a drive with a valid 
+  Volume already mounted in preference. If none is available,
+  it will select the first available drive.
 - New Run directive in Job resource of DIR. It permits
   cloning of jobs.  To clone a copy of the current job, use
      Run = "job-name level=%l since=\"%s\""
@@ -131,6 +136,8 @@ New Directives:
 - Write Part After Job = Yes/No (DIR, Job Resource, and Schedule Resource)
   If this directive is set to yes (default no), a new part file will be
   created after the job is finished.
+- A pile of new Directives to support TLS. Please see the TLS chapter
+  of the manual.
 
 New Commands:
 - "python restart" restarts the Python interpreter. Rather brutal, make
@@ -138,6 +145,8 @@ New Commands:
    a Python script and get Bacula to use the new script.
 
 Items to note!!!
+- TLS for wx-console is only partially implemented. TLS for
+  the Gnome console is not yet implemented.
 - You must add --with-python=[DIR] to the configure command line
   if you want Python support.  Python 2.2 and 2.3 should be automatically
   detected if in the standard place.
@@ -145,10 +154,14 @@ Items to note!!!
   warnings due to the fact that Python pulls in some old non-secure
   libraries.
 - With Python 2.3, there are a few compiler warnings.
+- The Python implementation has a few memory leaks not yet cleaned
+  up. As long as you restart Bacula once a month, this shouldn't
+  be an issue.
 - You must either create a new catalog database or upgrade your
   old database (the PostgreSQL upgrade scripts not yet tested).
 - You must add --with-openssl to the configure command line if
   you want TLS communications encryption support.
+- The new DVD code is currently non-functional.
 
 Other Items:
 - 2 new scripts, dvd-writepart and dvd-freespace, in the scripts directory,

@@ -21,10 +21,6 @@ Changes to 1.37.24:
   we found Media in the drive (DVD). 
 - Make mount_dev() and unmount_dev() return bool.
 
-Changes to 1.37.23:
-- Renamed to make unique version for open_next_part()
-  changes.
-
 Changes to 1.37.22:
 14Jun05
 - Fix the same state variable problem in open_next_part().
