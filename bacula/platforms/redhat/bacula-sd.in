@@ -17,7 +17,7 @@ SD_GROUP=@sd_group@
 OS=`uname -s`
 
 # if /lib/tls exists, force Bacula to use the glibc pthreads instead
-if [ -d "/lib/tls" -a $OS = "Linux" ] ; then
+if [ -d "/lib/tls" -a $OS = "Linux" -a `uname -r | cut -c1-3` = "2.4" ] ; then
      export LD_ASSUME_KERNEL=2.4.19
 fi
 RETVAL=0
