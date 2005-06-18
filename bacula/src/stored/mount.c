@@ -309,7 +309,7 @@ read_volume:
       }
       ask = true;
       /* Needed, so the medium can be changed */
-      if (dev_cap(dev, CAP_REQMOUNT)) {
+      if (dev->requires_mount()) {
          close_device(dev);  
       }
       goto mount_next_vol;

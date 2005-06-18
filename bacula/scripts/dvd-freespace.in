@@ -32,7 +32,6 @@ growisofsparams=""
 import popen2
 import os
 import errno
-import tempfile
 import sys
 
 if len(sys.argv) != 3:
@@ -54,10 +53,18 @@ def gettotalsize():
       sys.exit(0)
    if os.WEXITSTATUS(status) != 0:
       print -errno.EPIPE
-      print 'Cannot get media info.'
+      print "Cannot get media info from " + dvdrwmediainfo
       sys.exit(0)
    while 1:
       result = processi.fromchild.readline()
+      if result.find("Track Size:") > -1:
+	 index = result.find("*2KB")
+	 if index > 0: 
+	    return long(result[12:index]) * 2048
+	 else:
+	    print -errno.EPIPE
+	    print "Invalid format in media info lead-out line from " + dvdrwmediainfo
+	    sys.exit(0)
       if result.find("Legacy lead-out at:") > -1:
 	 index = result.find("=")
 	 if index > -1:
@@ -66,7 +73,7 @@ def gettotalsize():
 	       print -errno.EPIPE
 	       print "Invalid format in media info lead-out line from " + dvdrwmediainfo
 	       sys.exit(0)
-	    return int(res)
+	    return long(res)
 	 else:
 	    print -errno.EPIPE
 	    print "Invalid format in media info lead-out line from " + dvdrwmediainfo
@@ -76,12 +83,12 @@ def gettotalsize():
 	 print "Cannot get media lead-out index from " + dvdrwmediainfo
 	 sys.exit(0)
 
-tmpfile = tempfile.NamedTemporaryFile()
 if part_num == 0:
    flag = "-Z"
 else:
    flag = "-M"
-cmd=growisofs + " " + growisofsparams + " -use-the-force-luke=tty -dry-run -quiet " + flag + " " + device + " -R " + tmpfile.name
+# the growisofs at the end is a dummy
+cmd=growisofs + " " + growisofsparams + " -use-the-force-luke=tty -dry-run -quiet " + flag + " " + device + " -R " + growisofs
 process = popen2.Popen4(cmd)
 status = process.wait()
 if not os.WIFEXITED(status):
@@ -111,10 +118,10 @@ while 1:
 	 print -errno.EPIPE
 	 print "Wrong seek argument in the output from " + growisofs
 	 sys.exit(0)
-      size = int(res)*32*1024
+      size = long(res)*32*1024
       size = gettotalsize()-(size+margin)
       if size < 0:
 	 size = 0
       print size
-      print "No error occured"
+      print "No error occurred"
       sys.exit(0)

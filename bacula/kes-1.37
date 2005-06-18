@@ -4,6 +4,11 @@
 General:
 
 Changes to 1.37.24:
+18Jun05
+- DVD writing/reading seems to be mostly working.
+- Set execute bits on dvd-freespace and dvd-writepart
+- Make dvd-freespace use existing dummy file.
+- Modify dvd-freespace to pickup size from Track Size:
 16Jun05
 - Add Date, Job, level to updates to .bsr file in 
   dird/backup.c

@@ -26,7 +26,7 @@ GROWARGS="-use-the-force-luke=tty -quiet"
 #GROWARGS="${GROWARGS} -use-the-force-luke=notray"
 
 # Uncomment the following line if you have a Linux kernel >=2.6.8, and
-# if you want to allow a session to start behind the 4gb boundary.
+# if you want to allow a session to start beyond the 4gb boundary.
 #GROWARGS="${GROWARGS} -use-the-force-luke=4gms"
 
 #### You should probably not modify anything below this line

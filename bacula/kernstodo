@@ -16,13 +16,9 @@ Version 1.37                Kern (see below)
 #7   Single Job Writing to Multiple Storage Devices
      (probably not this version)
 
-##   Integrate web-bacula into a new Bacula project with
-     bimagemgr.
 ##   Create a new GUI chapter explaining all the GUI programs.
 
 Autochangers:
-- 7. Implement new Console commands to allow offlining/reserving drives,
-     and possibly manipulating the autochanger (much asked for).
 -    Make "update slots" when pointing to Autochanger, remove
      all Volumes from other drives.  "update slots all-drives"?
 
@@ -53,22 +49,8 @@ Document:
 - Document the multiple-drive-changer.txt script.
 
 For 1.37:
-- Add # Job Level date to bsr file
-- Implement "PreferMountedVolumes = yes|no" in Job resource.
-=== rate design
-  jcr->last_rate
-  jcr->last_runtime
-  MA = (last_MA * 3 + rate) / 4
-  rate = (bytes - last_bytes) / (runtime - last_runtime)
-- Despool attributes simultaneously with data in a separate
-  thread, rejoined at end of data spooling.
-- Implement Files/Bytes,... stats for restore job.
-- Implement Total Bytes Written, ... for restore job.
 - Add setting Volume State via Python.
-- Max Vols limit in Pool off by one?
 - Make bootstrap file handle multiple MediaTypes (SD)
-- Test restoring into a user restricted directory on Win32 -- see
-  bug report.
 - --without-openssl breaks at least on Solaris.
 - Python:
   - Make a callback when Rerun failed levels is called.
@@ -88,13 +70,25 @@ For 1.37:
 - Add global lock on all devices when creating a device structure.
 
 Maybe in 1.37:
-- Add start/end date editing in messages (%t %T, %e?) ...
-- Add ClientDefs similar to JobDefs.
-- Print more info when bextract -p accepts a bad block.
 - To mark files as deleted, run essentially a Verify to disk, and
   when a file is found missing (MarkId != JobId), then create
   a new File record with FileIndex == -1. This could be done
   by the FD at the same time as the backup.
+=== rate design
+  jcr->last_rate
+  jcr->last_runtime
+  MA = (last_MA * 3 + rate) / 4
+  rate = (bytes - last_bytes) / (runtime - last_runtime)
+- Max Vols limit in Pool off by one?
+- Implement Files/Bytes,... stats for restore job.
+- Implement Total Bytes Written, ... for restore job.
+- Despool attributes simultaneously with data in a separate
+  thread, rejoined at end of data spooling.
+- 7. Implement new Console commands to allow offlining/reserving drives,
+     and possibly manipulating the autochanger (much asked for).
+- Add start/end date editing in messages (%t %T, %e?) ...
+- Add ClientDefs similar to JobDefs.
+- Print more info when bextract -p accepts a bad block.
 - Fix FD JobType to be set before RunBeforeJob in FD.
 - Look at adding full Volume and Pool information to a Volume 
   label so that bscan can get *all* the info. 
@@ -1288,3 +1282,8 @@ Block Position: 0
      in an Autochanger.
 - Upgrade to MySQL 4.1.12 See:  
   http://dev.mysql.com/doc/mysql/en/Server_SQL_mode.html
+- Add # Job Level date to bsr file
+- Implement "PreferMountedVolumes = yes|no" in Job resource.
+##   Integrate web-bacula into a new Bacula project with
+     bimagemgr.
+

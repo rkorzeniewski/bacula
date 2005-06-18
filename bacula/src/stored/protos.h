@@ -80,9 +80,9 @@ void    display_tape_error_status(JCR *jcr, DEVICE *dev);
 /* From dev.c */
 DEVICE  *init_dev(JCR *jcr, DEVRES *device);
 off_t    lseek_dev(DEVICE *dev, off_t offset, int whence);
-int      open_first_part(DEVICE *dev);
+int      open_first_part(DEVICE *dev, int mode);
 int      open_next_part(DEVICE *dev);
-int      open_mounted_dev(DEVICE *dev);
+bool     can_open_mounted_dev(DEVICE *dev);
 bool     truncate_dev(DEVICE *dev);
 void     term_dev(DEVICE *dev);
 char *   strerror_dev(DEVICE *dev);
