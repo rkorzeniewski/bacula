@@ -226,10 +226,7 @@ if test x$support_gnome = xyes; then
      GNOME_DIR=src/gnome2-console
      gnome_version="Version 2.x"
   else
-dnl do 1.4 stuff
-     GNOME_INIT
-     GNOME_DIR=src/gnome-console
-     gnome_version="Version 1.4"
+     AC_MSG_ERROR(Unable to find Gnome 2 installation)
   fi
 fi
 AC_SUBST(GNOME_DIR)
@@ -1910,8 +1907,6 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/host.h \
 	   src/console/Makefile \
 	   src/console/bconsole.conf \
-	   src/gnome-console/Makefile \
-	   src/gnome-console/gnome-console.conf \
 	   src/gnome2-console/Makefile \
 	   src/gnome2-console/gnome-console.conf \
 	   src/wx-console/Makefile \
