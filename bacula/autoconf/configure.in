@@ -966,75 +966,6 @@ AC_SUBST(mon_dir_password)
 AC_SUBST(mon_fd_password)
 AC_SUBST(mon_sd_password)
 
-# -------------------------------------------------------------------------
-#  Set variables for bimagemgr installation
-# -------------------------------------------------------------------------
-bimagemgr_cgidir=/var/www/cgi-bin
-AC_ARG_WITH(bimagemgr-cgidir,
-   [  --with-bimagemgr-cgidir=DIR   specify bimagemgr cgi-bin dir],
-   [
-       if test "x$withval" != "xno" ; then     
-	   bimagemgr_cgidir=$withval
-       fi
-   ]
-)
-
-bimagemgr_docdir=/var/www/html
-AC_ARG_WITH(bimagemgr-docdir,
-   [  --with-bimagemgr-docdir=DIR   specify bimagemgr doc root dir],
-   [
-       if test "x$withval" != "xno" ; then     
-	   bimagemgr_docdir=$withval
-       fi
-   ]
-)
-
-bimagemgr_binowner=root
-AC_ARG_WITH(bimagemgr-binowner,
-   [  --with-bimagemgr-binowner=USER   specify bimagemgr binary file owner],
-   [
-       if test "x$withval" != "xno" ; then     
-	   bimagemgr_binowner=$withval
-       fi
-   ]
-)
-
-bimagemgr_bingroup=root
-AC_ARG_WITH(bimagemgr-bingroup,
-   [  --with-bimagemgr-bingroup=USER   specify bimagemgr binary file group],
-   [
-       if test "x$withval" != "xno" ; then     
-	   bimagemgr_bingroup=$withval
-       fi
-   ]
-)
-
-bimagemgr_dataowner=apache
-AC_ARG_WITH(bimagemgr-dataowner,
-   [  --with-bimagemgr-dataowner=USER	specify bimagemgr data file owner],
-   [
-       if test "x$withval" != "xno" ; then     
-	   bimagemgr_dataowner=$withval
-       fi
-   ]
-)
-
-bimagemgr_datagroup=apache
-AC_ARG_WITH(bimagemgr-datagroup,
-   [  --with-bimagemgr-datagroup=USER	specify bimagemgr data file group],
-   [
-       if test "x$withval" != "xno" ; then     
-	   bimagemgr_datagroup=$withval
-       fi
-   ]
-)
-
-AC_SUBST(bimagemgr_cgidir)
-AC_SUBST(bimagemgr_docdir)
-AC_SUBST(bimagemgr_binowner)
-AC_SUBST(bimagemgr_bingroup)
-AC_SUBST(bimagemgr_dataowner)
-AC_SUBST(bimagemgr_datagroup)
 
 #
 # Handle users and groups for each daemon
@@ -1969,9 +1900,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/win32/Makefile \
 	   src/win32/console/bconsole.conf \
 	   src/win32/wx-console/wx-console.conf \
-	src/win32/pebuilder/Makefile \
-	src/bimagemgr/Makefile \
-	src/bimagemgr/bacula-bimagemgr.spec \
+	   src/win32/pebuilder/Makefile \
 	   $PFILES ],  
 	  [(echo "Doing make of dependencies"; ${MAKE:-make} depend;) ]
 )

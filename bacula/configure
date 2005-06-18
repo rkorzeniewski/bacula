@@ -309,7 +309,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS BUILD_DIR TRUEPRG FALSEPRG VERSION DATE LSMDATE CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX CPP EGREP INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB MV RM CP SED ECHO CMP TBL AR OPENSSL MTX MKISOFS PYTHON GROWISOFS DVDRWMEDIAINFO PKGCONFIG WXCONFIG WXFLAGS CDRECORD PIDOF AWK ARFLAGS MAKE_SHELL LOCAL_LIBS LOCAL_CFLAGS LOCAL_LDFLAGS LOCAL_DEFS build build_cpu build_vendor build_os host host_cpu host_vendor host_os HAVE_SUN_OS_TRUE HAVE_SUN_OS_FALSE HAVE_OSF1_OS_TRUE HAVE_OSF1_OS_FALSE HAVE_AIX_OS_TRUE HAVE_AIX_OS_FALSE HAVE_HPUX_OS_TRUE HAVE_HPUX_OS_FALSE HAVE_LINUX_OS_TRUE HAVE_LINUX_OS_FALSE HAVE_FREEBSD_OS_TRUE HAVE_FREEBSD_OS_FALSE HAVE_NETBSD_OS_TRUE HAVE_NETBSD_OS_FALSE HAVE_OPENBSD_OS_TRUE HAVE_OPENBSD_OS_FALSE HAVE_BSDI_OS_TRUE HAVE_BSDI_OS_FALSE HAVE_SGI_OS_TRUE HAVE_SGI_OS_FALSE HAVE_IRIX_OS_TRUE HAVE_IRIX_OS_FALSE HAVE_DARWIN_OS_TRUE HAVE_DARWIN_OS_FALSE INSIDE_GNOME_COMMON_TRUE INSIDE_GNOME_COMMON_FALSE MSGFMT GNOME_INCLUDEDIR GNOMEUI_LIBS GNOME_LIBDIR GNOME_LIBS GNOME_DIR WXCONS_CPPFLAGS WXCONS_LDFLAGS WX_DIR TRAY_MONITOR_CPPFLAGS TRAY_MONITOR_LDFLAGS TRAY_MONITOR_DIR TTOOL_LDFLAGS STATIC_FD STATIC_SD STATIC_DIR STATIC_CONS STATIC_GNOME_CONS STATIC_WX_CONS ALL_DIRS CONS_INC CONS_OBJ CONS_SRC CONS_LIBS CONS_LDFLAGS READLINE_SRC PYTHON_LIBS PYTHON_INCDIR OPENSSL_LIBS OPENSSL_INC working_dir scriptdir dump_email job_email smtp_host piddir subsysdir baseport dir_port fd_port sd_port dir_password fd_password sd_password mon_dir_password mon_fd_password mon_sd_password bimagemgr_cgidir bimagemgr_docdir bimagemgr_binowner bimagemgr_bingroup bimagemgr_dataowner bimagemgr_datagroup dir_user dir_group sd_user sd_group fd_user fd_group SBINPERM SQL_LFLAGS SQL_INCLUDE SQL_BINDIR cats DB_NAME GETCONF ac_ct_GETCONF X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS LIBOBJS ALLOCA FDLIBS DEBUG DINCLUDE DLIB DB_LIBS WCFLAGS WLDFLAGS OBJLIST hostname TAPEDRIVE PSCMD WIN32 MACOSX DISTNAME DISTVER LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS BUILD_DIR TRUEPRG FALSEPRG VERSION DATE LSMDATE CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX CPP EGREP INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB MV RM CP SED ECHO CMP TBL AR OPENSSL MTX MKISOFS PYTHON GROWISOFS DVDRWMEDIAINFO PKGCONFIG WXCONFIG WXFLAGS CDRECORD PIDOF AWK ARFLAGS MAKE_SHELL LOCAL_LIBS LOCAL_CFLAGS LOCAL_LDFLAGS LOCAL_DEFS build build_cpu build_vendor build_os host host_cpu host_vendor host_os HAVE_SUN_OS_TRUE HAVE_SUN_OS_FALSE HAVE_OSF1_OS_TRUE HAVE_OSF1_OS_FALSE HAVE_AIX_OS_TRUE HAVE_AIX_OS_FALSE HAVE_HPUX_OS_TRUE HAVE_HPUX_OS_FALSE HAVE_LINUX_OS_TRUE HAVE_LINUX_OS_FALSE HAVE_FREEBSD_OS_TRUE HAVE_FREEBSD_OS_FALSE HAVE_NETBSD_OS_TRUE HAVE_NETBSD_OS_FALSE HAVE_OPENBSD_OS_TRUE HAVE_OPENBSD_OS_FALSE HAVE_BSDI_OS_TRUE HAVE_BSDI_OS_FALSE HAVE_SGI_OS_TRUE HAVE_SGI_OS_FALSE HAVE_IRIX_OS_TRUE HAVE_IRIX_OS_FALSE HAVE_DARWIN_OS_TRUE HAVE_DARWIN_OS_FALSE INSIDE_GNOME_COMMON_TRUE INSIDE_GNOME_COMMON_FALSE MSGFMT GNOME_INCLUDEDIR GNOMEUI_LIBS GNOME_LIBDIR GNOME_LIBS GNOME_DIR WXCONS_CPPFLAGS WXCONS_LDFLAGS WX_DIR TRAY_MONITOR_CPPFLAGS TRAY_MONITOR_LDFLAGS TRAY_MONITOR_DIR TTOOL_LDFLAGS STATIC_FD STATIC_SD STATIC_DIR STATIC_CONS STATIC_GNOME_CONS STATIC_WX_CONS ALL_DIRS CONS_INC CONS_OBJ CONS_SRC CONS_LIBS CONS_LDFLAGS READLINE_SRC PYTHON_LIBS PYTHON_INCDIR OPENSSL_LIBS OPENSSL_INC working_dir scriptdir dump_email job_email smtp_host piddir subsysdir baseport dir_port fd_port sd_port dir_password fd_password sd_password mon_dir_password mon_fd_password mon_sd_password dir_user dir_group sd_user sd_group fd_user fd_group SBINPERM SQL_LFLAGS SQL_INCLUDE SQL_BINDIR cats DB_NAME GETCONF ac_ct_GETCONF X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS LIBOBJS ALLOCA FDLIBS DEBUG DINCLUDE DLIB DB_LIBS WCFLAGS WLDFLAGS OBJLIST hostname TAPEDRIVE PSCMD WIN32 MACOSX DISTNAME DISTVER LTLIBOBJS'
 ac_subst_files='MCOMMON'
 
 # Initialize some variables set by options.
@@ -905,12 +905,6 @@ Optional Packages:
   --with-mon-dir-password=PASSWORD	 specify Director's password used by the monitor
   --with-mon-fd-password=PASSWORD	 specify Client's password used by the monitor
   --with-mon-sd-password=PASSWORD	 specify Storage daemon's password used by the monitor
-  --with-bimagemgr-cgidir=DIR   specify bimagemgr cgi-bin dir
-  --with-bimagemgr-docdir=DIR   specify bimagemgr doc root dir
-  --with-bimagemgr-binowner=USER   specify bimagemgr binary file owner
-  --with-bimagemgr-bingroup=USER   specify bimagemgr binary file group
-  --with-bimagemgr-dataowner=USER	specify bimagemgr data file owner
-  --with-bimagemgr-datagroup=USER	specify bimagemgr data file group
   --with-dir-user=USER		 specify user for Director daemon
   --with-dir-group=GROUP		 specify group for Director daemon
   --with-sd-user=USER		 specify user for Storage daemon
@@ -8136,93 +8130,6 @@ if test "x$mon_sd_password" = "x" ; then
    mon_sd_password=$key
 fi
 
-
-
-
-
-
-
-
-# -------------------------------------------------------------------------
-#  Set variables for bimagemgr installation
-# -------------------------------------------------------------------------
-bimagemgr_cgidir=/var/www/cgi-bin
-
-# Check whether --with-bimagemgr-cgidir or --without-bimagemgr-cgidir was given.
-if test "${with_bimagemgr_cgidir+set}" = set; then
-  withval="$with_bimagemgr_cgidir"
-
-       if test "x$withval" != "xno" ; then
-	   bimagemgr_cgidir=$withval
-       fi
-
-
-fi;
-
-bimagemgr_docdir=/var/www/html
-
-# Check whether --with-bimagemgr-docdir or --without-bimagemgr-docdir was given.
-if test "${with_bimagemgr_docdir+set}" = set; then
-  withval="$with_bimagemgr_docdir"
-
-       if test "x$withval" != "xno" ; then
-	   bimagemgr_docdir=$withval
-       fi
-
-
-fi;
-
-bimagemgr_binowner=root
-
-# Check whether --with-bimagemgr-binowner or --without-bimagemgr-binowner was given.
-if test "${with_bimagemgr_binowner+set}" = set; then
-  withval="$with_bimagemgr_binowner"
-
-       if test "x$withval" != "xno" ; then
-	   bimagemgr_binowner=$withval
-       fi
-
-
-fi;
-
-bimagemgr_bingroup=root
-
-# Check whether --with-bimagemgr-bingroup or --without-bimagemgr-bingroup was given.
-if test "${with_bimagemgr_bingroup+set}" = set; then
-  withval="$with_bimagemgr_bingroup"
-
-       if test "x$withval" != "xno" ; then
-	   bimagemgr_bingroup=$withval
-       fi
-
-
-fi;
-
-bimagemgr_dataowner=apache
-
-# Check whether --with-bimagemgr-dataowner or --without-bimagemgr-dataowner was given.
-if test "${with_bimagemgr_dataowner+set}" = set; then
-  withval="$with_bimagemgr_dataowner"
-
-       if test "x$withval" != "xno" ; then
-	   bimagemgr_dataowner=$withval
-       fi
-
-
-fi;
-
-bimagemgr_datagroup=apache
-
-# Check whether --with-bimagemgr-datagroup or --without-bimagemgr-datagroup was given.
-if test "${with_bimagemgr_datagroup+set}" = set; then
-  withval="$with_bimagemgr_datagroup"
-
-       if test "x$withval" != "xno" ; then
-	   bimagemgr_datagroup=$withval
-       fi
-
-
-fi;
 
 
 
@@ -21256,7 +21163,7 @@ if test "x${subsysdir}" = "x${sbindir}" ; then
    exit 1
 fi
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ac_config_files="$ac_config_files autoconf/Make.common Makefile scripts/startmysql scripts/stopmysql scripts/btraceback scripts/startit scripts/stopit scripts/bconsole scripts/gconsole scripts/bacula scripts/devel_bacula scripts/Makefile scripts/logrotate scripts/bacula.desktop.gnome1 scripts/bacula.desktop.gnome2 scripts/bacula.desktop.gnome1.consolehelper scripts/bacula.desktop.gnome2.consolehelper scripts/bacula.desktop.gnome1.xsu scripts/bacula.desktop.gnome2.xsu scripts/gnome-console.console_apps scripts/mtx-changer scripts/dvd-writepart scripts/dvd-freespace scripts/bacula-tray-monitor.desktop scripts/logwatch/Makefile scripts/logwatch/logfile.bacula.conf src/Makefile src/host.h src/console/Makefile src/console/bconsole.conf src/gnome2-console/Makefile src/gnome2-console/gnome-console.conf src/wx-console/Makefile src/wx-console/wx-console.conf src/tray-monitor/Makefile src/tray-monitor/tray-monitor.conf src/dird/Makefile src/dird/bacula-dir.conf src/lib/Makefile src/stored/Makefile src/stored/bacula-sd.conf src/filed/Makefile src/filed/bacula-fd.conf src/filed/win32/Makefile src/cats/Makefile src/cats/make_catalog_backup src/cats/delete_catalog_backup src/cats/create_postgresql_database src/cats/update_postgresql_tables src/cats/make_postgresql_tables src/cats/grant_postgresql_privileges src/cats/drop_postgresql_tables src/cats/drop_postgresql_database src/cats/create_mysql_database src/cats/update_mysql_tables src/cats/make_mysql_tables src/cats/grant_mysql_privileges src/cats/drop_mysql_tables src/cats/drop_mysql_database src/cats/create_sqlite_database src/cats/update_sqlite_tables src/cats/make_sqlite_tables src/cats/grant_sqlite_privileges src/cats/drop_sqlite_tables src/cats/drop_sqlite_database src/cats/create_sqlite3_database src/cats/update_sqlite3_tables src/cats/make_sqlite3_tables src/cats/grant_sqlite3_privileges src/cats/drop_sqlite3_tables src/cats/drop_sqlite3_database src/cats/sqlite src/cats/mysql src/cats/create_bdb_database src/cats/update_bdb_tables src/cats/make_bdb_tables src/cats/grant_bdb_privileges src/cats/drop_bdb_tables src/cats/drop_bdb_database src/cats/create_bacula_database src/cats/update_bacula_tables src/cats/grant_bacula_privileges src/cats/make_bacula_tables src/cats/drop_bacula_tables src/cats/drop_bacula_database src/findlib/Makefile src/tools/Makefile src/win32/winbacula.nsi src/win32/baculafd/bacula-fd.conf src/win32/Makefile src/win32/console/bconsole.conf src/win32/wx-console/wx-console.conf src/win32/pebuilder/Makefile src/bimagemgr/Makefile src/bimagemgr/bacula-bimagemgr.spec $PFILES"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ac_config_files="$ac_config_files autoconf/Make.common Makefile scripts/startmysql scripts/stopmysql scripts/btraceback scripts/startit scripts/stopit scripts/bconsole scripts/gconsole scripts/bacula scripts/devel_bacula scripts/Makefile scripts/logrotate scripts/bacula.desktop.gnome1 scripts/bacula.desktop.gnome2 scripts/bacula.desktop.gnome1.consolehelper scripts/bacula.desktop.gnome2.consolehelper scripts/bacula.desktop.gnome1.xsu scripts/bacula.desktop.gnome2.xsu scripts/gnome-console.console_apps scripts/mtx-changer scripts/dvd-writepart scripts/dvd-freespace scripts/bacula-tray-monitor.desktop scripts/logwatch/Makefile scripts/logwatch/logfile.bacula.conf src/Makefile src/host.h src/console/Makefile src/console/bconsole.conf src/gnome2-console/Makefile src/gnome2-console/gnome-console.conf src/wx-console/Makefile src/wx-console/wx-console.conf src/tray-monitor/Makefile src/tray-monitor/tray-monitor.conf src/dird/Makefile src/dird/bacula-dir.conf src/lib/Makefile src/stored/Makefile src/stored/bacula-sd.conf src/filed/Makefile src/filed/bacula-fd.conf src/filed/win32/Makefile src/cats/Makefile src/cats/make_catalog_backup src/cats/delete_catalog_backup src/cats/create_postgresql_database src/cats/update_postgresql_tables src/cats/make_postgresql_tables src/cats/grant_postgresql_privileges src/cats/drop_postgresql_tables src/cats/drop_postgresql_database src/cats/create_mysql_database src/cats/update_mysql_tables src/cats/make_mysql_tables src/cats/grant_mysql_privileges src/cats/drop_mysql_tables src/cats/drop_mysql_database src/cats/create_sqlite_database src/cats/update_sqlite_tables src/cats/make_sqlite_tables src/cats/grant_sqlite_privileges src/cats/drop_sqlite_tables src/cats/drop_sqlite_database src/cats/create_sqlite3_database src/cats/update_sqlite3_tables src/cats/make_sqlite3_tables src/cats/grant_sqlite3_privileges src/cats/drop_sqlite3_tables src/cats/drop_sqlite3_database src/cats/sqlite src/cats/mysql src/cats/create_bdb_database src/cats/update_bdb_tables src/cats/make_bdb_tables src/cats/grant_bdb_privileges src/cats/drop_bdb_tables src/cats/drop_bdb_database src/cats/create_bacula_database src/cats/update_bacula_tables src/cats/grant_bacula_privileges src/cats/make_bacula_tables src/cats/drop_bacula_tables src/cats/drop_bacula_database src/findlib/Makefile src/tools/Makefile src/win32/winbacula.nsi src/win32/baculafd/bacula-fd.conf src/win32/Makefile src/win32/console/bconsole.conf src/win32/wx-console/wx-console.conf src/win32/pebuilder/Makefile $PFILES"
           ac_config_commands="$ac_config_commands default"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -21879,8 +21786,6 @@ do
   "src/win32/console/bconsole.conf" ) CONFIG_FILES="$CONFIG_FILES src/win32/console/bconsole.conf" ;;
   "src/win32/wx-console/wx-console.conf" ) CONFIG_FILES="$CONFIG_FILES src/win32/wx-console/wx-console.conf" ;;
   "src/win32/pebuilder/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/win32/pebuilder/Makefile" ;;
-  "src/bimagemgr/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/bimagemgr/Makefile" ;;
-  "src/bimagemgr/bacula-bimagemgr.spec" ) CONFIG_FILES="$CONFIG_FILES src/bimagemgr/bacula-bimagemgr.spec" ;;
   "$PFILES" ) CONFIG_FILES="$CONFIG_FILES $PFILES" ;;
   "default" ) CONFIG_COMMANDS="$CONFIG_COMMANDS default" ;;
   "src/config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS src/config.h:autoconf/config.h.in" ;;
@@ -22099,12 +22004,6 @@ s,@sd_password@,$sd_password,;t t
 s,@mon_dir_password@,$mon_dir_password,;t t
 s,@mon_fd_password@,$mon_fd_password,;t t
 s,@mon_sd_password@,$mon_sd_password,;t t
-s,@bimagemgr_cgidir@,$bimagemgr_cgidir,;t t
-s,@bimagemgr_docdir@,$bimagemgr_docdir,;t t
-s,@bimagemgr_binowner@,$bimagemgr_binowner,;t t
-s,@bimagemgr_bingroup@,$bimagemgr_bingroup,;t t
-s,@bimagemgr_dataowner@,$bimagemgr_dataowner,;t t
-s,@bimagemgr_datagroup@,$bimagemgr_datagroup,;t t
 s,@dir_user@,$dir_user,;t t
 s,@dir_group@,$dir_group,;t t
 s,@sd_user@,$sd_user,;t t
