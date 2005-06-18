@@ -39,9 +39,11 @@ void get_filename(DEVICE *dev, char *VolumeName, POOL_MEM& archive_name)
    char partnumber[20];
    
    if (dev->is_dvd()) {
-         /* If we try to open the last part, just open it from disk, 
-         * otherwise, open it from the spooling directory */
-      if (dev->part < dev->num_parts) {
+      /* If we try to open the last part, just open it from disk, 
+       * otherwise, open it from the spooling directory.
+       */
+      Dmsg2(100, "part=%d num_parts=%d\n", dev->part, dev->num_parts);
+      if (dev->num_parts == 0 || dev->part < dev->num_parts) {
          pm_strcpy(archive_name, dev->device->mount_point);
       } else {
          /* Use the working directory if spool directory is not defined */
@@ -73,10 +75,10 @@ void get_filename(DEVICE *dev, char *VolumeName, POOL_MEM& archive_name)
  */
 bool mount_dev(DEVICE* dev, int timeout) 
 {
+   Dmsg0(900, "Enter mount_dev\n");
    if (dev->is_mounted()) {
-      Dmsg0(100, "mount_dev: Device already mounted\n");
       return true;
-   } else if (dev_cap(dev, CAP_REQMOUNT)) {
+   } else if (dev->requires_mount()) {
       return do_mount_dev(dev, 1, timeout);
    }       
    return true;
@@ -88,10 +90,10 @@ bool mount_dev(DEVICE* dev, int timeout)
  */
 bool unmount_dev(DEVICE *dev, int timeout) 
 {
+   Dmsg0(900, "Enter unmount_dev\n");
    if (dev->is_mounted()) {
       return do_mount_dev(dev, 0, timeout);
    }
-   Dmsg0(100, "mount_dev: Device already unmounted\n");
    return true;
 }
 
@@ -100,7 +102,6 @@ static bool do_mount_dev(DEVICE* dev, int mount, int dotimeout)
 {
    POOL_MEM ocmd(PM_FNAME);
    POOLMEM* results;
-   results = get_pool_memory(PM_MESSAGE);
    char* icmd;
    int status, timeout;
    
@@ -118,24 +119,24 @@ static bool do_mount_dev(DEVICE* dev, int mount, int dotimeout)
    
    edit_device_codes_dev(dev, ocmd.c_str(), icmd);
    
-   Dmsg2(29, "do_mount_dev: cmd=%s state=%d\n", ocmd.c_str(), dev->is_mounted());
+   Dmsg2(200, "do_mount_dev: cmd=%s mounted=%d\n", ocmd.c_str(), dev->is_mounted());
 
    if (dotimeout) {
-      /* Try at most 5 times to (un)mount the device. This should perhaps be configurable. */
-      timeout = 5;
-   }
-   else {
+      /* Try at most 1 time to (un)mount the device. This should perhaps be configurable. */
+      timeout = 1;
+   } else {
       timeout = 0;
    }
+   results = get_pool_memory(PM_MESSAGE);
    /* If busy retry each second */
    while ((status = run_program_full_output(ocmd.c_str(), 
                        dev->max_open_wait/2, results)) != 0) {
-      if (--timeout > 0) {
-         Dmsg2(40, "Device %s cannot be (un)mounted. Retrying... ERR=%s\n", dev->dev_name, results);
+      if (timeout-- > 0) {
+         Dmsg2(400, "Device %s cannot be (un)mounted. Retrying... ERR=%s\n", dev->dev_name, results);
          /* Sometimes the device cannot be mounted because it is already mounted.
           * Try to unmount it, then remount it */
          if (mount) {
-            Dmsg1(40, "Trying to unmount the device %s...\n", dev->dev_name);
+            Dmsg1(400, "Trying to unmount the device %s...\n", dev->dev_name);
             do_mount_dev(dev, 0, 0);
          }
          bmicrosleep(1, 0);
@@ -149,20 +150,24 @@ static bool do_mount_dev(DEVICE* dev, int mount, int dotimeout)
    }
    
    dev->set_mounted(mount);              /* set/clear mounted flag */
+   free_pool_memory(results);
 
 get_out:
-   free_pool_memory(results);
-   Dmsg1(29, "do_mount_dev: end_state=%d\n", dev->is_mounted());
+   Dmsg1(29, "Exit do_mount_dev: mounted=%d\n", dev->is_mounted());
    return true;
 }
 
-/* Only for devices that require a mount.
- * Try to find the Volume name of the loaded device, and open the
- * first part of this volume. 
+/* Only for devices that require a mount -- currently DVDs only
  *
- * Returns 0 if read_dev_volume_label can now read the label,
- *        -1 if an error occured,  and read_dvd_volume_label
- *            must abort with an IO_ERROR.
+ * Try to find the Volume name of the loaded device.
+ *
+ * Returns true  if read_dev_volume_label can now read the label,
+ *               NOTE!!! at this point the device may not be
+ *               opened.
+ *               Maybe it should open the first part.  ***FIXME***
+ *
+ *         false if an error occured, and read_dvd_volume_label
+ *               must abort with an IO_ERROR.
  *
  * To find the Volume name, it lists all the files on the DVD,
  * and searches for a file which has a minimum size (500 bytes).
@@ -177,12 +182,10 @@ get_out:
  * the label name of the current volume. We can also check that the currently
  * mounted disk is writable. (See also read_dev_volume_label_guess in label.c).
  *
- * Note that if the right volume is mounted, open_mounted_dev returns 
- *  the same result as an usual dev->open().
  */
-int open_mounted_dev(DEVICE *dev) 
+bool can_open_mounted_dev(DEVICE *dev) 
 {
-   Dmsg1(29, "open_mounted_dev: dev=%s\n", dev->dev_name);
+   Dmsg1(29, "Enter: dev=%s\n", dev->dev_name);
    POOL_MEM guessedname(PM_FNAME);
    DIR* dp;
    struct dirent *entry, *result;
@@ -191,13 +194,13 @@ int open_mounted_dev(DEVICE *dev)
    int name_max;
    
    if (!dev->is_dvd()) {
-      Dmsg1(100, "open_mounted_dev: device does not require mount, returning 0. dev=%s\n", dev->dev_name);
-      return 0;
+      Dmsg1(100, "device does not require mount, returning 0. dev=%s\n", dev->dev_name);
+      return true;
    }
 
 #ifndef HAVE_DIRENT_H
-   Dmsg0(29, "open_mounted_dev: readdir not available, cannot guess volume name\n");
-   return 0; 
+   Dmsg0(29, "readdir not available, cannot guess volume name\n");
+   return true; 
 #endif
    
    update_free_space_dev(dev);
@@ -205,11 +208,11 @@ int open_mounted_dev(DEVICE *dev)
    if (mount_dev(dev, 1) < 0) {
       /* If the device cannot be mounted, check if it is writable */
       if (dev->have_media()) {
-         Dmsg1(100, "open_mounted_dev: device cannot be mounted, but it seems to be writable, returning 0. dev=%s\n", dev->dev_name);
-         return 0;
+         Dmsg1(100, "device cannot be mounted, but it seems to be writable, returning 0. dev=%s\n", dev->dev_name);
+         return true;
       } else {
-         Dmsg1(100, "open_mounted_dev: device cannot be mounted, and is not writable, returning -1. dev=%s\n", dev->dev_name);
-         return -1;
+         Dmsg1(100, "device cannot be mounted, and is not writable, returning -1. dev=%s\n", dev->dev_name);
+         return false;
       }
    }
       
@@ -221,17 +224,18 @@ int open_mounted_dev(DEVICE *dev)
    if (!(dp = opendir(dev->device->mount_point))) {
       berrno be;
       dev->dev_errno = errno;
-      Dmsg3(29, "open_mounted_dev: failed to open dir %s (dev=%s), ERR=%s\n", dev->device->mount_point, dev->dev_name, be.strerror());
-      return -1;
+      Dmsg3(29, "failed to open dir %s (dev=%s), ERR=%s\n", dev->device->mount_point, dev->dev_name, be.strerror());
+      return false;
    }
    
    entry = (struct dirent *)malloc(sizeof(struct dirent) + name_max + 100);
    while (1) {
       if ((readdir_r(dp, entry, &result) != 0) || (result == NULL)) {
          dev->dev_errno = ENOENT;
-         Dmsg2(29, "open_mounted_dev: failed to find suitable file in dir %s (dev=%s)\n", dev->device->mount_point, dev->dev_name);
+         Dmsg2(29, "failed to find suitable file in dir %s (dev=%s)\n", dev->device->mount_point, dev->dev_name);
          closedir(dp);
-         return -1;
+         free(entry);
+         return false;
       }
       
       ASSERT(name_max+1 > (int)sizeof(struct dirent) + (int)NAMELEN(entry));
@@ -248,13 +252,13 @@ int open_mounted_dev(DEVICE *dev)
       
       if (stat(guessedname.c_str(), &statp) < 0) {
          berrno be;
-         Dmsg3(29, "open_mounted_dev: failed to stat %s (dev=%s), ERR=%s\n",
+         Dmsg3(29, "failed to stat %s (dev=%s), ERR=%s\n",
                guessedname.c_str(), dev->dev_name, be.strerror());
          continue;
       }
       
       if (!S_ISREG(statp.st_mode) || (statp.st_size < 500)) {
-         Dmsg2(100, "open_mounted_dev: %s is not a regular file, or less than 500 bytes (dev=%s)\n", 
+         Dmsg2(100, "%s is not a regular file, or less than 500 bytes (dev=%s)\n", 
                guessedname.c_str(), dev->dev_name);
          continue;
       }
@@ -275,7 +279,7 @@ int open_mounted_dev(DEVICE *dev)
       if ((stat(guessedname.c_str(), &statp) < 0) || (statp.st_size < 500)) {
          /* The file with extension truncated does not exists or is too small, so use it with its extension. */
          berrno be;
-         Dmsg3(100, "open_mounted_dev: failed to stat %s (dev=%s), using the file with its extension, ERR=%s\n", 
+         Dmsg3(100, "failed to stat %s (dev=%s), using the file with its extension, ERR=%s\n", 
                guessedname.c_str(), dev->dev_name, be.strerror());
          pm_strcpy(guessedname, dev->device->mount_point);
          if (guessedname.c_str()[strlen(guessedname.c_str())-1] != '/') {
@@ -286,35 +290,36 @@ int open_mounted_dev(DEVICE *dev)
       }
       break;
    }
-   
    closedir(dp);
+   free(entry);
    
    if (dev->fd >= 0) {
       close(dev->fd);
    }
      
+   Dmsg1(100, "open(%s) read-only\n", guessedname.c_str());
    if ((dev->fd = open(guessedname.c_str(), O_RDONLY | O_BINARY)) < 0) {
       berrno be;
       dev->dev_errno = errno;
-      Dmsg3(29, "open_mounted_dev: failed to open %s (dev=%s), ERR=%s\n", 
+      Dmsg3(29, "failed to open %s (dev=%s), ERR=%s\n", 
             guessedname.c_str(), dev->dev_name, be.strerror());
-      if (open_first_part(dev) < 0) {
+      Dmsg0(100, "Call open_first_part\n");
+      if (open_first_part(dev, OPEN_READ_ONLY) < 0) {
          berrno be;
          dev->dev_errno = errno;
          Mmsg1(&dev->errmsg, _("Could not open_first_part, ERR=%s\n"), be.strerror());
          Emsg0(M_FATAL, 0, dev->errmsg);         
       }
-      return -1;
+      return false;
    }
    dev->part_start = 0;
    dev->part_size = statp.st_size;
    dev->part = 0;
    dev->set_opened();
    dev->use_count = 1;
+   Dmsg2(29, "Exit: %s opened (dev=%s)\n", guessedname.c_str(), dev->dev_name);
    
-   Dmsg2(29, "open_mounted_dev: %s opened (dev=%s)\n", guessedname.c_str(), dev->dev_name);
-   
-   return 0;
+   return true;
 }
 
 
@@ -418,8 +423,7 @@ static int dvd_write_part(DEVICE *dev)
       dev->dev_errno = EIO;
       free_pool_memory(results);
       return -1;
-   }
-   else {
+   } else {
       Dmsg1(29, "dvd_write_part: command output=%s\n", results);
       POOL_MEM archive_name(PM_FNAME);
       get_filename(dev, dev->VolCatInfo.VolCatName, archive_name);
@@ -437,7 +441,8 @@ static int dvd_write_part(DEVICE *dev)
 int open_next_part(DEVICE *dev)
 {
       
-   Dmsg3(29, "open_next_part %s %s %d\n", dev->dev_name, dev->VolCatInfo.VolCatName, dev->openmode);
+   Dmsg3(29, "Enter: open_next_part %s %s %d\n", dev->dev_name, 
+         dev->VolCatInfo.VolCatName, dev->openmode);
    /* When appending, do not open a new part if the current is empty */
    if (dev->can_append() && (dev->part == dev->num_parts) && 
        (dev->part_size == 0)) {
@@ -509,9 +514,10 @@ int open_next_part(DEVICE *dev)
  *  - Close the fd
  *  - Reopen the device
  */
-int open_first_part(DEVICE *dev) 
+int open_first_part(DEVICE *dev, int mode)
 {
-   Dmsg3(29, "open_first_part %s %s %d\n", dev->dev_name, dev->VolCatInfo.VolCatName, dev->openmode);
+   Dmsg3(29, "Enter: open_first_part dev=%s Vol=%s mode=%d\n", dev->dev_name, 
+         dev->VolCatInfo.VolCatName, dev->openmode);
    if (dev->fd >= 0) {
       close(dev->fd);
    }
@@ -521,9 +527,9 @@ int open_first_part(DEVICE *dev)
    dev->part_start = 0;
    dev->part = 0;
    
-   Dmsg2(50, "Call dev->open(vol=%s, mode=%d", dev->VolCatInfo.VolCatName, 
-         dev->openmode);
-   if (dev->open(dev->VolCatInfo.VolCatName, dev->openmode) < 0) {
+   Dmsg2(50, "Call dev->open(vol=%s, mode=%d)\n", dev->VolCatInfo.VolCatName, 
+         mode);
+   if (dev->open(dev->VolCatInfo.VolCatName, mode) < 0) {
       Dmsg0(50, "open dev() failed\n");
       return -1;
    }
@@ -565,7 +571,7 @@ off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
           * We need to access a previous part, 
           * so just load the first one, and seek again
           * until the right one is loaded */
-         if (open_first_part(dev) < 0) {
+         if (open_first_part(dev, dev->openmode) < 0) {
             Dmsg0(100, "lseek_dev failed while trying to open the first part\n");
             return -1;
          }
@@ -604,10 +610,9 @@ off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
           * This is the only way to be sure we compute the right file address. */
          /* Save previous openmode, and open all but last part read-only (useful for DVDs) */
          openmode = dev->openmode;
-         dev->openmode = OPEN_READ_ONLY;
          
          /* Works because num_parts > 0. */
-         if (open_first_part(dev) < 0) {
+         if (open_first_part(dev, OPEN_READ_ONLY) < 0) {
             Dmsg0(100, "lseek_dev failed while trying to open the first part\n");
             return -1;
          }

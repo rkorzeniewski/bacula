@@ -237,7 +237,7 @@ int read_dvd_volume_label(DCR *dcr, bool write)
    int vol_label_status;
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
-   Dmsg3(100, "Enter read_dvd_volume_label device=%s vol=%s dev_Vol=%s\n",
+   Dmsg3(100, "Enter: dvd_volume_label device=%s vol=%s dev_Vol=%s\n",
          dev->print_name(), dcr->VolumeName, dev->VolHdr.VolumeName);
    
    if (!dev->is_dvd()) {  
@@ -254,7 +254,7 @@ int read_dvd_volume_label(DCR *dcr, bool write)
     * For mounted devices, try to guess the Volume name
     * and read the label if possible.
     */
-   if (open_mounted_dev(dev) < 0) {     
+   if (!can_open_mounted_dev(dev)) {     
       if (!write || dcr->VolCatInfo.VolCatParts > 0) {
          Mmsg2(jcr->errmsg, _("Requested Volume \"%s\" on %s is not a Bacula labeled Volume."),
                dev->print_name(), dcr->VolumeName);
@@ -262,8 +262,9 @@ int read_dvd_volume_label(DCR *dcr, bool write)
          return VOL_NO_LABEL;
       }
       
-      if (write && dev->free_space_errno < 0) {
-         Dmsg0(100, "Leave read_dvd_volume_label !free_space VOL_NO_MEDIA\n");
+      /* At this point, we are writing */
+      if (dev->free_space_errno < 0) {
+         Dmsg0(100, "Exit: read_dvd_volume_label !free_space VOL_NO_MEDIA\n");
          Mmsg2(jcr->errmsg, _("free_space error on %s. The current medium is probably not writable: ERR=%s.\n"),
                dev->print_name(), dev->errmsg);
          return VOL_NO_MEDIA;
@@ -273,7 +274,7 @@ int read_dvd_volume_label(DCR *dcr, bool write)
        * If we can't guess the name, and we are writing, 
        * just reopen the right file with open_first_part.
        */
-      if (open_first_part(dev) < 0) {
+      if (open_first_part(dev, OPEN_READ_WRITE) < 0) {
          berrno be;
          Mmsg2(jcr->errmsg, _("open_first_part error on %s: ERR=%s.\n"),
                dev->print_name(), be.strerror());
@@ -283,7 +284,11 @@ int read_dvd_volume_label(DCR *dcr, bool write)
       
       Dmsg0(100, "Leave read_dvd_volume_label !open_mounted_dev\n");
       return read_dev_volume_label(dcr);
+
    } else {
+      /* 
+       * If we get here, we can open the mounted device
+       */
       if (write && dcr->dev->free_space_errno < 0) {
          Dmsg0(100, "Leave read_dvd_volume_label !free_space VOL_NO_MEDIA\n");
          Mmsg2(jcr->errmsg, _("free_space error on %s. The current medium is probably not writable: ERR=%s.\n"),
@@ -291,20 +296,20 @@ int read_dvd_volume_label(DCR *dcr, bool write)
          return VOL_NO_MEDIA;
       }
       
-      vol_label_status = read_dev_volume_label(dcr);
-
       if (!write || dcr->VolCatInfo.VolCatParts > 0) {
-         Dmsg0(100, "Leave read_dvd_volume_label (open_mounted_dev && (!write || dcr->VolCatInfo.VolCatParts > 0))\n");
-         return vol_label_status;
+         Dmsg0(100, "Exit: read_dvd_volume_label (open_mounted_dev && (!write || dcr->VolCatInfo.VolCatParts > 0))\n");
+         return read_dev_volume_label(dcr);
       }
       
-      if (open_first_part(dcr->dev) < 0) {
+      /* At this point, we are writing */
+      if (open_first_part(dcr->dev, OPEN_READ_WRITE) < 0) {
          berrno be;
          Mmsg2(jcr->errmsg, _("open_first_part error on %s: ERR=%s.\n"),
                dev->print_name(), be.strerror());
          Dmsg0(100, "Leave read_dvd_volume_label VOL_IO_ERROR (open_mounted_dev && !open_first_part)\n");
          return VOL_IO_ERROR;
       }
+      vol_label_status = read_dev_volume_label(dcr);
       
       /* When writing, if the guessed volume name is not the right volume name, 
        * report the error, otherwise, just continue with the right file.

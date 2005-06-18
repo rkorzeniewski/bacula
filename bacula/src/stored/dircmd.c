@@ -427,6 +427,9 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
    }
 
 bail_out:
+   if (!dev->is_open()) {
+      free_volume(dev);
+   }
    give_back_device_lock(dev, &hold);
    return;
 }

@@ -30,7 +30,7 @@
 #include "jcr.h"
 
 int execvp_errors[] = {EACCES, ENOEXEC, EFAULT, EINTR, E2BIG,
-		     ENAMETOOLONG, ENOMEM, ETXTBSY, ENOENT};
+                     ENAMETOOLONG, ENOMEM, ETXTBSY, ENOENT};
 int num_execvp_errors = (int)(sizeof(execvp_errors)/sizeof(int));
 
 
@@ -61,7 +61,7 @@ BPIPE *open_bpipe(char *prog, int wait, const char *mode)
    tprog = get_pool_memory(PM_FNAME);
    pm_strcpy(tprog, prog);
    build_argc_argv(tprog, &bargc, bargv, MAX_ARGV);
-#ifdef	xxxxxx
+#ifdef  xxxxxx
    printf("argc=%d\n", bargc);
    for (i=0; i<bargc; i++) {
       printf("argc=%d argv=%s:\n", i, bargv[i]);
@@ -79,8 +79,8 @@ BPIPE *open_bpipe(char *prog, int wait, const char *mode)
    if (mode_read && pipe(readp) == -1) {
       save_errno = errno;
       if (mode_write) {
-	 close(writep[0]);
-	 close(writep[1]);
+         close(writep[0]);
+         close(writep[1]);
       }
       free(bpipe);
       errno = save_errno;
@@ -88,50 +88,50 @@ BPIPE *open_bpipe(char *prog, int wait, const char *mode)
    }
    /* Start worker process */
    switch (bpipe->worker_pid = fork()) {
-   case -1:			      /* error */
+   case -1:                           /* error */
       save_errno = errno;
       if (mode_write) {
-	 close(writep[0]);
-	 close(writep[1]);
+         close(writep[0]);
+         close(writep[1]);
       }
       if (mode_read) {
-	 close(readp[0]);
-	 close(readp[1]);
+         close(readp[0]);
+         close(readp[1]);
       }
       free(bpipe);
       errno = save_errno;
       return NULL;
 
-   case 0:			      /* child */
+   case 0:                            /* child */
       if (mode_write) {
-	 close(writep[1]);
-	 dup2(writep[0], 0);	      /* Dup our write to his stdin */
+         close(writep[1]);
+         dup2(writep[0], 0);          /* Dup our write to his stdin */
       }
       if (mode_read) {
-	 close(readp[0]);	      /* Close unused child fds */
-	 dup2(readp[1], 1);	      /* dup our read to his stdout */
-	 dup2(readp[1], 2);	      /*   and his stderr */
+         close(readp[0]);             /* Close unused child fds */
+         dup2(readp[1], 1);           /* dup our read to his stdout */
+         dup2(readp[1], 2);           /*   and his stderr */
       }
-      closelog();		      /* close syslog if open */
-      for (i=3; i<=32; i++) {	      /* close any open file descriptors */
-	 close(i);
+      closelog();                     /* close syslog if open */
+      for (i=3; i<=32; i++) {         /* close any open file descriptors */
+         close(i);
       }
-      execvp(bargv[0], bargv);	      /* call the program */
+      execvp(bargv[0], bargv);        /* call the program */
       /* Convert errno into an exit code for later analysis */
       for (i=0; i< num_execvp_errors; i++) {
-	 if (execvp_errors[i] == errno) {
-	    exit(200 + i);	      /* exit code => errno */
-	 }
+         if (execvp_errors[i] == errno) {
+            exit(200 + i);            /* exit code => errno */
+         }
       }
-      exit(255);		      /* unknown errno */
+      exit(255);                      /* unknown errno */
 
 
 
-   default:			      /* parent */
+   default:                           /* parent */
       break;
    }
    if (mode_read) {
-      close(readp[1]);		      /* close unused parent fds */
+      close(readp[1]);                /* close unused parent fds */
       bpipe->rfd = fdopen(readp[0], "r"); /* open file descriptor */
    }
    if (mode_write) {
@@ -154,7 +154,7 @@ int close_wpipe(BPIPE *bpipe)
    if (bpipe->wfd) {
       fflush(bpipe->wfd);
       if (fclose(bpipe->wfd) != 0) {
-	 stat = 0;
+         stat = 0;
       }
       bpipe->wfd = NULL;
    }
@@ -165,7 +165,7 @@ int close_wpipe(BPIPE *bpipe)
  * Close both pipes and free resources
  *
  *  Returns: 0 on success
- *	     berrno on failure
+ *           berrno on failure
  */
 int close_bpipe(BPIPE *bpipe)
 {
@@ -187,7 +187,7 @@ int close_bpipe(BPIPE *bpipe)
    }
 
    if (bpipe->wait == 0) {
-      wait_option = 0;		      /* wait indefinitely */
+      wait_option = 0;                /* wait indefinitely */
    } else {
       wait_option = WNOHANG;          /* don't hang */
    }
@@ -197,37 +197,37 @@ int close_bpipe(BPIPE *bpipe)
    for ( ;; ) {
       Dmsg2(800, "Wait for %d opt=%d\n", bpipe->worker_pid, wait_option);
       do {
-	 wpid = waitpid(bpipe->worker_pid, &chldstatus, wait_option);
+         wpid = waitpid(bpipe->worker_pid, &chldstatus, wait_option);
       } while (wpid == -1 && (errno == EINTR || errno == EAGAIN));
       if (wpid == bpipe->worker_pid || wpid == -1) {
-	 stat = errno;
+         stat = errno;
          Dmsg3(800, "Got break wpid=%d status=%d ERR=%s\n", wpid, chldstatus,
             wpid==-1?strerror(errno):"none");
-	 break;
+         break;
       }
       Dmsg3(800, "Got wpid=%d status=%d ERR=%s\n", wpid, chldstatus,
             wpid==-1?strerror(errno):"none");
       if (remaining_wait > 0) {
-	 bmicrosleep(1, 0);	      /* wait one second */
-	 remaining_wait--;
+         bmicrosleep(1, 0);           /* wait one second */
+         remaining_wait--;
       } else {
-	 stat = ETIME;		      /* set error status */
-	 wpid = -1;
+         stat = ETIME;                /* set error status */
+         wpid = -1;
          break;                       /* don't wait any longer */
       }
    }
    if (wpid > 0) {
       if (WIFEXITED(chldstatus)) {    /* process exit()ed */
-	 stat = WEXITSTATUS(chldstatus);
-	 if (stat != 0) {
+         stat = WEXITSTATUS(chldstatus);
+         if (stat != 0) {
             Dmsg1(800, "Non-zero status %d returned from child.\n", stat);
-	    stat |= b_errno_exit;	 /* exit status returned */
-	 }
+            stat |= b_errno_exit;        /* exit status returned */
+         }
          Dmsg1(800, "child status=%d\n", stat & ~b_errno_exit);
       } else if (WIFSIGNALED(chldstatus)) {  /* process died */
-	 stat = WTERMSIG(chldstatus);
+         stat = WTERMSIG(chldstatus);
          Dmsg1(800, "Child died from signale %d\n", stat);
-	 stat |= b_errno_signal;      /* exit signal returned */
+         stat |= b_errno_signal;      /* exit signal returned */
       }
    }
    if (bpipe->timer_id) {
@@ -247,7 +247,7 @@ int close_bpipe(BPIPE *bpipe)
  * Contrary to my normal calling conventions, this program
  *
  *  Returns: 0 on success
- *	     non-zero on error == berrno status
+ *           non-zero on error == berrno status
  */
 int run_program(char *prog, int wait, POOLMEM *results)
 {
@@ -264,9 +264,9 @@ int run_program(char *prog, int wait, POOLMEM *results)
       results[0] = 0;
       fgets(results, sizeof_pool_memory(results), bpipe->rfd);
       if (feof(bpipe->rfd)) {
-	 stat1 = 0;
+         stat1 = 0;
       } else {
-	 stat1 = ferror(bpipe->rfd);
+         stat1 = ferror(bpipe->rfd);
       }
       if (stat1 < 0) {
          Dmsg2(100, "Run program fgets stat=%d ERR=%s\n", stat1, strerror(errno));
@@ -291,7 +291,7 @@ int run_program(char *prog, int wait, POOLMEM *results)
  * Contrary to my normal calling conventions, this program
  *
  *  Returns: 0 on success
- *	     non-zero on error == berrno status
+ *           non-zero on error == berrno status
  *
  */
 int run_program_full_output(char *prog, int wait, POOLMEM *results)
@@ -320,24 +320,24 @@ int run_program_full_output(char *prog, int wait, POOLMEM *results)
       Dmsg1(800, "Run program fgets=%s", tmp);
       pm_strcat(results, tmp);
       if (feof(bpipe->rfd)) {
-	 stat1 = 0;
-         Dmsg1(100, "Run program fgets stat=%d\n", stat1);
-	 break;
+         stat1 = 0;
+         Dmsg1(900, "Run program fgets stat=%d\n", stat1);
+         break;
       } else {
-	 stat1 = ferror(bpipe->rfd);
+         stat1 = ferror(bpipe->rfd);
       }
       if (stat1 < 0) {
-         Dmsg2(100, "Run program fgets stat=%d ERR=%s\n", stat1, strerror(errno));
-	 break;
+         Dmsg2(900, "Run program fgets stat=%d ERR=%s\n", stat1, strerror(errno));
+         break;
       } else if (stat1 != 0) {
-         Dmsg1(100, "Run program fgets stat=%d\n", stat1);
+         Dmsg1(900, "Run program fgets stat=%d\n", stat1);
       }
    }
    
    stat2 = close_bpipe(bpipe);
    stat1 = stat2 != 0 ? stat2 : stat1;
    
-   Dmsg1(100, "Run program returning %d\n", stat);
+   Dmsg1(900, "Run program returning %d\n", stat);
    free_pool_memory(tmp);
    return stat1;
 }
@@ -365,25 +365,25 @@ static void build_argc_argv(char *cmd, int *bargc, char *bargv[], int max_argv)
    }
    if (*p) {
       while (*p && argc < MAX_ARGV) {
-	 q = p;
-	 if (quote) {
-	    while (*q && *q != quote)
-	    q++;
-	    quote = 0;
-	 } else {
+         q = p;
+         if (quote) {
+            while (*q && *q != quote)
+            q++;
+            quote = 0;
+         } else {
             while (*q && *q != ' ')
-	    q++;
-	 }
-	 if (*q)
+            q++;
+         }
+         if (*q)
             *(q++) = '\0';
-	 bargv[argc++] = p;
-	 p = q;
+         bargv[argc++] = p;
+         p = q;
          while (*p && (*p == ' ' || *p == '\t'))
-	    p++;
+            p++;
          if (*p == '\"' || *p == '\'') {
-	    quote = *p;
-	    p++;
-	 }
+            quote = *p;
+            p++;
+         }
       }
    }
    *bargc = argc;

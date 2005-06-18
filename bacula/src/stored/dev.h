@@ -249,6 +249,7 @@ public:
 
    /* Methods */
    int is_autochanger() const { return capabilities & CAP_AUTOCHANGER; }
+   int requires_mount() const { return capabilities & CAP_REQMOUNT; }
    int is_tape() const { return state & ST_TAPE; }
    int is_file() const { return state & ST_FILE; }
    int is_fifo() const { return state & ST_FIFO; }

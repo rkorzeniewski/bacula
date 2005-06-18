@@ -181,7 +181,7 @@ init_dev(JCR *jcr, DEVRES *device)
     * - Check that the mount point is available 
     * - Check that (un)mount commands are defined
     */
-   if (dev->is_file() && device->cap_bits & CAP_REQMOUNT) {
+   if (dev->is_file() && dev->requires_mount()) {
       if (stat(device->mount_point, &statp) < 0) {
          berrno be;
          dev->dev_errno = errno;
@@ -278,13 +278,14 @@ DEVICE::open(char *VolName, int mode)
       VolCatInfo.VolCatName[0] = 0;
    }
 
-   Dmsg3(29, "open dev: tape=%d dev_name=%s vol=%s\n", is_tape(),
-         dev_name, VolCatInfo.VolCatName);
+   Dmsg4(29, "open dev: tape=%d dev_name=%s vol=%s mode=%d\n", is_tape(),
+         dev_name, VolCatInfo.VolCatName, mode);
    state &= ~(ST_LABEL|ST_APPEND|ST_READ|ST_EOT|ST_WEOT|ST_EOF);
    label_type = B_BACULA_LABEL;
    if (is_tape() || is_fifo()) {
       open_tape_device(this, mode);
    } else {
+      Dmsg1(100, "call open_file_device mode=%d\n", mode);
       open_file_device(this, mode);
    }
    return fd;
@@ -382,37 +383,46 @@ static void open_file_device(DEVICE *dev, int mode)
 {
    POOL_MEM archive_name(PM_FNAME);
    struct stat filestat;
+
    /*
     * Handle opening of File Archive (not a tape)
     */     
-   if (dev->part == 0) {
-      dev->file_size = 0;
-   }
-   dev->part_size = 0;
-   
-   /* if num_parts has not been set, but VolCatInfo is available, copy
-    * it from the VolCatInfo.VolCatParts */
-   if (dev->num_parts < dev->VolCatInfo.VolCatParts) {
-      dev->num_parts = dev->VolCatInfo.VolCatParts;
-   }
-   
+   Dmsg3(29, "Enter: open_file_dev: %s dev=%s mode=%d\n", dev->is_dvd()?"DVD":"disk",
+         archive_name.c_str(), mode);
+
    if (dev->VolCatInfo.VolCatName[0] == 0) {
       Mmsg(dev->errmsg, _("Could not open file device %s. No Volume name given.\n"),
          dev->print_name());
       dev->fd = -1;
       return;
    }
-   get_filename(dev, dev->VolCatInfo.VolCatName, archive_name);
 
-   if (mount_dev(dev, 1) < 0) {
-      Mmsg(dev->errmsg, _("Could not mount device %s.\n"),
-           dev->print_name());
-      Emsg0(M_FATAL, 0, dev->errmsg);
-      dev->fd = -1;
-      return;
+   if (dev->is_dvd()) {
+      if (dev->part == 0) {
+         dev->file_size = 0;
+      }
+      dev->part_size = 0;
+      
+      /* if num_parts has not been set, but VolCatInfo is available, copy
+       * it from the VolCatInfo.VolCatParts */
+      if (dev->num_parts < dev->VolCatInfo.VolCatParts) {
+         dev->num_parts = dev->VolCatInfo.VolCatParts;
+      }
+      
+      get_filename(dev, dev->VolCatInfo.VolCatName, archive_name);
+
+      if (mount_dev(dev, 1) < 0) {
+         Mmsg(dev->errmsg, _("Could not mount device %s.\n"),
+              dev->print_name());
+         Emsg0(M_FATAL, 0, dev->errmsg);
+         dev->fd = -1;
+         return;
+      }
+   } else {
+      get_filename(dev, dev->VolCatInfo.VolCatName, archive_name);
    }
          
-   Dmsg3(29, "open dev: device is %s (mode:%d)\n", dev->is_dvd()?"DVD":"disk",
+   Dmsg3(29, "open dev: %s dev=%s mode=%d\n", dev->is_dvd()?"DVD":"disk",
          archive_name.c_str(), mode);
    dev->openmode = mode;
    
@@ -459,7 +469,7 @@ static void open_file_device(DEVICE *dev, int mode)
    Dmsg5(29, "open dev: %s fd=%d opened, part=%d/%d, part_size=%u\n", 
       dev->is_dvd()?"DVD":"disk", dev->fd, dev->part, dev->num_parts, 
       dev->part_size);
-   if (dev->is_dvd() && (dev->mode != OPEN_READ_ONLY) && 
+   if (dev->is_dvd() && (mode != OPEN_READ_ONLY) && 
        (dev->free_space_errno == 0 || dev->num_parts == dev->part)) {
       update_free_space_dev(dev);
    }
@@ -1581,7 +1591,7 @@ bool truncate_dev(DEVICE *dev)
    if (dev->num_parts > 0) {
       dev->num_parts = 0;
       dev->VolCatInfo.VolCatParts = 0;
-      if (open_first_part(dev) < 0) {
+      if (open_first_part(dev, OPEN_READ_WRITE) < 0) {
          berrno be;
          Mmsg1(dev->errmsg, "Unable to truncate device, because I'm unable to open the first part. ERR=%s\n", be.strerror());
       }

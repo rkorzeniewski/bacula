@@ -246,7 +246,7 @@ default_path:
          
          /* If the device requires mount, close it, so the device can be ejected.
           * FIXME: This should perhaps be done for all devices. */
-         if (dev_cap(dev, CAP_REQMOUNT)) {
+         if (dev->requires_mount()) {
             force_close_device(dev);
          }
          

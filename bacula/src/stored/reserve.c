@@ -225,7 +225,6 @@ static bool use_storage_cmd(JCR *jcr)
    bool ok;       
    int Copy, Stripe;
    DIRSTORE *store;
-   char *device_name;
    RCTX rctx;
    rctx.jcr = jcr;
 #ifdef implemented
@@ -273,6 +272,7 @@ static bool use_storage_cmd(JCR *jcr)
 #ifdef DEVELOPER
    /* This loop is debug code and can be removed */
    /* ***FIXME**** remove after 1.38 release */
+   char *device_name;
    foreach_alist(store, jcr->dirstore) {
       Dmsg4(100, "Storage=%s media_type=%s pool=%s pool_type=%s\n", 
          store->name, store->media_type, store->pool_name, 

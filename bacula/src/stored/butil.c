@@ -165,6 +165,7 @@ static DCR *setup_to_access_device(JCR *jcr, char *dev_name,
    create_restore_volume_list(jcr);
 
    if (mode) {                        /* read only access? */
+      Dmsg0(100, "Acquire device for read\n");
       if (!acquire_device_for_read(dcr)) {
          return NULL;
       }

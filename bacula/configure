@@ -23116,6 +23116,7 @@ fi
 
 cd scripts
 chmod 755 startmysql stopmysql bacula startit stopit btraceback mtx-changer
+chmod 755 dvd-writepart dvd-freespace
 chmod 755 bconsole gconsole mtx-changer devel_bacula logrotate
 cd ..
 
