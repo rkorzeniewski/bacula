@@ -161,13 +161,13 @@ Items to note!!!
   old database (the PostgreSQL upgrade scripts not yet tested).
 - You must add --with-openssl to the configure command line if
   you want TLS communications encryption support.
-- The new DVD code is currently non-functional.
 
 Other Items:
 - 2 new scripts, dvd-writepart and dvd-freespace, in the scripts directory,
   which are designed to be used as parameters to Write Part Command and
   Free Space Command. They need the dvd+rw-tools to be installed
   (http://fy.chalmers.se/~appro/linux/DVD+RW/).
+  You must have Python installed to run the dvd-freespace script.
 - Part files support: File volumes can now be splitted in multiple
   files, called "parts".
 
