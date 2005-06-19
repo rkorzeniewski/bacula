@@ -4,11 +4,11 @@
 # Version $Id$
 # 
 
-# autoconf/Make.common.in	 -*- Makefile -*-
+# autoconf/Make.common.in        -*- Makefile -*-
 # release date (man), LSM date, version number/name, current maintainer
-DATE="19 May 2005"
+DATE="@DATE@"
 LSMDATE=@LSMDATE@
-VERSION=1.7.0
+VERSION=@VERSION@
 VERNAME=bacula-$(VERSION)#
 MAINT=Kern Sibbald#
 MAINTEMAIL=<kern@sibbald.com>#
@@ -80,6 +80,10 @@ configure: autoconf/configure.in autoconf/aclocal.m4 autoconf/acconfig.h autocon
 	autoconf --prepend-include=$(srcdir)/autoconf \
 	autoconf/configure.in > configure
 	chmod 755 configure
+
+Makefile: Makefile.in
+	cd $(topdir) \
+	    && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 Makefiles:
 	$(SHELL) config.status
