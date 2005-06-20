@@ -83,6 +83,7 @@ int read_dev_volume_label(DCR *dcr)
          if (!dev->poll && jcr->label_errors++ > 100) {
             Jmsg(jcr, M_FATAL, 0, "Too many tries: %s", jcr->errmsg);
          }
+         Dmsg0(100, "return VOL_NAME_ERROR\n");
          return VOL_NAME_ERROR;
       }
       Dmsg0(30, "Leave read_volume_label() VOL_OK\n");
@@ -97,7 +98,7 @@ int read_dev_volume_label(DCR *dcr)
    if (!rewind_dev(dev)) {
       Mmsg(jcr->errmsg, _("Couldn't rewind device %s: ERR=%s\n"), 
          dev->print_name(), strerror_dev(dev));
-      Dmsg1(30, "%s", jcr->errmsg);
+      Dmsg1(30, "return VOL_NO_MEDIA: %s", jcr->errmsg);
       return VOL_NO_MEDIA;
    }
    bstrncpy(dev->VolHdr.Id, "**error**", sizeof(dev->VolHdr.Id));
@@ -122,6 +123,7 @@ int read_dev_volume_label(DCR *dcr)
          }
          empty_block(block);
          rewind_dev(dev);
+         Dmsg1(100, "return %d\n", stat);
          return stat;
       }
       if (stat != VOL_OK) {           /* Not an ANSI/IBM label, so re-read */
@@ -163,6 +165,7 @@ int read_dev_volume_label(DCR *dcr)
          return VOL_OK;
       }
       rewind_dev(dev);
+      Dmsg0(100, "return VOL_NO_LABEL\n");
       return VOL_NO_LABEL;
    }
 
@@ -181,7 +184,7 @@ int read_dev_volume_label(DCR *dcr)
        dev->VolHdr.VerNum != OldCompatibleBaculaTapeVersion2) {
       Mmsg(jcr->errmsg, _("Volume on %s has wrong Bacula version. Wanted %d got %d\n"),
          dev->print_name(), BaculaTapeVersion, dev->VolHdr.VerNum);
-      Dmsg1(30, "%s", jcr->errmsg);
+      Dmsg1(30, "VOL_VERSION_ERROR: %s", jcr->errmsg);
       return VOL_VERSION_ERROR;
    }
 
@@ -195,6 +198,7 @@ int read_dev_volume_label(DCR *dcr)
       if (!dev->poll && jcr->label_errors++ > 100) {
          Jmsg(jcr, M_FATAL, 0, "Too many tries: %s", jcr->errmsg);
       }
+      Dmsg0(100, "return VOL_LABEL_ERROR\n");
       return VOL_LABEL_ERROR;
    }
 
@@ -214,6 +218,7 @@ int read_dev_volume_label(DCR *dcr)
       if (!dev->poll && jcr->label_errors++ > 100) {
          Jmsg(jcr, M_FATAL, 0, "Too many tries: %s", jcr->errmsg);
       }
+      Dmsg0(100, "return VOL_NAME_ERROR\n");
       return VOL_NAME_ERROR;
    }
    Dmsg1(30, "Copy vol_name=%s\n", dev->VolHdr.VolumeName);
