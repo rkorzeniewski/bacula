@@ -1205,7 +1205,7 @@ static int backup_cmd(JCR *jcr)
 
 #ifdef WIN32_VSS
    /* START VSS ON WIN 32 */
-   if (g_pVSSClient) {
+   if (g_pVSSClient && enable_vss == 1) {
       if (g_pVSSClient->InitializeForBackup()) {
          /* tell vss which drives to snapshot */   
          char szWinDriveLetters[27];   
@@ -1294,7 +1294,7 @@ cleanup:
 #ifdef WIN32_VSS
    /* STOP VSS ON WIN 32 */
    /* tell vss to close the backup session */
-   if (g_pVSSClient)
+   if (g_pVSSClient && enable_vss == 1)
       g_pVSSClient->CloseBackup();
 #endif
 

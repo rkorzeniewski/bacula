@@ -44,6 +44,7 @@
 
 extern void d_msg(const char *file, int line, int level, const char *fmt,...);
 extern DWORD   g_platform_id;
+extern int enable_vss;  
 
 // from MicroSoft SDK (KES) is the diff between Jan 1 1601 and Jan 1 1970
 #ifdef HAVE_MINGW
@@ -85,7 +86,7 @@ cygwin_conv_to_win32_path(const char *name, char *win32_name, DWORD dwSize)
        \\\\?\\GLOBALROOT\\Device\\HarddiskVolumeShadowCopy1\\bacula\\uninstall.exe
        from c:\bacula\uninstall.exe
     */ 
-    if (g_pVSSClient) {
+    if (g_pVSSClient && enable_vss == 1) {
       POOLMEM* pszBuf = get_pool_memory (PM_FNAME);
       pszBuf = check_pool_memory_size(pszBuf, dwSize);
       bstrncpy (pszBuf, tname, strlen(tname)+1);
