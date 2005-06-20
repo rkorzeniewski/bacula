@@ -5,6 +5,7 @@ General:
 
 Changes to 1.37.25 released on 20 Jun 05:
 20Jun05:
+- Remove (cd gnome-console; make clean) from src/Makefile.in
 - Fix bug where Storage daemon gets confused about what
   tape is mounted. (one line of code was inadvertently 
   deleted).

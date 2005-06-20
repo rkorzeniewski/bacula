@@ -43,7 +43,6 @@ clean:
 	@$(RMF) AUTHORS ChangeLog Makefile.am NEWS README acconfig.h autogen.sh 
 	@$(RMF) configure.in stamp.h stamp-h.in
 	@$(RMF) -r po
-	(cd gnome-console; $(MAKE) clean)
 	(cd gnome2-console; $(MAKE) clean)
 
 realclean: clean
