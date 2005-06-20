@@ -4,13 +4,12 @@
   Bacula code: Total files = 433 Total lines = 140,329 (*.h *.c *.in)
 
 Major Changes:
-- This version has a new DIR <--> SD protocol. Both must be
-  upgraded at the same time. Deamons are not compatible with
-  prior versions. All FDs must be upgraded.
 - There is a new database format that is not compatible
-  with previous databases.
-- SQLite3 support, but it seems to run at 1/2 to 1/4 the speed of
-  SQLite2.
+  with previous databases. You must upgrade if converting
+  from 1.36.x.
+- The Director, Storage daemon, and File daemons are
+  Deamons are not compatible with  prior versions. 
+  All FDs must be upgraded at the same time.
 - Multiple drive autochanger support.
 - Support for ANSI/IBM labels.
 - New communications protocol between DIR and SD to reserve 
@@ -31,9 +30,11 @@ Major Changes:
   records have been removed from the catalog.
 - Restore of a directory (non-recursive, i.e. only one level).
 - Support for TLS (ssl) between all the daemon connections thanks
-  to Landon Fuller.
+  to Landon Fuller. wx-console and gnome-console are not yet
+  TLS enabled.
 - Any Volume in the Pool named Scratch may be reassigned to any
   other Pool when a new Volume is needed.
+- Seeking on disk Volumes during restore.
 - You may clone a Job and thus write (almost) the same data
   to multiple Volumes simultaneously (see below). Actually, 
   any Job may start any other Job with this mechanism, so it
@@ -43,7 +44,11 @@ Major Changes:
   backup exclusively opened files (thanks to Thorsten Engel).
 - New manual format with an index (thanks to Karl Cunningham).
 - New Web site format (thanks to Michael Scherer).
-- Seeking on disk Volumes during restore.
+- SQLite3 support, but it seems to run at 1/2 to 1/4 the speed of
+  SQLite2.
+- Web-bacula, previously a separate project by Juan Luis Frances,
+  is now included in the Bacula GUI release (yet to be fully
+  created).
 
 New Directives:
 - New Job directive "Prefer Mounted Volumes = yes|no" causes the
