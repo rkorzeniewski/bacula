@@ -190,7 +190,7 @@ read_volume:
       return false;
    }
 
-   Dmsg2(100, "dirVol=%s dirStat=%s\n", dcr->VolumeName,
+   Dmsg2(100, "Want dirVol=%s dirStat=%s\n", dcr->VolumeName,
       dcr->VolCatInfo.VolCatStatus);
    /*
     * At this point, dev->VolCatInfo has what is in the drive, if anything,
@@ -230,6 +230,7 @@ read_volume:
       memcpy(&VolCatInfo, &dcr->VolCatInfo, sizeof(VolCatInfo));
       memcpy(&devVolCatInfo, &dev->VolCatInfo, sizeof(devVolCatInfo));
       /* Check if this is a valid Volume in the pool */
+      bstrncpy(dcr->VolumeName, dev->VolHdr.VolumeName, sizeof(dcr->VolumeName));
       if (!dir_get_volume_info(dcr, GET_VOL_INFO_FOR_WRITE)) {
          /* Restore desired volume name, note device info out of sync */
          /* This gets the info regardless of the Pool */
