@@ -444,12 +444,13 @@ static void open_file_device(DEVICE *dev, int mode)
       Emsg0(M_ABORT, 0, _("Illegal mode given to open dev.\n"));
    }
    /* If creating file, give 0640 permissions */
-   Dmsg2(29, "open(%s, 0x%x, 0640)\n", archive_name.c_str(), dev->mode);
+   Dmsg3(29, "mode=%d open(%s, 0x%x, 0640)\n", mode, archive_name.c_str(), dev->mode);
    if ((dev->fd = open(archive_name.c_str(), dev->mode, 0640)) < 0) {
       berrno be;
       dev->dev_errno = errno;
       Mmsg2(dev->errmsg, _("Could not open: %s, ERR=%s\n"), archive_name.c_str(), 
             be.strerror());
+      Dmsg1(29, "open failed: %s", dev->errmsg);
       Emsg0(M_FATAL, 0, dev->errmsg);
    } else {
       dev->dev_errno = 0;
@@ -462,6 +463,7 @@ static void open_file_device(DEVICE *dev, int mode)
          Mmsg2(dev->errmsg, _("Could not fstat: %s, ERR=%s\n"), archive_name.c_str(), 
                be.strerror());
          Emsg0(M_FATAL, 0, dev->errmsg);
+         Dmsg1(29, "open failed: %s", dev->errmsg);
       } else {
          dev->part_size = filestat.st_size;
       }
@@ -469,7 +471,7 @@ static void open_file_device(DEVICE *dev, int mode)
    Dmsg5(29, "open dev: %s fd=%d opened, part=%d/%d, part_size=%u\n", 
       dev->is_dvd()?"DVD":"disk", dev->fd, dev->part, dev->num_parts, 
       dev->part_size);
-   if (dev->is_dvd() && (mode != OPEN_READ_ONLY) && 
+   if (dev->is_open() && dev->is_dvd() && (mode != OPEN_READ_ONLY) && 
        (dev->free_space_errno == 0 || dev->num_parts == dev->part)) {
       update_free_space_dev(dev);
    }

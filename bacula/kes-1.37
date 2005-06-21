@@ -3,6 +3,11 @@
 
 General:
 
+Changes to 1.37.26:
+21Jun05:
+- Add debug error printout when open() fails.
+- If open() of DVD fails in mount.c, return false.
+
 Changes to 1.37.25 released on 20 Jun 05:
 20Jun05:
 - Remove (cd gnome-console; make clean) from src/Makefile.in
