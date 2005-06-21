@@ -1233,7 +1233,7 @@ static int backup_cmd(JCR *jcr)
 	    }
 	 }
       } else {
-         Jmsg(jcr, M_WARNING, 0, _("VSS was not initialized properly. VSS support is disabled."));
+         Jmsg(jcr, M_WARNING, 0, _("VSS was not initialized properly. VSS support is disabled.\n"));
       }
    }
 #endif
