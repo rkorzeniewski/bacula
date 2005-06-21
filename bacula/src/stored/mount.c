@@ -260,6 +260,7 @@ read_volume:
     */
    case VOL_IO_ERROR:
       if (dev->is_dvd()) {
+         Jmsg(jcr, M_FATAL, 0, "%s", jcr->errmsg);
          return false;       /* we could not write on DVD */
       }
       /* Fall through wanted */
@@ -308,7 +309,6 @@ read_volume:
    default:
       /* Send error message */
       if (!dev->poll) {
-         Jmsg(jcr, M_WARNING, 0, "%s", jcr->errmsg);
       } else {
          Dmsg1(200, "Msg suppressed by poll: %s\n", jcr->errmsg);
       }
