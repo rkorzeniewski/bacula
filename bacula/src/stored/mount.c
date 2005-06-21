@@ -258,8 +258,12 @@ read_volume:
    /*
     * At this point, we assume we have a blank tape mounted.
     */
-   case VOL_NO_LABEL:
    case VOL_IO_ERROR:
+      if (dev->is_dvd()) {
+         return false;       /* we could not write on DVD */
+      }
+      /* Fall through wanted */
+   case VOL_NO_LABEL:
       /*
        * If permitted, we label the device, make sure we can do
        *   it by checking that the VolCatBytes is zero => not labeled,
