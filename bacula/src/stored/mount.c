@@ -261,6 +261,7 @@ read_volume:
    case VOL_IO_ERROR:
       if (dev->is_dvd()) {
          Jmsg(jcr, M_FATAL, 0, "%s", jcr->errmsg);
+         mark_volume_in_error(dcr);
          return false;       /* we could not write on DVD */
       }
       /* Fall through wanted */
