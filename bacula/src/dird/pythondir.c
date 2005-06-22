@@ -70,9 +70,10 @@ static struct s_vars getvars[] = {
    { N_("JobName"),    "s"},
    { N_("JobStatus"),  "s"},
    { N_("Priority"),   "i"},
-   { N_("Version"),    "s"},
+   { N_("Version"),    "(ss)"},
    { N_("ConfigFile"), "s"},
    { N_("WorkingDir"), "s"},
+   { N_("CatalogRes"), "(sssssi)"},
 
    { NULL,             NULL}
 };
@@ -147,11 +148,17 @@ PyObject *job_getattr(PyObject *self, char *attrname)
    case 13:                           /* Priority */
       return Py_BuildValue(getvars[i].fmt, jcr->JobPriority);
    case 14:                           /* Version */
-      return Py_BuildValue(getvars[i].fmt, VERSION);
+      return Py_BuildValue(getvars[i].fmt, VERSION, BDATE);
    case 15:                           /* Config Dir */
       return Py_BuildValue(getvars[i].fmt, configfile);
    case 16:                           /* Working Dir */
       return Py_BuildValue(getvars[i].fmt, director->working_directory);
+   case 17:                           /* CatalogRes */
+      return Py_BuildValue(getvars[i].fmt,
+         jcr->catalog->db_name, jcr->catalog->db_address, 
+         jcr->catalog->db_user, jcr->catalog->db_password,
+         jcr->catalog->db_socket, jcr->catalog->db_port);
+
    }
    bsnprintf(errmsg, sizeof(errmsg), "Attribute %s not found.", attrname);
 bail_out:

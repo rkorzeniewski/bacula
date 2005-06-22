@@ -5,6 +5,9 @@ General:
 
 Changes to 1.37.26:
 22Jun05:
+- Make Version a tuple (version, build-date)
+- Add CatalogRes tuple (DbName, Address, User, Password,
+    Socket, Port)
 - Add Version, ConfigDir, and WorkingDir as Python attributes
   in the Director.
 - Implement code (principally for Win32) that on failure to
