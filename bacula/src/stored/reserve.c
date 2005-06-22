@@ -194,6 +194,9 @@ void create_volume_list()
 void free_volume_list()
 {
    VOLRES *vol;
+   if (!vol_list) {
+      return;
+   }
    for (vol=(VOLRES *)vol_list->first(); vol; vol=(VOLRES *)vol_list->next(vol)) {
       Dmsg1(000, "Unreleased Volume=%s\n", vol->vol_name);
    }
