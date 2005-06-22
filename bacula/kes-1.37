@@ -4,6 +4,16 @@
 General:
 
 Changes to 1.37.26:
+22Jun05:
+- Add Version, ConfigDir, and WorkingDir as Python attributes
+  in the Director.
+- Implement code (principally for Win32) that on failure to
+  create a file, it will cd into the directory and attempt
+  to create the file using a relative path. This avoids creating
+  files with paths which fail on Win32.
+- Fix parsing of times and sizes with decimal numbers.
+- Make free_volume_list() in SD work if vol list is not
+  initialized (./bacula-sd -t).
 21Jun05:
 - Add debug error printout when open() fails.
 - If open() of DVD fails in mount.c, return false.

@@ -157,17 +157,13 @@ char *edit_int64(int64_t val, char *buf)
 
 
 /*
- * Given a string "str", separate the integer part into
+ * Given a string "str", separate the numeric part into
  *   str, and the modifier into mod.
  */
 static bool get_modifier(char *str, char *num, int num_len, char *mod, int mod_len)
 {
    int i, len, num_begin, num_end, mod_begin, mod_end;
 
-   /*
-    * Look for modifier by walking back looking for the first
-    *   space or digit.
-    */
    strip_trailing_junk(str);
    len = strlen(str);
 
@@ -180,7 +176,7 @@ static bool get_modifier(char *str, char *num, int num_len, char *mod, int mod_l
 
    /* Walk through integer part */
    for ( ; i<len; i++) {
-      if (!B_ISDIGIT(str[i])) {
+      if (!B_ISDIGIT(str[i]) && str[i] != '.') {
          break;
       }
    }
@@ -191,6 +187,7 @@ static bool get_modifier(char *str, char *num, int num_len, char *mod, int mod_l
    if (num_len == 0) {
       return false;
    }
+   /* Eat any spaces in front of modifier */
    for ( ; i<len; i++) {
       if (!B_ISSPACE(str[i])) {
          break;
@@ -214,6 +211,7 @@ static bool get_modifier(char *str, char *num, int num_len, char *mod, int mod_l
       return false;
    }
    bstrncpy(str, &str[mod_end], len);
+   Dmsg2(900, "num=%s mod=%s\n", num, mod);
 
    return true;
 }

@@ -32,24 +32,18 @@
  *
  *   Version $Id$
  */
-
 /*
    Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -624,6 +618,7 @@ void store_size(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token;
    uint64_t uvalue;
+   char bsize[500];
 
    Dmsg0(900, "Enter store_size\n");
    token = lex_get_token(lc, T_SKIP_EOL);
@@ -632,7 +627,18 @@ void store_size(LEX *lc, RES_ITEM *item, int index, int pass)
    case T_NUMBER:
    case T_IDENTIFIER:
    case T_UNQUOTED_STRING:
-      if (!size_to_uint64(lc->str, lc->str_len, &uvalue)) {
+      bstrncpy(bsize, lc->str, sizeof(bsize));  /* save first part */
+      /* if terminated by space, scan and get modifier */
+      if (lc->ch == ' ') {
+         token = lex_get_token(lc, T_ALL);
+         switch (token) {
+         case T_IDENTIFIER:
+         case T_UNQUOTED_STRING:
+            bstrncat(bsize, lc->str, sizeof(bsize));
+            break;
+         }
+      }
+      if (!size_to_uint64(bsize, strlen(bsize), &uvalue)) {
          scan_err1(lc, _("expected a size number, got: %s"), lc->str);
       }
       *(uint64_t *)(item->value) = uvalue;
@@ -660,7 +666,8 @@ void store_time(LEX *lc, RES_ITEM *item, int index, int pass)
    case T_NUMBER:
    case T_IDENTIFIER:
    case T_UNQUOTED_STRING:
-      bstrncpy(period, lc->str, sizeof(period));
+      bstrncpy(period, lc->str, sizeof(period));  /* get first part */
+      /* if terminated by space, scan and get modifier */
       if (lc->ch == ' ') {
          token = lex_get_token(lc, T_ALL);
          switch (token) {

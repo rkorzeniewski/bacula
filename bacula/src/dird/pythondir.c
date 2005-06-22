@@ -29,6 +29,7 @@
 #undef _POSIX_C_SOURCE
 #include <Python.h>
 
+extern char *configfile;
 extern JCR *get_jcr_from_PyObject(PyObject *self);
 extern PyObject *find_method(PyObject *eventsObject, PyObject *method, 
          const char *name);
@@ -69,6 +70,9 @@ static struct s_vars getvars[] = {
    { N_("JobName"),    "s"},
    { N_("JobStatus"),  "s"},
    { N_("Priority"),   "i"},
+   { N_("Version"),    "s"},
+   { N_("ConfigFile"), "s"},
+   { N_("WorkingDir"), "s"},
 
    { NULL,             NULL}
 };
@@ -142,6 +146,12 @@ PyObject *job_getattr(PyObject *self, char *attrname)
       return Py_BuildValue(getvars[i].fmt, buf);
    case 13:                           /* Priority */
       return Py_BuildValue(getvars[i].fmt, jcr->JobPriority);
+   case 14:                           /* Version */
+      return Py_BuildValue(getvars[i].fmt, VERSION);
+   case 15:                           /* Config Dir */
+      return Py_BuildValue(getvars[i].fmt, configfile);
+   case 16:                           /* Working Dir */
+      return Py_BuildValue(getvars[i].fmt, director->working_directory);
    }
    bsnprintf(errmsg, sizeof(errmsg), "Attribute %s not found.", attrname);
 bail_out:

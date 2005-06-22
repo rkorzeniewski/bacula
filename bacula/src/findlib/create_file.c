@@ -141,7 +141,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
          attr->ofname[pnl] = 0;                 /* terminate path */
 
          if (!path_already_seen(jcr, attr->ofname, pnl)) {
-            Dmsg1(50, "Make path %s\n", attr->ofname);
+            Dmsg1(100, "Make path %s\n", attr->ofname);
             /*
              * If we need to make the directory, ensure that it is with
              * execute bit set (i.e. parent_mode), and preserve what already
@@ -170,9 +170,50 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
             Jmsg1(jcr, M_ERROR, 0, "bpkt already open fid=%d\n", bfd->fid);
             bclose(bfd);
          }
+         /*
+          * If the open fails, we attempt to cd into the directory
+          *  and create the file with a relative path rather than
+          *  the full absolute path.  This is for Win32 where
+          *  path names may be too long to create.
+          */
          if ((bopen(bfd, attr->ofname, mode, S_IRUSR | S_IWUSR)) < 0) {
             berrno be;
+            int stat;
             be.set_errno(bfd->berrno);
+            Dmsg2(000, "bopen failed errno=%d: ERR=%s\n", bfd->berrno,  
+               be.strerror(bfd->berrno));
+            if (pnl > 0) {
+               char savechr;
+               struct saved_cwd cwd;
+               savechr = attr->ofname[pnl];
+               attr->ofname[pnl] = 0;                 /* terminate path */
+               Dmsg1(000, "Do chdir %s\n", attr->ofname);
+               if (save_cwd(&cwd) != 0) {
+                  Jmsg0(jcr, M_ERROR, 0, _("Could not save_dirn"));
+                  attr->ofname[pnl] = savechr;
+                  return CF_ERROR;
+               }
+               if (chdir(attr->ofname) < 0) {
+                  Jmsg2(jcr, M_ERROR, 0, _("Could not chdir to %s: ERR=%s\n"),
+                        attr->ofname, be.strerror());
+                  restore_cwd(&cwd, NULL, NULL);
+                  free_cwd(&cwd);
+                  attr->ofname[pnl] = savechr;
+                  return CF_ERROR;
+               }
+               attr->ofname[pnl] = savechr;
+               Dmsg1(000, "Do open %s\n", &attr->ofname[pnl+1]);
+               if ((bopen(bfd, &attr->ofname[pnl+1], mode, S_IRUSR | S_IWUSR)) < 0) {
+                  stat = CF_ERROR;
+               } else {
+                  stat = CF_EXTRACT;
+               }
+               restore_cwd(&cwd, NULL, NULL);
+               free_cwd(&cwd);
+               if (stat == CF_EXTRACT) {
+                  return CF_EXTRACT;
+               }
+            }
             Jmsg2(jcr, M_ERROR, 0, _("Could not create %s: ERR=%s\n"),
                   attr->ofname, be.strerror());
             return CF_ERROR;

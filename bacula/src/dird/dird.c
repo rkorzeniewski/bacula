@@ -45,7 +45,6 @@ void store_level(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_replace(LEX *lc, RES_ITEM *item, int index, int pass);
 void init_device_resources();
 
-static char *configfile = NULL;
 static char *runjob = NULL;
 static int background = 1;
 static void init_reload(void);
@@ -54,6 +53,7 @@ static void init_reload(void);
 DIRRES *director;                     /* Director resource */
 int FDConnectTimeout;
 int SDConnectTimeout;
+char *configfile = NULL;
 
 /* Globals Imported */
 extern int r_first, r_last;           /* first and last resources */
