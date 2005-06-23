@@ -218,10 +218,10 @@ static bool get_modifier(char *str, char *num, int num_len, char *mod, int mod_l
 
 /*
  * Convert a string duration to utime_t (64 bit seconds)
- * Returns 0: if error
-           1: if OK, and value stored in value
+ * Returns false: if error
+           true:  if OK, and value stored in value
  */
-int duration_to_utime(char *str, utime_t *value)
+bool duration_to_utime(char *str, utime_t *value)
 {
    int i, mod_len;
    double val, total = 0.0;
@@ -239,12 +239,12 @@ int duration_to_utime(char *str, utime_t *value)
 
    while (*str) {
       if (!get_modifier(str, num_str, sizeof(num_str), mod_str, sizeof(mod_str))) {
-         return 0;
+         return false;
       }
       /* Now find the multiplier corresponding to the modifier */
       mod_len = strlen(mod_str);
       if (mod_len == 0) {
-         i = 1;                          /* assume seconds */
+         i = 1;                          /* default to seconds */
       } else {
          for (i=0; mod[i]; i++) {
             if (strncasecmp(mod_str, mod[i], mod_len) == 0) {
@@ -252,19 +252,19 @@ int duration_to_utime(char *str, utime_t *value)
             }
          }
          if (mod[i] == NULL) {
-            i = 1;                       /* no modifier, assume secs */
+            return false;
          }
       }
       Dmsg2(900, "str=%s: mult=%d\n", num_str, mult[i]);
       errno = 0;
       val = strtod(num_str, NULL);
       if (errno != 0 || val < 0) {
-         return 0;
+         return false;
       }
       total += val * mult[i];
    }
    *value = (utime_t)total;
-   return 1;
+   return true;
 }
 
 /*
@@ -298,10 +298,10 @@ char *edit_utime(utime_t val, char *buf, int buf_len)
 
 /*
  * Convert a size in bytes to uint64_t
- * Returns 0: if error
-           1: if OK, and value stored in value
+ * Returns false: if error
+           true:  if OK, and value stored in value
  */
-int size_to_uint64(char *str, int str_len, uint64_t *value)
+bool size_to_uint64(char *str, int str_len, uint64_t *value)
 {
    int i, mod_len;
    double val;
@@ -321,22 +321,26 @@ int size_to_uint64(char *str, int str_len, uint64_t *value)
    }
    /* Now find the multiplier corresponding to the modifier */
    mod_len = strlen(mod_str);
-   for (i=0; mod[i]; i++) {
-      if (strncasecmp(mod_str, mod[i], mod_len) == 0) {
-         break;
+   if (mod_len == 0) {
+      i = 0;                          /* default with no modifier = 1 */
+   } else {
+      for (i=0; mod[i]; i++) {
+         if (strncasecmp(mod_str, mod[i], mod_len) == 0) {
+            break;
+         }
       }
-   }
-   if (mod[i] == NULL) {
-      i = 0;                          /* no modifier found, assume 1 */
+      if (mod[i] == NULL) {
+         return false;
+      }
    }
    Dmsg2(900, "str=%s: mult=%d\n", str, mult[i]);
    errno = 0;
    val = strtod(num_str, NULL);
    if (errno != 0 || val < 0) {
-      return 0;
+      return false;
    }
-  *value = (utime_t)(val * mult[i]);
-   return 1;
+   *value = (utime_t)(val * mult[i]);
+   return true;
 }
 
 /*

@@ -4,11 +4,13 @@
 General:
 
 Changes to 1.37.26:
+23Jun05
+- Check for incorrect duration and size modifiers in conf files.
 22Jun05:
 - Make Version a tuple (version, build-date)
-- Add CatalogRes tuple (DbName, Address, User, Password,
+- Add CatalogRes tuple (DBName, Address, User, Password,
     Socket, Port)
-- Add Version, ConfigDir, and WorkingDir as Python attributes
+- Add Version, ConfigFile, and WorkingDir as Python attributes
   in the Director.
 - Implement code (principally for Win32) that on failure to
   create a file, it will cd into the directory and attempt

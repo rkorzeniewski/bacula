@@ -49,6 +49,9 @@ Document:
 - Document the multiple-drive-changer.txt script.
 
 For 1.37:
+- Refuse to prune last valid Full backup. Same goes for Catalog.
+- Why is   SpoolDirectory = /home/bacula/spool;  not reported
+  as an error when writing a DVD?
 - Add setting Volume State via Python.
 - Make bootstrap file handle multiple MediaTypes (SD)
 - --without-openssl breaks at least on Solaris.
@@ -1286,4 +1289,3 @@ Block Position: 0
 - Implement "PreferMountedVolumes = yes|no" in Job resource.
 ##   Integrate web-bacula into a new Bacula project with
      bimagemgr.
-
