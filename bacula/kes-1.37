@@ -4,6 +4,10 @@
 General:
 
 Changes to 1.37.26:
+26Jun05
+- Add set_mode method in DEVICE.
+- Correct set_mode method in DEVICE
+- Add more DVD debug info 
 23Jun05
 - Check for incorrect duration and size modifiers in conf files.
 22Jun05:

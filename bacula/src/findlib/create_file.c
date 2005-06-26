@@ -179,11 +179,11 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
          if ((bopen(bfd, attr->ofname, mode, S_IRUSR | S_IWUSR)) < 0) {
             berrno be;
             int stat;
-            be.set_errno(bfd->berrno);
             Dmsg2(000, "bopen failed errno=%d: ERR=%s\n", bfd->berrno,  
                be.strerror(bfd->berrno));
-            if (pnl > 0) {
+            if (strlen(attr->ofname) > 250) {   /* Microsoft limitation */
                char savechr;
+               char *p, *e;
                struct saved_cwd cwd;
                savechr = attr->ofname[pnl];
                attr->ofname[pnl] = 0;                 /* terminate path */
@@ -193,7 +193,24 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
                   attr->ofname[pnl] = savechr;
                   return CF_ERROR;
                }
-               if (chdir(attr->ofname) < 0) {
+               p = attr->ofname;
+               while ((e = strchr(p, '/'))) {
+                  *e = 0;
+                  if (chdir(p) < 0) {
+                     berrno be;
+                     Jmsg2(jcr, M_ERROR, 0, _("Could not chdir to %s: ERR=%s\n"),
+                           attr->ofname, be.strerror());
+                     restore_cwd(&cwd, NULL, NULL);
+                     free_cwd(&cwd);
+                     attr->ofname[pnl] = savechr;
+                     *e = '/';
+                     return CF_ERROR;
+                  }
+                  *e = '/';
+                  p = e + 1;
+               }
+               if (chdir(p) < 0) {
+                  berrno be;
                   Jmsg2(jcr, M_ERROR, 0, _("Could not chdir to %s: ERR=%s\n"),
                         attr->ofname, be.strerror());
                   restore_cwd(&cwd, NULL, NULL);
@@ -215,7 +232,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
                }
             }
             Jmsg2(jcr, M_ERROR, 0, _("Could not create %s: ERR=%s\n"),
-                  attr->ofname, be.strerror());
+                  attr->ofname, be.strerror(bfd->berrno));
             return CF_ERROR;
          }
          return CF_EXTRACT;
