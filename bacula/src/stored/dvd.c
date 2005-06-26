@@ -42,14 +42,17 @@ void get_filename(DEVICE *dev, char *VolumeName, POOL_MEM& archive_name)
       /* If we try to open the last part, just open it from disk, 
        * otherwise, open it from the spooling directory.
        */
-      Dmsg2(100, "part=%d num_parts=%d\n", dev->part, dev->num_parts);
+      Dmsg2(100, "DVD part=%d num_parts=%d\n", dev->part, dev->num_parts);
       if (dev->num_parts == 0 || dev->part < dev->num_parts) {
+         Dmsg1(100, "Arch = mount point: %s\n", dev->device->mount_point);
          pm_strcpy(archive_name, dev->device->mount_point);
       } else {
          /* Use the working directory if spool directory is not defined */
          if (dev->device->spool_directory) {
+            Dmsg1(100, "Arch = spool: %s\n", dev->device->spool_directory);
             pm_strcpy(archive_name, dev->device->spool_directory);
          } else {
+            Dmsg1(100, "Arch = working: %s\n", working_directory);
             pm_strcpy(archive_name, working_directory);
          }
       }
@@ -67,6 +70,7 @@ void get_filename(DEVICE *dev, char *VolumeName, POOL_MEM& archive_name)
       bsnprintf(partnumber, sizeof(partnumber), "%d", dev->part);
       pm_strcat(archive_name, partnumber);
    }
+   Dmsg1(100, "Exit get_filename: arch=%s\n", archive_name.c_str());
 }  
 
 /* Mount the device.
@@ -119,7 +123,7 @@ static bool do_mount_dev(DEVICE* dev, int mount, int dotimeout)
    
    edit_device_codes_dev(dev, ocmd.c_str(), icmd);
    
-   Dmsg2(200, "do_mount_dev: cmd=%s mounted=%d\n", ocmd.c_str(), dev->is_mounted());
+   Dmsg2(200, "do_mount_dev: cmd=%s mounted=%d\n", ocmd.c_str(), !!dev->is_mounted());
 
    if (dotimeout) {
       /* Try at most 1 time to (un)mount the device. This should perhaps be configurable. */
@@ -153,7 +157,7 @@ static bool do_mount_dev(DEVICE* dev, int mount, int dotimeout)
    free_pool_memory(results);
 
 get_out:
-   Dmsg1(29, "Exit do_mount_dev: mounted=%d\n", dev->is_mounted());
+   Dmsg1(29, "Exit do_mount_dev: mounted=%d\n", !!dev->is_mounted());
    return true;
 }
 
@@ -426,6 +430,7 @@ static int dvd_write_part(DEVICE *dev)
    } else {
       Dmsg1(29, "dvd_write_part: command output=%s\n", results);
       POOL_MEM archive_name(PM_FNAME);
+      Dmsg1(100, "Call get_filename. Vol=%s\n", dev->VolCatInfo.VolCatName);
       get_filename(dev, dev->VolCatInfo.VolCatName, archive_name);
       unlink(archive_name.c_str());
       free_pool_memory(results);
@@ -475,6 +480,7 @@ int open_next_part(DEVICE *dev)
       POOL_MEM archive_bkp_name(PM_FNAME);
       struct stat buf;
       
+      Dmsg1(100, "Call get_filename. Vol=%s\n", dev->VolCatInfo.VolCatName);
       get_filename(dev, dev->VolCatInfo.VolCatName, archive_name);
       
       /* Check if the next part exists. */

@@ -312,10 +312,12 @@ public:
    void clear_mounted() { state &= ~ST_MOUNTED; };
    void clear_media() { state &= ~ST_MEDIA; };
    void clear_short_block() { state &= ~ST_SHORT; };
+
    void block(int why); /* in dev.c */
    void unblock();      /* in dev.c */
    void close();        /* in dev.c */
    int open(char *VolName, int mode); /* in dev.c */
+   void set_mode(int mode); /* in dev.c */
 
    void set_blocked(int block) { dev_blocked = block; };
    int  get_blocked() const { return dev_blocked; };

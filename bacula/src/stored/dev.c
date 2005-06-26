@@ -295,6 +295,19 @@ DEVICE::open(char *VolName, int mode)
    return fd;
 }
 
+void DEVICE::set_mode(int new_mode) 
+{
+   if (new_mode == OPEN_READ_WRITE) {
+      mode = O_RDWR | O_BINARY;
+   } else if (new_mode == OPEN_READ_ONLY) {
+      mode = O_RDONLY | O_BINARY;
+   } else if (new_mode == OPEN_WRITE_ONLY) {
+      mode = O_WRONLY | O_BINARY;
+   } else {
+      Emsg0(M_ABORT, 0, _("Illegal mode given to open dev.\n"));
+   }
+}
+
 static void open_tape_device(DEVICE *dev, int mode) 
 {
    int nonblocking = 0;;
@@ -303,15 +316,7 @@ static void open_tape_device(DEVICE *dev, int mode)
    int ioerrcnt = 10;
    Dmsg0(29, "open dev: device is tape\n");
 
-   if (mode == OPEN_READ_WRITE) {
-      dev->mode = O_RDWR | O_BINARY;
-   } else if (mode == OPEN_READ_ONLY) {
-      dev->mode = O_RDONLY | O_BINARY;
-   } else if (mode == OPEN_WRITE_ONLY) {
-      dev->mode = O_WRONLY | O_BINARY;
-   } else {
-      Emsg0(M_ABORT, 0, _("Illegal mode given to open dev.\n"));
-   }
+   dev->set_mode(mode);
    timeout = dev->max_open_wait;
    errno = 0;
    if (dev->open_nowait) {
@@ -400,21 +405,14 @@ static void open_file_device(DEVICE *dev, int mode)
       return;
    }
 
+   Dmsg1(100, "Call get_filename. Vol=%s\n", dev->VolCatInfo.VolCatName);
    get_filename(dev, dev->VolCatInfo.VolCatName, archive_name);
          
    Dmsg3(29, "open dev: %s dev=%s mode=%d\n", dev->is_dvd()?"DVD":"disk",
          archive_name.c_str(), mode);
    dev->openmode = mode;
    
-   if (mode == OPEN_READ_WRITE) {
-      dev->mode = O_CREAT | O_RDWR | O_BINARY;
-   } else if (mode == OPEN_READ_ONLY) {
-      dev->mode = O_RDONLY | O_BINARY;
-   } else if (mode == OPEN_WRITE_ONLY) {
-      dev->mode = O_WRONLY | O_BINARY;
-   } else {
-      Emsg0(M_ABORT, 0, _("Illegal mode given to open dev.\n"));
-   }
+   dev->set_mode(mode);
    /* If creating file, give 0640 permissions */
    Dmsg3(29, "mode=%d open(%s, 0x%x, 0640)\n", mode, archive_name.c_str(), dev->mode);
    if ((dev->fd = open(archive_name.c_str(), dev->mode, 0640)) < 0) {
@@ -467,6 +465,7 @@ static void open_dvd_device(DEVICE *dev, int mode)
       dev->num_parts = dev->VolCatInfo.VolCatParts;
    }
    
+   Dmsg1(100, "Call get_filename. Vol=%s\n", dev->VolCatInfo.VolCatName);
    get_filename(dev, dev->VolCatInfo.VolCatName, archive_name);
 
    if (mount_dev(dev, 1) < 0) {
@@ -489,15 +488,7 @@ static void open_dvd_device(DEVICE *dev, int mode)
       mode = OPEN_READ_ONLY;
    }
    
-   if (mode == OPEN_READ_WRITE) {
-      dev->mode = O_CREAT | O_RDWR | O_BINARY;
-   } else if (mode == OPEN_READ_ONLY) {
-      dev->mode = O_RDONLY | O_BINARY;
-   } else if (mode == OPEN_WRITE_ONLY) {
-      dev->mode = O_WRONLY | O_BINARY;
-   } else {
-      Emsg0(M_ABORT, 0, _("Illegal mode given to open dev.\n"));
-   }
+   dev->set_mode(mode);
    /* If creating file, give 0640 permissions */
    Dmsg3(29, "mode=%d open(%s, 0x%x, 0640)\n", mode, archive_name.c_str(), dev->mode);
    if ((dev->fd = open(archive_name.c_str(), dev->mode, 0640)) < 0) {
@@ -524,9 +515,8 @@ static void open_dvd_device(DEVICE *dev, int mode)
          update_pos_dev(dev);                /* update position */
       }
    }
-   Dmsg5(29, "open dev: %s fd=%d opened, part=%d/%d, part_size=%u\n", 
-      dev->is_dvd()?"DVD":"disk", dev->fd, dev->part, dev->num_parts, 
-      dev->part_size);
+   Dmsg4(29, "open dev: DVD fd=%d opened, part=%d/%d, part_size=%u\n", 
+      dev->fd, dev->part, dev->num_parts, dev->part_size);
    if (dev->is_open() && dev->is_dvd() && (mode != OPEN_READ_ONLY) && 
        (dev->free_space_errno == 0 || dev->num_parts == dev->part)) {
       update_free_space_dev(dev);
@@ -1589,9 +1579,11 @@ static void do_close(DEVICE *dev)
       struct stat statp;
       POOL_MEM archive_name(PM_FNAME);
       dev->part = dev->num_parts;
+      Dmsg1(100, "Call get_filename. Vol=%s\n", dev->VolCatInfo.VolCatName);
       get_filename(dev, dev->VolCatInfo.VolCatName, archive_name);
       /* Check that the part file is empty */
       if ((stat(archive_name.c_str(), &statp) == 0) && (statp.st_size == 0)) {
+         Dmsg1(100, "unlink(%s)\n", archive_name.c_str());
          unlink(archive_name.c_str());
       }
    }
