@@ -154,9 +154,9 @@ void print_block_read_errors(JCR *jcr, DEV_BLOCK *block)
  */
 void free_block(DEV_BLOCK *block)
 {
-   Dmsg1(199, "free_block buffer %x\n", block->buf);
+   Dmsg1(999, "free_block buffer %x\n", block->buf);
    free_memory(block->buf);
-   Dmsg1(199, "free_block block %x\n", block);
+   Dmsg1(999, "free_block block %x\n", block);
    free_memory((POOLMEM *)block);
 }
 
