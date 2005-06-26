@@ -297,13 +297,24 @@ DEVICE::open(char *VolName, int mode)
 
 void DEVICE::set_mode(int new_mode) 
 {
-   if (new_mode == OPEN_READ_WRITE) {
-      mode = O_RDWR | O_BINARY;
-   } else if (new_mode == OPEN_READ_ONLY) {
+   switch (new_mode) {
+   case CREATE_READ_WRITE:
+      mode = O_CREAT | O_RDWR | O_BINARY;
+      break;
+   case OPEN_READ_WRITE:
+      if (is_dvd() || is_file()) {
+         mode = O_CREAT | O_RDWR | O_BINARY;
+      } else {
+         mode = O_RDWR | O_BINARY;
+      }
+      break;
+   case OPEN_READ_ONLY:
       mode = O_RDONLY | O_BINARY;
-   } else if (new_mode == OPEN_WRITE_ONLY) {
+      break;
+   case OPEN_WRITE_ONLY:
       mode = O_WRONLY | O_BINARY;
-   } else {
+      break;
+   default:
       Emsg0(M_ABORT, 0, _("Illegal mode given to open dev.\n"));
    }
 }

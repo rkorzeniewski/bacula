@@ -43,7 +43,8 @@
 
 /* Arguments to open_dev() */
 enum {
-   OPEN_READ_WRITE = 1,
+   CREATE_READ_WRITE = 1,
+   OPEN_READ_WRITE,
    OPEN_READ_ONLY,
    OPEN_WRITE_ONLY
 };
