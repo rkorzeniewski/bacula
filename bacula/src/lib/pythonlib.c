@@ -277,10 +277,12 @@ int generate_daemon_event(JCR *jcr, const char *event)
    }
 
 bail_out:
-   Py_XDECREF((PyObject *)jcr->Python_job);
-   jcr->Python_job = NULL;
-   Py_XDECREF((PyObject *)jcr->Python_events);
-   jcr->Python_events = NULL;
+   if (jcr) {
+      Py_XDECREF((PyObject *)jcr->Python_job);
+      jcr->Python_job = NULL;
+      Py_XDECREF((PyObject *)jcr->Python_events);
+      jcr->Python_events = NULL;
+   }
    /* Fall through */
 jobstart_ok:
    Py_XDECREF(result);
