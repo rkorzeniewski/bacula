@@ -39,12 +39,14 @@ static PyObject *set_job_events(PyObject *self, PyObject *arg);
 static PyObject *job_run(PyObject *self, PyObject *arg);
 static PyObject *job_write(PyObject *self, PyObject *arg);
 static PyObject *job_cancel(PyObject *self, PyObject *arg);
+static PyObject *job_does_vol_exist(PyObject *self, PyObject *arg);
 
 PyMethodDef JobMethods[] = {
     {"set_events", set_job_events, METH_VARARGS, "Set Job events"},
     {"run", job_run, METH_VARARGS, "Run a Job"},
     {"write", job_write, METH_VARARGS, "Write to output"},
     {"cancel", job_cancel, METH_VARARGS, "Cancel a Job"},
+    {"DoesVolumeExist", job_does_vol_exist, METH_VARARGS, "Does Volume Exist"},
     {NULL, NULL, 0, NULL}             /* last item */
 };
  
@@ -73,7 +75,7 @@ static struct s_vars getvars[] = {
    { N_("Version"),    "(ss)"},
    { N_("ConfigFile"), "s"},
    { N_("WorkingDir"), "s"},
-   { N_("CatalogRes"), "(sssssi)"},
+   { N_("CatalogRes"), "(sssssis)"},
 
    { NULL,             NULL}
 };
@@ -130,7 +132,16 @@ PyObject *job_getattr(PyObject *self, char *attrname)
    case 5:                            /* Client */
       return Py_BuildValue(getvars[i].fmt, jcr->client->hdr.name);
    case 6:                            /* NumVols */
-      return Py_BuildValue(getvars[i].fmt, jcr->NumVols);
+      POOL_DBR pr;
+      memset(&pr, 0, sizeof(pr));
+      bstrncpy(pr.Name, jcr->pool->hdr.name, sizeof(pr.Name));
+      if (db_get_pool_record(jcr, jcr->db, &pr)) {
+         jcr->NumVols = pr.NumVols;
+         return Py_BuildValue(getvars[i].fmt, jcr->NumVols);
+      } else {
+         bsnprintf(errmsg, sizeof(errmsg), "Pool record not found.");
+         goto bail_out;
+      }
    case 7:                            /* Pool */
       return Py_BuildValue(getvars[i].fmt, jcr->pool->hdr.name);
    case 8:                            /* Storage */
@@ -157,7 +168,8 @@ PyObject *job_getattr(PyObject *self, char *attrname)
       return Py_BuildValue(getvars[i].fmt,
          jcr->catalog->db_name, jcr->catalog->db_address, 
          jcr->catalog->db_user, jcr->catalog->db_password,
-         jcr->catalog->db_socket, jcr->catalog->db_port);
+         jcr->catalog->db_socket, jcr->catalog->db_port,
+         catalog_db);
 
    }
    bsnprintf(errmsg, sizeof(errmsg), "Attribute %s not found.", attrname);
@@ -291,11 +303,34 @@ static PyObject *job_write(PyObject *self, PyObject *args)
       return NULL;
    }
    if (text) {
-      Jmsg(NULL, M_INFO, 0, "%s", text);
+      JCR *jcr = get_jcr_from_PyObject(self);
+      Jmsg(jcr, M_INFO, 0, "%s", text);
    }
    Py_INCREF(Py_None);
    return Py_None;
 }
+
+static PyObject *job_does_vol_exist(PyObject *self, PyObject *args)
+{
+   char *VolName = NULL;
+
+   if (!PyArg_ParseTuple(args, "s:does_volume_exist", &VolName)) {
+      Dmsg0(000, "Parse tuple error in job_does_vol_exist\n");
+      return NULL;
+   }
+   if (VolName) {
+      MEDIA_DBR mr;
+      int ok;
+      JCR *jcr = get_jcr_from_PyObject(self);
+      memset(&mr, 0, sizeof(mr));
+      bstrncpy(mr.VolumeName, VolName, sizeof(mr.VolumeName));
+      ok = db_get_media_record(jcr, jcr->db, &mr);
+      return Py_BuildValue("i", ok);
+   }
+   Py_INCREF(Py_None);
+   return Py_None;
+}
+
 
 static PyObject *job_cancel(PyObject *self, PyObject *args)
 {

@@ -782,16 +782,16 @@ int db_get_num_media_records(JCR *jcr, B_DB *mdb)
  *     the current Pool.
  *  The caller must free ids if non-NULL.
  *
- *  Returns 0: on failure
- *          1: on success
+ *  Returns false: on failure
+ *          true:  on success
  */
-int db_get_media_ids(JCR *jcr, B_DB *mdb, uint32_t PoolId, int *num_ids, uint32_t *ids[])
+bool db_get_media_ids(JCR *jcr, B_DB *mdb, uint32_t PoolId, int *num_ids, uint32_t *ids[])
 {
    SQL_ROW row;
-   int stat = 0;
    int i = 0;
    uint32_t *id;
    char ed1[50];
+   bool ok = false;
 
    db_lock(mdb);
    *ids = NULL;
@@ -807,34 +807,34 @@ int db_get_media_ids(JCR *jcr, B_DB *mdb, uint32_t PoolId, int *num_ids, uint32_
          *ids = id;
       }
       sql_free_result(mdb);
-      stat = 1;
+      ok = true;
    } else {
       Mmsg(mdb->errmsg, _("Media id select failed: ERR=%s\n"), sql_strerror(mdb));
       Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
-      stat = 0;
+      ok = false;
    }
    db_unlock(mdb);
-   return stat;
+   return ok;
 }
 
 
 /* Get Media Record
  *
- * Returns: 0 on failure
- *          id on success
+ * Returns: false: on failure
+ *          true:  on success
  */
-int db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
+bool db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
    SQL_ROW row;
-   int stat = 0;
    char ed1[50];
+   bool ok = false;
 
    db_lock(mdb);
    if (mr->MediaId == 0 && mr->VolumeName[0] == 0) {
       Mmsg(mdb->cmd, "SELECT count(*) from Media");
       mr->MediaId = get_sql_record_max(jcr, mdb);
       db_unlock(mdb);
-      return 1;
+      return true;
    }
    if (mr->MediaId != 0) {               /* find by id */
       Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
@@ -898,7 +898,7 @@ int db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
             bstrncpy(mr->cLabelDate, row[27]!=NULL?row[27]:"", sizeof(mr->cLabelDate));
             mr->LabelDate = (time_t)str_to_utime(mr->cLabelDate);
             mr->StorageId = str_to_int64(row[28]);
-            stat = mr->MediaId;
+            ok = true;
          }
       } else {
          if (mr->MediaId != 0) {
@@ -919,7 +919,7 @@ int db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
             mr->VolumeName);
    }   }
    db_unlock(mdb);
-   return stat;
+   return ok;
 }
 
 

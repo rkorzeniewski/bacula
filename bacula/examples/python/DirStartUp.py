@@ -62,9 +62,12 @@ class JobEvents:
      jobid = job.JobId
      client = job.Client 
      numvol = job.NumVols;
+     print job.CatalogRes
      job.JobReport = "JobId=%d Client=%s NumVols=%d" % (jobid, client, numvol)
      job.JobReport="Python before New Volume set for Job.\n"
-     job.VolumeName="TestA-001"
+     Vol = "TestA-%d" % numvol
+     job.JobReport = "Exists=%d TestA-%d" % (job.DoesVolumeExist(Vol), numvol)
+     job.VolumeName="TestA-%d" % numvol 
      job.JobReport="Python after New Volume set for Job.\n"  
      return 1
 

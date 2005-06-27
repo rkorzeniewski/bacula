@@ -3,6 +3,13 @@
 
 General:
 
+Changes to 1.37.27:
+27Jun05
+- Add Database vendor to CatalogRes tuple for Python.
+- Update doc
+- Implement DoesVolumeExist(Vol) for Python.
+- Prevent python command from seg faulting if no arg given.
+
 Changes to 1.37.26:
 26Jun05
 - Add set_mode method in DEVICE.
