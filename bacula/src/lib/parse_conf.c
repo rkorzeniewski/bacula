@@ -185,6 +185,7 @@ void init_resource(int type, RES_ITEM *items, int pass)
    res_all.hdr.rcode = type;
    res_all.hdr.refcnt = 1;
 
+   /* Set defaults in each item */
    for (i=0; items[i].name; i++) {
       Dmsg3(900, "Item=%s def=%s defval=%d\n", items[i].name,
             (items[i].flags & ITEM_DEFAULT) ? "yes" : "no",
@@ -568,17 +569,6 @@ void store_defs(LEX *lc, RES_ITEM *item, int index, int pass)
         scan_err3(lc, _("Missing config Resource \"%s\" referenced on line %d : %s\n"),
            lc->str, lc->line_no, lc->line);
      }
-     /* for each item not set, we copy the field from res */
-#ifdef xxx
-     for (int i=0; item->name;; i++, item++) {
-        if (bit_is_set(i, res->item_present)) {
-           Dmsg2(900, "Item %d is present in %s\n", i, res->name);
-        } else {
-           Dmsg2(900, "Item %d is not present in %s\n", i, res->name);
-        }
-     }
-     /* ***FIXME **** add code */
-#endif
    }
    scan_to_eol(lc);
 }
@@ -647,7 +637,9 @@ void store_size(LEX *lc, RES_ITEM *item, int index, int pass)
       scan_err1(lc, _("expected a size, got: %s"), lc->str);
       break;
    }
-   scan_to_eol(lc);
+   if (token != T_EOL) {
+      scan_to_eol(lc);
+   }
    set_bit(index, res_all.hdr.item_present);
    Dmsg0(900, "Leave store_size\n");
 }
@@ -826,7 +818,7 @@ parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error)
                            return 0;
                         }
                      }
-                     Dmsg1(900, "calling handler for %s\n", items[i].name);
+                     Dmsg1(800, "calling handler for %s\n", items[i].name);
                      /* Call item handler */
                      items[i].handler(lc, &items[i], i, pass);
                      i = -1;

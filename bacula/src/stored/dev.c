@@ -80,16 +80,15 @@
 #endif
 
 /* Functions in dvd.c */ 
-void get_filename(DEVICE *dev, char *VolName, POOL_MEM& archive_name);
 void update_free_space_dev(DEVICE* dev);
 
 
 /* Forward referenced functions */
 void set_os_device_parameters(DEVICE *dev);
 static bool dev_get_os_pos(DEVICE *dev, struct mtget *mt_stat);
-static void open_tape_device(DEVICE *dev, int mode);
-static void open_file_device(DEVICE *dev, int mode);
-static void open_dvd_device(DEVICE *dev, int mode);
+static void open_tape_device(DCR *dcr, int mode);
+static void open_file_device(DCR *dcr, int mode);
+static void open_dvd_device(DCR *dcr, int mode);
 
 /*
  * Allocate and initialize the DEVICE structure
@@ -129,7 +128,8 @@ init_dev(JCR *jcr, DEVRES *device)
    } else if (S_ISFIFO(statp.st_mode)) {
       fifo = true;
    } else if (!(device->cap_bits & CAP_REQMOUNT)) {
-      Jmsg2(jcr, M_ERROR, 0, _("%s is an unknown device type. Must be tape or directory. st_mode=%x\n"),
+      Jmsg2(jcr, M_ERROR, 0, _("%s is an unknown device type. Must be tape or directory\n"
+            " or have RequiresMount=yes for DVD. st_mode=%x\n"),
          device->device_name, statp.st_mode);
       return NULL;
    }
@@ -264,7 +264,7 @@ init_dev(JCR *jcr, DEVRES *device)
  *    (archive_name) with the VolName concatenated.
  */
 int
-DEVICE::open(char *VolName, int mode)
+DEVICE::open(DCR *dcr, int mode)
 {
    if (is_open()) {
       if (openmode == mode) {
@@ -273,24 +273,20 @@ DEVICE::open(char *VolName, int mode)
         ::close(fd); /* use system close so correct mode will be used on open */
       }
    }
-   if (VolName) {
-      bstrncpy(VolCatInfo.VolCatName, VolName, sizeof(VolCatInfo.VolCatName));
-   } else {
-      VolCatInfo.VolCatName[0] = 0;
-   }
+  bstrncpy(VolCatInfo.VolCatName, dcr->VolumeName, sizeof(VolCatInfo.VolCatName));
 
    Dmsg4(29, "open dev: tape=%d dev_name=%s vol=%s mode=%d\n", is_tape(),
          dev_name, VolCatInfo.VolCatName, mode);
    state &= ~(ST_LABEL|ST_APPEND|ST_READ|ST_EOT|ST_WEOT|ST_EOF);
    label_type = B_BACULA_LABEL;
    if (is_tape() || is_fifo()) {
-      open_tape_device(this, mode);
+      open_tape_device(dcr, mode);
    } else if (is_dvd()) {
       Dmsg1(100, "call open_dvd_device mode=%d\n", mode);
-      open_dvd_device(this, mode);
+      open_dvd_device(dcr, mode);
    } else {
       Dmsg1(100, "call open_file_device mode=%d\n", mode);
-      open_file_device(this, mode);
+      open_file_device(dcr, mode);
    }
    return fd;
 }
@@ -319,8 +315,9 @@ void DEVICE::set_mode(int new_mode)
    }
 }
 
-static void open_tape_device(DEVICE *dev, int mode) 
+static void open_tape_device(DCR *dcr, int mode) 
 {
+   DEVICE *dev = dcr->dev;
    int nonblocking = 0;;
    dev->file_size = 0;
    int timeout;
@@ -399,8 +396,9 @@ open_again:
 /*
  * Open a file device
  */
-static void open_file_device(DEVICE *dev, int mode) 
+static void open_file_device(DCR *dcr, int mode) 
 {
+   DEVICE *dev = dcr->dev;
    POOL_MEM archive_name(PM_FNAME);
 
    /*
@@ -416,8 +414,11 @@ static void open_file_device(DEVICE *dev, int mode)
       return;
    }
 
-   Dmsg1(100, "Call get_filename. Vol=%s\n", dev->VolCatInfo.VolCatName);
-   get_filename(dev, dev->VolCatInfo.VolCatName, archive_name);
+   pm_strcpy(archive_name, dev->dev_name);
+   if (archive_name.c_str()[strlen(archive_name.c_str())-1] != '/') {
+      pm_strcat(archive_name, "/");
+   }
+   pm_strcat(archive_name, dev->VolCatInfo.VolCatName);
          
    Dmsg3(29, "open dev: %s dev=%s mode=%d\n", dev->is_dvd()?"DVD":"disk",
          archive_name.c_str(), mode);
@@ -445,10 +446,13 @@ static void open_file_device(DEVICE *dev, int mode)
 }
 
 /*
- * Open a DVD device
+ * Open a DVD device. N.B. at this point, dev->VolCatInfo.VolCatName
+ *  has the desired Volume name, but there is NO assurance that
+ *  any other field of VolCatInfo is correct.
  */
-static void open_dvd_device(DEVICE *dev, int mode) 
+static void open_dvd_device(DCR *dcr, int mode) 
 {
+   DEVICE *dev = dcr->dev;
    POOL_MEM archive_name(PM_FNAME);
    struct stat filestat;
 
@@ -470,14 +474,8 @@ static void open_dvd_device(DEVICE *dev, int mode)
    }
    dev->part_size = 0;
    
-   /* if num_parts has not been set, but VolCatInfo is available, copy
-    * it from the VolCatInfo.VolCatParts */
-   if (dev->num_parts < dev->VolCatInfo.VolCatParts) {
-      dev->num_parts = dev->VolCatInfo.VolCatParts;
-   }
-   
-   Dmsg1(100, "Call get_filename. Vol=%s\n", dev->VolCatInfo.VolCatName);
-   get_filename(dev, dev->VolCatInfo.VolCatName, archive_name);
+   Dmsg1(100, "Call make_dvd_filename. Vol=%s\n", dev->VolCatInfo.VolCatName);
+   make_dvd_filename(dev, archive_name);
 
    if (mount_dev(dev, 1) < 0) {
       Mmsg(dev->errmsg, _("Could not mount device %s.\n"),
@@ -1590,8 +1588,8 @@ static void do_close(DEVICE *dev)
       struct stat statp;
       POOL_MEM archive_name(PM_FNAME);
       dev->part = dev->num_parts;
-      Dmsg1(100, "Call get_filename. Vol=%s\n", dev->VolCatInfo.VolCatName);
-      get_filename(dev, dev->VolCatInfo.VolCatName, archive_name);
+      Dmsg1(100, "Call make_dvd_filename. Vol=%s\n", dev->VolCatInfo.VolCatName);
+      make_dvd_filename(dev, archive_name);
       /* Check that the part file is empty */
       if ((stat(archive_name.c_str(), &statp) == 0) && (statp.st_size == 0)) {
          Dmsg1(100, "unlink(%s)\n", archive_name.c_str());
@@ -1649,19 +1647,15 @@ bool truncate_dev(DEVICE *dev)
       /* maybe we should rewind and write and eof ???? */
    }
    
-   /* If there is more than one part, open the first one, and then truncate it. */
-   if (dev->num_parts > 0) {
-      dev->num_parts = 0;
-      dev->VolCatInfo.VolCatParts = 0;
-      if (open_first_part(dev, OPEN_READ_WRITE) < 0) {
-         berrno be;
-         Mmsg1(dev->errmsg, "Unable to truncate device, because I'm unable to open the first part. ERR=%s\n", be.strerror());
-      }
+   if (dev->is_dvd()) {
+      Mmsg1(dev->errmsg, _("Truncate DVD %s not supported.\n"), dev->print_name());
+      return false;   /* we cannot truncate DVDs */
    }
    
    if (ftruncate(dev->fd, 0) != 0) {
       berrno be;
-      Mmsg1(dev->errmsg, _("Unable to truncate device. ERR=%s\n"), be.strerror());
+      Mmsg2(dev->errmsg, _("Unable to truncate device %s. ERR=%s\n"), 
+            dev->print_name(), be.strerror());
       return false;
    }
    return true;
@@ -1703,8 +1697,8 @@ term_dev(DEVICE *dev)
       Emsg0(M_FATAL, 0, dev->errmsg);
       return;
    }
+   Dmsg1(29, "term_dev: %s\n", dev->print_name());
    do_close(dev);
-   Dmsg0(29, "term_dev\n");
    if (dev->dev_name) {
       free_memory(dev->dev_name);
       dev->dev_name = NULL;

@@ -80,8 +80,8 @@ void    display_tape_error_status(JCR *jcr, DEVICE *dev);
 /* From dev.c */
 DEVICE  *init_dev(JCR *jcr, DEVRES *device);
 off_t    lseek_dev(DEVICE *dev, off_t offset, int whence);
-int      open_first_part(DEVICE *dev, int mode);
-int      open_next_part(DEVICE *dev);
+int      open_first_part(DCR *dcr, int mode);
+int      open_next_part(DCR *dcr);
 bool     can_open_mounted_dev(DEVICE *dev);
 bool     truncate_dev(DEVICE *dev);
 void     term_dev(DEVICE *dev);
@@ -118,13 +118,13 @@ bool dvd_close_job(DCR *dcr);
 bool mount_dev(DEVICE* dev, int timeout);
 bool unmount_dev(DEVICE* dev, int timeout);
 void update_free_space_dev(DEVICE *dev);
-void get_filename(DEVICE *dev, char *VolName, POOL_MEM& archive_name);
+void make_dvd_filename(DEVICE *dev, POOL_MEM &archive_name);
 
 /* From device.c */
 bool     open_device(DCR *dcr);
 void     close_device(DEVICE *dev);
 void     force_close_device(DEVICE *dev);
-bool     first_open_device(DEVICE *dev);
+bool     first_open_device(DCR *dcr);
 bool     fixup_device_block_write_error(DCR *dcr);
 void     _lock_device(const char *file, int line, DEVICE *dev);
 void     _unlock_device(const char *file, int line, DEVICE *dev);

@@ -23,6 +23,8 @@ Autochangers:
      all Volumes from other drives.  "update slots all-drives"?
 
 Document:
+- Port limiting -m in iptables to prevent DoS attacks
+  could cause broken pipes on Bacula.
 - Document that Bootstrap files can be written with cataloging
   turned off.
 - Pruning with Admin job.
@@ -49,6 +51,7 @@ Document:
 - Document the multiple-drive-changer.txt script.
 
 For 1.37:
+- Cleaning tapes should have Status "Cleaning" rather than append.
 - Refuse to prune last valid Full backup. Same goes for Catalog.
 - Why is   SpoolDirectory = /home/bacula/spool;  not reported
   as an error when writing a DVD?
@@ -73,6 +76,8 @@ For 1.37:
 - Add global lock on all devices when creating a device structure.
 
 Maybe in 1.37:
+- In restore don't compare byte count on a raw device -- directory
+  entry does not contain bytes.
 - To mark files as deleted, run essentially a Verify to disk, and
   when a file is found missing (MarkId != JobId), then create
   a new File record with FileIndex == -1. This could be done

@@ -170,8 +170,8 @@ static DCR *setup_to_access_device(JCR *jcr, char *dev_name,
          return NULL;
       }
    } else {
-      if (!first_open_device(dev)) {
-         Jmsg1(jcr, M_FATAL, 0, _("Cannot open %s\n"), dcr->dev_name);
+      if (!first_open_device(dcr)) {
+         Jmsg1(jcr, M_FATAL, 0, _("Cannot open %s\n"), dev->print_name());
          return NULL;
       }
    }

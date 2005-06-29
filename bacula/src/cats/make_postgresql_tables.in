@@ -129,7 +129,7 @@ CREATE TABLE media
     volstatus	      text	  not null
 	check (volstatus in ('Full','Archive','Append',
 	      'Recycle','Purged','Read-Only','Disabled',
-	      'Error','Busy','Used','Cleaning',"Scratch')),
+	      'Error','Busy','Used','Cleaning','Scratch')),
     recycle	      smallint	  not null default 0,
     volretention      bigint	  not null default 0,
     voluseduration    bigint	  not null default 0,

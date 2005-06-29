@@ -145,7 +145,7 @@ LEX *lex_open_file(LEX *lf, const char *filename, LEX_ERROR_HANDLER *scan_error)
    if ((fd = fopen(fname, "r")) == NULL) {
       return NULL;
    }
-   Dmsg1(2000, "Open config file: %s\n", fname);
+   Dmsg1(400, "Open config file: %s\n", fname);
    nf = (LEX *)malloc(sizeof(LEX));
    if (lf) {
       memcpy(nf, lf, sizeof(LEX));
@@ -190,6 +190,7 @@ int lex_get_char(LEX *lf)
       }
       lf->line_no++;
       lf->col_no = 0;
+      Dmsg2(400, "fget line=%d %s", lf->line_no, lf->line);
    }
    lf->ch = (uint8_t)lf->line[lf->col_no];
    if (lf->ch == 0) {
