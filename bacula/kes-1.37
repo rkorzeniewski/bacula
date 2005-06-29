@@ -4,6 +4,21 @@
 General:
 
 Changes to 1.37.28:
+30Jun05
+- Detect device mounted for DVD and suppress be sure to 
+  mount message after label.
+- Set Cleaning tape status to "Cleaning" and force no
+  MediaType.
+- Get DVD writing working with new standard Bacula open()
+  code.
+- Rename get_filename() to make more sense.
+- Detect "is already mounted on" on mount command so to avoid
+  error if device is already mounted.
+- Eliminated guess_name() code. It may be necessary to
+  add it back later.
+- Eliminate seg fault from printing invalid results.
+- Make dvd_write_part() bool.
+
 29Jun05
 - Attempt to fix DVD writing by eliminating a number of the 
   DVD subroutines to simplify.

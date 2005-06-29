@@ -604,7 +604,7 @@ static bool reserve_device_for_append(DCR *dcr, bool PreferMountedVols)
    }
 
    dev->reserved_device++;
-   Dmsg1(200, "============= Inc reserve=%d\n", dev->reserved_device);
+   Dmsg1(200, "Inc reserve=%d\n", dev->reserved_device);
    dcr->reserved_device = true;
    ok = true;
 

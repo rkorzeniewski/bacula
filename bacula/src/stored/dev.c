@@ -446,7 +446,7 @@ static void open_file_device(DCR *dcr, int mode)
 }
 
 /*
- * Open a DVD device. N.B. at this point, dev->VolCatInfo.VolCatName
+ * Open a DVD device. N.B. at this point, dcr->VolCatInfo.VolCatName
  *  has the desired Volume name, but there is NO assurance that
  *  any other field of VolCatInfo is correct.
  */
@@ -457,7 +457,7 @@ static void open_dvd_device(DCR *dcr, int mode)
    struct stat filestat;
 
    /*
-    * Handle opening of File Archive (not a tape)
+    * Handle opening of DVD Volume
     */     
    Dmsg3(29, "Enter: open_file_dev: %s dev=%s mode=%d\n", dev->is_dvd()?"DVD":"disk",
          archive_name.c_str(), mode);
@@ -474,8 +474,6 @@ static void open_dvd_device(DCR *dcr, int mode)
    }
    dev->part_size = 0;
    
-   Dmsg1(100, "Call make_dvd_filename. Vol=%s\n", dev->VolCatInfo.VolCatName);
-   make_dvd_filename(dev, archive_name);
 
    if (mount_dev(dev, 1) < 0) {
       Mmsg(dev->errmsg, _("Could not mount device %s.\n"),
@@ -496,8 +494,19 @@ static void open_dvd_device(DCR *dcr, int mode)
    if (dev->part < dev->num_parts) {
       mode = OPEN_READ_ONLY;
    }
-   
    dev->set_mode(mode);
+
+   Dmsg1(100, "Call make_dvd_filename. Vol=%s\n", dev->VolCatInfo.VolCatName);
+   /* 
+    * If we are opening it read-only, it is *probably* on the
+    *   DVD, so try the DVD first, otherwise look in the spool dir.
+    */
+   if (mode == OPEN_READ_ONLY) {
+      make_mounted_dvd_filename(dev, archive_name);
+   } else {
+      make_spooled_dvd_filename(dev, archive_name);
+   }
+
    /* If creating file, give 0640 permissions */
    Dmsg3(29, "mode=%d open(%s, 0x%x, 0640)\n", mode, archive_name.c_str(), dev->mode);
    if ((dev->fd = open(archive_name.c_str(), dev->mode, 0640)) < 0) {
@@ -506,7 +515,12 @@ static void open_dvd_device(DCR *dcr, int mode)
       Mmsg2(dev->errmsg, _("Could not open: %s, ERR=%s\n"), archive_name.c_str(), 
             be.strerror());
       Dmsg1(29, "open failed: %s", dev->errmsg);
-   } else {
+      if (mode == OPEN_READ_ONLY) {
+         make_spooled_dvd_filename(dev, archive_name);
+         dev->fd = open(archive_name.c_str(), dev->mode, 0640);  /* try on spool */
+      }
+   }
+   if (dev->fd >= 0) {
       /* Get size of file */
       if (fstat(dev->fd, &filestat) < 0) {
          berrno be;
@@ -1589,7 +1603,7 @@ static void do_close(DEVICE *dev)
       POOL_MEM archive_name(PM_FNAME);
       dev->part = dev->num_parts;
       Dmsg1(100, "Call make_dvd_filename. Vol=%s\n", dev->VolCatInfo.VolCatName);
-      make_dvd_filename(dev, archive_name);
+      make_spooled_dvd_filename(dev, archive_name);
       /* Check that the part file is empty */
       if ((stat(archive_name.c_str(), &statp) == 0) && (statp.st_size == 0)) {
          Dmsg1(100, "unlink(%s)\n", archive_name.c_str());

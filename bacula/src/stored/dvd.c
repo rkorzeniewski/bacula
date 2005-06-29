@@ -28,32 +28,32 @@
 /* Forward referenced functions */
 static char *edit_device_codes_dev(DEVICE *dev, char *omsg, const char *imsg);
 static bool do_mount_dev(DEVICE* dev, int mount, int dotimeout);
-static int dvd_write_part(DEVICE *dev);
+static bool dvd_write_part(DEVICE *dev);
+static void add_file_and_part_name(DEVICE *dev, POOL_MEM &archive_name);
 
 /* 
  * Write the current volume/part filename to archive_name.
  */
-void make_dvd_filename(DEVICE *dev, POOL_MEM &archive_name) 
+void make_mounted_dvd_filename(DEVICE *dev, POOL_MEM &archive_name) 
+{
+   pm_strcpy(archive_name, dev->device->mount_point);
+   add_file_and_part_name(dev, archive_name);
+}
+
+void make_spooled_dvd_filename(DEVICE *dev, POOL_MEM &archive_name)
+{
+   /* Use the working directory if spool directory is not defined */
+   if (dev->device->spool_directory) {
+      pm_strcpy(archive_name, dev->device->spool_directory);
+   } else {
+      pm_strcpy(archive_name, working_directory);
+   }
+   add_file_and_part_name(dev, archive_name);
+}      
+
+static void add_file_and_part_name(DEVICE *dev, POOL_MEM &archive_name)
 {
    char partnumber[20];
-   
-   /*
-    * If we try to open the last part, just open it from disk, 
-    * otherwise, open it from the spooling directory.
-    */
-   Dmsg2(100, "DVD part=%d num_parts=%d\n", dev->part, dev->num_parts);
-   if (dev->part < dev->num_parts) {
-      Dmsg1(100, "Arch = mount point: %s\n", dev->device->mount_point);
-      pm_strcpy(archive_name, dev->device->mount_point);
-   } else {
-      /* Use the working directory if spool directory is not defined */
-      if (dev->device->spool_directory) {
-         pm_strcpy(archive_name, dev->device->spool_directory);
-      } else {
-         pm_strcpy(archive_name, working_directory);
-      }
-   }
-      
    if (archive_name.c_str()[strlen(archive_name.c_str())-1] != '/') {
       pm_strcat(archive_name, "/");
    }
@@ -100,18 +100,18 @@ bool unmount_dev(DEVICE *dev, int timeout)
 static bool do_mount_dev(DEVICE* dev, int mount, int dotimeout) 
 {
    POOL_MEM ocmd(PM_FNAME);
-   POOLMEM* results;
-   char* icmd;
+   POOLMEM *results;
+   char *icmd;
    int status, timeout;
    
    if (mount) {
       if (dev->is_mounted()) {
-         goto get_out;
+         return true;
       }
       icmd = dev->device->mount_command;
    } else {
       if (!dev->is_mounted()) {
-         goto get_out;
+         return true;
       }
       icmd = dev->device->unmount_command;
    }
@@ -127,15 +127,18 @@ static bool do_mount_dev(DEVICE* dev, int mount, int dotimeout)
       timeout = 0;
    }
    results = get_pool_memory(PM_MESSAGE);
+   results[0] = 0;
    /* If busy retry each second */
    while ((status = run_program_full_output(ocmd.c_str(), 
                        dev->max_open_wait/2, results)) != 0) {
+      if (fnmatch("*is already mounted on", results, 0) == 0) {
+         break;
+      }
       if (timeout-- > 0) {
-         Dmsg2(400, "Device %s cannot be (un)mounted. Retrying... ERR=%s\n", dev->dev_name, results);
          /* Sometimes the device cannot be mounted because it is already mounted.
           * Try to unmount it, then remount it */
          if (mount) {
-            Dmsg1(400, "Trying to unmount the device %s...\n", dev->dev_name);
+            Dmsg1(400, "Trying to unmount the device %s...\n", dev->print_name());
             do_mount_dev(dev, 0, 0);
          }
          bmicrosleep(1, 0);
@@ -150,187 +153,8 @@ static bool do_mount_dev(DEVICE* dev, int mount, int dotimeout)
    
    dev->set_mounted(mount);              /* set/clear mounted flag */
    free_pool_memory(results);
-
-get_out:
-   Dmsg1(29, "Exit do_mount_dev: mounted=%d\n", !!dev->is_mounted());
    return true;
 }
-
-/* Only for devices that require a mount -- currently DVDs only
- *
- * Try to find the Volume name of the loaded device.
- *
- * Returns true  if read_dev_volume_label can now read the label,
- *               NOTE!!! at this point the device may not be
- *               opened.
- *               Maybe it should open the first part.  ***FIXME***
- *
- *         false if an error occured, and read_dev_volume_label
- *               must abort with an IO_ERROR.
- *
- * To find the Volume name, it lists all the files on the DVD,
- * and searches for a file which has a minimum size (500 bytes).
- * If this file has a numeric extension, like part files, try to
- * open the file which has no extension (e.g.  the first part
- * file).
- *
- * So, if the DVD does not contains a Bacula volume, a random file is opened,
- * and no valid label could be read from this file.
- *
- * It is useful, so the operator can be told that a wrong volume is mounted, with
- * the label name of the current volume. We can also check that the currently
- * mounted disk is writable. (See also read_dev_volume_label_guess in label.c).
-
-   If we are writing, then there is no need to guess. We should just
-   check that the Volume does not already exist.
-
-   If we are reading, I don't see the reason to guess since we
-   know what Volume we want. The file either exists or does not
-   exist.
-
- *
- */
-#ifdef xxx
-bool can_open_mounted_dev(DEVICE *dev) 
-{
-   Dmsg1(29, "Enter: dev=%s\n", dev->dev_name);
-   POOL_MEM guessedname(PM_FNAME);
-   DIR* dp;
-   struct dirent *entry, *result;
-   struct stat statp;
-   int index;
-   int name_max;
-   
-   if (!dev->is_dvd()) {
-      Dmsg1(100, "device does not require mount, returning 0. dev=%s\n", dev->dev_name);
-      return true;
-   }
-
-#ifndef HAVE_DIRENT_H
-   Dmsg0(29, "readdir not available, cannot guess volume name\n");
-   return true; 
-#endif
-   
-   update_free_space_dev(dev);
-
-   if (mount_dev(dev, 1) < 0) {
-      /* If the device cannot be mounted, check if it is writable */
-      if (dev->have_media()) {
-         Dmsg1(100, "device cannot be mounted, but it seems to be writable, returning 0. dev=%s\n", dev->dev_name);
-         return true;
-      } else {
-         Dmsg1(100, "device cannot be mounted, and is not writable, returning -1. dev=%s\n", dev->dev_name);
-         return false;
-      }
-   }
-      
-   name_max = pathconf(".", _PC_NAME_MAX);
-   if (name_max < 1024) {
-      name_max = 1024;
-   }
-      
-   if (!(dp = opendir(dev->device->mount_point))) {
-      berrno be;
-      dev->dev_errno = errno;
-      Dmsg3(29, "failed to open dir %s (dev=%s), ERR=%s\n", dev->device->mount_point, dev->dev_name, be.strerror());
-      return false;
-   }
-   
-   entry = (struct dirent *)malloc(sizeof(struct dirent) + name_max + 100);
-   while (1) {
-      if ((readdir_r(dp, entry, &result) != 0) || (result == NULL)) {
-         dev->dev_errno = ENOENT;
-         Dmsg2(29, "failed to find suitable file in dir %s (dev=%s)\n", dev->device->mount_point, dev->dev_name);
-         closedir(dp);
-         free(entry);
-         return false;
-      }
-      
-      ASSERT(name_max+1 > (int)sizeof(struct dirent) + (int)NAMELEN(entry));
-      
-      if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
-         continue;
-      }
-      
-      pm_strcpy(guessedname, dev->device->mount_point);
-      if (guessedname.c_str()[strlen(guessedname.c_str())-1] != '/') {
-         pm_strcat(guessedname, "/");
-      }
-      pm_strcat(guessedname, entry->d_name);
-      
-      if (stat(guessedname.c_str(), &statp) < 0) {
-         berrno be;
-         Dmsg3(29, "failed to stat %s (dev=%s), ERR=%s\n",
-               guessedname.c_str(), dev->dev_name, be.strerror());
-         continue;
-      }
-      
-      if (!S_ISREG(statp.st_mode) || (statp.st_size < 500)) {
-         Dmsg2(100, "%s is not a regular file, or less than 500 bytes (dev=%s)\n", 
-               guessedname.c_str(), dev->dev_name);
-         continue;
-      }
-      
-      /* Ok, we found a good file, remove the part extension if possible. */
-      for (index = strlen(guessedname.c_str())-1; index >= 0; index--) {
-         if ((guessedname.c_str()[index] == '/') || 
-             (guessedname.c_str()[index] < '0') || 
-             (guessedname.c_str()[index] > '9')) {
-            break;
-         }
-         if (guessedname.c_str()[index] == '.') {
-            guessedname.c_str()[index] = '\0';
-            break;
-         }
-      }
-      
-      if ((stat(guessedname.c_str(), &statp) < 0) || (statp.st_size < 500)) {
-         /* The file with extension truncated does not exists or is too small, so use it with its extension. */
-         berrno be;
-         Dmsg3(100, "failed to stat %s (dev=%s), using the file with its extension, ERR=%s\n", 
-               guessedname.c_str(), dev->dev_name, be.strerror());
-         pm_strcpy(guessedname, dev->device->mount_point);
-         if (guessedname.c_str()[strlen(guessedname.c_str())-1] != '/') {
-            pm_strcat(guessedname, "/");
-         }
-         pm_strcat(guessedname, entry->d_name);
-         continue;
-      }
-      break;
-   }
-   closedir(dp);
-   free(entry);
-   
-   if (dev->fd >= 0) {
-      close(dev->fd);
-   }
-     
-   Dmsg1(100, "open(%s) read-only\n", guessedname.c_str());
-   if ((dev->fd = open(guessedname.c_str(), O_RDONLY | O_BINARY)) < 0) {
-      berrno be;
-      dev->dev_errno = errno;
-      Dmsg3(29, "failed to open %s (dev=%s), ERR=%s\n", 
-            guessedname.c_str(), dev->dev_name, be.strerror());
-      Dmsg0(100, "Call open_first_part\n");
-      if (open_first_part(dev, OPEN_READ_ONLY) < 0) {
-         berrno be;
-         dev->dev_errno = errno;
-         Mmsg1(&dev->errmsg, _("Could not open_first_part, ERR=%s\n"), be.strerror());
-         Emsg0(M_FATAL, 0, dev->errmsg);         
-      }
-      return false;
-   }
-   dev->part_start = 0;
-   dev->part_size = statp.st_size;
-   dev->part = 0;
-   dev->set_opened();
-   dev->use_count = 1;
-   Dmsg2(29, "Exit: %s opened (dev=%s)\n", guessedname.c_str(), dev->dev_name);
-   
-   return true;
-}
-#endif
-
 
 /* Update the free space on the device */
 void update_free_space_dev(DEVICE* dev) 
@@ -357,6 +181,7 @@ void update_free_space_dev(DEVICE* dev)
    Dmsg1(29, "update_free_space_dev: cmd=%s\n", ocmd.c_str());
 
    results = get_pool_memory(PM_MESSAGE);
+   results[0] = 0;
    
    /* Try at most 3 times to get the free space on the device. This should perhaps be configurable. */
    timeout = 3;
@@ -400,7 +225,7 @@ void update_free_space_dev(DEVICE* dev)
    return;
 }
 
-static int dvd_write_part(DEVICE *dev) 
+static bool dvd_write_part(DEVICE *dev) 
 {
    Dmsg1(29, "dvd_write_part: device is %s\n", dev->dev_name);
    
@@ -410,11 +235,12 @@ static int dvd_write_part(DEVICE *dev)
    
    POOL_MEM ocmd(PM_FNAME);
    POOLMEM *results;
-   results = get_pool_memory(PM_MESSAGE);
    char* icmd;
    int status;
    int timeout;
    
+   results = get_pool_memory(PM_MESSAGE);
+   results[0] = 0;
    icmd = dev->device->write_part_command;
    
    edit_device_codes_dev(dev, ocmd.c_str(), icmd);
@@ -433,16 +259,15 @@ static int dvd_write_part(DEVICE *dev)
       Dmsg1(000, "%s", dev->errmsg);
       dev->dev_errno = EIO;
       free_pool_memory(results);
-      return -1;
-   } else {
-      Dmsg1(10, "dvd_write_part: command output=%s\n", results);
-      POOL_MEM archive_name(PM_FNAME);
-      Dmsg1(100, "Call get_filename. Vol=%s\n", dev->VolCatInfo.VolCatName);
-      make_dvd_filename(dev, archive_name);
-      unlink(archive_name.c_str());
-      free_pool_memory(results);
-      return 0;
+      return false;
    }
+
+   POOL_MEM archive_name(PM_FNAME);
+   /* Delete spool file */
+   make_spooled_dvd_filename(dev, archive_name);
+   unlink(archive_name.c_str());
+   free_pool_memory(results);
+   return true;
 }
 
 /* Open the next part file.
@@ -454,7 +279,8 @@ int open_next_part(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
       
-   Dmsg3(29, "Enter: open_next_part %s %s %d\n", dev->dev_name, 
+   Dmsg5(29, "Enter: open_next_part part=%d npart=%d dev=%s vol=%s mode=%d\n", 
+      dev->part, dev->num_parts, dev->print_name(),
          dev->VolCatInfo.VolCatName, dev->openmode);
    /* When appending, do not open a new part if the current is empty */
    if (dev->can_append() && (dev->part == dev->num_parts) && 
@@ -475,7 +301,7 @@ int open_next_part(DCR *dcr)
     *  DVD before opening the next part.
     */
    if (dev->is_dvd() && (dev->part == dev->num_parts) && dev->can_append()) {
-      if (dvd_write_part(dev) < 0) {
+      if (!dvd_write_part(dev)) {
          return -1;
       }
    }
@@ -483,6 +309,7 @@ int open_next_part(DCR *dcr)
    dev->part_start += dev->part_size;
    dev->part++;
    
+   Dmsg2(29, "part=%d num_parts=%d\n", dev->part, dev->num_parts);
    if ((dev->num_parts < dev->part) && dev->can_append()) {
       POOL_MEM archive_name(PM_FNAME);
       struct stat buf;
@@ -491,16 +318,16 @@ int open_next_part(DCR *dcr)
        * First check what is on DVD.  If out part is there, we
        *   are in trouble, so bail out.
        */
-      make_dvd_filename(dev, archive_name);   /* makes dvd name */
+      make_mounted_dvd_filename(dev, archive_name);   /* makes dvd name */
       if (stat(archive_name.c_str(), &buf) == 0) {
-         /* bad new bail out */
+         /* bad news bail out */
          Mmsg1(&dev->errmsg, _("Next Volume part already exists on DVD. Cannot continue: %s\n"),
             archive_name.c_str());
          return -1;
       }
 
       dev->num_parts = dev->part;
-      make_dvd_filename(dev, archive_name);   /* makes spool name */
+      make_spooled_dvd_filename(dev, archive_name);   /* makes spool name */
       
       /* Check if the next part exists in spool directory . */
       if ((stat(archive_name.c_str(), &buf) == 0) || (errno != ENOENT)) {
@@ -568,7 +395,7 @@ off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
    dcr = (DCR *)dev->attached_dcrs->first();  /* any dcr will do */
    switch(whence) {
    case SEEK_SET:
-      Dmsg1(100, "lseek_dev SEEK_SET called %d\n", offset);
+      Dmsg1(100, "lseek_dev SEEK_SET to %d\n", (int)offset);
       if ((uint64_t)offset >= dev->part_start) {
          if ((uint64_t)(offset - dev->part_start) < dev->part_size) {
             /* We are staying in the current part, just seek */
@@ -598,22 +425,21 @@ off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
       }
       break;
    case SEEK_CUR:
-      Dmsg1(100, "lseek_dev SEEK_CUR called %d\n", offset);
+      Dmsg1(100, "lseek_dev SEEK_CUR to %d\n", (int)offset);
       if ((pos = lseek(dev->fd, (off_t)0, SEEK_CUR)) < 0) {
          return pos;   
       }
       pos += dev->part_start;
       if (offset == 0) {
          return pos;
-      }
-      else { /* Not used in Bacula, but should work */
+      } else { /* Not used in Bacula, but should work */
          return lseek_dev(dev, pos, SEEK_SET);
       }
       break;
    case SEEK_END:
-      Dmsg1(100, "lseek_dev SEEK_END called %d\n", offset);
+      Dmsg1(100, "lseek_dev SEEK_END to %d\n", (int)offset);
       if (offset > 0) { /* Not used by bacula */
-         Dmsg1(100, "lseek_dev SEEK_END called with an invalid offset %d\n", offset);
+         Dmsg1(100, "lseek_dev SEEK_END called with an invalid offset %d\n", (int)offset);
          errno = EINVAL;
          return -1;
       }
@@ -680,7 +506,6 @@ bool dvd_close_job(DCR *dcr)
          dev->dev_errno = EIO;
          ok = false;
       }
-      
       dev->VolCatInfo.VolCatParts = dev->num_parts;
    }
    return ok;
@@ -725,7 +550,7 @@ static char *edit_device_codes_dev(DEVICE* dev, char *omsg, const char *imsg)
             str = dev->device->mount_point;
             break;
          case 'v':
-            make_dvd_filename(dev, archive_name);
+            make_spooled_dvd_filename(dev, archive_name);
             str = archive_name.c_str();
             break;
          default:
@@ -740,9 +565,9 @@ static char *edit_device_codes_dev(DEVICE* dev, char *omsg, const char *imsg)
          add[1] = 0;
          str = add;
       }
-      Dmsg1(900, "add_str %s\n", str);
+      Dmsg1(1900, "add_str %s\n", str);
       pm_strcat(&omsg, (char *)str);
-      Dmsg1(800, "omsg=%s\n", omsg);
+      Dmsg1(1800, "omsg=%s\n", omsg);
    }
    return omsg;
 }
