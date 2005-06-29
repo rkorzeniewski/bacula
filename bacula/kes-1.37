@@ -3,6 +3,23 @@
 
 General:
 
+Changes to 1.37.28:
+29Jun05
+- Attempt to fix DVD writing by eliminating a number of the 
+  DVD subroutines to simplify.
+- Modify DEVICE::open() to take dcr as first argument. This
+  will permit providing more info to DVD opening.
+- Fix scanning for time/size items which in some cases
+  ate the next line.
+- Eliminate read_dvd_volume_label().  New code (not yet written)
+  *must* open dvd appropriately before calling 
+  read_dev_volume_label.
+- Modify open_first_part() open_next_part() to take DCR as 
+  argument.
+- Make label command from console work on DVDs.
+- Make mount command from console work on DVDs.
+  Unmount does not work yet.
+
 Changes to 1.37.27:
 27Jun05
 - Add Database vendor to CatalogRes tuple for Python.

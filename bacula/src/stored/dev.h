@@ -164,6 +164,7 @@ struct DEVRES;                        /* Device resource defined in stored_conf.
 int      weof_dev(DEVICE *dev, int num);
 bool     rewind_dev(DEVICE *dev);
 
+class DCR; /* forward reference */
 /*
  * Device structure definition. There is one of these for
  *  each physical device. Everything here is "global" to
@@ -317,7 +318,7 @@ public:
    void block(int why); /* in dev.c */
    void unblock();      /* in dev.c */
    void close();        /* in dev.c */
-   int open(char *VolName, int mode); /* in dev.c */
+   int open(DCR *dcr, int mode); /* in dev.c */
    void set_mode(int mode); /* in dev.c */
 
    void set_blocked(int block) { dev_blocked = block; };

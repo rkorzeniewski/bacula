@@ -115,6 +115,8 @@ static RES_ITEM dev_items[] = {
    {"blockpositioning",      store_yesno,  ITEM(res_dev.cap_bits), CAP_POSITIONBLOCKS, ITEM_DEFAULT, 1},
    {"usemtiocget",           store_yesno,  ITEM(res_dev.cap_bits), CAP_MTIOCGET, ITEM_DEFAULT, 1},
    {"checklabels",           store_yesno,  ITEM(res_dev.cap_bits), CAP_CHECKLABELS, ITEM_DEFAULT, 0},
+   {"requiresmount",         store_yesno,  ITEM(res_dev.cap_bits), CAP_REQMOUNT, ITEM_DEFAULT, 0},
+   {"offlineonunmount",      store_yesno,  ITEM(res_dev.cap_bits), CAP_OFFLINEUNMOUNT, ITEM_DEFAULT, 0},
    {"autoselect",            store_yesno,  ITEM(res_dev.autoselect), 1, ITEM_DEFAULT, 1},
    {"changerdevice",         store_strname,ITEM(res_dev.changer_name), 0, 0, 0},
    {"changercommand",        store_strname,ITEM(res_dev.changer_command), 0, 0, 0},
@@ -124,7 +126,6 @@ static RES_ITEM dev_items[] = {
    {"maximumopenvolumes",    store_pint,   ITEM(res_dev.max_open_vols), 0, ITEM_DEFAULT, 1},
    {"maximumnetworkbuffersize", store_pint, ITEM(res_dev.max_network_buffer_size), 0, 0, 0},
    {"volumepollinterval",    store_time,   ITEM(res_dev.vol_poll_interval), 0, 0, 0},
-   {"offlineonunmount",      store_yesno,  ITEM(res_dev.cap_bits), CAP_OFFLINEUNMOUNT, ITEM_DEFAULT, 0},
    {"maximumrewindwait",     store_pint,   ITEM(res_dev.max_rewind_wait), 0, ITEM_DEFAULT, 5 * 60},
    {"minimumblocksize",      store_pint,   ITEM(res_dev.min_block_size), 0, 0, 0},
    {"maximumblocksize",      store_pint,   ITEM(res_dev.max_block_size), 0, 0, 0},
@@ -136,7 +137,6 @@ static RES_ITEM dev_items[] = {
    {"maximumjobspoolsize",   store_size,   ITEM(res_dev.max_job_spool_size), 0, 0, 0},
    {"driveindex",            store_pint,   ITEM(res_dev.drive_index), 0, 0, 0},
    {"maximumpartsize",       store_size,   ITEM(res_dev.max_part_size), 0, ITEM_DEFAULT, 0},
-   {"requiresmount",         store_yesno,  ITEM(res_dev.cap_bits), CAP_REQMOUNT, ITEM_DEFAULT, 0},
    {"mountpoint",            store_strname,ITEM(res_dev.mount_point), 0, 0, 0},
    {"mountcommand",          store_strname,ITEM(res_dev.mount_command), 0, 0, 0},
    {"unmountcommand",        store_strname,ITEM(res_dev.unmount_command), 0, 0, 0},
@@ -181,7 +181,7 @@ RES_TABLE resources[] = {
 void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fmt, ...), void *sock)
 {
    URES *res = (URES *)reshdr;
-   char buf[MAXSTRING];
+   char buf[1000];
    int recurse = 1;
    IPADDR *p;
    if (res == NULL) {
@@ -275,6 +275,12 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       }
       if (res->res_dev.cap_bits & CAP_CHECKLABELS) {
          bstrncat(buf, "CAP_CHECKLABELS ", sizeof(buf));
+      }
+      if (res->res_dev.cap_bits & CAP_REQMOUNT) {
+         bstrncat(buf, "CAP_REQMOUNT ", sizeof(buf));
+      }
+      if (res->res_dev.cap_bits & CAP_OFFLINEUNMOUNT) {
+         bstrncat(buf, "CAP_OFFLINEUNMOUNT ", sizeof(buf));
       }
       bstrncat(buf, "\n", sizeof(buf));
       sendit(sock, buf);

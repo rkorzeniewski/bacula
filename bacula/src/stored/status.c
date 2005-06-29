@@ -91,7 +91,6 @@ bool status_cmd(JCR *jcr)
     * List devices
     */
    bnet_fsend(user, _("\nDevice status:\n"));
-// LockRes();
    foreach_res(changer, R_AUTOCHANGER) {
       bnet_fsend(user, _("Autochanger \"%s\" with devices:\n"),
          changer->hdr.name);
@@ -148,7 +147,6 @@ bool status_cmd(JCR *jcr)
          send_blocked_status(jcr, dev);
       }
    }
-// UnlockRes();
    bnet_fsend(user, "====\n\n");
    bnet_fsend(user, "Volume status:\n");
    list_volumes(user);
@@ -174,6 +172,7 @@ static void send_blocked_status(JCR *jcr, DEVICE *dev)
    DCR *dcr = jcr->dcr;
 
    if (!dev) {
+      bnet_fsend(user, "No DEVICE structure.\n\n");
       return;
    }
    switch (dev->dev_blocked) {
@@ -216,7 +215,7 @@ static void send_blocked_status(JCR *jcr, DEVICE *dev)
       bnet_fsend(user, "%sALWAYSOPEN ", dev->capabilities & CAP_ALWAYSOPEN ? "" : "!");
       bnet_fsend(user, "\n");
 
-      bnet_fsend(user, _("Device status:\n"));
+      bnet_fsend(user, _("Device state:\n"));
       bnet_fsend(user, "%sOPENED ", dev->is_open() ? "" : "!");
       bnet_fsend(user, "%sTAPE ", dev->is_tape() ? "" : "!");
       bnet_fsend(user, "%sLABEL ", dev->is_labeled() ? "" : "!");
@@ -230,7 +229,7 @@ static void send_blocked_status(JCR *jcr, DEVICE *dev)
       bnet_fsend(user, "%sSHORT ", dev->state & ST_SHORT ? "" : "!");
       bnet_fsend(user, "%sMOUNTED ", dev->state & ST_MOUNTED ? "" : "!");
       bnet_fsend(user, "\n");
-      bnet_fsend(user, "num_writers=%d JobStatus=%c block=%d\nn", dev->num_writers,
+      bnet_fsend(user, "num_writers=%d JobStatus=%c block=%d\n\n", dev->num_writers,
          jcr->JobStatus, dev->dev_blocked);
 
       bnet_fsend(user, _("Device parameters:\n"));

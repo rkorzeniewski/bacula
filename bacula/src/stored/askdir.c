@@ -183,6 +183,11 @@ static bool do_get_volume_info(DCR *dcr)
     bstrncpy(dcr->VolumeName, vol.VolCatName, sizeof(dcr->VolumeName));
     memcpy(&dcr->VolCatInfo, &vol, sizeof(dcr->VolCatInfo));
 
+   /* ***FIXME*** we really should not do this but must for the moment */
+   if (dcr->dev->num_parts < dcr->VolCatInfo.VolCatParts) {
+      dcr->dev->num_parts = dcr->VolCatInfo.VolCatParts;
+   }
+
     Dmsg2(300, "do_reqest_vol_info got slot=%d Volume=%s\n",
           vol.Slot, vol.VolCatName);
     return true;

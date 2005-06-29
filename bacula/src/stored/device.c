@@ -243,8 +243,10 @@ void set_new_file_parameters(DCR *dcr)
  *   Returns: false on failure
  *            true  on success
  */
-bool first_open_device(DEVICE *dev)
+bool first_open_device(DCR *dcr)
 {
+   DEVICE *dev = dcr->dev;
+
    Dmsg0(120, "start open_output_device()\n");
    if (!dev) {
       return false;
@@ -267,7 +269,7 @@ bool first_open_device(DEVICE *dev)
     }
    Dmsg0(129, "Opening device.\n");
    dev->open_nowait = true;
-   if (dev->open(NULL, mode) < 0) {
+   if (dev->open(dcr, mode) < 0) {
       Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), dev->errmsg);
       dev->open_nowait = false;
       unlock_device(dev);
@@ -292,7 +294,7 @@ bool open_device(DCR *dcr)
    } else {
       mode = OPEN_READ_WRITE;
    }
-   if (dev->open(dcr->VolCatInfo.VolCatName, mode) < 0) {
+   if (dev->open(dcr, mode) < 0) {
       /* If polling, ignore the error */
       if (!dev->poll) {
          Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open device %s: ERR=%s\n"),

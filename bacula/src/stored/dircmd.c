@@ -281,7 +281,7 @@ static bool cancel_cmd(JCR *cjcr)
 }
 
 /*
- * Label a tape
+ * Label a Volume
  *
  */
 static bool label_cmd(JCR *jcr)
@@ -374,16 +374,13 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
    dcr->dev = dev;
    steal_device_lock(dev, &hold, BST_WRITING_LABEL);
 
+   /* Note, try_autoload_device() opens the device */
    if (!try_autoload_device(jcr, slot, newname)) {
       goto bail_out;                  /* error */
    }
 
    /* See what we have for a Volume */
-   if (dev->is_dvd()) {
-      label_status = read_dvd_volume_label(dcr, /*write*/true);
-   } else {
-      label_status = read_dev_volume_label(dcr);
-   }
+   label_status = read_dev_volume_label(dcr);
    
    switch(label_status) {
    case VOL_NAME_ERROR:
@@ -607,11 +604,7 @@ static bool mount_cmd(JCR *jcr)
                                  "If this is not a blank tape, try unmounting and remounting the Volume.\n"),
                              dev->print_name());
                }
-            } else {
-               if (!dev->is_tape()) {
-                  /* Nothing to do */
-                  break;
-               }
+            } else if (dev->is_tape()) {
                if (dev->open(NULL, OPEN_READ_WRITE) < 0) {
                   bnet_fsend(dir, _("3901 open device failed: ERR=%s\n"),
                      strerror_dev(dev));
@@ -626,6 +619,16 @@ static bool mount_cmd(JCR *jcr)
                                     "If this is not a blank tape, try unmounting and remounting the Volume.\n"),
                              dev->print_name());
                }
+            } else if (dev->is_dvd()) {
+               if (mount_dev(dev, 1)) {
+                  bnet_fsend(dir, _("3002 Device %s is mounted.\n"), 
+                     dev->print_name());
+               } else {
+                  bnet_fsend(dir, "3907 %s", strerror_dev(dev));
+               } 
+            } else { /* must be file */
+               bnet_fsend(dir, _("3906 File device %s is always mounted.\n"),
+                  dev->print_name());
             }
             break;
 
@@ -908,7 +911,7 @@ static bool try_autoload_device(JCR *jcr, int slot, const char *VolName)
 
    /* Ensure that the device is open -- autoload_device() closes it */
    for ( ; !dev->is_open(); ) {
-      if (dev->open(dcr->VolumeName, OPEN_READ_WRITE) < 0) {
+      if (dev->open(dcr, OPEN_READ_WRITE) < 0) {
          bnet_fsend(dir, _("3910 Unable to open device %s: ERR=%s\n"),
             dev->print_name(), dev->strerror());
          return false;

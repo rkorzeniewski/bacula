@@ -263,7 +263,6 @@ static int check_resources()
    bool OK = true;
    AUTOCHANGER *changer;
 
-// LockRes();
 
    me = (STORES *)GetNextRes(R_STORAGE, NULL);
    if (!me) {
@@ -461,48 +460,56 @@ extern "C"
 void *device_initialization(void *arg)
 {
    DEVRES *device;
+   DCR *dcr;
+   JCR *jcr;
+   DEVICE *dev;
 
    LockRes();
+
    pthread_detach(pthread_self());
+   jcr = new_jcr(sizeof(JCR), stored_free_jcr);
+   jcr->JobType = JT_SYSTEM;
+   /* Initialize FD start condition variable */
+   int errstat = pthread_cond_init(&jcr->job_start_wait, NULL);
+   if (errstat != 0) {
+      Jmsg1(jcr, M_ABORT, 0, _("Unable to init job cond variable: ERR=%s\n"), strerror(errstat));
+   }
 
    foreach_res(device, R_DEVICE) {
       Dmsg1(90, "calling init_dev %s\n", device->device_name);
-      device->dev = init_dev(NULL, device);
+      device->dev = dev = init_dev(NULL, device);
       Dmsg1(10, "SD init done %s\n", device->device_name);
-      if (!device->dev) {
+      if (!dev) {
          Jmsg1(NULL, M_ERROR, 0, _("Could not initialize %s\n"), device->device_name);
          continue;
       }
 
+      dcr = new_dcr(jcr, dev);
+
       if (device->cap_bits & CAP_ALWAYSOPEN) {
-         Dmsg1(20, "calling first_open_device %s\n", device->device_name);
-         if (!first_open_device(device->dev)) {
-            Jmsg1(NULL, M_ERROR, 0, _("Could not open device %s\n"), device->device_name);
+         Dmsg1(20, "calling first_open_device %s\n", dev->print_name());
+         if (!first_open_device(dcr)) {
+            Jmsg1(NULL, M_ERROR, 0, _("Could not open device %s\n"), dev->print_name());
+            Dmsg1(20, "Could not open device %s\n", dev->print_name());
+            term_dev(dev);
+            device->dev = NULL;
+            free_dcr(dcr);
+            continue;
          }
       }
-      if (device->cap_bits & CAP_AUTOMOUNT && device->dev &&
-          device->dev->is_open()) {
-         JCR *jcr;
-         DCR *dcr;
-         jcr = new_jcr(sizeof(JCR), stored_free_jcr);
-         jcr->JobType = JT_SYSTEM;
-         /* Initialize FD start condition variable */
-         int errstat = pthread_cond_init(&jcr->job_start_wait, NULL);
-         if (errstat != 0) {
-            Jmsg1(jcr, M_ABORT, 0, _("Unable to init job cond variable: ERR=%s\n"), strerror(errstat));
-         }
-         dcr = new_dcr(jcr, device->dev);
+      if (device->cap_bits & CAP_AUTOMOUNT && dev->is_open()) {
          switch (read_dev_volume_label(dcr)) {
          case VOL_OK:
-            memcpy(&dcr->dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dcr->dev->VolCatInfo));
+            memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
             break;
          default:
-            Jmsg1(NULL, M_WARNING, 0, _("Could not mount device %s\n"), device->device_name);
+            Jmsg1(NULL, M_WARNING, 0, _("Could not mount device %s\n"), dev->print_name());
             break;
          }
-         free_jcr(jcr);
       }
+      free_dcr(dcr);
    }
+   free_jcr(jcr); 
    UnlockRes();
    return NULL;
 }
@@ -557,9 +564,12 @@ void terminate_stored(int sig)
    Dmsg1(200, "In terminate_stored() sig=%d\n", sig);
 
    foreach_res(device, R_DEVICE) {
+      Dmsg1(10, "Term device %s\n", device->device_name);
       if (device->dev) {
          free_volume(device->dev);
          term_dev(device->dev);
+      } else {
+         Dmsg1(10, "No dev structure %s\n", device->device_name);
       }
    }
 

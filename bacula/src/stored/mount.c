@@ -97,8 +97,6 @@ mount_next_vol:
    Dmsg3(100, "After find_next_append. Vol=%s Slot=%d Parts=%d\n",
          dcr->VolCatInfo.VolCatName, dcr->VolCatInfo.Slot, dcr->VolCatInfo.VolCatParts);
    
-   dev->num_parts = dcr->VolCatInfo.VolCatParts;
-
    /*
     * Get next volume and ready it for append
     * This code ensures that the device is ready for
@@ -181,8 +179,6 @@ read_volume:
       vol_label_status = VOL_OK;
       create_volume_label(dev, dcr->VolumeName, "Default");
       dev->VolHdr.LabelType = PRE_LABEL;
-   } else if (dev->is_dvd()) {
-      vol_label_status = read_dvd_volume_label(dcr, /*write*/true);
    } else {
       vol_label_status = read_dev_volume_label(dcr);
    }

@@ -690,7 +690,7 @@ static bool terminate_writing_volume(DCR *dcr)
    dev->VolCatInfo.VolCatJobs++;              /* increment number of jobs */
    
    if (dev->is_dvd()) { /* Write the current (and last) part. */
-      open_next_part(dev);
+      open_next_part(dcr);
    }
    
    if (!dir_update_volume_info(dcr, false)) {
@@ -783,13 +783,14 @@ static bool do_dvd_size_checks(DCR *dcr)
    if (!(dev->is_tape() || dev->is_fifo()) && dev->max_part_size > 0 &&
         (dev->part_size + block->binbuf) >= dev->max_part_size) {
       if (dev->part < dev->num_parts) {
-         Jmsg3(dcr->jcr, M_FATAL, 0, _("Error while writing, current part number is less than the total number of parts (%d/%d, device=%s)\n"),
+         Jmsg3(dcr->jcr, M_FATAL, 0, _("Error while writing, current part number"
+               " is less than the total number of parts (%d/%d, device=%s)\n"),
                dev->part, dev->num_parts, dev->print_name());
          dev->dev_errno = EIO;
          return false;
       }
       
-      if (open_next_part(dev) < 0) {
+      if (open_next_part(dcr) < 0) {
          Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open device next part %s: ERR=%s\n"),
                 dev->print_name(), strerror_dev(dev));
          dev->dev_errno = EIO;
@@ -889,12 +890,14 @@ reread:
    Dmsg1(200, "dev->part_size=%u\n", (unsigned int)dev->part_size);
    Dmsg1(200, "dev->part=%u\n", (unsigned int)dev->part);
    Dmsg1(200, "dev->VolCatInfo.VolCatParts=%u\n", (unsigned int)dev->VolCatInfo.VolCatParts);
-   Dmsg3(200, "Tests : %d %d %d\n", (dev->VolCatInfo.VolCatParts > 0), ((dev->file_size-dev->part_start) == dev->part_size), (dev->part <= dev->VolCatInfo.VolCatParts));*/
+   Dmsg3(200, "Tests : %d %d %d\n", (dev->VolCatInfo.VolCatParts > 0), 
+         ((dev->file_size-dev->part_start) == dev->part_size), 
+         (dev->part <= dev->VolCatInfo.VolCatParts));*/
    /* Check for part file end */
    if ((dev->num_parts > 0) &&
         ((dev->file_size-dev->part_start) == dev->part_size) && 
         (dev->part < dev->num_parts)) {
-      if (open_next_part(dev) < 0) {
+      if (open_next_part(dcr) < 0) {
          Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open device next part %s: ERR=%s\n"),
                dev->print_name(), strerror_dev(dev));
          dev->dev_errno = EIO;

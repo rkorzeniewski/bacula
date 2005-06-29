@@ -175,8 +175,6 @@ DCR *acquire_device_for_read(DCR *dcr)
       Jmsg1(jcr, M_WARNING, 0, "%s", jcr->errmsg);
    }
    
-   dev->num_parts = dcr->VolCatInfo.VolCatParts;
-   
    for (i=0; i<5; i++) {
       dev->clear_labeled();              /* force reread of label */
       if (job_canceled(jcr)) {
@@ -190,7 +188,7 @@ DCR *acquire_device_for_read(DCR *dcr)
        */
       for ( ; !dev->is_open(); ) {
          Dmsg1(120, "bstored: open vol=%s\n", dcr->VolumeName);
-         if (dev->open(dcr->VolumeName, OPEN_READ_ONLY) < 0) {
+         if (dev->open(dcr, OPEN_READ_ONLY) < 0) {
             if (dev->dev_errno == EIO) {   /* no tape loaded */
               Jmsg3(jcr, M_WARNING, 0, _("Open device %s Volume \"%s\" failed: ERR=%s\n"),
                     dev->print_name(), dcr->VolumeName, strerror_dev(dev));
@@ -211,11 +209,7 @@ DCR *acquire_device_for_read(DCR *dcr)
          Dmsg1(129, "opened dev %s OK\n", dev->print_name());
       }
       
-      if (dev->is_dvd()) {
-         vol_label_status = read_dvd_volume_label(dcr, /*read*/false);
-      } else {
-         vol_label_status = read_dev_volume_label(dcr);
-      }
+      vol_label_status = read_dev_volume_label(dcr);
       
       Dmsg0(200, "calling read-vol-label\n");
       switch (vol_label_status) {
