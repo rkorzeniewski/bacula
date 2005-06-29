@@ -146,25 +146,12 @@ mount_next_vol:
    }
 
    /* Ensure the device is open */
-   /* If we have a dvd that requires mount, we first want to guess
-    * which Volume is loaded, so we continue (if the wrong device is
-    * loaded, open_device just below would fail. 
-    */
-   if (!dev->is_dvd()) {
-      if (!open_device(dcr)) {
-         if (dev->poll) {
-            goto mount_next_vol;
-         } else {
-            return false;
-         }
+   if (!open_device(dcr)) {
+      if (dev->poll) {
+         goto mount_next_vol;
+      } else {
+         return false;
       }
-   } else {
-      /*
-       * Just copy the VolCatName in the device resource 
-       *   (usually done by open_dev).
-       * It is necessary so we can open the real files later.   
-       */
-      bstrncpy(dev->VolCatInfo.VolCatName, dcr->VolCatInfo.VolCatName, sizeof(dev->VolCatInfo.VolCatName));
    }
 
    /*

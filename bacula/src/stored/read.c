@@ -99,19 +99,19 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    if (rec->FileIndex < 0) {
       return true;
    }
-   Dmsg5(100, "Send to FD: SessId=%u SessTim=%u FI=%d Strm=%d, len=%d\n",
+   Dmsg5(400, "Send to FD: SessId=%u SessTim=%u FI=%d Strm=%d, len=%d\n",
       rec->VolSessionId, rec->VolSessionTime, rec->FileIndex, rec->Stream,
       rec->data_len);
 
    /* Send record header to File daemon */
    if (!bnet_fsend(fd, rec_header, rec->VolSessionId, rec->VolSessionTime,
           rec->FileIndex, rec->Stream, rec->data_len)) {
-      Dmsg1(30, ">filed: Error Hdr=%s\n", fd->msg);
+      Pmsg1(000, ">filed: Error Hdr=%s\n", fd->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Error sending to File daemon. ERR=%s\n"),
          bnet_strerror(fd));
       return false;
    } else {
-      Dmsg1(31, ">filed: Hdr=%s\n", fd->msg);
+      Dmsg1(400, ">filed: Hdr=%s\n", fd->msg);
    }
 
 
@@ -119,7 +119,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    save_msg = fd->msg;          /* save fd message pointer */
    fd->msg = rec->data;         /* pass data directly to bnet_send */
    fd->msglen = rec->data_len;
-   Dmsg1(31, ">filed: send %d bytes data.\n", fd->msglen);
+   Dmsg1(400, ">filed: send %d bytes data.\n", fd->msglen);
    if (!bnet_send(fd)) {
       Pmsg1(000, "Error sending to FD. ERR=%s\n", bnet_strerror(fd));
       Jmsg1(jcr, M_FATAL, 0, _("Error sending to File daemon. ERR=%s\n"),

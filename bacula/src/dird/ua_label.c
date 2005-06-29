@@ -419,10 +419,12 @@ checkName:
             /* Here we can get
              *  3001 OK mount. Device=xxx      or
              *  3001 Mounted Volume vvvv
+             *  3002 Device "DVD-Writer" (/dev/hdc) is mounted.
              *  3906 is cannot mount non-tape
              * So for those, no need to print a reminder
              */
             if (strncmp(sd->msg, "3001 ", 5) == 0 ||
+                strncmp(sd->msg, "3002 ", 5) == 0 ||
                 strncmp(sd->msg, "3906 ", 5) == 0) {
                print_reminder = false;
             }
@@ -521,11 +523,15 @@ static void label_from_barcodes(UAContext *ua)
       if (is_cleaning_tape(ua, &mr, &pr)) {
          if (media_record_exists) {      /* we update it */
             mr.VolBytes = 1;
+            bstrncpy(mr.VolStatus, "Cleaning", sizeof(mr.VolStatus));
+            mr.MediaType[0] = 0;
             if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
                 bsendmsg(ua, "%s", db_strerror(ua->db));
             }
          } else {                        /* create the media record */
             set_pool_dbr_defaults_in_media_dbr(&mr, &pr);
+            bstrncpy(mr.VolStatus, "Cleaning", sizeof(mr.VolStatus));
+            mr.MediaType[0] = 0;
             if (db_create_media_record(ua->jcr, ua->db, &mr)) {
                bsendmsg(ua, _("Catalog record for cleaning tape \"%s\" successfully created.\n"),
                   mr.VolumeName);

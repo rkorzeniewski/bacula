@@ -182,7 +182,7 @@ void ser_block_header(DEV_BLOCK *block)
    uint32_t CheckSum = 0;
    uint32_t block_len = block->binbuf;
 
-   Dmsg1(390, "ser_block_header: block_len=%d\n", block_len);
+   Dmsg1(1390, "ser_block_header: block_len=%d\n", block_len);
    ser_begin(block->buf, BLKHDR2_LENGTH);
    ser_uint32(CheckSum);
    ser_uint32(block_len);
@@ -196,7 +196,7 @@ void ser_block_header(DEV_BLOCK *block)
    /* Checksum whole block except for the checksum */
    CheckSum = bcrc32((uint8_t *)block->buf+BLKHDR_CS_LENGTH,
                  block_len-BLKHDR_CS_LENGTH);
-   Dmsg1(390, "ser_bloc_header: checksum=%x\n", CheckSum);
+   Dmsg1(1390, "ser_bloc_header: checksum=%x\n", CheckSum);
    ser_begin(block->buf, BLKHDR2_LENGTH);
    ser_uint32(CheckSum);              /* now add checksum to block header */
 }
@@ -500,7 +500,7 @@ bool write_block_to_dev(DCR *dcr)
    }
 
    dev->VolCatInfo.VolCatWrites++;
-   Dmsg1(300, "Write block of %u bytes\n", wlen);
+   Dmsg1(1300, "Write block of %u bytes\n", wlen);
 #ifdef DEBUG_BLOCK_ZEROING
    uint32_t *bp = (uint32_t *)block->buf;
    if (bp[0] == 0 && bp[1] == 0 && bp[2] == 0 && block->buf[12] == 0) {
@@ -586,7 +586,7 @@ bool write_block_to_dev(DCR *dcr)
    dev->file_size += wlen;
    dev->part_size += wlen;
 
-   Dmsg2(300, "write_block: wrote block %d bytes=%d\n", dev->block_num, wlen);
+   Dmsg2(1300, "write_block: wrote block %d bytes=%d\n", dev->block_num, wlen);
    empty_block(block);
    return true;
 }

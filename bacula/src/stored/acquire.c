@@ -92,7 +92,7 @@ void free_dcr(DCR *dcr)
    if (dcr->reserved_device) {
       lock_device(dev);
       dev->reserved_device--;
-      Dmsg1(200, "=========== Dec reserve=%d\n", dev->reserved_device);
+      Dmsg1(200, "Dec reserve=%d\n", dev->reserved_device);
       dcr->reserved_device = false;
       if (dev->num_writers < 0) {
          Jmsg1(dcr->jcr, M_ERROR, 0, _("Hey! num_writers=%d!!!!\n"), dev->num_writers);
@@ -314,7 +314,7 @@ DCR *acquire_device_for_append(DCR *dcr)
 
    if (dcr->reserved_device) {
       dev->reserved_device--;
-      Dmsg1(200, "============ Dec reserve=%d\n", dev->reserved_device);
+      Dmsg1(200, "Dec reserve=%d\n", dev->reserved_device);
       dcr->reserved_device = false;
    }
 
@@ -423,7 +423,7 @@ bool release_device(DCR *dcr)
    /* if device is reserved, job never started, so release the reserve here */
    if (dcr->reserved_device) {
       dev->reserved_device--;
-      Dmsg1(200, "========= Dec reserve=%d\n", dev->reserved_device);
+      Dmsg1(200, "Dec reserve=%d\n", dev->reserved_device);
       dcr->reserved_device = false;
    }
 
