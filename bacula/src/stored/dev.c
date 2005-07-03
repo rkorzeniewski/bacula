@@ -89,6 +89,7 @@ static bool dev_get_os_pos(DEVICE *dev, struct mtget *mt_stat);
 static void open_tape_device(DCR *dcr, int mode);
 static void open_file_device(DCR *dcr, int mode);
 static void open_dvd_device(DCR *dcr, int mode);
+static char *mode_to_str(int mode);
 
 /*
  * Allocate and initialize the DEVICE structure
@@ -275,17 +276,17 @@ DEVICE::open(DCR *dcr, int mode)
    }
   bstrncpy(VolCatInfo.VolCatName, dcr->VolumeName, sizeof(VolCatInfo.VolCatName));
 
-   Dmsg4(29, "open dev: tape=%d dev_name=%s vol=%s mode=%d\n", is_tape(),
-         dev_name, VolCatInfo.VolCatName, mode);
+   Dmsg4(29, "open dev: tape=%d dev_name=%s vol=%s mode=%s\n", is_tape(),
+         dev_name, VolCatInfo.VolCatName, mode_to_str(mode));
    state &= ~(ST_LABEL|ST_APPEND|ST_READ|ST_EOT|ST_WEOT|ST_EOF);
    label_type = B_BACULA_LABEL;
    if (is_tape() || is_fifo()) {
       open_tape_device(dcr, mode);
    } else if (is_dvd()) {
-      Dmsg1(100, "call open_dvd_device mode=%d\n", mode);
+      Dmsg1(100, "call open_dvd_device mode=%s\n", mode_to_str(mode));
       open_dvd_device(dcr, mode);
    } else {
-      Dmsg1(100, "call open_file_device mode=%d\n", mode);
+      Dmsg1(100, "call open_file_device mode=%d\n", mode_to_str(mode));
       open_file_device(dcr, mode);
    }
    return fd;
@@ -404,8 +405,8 @@ static void open_file_device(DCR *dcr, int mode)
    /*
     * Handle opening of File Archive (not a tape)
     */     
-   Dmsg3(29, "Enter: open_file_dev: %s dev=%s mode=%d\n", dev->is_dvd()?"DVD":"disk",
-         archive_name.c_str(), mode);
+   Dmsg3(29, "Enter: open_file_dev: %s dev=%s mode=%s\n", dev->is_dvd()?"DVD":"disk",
+         archive_name.c_str(), mode_to_str(mode));
 
    if (dev->VolCatInfo.VolCatName[0] == 0) {
       Mmsg(dev->errmsg, _("Could not open file device %s. No Volume name given.\n"),
@@ -420,13 +421,14 @@ static void open_file_device(DCR *dcr, int mode)
    }
    pm_strcat(archive_name, dev->VolCatInfo.VolCatName);
          
-   Dmsg3(29, "open dev: %s dev=%s mode=%d\n", dev->is_dvd()?"DVD":"disk",
-         archive_name.c_str(), mode);
+   Dmsg3(29, "open dev: %s dev=%s mode=%s\n", dev->is_dvd()?"DVD":"disk",
+         archive_name.c_str(), mode_to_str(mode));
    dev->openmode = mode;
    
    dev->set_mode(mode);
    /* If creating file, give 0640 permissions */
-   Dmsg3(29, "mode=%d open(%s, 0x%x, 0640)\n", mode, archive_name.c_str(), dev->mode);
+   Dmsg3(29, "mode=%s open(%s, 0x%x, 0640)\n", mode, archive_name.c_str(), 
+         mode_to_str(dev->mode));
    if ((dev->fd = open(archive_name.c_str(), dev->mode, 0640)) < 0) {
       berrno be;
       dev->dev_errno = errno;
@@ -459,8 +461,8 @@ static void open_dvd_device(DCR *dcr, int mode)
    /*
     * Handle opening of DVD Volume
     */     
-   Dmsg3(29, "Enter: open_file_dev: %s dev=%s mode=%d\n", dev->is_dvd()?"DVD":"disk",
-         archive_name.c_str(), mode);
+   Dmsg3(29, "Enter: open_dvd_dev: %s dev=%s mode=%s\n", dev->is_dvd()?"DVD":"disk",
+         archive_name.c_str(), mode_to_str(mode));
 
    if (dev->VolCatInfo.VolCatName[0] == 0) {
       Mmsg(dev->errmsg, _("Could not open file device %s. No Volume name given.\n"),
@@ -483,8 +485,8 @@ static void open_dvd_device(DCR *dcr, int mode)
       return;
    }
          
-   Dmsg3(29, "open dev: %s dev=%s mode=%d\n", dev->is_dvd()?"DVD":"disk",
-         archive_name.c_str(), mode);
+   Dmsg3(29, "open dev: %s dev=%s mode=%s\n", dev->is_dvd()?"DVD":"disk",
+         archive_name.c_str(), mode_to_str(mode));
    dev->openmode = mode;
    
    /*
@@ -496,7 +498,6 @@ static void open_dvd_device(DCR *dcr, int mode)
    }
    dev->set_mode(mode);
 
-   Dmsg1(100, "Call make_dvd_filename. Vol=%s\n", dev->VolCatInfo.VolCatName);
    /* 
     * If we are opening it read-only, it is *probably* on the
     *   DVD, so try the DVD first, otherwise look in the spool dir.
@@ -508,7 +509,8 @@ static void open_dvd_device(DCR *dcr, int mode)
    }
 
    /* If creating file, give 0640 permissions */
-   Dmsg3(29, "mode=%d open(%s, 0x%x, 0640)\n", mode, archive_name.c_str(), dev->mode);
+   Dmsg3(29, "mode=%s open(%s, 0x%x, 0640)\n", mode_to_str(mode), 
+         archive_name.c_str(), dev->mode);
    if ((dev->fd = open(archive_name.c_str(), dev->mode, 0640)) < 0) {
       berrno be;
       dev->dev_errno = errno;
@@ -1876,4 +1878,17 @@ static bool dev_get_os_pos(DEVICE *dev, struct mtget *mt_stat)
    return dev_cap(dev, CAP_MTIOCGET) && 
           ioctl(dev->fd, MTIOCGET, (char *)mt_stat) == 0 &&
           mt_stat->mt_fileno >= 0;
+}
+
+static char *modes[] = {
+   "CREATE_READ_WRITE",
+   "OPEN_READ_WRITE",
+   "OPEN_READ_ONLY",
+   "OPEN_WRITE_ONLY"
+};
+
+
+static char *mode_to_str(int mode)  
+{
+   return modes[mode-1];
 }

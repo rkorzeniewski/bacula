@@ -61,30 +61,31 @@ extern "C" void *sd_heartbeat_thread(void *arg)
    jcr->hb_dir_bsock = dir;
 
    /* Hang reading the socket to the SD, and every time we get
-    *	a heartbeat or we get a wait timeout (1 minute), we
-    *	check to see if we need to send a heartbeat to the
-    *	Director.
+    *   a heartbeat or we get a wait timeout (1 minute), we
+    *   check to see if we need to send a heartbeat to the
+    *   Director.
     */
    for ( ; !is_bnet_stop(sd); ) {
       n = bnet_wait_data_intr(sd, WAIT_INTERVAL);
       if (me->heartbeat_interval) {
-	 now = time(NULL);
-	 if (now-last_heartbeat >= me->heartbeat_interval) {
-	    bnet_sig(dir, BNET_HEARTBEAT);
-	    last_heartbeat = now;
-	 }
+         now = time(NULL);
+         if (now-last_heartbeat >= me->heartbeat_interval) {
+            bnet_sig(dir, BNET_HEARTBEAT);
+            last_heartbeat = now;
+         }
       }
       if (is_bnet_stop(sd)) {
-	 break;
+         break;
       }
-      if (n == 1) {		      /* input waiting */
-	 bnet_recv(sd); 	      /* read it -- probably heartbeat from sd */
-	 if (sd->msglen <= 0) {
+      if (n == 1) {                   /* input waiting */
+         bnet_recv(sd);               /* read it -- probably heartbeat from sd */
+         if (sd->msglen <= 0) {
             Dmsg1(100, "Got BNET_SIG %d from SD\n", sd->msglen);
-	 } else {
+         } else {
             Dmsg2(100, "Got %d bytes from SD. MSG=%s\n", sd->msglen, sd->msg);
-	 }
+         }
       }
+      Dmsg2(000, "wait_intr=%d stop=%d\n", n, is_bnet_stop(sd));
    }
    bnet_close(sd);
    bnet_close(dir);
@@ -117,7 +118,7 @@ void stop_heartbeat_monitor(JCR *jcr)
    }
    /* Wait max 10 secs for heartbeat thread to start */
    while (jcr->hb_bsock == NULL && cnt++ < 200) {
-      bmicrosleep(0, 50000);	     /* wait for start */
+      bmicrosleep(0, 50000);         /* wait for start */
    }
    if (!jcr->hb_bsock) {
    }
@@ -135,7 +136,7 @@ void stop_heartbeat_monitor(JCR *jcr)
    cnt = 0;
    /* Wait max 100 secs for heartbeat thread to stop */
    while (jcr->hb_bsock && cnt++ < 200) {
-      pthread_kill(jcr->heartbeat_id, TIMEOUT_SIGNAL);	/* make heartbeat thread go away */
+      pthread_kill(jcr->heartbeat_id, TIMEOUT_SIGNAL);  /* make heartbeat thread go away */
       bmicrosleep(0, 500000);
    }
    if (jcr->hb_bsock) {
@@ -166,8 +167,8 @@ extern "C" void *dir_heartbeat_thread(void *arg)
       now = time(NULL);
       next = now - last_heartbeat;
       if (next >= me->heartbeat_interval) {
-	 bnet_sig(dir, BNET_HEARTBEAT);
-	 last_heartbeat = now;
+         bnet_sig(dir, BNET_HEARTBEAT);
+         last_heartbeat = now;
       }
       bmicrosleep(next, 0);
    }

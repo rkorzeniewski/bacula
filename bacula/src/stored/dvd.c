@@ -28,7 +28,6 @@
 /* Forward referenced functions */
 static char *edit_device_codes_dev(DEVICE *dev, char *omsg, const char *imsg);
 static bool do_mount_dev(DEVICE* dev, int mount, int dotimeout);
-static bool dvd_write_part(DEVICE *dev);
 static void add_file_and_part_name(DEVICE *dev, POOL_MEM &archive_name);
 
 /* 
@@ -131,6 +130,7 @@ static bool do_mount_dev(DEVICE* dev, int mount, int dotimeout)
    /* If busy retry each second */
    while ((status = run_program_full_output(ocmd.c_str(), 
                        dev->max_open_wait/2, results)) != 0) {
+      Dmsg1(100, "results len=%d\n", strlen(results));
       if (fnmatch("*is already mounted on", results, 0) == 0) {
          break;
       }
@@ -147,6 +147,45 @@ static bool do_mount_dev(DEVICE* dev, int mount, int dotimeout)
       Dmsg2(40, "Device %s cannot be mounted. ERR=%s\n", dev->print_name(), results);
       Mmsg(dev->errmsg, "Device %s cannot be mounted. ERR=%s\n", 
            dev->print_name(), results);
+#ifdef xxx
+      /*
+       * Now, just to be sure it is not mounted, try to read the
+       *  filesystem.
+       */
+      DIR* dp;
+      struct dirent *entry, *result;
+      int name_max;
+      int count = 0;
+      
+      name_max = pathconf(".", _PC_NAME_MAX);
+      if (name_max < 1024) {
+         name_max = 1024;
+      }
+         
+      if (!(dp = opendir(dev->device->mount_point))) {
+         berrno be;
+         dev->dev_errno = errno;
+         Dmsg3(29, "open_mounted_dev: failed to open dir %s (dev=%s), ERR=%s\n", dev->device->mount_point, dev->dev_name, be.strerror());
+         goto get_out;
+      }
+      
+      entry = (struct dirent *)malloc(sizeof(struct dirent) + name_max + 1000);
+      while (1) {
+         if ((readdir_r(dp, entry, &result) != 0) || (result == NULL)) {
+            dev->dev_errno = ENOENT;
+            Dmsg2(29, "open_mounted_dev: failed to find suitable file in dir %s (dev=%s)\n", dev->device->mount_point, dev->dev_name);
+            break;
+         }
+         count++;
+      }
+      free(entry);
+      closedir(dp);
+      if (count > 2) {
+         mount = 1;                      /* If we got more than . and .. */
+         break;                          /*   there must be something mounted */
+      }
+get_out:
+#endif
       free_pool_memory(results);
       return false;
    }
@@ -188,6 +227,7 @@ void update_free_space_dev(DEVICE* dev)
    
    while (1) {
       if (run_program_full_output(ocmd.c_str(), dev->max_open_wait/2, results) == 0) {
+         Dmsg1(100, "results len=%d\n", strlen(results));
          Dmsg1(100, "Free space program run : %s\n", results);
          free = str_to_int64(results);
          if (free >= 0) {
@@ -225,9 +265,13 @@ void update_free_space_dev(DEVICE* dev)
    return;
 }
 
-static bool dvd_write_part(DEVICE *dev) 
+/*
+ * Write a part (Vol, Vol.1, ...) from the spool to the DVD   
+ */
+static bool dvd_write_part(DCR *dcr) 
 {
-   Dmsg1(29, "dvd_write_part: device is %s\n", dev->dev_name);
+   DEVICE *dev = dcr->dev;
+   Dmsg1(29, "dvd_write_part: device is %s\n", dev->print_name());
    
    if (unmount_dev(dev, 1) < 0) {
       Dmsg0(29, "dvd_write_part: unable to unmount the device\n");
@@ -238,12 +282,25 @@ static bool dvd_write_part(DEVICE *dev)
    char* icmd;
    int status;
    int timeout;
+   int part;
+   char ed1[50];
    
    results = get_pool_memory(PM_MESSAGE);
    results[0] = 0;
    icmd = dev->device->write_part_command;
    
+   /* 
+    * Note! part is used to control whether or not we create a
+    *   new filesystem. If the device could be mounted, it is because
+    *   it already has a filesystem, so we artificially set part=1
+    *   to avoid zapping an existing filesystem.
+    */
+   part = dev->part;
+   if (dev->is_mounted() && dev->part == 0) {
+      dev->part = 1;      /* do not wipe out existing filesystem */
+   }
    edit_device_codes_dev(dev, ocmd.c_str(), icmd);
+   dev->part = part;
       
    /* Wait at most the time a maximum size part is written in DVD 0.5x speed
     * FIXME: Minimum speed should be in device configuration 
@@ -253,6 +310,7 @@ static bool dvd_write_part(DEVICE *dev)
    Dmsg2(29, "dvd_write_part: cmd=%s timeout=%d\n", ocmd.c_str(), timeout);
       
    status = run_program_full_output(ocmd.c_str(), timeout, results);
+   Dmsg1(100, "results len=%d\n", strlen(results));
    if (status != 0) {
       Mmsg1(dev->errmsg, "Error while writing current part to the DVD: %s", 
             results);
@@ -266,7 +324,11 @@ static bool dvd_write_part(DEVICE *dev)
    /* Delete spool file */
    make_spooled_dvd_filename(dev, archive_name);
    unlink(archive_name.c_str());
+   Dmsg1(29, "unlink(%s)\n", archive_name.c_str());
    free_pool_memory(results);
+   update_free_space_dev(dev);
+   Jmsg(dcr->jcr, M_INFO, 0, _("Remaining free space %s on %s\n"), 
+      edit_uint64_with_commas(dev->free_space, ed1), dev->print_name());
    return true;
 }
 
@@ -301,7 +363,7 @@ int open_next_part(DCR *dcr)
     *  DVD before opening the next part.
     */
    if (dev->is_dvd() && (dev->part == dev->num_parts) && dev->can_append()) {
-      if (!dvd_write_part(dev)) {
+      if (!dvd_write_part(dcr)) {
          return -1;
       }
    }
@@ -356,6 +418,9 @@ int open_next_part(DCR *dcr)
 /* Open the first part file.
  *  - Close the fd
  *  - Reopen the device
+ *
+ *   I don't see why this is necessary unless the current
+ *   part is not zero.
  */
 int open_first_part(DCR *dcr, int mode)
 {
@@ -500,14 +565,16 @@ bool dvd_close_job(DCR *dcr)
          ok = false;
       }
       
-      if (ok && (open_next_part(dcr) < 0)) {
-         Jmsg2(jcr, M_FATAL, 0, _("Unable to open device next part %s: ERR=%s\n"),
+      /* This should be !dvd_write_part(dcr) */
+      if (ok && open_next_part(dcr) < 0) {
+//    if (ok && !dvd_write_part(dcr)) {
+         Jmsg2(jcr, M_FATAL, 0, _("Unable to write part %s: ERR=%s\n"),
                dev->print_name(), strerror_dev(dev));
          dev->dev_errno = EIO;
          ok = false;
       }
-      dev->VolCatInfo.VolCatParts = dev->num_parts;
    }
+   dev->VolCatInfo.VolCatParts = dev->num_parts;
    return ok;
 }
 

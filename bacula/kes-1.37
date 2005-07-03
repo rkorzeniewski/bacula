@@ -4,6 +4,17 @@
 General:
 
 Changes to 1.37.28:
+02Jul05
+- Tweak dvd-writepart script to prevent door from opening/closing
+  so much.
+- Remove GROUP BY in several PostgreSQL commands to prevent error.
+  Resolves bug report.
+- Ensure that < as first character of filename list is not treated
+  as a directory for restore.
+- Add debug to heartbeat in FD as it seems to go into an
+  infinite loop from time to time during SD failure in DVD writing.
+- Add more debug code to dvd writing.
+- Attempt not to destroy existing fs on DVD. 
 30Jun05
 - Detect device mounted for DVD and suppress be sure to 
   mount message after label.

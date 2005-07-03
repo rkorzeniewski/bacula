@@ -9,8 +9,8 @@
 #  Write Part Command = "path-to-this-script/dvd-writepart %n %a %v"
 #    you will have the following input to this script:
 #
-#  dvd-writepart "part_number"    "device"  "part_filename"
-#                     $1             $2           $3
+#  dvd-writepart "part_number"	  "device"  "part_filename"
+#		      $1	     $2 	  $3
 #
 #  for example:
 #
@@ -19,11 +19,12 @@
 MKISOFS=@MKISOFS@
 GROWISOFS=@GROWISOFS@
 
-GROWARGS="-use-the-force-luke=tty -quiet"
+# GROWARGS="-use-the-force-luke=tty -quiet"
+GROWARGS="-quiet"
 
 # Uncomment the following line if you do not want the tray to be reloaded
 # when writing ends.
-#GROWARGS="${GROWARGS} -use-the-force-luke=notray"
+GROWARGS="${GROWARGS} -use-the-force-luke=notray"
 
 # Uncomment the following line if you have a Linux kernel >=2.6.8, and
 # if you want to allow a session to start beyond the 4gb boundary.

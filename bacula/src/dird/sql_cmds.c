@@ -304,10 +304,20 @@ const char *uar_inc =
    "AND FileSet.FileSet='%s' "
    "%s";
 
+#ifdef HAVE_POSTGRESQL
+/* Note, the PostgreSQL will have a much uglier looking
+ * list since it cannot do GROUP BY of different values.
+ */
+const char *uar_list_temp =
+   "SELECT JobId,Level,JobFiles,JobBytes,StartTime,VolumeName,StartFile"
+   " FROM temp"
+   " ORDER BY StartTime,StartFile ASC";
+#else
 const char *uar_list_temp =
    "SELECT JobId,Level,JobFiles,JobBytes,StartTime,VolumeName,StartFile"
    " FROM temp"
    " GROUP BY JobId ORDER BY StartTime,StartFile ASC";
+#endif
 
 
 const char *uar_sel_jobid_temp = "SELECT JobId FROM temp ORDER BY StartTime ASC";
@@ -359,7 +369,24 @@ const char *uar_jobids_fileindex =
    "AND Filename.FilenameId=File.FilenameId "
    "ORDER BY Job.StartTime DESC LIMIT 1";
 
-/* Query to get all files in a directory -- no recursing */
+/* Query to get all files in a directory -- no recursing   
+ *  Note, for PostgreSQL since it respects the "Single Value
+ *  rule", the results of the SELECT will be unoptimized.
+ *  I.e. the same file will be restored multiple times, once
+ *  for each time it was backed up.
+ */
+
+#ifdef HAVE_POSTGRESQL
+const char *uar_jobid_fileindex_from_dir = 
+   "SELECT Job.JobId,File.FileIndex FROM Job,File,Path,Filename,Client "
+   "WHERE Job.JobId IN (%s) "
+   "AND Job.JobId=File.JobId "
+   "AND Path.Path='%s' "
+   "AND Client.Name='%s' "
+   "AND Job.ClientId=Client.ClientId "
+   "AND Path.PathId=File.Pathid "
+   "AND Filename.FilenameId=File.FilenameId"; 
+#else
 const char *uar_jobid_fileindex_from_dir = 
    "SELECT Job.JobId,File.FileIndex FROM Job,File,Path,Filename,Client "
    "WHERE Job.JobId IN (%s) "
@@ -370,4 +397,5 @@ const char *uar_jobid_fileindex_from_dir =
    "AND Path.PathId=File.Pathid "
    "AND Filename.FilenameId=File.FilenameId "
    "GROUP BY File.FileIndex ";
+#endif
  
