@@ -5,31 +5,25 @@
  *
  *    Version $Id$
  */
-
 /*
    Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
 /* The following is necessary so that we do not include
  * the dummy external definition of DB.
  */
-#define __SQL_C 		      /* indicate that this is sql.c */
+#define __SQL_C                       /* indicate that this is sql.c */
 
 #include "bacula.h"
 #include "cats.h"
@@ -52,13 +46,13 @@ extern int QueryDB(const char *file, int line, JCR *jcr, B_DB *db, char *select_
  * Submit general SQL query
  */
 int db_list_sql_query(JCR *jcr, B_DB *mdb, char *query, DB_LIST_HANDLER *sendit,
-		      void *ctx, int verbose, e_list_type type)
+                      void *ctx, int verbose, e_list_type type)
 {
    db_lock(mdb);
    if (sql_query(mdb, query) != 0) {
       Mmsg(mdb->errmsg, _("Query failed: %s\n"), sql_strerror(mdb));
       if (verbose) {
-	 sendit(ctx, mdb->errmsg);
+         sendit(ctx, mdb->errmsg);
       }
       db_unlock(mdb);
       return 0;
@@ -131,7 +125,7 @@ db_list_client_records(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, 
  */
 void
 db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr,
-		      DB_LIST_HANDLER *sendit, void *ctx, e_list_type type)
+                      DB_LIST_HANDLER *sendit, void *ctx, e_list_type type)
 {
    char ed1[50];
    db_lock(mdb);
@@ -152,7 +146,7 @@ db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr,
             "VolUseDuration,MaxVolJobs,MaxVolFiles,MaxVolBytes,InChanger,"
             "EndFile,EndBlock,VolParts,LabelType,StorageId"
             " FROM Media WHERE Media.PoolId=%s ORDER BY MediaId", 
-	    edit_int64(mdbr->PoolId, ed1));
+            edit_int64(mdbr->PoolId, ed1));
       }
    } else {
       if (mdbr->VolumeName[0] != 0) {
@@ -163,7 +157,7 @@ db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr,
          Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolStatus,"
             "VolBytes,VolFiles,VolRetention,Recycle,Slot,InChanger,MediaType,LastWritten "
             "FROM Media WHERE Media.PoolId=%s ORDER BY MediaId", 
-	    edit_int64(mdbr->PoolId, ed1));
+            edit_int64(mdbr->PoolId, ed1));
       }
    }
 
@@ -179,12 +173,12 @@ db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr,
 }
 
 void db_list_jobmedia_records(JCR *jcr, B_DB *mdb, uint32_t JobId,
-			      DB_LIST_HANDLER *sendit, void *ctx, e_list_type type)
+                              DB_LIST_HANDLER *sendit, void *ctx, e_list_type type)
 {
    char ed1[50];
    db_lock(mdb);
    if (type == VERT_LIST) {
-      if (JobId > 0) {			 /* do by JobId */
+      if (JobId > 0) {                   /* do by JobId */
          Mmsg(mdb->cmd, "SELECT JobMediaId,JobId,Media.MediaId,Media.VolumeName,"
             "FirstIndex,LastIndex,StartFile,JobMedia.EndFile,StartBlock,"
             "JobMedia.EndBlock,Copy,Stripe "
@@ -198,7 +192,7 @@ void db_list_jobmedia_records(JCR *jcr, B_DB *mdb, uint32_t JobId,
       }
 
    } else {
-      if (JobId > 0) {			 /* do by JobId */
+      if (JobId > 0) {                   /* do by JobId */
          Mmsg(mdb->cmd, "SELECT JobId,Media.VolumeName,FirstIndex,LastIndex "
             "FROM JobMedia,Media WHERE Media.MediaId=JobMedia.MediaId "
             "AND JobMedia.JobId=%s", edit_int64(JobId, ed1));
@@ -228,7 +222,7 @@ void db_list_jobmedia_records(JCR *jcr, B_DB *mdb, uint32_t JobId,
  */
 void
 db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
-		    void *ctx, e_list_type type)
+                    void *ctx, e_list_type type)
 {
    char ed1[50];
    char limit[100];
@@ -240,7 +234,7 @@ db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
    }
    if (type == VERT_LIST) {
       if (jr->JobId == 0 && jr->Job[0] == 0) {
-	 Mmsg(mdb->cmd,
+         Mmsg(mdb->cmd,
             "SELECT JobId,Job,Job.Name,PurgedFiles,Type,Level,"
             "Job.ClientId,Client.Name,JobStatus,SchedTime,"
             "StartTime,EndTime,JobTDate,"
@@ -249,8 +243,8 @@ db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
             "FROM Job,Client,Pool,FileSet WHERE "
             "Client.ClientId=Job.ClientId AND Pool.PoolId=Job.PoolId "
             "AND FileSet.FileSetId=Job.FileSetId  ORDER BY StartTime%s", limit);
-      } else {				 /* single record */
-	 Mmsg(mdb->cmd,
+      } else {                           /* single record */
+         Mmsg(mdb->cmd,
             "SELECT JobId,Job,Job.Name,PurgedFiles,Type,Level,"
             "Job.ClientId,Client.Name,JobStatus,SchedTime,"
             "StartTime,EndTime,JobTDate,"
@@ -259,17 +253,17 @@ db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
             "FROM Job,Client,Pool,FileSet WHERE Job.JobId=%s AND "
             "Client.ClientId=Job.ClientId AND Pool.PoolId=Job.PoolId "
             "AND FileSet.FileSetId=Job.FileSetId", 
-	    edit_int64(jr->JobId, ed1));
+            edit_int64(jr->JobId, ed1));
       }
    } else {
       if (jr->JobId == 0 && jr->Job[0] == 0) {
-	 Mmsg(mdb->cmd,
+         Mmsg(mdb->cmd,
            "SELECT JobId,Name,StartTime,Type,Level,JobFiles,JobBytes,JobStatus "
            "FROM Job ORDER BY StartTime%s", limit);
-      } else {				 /* single record */
+      } else {                           /* single record */
          Mmsg(mdb->cmd, "SELECT JobId,Name,StartTime,Type,Level,"
             "JobFiles,JobBytes,JobStatus FROM Job WHERE JobId=%s", 
-	    edit_int64(jr->JobId, ed1));
+            edit_int64(jr->JobId, ed1));
       }
    }
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
@@ -306,7 +300,7 @@ db_list_job_totals(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, vo
 
    /* Do Grand Total */
    Mmsg(mdb->cmd, "SELECT count(*) AS Jobs,sum(JobFiles) "
-"AS Files,sum(JobBytes) As Bytes FROM Job");
+        "AS Files,sum(JobBytes) As Bytes FROM Job");
 
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);

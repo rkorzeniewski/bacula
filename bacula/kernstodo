@@ -22,6 +22,30 @@ Autochangers:
 -    Make "update slots" when pointing to Autochanger, remove
      all Volumes from other drives.  "update slots all-drives"?
 
+For 1.37:
+- Finish TLS implementation.
+- Fix PostgreSQL GROUP BY problems in restore.
+- Fix PostgreSQL sql problems in bugs.
+- Refuse to prune last valid Full backup. Same goes for Catalog.
+- --without-openssl breaks at least on Solaris.
+- Python:
+  - Make a callback when Rerun failed levels is called.
+  - Give Python program access to Scheduled jobs.
+  - Add setting Volume State via Python.
+  - Python script to save with Python, not save, save with Bacula.
+  - Python script to do backup.
+  - What events?
+  - Change the Priority, Client, Storage, JobStatus (error) 
+    at the start of a job.
+- Why is SpoolDirectory = /home/bacula/spool;  not reported
+  as an error when writing a DVD?
+- Make bootstrap file handle multiple MediaTypes (SD)
+- Remove all old Device resource code in Dir and code to pass it
+  back in SD -- better, rework it to pass back device statistics.
+- Check locking of resources -- be sure to lock devices where previously
+  resources were locked. 
+- The last part is left in the spool dir.
+
 Document:
 - Port limiting -m in iptables to prevent DoS attacks
   could cause broken pipes on Bacula.
@@ -49,31 +73,6 @@ Document:
 - Document new CDROM directory.
 - Document Heartbeat Interval in the dealing with firewalls section.
 - Document the multiple-drive-changer.txt script.
-
-For 1.37:
-- Cleaning tapes should have Status "Cleaning" rather than append.
-- Refuse to prune last valid Full backup. Same goes for Catalog.
-- Why is   SpoolDirectory = /home/bacula/spool;  not reported
-  as an error when writing a DVD?
-- Add setting Volume State via Python.
-- Make bootstrap file handle multiple MediaTypes (SD)
-- --without-openssl breaks at least on Solaris.
-- Python:
-  - Make a callback when Rerun failed levels is called.
-  - Give Python program access to Scheduled jobs.
-  - Python script to save with Python, not save, save with Bacula.
-  - Python script to do backup.
-  - What events?
-  - Change the Priority, Client, Storage, JobStatus (error) 
-    at the start of a job.
-  - Make sure that Python has access to Client address/port so that
-    it can check if Clients are alive.
-
-- Remove all old Device resource code in Dir and code to pass it
-  back in SD -- better, rework it to pass back device statistics.
-- Check locking of resources -- be sure to lock devices where previously
-  resources were locked. 
-- Add global lock on all devices when creating a device structure.
 
 Maybe in 1.37:
 - In restore don't compare byte count on a raw device -- directory
@@ -1294,3 +1293,8 @@ Block Position: 0
 - Implement "PreferMountedVolumes = yes|no" in Job resource.
 ##   Integrate web-bacula into a new Bacula project with
      bimagemgr.
+- Cleaning tapes should have Status "Cleaning" rather than append.
+- Make sure that Python has access to Client address/port so that
+  it can check if Clients are alive.
+- Review all items in "restore".
+
