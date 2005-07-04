@@ -274,7 +274,9 @@ DEVICE::open(DCR *dcr, int mode)
         ::close(fd); /* use system close so correct mode will be used on open */
       }
    }
-  bstrncpy(VolCatInfo.VolCatName, dcr->VolumeName, sizeof(VolCatInfo.VolCatName));
+  if (dcr) {
+     bstrncpy(VolCatInfo.VolCatName, dcr->VolumeName, sizeof(VolCatInfo.VolCatName));
+  }
 
    Dmsg4(29, "open dev: tape=%d dev_name=%s vol=%s mode=%s\n", is_tape(),
          dev_name, VolCatInfo.VolCatName, mode_to_str(mode));

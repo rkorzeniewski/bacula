@@ -372,7 +372,7 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
          }
          JobId = str_to_int64(ua->argv[i]);
          if (!(jcr=get_jcr_by_id(JobId))) {
-            bsendmsg(ua, _("JobId %d is not running.\n"),  JobId);
+            bsendmsg(ua, _("JobId %s is not running.\n"),  ua->argv[i]);
             return 1;
          }
          break;
@@ -408,11 +408,12 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
       }
       start_prompt(ua, _("Select Job:\n"));
       foreach_jcr(jcr) {
+         char ed1[50];
          if (jcr->JobId == 0) {      /* this is us */
             free_jcr(jcr);
             continue;
          }
-         bsnprintf(buf, sizeof(buf), "JobId=%d Job=%s", jcr->JobId, jcr->Job);
+         bsnprintf(buf, sizeof(buf), "JobId=%s Job=%s", edit_int64(jcr->JobId, ed1), jcr->Job);
          add_prompt(ua, buf);
          free_jcr(jcr);
       }

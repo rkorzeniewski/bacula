@@ -2,32 +2,26 @@
  *
  *   Bacula Director -- User Agent Commands
  *     These are "dot" commands, i.e. commands preceded
- *	  by a period. These commands are meant to be used
- *	  by a program, so there is no prompting, and the
- *	  returned results are (supposed to be) predictable.
+ *        by a period. These commands are meant to be used
+ *        by a program, so there is no prompting, and the
+ *        returned results are (supposed to be) predictable.
  *
  *     Kern Sibbald, April MMII
  *
  *   Version $Id$
  */
-
 /*
-   Copyright (C) 2002-2004 Kern Sibbald and John Walker
+   Copyright (C) 2002-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -78,7 +72,7 @@ static struct cmdstruct commands[] = {
  { N_(".help"),       qhelp_cmd,    NULL},
  { N_(".quit"),       quit_cmd,     NULL},
  { N_(".exit"),       quit_cmd,     NULL}
-	     };
+             };
 #define comsize (sizeof(commands)/sizeof(struct cmdstruct))
 
 /*
@@ -99,13 +93,13 @@ int do_a_dot_command(UAContext *ua, const char *cmd)
 
    len = strlen(ua->argk[0]);
    if (len == 1) {
-      return 1; 		      /* no op */
+      return 1;                       /* no op */
    }
-   for (i=0; i<(int)comsize; i++) {	/* search for command */
+   for (i=0; i<(int)comsize; i++) {     /* search for command */
       if (strncasecmp(ua->argk[0],  _(commands[i].key), len) == 0) {
-	 stat = (*commands[i].func)(ua, cmd);	/* go execute command */
-	 found = true;
-	 break;
+         stat = (*commands[i].func)(ua, cmd);   /* go execute command */
+         found = true;
+         break;
       }
    }
    if (!found) {
@@ -253,12 +247,12 @@ static int defaultscmd(UAContext *ua, const char *cmd)
    if (ua->argc == 2 && strcmp(ua->argk[1], "job") == 0) {
       job = (JOB *)GetResWithName(R_JOB, ua->argv[1]);
       if (job) {
-	 STORE *store;
+         STORE *store;
          bsendmsg(ua, "job=%s", job->hdr.name);
          bsendmsg(ua, "pool=%s", job->pool->hdr.name);
          bsendmsg(ua, "messages=%s", job->messages->hdr.name);
          bsendmsg(ua, "client=%s", job->client->hdr.name);
-	 store = (STORE *)job->storage->first();
+         store = (STORE *)job->storage->first();
          bsendmsg(ua, "storage=%s", store->hdr.name);
          bsendmsg(ua, "where=%s", job->RestoreWhere?job->RestoreWhere:"");
          bsendmsg(ua, "level=%s", level_to_str(job->JobLevel));

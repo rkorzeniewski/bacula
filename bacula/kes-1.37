@@ -4,6 +4,18 @@
 General:
 
 Changes to 1.37.28:
+03Jul05
+- Add new rc-chio-changer script by Rudolf Cejka to 
+  examples/autochangers
+- Apply Rudolf's changes to bacula.in
+- Expand the space from 8 to 10 characters in editing
+  file sizes for restore and dir of catalog, otherwise
+  GB sizes are truncated -- fixes bug report.
+- Modify wx-console to know about 10 character widths.
+- Allow decending into top level directory if "recurse=no"
+  is set.  Fixes a bug report.
+- Install pthreadVCE.dll when installing console or wx-console
+  on Win32 systems. Fixes bug report.
 02Jul05
 - Tweak dvd-writepart script to prevent door from opening/closing
   so much.
