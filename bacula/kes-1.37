@@ -4,6 +4,8 @@
 General:
 
 Changes to 1.37.28:
+04Jul05
+- Correct seg fault caused by open() calling sequence change.
 03Jul05
 - Add new rc-chio-changer script by Rudolf Cejka to 
   examples/autochangers
