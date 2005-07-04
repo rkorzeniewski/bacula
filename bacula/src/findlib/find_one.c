@@ -401,7 +401,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
        * to cross, or we may be restricted by a list of permitted
        * file systems.
        */
-      if (ff_pkt->flags & FO_NO_RECURSION) {
+      if (!top_level && ff_pkt->flags & FO_NO_RECURSION) {
          ff_pkt->type = FT_NORECURSE;
          recurse = false;
       } else if (!top_level && parent_device != ff_pkt->statp.st_dev) {

@@ -7,24 +7,18 @@
  *
  *   Version $Id$
  */
-
 /*
    Copyright (C) 2002-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as ammended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -435,22 +429,23 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
     * Then delete the Job entry, and finally and JobMedia records.
     */
    for (i=0; i < del.num_ids; i++) {
-      Dmsg1(050, "Delete JobId=%d\n", del.JobId[i]);
+      edit_int64(del.JobId[i], ed1);
+      Dmsg1(050, "Delete JobId=%s\n", ed1);
       if (!del.PurgedFiles[i]) {
-         Mmsg(query, del_File, edit_int64(del.JobId[i], ed1));
+         Mmsg(query, del_File, ed1);
          if (!db_sql_query(ua->db, query, NULL, (void *)NULL)) {
             bsendmsg(ua, "%s", db_strerror(ua->db));
          }
          Dmsg1(050, "Del sql=%s\n", query);
       }
 
-      Mmsg(query, del_Job, edit_int64(del.JobId[i], ed1));
+      Mmsg(query, del_Job, ed1);
       if (!db_sql_query(ua->db, query, NULL, (void *)NULL)) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
       }
       Dmsg1(050, "Del sql=%s\n", query);
 
-      Mmsg(query, del_JobMedia, edit_int64(del.JobId[i], ed1));
+      Mmsg(query, del_JobMedia, ed1);
       if (!db_sql_query(ua->db, query, NULL, (void *)NULL)) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
       }
@@ -546,12 +541,13 @@ int prune_volume(UAContext *ua, MEDIA_DBR *mr)
       if (jr.JobTDate >= (now - period)) {
          continue;
       }
-      Dmsg2(200, "Delete JobId=%d Job=%s\n", del.JobId[i], jr.Job);
-      Mmsg(query, del_File, edit_int64(del.JobId[i], ed1));
+      edit_int64(del.JobId[i], ed1);
+      Dmsg2(200, "Delete JobId=%s Job=%s\n", ed1, jr.Job);
+      Mmsg(query, del_File, ed1);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
-      Mmsg(query, del_Job, edit_int64(del.JobId[i], ed1));
+      Mmsg(query, del_Job, ed1);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
-      Mmsg(query, del_JobMedia, edit_int64(del.JobId[i], ed1));
+      Mmsg(query, del_JobMedia, ed1);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       Dmsg1(050, "Del sql=%s\n", query);
       del.num_del++;

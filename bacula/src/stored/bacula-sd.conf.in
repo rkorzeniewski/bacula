@@ -54,6 +54,43 @@ Device {
 }
 
 #
+# An autochanger device with two drives
+#
+#Autochanger {
+#  Name = Autochanger
+#  Device = Drive-1
+#  Device = Drive-2
+#  Changer Command = "/home/kern/bacula/bin/mtx-changer %c %o %S %a %d"
+#  Changer Device = /dev/sg0
+#}
+
+#Device {
+#  Name = Drive-1                      #
+#  Drive Index = 0
+#  Media Type = DLT-8000
+#  Archive Device = /dev/nst0
+#  AutomaticMount = yes;               # when device opened, read it
+#  AlwaysOpen = yes;
+#  RemovableMedia = yes;
+#  RandomAccess = no;
+#  AutoChanger = yes
+#  Alert Command = "sh -c 'tapeinfo -f %c |grep TapeAlert|cat'"
+#}
+
+#Device {
+#  Name = Drive-2                      #
+#  Drive Index = 1
+#  Media Type = DLT-8000
+#  Archive Device = /dev/nst1
+#  AutomaticMount = yes;               # when device opened, read it
+#  AlwaysOpen = yes;
+#  RemovableMedia = yes;
+#  RandomAccess = no;
+#  AutoChanger = yes
+#  Alert Command = "sh -c 'tapeinfo -f %c |grep TapeAlert|cat'"
+#}
+
+#
 # A Linux or Solaris tape drive
 #
 #Device {

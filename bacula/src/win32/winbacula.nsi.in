@@ -184,6 +184,7 @@ Section "Install Console" SecConsole
   File console\Release\bconsole.exe
   IfFileExists "$INSTDIR\bin\bconsole.conf" newconf 
   File console\bconsole.conf
+  File ..\..\..\depkgs-win32\pthreads\pthreadVCE.dll
   goto do_next
  newconf:
   File /oname=bconsole.conf.new console\bconsole.conf
@@ -202,6 +203,7 @@ Section "Install wx-Console" SecWxConsole
   File wx-console\Release\wx-console.exe
   IfFileExists "$INSTDIR\bin\wx-console.conf" newconf 
   File wx-console\wx-console.conf
+  File ..\..\..\depkgs-win32\pthreads\pthreadVCE.dll
   goto do_next
  newconf:
   File /oname=wx-console.conf.new wx-console\wx-console.conf

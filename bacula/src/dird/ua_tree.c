@@ -469,7 +469,7 @@ static void ls_output(char *buf, const char *fname, const char *tag, struct stat
    n = sprintf(p, "%-8.8s %-8.8s", getuser(statp->st_uid, en1, sizeof(en1)),
                getgroup(statp->st_gid, en2, sizeof(en2)));
    p += n;
-   n = sprintf(p, "%8.8s  ", edit_uint64(statp->st_size, ec1));
+   n = sprintf(p, "%10.10s  ", edit_uint64(statp->st_size, ec1));
    p += n;
    p = encode_time(statp->st_ctime, p);
    *p++ = ' ';

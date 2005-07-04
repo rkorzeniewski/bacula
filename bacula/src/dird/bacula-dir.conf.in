@@ -188,6 +188,7 @@ Storage {
 }
 
 
+
 # Definition of DDS tape storage device
 #Storage {
 #  Name = DDS-4    
@@ -197,6 +198,7 @@ Storage {
 #  Password = "@sd_password@"          # password for Storage daemon
 #  Device = DDS-4                      # must be same as Device in Storage daemon
 #  Media Type = DDS-4                  # must be same as MediaType in Storage daemon
+#  Autochanger = yes                   # enable for autochanger device
 #}
 
 # Definition of 8mm tape storage device

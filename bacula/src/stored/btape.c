@@ -1162,7 +1162,7 @@ try_again:
 
    slot = 1;
    dcr->VolCatInfo.Slot = slot;
-   Pmsg2(-1, _("3303 Issuing autochanger \"load slot %d %d\" command.\n"),
+   Pmsg2(-1, _("3303 Issuing autochanger \"load %d %d\" command.\n"),
       slot, dev->drive_index);
    changer = edit_device_codes(dcr, changer, 
                 dcr->device->changer_command, "load");
@@ -1170,7 +1170,7 @@ try_again:
    force_close_device(dev);
    status = run_program(changer, timeout, results);
    if (status == 0) {
-      Pmsg2(-1,  _("3303 Autochanger \"load slot %d %d\" status is OK.\n"),
+      Pmsg2(-1,  _("3303 Autochanger \"load %d %d\" status is OK.\n"),
          slot, dev->drive_index);
    } else {
       berrno be;

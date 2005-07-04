@@ -1483,18 +1483,18 @@ wxString* wxbRestorePanel::ParseList(wxString line) {
 
    wxString* ret = new wxString[9];
 
-   ret[0] = line.Mid(0, 10).Trim();
+   ret[0] = line.Mid(0, 10).Trim();       // modes
    
    /* Column 1 has a variable width  */
    i = line.find(' ', 14) - 14;
-   ret[1] = line.Mid(12, 2+i).Trim();
+   ret[1] = line.Mid(12, 2+i).Trim();     // number of links
    
-   ret[2] = line.Mid(15+i, 8).Trim();
-   ret[3] = line.Mid(24+i, 8).Trim();
-   ret[4] = line.Mid(32+i, 8).Trim();
-   ret[5] = line.Mid(42+i, 19).Trim();
-   ret[6] = line.Mid(62+i, 1);
-   ret[7] = line.Mid(63+i).Trim();
+   ret[2] = line.Mid(15+i, 8).Trim();     // user
+   ret[3] = line.Mid(24+i, 8).Trim();     // group
+   ret[4] = line.Mid(32+i, 10).Trim();    // file size
+   ret[5] = line.Mid(42+i, 19).Trim();    // date + time
+   ret[6] = line.Mid(62+i, 1);            // ?
+   ret[7] = line.Mid(63+i).Trim();        // filename
    
    if (ret[6] == wxT(" ")) ret[6] = wxT("");
 

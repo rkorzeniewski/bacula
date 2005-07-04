@@ -218,7 +218,7 @@ read_volume:
          /* Restore desired volume name, note device info out of sync */
          /* This gets the info regardless of the Pool */
          bstrncpy(dcr->VolumeName, dev->VolHdr.VolumeName, sizeof(dcr->VolumeName));
-         if (autochanger && dir_get_volume_info(dcr, GET_VOL_INFO_FOR_READ)) {
+         if (autochanger && !dir_get_volume_info(dcr, GET_VOL_INFO_FOR_READ)) {
             mark_volume_not_inchanger(dcr);
          }
          memcpy(&dev->VolCatInfo, &devVolCatInfo, sizeof(dev->VolCatInfo));

@@ -38,15 +38,16 @@ static void do_director_status(UAContext *ua);
 static void do_all_status(UAContext *ua);
 
 static char OKqstatus[]   = "1000 OK .status\n";
-static char DotStatusJob[] = "JobId=%d JobStatus=%c JobErrors=%d\n";
+static char DotStatusJob[] = "JobId=%s JobStatus=%c JobErrors=%d\n";
 
 /*
  * .status command
  */
 int qstatus_cmd(UAContext *ua, const char *cmd)
 {
-   JCR* njcr;
+   JCR* njcr = NULL;
    s_last_job* job;
+   char ed1[50];
 
    if (!open_db(ua)) {
       return 1;
@@ -62,19 +63,19 @@ int qstatus_cmd(UAContext *ua, const char *cmd)
       bsendmsg(ua, OKqstatus, ua->argk[2]);
       foreach_jcr(njcr) {
          if (njcr->JobId != 0) {
-            bsendmsg(ua, DotStatusJob, njcr->JobId, njcr->JobStatus, njcr->JobErrors);
+            bsendmsg(ua, DotStatusJob, edit_int64(njcr->JobId, ed1), 
+                     njcr->JobStatus, njcr->JobErrors);
          }
          free_jcr(njcr);
       }
-   }
-   else if (strcasecmp(ua->argk[2], "last") == 0) {
+   } else if (strcasecmp(ua->argk[2], "last") == 0) {
       bsendmsg(ua, OKqstatus, ua->argk[2]);
       if ((last_jobs) && (last_jobs->size() > 0)) {
          job = (s_last_job*)last_jobs->last();
-         bsendmsg(ua, DotStatusJob, job->JobId, job->JobStatus, job->Errors);
+         bsendmsg(ua, DotStatusJob, edit_int64(njcr->JobId, ed1), 
+                  njcr->JobStatus, njcr->JobErrors);
       }
-   }
-   else {
+   } else {
       bsendmsg(ua, "1900 Bad .status command, wrong argument.\n");
       return 1;
    }

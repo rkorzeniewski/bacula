@@ -557,7 +557,7 @@ static bool mount_cmd(JCR *jcr)
          case BST_UNMOUNTED_WAITING_FOR_SYSOP:
          case BST_UNMOUNTED:
             /* We freed the device, so reopen it and wake any waiting threads */
-            if (dev->open(NULL, OPEN_READ_WRITE) < 0) {
+            if (dev->open(dcr, OPEN_READ_WRITE) < 0) {
                bnet_fsend(dir, _("3901 open device failed: ERR=%s\n"),
                   strerror_dev(dev));
                break;

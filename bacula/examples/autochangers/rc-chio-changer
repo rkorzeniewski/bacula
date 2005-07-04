@@ -1,0 +1,143 @@
+#!/bin/sh
+#
+# Bacula interface to chio autoloader
+#
+# This script was written by Rudolf Cejka
+#   I'm sending rewrite of examples/autochangers/chio-bacula for
+#   FreeBSD under name chio-changer, which tries to save all features
+#   from original code and add the possibility to list real barcodes
+#   from library.  I hope that this version is somewhat nicer.
+#
+#
+# $Id$
+#
+# If you set in your Device resource
+#   Changer Command = "path-to-this-script/chio-changer" %c %o %S %a %d
+# you will have the following input to this script:
+#   chio-changer "changer-device" "command" "slot" "tape-device" "drive-index"
+#                       $1           $2       $3         $4            $5
+# for example (on a FreeBSD system):
+#   chio-changer /dev/ch0 load 1 /dev/nsa0 0
+#
+# If you need an offline, refer to the drive as $4, for example:
+#   mt -f $4 offline
+#
+# Many changers need an offline before the chio unload.
+# Also many changers need to sleep some time after the chio load.
+#
+# If you change the script, take care to return either the chio exit
+# code or a 0. If the script exits with a non-zero exit code, Bacula
+# will assume the request failed.
+#
+
+PROGNAME=`basename $0`
+
+usage()
+{
+  cat <<EOF
+Usage: ${PROGNAME} <changer-device> <cmd> [slot] [tape-device] [drive-index]
+
+Commands (<cmd>):
+  unload          Unloads a tape into the slot from where it was loaded.
+  load <slot>     Loads a tape from the slot <slot> (1-based).
+  list            Lists full storage slots.
+  loaded          Gives slot from where the tape was loaded (0 = empty drive).
+  slots           Gives number of available slots.
+
+Example:
+  ${PROGNAME} /dev/ch0 load 1        Loads a tape from first slot 1.
+
+EOF
+}
+
+# This simulates a barcode reader in the changer:
+#FAKE_BARCODES=/usr/local/etc/bacula-barcodes
+
+# Time to wait for (un)loading
+SLEEP=10
+
+# Default settings
+CHANGER=/dev/ch0
+TAPE=/dev/nsa0
+DRIVE=0
+
+CHIO=/bin/chio
+
+if [ $# -lt 2 ]; then
+  usage
+  exit 1
+fi
+
+if [ -n "$1" ]; then
+  CHANGER=$1;
+fi
+COMMAND=$2
+SLOT=$3
+if [ "${SLOT}" = slot ]; then
+  # btape says "... slot 1 drive 0"
+  shift
+  SLOT=$3
+fi
+if [ -n "$4" ]; then
+  TAPE=$4
+fi
+if [ -n "$5" ]; then
+  DRIVE=$5
+fi
+
+case ${COMMAND} in
+unload)
+  # Enable the following line(s) if you need to eject the cartridge.
+  #mt -f ${TAPE} offline
+  #sleep ${SLEEP}
+  if [ -z "${SLOT}" ]; then
+    ${CHIO} -f ${CHANGER} return drive ${DRIVE}
+  else
+    ${CHIO} -f ${CHANGER} move drive ${DRIVE} slot $((${SLOT} - 1))
+  fi
+  if [ $? -ne 0 ]; then
+    # Try to unload the cartridge to the first free slot.
+    FREE=`${CHIO} -f ${CHANGER} status slot | \
+      sed -ne '/FULL/d;s/^slot *\([0-9]*\):.*/\1/p' | head -1`
+    if [ -n "${FREE}" ]; then
+      ${CHIO} -f ${CHANGER} move drive ${DRIVE} slot ${FREE}
+    else
+      exit 1
+    fi
+  fi
+  ;;
+load)
+  ${CHIO} -f ${CHANGER} move slot $((${SLOT} - 1)) drive ${DRIVE}
+  # Enable the following line if you need to wait after chio load.
+  #RET=$? ; sleep ${SLEEP} ; exit ${RET}
+  ;;
+list)
+  if [ -z "${FAKE_BARCODES}" ]; then
+    ${CHIO} -f ${CHANGER} status -v slot | \
+      sed -ne 's/^slot *\([0-9]*:\).*FULL.*voltag.*<\(.*\):.*/\1\2/p' | \
+      awk -F: '{print $1 + 1 ":" $2 }'
+  else
+    if [ -f "${FAKE_BARCODES}" ]; then
+      grep -v -e "^#" -e "^$" < ${FAKE_BARCODES}
+    else
+      echo "${PROGNAME}: Barcode file ${FAKE_BARCODES} is missing"
+      exit 1
+    fi
+  fi
+  ;;
+loaded)
+  FREE=`${CHIO} -f ${CHANGER} status slot | \
+    sed -ne '/FULL/d;s/^slot *\([0-9]*\):.*/\1/p' | \
+    awk 'BEGIN { n = 0 } { n = $1 + 1 ; exit } END { print n }'`
+  ${CHIO} -f ${CHANGER} status -S drive | \
+    sed -ne 's/^drive *'${DRIVE}':.*FULL.*source.*<[^0-9]*\([0-9]*\)>.*/\1/p' \
+    | awk 'BEGIN { n = 0 } { n = ($1 == "") ? '${FREE}' : $1 + 1 } \
+      END { print n }'
+  ;;
+slots)
+  ${CHIO} -f ${CHANGER} status | grep -c "^slot "
+  ;;
+*)
+  usage
+  ;;
+esac
