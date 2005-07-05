@@ -14,11 +14,13 @@ echo " === Starting four-concurrent-jobs-tape at `date +%R:%S` ==="
 echo " === Starting four-concurrent-jobs-tape at `date +%R:%S` ===" >>working/log
 echo " "
 
-bin/bacula start 2>&1 >/dev/null
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
-@output /dev/null
+#bin/bacula start 2>&1 >/dev/null
+bin/bacula start
+#bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
+@tee /dev/null
 messages
-@output tmp/log1.out
+@tee tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 slot=0
 run job=NightlySave level=Full Storage=DDS-4 yes
 run job=NightlySave level=Full Storage=DDS-4 yes
@@ -33,7 +35,7 @@ messages
 @# 
 @# now do a restore
 @#
-@output tmp/log2.out
+@tee tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select storage=DDS-4
 unmark *
 mark *
@@ -41,7 +43,7 @@ done
 yes
 wait
 messages
-@output
+@tee
 quit
 END_OF_DATA
 scripts/check_for_zombie_jobs storage=DDS-4
