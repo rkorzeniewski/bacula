@@ -7,6 +7,7 @@ CFLAGS="-g -O2 -Wall" \
  ./configure \
     --sbindir=$1/bin \
     --sysconfdir=$1/bin \
+    --mandir=$1/bin \
     --with-pid-dir=$1/working \
     --with-subsys-dir=$1/working \
     --enable-smartalloc \

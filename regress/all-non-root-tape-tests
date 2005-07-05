@@ -14,6 +14,7 @@ tests/fixed-block-size-tape
 tests/bscan-tape
 tests/btape-fill-tape
 tests/truncate-bug-tape
+tests/relabel-tape
 echo " "
 echo " "
 echo "Test results"

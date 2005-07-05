@@ -3,3 +3,4 @@
 /bin/cp -f scripts/bacula-sd-2tape.conf bin/bacula-sd.conf
 /bin/cp -f scripts/test-bacula-fd.conf bin/bacula-fd.conf
 /bin/cp -f scripts/test-console.conf bin/bconsole.conf
+touch bin/tape_options
