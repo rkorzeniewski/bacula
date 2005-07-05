@@ -117,7 +117,7 @@ DEV_BLOCK *new_block(DEVICE *dev)
    block->buf = get_memory(block->buf_len);
    empty_block(block);
    block->BlockVer = BLOCK_VER;       /* default write version */
-   Dmsg1(350, "Returning new block=%x\n", block);
+   Dmsg1(650, "Returning new block=%x\n", block);
    return block;
 }
 

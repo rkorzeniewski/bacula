@@ -115,6 +115,7 @@ void free_dcr(DCR *dcr)
    if (dcr->jcr) {
       dcr->jcr->dcr = NULL;
    }
+   free_unused_volume(dcr);           /* free unused vols attached to this dcr */
    free(dcr);
 }
 
@@ -336,12 +337,20 @@ DCR *acquire_device_for_append(DCR *dcr)
        *   OK if next volume matches current volume
        *   otherwise mount desired volume obtained from
        *    dir_find_next_appendable_volume
+       *  dev->VolHdr.VolumeName is what is in the drive
+       *  dcr->VolumeName is what we pass into the routines, or
+       *    get back from the subroutines.
        */
       bstrncpy(dcr->VolumeName, dev->VolHdr.VolumeName, sizeof(dcr->VolumeName));
       if (!dir_get_volume_info(dcr, GET_VOL_INFO_FOR_WRITE) &&
           !(dir_find_next_appendable_volume(dcr) &&
             strcmp(dev->VolHdr.VolumeName, dcr->VolumeName) == 0)) { /* wrong tape mounted */
-         Dmsg0(190, "Wrong tape mounted.\n");
+         Dmsg2(190, "Wrong tape mounted: %s. wants:%s\n", dev->VolHdr.VolumeName,
+            dcr->VolumeName);
+         /* Release volume reserved by dir_find_next_appendable_volume() */
+         if (dcr->VolumeName[0]) {
+            free_unused_volume(dcr);
+         }
          if (dev->num_writers != 0 || dev->reserved_device) {
             Jmsg(jcr, M_FATAL, 0, _("Device %s is busy writing on another Volume.\n"), dev->print_name());
             goto get_out;
@@ -367,7 +376,7 @@ DCR *acquire_device_for_append(DCR *dcr)
           if (dev->num_writers == 0) {
              memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
           }
-       }
+      }
    } else {
       /* Not already in append mode, so mount the device */
       Dmsg0(190, "Not in append mode, try mount.\n");

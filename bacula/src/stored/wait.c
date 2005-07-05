@@ -48,8 +48,8 @@ int wait_for_sysop(DCR *dcr)
    JCR *jcr = dcr->jcr;
 
    P(dev->mutex);
-   unmounted = (dev->dev_blocked == BST_UNMOUNTED) ||
-                (dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP);
+   Dmsg1(100, "Enter blocked=%s\n", dev->print_blocked());
+   unmounted = is_device_unmounted(dev);
 
    dev->poll = false;
    /*
@@ -70,6 +70,7 @@ int wait_for_sysop(DCR *dcr)
    }
 
    if (!unmounted) {
+      Dmsg1(400, "blocked=%s\n", dev->print_blocked());
       dev->dev_prev_blocked = dev->dev_blocked;
       dev->set_blocked(BST_WAITING_FOR_SYSOP); /* indicate waiting for mount */
    }
@@ -86,7 +87,8 @@ int wait_for_sysop(DCR *dcr)
       start = time(NULL);
       /* Wait required time */
       stat = pthread_cond_timedwait(&dev->wait_next_vol, &dev->mutex, &timeout);
-      Dmsg1(400, "Wokeup from sleep on device stat=%d\n", stat);
+      Dmsg2(400, "Wokeup from sleep on device stat=%d blocked=%s\n", stat,
+         dev->print_blocked());
 
       now = time(NULL);
       dev->rem_wait_sec -= (now - start);
@@ -109,8 +111,7 @@ int wait_for_sysop(DCR *dcr)
       /*
        * Check if user unmounted the device while we were waiting
        */
-      unmounted = (dev->dev_blocked == BST_UNMOUNTED) ||
-                   (dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP);
+      unmounted = is_device_unmounted(dev);
 
       if (stat != ETIMEDOUT) {     /* we blocked the device */
          break;                    /* on error return */
@@ -122,14 +123,14 @@ int wait_for_sysop(DCR *dcr)
 
       if (!unmounted && dev->vol_poll_interval &&
           (now - first_start >= dev->vol_poll_interval)) {
-         Dmsg1(400, "In wait blocked=%s\n", edit_blocked_reason(dev));
+         Dmsg1(400, "In wait blocked=%s\n", dev->print_blocked());
          dev->poll = true;            /* returning a poll event */
          break;
       }
       /*
        * Check if user mounted the device while we were waiting
        */
-      if (dev->dev_blocked == BST_MOUNT) {   /* mount request ? */
+      if (dev->get_blocked() == BST_MOUNT) {   /* mount request ? */
          stat = 0;
          break;
       }
@@ -145,7 +146,9 @@ int wait_for_sysop(DCR *dcr)
 
    if (!unmounted) {
       dev->set_blocked(dev->dev_prev_blocked);    /* restore entry state */
+      Dmsg1(400, "set %s\n", dev->print_blocked());
    }
+   Dmsg1(400, "Exit blocked=%s\n", dev->print_blocked());
    V(dev->mutex);
    return stat;
 }

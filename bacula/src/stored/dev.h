@@ -262,7 +262,7 @@ public:
    int is_mounted() const { return state & ST_MOUNTED; }
    int have_media() const { return state & ST_MEDIA; }
    int is_short_block() const { return state & ST_SHORT; }
-   int is_busy() const { return state & ST_READ || num_writers || reserved_device; }
+   int is_busy() const { return (state & ST_READ) || num_writers || reserved_device; }
    int at_eof() const { return state & ST_EOF; }
    int at_eot() const { return state & ST_EOT; }
    int at_weot() const { return state & ST_WEOT; }
@@ -323,6 +323,8 @@ public:
 
    void set_blocked(int block) { dev_blocked = block; };
    int  get_blocked() const { return dev_blocked; };
+   const char *print_blocked() const; /* in dev.c */
+   bool is_blocked() const { return dev_blocked != BST_NOT_BLOCKED; };
 };
 
 /* Note, these return int not bool! */
@@ -380,6 +382,7 @@ public:
    dlink link;
    char *vol_name;
    DEVICE *dev;
+   DCR *dcr;
 };
 
 

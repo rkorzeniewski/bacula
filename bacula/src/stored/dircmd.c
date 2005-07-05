@@ -326,17 +326,19 @@ static bool do_label(JCR *jcr, int relabel)
       unbash_spaces(mtype);
       dev = find_device(jcr, dev_name);
       if (dev) {
-         /******FIXME**** compare MediaTypes */
          P(dev->mutex);               /* Use P to avoid indefinite block */
          if (!dev->is_open()) {
+            Dmsg0(400, "Can relabel. Device is not open\n");
             label_volume_if_ok(jcr, dev, oldname, newname, poolname, slot, relabel);
             force_close_device(dev);
          /* Under certain "safe" conditions, we can steal the lock */
          } else if (dev->can_steal_lock()) {
+            Dmsg0(400, "Can relabel. can_steal_lock\n");
             label_volume_if_ok(jcr, dev, oldname, newname, poolname, slot, relabel);
-         } else if (dev->is_busy()) {
+         } else if (dev->is_busy() || dev->is_blocked()) {
             send_dir_busy_message(dir, dev);
          } else {                     /* device not being used */
+            Dmsg0(400, "Can relabel. device not used\n");
             label_volume_if_ok(jcr, dev, oldname, newname, poolname, slot, relabel);
          }
          V(dev->mutex);
@@ -373,6 +375,7 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
 
    dcr->dev = dev;
    steal_device_lock(dev, &hold, BST_WRITING_LABEL);
+   Dmsg1(100, "Stole device %s lock, writing label.\n", dev->print_name());
 
    /* Note, try_autoload_device() opens the device */
    if (!try_autoload_device(jcr, slot, newname)) {
@@ -402,6 +405,7 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
          bnet_fsend(dir, _("3922 Cannot relabel an ANSI/IBM labeled Volume.\n"));
          break;
       }
+      free_volume(dev);               /* release old volume name */
       /* Fall through wanted! */
    case VOL_IO_ERROR:
    case VOL_NO_LABEL:
@@ -585,7 +589,7 @@ static bool mount_cmd(JCR *jcr)
             break;
 
          case BST_DOING_ACQUIRE:
-            bnet_fsend(dir, _("3001 Device %s is mounted; doing acquire.\n"),
+            bnet_fsend(dir, _("3001 Device %s is doing acquire.\n"),
                        dev->print_name());
             break;
 

@@ -135,10 +135,9 @@ void     _steal_device_lock(const char *file, int line, DEVICE *dev, bsteal_lock
 void     _give_back_device_lock(const char *file, int line, DEVICE *dev, bsteal_lock_t *hold);
 void     set_new_volume_parameters(DCR *dcr);
 void     set_new_file_parameters(DCR *dcr);
-bool     device_is_unmounted(DEVICE *dev);
+bool     is_device_unmounted(DEVICE *dev);
 void     dev_lock(DEVICE *dev);
 void     dev_unlock(DEVICE *dev);
-const char *edit_blocked_reason(DEVICE *dev);
 
 /* From dircmd.c */
 void     *handle_connection_request(void *arg);
@@ -211,9 +210,10 @@ bool read_records(DCR *dcr,
 
 /* From reserve.c */
 void    release_volume(DCR *dcr);
-VOLRES *new_volume(const char *VolumeName, DEVICE *dev);
+VOLRES *new_volume(DCR *dcr, const char *VolumeName);
 VOLRES *find_volume(const char *VolumeName);
 bool    free_volume(DEVICE *dev);
+void    free_unused_volume(DCR *dcr);
 void    create_volume_list();
 void    free_volume_list();
 void    list_volumes(BSOCK *user);

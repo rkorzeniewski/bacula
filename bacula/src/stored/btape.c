@@ -2717,5 +2717,6 @@ static void set_volume_name(const char *VolName, int volnum)
    dcr->VolCatInfo.Slot = volnum;
 }
 
-VOLRES *new_volume(const char *VolumeName, DEVICE *dev) { return NULL; }
+VOLRES *new_volume(DCR *dcr, const char *VolumeName) { return NULL; }
 bool    free_volume(DEVICE *dev) { return true; }
+void    free_unused_volume(DCR *dcr) { }
