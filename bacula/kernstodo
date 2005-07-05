@@ -23,6 +23,7 @@ Autochangers:
      all Volumes from other drives.  "update slots all-drives"?
 
 For 1.37:
+- update volume=xxx --- add status=Full
 - After rename
   04-Jul 13:01 MainSD: Rufus.2005-07-04_01.05.02 Warning: Director wanted Volume 
      "DLT-13Feb04".

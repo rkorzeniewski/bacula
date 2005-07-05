@@ -4,6 +4,14 @@
 General:
 
 Changes to 1.37.28:
+05Jul05
+- Add code to ensure that reserved but unused volumes
+  are freed. 
+- Correct how Volumes are mounted and handled so that the SD
+  does not get stuck if multiple volumes are used (recycling,
+  relabling, ...)
+- Correct bug where you could relabel a volume while it
+  was being acquired -- created chaos.
 04Jul05
 - Correct seg fault caused by open() calling sequence change.
 03Jul05

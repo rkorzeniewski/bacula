@@ -379,35 +379,13 @@ void _lock_device(const char *file, int line, DEVICE *dev)
 /*
  * Check if the device is blocked or not
  */
-bool device_is_unmounted(DEVICE *dev)
+bool is_device_unmounted(DEVICE *dev)
 {
    bool stat;
    int blocked = dev->dev_blocked;
    stat = (blocked == BST_UNMOUNTED) ||
           (blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP);
    return stat;
-}
-
-const char *edit_blocked_reason(DEVICE *dev)
-{
-   switch (dev->dev_blocked) {
-   case BST_NOT_BLOCKED:
-      return "not blocked";
-   case BST_UNMOUNTED:
-      return "user unmounted device";
-   case BST_WAITING_FOR_SYSOP:
-      return "waiting for operator action";
-   case BST_DOING_ACQUIRE:
-      return "opening, validating, or positioning tape";
-   case BST_WRITING_LABEL:
-      return "labeling tape";
-   case BST_UNMOUNTED_WAITING_FOR_SYSOP:
-      return "closed by user during mount request";
-   case BST_MOUNT:
-      return "mount request";
-   default:
-      return "unknown blocked code";
-   }
 }
 
 void _unlock_device(const char *file, int line, DEVICE *dev)
@@ -439,7 +417,7 @@ void _block_device(const char *file, int line, DEVICE *dev, int state)
  */
 void _unblock_device(const char *file, int line, DEVICE *dev)
 {
-   Dmsg3(500, "unblock %d from %s:%d\n", dev->dev_blocked, file, line);
+   Dmsg3(500, "unblock %s from %s:%d\n", dev->print_blocked(), file, line);
    ASSERT(dev->dev_blocked);
    dev->set_blocked(BST_NOT_BLOCKED);
    dev->no_wait_id = 0;
@@ -454,12 +432,14 @@ void _unblock_device(const char *file, int line, DEVICE *dev)
  */
 void _steal_device_lock(const char *file, int line, DEVICE *dev, bsteal_lock_t *hold, int state)
 {
-   Dmsg4(500, "steal lock. old=%d new=%d from %s:%d\n", dev->dev_blocked, state,
+
+   Dmsg3(400, "steal lock. old=%s from %s:%d\n", dev->print_blocked(),
       file, line);
    hold->dev_blocked = dev->get_blocked();
    hold->dev_prev_blocked = dev->dev_prev_blocked;
    hold->no_wait_id = dev->no_wait_id;
    dev->set_blocked(state);
+   Dmsg1(400, "steal lock. new=%s\n", dev->print_blocked());
    dev->no_wait_id = pthread_self();
    V(dev->mutex);
 }
@@ -470,13 +450,15 @@ void _steal_device_lock(const char *file, int line, DEVICE *dev, bsteal_lock_t *
  */
 void _give_back_device_lock(const char *file, int line, DEVICE *dev, bsteal_lock_t *hold)
 {
-   Dmsg4(500, "return lock. old=%d new=%d from %s:%d\n",
-      dev->dev_blocked, hold->dev_blocked, file, line);
+   Dmsg3(400, "return lock. old=%s from %s:%d\n",
+      dev->print_blocked(), file, line);
    P(dev->mutex);
    dev->dev_blocked = hold->dev_blocked;
    dev->dev_prev_blocked = hold->dev_prev_blocked;
    dev->no_wait_id = hold->no_wait_id;
-   if (dev->dev_blocked == BST_NOT_BLOCKED && dev->num_waiting > 0) {
+   Dmsg1(400, "return lock. new=%s\n", dev->print_blocked());
+   if (dev->num_waiting > 0) {
+      Dmsg0(400, "Broadcase\n");
       pthread_cond_broadcast(&dev->wait); /* wake them up */
    }
 }

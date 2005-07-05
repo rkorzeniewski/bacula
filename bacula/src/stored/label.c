@@ -66,7 +66,8 @@ int read_dev_volume_label(DCR *dcr)
    bool want_ansi_label;
 
    Dmsg3(100, "Enter read_volume_label device=%s vol=%s dev_Vol=%s\n",
-      dev->name(), VolName, dev->VolHdr.VolumeName);
+      dev->print_name(), VolName, dev->VolHdr.VolumeName[0]?dev->VolHdr.VolumeName:
+      "*NULL*");
 
    if (!dev->is_open()) {
       Emsg0(M_ABORT, 0, _("BAD call to read_dev_volume_label\n"));
@@ -203,7 +204,7 @@ int read_dev_volume_label(DCR *dcr)
    }
 
    dev->set_labeled();               /* set has Bacula label */
-   new_volume(dev->VolHdr.VolumeName, dev);
+   new_volume(dcr, dev->VolHdr.VolumeName);
 
    /* Compare Volume Names */
    Dmsg2(30, "Compare Vol names: VolName=%s hdr=%s\n", VolName?VolName:"*", dev->VolHdr.VolumeName);
@@ -726,7 +727,7 @@ bool unser_volume_label(DEVICE *dev, DEV_RECORD *rec)
    unser_string(dev->VolHdr.ProgDate);
 
    ser_end(rec->data, SER_LENGTH_Volume_Label);
-   Dmsg0(90, "ser_read_vol\n");
+   Dmsg0(90, "unser_vol_label\n");
    if (debug_level >= 90) {
       dump_volume_label(dev);
    }

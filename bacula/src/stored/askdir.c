@@ -258,9 +258,10 @@ bool dir_find_next_appendable_volume(DCR *dcr)
     }
     if (found) {
        Dmsg0(400, "dir_find_next_appendable_volume return true\n");
-       new_volume(dcr->VolumeName, NULL);   /* reserve volume */
+       new_volume(dcr, dcr->VolumeName);   /* reserve volume */
        return true;
     }
+    dcr->VolumeName[0] = 0;
     return false;
 }
 
@@ -427,8 +428,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
       }
       /* First pass, we *know* there are no appendable volumes, so no need to call */
       if (!first && dir_find_next_appendable_volume(dcr)) { /* get suggested volume */
-         unmounted = (dev->dev_blocked == BST_UNMOUNTED) ||
-                     (dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP);
+         unmounted = is_device_unmounted(dev);
          /*
           * If we have a valid volume name and we are not
           *   removable media, return now, or if we have a
@@ -510,8 +510,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
          init_device_wait_timers(dcr);
          continue;
       }
-      unmounted = (dev->dev_blocked == BST_UNMOUNTED) ||
-                  (dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP);
+      unmounted = is_device_unmounted(dev);
       if (unmounted) {
          continue;                    /* continue to wait */
       }
@@ -573,7 +572,7 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
       stat = wait_for_sysop(dcr);    ;     /* wait on device */
       if (dev->poll) {
          Dmsg1(400, "Poll timeout in mount vol on device %s\n", dev->print_name());
-         Dmsg1(400, "Blocked=%s\n", edit_blocked_reason(dev));
+         Dmsg1(400, "Blocked=%s\n", dev->print_blocked());
          return true;
       }
 

@@ -105,21 +105,22 @@ static int my_compare(void *item1, void *item2)
  *  Return: VOLRES entry on success
  *          NULL if the Volume is already in the list
  */
-VOLRES *new_volume(const char *VolumeName, DEVICE *dev)
+VOLRES *new_volume(DCR *dcr, const char *VolumeName)
 {
    VOLRES *vol, *nvol;
    vol = (VOLRES *)malloc(sizeof(VOLRES));
    memset(vol, 0, sizeof(VOLRES));
    vol->vol_name = bstrdup(VolumeName);
-   vol->dev = dev;
+   vol->dev = dcr->dev;
+   vol->dcr = dcr;
    P(vol_list_lock);
    nvol = (VOLRES *)vol_list->binary_insert(vol, my_compare);
    V(vol_list_lock);
    if (nvol != vol) {
       free(vol->vol_name);
       free(vol);
-      if (dev) {
-         nvol->dev = dev;
+      if (dcr->dev) {
+         nvol->dev = dcr->dev;
       }
       return NULL;
    }
@@ -170,6 +171,23 @@ bool free_volume(DEVICE *dev)
    return fvol != NULL;
 }
 
+/* Free volume reserved by this dcr but not attached to a dev */
+void free_unused_volume(DCR *dcr)
+{
+   VOLRES *vol;
+   P(vol_list_lock);
+   for (vol=(VOLRES *)vol_list->first(); vol; vol=(VOLRES *)vol_list->next(vol)) {
+      if (vol->dcr == dcr && (vol->dev == NULL || 
+          strcmp(vol->vol_name, vol->dev->VolHdr.VolumeName) != 0)) {
+         vol_list->remove(vol);
+         free(vol->vol_name);
+         free(vol);
+         break;
+      }
+   }
+   V(vol_list_lock);
+}
+
 /*
  * List Volumes -- this should be moved to status.c
  */
@@ -198,7 +216,8 @@ void free_volume_list()
       return;
    }
    for (vol=(VOLRES *)vol_list->first(); vol; vol=(VOLRES *)vol_list->next(vol)) {
-      Dmsg1(000, "Unreleased Volume=%s\n", vol->vol_name);
+      Dmsg3(000, "Unreleased Volume=%s dcr=0x%x dev=0x%x\n", vol->vol_name,
+         vol->dcr, vol->dev);
    }
    delete vol_list;
    vol_list = NULL;
@@ -533,7 +552,7 @@ static bool reserve_device_for_read(DCR *dcr)
 
    dev->block(BST_DOING_ACQUIRE);
 
-   if (device_is_unmounted(dev)) {             
+   if (is_device_unmounted(dev)) {             
       Dmsg1(200, "Device %s is BLOCKED due to user unmount.\n", dev->print_name());
       Mmsg(jcr->errmsg, _("Device %s is BLOCKED due to user unmount.\n"),
            dev->print_name());
@@ -589,7 +608,7 @@ static bool reserve_device_for_append(DCR *dcr, bool PreferMountedVols)
       goto bail_out;
    }
 
-   if (device_is_unmounted(dev)) {
+   if (is_device_unmounted(dev)) {
       Mmsg(jcr->errmsg, _("Device %s is BLOCKED due to user unmount.\n"), dev->print_name());
       Dmsg1(100, "%s", jcr->errmsg);
       goto bail_out;

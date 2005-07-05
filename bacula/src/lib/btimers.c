@@ -160,7 +160,7 @@ btimer_t *start_bsock_timer(BSOCK *bsock, uint32_t wait)
    wid->wd->interval = wait;
    register_watchdog(wid->wd);
 
-   Dmsg4(50, "Start bsock timer %p tid=%p for %d secs at %d\n", wid,
+   Dmsg4(950, "Start bsock timer %p tid=%p for %d secs at %d\n", wid,
          wid->tid, wait, time(NULL));
 
    return wid;
@@ -175,7 +175,7 @@ void stop_bsock_timer(btimer_t *wid)
       Dmsg0(900, "stop_bsock_timer called with NULL btimer_id\n");
       return;
    }
-   Dmsg3(50, "Stop bsock timer %p tid=%p at %d.\n", wid, wid->tid, time(NULL));
+   Dmsg3(950, "Stop bsock timer %p tid=%p at %d.\n", wid, wid->tid, time(NULL));
    stop_btimer(wid);
 }
 
