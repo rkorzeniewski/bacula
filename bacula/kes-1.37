@@ -4,6 +4,12 @@
 General:
 
 Changes to 1.37.28:
+06Jul05
+- Modify mtx-changer.in script to return slot:barcode for
+  Volumes that are loaded in the drives.
+- Correct some more places where dev->is_blocked() needs
+  to be checked in dircmd.c in SD.
+- Update doc.
 05Jul05
 - Add code to ensure that reserved but unused volumes
   are freed. 

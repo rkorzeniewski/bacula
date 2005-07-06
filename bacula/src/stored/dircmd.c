@@ -475,7 +475,6 @@ static DEVICE *find_device(JCR *jcr, POOL_MEM &devname)
    bool found = false;
 
    unbash_spaces(devname);
-// LockRes();
    foreach_res(device, R_DEVICE) {
       /* Find resource, and make sure we were able to open it */
       if (fnmatch(device->hdr.name, devname.c_str(), 0) == 0) {
@@ -522,11 +521,9 @@ static DEVICE *find_device(JCR *jcr, POOL_MEM &devname)
 
    if (found) {
       jcr->dcr = new_dcr(jcr, device->dev);
-//    UnlockRes();
       jcr->dcr->device = device;
       return jcr->dcr->dev;
    }
-// UnlockRes();
    return NULL;
 }
 
@@ -809,7 +806,7 @@ static bool autochanger_cmd(JCR *jcr)
          /* Under certain "safe" conditions, we can steal the lock */
          } else if (dev->can_steal_lock()) {
             autochanger_cmd(dcr, dir, cmd);
-         } else if (dev->is_busy()) {
+         } else if (dev->is_busy() || dev->is_blocked()) {
             send_dir_busy_message(dir, dev);
          } else {                     /* device not being used */
             autochanger_cmd(dcr, dir, cmd);
@@ -847,7 +844,7 @@ static bool readlabel_cmd(JCR *jcr)
          /* Under certain "safe" conditions, we can steal the lock */
          } else if (dev->can_steal_lock()) {
             read_volume_label(jcr, dev, Slot);
-         } else if (dev->is_busy()) {
+         } else if (dev->is_busy() || dev->is_blocked()) {
             send_dir_busy_message(dir, dev);
          } else {                     /* device not being used */
             read_volume_label(jcr, dev, Slot);
