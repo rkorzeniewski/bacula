@@ -132,7 +132,7 @@ case $cmd in
       ${MTX} -f $ctl status >${TMPDIR}/mtx.$$
       rtn=$?
       cat ${TMPDIR}/mtx.$$ | grep " *Storage Element [0-9]*:.*Full" | awk "{print \$3 \$4}" | sed "s/Full *\(:VolumeTag=\)*//"
-      cat ${TMPDIR}/mtx.$$ | grep "^Data Transfer Element [0-9]*:Full (Storage Element [0-9]*Loaded" | awk '{printf "%s:%s\n",$7,$10}'
+      cat ${TMPDIR}/mtx.$$ | grep "^Data Transfer Element [0-9]*:Full (Storage Element [0-9]" | awk '{printf "%s:%s\n",$7,$10}'
 #
 # If you have a VXA PacketLoader and the above does not work, try
 #  turning it off and enabling the following line.
