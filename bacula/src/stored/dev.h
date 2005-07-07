@@ -285,6 +285,7 @@ public:
                      dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP); };
    bool weof() { return !weof_dev(this, 1); };
    bool fsr(int num);   /* in dev.c */
+   bool fsf(int num);   /* in dev.c */
    bool rewind() { return rewind_dev(this); };
    const char *strerror() const;
    const char *archive_name() const;

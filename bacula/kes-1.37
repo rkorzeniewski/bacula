@@ -4,6 +4,9 @@
 General:
 
 Changes to 1.37.28:
+07Jul05
+- Remove temp file created in mtx-changer script.
+- Make fsf_dev() into a class method.
 06Jul05
 - Modify mtx-changer.in script to return slot:barcode for
   Volumes that are loaded in the drives.

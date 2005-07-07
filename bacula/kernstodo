@@ -137,6 +137,45 @@ Maybe in 1.37:
 - Bug: if a job is manually scheduled to run later, it does not appear
   in any status report and cannot be cancelled.
 
+==== Keeping track of deleted files ====
+     My "trick" for keeping track of deletions is the following.
+     Assuming the user turns on this option, after all the files
+     have been backed up, but before the job has terminated, the
+     FD will make a pass through all the files and send their
+     names to the DIR (*exactly* the same as what a Verify job
+     currently does).  This will probably be done at the same
+     time the files are being sent to the SD avoiding a second
+     pass.  The DIR will then compare that to what is stored in
+     the catalog.  Any files in the catalog but not in what the
+     FD sent will receive a catalog File entry that indicates
+     that at that point in time the file was deleted.
+
+     During a restore, any file initially picked up by some
+     backup (Full, ...) then subsequently having a File entry
+     marked "delete" will be removed from the tree, so will not
+     be restored.  If a file with the same name is later OK it
+     will be inserted in the tree -- this already happens.  All
+     will be consistent except for possible changes during the
+     running of the FD.
+
+     Since I'm on the subject, some of you may be wondering what
+     the utility of the in memory tree is if you are going to
+     restore everything (at least it comes up from time to time
+     on the list).  Well, it is still *very* useful because it
+     allows only the last item found for a particular filename
+     (full path) to be entered into the tree, and thus if a file
+     is backed up 10 times, only the last copy will be restored.
+     I recently (last Friday) restored a complete directory, and
+     the Full and all the Differential and Incremental backups
+     spanned 3 Volumes.  The first Volume was not even mounted
+     because all the files had been updated and hence backed up
+     since the Full backup was made.  In this case, the tree
+     saved me a *lot* of time.
+
+     Make sure this information is stored on the tape too so
+     that it can be restored directly from the tape.
+=====
+
 Regression tests:
 - Add Pool/Storage override regression test.
 - Add delete JobId to regression.

@@ -1267,7 +1267,7 @@ static int fsf_test()
 test_again:
    rewindcmd();
    Pmsg0(0, _("Now forward spacing 1 file.\n"));
-   if (!fsf_dev(dev, 1)) {
+   if (!dev->fsf(1)) {
       Pmsg1(0, "Bad status from fsr. ERR=%s\n", strerror_dev(dev));
       goto bail_out;
    }
@@ -1279,7 +1279,7 @@ test_again:
    }
 
    Pmsg0(0, _("Now forward spacing 2 files.\n"));
-   if (!fsf_dev(dev, 2)) {
+   if (!dev->fsf(2)) {
       Pmsg1(0, "Bad status from fsr. ERR=%s\n", strerror_dev(dev));
       goto bail_out;
    }
@@ -1292,7 +1292,7 @@ test_again:
 
    rewindcmd();
    Pmsg0(0, _("Now forward spacing 4 files.\n"));
-   if (!fsf_dev(dev, 4)) {
+   if (!dev->fsf(4)) {
       Pmsg1(0, "Bad status from fsr. ERR=%s\n", strerror_dev(dev));
       goto bail_out;
    }
@@ -1310,7 +1310,7 @@ test_again:
 
    Pmsg0(-1, "\n");
    Pmsg0(0, _("Now forward spacing 1 more file.\n"));
-   if (!fsf_dev(dev, 1)) {
+   if (!dev->fsf(1)) {
       Pmsg1(0, "Bad status from fsr. ERR=%s\n", strerror_dev(dev));
    }
    Pmsg2(-1, _("We should be in file 5. I am at file %d. This is %s\n"),
@@ -1458,7 +1458,7 @@ static void fsfcmd()
    if (num <= 0) {
       num = 1;
    }
-   if (!fsf_dev(dev, num)) {
+   if (!dev->fsf(num)) {
       Pmsg1(0, "Bad status from fsf. ERR=%s\n", strerror_dev(dev));
       return;
    }

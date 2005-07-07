@@ -133,6 +133,7 @@ case $cmd in
       rtn=$?
       cat ${TMPDIR}/mtx.$$ | grep " *Storage Element [0-9]*:.*Full" | awk "{print \$3 \$4}" | sed "s/Full *\(:VolumeTag=\)*//"
       cat ${TMPDIR}/mtx.$$ | grep "^Data Transfer Element [0-9]*:Full (Storage Element [0-9]" | awk '{printf "%s:%s\n",$7,$10}'
+      rm -f ${TMPDIR}/mtx.$$ 2>&1 >/dev/null
 #
 # If you have a VXA PacketLoader and the above does not work, try
 #  turning it off and enabling the following line.
@@ -146,7 +147,7 @@ case $cmd in
       rtn=$?
       cat ${TMPDIR}/mtx.$$ | grep "^Data Transfer Element $drive:Full" | awk "{print \$7}"
       cat ${TMPDIR}/mtx.$$ | grep "^Data Transfer Element $drive:Empty" | awk "{print 0}"
-      rm -f ${TMPDIR}/mtx.$$
+      rm -f ${TMPDIR}/mtx.$$ 2>&1 >/dev/null
       exit $rtn
       ;;
 
