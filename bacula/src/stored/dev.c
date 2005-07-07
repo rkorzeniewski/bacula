@@ -700,7 +700,7 @@ eod_dev(DEVICE *dev)
    }
 
 #if defined (__digital__) && defined (__unix__)
-   return fsf_dev(dev, dev->VolCatInfo.VolCatFiles);
+   return dev->fsf(dev->VolCatInfo.VolCatFiles);
 #endif
 
    Dmsg0(29, "eod_dev\n");
@@ -791,8 +791,8 @@ eod_dev(DEVICE *dev)
       int file_num;
       for (file_num=dev->file; !dev->at_eot(); file_num++) {
          Dmsg0(200, "eod_dev: doing fsf 1\n");
-         if (!fsf_dev(dev, 1)) {
-            Dmsg0(200, "fsf_dev error.\n");
+         if (!dev->fsf(1)) {
+            Dmsg0(200, "fsf error.\n");
             return false;
          }
          /*
@@ -801,7 +801,7 @@ eod_dev(DEVICE *dev)
           */
          if (file_num == (int)dev->file) {
             struct mtget mt_stat;
-            Dmsg1(100, "fsf_dev did not advance from file %d\n", file_num);
+            Dmsg1(100, "fsf did not advance from file %d\n", file_num);
             if (dev_get_os_pos(dev, &mt_stat)) {
                Dmsg2(100, "Adjust file from %d to %d\n", dev->file , mt_stat.mt_fileno);
                dev->set_ateof();
@@ -1069,34 +1069,33 @@ bool offline_or_rewind_dev(DEVICE *dev)
  *   Returns: true  on success
  *            false on failure
  */
-bool
-fsf_dev(DEVICE *dev, int num)
+bool DEVICE::fsf(int num)
 {
    struct mtget mt_stat;
    struct mtop mt_com;
    int stat = 0;
 
-   if (dev->fd < 0) {
-      dev->dev_errno = EBADF;
-      Mmsg0(dev->errmsg, _("Bad call to fsf_dev. Device not open\n"));
-      Emsg0(M_FATAL, 0, dev->errmsg);
+   if (fd < 0) {
+      dev_errno = EBADF;
+      Mmsg0(errmsg, _("Bad call to fsf_dev. Device not open\n"));
+      Emsg0(M_FATAL, 0, errmsg);
       return false;
    }
 
-   if (!dev->is_tape()) {
+   if (!is_tape()) {
       return true;
    }
-   if (dev->state & ST_EOT) {
-      dev->dev_errno = 0;
-      Mmsg1(dev->errmsg, _("Device %s at End of Tape.\n"), dev->print_name());
+   if (at_eot()) {
+      dev_errno = 0;
+      Mmsg1(errmsg, _("Device %s at End of Tape.\n"), print_name());
       return false;
    }
-   if (dev->state & ST_EOF) {
+   if (at_eof()) {
       Dmsg0(200, "ST_EOF set on entry to FSF\n");
    }
 
-   Dmsg0(100, "fsf_dev\n");
-   dev->block_num = 0;
+   Dmsg0(100, "fsf\n");
+   block_num = 0;
    /*
     * If Fast forward space file is set, then we
     *  use MTFSF to forward space and MTIOCGET
@@ -1104,23 +1103,23 @@ fsf_dev(DEVICE *dev, int num)
     *  the SCSI driver will ensure that we do not
     *  forward space past the end of the medium.
     */
-   if (dev_cap(dev, CAP_FSF) && dev_cap(dev, CAP_MTIOCGET) && dev_cap(dev, CAP_FASTFSF)) {
+   if (dev_cap(this, CAP_FSF) && dev_cap(this, CAP_MTIOCGET) && dev_cap(this, CAP_FASTFSF)) {
       mt_com.mt_op = MTFSF;
       mt_com.mt_count = num;
-      stat = ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
-      if (stat < 0 || !dev_get_os_pos(dev, &mt_stat)) {
+      stat = ioctl(fd, MTIOCTOP, (char *)&mt_com);
+      if (stat < 0 || !dev_get_os_pos(this, &mt_stat)) {
          berrno be;
-         dev->state |= ST_EOT;
+         set_eot();
          Dmsg0(200, "Set ST_EOT\n");
-         clrerror_dev(dev, MTFSF);
-         Mmsg2(dev->errmsg, _("ioctl MTFSF error on %s. ERR=%s.\n"),
-            dev->print_name(), be.strerror());
-         Dmsg1(200, "%s", dev->errmsg);
+         clrerror_dev(this, MTFSF);
+         Mmsg2(errmsg, _("ioctl MTFSF error on %s. ERR=%s.\n"),
+            print_name(), be.strerror());
+         Dmsg1(200, "%s", errmsg);
          return false;
       }
       Dmsg2(200, "fsf file=%d block=%d\n", mt_stat.mt_fileno, mt_stat.mt_blkno);
-      dev->set_ateof();
-      dev->file = mt_stat.mt_fileno;
+      set_ateof();
+      file = mt_stat.mt_fileno;
       return true;
 
    /*
@@ -1130,64 +1129,65 @@ fsf_dev(DEVICE *dev, int num)
     *  is the only way we can be sure that we don't read
     *  two consecutive EOF marks, which means End of Data.
     */
-   } else if (dev_cap(dev, CAP_FSF)) {
+   } else if (dev_cap(this, CAP_FSF)) {
       POOLMEM *rbuf;
       int rbuf_len;
       Dmsg0(200, "FSF has cap_fsf\n");
-      if (dev->max_block_size == 0) {
+      if (max_block_size == 0) {
          rbuf_len = DEFAULT_BLOCK_SIZE;
       } else {
-         rbuf_len = dev->max_block_size;
+         rbuf_len = max_block_size;
       }
       rbuf = get_memory(rbuf_len);
       mt_com.mt_op = MTFSF;
       mt_com.mt_count = 1;
-      while (num-- && !(dev->state & ST_EOT)) {
+      while (num-- && !at_eot()) {
          Dmsg0(100, "Doing read before fsf\n");
-         if ((stat = read(dev->fd, (char *)rbuf, rbuf_len)) < 0) {
+         if ((stat = read(fd, (char *)rbuf, rbuf_len)) < 0) {
             if (errno == ENOMEM) {     /* tape record exceeds buf len */
                stat = rbuf_len;        /* This is OK */
             } else {
                berrno be;
-               dev->state |= ST_EOT;
-               clrerror_dev(dev, -1);
-               Dmsg2(100, "Set ST_EOT read errno=%d. ERR=%s\n", dev->dev_errno,
+               set_eot();
+               clrerror_dev(this, -1);
+               Dmsg2(100, "Set ST_EOT read errno=%d. ERR=%s\n", dev_errno,
                   be.strerror());
-               Mmsg2(dev->errmsg, _("read error on %s. ERR=%s.\n"),
-                  dev->print_name(), be.strerror());
-               Dmsg1(100, "%s", dev->errmsg);
+               Mmsg2(errmsg, _("read error on %s. ERR=%s.\n"),
+                  print_name(), be.strerror());
+               Dmsg1(100, "%s", errmsg);
                break;
             }
          }
          if (stat == 0) {                /* EOF */
-            update_pos_dev(dev);
-            Dmsg1(100, "End of File mark from read. File=%d\n", dev->file+1);
+            update_pos_dev(this);
+            Dmsg1(100, "End of File mark from read. File=%d\n", file+1);
             /* Two reads of zero means end of tape */
-            if (dev->state & ST_EOF) {
-               dev->state |= ST_EOT;
+            if (at_eof()) {
+               set_eot();
                Dmsg0(100, "Set ST_EOT\n");
                break;
             } else {
-               dev->set_ateof();
+               set_ateof();
                continue;
             }
          } else {                        /* Got data */
-            dev->state &= ~(ST_EOF|ST_EOT);
+            clear_eot();
+            clear_eof();
          }
 
          Dmsg0(100, "Doing MTFSF\n");
-         stat = ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
+         stat = ioctl(fd, MTIOCTOP, (char *)&mt_com);
          if (stat < 0) {                 /* error => EOT */
             berrno be;
-            dev->state |= ST_EOT;
+            set_eot();
             Dmsg0(100, "Set ST_EOT\n");
-            clrerror_dev(dev, MTFSF);
-            Mmsg2(dev->errmsg, _("ioctl MTFSF error on %s. ERR=%s.\n"),
-               dev->print_name(), be.strerror());
+            clrerror_dev(this, MTFSF);
+            Mmsg2(errmsg, _("ioctl MTFSF error on %s. ERR=%s.\n"),
+               print_name(), be.strerror());
             Dmsg0(100, "Got < 0 for MTFSF\n");
-            Dmsg1(100, "%s", dev->errmsg);
+            Dmsg1(100, "%s", errmsg);
          } else {
-            dev->set_ateof();
+            set_ateof();
          }
       }
       free_memory(rbuf);
@@ -1197,24 +1197,24 @@ fsf_dev(DEVICE *dev, int num)
     */
    } else {
       Dmsg0(200, "Doing FSR for FSF\n");
-      while (num-- && !(dev->state & ST_EOT)) {
-         dev->fsr(INT32_MAX);    /* returns -1 on EOF or EOT */
+      while (num-- && !at_eot()) {
+         fsr(INT32_MAX);    /* returns -1 on EOF or EOT */
       }
-      if (dev->state & ST_EOT) {
-         dev->dev_errno = 0;
-         Mmsg1(dev->errmsg, _("Device %s at End of Tape.\n"), dev->print_name());
+      if (at_eot()) {
+         dev_errno = 0;
+         Mmsg1(errmsg, _("Device %s at End of Tape.\n"), print_name());
          stat = -1;
       } else {
          stat = 0;
       }
    }
-   update_pos_dev(dev);
+   update_pos_dev(this);
    Dmsg1(200, "Return %d from FSF\n", stat);
-   if (dev->state & ST_EOF)
+   if (at_eof())
       Dmsg0(200, "ST_EOF set on exit FSF\n");
-   if (dev->state & ST_EOT)
+   if (at_eot())
       Dmsg0(200, "ST_EOT set on exit FSF\n");
-   Dmsg1(200, "Return from FSF file=%d\n", dev->file);
+   Dmsg1(200, "Return from FSF file=%d\n", file);
    return stat == 0;
 }
 
@@ -1399,7 +1399,7 @@ reposition_dev(DEVICE *dev, uint32_t file, uint32_t block)
    }
    if (file > dev->file) {
       Dmsg1(100, "fsf %d\n", file-dev->file);
-      if (!fsf_dev(dev, file-dev->file)) {
+      if (!dev->fsf(file-dev->file)) {
          Dmsg1(100, "fsf failed! ERR=%s\n", strerror_dev(dev));
          return false;
       }
@@ -1410,7 +1410,7 @@ reposition_dev(DEVICE *dev, uint32_t file, uint32_t block)
       Dmsg0(100, "bsf_dev 1\n");
       bsf_dev(dev, 1);
       Dmsg0(100, "fsf_dev 1\n");
-      fsf_dev(dev, 1);
+      dev->fsf(1);
       Dmsg2(100, "wanted_blk=%d at_blk=%d\n", block, dev->block_num);
    }
    if (dev_cap(dev, CAP_POSITIONBLOCKS) && block > dev->block_num) {
