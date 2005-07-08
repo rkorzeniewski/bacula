@@ -86,9 +86,6 @@ void update_free_space_dev(DEVICE* dev);
 /* Forward referenced functions */
 void set_os_device_parameters(DEVICE *dev);
 static bool dev_get_os_pos(DEVICE *dev, struct mtget *mt_stat);
-static void open_tape_device(DCR *dcr, int mode);
-static void open_file_device(DCR *dcr, int mode);
-static void open_dvd_device(DCR *dcr, int mode);
 static char *mode_to_str(int mode);
 
 /*
@@ -265,10 +262,10 @@ init_dev(JCR *jcr, DEVRES *device)
  *    (archive_name) with the VolName concatenated.
  */
 int
-DEVICE::open(DCR *dcr, int mode)
+DEVICE::open(DCR *dcr, int omode)
 {
    if (is_open()) {
-      if (openmode == mode) {
+      if (openmode == omode) {
          return fd;
       } else {
         ::close(fd); /* use system close so correct mode will be used on open */
@@ -279,17 +276,17 @@ DEVICE::open(DCR *dcr, int mode)
   }
 
    Dmsg4(29, "open dev: tape=%d dev_name=%s vol=%s mode=%s\n", is_tape(),
-         dev_name, VolCatInfo.VolCatName, mode_to_str(mode));
+         dev_name, VolCatInfo.VolCatName, mode_to_str(omode));
    state &= ~(ST_LABEL|ST_APPEND|ST_READ|ST_EOT|ST_WEOT|ST_EOF);
    label_type = B_BACULA_LABEL;
    if (is_tape() || is_fifo()) {
-      open_tape_device(dcr, mode);
+      open_tape_device(omode);
    } else if (is_dvd()) {
       Dmsg1(100, "call open_dvd_device mode=%s\n", mode_to_str(mode));
-      open_dvd_device(dcr, mode);
+      open_dvd_device(dcr, omode);
    } else {
       Dmsg1(100, "call open_file_device mode=%d\n", mode_to_str(mode));
-      open_file_device(dcr, mode);
+      open_file_device(omode);
    }
    return fd;
 }
@@ -318,32 +315,32 @@ void DEVICE::set_mode(int new_mode)
    }
 }
 
-static void open_tape_device(DCR *dcr, int mode) 
+void DEVICE::open_tape_device(int omode) 
 {
-   DEVICE *dev = dcr->dev;
    int nonblocking = 0;;
-   dev->file_size = 0;
+   file_size = 0;
    int timeout;
    int ioerrcnt = 10;
    Dmsg0(29, "open dev: device is tape\n");
 
-   dev->set_mode(mode);
-   timeout = dev->max_open_wait;
+   set_mode(omode);
+   timeout = max_open_wait;
    errno = 0;
-   if (dev->open_nowait) {
+   if (open_nowait) {
        /* Set wait counters to zero for no wait */
        timeout = ioerrcnt = 0;
        /* Open drive in non-block mode */
        nonblocking = O_NONBLOCK;
    }
-   if (dev->is_fifo() && timeout) {
+   if (is_fifo() && timeout) {
       /* Set open timer */
-      dev->tid = start_thread_timer(pthread_self(), timeout);
+      tid = start_thread_timer(pthread_self(), timeout);
    }
    /* If busy retry each second for max_open_wait seconds */
 open_again:
-   Dmsg1(500, "Try open %s\n", dev->dev_name);
-   while ((dev->fd = open(dev->dev_name, dev->mode, MODE_RW+nonblocking)) < 0) {
+   Dmsg1(500, "Try open %s\n", dev_name);
+   /* Use system open() */
+   while ((fd = ::open(dev_name, mode, MODE_RW+nonblocking)) < 0) {
       berrno be;
       Dmsg2(500, "Open error errno=%d ERR=%s\n", errno, be.strerror());
       if (errno == EINTR || errno == EAGAIN) {
@@ -352,7 +349,7 @@ open_again:
       }
       /* Busy wait for specified time (default = 5 mins) */
       if (errno == EBUSY && timeout-- > 0) {
-         Dmsg2(100, "Device %s busy. ERR=%s\n", dev->print_name(), be.strerror());
+         Dmsg2(100, "Device %s busy. ERR=%s\n", print_name(), be.strerror());
          bmicrosleep(1, 0);
          continue;
       }
@@ -362,91 +359,91 @@ open_again:
          Dmsg0(500, "Continue open\n");
          continue;
       }
-      dev->dev_errno = errno;
-      Mmsg2(dev->errmsg, _("Unable to open device %s: ERR=%s\n"),
-            dev->print_name(), be.strerror(dev->dev_errno));
+      dev_errno = errno;
+      Mmsg2(errmsg, _("Unable to open device %s: ERR=%s\n"),
+            print_name(), be.strerror(dev_errno));
       /* Stop any open timer we set */
-      if (dev->tid) {
-         stop_thread_timer(dev->tid);
-         dev->tid = 0;
+      if (tid) {
+         stop_thread_timer(tid);
+         tid = 0;
       }
-      Emsg0(M_FATAL, 0, dev->errmsg);
+      Emsg0(M_FATAL, 0, errmsg);
       break;
    }
-   if (dev->fd >= 0) {
+   if (fd >= 0) {
       /* If opened in non-block mode, close it an open it normally */
       if (nonblocking) {
          nonblocking = 0;
-         close(dev->fd);
+         ::close(fd);                /* use system close() */
          goto open_again;
       }
-      dev->openmode = mode;               /* save open mode */
-      dev->dev_errno = 0;
-      dev->state |= ST_OPENED;
-      dev->use_count = 1;
-      update_pos_dev(dev);                /* update position */
-      set_os_device_parameters(dev);      /* do system dependent stuff */
+      openmode = mode;               /* save open mode */
+      dev_errno = 0;
+      set_opened();
+      use_count = 1;
+      update_pos_dev(this);                /* update position */
+      set_os_device_parameters(this);      /* do system dependent stuff */
       Dmsg0(500, "Open OK\n");
    }
    /* Stop any open() timer we started */
-   if (dev->tid) {
-      stop_thread_timer(dev->tid);
-      dev->tid = 0;
+   if (tid) {
+      stop_thread_timer(tid);
+      tid = 0;
    }
-   Dmsg1(29, "open dev: tape %d opened\n", dev->fd);
+   Dmsg1(29, "open dev: tape %d opened\n", fd);
 }
 
 /*
  * Open a file device
  */
-static void open_file_device(DCR *dcr, int mode) 
+void DEVICE::open_file_device(int omode) 
 {
-   DEVICE *dev = dcr->dev;
    POOL_MEM archive_name(PM_FNAME);
 
    /*
     * Handle opening of File Archive (not a tape)
     */     
-   Dmsg3(29, "Enter: open_file_dev: %s dev=%s mode=%s\n", dev->is_dvd()?"DVD":"disk",
-         archive_name.c_str(), mode_to_str(mode));
+   Dmsg3(29, "Enter: open_file_dev: %s dev=%s mode=%s\n", is_dvd()?"DVD":"disk",
+         archive_name.c_str(), mode_to_str(omode));
 
-   if (dev->VolCatInfo.VolCatName[0] == 0) {
-      Mmsg(dev->errmsg, _("Could not open file device %s. No Volume name given.\n"),
-         dev->print_name());
-      dev->fd = -1;
+   if (VolCatInfo.VolCatName[0] == 0) {
+      Mmsg(errmsg, _("Could not open file device %s. No Volume name given.\n"),
+         print_name());
+      fd = -1;
       return;
    }
 
-   pm_strcpy(archive_name, dev->dev_name);
+   pm_strcpy(archive_name, dev_name);
    if (archive_name.c_str()[strlen(archive_name.c_str())-1] != '/') {
       pm_strcat(archive_name, "/");
    }
-   pm_strcat(archive_name, dev->VolCatInfo.VolCatName);
+   pm_strcat(archive_name, VolCatInfo.VolCatName);
          
-   Dmsg3(29, "open dev: %s dev=%s mode=%s\n", dev->is_dvd()?"DVD":"disk",
-         archive_name.c_str(), mode_to_str(mode));
-   dev->openmode = mode;
+   Dmsg3(29, "open dev: %s dev=%s mode=%s\n", is_dvd()?"DVD":"disk",
+         archive_name.c_str(), mode_to_str(omode));
+   openmode = omode;
    
-   dev->set_mode(mode);
+   set_mode(omode);
    /* If creating file, give 0640 permissions */
-   Dmsg3(29, "mode=%s open(%s, 0x%x, 0640)\n", mode, archive_name.c_str(), 
-         mode_to_str(dev->mode));
-   if ((dev->fd = open(archive_name.c_str(), dev->mode, 0640)) < 0) {
+   Dmsg3(29, "mode=%s open(%s, 0x%x, 0640)\n", mode_to_str(omode), 
+         archive_name.c_str(), mode);
+   /* Use system open() */
+   if ((fd = ::open(archive_name.c_str(), mode, 0640)) < 0) {
       berrno be;
-      dev->dev_errno = errno;
-      Mmsg2(dev->errmsg, _("Could not open: %s, ERR=%s\n"), archive_name.c_str(), 
+      dev_errno = errno;
+      Mmsg2(errmsg, _("Could not open: %s, ERR=%s\n"), archive_name.c_str(), 
             be.strerror());
-      Dmsg1(29, "open failed: %s", dev->errmsg);
-      Emsg0(M_FATAL, 0, dev->errmsg);
+      Dmsg1(29, "open failed: %s", errmsg);
+      Emsg0(M_FATAL, 0, errmsg);
    } else {
-      dev->dev_errno = 0;
-      dev->state |= ST_OPENED;
-      dev->use_count = 1;
-      update_pos_dev(dev);                /* update position */
+      dev_errno = 0;
+      set_opened();
+      use_count = 1;
+      update_pos_dev(this);                /* update position */
    }
    Dmsg5(29, "open dev: %s fd=%d opened, part=%d/%d, part_size=%u\n", 
-      dev->is_dvd()?"DVD":"disk", dev->fd, dev->part, dev->num_parts, 
-      dev->part_size);
+      is_dvd()?"DVD":"disk", fd, part, num_parts, 
+      part_size);
 }
 
 /*
@@ -454,99 +451,100 @@ static void open_file_device(DCR *dcr, int mode)
  *  has the desired Volume name, but there is NO assurance that
  *  any other field of VolCatInfo is correct.
  */
-static void open_dvd_device(DCR *dcr, int mode) 
+void DEVICE::open_dvd_device(DCR *dcr, int omode) 
 {
-   DEVICE *dev = dcr->dev;
    POOL_MEM archive_name(PM_FNAME);
    struct stat filestat;
 
    /*
     * Handle opening of DVD Volume
     */     
-   Dmsg3(29, "Enter: open_dvd_dev: %s dev=%s mode=%s\n", dev->is_dvd()?"DVD":"disk",
-         archive_name.c_str(), mode_to_str(mode));
+   Dmsg3(29, "Enter: open_dvd_dev: %s dev=%s mode=%s\n", is_dvd()?"DVD":"disk",
+         archive_name.c_str(), mode_to_str(omode));
 
-   if (dev->VolCatInfo.VolCatName[0] == 0) {
-      Mmsg(dev->errmsg, _("Could not open file device %s. No Volume name given.\n"),
-         dev->print_name());
-      dev->fd = -1;
+   if (VolCatInfo.VolCatName[0] == 0) {
+      Mmsg(errmsg, _("Could not open file device %s. No Volume name given.\n"),
+         print_name());
+      fd = -1;
       return;
    }
 
-   if (dev->part == 0) {
-      dev->file_size = 0;
+   if (part == 0) {
+      file_size = 0;
    }
-   dev->part_size = 0;
+   part_size = 0;
    
 
-   if (mount_dev(dev, 1) < 0) {
-      Mmsg(dev->errmsg, _("Could not mount device %s.\n"),
-           dev->print_name());
-      Emsg0(M_FATAL, 0, dev->errmsg);
-      dev->fd = -1;
+   if (mount_dev(this, 1) < 0) {
+      Mmsg(errmsg, _("Could not mount device %s.\n"), print_name());
+      Emsg0(M_FATAL, 0, errmsg);
+      fd = -1;
       return;
    }
          
-   Dmsg3(29, "open dev: %s dev=%s mode=%s\n", dev->is_dvd()?"DVD":"disk",
-         archive_name.c_str(), mode_to_str(mode));
-   dev->openmode = mode;
+   Dmsg3(29, "open dev: %s dev=%s mode=%s\n", is_dvd()?"DVD":"disk",
+         archive_name.c_str(), mode_to_str(omode));
+   openmode = omode;
    
    /*
     * If we are not trying to access the last part, set mode to 
     *   OPEN_READ_ONLY as writing would be an error.
     */
-   if (dev->part < dev->num_parts) {
-      mode = OPEN_READ_ONLY;
+   if (part < num_parts) {
+      omode = OPEN_READ_ONLY;
    }
-   dev->set_mode(mode);
+   set_mode(omode);
 
    /* 
     * If we are opening it read-only, it is *probably* on the
     *   DVD, so try the DVD first, otherwise look in the spool dir.
     */
-   if (mode == OPEN_READ_ONLY) {
-      make_mounted_dvd_filename(dev, archive_name);
+   if (omode == OPEN_READ_ONLY) {
+      make_mounted_dvd_filename(this, archive_name);
    } else {
-      make_spooled_dvd_filename(dev, archive_name);
+      make_spooled_dvd_filename(this, archive_name);
    }
 
    /* If creating file, give 0640 permissions */
-   Dmsg3(29, "mode=%s open(%s, 0x%x, 0640)\n", mode_to_str(mode), 
-         archive_name.c_str(), dev->mode);
-   if ((dev->fd = open(archive_name.c_str(), dev->mode, 0640)) < 0) {
+   Dmsg3(29, "mode=%s open(%s, 0x%x, 0640)\n", mode_to_str(omode), 
+         archive_name.c_str(), mode);
+   /* Use system open() */
+   if ((fd = ::open(archive_name.c_str(), mode, 0640)) < 0) {
       berrno be;
-      dev->dev_errno = errno;
-      Mmsg2(dev->errmsg, _("Could not open: %s, ERR=%s\n"), archive_name.c_str(), 
+      dev_errno = errno;
+      Mmsg2(errmsg, _("Could not open: %s, ERR=%s\n"), archive_name.c_str(), 
             be.strerror());
-      Dmsg1(29, "open failed: %s", dev->errmsg);
-      if (mode == OPEN_READ_ONLY) {
-         make_spooled_dvd_filename(dev, archive_name);
-         dev->fd = open(archive_name.c_str(), dev->mode, 0640);  /* try on spool */
+      Dmsg1(29, "open failed: %s", errmsg);
+      if (omode == OPEN_READ_ONLY) {
+         make_spooled_dvd_filename(this, archive_name);
+        /* Use system open() */
+         fd = ::open(archive_name.c_str(), mode, 0640);  /* try on spool */
       }
    }
-   if (dev->fd >= 0) {
+   if (fd >= 0) {
       /* Get size of file */
-      if (fstat(dev->fd, &filestat) < 0) {
+      if (fstat(fd, &filestat) < 0) {
          berrno be;
-         dev->dev_errno = errno;
-         Mmsg2(dev->errmsg, _("Could not fstat: %s, ERR=%s\n"), archive_name.c_str(), 
+         dev_errno = errno;
+         Mmsg2(errmsg, _("Could not fstat: %s, ERR=%s\n"), archive_name.c_str(), 
                be.strerror());
-         Dmsg1(29, "open failed: %s", dev->errmsg);
-         close(dev->fd);
-         dev->fd = -1;
+         Dmsg1(29, "open failed: %s", errmsg);
+         /* Use system close() */
+         ::close(fd);
+         fd = -1;
       } else {
-         dev->part_size = filestat.st_size;
-         dev->dev_errno = 0;
-         dev->state |= ST_OPENED;
-         dev->use_count = 1;
-         update_pos_dev(dev);                /* update position */
+         part_size = filestat.st_size;
+         dev_errno = 0;
+         set_opened();
+         use_count = 1;
+         update_pos_dev(this);                /* update position */
       }
    }
    Dmsg4(29, "open dev: DVD fd=%d opened, part=%d/%d, part_size=%u\n", 
-      dev->fd, dev->part, dev->num_parts, dev->part_size);
-   if (dev->is_open() && dev->is_dvd() && (mode != OPEN_READ_ONLY) && 
-       (dev->free_space_errno == 0 || dev->num_parts == dev->part)) {
-      update_free_space_dev(dev);
+      fd, part, num_parts, part_size);
+   if (is_open() && is_dvd() && (omode != OPEN_READ_ONLY) && 
+       (free_space_errno == 0 || num_parts == part)) {
+      update_free_space_dev(this);
    }
 }
 

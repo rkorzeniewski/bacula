@@ -320,12 +320,19 @@ public:
    void unblock();      /* in dev.c */
    void close();        /* in dev.c */
    int open(DCR *dcr, int mode); /* in dev.c */
-   void set_mode(int mode); /* in dev.c */
+
 
    void set_blocked(int block) { dev_blocked = block; };
    int  get_blocked() const { return dev_blocked; };
    const char *print_blocked() const; /* in dev.c */
    bool is_blocked() const { return dev_blocked != BST_NOT_BLOCKED; };
+
+private:
+   void set_mode(int omode); /* in dev.c */
+   void open_tape_device(int omode); /* in dev.c */
+   void open_file_device(int omode); /* in dev.c */
+   void open_dvd_device(DCR *dcr, int omode); /* in dev.c */
+
 };
 
 /* Note, these return int not bool! */

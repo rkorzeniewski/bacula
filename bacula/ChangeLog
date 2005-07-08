@@ -1,4 +1,114 @@
 
+Changes to 1.37.28:
+08Jul05
+- Correct a NULL pointer reference in the mount command.
+- Correct typo in Copyright
+- Add detection of EOM for IBM drives (i.e. errno == ENOSPC)
+07Jul05
+- Remove temp file created in mtx-changer script.
+- Make fsf_dev() into a class method.
+06Jul05
+- Modify mtx-changer.in script to return slot:barcode for
+  Volumes that are loaded in the drives.
+- Correct some more places where dev->is_blocked() needs
+  to be checked in dircmd.c in SD.
+- Update doc.
+05Jul05
+- Add code to ensure that reserved but unused volumes
+  are freed. 
+- Correct how Volumes are mounted and handled so that the SD
+  does not get stuck if multiple volumes are used (recycling,
+  relabling, ...)
+- Correct bug where you could relabel a volume while it
+  was being acquired -- created chaos.
+04Jul05
+- Correct seg fault caused by open() calling sequence change.
+03Jul05
+- Add new rc-chio-changer script by Rudolf Cejka to 
+  examples/autochangers
+- Apply Rudolf's changes to bacula.in
+- Expand the space from 8 to 10 characters in editing
+  file sizes for restore and dir of catalog, otherwise
+  GB sizes are truncated -- fixes bug report.
+- Modify wx-console to know about 10 character widths.
+- Allow decending into top level directory if "recurse=no"
+  is set.  Fixes a bug report.
+- Install pthreadVCE.dll when installing console or wx-console
+  on Win32 systems. Fixes bug report.
+02Jul05
+- Tweak dvd-writepart script to prevent door from opening/closing
+  so much.
+- Remove GROUP BY in several PostgreSQL commands to prevent error.
+  Resolves bug report.
+- Ensure that < as first character of filename list is not treated
+  as a directory for restore.
+- Add debug to heartbeat in FD as it seems to go into an
+  infinite loop from time to time during SD failure in DVD writing.
+- Add more debug code to dvd writing.
+- Attempt not to destroy existing fs on DVD. 
+30Jun05
+- Detect device mounted for DVD and suppress be sure to 
+  mount message after label.
+- Set Cleaning tape status to "Cleaning" and force no
+  MediaType.
+- Get DVD writing working with new standard Bacula open()
+  code.
+- Rename get_filename() to make more sense.
+- Detect "is already mounted on" on mount command so to avoid
+  error if device is already mounted.
+- Eliminated guess_name() code. It may be necessary to
+  add it back later.
+- Eliminate seg fault from printing invalid results.
+- Make dvd_write_part() bool.
+
+29Jun05
+- Attempt to fix DVD writing by eliminating a number of the 
+  DVD subroutines to simplify.
+- Modify DEVICE::open() to take dcr as first argument. This
+  will permit providing more info to DVD opening.
+- Fix scanning for time/size items which in some cases
+  ate the next line.
+- Eliminate read_dvd_volume_label().  New code (not yet written)
+  *must* open dvd appropriately before calling 
+  read_dev_volume_label.
+- Modify open_first_part() open_next_part() to take DCR as 
+  argument.
+- Make label command from console work on DVDs.
+- Make mount command from console work on DVDs.
+  Unmount does not work yet.
+
+Changes to 1.37.27:
+27Jun05
+- Add Database vendor to CatalogRes tuple for Python.
+- Update doc
+- Implement DoesVolumeExist(Vol) for Python.
+- Prevent python command from seg faulting if no arg given.
+
+Changes to 1.37.26:
+26Jun05
+- Add set_mode method in DEVICE.
+- Correct set_mode method in DEVICE
+- Add more DVD debug info 
+23Jun05
+- Check for incorrect duration and size modifiers in conf files.
+22Jun05:
+- Make Version a tuple (version, build-date)
+- Add CatalogRes tuple (DBName, Address, User, Password,
+    Socket, Port)
+- Add Version, ConfigFile, and WorkingDir as Python attributes
+  in the Director.
+- Implement code (principally for Win32) that on failure to
+  create a file, it will cd into the directory and attempt
+  to create the file using a relative path. This avoids creating
+  files with paths which fail on Win32.
+- Fix parsing of times and sizes with decimal numbers.
+- Make free_volume_list() in SD work if vol list is not
+  initialized (./bacula-sd -t).
+21Jun05:
+- Add debug error printout when open() fails.
+- If open() of DVD fails in mount.c, return false.
+- Split open() code for DVD into separate subroutine in dev.c
+
 Changes to 1.37.25 released on 20 Jun 05:
 20Jun05:
 - Fix bug where Storage daemon gets confused about what
