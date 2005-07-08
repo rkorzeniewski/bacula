@@ -33,7 +33,7 @@
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
-   version 2 as ammended with additional clauses defined in the
+   version 2 as amended with additional clauses defined in the
    file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
@@ -1146,6 +1146,12 @@ bool DEVICE::fsf(int num)
          if ((stat = read(fd, (char *)rbuf, rbuf_len)) < 0) {
             if (errno == ENOMEM) {     /* tape record exceeds buf len */
                stat = rbuf_len;        /* This is OK */
+            /*
+             * On IBM drives, they return ENOSPC at EOM
+             *  instead of EOF status
+             */
+            } else if (at_eof() && errno == ENOSPC) {
+               stat = 0;
             } else {
                berrno be;
                set_eot();

@@ -14,7 +14,7 @@
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
-   version 2 as ammended with additional clauses defined in the
+   version 2 as amended with additional clauses defined in the
    file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
@@ -108,6 +108,7 @@ int read_ansi_ibm_label(DCR *dcr)
                if (strncmp("VOL1", label, 4) == 0) {
                   ok = true;;
                   dev->label_type = B_IBM_LABEL;
+                  Dmsg0(100, "Found IBM label.\n");
                }
             }       
          }
