@@ -5,6 +5,8 @@ General:
 
 Changes to 1.37.28:
 07Jul05
+- Correct typo in Copyright
+- Add detection of EOM for IBM drives (i.e. errno == ENOSPC)
 - Remove temp file created in mtx-changer script.
 - Make fsf_dev() into a class method.
 06Jul05

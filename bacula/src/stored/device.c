@@ -33,7 +33,7 @@
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
-   version 2 as ammended with additional clauses defined in the
+   version 2 as amended with additional clauses defined in the
    file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
