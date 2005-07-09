@@ -24,13 +24,6 @@ Autochangers:
 
 For 1.37:
 - update volume=xxx --- add status=Full
-- After rename
-  04-Jul 13:01 MainSD: Rufus.2005-07-04_01.05.02 Warning: Director wanted Volume 
-     "DLT-13Feb04".
-  Current Volume "DLT-04Jul05" not acceptable because:
-  1997 Volume "DLT-13Feb04" not in catalog.
-  04-Jul 13:01 MainSD: Please mount Volume "DLT-04Jul05" on Storage Device 
-     "HP DLT 80" (/dev/nst0) for Job Rufus.2005-07-04_01.05.02
 - Remove old spool files on startup.
 - Exclude SD spool/working directory.
 - Finish TLS implementation.
@@ -1346,3 +1339,11 @@ Block Position: 0
 - Review all items in "restore".
 - Fix PostgreSQL GROUP BY problems in restore.
 - Fix PostgreSQL sql problems in bugs.
+- After rename
+  04-Jul 13:01 MainSD: Rufus.2005-07-04_01.05.02 Warning: Director wanted Volume 
+     "DLT-13Feb04".
+  Current Volume "DLT-04Jul05" not acceptable because:
+  1997 Volume "DLT-13Feb04" not in catalog.
+  04-Jul 13:01 MainSD: Please mount Volume "DLT-04Jul05" on Storage Device 
+     "HP DLT 80" (/dev/nst0) for Job Rufus.2005-07-04_01.05.02
+

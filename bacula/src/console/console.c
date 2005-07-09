@@ -306,7 +306,6 @@ static int tls_pem_callback(char *buf, int size, const void *userdata)
    buf[0] = 0;
    return 0;
 #endif
-
 }
 
 

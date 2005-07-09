@@ -6,23 +6,19 @@
  *
  *     Version $Id$
  */
-
 /*
-   Copyright (C) 2002-2004 Kern Sibbald and John Walker
+   Copyright (C) 2002-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
 #include "bacula.h"
@@ -82,13 +78,14 @@ static bool at_prompt = false;
 static bool ready = false;
 static bool quit = false;
 static guint initial;
+static int numdir = 0;
 
 #define CONFIG_FILE "./gnome-console.conf"   /* default configuration file */
 
 static void usage()
 {
    fprintf(stderr, _(
-"Copyright (C) 2002-2004 Kern Sibbald and John Walker\n"
+"Copyright (C) 2002-2005 Kern Sibbald\n"
 "\nVersion: " VERSION " (" BDATE ") %s %s %s\n\n"
 "Usage: gnome-console [-s] [-c config_file] [-d debug_level] [config_file]\n"
 "       -c <file>   set configuration file to file\n"
@@ -99,6 +96,93 @@ static void usage()
 "\n"), HOST_OS, DISTNAME, DISTVER);
 
    exit(1);
+}
+
+/*
+ * Call-back for reading a passphrase for an encrypted PEM file
+ * This function uses getpass(), which uses a static buffer and is NOT thread-safe.
+ */
+static int tls_pem_callback(char *buf, int size, const void *userdata)
+{
+#ifdef HAVE_TLS
+   const char *prompt = (const char *) userdata;
+   char *passwd;
+
+   passwd = getpass(prompt);
+   bstrncpy(buf, passwd, size);
+   return (strlen(buf));
+#else
+   buf[0] = 0;
+   return 0;
+#endif
+}
+
+
+/*
+ * Make a quick check to see that we have all the
+ * resources needed.
+ */
+static int check_resources()
+{
+   int xOK = true;
+   DIRRES *director;
+
+   LockRes();
+
+   numdir = 0;
+   foreach_res(director, R_DIRECTOR) {
+      numdir++;
+      /* tls_require implies tls_enable */
+      if (director->tls_require) {
+         if (have_tls) {
+            director->tls_enable = true;
+         } else {
+            Jmsg(NULL, M_FATAL, 0, _("TLS required but not configured in Bacula.\n"));
+            xOK = false;
+            continue;
+         }
+      }
+
+      if ((!director->tls_ca_certfile && !director->tls_ca_certdir) && director->tls_enable) {
+         Emsg2(M_FATAL, 0, _("Neither \"TLS CA Certificate\""
+                             " or \"TLS CA Certificate Dir\" are defined for Director \"%s\" in %s."
+                             " At least one CA certificate store is required.\n"),
+                             director->hdr.name, configfile);
+         xOK = false;
+      }
+   }
+   
+   if (numdir == 0) {
+      Emsg1(M_FATAL, 0, _("No Director resource defined in %s\n"
+                          "Without that I don't how to speak to the Director :-(\n"), configfile);
+      xOK = false;
+   }
+
+   CONRES *cons;
+   /* Loop over Consoles */
+   foreach_res(cons, R_CONSOLE) {
+      /* tls_require implies tls_enable */
+      if (cons->tls_require) {
+         if (have_tls) {
+            cons->tls_enable = true;
+         } else {
+            Jmsg(NULL, M_FATAL, 0, _("TLS required but not configured in Bacula.\n"));
+            xOK = false;
+            continue;
+         }
+      }
+
+      if ((!cons->tls_ca_certfile && !cons->tls_ca_certdir) && cons->tls_enable) {
+         Emsg2(M_FATAL, 0, _("Neither \"TLS CA Certificate\""
+                             " or \"TLS CA Certificate Dir\" are defined for Console \"%s\" in %s.\n"),
+                             cons->hdr.name, configfile);
+         xOK = false;
+      }
+   }
+
+   UnlockRes();
+
+   return xOK;
 }
 
 
@@ -179,18 +263,13 @@ int main(int argc, char *argv[])
 
    parse_config(configfile);
 
-   LockRes();
-   ndir = 0;
-   foreach_res(dir, R_DIRECTOR) {
-      ndir++;
-   }
-   UnlockRes();
-   if (ndir == 0) {
-      Emsg1(M_ERROR_TERM, 0, _("No director resource defined in %s\n"
-"Without that I don't how to speak to the Director :-(\n"), configfile);
+   if (init_tls() != 0) {
+      Emsg0(M_ERROR_TERM, 0, _("TLS library initialization failed.\n"));
    }
 
-
+   if (!check_resources()) {
+      Emsg1(M_ERROR_TERM, 0, _("Please correct configuration file: %s\n"), configfile);
+   }
 
    console = create_console();
    gtk_window_set_default_size(GTK_WINDOW(console), 800, 700);
@@ -402,6 +481,57 @@ int connect_to_director(gpointer data)
    while (gtk_events_pending()) {     /* fully paint screen */
       gtk_main_iteration();
    }
+
+   LockRes();
+   /* If cons==NULL, default console will be used */
+   CONRES *cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)NULL);
+   UnlockRes();
+
+   char buf[1024];
+   /* Initialize Console TLS context */
+   if (cons && (cons->tls_enable || cons->tls_require)) {
+      /* Generate passphrase prompt */
+      bsnprintf(buf, sizeof(buf), "Passphrase for Console \"%s\" TLS private key: ", cons->hdr.name);
+
+      /* Initialize TLS context:
+       * Args: CA certfile, CA certdir, Certfile, Keyfile,
+       * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */
+      cons->tls_ctx = new_tls_context(cons->tls_ca_certfile,
+         cons->tls_ca_certdir, cons->tls_certfile,
+         cons->tls_keyfile, tls_pem_callback, &buf, NULL, true);
+
+      if (!cons->tls_ctx) {
+         bsnprintf(buf, sizeof(buf), _("Failed to initialize TLS context for Console \"%s\".\n"),
+            dir->hdr.name);
+         set_text(buf, strlen(buf));
+         terminate_console(0);
+         return 1;
+      }
+
+   }
+
+   /* Initialize Director TLS context */
+   if (dir->tls_enable || dir->tls_require) {
+      /* Generate passphrase prompt */
+      bsnprintf(buf, sizeof(buf), "Passphrase for Director \"%s\" TLS private key: ", dir->hdr.name);
+
+      /* Initialize TLS context:
+       * Args: CA certfile, CA certdir, Certfile, Keyfile,
+       * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */
+      dir->tls_ctx = new_tls_context(dir->tls_ca_certfile,
+         dir->tls_ca_certdir, dir->tls_certfile,
+         dir->tls_keyfile, tls_pem_callback, &buf, NULL, true);
+
+      if (!dir->tls_ctx) {
+         bsnprintf(buf, sizeof(buf), _("Failed to initialize TLS context for Director \"%s\".\n"),
+            dir->hdr.name);
+         set_text(buf, strlen(buf));
+         terminate_console(0);
+         return 1;
+      }
+   }
+
+
    UA_sock = bnet_connect(NULL, 5, 15, "Director daemon", dir->address,
                           NULL, dir->DIRport, 0);
    if (UA_sock == NULL) {
@@ -409,10 +539,6 @@ int connect_to_director(gpointer data)
    }
 
    jcr.dir_bsock = UA_sock;
-   LockRes();
-   /* If cons==NULL, default console will be used */
-   CONRES *cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)NULL);
-   UnlockRes();
    if (!authenticate_director(&jcr, dir, cons)) {
       set_text(UA_sock->msg, UA_sock->msglen);
       return 0;
@@ -541,11 +667,12 @@ void stop_director_reader(gpointer data)
 /* Cleanup and then exit */
 void terminate_console(int sig)
 {
-   static int already_here = FALSE;
+   static bool already_here = false;
 
    if (already_here)                  /* avoid recursive temination problems */
       exit(1);
-   already_here = TRUE;
+   already_here = true;
+   cleanup_tls();
    disconnect_from_director((gpointer)NULL);
    gtk_main_quit();
    exit(0);

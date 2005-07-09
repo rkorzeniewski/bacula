@@ -45,7 +45,7 @@
 /* Definition of the contents of each Resource */
 
 /* Console "globals" */
-struct s_res_con {
+struct CONRES {
    RES   hdr;
    char *rc_file;                     /* startup file */
    char *hist_file;                   /* command history file */
@@ -59,10 +59,9 @@ struct s_res_con {
 
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
 };
-typedef struct s_res_con CONRES;
 
 /* Director */
-struct s_res_dir {
+struct DIRRES {
    RES   hdr;
    int   DIRport;                     /* UA server port */
    char *address;                     /* UA server address */
@@ -76,15 +75,14 @@ struct s_res_dir {
 
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
 };
-typedef struct s_res_dir DIRRES;
 
 
 /* Define the Union of all the above
  * resource structure definitions.
  */
 union u_res {
-   struct s_res_dir     res_dir;
-   struct s_res_con     res_cons;
+   DIRRES res_dir;
+   CONRES res_cons;
    RES hdr;
 };
 

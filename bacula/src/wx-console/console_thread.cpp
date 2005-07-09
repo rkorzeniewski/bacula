@@ -49,6 +49,94 @@ bool console_thread::inited = false;
 bool console_thread::configloaded = false;
 wxString console_thread::working_dir = wxT(".");
 
+int numdir = 0;
+
+/*
+ * Call-back for reading a passphrase for an encrypted PEM file
+ * This function uses getpass(), which uses a static buffer and is NOT thread-safe.
+ */
+static int tls_pem_callback(char *buf, int size, const void *userdata)
+{
+#ifdef HAVE_TLS
+   const char *prompt = (const char *) userdata;
+   char *passwd;
+
+   passwd = getpass(prompt);
+   bstrncpy(buf, passwd, size);
+   return (strlen(buf));
+#else
+   buf[0] = 0;
+   return 0;
+#endif
+}
+
+
+/*
+ * Make a quick check to see that we have all the
+ * resources needed.
+ */
+static int check_resources()
+{
+   int xOK = true;
+   DIRRES *director;
+
+   LockRes();
+
+   numdir = 0;
+   foreach_res(director, R_DIRECTOR) {
+      numdir++;
+      /* tls_require implies tls_enable */
+      if (director->tls_require) {
+         if (have_tls) {
+            director->tls_enable = true;
+         } else {
+            Jmsg(NULL, M_FATAL, 0, _("TLS required but not configured in Bacula.\n"));
+            xOK = false;
+            continue;
+         }
+      }
+
+      if ((!director->tls_ca_certfile && !director->tls_ca_certdir) && director->tls_enable) {
+         Jmsg(NULL, M_FATAL, 0, _("Neither \"TLS CA Certificate\""
+                             " or \"TLS CA Certificate Dir\" are defined for Director \"%s\" in config file.\n"
+                             " At least one CA certificate store is required.\n"),
+                             director->hdr.name);
+         xOK = false;
+      }
+   }
+   
+   if (numdir == 0) {
+      Jmsg(NULL, M_FATAL, 0, _("No Director resource defined in config file.\n"
+                          "Without that I don't how to speak to the Director :-(\n"));
+      xOK = false;
+   }
+
+   CONRES *cons;
+   /* Loop over Consoles */
+   foreach_res(cons, R_CONSOLE) {
+      /* tls_require implies tls_enable */
+      if (cons->tls_require) {
+         if (have_tls) {
+            cons->tls_enable = true;
+         } else {
+            Jmsg(NULL, M_FATAL, 0, _("TLS required but not configured in Bacula.\n"));
+            xOK = false;
+            continue;
+         }
+      }
+
+      if ((!cons->tls_ca_certfile && !cons->tls_ca_certdir) && cons->tls_enable) {
+         Jmsg(NULL, M_FATAL, 0, _("Neither \"TLS CA Certificate\""
+                             " or \"TLS CA Certificate Dir\" are defined for Console \"%s\" in config file.\n"),
+                             cons->hdr.name);
+         xOK = false;
+      }
+   }
+   UnlockRes();
+   return xOK;
+}
+
+
 void console_thread::SetWorkingDirectory(wxString w_dir) {
    if ((w_dir.Last() == '/') || (w_dir.Last() == '\\')) {
       console_thread::working_dir = w_dir.Mid(0, w_dir.Length()-1);
@@ -139,6 +227,14 @@ wxString console_thread::LoadConfig(wxString configfile) {
       return errmsg;
    }
    
+   if (init_tls() != 0) {
+      Jmsg(NULL, M_ERROR_TERM, 0, _("TLS library initialization failed.\n"));
+   }
+
+   if (!check_resources()) {
+      Jmsg(NULL, M_ERROR_TERM, 0, _("Please correct configuration file.\n"));
+   }
+
    term_msg();
    wxRemoveFile(console_thread::working_dir + wxT("/wx-console.conmsg"));
    init_msg(NULL, NULL);
@@ -167,6 +263,7 @@ console_thread::~console_thread() {
  * Thread entry point
  */
 void* console_thread::Entry() {
+   DIRRES* dir;
    if (!inited) {
       csprint("Error : Library not initialized\n");
       csprint(NULL, CS_END);
@@ -195,7 +292,6 @@ void* console_thread::Entry() {
    DIRRES* res[16]; /* Maximum 16 directors */
    
    LockRes();
-   DIRRES* dir;
    foreach_res(dir, R_DIRECTOR) {
       res[count] = dir;
       count++;
@@ -214,11 +310,9 @@ void* console_thread::Entry() {
          Exit();
       #endif
       return NULL;
-   }
-   else if (count == 1) {
+   } else if (count == 1) {
       directorchoosen = 1;
-   }
-   else {
+   } else {
       while (true) {
          csprint("Multiple directors found in your config file.\n");
          for (int i = 0; i < count; i++) {
@@ -243,13 +337,62 @@ void* console_thread::Entry() {
          }
       }
    }
+   dir = res[directorchoosen-1];
 
    memset(&jcr, 0, sizeof(jcr));
    
    jcr.dequeuing = 1; /* TODO: catch messages */
 
+   LockRes();
+   /* If cons==NULL, default console will be used */
+   CONRES *cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)NULL);
+   UnlockRes();
+
+   char buf[1024];
+   /* Initialize Console TLS context */
+   if (cons && (cons->tls_enable || cons->tls_require)) {
+      /* Generate passphrase prompt */
+      bsnprintf(buf, sizeof(buf), "Passphrase for Console \"%s\" TLS private key: ", cons->hdr.name);
+
+      /* Initialize TLS context:
+       * Args: CA certfile, CA certdir, Certfile, Keyfile,
+       * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */
+      cons->tls_ctx = new_tls_context(cons->tls_ca_certfile,
+         cons->tls_ca_certdir, cons->tls_certfile,
+         cons->tls_keyfile, tls_pem_callback, &buf, NULL, true);
+
+      if (!cons->tls_ctx) {
+         bsnprintf(buf, sizeof(buf), _("Failed to initialize TLS context for Console \"%s\".\n"),
+            dir->hdr.name);
+         csprint(buf);
+         return NULL;
+      }
+
+   }
+
+   /* Initialize Director TLS context */
+   if (dir->tls_enable || dir->tls_require) {
+      /* Generate passphrase prompt */
+      bsnprintf(buf, sizeof(buf), "Passphrase for Director \"%s\" TLS private key: ", dir->hdr.name);
+
+      /* Initialize TLS context:
+       * Args: CA certfile, CA certdir, Certfile, Keyfile,
+       * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */
+      dir->tls_ctx = new_tls_context(dir->tls_ca_certfile,
+         dir->tls_ca_certdir, dir->tls_certfile,
+         dir->tls_keyfile, tls_pem_callback, &buf, NULL, true);
+
+      if (!dir->tls_ctx) {
+         bsnprintf(buf, sizeof(buf), _("Failed to initialize TLS context for Director \"%s\".\n"),
+            dir->hdr.name);
+         csprint(buf);
+         return NULL;
+      }
+   }
+
+
    UA_sock = bnet_connect(&jcr, 3, 3, "Director daemon",
-      res[directorchoosen-1]->address, NULL, res[directorchoosen-1]->DIRport, 0);
+      dir->address, NULL, dir->DIRport, 0);
       
    if (UA_sock == NULL) {
       csprint("Failed to connect to the director\n");
@@ -265,11 +408,7 @@ void* console_thread::Entry() {
    csprint("Connected\n");
 
    jcr.dir_bsock = UA_sock;
-   LockRes();
-   /* If cons==NULL, default console will be used */
-   CONRES *cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)NULL);
-   UnlockRes();
-   if (!authenticate_director(&jcr, res[directorchoosen-1], cons)) {
+   if (!authenticate_director(&jcr, dir, cons)) {
       csprint("ERR=");
       csprint(UA_sock->msg);
       csprint(NULL, CS_END);
