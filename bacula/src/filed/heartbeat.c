@@ -74,7 +74,7 @@ extern "C" void *sd_heartbeat_thread(void *arg)
             last_heartbeat = now;
          }
       }
-      if (is_bnet_stop(sd)) {
+      if (n < 0 || is_bnet_stop(sd)) {
          break;
       }
       if (n == 1) {                   /* input waiting */
@@ -85,7 +85,7 @@ extern "C" void *sd_heartbeat_thread(void *arg)
             Dmsg2(100, "Got %d bytes from SD. MSG=%s\n", sd->msglen, sd->msg);
          }
       }
-      Dmsg2(000, "wait_intr=%d stop=%d\n", n, is_bnet_stop(sd));
+      Dmsg2(100, "wait_intr=%d stop=%d\n", n, is_bnet_stop(sd));
    }
    bnet_close(sd);
    bnet_close(dir);

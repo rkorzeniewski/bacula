@@ -5,6 +5,8 @@ General:
 
 Changes to 1.37.28:
 09Jul05
+- Add a test for error return from bnet_wait... in heartbeat.c
+  in FD to avoid CPU loop.
 - Implement TLS in gnome console and wx-console.
 08Jul05
 - Correct a NULL pointer reference in the mount command.
