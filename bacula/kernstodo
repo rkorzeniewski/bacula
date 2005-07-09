@@ -10,50 +10,23 @@ VSS                         Thorsten Engel (in beta testing)
 Version 1.37                Kern (see below)
 ========================================================
 
-1.37 Major Projects:
-#3   Migration (Move, Copy, Archive Jobs)
-     (probably not this version)
-#7   Single Job Writing to Multiple Storage Devices
-     (probably not this version)
-
-##   Create a new GUI chapter explaining all the GUI programs.
-
-Autochangers:
--    Make "update slots" when pointing to Autochanger, remove
-     all Volumes from other drives.  "update slots all-drives"?
-
-For 1.37:
-- update volume=xxx --- add status=Full
-- Remove old spool files on startup.
-- Exclude SD spool/working directory.
-- Finish TLS implementation.
-- Refuse to prune last valid Full backup. Same goes for Catalog.
+Final items for 1.37 before release:
 - --without-openssl breaks at least on Solaris.
-- Python:
-  - Make a callback when Rerun failed levels is called.
-  - Give Python program access to Scheduled jobs.
-  - Add setting Volume State via Python.
-  - Python script to save with Python, not save, save with Bacula.
-  - Python script to do backup.
-  - What events?
-  - Change the Priority, Client, Storage, JobStatus (error) 
-    at the start of a job.
-- Why is SpoolDirectory = /home/bacula/spool;  not reported
-  as an error when writing a DVD?
-- Make bootstrap file handle multiple MediaTypes (SD)
-- Remove all old Device resource code in Dir and code to pass it
-  back in SD -- better, rework it to pass back device statistics.
-- Check locking of resources -- be sure to lock devices where previously
-  resources were locked. 
-- The last part is left in the spool dir.
+1. Fix the remaining bugs that I am aware of and new ones that come up 
+    during testing.
+3. Document all the new features (about half done).
+6. Build and test the Volume Shadow Copy (VSS) for Win32. 
+7. Write a bacula-web document
+8. Take one more try at making DVD writing work.
+9. Run the regression scripts on Solaris and FreeBSD
 
 Document:
-- Port limiting -m in iptables to prevent DoS attacks
-  could cause broken pipes on Bacula.
+- Document cleaning up the spool files.
+- Add better documentation on how restores can be done
+- Document details of ANSI/IBM labels
 - Document that Bootstrap files can be written with cataloging
   turned off.
 - Pruning with Admin job.
-- Add better documentation on how restores can be done
 - OS linux 2.4
   1) ADIC, DLT, FastStor 4000, 7*20GB
   2) Sun, DDS, (Suns name unknown - Archive Python DDS drive), 1.2GB
@@ -75,7 +48,37 @@ Document:
 - Document Heartbeat Interval in the dealing with firewalls section.
 - Document the multiple-drive-changer.txt script.
 
-Maybe in 1.37:
+
+1.xx Major Projects:
+#3   Migration (Move, Copy, Archive Jobs)
+     (probably not this version)
+#7   Single Job Writing to Multiple Storage Devices
+     (probably not this version)
+
+For 1.39:
+- update volume=xxx --- add status=Full
+- Remove old spool files on startup.
+- Exclude SD spool/working directory.
+- Refuse to prune last valid Full backup. Same goes for Catalog.
+- Python:
+  - Make a callback when Rerun failed levels is called.
+  - Give Python program access to Scheduled jobs.
+  - Add setting Volume State via Python.
+  - Python script to save with Python, not save, save with Bacula.
+  - Python script to do backup.
+  - What events?
+  - Change the Priority, Client, Storage, JobStatus (error) 
+    at the start of a job.
+- Why is SpoolDirectory = /home/bacula/spool;  not reported
+  as an error when writing a DVD?
+- Make bootstrap file handle multiple MediaTypes (SD)
+- Remove all old Device resource code in Dir and code to pass it
+  back in SD -- better, rework it to pass back device statistics.
+- Check locking of resources -- be sure to lock devices where previously
+  resources were locked. 
+- The last part is left in the spool dir.
+
+
 - In restore don't compare byte count on a raw device -- directory
   entry does not contain bytes.
 - To mark files as deleted, run essentially a Verify to disk, and
@@ -1346,4 +1349,11 @@ Block Position: 0
   1997 Volume "DLT-13Feb04" not in catalog.
   04-Jul 13:01 MainSD: Please mount Volume "DLT-04Jul05" on Storage Device 
      "HP DLT 80" (/dev/nst0) for Job Rufus.2005-07-04_01.05.02
-
+##   Create a new GUI chapter explaining all the GUI programs.
+-    Make "update slots" when pointing to Autochanger, remove
+     all Volumes from other drives.  "update slots all-drives"?
+     No, this is done by modifying mtx-changer to list what is
+     in the drives.
+- Finish TLS implementation.
+- Port limiting -m in iptables to prevent DoS attacks
+  could cause broken pipes on Bacula.
