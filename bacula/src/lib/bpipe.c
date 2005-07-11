@@ -255,13 +255,15 @@ int run_program(char *prog, int wait, POOLMEM *results)
    int stat1, stat2;
    char *mode;
 
+   if (results) {
+      results[0] = 0;
+   }
    mode = (char *)(results != NULL ? "r" : "");
    bpipe = open_bpipe(prog, wait, mode);
    if (!bpipe) {
       return ENOENT;
    }
    if (results) {
-      results[0] = 0;
       fgets(results, sizeof_pool_memory(results), bpipe->rfd);
       if (feof(bpipe->rfd)) {
          stat1 = 0;
