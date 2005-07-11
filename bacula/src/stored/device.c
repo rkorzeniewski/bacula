@@ -458,7 +458,7 @@ void _give_back_device_lock(const char *file, int line, DEVICE *dev, bsteal_lock
    dev->no_wait_id = hold->no_wait_id;
    Dmsg1(400, "return lock. new=%s\n", dev->print_blocked());
    if (dev->num_waiting > 0) {
-      Dmsg0(400, "Broadcase\n");
+      Dmsg0(400, "Broadcast\n");
       pthread_cond_broadcast(&dev->wait); /* wake them up */
    }
 }

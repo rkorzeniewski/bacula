@@ -50,6 +50,7 @@ pthread_cond_t wait_device_release = PTHREAD_COND_INITIALIZER;
 static uint32_t VolSessionId = 0;
 uint32_t VolSessionTime;
 char *configfile = NULL;
+bool init_done = false;
 
 /* Global static variables */
 static int foreground = 0;
@@ -217,7 +218,6 @@ int main (int argc, char *argv[])
    /* Make sure on Solaris we can run concurrent, watch dog + servers + misc */
    set_thread_concurrency(me->max_concurrent_jobs * 2 + 4);
 
-   create_volume_list();
     /*
      * Start the device allocation thread
      */
@@ -225,19 +225,9 @@ int main (int argc, char *argv[])
       Emsg1(M_ABORT, 0, _("Unable to create thread. ERR=%s\n"), strerror(errno));
    }
 
+   create_volume_list();
    start_watchdog();                  /* start watchdog thread */
-
    init_jcr_subsystem();              /* start JCR watchdogs etc. */
-
-   /*
-    * Sleep a bit to give device thread a chance to lock the resource
-    * chain before we start the server.
-    */
-   bmicrosleep(1, 0);
-
-   /* Wait for device initialization to complete */
-   LockRes();
-   UnlockRes();
 
    /* Single server used for Director and File daemon */
    bnet_thread_server(me->sdaddrs, me->max_concurrent_jobs * 2 + 1,
@@ -510,6 +500,7 @@ void *device_initialization(void *arg)
       free_dcr(dcr);
    }
    free_jcr(jcr); 
+   init_done = true;
    UnlockRes();
    return NULL;
 }

@@ -5,24 +5,18 @@
  *
  *    Version $Id$
  */
-
 /*
    Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -381,7 +375,7 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    db_lock(mdb);
    Mmsg(mdb->cmd, "SELECT MediaId FROM Media WHERE VolumeName='%s'",
            mr->VolumeName);
-   Dmsg1(300, "selectpool: %s\n", mdb->cmd);
+   Dmsg1(500, "selectpool: %s\n", mdb->cmd);
 
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
@@ -401,25 +395,25 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 "VolStatus,Slot,VolBytes,InChanger,VolReadTime,VolWriteTime,VolParts,"
 "EndFile,EndBlock,LabelType,StorageId) "
 "VALUES ('%s','%s',%u,%s,%s,%d,%s,%s,%u,%u,'%s',%d,%s,%d,%s,%s,%d,0,0,%d,%s)",
-                  mr->VolumeName,
-                  mr->MediaType, mr->PoolId,
-                  edit_uint64(mr->MaxVolBytes,ed1),
-                  edit_uint64(mr->VolCapacityBytes, ed2),
-                  mr->Recycle,
-                  edit_uint64(mr->VolRetention, ed3),
-                  edit_uint64(mr->VolUseDuration, ed4),
-                  mr->MaxVolJobs,
-                  mr->MaxVolFiles,
-                  mr->VolStatus,
-                  mr->Slot,
-                  edit_uint64(mr->VolBytes, ed5),
-                  mr->InChanger,
-                  edit_uint64(mr->VolReadTime, ed6),
-                  edit_uint64(mr->VolWriteTime, ed7),
-                  mr->VolParts,
-                  mr->LabelType,
-                  edit_int64(mr->StorageId, ed8) 
-                  );
+          mr->VolumeName,
+          mr->MediaType, mr->PoolId,
+          edit_uint64(mr->MaxVolBytes,ed1),
+          edit_uint64(mr->VolCapacityBytes, ed2),
+          mr->Recycle,
+          edit_uint64(mr->VolRetention, ed3),
+          edit_uint64(mr->VolUseDuration, ed4),
+          mr->MaxVolJobs,
+          mr->MaxVolFiles,
+          mr->VolStatus,
+          mr->Slot,
+          edit_uint64(mr->VolBytes, ed5),
+          mr->InChanger,
+          edit_uint64(mr->VolReadTime, ed6),
+          edit_uint64(mr->VolWriteTime, ed7),
+          mr->VolParts,
+          mr->LabelType,
+          edit_int64(mr->StorageId, ed8) 
+          );
 
 
    Dmsg1(500, "Create Volume: %s\n", mdb->cmd);

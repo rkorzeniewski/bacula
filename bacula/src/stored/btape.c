@@ -333,7 +333,7 @@ static bool open_the_device()
          return false;
       }
    }
-   Pmsg1(000, "open_ ev %s OK\n", dev->print_name());
+   Pmsg1(000, "open device %s: OK\n", dev->print_name());
    dev->set_append();                 /* put volume in append mode */
    unlock_device(dev);
    free_block(block);

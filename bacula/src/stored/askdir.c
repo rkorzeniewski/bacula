@@ -188,7 +188,7 @@ static bool do_get_volume_info(DCR *dcr)
       dcr->dev->num_parts = dcr->VolCatInfo.VolCatParts;
    }
 
-    Dmsg2(300, "do_reqest_vol_info got slot=%d Volume=%s\n",
+    Dmsg2(300, "do_reqest_vol_info return true slot=%d Volume=%s\n",
           vol.Slot, vol.VolCatName);
     return true;
 }
@@ -214,7 +214,8 @@ bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw writing)
     bnet_fsend(dir, Get_Vol_Info, jcr->Job, dcr->VolCatInfo.VolCatName,
        writing==GET_VOL_INFO_FOR_WRITE?1:0);
     Dmsg1(100, ">dird: %s", dir->msg);
-    return do_get_volume_info(dcr);
+    bool OK = do_get_volume_info(dcr);
+    return OK;
 }
 
 /*
@@ -244,8 +245,10 @@ bool dir_find_next_appendable_volume(DCR *dcr)
        unbash_spaces(dcr->media_type);
        unbash_spaces(dcr->pool_name);
        Dmsg1(100, ">dird: %s", dir->msg);
-       if (do_get_volume_info(dcr)) {
-          if (is_volume_in_use(dcr->VolumeName)) {
+       bool OK = do_get_volume_info(dcr);
+       if (OK) {
+          if (is_volume_in_use(dcr)) {
+             Dmsg1(100, "Volume %s is in use.\n", dcr->VolumeName);
              continue;
           } else {
              found = true;
@@ -314,6 +317,7 @@ bool dir_update_volume_info(DCR *dcr, bool label)
       vol->VolCatParts);
     Dmsg1(100, ">dird: %s", dir->msg);
 
+   /* Do not lock device here because it may be locked from label */
    if (!do_get_volume_info(dcr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", jcr->errmsg);
       Pmsg2(000, "Didn't get vol info vol=%s: ERR=%s", 
@@ -415,6 +419,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
    bool first = true;
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
+   bool OK = false;
 
    Dmsg0(400, "enter dir_ask_sysop_to_create_appendable_volume\n");
    ASSERT(dev->dev_blocked);
@@ -427,7 +432,12 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
          return false;
       }
       /* First pass, we *know* there are no appendable volumes, so no need to call */
-      if (!first && dir_find_next_appendable_volume(dcr)) { /* get suggested volume */
+      if (!first) {
+         P(dev->mutex);
+         OK = dir_find_next_appendable_volume(dcr);   /* get suggested volume */
+         V(dev->mutex);
+      }
+      if (!first && OK) {
          unmounted = is_device_unmounted(dev);
          /*
           * If we have a valid volume name and we are not
@@ -501,8 +511,10 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
       Dmsg1(400, "Someone woke me for device %s\n", dev->print_name());
 
       /* If no VolumeName, and cannot get one, try again */
+      P(dev->mutex);
       if (dcr->VolumeName[0] == 0 && !job_canceled(jcr) &&
           !dir_find_next_appendable_volume(dcr)) {
+         V(dev->mutex);
          Jmsg(jcr, M_MOUNT, 0, _(
 "Someone woke me up, but I cannot find any appendable\n"
 "volumes for Job=%s.\n"), jcr->Job);
@@ -510,8 +522,10 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
          init_device_wait_timers(dcr);
          continue;
       }
+      V(dev->mutex);
       unmounted = is_device_unmounted(dev);
       if (unmounted) {
+         Dmsg0(400, "Device is unmounted. Must wait.\n");
          continue;                    /* continue to wait */
       }
 
@@ -563,7 +577,7 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
          Jmsg(jcr, M_MOUNT, 0, _("%s Volume \"%s\" on Storage Device %s for Job %s\n"),
               msg, dcr->VolumeName, dev->print_name(), jcr->Job);
          Dmsg3(400, "Mount \"%s\" on device \"%s\" for Job %s\n",
-               dcr->VolumeName, dcr->dev_name, jcr->Job);
+               dcr->VolumeName, dev->print_name(), jcr->Job);
       }
 
       jcr->JobStatus = JS_WaitMount;

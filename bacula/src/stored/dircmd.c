@@ -8,7 +8,8 @@
  *
  *    N.B. in this file, in general we must use P(dev->mutex) rather
  *      than lock_device(dev) so that we can examine the blocked
- *      state rather than blocking ourselves. In some "safe" cases,
+ *      state rather than blocking ourselves because a Job
+ *      thread has the device blocked. In some "safe" cases,
  *      we can do things to a blocked device. CAREFUL!!!!
  *
  *    File daemon commands are handled in fdcmd.c
@@ -45,6 +46,7 @@ extern struct s_res resources[];
 extern char my_name[];
 extern time_t daemon_start_time;
 extern struct s_last_job last_job;
+extern bool init_done;
 
 /* Static variables */
 static char derrmsg[]     = "3900 Invalid command\n";
@@ -190,6 +192,10 @@ void *handle_connection_request(void *arg)
          break;               /* connection terminated */
       }
       Dmsg1(199, "<dird: %s\n", bs->msg);
+      /* Ensure that device initialization is complete */
+      while (!init_done) {
+         bmicrosleep(1, 0);
+      }
       found = false;
       for (i=0; cmds[i].cmd; i++) {
         if (strncmp(cmds[i].cmd, bs->msg, strlen(cmds[i].cmd)) == 0) {

@@ -28,6 +28,20 @@
  *
  *   Version $Id$
  */
+/*
+   Copyright (C) 2004-2005 Kern Sibbald
+
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
+
+ */
 
 #ifndef TEST_PROGRAM
 
@@ -59,9 +73,9 @@
 #include "acl.h"
 
 #define BACLLEN 65535
-#define pm_strcpy(d,s)	   (strncpy(d, s, BACLLEN - 1) == NULL ? -1 : (int)strlen(d))
-#define Dmsg0(n,s)	   fprintf(stderr, s)
-#define Dmsg1(n,s,a1)	   fprintf(stderr, s, a1)
+#define pm_strcpy(d,s)     (strncpy(d, s, BACLLEN - 1) == NULL ? -1 : (int)strlen(d))
+#define Dmsg0(n,s)         fprintf(stderr, s)
+#define Dmsg1(n,s,a1)      fprintf(stderr, s, a1)
 #define Dmsg2(n,s,a1,a2)   fprintf(stderr, s, a1, a2)
 
 int aclls(char *fname);
@@ -146,17 +160,17 @@ int bacl_set(JCR *jcr, int acltype)
 
 /* On IRIX we can get shortened ACLs */
 #if defined(HAVE_IRIX_OS) && defined(BACL_WANT_SHORT_ACLS)
-#define acl_to_text(acl,len)	 acl_to_short_text((acl), (len))
+#define acl_to_text(acl,len)     acl_to_short_text((acl), (len))
 #endif
 
 /* In Linux we can get numeric and/or shorted ACLs */
 #if defined(HAVE_LINUX_OS)
 #if defined(BACL_WANT_SHORT_ACLS) && defined(BACL_WANT_NUMERIC_IDS)
-#define BACL_ALTERNATE_TEXT	       (TEXT_ABBREVIATE|TEXT_NUMERIC_IDS)
+#define BACL_ALTERNATE_TEXT            (TEXT_ABBREVIATE|TEXT_NUMERIC_IDS)
 #elif defined(BACL_WANT_SHORT_ACLS)
-#define BACL_ALTERNATE_TEXT	       TEXT_ABBREVIATE
+#define BACL_ALTERNATE_TEXT            TEXT_ABBREVIATE
 #elif defined(BACL_WANT_NUMERIC_IDS)
-#define BACL_ALTERNATE_TEXT	       TEXT_NUMERIC_IDS
+#define BACL_ALTERNATE_TEXT            TEXT_NUMERIC_IDS
 #endif
 #ifdef BACL_ALTERNATE_TEXT
 #include <acl/libacl.h>
@@ -175,13 +189,13 @@ int bacl_get(JCR *jcr, int acltype)
    acl = acl_get_file(jcr->last_fname, ostype);
    if (acl) {
       if ((acl_text = acl_to_text(acl, NULL)) != NULL) {
-	 len = pm_strcpy(jcr->acl_text, acl_text);
-	 acl_free(acl);
-	 acl_free(acl_text);
-	 return len;
+         len = pm_strcpy(jcr->acl_text, acl_text);
+         acl_free(acl);
+         acl_free(acl_text);
+         return len;
       }
       acl_free(acl);
-#ifndef HAVE_OSF1_OS	      /* BACL_ENOTSUP not defined for OSF1 */
+#ifndef HAVE_OSF1_OS          /* BACL_ENOTSUP not defined for OSF1 */
    } else if (errno == BACL_ENOTSUP) {
       /* Not supported, just pretend there is nothing to see */
       return pm_strcpy(jcr->acl_text, "");
@@ -202,7 +216,7 @@ int bacl_set(JCR *jcr, int acltype)
    /* If we get empty default ACLs, clear ACLs now */
    if (ostype == ACL_TYPE_DEFAULT && strlen(jcr->acl_text) == 0) {
       if (acl_delete_def_file(jcr->last_fname) == 0) {
-	 return 0;
+         return 0;
       }
       return -1;
    }
@@ -243,15 +257,15 @@ int bacl_get(JCR *jcr, int acltype)
 
    if ((n = getacl(jcr->last_fname, 0, acls)) <= 0) {
       if (errno == BACL_ENOTSUP) {
-	 return pm_strcpy(jcr->acl_text, "");
+         return pm_strcpy(jcr->acl_text, "");
       }
       return -1;
    }
    if ((n = getacl(jcr->last_fname, n, acls)) > 0) {
       if ((acl_text = acltostr(n, acls, FORM_SHORT)) != NULL) {
-	 len = pm_strcpy(jcr->acl_text, acl_text);
-	 free(acl_text);
-	 return len;
+         len = pm_strcpy(jcr->acl_text, acl_text);
+         free(acl_text);
+         return len;
       }
    }
    return -1;
@@ -296,10 +310,10 @@ int bacl_get(JCR *jcr, int acltype)
    }
    if (acl(jcr->last_fname, GETACL, n, acls) == n) {
       if ((acl_text = acltotext(acls, n)) != NULL) {
-	 len = pm_strcpy(jcr->acl_text, acl_text);
-	 free(acl_text);
-	 free(acls);
-	 return len;
+         len = pm_strcpy(jcr->acl_text, acl_text);
+         free(acl_text);
+         free(acls);
+         return len;
       }
    }
    free(acls);
@@ -348,32 +362,32 @@ int main(int argc, char **argv)
    if (strcmp(prgname, "aclcp") == 0) {
       int verbose = 0;
       if (strcmp(*argv, "-v") == 0) {
-	 ++verbose;
-	 --argc;
-	 ++argv;
+         ++verbose;
+         --argc;
+         ++argv;
       }
       if (argc != 2) {
          Dmsg2(200, "%s: wrong number of arguments\n"
                "usage:\t%s [-v] source destination\n"
                "\tCopies ACLs from source to destination.\n"
                "\tSpecify -v to show ACLs after copy for verification.\n",
-	       prgname, prgname);
-	 return EXIT_FAILURE;
+               prgname, prgname);
+         return EXIT_FAILURE;
       }
       if (strcmp(argv[0], argv[1]) == 0) {
          Dmsg2(200, "%s: identical source and destination.\n"
                "usage:\t%s [-v] source destination\n"
                "\tCopies ACLs from source to destination.\n"
                "\tSpecify -v to show ACLs after copy for verification.\n",
-	       prgname, prgname);
-	 return EXIT_FAILURE;
+               prgname, prgname);
+         return EXIT_FAILURE;
       }
       if (verbose) {
-	 aclls(argv[0]);
+         aclls(argv[0]);
       }
       status = aclcp(argv[0], argv[1]);
       if (verbose && status == 0) {
-	 aclls(argv[1]);
+         aclls(argv[1]);
       }
       return status;
    }
@@ -383,12 +397,12 @@ int main(int argc, char **argv)
       Dmsg2(200, "%s: missing arguments\n"
             "usage:\t%s file ...\n"
             "\tLists ACLs of specified files or directories.\n",
-	    prgname, prgname);
+            prgname, prgname);
       return EXIT_FAILURE;
    }
    while (argc--) {
       if (!aclls(*argv++)) {
-	 status = EXIT_FAILURE;
+         status = EXIT_FAILURE;
       }
    }
 
@@ -425,7 +439,7 @@ int aclcp(char *src, char *dst)
       jcr.last_fname = dst;
       if (bacl_set(&jcr, BACL_TYPE_ACCESS) < 0) {
          Dmsg1(200, "aclcp: could not set ACLs on %s\n", jcr.last_fname);
-	 return EXIT_FAILURE;
+         return EXIT_FAILURE;
       }
    }
 
@@ -433,13 +447,13 @@ int aclcp(char *src, char *dst)
       jcr.last_fname = src;
       if (bacl_get(&jcr, BACL_TYPE_DEFAULT) < 0) {
          Dmsg1(200, "aclcp: could not read default ACLs for %s\n", jcr.last_fname);
-	 return EXIT_FAILURE;
+         return EXIT_FAILURE;
       } else {
-	 jcr.last_fname = dst;
-	 if (bacl_set(&jcr, BACL_TYPE_DEFAULT) < 0) {
+         jcr.last_fname = dst;
+         if (bacl_set(&jcr, BACL_TYPE_DEFAULT) < 0) {
             Dmsg1(200, "aclcp: could not set default ACLs on %s\n", jcr.last_fname);
-	    return EXIT_FAILURE;
-	 }
+            return EXIT_FAILURE;
+         }
       }
    }
 
@@ -477,11 +491,11 @@ int aclls(char *fname)
       len = bacl_get(&jcr, BACL_TYPE_DEFAULT);
       if (len < 0) {
          Dmsg1(200, "acl: could not read default ACLs for %s\n", jcr.last_fname);
-	 return EXIT_FAILURE;
+         return EXIT_FAILURE;
       } else if (len == 0) {
-	 printf("#file: %s [default, none - or unsupported]\n\n", jcr.last_fname);
+         printf("#file: %s [default, none - or unsupported]\n\n", jcr.last_fname);
       } else {
-	 printf("#file: %s [default]\n%s\n", jcr.last_fname, jcr.acl_text);
+         printf("#file: %s [default]\n%s\n", jcr.last_fname, jcr.acl_text);
       }
    }
 
