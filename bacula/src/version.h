@@ -1,8 +1,8 @@
 /* */
 #undef  VERSION
-#define VERSION "1.37.28"
-#define BDATE   "09 July 2005"
-#define LSMDATE "09Jul05"
+#define VERSION "1.37.29"
+#define BDATE   "11 July 2005"
+#define LSMDATE "11Jul05"
 
 /* Debug flags */
 #undef  DEBUG
@@ -37,4 +37,4 @@
 /* The following are turned on for performance testing */
 /* #define NO_ATTRIBUTES_TEST 1 */
 /* #define NO_TAPE_WRITE_TEST 1 */
-/* #define FD_NO_SEND TEST 1 */
+/* #define FD_NO_SEND_TEST 1 */

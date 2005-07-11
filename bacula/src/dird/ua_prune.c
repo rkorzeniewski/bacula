@@ -497,6 +497,14 @@ int prune_volume(UAContext *ua, MEDIA_DBR *mr)
    }
 
    if (cnt.count == 0) {
+      /* Don't mark appendable volume as purged */
+      if (strcmp(mr->VolStatus, "Append") == 0 && verbose) {
+         bsendmsg(ua, "There are no Jobs associated with Volume \"%s\". Prune not needed.\n",
+            mr->VolumeName);
+         stat = 1;
+         goto bail_out;
+      }
+      /* If volume not already purged, do so */
       if (strcmp(mr->VolStatus, "Purged") != 0 && verbose) {
          bsendmsg(ua, "There are no Jobs associated with Volume \"%s\". Marking it purged.\n",
             mr->VolumeName);

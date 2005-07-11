@@ -217,7 +217,7 @@ void    free_unused_volume(DCR *dcr);
 void    create_volume_list();
 void    free_volume_list();
 void    list_volumes(BSOCK *user);
-bool    is_volume_in_use(const char *VolumeName);
+bool    is_volume_in_use(DCR *dcr);
 
 
 /* From spool.c */

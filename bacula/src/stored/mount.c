@@ -281,6 +281,10 @@ read_volume:
             dcr->VolumeName, dev->print_name());
          goto read_volume;      /* read label we just wrote */
       }
+      if (!dev_cap(dev, CAP_LABEL) && dcr->VolCatInfo.VolCatBytes == 0) {
+         Jmsg(jcr, M_INFO, 0, _("Warning device %s not configured to autolabel Volumes.\n"), 
+            dev->print_name());
+      }
       /* If not removable, Volume is broken */
       if (!dev_cap(dev, CAP_REM)) {
          Jmsg(jcr, M_WARNING, 0, _("Volume \"%s\" not on device %s.\n"),

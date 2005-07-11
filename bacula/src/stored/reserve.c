@@ -202,7 +202,7 @@ void list_volumes(BSOCK *user)
 /* Create the Volume list */
 void create_volume_list()
 {
-   VOLRES *dummy;
+   VOLRES *dummy = NULL;
    if (vol_list == NULL) {
       vol_list = New(dlist(dummy, &dummy->link));
    }
@@ -223,13 +223,16 @@ void free_volume_list()
    vol_list = NULL;
 }
 
-bool is_volume_in_use(const char *VolumeName) 
+bool is_volume_in_use(DCR *dcr)
 {
-   VOLRES *vol = find_volume(VolumeName);
+   VOLRES *vol = find_volume(dcr->VolumeName);
    if (!vol) {
       return false;                   /* vol not in list */
    }
    if (!vol->dev) {                   /* vol not attached to device */
+      return false;
+   }
+   if (dcr->dev == vol->dev) {        /* same device OK */
       return false;
    }
    if (!vol->dev->is_busy()) {
