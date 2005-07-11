@@ -5,6 +5,8 @@ General:
 
 Changes to 1.37.28:
 11Jul05
+- Make sure that bpipe results are zapped even on
+  error return.
 - Lots of documentation.
 - Do not prune volume marked as append when needing a
   new Volume.
