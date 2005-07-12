@@ -425,6 +425,12 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, struct CHKSUM *chksum)
 #endif
    }
 
+   /* a RAW device read on win32 only works if the buffer is a multiple of 512 */
+#ifdef HAVE_WIN32
+   if (S_ISBLK(ff_pkt->statp.st_mode))
+      rsize = (rsize/512) * 512;      
+#endif
+
    /*
     * Read the file data
     */
