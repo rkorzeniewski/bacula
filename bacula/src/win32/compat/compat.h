@@ -193,6 +193,7 @@ struct stat
 #undef  S_IFDIR
 #define S_IFDIR        0040000         /* directory */
 #define S_IFCHR        0020000         /* character special */
+#define	S_IFBLK	       0060000	       /* block special */
 #define S_IFIFO        0010000         /* pipe */
 #undef  S_IFREG
 #define S_IFREG        0100000         /* regular */
@@ -203,10 +204,10 @@ struct stat
 #define S_IRUSR         S_IREAD
 #define S_IWUSR         S_IWRITE
 #define S_IXUSR         S_IEXEC
-#define S_ISREG(x)  (((x) & S_IFREG) == S_IFREG)
-#define S_ISDIR(x)  (((x) & S_IFDIR) == S_IFDIR)
+#define S_ISREG(x)  (((x) & S_IFMT) == S_IFREG)
+#define S_ISDIR(x)  (((x) & S_IFMT) == S_IFDIR)
 #define S_ISCHR(x) 0
-#define S_ISBLK(x) 0
+#define S_ISBLK(x)  (((x) & S_IFMT) == S_IFBLK)
 #define S_ISFIFO(x) 0
 #endif //HAVE_MINGW
 
