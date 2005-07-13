@@ -3,6 +3,11 @@
 
 General:
 
+Changes to 1.37.29:
+13Jul05
+- I finally found and squashed the elusive SD crash.        
+  I needed to initialize the used volume list before
+  firing off the device initialization thread.
 Changes to 1.37.28:
 11Jul05
 - Make sure that bpipe results are zapped even on

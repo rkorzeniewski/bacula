@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     04 July 2005
+                     13 July 2005
 
 Major development:      
 Project                     Developer
@@ -56,6 +56,10 @@ Document:
      (probably not this version)
 
 For 1.39:
+- For Windows disaster recovery see http://unattended.sf.net/
+- regardless of the retention period, Bacula will not prune the
+  last Full, Diff, or Inc File data until a month after the
+  retention period for the last Full backup that was done.
 - update volume=xxx --- add status=Full
 - Remove old spool files on startup.
 - Exclude SD spool/working directory.

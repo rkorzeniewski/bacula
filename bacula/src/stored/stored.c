@@ -221,11 +221,11 @@ int main (int argc, char *argv[])
     /*
      * Start the device allocation thread
      */
+   create_volume_list();              /* do before device_init */
    if (pthread_create(&thid, NULL, device_initialization, NULL) != 0) {
       Emsg1(M_ABORT, 0, _("Unable to create thread. ERR=%s\n"), strerror(errno));
    }
 
-   create_volume_list();
    start_watchdog();                  /* start watchdog thread */
    init_jcr_subsystem();              /* start JCR watchdogs etc. */
 
