@@ -439,9 +439,8 @@ void VSSClientGeneric::QuerySnapshotSet(GUID snapshotSetID)
          &pIEnumSnapshots );    
 
    // If there are no shadow copies, just return
-   if (hr == S_FALSE) {
-      return;
-   } 
+   if (FAILED(hr))
+      return;   
 
    // Enumerate all shadow copies. 
    VSS_OBJECT_PROP Prop;
