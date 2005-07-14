@@ -4,7 +4,7 @@
 // Copyright transferred from MATRIX-Computer GmbH to
 //   Kern Sibbald by express permission.
 //
-// Copyright (C) 2004-2005 Kern Sibbald
+// Copyright (C) 2005 Kern Sibbald
 //
 //   This program is free software; you can redistribute it and/or
 //   modify it under the terms of the GNU General Public License as
@@ -22,7 +22,7 @@
 //   MA 02111-1307, USA.
 //
 // Author          : Thorsten Engel
-// Created On      : Fri May 06 21:44:00 2006
+// Created On      : Fri May 06 21:44:00 2005
 
 
 #include <stdio.h>

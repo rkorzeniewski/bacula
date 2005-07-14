@@ -66,7 +66,8 @@ Instructions if you want to build bacula-fd with VSS
 - you need to get the VSS SDK: 
   http://www.microsoft.com/downloads/details.aspx?FamilyID=0B4F56E4-0CCC-4626-826A-ED2C4C95C871&displaylang=en
 - copy the 'inc' and 'lib' directories from this SDK to 
-  'bacula/src/win32/compat/vss'
+  'bacula/src/win32/compat/vss'. Note, generally these files
+  are installed in c:/Program\ Files/Microsoft/VSSSDK71
 - you should then have 'bacula/src/win32/compat/vss/inc' and 
   'bacula/src/win32/compat/vss/lib'
   both with 'Win2003' and 'WinXP' subdirectories
