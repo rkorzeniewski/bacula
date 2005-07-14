@@ -851,7 +851,6 @@ AC_ARG_WITH(dir-password,
 
 if test "x$dir_password" = "x" ; then
    if test "x$OPENSSL" = "xnone" ; then
-#     key=`date | uuencode /dev/stdout | tr "\"@\\\`\\ \\=\\,\\(\\)\\#\\.\\!\\-$'" abcdefghijklmnopqrst | awk '{getline} {print} {exit}'`
       key=`autoconf/randpass 33`
    else
       key=`openssl rand -base64 33`
@@ -871,7 +870,6 @@ AC_ARG_WITH(fd-password,
 
 if test "x$fd_password" = "x" ; then
    if test "x$OPENSSL" = "xnone" ; then
-#     key=`date | uuencode /dev/stdout | tr "\"@\\\`\\ \\=\\,\\(\\)\\#\\.\\!\\-$'" tsrqponmlkjihgfedcba | awk '{getline} {print} {exit}'`
       key=`autoconf/randpass 37`
    else
       key=`openssl rand -base64 33`
@@ -891,7 +889,6 @@ AC_ARG_WITH(sd-password,
 
 if test "x$sd_password" = "x" ; then
    if test "x$OPENSSL" = "xnone" ; then
-#     key=`date | uuencode /dev/stdout | tr "\"@\\\`\\ \\=\\,\\(\\)\\#\\.\\!\\-$'" 123456789uvwxyzabcdef | awk '{getline} {print} {exit}'`
       key=`autoconf/randpass 41`
    else
       key=`openssl rand -base64 33`
@@ -911,7 +908,6 @@ AC_ARG_WITH(mon-dir-password,
 
 if test "x$mon_dir_password" = "x" ; then
    if test "x$OPENSSL" = "xnone" ; then
-#     key=`date | uuencode /dev/stdout | tr "\"@\\\`\\ \\=\\,\\(\\)\\#\\.\\!\\-$'" abcdefghijklmnopqrst | awk '{getline} {print} {exit}'`
       key=`autoconf/randpass 33`
    else
       key=`openssl rand -base64 33`
@@ -931,7 +927,6 @@ AC_ARG_WITH(mon-fd-password,
 
 if test "x$mon_fd_password" = "x" ; then
    if test "x$OPENSSL" = "xnone" ; then
-#     key=`date | uuencode /dev/stdout | tr "\"@\\\`\\ \\=\\,\\(\\)\\#\\.\\!\\-$'" tsrqponmlkjihgfedcba | awk '{getline} {print} {exit}'`
       key=`autoconf/randpass 37`
    else
       key=`openssl rand -base64 33`
@@ -951,7 +946,6 @@ AC_ARG_WITH(mon-sd-password,
 
 if test "x$mon_sd_password" = "x" ; then
    if test "x$OPENSSL" = "xnone" ; then
-#     key=`date | uuencode /dev/stdout | tr "\"@\\\`\\ \\=\\,\\(\\)\\#\\.\\!\\-$'" 123456789uvwxyzabcdef | awk '{getline} {print} {exit}'`
       key=`autoconf/randpass 41`
    else
       key=`openssl rand -base64 33`

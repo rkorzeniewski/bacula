@@ -4,6 +4,11 @@
 General:
 
 Changes to 1.37.29:
+14Jul05
+- Remove old commented out code from configure.in
+- Add baculavssfd.mak file for building VSS version of
+  Win32 FD.
+- Correct date (year) in vss.cpp and vss_generic.cpp
 13Jul05
 - I finally found and squashed the elusive SD crash.        
   I needed to initialize the used volume list before
