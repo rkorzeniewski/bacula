@@ -46,7 +46,7 @@ CLEAN :
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-CPP_PROJ=/nologo /MT /W3 /GX /O2 /I "../compat" /I "../.." /I "../../../depkgs-win32/wx/include" /I "../../../../depkgs-win32/wx/include" /I "../../../../depkgs-win32/wx/lib/msw" /I "../../../../depkgs-win32/pthreads" /I "../../../../depkgs-win32/zlib" /I "." /D "NDEBUG" /D "WIN32" /D "__WXMSW__" /D "_CONSOLE" /D "_MBCS" /D "HAVE_WIN32" /D "HAVE_WXCONSOLE" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c
+CPP_PROJ=/nologo /MT /W3 /GX /O2 /I "../compat" /I "../.." /I "../../../depkgs-win32/wx/include" /I "../../../../depkgs-win32/wx/include" /I "../../../../depkgs-win32/wx/lib/msw" /I "../../../../depkgs-win32/pthreads" /I "../../../../depkgs-win32/zlib" /I "." /D "UNICODE" /D "NDEBUG" /D "WIN32" /D "__WXMSW__" /D "_CONSOLE" /D "_MBCS" /D "HAVE_WIN32" /D "HAVE_WXCONSOLE" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c
 RSC_PROJ=/l 0x409 /fo"$(INTDIR)\winres.res" /d "NDEBUG" 
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\wx-console.bsc" 
@@ -85,7 +85,7 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 
-CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I "../compat" /I "../.." /I "../../../depkgs-win32/wx/include" /I "../../../../depkgs-win32/wx/include" /I "../../../../depkgs-win32/wx/lib/mswd" /I "../../../../depkgs-win32/pthreads" /I "../../../../depkgs-win32/zlib" /I "." /D "_DEBUG" /D "WIN32" /D "__WXMSW__" /D "_CONSOLE" /D "_MBCS" /D "HAVE_WIN32" /D "HAVE_WXCONSOLE" /FR"$(INTDIR)\\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I "../compat" /I "../.." /I "../../../depkgs-win32/wx/include" /I "../../../../depkgs-win32/wx/include" /I "../../../../depkgs-win32/wx/lib/mswd" /I "../../../../depkgs-win32/pthreads" /I "../../../../depkgs-win32/zlib" /I "." /D "UNICODE" /D "_DEBUG" /D "WIN32" /D "__WXMSW__" /D "_CONSOLE" /D "_MBCS" /D "HAVE_WIN32" /D "HAVE_WXCONSOLE" /FR"$(INTDIR)\\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
 RSC_PROJ=/l 0x409 /fo"$(INTDIR)\winres.res" /d "_DEBUG"
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\wx-console.bsc" 

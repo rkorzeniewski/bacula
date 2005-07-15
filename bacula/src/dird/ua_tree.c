@@ -606,6 +606,7 @@ static int cdcmd(UAContext *ua, TREE_CTX *tree)
    if (ua->argc != 2) {
       return 1;
    }
+   strip_leading_space(ua->argk[1]);
    node = tree_cwd(ua->argk[1], tree->root, tree->node);
    if (!node) {
       /* Try once more if Win32 drive -- make absolute */

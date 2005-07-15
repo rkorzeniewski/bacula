@@ -1469,11 +1469,20 @@ void wxbRestorePanel::UpdateTreeItem(wxTreeItemId item, bool updatelist, bool re
 }
 
 /* Parse dir command results. */
+
+/*
+ * It sure would be nice to have some comments here, especially
+ *  when setting up ret[7] and ret[8].  
+ * Also, it would be a lot easier for everyone if this were based
+ *  on variable width fields everywhere.  All the fields except
+ *  the last (filename) are separated by spaces (the date is 
+ *  composed of two blank terminated fields date + time.
+ */
 wxString* wxbRestorePanel::ParseList(wxString line) {
    /* See ls_output in dird/ua_tree.c */
   
    //drwxrwxrwx  111 root     root           0  2004-04-03 14:35:21  f:/tocd/NVSU 1.00.00/
-   //+ 10     +  +i+ +   8  + +   8  ++   8  +  +      19         + *+ ->
+   //+ 10     +  +i+ +   8  + +   8  ++   10  +  +      19         + *+ ->
    //0           12  i+15     i+24    i+32      i+42                i+62
  
    int i;
@@ -1492,9 +1501,9 @@ wxString* wxbRestorePanel::ParseList(wxString line) {
    ret[2] = line.Mid(15+i, 8).Trim();     // user
    ret[3] = line.Mid(24+i, 8).Trim();     // group
    ret[4] = line.Mid(32+i, 10).Trim();    // file size
-   ret[5] = line.Mid(42+i, 19).Trim();    // date + time
-   ret[6] = line.Mid(62+i, 1);            // ?
-   ret[7] = line.Mid(63+i).Trim();        // filename
+   ret[5] = line.Mid(44+i, 19).Trim();    // date + time
+   ret[6] = line.Mid(65+i, 1);            // drive letter or /
+   ret[7] = line.Mid(65+i).Trim();        // filename
    
    if (ret[6] == wxT(" ")) ret[6] = wxT("");
 
