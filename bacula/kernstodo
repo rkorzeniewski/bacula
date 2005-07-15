@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     13 July 2005
+                     15 July 2005
 
 Major development:      
 Project                     Developer
@@ -47,6 +47,9 @@ Document:
 - Document new CDROM directory.
 - Document Heartbeat Interval in the dealing with firewalls section.
 - Document the multiple-drive-changer.txt script.
+- On Win32 working directory must have drive letter ????
+- On Win32 working directory must be writable by SYSTEM to
+  do restores.
 
 
 1.xx Major Projects:
@@ -56,6 +59,11 @@ Document:
      (probably not this version)
 
 For 1.39:
+- Reserve blocks other restore jobs when first cannot connect
+  to SD -- no way to cancel in SD if Dir job canceled.
+- Allow cancel of unknown Job
+- State not saved when closing Win32 FD by icon
+- Add true/false to conf same as yes/no
 - For Windows disaster recovery see http://unattended.sf.net/
 - regardless of the retention period, Bacula will not prune the
   last Full, Diff, or Inc File data until a month after the
