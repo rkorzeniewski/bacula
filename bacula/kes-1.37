@@ -5,6 +5,8 @@ General:
 
 Changes to 1.37.30:
 14Jul05
+- Include msvcr71.dll in distribution.
+- Add VSS to status line in Win32 FD if enabled.
 - Get VSS build scripts working with Thorsten's help.
 - Unlink the bootstrap file after sending it to
   the FD.
