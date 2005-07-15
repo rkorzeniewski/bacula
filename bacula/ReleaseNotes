@@ -1,9 +1,10 @@
 
-          Release Notes for Bacula 1.37.25
+          Release Notes for Bacula 1.37.30
 
-  Bacula code: Total files = 433 Total lines = 140,329 (*.h *.c *.in)
+  Bacula code: Total files = 420 Total lines = 136,852 (*.h *.c *.in)
 
 Major Changes:
+- Note! DVD writing does not work.
 - There is a new database format that is not compatible
   with previous databases. You must upgrade if converting
   from 1.36.x.
@@ -22,7 +23,7 @@ Major Changes:
   Volume name.
 - DVD writing support, using parts, and a lot of new directives in
   the Device resource of the Storage configuration file thanks
-  to Nicolas Boichat.
+  to Nicolas Boichat. NOT CURRENTLY WORKING!
 - Seven new options keywords in a FileSet resource:
   ignorecase, fstype, hfsplussupport, wilddir, wildfile, regexdir,
   and regexfile thanks to Pruben Guldberg). See below for details.
@@ -30,8 +31,7 @@ Major Changes:
   records have been removed from the catalog.
 - Restore of a directory (non-recursive, i.e. only one level).
 - Support for TLS (ssl) between all the daemon connections thanks
-  to Landon Fuller. wx-console and gnome-console are not yet
-  TLS enabled.
+  to Landon Fuller.
 - Any Volume in the Pool named Scratch may be reassigned to any
   other Pool when a new Volume is needed.
 - Seeking on disk Volumes during restore.
@@ -42,6 +42,7 @@ Major Changes:
 - Unicode filename support for Win32 (thanks to Thorsten Engel)
 - Volume Shadow Copy support for Win32 thus the capability to
   backup exclusively opened files (thanks to Thorsten Engel).
+  A VSS enabled Win32 FD is available.
 - New manual format with an index (thanks to Karl Cunningham).
 - New Web site format (thanks to Michael Scherer).
 - SQLite3 support, but it seems to run at 1/2 to 1/4 the speed of
@@ -150,8 +151,7 @@ New Commands:
    a Python script and get Bacula to use the new script.
 
 Items to note!!!
-- TLS for wx-console is only partially implemented. TLS for
-  the Gnome console is not yet implemented.
+- DVD writing is not yet working.
 - You must add --with-python=[DIR] to the configure command line
   if you want Python support.  Python 2.2 and 2.3 should be automatically
   detected if in the standard place.
@@ -159,9 +159,6 @@ Items to note!!!
   warnings due to the fact that Python pulls in some old non-secure
   libraries.
 - With Python 2.3, there are a few compiler warnings.
-- The Python implementation has a few memory leaks not yet cleaned
-  up. As long as you restart Bacula once a month, this shouldn't
-  be an issue.
 - You must either create a new catalog database or upgrade your
   old database (the PostgreSQL upgrade scripts not yet tested).
 - You must add --with-openssl to the configure command line if
