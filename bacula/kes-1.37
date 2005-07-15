@@ -3,6 +3,15 @@
 
 General:
 
+Changes to 1.37.30:
+14Jul05
+- Get VSS build scripts working with Thorsten's help.
+- Unlink the bootstrap file after sending it to
+  the FD.
+- Remove sending include/exclude lists to the FD during
+  a restore -- deprecated code.
+- Cleanup the bootstrap files in the FD.
+
 Changes to 1.37.29:
 14Jul05
 - Remove old commented out code from configure.in
