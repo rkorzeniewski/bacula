@@ -1,3 +1,52 @@
+Changes to 1.37.30:
+14Jul05
+- Fix "dir" command scanning field misalignment in
+  wx-console.
+- Switch to using the wxWidgets Unicode library.
+- Include msvcr71.dll in distribution.
+- Add VSS to status line in Win32 FD if enabled.
+- Get VSS build scripts working with Thorsten's help.
+- Unlink the bootstrap file after sending it to
+  the FD.
+- Remove sending include/exclude lists to the FD during
+  a restore -- deprecated code.
+- Cleanup the bootstrap files in the FD.
+
+Changes to 1.37.29:
+14Jul05
+- Remove old commented out code from configure.in
+- Add baculavssfd.mak file for building VSS version of
+  Win32 FD.
+- Correct date (year) in vss.cpp and vss_generic.cpp
+13Jul05
+- I finally found and squashed the elusive SD crash.        
+  I needed to initialize the used volume list before
+  firing off the device initialization thread.
+Changes to 1.37.28:
+11Jul05
+- Make sure that bpipe results are zapped even on
+  error return.
+- Lots of documentation.
+- Do not prune volume marked as append when needing a
+  new Volume.
+- Print a warning message in SD if a non-used Volume
+  is specified and autolabel not turned on.
+- Correct a bug in chksum.c concerning SHA1 signatures 
+  (an * should have been & when checking for a bit flag).
+- Print File:Block for all label records in label.c -- concerns
+  primarily bls when doing Job listings (-j).
+- Correct is_volume_in_use() to return false if testing
+  on the same device where the Volume is already mounted.
+- Define a init_done flag in the SD that is set when the
+  devices are initialized and make users connecting wait.
+  This prevents useless connect failure warning messages.
+- Do additional device locking in ask_op_to_mount_volume()
+  to prevent race conditions with a user labeling a Volume
+  or autolabeling.
+09Jul05
+- Add a test for error return from bnet_wait... in heartbeat.c
+  in FD to avoid CPU loop.
+- Implement TLS in gnome console and wx-console.
 
 Changes to 1.37.28:
 08Jul05
