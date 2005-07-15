@@ -12,7 +12,7 @@
  *     Open DB
  *     Open Message Channel with Storage daemon to tell him a job will be starting.
  *     Open connection with File daemon and pass him commands
- *	 to do the restore.
+ *       to do the restore.
  *     Update the DB according to what files where restored????
  *
  *   Version $Id$
@@ -48,15 +48,15 @@ static char OKstore[]     = "2000 OK storage\n";
  * Do a restore of the specified files
  *
  *  Returns:  0 on failure
- *	      1 on success
+ *            1 on success
  */
 bool do_restore(JCR *jcr)
 {
    BSOCK   *fd;
-   JOB_DBR rjr; 		      /* restore job record */
+   JOB_DBR rjr;                       /* restore job record */
 
    memset(&rjr, 0, sizeof(rjr));
-   jcr->jr.JobLevel = L_FULL;	      /* Full restore */
+   jcr->jr.JobLevel = L_FULL;         /* Full restore */
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
       restore_cleanup(jcr, JS_ErrorTerminated);
@@ -119,6 +119,7 @@ bool do_restore(JCR *jcr)
    fd = jcr->file_bsock;
    set_jcr_job_status(jcr, JS_Running);
 
+#ifdef xxx
    if (!send_include_list(jcr)) {
       restore_cleanup(jcr, JS_ErrorTerminated);
       return false;
@@ -128,11 +129,12 @@ bool do_restore(JCR *jcr)
       restore_cleanup(jcr, JS_ErrorTerminated);
       return false;
    }
+#endif
 
    /*
     * send Storage daemon address to the File daemon,
-    *	then wait for File daemon to make connection
-    *	with Storage daemon.
+    *   then wait for File daemon to make connection
+    *   with Storage daemon.
     */
    if (jcr->store->SDDport == 0) {
       jcr->store->SDDport = jcr->store->SDport;
@@ -170,11 +172,11 @@ bool do_restore(JCR *jcr)
       replace = REPLACE_ALWAYS;       /* always replace */
    }
    if (jcr->where) {
-      where = jcr->where;	      /* override */
+      where = jcr->where;             /* override */
    } else if (jcr->job->RestoreWhere) {
       where = jcr->job->RestoreWhere; /* no override take from job */
    } else {
-      where = &empty;		      /* None */
+      where = &empty;                 /* None */
    }
    jcr->prefix_links = jcr->job->PrefixLinks;
    bash_spaces(where);
@@ -212,7 +214,7 @@ void restore_cleanup(JCR *jcr, int TermCode)
    double kbps;
 
    Dmsg0(20, "In restore_cleanup\n");
-   dequeue_messages(jcr);	      /* display any queued messages */
+   dequeue_messages(jcr);             /* display any queued messages */
    set_jcr_job_status(jcr, TermCode);
 
    if (jcr->unlink_bsr && jcr->RestoreBootstrap) {
@@ -222,7 +224,7 @@ void restore_cleanup(JCR *jcr, int TermCode)
 
    update_job_end_record(jcr);
 
-   msg_type = M_INFO;		      /* by default INFO message */
+   msg_type = M_INFO;                 /* by default INFO message */
    switch (TermCode) {
    case JS_Terminated:
       if (jcr->ExpectedFiles > jcr->jr.JobFiles) {
@@ -234,21 +236,21 @@ void restore_cleanup(JCR *jcr, int TermCode)
    case JS_FatalError:
    case JS_ErrorTerminated:
       term_msg = _("*** Restore Error ***");
-      msg_type = M_ERROR;	   /* Generate error message */
+      msg_type = M_ERROR;          /* Generate error message */
       if (jcr->store_bsock) {
-	 bnet_sig(jcr->store_bsock, BNET_TERMINATE);
-	 if (jcr->SD_msg_chan) {
-	    pthread_cancel(jcr->SD_msg_chan);
-	 }
+         bnet_sig(jcr->store_bsock, BNET_TERMINATE);
+         if (jcr->SD_msg_chan) {
+            pthread_cancel(jcr->SD_msg_chan);
+         }
       }
       break;
    case JS_Canceled:
       term_msg = _("Restore Canceled");
       if (jcr->store_bsock) {
-	 bnet_sig(jcr->store_bsock, BNET_TERMINATE);
-	 if (jcr->SD_msg_chan) {
-	    pthread_cancel(jcr->SD_msg_chan);
-	 }
+         bnet_sig(jcr->store_bsock, BNET_TERMINATE);
+         if (jcr->SD_msg_chan) {
+            pthread_cancel(jcr->SD_msg_chan);
+         }
       }
       break;
    default:
@@ -284,20 +286,20 @@ void restore_cleanup(JCR *jcr, int TermCode)
 "  FD termination status:  %s\n"
 "  SD termination status:  %s\n"
 "  Termination:            %s\n\n"),
-	edt,
-	jcr->jr.JobId,
-	jcr->jr.Job,
-	jcr->client->hdr.name,
-	sdt,
-	edt,
-	edit_uint64_with_commas((uint64_t)jcr->ExpectedFiles, ec1),
-	edit_uint64_with_commas((uint64_t)jcr->jr.JobFiles, ec2),
-	edit_uint64_with_commas(jcr->jr.JobBytes, ec3),
-	(float)kbps,
-	jcr->Errors,
-	fd_term_msg,
-	sd_term_msg,
-	term_msg);
+        edt,
+        jcr->jr.JobId,
+        jcr->jr.Job,
+        jcr->client->hdr.name,
+        sdt,
+        edt,
+        edit_uint64_with_commas((uint64_t)jcr->ExpectedFiles, ec1),
+        edit_uint64_with_commas((uint64_t)jcr->jr.JobFiles, ec2),
+        edit_uint64_with_commas(jcr->jr.JobBytes, ec3),
+        (float)kbps,
+        jcr->Errors,
+        fd_term_msg,
+        sd_term_msg,
+        term_msg);
 
    Dmsg0(20, "Leaving restore_cleanup\n");
 }
