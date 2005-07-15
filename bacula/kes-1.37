@@ -5,6 +5,8 @@ General:
 
 Changes to 1.37.30:
 14Jul05
+- Fix "dir" command scanning field misalignment in
+  wx-console.
 - Switch to using the wxWidgets Unicode library.
 - Include msvcr71.dll in distribution.
 - Add VSS to status line in Win32 FD if enabled.
