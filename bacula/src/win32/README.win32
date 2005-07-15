@@ -91,11 +91,12 @@ The native Win32 interface code was written by:
 
 For more details of building wx, see depkgs-win32/wx/docs/msw/install.txt
 
-The easiest way to build this is to have a Visual Studio C++ 6.0. 
+The easiest way to build this is to have a Visual Studio .NET 2003
 However, you can use the free Microsoft C++ compiler with a bit
 of additional work.
 
-Here are additional pointers on building wx-console supplied by Nicolas Boichat:
+Here are additional pointers on building wx-console supplied by Nicolas
+Boichat:
 
 
 Tools I used (I think the 3 first one are included in VStudio) :
@@ -122,17 +123,24 @@ Instructions if you want to build wx-console :
   - LIB includes the directories Lib of both the C++ Toolkit and the SDK
     
 - Compile bacula depkg-win32 with Visual Studio or try the
-  supplied makefiles as described in the doc.
+  supplied makefiles as described in the doc. I could not
+  get this to work -- kes.
 
 - Compile wx-console with nmake -f wx-console.mak in
-  src/win32/wx-console
+  src/win32/wx-console  I could not get this to work
+  kes.
 
 - Additional information on using the free Micrsosoft C++ see
   http://sapdb.2scale.net/moin.cgi/MS_20C_2b_2b_20Toolkit
 
 NOTE! I (Kern) cannot build wxWindows with the Makefile until after
-I do a ./configure.  I can us VC Studio directly to do so
-following their instructions.
+I do a ./configure.  I can use VC Studio directly to do so
+following their instructions. Open VC Studio on the project
+file depkgs-win32/wx/src/WxWindows.vcproj.  Then build it.
+Make sure you have selected the Release Unicode version under
+menu->Build->Configuration Manager.  It will create the file:
+depkgs-win32/wx/lib/wxmswu.lib. At that point, you have
+what you need to build wx-console.
 
 Note, the paths given below have changed now that we switched
 to Microsoft Visual Studio .NET 2003 (VC++ 7.1).

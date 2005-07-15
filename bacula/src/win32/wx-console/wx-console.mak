@@ -112,7 +112,7 @@ BSC32_FLAGS=/nologo /o"$(OUTDIR)\wx-console.bsc"
 BSC32_SBRS= \
         
 LINK32=link.exe
-LINK32_FLAGS=wxmsw.lib rpcrt4.lib oleaut32.lib ole32.lib uuid.lib winspool.lib winmm.lib \
+LINK32_FLAGS=wxmswu.lib rpcrt4.lib oleaut32.lib ole32.lib uuid.lib winspool.lib winmm.lib \
   comctl32.lib comdlg32.lib Shell32.lib AdvAPI32.lib User32.lib Gdi32.lib wsock32.lib \
   wldap32.lib pthreadVCE.lib zlib.lib /nodefaultlib:libcmt.lib \
   /nologo /subsystem:windows /machine:I386 /out:"$(OUTDIR)\wx-console.exe" /libpath:"../../../../depkgs-win32/wx/lib" /libpath:"../../../../depkgs-win32/pthreads" /libpath:"../../../../depkgs-win32/zlib" 
@@ -394,7 +394,7 @@ BSC32_SBRS= \
 <<
 
 LINK32=link.exe
-LINK32_FLAGS=wxmswd.lib rpcrt4.lib oleaut32.lib ole32.lib uuid.lib winspool.lib winmm.lib \
+LINK32_FLAGS=wxmswu.lib rpcrt4.lib oleaut32.lib ole32.lib uuid.lib winspool.lib winmm.lib \
   comctl32.lib comdlg32.lib Shell32.lib AdvAPI32.lib User32.lib Gdi32.lib wsock32.lib \
   wldap32.lib pthreadVCE.lib zlib.lib /nodefaultlib:libcmtd.lib \
   /nologo /subsystem:windows /pdb:none /debug /machine:I386 /out:"$(OUTDIR)\wx-console.exe" /libpath:"../../../../depkgs-win32/wx/lib" /libpath:"../../../../depkgs-win32/pthreads" /libpath:"../../../../depkgs-win32/zlib" 
@@ -1650,6 +1650,5 @@ SOURCE=..\..\wx-console\wxbhistorytextctrl.cpp
 
 
 !ENDIF 
-
 
 
