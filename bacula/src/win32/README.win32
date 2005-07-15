@@ -32,6 +32,10 @@ Win32 Bacula.  It can be found in the Source Forge Bacula project
 release section.
 
 To build it:
+- For this version of Bacula, you must have msvcr71.dll
+  installed in c:/windows/system32.  The winbacula.nsi.in
+  and pebuilder Makefile.in files have this hard coded in.
+- We are using Microsoft Visual Studio .NET 2003.
 - Make sure nmake is on your PATH.
 - Make sure your COMSPEC is properly setup (see full dump of
   my cygwin environment below).
@@ -60,9 +64,7 @@ To build it:
 Instructions if you want to build bacula-fd with VSS 
 (Volume Shadow Copy Service) support:
 
-- VSS support is right now (June 2005) available for MS-Windows XP 
-   (beta)
-- VSS support is right now (June 2005) available for MS-Windows 2003 (beta)
+- VSS support works for both WinXP machines and Win 2003 machines.
 - you need to get the VSS SDK: 
   http://www.microsoft.com/downloads/details.aspx?FamilyID=0B4F56E4-0CCC-4626-826A-ED2C4C95C871&displaylang=en
 - copy the 'inc' and 'lib' directories from this SDK to 
@@ -72,8 +74,9 @@ Instructions if you want to build bacula-fd with VSS
   'bacula/src/win32/compat/vss/lib'
   both with 'Win2003' and 'WinXP' subdirectories
 - add 'WIN32_VSS' as preprocessor directive
-- you should get a bacula-fd that runs on all platforms and has 
+- you should get a single bacula-fd.exe that runs on all platforms and has 
   VSS support for WinXP and 2003 enabled
+- Follow the instructions given above for building it.
 
 That should be all there is too it. The winbacula-1.xx.y.exe 
 should be in the current directory.
@@ -130,6 +133,9 @@ Instructions if you want to build wx-console :
 NOTE! I (Kern) cannot build wxWindows with the Makefile until after
 I do a ./configure.  I can us VC Studio directly to do so
 following their instructions.
+
+Note, the paths given below have changed now that we switched
+to Microsoft Visual Studio .NET 2003 (VC++ 7.1).
 
 Getting all the environment variables setup properly is not always so obvious.
 Here is what I have when I do a "set" in a rxvt window, in which I build

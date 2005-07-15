@@ -104,6 +104,7 @@ Section "Bacula File Service" SecService
   CreateDirectory "c:\tmp"
   ; Put files there
   File baculafd\Release\bacula-fd.exe
+  File c:\windows\system32\msvcr71.dll
   File ..\..\..\depkgs-win32\pthreads\pthreadVCE.dll
   File License.txt
   IfFileExists "$INSTDIR\bin\bacula-fd.conf" newconf 
@@ -182,9 +183,10 @@ SectionEnd
 Section "Install Console" SecConsole
   SetOutPath "$INSTDIR\bin"
   File console\Release\bconsole.exe
+  File ..\..\..\depkgs-win32\pthreads\pthreadVCE.dll
+  File c:\windows\system32\msvcr71.dll
   IfFileExists "$INSTDIR\bin\bconsole.conf" newconf 
   File console\bconsole.conf
-  File ..\..\..\depkgs-win32\pthreads\pthreadVCE.dll
   goto do_next
  newconf:
   File /oname=bconsole.conf.new console\bconsole.conf
@@ -201,9 +203,10 @@ SectionEnd
 Section "Install wx-Console" SecWxConsole
   SetOutPath "$INSTDIR\bin"
   File wx-console\Release\wx-console.exe
+  File ..\..\..\depkgs-win32\pthreads\pthreadVCE.dll
+  File c:\windows\system32\msvcr71.dll
   IfFileExists "$INSTDIR\bin\wx-console.conf" newconf 
   File wx-console\wx-console.conf
-  File ..\..\..\depkgs-win32\pthreads\pthreadVCE.dll
   goto do_next
  newconf:
   File /oname=wx-console.conf.new wx-console\wx-console.conf
