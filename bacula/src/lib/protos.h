@@ -194,6 +194,7 @@ void             init_signals             (void terminate(int sig));
 void             init_stack_dump          (void);
 
 /* scan.c */
+void             strip_leading_space     (char *str);
 void             strip_trailing_junk     (char *str);
 void             strip_trailing_slashes  (char *dir);
 bool             skip_spaces             (char **msg);
