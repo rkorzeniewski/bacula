@@ -1,4 +1,4 @@
-Changes to 1.37.30:
+Changes to 1.37.30 released 16 July 2005:
 14Jul05
 - Fix "dir" command scanning field misalignment in
   wx-console.
