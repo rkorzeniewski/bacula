@@ -42,7 +42,8 @@ Major Changes:
 - Unicode filename support for Win32 (thanks to Thorsten Engel)
 - Volume Shadow Copy support for Win32 thus the capability to
   backup exclusively opened files (thanks to Thorsten Engel).
-  A VSS enabled Win32 FD is available.
+  A VSS enabled Win32 FD is available.  You must explicitly
+  turn on VSS with "Enable VSS = yes" in your FileSet resource.
 - New manual format with an index (thanks to Karl Cunningham).
 - New Web site format (thanks to Michael Scherer).
 - SQLite3 support, but it seems to run at 1/2 to 1/4 the speed of
