@@ -11,14 +11,21 @@ Version 1.37                Kern (see below)
 ========================================================
 
 Final items for 1.37 before release:
-- --without-openssl breaks at least on Solaris.
 1. Fix the remaining bugs that I am aware of and new ones that come up 
     during testing.
+-  --without-openssl breaks at least on Solaris.
+-  bsr-opt-test fails. bsr deleted. Fix.
+-  Allow cancel of unknown Job
+-  State not saved when closing Win32 FD by icon
+-  Move Python daemon variables from Job to Bacula object.
+   WorkingDir, ConfigFile
+
 3. Document all the new features (about half done).
-6. Build and test the Volume Shadow Copy (VSS) for Win32. 
 7. Write a bacula-web document
 8. Take one more try at making DVD writing work.
 9. Run the regression scripts on Solaris and FreeBSD
+-  Figure out how to package docs and gui programs.
+-  Test TLS.
 
 Document:
 - Document cleaning up the spool files.
@@ -52,17 +59,13 @@ Document:
   do restores.
 
 
-1.xx Major Projects:
-#3   Migration (Move, Copy, Archive Jobs)
-     (probably not this version)
-#7   Single Job Writing to Multiple Storage Devices
-     (probably not this version)
 
 For 1.39:
+1.xx Major Projects:
+#3   Migration (Move, Copy, Archive Jobs)
+#7   Single Job Writing to Multiple Storage Devices
 - Reserve blocks other restore jobs when first cannot connect
   to SD -- no way to cancel in SD if Dir job canceled.
-- Allow cancel of unknown Job
-- State not saved when closing Win32 FD by icon
 - Add true/false to conf same as yes/no
 - For Windows disaster recovery see http://unattended.sf.net/
 - regardless of the retention period, Bacula will not prune the
@@ -1369,3 +1372,4 @@ Block Position: 0
 - Finish TLS implementation.
 - Port limiting -m in iptables to prevent DoS attacks
   could cause broken pipes on Bacula.
+6. Build and test the Volume Shadow Copy (VSS) for Win32. 

@@ -442,7 +442,7 @@ void release_volume(DCR *dcr)
    if (dev->is_open()) {
       offline_or_rewind_dev(dev);
    }
-   Dmsg0(190, "===== release_volume ===\n");
+   Dmsg0(190, "release_volume\n");
 }
 
 /*

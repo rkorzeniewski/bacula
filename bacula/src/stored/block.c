@@ -464,7 +464,7 @@ bool write_block_to_dev(DCR *dcr)
          max_cap = dev->VolCatInfo.VolCatMaxBytes;
       }
       Jmsg(jcr, M_INFO, 0, _("User defined maximum volume capacity %s exceeded on device %s.\n"),
-            edit_uint64_with_commas(max_cap, ed1),  dev->dev_name);
+            edit_uint64_with_commas(max_cap, ed1),  dev->print_name());
       terminate_writing_volume(dcr);
       reread_last_block(dcr);   /* DEBUG */
       dev->dev_errno = ENOSPC;
@@ -534,7 +534,7 @@ bool write_block_to_dev(DCR *dcr)
          }
          if (dev->dev_errno != ENOSPC) {
             Jmsg4(jcr, M_ERROR, 0, _("Write error at %u:%u on device %s. ERR=%s.\n"),
-               dev->file, dev->block_num, dev->dev_name, be.strerror());
+               dev->file, dev->block_num, dev->print_name(), be.strerror());
          }
       } else {
         dev->dev_errno = ENOSPC;            /* out of space */
@@ -877,7 +877,7 @@ reread:
    if (looping > 1) {
       dev->dev_errno = EIO;
       Mmsg1(dev->errmsg, _("Block buffer size looping problem on device %s\n"),
-         dev->dev_name);
+         dev->print_name());
       Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       block->read_len = 0;
       return false;
@@ -925,7 +925,7 @@ reread:
       Dmsg1(200, "Read device got: ERR=%s\n", be.strerror());
       block->read_len = 0;
       Mmsg4(dev->errmsg, _("Read error at file:blk %u:%u on device %s. ERR=%s.\n"),
-         dev->file, dev->block_num, dev->dev_name, be.strerror());
+         dev->file, dev->block_num, dev->print_name(), be.strerror());
       Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       if (dev->at_eof()) {        /* EOF just seen? */
          dev->set_eot();          /* yes, error => EOT */
@@ -938,7 +938,7 @@ reread:
       dev->block_num = 0;
       block->read_len = 0;
       Mmsg3(dev->errmsg, _("Read zero bytes at %u:%u on device %s.\n"),
-         dev->file, dev->block_num, dev->dev_name);
+         dev->file, dev->block_num, dev->print_name());
       if (dev->at_eof()) {       /* EOF already read? */
          dev->set_eot();         /* yes, 2 EOFs => EOT */
          return 0;
@@ -951,7 +951,7 @@ reread:
    if (block->read_len < BLKHDR2_LENGTH) {
       dev->dev_errno = EIO;
       Mmsg4(dev->errmsg, _("Volume data error at %u:%u! Very short block of %d bytes on device %s discarded.\n"),
-         dev->file, dev->block_num, block->read_len, dev->dev_name);
+         dev->file, dev->block_num, block->read_len, dev->print_name());
       Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       dev->set_short_block();   
       block->read_len = block->binbuf = 0;
@@ -1010,7 +1010,7 @@ reread:
    if (block->block_len > block->read_len) {
       dev->dev_errno = EIO;
       Mmsg4(dev->errmsg, _("Volume data error at %u:%u! Short block of %d bytes on device %s discarded.\n"),
-         dev->file, dev->block_num, block->read_len, dev->dev_name);
+         dev->file, dev->block_num, block->read_len, dev->print_name());
       Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       dev->set_short_block();
       block->read_len = block->binbuf = 0;
