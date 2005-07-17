@@ -3,7 +3,18 @@
 
 General:
 
-Changes to 1.37.30:
+Changes to 1.37.31:
+17Jul05
+- Fix name space pollution by OpenSSL 0.9.8 reported by
+  Matthias Kurz -- applied his patch.
+- Fix bpipe.c so that it does not modify results pointer.
+  ***FIXME*** calling sequence should be changed.
+- Remove some remaining references to dev_name.
+- Fix calls to mount_dev() and unmount_dev() to
+  correspond to returned value (bool instead of int).
+- Try without success to make DVD writing work.
+
+Changes to 1.37.30 released 16 July 05:
 14Jul05
 - Fix "dir" command scanning field misalignment in
   wx-console.

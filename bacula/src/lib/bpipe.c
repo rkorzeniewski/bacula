@@ -318,9 +318,15 @@ int run_program_full_output(char *prog, int wait, POOLMEM *results)
    results[0] = 0;
 
    while (1) {
+      tmp[0] = 0;
       fgets(tmp, sizeof_pool_memory(tmp), bpipe->rfd);
       Dmsg1(800, "Run program fgets=%s", tmp);
-      pm_strcat(results, tmp);
+      /* ***FIXME****
+       *   we need to pass POOL_MEM &results as arg to ensure
+       *   that change in address of results is passed back
+       */
+     //   pm_strcat(results, tmp);
+      bstrncat(results, tmp, sizeof_pool_memory(results));
       if (feof(bpipe->rfd)) {
          stat1 = 0;
          Dmsg1(900, "Run program fgets stat=%d\n", stat1);
@@ -329,7 +335,8 @@ int run_program_full_output(char *prog, int wait, POOLMEM *results)
          stat1 = ferror(bpipe->rfd);
       }
       if (stat1 < 0) {
-         Dmsg2(900, "Run program fgets stat=%d ERR=%s\n", stat1, strerror(errno));
+         berrno be;
+         Dmsg2(200, "Run program fgets stat=%d ERR=%s\n", stat1, be.strerror());
          break;
       } else if (stat1 != 0) {
          Dmsg1(900, "Run program fgets stat=%d\n", stat1);

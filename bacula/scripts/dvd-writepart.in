@@ -43,7 +43,7 @@ partnum=$1
 dev=$2
 filename=$3
 
-if test $partnum = 0 ; then
+if test $partnum = 1 ; then
   arg="-Z"
 else
   arg="-M"  

@@ -282,10 +282,10 @@ DEVICE::open(DCR *dcr, int omode)
    if (is_tape() || is_fifo()) {
       open_tape_device(omode);
    } else if (is_dvd()) {
-      Dmsg1(100, "call open_dvd_device mode=%s\n", mode_to_str(mode));
+      Dmsg1(100, "call open_dvd_device mode=%s\n", mode_to_str(omode));
       open_dvd_device(dcr, omode);
    } else {
-      Dmsg1(100, "call open_file_device mode=%d\n", mode_to_str(mode));
+      Dmsg1(100, "call open_file_device mode=%s\n", mode_to_str(omode));
       open_file_device(omode);
    }
    return fd;
@@ -475,15 +475,16 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
    part_size = 0;
    
 
-   if (mount_dev(this, 1) < 0) {
+   if (!mount_dev(this, 1)) {
       Mmsg(errmsg, _("Could not mount device %s.\n"), print_name());
       Emsg0(M_FATAL, 0, errmsg);
       fd = -1;
       return;
    }
          
-   Dmsg3(29, "open dev: %s dev=%s mode=%s\n", is_dvd()?"DVD":"disk",
-         archive_name.c_str(), mode_to_str(omode));
+   Dmsg5(29, "open dev: %s dev=%s mode=%s part=%d npart=%d\n", 
+      is_dvd()?"DVD":"disk", archive_name.c_str(), mode_to_str(omode),
+      part, num_parts);
    openmode = omode;
    
    /*
@@ -538,9 +539,15 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
          set_opened();
          use_count = 1;
          update_pos_dev(this);                /* update position */
+         /* Just created Volume */
+         if (omode == OPEN_READ_WRITE && part_size == 0) {
+            part++;
+            num_parts++;
+            VolCatInfo.VolCatParts = num_parts;
+         }
       }
    }
-   Dmsg4(29, "open dev: DVD fd=%d opened, part=%d/%d, part_size=%u\n", 
+   Dmsg4(29, "open dev: DVD fd=%d opened, part=%d nump=%d, part_size=%u\n", 
       fd, part, num_parts, part_size);
    if (is_open() && is_dvd() && (omode != OPEN_READ_ONLY) && 
        (free_space_errno == 0 || num_parts == part)) {
@@ -1623,7 +1630,7 @@ static void do_close(DEVICE *dev)
       close(dev->fd);
    }
 
-   if (unmount_dev(dev, 1) < 0) {
+   if (!unmount_dev(dev, 1)) {
       Dmsg1(0, "Cannot unmount device %s.\n", dev->print_name());
    }
    
