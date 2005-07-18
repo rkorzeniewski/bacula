@@ -4,6 +4,13 @@
 General:
 
 Changes to 1.37.31:
+18Jul05
+- Move Python variables from Job to Bacula. They are
+  DirName, Version, ConfigFile, and WorkingDir
+- Fix delete of bootstrap to only occur on Bacula created
+  filenames.
+- Allow cancelling a Job name that is not active. It is
+  sent to the daemons.
 17Jul05
 - Fix name space pollution by OpenSSL 0.9.8 reported by
   Matthias Kurz -- applied his patch.

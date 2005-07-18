@@ -449,7 +449,10 @@ bool send_bootstrap_file(JCR *jcr)
    }
    bnet_sig(fd, BNET_EOD);
    fclose(bs);
-   unlink(jcr->RestoreBootstrap);
+   if (jcr->unlink_bsr) {
+      unlink(jcr->RestoreBootstrap);
+      jcr->unlink_bsr = false;
+   }                         
    if (!response(jcr, fd, OKbootstrap, "Bootstrap", DISPLAY_ERROR)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;

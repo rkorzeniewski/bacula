@@ -54,6 +54,7 @@ class JobEvents:
      if (job.JobId < 2):
         startid = job.run("run kernsave")
         job.JobReport = "Python started new Job: jobid=%d\n" % startid
+     print "name=%s version=%s conf=%s working=%s" % (bacula.Name, bacula.Version, bacula.ConfigFile, bacula.WorkingDir)
 
   def JobRun(self, job):
      noop = 1
@@ -82,7 +83,6 @@ class JobEvents:
      self.fd = open('m.py', 'rb')
      jobid = self.job.JobId
      print "Open: JobId=%d" % jobid
-     print "name=%s" % bacula.name
 
   # Read file data into Bacula memory buffer (mem)
   #  return length read. 0 => EOF, -1 => error

@@ -30,6 +30,8 @@
 #undef _POSIX_C_SOURCE
 #include <Python.h>
 
+extern char *configfile;
+
 /* Imported subroutines */
 //extern PyMethodDef JobMethods[];
 extern PyObject *job_getattr(PyObject *self, char *attrname);
@@ -55,6 +57,7 @@ static PyMethodDef BaculaMethods[] = {
     {NULL, NULL, 0, NULL}             /* last item */
 };
 
+static char my_version[] = VERSION " " BDATE;
 
 /*
  * This is a Bacula Job type as defined in Python. We store a pointer
@@ -97,7 +100,10 @@ void init_python_interpreter(const char *progname, const char *scripts,
    Py_Initialize();
    PyEval_InitThreads();
    bacula_module = Py_InitModule("bacula", BaculaMethods);
-   PyModule_AddStringConstant(bacula_module, "name", my_name);
+   PyModule_AddStringConstant(bacula_module, "Name", my_name);
+   PyModule_AddStringConstant(bacula_module, "Version", my_version);
+   PyModule_AddStringConstant(bacula_module, "ConfigFile", configfile);
+   PyModule_AddStringConstant(bacula_module, "WorkingDir", (char *)working_directory);
    if (!bacula_module) {
       Jmsg0(NULL, M_ERROR_TERM, 0, "Could not initialize Python\n");
    }

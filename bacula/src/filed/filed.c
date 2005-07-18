@@ -49,7 +49,7 @@ const int win32_client = 0;
 
 #define CONFIG_FILE "./bacula-fd.conf" /* default config file */
 
-static char *configfile = NULL;
+char *configfile = NULL;
 static bool foreground = false;
 static bool inetd_request = false;
 static workq_t dir_workq;             /* queue of work from Director */

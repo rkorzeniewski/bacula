@@ -1,22 +1,15 @@
                     Kern's ToDo List
-                     15 July 2005
+                     18 July 2005
 
 Major development:      
 Project                     Developer
 =======                     =========                         
-TLS                         Landon Fuller
-Unicode in Win32            Thorsten Engel (done)
-VSS                         Thorsten Engel (in beta testing)
 Version 1.37                Kern (see below)
 ========================================================
 
 Final items for 1.37 before release:
-1. Fix the remaining bugs that I am aware of and new ones that come up 
-    during testing.
+1. Fix bugs
 -  --without-openssl breaks at least on Solaris.
--  bsr-opt-test fails. bsr deleted. Fix.
--  Allow cancel of unknown Job
--  State not saved when closing Win32 FD by icon
 -  Move Python daemon variables from Job to Bacula object.
    WorkingDir, ConfigFile
 
@@ -24,7 +17,7 @@ Final items for 1.37 before release:
 7. Write a bacula-web document
 8. Take one more try at making DVD writing work.
 9. Run the regression scripts on Solaris and FreeBSD
--  Figure out how to package docs and gui programs.
+-  Figure out how to package gui, and rescue programs.
 -  Test TLS.
 
 Document:
@@ -1373,3 +1366,7 @@ Block Position: 0
 - Port limiting -m in iptables to prevent DoS attacks
   could cause broken pipes on Bacula.
 6. Build and test the Volume Shadow Copy (VSS) for Win32. 
+-  Allow cancel of unknown Job
+-  State not saved when closing Win32 FD by icon
+-  bsr-opt-test fails. bsr deleted. Fix.
+
