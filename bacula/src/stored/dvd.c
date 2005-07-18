@@ -37,6 +37,7 @@ void make_mounted_dvd_filename(DEVICE *dev, POOL_MEM &archive_name)
 {
    pm_strcpy(archive_name, dev->device->mount_point);
    add_file_and_part_name(dev, archive_name);
+   dev->set_part_spooled(false);
 }
 
 void make_spooled_dvd_filename(DEVICE *dev, POOL_MEM &archive_name)
@@ -48,6 +49,7 @@ void make_spooled_dvd_filename(DEVICE *dev, POOL_MEM &archive_name)
       pm_strcpy(archive_name, working_directory);
    }
    add_file_and_part_name(dev, archive_name);
+   dev->set_part_spooled(true);
 }      
 
 static void add_file_and_part_name(DEVICE *dev, POOL_MEM &archive_name)
@@ -125,12 +127,11 @@ static bool do_mount_dev(DEVICE* dev, int mount, int dotimeout)
    } else {
       timeout = 0;
    }
-   results = get_pool_memory(PM_MESSAGE);
+   results = get_memory(2000);
    results[0] = 0;
    /* If busy retry each second */
    while ((status = run_program_full_output(ocmd.c_str(), 
                        dev->max_open_wait/2, results)) != 0) {
-      Dmsg1(100, "results len=%d\n", strlen(results));
       if (fnmatch("*is already mounted on", results, 0) == 0) {
          break;
       }
@@ -147,7 +148,6 @@ static bool do_mount_dev(DEVICE* dev, int mount, int dotimeout)
       Dmsg2(40, "Device %s cannot be mounted. ERR=%s\n", dev->print_name(), results);
       Mmsg(dev->errmsg, "Device %s cannot be mounted. ERR=%s\n", 
            dev->print_name(), results);
-#ifdef xxx
       /*
        * Now, just to be sure it is not mounted, try to read the
        *  filesystem.
@@ -185,7 +185,6 @@ static bool do_mount_dev(DEVICE* dev, int mount, int dotimeout)
          break;                          /*   there must be something mounted */
       }
 get_out:
-#endif
       free_pool_memory(results);
       return false;
    }
@@ -227,7 +226,6 @@ void update_free_space_dev(DEVICE* dev)
    
    while (1) {
       if (run_program_full_output(ocmd.c_str(), dev->max_open_wait/2, results) == 0) {
-         Dmsg1(100, "results len=%d\n", strlen(results));
          Dmsg1(100, "Free space program run : %s\n", results);
          free = str_to_int64(results);
          if (free >= 0) {
@@ -310,7 +308,6 @@ static bool dvd_write_part(DCR *dcr)
    Dmsg2(29, "dvd_write_part: cmd=%s timeout=%d\n", ocmd.c_str(), timeout);
       
    status = run_program_full_output(ocmd.c_str(), timeout, results.c_str());
-   Dmsg1(100, "results len=%d\n", strlen(results.c_str()));
    if (status != 0) {
       Mmsg1(dev->errmsg, "Error while writing current part to the DVD: %s", 
             results.c_str());
@@ -327,7 +324,6 @@ static bool dvd_write_part(DCR *dcr)
    update_free_space_dev(dev);
    Jmsg(dcr->jcr, M_INFO, 0, _("Remaining free space %s on %s\n"), 
       edit_uint64_with_commas(dev->free_space, ed1), dev->print_name());
-   Dmsg1(100, "results=%s\n", results.c_str());
    return true;
 }
 
@@ -417,7 +413,7 @@ int open_next_part(DCR *dcr)
       dev->num_parts = dev->part;
       dev->VolCatInfo.VolCatParts = dev->part;
    }
-   Dmsg2(50, "Call dev->open(vol=%s, mode=%d", dev->VolCatInfo.VolCatName, 
+   Dmsg2(50, "Call dev->open(vol=%s, mode=%d\n", dev->VolCatInfo.VolCatName, 
          dev->openmode);
    /* Open next part */
    if (dev->open(dcr, dev->openmode) < 0) {
@@ -464,12 +460,13 @@ int open_first_part(DCR *dcr, int mode)
 /* Protected version of lseek, which opens the right part if necessary */
 off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
 {
-   int openmode;
    DCR *dcr;
    off_t pos;
    
-   Dmsg0(100, "Enter lseek_dev\n");
-   if (!dev->is_dvd() || dev->num_parts <= 1) { /* If there is only one part, simply call lseek. */
+   Dmsg3(100, "Enter lseek_dev fd=%d part=%d nparts=%d\n", dev->fd,
+      dev->part, dev->num_parts);
+   if (!dev->is_dvd()) { 
+      Dmsg0(100, "Using sys lseek\n");
       return lseek(dev->fd, offset, whence);
    }
       
@@ -478,9 +475,9 @@ off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
    case SEEK_SET:
       Dmsg1(100, "lseek_dev SEEK_SET to %d\n", (int)offset);
       if ((uint64_t)offset >= dev->part_start) {
-         if ((uint64_t)(offset - dev->part_start) < dev->part_size) {
+         offset -= dev->part_start; /* adjust for start of this part */
+         if (offset == 0 || (uint64_t)offset < dev->part_size) {
             /* We are staying in the current part, just seek */
-            offset -= dev->part_start; /* adjust for start of this part */
             if ((pos = lseek(dev->fd, offset, SEEK_SET)) < 0) {
                return pos;   
             } else {
@@ -522,24 +519,36 @@ off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
       break;
    case SEEK_END:
       Dmsg1(100, "lseek_dev SEEK_END to %d\n", (int)offset);
+      /*
+       * Bacula does not use offsets for SEEK_END
+       *  Also, Bacula uses seek_end only when it wants to
+       *  append to the volume, so for a dvd that means
+       *  that the volume must be spooled since the DVD
+       *  itself is read-only (as currently implemented).
+       */
       if (offset > 0) { /* Not used by bacula */
          Dmsg1(100, "lseek_dev SEEK_END called with an invalid offset %d\n", (int)offset);
          errno = EINVAL;
          return -1;
       }
-      
-      if (dev->part == dev->num_parts) { /* The right part is already loaded */
+      /* If we are already on a spooled part and have the
+       *  right part number, simply seek
+       */
+      if (dev->is_part_spooled() && dev->part == dev->num_parts) {
          if ((pos = lseek(dev->fd, (off_t)0, SEEK_END)) < 0) {
             return pos;   
          } else {
             return pos + dev->part_start;
          }
       } else {
-         /* Load the first part, then load the next until we reach the last one.
-          * This is the only way to be sure we compute the right file address. */
-         /* Save previous openmode, and open all but last part read-only (useful for DVDs) */
-         openmode = dev->openmode;
-         
+         /*
+          * Load the first part, then load the next until we reach the last one.
+          * This is the only way to be sure we compute the right file address.
+          *
+          * Save previous openmode, and open all but last part read-only 
+          * (useful for DVDs) 
+          */
+         int modesave = dev->openmode;
          /* Works because num_parts > 0. */
          if (open_first_part(dcr, OPEN_READ_ONLY) < 0) {
             Dmsg0(100, "lseek_dev failed while trying to open the first part\n");
@@ -551,7 +560,7 @@ off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
                return -1;
             }
          }
-         dev->openmode = openmode;
+         dev->openmode = modesave;
          if (open_next_part(dcr) < 0) {
             Dmsg0(100, "lseek_dev failed while trying to open the next part\n");
             return -1;

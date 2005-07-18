@@ -344,10 +344,10 @@ void rem_msg_dest(MSGS *msg, int dest_code, int msg_type, char *where)
 static void make_unique_mail_filename(JCR *jcr, POOLMEM *&name, DEST *d)
 {
    if (jcr) {
-      Mmsg(name, "%s/%s.mail.%s.%d", working_directory, my_name,
+      Mmsg(name, "%s/%s.%s.%d.mail", working_directory, my_name,
                  jcr->Job, (int)(long)d);
    } else {
-      Mmsg(name, "%s/%s.mail.%s.%d", working_directory, my_name,
+      Mmsg(name, "%s/%s.%s.%d.mail", working_directory, my_name,
                  my_name, (int)(long)d);
    }
    Dmsg1(850, "mailname=%s\n", name);

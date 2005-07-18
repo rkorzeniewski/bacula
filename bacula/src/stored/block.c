@@ -544,8 +544,9 @@ bool write_block_to_dev(DCR *dcr)
             dev->VolCatInfo.VolCatName,
             dev->file, dev->block_num, dev->print_name(), wlen, stat);
       }
-      Dmsg6(100, "=== Write error. size=%u rtn=%d dev_blk=%d blk_blk=%d errno=%d: ERR=%s\n",
-         wlen, stat, dev->block_num, block->BlockNumber, dev->dev_errno, strerror(dev->dev_errno));
+      Dmsg7(100, "=== Write error. fd=%d size=%u rtn=%d dev_blk=%d blk_blk=%d errno=%d: ERR=%s\n",
+         dev->fd, wlen, stat, dev->block_num, block->BlockNumber, 
+         dev->dev_errno, strerror(dev->dev_errno));
 
       ok = terminate_writing_volume(dcr);
       if (!ok && !forge_on) {

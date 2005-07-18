@@ -112,6 +112,7 @@ enum {
 #define ST_MOUNTED         (1<<15)    /* the device is mounted to the mount point */
 #define ST_MEDIA           (1<<16)    /* Media found in mounted device */
 #define ST_OFFLINE         (1<<17)    /* set offline by operator */
+#define ST_PART_SPOOLED    (1<<18)    /* spooling part */
 
 /* dev_blocked states (mutually exclusive) */
 enum {
@@ -260,6 +261,7 @@ public:
    int is_offline() const { return state & ST_OFFLINE; }
    int is_labeled() const { return state & ST_LABEL; }
    int is_mounted() const { return state & ST_MOUNTED; }
+   int is_part_spooled() const { return state & ST_PART_SPOOLED; }
    int have_media() const { return state & ST_MEDIA; }
    int is_short_block() const { return state & ST_SHORT; }
    int is_busy() const { return (state & ST_READ) || num_writers || reserved_device; }
@@ -303,6 +305,8 @@ public:
    void set_mounted() { state |= ST_MOUNTED; };
    void set_media() { state |= ST_MEDIA; };
    void set_short_block() { state |= ST_SHORT; };
+   void set_part_spooled(int val) { if (val) state |= ST_PART_SPOOLED; \
+          else state &= ~ST_PART_SPOOLED; };
    void set_mounted(int val) { if (val) state |= ST_MOUNTED; \
           else state &= ~ST_MOUNTED; };
    void clear_append() { state &= ~ST_APPEND; };

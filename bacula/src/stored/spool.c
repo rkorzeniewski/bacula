@@ -131,7 +131,7 @@ static void make_unique_data_spool_filename(DCR *dcr, POOLMEM **name)
    } else {
       dir = working_directory;
    }
-   Mmsg(name, "%s/%s.data.spool.%s.%s", dir, my_name, dcr->jcr->Job, 
+   Mmsg(name, "%s/%s.data.%s.%s.spool", dir, my_name, dcr->jcr->Job, 
         dcr->device->hdr.name);
 }
 
@@ -563,7 +563,7 @@ bail_out:
 
 static void make_unique_spool_filename(JCR *jcr, POOLMEM **name, int fd)
 {
-   Mmsg(name, "%s/%s.attr.spool.%s.%d", working_directory, my_name,
+   Mmsg(name, "%s/%s.attr.%s.%d.spool", working_directory, my_name,
       jcr->Job, fd);
 }
 
