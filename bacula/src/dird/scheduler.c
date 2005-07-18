@@ -13,19 +13,14 @@
    Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -41,11 +36,11 @@ struct job_item {
    JOB *job;
    time_t runtime;
    int Priority;
-   dlink link;			      /* link for list */
+   dlink link;                        /* link for list */
 };
 
 /* List of jobs to be run. They were scheduled in this hour or the next */
-static dlist *jobs_to_run;		 /* list of jobs to be run */
+static dlist *jobs_to_run;               /* list of jobs to be run */
 
 /* Time interval in secs to sleep if nothing to be run */
 static int const NEXT_CHECK_SECS = 60;
@@ -62,7 +57,7 @@ static void dump_job(job_item *ji, const char *msg);
 
 /*********************************************************************
  *
- *	   Main Bacula Scheduler
+ *         Main Bacula Scheduler
  *
  */
 JCR *wait_for_next_job(char *one_shot_job_to_run)
@@ -79,15 +74,15 @@ JCR *wait_for_next_job(char *one_shot_job_to_run)
       first = false;
       /* Create scheduled jobs list */
       jobs_to_run = New(dlist(next_job, &next_job->link));
-      if (one_shot_job_to_run) {	    /* one shot */
-	 job = (JOB *)GetResWithName(R_JOB, one_shot_job_to_run);
-	 if (!job) {
+      if (one_shot_job_to_run) {            /* one shot */
+         job = (JOB *)GetResWithName(R_JOB, one_shot_job_to_run);
+         if (!job) {
             Emsg1(M_ABORT, 0, _("Job %s not found\n"), one_shot_job_to_run);
-	 }
+         }
          Dmsg1(5, "Found one_shot_job_to_run %s\n", one_shot_job_to_run);
-	 jcr = new_jcr(sizeof(JCR), dird_free_jcr);
-	 set_jcr_defaults(jcr, job);
-	 return jcr;
+         jcr = new_jcr(sizeof(JCR), dird_free_jcr);
+         set_jcr_defaults(jcr, job);
+         return jcr;
       }
    }
    /* Wait until we have something in the
@@ -96,12 +91,12 @@ JCR *wait_for_next_job(char *one_shot_job_to_run)
    while (jobs_to_run->empty()) {
       find_runs();
       if (!jobs_to_run->empty()) {
-	 break;
+         break;
       }
       bmicrosleep(NEXT_CHECK_SECS, 0); /* recheck once per minute */
    }
 
-#ifdef	list_chain
+#ifdef  list_chain
    job_item *je;
    foreach_dlist(je, jobs_to_run) {
       dump_job(je, "Walk queue");
@@ -116,7 +111,7 @@ JCR *wait_for_next_job(char *one_shot_job_to_run)
 
    dump_job(next_job, "Dequeued job");
 
-   if (!next_job) {		   /* we really should have something now */
+   if (!next_job) {                /* we really should have something now */
       Emsg0(M_ABORT, 0, _("Scheduler logic error\n"));
    }
 
@@ -125,14 +120,14 @@ JCR *wait_for_next_job(char *one_shot_job_to_run)
       time_t twait;
       now = time(NULL);
       twait = next_job->runtime - now;
-      if (twait <= 0) { 	      /* time to run it */
-	 break;
+      if (twait <= 0) {               /* time to run it */
+         break;
       }
       bmicrosleep(twait, 0);
    }
-   run = next_job->run; 	      /* pick up needed values */
+   run = next_job->run;               /* pick up needed values */
    job = next_job->job;
-   run->last_run = now; 	      /* mark as run now */
+   run->last_run = now;               /* mark as run now */
 
    dump_job(next_job, "Run job");
 
@@ -145,7 +140,7 @@ JCR *wait_for_next_job(char *one_shot_job_to_run)
       jcr->JobLevel = run->level;     /* override run level */
    }
    if (run->pool) {
-      jcr->pool = run->pool;	      /* override pool */
+      jcr->pool = run->pool;          /* override pool */
    }
    if (run->full_pool) {
       jcr->full_pool = run->full_pool; /* override full pool */
@@ -185,7 +180,7 @@ void term_scheduler()
       job_item *je;
       /* Release all queued job entries to be run */
       foreach_dlist(je, jobs_to_run) {
-	 free(je);
+         free(je);
       }
       delete jobs_to_run;
    }
@@ -218,7 +213,7 @@ static void find_runs()
    wday = tm.tm_wday;
    month = tm.tm_mon;
    wom = mday / 7;
-   woy = tm_woy(now);			  /* get week of year */
+   woy = tm_woy(now);                     /* get week of year */
 
    /*
     * Compute values for next hour from now.
@@ -233,78 +228,78 @@ static void find_runs()
    nh_month = tm.tm_mon;
    nh_year  = tm.tm_year;
    nh_wom = nh_mday / 7;
-   nh_woy = tm_woy(now);		     /* get week of year */
+   nh_woy = tm_woy(now);                     /* get week of year */
 
    /* Loop through all jobs */
    LockRes();
    foreach_res(job, R_JOB) {
       sched = job->schedule;
-      if (sched == NULL) {	      /* scheduled? */
-	 continue;		      /* no, skip this job */
+      if (sched == NULL) {            /* scheduled? */
+         continue;                    /* no, skip this job */
       }
       Dmsg1(1200, "Got job: %s\n", job->hdr.name);
       for (run=sched->run; run; run=run->next) {
-	 bool run_now, run_nh;
-	 /*
-	  * Find runs scheduled between now and the next hour.
-	  */
+         bool run_now, run_nh;
+         /*
+          * Find runs scheduled between now and the next hour.
+          */
 #ifdef xxxx
          Dmsg0(000, "\n");
          Dmsg6(000, "run h=%d m=%d md=%d wd=%d wom=%d woy=%d\n",
-	    hour, month, mday, wday, wom, woy);
+            hour, month, mday, wday, wom, woy);
          Dmsg6(000, "bitset bsh=%d bsm=%d bsmd=%d bswd=%d bswom=%d bswoy=%d\n",
-	    bit_is_set(hour, run->hour),
-	    bit_is_set(month, run->month),
-	    bit_is_set(mday, run->mday),
-	    bit_is_set(wday, run->wday),
-	    bit_is_set(wom, run->wom),
-	    bit_is_set(woy, run->woy));
+            bit_is_set(hour, run->hour),
+            bit_is_set(month, run->month),
+            bit_is_set(mday, run->mday),
+            bit_is_set(wday, run->wday),
+            bit_is_set(wom, run->wom),
+            bit_is_set(woy, run->woy));
 
          Dmsg6(000, "nh_run h=%d m=%d md=%d wd=%d wom=%d woy=%d\n",
-	    nh_hour, nh_month, nh_mday, nh_wday, nh_wom, nh_woy);
+            nh_hour, nh_month, nh_mday, nh_wday, nh_wom, nh_woy);
          Dmsg6(000, "nh_bitset bsh=%d bsm=%d bsmd=%d bswd=%d bswom=%d bswoy=%d\n",
-	    bit_is_set(nh_hour, run->hour),
-	    bit_is_set(nh_month, run->month),
-	    bit_is_set(nh_mday, run->mday),
-	    bit_is_set(nh_wday, run->wday),
-	    bit_is_set(nh_wom, run->wom),
-	    bit_is_set(nh_woy, run->woy));
+            bit_is_set(nh_hour, run->hour),
+            bit_is_set(nh_month, run->month),
+            bit_is_set(nh_mday, run->mday),
+            bit_is_set(nh_wday, run->wday),
+            bit_is_set(nh_wom, run->wom),
+            bit_is_set(nh_woy, run->woy));
 #endif
 
-	 run_now = bit_is_set(hour, run->hour) &&
-	    bit_is_set(mday, run->mday) &&
-	    bit_is_set(wday, run->wday) &&
-	    bit_is_set(month, run->month) &&
-	    bit_is_set(wom, run->wom) &&
-	    bit_is_set(woy, run->woy);
+         run_now = bit_is_set(hour, run->hour) &&
+            bit_is_set(mday, run->mday) &&
+            bit_is_set(wday, run->wday) &&
+            bit_is_set(month, run->month) &&
+            bit_is_set(wom, run->wom) &&
+            bit_is_set(woy, run->woy);
 
-	 run_nh = bit_is_set(nh_hour, run->hour) &&
-	    bit_is_set(nh_mday, run->mday) &&
-	    bit_is_set(nh_wday, run->wday) &&
-	    bit_is_set(nh_month, run->month) &&
-	    bit_is_set(nh_wom, run->wom) &&
-	    bit_is_set(nh_woy, run->woy);
+         run_nh = bit_is_set(nh_hour, run->hour) &&
+            bit_is_set(nh_mday, run->mday) &&
+            bit_is_set(nh_wday, run->wday) &&
+            bit_is_set(nh_month, run->month) &&
+            bit_is_set(nh_wom, run->wom) &&
+            bit_is_set(nh_woy, run->woy);
 
          Dmsg2(1200, "run_now=%d run_nh=%d\n", run_now, run_nh);
 
-	 /* find time (time_t) job is to be run */
-	 localtime_r(&now, &tm);      /* reset tm structure */
-	 tm.tm_min = run->minute;     /* set run minute */
-	 tm.tm_sec = 0; 	      /* zero secs */
-	 if (run_now) {
-	    runtime = mktime(&tm);
-	    add_job(job, run, now, runtime);
-	 }
-	 /* If job is to be run in the next hour schedule it */
-	 if (run_nh) {
-	    /* Set correct values */
-	    tm.tm_hour = nh_hour;
-	    tm.tm_mday = nh_mday + 1; /* fixup because we biased for tests above */
-	    tm.tm_mon = nh_month;
-	    tm.tm_year = nh_year;
-	    runtime = mktime(&tm);
-	    add_job(job, run, now, runtime);
-	 }
+         /* find time (time_t) job is to be run */
+         localtime_r(&now, &tm);      /* reset tm structure */
+         tm.tm_min = run->minute;     /* set run minute */
+         tm.tm_sec = 0;               /* zero secs */
+         if (run_now) {
+            runtime = mktime(&tm);
+            add_job(job, run, now, runtime);
+         }
+         /* If job is to be run in the next hour schedule it */
+         if (run_nh) {
+            /* Set correct values */
+            tm.tm_hour = nh_hour;
+            tm.tm_mday = nh_mday + 1; /* fixup because we biased for tests above */
+            tm.tm_mon = nh_month;
+            tm.tm_year = nh_year;
+            runtime = mktime(&tm);
+            add_job(job, run, now, runtime);
+         }
       }
    }
    UnlockRes();
@@ -326,7 +321,7 @@ static void add_job(JOB *job, RUN *run, time_t now, time_t runtime)
       bstrftime_nc(dt1, sizeof(dt1), run->last_run);
       bstrftime_nc(dt2, sizeof(dt2), now);
       Dmsg4(000, "Drop: Job=\"%s\" run=%s. last_run=%s. now=%s\n", job->hdr.name,
-	    dt, dt1, dt2);
+            dt, dt1, dt2);
       fflush(stdout);
 #endif
       return;
@@ -345,11 +340,11 @@ static void add_job(JOB *job, RUN *run, time_t now, time_t runtime)
    /* Add this job to the wait queue in runtime, priority sorted order */
    foreach_dlist(ji, jobs_to_run) {
       if (ji->runtime > je->runtime ||
-	  (ji->runtime == je->runtime && ji->Priority > je->Priority)) {
-	 jobs_to_run->insert_before(je, ji);
+          (ji->runtime == je->runtime && ji->Priority > je->Priority)) {
+         jobs_to_run->insert_before(je, ji);
          dump_job(je, "Inserted job");
-	 inserted = true;
-	 break;
+         inserted = true;
+         break;
       }
    }
    /* If place not found in queue, append it */

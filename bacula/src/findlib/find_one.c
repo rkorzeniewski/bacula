@@ -2,22 +2,21 @@
    Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+ */
+
+/*
 
    This file is based on GNU TAR source code. Except for a few key
-   ideas, it has been rewritten for Bacula.
+   ideas, it has been entirely rewritten for Bacula.
 
       Kern Sibbald, MM
 
@@ -280,6 +279,9 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
       if (ff_pkt->linked) {
          ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
       }
+      if (ff_pkt->flags & FO_KEEPATIME) {
+         utime(fname, &restore_times);
+      }       
       return rtn_stat;
 
 
@@ -350,7 +352,8 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
       ff_pkt->link = link;
       if (ff_pkt->incremental &&
           (ff_pkt->statp.st_mtime < ff_pkt->save_time &&
-           ff_pkt->statp.st_ctime < ff_pkt->save_time)) {
+             ((ff_pkt->flags & FO_MTIMEONLY) ||
+               ff_pkt->statp.st_ctime < ff_pkt->save_time))) {
          /* Incremental option, directory entry not changed */
          ff_pkt->type = FT_DIRNOCHG;
       } else {
