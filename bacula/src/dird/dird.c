@@ -238,7 +238,7 @@ int main (int argc, char *argv[])
 
    Dmsg0(200, "wait for next job\n");
    /* Main loop -- call scheduler to get next job to run */
-   while ((jcr = wait_for_next_job(runjob))) {
+   while ( (jcr = wait_for_next_job(runjob)) ) {
       run_job(jcr);                   /* run job */
       free_jcr(jcr);                  /* release jcr */
       if (runjob) {                   /* command line, run a single job? */

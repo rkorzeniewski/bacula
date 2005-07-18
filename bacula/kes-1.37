@@ -5,6 +5,7 @@ General:
 
 Changes to 1.37.31:
 18Jul05
+- Fix keepatime bug (bugs database).
 - Move Python variables from Job to Bacula. They are
   DirName, Version, ConfigFile, and WorkingDir
 - Fix delete of bootstrap to only occur on Bacula created
