@@ -372,7 +372,7 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
          }
          JobId = str_to_int64(ua->argv[i]);
          if (!(jcr=get_jcr_by_id(JobId))) {
-            bsendmsg(ua, _("JobId %s is not running.\n"),  ua->argv[i]);
+            bsendmsg(ua, _("JobId %s is not running. Use Job name to cancel inactive jobs.\n"),  ua->argv[i]);
             return 1;
          }
          break;
@@ -381,8 +381,9 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
             break;
          }
          if (!(jcr=get_jcr_by_partial_name(ua->argv[i]))) {
-            bsendmsg(ua, _("Job %s is not running.\n"), ua->argv[i]);
-            return 1;
+            bsendmsg(ua, _("Warning Job %s is not running. Continuing anyway ...\n"), ua->argv[i]);
+            jcr = new_jcr(sizeof(JCR), dird_free_jcr);
+            bstrncpy(jcr->Job, ua->argv[i], sizeof(jcr->Job));
          }
          break;
       }
@@ -437,7 +438,6 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
 
    ret = cancel_job(ua, jcr);
    free_jcr(jcr);
-
    return ret;
 }
 

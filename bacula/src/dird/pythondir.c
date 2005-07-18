@@ -59,7 +59,6 @@ struct s_vars {
 /* Read-only variables */
 static struct s_vars getvars[] = {
    { N_("Job"),        "s"},
-   { N_("DirName"),    "s"},
    { N_("Level"),      "s"},
    { N_("Type"),       "s"},
    { N_("JobId"),      "i"},
@@ -72,9 +71,6 @@ static struct s_vars getvars[] = {
    { N_("JobName"),    "s"},
    { N_("JobStatus"),  "s"},
    { N_("Priority"),   "i"},
-   { N_("Version"),    "(ss)"},
-   { N_("ConfigFile"), "s"},
-   { N_("WorkingDir"), "s"},
    { N_("CatalogRes"), "(sssssis)"},
 
    { NULL,             NULL}
@@ -121,17 +117,15 @@ PyObject *job_getattr(PyObject *self, char *attrname)
    switch (i) {
    case 0:                            /* Job */
       return Py_BuildValue(getvars[i].fmt, jcr->job->hdr.name);
-   case 1:                            /* Director's name */
-      return Py_BuildValue(getvars[i].fmt, my_name);
-   case 2:                            /* level */
+   case 1:                            /* level */
       return Py_BuildValue(getvars[i].fmt, job_level_to_str(jcr->JobLevel));
-   case 3:                            /* type */
+   case 2:                            /* type */
       return Py_BuildValue(getvars[i].fmt, job_type_to_str(jcr->JobType));
-   case 4:                            /* JobId */
+   case 3:                            /* JobId */
       return Py_BuildValue(getvars[i].fmt, jcr->JobId);
-   case 5:                            /* Client */
+   case 4:                            /* Client */
       return Py_BuildValue(getvars[i].fmt, jcr->client->hdr.name);
-   case 6:                            /* NumVols */
+   case 5:                            /* NumVols */
       POOL_DBR pr;
       memset(&pr, 0, sizeof(pr));
       bstrncpy(pr.Name, jcr->pool->hdr.name, sizeof(pr.Name));
@@ -142,29 +136,23 @@ PyObject *job_getattr(PyObject *self, char *attrname)
          bsnprintf(errmsg, sizeof(errmsg), "Pool record not found.");
          goto bail_out;
       }
-   case 7:                            /* Pool */
+   case 6:                            /* Pool */
       return Py_BuildValue(getvars[i].fmt, jcr->pool->hdr.name);
-   case 8:                            /* Storage */
+   case 7:                            /* Storage */
       return Py_BuildValue(getvars[i].fmt, jcr->store->hdr.name);
-   case 9:
+   case 8:
       return Py_BuildValue(getvars[i].fmt, jcr->catalog->hdr.name);
-   case 10:                           /* MediaType */
+   case  9:                           /* MediaType */
       return Py_BuildValue(getvars[i].fmt, jcr->store->media_type);
-   case 11:                           /* JobName */
+   case 10:                           /* JobName */
       return Py_BuildValue(getvars[i].fmt, jcr->Job);
-   case 12:                           /* JobStatus */
+   case 11:                           /* JobStatus */
       buf[1] = 0;
       buf[0] = jcr->JobStatus;
       return Py_BuildValue(getvars[i].fmt, buf);
-   case 13:                           /* Priority */
+   case 12:                           /* Priority */
       return Py_BuildValue(getvars[i].fmt, jcr->JobPriority);
-   case 14:                           /* Version */
-      return Py_BuildValue(getvars[i].fmt, VERSION, BDATE);
-   case 15:                           /* Config Dir */
-      return Py_BuildValue(getvars[i].fmt, configfile);
-   case 16:                           /* Working Dir */
-      return Py_BuildValue(getvars[i].fmt, director->working_directory);
-   case 17:                           /* CatalogRes */
+   case 13:                           /* CatalogRes */
       return Py_BuildValue(getvars[i].fmt,
          jcr->catalog->db_name, jcr->catalog->db_address, 
          jcr->catalog->db_user, jcr->catalog->db_password,

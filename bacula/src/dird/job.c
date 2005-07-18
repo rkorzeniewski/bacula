@@ -356,10 +356,10 @@ bail_out:
  * Cancel a job -- typically called by the UA (Console program), but may also
  *              be called by the job watchdog.
  *
- *  Returns: 1 if cancel appears to be successful
- *           0 on failure. Message sent to ua->jcr.
+ *  Returns: true  if cancel appears to be successful
+ *           false on failure. Message sent to ua->jcr.
  */
-int cancel_job(UAContext *ua, JCR *jcr)
+bool cancel_job(UAContext *ua, JCR *jcr)
 {
    BSOCK *sd, *fd;
 
@@ -376,7 +376,7 @@ int cancel_job(UAContext *ua, JCR *jcr)
       bsendmsg(ua, _("JobId %d, Job %s marked to be canceled.\n"),
               jcr->JobId, jcr->Job);
       jobq_remove(&job_queue, jcr); /* attempt to remove it from queue */
-      return 1;
+      return true;
 
    default:
 
@@ -407,7 +407,7 @@ int cancel_job(UAContext *ua, JCR *jcr)
          }
          if (!connect_to_storage_daemon(ua->jcr, 10, SDConnectTimeout, 1)) {
             bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
-            return 0;
+            return false;
          }
          Dmsg0(200, "Connected to storage daemon\n");
          sd = ua->jcr->store_bsock;
@@ -421,7 +421,7 @@ int cancel_job(UAContext *ua, JCR *jcr)
       }
    }
 
-   return 1;
+   return true;
 }
 
 
