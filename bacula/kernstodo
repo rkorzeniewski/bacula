@@ -10,8 +10,6 @@ Version 1.37                Kern (see below)
 Final items for 1.37 before release:
 1. Fix bugs
 -  --without-openssl breaks at least on Solaris.
--  Move Python daemon variables from Job to Bacula object.
-   WorkingDir, ConfigFile
 
 3. Document all the new features (about half done).
 7. Write a bacula-web document
@@ -1369,4 +1367,5 @@ Block Position: 0
 -  Allow cancel of unknown Job
 -  State not saved when closing Win32 FD by icon
 -  bsr-opt-test fails. bsr deleted. Fix.
-
+-  Move Python daemon variables from Job to Bacula object.
+   WorkingDir, ConfigFile
