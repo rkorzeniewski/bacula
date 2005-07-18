@@ -338,7 +338,7 @@ void DEVICE::open_tape_device(int omode)
    }
    /* If busy retry each second for max_open_wait seconds */
 open_again:
-   Dmsg1(500, "Try open %s\n", dev_name);
+   Dmsg1(500, "Try open %s\n", print_name());
    /* Use system open() */
    while ((fd = ::open(dev_name, mode, MODE_RW+nonblocking)) < 0) {
       berrno be;
@@ -377,7 +377,8 @@ open_again:
          ::close(fd);                /* use system close() */
          goto open_again;
       }
-      openmode = mode;               /* save open mode */
+      openmode = omode;              /* save open mode */
+      Dmsg2(100, "openmode=%d %s\n", openmode, mode_to_str(openmode));
       dev_errno = 0;
       set_opened();
       use_count = 1;
@@ -422,6 +423,7 @@ void DEVICE::open_file_device(int omode)
    Dmsg3(29, "open dev: %s dev=%s mode=%s\n", is_dvd()?"DVD":"disk",
          archive_name.c_str(), mode_to_str(omode));
    openmode = omode;
+   Dmsg2(100, "openmode=%d %s\n", openmode, mode_to_str(openmode));
    
    set_mode(omode);
    /* If creating file, give 0640 permissions */
@@ -486,6 +488,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
       is_dvd()?"DVD":"disk", archive_name.c_str(), mode_to_str(omode),
       part, num_parts);
    openmode = omode;
+   Dmsg2(100, "openmode=%d %s\n", openmode, mode_to_str(openmode));
    
    /*
     * If we are not trying to access the last part, set mode to 
@@ -522,6 +525,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
          fd = ::open(archive_name.c_str(), mode, 0640);  /* try on spool */
       }
    }
+   Dmsg1(100, "after open fd=%d\n", fd);
    if (fd >= 0) {
       /* Get size of file */
       if (fstat(fd, &filestat) < 0) {
@@ -539,17 +543,21 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
          set_opened();
          use_count = 1;
          update_pos_dev(this);                /* update position */
-         /* Just created Volume */
-         if (omode == OPEN_READ_WRITE && part_size == 0) {
+         /* Check if just created Volume  part */
+         if (omode == OPEN_READ_WRITE && (part == 0 || part_size == 0)) {
             part++;
-            num_parts++;
+            num_parts = part;
             VolCatInfo.VolCatParts = num_parts;
+         } else {
+            if (part == 0) {             /* we must have opened the first part */
+               part++;
+            }
          }
       }
    }
    Dmsg4(29, "open dev: DVD fd=%d opened, part=%d nump=%d, part_size=%u\n", 
       fd, part, num_parts, part_size);
-   if (is_open() && is_dvd() && (omode != OPEN_READ_ONLY) && 
+   if (is_open() && (omode != OPEN_READ_ONLY) && 
        (free_space_errno == 0 || num_parts == part)) {
       update_free_space_dev(this);
    }
@@ -560,7 +568,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
 #undef rewind_dev
 bool _rewind_dev(char *file, int line, DEVICE *dev)
 {
-   Dmsg2(100, "rewind_dev called from %s:%d\n", file, line);
+   Dmsg3(100, "rewind_dev fd=%d called from %s:%d\n", dev->fd, file, line);
    return rewind_dev(dev);
 }
 #endif
@@ -575,7 +583,7 @@ bool rewind_dev(DEVICE *dev)
    struct mtop mt_com;
    unsigned int i;
 
-   Dmsg1(29, "rewind_dev %s\n", dev->print_name());
+   Dmsg2(29, "rewind_dev fd=%d %s\n", dev->fd, dev->print_name());
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
       Mmsg1(dev->errmsg, _("Bad call to rewind_dev. Device %s not open\n"),
@@ -1656,6 +1664,7 @@ static void do_close(DEVICE *dev)
    dev->file_size = 0;
    dev->file_addr = 0;
    dev->part = 0;
+   dev->num_parts = 0;
    dev->part_size = 0;
    dev->part_start = 0;
    dev->EndFile = dev->EndBlock = 0;

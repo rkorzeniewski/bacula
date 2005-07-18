@@ -47,7 +47,7 @@ Document:
 - On Win32 working directory must have drive letter ????
 - On Win32 working directory must be writable by SYSTEM to
   do restores.
-
+- Clean up working extensions: db, pid, state, bsr, mail, conmsg, spool
 
 
 For 1.39:
