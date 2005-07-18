@@ -5,6 +5,8 @@ General:
 
 Changes to 1.37.31:
 18Jul05
+- Make all files in working directory have .xxx at end.
+- Work on DVD writing.
 - Fix keepatime bug (bugs database).
 - Move Python variables from Job to Bacula. They are
   DirName, Version, ConfigFile, and WorkingDir
