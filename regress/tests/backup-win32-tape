@@ -1,0 +1,54 @@
+#!/bin/sh
+#
+# Run a simple backup of the Bacula build directory 
+#   to a tape then restore it, we do that twice to ensure that
+#   we can correctly append to a tape.
+#
+cwd=`pwd`
+scripts/copy-win32-confs
+scripts/cleanup-tape
+
+echo "${cwd}/build" >/tmp/file-list
+
+echo " "
+echo " "
+echo " === Starting Backup Win32 tape test at `date +%R:%S` ==="
+echo " === Starting Backup Win32 tape test at `date +%R:%S` ===" >>working/log
+echo " "
+
+bin/bacula start 2>&1 >/dev/null
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
+@output /dev/null
+messages
+@tee tmp/log1.out
+label storage=DDS-4 volume=TestVolume001 slot=0
+run job=NightlySave yes
+@sleep 10
+status storage=DDS-4
+wait
+messages
+@# 
+@# now do a restore
+@#
+@#output tmp/log2.out
+@#restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
+@#yes
+@#wait
+@#messages
+END_OF_DATA
+scripts/check_for_zombie_jobs storage=DDS-4
+
+bin/bacula stop 2>&1 >/dev/null
+grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
+bstat=$?
+if [ $bstat != 0 ] ; then
+   echo " "
+   echo " "
+   echo "  !!!!! Backup Win32 tape test failed!!! !!!!! "
+   echo "  !!!!! Backup Win32 tape test failed!!! !!!!! " >>test.out
+   echo " "
+else
+   echo "  ===== Backup Win32 tape test OK ===== "
+   echo "  ===== Backup Win32 tape test OK ===== " >>test.out
+   scripts/cleanup
+fi

@@ -5,16 +5,16 @@
 cp test.out test1.out
 tests/test0
 tests/backup-bacula-tape
-tests/small-file-size-tape
-tests/restore-by-file-tape
-tests/incremental-tape
-tests/four-concurrent-jobs-tape
-tests/four-jobs-tape
-tests/fixed-block-size-tape
 tests/bscan-tape
 tests/btape-fill-tape
-tests/truncate-bug-tape
+tests/fixed-block-size-tape
+tests/four-concurrent-jobs-tape
+tests/four-jobs-tape
+tests/incremental-tape
 tests/relabel-tape
+tests/restore-by-file-tape
+tests/small-file-size-tape
+tests/truncate-bug-tape
 echo " "
 echo " "
 echo "Test results"
