@@ -132,7 +132,7 @@ BSC32_FLAGS=/nologo /o"$(OUTDIR)\baculafd.bsc"
 BSC32_SBRS= \
         
 LINK32=link.exe
-LINK32_FLAGS=user32.lib advapi32.lib gdi32.lib wsock32.lib shell32.lib pthreadVCE.lib zlib.lib /nologo /subsystem:windows /pdb:none /machine:I386 /nodefaultlib:"MSVCRT.lib" /out:"$(OUTDIR)\bacula-fd.exe" /libpath:"../../../../depkgs-win32/pthreads" /libpath:"../../../../depkgs-win32/zlib" 
+LINK32_FLAGS=user32.lib advapi32.lib gdi32.lib wsock32.lib shell32.lib pthreadVCE.lib zlib.lib /nologo /subsystem:windows /pdb:none /machine:I386 /nodefaultlib:"MSVCRT" /out:"$(OUTDIR)\bacula-fd.exe" /libpath:"../../../../depkgs-win32/pthreads" /libpath:"../../../../depkgs-win32/zlib" 
 LINK32_OBJS= \
         "$(INTDIR)\address_conf.obj" \
         "$(INTDIR)\alist.obj" \
@@ -486,7 +486,7 @@ BSC32_SBRS= \
 <<
 
 LINK32=link.exe
-LINK32_FLAGS=user32.lib advapi32.lib gdi32.lib shell32.lib wsock32.lib pthreadVCE.lib zlib.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /pdb:none /debug /machine:I386 /nodefaultlib:"MSVCRT.lib" /out:"$(OUTDIR)\bacula-fd.exe" /libpath:"../../../../depkgs-win32/pthreads" /libpath:"../../../../depkgs-win32/zlib" 
+LINK32_FLAGS=user32.lib advapi32.lib gdi32.lib shell32.lib wsock32.lib pthreadVCE.lib zlib.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /pdb:none /debug /machine:I386 /nodefaultlib:"MSVCRT" /out:"$(OUTDIR)\bacula-fd.exe" /libpath:"../../../../depkgs-win32/pthreads" /libpath:"../../../../depkgs-win32/zlib" 
 LINK32_OBJS= \
         "$(INTDIR)\address_conf.obj" \
         "$(INTDIR)\alist.obj" \

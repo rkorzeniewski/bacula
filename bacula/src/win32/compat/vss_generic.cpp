@@ -131,15 +131,15 @@ inline wstring GetUniqueVolumeNameForPath(wstring path)
     WCHAR volumeUniqueName[MAX_PATH];
 
     if (!GetVolumePathNameW((LPCWSTR)path.c_str(), volumeRootPath, MAX_PATH))
-      return L'\0';
+      return L"";
     
     // Get the volume name alias (might be different from the unique volume name in rare cases)
     if (!GetVolumeNameForVolumeMountPointW(volumeRootPath, volumeName, MAX_PATH))
-       return L'\0';
+       return L"";
     
     // Get the unique volume name    
     if (!GetVolumeNameForVolumeMountPointW(volumeName, volumeUniqueName, MAX_PATH))
-       return L'\0';
+       return L"";
     
     return volumeUniqueName;
 }
