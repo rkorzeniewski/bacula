@@ -4,7 +4,7 @@
 # Should always exit with 0 status, otherwise it indicates a serious error.
 # (wrong number of arguments, Python exception...)
 #
-#  called:  dvd-freespace <dvd-device-name> <part-number>
+#  called:  dvd-freespace <dvd-device-name>
 #
 #
 # returns:
@@ -15,17 +15,11 @@
 # $Id$
 
 # Configurable values:
-mkisofs="@MKISOFS@"
-growisofs="@GROWISOFS@"
+df="@DF@"
 dvdrwmediainfo="@DVDRWMEDIAINFO@"
 
 margin=10485760 # 10 mb security margin
 
-growisofsparams=""
-
-# Uncomment the following line if you have a Linux kernel >=2.6.8, and
-# if you want to allow a session to start behind the 4gb boundary.
-#growisofsparams = growisofsparams + " -use-the-force-luke=4gms"
 
 # end of configurable values
 
@@ -34,14 +28,11 @@ import os
 import errno
 import sys
 
-if len(sys.argv) != 3:
-   print "Wrong number of argument."
+if len(sys.argv) < 2:
+   print "Wrong number of arguments."
    sys.exit(1)
 
 device=sys.argv[1]
-part_num=int(sys.argv[2])
-
-os.environ["MKISOFS"] = mkisofs
 
 def gettotalsize():
    cmd=dvdrwmediainfo + " " + device
@@ -83,17 +74,12 @@ def gettotalsize():
 	 print "Cannot get media lead-out index from " + dvdrwmediainfo
 	 sys.exit(0)
 
-if part_num == 0:
-   flag = "-Z"
-else:
-   flag = "-M"
-# the growisofs at the end is a dummy
-cmd=growisofs + " " + growisofsparams + " -use-the-force-luke=tty -dry-run -quiet " + flag + " " + device + " -R " + growisofs
+cmd=df + " " + device
 process = popen2.Popen4(cmd)
 status = process.wait()
 if not os.WIFEXITED(status):
    print -errno.EPIPE
-   print growisofs + " process did not not exit correctly."
+   print df + " process did not not exit correctly."
    sys.exit(0)
 
 exitstat = os.WEXITSTATUS(status) & ~0x80
@@ -105,23 +91,33 @@ if exitstat != 0:
    print -exitstat
    print os.strerror(exitstat)
    sys.exit(0)
+size = 0
 while 1:
    result = process.fromchild.readline()
    if not result:
       print -errno.EPIPE
-      print "Cannot find the seek argument in the output from " + growisofs
+      print "Cannot get output from " + df
       sys.exit(0)
-   index = result.find("seek=")
-   if index > -1:
-      res = result[index+5:-2]
+   index = result.find(device)
+   if index > -1: 
+      while result[index] != ' ':
+	 index += 1
+      while result[index] == ' ':
+	 index += 1
+      eindex = index;
+      while result[eindex] != ' ':
+	 eindex += 1
+      res = result[index:eindex] 
       if not res.isdigit():
-	 print -errno.EPIPE
-	 print "Wrong seek argument in the output from " + growisofs
+	 print -errno.EPIPE;
+	 print "Could not find size in df output"
 	 sys.exit(0)
-      size = long(res)*32*1024
-      size = gettotalsize()-(size+margin)
-      if size < 0:
-	 size = 0
-      print size
-      print "No error occurred"
-      sys.exit(0)
+      size = long(res)*1024
+      break
+
+size = gettotalsize()-(size+margin)
+if size < 0:
+   size = 0
+print size
+print "No error occurred"
+sys.exit(0)

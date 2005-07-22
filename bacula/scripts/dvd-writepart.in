@@ -9,8 +9,8 @@
 #  Write Part Command = "path-to-this-script/dvd-writepart %n %a %v"
 #    you will have the following input to this script:
 #
-#  dvd-writepart "part_number"	  "device"  "part_filename"
-#		      $1	     $2 	  $3
+#  dvd-writepart "erase"  "device"  "part_filename"
+#		    $1	     $2 	  $3
 #
 #  for example:
 #
@@ -39,11 +39,11 @@ if test $# -ne 3 ; then
 fi
 
 # Setup arguments
-partnum=$1
+erase=$1
 dev=$2
 filename=$3
 
-if test $partnum = 1 ; then
+if test $erase = 1 ; then
   arg="-Z"
 else
   arg="-M"  

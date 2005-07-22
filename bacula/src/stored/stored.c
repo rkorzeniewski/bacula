@@ -33,6 +33,7 @@
 /* Forward referenced functions */
 void terminate_stored(int sig);
 static int check_resources();
+static void cleanup_old_files();
 
 extern "C" void *device_initialization(void *arg);
 
@@ -204,6 +205,9 @@ int main (int argc, char *argv[])
    read_state_file(me->working_directory, "bacula-sd", get_first_port_host_order(me->sdaddrs));
 
    drop(uid, gid);
+
+   cleanup_old_files();
+
 
    /* Ensure that Volume Session Time and Id are both
     * set and are both non-zero.
@@ -441,6 +445,22 @@ static int check_resources()
 
    return OK;
 }
+
+static void cleanup_old_files()
+{
+   POOLMEM *cleanup = get_pool_memory(PM_MESSAGE);
+   int len = strlen(me->working_directory);
+   pm_strcpy(cleanup, "/bin/rm -f ");
+   pm_strcat(cleanup, me->working_directory);
+   if (len > 0 && me->working_directory[len-1] != '/') {
+      pm_strcat(cleanup, "/");
+   }
+   pm_strcat(cleanup, my_name);
+   pm_strcat(cleanup, "*.spool");
+   run_program(cleanup, 0, NULL);
+   free_pool_memory(cleanup);
+}      
+
 
 /*
  * Here we attempt to init and open each device. This is done

@@ -4,6 +4,21 @@
 General:
 
 Changes to 1.37.31:
+22Jul05
+- Add check for df path for dvd_freespace
+- Use df to get space used on DVD.
+- Change sense of flag indicating erase DVD or not before writing.
+- Fix bpipe so that it never modifies the result pointer.
+- Replace more dev_name by print_name().
+- Rewrite edit_device_codes_dev() so it does not overwrite the
+  supplied buffer.
+- Update printing of labels (for bls) so that critical information
+  is printed (Job name and timestamp).
+- Cleanup old spool files when starting the SD.
+- Modify vss.cpp to allow C: as a path name.  Otherwise VSS
+  doesn't work when only a drive name is given.
+- Modify vss.c to eliminate double / in filenames.
+- Update doc -- particularly the restore chapter.
 18Jul05
 - Make all files in working directory have .xxx at end.
 - Work on DVD writing.

@@ -5,26 +5,21 @@
  *
  *   Version $Id$
  */
-
 /*
-   Copyright (C) 2002-2004 Kern Sibbald and John Walker
+   Copyright (C) 2002-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
+
 
 #include "bacula.h"
 #include "jcr.h"
@@ -255,16 +250,16 @@ int run_program(char *prog, int wait, POOLMEM *results)
    int stat1, stat2;
    char *mode;
 
-   if (results) {
-      results[0] = 0;
-   }
    mode = (char *)(results != NULL ? "r" : "");
    bpipe = open_bpipe(prog, wait, mode);
    if (!bpipe) {
       return ENOENT;
    }
    if (results) {
-      fgets(results, sizeof_pool_memory(results), bpipe->rfd);
+      results[0] = 0;
+      int len = sizeof_pool_memory(results) - 1;
+      fgets(results, len, bpipe->rfd);
+      results[len] = 0;
       if (feof(bpipe->rfd)) {
          stat1 = 0;
       } else {
@@ -307,26 +302,25 @@ int run_program_full_output(char *prog, int wait, POOLMEM *results)
       return run_program(prog, wait, NULL);
    }
    
+   sm_check(__FILE__, __LINE__, false);
+
    tmp = get_pool_memory(PM_MESSAGE);
    
    mode = (char *)"r";
    bpipe = open_bpipe(prog, wait, mode);
    if (!bpipe) {
+      if (results) {
+         results[0] = 0;
+      }
       return ENOENT;
    }
    
-   results[0] = 0;
-
+   sm_check(__FILE__, __LINE__, false);
+   tmp[0] = 0;
    while (1) {
-      tmp[0] = 0;
-      fgets(tmp, sizeof_pool_memory(tmp), bpipe->rfd);
-      Dmsg1(800, "Run program fgets=%s", tmp);
-      /* ***FIXME****
-       *   we need to pass POOL_MEM &results as arg to ensure
-       *   that change in address of results is passed back
-       */
-     //   pm_strcat(results, tmp);
-      bstrncat(results, tmp, sizeof_pool_memory(results));
+      char buf[1000];
+      fgets(buf, sizeof(buf), bpipe->rfd);
+      pm_strcat(tmp, buf);
       if (feof(bpipe->rfd)) {
          stat1 = 0;
          Dmsg1(900, "Run program fgets stat=%d\n", stat1);
@@ -342,7 +336,9 @@ int run_program_full_output(char *prog, int wait, POOLMEM *results)
          Dmsg1(900, "Run program fgets stat=%d\n", stat1);
       }
    }
-   
+   int len = sizeof_pool_memory(results) - 1;
+   bstrncpy(results, tmp, len);
+   Dmsg3(1900, "resadr=0x%x reslen=%d res=%s\n", results, strlen(results), results);
    stat2 = close_bpipe(bpipe);
    stat1 = stat2 != 0 ? stat2 : stat1;
    
