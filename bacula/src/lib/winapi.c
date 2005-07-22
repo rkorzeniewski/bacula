@@ -6,22 +6,17 @@
  *     Kern Sibbald MMIII
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2003-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -39,35 +34,35 @@
 DWORD  g_platform_id = VER_PLATFORM_WIN32_WINDOWS;
 #ifdef WIN32_VSS
 /* preset VSSClient to NULL */
-VSSClient* g_pVSSClient = NULL;
+VSSClient *g_pVSSClient = NULL;
 #endif
 
 
 /* API Pointers */
 
-t_OpenProcessToken	p_OpenProcessToken = NULL;
+t_OpenProcessToken      p_OpenProcessToken = NULL;
 t_AdjustTokenPrivileges p_AdjustTokenPrivileges = NULL;
-t_LookupPrivilegeValue	p_LookupPrivilegeValue = NULL;
+t_LookupPrivilegeValue  p_LookupPrivilegeValue = NULL;
 
 t_SetProcessShutdownParameters p_SetProcessShutdownParameters = NULL;
 
-t_CreateFileA	p_CreateFileA = NULL;
-t_CreateFileW	p_CreateFileW = NULL;
+t_CreateFileA   p_CreateFileA = NULL;
+t_CreateFileW   p_CreateFileW = NULL;
 
 t_wunlink p_wunlink = NULL;
 t_wmkdir p_wmkdir = NULL;
 t_wopen p_wopen = NULL;
 
-t_GetFileAttributesA	p_GetFileAttributesA = NULL;
-t_GetFileAttributesW	p_GetFileAttributesW = NULL;
+t_GetFileAttributesA    p_GetFileAttributesA = NULL;
+t_GetFileAttributesW    p_GetFileAttributesW = NULL;
 
-t_GetFileAttributesExA	p_GetFileAttributesExA = NULL;
-t_GetFileAttributesExW	p_GetFileAttributesExW = NULL;
+t_GetFileAttributesExA  p_GetFileAttributesExA = NULL;
+t_GetFileAttributesExW  p_GetFileAttributesExW = NULL;
 
-t_SetFileAttributesA	p_SetFileAttributesA = NULL;
-t_SetFileAttributesW	p_SetFileAttributesW = NULL;
-t_BackupRead		p_BackupRead = NULL;
-t_BackupWrite		p_BackupWrite = NULL;
+t_SetFileAttributesA    p_SetFileAttributesA = NULL;
+t_SetFileAttributesW    p_SetFileAttributesW = NULL;
+t_BackupRead            p_BackupRead = NULL;
+t_BackupWrite           p_BackupWrite = NULL;
 t_WideCharToMultiByte p_WideCharToMultiByte = NULL;
 t_MultiByteToWideChar p_MultiByteToWideChar = NULL;
 
@@ -162,7 +157,7 @@ InitWinAPIWrapper()
       /* wopen */
       p_wopen = (t_wopen)
       GetProcAddress(hLib, "_wopen");
-	
+        
       FreeLibrary(hLib);
    }
    
@@ -197,12 +192,12 @@ InitWinAPIWrapper()
       p_BackupRead = NULL;
       p_BackupWrite = NULL;
 
-      p_CreateFileW = NULL;	     
-      p_GetFileAttributesW = NULL;	    
+      p_CreateFileW = NULL;          
+      p_GetFileAttributesW = NULL;          
       p_GetFileAttributesExW = NULL;
-	  
+          
       p_SetFileAttributesW = NULL;
-		
+                
       p_FindFirstFileW = NULL;
       p_FindNextFileW = NULL;
       p_SetCurrentDirectoryW = NULL;
@@ -217,15 +212,15 @@ InitWinAPIWrapper()
 #ifdef WIN32_VSS
    switch (dwMinorVersion) {
       case 1: 
-	 g_pVSSClient = new VSSClientXP();
-	 atexit(VSSCleanup);
-	 break;
+         g_pVSSClient = new VSSClientXP();
+         atexit(VSSCleanup);
+         break;
       case 2: 
-	 g_pVSSClient = new VSSClient2003();
-	 atexit(VSSCleanup);
-	 break;
+         g_pVSSClient = new VSSClient2003();
+         atexit(VSSCleanup);
+         break;
    }
-#endif
+#endif /* WIN32_VSS */
 }
 
 #endif

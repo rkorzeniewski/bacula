@@ -474,23 +474,22 @@ void* console_thread::Entry() {
    return NULL;
 }
 
-void console_thread::Write(const char* str) {
+void console_thread::Write(const char* str) 
+{
    if (UA_sock) {
        UA_sock->msglen = strlen(str);
        pm_strcpy(&UA_sock->msg, str);
        bnet_send(UA_sock);
-   }
-   else if (choosingdirector) {
-
+   } else if (choosingdirector) {
 //      wxString number = str;
 //      number.RemoveLast(); /* Removes \n */
       long val;
       
 //      if (number.ToLong(&val)) {
-      if (val = atol(str)) {
+      val = atol(str);
+      if (val) {
          directorchoosen = (int)val;
-      }
-      else {
+      } else {
          directorchoosen = 0;
       }
    }

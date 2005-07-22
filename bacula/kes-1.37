@@ -5,6 +5,13 @@ General:
 
 Changes to 1.37.31:
 22Jul05
+- Correct compiler complaints in wx-console and tray-monitor.
+- Correct VSS problems recognizing c:
+- Add VSS before job status
+- Fix output of status from being one big line.
+- Change cd xx; make to cd xx && make as suggested by Phil.
+- Cleanup projects file
+- Remove unnecessary casting of FF_PKT in filed.
 - Apply Thorsten's bugfix for vss_generic.cpp
 - Add check for df path for dvd_freespace
 - Use df to get space used on DVD.

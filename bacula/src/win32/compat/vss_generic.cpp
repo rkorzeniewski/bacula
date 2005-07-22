@@ -272,8 +272,7 @@ void VSSClientGeneric::WaitAndCheckForAsyncOperation(IVssAsync* pAsync)
     hr = pAsync->QueryStatus(&hrReturned, NULL);
 
     // Check if the async operation succeeded...
-    if(FAILED(hrReturned))
-    {
+    if(FAILED(hrReturned)) {
       PWCHAR pwszBuffer = NULL;
       DWORD dwRet = ::FormatMessageW(
          FORMAT_MESSAGE_ALLOCATE_BUFFER 
@@ -284,10 +283,7 @@ void VSSClientGeneric::WaitAndCheckForAsyncOperation(IVssAsync* pAsync)
          (LPWSTR)&pwszBuffer, 0, NULL);
 
       // No message found for this error. Just return <Unknown>
-      if (dwRet != 0)
-      {
-         // Convert the message into wstring         
-    
+      if (dwRet != 0) {
          LocalFree(pwszBuffer);         
       }
     }
@@ -304,7 +300,7 @@ BOOL VSSClientGeneric::CreateSnapshots(char* szDriveLetters)
 
    m_uidCurrentSnapshotSet = GUID_NULL;
 
-   IVssBackupComponents* pVss = (IVssBackupComponents*) m_pVssObject;
+   IVssBackupComponents *pVss = (IVssBackupComponents*)m_pVssObject;
 
    // 1. InitializeForBackup
    HRESULT hr = pVss->InitializeForBackup();

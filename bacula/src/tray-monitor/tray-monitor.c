@@ -566,18 +566,16 @@ static int authenticate_daemon(monitoritem* item, JCR *jcr) {
    switch (item->type) {
    case R_DIRECTOR:
       return authenticate_director(jcr, monitor, (DIRRES*)item->resource);
-      break;
    case R_CLIENT:
       return authenticate_file_daemon(jcr, monitor, (CLIENT*)item->resource);
-      break;
    case R_STORAGE:
       return authenticate_storage_daemon(jcr, monitor, (STORE*)item->resource);
-      break;
    default:
       printf("Error, currentitem is not a Client or a Storage..\n");
       gtk_main_quit();
       return FALSE;
    }
+   return false;
 }
 
 static gboolean blink(gpointer data) {

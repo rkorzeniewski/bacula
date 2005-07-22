@@ -44,7 +44,9 @@ static char DotStatusJob[] = "JobId=%d JobStatus=%c JobErrors=%d\n";
 static int privs = 0;
 #endif
 #ifdef WIN32_VSS
+#include "vss.h"
 #define VSS " VSS"
+extern VSSClient *g_pVSSClient;
 #else
 #define VSS ""
 #endif
@@ -74,50 +76,43 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
       if (!privs) {
          privs = enable_backup_privileges(NULL, 1);
       }
-      len = Mmsg(msg,
-     _(" Priv 0x%x\n APIs=%sOPT,%sATP,%sLPV,%sCFA,%sCFW,\n"
-     " %sWUL,%sWMKD,%sWOP,%sGFAA,%sGFAW,%sGFAEA,%sGFAEW,%sSFAA,%sSFAW,%sBR,%sBW,%sSPSP,\n" 
-     " %sWC2MB,%sMB2WC,%sFFFA,%sFFFW,%sFNFA,%sFNFW,%sSCDA,%sSCDW,\n"
-     " %sGCDA,%sGCDW\n"), 
-     privs,
-         p_OpenProcessToken?"":"!",
-         p_AdjustTokenPrivileges?"":"!",
-         p_LookupPrivilegeValue?"":"!",
-
-    p_CreateFileA?"":"!",
-         p_CreateFileW?"":"!",
-
-    p_wunlink?"":"!",
-    p_wmkdir?"":"!",
-    p_wopen?"":"!",
-
-    p_GetFileAttributesA?"":"!",
-    p_GetFileAttributesW?"":"!",
-
-    p_GetFileAttributesExA?"":"!",
-         p_GetFileAttributesExW?"":"!",
-
-    p_SetFileAttributesA?"":"!",
-         p_SetFileAttributesW?"":"!",
-         p_BackupRead?"":"!",
-         p_BackupWrite?"":"!",
-         p_SetProcessShutdownParameters?"":"!",
-
-    p_WideCharToMultiByte?"":"!",
-    p_MultiByteToWideChar?"":"!",
-
-    p_FindFirstFileA?"":"!",
-    p_FindFirstFileW?"":"!",
-
-    p_FindNextFileA?"":"!",
-    p_FindNextFileW?"":"!",
-
-    p_SetCurrentDirectoryA?"":"!",
-    p_SetCurrentDirectoryW?"":"!",
-
-    p_GetCurrentDirectoryA?"":"!",
-    p_GetCurrentDirectoryW?"":"!");
+      len = Mmsg(msg, "Priv 0x%x\n", privs);
       sendit(msg, len, arg);
+      len = Mmsg(msg, "APIs=%sOPT,%sATP,%sLPV,%sCFA,%sCFW,\n",
+                 p_OpenProcessToken?"":"!",
+                 p_AdjustTokenPrivileges?"":"!",
+                 p_LookupPrivilegeValue?"":"!",
+                 p_CreateFileA?"":"!",
+                 p_CreateFileW?"":"!");
+      sendit(msg, len, arg);
+      len = Mmsg(msg, " %sWUL,%sWMKD,%sWOP,%sGFAA,%sGFAW,%sGFAEA,%sGFAEW,%sSFAA,%sSFAW,%sBR,%sBW,%sSPSP,\n",
+                 p_wunlink?"":"!",
+                 p_wmkdir?"":"!",
+                 p_wopen?"":"!",
+                 p_GetFileAttributesA?"":"!",
+                 p_GetFileAttributesW?"":"!",
+                 p_GetFileAttributesExA?"":"!",
+                 p_GetFileAttributesExW?"":"!",
+                 p_SetFileAttributesA?"":"!",
+                 p_SetFileAttributesW?"":"!",
+                 p_BackupRead?"":"!",
+                 p_BackupWrite?"":"!",
+                 p_SetProcessShutdownParameters?"":"!");
+      sendit(msg, len, arg);
+      len = Mmsg(msg, " %sWC2MB,%sMB2WC,%sFFFA,%sFFFW,%sFNFA,%sFNFW,%sSCDA,%sSCDW,\n",
+                 p_WideCharToMultiByte?"":"!",
+                 p_MultiByteToWideChar?"":"!",
+                 p_FindFirstFileA?"":"!",
+                 p_FindFirstFileW?"":"!",
+                 p_FindNextFileA?"":"!",
+                 p_FindNextFileW?"":"!",
+                 p_SetCurrentDirectoryA?"":"!",
+                 p_SetCurrentDirectoryW?"":"!");
+      sendit(msg, len, arg);
+      len = Mmsg(msg, " %sGCDA,%sGCDW\n",  
+                 p_GetCurrentDirectoryA?"":"!",
+                 p_GetCurrentDirectoryW?"":"!");
+     sendit(msg, len, arg);
    }
 #endif
    if (debug_level > 0) {
@@ -140,6 +135,12 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
    Dmsg0(1000, "Begin status jcr loop.\n");
    len = Mmsg(msg, _("Running Jobs:\n"));
    sendit(msg, len, arg);
+   char *vss = "";
+#ifdef WIN32_VSS
+   if (g_pVSSClient && g_pVSSClient->IsInitialized()) {
+      vss = "VSS ";
+   }
+#endif
    foreach_jcr(njcr) {
       bstrftime_nc(dt, sizeof(dt), njcr->start_time);
       if (njcr->JobId == 0) {
@@ -148,8 +149,8 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
          len = Mmsg(msg, _("JobId %d Job %s is running.\n"),
                     njcr->JobId, njcr->Job);
          sendit(msg, len, arg);
-         len = Mmsg(msg, _("    %s Job started: %s\n"),
-                    job_type_to_str(njcr->JobType), dt);
+         len = Mmsg(msg, _("    %s%s Job started: %s\n"),
+                    vss, job_type_to_str(njcr->JobType), dt);
       }
       sendit(msg, len, arg);
       if (njcr->JobId == 0) {

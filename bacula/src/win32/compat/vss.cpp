@@ -113,7 +113,7 @@ BOOL VSSClient::InitializeForBackup()
 
 
 
-BOOL VSSClient::GetShadowPath (const char* szFilePath, char* szShadowPath, int nBuflen)
+BOOL VSSClient::GetShadowPath (const char *szFilePath, char *szShadowPath, int nBuflen)
 {
    if (!m_bBackupIsInitialized)
       return FALSE;
@@ -129,15 +129,14 @@ BOOL VSSClient::GetShadowPath (const char* szFilePath, char* szShadowPath, int n
    if (bIsValidName) {
       int nDriveIndex = toupper(szFilePath[0])-'A';
       if (m_szShadowCopyName[nDriveIndex][0] != 0) {
-         strncpy (szShadowPath, m_szShadowCopyName[nDriveIndex], nBuflen);
-         nBuflen -= (int) strlen (m_szShadowCopyName[nDriveIndex]);
-         strncat (szShadowPath, szFilePath+2,nBuflen);
-
+         strncpy(szShadowPath, m_szShadowCopyName[nDriveIndex], nBuflen);
+         nBuflen -= (int)strlen(m_szShadowCopyName[nDriveIndex]);
+         strncat(szShadowPath, szFilePath+2, nBuflen);
          return TRUE;
       }
    }
    
-   strncpy (szShadowPath,  szFilePath, nBuflen);
+   strncpy(szShadowPath,  szFilePath, nBuflen);
    return FALSE;   
 }
 

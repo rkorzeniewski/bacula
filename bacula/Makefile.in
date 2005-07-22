@@ -113,34 +113,34 @@ install-menu-consolehelper: gnomedirs
 	ln -s $(DESTDIR)/usr/bin/consolehelper $(DESTDIR)/usr/bin/gnome-console
 
 install: installdirs
-	@for I in $(all_subdirs); do (cd $$I; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1); done
+	@for I in $(all_subdirs); do (cd $$I && $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1); done
 
 uninstall:
-	@for I in $(all_subdirs); do (cd $$I; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1); done
+	@for I in $(all_subdirs); do (cd $$I && $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1); done
 
 install-autostart:
-	(cd platforms; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1) 
+	(cd platforms && $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1) 
 
 install-autostart-dir:
-	(cd platforms; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1) 
+	(cd platforms && $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1) 
 
 install-autostart-fd:
-	(cd platforms; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1) 
+	(cd platforms && $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1) 
 
 install-autostart-sd:
-	(cd platforms; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1) 
+	(cd platforms && $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1) 
 
 uninstall-autostart:
-	(cd platforms; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1)
+	(cd platforms && $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1)
 
 uninstall-autostart-dir:
-	(cd platforms; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1)
+	(cd platforms && $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1)
 
 uninstall-autostart-fd:
-	(cd platforms; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1)
+	(cd platforms && $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1)
 
 uninstall-autostart-sd:
-	(cd platforms; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1)
+	(cd platforms && $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1)
 
 uninstall-menu:
 	rm -f $(DESTDIR)/usr/share/pixmaps/bacula.png
@@ -188,10 +188,10 @@ clean:
 
 # clean for distribution
 distclean:
-	@for I in $(all_subdirs); do (cd $$I; $(MAKE) $@ || exit 1); done
-	@for I in $(all_subdirs); do (cd $$I; $(RMF) startit stopit btraceback); done
-	@(cd $(srcdir); $(RMF) *~ config.cache config.h config.log config.status config.out)
-	@(cd $(srcdir); $(RMF) Makefile autoconf/Make.common)
+	@for I in $(all_subdirs); do (cd $$I && $(MAKE) $@ || exit 1); done
+	@for I in $(all_subdirs); do (cd $$I && $(RMF) startit stopit btraceback); done
+	@(cd $(srcdir) && $(RMF) *~ config.cache config.h config.log config.status config.out)
+	@(cd $(srcdir) && $(RMF) Makefile autoconf/Make.common)
 	@(cd platforms; echo "==>Entering directory `pwd`"; ${MAKE} $@ || exit 1)
 	@$(RMF) bacula fd Makefile startmysql stopmysql startit stopit btraceback
 	@$(RMF) bconsole gconsole
@@ -200,10 +200,10 @@ distclean:
 	@$(RMF) -rf txt diff src/python src/testprogs
 
 devclean:
-	@for I in $(all_subdirs); do (cd $$I; $(MAKE) $@ || exit 1); done
-	@for I in $(all_subdirs); do (cd $$I; $(RMF) startit stopit btraceback); done
-	@(cd $(srcdir); $(RMF) *~ config.cache config.h config.log config.status config.out)
-	@(cd $(srcdir); $(RMF) Makefile autoconf/Make.common)
+	@for I in $(all_subdirs); do (cd $$I && $(MAKE) $@ || exit 1); done
+	@for I in $(all_subdirs); do (cd $$I && $(RMF) startit stopit btraceback); done
+	@(cd $(srcdir) && $(RMF) *~ config.cache config.h config.log config.status config.out)
+	@(cd $(srcdir) && $(RMF) Makefile autoconf/Make.common)
 	@(cd platforms; echo "==>Entering directory `pwd`"; ${MAKE} $@ || exit 1)
 	@$(RMF) bacula fd Makefile startmysql stopmysql startit stopit btraceback
 	@$(RMF) bconsole gconsole
@@ -213,12 +213,12 @@ devclean:
 distdirs:
 	mkdir ../$(VERNAME);
 	mkdir ../$(VERNAME)/autoconf;
-	@for I in $(all_subdirs); do (cd $$I; $(MAKE) DESTDIR=$(DESTDIR) $@ || (echo "Failed to make distclean in $$I"; exit 0) ); done
+	@for I in $(all_subdirs); do (cd $$I && $(MAKE) DESTDIR=$(DESTDIR) $@ || (echo "Failed to make distclean in $$I"; exit 0) ); done
 
 distcopy:
 	$(CP) -p $(DIST) ../$(VERNAME);
 	$(CP) -p $(DIST_CFG) ../$(VERNAME)/autoconf;
-	@for I in $(all_subdirs); do (cd $$I; $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1); done
+	@for I in $(all_subdirs); do (cd $$I && $(MAKE) DESTDIR=$(DESTDIR) $@ || exit 1); done
 
 distrib: configure autoconf/config.h.in distdirs distcopy
 

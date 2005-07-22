@@ -46,6 +46,7 @@ public:
     const size_t GetWriterCount();
     const char* GetWriterInfo(size_t nIndex);
     const int   GetWriterState(size_t nIndex);
+    const BOOL  IsInitialized() { return m_bBackupIsInitialized; };
          
 private:
     virtual BOOL Initialize(DWORD dwContext, BOOL bDuringRestore = FALSE) = 0;
