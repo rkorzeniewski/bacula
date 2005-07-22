@@ -79,10 +79,6 @@
 #define O_NONBLOCK 0
 #endif
 
-/* Functions in dvd.c */ 
-void update_free_space_dev(DEVICE* dev);
-
-
 /* Forward referenced functions */
 void set_os_device_parameters(DEVICE *dev);
 static bool dev_get_os_pos(DEVICE *dev, struct mtget *mt_stat);
@@ -276,7 +272,7 @@ DEVICE::open(DCR *dcr, int omode)
   }
 
    Dmsg4(29, "open dev: tape=%d dev_name=%s vol=%s mode=%s\n", is_tape(),
-         dev_name, VolCatInfo.VolCatName, mode_to_str(omode));
+         print_name(), VolCatInfo.VolCatName, mode_to_str(omode));
    state &= ~(ST_LABEL|ST_APPEND|ST_READ|ST_EOT|ST_WEOT|ST_EOF);
    label_type = B_BACULA_LABEL;
    if (is_tape() || is_fifo()) {
@@ -554,12 +550,6 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
             }
          }
       }
-   }
-   Dmsg4(29, "open dev: DVD fd=%d opened, part=%d nump=%d, part_size=%u\n", 
-      fd, part, num_parts, part_size);
-   if (is_open() && (omode != OPEN_READ_ONLY) && 
-       (free_space_errno == 0 || num_parts == part)) {
-      update_free_space_dev(this);
    }
 }
 

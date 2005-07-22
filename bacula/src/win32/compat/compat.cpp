@@ -5,22 +5,17 @@
 // Copyright transferred from Raider Solutions, Inc to
 //   Kern Sibbald and John Walker by express permission.
 //
-// Copyright (C) 2004-2005 Kern Sibbald
+//  Copyright (C) 2004-2005 Kern Sibbald
 //
-//   This program is free software; you can redistribute it and/or
-//   modify it under the terms of the GNU General Public License as
-//   published by the Free Software Foundation; either version 2 of
-//   the License, or (at your option) any later version.
+//  This program is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU General Public License
+//  version 2 as amended with additional clauses defined in the
+//  file LICENSE in the main source directory.
 //
-//   This program is distributed in the hope that it will be useful,
-//   but WITHOUT ANY WARRANTY; without even the implied warranty of
-//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-//   General Public License for more details.
-//
-//   You should have received a copy of the GNU General Public
-//   License along with this program; if not, write to the Free
-//   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-//   MA 02111-1307, USA.
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+//  the file LICENSE for additional details.
 //
 // Author          : Christopher S. Hull
 // Created On      : Sat Jan 31 15:55:00 2004
@@ -62,6 +57,9 @@ cygwin_conv_to_win32_path(const char *name, char *win32_name, DWORD dwSize)
     char *tname = win32_name;
     while (*name) {
         /* Check for Unix separator and convert to Win32 */
+        if (name[0] == '/' && name[1] == '/') {  /* double slash? */
+           name++;                               /* yes, skip first one */
+        }
         if (*name == '/') {
             *win32_name++ = '\\';     /* convert char */
         /* If Win32 separated that is "quoted", remove quote */
@@ -687,7 +685,7 @@ opendir(const char *path)
        cygwin_conv_to_win32_path(path, tspec, max_len);
     }
 
-    strncat(tspec, "\\*", max_len);
+    bstrncat(tspec, "\\*", max_len);
     rval->spec = tspec;
 
     // convert to WCHAR

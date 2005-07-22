@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     18 July 2005
+                     20 July 2005
 
 Major development:      
 Project                     Developer
@@ -18,44 +18,21 @@ Final items for 1.37 before release:
 -  Test TLS.
 
 Document:
-- Document cleaning up the spool files.
+- Document cleaning up the spool files:
+  db, pid, state, bsr, mail, conmsg, spool
 - Add better documentation on how restores can be done
-- Document details of ANSI/IBM labels
-- Document that Bootstrap files can be written with cataloging
-  turned off.
-- Pruning with Admin job.
-- OS linux 2.4
-  1) ADIC, DLT, FastStor 4000, 7*20GB
-  2) Sun, DDS, (Suns name unknown - Archive Python DDS drive), 1.2GB
-  3) Wangtek, QIC, 6525ES, 525MB (fixed block size 1k, block size etc. 
-  driver dependent - aic7xxx works, ncr53c8xx with problems)
-  4) HP, DDS-2, C1553A, 6*4GB
-- Doc the following
-  to activate, check or disable the hardware compression feature on my 
-  exb-8900 i use the exabyte "MammothTool" you can get it here:
-  http://www.exabyte.com/support/online/downloads/index.cfm
-  There is a solaris version of this tool. With option -C 0 or 1 you can 
-  disable or activate compression. Start this tool without any options for 
-  a small reference.
-- Linux Sony LIB-D81, AIT-3 library works.
-- Document PostgreSQL performance problems bug 131.
-- Document testing
-- Document that ChangerDevice is used for Alert command.
-- Document new CDROM directory.
-- Document Heartbeat Interval in the dealing with firewalls section.
 - Document the multiple-drive-changer.txt script.
-- On Win32 working directory must have drive letter ????
-- On Win32 working directory must be writable by SYSTEM to
-  do restores.
-- Clean up working extensions: db, pid, state, bsr, mail, conmsg, spool
+- Pruning with Admin job.
 
 
 For 1.39:
+- Fix bpipe.c so that it does not modify results pointer.
+  ***FIXME*** calling sequence should be changed.
 1.xx Major Projects:
 #3   Migration (Move, Copy, Archive Jobs)
 #7   Single Job Writing to Multiple Storage Devices
 - Reserve blocks other restore jobs when first cannot connect
-  to SD -- no way to cancel in SD if Dir job canceled.
+  to SD.
 - Add true/false to conf same as yes/no
 - For Windows disaster recovery see http://unattended.sf.net/
 - regardless of the retention period, Bacula will not prune the
@@ -175,6 +152,22 @@ For 1.39:
 
      Make sure this information is stored on the tape too so
      that it can be restored directly from the tape.
+
+  Comments from Martin Simmons (I think they are all covered):
+  Ok, that should cover the basics.  There are few issues though:
+
+  - Restore will depend on the catalog.  I think it is better to include the
+  extra data in the backup as well, so it can be seen by bscan and bextract.
+
+  - I'm not sure if it will preserve multiple hard links to the same inode.  Or
+  maybe adding or removing links will cause the data to be dumped again?
+
+  - I'm not sure if it will handle renamed directories.  Possibly it will work
+  by dumping the whole tree under a renamed directory?
+
+  - It remains to be seen how the backup performance of the DIR's will be
+  affected when comparing the catalog for a large filesystem.
+
 =====
 
 Regression tests:
@@ -1368,3 +1361,22 @@ Block Position: 0
 -  bsr-opt-test fails. bsr deleted. Fix.
 -  Move Python daemon variables from Job to Bacula object.
    WorkingDir, ConfigFile
+- Document that Bootstrap files can be written with cataloging
+  turned off.
+- Document details of ANSI/IBM labels
+- OS linux 2.4
+  1) ADIC, DLT, FastStor 4000, 7*20GB
+- Linux Sony LIB-D81, AIT-3 library works.
+- Doc the following
+  to activate, check or disable the hardware compression feature on my 
+  exb-8900 i use the exabyte "MammothTool" you can get it here:
+  http://www.exabyte.com/support/online/downloads/index.cfm
+  There is a solaris version of this tool. With option -C 0 or 1 you can 
+  disable or activate compression. Start this tool without any options for 
+  a small reference.
+- Document Heartbeat Interval in the dealing with firewalls section.
+- Document new CDROM directory.
+- On Win32 working directory must have drive letter ????
+- On Win32 working directory must be writable by SYSTEM to
+  do restores.
+- Document that ChangerDevice is used for Alert command.

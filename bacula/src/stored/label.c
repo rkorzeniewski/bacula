@@ -983,20 +983,24 @@ void dump_label_record(DEVICE *dev, DEV_RECORD *rec, int verbose)
       }
    } else {
       SESSION_LABEL label;
+      char dt[50];
       switch (rec->FileIndex) {
       case SOS_LABEL:
          unser_session_label(&label, rec);
-         Pmsg8(-1, "%s Record: File:blk=%u:%u SessId=%d SessTime=%d JobId=%d Level=%c Type=%c\n",
-            type, dev->file, dev->block_num, rec->VolSessionId, rec->VolSessionTime, rec->Stream,
-            label.JobLevel, label.JobType);
+         bstrftimes(dt, sizeof(dt), btime_to_unix(label.write_btime));
+         Pmsg6(-1, "%s Record: File:blk=%u:%u SessId=%d SessTime=%d JobId=%d\n",
+            type, dev->file, dev->block_num, rec->VolSessionId, rec->VolSessionTime, label.JobId);
+         Pmsg4(-1, "   Job=%s Date=%s Level=%c Type=%c\n",
+            label.Job, dt, label.JobLevel, label.JobType);
          break;
       case EOS_LABEL:
          char ed1[30], ed2[30];
          unser_session_label(&label, rec);
-         Pmsg8(-1, "%s Record: File:blk=%u:%u SessId=%d SessTime=%d JobId=%d Level=%c Type=%c\n",
-            type, dev->file, dev->block_num, rec->VolSessionId, rec->VolSessionTime, rec->Stream,
-            label.JobLevel, label.JobType);
-         Pmsg4(-1, "   Files=%s Bytes=%s Errors=%d Status=%c\n",
+         bstrftimes(dt, sizeof(dt), btime_to_unix(label.write_btime));
+         Pmsg6(-1, "%s Record: File:blk=%u:%u SessId=%d SessTime=%d JobId=%d\n",
+            type, dev->file, dev->block_num, rec->VolSessionId, rec->VolSessionTime, label.JobId);
+         Pmsg7(-1, "   Date=%s Level=%c Type=%c Files=%s Bytes=%s Errors=%d Status=%c\n",
+            dt, label.JobLevel, label.JobType,
             edit_uint64_with_commas(label.JobFiles, ed1),
             edit_uint64_with_commas(label.JobBytes, ed2),
             label.JobErrors, (char)label.JobStatus);
