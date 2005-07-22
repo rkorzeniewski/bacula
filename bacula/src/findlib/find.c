@@ -121,8 +121,8 @@ get_win32_driveletters(FF_PKT *ff, char* szDrives)
          for (j=0; j<incexe->name_list.size(); j++) {
             char *fname = (char *)incexe->name_list.get(j);
             /* fname should match x:/ */
-            if (strlen (fname) > 3 && B_ISALPHA(fname[0]) 
-               && fname[1] == ':' && fname[2] == '/') {
+            if (strlen(fname) >= 2 && B_ISALPHA(fname[0]) 
+               && fname[1] == ':') {
                
                /* always add in uppercase */
                char ch = toupper(fname[0]);

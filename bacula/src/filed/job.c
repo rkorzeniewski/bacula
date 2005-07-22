@@ -233,7 +233,7 @@ void *handle_client_request(void *dirp)
    bnet_sig(dir, BNET_TERMINATE);
 
    /* Clean up fileset */
-   FF_PKT *ff = (FF_PKT *)jcr->ff;
+   FF_PKT *ff = jcr->ff;
    findFILESET *fileset = ff->fileset;
    if (fileset) {
       int i, j, k;
@@ -287,7 +287,7 @@ void *handle_client_request(void *dirp)
    }
    ff->fileset = NULL;
    Dmsg0(100, "Calling term_find_files\n");
-   term_find_files((FF_PKT *)jcr->ff);
+   term_find_files(jcr->ff);
    jcr->ff = NULL;
    Dmsg0(100, "Done with term_find_files\n");
    free_jcr(jcr);                     /* destroy JCR record */
@@ -502,7 +502,7 @@ static bool init_fileset(JCR *jcr)
    if (!jcr->ff) {
       return false;
    }
-   ff = (FF_PKT *)jcr->ff;
+   ff = jcr->ff;
    if (ff->fileset) {
       return false;
    }
@@ -602,7 +602,7 @@ static void add_file_to_fileset(JCR *jcr, const char *fname, findFILESET *filese
 
 static void add_fileset(JCR *jcr, const char *item)
 {
-   FF_PKT *ff = (FF_PKT *)jcr->ff;
+   FF_PKT *ff = jcr->ff;
    findFILESET *fileset = ff->fileset;
    int state = fileset->state;
    findFOPTS *current_opts;
@@ -739,7 +739,7 @@ static void add_fileset(JCR *jcr, const char *item)
 
 static bool term_fileset(JCR *jcr)
 {
-   FF_PKT *ff = (FF_PKT *)jcr->ff;
+   FF_PKT *ff = jcr->ff;
    findFILESET *fileset = ff->fileset;
    int i, j, k;
 
@@ -1164,7 +1164,7 @@ static int backup_cmd(JCR *jcr)
 
    set_jcr_job_status(jcr, JS_Blocked);
    jcr->JobType = JT_BACKUP;
-   Dmsg1(100, "begin backup ff=%p\n", (FF_PKT *)jcr->ff);
+   Dmsg1(100, "begin backup ff=%p\n", jcr->ff);
 
    if (sd == NULL) {
       Jmsg(jcr, M_FATAL, 0, _("Cannot contact Storage daemon\n"));
@@ -1212,17 +1212,15 @@ static int backup_cmd(JCR *jcr)
 
 #ifdef WIN32_VSS
    /* START VSS ON WIN 32 */
-   if (g_pVSSClient && enable_vss == 1) {
+   if (g_pVSSClient && enable_vss) {
       if (g_pVSSClient->InitializeForBackup()) {
          /* tell vss which drives to snapshot */   
          char szWinDriveLetters[27];   
-         if (get_win32_driveletters((FF_PKT *)jcr->ff, szWinDriveLetters)) {
+         if (get_win32_driveletters(jcr->ff, szWinDriveLetters)) {
             Jmsg(jcr, M_INFO, 0, _("Generate VSS snapshots. Driver=\"%s\", Drive(s)=\"%s\"\n"), g_pVSSClient->GetDriverName(), szWinDriveLetters);
-
             if (!g_pVSSClient->CreateSnapshots(szWinDriveLetters)) {
                   Jmsg(jcr, M_WARNING, 0, _("Generate VSS snapshots failed\n"));
-            }
-            else {
+            } else {
                /* tell user if snapshot creation of a specific drive failed */
                size_t i;
                for (i=0; i<strlen (szWinDriveLetters); i++) {
@@ -1234,10 +1232,11 @@ static int backup_cmd(JCR *jcr)
                   int msg_type = M_INFO;
                   if (g_pVSSClient->GetWriterState(i) < 0)
                      msg_type = M_WARNING;
-
                   Jmsg(jcr, msg_type, 0, _("VSS Writer: %s\n"), g_pVSSClient->GetWriterInfo(i));
                }
             }
+         } else {
+            Jmsg(jcr, M_INFO, 0, _("No drive letters found for generating VSS snapshots.\n"));
          }
       } else {
          Jmsg(jcr, M_WARNING, 0, _("VSS was not initialized properly. VSS support is disabled.\n"));

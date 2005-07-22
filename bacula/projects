@@ -1,22 +1,9 @@
                 
 Projects:
                      Bacula Projects Roadmap 
-                       23 April 2005
+                       22 July 2005
 
 The following major projects are scheduled for 1.37:
-#3   Migration (Move, Copy, Archive Jobs)
-#4   Embedded Python Scripting (implemented in all Daemons)
-#5   Events that call a Python program (Implemented in all
-       daemons, but more cleanup work to be done).
-#6   Select one from among Multiple Storage Devices for Job.
-       This is already implemented in 1.37.
-#7   Single Job Writing to Multiple Storage Devices. This is
-       currently implemented with a Clone feature.
-#-   Full multiple drive Autochanger support (mostly implemented).
-#-   We will have built in support for communications 
-       encryption (TLS) done by Landon Fuller.
-#    We will most likely have support for Unicode characters
-       (via UTF-8) on Win32 machines thanks to Thorsten Engle.
 
 
 Below, you will find more information on those projects as
@@ -91,95 +78,34 @@ Item 3:   Implement a Migration job type that will move the job
            Highwater size (keep total size)
            Lowwater mark
 
-
-Item 4:   Embedded Python Scripting (precursor to 5).
-  Status: Implemented in 1.37 in all 3 daemons.
-
-  What:   On a configuration parameter, embed the Python language in
-          Bacula.
-
-  Why:    The embedded Python scripting can be called to implement
-          Events such as "Volume Name needed", "End of Tape",
-          "Tape at x% of rated capacity", "Job started", 
-          "Job Ended", "Job error", ...
-
-  Notes:  This needs Events.
-
-
-Item 5:   Implement Events that call the scripting language.
-  Status: Implemented in 1.37, but more events to complete and
-          more work to be done to cleanup the implementation.
-
-  What:   When a particular user defined Event occurs, call the
-          embedded Python interpreter.
-
-  Why:    This will provide the ultimate in user customization for
-          Bacula. Almost anything imaginable can be done if Events
-          are called at the appropriate place.
-
-  Notes:  There is a certain amount of work to be done on how
-          the user defines or "registers" events.
-
-
-Item 6:   Multiple Storage Devices for a Single Job
-  Status: This is already implemented in 1.37 (at least the
-            initial selection of one from a number of storage
-			devices.
-
-  What:   Allow any Job to specify a number of storage devices,
-          from which one will be used.
-
-  Why:    With two devices, for example, the second device could
-          have the next backup tape pre-mounted reducing operator
-          intervention in the middle of the night.
-
-
-Item 7:   Backup a Single Job Simultaneously to Multiple Storage Devices
-  Status: This will probably not be done in 1.37. However, version
-          1.37 has a job Cloning feature, which permits essentially
-		  the same thing.
-
-  What:   Make two copies of the backup data at the same time.
-
-  Why:    Large shops typically do this and then take one set of
-          backups off-site.  Some design work it needed in how to
-          specify the type of backup (backup, archive, ...) for
-          each Device.
-
-
-
-Item  8:  Break the one-to-one Relationship between a Job and a
-          Specific Storage Device (or Devices if #10 is implemented).
-  Status: Mostly done in 1.37.
-
-  What:   Allow a Job to simply specify one or more MediaType, and
-          the Storage daemon will select a device for it.  In
-          fact, the user should be able to specify one or more
-          MediaType, Storage daemon, and/or device to be used.
-
-  Why:    To allow more flexibility in large shops that have multiple 
-          drives and/or multiple drives of different types.
-
-
 Item  9:  Implement data encryption (as opposed to communications
           encryption)
-  Status: Abel Menos expressed interest in this, but he is busy
-          at work.
-		  
+  Status: Landon Fuller has agreed to work on this.
+                  
   What:   Currently the data that is stored on the Volume is not
           encrypted. For confidentiality, encryption of data at
-          the File daemon level is essential. Note, communications
-          encryption encrypts the data when leaving the File daemon,
-          then decrypts the data on entry to the Storage daemon.
+          the File daemon level is essential. 
           Data encryption encrypts the data in the File daemon and
           decrypts the data in the File daemon during a restore.
 
   Why:    Large sites require this.
 
-  Notes:  The only algorithm that is needed is AES.
-          http://csrc.nist.gov/CryptoToolkit/aes/
 
-
+Items completed for release 1.38.0:
+#4   Embedded Python Scripting (implemented in all Daemons)
+#5   Events that call a Python program (Implemented in all
+       daemons, but more cleanup work to be done).
+#6   Select one from among Multiple Storage Devices for Job.
+       This is already implemented in 1.37.
+#7   Single Job Writing to Multiple Storage Devices. This is
+       currently implemented with a Clone feature.
+#-   Full multiple drive Autochanger support (mostly implemented).
+#-   We will have built in support for communications 
+       encryption (TLS) done by Landon Fuller.
+#    We will most likely have support for Unicode characters
+       (via UTF-8) on Win32 machines thanks to Thorsten Engle.
+Item  8:  Break the one-to-one Relationship between a Job and a
+          Specific Storage Device (or Devices if #10 is implemented).
 
 Completed items from last year's list:
 Item 1:   Multiple simultaneous Jobs. (done)
