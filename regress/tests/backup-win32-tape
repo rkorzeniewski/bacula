@@ -25,6 +25,8 @@ label storage=DDS-4 volume=TestVolume001 slot=0
 run job=NightlySave yes
 @sleep 10
 status storage=DDS-4
+@sleep 30
+messages
 wait
 messages
 @# 
