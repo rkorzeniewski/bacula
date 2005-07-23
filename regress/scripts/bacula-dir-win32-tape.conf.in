@@ -13,7 +13,7 @@
 #
 
 Director {                            # define myself
-  Name = HeadMan
+  Name = @hostname@-dir
   DIRport = 8101                # where we listen for UA connections
   QueryFile = "@scriptdir@/query.sql"
   WorkingDirectory = "@working_dir@"
@@ -58,7 +58,7 @@ FileSet {
   Name = "Full Set"
   Enable VSS = yes
   Include { Options { signature=MD5 }
-    File =  c:
+    File =  "c:"
   }
 }
 
@@ -77,10 +77,10 @@ Schedule {
 # Client (File Services) to backup
 Client {
   Name = Tibs
-  Address = @hostname@
+  Address = tibs
   FDPort = 9102
   Catalog = MyCatalog
-  Password = "EFMzurI0uuuQZkWK8KC2ZzOndK3DHR9EYK9M3oDJH8om"
+  Password = "xBzFq+a9llZyGyfMaNO9e3outP86/1AUAT8P34RoT62G"
   File Retention = 30d                # 30 days
   Job Retention = 180d                # six months
   AutoPrune = yes                     # Prune expired Jobs/Files
@@ -90,7 +90,7 @@ Client {
 # Definition of DDS tape storage device
 Storage {
   Name = DDS-4
-  Address = @hostname@                # N.B. Use a fully qualified name here
+  Address = 192.168.68.112            # N.B. Use a fully qualified name here
   SDPort = 8103
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"          # password for Storage daemon
   Device = DDS-4                      # must be same as Device in Storage daemon

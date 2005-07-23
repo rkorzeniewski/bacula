@@ -1,6 +1,6 @@
 #!/bin/sh
 /bin/cp -f scripts/bacula-dir-win32-tape.conf bin/bacula-dir.conf
-/bin/cp -f scripts/bacula-sd-win32-tape.conf bin/bacula-sd.conf
+/bin/cp -f scripts/bacula-sd-tape.conf bin/bacula-sd.conf
 /bin/cp -f scripts/test-bacula-fd.conf bin/bacula-fd.conf
-/bin/cp -f scripts/bconsole-win32.conf bin/bconsole.conf
+/bin/cp -f scripts/test-console.conf bin/bconsole.conf
 touch bin/tape_options
