@@ -3,6 +3,9 @@
 
 General:
 
+Changes to 1.37.32:
+23Jul05
+- Fix additional problems with VSS backup that I introduced.
 Changes to 1.37.31:
 22Jul05
 - Correct compiler complaints in wx-console and tray-monitor.
