@@ -79,8 +79,8 @@ VSSClient::VSSClient()
     m_pVectorWriterStates = new vector<int>;
     m_pVectorWriterInfo = new vector<string>;
     m_uidCurrentSnapshotSet = GUID_NULL;
-    memset (m_wszUniqueVolumeName,0,sizeof (m_wszUniqueVolumeName));
-    memset (m_szShadowCopyName,0,sizeof (m_szShadowCopyName));
+    memset(m_wszUniqueVolumeName,0, sizeof(m_wszUniqueVolumeName));
+    memset(m_szShadowCopyName,0, sizeof(m_szShadowCopyName));
 }
 
 // Destructor
@@ -107,7 +107,7 @@ VSSClient::~VSSClient()
 BOOL VSSClient::InitializeForBackup()
 {
     //return Initialize (VSS_CTX_BACKUP);
-   return Initialize (0);
+   return Initialize(0);
 }
 
 
@@ -138,6 +138,7 @@ BOOL VSSClient::GetShadowPath(const char *szFilePath, char *szShadowPath, int nB
    }
    
    strncpy(szShadowPath,  szFilePath, nBuflen);
+   errno = EINVAL;
    return FALSE;   
 }
 

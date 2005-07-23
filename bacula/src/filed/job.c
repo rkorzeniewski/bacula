@@ -23,7 +23,6 @@
 
 #include "bacula.h"
 #include "filed.h"
-
 #ifdef WIN32_VSS
 #include "vss.h"   
 #endif
@@ -1219,19 +1218,23 @@ static int backup_cmd(JCR *jcr)
          if (get_win32_driveletters(jcr->ff, szWinDriveLetters)) {
             Jmsg(jcr, M_INFO, 0, _("Generate VSS snapshots. Driver=\"%s\", Drive(s)=\"%s\"\n"), g_pVSSClient->GetDriverName(), szWinDriveLetters);
             if (!g_pVSSClient->CreateSnapshots(szWinDriveLetters)) {
-                  Jmsg(jcr, M_WARNING, 0, _("Generate VSS snapshots failed\n"));
+               berrno be;
+               Jmsg(jcr, M_WARNING, 0, _("Generate VSS snapshots failed. ERR=%s\n"),
+                  be.strerror());
             } else {
                /* tell user if snapshot creation of a specific drive failed */
                size_t i;
                for (i=0; i<strlen (szWinDriveLetters); i++) {
-                  if (islower(szWinDriveLetters[i]))
+                  if (islower(szWinDriveLetters[i])) {
                      Jmsg(jcr, M_WARNING, 0, _("Generate VSS snapshot of drive \"%c:\\\" failed\n"), szWinDriveLetters[i]);
+                  }
                }
                /* inform user about writer states */
                for (i=0; i<g_pVSSClient->GetWriterCount(); i++) {
                   int msg_type = M_INFO;
-                  if (g_pVSSClient->GetWriterState(i) < 0)
+                  if (g_pVSSClient->GetWriterState(i) < 0) {
                      msg_type = M_WARNING;
+                  }
                   Jmsg(jcr, msg_type, 0, _("VSS Writer: %s\n"), g_pVSSClient->GetWriterInfo(i));
                }
             }

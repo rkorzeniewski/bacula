@@ -27,6 +27,12 @@
 #ifndef __VSS_H_
 #define __VSS_H_
 
+#ifndef b_errno_win32
+#define b_errno_win32 (1<<29)
+#endif
+ 
+#ifdef WIN32_VSS
+
 // some forward declarations
 struct IVssAsync;
 
@@ -103,5 +109,6 @@ private:
    BOOL CheckWriterStatus();
 };
 
+#endif /* WIN32_VSS */
 
 #endif /* __VSS_H_ */

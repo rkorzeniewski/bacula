@@ -156,8 +156,7 @@ inline wstring GetUniqueVolumeNameForPath(wstring path)
 // Convert a writer status into a string
 inline wstring GetStringFromWriterStatus(VSS_WRITER_STATE eWriterStatus)
 {
-    switch (eWriterStatus)
-    {
+    switch (eWriterStatus) {
     CHECK_CASE_FOR_CONSTANT(VSS_WS_STABLE);
     CHECK_CASE_FOR_CONSTANT(VSS_WS_WAITING_FOR_FREEZE);
     CHECK_CASE_FOR_CONSTANT(VSS_WS_WAITING_FOR_THAW);
@@ -174,7 +173,7 @@ inline wstring GetStringFromWriterStatus(VSS_WRITER_STATE eWriterStatus)
     CHECK_CASE_FOR_CONSTANT(VSS_WS_FAILED_AT_POST_RESTORE);
 
     default:
-        return wstring(L"Undefined");
+        return wstring(L"Error or Undefined");
     }
 }
 
@@ -204,14 +203,18 @@ VSSClientGeneric::~VSSClientGeneric()
 // Initialize the COM infrastructure and the internal pointers
 BOOL VSSClientGeneric::Initialize(DWORD dwContext, BOOL bDuringRestore)
 {
-   if (!(p_CreateVssBackupComponents && p_VssFreeSnapshotProperties))
+   if (!(p_CreateVssBackupComponents && p_VssFreeSnapshotProperties)) {
+      errno = ENOSYS;
       return FALSE;
+   }
 
    HRESULT hr;
    // Initialize COM 
    if (!m_bCoInitializeCalled)  {
-      if (FAILED(CoInitialize(NULL)))
+      if (FAILED(CoInitialize(NULL))) {
+         errno = b_errno_win32;
          return FALSE;
+      }
 
       m_bCoInitializeCalled = true;
 
@@ -229,8 +232,10 @@ BOOL VSSClientGeneric::Initialize(DWORD dwContext, BOOL bDuringRestore)
          NULL                            //  Reserved parameter
          );
 
-      if (FAILED(hr))
+      if (FAILED(hr)) {
+         errno = b_errno_win32;
          return FALSE;
+      }
    }
    
    // Release the IVssBackupComponents interface 
@@ -241,14 +246,18 @@ BOOL VSSClientGeneric::Initialize(DWORD dwContext, BOOL bDuringRestore)
 
    // Create the internal backup components object
    hr = p_CreateVssBackupComponents((IVssBackupComponents**) &m_pVssObject);
-   if (FAILED(hr))
+   if (FAILED(hr)) {
+      errno = b_errno_win32;
       return FALSE;
+   }
 
 #ifdef B_VSS_W2K3
    if (dwContext != VSS_CTX_BACKUP) {
       hr = ((IVssBackupComponents*) m_pVssObject)->SetContext(dwContext);
-      if (FAILED(hr))
+      if (FAILED(hr)) {
+         errno = b_errno_win32;
          return FALSE;
+      }
    }
 #endif
 
@@ -295,8 +304,10 @@ BOOL VSSClientGeneric::CreateSnapshots(char* szDriveLetters)
    /* if a drive can not being added, it's converted to lowercase in szDriveLetters */
    /* http://msdn.microsoft.com/library/default.asp?url=/library/en-us/vss/base/ivssbackupcomponents_startsnapshotset.asp */
    
-   if (!m_pVssObject || m_bBackupIsInitialized)
+   if (!m_pVssObject || m_bBackupIsInitialized) {
+      errno = ENOSYS;
       return FALSE;  
+   }
 
    m_uidCurrentSnapshotSet = GUID_NULL;
 
@@ -304,13 +315,17 @@ BOOL VSSClientGeneric::CreateSnapshots(char* szDriveLetters)
 
    // 1. InitializeForBackup
    HRESULT hr = pVss->InitializeForBackup();
-   if (FAILED(hr))
+   if (FAILED(hr)) {
+      errno = b_errno_win32;
       return FALSE;
+   }
    
    // 2. SetBackupState
    hr = pVss->SetBackupState(true, true, VSS_BT_FULL, false);
-   if (FAILED(hr))
+   if (FAILED(hr)) {
+      errno = b_errno_win32;
       return FALSE;
+   }
 
    CComPtr<IVssAsync>  pAsync1;
    CComPtr<IVssAsync>  pAsync2;   
@@ -319,8 +334,10 @@ BOOL VSSClientGeneric::CreateSnapshots(char* szDriveLetters)
 
    // 3. GatherWriterMetaData
    hr = pVss->GatherWriterMetadata(&pAsync3);
-   if (FAILED(hr))
+   if (FAILED(hr)) {
+      errno = b_errno_win32;
       return FALSE;
+   }
 
    // Waits for the async operation to finish and checks the result
    WaitAndCheckForAsyncOperation(pAsync3);
@@ -371,8 +388,10 @@ BOOL VSSClientGeneric::CreateSnapshots(char* szDriveLetters)
 
 BOOL VSSClientGeneric::CloseBackup()
 {
-   if (!m_pVssObject)
+   if (!m_pVssObject) {
+      errno = ENOSYS;
       return FALSE;
+   }
 
    BOOL bRet = FALSE;
    IVssBackupComponents* pVss = (IVssBackupComponents*) m_pVssObject;
@@ -384,8 +403,8 @@ BOOL VSSClientGeneric::CloseBackup()
      // Waits for the async operation to finish and checks the result
      WaitAndCheckForAsyncOperation(pAsync);
      bRet = TRUE;     
-   }
-   else {
+   } else {
+      errno = b_errno_win32;
       pVss->AbortBackup();
    }
 
@@ -413,13 +432,17 @@ BOOL VSSClientGeneric::CloseBackup()
 // Query all the shadow copies in the given set
 void VSSClientGeneric::QuerySnapshotSet(GUID snapshotSetID)
 {   
-   if (!(p_CreateVssBackupComponents && p_VssFreeSnapshotProperties))
+   if (!(p_CreateVssBackupComponents && p_VssFreeSnapshotProperties)) {
+      errno = ENOSYS;
       return;
+   }
 
    memset (m_szShadowCopyName,0,sizeof (m_szShadowCopyName));
    
-   if (snapshotSetID == GUID_NULL || m_pVssObject == NULL)
+   if (snapshotSetID == GUID_NULL || m_pVssObject == NULL) {
+      errno = ENOSYS;
       return;
+   }
 
    IVssBackupComponents* pVss = (IVssBackupComponents*) m_pVssObject;
                
@@ -431,15 +454,16 @@ void VSSClientGeneric::QuerySnapshotSet(GUID snapshotSetID)
          &pIEnumSnapshots );    
 
    // If there are no shadow copies, just return
-   if (FAILED(hr))
+   if (FAILED(hr)) {
+      errno = b_errno_win32;
       return;   
+   }
 
    // Enumerate all shadow copies. 
    VSS_OBJECT_PROP Prop;
    VSS_SNAPSHOT_PROP& Snap = Prop.Obj.Snap;
    
-   while(true)
-   {
+   while (true) {
       // Get the next element
       ULONG ulFetched;
       hr = pIEnumSnapshots->Next( 1, &Prop, &ulFetched );
@@ -459,6 +483,7 @@ void VSSClientGeneric::QuerySnapshotSet(GUID snapshotSetID)
       }
       p_VssFreeSnapshotProperties(&Snap);
    }
+   errno = 0;
 }
 
 // Check the status for all selected writers
@@ -475,8 +500,10 @@ BOOL VSSClientGeneric::CheckWriterStatus()
     CComPtr<IVssAsync>  pAsync;
     
     HRESULT hr = pVss->GatherWriterStatus(&pAsync);
-    if (FAILED(hr))
-      return FALSE;
+    if (FAILED(hr)) {
+       errno = b_errno_win32;
+       return FALSE;
+    } 
 
     // Waits for the async operation to finish and checks the result
     WaitAndCheckForAsyncOperation(pAsync);
@@ -484,12 +511,13 @@ BOOL VSSClientGeneric::CheckWriterStatus()
     unsigned cWriters = 0;
 
     hr = pVss->GetWriterStatusCount(&cWriters);
-    if (FAILED(hr))
-      return FALSE;
+    if (FAILED(hr)) {
+       errno = b_errno_win32;
+       return FALSE;
+    }
     
     // Enumerate each writer
-    for(unsigned iWriter = 0; iWriter < cWriters; iWriter++)
-    {
+    for (unsigned iWriter = 0; iWriter < cWriters; iWriter++) {
         VSS_ID idInstance = GUID_NULL;
         VSS_ID idWriter= GUID_NULL;
         VSS_WRITER_STATE eWriterStatus = VSS_WS_UNKNOWN;
@@ -503,31 +531,31 @@ BOOL VSSClientGeneric::CheckWriterStatus()
                              &bstrWriterName,
                              &eWriterStatus,
                              &hrWriterFailure);
-        if (FAILED(hr))
+        if (FAILED(hr)) {
            continue;
+        }
         
         // If the writer is in non-stable state, break
-        switch(eWriterStatus)
-        {
-            case VSS_WS_FAILED_AT_IDENTIFY:
-            case VSS_WS_FAILED_AT_PREPARE_BACKUP:
-            case VSS_WS_FAILED_AT_PREPARE_SNAPSHOT:
-            case VSS_WS_FAILED_AT_FREEZE:
-            case VSS_WS_FAILED_AT_THAW:
-            case VSS_WS_FAILED_AT_POST_SNAPSHOT:
-            case VSS_WS_FAILED_AT_BACKUP_COMPLETE:
-            case VSS_WS_FAILED_AT_PRE_RESTORE:
-            case VSS_WS_FAILED_AT_POST_RESTORE:
+        switch(eWriterStatus) {
+        case VSS_WS_FAILED_AT_IDENTIFY:
+        case VSS_WS_FAILED_AT_PREPARE_BACKUP:
+        case VSS_WS_FAILED_AT_PREPARE_SNAPSHOT:
+        case VSS_WS_FAILED_AT_FREEZE:
+        case VSS_WS_FAILED_AT_THAW:
+        case VSS_WS_FAILED_AT_POST_SNAPSHOT:
+        case VSS_WS_FAILED_AT_BACKUP_COMPLETE:
+        case VSS_WS_FAILED_AT_PRE_RESTORE:
+        case VSS_WS_FAILED_AT_POST_RESTORE:
 #ifdef B_VSS_W2K3
-            case VSS_WS_FAILED_AT_BACKUPSHUTDOWN:
+        case VSS_WS_FAILED_AT_BACKUPSHUTDOWN:
 #endif
-               /* failed */
-               pVWriterStates->push_back(-1);
-               break;
+           /* failed */
+           pVWriterStates->push_back(-1);
+           break;
 
-            default:
-                /* okay */
-                pVWriterStates->push_back(1);                
+        default:
+           /* okay */
+           pVWriterStates->push_back(1);                
         }
 
                
@@ -536,5 +564,6 @@ BOOL VSSClientGeneric::CheckWriterStatus()
     
         pVWriterInfo->push_back(osf.str());
     }
+    errno = 0;
     return TRUE;
 }

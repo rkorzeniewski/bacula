@@ -22,10 +22,9 @@
 // $Id$
 
 #include "bacula.h"
+#define b_errno_win32 (1<<29)
 
-#ifdef WIN32_VSS
 #include "vss.h"
-#endif 
 
 #include "../../lib/winapi.h"
 
@@ -33,7 +32,6 @@
 /* to allow the usage of the original version in this file here */
 #undef fputs
 
-#define b_errno_win32 (1<<29)
 
 #define USE_WIN32_COMPAT_IO 1
 
@@ -50,8 +48,7 @@ extern int enable_vss;
 
 #define WIN32_FILETIME_SCALE  10000000             // 100ns/second
 
-extern "C" void
-cygwin_conv_to_win32_path(const char *name, char *win32_name, DWORD dwSize)
+void conv_unix_to_win32_path(const char *name, char *win32_name, DWORD dwSize)
 {
     const char *fname = name;
     char *tname = win32_name;
@@ -84,7 +81,7 @@ cygwin_conv_to_win32_path(const char *name, char *win32_name, DWORD dwSize)
        \\\\?\\GLOBALROOT\\Device\\HarddiskVolumeShadowCopy1\\bacula\\uninstall.exe
        from c:\bacula\uninstall.exe
     */ 
-    if (g_pVSSClient && enable_vss == 1) {
+    if (g_pVSSClient && enable_vss && g_pVSSClient->IsInitialized()) {
        POOLMEM *pszBuf = get_pool_memory (PM_FNAME);
        pszBuf = check_pool_memory_size(pszBuf, dwSize);
        bstrncpy(pszBuf, tname, strlen(tname)+1);
@@ -334,7 +331,7 @@ stat2(const char *file, struct stat *sb)
     HANDLE h;
     int rval = 0;
     char tmpbuf[1024];
-    cygwin_conv_to_win32_path(file, tmpbuf, 1024);
+    conv_unix_to_win32_path(file, tmpbuf, 1024);
 
     DWORD attr = -1;
 
@@ -344,8 +341,7 @@ stat2(const char *file, struct stat *sb)
       
       attr = p_GetFileAttributesW((LPCWSTR) pwszBuf);
       free_pool_memory(pwszBuf);
-    }
-    else if (p_GetFileAttributesA) {
+    } else if (p_GetFileAttributesA) {
        attr = p_GetFileAttributesA(tmpbuf);
     }
 
@@ -419,30 +415,32 @@ error:
 int
 stat(const char *file, struct stat *sb)
 {
-    WIN32_FILE_ATTRIBUTE_DATA data;
-    errno = 0;
+   WIN32_FILE_ATTRIBUTE_DATA data;
+   errno = 0;
 
 
-    memset(sb, 0, sizeof(*sb));
+   memset(sb, 0, sizeof(*sb));
 
-    if (g_platform_id == VER_PLATFORM_WIN32_WINDOWS)
-        return stat2(file, sb);
+   if (g_platform_id == VER_PLATFORM_WIN32_WINDOWS) {
+      return stat2(file, sb);
+   }
 
-    // otherwise we're on NT
+   // otherwise we're on NT
 #if 0
-    WCHAR buf[32767];
-    buf[0] = '\\';
-    buf[1] = '\\';
-    buf[2] = '?';
-    buf[3] = '\\';
+   WCHAR buf[32767];
+   buf[0] = '\\';
+   buf[1] = '\\';
+   buf[2] = '?';
+   buf[3] = '\\';
 
-    wchar_win32_path(file, buf+4);
+   wchar_win32_path(file, buf+4);
 
-    if (!GetFileAttributesExW((WCHAR *)buf, GetFileExInfoStandard, &data))
-        return stat2(file, sb);
+   if (!GetFileAttributesExW((WCHAR *)buf, GetFileExInfoStandard, &data)) {
+      return stat2(file, sb);
+   }
 #else
 
-    if (p_GetFileAttributesExW) {
+   if (p_GetFileAttributesExW) {
       /* dynamically allocate enough space for UCS2 filename */
       POOLMEM* pwszBuf = get_pool_memory (PM_FNAME);          
       UTF8_2_wchar(&pwszBuf, file);
@@ -450,41 +448,45 @@ stat(const char *file, struct stat *sb)
       BOOL b = p_GetFileAttributesExW((LPCWSTR) pwszBuf, GetFileExInfoStandard, &data);
       free_pool_memory(pwszBuf);
                         
-      if (!b) 
+      if (!b) {
          return stat2(file, sb);
-      
-    } else if (p_GetFileAttributesExA) {
-         if (!p_GetFileAttributesExA(file, GetFileExInfoStandard, &data))
-            return stat2(file, sb);
-    }
-    else
-       return stat2(file, sb);
+      }
+   } else if (p_GetFileAttributesExA) {
+      if (!p_GetFileAttributesExA(file, GetFileExInfoStandard, &data)) {
+         return stat2(file, sb);
+       }
+   } else {
+      return stat2(file, sb);
+   }
 
 #endif
 
-    sb->st_mode = 0777;               /* start with everything */
-    if (data.dwFileAttributes & FILE_ATTRIBUTE_READONLY)
-        sb->st_mode &= ~(S_IRUSR|S_IRGRP|S_IROTH);
-    if (data.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM)
-        sb->st_mode &= ~S_IRWXO; /* remove everything for other */
-    if (data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN)
-        sb->st_mode |= S_ISVTX; /* use sticky bit -> hidden */
+   sb->st_mode = 0777;               /* start with everything */
+   if (data.dwFileAttributes & FILE_ATTRIBUTE_READONLY) {
+      sb->st_mode &= ~(S_IRUSR|S_IRGRP|S_IROTH);
+   }
+   if (data.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM) {
+      sb->st_mode &= ~S_IRWXO; /* remove everything for other */
+   }
+   if (data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) {
+      sb->st_mode |= S_ISVTX; /* use sticky bit -> hidden */
+   }
+   if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+      sb->st_mode |= S_IFDIR;
+   } else {
+      sb->st_mode |= S_IFREG;
+   }
 
-    if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-        sb->st_mode |= S_IFDIR;
-    else
-        sb->st_mode |= S_IFREG;
-
-    sb->st_nlink = 1;
-    sb->st_size = data.nFileSizeHigh;
-    sb->st_size <<= 32;
-    sb->st_size |= data.nFileSizeLow;
-    sb->st_blksize = 4096;
-    sb->st_blocks = (uint32_t)(sb->st_size + 4095)/4096;
-    sb->st_atime = cvt_ftime_to_utime(data.ftLastAccessTime);
-    sb->st_mtime = cvt_ftime_to_utime(data.ftLastWriteTime);
-    sb->st_ctime = cvt_ftime_to_utime(data.ftCreationTime);
-    return 0;
+   sb->st_nlink = 1;
+   sb->st_size = data.nFileSizeHigh;
+   sb->st_size <<= 32;
+   sb->st_size |= data.nFileSizeLow;
+   sb->st_blksize = 4096;
+   sb->st_blocks = (uint32_t)(sb->st_size + 4095)/4096;
+   sb->st_atime = cvt_ftime_to_utime(data.ftLastAccessTime);
+   sb->st_mtime = cvt_ftime_to_utime(data.ftLastWriteTime);
+   sb->st_ctime = cvt_ftime_to_utime(data.ftCreationTime);
+   return 0;
 }
 
 #endif //HAVE_MINGW
@@ -492,54 +494,54 @@ stat(const char *file, struct stat *sb)
 int
 lstat(const char *file, struct stat *sb)
 {
-    return stat(file, sb);
+   return stat(file, sb);
 }
 
 void
 sleep(int sec)
 {
-    Sleep(sec * 1000);
+   Sleep(sec * 1000);
 }
 
 int
 geteuid(void)
 {
-    return 0;
+   return 0;
 }
 
 int
 execvp(const char *, char *[]) {
-    errno = ENOSYS;
-    return -1;
+   errno = ENOSYS;
+   return -1;
 }
 
 
 int
 fork(void)
 {
-    errno = ENOSYS;
-    return -1;
+   errno = ENOSYS;
+   return -1;
 }
 
 int
 pipe(int[])
 {
-    errno = ENOSYS;
-    return -1;
+   errno = ENOSYS;
+   return -1;
 }
 
 int
 waitpid(int, int*, int)
 {
-    errno = ENOSYS;
-    return -1;
+   errno = ENOSYS;
+   return -1;
 }
 
 int
 readlink(const char *, char *, int)
 {
-    errno = ENOSYS;
-    return -1;
+   errno = ENOSYS;
+   return -1;
 }
 
 
@@ -547,23 +549,22 @@ readlink(const char *, char *, int)
 int
 strcasecmp(const char *s1, const char *s2)
 {
-    register int ch1, ch2;
+   register int ch1, ch2;
 
-    if (s1==s2)
-        return 0;       /* strings are equal if same object. */
-    else if (!s1)
-        return -1;
-    else if (!s2)
-        return 1;
-    do
-    {
-        ch1 = *s1;
-        ch2 = *s2;
-        s1++;
-        s2++;
-    } while (ch1 != 0 && tolower(ch1) == tolower(ch2));
+   if (s1==s2)
+      return 0;       /* strings are equal if same object. */
+   else if (!s1)
+      return -1;
+   else if (!s2)
+      return 1;
+   do {
+      ch1 = *s1;
+      ch2 = *s2;
+      s1++;
+      s2++;
+   } while (ch1 != 0 && tolower(ch1) == tolower(ch2));
 
-  return(ch1 - ch2);
+   return(ch1 - ch2);
 }
 #endif //HAVE_MINGW
 
@@ -578,8 +579,7 @@ strncasecmp(const char *s1, const char *s2, int len)
         return -1;
     else if (!s2)
         return 1;
-    while (len--)
-    {
+    while (len--) {
         ch1 = *s1;
         ch2 = *s2;
         s1++;
@@ -671,7 +671,7 @@ opendir(const char *path)
     if (g_platform_id != VER_PLATFORM_WIN32_WINDOWS) {
 #ifdef WIN32_VSS
        /* will append \\?\ at front itself */
-       cygwin_conv_to_win32_path(path, tspec, max_len-4);
+       conv_unix_to_win32_path(path, tspec, max_len-4);
 #else
        /* allow path to be 32767 bytes */
        tspec[0] = '\\';
@@ -679,10 +679,10 @@ opendir(const char *path)
        tspec[2] = '?';
        tspec[3] = '\\';
        tspec[4] = 0;
-       cygwin_conv_to_win32_path(path, tspec+4, max_len-4);
+       conv_unix_to_win32_path(path, tspec+4, max_len-4);
 #endif
     } else {
-       cygwin_conv_to_win32_path(path, tspec, max_len);
+       conv_unix_to_win32_path(path, tspec, max_len);
     }
 
     bstrncat(tspec, "\\*", max_len);
@@ -1501,7 +1501,7 @@ utime(const char *fname, struct utimbuf *times)
     FILETIME acc, mod;
     char tmpbuf[1024];
 
-    cygwin_conv_to_win32_path(fname, tmpbuf, 1024);
+    conv_unix_to_win32_path(fname, tmpbuf, 1024);
 
     cvt_utime_to_ftime(times->actime, acc);
     cvt_utime_to_ftime(times->modtime, mod);
