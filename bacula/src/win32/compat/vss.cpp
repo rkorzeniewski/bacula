@@ -1,4 +1,4 @@
-//                              -*- Mode: C++ -*-
+
 // vss.cpp -- Interface to Volume Shadow Copies (VSS)
 //
 // Copyright transferred from MATRIX-Computer GmbH to
@@ -113,18 +113,19 @@ BOOL VSSClient::InitializeForBackup()
 
 
 
-BOOL VSSClient::GetShadowPath (const char *szFilePath, char *szShadowPath, int nBuflen)
+BOOL VSSClient::GetShadowPath(const char *szFilePath, char *szShadowPath, int nBuflen)
 {
    if (!m_bBackupIsInitialized)
       return FALSE;
 
-   /* check for valid pathname -- note, allow simple drive letter too */
+   /* check for valid pathname */
    BOOL bIsValidName;
    
-   bIsValidName = strlen(szFilePath) >= 2;
+   bIsValidName = strlen(szFilePath) > 3;
    if (bIsValidName)
       bIsValidName &= isalpha (szFilePath[0]) &&
-                      szFilePath[1]==':';
+                      szFilePath[1]==':' && 
+                      szFilePath[2] == '\\';
 
    if (bIsValidName) {
       int nDriveIndex = toupper(szFilePath[0])-'A';
