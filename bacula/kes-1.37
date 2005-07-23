@@ -5,6 +5,8 @@ General:
 
 Changes to 1.37.32:
 23Jul05
+- Complete (almost) documentation of 1.38.
+- Add error messages for error conditions with VSS.
 - Fix additional problems with VSS backup that I introduced.
 Changes to 1.37.31:
 22Jul05

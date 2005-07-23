@@ -604,17 +604,17 @@ static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    if (!(atts.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) 
    {
       if (p_SetFileAttributesW) {
-         POOLMEM* pwszBuf = get_pool_memory (PM_FNAME);   
-         UTF8_2_wchar(&pwszBuf, win32_ofile);
+	 POOLMEM* pwszBuf = get_pool_memory (PM_FNAME);   
+	 UTF8_2_wchar(&pwszBuf, win32_ofile);
 
-         BOOL b=SetFileAttributesW((LPCWSTR)pwszBuf, atts.dwFileAttributes & SET_ATTRS);
-         free_pool_memory(pwszBuf);
+	 BOOL b=SetFileAttributesW((LPCWSTR)pwszBuf, atts.dwFileAttributes & SET_ATTRS);
+	 free_pool_memory(pwszBuf);
       
-         if (!b) 
-            win_error(jcr, "SetFileAttributesW:", win32_ofile);	
+	 if (!b) 
+            win_error(jcr, "SetFileAttributesW:", win32_ofile); 
       }
       else {
-         if (!SetFileAttributes(win32_ofile, atts.dwFileAttributes & SET_ATTRS)) {
+	 if (!SetFileAttributes(win32_ofile, atts.dwFileAttributes & SET_ATTRS)) {
             win_error(jcr, "SetFileAttributesA:", win32_ofile);
 	 }
       }
@@ -662,16 +662,15 @@ void win_error(JCR *jcr, char *prefix, DWORD lerror)
 }
 
 
-/* Cygwin API definition */
-extern "C" void cygwin_conv_to_win32_path(const char *path, char *win32_path, DWORD dwSize);
-
+/* Conversion of a Unix filename to a Win32 filename */
+extern void conv_unix_to_win32_path(const char *path, char *win32_path, DWORD dwSize);
 void unix_name_to_win32(POOLMEM **win32_name, char *name)
 {
    /* One extra byte should suffice, but we double it */
    /* add MAX_PATH bytes for VSS shadow copy name */
    DWORD dwSize = 2*strlen(name)+MAX_PATH;
    *win32_name = check_pool_memory_size(*win32_name, dwSize);
-   cygwin_conv_to_win32_path(name, *win32_name, dwSize);
+   conv_unix_to_win32_path(name, *win32_name, dwSize);
 }
 
 #endif	/* HAVE_CYGWIN */
