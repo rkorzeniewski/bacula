@@ -474,10 +474,15 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
    
 
    if (!mount_dev(this, 1)) {
-      Mmsg(errmsg, _("Could not mount device %s.\n"), print_name());
-      Emsg0(M_FATAL, 0, errmsg);
-      fd = -1;
-      return;
+      if (num_parts == 0) {
+         Dmsg1(29, "Could not mount device %s, this is not a problem (num_parts == 0).\n", print_name());
+      }
+      else {
+         Mmsg(errmsg, _("Could not mount device %s.\n"), print_name());
+         Emsg0(M_FATAL, 0, errmsg);
+         fd = -1;
+         return;
+      }
    }
          
    Dmsg5(29, "open dev: %s dev=%s mode=%s part=%d npart=%d\n", 
@@ -492,18 +497,12 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
     */
    if (part < num_parts) {
       omode = OPEN_READ_ONLY;
-   }
-   set_mode(omode);
-
-   /* 
-    * If we are opening it read-only, it is *probably* on the
-    *   DVD, so try the DVD first, otherwise look in the spool dir.
-    */
-   if (omode == OPEN_READ_ONLY) {
       make_mounted_dvd_filename(this, archive_name);
-   } else {
+   }
+   else {
       make_spooled_dvd_filename(this, archive_name);
    }
+   set_mode(omode);
 
    /* If creating file, give 0640 permissions */
    Dmsg3(29, "mode=%s open(%s, 0x%x, 0640)\n", mode_to_str(omode), 
@@ -538,17 +537,21 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
          dev_errno = 0;
          set_opened();
          use_count = 1;
+         Dmsg2(100, "after open(2a) part=%d part_size=%d\n", part, part_size);
          update_pos_dev(this);                /* update position */
+         
+         /* NB: It seems this code is wrong... part number is incremented in open_next_part, not here */
+         
          /* Check if just created Volume  part */
-         if (omode == OPEN_READ_WRITE && (part == 0 || part_size == 0)) {
+/*         if (omode == OPEN_READ_WRITE && (part == 0 || part_size == 0)) {
             part++;
             num_parts = part;
             VolCatInfo.VolCatParts = num_parts;
          } else {
-            if (part == 0) {             /* we must have opened the first part */
+            if (part == 0) {             // we must have opened the first part
                part++;
             }
-         }
+         }*/
       }
    }
 }
