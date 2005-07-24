@@ -146,7 +146,6 @@ BuildRequires: freetype2-devel
 BuildRequires: tetex
 BuildRequires: latex2html
 BuildRequires: popt-devel
-BuildRequires: tetex-dvips
 %endif
 %if %{mdk}
 BuildRequires: libtermcap-devel
