@@ -222,9 +222,9 @@ public:
    
    uint64_t max_part_size;            /* max part size */
    uint64_t part_size;                /* current part size */
-   uint32_t part;                     /* current part number */
+   uint32_t part;                     /* current part number (starts at 0) */
    uint64_t part_start;               /* current part start address (relative to the whole volume) */
-   uint32_t num_parts;                /* number of parts (total) */
+   uint32_t num_parts;                /* number of parts WRITTEN on the DVD */
    uint64_t free_space;               /* current free space on medium (without the current part) */
    int free_space_errno;              /* indicates:
                                        * - free_space_errno == 0: ignore free_space.
