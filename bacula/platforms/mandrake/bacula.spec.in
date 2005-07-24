@@ -105,7 +105,7 @@ Name: bacula
 Version: @VERSION@
 Release: 1
 Group: System Environment/Daemons
-Copyright: GPL v2
+License: GPL v2
 Source0:http://www.prdownloads.sourceforge.net/bacula/%{name}-%{version}.tar.gz
 Source1:http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.tar.gz
 Source2:http://www.tux.org/pub/distributions/tinylinux/tomsrtbt/%{tomsrtbt}.tar.gz
@@ -115,7 +115,7 @@ URL: http://www.bacula.org/
 Vendor: The Bacula Team
 Distribution: %{_dist}
 Packager: D. Scott Barninger <barninger@fairfieldcomputers.com>
-BuildRequires: atk-devel, ncurses-devel, pango-devel, perl
+BuildRequires: atk-devel, ncurses-devel, pango-devel, perl, popt, tetex
 BuildRequires: libstdc++-devel, libxml2-devel, zlib-devel, pkgconfig
 %if %{rh7}
 BuildRequires: libtermcap-devel
@@ -145,6 +145,8 @@ BuildRequires: linc-devel
 BuildRequires: freetype2-devel
 BuildRequires: tetex
 BuildRequires: latex2html
+BuildRequires: popt-devel
+BuildRequires: tetex-dvips
 %endif
 %if %{mdk}
 BuildRequires: libtermcap-devel
@@ -162,6 +164,8 @@ BuildRequires: glibc-static-devel
 BuildRequires: freetype2-devel
 BuildRequires: tetex
 BuildRequires: latex2html
+BuildRequires: popt-devel
+BuildRequires: tetex-dvips
 %endif
 %if %{fc3}
 BuildRequires: libtermcap-devel
@@ -1273,6 +1277,11 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 
 
 %changelog
+* Sun Jul 24 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- minor cleanups before 1.38 changes
+- add popt and popt-devel build dependencies
+- add tetex and tetex-dvips dependencies for doc build
+- replace deprecated Copyright tag with License
 * Sat May 07 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - move sqlite installation bindir to /usr/lib/bacula/sqlite and remove
 - conflict with sqlite packages. remove readline dependency.
