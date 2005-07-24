@@ -5,8 +5,7 @@
 
 # basic defines for every build
 %define depkgs ../depkgs
-%define depkgs_version 29Oct04
-%define tomsrtbt tomsrtbt-2.0.103
+%define depkgs_version 22Jun05
 %define sqlite_bindir /usr/lib/bacula/sqlite
 %define working_dir /var/bacula
 %define daemon_user root
@@ -108,14 +107,13 @@ Group: System Environment/Daemons
 License: GPL v2
 Source0:http://www.prdownloads.sourceforge.net/bacula/%{name}-%{version}.tar.gz
 Source1:http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.tar.gz
-Source2:http://www.tux.org/pub/distributions/tinylinux/tomsrtbt/%{tomsrtbt}.tar.gz
-Source3: Release_Notes-%{version}-%{release}.tar.gz
+Source2: Release_Notes-%{version}-%{release}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-root
 URL: http://www.bacula.org/
 Vendor: The Bacula Team
 Distribution: %{_dist}
 Packager: D. Scott Barninger <barninger@fairfieldcomputers.com>
-BuildRequires: atk-devel, ncurses-devel, pango-devel, perl, popt, tetex
+BuildRequires: atk-devel, ncurses-devel, pango-devel, perl
 BuildRequires: libstdc++-devel, libxml2-devel, zlib-devel, pkgconfig
 %if %{rh7}
 BuildRequires: libtermcap-devel
@@ -126,8 +124,6 @@ BuildRequires: ORBit-devel
 BuildRequires: bonobo-devel
 BuildRequires: GConf-devel
 BuildRequires: freetype-devel
-BuildRequires: tetex
-BuildRequires: tetex-latex
 %endif
 %if %{su9}
 BuildRequires: termcap
@@ -143,9 +139,6 @@ BuildRequires: bonobo-activation-devel
 BuildRequires: gconf2-devel
 BuildRequires: linc-devel
 BuildRequires: freetype2-devel
-BuildRequires: tetex
-BuildRequires: latex2html
-BuildRequires: popt-devel
 %endif
 %if %{mdk}
 BuildRequires: libtermcap-devel
@@ -161,10 +154,6 @@ BuildRequires: libGConf2-devel
 BuildRequires: libstdc++-static-devel
 BuildRequires: glibc-static-devel
 BuildRequires: freetype2-devel
-BuildRequires: tetex
-BuildRequires: latex2html
-BuildRequires: popt-devel
-BuildRequires: tetex-dvips
 %endif
 %if %{fc3}
 BuildRequires: libtermcap-devel
@@ -178,8 +167,6 @@ BuildRequires: libbonoboui-devel >= 2.8
 BuildRequires: bonobo-activation-devel
 BuildRequires: GConf2-devel
 BuildRequires: freetype-devel
-BuildRequires: tetex
-BuildRequires: tetex-latex
 %endif
 %if ! %{rh7} && ! %{su9} && ! %{mdk} && ! %{fc3}
 BuildRequires: libtermcap-devel
@@ -194,8 +181,6 @@ BuildRequires: bonobo-activation-devel
 BuildRequires: GConf2-devel
 BuildRequires: linc-devel
 BuildRequires: freetype-devel
-BuildRequires: tetex
-BuildRequires: tetex-latex
 %endif
 
 %if %{mysql} && ! %{mysql4}
@@ -240,10 +225,6 @@ Group: System Environment/Daemons
 Provides: bacula-dir, bacula-sd, bacula-fd, bacula-server
 Conflicts: bacula-client
 Requires: ncurses, libstdc++, zlib
-# sqlite binary now installed to /usr/lib/bacula/sqlite
-#%if %{sqlite}
-#Conflicts: sqlite, sqlite-tools
-#%endif
 
 %if %{rh7}
 Requires: glibc >= 2.2
@@ -357,46 +338,6 @@ Bacula source code has been released under the GPL version 2 license.
 This is the File daemon (Client) only package. It includes the command line 
 console program.
 
-%package rescue
-
-Summary: Bacula - The Network Backup Solution
-Group: System Environment/Daemons
-Requires: coreutils, util-linux, bacula-fd, cdrecord, mkisofs, make
-
-%description rescue
-Bacula - It comes by night and sucks the vital essence from your computers.
-
-Bacula is a set of computer programs that permit you (or the system 
-administrator) to manage backup, recovery, and verification of computer 
-data across a network of computers of different kinds. In technical terms, 
-it is a network client/server based backup program. Bacula is relatively 
-easy to use and efficient, while offering many advanced storage management 
-features that make it easy to find and recover lost or damaged files. 
-Bacula source code has been released under the GPL version 2 license.
-
-This package installs scripts for disaster recovery and builds rescue 
-floppy disks and cdroms for bare metal recovery. This package includes tomsrtbt
-(http://www.toms.net/rb/, by Tom Oehser, Tom@Toms.NET) to provide a tool
-to build a boot floppy disk.
-
-You need to have the bacula-sqlite, bacula-mysql, bacula-postgresql or 
-bacula-client package for your platform installed and configured before 
-installing this package.
-
-To create a floppy boot disk run "./getdiskinfo" from the /etc/bacula/rescue/floppy
-directory (this is done when the package is first installed), 
-then run "./install.s" from the /etc/bacula/rescue/floppy/tomsrtbt/
-directory. To make the bacula rescue disk run
-"./make_rescue_disk --copy-static-bacula --copy-etc-files"
-from the /etc/bacula/rescue/floppy directory. To recreate the rescue
-information for this system run ./getdiskinfo again.
-
-To create a rescue cdrom run "make all" from the /etc/bacula/rescue/cdrom
-directory which will create an iso image file. You can burn that image with your
-favorite cd burning utility or run "make burn" after examining and possibly
-adjusting /etc/bacula/rescue/cdrom/Makefile.  To recreate the rescue
-information for this system run /etc/bacula/rescue/cdrom/bacula/getdiskinfo again.
-
 %package updatedb
 
 Summary: Bacula - The Network Backup Solution
@@ -505,7 +446,6 @@ server packages.
 %setup
 %setup -T -D -b 1
 %setup -T -D -b 2
-%setup -T -D -b 3
 
 %build
 
@@ -556,7 +496,6 @@ export LDFLAGS=-L/usr/lib64/mysql
         --with-scriptdir=/etc/bacula \
         --enable-smartalloc \
         --enable-gnome \
-	--enable-static-fd \
 %if ! %{rh7} && ! %{rh8}
 	--enable-tray-monitor \
 %endif
@@ -580,14 +519,6 @@ export LDFLAGS=-L/usr/lib64/mysql
 	--with-fd-group=%{daemon_group}
 make
 
-cd src/filed
-strip static-bacula-fd
-cd ../../
-
-cd doc/latex
-make
-cd ../../
-
 %install
  
 cwd=${PWD}
@@ -603,9 +534,6 @@ mkdir -p $RPM_BUILD_ROOT/usr/share/gnome/apps/System
 %else
 mkdir -p $RPM_BUILD_ROOT/usr/share/applications
 %endif
-mkdir -p $RPM_BUILD_ROOT/etc/bacula/rescue/floppy
-mkdir -p $RPM_BUILD_ROOT/etc/bacula/rescue/floppy/tomsrtbt
-mkdir -p $RPM_BUILD_ROOT/etc/bacula/rescue/cdrom
 mkdir -p $RPM_BUILD_ROOT/etc/bacula/updatedb
 %if ! %{su9}
 mkdir -p $RPM_BUILD_ROOT/etc/pam.d
@@ -634,12 +562,6 @@ make \
         mandir=$RPM_BUILD_ROOT/usr/man \
         mtx-install
 cd ${cwd}
-
-# setup the manual for the doc dir
-mkdir html-manual
-cp -p doc/latex/bacula/*.html html-manual/
-cp -p doc/latex/bacula/*.png html-manual/
-cp -p doc/latex/bacula/*.css html-manual/
 
 # fixme - make installs the mysql scripts for sqlite build
 %if %{sqlite}
@@ -708,32 +630,6 @@ cp -p %{depkgs}/sqlite/libsqlite.a $RPM_BUILD_ROOT%{sqlite_bindir}/libsqlite.a
 # install the logrotate file
 cp -p scripts/logrotate $RPM_BUILD_ROOT/etc/logrotate.d/bacula
 
-# install the rescue stuff
-# these are the floppy rescue scripts
-cp -p rescue/linux/floppy/backup.etc.list $RPM_BUILD_ROOT/etc/bacula/rescue/floppy/
-cp -p rescue/linux/floppy/format_floppy $RPM_BUILD_ROOT/etc/bacula/rescue/floppy/
-cp -p rescue/linux/floppy/getdiskinfo $RPM_BUILD_ROOT/etc/bacula/rescue/floppy/
-cp -p rescue/linux/floppy/make_rescue_disk $RPM_BUILD_ROOT/etc/bacula/rescue/floppy/
-cp -p rescue/linux/floppy/restore_bacula $RPM_BUILD_ROOT/etc/bacula/rescue/floppy/
-cp -p rescue/linux/floppy/restore_etc $RPM_BUILD_ROOT/etc/bacula/rescue/floppy/
-cp -p rescue/linux/floppy/run_grub $RPM_BUILD_ROOT/etc/bacula/rescue/floppy/
-cp -p rescue/linux/floppy/run_lilo $RPM_BUILD_ROOT/etc/bacula/rescue/floppy/
-cp -p rescue/linux/floppy/sfdisk.bz2 $RPM_BUILD_ROOT/etc/bacula/rescue/floppy/
-
-# this is the cdrom rescue stuff
-cp -r -p rescue/linux/cdrom/* $RPM_BUILD_ROOT/etc/bacula/rescue/cdrom/
-mkdir -p $RPM_BUILD_ROOT/etc/bacula/rescue/cdrom/bin/
-rm -f $RPM_BUILD_ROOT/etc/bacula/rescue/cdrom/Makefile.in
-rm -f $RPM_BUILD_ROOT/etc/bacula/rescue/cdrom/bacula/Makefile.in
-touch $RPM_BUILD_ROOT/etc/bacula/rescue/cdrom/rpm_release
-
-# this is the static file daemon
-cp -p src/filed/static-bacula-fd $RPM_BUILD_ROOT/etc/bacula/rescue/floppy/bacula-fd
-cp -p src/filed/static-bacula-fd $RPM_BUILD_ROOT/etc/bacula/rescue/cdrom/bin/bacula-fd
-
-# this is the tom's root boot disk
-cp -p ../%{tomsrtbt}/* $RPM_BUILD_ROOT/etc/bacula/rescue/floppy/tomsrtbt/
-
 # install the updatedb scripts
 cp -p updatedb/* $RPM_BUILD_ROOT/etc/bacula/updatedb/
 
@@ -782,14 +678,14 @@ chmod 644 $RPM_BUILD_ROOT/etc/bacula/tray-monitor.conf
 /etc/bacula/mtx-changer
 /etc/bacula/btraceback.dbx
 /etc/bacula/btraceback.gdb
-#/etc/bacula/dvd-freespace
-#/etc/bacula/dvd-writepart
+/etc/bacula/dvd-freespace
+/etc/bacula/dvd-writepart
 /etc/init.d/bacula-dir
 /etc/init.d/bacula-fd
 /etc/init.d/bacula-sd
 
 %doc COPYING ChangeLog ReleaseNotes VERIFYING kernstodo 
-%doc doc/latex/bacula.pdf doc/latex/developers.pdf html-manual ../Release_Notes-%{version}-%{release}.txt
+%doc ../Release_Notes-%{version}-%{release}.txt
 /usr/man/man1/*
 
 /etc/logrotate.d/bacula
@@ -819,20 +715,19 @@ chmod 644 $RPM_BUILD_ROOT/etc/bacula/tray-monitor.conf
 /usr/sbin/scsitape
 /usr/sbin/bsmtp
 /usr/sbin/tapeinfo
-/usr/sbin/static-bacula-fd
 
 %pre mysql
-# test for bacula database older than version 7
+# test for bacula database older than version 8
 # note: this ASSUMES no password has been set for bacula database
 DB_VER=`mysql 2>/dev/null bacula -e 'select * from Version;'|tail -n 1`
 
-if [ -n "$DB_VER" ] && [ "$DB_VER" -lt "7" ]; then
-	echo "This bacula upgrade will update a bacula database from version 7 to 8."
+if [ -n "$DB_VER" ] && [ "$DB_VER" -lt "8" ]; then
+	echo "This bacula upgrade will update a bacula database from version 8 to 9."
 	echo "You appear to be running database version $DB_VER. You must first update"
-	echo "your database to version 7 and then install this upgrade. The alternative"
+	echo "your database to version 8 and then install this upgrade. The alternative"
 	echo "is to use /etc/bacula/drop_mysql_tables to delete all your your current"
 	echo "catalog information, then do the upgrade. Information on updating a"
-	echo "database older than version 7 can be found in the release notes."
+	echo "database older than version 8 can be found in the release notes."
 	exit 1
 fi
 # check for and copy /etc/bacula/console.conf to bconsole.conf
@@ -863,8 +758,8 @@ if [ -z "$DB_VER" ]; then
 	echo "Creating bacula tables..."
 	/etc/bacula/make_mysql_tables
 
-# check to see if we need to upgrade a 1.34 or lower database
-elif [ "$DB_VER" -lt "8" ]; then
+# check to see if we need to upgrade a 1.36 or lower database
+elif [ "$DB_VER" -lt "9" ]; then
 	echo "This release requires an upgrade to your bacula database."
 	echo "Backing up your current database..."
 	mysqldump -f --opt bacula | bzip2 > %{working_dir}/bacula_backup.sql.bz2
@@ -916,14 +811,14 @@ fi
 /etc/bacula/mtx-changer
 /etc/bacula/btraceback.dbx
 /etc/bacula/btraceback.gdb
-#/etc/bacula/dvd-freespace
-#/etc/bacula/dvd-writepart
+/etc/bacula/dvd-freespace
+/etc/bacula/dvd-writepart
 /etc/init.d/bacula-dir
 /etc/init.d/bacula-fd
 /etc/init.d/bacula-sd
 
 %doc COPYING ChangeLog ReleaseNotes VERIFYING kernstodo 
-%doc doc/latex/bacula.pdf doc/latex/developers.pdf html-manual ../Release_Notes-%{version}-%{release}.txt
+%doc ../Release_Notes-%{version}-%{release}.txt
 /usr/man/man1/*
 
 /etc/logrotate.d/bacula
@@ -955,21 +850,20 @@ fi
 /usr/sbin/scsitape
 /usr/sbin/bsmtp
 /usr/sbin/tapeinfo
-/usr/sbin/static-bacula-fd
 %{sqlite_bindir}/sqlite
 
 
 %pre sqlite
-# test for bacula database older than version 7
+# test for bacula database older than version 8
 if [ -s %{working_dir}/bacula.db ] && [ -s %{sqlite_bindir}/sqlite ];then
 	DB_VER=`echo "select * from Version;" | %{sqlite_bindir}/sqlite 2>/dev/null %{working_dir}/bacula.db | tail -n 1`
-	if [ -n "$DB_VER" ] && [ "$DB_VER" -lt "7" ]; then
-		echo "This bacula upgrade will update a bacula database from version 7 to 8."
+	if [ -n "$DB_VER" ] && [ "$DB_VER" -lt "8" ]; then
+		echo "This bacula upgrade will update a bacula database from version 8 to 9."
 		echo "You appear to be running database version $DB_VER. You must first update"
-		echo "your database to version 7 and then install this upgrade. The alternative"
+		echo "your database to version 8 and then install this upgrade. The alternative"
 		echo "is to use /etc/bacula/drop_sqlite_tables to delete all your your current"
 		echo "catalog information, then do the upgrade. Information on updating a"
-		echo "database older than version 7 can be found in the release notes."
+		echo "database older than version 8 can be found in the release notes."
 		exit 1
 	fi
 fi
@@ -989,17 +883,17 @@ fi
 # test for an existing database
 if [ -s %{working_dir}/bacula.db ]; then
 	DB_VER=`echo "select * from Version;" | %{sqlite_bindir}/sqlite 2>/dev/null %{working_dir}/bacula.db | tail -n 1`
-	# check to see if we need to upgrade a 1.34 or lower database
-	if [ "$DB_VER" -lt "7" ]; then
-		echo "This bacula upgrade requires a database update to version 8. You appear to"
+	# check to see if we need to upgrade a 1.36 or lower database
+	if [ "$DB_VER" -lt "8" ]; then
+		echo "This bacula upgrade requires a database update to version 9. You appear to"
 		echo "be running database version $DB_VER. You must update your database using the"
 		echo "upgrade scripts in the bacula-updatedb package. The alternative"
 		echo "is to use /etc/bacula/drop_sqlite_tables to delete all your your current"
 		echo "catalog information, then /etc/bacula/make_sqlite_tables. Information on updating a"
-		echo "database older than version 7 can be found in the release notes."
+		echo "database older than version 8 can be found in the release notes."
 	fi	
 	
-	if [ "$DB_VER" -lt "8" ] && [ "$DB_VER" -ge "7" ]; then
+	if [ "$DB_VER" -lt "9" ] && [ "$DB_VER" -ge "8" ]; then
 		echo "This release requires an upgrade to your bacula database."
 		echo "Backing up your current database..."
 		echo ".dump" | %{sqlite_bindir}/sqlite %{working_dir}/bacula.db | bzip2 > %{working_dir}/bacula_backup.sql.bz2
@@ -1058,14 +952,14 @@ fi
 /etc/bacula/mtx-changer
 /etc/bacula/btraceback.dbx
 /etc/bacula/btraceback.gdb
-#/etc/bacula/dvd-freespace
-#/etc/bacula/dvd-writepart
+/etc/bacula/dvd-freespace
+/etc/bacula/dvd-writepart
 /etc/init.d/bacula-dir
 /etc/init.d/bacula-fd
 /etc/init.d/bacula-sd
 
 %doc COPYING ChangeLog ReleaseNotes VERIFYING kernstodo 
-%doc doc/latex/bacula.pdf doc/latex/developers.pdf html-manual ../Release_Notes-%{version}-%{release}.txt
+%doc ../Release_Notes-%{version}-%{release}.txt
 /usr/man/man1/*
 
 /etc/logrotate.d/bacula
@@ -1095,20 +989,19 @@ fi
 /usr/sbin/scsitape
 /usr/sbin/bsmtp
 /usr/sbin/tapeinfo
-/usr/sbin/static-bacula-fd
 
 %pre postgresql
-# test for bacula database older than version 7
+# test for bacula database older than version 8
 # note: this ASSUMES no password has been set for bacula database
 DB_VER=`echo 'select * from Version;' | psql bacula 2>/dev/null | tail -3 | head -1`
 
-if [ -n "$DB_VER" ] && [ "$DB_VER" -lt "7" ]; then
-	echo "This bacula upgrade will update a bacula database from version 7 to 8."
+if [ -n "$DB_VER" ] && [ "$DB_VER" -lt "8" ]; then
+	echo "This bacula upgrade will update a bacula database from version 8 to 9."
 	echo "You appear to be running database version $DB_VER. You must first update"
-	echo "your database to version 7 and then install this upgrade. The alternative"
+	echo "your database to version 8 and then install this upgrade. The alternative"
 	echo "is to use /etc/bacula/drop_postgresql_tables to delete all your your current"
 	echo "catalog information, then do the upgrade. Information on updating a"
-	echo "database older than version 7 can be found in the release notes."
+	echo "database older than version 8 can be found in the release notes."
 	exit 1
 fi
 
@@ -1134,8 +1027,8 @@ if [ -z "$DB_VER" ]; then
 	echo "Granting privileges for PostgreSQL user bacula..."
 	/etc/bacula/grant_postgresql_privileges
 
-# check to see if we need to upgrade a 1.34 or lower database
-elif [ "$DB_VER" -lt "8" ]; then
+# check to see if we need to upgrade a 1.36 or lower database
+elif [ "$DB_VER" -lt "9" ]; then
 	echo "This release requires an upgrade to your bacula database."
 	echo "Backing up your current database..."
 	pg_dump bacula | bzip2 > %{working_dir}/bacula_backup.sql.bz2
@@ -1171,7 +1064,7 @@ fi
 /etc/init.d/bacula-fd
 
 %doc COPYING ChangeLog ReleaseNotes VERIFYING kernstodo 
-%doc doc/latex/bacula.pdf doc/latex/developers.pdf html-manual ../Release_Notes-%{version}-%{release}.txt
+%doc ../Release_Notes-%{version}-%{release}.txt
 /etc/logrotate.d/bacula
 
 %config(noreplace) /etc/bacula/bacula-fd.conf
@@ -1205,40 +1098,6 @@ fi
 if [ $1 = 0 ]; then
 /sbin/chkconfig --del bacula-fd
 fi
-
-%files rescue
-%defattr(-,root,root)
-/etc/bacula/rescue/floppy/*
-/etc/bacula/rescue/cdrom/*
-
-%post rescue
-# link our current installed conf file to the rescue directory
-ln -s /etc/bacula/bacula-fd.conf /etc/bacula/rescue/floppy/bacula-fd.conf
-ln -s /etc/bacula/bacula-fd.conf /etc/bacula/rescue/cdrom/bin/bacula-fd.conf
-
-# run getdiskinfo
-echo "Creating rescue files for this system..."
-cd /etc/bacula/rescue/floppy
-./getdiskinfo
-cd /etc/bacula/rescue/cdrom/bacula
-./getdiskinfo
-
-%preun rescue
-# remove the files created after the initial rpm installation
-rm -f /etc/bacula/rescue/floppy/bacula-fd.conf
-rm -f /etc/bacula/rescue/floppy/partition.*
-rm -f /etc/bacula/rescue/floppy/format.*
-rm -f /etc/bacula/rescue/floppy/mount_drives
-rm -f /etc/bacula/rescue/floppy/start_network
-rm -f /etc/bacula/rescue/floppy/sfdisk
-rm -rf /etc/bacula/rescue/floppy/diskinfo/*
-
-rm -f /etc/bacula/rescue/cdrom/bacula/bacula-fd.conf
-rm -f /etc/bacula/rescue/cdrom/bacula/partition.*
-rm -f /etc/bacula/rescue/cdrom/bacula/format.*
-rm -f /etc/bacula/rescue/cdrom/bacula/mount_drives
-rm -f /etc/bacula/rescue/cdrom/bacula/start_network
-rm -rf /etc/bacula/rescue/cdrom/bacula/diskinfo/*
 
 %files updatedb
 %defattr(-,root,root)
@@ -1276,6 +1135,12 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 
 
 %changelog
+* Sun Jul 24 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- changes for 1.38
+- remove docs and rescue sections (remove static fd)
+- add dvd-freespace and dvd-writepart files
+- update depkgs to 22Jun05
+- change database update to 8 to 9
 * Sun Jul 24 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - minor cleanups before 1.38 changes
 - add popt and popt-devel build dependencies
