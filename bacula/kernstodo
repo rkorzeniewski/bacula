@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     23 July 2005
+                     24 July 2005
 
 Major development:      
 Project                     Developer
@@ -10,23 +10,6 @@ Version 1.37                Kern (see below)
 Final items for 1.37 before release:
 1. Fix bugs
 -  --without-openssl breaks at least on Solaris.
-3. Document all the new features (about half done).
-   - Restore of all files for a Job or set of jobs even if the file
-     records have been removed from the catalog.
-   - Restore of a directory (non-recursive, i.e. only one level).
-   - Support for TLS (ssl) between all the daemon connections thanks
-   - Unicode filename support for Win32 (thanks to Thorsten Engel)
-   - SQLite3 support, but it seems to run at 1/2 to 1/4 the speed of
-     SQLite2.
-   - A pile of new Directives to support TLS. Please see the TLS chapter
-     of the manual.
-
-   - "python restart" restarts the Python interpreter. Rather brutal, make
-      sure no Python scripts are running. This permits you to change
-      a Python script and ge
-   - With Python 2.3, there are a few compiler warnings.
-   - You must add --with-openssl to the configure command line if
-     you want TLS communications encryption support.
 7. Write a bacula-web document
 9. Run the regression scripts on Solaris and FreeBSD
 -  Figure out how to package gui, and rescue programs.
@@ -37,6 +20,8 @@ Document:
   db, pid, state, bsr, mail, conmsg, spool
 - Document the multiple-drive-changer.txt script.
 - Pruning with Admin job.
+- Restore of all files for a Job or set of jobs even if the file
+  records have been removed from the catalog.
 ========= probably not in 1.38 =============
    - MaximumPartSize = bytes (SD, Device resource)
      Defines the maximum part size.
