@@ -350,9 +350,9 @@ int open_next_part(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
 
-   Dmsg5(29, "Enter: ==== open_next_part part=%d npart=%d dev=%s vol=%s mode=%d\n", 
+   Dmsg6(29, "Enter: ==== open_next_part part=%d npart=%d dev=%s vol=%s mode=%d file_addr=%d\n", 
       dev->part, dev->num_parts, dev->print_name(),
-         dev->VolCatInfo.VolCatName, dev->openmode);
+         dev->VolCatInfo.VolCatName, dev->openmode, dev->file_addr);
    if (!dev->is_dvd()) {
       Dmsg1(000, "Device %s is not dvd!!!!\n", dev->print_name()); 
       return -1;
@@ -490,12 +490,11 @@ off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
    dcr = (DCR *)dev->attached_dcrs->first();  /* any dcr will do */
    switch(whence) {
    case SEEK_SET:
-      Dmsg1(100, "lseek_dev SEEK_SET to %d\n", (int)offset);
+      Dmsg2(100, "lseek_dev SEEK_SET to %d (part_start=%d)\n", (int)offset, (int)dev->part_start);
       if ((uint64_t)offset >= dev->part_start) {
-         offset -= dev->part_start; /* adjust for start of this part */
-         if (offset == 0 || (uint64_t)offset < dev->part_size) {
+         if (((uint64_t)offset == dev->part_start) || ((uint64_t)offset < (dev->part_start+dev->part_size))) {
             /* We are staying in the current part, just seek */
-            if ((pos = lseek(dev->fd, offset, SEEK_SET)) < 0) {
+            if ((pos = lseek(dev->fd, offset-dev->part_start, SEEK_SET)) < 0) {
                return pos;
             } else {
                return pos + dev->part_start;
