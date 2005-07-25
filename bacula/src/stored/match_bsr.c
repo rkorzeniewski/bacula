@@ -162,7 +162,7 @@ BSR *find_next_bsr(BSR *root_bsr, DEVICE *dev)
 
    if (!root_bsr || !root_bsr->use_positioning ||
        !root_bsr->reposition /* || !dev->is_tape()*/) {
-      Dmsg2(100, "No nxt_bsr use_pos=%d repos=%d\n", root_bsr->use_positioning, root_bsr->reposition);
+      Dmsg2(300, "No nxt_bsr use_pos=%d repos=%d\n", root_bsr->use_positioning, root_bsr->reposition);
       return NULL;
    }
    Dmsg2(100, "use_pos=%d repos=%d\n", root_bsr->use_positioning, root_bsr->reposition);
@@ -299,7 +299,7 @@ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
 
    /* NOTE!! This test MUST come after sesstime and sessid tests */
    if (!match_findex(bsr, bsr->FileIndex, rec, 1)) {
-      Dmsg2(100, "Fail on findex. bsr=%d rec=%d\n",
+      Dmsg2(300, "Fail on findex. bsr=%d rec=%d\n",
          bsr->FileIndex->findex2, rec->FileIndex);
       goto no_match;
    }
