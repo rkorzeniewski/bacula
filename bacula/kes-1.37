@@ -4,6 +4,9 @@
 General:
 
 Changes to 1.37.32:
+24Jul05
+- Turn off old service helper code in Win32.
+- Correct Messages bug found by Phil in stored.
 23Jul05
 - Complete (almost) documentation of 1.38.
 - Add error messages for error conditions with VSS.
