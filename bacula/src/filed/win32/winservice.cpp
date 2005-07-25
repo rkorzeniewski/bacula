@@ -148,38 +148,6 @@ bacService::ShowStatus()
   return TRUE;
 }
 
-#ifdef xxx_needed
-// Static routine to show the Events dialog for a currently-running
-// copy of Bacula, (usually a servicified version.)
-
-BOOL
-bacService::ShowEvents()
-{
-  // Post to the Bacula menu window
-  if (!PostToBacula(MENU_EVENTS_SHOW, 0, 0)) {
-     MessageBox(NULL, "No existing instance of Bacula could be contacted", szAppName, MB_ICONEXCLAMATION | MB_OK);
-     return FALSE;
-  }
-  return TRUE;
-}
-
-
-// Static routine to tell a locally-running instance of the server
-// to connect out to a new client
-
-BOOL
-bacService::PostAddNewClient(unsigned long ipaddress)
-{
-  // Post to the Bacula menu window
-  if (!PostToBacula(MENU_ADD_CLIENT_MSG, 0, ipaddress)) {
-     MessageBox(NULL, "No existing instance of Bacula could be contacted", szAppName, MB_ICONEXCLAMATION | MB_OK);
-     return FALSE;
-  }
-
-  return TRUE;
-}
-#endif
-
 // SERVICE-MODE ROUTINES
 
 // Service-mode defines:
@@ -230,39 +198,6 @@ bacService::KillRunningCopy()
       {  }
   return TRUE;
 }
-
-#ifdef xxx_needed
-
-// ROUTINE TO POST THE HANDLE OF THE CURRENT USER TO THE RUNNING Bacula, IN ORDER
-// THAT IT CAN LOAD THE APPROPRIATE SETTINGS.  THIS IS USED ONLY BY THE SVCHELPER
-// OPTION, WHEN RUNNING UNDER NT
-BOOL
-bacService::PostUserHelperMessage()
-{
-  // - Check the platform type
-  if (!IsWinNT()) {
-     return TRUE;
-  }
-
-  // - Get the current process ID
-  DWORD processId = GetCurrentProcessId();
-
-  // - Post it to the existing Bacula
-  if (!PostToBacula(MENU_SERVICEHELPER_MSG, 0, (LPARAM)processId)) {
-     return FALSE;
-  }
-
-  // - Wait until it's been used
-  return TRUE;
-}
-
-// ROUTINE TO PROCESS AN INCOMING INSTANCE OF THE ABOVE MESSAGE
-BOOL
-bacService::ProcessUserHelperMessage(WPARAM wParam, LPARAM lParam) {
-   return TRUE;
-}
-
-#endif
 
 // SERVICE MAIN ROUTINE
 int
@@ -522,6 +457,7 @@ bacService::InstallService()
       CloseServiceHandle(hsrvmanager);
       CloseServiceHandle(hservice);
 
+#ifdef xxx_needed
       // Now install the servicehelper registry setting...
       // Locate the RunService registry entry
       HKEY runapps;
@@ -545,6 +481,7 @@ bacService::InstallService()
              RegCloseKey(runapps);
          }
       }
+#endif
 
       // Everything went fine
       MessageBox(NULL,
@@ -611,6 +548,7 @@ bacService::RemoveService()
       SC_HANDLE   hservice;
       SC_HANDLE   hsrvmanager;
 
+#ifdef xxx_needed
       // Attempt to remove the service-helper hook
       HKEY runapps;
       if (RegOpenKey(HKEY_LOCAL_MACHINE, "Software\\Microsoft\\Windows\\CurrentVersion\\Run",
@@ -621,6 +559,7 @@ bacService::RemoveService()
          }
          RegCloseKey(runapps);
       }
+#endif
 
       // Open the SCM
       hsrvmanager = OpenSCManager(
@@ -845,13 +784,11 @@ void set_service_description(SC_HANDLE hSCManager, SC_HANDLE hService,
  
     sdBuf.lpDescription = lpDesc;
 
-    if(!ChangeServiceDescription(
+    if (!ChangeServiceDescription(
          hService,                   // handle to service
          SERVICE_CONFIG_DESCRIPTION, // change: description
          &sdBuf) ) {                 // value: new description
        log_error_message("ChangeServiceConfig2");
-    } else {
-       printf("ChangeServiceConfig2 SUCCESS\n");
     }
 
     // Release the database lock. 

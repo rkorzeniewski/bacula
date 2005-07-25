@@ -80,7 +80,7 @@ Section "Bacula File Service" SecService
   StrCmp $6 0 NoCygwin
   StrCpy $INSTDIR "c:\cygwin\bacula"
  NoCygwin:
-; IfFileExists "c:\cygwin" Cygwin ReallyNoCygwin
+; IfFileExists "c:\cygwin\bin\cygwin1.dll" Cygwin ReallyNoCygwin
 ;Cygwin:
 ; StrCpy $INSTDIR "c:\cygwin\bacula"
 ;ReallyNoCygwin:
@@ -90,7 +90,7 @@ Section "Bacula File Service" SecService
   IfFileExists "$INSTDIR\bin\bacula-fd.conf" Upgrade NoUpgrade
  Upgrade:
     StrCpy $7 1
-    ; Shutdown any baculas that could be running
+    ; Shutdown any bacula that could be running
     ExecWait '"$INSTDIR\bin\bacula-fd.exe" /kill'
     ; give it some time to shutdown
     Sleep 1000

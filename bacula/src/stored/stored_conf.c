@@ -51,7 +51,7 @@ static RES_ITEM store_items[] = {
    {"description",           store_str,  ITEM(res_dir.hdr.desc),     0, 0, 0},
    {"sdaddress",             store_addresses_address,  ITEM(res_store.sdaddrs),     0, ITEM_DEFAULT, 9103},
    {"sdaddresses",           store_addresses,  ITEM(res_store.sdaddrs), 0, ITEM_DEFAULT, 9103},
-   {"messages",              store_res,  ITEM(res_store.messages),   0, R_MSGS, 0},
+   {"messages",              store_res,  ITEM(res_store.messages),   R_MSGS, 0, 0},
    {"sdport",                store_addresses_port,  ITEM(res_store.sdaddrs),     0, ITEM_DEFAULT, 9103},
    {"workingdirectory",      store_dir,  ITEM(res_store.working_directory), 0, ITEM_REQUIRED, 0},
    {"piddirectory",          store_dir,  ITEM(res_store.pid_directory), 0, ITEM_REQUIRED, 0},
