@@ -357,7 +357,7 @@ int open_next_part(DCR *dcr)
       Dmsg1(000, "Device %s is not dvd!!!!\n", dev->print_name()); 
       return -1;
    }
-      
+   
    /* When appending, do not open a new part if the current is empty */
    if (dev->can_append() && (dev->part >= dev->num_parts) && 
        (dev->part_size == 0)) {
@@ -436,10 +436,16 @@ int open_next_part(DCR *dcr)
    Dmsg2(50, "Call dev->open(vol=%s, mode=%d\n", dev->VolCatInfo.VolCatName, 
          dev->openmode);
    /* Open next part */
+   
+   int append = dev->can_append();
    if (dev->open(dcr, dev->openmode) < 0) {
       return -1;
    } 
    dev->set_labeled();          /* all next parts are "labeled" */
+   if (append && (dev->part == dev->num_parts)) { /* If needed, set the append flag back */
+      dev->set_append();
+   }
+   
    return dev->fd;
 }
 

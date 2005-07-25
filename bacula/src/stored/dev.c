@@ -484,7 +484,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
          return;
       }
    }
-         
+   
    Dmsg5(29, "open dev: %s dev=%s mode=%s part=%d npart=%d\n", 
       is_dvd()?"DVD":"disk", archive_name.c_str(), mode_to_str(omode),
       part, num_parts);
@@ -514,11 +514,21 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
       Mmsg2(errmsg, _("Could not open: %s, ERR=%s\n"), archive_name.c_str(), 
             be.strerror());
       Dmsg1(29, "open failed: %s", errmsg);
-      if (omode == OPEN_READ_ONLY) {
-         make_spooled_dvd_filename(this, archive_name);
-        /* Use system open() */
-         fd = ::open(archive_name.c_str(), mode, 0640);  /* try on spool */
+      
+      if ((omode == OPEN_READ_ONLY) && (part == num_parts)) {
+         /* If the last part (on spool), doesn't exists when reading, create it and read from it
+          * (it will report immediately an EOF):
+          * Sometimes it is better to finish with an EOF than with an error. */
+         set_mode(OPEN_READ_WRITE);
+         fd = ::open(archive_name.c_str(), mode, 0640);
+         set_mode(OPEN_READ_ONLY);
       }
+      
+      /* We don't need it. Only the last part is on spool */
+      /*if (omode == OPEN_READ_ONLY) {
+         make_spooled_dvd_filename(this, archive_name);
+         fd = ::open(archive_name.c_str(), mode, 0640);  // try on spool
+      }*/
    }
    Dmsg1(100, "after open fd=%d\n", fd);
    if (fd >= 0) {
@@ -537,7 +547,6 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
          dev_errno = 0;
          set_opened();
          use_count = 1;
-         Dmsg2(100, "after open(2a) part=%d part_size=%d\n", part, part_size);
          update_pos_dev(this);                /* update position */
          
          /* NB: It seems this code is wrong... part number is incremented in open_next_part, not here */
