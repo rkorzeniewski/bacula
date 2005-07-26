@@ -471,6 +471,7 @@ void *jobq_server(void *arg)
              jcr->JobStatus != JS_Terminated &&
              jcr->JobStatus != JS_Canceled &&
              jcr->job->RescheduleTimes > 0 &&
+             jcr->JobType == JT_BACKUP &&
              jcr->reschedule_count < jcr->job->RescheduleTimes) {
              char dt[50];
 

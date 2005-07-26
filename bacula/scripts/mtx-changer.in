@@ -42,14 +42,14 @@ TMPDIR=@working_dir@
 # The purpose of this function to wait a maximum 
 #   time for the drive. It will
 #   return as soon as the drive is ready, or after
-#   waiting a maximum of 180 seconds.
+#   waiting a maximum of 300 seconds.
 # Note, this is very system dependent, so if you are
 #   not running on Linux, you will probably need to
 #   re-write it, or at least change the grep target.
 #
 wait_for_drive() {
   i=0 
-  while [ $i -le 180 ]; do  # Wait max 180 seconds
+  while [ $i -le 300 ]; do  # Wait max 300 seconds
     if mt -f $1 status | grep ONLINE  >/dev/null 2>&1; then
       break
     fi
