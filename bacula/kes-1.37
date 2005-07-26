@@ -4,6 +4,10 @@
 General:
 
 Changes to 1.37.32:
+26Jul05
+- Modify mtx-changer to wait a maximum of 300 seconds.
+- Do restart of failed jobs only for Backups job types.
+- A number of DVD updates from Nicolas.
 24Jul05
 - Turn off old service helper code in Win32.
 - Correct Messages bug found by Phil in stored.
