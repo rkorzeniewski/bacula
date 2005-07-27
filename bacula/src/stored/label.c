@@ -377,7 +377,7 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
                dev->print_name(), strerror_dev(dev));
       }
       if (recycle) {
-         if (!truncate_dev(dev)) {
+         if (!truncate_dev(dcr)) {
             Jmsg2(jcr, M_WARNING, 0, _("Truncate error on device %s: ERR=%s\n"),
                   dev->print_name(), strerror_dev(dev));
          }

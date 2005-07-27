@@ -296,7 +296,7 @@ bool open_device(DCR *dcr)
    }
    if (dev->open(dcr, mode) < 0) {
       /* If polling, ignore the error */
-      if (!dev->poll) {
+      if ((!dev->poll) && (!dev->is_dvd())) {
          Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open device %s: ERR=%s\n"),
             dev->print_name(), strerror_dev(dev));
          Pmsg2(000, "Unable to open archive %s: ERR=%s\n", 

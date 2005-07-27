@@ -83,7 +83,7 @@ off_t    lseek_dev(DEVICE *dev, off_t offset, int whence);
 int      open_first_part(DCR *dcr, int mode);
 int      open_next_part(DCR *dcr);
 bool     can_open_mounted_dev(DEVICE *dev);
-bool     truncate_dev(DEVICE *dev);
+bool     truncate_dev(DCR *dcr);
 void     term_dev(DEVICE *dev);
 char *   strerror_dev(DEVICE *dev);
 void     clrerror_dev(DEVICE *dev, int func);
@@ -120,6 +120,8 @@ bool unmount_dev(DEVICE* dev, int timeout);
 void update_free_space_dev(DEVICE *dev);
 void make_mounted_dvd_filename(DEVICE *dev, POOL_MEM &archive_name);
 void make_spooled_dvd_filename(DEVICE *dev, POOL_MEM &archive_name);
+bool truncate_dvd_dev(DCR *dcr);
+bool check_can_write_on_non_blank_dvd(DCR *dcr);
 
 /* From device.c */
 bool     open_device(DCR *dcr);
