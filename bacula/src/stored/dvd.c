@@ -176,8 +176,8 @@ static bool do_mount_dev(DEVICE* dev, int mount, int dotimeout)
       entry = (struct dirent *)malloc(sizeof(struct dirent) + name_max + 1000);
       while (1) {
          if ((readdir_r(dp, entry, &result) != 0) || (result == NULL)) {
-            dev->dev_errno = ENOENT;
-            Dmsg2(29, "open_mounted_dev: failed to find suitable file in dir %s (dev=%s)\n", 
+            dev->dev_errno = EIO;
+            Dmsg2(129, "open_mounted_dev: failed to find suitable file in dir %s (dev=%s)\n", 
                   dev->device->mount_point, dev->print_name());
             break;
          }
@@ -185,6 +185,9 @@ static bool do_mount_dev(DEVICE* dev, int mount, int dotimeout)
       }
       free(entry);
       closedir(dp);
+      
+      Dmsg1(29, "open_mounted_dev: got %d files in the mount point\n", count);
+      
       if (count > 2) {
          mount = 1;                      /* If we got more than . and .. */
          break;                          /*   there must be something mounted */
@@ -284,6 +287,7 @@ void update_free_space_dev(DEVICE* dev)
  * Write a part (Vol, Vol.1, ...) from the spool to the DVD   
  * This MUST only be called from open_next_part. Otherwise the part number
  * is not updated.
+ * It is also called from truncate_dvd_dev to "blank" the medium.
  */
 static bool dvd_write_part(DCR *dcr) 
 {
@@ -457,8 +461,8 @@ int open_first_part(DCR *dcr, int mode)
 {
    DEVICE *dev = dcr->dev;
 
-   Dmsg3(29, "Enter: ==== open_first_part dev=%s Vol=%s mode=%d\n", dev->print_name(), 
-         dev->VolCatInfo.VolCatName, dev->openmode);
+   Dmsg4(29, "Enter: ==== open_first_part dev=%s Vol=%s mode=%d num_parts=%d\n", dev->print_name(), 
+         dev->VolCatInfo.VolCatName, dev->openmode, dev->num_parts);
 
    if (dev->fd >= 0) {
       close(dev->fd);
@@ -637,6 +641,123 @@ bool dvd_close_job(DCR *dcr)
    return ok;
 }
 
+bool truncate_dvd_dev(DCR *dcr) {
+   DEVICE* dev = dcr->dev;
+
+   /* Set num_parts to zero (on disk) */
+   dev->num_parts = 0;
+   dcr->VolCatInfo.VolCatParts = 0;
+   dev->VolCatInfo.VolCatParts = 0;
+   
+   Dmsg0(100, "truncate_dvd_dev: Opening first part (1)...\n");
+   
+   dev->truncating = true;
+   if (open_first_part(dcr, OPEN_READ_WRITE) < 0) {
+      Dmsg0(100, "truncate_dvd_dev: Error while opening first part (1).\n");
+      dev->truncating = false;
+      return false;
+   }
+   dev->truncating = false;
+
+   Dmsg0(100, "truncate_dvd_dev: Truncating...\n");
+
+   /* If necessary, truncate it. */
+   if (ftruncate(dev->fd, 0) != 0) {
+      berrno be;
+      Mmsg2(dev->errmsg, _("Unable to truncate device %s. ERR=%s\n"), 
+         dev->print_name(), be.strerror());
+      return false;
+   }
+   
+   close(dev->fd);
+   dev->fd = -1;
+   dev->clear_opened();
+   
+   Dmsg0(100, "truncate_dvd_dev: Opening first part (2)...\n");
+   
+   if (!dvd_write_part(dcr)) {
+      Dmsg0(100, "truncate_dvd_dev: Error while writing to DVD.\n");
+      return false;
+   }
+   
+   if (open_first_part(dcr, OPEN_READ_WRITE) < 0) {
+      Dmsg0(100, "truncate_dvd_dev: Error while opening first part (2).\n");
+      return false;
+   }
+
+   return true;
+}
+
+/* Checks if we can write on a non-blank DVD: meaning that it just have been
+ * truncated (there is only one zero-sized file on the DVD, with the right
+ * volume name). */
+bool check_can_write_on_non_blank_dvd(DCR *dcr) {
+   DEVICE* dev = dcr->dev;
+   DIR* dp;
+   struct dirent *entry, *result;
+   int name_max;
+   int count = 0;
+   int matched = 0; /* We found an empty file with the right name. */
+   struct stat filestat;
+      
+   name_max = pathconf(".", _PC_NAME_MAX);
+   if (name_max < 1024) {
+      name_max = 1024;
+   }
+         
+   if (!(dp = opendir(dev->device->mount_point))) {
+      berrno be;
+      dev->dev_errno = errno;
+      Dmsg3(29, "check_can_write_on_non_blank_dvd: failed to open dir %s (dev=%s), ERR=%s\n", 
+            dev->device->mount_point, dev->print_name(), be.strerror());
+      return false;
+   }
+   
+   entry = (struct dirent *)malloc(sizeof(struct dirent) + name_max + 1000);
+   while (1) {
+      if ((readdir_r(dp, entry, &result) != 0) || (result == NULL)) {
+         dev->dev_errno = EIO;
+         Dmsg2(129, "check_can_write_on_non_blank_dvd: failed to find suitable file in dir %s (dev=%s)\n", 
+               dev->device->mount_point, dev->print_name());
+         break;
+      }
+      else {
+         Dmsg2(99, "check_can_write_on_non_blank_dvd: found %s (versus %s)\n", 
+               result->d_name, dev->VolCatInfo.VolCatName);
+         if (strcmp(result->d_name, dev->VolCatInfo.VolCatName) == 0) {
+            /* Found the file, checking it is empty */
+            POOL_MEM filename(PM_FNAME);
+            pm_strcpy(filename, dev->device->mount_point);
+            if (filename.c_str()[strlen(filename.c_str())-1] != '/') {
+               pm_strcat(filename, "/");
+            }
+            pm_strcat(filename, dev->VolCatInfo.VolCatName);
+            if (stat(filename.c_str(), &filestat) < 0) {
+               berrno be;
+               dev->dev_errno = errno;
+               Dmsg2(29, "check_can_write_on_non_blank_dvd: cannot stat file (file=%s), ERR=%s\n", 
+                  filename.c_str(), be.strerror());
+               return false;
+            }
+            Dmsg2(99, "check_can_write_on_non_blank_dvd: size of %s is %d\n", 
+               filename.c_str(), filestat.st_size);
+            matched = (filestat.st_size == 0);
+         }
+      }
+      count++;
+   }
+   free(entry);
+   closedir(dp);
+   
+   Dmsg2(29, "check_can_write_on_non_blank_dvd: got %d files in the mount point (matched=%d)\n", count, matched);
+   
+   if (count != 3) {
+      /* There is more than 3 files (., .., and the volume file) */
+      return false;
+   }
+   
+   return matched;
+}
 
 /*
  * Edit codes into (Un)MountCommand, Write(First)PartCommand
@@ -670,7 +791,7 @@ static void edit_device_codes_dev(DEVICE* dev, POOL_MEM &omsg, const char *imsg)
             str = dev->dev_name;
             break;
          case 'e':
-            if (dev->part == 0 && !dev->is_mounted()) {
+            if (dev->part == 0) {
                str = "1";
             } else {
                str = "0";

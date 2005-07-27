@@ -445,7 +445,7 @@ void DEVICE::open_file_device(int omode)
 }
 
 /*
- * Open a DVD device. N.B. at this point, dcr->VolCatInfo.VolCatName
+ * Open a DVD device. N.B. at this point, dcr->VolCatInfo.VolCatName (NB:??? I think it's VolCatInfo.VolCatName that is right)
  *  has the desired Volume name, but there is NO assurance that
  *  any other field of VolCatInfo is correct.
  */
@@ -461,6 +461,8 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
          archive_name.c_str(), mode_to_str(omode));
 
    if (VolCatInfo.VolCatName[0] == 0) {
+      Dmsg1(10,  "Could not open file device %s. No Volume name given.\n",
+         print_name());
       Mmsg(errmsg, _("Could not open file device %s. No Volume name given.\n"),
          print_name());
       fd = -1;
@@ -472,9 +474,29 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
    }
    part_size = 0;
    
+   if (dcr->dev->num_parts < dcr->VolCatInfo.VolCatParts) {
+      Dmsg2(99, "open_dvd_device: num_parts updated to %d (was %d)\n",
+         dcr->VolCatInfo.VolCatParts, dcr->dev->num_parts);
+      dcr->dev->num_parts = dcr->VolCatInfo.VolCatParts;
+   }
 
-   if (!mount_dev(this, 1)) {
+   if (mount_dev(this, 1)) {
+      if ((num_parts == 0) && (!truncating)) {
+         /* If we can mount the device, and we are not truncating the DVD, we usually want to abort. */
+         /* There is one exception, if there is only one 0-sized file on the DVD, with the right volume name,
+          * we continue (it's the method used by truncate_dvd_dev to truncate a volume). */
+         if (!check_can_write_on_non_blank_dvd(dcr)) {
+            Mmsg(errmsg, _("The media in the device %s is not empty, please blank it before writing anything to it.\n"), print_name());
+            Emsg0(M_FATAL, 0, errmsg);
+            fd = -1;
+            return;
+         }
+      }
+   }
+   else {
+      /* We cannot mount the device */
       if (num_parts == 0) {
+         /* Run free space, check there is a media. */
          Dmsg1(29, "Could not mount device %s, this is not a problem (num_parts == 0).\n", print_name());
       }
       else {
@@ -485,9 +507,9 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
       }
    }
    
-   Dmsg5(29, "open dev: %s dev=%s mode=%s part=%d npart=%d\n", 
+   Dmsg6(29, "open dev: %s dev=%s mode=%s part=%d npart=%d volcatnparts=%d\n", 
       is_dvd()?"DVD":"disk", archive_name.c_str(), mode_to_str(omode),
-      part, num_parts);
+      part, num_parts, dcr->VolCatInfo.VolCatParts);
    openmode = omode;
    Dmsg2(100, "openmode=%d %s\n", openmode, mode_to_str(openmode));
    
@@ -510,9 +532,9 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
    /* Use system open() */
    if ((fd = ::open(archive_name.c_str(), mode, 0640)) < 0) {
       berrno be;
-      dev_errno = errno;
       Mmsg2(errmsg, _("Could not open: %s, ERR=%s\n"), archive_name.c_str(), 
             be.strerror());
+      dev_errno = EIO; /* Interpreted as no device present by acquire.c:acquire_device_for_read(). */
       Dmsg1(29, "open failed: %s", errmsg);
       
       if ((omode == OPEN_READ_ONLY) && (part == num_parts)) {
@@ -587,10 +609,12 @@ bool rewind_dev(DEVICE *dev)
 
    Dmsg2(29, "rewind_dev fd=%d %s\n", dev->fd, dev->print_name());
    if (dev->fd < 0) {
-      dev->dev_errno = EBADF;
-      Mmsg1(dev->errmsg, _("Bad call to rewind_dev. Device %s not open\n"),
+      if (!dev->is_dvd()) { /* In case of major error, the fd is not open on DVD, so we don't want to abort. */
+         dev->dev_errno = EBADF;
+         Mmsg1(dev->errmsg, _("Bad call to rewind_dev. Device %s not open\n"),
             dev->print_name());
-      Emsg0(M_ABORT, 0, dev->errmsg);
+         Emsg0(M_ABORT, 0, dev->errmsg);
+      }
       return false;
    }
    dev->state &= ~(ST_EOT|ST_EOF|ST_WEOT);  /* remove EOF/EOT flags */
@@ -1701,8 +1725,10 @@ void DEVICE::close()
 }
 
 
-bool truncate_dev(DEVICE *dev)
+bool truncate_dev(DCR *dcr) /* We need the DCR for DVD-writing */
 {
+   DEVICE *dev = dcr->dev;
+
    Dmsg1(100, "truncate_dev %s\n", dev->print_name());
    if (dev->is_tape()) {
       return true;                    /* we don't really truncate tapes */
@@ -1710,8 +1736,7 @@ bool truncate_dev(DEVICE *dev)
    }
    
    if (dev->is_dvd()) {
-      Mmsg1(dev->errmsg, _("Truncate DVD %s not supported.\n"), dev->print_name());
-      return false;   /* we cannot truncate DVDs */
+      return truncate_dvd_dev(dcr);
    }
    
    if (ftruncate(dev->fd, 0) != 0) {
