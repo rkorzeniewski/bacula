@@ -188,10 +188,10 @@ DCR *acquire_device_for_read(DCR *dcr)
        * If it is a tape, it checks the volume name
        */
       for ( ; !dev->is_open(); ) {
-         Dmsg1(120, "bstored: open vol=%s\n", dcr->VolumeName);
+         Dmsg1(100, "bstored: open vol=%s\n", dcr->VolumeName);
          if (dev->open(dcr, OPEN_READ_ONLY) < 0) {
             if (dev->dev_errno == EIO) {   /* no tape loaded */
-              Jmsg3(jcr, M_WARNING, 0, _("Open device %s Volume \"%s\" failed: ERR=%s\n"),
+              Jmsg3(jcr, M_WARNING, 0, _("Open device %s Volume \"%s\" failed (EIO): ERR=%s\n"),
                     dev->print_name(), dcr->VolumeName, strerror_dev(dev));
                goto default_path;
             }
@@ -199,15 +199,15 @@ DCR *acquire_device_for_read(DCR *dcr)
             /* If we have a dvd that requires mount, 
              * we need to try to open the label, so the info can be reported
              * if a wrong volume has been mounted. */
-            if (dev->is_dvd() && (dcr->VolCatInfo.VolCatParts > 0)) {
+/*            if (dev->is_dvd() && (dcr->VolCatInfo.VolCatParts > 0)) {
                break;
-            }
+            }*/
             
             Jmsg3(jcr, M_FATAL, 0, _("Open device %s Volume \"%s\" failed: ERR=%s\n"),
                 dev->print_name(), dcr->VolumeName, strerror_dev(dev));
             goto get_out;
          }
-         Dmsg1(129, "opened dev %s OK\n", dev->print_name());
+         Dmsg1(100, "opened dev %s OK\n", dev->print_name());
       }
       
       vol_label_status = read_dev_volume_label(dcr);
