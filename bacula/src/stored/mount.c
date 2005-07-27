@@ -48,7 +48,7 @@ bool mount_next_write_volume(DCR *dcr, bool release)
    JCR *jcr = dcr->jcr;
    DEV_BLOCK *block = dcr->block;
 
-   Dmsg0(100, "Enter mount_next_volume()\n");
+   Dmsg1(100, "Enter mount_next_volume(release=%d)\n", release);
 
    init_device_wait_timers(dcr);
 
@@ -123,10 +123,12 @@ mount_next_vol:
     *   we will err, recurse and ask the operator the next time.
     */
    if (!release && dev->is_tape() && dev_cap(dev, CAP_AUTOMOUNT)) {
+      Dmsg0(100, "(1)Ask=0");
       ask = false;                 /* don't ask SYSOP this time */
    }
    /* Don't ask if not removable */
    if (!dev_cap(dev, CAP_REM)) {
+      Dmsg0(100, "(2)Ask=0");
       ask = false;
    }
    Dmsg2(100, "Ask=%d autochanger=%d\n", ask, autochanger);
@@ -147,7 +149,7 @@ mount_next_vol:
 
    /* Ensure the device is open */
    if (!open_device(dcr)) {
-      if (dev->poll) {
+      if ((dev->poll) || (dev->is_dvd())) {
          goto mount_next_vol;
       } else {
          return false;

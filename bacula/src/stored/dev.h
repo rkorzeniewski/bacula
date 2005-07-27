@@ -230,6 +230,8 @@ public:
                                        * - free_space_errno == 0: ignore free_space.
                                        * - free_space_errno < 0: an error occured. 
                                        * - free_space_errno > 0: free_space is valid. */
+   bool truncating;                   /* if set, we are currently truncating the DVD */
+   
    
    utime_t  vol_poll_interval;        /* interval between polling Vol mount */
    DEVRES *device;                    /* pointer to Device Resource */
