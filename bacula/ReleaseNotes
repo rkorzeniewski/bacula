@@ -11,7 +11,8 @@ Major Changes:
 - The Director, Storage daemon, and File daemons are
   Deamons are not compatible with  prior versions. 
   All FDs must be upgraded at the same time.
-- Multiple drive autochanger support.
+- Multiple drive autochanger support. You *must* update
+  your SD conf file.
 - Support for ANSI/IBM labels.
 - New communications protocol between DIR and SD to reserve 
   drives.
@@ -164,6 +165,9 @@ Items to note!!!
   old database (the PostgreSQL upgrade scripts not yet tested).
 - You must add --with-openssl to the configure command line if
   you want TLS communications encryption support.
+- If you use an Autochanger, you *must* update your SD conf file
+  to use the new Autochanger resource.  Otherwise, certain commands
+  such as "update slots" may not work.
 
 Other Items:
 - 2 new scripts, dvd-writepart and dvd-freespace, in the scripts directory,

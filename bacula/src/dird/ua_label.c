@@ -131,7 +131,7 @@ static bool get_user_slot_list(UAContext *ua, char *slot_list, int num_slots)
          slot_list[i] = 1;
       }
    }
-#ifdef xxx_debug
+#ifdef  xxx_debug
    printf("Slots turned on:\n");
    for (i=1; i <= num_slots; i++) {
       if (slot_list[i]) {
@@ -625,7 +625,7 @@ static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
          dev_name, mr->VolumeName, pr->Name, mr->MediaType, mr->Slot);
       bsendmsg(ua, _("Sending label command for Volume \"%s\" Slot %d ...\n"),
          mr->VolumeName, mr->Slot);
-      Dmsg5(200, "label %s VolumeName=%s PoolName=%s MediaType=%s Slot=%d\n",
+      Dmsg5(100, "label %s VolumeName=%s PoolName=%s MediaType=%s Slot=%d\n",
          dev_name, mr->VolumeName, pr->Name, mr->MediaType, mr->Slot);
    }
 
@@ -727,7 +727,7 @@ static char *get_volume_name_from_SD(UAContext *ua, int Slot)
       }
    }
    close_sd_bsock(ua);
-   Dmsg1(200, "get_vol_name=%s\n", NPRT(VolName));
+   Dmsg1(100, "get_vol_name=%s\n", NPRT(VolName));
    return VolName;
 }
 

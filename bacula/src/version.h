@@ -1,8 +1,8 @@
 /* */
 #undef  VERSION
 #define VERSION "1.37.32"
-#define BDATE   "26 July 2005"
-#define LSMDATE "26Jul05"
+#define BDATE   "28 July 2005"
+#define LSMDATE "28Jul05"
 
 /* Debug flags */
 #undef  DEBUG
@@ -14,9 +14,9 @@
 /* If this is set stdout will not be closed on startup */
 #define DEVELOPER 1
 
-
-
 /* Debug flags not normally turned on */
+
+/* #define FILE_SEEK 1 */  
 
 /* #define TRACE_JCR_CHAIN 1 */
 /* #define TRACE_RES 1 */

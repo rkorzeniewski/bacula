@@ -4,6 +4,19 @@
 General:
 
 Changes to 1.37.32:
+28Jul05
+- Temporarily turn off disk seeking until I find the
+  cause of the problem.
+27Jul05
+- Add OSF1 patch supplied by user.
+- Use number of files selected from write_bsr() only
+  if it is not defined.
+- Explicitly seek to end of file when getting size for
+  restore test.
+- Correctly set EndBlock position in JobMedia record
+  for files.
+- Remove unnecessary set StartBlock in bscan. Caused bscan
+  regression error.
 26Jul05
 - Modify mtx-changer to wait a maximum of 300 seconds.
 - Do restart of failed jobs only for Backups job types.
