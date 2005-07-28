@@ -1420,7 +1420,7 @@ reposition_dev(DEVICE *dev, uint32_t file, uint32_t block)
    }
 
    if (!dev->is_tape()) {
-      off_t pos = (((off_t)file)<<32) + block;
+      off_t pos = (((off_t)file)<<32) + (off_t)block;
       Dmsg1(100, "===== lseek_dev to %d\n", (int)pos);
       if (lseek_dev(dev, pos, SEEK_SET) == (off_t)-1) {
          berrno be;

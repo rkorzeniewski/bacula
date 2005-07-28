@@ -10,10 +10,12 @@ Version 1.37                Kern (see below)
 Final items for 1.37 before release:
 1. Fix bugs
 -  --without-openssl breaks at least on Solaris.
-7. Write a bacula-web document
 9. Run the regression scripts on Solaris and FreeBSD
 -  Figure out how to package gui, and rescue programs.
 -  Test TLS.
+-  Arno had to do -- to get update slots=x to work
+   UPDATE Media SET InChanger=0,Slot=0 WHERE InChanger>0 AND Slot>0; (MySQL)
+
 
 Document:
 - Document cleaning up the spool files:
@@ -55,6 +57,18 @@ Document:
 =======
 
 For 1.39:
+--- create_file.c.orig  Fri Jul  8 12:13:05 2005
++++ create_file.c       Fri Jul  8 12:13:07 2005
+@@ -195,6 +195,8 @@
+                     attr->ofname, be.strerror());
+               return CF_ERROR;
+            }
++        } else if(S_ISSOCK(attr->statp.st_mode)) {
++            Dmsg1(200, "Skipping socket: %s\n", attr->ofname);
+         } else {          
+             Dmsg1(200, "Restore node: %s\n", attr->ofname);
+            if (mknod(attr->ofname, attr->statp.st_mode, attr->statp.st_rdev) != 0 && errno != EEXIST) {
+
 - Fix bpipe.c so that it does not modify results pointer.
   ***FIXME*** calling sequence should be changed.
 1.xx Major Projects:
@@ -1411,3 +1425,4 @@ Block Position: 0
 - Document that ChangerDevice is used for Alert command.
 - Add better documentation on how restores can be done
 8. Take one more try at making DVD writing work (no go)
+7. Write a bacula-web document

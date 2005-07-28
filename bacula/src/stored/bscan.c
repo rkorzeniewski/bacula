@@ -494,6 +494,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
          update_db = save_update_db;
 
          jr.PoolId = pr.PoolId;
+#ifdef xxx
          /* Set start positions into JCR */
          if (dev->is_tape()) {
             /*
@@ -506,6 +507,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
             dcr->StartBlock = (uint32_t)dev->file_addr;
             dcr->StartFile = (uint32_t)(dev->file_addr >> 32);
          }
+#endif
          mjcr->start_time = jr.StartTime;
          mjcr->JobLevel = jr.JobLevel;
 

@@ -520,9 +520,13 @@ extern int thr_setconcurrency(int);
 
 #endif
 
-#ifdef HAVE_DARWIN_OS
+#if defined(HAVE_DARWIN_OS) || defined(HAVE_OSF1_OS)
 /* Apparently someone forgot to wrap getdomainname as a C function */
 extern "C" int getdomainname(char *name, int len);
+#endif
+
+#ifdef HAVE_OSF1_OS
+extern "C" int mknod ( const char *path, int mode, dev_t device );
 #endif
 
 #ifdef HAVE_CYGWIN

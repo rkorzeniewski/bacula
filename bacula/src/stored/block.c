@@ -572,9 +572,12 @@ bool write_block_to_dev(DCR *dcr)
       dcr->EndBlock = dev->EndBlock;
       dcr->EndFile  = dev->EndFile;
    } else {
-      /* Save address of start of block just written */
-      dcr->EndBlock = (uint32_t)dev->file_addr;
-      dcr->EndFile = (uint32_t)(dev->file_addr >> 32);
+      /* Save address of block just written */
+      uint64_t addr = dev->file_addr + wlen - 1;
+      dcr->EndBlock = (uint32_t)addr;
+      dcr->EndFile = (uint32_t)(addr >> 32);
+      dev->block_num = dcr->EndBlock;
+      dev->file = dcr->EndFile;
    }
    if (dcr->VolFirstIndex == 0 && block->FirstIndex > 0) {
       dcr->VolFirstIndex = block->FirstIndex;
@@ -1037,13 +1040,14 @@ reread:
       dcr->EndBlock = dev->EndBlock;
       dcr->EndFile  = dev->EndFile;
    } else {
-      dcr->EndBlock = (uint32_t)dev->file_addr;
-      dcr->EndFile = (uint32_t)(dev->file_addr >> 32);
+      uint64_t addr = dev->file_addr + block->read_len - 1;
+      dcr->EndBlock = (uint32_t)addr;
+      dcr->EndFile = (uint32_t)(addr >> 32);
       dev->block_num = dcr->EndBlock;
       dev->file = dcr->EndFile;
    }
-   dev->file_addr += block->block_len;
-   dev->file_size += block->block_len;
+   dev->file_addr += block->read_len;
+   dev->file_size += block->read_len;
 
    /*
     * If we read a short block on disk,
