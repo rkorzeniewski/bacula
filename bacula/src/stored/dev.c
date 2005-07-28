@@ -497,7 +497,16 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
       /* We cannot mount the device */
       if (num_parts == 0) {
          /* Run free space, check there is a media. */
-         Dmsg1(29, "Could not mount device %s, this is not a problem (num_parts == 0).\n", print_name());
+         update_free_space_dev(this);
+         if (have_media()) {
+            Dmsg1(29, "Could not mount device %s, this is not a problem (num_parts == 0), and have media.\n", print_name());
+         }
+         else {
+            Mmsg(errmsg, _("There is no valid media in the device %s.\n"), print_name());
+            Emsg0(M_FATAL, 0, errmsg);
+            fd = -1;
+            return;
+         }
       }
       else {
          Mmsg(errmsg, _("Could not mount device %s.\n"), print_name());
