@@ -473,7 +473,9 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
       file_size = 0;
    }
    part_size = 0;
-   
+
+   Dmsg2(99, "open_dvd_device: num_parts=%d, VolCatInfo.VolCatParts=%d\n",
+      dcr->dev->num_parts, dcr->VolCatInfo.VolCatParts);
    if (dcr->dev->num_parts < dcr->VolCatInfo.VolCatParts) {
       Dmsg2(99, "open_dvd_device: num_parts updated to %d (was %d)\n",
          dcr->VolCatInfo.VolCatParts, dcr->dev->num_parts);
@@ -883,7 +885,7 @@ eod_dev(DEVICE *dev)
 }
 
 /*
- * Set the position of the device -- only for files
+ * Set the position of the device -- only for files and DVD
  *   For other devices, there is no generic way to do it.
  *  Returns: true  on succes
  *           false on error
@@ -1678,7 +1680,7 @@ static void do_close(DEVICE *dev)
    }
    
    /* Remove the last part file if it is empty */
-   if (dev->can_append() && (dev->num_parts > 0)) {
+   if (dev->num_parts > 0) {
       struct stat statp;
       POOL_MEM archive_name(PM_FNAME);
       dev->part = dev->num_parts;
