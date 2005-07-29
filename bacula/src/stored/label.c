@@ -64,6 +64,7 @@ int read_dev_volume_label(DCR *dcr)
    DEV_BLOCK *block = dcr->block;
    int stat;
    bool want_ansi_label;
+   bool have_ansi_label = false;
 
    Dmsg3(100, "Enter read_volume_label device=%s vol=%s dev_Vol=%s\n",
       dev->print_name(), VolName, dev->VolHdr.VolumeName[0]?dev->VolHdr.VolumeName:
@@ -85,7 +86,8 @@ int read_dev_volume_label(DCR *dcr)
             Jmsg(jcr, M_FATAL, 0, "Too many tries: %s", jcr->errmsg);
          }
          Dmsg0(100, "return VOL_NAME_ERROR\n");
-         return VOL_NAME_ERROR;
+         stat = VOL_NAME_ERROR;
+         goto bail_out;
       }
       Dmsg0(30, "Leave read_volume_label() VOL_OK\n");
       return VOL_OK;       /* label already read */
@@ -112,9 +114,7 @@ int read_dev_volume_label(DCR *dcr)
       stat = read_ansi_ibm_label(dcr);            
       /* If we want a label and didn't find it, return error */
       if (want_ansi_label && stat != VOL_OK) {
-         empty_block(block);
-         rewind_dev(dev);
-         return stat;
+         goto bail_out;
       }
       if (stat == VOL_NAME_ERROR || stat == VOL_LABEL_ERROR) {
          Mmsg(jcr->errmsg, _("Wrong Volume mounted on device %s: Wanted %s have %s\n"),
@@ -122,13 +122,12 @@ int read_dev_volume_label(DCR *dcr)
          if (!dev->poll && jcr->label_errors++ > 100) {
             Jmsg(jcr, M_FATAL, 0, "Too many tries: %s", jcr->errmsg);
          }
-         empty_block(block);
-         rewind_dev(dev);
-         Dmsg1(100, "return %d\n", stat);
-         return stat;
+         goto bail_out;
       }
       if (stat != VOL_OK) {           /* Not an ANSI/IBM label, so re-read */
          rewind_dev(dev);
+      } else {
+         have_ansi_label = true;
       }
    }
   
@@ -157,17 +156,16 @@ int read_dev_volume_label(DCR *dcr)
       ok = true;
    }
    free_record(record);               /* finished reading Volume record */
-   empty_block(block);                /* done with block */
 
    if (!ok) {
       if (forge_on || jcr->ignore_label_errors) {
          dev->set_labeled();         /* set has Bacula label */
          Jmsg(jcr, M_ERROR, 0, "%s", jcr->errmsg);
+         empty_block(block);
          return VOL_OK;
       }
-      rewind_dev(dev);
-      Dmsg0(100, "return VOL_NO_LABEL\n");
-      return VOL_NO_LABEL;
+      stat = VOL_NO_LABEL;
+      goto bail_out;
    }
 
    /* At this point, we have read the first Bacula block, and
@@ -175,10 +173,6 @@ int read_dev_volume_label(DCR *dcr)
     * make sure we have the right Volume.
     */
 
-   /* If we are a streaming device, we only get one chance to read */
-   if (!dev_cap(dev, CAP_STREAM)) {
-      rewind_dev(dev);
-   }
 
    if (dev->VolHdr.VerNum != BaculaTapeVersion &&
        dev->VolHdr.VerNum != OldCompatibleBaculaTapeVersion1 &&
@@ -186,7 +180,8 @@ int read_dev_volume_label(DCR *dcr)
       Mmsg(jcr->errmsg, _("Volume on %s has wrong Bacula version. Wanted %d got %d\n"),
          dev->print_name(), BaculaTapeVersion, dev->VolHdr.VerNum);
       Dmsg1(30, "VOL_VERSION_ERROR: %s", jcr->errmsg);
-      return VOL_VERSION_ERROR;
+      stat = VOL_VERSION_ERROR;
+      goto bail_out;
    }
 
    /* We are looking for either an unused Bacula tape (PRE_LABEL) or
@@ -200,7 +195,8 @@ int read_dev_volume_label(DCR *dcr)
          Jmsg(jcr, M_FATAL, 0, "Too many tries: %s", jcr->errmsg);
       }
       Dmsg0(100, "return VOL_LABEL_ERROR\n");
-      return VOL_LABEL_ERROR;
+      stat = VOL_LABEL_ERROR;
+      goto bail_out;
    }
 
    dev->set_labeled();               /* set has Bacula label */
@@ -220,7 +216,8 @@ int read_dev_volume_label(DCR *dcr)
          Jmsg(jcr, M_FATAL, 0, "Too many tries: %s", jcr->errmsg);
       }
       Dmsg0(100, "return VOL_NAME_ERROR\n");
-      return VOL_NAME_ERROR;
+      stat = VOL_NAME_ERROR;
+      goto bail_out;
    }
    Dmsg1(30, "Copy vol_name=%s\n", dev->VolHdr.VolumeName);
 
@@ -228,7 +225,25 @@ int read_dev_volume_label(DCR *dcr)
       dump_volume_label(dev);
    }
    Dmsg0(30, "Leave read_volume_label() VOL_OK\n");
+   /* If we are a streaming device, we only get one chance to read */
+   if (!dev_cap(dev, CAP_STREAM)) {
+      rewind_dev(dev);
+      if (have_ansi_label) {
+         stat = read_ansi_ibm_label(dcr);            
+         /* If we want a label and didn't find it, return error */
+         if (stat != VOL_OK) {
+            goto bail_out;
+         }
+      }
+   }
+   empty_block(block);
    return VOL_OK;
+
+bail_out:
+   empty_block(block);
+   rewind_dev(dev);
+   Dmsg1(100, "return %d\n", stat);
+   return stat;
 }
 
 /*

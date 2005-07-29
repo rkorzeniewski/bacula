@@ -7245,32 +7245,40 @@ if test "${with_python+set}" = set; then
   PYTHON_LIBS=
   if test "$withval" != "no"; then
      if test "$withval" = "yes"; then
-	if test -f /usr/include/python2.2/Python.h; then
-	   PYTHON_INCDIR=-I/usr/include/python2.2
-	   PYTHON_LIBS="-L/usr/lib/python2.2/config -lpython2.2 -lutil -ldl"
-	elif test -f /usr/include/python2.3/Python.h; then
-	   PYTHON_INCDIR=-I/usr/include/python2.3
-	   PYTHON_LIBS="-L/usr/lib/python2.3/config -lpython2.3 -lutil -ldl"
-	elif test -f /usr/include/python2.4/Python.h; then
-	   PYTHON_INCDIR=-I/usr/include/python2.4
-	   PYTHON_LIBS="-L/usr/lib/python2.4/config -lpython2.4 -lutil -ldl"
-	elif test -f $prefix/include/Python.h; then
-	   PYTHON_INCDIR=-I$prefix/include
-	   PYTHON_LIBS="-L$prefix/lib/config -lpython -lutil -ldl"
-	else
+	for python_root in /usr /usr/local; do
+	  if test -f $python_root/include/python2.2/Python.h; then
+	     PYTHON_INCDIR=-I$python_root/include/python2.2
+	     PYTHON_LIBS="-L$python_root/lib/python2.2/config -lpython2.2 -lutil"
+	     break
+	  elif test -f $python_root/include/python2.3/Python.h; then
+	     PYTHON_INCDIR=-I$python_root/include/python2.3
+	     PYTHON_LIBS="-L$python_root/lib/python2.3/config -lpython2.3 -lutil"
+	     break
+	  elif test -f $python_root/include/python2.4/Python.h; then
+	     PYTHON_INCDIR=-I$python_root/include/python2.4
+	     PYTHON_LIBS="-L$python_root/lib/python2.4/config -lpython2.4 -lutil"
+	     break
+	  fi
+	done
+	if test x$PYTHON_INCDIR = x; then
+	  if test -f $prefix/include/Python.h; then
+	     PYTHON_INCDIR=-I$prefix/include
+	     PYTHON_LIBS="-L$prefix/lib/config -lpython -lutil"
+	  else
 	   echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
 	   { { echo "$as_me:$LINENO: error: Unable to find Python.h in standard locations" >&5
 echo "$as_me: error: Unable to find Python.h in standard locations" >&2;}
    { (exit 1); exit 1; }; }
+	  fi
 	fi
      else
 	if test -f $withval/Python.h; then
 	   PYTHON_INCDIR=-I$withval
-	   PYTHON_LIBS="-L$withval/config -lpython -lutil -ldl"
+	   PYTHON_LIBS="-L$withval/config -lpython -lutil"
 	elif test -f $withval/include/Python.h; then
 	   PYTHON_INCDIR=-I$withval/include
-	   PYTHON_LIBS="-L$withval/lib/config -lpython -lutil -ldl"
+	   PYTHON_LIBS="-L$withval/lib/config -lpython -lutil"
 	else
 	   echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
@@ -20934,6 +20942,7 @@ PFILES="platforms/Makefile"
 PSCMD="ps -e"
 WIN32=
 MACOSX=
+PYTHON_LIBS_EXTRAS="-ldl"
 hostname=`uname -n | cut -d '.' -f 1`
 case "$DISTNAME" in
 aix)
@@ -21007,6 +21016,7 @@ freebsd)
 	    platforms/freebsd/bacula-sd \
 	    platforms/freebsd/bacula-dir"
 	largefile_support="yes"
+	PYTHON_LIBS_EXTRAS=
   ;;
 hpux)
 	PSCMD="UNIX95=1 ps -e -o pid,comm"
@@ -21165,6 +21175,9 @@ esac
 
 
 LIBS="$PTHREAD_LIB $LIBS"
+if test "x$PYTHON_LIBS" != x -a "x$PYTHON_LIBS_EXTRAS" != x; then
+  PYTHON_LIBS="$PYTHON_LIBS $PYTHON_LIBS_EXTRAS"
+fi
 
 cat >>confdefs.h <<_ACEOF
 #define lld "$lld"

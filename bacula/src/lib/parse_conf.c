@@ -619,9 +619,10 @@ void store_size(LEX *lc, RES_ITEM *item, int index, int pass)
    case T_UNQUOTED_STRING:
       bstrncpy(bsize, lc->str, sizeof(bsize));  /* save first part */
       /* if terminated by space, scan and get modifier */
-      if (lc->ch == ' ') {
+      while (lc->ch == ' ') {
          token = lex_get_token(lc, T_ALL);
          switch (token) {
+         case T_NUMBER:
          case T_IDENTIFIER:
          case T_UNQUOTED_STRING:
             bstrncat(bsize, lc->str, sizeof(bsize));
@@ -660,9 +661,10 @@ void store_time(LEX *lc, RES_ITEM *item, int index, int pass)
    case T_UNQUOTED_STRING:
       bstrncpy(period, lc->str, sizeof(period));  /* get first part */
       /* if terminated by space, scan and get modifier */
-      if (lc->ch == ' ') {
+      while (lc->ch == ' ') {
          token = lex_get_token(lc, T_ALL);
          switch (token) {
+         case T_NUMBER:
          case T_IDENTIFIER:
          case T_UNQUOTED_STRING:
             bstrncat(period, lc->str, sizeof(period));

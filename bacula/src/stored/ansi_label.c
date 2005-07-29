@@ -319,14 +319,29 @@ bool write_ansi_ibm_labels(DCR *dcr, int type, const char *VolName)
       if (label_type == B_IBM_LABEL) {
          ascii_to_ebcdic(label, label, sizeof(label));
       }
+
+      /*
+       * This could come at the end of a tape, ignore
+       *  EOT errors.
+       */
       stat = write(dev->fd, label, sizeof(label));
       if (stat != sizeof(label)) {
          berrno be;
-         Jmsg1(jcr, M_FATAL, 0, _("Could not write ANSI HDR1 label. ERR=%s\n"),
-            be.strerror());
-         return false;
+         if (stat == -1) {
+            clrerror_dev(dev, -1);
+            if (dev->dev_errno == 0) {
+               dev->dev_errno = ENOSPC; /* out of space */
+            }
+            if (dev->dev_errno != ENOSPC) {
+               Jmsg1(jcr, M_FATAL, 0, _("Could not write ANSI HDR1 label. ERR=%s\n"),
+               be.strerror());
+               return false;
+            }
+         } else {
+            Jmsg(jcr, M_FATAL, 0, _("Could not write ANSI HDR1 label.\n"));
+            return false;
+         }
       }
-
 
       /* Now construct HDR2 label */
       memset(label, ' ', sizeof(label));
@@ -341,9 +356,22 @@ bool write_ansi_ibm_labels(DCR *dcr, int type, const char *VolName)
       stat = write(dev->fd, label, sizeof(label));
       if (stat != sizeof(label)) {
          berrno be;
-         Jmsg1(jcr, M_FATAL, 0, _("Could not write ANSI HDR1 label. ERR=%s\n"),
-            be.strerror());
-         return false;
+         if (stat == -1) {
+            clrerror_dev(dev, -1);
+            if (dev->dev_errno == 0) {
+               dev->dev_errno = ENOSPC; /* out of space */
+            }
+            if (dev->dev_errno != ENOSPC) {
+               Jmsg1(jcr, M_FATAL, 0, _("Could not write ANSI HDR1 label. ERR=%s\n"),
+               be.strerror());
+               return false;
+            }
+            weof_dev(dev, 1);
+            return true;
+         } else {
+            Jmsg(jcr, M_FATAL, 0, _("Could not write ANSI HDR1 label.\n"));
+            return false;
+         }
       }
       if (weof_dev(dev, 1) < 0) {
          Jmsg(jcr, M_FATAL, 0, _("Error writing EOF to tape. ERR=%s"), dev->errmsg);
