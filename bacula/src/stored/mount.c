@@ -149,6 +149,8 @@ mount_next_vol:
 
    /* Ensure the device is open */
    if (!open_device(dcr)) {
+      /* If DVD, ignore the error, very often you cannot open the device
+       * (when there is no DVD, or when the one inserted is a wrong one) */
       if ((dev->poll) || (dev->is_dvd())) {
          goto mount_next_vol;
       } else {
@@ -365,6 +367,29 @@ read_volume:
       if (!dir_update_volume_info(dcr, false)) {
          return false;
       }
+      
+      /* DVD sanity check : check if the last part was removed or truncated, or if
+       * a written part was overwritten. */
+      /* We need to do it after dir_update_volume_info, so we have the EndBlock
+       * info. (nb: I don't understand why VolCatFiles is set (used to check
+       * tape file number), but not EndBlock) */
+      /* Maybe could it be changed "dev->is_file()" (would remove the fixme above) */
+      if (dev->is_dvd()) {
+         Dmsg2(100, "DVD/File sanity check addr=%u vs endblock=%u\n", (unsigned int)dev->file_addr, (unsigned int)dev->VolCatInfo.EndBlock);
+         if (dev->file_addr == dev->VolCatInfo.EndBlock+1) {
+            Jmsg(jcr, M_INFO, 0, _("Ready to append to end of Volume \"%s\" at file address=%u.\n"),
+                 dcr->VolumeName, (unsigned int)dev->file_addr);
+         }
+         else {
+            Jmsg(jcr, M_ERROR, 0, _("I cannot write on Volume \"%s\" because:\n"
+                                    "The EOD file address is wrong: Volume file address=%u != Catalog Endblock=%u(+1)\n"
+                                    "You probably removed DVD last part in spool directory.\n"),
+                 dcr->VolumeName, (unsigned int)dev->file_addr, (unsigned int)dev->VolCatInfo.EndBlock);
+            mark_volume_in_error(dcr);
+            goto mount_next_vol;
+         }
+      }
+      
       /* Return an empty block */
       empty_block(block);             /* we used it for reading so set for write */
    }
