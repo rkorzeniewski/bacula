@@ -4,7 +4,17 @@
 General:
 
 Changes to 1.37.32:
+29Jul05
+- Apply user's patch to make mutiple modifiers for times
+  work correctly.
+- Make read_dev_volume_label() handle ANSI/IBM labels
+  correctly -- ie space over any label at the beginning
+  of the tape.
 28Jul05
+- Make ANSI/IBM writing of HDR1/2 labels ignore any
+  errors if at end of tape.
+- Apply Martin's patch to improve Python detection in
+  configure.in
 - Temporarily turn off disk seeking until I find the
   cause of the problem.
 27Jul05
