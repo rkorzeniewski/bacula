@@ -296,6 +296,8 @@ bool open_device(DCR *dcr)
    }
    if (dev->open(dcr, mode) < 0) {
       /* If polling, ignore the error */
+      /* If DVD, also ignore the error, very often you cannot open the device
+       * (when there is no DVD, or when the one inserted is a wrong one) */
       if ((!dev->poll) && (!dev->is_dvd())) {
          Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open device %s: ERR=%s\n"),
             dev->print_name(), strerror_dev(dev));
