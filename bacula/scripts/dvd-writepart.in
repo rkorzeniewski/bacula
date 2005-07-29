@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Bacula interface to growisofs, used to write to DVD+/-R(W)
 #
@@ -26,11 +26,19 @@ GROWARGS="-quiet"
 # when writing ends.
 GROWARGS="${GROWARGS} -use-the-force-luke=notray"
 
-# Uncomment the following line if you have a Linux kernel >=2.6.8, and
-# if you want to allow a session to start beyond the 4gb boundary.
-#GROWARGS="${GROWARGS} -use-the-force-luke=4gms"
-
 #### You should probably not modify anything below this line
+
+# If Linux kernel version >=2.6.8, allow a session to start beyond the
+# 4gb boundary.
+kver=`uname -r | cut -d. -f1,2`
+ksubver=`uname -r | cut -d. -f3 | cut -d- -f1`
+
+if test "a$kver" = "a2.6" ; then
+   if test "$ksubver" > 7 ; then
+      echo "Kernel version >= 2.6.8, allowing to cross the 4gb boundary."
+      GROWARGS="${GROWARGS} -use-the-force-luke=4gms"
+   fi
+fi
 
 if test $# -ne 3 ; then
   echo "usage: dvd-writepart part_number device part_filename"
@@ -49,9 +57,24 @@ else
   arg="-M"  
 fi
 
+# Starts growisofs
 echo Running ${GROWISOFS} ${GROWARGS} $arg $dev -R $filename...
+${GROWISOFS} ${GROWARGS} $arg $dev -R $filename &
+#bash -c "while [ 1 ]; do echo "G"; sleep 1; done" &
+growpid=$!
+parentpid=$$
 
-${GROWISOFS} ${GROWARGS} $arg $dev -R $filename
+# Starts watchdog : checks if the parent is alive. If not, kill
+# growisofs.
+
+bash -c "rtn=0; while [ \$rtn = 0 ]; do sleep 5; ps -p $parentpid; rtn=\$?; echo W\$rtn; done; echo \"Parent dead killing $growpid\"; kill $growpid; sleep 5; kill -9 $growpid" &
+watchpid=$!
+
+# Waits for growisofs to stop
+wait $growpid
 rtn=$?
+
+# Kill the watchdog
+kill -9 $watchpid
 
 exit $rtn
