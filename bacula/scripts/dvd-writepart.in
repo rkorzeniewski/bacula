@@ -34,7 +34,7 @@ kver=`uname -r | cut -d. -f1,2`
 ksubver=`uname -r | cut -d. -f3 | cut -d- -f1`
 
 if test "a$kver" = "a2.6" ; then
-   if test "$ksubver" > 7 ; then
+   if test "$ksubver" -gt 7 ; then
       echo "Kernel version >= 2.6.8, allowing to cross the 4gb boundary."
       GROWARGS="${GROWARGS} -use-the-force-luke=4gms"
    fi
@@ -67,7 +67,7 @@ parentpid=$$
 # Starts watchdog : checks if the parent is alive. If not, kill
 # growisofs.
 
-bash -c "rtn=0; while [ \$rtn = 0 ]; do sleep 5; ps -p $parentpid; rtn=\$?; echo W\$rtn; done; echo \"Parent dead killing $growpid\"; kill $growpid; sleep 5; kill -9 $growpid" &
+bash -c "rtn=0; while [ \$rtn = 0 ]; do sleep 5; ps -p $parentpid > /dev/null; rtn=\$?; done; echo \"Parent dead killing $growpid\"; kill $growpid; sleep 5; kill -9 $growpid" &
 watchpid=$!
 
 # Waits for growisofs to stop
