@@ -239,6 +239,9 @@ int close_bpipe(BPIPE *bpipe)
  *   of seconds. Program killed if wait exceeded. Optionally
  *   return the output from the program (normally a single line).
  *
+ *   If the watchdog kills the program, fgets returns, and ferror is set
+ *   to 1 (=>SUCCESS), so we check if the watchdog killed the program.
+ *
  * Contrary to my normal calling conventions, this program
  *
  *  Returns: 0 on success
@@ -269,6 +272,16 @@ int run_program(char *prog, int wait, POOLMEM *results)
          Dmsg2(100, "Run program fgets stat=%d ERR=%s\n", stat1, strerror(errno));
       } else if (stat1 != 0) {
          Dmsg1(100, "Run program fgets stat=%d\n", stat1);
+         if (bpipe->timer_id) {
+            Dmsg1(100, "Run program fgets killed=%d\n", bpipe->timer_id->killed);
+            /* NB: I'm not sure it is really useful for run_program. Without the
+             * following lines run_program would not detect if the program was killed
+             * by the watchdog. */
+            if (bpipe->timer_id->killed) {
+               stat1 = -EPIPE;
+               pm_strcat(results, "Program killed by Bacula watchdog (timeout)\n");
+            }
+         }
       }
    } else {
       stat1 = 0;
@@ -283,6 +296,10 @@ int run_program(char *prog, int wait, POOLMEM *results)
  * Run an external program. Optionally wait a specified number
  *   of seconds. Program killed if wait exceeded (it is done by the 
  *   watchdog, as fgets is a blocking function).
+ *
+ *   If the watchdog kills the program, fgets returns, and ferror is set
+ *   to 1 (=>SUCCESS), so we check if the watchdog killed the program.
+ *
  *   Return the full output from the program (not only the first line).
  *
  * Contrary to my normal calling conventions, this program
@@ -334,6 +351,14 @@ int run_program_full_output(char *prog, int wait, POOLMEM *results)
          break;
       } else if (stat1 != 0) {
          Dmsg1(900, "Run program fgets stat=%d\n", stat1);
+         if (bpipe->timer_id) {
+            Dmsg1(100, "Run program fgets killed=%d\n", bpipe->timer_id->killed);
+            if (bpipe->timer_id->killed) {
+               pm_strcat(tmp, "Program killed by Bacula watchdog (timeout)\n");
+               stat1 = -EPIPE;
+               break;
+            }
+         }
       }
    }
    int len = sizeof_pool_memory(results) - 1;

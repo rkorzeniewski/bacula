@@ -4,6 +4,9 @@
 General:
 
 Changes to 1.37.*:
+30Jul05
+ - Fix src/lib/bpipe.c:run_program and run_program_full_output to detect if the watchdog
+   killed the program, and return an error if it is the case.
 26Apr05
  - Modify parse_config to get a LEX_ERROR_HANDLER as a parameter 
  - lex_open_file now returns NULL if the file can't be opened. All calling functions have
