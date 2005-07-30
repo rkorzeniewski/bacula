@@ -1,10 +1,9 @@
 
-          Release Notes for Bacula 1.37.30
+          Release Notes for Bacula 1.37.32
 
-  Bacula code: Total files = 420 Total lines = 136,852 (*.h *.c *.in)
+  Bacula code: Total files = 420 Total lines = 137,098 (*.h *.c *.in)
 
 Major Changes:
-- Note! DVD writing does not work.
 - There is a new database format that is not compatible
   with previous databases. You must upgrade if converting
   from 1.36.x.
@@ -24,7 +23,9 @@ Major Changes:
   Volume name.
 - DVD writing support, using parts, and a lot of new directives in
   the Device resource of the Storage configuration file thanks
-  to Nicolas Boichat. NOT CURRENTLY WORKING!
+  to Nicolas Boichat. Please note that this code is still 
+  experimental and should be carefully tested before using in
+  production.
 - Seven new options keywords in a FileSet resource:
   ignorecase, fstype, hfsplussupport, wilddir, wildfile, regexdir,
   and regexfile thanks to Pruben Guldberg). See below for details.
@@ -35,7 +36,6 @@ Major Changes:
   to Landon Fuller.
 - Any Volume in the Pool named Scratch may be reassigned to any
   other Pool when a new Volume is needed.
-- Seeking on disk Volumes during restore.
 - You may clone a Job and thus write (almost) the same data
   to multiple Volumes simultaneously (see below). Actually, 
   any Job may start any other Job with this mechanism, so it
@@ -153,14 +153,11 @@ New Commands:
    a Python script and get Bacula to use the new script.
 
 Items to note!!!
-- DVD writing is not yet working.
 - You must add --with-python=[DIR] to the configure command line
-  if you want Python support.  Python 2.2 and 2.3 should be automatically
-  detected if in the standard place.
-- With Python 2.2 version, the link of the Director gets a few linker
-  warnings due to the fact that Python pulls in some old non-secure
-  libraries.
-- With Python 2.3, there are a few compiler warnings.
+  if you want Python support.  Python 2.2, 2.3 and 2.4 should be 
+  automatically detected if in the standard place.
+- When linking with --with-python, there are a few warnings that
+  can be ignored.
 - You must either create a new catalog database or upgrade your
   old database (the PostgreSQL upgrade scripts not yet tested).
 - You must add --with-openssl to the configure command line if
@@ -168,6 +165,8 @@ Items to note!!!
 - If you use an Autochanger, you *must* update your SD conf file
   to use the new Autochanger resource.  Otherwise, certain commands
   such as "update slots" may not work.
+- Disk seeking during restores does not yet work correctly in
+  all cases, so it is turned off.
 
 Other Items:
 - 2 new scripts, dvd-writepart and dvd-freespace, in the scripts directory,
@@ -175,7 +174,7 @@ Other Items:
   Free Space Command. They need the dvd+rw-tools to be installed
   (http://fy.chalmers.se/~appro/linux/DVD+RW/).
   You must have Python installed to run the dvd-freespace script.
-- Part files support: File volumes can now be splitted in multiple
+- Part files support: File volumes can now be split into multiple
   files, called "parts".
 
 - For the details of the Python scripting support, please see the new
