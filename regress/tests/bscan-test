@@ -18,6 +18,7 @@ echo " "
 
 bin/bacula start 2>&1 >/dev/null
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+#bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
 messages
 @output tmp/log1.out
@@ -47,15 +48,17 @@ scripts/check_for_zombie_jobs storage=File1
 bin/bacula stop 2>&1 >/dev/null
 echo "volume=TestVolume001|TestVolume002" >tmp/bscan.bsr
 bin/bscan -w working -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf ${cwd}/tmp 2>&1 >/dev/null
+#bin/bscan -w working -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf ${cwd}/tmp
 bin/bacula start 2>&1 >/dev/null
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+#bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
 messages
 @output tmp/log2.out
 @# 
 @# now do a restore
 @#
-restore where=${cwd}/tmp/bacula-restores select all storage=File1 done
+restore bootstrap=${cwd}/tmp/kern.bsr where=${cwd}/tmp/bacula-restores select all storage=File1 done
 yes
 wait
 messages
