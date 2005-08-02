@@ -19,7 +19,7 @@ drop table filename;
 drop table counters;
 drop table version;
 drop table CDImages;
-drop table Devices;
+drop table Device;
 drop table Storage;
 drop table MediaType;
 drop table Status;

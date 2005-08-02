@@ -245,7 +245,7 @@ bool do_append_data(JCR *jcr)
    set_jcr_job_status(jcr, ok?JS_Terminated:JS_ErrorTerminated);
 
    Dmsg1(200, "Write session label JobStatus=%d\n", jcr->JobStatus);
-   if (dev->VolCatInfo.VolCatName[0] == 0) {
+   if ((!ok || job_canceled(jcr)) && dev->VolCatInfo.VolCatName[0] == 0) {
       Pmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
    }
 

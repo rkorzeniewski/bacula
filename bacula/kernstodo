@@ -9,6 +9,8 @@ Version 1.37                Kern (see below)
 
 Final items for 1.37 before release:
 1. Fix bugs
+- Tape xxx in drive 0, requested in drive 1
+- Multi-drive changer seems to only use drive 0
 -  --without-openssl breaks at least on Solaris.
 9. Run the regression scripts on Solaris and FreeBSD
 -  Figure out how to package gui, and rescue programs.
@@ -57,6 +59,10 @@ Document:
 =======
 
 For 1.39:
+- Email to the user when the tape is about to need changing x
+  days before it needs changing.
+- Command to show next tape that will be used for a job even
+  if the job is not scheduled.
 --- create_file.c.orig  Fri Jul  8 12:13:05 2005
 +++ create_file.c       Fri Jul  8 12:13:07 2005
 @@ -195,6 +195,8 @@

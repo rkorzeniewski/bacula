@@ -694,7 +694,8 @@ static int can_reserve_drive(DCR *dcr, bool PreferMountedVols)
          return 1;
       } else {
          /* Drive not suitable for us */
-         Jmsg(jcr, M_WARNING, 0, _("Device %s is busy writing on another Volume.\n"), dev->print_name());
+         Jmsg(jcr, M_WARNING, 0, _("Wanted Pool \"%s\", but device %s is using Pool \"%s\" .\n"), 
+                 dcr->pool_name, dev->print_name(), dev->pool_name);
          return 0;                    /* wait */
       }
    } else {
