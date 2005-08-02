@@ -4,6 +4,12 @@
 General:
 
 Changes to 1.37.32:
+02Aug05
+- Correct PostgreSQL database scripts as suggested by a user.
+- Add additional info to FATAL message generated when a device
+  is busy writing to another volume.
+- Suppress an inappropriate NULL Volume name message after a cancel.
+- Correct a warning message in reserve.c
 29Jul05
 - Apply user's patch to make mutiple modifiers for times
   work correctly.

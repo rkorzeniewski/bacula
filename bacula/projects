@@ -24,7 +24,7 @@ Item 1:   Implement Base jobs.
           pulled in where necessary.
 
   Why:    This is something none of the competition does, as far as
-          we know (except BackupPC, which is a Perl program that
+          we know (except perhpas BackupPC, which is a Perl program that
           saves to disk only).  It is big win for the user, it
           makes Bacula stand out as offering a unique
           optimization that immediately saves time and money.
