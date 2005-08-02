@@ -37,7 +37,9 @@ echo " === Starting restore-disk-seek-test at `date +%R:%S` ===" >>working/log
 echo " "
 
 bin/bacula start -v -v 2>&1 >/dev/null
+#bin/bacula start -v -v 
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+#bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
 messages
 @output tmp/log1.out
@@ -52,7 +54,7 @@ messages
 sql
 select * from JobMedia;
 
-restore where=${cwd}/tmp/bacula-restores storage=File
+restore bootstrap=${cwd}/tmp/kern.bsr where=${cwd}/tmp/bacula-restores storage=File
 7
 <${cwd}/tmp/restore-list
 
