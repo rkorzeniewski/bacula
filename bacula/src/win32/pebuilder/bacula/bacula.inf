@@ -28,6 +28,7 @@ files\bconsole.exe=a,,1
 files\bconsole.conf=a,,1
 files\License.txt=a,,1
 files\pthreadVCE.dll=a,,1
+files\msvcr71.dll=a,,1
 files\wx-console.exe=a,,1
 files\wx-console.conf=a,,1
 
