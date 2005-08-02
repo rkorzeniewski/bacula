@@ -35,11 +35,11 @@ Autochanger {
   Name = DDS-4
   Changer Device = @autochanger@
   Changer Command ="@scriptdir@/mtx-changer %c %o %S %a"
-  Device = Drive-0
+  Device = Drive-0, Drive-1
 }
 
 Device {
-  Name = Drive-0                   # 
+  Name = Drive-0
   Media Type = DDS-4
   Archive Device = @tape_drive@
   AutomaticMount = yes;               # when device opened, read it
@@ -50,6 +50,20 @@ Device {
   @@sbindir@/tape_options
 # Maximum File Size = 1000000
 }
+
+Device {
+  Name = Drive-1
+  Media Type = DDS-4
+  Archive Device = @tape_drive1@
+  AutomaticMount = yes;               # when device opened, read it
+  Autochanger = yes
+  Drive Index = 0
+  AlwaysOpen = yes;
+  RemovableMedia = yes;
+  @@sbindir@/tape_options
+# Maximum File Size = 1000000
+}
+
 
 # 
 # Send all messages to the Director, 

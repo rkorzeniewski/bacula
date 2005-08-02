@@ -1,10 +1,11 @@
 #!/bin/sh
 #
-if test $# != 4 ; then
+if test $# != 5 ; then
    echo "First arg must be email name"
    echo "  and the second must be a tape drive"
    echo "  and the third must be a tape control name or /dev/null"
    echo "  and the fourth must be the full path to the mtx program"
+   echo "  and the fifth must be tape drive 1 or /dev/null"
    exit 1
 fi
 out="/tmp/sed_tmp"
@@ -25,6 +26,7 @@ echo "s%@autochanger@%${3}%g" >>${out}
 echo "s%@tmpdir@%${cwd}/tmp%g" >>${out}
 echo "s%@hostname@%${host}%g" >>${out}
 echo "s%@changer_path@%${4}%g" >>${out}
+echo "s%@tape_drive1@%${5}%g" >>${out}
 
 # process .in files with sed script
 sed -f ${out} ${cwd}/scripts/test-bacula-dir.conf.in >${cwd}/scripts/test-bacula-dir.conf
@@ -37,6 +39,7 @@ sed -f ${out} ${cwd}/scripts/bacula-dir-tape.conf.in >${cwd}/scripts/bacula-dir-
 sed -f ${out} ${cwd}/scripts/bacula-dir-win32-tape.conf.in >${cwd}/scripts/bacula-dir-win32-tape.conf
 sed -f ${out} ${cwd}/scripts/bacula-sd-tape.conf.in >${cwd}/scripts/bacula-sd-tape.conf
 sed -f ${out} ${cwd}/scripts/bacula-sd-2tape.conf.in >${cwd}/scripts/bacula-sd-2tape.conf
+sed -f ${out} ${cwd}/scripts/bacula-sd-2drive.conf.in >${cwd}/scripts/bacula-sd-2drive.conf
 sed -f ${out} ${cwd}/scripts/cleanup-tape.in >${cwd}/scripts/cleanup-tape
 sed -f ${out} ${cwd}/scripts/cleanup-2tape.in >${cwd}/scripts/cleanup-2tape
 sed -f ${out} ${cwd}/scripts/prepare-two-tapes.in >${cwd}/scripts/prepare-two-tapes
