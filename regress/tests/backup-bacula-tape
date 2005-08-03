@@ -5,7 +5,7 @@
 #   we can correctly append to a tape.
 #
 cwd=`pwd`
-debug=1
+debug=0 
 if test "$debug" -eq 1 ; then
   out="tee"
 else
