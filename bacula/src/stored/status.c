@@ -143,7 +143,11 @@ bool status_cmd(JCR *jcr)
             edit_uint64_with_commas(dev->block_num, b2));
 
       } else {
-         bnet_fsend(user, _("Archive \"%s\" is not open or does not exist.\n"), device->hdr.name);
+         if (dev) {
+            bnet_fsend(user, _("Device %s is not open or does not exist.\n"), dev->print_name());
+         } else {
+            bnet_fsend(user, _("Device \"%s\" is not open or does not exist.\n"), device->hdr.name);
+         }
          send_blocked_status(jcr, dev);
       }
    }
@@ -198,6 +202,15 @@ static void send_blocked_status(JCR *jcr, DEVICE *dev)
       break;
    default:
       break;
+   }
+   /* Send autochanger slot status */
+   if (dev->is_autochanger()) {
+      if (dev->Slot) {
+         bnet_fsend(user, _("    Slot %d is loaded in drive %d.\n"), 
+            dev->Slot, dev->drive_index);
+      } else {
+         bnet_fsend(user, _("    Drive %d is not loaded.\n"), dev->drive_index);
+      }
    }
    if (debug_level > 1) {
       bnet_fsend(user, _("Configured device capabilities:\n"));

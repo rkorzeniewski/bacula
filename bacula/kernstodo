@@ -11,6 +11,11 @@ Final items for 1.37 before release:
 1. Fix bugs
 - Tape xxx in drive 0, requested in drive 1
 - Multi-drive changer seems to only use drive 0
+  Multiple drives don't seem to be opened.
+- Why isn't the DEVICE structure defined when doing
+  a reservation?
+- The mount command does not work with drives other than 0.
+
 -  --without-openssl breaks at least on Solaris.
 9. Run the regression scripts on Solaris and FreeBSD
 -  Figure out how to package gui, and rescue programs.

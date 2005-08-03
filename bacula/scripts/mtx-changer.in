@@ -72,30 +72,20 @@ ctl=$1
 cmd="$2"
 slot=$3
 device=$4
-# If drive not given, default to 0
-if test $# = 5 ; then
-  drive=$5
-else
-  drive=0
-fi
+drive=$5
 
 #
 # Check for special cases where only 2 arguments are needed, 
 #  all others are a minimum of 3
 case $cmd in
-   loaded)
-     ;;
-   unload)
-     ;;
    list)
      ;;
    slots)
      ;;
    *)
-     if test $# -lt 3; then
+     if test $# -lt 5; then
 	echo "usage: mtx-changer ctl-device command slot archive-device drive"
 	echo "	Insufficient number of arguments arguments given."
-	echo "	Mimimum usage is first three arguments ..."
 	exit 1
      fi
      ;;
@@ -108,11 +98,7 @@ case $cmd in
 #
 # enable the following line if you need to eject the cartridge
 #     mt -f $device offline
-      if test x$slot = x; then
-	 ${MTX} -f $ctl unload
-      else
-	 ${MTX} -f $ctl unload $slot $drive
-      fi
+      ${MTX} -f $ctl unload $slot $drive
       ;;
 
    load)

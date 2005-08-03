@@ -190,7 +190,7 @@ int lex_get_char(LEX *lf)
       }
       lf->line_no++;
       lf->col_no = 0;
-      Dmsg2(400, "fget line=%d %s", lf->line_no, lf->line);
+      Dmsg2(1000, "fget line=%d %s", lf->line_no, lf->line);
    }
    lf->ch = (uint8_t)lf->line[lf->col_no];
    if (lf->ch == 0) {

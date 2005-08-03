@@ -495,14 +495,21 @@ void *device_initialization(void *arg)
       }
 
       dcr = new_dcr(jcr, dev);
+      if (dev->is_autochanger()) {
+         /* If autochanger set slot in dev sturcture */
+         get_autochanger_loaded_slot(dcr);
+      }
 
       if (device->cap_bits & CAP_ALWAYSOPEN) {
          Dmsg1(20, "calling first_open_device %s\n", dev->print_name());
          if (!first_open_device(dcr)) {
             Jmsg1(NULL, M_ERROR, 0, _("Could not open device %s\n"), dev->print_name());
             Dmsg1(20, "Could not open device %s\n", dev->print_name());
+
+#ifdef xxx
             term_dev(dev);
             device->dev = NULL;
+#endif
             free_dcr(dcr);
             continue;
          }
