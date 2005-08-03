@@ -4,8 +4,14 @@
 #   then backup four times, each with incremental then finally restore.
 #   It should require at least 4 different bsrs.
 #
-cwd=`pwd`
+debug=0
+if test "$debug" -eq 1 ; then
+  out="tee"
+else
+  out="output"
+fi
 
+cwd=`pwd`
 scripts/copy-tape-confs
 scripts/cleanup-tape
 echo "${cwd}/build" >/tmp/file-list
@@ -16,13 +22,10 @@ echo " === Starting relabel-tape at `date +%R:%S` ==="
 echo " === Starting relabel-tape at `date +%R:%S` ===" >>working/log
 echo " "
 
-bin/bacula start 2>&1 >/dev/null
-#bin/bacula start
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
-#bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
-@output /dev/null
+cat <<END_OF_DATA >tmp/bconcmds
+@$out /dev/null
 messages
-@output tmp/log1.out
+@$out tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default
 run job=NightlySave level=Full yes
 wait
@@ -41,27 +44,36 @@ run job=NightlySave level=Full yes
 unmount
 unmount
 purge volume=TestVolume001
-relabel oldvolume=TestVolume001 volume=TestVolume003 slot=0
+relabel oldvolume=TestVolume001 volume=TestVolume003 slot=0 pool=Default
 list volumes
 messages
 wait
 messages
-@output
+@$out
 quit
 END_OF_DATA
+
+if test "$debug" -eq 1 ; then
+  bin/bacula start
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+else
+  bin/bacula start 2>&1 >/dev/null
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+fi
+
 echo "Backup done"
 # 
 # now do several restores to ensure we cleanup between jobs
 #
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
-@output /dev/null
+cat <<END_OF_DATA >tmp/bconcmds
+@$out /dev/null
 restore where=${cwd}/tmp/bacula-restores select all done
 yes
 wait
 restore where=${cwd}/tmp/bacula-restores select all done
 yes
 wait
-@output tmp/log2.out
+@$out tmp/log2.out
 @#
 @# now unmount the tape and start two restores
 @#  at the same time
@@ -77,9 +89,16 @@ yes
 mount storage=DDS-4
 wait
 messages
-@output
+@$out
 quit
 END_OF_DATA
+
+if test "$debug" -eq 1 ; then
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+else
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+fi
+
 scripts/check_for_zombie_jobs storage=DDS-4
 bin/bacula stop 2>&1 >/dev/null
 grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
