@@ -15,3 +15,5 @@ bacula-sd-2tape.conf
 cleanup-tape
 cleanup-2tape
 prepare-two-tapes
+cleanup-2drive
+bacula-sd-2drive.conf
