@@ -917,12 +917,10 @@ static bool try_autoload_device(JCR *jcr, int slot, const char *VolName)
    }
 
    /* Ensure that the device is open -- autoload_device() closes it */
-   for ( ; !dev->is_open(); ) {
-      if (dev->open(dcr, OPEN_READ_WRITE) < 0) {
-         bnet_fsend(dir, _("3910 Unable to open device %s: ERR=%s\n"),
-            dev->print_name(), dev->strerror());
-         return false;
-      }
+   if (dev->open(dcr, OPEN_READ_WRITE) < 0) {
+      bnet_fsend(dir, _("3910 Unable to open device %s: ERR=%s\n"),
+         dev->print_name(), dev->strerror());
+      return false;
    }
    return true;
 }

@@ -265,7 +265,7 @@ bool first_open_device(DCR *dcr)
     if (dev_cap(dev, CAP_STREAM)) {
        mode = OPEN_WRITE_ONLY;
     } else {
-       mode = OPEN_READ_WRITE;
+       mode = OPEN_READ_ONLY;
     }
    Dmsg0(129, "Opening device.\n");
    dev->open_nowait = true;
