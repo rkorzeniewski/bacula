@@ -34,7 +34,7 @@ Director {
 Autochanger {
   Name = DDS-4
   Changer Device = @autochanger@
-  Changer Command ="@scriptdir@/mtx-changer %c %o %S %a"
+  Changer Command ="@scriptdir@/mtx-changer %c %o %S %a %d"
   Device = Drive-0, Drive-1
 }
 
@@ -57,7 +57,7 @@ Device {
   Archive Device = @tape_drive1@
   AutomaticMount = yes;               # when device opened, read it
   Autochanger = yes
-  Drive Index = 0
+  Drive Index = 1
   AlwaysOpen = yes;
   RemovableMedia = yes;
   @@sbindir@/tape_options
