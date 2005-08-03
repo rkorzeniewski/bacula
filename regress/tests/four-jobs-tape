@@ -24,7 +24,7 @@ estimate job=NightlySave listing
 estimate job=NightlySave listing
 messages
 @output tmp/log1.out
-label storage=DDS-4 volume=TestVolume001 slot=0
+label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default
 run job=NightlySave yes
 wait
 messages

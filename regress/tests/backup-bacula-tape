@@ -5,6 +5,12 @@
 #   we can correctly append to a tape.
 #
 cwd=`pwd`
+debug=1
+if test "$debug" -eq 1 ; then
+  out="tee"
+else
+  out="output"
+fi
 scripts/copy-tape-confs
 scripts/cleanup-tape
 
@@ -16,12 +22,12 @@ echo " === Starting Backup Bacula tape test at `date +%R:%S` ==="
 echo " === Starting Backup Bacula tape test at `date +%R:%S` ===" >>working/log
 echo " "
 
-bin/bacula start 2>&1 >/dev/null
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+# Write out bconsole commands
+cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
-@output tmp/log1.out
-label storage=DDS-4 volume=TestVolume001 slot=0
+@$out tmp/log1.out
+label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default
 purge volume=TestVolume001
 relabel pool=Default storage=DDS-4 oldVolume=TestVolume001 volume=TestVolume002 slot=0
 purge volume=TestVolume002
@@ -62,37 +68,54 @@ messages
 @# 
 @# now do a restore
 @#
-@output tmp/log2.out
+@$out tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
 yes
 wait
 messages
 END_OF_DATA
+
+if test "$debug" -eq 1 ; then
+  bin/bacula start
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+else
+  bin/bacula start 2>&1 >/dev/null
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+fi
+
 bin/bacula stop 2>&1 >/dev/null
 #
 # Now do a second backup after making a few changes
 #
 touch ${cwd}/build/src/dird/*.c
 echo "test test" > ${cwd}/build/src/dird/xxx
-bin/bacula start 2>&1 >/dev/null
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
-@output /dev/null
+
+cat <<END_OF_DATA >tmp/bconcmds
+@$out /dev/null
 messages
-@output tmp/log1.out
+@$out tmp/log1.out
 run job=NightlySave yes
 wait
 messages
 @# 
 @# now do a second restore
 @#
-@output tmp/log2.out
+@$out tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
 yes
 wait
 messages
-@output
+@$out
 quit
 END_OF_DATA
+
+if test "$debug" -eq 1 ; then
+  bin/bacula start
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+else
+  bin/bacula start 2>&1 >/dev/null
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+fi
 scripts/check_for_zombie_jobs storage=DDS-4
 
 bin/bacula stop 2>&1 >/dev/null
