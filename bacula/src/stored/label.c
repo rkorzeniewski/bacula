@@ -301,6 +301,7 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *Po
 
    Dmsg1(100, "Label type=%d\n", dev->label_type);
    if (!rewind_dev(dev)) {
+      free_volume(dev);
       memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
       Dmsg2(30, "Bad status on %s from rewind: ERR=%s\n", dev->print_name(), strerror_dev(dev));
       if (!forge_on) {
@@ -356,6 +357,7 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *Po
    return true;
 
 bail_out:
+   free_volume(dev);
    memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
    dev->clear_append();               /* remove append since this is PRE_LABEL */
    return false;
@@ -529,6 +531,7 @@ void create_volume_label(DEVICE *dev, const char *VolName, const char *PoolName)
 
    ASSERT(dev != NULL);
 
+   free_volume(dev);         /* release any old volume */
    memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
 
    bstrncpy(dev->VolHdr.Id, BaculaId, sizeof(dev->VolHdr.Id));

@@ -3,7 +3,18 @@
 
 General:
 
-Changes to 1.37.32:
+Changes to 1.37.34:
+03Aug03
+- Modify open() for tape so nonblocking really works.  
+- Use fcntl() to reset blocking status rather than close()
+  and reopen the drive.
+- Make sure dev->open() is always called so that any change
+  in read/write permissions will occur.
+- Open drives initially in daemon in read-only mode.
+- Ensure that each time the VolHdr.VolumeName is zapped
+  or changed that free_volume() is called on the old name.
+
+Changes to 1.37.33:
 03Aug03
 - Require 5 arguments to mtx-changer except list and slots
 - Turn -EPIPE status returns from bpipe to ETIME
@@ -11,6 +22,8 @@ Changes to 1.37.32:
 - Do not term_dev() during initialization in SD if the device
   could not be opened.  In the case of a tape drive, there may
   be no tape in the drive.
+
+Changes to 1.32.32:
 02Aug05
 - Correct PostgreSQL database scripts as suggested by a user.
 - Add additional info to FATAL message generated when a device

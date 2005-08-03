@@ -276,7 +276,7 @@ DEVICE::open(DCR *dcr, int omode)
    state &= ~(ST_LABEL|ST_APPEND|ST_READ|ST_EOT|ST_WEOT|ST_EOF);
    label_type = B_BACULA_LABEL;
    if (is_tape() || is_fifo()) {
-      open_tape_device(omode);
+      open_tape_device(dcr, omode);
    } else if (is_dvd()) {
       Dmsg1(100, "call open_dvd_device mode=%s\n", mode_to_str(omode));
       open_dvd_device(dcr, omode);
@@ -311,7 +311,20 @@ void DEVICE::set_mode(int new_mode)
    }
 }
 
-void DEVICE::open_tape_device(int omode) 
+/*
+ * If the flage open_nowait is set, which is the case
+ *   when the daemon is initially trying to open the device,
+ *   we open it with O_NONBLOCK set and O_RONLY, which will
+ *   allow us to open normal Linux tape drives with no tape
+ *   in the drive without blocking.  We then immediately
+ *   set blocking status so that if we read from the device they
+ *   will be normal blocking reads.
+ *
+ * If later, we want to write on the device, it will be freed and
+ *   reopened, but hopefully there will be a tape in the drive so
+ *   we will not block.
+ */
+void DEVICE::open_tape_device(DCR *dcr, int omode) 
 {
    int nonblocking = 0;;
    file_size = 0;
@@ -333,14 +346,14 @@ void DEVICE::open_tape_device(int omode)
       tid = start_thread_timer(pthread_self(), timeout);
    }
    /* If busy retry each second for max_open_wait seconds */
-open_again:
-   Dmsg1(500, "Try open %s\n", print_name());
+   Dmsg3(100, "Try open %s mode=%s nonblocking=%d\n", print_name(),
+      mode_to_str(omode), nonblocking);
    /* Use system open() */
-   while ((fd = ::open(dev_name, mode, MODE_RW+nonblocking)) < 0) {
+   while ((fd = ::open(dev_name, mode+nonblocking, MODE_RW)) < 0) {
       berrno be;
-      Dmsg2(500, "Open error errno=%d ERR=%s\n", errno, be.strerror());
+      Dmsg2(100, "Open error errno=%d ERR=%s\n", errno, be.strerror());
       if (errno == EINTR || errno == EAGAIN) {
-         Dmsg0(500, "Continue open\n");
+         Dmsg0(100, "Continue open\n");
          continue;
       }
       /* Busy wait for specified time (default = 5 mins) */
@@ -352,7 +365,7 @@ open_again:
       /* IO error (no volume) try 10 times every 6 seconds */
       if (errno == EIO && ioerrcnt-- > 0) {
          bmicrosleep(5, 0);
-         Dmsg0(500, "Continue open\n");
+         Dmsg0(100, "Continue open\n");
          continue;
       }
       dev_errno = errno;
@@ -366,12 +379,21 @@ open_again:
       Emsg0(M_FATAL, 0, errmsg);
       break;
    }
-   if (fd >= 0) {
-      /* If opened in non-block mode, close it an open it normally */
+   /* Really an if, but we use a break for an error exit */
+   while (fd >= 0) {
+      /* If opened in non-block mode, make it block now */
       if (nonblocking) {
+         int oflags;
          nonblocking = 0;
-         ::close(fd);                /* use system close() */
-         goto open_again;
+         /* Try to reset blocking */
+         if ((oflags = fcntl(fd, F_GETFL, 0)) < 0 ||
+             fcntl(fd, F_SETFL, oflags & ~O_NONBLOCK) < 0) {
+            berrno be;
+            Jmsg1(dcr->jcr, M_ERROR, 0, "fcntl error. ERR=%s\n", be.strerror());
+            ::close(fd);                   /* use system close() */
+            fd = -1;
+            break;
+         }
       }
       openmode = omode;              /* save open mode */
       Dmsg2(100, "openmode=%d %s\n", openmode, mode_to_str(openmode));
@@ -381,6 +403,7 @@ open_again:
       update_pos_dev(this);                /* update position */
       set_os_device_parameters(this);      /* do system dependent stuff */
       Dmsg0(500, "Open OK\n");
+      break;
    }
    /* Stop any open() timer we started */
    if (tid) {
@@ -1706,6 +1729,7 @@ static void do_close(DEVICE *dev)
    dev->part_start = 0;
    dev->EndFile = dev->EndBlock = 0;
    memset(&dev->VolCatInfo, 0, sizeof(dev->VolCatInfo));
+   free_volume(dev);
    memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
    if (dev->tid) {
       stop_thread_timer(dev->tid);

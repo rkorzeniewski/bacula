@@ -123,7 +123,11 @@ int read_ansi_ibm_label(DCR *dcr)
          if (VolName && *VolName && *VolName != '*') { 
             if (!same_label_names(VolName, &label[4])) {
                char *p = &label[4];
-               char *q = dev->VolHdr.VolumeName;
+               char *q;  
+
+               free_volume(dev);
+               /* Store new Volume name */
+               q = dev->VolHdr.VolumeName;
                for (int i=0; *p != ' ' && i < 6; i++) {
                   *q++ = *p++;
                }

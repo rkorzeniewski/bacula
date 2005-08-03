@@ -196,7 +196,7 @@ public:
    int mode;                          /* read/write modes */
    int openmode;                      /* parameter passed to open_dev (useful to reopen the device) */
    bool autoselect;                   /* Autoselect in autochanger */
-   bool open_nowait;                  /* If set, don t wait on open */
+   bool open_nowait;                  /* If set, don't wait on open */
    int label_type;                    /* Bacula/ANSI/IBM label types */
    uint32_t drive_index;              /* Autochanger drive index (base 0) */
    int32_t  Slot;                     /* Slot currently in drive (base 1) */
@@ -335,7 +335,7 @@ public:
 
 private:
    void set_mode(int omode); /* in dev.c */
-   void open_tape_device(int omode); /* in dev.c */
+   void open_tape_device(DCR *dcr, int omode); /* in dev.c */
    void open_file_device(int omode); /* in dev.c */
    void open_dvd_device(DCR *dcr, int omode); /* in dev.c */
 
