@@ -1,0 +1,6 @@
+#!/bin/sh
+#  /home/kern/bacula/bin/startmysql
+make setup
+./starttime
+./all-non-root-tests
+./endtime
