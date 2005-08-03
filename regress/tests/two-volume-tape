@@ -28,8 +28,8 @@ bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
 @output /dev/null
 messages
 @output tmp/log1.out
-label storage=DDS-4 volume=TestVolume001 slot=1
-label storage=DDS-4 volume=TestVolume002 slot=2
+label storage=DDS-4 volume=TestVolume001 slot=1 pool=Default
+label storage=DDS-4 volume=TestVolume002 slot=2 pool=Default
 update Volume=TestVolume001 MaxVolBytes=3000000
 run job=NightlySave yes
 wait
