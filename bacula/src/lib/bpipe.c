@@ -278,7 +278,7 @@ int run_program(char *prog, int wait, POOLMEM *results)
              * following lines run_program would not detect if the program was killed
              * by the watchdog. */
             if (bpipe->timer_id->killed) {
-               stat1 = -EPIPE;
+               stat1 = ETIME;
                pm_strcat(results, "Program killed by Bacula watchdog (timeout)\n");
             }
          }
@@ -355,7 +355,7 @@ int run_program_full_output(char *prog, int wait, POOLMEM *results)
             Dmsg1(100, "Run program fgets killed=%d\n", bpipe->timer_id->killed);
             if (bpipe->timer_id->killed) {
                pm_strcat(tmp, "Program killed by Bacula watchdog (timeout)\n");
-               stat1 = -EPIPE;
+               stat1 = ETIME;
                break;
             }
          }

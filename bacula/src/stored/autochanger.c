@@ -25,7 +25,6 @@
 #include "stored.h"                   /* pull in Storage Deamon headers */
 
 /* Forward referenced functions */
-static int get_autochanger_loaded_slot(DCR *dcr);
 static void lock_changer(DCR *dcr);
 static void unlock_changer(DCR *dcr);
 
@@ -147,13 +146,17 @@ bail_out:
 
 }
 
-static int get_autochanger_loaded_slot(DCR *dcr)
+/*
+ * Returns: -1 if error from changer command
+ *          slot otherwise
+ */
+int get_autochanger_loaded_slot(DCR *dcr)
 {
    JCR *jcr = dcr->jcr;
    POOLMEM *changer, *results;
    int status, loaded;
    uint32_t timeout = dcr->device->max_changer_wait;
-   int drive = dcr->device->drive_index;
+   int drive = dcr->dev->drive_index;
 
    results = get_pool_memory(PM_MESSAGE);
    changer = get_pool_memory(PM_FNAME);
@@ -163,10 +166,10 @@ static int get_autochanger_loaded_slot(DCR *dcr)
    /* Find out what is loaded, zero means device is unloaded */
    Jmsg(jcr, M_INFO, 0, _("3301 Issuing autochanger \"loaded drive %d\" command.\n"),
         drive);
-   changer = edit_device_codes(dcr, changer, 
-                dcr->device->changer_command, "loaded");
+   changer = edit_device_codes(dcr, changer, dcr->device->changer_command, "loaded");
+   *results = 0;
    status = run_program(changer, timeout, results);
-   Dmsg3(50, "run_prog: %s stat=%d result=%s", changer, status, results);
+   Dmsg3(50, "run_prog: %s stat=%d result=%s\n", changer, status, results);
    if (status == 0) {
       loaded = atoi(results);
       if (loaded > 0) {

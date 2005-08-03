@@ -52,6 +52,7 @@ int     authenticate_filed(JCR *jcr);
 int      autoload_device(DCR *dcr, int writing, BSOCK *dir);
 bool     autochanger_cmd(DCR *dcr, BSOCK *dir, const char *cmd);
 char    *edit_device_codes(DCR *dcr, char *omsg, const char *imsg, const char *cmd);
+int      get_autochanger_loaded_slot(DCR *dcr);
 
 /* From block.c */
 void    dump_block(DEV_BLOCK *b, const char *msg);

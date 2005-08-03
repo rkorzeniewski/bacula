@@ -4,6 +4,13 @@
 General:
 
 Changes to 1.37.32:
+03Aug03
+- Require 5 arguments to mtx-changer except list and slots
+- Turn -EPIPE status returns from bpipe to ETIME
+- Include Slot in SD status output 
+- Do not term_dev() during initialization in SD if the device
+  could not be opened.  In the case of a tape drive, there may
+  be no tape in the drive.
 02Aug05
 - Correct PostgreSQL database scripts as suggested by a user.
 - Add additional info to FATAL message generated when a device

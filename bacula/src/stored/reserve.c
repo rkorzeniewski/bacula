@@ -251,11 +251,12 @@ static bool use_storage_cmd(JCR *jcr)
    int Copy, Stripe;
    DIRSTORE *store;
    RCTX rctx;
-   rctx.jcr = jcr;
 #ifdef implemented
    char *error;
 #endif
 
+   memset(&rctx, 0, sizeof(RCTX));
+   rctx.jcr = jcr;
    /*
     * If there are multiple devices, the director sends us
     *   use_device for each device that it wants to use.
