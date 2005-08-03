@@ -35,8 +35,8 @@ bacula: all sed
 	scripts/setup ${BACULA_SOURCE} ${EMAIL} ${WHICHDB} ${TCPWRAPPERS}
 
 sed:
-	echo "Doing: scripts/do_sed ${EMAIL} ${TAPE_DRIVE} ${AUTOCHANGER} ${AUTOCHANGER_PATH}"
-	scripts/do_sed ${EMAIL} ${TAPE_DRIVE} ${AUTOCHANGER} ${AUTOCHANGER_PATH}
+	echo "Doing: scripts/do_sed ${EMAIL} ${TAPE_DRIVE} ${AUTOCHANGER} ${AUTOCHANGER_PATH} ${TAPE_DRIVE1}"
+	scripts/do_sed ${EMAIL} ${TAPE_DRIVE} ${AUTOCHANGER} ${AUTOCHANGER_PATH} ${TAPE_DRIVE1}
 
 # Run all non-root userid tests
 test: 
