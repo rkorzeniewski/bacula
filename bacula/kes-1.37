@@ -5,6 +5,10 @@ General:
 
 Changes to 1.37.34:
 04Aug03
+- Apply patch in bug#397 that improved configure
+  - find readline under $with_readline/include/readline
+  - no libutil under Solaris
+  - no need for -ldl under Solaris 
 - Make reservation system single threaded during the
   search to avoid two threads competing for the same
   resource.
