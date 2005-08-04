@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     24 July 2005
+                     04 August 2005
 
 Major development:      
 Project                     Developer
@@ -10,11 +10,8 @@ Version 1.37                Kern (see below)
 Final items for 1.37 before release:
 1. Fix bugs
 - Tape xxx in drive 0, requested in drive 1
-- Multi-drive changer seems to only use drive 0
-  Multiple drives don't seem to be opened.
-- Why isn't the DEVICE structure defined when doing
-  a reservation?
 - The mount command does not work with drives other than 0.
+- Look at fixing restore status stats in SD.
 
 -  --without-openssl breaks at least on Solaris.
 9. Run the regression scripts on Solaris and FreeBSD
@@ -22,7 +19,6 @@ Final items for 1.37 before release:
 -  Test TLS.
 -  Arno had to do -- to get update slots=x to work
    UPDATE Media SET InChanger=0,Slot=0 WHERE InChanger>0 AND Slot>0; (MySQL)
-
 
 Document:
 - Document cleaning up the spool files:
@@ -1437,3 +1433,8 @@ Block Position: 0
 - Add better documentation on how restores can be done
 8. Take one more try at making DVD writing work (no go)
 7. Write a bacula-web document
+- Why isn't the DEVICE structure defined when doing
+  a reservation?
+- Multi-drive changer seems to only use drive 0
+  Multiple drives don't seem to be opened.
+

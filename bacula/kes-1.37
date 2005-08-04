@@ -4,6 +4,12 @@
 General:
 
 Changes to 1.37.34:
+04Aug03
+- Make reservation system single threaded during the
+  search to avoid two threads competing for the same
+  resource.
+- Correct a return code in find_suitable_device_for_job()
+  Possibly cause of "busy writing to another volume".
 03Aug03
 - Modify open() for tape so nonblocking really works.  
 - Use fcntl() to reset blocking status rather than close()
