@@ -333,6 +333,9 @@
 /* Define to 1 if you have the `sun' library (-lsun). */
 #undef HAVE_LIBSUN
 
+/* Define to 1 if you have the `util' library (-lutil). */
+#undef HAVE_LIBUTIL
+
 /* Define to 1 if you have the `xnet' library (-lxnet). */
 #undef HAVE_LIBXNET
 
