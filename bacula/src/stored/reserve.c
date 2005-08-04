@@ -58,6 +58,7 @@ public:
 
 static dlist *vol_list = NULL;
 static pthread_mutex_t vol_list_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t search_lock = PTHREAD_MUTEX_INITIALIZER;
 
 /* Forward referenced functions */
 static int can_reserve_drive(DCR *dcr, bool PerferMountedVols);
@@ -385,7 +386,7 @@ done:
 bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
 {
    bool first = true;
-   bool ok = false;
+   bool ok;
    DCR *dcr = NULL;
    DIRSTORE *store;
    char *device_name;
@@ -393,6 +394,8 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
    init_jcr_device_wait_timers(jcr);
    for ( ;; ) {
       int need_wait = false;
+      ok = false;
+      P(search_lock);
       foreach_alist(store, jcr->dirstore) {
          rctx.store = store;
          foreach_alist(device_name, store->device) {
@@ -409,7 +412,11 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
             /* otherwise error */
 //             rctx->errors.push(bstrdup(jcr->errmsg));
          }
+         if (ok) {
+            break;
+         }
       }
+      V(search_lock);
       /*
        * If there is some device for which we can wait, then
        *  wait and try again until the wait time expires

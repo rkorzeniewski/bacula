@@ -206,6 +206,7 @@ bool wait_for_device(JCR *jcr, bool first)
       now = time(NULL);
       jcr->rem_wait_sec -= (now - start);
 
+/* Not turned on yet */
 #ifdef needed
       /* Note, this always triggers the first time. We want that. */
       if (me->heartbeat_interval) {

@@ -354,7 +354,7 @@ DCR *acquire_device_for_append(DCR *dcr)
             free_unused_volume(dcr);
          }
          if (dev->num_writers != 0 || dev->reserved_device) {
-            Jmsg(jcr, M_FATAL, 0, _("Wanted Volume \"%s\", but device %s is busy writing on \"%s\" .\n"), 
+            Jmsg3(jcr, M_FATAL, 0, _("Wanted Volume \"%s\", but device %s is busy writing on \"%s\" .\n"), 
                  dcr->VolumeName, dev->print_name(), dev->VolHdr.VolumeName);
             goto get_out;
          }
