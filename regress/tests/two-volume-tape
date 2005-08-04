@@ -5,6 +5,12 @@
 #  Note, this test simulates the tape filling and writing to
 #   the next tape.
 #
+debug=0
+if test "$debug" -eq 1 ; then
+  out="tee"
+else
+  out="output"
+fi
 cwd=`pwd`
 scripts/cleanup
 scripts/copy-2tape-confs
@@ -12,39 +18,46 @@ scripts/prepare-two-tapes
  
 echo "${cwd}/build" >/tmp/file-list
 
-out="tmp/sed_tmp"
-echo "s%# Maximum File Size%  Maximum File Size%g" >${out}
+outf="tmp/sed_tmp"
+echo "s%# Maximum File Size%  Maximum File Size%g" >${outf}
 cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
-sed -f ${out} ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
+sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
 
 echo " "
 echo " "
 echo " === Starting Two Volume Tape test at `date +%R:%S` ==="
 echo " === Starting Two Volume Tape test at `date +%R:%S` ===" >>working/log
 echo " "
-
-bin/bacula start 2>&1 >/dev/null
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
-@output /dev/null
+# Write out bconsole commands
+cat <<END_OF_DATA >tmp/bconcmds
+@$out /dev/null
 messages
-@output tmp/log1.out
+@$out tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 slot=1 pool=Default
 label storage=DDS-4 volume=TestVolume002 slot=2 pool=Default
-update Volume=TestVolume001 MaxVolBytes=3000000
+update Volume=TestVolume001 MaxVolBytes=3000000 pool=Default
 run job=NightlySave yes
 wait
 messages
 @# 
 @# now do a restore
 @#
-@output tmp/log2.out
+@$out tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
 yes
 wait
 messages
-@output
+@$out
 quit
 END_OF_DATA
+
+if test "$debug" -eq 1 ; then
+  bin/bacula start
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+else
+  bin/bacula start 2>&1 >/dev/null
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+fi
 scripts/check_for_zombie_jobs storage=DDS-4
 
 bin/bacula stop 2>&1 >/dev/null
