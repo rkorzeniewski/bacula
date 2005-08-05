@@ -63,6 +63,7 @@ protected:
     HMODULE                         m_hLib;
 
     BOOL                            m_bCoInitializeCalled;
+    BOOL                            m_bCoInitializeSecurityCalled;
     DWORD                           m_dwContext;
 
     IUnknown*                       m_pVssObject;

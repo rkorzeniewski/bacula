@@ -72,6 +72,7 @@ using namespace std;
 VSSClient::VSSClient()
 {
     m_bCoInitializeCalled = false;
+    m_bCoInitializeSecurityCalled = false;
     m_dwContext = 0; // VSS_CTX_BACKUP;
     m_bDuringRestore = false;
     m_bBackupIsInitialized = false;

@@ -215,10 +215,11 @@ BOOL VSSClientGeneric::Initialize(DWORD dwContext, BOOL bDuringRestore)
          errno = b_errno_win32;
          return FALSE;
       }
-
       m_bCoInitializeCalled = true;
+   }
 
-      // Initialize COM security
+   // Initialize COM security
+   if (!m_bCoInitializeSecurityCalled) {
       hr =
          CoInitializeSecurity(
          NULL,                           //  Allow *all* VSS writers to communicate back!
@@ -236,6 +237,7 @@ BOOL VSSClientGeneric::Initialize(DWORD dwContext, BOOL bDuringRestore)
          errno = b_errno_win32;
          return FALSE;
       }
+      m_bCoInitializeSecurityCalled = true;      
    }
    
    // Release the IVssBackupComponents interface 
@@ -388,43 +390,47 @@ BOOL VSSClientGeneric::CreateSnapshots(char* szDriveLetters)
 
 BOOL VSSClientGeneric::CloseBackup()
 {
-   if (!m_pVssObject) {
-      errno = ENOSYS;
-      return FALSE;
-   }
-
    BOOL bRet = FALSE;
-   IVssBackupComponents* pVss = (IVssBackupComponents*) m_pVssObject;
-   CComPtr<IVssAsync>  pAsync;
-   
-   m_bBackupIsInitialized = false;
+   if (!m_pVssObject)
+      errno = ENOSYS;
+   else {
+      IVssBackupComponents* pVss = (IVssBackupComponents*) m_pVssObject;
+      CComPtr<IVssAsync>  pAsync;
+      
+      m_bBackupIsInitialized = false;
 
-   if (SUCCEEDED(pVss->BackupComplete(&pAsync))) {
-     // Waits for the async operation to finish and checks the result
-     WaitAndCheckForAsyncOperation(pAsync);
-     bRet = TRUE;     
-   } else {
-      errno = b_errno_win32;
-      pVss->AbortBackup();
+      if (SUCCEEDED(pVss->BackupComplete(&pAsync))) {
+         // Waits for the async operation to finish and checks the result
+         WaitAndCheckForAsyncOperation(pAsync);
+         bRet = TRUE;     
+      } else {
+         errno = b_errno_win32;
+         pVss->AbortBackup();
+      }
+
+      if (m_uidCurrentSnapshotSet != GUID_NULL) {
+         VSS_ID idNonDeletedSnapshotID = GUID_NULL;
+         LONG lSnapshots;
+
+         pVss->DeleteSnapshots(
+            m_uidCurrentSnapshotSet, 
+            VSS_OBJECT_SNAPSHOT_SET,
+            FALSE,
+            &lSnapshots,
+            &idNonDeletedSnapshotID);
+
+         m_uidCurrentSnapshotSet = GUID_NULL;
+      }
+
+      pVss->Release();
+      m_pVssObject = NULL;
    }
 
-   if (m_uidCurrentSnapshotSet != GUID_NULL) {
-      VSS_ID idNonDeletedSnapshotID = GUID_NULL;
-      LONG lSnapshots;
-
-      pVss->DeleteSnapshots(
-         m_uidCurrentSnapshotSet, 
-         VSS_OBJECT_SNAPSHOT_SET,
-         FALSE,
-         &lSnapshots,
-         &idNonDeletedSnapshotID);
-
-      m_uidCurrentSnapshotSet = GUID_NULL;
+   // Call CoUninitialize if the CoInitialize was performed sucesfully
+   if (m_bCoInitializeCalled) {
+      CoUninitialize();
+      m_bCoInitializeCalled = false;
    }
-
-
-   pVss->Release();
-   m_pVssObject = NULL;
 
    return bRet;
 }
