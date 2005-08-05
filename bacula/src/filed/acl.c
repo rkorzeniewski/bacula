@@ -97,6 +97,7 @@ JCR jcr;
 #if !defined(HAVE_ACL)              /* ACL support is required, of course */ \
    || !( defined(HAVE_AIX_OS)       /* man page -- may need flags         */ \
       || defined(HAVE_FREEBSD_OS)   /* tested   -- compile wihtout flags  */ \
+      || defined(HAVE_DARWIN_OS)    /* tested   -- compile wihtout flags  */ \
       || defined(HAVE_IRIX_OS)      /* man page -- compile without flags  */ \
       || defined(HAVE_OSF1_OS)      /* man page -- may need -lpacl        */ \
       || defined(HAVE_LINUX_OS)     /* tested   -- compile with -lacl     */ \
@@ -112,7 +113,11 @@ JCR jcr;
  *    with what we have and give all ACL streams a new number/type.
  */
 #endif
-#if !defined(HAVE_ACL) || !defined(HAVE_LINUX_OS)
+#if !defined(HAVE_ACL)
+   || ( defined(HAVE_LINUX_OS)
+      || defined(HAVE_FREEBSD_OS)
+      || defined(HAVE_DARWIN_OS)
+       )
 
 /* bacl_get() returns the lenght of the string, or -1 on error. */
 int bacl_get(JCR *jcr, int acltype)
@@ -151,6 +156,7 @@ int bacl_set(JCR *jcr, int acltype)
 }
 
 #elif defined(HAVE_FREEBSD_OS) \
+   || defined(HAVE_DARWIN_OS) \
    || defined(HAVE_IRIX_OS) \
    || defined(HAVE_OSF1_OS) \
    || defined(HAVE_LINUX_OS)
@@ -181,7 +187,8 @@ int bacl_set(JCR *jcr, int acltype)
 int bacl_get(JCR *jcr, int acltype)
 {
    acl_t acl;
-   int len, ostype;
+   int len;
+   acl_type_t ostype;
    char *acl_text;
 
    ostype = (acltype & BACL_TYPE_DEFAULT) ? ACL_TYPE_DEFAULT : ACL_TYPE_ACCESS;
@@ -209,7 +216,7 @@ int bacl_get(JCR *jcr, int acltype)
 int bacl_set(JCR *jcr, int acltype)
 {
    acl_t acl;
-   int ostype;
+   acl_type_t ostype;
 
    ostype = (acltype & BACL_TYPE_DEFAULT) ? ACL_TYPE_DEFAULT : ACL_TYPE_ACCESS;
 

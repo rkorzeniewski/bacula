@@ -121,6 +121,8 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, bool create)
                         edit_int64(smr.MediaId, ed2));
                    ok = db_sql_query(jcr->db, query, NULL, NULL);  
                    db_unlock(jcr->db);
+                   Jmsg(jcr, M_INFO, 0, _("Using Volume \"%s\" from 'Scratch' pool.\n"), 
+                        smr.VolumeName);
                    /* Set new Pool Id in smr record, then copy it to mr */
                    smr.PoolId = mr->PoolId;
                    memcpy(mr, &smr, sizeof(MEDIA_DBR));

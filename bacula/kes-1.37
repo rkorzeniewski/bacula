@@ -4,7 +4,10 @@
 General:
 
 Changes to 1.37.34:
-04Aug03
+05Aug05
+- Apply patches sent by David Duchscher <kreios@gmail.com> for
+  making ACLs work on MacOS X and FreeBSD.
+04Aug05
 - Apply patch in bug#397 that improved configure
   - find readline under $with_readline/include/readline
   - no libutil under Solaris
@@ -14,7 +17,7 @@ Changes to 1.37.34:
   resource.
 - Correct a return code in find_suitable_device_for_job()
   Possibly cause of "busy writing to another volume".
-03Aug03
+03Aug05
 - Modify open() for tape so nonblocking really works.  
 - Use fcntl() to reset blocking status rather than close()
   and reopen the drive.
@@ -25,7 +28,7 @@ Changes to 1.37.34:
   or changed that free_volume() is called on the old name.
 
 Changes to 1.37.33:
-03Aug03
+03Aug05
 - Require 5 arguments to mtx-changer except list and slots
 - Turn -EPIPE status returns from bpipe to ETIME
 - Include Slot in SD status output 
