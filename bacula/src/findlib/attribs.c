@@ -607,14 +607,14 @@ static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
          POOLMEM* pwszBuf = get_pool_memory (PM_FNAME);   
          UTF8_2_wchar(&pwszBuf, win32_ofile);
 
-         BOOL b=SetFileAttributesW((LPCWSTR)pwszBuf, atts.dwFileAttributes & SET_ATTRS);
+         BOOL b=p_SetFileAttributesW((LPCWSTR)pwszBuf, atts.dwFileAttributes & SET_ATTRS);
          free_pool_memory(pwszBuf);
       
          if (!b) 
             win_error(jcr, "SetFileAttributesW:", win32_ofile); 
       }
       else {
-         if (!SetFileAttributes(win32_ofile, atts.dwFileAttributes & SET_ATTRS)) {
+         if (!p_SetFileAttributesA(win32_ofile, atts.dwFileAttributes & SET_ATTRS)) {
             win_error(jcr, "SetFileAttributesA:", win32_ofile);
          }
       }
