@@ -1077,10 +1077,38 @@ win32_unlink(const char *filename)
       POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);      
       UTF8_2_wchar(&pwszBuf, filename);
       nRetCode = _wunlink((LPCWSTR) pwszBuf);
+ 
+      /* special case if file is readonly, 
+      we retry but unset attribute before */
+      if (nRetCode == -1 && errno == EACCES && p_SetFileAttributesW && p_GetFileAttributesW) {
+         DWORD dwAttr =  p_GetFileAttributesW((LPCWSTR)pwszBuf);
+         if (dwAttr != INVALID_FILE_ATTRIBUTES) {            
+            if (p_SetFileAttributesW((LPCWSTR)pwszBuf, dwAttr & ~FILE_ATTRIBUTE_READONLY)) {
+               nRetCode = _wunlink((LPCWSTR) pwszBuf);
+               /* reset to original if it didn't help */
+               if (nRetCode == -1)
+                  p_SetFileAttributesW((LPCWSTR)pwszBuf, dwAttr);
+            }
+         }
+      }
       free_pool_memory(pwszBuf);
    } else {
       nRetCode = _unlink(filename);
-   }
+
+      /* special case if file is readonly, 
+      we retry but unset attribute before */
+      if (nRetCode == -1 && errno == EACCES && p_SetFileAttributesA && p_GetFileAttributesA) {
+         DWORD dwAttr =  p_GetFileAttributesA(filename);
+         if (dwAttr != INVALID_FILE_ATTRIBUTES) {            
+            if (p_SetFileAttributesA(filename, dwAttr & ~FILE_ATTRIBUTE_READONLY)) {
+               nRetCode = _unlink(filename);
+               /* reset to original if it didn't help */
+               if (nRetCode == -1)
+                  p_SetFileAttributesA(filename, dwAttr);
+            }
+         }
+      }
+   }   
    return nRetCode;
 }
 
