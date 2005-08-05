@@ -12,6 +12,7 @@ Final items for 1.37 before release:
 - Tape xxx in drive 0, requested in drive 1
 - The mount command does not work with drives other than 0.
 - Look at fixing restore status stats in SD.
+- My database is growing
 
 -  --without-openssl breaks at least on Solaris.
 9. Run the regression scripts on Solaris and FreeBSD
@@ -60,6 +61,7 @@ Document:
 =======
 
 For 1.39:
+- Look at NDMP
 - Email to the user when the tape is about to need changing x
   days before it needs changing.
 - Command to show next tape that will be used for a job even
@@ -1437,4 +1439,3 @@ Block Position: 0
   a reservation?
 - Multi-drive changer seems to only use drive 0
   Multiple drives don't seem to be opened.
-

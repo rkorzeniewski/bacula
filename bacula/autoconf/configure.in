@@ -1517,12 +1517,13 @@ if test x$FDLIBS = x-lz; then
   have_zlib=yes
 fi
 
-AC_CHECK_HEADER(sys/acl.h)
-AC_CHECK_LIB(acl, acl_get_file, [FDLIBS="-lacl $FDLIBS"])
 have_acl=no
-if test $ac_cv_lib_acl_acl_get_file = yes; then
+AC_CHECK_HEADER(sys/acl.h)
+AC_CHECK_FUNC(acl_get_file, [have_acl=yes],
+	[AC_CHECK_LIB(acl, acl_get_file, [have_acl=yes; FDLIBS="-lacl $FDLIBS"])]
+)
+if test $have_acl = yes; then
    AC_DEFINE(HAVE_ACL)
-   have_acl=yes
 fi
 
 dnl Check for pthread libraries

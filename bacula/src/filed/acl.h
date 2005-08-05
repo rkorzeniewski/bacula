@@ -24,6 +24,9 @@
 #if defined(HAVE_FREEBSD_OS)
 #define BACL_CAP	      (BACL_CAP_DEFAULTS|BACL_CAP_DEFAULTS_DIR)
 #define BACL_ENOTSUP	      EOPNOTSUPP
+#elif defined(HAVE_DARWIN_OS)
+#define BACL_CAP	      BACL_CAP_NONE
+#define BACL_ENOTSUP	      EOPNOTSUPP
 #elif defined(HAVE_HPUX_OS)
 #define BACL_CAP	      BACL_CAP_NONE
 #define BACL_ENOTSUP	      EOPNOTSUPP
