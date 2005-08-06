@@ -4,6 +4,8 @@
 General:
 
 Changes to 1.37.34:
+06Aug05
+- Apply David's ACL fix to src/filed/acl.c
 05Aug05
 - Apply patches sent by David Duchscher <kreios@gmail.com> for
   making ACLs work on MacOS X and FreeBSD.
