@@ -113,10 +113,10 @@ JCR jcr;
  *    with what we have and give all ACL streams a new number/type.
  */
 #endif
-#if !defined(HAVE_ACL)
-   || ( defined(HAVE_LINUX_OS)
-      || defined(HAVE_FREEBSD_OS)
-      || defined(HAVE_DARWIN_OS)
+#if !defined(HAVE_ACL) \
+   || !( defined(HAVE_LINUX_OS) \
+      || defined(HAVE_FREEBSD_OS) \
+      || defined(HAVE_DARWIN_OS) \
        )
 
 /* bacl_get() returns the lenght of the string, or -1 on error. */
