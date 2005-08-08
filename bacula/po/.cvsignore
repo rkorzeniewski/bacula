@@ -1,2 +1,7 @@
 POTFILES
+Makefile.in
 Makefile
+stamp-po
+remove-potcdate.sed
+fr.mo
+it.mo
