@@ -4,6 +4,11 @@
 General:
 
 Changes to 1.37.*:
+08Aug05
+ - Create French and Italian translation files (fr.po, it.po).
+ - Add support for translation in configure and Makefiles.
+ - Update autoconf/aclocal.m4 so it is automatically created with aclocal
+   (Note: autoconf/gnome-macros is not used anymore, it may be removed).
 30Jul05
  - Fix src/lib/bpipe.c:run_program and run_program_full_output to detect if the watchdog
    killed the program, and return an error if it is the case.

@@ -12,7 +12,7 @@ AC_CONFIG_AUX_DIR(${BUILD_DIR}/autoconf)
 AC_CONFIG_HEADER(src/config.h:autoconf/config.h.in)
 
 dnl require a recent autoconf
-AC_PREREQ(2.13)
+AC_PREREQ(2.59)
 
 
 dnl search for true and false programs.
@@ -104,8 +104,6 @@ AC_SUBST(LOCAL_CFLAGS)
 AC_SUBST(LOCAL_LDFLAGS)
 AC_SUBST(LOCAL_DEFS)
 
-
-
 dnl --------------------------------------------------
 dnl Bacula OP Sys determination (see aclocal.m4)
 dnl --------------------------------------------------
@@ -116,10 +114,12 @@ dnl Bacula OPSys Distribution determination (see aclocal.m4)
 # ----------------------------------------------------------
 BA_CHECK_OPSYS_DISTNAME
 
-# -----------------------------------------------------------
-dnl Check for gnome stuff for gnome-console
-# ----------------------------------------------------------
-AM_ACLOCAL_INCLUDE(gnome-macros)
+dnl --------------------------------------------------
+dnl Suppport for gettext (translations)
+dnl --------------------------------------------------
+AM_GNU_GETTEXT([external])
+localedir=${prefix}/locale
+LOCAL_DEFS="$LOCAL_DEFS -DLOCALEDIR=\"${localedir}\""
 
 # ------------------------------------------------------------------
 #  If the user has not set --prefix, we set our default to nothing.
@@ -1551,6 +1551,7 @@ AC_SUBST(CFLAGS)
 AC_SUBST(CPPFLAGS)
 AC_SUBST(LDFLAGS)
 AC_SUBST(X_CFLAGS)
+AC_SUBST(DEFS)
 AC_SUBST(LIBS)
 AC_SUBST(DLIB)
 AC_SUBST(DB_LIBS)
@@ -1924,6 +1925,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/win32/console/bconsole.conf \
 	   src/win32/wx-console/wx-console.conf \
 	   src/win32/pebuilder/Makefile \
+	   po/Makefile.in \
 	   $PFILES ],  
 	  [(echo "Doing make of dependencies"; ${MAKE:-make} depend;) ]
 )
