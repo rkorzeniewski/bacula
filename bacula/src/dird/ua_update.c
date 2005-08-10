@@ -100,14 +100,14 @@ static void update_volstatus(UAContext *ua, const char *val, MEDIA_DBR *mr)
 {
    POOLMEM *query = get_pool_memory(PM_MESSAGE);
    const char *kw[] = {
-      "Append",
-      "Archive",
-      "Disabled",
-      "Full",
-      "Used",
-      "Cleaning",
-      "Recycle",
-      "Read-Only",
+      _("Append"),
+      _("Archive"),
+      _("Disabled"),
+      _("Full"),
+      _("Used"),
+      _("Cleaning"),
+      _("Recycle"),
+      _("Read-Only"),
       NULL};
    bool found = false;
    int i;
@@ -346,16 +346,16 @@ static int update_volume(UAContext *ua)
    char ed1[130];
    bool done = false;
    const char *kw[] = {
-      N_("VolStatus"),                /* 0 */
-      N_("VolRetention"),             /* 1 */
-      N_("VolUse"),                   /* 2 */
-      N_("MaxVolJobs"),               /* 3 */
-      N_("MaxVolFiles"),              /* 4 */
-      N_("MaxVolBytes"),              /* 5 */
-      N_("Recycle"),                  /* 6 */
-      N_("Pool"),                     /* 7 */
-      N_("FromPool"),                 /* 8 */
-      N_("AllFromPool"),              /* 9 */
+      _("VolStatus"),                /* 0 */
+      _("VolRetention"),             /* 1 */
+      _("VolUse"),                   /* 2 */
+      _("MaxVolJobs"),               /* 3 */
+      _("MaxVolFiles"),              /* 4 */
+      _("MaxVolBytes"),              /* 5 */
+      _("Recycle"),                  /* 6 */
+      _("Pool"),                     /* 7 */
+      _("FromPool"),                 /* 8 */
+      _("AllFromPool"),              /* 9 */
       NULL };
 
    for (int i=0; kw[i]; i++) {
@@ -432,16 +432,16 @@ static int update_volume(UAContext *ua)
          /* Modify Volume Status */
          bsendmsg(ua, _("Current Volume status is: %s\n"), mr.VolStatus);
          start_prompt(ua, _("Possible Values are:\n"));
-         add_prompt(ua, "Append");      /* Better not translate these as */
-         add_prompt(ua, "Archive");     /* They are known in the database code */
-         add_prompt(ua, "Disabled");
-         add_prompt(ua, "Full");
-         add_prompt(ua, "Used");
-         add_prompt(ua, "Cleaning");
-         if (strcmp(mr.VolStatus, "Purged") == 0) {
-            add_prompt(ua, "Recycle");
+         add_prompt(ua, _("Append")); 
+         add_prompt(ua, _("Archive"));
+         add_prompt(ua, _("Disabled"));
+         add_prompt(ua, _("Full"));
+         add_prompt(ua, _("Used"));
+         add_prompt(ua, _("Cleaning"));
+         if (strcmp(mr.VolStatus, _("Purged")) == 0) {
+            add_prompt(ua, _("Recycle"));
          }
-         add_prompt(ua, "Read-Only");
+         add_prompt(ua, _("Read-Only"));
          if (do_prompt(ua, "", _("Choose new Volume Status"), ua->cmd, sizeof(mr.VolStatus)) < 0) {
             return 1;
          }
@@ -595,7 +595,7 @@ static int update_volume(UAContext *ua)
          update_all_vols_from_pool(ua);
          return 1;
       default:                        /* Done or error */
-         bsendmsg(ua, "Selection done.\n");
+         bsendmsg(ua, _("Selection done.\n"));
          return 1;
       }
    }

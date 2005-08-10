@@ -185,7 +185,7 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
          if (strcasecmp(lc->str, RunFields[i].name) == 0) {
             found = true;
             if (lex_get_token(lc, T_ALL) != T_EQUALS) {
-               scan_err1(lc, "Expected an equals, got: %s", lc->str);
+               scan_err1(lc, _("Expected an equals, got: %s"), lc->str);
                /* NOT REACHED */
             }
             switch (RunFields[i].token) {
@@ -242,7 +242,7 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
                if (pass == 2) {
                   res = GetResWithName(R_POOL, lc->str);
                   if (res == NULL) {
-                     scan_err1(lc, "Could not find specified Pool Resource: %s",
+                     scan_err1(lc, _("Could not find specified Pool Resource: %s"),
                                 lc->str);
                      /* NOT REACHED */
                   }
@@ -267,7 +267,7 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
                if (pass == 2) {
                   res = GetResWithName(R_STORAGE, lc->str);
                   if (res == NULL) {
-                     scan_err1(lc, "Could not find specified Storage Resource: %s",
+                     scan_err1(lc, _("Could not find specified Storage Resource: %s"),
                                 lc->str);
                      /* NOT REACHED */
                   }
@@ -279,7 +279,7 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
                if (pass == 2) {
                   res = GetResWithName(R_MSGS, lc->str);
                   if (res == NULL) {
-                     scan_err1(lc, "Could not find specified Messages Resource: %s",
+                     scan_err1(lc, _("Could not find specified Messages Resource: %s"),
                                 lc->str);
                      /* NOT REACHED */
                   }
@@ -287,7 +287,7 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
                }
                break;
             default:
-               scan_err1(lc, "Expected a keyword name, got: %s", lc->str);
+               scan_err1(lc, _("Expected a keyword name, got: %s"), lc->str);
                /* NOT REACHED */
                break;
             } /* end switch */

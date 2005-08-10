@@ -65,10 +65,10 @@ bool read_records(DCR *dcr,
       if (!read_block_from_device(dcr, CHECK_BLOCK_NUMBERS)) {
          if (dev->at_eot()) {
             DEV_RECORD *trec = new_record();
-            Jmsg(jcr, M_INFO, 0, "End of Volume at file %u on device %s, Volume \"%s\"\n",
+            Jmsg(jcr, M_INFO, 0, _("End of Volume at file %u on device %s, Volume \"%s\"\n"),
                  dev->file, dev->print_name(), dcr->VolumeName);
             if (!mount_cb(dcr)) {
-               Jmsg(jcr, M_INFO, 0, "End of all volumes.\n");
+               Jmsg(jcr, M_INFO, 0, _("End of all volumes.\n"));
                ok = false;            /* Stop everything */
                /*
                 * Create EOT Label so that Media record may
@@ -102,7 +102,7 @@ bool read_records(DCR *dcr,
 
          } else if (dev->at_eof()) {
             if (verbose) {
-               Jmsg(jcr, M_INFO, 0, "Got EOF at file %u  on device %s, Volume \"%s\"\n",
+               Jmsg(jcr, M_INFO, 0, _("Got EOF at file %u  on device %s, Volume \"%s\"\n"),
                   dev->file, dev->print_name(), dcr->VolumeName);
             }
             Dmsg3(200, "Got EOF at file %u  on device %s, Volume \"%s\"\n",
@@ -116,7 +116,7 @@ bool read_records(DCR *dcr,
             display_tape_error_status(jcr, dev);
             if (forge_on || jcr->ignore_label_errors) {
                dev->fsr(1);       /* try skipping bad record */
-               Pmsg0(000, "Did fsr\n");
+               Pmsg0(000, _("Did fsr\n"));
                continue;              /* try to continue */
             }
             ok = false;               /* stop everything */
@@ -272,7 +272,7 @@ static bool try_repositioning(JCR *jcr, DEV_RECORD *rec, DEVICE *dev)
    }
    if (bsr) {
       if (verbose) {
-         Jmsg(jcr, M_INFO, 0, "Reposition from (file:block) %u:%u to %u:%u\n",
+         Jmsg(jcr, M_INFO, 0, _("Reposition from (file:block) %u:%u to %u:%u\n"),
             dev->file, dev->block_num, bsr->volfile->sfile,
             bsr->volblock->sblock);
       }
@@ -318,28 +318,28 @@ static void handle_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *s
    memset(sessrec, 0, sizeof(sessrec));
    switch (rec->FileIndex) {
    case PRE_LABEL:
-      rtype = "Fresh Volume Label";
+      rtype = _("Fresh Volume Label");
       break;
    case VOL_LABEL:
-      rtype = "Volume Label";
+      rtype = _("Volume Label");
       unser_volume_label(dev, rec);
       break;
    case SOS_LABEL:
-      rtype = "Begin Session";
+      rtype = _("Begin Session");
       unser_session_label(sessrec, rec);
       break;
    case EOS_LABEL:
-      rtype = "End Session";
+      rtype = _("End Session");
       break;
    case EOM_LABEL:
-      rtype = "End of Media";
+      rtype = _("End of Media");
       break;
    default:
-      bsnprintf(buf, sizeof(buf), "Unknown code %d\n", rec->FileIndex);
+      bsnprintf(buf, sizeof(buf), _("Unknown code %d\n"), rec->FileIndex);
       rtype = buf;
       break;
    }
-   Dmsg5(300, "%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
+   Dmsg5(300, _("%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n"),
          rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
 }
 

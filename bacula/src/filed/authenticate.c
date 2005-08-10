@@ -46,12 +46,12 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
    alist *verify_list = NULL;
 
    if (rcode != R_DIRECTOR) {
-      Dmsg1(50, _("I only authenticate directors, not %d\n"), rcode);
+      Dmsg1(50, "I only authenticate directors, not %d\n", rcode);
       Emsg1(M_FATAL, 0, _("I only authenticate directors, not %d\n"), rcode);
       return 0;
    }
    if (bs->msglen < 25 || bs->msglen > 200) {
-      Dmsg2(50, _("Bad Hello command from Director at %s. Len=%d.\n"),
+      Dmsg2(50, "Bad Hello command from Director at %s. Len=%d.\n",
             bs->who, bs->msglen);
       Emsg2(M_FATAL, 0, _("Bad Hello command from Director at %s. Len=%d.\n"),
             bs->who, bs->msglen);
@@ -63,7 +63,7 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
    if (sscanf(bs->msg, "Hello Director %s calling\n", dirname) != 1) {
       free_pool_memory(dirname);
       bs->msg[100] = 0;
-      Dmsg2(50, _("Bad Hello command from Director at %s: %s\n"),
+      Dmsg2(50, "Bad Hello command from Director at %s: %s\n",
             bs->who, bs->msg);
       Emsg2(M_FATAL, 0, _("Bad Hello command from Director at %s: %s\n"),
             bs->who, bs->msg);
@@ -77,7 +77,7 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
    }
    UnlockRes();
    if (!director) {
-      Dmsg2(50, _("Connection from unknown Director %s at %s rejected.\n"),
+      Dmsg2(50, "Connection from unknown Director %s at %s rejected.\n",
             dirname, bs->who);
       Emsg2(M_FATAL, 0, _("Connection from unknown Director %s at %s rejected.\n"
        "Please see http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors for help.\n"),
@@ -138,7 +138,7 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
       if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
          /* Engage TLS! Full Speed Ahead! */
          if (!bnet_tls_server(director->tls_ctx, bs, verify_list)) {
-            Emsg0(M_FATAL, 0, "TLS negotiation failed.\n");
+            Emsg0(M_FATAL, 0, _("TLS negotiation failed.\n"));
             director = NULL;
             goto auth_fatal;
          }
@@ -234,7 +234,7 @@ int authenticate_storagedaemon(JCR *jcr)
    if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
       /* Engage TLS! Full Speed Ahead! */
       if (!bnet_tls_client(me->tls_ctx, sd)) {
-         Jmsg(jcr, M_FATAL, 0, "TLS negotiation failed.\n");
+         Jmsg(jcr, M_FATAL, 0, _("TLS negotiation failed.\n"));
          auth_success = false;
          goto auth_fatal;
       }

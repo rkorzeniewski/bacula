@@ -101,7 +101,7 @@ PyObject *job_getattr(PyObject *self, char *attrname)
    Dmsg0(100, "In job_getattr.\n");
    jcr = get_jcr_from_PyObject(self);
    if (!jcr) {
-      bstrncpy(errmsg, "Job pointer not found.", sizeof(errmsg));
+      bstrncpy(errmsg, _("Job pointer not found."), sizeof(errmsg));
       goto bail_out;
    }
    for (i=0; getvars[i].name; i++) {
@@ -133,7 +133,7 @@ PyObject *job_getattr(PyObject *self, char *attrname)
          jcr->NumVols = pr.NumVols;
          return Py_BuildValue(getvars[i].fmt, jcr->NumVols);
       } else {
-         bsnprintf(errmsg, sizeof(errmsg), "Pool record not found.");
+         bsnprintf(errmsg, sizeof(errmsg), _("Pool record not found."));
          goto bail_out;
       }
    case 6:                            /* Pool */
@@ -160,7 +160,7 @@ PyObject *job_getattr(PyObject *self, char *attrname)
          catalog_db);
 
    }
-   bsnprintf(errmsg, sizeof(errmsg), "Attribute %s not found.", attrname);
+   bsnprintf(errmsg, sizeof(errmsg), _("Attribute %s not found."), attrname);
 bail_out:
    PyErr_SetString(PyExc_AttributeError, errmsg);
    return NULL;
@@ -203,13 +203,13 @@ int job_setattr(PyObject *self, char *attrname, PyObject *value)
       switch (setvars[i].fmt[0]) {
       case 's':
          if (!PyArg_Parse(value, setvars[i].fmt, &strval)) {
-            PyErr_SetString(PyExc_TypeError, "Read-only attribute");
+            PyErr_SetString(PyExc_TypeError, _("Read-only attribute"));
             return -1;
          }
          break;
       case 'i':
          if (!PyArg_Parse(value, setvars[i].fmt, &intval)) {
-            PyErr_SetString(PyExc_TypeError, "Read-only attribute");
+            PyErr_SetString(PyExc_TypeError, _("Read-only attribute"));
             return -1;
          }
          break;

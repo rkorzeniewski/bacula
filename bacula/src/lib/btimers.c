@@ -236,7 +236,7 @@ static btimer_t *btimer_start_common(uint32_t wait)
 static void stop_btimer(btimer_t *wid)
 {
    if (wid == NULL) {
-      Emsg0(M_ABORT, 0, "stop_btimer called with NULL btimer_id\n");
+      Emsg0(M_ABORT, 0, _("stop_btimer called with NULL btimer_id\n"));
    }
    unregister_watchdog(wid->wd);
    free(wid->wd);

@@ -49,19 +49,24 @@
 #ifdef DEBUG
 #define ASSERT(x) if (!(x)) { \
    char *jcr = NULL; \
-   Emsg1(M_ERROR, 0, "Failed ASSERT: %s\n", #x); \
+   Emsg1(M_ERROR, 0, _("Failed ASSERT: %s\n"), #x); \
    jcr[0] = 0; }
 #else
 #define ASSERT(x)
 #endif
 
 /* Allow printing of NULL pointers */
-#define NPRT(x) (x)?(x):"*None*"
+#define NPRT(x) (x)?(x):_("*None*")
 
 #ifdef ENABLE_NLS
 #include <libintl.h>
+#include <locale.h>
+#ifndef _
 #define _(s) gettext((s))
+#endif /* N */
+#ifndef N_
 #define N_(s) (s)
+#endif /* N_ */
 #else
 #undef _
 #define _(s) (s)
@@ -69,7 +74,10 @@
 #define N_(s) (s)
 #undef textdomain
 #define textdomain(d)
-/* #define bindtextdomain(p, d) */
+#undef bindtextdomain
+#define bindtextdomain(p, d)
+#undef setlocale
+#define setlocale(p, d)
 #endif
 
 /* This should go away! ****FIXME***** */
@@ -572,6 +580,7 @@ extern "C" long gethostid(void);
 #endif
 
 
+/* Disabled because it breaks internationalisation...
 #undef HAVE_SETLOCALE
 #ifdef HAVE_SETLOCALE
 #include <locale.h>
@@ -583,6 +592,7 @@ extern "C" long gethostid(void);
 #else
 #define nl_langinfo(x) ("ANSI_X3.4-1968")
 #endif
+*/
 
 /* Fake entry points if regex does not exist */
 #ifndef HAVE_REGEX_H

@@ -141,7 +141,7 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
    since[0] = 0;
    if (jcr->cloned) {
       if ( jcr->stime && jcr->stime[0]) {
-         bstrncpy(since, ", since=", since_len);
+         bstrncpy(since, _(", since="), since_len);
          bstrncat(since, jcr->stime, since_len);
       }
       return;
@@ -162,7 +162,7 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
          /* No job found, so upgrade this one to Full */
          Jmsg(jcr, M_INFO, 0, "%s", db_strerror(jcr->db));
          Jmsg(jcr, M_INFO, 0, _("No prior or suitable Full backup found. Doing FULL backup.\n"));
-         bsnprintf(since, since_len, " (upgraded from %s)",
+         bsnprintf(since, since_len, _(" (upgraded from %s)"),
             level_to_str(jcr->JobLevel));
          jcr->JobLevel = jcr->jr.JobLevel = L_FULL;
       } else {
@@ -170,14 +170,14 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
             if (db_find_failed_job_since(jcr, jcr->db, &jcr->jr, jcr->stime, JobLevel)) {
                Jmsg(jcr, M_INFO, 0, _("Prior failed job found. Upgrading to %s.\n"),
                   level_to_str(JobLevel));
-               bsnprintf(since, since_len, " (upgraded from %s)",
+               bsnprintf(since, since_len, _(" (upgraded from %s)"),
                   level_to_str(jcr->JobLevel));
                jcr->JobLevel = jcr->jr.JobLevel = JobLevel;
                jcr->jr.JobId = jcr->JobId;
                break;
             }
          }
-         bstrncpy(since, ", since=", since_len);
+         bstrncpy(since, _(", since="), since_len);
          bstrncat(since, jcr->stime, since_len);
       }
       jcr->jr.JobId = jcr->JobId;
@@ -193,7 +193,7 @@ static void send_since_time(JCR *jcr)
    char ed1[50];
 
    stime = str_to_utime(jcr->stime);
-   bnet_fsend(fd, levelcmd, "since_utime ", edit_uint64(stime, ed1), 0);
+   bnet_fsend(fd, levelcmd, _("since_utime "), edit_uint64(stime, ed1), 0);
    while (bget_dirmsg(fd) >= 0) {  /* allow him to poll us to sync clocks */
       Jmsg(jcr, M_INFO, 0, "%s\n", fd->msg);
    }

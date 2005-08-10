@@ -58,7 +58,7 @@ const char *FI_to_ascii(int fi)
       return "EOT_LABEL";
       break;
    default:
-     sprintf(buf, "unknown: %d", fi);
+     sprintf(buf, _("unknown: %d"), fi);
      return buf;
    }
 }
@@ -329,7 +329,7 @@ bool write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec)
             Dmsg2(0, "Damaged block: buf=%x binbuffrombuf=%d \n",
                block->buf, block->bufp-block->buf);
 
-               Emsg0(M_ABORT, 0, "Damaged buffer\n");
+               Emsg0(M_ABORT, 0, _("Damaged buffer\n"));
          }
 #endif
 

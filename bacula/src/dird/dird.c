@@ -69,7 +69,7 @@ static void usage()
 {
    fprintf(stderr, _(
 "Copyright (C) 2000-2005 Kern Sibbald.\n"
-"\nVersion: " VERSION " (" BDATE ")\n\n"
+"\nVersion: %s (%s)\n\n"
 "Usage: dird [-f -s] [-c config_file] [-d debug_level] [config_file]\n"
 "       -c <file>   set configuration file to file\n"
 "       -dnn        set debug level to nn\n"
@@ -81,7 +81,7 @@ static void usage()
 "       -u          userid\n"
 "       -v          verbose user messages\n"
 "       -?          print this message.\n"
-"\n"));
+"\n"), VERSION, BDATE);
 
    exit(1);
 }
@@ -101,9 +101,12 @@ int main (int argc, char *argv[])
    char *uid = NULL;
    char *gid = NULL;
 
+   setlocale(LC_ALL, "");
+   bindtextdomain("bacula", LOCALEDIR);
+   textdomain("bacula");
+
    init_stack_dump();
    my_name_is(argc, argv, "bacula-dir");
-   textdomain("bacula");
    init_msg(NULL, NULL);              /* initialize message handler */
    init_reload();
    daemon_start_time = time(NULL);
@@ -579,7 +582,7 @@ static int check_resources()
                        job->hdr.name, job_items[i].name, *def_svalue, i, offset);
                   svalue = (char **)((char *)job + offset);
                   if (*svalue) {
-                     Pmsg1(000, "Hey something is wrong. p=0x%lu\n", *svalue);
+                     Pmsg1(000, _("Hey something is wrong. p=0x%lu\n"), *svalue);
                   }
                   *svalue = bstrdup(*def_svalue);
                   set_bit(i, job->hdr.item_present);
@@ -592,7 +595,7 @@ static int check_resources()
                        job->hdr.name, job_items[i].name, i, offset);
                   svalue = (char **)((char *)job + offset);
                   if (*svalue) {
-                     Pmsg1(000, "Hey something is wrong. p=0x%lu\n", *svalue);
+                     Pmsg1(000, _("Hey something is wrong. p=0x%lu\n"), *svalue);
                   }
                   *svalue = *def_svalue;
                   set_bit(i, job->hdr.item_present);
@@ -641,14 +644,14 @@ static int check_resources()
       for (i=0; job_items[i].name; i++) {
          if (job_items[i].flags & ITEM_REQUIRED) {
                if (!bit_is_set(i, job->hdr.item_present)) {
-                  Jmsg(NULL, M_FATAL, 0, "\"%s\" directive in Job \"%s\" resource is required, but not found.\n",
+                  Jmsg(NULL, M_FATAL, 0, _("\"%s\" directive in Job \"%s\" resource is required, but not found.\n"),
                     job_items[i].name, job->hdr.name);
                   OK = false;
                 }
          }
          /* If this triggers, take a look at lib/parse_conf.h */
          if (i >= MAX_RES_ITEMS) {
-            Emsg0(M_ERROR_TERM, 0, "Too many items in Job resource\n");
+            Emsg0(M_ERROR_TERM, 0, _("Too many items in Job resource\n"));
          }
       }
    } /* End loop over Job res */

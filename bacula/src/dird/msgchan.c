@@ -40,7 +40,7 @@ static char jobcmd[]     = "JobId=%d job=%s job_name=%s client_name=%s "
 static char use_storage[] = "use storage=%s media_type=%s pool_name=%s "
    "pool_type=%s append=%d copy=%d stripe=%d\n";
 static char use_device[] = "use device=%s\n";
-//static char query_device[] = "query device=%s";
+//static char query_device[] = _("query device=%s");
 
 /* Response from Storage daemon */
 static char OKjob[]      = "3000 OK Job SDid=%d SDtime=%d Authorization=%100s\n";

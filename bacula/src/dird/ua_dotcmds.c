@@ -118,7 +118,7 @@ static int diecmd(UAContext *ua, const char *cmd)
    JCR *jcr = NULL;
    int a;
 
-   bsendmsg(ua, "The Director will segment fault.\n");
+   bsendmsg(ua, _("The Director will segment fault.\n"));
    a = jcr->JobId; /* ref NULL pointer */
    jcr->JobId = 1000; /* another ref NULL pointer */
    return 0;

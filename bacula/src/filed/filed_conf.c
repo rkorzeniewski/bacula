@@ -265,7 +265,7 @@ void free_resource(RES *sres, int type)
       res = NULL;
       break;
    default:
-      printf("Unknown resource type %d\n", type);
+      printf(_("Unknown resource type %d\n"), type);
    }
    /* Common stuff again -- free the resource, recurse to next one */
    if (res) {
@@ -313,13 +313,13 @@ void save_resource(int type, RES_ITEM *items, int pass)
          /* Resources containing another resource */
          case R_DIRECTOR:
             if ((res = (URES *)GetResWithName(R_DIRECTOR, res_all.res_dir.hdr.name)) == NULL) {
-               Emsg1(M_ABORT, 0, "Cannot find Director resource %s\n", res_all.res_dir.hdr.name);
+               Emsg1(M_ABORT, 0, _("Cannot find Director resource %s\n"), res_all.res_dir.hdr.name);
             }
             res->res_dir.tls_allowed_cns = res_all.res_dir.tls_allowed_cns;
             break;
          case R_CLIENT:
             if ((res = (URES *)GetResWithName(R_CLIENT, res_all.res_dir.hdr.name)) == NULL) {
-               Emsg1(M_ABORT, 0, "Cannot find Client resource %s\n", res_all.res_dir.hdr.name);
+               Emsg1(M_ABORT, 0, _("Cannot find Client resource %s\n"), res_all.res_dir.hdr.name);
             }
             res->res_client.messages = res_all.res_client.messages;
             break;

@@ -66,6 +66,10 @@ IMPLEMENT_APP(MyApp)
 // 'Main program' equivalent: the program execution "starts" here
 bool MyApp::OnInit()
 {
+   setlocale(LC_ALL, "");
+   bindtextdomain("bacula", LOCALEDIR);
+   textdomain("bacula");
+
    long posx, posy, sizex, sizey;
    int displayx, displayy;
    InitWinAPIWrapper();
@@ -89,12 +93,12 @@ bool MyApp::OnInit()
       }
    }
 
-   wxbMainFrame *frame = wxbMainFrame::CreateInstance(wxT("Bacula wx-console"),
+   wxbMainFrame *frame = wxbMainFrame::CreateInstance(wxT(_("Bacula wx-console")),
                          wxPoint(posx, posy), wxSize(sizex, sizey));
 
    frame->Show(TRUE);
 
-   frame->Print(wxString(wxT("Welcome to bacula wx-console ")) << wxT(VERSION) << wxT(" (") << wxT(BDATE) << wxT(")!\n"), CS_DEBUG);
+   frame->Print(wxString::Format(wxT(_("Welcome to bacula wx-console %s (%s)!\n")), wxT(VERSION), wxT(BDATE)), CS_DEBUG);
 
    frame->StartConsoleThread(wxT(""));
    

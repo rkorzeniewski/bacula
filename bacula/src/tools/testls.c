@@ -73,6 +73,10 @@ main (int argc, char *const *argv)
    char *exc = NULL;
    FILE *fd;
 
+   setlocale(LC_ALL, "");
+   bindtextdomain("bacula", LOCALEDIR);
+   textdomain("bacula");
+
    while ((ch = getopt(argc, argv, "ad:e:i:?")) != -1) {
       switch (ch) {
       case 'a':                       /* print extended attributes *debug* */
@@ -123,7 +127,7 @@ main (int argc, char *const *argv)
    if (inc) {
       fd = fopen(inc, "r");
       if (!fd) {
-         printf("Could not open include file: %s\n", inc);
+         printf(_("Could not open include file: %s\n"), inc);
          exit(1);
       }
       while (fgets(name, sizeof(name)-1, fd)) {
@@ -136,7 +140,7 @@ main (int argc, char *const *argv)
    if (exc) {
       fd = fopen(exc, "r");
       if (!fd) {
-         printf("Could not open exclude file: %s\n", exc);
+         printf(_("Could not open exclude file: %s\n"), exc);
          exit(1);
       }
       while (fgets(name, sizeof(name)-1, fd)) {

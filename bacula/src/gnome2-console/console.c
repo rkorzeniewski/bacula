@@ -86,14 +86,14 @@ static void usage()
 {
    fprintf(stderr, _(
 "Copyright (C) 2002-2005 Kern Sibbald\n"
-"\nVersion: " VERSION " (" BDATE ") %s %s %s\n\n"
+"\nVersion: %s (%s) %s %s %s\n\n"
 "Usage: gnome-console [-s] [-c config_file] [-d debug_level] [config_file]\n"
 "       -c <file>   set configuration file to file\n"
 "       -dnn        set debug level to nn\n"
 "       -s          no signals\n"
 "       -t          test - read configuration and exit\n"
 "       -?          print this message.\n"
-"\n"), HOST_OS, DISTNAME, DISTVER);
+"\n"), VERSION, BDATE, HOST_OS, DISTNAME, DISTVER);
 
    exit(1);
 }
@@ -199,6 +199,10 @@ int main(int argc, char *argv[])
    int gargc = 1;
    const char *gargv[2] = {"gnome-console", NULL};
    CONFONTRES *con_font;
+
+   setlocale(LC_ALL, "");
+   bindtextdomain("bacula", LOCALEDIR);
+   textdomain("bacula");
 
    init_stack_dump();
    my_name_is(argc, argv, "gnome-console");
@@ -491,7 +495,7 @@ int connect_to_director(gpointer data)
    /* Initialize Console TLS context */
    if (cons && (cons->tls_enable || cons->tls_require)) {
       /* Generate passphrase prompt */
-      bsnprintf(buf, sizeof(buf), "Passphrase for Console \"%s\" TLS private key: ", cons->hdr.name);
+      bsnprintf(buf, sizeof(buf), _("Passphrase for Console \"%s\" TLS private key: "), cons->hdr.name);
 
       /* Initialize TLS context:
        * Args: CA certfile, CA certdir, Certfile, Keyfile,
@@ -513,7 +517,7 @@ int connect_to_director(gpointer data)
    /* Initialize Director TLS context */
    if (dir->tls_enable || dir->tls_require) {
       /* Generate passphrase prompt */
-      bsnprintf(buf, sizeof(buf), "Passphrase for Director \"%s\" TLS private key: ", dir->hdr.name);
+      bsnprintf(buf, sizeof(buf), _("Passphrase for Director \"%s\" TLS private key: "), dir->hdr.name);
 
       /* Initialize TLS context:
        * Args: CA certfile, CA certdir, Certfile, Keyfile,
@@ -532,7 +536,7 @@ int connect_to_director(gpointer data)
    }
 
 
-   UA_sock = bnet_connect(NULL, 5, 15, "Director daemon", dir->address,
+   UA_sock = bnet_connect(NULL, 5, 15, _("Director daemon"), dir->address,
                           NULL, dir->DIRport, 0);
    if (UA_sock == NULL) {
       return 0;
@@ -544,7 +548,7 @@ int connect_to_director(gpointer data)
       return 0;
    }
 
-   set_status(" Initializing ...");
+   set_status(_(" Initializing ..."));
 
    bnet_fsend(UA_sock, "autodisplay on");
 
@@ -580,7 +584,7 @@ int connect_to_director(gpointer data)
    fill_combo(restore_dialog, "combo_restore_pool", pool_list);
    fill_combo(restore_dialog, "combo_restore_storage", storage_list);
 
-   set_status(" Connected");
+   set_status(_(" Connected"));
    return 1;
 }
 
@@ -743,7 +747,7 @@ void set_statusf(const char *fmt, ...)
 
 void set_status_ready()
 {
-   gtk_label_set_text(GTK_LABEL(status1), " Ready");
+   gtk_label_set_text(GTK_LABEL(status1), _(" Ready"));
    ready = true;
 // set_scroll_bar_to_end();
 }

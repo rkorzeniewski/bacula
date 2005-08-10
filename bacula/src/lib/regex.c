@@ -1037,55 +1037,55 @@ weak_alias (__re_set_syntax, re_set_syntax)
 static const char re_error_msgid[] =
   {
 #define REG_NOERROR_IDX 0
-    gettext_noop ("Success")    /* REG_NOERROR */
+    _("Success")    /* REG_NOERROR */
     "\0"
 #define REG_NOMATCH_IDX (REG_NOERROR_IDX + sizeof "Success")
-    gettext_noop ("No match")   /* REG_NOMATCH */
+    _("No match")   /* REG_NOMATCH */
     "\0"
 #define REG_BADPAT_IDX  (REG_NOMATCH_IDX + sizeof "No match")
-    gettext_noop ("Invalid regular expression") /* REG_BADPAT */
+    _("Invalid regular expression") /* REG_BADPAT */
     "\0"
 #define REG_ECOLLATE_IDX (REG_BADPAT_IDX + sizeof "Invalid regular expression")
-    gettext_noop ("Invalid collation character") /* REG_ECOLLATE */
+    _("Invalid collation character") /* REG_ECOLLATE */
     "\0"
 #define REG_ECTYPE_IDX  (REG_ECOLLATE_IDX + sizeof "Invalid collation character")
-    gettext_noop ("Invalid character class name") /* REG_ECTYPE */
+    _("Invalid character class name") /* REG_ECTYPE */
     "\0"
 #define REG_EESCAPE_IDX (REG_ECTYPE_IDX + sizeof "Invalid character class name")
-    gettext_noop ("Trailing backslash") /* REG_EESCAPE */
+    _("Trailing backslash") /* REG_EESCAPE */
     "\0"
 #define REG_ESUBREG_IDX (REG_EESCAPE_IDX + sizeof "Trailing backslash")
-    gettext_noop ("Invalid back reference") /* REG_ESUBREG */
+    _("Invalid back reference") /* REG_ESUBREG */
     "\0"
 #define REG_EBRACK_IDX  (REG_ESUBREG_IDX + sizeof "Invalid back reference")
-    gettext_noop ("Unmatched [ or [^") /* REG_EBRACK */
+    _("Unmatched [ or [^") /* REG_EBRACK */
     "\0"
 #define REG_EPAREN_IDX  (REG_EBRACK_IDX + sizeof "Unmatched [ or [^")
-    gettext_noop ("Unmatched ( or \\(") /* REG_EPAREN */
+    _("Unmatched ( or \\(") /* REG_EPAREN */
     "\0"
 #define REG_EBRACE_IDX  (REG_EPAREN_IDX + sizeof "Unmatched ( or \\(")
-    gettext_noop ("Unmatched \\{") /* REG_EBRACE */
+    _("Unmatched \\{") /* REG_EBRACE */
     "\0"
 #define REG_BADBR_IDX   (REG_EBRACE_IDX + sizeof "Unmatched \\{")
-    gettext_noop ("Invalid content of \\{\\}") /* REG_BADBR */
+    _("Invalid content of \\{\\}") /* REG_BADBR */
     "\0"
 #define REG_ERANGE_IDX  (REG_BADBR_IDX + sizeof "Invalid content of \\{\\}")
-    gettext_noop ("Invalid range end")  /* REG_ERANGE */
+    _("Invalid range end")  /* REG_ERANGE */
     "\0"
 #define REG_ESPACE_IDX  (REG_ERANGE_IDX + sizeof "Invalid range end")
-    gettext_noop ("Memory exhausted") /* REG_ESPACE */
+    _("Memory exhausted") /* REG_ESPACE */
     "\0"
 #define REG_BADRPT_IDX  (REG_ESPACE_IDX + sizeof "Memory exhausted")
-    gettext_noop ("Invalid preceding regular expression") /* REG_BADRPT */
+    _("Invalid preceding regular expression") /* REG_BADRPT */
     "\0"
 #define REG_EEND_IDX    (REG_BADRPT_IDX + sizeof "Invalid preceding regular expression")
-    gettext_noop ("Premature end of regular expression") /* REG_EEND */
+    _("Premature end of regular expression") /* REG_EEND */
     "\0"
 #define REG_ESIZE_IDX   (REG_EEND_IDX + sizeof "Premature end of regular expression")
-    gettext_noop ("Regular expression too big") /* REG_ESIZE */
+    _("Regular expression too big") /* REG_ESIZE */
     "\0"
 #define REG_ERPAREN_IDX (REG_ESIZE_IDX + sizeof "Regular expression too big")
-    gettext_noop ("Unmatched ) or \\)") /* REG_ERPAREN */
+    _("Unmatched ) or \\)") /* REG_ERPAREN */
   };
 
 static const size_t re_error_msgid_idx[] =

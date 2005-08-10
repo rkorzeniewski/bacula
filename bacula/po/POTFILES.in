@@ -1,7 +1,6 @@
 # List of source files containing translatable strings.
 # To generate this file, type 'make gen-potfiles'
 ./platforms/freebsd/tapetest.c
-./po/cat-id-tbl.c
 ./src/cats/bdb.c
 ./src/cats/bdb_create.c
 ./src/cats/bdb_delete.c

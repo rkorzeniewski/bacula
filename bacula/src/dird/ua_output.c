@@ -256,20 +256,20 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
    /* Scan arguments looking for things to do */
    for (i=1; i<ua->argc; i++) {
       /* List JOBS */
-      if (strcasecmp(ua->argk[i], _("jobs")) == 0) {
+      if (strcasecmp(ua->argk[i], N_("jobs")) == 0) {
 	 /* Apply any limit */
-         j = find_arg_with_value(ua, _("limit"));
+         j = find_arg_with_value(ua, N_("limit"));
 	 if (j >= 0) {
 	    jr.limit = atoi(ua->argv[j]);
 	 }
 	 db_list_job_records(ua->jcr, ua->db, &jr, prtit, ua, llist);
 
 	 /* List JOBTOTALS */
-      } else if (strcasecmp(ua->argk[i], _("jobtotals")) == 0) {
+      } else if (strcasecmp(ua->argk[i], N_("jobtotals")) == 0) {
 	 db_list_job_totals(ua->jcr, ua->db, &jr, prtit, ua);
 
       /* List JOBID */
-      } else if (strcasecmp(ua->argk[i], _("jobid")) == 0) {
+      } else if (strcasecmp(ua->argk[i], N_("jobid")) == 0) {
 	 if (ua->argv[i]) {
 	    jobid = str_to_int64(ua->argv[i]);
 	    if (jobid > 0) {
@@ -279,21 +279,21 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
 	 }
 
       /* List JOB */
-      } else if (strcasecmp(ua->argk[i], _("job")) == 0 && ua->argv[i]) {
+      } else if (strcasecmp(ua->argk[i], N_("job")) == 0 && ua->argv[i]) {
 	 bstrncpy(jr.Job, ua->argv[i], MAX_NAME_LENGTH);
 	 jr.JobId = 0;
 	 db_list_job_records(ua->jcr, ua->db, &jr, prtit, ua, llist);
 
       /* List FILES */
-      } else if (strcasecmp(ua->argk[i], _("files")) == 0) {
+      } else if (strcasecmp(ua->argk[i], N_("files")) == 0) {
 
 	 for (j=i+1; j<ua->argc; j++) {
-            if (strcasecmp(ua->argk[j], _("job")) == 0 && ua->argv[j]) {
+            if (strcasecmp(ua->argk[j], N_("job")) == 0 && ua->argv[j]) {
 	       bstrncpy(jr.Job, ua->argv[j], MAX_NAME_LENGTH);
 	       jr.JobId = 0;
 	       db_get_job_record(ua->jcr, ua->db, &jr);
 	       jobid = jr.JobId;
-            } else if (strcasecmp(ua->argk[j], _("jobid")) == 0 && ua->argv[j]) {
+            } else if (strcasecmp(ua->argk[j], N_("jobid")) == 0 && ua->argv[j]) {
 	       jobid = str_to_int64(ua->argv[j]);
 	    } else {
 	       continue;
@@ -304,15 +304,15 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
 	 }
 
       /* List JOBMEDIA */
-      } else if (strcasecmp(ua->argk[i], _("jobmedia")) == 0) {
+      } else if (strcasecmp(ua->argk[i], N_("jobmedia")) == 0) {
 	 int done = FALSE;
 	 for (j=i+1; j<ua->argc; j++) {
-            if (strcasecmp(ua->argk[j], _("job")) == 0 && ua->argv[j]) {
+            if (strcasecmp(ua->argk[j], N_("job")) == 0 && ua->argv[j]) {
 	       bstrncpy(jr.Job, ua->argv[j], MAX_NAME_LENGTH);
 	       jr.JobId = 0;
 	       db_get_job_record(ua->jcr, ua->db, &jr);
 	       jobid = jr.JobId;
-            } else if (strcasecmp(ua->argk[j], _("jobid")) == 0 && ua->argv[j]) {
+            } else if (strcasecmp(ua->argk[j], N_("jobid")) == 0 && ua->argv[j]) {
 	       jobid = str_to_int64(ua->argv[j]);
 	    } else {
 	       continue;
@@ -326,24 +326,24 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
 	 }
 
       /* List POOLS */
-      } else if (strcasecmp(ua->argk[i], _("pools")) == 0) {
+      } else if (strcasecmp(ua->argk[i], N_("pools")) == 0) {
 	 db_list_pool_records(ua->jcr, ua->db, prtit, ua, llist);
 
-      } else if (strcasecmp(ua->argk[i], _("clients")) == 0) {
+      } else if (strcasecmp(ua->argk[i], N_("clients")) == 0) {
 	 db_list_client_records(ua->jcr, ua->db, prtit, ua, llist);
 
 
       /* List MEDIA or VOLUMES */
-      } else if (strcasecmp(ua->argk[i], _("media")) == 0 ||
-                 strcasecmp(ua->argk[i], _("volumes")) == 0) {
+      } else if (strcasecmp(ua->argk[i], N_("media")) == 0 ||
+                 strcasecmp(ua->argk[i], N_("volumes")) == 0) {
 	 bool done = false;
 	 for (j=i+1; j<ua->argc; j++) {
-            if (strcasecmp(ua->argk[j], _("job")) == 0 && ua->argv[j]) {
+            if (strcasecmp(ua->argk[j], N_("job")) == 0 && ua->argv[j]) {
 	       bstrncpy(jr.Job, ua->argv[j], MAX_NAME_LENGTH);
 	       jr.JobId = 0;
 	       db_get_job_record(ua->jcr, ua->db, &jr);
 	       jobid = jr.JobId;
-            } else if (strcasecmp(ua->argk[j], _("jobid")) == 0 && ua->argv[j]) {
+            } else if (strcasecmp(ua->argk[j], N_("jobid")) == 0 && ua->argv[j]) {
 	       jobid = str_to_int64(ua->argv[j]);
 	    } else {
 	       continue;
@@ -360,7 +360,7 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
 	    uint32_t *ids;
 	    /* Is a specific pool wanted? */
 	    for (i=1; i<ua->argc; i++) {
-               if (strcasecmp(ua->argk[i], _("pool")) == 0) {
+               if (strcasecmp(ua->argk[i], N_("pool")) == 0) {
 		  if (!get_pool_dbr(ua, &pr)) {
                      bsendmsg(ua, _("No Pool specified.\n"));
 		     return 1;
@@ -391,7 +391,7 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
 	    return 1;
 	 }
       /* List a specific volume */
-      } else if (strcasecmp(ua->argk[i], _("volume")) == 0) {
+      } else if (strcasecmp(ua->argk[i], N_("volume")) == 0) {
 	 if (!ua->argv[i]) {
             bsendmsg(ua, _("No Volume Name specified.\n"));
 	    return 1;
@@ -400,10 +400,10 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
 	 db_list_media_records(ua->jcr, ua->db, &mr, prtit, ua, llist);
 	 return 1;
       /* List next volume */
-      } else if (strcasecmp(ua->argk[i], _("nextvol")) == 0 ||
-                 strcasecmp(ua->argk[i], _("nextvolume")) == 0) {
+      } else if (strcasecmp(ua->argk[i], N_("nextvol")) == 0 ||
+                 strcasecmp(ua->argk[i], N_("nextvolume")) == 0) {
 	 list_nextvol(ua);
-      } else if (strcasecmp(ua->argk[i], _("limit")) == 0) {
+      } else if (strcasecmp(ua->argk[i], N_("limit")) == 0) {
 	 /* Ignore it */
       } else {
          bsendmsg(ua, _("Unknown list keyword: %s\n"), NPRT(ua->argk[i]));

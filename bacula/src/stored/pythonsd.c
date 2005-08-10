@@ -92,7 +92,7 @@ PyObject *job_getattr(PyObject *self, char *attrname)
    Dmsg1(100, "In job_getattr=%s\n", attrname);
    jcr = get_jcr_from_PyObject(self);
    if (!jcr) {
-      bstrncpy(errmsg, "Job pointer not found.", sizeof(errmsg));
+      bstrncpy(errmsg, _("Job pointer not found."), sizeof(errmsg));
       goto bail_out;
    }
 
@@ -134,7 +134,7 @@ PyObject *job_getattr(PyObject *self, char *attrname)
    case 11:
       return Py_BuildValue(getvars[i].fmt, jcr->dcr->dev_name);
    }
-   bsnprintf(errmsg, sizeof(errmsg), "Attribute %s not found.", attrname);
+   bsnprintf(errmsg, sizeof(errmsg), _("Attribute %s not found."), attrname);
 bail_out:
    PyErr_SetString(PyExc_AttributeError, errmsg);
    return NULL;
@@ -151,13 +151,13 @@ int job_setattr(PyObject *self, char *attrname, PyObject *value)
 
    Dmsg2(100, "In job_setattr=%s val=%p.\n", attrname, value);
    if (value == NULL) {                /* Cannot delete variables */
-      bsnprintf(buf, sizeof(buf), "Cannot delete attribute %s", attrname);
+      bsnprintf(buf, sizeof(buf), _("Cannot delete attribute %s"), attrname);
       errmsg = buf;
       goto bail_out;
    }
    jcr = get_jcr_from_PyObject(self);
    if (!jcr) {
-      errmsg = "Job pointer not found.";
+      errmsg = _("Job pointer not found.");
       goto bail_out;
    }
 
@@ -174,7 +174,7 @@ int job_setattr(PyObject *self, char *attrname, PyObject *value)
    /* Get argument value ***FIXME*** handle other formats */
    if (setvars[i].fmt != NULL) {
       if (!PyArg_Parse(value, setvars[i].fmt, &strval)) {
-         PyErr_SetString(PyExc_TypeError, "Read-only attribute");
+         PyErr_SetString(PyExc_TypeError, _("Read-only attribute"));
          return -1;
       }
    }   
@@ -184,7 +184,7 @@ int job_setattr(PyObject *self, char *attrname, PyObject *value)
       return 0;
    }
 not_found:
-   bsnprintf(buf, sizeof(buf), "Cannot find attribute %s", attrname);
+   bsnprintf(buf, sizeof(buf), _("Cannot find attribute %s"), attrname);
    errmsg = buf;
 bail_out:
    PyErr_SetString(PyExc_AttributeError, errmsg);
@@ -199,7 +199,7 @@ static PyObject *set_job_events(PyObject *self, PyObject *arg)
 
    Dmsg0(100, "In set_job_events.\n");
    if (!PyArg_ParseTuple(arg, "O:set_events", &eObject)) {
-      Dmsg0(000, "Error in ParseTuple\n");
+      Dmsg0(000, _("Error in ParseTuple\n"));
       return NULL;
    }
    jcr = get_jcr_from_PyObject(self);
@@ -215,7 +215,7 @@ static PyObject *job_write(PyObject *self, PyObject *args)
    char *text = NULL;
 
    if (!PyArg_ParseTuple(args, "s:write", &text)) {
-      Dmsg0(000, "Parse tuple error in job_write\n");
+      Dmsg0(000, _("Parse tuple error in job_write\n"));
       return NULL;
    }
    if (text) {
@@ -251,7 +251,7 @@ int generate_job_event(JCR *jcr, const char *event)
    if (result == NULL) {
       if (PyErr_Occurred()) {
          PyErr_Print();
-         Dmsg1(000, "Error in Python method %s\n", event);
+         Dmsg1(000, _("Error in Python method %s\n"), event);
       }
    } else {
       stat = 1;

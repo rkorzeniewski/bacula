@@ -56,7 +56,7 @@ int querycmd(UAContext *ua, const char *cmd)
       goto bail_out;
    }
    if ((fd=fopen(query_file, "r")) == NULL) {
-      bsendmsg(ua, "Could not open %s: ERR=%s\n", query_file,
+      bsendmsg(ua, _("Could not open %s: ERR=%s\n"), query_file,
          strerror(errno));
       goto bail_out;
    }
@@ -252,7 +252,7 @@ int sqlquerycmd(UAContext *ua, const char *cmd)
    bsendmsg(ua, _("Entering SQL query mode.\n"
 "Terminate each query with a semicolon.\n"
 "Terminate query mode with a blank line.\n"));
-   msg = "Enter SQL query: ";
+   msg = _("Enter SQL query: ");
    while (get_cmd(ua, msg)) {
       len = strlen(ua->cmd);
       Dmsg2(400, "len=%d cmd=%s:\n", len, ua->cmd);

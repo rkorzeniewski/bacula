@@ -320,7 +320,7 @@ static int cancel_cmd(JCR *jcr)
 
    if (sscanf(dir->msg, "cancel Job=%127s", Job) == 1) {
       if (!(cjcr=get_jcr_by_full_name(Job))) {
-         bnet_fsend(dir, "2901 Job %s not found.\n", Job);
+         bnet_fsend(dir, _("2901 Job %s not found.\n"), Job);
       } else {
          if (cjcr->store_bsock) {
             P(cjcr->mutex);
@@ -358,7 +358,7 @@ static int setdebug_cmd(JCR *jcr)
    Dmsg1(110, "setdebug_cmd: %s", dir->msg);
    if (sscanf(dir->msg, "setdebug=%d trace=%d", &level, &trace_flag) != 2 || level < 0) {
       pm_strcpy(jcr->errmsg, dir->msg);
-      bnet_fsend(dir, "2991 Bad setdebug command: %s\n", jcr->errmsg);
+      bnet_fsend(dir, _("2991 Bad setdebug command: %s\n"), jcr->errmsg);
       return 0;
    }
    debug_level = level;
@@ -375,7 +375,7 @@ static int estimate_cmd(JCR *jcr)
    if (sscanf(dir->msg, estimatecmd, &jcr->listing) != 1) {
       pm_strcpy(jcr->errmsg, dir->msg);
       Jmsg(jcr, M_FATAL, 0, _("Bad estimate command: %s"), jcr->errmsg);
-      bnet_fsend(dir, "2992 Bad estimate command.\n");
+      bnet_fsend(dir, _("2992 Bad estimate command.\n"));
       return 0;
    }
    make_estimate(jcr);
@@ -419,7 +419,7 @@ static int runbefore_cmd(JCR *jcr)
    if (sscanf(dir->msg, runbefore, cmd) != 1) {
       pm_strcpy(jcr->errmsg, dir->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Bad RunBeforeJob command: %s\n"), jcr->errmsg);
-      bnet_fsend(dir, "2905 Bad RunBeforeJob command.\n");
+      bnet_fsend(dir, _("2905 Bad RunBeforeJob command.\n"));
       free_memory(cmd);
       return 0;
    }
@@ -432,7 +432,7 @@ static int runbefore_cmd(JCR *jcr)
       bnet_fsend(dir, OKRunBefore);
       return 1;
    } else {
-      bnet_fsend(dir, "2905 Bad RunBeforeJob command.\n");
+      bnet_fsend(dir, _("2905 Bad RunBeforeJob command.\n"));
       return 0;
    }
 }
@@ -446,7 +446,7 @@ static int runafter_cmd(JCR *jcr)
    if (sscanf(dir->msg, runafter, msg) != 1) {
       pm_strcpy(jcr->errmsg, dir->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Bad RunAfter command: %s\n"), jcr->errmsg);
-      bnet_fsend(dir, "2905 Bad RunAfterJob command.\n");
+      bnet_fsend(dir, _("2905 Bad RunAfterJob command.\n"));
       free_memory(msg);
       return 0;
    }
@@ -675,7 +675,7 @@ static void add_fileset(JCR *jcr, const char *item)
          regerror(rc, preg, prbuf, sizeof(prbuf));
          regfree(preg);
          free(preg);
-         Jmsg(jcr, M_FATAL, 0, "REGEX %s compile error. ERR=%s\n", item, prbuf);
+         Jmsg(jcr, M_FATAL, 0, _("REGEX %s compile error. ERR=%s\n"), item, prbuf);
          state = state_error;
          break;
       }
@@ -729,7 +729,7 @@ static void add_fileset(JCR *jcr, const char *item)
       state = state_options;
       break;
    default:
-      Jmsg(jcr, M_FATAL, 0, "Invalid FileSet command: %s\n", item);
+      Jmsg(jcr, M_FATAL, 0, _("Invalid FileSet command: %s\n"), item);
       state = state_error;
       break;
    }
@@ -898,7 +898,7 @@ static void set_options(findFOPTS *fo, const char *opts)
          Dmsg1(200, "Compression level=%d\n", fo->GZIP_level);
          break;
       default:
-         Emsg1(M_ERROR, 0, "Unknown include/exclude option: %c\n", *p);
+         Emsg1(M_ERROR, 0, _("Unknown include/exclude option: %c\n"), *p);
          break;
       }
    }
@@ -1065,7 +1065,7 @@ static int level_cmd(JCR *jcr)
       jcr->incremental = 1;           /* set incremental or decremental backup */
       jcr->mtime = (time_t)since_time; /* set since time */
    } else {
-      Jmsg1(jcr, M_FATAL, 0, "Unknown backup level: %s\n", level);
+      Jmsg1(jcr, M_FATAL, 0, _("Unknown backup level: %s\n"), level);
       free_memory(level);
       return 0;
    }
@@ -1098,7 +1098,7 @@ static int session_cmd(JCR *jcr)
               &jcr->StartFile, &jcr->EndFile,
               &jcr->StartBlock, &jcr->EndBlock) != 7) {
       pm_strcpy(jcr->errmsg, dir->msg);
-      Jmsg(jcr, M_FATAL, 0, "Bad session command: %s", jcr->errmsg);
+      Jmsg(jcr, M_FATAL, 0, _("Bad session command: %s"), jcr->errmsg);
       return 0;
    }
 
@@ -1328,7 +1328,7 @@ static int verify_cmd(JCR *jcr)
 
    jcr->JobType = JT_VERIFY;
    if (sscanf(dir->msg, verifycmd, level) != 1) {
-      bnet_fsend(dir, "2994 Bad verify command: %s\n", dir->msg);
+      bnet_fsend(dir, _("2994 Bad verify command: %s\n"), dir->msg);
       return 0;
    }
 
@@ -1343,7 +1343,7 @@ static int verify_cmd(JCR *jcr)
    } else if (strcasecmp(level, "disk_to_catalog") == 0) {
       jcr->JobLevel = L_VERIFY_DISK_TO_CATALOG;
    } else {
-      bnet_fsend(dir, "2994 Bad verify level: %s\n", dir->msg);
+      bnet_fsend(dir, _("2994 Bad verify level: %s\n"), dir->msg);
       return 0;
    }
 
@@ -1382,7 +1382,7 @@ static int verify_cmd(JCR *jcr)
       do_verify(jcr);
       break;
    default:
-      bnet_fsend(dir, "2994 Bad verify level: %s\n", dir->msg);
+      bnet_fsend(dir, _("2994 Bad verify level: %s\n"), dir->msg);
       return 0;
    }
 

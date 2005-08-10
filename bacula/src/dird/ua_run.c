@@ -461,7 +461,7 @@ int run_cmd(UAContext *ua, const char *cmd)
 
    jcr->cloned = cloned;
 
-   if (find_arg(ua, _("fdcalled")) > 0) {
+   if (find_arg(ua, N_("fdcalled")) > 0) {
       jcr->file_bsock = dup_bsock(ua->UA_sock);
       ua->quit = true;
    }
@@ -484,7 +484,7 @@ try_again:
    }
 
    /* Run without prompting? */
-   if (ua->batch || find_arg(ua, _("yes")) > 0) {
+   if (ua->batch || find_arg(ua, N_("yes")) > 0) {
       goto start_job;
    }
 

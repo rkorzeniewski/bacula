@@ -63,11 +63,15 @@ bool status_cmd(JCR *jcr)
    char b1[30], b2[30], b3[30];
    int bpb;
 
-   bnet_fsend(user, "\n%s Version: " VERSION " (" BDATE ") %s %s %s\n", my_name,
-              HOST_OS, DISTNAME, DISTVER);
+   bnet_fsend(user, _("\n%s Version: %s (%s) %s %s %s\n"), my_name,
+              VERSION, BDATE, HOST_OS, DISTNAME, DISTVER);
    bstrftime_nc(dt, sizeof(dt), daemon_start_time);
-   bnet_fsend(user, _("Daemon started %s, %d Job%s run since started.\n"), dt, num_jobs_run,
-        num_jobs_run == 1 ? "" : "s");
+   if (num_jobs_run == 1) {
+      bnet_fsend(user, _("Daemon started %s, 1 Job run since started.\n"), dt);
+   }
+   else {
+      bnet_fsend(user, _("Daemon started %s, %d Jobs run since started.\n"), dt, num_jobs_run);
+   }
    if (debug_level > 0) {
       char b1[35], b2[35], b3[35], b4[35];
       bnet_fsend(user, _(" Heap: bytes=%s max_bytes=%s bufs=%s max_bufs=%s\n"),
@@ -151,17 +155,17 @@ bool status_cmd(JCR *jcr)
          send_blocked_status(jcr, dev);
       }
    }
-   bnet_fsend(user, "====\n\n");
-   bnet_fsend(user, "Volume status:\n");
+   bnet_fsend(user, _("====\n\n"));
+   bnet_fsend(user, _("Volume status:\n"));
    list_volumes(user);
        
 
 #ifdef xxx
    if (debug_level > 0) {
-      bnet_fsend(user, "====\n\n");
+      bnet_fsend(user, _("====\n\n"));
       dump_resource(R_DEVICE, resources[R_DEVICE-r_first].res_head, sendit, user);
    }
-   bnet_fsend(user, "====\n\n");
+   bnet_fsend(user, _("====\n\n"));
 #endif
 
    list_spool_stats(user);
@@ -176,7 +180,7 @@ static void send_blocked_status(JCR *jcr, DEVICE *dev)
    DCR *dcr = jcr->dcr;
 
    if (!dev) {
-      bnet_fsend(user, "No DEVICE structure.\n\n");
+      bnet_fsend(user, _("No DEVICE structure.\n\n"));
       return;
    }
    switch (dev->dev_blocked) {
@@ -242,14 +246,14 @@ static void send_blocked_status(JCR *jcr, DEVICE *dev)
       bnet_fsend(user, "%sSHORT ", dev->state & ST_SHORT ? "" : "!");
       bnet_fsend(user, "%sMOUNTED ", dev->state & ST_MOUNTED ? "" : "!");
       bnet_fsend(user, "\n");
-      bnet_fsend(user, "num_writers=%d JobStatus=%c block=%d\n\n", dev->num_writers,
+      bnet_fsend(user, _("num_writers=%d JobStatus=%c block=%d\n\n"), dev->num_writers,
          jcr->JobStatus, dev->dev_blocked);
 
       bnet_fsend(user, _("Device parameters:\n"));
-      bnet_fsend(user, "Archive name: %s Device name: %s\n", dev->archive_name(),
+      bnet_fsend(user, _("Archive name: %s Device name: %s\n"), dev->archive_name(),
          dev->name());
-      bnet_fsend(user, "File=%u block=%u\n", dev->file, dev->block_num);
-      bnet_fsend(user, "Min block=%u Max block=%u\n", dev->min_block_size, dev->max_block_size);
+      bnet_fsend(user, _("File=%u block=%u\n"), dev->file, dev->block_num);
+      bnet_fsend(user, _("Min block=%u Max block=%u\n"), dev->min_block_size, dev->max_block_size);
    }
 
 }
@@ -296,12 +300,12 @@ static void list_running_jobs(BSOCK *user)
          found = true;
 #ifdef DEBUG
          if (jcr->file_bsock) {
-            bnet_fsend(user, "    FDReadSeqNo=%s in_msg=%u out_msg=%d fd=%d\n",
+            bnet_fsend(user, _("    FDReadSeqNo=%s in_msg=%u out_msg=%d fd=%d\n"),
                edit_uint64_with_commas(jcr->file_bsock->read_seqno, b1),
                jcr->file_bsock->in_msg_no, jcr->file_bsock->out_msg_no,
                jcr->file_bsock->fd);
          } else {
-            bnet_fsend(user, "    FDSocket closed\n");
+            bnet_fsend(user, _("    FDSocket closed\n"));
          }
 #endif
       }
@@ -310,7 +314,7 @@ static void list_running_jobs(BSOCK *user)
    if (!found) {
       bnet_fsend(user, _("No Jobs running.\n"));
    }
-   bnet_fsend(user, "====\n");
+   bnet_fsend(user, _("====\n"));
 }
 
 static void list_terminated_jobs(void *arg)
@@ -350,23 +354,23 @@ static void list_terminated_jobs(void *arg)
       }
       switch (je->JobStatus) {
       case JS_Created:
-         termstat = "Created";
+         termstat = _("Created");
          break;
       case JS_FatalError:
       case JS_ErrorTerminated:
-         termstat = "Error";
+         termstat = _("Error");
          break;
       case JS_Differences:
-         termstat = "Diffs";
+         termstat = _("Diffs");
          break;
       case JS_Canceled:
-         termstat = "Cancel";
+         termstat = _("Cancel");
          break;
       case JS_Terminated:
-         termstat = "OK";
+         termstat = _("OK");
          break;
       default:
-         termstat = "Other";
+         termstat = _("Other");
          break;
       }
       bstrncpy(JobName, je->Job, sizeof(JobName));
@@ -386,7 +390,7 @@ static void list_terminated_jobs(void *arg)
          dt, JobName);
       sendit(buf, strlen(buf), arg);
    }
-   sendit("====\n", 5, arg);
+   sendit(_("====\n"), 5, arg);
    unlock_last_jobs_list();
 }
 
@@ -462,7 +466,7 @@ bool qstatus_cmd(JCR *jcr)
    if (sscanf(dir->msg, qstatus, time.c_str()) != 1) {
       pm_strcpy(jcr->errmsg, dir->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Bad .status command: %s\n"), jcr->errmsg);
-      bnet_fsend(dir, "3900 Bad .status command, missing argument.\n");
+      bnet_fsend(dir, _("3900 Bad .status command, missing argument.\n"));
       bnet_sig(dir, BNET_EOD);
       return false;
    }
@@ -487,7 +491,7 @@ bool qstatus_cmd(JCR *jcr)
    else {
       pm_strcpy(jcr->errmsg, dir->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Bad .status command: %s\n"), jcr->errmsg);
-      bnet_fsend(dir, "3900 Bad .status command, wrong argument.\n");
+      bnet_fsend(dir, _("3900 Bad .status command, wrong argument.\n"));
       bnet_sig(dir, BNET_EOD);
       return false;
    }

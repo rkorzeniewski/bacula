@@ -123,14 +123,14 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
 
    Dmsg1(6, ">dird: %s", dir->msg);
    if (bnet_recv(dir) <= 0) {
-      csprint("Bad response to Hello command: ERR=", CS_DATA);
+      csprint(_("Bad response to Hello command: ERR="), CS_DATA);
       csprint(bnet_strerror(dir), CS_DATA);
       csprint("\n", CS_DATA);
       goto bail_out;
    }
    Dmsg1(10, "<dird: %s", dir->msg);
    if (strncmp(dir->msg, OKhello, sizeof(OKhello)-1) != 0) {
-      csprint("Director rejected Hello command\n", CS_DATA);
+      csprint(_("Director rejected Hello command\n"), CS_DATA);
       goto bail_out;
    } else {
       csprint(dir->msg, CS_DATA);

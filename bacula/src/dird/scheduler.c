@@ -99,7 +99,7 @@ JCR *wait_for_next_job(char *one_shot_job_to_run)
 #ifdef  list_chain
    job_item *je;
    foreach_dlist(je, jobs_to_run) {
-      dump_job(je, "Walk queue");
+      dump_job(je, _("Walk queue"));
    }
 #endif
    /*
@@ -109,7 +109,7 @@ JCR *wait_for_next_job(char *one_shot_job_to_run)
    next_job = (job_item *)jobs_to_run->first();
    jobs_to_run->remove(next_job);
 
-   dump_job(next_job, "Dequeued job");
+   dump_job(next_job, _("Dequeued job"));
 
    if (!next_job) {                /* we really should have something now */
       Emsg0(M_ABORT, 0, _("Scheduler logic error\n"));
@@ -129,7 +129,7 @@ JCR *wait_for_next_job(char *one_shot_job_to_run)
    job = next_job->job;
    run->last_run = now;               /* mark as run now */
 
-   dump_job(next_job, "Run job");
+   dump_job(next_job, _("Run job"));
 
    free(next_job);
 
@@ -342,7 +342,7 @@ static void add_job(JOB *job, RUN *run, time_t now, time_t runtime)
       if (ji->runtime > je->runtime ||
           (ji->runtime == je->runtime && ji->Priority > je->Priority)) {
          jobs_to_run->insert_before(je, ji);
-         dump_job(je, "Inserted job");
+         dump_job(je, _("Inserted job"));
          inserted = true;
          break;
       }
@@ -350,11 +350,11 @@ static void add_job(JOB *job, RUN *run, time_t now, time_t runtime)
    /* If place not found in queue, append it */
    if (!inserted) {
       jobs_to_run->append(je);
-      dump_job(je, "Appended job");
+      dump_job(je, _("Appended job"));
    }
 #ifdef SCHED_DEBUG
    foreach_dlist(ji, jobs_to_run) {
-      dump_job(ji, "Run queue");
+      dump_job(ji, _("Run queue"));
    }
    Dmsg0(000, "End run queue\n");
 #endif

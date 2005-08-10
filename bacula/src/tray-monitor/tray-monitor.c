@@ -101,13 +101,13 @@ static void usage()
    fprintf(stderr, _(
 "Copyright (C) 2000-2004 Kern Sibbald and John Walker\n"
 "Written by Nicolas Boichat (2004)\n"
-"\nVersion: " VERSION " (" BDATE ") %s %s %s\n\n"
+"\nVersion: %s (%s) %s %s %s\n\n"
 "Usage: tray-monitor [-c config_file] [-d debug_level]\n"
 "       -c <file>     set configuration file to file\n"
 "       -dnn          set debug level to nn\n"
 "       -t            test - read configuration and exit\n"
 "       -?            print this message.\n"
-"\n"), HOST_OS, DISTNAME, DISTVER);
+"\n"), VERSION, BDATE, HOST_OS, DISTNAME, DISTVER);
 }
 
 static GtkWidget *new_image_button(const gchar *stock_id,
@@ -182,9 +182,12 @@ int main(int argc, char *argv[])
    CLIENT* filed;
    STORE* stored;
 
+   setlocale(LC_ALL, "");
+   bindtextdomain("bacula", LOCALEDIR);
+   textdomain("bacula");
+
    init_stack_dump();
    my_name_is(argc, argv, "tray-monitor");
-   textdomain("bacula");
    init_msg(NULL, NULL);
    working_directory = "/tmp";
 
@@ -313,13 +316,13 @@ int main(int argc, char *argv[])
 
    GtkWidget *entry;
 
-   entry = gtk_menu_item_new_with_label("Open status window...");
+   entry = gtk_menu_item_new_with_label(_("Open status window..."));
    g_signal_connect(G_OBJECT(entry), "activate", G_CALLBACK(TrayIconActivate), NULL);
    gtk_menu_shell_append(GTK_MENU_SHELL(mTrayMenu), entry);
 
    gtk_menu_shell_append(GTK_MENU_SHELL(mTrayMenu), gtk_separator_menu_item_new());
 
-   entry = gtk_menu_item_new_with_label("Exit");
+   entry = gtk_menu_item_new_with_label(_("Exit"));
    g_signal_connect(G_OBJECT(entry), "activate", G_CALLBACK(TrayIconExit), NULL);
    gtk_menu_shell_append(GTK_MENU_SHELL(mTrayMenu), entry);
 
@@ -331,7 +334,7 @@ int main(int argc, char *argv[])
 
    window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
-   gtk_window_set_title(GTK_WINDOW(window), "Bacula tray monitor");
+   gtk_window_set_title(GTK_WINDOW(window), _("Bacula tray monitor"));
 
    g_signal_connect(G_OBJECT(window), "delete_event", G_CALLBACK(delete_event), NULL);
    //g_signal_connect (G_OBJECT (window), "destroy", G_CALLBACK (destroy), NULL);
@@ -454,13 +457,13 @@ int main(int argc, char *argv[])
       if (items[i].D_sock) {
          switch (items[i].type) {
          case R_DIRECTOR:
-            trayMessage("Disconnecting from Director %s:%d\n", ((DIRRES*)items[i].resource)->address, ((DIRRES*)items[i].resource)->DIRport);
+            trayMessage(_("Disconnecting from Director %s:%d\n"), ((DIRRES*)items[i].resource)->address, ((DIRRES*)items[i].resource)->DIRport);
             break;
          case R_CLIENT:
-            trayMessage("Disconnecting from Client %s:%d\n", ((CLIENT*)items[i].resource)->address, ((CLIENT*)items[i].resource)->FDport);
+            trayMessage(_("Disconnecting from Client %s:%d\n"), ((CLIENT*)items[i].resource)->address, ((CLIENT*)items[i].resource)->FDport);
             break;
          case R_STORAGE:
-            trayMessage("Disconnecting from Storage %s:%d\n", ((STORE*)items[i].resource)->address, ((STORE*)items[i].resource)->SDport);
+            trayMessage(_("Disconnecting from Storage %s:%d\n"), ((STORE*)items[i].resource)->address, ((STORE*)items[i].resource)->SDport);
             break;          
          default:
             break;
@@ -492,19 +495,25 @@ int main(int argc, char *argv[])
 
 static void MonitorAbout(GtkWidget *widget, gpointer data) {
 #if HAVE_GTK_2_4
-   GtkWidget* about = gtk_message_dialog_new_with_markup(GTK_WINDOW(window),GTK_DIALOG_MODAL, GTK_MESSAGE_INFO, GTK_BUTTONS_CLOSE, _(
-      "<span size='x-large' weight='bold'>Bacula Tray Monitor</span>\n\n"
-      "Copyright (C) 2004 Kern Sibbald and John Walker\n"
-      "Written by Nicolas Boichat\n"
-      "\n<small>Version: " VERSION " (" BDATE ") %s %s %s</small>"
-   ), HOST_OS, DISTNAME, DISTVER);
+   GtkWidget* about = gtk_message_dialog_new_with_markup(GTK_WINDOW(window),GTK_DIALOG_MODAL, GTK_MESSAGE_INFO, GTK_BUTTONS_CLOSE,
+      "<span size='x-large' weight='bold'>%s</span>\n\n"
+      "%s"
+      "\n<small>%s: %s (%s) %s %s %s</small>",
+      _("Bacula Tray Monitor"),
+      _("Copyright (C) 2004 Kern Sibbald and John Walker\n"
+        "Written by Nicolas Boichat\n"),
+      _("Version"),
+      VERSION, BDATE, HOST_OS, DISTNAME, DISTVER);
 #else
    GtkWidget* about = gtk_message_dialog_new(GTK_WINDOW(window),GTK_DIALOG_MODAL, GTK_MESSAGE_INFO, GTK_BUTTONS_CLOSE, _(
-      "Bacula Tray Monitor\n\n"
-      "Copyright (C) 2004 Kern Sibbald and John Walker\n"
-      "Written by Nicolas Boichat\n"
-      "\nVersion: " VERSION " (" BDATE ") %s %s %s"
-   ), HOST_OS, DISTNAME, DISTVER);
+      "%s\n\n"
+      "%s"
+      "\n%s %s (%s) %s %s %s",
+      _("Bacula Tray Monitor"),
+      _("Copyright (C) 2004 Kern Sibbald and John Walker\n"
+        "Written by Nicolas Boichat\n"),
+      _("Version:"),
+      VERSION, BDATE, HOST_OS, DISTNAME, DISTVER);
 #endif
    gtk_dialog_run(GTK_DIALOG(about));
    gtk_widget_destroy(about);
@@ -571,7 +580,7 @@ static int authenticate_daemon(monitoritem* item, JCR *jcr) {
    case R_STORAGE:
       return authenticate_storage_daemon(jcr, monitor, (STORE*)item->resource);
    default:
-      printf("Error, currentitem is not a Client or a Storage..\n");
+      printf(_("Error, currentitem is not a Client or a Storage..\n"));
       gtk_main_quit();
       return FALSE;
    }
@@ -644,7 +653,7 @@ static gboolean fd_read(gpointer data) {
    getstatus(&items[lastupdated], 0, &strlast);
    updateStatusIcon(&items[lastupdated]);
 
-   changeStatusMessage(&items[lastupdated], "Current job: %s\nLast job: %s", strcurrent->str, strlast->str);
+   changeStatusMessage(&items[lastupdated], _("Current job: %s\nLast job: %s"), strcurrent->str, strlast->str);
 
    updateStatusIcon(NULL);
 
@@ -652,6 +661,15 @@ static gboolean fd_read(gpointer data) {
    g_string_free(strlast, TRUE);
 
    return 1;
+}
+
+void append_error_string(GString* str, int joberrors) {
+   if (joberrors > 1) {
+      g_string_append_printf(str, _(" (%d errors)"), joberrors);
+   }
+   else {
+      g_string_append_printf(str, _(" (%d error)"), joberrors);
+   }
 }
 
 void getstatus(monitoritem* item, int current, GString** str) {
@@ -698,89 +716,109 @@ void getstatus(monitoritem* item, int current, GString** str) {
       switch (jobstatus) {
       case JS_Created:
          ret = (joberrors > 0) ? warn : running;
-         g_string_append_printf(*str, _("Job status: Created (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         g_string_append_printf(*str, _("Job status: Created"));
+         append_error_string(*str, joberrors);
          break;
       case JS_Running:
          ret = (joberrors > 0) ? warn : running;
-         g_string_append_printf(*str, _("Job status: Running (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         g_string_append_printf(*str, _("Job status: Running"));
+         append_error_string(*str, joberrors);
          break;
       case JS_Blocked:
-         g_string_append_printf(*str, _("Job status: Blocked (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         g_string_append_printf(*str, _("Job status: Blocked"));
+         append_error_string(*str, joberrors);
          ret = warn;
          break;
       case JS_Terminated:
-         g_string_append_printf(*str, _("Job status: Terminated (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         g_string_append_printf(*str, _("Job status: Terminated"));
+         append_error_string(*str, joberrors);
          ret = (joberrors > 0) ? warn : idle;
          break;
       case JS_ErrorTerminated:
-         g_string_append_printf(*str, _("Job status: Terminated in error (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         g_string_append_printf(*str, _("Job status: Terminated in error"));
+         append_error_string(*str, joberrors);
          ret = error;
          break;
       case JS_Error:
          ret = (joberrors > 0) ? warn : running;
-         g_string_append_printf(*str, _("Job status: Error (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         g_string_append_printf(*str, _("Job status: Error"));
+         append_error_string(*str, joberrors);
          break;
       case JS_FatalError:
-         g_string_append_printf(*str, _("Job status: Fatal error (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         g_string_append_printf(*str, _("Job status: Fatal error"));
+         append_error_string(*str, joberrors);
          ret = error;
          break;
       case JS_Differences:
-         g_string_append_printf(*str, _("Job status: Verify differences (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         g_string_append_printf(*str, _("Job status: Verify differences"));
+         append_error_string(*str, joberrors);
          ret = warn;
          break;
       case JS_Canceled:
-         g_string_append_printf(*str, _("Job status: Canceled (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         g_string_append_printf(*str, _("Job status: Canceled"));
+         append_error_string(*str, joberrors);
          ret = warn;
          break;
       case JS_WaitFD:
-         g_string_append_printf(*str, _("Job status: Waiting on File daemon (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         g_string_append_printf(*str, _("Job status: Waiting on File daemon"));
+         append_error_string(*str, joberrors);
          ret = warn;
          break;
       case JS_WaitSD:
-         g_string_append_printf(*str, _("Job status: Waiting on the Storage daemon (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         g_string_append_printf(*str, _("Job status: Waiting on the Storage daemon"));
+         append_error_string(*str, joberrors);
          ret = warn;
          break;
       case JS_WaitMedia:
-         g_string_append_printf(*str, _("Job status: Waiting for new media (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         g_string_append_printf(*str, _("Job status: Waiting for new media"));
+         append_error_string(*str, joberrors);
          ret = warn;
          break;
       case JS_WaitMount:
-         g_string_append_printf(*str, _("Job status: Waiting for Mount (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         g_string_append_printf(*str, _("Job status: Waiting for Mount"));
+         append_error_string(*str, joberrors);
          ret = warn;
          break;
       case JS_WaitStoreRes:
-         g_string_append_printf(*str, _("Job status: Waiting for storage resource (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         g_string_append_printf(*str, _("Job status: Waiting for storage resource"));
+         append_error_string(*str, joberrors);
          ret = warn;
          break;
       case JS_WaitJobRes:
-         g_string_append_printf(*str, _("Job status: Waiting for job resource (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         g_string_append_printf(*str, _("Job status: Waiting for job resource"));
+         append_error_string(*str, joberrors);
          ret = warn;
          break;
       case JS_WaitClientRes:
-         g_string_append_printf(*str, _("Job status: Waiting for Client resource (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         g_string_append_printf(*str, _("Job status: Waiting for Client resource"));
+         append_error_string(*str, joberrors);
          ret = warn;
          break;
       case JS_WaitMaxJobs:
-         g_string_append_printf(*str, _("Job status: Waiting for maximum jobs (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         g_string_append_printf(*str, _("Job status: Waiting for maximum jobs"));
+         append_error_string(*str, joberrors);
          ret = warn;
          break;
       case JS_WaitStartTime:
-         g_string_append_printf(*str, _("Job status: Waiting for start time (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         g_string_append_printf(*str, _("Job status: Waiting for start time"));
+         append_error_string(*str, joberrors);
          ret = warn;
          break;
       case JS_WaitPriority:
-         g_string_append_printf(*str, _("Job status: Waiting for higher priority jobs to finish (%d error%s)"), joberrors, (joberrors > 1) ? "s" : "");
+         g_string_append_printf(*str, _("Job status: Waiting for higher priority jobs to finish"));
+         append_error_string(*str, joberrors);
          ret = warn;
          break;
       default:
-         g_warning("Unknown job status %c.", jobstatus);
-         g_string_append_printf(*str, _("Job status: Unknown(%c) (%d error%s)"), jobstatus, joberrors, (joberrors > 1) ? "s" : "");
+         g_warning(_("Unknown job status %c."), jobstatus);
+         g_string_append_printf(*str, _("Job status: Unknown(%c)"), jobstatus);
+         append_error_string(*str, joberrors);
          ret = warn;
          break;
       }
    }
    else {
-      fprintf(stderr, "Bad scan : '%s' %d\n", (it == NULL) ? "" : ((GString*)it->data)->str, k);
+      fprintf(stderr, _("Bad scan : '%s' %d\n"), (it == NULL) ? "" : ((GString*)it->data)->str, k);
       ret = error;
    }
 
@@ -817,34 +855,34 @@ int docmd(monitoritem* item, const char* command, GSList** list) {
       switch (item->type) {
       case R_DIRECTOR:
          dird = (DIRRES*)item->resource;
-         trayMessage("Connecting to Director %s:%d\n", dird->address, dird->DIRport);
-         changeStatusMessage(item, "Connecting to Director %s:%d", dird->address, dird->DIRport);
-         item->D_sock = bnet_connect(NULL, 0, 0, "Director daemon", dird->address, NULL, dird->DIRport, 0);
+         trayMessage(_("Connecting to Director %s:%d\n"), dird->address, dird->DIRport);
+         changeStatusMessage(item, _("Connecting to Director %s:%d"), dird->address, dird->DIRport);
+         item->D_sock = bnet_connect(NULL, 0, 0, _("Director daemon"), dird->address, NULL, dird->DIRport, 0);
          jcr.dir_bsock = item->D_sock;
          break;
       case R_CLIENT:
          filed = (CLIENT*)item->resource;
-         trayMessage("Connecting to Client %s:%d\n", filed->address, filed->FDport);
-         changeStatusMessage(item, "Connecting to Client %s:%d", filed->address, filed->FDport);
-         item->D_sock = bnet_connect(NULL, 0, 0, "File daemon", filed->address, NULL, filed->FDport, 0);
+         trayMessage(_("Connecting to Client %s:%d\n"), filed->address, filed->FDport);
+         changeStatusMessage(item, _("Connecting to Client %s:%d"), filed->address, filed->FDport);
+         item->D_sock = bnet_connect(NULL, 0, 0, _("File daemon"), filed->address, NULL, filed->FDport, 0);
          jcr.file_bsock = item->D_sock;
          break;
       case R_STORAGE:
          stored = (STORE*)item->resource;
-         trayMessage("Connecting to Storage %s:%d\n", stored->address, stored->SDport);
-         changeStatusMessage(item, "Connecting to Storage %s:%d", stored->address, stored->SDport);
-         item->D_sock = bnet_connect(NULL, 0, 0, "Storage daemon", stored->address, NULL, stored->SDport, 0);
+         trayMessage(_("Connecting to Storage %s:%d\n"), stored->address, stored->SDport);
+         changeStatusMessage(item, _("Connecting to Storage %s:%d"), stored->address, stored->SDport);
+         item->D_sock = bnet_connect(NULL, 0, 0, _("Storage daemon"), stored->address, NULL, stored->SDport, 0);
          jcr.store_bsock = item->D_sock;
          break;
       default:
-         printf("Error, currentitem is not a Client, a Storage or a Director..\n");
+         printf(_("Error, currentitem is not a Client, a Storage or a Director..\n"));
          gtk_main_quit();
          return 0;
       }
 
       if (item->D_sock == NULL) {
-         g_slist_append(*list, g_string_new("Cannot connect to daemon.\n"));
-         changeStatusMessage(item, "Cannot connect to daemon.");
+         g_slist_append(*list, _("Cannot connect to daemon.\n"));
+         changeStatusMessage(item, _("Cannot connect to daemon."));
          item->state = error;
          item->oldstate = error;
          return 0;
@@ -856,26 +894,26 @@ int docmd(monitoritem* item, const char* command, GSList** list) {
          g_slist_append(*list, str);
          item->state = error;
          item->oldstate = error;
-         changeStatusMessage(item, "Authentication error : %s", item->D_sock->msg);
+         changeStatusMessage(item, _("Authentication error : %s"), item->D_sock->msg);
          item->D_sock = NULL;
          return 0;
       }
 
       switch (item->type) {
       case R_DIRECTOR:
-         trayMessage("Opened connection with Director daemon.\n");
-         changeStatusMessage(item, "Opened connection with Director daemon.");
+         trayMessage(_("Opened connection with Director daemon.\n"));
+         changeStatusMessage(item, _("Opened connection with Director daemon."));
          break;
       case R_CLIENT:
-         trayMessage("Opened connection with File daemon.\n");
-         changeStatusMessage(item, "Opened connection with File daemon.");
+         trayMessage(_("Opened connection with File daemon.\n"));
+         changeStatusMessage(item, _("Opened connection with File daemon."));
          break;
       case R_STORAGE:
-         trayMessage("Opened connection with Storage daemon.\n");
-         changeStatusMessage(item, "Opened connection with Storage daemon.");
+         trayMessage(_("Opened connection with Storage daemon.\n"));
+         changeStatusMessage(item, _("Opened connection with Storage daemon."));
          break;
       default:
-         printf("Error, currentitem is not a Client, a Storage or a Director..\n");
+         printf(_("Error, currentitem is not a Client, a Storage or a Director..\n"));
          gtk_main_quit();
          return 0;
          break;
@@ -907,35 +945,35 @@ int docmd(monitoritem* item, const char* command, GSList** list) {
          }
          else if (item->D_sock->msglen == BNET_PROMPT) {
             //fprintf(stderr, "<< PROMPT >>\n");
-            g_slist_append(*list, g_string_new("<< Error: BNET_PROMPT signal received. >>\n"));
+            g_slist_append(*list, g_string_new(_("<< Error: BNET_PROMPT signal received. >>\n")));
             return 0;
          }
          else if (item->D_sock->msglen == BNET_HEARTBEAT) {
             bnet_sig(item->D_sock, BNET_HB_RESPONSE);
-            g_slist_append(*list, g_string_new("<< Heartbeat signal received, answered. >>\n"));
+            g_slist_append(*list, g_string_new(_("<< Heartbeat signal received, answered. >>\n")));
          }
          else {
             str = g_string_sized_new(64);
-            g_string_printf(str, "<< Unexpected signal received : %s >>\n", bnet_sig_to_ascii(item->D_sock));
+            g_string_printf(str, _("<< Unexpected signal received : %s >>\n"), bnet_sig_to_ascii(item->D_sock));
             g_slist_append(*list, str);
          }
       }
       else { /* BNET_HARDEOF || BNET_ERROR */
-         g_slist_append(*list, g_string_new("<ERROR>\n"));
+         g_slist_append(*list, g_string_new(_("<ERROR>\n")));
          item->D_sock = NULL;
          item->state = error;
          item->oldstate = error;
-         changeStatusMessage(item, "Error : BNET_HARDEOF or BNET_ERROR");
-         //fprintf(stderr, "<< ERROR >>\n");
+         changeStatusMessage(item, _("Error : BNET_HARDEOF or BNET_ERROR"));
+         //fprintf(stderr, _("<< ERROR >>\n"));
          return 0;
       }
 
       if (is_bnet_stop(item->D_sock)) {
-         g_string_append_printf(str, "<STOP>\n");
+         g_string_append_printf(str, _("<STOP>\n"));
          item->D_sock = NULL;
          item->state = error;
          item->oldstate = error;
-         changeStatusMessage(item, "Error : Connection closed.");
+         changeStatusMessage(item, _("Error : Connection closed."));
          //fprintf(stderr, "<< STOP >>\n");
          return 0;            /* error or term */
       }

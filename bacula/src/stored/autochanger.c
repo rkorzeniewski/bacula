@@ -303,7 +303,7 @@ bool autochanger_cmd(DCR *dcr, BSOCK *dir, const char *cmd)
    if (stat != 0) {
       berrno be;
       be.set_errno(stat);
-      bnet_fsend(dir, "Autochanger error: ERR=%s\n", be.strerror());
+      bnet_fsend(dir, _("Autochanger error: ERR=%s\n"), be.strerror());
    }
    bnet_sig(dir, BNET_EOD);
    ok = true;

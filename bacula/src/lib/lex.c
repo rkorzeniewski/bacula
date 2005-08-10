@@ -105,7 +105,7 @@ LEX *lex_close_file(LEX *lf)
 
    Dmsg1(2000, "Close lex file: %s\n", lf->fname);
    if (lf == NULL) {
-      Emsg0(M_ABORT, 0, "Close of NULL file\n");
+      Emsg0(M_ABORT, 0, _("Close of NULL file\n"));
    }
    of = lf->next;
    fclose(lf->fd);
@@ -178,7 +178,7 @@ LEX *lex_open_file(LEX *lf, const char *filename, LEX_ERROR_HANDLER *scan_error)
 int lex_get_char(LEX *lf)
 {
    if (lf->ch == L_EOF) {
-      Emsg0(M_ABORT, 0, "get_char: called after EOF\n");
+      Emsg0(M_ABORT, 0, _("get_char: called after EOF\n"));
    }
    if (lf->ch == L_EOL) {
       if (bfgets(lf->line, MAXSTRING, lf->fd) == NULL) {
@@ -241,13 +241,13 @@ static void begin_str(LEX *lf, int ch)
 static const char *lex_state_to_str(int state)
 {
    switch (state) {
-   case lex_none:          return "none";
-   case lex_comment:       return "comment";
-   case lex_number:        return "number";
-   case lex_ip_addr:       return "ip_addr";
-   case lex_identifier:    return "identifier";
-   case lex_string:        return "string";
-   case lex_quoted_string: return "quoted_string";
+   case lex_none:          return _("none");
+   case lex_comment:       return _("comment");
+   case lex_number:        return _("number");
+   case lex_ip_addr:       return _("ip_addr");
+   case lex_identifier:    return _("identifier");
+   case lex_string:        return _("string");
+   case lex_quoted_string: return _("quoted_string");
    default:                return "??????";
    }
 }

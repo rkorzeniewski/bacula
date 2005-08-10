@@ -58,7 +58,7 @@ static pid_t main_pid = 0;
 const char *get_signal_name(int sig)
 {
    if (sig < 0 || sig > BA_NSIG || !sig_names[sig]) {
-      return "Invalid signal number";
+      return _("Invalid signal number");
    } else {
       return sig_names[sig];
    }
@@ -84,7 +84,7 @@ extern "C" void signal_handler(int sig)
    if (sig == SIGTERM) {
 //    Emsg1(M_TERM, -1, "Shutting down Bacula service: %s ...\n", my_name);
    } else {
-      Emsg2(M_FATAL, -1, "Bacula interrupted by signal %d: %s\n", sig, sig_names[sig]);
+      Emsg2(M_FATAL, -1, _("Bacula interrupted by signal %d: %s\n"), sig, sig_names[sig]);
    }
 
 #ifdef TRACEBACK
@@ -97,9 +97,9 @@ extern "C" void signal_handler(int sig)
       pid_t pid;
       int exelen = strlen(exepath);
 
-      fprintf(stderr, "Kaboom! %s, %s got signal %d. Attempting traceback.\n",
+      fprintf(stderr, _("Kaboom! %s, %s got signal %d. Attempting traceback.\n"),
               exename, my_name, sig);
-      fprintf(stderr, "Kaboom! exepath=%s\n", exepath);
+      fprintf(stderr, _("Kaboom! exepath=%s\n"), exepath);
 
       if (exelen + 12 > (int)sizeof(btpath)) {
          bstrncpy(btpath, "btraceback", sizeof(btpath));
@@ -133,16 +133,16 @@ extern "C" void signal_handler(int sig)
       Dmsg1(300, "exepath=%s\n", exepath);
       switch (pid = fork()) {
       case -1:                        /* error */
-         fprintf(stderr, "Fork error: ERR=%s\n", strerror(errno));
+         fprintf(stderr, _("Fork error: ERR=%s\n"), strerror(errno));
          break;
       case 0:                         /* child */
          argv[0] = btpath;            /* path to btraceback */
          argv[1] = exepath;           /* path to exe */
          argv[2] = pid_buf;
          argv[3] = (char *)NULL;
-         fprintf(stderr, "Calling: %s %s %s\n", btpath, exepath, pid_buf);
+         fprintf(stderr, _("Calling: %s %s %s\n"), btpath, exepath, pid_buf);
          if (execv(btpath, argv) != 0) {
-            printf("execv: %s failed: ERR=%s\n", btpath, strerror(errno));
+            printf(_("execv: %s failed: ERR=%s\n"), btpath, strerror(errno));
          }
          exit(-1);
       default:                        /* parent */
@@ -157,7 +157,7 @@ extern "C" void signal_handler(int sig)
       if (pid > 0) {
          Dmsg0(500, "Doing waitpid\n");
          waitpid(pid, NULL, 0);       /* wait for child to produce dump */
-         fprintf(stderr, "Traceback complete, attempting cleanup ...\n");
+         fprintf(stderr, _("Traceback complete, attempting cleanup ...\n"));
          Dmsg0(500, "Done waitpid\n");
          exit_handler(sig);           /* clean up if possible */
          Dmsg0(500, "Done exit_handler\n");
@@ -165,7 +165,7 @@ extern "C" void signal_handler(int sig)
          Dmsg0(500, "Doing sleep\n");
          bmicrosleep(30, 0);
       }
-      fprintf(stderr, "It looks like the traceback worked ...\n");
+      fprintf(stderr, _("It looks like the traceback worked ...\n"));
    }
 #endif
 
@@ -194,70 +194,70 @@ void init_signals(void terminate(int sig))
 
    exit_handler = terminate;
    if (BA_NSIG < _sys_nsig)
-      Emsg2(M_ABORT, 0, "BA_NSIG too small (%d) should be (%d)\n", BA_NSIG, _sys_nsig);
+      Emsg2(M_ABORT, 0, _("BA_NSIG too small (%d) should be (%d)\n"), BA_NSIG, _sys_nsig);
 
    for (i=0; i<_sys_nsig; i++)
       sig_names[i] = _sys_siglist[i];
 #else
    exit_handler = terminate;
-   sig_names[0]         = "UNKNOWN SIGNAL";
-   sig_names[SIGHUP]    = "Hangup";
-   sig_names[SIGINT]    = "Interrupt";
-   sig_names[SIGQUIT]   = "Quit";
-   sig_names[SIGILL]    = "Illegal instruction";;
-   sig_names[SIGTRAP]   = "Trace/Breakpoint trap";
-   sig_names[SIGABRT]   = "Abort";
+   sig_names[0]         = _("UNKNOWN SIGNAL");
+   sig_names[SIGHUP]    = _("Hangup");
+   sig_names[SIGINT]    = _("Interrupt");
+   sig_names[SIGQUIT]   = _("Quit");
+   sig_names[SIGILL]    = _("Illegal instruction");;
+   sig_names[SIGTRAP]   = _("Trace/Breakpoint trap");
+   sig_names[SIGABRT]   = _("Abort");
 #ifdef SIGEMT
-   sig_names[SIGEMT]    = "EMT instruction (Emulation Trap)";
+   sig_names[SIGEMT]    = _("EMT instruction (Emulation Trap)");
 #endif
 #ifdef SIGIOT
-   sig_names[SIGIOT]    = "IOT trap";
+   sig_names[SIGIOT]    = _("IOT trap");
 #endif
-   sig_names[SIGBUS]    = "BUS error";
-   sig_names[SIGFPE]    = "Floating-point exception";
-   sig_names[SIGKILL]   = "Kill, unblockable";
-   sig_names[SIGUSR1]   = "User-defined signal 1";
-   sig_names[SIGSEGV]   = "Segmentation violation";
-   sig_names[SIGUSR2]   = "User-defined signal 2";
-   sig_names[SIGPIPE]   = "Broken pipe";
-   sig_names[SIGALRM]   = "Alarm clock";
-   sig_names[SIGTERM]   = "Termination";
+   sig_names[SIGBUS]    = _("BUS error");
+   sig_names[SIGFPE]    = _("Floating-point exception");
+   sig_names[SIGKILL]   = _("Kill, unblockable");
+   sig_names[SIGUSR1]   = _("User-defined signal 1");
+   sig_names[SIGSEGV]   = _("Segmentation violation");
+   sig_names[SIGUSR2]   = _("User-defined signal 2");
+   sig_names[SIGPIPE]   = _("Broken pipe");
+   sig_names[SIGALRM]   = _("Alarm clock");
+   sig_names[SIGTERM]   = _("Termination");
 #ifdef SIGSTKFLT
-   sig_names[SIGSTKFLT] = "Stack fault";
+   sig_names[SIGSTKFLT] = _("Stack fault");
 #endif
-   sig_names[SIGCHLD]   = "Child status has changed";
-   sig_names[SIGCONT]   = "Continue";
-   sig_names[SIGSTOP]   = "Stop, unblockable";
-   sig_names[SIGTSTP]   = "Keyboard stop";
-   sig_names[SIGTTIN]   = "Background read from tty";
-   sig_names[SIGTTOU]   = "Background write to tty";
-   sig_names[SIGURG]    = "Urgent condition on socket";
-   sig_names[SIGXCPU]   = "CPU limit exceeded";
-   sig_names[SIGXFSZ]   = "File size limit exceeded";
-   sig_names[SIGVTALRM] = "Virtual alarm clock";
-   sig_names[SIGPROF]   = "Profiling alarm clock";
-   sig_names[SIGWINCH]  = "Window size change";
-   sig_names[SIGIO]     = "I/O now possible";
+   sig_names[SIGCHLD]   = _("Child status has changed");
+   sig_names[SIGCONT]   = _("Continue");
+   sig_names[SIGSTOP]   = _("Stop, unblockable");
+   sig_names[SIGTSTP]   = _("Keyboard stop");
+   sig_names[SIGTTIN]   = _("Background read from tty");
+   sig_names[SIGTTOU]   = _("Background write to tty");
+   sig_names[SIGURG]    = _("Urgent condition on socket");
+   sig_names[SIGXCPU]   = _("CPU limit exceeded");
+   sig_names[SIGXFSZ]   = _("File size limit exceeded");
+   sig_names[SIGVTALRM] = _("Virtual alarm clock");
+   sig_names[SIGPROF]   = _("Profiling alarm clock");
+   sig_names[SIGWINCH]  = _("Window size change");
+   sig_names[SIGIO]     = _("I/O now possible");
 #ifdef SIGPWR
-   sig_names[SIGPWR]    = "Power failure restart";
+   sig_names[SIGPWR]    = _("Power failure restart");
 #endif
 #ifdef SIGWAITING
-   sig_names[SIGWAITING] = "No runnable lwp";
+   sig_names[SIGWAITING] = _("No runnable lwp");
 #endif
 #ifdef SIGLWP
-   sig_name[SIGLWP]     = "SIGLWP special signal used by thread library";
+   sig_name[SIGLWP]     = _("SIGLWP special signal used by thread library");
 #endif
 #ifdef SIGFREEZE
-   sig_names[SIGFREEZE] = "Checkpoint Freeze";
+   sig_names[SIGFREEZE] = _("Checkpoint Freeze");
 #endif
 #ifdef SIGTHAW
-   sig_names[SIGTHAW]   = "Checkpoint Thaw";
+   sig_names[SIGTHAW]   = _("Checkpoint Thaw");
 #endif
 #ifdef SIGCANCEL
-   sig_names[SIGCANCEL] = "Thread Cancellation";
+   sig_names[SIGCANCEL] = _("Thread Cancellation");
 #endif
 #ifdef SIGLOST
-   sig_names[SIGLOST]   = "Resource Lost (e.g. record-lock lost)";
+   sig_names[SIGLOST]   = _("Resource Lost (e.g. record-lock lost)");
 #endif
 #endif
 

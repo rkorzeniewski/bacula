@@ -274,7 +274,7 @@ static void remove_jcr(JCR *jcr)
 {
    Dmsg0(3400, "Enter remove_jcr\n");
    if (!jcr) {
-      Emsg0(M_ABORT, 0, "NULL jcr.\n");
+      Emsg0(M_ABORT, 0, _("NULL jcr.\n"));
    }
    jcrs->remove(jcr);
    Dmsg0(3400, "Leave remove_jcr\n");

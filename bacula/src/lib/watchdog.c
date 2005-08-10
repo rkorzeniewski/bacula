@@ -167,13 +167,13 @@ watchdog_t *new_watchdog(void)
 bool register_watchdog(watchdog_t *wd)
 {
    if (!wd_is_init) {
-      Emsg0(M_ABORT, 0, "BUG! register_watchdog called before start_watchdog\n");
+      Emsg0(M_ABORT, 0, _("BUG! register_watchdog called before start_watchdog\n"));
    }
    if (wd->callback == NULL) {
-      Emsg1(M_ABORT, 0, "BUG! Watchdog %p has NULL callback\n", wd);
+      Emsg1(M_ABORT, 0, _("BUG! Watchdog %p has NULL callback\n"), wd);
    }
    if (wd->interval == 0) {
-      Emsg1(M_ABORT, 0, "BUG! Watchdog %p has zero interval\n", wd);
+      Emsg1(M_ABORT, 0, _("BUG! Watchdog %p has zero interval\n"), wd);
    }
 
    wd_lock();
@@ -193,7 +193,7 @@ bool unregister_watchdog(watchdog_t *wd)
    bool ok = false;
 
    if (!wd_is_init) {
-      Emsg0(M_ABORT, 0, "BUG! unregister_watchdog_unlocked called before start_watchdog\n");
+      Emsg0(M_ABORT, 0, _("BUG! unregister_watchdog_unlocked called before start_watchdog\n"));
    }
 
    wd_lock();
@@ -310,7 +310,7 @@ static void wd_lock()
 {
    int errstat;
    if ((errstat=rwl_writelock(&lock)) != 0) {
-      Emsg1(M_ABORT, 0, "rwl_writelock failure. ERR=%s\n",
+      Emsg1(M_ABORT, 0, _("rwl_writelock failure. ERR=%s\n"),
            strerror(errstat));
    }
 }
@@ -324,7 +324,7 @@ static void wd_unlock()
 {
    int errstat;
    if ((errstat=rwl_writeunlock(&lock)) != 0) {
-      Emsg1(M_ABORT, 0, "rwl_writeunlock failure. ERR=%s\n",
+      Emsg1(M_ABORT, 0, _("rwl_writeunlock failure. ERR=%s\n"),
            strerror(errstat));
    }
 }

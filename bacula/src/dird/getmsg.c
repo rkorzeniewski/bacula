@@ -315,7 +315,7 @@ bool response(JCR *jcr, BSOCK *bs, char *resp, const char *cmd, e_prtmsg prtmsg)
       }
       Dmsg1(900, "Bad response: ERR=%s", bs->msg);
       if (prtmsg == DISPLAY_ERROR) {
-         Jmsg(jcr, M_FATAL, 0, _("Bad response to %s command: wanted %s got: %s\n"),
+         Jmsg(jcr, M_FATAL, 0, _("Bad response to %s command: wanted %s, got %s\n"),
             cmd, resp, bs->msg);
       }
       return false;

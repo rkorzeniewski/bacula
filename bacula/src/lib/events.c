@@ -158,7 +158,7 @@ void FillEventsBox(HWND hwnd, int idlist)
     if (!shm_OK || myUPS.eventfile[0] == 0 ||
 	(events_file = fopen(myUPS.eventfile, "r")) == NULL) {
 	SendDlgItemMessage(hwnd, idlist, LB_ADDSTRING, 0,
-	   (LONG)"Events not available");
+	   (LONG)_("Events not available"));
 	return;
     }
 

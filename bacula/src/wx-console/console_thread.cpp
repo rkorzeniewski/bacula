@@ -148,14 +148,13 @@ void console_thread::SetWorkingDirectory(wxString w_dir) {
 
 void console_thread::InitLib() {
    if (WSA_Init() != 0) {
-      csprint("Error while initializing windows sockets...\n");
+      csprint(_("Error while initializing windows sockets...\n"));
       inited = false;
       return;
    }
    
    init_stack_dump();
    my_name_is(0, NULL, "wx-console");
-   //textdomain("bacula-console");
    working_directory = (const char*) console_thread::working_dir.GetData();
    
    inited = true;
@@ -164,7 +163,7 @@ void console_thread::InitLib() {
 void console_thread::FreeLib() {
    if (inited) {
       if (WSACleanup() != 0) {
-         csprint("Error while cleaning up windows sockets...\n");
+         csprint(_("Error while cleaning up windows sockets...\n"));
       }
    }
 }
@@ -192,7 +191,7 @@ static void scan_err(const char *file, int line, LEX *lc, const char *msg, ...)
       more[0] = 0;
    }
 
-   err.Format(wxT("Config error: %s\n            : line %d, col %d of file %s\n%s\n%s"),
+   err.Format(wxT(_("Config error: %s\n            : line %d, col %d of file %s\n%s\n%s")),
       buf, lc->line_no, lc->col_no, lc->fname, lc->line, more);
      
    errmsg << err; 
@@ -202,7 +201,7 @@ wxString console_thread::LoadConfig(wxString configfile) {
    if (!inited) {
       InitLib();
       if (!inited)
-         return wxT("Error while initializing library.");
+         return wxT(_("Error while initializing library."));
    }
    
    free_config_resources();
@@ -265,7 +264,7 @@ console_thread::~console_thread() {
 void* console_thread::Entry() {
    DIRRES* dir;
    if (!inited) {
-      csprint("Error : Library not initialized\n");
+      csprint(_("Error : Library not initialized\n"));
       csprint(NULL, CS_END);
       csprint(NULL, CS_DISCONNECTED);
       csprint(NULL, CS_TERMINATED);
@@ -276,7 +275,7 @@ void* console_thread::Entry() {
    }
    
    if (!configloaded) {
-      csprint("Error : No configuration file loaded\n");
+      csprint(_("Error : No configuration file loaded\n"));
       csprint(NULL, CS_END);
       csprint(NULL, CS_DISCONNECTED);
       csprint(NULL, CS_TERMINATED);
@@ -286,7 +285,7 @@ void* console_thread::Entry() {
       return NULL;
    }
    
-   csprint("Connecting...\n");
+   csprint(_("Connecting...\n"));
   
    int count = 0;
    DIRRES* res[16]; /* Maximum 16 directors */
@@ -302,7 +301,7 @@ void* console_thread::Entry() {
    UnlockRes();
    
    if (count == 0) {
-      csprint("Error : No director defined in config file.\n");
+      csprint(_("Error : No director defined in config file.\n"));
       csprint(NULL, CS_END);
       csprint(NULL, CS_DISCONNECTED);
       csprint(NULL, CS_TERMINATED);
@@ -314,7 +313,7 @@ void* console_thread::Entry() {
       directorchoosen = 1;
    } else {
       while (true) {
-         csprint("Multiple directors found in your config file.\n");
+         csprint(_("Multiple directors found in your config file.\n"));
          for (int i = 0; i < count; i++) {
             if (i < 9) {
                csprint(wxString(wxT("    ")) << (i+1) << wxT(": ") << wxString(res[i]->hdr.name,*wxConvCurrent) << wxT("\n"));
@@ -323,7 +322,7 @@ void* console_thread::Entry() {
                csprint(wxString(wxT("   ")) <<  (i+1) << wxT(": ") << wxString(res[i]->hdr.name,*wxConvCurrent) << wxT("\n"));
             }
          }
-         csprint(wxString(wxT("Please choose a director (1-")) << count << wxT(") : "),CS_DATA);
+         csprint(wxString::Format(wxT(_("Please choose a director (1-%s): ")), count), CS_DATA);
          csprint(NULL, CS_PROMPT);
          choosingdirector = true;
          directorchoosen = -1;
@@ -352,7 +351,7 @@ void* console_thread::Entry() {
    /* Initialize Console TLS context */
    if (cons && (cons->tls_enable || cons->tls_require)) {
       /* Generate passphrase prompt */
-      bsnprintf(buf, sizeof(buf), "Passphrase for Console \"%s\" TLS private key: ", cons->hdr.name);
+      bsnprintf(buf, sizeof(buf), _("Passphrase for Console \"%s\" TLS private key: "), cons->hdr.name);
 
       /* Initialize TLS context:
        * Args: CA certfile, CA certdir, Certfile, Keyfile,
@@ -373,7 +372,7 @@ void* console_thread::Entry() {
    /* Initialize Director TLS context */
    if (dir->tls_enable || dir->tls_require) {
       /* Generate passphrase prompt */
-      bsnprintf(buf, sizeof(buf), "Passphrase for Director \"%s\" TLS private key: ", dir->hdr.name);
+      bsnprintf(buf, sizeof(buf), _("Passphrase for Director \"%s\" TLS private key: "), dir->hdr.name);
 
       /* Initialize TLS context:
        * Args: CA certfile, CA certdir, Certfile, Keyfile,
@@ -391,11 +390,11 @@ void* console_thread::Entry() {
    }
 
 
-   UA_sock = bnet_connect(&jcr, 3, 3, "Director daemon",
+   UA_sock = bnet_connect(&jcr, 3, 3, _("Director daemon"),
       dir->address, NULL, dir->DIRport, 0);
       
    if (UA_sock == NULL) {
-      csprint("Failed to connect to the director\n");
+      csprint(_("Failed to connect to the director\n"));
       csprint(NULL, CS_END);
       csprint(NULL, CS_DISCONNECTED);
       csprint(NULL, CS_TERMINATED);
@@ -405,7 +404,7 @@ void* console_thread::Entry() {
       return NULL;
    }
 
-   csprint("Connected\n");
+   csprint(_("Connected\n"));
 
    jcr.dir_bsock = UA_sock;
    if (!authenticate_director(&jcr, dir, cons)) {
@@ -440,10 +439,10 @@ void* console_thread::Entry() {
          }
          else if (UA_sock->msglen == BNET_HEARTBEAT) {
             bnet_sig(UA_sock, BNET_HB_RESPONSE);
-            csprint("<< Heartbeat signal received, answered. >>\n", CS_DEBUG);
+            csprint(_("<< Heartbeat signal received, answered. >>\n"), CS_DEBUG);
          }
          else {
-            csprint("<< Unexpected signal received : ", CS_DEBUG);
+            csprint(_("<< Unexpected signal received : "), CS_DEBUG);
             csprint(bnet_sig_to_ascii(UA_sock), CS_DEBUG);
             csprint(">>\n", CS_DEBUG);
          }
@@ -461,7 +460,7 @@ void* console_thread::Entry() {
    
    csprint(NULL, CS_DISCONNECTED);
 
-   csprint("Connection terminated\n");
+   csprint(_("Connection terminated\n"));
    
    UA_sock = NULL;
 

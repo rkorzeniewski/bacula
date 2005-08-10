@@ -82,7 +82,7 @@ enable_priv(JCR *jcr, HANDLE hToken, char *name, int ignore_errors)
     if (lerror != ERROR_SUCCESS) {
        if (!ignore_errors) {
 	  char buf[200];
-	  strcpy(buf, "AdjustTokenPrivileges set ");
+	  strcpy(buf, _("AdjustTokenPrivileges set "));
 	  bstrncat(buf, name, sizeof(buf));
 	  win_error(jcr, buf, lerror);
        }

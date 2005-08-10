@@ -38,7 +38,7 @@ lookup_widget                          (GtkWidget       *widget,
   found_widget = (GtkWidget*) g_object_get_data (G_OBJECT (widget),
 						 widget_name);
   if (!found_widget)
-    g_warning ("Widget not found: %s", widget_name);
+    g_warning (_("Widget not found: %s"), widget_name);
   return found_widget;
 }
 
@@ -89,7 +89,7 @@ create_pixbuf                          (const gchar     *filename)
   pixbuf = gdk_pixbuf_new_from_file (pathname, &error);
   if (!pixbuf)
     {
-      fprintf (stderr, "Failed to load pixbuf file: %s: %s\n",
+      fprintf (stderr, _("Failed to load pixbuf file: %s: %s\n"),
 	       pathname, error->message);
       g_error_free (error);
     }

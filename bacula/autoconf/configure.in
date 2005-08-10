@@ -118,8 +118,8 @@ dnl --------------------------------------------------
 dnl Suppport for gettext (translations)
 dnl --------------------------------------------------
 AM_GNU_GETTEXT([external])
-localedir=${prefix}/locale
-LOCAL_DEFS="$LOCAL_DEFS -DLOCALEDIR=\"${localedir}\""
+localedir=${datadir}/locale
+LOCAL_DEFS="$LOCAL_DEFS -DLOCALEDIR=\"\\\"${localedir}\\\"\""
 
 # ------------------------------------------------------------------
 #  If the user has not set --prefix, we set our default to nothing.

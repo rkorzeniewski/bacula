@@ -38,10 +38,10 @@ void senditf(const char *fmt, ...);
 void sendit(const char *buf);
 
 /* Commands sent to Director */
-static char hello[]    = "Hello %s calling\n";
+static char hello[]    = N_("Hello %s calling\n");
 
 /* Response from Director */
-static char OKhello[]   = "1000 OK:";
+static char OKhello[]   = N_("1000 OK:");
 
 /* Forward referenced functions */
 

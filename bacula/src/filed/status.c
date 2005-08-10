@@ -64,8 +64,8 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
 
    msg = (char *)get_pool_memory(PM_MESSAGE);
    found = 0;
-   len = Mmsg(msg, "%s Version: " VERSION " (" BDATE ")" VSS " %s %s %s\n", 
-              my_name, HOST_OS, DISTNAME, DISTVER);
+   len = Mmsg(msg, _("%s Version: %s (%s) %s %s %s %s\n"), 
+              my_name, VERSION, BDATE, VSS, HOST_OS, DISTNAME, DISTVER);
    sendit(msg, len, arg);
    bstrftime_nc(dt, sizeof(dt), daemon_start_time);
    len = Mmsg(msg, _("Daemon started %s, %d Job%s run since started.\n"),
@@ -236,23 +236,23 @@ static void  list_terminated_jobs(void sendit(const char *msg, int len, void *sa
       }
       switch (je->JobStatus) {
       case JS_Created:
-         termstat = "Created";
+         termstat = _("Created");
          break;
       case JS_FatalError:
       case JS_ErrorTerminated:
-         termstat = "Error";
+         termstat = _("Error");
          break;
       case JS_Differences:
-         termstat = "Diffs";
+         termstat = _("Diffs");
          break;
       case JS_Canceled:
-         termstat = "Cancel";
+         termstat = _("Cancel");
          break;
       case JS_Terminated:
-         termstat = "OK";
+         termstat = _("OK");
          break;
       default:
-         termstat = "Other";
+         termstat = _("Other");
          break;
       }
       bstrncpy(JobName, je->Job, sizeof(JobName));
@@ -272,7 +272,7 @@ static void  list_terminated_jobs(void sendit(const char *msg, int len, void *sa
          dt, JobName);
       sendit(buf, strlen(buf), arg);
    }
-   sendit("====\n", 5, arg);
+   sendit(_("====\n"), 5, arg);
    unlock_last_jobs_list();
 }
 
@@ -319,7 +319,7 @@ int qstatus_cmd(JCR *jcr)
    if (sscanf(dir->msg, qstatus, time) != 1) {
       pm_strcpy(&jcr->errmsg, dir->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Bad .status command: %s\n"), jcr->errmsg);
-      bnet_fsend(dir, "2900 Bad .status command, missing argument.\n");
+      bnet_fsend(dir, _("2900 Bad .status command, missing argument.\n"));
       bnet_sig(dir, BNET_EOD);
       free_memory(time);
       return 0;
@@ -345,7 +345,7 @@ int qstatus_cmd(JCR *jcr)
    else {
       pm_strcpy(&jcr->errmsg, dir->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Bad .status command: %s\n"), jcr->errmsg);
-      bnet_fsend(dir, "2900 Bad .status command, wrong argument.\n");
+      bnet_fsend(dir, _("2900 Bad .status command, wrong argument.\n"));
       bnet_sig(dir, BNET_EOD);
       free_memory(time);
       return 0;

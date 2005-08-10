@@ -64,7 +64,7 @@ bool do_mac_init(JCR *jcr)
    Dmsg1(100, "find last jobid for: %s\n", NPRT(Name));
    if (!db_find_last_jobid(jcr, jcr->db, Name, &jr)) {
       Jmsg(jcr, M_FATAL, 0, _(
-           "Unable to find JobId of previous Job for this client.\n"));
+           _("Unable to find JobId of previous Job for this client.\n")));
       return false;
    }
    input_jobid = jr.JobId;
@@ -374,7 +374,7 @@ void mac_cleanup(JCR *jcr, int TermCode)
 
 // bmicrosleep(15, 0);		      /* for debugging SIGHUP */
 
-   Jmsg(jcr, msg_type, 0, _("Bacula " VERSION " (" LSMDATE "): %s\n"
+   Jmsg(jcr, msg_type, 0, _("Bacula %s (%s): %s\n"
 "  JobId:                  %d\n"
 "  Job:                    %s\n"
 "  Backup Level:           %s%s\n"
@@ -398,6 +398,8 @@ void mac_cleanup(JCR *jcr, int TermCode)
 "  FD termination status:  %s\n"
 "  SD termination status:  %s\n"
 "  Termination:            %s\n\n"),
+   VERSION,
+   LSMDATE,
 	edt,
 	jcr->jr.JobId,
 	jcr->jr.Job,

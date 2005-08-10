@@ -604,22 +604,22 @@ static const char *gethost_strerror()
       msg = be.strerror();
       break;
    case NETDB_SUCCESS:
-      msg = "No problem.";
+      msg = _("No problem.");
       break;
    case HOST_NOT_FOUND:
-      msg = "Authoritative answer for host not found.";
+      msg = _("Authoritative answer for host not found.");
       break;
    case TRY_AGAIN:
-      msg = "Non-authoritative for host not found, or ServerFail.";
+      msg = _("Non-authoritative for host not found, or ServerFail.");
       break;
    case NO_RECOVERY:
-      msg = "Non-recoverable errors, FORMERR, REFUSED, or NOTIMP.";
+      msg = _("Non-recoverable errors, FORMERR, REFUSED, or NOTIMP.");
       break;
    case NO_DATA:
-      msg = "Valid name, no data record of resquested type.";
+      msg = _("Valid name, no data record of resquested type.");
       break;
    default:
-      msg = "Unknown error.";
+      msg = _("Unknown error.");
    }
    return msg;
 }
@@ -754,7 +754,7 @@ static BSOCK *bnet_open(JCR * jcr, const char *name, char *host, char *service,
     */
    if ((addr_list = bnet_host2ipaddrs(host, 0, &errstr)) == NULL) {
       /* Note errstr is not malloc'ed */
-      Qmsg2(jcr, M_ERROR, 0, "gethostbyname() for host \"%s\" failed: ERR=%s\n",
+      Qmsg2(jcr, M_ERROR, 0, _("gethostbyname() for host \"%s\" failed: ERR=%s\n"),
             host, errstr);
       Dmsg2(100, "bnet_host2ipaddrs() for host %s failed: ERR=%s\n",
             host, errstr);
@@ -774,7 +774,7 @@ static BSOCK *bnet_open(JCR * jcr, const char *name, char *host, char *service,
          berrno be;
          save_errno = errno;
          *fatal = 1;
-         Pmsg3(000, "Socket open error. proto=%d port=%d. ERR=%s\n",
+         Pmsg3(000, _("Socket open error. proto=%d port=%d. ERR=%s\n"),
             ipaddr->get_family(), ipaddr->get_port_host_order(), be.strerror());
          continue;
       }
@@ -838,8 +838,9 @@ BSOCK *bnet_connect(JCR * jcr, int retry_interval, int max_retry_time,
       if (i < 0) {
          i = 60 * 5;               /* complain again in 5 minutes */
          if (verbose)
-            Qmsg4(jcr, M_WARNING, 0, "Could not connect to %s on %s:%d. ERR=%s\n"
-"Retrying ...\n", name, host, port, be.strerror());
+            Qmsg4(jcr, M_WARNING, 0, _(
+               "Could not connect to %s on %s:%d. ERR=%s\n"
+               "Retrying ...\n"), name, host, port, be.strerror());
       }
       bmicrosleep(retry_interval, 0);
       max_retry_time -= retry_interval;
@@ -983,13 +984,13 @@ int bnet_set_nonblocking (BSOCK *bsock) {
    /* Get current flags */
    if((oflags = fcntl(bsock->fd, F_GETFL, 0)) < 0) {
       berrno be;
-      Emsg1(M_ABORT, 0, "fcntl F_GETFL error. ERR=%s\n", be.strerror());
+      Emsg1(M_ABORT, 0, _("fcntl F_GETFL error. ERR=%s\n"), be.strerror());
    }
 
    /* Set O_NONBLOCK flag */
    if((fcntl(bsock->fd, F_SETFL, oflags|O_NONBLOCK)) < 0) {
       berrno be;
-      Emsg1(M_ABORT, 0, "fcntl F_SETFL error. ERR=%s\n", be.strerror());
+      Emsg1(M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.strerror());
    }
 
    bsock->blocking = 0;
@@ -1016,13 +1017,13 @@ int bnet_set_blocking (BSOCK *bsock) {
    /* Get current flags */
    if((oflags = fcntl(bsock->fd, F_GETFL, 0)) < 0) {
       berrno be;
-      Emsg1(M_ABORT, 0, "fcntl F_GETFL error. ERR=%s\n", be.strerror());
+      Emsg1(M_ABORT, 0, _("fcntl F_GETFL error. ERR=%s\n"), be.strerror());
    }
 
    /* Set O_NONBLOCK flag */
    if((fcntl(bsock->fd, F_SETFL, oflags & ~O_NONBLOCK)) < 0) {
       berrno be;
-      Emsg1(M_ABORT, 0, "fcntl F_SETFL error. ERR=%s\n", be.strerror());
+      Emsg1(M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.strerror());
    }
 
    bsock->blocking = 1;
@@ -1046,7 +1047,7 @@ void bnet_restore_blocking (BSOCK *bsock, int flags) {
 #ifndef WIN32
    if((fcntl(bsock->fd, F_SETFL, flags)) < 0) {
       berrno be;
-      Emsg1(M_ABORT, 0, "fcntl F_SETFL error. ERR=%s\n", be.strerror());
+      Emsg1(M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.strerror());
    }
 
    bsock->blocking = (flags & O_NONBLOCK);
@@ -1100,7 +1101,7 @@ const char *bnet_sig_to_ascii(BSOCK * bs)
    case BNET_PROMPT:
       return "BNET_PROMPT";
    default:
-      sprintf(buf, "Unknown sig %d", (int)bs->msglen);
+      sprintf(buf, _("Unknown sig %d"), (int)bs->msglen);
       return buf;
    }
 }

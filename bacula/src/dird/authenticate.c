@@ -353,7 +353,7 @@ int authenticate_user_agent(UAContext *uac)
 
       /* Engage TLS! Full Speed Ahead! */
       if (!bnet_tls_server(tls_ctx, ua, verify_list)) {
-         Emsg0(M_ERROR, 0, "TLS negotiation failed.\n");
+         Emsg0(M_ERROR, 0, _("TLS negotiation failed.\n"));
          auth_success = false;
          goto auth_done;
       }
@@ -370,6 +370,6 @@ auth_done:
       sleep(5);
       return 0;
    }
-   bnet_fsend(ua, "1000 OK: %s Version: " VERSION " (" BDATE ")\n", my_name);
+   bnet_fsend(ua, _("1000 OK: %s Version: %s (%s)\n"), my_name, VERSION, BDATE);
    return 1;
 }

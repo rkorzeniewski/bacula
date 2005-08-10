@@ -63,7 +63,7 @@ void b_LockRes(const char *file, int line)
      }
 #endif
    if ((errstat=rwl_writelock(&res_lock)) != 0) {
-      Emsg3(M_ABORT, 0, "rwl_writelock failure at %s:%d:  ERR=%s\n",
+      Emsg3(M_ABORT, 0, _("rwl_writelock failure at %s:%d:  ERR=%s\n"),
            file, line, strerror(errstat));
    }
    res_locked++;
@@ -73,7 +73,7 @@ void b_UnlockRes(const char *file, int line)
 {
    int errstat;
    if ((errstat=rwl_writeunlock(&res_lock)) != 0) {
-      Emsg3(M_ABORT, 0, "rwl_writeunlock failure at %s:%d:. ERR=%s\n",
+      Emsg3(M_ABORT, 0, _("rwl_writeunlock failure at %s:%d:. ERR=%s\n"),
            file, line, strerror(errstat));
    }
    res_locked--;

@@ -66,13 +66,13 @@ void list_spool_stats(BSOCK *bs)
 {
    char ed1[30], ed2[30];
    if (spool_stats.data_jobs || spool_stats.max_data_size) {
-      bnet_fsend(bs, "Data spooling: %u active jobs, %s bytes; %u total jobs, %s max bytes/job.\n",
+      bnet_fsend(bs, _("Data spooling: %u active jobs, %s bytes; %u total jobs, %s max bytes/job.\n"),
          spool_stats.data_jobs, edit_uint64_with_commas(spool_stats.data_size, ed1),
          spool_stats.total_data_jobs,
          edit_uint64_with_commas(spool_stats.max_data_size, ed2));
    }
    if (spool_stats.attr_jobs || spool_stats.max_attr_size) {
-      bnet_fsend(bs, "Attr spooling: %u active jobs, %s bytes; %u total jobs, %s max bytes.\n",
+      bnet_fsend(bs, _("Attr spooling: %u active jobs, %s bytes; %u total jobs, %s max bytes.\n"),
          spool_stats.attr_jobs, edit_uint64_with_commas(spool_stats.attr_size, ed1),
          spool_stats.total_attr_jobs,
          edit_uint64_with_commas(spool_stats.max_attr_size, ed2));
@@ -114,7 +114,7 @@ bool commit_data_spool(DCR *dcr)
       Dmsg0(100, "Committing spooled data\n");
       stat = despool_data(dcr, true /*commit*/);
       if (!stat) {
-         Pmsg1(000, "Bad return from despool WroteVol=%d\n", dcr->WroteVol);
+         Pmsg1(000, _("Bad return from despool WroteVol=%d\n"), dcr->WroteVol);
          close_data_spool_file(dcr);
          return false;
       }
@@ -195,9 +195,14 @@ static bool despool_data(DCR *dcr, bool commit)
    char ec1[50];
 
    Dmsg0(100, "Despooling data\n");
-   Jmsg(jcr, M_INFO, 0, _("%s spooled data to Volume. Despooling %s bytes ...\n"),
-        commit?"Committing":"Writing",
-        edit_uint64_with_commas(jcr->dcr->job_spool_size, ec1));
+   if (commit) {
+      Jmsg(jcr, M_INFO, 0, _("Committing spooled data to Volume. Despooling %s bytes ...\n"),
+         edit_uint64_with_commas(jcr->dcr->job_spool_size, ec1));
+   }
+   else {
+      Jmsg(jcr, M_INFO, 0, _("Writing spooled data to Volume. Despooling %s bytes ...\n"),
+         edit_uint64_with_commas(jcr->dcr->job_spool_size, ec1));
+   }
    dcr->spooling = false;
    lock_device(dcr->dev);
    dcr->dev_locked = true;
@@ -251,7 +256,7 @@ static bool despool_data(DCR *dcr, bool commit)
       berrno be;
       Jmsg(dcr->jcr, M_ERROR, 0, _("Ftruncate spool file failed: ERR=%s\n"),
          be.strerror());
-      Pmsg1(000, "Bad return from ftruncate. ERR=%s\n", be.strerror());
+      Pmsg1(000, _("Bad return from ftruncate. ERR=%s\n"), be.strerror());
       ok = false;
    }
 
@@ -303,20 +308,20 @@ static int read_block_from_spool_file(DCR *dcr)
          Jmsg(dcr->jcr, M_FATAL, 0, _("Spool header read error. ERR=%s\n"),
               be.strerror());
       } else {
-         Pmsg2(000, "Spool read error. Wanted %u bytes, got %d\n", rlen, stat);
+         Pmsg2(000, _("Spool read error. Wanted %u bytes, got %d\n"), rlen, stat);
          Jmsg2(dcr->jcr, M_FATAL, 0, _("Spool header read error. Wanted %u bytes, got %d\n"), rlen, stat);
       }
       return RB_ERROR;
    }
    rlen = hdr.len;
    if (rlen > block->buf_len) {
-      Pmsg2(000, "Spool block too big. Max %u bytes, got %u\n", block->buf_len, rlen);
+      Pmsg2(000, _("Spool block too big. Max %u bytes, got %u\n"), block->buf_len, rlen);
       Jmsg2(dcr->jcr, M_FATAL, 0, _("Spool block too big. Max %u bytes, got %u\n"), block->buf_len, rlen);
       return RB_ERROR;
    }
    stat = read(dcr->spool_fd, (char *)block->buf, (size_t)rlen);
    if (stat != (ssize_t)rlen) {
-      Pmsg2(000, "Spool data read error. Wanted %u bytes, got %d\n", rlen, stat);
+      Pmsg2(000, _("Spool data read error. Wanted %u bytes, got %d\n"), rlen, stat);
       Jmsg2(dcr->jcr, M_FATAL, 0, _("Spool data read error. Wanted %u bytes, got %d\n"), rlen, stat);
       return RB_ERROR;
    }
@@ -376,7 +381,7 @@ bool write_block_to_spool_file(DCR *dcr)
 #endif
       Jmsg(dcr->jcr, M_INFO, 0, _("User specified spool size reached.\n"));
       if (!despool_data(dcr, false)) {
-         Pmsg0(000, "Bad return from despool in write_block.\n");
+         Pmsg0(000, _("Bad return from despool in write_block.\n"));
          return false;
       }
       /* Despooling cleared these variables so reset them */

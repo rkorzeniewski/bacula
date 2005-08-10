@@ -70,7 +70,7 @@ bool do_append_data(JCR *jcr)
    dir_send_job_status(jcr);
 
    if (dev->VolCatInfo.VolCatName[0] == 0) {
-      Pmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
+      Pmsg0(000, _("NULL Volume name. This shouldn't happen!!!\n"));
    }
    Dmsg1(20, "Begin append device=%s\n", dev->print_name());
 
@@ -79,7 +79,7 @@ bool do_append_data(JCR *jcr)
 
    Dmsg0(100, "Just after acquire_device_for_append\n");
    if (dev->VolCatInfo.VolCatName[0] == 0) {
-      Pmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
+      Pmsg0(000, _("NULL Volume name. This shouldn't happen!!!\n"));
    }
    /*
     * Write Begin Session Record
@@ -91,7 +91,7 @@ bool do_append_data(JCR *jcr)
       ok = false;
    }
    if (dev->VolCatInfo.VolCatName[0] == 0) {
-      Pmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
+      Pmsg0(000, _("NULL Volume name. This shouldn't happen!!!\n"));
    }
 
    /* Tell File daemon to send data */
@@ -246,7 +246,7 @@ bool do_append_data(JCR *jcr)
 
    Dmsg1(200, "Write session label JobStatus=%d\n", jcr->JobStatus);
    if ((!ok || job_canceled(jcr)) && dev->VolCatInfo.VolCatName[0] == 0) {
-      Pmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
+      Pmsg0(000, _("NULL Volume name. This shouldn't happen!!!\n"));
    }
 
    /*
@@ -261,7 +261,7 @@ bool do_append_data(JCR *jcr)
          ok = false;
       }
       if (dev->VolCatInfo.VolCatName[0] == 0) {
-         Pmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
+         Pmsg0(000, _("NULL Volume name. This shouldn't happen!!!\n"));
       }
       Dmsg0(90, "back from write_end_session_label()\n");
       /* Flush out final partial block of this session */
@@ -273,7 +273,7 @@ bool do_append_data(JCR *jcr)
       }
    }
    if (dev->VolCatInfo.VolCatName[0] == 0) {
-      Pmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
+      Pmsg0(000, _("NULL Volume name. This shouldn't happen!!!\n"));
    }
 
    if (!ok) {

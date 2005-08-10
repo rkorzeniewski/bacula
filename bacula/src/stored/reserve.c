@@ -707,7 +707,7 @@ static int can_reserve_drive(DCR *dcr, bool PreferMountedVols)
          return 0;                    /* wait */
       }
    } else {
-      Pmsg0(000, "Logic error!!!! Should not get here.\n");
+      Pmsg0(000, _("Logic error!!!! Should not get here.\n"));
       Jmsg0(jcr, M_FATAL, 0, _("Logic error!!!! Should not get here.\n"));
       return -1;                      /* error, should not get here */
    }

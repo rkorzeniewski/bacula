@@ -75,8 +75,8 @@ void dump_block(DEV_BLOCK *b, const char *msg)
 
    BlockCheckSum = bcrc32((uint8_t *)b->buf+BLKHDR_CS_LENGTH,
                          block_len-BLKHDR_CS_LENGTH);
-   Pmsg6(000, "Dump block %s %x: size=%d BlkNum=%d\n"
-"               Hdrcksum=%x cksum=%x\n",
+   Pmsg6(000, _("Dump block %s %x: size=%d BlkNum=%d\n"
+"               Hdrcksum=%x cksum=%x\n"),
       msg, b, block_len, BlockNumber, CheckSum, BlockCheckSum);
    p = b->buf + bhl;
    while (p < (b->buf + block_len+WRITE_RECHDR_LENGTH)) {
@@ -88,7 +88,7 @@ void dump_block(DEV_BLOCK *b, const char *msg)
       unser_int32(FileIndex);
       unser_int32(Stream);
       unser_uint32(data_len);
-      Pmsg6(000, "   Rec: VId=%u VT=%u FI=%s Strm=%s len=%d p=%x\n",
+      Pmsg6(000, _("   Rec: VId=%u VT=%u FI=%s Strm=%s len=%d p=%x\n"),
            VolSessionId, VolSessionTime, FI_to_ascii(FileIndex),
            stream_to_ascii(Stream, FileIndex), data_len, p);
       p += data_len + rhl;
@@ -504,7 +504,7 @@ bool write_block_to_dev(DCR *dcr)
 #ifdef DEBUG_BLOCK_ZEROING
    uint32_t *bp = (uint32_t *)block->buf;
    if (bp[0] == 0 && bp[1] == 0 && bp[2] == 0 && block->buf[12] == 0) {
-      Jmsg0(jcr, M_ABORT, 0, "Write block header zeroed.\n");
+      Jmsg0(jcr, M_ABORT, 0, _("Write block header zeroed.\n"));
    }
 #endif
 
@@ -515,7 +515,7 @@ bool write_block_to_dev(DCR *dcr)
 
 #ifdef DEBUG_BLOCK_ZEROING
    if (bp[0] == 0 && bp[1] == 0 && bp[2] == 0 && block->buf[12] == 0) {
-      Jmsg0(jcr, M_ABORT, 0, "Write block header zeroed.\n");
+      Jmsg0(jcr, M_ABORT, 0, _("Write block header zeroed.\n"));
    }
 #endif
 
@@ -681,8 +681,8 @@ static bool terminate_writing_volume(DCR *dcr)
    dcr->block->write_failed = true;
    if (weof_dev(dev, 1) != 0) {         /* end the tape */
       dev->VolCatInfo.VolCatErrors++;
-      Jmsg(dcr->jcr, M_ERROR, 0, "Error writing final EOF to tape. This tape may not be readable.\n"
-           "%s", dev->errmsg);
+      Jmsg(dcr->jcr, M_ERROR, 0, _("Error writing final EOF to tape. This tape may not be readable.\n"
+           "%s"), dev->errmsg);
       ok = false;
       Dmsg0(100, "WEOF error.\n");
    }

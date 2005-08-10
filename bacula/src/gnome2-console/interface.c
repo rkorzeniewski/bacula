@@ -29,15 +29,15 @@
 static GnomeUIInfo file1_menu_uiinfo[] =
 {
   {
-    GNOME_APP_UI_ITEM, N_("_Connect"),
-    N_("Connect to Director"),
+    GNOME_APP_UI_ITEM, _("_Connect"),
+    _("Connect to Director"),
     (gpointer) on_connect_activate, NULL, NULL,
     GNOME_APP_PIXMAP_NONE, NULL,
     0, (GdkModifierType) 0, NULL
   },
   {
-    GNOME_APP_UI_ITEM, N_("_Disconnect"),
-    N_("Disconnect from Director"),
+    GNOME_APP_UI_ITEM, _("_Disconnect"),
+    _("Disconnect from Director"),
     (gpointer) on_disconnect_activate, NULL, NULL,
     GNOME_APP_PIXMAP_NONE, NULL,
     0, (GdkModifierType) 0, NULL
@@ -90,7 +90,7 @@ static GnomeUIInfo edit1_menu_uiinfo[] =
 static GnomeUIInfo item1_menu_uiinfo[] =
 {
   {
-    GNOME_APP_UI_ITEM, N_("_Display Messages"),
+    GNOME_APP_UI_ITEM, _("_Display Messages"),
     NULL,
     (gpointer) on_msgs_activate, NULL, NULL,
     GNOME_APP_PIXMAP_NONE, NULL,
@@ -126,35 +126,35 @@ static GnomeUIInfo help1_menu_uiinfo[] =
 static GnomeUIInfo menubar1_uiinfo[] =
 {
   {
-    GNOME_APP_UI_SUBTREE, N_("_File"),
+    GNOME_APP_UI_SUBTREE, _("_File"),
     NULL,
     file1_menu_uiinfo, NULL, NULL,
     GNOME_APP_PIXMAP_NONE, NULL,
     0, (GdkModifierType) 0, NULL
   },
   {
-    GNOME_APP_UI_SUBTREE, N_("_Edit"),
+    GNOME_APP_UI_SUBTREE,_("_Edit"),
     NULL,
     edit1_menu_uiinfo, NULL, NULL,
     GNOME_APP_PIXMAP_NONE, NULL,
     0, (GdkModifierType) 0, NULL
   },
   {
-    GNOME_APP_UI_SUBTREE, N_("_View"),
-    N_("Display Messages"),
+    GNOME_APP_UI_SUBTREE, _("_View"),
+    _("Display Messages"),
     item1_menu_uiinfo, NULL, NULL,
     GNOME_APP_PIXMAP_NONE, NULL,
     0, (GdkModifierType) 0, NULL
   },
   {
-    GNOME_APP_UI_SUBTREE, N_("_Settings"),
+    GNOME_APP_UI_SUBTREE, _("_Settings"),
     NULL,
     settings1_menu_uiinfo, NULL, NULL,
     GNOME_APP_PIXMAP_NONE, NULL,
     0, (GdkModifierType) 0, NULL
   },
   {
-    GNOME_APP_UI_SUBTREE, N_("_Help"),
+    GNOME_APP_UI_SUBTREE, _("_Help"),
     NULL,
     help1_menu_uiinfo, NULL, NULL,
     GNOME_APP_PIXMAP_NONE, NULL,
@@ -562,7 +562,7 @@ create_SelectDirectorDialog (void)
   gtk_widget_show (button11);
   gtk_box_pack_start (GTK_BOX (hbox21), button11, FALSE, FALSE, 0);
 
-  label46 = gtk_label_new (_("         "));
+  label46 = gtk_label_new ("         ");
   gtk_widget_show (label46);
   gtk_box_pack_start (GTK_BOX (hbox21), label46, FALSE, FALSE, 0);
   gtk_misc_set_padding (GTK_MISC (label46), 2, 0);
@@ -744,7 +744,7 @@ create_RunDialog (void)
   gtk_widget_show (entry_type);
   gtk_editable_set_editable (GTK_EDITABLE (entry_type), FALSE);
 
-  label114 = gtk_label_new (_(" "));
+  label114 = gtk_label_new (" ");
   gtk_widget_show (label114);
   gtk_box_pack_start (GTK_BOX (hbox28), label114, FALSE, FALSE, 30);
   gtk_label_set_justify (GTK_LABEL (label114), GTK_JUSTIFY_LEFT);
@@ -774,7 +774,7 @@ create_RunDialog (void)
   gtk_widget_show (entry_client);
   gtk_editable_set_editable (GTK_EDITABLE (entry_client), FALSE);
 
-  label67 = gtk_label_new (_(" "));
+  label67 = gtk_label_new (" ");
   gtk_widget_show (label67);
   gtk_box_pack_start (GTK_BOX (hbox30), label67, FALSE, FALSE, 123);
 
@@ -854,7 +854,7 @@ create_RunDialog (void)
   gtk_widget_show (entry_level);
   gtk_editable_set_editable (GTK_EDITABLE (entry_level), FALSE);
 
-  label71 = gtk_label_new (_("             "));
+  label71 = gtk_label_new ("             ");
   gtk_widget_show (label71);
   gtk_box_pack_start (GTK_BOX (hbox32), label71, FALSE, FALSE, 100);
 
@@ -883,7 +883,7 @@ create_RunDialog (void)
   gtk_widget_show (entry_pool);
   gtk_editable_set_editable (GTK_EDITABLE (entry_pool), FALSE);
 
-  label73 = gtk_label_new (_("   "));
+  label73 = gtk_label_new ("   ");
   gtk_widget_show (label73);
   gtk_box_pack_start (GTK_BOX (hbox33), label73, FALSE, FALSE, 120);
 
@@ -912,7 +912,7 @@ create_RunDialog (void)
   gtk_widget_show (entry_storage);
   gtk_editable_set_editable (GTK_EDITABLE (entry_storage), FALSE);
 
-  label97 = gtk_label_new (_("   "));
+  label97 = gtk_label_new ("   ");
   gtk_widget_show (label97);
   gtk_box_pack_start (GTK_BOX (hbox39), label97, FALSE, FALSE, 120);
 
@@ -940,7 +940,7 @@ create_RunDialog (void)
   gtk_widget_show (entry_messages);
   gtk_editable_set_editable (GTK_EDITABLE (entry_messages), FALSE);
 
-  label99 = gtk_label_new (_("   "));
+  label99 = gtk_label_new ("   ");
   gtk_widget_show (label99);
   gtk_box_pack_start (GTK_BOX (hbox40), label99, FALSE, FALSE, 120);
 
@@ -958,7 +958,7 @@ create_RunDialog (void)
   gtk_widget_show (entry_where);
   gtk_box_pack_start (GTK_BOX (hbox34), entry_where, TRUE, TRUE, 0);
 
-  label78 = gtk_label_new (_("   "));
+  label78 = gtk_label_new ("   ");
   gtk_widget_show (label78);
   gtk_box_pack_start (GTK_BOX (hbox34), label78, FALSE, FALSE, 120);
 
@@ -976,7 +976,7 @@ create_RunDialog (void)
   gtk_widget_show (entry_when);
   gtk_box_pack_start (GTK_BOX (hbox41), entry_when, TRUE, TRUE, 0);
 
-  label101 = gtk_label_new (_("   "));
+  label101 = gtk_label_new ("   ");
   gtk_widget_show (label101);
   gtk_box_pack_start (GTK_BOX (hbox41), label101, FALSE, FALSE, 120);
 
@@ -994,11 +994,11 @@ create_RunDialog (void)
   gtk_widget_show (entry28);
   gtk_box_pack_start (GTK_BOX (hbox60), entry28, TRUE, TRUE, 0);
 
-  label154 = gtk_label_new (_("   "));
+  label154 = gtk_label_new ("   ");
   gtk_widget_show (label154);
   gtk_box_pack_start (GTK_BOX (hbox60), label154, FALSE, FALSE, 36);
 
-  label84 = gtk_label_new (_("   "));
+  label84 = gtk_label_new ("   ");
   gtk_widget_show (label84);
   gtk_box_pack_start (GTK_BOX (vbox11), label84, FALSE, FALSE, 0);
   gtk_widget_set_size_request (label84, 12, 19);
@@ -1105,7 +1105,7 @@ create_RunDialog (void)
 
 static GnomeUIInfo file2_menu_uiinfo[] =
 {
-  GNOMEUIINFO_MENU_NEW_ITEM (N_("_New"), NULL, on_new1_activate, NULL),
+  GNOMEUIINFO_MENU_NEW_ITEM (_("_New"), NULL, on_new1_activate, NULL),
   GNOMEUIINFO_MENU_OPEN_ITEM (on_open1_activate, NULL),
   GNOMEUIINFO_MENU_SAVE_ITEM (on_save1_activate, NULL),
   GNOMEUIINFO_MENU_SAVE_AS_ITEM (on_save_as1_activate, NULL),
@@ -1270,7 +1270,7 @@ create_restore_file_selection (void)
   gtk_widget_show (restore_select_cancel);
   gtk_box_pack_start (GTK_BOX (hbox44), restore_select_cancel, FALSE, TRUE, 0);
 
-  label1001 = gtk_label_new (_(" "));
+  label1001 = gtk_label_new (" ");
   gtk_widget_show (label1001);
   gtk_box_pack_start (GTK_BOX (hbox44), label1001, FALSE, FALSE, 8);
   gtk_label_set_justify (GTK_LABEL (label1001), GTK_JUSTIFY_LEFT);
@@ -1468,7 +1468,7 @@ create_label_dialog (void)
   gtk_box_pack_start (GTK_BOX (hbox48), label_slot, TRUE, TRUE, 0);
   gtk_spin_button_set_numeric (GTK_SPIN_BUTTON (label_slot), TRUE);
 
-  label113 = gtk_label_new (_("   "));
+  label113 = gtk_label_new ("   ");
   gtk_widget_show (label113);
   gtk_box_pack_start (GTK_BOX (vbox16), label113, FALSE, FALSE, 0);
 
@@ -1661,7 +1661,7 @@ create_RestoreDialog (void)
   gtk_widget_show (restore_client_entry);
   gtk_editable_set_editable (GTK_EDITABLE (restore_client_entry), FALSE);
 
-  label127 = gtk_label_new (_(" "));
+  label127 = gtk_label_new (" ");
   gtk_widget_show (label127);
   gtk_box_pack_start (GTK_BOX (hbox52), label127, FALSE, FALSE, 25);
 
@@ -1689,7 +1689,7 @@ create_RestoreDialog (void)
   gtk_widget_show (restore_fileset_entry);
   gtk_editable_set_editable (GTK_EDITABLE (restore_fileset_entry), FALSE);
 
-  label130 = gtk_label_new (_("  "));
+  label130 = gtk_label_new ("  ");
   gtk_widget_show (label130);
   gtk_box_pack_start (GTK_BOX (hbox53), label130, FALSE, FALSE, 23);
 
@@ -1717,7 +1717,7 @@ create_RestoreDialog (void)
   gtk_widget_show (restore_pool_entry);
   gtk_editable_set_editable (GTK_EDITABLE (restore_pool_entry), FALSE);
 
-  label138 = gtk_label_new (_("   "));
+  label138 = gtk_label_new ("   ");
   gtk_widget_show (label138);
   gtk_box_pack_start (GTK_BOX (hbox55), label138, FALSE, FALSE, 21);
 
@@ -1745,7 +1745,7 @@ create_RestoreDialog (void)
   gtk_widget_show (restore_storage_entry);
   gtk_editable_set_editable (GTK_EDITABLE (restore_storage_entry), FALSE);
 
-  label142 = gtk_label_new (_("   "));
+  label142 = gtk_label_new ("   ");
   gtk_widget_show (label142);
   gtk_box_pack_start (GTK_BOX (hbox56), label142, FALSE, FALSE, 21);
 
@@ -1762,11 +1762,11 @@ create_RestoreDialog (void)
   gtk_widget_show (restore_before_entry);
   gtk_box_pack_start (GTK_BOX (hbox59), restore_before_entry, TRUE, TRUE, 0);
 
-  label149 = gtk_label_new (_("   "));
+  label149 = gtk_label_new ("   ");
   gtk_widget_show (label149);
   gtk_box_pack_start (GTK_BOX (hbox59), label149, FALSE, FALSE, 53);
 
-  label150 = gtk_label_new (_("   "));
+  label150 = gtk_label_new ("   ");
   gtk_widget_show (label150);
   gtk_box_pack_start (GTK_BOX (vbox17), label150, FALSE, FALSE, 0);
 

@@ -105,12 +105,12 @@ void init_python_interpreter(const char *progname, const char *scripts,
    PyModule_AddStringConstant(bacula_module, "ConfigFile", configfile);
    PyModule_AddStringConstant(bacula_module, "WorkingDir", (char *)working_directory);
    if (!bacula_module) {
-      Jmsg0(NULL, M_ERROR_TERM, 0, "Could not initialize Python\n");
+      Jmsg0(NULL, M_ERROR_TERM, 0, _("Could not initialize Python\n"));
    }
    bsnprintf(buf, sizeof(buf), "import sys\n"
             "sys.path.append('%s')\n", scripts);
    if (PyRun_SimpleString(buf) != 0) {
-      Jmsg1(NULL, M_ERROR_TERM, 0, "Could not Run Python string %s\n", buf);
+      Jmsg1(NULL, M_ERROR_TERM, 0, _("Could not Run Python string %s\n"), buf);
    }   
 
    /* Explicitly set values we want */
@@ -122,12 +122,12 @@ void init_python_interpreter(const char *progname, const char *scripts,
    JobType.tp_setattr = job_setattr;
 
    if (PyType_Ready(&JobType) != 0) {
-      Jmsg0(NULL, M_ERROR_TERM, 0, "Could not initialize Python Job type.\n");
+      Jmsg0(NULL, M_ERROR_TERM, 0, _("Could not initialize Python Job type.\n"));
       PyErr_Print();
    }   
    StartUp_module = PyImport_ImportModule((char *)module);
    if (!StartUp_module) {
-      Emsg2(M_ERROR, 0, "Could not import Python script %s/%s. Python disabled.\n",
+      Emsg2(M_ERROR, 0, _("Could not import Python script %s/%s. Python disabled.\n"),
            scripts, module);
       if (PyErr_Occurred()) {
          PyErr_Print();
@@ -227,7 +227,7 @@ int generate_daemon_event(JCR *jcr, const char *event)
       /* Create JCR argument to send to function */
       pJob = (PyObject *)PyObject_New(JobObject, &JobType);
       if (!pJob) {
-         Jmsg(jcr, M_ERROR, 0, "Could not create Python Job Object.\n");
+         Jmsg(jcr, M_ERROR, 0, _("Could not create Python Job Object.\n"));
          goto bail_out;
       }
       ((JobObject *)pJob)->jcr = jcr;
@@ -240,7 +240,7 @@ int generate_daemon_event(JCR *jcr, const char *event)
             PyErr_Print();
             Dmsg0(000, "Python JobStart error.\n");
          }
-         Jmsg(jcr, M_ERROR, 0, "Python function \"%s\" not found.\n", event);
+         Jmsg(jcr, M_ERROR, 0, _("Python function \"%s\" not found.\n"), event);
          Py_XDECREF(pJob);
          goto bail_out;
       }
@@ -264,7 +264,7 @@ int generate_daemon_event(JCR *jcr, const char *event)
                jcr->JobId);
             JobEnd_method = NULL;
          }
-         Jmsg(jcr, M_ERROR, 0, "Python function \"%s\" not found.\n", event);
+         Jmsg(jcr, M_ERROR, 0, _("Python function \"%s\" not found.\n"), event);
          goto bail_out;
       }
       stat = 1;                    /* OK */
@@ -279,7 +279,7 @@ int generate_daemon_event(JCR *jcr, const char *event)
       }
       stat = 1;                    /* OK */
    } else {
-      Jmsg1(jcr, M_ABORT, 0, "Unknown Python daemon event %s\n", event);
+      Jmsg1(jcr, M_ABORT, 0, _("Unknown Python daemon event %s\n"), event);
    }
 
 bail_out:

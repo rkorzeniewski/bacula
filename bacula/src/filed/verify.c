@@ -226,7 +226,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt, bool top_level)
          if (bopen_rsrc(&bfd, ff_pkt->fname, O_RDONLY | O_BINARY, 0) < 0) {
             ff_pkt->ff_errno = errno;
             berrno be;
-            Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open resource fork for %s: ERR=%s\n"),
+            Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open resource fork for %s: ERR=%s.\n"),
                   ff_pkt->fname, be.strerror());
             jcr->Errors++;
             if (is_bopen(&ff_pkt->bfd)) {

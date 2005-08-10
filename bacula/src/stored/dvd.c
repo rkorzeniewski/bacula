@@ -135,6 +135,7 @@ static bool do_mount_dev(DEVICE* dev, int mount, int dotimeout)
    /* If busy retry each second */
    while ((status = run_program_full_output(ocmd.c_str(), 
                        dev->max_open_wait/2, results)) != 0) {
+      /* Doesn't work with internationalisation (This is not a problem) */
       if (fnmatch("*is already mounted on", results, 0) == 0) {
          break;
       }
@@ -149,7 +150,7 @@ static bool do_mount_dev(DEVICE* dev, int mount, int dotimeout)
          continue;
       }
       Dmsg2(40, "Device %s cannot be mounted. ERR=%s\n", dev->print_name(), results);
-      Mmsg(dev->errmsg, "Device %s cannot be mounted. ERR=%s\n", 
+      Mmsg(dev->errmsg, _("Device %s cannot be mounted. ERR=%s\n"), 
            dev->print_name(), results);
       /*
        * Now, just to be sure it is not mounted, try to read the
@@ -257,7 +258,7 @@ void update_free_space_dev(DEVICE* dev)
       }
       dev->free_space = 0;
       dev->free_space_errno = -EPIPE;
-      Mmsg1(dev->errmsg, "Cannot run free space command (%s)\n", results);
+      Mmsg1(dev->errmsg, _("Cannot run free space command (%s)\n"), results);
       
       if (--timeout > 0) {
          Dmsg4(40, "Cannot get free space on device %s. free_space=%s, "
@@ -318,7 +319,7 @@ static bool dvd_write_part(DCR *dcr)
    status = run_program_full_output(ocmd.c_str(), timeout, results.c_str());
    sm_check(__FILE__, __LINE__, false);
    if (status != 0) {
-      Mmsg1(dev->errmsg, "Error while writing current part to the DVD: %s", 
+      Mmsg1(dev->errmsg, _("Error while writing current part to the DVD: %s"), 
             results.c_str());
       Dmsg1(000, "%s", dev->errmsg);
       dev->dev_errno = EIO;

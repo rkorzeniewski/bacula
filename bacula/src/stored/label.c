@@ -83,7 +83,7 @@ int read_dev_volume_label(DCR *dcr)
           *  => we are in a loop
           */
          if (!dev->poll && jcr->label_errors++ > 100) {
-            Jmsg(jcr, M_FATAL, 0, "Too many tries: %s", jcr->errmsg);
+            Jmsg(jcr, M_FATAL, 0, _("Too many tries: %s"), jcr->errmsg);
          }
          Dmsg0(100, "return VOL_NAME_ERROR\n");
          stat = VOL_NAME_ERROR;
@@ -120,7 +120,7 @@ int read_dev_volume_label(DCR *dcr)
          Mmsg(jcr->errmsg, _("Wrong Volume mounted on device %s: Wanted %s have %s\n"),
               dev->print_name(), VolName, dev->VolHdr.VolumeName);
          if (!dev->poll && jcr->label_errors++ > 100) {
-            Jmsg(jcr, M_FATAL, 0, "Too many tries: %s", jcr->errmsg);
+            Jmsg(jcr, M_FATAL, 0, _("Too many tries: %s"), jcr->errmsg);
          }
          goto bail_out;
       }
@@ -192,7 +192,7 @@ int read_dev_volume_label(DCR *dcr)
           dev->print_name(), dev->VolHdr.LabelType);
       Dmsg1(30, "%s", jcr->errmsg);
       if (!dev->poll && jcr->label_errors++ > 100) {
-         Jmsg(jcr, M_FATAL, 0, "Too many tries: %s", jcr->errmsg);
+         Jmsg(jcr, M_FATAL, 0, _("Too many tries: %s"), jcr->errmsg);
       }
       Dmsg0(100, "return VOL_LABEL_ERROR\n");
       stat = VOL_LABEL_ERROR;
@@ -831,11 +831,11 @@ void dump_volume_label(DEVICE *dev)
       goto bail_out;
    default:
       LabelType = buf;
-      sprintf(buf, "Unknown %d", dev->VolHdr.LabelType);
+      sprintf(buf, _("Unknown %d"), dev->VolHdr.LabelType);
       break;
    }
 
-   Pmsg11(-1, "\nVolume Label:\n"
+   Pmsg11(-1, _("\nVolume Label:\n"
 "Id                : %s"
 "VerNo             : %d\n"
 "VolName           : %s\n"
@@ -847,7 +847,7 @@ void dump_volume_label(DEVICE *dev)
 "MediaType         : %s\n"
 "PoolType          : %s\n"
 "HostName          : %s\n"
-"",
+""),
              dev->VolHdr.Id, dev->VolHdr.VerNum,
              dev->VolHdr.VolumeName, dev->VolHdr.PrevVolumeName,
              File, LabelType, dev->VolHdr.LabelSize,
@@ -857,13 +857,13 @@ void dump_volume_label(DEVICE *dev)
    if (dev->VolHdr.VerNum >= 11) {
       char dt[50];
       bstrftime(dt, sizeof(dt), btime_to_unix(dev->VolHdr.label_btime));
-      Pmsg1(-1, "Date label written: %s\n", dt);
+      Pmsg1(-1, _("Date label written: %s\n"), dt);
    } else {
    dt.julian_day_number   = dev->VolHdr.label_date;
    dt.julian_day_fraction = dev->VolHdr.label_time;
    tm_decode(&dt, &tm);
    Pmsg5(-1,
-"Date label written: %04d-%02d-%02d at %02d:%02d\n",
+_("Date label written: %04d-%02d-%02d at %02d:%02d\n"),
       tm.tm_year+1900, tm.tm_mon+1, tm.tm_mday, tm.tm_hour, tm.tm_min);
    }
 
@@ -883,28 +883,28 @@ static void dump_session_label(DEV_RECORD *rec, const char *type)
    unser_session_label(&label, rec);
    dbl = debug_level;
    debug_level = 1;
-   Pmsg7(-1, "\n%s Record:\n"
+   Pmsg7(-1, _("\n%s Record:\n"
 "JobId             : %d\n"
 "VerNum            : %d\n"
 "PoolName          : %s\n"
 "PoolType          : %s\n"
 "JobName           : %s\n"
 "ClientName        : %s\n"
-"",    type, label.JobId, label.VerNum,
+""),    type, label.JobId, label.VerNum,
       label.PoolName, label.PoolType,
       label.JobName, label.ClientName);
 
    if (label.VerNum >= 10) {
-      Pmsg4(-1, ""
+      Pmsg4(-1, _(
 "Job (unique name) : %s\n"
 "FileSet           : %s\n"
 "JobType           : %c\n"
 "JobLevel          : %c\n"
-"", label.Job, label.FileSetName, label.JobType, label.JobLevel);
+""), label.Job, label.FileSetName, label.JobType, label.JobLevel);
    }
 
    if (rec->FileIndex == EOS_LABEL) {
-      Pmsg8(-1, ""
+      Pmsg8(-1, _(
 "JobFiles          : %s\n"
 "JobBytes          : %s\n"
 "StartBlock        : %s\n"
@@ -913,7 +913,7 @@ static void dump_session_label(DEV_RECORD *rec, const char *type)
 "EndFile           : %s\n"
 "JobErrors         : %s\n"
 "JobStatus         : %c\n"
-"",
+""),
          edit_uint64_with_commas(label.JobFiles, ec1),
          edit_uint64_with_commas(label.JobBytes, ec2),
          edit_uint64_with_commas(label.StartBlock, ec3),
@@ -931,8 +931,7 @@ static void dump_session_label(DEV_RECORD *rec, const char *type)
       dt.julian_day_number   = label.write_date;
       dt.julian_day_fraction = label.write_time;
       tm_decode(&dt, &tm);
-      Pmsg5(-1, _(""
-"Date written      : %04d-%02d-%02d at %02d:%02d\n"),
+      Pmsg5(-1, _("Date written      : %04d-%02d-%02d at %02d:%02d\n"),
       tm.tm_year+1900, tm.tm_mon+1, tm.tm_mday, tm.tm_hour, tm.tm_min);
    }
 
@@ -966,7 +965,7 @@ void dump_label_record(DEVICE *dev, DEV_RECORD *rec, int verbose)
       type = _("End of Media");
       break;
    case EOT_LABEL:
-      type = ("End of Tape");
+      type = _("End of Tape");
       break;
    default:
       type = _("Unknown");
@@ -986,7 +985,7 @@ void dump_label_record(DEVICE *dev, DEV_RECORD *rec, int verbose)
          dump_session_label(rec, type);
          break;
       case EOM_LABEL:
-         Pmsg7(-1, "%s Record: File:blk=%u:%u SessId=%d SessTime=%d JobId=%d DataLen=%d\n",
+         Pmsg7(-1, _("%s Record: File:blk=%u:%u SessId=%d SessTime=%d JobId=%d DataLen=%d\n"),
             type, dev->file, dev->block_num, rec->VolSessionId, 
             rec->VolSessionTime, rec->Stream, rec->data_len);
          break;
@@ -994,7 +993,7 @@ void dump_label_record(DEVICE *dev, DEV_RECORD *rec, int verbose)
          Pmsg0(-1, _("End of physical tape.\n"));
          break;
       default:
-         Pmsg7(-1, "%s Record: File:blk=%u:%u SessId=%d SessTime=%d JobId=%d DataLen=%d\n",
+         Pmsg7(-1, _("%s Record: File:blk=%u:%u SessId=%d SessTime=%d JobId=%d DataLen=%d\n"),
             type, dev->file, dev->block_num, rec->VolSessionId, 
             rec->VolSessionTime, rec->Stream, rec->data_len);
          break;
@@ -1006,18 +1005,18 @@ void dump_label_record(DEVICE *dev, DEV_RECORD *rec, int verbose)
       case SOS_LABEL:
          unser_session_label(&label, rec);
          bstrftimes(dt, sizeof(dt), btime_to_unix(label.write_btime));
-         Pmsg6(-1, "%s Record: File:blk=%u:%u SessId=%d SessTime=%d JobId=%d\n",
+         Pmsg6(-1, _("%s Record: File:blk=%u:%u SessId=%d SessTime=%d JobId=%d\n"),
             type, dev->file, dev->block_num, rec->VolSessionId, rec->VolSessionTime, label.JobId);
-         Pmsg4(-1, "   Job=%s Date=%s Level=%c Type=%c\n",
+         Pmsg4(-1, _("   Job=%s Date=%s Level=%c Type=%c\n"),
             label.Job, dt, label.JobLevel, label.JobType);
          break;
       case EOS_LABEL:
          char ed1[30], ed2[30];
          unser_session_label(&label, rec);
          bstrftimes(dt, sizeof(dt), btime_to_unix(label.write_btime));
-         Pmsg6(-1, "%s Record: File:blk=%u:%u SessId=%d SessTime=%d JobId=%d\n",
+         Pmsg6(-1, _("%s Record: File:blk=%u:%u SessId=%d SessTime=%d JobId=%d\n"),
             type, dev->file, dev->block_num, rec->VolSessionId, rec->VolSessionTime, label.JobId);
-         Pmsg7(-1, "   Date=%s Level=%c Type=%c Files=%s Bytes=%s Errors=%d Status=%c\n",
+         Pmsg7(-1, _("   Date=%s Level=%c Type=%c Files=%s Bytes=%s Errors=%d Status=%c\n"),
             dt, label.JobLevel, label.JobType,
             edit_uint64_with_commas(label.JobFiles, ed1),
             edit_uint64_with_commas(label.JobBytes, ed2),
@@ -1027,7 +1026,7 @@ void dump_label_record(DEVICE *dev, DEV_RECORD *rec, int verbose)
       case PRE_LABEL:
       case VOL_LABEL:
       default:
-         Pmsg7(-1, "%s Record: File:blk=%u:%u SessId=%d SessTime=%d JobId=%d DataLen=%d\n",
+         Pmsg7(-1, _("%s Record: File:blk=%u:%u SessId=%d SessTime=%d JobId=%d DataLen=%d\n"),
             type, dev->file, dev->block_num, rec->VolSessionId, rec->VolSessionTime, 
             rec->Stream, rec->data_len);
          break;

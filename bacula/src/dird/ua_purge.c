@@ -229,7 +229,7 @@ int purgecmd(UAContext *ua, const char *cmd)
       }
    /* Volume */
    case 2:
-      while ((i=find_arg(ua, _("volume"))) >= 0) {
+      while ((i=find_arg(ua, N_("volume"))) >= 0) {
          if (select_media_dbr(ua, &mr)) {
             purge_jobs_from_volume(ua, &mr);
          }
@@ -485,7 +485,7 @@ int purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr)
    }
 
    if (cnt.count == 0) {
-      bsendmsg(ua, "There are no Jobs associated with Volume \"%s\". Marking it purged.\n",
+      bsendmsg(ua, _("There are no Jobs associated with Volume \"%s\". Marking it purged.\n"),
          mr->VolumeName);
       if (!mark_media_purged(ua, mr)) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
@@ -552,7 +552,7 @@ int purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr)
    }
 
    if (cnt.count == 0) {
-      bsendmsg(ua, "There are no more Jobs associated with Volume \"%s\". Marking it purged.\n",
+      bsendmsg(ua, _("There are no more Jobs associated with Volume \"%s\". Marking it purged.\n"),
          mr->VolumeName);
       if (!(stat = mark_media_purged(ua, mr))) {
          bsendmsg(ua, "%s", db_strerror(ua->db));

@@ -118,7 +118,7 @@ on_restore_remove_button_clicked(GtkButton *button, gpointer user_data)
  */
 void select_restore_setup()
 {
-   const gchar *title[NUM_COLUMNS] = {"Mark", "File", "Mode", "User", "Group", "Size", "Date"};
+   const gchar *title[NUM_COLUMNS] = {_("Mark"), _("File"), _("Mode"), _("User"), _("Group"), _("Size"), _("Date")};
 
    restore_file_selection = create_restore_file_selection();
    if (!restore_file_selection) {
