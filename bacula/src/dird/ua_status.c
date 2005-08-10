@@ -98,14 +98,14 @@ int status_cmd(UAContext *ua, const char *cmd)
    Dmsg1(20, "status:%s:\n", cmd);
 
    for (i=1; i<ua->argc; i++) {
-      if (strcasecmp(ua->argk[i], _("all")) == 0) {
+      if (strcasecmp(ua->argk[i], N_("all")) == 0) {
          do_all_status(ua);
          return 1;
-      } else if (strcasecmp(ua->argk[i], _("dir")) == 0 ||
-                 strcasecmp(ua->argk[i], _("director")) == 0) {
+      } else if (strcasecmp(ua->argk[i], N_("dir")) == 0 ||
+                 strcasecmp(ua->argk[i], N_("director")) == 0) {
          do_director_status(ua);
          return 1;
-      } else if (strcasecmp(ua->argk[i], _("client")) == 0) {
+      } else if (strcasecmp(ua->argk[i], N_("client")) == 0) {
          client = get_client_resource(ua);
          if (client) {
             do_client_status(ua, client);
@@ -124,10 +124,10 @@ int status_cmd(UAContext *ua, const char *cmd)
        char prmt[MAX_NAME_LENGTH];
 
       start_prompt(ua, _("Status available for:\n"));
-      add_prompt(ua, _("Director"));
-      add_prompt(ua, _("Storage"));
-      add_prompt(ua, _("Client"));
-      add_prompt(ua, _("All"));
+      add_prompt(ua, N_("Director"));
+      add_prompt(ua, N_("Storage"));
+      add_prompt(ua, N_("Client"));
+      add_prompt(ua, N_("All"));
       Dmsg0(20, "do_prompt: select daemon\n");
       if ((item=do_prompt(ua, "",  _("Select daemon type for status"), prmt, sizeof(prmt))) < 0) {
          return 1;
@@ -242,11 +242,16 @@ static void do_director_status(UAContext *ua)
 {
    char dt[MAX_TIME_LENGTH];
 
-   bsendmsg(ua, "%s Version: " VERSION " (" BDATE ") %s %s %s\n", my_name,
+   bsendmsg(ua, _("%s Version: %s (%s) %s %s %s\n"), my_name, VERSION, BDATE,
             HOST_OS, DISTNAME, DISTVER);
    bstrftime_nc(dt, sizeof(dt), daemon_start_time);
-   bsendmsg(ua, _("Daemon started %s, %d Job%s run since started.\n"),
-        dt, num_jobs_run, num_jobs_run == 1 ? "" : "s");
+   if (num_jobs_run == 1) {
+      bsendmsg(ua, _("Daemon started %s, 1 Job run since started.\n"), dt);
+   }
+   else {
+      bsendmsg(ua, _("Daemon started %s, %d Jobs run since started.\n"),
+        dt, num_jobs_run);
+   }
    if (debug_level > 0) {
       char b1[35], b2[35], b3[35], b4[35];
       bsendmsg(ua, _(" Heap: bytes=%s max_bytes=%s bufs=%s max_bufs=%s\n"),
@@ -269,7 +274,7 @@ static void do_director_status(UAContext *ua)
     * List terminated jobs
     */
    list_terminated_jobs(ua);
-   bsendmsg(ua, "====\n");
+   bsendmsg(ua, _("====\n"));
 }
 
 static void do_storage_status(UAContext *ua, STORE *store)
@@ -474,7 +479,7 @@ static void list_scheduled_jobs(UAContext *ua)
    if (num_jobs == 0) {
       bsendmsg(ua, _("No Scheduled Jobs.\n"));
    }
-   bsendmsg(ua, "====\n");
+   bsendmsg(ua, _("====\n"));
    Dmsg0(200, "Leave list_sched_jobs_runs()\n");
 }
 
@@ -636,7 +641,7 @@ static void list_running_jobs(UAContext *ua)
       }
       free_jcr(jcr);
    }
-   bsendmsg(ua, "====\n");
+   bsendmsg(ua, _("====\n"));
    Dmsg0(200, "leave list_run_jobs()\n");
 }
 
@@ -684,23 +689,23 @@ static void list_terminated_jobs(UAContext *ua)
       }
       switch (je->JobStatus) {
       case JS_Created:
-         termstat = "Created";
+         termstat = _("Created");
          break;
       case JS_FatalError:
       case JS_ErrorTerminated:
-         termstat = "Error";
+         termstat = _("Error");
          break;
       case JS_Differences:
-         termstat = "Diffs";
+         termstat = _("Diffs");
          break;
       case JS_Canceled:
-         termstat = "Cancel";
+         termstat = _("Cancel");
          break;
       case JS_Terminated:
-         termstat = "OK";
+         termstat = _("OK");
          break;
       default:
-         termstat = "Other";
+         termstat = _("Other");
          break;
       }
       bsendmsg(ua, _("%6d  %-6s %8s %14s %-7s  %-8s %s\n"),
@@ -711,6 +716,6 @@ static void list_terminated_jobs(UAContext *ua)
          termstat,
          dt, JobName);
    }
-   bsendmsg(ua, "\n");
+   bsendmsg(ua, _("\n"));
    unlock_last_jobs_list();
 }

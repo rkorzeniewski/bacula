@@ -259,7 +259,7 @@ void check_if_volume_valid_or_recyclable(JCR *jcr, MEDIA_DBR *mr, const char **r
 
    /*  Check if a duration or limit has expired */
    if (has_volume_expired(jcr, mr)) {
-      *reason = "volume has expired";
+      *reason = _("volume has expired");
       /* Keep going because we may be able to recycle volume */
    }
 
@@ -277,18 +277,18 @@ void check_if_volume_valid_or_recyclable(JCR *jcr, MEDIA_DBR *mr, const char **r
     */
    if (strcmp(mr->VolStatus, "Purged") == 0) {
       if (recycle_volume(jcr, mr)) {
-         Jmsg(jcr, M_INFO, 0, "Recycled current volume \"%s\"\n", mr->VolumeName);
+         Jmsg(jcr, M_INFO, 0, _("Recycled current volume \"%s\"\n"), mr->VolumeName);
          *reason = NULL;
          return;
       } else {
          /* In principle this shouldn't happen */
-         *reason = "and recycling of current volume failed";
+         *reason = _("and recycling of current volume failed");
          return;
       }
    }
 
    /* At this point, the volume is not valid for writing */
-   *reason = "but should be Append, Purged or Recycle";
+   *reason = _("but should be Append, Purged or Recycle");
 
    /*
     * What we're trying to do here is see if the current volume is
@@ -313,15 +313,15 @@ void check_if_volume_valid_or_recyclable(JCR *jcr, MEDIA_DBR *mr, const char **r
       if (ok) {
          /* If fully purged, recycle current volume */
          if (recycle_volume(jcr, mr)) {
-            Jmsg(jcr, M_INFO, 0, "Recycled current volume \"%s\"\n", mr->VolumeName);
+            Jmsg(jcr, M_INFO, 0, _("Recycled current volume \"%s\"\n"), mr->VolumeName);
             *reason = NULL;
          } else {
-            *reason = "but should be Append, Purged or Recycle (recycling of the "
-               "current volume failed)";
+            *reason = _("but should be Append, Purged or Recycle (recycling of the "
+               "current volume failed)");
          }
       } else {
-         *reason = "but should be Append, Purged or Recycle (cannot automatically "
-            "recycle current volume, as it still contains unpruned data)";
+         *reason = _("but should be Append, Purged or Recycle (cannot automatically "
+            "recycle current volume, as it still contains unpruned data)");
       }
    }
 }

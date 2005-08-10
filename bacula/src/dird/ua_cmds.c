@@ -414,7 +414,7 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
             free_jcr(jcr);
             continue;
          }
-         bsnprintf(buf, sizeof(buf), "JobId=%s Job=%s", edit_int64(jcr->JobId, ed1), jcr->Job);
+         bsnprintf(buf, sizeof(buf), _("JobId=%s Job=%s"), edit_int64(jcr->JobId, ed1), jcr->Job);
          add_prompt(ua, buf);
          free_jcr(jcr);
       }
@@ -753,7 +753,7 @@ static int setdebug_cmd(UAContext *ua, const char *cmd)
    Dmsg1(120, "setdebug:%s:\n", cmd);
 
    level = -1;
-   i = find_arg_with_value(ua, _("level"));
+   i = find_arg_with_value(ua, "level");
    if (i >= 0) {
       level = atoi(ua->argv[i]);
    }
@@ -765,7 +765,7 @@ static int setdebug_cmd(UAContext *ua, const char *cmd)
    }
 
    /* Look for trace flag. -1 => not change */
-   i = find_arg_with_value(ua, _("trace"));
+   i = find_arg_with_value(ua, "trace");
    if (i >= 0) {
       trace_flag = atoi(ua->argv[i]);
       if (trace_flag > 0) {
@@ -775,18 +775,18 @@ static int setdebug_cmd(UAContext *ua, const char *cmd)
 
    /* General debug? */
    for (i=1; i<ua->argc; i++) {
-      if (strcasecmp(ua->argk[i], _("all")) == 0) {
+      if (strcasecmp(ua->argk[i], "all") == 0) {
          do_all_setdebug(ua, level, trace_flag);
          return 1;
       }
-      if (strcasecmp(ua->argk[i], _("dir")) == 0 ||
-          strcasecmp(ua->argk[i], _("director")) == 0) {
+      if (strcasecmp(ua->argk[i], "dir") == 0 ||
+          strcasecmp(ua->argk[i], "director") == 0) {
          debug_level = level;
          set_trace(trace_flag);
          return 1;
       }
-      if (strcasecmp(ua->argk[i], _("client")) == 0 ||
-          strcasecmp(ua->argk[i], _("fd")) == 0) {
+      if (strcasecmp(ua->argk[i], "client") == 0 ||
+          strcasecmp(ua->argk[i], "fd") == 0) {
          client = NULL;
          if (ua->argv[i]) {
             client = (CLIENT *)GetResWithName(R_CLIENT, ua->argv[i]);
@@ -802,9 +802,9 @@ static int setdebug_cmd(UAContext *ua, const char *cmd)
          }
       }
 
-      if (strcasecmp(ua->argk[i], _("store")) == 0 ||
-          strcasecmp(ua->argk[i], _("storage")) == 0 ||
-          strcasecmp(ua->argk[i], _("sd")) == 0) {
+      if (strcasecmp(ua->argk[i], "store") == 0 ||
+          strcasecmp(ua->argk[i], "storage") == 0 ||
+          strcasecmp(ua->argk[i], "sd") == 0) {
          store = NULL;
          if (ua->argv[i]) {
             store = (STORE *)GetResWithName(R_STORAGE, ua->argv[i]);
@@ -825,10 +825,10 @@ static int setdebug_cmd(UAContext *ua, const char *cmd)
     * prompt the user.
     */
    start_prompt(ua, _("Available daemons are: \n"));
-   add_prompt(ua, _("Director"));
-   add_prompt(ua, _("Storage"));
-   add_prompt(ua, _("Client"));
-   add_prompt(ua, _("All"));
+   add_prompt(ua, "Director");
+   add_prompt(ua, "Storage");
+   add_prompt(ua, "Client");
+   add_prompt(ua, "All");
    switch(do_prompt(ua, "", _("Select daemon type to set debug level"), NULL, 0)) {
    case 0:                         /* Director */
       debug_level = level;
@@ -909,30 +909,30 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
 
    jcr->JobLevel = L_FULL;
    for (int i=1; i<ua->argc; i++) {
-      if (strcasecmp(ua->argk[i], _("client")) == 0 ||
-          strcasecmp(ua->argk[i], _("fd")) == 0) {
+      if (strcasecmp(ua->argk[i], "client") == 0 ||
+          strcasecmp(ua->argk[i], "fd") == 0) {
          if (ua->argv[i]) {
             client = (CLIENT *)GetResWithName(R_CLIENT, ua->argv[i]);
             continue;
          }
       }
-      if (strcasecmp(ua->argk[i], _("job")) == 0) {
+      if (strcasecmp(ua->argk[i], "job") == 0) {
          if (ua->argv[i]) {
             job = (JOB *)GetResWithName(R_JOB, ua->argv[i]);
             continue;
          }
       }
-      if (strcasecmp(ua->argk[i], _("fileset")) == 0) {
+      if (strcasecmp(ua->argk[i], "fileset") == 0) {
          if (ua->argv[i]) {
             fileset = (FILESET *)GetResWithName(R_FILESET, ua->argv[i]);
             continue;
          }
       }
-      if (strcasecmp(ua->argk[i], _("listing")) == 0) {
+      if (strcasecmp(ua->argk[i], "listing") == 0) {
          listing = 1;
          continue;
       }
-      if (strcasecmp(ua->argk[i], _("level")) == 0) {
+      if (strcasecmp(ua->argk[i], "level") == 0) {
          if (!get_level_from_name(ua->jcr, ua->argv[i])) {
             bsendmsg(ua, _("Level %s not valid.\n"), ua->argv[i]);
          }
@@ -1068,7 +1068,7 @@ static int delete_cmd(UAContext *ua, const char *cmd)
       return 1;
    case 2:
       int i;
-      while ((i=find_arg(ua, _("jobid"))) > 0) {
+      while ((i=find_arg(ua, "jobid")) > 0) {
          delete_job(ua);
          *ua->argk[i] = 0;         /* zap keyword already visited */
       }
@@ -1112,7 +1112,7 @@ static void delete_job(UAContext *ua)
    JobId_t JobId;
    char *s,*sep,*tok;
 
-   int i = find_arg_with_value(ua, _("jobid"));
+   int i = find_arg_with_value(ua, N_("jobid"));
    if (i >= 0) {
       if (strchr(ua->argv[i], ',') != NULL || strchr(ua->argv[i], '-') != NULL) {
         s = bstrdup(ua->argv[i]);
@@ -1379,14 +1379,14 @@ int qhelp_cmd(UAContext *ua, const char *cmd)
    unsigned int i;
 
    for (i=0; i<comsize; i++) {
-      bsendmsg(ua, _("%s %s\n"), _(commands[i].key), _(commands[i].help));
+      bsendmsg(ua, "%s %s\n", _(commands[i].key), _(commands[i].help));
    }
    return 1;
 }
 
 static int version_cmd(UAContext *ua, const char *cmd)
 {
-   bsendmsg(ua, "%s Version: " VERSION " (" BDATE ")\n", my_name);
+   bsendmsg(ua, _("%s Version: %s (%s)\n"), my_name, VERSION, BDATE);
    return 1;
 }
 

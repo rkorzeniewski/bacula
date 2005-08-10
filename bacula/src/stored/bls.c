@@ -65,9 +65,9 @@ static BSR *bsr = NULL;
 
 static void usage()
 {
-   fprintf(stderr,
+   fprintf(stderr, _(
 "Copyright (C) 2000-2005 Kern Sibbald.\n"
-"\nVersion: " VERSION " (" BDATE ")\n\n"
+"\nVersion: %s (%s)\n\n"
 "Usage: bls [options] <device-name>\n"
 "       -b <file>       specify a bootstrap file\n"
 "       -c <file>       specify a config file\n"
@@ -81,7 +81,7 @@ static void usage()
 "       -p              proceed inspite of errors\n"
 "       -v              be verbose\n"
 "       -V              specify Volume names (separated by |)\n"
-"       -?              print this message\n\n");
+"       -?              print this message\n\n"), VERSION, BDATE);
    exit(1);
 }
 
@@ -94,6 +94,10 @@ int main (int argc, char *argv[])
    char *VolumeName= NULL;
    char *bsrName = NULL;
    bool ignore_label_errors = false;
+
+   setlocale(LC_ALL, "");
+   bindtextdomain("bacula", LOCALEDIR);
+   textdomain("bacula");
 
    working_directory = "/tmp";
    my_name_is(argc, argv, "bls");
@@ -219,8 +223,8 @@ int main (int argc, char *argv[])
        * If on second or subsequent volume, adjust buffer pointer
        */
       if (dev->VolHdr.PrevVolumeName[0] != 0) { /* second volume */
-         Pmsg1(0, "\n"
-"Warning, this Volume is a continuation of Volume %s\n",
+         Pmsg1(0, _("\n"
+                    "Warning, this Volume is a continuation of Volume %s\n"),
                 dev->VolHdr.PrevVolumeName);
       }
 
@@ -298,7 +302,7 @@ static void do_blocks(char *infname)
         block->VolSessionId, block->VolSessionTime);
       if (verbose == 1) {
          read_record_from_block(block, rec);
-         Pmsg9(-1, "File:blk=%u:%u blk_num=%u blen=%u First rec FI=%s SessId=%u SessTim=%u Strm=%s rlen=%d\n",
+         Pmsg9(-1, _("File:blk=%u:%u blk_num=%u blen=%u First rec FI=%s SessId=%u SessTim=%u Strm=%s rlen=%d\n"),
               dev->file, dev->block_num,
               block->BlockNumber, block->block_len,
               FI_to_ascii(rec->FileIndex), rec->VolSessionId, rec->VolSessionTime,
@@ -307,7 +311,7 @@ static void do_blocks(char *infname)
       } else if (verbose > 1) {
          dump_block(block, "");
       } else {
-         printf("Block: %d size=%d\n", block->BlockNumber, block->block_len);
+         printf(_("Block: %d size=%d\n"), block->BlockNumber, block->block_len);
       }
 
    }
@@ -374,7 +378,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 
       if (file_is_included(ff, attr->fname) && !file_is_excluded(ff, attr->fname)) {
          if (verbose) {
-            Pmsg5(-1, "FileIndex=%d VolSessionId=%d VolSessionTime=%d Stream=%d DataLen=%d\n",
+            Pmsg5(-1, _("FileIndex=%d VolSessionId=%d VolSessionTime=%d Stream=%d DataLen=%d\n"),
                   rec->FileIndex, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
          }
          print_ls_output(jcr, attr);
@@ -391,30 +395,30 @@ static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sess
    memset(sessrec, 0, sizeof(sessrec));
    switch (rec->FileIndex) {
    case PRE_LABEL:
-      rtype = "Fresh Volume Label";
+      rtype = _("Fresh Volume Label");
       break;
    case VOL_LABEL:
-      rtype = "Volume Label";
+      rtype = _("Volume Label");
       unser_volume_label(dev, rec);
       break;
    case SOS_LABEL:
-      rtype = "Begin Job Session";
+      rtype = _("Begin Job Session");
       unser_session_label(sessrec, rec);
       break;
    case EOS_LABEL:
-      rtype = "End Job Session";
+      rtype = _("End Job Session");
       break;
    case EOM_LABEL:
-      rtype = "End of Medium";
+      rtype = _("End of Medium");
       break;
    default:
-      rtype = "Unknown";
+      rtype = _("Unknown");
       break;
    }
    Dmsg5(10, "%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
          rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
    if (verbose) {
-      Pmsg5(-1, "%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
+      Pmsg5(-1, _("%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n"),
             rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
    }
 }
@@ -437,7 +441,7 @@ void    free_unused_volume(DCR *dcr) { }
 bool dir_ask_sysop_to_mount_volume(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
-   fprintf(stderr, "Mount Volume \"%s\" on device %s and press return when ready: ",
+   fprintf(stderr, _("Mount Volume \"%s\" on device %s and press return when ready: "),
       dcr->VolumeName, dev->print_name());
    getchar();
    return true;

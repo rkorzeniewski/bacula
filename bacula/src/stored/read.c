@@ -106,7 +106,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    /* Send record header to File daemon */
    if (!bnet_fsend(fd, rec_header, rec->VolSessionId, rec->VolSessionTime,
           rec->FileIndex, rec->Stream, rec->data_len)) {
-      Pmsg1(000, ">filed: Error Hdr=%s\n", fd->msg);
+      Pmsg1(000, _(">filed: Error Hdr=%s\n"), fd->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Error sending to File daemon. ERR=%s\n"),
          bnet_strerror(fd));
       return false;
@@ -121,7 +121,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    fd->msglen = rec->data_len;
    Dmsg1(400, ">filed: send %d bytes data.\n", fd->msglen);
    if (!bnet_send(fd)) {
-      Pmsg1(000, "Error sending to FD. ERR=%s\n", bnet_strerror(fd));
+      Pmsg1(000, _("Error sending to FD. ERR=%s\n"), bnet_strerror(fd));
       Jmsg1(jcr, M_FATAL, 0, _("Error sending to File daemon. ERR=%s\n"),
          bnet_strerror(fd));
 

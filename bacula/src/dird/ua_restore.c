@@ -186,8 +186,12 @@ int restore_cmd(UAContext *ua, const char *cmd)
       if (rx.selected_files == 0) {
          rx.selected_files = selected_files;
       }
-      bsendmsg(ua, _("\n%u file%s selected to be restored.\n\n"), rx.selected_files,
-         rx.selected_files==1?"":"s");
+      if (rx.selected_files==1) {
+         bsendmsg(ua, _("\n1 file selected to be restored.\n\n"));
+      }
+      else {
+         bsendmsg(ua, _("\n%u files selected to be restored.\n\n"), rx.selected_files);
+      }
    } else {
       bsendmsg(ua, _("No files selected to be restored.\n"));
       goto bail_out;
@@ -225,7 +229,7 @@ int restore_cmd(UAContext *ua, const char *cmd)
           fname, rx.selected_files, ua->catalog->hdr.name);
    }
    free_pool_memory(fname);
-   if (find_arg(ua, _("yes")) > 0) {
+   if (find_arg(ua, N_("yes")) > 0) {
       pm_strcat(ua->cmd, " yes");    /* pass it on to the run command */
    }
    Dmsg1(400, "Submitting: %s\n", ua->cmd);
@@ -269,7 +273,7 @@ static int get_client_name(UAContext *ua, RESTORE_CTX *rx)
    if (!rx->ClientName[0]) {
       CLIENT_DBR cr;
       /* try command line argument */
-      int i = find_arg_with_value(ua, _("client"));
+      int i = find_arg_with_value(ua, N_("client"));
       if (i >= 0) {
          bstrncpy(rx->ClientName, ua->argv[i], sizeof(rx->ClientName));
          return 1;
@@ -302,18 +306,18 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
    bool done = false;
    int i, j;
    const char *list[] = {
-      "List last 20 Jobs run",
-      "List Jobs where a given File is saved",
-      "Enter list of comma separated JobIds to select",
-      "Enter SQL list command",
-      "Select the most recent backup for a client",
-      "Select backup for a client before a specified time",
-      "Enter a list of files to restore",
-      "Enter a list of files to restore before a specified time",
-      "Find the JobIds of the most recent backup for a client",
-      "Find the JobIds for a backup for a client before a specified time",
-      "Enter a list of directories to restore for found JobIds",
-      "Cancel",
+      _("List last 20 Jobs run"),
+      _("List Jobs where a given File is saved"),
+      _("Enter list of comma separated JobIds to select"),
+      _("Enter SQL list command"),
+      _("Select the most recent backup for a client"),
+      _("Select backup for a client before a specified time"),
+      _("Enter a list of files to restore"),
+      _("Enter a list of files to restore before a specified time"),
+      _("Find the JobIds of the most recent backup for a client"),
+      _("Find the JobIds for a backup for a client before a specified time"),
+      _("Enter a list of directories to restore for found JobIds"),
+      _("Cancel"),
       NULL };
 
    const char *kw[] = {
@@ -616,8 +620,12 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       bsendmsg(ua, _("No Jobs selected.\n"));
       return 0;
    }
-   bsendmsg(ua, _("You have selected the following JobId%s: %s\n"),
-      strchr(rx->JobIds,',')?"s":"",rx->JobIds);
+   if (strchr(rx->JobIds,',')) {
+      bsendmsg(ua, _("You have selected the following JobIds: %s\n"), rx->JobIds);
+   }
+   else {
+      bsendmsg(ua, _("You have selected the following JobId: %s\n"), rx->JobIds);
+   }
 
    memset(&jr, 0, sizeof(JOB_DBR));
 
@@ -903,8 +911,8 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
       }
    }
    if (tree.FileCount == 0) {
-      bsendmsg(ua, "\nThere were no files inserted into the tree, so file selection\n"
-         "is not possible.Most likely your retention policy pruned the files\n");
+      bsendmsg(ua, _("\nThere were no files inserted into the tree, so file selection\n"
+         "is not possible.Most likely your retention policy pruned the files\n"));
       if (!get_yesno(ua, _("\nDo you want to restore all the files? (yes|no): "))) {
          OK = false;
       } else {
@@ -919,14 +927,31 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
       }
    } else {
       char ec1[50];
-      bsendmsg(ua, "\n%d Job%s, %s files inserted into the tree%s.\n",
-         items, items==1?"":"s", edit_uint64_with_commas(tree.FileCount, ec1),
-         tree.all?" and marked for extraction":"");
+      if (items==1) {
+         if (tree.all) {
+            bsendmsg(ua, _("\n1 Job, %s files inserted into the tree and marked for extraction.\n"),
+              edit_uint64_with_commas(tree.FileCount, ec1));
+         }
+         else {
+            bsendmsg(ua, _("\n1 Job, %s files inserted into the tree.\n"),
+              edit_uint64_with_commas(tree.FileCount, ec1));
+         }
+      }
+      else {
+         if (tree.all) {
+            bsendmsg(ua, _("\n%d Jobs, %s files inserted into the tree and marked for extraction.\n"),
+              items, edit_uint64_with_commas(tree.FileCount, ec1));
+         }
+         else {
+            bsendmsg(ua, _("\n%d Jobs, %s files inserted into the tree.\n"),
+              items, edit_uint64_with_commas(tree.FileCount, ec1));
+         }
+      }
 
       /* Check MediaType and select storage that corresponds */
       get_storage_from_mediatype(ua, &rx->name_list, rx);
 
-      if (find_arg(ua, _("done")) < 0) {
+      if (find_arg(ua, N_("done")) < 0) {
          /* Let the user interact in selecting which files to restore */
          OK = user_select_files_from_tree(&tree);
       }

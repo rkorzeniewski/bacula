@@ -305,9 +305,11 @@ static int markcmd(UAContext *ua, TREE_CTX *tree)
    }
    if (count == 0) {
       bsendmsg(ua, _("No files marked.\n"));
+   } else if (count == 1) {
+      bsendmsg(ua, _("1 file marked.\n"));
    } else {
-      bsendmsg(ua, _("%s file%s marked.\n"),
-               edit_uint64_with_commas(count, ec1), count==0?"":"s");
+      bsendmsg(ua, _("%s files marked.\n"),
+               edit_uint64_with_commas(count, ec1));
    }
    return 1;
 }
@@ -334,9 +336,11 @@ static int markdircmd(UAContext *ua, TREE_CTX *tree)
    }
    if (count == 0) {
       bsendmsg(ua, _("No directories marked.\n"));
+   } else if (count == 1) {
+      bsendmsg(ua, _("1 directory marked.\n"));
    } else {
-      bsendmsg(ua, _("%s director%s marked.\n"),
-               edit_uint64_with_commas(count, ec1), count==1?"y":"ies");
+      bsendmsg(ua, _("%s directories marked.\n"),
+               edit_uint64_with_commas(count, ec1));
    }
    return 1;
 }
@@ -356,7 +360,7 @@ static int countcmd(UAContext *ua, TREE_CTX *tree)
          }
       }
    }
-   bsendmsg(ua, "%s total files/dirs. %s marked to be restored.\n",
+   bsendmsg(ua, _("%s total files/dirs. %s marked to be restored.\n"),
             edit_uint64_with_commas(total, ec1),
             edit_uint64_with_commas(num_extract, ec2));
    return 1;
@@ -495,7 +499,7 @@ static int dircmd(UAContext *ua, TREE_CTX *tree)
    char cwd[1100], *pcwd;
 
    if (!tree_node_has_child(tree->node)) {
-      bsendmsg(ua, "Node %s has no children.\n", tree->node->fname);
+      bsendmsg(ua, _("Node %s has no children.\n"), tree->node->fname);
       return 1;
    }
 
@@ -576,7 +580,7 @@ static int estimatecmd(UAContext *ua, TREE_CTX *tree)
          }
       }
    }
-   bsendmsg(ua, "%d total files; %d marked to be restored; %s bytes.\n",
+   bsendmsg(ua, _("%d total files; %d marked to be restored; %s bytes.\n"),
             total, num_extract, edit_uint64_with_commas(total_bytes, ec1));
    return 1;
 }
@@ -589,7 +593,7 @@ static int helpcmd(UAContext *ua, TREE_CTX *tree)
 
    bsendmsg(ua, _("  Command    Description\n  =======    ===========\n"));
    for (i=0; i<comsize; i++) {
-      bsendmsg(ua, _("  %-10s %s\n"), _(commands[i].key), _(commands[i].help));
+      bsendmsg(ua, "  %-10s %s\n", _(commands[i].key), _(commands[i].help));
    }
    bsendmsg(ua, "\n");
    return 1;
@@ -657,8 +661,10 @@ static int unmarkcmd(UAContext *ua, TREE_CTX *tree)
    }
    if (count == 0) {
       bsendmsg(ua, _("No files unmarked.\n"));
+   } else if (count == 1) {
+      bsendmsg(ua, _("1 file unmarked.\n"));
    } else {
-      bsendmsg(ua, _("%d file%s unmarked.\n"), count, count==0?"":"s");
+      bsendmsg(ua, _("%d files unmarked.\n"), count);
    }
    return 1;
 }
@@ -686,8 +692,10 @@ static int unmarkdircmd(UAContext *ua, TREE_CTX *tree)
 
    if (count == 0) {
       bsendmsg(ua, _("No directories unmarked.\n"));
+   } else if (count == 1) {
+      bsendmsg(ua, _("1 directory unmarked.\n"));
    } else {
-      bsendmsg(ua, _("%d director%s unmarked.\n"), count, count==1?"y":"ies");
+      bsendmsg(ua, _("%d directories unmarked.\n"), count);
    }
    return 1;
 }

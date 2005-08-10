@@ -55,7 +55,7 @@ daemon_start()
 
    Dmsg0(900, "Enter daemon_start\n");
    if ( (cpid = fork() ) < 0)
-      Emsg1(M_ABORT, 0, "Cannot fork to become daemon: %s\n", strerror(errno));
+      Emsg1(M_ABORT, 0, _("Cannot fork to become daemon: %s\n"), strerror(errno));
    else if (cpid > 0)
       exit(0);		    /* parent exits */
    /* Child continues */

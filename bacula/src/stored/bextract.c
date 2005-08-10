@@ -66,9 +66,9 @@ pthread_cond_t wait_device_release = PTHREAD_COND_INITIALIZER;
 
 static void usage()
 {
-   fprintf(stderr,
+   fprintf(stderr, _(
 "Copyright (C) 2000-2005 Kern Sibbald.\n"
-"\nVersion: " VERSION " (" BDATE ")\n\n"
+"\nVersion: %s (%s)\n\n"
 "Usage: bextract <options> <bacula-archive-device-name> <directory-to-store-files>\n"
 "       -b <file>       specify a bootstrap file\n"
 "       -c <file>       specify a configuration file\n"
@@ -78,7 +78,7 @@ static void usage()
 "       -p              proceed inspite of I/O errors\n"
 "       -v              verbose\n"
 "       -V <volumes>    specify Volume names (separated by |)\n"
-"       -?              print this message\n\n");
+"       -?              print this message\n\n"), VERSION, BDATE);
    exit(1);
 }
 
@@ -89,6 +89,10 @@ int main (int argc, char *argv[])
    FILE *fd;
    char line[1000];
    bool got_inc = false;
+
+   setlocale(LC_ALL, "");
+   bindtextdomain("bacula", LOCALEDIR);
+   textdomain("bacula");
 
    working_directory = "/tmp";
    my_name_is(argc, argv, "bextract");
@@ -120,7 +124,7 @@ int main (int argc, char *argv[])
       case 'e':                    /* exclude list */
          if ((fd = fopen(optarg, "r")) == NULL) {
             berrno be;
-            Pmsg2(0, "Could not open exclude file: %s, ERR=%s\n",
+            Pmsg2(0, _("Could not open exclude file: %s, ERR=%s\n"),
                optarg, be.strerror());
             exit(1);
          }
@@ -135,7 +139,7 @@ int main (int argc, char *argv[])
       case 'i':                    /* include list */
          if ((fd = fopen(optarg, "r")) == NULL) {
             berrno be;
-            Pmsg2(0, "Could not open include file: %s, ERR=%s\n",
+            Pmsg2(0, _("Could not open include file: %s, ERR=%s\n"),
                optarg, be.strerror());
             exit(1);
          }
@@ -170,7 +174,7 @@ int main (int argc, char *argv[])
    argv += optind;
 
    if (argc != 2) {
-      Pmsg0(0, "Wrong number of arguments: \n");
+      Pmsg0(0, _("Wrong number of arguments: \n"));
       usage();
    }
 
@@ -191,11 +195,11 @@ int main (int argc, char *argv[])
       free_bsr(bsr);
    }
    if (prog_name_msg) {
-      Pmsg1(000, "%d Program Name and/or Program Data Stream records ignored.\n",
+      Pmsg1(000, _("%d Program Name and/or Program Data Stream records ignored.\n"),
          prog_name_msg);
    }
    if (win32_data_msg) {
-      Pmsg1(000, "%d Win32 data or Win32 gzip data stream records. Ignored.\n",
+      Pmsg1(000, _("%d Win32 data or Win32 gzip data stream records. Ignored.\n"),
          win32_data_msg);
    }
    term_include_exclude_files(ff);
@@ -219,11 +223,11 @@ static void do_extract(char *devname)
    /* Make sure where directory exists and that it is a directory */
    if (stat(where, &statp) < 0) {
       berrno be;
-      Emsg2(M_ERROR_TERM, 0, "Cannot stat %s. It must exist. ERR=%s\n",
+      Emsg2(M_ERROR_TERM, 0, _("Cannot stat %s. It must exist. ERR=%s\n"),
          where, be.strerror());
    }
    if (!S_ISDIR(statp.st_mode)) {
-      Emsg1(M_ERROR_TERM, 0, "%s must be a directory.\n", where);
+      Emsg1(M_ERROR_TERM, 0, _("%s must be a directory.\n"), where);
    }
 
    free(jcr->where);
@@ -244,7 +248,7 @@ static void do_extract(char *devname)
    free_jcr(jcr);
    term_dev(dev);
 
-   printf("%u files restored.\n", num_files);
+   printf(_("%u files restored.\n"), num_files);
    return;
 }
 
@@ -401,7 +405,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
          Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
          if ((uLongf)bwrite(&bfd, compress_buf, (size_t)compress_len) != compress_len) {
             berrno be;
-            Pmsg0(0, "===Write error===\n");
+            Pmsg0(0, _("===Write error===\n"));
             Emsg2(M_ERROR, 0, _("Write error on %s: %s\n"),
                attr->ofname, be.strerror());
             extract = false;
@@ -414,7 +418,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       }
 #else
       if (extract) {
-         Emsg0(M_ERROR, 0, "GZIP data stream found, but GZIP not configured!\n");
+         Emsg0(M_ERROR, 0, _("GZIP data stream found, but GZIP not configured!\n"));
          extract = false;
          return true;
       }
@@ -428,7 +432,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    case STREAM_PROGRAM_NAMES:
    case STREAM_PROGRAM_DATA:
       if (!prog_name_msg) {
-         Pmsg0(000, "Got Program Name or Data Stream. Ignored.\n");
+         Pmsg0(000, _("Got Program Name or Data Stream. Ignored.\n"));
          prog_name_msg++;
       }
       break;
@@ -437,7 +441,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       /* If extracting, wierd stream (not 1 or 2), close output file anyway */
       if (extract) {
          if (!is_bopen(&bfd)) {
-            Emsg0(M_ERROR, 0, "Logic error output file should be open but is not.\n");
+            Emsg0(M_ERROR, 0, _("Logic error output file should be open but is not.\n"));
          }
          set_attributes(jcr, attr, &bfd);
          extract = false;
@@ -466,7 +470,7 @@ void    free_unused_volume(DCR *dcr) { }
 bool dir_ask_sysop_to_mount_volume(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
-   fprintf(stderr, "Mount Volume \"%s\" on device %s and press return when ready: ",
+   fprintf(stderr, _("Mount Volume \"%s\" on device %s and press return when ready: "),
       dcr->VolumeName, dev->print_name());
    getchar();
    return true;

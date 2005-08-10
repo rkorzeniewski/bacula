@@ -369,13 +369,13 @@ static BPIPE *open_mail_pipe(JCR *jcr, POOLMEM *&cmd, DEST *d)
 
    if (!(bpipe = open_bpipe(cmd, 120, "rw"))) {
       berrno be;
-      Jmsg(jcr, M_ERROR, 0, "open mail pipe %s failed: ERR=%s\n",
+      Jmsg(jcr, M_ERROR, 0, _("open mail pipe %s failed: ERR=%s\n"),
          cmd, be.strerror());
    }
 
    /* If we had to use sendmail, add subject */
    if (!d->mail_cmd) {
-       fprintf(bpipe->wfd, "Subject: Bacula Message\r\n\r\n");
+       fprintf(bpipe->wfd, "Subject: %s\r\n\r\n", _("Bacula Message"));
    }
 
    return bpipe;
@@ -428,7 +428,7 @@ void close_msg(JCR *jcr)
             }
 
             if (!(bpipe=open_mail_pipe(jcr, cmd, d))) {
-               Pmsg0(000, "open mail pipe failed.\n");
+               Pmsg0(000, _("open mail pipe failed.\n"));
                goto rem_temp_file;
             }
             Dmsg0(850, "Opened mail pipe\n");
@@ -440,7 +440,7 @@ void close_msg(JCR *jcr)
             }
             if (!close_wpipe(bpipe)) {       /* close write pipe sending mail */
                berrno be;
-               Pmsg1(000, "close error: ERR=%s\n", be.strerror());
+               Pmsg1(000, _("close error: ERR=%s\n"), be.strerror());
             }
 
             /*
@@ -664,7 +664,7 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
                    if (!d->fd) {
                       berrno be;
                       d->fd = stdout;
-                      Qmsg2(jcr, M_ERROR, 0, "fopen %s failed: ERR=%s\n", name,
+                      Qmsg2(jcr, M_ERROR, 0, _("fopen %s failed: ERR=%s\n"), name,
                             be.strerror());
                       d->fd = NULL;
                       free_pool_memory(name);
@@ -686,7 +686,7 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
                    if (!d->fd) {
                       berrno be;
                       d->fd = stdout;
-                      Qmsg2(jcr, M_ERROR, 0, "fopen %s failed: ERR=%s\n", d->where,
+                      Qmsg2(jcr, M_ERROR, 0, _("fopen %s failed: ERR=%s\n"), d->where,
                             be.strerror());
                       d->fd = NULL;
                       break;
@@ -702,7 +702,7 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
                    if (!d->fd) {
                       berrno be;
                       d->fd = stdout;
-                      Qmsg2(jcr, M_ERROR, 0, "fopen %s failed: ERR=%s\n", d->where,
+                      Qmsg2(jcr, M_ERROR, 0, _("fopen %s failed: ERR=%s\n"), d->where,
                             be.strerror());
                       d->fd = NULL;
                       break;
@@ -930,30 +930,30 @@ e_msg(const char *file, int line, int type, int level, const char *fmt,...)
     }
     switch (type) {
     case M_ABORT:
-       len = bsnprintf(buf, sizeof(buf), "%s: ABORTING due to ERROR in %s:%d\n",
+       len = bsnprintf(buf, sizeof(buf), _("%s: ABORTING due to ERROR in %s:%d\n"),
                my_name, file, line);
        break;
     case M_ERROR_TERM:
-       len = bsnprintf(buf, sizeof(buf), "%s: ERROR TERMINATION at %s:%d\n",
+       len = bsnprintf(buf, sizeof(buf), _("%s: ERROR TERMINATION at %s:%d\n"),
                my_name, file, line);
        break;
     case M_FATAL:
        if (level == -1)            /* skip details */
-          len = bsnprintf(buf, sizeof(buf), "%s: Fatal Error because: ", my_name);
+          len = bsnprintf(buf, sizeof(buf), _("%s: Fatal Error because: "), my_name);
        else
-          len = bsnprintf(buf, sizeof(buf), "%s: Fatal Error at %s:%d because:\n", my_name, file, line);
+          len = bsnprintf(buf, sizeof(buf), _("%s: Fatal Error at %s:%d because:\n"), my_name, file, line);
        break;
     case M_ERROR:
        if (level == -1)            /* skip details */
-          len = bsnprintf(buf, sizeof(buf), "%s: ERROR: ", my_name);
+          len = bsnprintf(buf, sizeof(buf), _("%s: ERROR: "), my_name);
        else
-          len = bsnprintf(buf, sizeof(buf), "%s: ERROR in %s:%d ", my_name, file, line);
+          len = bsnprintf(buf, sizeof(buf), _("%s: ERROR in %s:%d "), my_name, file, line);
        break;
     case M_WARNING:
-       len = bsnprintf(buf, sizeof(buf), "%s: Warning: ", my_name);
+       len = bsnprintf(buf, sizeof(buf), _("%s: Warning: "), my_name);
        break;
     case M_SECURITY:
-       len = bsnprintf(buf, sizeof(buf), "%s: Security violation: ", my_name);
+       len = bsnprintf(buf, sizeof(buf), _("%s: Security violation: "), my_name);
        break;
     default:
        len = bsnprintf(buf, sizeof(buf), "%s: ", my_name);
@@ -1029,28 +1029,28 @@ Jmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...)
     }
     switch (type) {
     case M_ABORT:
-       len = bsnprintf(rbuf, sizeof(rbuf), "%s ABORTING due to ERROR\n", my_name);
+       len = bsnprintf(rbuf, sizeof(rbuf), _("%s ABORTING due to ERROR\n"), my_name);
        break;
     case M_ERROR_TERM:
-       len = bsnprintf(rbuf, sizeof(rbuf), "%s ERROR TERMINATION\n", my_name);
+       len = bsnprintf(rbuf, sizeof(rbuf), _("%s ERROR TERMINATION\n"), my_name);
        break;
     case M_FATAL:
-       len = bsnprintf(rbuf, sizeof(rbuf), "%s: %s Fatal error: ", my_name, job);
+       len = bsnprintf(rbuf, sizeof(rbuf), _("%s: %s Fatal error: "), my_name, job);
        if (jcr) {
           set_jcr_job_status(jcr, JS_FatalError);
        }
        break;
     case M_ERROR:
-       len = bsnprintf(rbuf, sizeof(rbuf), "%s: %s Error: ", my_name, job);
+       len = bsnprintf(rbuf, sizeof(rbuf), _("%s: %s Error: "), my_name, job);
        if (jcr) {
           jcr->Errors++;
        }
        break;
     case M_WARNING:
-       len = bsnprintf(rbuf, sizeof(rbuf), "%s: %s Warning: ", my_name, job);
+       len = bsnprintf(rbuf, sizeof(rbuf), _("%s: %s Warning: "), my_name, job);
        break;
     case M_SECURITY:
-       len = bsnprintf(rbuf, sizeof(rbuf), "%s: %s Security violation: ", my_name, job);
+       len = bsnprintf(rbuf, sizeof(rbuf), _("%s: %s Security violation: "), my_name, job);
        break;
     default:
        len = bsnprintf(rbuf, sizeof(rbuf), "%s: ", my_name);

@@ -121,7 +121,7 @@ bnet_thread_server(dlist *addrs, int max_clients, workq_t *client_wq,
 	 berrno be;
 	 if (tlog <= 0) {
 	    tlog = 2 * 60;	   /* Complain every 2 minutes */
-            Emsg2(M_WARNING, 0, _("Cannot bind port %d: ERR=%s. Retrying ...\n"),
+            Emsg2(M_WARNING, 0, _("Cannot bind port %d: ERR=%s: Retrying ...\n"),
 		  ntohs(fd_ptr->port), be.strerror());
 	 }
 	 bmicrosleep(5, 0);
@@ -375,14 +375,14 @@ BSOCK *bnet_accept(BSOCK * bsock, char *who)
       return NULL;
    } else {
       if (caller == NULL) {
-         caller = "unknown";
+         caller = _("unknown");
       }
       len = strlen(caller) + strlen(who) + 3;
       buf = (char *)malloc(len);
       bstrncpy(buf, len, who);
       bstrncat(buf, len, ": ");
       bstrncat(buf, len, caller);
-      bs = init_bsock(NULL, newsockfd, "client", buf, bsock->port, &cli_addr);
+      bs = init_bsock(NULL, newsockfd, _("client"), buf, bsock->port, &cli_addr);
       free(buf);
       return bs;		   /* return new BSOCK */
    }

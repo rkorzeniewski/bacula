@@ -543,7 +543,7 @@ POOLMEM *edit_job_codes(JCR *jcr, char *omsg, char *imsg, const char *to)
 	    if (jcr) {
 	       str = jcr->client_name;
 	    } else {
-               str = "*none*";
+               str = _("*none*");
 	    }
 	    break;
          case 'd':
@@ -553,7 +553,7 @@ POOLMEM *edit_job_codes(JCR *jcr, char *omsg, char *imsg, const char *to)
 	    if (jcr) {
 	       str = job_status_to_str(jcr->JobStatus);
 	    } else {
-               str = "*none*";
+               str = _("*none*");
 	    }
 	    break;
          case 'i':
@@ -561,21 +561,21 @@ POOLMEM *edit_job_codes(JCR *jcr, char *omsg, char *imsg, const char *to)
                bsnprintf(add, sizeof(add), "%d", jcr->JobId);
 	       str = add;
 	    } else {
-               str = "*none*";
+               str = _("*none*");
 	    }
 	    break;
          case 'j':                    /* Job name */
 	    if (jcr) {
 	       str = jcr->Job;
 	    } else {
-               str = "*none*";
+               str = _("*none*");
 	    }
 	    break;
          case 'l':
 	    if (jcr) {
 	       str = job_level_to_str(jcr->JobLevel);
 	    } else {
-               str = "*none*";
+               str = _("*none*");
 	    }
 	    break;
          case 'n':
@@ -589,7 +589,7 @@ POOLMEM *edit_job_codes(JCR *jcr, char *omsg, char *imsg, const char *to)
 		}
 		str = name;
 	     } else {
-                str = "*none*";
+                str = _("*none*");
 	     }
 	     break;
          case 'r':
@@ -599,14 +599,14 @@ POOLMEM *edit_job_codes(JCR *jcr, char *omsg, char *imsg, const char *to)
 	    if (jcr && jcr->stime) {
 	       str = jcr->stime;
 	    } else {
-               str = "*none*";
+               str = _("*none*");
 	    }
 	    break;
          case 't':
 	    if (jcr) {
 	       str = job_type_to_str(jcr->JobType);
 	    } else {
-               str = "*none*";
+               str = _("*none*");
 	    }
 	    break;
          case 'v':
@@ -617,7 +617,7 @@ POOLMEM *edit_job_codes(JCR *jcr, char *omsg, char *imsg, const char *to)
                   str = "";
 	       }
 	    } else {
-               str = "*none*";
+               str = _("*none*");
 	    }
 	    break;
 	 default:

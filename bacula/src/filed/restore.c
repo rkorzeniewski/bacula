@@ -305,7 +305,7 @@ void do_restore(JCR *jcr)
          if (extract) {
             if (prev_stream != stream) {
                if (bopen_rsrc(&altbfd, jcr->last_fname, O_WRONLY | O_TRUNC | O_BINARY, 0) < 0) {
-                  Jmsg(jcr, M_ERROR, 0, _("     Cannot open resource fork for %s\n"), jcr->last_fname);
+                  Jmsg(jcr, M_ERROR, 0, _("     Cannot open resource fork for %s.\n"), jcr->last_fname);
                   extract = false;
                   continue;
                }
@@ -344,7 +344,7 @@ void do_restore(JCR *jcr)
          pm_strcpy(jcr->acl_text, sd->msg);
          Dmsg2(400, "Restoring ACL type 0x%2x <%s>\n", BACL_TYPE_ACCESS, jcr->acl_text);
          if (bacl_set(jcr, BACL_TYPE_ACCESS) != 0) {
-               Jmsg1(jcr, M_WARNING, 0, "Can't restore ACL of %s\n", jcr->last_fname);
+               Jmsg1(jcr, M_WARNING, 0, _("Can't restore ACL of %s\n"), jcr->last_fname);
          }
 #else 
          non_support_acl++;
@@ -356,7 +356,7 @@ void do_restore(JCR *jcr)
          pm_strcpy(jcr->acl_text, sd->msg);
          Dmsg2(400, "Restoring ACL type 0x%2x <%s>\n", BACL_TYPE_DEFAULT, jcr->acl_text);
          if (bacl_set(jcr, BACL_TYPE_DEFAULT) != 0) {
-               Jmsg1(jcr, M_WARNING, 0, "Can't restore default ACL of %s\n", jcr->last_fname);
+               Jmsg1(jcr, M_WARNING, 0, _("Can't restore default ACL of %s\n"), jcr->last_fname);
          }
 #else 
          non_support_acl++;
@@ -447,23 +447,23 @@ ok_out:
 static const char *zlib_strerror(int stat)
 {
    if (stat >= 0) {
-      return "None";
+      return _("None");
    }
    switch (stat) {
    case Z_ERRNO:
-      return "Zlib errno";
+      return _("Zlib errno");
    case Z_STREAM_ERROR:
-      return "Zlib stream error";
+      return _("Zlib stream error");
    case Z_DATA_ERROR:
-      return "Zlib data error";
+      return _("Zlib data error");
    case Z_MEM_ERROR:
-      return "Zlib memory error";
+      return _("Zlib memory error");
    case Z_BUF_ERROR:
-      return "Zlib buffer error";
+      return _("Zlib buffer error");
    case Z_VERSION_ERROR:
-      return "Zlib version error";
+      return _("Zlib version error");
    default:
-      return "*none*";
+      return _("*none*");
    }
 }
 #endif

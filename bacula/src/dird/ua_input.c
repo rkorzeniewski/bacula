@@ -79,17 +79,17 @@ bool get_pint(UAContext *ua, const char *prompt)
          return false;
       }
       /* Kludge for slots blank line => 0 */
-      if (ua->cmd[0] == 0 && strncmp(prompt, "Enter slot", 10) == 0) {
+      if (ua->cmd[0] == 0 && strncmp(prompt, _("Enter slot"), strlen(_("Enter slot"))) == 0) {
          return true;
       }
       if (!is_a_number(ua->cmd)) {
-         bsendmsg(ua, "Expected a positive integer, got: %s\n", ua->cmd);
+         bsendmsg(ua, _("Expected a positive integer, got: %s\n"), ua->cmd);
          continue;
       }
       errno = 0;
       dval = strtod(ua->cmd, NULL);
       if (errno != 0 || dval < 0) {
-         bsendmsg(ua, "Expected a positive integer, got: %s\n", ua->cmd);
+         bsendmsg(ua, _("Expected a positive integer, got: %s\n"), ua->cmd);
          continue;
       }
       ua->pint32_val = (uint32_t)dval;

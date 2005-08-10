@@ -64,7 +64,7 @@ int jobq_init(jobq_t *jq, int threads, void *(*engine)(void *arg))
 
    if ((stat = pthread_attr_init(&jq->attr)) != 0) {
       berrno be;
-      Jmsg1(NULL, M_ERROR, 0, "pthread_attr_init: ERR=%s\n", be.strerror(stat));
+      Jmsg1(NULL, M_ERROR, 0, _("pthread_attr_init: ERR=%s\n"), be.strerror(stat));
       return stat;
    }
    if ((stat = pthread_attr_setdetachstate(&jq->attr, PTHREAD_CREATE_DETACHED)) != 0) {
@@ -73,13 +73,13 @@ int jobq_init(jobq_t *jq, int threads, void *(*engine)(void *arg))
    }
    if ((stat = pthread_mutex_init(&jq->mutex, NULL)) != 0) {
       berrno be;
-      Jmsg1(NULL, M_ERROR, 0, "pthread_mutex_init: ERR=%s\n", be.strerror(stat));
+      Jmsg1(NULL, M_ERROR, 0, _("pthread_mutex_init: ERR=%s\n"), be.strerror(stat));
       pthread_attr_destroy(&jq->attr);
       return stat;
    }
    if ((stat = pthread_cond_init(&jq->work, NULL)) != 0) {
       berrno be;
-      Jmsg1(NULL, M_ERROR, 0, "pthread_cond_init: ERR=%s\n", be.strerror(stat));
+      Jmsg1(NULL, M_ERROR, 0, _("pthread_cond_init: ERR=%s\n"), be.strerror(stat));
       pthread_mutex_destroy(&jq->mutex);
       pthread_attr_destroy(&jq->attr);
       return stat;
@@ -112,7 +112,7 @@ int jobq_destroy(jobq_t *jq)
    }
    if ((stat = pthread_mutex_lock(&jq->mutex)) != 0) {
       berrno be;
-      Jmsg1(NULL, M_ERROR, 0, "pthread_mutex_lock: ERR=%s\n", be.strerror(stat));
+      Jmsg1(NULL, M_ERROR, 0, _("pthread_mutex_lock: ERR=%s\n"), be.strerror(stat));
       return stat;
    }
    jq->valid = 0;                      /* prevent any more operations */
@@ -125,7 +125,7 @@ int jobq_destroy(jobq_t *jq)
       if (jq->idle_workers) {
          if ((stat = pthread_cond_broadcast(&jq->work)) != 0) {
             berrno be;
-            Jmsg1(NULL, M_ERROR, 0, "pthread_cond_broadcast: ERR=%s\n", be.strerror(stat));
+            Jmsg1(NULL, M_ERROR, 0, _("pthread_cond_broadcast: ERR=%s\n"), be.strerror(stat));
             pthread_mutex_unlock(&jq->mutex);
             return stat;
          }
@@ -133,7 +133,7 @@ int jobq_destroy(jobq_t *jq)
       while (jq->num_workers > 0) {
          if ((stat = pthread_cond_wait(&jq->work, &jq->mutex)) != 0) {
             berrno be;
-            Jmsg1(NULL, M_ERROR, 0, "pthread_cond_wait: ERR=%s\n", be.strerror(stat));
+            Jmsg1(NULL, M_ERROR, 0, _("pthread_cond_wait: ERR=%s\n"), be.strerror(stat));
             pthread_mutex_unlock(&jq->mutex);
             return stat;
          }
@@ -141,7 +141,7 @@ int jobq_destroy(jobq_t *jq)
    }
    if ((stat = pthread_mutex_unlock(&jq->mutex)) != 0) {
       berrno be;
-      Jmsg1(NULL, M_ERROR, 0, "pthread_mutex_unlock: ERR=%s\n", be.strerror(stat));
+      Jmsg1(NULL, M_ERROR, 0, _("pthread_mutex_unlock: ERR=%s\n"), be.strerror(stat));
       return stat;
    }
    stat  = pthread_mutex_destroy(&jq->mutex);
@@ -232,14 +232,14 @@ int jobq_add(jobq_t *jq, JCR *jcr)
       stat = pthread_create(&id, &jq->attr, sched_wait, (void *)sched_pkt);        
       if (stat != 0) {                /* thread not created */
          berrno be;
-         Jmsg1(jcr, M_ERROR, 0, "pthread_thread_create: ERR=%s\n", be.strerror(stat));
+         Jmsg1(jcr, M_ERROR, 0, _("pthread_thread_create: ERR=%s\n"), be.strerror(stat));
       }
       return stat;
    }
 
    if ((stat = pthread_mutex_lock(&jq->mutex)) != 0) {
       berrno be;
-      Jmsg1(jcr, M_ERROR, 0, "pthread_mutex_lock: ERR=%s\n", be.strerror(stat));
+      Jmsg1(jcr, M_ERROR, 0, _("pthread_mutex_lock: ERR=%s\n"), be.strerror(stat));
       jcr->use_count--;               /* release jcr */
       return stat;
    }
@@ -304,7 +304,7 @@ int jobq_remove(jobq_t *jq, JCR *jcr)
 
    if ((stat = pthread_mutex_lock(&jq->mutex)) != 0) {
       berrno be;
-      Jmsg1(NULL, M_ERROR, 0, "pthread_mutex_lock: ERR=%s\n", be.strerror(stat));
+      Jmsg1(NULL, M_ERROR, 0, _("pthread_mutex_lock: ERR=%s\n"), be.strerror(stat));
       return stat;
    }
 
@@ -350,7 +350,7 @@ static int start_server(jobq_t *jq)
       Dmsg0(2300, "Signal worker to wake up\n");
       if ((stat = pthread_cond_broadcast(&jq->work)) != 0) {
          berrno be;
-         Jmsg1(NULL, M_ERROR, 0, "pthread_cond_signal: ERR=%s\n", be.strerror(stat));
+         Jmsg1(NULL, M_ERROR, 0, _("pthread_cond_signal: ERR=%s\n"), be.strerror(stat));
          return stat;
       }
    } else if (jq->num_workers < jq->max_workers) {
@@ -359,7 +359,7 @@ static int start_server(jobq_t *jq)
       set_thread_concurrency(jq->max_workers + 1);
       if ((stat = pthread_create(&id, &jq->attr, jobq_server, (void *)jq)) != 0) {
          berrno be;
-         Jmsg1(NULL, M_ERROR, 0, "pthread_create: ERR=%s\n", be.strerror(stat));
+         Jmsg1(NULL, M_ERROR, 0, _("pthread_create: ERR=%s\n"), be.strerror(stat));
          return stat;
       }
    }
@@ -385,7 +385,7 @@ void *jobq_server(void *arg)
    Dmsg0(2300, "Start jobq_server\n");
    if ((stat = pthread_mutex_lock(&jq->mutex)) != 0) {
       berrno be;
-      Jmsg1(NULL, M_ERROR, 0, "pthread_mutex_lock: ERR=%s\n", be.strerror(stat));
+      Jmsg1(NULL, M_ERROR, 0, _("pthread_mutex_lock: ERR=%s\n"), be.strerror(stat));
       return NULL;
    }
    jq->num_workers++;

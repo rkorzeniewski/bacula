@@ -286,11 +286,11 @@ int rwl_writeunlock(brwlock_t *rwl)
       return stat;
    }
    if (rwl->w_active <= 0) {
-      Emsg0(M_ABORT, 0, "rwl_writeunlock called too many times.\n");
+      Emsg0(M_ABORT, 0, _("rwl_writeunlock called too many times.\n"));
    }
    rwl->w_active--;
    if (!pthread_equal(pthread_self(), rwl->writer_id)) {
-      Emsg0(M_ABORT, 0, "rwl_writeunlock by non-owner.\n");
+      Emsg0(M_ABORT, 0, _("rwl_writeunlock by non-owner.\n"));
    }
    if (rwl->w_active > 0) {
       stat = 0;                       /* writers still active */
@@ -355,14 +355,14 @@ void *thread_routine(void *arg)
       if ((iteration % self->interval) == 0) {
          status = rwl_writelock(&data[element].lock);
          if (status != 0) {
-            Emsg1(M_ABORT, 0, "Write lock failed. ERR=%s\n", strerror(status));
+            Emsg1(M_ABORT, 0, _("Write lock failed. ERR=%s\n"), strerror(status));
          }
          data[element].data = self->thread_num;
          data[element].writes++;
          self->writes++;
          status = rwl_writeunlock(&data[element].lock);
          if (status != 0) {
-            Emsg1(M_ABORT, 0, "Write unlock failed. ERR=%s\n", strerror(status));
+            Emsg1(M_ABORT, 0, _("Write unlock failed. ERR=%s\n"), strerror(status));
          }
       } else {
          /*
@@ -372,14 +372,14 @@ void *thread_routine(void *arg)
           */
           status = rwl_readlock(&data[element].lock);
           if (status != 0) {
-             Emsg1(M_ABORT, 0, "Read lock failed. ERR=%s\n", strerror(status));
+             Emsg1(M_ABORT, 0, _("Read lock failed. ERR=%s\n"), strerror(status));
           }
           self->reads++;
           if (data[element].data == self->thread_num)
              repeats++;
           status = rwl_readunlock(&data[element].lock);
           if (status != 0) {
-             Emsg1(M_ABORT, 0, "Read unlock failed. ERR=%s\n", strerror(status));
+             Emsg1(M_ABORT, 0, _("Read unlock failed. ERR=%s\n"), strerror(status));
           }
       }
       element++;
@@ -388,7 +388,7 @@ void *thread_routine(void *arg)
       }
    }
    if (repeats > 0) {
-      Pmsg2(000, "Thread %d found unchanged elements %d times\n",
+      Pmsg2(000, _("Thread %d found unchanged elements %d times\n"),
          self->thread_num, repeats);
    }
    return NULL;
@@ -420,7 +420,7 @@ int main (int argc, char *argv[])
         data[data_count].writes = 0;
         status = rwl_init (&data[data_count].lock);
         if (status != 0) {
-           Emsg1(M_ABORT, 0, "Init rwlock failed. ERR=%s\n", strerror(status));
+           Emsg1(M_ABORT, 0, _("Init rwlock failed. ERR=%s\n"), strerror(status));
         }
     }
 
@@ -435,7 +435,7 @@ int main (int argc, char *argv[])
         status = pthread_create (&threads[count].thread_id,
             NULL, thread_routine, (void*)&threads[count]);
         if (status != 0) {
-           Emsg1(M_ABORT, 0, "Create thread failed. ERR=%s\n", strerror(status));
+           Emsg1(M_ABORT, 0, _("Create thread failed. ERR=%s\n"), strerror(status));
         }
     }
 
@@ -446,10 +446,10 @@ int main (int argc, char *argv[])
     for (count = 0; count < THREADS; count++) {
         status = pthread_join (threads[count].thread_id, NULL);
         if (status != 0) {
-           Emsg1(M_ABORT, 0, "Join thread failed. ERR=%s\n", strerror(status));
+           Emsg1(M_ABORT, 0, _("Join thread failed. ERR=%s\n"), strerror(status));
         }
         thread_writes += threads[count].writes;
-        printf ("%02d: interval %d, writes %d, reads %d\n",
+        printf (_("%02d: interval %d, writes %d, reads %d\n"),
             count, threads[count].interval,
             threads[count].writes, threads[count].reads);
     }
@@ -459,12 +459,12 @@ int main (int argc, char *argv[])
      */
     for (data_count = 0; data_count < DATASIZE; data_count++) {
         data_writes += data[data_count].writes;
-        printf ("data %02d: value %d, %d writes\n",
+        printf (_("data %02d: value %d, %d writes\n"),
             data_count, data[data_count].data, data[data_count].writes);
         rwl_destroy (&data[data_count].lock);
     }
 
-    printf ("Total: %d thread writes, %d data writes\n",
+    printf (_("Total: %d thread writes, %d data writes\n"),
         thread_writes, data_writes);
     return 0;
 }
@@ -536,13 +536,13 @@ void *thread_routine (void *arg)
                 self->updates++;
                 rwl_writeunlock (&data[element].lock);
             } else
-                err_abort (status, "Try write lock");
+                err_abort (status, _("Try write lock"));
         } else {
             status = rwl_readtrylock (&data[element].lock);
             if (status == EBUSY)
                 self->r_collisions++;
             else if (status != 0) {
-                err_abort (status, "Try read lock");
+                err_abort (status, _("Try read lock"));
             } else {
                 if (data[element].data != data[element].updates)
                     printf ("%d: data[%d] %d != %d\n",
@@ -597,7 +597,7 @@ int main (int argc, char *argv[])
         status = pthread_create (&threads[count].thread_id,
             NULL, thread_routine, (void*)&threads[count]);
         if (status != 0)
-            err_abort (status, "Create thread");
+            err_abort (status, _("Create thread"));
     }
 
     /*
@@ -607,10 +607,10 @@ int main (int argc, char *argv[])
     for (count = 0; count < THREADS; count++) {
         status = pthread_join (threads[count].thread_id, NULL);
         if (status != 0)
-            err_abort (status, "Join thread");
+            err_abort (status, _("Join thread"));
         thread_updates += threads[count].updates;
-        printf ("%02d: interval %d, updates %d, "
-                "r_collisions %d, w_collisions %d\n",
+        printf (_("%02d: interval %d, updates %d, "
+                "r_collisions %d, w_collisions %d\n"),
             count, threads[count].interval,
             threads[count].updates,
             threads[count].r_collisions, threads[count].w_collisions);
@@ -621,7 +621,7 @@ int main (int argc, char *argv[])
      */
     for (data_count = 0; data_count < DATASIZE; data_count++) {
         data_updates += data[data_count].updates;
-        printf ("data %02d: value %d, %d updates\n",
+        printf (_("data %02d: value %d, %d updates\n"),
             data_count, data[data_count].data, data[data_count].updates);
         rwl_destroy (&data[data_count].lock);
     }

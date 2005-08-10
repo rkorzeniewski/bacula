@@ -106,7 +106,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
    if (!jcr->db) {
       omsg = get_memory(bs->msglen+1);
       pm_strcpy(omsg, bs->msg);
-      bnet_fsend(bs, "1990 Invalid Catalog Request: %s", omsg);    
+      bnet_fsend(bs, _("1990 Invalid Catalog Request: %s"), omsg);    
       Jmsg1(jcr, M_FATAL, 0, _("Invalid Catalog request; DB not open: %s"), omsg);
       free_memory(omsg);
       return;
@@ -128,7 +128,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
       if (ok) {
          send_volume_info_to_storage_daemon(jcr, bs, &mr);
       } else {
-         bnet_fsend(bs, "1901 No Media.\n");
+         bnet_fsend(bs, _("1901 No Media.\n"));
          Dmsg0(500, "1901 No Media.\n");
       }
 
@@ -156,9 +156,9 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
              *   and Media Type matches and Pool allows any volume.
              */
             if (mr.PoolId != jcr->PoolId) {
-               reason = "not in Pool";
+               reason = _("not in Pool");
             } else if (strcmp(mr.MediaType, jcr->store->media_type) != 0) {
-               reason = "not correct MediaType";
+               reason = _("not correct MediaType");
             } else {
               /*
                * ****FIXME***
@@ -184,12 +184,12 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
             send_volume_info_to_storage_daemon(jcr, bs, &mr);
          } else {
             /* Not suitable volume */
-            bnet_fsend(bs, "1998 Volume \"%s\" status is %s, %s.\n", mr.VolumeName,
+            bnet_fsend(bs, _("1998 Volume \"%s\" status is %s, %s.\n"), mr.VolumeName,
                mr.VolStatus, reason);
          }
 
       } else {
-         bnet_fsend(bs, "1997 Volume \"%s\" not in catalog.\n", mr.VolumeName);
+         bnet_fsend(bs, _("1997 Volume \"%s\" not in catalog.\n"), mr.VolumeName);
          Dmsg1(100, "1997 Volume \"%s\" not in catalog.\n", mr.VolumeName);
       }
 
@@ -212,7 +212,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
       if (!db_get_media_record(jcr, jcr->db, &mr)) {
          Jmsg(jcr, M_ERROR, 0, _("Unable to get Media record for Volume %s: ERR=%s\n"),
               mr.VolumeName, db_strerror(jcr->db));
-         bnet_fsend(bs, "1991 Catalog Request for vol=%s failed: %s", 
+         bnet_fsend(bs, _("1991 Catalog Request for vol=%s failed: %s"),
             mr.VolumeName, db_strerror(jcr->db));
          db_unlock(jcr->db);
          return;
@@ -235,7 +235,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
             Jmsg(jcr, M_FATAL, 0, _("Volume Files at %u being set to %u"
                  " for Volume \"%s\". This is incorrect.\n"),
                mr.VolFiles, sdmr.VolFiles, mr.VolumeName);
-            bnet_fsend(bs, "1992 Update Media error\n");
+            bnet_fsend(bs, _("1992 Update Media error\n"));
             db_unlock(jcr->db);
             return;
          }
@@ -267,7 +267,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
       } else {
          Jmsg(jcr, M_FATAL, 0, _("Catalog error updating Media record. %s"),
             db_strerror(jcr->db));
-         bnet_fsend(bs, "1992 Update Media error\n");
+         bnet_fsend(bs, _("1992 Update Media error\n"));
          Dmsg0(400, "send error\n");
       }
       db_unlock(jcr->db);
@@ -286,7 +286,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
       if (!db_create_jobmedia_record(jcr, jcr->db, &jm)) {
          Jmsg(jcr, M_FATAL, 0, _("Catalog error creating JobMedia record. %s"),
             db_strerror(jcr->db));
-         bnet_fsend(bs, "1991 Update JobMedia error\n");
+         bnet_fsend(bs, _("1991 Update JobMedia error\n"));
       } else {
          Dmsg0(400, "JobMedia record created\n");
          bnet_fsend(bs, OK_create);
@@ -295,7 +295,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
    } else {
       omsg = get_memory(bs->msglen+1);
       pm_strcpy(omsg, bs->msg);
-      bnet_fsend(bs, "1990 Invalid Catalog Request: %s", omsg);
+      bnet_fsend(bs, _("1990 Invalid Catalog Request: %s"), omsg);
       Jmsg1(jcr, M_FATAL, 0, _("Invalid Catalog request: %s"), omsg);
       free_memory(omsg);
    }
@@ -395,7 +395,7 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
    } else if (Stream == STREAM_MD5_SIGNATURE || Stream == STREAM_SHA1_SIGNATURE) {
       fname = p;
       if (ar->FileIndex != FileIndex) {
-         Jmsg(jcr, M_WARNING, 0, "Got MD5/SHA1 but not same File as attributes\n");
+         Jmsg(jcr, M_WARNING, 0, _("Got MD5/SHA1 but not same File as attributes\n"));
       } else {
          /* Update signature in catalog */
          char SIGbuf[50];           /* 24 bytes should be enough */

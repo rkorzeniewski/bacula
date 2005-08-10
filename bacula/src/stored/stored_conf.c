@@ -188,7 +188,7 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       sendit(sock, _("Warning: no \"%s\" resource (%d) defined.\n"), res_to_str(type), type);
       return;
    }
-   sendit(sock, "dump_resource type=%d\n", type);
+   sendit(sock, _("dump_resource type=%d\n"), type);
    if (type < 0) {                    /* no recursion */
       type = - type;
       recurse = 0;
@@ -464,7 +464,7 @@ void free_resource(RES *sres, int type)
       res = NULL;
       break;
    default:
-      Dmsg1(0, "Unknown resource type %d\n", type);
+      Dmsg1(0, _("Unknown resource type %d\n"), type);
       break;
    }
    /* Common stuff again -- free the resource, recurse to next one */
@@ -520,20 +520,20 @@ void save_resource(int type, RES_ITEM *items, int pass)
       /* Resources containing a resource or an alist */
       case R_DIRECTOR:
          if ((res = (URES *)GetResWithName(R_DIRECTOR, res_all.res_dir.hdr.name)) == NULL) {
-            Emsg1(M_ERROR_TERM, 0, "Cannot find Director resource \"%s\"\n", res_all.res_dir.hdr.name);
+            Emsg1(M_ERROR_TERM, 0, _("Cannot find Director resource %s\n"), res_all.res_dir.hdr.name);
          }
          res->res_dir.tls_allowed_cns = res_all.res_dir.tls_allowed_cns;
          break;
       case R_STORAGE:
          if ((res = (URES *)GetResWithName(R_STORAGE, res_all.res_dir.hdr.name)) == NULL) {
-            Emsg1(M_ERROR_TERM, 0, "Cannot find Storage resource \"%s\"\n", res_all.res_dir.hdr.name);
+            Emsg1(M_ERROR_TERM, 0, _("Cannot find Storage resource %s\n"), res_all.res_dir.hdr.name);
          }
          res->res_store.messages = res_all.res_store.messages;
          res->res_store.tls_allowed_cns = res_all.res_store.tls_allowed_cns;
          break;
       case R_AUTOCHANGER:
          if ((res = (URES *)GetResWithName(type, res_all.res_changer.hdr.name)) == NULL) {
-            Emsg1(M_ERROR_TERM, 0, "Cannot find AutoChanger resource %s\n",
+            Emsg1(M_ERROR_TERM, 0, _("Cannot find AutoChanger resource %s\n"),
                   res_all.res_changer.hdr.name);
          }
          /* we must explicitly copy the device alist pointer */
@@ -552,7 +552,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
          }
          break;
       default:
-         printf("Unknown resource type %d\n", type);
+         printf(_("Unknown resource type %d\n"), type);
          error = 1;
          break;
       }
@@ -587,7 +587,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
          size = sizeof(AUTOCHANGER);
          break;
       default:
-         printf("Unknown resource type %d\n", type);
+         printf(_("Unknown resource type %d\n"), type);
          error = 1;
          size = 1;
          break;

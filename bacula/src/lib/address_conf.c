@@ -282,7 +282,7 @@ static int add_address(dlist **out, IPADDR::i_type type, unsigned short defaultp
 	 } else if (iaddr->get_type() != type) {
 	    *errstr = (char *)malloc(1024);
 	    bsnprintf(*errstr, 1023,
-                      "the old style addresses cannot be mixed with new style");
+                      _("the old style addresses cannot be mixed with new style"));
 	    return 0;
 	 }
       }
@@ -305,7 +305,7 @@ static int add_address(dlist **out, IPADDR::i_type type, unsigned short defaultp
 	    port = s->s_port;
 	 } else {
 	    *errstr = (char *)malloc(1024);
-            bsnprintf(*errstr, 1023, "can't resolve service(%s)", port_str);
+            bsnprintf(*errstr, 1023, _("can't resolve service(%s)"), port_str);
 	    return 0;
 	 }
       }
@@ -315,7 +315,7 @@ static int add_address(dlist **out, IPADDR::i_type type, unsigned short defaultp
    hostaddrs = bnet_host2ipaddrs(hostname_str, family, &myerrstr);
    if (!hostaddrs) {
       *errstr = (char *)malloc(1024);
-      bsnprintf(*errstr, 1023, "can't resolve hostname(%s) %s", hostname_str,
+      bsnprintf(*errstr, 1023, _("can't resolve hostname(%s) %s"), hostname_str,
 		myerrstr);
       return 0;
    }

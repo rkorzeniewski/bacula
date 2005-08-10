@@ -107,7 +107,7 @@ static void usage()
 {
    fprintf(stderr, _(
 "Copyright (C) 2001-2005 Kern Sibbald.\n"
-"\nVersion: " VERSION " (" BDATE ")\n\n"
+"\nVersion: %s (%s)\n\n"
 "Usage: bscan [ options ] <bacula-archive>\n"
 "       -b bootstrap      specify a bootstrap file\n"
 "       -c <file>         specify configuration file\n"
@@ -124,7 +124,7 @@ static void usage()
 "       -v                verbose\n"
 "       -V <Volumes>      specify Volume names (separated by |)\n"
 "       -w <dir>          specify working directory (default from conf file)\n"
-"       -?                print this message\n\n"));
+"       -?                print this message\n\n"), VERSION, BDATE);
    exit(1);
 }
 
@@ -133,6 +133,10 @@ int main (int argc, char *argv[])
    int ch;
    struct stat stat_buf;
    char *VolumeName = NULL;
+
+   setlocale(LC_ALL, "");
+   bindtextdomain("bacula", LOCALEDIR);
+   textdomain("bacula");
 
    my_name_is(argc, argv, "bscan");
    init_msg(NULL, NULL);
@@ -278,9 +282,14 @@ int main (int argc, char *argv[])
    }
 
    do_scan();
-   printf("Records %sadded or updated in the catalog:\n%7d Media\n%7d Pool\n%7d Job\n%7d File\n",
-      update_db?"":"would have been ",
-      num_media, num_pools, num_jobs, num_files);
+   if (update_db) {
+      printf("Records added or updated in the catalog:\n%7d Media\n%7d Pool\n%7d Job\n%7d File\n",
+         num_media, num_pools, num_jobs, num_files);
+   }
+   else {
+      printf("Records would have been added or updated in the catalog:\n%7d Media\n%7d Pool\n%7d Job\n%7d File\n",
+         num_media, num_pools, num_jobs, num_files);
+   }
 
    free_jcr(bjcr);
    term_dev(dev);
@@ -369,7 +378,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       if (showProgress) {
          int pct = (mr.VolBytes * 100) / currentVolumeSize;
          if (pct != last_pct) {
-            fprintf(stdout, "done: %d%%\n", pct);
+            fprintf(stdout, _("done: %d%%\n"), pct);
             fflush(stdout);
             last_pct = pct;
          }
@@ -1215,7 +1224,7 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
       offline_dev(dev);
    }
    force_close_device(dev);
-   fprintf(stderr, "Mount Volume \"%s\" on device %s and press return when ready: ",
+   fprintf(stderr, _("Mount Volume \"%s\" on device %s and press return when ready: "),
          dcr->VolumeName, dev->print_name());
    getchar();
    return true;

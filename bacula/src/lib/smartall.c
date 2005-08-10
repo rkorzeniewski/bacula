@@ -162,7 +162,7 @@ void sm_free(const char *file, int line, void *fp)
    struct b_queue *qp;
 
    if (cp == NULL) {
-      Emsg2(M_ABORT, 0, "Attempt to free NULL called from %s:%d\n", file, line);
+      Emsg2(M_ABORT, 0, _("Attempt to free NULL called from %s:%d\n"), file, line);
    }
 
    cp -= HEAD_SIZE;
@@ -178,11 +178,11 @@ void sm_free(const char *file, int line, void *fp)
       of an address which isn't an allocated buffer. */
    if (qp->qnext->qprev != qp) {
       V(mutex);
-      Emsg2(M_ABORT, 0, "qp->qnext->qprev != qp called from %s:%d\n", file, line);
+      Emsg2(M_ABORT, 0, _("qp->qnext->qprev != qp called from %s:%d\n"), file, line);
    }
    if (qp->qprev->qnext != qp) {
       V(mutex);
-      Emsg2(M_ABORT, 0, "qp->qprev->qnext != qp called from %s:%d\n", file, line);
+      Emsg2(M_ABORT, 0, _("qp->qprev->qnext != qp called from %s:%d\n"), file, line);
    }
 
    /* The following assertion detects storing off the  end  of	the
@@ -191,7 +191,7 @@ void sm_free(const char *file, int line, void *fp)
 
    if (((unsigned char *)cp)[head->ablen - 1] != ((((long) cp) & 0xFF) ^ 0xC5)) {
       V(mutex);
-      Emsg2(M_ABORT, 0, "Buffer overrun called from %s:%d\n", file, line);
+      Emsg2(M_ABORT, 0, _("Buffer overrun called from %s:%d\n"), file, line);
    }
    sm_buffers--;
    sm_bytes -= head->ablen;
@@ -262,7 +262,7 @@ void *sm_realloc(const char *fname, int lineno, void *ptr, unsigned int size)
 
    Dmsg4(400, "sm_realloc %s:%d 0x%x %d\n", fname, lineno, ptr, size);
    if (size <= 0) {
-      e_msg(fname, lineno, M_ABORT, 0, "sm_realloc size: %d\n", size);
+      e_msg(fname, lineno, M_ABORT, 0, _("sm_realloc size: %d\n"), size);
    }
 
    /*  If  the	old  block  pointer  is  NULL, treat realloc() as a
@@ -303,7 +303,7 @@ void *sm_realloc(const char *fname, int lineno, void *ptr, unsigned int size)
 
       sm_free(__FILE__, __LINE__, ptr);
    }
-   Dmsg4(150, "sm_realloc %d at %x from %s:%d\n", size, buf, fname, lineno);
+   Dmsg4(150, _("sm_realloc %d at %x from %s:%d\n"), size, buf, fname, lineno);
    return buf;
 }
 
@@ -364,12 +364,10 @@ void sm_dump(bool bufdump)
       if ((ap == NULL) ||
 	  (ap->abq.qnext->qprev != (struct b_queue *) ap) ||
 	  (ap->abq.qprev->qnext != (struct b_queue *) ap)) {
-	 fprintf(stderr,
-	    "\nOrphaned buffers exist.  Dump terminated following\n");
-	 fprintf(stderr,
-	    "  discovery of bad links in chain of orphaned buffers.\n");
-	 fprintf(stderr,
-	    "  Buffer address with bad links: %lx\n", (long) ap);
+	 fprintf(stderr, _(
+	    "\nOrphaned buffers exist.  Dump terminated following\n"
+	    "  discovery of bad links in chain of orphaned buffers.\n"
+	    "  Buffer address with bad links: %lx\n"), (long) ap);
 	 break;
       }
 
@@ -378,7 +376,7 @@ void sm_dump(bool bufdump)
 	 char errmsg[500];
 
 	 bsnprintf(errmsg, sizeof(errmsg),
-	   "Orphaned buffer:  %6u bytes allocated at line %d of %s %s\n",
+	   _("Orphaned buffer:  %6u bytes allocated at line %d of %s %s\n"),
 	    memsize, ap->ablineno, my_name, ap->abfname
 	 );
 	 fprintf(stderr, "%s", errmsg);
@@ -414,7 +412,7 @@ void sm_dump(bool bufdump)
 void sm_check(const char *fname, int lineno, bool bufdump)
 {
 	if (!sm_check_rtn(fname, lineno, bufdump)) {
-	   Emsg2(M_ABORT, 0, "Damaged buffer found. Called from %s:%d\n",
+	   Emsg2(M_ABORT, 0, _("Damaged buffer found. Called from %s:%d\n"),
 	      fname, lineno);
 	}
 }
@@ -444,26 +442,26 @@ int sm_check_rtn(const char *fname, int lineno, bool bufdump)
       badbuf |= bad;
       if (bad) {
 	 fprintf(stderr,
-	    "\nDamaged buffers found at %s:%d\n", fname, lineno);
+	    _("\nDamaged buffers found at %s:%d\n"), fname, lineno);
 
 	 if (bad & 0x1) {
-	    fprintf(stderr, "  discovery of bad prev link.\n");
+	    fprintf(stderr, _("  discovery of bad prev link.\n"));
 	 }
 	 if (bad & 0x2) {
-	    fprintf(stderr, "  discovery of bad next link.\n");
+	    fprintf(stderr, _("  discovery of bad next link.\n"));
 	 }
 	 if (bad & 0x4) {
-	    fprintf(stderr, "  discovery of data overrun.\n");
+	    fprintf(stderr, _("  discovery of data overrun.\n"));
 	 }
 
-	 fprintf(stderr, "  Buffer address: %lx\n", (long) ap);
+	 fprintf(stderr, _("  Buffer address: %lx\n"), (long) ap);
 
 	 if (ap->abfname != NULL) {
 	    unsigned memsize = ap->ablen - (HEAD_SIZE + 1);
 	    char errmsg[80];
 
 	    fprintf(stderr,
-	      "Damaged buffer:  %6u bytes allocated at line %d of %s %s\n",
+	      _("Damaged buffer:  %6u bytes allocated at line %d of %s %s\n"),
 	       memsize, ap->ablineno, my_name, ap->abfname
 	    );
 	    if (bufdump) {

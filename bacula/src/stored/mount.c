@@ -443,7 +443,7 @@ void release_volume(DCR *dcr)
    JCR *jcr = dcr->jcr;
    DEVICE *dev = dcr->dev;
    if (dcr->WroteVol) {
-      Jmsg0(jcr, M_ERROR, 0, "Hey!!!!! WroteVol non-zero !!!!!\n");
+      Jmsg0(jcr, M_ERROR, 0, _("Hey!!!!! WroteVol non-zero !!!!!\n"));
       Dmsg0(190, "Hey!!!!! WroteVol non-zero !!!!!\n");
    }
    /*
@@ -490,7 +490,7 @@ bool mount_next_read_volume(DCR *dcr)
       close_device(dev);
       dev->clear_read();
       if (!acquire_device_for_read(dcr)) {
-         Jmsg2(jcr, M_FATAL, 0, "Cannot open Dev=%s, Vol=%s\n", dev->print_name(),
+         Jmsg2(jcr, M_FATAL, 0, _("Cannot open Dev=%s, Vol=%s\n"), dev->print_name(),
                dcr->VolumeName);
          return false;
       }

@@ -63,17 +63,17 @@ const char *berrno::strerror()
    if (berrno_ & b_errno_exit) {
       stat = (berrno_ & ~b_errno_exit);       /* remove bit */
       if (stat == 0) {
-         return "Child exited normally.";    /* this really shouldn't happen */
+         return _("Child exited normally.");    /* this really shouldn't happen */
       } else {
          /* Maybe an execvp failure */
          if (stat >= 200) {
             if (stat < 200 + num_execvp_errors) {
                berrno_ = execvp_errors[stat - 200];
             } else {
-               return "Unknown error during program execvp";
+               return _("Unknown error during program execvp");
             }
          } else {
-            Mmsg(&buf_, "Child exited with code %d", stat);
+            Mmsg(&buf_, _("Child exited with code %d"), stat);
             return buf_;
          }
          /* If we drop out here, berrno_ is set to an execvp errno */
@@ -81,7 +81,7 @@ const char *berrno::strerror()
    }
    if (berrno_ & b_errno_signal) {
       stat = (berrno_ & ~b_errno_signal);        /* remove bit */
-      Mmsg(&buf_, "Child died from signal %d: %s", stat, get_signal_name(stat));
+      Mmsg(&buf_, _("Child died from signal %d: %s"), stat, get_signal_name(stat));
       return buf_;
    }
 #endif

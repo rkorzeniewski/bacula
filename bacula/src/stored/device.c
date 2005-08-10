@@ -128,7 +128,7 @@ bool fixup_device_block_write_error(DCR *dcr)
    Dmsg0(190, "write label block to dev\n");
    if (!write_block_to_dev(dcr)) {
       berrno be;
-      Pmsg1(0, "write_block_to_device Volume label failed. ERR=%s",
+      Pmsg1(0, _("write_block_to_device Volume label failed. ERR=%s"),
         be.strerror(dev->dev_errno));
       free_block(label_blk);
       dcr->block = block;
@@ -165,7 +165,7 @@ bool fixup_device_block_write_error(DCR *dcr)
    Dmsg0(190, "Write overflow block to dev\n");
    if (!write_block_to_dev(dcr)) {
       berrno be;
-      Pmsg1(0, "write_block_to_device overflow block failed. ERR=%s",
+      Pmsg1(0, _("write_block_to_device overflow block failed. ERR=%s"),
         be.strerror(dev->dev_errno));
       unblock_device(dev);
       return false;                /* device locked */
@@ -301,7 +301,7 @@ bool open_device(DCR *dcr)
       if ((!dev->poll) && (!dev->is_dvd())) {
          Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open device %s: ERR=%s\n"),
             dev->print_name(), strerror_dev(dev));
-         Pmsg2(000, "Unable to open archive %s: ERR=%s\n", 
+         Pmsg2(000, _("Unable to open archive %s: ERR=%s\n"), 
             dev->print_name(), strerror_dev(dev));
       }
       return false;
@@ -343,7 +343,7 @@ void dev_lock(DEVICE *dev)
 {
    int errstat;
    if ((errstat=rwl_writelock(&dev->lock))) {
-      Emsg1(M_ABORT, 0, "Device write lock failure. ERR=%s\n", strerror(errstat));
+      Emsg1(M_ABORT, 0, _("Device write lock failure. ERR=%s\n"), strerror(errstat));
    }
 }
 
@@ -351,7 +351,7 @@ void dev_unlock(DEVICE *dev)
 {
    int errstat;
    if ((errstat=rwl_writeunlock(&dev->lock))) {
-      Emsg1(M_ABORT, 0, "Device write unlock failure. ERR=%s\n", strerror(errstat));
+      Emsg1(M_ABORT, 0, _("Device write unlock failure. ERR=%s\n"), strerror(errstat));
    }
 }
 

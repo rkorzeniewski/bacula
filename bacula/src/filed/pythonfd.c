@@ -99,7 +99,7 @@ PyObject *job_getattr(PyObject *self, char *attrname)
 
    jcr = get_jcr_from_PyObject(self);
    if (!jcr) {
-      bstrncpy(errmsg, "Job pointer not found.", sizeof(errmsg));
+      bstrncpy(errmsg, _("Job pointer not found."), sizeof(errmsg));
       goto bail_out;
    }
    for (i=0; getvars[i].name; i++) {
@@ -130,7 +130,7 @@ PyObject *job_getattr(PyObject *self, char *attrname)
       buf[0] = jcr->JobStatus;
       return Py_BuildValue(getvars[i].fmt, buf);
    }
-   bsnprintf(errmsg, sizeof(errmsg), "Attribute %s not found.", attrname);
+   bsnprintf(errmsg, sizeof(errmsg), _("Attribute %s not found."), attrname);
 bail_out:
    PyErr_SetString(PyExc_AttributeError, errmsg);
    return NULL;
@@ -147,13 +147,13 @@ int job_setattr(PyObject *self, char *attrname, PyObject *value)
 
    Dmsg2(100, "In job_setattr=%s val=%p.\n", attrname, value);
    if (value == NULL) {                /* Cannot delete variables */
-      bsnprintf(buf, sizeof(buf), "Cannot delete attribute %s", attrname);
+      bsnprintf(buf, sizeof(buf), _("Cannot delete attribute %s"), attrname);
       errmsg = buf;
       goto bail_out;
    }
    jcr = get_jcr_from_PyObject(self);
    if (!jcr) {
-      errmsg = "Job pointer not found.";
+      errmsg = _("Job pointer not found.");
       goto bail_out;
    }
 
@@ -165,14 +165,14 @@ int job_setattr(PyObject *self, char *attrname, PyObject *value)
       }
    }
    if (!found) {
-      bsnprintf(buf, sizeof(buf), "Cannot find attribute %s", attrname);
+      bsnprintf(buf, sizeof(buf), _("Cannot find attribute %s"), attrname);
       errmsg = buf;
       goto bail_out;
    }
    /* Get argument value ***FIXME*** handle other formats */
    if (setvars[i].fmt != NULL) {
       if (!PyArg_Parse(value, setvars[i].fmt, &strval)) {
-         PyErr_SetString(PyExc_TypeError, "Read-only attribute");
+         PyErr_SetString(PyExc_TypeError, _("Read-only attribute"));
          return -1;
       }
    }   
@@ -181,7 +181,7 @@ int job_setattr(PyObject *self, char *attrname, PyObject *value)
       Jmsg(jcr, M_INFO, 0, "%s", strval);
       return 0;
    }
-   bsnprintf(buf, sizeof(buf), "Cannot find attribute %s", attrname);
+   bsnprintf(buf, sizeof(buf), _("Cannot find attribute %s"), attrname);
    errmsg = buf;
 bail_out:
    PyErr_SetString(PyExc_AttributeError, errmsg);
@@ -217,7 +217,7 @@ static PyObject *set_job_events(PyObject *self, PyObject *arg)
    }
    jcr = get_jcr_from_PyObject(self);
    if (!jcr) {
-      PyErr_SetString(PyExc_AttributeError, "Job pointer not found.");
+      PyErr_SetString(PyExc_AttributeError, _("Job pointer not found."));
       return NULL;
    }
    Py_XDECREF((PyObject *)jcr->Python_events);  /* release any old events Object */

@@ -696,7 +696,7 @@ void store_yesno(LEX *lc, RES_ITEM *item, int index, int pass)
    } else if (strcasecmp(lc->str, "no") == 0) {
       *(int *)(item->value) &= ~(item->code);
    } else {
-      scan_err1(lc, _("Expect a YES or NO, got: %s"), lc->str);
+      scan_err3(lc, _("Expect a %s or %s, got: %s"), "YES", "NO", lc->str); /* YES and NO must not be translated */
    }
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
@@ -720,7 +720,7 @@ void store_label(LEX *lc, RES_ITEM *item, int index, int pass)
       }
    }
    if (i != 0) {
-      scan_err1(lc, "Expected a Tape Label keyword, got: %s", lc->str);
+      scan_err1(lc, _("Expected a Tape Label keyword, got: %s"), lc->str);
    }
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);

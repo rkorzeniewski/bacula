@@ -2656,52 +2656,52 @@ var_format(
 
 /* var_rc_t to string mapping table */
 static const char *var_errors[] = {
-    "everything ok",                                           /* VAR_OK = 0 */
-    "incomplete named character",                              /* VAR_ERR_INCOMPLETE_NAMED_CHARACTER */
-    "incomplete hexadecimal value",                            /* VAR_ERR_INCOMPLETE_HEX */
-    "invalid hexadecimal value",                               /* VAR_ERR_INVALID_HEX */
-    "octal value too large",                                   /* VAR_ERR_OCTAL_TOO_LARGE */
-    "invalid octal value",                                     /* VAR_ERR_INVALID_OCTAL */
-    "incomplete octal value",                                  /* VAR_ERR_INCOMPLETE_OCTAL */
-    "incomplete grouped hexadecimal value",                    /* VAR_ERR_INCOMPLETE_GROUPED_HEX */
-    "incorrect character class specification",                 /* VAR_ERR_INCORRECT_CLASS_SPEC */
-    "invalid expansion configuration",                         /* VAR_ERR_INVALID_CONFIGURATION */
-    "out of memory",                                           /* VAR_ERR_OUT_OF_MEMORY */
-    "incomplete variable specification",                       /* VAR_ERR_INCOMPLETE_VARIABLE_SPEC */
-    "undefined variable",                                      /* VAR_ERR_UNDEFINED_VARIABLE */
-    "input is neither text nor variable",                      /* VAR_ERR_INPUT_ISNT_TEXT_NOR_VARIABLE */
-    "unknown command character in variable",                   /* VAR_ERR_UNKNOWN_COMMAND_CHAR */
-    "malformatted search and replace operation",               /* VAR_ERR_MALFORMATTED_REPLACE */
-    "unknown flag in search and replace operation",            /* VAR_ERR_UNKNOWN_REPLACE_FLAG */
-    "invalid regex in search and replace operation",           /* VAR_ERR_INVALID_REGEX_IN_REPLACE */
-    "missing parameter in command",                            /* VAR_ERR_MISSING_PARAMETER_IN_COMMAND */
-    "empty search string in search and replace operation",     /* VAR_ERR_EMPTY_SEARCH_STRING */
-    "start offset missing in cut operation",                   /* VAR_ERR_MISSING_START_OFFSET */
-    "offsets in cut operation delimited by unknown character", /* VAR_ERR_INVALID_OFFSET_DELIMITER */
-    "range out of bounds in cut operation",                    /* VAR_ERR_RANGE_OUT_OF_BOUNDS */
-    "offset out of bounds in cut operation",                   /* VAR_ERR_OFFSET_OUT_OF_BOUNDS */
-    "logic error in cut operation",                            /* VAR_ERR_OFFSET_LOGIC */
-    "malformatted transpose operation",                        /* VAR_ERR_MALFORMATTED_TRANSPOSE */
-    "source and target class mismatch in transpose operation", /* VAR_ERR_TRANSPOSE_CLASSES_MISMATCH */
-    "empty character class in transpose operation",            /* VAR_ERR_EMPTY_TRANSPOSE_CLASS */
-    "incorrect character class in transpose operation",        /* VAR_ERR_INCORRECT_TRANSPOSE_CLASS_SPEC */
-    "malformatted padding operation",                          /* VAR_ERR_MALFORMATTED_PADDING */
-    "width parameter missing in padding operation",            /* VAR_ERR_MISSING_PADDING_WIDTH */
-    "fill string missing in padding operation",                /* VAR_ERR_EMPTY_PADDING_FILL_STRING */
-    "unknown quoted pair in search and replace operation",     /* VAR_ERR_UNKNOWN_QUOTED_PAIR_IN_REPLACE */
-    "sub-matching reference out of range",                     /* VAR_ERR_SUBMATCH_OUT_OF_RANGE */
-    "invalid argument",                                        /* VAR_ERR_INVALID_ARGUMENT */
-    "incomplete quoted pair",                                  /* VAR_ERR_INCOMPLETE_QUOTED_PAIR */
-    "lookup function does not support variable arrays",        /* VAR_ERR_ARRAY_LOOKUPS_ARE_UNSUPPORTED */
-    "index of array variable contains an invalid character",   /* VAR_ERR_INVALID_CHAR_IN_INDEX_SPEC */
-    "index of array variable is incomplete",                   /* VAR_ERR_INCOMPLETE_INDEX_SPEC */
-    "bracket expression in array variable's index not closed", /* VAR_ERR_UNCLOSED_BRACKET_IN_INDEX */
-    "division by zero error in index specification",           /* VAR_ERR_DIVISION_BY_ZERO_IN_INDEX */
-    "unterminated loop construct",                             /* VAR_ERR_UNTERMINATED_LOOP_CONSTRUCT */
-    "invalid character in loop limits",                        /* VAR_ERR_INVALID_CHAR_IN_LOOP_LIMITS */
-    "malformed operation argument list",                       /* VAR_ERR_MALFORMED_OPERATION_ARGUMENTS */
-    "undefined operation",                                     /* VAR_ERR_UNDEFINED_OPERATION */
-    "formatting failure"                                       /* VAR_ERR_FORMATTING_FAILURE */
+    _("everything ok"),                                           /* VAR_OK = 0 */
+    _("incomplete named character"),                              /* VAR_ERR_INCOMPLETE_NAMED_CHARACTER */
+    _("incomplete hexadecimal value"),                            /* VAR_ERR_INCOMPLETE_HEX */
+    _("invalid hexadecimal value"),                               /* VAR_ERR_INVALID_HEX */
+    _("octal value too large"),                                   /* VAR_ERR_OCTAL_TOO_LARGE */
+    _("invalid octal value"),                                     /* VAR_ERR_INVALID_OCTAL */
+    _("incomplete octal value"),                                  /* VAR_ERR_INCOMPLETE_OCTAL */
+    _("incomplete grouped hexadecimal value"),                    /* VAR_ERR_INCOMPLETE_GROUPED_HEX */
+    _("incorrect character class specification"),                 /* VAR_ERR_INCORRECT_CLASS_SPEC */
+    _("invalid expansion configuration"),                         /* VAR_ERR_INVALID_CONFIGURATION */
+    _("out of memory"),                                           /* VAR_ERR_OUT_OF_MEMORY */
+    _("incomplete variable specification"),                       /* VAR_ERR_INCOMPLETE_VARIABLE_SPEC */
+    _("undefined variable"),                                      /* VAR_ERR_UNDEFINED_VARIABLE */
+    _("input is neither text nor variable"),                      /* VAR_ERR_INPUT_ISNT_TEXT_NOR_VARIABLE */
+    _("unknown command character in variable"),                   /* VAR_ERR_UNKNOWN_COMMAND_CHAR */
+    _("malformatted search and replace operation"),               /* VAR_ERR_MALFORMATTED_REPLACE */
+    _("unknown flag in search and replace operation"),            /* VAR_ERR_UNKNOWN_REPLACE_FLAG */
+    _("invalid regex in search and replace operation"),           /* VAR_ERR_INVALID_REGEX_IN_REPLACE */
+    _("missing parameter in command"),                            /* VAR_ERR_MISSING_PARAMETER_IN_COMMAND */
+    _("empty search string in search and replace operation"),     /* VAR_ERR_EMPTY_SEARCH_STRING */
+    _("start offset missing in cut operation"),                   /* VAR_ERR_MISSING_START_OFFSET */
+    _("offsets in cut operation delimited by unknown character"), /* VAR_ERR_INVALID_OFFSET_DELIMITER */
+    _("range out of bounds in cut operation"),                    /* VAR_ERR_RANGE_OUT_OF_BOUNDS */
+    _("offset out of bounds in cut operation"),                   /* VAR_ERR_OFFSET_OUT_OF_BOUNDS */
+    _("logic error in cut operation"),                            /* VAR_ERR_OFFSET_LOGIC */
+    _("malformatted transpose operation"),                        /* VAR_ERR_MALFORMATTED_TRANSPOSE */
+    _("source and target class mismatch in transpose operation"), /* VAR_ERR_TRANSPOSE_CLASSES_MISMATCH */
+    _("empty character class in transpose operation"),            /* VAR_ERR_EMPTY_TRANSPOSE_CLASS */
+    _("incorrect character class in transpose operation"),        /* VAR_ERR_INCORRECT_TRANSPOSE_CLASS_SPEC */
+    _("malformatted padding operation"),                          /* VAR_ERR_MALFORMATTED_PADDING */
+    _("width parameter missing in padding operation"),            /* VAR_ERR_MISSING_PADDING_WIDTH */
+    _("fill string missing in padding operation"),                /* VAR_ERR_EMPTY_PADDING_FILL_STRING */
+    _("unknown quoted pair in search and replace operation"),     /* VAR_ERR_UNKNOWN_QUOTED_PAIR_IN_REPLACE */
+    _("sub-matching reference out of range"),                     /* VAR_ERR_SUBMATCH_OUT_OF_RANGE */
+    _("invalid argument"),                                        /* VAR_ERR_INVALID_ARGUMENT */
+    _("incomplete quoted pair"),                                  /* VAR_ERR_INCOMPLETE_QUOTED_PAIR */
+    _("lookup function does not support variable arrays"),        /* VAR_ERR_ARRAY_LOOKUPS_ARE_UNSUPPORTED */
+    _("index of array variable contains an invalid character"),   /* VAR_ERR_INVALID_CHAR_IN_INDEX_SPEC */
+    _("index of array variable is incomplete"),                   /* VAR_ERR_INCOMPLETE_INDEX_SPEC */
+    _("bracket expression in array variable's index not closed"), /* VAR_ERR_UNCLOSED_BRACKET_IN_INDEX */
+    _("division by zero error in index specification"),           /* VAR_ERR_DIVISION_BY_ZERO_IN_INDEX */
+    _("unterminated loop construct"),                             /* VAR_ERR_UNTERMINATED_LOOP_CONSTRUCT */
+    _("invalid character in loop limits"),                        /* VAR_ERR_INVALID_CHAR_IN_LOOP_LIMITS */
+    _("malformed operation argument list"),                       /* VAR_ERR_MALFORMED_OPERATION_ARGUMENTS */
+    _("undefined operation"),                                     /* VAR_ERR_UNDEFINED_OPERATION */
+    _("formatting failure")                                       /* VAR_ERR_FORMATTING_FAILURE */
 };
 
 /* translate a return code into its corresponding descriptive text */
@@ -2710,7 +2710,7 @@ const char *var_strerror(var_t *var, var_rc_t rc)
     const char *str;
     rc = (var_rc_t)(0 - rc);
     if (rc < 0 || rc >= (int)sizeof(var_errors) / (int)sizeof(char *)) {
-	str = "unknown error";
+	str = _("unknown error");
     } else {
 	str = (char *)var_errors[rc];
     }

@@ -120,7 +120,7 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
    bool recurse = true;
 
    if (res == NULL) {
-      printf("No record for %d %s\n", type, res_to_str(type));
+      printf(_("No record for %d %s\n"), type, res_to_str(type));
       return;
    }
    if (type < 0) {                    /* no recursion */
@@ -129,15 +129,15 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
    }
    switch (type) {
    case R_CONSOLE:
-      printf("Console: name=%s rcfile=%s histfile=%s\n", reshdr->name,
+      printf(_("Console: name=%s rcfile=%s histfile=%s\n"), reshdr->name,
              res->res_cons.rc_file, res->res_cons.hist_file);
       break;
    case R_DIRECTOR:
-      printf("Director: name=%s address=%s DIRport=%d\n", reshdr->name,
+      printf(_("Director: name=%s address=%s DIRport=%d\n"), reshdr->name,
               res->res_dir.address, res->res_dir.DIRport);
       break;
    default:
-      printf("Unknown resource type %d\n", type);
+      printf(_("Unknown resource type %d\n"), type);
    }
    if (recurse && res->res_dir.hdr.next) {
       dump_resource(type, res->res_dir.hdr.next, sendit, sock);
@@ -213,7 +213,7 @@ void free_resource(RES *sres, int type)
       }
       break;
    default:
-      printf("Unknown resource type %d\n", type);
+      printf(_("Unknown resource type %d\n"), type);
    }
    /* Common stuff again -- free the resource, recurse to next one */
    free(res);
@@ -239,7 +239,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
    for (i=0; items[i].name; i++) {
       if (items[i].flags & ITEM_REQUIRED) {
             if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {
-               Emsg2(M_ABORT, 0, "%s item is required in %s resource, but not found.\n",
+               Emsg2(M_ABORT, 0, _("%s item is required in %s resource, but not found.\n"),
                  items[i].name, resources[rindex]);
              }
       }
@@ -258,7 +258,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
             break;
 
          default:
-            Emsg1(M_ERROR, 0, "Unknown resource type %d\n", type);
+            Emsg1(M_ERROR, 0, _("Unknown resource type %d\n"), type);
             error = 1;
             break;
       }
@@ -285,7 +285,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
       size = sizeof(DIRRES);
       break;
    default:
-      printf("Unknown resource type %d\n", type);
+      printf(_("Unknown resource type %d\n"), type);
       error = 1;
       size = 1;
       break;

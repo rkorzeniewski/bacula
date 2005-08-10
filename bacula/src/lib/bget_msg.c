@@ -88,11 +88,11 @@ int bget_msg(BSOCK *sock)
       case BNET_STATUS:
 	 /* *****FIXME***** Implement BNET_STATUS */
 	 Dmsg0(msglvl, "Got BNET_STATUS\n");
-	 bnet_fsend(sock, "Status OK\n");
+	 bnet_fsend(sock, _("Status OK\n"));
 	 bnet_sig(sock, BNET_EOD);
 	 break;
       default:
-	 Emsg1(M_ERROR, 0, "bget_msg: unknown signal %d\n", sock->msglen);
+	 Emsg1(M_ERROR, 0, _("bget_msg: unknown signal %d\n"), sock->msglen);
 	 break;
       }
    }

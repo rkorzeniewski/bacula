@@ -56,7 +56,7 @@ static void usage()
 {
    fprintf(stderr, _(
 "Copyright (C) 2002-2005 Kern Sibbald.\n"
-"\nVersion: " VERSION " (" BDATE ")\n\n"
+"\nVersion: %s (%s)\n\n"
 "Usage: bcopy [-d debug_level] <input-archive> <output-archive>\n"
 "       -b bootstrap      specify a bootstrap file\n"
 "       -c <file>         specify configuration file\n"
@@ -66,7 +66,7 @@ static void usage()
 "       -p                proceed inspite of errors\n"
 "       -v                verbose\n"
 "       -w <dir>          specify working directory (default /tmp)\n"
-"       -?                print this message\n\n"));
+"       -?                print this message\n\n"), VERSION, BDATE);
    exit(1);
 }
 
@@ -76,6 +76,10 @@ int main (int argc, char *argv[])
    char *iVolumeName = NULL;
    char *oVolumeName = NULL;
    bool ignore_label_errors = false;
+
+   setlocale(LC_ALL, "");
+   bindtextdomain("bacula", LOCALEDIR);
+   textdomain("bacula");
 
    my_name_is(argc, argv, "bcopy");
    init_msg(NULL, NULL);
@@ -213,10 +217,10 @@ static bool record_cb(DCR *in_dcr, DEV_RECORD *rec)
       }
       switch (rec->FileIndex) {
       case PRE_LABEL:
-         Pmsg0(000, "Volume is prelabeled. This volume cannot be copied.\n");
+         Pmsg0(000, _("Volume is prelabeled. This volume cannot be copied.\n"));
          return false;
       case VOL_LABEL:
-         Pmsg0(000, "Volume label not copied.\n");
+         Pmsg0(000, _("Volume label not copied.\n"));
          return true;
       case SOS_LABEL:
          jobs++;
@@ -240,10 +244,10 @@ static bool record_cb(DCR *in_dcr, DEV_RECORD *rec)
          }
          break;
       case EOM_LABEL:
-         Pmsg0(000, "EOM label not copied.\n");
+         Pmsg0(000, _("EOM label not copied.\n"));
          return true;
       case EOT_LABEL:              /* end of all tapes */
-         Pmsg0(000, "EOT label not copied.\n");
+         Pmsg0(000, _("EOT label not copied.\n"));
          return true;
       default:
          break;
@@ -283,7 +287,7 @@ void    free_unused_volume(DCR *dcr) { }
 bool dir_ask_sysop_to_mount_volume(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
-   fprintf(stderr, "Mount Volume \"%s\" on device %s and press return when ready: ",
+   fprintf(stderr, _("Mount Volume \"%s\" on device %s and press return when ready: "),
       dcr->VolumeName, dev->print_name());
    getchar();
    return true;

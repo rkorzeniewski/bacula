@@ -246,7 +246,7 @@ static void scan_include_options(LEX *lc, int keyword, char *opts, int optlen)
          }
       }
       if (i != 0) {
-         scan_err1(lc, "Expected a FileSet option keyword, got:%s:", lc->str);
+         scan_err1(lc, _("Expected a FileSet option keyword, got:%s:"), lc->str);
       } else { /* add option */
          bstrncat(opts, option, optlen);
          Dmsg3(900, "Catopts=%s option=%s optlen=%d\n", opts, option,optlen);
@@ -315,7 +315,7 @@ static void store_newinc(LEX *lc, RES_ITEM *item, int index, int pass)
             if (!options) {
                token = lex_get_token(lc, T_SKIP_EOL);
                if (token != T_EQUALS) {
-                  scan_err1(lc, "expected an equals, got: %s", lc->str);
+                  scan_err1(lc, _("expected an equals, got: %s"), lc->str);
                }
             }
             /* Call item handler */
@@ -325,7 +325,7 @@ static void store_newinc(LEX *lc, RES_ITEM *item, int index, int pass)
          }
       }
       if (i >=0) {
-         scan_err1(lc, "Keyword %s not permitted in this resource", lc->str);
+         scan_err1(lc, _("Keyword %s not permitted in this resource"), lc->str);
       }
    }
    if (pass == 1) {
@@ -559,7 +559,7 @@ static void options_res(LEX *lc, RES_ITEM *item, int index, int pass)
 
    token = lex_get_token(lc, T_SKIP_EOL);
    if (token != T_BOB) {
-      scan_err1(lc, "Expecting open brace. Got %s", lc->str);
+      scan_err1(lc, _("Expecting open brace. Got %s"), lc->str);
    }
 
    if (pass == 1) {
@@ -580,7 +580,7 @@ static void options_res(LEX *lc, RES_ITEM *item, int index, int pass)
          if (strcasecmp(options_items[i].name, lc->str) == 0) {
             token = lex_get_token(lc, T_SKIP_EOL);
             if (token != T_EQUALS) {
-               scan_err1(lc, "expected an equals, got: %s", lc->str);
+               scan_err1(lc, _("expected an equals, got: %s"), lc->str);
             }
             /* Call item handler */
             options_items[i].handler(lc, &options_items[i], i, pass);
@@ -589,7 +589,7 @@ static void options_res(LEX *lc, RES_ITEM *item, int index, int pass)
          }
       }
       if (i >=0) {
-         scan_err1(lc, "Keyword %s not permitted in this resource", lc->str);
+         scan_err1(lc, _("Keyword %s not permitted in this resource"), lc->str);
       }
    }
 }
@@ -614,7 +614,7 @@ static void store_opts(LEX *lc, RES_ITEM *item, int index, int pass)
       }
    }
    if (keyword == INC_KW_NONE) {
-      scan_err1(lc, "Expected a FileSet keyword, got: %s", lc->str);
+      scan_err1(lc, _("Expected a FileSet keyword, got: %s"), lc->str);
    }
    /* Now scan for the value */
    scan_include_options(lc, keyword, inc_opts, sizeof(inc_opts));

@@ -43,19 +43,19 @@ char *rec_state_to_str(DEV_RECORD *rec)
    static char buf[200];
    buf[0] = 0;
    if (rec->state & REC_NO_HEADER) {
-      strcat(buf, "Nohdr,");
+      strcat(buf, _("Nohdr,"));
    }
    if (is_partial_record(rec)) {
-      strcat(buf, "partial,");
+      strcat(buf, _("partial,"));
    }
    if (rec->state & REC_BLOCK_EMPTY) {
-      strcat(buf, "empty,");
+      strcat(buf, _("empty,"));
    }
    if (rec->state & REC_NO_MATCH) {
-      strcat(buf, "Nomatch,");
+      strcat(buf, _("Nomatch,"));
    }
    if (rec->state & REC_CONTINUATION) {
-      strcat(buf, "cont,");
+      strcat(buf, _("cont,"));
    }
    if (buf[0]) {
       buf[strlen(buf)-1] = 0;
@@ -254,8 +254,12 @@ static DEVRES *find_device_res(char *device_name, int read_access)
             configfile);
       return NULL;
    }
-   Pmsg2(0, _("Using device: \"%s\" for %s.\n"), device_name,
-             read_access?"reading":"writing");
+   if (read_access) {
+      Pmsg1(0, _("Using device: \"%s\" for reading.\n"), device_name);
+   }
+   else {
+      Pmsg1(0, _("Using device: \"%s\" for writing.\n"), device_name);
+   }
    return device;
 }
 

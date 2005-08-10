@@ -282,12 +282,12 @@ bool dir_update_volume_info(DCR *dcr, bool label)
 
    if (vol->VolCatName[0] == 0) {
       Jmsg0(jcr, M_FATAL, 0, _("NULL Volume name. This shouldn't happen!!!\n"));
-      Pmsg0(000, "NULL Volume name. This shouldn't happen!!!\n");
+      Pmsg0(000, _("NULL Volume name. This shouldn't happen!!!\n"));
       return false;
    }
    if (dev->can_read()) {
       Jmsg0(jcr, M_FATAL, 0, _("Attempt to update_volume_info in read mode!!!\n"));
-      Pmsg0(000, "Attempt to update_volume_info in read mode!!!\n");
+      Pmsg0(000, _("Attempt to update_volume_info in read mode!!!\n"));
       return false;
    }
 
@@ -315,7 +315,7 @@ bool dir_update_volume_info(DCR *dcr, bool label)
    /* Do not lock device here because it may be locked from label */
    if (!do_get_volume_info(dcr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", jcr->errmsg);
-      Pmsg2(000, "Didn't get vol info vol=%s: ERR=%s", 
+      Pmsg2(000, _("Didn't get vol info vol=%s: ERR=%s"), 
          vol->VolCatName, jcr->errmsg);
       return false;
    }
@@ -550,7 +550,6 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
 bool dir_ask_sysop_to_mount_volume(DCR *dcr)
 {
    int stat = 0;
-   const char *msg;
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
 
@@ -568,9 +567,8 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
       }
 
       if (!dev->poll) {
-         msg = _("Please mount");
-         Jmsg(jcr, M_MOUNT, 0, _("%s Volume \"%s\" on Storage Device %s for Job %s\n"),
-              msg, dcr->VolumeName, dev->print_name(), jcr->Job);
+         Jmsg(jcr, M_MOUNT, 0, _("Please mount Volume \"%s\" on Storage Device %s for Job %s\n"),
+              dcr->VolumeName, dev->print_name(), jcr->Job);
          Dmsg3(400, "Mount \"%s\" on device \"%s\" for Job %s\n",
                dcr->VolumeName, dev->print_name(), jcr->Job);
       }

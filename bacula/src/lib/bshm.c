@@ -66,7 +66,7 @@ void shm_create(BSHM *shm)
    Dmsg1(110, "shm_create size=%d\n", shm->size);
    for (i=0; i<MAX_TRIES; i++) {
       if ((shmid = shmget(shmkey, shm->size, shm->perms | IPC_CREAT)) < 0) {
-	 Emsg1(M_WARN, 0, "shmget failure key = %x\n", shmkey);
+	 Emsg1(M_WARN, 0, _("shmget failure key = %x\n"), shmkey);
 	 shmkey++;
 	 continue;
       }
@@ -74,7 +74,7 @@ void shm_create(BSHM *shm)
       break;
    }
    if (not_found)
-      Emsg2(M_ABORT, 0, "Could not get %d bytes of shared memory: %s\n", shm->size, strerror(errno));
+      Emsg2(M_ABORT, 0, _("Could not get %d bytes of shared memory: %s\n"), shm->size, strerror(errno));
    shm->shmkey = shmkey;
    shm->shmid = shmid;
    Dmsg2(110, "shm_create return key=%x id=%d\n", shmkey, shmid);
@@ -99,7 +99,7 @@ void *shm_open(BSHM *shm)
    shmbuf = shmat(shmid, NULL, 0);
    Dmsg1(110, "shm_open buf=%x\n", shmbuf);
    if (shmbuf == (char *) -1)
-      Emsg1(M_ABORT, 0, "Could not attach shared memory: %s\n", strerror(errno));
+      Emsg1(M_ABORT, 0, _("Could not attach shared memory: %s\n"), strerror(errno));
    shm->shmbuf = shmbuf;
    shm->shmid = shmid;
    return shmbuf;
@@ -120,7 +120,7 @@ void shm_close(BSHM *shm)
 #ifdef NEED_SHARED_MEMORY
    if (shm->size) {
       if (shmdt(shm->shmbuf) < 0) {
-	 Emsg1(M_ERROR, 0, "Error detaching shared memory: %s\n", strerror(errno));
+	 Emsg1(M_ERROR, 0, _("Error detaching shared memory: %s\n"), strerror(errno));
       }
    }
 #else
@@ -136,7 +136,7 @@ void shm_destroy(BSHM *shm)
 #ifdef NEED_SHARED_MEMORY
    if (shm->size) {
       if (shmctl(shm->shmid, IPC_RMID, NULL) < 0) {
-	 Emsg1(M_ERROR, 0, "Could not destroy shared memory: %s\n", strerror(errno));
+	 Emsg1(M_ERROR, 0, _("Could not destroy shared memory: %s\n"), strerror(errno));
       }
    }
 #else

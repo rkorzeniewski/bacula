@@ -77,7 +77,7 @@ int cram_md5_auth(BSOCK *bs, char *password, int tls_local_need)
       bnet_fsend(bs, "1000 OK auth\n");
    } else {
       Dmsg1(50, "Auth failed PW: %s\n", password);
-      bnet_fsend(bs, "1999 Authorization failed.\n");
+      bnet_fsend(bs, _("1999 Authorization failed.\n"));
       bmicrosleep(5, 0);
    }
    return ok;
@@ -102,7 +102,7 @@ int cram_md5_get_auth(BSOCK *bs, char *password, int *tls_remote_need)
    if (sscanf(bs->msg, "auth cram-md5 %s ssl=%d\n", chal, tls_remote_need) != 2) {
       if (sscanf(bs->msg, "auth cram-md5 %s\n", chal) != 1) {
 	 Dmsg1(50, "Cannot scan challenge: %s", bs->msg);
-	 bnet_fsend(bs, "1999 Authorization failed.\n");
+	 bnet_fsend(bs, _("1999 Authorization failed.\n"));
 	 bmicrosleep(5, 0);
 	 return 0;
       }

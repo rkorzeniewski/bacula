@@ -393,7 +393,7 @@ void b_memset(const char *file, int line, void *mem, int val, size_t num)
 {
    /* Testing for 2000 byte zero at beginning of Volume block */
    if (num > 1900 && num < 3000) {
-      Pmsg3(000, "Memset for %d bytes at %s:%d\n", (int)num, file, line);
+      Pmsg3(000, _("Memset for %d bytes at %s:%d\n"), (int)num, file, line);
    }
    memset(mem, val, num);
 }
@@ -532,7 +532,7 @@ void write_state_file(char *dir, const char *progname, int port)
    Mmsg(&fname, "%s/%s.%d.state", dir, progname, port);
    /* Create new state file */
    if ((sfd = open(fname, O_CREAT|O_WRONLY|O_BINARY, 0640)) < 0) {
-      Dmsg2(000, _("Could not create state file. %s ERR=%s\n"), fname, strerror(errno));
+      Dmsg2(000, "Could not create state file. %s ERR=%s\n", fname, strerror(errno));
       Emsg2(M_ERROR, 0, _("Could not create state file. %s ERR=%s\n"), fname, strerror(errno));
       goto bail_out;
    }
@@ -549,7 +549,7 @@ void write_state_file(char *dir, const char *progname, int port)
       goto bail_out;
    }
    if (write(sfd, &state_hdr, sizeof(state_hdr)) != sizeof(state_hdr)) {
-      Pmsg1(000, "Write final hdr error: ERR=%s\n", strerror(errno));
+      Pmsg1(000, _("Write final hdr error: ERR=%s\n"), strerror(errno));
    }
 // Dmsg1(010, "rewrote header = %d\n", sizeof(state_hdr));
 bail_out:

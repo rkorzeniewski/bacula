@@ -413,7 +413,7 @@ static BSR *store_count(LEX *lc, BSR *bsr)
 static BSR *store_jobtype(LEX *lc, BSR *bsr)
 {
    /* *****FIXME****** */
-   Pmsg0(-1, "JobType not yet implemented\n");
+   Pmsg0(-1, _("JobType not yet implemented\n"));
    return bsr;
 }
 
@@ -421,7 +421,7 @@ static BSR *store_jobtype(LEX *lc, BSR *bsr)
 static BSR *store_joblevel(LEX *lc, BSR *bsr)
 {
    /* *****FIXME****** */
-   Pmsg0(-1, "JobLevel not yet implemented\n");
+   Pmsg0(-1, _("JobLevel not yet implemented\n"));
    return bsr;
 }
 
@@ -623,7 +623,7 @@ static BSR *store_exclude(LEX *lc, BSR *bsr)
 void dump_volfile(BSR_VOLFILE *volfile)
 {
    if (volfile) {
-      Pmsg2(-1, "VolFile     : %u-%u\n", volfile->sfile, volfile->efile);
+      Pmsg2(-1, _("VolFile     : %u-%u\n"), volfile->sfile, volfile->efile);
       dump_volfile(volfile->next);
    }
 }
@@ -631,7 +631,7 @@ void dump_volfile(BSR_VOLFILE *volfile)
 void dump_volblock(BSR_VOLBLOCK *volblock)
 {
    if (volblock) {
-      Pmsg2(-1, "VolBlock    : %u-%u\n", volblock->sblock, volblock->eblock);
+      Pmsg2(-1, _("VolBlock    : %u-%u\n"), volblock->sblock, volblock->eblock);
       dump_volblock(volblock->next);
    }
 }
@@ -641,9 +641,9 @@ void dump_findex(BSR_FINDEX *FileIndex)
 {
    if (FileIndex) {
       if (FileIndex->findex == FileIndex->findex2) {
-         Pmsg1(-1, "FileIndex   : %u\n", FileIndex->findex);
+         Pmsg1(-1, _("FileIndex   : %u\n"), FileIndex->findex);
       } else {
-         Pmsg2(-1, "FileIndex   : %u-%u\n", FileIndex->findex, FileIndex->findex2);
+         Pmsg2(-1, _("FileIndex   : %u-%u\n"), FileIndex->findex, FileIndex->findex2);
       }
       dump_findex(FileIndex->next);
    }
@@ -653,9 +653,9 @@ void dump_jobid(BSR_JOBID *jobid)
 {
    if (jobid) {
       if (jobid->JobId == jobid->JobId2) {
-         Pmsg1(-1, "JobId       : %u\n", jobid->JobId);
+         Pmsg1(-1, _("JobId       : %u\n"), jobid->JobId);
       } else {
-         Pmsg2(-1, "JobId       : %u-%u\n", jobid->JobId, jobid->JobId2);
+         Pmsg2(-1, _("JobId       : %u-%u\n"), jobid->JobId, jobid->JobId2);
       }
       dump_jobid(jobid->next);
    }
@@ -665,9 +665,9 @@ void dump_sessid(BSR_SESSID *sessid)
 {
    if (sessid) {
       if (sessid->sessid == sessid->sessid2) {
-         Pmsg1(-1, "SessId      : %u\n", sessid->sessid);
+         Pmsg1(-1, _("SessId      : %u\n"), sessid->sessid);
       } else {
-         Pmsg2(-1, "SessId      : %u-%u\n", sessid->sessid, sessid->sessid2);
+         Pmsg2(-1, _("SessId      : %u-%u\n"), sessid->sessid, sessid->sessid2);
       }
       dump_sessid(sessid->next);
    }
@@ -676,7 +676,7 @@ void dump_sessid(BSR_SESSID *sessid)
 void dump_volume(BSR_VOLUME *volume)
 {
    if (volume) {
-      Pmsg1(-1, "VolumeName  : %s\n", volume->VolumeName);
+      Pmsg1(-1, _("VolumeName  : %s\n"), volume->VolumeName);
       dump_volume(volume->next);
    }
 }
@@ -685,7 +685,7 @@ void dump_volume(BSR_VOLUME *volume)
 void dump_client(BSR_CLIENT *client)
 {
    if (client) {
-      Pmsg1(-1, "Client      : %s\n", client->ClientName);
+      Pmsg1(-1, _("Client      : %s\n"), client->ClientName);
       dump_client(client->next);
    }
 }
@@ -693,7 +693,7 @@ void dump_client(BSR_CLIENT *client)
 void dump_job(BSR_JOB *job)
 {
    if (job) {
-      Pmsg1(-1, "Job          : %s\n", job->Job);
+      Pmsg1(-1, _("Job          : %s\n"), job->Job);
       dump_job(job->next);
    }
 }
@@ -701,7 +701,7 @@ void dump_job(BSR_JOB *job)
 void dump_sesstime(BSR_SESSTIME *sesstime)
 {
    if (sesstime) {
-      Pmsg1(-1, "SessTime    : %u\n", sesstime->sesstime);
+      Pmsg1(-1, _("SessTime    : %u\n"), sesstime->sesstime);
       dump_sesstime(sesstime->next);
    }
 }
@@ -715,12 +715,12 @@ void dump_bsr(BSR *bsr, bool recurse)
    int save_debug = debug_level;
    debug_level = 1;
    if (!bsr) {
-      Pmsg0(-1, "BSR is NULL\n");
+      Pmsg0(-1, _("BSR is NULL\n"));
       debug_level = save_debug;
       return;
    }
-   Pmsg1(-1,    "Next        : 0x%x\n", bsr->next);
-   Pmsg1(-1,    "Root bsr    : 0x%x\n", bsr->root);
+   Pmsg1(-1,    _("Next        : 0x%x\n"), bsr->next);
+   Pmsg1(-1,    _("Root bsr    : 0x%x\n"), bsr->root);
    dump_volume(bsr->volume);
    dump_sessid(bsr->sessid);
    dump_sesstime(bsr->sesstime);
@@ -731,16 +731,16 @@ void dump_bsr(BSR *bsr, bool recurse)
    dump_job(bsr->job);
    dump_findex(bsr->FileIndex);
    if (bsr->Slot) {
-      Pmsg1(-1, "Slot        : %u\n", bsr->Slot);
+      Pmsg1(-1, _("Slot        : %u\n"), bsr->Slot);
    }
    if (bsr->count) {
-      Pmsg1(-1, "count       : %u\n", bsr->count);
-      Pmsg1(-1, "found       : %u\n", bsr->found);
+      Pmsg1(-1, _("count       : %u\n"), bsr->count);
+      Pmsg1(-1, _("found       : %u\n"), bsr->found);
    }
 
-   Pmsg1(-1,    "done        : %s\n", bsr->done?"yes":"no");
-   Pmsg1(-1,    "positioning : %d\n", bsr->use_positioning);
-   Pmsg1(-1,    "fast_reject : %d\n", bsr->use_fast_rejection);
+   Pmsg1(-1,    _("done        : %s\n"), bsr->done?_("yes"):_("no"));
+   Pmsg1(-1,    _("positioning : %d\n"), bsr->use_positioning);
+   Pmsg1(-1,    _("fast_reject : %d\n"), bsr->use_fast_rejection);
    if (recurse && bsr->next) {
       Pmsg0(-1, "\n");
       dump_bsr(bsr->next, true);

@@ -167,7 +167,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
          }
          Dmsg1(50, "Create file: %s\n", attr->ofname);
          if (is_bopen(bfd)) {
-            Jmsg1(jcr, M_ERROR, 0, "bpkt already open fid=%d\n", bfd->fid);
+            Jmsg1(jcr, M_ERROR, 0, _("bpkt already open fid=%d\n"), bfd->fid);
             bclose(bfd);
          }
          /*
@@ -268,7 +268,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
                tid = NULL;
             }
             if (is_bopen(bfd)) {
-               Jmsg1(jcr, M_ERROR, 0, "bpkt already open fid=%d\n", bfd->fid);
+               Jmsg1(jcr, M_ERROR, 0, _("bpkt already open fid=%d\n"), bfd->fid);
             }
             if ((bopen(bfd, attr->ofname, mode, 0)) < 0) {
                berrno be;
@@ -319,7 +319,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
        */
       if (!is_portable_backup(bfd)) {
          if (is_bopen(bfd)) {
-            Jmsg1(jcr, M_ERROR, 0, "bpkt already open fid=%d\n", bfd->fid);
+            Jmsg1(jcr, M_ERROR, 0, _("bpkt already open fid=%d\n"), bfd->fid);
          }
          if ((bopen(bfd, attr->ofname, O_WRONLY|O_BINARY, 0)) < 0) {
             berrno be;

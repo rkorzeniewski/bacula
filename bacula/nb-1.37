@@ -4,6 +4,8 @@
 General:
 
 Changes to 1.37.*:
+10Aug05
+ - Mark translatable strings in all source files.
 08Aug05
  - Create French and Italian translation files (fr.po, it.po).
  - Add support for translation in configure and Makefiles.

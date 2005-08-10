@@ -226,7 +226,7 @@ static void *job_thread(void *arg)
       }
       break;
    default:
-      Pmsg1(0, "Unimplemented job type: %d\n", jcr->JobType);
+      Pmsg1(0, _("Unimplemented job type: %d\n"), jcr->JobType);
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       break;
    }
@@ -304,7 +304,7 @@ static void *job_thread(void *arg)
          }
          break;
       default:
-         Pmsg1(0, "Unimplemented job type: %d\n", jcr->JobType);
+         Pmsg1(0, _("Unimplemented job type: %d\n"), jcr->JobType);
          break;
       }
       if ((jcr->job->RunAfterJob && jcr->JobStatus == JS_Terminated) ||

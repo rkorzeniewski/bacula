@@ -197,7 +197,7 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
    Dmsg1(110, "Found Job %s\n", job_name);
 
    if (jcr->authenticated) {
-      Jmsg2(jcr, M_FATAL, 0, "Hey!!!! JobId %u Job %s already authenticated.\n",
+      Jmsg2(jcr, M_FATAL, 0, _("Hey!!!! JobId %u Job %s already authenticated.\n"),
          jcr->JobId, jcr->Job);
       free_jcr(jcr);
       return;

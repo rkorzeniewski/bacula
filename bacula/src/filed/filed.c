@@ -58,9 +58,9 @@ static pthread_t server_tid;
 
 static void usage()
 {
-   Pmsg0(-1, _(
+   Pmsg2(-1, _(
 "Copyright (C) 2000-2005 Kern Sibbald\n"
-"\nVersion: " VERSION " (" BDATE ")\n\n"
+"\nVersion: %s (%s)\n\n"
 "Usage: bacula-fd [-f -s] [-c config_file] [-d debug_level]\n"
 "        -c <file>   use <file> as configuration file\n"
 "        -dnn        set debug level to nn\n"
@@ -72,7 +72,7 @@ static void usage()
 "        -u          userid\n"
 "        -v          verbose user messages\n"
 "        -?          print this message.\n"
-"\n"));
+"\n"), VERSION, BDATE);
    exit(1);
 }
 
@@ -93,9 +93,12 @@ int main (int argc, char *argv[])
    char *uid = NULL;
    char *gid = NULL;
 
+   setlocale(LC_ALL, "");
+   bindtextdomain("bacula", LOCALEDIR);
+   textdomain("bacula");
+
    init_stack_dump();
    my_name_is(argc, argv, "bacula-fd");
-   textdomain("bacula");
    init_msg(NULL, NULL);
    daemon_start_time = time(NULL);
 

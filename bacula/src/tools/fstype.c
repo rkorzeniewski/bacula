@@ -53,6 +53,10 @@ main (int argc, char *const *argv)
    int status = 0;
    int ch, i;
 
+   setlocale(LC_ALL, "");
+   bindtextdomain("bacula", LOCALEDIR);
+   textdomain("bacula");
+
    while ((ch = getopt(argc, argv, "v?")) != -1) {
       switch (ch) {
          case 'v':
@@ -79,7 +83,7 @@ main (int argc, char *const *argv)
             puts(fs);
          }
       } else {
-         fprintf(stderr, "%s: unknown\n", *argv);
+         fprintf(stderr, _("%s: unknown\n"), *argv);
          status = 1;
       }
    }

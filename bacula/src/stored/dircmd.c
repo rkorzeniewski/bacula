@@ -238,7 +238,7 @@ static bool setdebug_cmd(JCR *jcr)
 
    Dmsg1(10, "setdebug_cmd: %s", dir->msg);
    if (sscanf(dir->msg, "setdebug=%d trace=%d", &level, &trace_flag) != 2 || level < 0) {
-      bnet_fsend(dir, "3991 Bad setdebug command: %s\n", dir->msg);
+      bnet_fsend(dir, _("3991 Bad setdebug command: %s\n"), dir->msg);
       return 0;
    }
    debug_level = level;
@@ -631,7 +631,7 @@ static bool mount_cmd(JCR *jcr)
                   bnet_fsend(dir, _("3002 Device %s is mounted.\n"), 
                      dev->print_name());
                } else {
-                  bnet_fsend(dir, "3907 %s", strerror_dev(dev));
+                  bnet_fsend(dir, _("3907 %s"), strerror_dev(dev));
                } 
             } else { /* must be file */
                bnet_fsend(dir, _("3906 File device %s is always mounted.\n"),

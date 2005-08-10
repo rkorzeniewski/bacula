@@ -413,7 +413,7 @@ TLS_CONNECTION *new_tls_connection (TLS_CONTEXT *ctx, int fd)
    bio = BIO_new(BIO_s_socket());
    if (!bio) {
       /* Not likely, but never say never */
-      openssl_post_errors(M_ERROR, "Error creating file descriptor-based BIO");
+      openssl_post_errors(M_ERROR, _("Error creating file descriptor-based BIO"));
       return NULL; /* Nothing allocated, nothing to clean up */
    }
    BIO_set_fd(bio, fd, BIO_NOCLOSE);
@@ -424,7 +424,7 @@ TLS_CONNECTION *new_tls_connection (TLS_CONTEXT *ctx, int fd)
    /* Create the SSL object and attach the socket BIO */
    if ((tls->openssl = SSL_new(ctx->openssl)) == NULL) {
       /* Not likely, but never say never */
-      openssl_post_errors(M_ERROR, "Error creating new SSL object");
+      openssl_post_errors(M_ERROR, _("Error creating new SSL object"));
       goto err;
    }
 
@@ -490,7 +490,7 @@ static inline bool openssl_bsock_session_start(BSOCK *bsock, bool server)
               goto cleanup;
            case SSL_ERROR_ZERO_RETURN:
               /* TLS connection was cleanly shut down */
-              openssl_post_errors(M_ERROR, "Connect failure");
+              openssl_post_errors(M_ERROR, _("Connect failure"));
               stat = false;
               goto cleanup;
            case SSL_ERROR_WANT_READ:
@@ -507,7 +507,7 @@ static inline bool openssl_bsock_session_start(BSOCK *bsock, bool server)
               break;
            default:
               /* Socket Error Occured */
-              openssl_post_errors(M_ERROR, "Connect failure");
+              openssl_post_errors(M_ERROR, _("Connect failure"));
               stat = false;
               goto cleanup;
       }
@@ -713,7 +713,7 @@ static struct CRYPTO_dynlock_value *openssl_create_dynamic_mutex (const char *fi
    dynlock = (struct CRYPTO_dynlock_value *) malloc(sizeof(struct CRYPTO_dynlock_value));
 
    if ((stat = pthread_mutex_init(&dynlock->mutex, NULL)) != 0) {
-      Emsg1(M_ABORT, 0, "Unable to init mutex: ERR=%s\n", strerror(stat));
+      Emsg1(M_ABORT, 0, _("Unable to init mutex: ERR=%s\n"), strerror(stat));
    }
 
    return dynlock;
@@ -733,7 +733,7 @@ static void openssl_destroy_dynamic_mutex (struct CRYPTO_dynlock_value *dynlock,
    int stat;
 
    if ((stat = pthread_mutex_destroy(&dynlock->mutex)) != 0) {
-      Emsg1(M_ABORT, 0, "Unable to destroy mutex: ERR=%s\n", strerror(stat));
+      Emsg1(M_ABORT, 0, _("Unable to destroy mutex: ERR=%s\n"), strerror(stat));
    }
 
    free(dynlock);
@@ -770,7 +770,7 @@ static int openssl_init_threads (void)
    mutexes = (pthread_mutex_t *) malloc(numlocks * sizeof(pthread_mutex_t));
    for (i = 0; i < numlocks; i++) {
       if ((stat = pthread_mutex_init(&mutexes[i], NULL)) != 0) {
-         Emsg1(M_ERROR, 0, "Unable to init mutex: ERR=%s\n", strerror(stat));
+         Emsg1(M_ERROR, 0, _("Unable to init mutex: ERR=%s\n"), strerror(stat));
          return stat;
       }
    }
@@ -802,7 +802,7 @@ static void openssl_cleanup_threads (void)
    for (i = 0; i < numlocks; i++) {
       if ((stat = pthread_mutex_destroy(&mutexes[i])) != 0) {
          /* We don't halt execution, reporting the error should be sufficient */
-         Emsg1(M_ERROR, 0, "Unable to destroy mutex: ERR=%s\n", strerror(stat));
+         Emsg1(M_ERROR, 0, _("Unable to destroy mutex: ERR=%s\n"), strerror(stat));
       }
    }
 
@@ -867,7 +867,7 @@ int init_tls (void)
    int stat;
 
    if ((stat = openssl_init_threads()) != 0) {
-      Emsg1(M_ABORT, 0, "Unable to init OpenSSL threading: ERR=%s\n", strerror(stat));
+      Emsg1(M_ABORT, 0, _("Unable to init OpenSSL threading: ERR=%s\n"), strerror(stat));
    }
 
    /* Load libssl and libcrypto human-readable error strings */

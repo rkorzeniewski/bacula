@@ -532,7 +532,7 @@ static bool read_and_send_acl(JCR *jcr, int acltype, int stream)
 
    len = bacl_get(jcr, acltype);
    if (len < 0) {
-      Jmsg1(jcr, M_WARNING, 0, "Error reading ACL of %s\n", jcr->last_fname);
+      Jmsg1(jcr, M_WARNING, 0, _("Error reading ACL of %s\n"), jcr->last_fname);
       return true; 
    }
    if (len == 0) {

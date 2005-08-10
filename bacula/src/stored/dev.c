@@ -389,7 +389,7 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
          if ((oflags = fcntl(fd, F_GETFL, 0)) < 0 ||
              fcntl(fd, F_SETFL, oflags & ~O_NONBLOCK) < 0) {
             berrno be;
-            Jmsg1(dcr->jcr, M_ERROR, 0, "fcntl error. ERR=%s\n", be.strerror());
+            Jmsg1(dcr->jcr, M_ERROR, 0, _("fcntl error. ERR=%s\n"), be.strerror());
             ::close(fd);                   /* use system close() */
             fd = -1;
             break;
@@ -724,7 +724,7 @@ const char *DEVICE::print_blocked() const
    case BST_MOUNT:
       return "BST_MOUNT";
    default:
-      return "unknown blocked code";
+      return _("unknown blocked code");
    }
 }
 
@@ -933,7 +933,7 @@ bool update_pos_dev(DEVICE *dev)
       if (pos < 0) {
          berrno be;
          dev->dev_errno = errno;
-         Pmsg1(000, "Seek error: ERR=%s\n", be.strerror());
+         Pmsg1(000, _("Seek error: ERR=%s\n"), be.strerror());
          Mmsg2(dev->errmsg, _("lseek_dev error on %s. ERR=%s.\n"),
             dev->print_name(), be.strerror());
          ok = false;
@@ -969,8 +969,8 @@ uint32_t status_dev(DEVICE *dev)
    }
    if (dev->is_tape()) {
       stat |= BMT_TAPE;
-      Pmsg0(-20," Bacula status:");
-      Pmsg2(-20," file=%d block=%d\n", dev->file, dev->block_num);
+      Pmsg0(-20,_(" Bacula status:"));
+      Pmsg2(-20,_(" file=%d block=%d\n"), dev->file, dev->block_num);
       if (ioctl(dev->fd, MTIOCGET, (char *)&mt_stat) < 0) {
          berrno be;
          dev->dev_errno = errno;
@@ -978,7 +978,7 @@ uint32_t status_dev(DEVICE *dev)
             dev->print_name(), be.strerror());
          return 0;
       }
-      Pmsg0(-20, " Device status:");
+      Pmsg0(-20, _(" Device status:"));
 
 #if defined(HAVE_LINUX_OS)
       if (GMT_EOF(mt_stat.mt_gstat)) {
@@ -1019,9 +1019,9 @@ uint32_t status_dev(DEVICE *dev)
       }
 #endif /* !SunOS && !OSF */
       if (dev_cap(dev, CAP_MTIOCGET)) {
-         Pmsg2(-20, " file=%d block=%d\n", mt_stat.mt_fileno, mt_stat.mt_blkno);
+         Pmsg2(-20, _(" file=%d block=%d\n"), mt_stat.mt_fileno, mt_stat.mt_blkno);
       } else {
-         Pmsg2(-20, " file=%d block=%d\n", -1, -1);
+         Pmsg2(-20, _(" file=%d block=%d\n"), -1, -1);
       }
    } else {
       stat |= BMT_ONLINE | BMT_BOT;
@@ -1585,7 +1585,7 @@ clrerror_dev(DEVICE *dev, int func)
    if (errno == ENOTTY || errno == ENOSYS) { /* Function not implemented */
       switch (func) {
       case -1:
-         Emsg0(M_ABORT, 0, "Got ENOTTY on read/write!\n");
+         Emsg0(M_ABORT, 0, _("Got ENOTTY on read/write!\n"));
          break;
       case MTWEOF:
          msg = "WTWEOF";
@@ -1632,7 +1632,7 @@ clrerror_dev(DEVICE *dev, int func)
          break;
 #endif
       default:
-         bsnprintf(buf, sizeof(buf), "unknown func code %d", func);
+         bsnprintf(buf, sizeof(buf), _("unknown func code %d"), func);
          msg = buf;
          break;
       }

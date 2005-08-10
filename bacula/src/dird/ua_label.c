@@ -167,7 +167,7 @@ int update_slots(UAContext *ua)
    }
    set_storage(ua->jcr, store);
 
-   scan = find_arg(ua, _("scan")) >= 0;
+   scan = find_arg(ua, N_("scan")) >= 0;
 
    max_slots = get_num_slots_from_SD(ua);
    if (max_slots <= 0) {
@@ -508,7 +508,7 @@ static void label_from_barcodes(UAContext *ua)
              mr.InChanger = 1;
              mr.StorageId = store->StorageId;
              if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
-                bsendmsg(ua, "Error setting InChanger: ERR=%s", db_strerror(ua->db));
+                bsendmsg(ua, _("Error setting InChanger: ERR=%s"), db_strerror(ua->db));
              }
              continue;
           }
@@ -540,7 +540,7 @@ static void label_from_barcodes(UAContext *ua)
                   bsendmsg(ua, "%s", db_strerror(ua->db));
                }
             } else {
-               bsendmsg(ua, "Catalog error on cleaning tape: %s", db_strerror(ua->db));
+               bsendmsg(ua, _("Catalog error on cleaning tape: %s"), db_strerror(ua->db));
             }
          }
          continue;                    /* done, go handle next volume */

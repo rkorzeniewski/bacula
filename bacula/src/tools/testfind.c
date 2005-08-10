@@ -77,6 +77,10 @@ main (int argc, char *const *argv)
    char *exc = NULL;
    FILE *fd;
 
+   setlocale(LC_ALL, "");
+   bindtextdomain("bacula", LOCALEDIR);
+   textdomain("bacula");
+
    while ((ch = getopt(argc, argv, "ad:e:i:?")) != -1) {
       switch (ch) {
          case 'a':                    /* print extended attributes *debug* */
@@ -127,7 +131,7 @@ main (int argc, char *const *argv)
    if (inc) {
       fd = fopen(inc, "r");
       if (!fd) {
-         printf("Could not open include file: %s\n", inc);
+         printf(_("Could not open include file: %s\n"), inc);
          exit(1);
       }
       while (fgets(name, sizeof(name)-1, fd)) {
@@ -140,7 +144,7 @@ main (int argc, char *const *argv)
    if (exc) {
       fd = fopen(exc, "r");
       if (!fd) {
-         printf("Could not open exclude file: %s\n", exc);
+         printf(_("Could not open exclude file: %s\n"), exc);
          exit(1);
       }
       while (fgets(name, sizeof(name)-1, fd)) {
@@ -192,7 +196,7 @@ static int print_file(FF_PKT *ff, void *pkt, bool top_level)
       if (debug_level == 1) {
          printf("%s\n", ff->fname);
       } else if (debug_level > 1) {
-         printf("Reg: %s\n", ff->fname);
+         printf(_("Reg: %s\n"), ff->fname);
       }
       count_files(ff);
       break;
@@ -213,11 +217,11 @@ static int print_file(FF_PKT *ff, void *pkt, bool top_level)
       if (debug_level) {
          char errmsg[100] = "";
          if (ff->type == FT_NORECURSE) {
-            bstrncpy(errmsg, "\t[will not descend: recursion turned off]", sizeof(errmsg));
+            bstrncpy(errmsg, _("\t[will not descend: recursion turned off]"), sizeof(errmsg));
          } else if (ff->type == FT_NOFSCHG) {
-            bstrncpy(errmsg, "\t[will not descend: file system change not allowed]", sizeof(errmsg));
+            bstrncpy(errmsg, _("\t[will not descend: file system change not allowed]"), sizeof(errmsg));
          } else if (ff->type == FT_INVALIDFS) {
-            bstrncpy(errmsg, "\t[will not descend: disallowed file system]", sizeof(errmsg));
+            bstrncpy(errmsg, _("\t[will not descend: disallowed file system]"), sizeof(errmsg));
          }
          printf("%s%s%s\n", (debug_level > 1 ? "Dir: " : ""), ff->fname, errmsg);
       }
@@ -330,8 +334,8 @@ static void count_files(FF_PKT *ar)
       printf(_("========== Path length is zero. File=%s\n"), ar->fname);
    }
    if (debug_level >= 10) {
-      printf("Path: %s\n", spath);
-      printf("File: %s\n", file);
+      printf(_("Path: %s\n"), spath);
+      printf(_("File: %s\n"), file);
    }
 
 }

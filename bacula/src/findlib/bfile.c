@@ -64,33 +64,33 @@ const char *stream_to_ascii(int stream)
 
    switch (stream) {
    case STREAM_GZIP_DATA:
-      return "GZIP data";
+      return _("GZIP data");
    case STREAM_SPARSE_GZIP_DATA:
-      return "GZIP sparse data";
+      return _("GZIP sparse data");
    case STREAM_WIN32_DATA:
-      return "Win32 data";
+      return _("Win32 data");
    case STREAM_WIN32_GZIP_DATA:
-      return "Win32 GZIP data";
+      return _("Win32 GZIP data");
    case STREAM_UNIX_ATTRIBUTES:
-      return "File attributes";
+      return _("File attributes");
    case STREAM_FILE_DATA:
-      return "File data";
+      return _("File data");
    case STREAM_MD5_SIGNATURE:
-      return "MD5 signature";
+      return _("MD5 signature");
    case STREAM_UNIX_ATTRIBUTES_EX:
-      return "Extended attributes";
+      return _("Extended attributes");
    case STREAM_SPARSE_DATA:
-      return "Sparse data";
+      return _("Sparse data");
    case STREAM_PROGRAM_NAMES:
-      return "Program names";
+      return _("Program names");
    case STREAM_PROGRAM_DATA:
-      return "Program data";
+      return _("Program data");
    case STREAM_SHA1_SIGNATURE:
-      return "SHA1 signature";
+      return _("SHA1 signature");
    case STREAM_MACOS_FORK_DATA:
-      return "HFS+ resource fork";
+      return _("HFS+ resource fork");
    case STREAM_HFSPLUS_ATTRIBUTES:
-      return "HFS+ Finder Info";
+      return _("HFS+ Finder Info");
    default:
       sprintf(buf, "%d", stream);
       return (const char *)buf;
