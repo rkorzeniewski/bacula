@@ -1,5 +1,5 @@
 
-          Release Notes for Bacula 1.37.32
+          Release Notes for Bacula 1.37.35
 
   Bacula code: Total files = 420 Total lines = 137,098 (*.h *.c *.in)
 
@@ -52,6 +52,8 @@ Major Changes:
 - Web-bacula, previously a separate project by Juan Luis Frances,
   is now included in the Bacula GUI release (yet to be fully
   created).
+- The code is now Internationalized so that it can be localized
+  in native languages.  Thanks to Nicolas Boichat.
 
 New Directives:
 - New Job directive "Prefer Mounted Volumes = yes|no" causes the

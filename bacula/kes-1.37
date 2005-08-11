@@ -3,6 +3,11 @@
 
 General:
 
+Changes to 1.37.35:
+11Aug05
+- Modified bconsole script so that it is improperly
+  installed, it will refuse to execute.  This avoids
+  recursive call loops.
 Changes to 1.37.34:
 06Aug05
 - Apply David's ACL fix to src/filed/acl.c
