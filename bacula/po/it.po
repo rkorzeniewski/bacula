@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bacula 1.38\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2005-08-11 14:00+0200\n"
+"POT-Creation-Date: 2005-08-11 18:00+0200\n"
 "PO-Revision-Date: 2005-08-08 17:50+0200\n"
 "Last-Translator:  <fparacchini@alteanet.it>\n"
 "Language-Team: Italian <bacula-devel@lists.sourceforge.net>\n"
@@ -160,10 +160,9 @@ msgstr ""
 msgid "Create DB Job record %s failed. ERR=%s\n"
 msgstr ""
 
-#: src/cats/sql_create.c:91 src/dird/dird_conf.c:532 src/dird/expand.c:145
-#: src/dird/ua_cmds.c:422 src/dird/ua_prune.c:455 src/dird/ua_purge.c:171
-#: src/dird/ua_run.c:643 src/dird/ua_select.c:228 src/dird/ua_select.c:249
-#: src/dird/pythondir.c:61 src/stored/pythonsd.c:58
+#: src/cats/sql_create.c:91 src/dird/dird_conf.c:532 src/dird/ua_cmds.c:422
+#: src/dird/ua_prune.c:455 src/dird/ua_run.c:643 src/dird/ua_select.c:228
+#: src/dird/ua_select.c:249
 msgid "Job"
 msgstr ""
 
@@ -187,9 +186,8 @@ msgstr ""
 msgid "Create db Pool record %s failed: ERR=%s\n"
 msgstr ""
 
-#: src/cats/sql_create.c:201 src/dird/expand.c:152 src/dird/ua_run.c:650
-#: src/dird/ua_select.c:464 src/dird/ua_select.c:554 src/dird/ua_update.c:356
-#: src/dird/ua_update.c:426 src/dird/pythondir.c:67 src/stored/pythonsd.c:64
+#: src/cats/sql_create.c:201 src/dird/ua_run.c:650 src/dird/ua_select.c:464
+#: src/dird/ua_select.c:554 src/dird/ua_update.c:356 src/dird/ua_update.c:426
 #: src/wx-console/wxbrestorepanel.cpp:362
 #: src/wx-console/wxbrestorepanel.cpp:548
 #: src/wx-console/wxbrestorepanel.cpp:558
@@ -207,7 +205,7 @@ msgstr ""
 msgid "Create db Device record %s failed: ERR=%s\n"
 msgstr ""
 
-#: src/cats/sql_create.c:248 src/stored/pythonsd.c:69
+#: src/cats/sql_create.c:248
 msgid "Device"
 msgstr ""
 
@@ -226,8 +224,7 @@ msgstr ""
 msgid "Create DB Storage record %s failed. ERR=%s\n"
 msgstr ""
 
-#: src/cats/sql_create.c:306 src/dird/expand.c:153 src/dird/ua_run.c:642
-#: src/dird/ua_select.c:152 src/dird/ua_status.c:128 src/dird/pythondir.c:68
+#: src/cats/sql_create.c:306 src/dird/ua_run.c:642 src/dird/ua_select.c:152
 #: src/wx-console/wxbrestorepanel.cpp:363
 #: src/wx-console/wxbrestorepanel.cpp:379
 #: src/wx-console/wxbrestorepanel.cpp:500
@@ -250,8 +247,7 @@ msgstr ""
 msgid "Create db mediatype record %s failed: ERR=%s\n"
 msgstr ""
 
-#: src/cats/sql_create.c:354 src/dird/expand.c:155 src/dird/pythondir.c:70
-#: src/stored/pythonsd.c:65
+#: src/cats/sql_create.c:354
 msgid "MediaType"
 msgstr ""
 
@@ -284,11 +280,8 @@ msgstr ""
 msgid "Create DB Client record %s failed. ERR=%s\n"
 msgstr ""
 
-#: src/cats/sql_create.c:507 src/dird/expand.c:150 src/dird/ua_purge.c:173
-#: src/dird/ua_purge.c:178 src/dird/ua_run.c:645 src/dird/ua_select.c:272
-#: src/dird/ua_select.c:379 src/dird/ua_status.c:129 src/dird/pythondir.c:65
-#: src/filed/pythonfd.c:77 src/stored/pythonsd.c:63
-#: src/wx-console/wxbrestorepanel.cpp:360
+#: src/cats/sql_create.c:507 src/dird/ua_run.c:645 src/dird/ua_select.c:272
+#: src/dird/ua_select.c:379 src/wx-console/wxbrestorepanel.cpp:360
 #: src/wx-console/wxbrestorepanel.cpp:378
 #: src/wx-console/wxbrestorepanel.cpp:452
 #: src/wx-console/wxbrestorepanel.cpp:453
@@ -634,15 +627,6 @@ msgstr ""
 msgid "next_index update error: ERR=%s\n"
 msgstr ""
 
-#: src/console/authenticate.c:41
-#, c-format
-msgid "Hello %s calling\n"
-msgstr ""
-
-#: src/console/authenticate.c:44
-msgid "1000 OK:"
-msgstr ""
-
 #: src/console/authenticate.c:104 src/dird/authenticate.c:106
 #: src/dird/authenticate.c:206 src/filed/authenticate.c:124
 #: src/filed/authenticate.c:220 src/stored/authenticate.c:128
@@ -712,28 +696,15 @@ msgid ""
 msgstr ""
 
 #: src/console/console.c:150
-msgid "input"
-msgstr ""
-
-#: src/console/console.c:150
 msgid "input from file"
-msgstr ""
-
-#: src/console/console.c:151
-msgid "output"
 msgstr ""
 
 #: src/console/console.c:151
 msgid "output to file"
 msgstr ""
 
-#: src/console/console.c:152 src/dird/ua_cmds.c:106 src/dird/ua_tree.c:72
-#: src/stored/btape.c:2536
+#: src/console/console.c:152 src/dird/ua_cmds.c:106
 msgid "quit"
-msgstr ""
-
-#: src/console/console.c:153
-msgid "tee"
 msgstr ""
 
 #: src/console/console.c:153
@@ -741,39 +712,19 @@ msgid "output to file and terminal"
 msgstr ""
 
 #: src/console/console.c:154
-msgid "sleep"
-msgstr ""
-
-#: src/console/console.c:154
 msgid "sleep specified time"
-msgstr ""
-
-#: src/console/console.c:155 src/dird/ua_cmds.c:118
-msgid "time"
 msgstr ""
 
 #: src/console/console.c:155 src/dird/ua_cmds.c:118
 msgid "print current time"
 msgstr ""
 
-#: src/console/console.c:156 src/dird/ua_cmds.c:125
-msgid "version"
-msgstr ""
-
 #: src/console/console.c:156
 msgid "print Console's version"
 msgstr ""
 
-#: src/console/console.c:157 src/dird/ua_cmds.c:95 src/dird/ua_tree.c:62
-msgid "exit"
-msgstr ""
-
 #: src/console/console.c:157 src/dird/ua_cmds.c:95
 msgid "exit = quit"
-msgstr ""
-
-#: src/console/console.c:158
-msgid "zed_keyst"
 msgstr ""
 
 #: src/console/console.c:158
@@ -1755,66 +1706,6 @@ msgstr ""
 msgid "Expected a Restore replacement option, got: %s"
 msgstr ""
 
-#: src/dird/expand.c:137
-msgid "Year"
-msgstr ""
-
-#: src/dird/expand.c:138
-msgid "Month"
-msgstr ""
-
-#: src/dird/expand.c:139
-msgid "Day"
-msgstr ""
-
-#: src/dird/expand.c:140
-msgid "Hour"
-msgstr ""
-
-#: src/dird/expand.c:141
-msgid "Minute"
-msgstr ""
-
-#: src/dird/expand.c:142
-msgid "Second"
-msgstr ""
-
-#: src/dird/expand.c:143
-msgid "WeekDay"
-msgstr ""
-
-#: src/dird/expand.c:146
-msgid "Dir"
-msgstr ""
-
-#: src/dird/expand.c:147 src/dird/ua_run.c:641 src/dird/pythondir.c:62
-#: src/filed/pythonfd.c:74 src/stored/pythonsd.c:60
-msgid "Level"
-msgstr ""
-
-#: src/dird/expand.c:148 src/dird/pythondir.c:63 src/filed/pythonfd.c:75
-#: src/stored/pythonsd.c:61
-msgid "Type"
-msgstr ""
-
-#: src/dird/expand.c:149 src/dird/ua_purge.c:172 src/dird/ua_run.c:658
-#: src/dird/pythondir.c:64 src/filed/pythonfd.c:76 src/stored/pythonsd.c:62
-msgid "JobId"
-msgstr ""
-
-#: src/dird/expand.c:151 src/dird/pythondir.c:66
-msgid "NumVols"
-msgstr ""
-
-#: src/dird/expand.c:154 src/dird/ua_select.c:205 src/dird/pythondir.c:69
-msgid "Catalog"
-msgstr ""
-
-#: src/dird/expand.c:156 src/dird/pythondir.c:71 src/filed/pythonfd.c:78
-#: src/stored/pythonsd.c:66
-msgid "JobName"
-msgstr ""
-
 #: src/dird/expand.c:240
 #, c-format
 msgid "Count not update counter %s: ERR=%s\n"
@@ -2384,218 +2275,6 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/dird/run_conf.c:57 src/dird/ua_output.c:52 src/dird/ua_output.c:76
-msgid "on"
-msgstr ""
-
-#: src/dird/run_conf.c:58
-msgid "at"
-msgstr ""
-
-#: src/dird/run_conf.c:60
-msgid "sun"
-msgstr ""
-
-#: src/dird/run_conf.c:61
-msgid "mon"
-msgstr ""
-
-#: src/dird/run_conf.c:62
-msgid "tue"
-msgstr ""
-
-#: src/dird/run_conf.c:63
-msgid "wed"
-msgstr ""
-
-#: src/dird/run_conf.c:64
-msgid "thu"
-msgstr ""
-
-#: src/dird/run_conf.c:65
-msgid "fri"
-msgstr ""
-
-#: src/dird/run_conf.c:66
-msgid "sat"
-msgstr ""
-
-#: src/dird/run_conf.c:67
-msgid "jan"
-msgstr ""
-
-#: src/dird/run_conf.c:68
-msgid "feb"
-msgstr ""
-
-#: src/dird/run_conf.c:69
-msgid "mar"
-msgstr ""
-
-#: src/dird/run_conf.c:70
-msgid "apr"
-msgstr ""
-
-#: src/dird/run_conf.c:71
-msgid "may"
-msgstr ""
-
-#: src/dird/run_conf.c:72
-msgid "jun"
-msgstr ""
-
-#: src/dird/run_conf.c:73
-msgid "jul"
-msgstr ""
-
-#: src/dird/run_conf.c:74
-msgid "aug"
-msgstr ""
-
-#: src/dird/run_conf.c:75
-msgid "sep"
-msgstr ""
-
-#: src/dird/run_conf.c:76
-msgid "oct"
-msgstr ""
-
-#: src/dird/run_conf.c:77
-msgid "nov"
-msgstr ""
-
-#: src/dird/run_conf.c:78
-msgid "dec"
-msgstr ""
-
-#: src/dird/run_conf.c:80
-msgid "sunday"
-msgstr ""
-
-#: src/dird/run_conf.c:81
-msgid "monday"
-msgstr ""
-
-#: src/dird/run_conf.c:82
-msgid "tuesday"
-msgstr ""
-
-#: src/dird/run_conf.c:83
-msgid "wednesday"
-msgstr ""
-
-#: src/dird/run_conf.c:84
-msgid "thursday"
-msgstr ""
-
-#: src/dird/run_conf.c:85
-msgid "friday"
-msgstr ""
-
-#: src/dird/run_conf.c:86
-msgid "saturday"
-msgstr ""
-
-#: src/dird/run_conf.c:87
-msgid "january"
-msgstr ""
-
-#: src/dird/run_conf.c:88
-msgid "february"
-msgstr ""
-
-#: src/dird/run_conf.c:89
-msgid "march"
-msgstr ""
-
-#: src/dird/run_conf.c:90
-msgid "april"
-msgstr ""
-
-#: src/dird/run_conf.c:91
-msgid "june"
-msgstr ""
-
-#: src/dird/run_conf.c:92
-msgid "july"
-msgstr ""
-
-#: src/dird/run_conf.c:93
-msgid "august"
-msgstr ""
-
-#: src/dird/run_conf.c:94
-msgid "september"
-msgstr ""
-
-#: src/dird/run_conf.c:95
-msgid "october"
-msgstr ""
-
-#: src/dird/run_conf.c:96
-msgid "november"
-msgstr ""
-
-#: src/dird/run_conf.c:97
-msgid "december"
-msgstr ""
-
-#: src/dird/run_conf.c:99
-msgid "daily"
-msgstr ""
-
-#: src/dird/run_conf.c:100
-msgid "weekly"
-msgstr ""
-
-#: src/dird/run_conf.c:101
-msgid "monthly"
-msgstr ""
-
-#: src/dird/run_conf.c:102
-msgid "hourly"
-msgstr ""
-
-#: src/dird/run_conf.c:104
-msgid "1st"
-msgstr ""
-
-#: src/dird/run_conf.c:105
-msgid "2nd"
-msgstr ""
-
-#: src/dird/run_conf.c:106
-msgid "3rd"
-msgstr ""
-
-#: src/dird/run_conf.c:107
-msgid "4th"
-msgstr ""
-
-#: src/dird/run_conf.c:108
-msgid "5th"
-msgstr ""
-
-#: src/dird/run_conf.c:110
-msgid "first"
-msgstr ""
-
-#: src/dird/run_conf.c:111
-msgid "second"
-msgstr ""
-
-#: src/dird/run_conf.c:112
-msgid "third"
-msgstr ""
-
-#: src/dird/run_conf.c:113
-msgid "fourth"
-msgstr ""
-
-#: src/dird/run_conf.c:114
-msgid "fifth"
-msgstr ""
-
 #: src/dird/run_conf.c:188
 #, c-format
 msgid "Expected an equals, got: %s"
@@ -2715,15 +2394,7 @@ msgid "Run queue"
 msgstr ""
 
 #: src/dird/ua_cmds.c:88
-msgid "add"
-msgstr ""
-
-#: src/dird/ua_cmds.c:88
 msgid "add media to a pool"
-msgstr ""
-
-#: src/dird/ua_cmds.c:89
-msgid "autodisplay"
 msgstr ""
 
 #: src/dird/ua_cmds.c:89
@@ -2731,15 +2402,7 @@ msgid "autodisplay [on|off] -- console messages"
 msgstr ""
 
 #: src/dird/ua_cmds.c:90
-msgid "automount"
-msgstr ""
-
-#: src/dird/ua_cmds.c:90
 msgid "automount [on|off] -- after label"
-msgstr ""
-
-#: src/dird/ua_cmds.c:91
-msgid "cancel"
 msgstr ""
 
 #: src/dird/ua_cmds.c:91
@@ -2747,23 +2410,11 @@ msgid "cancel [<jobid=nnn> | <job=name>] -- cancel a job"
 msgstr ""
 
 #: src/dird/ua_cmds.c:92
-msgid "create"
-msgstr ""
-
-#: src/dird/ua_cmds.c:92
 msgid "create DB Pool from resource"
 msgstr ""
 
 #: src/dird/ua_cmds.c:93
-msgid "delete"
-msgstr ""
-
-#: src/dird/ua_cmds.c:93
 msgid "delete [pool=<pool-name> | media volume=<volume-name>]"
-msgstr ""
-
-#: src/dird/ua_cmds.c:94 src/dird/ua_tree.c:61
-msgid "estimate"
 msgstr ""
 
 #: src/dird/ua_cmds.c:94
@@ -2771,24 +2422,11 @@ msgid "performs FileSet estimate, listing gives full listing"
 msgstr ""
 
 #: src/dird/ua_cmds.c:96
-msgid "gui"
-msgstr ""
-
-#: src/dird/ua_cmds.c:96
 msgid "gui [on|off] -- non-interactive gui mode"
-msgstr ""
-
-#: src/dird/ua_cmds.c:97 src/dird/ua_output.c:112 src/dird/ua_tree.c:64
-#: src/stored/btape.c:2533
-msgid "help"
 msgstr ""
 
 #: src/dird/ua_cmds.c:97 src/stored/btape.c:2533
 msgid "print this command"
-msgstr ""
-
-#: src/dird/ua_cmds.c:98
-msgid "list"
 msgstr ""
 
 #: src/dird/ua_cmds.c:98
@@ -2797,28 +2435,16 @@ msgid ""
 "from catalog"
 msgstr ""
 
-#: src/dird/ua_cmds.c:99 src/stored/btape.c:2534
-msgid "label"
-msgstr ""
-
 #: src/dird/ua_cmds.c:99
 msgid "label a tape"
-msgstr ""
-
-#: src/dird/ua_cmds.c:100
-msgid "llist"
 msgstr ""
 
 #: src/dird/ua_cmds.c:100
 msgid "full or long list like list command"
 msgstr ""
 
-#: src/dird/ua_cmds.c:101 src/dird/ua_output.c:110
+#: src/dird/ua_cmds.c:101
 msgid "messages"
-msgstr ""
-
-#: src/dird/ua_cmds.c:102
-msgid "mount"
 msgstr ""
 
 #: src/dird/ua_cmds.c:102
@@ -2826,15 +2452,7 @@ msgid "mount <storage-name>"
 msgstr ""
 
 #: src/dird/ua_cmds.c:103
-msgid "prune"
-msgstr ""
-
-#: src/dird/ua_cmds.c:103
 msgid "prune expired records from catalog"
-msgstr ""
-
-#: src/dird/ua_cmds.c:104
-msgid "purge"
 msgstr ""
 
 #: src/dird/ua_cmds.c:104
@@ -2842,15 +2460,7 @@ msgid "purge records from catalog"
 msgstr ""
 
 #: src/dird/ua_cmds.c:105
-msgid "python"
-msgstr ""
-
-#: src/dird/ua_cmds.c:105
 msgid "python control commands"
-msgstr ""
-
-#: src/dird/ua_cmds.c:107
-msgid "query"
 msgstr ""
 
 #: src/dird/ua_cmds.c:107
@@ -2858,15 +2468,7 @@ msgid "query catalog"
 msgstr ""
 
 #: src/dird/ua_cmds.c:108
-msgid "restore"
-msgstr ""
-
-#: src/dird/ua_cmds.c:108
 msgid "restore files"
-msgstr ""
-
-#: src/dird/ua_cmds.c:109
-msgid "relabel"
 msgstr ""
 
 #: src/dird/ua_cmds.c:109
@@ -2874,15 +2476,7 @@ msgid "relabel a tape"
 msgstr ""
 
 #: src/dird/ua_cmds.c:110
-msgid "release"
-msgstr ""
-
-#: src/dird/ua_cmds.c:110
 msgid "release <storage-name>"
-msgstr ""
-
-#: src/dird/ua_cmds.c:111
-msgid "reload"
 msgstr ""
 
 #: src/dird/ua_cmds.c:111
@@ -2890,15 +2484,7 @@ msgid "reload conf file"
 msgstr ""
 
 #: src/dird/ua_cmds.c:112
-msgid "run"
-msgstr ""
-
-#: src/dird/ua_cmds.c:112
 msgid "run <job-name>"
-msgstr ""
-
-#: src/dird/ua_cmds.c:113 src/stored/btape.c:2543
-msgid "status"
 msgstr ""
 
 #: src/dird/ua_cmds.c:113
@@ -2906,15 +2492,7 @@ msgid "status [storage | client]=<name>"
 msgstr ""
 
 #: src/dird/ua_cmds.c:114
-msgid "setdebug"
-msgstr ""
-
-#: src/dird/ua_cmds.c:114
 msgid "sets debug level"
-msgstr ""
-
-#: src/dird/ua_cmds.c:115
-msgid "setip"
 msgstr ""
 
 #: src/dird/ua_cmds.c:115
@@ -2922,15 +2500,7 @@ msgid "sets new client address -- if authorized"
 msgstr ""
 
 #: src/dird/ua_cmds.c:116
-msgid "show"
-msgstr ""
-
-#: src/dird/ua_cmds.c:116
 msgid "show (resource records) [jobs | pools | ... | all]"
-msgstr ""
-
-#: src/dird/ua_cmds.c:117
-msgid "sqlquery"
 msgstr ""
 
 #: src/dird/ua_cmds.c:117
@@ -2938,15 +2508,7 @@ msgid "use SQL to query catalog"
 msgstr ""
 
 #: src/dird/ua_cmds.c:119
-msgid "trace"
-msgstr ""
-
-#: src/dird/ua_cmds.c:119
 msgid "turn on/off trace to file"
-msgstr ""
-
-#: src/dird/ua_cmds.c:120
-msgid "unmount"
 msgstr ""
 
 #: src/dird/ua_cmds.c:120
@@ -2954,15 +2516,7 @@ msgid "unmount <storage-name>"
 msgstr ""
 
 #: src/dird/ua_cmds.c:121
-msgid "umount"
-msgstr ""
-
-#: src/dird/ua_cmds.c:121
 msgid "umount <storage-name> for old-time Unix guys"
-msgstr ""
-
-#: src/dird/ua_cmds.c:122
-msgid "update"
 msgstr ""
 
 #: src/dird/ua_cmds.c:122
@@ -2970,15 +2524,7 @@ msgid "update Volume, Pool or slots"
 msgstr ""
 
 #: src/dird/ua_cmds.c:123
-msgid "use"
-msgstr ""
-
-#: src/dird/ua_cmds.c:123
 msgid "use catalog xxx"
-msgstr ""
-
-#: src/dird/ua_cmds.c:124
-msgid "var"
 msgstr ""
 
 #: src/dird/ua_cmds.c:124
@@ -2987,10 +2533,6 @@ msgstr ""
 
 #: src/dird/ua_cmds.c:125
 msgid "print Director version"
-msgstr ""
-
-#: src/dird/ua_cmds.c:126
-msgid "wait"
 msgstr ""
 
 #: src/dird/ua_cmds.c:126
@@ -3070,14 +2612,11 @@ msgstr ""
 msgid "Turn on or off? "
 msgstr ""
 
-#: src/dird/ua_cmds.c:348 src/dird/ua_cmds.c:874 src/dird/ua_output.c:53
-#: src/dird/ua_output.c:77
+#: src/dird/ua_cmds.c:348 src/dird/ua_cmds.c:874
 msgid "off"
 msgstr ""
 
-#: src/dird/ua_cmds.c:368 src/dird/ua_cmds.c:1055 src/dird/ua_cmds.c:1115
-#: src/dird/ua_output.c:272 src/dird/ua_output.c:296 src/dird/ua_output.c:315
-#: src/dird/ua_output.c:346 src/dird/ua_select.c:618 src/dird/ua_select.c:793
+#: src/dird/ua_cmds.c:368
 msgid "jobid"
 msgstr ""
 
@@ -3086,9 +2625,7 @@ msgstr ""
 msgid "JobId %s is not running. Use Job name to cancel inactive jobs.\n"
 msgstr ""
 
-#: src/dird/ua_cmds.c:379 src/dird/ua_output.c:282 src/dird/ua_output.c:291
-#: src/dird/ua_output.c:310 src/dird/ua_output.c:341 src/dird/ua_select.c:615
-#: src/dird/ua_select.c:807
+#: src/dird/ua_cmds.c:379
 msgid "job"
 msgstr ""
 
@@ -3208,16 +2745,6 @@ msgstr ""
 msgid "Error sending exclude list.\n"
 msgstr ""
 
-#: src/dird/ua_cmds.c:1053 src/dird/ua_output.c:394 src/dird/ua_purge.c:167
-#: src/dird/ua_purge.c:232 src/dird/ua_update.c:55
-msgid "volume"
-msgstr ""
-
-#: src/dird/ua_cmds.c:1054 src/dird/ua_output.c:363 src/dird/ua_select.c:431
-#: src/dird/ua_update.c:56
-msgid "pool"
-msgstr ""
-
 #: src/dird/ua_cmds.c:1081
 msgid ""
 "In general it is not a good idea to delete either a\n"
@@ -3292,70 +2819,6 @@ msgstr ""
 msgid "Using default Catalog name=%s DB=%s\n"
 msgstr ""
 
-#: src/dird/ua_dotcmds.c:59
-msgid ".die"
-msgstr ""
-
-#: src/dird/ua_dotcmds.c:60
-msgid ".jobs"
-msgstr ""
-
-#: src/dird/ua_dotcmds.c:61
-msgid ".filesets"
-msgstr ""
-
-#: src/dird/ua_dotcmds.c:62
-msgid ".clients"
-msgstr ""
-
-#: src/dird/ua_dotcmds.c:63
-msgid ".msgs"
-msgstr ""
-
-#: src/dird/ua_dotcmds.c:64
-msgid ".pools"
-msgstr ""
-
-#: src/dird/ua_dotcmds.c:65
-msgid ".types"
-msgstr ""
-
-#: src/dird/ua_dotcmds.c:66
-msgid ".backups"
-msgstr ""
-
-#: src/dird/ua_dotcmds.c:67
-msgid ".levels"
-msgstr ""
-
-#: src/dird/ua_dotcmds.c:68
-msgid ".status"
-msgstr ""
-
-#: src/dird/ua_dotcmds.c:69
-msgid ".storage"
-msgstr ""
-
-#: src/dird/ua_dotcmds.c:70
-msgid ".defaults"
-msgstr ""
-
-#: src/dird/ua_dotcmds.c:71
-msgid ".messages"
-msgstr ""
-
-#: src/dird/ua_dotcmds.c:72
-msgid ".help"
-msgstr ""
-
-#: src/dird/ua_dotcmds.c:73
-msgid ".quit"
-msgstr ""
-
-#: src/dird/ua_dotcmds.c:74
-msgid ".exit"
-msgstr ""
-
 #: src/dird/ua_dotcmds.c:121
 msgid "The Director will segment fault.\n"
 msgstr ""
@@ -3375,9 +2838,8 @@ msgstr ""
 msgid "Expected a positive integer, got: %s\n"
 msgstr ""
 
-#: src/dird/ua_input.c:120 src/dird/ua_restore.c:232 src/dird/ua_run.c:487
-#: src/dird/ua_run.c:860 src/dird/ua_select.c:54 src/dird/ua_update.c:232
-#: src/dird/ua_update.c:247 src/dird/ua_update.c:495
+#: src/dird/ua_input.c:120 src/dird/ua_run.c:860 src/dird/ua_select.c:54
+#: src/dird/ua_update.c:232 src/dird/ua_update.c:247 src/dird/ua_update.c:495
 #: src/stored/parse_bsr.c:741 src/tools/dbcheck.c:1098
 msgid "yes"
 msgstr ""
@@ -3418,10 +2880,6 @@ msgstr ""
 
 #: src/dird/ua_label.c:121
 msgid "Slot too large.\n"
-msgstr ""
-
-#: src/dird/ua_label.c:170 src/stored/btape.c:2541
-msgid "scan"
 msgstr ""
 
 #: src/dird/ua_label.c:174 src/dird/ua_label.c:459
@@ -3600,50 +3058,6 @@ msgstr ""
 msgid "ON or OFF keyword missing.\n"
 msgstr ""
 
-#: src/dird/ua_output.c:100
-msgid "directors"
-msgstr ""
-
-#: src/dird/ua_output.c:101 src/dird/ua_output.c:332
-msgid "clients"
-msgstr ""
-
-#: src/dird/ua_output.c:102
-msgid "counters"
-msgstr ""
-
-#: src/dird/ua_output.c:103
-msgid "devices"
-msgstr ""
-
-#: src/dird/ua_output.c:104 src/dird/ua_output.c:259 src/dird/ua_purge.c:166
-msgid "jobs"
-msgstr ""
-
-#: src/dird/ua_output.c:105
-msgid "storages"
-msgstr ""
-
-#: src/dird/ua_output.c:106
-msgid "catalogs"
-msgstr ""
-
-#: src/dird/ua_output.c:107
-msgid "schedules"
-msgstr ""
-
-#: src/dird/ua_output.c:108
-msgid "filesets"
-msgstr ""
-
-#: src/dird/ua_output.c:109 src/dird/ua_output.c:329
-msgid "pools"
-msgstr ""
-
-#: src/dird/ua_output.c:111 src/dird/ua_status.c:101
-msgid "all"
-msgstr ""
-
 #: src/dird/ua_output.c:178
 msgid "Keywords for the show command are:\n"
 msgstr ""
@@ -3660,30 +3074,6 @@ msgstr ""
 
 #: src/dird/ua_output.c:253
 msgid "Hey! DB is NULL\n"
-msgstr ""
-
-#: src/dird/ua_output.c:261 src/dird/ua_output.c:406
-msgid "limit"
-msgstr ""
-
-#: src/dird/ua_output.c:268
-msgid "jobtotals"
-msgstr ""
-
-#: src/dird/ua_output.c:288 src/dird/ua_purge.c:165
-msgid "files"
-msgstr ""
-
-#: src/dird/ua_output.c:307
-msgid "jobmedia"
-msgstr ""
-
-#: src/dird/ua_output.c:337 src/dird/ua_update.c:54
-msgid "media"
-msgstr ""
-
-#: src/dird/ua_output.c:338
-msgid "volumes"
 msgstr ""
 
 #: src/dird/ua_output.c:353
@@ -3709,14 +3099,6 @@ msgstr ""
 msgid "No Volume Name specified.\n"
 msgstr ""
 
-#: src/dird/ua_output.c:403
-msgid "nextvol"
-msgstr ""
-
-#: src/dird/ua_output.c:404
-msgid "nextvolume"
-msgstr ""
-
 #: src/dird/ua_output.c:409
 #, c-format
 msgid "Unknown list keyword: %s\n"
@@ -3740,19 +3122,6 @@ msgstr ""
 msgid "You have no messages.\n"
 msgstr ""
 
-#: src/dird/ua_prune.c:161
-msgid "Files"
-msgstr ""
-
-#: src/dird/ua_prune.c:162 src/dird/ua_prune.c:455
-msgid "Jobs"
-msgstr ""
-
-#: src/dird/ua_prune.c:163 src/dird/ua_purge.c:174 src/dird/ua_purge.c:179
-#: src/stored/label.c:956
-msgid "Volume"
-msgstr ""
-
 #: src/dird/ua_prune.c:174
 msgid "Choose item to prune"
 msgstr ""
@@ -3773,6 +3142,10 @@ msgstr ""
 #: src/dird/ua_prune.c:454
 #, c-format
 msgid "Pruned %d %s for client %s from catalog.\n"
+msgstr ""
+
+#: src/dird/ua_prune.c:455
+msgid "Jobs"
 msgstr ""
 
 #: src/dird/ua_prune.c:502
@@ -3940,12 +3313,6 @@ msgstr ""
 
 #: src/dird/ua_restore.c:211
 msgid "No Restore Job resource found!\n"
-msgstr ""
-
-#: src/dird/ua_restore.c:276 src/dird/ua_select.c:288 src/dird/ua_select.c:325
-#: src/dird/ua_status.c:108 src/lib/bnet_server.c:291
-#: src/lib/bnet_server.c:385
-msgid "client"
 msgstr ""
 
 #: src/dird/ua_restore.c:309
@@ -4184,10 +3551,6 @@ msgid ""
 "%d Jobs, %s files inserted into the tree.\n"
 msgstr ""
 
-#: src/dird/ua_restore.c:954 src/dird/ua_tree.c:60
-msgid "done"
-msgstr ""
-
 #: src/dird/ua_restore.c:1023
 #, c-format
 msgid "Error getting FileSet \"%s\": ERR=%s\n"
@@ -4384,10 +3747,6 @@ msgstr ""
 msgid "Invalid replace option: %s\n"
 msgstr ""
 
-#: src/dird/ua_run.c:464
-msgid "fdcalled"
-msgstr ""
-
 #: src/dird/ua_run.c:500
 #, c-format
 msgid ""
@@ -4494,14 +3853,17 @@ msgstr ""
 msgid "Parameters to modify:\n"
 msgstr ""
 
+#: src/dird/ua_run.c:641
+msgid "Level"
+msgstr ""
+
 #: src/dird/ua_run.c:646 src/wx-console/wxbrestorepanel.cpp:380
 #: src/wx-console/wxbrestorepanel.cpp:808
 #: src/wx-console/wxbrestorepanel.cpp:1833
 msgid "When"
 msgstr ""
 
-#: src/dird/ua_run.c:647 src/dird/pythondir.c:73 src/dird/pythondir.c:83
-#: src/wx-console/wxbrestorepanel.cpp:381
+#: src/dird/ua_run.c:647 src/wx-console/wxbrestorepanel.cpp:381
 #: src/wx-console/wxbrestorepanel.cpp:1079
 #: src/wx-console/wxbrestorepanel.cpp:1835
 msgid "Priority"
@@ -4530,6 +3892,10 @@ msgstr ""
 #: src/wx-console/wxbrestorepanel.cpp:1823
 #: src/wx-console/wxbrestorepanel.cpp:1824
 msgid "Replace"
+msgstr ""
+
+#: src/dird/ua_run.c:658
+msgid "JobId"
 msgstr ""
 
 #: src/dird/ua_run.c:660 src/dird/ua_update.c:430
@@ -4684,6 +4050,10 @@ msgid "The defined Catalog resources are:\n"
 msgstr ""
 
 #: src/dird/ua_select.c:205
+msgid "Catalog"
+msgstr ""
+
+#: src/dird/ua_select.c:205
 msgid "Select Catalog resource"
 msgstr ""
 
@@ -4711,10 +4081,6 @@ msgstr ""
 msgid "Select Client (File daemon) resource"
 msgstr ""
 
-#: src/dird/ua_select.c:289 src/dird/ua_select.c:326
-msgid "fd"
-msgstr ""
-
 #: src/dird/ua_select.c:297
 #, c-format
 msgid "Error: Client resource %s does not exist.\n"
@@ -4723,6 +4089,15 @@ msgstr ""
 #: src/dird/ua_select.c:322
 #, c-format
 msgid "Could not find Client %s: ERR=%s"
+msgstr ""
+
+#: src/dird/ua_select.c:325 src/lib/bnet_server.c:291
+#: src/lib/bnet_server.c:385
+msgid "client"
+msgstr ""
+
+#: src/dird/ua_select.c:326
+msgid "fd"
 msgstr ""
 
 #: src/dird/ua_select.c:332 src/dird/ua_select.c:386
@@ -4821,14 +4196,6 @@ msgstr ""
 msgid "Storage name given twice.\n"
 msgstr ""
 
-#: src/dird/ua_select.c:788
-msgid "storage"
-msgstr ""
-
-#: src/dird/ua_select.c:789
-msgid "sd"
-msgstr ""
-
 #: src/dird/ua_select.c:796
 #, c-format
 msgid "Expecting jobid=nn command, got: %s\n"
@@ -4875,24 +4242,8 @@ msgstr ""
 msgid "You have messages.\n"
 msgstr ""
 
-#: src/dird/ua_status.c:104 src/dird/ua_tree.c:59
-msgid "dir"
-msgstr ""
-
-#: src/dird/ua_status.c:105
-msgid "director"
-msgstr ""
-
 #: src/dird/ua_status.c:126
 msgid "Status available for:\n"
-msgstr ""
-
-#: src/dird/ua_status.c:127
-msgid "Director"
-msgstr ""
-
-#: src/dird/ua_status.c:130
-msgid "All"
 msgstr ""
 
 #: src/dird/ua_status.c:132
@@ -5138,15 +4489,7 @@ msgid "\n"
 msgstr ""
 
 #: src/dird/ua_tree.c:57
-msgid "cd"
-msgstr ""
-
-#: src/dird/ua_tree.c:57
 msgid "change current directory"
-msgstr ""
-
-#: src/dird/ua_tree.c:58
-msgid "count"
 msgstr ""
 
 #: src/dird/ua_tree.c:58
@@ -5170,10 +4513,6 @@ msgid "same as done command"
 msgstr ""
 
 #: src/dird/ua_tree.c:63
-msgid "find"
-msgstr ""
-
-#: src/dird/ua_tree.c:63
 msgid "find files, wildcards allowed"
 msgstr ""
 
@@ -5182,15 +4521,7 @@ msgid "print help"
 msgstr ""
 
 #: src/dird/ua_tree.c:65
-msgid "ls"
-msgstr ""
-
-#: src/dird/ua_tree.c:65
 msgid "list current directory, wildcards allowed"
-msgstr ""
-
-#: src/dird/ua_tree.c:66
-msgid "lsmark"
 msgstr ""
 
 #: src/dird/ua_tree.c:66
@@ -5198,15 +4529,7 @@ msgid "list the marked files in and below the cd"
 msgstr ""
 
 #: src/dird/ua_tree.c:67
-msgid "mark"
-msgstr ""
-
-#: src/dird/ua_tree.c:67
 msgid "mark dir/file to be restored recursively in dirs"
-msgstr ""
-
-#: src/dird/ua_tree.c:68
-msgid "markdir"
 msgstr ""
 
 #: src/dird/ua_tree.c:68
@@ -5214,23 +4537,11 @@ msgid "mark directory name to be restored (no files)"
 msgstr ""
 
 #: src/dird/ua_tree.c:69
-msgid "pwd"
-msgstr ""
-
-#: src/dird/ua_tree.c:69
 msgid "print current working directory"
 msgstr ""
 
 #: src/dird/ua_tree.c:70
-msgid "unmark"
-msgstr ""
-
-#: src/dird/ua_tree.c:70
 msgid "unmark dir/file to be restored recursively in dir"
-msgstr ""
-
-#: src/dird/ua_tree.c:71
-msgid "unmarkdir"
 msgstr ""
 
 #: src/dird/ua_tree.c:71
@@ -5239,10 +4550,6 @@ msgstr ""
 
 #: src/dird/ua_tree.c:72
 msgid "quit and do not do restore"
-msgstr ""
-
-#: src/dird/ua_tree.c:73
-msgid "?"
 msgstr ""
 
 #: src/dird/ua_tree.c:92
@@ -5533,10 +4840,6 @@ msgstr ""
 #: src/dird/verify.c:771 src/tools/testfind.c:338
 #, c-format
 msgid "File: %s\n"
-msgstr ""
-
-#: src/dird/ua_update.c:57
-msgid "slots"
 msgstr ""
 
 #: src/dird/ua_update.c:79
@@ -5921,22 +5224,6 @@ msgstr ""
 
 #: src/dird/ua_update.c:638
 msgid "Pool DB record updated from resource.\n"
-msgstr ""
-
-#: src/dird/pythondir.c:72 src/filed/pythonfd.c:79 src/stored/pythonsd.c:67
-msgid "JobStatus"
-msgstr ""
-
-#: src/dird/pythondir.c:74
-msgid "CatalogRes"
-msgstr ""
-
-#: src/dird/pythondir.c:81 src/filed/pythonfd.c:86 src/stored/pythonsd.c:77
-msgid "JobReport"
-msgstr ""
-
-#: src/dird/pythondir.c:82 src/stored/pythonsd.c:68
-msgid "VolumeName"
 msgstr ""
 
 #: src/dird/pythondir.c:104 src/filed/pythonfd.c:102 src/filed/pythonfd.c:156
@@ -6665,10 +5952,6 @@ msgstr ""
 msgid "Error scanning record header: %s\n"
 msgstr ""
 
-#: src/filed/pythonfd.c:73
-msgid "FDName"
-msgstr ""
-
 #: src/filed/pythonfd.c:150 src/stored/pythonsd.c:154
 #, c-format
 msgid "Cannot delete attribute %s"
@@ -7043,36 +6326,8 @@ msgstr ""
 msgid "Disconnect from Director"
 msgstr ""
 
-#: src/gnome2-console/interface.c:47
-msgid "gtk-quit"
-msgstr ""
-
-#: src/gnome2-console/interface.c:59
-msgid "gtk-cut"
-msgstr ""
-
-#: src/gnome2-console/interface.c:66
-msgid "gtk-copy"
-msgstr ""
-
-#: src/gnome2-console/interface.c:73
-msgid "gtk-paste"
-msgstr ""
-
-#: src/gnome2-console/interface.c:80
-msgid "gtk-clear"
-msgstr ""
-
 #: src/gnome2-console/interface.c:93
 msgid "_Display Messages"
-msgstr ""
-
-#: src/gnome2-console/interface.c:105
-msgid "gtk-preferences"
-msgstr ""
-
-#: src/gnome2-console/interface.c:117
-msgid "gnome-stock-about"
 msgstr ""
 
 #: src/gnome2-console/interface.c:129
@@ -11376,15 +10631,7 @@ msgid "Write failed at block %u.\n"
 msgstr ""
 
 #: src/stored/btape.c:2521
-msgid "autochanger"
-msgstr ""
-
-#: src/stored/btape.c:2521
 msgid "test autochanger"
-msgstr ""
-
-#: src/stored/btape.c:2522
-msgid "bsf"
 msgstr ""
 
 #: src/stored/btape.c:2522
@@ -11392,15 +10639,7 @@ msgid "backspace file"
 msgstr ""
 
 #: src/stored/btape.c:2523
-msgid "bsr"
-msgstr ""
-
-#: src/stored/btape.c:2523
 msgid "backspace record"
-msgstr ""
-
-#: src/stored/btape.c:2524
-msgid "bfill"
 msgstr ""
 
 #: src/stored/btape.c:2524
@@ -11408,15 +10647,7 @@ msgid "fill tape using Bacula writes"
 msgstr ""
 
 #: src/stored/btape.c:2525
-msgid "cap"
-msgstr ""
-
-#: src/stored/btape.c:2525
 msgid "list device capabilities"
-msgstr ""
-
-#: src/stored/btape.c:2526
-msgid "clear"
 msgstr ""
 
 #: src/stored/btape.c:2526
@@ -11424,15 +10655,7 @@ msgid "clear tape errors"
 msgstr ""
 
 #: src/stored/btape.c:2527
-msgid "eod"
-msgstr ""
-
-#: src/stored/btape.c:2527
 msgid "go to end of Bacula data for append"
-msgstr ""
-
-#: src/stored/btape.c:2528
-msgid "eom"
 msgstr ""
 
 #: src/stored/btape.c:2528
@@ -11440,15 +10663,7 @@ msgid "go to the physical end of medium"
 msgstr ""
 
 #: src/stored/btape.c:2529
-msgid "fill"
-msgstr ""
-
-#: src/stored/btape.c:2529
 msgid "fill tape, write onto second volume"
-msgstr ""
-
-#: src/stored/btape.c:2530
-msgid "unfill"
 msgstr ""
 
 #: src/stored/btape.c:2530
@@ -11456,15 +10671,7 @@ msgid "read filled tape"
 msgstr ""
 
 #: src/stored/btape.c:2531
-msgid "fsf"
-msgstr ""
-
-#: src/stored/btape.c:2531
 msgid "forward space a file"
-msgstr ""
-
-#: src/stored/btape.c:2532
-msgid "fsr"
 msgstr ""
 
 #: src/stored/btape.c:2532
@@ -11476,10 +10683,6 @@ msgid "write a Bacula label to the tape"
 msgstr ""
 
 #: src/stored/btape.c:2535
-msgid "load"
-msgstr ""
-
-#: src/stored/btape.c:2535
 msgid "load a tape"
 msgstr ""
 
@@ -11488,15 +10691,7 @@ msgid "quit btape"
 msgstr ""
 
 #: src/stored/btape.c:2537
-msgid "rawfill"
-msgstr ""
-
-#: src/stored/btape.c:2537
 msgid "use write() to fill tape"
-msgstr ""
-
-#: src/stored/btape.c:2538
-msgid "readlabel"
 msgstr ""
 
 #: src/stored/btape.c:2538
@@ -11504,15 +10699,7 @@ msgid "read and print the Bacula tape label"
 msgstr ""
 
 #: src/stored/btape.c:2539
-msgid "rectest"
-msgstr ""
-
-#: src/stored/btape.c:2539
 msgid "test record handling functions"
-msgstr ""
-
-#: src/stored/btape.c:2540
-msgid "rewind"
 msgstr ""
 
 #: src/stored/btape.c:2540
@@ -11524,10 +10711,6 @@ msgid "read() tape block by block to EOT and report"
 msgstr ""
 
 #: src/stored/btape.c:2542
-msgid "scanblocks"
-msgstr ""
-
-#: src/stored/btape.c:2542
 msgid "Bacula read block by block to EOT and report"
 msgstr ""
 
@@ -11536,15 +10719,7 @@ msgid "print tape status"
 msgstr ""
 
 #: src/stored/btape.c:2544
-msgid "test"
-msgstr ""
-
-#: src/stored/btape.c:2544
 msgid "General test Bacula tape functions"
-msgstr ""
-
-#: src/stored/btape.c:2545
-msgid "weof"
 msgstr ""
 
 #: src/stored/btape.c:2545
@@ -11552,23 +10727,11 @@ msgid "write an EOF on the tape"
 msgstr ""
 
 #: src/stored/btape.c:2546
-msgid "wr"
-msgstr ""
-
-#: src/stored/btape.c:2546
 msgid "write a single Bacula block"
 msgstr ""
 
 #: src/stored/btape.c:2547
-msgid "rr"
-msgstr ""
-
-#: src/stored/btape.c:2547
 msgid "read a single record"
-msgstr ""
-
-#: src/stored/btape.c:2548
-msgid "qfill"
 msgstr ""
 
 #: src/stored/btape.c:2548
@@ -12442,6 +11605,10 @@ msgstr ""
 msgid "Fresh Volume"
 msgstr ""
 
+#: src/stored/label.c:956
+msgid "Volume"
+msgstr ""
+
 #: src/stored/label.c:965 src/stored/read_record.c:335
 msgid "End of Media"
 msgstr ""
@@ -13254,10 +12421,6 @@ msgstr ""
 #: src/stored/wait.c:178 src/stored/wait.c:236
 #, c-format
 msgid "Job %s waiting to reserve a device.\n"
-msgstr ""
-
-#: src/stored/pythonsd.c:59
-msgid "SDName"
 msgstr ""
 
 #: src/stored/pythonsd.c:202
