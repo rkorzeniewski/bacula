@@ -146,6 +146,9 @@
 /* Directory for PID files */
 #undef _PATH_BACULA_PIDDIR
 
+/* LOCALEDIR */
+#undef LOCALEDIR
+
 /* Define if you have zlib */
 #undef HAVE_LIBZ
 
@@ -219,4 +222,3 @@
 
 /* Needed on HP-UX/g++ systems to support long long ints (int64) */
 #undef _INCLUDE_LONGLONG
-

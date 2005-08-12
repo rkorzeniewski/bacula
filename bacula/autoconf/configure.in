@@ -117,9 +117,13 @@ BA_CHECK_OPSYS_DISTNAME
 dnl --------------------------------------------------
 dnl Suppport for gettext (translations)
 dnl --------------------------------------------------
-AM_GNU_GETTEXT([external])
+#  AM_GNU_GETTEXT([external])
+if test x${datadir} = xNONE ; then
+   datadir=/usr/share
+fi
 localedir=${datadir}/locale
-LOCAL_DEFS="$LOCAL_DEFS -DLOCALEDIR=\"\\\"${localedir}\\\"\""
+AC_DEFINE_UNQUOTED(LOCALEDIR, "$localdir") 
+ # LOCAL_DEFS="$LOCAL_DEFS -DLOCALEDIR=\"\\\"${localedir}\\\"\""
 
 # ------------------------------------------------------------------
 #  If the user has not set --prefix, we set our default to nothing.
@@ -476,16 +480,16 @@ if test x$support_readline = xyes; then
 	case "$with_readline" in
 	no) : ;;
 	yes|*)
-          if test -f ${with_readline}/readline.h; then
-             CONS_INC="-I${with_readline}"
-             CONS_LDFLAGS="-L$with_readline"
-          elif test -f ${with_readline}/include/readline/readline.h; then
-             CONS_INC="-I${with_readline}/include/readline"
-             CONS_LDFLAGS="-L${with_readline}/lib"
-             with_readline="${with_readline}/include/readline"
-          else
-             with_readline="/usr/include/readline" 
-          fi
+	  if test -f ${with_readline}/readline.h; then
+	     CONS_INC="-I${with_readline}"
+	     CONS_LDFLAGS="-L$with_readline"
+	  elif test -f ${with_readline}/include/readline/readline.h; then
+	     CONS_INC="-I${with_readline}/include/readline"
+	     CONS_LDFLAGS="-L${with_readline}/lib"
+	     with_readline="${with_readline}/include/readline"
+	  else
+	     with_readline="/usr/include/readline" 
+	  fi
 	  AC_CHECK_HEADER(${with_readline}/readline.h, 
 	     [ AC_DEFINE(HAVE_READLINE) 
 	       CONS_LIBS="-lreadline -lhistory -ltermcap"

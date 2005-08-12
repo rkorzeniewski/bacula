@@ -23,7 +23,7 @@ fd_subdirs = src scripts src/lib src/findlib src/filed \
 # Non-client-only directores
 subdirs =    src/cats src/dird src/stored src/tools
 
-all_subdirs = ${fd_subdirs} ${@ALL_DIRS@} po
+all_subdirs = ${fd_subdirs} ${@ALL_DIRS@} 
 
 DIST =	INSTALL README.configure configure Makefile Makefile.in ChangeLog
 
