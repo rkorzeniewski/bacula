@@ -4,6 +4,10 @@
 General:
 
 Changes to 1.37.35:
+12Aug05
+- Disable parts of NLS as the configure does not work here.
+- In job backup init (backup.c) define definitive Job level and
+  since time, *then* apply Job Pool override selection if any.  
 11Aug05
 - Modified bconsole script so that it is improperly
   installed, it will refuse to execute.  This avoids

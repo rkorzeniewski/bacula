@@ -881,7 +881,7 @@ int docmd(monitoritem* item, const char* command, GSList** list) {
       }
 
       if (item->D_sock == NULL) {
-         g_slist_append(*list, _("Cannot connect to daemon.\n"));
+         g_slist_append(*list, (void *)_("Cannot connect to daemon.\n"));
          changeStatusMessage(item, _("Cannot connect to daemon."));
          item->state = error;
          item->oldstate = error;

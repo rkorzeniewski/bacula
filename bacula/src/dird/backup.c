@@ -50,8 +50,14 @@ bool do_backup_init(JCR *jcr)
 {
    FILESET_DBR fsr;
    POOL_DBR pr;
+
+   /* 
+    * Get definitive Job level and since time
+    */
+   get_level_since_time(jcr, jcr->since, sizeof(jcr->since));
+
    /*
-    * Get the Pool record -- first apply any level defined pools
+    * Apply any level related Pool selections
     */
    switch (jcr->JobLevel) {
    case L_FULL:
@@ -96,7 +102,6 @@ bool do_backup_init(JCR *jcr)
    }
    bstrncpy(jcr->FSCreateTime, fsr.cCreateTime, sizeof(jcr->FSCreateTime));
 
-   get_level_since_time(jcr, jcr->since, sizeof(jcr->since));
 
    Dmsg2(900, "cloned=%d run_cmds=%p\n", jcr->cloned, jcr->job->run_cmds);
    if (!jcr->cloned && jcr->job->run_cmds) {

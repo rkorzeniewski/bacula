@@ -146,6 +146,9 @@
 /* Directory for PID files */
 #undef _PATH_BACULA_PIDDIR
 
+/* LOCALEDIR */
+#undef LOCALEDIR
+
 /* Define if you have zlib */
 #undef HAVE_LIBZ
 
@@ -220,7 +223,6 @@
 /* Needed on HP-UX/g++ systems to support long long ints (int64) */
 #undef _INCLUDE_LONGLONG
 
-
 /* Define to 1 if the `closedir' function returns void instead of `int'. */
 #undef CLOSEDIR_VOID
 
@@ -231,10 +233,6 @@
 
 /* Define to 1 if using `alloca.c'. */
 #undef C_ALLOCA
-
-/* Define to 1 if translation of program messages to the user's native
-   language is requested. */
-#undef ENABLE_NLS
 
 /* Define to 1 if you have `alloca', as a function or macro. */
 #undef HAVE_ALLOCA
@@ -249,14 +247,6 @@
 /* Define to 1 if you have the <assert.h> header file. */
 #undef HAVE_ASSERT_H
 
-/* Define to 1 if you have the MacOS X function CFLocaleCopyCurrent in the
-   CoreFoundation framework. */
-#undef HAVE_CFLOCALECOPYCURRENT
-
-/* Define to 1 if you have the MacOS X function CFPreferencesCopyAppValue in
-   the CoreFoundation framework. */
-#undef HAVE_CFPREFERENCESCOPYAPPVALUE
-
 /* Define to 1 if you have the `chflags' function. */
 #undef HAVE_CHFLAGS
 
@@ -265,10 +255,6 @@
 
 /* Define to 1 if you have the <curses.h> header file. */
 #undef HAVE_CURSES_H
-
-/* Define if the GNU dcgettext() function is already present or preinstalled.
-   */
-#undef HAVE_DCGETTEXT
 
 /* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
    */
@@ -310,17 +296,11 @@
 /* Define to 1 if you have the `getpid' function. */
 #undef HAVE_GETPID
 
-/* Define if the GNU gettext() function is already present or preinstalled. */
-#undef HAVE_GETTEXT
-
 /* Define to 1 if you have the `gettimeofday' function. */
 #undef HAVE_GETTIMEOFDAY
 
 /* Define to 1 if you have the <grp.h> header file. */
 #undef HAVE_GRP_H
-
-/* Define if you have the iconv() function. */
-#undef HAVE_ICONV
 
 /* Define to 1 if you have the `inet_ntop' function. */
 #undef HAVE_INET_NTOP
