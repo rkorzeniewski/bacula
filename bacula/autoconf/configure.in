@@ -114,16 +114,16 @@ dnl Bacula OPSys Distribution determination (see aclocal.m4)
 # ----------------------------------------------------------
 BA_CHECK_OPSYS_DISTNAME
 
-dnl --------------------------------------------------
-dnl Suppport for gettext (translations)
-dnl --------------------------------------------------
-#  AM_GNU_GETTEXT([external])
-if test x${datadir} = xNONE ; then
+# --------------------------------------------------
+# Suppport for gettext (translations)
+# By default, $datadir is ${prefix}/share
+# --------------------------------------------------
+AM_GNU_GETTEXT([external])
+if test x${prefix} = xNONE && test x${datadir} = x${prefix}/share ; then
    datadir=/usr/share
 fi
-localedir=${datadir}/locale
-AC_DEFINE_UNQUOTED(LOCALEDIR, "$localdir") 
- # LOCAL_DEFS="$LOCAL_DEFS -DLOCALEDIR=\"\\\"${localedir}\\\"\""
+localedir=`eval echo ${datadir}/locale`
+AC_DEFINE_UNQUOTED(LOCALEDIR, "$localedir") 
 
 # ------------------------------------------------------------------
 #  If the user has not set --prefix, we set our default to nothing.
@@ -544,7 +544,7 @@ MAKE_SHELL=/bin/sh
 AC_SUBST(MAKE_SHELL)
 AC_HEADER_STAT
 AC_HEADER_DIRENT
-AC_CHECK_FUNCS(strcasecmp select setenv putenv tcgetattr setlocale lstat lchown)
+AC_CHECK_FUNCS(strcasecmp select setenv putenv tcgetattr lstat lchown)
 AC_CHECK_FUNCS(nanosleep nl_langinfo)
 AC_CHECK_HEADERS(varargs.h)
 
