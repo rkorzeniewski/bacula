@@ -4,6 +4,10 @@
 General:
 
 Changes to 1.37.*:
+13Aug05
+ - Add gettext macros in autoconf/gettext-macros.
+ - Modify how localedir is set in configure.in.
+ - Remove setlocale check (useless).
 10Aug05
  - Mark translatable strings in all source files.
 08Aug05

@@ -11,6 +11,14 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
+m4_include([gettext-macros/gettext.m4])
+m4_include([gettext-macros/iconv.m4])
+m4_include([gettext-macros/lib-ld.m4])
+m4_include([gettext-macros/lib-link.m4])
+m4_include([gettext-macros/lib-prefix.m4])
+m4_include([gettext-macros/nls.m4])
+m4_include([gettext-macros/po.m4])
+m4_include([gettext-macros/progtest.m4])
 m4_include([bacula-macros/db.m4])
 m4_include([bacula-macros/largefiles.m4])
 m4_include([bacula-macros/os.m4])
