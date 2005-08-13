@@ -3,6 +3,12 @@
 
 General:
 
+Changes to 1.37.36:
+13Aug05
+- Add drive specification to mount, unmount, release, label,
+  and relabel for Autochangers.  Note Dir<->SD protocol has
+  changed.
+
 Changes to 1.37.35:
 12Aug05
 - Disable parts of NLS as the configure does not work here.

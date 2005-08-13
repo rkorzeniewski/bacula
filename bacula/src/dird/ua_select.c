@@ -756,7 +756,7 @@ done:
  * If use_default is set, we assume that any keyword without a value
  *   is the name of the Storage resource wanted.
  */
-STORE *get_storage_resource(UAContext *ua, int use_default)
+STORE *get_storage_resource(UAContext *ua, bool use_default)
 {
    char *store_name = NULL;
    STORE *store = NULL;
@@ -765,13 +765,16 @@ STORE *get_storage_resource(UAContext *ua, int use_default)
    int i;
    char ed1[50];
 
-
+   ua->int32_val = -2;   /* dummy */
    for (i=1; i<ua->argc; i++) {
+      if (strcasecmp("drive", ua->argk[i]) == 0 && ua->argv[i]) {
+         ua->int32_val = atoi(ua->argv[i]);
+      }
       if (use_default && !ua->argv[i]) {
          /* Ignore slots, scan and barcode(s) keywords */
-         if (strncasecmp("scan", ua->argk[i], 4) == 0 ||
-             strncasecmp("barcode", ua->argk[i], 7) == 0 ||
-             strncasecmp("slots", ua->argk[i], 5) == 0) {
+         if (strcasecmp("scan", ua->argk[i]) == 0 ||
+             strcasecmp("barcode", ua->argk[i]) == 0 ||
+             strcasecmp("slots", ua->argk[i]) == 0) {
             continue;
          }
          /* Default argument is storage */
@@ -835,6 +838,15 @@ STORE *get_storage_resource(UAContext *ua, int use_default)
    /* No keywords found, so present a selection list */
    if (!store) {
       store = select_storage_resource(ua);
+   }
+   /* Get drive for autochanger if possible */
+   if (store && store->autochanger && ua->int32_val == -2) {
+      ua->cmd[0] = 0;
+      if (!get_cmd(ua, _("Enter autochanger drive [0]: "))) {
+         ua->int32_val = -1;  /* None */
+      } else {
+         ua->int32_val = atoi(ua->cmd);
+      }
    }
    return store;
 }

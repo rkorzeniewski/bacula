@@ -222,7 +222,7 @@ static int add_cmd(UAContext *ua, const char *cmd)
    }
 
    /* Get media type */
-   if ((store = get_storage_resource(ua, 0)) != NULL) {
+   if ((store = get_storage_resource(ua, false/*no default*/)) != NULL) {
       bstrncpy(mr.MediaType, store->media_type, sizeof(mr.MediaType));
    } else if (!get_media_type(ua, mr.MediaType, sizeof(mr.MediaType))) {
       return 1;
@@ -813,7 +813,7 @@ static int setdebug_cmd(UAContext *ua, const char *cmd)
                return 1;
             }
          }
-         store = get_storage_resource(ua, 0);
+         store = get_storage_resource(ua, false/*no default*/);
          if (store) {
             do_storage_setdebug(ua, store, level, trace_flag);
             return 1;
@@ -835,7 +835,7 @@ static int setdebug_cmd(UAContext *ua, const char *cmd)
       set_trace(trace_flag);
       break;
    case 1:
-      store = get_storage_resource(ua, 0);
+      store = get_storage_resource(ua, false/*no default*/);
       if (store) {
          do_storage_setdebug(ua, store, level, trace_flag);
       }
@@ -1246,19 +1246,21 @@ static void do_mount_cmd(UAContext *ua, const char *command)
    BSOCK *sd;
    JCR *jcr = ua->jcr;
    char dev_name[MAX_NAME_LENGTH];
+   int drive;
 
    if (!open_db(ua)) {
       return;
    }
    Dmsg2(120, "%s: %s\n", command, ua->UA_sock->msg);
 
-   store = get_storage_resource(ua, 1);
+   store = get_storage_resource(ua, true/*use default*/);
    if (!store) {
       return;
    }
+   drive = ua->int32_val;
 
-   Dmsg2(120, "Found storage, MediaType=%s DevName=%s\n",
-      store->media_type, store->dev_name());
+   Dmsg3(120, "Found storage, MediaType=%s DevName=%s drive=%d\n",
+      store->media_type, store->dev_name(), drive);
 
    set_storage(jcr, store);
    if (!connect_to_storage_daemon(jcr, 10, SDConnectTimeout, 1)) {
@@ -1268,7 +1270,7 @@ static void do_mount_cmd(UAContext *ua, const char *command)
    sd = jcr->store_bsock;
    bstrncpy(dev_name, store->dev_name(), sizeof(dev_name));
    bash_spaces(dev_name);
-   bnet_fsend(sd, "%s %s", command, dev_name);
+   bnet_fsend(sd, "%s %s drive=%d", command, dev_name, drive);
    while (bnet_recv(sd) >= 0) {
       bsendmsg(ua, "%s", sd->msg);
    }
@@ -1278,7 +1280,7 @@ static void do_mount_cmd(UAContext *ua, const char *command)
 }
 
 /*
- * mount [storage | device] <name>
+ * mount [storage=<name>] [drive=nn]
  */
 static int mount_cmd(UAContext *ua, const char *cmd)
 {
@@ -1288,7 +1290,7 @@ static int mount_cmd(UAContext *ua, const char *cmd)
 
 
 /*
- * unmount [storage | device] <name>
+ * unmount [storage=<name>] [drive=nn]
  */
 static int unmount_cmd(UAContext *ua, const char *cmd)
 {
@@ -1298,7 +1300,7 @@ static int unmount_cmd(UAContext *ua, const char *cmd)
 
 
 /*
- * release [storage | device] <name>
+ * release [storage=<name>] [drive=nn]
  */
 static int release_cmd(UAContext *ua, const char *cmd)
 {

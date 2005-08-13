@@ -73,7 +73,7 @@ static bool mount_cmd(JCR *jcr);
 static bool unmount_cmd(JCR *jcr);
 static bool autochanger_cmd(JCR *sjcr);
 static bool do_label(JCR *jcr, int relabel);
-static DEVICE *find_device(JCR *jcr, POOL_MEM &dev_name);
+static DEVICE *find_device(JCR *jcr, POOL_MEM &dev_name, int drive);
 static void read_volume_label(JCR *jcr, DEVICE *dev, int Slot);
 static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
                                char *newname, char *poolname,
@@ -308,20 +308,24 @@ static bool do_label(JCR *jcr, int relabel)
    DEVICE *dev;
    bool ok = false;
    int slot;
+   int drive;
 
    newname = get_memory(dir->msglen+1);
    oldname = get_memory(dir->msglen+1);
    poolname = get_memory(dir->msglen+1);
    mtype = get_memory(dir->msglen+1);
    if (relabel) {
-      if (sscanf(dir->msg, "relabel %127s OldName=%127s NewName=%127s PoolName=%127s MediaType=%127s Slot=%d",
-          dev_name.c_str(), oldname, newname, poolname, mtype, &slot) == 6) {
+      if (sscanf(dir->msg, "relabel %127s OldName=%127s NewName=%127s PoolName=%127s "
+                 "MediaType=%127s Slot=%d drive=%d",
+                  dev_name.c_str(), oldname, newname, poolname, mtype, 
+                  &slot, &drive) == 7) {
          ok = true;
       }
    } else {
       *oldname = 0;
-      if (sscanf(dir->msg, "label %127s VolumeName=%127s PoolName=%127s MediaType=%127s Slot=%d",
-          dev_name.c_str(), newname, poolname, mtype, &slot) == 5) {
+      if (sscanf(dir->msg, "label %127s VolumeName=%127s PoolName=%127s "
+                 "MediaType=%127s Slot=%d drive=%d", 
+          dev_name.c_str(), newname, poolname, mtype, &slot, &drive) == 6) {
          ok = true;
       }
    }
@@ -330,7 +334,7 @@ static bool do_label(JCR *jcr, int relabel)
       unbash_spaces(oldname);
       unbash_spaces(poolname);
       unbash_spaces(mtype);
-      dev = find_device(jcr, dev_name);
+      dev = find_device(jcr, dev_name, drive);
       if (dev) {
          P(dev->mutex);               /* Use P to avoid indefinite block */
          if (!dev->is_open()) {
@@ -474,7 +478,7 @@ static bool read_label(DCR *dcr)
    return ok;
 }
 
-static DEVICE *find_device(JCR *jcr, POOL_MEM &devname)
+static DEVICE *find_device(JCR *jcr, POOL_MEM &devname, int drive)
 {
    DEVRES *device;
    AUTOCHANGER *changer;
@@ -517,9 +521,11 @@ static DEVICE *find_device(JCR *jcr, POOL_MEM &devname)
             if (!device->dev->autoselect) {
                continue;              /* device is not available */
             }
-            Dmsg1(20, "Found changer device %s\n", device->hdr.name);
-            found = true;
-            break;
+            if (drive < 0 || drive == (int)device->dev->drive_index) {
+               Dmsg1(20, "Found changer device %s\n", device->hdr.name);
+               found = true;
+               break;
+            }
          }
          break;                    /* we found it but could not open a device */
       }
@@ -543,9 +549,10 @@ static bool mount_cmd(JCR *jcr)
    BSOCK *dir = jcr->dir_bsock;
    DEVICE *dev;
    DCR *dcr;
+   int drive;
 
-   if (sscanf(dir->msg, "mount %127s", devname.c_str()) == 1) {
-      dev = find_device(jcr, devname);
+   if (sscanf(dir->msg, "mount %127s drive=%d", devname.c_str(), &drive) == 2) {
+      dev = find_device(jcr, devname, drive);
       dcr = jcr->dcr;
       if (dev) {
          P(dev->mutex);               /* Use P to avoid indefinite block */
@@ -663,9 +670,10 @@ static bool unmount_cmd(JCR *jcr)
    POOL_MEM devname;
    BSOCK *dir = jcr->dir_bsock;
    DEVICE *dev;
+   int drive;
 
-   if (sscanf(dir->msg, "unmount %127s", devname.c_str()) == 1) {
-      dev = find_device(jcr, devname);
+   if (sscanf(dir->msg, "unmount %127s drive=%d", devname.c_str(), &drive) == 2) {
+      dev = find_device(jcr, devname, drive);
       if (dev) {
          P(dev->mutex);               /* Use P to avoid indefinite block */
          if (!dev->is_open()) {
@@ -732,9 +740,10 @@ static bool release_cmd(JCR *jcr)
    POOL_MEM devname;
    BSOCK *dir = jcr->dir_bsock;
    DEVICE *dev;
+   int drive;
 
-   if (sscanf(dir->msg, "release %127s", devname.c_str()) == 1) {
-      dev = find_device(jcr, devname);
+   if (sscanf(dir->msg, "release %127s drive=%d", devname.c_str(), &drive) == 2) {
+      dev = find_device(jcr, devname, drive);
       if (dev) {
          P(dev->mutex);               /* Use P to avoid indefinite block */
          if (!dev->is_open()) {
@@ -800,17 +809,15 @@ static bool autochanger_cmd(JCR *jcr)
       ok = true;
    }
    if (ok) {
-      dev = find_device(jcr, devname);
+      dev = find_device(jcr, devname, -1);
       dcr = jcr->dcr;
       if (dev) {
          P(dev->mutex);               /* Use P to avoid indefinite block */
          if (!dev->is_tape()) {
             bnet_fsend(dir, _("3995 Device %s is not an autochanger.\n"), 
                dev->print_name());
-         } else if (!dev->is_open()) {
-            autochanger_cmd(dcr, dir, cmd);
          /* Under certain "safe" conditions, we can steal the lock */
-         } else if (dev->can_steal_lock()) {
+         } else if (!dev->is_open() || dev->can_steal_lock()) {
             autochanger_cmd(dcr, dir, cmd);
          } else if (dev->is_busy() || dev->is_blocked()) {
             send_dir_busy_message(dir, dev);
@@ -839,9 +846,11 @@ static bool readlabel_cmd(JCR *jcr)
    BSOCK *dir = jcr->dir_bsock;
    DEVICE *dev;
    int Slot;
+   int drive;
 
-   if (sscanf(dir->msg, "readlabel %127s Slot=%d", devname.c_str(), &Slot) == 2) {
-      dev = find_device(jcr, devname);
+   if (sscanf(dir->msg, "readlabel %127s Slot=%d drive=%d", devname.c_str(), 
+       &Slot, &drive) == 3) {
+      dev = find_device(jcr, devname, drive);
       if (dev) {
          P(dev->mutex);               /* Use P to avoid indefinite block */
          if (!dev->is_open()) {
