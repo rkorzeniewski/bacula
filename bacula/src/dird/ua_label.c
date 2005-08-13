@@ -34,15 +34,15 @@ typedef struct s_vol_list {
 
 /* Forward referenced functions */
 static int do_label(UAContext *ua, const char *cmd, int relabel);
-static void label_from_barcodes(UAContext *ua);
+static void label_from_barcodes(UAContext *ua, int drive);
 static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
-               POOL_DBR *pr, int relabel, bool media_record_exits);
+               POOL_DBR *pr, int relabel, bool media_record_exits, int drive);
 static vol_list_t *get_vol_list_from_SD(UAContext *ua, bool scan);
 static void free_vol_list(vol_list_t *vol_list);
 static bool is_cleaning_tape(UAContext *ua, MEDIA_DBR *mr, POOL_DBR *pr);
 static BSOCK *open_sd_bsock(UAContext *ua);
 static void close_sd_bsock(UAContext *ua);
-static char *get_volume_name_from_SD(UAContext *ua, int Slot);
+static char *get_volume_name_from_SD(UAContext *ua, int Slot, int drive);
 static int get_num_slots_from_SD(UAContext *ua);
 
 
@@ -156,6 +156,7 @@ int update_slots(UAContext *ua)
    char *slot_list;
    bool scan;
    int max_slots;
+   int drive = -1;
 
 
    if (!open_db(ua)) {
@@ -205,7 +206,7 @@ int update_slots(UAContext *ua)
             free(vl->VolName);
             vl->VolName = NULL;
          }
-         vl->VolName = get_volume_name_from_SD(ua, vl->Slot);
+         vl->VolName = get_volume_name_from_SD(ua, vl->Slot, drive);
          Dmsg2(100, "Got Vol=%s from SD for Slot=%d\n", vl->VolName, vl->Slot);
       }
       slot_list[vl->Slot] = 0;        /* clear Slot */
@@ -285,6 +286,7 @@ static int do_label(UAContext *ua, const char *cmd, int relabel)
    bool print_reminder = true;
    int ok = FALSE;
    int i;
+   int drive;
    bool media_record_exists = false;
    static const char *barcode_keyword[] = {
       "barcode",
@@ -296,14 +298,15 @@ static int do_label(UAContext *ua, const char *cmd, int relabel)
    if (!open_db(ua)) {
       return 1;
    }
-   store = get_storage_resource(ua, 1);
+   store = get_storage_resource(ua, true/*use default*/);
    if (!store) {
       return 1;
    }
+   drive = ua->int32_val;
    set_storage(ua->jcr, store);
 
    if (!relabel && find_arg_keyword(ua, barcode_keyword) >= 0) {
-      label_from_barcodes(ua);
+      label_from_barcodes(ua, drive);
       return 1;
    }
 
@@ -389,7 +392,7 @@ checkName:
       }
    }
 
-   ok = send_label_request(ua, &mr, &omr, &pr, relabel, media_record_exists);
+   ok = send_label_request(ua, &mr, &omr, &pr, relabel, media_record_exists, drive);
 
    if (ok) {
       sd = ua->jcr->store_bsock;
@@ -412,7 +415,7 @@ checkName:
          bstrncpy(dev_name, store->dev_name(), sizeof(dev_name));
          bsendmsg(ua, _("Requesting to mount %s ...\n"), dev_name);
          bash_spaces(dev_name);
-         bnet_fsend(sd, "mount %s", dev_name);
+         bnet_fsend(sd, "mount %s drive=%d", dev_name, drive);
          unbash_spaces(dev_name);
          while (bnet_recv(sd) >= 0) {
             bsendmsg(ua, "%s", sd->msg);
@@ -443,7 +446,7 @@ checkName:
  * Request SD to send us the slot:barcodes, then wiffle
  *  through them all labeling them.
  */
-static void label_from_barcodes(UAContext *ua)
+static void label_from_barcodes(UAContext *ua, int drive)
 {
    STORE *store = ua->jcr->store;
    POOL_DBR pr;
@@ -548,7 +551,7 @@ static void label_from_barcodes(UAContext *ua)
       bstrncpy(mr.MediaType, store->media_type, sizeof(mr.MediaType));
 
       mr.Slot = vl->Slot;
-      send_label_request(ua, &mr, &omr, &pr, 0, media_record_exists);
+      send_label_request(ua, &mr, &omr, &pr, 0, media_record_exists, drive);
    }
 
 
@@ -600,7 +603,8 @@ bool is_volume_name_legal(UAContext *ua, const char *name)
  * NOTE! This routine opens the SD socket but leaves it open
  */
 static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
-                               POOL_DBR *pr, int relabel, bool media_record_exists)
+                               POOL_DBR *pr, int relabel, bool media_record_exists,
+                               int drive)
 {
    BSOCK *sd;
    char dev_name[MAX_NAME_LENGTH];
@@ -616,17 +620,21 @@ static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
    bash_spaces(pr->Name);
    if (relabel) {
       bash_spaces(omr->VolumeName);
-      bnet_fsend(sd, "relabel %s OldName=%s NewName=%s PoolName=%s MediaType=%s Slot=%d",
-         dev_name, omr->VolumeName, mr->VolumeName, pr->Name, mr->MediaType, mr->Slot);
+      bnet_fsend(sd, "relabel %s OldName=%s NewName=%s PoolName=%s "
+                     "MediaType=%s Slot=%d drive=%d",
+                 dev_name, omr->VolumeName, mr->VolumeName, pr->Name, 
+                 mr->MediaType, mr->Slot, drive);
       bsendmsg(ua, _("Sending relabel command from \"%s\" to \"%s\" ...\n"),
          omr->VolumeName, mr->VolumeName);
    } else {
-      bnet_fsend(sd, "label %s VolumeName=%s PoolName=%s MediaType=%s Slot=%d",
-         dev_name, mr->VolumeName, pr->Name, mr->MediaType, mr->Slot);
+      bnet_fsend(sd, "label %s VolumeName=%s PoolName=%s MediaType=%s "
+                     "Slot=%d drive=%d",
+                 dev_name, mr->VolumeName, pr->Name, mr->MediaType, 
+                 mr->Slot, drive);
       bsendmsg(ua, _("Sending label command for Volume \"%s\" Slot %d ...\n"),
          mr->VolumeName, mr->Slot);
-      Dmsg5(100, "label %s VolumeName=%s PoolName=%s MediaType=%s Slot=%d\n",
-         dev_name, mr->VolumeName, pr->Name, mr->MediaType, mr->Slot);
+      Dmsg6(100, "label %s VolumeName=%s PoolName=%s MediaType=%s Slot=%d drive=%d\n",
+         dev_name, mr->VolumeName, pr->Name, mr->MediaType, mr->Slot, drive);
    }
 
    while (bnet_recv(sd) >= 0) {
@@ -695,7 +703,7 @@ static void close_sd_bsock(UAContext *ua)
    }
 }
 
-static char *get_volume_name_from_SD(UAContext *ua, int Slot)
+static char *get_volume_name_from_SD(UAContext *ua, int Slot, int drive)
 {
    STORE *store = ua->jcr->store;
    BSOCK *sd;
@@ -710,7 +718,7 @@ static char *get_volume_name_from_SD(UAContext *ua, int Slot)
    bstrncpy(dev_name, store->dev_name(), sizeof(dev_name));
    bash_spaces(dev_name);
    /* Ask for autochanger list of volumes */
-   bnet_fsend(sd, _("readlabel %s Slot=%d\n"), dev_name, Slot);
+   bnet_fsend(sd, _("readlabel %s Slot=%d drive=%d\n"), dev_name, Slot, drive);
    Dmsg1(100, "Sent: %s", sd->msg);
 
    /* Get Volume name in this Slot */
