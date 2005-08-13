@@ -3,6 +3,13 @@
 # Run a simple backup of the Bacula build directory
 #   then restore it.
 #
+debug=0
+if test "$debug" -eq 1 ; then
+  out="tee"
+else
+  out="output"
+fi
+
 cwd=`pwd`
 scripts/copy-confs
 scripts/cleanup
@@ -13,13 +20,10 @@ echo " === Starting Backup Bacula Test at `date +%R:%S` ==="
 echo " === Starting Backup Bacula Test at `date +%R:%S` ===" >>working/log
 echo " "
 
-bin/bacula start 2>&1 >/dev/null
-#bin/bacula start
-bin/bconsole -c bin/bconsole.conf  <<END_OF_DATA 2>&1 >/dev/null
-#bin/bconsole -c bin/bconsole.conf  <<END_OF_DATA
-@output /dev/null
+cat <<END_OF_DATA >tmp/bconcmds
+@$out /dev/null
 messages
-@output tmp/log1.out
+@$out tmp/log1.out
 label volume=TestVolume001
 run job=Client1 yes
 status storage=File
@@ -45,14 +49,23 @@ messages
 @# 
 @# now do a restore
 @#
-@output tmp/log2.out  
+@$out tmp/log2.out  
 restore where=${cwd}/tmp/bacula-restores select all done
 yes
 wait
 messages
-@output
+@$out
 quit
 END_OF_DATA
+
+if test "$debug" -eq 1 ; then
+  bin/bacula start
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+else
+  bin/bacula start 2>&1 >/dev/null
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+fi
+
 scripts/check_for_zombie_jobs storage=File
 bin/bacula stop 2>&1 >/dev/null
 grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null

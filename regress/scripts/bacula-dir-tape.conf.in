@@ -94,7 +94,6 @@ Storage {
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"          # password for Storage daemon
   Device = DDS-4                      # must be same as Device in Storage daemon
   Media Type = DDS-4                  # must be same as MediaType in Storage daemon
-  AutoChanger = yes
   Maximum Concurrent Jobs = 4
 }
 
@@ -160,4 +159,3 @@ Pool {
   Volume Retention = 365d             # one year
   Accept Any Volume = yes             # write on any volume in the pool
 }
-
