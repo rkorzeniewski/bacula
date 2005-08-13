@@ -322,7 +322,7 @@ void* console_thread::Entry() {
                csprint(wxString(wxT("   ")) <<  (i+1) << wxT(": ") << wxString(res[i]->hdr.name,*wxConvCurrent) << wxT("\n"));
             }
          }
-         csprint(wxString::Format(wxT(_("Please choose a director (1-%s): ")), count), CS_DATA);
+         csprint(wxString::Format(wxT(_("Please choose a director (1-%d): ")), count), CS_DATA);
          csprint(NULL, CS_PROMPT);
          choosingdirector = true;
          directorchoosen = -1;

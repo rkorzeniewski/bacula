@@ -738,7 +738,7 @@ void wxbRestorePanel::CmdStart() {
       }
       
       wxbMainFrame::GetInstance()->SetStatusText(
-         wxString::Format(wxT(_("Please configure your restore (%s files selected to be restored)...")), totfilemessages));
+         wxString::Format(wxT(_("Please configure your restore (%ld files selected to be restored)...")), totfilemessages));
       
       UpdateSecondConfig(dt);
       
@@ -843,7 +843,7 @@ void wxbRestorePanel::CmdStart() {
             break;
          case JS_Running:
             wxbMainFrame::GetInstance()->SetStatusText(
-               wxString::Format(wxT(_("Restore job running, please wait (%d of %d files restored)...")), filemessages, totfilemessages));
+               wxString::Format(wxT(_("Restore job running, please wait (%ld of %ld files restored)...")), filemessages, totfilemessages));
             waitforever = true;
             break;
          case JS_Terminated:
