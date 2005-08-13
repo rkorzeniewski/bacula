@@ -18,11 +18,11 @@ echo " === Starting bsr-opt-test at `date +%R:%S` ===" >working/log
 echo " "
 
 bin/bacula start 2>&1 >/dev/null
-#bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
-@tee /dev/null
+bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+# bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
+@output /dev/null
 messages
-@tee tmp/log1.out
+@output tmp/log1.out
 label storage=File1 volume=TestVolume001
 label storage=File1 volume=TestVolume002
 update Volume=TestVolume001 MaxVolBytes=3000000
@@ -32,7 +32,7 @@ messages
 @# 
 @# now do a restore
 @#
-@tee tmp/log2.out
+@output tmp/log2.out
 restore bootstrap=${cwd}/working/restore.bsr where=${cwd}/tmp/bacula-restores select storage=File1
 unmark *
 cd ${cwd}/build/src/cats
@@ -42,7 +42,7 @@ done
 yes
 wait
 messages
-@tee
+@output
 quit
 END_OF_DATA
 scripts/check_for_zombie_jobs storage=File1

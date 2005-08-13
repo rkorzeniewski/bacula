@@ -4,13 +4,14 @@
 #   to a tape then restore it, we do that twice to ensure that
 #   we can correctly append to a tape.
 #
-cwd=`pwd`
 debug=0 
 if test "$debug" -eq 1 ; then
   out="tee"
 else
   out="output"
 fi
+
+cwd=`pwd`
 scripts/copy-tape-confs
 scripts/cleanup-tape
 
