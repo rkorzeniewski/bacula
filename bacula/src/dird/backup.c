@@ -48,14 +48,11 @@ static char EndJob[]     = "2800 End Job TermCode=%d JobFiles=%u "
  */
 bool do_backup_init(JCR *jcr)
 {
-   FILESET_DBR fsr;
    POOL_DBR pr;
 
-   memset(&fsr, 0, sizeof(fsr);
-   if (!get_or_create_fileset_record(jcr, &fsr)) {
+   if (!get_or_create_fileset_record(jcr)) {
       return false;
    }
-   bstrncpy(jcr->FSCreateTime, fsr.cCreateTime, sizeof(jcr->FSCreateTime));
 
    /* 
     * Get definitive Job level and since time

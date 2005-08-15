@@ -5,6 +5,8 @@ General:
 
 Changes to 1.37.36:
 15Aug05
+- Fix how FileSet is saved in job record to correct continual  
+  Full save.
 - Make datadir print on config.out listing.
 - Move get FileSet record up in backup init to eliminate continual
   Full save seen by Peter Sjoberg.

@@ -140,7 +140,7 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
 
    since[0] = 0;
    if (jcr->cloned) {
-      if ( jcr->stime && jcr->stime[0]) {
+      if (jcr->stime && jcr->stime[0]) {
          bstrncpy(since, _(", since="), since_len);
          bstrncat(since, jcr->stime, since_len);
       }
