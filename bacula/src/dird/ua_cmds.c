@@ -902,7 +902,6 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
    JOB *job = NULL;
    CLIENT *client = NULL;
    FILESET *fileset = NULL;
-   FILESET_DBR fsr;
    int listing = 0;
    char since[MAXSTRING];
    JCR *jcr = ua->jcr;
@@ -973,7 +972,7 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
    if (!get_or_create_client_record(jcr)) {
       return 1;
    }
-   if (!get_or_create_fileset_record(jcr, &fsr)) {
+   if (!get_or_create_fileset_record(jcr)) {
       return 1;
    }
 
