@@ -58,29 +58,30 @@ struct s_vars {
 
 /* Read-only variables */
 static struct s_vars getvars[] = {
-   { N_("Job"),        "s"},
-   { N_("Level"),      "s"},
-   { N_("Type"),       "s"},
-   { N_("JobId"),      "i"},
-   { N_("Client"),     "s"},
-   { N_("NumVols"),    "i"},
-   { N_("Pool"),       "s"},
-   { N_("Storage"),    "s"},
-   { N_("Catalog"),    "s"},
-   { N_("MediaType"),  "s"},
-   { N_("JobName"),    "s"},
-   { N_("JobStatus"),  "s"},
-   { N_("Priority"),   "i"},
-   { N_("CatalogRes"), "(sssssis)"},
+   { "Job",        "s"},
+   { "Level",      "s"},
+   { "Type",       "s"},
+   { "JobId",      "i"},
+   { "Client",     "s"},
+   { "NumVols",    "i"},
+   { "Pool",       "s"},
+   { "Storage",    "s"},
+   { "Catalog",    "s"},
+   { "MediaType",  "s"},
+   { "JobName",    "s"},
+   { "JobStatus",  "s"},
+   { "Priority",   "i"},
+   { "VolumeName", "s"},
+   { "CatalogRes", "(sssssis)"},
 
    { NULL,             NULL}
 };
 
 /* Writable variables */
 static struct s_vars setvars[] = {
-   { N_("JobReport"),   "s"},
-   { N_("VolumeName"),  "s"},
-   { N_("Priority"),    "i"},
+   { "JobReport",   "s"},
+   { "VolumeName",  "s"},
+   { "Priority",    "i"},
 
    { NULL,             NULL}
 };
@@ -152,7 +153,9 @@ PyObject *job_getattr(PyObject *self, char *attrname)
       return Py_BuildValue(getvars[i].fmt, buf);
    case 12:                           /* Priority */
       return Py_BuildValue(getvars[i].fmt, jcr->JobPriority);
-   case 13:                           /* CatalogRes */
+   case 13:
+      return Py_BuildValue(getvars[i].fmt, jcr->VolumeName);
+   case 14:                           /* CatalogRes */
       return Py_BuildValue(getvars[i].fmt,
          jcr->catalog->db_name, jcr->catalog->db_address, 
          jcr->catalog->db_user, jcr->catalog->db_password,

@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     04 August 2005
+                     13 August 2005
 
 Major development:      
 Project                     Developer
@@ -11,6 +11,11 @@ Final items for 1.37 before release:
 1. Fix bugs
 - Tape xxx in drive 0, requested in drive 1
 - The mount command does not work with drives other than 0.
+- A mount should cause the SD to re-examine what Slot is   
+  loaded.
+- The SD locks on to the first available drive then
+  wants a Volume that is released but in another drive --
+  chaos.
 - Look at fixing restore status stats in SD.
 - My database is growing
 
@@ -30,6 +35,8 @@ Document:
   records have been removed from the catalog.
 
 For 1.39:
+- "Resuming" a failed backup (lost line for example) by using the
+  failed backup as a sort of "base" job.
 - Look at NDMP
 - Email to the user when the tape is about to need changing x
   days before it needs changing.

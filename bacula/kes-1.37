@@ -4,6 +4,15 @@
 General:
 
 Changes to 1.37.36:
+15Aug05
+- Make datadir print on config.out listing.
+- Move get FileSet record up in backup init to eliminate continual
+  Full save seen by Peter Sjoberg.
+- Add VolumeName to read-only Python variables.
+- Add VolumePurged event for Python.
+- Suppress /dev/ Filesystem change prohibited INFO messages.
+- Do not delete FT_RAW files before restore (allows FIFOs
+  to be used for restore).
 13Aug05
 - Add drive specification to mount, unmount, release, label,
   and relabel for Autochangers.  Note Dir<->SD protocol has
