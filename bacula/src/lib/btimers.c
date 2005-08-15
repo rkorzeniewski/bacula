@@ -93,11 +93,13 @@ static void callback_child_timer(watchdog_t *self)
 
       Dmsg2(050, "watchdog %p term PID %d\n", self, wid->pid);
 
-      /* Kill -TERM the specified PID, and reschedule a -KILL for 3 seconds
-       * later.
+      /* Kill -TERM the specified PID, and reschedule a -KILL for 5 seconds
+       * later. (Warning: this should let dvd-writepart enough time to term
+       * and kill growisofs, which takes 3 seconds, so the interval must not
+       * be less than 5 seconds)
        */
       kill(wid->pid, SIGTERM);
-      self->interval = 3;
+      self->interval = 5;
    } else {
       /* This is the second call - terminate with prejudice. */
       Dmsg2(050, "watchdog %p kill PID %d\n", self, wid->pid);
