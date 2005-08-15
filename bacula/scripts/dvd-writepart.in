@@ -1,4 +1,4 @@
-#!/bin/bash
+#!@PYTHON@
 #
 # Bacula interface to growisofs, used to write to DVD+/-R(W)
 #
@@ -6,75 +6,114 @@
 #
 #  If you set in your Device resource
 #
-#  Write Part Command = "path-to-this-script/dvd-writepart %n %a %v"
+#  Write Part Command = "path-to-this-script/dvd-writepart %e %a %v"
 #    you will have the following input to this script:
 #
 #  dvd-writepart "erase"  "device"  "part_filename"
-#		    $1	     $2 	  $3
+#                   1         2           3
 #
 #  for example:
 #
 #  dvd-writepart 0 /dev/hda File-0001
 
-MKISOFS=@MKISOFS@
-GROWISOFS=@GROWISOFS@
+mkisofs = "@MKISOFS@"
+growcmd = "@GROWISOFS@"
 
-# GROWARGS="-use-the-force-luke=tty -quiet"
-GROWARGS="-quiet"
+growcmd += " -use-the-force-luke=tty"
+growcmd += " -quiet"
 
-# Uncomment the following line if you do not want the tray to be reloaded
+# Comment the following line if you want the tray to be reloaded
 # when writing ends.
-GROWARGS="${GROWARGS} -use-the-force-luke=notray"
+growcmd += " -use-the-force-luke=notray"
 
 #### You should probably not modify anything below this line
 
-# If Linux kernel version >=2.6.8, allow a session to start beyond the
-# 4gb boundary.
-kver=`uname -r | cut -d. -f1,2`
-ksubver=`uname -r | cut -d. -f3 | cut -d- -f1`
+import popen2
+import os
+import sys
+import time
+import signal
 
-if test "a$kver" = "a2.6" ; then
-   if test "$ksubver" -gt 7 ; then
-      echo "Kernel version >= 2.6.8, allowing to cross the 4gb boundary."
-      GROWARGS="${GROWARGS} -use-the-force-luke=4gms"
-   fi
-fi
+pid=0
 
-if test $# -ne 3 ; then
-  echo "usage: dvd-writepart part_number device part_filename"
-  echo "  Wrong number of arguments arguments given (!= 3)."
-  exit 1
-fi
+def is4gbsupported():
+   processi = popen2.Popen4("uname -s -r")
+   status = processi.wait()
+   if not os.WIFEXITED(status):
+      print "dvd-writepart: Cannot execute uname, allowing to cross the 4gb boundary."
+      return 1
+   if os.WEXITSTATUS(status) != 0:
+      print "dvd-writepart: Cannot execute uname, allowing to cross the 4gb boundary."
+      return 1
+   strres = processi.fromchild.readline()[0:-1]
+   res = strres.split(" ")
+   if len(res) != 2:
+      print "dvd-writepart: Unable to parse uname (" + strres + "), allowing to cross the 4gb boundary."
+      return 1
+   if res[0] != "Linux":
+      print "dvd-writepart: The current OS is no Linux, allowing to cross the 4gb boundary."
+      return 1
+   ver = res[1].split(".")
+   if len(ver) < 3:
+      print "dvd-writepart: Unable to parse version string (" + res[1] + "), allowing to cross the 4gb boundary."
+      return 1
+   subver = ver[2].split("-")
+   
+   if ((not ver[0].isdigit()) or (not ver[1].isdigit()) or (not subver[0].isdigit())):
+      print "dvd-writepart: Unable to parse version string (" + res[1] + "), allowing to cross the 4gb boundary."
+      return 1
+   
+   if (int(ver[0]) > 2) or (int(ver[1]) > 6) or ((int(ver[0]) == 2) and (int(ver[1]) == 6) and (int(subver[0]) >= 8)):
+      print "dvd-writepart: Kernel version >=2.6.8, allowing to cross the 4gb boundary."
+      return 1
+   else:
+      print "dvd-writepart: Kernel version <2.6.8, not allowing to cross the 4gb boundary."
+      return 0
 
-# Setup arguments
-erase=$1
-dev=$2
-filename=$3
+def term_handler(signum, frame):
+   print 'dvd-writepart: Signal term_handler called with signal', signum
+   if pid != 0:
+      print "dvd-writepart: Sending SIGTERM to pid", pid
+      os.kill(pid, signal.SIGTERM)
+      time.sleep(3)
+      print "dvd-writepart: Sending SIGKILL to pid", pid
+      os.kill(pid, signal.SIGKILL)
+      sys.exit(1)
 
-if test $erase = 1 ; then
-  arg="-Z"
-else
-  arg="-M"  
-fi
+if len(sys.argv) != 4:
+   print "dvd-writepart: Wrong number of arguments."
+   sys.exit(1)
 
-# Starts growisofs
-echo Running ${GROWISOFS} ${GROWARGS} $arg $dev -R $filename...
-${GROWISOFS} ${GROWARGS} $arg $dev -R $filename &
-#bash -c "while [ 1 ]; do echo "G"; sleep 1; done" &
-growpid=$!
-parentpid=$$
+if is4gbsupported():
+   growcmd += " -use-the-force-luke=4gms"
 
-# Starts watchdog : checks if the parent is alive. If not, kill
-# growisofs.
+if sys.argv[1] == "0":
+   growcmd += " -M"
+else:
+   growcmd += " -Z"
 
-bash -c "rtn=0; while [ \$rtn = 0 ]; do sleep 5; ps -p $parentpid > /dev/null; rtn=\$?; done; echo \"Parent dead killing $growpid\"; kill $growpid; sleep 5; kill -9 $growpid" &
-watchpid=$!
+growcmd += " " + sys.argv[2] # device
+growcmd += " -R " + sys.argv[3] # filename
 
-# Waits for growisofs to stop
-wait $growpid
-rtn=$?
+#Test cmd:
+#growcmd = "bash -c \"while [ 1 ]; do echo \"G\"; sleep 5; done\""
 
-# Kill the watchdog
-kill -9 $watchpid
+print "dvd-writepart: executing: " + growcmd
 
-exit $rtn
+signal.signal(signal.SIGTERM, term_handler)
+
+processi = popen2.Popen4(growcmd)
+pid = processi.pid
+status = processi.poll()
+while status == -1:
+   line = processi.fromchild.readline()
+   while len(line) > 0:
+      print line,
+      line = processi.fromchild.readline()
+   time.sleep(1)
+   status = processi.poll()
+
+if os.WEXITSTATUS(status) != 0:
+   print "dvd-writepart: Bad exit status " + str(os.WEXITSTATUS(status))
+   sys.exit(os.WEXITSTATUS(status))
+

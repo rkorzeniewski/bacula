@@ -4,6 +4,10 @@
 General:
 
 Changes to 1.37.*:
+15Aug05
+ - Convert dvd-writepart to Python.
+ - Increase delay from 3 seconds to 5 seconds between SIGTERM and SIGKILL when
+   killing external programs.
 13Aug05
  - Add gettext macros in autoconf/gettext-macros.
  - Modify how localedir is set in configure.in.
