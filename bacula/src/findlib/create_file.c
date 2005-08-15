@@ -111,7 +111,13 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
    case FT_SPEC:
    case FT_REGE:                      /* empty file */
    case FT_REG:                       /* regular file */
-      if (exists) {
+      /* 
+       * Note, we do not delete FT_RAW because these are device files
+       *  or FIFOs that should already exist. If we blow it away,
+       *  we may blow away a FIFO that is being used to read the
+       *  restore data, or we may blow away a partition definition.
+       */
+      if (exists && attr->type != FT_RAW) {
          /* Get rid of old copy */
          if (unlink(attr->ofname) == -1) {
             berrno be;

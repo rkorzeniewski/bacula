@@ -51,6 +51,12 @@ bool do_backup_init(JCR *jcr)
    FILESET_DBR fsr;
    POOL_DBR pr;
 
+   memset(&fsr, 0, sizeof(fsr);
+   if (!get_or_create_fileset_record(jcr, &fsr)) {
+      return false;
+   }
+   bstrncpy(jcr->FSCreateTime, fsr.cCreateTime, sizeof(jcr->FSCreateTime));
+
    /* 
     * Get definitive Job level and since time
     */
@@ -96,12 +102,6 @@ bool do_backup_init(JCR *jcr)
    }
    jcr->PoolId = pr.PoolId;               /****FIXME**** this can go away */
    jcr->jr.PoolId = pr.PoolId;
-
-   if (!get_or_create_fileset_record(jcr, &fsr)) {
-      return false;
-   }
-   bstrncpy(jcr->FSCreateTime, fsr.cCreateTime, sizeof(jcr->FSCreateTime));
-
 
    Dmsg2(900, "cloned=%d run_cmds=%p\n", jcr->cloned, jcr->job->run_cmds);
    if (!jcr->cloned && jcr->job->run_cmds) {

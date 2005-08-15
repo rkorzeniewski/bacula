@@ -122,8 +122,6 @@ AM_GNU_GETTEXT([external])
 if test x${prefix} = xNONE && test x${datadir} = x${prefix}/share ; then
    datadir=/usr/share
 fi
-localedir=`eval echo ${datadir}/locale`
-AC_DEFINE_UNQUOTED(LOCALEDIR, "$localedir") 
 
 # ------------------------------------------------------------------
 #  If the user has not set --prefix, we set our default to nothing.
@@ -138,6 +136,9 @@ if test x${prefix} = xNONE ; then
     prefix=
 fi
 sysconfdir=`eval echo ${sysconfdir}`
+datadir=`eval echo ${datadir}`
+localedir=`eval echo ${datadir}/locale`
+AC_DEFINE_UNQUOTED(LOCALEDIR, "$localedir") 
 
 # -------------------------------------------------------------------------
 #  If the user has not set --exec-prefix, we default to ${prefix}
@@ -2017,6 +2018,7 @@ Configuration on `date`:
   PID directory:	      ${piddir}
   Subsys directory:	      ${subsysdir}
   Man directory:	      ${mandir}
+  Data directory:	      ${datadir}
   C Compiler:		      ${CC} ${CCVERSION}
   C++ Compiler: 	      ${CXX} ${CXXVERSION}
   Compiler flags:	      ${WCFLAGS} ${CFLAGS} 

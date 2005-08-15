@@ -26,7 +26,6 @@
 #include "dird.h"
 
 /* Imported functions */
-int mark_media_purged(UAContext *ua, MEDIA_DBR *mr);
 
 /* Forward referenced functions */
 

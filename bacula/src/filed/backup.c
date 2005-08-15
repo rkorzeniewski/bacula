@@ -152,21 +152,25 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
    case FT_DIRBEGIN:
       return 1;                       /* not used */
    case FT_NORECURSE:
+     Jmsg(jcr, M_INFO, 1, _("     Recursion turned off. Will not descend into %s\n"),
+          ff_pkt->fname);
+      ff_pkt->type = FT_DIREND;       /* Backup only the directory entry */
+      break;
    case FT_NOFSCHG:
-   case FT_INVALIDFS:
-   case FT_DIREND:
-      if (ff_pkt->type == FT_NORECURSE) {
-         Jmsg(jcr, M_INFO, 1, _("     Recursion turned off. Will not descend into %s\n"),
-            ff_pkt->fname);
-      } else if (ff_pkt->type == FT_NOFSCHG) {
-         Jmsg(jcr, M_INFO, 1, _("     File system change prohibited. Will not descend into %s\n"),
-            ff_pkt->fname);
-      } else if (ff_pkt->type == FT_INVALIDFS) {
-         Jmsg(jcr, M_INFO, 1, _("     Disallowed filesystem. Will not descend into %s\n"),
+      /* Suppress message for /dev filesystems */
+      if (strncmp(ff_pkt->fname, "/dev/", 5) != 0) {
+         Jmsg(jcr, M_INFO, 1, _("     Filesystem change prohibited. Will not descend into %s\n"),
             ff_pkt->fname);
       }
-      ff_pkt->type = FT_DIREND;       /* value is used below */
-      Dmsg1(130, "FT_DIR saving: %s\n", ff_pkt->link);
+      ff_pkt->type = FT_DIREND;       /* Backup only the directory entry */
+      break;
+   case FT_INVALIDFS:
+      Jmsg(jcr, M_INFO, 1, _("     Disallowed filesystem. Will not descend into %s\n"),
+           ff_pkt->fname);
+      ff_pkt->type = FT_DIREND;       /* Backup only the directory entry */
+      break;
+   case FT_DIREND:
+      Dmsg1(130, "FT_DIREND: %s\n", ff_pkt->link);
       break;
    case FT_SPEC:
       Dmsg1(130, "FT_SPEC saving: %s\n", ff_pkt->fname);

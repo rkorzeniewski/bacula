@@ -32,13 +32,7 @@
 static int purge_files_from_client(UAContext *ua, CLIENT *client);
 static int purge_jobs_from_client(UAContext *ua, CLIENT *client);
 
-void purge_files_from_volume(UAContext *ua, MEDIA_DBR *mr );
-int purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr);
-void purge_files_from_job(UAContext *ua, JOB_DBR *jr);
-int mark_media_purged(UAContext *ua, MEDIA_DBR *mr);
-
 #define MAX_DEL_LIST_LEN 1000000
-
 
 static const char *select_jobsfiles_from_client =
    "SELECT JobId FROM Job "
@@ -569,17 +563,20 @@ bail_out:
  * IF volume status is Append, Full, Used, or Error, mark it Purged
  *   Purged volumes can then be recycled (if enabled).
  */
-int mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
+bool mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
 {
+   JCR *jcr = ua->jcr;
    if (strcmp(mr->VolStatus, "Append") == 0 ||
        strcmp(mr->VolStatus, "Full")   == 0 ||
        strcmp(mr->VolStatus, "Used")   == 0 ||
        strcmp(mr->VolStatus, "Error")  == 0) {
       bstrncpy(mr->VolStatus, "Purged", sizeof(mr->VolStatus));
-      if (!db_update_media_record(ua->jcr, ua->db, mr)) {
-         return 0;
+      if (!db_update_media_record(jcr, ua->db, mr)) {
+         return false;
       }
-      return 1;
+      pm_strcpy(jcr->VolumeName, mr->VolumeName);
+      generate_job_event(jcr, "VolumePurged");
+      return true;
    } else {
       bsendmsg(ua, _("Cannot purge Volume with VolStatus=%s\n"), mr->VolStatus);
    }
