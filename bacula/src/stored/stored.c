@@ -508,11 +508,6 @@ void *device_initialization(void *arg)
          if (!first_open_device(dcr)) {
             Jmsg1(NULL, M_ERROR, 0, _("Could not open device %s\n"), dev->print_name());
             Dmsg1(20, "Could not open device %s\n", dev->print_name());
-
-#ifdef xxx
-            term_dev(dev);
-            device->dev = NULL;
-#endif
             free_dcr(dcr);
             continue;
          }

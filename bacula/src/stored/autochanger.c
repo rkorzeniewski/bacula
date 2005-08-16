@@ -47,7 +47,7 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
    JCR *jcr = dcr->jcr;
    DEVICE *dev = dcr->dev;
    int slot;
-   int drive = dev->device->drive_index;
+   int drive = dev->drive_index;
    int rtn_stat = -1;                 /* error status */
    POOLMEM *changer;
 
