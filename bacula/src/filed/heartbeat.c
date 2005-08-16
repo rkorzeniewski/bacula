@@ -26,7 +26,7 @@
 #include "bacula.h"
 #include "filed.h"
 
-#define WAIT_INTERVAL 10
+#define WAIT_INTERVAL 5
 
 extern "C" void *sd_heartbeat_thread(void *arg);
 extern "C" void *dir_heartbeat_thread(void *arg);
@@ -49,12 +49,6 @@ extern "C" void *sd_heartbeat_thread(void *arg)
 
    /* Get our own local copy */
    sd = dup_bsock(jcr->store_bsock);
-#ifndef WIN32
-   int oflags;
-   if ((oflags = fcntl(sd->fd, F_GETFL, 0)) != -1) {
-      fcntl(sd->fd, F_SETFL, oflags|O_NONBLOCK);
-   }
-#endif
    dir = dup_bsock(jcr->dir_bsock);
 
    jcr->hb_bsock = sd;
@@ -138,8 +132,6 @@ void stop_heartbeat_monitor(JCR *jcr)
    while (jcr->hb_bsock && cnt++ < 200) {
       pthread_kill(jcr->heartbeat_id, TIMEOUT_SIGNAL);  /* make heartbeat thread go away */
       bmicrosleep(0, 500000);
-   }
-   if (jcr->hb_bsock) {
    }
 }
 

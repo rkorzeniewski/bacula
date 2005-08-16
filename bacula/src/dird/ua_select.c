@@ -762,14 +762,10 @@ STORE *get_storage_resource(UAContext *ua, bool use_default)
    STORE *store = NULL;
    int jobid;
    JCR *jcr;
-   int i;
+   int i, drive;
    char ed1[50];
 
-   ua->int32_val = -2;   /* dummy */
    for (i=1; i<ua->argc; i++) {
-      if (strcasecmp("drive", ua->argk[i]) == 0 && ua->argv[i]) {
-         ua->int32_val = atoi(ua->argv[i]);
-      }
       if (use_default && !ua->argv[i]) {
          /* Ignore slots, scan and barcode(s) keywords */
          if (strcasecmp("scan", ua->argk[i]) == 0 ||
@@ -840,14 +836,21 @@ STORE *get_storage_resource(UAContext *ua, bool use_default)
       store = select_storage_resource(ua);
    }
    /* Get drive for autochanger if possible */
-   if (store && store->autochanger && ua->int32_val == -2) {
-      ua->cmd[0] = 0;
-      if (!get_cmd(ua, _("Enter autochanger drive [0]: "))) {
-         ua->int32_val = -1;  /* None */
+   drive = -2;             /* dummy */
+   if (store && store->autochanger) {
+      i = find_arg_with_value(ua, "drive");
+      if (i >=0) {
+         drive = atoi(ua->argv[i]);
       } else {
-         ua->int32_val = atoi(ua->cmd);
+         ua->cmd[0] = 0;
+         if (!get_cmd(ua, _("Enter autochanger drive[0]: "))) {
+            drive = -1;  /* None */
+         } else {
+            drive = atoi(ua->cmd);
+         }
       }
    }
+   ua->int32_val = drive;
    return store;
 }
 

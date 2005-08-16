@@ -332,6 +332,10 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
    int ioerrcnt = 10;
    Dmsg0(29, "open dev: device is tape\n");
 
+   if (is_tape() && is_autochanger()) {
+      get_autochanger_loaded_slot(dcr);
+   }
+
    set_mode(omode);
    timeout = max_open_wait;
    errno = 0;

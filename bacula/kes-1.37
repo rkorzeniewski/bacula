@@ -4,6 +4,13 @@
 General:
 
 Changes to 1.37.36:
+16Aug05
+- Fix bug that missed drive=nn specification.
+- Eliminate nonblocking kludge in heartbeat of FD as
+  it caused high CPU usage.
+- Pickup loaded slot when doing open() of tape drive.
+- Make autochanger reservation code go through full list
+  first pass until exact match found.
 15Aug05
 - Fix how FileSet is saved in job record to correct continual  
   Full save.

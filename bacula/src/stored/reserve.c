@@ -454,8 +454,7 @@ static int search_res_for_device(RCTX &rctx)
    foreach_res(rctx.device, R_DEVICE) {
       Dmsg1(100, "Try res=%s\n", rctx.device->hdr.name);
       /* Find resource, and make sure we were able to open it */
-      if (fnmatch(rctx.device_name, rctx.device->hdr.name, 0) == 0 &&
-          strcmp(rctx.device->media_type, rctx.store->media_type) == 0) {
+      if (fnmatch(rctx.device_name, rctx.device->hdr.name, 0) == 0) {
          stat = reserve_device(rctx);
          if (stat != 1) {
             return stat;
@@ -506,6 +505,12 @@ static int reserve_device(RCTX &rctx)
    bool ok;
    DCR *dcr;
    const int name_len = MAX_NAME_LENGTH;
+
+   /* Make sure MediaType is OK */
+   if (strcmp(rctx.device->media_type, rctx.store->media_type) != 0) {
+      return -1;
+   }
+
    if (!rctx.device->dev) {
       rctx.device->dev = init_dev(rctx.jcr, rctx.device);
    }
@@ -653,8 +658,7 @@ static int can_reserve_drive(DCR *dcr, bool PreferMountedVols)
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
 
-   if (PreferMountedVols && !dev->VolHdr.VolumeName[0] &&
-       dev->is_tape() && !dev->is_autochanger()) {
+   if (PreferMountedVols && !dev->VolHdr.VolumeName[0] && dev->is_tape()) {
       return 0;                 /* No volume mounted */
    }
 

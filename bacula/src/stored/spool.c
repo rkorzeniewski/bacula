@@ -114,7 +114,7 @@ bool commit_data_spool(DCR *dcr)
       Dmsg0(100, "Committing spooled data\n");
       stat = despool_data(dcr, true /*commit*/);
       if (!stat) {
-         Pmsg1(000, _("Bad return from despool WroteVol=%d\n"), dcr->WroteVol);
+         Dmsg1(100, _("Bad return from despool WroteVol=%d\n"), dcr->WroteVol);
          close_data_spool_file(dcr);
          return false;
       }

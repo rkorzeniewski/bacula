@@ -69,13 +69,20 @@ static int32_t read_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
 
    nleft = nbytes;
    while (nleft > 0) {
-      do {
-         errno = 0;
-         nread = socketRead(bsock->fd, ptr, nleft);
-         if (bsock->timed_out || bsock->terminated) {
-            return nread;
+      errno = 0;
+      nread = socketRead(bsock->fd, ptr, nleft);
+      if (bsock->timed_out || bsock->terminated) {
+         return nread;
+      }
+      if (nread == -1) {
+         if (errno == EINTR) {
+            continue;
          }
-      } while (nread == -1 && (errno == EINTR || errno == EAGAIN));
+         if (errno == EAGAIN) {
+            bmicrosleep(0, 200000);  /* try again in 200ms */
+            continue;
+         }
+      }
       if (nread <= 0) {
          return nread;             /* error, or EOF */
       }
@@ -537,7 +544,7 @@ int bnet_wait_data(BSOCK * bsock, int sec)
          return 0;
       case -1:
          bsock->b_errno = errno;
-         if (errno == EINTR || errno == EAGAIN) {
+         if (errno == EINTR) {
             continue;
          }
          return -1;                /* error return */
@@ -982,15 +989,15 @@ int bnet_set_nonblocking (BSOCK *bsock) {
    int oflags;
 
    /* Get current flags */
-   if((oflags = fcntl(bsock->fd, F_GETFL, 0)) < 0) {
+   if ((oflags = fcntl(bsock->fd, F_GETFL, 0)) < 0) {
       berrno be;
-      Emsg1(M_ABORT, 0, _("fcntl F_GETFL error. ERR=%s\n"), be.strerror());
+      Jmsg1(bsock->jcr, M_ABORT, 0, _("fcntl F_GETFL error. ERR=%s\n"), be.strerror());
    }
 
    /* Set O_NONBLOCK flag */
-   if((fcntl(bsock->fd, F_SETFL, oflags|O_NONBLOCK)) < 0) {
+   if ((fcntl(bsock->fd, F_SETFL, oflags|O_NONBLOCK)) < 0) {
       berrno be;
-      Emsg1(M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.strerror());
+      Jmsg1(bsock->jcr, M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.strerror());
    }
 
    bsock->blocking = 0;
@@ -1003,7 +1010,7 @@ int bnet_set_nonblocking (BSOCK *bsock) {
    ioctlsocket(bsock->fd, FIONBIO, &ioctlArg);
    bsock->blocking = 0;
 
-   return (flags);
+   return flags;
 #endif
 }
 
@@ -1011,23 +1018,24 @@ int bnet_set_nonblocking (BSOCK *bsock) {
  * Set socket blocking
  * Returns previous socket flags
  */
-int bnet_set_blocking (BSOCK *bsock) {
+int bnet_set_blocking (BSOCK *bsock) 
+{
 #ifndef WIN32
    int oflags;
    /* Get current flags */
-   if((oflags = fcntl(bsock->fd, F_GETFL, 0)) < 0) {
+   if ((oflags = fcntl(bsock->fd, F_GETFL, 0)) < 0) {
       berrno be;
-      Emsg1(M_ABORT, 0, _("fcntl F_GETFL error. ERR=%s\n"), be.strerror());
+      Jmsg1(bsock->jcr, M_ABORT, 0, _("fcntl F_GETFL error. ERR=%s\n"), be.strerror());
    }
 
    /* Set O_NONBLOCK flag */
-   if((fcntl(bsock->fd, F_SETFL, oflags & ~O_NONBLOCK)) < 0) {
+   if ((fcntl(bsock->fd, F_SETFL, oflags & ~O_NONBLOCK)) < 0) {
       berrno be;
-      Emsg1(M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.strerror());
+      Jmsg1(bsock->jcr, M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.strerror());
    }
 
    bsock->blocking = 1;
-   return (oflags);
+   return oflags;
 #else
    int flags;
    u_long ioctlArg = 0;
@@ -1036,18 +1044,19 @@ int bnet_set_blocking (BSOCK *bsock) {
    ioctlsocket(bsock->fd, FIONBIO, &ioctlArg);
    bsock->blocking = 1;
 
-   return (flags);
+   return flags;
 #endif
 }
 
 /*
  * Restores socket flags
  */
-void bnet_restore_blocking (BSOCK *bsock, int flags) {
+void bnet_restore_blocking (BSOCK *bsock, int flags) 
+{
 #ifndef WIN32
-   if((fcntl(bsock->fd, F_SETFL, flags)) < 0) {
+   if ((fcntl(bsock->fd, F_SETFL, flags)) < 0) {
       berrno be;
-      Emsg1(M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.strerror());
+      Jmsg1(bsock->jcr, M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.strerror());
    }
 
    bsock->blocking = (flags & O_NONBLOCK);
