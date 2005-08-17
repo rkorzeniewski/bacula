@@ -29,11 +29,11 @@
 /*
  *   Use Device command from Director
  *   He tells is what Device Name to use, the Media Type,
- *      the Pool Name, and the Pool Type.
+ *	the Pool Name, and the Pool Type.
  *
  *    Ensure that the device exists and is opened, then store
- *      the media and pool info in the JCR.  This class is used
- *      only temporarily in this file.
+ *	the media and pool info in the JCR.  This class is used
+ *	only temporarily in this file.
  */
 class DIRSTORE {
 public:
@@ -54,6 +54,7 @@ public:
    DIRSTORE *store;
    DEVRES   *device;
    bool PreferMountedVols;
+   char VolumeName[MAX_NAME_LENGTH];
 };
 
 static dlist *vol_list = NULL;
@@ -104,7 +105,7 @@ static int my_compare(void *item1, void *item2)
  *  not be mounted again.
  *
  *  Return: VOLRES entry on success
- *          NULL if the Volume is already in the list
+ *	    NULL if the Volume is already in the list
  */
 VOLRES *new_volume(DCR *dcr, const char *VolumeName)
 {
@@ -123,7 +124,7 @@ VOLRES *new_volume(DCR *dcr, const char *VolumeName)
       free(vol->vol_name);
       free(vol);
       if (dcr->dev) {
-         nvol->dev = dcr->dev;
+	 nvol->dev = dcr->dev;
       }
       return NULL;
    }
@@ -134,7 +135,7 @@ VOLRES *new_volume(DCR *dcr, const char *VolumeName)
  * Search for a Volume name in the Volume list.
  *
  *  Returns: VOLRES entry on success
- *           NULL if the Volume is not in the list
+ *	     NULL if the Volume is not in the list
  */
 VOLRES *find_volume(const char *VolumeName)
 {
@@ -151,7 +152,7 @@ VOLRES *find_volume(const char *VolumeName)
  * Free a Volume from the Volume list
  *
  *  Returns: true if the Volume found and removed from the list
- *           false if the Volume is not in the list
+ *	     false if the Volume is not in the list
  */
 bool free_volume(DEVICE *dev)
 {
@@ -182,11 +183,11 @@ void free_unused_volume(DCR *dcr)
    P(vol_list_lock);
    for (vol=(VOLRES *)vol_list->first(); vol; vol=(VOLRES *)vol_list->next(vol)) {
       if (vol->dcr == dcr && (vol->dev == NULL || 
-          strcmp(vol->vol_name, vol->dev->VolHdr.VolumeName) != 0)) {
-         vol_list->remove(vol);
-         free(vol->vol_name);
-         free(vol);
-         break;
+	  strcmp(vol->vol_name, vol->dev->VolHdr.VolumeName) != 0)) {
+	 vol_list->remove(vol);
+	 free(vol->vol_name);
+	 free(vol);
+	 break;
       }
    }
    V(vol_list_lock);
@@ -195,7 +196,7 @@ void free_unused_volume(DCR *dcr)
 /*
  * List Volumes -- this should be moved to status.c
  */
-void list_volumes(BSOCK *user)  
+void list_volumes(BSOCK *user)	
 {
    VOLRES *vol;
    for (vol=(VOLRES *)vol_list->first(); vol; vol=(VOLRES *)vol_list->next(vol)) {
@@ -221,7 +222,7 @@ void free_volume_list()
    }
    for (vol=(VOLRES *)vol_list->first(); vol; vol=(VOLRES *)vol_list->next(vol)) {
       Dmsg3(000, "Unreleased Volume=%s dcr=0x%x dev=0x%x\n", vol->vol_name,
-         vol->dcr, vol->dev);
+	 vol->dcr, vol->dev);
    }
    delete vol_list;
    vol_list = NULL;
@@ -231,12 +232,12 @@ bool is_volume_in_use(DCR *dcr)
 {
    VOLRES *vol = find_volume(dcr->VolumeName);
    if (!vol) {
-      return false;                   /* vol not in list */
+      return false;		      /* vol not in list */
    }
-   if (!vol->dev) {                   /* vol not attached to device */
+   if (!vol->dev) {		      /* vol not attached to device */
       return false;
    }
-   if (dcr->dev == vol->dev) {        /* same device OK */
+   if (dcr->dev == vol->dev) {	      /* same device OK */
       return false;
    }
    if (!vol->dev->is_busy()) {
@@ -251,7 +252,7 @@ static bool use_storage_cmd(JCR *jcr)
    POOL_MEM store_name, dev_name, media_type, pool_name, pool_type;
    BSOCK *dir = jcr->dir_bsock;
    int append;
-   bool ok;       
+   bool ok;	  
    int Copy, Stripe;
    DIRSTORE *store;
    RCTX rctx;
@@ -263,16 +264,16 @@ static bool use_storage_cmd(JCR *jcr)
    rctx.jcr = jcr;
    /*
     * If there are multiple devices, the director sends us
-    *   use_device for each device that it wants to use.
+    *	use_device for each device that it wants to use.
     */
    Dmsg1(100, "<dird: %s", dir->msg);
    jcr->dirstore = New(alist(10, not_owned_by_alist));
    do {
       ok = sscanf(dir->msg, use_storage, store_name.c_str(), 
-                  media_type.c_str(), pool_name.c_str(), 
-                  pool_type.c_str(), &append, &Copy, &Stripe) == 7;
+		  media_type.c_str(), pool_name.c_str(), 
+		  pool_type.c_str(), &append, &Copy, &Stripe) == 7;
       if (!ok) {
-         break;
+	 break;
       }
       unbash_spaces(store_name);
       unbash_spaces(media_type);
@@ -290,12 +291,12 @@ static bool use_storage_cmd(JCR *jcr)
 
       /* Now get all devices */
       while (bnet_recv(dir) >= 0) {
-         ok = sscanf(dir->msg, use_device, dev_name.c_str()) == 1;
-         if (!ok) {
-            break;
-         }
-         unbash_spaces(dev_name);
-         store->device->append(bstrdup(dev_name.c_str()));
+	 ok = sscanf(dir->msg, use_device, dev_name.c_str()) == 1;
+	 if (!ok) {
+	    break;
+	 }
+	 unbash_spaces(dev_name);
+	 store->device->append(bstrdup(dev_name.c_str()));
       }
    }  while (ok && bnet_recv(dir) >= 0);
 
@@ -305,18 +306,18 @@ static bool use_storage_cmd(JCR *jcr)
    char *device_name;
    foreach_alist(store, jcr->dirstore) {
       Dmsg4(100, "Storage=%s media_type=%s pool=%s pool_type=%s\n", 
-         store->name, store->media_type, store->pool_name, 
-         store->pool_type);
+	 store->name, store->media_type, store->pool_name, 
+	 store->pool_type);
       foreach_alist(device_name, store->device) {
          Dmsg1(100, "   Device=%s\n", device_name);
       }
    }
 #endif
 
-   /*                    
+   /*			 
     * At this point, we have a list of all the Director's Storage
     *  resources indicated for this Job, which include Pool, PoolType,
-    *  storage name, and Media type.     
+    *  storage name, and Media type.	 
     * Then for each of the Storage resources, we have a list of
     *  device names that were given.
     *
@@ -332,27 +333,27 @@ static bool use_storage_cmd(JCR *jcr)
       rctx.PreferMountedVols = jcr->PreferMountedVols;
       ok = find_suitable_device_for_job(jcr, rctx);
       if (ok) {
-         goto done;
+	 goto done;
       }
       if (rctx.PreferMountedVols) {
-         rctx.PreferMountedVols = false;
-         ok = find_suitable_device_for_job(jcr, rctx);
-         if (ok) {
-            goto done;
-         }
+	 rctx.PreferMountedVols = false;
+	 ok = find_suitable_device_for_job(jcr, rctx);
+	 if (ok) {
+	    goto done;
+	 }
       }
       if (verbose) {
-         unbash_spaces(dir->msg);
-         pm_strcpy(jcr->errmsg, dir->msg);
+	 unbash_spaces(dir->msg);
+	 pm_strcpy(jcr->errmsg, dir->msg);
          Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
       }
       Jmsg(jcr, M_FATAL, 0, _("\n"
          "     Device \"%s\" with MediaType \"%s\" requested by DIR not found in SD Device resources.\n"),
-           dev_name.c_str(), media_type.c_str());
+	   dev_name.c_str(), media_type.c_str());
       bnet_fsend(dir, NO_device, dev_name.c_str());
 #ifdef implemented
       for (error=(char*)rctx->errors.first(); error;
-           error=(char*)rctx->errors.next()) {
+	   error=(char*)rctx->errors.next()) {
          Jmsg(jcr, M_INFO, 0, "%s", error);
       }
 #endif
@@ -375,7 +376,7 @@ done:
    delete jcr->dirstore;
 #ifdef implemented
    for (error=(char*)rctx->errors.first(); error;
-        error=(char*)rctx->errors.next()) {
+	error=(char*)rctx->errors.next()) {
       free(error);
    }
 #endif
@@ -396,46 +397,47 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
 
    init_jcr_device_wait_timers(jcr);
    for ( ;; ) {
-      int need_wait = false;
+      int can_wait = false;
       ok = false;
       P(search_lock);
       foreach_alist(store, jcr->dirstore) {
-         rctx.store = store;
-         foreach_alist(device_name, store->device) {
-            int stat;
-            rctx.device_name = device_name;
-            stat = search_res_for_device(rctx); 
-            if (stat == 1) {             /* found available device */
-               dcr = jcr->dcr;
-               ok = true;
-               break;
-            } else if (stat == 0) {      /* device busy */
-               need_wait = true;
-            }
-            /* otherwise error */
-//             rctx->errors.push(bstrdup(jcr->errmsg));
-         }
-         if (ok) {
-            break;
-         }
+	 rctx.store = store;
+	 foreach_alist(device_name, store->device) {
+	    int stat;
+	    rctx.device_name = device_name;
+	    stat = search_res_for_device(rctx); 
+	    if (stat == 1) {		 /* found available device */
+	       ok = true;
+	       break;
+	    } else if (stat == 0) {	 /* device busy */
+	       can_wait = true;
+	    }
+	    /* otherwise error */
+//	       rctx->errors.push(bstrdup(jcr->errmsg));
+	 }
+	 if (ok) {
+	    break;
+	 }
       }
       V(search_lock);
       /*
-       * If there is some device for which we can wait, then
+       * We did not find a suitable device, so
+       *  if there is some device for which we can wait, then
        *  wait and try again until the wait time expires
        */
-      if (!need_wait || !wait_for_device(jcr, first)) {
-         break;
+      if (!can_wait || !wait_for_device(jcr, first)) {
+	 break;
       }
-      first = false;
+      first = false;		      /* first wait complete */
+
 #ifdef implemented
       for (error=(char*)rctx->errors.first(); error;
-           error=(char*)rctx->errors.next()) {
-         free(error);
+	   error=(char*)rctx->errors.next()) {
+	 free(error);
       }
 #endif
    }
-   if (!ok && dcr) {
+   if (dcr) {
       free_dcr(dcr);
    }
 
@@ -458,50 +460,50 @@ static int search_res_for_device(RCTX &rctx)
       Dmsg1(100, "Try res=%s\n", rctx.device->hdr.name);
       /* Find resource, and make sure we were able to open it */
       if (fnmatch(rctx.device_name, rctx.device->hdr.name, 0) == 0) {
-         stat = reserve_device(rctx);
-         if (stat != 1) {
-            return stat;
-         }
+	 stat = reserve_device(rctx);
+	 if (stat != 1) {
+	    return stat;
+	 }
          Dmsg1(220, "Got: %s", dir->msg);
-         bash_spaces(rctx.device_name);
-         ok = bnet_fsend(dir, OK_device, rctx.device_name);
+	 bash_spaces(rctx.device_name);
+	 ok = bnet_fsend(dir, OK_device, rctx.device_name);
          Dmsg1(100, ">dird dev: %s", dir->msg);
-         return ok ? 1 : -1;
+	 return ok ? 1 : -1;
       }
    }
    foreach_res(changer, R_AUTOCHANGER) {
       Dmsg1(100, "Try changer res=%s\n", changer->hdr.name);
       /* Find resource, and make sure we were able to open it */
       if (fnmatch(rctx.device_name, changer->hdr.name, 0) == 0) {
-         /* Try each device in this AutoChanger */
-         foreach_alist(rctx.device, changer->device) {
+	 /* Try each device in this AutoChanger */
+	 foreach_alist(rctx.device, changer->device) {
             Dmsg1(100, "Try changer device %s\n", rctx.device->hdr.name);
-            stat = reserve_device(rctx);
-            if (stat == -1) {            /* hard error */
-               return -1;
-            }
-            if (stat == 0) {             /* must wait, try next one */
-               continue;
-            }
-            POOL_MEM dev_name;
+	    stat = reserve_device(rctx);
+	    if (stat == -1) {		 /* hard error */
+	       return -1;
+	    }
+	    if (stat == 0) {		 /* must wait, try next one */
+	       continue;
+	    }
+	    POOL_MEM dev_name;
             Dmsg1(100, "Device %s opened.\n", rctx.device_name);
-            pm_strcpy(dev_name, rctx.device->hdr.name);
-            bash_spaces(dev_name);
-            ok = bnet_fsend(dir, OK_device, dev_name.c_str());  /* Return real device name */
+	    pm_strcpy(dev_name, rctx.device->hdr.name);
+	    bash_spaces(dev_name);
+	    ok = bnet_fsend(dir, OK_device, dev_name.c_str());	/* Return real device name */
             Dmsg1(100, ">dird changer: %s", dir->msg);
-            return ok ? 1 : -1;
-         }
+	    return ok ? 1 : -1;
+	 }
       }
    }
-   return 0;                    /* nothing found */
+   return 0;			/* nothing found */
 }
 
 /*
  *  Try to reserve a specific device.
  *
  *  Returns: 1 -- OK, have DCR
- *           0 -- must wait
- *          -1 -- fatal error
+ *	     0 -- must wait
+ *	    -1 -- fatal error
  */
 static int reserve_device(RCTX &rctx)
 {
@@ -521,11 +523,11 @@ static int reserve_device(RCTX &rctx)
       if (rctx.device->changer_res) {
         Jmsg(rctx.jcr, M_WARNING, 0, _("\n"
            "     Device \"%s\" in changer \"%s\" requested by DIR could not be opened or does not exist.\n"),
-             rctx.device->hdr.name, rctx.device_name);
+	     rctx.device->hdr.name, rctx.device_name);
       } else {
          Jmsg(rctx.jcr, M_WARNING, 0, _("\n"
             "     Device \"%s\" requested by DIR could not be opened or does not exist.\n"),
-              rctx.device_name);
+	      rctx.device_name);
       }
       return -1;  /* no use waiting */
    }  
@@ -543,6 +545,14 @@ static int reserve_device(RCTX &rctx)
    bstrncpy(dcr->media_type, rctx.store->media_type, name_len);
    bstrncpy(dcr->dev_name, rctx.device_name, name_len);
    if (rctx.store->append == SD_APPEND) {
+#ifdef implemented 
+      if (dir_find_next_appendable_volume(dcr)) {
+         Dmsg1(000, "Looking for Volume=%s\n", dcr->VolumeName);
+      } else {
+         Dmsg0(000, "No next volume found\n");
+	 dcr->VolumeName[0] = 0;
+      }
+#endif
       ok = reserve_device_for_append(dcr, rctx.PreferMountedVols);
       Dmsg3(200, "dev_name=%s mediatype=%s ok=%d\n", dcr->dev_name, dcr->media_type, ok);
    } else {
@@ -571,18 +581,18 @@ static bool reserve_device_for_read(DCR *dcr)
 
    dev->block(BST_DOING_ACQUIRE);
 
-   if (is_device_unmounted(dev)) {             
+   if (is_device_unmounted(dev)) {	       
       Dmsg1(200, "Device %s is BLOCKED due to user unmount.\n", dev->print_name());
       Mmsg(jcr->errmsg, _("Device %s is BLOCKED due to user unmount.\n"),
-           dev->print_name());
+	   dev->print_name());
       goto bail_out;
    }
 
    if (dev->is_busy()) {
       Dmsg4(200, "Device %s is busy ST_READ=%d num_writers=%d reserved=%d.\n", dev->print_name(),
-         dev->state & ST_READ?1:0, dev->num_writers, dev->reserved_device);
+	 dev->state & ST_READ?1:0, dev->num_writers, dev->reserved_device);
       Mmsg1(jcr->errmsg, _("Device %s is busy.\n"),
-            dev->print_name());
+	    dev->print_name());
       goto bail_out;
    }
 
@@ -653,8 +663,8 @@ bail_out:
 
 /*
  * Returns: 1 if drive can be reserved
- *          0 if we should wait
- *         -1 on error
+ *	    0 if we should wait
+ *	   -1 on error
  */
 static int can_reserve_drive(DCR *dcr, bool PreferMountedVols) 
 {
@@ -662,7 +672,7 @@ static int can_reserve_drive(DCR *dcr, bool PreferMountedVols)
    JCR *jcr = dcr->jcr;
 
    if (PreferMountedVols && !dev->VolHdr.VolumeName[0] && dev->is_tape()) {
-      return 0;                 /* No volume mounted */
+      return 0; 		/* No volume mounted */
    }
 
    /*
@@ -670,29 +680,29 @@ static int can_reserve_drive(DCR *dcr, bool PreferMountedVols)
     */
    if (dev->num_writers == 0) {
       /* Now check if there are any reservations on the drive */
-      if (dev->reserved_device) {           
-         /* Yes, now check if we want the same Pool and pool type */
-         if (strcmp(dev->pool_name, dcr->pool_name) == 0 &&
-             strcmp(dev->pool_type, dcr->pool_type) == 0) {
-            /* OK, compatible device */
-         } else {
-            /* Drive not suitable for us */
-            return 0;                 /* wait */
-         }
+      if (dev->reserved_device) {	    
+	 /* Yes, now check if we want the same Pool and pool type */
+	 if (strcmp(dev->pool_name, dcr->pool_name) == 0 &&
+	     strcmp(dev->pool_type, dcr->pool_type) == 0) {
+	    /* OK, compatible device */
+	 } else {
+	    /* Drive not suitable for us */
+	    return 0;		      /* wait */
+	 }
       } else if (dev->can_append()) {
-         /* Device in append mode, check if changing pool */
-         if (strcmp(dev->pool_name, dcr->pool_name) == 0 &&
-             strcmp(dev->pool_type, dcr->pool_type) == 0) {
-            /* OK, compatible device */
-         } else {
-            /* Changing pool, unload old tape if any in drive */
-            unload_autochanger(dcr, 0);
-         }
+	 /* Device in append mode, check if changing pool */
+	 if (strcmp(dev->pool_name, dcr->pool_name) == 0 &&
+	     strcmp(dev->pool_type, dcr->pool_type) == 0) {
+	    /* OK, compatible device */
+	 } else {
+	    /* Changing pool, unload old tape if any in drive */
+	    unload_autochanger(dcr, 0);
+	 }
       }
       /* Device is available but not yet reserved, reserve it for us */
       bstrncpy(dev->pool_name, dcr->pool_name, sizeof(dev->pool_name));
       bstrncpy(dev->pool_type, dcr->pool_type, sizeof(dev->pool_type));
-      return 1;                       /* reserve drive */
+      return 1; 		      /* reserve drive */
    }
 
    /*
@@ -703,19 +713,19 @@ static int can_reserve_drive(DCR *dcr, bool PreferMountedVols)
       Dmsg0(190, "device already in append.\n");
       /* Yes, now check if we want the same Pool and pool type */
       if (strcmp(dev->pool_name, dcr->pool_name) == 0 &&
-          strcmp(dev->pool_type, dcr->pool_type) == 0) {
-         /* OK, compatible device */
-         return 1;
+	  strcmp(dev->pool_type, dcr->pool_type) == 0) {
+	 /* OK, compatible device */
+	 return 1;
       } else {
-         /* Drive not suitable for us */
+	 /* Drive not suitable for us */
          Jmsg(jcr, M_WARNING, 0, _("Wanted Pool \"%s\", but device %s is using Pool \"%s\" .\n"), 
-                 dcr->pool_name, dev->print_name(), dev->pool_name);
-         return 0;                    /* wait */
+		 dcr->pool_name, dev->print_name(), dev->pool_name);
+	 return 0;		      /* wait */
       }
    } else {
       Pmsg0(000, _("Logic error!!!! Should not get here.\n"));
       Jmsg0(jcr, M_FATAL, 0, _("Logic error!!!! Should not get here.\n"));
-      return -1;                      /* error, should not get here */
+      return -1;		      /* error, should not get here */
    }
 
    return 0;
