@@ -119,8 +119,10 @@ BA_CHECK_OPSYS_DISTNAME
 # By default, $datadir is ${prefix}/share
 # --------------------------------------------------
 AM_GNU_GETTEXT([external])
-if test x${prefix} = xNONE && test x${datadir} = x${prefix}/share ; then
-   datadir=/usr/share
+if test x${prefix} = xNONE ; then
+   if test `eval echo ${datadir}` = NONE/share ; then
+      datadir=/usr/share
+   fi
 fi
 
 # ------------------------------------------------------------------
@@ -199,6 +201,8 @@ support_static_dir=no
 support_static_cons=no
 support_python=no
 build_client_only=no
+build_dird=yes
+build_stored=yes
 cats=
 db_name=Internal
 DB_NAME=bdb
@@ -397,9 +401,9 @@ AC_SUBST(STATIC_WX_CONS)
 AC_ARG_ENABLE(client-only,
    [  --enable-client-only    build client (File daemon) only [disabled]],
    [if test x$enableval = xyes; then
-     build_client_only=yes
-    db_name=None
-    DB_NAME=none
+      build_client_only=yes
+      db_name=None
+      DB_NAME=none
    fi])
 if test x$build_client_only = xno; then
    ALL_DIRS="subdirs"
@@ -407,6 +411,39 @@ else
    ALL_DIRS=""
 fi
 AC_SUBST(ALL_DIRS)
+
+# -------------------------------------------
+# director  (default on)
+# -------------------------------------------
+AC_ARG_ENABLE(build-dird,
+   [  --enable-build-dird     enable building of dird (Director) [enabled]],
+   [if test x$enableval = xno; then
+      build_dird=no
+   fi])
+if test x$build_dird = xyes; then
+   DIRD_DIR="src/dird"
+   DIR_TOOLS="DIRTOOLS"
+else
+   DIRD_DIR=""
+   DIR_TOOLS="NODIRTOOLS"
+fi
+AC_SUBST(DIRD_DIR)
+AC_SUBST(DIR_TOOLS)
+
+# -------------------------------------------
+# stored  (default on)
+# -------------------------------------------
+AC_ARG_ENABLE(build-stored,
+   [  --enable-build-stored   enable building of stored (Storage daemon) [enabled]],
+   [if test x$enableval = xno; then
+      build_stored=no
+   fi])
+if test x$build_stored = xyes; then
+   STORED_DIR="src/stored"
+else
+   STORED_DIR=""
+fi
+AC_SUBST(STORED_DIR)
 
 # ---------------------------------------------------
 # Check for conio (Bacula readline substitute)(
@@ -2060,6 +2097,8 @@ Configuration on `date`:
   enable-wx-console:	      ${support_wx_console} ${wx_version}
   enable-tray-monitor:	      ${support_tray_monitor}
   client-only:		      ${build_client_only}
+  build-dird:		      ${build_dird}
+  build-stored: 	      ${build_stored}
   ACL support:		      ${have_acl}
   Python support:	      ${support_python} ${PYTHON_LIBS}
 
