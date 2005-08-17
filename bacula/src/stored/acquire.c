@@ -326,6 +326,7 @@ DCR *acquire_device_for_append(DCR *dcr)
     */
    if (dev->can_read()) {
       Jmsg1(jcr, M_FATAL, 0, _("Device %s is busy reading.\n"), dev->print_name());
+      Dmsg1(200, "Device %s is busy reading.\n", dev->print_name());
       goto get_out;
    }
 
@@ -355,6 +356,8 @@ DCR *acquire_device_for_append(DCR *dcr)
          }
          if (dev->num_writers != 0 || dev->reserved_device) {
             Jmsg3(jcr, M_FATAL, 0, _("Wanted Volume \"%s\", but device %s is busy writing on \"%s\" .\n"), 
+                 dcr->VolumeName, dev->print_name(), dev->VolHdr.VolumeName);
+            Dmsg3(200, "Wanted Volume \"%s\", but device %s is busy writing on \"%s\" .\n",  
                  dcr->VolumeName, dev->print_name(), dev->VolHdr.VolumeName);
             goto get_out;
          }
@@ -394,6 +397,8 @@ DCR *acquire_device_for_append(DCR *dcr)
          if (!job_canceled(jcr)) {
             /* Reduce "noise" -- don't print if job canceled */
             Jmsg(jcr, M_FATAL, 0, _("Could not ready device %s for append.\n"),
+               dev->print_name());
+            Dmsg1(200, "Could not ready device %s for append.\n", 
                dev->print_name());
          }
          goto get_out;

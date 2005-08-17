@@ -5,6 +5,10 @@ General:
 
 Changes to 1.37.36:
 17Aug05
+- Add more debug code for autochangers.
+- Apply fix from Stephan Leemburg <sleemburg@jvc.nl> for
+  improper scanning of schedule resource:
+  Run = Level=Full Pool=Catalog daily at 1:20
 - Apply patch from Chris Lee <labmonkey42@gmail.com> for 
   adding --enable-build-dird --enable-build-stored.
 - Tweak datadir definition in configure.in

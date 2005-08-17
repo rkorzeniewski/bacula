@@ -18,6 +18,8 @@ Final items for 1.37 before release:
   chaos.
 - Look at fixing restore status stats in SD.
 - My database is growing
+- Call GetLastError() in the berrno constructor rather
+  than delaying until strerror.
 
 -  --without-openssl breaks at least on Solaris.
 9. Run the regression scripts on Solaris and FreeBSD
