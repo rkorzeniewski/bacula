@@ -297,12 +297,14 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
       /* At this point, it is not a keyword. Check for old syle
        * Job Levels without keyword. This form is depreciated!!!
        */
-      for (j=0; joblevels[j].level_name; j++) {
-         if (strcasecmp(lc->str, joblevels[j].level_name) == 0) {
-            lrun.level = joblevels[j].level;
-            lrun.job_type = joblevels[j].job_type;
-            found = true;
-            break;
+      if (!found) {
+         for (j=0; joblevels[j].level_name; j++) {
+            if (strcasecmp(lc->str, joblevels[j].level_name) == 0) {
+               lrun.level = joblevels[j].level;
+               lrun.job_type = joblevels[j].job_type;
+               found = true;
+               break;
+            }
          }
       }
    } /* end for found */

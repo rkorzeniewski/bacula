@@ -109,6 +109,8 @@ static int my_compare(void *item1, void *item2)
 VOLRES *new_volume(DCR *dcr, const char *VolumeName)
 {
    VOLRES *vol, *nvol;
+
+   Dmsg1(400, "new_volume %s\n", VolumeName);
    vol = (VOLRES *)malloc(sizeof(VOLRES));
    memset(vol, 0, sizeof(VOLRES));
    vol->vol_name = bstrdup(VolumeName);
@@ -158,6 +160,7 @@ bool free_volume(DEVICE *dev)
    if (dev->VolHdr.VolumeName[0] == 0) {
       return false;
    }
+   Dmsg1(400, "free_volume %s\n", dev->VolHdr.VolumeName);
    vol.vol_name = bstrdup(dev->VolHdr.VolumeName);
    P(vol_list_lock);
    fvol = (VOLRES *)vol_list->binary_search(&vol, my_compare);
@@ -353,7 +356,7 @@ static bool use_storage_cmd(JCR *jcr)
          Jmsg(jcr, M_INFO, 0, "%s", error);
       }
 #endif
-      Dmsg1(100, ">dird: %s\n", dir->msg);
+      Dmsg1(100, ">dird: %s", dir->msg);
    } else {
       unbash_spaces(dir->msg);
       pm_strcpy(jcr->errmsg, dir->msg);
@@ -361,7 +364,7 @@ static bool use_storage_cmd(JCR *jcr)
          Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
       }
       bnet_fsend(dir, BAD_use, jcr->errmsg);
-      Dmsg1(100, ">dird: %s\n", dir->msg);
+      Dmsg1(100, ">dird: %s", dir->msg);
    }
 
 done:
@@ -462,7 +465,7 @@ static int search_res_for_device(RCTX &rctx)
          Dmsg1(220, "Got: %s", dir->msg);
          bash_spaces(rctx.device_name);
          ok = bnet_fsend(dir, OK_device, rctx.device_name);
-         Dmsg1(100, ">dird: %s\n", dir->msg);
+         Dmsg1(100, ">dird dev: %s", dir->msg);
          return ok ? 1 : -1;
       }
    }
@@ -485,7 +488,7 @@ static int search_res_for_device(RCTX &rctx)
             pm_strcpy(dev_name, rctx.device->hdr.name);
             bash_spaces(dev_name);
             ok = bnet_fsend(dir, OK_device, dev_name.c_str());  /* Return real device name */
-            Dmsg1(100, ">dird: %s\n", dir->msg);
+            Dmsg1(100, ">dird changer: %s", dir->msg);
             return ok ? 1 : -1;
          }
       }
@@ -531,7 +534,7 @@ static int reserve_device(RCTX &rctx)
    if (!dcr) {
       BSOCK *dir = rctx.jcr->dir_bsock;
       bnet_fsend(dir, _("3926 Could not get dcr for device: %s\n"), rctx.device_name);
-      Dmsg1(100, ">dird: %s\n", dir->msg);
+      Dmsg1(100, ">dird: %s", dir->msg);
       return -1;
    }
    rctx.jcr->dcr = dcr;
@@ -663,9 +666,9 @@ static int can_reserve_drive(DCR *dcr, bool PreferMountedVols)
    }
 
    /*
-    * Handle the case that the drive is not yet in append mode
+    * Handle the case that there are no writers
     */
-   if (!dev->can_append() && dev->num_writers == 0) {
+   if (dev->num_writers == 0) {
       /* Now check if there are any reservations on the drive */
       if (dev->reserved_device) {           
          /* Yes, now check if we want the same Pool and pool type */
@@ -676,23 +679,22 @@ static int can_reserve_drive(DCR *dcr, bool PreferMountedVols)
             /* Drive not suitable for us */
             return 0;                 /* wait */
          }
-      } else {
-         /* Device is available but not yet reserved, reserve it for us */
-         bstrncpy(dev->pool_name, dcr->pool_name, sizeof(dev->pool_name));
-         bstrncpy(dev->pool_type, dcr->pool_type, sizeof(dev->pool_type));
+      } else if (dev->can_append()) {
+         /* Device in append mode, check if changing pool */
+         if (strcmp(dev->pool_name, dcr->pool_name) == 0 &&
+             strcmp(dev->pool_type, dcr->pool_type) == 0) {
+            /* OK, compatible device */
+         } else {
+            /* Changing pool, unload old tape if any in drive */
+            unload_autochanger(dcr, 0);
+         }
       }
-      return 1;                       /* reserve drive */
-   }
-
-   /*
-    * Check if device in append mode with no writers (i.e. available)
-    */
-   if (dev->can_append() && dev->num_writers == 0) {
       /* Device is available but not yet reserved, reserve it for us */
       bstrncpy(dev->pool_name, dcr->pool_name, sizeof(dev->pool_name));
       bstrncpy(dev->pool_type, dcr->pool_type, sizeof(dev->pool_type));
-      return 1;
+      return 1;                       /* reserve drive */
    }
+
    /*
     * Check if the device is in append mode with writers (i.e.
     *  available if pool is the same).
