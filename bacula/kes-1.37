@@ -5,6 +5,7 @@ General:
 
 Changes to 1.37.36:
 17Aug05
+- Always look for slot for label command.
 - Add more debug code for autochangers.
 - Apply fix from Stephan Leemburg <sleemburg@jvc.nl> for
   improper scanning of schedule resource:
