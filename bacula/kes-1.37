@@ -4,6 +4,10 @@
 General:
 
 Changes to 1.37.36:
+17Aug05
+- Apply patch from Chris Lee <labmonkey42@gmail.com> for 
+  adding --enable-build-dird --enable-build-stored.
+- Tweak datadir definition in configure.in
 16Aug05
 - Fix bug that missed drive=nn specification.
 - Eliminate nonblocking kludge in heartbeat of FD as

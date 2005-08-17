@@ -35,6 +35,15 @@ EXTRAOBJS = @OBJLIST@
 
 DIRCONFOBJS = ../dird/dird_conf.o ../dird/run_conf.o ../dird/inc_conf.o
 
+NODIRTOOLS = bsmtp
+DIRTOOLS = bsmtp dbcheck fstype testfind testls
+TOOLS = $(@DIR_TOOLS@)
+
+INSNODIRTOOLS = bsmtp
+INSDIRTOOLS = bsmtp dbcheck
+INSTOOLS = $(INS@DIR_TOOLS@)
+
+
 .SUFFIXES:	.c .o
 .PHONY:
 .DONTCARE:
@@ -43,7 +52,7 @@ DIRCONFOBJS = ../dird/dird_conf.o ../dird/run_conf.o ../dird/inc_conf.o
 .c.o:
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
-all: Makefile bsmtp dbcheck fstype testfind testls 
+all: Makefile $(TOOLS) 
 	@echo "==== Make of tools is good ===="
 	@echo " "
 
@@ -84,10 +93,11 @@ devclean: realclean
 	(cd $(srcdir); $(RMF) Makefile)
 
 # Allow non-root execution of bsmtp for non-root Directors
-install: bsmtp
-	$(INSTALL_PROGRAM) bsmtp $(DESTDIR)$(sbindir)/bsmtp	 
+install: $(INSTOOLS)
+	@for tool in ${INSTOOLS} ; do \
+		$(INSTALL_PROGRAM) $$tool $(DESTDIR)$(sbindir)/$$tool ; \
+	done
 	chmod 755 $(DESTDIR)$(sbindir)/bsmtp
-	$(INSTALL_PROGRAM) dbcheck $(DESTDIR)$(sbindir)/dbcheck      
 
 uninstall:
 	(cd $(DESTDIR)$(sbindir); $(RMF) bsmtp)

@@ -21,7 +21,7 @@ fd_subdirs = src scripts src/lib src/findlib src/filed \
 	     @GNOME_DIR@ @TRAY_MONITOR_DIR@ @WX_DIR@
 
 # Non-client-only directores
-subdirs =    src/cats src/dird src/stored src/tools
+subdirs =    src/cats @DIRD_DIR@ @STORED_DIR@ src/tools
 
 all_subdirs = ${fd_subdirs} ${@ALL_DIRS@} 
 
