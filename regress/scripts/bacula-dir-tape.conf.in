@@ -95,6 +95,7 @@ Storage {
   Device = DDS-4                      # must be same as Device in Storage daemon
   Media Type = DDS-4                  # must be same as MediaType in Storage daemon
   Maximum Concurrent Jobs = 4
+# Autochanger = yes
 }
 
 
