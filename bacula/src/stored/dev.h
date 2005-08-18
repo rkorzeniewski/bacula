@@ -369,6 +369,7 @@ public:
    bool WroteVol;                     /* set if Volume written */
    bool NewFile;                      /* set when EOF written */
    bool reserved_device;              /* set if reserve done */
+   bool any_volume;                   /* Any OK for dir_find_next... */
    uint32_t VolFirstIndex;            /* First file index this Volume */
    uint32_t VolLastIndex;             /* Last file index this Volume */
    uint32_t FileIndex;                /* Current File Index */

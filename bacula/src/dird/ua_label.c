@@ -156,7 +156,7 @@ int update_slots(UAContext *ua)
    char *slot_list;
    bool scan;
    int max_slots;
-   int drive = -1;
+   int drive;
 
 
    if (!open_db(ua)) {
@@ -166,6 +166,7 @@ int update_slots(UAContext *ua)
    if (!store) {
       return 1;
    }
+   drive = get_storage_drive(ua, store);
    set_storage(ua->jcr, store);
 
    scan = find_arg(ua, N_("scan")) >= 0;
@@ -302,7 +303,7 @@ static int do_label(UAContext *ua, const char *cmd, int relabel)
    if (!store) {
       return 1;
    }
-   drive = ua->int32_val;
+   drive = get_storage_drive(ua, store);
    set_storage(ua->jcr, store);
 
    if (!relabel && find_arg_keyword(ua, barcode_keyword) >= 0) {
