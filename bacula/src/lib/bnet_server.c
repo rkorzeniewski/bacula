@@ -200,10 +200,6 @@ bnet_thread_server(dlist *addrs, int max_clients, workq_t *client_wq,
             sockaddr_to_ascii(&cli_addr, buf, sizeof(buf));
             V(mutex);
             BSOCK *bs;
-            int oflags = fcntl(newsockfd, F_GETFL, 0);
-            if (oflags & O_NONBLOCK) {
-               Jmsg1(NULL, M_ABORT, 0, _("Nonblocking socket %d.\n"), newsockfd);
-            }
             bs = init_bsock(NULL, newsockfd, "client", buf, fd_ptr->port, &cli_addr);
             if (bs == NULL) {
                Jmsg0(NULL, M_ABORT, 0, _("Could not create client BSOCK.\n"));

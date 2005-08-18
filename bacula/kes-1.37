@@ -5,6 +5,7 @@ General:
 
 Changes to 1.37.36:
 18Aug05
+- Win32 fix -- remove debug O_NONBLOCK code.
 - Fix bug 399 -- make_catalog_backup does not work for sqlite3
 - Implement unloading a volume in a different drive if it
   is needed in the current drive.
