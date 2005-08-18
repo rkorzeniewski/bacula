@@ -56,6 +56,8 @@ public:
    bool PreferMountedVols;
    bool exact_match;
    bool have_volume;
+   bool do_not_wait;
+   bool available_autochanger;
    char VolumeName[MAX_NAME_LENGTH];
 };
 
@@ -327,25 +329,41 @@ static bool use_storage_cmd(JCR *jcr)
     */
    if (ok) {
       /*
-       * Make up to two passes. The first with PreferMountedVols possibly
-       *   set to true.  In that case, we look only for an available 
-       *   drive with something mounted. If that fails, then we
-       *   do a second pass with PerferMountedVols set false.
+       * First look for an exact match of Volume name as the
+       *  tape may already be mounted.
        */
+      rctx.do_not_wait = true;
       rctx.exact_match = true;
       if ((ok = find_suitable_device_for_job(jcr, rctx))) {
 	 goto done;
       }
       rctx.exact_match = false;
+
+      /* Now search if an unused autochanger slot is available */
+      rctx.available_autochanger = true;
+      if ((ok = find_suitable_device_for_job(jcr, rctx))) {
+	 goto done;
+      }
+      rctx.available_autochanger = false;
+
+
+      /*
+       * Make up to two passes. The first with PreferMountedVols possibly
+       *   set to true.  In that case, we look only for an available 
+       *   drive with something mounted. If that fails, then we
+       *   do a second pass with PerferMountedVols set false.
+       */
       rctx.PreferMountedVols = jcr->PreferMountedVols;
-      ok = find_suitable_device_for_job(jcr, rctx);
-      if (ok) {
+      if (!rctx.PreferMountedVols) {
+	 rctx.do_not_wait = false;
+      }
+      if ((ok = find_suitable_device_for_job(jcr, rctx))) {
 	 goto done;
       }
       if (rctx.PreferMountedVols) {
 	 rctx.PreferMountedVols = false;
-	 ok = find_suitable_device_for_job(jcr, rctx);
-	 if (ok) {
+	 rctx.do_not_wait = false;
+	 if ((ok = find_suitable_device_for_job(jcr, rctx))) {
 	    goto done;
 	 }
       }
@@ -432,7 +450,7 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
        *  if there is some device for which we can wait, then
        *  wait and try again until the wait time expires
        */
-      if (!can_wait || !wait_for_device(jcr, first)) {
+      if (rctx.do_not_wait || !can_wait || !wait_for_device(jcr, first)) {
 	 break;
       }
       first = false;		      /* first wait complete */
@@ -447,7 +465,6 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
    if (dcr) {
       free_dcr(dcr);
    }
-
    return ok;
 }
 
@@ -463,19 +480,21 @@ static int search_res_for_device(RCTX &rctx)
    int stat;
 
    Dmsg1(100, "Search res for %s\n", rctx.device_name);
-   foreach_res(rctx.device, R_DEVICE) {
-      Dmsg1(100, "Try res=%s\n", rctx.device->hdr.name);
-      /* Find resource, and make sure we were able to open it */
-      if (fnmatch(rctx.device_name, rctx.device->hdr.name, 0) == 0) {
-	 stat = reserve_device(rctx);
-	 if (stat != 1) {
-	    return stat;
+   if (!rctx.available_autochanger) {
+      foreach_res(rctx.device, R_DEVICE) {
+         Dmsg1(100, "Try res=%s\n", rctx.device->hdr.name);
+	 /* Find resource, and make sure we were able to open it */
+	 if (fnmatch(rctx.device_name, rctx.device->hdr.name, 0) == 0) {
+	    stat = reserve_device(rctx);
+	    if (stat != 1) {
+	       return stat;
+	    }
+            Dmsg1(220, "Got: %s", dir->msg);
+	    bash_spaces(rctx.device_name);
+	    ok = bnet_fsend(dir, OK_device, rctx.device_name);
+            Dmsg1(100, ">dird dev: %s", dir->msg);
+	    return ok ? 1 : -1;
 	 }
-         Dmsg1(220, "Got: %s", dir->msg);
-	 bash_spaces(rctx.device_name);
-	 ok = bnet_fsend(dir, OK_device, rctx.device_name);
-         Dmsg1(100, ">dird dev: %s", dir->msg);
-	 return ok ? 1 : -1;
       }
    }
    foreach_res(changer, R_AUTOCHANGER) {
@@ -693,6 +712,15 @@ static int can_reserve_drive(DCR *dcr, RCTX &rctx)
       Dmsg2(200, "Not exact match have=%s want=%s\n",
 	    dev->VolHdr.VolumeName, rctx.VolumeName);
       return 0;
+   }
+
+   /* Check for unused autochanger drive */
+   if (rctx.available_autochanger && dev->num_writers == 0 &&
+       dev->VolHdr.VolumeName[0] == 0) {
+      /* Device is available but not yet reserved, reserve it for us */
+      bstrncpy(dev->pool_name, dcr->pool_name, sizeof(dev->pool_name));
+      bstrncpy(dev->pool_type, dcr->pool_type, sizeof(dev->pool_type));
+      return 1; 		      /* reserve drive */
    }
 
    /*

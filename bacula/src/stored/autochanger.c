@@ -27,6 +27,7 @@
 /* Forward referenced functions */
 static void lock_changer(DCR *dcr);
 static void unlock_changer(DCR *dcr);
+static bool unload_other_drive(DCR *dcr, int slot);
 
 /*
  * Called here to do an autoload using the autochanger, if
@@ -75,11 +76,17 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
 
       loaded = get_autochanger_loaded_slot(dcr);
 
-      /* If tape we want is not loaded, load it. */
       if (loaded != slot) {
+	 /* Unload anything in our drive */
 	 if (!unload_autochanger(dcr, loaded)) {
 	    goto bail_out;
 	 }
+	    
+	 /* Make sure desired slot is unloaded */
+	 if (!unload_other_drive(dcr, slot)) {
+	    goto bail_out;
+	 }
+
 	 /*
 	  * Load the desired cassette
 	  */
@@ -247,6 +254,88 @@ bool unload_autochanger(DCR *dcr, int loaded)
    }
    return ok;
 }
+
+/*
+ * Unload the slot if mounted in a different drive
+ */
+static bool unload_other_drive(DCR *dcr, int slot)
+{
+   DEVICE *dev, *save_dev;
+   JCR *jcr = dcr->jcr;
+   int save_slot;
+   uint32_t timeout = dcr->device->max_changer_wait;
+   bool ok = true;
+   AUTOCHANGER *changer = dcr->dev->device->changer_res;
+   DEVRES *device;
+   bool found = false;
+
+   if (!changer) {
+      return false;
+   }
+   if (changer->device->size() == 1) {
+      return true;
+   }
+      
+   foreach_alist(device, changer->device) {
+      if (device->dev && device->dev->Slot == slot) {
+	 found = true;
+	 dev = device->dev;
+	 break;
+      }
+   }
+   if (!found) {
+      return true;
+   }
+   if (dev->is_busy()) {
+      Jmsg(jcr, M_WARNING, 0, _("Volume %s is in use by device %s\n"),
+	   dcr->VolumeName, dev->print_name());
+      Dmsg2(200, "Volume %s is in use by device %s\n",
+	   dcr->VolumeName, dev->print_name());
+      
+      return false;
+   }
+
+   offline_or_rewind_dev(dev);
+   /* We are going to load a new tape, so close the device */
+   force_close_device(dev);
+
+   POOLMEM *changer_cmd = get_pool_memory(PM_FNAME);
+   Jmsg(jcr, M_INFO, 0,
+        _("3307 Issuing autochanger \"unload slot %d, drive %d\" command.\n"),
+	slot, dev->drive_index);
+
+   Dmsg2(200, "Issuing autochanger \"unload slot %d, drive %d\" command.\n",
+	slot, dev->drive_index);
+
+   save_slot = dcr->VolCatInfo.Slot;
+   save_dev = dcr->dev;
+   dcr->dev = dev;
+   dcr->VolCatInfo.Slot = slot;
+   changer_cmd = edit_device_codes(dcr, changer_cmd, 
+                dcr->device->changer_command, "unload");
+   lock_changer(dcr);
+   Dmsg1(200, "Run program=%s\n", changer_cmd);
+   int stat = run_program(changer_cmd, timeout, NULL);
+   unlock_changer(dcr);
+   dcr->VolCatInfo.Slot = save_slot;
+   dcr->dev = save_dev;
+   if (stat != 0) {
+      berrno be;
+      be.set_errno(stat);
+      Jmsg(jcr, M_INFO, 0, _("3995 Bad autochanger \"unload slot %d, drive %d\": ERR=%s.\n"),
+	      slot, dev->drive_index, be.strerror());
+
+      Dmsg3(200, "Bad autochanger \"unload slot %d, drive %d\": ERR=%s.\n",
+	      slot, dev->drive_index, be.strerror());
+      ok = false;
+   } else {
+      dev->Slot = 0;		/* nothing loaded */
+      Dmsg0(200, "Slot unloaded\n");
+   }
+   free_pool_memory(changer_cmd);
+   return ok;
+}
+
 
 
 /*
