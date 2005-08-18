@@ -224,20 +224,20 @@ wxbMainFrame::wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSi
 
    // the "About" item should be in the help menu
    wxMenu *helpMenu = new wxMenu;
-   helpMenu->Append(Minimal_About, _T(_("&About...\tF1")), _T(_("Show about dialog")));
+   helpMenu->Append(Minimal_About, _("&About...\tF1"), _("Show about dialog"));
 
-   menuFile->Append(MenuConnect, _T(_("Connect")), _T(_("Connect to the director")));
-   menuFile->Append(MenuDisconnect, _T(_("Disconnect")), _T(_("Disconnect of the director")));
+   menuFile->Append(MenuConnect, _("Connect"), _("Connect to the director"));
+   menuFile->Append(MenuDisconnect, _("Disconnect"), _("Disconnect of the director"));
    menuFile->AppendSeparator();
-   menuFile->Append(ChangeConfigFile, _T(_("Change of configuration file")), _T(_("Change your default configuration file")));
-   menuFile->Append(EditConfigFile, _T(_("Edit your configuration file")), _T(_("Edit your configuration file")));
+   menuFile->Append(ChangeConfigFile, _("Change of configuration file"), _("Change your default configuration file"));
+   menuFile->Append(EditConfigFile, _("Edit your configuration file"), _("Edit your configuration file"));
    menuFile->AppendSeparator();
-   menuFile->Append(Minimal_Quit, _T(_("E&xit\tAlt-X")), _T(_("Quit this program")));
+   menuFile->Append(Minimal_Quit, _("E&xit\tAlt-X"), _("Quit this program"));
 
    // now append the freshly created menu to the menu bar...
    wxMenuBar *menuBar = new wxMenuBar();
-   menuBar->Append(menuFile, _T(_("&File")));
-   menuBar->Append(helpMenu, _T(_("&Help")));
+   menuBar->Append(menuFile, _("&File"));
+   menuBar->Append(helpMenu, _("&Help"));
 
    // ... and attach this menu bar to the frame
    SetMenuBar(menuBar);
@@ -245,7 +245,7 @@ wxbMainFrame::wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSi
 
    CreateStatusBar(1);
    
-   SetStatusText(wxString::Format(wxT(_("Welcome to bacula wx-console %s (%s)!\n")), wxT(VERSION), wxT(BDATE)));
+   SetStatusText(wxString::Format(_("Welcome to bacula wx-console %s (%s)!\n"), wxT(VERSION), wxT(BDATE)));
 
    wxPanel* global = new wxPanel(this, -1);
 
@@ -254,29 +254,29 @@ wxbMainFrame::wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSi
    /* Console */
 
    wxPanel* consolePanel = new wxPanel(notebook, -1);
-   notebook->AddPage(consolePanel, wxT(_("Console")));
+   notebook->AddPage(consolePanel, _("Console"));
 
    consoleCtrl = new wxTextCtrl(consolePanel,-1,wxT(""),wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_READONLY | wxTE_RICH);
    wxFont font(10, wxMODERN, wxNORMAL, wxNORMAL);
 #if defined __WXGTK12__ && !defined __WXGTK20__ // Fix for "chinese" fonts under gtk+ 1.2
    font.SetDefaultEncoding(wxFONTENCODING_ISO8859_1);
    consoleCtrl->SetDefaultStyle(wxTextAttr(*wxBLACK, wxNullColour, font));
-   Print(wxT(_("Warning : Unicode is disabled because you are using wxWidgets for GTK+ 1.2.\n")), CS_DEBUG);
+   Print(_("Warning : Unicode is disabled because you are using wxWidgets for GTK+ 1.2.\n"), CS_DEBUG);
 #else 
    consoleCtrl->SetDefaultStyle(wxTextAttr(*wxBLACK, wxNullColour, font));
 #if (wxUSE_UNICODE == 0) && __WXGTK20__
-   Print(wxT(_("Warning : There is a problem with wxWidgets for GTK+ 2.0 without Unicode support when handling non-ASCII filenames: Every non-ASCII character in such filenames will be replaced by an interrogation mark.\nIf this behaviour disturbs you, please build wx-console against a Unicode version of wxWidgets for GTK+ 2.0.\n---\n")), CS_DEBUG);   
+   Print(_("Warning : There is a problem with wxWidgets for GTK+ 2.0 without Unicode support when handling non-ASCII filenames: Every non-ASCII character in such filenames will be replaced by an interrogation mark.\nIf this behaviour disturbs you, please build wx-console against a Unicode version of wxWidgets for GTK+ 2.0.\n---\n"), CS_DEBUG);   
 #endif
 #endif
 
-   helpCtrl = new wxStaticText(consolePanel, -1, wxT(_("Type your command below:")));
+   helpCtrl = new wxStaticText(consolePanel, -1, _("Type your command below:"));
 
    wxFlexGridSizer *consoleSizer = new wxFlexGridSizer(4, 1, 0, 0);
    consoleSizer->AddGrowableCol(0);
    consoleSizer->AddGrowableRow(0);
 
    typeCtrl = new wxbHistoryTextCtrl(helpCtrl, consolePanel,TypeText,wxT(""),wxDefaultPosition,wxSize(200,20));
-   sendButton = new wxButton(consolePanel, SendButton, wxT(_("Send")));
+   sendButton = new wxButton(consolePanel, SendButton, _("Send"));
    
    wxFlexGridSizer *typeSizer = new wxFlexGridSizer(1, 2, 0, 0);
    typeSizer->AddGrowableCol(0);
@@ -353,8 +353,8 @@ void wxbMainFrame::StartConsoleThread(const wxString& config) {
       configfile = wxT("");
       
       if (((wxTheApp->argc % 2) != 1)) {
-         Print(wxT(_("Error while parsing command line arguments, using defaults.\n")), CS_DEBUG);
-         Print(wxT(_("Usage: wx-console [-c configfile] [-w tmp]\n")), CS_DEBUG);
+         Print(_("Error while parsing command line arguments, using defaults.\n"), CS_DEBUG);
+         Print(_("Usage: wx-console [-c configfile] [-w tmp]\n"), CS_DEBUG);
       }
       else {
          for (int c = 1; c < wxTheApp->argc; c += 2) {
@@ -365,8 +365,8 @@ void wxbMainFrame::StartConsoleThread(const wxString& config) {
                console_thread::SetWorkingDirectory(wxTheApp->argv[c+1]);
             }
             if (wxTheApp->argv[c][0] != '-') {
-               Print(wxT(_("Error while parsing command line arguments, using defaults.\n")), CS_DEBUG);
-               Print(wxT(_("Usage: wx-console [-c configfile] [-w tmp]\n")), CS_DEBUG);
+               Print(_("Error while parsing command line arguments, using defaults.\n"), CS_DEBUG);
+               Print(_("Usage: wx-console [-c configfile] [-w tmp]\n"), CS_DEBUG);
                break;
             }
          }
@@ -393,12 +393,12 @@ void wxbMainFrame::StartConsoleThread(const wxString& config) {
             wxConfig::Get()->Write(wxT("/ConfigFile"), configfile);
    
             int answer = wxMessageBox(
-                              wxString::Format(wxT(_(
+                              wxString::Format(_(
                               "It seems that it is the first time you run wx-console.\n"
                               "This file (%s) has been choosen as default configuration file.\n"
-                              "Do you want to edit it? (if you click No you will have to select another file)")),
+                              "Do you want to edit it? (if you click No you will have to select another file)"),
                               configfile.c_str()),
-                              wxT(_("First run")),
+                              _("First run"),
                               wxYES_NO | wxICON_QUESTION, this);
             if (answer == wxYES) {
                wxbConfigFileEditor(this, configfile).ShowModal();
@@ -414,11 +414,12 @@ void wxbMainFrame::StartConsoleThread(const wxString& config) {
    
    while (err != wxT("")) {
       int answer = wxMessageBox(
-                        wxString::Format(wxT(_(
+                        wxString::Format(_(
                            "Unable to read %s\n"
                            "Error: %s\n"
-                           "Do you want to choose another one? (Press no to edit this file)")), configfile.c_str(), err.c_str()),
-                        wxT(_("Unable to read configuration file")),
+                           "Do you want to choose another one? (Press no to edit this file)"),
+                           configfile.c_str(), err.c_str()),
+                        _("Unable to read configuration file"),
                         wxYES_NO | wxCANCEL | wxICON_ERROR, this);
       if (answer == wxNO) {
          wxbConfigFileEditor(this, configfile).ShowModal();
@@ -430,7 +431,7 @@ void wxbMainFrame::StartConsoleThread(const wxString& config) {
          return;
       }
       else { // (answer == wxYES)
-         configfile = wxFileSelector(wxT(_("Please choose a configuration file to use")));
+         configfile = wxFileSelector(_("Please choose a configuration file to use"));
          if ( !configfile.empty() ) {
             err = console_thread::LoadConfig(configfile);
          }
@@ -443,8 +444,8 @@ void wxbMainFrame::StartConsoleThread(const wxString& config) {
       
       if ((err == wxT("")) && (config == wxT(""))) {
          answer = wxMessageBox(
-                           wxT(_("This configuration file has been successfully read, use it as default?")),
-                           wxT(_("Configuration file read successfully")),
+                           _("This configuration file has been successfully read, use it as default?"),
+                           _("Configuration file read successfully"),
                            wxYES_NO | wxICON_QUESTION, this);
          if (answer == wxYES) {
               wxConfigBase::Get()->Write(wxT("/ConfigFile"), configfile);
@@ -454,12 +455,12 @@ void wxbMainFrame::StartConsoleThread(const wxString& config) {
    }
    
    // former was csprint
-   Print(wxString::Format(wxT(_("Using this configuration file: %s\n")), configfile.c_str()), CS_DEBUG);
+   Print(wxString::Format(_("Using this configuration file: %s\n"), configfile.c_str()), CS_DEBUG);
    
    ct = new console_thread();
    ct->Create();
    ct->Run();
-   SetStatusText(wxT(_("Connecting to the director...")));
+   SetStatusText(_("Connecting to the director..."));
 }
 
 /* Register a new wxbDataParser */
@@ -474,7 +475,7 @@ void wxbMainFrame::Unregister(wxbDataParser* dp) {
       parsers.RemoveAt(index);
    }
    else {
-      Print(wxT(_("Failed to unregister a data parser !")), CS_DEBUG);
+      Print(_("Failed to unregister a data parser !"), CS_DEBUG);
    }
 }
 
@@ -482,7 +483,7 @@ void wxbMainFrame::Unregister(wxbDataParser* dp) {
 
 void wxbMainFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
 {
-   Print(wxT(_("Quitting.\n")), CS_DEBUG);
+   Print(_("Quitting.\n"), CS_DEBUG);
    if (ct != NULL) {
       ct->Delete();
       ct = NULL;
@@ -497,20 +498,20 @@ void wxbMainFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
 void wxbMainFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 {
    wxString msg;
-   msg.Printf( _T(_("Welcome to Bacula wx-console.\nWritten by Nicolas Boichat <nicolas@boichat.ch>\n(C) 2004 Kern Sibbald and John Walker\n")));
+   msg.Printf(_("Welcome to Bacula wx-console.\nWritten by Nicolas Boichat <nicolas@boichat.ch>\n(C) 2005 Kern Sibbald\n"));
 
-   wxMessageBox(msg, _T(_("About Bacula wx-console")), wxOK | wxICON_INFORMATION, this);
+   wxMessageBox(msg, _("About Bacula wx-console"), wxOK | wxICON_INFORMATION, this);
 }
 
 void wxbMainFrame::OnChangeConfig(wxCommandEvent& event) {
    wxString oriconfigfile;
    wxConfig::Get()->Read(wxT("/ConfigFile"), &oriconfigfile);
-   wxString configfile = wxFileSelector(wxT(_("Please choose your default configuration file")));
+   wxString configfile = wxFileSelector(_("Please choose your default configuration file"));
    if ( !configfile.empty() ) {
       if (oriconfigfile != configfile) {
          int answer = wxMessageBox(
-                           wxT(_("Use this configuration file as default?")),
-                           wxT(_("Configuration file")),
+                           _("Use this configuration file as default?"),
+                           _("Configuration file"),
                            wxYES_NO | wxICON_QUESTION, this);
          if (answer == wxYES) {
               wxConfigBase::Get()->Write(wxT("/ConfigFile"), configfile);
@@ -574,20 +575,20 @@ void wxbMainFrame::Print(wxString str, int status)
    if (status == CS_TERMINATED) {
       consoleCtrl->AppendText(consoleBuffer);
       consoleBuffer = wxT("");
-      SetStatusText(wxT(_("Console thread terminated.")));
+      SetStatusText(_("Console thread terminated."));
       consoleCtrl->PageDown();
       ct = NULL;
       DisablePanels();
-      int answer = wxMessageBox( wxT(_("Connection to the director lost. Quit program?")), 
-                                 wxT(_("Connection lost")),
+      int answer = wxMessageBox( _("Connection to the director lost. Quit program?"), 
+                                 _("Connection lost"),
                         wxYES_NO | wxICON_EXCLAMATION, this);
       if (answer == wxYES) {
          frame = NULL;
          Close(true);
       }
       menuFile->Enable(MenuConnect, true);
-      menuFile->SetLabel(MenuConnect, wxT(_("Connect")));
-      menuFile->SetHelpString(MenuConnect, wxT(_("Connect to the director")));
+      menuFile->SetLabel(MenuConnect, _("Connect"));
+      menuFile->SetHelpString(MenuConnect, _("Connect to the director"));
       menuFile->Enable(MenuDisconnect, false);
       menuFile->Enable(ChangeConfigFile, true);
       menuFile->Enable(EditConfigFile, true);
@@ -595,7 +596,7 @@ void wxbMainFrame::Print(wxString str, int status)
    }
    
    if (status == CS_CONNECTED) {
-      SetStatusText(wxT(_("Connected to the director.")));
+      SetStatusText(_("Connected to the director."));
       typeCtrl->ClearCommandList();
       wxbDataTokenizer* dt = wxbUtils::WaitForEnd(wxT(".help"), true);
       int i, j;
@@ -609,8 +610,8 @@ void wxbMainFrame::Print(wxString str, int status)
       }
       EnablePanels();
       menuFile->Enable(MenuConnect, true);
-      menuFile->SetLabel(MenuConnect, wxT(_("Reconnect")));
-      menuFile->SetHelpString(MenuConnect, wxT(_("Reconnect to the director")));
+      menuFile->SetLabel(MenuConnect, _("Reconnect"));
+      menuFile->SetHelpString(MenuConnect, _("Reconnect to the director"));
       menuFile->Enable(MenuDisconnect, true);
       menuFile->Enable(ChangeConfigFile, true);
       menuFile->Enable(EditConfigFile, true);
@@ -620,7 +621,7 @@ void wxbMainFrame::Print(wxString str, int status)
       consoleCtrl->AppendText(consoleBuffer);
       consoleBuffer = wxT("");
       consoleCtrl->PageDown();
-      SetStatusText(wxT(_("Disconnected of the director.")));
+      SetStatusText(_("Disconnected of the director."));
       DisablePanels();
       return;
    }
@@ -639,7 +640,7 @@ void wxbMainFrame::Print(wxString str, int status)
       }
          
       if ((status == CS_PROMPT) && (promptcaught < 1) && (promptparser->isPrompt())) {
-         Print(wxT(_("Unexpected question has been received.\n")), CS_DEBUG);
+         Print(_("Unexpected question has been received.\n"), CS_DEBUG);
 //         Print(wxString("(") << promptparser->getIntroString() << "/-/" << promptparser->getQuestionString() << ")\n", CS_DEBUG);
          
          wxString message;
@@ -662,7 +663,7 @@ void wxbMainFrame::Print(wxString str, int status)
             }
             
             int res = ::wxGetSingleChoiceIndex(message,
-               wxT(_("wx-console: unexpected director's question.")), n, choices, this);
+               _("wx-console: unexpected director's question."), n, choices, this);
             if (res == -1) { //Cancel pressed
                Send(wxT(".\n"));
             }
@@ -677,7 +678,7 @@ void wxbMainFrame::Print(wxString str, int status)
          }
          else {
             Send(::wxGetTextFromUser(message,
-               wxT(_("wx-console: unexpected director's question.")),
+               _("wx-console: unexpected director's question."),
                wxT(""), this) + wxT("\n"));
          }
       }

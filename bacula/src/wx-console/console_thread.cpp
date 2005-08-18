@@ -23,6 +23,10 @@
 
 // http://66.102.9.104/search?q=cache:Djc1mPF3hRoJ:cvs.sourceforge.net/viewcvs.py/audacity/audacity-src/src/AudioIO.cpp%3Frev%3D1.102+macos+x+wxthread&hl=fr
 
+/* Note: this is the only source file in src/wx-console which uses the
+ * standard gettext macros. So every translated string passed to wxWidgets
+ * must be converted. (wxString(_("..."),wxConvUTF8)) */
+
 #include "console_thread.h" // class's header file
 
 #include <wx/wxprec.h>
@@ -191,7 +195,7 @@ static void scan_err(const char *file, int line, LEX *lc, const char *msg, ...)
       more[0] = 0;
    }
 
-   err.Format(wxT(_("Config error: %s\n            : line %d, col %d of file %s\n%s\n%s")),
+   err.Format(wxString(_("Config error: %s\n            : line %d, col %d of file %s\n%s\n%s"), wxConvUTF8),
       buf, lc->line_no, lc->col_no, lc->fname, lc->line, more);
      
    errmsg << err; 
@@ -201,7 +205,7 @@ wxString console_thread::LoadConfig(wxString configfile) {
    if (!inited) {
       InitLib();
       if (!inited)
-         return wxT(_("Error while initializing library."));
+         return wxString(_("Error while initializing library."), wxConvUTF8);
    }
    
    free_config_resources();
@@ -322,7 +326,7 @@ void* console_thread::Entry() {
                csprint(wxString(wxT("   ")) <<  (i+1) << wxT(": ") << wxString(res[i]->hdr.name,*wxConvCurrent) << wxT("\n"));
             }
          }
-         csprint(wxString::Format(wxT(_("Please choose a director (1-%d): ")), count), CS_DATA);
+         csprint(wxString::Format(wxString(_("Please choose a director (1-%d): "), wxConvUTF8), count), CS_DATA);
          csprint(NULL, CS_PROMPT);
          choosingdirector = true;
          directorchoosen = -1;

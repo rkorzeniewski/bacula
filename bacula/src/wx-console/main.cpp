@@ -29,8 +29,11 @@
 // headers
 // ----------------------------------------------------------------------------
 
+#include "config.h"
+
 #include <wx/wxprec.h>
 #include <wx/config.h>
+#include <wx/intl.h>
 
 #include "wxbmainframe.h"
 
@@ -66,9 +69,11 @@ IMPLEMENT_APP(MyApp)
 // 'Main program' equivalent: the program execution "starts" here
 bool MyApp::OnInit()
 {
-   setlocale(LC_ALL, "");
-   bindtextdomain("bacula", LOCALEDIR);
-   textdomain("bacula");
+   wxLocale m_locale;
+   
+   m_locale.Init();
+   m_locale.AddCatalog(wxT("bacula"));
+   wxLocale::AddCatalogLookupPathPrefix(wxT(LOCALEDIR));
 
    long posx, posy, sizex, sizey;
    int displayx, displayy;
@@ -93,12 +98,12 @@ bool MyApp::OnInit()
       }
    }
 
-   wxbMainFrame *frame = wxbMainFrame::CreateInstance(wxT(_("Bacula wx-console")),
+   wxbMainFrame *frame = wxbMainFrame::CreateInstance(_("Bacula wx-console"),
                          wxPoint(posx, posy), wxSize(sizex, sizey));
 
    frame->Show(TRUE);
 
-   frame->Print(wxString::Format(wxT(_("Welcome to bacula wx-console %s (%s)!\n")), wxT(VERSION), wxT(BDATE)), CS_DEBUG);
+   frame->Print(wxString::Format(_("Welcome to bacula wx-console %s (%s)!\n"), wxT(VERSION), wxT(BDATE)), CS_DEBUG);
 
    frame->StartConsoleThread(wxT(""));
    

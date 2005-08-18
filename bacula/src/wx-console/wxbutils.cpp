@@ -20,7 +20,7 @@
    the file LICENSE for additional details.
 
  */
- 
+
 #include "wxbutils.h"
 
 #include "wxbmainframe.h"

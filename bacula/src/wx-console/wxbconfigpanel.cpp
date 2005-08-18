@@ -177,18 +177,18 @@ wxbConfigPanel::wxbConfigPanel(wxWindow* parent, wxbConfig* config, wxString tit
    
    wxBoxSizer* restoreBottomSizer = new wxBoxSizer(wxHORIZONTAL);
    
-   cfgOk = new wxButton(this, ok, wxT(_("OK")), wxDefaultPosition, wxSize(70, 25));
+   cfgOk = new wxButton(this, ok, _("OK"), wxDefaultPosition, wxSize(70, 25));
    restoreBottomSizer->Add(cfgOk, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, 10);
 
    if (apply != -1) {
-      cfgApply = new wxButton(this, apply, wxT(_("Apply")), wxDefaultPosition, wxSize(70, 25));
+      cfgApply = new wxButton(this, apply, _("Apply"), wxDefaultPosition, wxSize(70, 25));
       restoreBottomSizer->Add(cfgApply, 1, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 10);
    }
    else {
       cfgApply = NULL;
    }
 
-   cfgCancel = new wxButton(this, cancel, wxT(_("Cancel")), wxDefaultPosition, wxSize(70, 25));
+   cfgCancel = new wxButton(this, cancel, _("Cancel"), wxDefaultPosition, wxSize(70, 25));
    restoreBottomSizer->Add(cfgCancel, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, 10);
    
    mainSizer->Add(restoreBottomSizer, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL | wxALL, 5);

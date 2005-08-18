@@ -38,7 +38,7 @@ BEGIN_EVENT_TABLE(wxbConfigFileEditor, wxDialog)
 END_EVENT_TABLE()
 
 wxbConfigFileEditor::wxbConfigFileEditor(wxWindow* parent, wxString filename):
-      wxDialog(parent, -1, wxT(_("Config file editor")), wxDefaultPosition, wxSize(500, 300),
+      wxDialog(parent, -1, _("Config file editor"), wxDefaultPosition, wxSize(500, 300),
                    wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER) {
    this->filename = filename;
    
@@ -54,8 +54,8 @@ wxbConfigFileEditor::wxbConfigFileEditor(wxWindow* parent, wxString filename):
    mainSizer->AddGrowableRow(0);
    
    wxBoxSizer *bottomsizer = new wxBoxSizer(wxHORIZONTAL);
-   bottomsizer->Add(new wxButton(this, Save, wxT(_("Save and close"))), 0, wxALL, 10);
-   bottomsizer->Add(new wxButton(this, Quit, wxT(_("Close without saving"))), 0, wxALL, 10);
+   bottomsizer->Add(new wxButton(this, Save, _("Save and close")), 0, wxALL, 10);
+   bottomsizer->Add(new wxButton(this, Quit, _("Close without saving")), 0, wxALL, 10);
    
    mainSizer->Add(textCtrl, 1, wxEXPAND);
    mainSizer->Add(bottomsizer, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL);
@@ -66,7 +66,7 @@ wxbConfigFileEditor::wxbConfigFileEditor(wxWindow* parent, wxString filename):
    
    if (!filen.FileExists()) {
       (*textCtrl) << wxT("#\n");
-      (*textCtrl) << wxT(_("# Bacula wx-console Configuration File\n"));
+      (*textCtrl) << _("# Bacula wx-console Configuration File\n");
       (*textCtrl) << wxT("#\n");
       (*textCtrl) << wxT("\n");
       (*textCtrl) << wxT("Director {\n");
@@ -97,8 +97,8 @@ wxbConfigFileEditor::~wxbConfigFileEditor() {
 void wxbConfigFileEditor::OnSave(wxCommandEvent& event) {
    wxFile file(filename, wxFile::write);
    if (!file.IsOpened()) {
-      wxMessageBox(wxString::Format(wxT(_("Unable to write to %s\n")), filename.c_str()),
-                        wxT(_("Error while saving")),
+      wxMessageBox(wxString::Format(_("Unable to write to %s\n"), filename.c_str()),
+                        _("Error while saving"),
                         wxOK | wxICON_ERROR, this);
       EndModal(wxCANCEL);
       return;
