@@ -5,6 +5,9 @@ General:
 
 Changes to 1.37.36:
 18Aug05
+- Implement unloading a volume in a different drive if it
+  is needed in the current drive.
+- Implement search for unused autochanger drive.
 - Implement search for exact Volume in reservation before
   other searches.
 - Fix picking up drive in Dir so that it is not done in
