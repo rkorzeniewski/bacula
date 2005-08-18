@@ -1,4 +1,7 @@
-/* */
+/*
+ *   Version $Id$
+ */
+
 #undef  VERSION
 #define VERSION "1.37.36"
 #define BDATE   "18 August 2005"
