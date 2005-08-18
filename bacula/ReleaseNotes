@@ -1,7 +1,7 @@
 
-          Release Notes for Bacula 1.37.35
+          Release Notes for Bacula 1.37.36
 
-  Bacula code: Total files = 420 Total lines = 137,098 (*.h *.c *.in)
+  Bacula code: Total files = 420 Total lines = 137,650 (*.h *.c *.in)
 
 Major Changes:
 - There is a new database format that is not compatible

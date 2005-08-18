@@ -4,6 +4,12 @@
 General:
 
 Changes to 1.37.36:
+18Aug05
+- Implement search for exact Volume in reservation before
+  other searches.
+- Fix picking up drive in Dir so that it is not done in
+  the status command.
+- Eliminate double check on "loaded" for autochanger.
 17Aug05
 - Start coding better reservation algorithm
 - Always look for slot for label command.
