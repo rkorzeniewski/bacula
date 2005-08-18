@@ -1,5 +1,5 @@
 /*
- *   Version $Id$
+ *  Version $Id$
  */
 
 #undef  VERSION
