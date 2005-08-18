@@ -685,17 +685,22 @@ static int can_reserve_drive(DCR *dcr, bool PreferMountedVols)
 	 if (strcmp(dev->pool_name, dcr->pool_name) == 0 &&
 	     strcmp(dev->pool_type, dcr->pool_type) == 0) {
 	    /* OK, compatible device */
+            Dmsg0(200, "got dev: num_writers=0, reserved, pool matches\n");
 	 } else {
 	    /* Drive not suitable for us */
+            Dmsg2(200, "busy: num_writers=0, reserved, pool=%s wanted=%s\n",
+	       dev->pool_name, dcr->pool_name);
 	    return 0;		      /* wait */
 	 }
       } else if (dev->can_append()) {
 	 /* Device in append mode, check if changing pool */
 	 if (strcmp(dev->pool_name, dcr->pool_name) == 0 &&
 	     strcmp(dev->pool_type, dcr->pool_type) == 0) {
+            Dmsg0(200, "got dev: num_writers=0, can_append, pool matches\n");
 	    /* OK, compatible device */
 	 } else {
 	    /* Changing pool, unload old tape if any in drive */
+            Dmsg0(200, "got dev: num_writers=0, reserved, pool change\n");
 	    unload_autochanger(dcr, 0);
 	 }
       }
@@ -714,12 +719,15 @@ static int can_reserve_drive(DCR *dcr, bool PreferMountedVols)
       /* Yes, now check if we want the same Pool and pool type */
       if (strcmp(dev->pool_name, dcr->pool_name) == 0 &&
 	  strcmp(dev->pool_type, dcr->pool_type) == 0) {
+         Dmsg0(200, "got dev: num_writers>=0, can_append, pool matches\n");
 	 /* OK, compatible device */
 	 return 1;
       } else {
 	 /* Drive not suitable for us */
          Jmsg(jcr, M_WARNING, 0, _("Wanted Pool \"%s\", but device %s is using Pool \"%s\" .\n"), 
 		 dcr->pool_name, dev->print_name(), dev->pool_name);
+         Dmsg2(200, "busy: num_writers>0, can_append, pool=%s wanted=%s\n",
+	    dev->pool_name, dcr->pool_name);
 	 return 0;		      /* wait */
       }
    } else {
