@@ -3,4 +3,8 @@
 /bin/cp -f scripts/bacula-sd-2drive.conf bin/bacula-sd.conf
 /bin/cp -f scripts/test-bacula-fd.conf bin/bacula-fd.conf
 /bin/cp -f scripts/test-console.conf bin/bconsole.conf
+outf="tmp/sed_tmp"
+echo "s%# Autochanger = yes%  Autochanger = yes%g" >${outf}
+cp bin/bacula-dir.conf tmp/1
+sed -f ${outf} tmp/1 >bin/bacula-dir.conf
 touch bin/tape_options

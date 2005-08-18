@@ -12,6 +12,7 @@ if ! test x@autochanger@ = x/dev/null; then
    fi
    mt -f @tape_drive1@ rewind
    mt -f @tape_drive1@ weof
+   bin/mtx-changer @autochanger@ unload 2 @tape_drive1@ 1
 fi
 
 
@@ -28,3 +29,4 @@ fi
 
 mt -f @tape_drive@ rewind
 mt -f @tape_drive@ weof
+bin/mtx-changer @autochanger@ unload 1 @tape_drive@ 0
