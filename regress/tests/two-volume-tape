@@ -5,7 +5,7 @@
 #  Note, this test simulates the tape filling and writing to
 #   the next tape.
 #
-debug=1
+debug=0
 if test "$debug" -eq 1 ; then
   out="tee"
 else
