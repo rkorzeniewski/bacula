@@ -25,6 +25,11 @@
 
  */
 
+/* _("...") macro returns a wxChar*, so if we need a char*, we need to convert it with:
+ * wxString(_("...")).mb_str(*wxConvCurrent) */
+
+#include <wx/intl.h>
+
 #include "bacula.h"
 #include "console_conf.h"
 #include "jcr.h"
@@ -140,10 +145,7 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
 
 bail_out:
    stop_bsock_timer(tid);
-   csprint( _("Director authorization problem.\n"
-              "Most likely the passwords do not agree.\n"
-              "If you are using TLS, there may have been a certificate validation error during the TLS handshake.\n"
-              "Please see http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors for help.\n"));
+   csprint( _("Director authorization problem.\nMost likely the passwords do not agree.\nIf you are using TLS, there may have been a certificate validation error during the TLS handshake.\nPlease see http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors for help.\n"));
    return 0;
 
 }

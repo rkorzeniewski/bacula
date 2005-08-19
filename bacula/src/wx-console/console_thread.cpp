@@ -98,17 +98,14 @@ static int check_resources()
       }
 
       if ((!director->tls_ca_certfile && !director->tls_ca_certdir) && director->tls_enable) {
-         Jmsg(NULL, M_FATAL, 0, wxString(_("Neither \"TLS CA Certificate\""
-                             " or \"TLS CA Certificate Dir\" are defined for Director \"%s\" in config file.\n"
-                             " At least one CA certificate store is required.\n")).mb_str(*wxConvCurrent),
+         Jmsg(NULL, M_FATAL, 0, wxString(_("Neither \"TLS CA Certificate\" or \"TLS CA Certificate Dir\" are defined for Director \"%s\" in config file.\nAt least one CA certificate store is required.\n")).mb_str(*wxConvCurrent),
                              director->hdr.name);
          xOK = false;
       }
    }
    
    if (numdir == 0) {
-      Jmsg(NULL, M_FATAL, 0, wxString(_("No Director resource defined in config file.\n"
-                          "Without that I don't how to speak to the Director :-(\n")).mb_str(*wxConvCurrent));
+      Jmsg(NULL, M_FATAL, 0, wxString(_("No Director resource defined in config file.\nWithout that I don't how to speak to the Director :-(\n")).mb_str(*wxConvCurrent));
       xOK = false;
    }
 
@@ -127,8 +124,7 @@ static int check_resources()
       }
 
       if ((!cons->tls_ca_certfile && !cons->tls_ca_certdir) && cons->tls_enable) {
-         Jmsg(NULL, M_FATAL, 0, wxString(_("Neither \"TLS CA Certificate\""
-                             " or \"TLS CA Certificate Dir\" are defined for Console \"%s\" in config file.\n")).mb_str(*wxConvCurrent),
+         Jmsg(NULL, M_FATAL, 0, wxString(_("Neither \"TLS CA Certificate\" or \"TLS CA Certificate Dir\" are defined for Console \"%s\" in config file.\n")).mb_str(*wxConvCurrent),
                              cons->hdr.name);
          xOK = false;
       }

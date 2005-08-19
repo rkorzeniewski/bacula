@@ -34,6 +34,10 @@
 
  */
 
+/* _("...") macro returns a wxChar*, so if we need a char*, we need to convert it with:
+ * wxString(_("...")).mb_str(*wxConvCurrent) */
+
+#include <wx/intl.h>
 
 #include "bacula.h"
 #include "console_conf.h"
@@ -121,7 +125,7 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
    int recurse = 1;
 
    if (res == NULL) {
-      printf(_("No record for %d %s\n"), type, res_to_str(type));
+      printf(wxString(_("No record for %d %s\n")).mb_str(*wxConvCurrent), type, res_to_str(type));
       return;
    }
    if (type < 0) {            /* no recursion */
@@ -130,15 +134,15 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
    }
    switch (type) {
       case R_CONSOLE:
-         printf(_("Console: name=%s rcfile=%s histfile=%s\n"), reshdr->name,
+         printf(wxString(_("Console: name=%s rcfile=%s histfile=%s\n")).mb_str(*wxConvCurrent), reshdr->name,
       res->res_cons.rc_file, res->res_cons.hist_file);
     break;
       case R_DIRECTOR:
-         printf(_("Director: name=%s address=%s DIRport=%d\n"), reshdr->name,
+         printf(wxString(_("Director: name=%s address=%s DIRport=%d\n")).mb_str(*wxConvCurrent), reshdr->name,
        res->res_dir.address, res->res_dir.DIRport);
     break;
       default:
-         printf(_("Unknown resource type %d\n"), type);
+         printf(wxString(_("Unknown resource type %d\n")).mb_str(*wxConvCurrent), type);
    }
    if (recurse && res->res_dir.hdr.next) {
       dump_resource(type, res->res_dir.hdr.next, sendit, sock);
@@ -213,7 +217,7 @@ void free_resource(RES *sres, int type)
       }
       break;
    default:
-         printf(_("Unknown resource type %d\n"), type);
+         printf(wxString(_("Unknown resource type %d\n")).mb_str(*wxConvCurrent), type);
       }
    /* Common stuff again -- free the resource, recurse to next one */
    free(res);
@@ -239,7 +243,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
    for (i=0; items[i].name; i++) {
       if (items[i].flags & ITEM_REQUIRED) {
        if (!bit_is_set(i, res_all.res_dir.hdr.item_present)) {
-               Emsg2(M_ABORT, 0, _("%s item is required in %s resource, but not found.\n"),
+               Emsg2(M_ABORT, 0, wxString(_("%s item is required in %s resource, but not found.\n")).mb_str(*wxConvCurrent),
        items[i].name, resources[rindex]);
         }
       }
@@ -258,7 +262,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
        break;
 
     default:
-            Emsg1(M_ERROR, 0, _("Unknown resource type %d\n"), type);
+            Emsg1(M_ERROR, 0, wxString(_("Unknown resource type %d\n")).mb_str(*wxConvCurrent), type);
        error = 1;
        break;
       }
@@ -285,7 +289,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
     size = sizeof(DIRRES);
     break;
       default:
-         printf(_("Unknown resource type %d\n"), type);
+         printf(wxString(_("Unknown resource type %d\n")).mb_str(*wxConvCurrent), type);
     error = 1;
     size = 1;
     break;
@@ -301,7 +305,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
     for (next=res_head[rindex]; next->next; next=next->next) {
        if (strcmp(next->name, res->res_dir.hdr.name) == 0) {
           Emsg2(M_ERROR_TERM, 0,
-                  _("Attempt to define second %s resource named \"%s\" is not permitted.\n"),
+                  wxString(_("Attempt to define second %s resource named \"%s\" is not permitted.\n")).mb_str(*wxConvCurrent),
         resources[rindex].name, res->res_dir.hdr.name);
        }
     }

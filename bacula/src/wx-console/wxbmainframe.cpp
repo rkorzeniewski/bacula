@@ -394,9 +394,7 @@ void wxbMainFrame::StartConsoleThread(const wxString& config) {
    
             int answer = wxMessageBox(
                               wxString::Format(_(
-                              "It seems that it is the first time you run wx-console.\n"
-                              "This file (%s) has been choosen as default configuration file.\n"
-                              "Do you want to edit it? (if you click No you will have to select another file)"),
+                              "It seems that it is the first time you run wx-console.\nThis file (%s) has been choosen as default configuration file.\nDo you want to edit it? (if you click No you will have to select another file)"),
                               configfile.c_str()),
                               _("First run"),
                               wxYES_NO | wxICON_QUESTION, this);
@@ -415,9 +413,7 @@ void wxbMainFrame::StartConsoleThread(const wxString& config) {
    while (err != wxT("")) {
       int answer = wxMessageBox(
                         wxString::Format(_(
-                           "Unable to read %s\n"
-                           "Error: %s\n"
-                           "Do you want to choose another one? (Press no to edit this file)"),
+                           "Unable to read %s\nError: %s\nDo you want to choose another one? (Press no to edit this file)"),
                            configfile.c_str(), err.c_str()),
                         _("Unable to read configuration file"),
                         wxYES_NO | wxCANCEL | wxICON_ERROR, this);
