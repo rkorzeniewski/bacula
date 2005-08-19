@@ -4,6 +4,10 @@
 General:
 
 Changes to 1.37.36:
+19Aug05
+- Fix for create JobMedia so that VolIndex remains valid even
+  during a delete Job or pruning -- bug 402.
+- Minor tweak for Win32 build.
 18Aug05
 - Win32 fix -- remove debug O_NONBLOCK code.
 - Fix bug 399 -- make_catalog_backup does not work for sqlite3
