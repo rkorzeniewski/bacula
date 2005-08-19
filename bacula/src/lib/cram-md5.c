@@ -8,22 +8,17 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
-   This library is distributed in the hope that it will be useful,
+   This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
-
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -67,6 +62,7 @@ int cram_md5_auth(BSOCK *bs, char *password, int tls_local_need)
    }
    hmac_md5((uint8_t *)chal, strlen(chal), (uint8_t *)password, strlen(password), hmac);
    bin_to_base64(host, (char *)hmac, 16);
+// Dmsg3(100, "auth: chal=%s pw=%s hmac=%s\n", chal, password, host);
    ok = strcmp(bs->msg, host) == 0;
    if (ok) {
       Dmsg1(50, "Authenticate OK %s\n", host);
@@ -101,15 +97,16 @@ int cram_md5_get_auth(BSOCK *bs, char *password, int *tls_remote_need)
    Dmsg1(100, "cram-get: %s", bs->msg);
    if (sscanf(bs->msg, "auth cram-md5 %s ssl=%d\n", chal, tls_remote_need) != 2) {
       if (sscanf(bs->msg, "auth cram-md5 %s\n", chal) != 1) {
-	 Dmsg1(50, "Cannot scan challenge: %s", bs->msg);
-	 bnet_fsend(bs, _("1999 Authorization failed.\n"));
-	 bmicrosleep(5, 0);
-	 return 0;
+         Dmsg1(50, "Cannot scan challenge: %s", bs->msg);
+         bnet_fsend(bs, _("1999 Authorization failed.\n"));
+         bmicrosleep(5, 0);
+         return 0;
       }
    }
 
    hmac_md5((uint8_t *)chal, strlen(chal), (uint8_t *)password, strlen(password), hmac);
    bs->msglen = bin_to_base64(bs->msg, (char *)hmac, 16) + 1;
+// Dmsg3(100, "get_auth: chal=%s pw=%s hmac=%s\n", chal, password, bs->msg);
    if (!bnet_send(bs)) {
       Dmsg1(50, "Send challenge failed. ERR=%s\n", bnet_strerror(bs));
       return 0;

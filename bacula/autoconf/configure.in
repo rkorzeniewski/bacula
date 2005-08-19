@@ -684,6 +684,7 @@ AC_ARG_WITH(tcp-wrappers,
        saved_LIBS="$LIBS"
        LIBS="$saved_LIBS -lwrap"
        AC_MSG_CHECKING(for libwrap)
+       AC_SEARCH_LIBS(nanosleep, [rt])
        AC_TRY_LINK(
 	  [ #include <tcpd.h>
 	     int deny_severity = 0;

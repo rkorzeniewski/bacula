@@ -147,11 +147,6 @@
 /* Define if you have sys/bitypes.h */
 /* #undef HAVE_SYS_BITYPES_H */
 
-/* Directory for PID files */
-#define _PATH_BACULA_PIDDIR "/var/run"
-
-/* LOCALEDIR */
-#define LOCALEDIR "."
 
 /* Define if you have zlib */
 #define HAVE_LIBZ 1
@@ -569,9 +564,9 @@
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
    automatically deduced at run-time.
-	STACK_DIRECTION > 0 => grows toward higher addresses
-	STACK_DIRECTION < 0 => grows toward lower addresses
-	STACK_DIRECTION = 0 => direction of growth unknown */
+        STACK_DIRECTION > 0 => grows toward higher addresses
+        STACK_DIRECTION < 0 => grows toward lower addresses
+        STACK_DIRECTION = 0 => direction of growth unknown */
 /* #undef STACK_DIRECTION */
 
 /* Define to 1 if the `S_IS*' macros in <sys/stat.h> do not work properly. */
