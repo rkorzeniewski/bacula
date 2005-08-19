@@ -74,7 +74,6 @@
 #include "getopt.h"
 
 #define HAVE_WIN32 1
-#undef HAVE_NLS
 
 #ifndef HAVE_MINGW
 #ifdef HAVE_CYGWIN

@@ -150,6 +150,9 @@
 /* Directory for PID files */
 #define _PATH_BACULA_PIDDIR "/var/run"
 
+/* LOCALEDIR */
+#define LOCALEDIR "."
+
 /* Define if you have zlib */
 #define HAVE_LIBZ 1
 
@@ -224,6 +227,10 @@
 
 /* Define to 1 if using `alloca.c'. */
 /* #undef C_ALLOCA */
+
+/* Define to 1 if translation of program messages to the user's native
+   language is requested. */
+/* #undef ENABLE_NLS */
 
 /* Define to 1 if you have `alloca', as a function or macro. */
 #define HAVE_ALLOCA 1
