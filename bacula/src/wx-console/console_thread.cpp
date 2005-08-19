@@ -23,9 +23,8 @@
 
 // http://66.102.9.104/search?q=cache:Djc1mPF3hRoJ:cvs.sourceforge.net/viewcvs.py/audacity/audacity-src/src/AudioIO.cpp%3Frev%3D1.102+macos+x+wxthread&hl=fr
 
-/* Note: this is the only source file in src/wx-console which uses the
- * standard gettext macros. So every translated string passed to wxWidgets
- * must be converted. (wxString(_("..."),wxConvUTF8)) */
+/* _("...") macro returns a wxChar*, so if we need a char*, we need to convert it with:
+ * wxString(_("...")).mb_str(*wxConvCurrent) */
 
 #include "console_thread.h" // class's header file
 
@@ -33,8 +32,6 @@
 
 #include <wx/thread.h>
 #include <wx/file.h>
-#include <bacula.h>
-#include <jcr.h>
 
 #include "console_conf.h"
 
@@ -94,24 +91,24 @@ static int check_resources()
          if (have_tls) {
             director->tls_enable = true;
          } else {
-            Jmsg(NULL, M_FATAL, 0, _("TLS required but not configured in Bacula.\n"));
+            Jmsg(NULL, M_FATAL, 0, wxString(_("TLS required but not configured in Bacula.\n")).mb_str(*wxConvCurrent));
             xOK = false;
             continue;
          }
       }
 
       if ((!director->tls_ca_certfile && !director->tls_ca_certdir) && director->tls_enable) {
-         Jmsg(NULL, M_FATAL, 0, _("Neither \"TLS CA Certificate\""
+         Jmsg(NULL, M_FATAL, 0, wxString(_("Neither \"TLS CA Certificate\""
                              " or \"TLS CA Certificate Dir\" are defined for Director \"%s\" in config file.\n"
-                             " At least one CA certificate store is required.\n"),
+                             " At least one CA certificate store is required.\n")).mb_str(*wxConvCurrent),
                              director->hdr.name);
          xOK = false;
       }
    }
    
    if (numdir == 0) {
-      Jmsg(NULL, M_FATAL, 0, _("No Director resource defined in config file.\n"
-                          "Without that I don't how to speak to the Director :-(\n"));
+      Jmsg(NULL, M_FATAL, 0, wxString(_("No Director resource defined in config file.\n"
+                          "Without that I don't how to speak to the Director :-(\n")).mb_str(*wxConvCurrent));
       xOK = false;
    }
 
@@ -123,15 +120,15 @@ static int check_resources()
          if (have_tls) {
             cons->tls_enable = true;
          } else {
-            Jmsg(NULL, M_FATAL, 0, _("TLS required but not configured in Bacula.\n"));
+            Jmsg(NULL, M_FATAL, 0, wxString(_("TLS required but not configured in Bacula.\n")).mb_str(*wxConvCurrent));
             xOK = false;
             continue;
          }
       }
 
       if ((!cons->tls_ca_certfile && !cons->tls_ca_certdir) && cons->tls_enable) {
-         Jmsg(NULL, M_FATAL, 0, _("Neither \"TLS CA Certificate\""
-                             " or \"TLS CA Certificate Dir\" are defined for Console \"%s\" in config file.\n"),
+         Jmsg(NULL, M_FATAL, 0, wxString(_("Neither \"TLS CA Certificate\""
+                             " or \"TLS CA Certificate Dir\" are defined for Console \"%s\" in config file.\n")).mb_str(*wxConvCurrent),
                              cons->hdr.name);
          xOK = false;
       }
@@ -190,12 +187,12 @@ static void scan_err(const char *file, int line, LEX *lc, const char *msg, ...)
 
    if (lc->line_no > lc->begin_line_no) {
       bsnprintf(more, sizeof(more),
-                _("Problem probably begins at line %d.\n"), lc->begin_line_no);
+                wxString(_("Problem probably begins at line %d.\n")).mb_str(*wxConvCurrent), lc->begin_line_no);
    } else {
       more[0] = 0;
    }
 
-   err.Format(wxString(_("Config error: %s\n            : line %d, col %d of file %s\n%s\n%s"), wxConvUTF8),
+   err.Format(_("Config error: %s\n            : line %d, col %d of file %s\n%s\n%s"),
       buf, lc->line_no, lc->col_no, lc->fname, lc->line, more);
      
    errmsg << err; 
@@ -205,7 +202,7 @@ wxString console_thread::LoadConfig(wxString configfile) {
    if (!inited) {
       InitLib();
       if (!inited)
-         return wxString(_("Error while initializing library."), wxConvUTF8);
+         return _("Error while initializing library.");
    }
    
    free_config_resources();
@@ -231,11 +228,11 @@ wxString console_thread::LoadConfig(wxString configfile) {
    }
    
    if (init_tls() != 0) {
-      Jmsg(NULL, M_ERROR_TERM, 0, _("TLS library initialization failed.\n"));
+      Jmsg(NULL, M_ERROR_TERM, 0, wxString(_("TLS library initialization failed.\n")).mb_str(*wxConvCurrent));
    }
 
    if (!check_resources()) {
-      Jmsg(NULL, M_ERROR_TERM, 0, _("Please correct configuration file.\n"));
+      Jmsg(NULL, M_ERROR_TERM, 0, wxString(_("Please correct configuration file.\n")).mb_str(*wxConvCurrent));
    }
 
    term_msg();
@@ -266,6 +263,12 @@ console_thread::~console_thread() {
  * Thread entry point
  */
 void* console_thread::Entry() {
+   /* It seems we must redefine the locale on each thread. */
+   wxLocale m_locale;
+   m_locale.Init();
+   m_locale.AddCatalog(wxT("bacula"));
+   wxLocale::AddCatalogLookupPathPrefix(wxT(LOCALEDIR));
+
    DIRRES* dir;
    if (!inited) {
       csprint(_("Error : Library not initialized\n"));
@@ -326,7 +329,7 @@ void* console_thread::Entry() {
                csprint(wxString(wxT("   ")) <<  (i+1) << wxT(": ") << wxString(res[i]->hdr.name,*wxConvCurrent) << wxT("\n"));
             }
          }
-         csprint(wxString::Format(wxString(_("Please choose a director (1-%d): "), wxConvUTF8), count), CS_DATA);
+         csprint(wxString::Format(_("Please choose a director (1-%d): "), count), CS_DATA);
          csprint(NULL, CS_PROMPT);
          choosingdirector = true;
          directorchoosen = -1;
@@ -355,7 +358,7 @@ void* console_thread::Entry() {
    /* Initialize Console TLS context */
    if (cons && (cons->tls_enable || cons->tls_require)) {
       /* Generate passphrase prompt */
-      bsnprintf(buf, sizeof(buf), _("Passphrase for Console \"%s\" TLS private key: "), cons->hdr.name);
+      bsnprintf(buf, sizeof(buf), wxString(_("Passphrase for Console \"%s\" TLS private key: ")).mb_str(*wxConvCurrent), cons->hdr.name);
 
       /* Initialize TLS context:
        * Args: CA certfile, CA certdir, Certfile, Keyfile,
@@ -365,7 +368,7 @@ void* console_thread::Entry() {
          cons->tls_keyfile, tls_pem_callback, &buf, NULL, true);
 
       if (!cons->tls_ctx) {
-         bsnprintf(buf, sizeof(buf), _("Failed to initialize TLS context for Console \"%s\".\n"),
+         bsnprintf(buf, sizeof(buf), wxString(_("Failed to initialize TLS context for Console \"%s\".\n")).mb_str(*wxConvCurrent),
             dir->hdr.name);
          csprint(buf);
          return NULL;
@@ -376,7 +379,7 @@ void* console_thread::Entry() {
    /* Initialize Director TLS context */
    if (dir->tls_enable || dir->tls_require) {
       /* Generate passphrase prompt */
-      bsnprintf(buf, sizeof(buf), _("Passphrase for Director \"%s\" TLS private key: "), dir->hdr.name);
+      bsnprintf(buf, sizeof(buf), wxString(_("Passphrase for Director \"%s\" TLS private key: ")).mb_str(*wxConvCurrent), dir->hdr.name);
 
       /* Initialize TLS context:
        * Args: CA certfile, CA certdir, Certfile, Keyfile,
@@ -386,7 +389,7 @@ void* console_thread::Entry() {
          dir->tls_keyfile, tls_pem_callback, &buf, NULL, true);
 
       if (!dir->tls_ctx) {
-         bsnprintf(buf, sizeof(buf), _("Failed to initialize TLS context for Director \"%s\".\n"),
+         bsnprintf(buf, sizeof(buf), wxString(_("Failed to initialize TLS context for Director \"%s\".\n")).mb_str(*wxConvCurrent),
             dir->hdr.name);
          csprint(buf);
          return NULL;
@@ -394,7 +397,7 @@ void* console_thread::Entry() {
    }
 
 
-   UA_sock = bnet_connect(&jcr, 3, 3, _("Director daemon"),
+   UA_sock = bnet_connect(&jcr, 3, 3, wxString(_("Director daemon")).mb_str(*wxConvCurrent),
       dir->address, NULL, dir->DIRport, 0);
       
    if (UA_sock == NULL) {

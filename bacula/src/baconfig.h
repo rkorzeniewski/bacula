@@ -59,26 +59,31 @@
 #define NPRT(x) (x)?(x):_("*None*")
 
 #ifdef ENABLE_NLS
-#include <libintl.h>
-#include <locale.h>
-#ifndef _
-#define _(s) gettext((s))
-#endif /* N */
-#ifndef N_
-#define N_(s) (s)
-#endif /* N_ */
-#else
-#undef _
-#define _(s) (s)
-#undef N_
-#define N_(s) (s)
-#undef textdomain
-#define textdomain(d)
-#undef bindtextdomain
-#define bindtextdomain(p, d)
-#undef setlocale
-#define setlocale(p, d)
-#endif
+   #include <libintl.h>
+   #include <locale.h>
+   #ifndef _
+      #define _(s) gettext((s))
+   #endif /* _ */
+   #ifndef N_
+      #define N_(s) (s)
+   #endif /* N_ */
+#else /* !ENABLE_NLS */
+   #ifndef _
+      #define _(s) (s)
+   #endif
+   #ifndef N_
+      #define N_(s) (s)
+   #endif
+   #ifndef textdomain
+      #define textdomain(d)
+   #endif
+   #ifndef bindtextdomain
+      #define bindtextdomain(p, d)
+   #endif
+   #ifndef setlocale
+      #define setlocale(p, d)
+   #endif
+#endif /* ENABLE_NLS */
 
 /* This should go away! ****FIXME***** */
 #define MAXSTRING 500

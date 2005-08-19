@@ -31,6 +31,7 @@
 
 #include <wx/string.h>
 #include <wx/thread.h> // inheriting class's header file
+#include <wx/intl.h> /* We need to have _ and N_ defined by wxWidgets before Bacula tries to redefine them */
 #include "bacula.h"
 #include "jcr.h"
 

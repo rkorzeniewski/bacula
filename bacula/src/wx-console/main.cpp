@@ -69,8 +69,8 @@ IMPLEMENT_APP(MyApp)
 // 'Main program' equivalent: the program execution "starts" here
 bool MyApp::OnInit()
 {
+   /* wxWidgets internationalisation */
    wxLocale m_locale;
-   
    m_locale.Init();
    m_locale.AddCatalog(wxT("bacula"));
    wxLocale::AddCatalogLookupPathPrefix(wxT(LOCALEDIR));
