@@ -74,10 +74,11 @@
 #include "getopt.h"
 
 #define HAVE_WIN32 1
+#undef HAVE_NLS
 
 #ifndef HAVE_MINGW
 #ifdef HAVE_CYGWIN
-#error should not be used under cygwin...
+#undef HAVE_CYGWIN
 #else
 #endif //HAVE_CYGWIN
 #endif //HAVE_MINGW
@@ -193,7 +194,7 @@ struct stat
 #undef  S_IFDIR
 #define S_IFDIR        0040000         /* directory */
 #define S_IFCHR        0020000         /* character special */
-#define	S_IFBLK	       0060000	       /* block special */
+#define S_IFBLK        0060000         /* block special */
 #define S_IFIFO        0010000         /* pipe */
 #undef  S_IFREG
 #define S_IFREG        0100000         /* regular */

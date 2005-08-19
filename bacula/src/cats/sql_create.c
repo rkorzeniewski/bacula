@@ -109,7 +109,8 @@ db_create_jobmedia_record(JCR *jcr, B_DB *mdb, JOBMEDIA_DBR *jm)
    db_lock(mdb);
 
    /* Now get count for VolIndex */
-   Mmsg(mdb->cmd, "SELECT count(*) from JobMedia");
+   Mmsg(mdb->cmd, "SELECT count(*) from JobMedia WHERE JobId=%s",
+        edit_int64(jm->JobId, ed1));
    count = get_sql_record_max(jcr, mdb);
    if (count < 0) {
       count = 0;
