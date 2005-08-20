@@ -18,6 +18,8 @@ thisdir = src/dird
 
 DEBUG=@DEBUG@
 
+GETTEXT_LIBS = @LIBINTL@
+
 OPENSSL_LIBS = @OPENSSL_LIBS@
 OPENSSL_INC = @OPENSSL_INC@
 
@@ -76,11 +78,13 @@ all: Makefile bacula-dir @STATIC_DIR@
 
 bacula-dir:  $(SVROBJS) ../lib/libbac.a ../cats/libsql.a ../findlib/libfind.a
 	$(CXX) $(WLDFLAGS) $(LDFLAGS) -L../lib -L../cats -L../findlib -o $@ $(SVROBJS) \
-	      -lsql -lfind -lbac -lm $(PYTHON_LIBS) $(DLIB) $(DB_LIBS) $(LIBS) $(OPENSSL_LIBS)
+	      -lsql -lfind -lbac -lm $(PYTHON_LIBS) $(DLIB) $(DB_LIBS) $(LIBS) \
+	      $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
 static-bacula-dir:  $(SVROBJS) ../lib/libbac.a ../cats/libsql.a ../findlib/libfind.a
 	$(CXX) $(WLDFLAGS) $(LDFLAGS) -static -L../lib -L../cats -L../findlib -o $@ $(SVROBJS) \
-	      -lsql -lbac -lfind -lm $(PYTHON_LIBS) $(DLIB) $(DB_LIBS) $(LIBS) $(OPENSSL_LIBS)
+	      -lsql -lbac -lfind -lm $(PYTHON_LIBS) $(DLIB) $(DB_LIBS) $(LIBS) \
+	      $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 	strip $@
 
 
