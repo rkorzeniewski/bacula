@@ -1,3 +1,247 @@
+Changes to 1.37.36
+20Aug05
+- Minor Win32 tweaks
+19Aug05
+- A number of minor Win32 fixes.
+- Remove a PostQuitMessage() as suggested by Thorsten so that
+  BartPE restore can work correctly.
+- Fix for create JobMedia so that VolIndex remains valid even
+  during a delete Job or pruning -- bug 402.
+- Minor tweak for Win32 build.
+18Aug05
+- Win32 fix -- remove debug O_NONBLOCK code.
+- Fix bug 399 -- make_catalog_backup does not work for sqlite3
+- Implement unloading a volume in a different drive if it
+  is needed in the current drive.
+- Implement search for unused autochanger drive.
+- Implement search for exact Volume in reservation before
+  other searches.
+- Fix picking up drive in Dir so that it is not done in
+  the status command.
+- Eliminate double check on "loaded" for autochanger.
+17Aug05
+- Start coding better reservation algorithm
+- Always look for slot for label command.
+- Add more debug code for autochangers.
+- Apply fix from Stephan Leemburg <sleemburg@jvc.nl> for
+  improper scanning of schedule resource:
+  Run = Level=Full Pool=Catalog daily at 1:20
+- Apply patch from Chris Lee <labmonkey42@gmail.com> for 
+  adding --enable-build-dird --enable-build-stored.
+- Tweak datadir definition in configure.in
+16Aug05
+- Fix bug that missed drive=nn specification.
+- Eliminate nonblocking kludge in heartbeat of FD as
+  it caused high CPU usage.
+- Pickup loaded slot when doing open() of tape drive.
+- Make autochanger reservation code go through full list
+  first pass until exact match found.
+15Aug05
+- Fix how FileSet is saved in job record to correct continual  
+  Full save.
+- Make datadir print on config.out listing.
+- Move get FileSet record up in backup init to eliminate continual
+  Full save seen by Peter Sjoberg.
+- Add VolumeName to read-only Python variables.
+- Add VolumePurged event for Python.
+- Suppress /dev/ Filesystem change prohibited INFO messages.
+- Do not delete FT_RAW files before restore (allows FIFOs
+  to be used for restore).
+13Aug05
+- Add drive specification to mount, unmount, release, label,
+  and relabel for Autochangers.  Note Dir<->SD protocol has
+  changed.
+
+Changes to 1.37.35:
+12Aug05
+- Disable parts of NLS as the configure does not work here.
+- In job backup init (backup.c) define definitive Job level and
+  since time, *then* apply Job Pool override selection if any.  
+11Aug05
+- Modified bconsole script so that it is improperly
+  installed, it will refuse to execute.  This avoids
+  recursive call loops.
+
+Changes to 1.37.34:
+06Aug05
+- Apply David's ACL fix to src/filed/acl.c
+05Aug05
+- Apply patches sent by David Duchscher <kreios@gmail.com> for
+  making ACLs work on MacOS X and FreeBSD.
+04Aug05
+- Apply patch in bug#397 that improved configure
+  - find readline under $with_readline/include/readline
+  - no libutil under Solaris
+  - no need for -ldl under Solaris 
+- Make reservation system single threaded during the
+  search to avoid two threads competing for the same
+  resource.
+- Correct a return code in find_suitable_device_for_job()
+  Possibly cause of "busy writing to another volume".
+03Aug05
+- Modify open() for tape so nonblocking really works.  
+- Use fcntl() to reset blocking status rather than close()
+  and reopen the drive.
+- Make sure dev->open() is always called so that any change
+  in read/write permissions will occur.
+- Open drives initially in daemon in read-only mode.
+- Ensure that each time the VolHdr.VolumeName is zapped
+  or changed that free_volume() is called on the old name.
+
+Changes to 1.37.33:
+03Aug05
+- Require 5 arguments to mtx-changer except list and slots
+- Turn -EPIPE status returns from bpipe to ETIME
+- Include Slot in SD status output 
+- Do not term_dev() during initialization in SD if the device
+  could not be opened.  In the case of a tape drive, there may
+  be no tape in the drive.
+
+Changes to 1.32.32:
+02Aug05
+- Correct PostgreSQL database scripts as suggested by a user.
+- Add additional info to FATAL message generated when a device
+  is busy writing to another volume.
+- Suppress an inappropriate NULL Volume name message after a cancel.
+- Correct a warning message in reserve.c
+29Jul05
+- Apply user's patch to make mutiple modifiers for times
+  work correctly.
+- Make read_dev_volume_label() handle ANSI/IBM labels
+  correctly -- ie space over any label at the beginning
+  of the tape.
+28Jul05
+- Make ANSI/IBM writing of HDR1/2 labels ignore any
+  errors if at end of tape.
+- Apply Martin's patch to improve Python detection in
+  configure.in
+- Temporarily turn off disk seeking until I find the
+  cause of the problem.
+27Jul05
+- Add OSF1 patch supplied by user.
+- Use number of files selected from write_bsr() only
+  if it is not defined.
+- Explicitly seek to end of file when getting size for
+  restore test.
+- Correctly set EndBlock position in JobMedia record
+  for files.
+- Remove unnecessary set StartBlock in bscan. Caused bscan
+  regression error.
+26Jul05
+- Modify mtx-changer to wait a maximum of 300 seconds.
+- Do restart of failed jobs only for Backups job types.
+- A number of DVD updates from Nicolas.
+24Jul05
+- Turn off old service helper code in Win32.
+- Correct Messages bug found by Phil in stored.
+23Jul05
+- Complete (almost) documentation of 1.38.
+- Add error messages for error conditions with VSS.
+- Fix additional problems with VSS backup that I introduced.
+Changes to 1.37.31:
+22Jul05
+- Correct compiler complaints in wx-console and tray-monitor.
+- Correct VSS problems recognizing c:
+- Add VSS before job status
+- Fix output of status from being one big line.
+- Change cd xx; make to cd xx && make as suggested by Phil.
+- Cleanup projects file
+- Remove unnecessary casting of FF_PKT in filed.
+- Apply Thorsten's bugfix for vss_generic.cpp
+- Add check for df path for dvd_freespace
+- Use df to get space used on DVD.
+- Change sense of flag indicating erase DVD or not before writing.
+- Fix bpipe so that it never modifies the result pointer.
+- Replace more dev_name by print_name().
+- Rewrite edit_device_codes_dev() so it does not overwrite the
+  supplied buffer.
+- Update printing of labels (for bls) so that critical information
+  is printed (Job name and timestamp).
+- Cleanup old spool files when starting the SD.
+- Modify vss.cpp to allow C: as a path name.  Otherwise VSS
+  doesn't work when only a drive name is given.
+- Modify vss.c to eliminate double / in filenames.
+- Update doc -- particularly the restore chapter.
+18Jul05
+- Make all files in working directory have .xxx at end.
+- Work on DVD writing.
+- Fix keepatime bug (bugs database).
+- Move Python variables from Job to Bacula. They are
+  DirName, Version, ConfigFile, and WorkingDir
+- Fix delete of bootstrap to only occur on Bacula created
+  filenames.
+- Allow cancelling a Job name that is not active. It is
+  sent to the daemons.
+17Jul05
+- Fix name space pollution by OpenSSL 0.9.8 reported by
+  Matthias Kurz -- applied his patch.
+- Fix bpipe.c so that it does not modify results pointer.
+  ***FIXME*** calling sequence should be changed.
+- Remove some remaining references to dev_name.
+- Fix calls to mount_dev() and unmount_dev() to
+  correspond to returned value (bool instead of int).
+- Try without success to make DVD writing work.
+== Nicolas
+15Aug05
+ - Convert dvd-writepart to Python.
+ - Increase delay from 3 seconds to 5 seconds between SIGTERM and SIGKILL when
+   killing external programs.
+13Aug05
+ - Add gettext macros in autoconf/gettext-macros.
+ - Modify how localedir is set in configure.in.
+ - Remove setlocale check (useless).
+10Aug05
+ - Mark translatable strings in all source files.
+08Aug05
+ - Create French and Italian translation files (fr.po, it.po).
+ - Add support for translation in configure and Makefiles.
+ - Update autoconf/aclocal.m4 so it is automatically created with aclocal
+   (Note: autoconf/gnome-macros is not used anymore, it may be removed).
+30Jul05
+ - Fix src/lib/bpipe.c:run_program and run_program_full_output to detect if the watchdog
+   killed the program, and return an error if it is the case.
+26Apr05
+ - Modify parse_config to get a LEX_ERROR_HANDLER as a parameter 
+ - lex_open_file now returns NULL if the file can't be opened. All calling functions have
+   been adapted.
+ - Remove set_exit_on_error function
+07Apr05
+ - Fix "unknown device type" problem with DVD devices.
+ - Fix crash when there is no media in the DVD drive.
+09Jan05
+ - Update the documentation and ReleaseNotes.
+05Jan05
+ - Add FreeSpaceCommand in Device (SD configuration file) and implement it.
+ - Some modifications (again) on how guessed volume names are handled (now it should work).
+ - Part files on the hard disk are removed if they are empty.
+04Jan05
+ - Major fixes on how guessed volume names are handled.
+ - Minor fix in src/stored/append.c.
+ - Replace, when possible, POOLMEM by POOL_MEM in the new code of src/stored/dev.c.
+ - New script, scripts/dvd-freespace, which gets the free space available on a writable DVD.
+03Jan05
+ - Add WritePartAfterJob directive in Job resource (Director)
+ - Add WritePartAfterJob directive in Schedule Resource (Director)
+ - Implement these new directives
+02Jan05
+ - New function, open_guess_name_dev in src/stored/dev.c, which tries to guess the volume
+   name of a mounted device, so the label can be read.  
+ - New script, scripts/dvd-writepart, which write parts to DVD+/-R(W).
+ - Removed WriteFirstPartCommand directive in Device (SD configuration file).
+ - Use readdir_r instead of readdir (src/stored/dev.c:open_guess_name_dev).
+01Jan05
+ - Add RequiresMount, MountPoint, MountCommand, UnmountCommand directives in Device (SD configuration file).
+ - Implement these directives (volumes can now be restored from a manually written DVD). 
+ - Add WriteFirstPartCommand, WritePartCommand directives in Device (SD configuration file).
+ - Implement these directives (DVD writing now works).
+ - New function run_program_full_output in src/lib/bpipe.c.
+ - Lots of bugfixes and cleanups in the new code.
+29Dec04
+ - Add VolParts field in Media table
+ - Add MaximumPartSize directive in Device (SD configuration file)
+ - File Volumes can now be splitted in multiple files ("parts")
+ - Fix SQL error in sql_list while doing "llist jobmedia"
+
 Changes to 1.37.30 released 16 July 2005:
 14Jul05
 - Fix "dir" command scanning field misalignment in

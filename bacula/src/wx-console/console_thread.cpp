@@ -263,9 +263,11 @@ void* console_thread::Entry() {
    wxLocale m_locale;
    m_locale.Init();
    m_locale.AddCatalog(wxT("bacula"));
-#ifndef HAVE_WIN32
-   wxLocale::AddCatalogLookupPathPrefix(wxT(LOCALEDIR));
+#ifndef ENABLE_NLS
+#undef LOCALEDIR
+#define LOCALEDIR "."
 #endif
+   wxLocale::AddCatalogLookupPathPrefix(wxT(LOCALEDIR));
 
    DIRRES* dir;
    if (!inited) {

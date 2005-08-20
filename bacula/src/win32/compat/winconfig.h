@@ -7,6 +7,9 @@
 /* --                     CONFIGURE SPECIFIED FEATURES                    -- */
 /* ------------------------------------------------------------------------- */
 
+#ifndef __WINCONFIG_H
+#define __WINCONFIG_H
+
 /* Define if you want to use MySQL as Catalog database */
 /* #undef USE_MYSQL_DB */
 
@@ -147,6 +150,9 @@
 /* Define if you have sys/bitypes.h */
 /* #undef HAVE_SYS_BITYPES_H */
 
+/* Directory for PID files */
+/* #define _PATH_BACULA_PIDDIR "/var/run" */
+#undef _PATH_BACULA_PIDDIR
 
 /* Define if you have zlib */
 #define HAVE_LIBZ 1
@@ -222,10 +228,6 @@
 
 /* Define to 1 if using `alloca.c'. */
 /* #undef C_ALLOCA */
-
-/* Define to 1 if translation of program messages to the user's native
-   language is requested. */
-/* #undef ENABLE_NLS */
 
 /* Define to 1 if you have `alloca', as a function or macro. */
 #define HAVE_ALLOCA 1
@@ -362,7 +364,11 @@
 #define HAVE_SETENV 1
 
 /* Define to 1 if you have the `setlocale' function. */
-#undef HAVE_SETLOCALE
+#undef HAVE_SETLOCALE  
+
+#undef HAVEL_NLS
+
+#define LOCALEDIR "."
 
 #undef HAVE_NL_LANGINFO
 
@@ -631,3 +637,5 @@
 
 /* Define to `int' if <sys/types.h> doesn't define. */
 /* #undef uid_t */
+
+#endif /* __WINCONFIG_H */

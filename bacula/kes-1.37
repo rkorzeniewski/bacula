@@ -4,8 +4,10 @@
 General:
 
 Changes to 1.37.36:
+20Aug05
+- Minor Win32 build tweaks
 19Aug05
-- A number of minor Win32 fixes.
+- A number of minor build Win32 fixes.
 - Remove a PostQuitMessage() as suggested by Thorsten so that
   BartPE restore can work correctly.
 - Fix for create JobMedia so that VolIndex remains valid even

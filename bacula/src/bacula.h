@@ -26,7 +26,7 @@
 #define _LANGUAGE_C_PLUS_PLUS 1
 #endif
 
-#ifdef HAVE_WIN32
+#ifdef WIN32
 #include "winconfig.h"
 #include "winhost.h"
 #else
