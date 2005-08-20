@@ -3,6 +3,13 @@
 # Run a simple backup of the Bacula build directory
 #   then restore it.
 #
+debug=0
+if test "$debug" -eq 1 ; then
+  out="tee"
+else
+  out="output"
+fi
+
 if test ! -d weird-files ; then
    echo " "
    echo "weird files not configured. Test not run."
@@ -22,19 +29,25 @@ echo " === Starting weird-file2 test at `date +%R:%S` ===" >>working/log
 echo " "
 
 bin/testls weird-files2 >${cwd}/tmp/original
-bin/bacula start
-# bin/bacula start 2>&1 >/dev/null
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
-@output /dev/null
+
+cat <<END_OF_DATA >tmp/bconcmds
+@$out /dev/null
 messages
-@output tmp/log1.out
+@$out tmp/log1.out
 label storage=File volume=TestVolume001
 run job=NightlySave yes
 wait
 messages
-@output
+@$out
 quit
 END_OF_DATA
+if test "$debug" -eq 1 ; then
+  bin/bacula start
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+else
+  bin/bacula start 2>&1 >/dev/null
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+fi
 scripts/check_for_zombie_jobs storage=File 
 #
 # Now mess up the a hard link, and a soft link
@@ -45,13 +58,13 @@ ln hard-file3 hard-file2
 rm -f soft-file2
 ln -s soft-file3 soft-file2
 cd ${cwd}
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
-@output /dev/null
+cat <<END_OF_DATA >tmp/bconcmds
+@$out /dev/null
 messages
 @# 
 @# now do a restore
 @#
-@output tmp/log2.out
+@$out tmp/log2.out
 restore where= storage=File
 5
 unmark *
@@ -60,9 +73,15 @@ done
 yes
 wait
 messages
-@output
+@$out
 quit
 END_OF_DATA
+
+if test "$debug" -eq 1 ; then
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+else
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+fi
 scripts/check_for_zombie_jobs storage=File 
 bin/bacula stop 2>&1 >/dev/null
 bin/testls weird-files2 >${cwd}/tmp/restored
