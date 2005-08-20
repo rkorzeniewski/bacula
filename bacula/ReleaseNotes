@@ -4,6 +4,8 @@
   Bacula code: Total files = 420 Total lines = 137,650 (*.h *.c *.in)
 
 Major Changes:
+- Improved algorithm for reserving drives in multiple drive
+  autochangers.
 - There is a new database format that is not compatible
   with previous databases. You must upgrade if converting
   from 1.36.x.
@@ -176,7 +178,7 @@ Other Items:
   which are designed to be used as parameters to Write Part Command and
   Free Space Command. They need the dvd+rw-tools to be installed
   (http://fy.chalmers.se/~appro/linux/DVD+RW/).
-  You must have Python installed to run the dvd-freespace script.
+  You must have Python installed to run the scripts.
 - Part files support: File volumes can now be split into multiple
   files, called "parts".
 
