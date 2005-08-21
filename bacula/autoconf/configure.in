@@ -178,7 +178,7 @@ then
    USE_NLS=no
    USE_INCLUDED_LIBINTL=no
 #else
-#   AM_GNU_GETTEXT
+    AM_GNU_GETTEXT
 fi
 
 
@@ -1548,6 +1548,7 @@ AC_FUNC_SETPGRP 		      dnl check for BSD setpgrp.
 
 dnl# FreeBSD needs to link libxpg4
 AC_CHECK_LIB(xpg4, setlocale, [LIBS="$LIBS -lxpg4"])
+AC_CHECK_LIB(intl, gettext, [LIBS="$LIBS -lintl"])
 
 
 AC_CHECK_LIB(sun, getpwnam)

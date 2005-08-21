@@ -9,17 +9,7 @@ Version 1.37                Kern (see below)
 
 Final items for 1.37 before release:
 1. Fix bugs
-- Tape xxx in drive 0, requested in drive 1
-- The mount command does not work with drives other than 0.
-- A mount should cause the SD to re-examine what Slot is   
-  loaded.
-- The SD locks on to the first available drive then
-  wants a Volume that is released but in another drive --
-  chaos.
 - Look at fixing restore status stats in SD.
-- My database is growing
-- Call GetLastError() in the berrno constructor rather
-  than delaying until strerror.
 
 -  --without-openssl breaks at least on Solaris.
 9. Run the regression scripts on Solaris and FreeBSD
@@ -1417,3 +1407,14 @@ Block Position: 0
   a reservation?
 - Multi-drive changer seems to only use drive 0
   Multiple drives don't seem to be opened.
+- My database is growing
+- Call GetLastError() in the berrno constructor rather
+  than delaying until strerror.
+- Tape xxx in drive 0, requested in drive 1
+- The mount command does not work with drives other than 0.
+- A mount should cause the SD to re-examine what Slot is   
+  loaded.
+- The SD locks on to the first available drive then
+  wants a Volume that is released but in another drive --
+  chaos.
+
