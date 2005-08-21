@@ -19,6 +19,9 @@ Final items for 1.37 before release:
    UPDATE Media SET InChanger=0,Slot=0 WHERE InChanger>0 AND Slot>0; (MySQL)
 
 Document:
+- datadir for po files.
+- AM_GNU_GETTEXT finds the library if you specify 
+  --with-libintl-prefix
 - Document cleaning up the spool files:
   db, pid, state, bsr, mail, conmsg, spool
 - Document the multiple-drive-changer.txt script.
@@ -1417,4 +1420,3 @@ Block Position: 0
 - The SD locks on to the first available drive then
   wants a Volume that is released but in another drive --
   chaos.
-
