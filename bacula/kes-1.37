@@ -5,6 +5,7 @@ General:
 
 Changes to 1.37.36:
 20Aug05
+- Move Win32 errno message build into berrno constructor.
 - Minor Win32 build tweaks
 19Aug05
 - A number of minor build Win32 fixes.
