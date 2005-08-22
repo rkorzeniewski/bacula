@@ -12,7 +12,6 @@ Final items for 1.37 before release:
 - Look at fixing restore status stats in SD.
 
 -  --without-openssl breaks at least on Solaris.
-9. Run the regression scripts on Solaris and FreeBSD
 -  Figure out how to package gui, and rescue programs.
 -  Test TLS.
 -  Arno had to do -- to get update slots=x to work
@@ -1420,3 +1419,5 @@ Block Position: 0
 - The SD locks on to the first available drive then
   wants a Volume that is released but in another drive --
   chaos.
+- Run the regression scripts on Solaris and FreeBSD
+
