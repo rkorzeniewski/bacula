@@ -1,5 +1,8 @@
-Changes to 1.37.36
+Changes to 1.37.36 released 22 Aug 05
 20Aug05
+- Landon's fix for NLS detection
+- Eliminate incorrect compiler warning on FreeBSD. 
+- Move Win32 errno message build into berrno constructor.
 - Minor Win32 tweaks
 19Aug05
 - A number of minor Win32 fixes.

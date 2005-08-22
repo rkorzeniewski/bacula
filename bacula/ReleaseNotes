@@ -8,7 +8,7 @@ Major Changes:
   autochangers.
 - There is a new database format that is not compatible
   with previous databases. You must upgrade if converting
-  from 1.36.x.
+  from 1.36.x. No changes from version 1.37.30.
 - The Director, Storage daemon, and File daemons are
   Deamons are not compatible with  prior versions. 
   All FDs must be upgraded at the same time.
@@ -155,6 +155,12 @@ New Commands:
 - "python restart" restarts the Python interpreter. Rather brutal, make
    sure no Python scripts are running. This permits you to change
    a Python script and get Bacula to use the new script.
+
+New configure options:
+- --with-libintl-prefix for defining alternate locations for
+  the NLS internationalization libraries. Not normally required.
+- --datadir  for defining where the language files will be installed
+  required only if you do not want the default /usr/share.
 
 Items to note!!!
 - You must add --with-python=[DIR] to the configure command line
