@@ -29,6 +29,7 @@ Document:
   records have been removed from the catalog.
 
 For 1.39:
+- Allow Check Labels to be used with Bacula labels.
 - "Resuming" a failed backup (lost line for example) by using the
   failed backup as a sort of "base" job.
 - Look at NDMP
@@ -1420,4 +1421,3 @@ Block Position: 0
   wants a Volume that is released but in another drive --
   chaos.
 - Run the regression scripts on Solaris and FreeBSD
-

@@ -67,7 +67,7 @@ bool job_cmd(JCR *jcr)
    /*
     * Get JobId and permissions from Director
     */
-   Dmsg1(100, "<dird: %s\n", dir->msg);
+   Dmsg1(100, "<dird: %s", dir->msg);
    if (sscanf(dir->msg, jobcmd, &JobId, job.c_str(), job_name.c_str(),
               client_name.c_str(),
               &JobType, &level, fileset_name.c_str(), &no_attributes,
@@ -75,7 +75,7 @@ bool job_cmd(JCR *jcr)
               &write_part_after_job, &PreferMountedVols) != 13) {
       pm_strcpy(jcr->errmsg, dir->msg);
       bnet_fsend(dir, BAD_job, jcr->errmsg);
-      Dmsg1(100, ">dird: %s\n", dir->msg);
+      Dmsg1(100, ">dird: %s", dir->msg);
       Emsg1(M_FATAL, 0, _("Bad Job Command from Director: %s\n"), jcr->errmsg);
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       return false;

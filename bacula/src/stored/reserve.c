@@ -675,7 +675,6 @@ static bool reserve_device_for_append(DCR *dcr, RCTX &rctx)
    Dmsg1(190, "reserve_append device is %s\n", dev->is_tape()?"tape":"disk");
 
    if (can_reserve_drive(dcr, rctx) != 1) {
-      Mmsg1(jcr->errmsg, _("Device %s is busy writing on another Volume.\n"), dev->print_name());
       Dmsg1(100, "%s", jcr->errmsg);
       goto bail_out;
    }
@@ -702,6 +701,7 @@ static int can_reserve_drive(DCR *dcr, RCTX &rctx)
 
    /* Check for prefer mounted volumes */
    if (rctx.PreferMountedVols && !dev->VolHdr.VolumeName[0] && dev->is_tape()) {
+      Mmsg0(jcr->errmsg, _("Want mounted Volume, drive is empty\n"));
       Dmsg0(200, "want mounted -- no vol\n");
       return 0;                 /* No volume mounted */
    }
@@ -709,6 +709,8 @@ static int can_reserve_drive(DCR *dcr, RCTX &rctx)
    /* Check for exact Volume name match */
    if (rctx.exact_match && rctx.have_volume &&
        strcmp(dev->VolHdr.VolumeName, rctx.VolumeName) != 0) {
+      Mmsg2(jcr->errmsg, _("Not exact match have=%s want=%s\n"),
+            dev->VolHdr.VolumeName, rctx.VolumeName);
       Dmsg2(200, "Not exact match have=%s want=%s\n",
             dev->VolHdr.VolumeName, rctx.VolumeName);
       return 0;
@@ -737,6 +739,8 @@ static int can_reserve_drive(DCR *dcr, RCTX &rctx)
             return 1;
          } else {
             /* Drive not suitable for us */
+            Mmsg2(jcr->errmsg, _("Drive busy wrong pool: num_writers=0, reserved, pool=%s wanted=%s\n"),
+               dev->pool_name, dcr->pool_name);
             Dmsg2(200, "busy: num_writers=0, reserved, pool=%s wanted=%s\n",
                dev->pool_name, dcr->pool_name);
             return 0;                 /* wait */
@@ -774,7 +778,7 @@ static int can_reserve_drive(DCR *dcr, RCTX &rctx)
          return 1;
       } else {
          /* Drive not suitable for us */
-         Jmsg(jcr, M_WARNING, 0, _("Wanted Pool \"%s\", but device %s is using Pool \"%s\" .\n"), 
+         Mmsg(jcr->errmsg, _("Wanted Pool \"%s\", but device %s is using Pool \"%s\" .\n"), 
                  dcr->pool_name, dev->print_name(), dev->pool_name);
          Dmsg2(200, "busy: num_writers>0, can_append, pool=%s wanted=%s\n",
             dev->pool_name, dcr->pool_name);
