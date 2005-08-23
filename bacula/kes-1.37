@@ -3,7 +3,14 @@
 
 General:
 
-Changes to 1.37.36:
+Changes to 1.37.37:
+23Aug05
+- Fix bug in acquire.c that incorrectly reported volume
+  busy.
+- Add additional debug code and messages in reserve.c
+- Eliminate unwanted warning message in reserve.c
+
+Changes to 1.37.36 release 22Aug05:
 20Aug05
 - Landon's fix for NLS detection
 - Eliminate incorrect compiler warning on FreeBSD. 
