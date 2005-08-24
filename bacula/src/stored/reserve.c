@@ -204,7 +204,11 @@ void list_volumes(BSOCK *user)
 {
    VOLRES *vol;
    for (vol=(VOLRES *)vol_list->first(); vol; vol=(VOLRES *)vol_list->next(vol)) {
-      bnet_fsend(user, "%s\n", vol->vol_name);
+      if (vol->dev) {
+         bnet_fsend(user, "%s on device %s\n", vol->vol_name, vol->dev->print_name());
+      } else {
+         bnet_fsend(user, "%s\n", vol->vol_name);
+      }
    }
 }
       

@@ -4,6 +4,8 @@
 General:
 
 Changes to 1.37.37:
+24Aug05
+- Add drive name to reserved Volume list printout in SD.
 23Aug05
 - Fix bug in acquire.c that incorrectly reported volume
   busy.
