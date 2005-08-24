@@ -156,8 +156,9 @@ bool status_cmd(JCR *jcr)
       }
    }
    bnet_fsend(user, _("====\n\n"));
-   bnet_fsend(user, _("Volume status:\n"));
+   bnet_fsend(user, _("In Use Volume status:\n"));
    list_volumes(user);
+   bnet_fsend(user, _("====\n\n"));
        
 
 #ifdef xxx
