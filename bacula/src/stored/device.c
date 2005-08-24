@@ -324,9 +324,7 @@ void close_device(DEVICE *dev)
  */
 void force_close_device(DEVICE *dev)
 {
-   if (!dev) {
-      Mmsg0(dev->errmsg, _("Bad call to force_close_dev. Device not open\n"));
-      Emsg0(M_FATAL, 0, dev->errmsg);
+   if (!dev || dev->fd < 0) {
       return;
    }
    Dmsg1(29, "Force close_dev %s\n", dev->print_name());

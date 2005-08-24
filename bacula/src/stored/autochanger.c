@@ -87,6 +87,10 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
             goto bail_out;
          }
 
+         /* We are going to load a new tape, so close the device */
+         offline_or_rewind_dev(dev);
+         force_close_device(dev);
+
          /*
           * Load the desired cassette
           */
@@ -221,8 +225,8 @@ bool unload_autochanger(DCR *dcr, int loaded)
       return false;
    }
 
-   offline_or_rewind_dev(dev);
    /* We are going to load a new tape, so close the device */
+   offline_or_rewind_dev(dev);
    force_close_device(dev);
 
    if (loaded < 0) {
@@ -276,7 +280,7 @@ static bool unload_other_drive(DCR *dcr, int slot)
    if (changer->device->size() == 1) {
       return true;
    }
-      
+
    foreach_alist(device, changer->device) {
       if (device->dev && device->dev->Slot == slot) {
          found = true;
@@ -296,8 +300,8 @@ static bool unload_other_drive(DCR *dcr, int slot)
       return false;
    }
 
+   /* We are going to unload a tape, so close the device */
    offline_or_rewind_dev(dev);
-   /* We are going to load a new tape, so close the device */
    force_close_device(dev);
 
    POOLMEM *changer_cmd = get_pool_memory(PM_FNAME);
