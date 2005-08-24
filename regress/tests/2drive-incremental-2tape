@@ -5,7 +5,7 @@
 #
 # This script uses the autochanger and two tapes
 #
-debug=1
+debug=0
 if test "$debug" -eq 1 ; then
   out="tee"
 else
@@ -68,6 +68,7 @@ messages
 @# Force Incremental on the second Volume
 update volume=TestVolume001 VolStatus=Used
 status storage=DDS-4
+@#setdebug level=400 storage=DDS-4
 run level=Incremental job=NightlySave yes
 wait
 status storage=DDS-4
@@ -87,10 +88,8 @@ messages
 quit
 END_OF_DATA
 if test "$debug" -eq 1 ; then
-  bin/bacula start
   cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
 else
-  bin/bacula start 2>&1 >/dev/null
   cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
 fi
 
