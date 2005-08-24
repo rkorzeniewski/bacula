@@ -1088,14 +1088,8 @@ bool offline_dev(DEVICE *dev)
 {
    struct mtop mt_com;
 
-   if (dev->fd < 0) {
-      dev->dev_errno = EBADF;
-      Mmsg0(dev->errmsg, _("Bad call to offline_dev. Device not open\n"));
-      Emsg0(M_FATAL, 0, dev->errmsg);
-      return false;
-   }
-   if (!(dev->is_tape())) {
-      return true;
+   if (!dev || dev->fd < 0 || !dev->is_tape()) {
+      return true;                    /* device not open */
    }
 
    dev->state &= ~(ST_APPEND|ST_READ|ST_EOT|ST_EOF|ST_WEOT);  /* remove EOF/EOT flags */
