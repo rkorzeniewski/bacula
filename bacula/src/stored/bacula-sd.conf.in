@@ -147,7 +147,7 @@ Device {
 # A DVD device
 #
 #Device {
-#  Name = "DVD-WRITER"
+#  Name = "DVD-Writer"
 #  Media Type = DVD
 #  Archive Device = /dev/hdc
 #  LabelMedia = yes;                   # lets Bacula label unlabeled media

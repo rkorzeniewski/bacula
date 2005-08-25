@@ -1,3 +1,14 @@
+Changes to 1.37.37 released 26 Aug 05
+24Aug05
+- Ensure that the drive is closed before calling the
+  mtx-changer script so that the script can access the drive.
+- Add drive name to reserved Volume list printout in SD.
+23Aug05
+- Fix bug in acquire.c that incorrectly reported volume
+  busy.
+- Add additional debug code and messages in reserve.c
+- Eliminate unwanted warning message in reserve.c
+
 Changes to 1.37.36 released 22 Aug 05
 20Aug05
 - Landon's fix for NLS detection
@@ -1292,4 +1303,3 @@ Changes to 1.37.2:
 - Make built-in variables table driven.
 - First cut of Python Events for Bacula. Director only.
   StartJob, EndJob, NewVolume events.
-

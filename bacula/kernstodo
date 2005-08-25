@@ -17,6 +17,10 @@ Final items for 1.37 before release:
 -  Arno had to do -- to get update slots=x to work
    UPDATE Media SET InChanger=0,Slot=0 WHERE InChanger>0 AND Slot>0; (MySQL)
 
+- Add recycle event.
+- Add scratch pool event.
+- Add Win32 FileSet definition somewhere
+
 Document:
 - datadir for po files.
 - AM_GNU_GETTEXT finds the library if you specify 
@@ -29,6 +33,15 @@ Document:
   records have been removed from the catalog.
 
 For 1.39:
+- new pool XXX with ScratchPoolId = MyScratchPool's PoolId and
+  let it fill itself, and RecyclePoolId = XXX's PoolId so I can
+  see if it become stable and I just have to supervise
+  MyScratchPool
+- If I want to remove this pool, I set RecyclePoolId = MyScratchPool's
+  PoolId, and when it is empty remove it.
+- Figure out how to recycle Scratch volumes back to the Scratch
+  Pool.
+- Add Volume=SCRTCH
 - Allow Check Labels to be used with Bacula labels.
 - "Resuming" a failed backup (lost line for example) by using the
   failed backup as a sort of "base" job.
