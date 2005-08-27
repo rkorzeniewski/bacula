@@ -5,6 +5,7 @@
 	Name="console"
 	ProjectGUID="{A0F65E06-9F18-40AC-81F6-A080852F1104}"
 	Keyword="MFCProj"
+	SignManifests="true"
 	>
 	<Platforms>
 		<Platform
@@ -44,7 +45,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../compat;../..;../../../../depkgs-win32/pthreads"
+				AdditionalIncludeDirectories="../compat;../..;../../../../depkgs-win32/pthreads,../../../../depkgs-win32/gettext/include"
 				PreprocessorDefinitions="_DEBUG;HAVE_CONSOLE;_WINMAIN_;PTW32_BUILD;WIN32;_CONSOLE;HAVE_WIN32"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -70,11 +71,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="wsock32.lib pthreadVCE.lib"
+				AdditionalDependencies="wsock32.lib pthreadVCE.lib intl.lib"
 				OutputFile="Debug/bconsole.exe"
-				LinkIncremental="2"
+				LinkIncremental="0"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="../../../../depkgs-win32/pthreads"
+				AdditionalLibraryDirectories="../../../../depkgs-win32/pthreads;,../../../../depkgs-win32/gettext/lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -136,7 +137,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="4"
-				AdditionalIncludeDirectories="../compat,../..,../../../../depkgs-win32/pthreads,."
+				AdditionalIncludeDirectories="../compat,../..,../../../../depkgs-win32/pthreads;../../../../depkgs-win32/gettext/include"
 				PreprocessorDefinitions="_DEBUG;HAVE_CONSOLE;_WINMAIN_;PTW32_BUILD;WIN32;_CONSOLE;HAVE_WIN32"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="2"
@@ -160,11 +161,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="wsock32.lib pthreadVCE.lib"
+				AdditionalDependencies="wsock32.lib pthreadVCE.lib intl.lib"
 				OutputFile="Release/bconsole.exe"
-				LinkIncremental="1"
+				LinkIncremental="0"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="../../../../depkgs-win32/pthreads"
+				AdditionalLibraryDirectories="../../../../depkgs-win32/pthreads;../../../../depkgs-win32/gettext/lib"
 				SubSystem="1"
 				TargetMachine="1"
 			/>

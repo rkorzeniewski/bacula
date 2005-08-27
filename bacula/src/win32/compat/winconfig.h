@@ -364,9 +364,16 @@
 #define HAVE_SETENV 1
 
 /* Define to 1 if you have the `setlocale' function. */
-#undef HAVE_SETLOCALE  
+#undef HAVE_SETLOCALE
 
-#undef HAVEL_NLS
+/* Define to 1 if translation of program messages to the user's native
+   language is requested. */
+#if (defined _MSC_VER) && (_MSC_VER >= 1400) // VC8+
+/* Enable NLS only if we are using the new VC++.
+ * NLS should also work with VC++ 7.1, but the Makefiles are
+ * not adapted to support it (include, lib...). */
+#define ENABLE_NLS 1
+#endif
 
 #define LOCALEDIR "."
 

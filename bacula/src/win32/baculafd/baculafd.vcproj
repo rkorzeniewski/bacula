@@ -4,8 +4,8 @@
 	Version="8.00"
 	Name="baculafd"
 	ProjectGUID="{6A435DBB-4D3D-4DAE-8CB3-E0AF169A240B}"
+	RootNamespace="baculafd"
 	Keyword="MFCProj"
-	SignManifests="true"
 	>
 	<Platforms>
 		<Platform
@@ -46,7 +46,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="../compat,../..,../../../../depkgs-win32/pthreads,../../../../depkgs-win32/zlib,."
+				AdditionalIncludeDirectories="../compat,../..,../../../../depkgs-win32/pthreads,../../../../depkgs-win32/zlib;../../../../depkgs-win32/gettext/include"
 				PreprocessorDefinitions="NDEBUG;WIN32;_CONSOLE;HAVE_WIN32"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -65,18 +65,20 @@
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="NDEBUG"
 				Culture="1033"
+				AdditionalIncludeDirectories=""
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="wsock32.lib pthreadVCE.lib zlib.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib"
+				AdditionalDependencies="wsock32.lib pthreadVCE.lib zlib.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib uuid.lib intl.lib"
 				OutputFile="Release/bacula-fd.exe"
-				LinkIncremental="1"
+				LinkIncremental="0"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="../../../../depkgs-win32/pthreads,../../../../depkgs-win32/zlib"
+				AdditionalLibraryDirectories="../../../../depkgs-win32/pthreads,../../../../depkgs-win32/zlib;../../../../depkgs-win32/gettext/lib"
 				IgnoreDefaultLibraryNames="MSVCRT.lib"
+				DelayLoadDLLs="$(NOINHERIT)"
 				SubSystem="2"
 				TargetMachine="1"
 			/>
@@ -137,7 +139,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../compat,../..,../../../../depkgs-win32/pthreads,../../../../depkgs-win32/zlib,."
+				AdditionalIncludeDirectories="../compat,../..,../../../../depkgs-win32/pthreads,../../../../depkgs-win32/zlib,../../../../depkgs-win32/gettext/include"
 				PreprocessorDefinitions="_DEBUG;_WINMAIN_;PTW32_BUILD;WIN32;_CONSOLE;HAVE_WIN32"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -164,11 +166,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="wsock32.lib pthreadVCE.lib zlib.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib"
+				AdditionalDependencies="wsock32.lib pthreadVCE.lib zlib.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib intl.lib"
 				OutputFile="Debug/bacula-fd.exe"
-				LinkIncremental="2"
+				LinkIncremental="0"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="../../../../depkgs-win32/pthreads,../../../../depkgs-win32/zlib"
+				AdditionalLibraryDirectories="../../../../depkgs-win32/pthreads,../../../../depkgs-win32/zlib,../../../../depkgs-win32/gettext/lib"
 				IgnoreDefaultLibraryNames="MSVCRT.lib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -506,28 +508,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\filed\win32\winres.rc"
-				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCResourceCompilerTool"
-						PreprocessorDefinitions="NDEBUG;$(NoInherit)"
-						AdditionalIncludeDirectories="\Nicolas\bacula\src\filed\win32"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCResourceCompilerTool"
-						PreprocessorDefinitions="_DEBUG;$(NoInherit)"
-						AdditionalIncludeDirectories="\Nicolas\bacula\src\filed\win32"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath="..\..\filed\win32\winservice.cpp"
 				>
 			</File>
@@ -548,6 +528,42 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
+			<File
+				RelativePath=".\StdAfx.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\filed\win32\winabout.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\filed\win32\winbacula.h"
+				>
+			</File>
+			<File
+				RelativePath="..\compat\winconfig.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\filed\win32\winevents.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\filed\win32\winres.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\filed\win32\winservice.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\filed\win32\winstat.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\filed\win32\wintray.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
@@ -575,6 +591,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\filed\win32\saving.ico"
+				>
+			</File>
+			<File
+				RelativePath="..\..\filed\win32\winres.rc"
 				>
 			</File>
 		</Filter>

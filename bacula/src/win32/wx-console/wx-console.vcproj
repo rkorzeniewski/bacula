@@ -5,6 +5,7 @@
 	Name="wx-console"
 	ProjectGUID="{9BA8E10D-0D82-4B25-8543-DE34641FBC10}"
 	Keyword="Win32Proj"
+	SignManifests="true"
 	>
 	<Platforms>
 		<Platform
@@ -38,7 +39,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../..;../compat;../../../../depkgs-win32/wx/include;../../../../depkgs-win32/pthreads;../../../../depkgs-win32/zlib;../../../../depkgs-win32/wx/lib/vc_lib/mswud"
+				AdditionalIncludeDirectories="../..;../compat;../../../../depkgs-win32/wx/include;../../../../depkgs-win32/pthreads;../../../../depkgs-win32/zlib;../../../../depkgs-win32/wx/lib/vc_lib/mswud,../../../../depkgs-win32/gettext/include"
 				PreprocessorDefinitions="UNICODE;WIN32;_DEBUG;_WINDOWS;__WXMSW__;_CONSOLE;_MBCS;HAVE_WIN32;HAVE_WXCONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -59,9 +60,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="wxbase26ud.lib wxbase26ud_net.lib wxbase26ud_odbc.lib wxbase26ud_xml.lib wxexpatd.lib wxjpegd.lib wxmsw26ud_adv.lib wxmsw26ud_core.lib wxmsw26ud_dbgrid.lib wxmsw26ud_gl.lib wxmsw26ud_html.lib wxmsw26ud_media.lib wxmsw26ud_qa.lib wxmsw26ud_xrc.lib wxpngd.lib wxregexud.lib wxtiffd.lib wxzlibd.lib pthreadVCE.lib zlib.lib wsock32.lib comctl32.lib rpcrt4.lib gdi32.lib user32.lib ole32.lib ComDlg32.Lib shell32.lib AdvAPI32.Lib"
-				LinkIncremental="2"
-				AdditionalLibraryDirectories="../../../../depkgs-win32/wx/lib/vc_lib;../../../../depkgs-win32/pthreads;../../../../depkgs-win32/zlib"
+				AdditionalDependencies="wxbase26ud.lib wxbase26ud_net.lib wxbase26ud_odbc.lib wxbase26ud_xml.lib wxexpatd.lib wxjpegd.lib wxmsw26ud_adv.lib wxmsw26ud_core.lib wxmsw26ud_dbgrid.lib wxmsw26ud_gl.lib wxmsw26ud_html.lib wxmsw26ud_media.lib wxmsw26ud_qa.lib wxmsw26ud_xrc.lib wxpngd.lib wxregexud.lib wxtiffd.lib wxzlibd.lib pthreadVCE.lib zlib.lib wsock32.lib comctl32.lib rpcrt4.lib gdi32.lib user32.lib ole32.lib ComDlg32.Lib shell32.lib AdvAPI32.Lib intl.lib"
+				LinkIncremental="0"
+				AdditionalLibraryDirectories="../../../../depkgs-win32/wx/lib/vc_lib;../../../../depkgs-win32/pthreads;../../../../depkgs-win32/zlib;../../../../depkgs-win32/gettext/lib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -114,7 +115,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../..;../compat;../../../../depkgs-win32/wx/include;../../../../depkgs-win32/pthreads;../../../../depkgs-win32/zlib;../../../../depkgs-win32/wx/lib/vc_lib/mswu"
+				AdditionalIncludeDirectories="../..;../compat;../../../../depkgs-win32/wx/include;../../../../depkgs-win32/pthreads;../../../../depkgs-win32/zlib;../../../../depkgs-win32/wx/lib/vc_lib/mswu,../../../../depkgs-win32/gettext/include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;UNICODE;__WXMSW__;_CONSOLE;_MBCS;HAVE_WIN32;HAVE_WXCONSOLE"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -133,9 +134,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="wxbase26u.lib wxbase26u_net.lib wxbase26u_odbc.lib wxbase26u_xml.lib wxexpat.lib wxjpeg.lib wxmsw26u_adv.lib wxmsw26u_core.lib wxmsw26u_dbgrid.lib wxmsw26u_gl.lib wxmsw26u_html.lib wxmsw26u_media.lib wxmsw26u_qa.lib wxmsw26u_xrc.lib wxpng.lib wxregexu.lib wxtiff.lib wxzlib.lib pthreadVCE.lib zlib.lib wsock32.lib comctl32.lib rpcrt4.lib gdi32.lib user32.lib ole32.lib ComDlg32.Lib shell32.lib AdvAPI32.Lib"
-				LinkIncremental="2"
-				AdditionalLibraryDirectories="../../../../depkgs-win32/wx/lib/vc_lib;../../../../depkgs-win32/pthreads;../../../../depkgs-win32/zlib"
+				AdditionalDependencies="wxbase26u.lib wxbase26u_net.lib wxbase26u_odbc.lib wxbase26u_xml.lib wxexpat.lib wxjpeg.lib wxmsw26u_adv.lib wxmsw26u_core.lib wxmsw26u_dbgrid.lib wxmsw26u_gl.lib wxmsw26u_html.lib wxmsw26u_media.lib wxmsw26u_qa.lib wxmsw26u_xrc.lib wxpng.lib wxregexu.lib wxtiff.lib wxzlib.lib pthreadVCE.lib zlib.lib wsock32.lib comctl32.lib rpcrt4.lib gdi32.lib user32.lib ole32.lib ComDlg32.Lib shell32.lib AdvAPI32.Lib intl.lib"
+				LinkIncremental="0"
+				AdditionalLibraryDirectories="../../../../depkgs-win32/wx/lib/vc_lib;../../../../depkgs-win32/pthreads;../../../../depkgs-win32/zlib;../../../../depkgs-win32/gettext/lib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"

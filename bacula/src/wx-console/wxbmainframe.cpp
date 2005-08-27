@@ -742,7 +742,7 @@ void wxbMainFrame::Print(wxString str, int status)
 void wxbMainFrame::Send(wxString str)
 {
    if (ct != NULL) {
-      ct->Write(str.mb_str(wxConvUTF8));
+      ct->Write(str.mb_str(*wxConvCurrent));
       typeCtrl->SetValue(wxT(""));
       consoleCtrl->SetDefaultStyle(wxTextAttr(*wxRED));
       consoleCtrl->AppendText(wxbUtils::ConvertToPrintable(str));      

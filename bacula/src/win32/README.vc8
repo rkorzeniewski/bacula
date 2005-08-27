@@ -1,6 +1,8 @@
 Instructions to build Bacula with Microsoft Visual C++ 2005 Express Edition (free version).
 ---
 
+(Note: for the moment VSS support has been disabled)
+
 What you need to download:
 - Visual C++ Express Edition Beta 2 (2MB + 66MB)
   http://lab.msdn.microsoft.com/express/visualc/default.aspx
@@ -11,6 +13,11 @@ What you need to download:
 
 - wxWidgets for Win32 (17MB) (exe file)
   http://www.wxwidgets.org/dl_msw2.htm#stable
+
+- gettext packages (2MB)
+  + http://mirror.switch.ch/ftp/mirror/gnu/gettext/gettext-runtime-0.13.1.bin.woe32.zip
+  + http://mirror.switch.ch/ftp/mirror/gnu/gettext/gettext-tools-0.13.1.bin.woe32.zip
+  + http://mirror.switch.ch/ftp/mirror/gnu/libiconv/libiconv-1.9.1.bin.woe32.zip
 
 - Bacula source files:
   + deppkgs-win32 from SF download page (extracted in <dev dir>/deppkgs-win32)
@@ -28,7 +35,10 @@ Installation instructions:
    + Run <temp directory>\setup.exe
    + When asked for the installation directory, choose <vc++ install dir>\VC\PlatformSDK
      (e.g. E:\Microsoft Visual Studio 8\VC\PlatformSDK\)
-   + When asked for components, you can safely remove documentation, samples, and all 64-bit tools and libs.
+   + When asked for components, you can safely remove documentation, samples, and all 64-bit tools and libs if you want to save disk space.
+
+ - gettext packages
+   + extract them all in <dev dir>/deppkgs-win32/gettext
 
  - wxWidgets for Win32
    + delete <dev dir>/deppkgs-win32/wx directory
@@ -61,5 +71,7 @@ Build instructions:
    + Open <dev dir>/bacula/src/win32/bacula.sln
    + Launch Build->Configuration Manager, then select your configuration.
    + Then run Build->Build Solution (this will build wx-console, bconsole and bacula-fd).
-   + Don't forget to copy pthreadVCE.dll from <dev dir>/deppkgs-win32/pthreads to
-     the Release and Debug directories in src/win32/baculafd and src/win32/wx-console
+   + Don't forget to copy pthreadVCE.dll from <dev dir>/deppkgs-win32/pthreads and
+     iconv.dll and intl.dll from <dev dir>/deppkgs-win32/gettext/bin to
+     the Release and Debug directories in src/win32/baculafd, src/win32/wx-console
+     and src/win32/console.
