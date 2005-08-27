@@ -5,6 +5,7 @@
 	Name="baculafd"
 	ProjectGUID="{6A435DBB-4D3D-4DAE-8CB3-E0AF169A240B}"
 	Keyword="MFCProj"
+	SignManifests="true"
 	>
 	<Platforms>
 		<Platform
@@ -163,7 +164,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="wsock32.lib pthreadVCE.lib zlib.lib"
+				AdditionalDependencies="wsock32.lib pthreadVCE.lib zlib.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib"
 				OutputFile="Debug/bacula-fd.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
