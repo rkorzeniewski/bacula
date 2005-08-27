@@ -1,1 +1,4 @@
 bconsole.conf
+Debug
+Release
+console.vcproj.*

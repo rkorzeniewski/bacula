@@ -34,10 +34,14 @@
 #ifndef __COMPAT_H_
 #define __COMPAT_H_
 
-#ifndef HAVE_MINGW
-#ifndef HAVE_WXCONSOLE
+#if (defined _MSC_VER) && (_MSC_VER >= 1400) // VC8+
+#pragma warning(disable : 4996) // Either disable all deprecation warnings,
+// #define _CRT_SECURE_NO_DEPRECATE // Or just turn off warnings about the newly deprecated CRT functions.
+#define HAVE_VC8
+#endif // VC8+
+
+#if (!defined HAVE_MINGW) && (!defined HAVE_VC8) && (!defined HAVE_WXCONSOLE)
 #define __STDC__ 1
-#endif
 #endif
 
 #include <stdio.h>
@@ -92,8 +96,11 @@ typedef unsigned char uint8_t;
 typedef float float32_t;
 typedef unsigned short uint16_t;
 typedef signed short int16_t;
-typedef long time_t;
 typedef signed char int8_t;
+
+#ifndef HAVE_VC8
+typedef long time_t;
+#endif
 
 #if __STDC__
 #ifndef HAVE_MINGW
@@ -136,7 +143,9 @@ typedef UINT32 gid_t;
 typedef UINT32 uid_t;
 typedef UINT32 gid_t;
 typedef UINT32 mode_t;
+#ifndef _WX_DEFS_H_ /* ssize_t is defined in wx/defs.h */
 typedef INT64  ssize_t;
+#endif
 #endif //HAVE_MINGW
 
 struct dirent {
@@ -240,17 +249,23 @@ struct stat
 #define iscsym  __iscsym
 #endif
 
-
+#ifndef HAVE_VC8
 int umask(int);
+off_t lseek(int, off_t, int);
+int dup2(int, int);
+int close(int fd);
+#ifndef HAVE_WXCONSOLE
+ssize_t read(int fd, void *, ssize_t nbytes);
+ssize_t write(int fd, const void *, ssize_t nbytes);
+#endif
+#endif
 int lchown(const char *, uid_t uid, gid_t gid);
 int chown(const char *, uid_t uid, gid_t gid);
 int chmod(const char *, mode_t mode);
-off_t lseek(int, off_t, int);
 int inet_aton(const char *cp, struct in_addr *inp);
 int kill(int pid, int signo);
 int pipe(int []);
 int fork();
-int dup2(int, int);
 int waitpid(int, int *, int);
 
 #ifndef HAVE_MINGW
@@ -268,12 +283,6 @@ int __snprintf(char *str, size_t count, const char *fmt, ...);
 #define sprintf __sprintf
 int __sprintf(char *str, const char *fmt, ...);
 
-#ifndef HAVE_WXCONSOLE
-ssize_t read(int fd, void *, ssize_t nbytes);
-ssize_t write(int fd, const void *, ssize_t nbytes);
-#endif
-
-int close(int fd);
 #endif //HAVE_MINGW
 
 

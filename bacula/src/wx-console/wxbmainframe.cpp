@@ -572,7 +572,11 @@ void wxbMainFrame::Print(wxString str, int status)
       consoleCtrl->AppendText(consoleBuffer);
       consoleBuffer = wxT("");
       SetStatusText(_("Console thread terminated."));
+#ifndef HAVE_WIN32
       consoleCtrl->PageDown();
+#else
+      consoleCtrl->ScrollLines(1);
+#endif
       ct = NULL;
       DisablePanels();
       int answer = wxMessageBox( _("Connection to the director lost. Quit program?"), 
@@ -616,7 +620,11 @@ void wxbMainFrame::Print(wxString str, int status)
    if (status == CS_DISCONNECTED) {
       consoleCtrl->AppendText(consoleBuffer);
       consoleBuffer = wxT("");
+#ifndef HAVE_WIN32
       consoleCtrl->PageDown();
+#else
+      consoleCtrl->ScrollLines(1);
+#endif
       SetStatusText(_("Disconnected of the director."));
       DisablePanels();
       return;
@@ -691,7 +699,11 @@ void wxbMainFrame::Print(wxString str, int status)
    if (status == CS_DEBUG) {
       consoleCtrl->AppendText(consoleBuffer);
       consoleBuffer = wxT("");
+#ifndef HAVE_WIN32
       consoleCtrl->PageDown();
+#else
+      consoleCtrl->ScrollLines(1);
+#endif
       consoleCtrl->SetDefaultStyle(wxTextAttr(wxColour(0, 128, 0)));
    }
    else {
@@ -708,24 +720,20 @@ void wxbMainFrame::Print(wxString str, int status)
    if ((status == CS_END) || (status == CS_PROMPT) || (str.Find(wxT("\n")) > -1)) {
       consoleCtrl->AppendText(consoleBuffer);
       consoleBuffer = wxT("");
-   
+
+#ifndef HAVE_WIN32
       consoleCtrl->PageDown();
+#else
+      consoleCtrl->ScrollLines(1);
+#endif
    }
    
-   // consoleCtrl->ShowPosition(consoleCtrl->GetLastPosition());
+   //consoleCtrl->ShowPosition(consoleCtrl->GetLastPosition());
    
    /*if (status != CS_DEBUG) {
       consoleCtrl->AppendText("@");
    }*/
    //consoleCtrl->SetInsertionPointEnd();
-   
-/*   if ((consoleCtrl->GetNumberOfLines()-1) > nlines) {
-      nlines = consoleCtrl->GetNumberOfLines()-1;
-   }
-   
-   if (status == CS_END) {
-      consoleCtrl->ShowPosition(nlines);
-   }*/
 }
 
 /*
@@ -738,7 +746,7 @@ void wxbMainFrame::Send(wxString str)
       typeCtrl->SetValue(wxT(""));
       consoleCtrl->SetDefaultStyle(wxTextAttr(*wxRED));
       consoleCtrl->AppendText(wxbUtils::ConvertToPrintable(str));      
-      consoleCtrl->PageDown();
+      //consoleCtrl->PageDown();
    }
    
 /*   if ((consoleCtrl->GetNumberOfLines()-1) > nlines) {

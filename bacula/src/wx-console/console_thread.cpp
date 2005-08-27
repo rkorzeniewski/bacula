@@ -214,7 +214,7 @@ wxString console_thread::LoadConfig(wxString configfile) {
    }
    
    init_msg(NULL, msgs);
-   init_console_msg(console_thread::working_dir.mb_str(*wxConvCurrent));
+   //init_console_msg(console_thread::working_dir.mb_str(*wxConvCurrent));
 
    errmsg = wxT("");
    if (!parse_config(configfile.mb_str(*wxConvCurrent), &scan_err)) {
@@ -259,15 +259,14 @@ console_thread::~console_thread() {
  * Thread entry point
  */
 void* console_thread::Entry() {
-   /* It seems we must redefine the locale on each thread. */
+#ifndef HAVE_WIN32
+   /* It seems we must redefine the locale on each thread on wxGTK. 
+    * On Win32 it makes wx-console crash. */
    wxLocale m_locale;
    m_locale.Init();
    m_locale.AddCatalog(wxT("bacula"));
-#ifndef ENABLE_NLS
-#undef LOCALEDIR
-#define LOCALEDIR "."
-#endif
    wxLocale::AddCatalogLookupPathPrefix(wxT(LOCALEDIR));
+#endif
 
    DIRRES* dir;
    if (!inited) {
@@ -483,7 +482,7 @@ void* console_thread::Entry() {
 void console_thread::Write(const char* str) 
 {
    if (UA_sock) {
-       UA_sock->msglen = strlen(str);
+       UA_sock->msglen = (int32_t)strlen(str);
        pm_strcpy(&UA_sock->msg, str);
        bnet_send(UA_sock);
    } else if (choosingdirector) {

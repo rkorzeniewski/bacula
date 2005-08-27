@@ -14,7 +14,7 @@
 //
 //  This program is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 //  the file LICENSE for additional details.
 //
 // Author          : Christopher S. Hull
@@ -37,7 +37,7 @@
 
 extern void d_msg(const char *file, int line, int level, const char *fmt,...);
 extern DWORD   g_platform_id;
-extern int enable_vss;  
+extern int enable_vss;
 
 // from MicroSoft SDK (KES) is the diff between Jan 1 1601 and Jan 1 1970
 #ifdef HAVE_MINGW
@@ -80,7 +80,7 @@ void conv_unix_to_win32_path(const char *name, char *win32_name, DWORD dwSize)
        can get longer because VSS will make something like
        \\\\?\\GLOBALROOT\\Device\\HarddiskVolumeShadowCopy1\\bacula\\uninstall.exe
        from c:\bacula\uninstall.exe
-    */ 
+    */
     if (g_pVSSClient && enable_vss && g_pVSSClient->IsInitialized()) {
        POOLMEM *pszBuf = get_pool_memory (PM_FNAME);
        pszBuf = check_pool_memory_size(pszBuf, dwSize);
@@ -91,10 +91,10 @@ void conv_unix_to_win32_path(const char *name, char *win32_name, DWORD dwSize)
 #endif
 }
 
-int 
+int
 wchar_2_UTF8(char *pszUTF, const WCHAR *pszUCS, int cchChar)
 {
-   /* the return value is the number of bytes written to the buffer. 
+   /* the return value is the number of bytes written to the buffer.
       The number includes the byte for the null terminator. */
 
    if (p_WideCharToMultiByte) {
@@ -106,17 +106,17 @@ wchar_2_UTF8(char *pszUTF, const WCHAR *pszUCS, int cchChar)
       return NULL;
 }
 
-int 
+int
 UTF8_2_wchar(POOLMEM **ppszUCS, const char *pszUTF)
 {
    /* the return value is the number of wide characters written to the buffer. */
    /* convert null terminated string from utf-8 to ucs2, enlarge buffer if necessary */
 
    if (p_MultiByteToWideChar) {
-      /* strlen of UTF8 +1 is enough */ 
+      /* strlen of UTF8 +1 is enough */
       DWORD cchSize = (strlen(pszUTF)+1);
       *ppszUCS = check_pool_memory_size(*ppszUCS, cchSize*sizeof (WCHAR));
-      
+
       int nRet = p_MultiByteToWideChar(CP_UTF8, 0, pszUTF, -1, (LPWSTR) *ppszUCS,cchSize);
       ASSERT (nRet > 0);
       return nRet;
@@ -151,10 +151,12 @@ wchar_win32_path(const char *name, WCHAR *win32_name)
     }
 }
 
+#ifndef HAVE_VC8
 int umask(int)
 {
    return 0;
 }
+#endif
 
 int chmod(const char *, mode_t)
 {
@@ -269,9 +271,9 @@ statDir(const char *file, struct stat *sb)
 
    // use unicode or ascii
    if (p_FindFirstFileW) {
-      POOLMEM* pwszBuf = get_pool_memory (PM_FNAME);         
+      POOLMEM* pwszBuf = get_pool_memory (PM_FNAME);
       UTF8_2_wchar(&pwszBuf, file);
-      
+
       h = p_FindFirstFileW((LPCWSTR) pwszBuf, &info_w);
       free_pool_memory(pwszBuf);
 
@@ -338,7 +340,7 @@ stat2(const char *file, struct stat *sb)
     if (p_GetFileAttributesW) {
       POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
       UTF8_2_wchar(&pwszBuf, tmpbuf);
-      
+
       attr = p_GetFileAttributesW((LPCWSTR) pwszBuf);
       free_pool_memory(pwszBuf);
     } else if (p_GetFileAttributesA) {
@@ -442,12 +444,12 @@ stat(const char *file, struct stat *sb)
 
    if (p_GetFileAttributesExW) {
       /* dynamically allocate enough space for UCS2 filename */
-      POOLMEM* pwszBuf = get_pool_memory (PM_FNAME);          
+      POOLMEM* pwszBuf = get_pool_memory (PM_FNAME);
       UTF8_2_wchar(&pwszBuf, file);
 
       BOOL b = p_GetFileAttributesExW((LPCWSTR) pwszBuf, GetFileExInfoStandard, &data);
       free_pool_memory(pwszBuf);
-                        
+
       if (!b) {
          return stat2(file, sb);
       }
@@ -585,7 +587,7 @@ strncasecmp(const char *s1, const char *s2, int len)
         s1++;
         s2++;
         if (ch1 == 0 || tolower(ch1) != tolower(ch2)) break;
-    } 
+    }
 
     return (ch1 - ch2);
 }
@@ -692,7 +694,7 @@ opendir(const char *path)
     if (p_FindFirstFileW) {
       POOLMEM* pwcBuf = get_pool_memory(PM_FNAME);;
       UTF8_2_wchar(&pwcBuf,rval->spec);
-      rval->dirh = p_FindFirstFileW((LPCWSTR)pwcBuf, &rval->data_w);   
+      rval->dirh = p_FindFirstFileW((LPCWSTR)pwcBuf, &rval->data_w);
 
       free_pool_memory(pwcBuf);
 
@@ -700,7 +702,7 @@ opendir(const char *path)
         rval->valid_w = 1;
     } else if (p_FindFirstFileA) {
       rval->dirh = p_FindFirstFileA(rval->spec, &rval->data_a);
-      
+
       if (rval->dirh != INVALID_HANDLE_VALUE)
         rval->valid_a = 1;
     } else goto err;
@@ -776,7 +778,7 @@ readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result)
     _dir *dp = (_dir *)dirp;
     if (dp->valid_w || dp->valid_a) {
       entry->d_off = dp->offset;
-                
+
       // copy unicode
       if (dp->valid_w) {
          char szBuf[MAX_PATH_UTF8];
@@ -785,7 +787,7 @@ readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result)
       } else if (dp->valid_a) { // copy ansi (only 1 will be valid)
          dp->offset += copyin(*entry, dp->data_a.cFileName);
       }
-                
+
       *result = entry;              /* return entry address */
       d_msg(__FILE__, __LINE__,
             99, "readdir_r(%p, { d_name=\"%s\", d_reclen=%d, d_off=%d\n",
@@ -797,7 +799,7 @@ readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result)
     }
 
     // get next file, try unicode first
-    if (p_FindNextFileW) 
+    if (p_FindNextFileW)
        dp->valid_w = p_FindNextFileW(dp->dirh, &dp->data_w);
     else if (p_FindNextFileA)
        dp->valid_a = p_FindNextFileA(dp->dirh, &dp->data_a);
@@ -878,7 +880,7 @@ pathconf(const char *path, int name)
     case _PC_NAME_MAX :
         return 255;
     }
-    errno = ENOSYS;                                                         
+    errno = ENOSYS;
     return -1;
 }
 
@@ -923,7 +925,7 @@ win32_chdir(const char *dir)
       }
    }
    else return -1;
-   
+
    return 0;
 }
 
@@ -935,11 +937,11 @@ win32_mkdir(const char *dir)
       UTF8_2_wchar(&pwszBuf, dir);
 
       int n=p_wmkdir((LPCWSTR)pwszBuf);
-      free_pool_memory(pwszBuf);      
+      free_pool_memory(pwszBuf);
       return n;
    }
 
-   return _mkdir(dir);        
+   return _mkdir(dir);
 }
 
 
@@ -969,41 +971,41 @@ win32_getcwd(char *buf, int maxlen)
    return buf;
 }
 
-int 
+int
 win32_fputs(const char *string, FILE *stream)
 {
    /* we use WriteConsoleA / WriteConsoleA
       so we can be sure that unicode support works on win32.
       with fallback if something fails
-   */   
+   */
 
    HANDLE hOut = GetStdHandle (STD_OUTPUT_HANDLE);
-   if (hOut && (hOut != INVALID_HANDLE_VALUE) && p_WideCharToMultiByte && 
+   if (hOut && (hOut != INVALID_HANDLE_VALUE) && p_WideCharToMultiByte &&
        p_MultiByteToWideChar && (stream == stdout)) {
-      
+
       POOLMEM* pwszBuf = get_pool_memory(PM_MESSAGE);
-      
+
       DWORD dwCharsWritten;
       DWORD dwChars;
-         
+
       dwChars = UTF8_2_wchar(&pwszBuf, string);
 
       /* try WriteConsoleW */
       if (WriteConsoleW (hOut, pwszBuf, dwChars-1, &dwCharsWritten, NULL)) {
          free_pool_memory(pwszBuf);
-         return dwCharsWritten;   
+         return dwCharsWritten;
       }
-      
-      /* convert to local codepage and try WriteConsoleA */      
-      POOLMEM* pszBuf = get_pool_memory(PM_MESSAGE);         
+
+      /* convert to local codepage and try WriteConsoleA */
+      POOLMEM* pszBuf = get_pool_memory(PM_MESSAGE);
       pszBuf = check_pool_memory_size(pszBuf, dwChars+1);
 
-      dwChars = p_WideCharToMultiByte(GetConsoleOutputCP(),0,(LPCWSTR) pwszBuf,-1,pszBuf,dwChars,NULL,NULL);      
+      dwChars = p_WideCharToMultiByte(GetConsoleOutputCP(),0,(LPCWSTR) pwszBuf,-1,pszBuf,dwChars,NULL,NULL);
       free_pool_memory(pwszBuf);
 
       if (WriteConsoleA (hOut, pszBuf, dwChars-1, &dwCharsWritten, NULL)) {
          free_pool_memory(pszBuf);
-         return dwCharsWritten;   
+         return dwCharsWritten;
       }
    }
 
@@ -1017,15 +1019,15 @@ win32_cgets (char* buffer, int len)
       from the win32 console and fallback if seomething fails */
 
    HANDLE hIn = GetStdHandle (STD_INPUT_HANDLE);
-   if (hIn && (hIn != INVALID_HANDLE_VALUE) && p_WideCharToMultiByte && p_MultiByteToWideChar) {            
+   if (hIn && (hIn != INVALID_HANDLE_VALUE) && p_WideCharToMultiByte && p_MultiByteToWideChar) {
       DWORD dwRead;
       WCHAR wszBuf[1024];
-      char  szBuf[1024];    
+      char  szBuf[1024];
 
       /* nt and unicode conversion */
       if (ReadConsoleW (hIn, wszBuf, 1024, &dwRead, NULL)) {
 
-         /* null terminate at end */                
+         /* null terminate at end */
          if (wszBuf[dwRead-1] == L'\n') {
             wszBuf[dwRead-1] = L'\0';
             dwRead --;
@@ -1035,15 +1037,15 @@ win32_cgets (char* buffer, int len)
             wszBuf[dwRead-1] = L'\0';
             dwRead --;
          }
-         
+
          wchar_2_UTF8(buffer, wszBuf, len);
          return buffer;
-      }    
-      
+      }
+
       /* win 9x and unicode conversion */
       if (ReadConsoleA (hIn, szBuf, 1024, &dwRead, NULL)) {
 
-         /* null terminate at end */                
+         /* null terminate at end */
          if (szBuf[dwRead-1] == L'\n') {
             szBuf[dwRead-1] = L'\0';
             dwRead --;
@@ -1058,13 +1060,13 @@ win32_cgets (char* buffer, int len)
          p_MultiByteToWideChar(GetConsoleCP(), 0, szBuf, -1, wszBuf,1024);
          /* convert from WCHAR to UTF-8 */
          if (wchar_2_UTF8(buffer, wszBuf, len))
-            return buffer;         
+            return buffer;
       }
    }
 
    /* fallback */
-   if (fgets(buffer, len, stdin)) 
-      return buffer;   
+   if (fgets(buffer, len, stdin))
+      return buffer;
    else
       return NULL;
 }
@@ -1074,15 +1076,15 @@ win32_unlink(const char *filename)
 {
    int nRetCode;
    if (p_wunlink) {
-      POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);      
+      POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
       UTF8_2_wchar(&pwszBuf, filename);
       nRetCode = _wunlink((LPCWSTR) pwszBuf);
- 
-      /* special case if file is readonly, 
+
+      /* special case if file is readonly,
       we retry but unset attribute before */
       if (nRetCode == -1 && errno == EACCES && p_SetFileAttributesW && p_GetFileAttributesW) {
          DWORD dwAttr =  p_GetFileAttributesW((LPCWSTR)pwszBuf);
-         if (dwAttr != INVALID_FILE_ATTRIBUTES) {            
+         if (dwAttr != INVALID_FILE_ATTRIBUTES) {
             if (p_SetFileAttributesW((LPCWSTR)pwszBuf, dwAttr & ~FILE_ATTRIBUTE_READONLY)) {
                nRetCode = _wunlink((LPCWSTR) pwszBuf);
                /* reset to original if it didn't help */
@@ -1095,11 +1097,11 @@ win32_unlink(const char *filename)
    } else {
       nRetCode = _unlink(filename);
 
-      /* special case if file is readonly, 
+      /* special case if file is readonly,
       we retry but unset attribute before */
       if (nRetCode == -1 && errno == EACCES && p_SetFileAttributesA && p_GetFileAttributesA) {
          DWORD dwAttr =  p_GetFileAttributesA(filename);
-         if (dwAttr != INVALID_FILE_ATTRIBUTES) {            
+         if (dwAttr != INVALID_FILE_ATTRIBUTES) {
             if (p_SetFileAttributesA(filename, dwAttr & ~FILE_ATTRIBUTE_READONLY)) {
                nRetCode = _unlink(filename);
                /* reset to original if it didn't help */
@@ -1108,7 +1110,7 @@ win32_unlink(const char *filename)
             }
          }
       }
-   }   
+   }
    return nRetCode;
 }
 
@@ -1188,7 +1190,8 @@ getArgv0(const char *cmdline)
 {
 
     int inquote = 0;
-    for (const char *cp = cmdline; *cp; cp++)
+    const char *cp;
+    for (cp = cmdline; *cp; cp++)
     {
         if (*cp == '"') {
             inquote = !inquote;
@@ -1197,13 +1200,13 @@ getArgv0(const char *cmdline)
             break;
     }
 
-        
+
     int len = cp - cmdline;
     char *rval = (char *)malloc(len+1);
 
     cp = cmdline;
     char *rp = rval;
-    
+
     while (len--)
         *rp++ = *cp++;
 
@@ -1256,12 +1259,12 @@ CreateChildProcess(const char *cmdline, HANDLE in, HANDLE out, HANDLE err)
     char exeFile[256];
 
     const char *comspec = getenv("COMSPEC");
-    
+
     if (comspec == NULL) // should never happen
         return INVALID_HANDLE_VALUE;
 
     char *cmdLine = (char *)alloca(strlen(cmdline) + strlen(comspec) + 16);
-    
+
     strcpy(exeFile, comspec);
     strcpy(cmdLine, comspec);
     strcat(cmdLine, " /c ");
@@ -1547,7 +1550,7 @@ utime(const char *fname, struct utimbuf *times)
                         OPEN_EXISTING,
                         0,
                         NULL);
-     
+
       free_pool_memory(pwszBuf);
     } else if (p_CreateFileA) {
       h = p_CreateFileA(tmpbuf,
@@ -1582,7 +1585,7 @@ int
 open(const char *file, int flags, int mode)
 {
    if (p_wopen) {
-      POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);      
+      POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
       UTF8_2_wchar(&pwszBuf, file);
 
       int nRet = p_wopen((LPCWSTR) pwszBuf, flags|_O_BINARY, mode);
@@ -1596,10 +1599,11 @@ open(const char *file, int flags, int mode)
 
 /*
  * Note, this works only for a file. If you want
- *   to close a socket, use closesocket(). 
+ *   to close a socket, use closesocket().
  *   Bacula has been modified in src/lib/bnet.c
  *   to use closesocket().
  */
+#ifndef HAVE_VC8
 int
 close(int fd)
 {
@@ -1624,7 +1628,7 @@ write(int fd, const void *buf, ssize_t len)
 off_t
 lseek(int fd, off_t offset, int whence)
 {
-    return _lseeki64(fd, offset, whence);
+    return (off_t)_lseeki64(fd, offset, whence);
 }
 
 int
@@ -1632,6 +1636,7 @@ dup2(int fd1, int fd2)
 {
     return _dup2(fd1, fd2);
 }
+#endif
 #else
 int
 open(const char *file, int flags, int mode)
@@ -1661,7 +1666,7 @@ open(const char *file, int flags, int mode)
     }
 
     if (p_CreateFileW) {
-       POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);       
+       POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
        UTF8_2_wchar(pwszBuf, file);
 
        foo = p_CreateFileW((LPCWSTR) pwszBuf, access, shareMode, NULL, create, msflags, NULL);

@@ -100,12 +100,12 @@ public:
 
 void *operator new(size_t s, const char *fname, int line)
 {
-  void *p = sm_malloc(fname, line, s > sizeof(int) ? s : sizeof(int));
+  void *p = sm_malloc(fname, line, s > sizeof(int) ? (unsigned int)s : sizeof(int));
   return p;
 }
 void *operator new[](size_t s, const char *fname, int line)
 {
-   void *p = sm_malloc(fname, line, s > sizeof(int) ? s : sizeof(int));
+   void *p = sm_malloc(fname, line, s > sizeof(int) ? (unsigned int)s : sizeof(int));
    return p;
 }
 void  operator delete(void *ptr)

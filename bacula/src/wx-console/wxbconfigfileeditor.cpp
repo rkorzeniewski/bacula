@@ -35,6 +35,9 @@ enum
 BEGIN_EVENT_TABLE(wxbConfigFileEditor, wxDialog)
    EVT_BUTTON(Save, wxbConfigFileEditor::OnSave)
    EVT_BUTTON(Quit, wxbConfigFileEditor::OnQuit)
+#ifdef HAVE_WIN32
+   EVT_PAINT (      wxbConfigFileEditor::OnPaint)
+#endif
 END_EVENT_TABLE()
 
 wxbConfigFileEditor::wxbConfigFileEditor(wxWindow* parent, wxString filename):
@@ -42,12 +45,42 @@ wxbConfigFileEditor::wxbConfigFileEditor(wxWindow* parent, wxString filename):
                    wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER) {
    this->filename = filename;
    
-   textCtrl = new wxTextCtrl(this,-1,wxT(""),wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_RICH | wxTE_DONTWRAP);
+   wxString strbuf;
+
+   wxFileName filen(filename);
+   
+   if (!filen.FileExists()) {
+      strbuf << wxT("#\n");
+      strbuf << _("# Bacula wx-console Configuration File\n");
+      strbuf << wxT("#\n");
+      strbuf << wxT("\n");
+      strbuf << wxT("Director {\n");
+      strbuf << wxT("  Name = <hostname>-dir\n");
+      strbuf << wxT("  DIRport = 9101\n");
+      strbuf << wxT("  address = <hostname>\n");
+      strbuf << wxT("  Password = \"<dir_password>\"\n");
+      strbuf << wxT("}\n");
+   }
+   else {
+      wxFile file(filename);
+      char buffer[2049];
+      off_t len;
+      while ((len = file.Read(buffer, 2048)) > -1) {
+         buffer[len] = 0;
+         strbuf << wxString(buffer,wxConvUTF8);
+         if (file.Eof())
+            break;
+      }
+      file.Close();
+   }
+
+   textCtrl = new wxTextCtrl(this,-1,strbuf,wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_RICH2 | wxTE_DONTWRAP);
    wxFont font(10, wxMODERN, wxNORMAL, wxNORMAL);
 #if defined __WXGTK12__ && !defined __WXGTK20__ // Fix for "chinese" fonts under gtk+ 1.2
    font.SetDefaultEncoding(wxFONTENCODING_ISO8859_1);
 #endif
    textCtrl->SetDefaultStyle(wxTextAttr(*wxBLACK, wxNullColour, font));
+   textCtrl->SetStyle(0, textCtrl->GetLastPosition(), wxTextAttr(*wxBLACK, wxNullColour, font));
 
    wxFlexGridSizer *mainSizer = new wxFlexGridSizer(2, 1, 0, 0);
    mainSizer->AddGrowableCol(0);
@@ -61,37 +94,22 @@ wxbConfigFileEditor::wxbConfigFileEditor(wxWindow* parent, wxString filename):
    mainSizer->Add(bottomsizer, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL);
    
    this->SetSizer(mainSizer);
-   
-   wxFileName filen(filename);
-   
-   if (!filen.FileExists()) {
-      (*textCtrl) << wxT("#\n");
-      (*textCtrl) << _("# Bacula wx-console Configuration File\n");
-      (*textCtrl) << wxT("#\n");
-      (*textCtrl) << wxT("\n");
-      (*textCtrl) << wxT("Director {\n");
-      (*textCtrl) << wxT("  Name = <hostname>-dir\n");
-      (*textCtrl) << wxT("  DIRport = 9101\n");
-      (*textCtrl) << wxT("  address = <hostname>\n");
-      (*textCtrl) << wxT("  Password = \"<dir_password>\"\n");
-      (*textCtrl) << wxT("}\n");
-   }
-   else {
-      wxFile file(filename);
-      char buffer[2049];
-      off_t len;
-      while ((len = file.Read(buffer, 2048)) > -1) {
-         buffer[len] = 0;
-         (*textCtrl) << wxString(buffer,wxConvLocal);
-         if (file.Eof())
-            break;
-      }
-      file.Close();
-   }
+
+   firstpaint = true;
 }
 
 wxbConfigFileEditor::~wxbConfigFileEditor() {
    
+}
+
+/* Kludge for Win32, so the text control is not completely selected. */
+void wxbConfigFileEditor::OnPaint(wxPaintEvent& event) {
+   wxPaintDC dc(this);
+
+   if (firstpaint) {
+      firstpaint = false;
+      textCtrl->SetSelection(0, 0);
+   }
 }
 
 void wxbConfigFileEditor::OnSave(wxCommandEvent& event) {

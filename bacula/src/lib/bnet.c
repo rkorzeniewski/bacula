@@ -796,7 +796,7 @@ static BSOCK *bnet_open(JCR * jcr, const char *name, char *host, char *service,
       /* connect to server */
       if (connect(sockfd, ipaddr->get_sockaddr(), ipaddr->get_sockaddr_len()) < 0) {
          save_errno = errno;
-         close(sockfd);
+         socketClose(sockfd);
          continue;
       }
       *fatal = 0;

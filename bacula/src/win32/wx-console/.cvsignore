@@ -1,2 +1,5 @@
 *.idb
 wx-console.conf
+Debug
+Release
+wx-console.vcproj.*

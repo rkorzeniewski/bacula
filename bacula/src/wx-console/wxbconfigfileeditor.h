@@ -39,8 +39,11 @@ private:
 
    wxTextCtrl* textCtrl;
 
+   bool firstpaint;
+
    void OnSave(wxCommandEvent& event);
    void OnQuit(wxCommandEvent& event);
+   void OnPaint(wxPaintEvent& event);
 
    DECLARE_EVENT_TABLE()
 };
