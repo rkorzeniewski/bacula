@@ -33,6 +33,7 @@
 #include <signal.h>
 #include <pthread.h>
 #include "../../lib/winapi.h"
+#include "baconfig.h"
 
 extern int BaculaMain(int argc, char *argv[]);
 extern void terminate_filed(int sig);
@@ -224,15 +225,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
       /* /help */
       if (strncmp(&szCmdLine[i], BaculaShowHelp, strlen(BaculaShowHelp)) == 0) {
-         MessageBox(NULL, BaculaUsageText, "Bacula Usage", MB_OK|MB_ICONINFORMATION);
+         MessageBox(NULL, BaculaUsageText, _("Bacula Usage"), MB_OK|MB_ICONINFORMATION);
          i += strlen(BaculaShowHelp);
          continue;
       }
       
-      MessageBox(NULL, szCmdLine, "Bad Command Line Options", MB_OK);
+      MessageBox(NULL, szCmdLine, _("Bad Command Line Options"), MB_OK);
 
       /* Show the usage dialog */
-      MessageBox(NULL, BaculaUsageText, "Bacula Usage", MB_OK | MB_ICONINFORMATION);
+      MessageBox(NULL, BaculaUsageText, _("Bacula Usage"), MB_OK | MB_ICONINFORMATION);
       break;
    }
 
@@ -322,7 +323,7 @@ int BaculaAppMain()
    HWND hservwnd = FindWindow(MENU_CLASS_NAME, NULL);
    if (hservwnd != NULL) {
       /* We don't allow multiple instances! */
-      MessageBox(NULL, "Another instance of Bacula is already running", szAppName, MB_OK);
+      MessageBox(NULL, _("Another instance of Bacula is already running"), szAppName, MB_OK);
       _exit(0);
    }
 
