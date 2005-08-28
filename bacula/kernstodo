@@ -19,6 +19,7 @@ Final items for 1.37 before release:
 
 - Add recycle event.
 - Add scratch pool event.
+- Implement NeedVolume event
 - Add Win32 FileSet definition somewhere
 
 Document:

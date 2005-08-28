@@ -98,16 +98,16 @@ int update_cmd(UAContext *ua, const char *cmd)
 
 static void update_volstatus(UAContext *ua, const char *val, MEDIA_DBR *mr)
 {
-   POOLMEM *query = get_pool_memory(PM_MESSAGE);
+   POOL_MEM query(PM_MESSAGE);
    const char *kw[] = {
-      _("Append"),
-      _("Archive"),
-      _("Disabled"),
-      _("Full"),
-      _("Used"),
-      _("Cleaning"),
-      _("Recycle"),
-      _("Read-Only"),
+      N_("Append"),
+      N_("Archive"),
+      N_("Disabled"),
+      N_("Full"),
+      N_("Used"),
+      N_("Cleaning"),
+      N_("Recycle"),
+      N_("Read-Only"),
       NULL};
    bool found = false;
    int i;
@@ -125,54 +125,49 @@ static void update_volstatus(UAContext *ua, const char *val, MEDIA_DBR *mr)
       bstrncpy(mr->VolStatus, kw[i], sizeof(mr->VolStatus));
       Mmsg(query, "UPDATE Media SET VolStatus='%s' WHERE MediaId=%s",
          mr->VolStatus, edit_int64(mr->MediaId,ed1));
-      if (!db_sql_query(ua->db, query, NULL, NULL)) {
+      if (!db_sql_query(ua->db, query.c_str(), NULL, NULL)) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
       } else {
          bsendmsg(ua, _("New Volume status is: %s\n"), mr->VolStatus);
       }
    }
-   free_pool_memory(query);
 }
 
 static void update_volretention(UAContext *ua, char *val, MEDIA_DBR *mr)
 {
    char ed1[150], ed2[50];
-   POOLMEM *query;
+   POOL_MEM query(PM_MESSAGE);
    if (!duration_to_utime(val, &mr->VolRetention)) {
       bsendmsg(ua, _("Invalid retention period specified: %s\n"), val);
       return;
    }
-   query = get_pool_memory(PM_MESSAGE);
    Mmsg(query, "UPDATE Media SET VolRetention=%s WHERE MediaId=%s",
       edit_uint64(mr->VolRetention, ed1), edit_int64(mr->MediaId,ed2));
-   if (!db_sql_query(ua->db, query, NULL, NULL)) {
+   if (!db_sql_query(ua->db, query.c_str(), NULL, NULL)) {
       bsendmsg(ua, "%s", db_strerror(ua->db));
    } else {
       bsendmsg(ua, _("New retention period is: %s\n"),
          edit_utime(mr->VolRetention, ed1, sizeof(ed1)));
    }
-   free_pool_memory(query);
 }
 
 static void update_voluseduration(UAContext *ua, char *val, MEDIA_DBR *mr)
 {
    char ed1[150], ed2[50];
-   POOLMEM *query;
+   POOL_MEM query(PM_MESSAGE);
 
    if (!duration_to_utime(val, &mr->VolUseDuration)) {
       bsendmsg(ua, _("Invalid use duration specified: %s\n"), val);
       return;
    }
-   query = get_pool_memory(PM_MESSAGE);
    Mmsg(query, "UPDATE Media SET VolUseDuration=%s WHERE MediaId=%s",
       edit_uint64(mr->VolUseDuration, ed1), edit_int64(mr->MediaId,ed2));
-   if (!db_sql_query(ua->db, query, NULL, NULL)) {
+   if (!db_sql_query(ua->db, query.c_str(), NULL, NULL)) {
       bsendmsg(ua, "%s", db_strerror(ua->db));
    } else {
       bsendmsg(ua, _("New use duration is: %s\n"),
          edit_utime(mr->VolUseDuration, ed1, sizeof(ed1)));
    }
-   free_pool_memory(query);
 }
 
 static void update_volmaxjobs(UAContext *ua, char *val, MEDIA_DBR *mr)
@@ -289,7 +284,7 @@ static void update_vol_pool(UAContext *ua, char *val, MEDIA_DBR *mr, POOL_DBR *o
 /*
  * Refresh the Volume information from the Pool record
  */
-static void update_volfrompool(UAContext *ua, MEDIA_DBR *mr)
+static void update_vol_from_pool(UAContext *ua, MEDIA_DBR *mr)
 {
    POOL_DBR pr;
 
@@ -397,7 +392,7 @@ static int update_volume(UAContext *ua)
             update_vol_pool(ua, ua->argv[j], &mr, &pr);
             break;
          case 8:
-            update_volfrompool(ua, &mr);
+            update_vol_from_pool(ua, &mr);
             return 1;
          case 9:
             update_all_vols_from_pool(ua);
@@ -432,16 +427,16 @@ static int update_volume(UAContext *ua)
          /* Modify Volume Status */
          bsendmsg(ua, _("Current Volume status is: %s\n"), mr.VolStatus);
          start_prompt(ua, _("Possible Values are:\n"));
-         add_prompt(ua, _("Append")); 
-         add_prompt(ua, _("Archive"));
-         add_prompt(ua, _("Disabled"));
-         add_prompt(ua, _("Full"));
-         add_prompt(ua, _("Used"));
-         add_prompt(ua, _("Cleaning"));
-         if (strcmp(mr.VolStatus, _("Purged")) == 0) {
-            add_prompt(ua, _("Recycle"));
+         add_prompt(ua, N_("Append")); 
+         add_prompt(ua, N_("Archive"));
+         add_prompt(ua, N_("Disabled"));
+         add_prompt(ua, N_("Full"));
+         add_prompt(ua, N_("Used"));
+         add_prompt(ua, N_("Cleaning"));
+         if (strcmp(mr.VolStatus, N_("Purged")) == 0) {
+            add_prompt(ua, N_("Recycle"));
          }
-         add_prompt(ua, _("Read-Only"));
+         add_prompt(ua, N_("Read-Only"));
          if (do_prompt(ua, "", _("Choose new Volume Status"), ua->cmd, sizeof(mr.VolStatus)) < 0) {
             return 1;
          }
@@ -589,7 +584,7 @@ static int update_volume(UAContext *ua)
          return 1;
 
       case 11:
-         update_volfrompool(ua, &mr);
+         update_vol_from_pool(ua, &mr);
          return 1;
       case 12:
          update_all_vols_from_pool(ua);

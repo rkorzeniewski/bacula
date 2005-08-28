@@ -379,7 +379,7 @@ db_update_media_defaults(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
            mr->Recycle,edit_uint64(mr->VolRetention, ed1),
            edit_uint64(mr->VolUseDuration, ed2),
            mr->MaxVolJobs, mr->MaxVolFiles,
-           edit_uint64(mr->VolBytes, ed3),
+           edit_uint64(mr->MaxVolBytes, ed3),
            mr->VolumeName);
    } else {
       Mmsg(mdb->cmd, "UPDATE Media SET "
@@ -389,7 +389,7 @@ db_update_media_defaults(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
            mr->Recycle,edit_uint64(mr->VolRetention, ed1),
            edit_uint64(mr->VolUseDuration, ed2),
            mr->MaxVolJobs, mr->MaxVolFiles,
-           edit_uint64(mr->VolBytes, ed3),
+           edit_uint64(mr->MaxVolBytes, ed3),
            edit_int64(mr->PoolId, ed4));
    }
 

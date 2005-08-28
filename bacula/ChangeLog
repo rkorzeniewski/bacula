@@ -989,7 +989,7 @@ Changes to 1.37.4:
   attempt to fix a bug report.
 23Feb05
 - Corrected SunOs to SunOS in btraceback (user submitted).
-- Applied patch from Roger HÃ¥kansson <hson@ludd.luth.se>
+- Applied patch from Roger Haa¥kansson <hson@ludd.luth.se>
   to warn the user of defective AWKs during ./configure.
 20Feb05
 - Add some changes submitted by a user for HP client build.

@@ -143,9 +143,9 @@ typedef UINT32 gid_t;
 typedef UINT32 uid_t;
 typedef UINT32 gid_t;
 typedef UINT32 mode_t;
-#ifndef _WX_DEFS_H_ /* ssize_t is defined in wx/defs.h */
+/* #ifndef _WX_DEFS_H_  ssize_t is defined in wx/defs.h */
 typedef INT64  ssize_t;
-#endif
+/* #endif */
 #endif //HAVE_MINGW
 
 struct dirent {

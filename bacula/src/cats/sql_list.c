@@ -69,18 +69,32 @@ int db_list_sql_query(JCR *jcr, B_DB *mdb, char *query, DB_LIST_HANDLER *sendit,
 }
 
 void
-db_list_pool_records(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, e_list_type type)
+db_list_pool_records(JCR *jcr, B_DB *mdb, POOL_DBR *pdbr, 
+                     DB_LIST_HANDLER *sendit, void *ctx, e_list_type type)
 {
    db_lock(mdb);
    if (type == VERT_LIST) {
-      Mmsg(mdb->cmd, "SELECT PoolId,Name,NumVols,MaxVols,UseOnce,UseCatalog,"
-         "AcceptAnyVolume,VolRetention,VolUseDuration,MaxVolJobs,MaxVolBytes,"
-         "AutoPrune,Recycle,PoolType,LabelFormat,Enabled,ScratchPoolId,"
-         "RecyclePoolId,LabelType "
-         " FROM Pool ORDER BY PoolId");
+      if (pdbr->Name[0] != 0) {
+         Mmsg(mdb->cmd, "SELECT PoolId,Name,NumVols,MaxVols,UseOnce,UseCatalog,"
+            "AcceptAnyVolume,VolRetention,VolUseDuration,MaxVolJobs,MaxVolBytes,"
+            "AutoPrune,Recycle,PoolType,LabelFormat,Enabled,ScratchPoolId,"
+            "RecyclePoolId,LabelType "
+            " FROM Pool WHERE Name='%s'", pdbr->Name);
+      } else {
+         Mmsg(mdb->cmd, "SELECT PoolId,Name,NumVols,MaxVols,UseOnce,UseCatalog,"
+            "AcceptAnyVolume,VolRetention,VolUseDuration,MaxVolJobs,MaxVolBytes,"
+            "AutoPrune,Recycle,PoolType,LabelFormat,Enabled,ScratchPoolId,"
+            "RecyclePoolId,LabelType "
+            " FROM Pool ORDER BY PoolId");
+      }
    } else {
-      Mmsg(mdb->cmd, "SELECT PoolId,Name,NumVols,MaxVols,PoolType,LabelFormat "
-        "FROM Pool ORDER BY PoolId");
+      if (pdbr->Name[0] != 0) {
+         Mmsg(mdb->cmd, "SELECT PoolId,Name,NumVols,MaxVols,PoolType,LabelFormat "
+           "FROM Pool WHERE Name='%s'", pdbr->Name);
+      } else {
+         Mmsg(mdb->cmd, "SELECT PoolId,Name,NumVols,MaxVols,PoolType,LabelFormat "
+           "FROM Pool ORDER BY PoolId");
+      }
    }
 
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
