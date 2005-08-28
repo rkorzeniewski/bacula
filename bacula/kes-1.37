@@ -5,6 +5,7 @@ General:
 
 Changes to 1.37.37:
 28Aug05
+- Apply Landon's patch for TLS default values.
 - Correct LOCALEDIR problem in build of Win32
 - Correct ssize_t problem in build of Win32
 - Add code to llprint pools and volumes to debug next item.
