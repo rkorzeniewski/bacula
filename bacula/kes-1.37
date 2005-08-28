@@ -4,6 +4,12 @@
 General:
 
 Changes to 1.37.37:
+28Aug05
+- Correct ssize_t problem in build of Win32
+- Add code to llprint pools and volumes to debug next item.
+- From bug report, fix resetting Pool defaults in Volume. It
+  was a typo "Max" was missing in several places.
+- Don't allow translation of database Volume Status values.
 24Aug05
 - Ensure that the drive is closed before calling the
   mtx-changer script so that the script can access the drive.
