@@ -375,6 +375,7 @@
 #define ENABLE_NLS 1
 #endif
 
+#undef  LOCALEDIR
 #define LOCALEDIR "."
 
 #undef HAVE_NL_LANGINFO
