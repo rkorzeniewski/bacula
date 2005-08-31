@@ -406,6 +406,7 @@ static void label_volume_if_ok(JCR *jcr, DEVICE *dev, char *oldname,
              dev->VolHdr.VolumeName);
          break;
       }
+
       /* Relabel request. If oldname matches, continue */
       if (strcmp(oldname, dev->VolHdr.VolumeName) != 0) {
          bnet_fsend(dir, _("3921 Wrong volume mounted.\n"));

@@ -57,6 +57,10 @@
 
 /* Allow printing of NULL pointers */
 #define NPRT(x) (x)?(x):_("*None*")
+ 
+#ifdef WIN32
+#undef ENABLE_NLS
+#endif
 
 #ifdef ENABLE_NLS
    #include <libintl.h>
