@@ -10,6 +10,8 @@ Version 1.37                Kern (see below)
 Final items for 1.37 before release:
 1. Fix bugs
 - Look at fixing restore status stats in SD.
+- Check "update slots=7 scan storage=DLT drive=0" with    
+  non-bacula tape in the drive.
 
 -  --without-openssl breaks at least on Solaris.
 -  Figure out how to package gui, and rescue programs.
@@ -21,6 +23,7 @@ Final items for 1.37 before release:
 - Add scratch pool event.
 - Implement NeedVolume event
 - Add Win32 FileSet definition somewhere
+      
 
 Document:
 - datadir for po files.

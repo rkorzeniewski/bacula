@@ -4,6 +4,12 @@
 General:
 
 Changes to 1.37.37:
+30Aug05
+- Final tweaks to build Win32.
+- Enable debug code in ua_label.c
+- Remove devices from the Volume list even if no
+  Volume is in drive.  Hopefully this fixes Arno's problem
+  of multiple volumes listed in the same drive.
 28Aug05
 - Apply Landon's patch for TLS default values.
 - Correct LOCALEDIR problem in build of Win32

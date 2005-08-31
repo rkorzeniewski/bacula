@@ -163,7 +163,24 @@ bool free_volume(DEVICE *dev)
    VOLRES vol, *fvol;
 
    if (dev->VolHdr.VolumeName[0] == 0) {
-      return false;
+      /*
+       * Our device has no VolumeName listed, but
+       *  search the list for any Volume attached to
+       *  this device and remove it.
+       */
+      P(vol_list_lock);
+      foreach_dlist(fvol, vol_list) {
+         if (fvol && fvol->dev == dev) {
+            vol_list->remove(fvol);
+            if (fvol->vol_name) {
+               free(fvol->vol_name);
+            }
+            free(fvol);
+            break;
+         }
+      }
+      V(vol_list_lock);
+      return fvol != NULL;
    }
    Dmsg1(400, "free_volume %s\n", dev->VolHdr.VolumeName);
    vol.vol_name = bstrdup(dev->VolHdr.VolumeName);
