@@ -1,9 +1,10 @@
 
-          Release Notes for Bacula 1.37.37
+          Release Notes for Bacula 1.37.38
 
   Bacula code: Total files = 420 Total lines = 137,650 (*.h *.c *.in)
 
 Major Changes:
+- Fixed out of order Volumes in restore.
 - Improved algorithm for reserving drives in multiple drive
   autochangers.
 - There is a new database format that is not compatible
