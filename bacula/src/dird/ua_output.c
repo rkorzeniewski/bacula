@@ -326,7 +326,8 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
          }
 
       /* List POOLS */
-      } else if (strcasecmp(ua->argk[i], N_("pool")) == 0) {
+      } else if (strcasecmp(ua->argk[i], N_("pool")) == 0 ||
+                 strcasecmp(ua->argk[i], N_("pools")) == 0) {
          POOL_DBR pr;
          memset(&pr, 0, sizeof(pr));
          if (ua->argv[i]) {
