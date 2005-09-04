@@ -3,6 +3,13 @@
 # Run a simple backup of the Bacula build directory
 #   then verify the catalog.           
 #
+debug=0
+if test "$debug" -eq 1 ; then
+  out="tee"
+else
+  out="output"
+fi
+
 cwd=`pwd`
 scripts/copy-test-confs
 scripts/cleanup
@@ -14,11 +21,10 @@ echo " === Starting verify Volume Test at `date +%R:%S` ==="
 echo " === Starting verify Volume Test at `date +%R:%S` ===" >>working/log
 echo " "
 
-bin/bacula start 2>&1 >/dev/null
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
-@output /dev/null
+cat <<END_OF_DATA >tmp/bconcmds
+@$out /dev/null
 messages
-@output tmp/log1.out
+@$out tmp/log1.out
 setdebug level=1 storage=File sd
 label storage=File volume=TestVolume001
 run job=NightlySave yes
@@ -27,14 +33,23 @@ messages
 @# 
 @# now do a verify volume
 @#
-@output ${cwd}/tmp/original
+@$out ${cwd}/tmp/original
 run job=VerifyVolume
 yes
 wait
 messages
-@output
+@$out
 quit
 END_OF_DATA
+
+if test "$debug" -eq 1 ; then
+  bin/bacula start
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+else
+  bin/bacula start 2>&1 >/dev/null
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+fi
+
 sleep 2
 scripts/check_for_zombie_jobs storage=File 
 bin/bacula stop 2>&1 >/dev/null
