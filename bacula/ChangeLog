@@ -1,3 +1,23 @@
+Changes to 1.37.38:
+04Sep05
+- Fix out of order volumes during restore.
+
+Changes to 1.37.37:
+30Aug05
+- Final tweaks to build Win32.
+- Enable debug code in ua_label.c
+- Remove devices from the Volume list even if no
+  Volume is in drive.  Hopefully this fixes Arno's problem
+  of multiple volumes listed in the same drive.
+28Aug05
+- Apply Landon's patch for TLS default values.
+- Correct LOCALEDIR problem in build of Win32
+- Correct ssize_t problem in build of Win32
+- Add code to llprint pools and volumes to debug next item.
+- From bug report, fix resetting Pool defaults in Volume. It
+  was a typo "Max" was missing in several places.
+- Don't allow translation of database Volume Status values.
+
 Changes to 1.37.37 released 26 Aug 05
 24Aug05
 - Ensure that the drive is closed before calling the
