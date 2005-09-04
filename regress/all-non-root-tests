@@ -11,7 +11,7 @@ tests/bscan-test
 tests/bsr-opt-test
 tests/compressed-test
 tests/concurrent-jobs-test
-tests/decremental-test
+tests/differential-test
 tests/four-concurrent-jobs-test
 tests/four-jobs-test
 tests/incremental-test

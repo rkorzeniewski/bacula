@@ -5,6 +5,13 @@
 #   totally full. I.e. make sure that bsr selects all tapes 
 #   including those fully spanned.
 #
+debug=1
+if test "$debug" -eq 1 ; then
+  out="tee"
+else
+  out="output"
+fi
+
 cwd=`pwd`
 scripts/copy-test-confs
 scripts/cleanup
@@ -16,18 +23,17 @@ echo " === Starting span-vol-test at `date +%R:%S` ==="
 echo " === Starting span-vol-test at `date +%R:%S` ===" >working/log
 echo " "
 
-bin/bacula start 2>&1 >/dev/null
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
-@output /dev/null
+cat <<END_OF_DATA >tmp/bconcmds
+@$out /dev/null
 messages
-@output tmp/log1.out
-label storage=File1 volume=TestVolume001
-label storage=File1 volume=TestVolume002
-label storage=File1 volume=TestVolume003
+@$out tmp/log1.out
 label storage=File1 volume=TestVolume004
-update Volume=TestVolume001 MaxVolBytes=3000000
-update Volume=TestVolume002 MaxVolBytes=3000000
+label storage=File1 volume=TestVolume003
+label storage=File1 volume=TestVolume002
+label storage=File1 volume=TestVolume001
+update Volume=TestVolume004 MaxVolBytes=3000000
 update Volume=TestVolume003 MaxVolBytes=3000000
+update Volume=TestVolume002 MaxVolBytes=3000000
 run job=NightlySave storage=File1 yes
 wait
 list volumes
@@ -35,7 +41,7 @@ messages
 @# 
 @# now do a restore
 @#
-@output tmp/log2.out
+@$out tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select storage=File1
 unmark *
 mark *
@@ -43,9 +49,18 @@ done
 yes
 wait
 messages
-@output
+@$out
 quit
 END_OF_DATA
+
+if test "$debug" -eq 1 ; then
+  bin/bacula start
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+else
+  bin/bacula start 2>&1 >/dev/null
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+fi
+
 scripts/check_for_zombie_jobs storage=File1
 bin/bacula stop 2>&1 >/dev/null
 grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null

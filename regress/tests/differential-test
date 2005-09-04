@@ -1,8 +1,15 @@
 #!/bin/sh
 #
 # Run a simple backup of the Bacula build directory then create some           
-#   new files, do a Decremental and restore those two files.
+#   new files, do a differential and restore those two files.
 #
+debug=0
+if test "$debug" -eq 1 ; then
+  out="tee"
+else
+  out="output"
+fi
+
 cwd=`pwd`
 scripts/copy-test-confs
 scripts/cleanup
@@ -16,15 +23,14 @@ cd ${cwd}
 
 echo " "
 echo " "
-echo " === Starting decremental-test at `date +%R:%S` ==="
-echo " === Starting decremental-test at `date +%R:%S` ===" >>working/log
+echo " === Starting differential-test at `date +%R:%S` ==="
+echo " === Starting differential-test at `date +%R:%S` ===" >>working/log
 echo " "
 
-bin/bacula start 2>&1 >/dev/null
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
-@output /dev/null
+cat <<END_OF_DATA >tmp/bconcmds
+@$out /dev/null
 messages
-@output tmp/log1.out
+@$out tmp/log1.out
 label storage=File volume=TestVolume001
 label storage=File volume=TestVolume002
 run job=CompressedTest yes
@@ -32,40 +38,65 @@ wait
 messages
 quit
 END_OF_DATA
+
+if test "$debug" -eq 1 ; then
+  bin/bacula start
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+else
+  bin/bacula start 2>&1 >/dev/null
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+fi
+
 scripts/check_for_zombie_jobs storage=File
 echo "ficheriro1.txt" >${cwd}/tmp/build/ficheriro1.txt
 echo "ficheriro2.txt" >${cwd}/tmp/build/ficheriro2.txt
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
-@output /dev/null
+
+cat <<END_OF_DATA >tmp/bconcmds
+@$out /dev/null
 messages
-@output tmp/log1.out
-@# Force decremental on the second Volume
+@$out tmp/log1.out
+@# Force differential on the second Volume
 update volume=TestVolume001 VolStatus=Used
-run level=decremental job=CompressedTest yes
+run level=differential job=CompressedTest yes
 wait
 messages
-@output
+@$out
 END_OF_DATA
+
+if test "$debug" -eq 1 ; then
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+else
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+fi
+
 scripts/check_for_zombie_jobs storage=File
 echo "ficheriro2.txt" >${cwd}/tmp/build/ficheriro2.txt
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
-@output /dev/null
+
+cat <<END_OF_DATA >tmp/bconcmds
+@$out /dev/null
 messages
-@output tmp/log1.out
+@$out tmp/log1.out
 run level=incremental job=CompressedTest yes
 wait
 messages
 @# 
 @# now do a restore
 @#
-@output tmp/log2.out
+@$out tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores storage=File file=<${cwd}/tmp/restore-list
 yes
 wait
 messages
-@output
+@$out
 quit
 END_OF_DATA
+
+if test "$debug" -eq 1 ; then
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+else
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+fi
+
 scripts/check_for_zombie_jobs storage=File
 bin/bacula stop 2>&1 >/dev/null
 grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
@@ -73,15 +104,15 @@ bstat=$?
 grep "^  Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
 rstat=$?
 #
-# Delete .c files because we will only restored the txt files
+# Delete .c files because we will only restore the txt files
 #
 rm -f tmp/build/*.c
 diff -r tmp/build tmp/bacula-restores${cwd}/tmp/build 2>&1 >/dev/null
 if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
    echo " "
    echo " "
-   echo "  !!!!! decremental-test Bacula source failed!!! !!!!! "
-   echo "  !!!!! decremental-test failed!!! !!!!! " >>test.out
+   echo "  !!!!! differential-test Bacula source failed!!! !!!!! "
+   echo "  !!!!! differential-test failed!!! !!!!! " >>test.out
    if [ $bstat != 0 -o $rstat != 0 ] ; then
       echo "  !!!!! Bad Job termination status     !!!!! "
       echo "  !!!!! Bad Job termination status     !!!!! " >>test.out
@@ -91,7 +122,7 @@ if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
    fi
    echo " "
 else
-   echo "  ===== decremental-test Bacula source OK ===== "
-   echo "  ===== decremental-test OK ===== " >>test.out
+   echo "  ===== differential-test Bacula source OK ===== "
+   echo "  ===== differential-test OK ===== " >>test.out
    scripts/cleanup
 fi
