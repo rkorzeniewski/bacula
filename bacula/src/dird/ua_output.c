@@ -340,7 +340,8 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
 
       /* List MEDIA or VOLUMES */
       } else if (strcasecmp(ua->argk[i], N_("media")) == 0 ||
-                 strncasecmp(ua->argk[i], N_("volume"), 7) == 0) {
+                 strcasecmp(ua->argk[i], N_("volume")) == 0 ||
+                 strcasecmp(ua->argk[i], N_("volumes")) == 0) {
          bool done = false;
          for (j=i+1; j<ua->argc; j++) {
             if (strcasecmp(ua->argk[j], N_("job")) == 0 && ua->argv[j]) {
