@@ -125,18 +125,21 @@ bool do_verify_init(JCR *jcr)
     *   File daemon but not used).
     */
    if (jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG) {
-      RBSR *bsr = new_bsr();
+      RESTORE_CTX rx;
       UAContext *ua;
-      bsr->JobId = jcr->target_jr.JobId;
+      memset(&rx, 0, sizeof(rx));
+      rx.bsr = new_bsr();
+      rx.JobIds = "";                       
+      rx.bsr->JobId = jcr->target_jr.JobId;
       ua = new_ua_context(jcr);
-      complete_bsr(ua, bsr);
-      bsr->fi = new_findex();
-      bsr->fi->findex = 1;
-      bsr->fi->findex2 = jcr->target_jr.JobFiles;
-      jcr->ExpectedFiles = write_bsr_file(ua, bsr);
+      complete_bsr(ua, rx.bsr);
+      rx.bsr->fi = new_findex();
+      rx.bsr->fi->findex = 1;
+      rx.bsr->fi->findex2 = jcr->target_jr.JobFiles;
+      jcr->ExpectedFiles = write_bsr_file(ua, rx);
       if (jcr->ExpectedFiles == 0) {
          free_ua_context(ua);
-         free_bsr(bsr);
+         free_bsr(rx.bsr);
          return false;
       }
       if (jcr->RestoreBootstrap) {
@@ -146,7 +149,7 @@ bool do_verify_init(JCR *jcr)
       make_unique_restore_filename(ua, &fname);
       jcr->RestoreBootstrap = bstrdup(fname);
       free_ua_context(ua);
-      free_bsr(bsr);
+      free_bsr(rx.bsr);
       free_pool_memory(fname);
       jcr->needs_sd = true;
 

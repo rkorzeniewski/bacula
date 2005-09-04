@@ -68,4 +68,41 @@ struct TREE_CTX {
    uint32_t DeltaCount;               /* trigger for printing */
 };
 
+struct NAME_LIST {
+   char **name;                       /* list of names */
+   int num_ids;                       /* ids stored */
+   int max_ids;                       /* size of array */
+   int num_del;                       /* number deleted */
+   int tot_ids;                       /* total to process */
+};
+
+
+/* Main structure for obtaining JobIds or Files to be restored */
+struct RESTORE_CTX {
+   utime_t JobTDate;
+   uint32_t TotalFiles;
+   JobId_t JobId;
+   char ClientName[MAX_NAME_LENGTH];
+   char last_jobid[20];
+   POOLMEM *JobIds;                   /* User entered string of JobIds */
+   STORE  *store;
+   JOB *restore_job;
+   POOL *pool;
+   int restore_jobs;
+   uint32_t selected_files;
+   char *where;
+   RBSR *bsr;
+   POOLMEM *fname;                    /* filename only */
+   POOLMEM *path;                     /* path only */
+   POOLMEM *query;
+   int fnl;                           /* filename length */
+   int pnl;                           /* path length */
+   bool found;
+   bool all;                          /* mark all as default */
+   NAME_LIST name_list;
+};
+
+#define MAX_ID_LIST_LEN 1000000
+
+
 #endif

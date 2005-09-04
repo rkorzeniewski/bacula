@@ -29,7 +29,7 @@
 #include "dird.h"
 
 /* Forward referenced functions */
-static uint32_t write_bsr(UAContext *ua, RBSR *bsr, FILE *fd);
+static uint32_t write_bsr(UAContext *ua, RESTORE_CTX &rx, FILE *fd);
 void print_bsr(UAContext *ua, RBSR *bsr);
 
 
@@ -111,10 +111,10 @@ static void print_findex(UAContext *ua, RBSR_FINDEX *fi)
    for ( ; fi; fi=fi->next) {
       if (fi->findex == fi->findex2) {
          bsendmsg(ua, "FileIndex=%d\n", fi->findex);
-//       Dmsg1(100, "FileIndex=%d\n", fi->findex);
+         Dmsg1(1000, "FileIndex=%d\n", fi->findex);
       } else {
          bsendmsg(ua, "FileIndex=%d-%d\n", fi->findex, fi->findex2);
-//       Dmsg2(100, "FileIndex=%d-%d\n", fi->findex, fi->findex2);
+         Dmsg2(1000, "FileIndex=%d-%d\n", fi->findex, fi->findex2);
       }
    }
 }
@@ -187,12 +187,14 @@ void make_unique_restore_filename(UAContext *ua, POOLMEM **fname)
 /*
  * Write the bootstrap records to file
  */
-uint32_t write_bsr_file(UAContext *ua, RBSR *bsr)
+uint32_t write_bsr_file(UAContext *ua, RESTORE_CTX &rx)
 {
    FILE *fd;
    POOLMEM *fname = get_pool_memory(PM_MESSAGE);
    uint32_t count = 0;;
    bool err;
+   char *p;
+   JobId_t JobId;
 
    make_unique_restore_filename(ua, &fname);
    fd = fopen(fname, "w+");
@@ -203,7 +205,7 @@ uint32_t write_bsr_file(UAContext *ua, RBSR *bsr)
       goto bail_out;
    }
    /* Write them to file */
-   count = write_bsr(ua, bsr, fd);
+   count = write_bsr(ua, rx, fd);
    err = ferror(fd);
    fclose(fd);
    if (err) {
@@ -220,10 +222,27 @@ uint32_t write_bsr_file(UAContext *ua, RBSR *bsr)
    bsendmsg(ua, _("The job will require the following Volumes:\n"));
    /* Create Unique list of Volumes using prompt list */
    start_prompt(ua, "");
-   for (RBSR *nbsr=bsr; nbsr; nbsr=nbsr->next) {
-      for (int i=0; i < nbsr->VolCount; i++) {
-         if (nbsr->VolParams[i].VolumeName[0]) {
-            add_prompt(ua, nbsr->VolParams[i].VolumeName);
+   if (*rx.JobIds) {
+      /* Ensure that the volumes are printed in JobId order */
+      for (p=rx.JobIds; get_next_jobid_from_list(&p, &JobId) > 0; ) {
+         for (RBSR *nbsr=rx.bsr; nbsr; nbsr=nbsr->next) {
+            if (JobId != nbsr->JobId) {
+               continue;
+            }
+            for (int i=0; i < nbsr->VolCount; i++) {
+               if (nbsr->VolParams[i].VolumeName[0]) {
+                  add_prompt(ua, nbsr->VolParams[i].VolumeName);
+               }
+            }
+         }
+      }
+   } else {
+      /* Print Volumes in any order */
+      for (RBSR *nbsr=rx.bsr; nbsr; nbsr=nbsr->next) {
+         for (int i=0; i < nbsr->VolCount; i++) {
+            if (nbsr->VolParams[i].VolumeName[0]) {
+               add_prompt(ua, nbsr->VolParams[i].VolumeName);
+            }
          }
       }
    }
@@ -243,57 +262,123 @@ bail_out:
    return count;
 }
 
-static uint32_t write_bsr(UAContext *ua, RBSR *bsr, FILE *fd)
+/*
+ * Here we actually write out the details of the bsr file.
+ *  Note, there is one bsr for each JobId, but the bsr may
+ *  have multiple volumes, which have been entered in the
+ *  order they were written.  
+ * The bsrs must be written out in the order the JobIds
+ *  are found in the jobid list.
+ */
+static uint32_t write_bsr(UAContext *ua, RESTORE_CTX &rx, FILE *fd)
 {
    uint32_t count = 0;
    uint32_t total_count = 0;
    uint32_t LastIndex = 0;
    bool first = true;
-   for ( ; bsr; bsr=bsr->next) {
-      /*
-       * For a given volume, loop over all the JobMedia records.
-       *   VolCount is the number of JobMedia records.
-       */
-      for (int i=0; i < bsr->VolCount; i++) {
-         if (!is_volume_selected(bsr->fi, bsr->VolParams[i].FirstIndex,
-              bsr->VolParams[i].LastIndex)) {
-            bsr->VolParams[i].VolumeName[0] = 0;  /* zap VolumeName */
+   char *p;
+   JobId_t JobId;
+   RBSR *bsr;
+   if (*rx.JobIds == 0) {
+      for (bsr=rx.bsr; bsr; bsr=bsr->next) {
+         /*
+          * For a given volume, loop over all the JobMedia records.
+          *   VolCount is the number of JobMedia records.
+          */
+         for (int i=0; i < bsr->VolCount; i++) {
+            if (!is_volume_selected(bsr->fi, bsr->VolParams[i].FirstIndex,
+                 bsr->VolParams[i].LastIndex)) {
+               bsr->VolParams[i].VolumeName[0] = 0;  /* zap VolumeName */
+               continue;
+            }
+            fprintf(fd, "Volume=\"%s\"\n", bsr->VolParams[i].VolumeName);
+            fprintf(fd, "MediaType=\"%s\"\n", bsr->VolParams[i].MediaType);
+            fprintf(fd, "VolSessionId=%u\n", bsr->VolSessionId);
+            fprintf(fd, "VolSessionTime=%u\n", bsr->VolSessionTime);
+            if (bsr->VolParams[i].StartFile == bsr->VolParams[i].EndFile) {
+               fprintf(fd, "VolFile=%u\n", bsr->VolParams[i].StartFile);
+            } else {
+               fprintf(fd, "VolFile=%u-%u\n", bsr->VolParams[i].StartFile,
+                       bsr->VolParams[i].EndFile);
+            }
+            if (bsr->VolParams[i].StartBlock == bsr->VolParams[i].EndBlock) {
+               fprintf(fd, "VolBlock=%u\n", bsr->VolParams[i].StartBlock);
+            } else {
+               fprintf(fd, "VolBlock=%u-%u\n", bsr->VolParams[i].StartBlock,
+                       bsr->VolParams[i].EndBlock);
+            }
+   //       Dmsg2(100, "bsr VolParam FI=%u LI=%u\n",
+   //          bsr->VolParams[i].FirstIndex, bsr->VolParams[i].LastIndex);
+
+            count = write_findex(ua, bsr->fi, bsr->VolParams[i].FirstIndex,
+                                 bsr->VolParams[i].LastIndex, fd);
+            if (count) {
+               fprintf(fd, "Count=%u\n", count);
+            }
+            total_count += count;
+            /* If the same file is present on two tapes or in two files
+             *   on a tape, it is a continuation, and should not be treated
+             *   twice in the totals.
+             */
+            if (!first && LastIndex == bsr->VolParams[i].FirstIndex) {
+               total_count--;
+            }
+            first = false;
+            LastIndex = bsr->VolParams[i].LastIndex;
+         }
+      }
+      return total_count;
+   }
+   for (p=rx.JobIds; get_next_jobid_from_list(&p, &JobId) > 0; ) {
+      for (bsr=rx.bsr; bsr; bsr=bsr->next) {
+         if (JobId != bsr->JobId) {
             continue;
          }
-         fprintf(fd, "Volume=\"%s\"\n", bsr->VolParams[i].VolumeName);
-         fprintf(fd, "MediaType=\"%s\"\n", bsr->VolParams[i].MediaType);
-         fprintf(fd, "VolSessionId=%u\n", bsr->VolSessionId);
-         fprintf(fd, "VolSessionTime=%u\n", bsr->VolSessionTime);
-         if (bsr->VolParams[i].StartFile == bsr->VolParams[i].EndFile) {
-            fprintf(fd, "VolFile=%u\n", bsr->VolParams[i].StartFile);
-         } else {
-            fprintf(fd, "VolFile=%u-%u\n", bsr->VolParams[i].StartFile,
-                    bsr->VolParams[i].EndFile);
-         }
-         if (bsr->VolParams[i].StartBlock == bsr->VolParams[i].EndBlock) {
-            fprintf(fd, "VolBlock=%u\n", bsr->VolParams[i].StartBlock);
-         } else {
-            fprintf(fd, "VolBlock=%u-%u\n", bsr->VolParams[i].StartBlock,
-                    bsr->VolParams[i].EndBlock);
-         }
-//       Dmsg2(100, "bsr VolParam FI=%u LI=%u\n",
-//          bsr->VolParams[i].FirstIndex, bsr->VolParams[i].LastIndex);
-
-         count = write_findex(ua, bsr->fi, bsr->VolParams[i].FirstIndex,
-                              bsr->VolParams[i].LastIndex, fd);
-         if (count) {
-            fprintf(fd, "Count=%u\n", count);
-         }
-         total_count += count;
-         /* If the same file is present on two tapes or in two files
-          *   on a tape, it is a continuation, and should not be treated
-          *   twice in the totals.
+         /*
+          * For a given volume, loop over all the JobMedia records.
+          *   VolCount is the number of JobMedia records.
           */
-         if (!first && LastIndex == bsr->VolParams[i].FirstIndex) {
-            total_count--;
+         for (int i=0; i < bsr->VolCount; i++) {
+            if (!is_volume_selected(bsr->fi, bsr->VolParams[i].FirstIndex,
+                 bsr->VolParams[i].LastIndex)) {
+               bsr->VolParams[i].VolumeName[0] = 0;  /* zap VolumeName */
+               continue;
+            }
+            fprintf(fd, "Volume=\"%s\"\n", bsr->VolParams[i].VolumeName);
+            fprintf(fd, "MediaType=\"%s\"\n", bsr->VolParams[i].MediaType);
+            fprintf(fd, "VolSessionId=%u\n", bsr->VolSessionId);
+            fprintf(fd, "VolSessionTime=%u\n", bsr->VolSessionTime);
+            if (bsr->VolParams[i].StartFile == bsr->VolParams[i].EndFile) {
+               fprintf(fd, "VolFile=%u\n", bsr->VolParams[i].StartFile);
+            } else {
+               fprintf(fd, "VolFile=%u-%u\n", bsr->VolParams[i].StartFile,
+                       bsr->VolParams[i].EndFile);
+            }
+            if (bsr->VolParams[i].StartBlock == bsr->VolParams[i].EndBlock) {
+               fprintf(fd, "VolBlock=%u\n", bsr->VolParams[i].StartBlock);
+            } else {
+               fprintf(fd, "VolBlock=%u-%u\n", bsr->VolParams[i].StartBlock,
+                       bsr->VolParams[i].EndBlock);
+            }
+   //       Dmsg2(100, "bsr VolParam FI=%u LI=%u\n",
+   //          bsr->VolParams[i].FirstIndex, bsr->VolParams[i].LastIndex);
+
+            count = write_findex(ua, bsr->fi, bsr->VolParams[i].FirstIndex,
+                                 bsr->VolParams[i].LastIndex, fd);
+            if (count) {
+               fprintf(fd, "Count=%u\n", count);
+            }
+            total_count += count;
+            /* If the same file is present on two tapes or in two files
+             *   on a tape, it is a continuation, and should not be treated
+             *   twice in the totals.
+             */
+            if (!first && LastIndex == bsr->VolParams[i].FirstIndex) {
+               total_count--;
+            }
+            first = false;
+            LastIndex = bsr->VolParams[i].LastIndex;
          }
-         first = false;
-         LastIndex = bsr->VolParams[i].LastIndex;
       }
    }
    return total_count;

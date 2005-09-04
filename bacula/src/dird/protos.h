@@ -48,7 +48,7 @@ extern void backup_cleanup(JCR *jcr, int TermCode);
 RBSR *new_bsr();
 void free_bsr(RBSR *bsr);
 bool complete_bsr(UAContext *ua, RBSR *bsr);
-uint32_t write_bsr_file(UAContext *ua, RBSR *bsr);
+uint32_t write_bsr_file(UAContext *ua, RESTORE_CTX &rx);
 void add_findex(RBSR *bsr, uint32_t JobId, int32_t findex);
 void add_findex_all(RBSR *bsr, uint32_t JobId);
 RBSR_FINDEX *new_findex();
@@ -68,7 +68,7 @@ int variable_expansion(JCR *jcr, char *inp, POOLMEM **exp);
 
 /* fd_cmds.c */
 extern int connect_to_file_daemon(JCR *jcr, int retry_interval,
-				  int max_retry_time, int verbose);
+                                  int max_retry_time, int verbose);
 extern bool send_include_list(JCR *jcr);
 extern bool send_exclude_list(JCR *jcr);
 extern bool send_bootstrap_file(JCR *jcr);
@@ -76,7 +76,7 @@ extern bool send_level_command(JCR *jcr);
 extern int get_attributes_and_put_in_catalog(JCR *jcr);
 extern int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId);
 extern int put_file_into_catalog(JCR *jcr, long file_index, char *fname,
-			  char *link, char *attr, int stream);
+                          char *link, char *attr, int stream);
 extern void get_level_since_time(JCR *jcr, char *since, int since_len);
 extern int send_run_before_and_after_commands(JCR *jcr);
 
@@ -110,7 +110,7 @@ extern void mount_request(JCR *jcr, BSOCK *bs, char *buf);
 
 /* msgchan.c */
 extern bool connect_to_storage_daemon(JCR *jcr, int retry_interval,
-			      int max_retry_time, int verbose);
+                              int max_retry_time, int verbose);
 extern int start_storage_daemon_job(JCR *jcr, alist *store, int append);
 extern int start_storage_daemon_message_thread(JCR *jcr);
 extern int bget_dirmsg(BSOCK *bs);
@@ -165,6 +165,9 @@ void prtit(void *ctx, const char *msg);
 int complete_jcr_for_job(JCR *jcr, JOB *job, POOL *pool);
 RUN *find_next_run(RUN *run, JOB *job, time_t &runtime);
 
+/* ua_restore.c */
+int get_next_jobid_from_list(char **p, JobId_t *JobId);
+
 /* ua_server.c */
 void bsendmsg(void *sock, const char *fmt, ...);
 UAContext *new_ua_context(JCR *jcr);
@@ -172,29 +175,29 @@ JCR *new_control_jcr(const char *base_name, int job_type);
 void free_ua_context(UAContext *ua);
 
 /* ua_select.c */
-STORE	*select_storage_resource(UAContext *ua);
-JOB	*select_job_resource(UAContext *ua);
-JOB	*select_restore_job_resource(UAContext *ua);
-CLIENT	*select_client_resource(UAContext *ua);
+STORE   *select_storage_resource(UAContext *ua);
+JOB     *select_job_resource(UAContext *ua);
+JOB     *select_restore_job_resource(UAContext *ua);
+CLIENT  *select_client_resource(UAContext *ua);
 FILESET *select_fileset_resource(UAContext *ua);
-int	select_pool_and_media_dbr(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr);
-int	select_media_dbr(UAContext *ua, MEDIA_DBR *mr);
-bool	select_pool_dbr(UAContext *ua, POOL_DBR *pr);
-int	select_client_dbr(UAContext *ua, CLIENT_DBR *cr);
+int     select_pool_and_media_dbr(UAContext *ua, POOL_DBR *pr, MEDIA_DBR *mr);
+int     select_media_dbr(UAContext *ua, MEDIA_DBR *mr);
+bool    select_pool_dbr(UAContext *ua, POOL_DBR *pr);
+int     select_client_dbr(UAContext *ua, CLIENT_DBR *cr);
 
-void	start_prompt(UAContext *ua, const char *msg);
-void	add_prompt(UAContext *ua, const char *prompt);
-int	do_prompt(UAContext *ua, const char *automsg, const char *msg, char *prompt, int max_prompt);
+void    start_prompt(UAContext *ua, const char *msg);
+void    add_prompt(UAContext *ua, const char *prompt);
+int     do_prompt(UAContext *ua, const char *automsg, const char *msg, char *prompt, int max_prompt);
 CAT    *get_catalog_resource(UAContext *ua);
 STORE  *get_storage_resource(UAContext *ua, bool use_default);
-int	get_storage_drive(UAContext *ua, STORE *store);
-int	get_media_type(UAContext *ua, char *MediaType, int max_media);
-bool	get_pool_dbr(UAContext *ua, POOL_DBR *pr);
-int	get_client_dbr(UAContext *ua, CLIENT_DBR *cr);
+int     get_storage_drive(UAContext *ua, STORE *store);
+int     get_media_type(UAContext *ua, char *MediaType, int max_media);
+bool    get_pool_dbr(UAContext *ua, POOL_DBR *pr);
+int     get_client_dbr(UAContext *ua, CLIENT_DBR *cr);
 POOL   *get_pool_resource(UAContext *ua);
 POOL   *select_pool_resource(UAContext *ua);
 CLIENT *get_client_resource(UAContext *ua);
-int	get_job_dbr(UAContext *ua, JOB_DBR *jr);
+int     get_job_dbr(UAContext *ua, JOB_DBR *jr);
 
 int find_arg_keyword(UAContext *ua, const char **list);
 int find_arg(UAContext *ua, const char *keyword);

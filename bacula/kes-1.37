@@ -3,6 +3,10 @@
 
 General:
 
+Changes to 1.37.38:
+04Sep05
+- Fix out of order volumes during restore.
+
 Changes to 1.37.37:
 30Aug05
 - Final tweaks to build Win32.
