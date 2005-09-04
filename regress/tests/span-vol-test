@@ -5,7 +5,7 @@
 #   totally full. I.e. make sure that bsr selects all tapes 
 #   including those fully spanned.
 #
-debug=1
+debug=0
 if test "$debug" -eq 1 ; then
   out="tee"
 else
