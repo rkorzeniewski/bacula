@@ -109,6 +109,9 @@ typedef BOOL (WINAPI * t_SetCurrentDirectoryW) (LPCWSTR);
 typedef DWORD (WINAPI * t_GetCurrentDirectoryA) (DWORD, LPSTR);
 typedef DWORD (WINAPI * t_GetCurrentDirectoryW) (DWORD, LPWSTR);
 
+typedef BOOL (WINAPI * t_GetVolumePathNameW) (LPCWSTR, LPWSTR, DWORD);
+typedef BOOL (WINAPI * t_GetVolumeNameForVolumeMountPointW) (LPCWSTR, LPWSTR, DWORD);
+  
 extern t_GetFileAttributesA   p_GetFileAttributesA;
 extern t_GetFileAttributesW   p_GetFileAttributesW;
 
@@ -139,6 +142,9 @@ extern t_SetCurrentDirectoryW p_SetCurrentDirectoryW;
 extern t_GetCurrentDirectoryA p_GetCurrentDirectoryA;
 extern t_GetCurrentDirectoryW p_GetCurrentDirectoryW;
 
+extern t_GetVolumePathNameW p_GetVolumePathNameW;
+extern t_GetVolumeNameForVolumeMountPointW p_GetVolumeNameForVolumeMountPointW;
+          
 #ifdef WIN32_VSS
 class  VSSClient;
 extern VSSClient* g_pVSSClient;

@@ -62,6 +62,8 @@ using namespace std;
 // Used for safe string manipulation
 #include <strsafe.h>
 
+#include "../../lib/winapi.h"
+
 #ifdef B_VSS_XP
    #pragma message("compile VSS for Windows XP")   
    #define VSSClientGeneric VSSClientXP
@@ -120,7 +122,7 @@ inline wstring AppendBackslash(wstring str)
 // Get the unique volume name for the given path
 inline wstring GetUniqueVolumeNameForPath(wstring path)
 {
-    _ASSERTE(path.length() > 0);
+    _ASSERTE(path.length() > 0);    
 
     // Add the backslash termination, if needed
     path = AppendBackslash(path);
@@ -130,15 +132,15 @@ inline wstring GetUniqueVolumeNameForPath(wstring path)
     WCHAR volumeName[MAX_PATH];
     WCHAR volumeUniqueName[MAX_PATH];
 
-    if (!GetVolumePathNameW((LPCWSTR)path.c_str(), volumeRootPath, MAX_PATH))
+    if (!p_GetVolumePathNameW || !p_GetVolumePathNameW((LPCWSTR)path.c_str(), volumeRootPath, MAX_PATH))
       return L"";
     
     // Get the volume name alias (might be different from the unique volume name in rare cases)
-    if (!GetVolumeNameForVolumeMountPointW(volumeRootPath, volumeName, MAX_PATH))
+    if (!p_GetVolumeNameForVolumeMountPointW || !p_GetVolumeNameForVolumeMountPointW(volumeRootPath, volumeName, MAX_PATH))
        return L"";
     
     // Get the unique volume name    
-    if (!GetVolumeNameForVolumeMountPointW(volumeName, volumeUniqueName, MAX_PATH))
+    if (!p_GetVolumeNameForVolumeMountPointW(volumeName, volumeUniqueName, MAX_PATH))
        return L"";
     
     return volumeUniqueName;

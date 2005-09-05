@@ -109,9 +109,11 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
                  p_SetCurrentDirectoryA?"":"!",
                  p_SetCurrentDirectoryW?"":"!");
       sendit(msg, len, arg);
-      len = Mmsg(msg, " %sGCDA,%sGCDW\n",  
+      len = Mmsg(msg, " %sGCDA,%sGCDW,%sGVPNW,%sGVNFVMPW\n",  
                  p_GetCurrentDirectoryA?"":"!",
-                 p_GetCurrentDirectoryW?"":"!");
+                 p_GetCurrentDirectoryW?"":"!",
+                 p_GetVolumePathNameW?"":"!",
+                 p_GetVolumeNameForVolumeMountPointW?"":"!");
      sendit(msg, len, arg);
    }
 #endif
