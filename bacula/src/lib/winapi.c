@@ -78,6 +78,9 @@ t_SetCurrentDirectoryW p_SetCurrentDirectoryW = NULL;
 t_GetCurrentDirectoryA p_GetCurrentDirectoryA = NULL;
 t_GetCurrentDirectoryW p_GetCurrentDirectoryW = NULL;
 
+t_GetVolumePathNameW p_GetVolumePathNameW = NULL;
+t_GetVolumeNameForVolumeMountPointW p_GetVolumeNameForVolumeMountPointW = NULL;
+
 #ifdef WIN32_VSS
 void 
 VSSCleanup()
@@ -143,6 +146,14 @@ InitWinAPIWrapper()
           GetProcAddress(hLib, "GetCurrentDirectoryA");
       p_GetCurrentDirectoryW = (t_GetCurrentDirectoryW)
           GetProcAddress(hLib, "GetCurrentDirectoryW");      
+
+      /* some special stuff we need for VSS
+         but statically linkage doesn't work on Win 9x */
+      p_GetVolumePathNameW = (t_GetVolumePathNameW)
+          GetProcAddress(hLib, "GetVolumePathNameW");
+      p_GetVolumeNameForVolumeMountPointW = (t_GetVolumeNameForVolumeMountPointW)
+          GetProcAddress(hLib, "GetVolumeNameForVolumeMountPointW");
+    
       FreeLibrary(hLib);
    }
    
@@ -206,6 +217,9 @@ InitWinAPIWrapper()
       p_wunlink = NULL;
       p_wmkdir = NULL;
       p_wopen = NULL;
+
+      p_GetVolumePathNameW = NULL;
+      p_GetVolumeNameForVolumeMountPointW = NULL;
    }   
 
    /* decide which vss class to initialize */
