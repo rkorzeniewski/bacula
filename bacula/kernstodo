@@ -35,8 +35,10 @@ Document:
 - Pruning with Admin job.
 - Restore of all files for a Job or set of jobs even if the file
   records have been removed from the catalog.
+- Does WildFile match against full name?  Doc.
 
 For 1.39:
+- New directive "Delete purged Volumes"
 - new pool XXX with ScratchPoolId = MyScratchPool's PoolId and
   let it fill itself, and RecyclePoolId = XXX's PoolId so I can
   see if it become stable and I just have to supervise
