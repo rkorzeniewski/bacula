@@ -6,7 +6,8 @@ General:
 Changes to 1.37.38:
 07Sep05
 - Add ability to have passwords on backup of catalog as
-  alternate 3rd argument. Submitted by a user.
+  alternate 3rd argument. Submitted by Andrew Ford
+  <A.Ford@ford-mason.co.uk>
 - Turn off TapeAlert by default if user enables a Device
   and add a note to install mtx.
 04Sep05

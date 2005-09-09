@@ -38,6 +38,8 @@ Document:
 - Does WildFile match against full name?  Doc.
 
 For 1.39:
+- Look at simplifying File exclusions.
+- Fix store_yesno to be store_bitmask.
 - New directive "Delete purged Volumes"
 - new pool XXX with ScratchPoolId = MyScratchPool's PoolId and
   let it fill itself, and RecyclePoolId = XXX's PoolId so I can
