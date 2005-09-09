@@ -69,6 +69,27 @@ For 1.39:
          } else {          
              Dmsg1(200, "Restore node: %s\n", attr->ofname);
             if (mknod(attr->ofname, attr->statp.st_mode, attr->statp.st_rdev) != 0 && errno != EEXIST) {
+- From: Arunav Mandal <amandal@trolltech.com>
+  1. When jobs are running and bacula for some reason crashes or if I do a 
+  restart it remembers and jobs it was running before it crashed or restarted 
+  as of now I loose all jobs if I restart it.
+
+  2. When spooling and in the midway if client is disconnected for instance a 
+  laptop bacula completely discard the spool. It will be nice if it can write 
+  that spool to tape so there will be some backups for that client if not all.
+
+  3. We have around 150 clients machines it will be nice to have a option to 
+  upgrade all the client machines bacula version automatically.
+
+  4. Atleast one connection should be reserved for the bconsole so at heavy load 
+  I should connect to the director via bconsole which at sometimes I can't
+
+  5. Another most important feature that is missing, say at 10am I manually 
+  started  backup of client abc and it was a full backup since client abc has 
+  no backup history and at 10.30am bacula again automatically started backup of 
+  client abc as that was in the schedule. So now we have 2 multiple Full 
+  backups of the same client and if we again try to start a full backup of 
+  client backup abc bacula won't complain. That should be fixed.
 
 - Fix bpipe.c so that it does not modify results pointer.
   ***FIXME*** calling sequence should be changed.
