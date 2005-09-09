@@ -6,6 +6,13 @@
 #   the other volume is not used.  I.e. bsr optimization
 #   works.
 #
+debug=0
+if test "$debug" -eq 1 ; then
+  out="tee"
+else
+  out="output"
+fi
+
 cwd=`pwd`
 scripts/copy-test-confs
 scripts/cleanup
@@ -17,12 +24,10 @@ echo " === Starting bsr-opt-test at `date +%R:%S` ==="
 echo " === Starting bsr-opt-test at `date +%R:%S` ===" >working/log
 echo " "
 
-bin/bacula start 2>&1 >/dev/null
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
-# bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
-@output /dev/null
+cat <<END_OF_DATA >tmp/bconcmds
+@$out /dev/null
 messages
-@output tmp/log1.out
+@$out tmp/log1.out
 label storage=File1 volume=TestVolume001
 label storage=File1 volume=TestVolume002
 update Volume=TestVolume001 MaxVolBytes=3000000
@@ -32,7 +37,7 @@ messages
 @# 
 @# now do a restore
 @#
-@output tmp/log2.out
+@$out tmp/log2.out
 restore bootstrap=${cwd}/working/restore.bsr where=${cwd}/tmp/bacula-restores select storage=File1
 unmark *
 cd ${cwd}/build/src/cats
@@ -42,9 +47,18 @@ done
 yes
 wait
 messages
-@output
+@$out
 quit
 END_OF_DATA
+
+if test "$debug" -eq 1 ; then
+  bin/bacula start
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+else
+  bin/bacula start 2>&1 >/dev/null
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+fi
+
 scripts/check_for_zombie_jobs storage=File1
 bin/bacula stop 2>&1 >/dev/null
 #
