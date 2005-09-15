@@ -74,48 +74,47 @@ def gettotalsize():
 	 print "Cannot get media lead-out index from " + dvdrwmediainfo
 	 sys.exit(0)
 
-cmd=df + " " + device
-process = popen2.Popen4(cmd)
-status = process.wait()
-if not os.WIFEXITED(status):
-   print -errno.EPIPE
-   print df + " process did not not exit correctly."
-   sys.exit(0)
-
-exitstat = os.WEXITSTATUS(status) & ~0x80
-if exitstat == errno.ENOSPC:
-   print "0"
-   print os.strerror(exitstat)
-   sys.exit(0)
-if exitstat != 0:
-   print -exitstat
-   print os.strerror(exitstat)
-   sys.exit(0)
-size = 0
-while 1:
-   result = process.fromchild.readline()
-   if not result:
+def getcurrentsize():
+   cmd=df + " " + device
+   process = popen2.Popen4(cmd)
+   status = process.wait()
+   if not os.WIFEXITED(status):
       print -errno.EPIPE
-      print "Cannot get output from " + df
+      print df + " process did not not exit correctly."
       sys.exit(0)
-   index = result.find(device)
-   if index > -1: 
-      while result[index] != ' ':
-	 index += 1
-      while result[index] == ' ':
-	 index += 1
-      eindex = index;
-      while result[eindex] != ' ':
-	 eindex += 1
-      res = result[index:eindex] 
-      if not res.isdigit():
-	 print -errno.EPIPE;
-	 print "Could not find size in df output"
-	 sys.exit(0)
-      size = long(res)*1024
-      break
 
-size = gettotalsize()-(size+margin)
+   exitstat = os.WEXITSTATUS(status) & ~0x80
+   if exitstat == errno.ENOSPC:
+      print "0"
+      print os.strerror(exitstat)
+      sys.exit(0)
+   if exitstat != 0:
+      print -exitstat
+      print os.strerror(exitstat)
+      sys.exit(0)
+   size = 0
+   while 1:
+      result = process.fromchild.readline()
+      if not result:
+         return 0
+      index = result.find(device)
+      if index > -1: 
+         while result[index] != ' ':
+            index += 1
+         while result[index] == ' ':
+	    index += 1
+         eindex = index;
+         while result[eindex] != ' ':
+	    eindex += 1
+         res = result[index:eindex] 
+         if not res.isdigit():
+	    print -errno.EPIPE;
+   	    print "Could not find size in df output"
+	    sys.exit(0)
+         return long(res)*1024
+         break
+
+size = gettotalsize()-(getcurrentsize()+margin)
 if size < 0:
    size = 0
 print size
