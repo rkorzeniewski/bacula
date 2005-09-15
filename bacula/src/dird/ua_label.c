@@ -283,6 +283,7 @@ static int do_label(UAContext *ua, const char *cmd, int relabel)
    MEDIA_DBR mr, omr;
    POOL_DBR pr;
    bool print_reminder = true;
+   bool label_barcodes = false;
    int ok = FALSE;
    int i;
    int drive;
@@ -297,6 +298,12 @@ static int do_label(UAContext *ua, const char *cmd, int relabel)
    if (!open_db(ua)) {
       return 1;
    }
+
+   if (!relabel && (i=find_arg_keyword(ua, barcode_keyword)) >= 0) {
+      *ua->argk[i] = 0;      /* zap barcode keyword */
+      label_barcodes = true;
+   }
+
    store = get_storage_resource(ua, true/*use default*/);
    if (!store) {
       return 1;
@@ -304,7 +311,7 @@ static int do_label(UAContext *ua, const char *cmd, int relabel)
    drive = get_storage_drive(ua, store);
    set_storage(ua->jcr, store);
 
-   if (!relabel && find_arg_keyword(ua, barcode_keyword) >= 0) {
+   if (label_barcodes) {
       label_from_barcodes(ua, drive);
       return 1;
    }
