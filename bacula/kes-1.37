@@ -4,6 +4,11 @@
 General:
 
 Changes to 1.37.39:
+16Sep05
+- Add code to reservation VOLRES subroutines to try to ensure
+  we don't end up with two Volumes on the same drive.
+- Simplify the mutex code in VOLRES a bit to reduce the chance
+  of error.
 15Sep05
 - Apply Nicolas' dvd-freespace.in patch.
 - Make sure SQL table names are not translated.

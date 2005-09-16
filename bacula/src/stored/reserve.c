@@ -116,22 +116,34 @@ VOLRES *new_volume(DCR *dcr, const char *VolumeName)
    VOLRES *vol, *nvol;
 
    Dmsg1(400, "new_volume %s\n", VolumeName);
+   P(vol_list_lock);
+   if (dcr->dev) {
+      foreach_dlist(vol, vol_list) {
+         if (vol && vol->dev == dcr->dev) {
+            vol_list->remove(vol);
+            if (vol->vol_name) {
+               free(vol->vol_name);
+            }
+            free(vol);
+            break;
+         }
+      }
+   }
    vol = (VOLRES *)malloc(sizeof(VOLRES));
    memset(vol, 0, sizeof(VOLRES));
    vol->vol_name = bstrdup(VolumeName);
    vol->dev = dcr->dev;
    vol->dcr = dcr;
-   P(vol_list_lock);
    nvol = (VOLRES *)vol_list->binary_insert(vol, my_compare);
-   V(vol_list_lock);
    if (nvol != vol) {
       free(vol->vol_name);
       free(vol);
+      vol = NULL;
       if (dcr->dev) {
          nvol->dev = dcr->dev;
       }
-      return NULL;
    }
+   V(vol_list_lock);
    return vol;
 }
 
@@ -144,11 +156,11 @@ VOLRES *new_volume(DCR *dcr, const char *VolumeName)
 VOLRES *find_volume(const char *VolumeName)
 {
    VOLRES vol, *fvol;
-   vol.vol_name = bstrdup(VolumeName);
    P(vol_list_lock);
+   vol.vol_name = bstrdup(VolumeName);
    fvol = (VOLRES *)vol_list->binary_search(&vol, my_compare);
-   V(vol_list_lock);
    free(vol.vol_name);
+   V(vol_list_lock);
    return fvol;
 }
 
@@ -162,13 +174,13 @@ bool free_volume(DEVICE *dev)
 {
    VOLRES vol, *fvol;
 
+  P(vol_list_lock);
    if (dev->VolHdr.VolumeName[0] == 0) {
       /*
        * Our device has no VolumeName listed, but
        *  search the list for any Volume attached to
        *  this device and remove it.
        */
-      P(vol_list_lock);
       foreach_dlist(fvol, vol_list) {
          if (fvol && fvol->dev == dev) {
             vol_list->remove(fvol);
@@ -179,21 +191,20 @@ bool free_volume(DEVICE *dev)
             break;
          }
       }
-      V(vol_list_lock);
-      return fvol != NULL;
+      goto bail_out;
    }
    Dmsg1(400, "free_volume %s\n", dev->VolHdr.VolumeName);
    vol.vol_name = bstrdup(dev->VolHdr.VolumeName);
-   P(vol_list_lock);
    fvol = (VOLRES *)vol_list->binary_search(&vol, my_compare);
    if (fvol) {
       vol_list->remove(fvol);
       free(fvol->vol_name);
       free(fvol);
    }
-   V(vol_list_lock);
    free(vol.vol_name);
    dev->VolHdr.VolumeName[0] = 0;
+bail_out:
+   V(vol_list_lock);
    return fvol != NULL;
 }
 
