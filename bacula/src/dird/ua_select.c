@@ -770,6 +770,7 @@ STORE *get_storage_resource(UAContext *ua, bool use_default)
          /* Ignore slots, scan and barcode(s) keywords */
          if (strcasecmp("scan", ua->argk[i]) == 0 ||
              strcasecmp("barcode", ua->argk[i]) == 0 ||
+             strcasecmp("barcodes", ua->argk[i]) == 0 ||
              strcasecmp("slots", ua->argk[i]) == 0) {
             continue;
          }

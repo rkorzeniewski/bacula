@@ -160,7 +160,7 @@ int update_slots(UAContext *ua)
    if (!open_db(ua)) {
       return 1;
    }
-   store = get_storage_resource(ua, 1);
+   store = get_storage_resource(ua, true/*arg is storage*/);
    if (!store) {
       return 1;
    }
