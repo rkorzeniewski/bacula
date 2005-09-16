@@ -5,6 +5,9 @@ General:
 
 Changes to 1.37.39:
 16Sep05
+- Make "quit" command in console always allowed.
+- Remove the storage list between each console command to
+  keep Dir from remembering a previously selected SD.
 - Add code to reservation VOLRES subroutines to try to ensure
   we don't end up with two Volumes on the same drive.
 - Simplify the mutex code in VOLRES a bit to reduce the chance

@@ -31,7 +31,7 @@ extern int r_first;
 extern int r_last;
 extern struct s_res resources[];
 extern char my_name[];
-extern jobq_t job_queue;	      /* job queue */
+extern jobq_t job_queue;              /* job queue */
 
 
 /* Imported functions */
@@ -124,7 +124,7 @@ static struct cmdstruct commands[] = {
  { N_("var"),        var_cmd,       _("does variable expansion")},
  { N_("version"),    version_cmd,   _("print Director version")},
  { N_("wait"),       wait_cmd,      _("wait until no jobs are running")},
-	     };
+             };
 #define comsize (sizeof(commands)/sizeof(struct cmdstruct))
 
 /*
@@ -143,15 +143,21 @@ int do_a_command(UAContext *ua, const char *cmd)
       return 1;
    }
 
+   while (ua->jcr->storage->size()) {
+      ua->jcr->storage->remove(0);
+   }
+
    len = strlen(ua->argk[0]);
-   for (i=0; i<comsize; i++) {	   /* search for command */
+   for (i=0; i<comsize; i++) {     /* search for command */
       if (strncasecmp(ua->argk[0],  _(commands[i].key), len) == 0) {
-	 if (!acl_access_ok(ua, Command_ACL, ua->argk[0], len)) {
-	    break;
-	 }
-	 stat = (*commands[i].func)(ua, cmd);	/* go execute command */
-	 found = true;
-	 break;
+         /* Check if command permitted, but "quit" is always OK */
+         if (strcmp(ua->argk[0], "quit") != 0 &&
+             !acl_access_ok(ua, Command_ACL, ua->argk[0], len)) {
+            break;
+         }
+         stat = (*commands[i].func)(ua, cmd);   /* go execute command */
+         found = true;
+         break;
       }
    }
    if (!found) {
@@ -215,9 +221,9 @@ static int add_cmd(UAContext *ua, const char *cmd)
       bsendmsg(ua, _("Pool already has maximum volumes = %d\n"), pr.MaxVols);
       for (;;) {
          if (!get_pint(ua, _("Enter new maximum (zero for unlimited): "))) {
-	    return 1;
-	 }
-	 pr.MaxVols = ua->pint32_val;
+            return 1;
+         }
+         pr.MaxVols = ua->pint32_val;
       }
    }
 
@@ -237,23 +243,23 @@ static int add_cmd(UAContext *ua, const char *cmd)
       char buf[100];
       bsnprintf(buf, sizeof(buf), _("Enter number of Volumes to create. 0=>fixed name. Max=%d: "), max);
       if (!get_pint(ua, buf)) {
-	 return 1;
+         return 1;
       }
       num = ua->pint32_val;
       if (num < 0 || num > max) {
          bsendmsg(ua, _("The number must be between 0 and %d\n"), max);
-	 continue;
+         continue;
       }
       break;
    }
 getVolName:
    if (num == 0) {
       if (!get_cmd(ua, _("Enter Volume name: "))) {
-	 return 1;
+         return 1;
       }
    } else {
       if (!get_cmd(ua, _("Enter base volume name: "))) {
-	 return 1;
+         return 1;
       }
    }
    /* Don't allow | in Volume name because it is the volume separator character */
@@ -275,14 +281,14 @@ getVolName:
 
       for (;;) {
          if (!get_pint(ua, _("Enter the starting number: "))) {
-	    return 1;
-	 }
-	 startnum = ua->pint32_val;
-	 if (startnum < 1) {
+            return 1;
+         }
+         startnum = ua->pint32_val;
+         if (startnum < 1) {
             bsendmsg(ua, _("Start number must be greater than zero.\n"));
-	    continue;
-	 }
-	 break;
+            continue;
+         }
+         break;
       }
    } else {
       startnum = 1;
@@ -291,11 +297,11 @@ getVolName:
 
    if (store && store->autochanger) {
       if (!get_pint(ua, _("Enter slot (0 for none): "))) {
-	 return 1;
+         return 1;
       }
       Slot = ua->pint32_val;
       if (!get_yesno(ua, _("InChanger? yes/no: "))) {
-	 return 1;
+         return 1;
       }
       InChanger = ua->pint32_val;
    }
@@ -309,10 +315,10 @@ getVolName:
       Dmsg1(200, "Create Volume %s\n", mr.VolumeName);
       if (!db_create_media_record(ua->jcr, ua->db, &mr)) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
-	 return 1;
+         return 1;
       }
       if (i == startnum) {
-	 first_id = mr.PoolId;
+         first_id = mr.PoolId;
       }
    }
    pr.NumVols += num;
@@ -338,7 +344,7 @@ int automount_cmd(UAContext *ua, const char *cmd)
 
    if (ua->argc != 2) {
       if (!get_cmd(ua, _("Turn on or off? "))) {
-	    return 1;
+            return 1;
       }
       onoff = ua->cmd;
    } else {
@@ -366,73 +372,73 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
 
    for (i=1; i<ua->argc; i++) {
       if (strcasecmp(ua->argk[i], _("jobid")) == 0) {
-	 uint32_t JobId;
-	 if (!ua->argv[i]) {
-	    break;
-	 }
-	 JobId = str_to_int64(ua->argv[i]);
-	 if (!(jcr=get_jcr_by_id(JobId))) {
+         uint32_t JobId;
+         if (!ua->argv[i]) {
+            break;
+         }
+         JobId = str_to_int64(ua->argv[i]);
+         if (!(jcr=get_jcr_by_id(JobId))) {
             bsendmsg(ua, _("JobId %s is not running. Use Job name to cancel inactive jobs.\n"),  ua->argv[i]);
-	    return 1;
-	 }
-	 break;
+            return 1;
+         }
+         break;
       } else if (strcasecmp(ua->argk[i], _("job")) == 0) {
-	 if (!ua->argv[i]) {
-	    break;
-	 }
-	 if (!(jcr=get_jcr_by_partial_name(ua->argv[i]))) {
+         if (!ua->argv[i]) {
+            break;
+         }
+         if (!(jcr=get_jcr_by_partial_name(ua->argv[i]))) {
             bsendmsg(ua, _("Warning Job %s is not running. Continuing anyway ...\n"), ua->argv[i]);
-	    jcr = new_jcr(sizeof(JCR), dird_free_jcr);
-	    bstrncpy(jcr->Job, ua->argv[i], sizeof(jcr->Job));
-	 }
-	 break;
+            jcr = new_jcr(sizeof(JCR), dird_free_jcr);
+            bstrncpy(jcr->Job, ua->argv[i], sizeof(jcr->Job));
+         }
+         break;
       }
    }
    /* If we still do not have a jcr,
-    *	throw up a list and ask the user to select one.
+    *   throw up a list and ask the user to select one.
     */
    if (!jcr) {
       char buf[1000];
       /* Count Jobs running */
       foreach_jcr(jcr) {
-	 if (jcr->JobId == 0) {      /* this is us */
-	    free_jcr(jcr);
-	    continue;
-	 }
-	 free_jcr(jcr);
-	 njobs++;
+         if (jcr->JobId == 0) {      /* this is us */
+            free_jcr(jcr);
+            continue;
+         }
+         free_jcr(jcr);
+         njobs++;
       }
 
       if (njobs == 0) {
          bsendmsg(ua, _("No Jobs running.\n"));
-	 return 1;
+         return 1;
       }
       start_prompt(ua, _("Select Job:\n"));
       foreach_jcr(jcr) {
-	 char ed1[50];
-	 if (jcr->JobId == 0) {      /* this is us */
-	    free_jcr(jcr);
-	    continue;
-	 }
+         char ed1[50];
+         if (jcr->JobId == 0) {      /* this is us */
+            free_jcr(jcr);
+            continue;
+         }
          bsnprintf(buf, sizeof(buf), _("JobId=%s Job=%s"), edit_int64(jcr->JobId, ed1), jcr->Job);
-	 add_prompt(ua, buf);
-	 free_jcr(jcr);
+         add_prompt(ua, buf);
+         free_jcr(jcr);
       }
 
       if (do_prompt(ua, _("Job"),  _("Choose Job to cancel"), buf, sizeof(buf)) < 0) {
-	 return 1;
+         return 1;
       }
       if (njobs == 1) {
          if (!get_yesno(ua, _("Confirm cancel (yes/no): ")) || ua->pint32_val == 0) {
-	    return 1;
-	 }
+            return 1;
+         }
       }
       /* NOTE! This increments the ref_count */
       sscanf(buf, "JobId=%d Job=%127s", &njobs, JobName);
       jcr = get_jcr_by_full_name(JobName);
       if (!jcr) {
          bsendmsg(ua, _("Job %s not found.\n"), JobName);
-	 return 1;
+         return 1;
       }
    }
 
@@ -454,12 +460,12 @@ void set_pooldbr_from_poolres(POOL_DBR *pr, POOL *pool, e_pool_op op)
    if (op == POOL_OP_CREATE) {
       pr->MaxVols = pool->max_volumes;
       pr->NumVols = 0;
-   } else {	     /* update pool */
+   } else {          /* update pool */
       if (pr->MaxVols != pool->max_volumes) {
-	 pr->MaxVols = pool->max_volumes;
+         pr->MaxVols = pool->max_volumes;
       }
       if (pr->MaxVols != 0 && pr->MaxVols < pr->NumVols) {
-	 pr->MaxVols = pr->NumVols;
+         pr->MaxVols = pr->NumVols;
       }
    }
    pr->LabelType = pool->LabelType;
@@ -485,9 +491,9 @@ void set_pooldbr_from_poolres(POOL_DBR *pr, POOL *pool, e_pool_op op)
 /*
  * Create a pool record from a given Pool resource
  *   Also called from backup.c
- * Returns: -1	on error
- *	     0	record already exists
- *	     1	record created
+ * Returns: -1  on error
+ *           0  record already exists
+ *           1  record created
  */
 
 int create_pool(JCR *jcr, B_DB *db, POOL *pool, e_pool_op op)
@@ -501,16 +507,16 @@ int create_pool(JCR *jcr, B_DB *db, POOL *pool, e_pool_op op)
    if (db_get_pool_record(jcr, db, &pr)) {
       /* Pool Exists */
       if (op == POOL_OP_UPDATE) {  /* update request */
-	 set_pooldbr_from_poolres(&pr, pool, op);
-	 db_update_pool_record(jcr, db, &pr);
+         set_pooldbr_from_poolres(&pr, pool, op);
+         db_update_pool_record(jcr, db, &pr);
       }
-      return 0; 		      /* exists */
+      return 0;                       /* exists */
    }
 
    set_pooldbr_from_poolres(&pr, pool, op);
 
    if (!db_create_pool_record(jcr, db, &pr)) {
-      return -1;		      /* error */
+      return -1;                      /* error */
    }
    return 1;
 }
@@ -599,7 +605,7 @@ static int setip_cmd(UAContext *ua, const char *cmd)
    sockaddr_to_ascii(&(ua->UA_sock->client_addr), buf, sizeof(buf));
    client->address = bstrdup(buf);
    bsendmsg(ua, _("Client \"%s\" address set to %s\n"),
-	    client->hdr.name, client->address);
+            client->hdr.name, client->address);
 get_out:
    UnlockRes();
    return 1;
@@ -682,14 +688,14 @@ static void do_all_setdebug(UAContext *ua, int level, int trace_flag)
    while ((store = (STORE *)GetNextRes(R_STORAGE, (RES *)store))) {
       found = 0;
       for (j=0; j<i; j++) {
-	 if (strcmp(unique_store[j]->address, store->address) == 0 &&
-	     unique_store[j]->SDport == store->SDport) {
-	    found = 1;
-	    break;
-	 }
+         if (strcmp(unique_store[j]->address, store->address) == 0 &&
+             unique_store[j]->SDport == store->SDport) {
+            found = 1;
+            break;
+         }
       }
       if (!found) {
-	 unique_store[i++] = store;
+         unique_store[i++] = store;
          Dmsg2(140, "Stuffing: %s:%d\n", store->address, store->SDport);
       }
    }
@@ -716,14 +722,14 @@ static void do_all_setdebug(UAContext *ua, int level, int trace_flag)
    while ((client = (CLIENT *)GetNextRes(R_CLIENT, (RES *)client))) {
       found = 0;
       for (j=0; j<i; j++) {
-	 if (strcmp(unique_client[j]->address, client->address) == 0 &&
-	     unique_client[j]->FDport == client->FDport) {
-	    found = 1;
-	    break;
-	 }
+         if (strcmp(unique_client[j]->address, client->address) == 0 &&
+             unique_client[j]->FDport == client->FDport) {
+            found = 1;
+            break;
+         }
       }
       if (!found) {
-	 unique_client[i++] = client;
+         unique_client[i++] = client;
          Dmsg2(140, "Stuffing: %s:%d\n", client->address, client->FDport);
       }
    }
@@ -759,7 +765,7 @@ static int setdebug_cmd(UAContext *ua, const char *cmd)
    }
    if (level < 0) {
       if (!get_pint(ua, _("Enter new debug level: "))) {
-	 return 1;
+         return 1;
       }
       level = ua->pint32_val;
    }
@@ -769,55 +775,55 @@ static int setdebug_cmd(UAContext *ua, const char *cmd)
    if (i >= 0) {
       trace_flag = atoi(ua->argv[i]);
       if (trace_flag > 0) {
-	 trace_flag = 1;
+         trace_flag = 1;
       }
    }
 
    /* General debug? */
    for (i=1; i<ua->argc; i++) {
       if (strcasecmp(ua->argk[i], "all") == 0) {
-	 do_all_setdebug(ua, level, trace_flag);
-	 return 1;
+         do_all_setdebug(ua, level, trace_flag);
+         return 1;
       }
       if (strcasecmp(ua->argk[i], "dir") == 0 ||
           strcasecmp(ua->argk[i], "director") == 0) {
-	 debug_level = level;
-	 set_trace(trace_flag);
-	 return 1;
+         debug_level = level;
+         set_trace(trace_flag);
+         return 1;
       }
       if (strcasecmp(ua->argk[i], "client") == 0 ||
           strcasecmp(ua->argk[i], "fd") == 0) {
-	 client = NULL;
-	 if (ua->argv[i]) {
-	    client = (CLIENT *)GetResWithName(R_CLIENT, ua->argv[i]);
-	    if (client) {
-	       do_client_setdebug(ua, client, level, trace_flag);
-	       return 1;
-	    }
-	 }
-	 client = select_client_resource(ua);
-	 if (client) {
-	    do_client_setdebug(ua, client, level, trace_flag);
-	    return 1;
-	 }
+         client = NULL;
+         if (ua->argv[i]) {
+            client = (CLIENT *)GetResWithName(R_CLIENT, ua->argv[i]);
+            if (client) {
+               do_client_setdebug(ua, client, level, trace_flag);
+               return 1;
+            }
+         }
+         client = select_client_resource(ua);
+         if (client) {
+            do_client_setdebug(ua, client, level, trace_flag);
+            return 1;
+         }
       }
 
       if (strcasecmp(ua->argk[i], "store") == 0 ||
           strcasecmp(ua->argk[i], "storage") == 0 ||
           strcasecmp(ua->argk[i], "sd") == 0) {
-	 store = NULL;
-	 if (ua->argv[i]) {
-	    store = (STORE *)GetResWithName(R_STORAGE, ua->argv[i]);
-	    if (store) {
-	       do_storage_setdebug(ua, store, level, trace_flag);
-	       return 1;
-	    }
-	 }
-	 store = get_storage_resource(ua, false/*no default*/);
-	 if (store) {
-	    do_storage_setdebug(ua, store, level, trace_flag);
-	    return 1;
-	 }
+         store = NULL;
+         if (ua->argv[i]) {
+            store = (STORE *)GetResWithName(R_STORAGE, ua->argv[i]);
+            if (store) {
+               do_storage_setdebug(ua, store, level, trace_flag);
+               return 1;
+            }
+         }
+         store = get_storage_resource(ua, false/*no default*/);
+         if (store) {
+            do_storage_setdebug(ua, store, level, trace_flag);
+            return 1;
+         }
       }
    }
    /*
@@ -830,20 +836,20 @@ static int setdebug_cmd(UAContext *ua, const char *cmd)
    add_prompt(ua, "Client");
    add_prompt(ua, "All");
    switch(do_prompt(ua, "", _("Select daemon type to set debug level"), NULL, 0)) {
-   case 0:			   /* Director */
+   case 0:                         /* Director */
       debug_level = level;
       set_trace(trace_flag);
       break;
    case 1:
       store = get_storage_resource(ua, false/*no default*/);
       if (store) {
-	 do_storage_setdebug(ua, store, level, trace_flag);
+         do_storage_setdebug(ua, store, level, trace_flag);
       }
       break;
    case 2:
       client = select_client_resource(ua);
       if (client) {
-	 do_client_setdebug(ua, client, level, trace_flag);
+         do_client_setdebug(ua, client, level, trace_flag);
       }
       break;
    case 3:
@@ -864,7 +870,7 @@ static int trace_cmd(UAContext *ua, const char *cmd)
 
    if (ua->argc != 2) {
       if (!get_cmd(ua, _("Turn on or off? "))) {
-	    return 1;
+            return 1;
       }
       onoff = ua->cmd;
    } else {
@@ -910,44 +916,44 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
    for (int i=1; i<ua->argc; i++) {
       if (strcasecmp(ua->argk[i], "client") == 0 ||
           strcasecmp(ua->argk[i], "fd") == 0) {
-	 if (ua->argv[i]) {
-	    client = (CLIENT *)GetResWithName(R_CLIENT, ua->argv[i]);
-	    continue;
-	 }
+         if (ua->argv[i]) {
+            client = (CLIENT *)GetResWithName(R_CLIENT, ua->argv[i]);
+            continue;
+         }
       }
       if (strcasecmp(ua->argk[i], "job") == 0) {
-	 if (ua->argv[i]) {
-	    job = (JOB *)GetResWithName(R_JOB, ua->argv[i]);
-	    continue;
-	 }
+         if (ua->argv[i]) {
+            job = (JOB *)GetResWithName(R_JOB, ua->argv[i]);
+            continue;
+         }
       }
       if (strcasecmp(ua->argk[i], "fileset") == 0) {
-	 if (ua->argv[i]) {
-	    fileset = (FILESET *)GetResWithName(R_FILESET, ua->argv[i]);
-	    continue;
-	 }
+         if (ua->argv[i]) {
+            fileset = (FILESET *)GetResWithName(R_FILESET, ua->argv[i]);
+            continue;
+         }
       }
       if (strcasecmp(ua->argk[i], "listing") == 0) {
-	 listing = 1;
-	 continue;
+         listing = 1;
+         continue;
       }
       if (strcasecmp(ua->argk[i], "level") == 0) {
-	 if (!get_level_from_name(ua->jcr, ua->argv[i])) {
+         if (!get_level_from_name(ua->jcr, ua->argv[i])) {
             bsendmsg(ua, _("Level %s not valid.\n"), ua->argv[i]);
-	 }
-	 continue;
+         }
+         continue;
       }
    }
    if (!job && !(client && fileset)) {
       if (!(job = select_job_resource(ua))) {
-	 return 1;
+         return 1;
       }
    }
    if (!job) {
       job = (JOB *)GetResWithName(R_JOB, ua->argk[1]);
       if (!job) {
          bsendmsg(ua, _("No job specified.\n"));
-	 return 1;
+         return 1;
       }
    }
    if (!client) {
@@ -1068,8 +1074,8 @@ static int delete_cmd(UAContext *ua, const char *cmd)
    case 2:
       int i;
       while ((i=find_arg(ua, "jobid")) > 0) {
-	 delete_job(ua);
-	 *ua->argk[i] = 0;	   /* zap keyword already visited */
+         delete_job(ua);
+         *ua->argk[i] = 0;         /* zap keyword already visited */
       }
       return 1;
    default:
@@ -1114,39 +1120,39 @@ static void delete_job(UAContext *ua)
    int i = find_arg_with_value(ua, N_("jobid"));
    if (i >= 0) {
       if (strchr(ua->argv[i], ',') != NULL || strchr(ua->argv[i], '-') != NULL) {
-	s = bstrdup(ua->argv[i]);
-	tok = s;
-	/*
+        s = bstrdup(ua->argv[i]);
+        tok = s;
+        /*
          * We could use strtok() here.  But we're not going to, because:
-	 * (a) strtok() is deprecated, having been replaced by strsep();
-	 * (b) strtok() is broken in significant ways.
+         * (a) strtok() is deprecated, having been replaced by strsep();
+         * (b) strtok() is broken in significant ways.
          * we could use strsep() instead, but it's not universally available.
-	 * so we grow our own using strchr().
-	 */
+         * so we grow our own using strchr().
+         */
         sep = strchr(tok, ',');
-	while (sep != NULL) {
+        while (sep != NULL) {
            *sep = '\0';
            if (strchr(tok, '-')) {
-	       delete_job_id_range(ua, tok);
-	   } else {
-	      JobId = str_to_int64(tok);
-	      do_job_delete(ua, JobId);
-	   }
-	   tok = ++sep;
+               delete_job_id_range(ua, tok);
+           } else {
+              JobId = str_to_int64(tok);
+              do_job_delete(ua, JobId);
+           }
+           tok = ++sep;
            sep = strchr(tok, ',');
-	}
-	/* pick up the last token */
+        }
+        /* pick up the last token */
         if (strchr(tok, '-')) {
-	    delete_job_id_range(ua, tok);
-	} else {
-	    JobId = str_to_int64(tok);
-	    do_job_delete(ua, JobId);
-	}
+            delete_job_id_range(ua, tok);
+        } else {
+            JobId = str_to_int64(tok);
+            do_job_delete(ua, JobId);
+        }
 
-	 free(s);
+         free(s);
       } else {
-	 JobId = str_to_int64(ua->argv[i]);
-	do_job_delete(ua, JobId);
+         JobId = str_to_int64(ua->argv[i]);
+        do_job_delete(ua, JobId);
       }
    } else if (!get_pint(ua, _("Enter JobId to delete: "))) {
       return;
@@ -1252,7 +1258,7 @@ static void do_mount_cmd(UAContext *ua, const char *command)
    }
    Dmsg2(120, "%s: %s\n", command, ua->UA_sock->msg);
 
-   store = get_storage_resource(ua, true/*use default*/);
+   store = get_storage_resource(ua, true/*arg is storage*/);
    if (!store) {
       return;
    }
@@ -1317,7 +1323,7 @@ static int use_cmd(UAContext *ua, const char *cmd)
    CAT *oldcatalog, *catalog;
 
 
-   close_db(ua);		      /* close any previously open db */
+   close_db(ua);                      /* close any previously open db */
    oldcatalog = ua->catalog;
 
    if (!(catalog = get_catalog_resource(ua))) {
@@ -1327,7 +1333,7 @@ static int use_cmd(UAContext *ua, const char *cmd)
    }
    if (open_db(ua)) {
       bsendmsg(ua, _("Using Catalog name=%s DB=%s\n"),
-	 ua->catalog->hdr.name, ua->catalog->db_name);
+         ua->catalog->hdr.name, ua->catalog->db_name);
    }
    return 1;
 }
@@ -1344,19 +1350,19 @@ int quit_cmd(UAContext *ua, const char *cmd)
 int wait_cmd(UAContext *ua, const char *cmd)
 {
    JCR *jcr;
-   bmicrosleep(0, 200000);	      /* let job actually start */
+   bmicrosleep(0, 200000);            /* let job actually start */
    for (bool running=true; running; ) {
       running = false;
       foreach_jcr(jcr) {
-	 if (jcr->JobId != 0) {
-	    running = true;
-	    free_jcr(jcr);
-	    break;
-	 }
-	 free_jcr(jcr);
+         if (jcr->JobId != 0) {
+            running = true;
+            free_jcr(jcr);
+            break;
+         }
+         free_jcr(jcr);
       }
       if (running) {
-	 bmicrosleep(1, 0);
+         bmicrosleep(1, 0);
       }
    }
    return 1;
@@ -1407,10 +1413,10 @@ int open_db(UAContext *ua)
       UnlockRes();
       if (!ua->catalog) {
          bsendmsg(ua, _("Could not find a Catalog resource\n"));
-	 return 0;
+         return 0;
       } else {
          bsendmsg(ua, _("Using default Catalog name=%s DB=%s\n"),
-	    ua->catalog->hdr.name, ua->catalog->db_name);
+            ua->catalog->hdr.name, ua->catalog->db_name);
       }
    }
 
@@ -1418,12 +1424,12 @@ int open_db(UAContext *ua)
 
    Dmsg0(150, "Open database\n");
    ua->db = db_init_database(ua->jcr, ua->catalog->db_name, ua->catalog->db_user,
-			     ua->catalog->db_password, ua->catalog->db_address,
-			     ua->catalog->db_port, ua->catalog->db_socket,
-			     ua->catalog->mult_db_connections);
+                             ua->catalog->db_password, ua->catalog->db_address,
+                             ua->catalog->db_port, ua->catalog->db_socket,
+                             ua->catalog->mult_db_connections);
    if (!ua->db || !db_open_database(ua->jcr, ua->db)) {
       bsendmsg(ua, _("Could not open database \"%s\".\n"),
-		 ua->catalog->db_name);
+                 ua->catalog->db_name);
       if (ua->db) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
       }
@@ -1441,7 +1447,7 @@ void close_db(UAContext *ua)
       db_close_database(ua->jcr, ua->db);
       ua->db = NULL;
       if (ua->jcr) {
-	 ua->jcr->db = NULL;
+         ua->jcr->db = NULL;
       }
    }
 }
