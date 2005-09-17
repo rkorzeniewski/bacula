@@ -118,6 +118,7 @@ VOLRES *new_volume(DCR *dcr, const char *VolumeName)
    Dmsg1(400, "new_volume %s\n", VolumeName);
    P(vol_list_lock);
    if (dcr->dev) {
+again:
       foreach_dlist(vol, vol_list) {
          if (vol && vol->dev == dcr->dev) {
             vol_list->remove(vol);
@@ -125,7 +126,7 @@ VOLRES *new_volume(DCR *dcr, const char *VolumeName)
                free(vol->vol_name);
             }
             free(vol);
-            break;
+            goto again;
          }
       }
    }

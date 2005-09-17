@@ -4,6 +4,9 @@
 General:
 
 Changes to 1.37.39:
+17Sep05
+- Make new_volume walk through all Vols looking for dev 
+  to release.
 16Sep05
 - Make "quit" command in console always allowed.
 - Remove the storage list between each console command to

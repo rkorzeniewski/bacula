@@ -10,6 +10,7 @@ Version 1.37                Kern (see below)
 Final items for 1.37 before release:
 1. Fix bugs
 - Look at fixing restore status stats in SD.
+- Mount after manually unloading changer causes hang in SD
 - Check if ANSI tape labeling works with drive in
   read-only mode.
    > > btape: label.c:299 write_volume_label()
