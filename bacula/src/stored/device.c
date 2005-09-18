@@ -246,6 +246,7 @@ void set_new_file_parameters(DCR *dcr)
 bool first_open_device(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
+   bool ok = true;
 
    Dmsg0(120, "start open_output_device()\n");
    if (!dev) {
@@ -257,8 +258,7 @@ bool first_open_device(DCR *dcr)
    /* Defer opening files */
    if (!dev->is_tape()) {
       Dmsg0(129, "Device is file, deferring open.\n");
-      unlock_device(dev);
-      return true;
+      goto bail_out;
    }
 
     int mode;
@@ -271,14 +271,15 @@ bool first_open_device(DCR *dcr)
    dev->open_nowait = true;
    if (dev->open(dcr, mode) < 0) {
       Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), dev->errmsg);
-      dev->open_nowait = false;
-      unlock_device(dev);
-      return false;
+      ok = false;
+      goto bail_out;
    }
    Dmsg1(129, "open dev %s OK\n", dev->print_name());
+
+bail_out:
    dev->open_nowait = false;
    unlock_device(dev);
-   return true;
+   return ok;
 }
 
 /*

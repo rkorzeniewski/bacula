@@ -195,16 +195,6 @@ DCR *acquire_device_for_read(DCR *dcr)
             goto default_path;
          }
          
-#ifdef xxx_needed
-         /* If we have a dvd that requires mount, 
-          * we need to try to open the label, so the info can be reported
-          * if a wrong volume has been mounted.   
-          */
-         if (dev->is_dvd() && (dcr->VolCatInfo.VolCatParts > 0)) {
-            break;
-         }  
-#endif
-         
          Jmsg3(jcr, M_FATAL, 0, _("Open device %s Volume \"%s\" failed: ERR=%s\n"),
              dev->print_name(), dcr->VolumeName, strerror_dev(dev));
          goto get_out;
