@@ -63,6 +63,10 @@ Document:
 - Does WildFile match against full name?  Doc.
 
 For 1.39:
+- "Minimum Job Interval = nnn" sets minimum interval between Jobs
+  of the same level and does not permit multiple simultaneous
+  running of that Job (i.e. lets any previous invocation finish
+  before doing Interval testing).
 - Look at simplifying File exclusions.
 - Fix store_yesno to be store_bitmask.
 - New directive "Delete purged Volumes"

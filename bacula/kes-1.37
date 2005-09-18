@@ -4,6 +4,10 @@
 General:
 
 Changes to 1.37.39:
+18Sep05
+- Apply Landon's patch for the TLS ANS1 API change.
+- Remove old code.
+- Make single exit path in first_open_device().
 17Sep05
 - Make new_volume walk through all Vols looking for dev 
   to release.

@@ -21,23 +21,20 @@
  * under an alternate open source license please contact
  * Landon Fuller <landonf@threerings.net>.
  */
-/*  
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
-  
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
-  
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-   MA 02111-1307, USA.
- */
+/*
+   Copyright (C) 2005 Kern Sibbald
 
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
+
+ */
 
 #include "bacula.h"
 #include <assert.h>
@@ -331,32 +328,36 @@ bool tls_postconnect_verify_host(TLS_CONNECTION *tls, const char *host)
             X509V3_EXT_METHOD *method;
             STACK_OF(CONF_VALUE) *val;
             CONF_VALUE *nval;
-            unsigned char *data;
             void *extstr = NULL;
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800FL)
+            const unsigned char *ext_value_data;
+#else
+            unsigned char *ext_value_data;
+#endif
 
             /* Get x509 extension method structure */
             if (!(method = X509V3_EXT_get(ext))) {
                break;
             }
 
-            data = ext->value->data;
+            ext_value_data = ext->value->data;
 
 #if (OPENSSL_VERSION_NUMBER > 0x00907000L)
             if (method->it) {
                /* New style ASN1 */
 
                /* Decode ASN1 item in data */
-               extstr = ASN1_item_d2i(NULL, &data, ext->value->length,
+               extstr = ASN1_item_d2i(NULL, &ext_value_data, ext->value->length,
                                       ASN1_ITEM_ptr(method->it));
             } else {
                /* Old style ASN1 */
 
                /* Decode ASN1 item in data */
-               extstr = method->d2i(NULL, &data, ext->value->length);
+               extstr = method->d2i(NULL, &ext_value_data, ext->value->length);
             }
 
 #else
-            extstr = method->d2i(NULL, &data, ext->value->length);
+            extstr = method->d2i(NULL, &ext_value_data, ext->value->length);
 #endif
 
             /* Iterate through to find the dNSName field(s) */
