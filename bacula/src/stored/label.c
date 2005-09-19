@@ -353,6 +353,7 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *Po
    if (debug_level >= 20)  {
       dump_volume_label(dev);
    }
+   new_volume(dcr, VolName);
    dev->clear_append();               /* remove append since this is PRE_LABEL */
    return true;
 

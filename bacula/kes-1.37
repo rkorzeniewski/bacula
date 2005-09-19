@@ -4,6 +4,12 @@
 General:
 
 Changes to 1.37.39:
+19Sep05
+- Fix handling of temp file in mtx_changer.in, reported as
+  a security bug, but it is not really.  Bug #422
+- Fix security problem of handling temp file in randpass.
+  Bug #422.
+- During label/relabel, add new_volume to VOLRES list in SD.
 18Sep05
 - Apply Landon's patch for the TLS ANS1 API change.
 - Remove old code.
