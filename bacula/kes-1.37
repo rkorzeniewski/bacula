@@ -4,6 +4,8 @@
 General:
 
 Changes to 1.37.39:
+20Sep05
+- Tweak daemon.c berrno, copyright.
 19Sep05
 - Fix handling of temp file in mtx_changer.in, reported as
   a security bug, but it is not really.  Bug #422
