@@ -265,11 +265,13 @@ DEVICE::open(DCR *dcr, int omode)
          return fd;
       } else {
         ::close(fd); /* use system close so correct mode will be used on open */
+        fd = -1;
+        Dmsg0(100, "Close fd for mode change.\n");
       }
    }
-  if (dcr) {
-     bstrncpy(VolCatInfo.VolCatName, dcr->VolumeName, sizeof(VolCatInfo.VolCatName));
-  }
+   if (dcr) {
+      bstrncpy(VolCatInfo.VolCatName, dcr->VolumeName, sizeof(VolCatInfo.VolCatName));
+   }
 
    Dmsg4(29, "open dev: tape=%d dev_name=%s vol=%s mode=%s\n", is_tape(),
          print_name(), VolCatInfo.VolCatName, mode_to_str(omode));
@@ -326,7 +328,7 @@ void DEVICE::set_mode(int new_mode)
  */
 void DEVICE::open_tape_device(DCR *dcr, int omode) 
 {
-   int nonblocking = 0;;
+   int nonblocking = 0;
    file_size = 0;
    int timeout;
    int ioerrcnt = 10;
@@ -339,12 +341,14 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
    set_mode(omode);
    timeout = max_open_wait;
    errno = 0;
+#ifdef HAVE_LINUX_OS
    if (open_nowait) {
        /* Set wait counters to zero for no wait */
        timeout = ioerrcnt = 0;
        /* Open drive in non-block mode */
        nonblocking = O_NONBLOCK;
    }
+#endif
    if (is_fifo() && timeout) {
       /* Set open timer */
       tid = start_thread_timer(pthread_self(), timeout);
@@ -380,25 +384,15 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
          stop_thread_timer(tid);
          tid = 0;
       }
-      Emsg0(M_FATAL, 0, errmsg);
+      Jmsg0(dcr->jcr, M_FATAL, 0, errmsg);
       break;
    }
-   /* Really an if, but we use a break for an error exit */
-   while (fd >= 0) {
-      /* If opened in non-block mode, make it block now */
-      if (nonblocking) {
-         int oflags;
-         nonblocking = 0;
-         /* Try to reset blocking */
-         if ((oflags = fcntl(fd, F_GETFL, 0)) < 0 ||
-             fcntl(fd, F_SETFL, oflags & ~O_NONBLOCK) < 0) {
-            berrno be;
-            Jmsg1(dcr->jcr, M_ERROR, 0, _("fcntl error. ERR=%s\n"), be.strerror());
-            ::close(fd);                   /* use system close() */
-            fd = -1;
-            break;
-         }
-      }
+
+   if (nonblocking) {
+      set_blocking();
+   }
+
+   if (fd >= 0) {
       openmode = omode;              /* save open mode */
       Dmsg2(100, "openmode=%d %s\n", openmode, mode_to_str(openmode));
       dev_errno = 0;
@@ -406,15 +400,27 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
       use_count = 1;
       update_pos_dev(this);                /* update position */
       set_os_device_parameters(this);      /* do system dependent stuff */
-      Dmsg0(500, "Open OK\n");
-      break;
    }
+
    /* Stop any open() timer we started */
    if (tid) {
       stop_thread_timer(tid);
       tid = 0;
    }
    Dmsg1(29, "open dev: tape %d opened\n", fd);
+}
+
+void DEVICE::set_blocking()
+{
+   int oflags;
+   /* Try to reset blocking */
+   if ((oflags = fcntl(fd, F_GETFL, 0)) < 0 ||
+       fcntl(fd, F_SETFL, oflags & ~O_NONBLOCK) < 0) {
+      berrno be;
+      ::close(fd);                   /* use system close() */
+      fd = ::open(dev_name, mode, MODE_RW);       
+      Dmsg2(100, "fcntl error. ERR=%s. Close-reopen fd=%d\n", be.strerror(), fd);
+   }
 }
 
 /*
@@ -873,18 +879,17 @@ eod_dev(DEVICE *dev)
             return false;
          }
          /*
-          * Avoid infinite loop. ***FIXME*** possibly add code
-          *   to set EOD or to turn off CAP_FASTFSF if on.
+          * Avoid infinite loop by ensuring we advance.
           */
          if (file_num == (int)dev->file) {
             struct mtget mt_stat;
             Dmsg1(100, "fsf did not advance from file %d\n", file_num);
+            dev->set_ateof();
             if (dev_get_os_pos(dev, &mt_stat)) {
                Dmsg2(100, "Adjust file from %d to %d\n", dev->file , mt_stat.mt_fileno);
-               dev->set_ateof();
                dev->file = mt_stat.mt_fileno;
-            }
-            return false;
+            }       
+            break;
          }
       }
    }

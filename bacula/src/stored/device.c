@@ -73,7 +73,6 @@ extern int debug_level;
  */
 bool fixup_device_block_write_error(DCR *dcr)
 {
-   uint32_t stat;
    char PrevVolName[MAX_NAME_LENGTH];
    DEV_BLOCK *label_blk;
    DEV_BLOCK *block = dcr->block;
@@ -84,12 +83,8 @@ bool fixup_device_block_write_error(DCR *dcr)
    DEVICE *dev = dcr->dev;
 
    wait_time = time(NULL);
-   stat = status_dev(dev);
-   if (!(stat & BMT_EOD)) {
-      return false;                    /* this really shouldn't happen */
-   }
 
-   Dmsg0(100, "======= Got EOD ========\n");
+   Dmsg0(100, "Enter fixup_device_block_write_error\n");
 
    block_device(dev, BST_DOING_ACQUIRE);
    /* Unlock, but leave BLOCKED */

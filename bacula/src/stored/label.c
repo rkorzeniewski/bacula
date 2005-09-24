@@ -299,6 +299,9 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *Po
    Dmsg0(99, "write_volume_label()\n");
    empty_block(dcr->block);
 
+   if (dev->open(dcr, OPEN_READ_WRITE) < 0) {
+      goto bail_out;
+   }
    Dmsg1(100, "Label type=%d\n", dev->label_type);
    if (!rewind_dev(dev)) {
       free_volume(dev);
@@ -375,6 +378,9 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
 
+   if (dev->open(dcr, OPEN_READ_WRITE) < 0) {
+      return false;
+   }
    Dmsg2(190, "set append found freshly labeled volume. fd=%d dev=%x\n", dev->fd, dev);
    dev->VolHdr.LabelType = VOL_LABEL; /* set Volume label */
    dev->set_append();

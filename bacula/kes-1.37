@@ -3,6 +3,19 @@
 
 General:
 
+Changes to 1.37.40:
+24Sep05
+- Fix mode change open in btape.c
+- Use nonblocking opens on Linux only.
+- Move set_blocking code for tapes into method to
+  simplify main line code.
+- Cleanup the code for ensuring we advance tape on fsf.
+  This should fix IBM problems -- patch from Adam Thorton
+  was very helpful.
+- Remove test for BMT_EOD in fixup_device... this eliminates
+  need for status_dev() routine.
+- Before doing label ensure device is in read-write mode.
+
 Changes to 1.37.39:
 20Sep05
 - Tweak daemon.c berrno, copyright.

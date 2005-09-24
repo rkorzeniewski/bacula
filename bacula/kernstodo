@@ -52,6 +52,7 @@ Final items for 1.37 before release:
       
 
 Document:
+- Does ClientRunAfterJob fail the job on a bad return code?
 - datadir for po files.
 - AM_GNU_GETTEXT finds the library if you specify 
   --with-libintl-prefix
@@ -64,6 +65,7 @@ Document:
 - Does WildFile match against full name?  Doc.
 
 For 1.39:
+- Add a recursive mark command (rmark) to restore.
 - "Minimum Job Interval = nnn" sets minimum interval between Jobs
   of the same level and does not permit multiple simultaneous
   running of that Job (i.e. lets any previous invocation finish

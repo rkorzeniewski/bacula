@@ -338,6 +338,7 @@ private:
    void open_tape_device(DCR *dcr, int omode); /* in dev.c */
    void open_file_device(int omode); /* in dev.c */
    void open_dvd_device(DCR *dcr, int omode); /* in dev.c */
+   void set_blocking(); /* in dev.c */
 
 };
 
