@@ -5,24 +5,18 @@
  *
  *   Version $Id$
  */
-
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -133,7 +127,7 @@ from_base64(intmax_t *value, char *where)
  * buf as base64 characters.
  *
  *  Returns: the number of characters stored not
- *	     including the EOS
+ *           including the EOS
  */
 int
 bin_to_base64(char *buf, char *bin, int len)
@@ -146,9 +140,9 @@ bin_to_base64(char *buf, char *bin, int len)
    rem = 0;
    for (i=0; i<len; ) {
       if (rem < 6) {
-	 reg <<= 8;
-	 reg |= (int8_t)bin[i++];
-	 rem += 8;
+         reg <<= 8;
+         reg |= (int8_t)bin[i++];
+         rem += 8;
       }
       save = reg;
       reg >>= (rem - 6);
@@ -159,7 +153,7 @@ bin_to_base64(char *buf, char *bin, int len)
    if (rem) {
       mask = 1;
       for (i=1; i<rem; i++) {
-	 mask = (mask << 1) | 1;
+         mask = (mask << 1) | 1;
       }
       buf[j++] = base64_digits[reg & mask];
    }
@@ -228,8 +222,8 @@ int main(int argc, char *argv[])
    for (i=0; my_glob.gl_pathv[i]; i++) {
       fname = my_glob.gl_pathv[i];
       if (lstat(fname, &statp) < 0) {
-	 printf("Cannot stat %s: %s\n", fname, strerror(errno));
-	 continue;
+         printf("Cannot stat %s: %s\n", fname, strerror(errno));
+         continue;
       }
       encode_stat(where, &statp);
 
@@ -258,28 +252,28 @@ int main(int argc, char *argv[])
 #endif
 
       if (debug_level)
-	 printf("%s: len=%d val=%s\n", fname, strlen(where), where);
+         printf("%s: len=%d val=%s\n", fname, strlen(where), where);
 
       decode_stat(where, &statn);
 
       if (statp.st_dev != statn.st_dev ||
-	  statp.st_ino != statn.st_ino ||
-	  statp.st_mode != statn.st_mode ||
-	  statp.st_nlink != statn.st_nlink ||
-	  statp.st_uid != statn.st_uid ||
-	  statp.st_gid != statn.st_gid ||
-	  statp.st_rdev != statn.st_rdev ||
-	  statp.st_size != statn.st_size ||
-	  statp.st_blksize != statn.st_blksize ||
-	  statp.st_blocks != statn.st_blocks ||
-	  statp.st_atime != statn.st_atime ||
-	  statp.st_mtime != statn.st_mtime ||
-	  statp.st_ctime != statn.st_ctime) {
+          statp.st_ino != statn.st_ino ||
+          statp.st_mode != statn.st_mode ||
+          statp.st_nlink != statn.st_nlink ||
+          statp.st_uid != statn.st_uid ||
+          statp.st_gid != statn.st_gid ||
+          statp.st_rdev != statn.st_rdev ||
+          statp.st_size != statn.st_size ||
+          statp.st_blksize != statn.st_blksize ||
+          statp.st_blocks != statn.st_blocks ||
+          statp.st_atime != statn.st_atime ||
+          statp.st_mtime != statn.st_mtime ||
+          statp.st_ctime != statn.st_ctime) {
 
-	 printf("%s: %s\n", fname, where);
-	 encode_stat(where, &statn);
-	 printf("%s: %s\n", fname, where);
-	 printf("NOT EQAL\n");
+         printf("%s: %s\n", fname, where);
+         encode_stat(where, &statn);
+         printf("%s: %s\n", fname, where);
+         printf("NOT EQAL\n");
       }
 
    }

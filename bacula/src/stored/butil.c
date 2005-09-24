@@ -224,8 +224,10 @@ static DEVRES *find_device_res(char *device_name, int read_access)
    bool found = false;
    DEVRES *device;
 
+   Dmsg0(900, "Enter find_device_res\n");
    LockRes();
    foreach_res(device, R_DEVICE) {
+      Dmsg2(900, "Compare %s and %s\n", device->device_name, device_name);
       if (strcmp(device->device_name, device_name) == 0) {
          found = true;
          break;
@@ -242,6 +244,7 @@ static DEVRES *find_device_res(char *device_name, int read_access)
          }
       }
       foreach_res(device, R_DEVICE) {
+         Dmsg2(900, "Compare %s and %s\n", device->hdr.name, device_name);
          if (strcmp(device->hdr.name, device_name) == 0) {
             found = true;
             break;
