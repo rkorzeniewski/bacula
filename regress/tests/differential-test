@@ -31,8 +31,8 @@ cat <<END_OF_DATA >tmp/bconcmds
 @$out /dev/null
 messages
 @$out tmp/log1.out
-label storage=File volume=TestVolume001
 label storage=File volume=TestVolume002
+label storage=File volume=TestVolume001
 run job=CompressedTest yes
 wait
 messages
@@ -56,7 +56,7 @@ cat <<END_OF_DATA >tmp/bconcmds
 messages
 @$out tmp/log1.out
 @# Force differential on the second Volume
-update volume=TestVolume001 VolStatus=Used
+update volume=TestVolume002 VolStatus=Used
 run level=differential job=CompressedTest yes
 wait
 messages
