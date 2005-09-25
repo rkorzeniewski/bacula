@@ -15,6 +15,7 @@ CFLAGS="-g -O2 -Wall" \
     --with-working-dir=$1/working \
     --with-dump-email=$2 \
     --with-job-email=$2 \
+    --with-smtp-host=$5 \
     $3 \
     --with-baseport=8101 \
     $4
