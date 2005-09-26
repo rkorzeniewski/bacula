@@ -56,8 +56,8 @@ void make_unique_restore_filename(UAContext *ua, POOLMEM **fname);
 
 
 /* catreq.c */
-extern void catalog_request(JCR *jcr, BSOCK *bs, char *buf);
-extern void catalog_update(JCR *jcr, BSOCK *bs, char *buf);
+extern void catalog_request(JCR *jcr, BSOCK *bs);
+extern void catalog_update(JCR *jcr, BSOCK *bs);
 
 /* dird_conf.c */
 extern const char *level_to_str(int level);

@@ -85,7 +85,7 @@ static int send_volume_info_to_storage_daemon(JCR *jcr, BSOCK *sd, MEDIA_DBR *mr
    return stat;
 }
 
-void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
+void catalog_request(JCR *jcr, BSOCK *bs)
 {
    MEDIA_DBR mr, sdmr;
    JOBMEDIA_DBR jm;
@@ -311,7 +311,7 @@ void catalog_request(JCR *jcr, BSOCK *bs, char *msg)
  *  VolSessionId, VolSessionTime, FileIndex, and file name
  *  to store in the catalog.
  */
-void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
+void catalog_update(JCR *jcr, BSOCK *bs)
 {
    unser_declare;
    uint32_t VolSessionId, VolSessionTime;
@@ -322,10 +322,20 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
    int len;
    char *fname, *attr;
    ATTR_DBR *ar = NULL;
+   POOLMEM *omsg;
 
    if (!jcr->pool->catalog_files) {
       return;                         /* user disabled cataloging */
    }
+   if (!jcr->db) {
+      omsg = get_memory(bs->msglen+1);
+      pm_strcpy(omsg, bs->msg);
+      bnet_fsend(bs, _("1991 Invalid Catalog Update: %s"), omsg);    
+      Jmsg1(jcr, M_FATAL, 0, _("Invalid Catalog Update; DB not open: %s"), omsg);
+      free_memory(omsg);
+      return;
+   }
+
    /* Start transaction allocates jcr->attr and jcr->ar if needed */
    db_start_transaction(jcr, jcr->db);     /* start transaction if not already open */
    ar = jcr->ar;      
@@ -387,7 +397,7 @@ void catalog_update(JCR *jcr, BSOCK *bs, char *msg)
       Dmsg2(400, "dird<filed: stream=%d %s\n", Stream, fname);
       Dmsg1(400, "dird<filed: attr=%s\n", attr);
 
-#ifdef xxx
+#ifdef xxx_old_code
       if (!db_create_file_attributes_record(jcr, jcr->db, ar)) {
          Jmsg1(jcr, M_FATAL, 0, _("Attribute create error. %s"), db_strerror(jcr->db));
       }
