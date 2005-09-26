@@ -4,6 +4,10 @@
 General:
 
 Changes to 1.37.40:
+26Sep05
+- Add code to catalog_update to detect NULL db pointer.
+- Remove char *msg argument from catalog_request and   
+  catalog_update().
 24Sep05
 - Fix mode change open in btape.c
 - Use nonblocking opens on Linux only.
