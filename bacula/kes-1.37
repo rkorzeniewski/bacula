@@ -49,6 +49,7 @@ Changes to 1.37.39:
 - Make sure SQL table names are not translated.
 - Eliminate incorrect message saying barcodes not
   found in "label barcodes" -- fixes bug report.
+
 Changes to 1.37.38:
 07Sep05
 - Add ability to have passwords on backup of catalog as
