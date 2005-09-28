@@ -10,6 +10,7 @@
 #
 
 PSCMD="@PSCMD@"
+PS="ps"
 
 #
 # On Solaris, you may need to use nawk, or alternatively,
@@ -70,27 +71,27 @@ killproc() {
    # Kill it.
    if [ "$pid" != "" ] ; then
       if [ "$notset" = "1" ] ; then
-	 if ps -p $pid>/dev/null 2>&1; then
+	 if ${PS} -p $pid>/dev/null 2>&1; then
 	     # TERM first, then KILL if not dead
 	     kill -TERM $pid 2>/dev/null
 	     sleep 1
-	     if ps -p $pid >/dev/null 2>&1 ; then
+	     if ${PS} -p $pid >/dev/null 2>&1 ; then
 		 sleep 1
-		 if ps -p $pid >/dev/null 2>&1 ; then
+		 if ${PS} -p $pid >/dev/null 2>&1 ; then
 		     sleep 3
-		     if ps -p $pid >/dev/null 2>&1 ; then
+		     if ${PS} -p $pid >/dev/null 2>&1 ; then
 			 kill -KILL $pid 2>/dev/null
 		     fi
 		 fi
 	     fi
 	  fi
-	  ps -p $pid >/dev/null 2>&1
+	  ${PS} -p $pid >/dev/null 2>&1
 	  RC=$?
 	  [ $RC -eq 0 ] && failure "$base shutdown" || success "$base shutdown"
       #    RC=$((! $RC))
       # use specified level only
       else
-	 if ps -p $pid >/dev/null 2>&1; then
+	 if ${PS} -p $pid >/dev/null 2>&1; then
 	    kill $killlevel $pid 2>/dev/null
 	    RC=$?
 	    [ $RC -eq 0 ] && success "$base $killlevel" || failure "$base $killlevel"

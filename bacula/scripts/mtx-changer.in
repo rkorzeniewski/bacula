@@ -35,14 +35,20 @@
 #
 
 MTX=@MTX@
-TMPFILE=`mktemp mtx.XXXXXXXXXX`
-if test x${TMPFILE} = x; then
-   TMPFILE="@working_dir@/mtx.$$"
-   if test -f ${TMPFILE}; then
-      echo "Temp file security problem on: ${TMPFILE}"
-      exit 1
-   fi
-fi
+
+#
+# Create a temporary file
+#
+make_temp_file() {
+  TMPFILE=`mktemp -t mtx.XXXXXXXXXX`
+  if test x${TMPFILE} = x; then
+     TMPFILE="@working_dir@/mtx.$$"
+     if test -f ${TMPFILE}; then
+	echo "Temp file security problem on: ${TMPFILE}"
+	exit 1
+     fi
+  fi
+}
 
 #
 # The purpose of this function to wait a maximum 
@@ -122,6 +128,7 @@ case $cmd in
 
    list) 
 #     echo "Doing mtx -f $ctl -- to list volumes"
+      make_temp_file
       ${MTX} -f $ctl status >${TMPFILE}
       rtn=$?
       cat ${TMPFILE} | grep " *Storage Element [0-9]*:.*Full" | awk "{print \$3 \$4}" | sed "s/Full *\(:VolumeTag=\)*//"
@@ -136,6 +143,7 @@ case $cmd in
 
    loaded)
 #     echo "Doing mtx -f $ctl $drive -- to find what is loaded"
+      make_temp_file
       ${MTX} -f $ctl status >${TMPFILE}
       rtn=$?
       cat ${TMPFILE} | grep "^Data Transfer Element $drive:Full" | awk "{print \$7}"

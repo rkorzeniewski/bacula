@@ -677,6 +677,7 @@ AC_CHECK_FUNC(socket,
 # Check whether user wants TCP wrappers support (default off)
 # -----------------------------------------------------------
 TCPW_MSG="no" 
+WRAPLIBS=""
 AC_ARG_WITH(tcp-wrappers,
   [  --with-tcp-wrappers=DIR	 enable tcpwrappers support],
   [
@@ -686,7 +687,8 @@ AC_ARG_WITH(tcp-wrappers,
        AC_MSG_CHECKING(for libwrap)
        AC_SEARCH_LIBS(nanosleep, [rt])
        AC_TRY_LINK(
-	  [ #include <tcpd.h>
+	  [ #include <sys/types.h>
+	    #include <tcpd.h>
 	     int deny_severity = 0;
 	     int allow_severity = 0;
 	     struct request_info *req; ],
@@ -695,10 +697,14 @@ AC_ARG_WITH(tcp-wrappers,
 	    AC_MSG_RESULT(yes)
 	    AC_DEFINE(HAVE_LIBWRAP)
 	    TCPW_MSG="yes" 
+	    LIBS="$saved_LIBS"
+	    WRAPLIBS="-lwrap"
 	  ], [
 	    LIBS="$saved_LIBS -lwrap -lnsl"
+	    WRAPLIBS="$saved_LIBS -lwrap -lnsl"
 	    AC_TRY_LINK(
-	      [ #include <tcpd.h>
+	      [ #include <sys/types.h>
+		 #include <tcpd.h>
 		 int deny_severity = 0;
 		 int allow_severity = 0;
 		 struct request_info *req; ],
@@ -707,6 +713,8 @@ AC_ARG_WITH(tcp-wrappers,
 		 AC_MSG_RESULT(yes)
 		 AC_DEFINE(HAVE_LIBWRAP)
 		 TCPW_MSG="yes" 
+		 LIBS="$saved_LIBS"
+		 WRAPLIBS="-lwrap"
 	      ],
 	      [AC_MSG_ERROR([*** libwrap missing]) ] ]
 	    )
@@ -1603,6 +1611,7 @@ AC_SUBST(X_LIBS)
 AC_SUBST(X_EXTRA_LIBS)
 AC_SUBST(WCFLAGS)
 AC_SUBST(WLDFLAGS)
+AC_SUBST(WRAPLIBS)
 
 dnl# extra configurable objects
 OBJLIST=
@@ -2091,7 +2100,7 @@ Configuration on `date`:
   Large file support:	      $largefile_support
   Bacula conio support:       ${got_conio} ${CONS_LIBS}
   readline support:	      ${got_readline} ${PRTREADLINE_SRC}
-  TCP Wrappers support:       ${TCPW_MSG}
+  TCP Wrappers support:       ${TCPW_MSG} ${WRAPLIBS}
   TLS support:		      ${support_tls}
   ZLIB support: 	      ${have_zlib}
   enable-smartalloc:	      ${support_smartalloc} 
