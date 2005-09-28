@@ -500,17 +500,17 @@ static void MonitorAbout(GtkWidget *widget, gpointer data) {
       "%s"
       "\n<small>%s: %s (%s) %s %s %s</small>",
       _("Bacula Tray Monitor"),
-      _("Copyright (C) 2004 Kern Sibbald and John Walker\n"
+      _("Copyright (C) 2004-2005 Kern Sibbald\n"
         "Written by Nicolas Boichat\n"),
-      _("Version"),
+      _("Version:"),
       VERSION, BDATE, HOST_OS, DISTNAME, DISTVER);
 #else
-   GtkWidget* about = gtk_message_dialog_new(GTK_WINDOW(window),GTK_DIALOG_MODAL, GTK_MESSAGE_INFO, GTK_BUTTONS_CLOSE, _(
+   GtkWidget* about = gtk_message_dialog_new(GTK_WINDOW(window),GTK_DIALOG_MODAL, GTK_MESSAGE_INFO, GTK_BUTTONS_CLOSE,   
       "%s\n\n"
       "%s"
       "\n%s %s (%s) %s %s %s",
       _("Bacula Tray Monitor"),
-      _("Copyright (C) 2004 Kern Sibbald and John Walker\n"
+      _("Copyright (C) 2004-2005 Kern Sibbald\n"
         "Written by Nicolas Boichat\n"),
       _("Version:"),
       VERSION, BDATE, HOST_OS, DISTNAME, DISTVER);

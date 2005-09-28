@@ -4,6 +4,17 @@
 General:
 
 Changes to 1.37.40:
+28Sep05
+- Integrate libwrap patch from Szechuan Death. They should
+  also fix bug 423.
+- Clean up patches directory for next release.
+- Add PS variable in bacula.in script as recommended by a user.
+- Correct mtx-changer.in so it only creates a temp file when
+  actually needed.
+- Add patch supplied by user in a bug report to fix gnome2
+  console buttons.
+- Add patch from Peter Eriksson <peter@ifm.liu.se> to correct
+  NLS error in tray-monitor.c
 26Sep05
 - Add code to catalog_update to detect NULL db pointer.
 - Remove char *msg argument from catalog_request and   

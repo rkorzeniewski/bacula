@@ -399,13 +399,13 @@ static GList *get_list(char *cmd)
 
 }
 
-static GList *get_and_fill_combo(GtkWidget *dialog, const char *combo_name, const char *cm)
+static GList *get_and_fill_combo(GtkWidget *dialog, const char *combo_name, const char *dircmd)
 {
    GtkWidget *combo;
    GList *options;
 
    combo = lookup_widget(dialog, combo_name);
-   options = get_list(cmd);
+   options = get_list((char *)dircmd);
    if (combo && options) {
       gtk_combo_set_popdown_strings(GTK_COMBO(combo), options);
    }
