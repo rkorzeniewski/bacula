@@ -4,6 +4,9 @@
 General:
 
 Changes to 1.37.40:
+29Sep05
+- Bring cats/bdb_x.c routines up to version 1.37 (return values
+  are different).
 28Sep05
 - Integrate libwrap patch from Szechuan Death. They should
   also fix bug 423.
