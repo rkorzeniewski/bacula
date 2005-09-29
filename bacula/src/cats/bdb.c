@@ -11,25 +11,18 @@
  *    Version $Id$
  *
  */
-
-
 /*
-   Copyright (C) 2001-2003 Kern Sibbald and John Walker
+   Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -37,7 +30,7 @@
 /* The following is necessary so that we do not include
  * the dummy external definition of DB.
  */
-#define __SQL_C 		      /* indicate that this is sql.c */
+#define __SQL_C                       /* indicate that this is sql.c */
 
 #include "bacula.h"
 #include "cats.h"
@@ -103,18 +96,18 @@ int bdb_write_control_file(B_DB *mdb)
  */
 B_DB *
 db_init_database(JCR *jcr, char const *db_name, char const *db_user, char const *db_password,
-		 char const *db_address, int db_port, char const *db_socket,
-		 int mult_db_connections)
+                 char const *db_address, int db_port, char const *db_socket,
+                 int mult_db_connections)
 {
    B_DB *mdb;
-   P(mutex);			      /* lock DB queue */
+   P(mutex);                          /* lock DB queue */
    /* Look to see if DB already open */
    for (mdb=NULL; (mdb=(B_DB *)qnext(&db_list, &mdb->bq)); ) {
       if (strcmp(mdb->db_name, db_name) == 0) {
-	 Dmsg2(200, "DB REopen %d %s\n", mdb->ref_count, db_name);
-	 mdb->ref_count++;
-	 V(mutex);
-	 return mdb;		      /* already open */
+         Dmsg2(200, "DB REopen %d %s\n", mdb->ref_count, db_name);
+         mdb->ref_count++;
+         V(mutex);
+         return mdb;                  /* already open */
       }
    }
    Dmsg0(200, "db_open first time\n");
@@ -167,14 +160,14 @@ db_open_database(JCR *jcr, B_DB *mdb)
    free_memory(dbf);
    if (mdb->cfd < 0) {
       Mmsg2(&mdb->errmsg, _("Unable to open Catalog DB control file %s: ERR=%s\n"),
-	 dbf, strerror(errno));
+         dbf, strerror(errno));
       V(mutex);
       return 0;
    }
    Dmsg0(200, "DB open\n");
    /* See if the file was previously written */
    filend = lseek(mdb->cfd, 0, SEEK_END);
-   if (filend == 0) {		      /* No, initialize everything */
+   if (filend == 0) {                 /* No, initialize everything */
       Dmsg0(200, "Init DB files\n");
       memset(&mdb->control, 0, sizeof(mdb->control));
       mdb->control.bdb_version = BDB_VERSION;
@@ -227,7 +220,7 @@ db_open_database(JCR *jcr, B_DB *mdb)
       Mmsg2(&mdb->errmsg, _("Error, catalog DB control file wrong version. "
 "Wanted %d, got %d\n"
 "Please reinitialize the working directory.\n"),
-	 BDB_VERSION, mdb->control.bdb_version);
+         BDB_VERSION, mdb->control.bdb_version);
       badctl = 1;
    }
    bacula_db_version = mdb->control.bdb_version;
@@ -247,26 +240,26 @@ void db_close_database(JCR *jcr, B_DB *mdb)
       qdchain(&mdb->bq);
       /*  close file descriptors */
       if (mdb->cfd >= 0) {
-	 close(mdb->cfd);
+         close(mdb->cfd);
       }
       free(mdb->db_name);
       if (mdb->jobfd) {
-	 fclose(mdb->jobfd);
+         fclose(mdb->jobfd);
       }
       if (mdb->poolfd) {
-	 fclose(mdb->poolfd);
+         fclose(mdb->poolfd);
       }
       if (mdb->mediafd) {
-	 fclose(mdb->mediafd);
+         fclose(mdb->mediafd);
       }
       if (mdb->jobmediafd) {
-	 fclose(mdb->jobmediafd);
+         fclose(mdb->jobmediafd);
       }
       if (mdb->clientfd) {
-	 fclose(mdb->clientfd);
+         fclose(mdb->clientfd);
       }
       if (mdb->filesetfd) {
-	 fclose(mdb->filesetfd);
+         fclose(mdb->filesetfd);
       }
       rwl_destroy(&mdb->lock);
       free_pool_memory(mdb->errmsg);
@@ -305,11 +298,11 @@ int bdb_open_jobs_file(B_DB *mdb)
       dbf = make_filename(mdb, DB_JOBS_FILENAME);
       mdb->jobfd = fopen(dbf, "r+");
       if (!mdb->jobfd) {
-	 Mmsg2(&mdb->errmsg, "Error opening DB Jobs file %s: ERR=%s\n",
-	    dbf, strerror(errno));
-	 Emsg0(M_FATAL, 0, mdb->errmsg);
-	 free_memory(dbf);
-	 return 0;
+         Mmsg2(&mdb->errmsg, "Error opening DB Jobs file %s: ERR=%s\n",
+            dbf, strerror(errno));
+         Emsg0(M_FATAL, 0, mdb->errmsg);
+         free_memory(dbf);
+         return 0;
       }
       free_memory(dbf);
    }
@@ -327,11 +320,11 @@ int bdb_open_jobmedia_file(B_DB *mdb)
       dbf = make_filename(mdb, DB_JOBMEDIA_FILENAME);
       mdb->jobmediafd = fopen(dbf, "r+");
       if (!mdb->jobmediafd) {
-	 Mmsg2(&mdb->errmsg, "Error opening DB JobMedia file %s: ERR=%s\n",
-	    dbf, strerror(errno));
-	 Emsg0(M_FATAL, 0, mdb->errmsg);
-	 free_memory(dbf);
-	 return 0;
+         Mmsg2(&mdb->errmsg, "Error opening DB JobMedia file %s: ERR=%s\n",
+            dbf, strerror(errno));
+         Emsg0(M_FATAL, 0, mdb->errmsg);
+         free_memory(dbf);
+         return 0;
       }
       free_memory(dbf);
    }
@@ -350,11 +343,11 @@ int bdb_open_pools_file(B_DB *mdb)
       dbf = make_filename(mdb, DB_POOLS_FILENAME);
       mdb->poolfd = fopen(dbf, "r+");
       if (!mdb->poolfd) {
-	 Mmsg2(&mdb->errmsg, "Error opening DB Pools file %s: ERR=%s\n",
-	    dbf, strerror(errno));
-	 Emsg0(M_FATAL, 0, mdb->errmsg);
-	 free_memory(dbf);
-	 return 0;
+         Mmsg2(&mdb->errmsg, "Error opening DB Pools file %s: ERR=%s\n",
+            dbf, strerror(errno));
+         Emsg0(M_FATAL, 0, mdb->errmsg);
+         free_memory(dbf);
+         return 0;
       }
       Dmsg1(200, "Opened pool file %s\n", dbf);
       free_memory(dbf);
@@ -373,11 +366,11 @@ int bdb_open_client_file(B_DB *mdb)
       dbf = make_filename(mdb, DB_CLIENT_FILENAME);
       mdb->clientfd = fopen(dbf, "r+");
       if (!mdb->clientfd) {
-	 Mmsg2(&mdb->errmsg, "Error opening DB Clients file %s: ERR=%s\n",
-	    dbf, strerror(errno));
-	 Emsg0(M_FATAL, 0, mdb->errmsg);
-	 free_memory(dbf);
-	 return 0;
+         Mmsg2(&mdb->errmsg, "Error opening DB Clients file %s: ERR=%s\n",
+            dbf, strerror(errno));
+         Emsg0(M_FATAL, 0, mdb->errmsg);
+         free_memory(dbf);
+         return 0;
       }
       free_memory(dbf);
    }
@@ -395,11 +388,11 @@ int bdb_open_fileset_file(B_DB *mdb)
       dbf = make_filename(mdb, DB_CLIENT_FILENAME);
       mdb->filesetfd = fopen(dbf, "r+");
       if (!mdb->filesetfd) {
-	 Mmsg2(&mdb->errmsg, "Error opening DB FileSet file %s: ERR=%s\n",
-	    dbf, strerror(errno));
-	 Emsg0(M_FATAL, 0, mdb->errmsg);
-	 free_memory(dbf);
-	 return 0;
+         Mmsg2(&mdb->errmsg, "Error opening DB FileSet file %s: ERR=%s\n",
+            dbf, strerror(errno));
+         Emsg0(M_FATAL, 0, mdb->errmsg);
+         free_memory(dbf);
+         return 0;
       }
       free_memory(dbf);
    }
@@ -419,10 +412,10 @@ int bdb_open_media_file(B_DB *mdb)
       dbf = make_filename(mdb, DB_MEDIA_FILENAME);
       mdb->mediafd = fopen(dbf, "r+");
       if (!mdb->mediafd) {
-	 Mmsg2(&mdb->errmsg, "Error opening DB Media file %s: ERR=%s\n",
-	    dbf, strerror(errno));
-	 free_memory(dbf);
-	 return 0;
+         Mmsg2(&mdb->errmsg, "Error opening DB Media file %s: ERR=%s\n",
+            dbf, strerror(errno));
+         free_memory(dbf);
+         return 0;
       }
       free_memory(dbf);
    }
@@ -435,7 +428,7 @@ void _db_lock(const char *file, int line, B_DB *mdb)
    int errstat;
    if ((errstat=rwl_writelock(&mdb->lock)) != 0) {
       e_msg(file, line, M_ABORT, 0, "rwl_writelock failure. ERR=%s\n",
-	   strerror(errstat));
+           strerror(errstat));
    }
 }
 
@@ -444,7 +437,7 @@ void _db_unlock(const char *file, int line, B_DB *mdb)
    int errstat;
    if ((errstat=rwl_writeunlock(&mdb->lock)) != 0) {
       e_msg(file, line, M_ABORT, 0, "rwl_writeunlock failure. ERR=%s\n",
-	   strerror(errstat));
+           strerror(errstat));
    }
 }
 
@@ -461,5 +454,12 @@ void db_end_transaction(JCR *jcr, B_DB *mdb)
 {
 }
 
+bool db_update_storage_record(JCR *jcr, B_DB *mdb, STORAGE_DBR *sr)
+{ return true; }
+
+void
+db_list_pool_records(JCR *jcr, B_DB *mdb, POOL_DBR *pdbr, 
+                     DB_LIST_HANDLER *sendit, void *ctx, e_list_type type)
+{ }
 
 #endif /* HAVE_BACULA_DB */
