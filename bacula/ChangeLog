@@ -1,4 +1,75 @@
+
+Changes to 1.37.40:
+01Oct05
+- Add fix to compat.h supplied by Martin Simmons that permits
+  building the Win32 FD without VSS.
+29Sep05
+- Bring cats/bdb_x.c routines up to version 1.37 (return values
+  are different).
+28Sep05
+- Integrate libwrap patch from Szechuan Death. They should
+  also fix bug 423.
+- Clean up patches directory for next release.
+- Add PS variable in bacula.in script as recommended by a user.
+- Correct mtx-changer.in so it only creates a temp file when
+  actually needed.
+- Add patch supplied by user in a bug report to fix gnome2
+  console buttons.
+- Add patch from Peter Eriksson <peter@ifm.liu.se> to correct
+  NLS error in tray-monitor.c
+26Sep05
+- Add code to catalog_update to detect NULL db pointer.
+- Remove char *msg argument from catalog_request and   
+  catalog_update().
+24Sep05
+- Fix mode change open in btape.c
+- Use nonblocking opens on Linux only.
+- Move set_blocking code for tapes into method to
+  simplify main line code.
+- Cleanup the code for ensuring we advance tape on fsf.
+  This should fix IBM problems -- patch from Adam Thorton
+  was very helpful.
+- Remove test for BMT_EOD in fixup_device... this eliminates
+  need for status_dev() routine.
+- Before doing label ensure device is in read-write mode.
+
+Changes to 1.37.39:
+20Sep05
+- Tweak daemon.c berrno, copyright.
+19Sep05
+- Fix handling of temp file in mtx_changer.in, reported as
+  a security bug, but it is not really.  Bug #422
+- Fix security problem of handling temp file in randpass.
+  Bug #422.
+- During label/relabel, add new_volume to VOLRES list in SD.
+18Sep05
+- Apply Landon's patch for the TLS ANS1 API change.
+- Remove old code.
+- Make single exit path in first_open_device().
+17Sep05
+- Make new_volume walk through all Vols looking for dev 
+  to release.
+16Sep05
+- Make "quit" command in console always allowed.
+- Remove the storage list between each console command to
+  keep Dir from remembering a previously selected SD.
+- Add code to reservation VOLRES subroutines to try to ensure
+  we don't end up with two Volumes on the same drive.
+- Simplify the mutex code in VOLRES a bit to reduce the chance
+  of error.
+15Sep05
+- Apply Nicolas' dvd-freespace.in patch.
+- Make sure SQL table names are not translated.
+- Eliminate incorrect message saying barcodes not
+  found in "label barcodes" -- fixes bug report.
+
 Changes to 1.37.38:
+07Sep05
+- Add ability to have passwords on backup of catalog as
+  alternate 3rd argument. Submitted by Andrew Ford
+  <A.Ford@ford-mason.co.uk>
+- Turn off TapeAlert by default if user enables a Device
+  and add a note to install mtx.
 04Sep05
 - Fix out of order volumes during restore.
 

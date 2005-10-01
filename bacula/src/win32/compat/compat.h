@@ -379,4 +379,8 @@ int WSA_Init(void);
 void closelog();
 #endif //HAVE_MINGW
 
+#ifndef INVALID_FILE_ATTRIBUTES
+#define INVALID_FILE_ATTRIBUTES ((DWORD)-1)
+#endif
+
 #endif /* __COMPAT_H_ */

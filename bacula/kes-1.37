@@ -4,6 +4,9 @@
 General:
 
 Changes to 1.37.40:
+01Oct05
+- Add fix to compat.h supplied by Martin Simmons that permits
+  building the Win32 FD without VSS.
 29Sep05
 - Bring cats/bdb_x.c routines up to version 1.37 (return values
   are different).
