@@ -1,7 +1,7 @@
 
-          Release Notes for Bacula 1.37.38
+          Release Notes for Bacula 1.37.40
 
-  Bacula code: Total files = 420 Total lines = 137,650 (*.h *.c *.in)
+  Bacula code: Total files = 420 Total lines = 138,212 (*.h *.c *.in)
 
 Major Changes:
 - Fixed out of order Volumes in restore.
@@ -164,6 +164,9 @@ New configure options:
   required only if you do not want the default /usr/share.
 
 Items to note!!!
+- If you use an Autochanger, you *must* update your SD conf file
+  to use the new Autochanger resource.  Otherwise, certain commands
+  such as "update slots" may not work.
 - You must add --with-python=[DIR] to the configure command line
   if you want Python support.  Python 2.2, 2.3 and 2.4 should be 
   automatically detected if in the standard place.
@@ -171,16 +174,17 @@ Items to note!!!
   can be ignored.
 - You must either create a new catalog database or upgrade your
   old database.
-- The TLS code is for the most part untested.
+- The Director, Storage daemon, and File daemons are
+  Deamons are not compatible with  prior versions. 
+  All FDs must be upgraded at the same time.
 - You must add --with-openssl to the configure command line if
   you want TLS communications encryption support.
-- If you use an Autochanger, you *must* update your SD conf file
-  to use the new Autochanger resource.  Otherwise, certain commands
-  such as "update slots" may not work.
 - Disk seeking during restores does not yet work correctly in
   all cases, so it is turned off.
 
 Other Items:
+- Security fixes for temp files created in mtx-changer, during
+  ./configure, and during making of Rescue disk.
 - 2 new scripts, dvd-writepart and dvd-freespace, in the scripts directory,
   which are designed to be used as parameters to Write Part Command and
   Free Space Command. They need the dvd+rw-tools to be installed
