@@ -27,7 +27,6 @@ CREATE TABLE Path (
    );
 
 
-# ****FIXME**** make FileId BIGINT someday when MySQL works *****
 CREATE TABLE File (
    FileId INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
    FileIndex INTEGER UNSIGNED NOT NULL DEFAULT 0,
@@ -38,6 +37,7 @@ CREATE TABLE File (
    LStat TINYBLOB NOT NULL,
    MD5 TINYBLOB NOT NULL,
    PRIMARY KEY(FileId),
+   INDEX (JobId),
    INDEX (JobId, PathId, FilenameId)
    );
 

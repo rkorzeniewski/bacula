@@ -3,6 +3,21 @@
 
 General:
 
+Changes to 1.37.41:
+05Oct05
+- Add VolumePurged method to Python JobEvents class.  Fixes
+  bug #428 (I think).
+- Add JobId index to File table for MySQL.
+- Correct tray-monitor crash of bacula-dir. qstatus_cmd()  
+  code referenced the wrong pointer. Fixes bug #438.
+- Add bacualnovss.mak file from Martin.
+- Remove Pool from restore string in wbrestorepanel.cpp. Patch
+  from user for bug #433.
+- Correct code in wbrestorpanel.cpp with misplaced parens. Patch
+  from user for bug #431
+- Correct printing filenames/date/times in wbrestorepanel.cpp due to bad
+  column alignment. Patch from user for bug #432.
+
 Changes to 1.37.40:
 01Oct05
 - Add fix to compat.h supplied by Martin Simmons that permits
@@ -15,6 +30,7 @@ Changes to 1.37.40:
   also fix bug 423.
 - Clean up patches directory for next release.
 - Add PS variable in bacula.in script as recommended by a user.
+  "Tom Boyda" <tboyda@daou.com>
 - Correct mtx-changer.in so it only creates a temp file when
   actually needed.
 - Add patch supplied by user in a bug report to fix gnome2

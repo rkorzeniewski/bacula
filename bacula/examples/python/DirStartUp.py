@@ -72,6 +72,8 @@ class JobEvents:
      job.JobReport="Python after New Volume set for Job.\n"  
      return 1
 
+  def VolumePurged(self, job):
+     noop = 1
 
   # Pass output back to Bacula
   def write(self, text):

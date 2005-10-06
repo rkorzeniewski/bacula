@@ -587,10 +587,14 @@ void wxbRestorePanel::CmdStart() {
       wxbTableParser* tableparser = new wxbTableParser();
       wxbDataTokenizer* dt = new wxbDataTokenizer(false);
       
+/*
+ * The following line was removed from  ::GetInstance below because
+ *  it does not work with multiple pools -- KES 5Oct05 see bug #433  
+ *       wxT("\" pool=\"") << configPanel->GetRowString(wxT("Pool")) <<
+ */
       wxbMainFrame::GetInstance()->Send(wxString(wxT("restore")) <<
          wxT(" client=\"") << configPanel->GetRowString(wxT("Client")) <<
          wxT("\" fileset=\"") << configPanel->GetRowString(wxT("Fileset")) <<
-         wxT("\" pool=\"") << configPanel->GetRowString(wxT("Pool")) <<
          wxT("\" storage=\"") << configPanel->GetRowString(wxT("Storage")) <<
          wxT("\" before=\"") << configPanel->GetRowString(wxT("Before")) <<
          wxT("\" select\n"));
@@ -1170,7 +1174,7 @@ void wxbRestorePanel::CmdListJobs() {
       wxbUtils::WaitForPrompt("6\n");*/
       wxbTableParser* tableparser = new wxbTableParser(false);
       wxbDataTokenizer* dt = wxbUtils::WaitForEnd(
-         wxString(wxT(".backups client=") + configPanel->GetRowString(_("Client")) + wxT("\n"), true));
+         wxString(wxT(".backups client=")) + configPanel->GetRowString(_("Client")) + wxT("\n"), true);
 
       while (!tableparser->hasFinished()) {
          wxTheApp->Yield(true);
@@ -1503,9 +1507,9 @@ wxString* wxbRestorePanel::ParseList(wxString line) {
    ret[2] = line.Mid(15+i, 8).Trim();     // user
    ret[3] = line.Mid(24+i, 8).Trim();     // group
    ret[4] = line.Mid(32+i, 10).Trim();    // file size
-   ret[5] = line.Mid(44+i, 19).Trim();    // date + time
-   ret[6] = line.Mid(65+i, 1);            // drive letter or /
-   ret[7] = line.Mid(65+i).Trim();        // filename
+   ret[5] = line.Mid(42+i, 19).Trim();    // date + time
+   ret[6] = line.Mid(63+i, 1);            // drive letter or /
+   ret[7] = line.Mid(63+i).Trim();        // filename
    
    if (ret[6] == wxT(" ")) ret[6] = wxT("");
 

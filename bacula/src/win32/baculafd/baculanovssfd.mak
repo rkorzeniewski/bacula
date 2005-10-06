@@ -110,9 +110,6 @@ CLEAN :
         -@erase "$(INTDIR)\vc60.idb"
         -@erase "$(INTDIR)\verify.obj"
         -@erase "$(INTDIR)\verify_vol.obj"
-        -@erase "$(INTDIR)\vss.obj"
-        -@erase "$(INTDIR)\vss_xp.obj"
-        -@erase "$(INTDIR)\vss_w2k3.obj"
         -@erase "$(INTDIR)\watchdog.obj"
         -@erase "$(INTDIR)\winabout.obj"
         -@erase "$(INTDIR)\winapi.obj"
@@ -128,14 +125,14 @@ CLEAN :
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-CPP_PROJ=/nologo /MT /W3 /GX /O2 /I "../compat" /I "../.." /I "../../../../depkgs-win32/pthreads" /I "../../../../depkgs-win32/zlib" /I "." /D "_WINDOWS" /D "_WIN32_WINNT=0x500" /D "WIN32_VSS" /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "HAVE_WIN32" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MT /W3 /GX /O2 /I "../compat" /I "../.." /I "../../../../depkgs-win32/pthreads" /I "../../../../depkgs-win32/zlib" /I "." /D "_WINDOWS" /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "HAVE_WIN32" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 RSC_PROJ=/l 0x409 /fo"$(INTDIR)\winres.res" /d "NDEBUG" 
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\baculafd.bsc" 
 BSC32_SBRS= \
         
 LINK32=link.exe
-LINK32_FLAGS=ole32.lib oleaut32.lib user32.lib advapi32.lib gdi32.lib wsock32.lib shell32.lib pthreadVCE.lib zlib.lib /nologo /subsystem:windows /pdb:none /machine:I386 /nodefaultlib:"MSVCRT.lib" /out:"$(OUTDIR)\bacula-fd.exe" /libpath:"../../../../depkgs-win32/pthreads" /libpath:"../../../../depkgs-win32/zlib" 
+LINK32_FLAGS=ole32.lib oleaut32.lib user32.lib advapi32.lib gdi32.lib wsock32.lib shell32.lib pthreadVCE.lib zlib.lib /nologo /subsystem:windows /machine:I386 /nodefaultlib:"MSVCRT.lib" /out:"$(OUTDIR)\bacula-fd.exe" /libpath:"../../../../depkgs-win32/pthreads" /libpath:"../../../../depkgs-win32/zlib" 
 LINK32_OBJS= \
         "$(INTDIR)\address_conf.obj" \
         "$(INTDIR)\alist.obj" \
@@ -206,9 +203,6 @@ LINK32_OBJS= \
         "$(INTDIR)\var.obj" \
         "$(INTDIR)\verify.obj" \
         "$(INTDIR)\verify_vol.obj" \
-        "$(INTDIR)\vss.obj" \
-        "$(INTDIR)\vss_xp.obj" \
-        "$(INTDIR)\vss_w2k3.obj" \
         "$(INTDIR)\watchdog.obj" \
         "$(INTDIR)\winabout.obj" \
         "$(INTDIR)\winapi.obj" \
@@ -377,12 +371,6 @@ CLEAN :
         -@erase "$(INTDIR)\verify.sbr"
         -@erase "$(INTDIR)\verify_vol.obj"
         -@erase "$(INTDIR)\verify_vol.sbr"
-        -@erase "$(INTDIR)\vss.obj"
-        -@erase "$(INTDIR)\vss.sbr"
-        -@erase "$(INTDIR)\vss_xp.obj"
-        -@erase "$(INTDIR)\vss_xp.sbr"
-        -@erase "$(INTDIR)\vss_w2k3.obj"
-        -@erase "$(INTDIR)\vss_w2k3.sbr"
         -@erase "$(INTDIR)\watchdog.obj"
         -@erase "$(INTDIR)\watchdog.sbr"
         -@erase "$(INTDIR)\winabout.obj"
@@ -408,7 +396,7 @@ CLEAN :
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I "../compat" /I "../.." /I "../../../../depkgs-win32/pthreads" /I "../../../../depkgs-win32/zlib" /I "." /D "_WINDOWS" /D "_WIN32_WINNT=0x500" /D "WIN32_VSS" /D "_DEBUG" /D "_WINMAIN_" /D "PTW32_BUILD" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "HAVE_WIN32" /FR"$(INTDIR)\\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I "../compat" /I "../.." /I "../../../../depkgs-win32/pthreads" /I "../../../../depkgs-win32/zlib" /I "." /D "_WINDOWS" /D "_DEBUG" /D "_WINMAIN_" /D "PTW32_BUILD" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "HAVE_WIN32" /FR"$(INTDIR)\\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
 RSC_PROJ=/l 0x409 /fo"$(INTDIR)\winres.res" /d "_DEBUG" 
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\baculafd.bsc" 
@@ -482,9 +470,6 @@ BSC32_SBRS= \
         "$(INTDIR)\var.sbr" \
         "$(INTDIR)\verify.sbr" \
         "$(INTDIR)\verify_vol.sbr" \
-        "$(INTDIR)\vss.sbr" \
-        "$(INTDIR)\vss_xp.sbr" \
-        "$(INTDIR)\vss_w2k3.sbr" \
         "$(INTDIR)\watchdog.sbr" \
         "$(INTDIR)\winabout.sbr" \
         "$(INTDIR)\winapi.sbr" \
@@ -501,7 +486,7 @@ BSC32_SBRS= \
 <<
 
 LINK32=link.exe
-LINK32_FLAGS=ole32.lib oleaut32.lib user32.lib advapi32.lib gdi32.lib shell32.lib wsock32.lib pthreadVCE.lib zlib.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /pdb:none /debug /machine:I386 /nodefaultlib:"MSVCRT.lib" /out:"$(OUTDIR)\bacula-fd.exe" /libpath:"../../../../depkgs-win32/pthreads" /libpath:"../../../../depkgs-win32/zlib" 
+LINK32_FLAGS=ole32.lib oleaut32.lib user32.lib advapi32.lib gdi32.lib shell32.lib wsock32.lib pthreadVCE.lib zlib.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"MSVCRT.lib" /out:"$(OUTDIR)\bacula-fd.exe" /map:"$(OUTDIR)\bacula-fd.map" /libpath:"../../../../depkgs-win32/pthreads" /libpath:"../../../../depkgs-win32/zlib" 
 LINK32_OBJS= \
         "$(INTDIR)\address_conf.obj" \
         "$(INTDIR)\alist.obj" \
@@ -572,9 +557,6 @@ LINK32_OBJS= \
         "$(INTDIR)\var.obj" \
         "$(INTDIR)\verify.obj" \
         "$(INTDIR)\verify_vol.obj" \
-        "$(INTDIR)\vss.obj" \
-        "$(INTDIR)\vss_xp.obj" \
-        "$(INTDIR)\vss_w2k3.obj" \
         "$(INTDIR)\watchdog.obj" \
         "$(INTDIR)\winabout.obj" \
         "$(INTDIR)\winapi.obj" \
