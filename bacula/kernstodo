@@ -65,6 +65,7 @@ Document:
 - Does WildFile match against full name?  Doc.
 
 For 1.39:
+- Add ACL to restore only to original location.
 - Add a recursive mark command (rmark) to restore.
 - "Minimum Job Interval = nnn" sets minimum interval between Jobs
   of the same level and does not permit multiple simultaneous

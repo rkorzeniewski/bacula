@@ -481,15 +481,13 @@ bool qstatus_cmd(JCR *jcr)
          }
          free_jcr(njcr);
       }
-   }
-   else if (strcmp(time.c_str(), "last") == 0) {
+   } else if (strcmp(time.c_str(), "last") == 0) {
       bnet_fsend(dir, OKqstatus, time.c_str());
       if ((last_jobs) && (last_jobs->size() > 0)) {
          job = (s_last_job*)last_jobs->last();
          bnet_fsend(dir, DotStatusJob, job->JobId, job->JobStatus, job->Errors);
       }
-   }
-   else {
+   } else {
       pm_strcpy(jcr->errmsg, dir->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Bad .status command: %s\n"), jcr->errmsg);
       bnet_fsend(dir, _("3900 Bad .status command, wrong argument.\n"));
