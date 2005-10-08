@@ -80,6 +80,7 @@ class JobEvents:
      self.job.write(text)
 
   # Open file to be backed up. file is the filename
+  #  NOT YET IMPLEMENTED
   def open(self, file):
      print "Open %s called" % file
      self.fd = open('m.py', 'rb')
@@ -88,6 +89,7 @@ class JobEvents:
 
   # Read file data into Bacula memory buffer (mem)
   #  return length read. 0 => EOF, -1 => error
+  #  NOT YET IMPLEMENTED
   def read(self, mem):
      print "Read called\n"
      len = self.fd.readinto(mem)
@@ -95,5 +97,6 @@ class JobEvents:
      return len
 
   # Close file
+  #  NOT YET IMPLEMENTED
   def close(self):
      self.fd.close()

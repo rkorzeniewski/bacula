@@ -41,7 +41,6 @@ Final items for 1.37 before release:
 
 -  --without-openssl breaks at least on Solaris.
 -  Figure out how to package gui, and rescue programs.
--  Test TLS.
 -  Arno had to do -- to get update slots=x to work
    UPDATE Media SET InChanger=0,Slot=0 WHERE InChanger>0 AND Slot>0; (MySQL)
 
@@ -53,18 +52,17 @@ Final items for 1.37 before release:
 
 Document:
 - Does ClientRunAfterJob fail the job on a bad return code?
-- datadir for po files.
-- AM_GNU_GETTEXT finds the library if you specify 
-  --with-libintl-prefix
 - Document cleaning up the spool files:
   db, pid, state, bsr, mail, conmsg, spool
 - Document the multiple-drive-changer.txt script.
 - Pruning with Admin job.
-- Restore of all files for a Job or set of jobs even if the file
-  records have been removed from the catalog.
 - Does WildFile match against full name?  Doc.
 
 For 1.39:
+- implement a mode that says when a hard read error is
+  encountered, read many times (as it currently does), and if the
+  block cannot be read, skip to the next block, and try again.  If
+  that fails, skip to the next file and try again, ...
 - Add ACL to restore only to original location.
 - Add a recursive mark command (rmark) to restore.
 - "Minimum Job Interval = nnn" sets minimum interval between Jobs

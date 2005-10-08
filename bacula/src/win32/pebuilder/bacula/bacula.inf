@@ -31,6 +31,7 @@ files\pthreadVCE.dll=a,,1
 files\msvcr71.dll=a,,1
 files\wx-console.exe=a,,1
 files\wx-console.conf=a,,1
+files\msvcr71.dll=a,,1
 
 [Append]
 nu2menu.xml, bacula_nu2menu.xml
