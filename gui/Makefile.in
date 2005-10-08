@@ -51,11 +51,22 @@ clean:
 
 # clean for distribution
 distclean: clean
-	@$(RMF) -r CVS
+	@$(RMF) -rf CVS
 
 devclean: clean
 	@for subdir in freebsd linux solaris; do \
 	    if [ -f $${subdir}/Makefile ]; then \
 		     (cd $${subdir}; $(MAKE) devclean) \
 	    fi; \
+
+release: clean
+	(cwd=`pwd`; rm -rf /tmp/bacula-gui-$(VERSION); \
+	  cd ..; cp -rp $$cwd /tmp/bacula-gui-$(VERSION); \
+	  cd /tmp; \
+	  tar cvfz $$cwd/bacula-gui-$(VERSION).tar.gz bacula-gui-$(VERSION); \
+	  rm -rf /tmp/bacula-gui-$(VERSION); \
+	  echo " "; \
+	  echo "Release is in: $$cwd/bacula-gui-$(VERSION).tar.gz"; \
+	  echo " ")
+
 # ------------------------------------------------------------------------
