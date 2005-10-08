@@ -46,8 +46,8 @@ administrator or user to communicate with the Bacula Director
 versions.  The first and simplest is to run the Console program
 in a shell window (i.e.  TTY interface).  Most system
 administrators will find this completely adequate.  The second
-version is a GNOME GUI interface that for the moment (23 November
-2003) is far from complete, but quite functional as it has most
+version is a GNOME GUI interface that for the moment (07 October
+2005) is far from complete, but quite functional as it has most
 the capabilities of the shell Console.  The third version is a
 wxWidgets GUI with an interactive file restore.  It also has most
 of the capabilities of the shell console, allows command
@@ -68,8 +68,8 @@ in some of the documentation, the File daemon is referred to as
 the Client (for example in Bacula's configuration file).  In
 addition to Unix/Linux File daemons, there is a Windows File
 daemon (normally distributed in binary format).  The Windows File
-daemon runs on all currently known Windows versions (95, 98, Me,
-NT, 2000, XP).
+daemon runs on all currently known Windows versions (98, Me,
+NT, 2K, 2003,  XP).
 
 .LP
 Bacula Storage services consist of the software programs that

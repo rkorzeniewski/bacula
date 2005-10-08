@@ -4,6 +4,15 @@
 General:
 
 Changes to 1.37.41:
+08Oct05
+- Add README plus tar release to gui project.
+- Manual documentation
+- Tweak bacula.man doc
+- Add PRAGMA synchronous = NORMAL; to SQLite3 tables. This
+  speeds up SQLite3 so it is only about 10% slower than version
+  2.xx.  Thanks to Russell Howe for this tip.
+- Add msvcr71.dll to pebuilder .inf file as it is needed by
+  Bacula FD.  Thanks to Brandon for passing this fix to Scott.
 05Oct05
 - Add VolumePurged method to Python JobEvents class.  Fixes
   bug #428 (I think).

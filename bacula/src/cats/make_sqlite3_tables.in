@@ -313,6 +313,7 @@ INSERT INTO Version (VersionId) VALUES (9);
 
 PRAGMA default_synchronous = OFF;
 PRAGMA default_cache_size = 10000;
+PRAGMA synchronous = NORMAL;
 
 END-OF-DATA
 
