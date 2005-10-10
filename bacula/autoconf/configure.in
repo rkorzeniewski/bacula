@@ -1908,6 +1908,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   scripts/mtx-changer \
 	   scripts/dvd-writepart \
 	   scripts/dvd-freespace \
+	   scripts/dvd-handler \
 	   scripts/bacula-tray-monitor.desktop \
 	   scripts/logwatch/Makefile \
 	   scripts/logwatch/logfile.bacula.conf \

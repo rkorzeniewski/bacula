@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     01 October 2005
+                     10 October 2005
 
 Major development:      
 Project                     Developer
@@ -9,9 +9,7 @@ Version 1.37                Kern (see below)
 
 Final items for 1.37 before release:
 1. Fix bugs
-- Look at fixing restore status stats in SD.
 - Mount after manually unloading changer causes hang in SD
-- Close STDOUT if debug_level == 0
 - Check if ANSI tape labeling works with drive in
   read-only mode.
    > > btape: label.c:299 write_volume_label()
@@ -40,15 +38,8 @@ Final items for 1.37 before release:
   non-bacula tape in the drive.
 
 -  --without-openssl breaks at least on Solaris.
--  Figure out how to package gui, and rescue programs.
 -  Arno had to do -- to get update slots=x to work
    UPDATE Media SET InChanger=0,Slot=0 WHERE InChanger>0 AND Slot>0; (MySQL)
-
-- Add recycle event.
-- Add scratch pool event.
-- Implement NeedVolume event
-- Add Win32 FileSet definition somewhere
-      
 
 Document:
 - Does ClientRunAfterJob fail the job on a bad return code?
@@ -59,6 +50,14 @@ Document:
 - Does WildFile match against full name?  Doc.
 
 For 1.39:
+- Close STDOUT if debug_level == 0
+- Add recycle event.
+- Add scratch pool event.
+- Implement NeedVolume event
+- Add Win32 FileSet definition somewhere
+- Look at fixing restore status stats in SD.
+- Make selection of Database used in restore correspond to
+  client.
 - implement a mode that says when a hard read error is
   encountered, read many times (as it currently does), and if the
   block cannot be read, skip to the next block, and try again.  If
@@ -1494,3 +1493,5 @@ Block Position: 0
   wants a Volume that is released but in another drive --
   chaos.
 - Run the regression scripts on Solaris and FreeBSD
+-  Figure out how to package gui, and rescue programs.
+
