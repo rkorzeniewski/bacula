@@ -313,29 +313,30 @@ static bool dvd_write_part(DCR *dcr)
    
    Dmsg2(29, "dvd_write_part: cmd=%s timeout=%d\n", ocmd.c_str(), timeout);
       
-{
-   POOL_MEM results(PM_MESSAGE);
-   sm_check(__FILE__, __LINE__, false);
-   status = run_program_full_output(ocmd.c_str(), timeout, results.c_str());
-   sm_check(__FILE__, __LINE__, false);
-   if (status != 0) {
-      Mmsg1(dev->errmsg, _("Error while writing current part to the DVD: %s"), 
-            results.c_str());
-      Dmsg1(000, "%s", dev->errmsg);
-      dev->dev_errno = EIO;
-      return false;
+   {
+      POOL_MEM results(PM_MESSAGE);
+      sm_check(__FILE__, __LINE__, false);
+      status = run_program_full_output(ocmd.c_str(), timeout, results.c_str());
+      sm_check(__FILE__, __LINE__, false);
+      if (status != 0) {
+         Mmsg1(dev->errmsg, _("Error while writing current part to the DVD: %s"), 
+               results.c_str());
+         Dmsg1(000, "%s", dev->errmsg);
+         dev->dev_errno = EIO;
+         mark_volume_in_error(dcr);
+         return false;
+      }
+      sm_check(__FILE__, __LINE__, false);
    }
-   sm_check(__FILE__, __LINE__, false);
-}
 
-{
-   POOL_MEM archive_name(PM_FNAME);
-   /* Delete spool file */
-   make_spooled_dvd_filename(dev, archive_name);
-   unlink(archive_name.c_str());
-   Dmsg1(29, "unlink(%s)\n", archive_name.c_str());
-   sm_check(__FILE__, __LINE__, false);
-}
+   {
+      POOL_MEM archive_name(PM_FNAME);
+      /* Delete spool file */
+      make_spooled_dvd_filename(dev, archive_name);
+      unlink(archive_name.c_str());
+      Dmsg1(29, "unlink(%s)\n", archive_name.c_str());
+      sm_check(__FILE__, __LINE__, false);
+   }
    
    /* growisofs umount the device, so remount it (it will update the free space) */
    dev->clear_mounted();
@@ -630,7 +631,6 @@ bool dvd_close_job(DCR *dcr)
          You must open the next part, it will automatically write the part and
          update the part number. */
       if (ok && (open_next_part(dcr) < 0)) {
-//      if (ok && !dvd_write_part(dcr)) {
          Jmsg2(jcr, M_FATAL, 0, _("Unable to write part %s: ERR=%s\n"),
                dev->print_name(), strerror_dev(dev));
          dev->dev_errno = EIO;

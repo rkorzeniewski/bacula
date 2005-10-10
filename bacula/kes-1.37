@@ -5,6 +5,9 @@ General:
 
 Changes to 1.37.41:
 10Oct05
+- Mark DVD volume in error if part cannot be written.
+- If a DVD is mounted, unmount it before asking operator
+  to mount an different one.
 - Add Arno's dvd-handler script to the scripts directory and
   integrate with configure.  It replaces both existing scripts.
 - Make default schedule start at 23:10
