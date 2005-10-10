@@ -44,6 +44,7 @@ To create a distribution tar file (NOT YET IMPLEMENTED!!!!!)
    make
    make release
 
-   The output will be a .tar.gz file in the current directory
-   with the name bacula-gui-<version>.tar.gz 
+   The output will be two .tar.gz files in the current directory
+   with the names bacula-web-<version>.tar.gz and 
+   bimagemgr-<version>.tar.gz
    It will print the name.

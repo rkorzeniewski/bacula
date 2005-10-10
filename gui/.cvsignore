@@ -3,3 +3,4 @@ config.status
 config.out
 config.log
 autom4te.cache
+kernsconfig
