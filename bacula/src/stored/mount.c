@@ -368,15 +368,19 @@ read_volume:
          return false;
       }
       
-      /* DVD : check if the last part was removed or truncated, or if a written
-       * part was overwritten. */
-      /* We need to do it after dir_update_volume_info, so we have the EndBlock
+      /*
+       * DVD : check if the last part was removed or truncated, or if a written
+       * part was overwritten.   
+       * We need to do it after dir_update_volume_info, so we have the EndBlock
        * info. (nb: I don't understand why VolCatFiles is set (used to check
-       * tape file number), but not EndBlock) */
-      /* Maybe could it be changed "dev->is_file()" (would remove the fixme above) */
-      
-      /* Disabled: I had problems with this code... (maybe is it related to the seek bug ?) */
-      /*if (dev->is_dvd()) {
+       * tape file number), but not EndBlock)
+       * Maybe could it be changed "dev->is_file()" (would remove the fixme above)   
+       *
+       * Disabled: I had problems with this code... 
+       * (maybe is it related to the seek bug ?)   
+       */
+#ifdef xxx
+      if (dev->is_dvd()) {
          Dmsg2(100, "DVD/File sanity check addr=%u vs endblock=%u\n", (unsigned int)dev->file_addr, (unsigned int)dev->VolCatInfo.EndBlock);
          if (dev->file_addr == dev->VolCatInfo.EndBlock+1) {
             Jmsg(jcr, M_INFO, 0, _("Ready to append to end of Volume \"%s\" at file address=%u.\n"),
@@ -390,7 +394,8 @@ read_volume:
             mark_volume_in_error(dcr);
             goto mount_next_vol;
          }
-      }*/
+      }
+#endif
       
       /* Return an empty block */
       empty_block(block);             /* we used it for reading so set for write */
