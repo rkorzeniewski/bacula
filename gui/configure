@@ -272,7 +272,7 @@ PACKAGE_STRING=
 PACKAGE_BUGREPORT=
 
 ac_unique_file="autoconf/configure.in"
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS BUILD_DIR TRUEPRG FALSEPRG AWK INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA MV RM CP ECHO AR build build_cpu build_vendor build_os host host_cpu host_vendor host_os HAVE_SUN_OS_TRUE HAVE_SUN_OS_FALSE HAVE_OSF1_OS_TRUE HAVE_OSF1_OS_FALSE HAVE_AIX_OS_TRUE HAVE_AIX_OS_FALSE HAVE_HPUX_OS_TRUE HAVE_HPUX_OS_FALSE HAVE_LINUX_OS_TRUE HAVE_LINUX_OS_FALSE HAVE_FREEBSD_OS_TRUE HAVE_FREEBSD_OS_FALSE HAVE_NETBSD_OS_TRUE HAVE_NETBSD_OS_FALSE HAVE_OPENBSD_OS_TRUE HAVE_OPENBSD_OS_FALSE HAVE_BSDI_OS_TRUE HAVE_BSDI_OS_FALSE HAVE_SGI_OS_TRUE HAVE_SGI_OS_FALSE HAVE_IRIX_OS_TRUE HAVE_IRIX_OS_FALSE HAVE_DARWIN_OS_TRUE HAVE_DARWIN_OS_FALSE bimagemgr_cgidir bimagemgr_docdir bimagemgr_binowner bimagemgr_bingroup bimagemgr_dataowner bimagemgr_datagroup bacula hostname DISTNAME DISTVER LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS BUILD_DIR bacula VERSION DATE TRUEPRG FALSEPRG AWK INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA MV RM CP ECHO AR build build_cpu build_vendor build_os host host_cpu host_vendor host_os HAVE_SUN_OS_TRUE HAVE_SUN_OS_FALSE HAVE_OSF1_OS_TRUE HAVE_OSF1_OS_FALSE HAVE_AIX_OS_TRUE HAVE_AIX_OS_FALSE HAVE_HPUX_OS_TRUE HAVE_HPUX_OS_FALSE HAVE_LINUX_OS_TRUE HAVE_LINUX_OS_FALSE HAVE_FREEBSD_OS_TRUE HAVE_FREEBSD_OS_FALSE HAVE_NETBSD_OS_TRUE HAVE_NETBSD_OS_FALSE HAVE_OPENBSD_OS_TRUE HAVE_OPENBSD_OS_FALSE HAVE_BSDI_OS_TRUE HAVE_BSDI_OS_FALSE HAVE_SGI_OS_TRUE HAVE_SGI_OS_FALSE HAVE_IRIX_OS_TRUE HAVE_IRIX_OS_FALSE HAVE_DARWIN_OS_TRUE HAVE_DARWIN_OS_FALSE bimagemgr_cgidir bimagemgr_docdir bimagemgr_binowner bimagemgr_bingroup bimagemgr_dataowner bimagemgr_datagroup hostname DISTNAME DISTVER LIBOBJS LTLIBOBJS'
 ac_subst_files='MCOMMON'
 
 # Initialize some variables set by options.
@@ -1264,6 +1264,38 @@ ac_configure="$SHELL $ac_aux_dir/configure" # This should be Cygnus configure.
 
 
 
+# ------------------------------------------
+# Where to get Bacula source
+# ------------------------------------------
+
+# Check whether --with-bacula or --without-bacula was given.
+if test "${with_bacula+set}" = set; then
+  withval="$with_bacula"
+
+       if test "x$withval" != "xno" ; then
+	  bacula=$withval
+       fi
+
+
+fi;
+
+
+if test "x$bacula" = "x" ; then
+   { { echo "$as_me:$LINENO: error: The Bacula source directory must be specified. Use --with-bacula=<path>" >&5
+echo "$as_me: error: The Bacula source directory must be specified. Use --with-bacula=<path>" >&2;}
+   { (exit 1); exit 1; }; }
+fi
+
+VERSION=`sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' ${bacula}/src/version.h`
+DATE=`sed -n -e 's/^.* \t*BDATE.*"\(.*\)"$/\1/p' ${bacula}/src/version.h`
+if test "x$VERSION" = "x" ; then
+   { { echo "$as_me:$LINENO: error: Bacula version not found" >&5
+echo "$as_me: error: Bacula version not found" >&2;}
+   { (exit 1); exit 1; }; }
+fi
+echo "configuring for Bacula source $VERSION ($DATE)"
+
+
 for ac_prog in true
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
@@ -1452,13 +1484,6 @@ else
 echo "${ECHO_T}no" >&6
 fi
 
-
-
-#VERSION=`sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' ${srcdir}/version.h`
-#DATE=`sed -n -e 's/^.*[ \t]*BDATE.*"\(.*\)"$/\1/p' ${srcdir}/version.h`
-#AC_SUBST(VERSION)dnl
-#AC_SUBST(DATE)dnl
-#echo "configuring for Bacula $VERSION ($DATE)"
 
 
 # Find a good install program.  We prefer a C program (faster),
@@ -2213,20 +2238,6 @@ fi
 
 
 
-# ------------------------------------------
-# Where to get Bacula source
-# ------------------------------------------
-
-# Check whether --with-bacula or --without-bacula was given.
-if test "${with_bacula+set}" = set; then
-  withval="$with_bacula"
-
-       if test "x$withval" != "xno" ; then
-	  bacula=$withval
-       fi
-
-
-fi;
 
 # -------------------------------------------------------------------------
 #  Set variables for bimagemgr installation
@@ -3064,6 +3075,9 @@ s,@ECHO_N@,$ECHO_N,;t t
 s,@ECHO_T@,$ECHO_T,;t t
 s,@LIBS@,$LIBS,;t t
 s,@BUILD_DIR@,$BUILD_DIR,;t t
+s,@bacula@,$bacula,;t t
+s,@VERSION@,$VERSION,;t t
+s,@DATE@,$DATE,;t t
 s,@TRUEPRG@,$TRUEPRG,;t t
 s,@FALSEPRG@,$FALSEPRG,;t t
 s,@AWK@,$AWK,;t t
@@ -3113,7 +3127,6 @@ s,@bimagemgr_binowner@,$bimagemgr_binowner,;t t
 s,@bimagemgr_bingroup@,$bimagemgr_bingroup,;t t
 s,@bimagemgr_dataowner@,$bimagemgr_dataowner,;t t
 s,@bimagemgr_datagroup@,$bimagemgr_datagroup,;t t
-s,@bacula@,$bacula,;t t
 s,@hostname@,$hostname,;t t
 s,@DISTNAME@,$DISTNAME,;t t
 s,@DISTVER@,$DISTVER,;t t
@@ -3514,7 +3527,6 @@ echo "
 Configuration on `date`:
 
   Host: 		      $host -- ${DISTNAME} ${DISTVER}
-  Bacula version:	      ${VERSION} (${DATE})
   Source code location:       ${bacula}
 
   " > config.out

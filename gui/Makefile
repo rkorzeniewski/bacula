@@ -6,9 +6,9 @@
 
 # autoconf/Make.common.in        -*- Makefile -*-
 # release date (man), LSM date, version number/name, current maintainer
-DATE="@DATE@"
+DATE="08 October 2005"
 LSMDATE=@LSMDATE@
-VERSION=@VERSION@
+VERSION=1.37.41
 VERNAME=bacula-$(VERSION)#
 MAINT=Kern Sibbald#
 MAINTEMAIL=<kern@sibbald.com>#
@@ -89,15 +89,50 @@ Makefiles:
 	$(SHELL) config.status
 
 clean:
-	@$(RMF) *~ 1 2 3
+	@$(RMF) *~ 1 2 3 diff */diff  *.tar.gz
 
 # clean for distribution
 distclean: clean
-	@$(RMF) -r CVS
+	@$(RMF) -rf CVS
 
 devclean: clean
 	@for subdir in freebsd linux solaris; do \
 	    if [ -f $${subdir}/Makefile ]; then \
 		     (cd $${subdir}; $(MAKE) devclean) \
 	    fi; \
+
+release-bacula-web:
+	(cwd=`pwd`; rm -rf /tmp/bacula-web-$(VERSION); \
+	  cd ..; cp -rp $$cwd/bacula-web /tmp/bacula-web-$(VERSION); \
+	  cd /tmp/bacula-web-$(VERSION); \
+	  make clean; \
+	  find . -name ".#*" -exec rm -rf {} \; ; \
+	  find . -name "CVS" -exec rm -rf {} \; ; \
+	  find . -name ".cvsignore" -exec rm -rf {} \; ; \
+	  rm -rf autom4te.cache; \
+	  cd ..; \
+	  tar cvfz $$cwd/bacula-web-$(VERSION).tar.gz bacula-web-$(VERSION); \
+	  rm -rf /tmp/bacula-web-$(VERSION); \
+	  echo " "; \
+	  echo "bacula-web release is in: $$cwd/bacula-web-$(VERSION).tar.gz"; \
+	  echo " ")
+
+release-bimagemgr:
+	(cwd=`pwd`; rm -rf /tmp/bimagemgr-$(VERSION); \
+	  cd ..; cp -rp $$cwd/bimagemgr /tmp/bimagemgr-$(VERSION); \
+	  cd /tmp/bimagemgr-$(VERSION); \
+	  make clean; \
+	  find . -name ".#*" -exec rm -rf {} \; ; \
+	  find . -name "CVS" -exec rm -rf {} \; ; \
+	  find . -name ".cvsignore" -exec rm -rf {} \; ; \
+	  rm -rf autom4te.cache; \
+	  cd ..; \
+	  tar cvfz $$cwd/bimagemgr-$(VERSION).tar.gz bimagemgr-$(VERSION); \
+	  rm -rf /tmp/bimagemgr-$(VERSION); \
+	  echo " "; \
+	  echo "bimagemgr release is in: $$cwd/bimagemgr-$(VERSION).tar.gz"; \
+	  echo " ")
+
+release: clean release-bacula-web release-bimagemgr
+
 # ------------------------------------------------------------------------

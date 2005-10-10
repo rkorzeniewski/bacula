@@ -14,6 +14,34 @@ dnl require a recent autoconf
 AC_PREREQ(2.13)
 
 
+# ------------------------------------------
+# Where to get Bacula source
+# ------------------------------------------
+AC_ARG_WITH(bacula,
+   [  --with-bacula=PATH    specify path to Bacula source],
+   [
+       if test "x$withval" != "xno" ; then     
+	  bacula=$withval
+       fi
+   ]
+)
+
+AC_SUBST(bacula)
+if test "x$bacula" = "x" ; then
+   AC_MSG_ERROR(The Bacula source directory must be specified. Use --with-bacula=<path>)
+fi
+
+dnl Bacula version
+VERSION=`sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' ${bacula}/src/version.h`
+DATE=`sed -n -e 's/^.*[ \t]*BDATE.*"\(.*\)"$/\1/p' ${bacula}/src/version.h`
+AC_SUBST(VERSION)dnl
+AC_SUBST(DATE)dnl
+if test "x$VERSION" = "x" ; then
+   AC_MSG_ERROR(Bacula version not found)
+fi
+echo "configuring for Bacula source $VERSION ($DATE)"
+
+
 dnl search for true and false programs.
 AC_PATH_PROGS(TRUEPRG, true, :)
 AC_PATH_PROGS(FALSEPRG, false, :)
@@ -32,14 +60,6 @@ else
 fi
 THE_AWK=$AWK
 AC_PATH_PROG(AWK, $THE_AWK, $THE_AWK)
-
-
-dnl Bacula version
-#VERSION=`sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' ${srcdir}/version.h`
-#DATE=`sed -n -e 's/^.*[ \t]*BDATE.*"\(.*\)"$/\1/p' ${srcdir}/version.h`
-#AC_SUBST(VERSION)dnl 
-#AC_SUBST(DATE)dnl 
-#echo "configuring for Bacula $VERSION ($DATE)"
 
 
 dnl -------------------------------------------------------
@@ -74,17 +94,6 @@ dnl# --------------------------------------------------------------------------
 dnl# CHECKING COMMAND LINE OPTIONS
 dnl# --------------------------------------------------------------------------
 
-# ------------------------------------------
-# Where to get Bacula source
-# ------------------------------------------
-AC_ARG_WITH(bacula,
-   [  --with-bacula=PATH    specify path to Bacula source],
-   [
-       if test "x$withval" != "xno" ; then     
-	  bacula=$withval
-       fi
-   ]
-)
 
 # -------------------------------------------------------------------------
 #  Set variables for bimagemgr installation
@@ -272,7 +281,6 @@ echo "
 Configuration on `date`:
 
   Host: 		      $host -- ${DISTNAME} ${DISTVER}
-  Bacula version:	      ${VERSION} (${DATE})
   Source code location:       ${bacula}
 
   " > config.out

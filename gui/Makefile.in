@@ -47,7 +47,7 @@ Makefiles:
 	$(SHELL) config.status
 
 clean:
-	@$(RMF) *~ 1 2 3
+	@$(RMF) *~ 1 2 3 diff */diff  *.tar.gz
 
 # clean for distribution
 distclean: clean
@@ -59,14 +59,38 @@ devclean: clean
 		     (cd $${subdir}; $(MAKE) devclean) \
 	    fi; \
 
-release: clean
-	(cwd=`pwd`; rm -rf /tmp/bacula-gui-$(VERSION); \
-	  cd ..; cp -rp $$cwd /tmp/bacula-gui-$(VERSION); \
-	  cd /tmp; \
-	  tar cvfz $$cwd/bacula-gui-$(VERSION).tar.gz bacula-gui-$(VERSION); \
-	  rm -rf /tmp/bacula-gui-$(VERSION); \
+release-bacula-web:
+	(cwd=`pwd`; rm -rf /tmp/bacula-web-$(VERSION); \
+	  cd ..; cp -rp $$cwd/bacula-web /tmp/bacula-web-$(VERSION); \
+	  cd /tmp/bacula-web-$(VERSION); \
+	  make clean; \
+	  find . -name ".#*" -exec rm -rf {} \; ; \
+	  find . -name "CVS" -exec rm -rf {} \; ; \
+	  find . -name ".cvsignore" -exec rm -rf {} \; ; \
+	  rm -rf autom4te.cache; \
+	  cd ..; \
+	  tar cvfz $$cwd/bacula-web-$(VERSION).tar.gz bacula-web-$(VERSION); \
+	  rm -rf /tmp/bacula-web-$(VERSION); \
 	  echo " "; \
-	  echo "Release is in: $$cwd/bacula-gui-$(VERSION).tar.gz"; \
+	  echo "bacula-web release is in: $$cwd/bacula-web-$(VERSION).tar.gz"; \
 	  echo " ")
+
+release-bimagemgr:
+	(cwd=`pwd`; rm -rf /tmp/bimagemgr-$(VERSION); \
+	  cd ..; cp -rp $$cwd/bimagemgr /tmp/bimagemgr-$(VERSION); \
+	  cd /tmp/bimagemgr-$(VERSION); \
+	  make clean; \
+	  find . -name ".#*" -exec rm -rf {} \; ; \
+	  find . -name "CVS" -exec rm -rf {} \; ; \
+	  find . -name ".cvsignore" -exec rm -rf {} \; ; \
+	  rm -rf autom4te.cache; \
+	  cd ..; \
+	  tar cvfz $$cwd/bimagemgr-$(VERSION).tar.gz bimagemgr-$(VERSION); \
+	  rm -rf /tmp/bimagemgr-$(VERSION); \
+	  echo " "; \
+	  echo "bimagemgr release is in: $$cwd/bimagemgr-$(VERSION).tar.gz"; \
+	  echo " ")
+
+release: clean release-bacula-web release-bimagemgr
 
 # ------------------------------------------------------------------------
