@@ -4,6 +4,12 @@
 General:
 
 Changes to 1.37.41:
+10Oct05
+- Add Arno's dvd-handler script to the scripts directory and
+  integrate with configure.  It replaces both existing scripts.
+- Make default schedule start at 23:10
+- Implement gui release in Makefile. It creates two .tar.gz
+  bacula-web and bimagemgr.
 08Oct05
 - Add README plus tar release to gui project.
 - Manual documentation

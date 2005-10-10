@@ -1,0 +1,333 @@
+#!/usr/bin/python
+#
+# Check the free space available on a writable DVD
+# Should always exit with 0 status, otherwise it indicates a serious error.
+# (wrong number of arguments, Python exception...)
+#
+#  called:  dvd-handler <dvd-device-name> operation args
+#
+#  where operation is one of
+#    free
+#    write
+#
+#  further arguments:
+#    free: one argument: 0 to keep the existing data on disk, i.e.
+#	   free space is measured
+#			 anything else: overwrite entire disk, so
+#	   free space is always maximum space
+#
+# in case of operation ``free'' returns:
+# Prints on the first output line the free space available in bytes.
+# If an error occurs, prints a negative number (-errno), followed,
+# on the second line, by an error message.
+# 
+# $Id$
+#
+
+# end of configurable values
+
+import popen2
+import os
+import errno
+import sys
+import re
+import signal
+import time
+
+class disk:
+   # Configurable values:
+   df = "@DF@ -P"
+   dvdrwmediainfo = "@DVDRWMEDIAINFO@"
+   growisofs = "@GROWISOFS@"
+   margin = 10485760 # 10 mb security margin
+   # We disable 4GB boundary checking - function free should handle this
+   # already, and it doesn't seem to work anyway (here: 2.6.8-24.18 from SuSE,
+   # LG GSA-5163D, dvd+rw-tools 5.21
+   growcmd = growisofs + " -use-the-force-luke=notray -use-the-force-luke=4gms "
+   growcmd += "-A 'Bacula Data' -input-charset=default -iso-level 3 -pad " + \
+	      "-publisher 'ITS Lehmann info@its-lehmann.de' " + \
+	      "-p 'dvd-handler / growisofs' -sysid 'BACULADATA'"
+
+###############################################################################
+#
+# This class represents a DVD disk (various flavours).
+# When instantiated, it needs a device name.
+# Status information about the device and the disk loaded is collected.
+#
+# The following methods are implemented:
+# __init__	we need that...
+#		NOTE: Currently, this class only works with DVD+RW
+#		and simply refuses to work with anything else.
+#		This is because I had to start with some sort of disk,
+#		and I learned that +RW and -RW are quite different, so
+#		I decided to play it safe.
+# __repr__	this seems to be a good idea to have.
+#		Quite minimalistic implementation, though.
+# __str__	For casts to string. Return the current disk information
+# is_empty	Returns TRUE if the disk is empty, blank... this needs more
+#		work, especially concerning non-RW media and blank vs. no
+#		filesystem considerations. Here, we should also look for
+#		other filesystems - probably we don't want to silently
+#		overwrite UDF or ext2 or anything not mentioned in fstab...
+# is_RW 	TRUE if disk is rewritable. We need that to determine if
+#		a new filesystem can be written onto a used disk.
+# lasterr	returns a string describing the last error in the class.
+#		Valuable after creating the object and after free()
+# free		Returns the available free space, distinguishing between
+#		new volume disks (overwrite everything) and appending
+#		There are some assumtions about disk status and usage that
+#		need work.
+# write 	Writes one part file to disk, either starting a new file
+#		system on disk, or appending to it.
+#		This method should also prepare a blank disk so that a
+#		certain part of the disk is used to allow detection of a
+#		used disk by all / more disk drives.
+# blank 	NOT IMPLEMENTED
+#
+###############################################################################
+   def __init__(self, devicename):
+      self.device = "none"
+      self.disktype = "none"
+      self.leadout = -1
+      self.track = -1
+      self.maximum = -1
+      self.used = 0
+      self.lasterror = "none"
+      self.hardwaredevice = "none"
+      self.pid = 0
+
+      # first, we collect information about the media as reported by
+      # dvd+rw-mediainfo
+      # we need an indication of the usable total size.
+
+      self.cmd = self.dvdrwmediainfo + " " + devicename
+      self.processi = popen2.Popen4(self.cmd)
+      self.status = self.processi.wait()
+      if not os.WIFEXITED(self.status):
+	 self.lasterror = self.dvdrwmediainfo + " process did not exit correctly."
+	 return
+      if os.WEXITSTATUS(self.status) != 0:
+	 self.lasterror = "Cannot get media info from " + self.dvdrwmediainfo
+	 return
+      self.device = str(devicename)
+      self.result = self.processi.fromchild.read()
+      self.hardware = re.search(r"INQUIRY:\s+(.*)\n", self.result, re.MULTILINE)
+      self.mediatype = re.search(r"\sMounted Media:\s+([0-9A-F]{2})h, (\S*)\s",
+	 self.result, re.MULTILINE)
+      self.tracksize = re.search(r"\sTrack Size:\s+(\d+)\*2KB\s",
+	 self.result, re.MULTILINE)
+      self.leadout = re.search(r"\sLegacy lead-out at:\s+(\d+)\*2KB=(\d+)\s",
+	 self.result, re.MULTILINE)
+      if self.hardware:
+	 self.hardwaredevice = self.hardware.group(1)
+      if self.mediatype:
+	 self.disktype = self.mediatype.group(2)
+      else:
+	 self.lasterror = "Media type not found."
+      if self.leadout:
+	 self.leadout = long(self.leadout.group(1))*2048
+      else:
+	 self.lasterror = "Lead-out block not found."
+      if self.tracksize:
+	 self.track = long(self.tracksize.group(1))*2048
+      else:
+	 self.lasterror = "Track size not found."
+      self.result = 0
+      if ( "DVD+RW" == self.disktype ):
+	 if self.leadout > self.track:
+	    self.result = self.leadout
+	 else:
+	    self.result = self.track
+      else:
+	 self.lasterror = "Unsupported media: " + self.disktype
+      self.maximum = self.result - self.margin
+      if self.maximum < 0:
+	 self.maximum = 0
+
+      # now, the actual size used on the disk.
+      # here, we use what df reports, although the
+      # current track size should give us the necessary information,
+      # too. Well, depending on the media type, it seems.
+      # We should see if the media is mounted, try to mount, if possible
+      # proceed and, if necessary, unmount. Otherwise assume 0 used bytes.
+      # __init__ and __del__ would be the right places to mount and
+      # unmount - mounting before df'ing is always a good idea,
+      # and setting the previos state might be important.
+
+      self.cmd = self.df + " " + self.device
+      self.process = popen2.Popen4(self.cmd)
+      self.status = self.process.wait()
+      if not os.WIFEXITED(self.status):
+	 self.lasterror = self.df + " process did not not exit correctly."
+	 return
+      self.exitstat = os.WEXITSTATUS(self.status) & ~0x80
+      if self.exitstat == errno.ENOSPC:
+	 self.used = 0
+      elif self.exitstat != 0:
+	 self.lasterror = os.strerror(self.exitstat)
+	 return
+      self.dftext = self.process.fromchild.read()
+      self.blocks = re.search(self.device + r"\s+(\d+)\s+",
+	 self.dftext, re.MULTILINE)
+      if self.blocks:
+	 self.used = long(self.blocks.group(1))*1024
+      else:
+	 self.used = 0
+	 self.lasterror = "No blocks found in " + self.cmd + " output:\n"
+	 self.lasterror += self.dftext
+      return
+
+   def __repr__(self):
+      return "disk(" + self.device + ") # This is an instance of class disk"
+
+   def __str__(self):
+      self.me  = "Class disk, initialized with device " + self.device + "\n"
+      self.me += "type = " + self.disktype + " leadout = " + str(self.leadout)
+      self.me += " track = " + str(self.track) + " maximum = " + str(self.maximum) + "\n"
+      self.me += "used = " + str(self.used) + "\n"
+      self.me += "Hardware device is " + self.hardwaredevice + "\n"
+      self.me += "last error = " + self.lasterror + "\n"
+      return self.me
+
+   def is_empty(self):
+      return 0 == self.used
+   # This works for DVD+RW, probably for all rewritable media. self.blank for -R?
+   # This is quite definitely not the best method. I need something
+   # that detects if a session exists on disk, but I didn't do any
+   # experiments with non-RW media yet.
+
+   def is_RW(self):
+      return "DVD-RW" == self.disktype or "DVD+RW" == self.disktype or "DVD-RAM" == self.disktype
+
+   def free(self, newvol):
+      if self.used < 0 or self.maximum <= 0:
+	 return -1
+      elif newvol:
+	 self.ret = self.maximum
+	 if not self.is_empty() and not self.is_RW():
+	    # better check real disks usage state as read from dvd+rw-mediainfo.
+	    # introduce self.blank
+	    self.ret = -1
+	    self.lasterror = self.disktype + " can not be overwritten and is already used"
+      else:
+	 self.ret = self.maximum - self.used
+	 if self.used > 4278190080:	 # if more than 4GB-16MB are already used
+	    self.ret = 0
+      return self.ret
+
+   def lasterr(self):
+      return self.lasterror
+
+   def term_handler(self, signum, frame):
+      print 'dvd-handler: Signal term_handler called with signal', signum
+      if self.pid != 0:
+	 print "dvd-handler: Sending SIGTERM to pid", self.pid
+	 os.kill(self.pid, signal.SIGTERM)
+	 time.sleep(10)
+	 print "dvd-handler: Sending SIGKILL to pid", self.pid
+	 os.kill(self.pid, signal.SIGKILL)
+	 sys.exit(1)
+
+   def write(self, newvol, partfile):
+      self.lasterror = "none"
+      self.partstat = os.stat(partfile)
+      if not self.partstat:
+	 self.lasterror = "Could not stat " + str(partfile) + " which is a fatal error."
+	 return
+      if self.partstat.st_size > self.free(newvol):
+	 self.lasterror = "Part " + str(partfile) + " is too big: " \
+	    + str(self.partstat.st_size) + ", free " + str(self.free(newvol))
+	 return
+      if "DVD-RW" == self.disktype:
+	 self.cmd = self.growcmd + " -R "
+	 if newvol:
+	    self.cmd += "-Z "
+	 else:
+	    self.cmd += "-M "
+	 self.cmd += self.device + " " + str(partfile)
+	 self.oldsig = signal.signal(signal.SIGTERM, self.term_handler)
+	 self.proc = popen2.Popen4(self.cmd)
+	 self.pid = self.proc.pid
+	 self.status = self.proc.poll()
+	 while -1 == self.status:
+	    self.out = self.proc.fromchild.read(512)
+	    while "" != self.out:
+	       sys.stdout.write(self.out)
+	       self.out = self.proc.fromchild.read(512)
+	    time.sleep(1)
+	    self.status = self.proc.poll()
+	 self.pid = 0
+	 print
+	 signal.signal(signal.SIGTERM, self.oldsig)
+	 if 0 != os.WEXITSTATUS(self.status):
+	    self.lasterror = self.cmd + " exited with status " + str(os.WEXITSTATUS(self.status))
+	    print self.cmd + " exited with signal/status " + hex(self.status)	      
+      else:	# Other disk type
+	 self.lasterror = "Can't write to " + self.disktype
+# class disk ends here.
+
+
+if len(sys.argv) < 3:
+   print "Wrong number of arguments."
+   print """
+This program needs to be called with the following parameters.
+
+device operation [more arguments]
+
+where device is a device name like /dev/sr0 or /dev/dvd and
+operation can be "test", "free" or "write".
+
+Operations:
+test	   Scan the device and report the information found.
+	   This operation needs no further arguments.
+free	   Scan the device and report the available space.
+	   "free" needs one additional argument to determine
+	   if data is to be appended or if the disk will be
+	   started from the beginning: "0" means append,
+	   everything else indicates a new volume.
+write	   Write a part file to disk.
+	   This operation needs two additional arguments.
+	   The first indicates to append or restart the
+	   disk; see above. The second is the file to write.
+"""
+   sys.exit(1)
+
+dvd = disk(sys.argv[1])
+
+if "free" == sys.argv[2]:
+   if len(sys.argv) == 4:
+      newvol = 1
+      if "0" == sys.argv[3]:
+	 newvol = 0
+      free = dvd.free(newvol)
+      print free
+      if free >= 0:
+	 print "No Error reported."
+      else:
+	 print dvd.lasterr()
+   else:
+      print "Wrong number of arguments."
+      sys.exit(1)
+elif "test" == sys.argv[2]:
+   print str(dvd)
+   print "Empty disk: " + str(dvd.is_empty()) + " ReWritable disk: " + str(dvd.is_RW())
+   print "Free for new volume: " + str(dvd.free(1))
+   print "Free for append:     " + str(dvd.free(0))
+elif "write" == sys.argv[2]:
+   if len(sys.argv) == 5:
+      newvol = 1
+      if "0" == sys.argv[3]:
+	 newvol = 0
+      dvd.write(newvol, sys.argv[4])
+      if "none" != dvd.lasterr():
+	 print str(dvd.lasterr())
+	 sys.exit(1)
+      else:
+	 print "Part file " + sys.argv[4] + " successfully written to disk."
+   else:
+      print "Wrong number of arguments."
+      sys.exit(1)
+else:
+   print "No operation - use test, free or write."
+   print "THIS MIGHT BE A CASE OF DEBUGGING BACULA OR AN ERROR!"
+sys.exit(0)
