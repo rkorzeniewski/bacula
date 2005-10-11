@@ -235,7 +235,8 @@ void catalog_request(JCR *jcr, BSOCK *bs)
             Jmsg(jcr, M_FATAL, 0, _("Volume Files at %u being set to %u"
                  " for Volume \"%s\". This is incorrect.\n"),
                mr.VolFiles, sdmr.VolFiles, mr.VolumeName);
-            bnet_fsend(bs, _("1992 Update Media error\n"));
+            bnet_fsend(bs, _("1992 Update Media error. VolFiles=%u, CatFiles=%u\n"),
+               sdmr.VolFiles, mr.VolViles);
             db_unlock(jcr->db);
             return;
          }
@@ -267,7 +268,7 @@ void catalog_request(JCR *jcr, BSOCK *bs)
       } else {
          Jmsg(jcr, M_FATAL, 0, _("Catalog error updating Media record. %s"),
             db_strerror(jcr->db));
-         bnet_fsend(bs, _("1992 Update Media error\n"));
+         bnet_fsend(bs, _("1993 Update Media error\n"));
          Dmsg0(400, "send error\n");
       }
       db_unlock(jcr->db);
