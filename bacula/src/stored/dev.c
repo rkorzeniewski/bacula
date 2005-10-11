@@ -745,7 +745,9 @@ const char *DEVICE::print_blocked() const
 void DEVICE::set_ateof() 
 { 
    set_eof();
-   file++;
+   if (is_tape()) {
+      file++;
+   }
    file_addr = 0;
    file_size = 0;
    block_num = 0;
