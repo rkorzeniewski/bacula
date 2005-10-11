@@ -1,12 +1,73 @@
                 
 Projects:
                      Bacula Projects Roadmap 
-                       09 September 2005
+                       10 October 2005
 
 Below, you will find more information on future projects:
 
-Item 1:   Implement Base jobs.
-  Status: Voted by users not to be implemented in 1.37
+Item 1:   Implement a Migration job type that will move the job
+          data from one device to another.
+  Status: Partially coded in 1.37 -- much more to do.
+
+  What:   The ability to copy, move, or archive data that is on a
+          device to another device is very important. 
+
+  Why:    An ISP might want to backup to disk, but after 30 days
+          migrate the data to tape backup and delete it from
+          disk.  Bacula should be able to handle this
+          automatically.  It needs to know what was put where,
+          and when, and what to migrate -- it is a bit like
+          retention periods.  Doing so would allow space to be
+          freed up for current backups while maintaining older
+          data on tape drives.
+
+  Notes:  Migration could be triggered by:
+           Number of Jobs
+           Number of Volumes
+           Age of Jobs
+           Highwater size (keep total size)
+           Lowwater mark
+
+Item 2:   Implement a Bacula GUI/management tool using Python
+          and Qt.
+  Status: 
+
+  What:   Implement a Bacula console, and management tools
+          using Python and Qt.
+
+  Why:    Don't we already have a wxWidgets GUI?  Yes, but
+          it is written in C++ and changes to the user interface
+          must be hand tailored using C++ code. By developing
+          the user interface using Qt designer, the interface
+          can be very easily updated and most of the new Python       
+          code will be automatically created.  The user interface
+          changes become very simple, and only the new features
+          must be implement.  In addition, the code will be in
+          Python, which will give many more users easy (or easier)
+          access to making additions or modifications.
+
+Item 3:   Implement a Python interface to the Bacula catalog.
+  Status: 
+
+  What:   Implement an interface for Python scripts to access
+          the catalog through Bacula.
+
+  Why:    This will permit users to customize Bacula through
+          Python scripts.
+
+Item 4:   Implement more Python events in Bacula.
+  Status: 
+
+  What:   Allow Python scripts to be called at more places 
+          within Bacula and provide additional access to Bacula
+          internal variables.
+
+  Why:    This will permit users to customize Bacula through
+          Python scripts.
+
+
+Item 5:   Implement Base jobs.
+  Status: 
   
   What:   A base job is sort of like a Full save except that you 
           will want the FileSet to contain only files that are
@@ -37,8 +98,8 @@ Item 1:   Implement Base jobs.
           FD a list of files/attribs, and the FD must search the
           list and compare it for each file to be saved.
 
-Item 2:   Add Plug-ins to the FileSet Include statements.
-  Status: In progress in 1.37 using Python scripting.
+Item 6:   Add Plug-ins to the FileSet Include statements.
+  Status: Partially coded in 1.37 -- much more to do.
 
   What:   Allow users to specify wild-card and/or regular
           expressions to be matched in both the Include and
@@ -51,32 +112,24 @@ Item 2:   Add Plug-ins to the FileSet Include statements.
           plug-in knows how to backup his Oracle database without
           stopping/starting it, for example.
 
-Item 3:   Implement a Migration job type that will move the job
-          data from one device to another.
-  Status: Partially coded in 1.37 -- much more to do.
+Item 7:   Implement huge exclude list support using hashing.
+  Status: 
 
-  What:   The ability to copy, move, or archive data that is on a
-          device to another device is very important. 
+  What:   Allow users to specify very large exclude list (currently
+          more than about 1000 files is too many).
 
-  Why:    An ISP might want to backup to disk, but after 30 days
-          migrate the data to tape backup and delete it from
-          disk.  Bacula should be able to handle this
-          automatically.  It needs to know what was put where,
-          and when, and what to migrate -- it is a bit like
-          retention periods.  Doing so would allow space to be
-          freed up for current backups while maintaining older
-          data on tape drives.
+  Why:    This would give the users the ability to exclude all
+          files that are loaded with the OS (e.g. using rpms
+          or debs). If the user can restore the base OS from
+          CDs, there is no need to backup all those files. A
+          complete restore would be to restore the base OS, then
+          do a Bacula restore. By excluding the base OS files, the
+          backup set will be *much* smaller.
 
-  Notes:  Migration could be triggered by:
-           Number of Jobs
-           Number of Volumes
-           Age of Jobs
-           Highwater size (keep total size)
-           Lowwater mark
 
-Item  9:  Implement data encryption (as opposed to communications
+Item  8:  Implement data encryption (as opposed to communications
           encryption)
-  Status: Landon Fuller has agreed to work on this.
+  Status: Landon Fuller is currently working on this.
                   
   What:   Currently the data that is stored on the Volume is not
           encrypted. For confidentiality, encryption of data at
@@ -95,10 +148,10 @@ Items completed for release 1.38.0:
        This is already implemented in 1.37.
 #7   Single Job Writing to Multiple Storage Devices. This is
        currently implemented with a Clone feature.
-#-   Full multiple drive Autochanger support (mostly implemented).
-#-   We will have built in support for communications 
-       encryption (TLS) done by Landon Fuller.
-#    We will most likely have support for Unicode characters
+#-   Full multiple drive Autochanger support (done in 1.37)
+#-   Built in support for communications encryption (TLS) 
+       done by Landon Fuller.
+#    Support for Unicode characters
        (via UTF-8) on Win32 machines thanks to Thorsten Engle.
 Item  8:  Break the one-to-one Relationship between a Job and a
           Specific Storage Device (or Devices if #10 is implemented).
@@ -108,8 +161,7 @@ Item 1:   Multiple simultaneous Jobs. (done)
 Item 3:   Write the bscan program -- also write a bcopy program (done).
 Item 5:   Implement Label templates (done).
 Item 6:   Write a regression script (done)
-Item 9:   Add SSL to daemon communications (For now, implement with
-          stunnel)
+Item 9:   Add SSL to daemon communications (done by Landon Fuller)
 Item 10:  Define definitive tape format (done)
 Item 3:   GUI for interactive restore. Partially Implemented in 1.34
           Note, there is now a complete Webmin plugin, a partial
