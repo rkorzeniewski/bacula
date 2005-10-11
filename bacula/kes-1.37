@@ -4,6 +4,10 @@
 General:
 
 Changes to 1.37.41:
+11Oct05
+- Add extra debug to Update media error for VolFiles decrease
+  error.
+- Do not update dev->file on set_ateof() for non-tape.
 10Oct05
 - Mark DVD volume in error if part cannot be written.
 - If a DVD is mounted, unmount it before asking operator

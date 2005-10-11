@@ -236,7 +236,7 @@ void catalog_request(JCR *jcr, BSOCK *bs)
                  " for Volume \"%s\". This is incorrect.\n"),
                mr.VolFiles, sdmr.VolFiles, mr.VolumeName);
             bnet_fsend(bs, _("1992 Update Media error. VolFiles=%u, CatFiles=%u\n"),
-               sdmr.VolFiles, mr.VolViles);
+               sdmr.VolFiles, mr.VolFiles);
             db_unlock(jcr->db);
             return;
          }

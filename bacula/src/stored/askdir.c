@@ -291,7 +291,7 @@ bool dir_update_volume_info(DCR *dcr, bool label)
       return false;
    }
 
-   Dmsg1(300, "Update cat VolFiles=%d\n", dev->file);
+   Dmsg1(100, "Update cat VolFiles=%d\n", dev->file);
    /* Just labeled or relabeled the tape */
    if (label) {
       bstrncpy(vol->VolCatStatus, "Append", sizeof(vol->VolCatStatus));
