@@ -4,6 +4,10 @@
 General:
 
 Changes to 1.37.41:
+12Oct05
+- In block.c call dvd_write_part() to write last part rather
+  than dvd_open_next_part().
+- Prefix some DVD subroutines with dvd_
 11Oct05
 - Add extra debug to Update media error for VolFiles decrease
   error.

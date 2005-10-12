@@ -82,8 +82,6 @@ void    display_tape_error_status(JCR *jcr, DEVICE *dev);
 /* From dev.c */
 DEVICE  *init_dev(JCR *jcr, DEVRES *device);
 off_t    lseek_dev(DEVICE *dev, off_t offset, int whence);
-int      open_first_part(DCR *dcr, int mode);
-int      open_next_part(DCR *dcr);
 bool     can_open_mounted_dev(DEVICE *dev);
 bool     truncate_dev(DCR *dcr);
 void     term_dev(DEVICE *dev);
@@ -116,6 +114,8 @@ uint32_t dev_block(DEVICE *dev);
 uint32_t dev_file(DEVICE *dev);
 
 /* From dvd.c */
+int  dvd_open_next_part(DCR *dcr);
+bool dvd_write_part(DCR *dcr); 
 bool dvd_close_job(DCR *dcr);
 bool mount_dev(DEVICE* dev, int timeout);
 bool unmount_dev(DEVICE* dev, int timeout);
