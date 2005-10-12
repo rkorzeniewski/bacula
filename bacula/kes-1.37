@@ -5,6 +5,9 @@ General:
 
 Changes to 1.37.41:
 12Oct05
+- Add a .dir command that separates arguments with commas. It
+  is intended to be used in the tree routines to get a 
+  machine readable output for GUIs like wx-console.
 - Make configure set dvd-handler to have execute permission.
 - Install dvd-handler as is done for other dvd-xxx scripts.
 - In block.c call dvd_write_part() to write last part rather

@@ -42,6 +42,7 @@ static int findcmd(UAContext *ua, TREE_CTX *tree);
 static int lscmd(UAContext *ua, TREE_CTX *tree);
 static int lsmarkcmd(UAContext *ua, TREE_CTX *tree);
 static int dircmd(UAContext *ua, TREE_CTX *tree);
+static int dot_dircmd(UAContext *ua, TREE_CTX *tree);
 static int estimatecmd(UAContext *ua, TREE_CTX *tree);
 static int helpcmd(UAContext *ua, TREE_CTX *tree);
 static int cdcmd(UAContext *ua, TREE_CTX *tree);
@@ -57,6 +58,7 @@ static struct cmdstruct commands[] = {
  { N_("cd"),         cdcmd,        _("change current directory")},
  { N_("count"),      countcmd,     _("count marked files in and below the cd")},
  { N_("dir"),        dircmd,       _("long list current directory, wildcards allowed")},
+ { N_(".dir"),       dot_dircmd,   _("long list current directory, wildcards allowed")},
  { N_("done"),       donecmd,      _("leave file selection mode")},
  { N_("estimate"),   estimatecmd,  _("estimate restore size")},
  { N_("exit"),       donecmd,      _("same as done command")},
@@ -64,7 +66,7 @@ static struct cmdstruct commands[] = {
  { N_("help"),       helpcmd,      _("print help")},
  { N_("ls"),         lscmd,        _("list current directory, wildcards allowed")},
  { N_("lsmark"),     lsmarkcmd,    _("list the marked files in and below the cd")},
- { N_("mark"),       markcmd,      _("mark dir/file to be restored recursively in dirs")},
+ { N_("mark"),       markcmd,      _("mark dir/file to be restored recursively, wildcards allowed")},
  { N_("markdir"),    markdircmd,   _("mark directory name to be restored (no files)")},
  { N_("pwd"),        pwdcmd,       _("print current working directory")},
  { N_("unmark"),     unmarkcmd,    _("unmark dir/file to be restored recursively in dir")},
@@ -461,7 +463,9 @@ extern char *getgroup(gid_t gid, char *name, int len);
 /*
  * This is actually the long form used for "dir"
  */
-static void ls_output(char *buf, const char *fname, const char *tag, struct stat *statp)
+static void ls_output(char *buf, const char *fname, const char *tag, 
+                      struct stat *statp, bool dot_cmd) 
+                    
 {
    char *p;
    const char *f;
@@ -470,27 +474,41 @@ static void ls_output(char *buf, const char *fname, const char *tag, struct stat
    int n;
 
    p = encode_mode(statp->st_mode, buf);
-   n = sprintf(p, "  %2d ", (uint32_t)statp->st_nlink);
-   p += n;
-   n = sprintf(p, "%-8.8s %-8.8s", getuser(statp->st_uid, en1, sizeof(en1)),
-               getgroup(statp->st_gid, en2, sizeof(en2)));
-   p += n;
-   n = sprintf(p, "%10.10s  ", edit_uint64(statp->st_size, ec1));
-   p += n;
-   p = encode_time(statp->st_ctime, p);
-   *p++ = ' ';
-   *p++ = *tag;
+   if (dot_cmd) {
+      *p++ = ',';
+      n = sprintf(p, "%d,", (uint32_t)statp->st_nlink);
+      p += n;
+      n = sprintf(p, "%s,%s,", getuser(statp->st_uid, en1, sizeof(en1)),
+                  getgroup(statp->st_gid, en2, sizeof(en2)));
+      p += n;
+      n = sprintf(p, "%s,", edit_uint64(statp->st_size, ec1));
+      p += n;
+      p = encode_time(statp->st_ctime, p);
+      *p++ = ',';
+      *p++ = *tag;
+      *p++ = ',';
+   } else {
+      n = sprintf(p, "  %2d ", (uint32_t)statp->st_nlink);
+      p += n;
+      n = sprintf(p, "%-8.8s %-8.8s", getuser(statp->st_uid, en1, sizeof(en1)),
+                  getgroup(statp->st_gid, en2, sizeof(en2)));
+      p += n;
+      n = sprintf(p, "%10.10s  ", edit_uint64(statp->st_size, ec1));
+      p += n;
+      p = encode_time(statp->st_ctime, p);
+      *p++ = ' ';
+      *p++ = *tag;
+   }
    for (f=fname; *f; ) {
       *p++ = *f++;
    }
    *p = 0;
 }
 
-
 /*
  * Like ls command, but give more detail on each file
  */
-static int dircmd(UAContext *ua, TREE_CTX *tree)
+static int do_dircmd(UAContext *ua, TREE_CTX *tree, bool dot_cmd)
 {
    TREE_NODE *node;
    FILE_DBR fdbr;
@@ -540,11 +558,21 @@ static int dircmd(UAContext *ua, TREE_CTX *tree)
             /* Something went wrong getting attributes -- print name */
             memset(&statp, 0, sizeof(statp));
          }
-         ls_output(buf, cwd, tag, &statp);
+         ls_output(buf, cwd, tag, &statp, dot_cmd);
          bsendmsg(ua, "%s\n", buf);
       }
    }
    return 1;
+}
+
+int dot_dircmd(UAContext *ua, TREE_CTX *tree)
+{
+   return do_dircmd(ua, tree, true/*dot command*/);
+}
+
+static int dircmd(UAContext *ua, TREE_CTX *tree)
+{
+   return do_dircmd(ua, tree, false/*not dot command*/);
 }
 
 
@@ -593,7 +621,10 @@ static int helpcmd(UAContext *ua, TREE_CTX *tree)
 
    bsendmsg(ua, _("  Command    Description\n  =======    ===========\n"));
    for (i=0; i<comsize; i++) {
-      bsendmsg(ua, "  %-10s %s\n", _(commands[i].key), _(commands[i].help));
+      /* List only non-dot commands */
+      if (commands[i].key[0] != '.') {
+         bsendmsg(ua, "  %-10s %s\n", _(commands[i].key), _(commands[i].help));
+      }
    }
    bsendmsg(ua, "\n");
    return 1;
