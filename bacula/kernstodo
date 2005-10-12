@@ -50,6 +50,7 @@ Document:
 - Does WildFile match against full name?  Doc.
 
 For 1.39:
+  of column positions in wx-console.
 - Close STDOUT if debug_level == 0
 - Add recycle event.
 - Add scratch pool event.
@@ -1494,4 +1495,5 @@ Block Position: 0
   chaos.
 - Run the regression scripts on Solaris and FreeBSD
 -  Figure out how to package gui, and rescue programs.
+- Add a .dir command to restore tree code to eliminate the problem
 
