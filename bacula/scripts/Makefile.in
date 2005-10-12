@@ -53,6 +53,11 @@ install: installdirs
 	   $(MV) -f ${DESTDIR}${scriptdir}/dvd-freespace ${DESTDIR}${scriptdir}/dvd-freespace.old; \
 	fi
 	$(INSTALL_SCRIPT) dvd-freespace $(DESTDIR)$(scriptdir)/dvd-freespace
+	@if  test -f ${DESTDIR}${scriptdir}/dvd-handler; then \
+	   echo "  ==> Saving existing dvd-handler to dvd-handler.old"; \
+	   $(MV) -f ${DESTDIR}${scriptdir}/dvd-handler ${DESTDIR}${scriptdir}/dvd-handler.old; \
+	fi
+	$(INSTALL_SCRIPT) dvd-handler $(DESTDIR)$(scriptdir)/dvd-handler
 	$(INSTALL_DATA)   btraceback.gdb $(DESTDIR)$(scriptdir)/btraceback.gdb
 	$(INSTALL_DATA)   btraceback.dbx $(DESTDIR)$(scriptdir)/btraceback.dbx
 	$(INSTALL_SCRIPT) btraceback $(DESTDIR)$(sbindir)/btraceback

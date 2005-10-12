@@ -5,6 +5,8 @@ General:
 
 Changes to 1.37.41:
 12Oct05
+- Make configure set dvd-handler to have execute permission.
+- Install dvd-handler as is done for other dvd-xxx scripts.
 - In block.c call dvd_write_part() to write last part rather
   than dvd_open_next_part().
 - Prefix some DVD subroutines with dvd_
