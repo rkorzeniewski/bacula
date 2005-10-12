@@ -286,11 +286,12 @@ void update_free_space_dev(DEVICE* dev)
 
 /*
  * Write a part (Vol, Vol.1, ...) from the spool to the DVD   
- * This MUST only be called from open_next_part. Otherwise the part number
- * is not updated.
- * It is also called from truncate_dvd_dev to "blank" the medium.
+ * This routine does not update the part number, so normally, you
+ *  should call open_next_part()
+ * It is also called from truncate_dvd_dev to "blank" the medium, as
+ *  well as from block.c when the DVD is full to write the last part.
  */
-static bool dvd_write_part(DCR *dcr) 
+bool dvd_write_part(DCR *dcr) 
 {
    DEVICE *dev = dcr->dev;
    POOL_MEM ocmd(PM_FNAME);
@@ -338,7 +339,7 @@ static bool dvd_write_part(DCR *dcr)
       sm_check(__FILE__, __LINE__, false);
    }
    
-   /* growisofs umount the device, so remount it (it will update the free space) */
+   /* growisofs umounted the device, so remount it (it will update the free space) */
    dev->clear_mounted();
    mount_dev(dev, 1);
    Jmsg(dcr->jcr, M_INFO, 0, _("Remaining free space %s on %s\n"), 
@@ -352,7 +353,7 @@ static bool dvd_write_part(DCR *dcr)
  *  - Increment part number 
  *  - Reopen the device
  */
-int open_next_part(DCR *dcr)
+int dvd_open_next_part(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
 
@@ -459,7 +460,7 @@ int open_next_part(DCR *dcr)
  *  - Close the fd
  *  - Reopen the device
  */
-int open_first_part(DCR *dcr, int mode)
+int dvd_open_first_part(DCR *dcr, int mode)
 {
    DEVICE *dev = dcr->dev;
 
@@ -513,7 +514,7 @@ off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
             }
          } else {
             /* Load next part, and start again */
-            if (open_next_part(dcr) < 0) {
+            if (dvd_open_next_part(dcr) < 0) {
                Dmsg0(100, "lseek_dev failed while trying to open the next part\n");
                return -1;
             }
@@ -526,7 +527,7 @@ off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
           * so just load the first one, and seek again
           * until the right one is loaded
           */
-         if (open_first_part(dcr, dev->openmode) < 0) {
+         if (dvd_open_first_part(dcr, dev->openmode) < 0) {
             Dmsg0(100, "lseek_dev failed while trying to open the first part\n");
             return -1;
          }
@@ -580,19 +581,19 @@ off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
           */
          int modesave = dev->openmode;
          /* Works because num_parts > 0. */
-         if (open_first_part(dcr, OPEN_READ_ONLY) < 0) {
+         if (dvd_open_first_part(dcr, OPEN_READ_ONLY) < 0) {
             Dmsg0(100, "lseek_dev failed while trying to open the first part\n");
             return -1;
          }
          if (dev->num_parts > 0) {
             while (dev->part < (dev->num_parts-1)) {
-               if (open_next_part(dcr) < 0) {
+               if (dvd_open_next_part(dcr) < 0) {
                   Dmsg0(100, "lseek_dev failed while trying to open the next part\n");
                   return -1;
                }
             }
             dev->openmode = modesave;
-            if (open_next_part(dcr) < 0) {
+            if (dvd_open_next_part(dcr) < 0) {
                Dmsg0(100, "lseek_dev failed while trying to open the next part\n");
                return -1;
             }
@@ -630,7 +631,7 @@ bool dvd_close_job(DCR *dcr)
          NB: No! If you call dvd_write_part, the part number is not updated.
          You must open the next part, it will automatically write the part and
          update the part number. */
-      if (ok && (open_next_part(dcr) < 0)) {
+      if (ok && (dvd_open_next_part(dcr) < 0)) {
          Jmsg2(jcr, M_FATAL, 0, _("Unable to write part %s: ERR=%s\n"),
                dev->print_name(), strerror_dev(dev));
          dev->dev_errno = EIO;
@@ -653,7 +654,7 @@ bool truncate_dvd_dev(DCR *dcr) {
    Dmsg0(100, "truncate_dvd_dev: Opening first part (1)...\n");
    
    dev->truncating = true;
-   if (open_first_part(dcr, OPEN_READ_WRITE) < 0) {
+   if (dvd_open_first_part(dcr, OPEN_READ_WRITE) < 0) {
       Dmsg0(100, "truncate_dvd_dev: Error while opening first part (1).\n");
       dev->truncating = false;
       return false;
@@ -681,7 +682,7 @@ bool truncate_dvd_dev(DCR *dcr) {
       return false;
    }
    
-   if (open_first_part(dcr, OPEN_READ_WRITE) < 0) {
+   if (dvd_open_first_part(dcr, OPEN_READ_WRITE) < 0) {
       Dmsg0(100, "truncate_dvd_dev: Error while opening first part (2).\n");
       return false;
    }

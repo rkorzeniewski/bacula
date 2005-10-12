@@ -693,8 +693,8 @@ static bool terminate_writing_volume(DCR *dcr)
    dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */
    dev->VolCatInfo.VolCatJobs++;              /* increment number of jobs */
    
-   if (dev->is_dvd()) { /* Write the current (and last) part. */
-      open_next_part(dcr);
+   if (dev->is_dvd()) {
+      dvd_write_part(dcr);                 /* write last part */
    }
    
    if (!dir_update_volume_info(dcr, false)) {
@@ -794,7 +794,7 @@ static bool do_dvd_size_checks(DCR *dcr)
          return false;
       }
       
-      if (open_next_part(dcr) < 0) {
+      if (dvd_open_next_part(dcr) < 0) {
          Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open device next part %s: ERR=%s\n"),
                 dev->print_name(), strerror_dev(dev));
          dev->dev_errno = EIO;
@@ -904,7 +904,7 @@ reread:
    if ((dev->num_parts > 0) &&
         ((dev->file_addr-dev->part_start) == dev->part_size) && 
         (dev->part < dev->num_parts)) {
-      if (open_next_part(dcr) < 0) {
+      if (dvd_open_next_part(dcr) < 0) {
          Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open device next part %s: ERR=%s\n"),
                dev->print_name(), strerror_dev(dev));
          dev->dev_errno = EIO;
