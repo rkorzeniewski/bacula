@@ -338,7 +338,9 @@ int run_program_full_output(char *prog, int wait, POOLMEM *results)
    sm_check(__FILE__, __LINE__, false);
    tmp[0] = 0;
    while (1) {
+      buf[0] = 0;
       fgets(buf, bufsize, bpipe->rfd);
+      buf[bufsize] = 0;
       pm_strcat(tmp, buf);
       if (feof(bpipe->rfd)) {
          stat1 = 0;

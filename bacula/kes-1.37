@@ -5,6 +5,7 @@ General:
 
 Changes to 1.37.41:
 13Oct05
+- Fix error conditions in bpipe.c DVD routine (terminate buffer).
 - Use a bigger buffer 32K as suggested by Arno in bpipe.c.
 - Increase dvd mount timeout with patch from Arno.
 - Modify DVD code so that it keeps a state flag that indicates
