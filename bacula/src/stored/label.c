@@ -479,6 +479,7 @@ static void create_volume_label_record(DCR *dcr, DEV_RECORD *rec)
    struct date_time dt;
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
+   char buf[100];
 
    /* Serialize the label into the device record. */
 
@@ -522,7 +523,7 @@ static void create_volume_label_record(DCR *dcr, DEV_RECORD *rec)
    rec->VolSessionId = jcr->VolSessionId;
    rec->VolSessionTime = jcr->VolSessionTime;
    rec->Stream = jcr->NumVolumes;
-   Dmsg2(100, "Created Vol label rec: FI=%s len=%d\n", FI_to_ascii(rec->FileIndex),
+   Dmsg2(100, "Created Vol label rec: FI=%s len=%d\n", FI_to_ascii(buf, rec->FileIndex),
       rec->data_len);
 }
 
@@ -629,6 +630,7 @@ bool write_session_label(DCR *dcr, int label)
    DEVICE *dev = dcr->dev;
    DEV_RECORD *rec;
    DEV_BLOCK *block = dcr->block;
+   char buf1[100], buf2[100];
 
    rec = new_record();
    Dmsg1(90, "session_label record=%x\n", rec);
@@ -685,8 +687,8 @@ bool write_session_label(DCR *dcr, int label)
 
    Dmsg6(20, "Write sesson_label record JobId=%d FI=%s SessId=%d Strm=%s len=%d "
              "remainder=%d\n", jcr->JobId,
-      FI_to_ascii(rec->FileIndex), rec->VolSessionId,
-      stream_to_ascii(rec->Stream, rec->FileIndex), rec->data_len,
+      FI_to_ascii(buf1, rec->FileIndex), rec->VolSessionId,
+      stream_to_ascii(buf2, rec->Stream, rec->FileIndex), rec->data_len,
       rec->remainder);
 
    free_record(rec);
@@ -709,11 +711,12 @@ bool write_session_label(DCR *dcr, int label)
 bool unser_volume_label(DEVICE *dev, DEV_RECORD *rec)
 {
    ser_declare;
+   char buf1[100], buf2[100];
 
    if (rec->FileIndex != VOL_LABEL && rec->FileIndex != PRE_LABEL) {
       Mmsg3(dev->errmsg, _("Expecting Volume Label, got FI=%s Stream=%s len=%d\n"),
-              FI_to_ascii(rec->FileIndex),
-              stream_to_ascii(rec->Stream, rec->FileIndex),
+              FI_to_ascii(buf1, rec->FileIndex),
+              stream_to_ascii(buf2, rec->Stream, rec->FileIndex),
               rec->data_len);
       if (!forge_on) {
          return false;

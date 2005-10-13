@@ -4,6 +4,19 @@
 General:
 
 Changes to 1.37.41:
+13Oct05
+- Modify DVD code so that it keeps a state flag that indicates
+  when the freespace variable is valid. freespace_errno, now has
+  either 0 or an errno. There are no negative errnos.
+- Create is_freespace_ok() to test state flag. Also, set_freespace_ok()
+  and clear_freespace_ok(). Modify code to use them.  This
+  simplifies a bit the logic of the freespace code.
+- Edit 64bit debug values correctly in dvd.c
+- Fix %e variable to check num_parts rather than part.
+- Use static buffer instead of static buffers for FI_to_ascii()
+  and stream_to_ascii() debug routines in SD. This is to prevent
+  possible race conditions between two threads (possibly Phil's
+  unmount problem).
 12Oct05
 - Add a .dir command that separates arguments with commas. It
   is intended to be used in the tree routines to get a 

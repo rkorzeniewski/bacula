@@ -260,6 +260,7 @@ static void do_close(JCR *jcr)
 /* List just block information */
 static void do_blocks(char *infname)
 {
+   char buf1[100], buf2[100];
    for ( ;; ) {
       if (!read_block_from_device(dcr, NO_BLOCK_NUMBER_CHECK)) {
          Dmsg1(100, "!read_block(): ERR=%s\n", dev->strerror());
@@ -305,8 +306,8 @@ static void do_blocks(char *infname)
          Pmsg9(-1, _("File:blk=%u:%u blk_num=%u blen=%u First rec FI=%s SessId=%u SessTim=%u Strm=%s rlen=%d\n"),
               dev->file, dev->block_num,
               block->BlockNumber, block->block_len,
-              FI_to_ascii(rec->FileIndex), rec->VolSessionId, rec->VolSessionTime,
-              stream_to_ascii(rec->Stream, rec->FileIndex), rec->data_len);
+              FI_to_ascii(buf1, rec->FileIndex), rec->VolSessionId, rec->VolSessionTime,
+              stream_to_ascii(buf2, rec->Stream, rec->FileIndex), rec->data_len);
          rec->remainder = 0;
       } else if (verbose > 1) {
          dump_block(block, "");

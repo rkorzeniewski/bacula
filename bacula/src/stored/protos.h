@@ -198,8 +198,8 @@ void     free_restore_volume_list(JCR *jcr);
 void     create_restore_volume_list(JCR *jcr);
 
 /* From record.c */
-const char *FI_to_ascii(int fi);
-const char *stream_to_ascii(int stream, int fi);
+const char *FI_to_ascii(char *buf, int fi);
+const char *stream_to_ascii(char *buf, int stream, int fi);
 bool        write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec);
 bool        can_write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec);
 bool        read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec);

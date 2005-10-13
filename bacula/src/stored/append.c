@@ -42,6 +42,7 @@ bool do_append_data(JCR *jcr)
    DEV_RECORD rec;
    DCR *dcr = jcr->dcr;
    DEVICE *dev = dcr->dev;
+   char buf1[100], buf2[100];
 
 
    Dmsg0(100, "Start append data.\n");
@@ -182,7 +183,8 @@ bool do_append_data(JCR *jcr)
          rec.data = ds->msg;            /* use message buffer */
 
          Dmsg4(850, "before writ_rec FI=%d SessId=%d Strm=%s len=%d\n",
-            rec.FileIndex, rec.VolSessionId, stream_to_ascii(rec.Stream,rec.FileIndex),
+            rec.FileIndex, rec.VolSessionId, 
+            stream_to_ascii(buf1, rec.Stream,rec.FileIndex),
             rec.data_len);
 
          while (!write_record_to_block(dcr->block, &rec)) {
@@ -203,8 +205,8 @@ bool do_append_data(JCR *jcr)
          }
          jcr->JobBytes += rec.data_len;   /* increment bytes this job */
          Dmsg4(850, "write_record FI=%s SessId=%d Strm=%s len=%d\n",
-            FI_to_ascii(rec.FileIndex), rec.VolSessionId,
-            stream_to_ascii(rec.Stream, rec.FileIndex), rec.data_len);
+            FI_to_ascii(buf1, rec.FileIndex), rec.VolSessionId,
+            stream_to_ascii(buf2, rec.Stream, rec.FileIndex), rec.data_len);
 
          /* Send attributes and MD5 to Director for Catalog */
          if (stream == STREAM_UNIX_ATTRIBUTES    || stream == STREAM_MD5_SIGNATURE ||

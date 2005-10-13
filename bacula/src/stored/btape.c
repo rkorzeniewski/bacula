@@ -1661,6 +1661,7 @@ static void scan_blocks()
    uint64_t bytes;
    DEV_BLOCK *block = dcr->block;
    char ec1[50];
+   char buf1[100], buf2[100];
 
    blocks = block_size = tot_blocks = 0;
    bytes = 0;
@@ -1735,8 +1736,8 @@ static void scan_blocks()
          read_record_from_block(block, rec);
          Pmsg8(-1, _("Blk_block: %u dev_blk=%u blen=%u First rec FI=%s SessId=%u SessTim=%u Strm=%s rlen=%d\n"),
               block->BlockNumber, dev->block_num, block->block_len,
-              FI_to_ascii(rec->FileIndex), rec->VolSessionId, rec->VolSessionTime,
-              stream_to_ascii(rec->Stream, rec->FileIndex), rec->data_len);
+              FI_to_ascii(buf1, rec->FileIndex), rec->VolSessionId, rec->VolSessionTime,
+              stream_to_ascii(buf2, rec->Stream, rec->FileIndex), rec->data_len);
          rec->remainder = 0;
          free_record(rec);
       } else if (verbose > 1) {
@@ -1772,6 +1773,7 @@ static void fillcmd()
    DEV_RECORD rec;
    DEV_BLOCK  *block = dcr->block;
    char ec1[50];
+   char buf1[100], buf2[100];
    int fd;
    uint32_t i;
    uint32_t min_block_size;
@@ -1899,7 +1901,8 @@ static void fillcmd()
       }
 
       Dmsg4(250, "before write_rec FI=%d SessId=%d Strm=%s len=%d\n",
-         rec.FileIndex, rec.VolSessionId, stream_to_ascii(rec.Stream, rec.FileIndex),
+         rec.FileIndex, rec.VolSessionId, 
+         stream_to_ascii(buf1, rec.Stream, rec.FileIndex),
          rec.data_len);
 
       while (!write_record_to_block(block, &rec)) {
@@ -1946,8 +1949,8 @@ static void fillcmd()
       }
       jcr->JobBytes += rec.data_len;   /* increment bytes this job */
       Dmsg4(190, "write_record FI=%s SessId=%d Strm=%s len=%d\n",
-         FI_to_ascii(rec.FileIndex), rec.VolSessionId,
-         stream_to_ascii(rec.Stream, rec.FileIndex), rec.data_len);
+         FI_to_ascii(buf1, rec.FileIndex), rec.VolSessionId,
+         stream_to_ascii(buf2, rec.Stream, rec.FileIndex), rec.data_len);
 
       /* Get out after writing 10 blocks to the second tape */
       if (BlockNumber > 10 && stop != 0) {      /* get out */

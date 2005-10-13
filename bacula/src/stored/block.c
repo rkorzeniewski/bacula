@@ -49,6 +49,7 @@ void dump_block(DEV_BLOCK *b, const char *msg)
    int32_t  FileIndex;
    int32_t  Stream;
    int bhl, rhl;
+   char buf1[100], buf2[100];
 
    unser_begin(b->buf, BLKHDR1_LENGTH);
    unser_uint32(CheckSum);
@@ -89,8 +90,8 @@ void dump_block(DEV_BLOCK *b, const char *msg)
       unser_int32(Stream);
       unser_uint32(data_len);
       Pmsg6(000, _("   Rec: VId=%u VT=%u FI=%s Strm=%s len=%d p=%x\n"),
-           VolSessionId, VolSessionTime, FI_to_ascii(FileIndex),
-           stream_to_ascii(Stream, FileIndex), data_len, p);
+           VolSessionId, VolSessionTime, FI_to_ascii(buf1, FileIndex),
+           stream_to_ascii(buf2, Stream, FileIndex), data_len, p);
       p += data_len + rhl;
   }
 }
@@ -810,7 +811,7 @@ static bool do_dvd_size_checks(DCR *dcr)
       }
    }
    
-   if (dev->free_space_errno < 0) { /* Error while getting free space */
+   if (!dev->is_freespace_ok()) { /* Error while getting free space */
       char ed1[50], ed2[50];
       Dmsg1(10, "Cannot get free space on the device ERR=%s.\n", dev->errmsg);
       Jmsg(jcr, M_FATAL, 0, _("End of Volume \"%s\" at %u:%u on device %s "
@@ -819,11 +820,11 @@ static bool do_dvd_size_checks(DCR *dcr)
            dev->file, dev->block_num, dev->print_name(),
            edit_uint64_with_commas(dev->part_size, ed1), edit_uint64_with_commas(dev->free_space, ed2),
            dev->free_space_errno, dev->errmsg);
-      dev->dev_errno = -dev->free_space_errno;
+      dev->dev_errno = dev->free_space_errno;
       return false;
    }
    
-   if ((dev->free_space_errno > 0 && (dev->part_size + block->binbuf) >= dev->free_space)) {
+   if ((dev->is_freespace_ok() && (dev->part_size + block->binbuf) >= dev->free_space)) {
       char ed1[50], ed2[50];
       Dmsg0(10, "==== Just enough free space on the device to write the current part...\n");
       Jmsg(jcr, M_INFO, 0, _("End of Volume \"%s\" at %u:%u on device %s "
