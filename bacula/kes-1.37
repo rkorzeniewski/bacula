@@ -5,6 +5,8 @@ General:
 
 Changes to 1.37.41:
 13Oct05
+- Use a bigger buffer 32K as suggested by Arno in bpipe.c.
+- Increase dvd mount timeout with patch from Arno.
 - Modify DVD code so that it keeps a state flag that indicates
   when the freespace variable is valid. freespace_errno, now has
   either 0 or an errno. There are no negative errnos.

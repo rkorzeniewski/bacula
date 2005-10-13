@@ -314,6 +314,8 @@ int run_program_full_output(char *prog, int wait, POOLMEM *results)
    int stat1, stat2;
    char *mode;
    POOLMEM* tmp;
+   char *buf;
+   const int bufsize = 32000;
 
    if (results == NULL) {
       return run_program(prog, wait, NULL);
@@ -322,6 +324,7 @@ int run_program_full_output(char *prog, int wait, POOLMEM *results)
    sm_check(__FILE__, __LINE__, false);
 
    tmp = get_pool_memory(PM_MESSAGE);
+   buf = (char *)malloc(bufsize+1);
    
    mode = (char *)"r";
    bpipe = open_bpipe(prog, wait, mode);
@@ -335,7 +338,6 @@ int run_program_full_output(char *prog, int wait, POOLMEM *results)
    sm_check(__FILE__, __LINE__, false);
    tmp[0] = 0;
    while (1) {
-      char buf[1000];
       fgets(buf, sizeof(buf), bpipe->rfd);
       pm_strcat(tmp, buf);
       if (feof(bpipe->rfd)) {
@@ -369,6 +371,7 @@ int run_program_full_output(char *prog, int wait, POOLMEM *results)
    
    Dmsg1(900, "Run program returning %d\n", stat);
    free_pool_memory(tmp);
+   free(buf);
    return stat1;
 }
 

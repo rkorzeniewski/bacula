@@ -311,11 +311,13 @@ bool dvd_write_part(DCR *dcr)
    edit_device_codes_dev(dev, ocmd, icmd);
       
    /*
-    * Wait at most the time a maximum size part is written in DVD 0.5x speed
-    * FIXME: Minimum speed should be in device configuration 
+    * original line follows
+    * timeout = dev->max_open_wait + (dev->max_part_size/(1350*1024/2));
+    * I modified this for a longer timeout; pre-formatting, blanking and
+    * writing can take quite a while
     */
-   timeout = dev->max_open_wait + (dev->max_part_size/(1350*1024/2));
-   
+   timeout = dev->max_open_wait + (dev->max_part_size/(1350*1024)*8);
+
    Dmsg2(29, "dvd_write_part: cmd=%s timeout=%d\n", ocmd.c_str(), timeout);
       
    {
