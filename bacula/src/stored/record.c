@@ -36,9 +36,8 @@ extern int debug_level;
  *   record as a Label, otherwise it is simply
  *   the FileIndex of the current file.
  */
-const char *FI_to_ascii(int fi)
+const char *FI_to_ascii(char *buf, int fi)
 {
-   static char buf[20];
    if (fi >= 0) {
       sprintf(buf, "%d", fi);
       return buf;
@@ -75,9 +74,8 @@ const char *FI_to_ascii(int fi)
  *   dealing with a Label, hence the
  *   stream is the JobId.
  */
-const char *stream_to_ascii(int stream, int fi)
+const char *stream_to_ascii(char *buf, int stream, int fi)
 {
-    static char buf[20];
     if (fi < 0) {
        sprintf(buf, "%d", stream);
        return buf;
@@ -201,6 +199,7 @@ bool write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec)
 {
    ser_declare;
    uint32_t remlen;
+   char buf1[100], buf2[100];
 
    remlen = block->buf_len - block->binbuf;
 
@@ -209,8 +208,8 @@ bool write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec)
 
    Dmsg6(890, "write_record_to_block() FI=%s SessId=%d Strm=%s len=%d\n"
 "rem=%d remainder=%d\n",
-      FI_to_ascii(rec->FileIndex), rec->VolSessionId,
-      stream_to_ascii(rec->Stream, rec->FileIndex), rec->data_len,
+      FI_to_ascii(buf1, rec->FileIndex), rec->VolSessionId,
+      stream_to_ascii(buf2, rec->Stream, rec->FileIndex), rec->data_len,
       remlen, rec->remainder);
 
    /*
@@ -320,8 +319,8 @@ bool write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec)
             /* We damaged a buffer */
             Dmsg6(0, "Damaged block FI=%s SessId=%d Strm=%s len=%d\n"
 "rem=%d remainder=%d\n",
-               FI_to_ascii(rec->FileIndex), rec->VolSessionId,
-               stream_to_ascii(rec->Stream, rec->FileIndex), rec->data_len,
+               FI_to_ascii(buf1, rec->FileIndex), rec->VolSessionId,
+               stream_to_ascii(buf2, rec->Stream, rec->FileIndex), rec->data_len,
                remlen, rec->remainder);
             Dmsg5(0, "Damaged block: bufp=%x binbuf=%d buf_len=%d rem=%d moved=%d\n",
                block->bufp, block->binbuf, block->buf_len, block->buf_len-block->binbuf,
@@ -390,6 +389,7 @@ bool read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
    int32_t  Stream;
    uint32_t data_bytes;
    uint32_t rhl;
+   char buf1[100], buf2[100];
 
    remlen = block->binbuf;
    rec->Block = block->BlockNumber;
@@ -473,8 +473,8 @@ bool read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
 
       Dmsg6(450, "rd_rec_blk() got FI=%s SessId=%d Strm=%s len=%u\n"
                  "remlen=%d data_len=%d\n",
-         FI_to_ascii(rec->FileIndex), rec->VolSessionId,
-         stream_to_ascii(rec->Stream, rec->FileIndex), data_bytes, remlen,
+         FI_to_ascii(buf1, rec->FileIndex), rec->VolSessionId,
+         stream_to_ascii(buf2, rec->Stream, rec->FileIndex), data_bytes, remlen,
          rec->data_len);
    } else {
       /*
@@ -522,7 +522,7 @@ bool read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
    }
    rec->remainder = 0;
    Dmsg4(450, "Rtn full rd_rec_blk FI=%s SessId=%d Strm=%s len=%d\n",
-      FI_to_ascii(rec->FileIndex), rec->VolSessionId,
-      stream_to_ascii(rec->Stream, rec->FileIndex), rec->data_len);
+      FI_to_ascii(buf1, rec->FileIndex), rec->VolSessionId,
+      stream_to_ascii(buf2, rec->Stream, rec->FileIndex), rec->data_len);
    return true;                       /* transferred full record */
 }

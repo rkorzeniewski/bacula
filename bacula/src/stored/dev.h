@@ -113,6 +113,7 @@ enum {
 #define ST_MEDIA           (1<<16)    /* Media found in mounted device */
 #define ST_OFFLINE         (1<<17)    /* set offline by operator */
 #define ST_PART_SPOOLED    (1<<18)    /* spooling part */
+#define ST_FREESPACE_OK    (1<<19)    /* Have valid freespace for DVD */
 
 /* dev_blocked states (mutually exclusive) */
 enum {
@@ -225,11 +226,9 @@ public:
    uint32_t part;                     /* current part number (starts at 0) */
    uint64_t part_start;               /* current part start address (relative to the whole volume) */
    uint32_t num_parts;                /* number of parts WRITTEN on the DVD */
+   /* state ST_FREESPACE_OK is set if free_space is valid */
    uint64_t free_space;               /* current free space on medium (without the current part) */
-   int free_space_errno;              /* indicates:
-                                       * - free_space_errno == 0: ignore free_space.
-                                       * - free_space_errno < 0: an error occured. 
-                                       * - free_space_errno > 0: free_space is valid. */
+   int free_space_errno;              /* indicates errno getting freespace */
    bool truncating;                   /* if set, we are currently truncating the DVD */
    
    
@@ -271,6 +270,7 @@ public:
    int at_eot() const { return state & ST_EOT; }
    int at_weot() const { return state & ST_WEOT; }
    int can_append() const { return state & ST_APPEND; }
+   int is_freespace_ok() const { return state & ST_FREESPACE_OK; }
    /*
     * can_write() is meant for checking at the end of a job to see
     * if we still have a tape (perhaps not if at end of tape
@@ -307,6 +307,7 @@ public:
    void set_mounted() { state |= ST_MOUNTED; };
    void set_media() { state |= ST_MEDIA; };
    void set_short_block() { state |= ST_SHORT; };
+   void set_freespace_ok() { state |= ST_FREESPACE_OK; }
    void set_part_spooled(int val) { if (val) state |= ST_PART_SPOOLED; \
           else state &= ~ST_PART_SPOOLED; };
    void set_mounted(int val) { if (val) state |= ST_MOUNTED; \
@@ -321,6 +322,7 @@ public:
    void clear_mounted() { state &= ~ST_MOUNTED; };
    void clear_media() { state &= ~ST_MEDIA; };
    void clear_short_block() { state &= ~ST_SHORT; };
+   void clear_freespace_ok() { state &= ~ST_FREESPACE_OK; }
 
    void block(int why); /* in dev.c */
    void unblock();      /* in dev.c */

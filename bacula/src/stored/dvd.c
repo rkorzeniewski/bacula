@@ -230,8 +230,10 @@ void update_free_space_dev(DEVICE* dev)
    if (!icmd) {
       dev->free_space = 0;
       dev->free_space_errno = 0;
+      dev->clear_freespace_ok();   /* No valid freespace */
       dev->clear_media();
-      Dmsg2(29, "update_free_space_dev: free_space=%d, free_space_errno=%d (!icmd)\n", dev->free_space, dev->free_space_errno);
+      Dmsg2(29, "update_free_space_dev: free_space=%s, free_space_errno=%d (!icmd)\n", 
+            edit_uint64(dev->free_space, ed1), dev->free_space_errno);
       return;
    }
    
@@ -250,14 +252,16 @@ void update_free_space_dev(DEVICE* dev)
          free = str_to_int64(results);
          if (free >= 0) {
             dev->free_space = free;
-            dev->free_space_errno = 1;
+            dev->free_space_errno = 0;
+            dev->set_freespace_ok();     /* have valid freespace */
             dev->set_media();
             Mmsg0(dev->errmsg, "");
             break;
          }
       }
       dev->free_space = 0;
-      dev->free_space_errno = -EPIPE;
+      dev->free_space_errno = EPIPE;
+      dev->clear_freespace_ok();         /* no valid freespace */
       Mmsg1(dev->errmsg, _("Cannot run free space command (%s)\n"), results);
       
       if (--timeout > 0) {
@@ -269,7 +273,7 @@ void update_free_space_dev(DEVICE* dev)
          continue;
       }
 
-      dev->dev_errno = -dev->free_space_errno;
+      dev->dev_errno = dev->free_space_errno;
       Dmsg4(40, "Cannot get free space on device %s. free_space=%s, "
          "free_space_errno=%d ERR=%s\n",
             dev->print_name(), edit_uint64(dev->free_space, ed1),
@@ -278,8 +282,8 @@ void update_free_space_dev(DEVICE* dev)
    }
    
    free_pool_memory(results);
-   Dmsg3(29, "update_free_space_dev: free_space=%s, free_space_errno=%d have_media=%d\n", 
-      edit_uint64(dev->free_space, ed1), dev->free_space_errno, dev->have_media());
+   Dmsg4(29, "update_free_space_dev: free_space=%s freespace_ok=%d free_space_errno=%d have_media=%d\n", 
+      edit_uint64(dev->free_space, ed1), !!dev->is_freespace_ok(), dev->free_space_errno, !!dev->have_media());
    sm_check(__FILE__, __LINE__, false);
    return;
 }
@@ -492,6 +496,7 @@ off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
 {
    DCR *dcr;
    off_t pos;
+   char ed1[50], ed2[50];
    
    Dmsg3(100, "Enter lseek_dev fd=%d part=%d nparts=%d\n", dev->fd,
       dev->part, dev->num_parts);
@@ -503,7 +508,8 @@ off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
    dcr = (DCR *)dev->attached_dcrs->first();  /* any dcr will do */
    switch(whence) {
    case SEEK_SET:
-      Dmsg2(100, "lseek_dev SEEK_SET to %d (part_start=%d)\n", (int)offset, (int)dev->part_start);
+      Dmsg2(100, "lseek_dev SEEK_SET to %s (part_start=%s)\n",
+         edit_uint64(offset, ed1), edit_uint64(dev->part_start, ed2));
       if ((uint64_t)offset >= dev->part_start) {
          if (((uint64_t)offset == dev->part_start) || ((uint64_t)offset < (dev->part_start+dev->part_size))) {
             /* We are staying in the current part, just seek */
@@ -535,20 +541,20 @@ off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
       }
       break;
    case SEEK_CUR:
-      Dmsg1(100, "lseek_dev SEEK_CUR to %d\n", (int)offset);
+      Dmsg1(100, "lseek_dev SEEK_CUR to %s\n", edit_uint64(offset, ed1));
       if ((pos = lseek(dev->fd, (off_t)0, SEEK_CUR)) < 0) {
          return pos;   
       }
       pos += dev->part_start;
       if (offset == 0) {
-         Dmsg1(100, "lseek_dev SEEK_CUR returns %d\n", pos);
+         Dmsg1(100, "lseek_dev SEEK_CUR returns %s\n", edit_uint64(pos, ed1));
          return pos;
       } else { /* Not used in Bacula, but should work */
          return lseek_dev(dev, pos, SEEK_SET);
       }
       break;
    case SEEK_END:
-      Dmsg1(100, "lseek_dev SEEK_END to %d\n", (int)offset);
+      Dmsg1(100, "lseek_dev SEEK_END to %s\n", edit_uint64(offset, ed1));
       /*
        * Bacula does not use offsets for SEEK_END
        *  Also, Bacula uses seek_end only when it wants to
@@ -557,7 +563,8 @@ off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
        *  itself is read-only (as currently implemented).
        */
       if (offset > 0) { /* Not used by bacula */
-         Dmsg1(100, "lseek_dev SEEK_END called with an invalid offset %d\n", (int)offset);
+         Dmsg1(100, "lseek_dev SEEK_END called with an invalid offset %s\n", 
+            edit_uint64(offset, ed1));
          errno = EINVAL;
          return -1;
       }
@@ -568,7 +575,8 @@ off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
          if ((pos = lseek(dev->fd, (off_t)0, SEEK_END)) < 0) {
             return pos;   
          } else {
-            Dmsg1(100, "lseek_dev SEEK_END returns %d\n", pos + dev->part_start);
+            Dmsg1(100, "lseek_dev SEEK_END returns %s\n", 
+                  edit_uint64(pos + dev->part_start, ed1));
             return pos + dev->part_start;
          }
       } else {
@@ -766,6 +774,7 @@ bool check_can_write_on_non_blank_dvd(DCR *dcr) {
  *  %% = %
  *  %a = archive device name
  *  %e = erase (set if cannot mount and first part)
+ *  %n = part number
  *  %m = mount point
  *  %v = last part name
  *
@@ -793,7 +802,7 @@ static void edit_device_codes_dev(DEVICE* dev, POOL_MEM &omsg, const char *imsg)
             str = dev->dev_name;
             break;
          case 'e':
-            if (dev->part == 0) {
+            if (dev->num_parts == 0) {
                str = "1";
             } else {
                str = "0";
