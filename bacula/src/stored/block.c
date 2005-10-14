@@ -682,7 +682,7 @@ static bool terminate_writing_volume(DCR *dcr)
    dcr->block->write_failed = true;
    if (weof_dev(dev, 1) != 0) {         /* end the tape */
       dev->VolCatInfo.VolCatErrors++;
-      Jmsg(dcr->jcr, M_ERROR, 0, _("Error writing final EOF to tape. This tape may not be readable.\n"
+      Jmsg(dcr->jcr, M_ERROR, 0, _("Error writing final EOF to tape. This Volume may not be readable.\n"
            "%s"), dev->errmsg);
       ok = false;
       Dmsg0(100, "WEOF error.\n");

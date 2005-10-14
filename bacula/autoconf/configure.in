@@ -1271,6 +1271,8 @@ AC_TRY_CPP([#include <sys/mount.h>
 fi
 AC_MSG_RESULT($fstype)
 
+AC_CHECK_HEADER(sys/statvfs.h, [ AC_DEFINE(HAVE_SYS_STATVFS_H,1,[Defines if your system have the sys/statvfs.h header file])] , )
+
 dnl# --------------------------------------------------------------------------
 dnl# CHECKING FOR TYPEDEFS, STRUCTURES, AND COMPILER CHARACTERISTICS.
 dnl# --------------------------------------------------------------------------
