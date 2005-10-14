@@ -5,6 +5,7 @@ General:
 
 Changes to 1.37.*:
 14Oct05
+ - dvd.c:dvd_write_part: Use part_size and not max_part_size when setting write timeout.
  - dvd.c:do_mount_dev: When checking if the DVD is mounted, do not count ., .. and .keep (needed on Gentoo).
 15Aug05
  - Convert dvd-writepart to Python.
