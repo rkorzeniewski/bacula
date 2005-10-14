@@ -182,15 +182,21 @@ static bool do_mount_dev(DEVICE* dev, int mount, int dotimeout)
                   dev->device->mount_point, dev->print_name());
             break;
          }
-         count++;
+         if ((strcmp(result->d_name, ".")) && (strcmp(result->d_name, "..")) && (strcmp(result->d_name, ".keep"))) {
+            count++; /* result->d_name != ., .. or .keep (Gentoo-specific) */
+         }
+         else {
+            Dmsg2(129, "open_mounted_dev: ignoring %s in %s\n", 
+                  result->d_name, dev->device->mount_point);
+         }
       }
       free(entry);
       closedir(dp);
       
-      Dmsg1(29, "open_mounted_dev: got %d files in the mount point\n", count);
+      Dmsg1(29, "open_mounted_dev: got %d files in the mount point (not counting ., .. and .keep)\n", count);
       
-      if (count > 2) {
-         mount = 1;                      /* If we got more than . and .. */
+      if (count > 0) {
+         mount = 1;                      /* If we got more than ., .. and .keep */
          break;                          /*   there must be something mounted */
       }
 get_out:
