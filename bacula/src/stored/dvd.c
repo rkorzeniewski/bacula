@@ -323,8 +323,10 @@ bool dvd_write_part(DCR *dcr)
     * timeout = dev->max_open_wait + (dev->max_part_size/(1350*1024/2));
     * I modified this for a longer timeout; pre-formatting, blanking and
     * writing can take quite a while
+    *
+    * NB: Use part_size and not max_part_size, needed when you don't set max part size (so it defaults to 0)
     */
-   timeout = dev->max_open_wait + (dev->max_part_size/(1350*1024)*8);
+   timeout = dev->max_open_wait + (dev->part_size/(1350*1024)*8);
 
    Dmsg2(29, "dvd_write_part: cmd=%s timeout=%d\n", ocmd.c_str(), timeout);
       
