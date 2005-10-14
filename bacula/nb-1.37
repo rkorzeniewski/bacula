@@ -4,6 +4,8 @@
 General:
 
 Changes to 1.37.*:
+14Oct05
+ - dvd.c:do_mount_dev: When checking if the DVD is mounted, do not count ., .. and .keep (needed on Gentoo).
 15Aug05
  - Convert dvd-writepart to Python.
  - Increase delay from 3 seconds to 5 seconds between SIGTERM and SIGKILL when
