@@ -305,6 +305,8 @@ bool dvd_write_part(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
    POOL_MEM ocmd(PM_FNAME);
+   POOL_MEM results(PM_MESSAGE);
+   POOL_MEM archive_name(PM_FNAME);
    char* icmd;
    int status;
    int timeout;
@@ -326,30 +328,24 @@ bool dvd_write_part(DCR *dcr)
 
    Dmsg2(29, "dvd_write_part: cmd=%s timeout=%d\n", ocmd.c_str(), timeout);
       
-   {
-      POOL_MEM results(PM_MESSAGE);
+   status = run_program_full_output(ocmd.c_str(), timeout, results.c_str());
+   if (status != 0) {
+      Mmsg1(dev->errmsg, _("Error while writing current part to the DVD: %s"), 
+            results.c_str());
+      Dmsg1(000, "%s", dev->errmsg);
+      dev->dev_errno = EIO;
+      mark_volume_in_error(dcr);
       sm_check(__FILE__, __LINE__, false);
-      status = run_program_full_output(ocmd.c_str(), timeout, results.c_str());
-      sm_check(__FILE__, __LINE__, false);
-      if (status != 0) {
-         Mmsg1(dev->errmsg, _("Error while writing current part to the DVD: %s"), 
-               results.c_str());
-         Dmsg1(000, "%s", dev->errmsg);
-         dev->dev_errno = EIO;
-         mark_volume_in_error(dcr);
-         return false;
-      }
-      sm_check(__FILE__, __LINE__, false);
+      return false;
+   } else {
+      dev->num_parts++;            /* there is no one more part on DVD */
    }
 
-   {
-      POOL_MEM archive_name(PM_FNAME);
-      /* Delete spool file */
-      make_spooled_dvd_filename(dev, archive_name);
-      unlink(archive_name.c_str());
-      Dmsg1(29, "unlink(%s)\n", archive_name.c_str());
-      sm_check(__FILE__, __LINE__, false);
-   }
+   /* Delete spool file */
+   make_spooled_dvd_filename(dev, archive_name);
+   unlink(archive_name.c_str());
+   Dmsg1(29, "unlink(%s)\n", archive_name.c_str());
+   sm_check(__FILE__, __LINE__, false);
    
    /* growisofs umounted the device, so remount it (it will update the free space) */
    dev->clear_mounted();
@@ -397,6 +393,7 @@ int dvd_open_next_part(DCR *dcr)
     */
    if (dev->is_dvd() && (dev->part >= dev->num_parts) && dev->can_append()) {
       if (!dvd_write_part(dcr)) {
+         Dmsg0(29, "Error in dvd_write part.\n");
          return -1;
       }
    }
@@ -429,8 +426,7 @@ int dvd_open_next_part(DCR *dcr)
          }
       }
 
-      Dmsg2(100, "Set npart=%d to part=%d\n", dev->num_parts, dev->part);
-      dev->num_parts = dev->part;
+      Dmsg2(100, "num_parts=%d part=%d\n", dev->num_parts, dev->part);
       dev->VolCatInfo.VolCatParts = dev->part;
       make_spooled_dvd_filename(dev, archive_name);   /* makes spool name */
       
@@ -447,6 +443,11 @@ int dvd_open_next_part(DCR *dcr)
          }
       }
    }
+   /* KES.  It seems to me that this if should not be
+    *  needed. If num_parts represents what is on the DVD
+    *  we should only need to change it when writing a part
+    *  to the DVD.
+    */
    if (dev->num_parts < dev->part) {
       Dmsg2(100, "Set npart=%d to part=%d\n", dev->num_parts, dev->part);
       dev->num_parts = dev->part;

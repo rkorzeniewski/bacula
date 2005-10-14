@@ -4,6 +4,9 @@
 General:
 
 Changes to 1.37.41:
+14Oct05
+- Add NetBSD fstype patch from Geert Hendrickx <ghen@telenet.be>
+- Update num_parts only when writing to DVD.
 13Oct05
 - Fix error conditions in bpipe.c DVD routine (terminate buffer).
 - Use a bigger buffer 32K as suggested by Arno in bpipe.c.

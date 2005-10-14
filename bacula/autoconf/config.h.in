@@ -96,6 +96,9 @@
    very expensive.  */
 #undef CACHE_IDS
 
+/* Define if you have the <sys/statvfs.h> header file */
+#undef HAVE_SYS_STATVFS_H
+
 /* Define to use SVR4 statvfs to get filesystem type.  */
 #undef FSTYPE_STATVFS
 
@@ -776,9 +779,9 @@
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
    automatically deduced at run-time.
-	STACK_DIRECTION > 0 => grows toward higher addresses
-	STACK_DIRECTION < 0 => grows toward lower addresses
-	STACK_DIRECTION = 0 => direction of growth unknown */
+        STACK_DIRECTION > 0 => grows toward higher addresses
+        STACK_DIRECTION < 0 => grows toward lower addresses
+        STACK_DIRECTION = 0 => direction of growth unknown */
 #undef STACK_DIRECTION
 
 /* Define to 1 if the `S_IS*' macros in <sys/stat.h> do not work properly. */

@@ -45,19 +45,19 @@
    "HAVE_NETBSD_OS\n" \
    "HAVE_OPENBSD_OS\n" \
    "HAVE_SUN_OS\n"
-#define bool		   int
-#define false		   0
-#define true		   1
-#define bstrncpy	   strncpy
-#define Dmsg0(n,s)	   fprintf(stderr, s)
-#define Dmsg1(n,s,a1)	   fprintf(stderr, s, a1)
+#define bool               int
+#define false              0
+#define true               1
+#define bstrncpy           strncpy
+#define Dmsg0(n,s)         fprintf(stderr, s)
+#define Dmsg1(n,s,a1)      fprintf(stderr, s, a1)
 #define Dmsg2(n,s,a1,a2)   fprintf(stderr, s, a1, a2)
 #endif
 
 /*
  * These functions should be implemented for each OS
  *
- *	 bool fstype(const char *fname, char *fs, int fslen);
+ *       bool fstype(const char *fname, char *fs, int fslen);
  */
 #if defined(HAVE_DARWIN_OS) \
    || defined(HAVE_FREEBSD_OS ) \
@@ -79,6 +79,11 @@ bool fstype(const char *fname, char *fs, int fslen)
 #elif defined(HAVE_NETBSD_OS)
 #include <sys/param.h>
 #include <sys/mount.h>
+#ifdef HAVE_SYS_STATVFS_H
+#include <sys/statvfs.h>
+#else
+#define statvfs statfs
+#endif
 
 bool fstype(const char *fname, char *fs, int fslen)
 {
@@ -126,7 +131,7 @@ bool fstype(const char *fname, char *fs, int fslen)
 
       /* Known good values */
       case 0xef53:         bstrncpy(fs, "ext2", fslen); return true;          /* EXT2_SUPER_MAGIC */
-   /* case 0xef53:	   ext2 and ext3 are the same */		      /* EXT3_SUPER_MAGIC */
+   /* case 0xef53:         ext2 and ext3 are the same */                      /* EXT3_SUPER_MAGIC */
       case 0x3153464a:     bstrncpy(fs, "jfs", fslen); return true;           /* JFS_SUPER_MAGIC */
       case 0x5346544e:     bstrncpy(fs, "ntfs", fslen); return true;          /* NTFS_SB_MAGIC */
       case 0x9fa0:         bstrncpy(fs, "proc", fslen); return true;          /* PROC_SUPER_MAGIC */
@@ -137,7 +142,7 @@ bool fstype(const char *fname, char *fs, int fslen)
       case 0x517B:         bstrncpy(fs, "smbfs", fslen); return true;         /* SMB_SUPER_MAGIC */
       case 0x9660:         bstrncpy(fs, "iso9660", fslen); return true;       /* ISOFS_SUPER_MAGIC */
 
-#if 0	    /* These need confirmation */
+#if 0       /* These need confirmation */
       case 0xadf5:         bstrncpy(fs, "adfs", fslen); return true;          /* ADFS_SUPER_MAGIC */
       case 0xadff:         bstrncpy(fs, "affs", fslen); return true;          /* AFFS_SUPER_MAGIC */
       case 0x6B414653:     bstrncpy(fs, "afs", fslen); return true;           /* AFS_FS_MAGIC */
@@ -199,8 +204,8 @@ bool fstype(const char *fname, char *fs, int fslen)
 
       default:
          Dmsg2(10, "Unknown file system type \"0x%x\" for \"%s\".\n", st.f_type,
-	       fname);
-	 return false;
+               fname);
+         return false;
       }
    }
    Dmsg1(50, "statfs() failed for \"%s\"\n", fname);
@@ -247,14 +252,14 @@ bool fstype(const char *fname, char *fs, int fslen)
 }
 /* Tru64 */
 
-#else	 /* No recognised OS */
+#else    /* No recognised OS */
 
 bool fstype(const char *fname, char *fs, int fslen)
 {
    Dmsg0(10, "!!! fstype() not implemented for this OS. !!!\n");
 #ifdef TEST_PROGRAM
    Dmsg1(10, "Please define one of the following when compiling:\n\n%s\n",
-	 SUPPORTEDOSES);
+         SUPPORTEDOSES);
    exit(EXIT_FAILURE);
 #endif
 
@@ -273,12 +278,12 @@ int main(int argc, char **argv)
       p = (argc < 1) ? "fstype" : argv[0];
       printf("usage:\t%s path ...\n"
             "\t%s prints the file system type and pathname of the paths.\n",
-	    p, p);
+            p, p);
       return EXIT_FAILURE;
    }
    while (*++argv) {
       if (!fstype(*argv, fs, sizeof(fs))) {
-	 status = EXIT_FAILURE;
+         status = EXIT_FAILURE;
       } else {
          printf("%s\t%s\n", fs, *argv);
       }
