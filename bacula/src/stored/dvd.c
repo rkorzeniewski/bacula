@@ -304,9 +304,32 @@ void update_free_space_dev(DEVICE* dev)
 bool dvd_write_part(DCR *dcr) 
 {
    DEVICE *dev = dcr->dev;
+   POOL_MEM archive_name(PM_FNAME);
+   
+   /* Don't write empty part files.
+    * This is only useful when growisofs does not support write beyond
+    * the 4GB boundary.
+    * Example :
+    *   - 3.9 GB on the volume, dvd-freespace reports 0.4 GB free
+    *   - Write 0.2 GB on the volume, Bacula thinks it could still
+    *     append data, it creates a new empty part.
+    *   - dvd-freespace reports 0 GB free, as the 4GB boundary has
+    *     been crossed
+    *   - Bacula thinks he must finish to write to the device, so it
+    *     tries to write the last part (0-byte), but dvd-writepart fails...
+    */
+   if (dev->part_size == 0) {
+      Dmsg3(29, "dvd_write_part: device is %s, won't write blank part %d\n", dev->print_name(), dev->part);
+      /* Delete spool file */
+      make_spooled_dvd_filename(dev, archive_name);
+      unlink(archive_name.c_str());
+      Dmsg1(29, "unlink(%s)\n", archive_name.c_str());
+      sm_check(__FILE__, __LINE__, false);
+      return true;
+   }
+   
    POOL_MEM ocmd(PM_FNAME);
    POOL_MEM results(PM_MESSAGE);
-   POOL_MEM archive_name(PM_FNAME);
    char* icmd;
    int status;
    int timeout;
@@ -340,7 +363,7 @@ bool dvd_write_part(DCR *dcr)
       sm_check(__FILE__, __LINE__, false);
       return false;
    } else {
-      dev->num_parts++;            /* there is no one more part on DVD */
+      dev->num_parts++;            /* there is now one more part on DVD */
    }
 
    /* Delete spool file */

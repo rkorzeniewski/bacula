@@ -4,6 +4,8 @@
 General:
 
 Changes to 1.37.*:
+16Oct05
+ - dvd.c:dvd_write_part: Don't write empty part. (Fix 4GB crossing bug reported by Arno Lehmann)
 14Oct05
  - dvd.c:dvd_write_part: Use part_size and not max_part_size when setting write timeout.
  - dvd.c:do_mount_dev: When checking if the DVD is mounted, do not count ., .. and .keep (needed on Gentoo).
