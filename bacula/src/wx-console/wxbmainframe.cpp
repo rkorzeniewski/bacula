@@ -679,6 +679,8 @@ void wxbMainFrame::Print(wxString str, int status)
                   Send(wxString() << choices[res] << wxT("\n"));
                }
             }
+            delete choices;
+            delete numbers;
          }
          else {
             Send(::wxGetTextFromUser(message,

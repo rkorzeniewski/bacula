@@ -725,7 +725,60 @@ void wxbRestorePanel::CmdStart() {
       int j;
       
       dt = new wxbDataTokenizer(true);
-      wxbUtils::WaitForPrompt(wxT("done\n"));
+      wxbPromptParser* promptparser = wxbUtils::WaitForPrompt(wxT("done\n"), true);
+
+      while (!promptparser->getChoices() || (promptparser->getChoices()->Index(wxT("mod")) < 0)) {
+         wxbMainFrame::GetInstance()->Print(_("Unexpected question has been received.\n"), CS_DEBUG);
+         
+         wxString message;
+         if (promptparser->getIntroString() != wxT("")) {
+            message << promptparser->getIntroString() << wxT("\n");
+         }
+         message << promptparser->getQuestionString();
+         
+         if (promptparser->getChoices()) {
+            wxString *choices = new wxString[promptparser->getChoices()->GetCount()];
+            int *numbers = new int[promptparser->getChoices()->GetCount()];
+            int n = 0;
+            
+            for (unsigned int i = 0; i < promptparser->getChoices()->GetCount(); i++) {
+               if ((*promptparser->getChoices())[i] != wxT("")) {
+                  choices[n] = (*promptparser->getChoices())[i];
+                  numbers[n] = i;
+                  n++;
+               }
+            }
+            
+            int res = ::wxGetSingleChoiceIndex(message,
+               _("wx-console: unexpected restore question."), n, choices, this);
+            if (res == -1) {
+               delete promptparser;
+               promptparser = wxbUtils::WaitForPrompt(wxT(".\n"), true);
+            }
+            else {
+               if (promptparser->isNumericalChoice()) {
+                  delete promptparser;
+                  promptparser = wxbUtils::WaitForPrompt(wxString() << numbers[res] << wxT("\n"), true);
+               }
+               else {
+                  delete promptparser;
+                  promptparser = wxbUtils::WaitForPrompt(wxString() << choices[res] << wxT("\n"), true);
+               }
+            }
+            delete choices;
+            delete numbers;
+         }
+         else {
+            delete promptparser;
+            
+            promptparser = wxbUtils::WaitForPrompt(::wxGetTextFromUser(message,
+               _("wx-console: unexpected restore question."),
+               wxT(""), this) + wxT("\n"));
+         }
+      }
+      printf("promptparser->getChoices()=%ld", (long)promptparser->getChoices());
+      
+      delete promptparser;
 
       SetStatus(configuring);
 
