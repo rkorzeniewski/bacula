@@ -1260,11 +1260,13 @@ void wxbRestorePanel::CmdListJobs() {
       
       delete dt;
 
+      wxDateTime lastdatetime = (time_t) 0;
       for (int i = tableparser->GetCount()-1; i > -1; i--) {
          wxString str = (*tableparser)[i][3];
          wxDateTime datetime;
          const wxChar* chr;
-         if ( ( (chr = datetime.ParseDate(str.GetData()) ) != NULL ) && ( datetime.ParseTime(++chr) != NULL ) ) {
+         if ( ( (chr = datetime.ParseDate(str.GetData()) ) != NULL ) && ( datetime.ParseTime(++chr) != NULL ) && ! lastdatetime.IsEqualTo(datetime) ) {
+            lastdatetime = datetime;
             datetime += wxTimeSpan::Seconds(1);
             configPanel->AddRowChoice(_("Before"),
                datetime.Format(wxT("%Y-%m-%d %H:%M:%S")));
