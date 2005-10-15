@@ -15,18 +15,27 @@
 # $Id$
 
 # Configurable values:
-df="@DF@"
-dvdrwmediainfo="@DVDRWMEDIAINFO@"
+growcmd = "@GROWISOFS@"
+
+growcmd += " -use-the-force-luke=tty"
+growcmd += " -quiet"
 
 margin=10485760 # 10 mb security margin
 
+#### You should probably not modify anything below this line
 
-# end of configurable values
+# Example :
+# growisofs -F /dev/your_device
+#
+# Executing 'mkisofs | builtin_dd of=/dev/hde obs=32k seek=0'
+# next_session=0
+# capacity=4700372992
 
 import popen2
 import os
 import errno
 import sys
+import re
 
 if len(sys.argv) < 2:
    print "Wrong number of arguments."
@@ -34,87 +43,76 @@ if len(sys.argv) < 2:
 
 device=sys.argv[1]
 
-def gettotalsize():
-   cmd=dvdrwmediainfo + " " + device
-   processi = popen2.Popen4(cmd)
+def is4gbsupported():
+   processi = popen2.Popen4("uname -s -r")
+   status = processi.wait()
+   if not os.WIFEXITED(status):
+#      print "dvd-writepart: Cannot execute uname, allowing to cross the 4gb boundary."
+      return 1
+   if os.WEXITSTATUS(status) != 0:
+#      print "dvd-writepart: Cannot execute uname, allowing to cross the 4gb boundary."
+      return 1
+   strres = processi.fromchild.readline()[0:-1]
+   res = strres.split(" ")
+   if len(res) != 2:
+#      print "dvd-writepart: Unable to parse uname (" + strres + "), allowing to cross the 4gb boundary."
+      return 1
+   if res[0] != "Linux":
+#      print "dvd-writepart: The current OS is no Linux, allowing to cross the 4gb boundary."
+      return 1
+   ver = res[1].split(".")
+   if len(ver) < 3:
+#      print "dvd-writepart: Unable to parse version string (" + res[1] + "), allowing to cross the 4gb boundary."
+      return 1
+   subver = ver[2].split("-")
+   
+   if ((not ver[0].isdigit()) or (not ver[1].isdigit()) or (not subver[0].isdigit())):
+#      print "dvd-writepart: Unable to parse version string (" + res[1] + "), allowing to cross the 4gb boundary."
+      return 1
+   
+   if (int(ver[0]) > 2) or (int(ver[1]) > 6) or ((int(ver[0]) == 2) and (int(ver[1]) == 6) and (int(subver[0]) >= 8)):
+#      print "dvd-writepart: Kernel version >=2.6.8, allowing to cross the 4gb boundary."
+      return 1
+   else:
+#      print "dvd-writepart: Kernel version <2.6.8, not allowing to cross the 4gb boundary."
+      return 0
+
+def getfreespace():
+   processi = popen2.Popen4(growcmd)
    status = processi.wait()
    if not os.WIFEXITED(status):
       print -errno.EPIPE
-      print dvdrwmediainfo + " process did not exit correctly."
+      print growcmd + " process did not exit correctly."
       sys.exit(0)
+   result = processi.fromchild.read()
    if os.WEXITSTATUS(status) != 0:
-      print -errno.EPIPE
-      print "Cannot get media info from " + dvdrwmediainfo
+      if (os.WEXITSTATUS(status) & 0x7F) == errno.ENOSPC:
+         print 0
+         print growcmd + " returned with an errno.ENOSPC"
+      else:
+         print -os.WEXITSTATUS(status)
+         print growcmd + " returned with an error"
+         print result
       sys.exit(0)
-   while 1:
-      result = processi.fromchild.readline()
-      if result.find("Track Size:") > -1:
-	 index = result.find("*2KB")
-	 if index > 0: 
-	    return long(result[12:index]) * 2048
-	 else:
-	    print -errno.EPIPE
-	    print "Invalid format in media info lead-out line from " + dvdrwmediainfo
-	    sys.exit(0)
-      if result.find("Legacy lead-out at:") > -1:
-	 index = result.find("=")
-	 if index > -1:
-	    res = result[index+1:-1]
-	    if not res.isdigit():
-	       print -errno.EPIPE
-	       print "Invalid format in media info lead-out line from " + dvdrwmediainfo
-	       sys.exit(0)
-	    return long(res)
-	 else:
-	    print -errno.EPIPE
-	    print "Invalid format in media info lead-out line from " + dvdrwmediainfo
-	    sys.exit(0)
-      if not result:
-	 print -errno.EPIPE
-	 print "Cannot get media lead-out index from " + dvdrwmediainfo
-	 sys.exit(0)
+   next_session = re.search(r"\snext_session=(\d+)\s", result, re.MULTILINE)
+   capacity = re.search(r"\capacity=(\d+)\s", result, re.MULTILINE)
 
-def getcurrentsize():
-   cmd=df + " " + device
-   process = popen2.Popen4(cmd)
-   status = process.wait()
-   if not os.WIFEXITED(status):
-      print -errno.EPIPE
-      print df + " process did not not exit correctly."
-      sys.exit(0)
-
-   exitstat = os.WEXITSTATUS(status) & ~0x80
-   if exitstat == errno.ENOSPC:
-      print "0"
-      print os.strerror(exitstat)
-      sys.exit(0)
-   if exitstat != 0:
-      print -exitstat
-      print os.strerror(exitstat)
-      sys.exit(0)
-   size = 0
-   while 1:
-      result = process.fromchild.readline()
-      if not result:
+   if next_session and capacity:
+      # testing cheat (emulate 4GB boundary at 100MB)
+      if long(next_session.group(1)) > 100000000:
          return 0
-      index = result.find(device)
-      if index > -1: 
-         while result[index] != ' ':
-            index += 1
-         while result[index] == ' ':
-	    index += 1
-         eindex = index;
-         while result[eindex] != ' ':
-	    eindex += 1
-         res = result[index:eindex] 
-         if not res.isdigit():
-	    print -errno.EPIPE;
-   	    print "Could not find size in df output"
-	    sys.exit(0)
-         return long(res)*1024
-         break
+      return long(capacity.group(1))-long(next_session.group(1))
+   else:
+      print -errno.EPIPE
+      print "Cannot get media lead-out index from " + dvdrwmediainfo
+      sys.exit(0)
 
-size = gettotalsize()-(getcurrentsize()+margin)
+if is4gbsupported():
+   growcmd += " -use-the-force-luke=4gms"
+
+growcmd += " -F " + device
+
+size = getfreespace()-margin
 if size < 0:
    size = 0
 print size
