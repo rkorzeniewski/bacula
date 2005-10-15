@@ -1127,7 +1127,7 @@ void wxbRestorePanel::CmdConfigApply() {
          dt = new wxbDataTokenizer(true);
          wxbUtils::WaitForPrompt(wxString() << fileset << wxT("\n"));
          def = wxT("1");
-         cfgUpdated = cfgUpdated & (~(1 << ConfigFileset));
+         cfgUpdated = cfgUpdated & (~(1 << ConfigStorage));
       }
       else {
          cfgUpdated = 0;
