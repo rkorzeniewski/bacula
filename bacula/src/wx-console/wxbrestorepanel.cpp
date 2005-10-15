@@ -1361,6 +1361,8 @@ void wxbRestorePanel::CmdMark(wxTreeItemId treeitem, long* listitems, int listsi
          for (int i = 0; i < listsize; i++) {
             SetListItemState(listitems[i], state);
          }
+         listadd->Enable(state == 0);
+         listremove->Enable(state == 1);
          /*UpdateTree(treeitem, (tree->GetSelection() == treeitem));
          treeitem = tree->GetItemParent(treeitem);*/
       }
