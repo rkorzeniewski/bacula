@@ -317,8 +317,11 @@ bool dvd_write_part(DCR *dcr)
     *     been crossed
     *   - Bacula thinks he must finish to write to the device, so it
     *     tries to write the last part (0-byte), but dvd-writepart fails...
+    *
+    * There is one exception: when recycling a volume, we write a blank part
+    * file, so, then, we need to accept to write it.
     */
-   if (dev->part_size == 0) {
+   if ((dev->part_size == 0) && (dev->part > 0)) {
       Dmsg2(29, "dvd_write_part: device is %s, won't write blank part %d\n", dev->print_name(), dev->part);
       /* Delete spool file */
       make_spooled_dvd_filename(dev, archive_name);
@@ -724,6 +727,11 @@ bool truncate_dvd_dev(DCR *dcr) {
       return false;
    }
    
+   /* Set num_parts to zero (on disk) */
+   dev->num_parts = 0;
+   dcr->VolCatInfo.VolCatParts = 0;
+   dev->VolCatInfo.VolCatParts = 0;
+   
    if (dvd_open_first_part(dcr, OPEN_READ_WRITE) < 0) {
       Dmsg0(100, "truncate_dvd_dev: Error while opening first part (2).\n");
       return false;
@@ -748,7 +756,7 @@ bool check_can_write_on_non_blank_dvd(DCR *dcr) {
    if (name_max < 1024) {
       name_max = 1024;
    }
-         
+   
    if (!(dp = opendir(dev->device->mount_point))) {
       berrno be;
       dev->dev_errno = errno;
