@@ -5,6 +5,8 @@ General:
 
 Changes to 1.37.*:
 16Oct05
+ - Remove scripts/dvd-freespace and scripts/dvd-writepart, as they are now
+   merged into scripts/dvd-handler. Note: Documentation needs to be updated.
  - scripts/dvd-handler: "zero" brand-new DVD+/-RW to fix a problem with some
    DVD-writers, thanks to Arno Lehmann for reporting this, and providing the
    way to fix it.
