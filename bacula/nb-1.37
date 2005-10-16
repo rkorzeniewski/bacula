@@ -5,6 +5,7 @@ General:
 
 Changes to 1.37.*:
 16Oct05
+ - new scripts/dvd-handler. Note: it also needs a patched version of dvd+rw-tools.
  - new scripts/dvd-freespace. Note: it needs a patched version of dvd+rw-tools.
  - dvd.c:dvd_write_part: Don't write empty part. (Fix 4GB crossing bug reported by Arno Lehmann)
 14Oct05
