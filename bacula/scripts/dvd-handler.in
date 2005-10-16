@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!@PYTHON@
 #
 # Check the free space available on a writable DVD
 # Should always exit with 0 status, otherwise it indicates a serious error.
@@ -107,7 +107,7 @@ class disk:
 #                This method should also prepare a blank disk so that a
 #                certain part of the disk is used to allow detection of a
 #                used disk by all / more disk drives.
-# blank          NOT IMPLEMENTED
+# blank          Blank the device
 #
 ###############################################################################
    def __init__(self, devicename):
@@ -153,17 +153,17 @@ class disk:
             self.freespace_collected = 1
             return
          else:
-            raise DVDError(os.WEXITSTATUS(status), "growisofs returned with an error " + result)
+            raise DVDError(os.WEXITSTATUS(status), "growisofs returned with an error " + result + ". Please check your are using a patched version of dvd+rw-tools.")
       next_sess = re.search(r"\snext_session=(\d+)\s", result, re.MULTILINE)
       capa = re.search(r"\capacity=(\d+)\s", result, re.MULTILINE)
    
       if next_sess and capa:
-         # testing cheat (emulate 4GB boundary at 100MB)
-         #if long(next_session.group(1)) > 100000000:
-         #   return 0
-         
          self.next_session = long(next_sess.group(1))
          self.capacity = long(capa.group(1))
+         
+         # testing cheat (emulate 4GB boundary at 100MB)
+         #if self.next_session > 100000000:
+         #   self.capacity = self.next_session
       else:
          raise DVDError(0, "Cannot get next_session and capacity from growisofs.\nReturned: " + result)
       
@@ -223,30 +223,57 @@ class disk:
          sys.exit(1)
 
    def write(self, newvol, partfile):
-      ## TODO: blank DVD+RW when needed
+      # Blank DVD+/-RW/-RAM when there is no data on it
+      # Ideally, we should only have to do it once, but I don't know how to
+      # identify if a disk is blank of if it is brand-new.
+      if newvol and self.is_RW() and self.is_empty():
+         print "DVD looks brand-new, blank it to fix some DVD-writers bugs."
+         self.blank()
+         print "Done, now writing the real part file."
       
-      cmd = growcmd
+      cmd = growcmd + growparams
       if newvol:
          cmd += " -Z "
       else:
          cmd += " -M "
       cmd += self.device + " " + str(partfile)
+      print "Running " + cmd
       oldsig = signal.signal(signal.SIGTERM, self.term_handler)
       proc = popen2.Popen4(cmd)
       self.pid = proc.pid
       status = proc.poll()
       while status == -1:
-         out = proc.fromchild.read(512)
-         while out != "":
-            sys.stdout.write(out)
-            out = proc.fromchild.read(512)
+         line = proc.fromchild.readline()
+         while len(line) > 0:
+            print line,
+            line = proc.fromchild.readline()
          time.sleep(1)
          status = proc.poll()
       self.pid = 0
       print
       signal.signal(signal.SIGTERM, oldsig)
       if os.WEXITSTATUS(status) != 0:
-         raise DVDError(os.WEXITSTATUS(status), growcmd + " exited with status " + str(os.WEXITSTATUS(status)) + ", signal/status " + str(status))
+         raise DVDError(os.WEXITSTATUS(status), cmd + " exited with status " + str(os.WEXITSTATUS(status)) + ", signal/status " + str(status))
+
+   def blank(self):
+      cmd = growcmd + " -Z " + self.device + "=/dev/zero"
+      print "Running " + cmd
+      oldsig = signal.signal(signal.SIGTERM, self.term_handler)
+      proc = popen2.Popen4(cmd)
+      self.pid = proc.pid
+      status = proc.poll()
+      while status == -1:
+         line = proc.fromchild.readline()
+         while len(line) > 0:
+            print line,
+            line = proc.fromchild.readline()
+         time.sleep(1)
+         status = proc.poll()
+      self.pid = 0
+      print
+      signal.signal(signal.SIGTERM, oldsig)
+      if os.WEXITSTATUS(status) != 0:
+         raise DVDError(os.WEXITSTATUS(status), cmd + " exited with status " + str(os.WEXITSTATUS(status)) + ", signal/status " + str(status))
 
 # class disk ends here.
 
@@ -275,11 +302,13 @@ write      Write a part file to disk.
 if len(sys.argv) < 3:
    usage()
 
-growcmd += " -A 'Bacula Data' -input-charset=default -iso-level 3 -pad " + \
-              "-p 'dvd-handler / growisofs' -sysid 'BACULADATA' -R"
-
+growcmd += " -quiet"
+ 
 if is4gbsupported():
    growcmd += " -use-the-force-luke=4gms"
+
+growparams = " -A 'Bacula Data' -input-charset=default -iso-level 3 -pad " + \
+              "-p 'dvd-handler / growisofs' -sysid 'BACULADATA' -R"
 
 dvd = disk(sys.argv[1])
 
