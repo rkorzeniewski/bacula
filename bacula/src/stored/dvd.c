@@ -319,7 +319,7 @@ bool dvd_write_part(DCR *dcr)
     *     tries to write the last part (0-byte), but dvd-writepart fails...
     */
    if (dev->part_size == 0) {
-      Dmsg3(29, "dvd_write_part: device is %s, won't write blank part %d\n", dev->print_name(), dev->part);
+      Dmsg2(29, "dvd_write_part: device is %s, won't write blank part %d\n", dev->print_name(), dev->part);
       /* Delete spool file */
       make_spooled_dvd_filename(dev, archive_name);
       unlink(archive_name.c_str());
