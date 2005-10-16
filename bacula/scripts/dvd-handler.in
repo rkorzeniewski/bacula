@@ -113,6 +113,7 @@ class disk:
    def __init__(self, devicename):
       self.device = devicename
       self.disktype = "none"
+      self.diskstatus = "none"
       self.hardwaredevice = "none"
       self.pid = 0
       self.next_session = -1
@@ -132,10 +133,10 @@ class disk:
       if not self.mediumtype_collected:
          self.collect_mediumtype();
       
-      self.me  = "Class disk, initialized with device " + self.device + "\n"
-      self.me += "type = " + self.disktype
+      self.me  = "Class disk, initialized with device '" + self.device + "'\n"
+      self.me += "type = '" + self.disktype + "' status = '" + self.diskstatus + "'\n"
       self.me += " next_session = " + str(self.next_session) + " capacity = " + str(self.capacity) + "\n"
-      self.me += "Hardware device is " + self.hardwaredevice + "\n"
+      self.me += "Hardware device is '" + self.hardwaredevice + "'\n"
       return self.me
 
    def collect_freespace(self): # Collects current free space
@@ -184,13 +185,22 @@ class disk:
       
       hardware = re.search(r"INQUIRY:\s+(.*)\n", result, re.MULTILINE)
       mediatype = re.search(r"\sMounted Media:\s+([0-9A-F]{2})h, (\S*)\s", result, re.MULTILINE)
+      status = re.search(r"\sDisc status:\s+(.*)\n", result, re.MULTILINE)
       
       if hardware:
          self.hardwaredevice = hardware.group(1)
+      
       if mediatype:
          self.disktype = mediatype.group(2)
       else:
          raise DVDError("Media type not found in " + dvdrwmediainfo + " output")
+      
+      if status:
+         self.diskstatus = status.group(1)
+      else:
+         raise DVDError("Disc status not found in " + dvdrwmediainfo + " output")
+
+      
       self.mediumtype_collected = 1
       return
 
@@ -206,11 +216,21 @@ class disk:
       
       return "DVD-RW" == self.disktype or "DVD+RW" == self.disktype or "DVD-RAM" == self.disktype
 
+   def is_blank(self):
+      if not self.mediumtype_collected:
+         self.collect_mediumtype();
+      
+      return self.diskstatus == "blank"
+
    def free(self):
       if not self.freespace_collected:
          self.collect_freespace();
       
-      return self.capacity-self.next_session-margin
+      fr = self.capacity-self.next_session-margin
+      if fr < 0:
+         return 0
+      else:
+         return fr
 
    def term_handler(self, signum, frame):
       print 'dvd-handler: Signal term_handler called with signal', signum
@@ -224,10 +244,8 @@ class disk:
 
    def write(self, newvol, partfile):
       # Blank DVD+/-RW/-RAM when there is no data on it
-      # Ideally, we should only have to do it once, but I don't know how to
-      # identify if a disk is blank of if it is brand-new.
-      if newvol and self.is_RW() and self.is_empty():
-         print "DVD looks brand-new, blank it to fix some DVD-writers bugs."
+      if newvol and self.is_RW() and self.is_blank():
+         print "DVD+/-RW looks brand-new, blank it to fix some DVD-writers bugs."
          self.blank()
          print "Done, now writing the real part file."
       
