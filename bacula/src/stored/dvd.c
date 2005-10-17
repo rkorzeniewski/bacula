@@ -209,7 +209,7 @@ get_out:
    
    dev->set_mounted(mount);              /* set/clear mounted flag */
    free_pool_memory(results);
-   /* Do not check free space when unmounting (otherwise it will mount it again) */
+   /* Do not check free space when unmounting */
    if (mount) {
       update_free_space_dev(dev);
    }
@@ -505,8 +505,8 @@ int dvd_open_first_part(DCR *dcr, int mode)
 {
    DEVICE *dev = dcr->dev;
 
-   Dmsg4(29, "Enter: ==== open_first_part dev=%s Vol=%s mode=%d num_parts=%d\n", dev->print_name(), 
-         dev->VolCatInfo.VolCatName, dev->openmode, dev->num_parts);
+   Dmsg5(29, "Enter: ==== open_first_part dev=%s Vol=%s mode=%d num_parts=%d append=%d\n", dev->print_name(), 
+         dev->VolCatInfo.VolCatName, dev->openmode, dev->num_parts, dev->can_append());
 
    if (dev->fd >= 0) {
       close(dev->fd);
@@ -519,11 +519,16 @@ int dvd_open_first_part(DCR *dcr, int mode)
    
    Dmsg2(50, "Call dev->open(vol=%s, mode=%d)\n", dcr->VolCatInfo.VolCatName, 
          mode);
+   int append = dev->can_append();
    if (dev->open(dcr, mode) < 0) {
       Dmsg0(50, "open dev() failed\n");
       return -1;
    }
-   Dmsg1(50, "Leave open_first_part state=%s\n", dev->is_open()?"open":"not open");
+   if (append && (dev->part == dev->num_parts)) { /* If needed, set the append flag back */
+      dev->set_append();
+   }
+   Dmsg2(50, "Leave open_first_part state=%s append=%d\n", dev->is_open()?"open":"not open", dev->can_append());
+   
    return dev->fd;
 }
 

@@ -523,6 +523,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
          if (!check_can_write_on_non_blank_dvd(dcr)) {
             Mmsg(errmsg, _("The media in the device %s is not empty, please blank it before writing anything to it.\n"), print_name());
             Emsg0(M_FATAL, 0, errmsg);
+            unmount_dev(this, 1); /* Unmount the device, so the operator can change it. */
             fd = -1;
             return;
          }
