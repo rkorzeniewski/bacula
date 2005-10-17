@@ -164,8 +164,8 @@ Device {
 #  MountCommand = "/bin/mount -t iso9660 -o ro %a %m";
 #  UnmountCommand = "/bin/umount %m";
 #  SpoolDirectory = /tmp/backup;
-#  WritePartCommand = "/etc/bacula/dvd-writepart %e %a %v"
-#  FreeSpaceCommand = "/etc/bacula/dvd-freespace %a %e"
+#  WritePartCommand = "/etc/bacula/dvd-handler %e %a %v"
+#  FreeSpaceCommand = "/etc/bacula/dvd-handler %a %e"
 #}
 
 #
