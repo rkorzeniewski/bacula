@@ -26,62 +26,20 @@ import re
 import signal
 import time
 
+class disk:
 # Configurable values:
-dvdrwmediainfo = "@DVDRWMEDIAINFO@"
-growcmd = "@GROWISOFS@"
-margin = 10485760 # 10 mb security margin
+   
+   dvdrwmediainfo = "@DVDRWMEDIAINFO@"
+   growcmd = "@GROWISOFS@"
+   dvdrwformat = "@DVDRWFORMAT@"
+   margin = 10485760 # 10 mb security margin
 
-# Comment the following line if you want the tray to be reloaded
-# when writing ends.
-growcmd += " -use-the-force-luke=notray"
+   # Comment the following line if you want the tray to be reloaded
+   # when writing ends.
+   growcmd += " -use-the-force-luke=notray"
 
 # end of configurable values
 
-## Check if we want to allow growisofs to cross the 4gb boundary
-def is4gbsupported():
-   processi = popen2.Popen4("uname -s -r")
-   status = processi.wait()
-   if not os.WIFEXITED(status):
-#      print "dvd-writepart: Cannot execute uname, allowing to cross the 4gb boundary."
-      return 1
-   if os.WEXITSTATUS(status) != 0:
-#      print "dvd-writepart: Cannot execute uname, allowing to cross the 4gb boundary."
-      return 1
-   strres = processi.fromchild.readline()[0:-1]
-   res = strres.split(" ")
-   if len(res) != 2:
-#      print "dvd-writepart: Unable to parse uname (" + strres + "), allowing to cross the 4gb boundary."
-      return 1
-   if res[0] != "Linux":
-#      print "dvd-writepart: The current OS is no Linux, allowing to cross the 4gb boundary."
-      return 1
-   ver = res[1].split(".")
-   if len(ver) < 3:
-#      print "dvd-writepart: Unable to parse version string (" + res[1] + "), allowing to cross the 4gb boundary."
-      return 1
-   subver = ver[2].split("-")
-   
-   if ((not ver[0].isdigit()) or (not ver[1].isdigit()) or (not subver[0].isdigit())):
-#      print "dvd-writepart: Unable to parse version string (" + res[1] + "), allowing to cross the 4gb boundary."
-      return 1
-   
-   if (int(ver[0]) > 2) or (int(ver[1]) > 6) or ((int(ver[0]) == 2) and (int(ver[1]) == 6) and (int(subver[0]) >= 8)):
-#      print "dvd-writepart: Kernel version >=2.6.8, allowing to cross the 4gb boundary."
-      return 1
-   else:
-#      print "dvd-writepart: Kernel version <2.6.8, not allowing to cross the 4gb boundary."
-      return 0
-
-class DVDError(Exception):
-   def __init__(self, errno, value):
-      self.errno = errno
-      self.value = value
-      if self.value[-1] == '\n':
-         self.value = self.value[0:-1]
-   def __str__(self):
-      return str(self.value) + " || errno = " + str(self.errno) + " (" + os.strerror(self.errno & 0x7F) + ")"
-
-class disk:
 ###############################################################################
 #
 # This class represents DVD disk informations.
@@ -113,6 +71,7 @@ class disk:
    def __init__(self, devicename):
       self.device = devicename
       self.disktype = "none"
+      self.diskmode = "none"
       self.diskstatus = "none"
       self.hardwaredevice = "none"
       self.pid = 0
@@ -121,6 +80,14 @@ class disk:
 
       self.freespace_collected = 0
       self.mediumtype_collected = 0
+
+      self.growcmd += " -quiet"
+
+      if self.is4gbsupported():
+         self.growcmd += " -use-the-force-luke=4gms"
+
+      self.growparams = " -A 'Bacula Data' -input-charset=default -iso-level 3 -pad " + \
+                        "-p 'dvd-handler / growisofs' -sysid 'BACULADATA' -R"
 
       return
 
@@ -134,13 +101,32 @@ class disk:
          self.collect_mediumtype();
       
       self.me  = "Class disk, initialized with device '" + self.device + "'\n"
-      self.me += "type = '" + self.disktype + "' status = '" + self.diskstatus + "'\n"
+      self.me += "type = '" + self.disktype + "' mode='" + self.diskmode + "' status = '" + self.diskstatus + "'\n"
       self.me += " next_session = " + str(self.next_session) + " capacity = " + str(self.capacity) + "\n"
       self.me += "Hardware device is '" + self.hardwaredevice + "'\n"
+      self.me += "growcmd = '" + self.growcmd + "'\ngrowparams = '" + self.growparams + "'\n"
       return self.me
 
+   ## Check if we want to allow growisofs to cross the 4gb boundary
+   def is4gbsupported(self):
+      processi = popen2.Popen4("uname -s -r")
+      status = processi.wait()
+      if not os.WIFEXITED(status):
+         return 1
+      if os.WEXITSTATUS(status) != 0:
+         return 1
+      strres = processi.fromchild.readline()[0:-1]
+      version = re.search(r"Linux (\d+)\.(\d+)\.(\d+)", strres)
+      if not version: # Non-Linux: allow
+         return 1
+      
+      if (int(version.group(1)) > 2) or (int(version.group(2)) > 6) or ((int(version.group(1)) == 2) and (int(version.group(2)) == 6) and (int(version.group(3)) >= 8)):
+         return 1
+      else:
+         return 0
+
    def collect_freespace(self): # Collects current free space
-      self.cmd = growcmd + " -F " + self.device
+      self.cmd = self.growcmd + " -F " + self.device
       processi = popen2.Popen4(self.cmd)
       status = processi.wait()
       if not os.WIFEXITED(status):
@@ -156,7 +142,7 @@ class disk:
          else:
             raise DVDError(os.WEXITSTATUS(status), "growisofs returned with an error " + result + ". Please check your are using a patched version of dvd+rw-tools.")
       next_sess = re.search(r"\snext_session=(\d+)\s", result, re.MULTILINE)
-      capa = re.search(r"\capacity=(\d+)\s", result, re.MULTILINE)
+      capa = re.search(r"\scapacity=(\d+)\s", result, re.MULTILINE)
    
       if next_sess and capa:
          self.next_session = long(next_sess.group(1))
@@ -173,18 +159,19 @@ class disk:
    
    def collect_mediumtype(self): # Collects current medium type
       self.lasterror = ""
-      cmd = dvdrwmediainfo + " " + self.device
+      cmd = self.dvdrwmediainfo + " " + self.device
       processi = popen2.Popen4(cmd)
       status = processi.wait()
       if not os.WIFEXITED(status):
-         raise DVDError(dvdrwmediainfo + " process did not exit correctly.")
+         raise DVDError(self.dvdrwmediainfo + " process did not exit correctly.")
       if os.WEXITSTATUS(status) != 0:
-         raise DVDError("Cannot get media info from " + dvdrwmediainfo)
+         raise DVDError("Cannot get media info from " + self.dvdrwmediainfo)
          return
       result = processi.fromchild.read()
       
       hardware = re.search(r"INQUIRY:\s+(.*)\n", result, re.MULTILINE)
       mediatype = re.search(r"\sMounted Media:\s+([0-9A-F]{2})h, (\S*)\s", result, re.MULTILINE)
+      mediamode = re.search(r"\sMounted Media:\s+[0-9A-F]{2}h, \S* (.*)\n", result, re.MULTILINE)
       status = re.search(r"\sDisc status:\s+(.*)\n", result, re.MULTILINE)
       
       if hardware:
@@ -193,12 +180,18 @@ class disk:
       if mediatype:
          self.disktype = mediatype.group(2)
       else:
-         raise DVDError("Media type not found in " + dvdrwmediainfo + " output")
+         raise DVDError("Media type not found in " + self.dvdrwmediainfo + " output")
+      
+      if self.disktype == "DVD-RW":
+         if mediamode:
+            self.diskmode = mediamode.group(1)
+         else:
+            raise DVDError("Media mode not found for DVD-RW in " + self.dvdrwmediainfo + " output")
       
       if status:
          self.diskstatus = status.group(1)
       else:
-         raise DVDError("Disc status not found in " + dvdrwmediainfo + " output")
+         raise DVDError("Disc status not found in " + self.dvdrwmediainfo + " output")
 
       
       self.mediumtype_collected = 1
@@ -213,8 +206,22 @@ class disk:
    def is_RW(self):
       if not self.mediumtype_collected:
          self.collect_mediumtype();
-      
       return "DVD-RW" == self.disktype or "DVD+RW" == self.disktype or "DVD-RAM" == self.disktype
+
+   def is_plus_RW(self):
+      if not self.mediumtype_collected:
+         self.collect_mediumtype();
+      return "DVD+RW" == self.disktype
+
+   def is_minus_RW(self):
+      if not self.mediumtype_collected:
+         self.collect_mediumtype();
+      return "DVD-RW" == self.disktype
+      
+   def is_restricted_overwrite(self):
+      if not self.mediumtype_collected:
+         self.collect_mediumtype();
+      return self.diskmode == "Restricted Overwrite"
 
    def is_blank(self):
       if not self.mediumtype_collected:
@@ -226,7 +233,7 @@ class disk:
       if not self.freespace_collected:
          self.collect_freespace();
       
-      fr = self.capacity-self.next_session-margin
+      fr = self.capacity-self.next_session-self.margin
       if fr < 0:
          return 0
       else:
@@ -243,13 +250,18 @@ class disk:
          sys.exit(1)
 
    def write(self, newvol, partfile):
-      # Blank DVD+/-RW/-RAM when there is no data on it
-      if newvol and self.is_RW() and self.is_blank():
-         print "DVD+/-RW looks brand-new, blank it to fix some DVD-writers bugs."
+      # Blank DVD+RW when there is no data on it
+      if newvol and self.is_plus_RW() and self.is_blank():
+         print "DVD+RW looks brand-new, blank it to fix some DVD-writers bugs."
          self.blank()
-         print "Done, now writing the real part file."
+         print "Done, now writing the part file."
       
-      cmd = growcmd + growparams
+      if newvol and self.is_minus_RW() and (not self.is_restricted_overwrite()):
+         print "DVD-RW is in " + self.diskmode + " mode, reformating it to Restricted Overwrite"
+         self.reformat_minus_RW()
+         print "Done, now writing the part file."
+      
+      cmd = self.growcmd + self.growparams
       if newvol:
          cmd += " -Z "
       else:
@@ -274,7 +286,27 @@ class disk:
          raise DVDError(os.WEXITSTATUS(status), cmd + " exited with status " + str(os.WEXITSTATUS(status)) + ", signal/status " + str(status))
 
    def blank(self):
-      cmd = growcmd + " -Z " + self.device + "=/dev/zero"
+      cmd = self.growcmd + " -Z " + self.device + "=/dev/zero"
+      print "Running " + cmd
+      oldsig = signal.signal(signal.SIGTERM, self.term_handler)
+      proc = popen2.Popen4(cmd)
+      self.pid = proc.pid
+      status = proc.poll()
+      while status == -1:
+         line = proc.fromchild.readline()
+         while len(line) > 0:
+            print line,
+            line = proc.fromchild.readline()
+         time.sleep(1)
+         status = proc.poll()
+      self.pid = 0
+      print
+      signal.signal(signal.SIGTERM, oldsig)
+      if os.WEXITSTATUS(status) != 0:
+         raise DVDError(os.WEXITSTATUS(status), cmd + " exited with status " + str(os.WEXITSTATUS(status)) + ", signal/status " + str(status))
+
+   def reformat_minus_RW(self):
+      cmd = self.dvdrwformat + " -force " + self.device
       print "Running " + cmd
       oldsig = signal.signal(signal.SIGTERM, self.term_handler)
       proc = popen2.Popen4(cmd)
@@ -294,6 +326,15 @@ class disk:
          raise DVDError(os.WEXITSTATUS(status), cmd + " exited with status " + str(os.WEXITSTATUS(status)) + ", signal/status " + str(status))
 
 # class disk ends here.
+
+class DVDError(Exception):
+   def __init__(self, errno, value):
+      self.errno = errno
+      self.value = value
+      if self.value[-1] == '\n':
+         self.value = self.value[0:-1]
+   def __str__(self):
+      return str(self.value) + " || errno = " + str(self.errno) + " (" + os.strerror(self.errno & 0x7F) + ")"
 
 def usage():
    print "Wrong number of arguments."
@@ -320,14 +361,6 @@ write      Write a part file to disk.
 if len(sys.argv) < 3:
    usage()
 
-growcmd += " -quiet"
- 
-if is4gbsupported():
-   growcmd += " -use-the-force-luke=4gms"
-
-growparams = " -A 'Bacula Data' -input-charset=default -iso-level 3 -pad " + \
-              "-p 'dvd-handler / growisofs' -sysid 'BACULADATA' -R"
-
 dvd = disk(sys.argv[1])
 
 if "free" == sys.argv[2]:
@@ -349,7 +382,7 @@ if "free" == sys.argv[2]:
 elif "test" == sys.argv[2]:
    try:
       print str(dvd)
-      print "Empty disk: " + str(dvd.is_empty()) + " ReWritable disk: " + str(dvd.is_RW())
+      print "Blank disk: " + str(dvd.is_blank()) + " ReWritable disk: " + str(dvd.is_RW())
       print "Free space: " + str(dvd.free())
    except DVDError, e:
       print "Error while getting informations: ", str(e)

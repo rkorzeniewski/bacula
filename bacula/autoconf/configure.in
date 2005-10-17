@@ -69,6 +69,7 @@ AC_PATH_PROG(MKISOFS, mkisofs, mkisofs)
 AC_PATH_PROG(PYTHON, python, python)
 AC_PATH_PROG(GROWISOFS, growisofs, growisofs)
 AC_PATH_PROG(DVDRWMEDIAINFO, dvd+rw-mediainfo, dvd+rw-mediainfo)
+AC_PATH_PROG(DVDRWFORMAT, dvd+rw-format, dvd+rw-format)
 AC_PATH_PROG(PKGCONFIG, pkg-config, pkg-config)
 AC_ARG_VAR(WXCONFIG, [wx-config command. On some systems, you must set it to wx-config-2.6 to use wxWidgets 2.6.])
 if test "x$WXCONFIG" = x; then
@@ -1908,8 +1909,6 @@ AC_OUTPUT([autoconf/Make.common \
 	   scripts/bacula.desktop.gnome2.xsu \
 	   scripts/gnome-console.console_apps \
 	   scripts/mtx-changer \
-	   scripts/dvd-writepart \
-	   scripts/dvd-freespace \
 	   scripts/dvd-handler \
 	   scripts/bacula-tray-monitor.desktop \
 	   scripts/logwatch/Makefile \
@@ -1988,7 +1987,7 @@ AC_OUTPUT([autoconf/Make.common \
 
 cd scripts
 chmod 755 startmysql stopmysql bacula startit stopit btraceback mtx-changer
-chmod 755 dvd-writepart dvd-freespace dvd-handler
+chmod 755 dvd-handler
 chmod 755 bconsole gconsole mtx-changer devel_bacula logrotate
 cd ..
 
