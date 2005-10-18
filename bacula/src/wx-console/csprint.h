@@ -34,6 +34,9 @@
 #define CS_PROMPT        3 /* prompt signal received */
 #define CS_CONNECTED     4 /* the socket is now connected */
 #define CS_DISCONNECTED  5 /* the socket is now disconnected */
+
+#define CS_REMOVEPROMPT  6 /* remove the prompt (#), when automatic messages are comming */
+
 #define CS_DEBUG        10 /* used to print debug messages */
 #define CS_TERMINATED   99 /* used to signal that the thread is terminated */
 

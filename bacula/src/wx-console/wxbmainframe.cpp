@@ -568,6 +568,13 @@ void wxbMainFrame::Print(wxString str, int status)
       EnableConsole(false);
    }
    
+   if (status == CS_REMOVEPROMPT) {
+      if (consoleCtrl->GetLastPosition() > 0) {
+         consoleCtrl->Remove(consoleCtrl->GetLastPosition()-1, consoleCtrl->GetLastPosition()+1);
+      }
+      return;
+   }
+   
    if (status == CS_TERMINATED) {
       consoleCtrl->AppendText(consoleBuffer);
       consoleBuffer = wxT("");
@@ -716,7 +723,7 @@ void wxbMainFrame::Print(wxString str, int status)
       if (lockedbyconsole) {
          EnableConsole(true);
       }
-      //consoleBuffer << "<P>";
+      //consoleBuffer << wxT("<P>");
    }
    
    if ((status == CS_END) || (status == CS_PROMPT) || (str.Find(wxT("\n")) > -1)) {

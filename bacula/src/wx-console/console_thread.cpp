@@ -427,13 +427,30 @@ void* console_thread::Entry() {
    
    csprint(NULL, CS_CONNECTED);
    
+   Write("autodisplay on\n");
    Write(".messages\n");
 
    int stat;
 
+   int last_is_eod = 0; /* Last packet received is BNET_EOD */
+   int do_not_forward_eod = 0; /* Last packet received/sent is .messages, so don't forward EOD. (so wx-console don't show the prompt again) */
+
    /* main loop */
    while(!TestDestroy()) {   /* Tests if thread has been ended */
+      stat = bnet_wait_data(UA_sock, 10);
+      if (stat == 0) {
+         if (last_is_eod) {
+            Write(".messages\n");
+            do_not_forward_eod = 1;
+         }
+         continue;
+      }
+      
+      last_is_eod = 0;
       if ((stat = bnet_recv(UA_sock)) >= 0) {
+         if (do_not_forward_eod) { /* .messages got data: remove the prompt */
+            csprint(NULL, CS_REMOVEPROMPT);
+         }
          csprint(UA_sock->msg);
       }
       else if (stat == BNET_SIGNAL) {
@@ -441,7 +458,9 @@ void* console_thread::Entry() {
             csprint(NULL, CS_PROMPT);
          }
          else if (UA_sock->msglen == BNET_EOD) {
-            csprint(NULL, CS_END);
+            last_is_eod = 1;
+            if (!do_not_forward_eod)
+               csprint(NULL, CS_END);
          }
          else if (UA_sock->msglen == BNET_HEARTBEAT) {
             bnet_sig(UA_sock, BNET_HB_RESPONSE);
@@ -462,6 +481,8 @@ void* console_thread::Entry() {
          csprint(NULL, CS_END);
          break;            /* error or term */
       }
+      
+      do_not_forward_eod = 0;
    }
    
    csprint(NULL, CS_DISCONNECTED);
@@ -482,9 +503,9 @@ void* console_thread::Entry() {
 void console_thread::Write(const char* str) 
 {
    if (UA_sock) {
-       UA_sock->msglen = (int32_t)strlen(str);
-       pm_strcpy(&UA_sock->msg, str);
-       bnet_send(UA_sock);
+      UA_sock->msglen = (int32_t)strlen(str);
+      pm_strcpy(&UA_sock->msg, str);
+      bnet_send(UA_sock);
    } else if (choosingdirector) {
 //      wxString number = str;
 //      number.RemoveLast(); /* Removes \n */

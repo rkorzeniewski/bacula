@@ -888,7 +888,8 @@ void wxbRestorePanel::CmdStart() {
       char status = '?';
 
       wxStopWatch sw;
-           
+      
+      wxbUtils::WaitForEnd(wxT("autodisplay off\n"));
       while (true) {
          tableparser = wxbUtils::CreateAndWaitForParser(cmd);
          ended = false;
@@ -965,7 +966,7 @@ void wxbRestorePanel::CmdStart() {
          }
          delete tableparser;
          
-         dt = wxbUtils::WaitForEnd(wxT(".messages\n"), true);
+         dt = wxbUtils::WaitForEnd(wxT("messages\n"), true);
                   
          for (unsigned int i = 0; i < dt->GetCount(); i++) {
             wxStringTokenizer tkz((*dt)[i], wxT(" "), wxTOKEN_STRTOK);
@@ -1013,7 +1014,7 @@ void wxbRestorePanel::CmdStart() {
             break;
          }
       }
-
+      wxbUtils::WaitForEnd(wxT("autodisplay on\n"));
       wxbUtils::WaitForEnd(wxT(".messages\n"));
 
       gauge->SetValue(totfilemessages);
