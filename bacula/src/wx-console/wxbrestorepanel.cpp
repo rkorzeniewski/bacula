@@ -765,8 +765,8 @@ void wxbRestorePanel::CmdStart() {
                   promptparser = wxbUtils::WaitForPrompt(wxString() << choices[res] << wxT("\n"), true);
                }
             }
-            delete choices;
-            delete numbers;
+            delete[] choices;
+            delete[] numbers;
          }
          else {
             delete promptparser;
