@@ -4,6 +4,9 @@
 General:
 
 Changes to 1.37.*:
+19Oct05
+ - dvd.c:dvd_write_part: Increase timeout when writing the first part (see the code for
+   more details).
 18Oct05
  - Modify .backups command to get a fileset parameter (fix bug #444).
 17Oct05
