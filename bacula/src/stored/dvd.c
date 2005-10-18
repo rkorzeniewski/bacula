@@ -349,10 +349,23 @@ bool dvd_write_part(DCR *dcr)
     * timeout = dev->max_open_wait + (dev->max_part_size/(1350*1024/2));
     * I modified this for a longer timeout; pre-formatting, blanking and
     * writing can take quite a while
-    *
-    * NB: Use part_size and not max_part_size, needed when you don't set max part size (so it defaults to 0)
     */
-   timeout = dev->max_open_wait + (dev->part_size/(1350*1024)*8);
+
+   /* Explanation of the timeout value, when writing the first part,
+    *  by Arno Lehmann :
+    * 9 GB, write speed 1x: 6990 seconds (almost 2 hours...)
+    * Overhead: 900 seconds (starting, initializing, finalizing,probably 
+    *   reloading 15 minutes)
+    * Sum: 15780.
+    * A reasonable last-exit timeout would be 16000 seconds. Quite long - 
+    * almost 4.5 hours, but hopefully, that timeout will only ever be needed 
+    * in case of a serious emergency.
+    */
+
+   if (dev->part == 0)
+      timeout = 16000;
+   else
+      timeout = dev->max_open_wait + (dev->part_size/(1350*1024/4));
 
    Dmsg2(29, "dvd_write_part: cmd=%s timeout=%d\n", ocmd.c_str(), timeout);
       
