@@ -4,6 +4,8 @@
 General:
 
 Changes to 1.37.*:
+18Oct05
+ - Modify .backups command to get a fileset parameter (fix bug #444).
 17Oct05
  - Fix bug when recycling DVD devices (append flag was removed).
  - Add tests for dvd+rw-format in configure script.

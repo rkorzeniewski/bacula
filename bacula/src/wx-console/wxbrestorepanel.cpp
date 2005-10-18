@@ -1220,7 +1220,7 @@ void wxbRestorePanel::CmdConfigCancel() {
    SetStatus(finished);
 }
 
-/* List jobs for a specified client */
+/* List jobs for a specified client and fileset */
 void wxbRestorePanel::CmdListJobs() {
    if (status == entered) {
       configPanel->ClearRowChoices(_("Before"));
@@ -1228,7 +1228,8 @@ void wxbRestorePanel::CmdListJobs() {
       wxbUtils::WaitForPrompt("6\n");*/
       wxbTableParser* tableparser = new wxbTableParser(false);
       wxbDataTokenizer* dt = wxbUtils::WaitForEnd(
-         wxString(wxT(".backups client=")) + configPanel->GetRowString(_("Client")) + wxT("\n"), true);
+         wxString(wxT(".backups client=\"")) + configPanel->GetRowString(_("Client")) + 
+                  wxT("\" fileset=\"") + configPanel->GetRowString(_("Fileset")) + wxT("\"\n"), true);
 
       while (!tableparser->hasFinished()) {
          wxTheApp->Yield(true);
@@ -1800,7 +1801,8 @@ void wxbRestorePanel::UpdateFirstConfig() {
     * where=/tmp/bacula-restores
     * level=0
     * type=Restore
-    * fileset=Full Set */
+    * fileset=***
+    */
    
    wxString name, str;
    unsigned int i;
@@ -1827,7 +1829,12 @@ void wxbRestorePanel::UpdateFirstConfig() {
             configPanel->SetRowString(_("Storage"), str.Mid(j+1));
          }
          else if (name == wxT("fileset")) {
-            configPanel->SetRowString(_("Fileset"), str.Mid(j+1));
+            str = str.Mid(j+1);
+            if ((str != configPanel->GetRowString(_("Fileset"))) ||
+                  (configPanel->GetRowString(_("Before"))) == wxT("")) {
+               configPanel->SetRowString(_("Fileset"), str);
+               dolistjobs = true;
+            }
          }
       }
    }
@@ -2385,7 +2392,7 @@ void wxbRestorePanel::OnConfigUpdated(wxCommandEvent& event) {
          UpdateFirstConfig();
          SetWorking(false);
       }
-      else if (event.GetId() == ConfigClient) {
+      else if ((event.GetId() == ConfigClient) || (event.GetId() == ConfigFileset)) {
          if (IsWorking()) {
             return;
          }

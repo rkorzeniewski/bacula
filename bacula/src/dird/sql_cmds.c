@@ -30,12 +30,14 @@ const char *list_pool = "SELECT * FROM Pool WHERE PoolId=%s";
 /* For ua_dotcmds.c */
 const char *client_backups =
    "SELECT DISTINCT Job.JobId,Client.Name as Client,Level,StartTime,"
-   "JobFiles,JobBytes,VolumeName,MediaType"
-   " FROM Client,Job,JobMedia,Media"
+   "JobFiles,JobBytes,VolumeName,MediaType,FileSet"
+   " FROM Client,Job,JobMedia,Media,FileSet"
    " WHERE Client.Name='%s'"
+   " AND FileSet='%s'"
    " AND Client.ClientId=Job.ClientId"
    " AND JobStatus='T'"
    " AND JobMedia.JobId=Job.JobId AND JobMedia.MediaId=Media.MediaId"
+   " AND Job.FileSetId=FileSet.FileSetId"
    " ORDER BY Job.StartTime";
 
 
