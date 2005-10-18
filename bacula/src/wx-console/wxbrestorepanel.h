@@ -50,6 +50,20 @@
 
 WX_DECLARE_LIST(wxEvent, wxbEventList);
 
+/* Class for storing directory entries (results from dir commands). */
+class wxbDirEntry {
+public:
+   wxString perm;
+   wxString nlink;
+   wxString user;
+   wxString group;
+   wxString size;
+   wxString date;
+   int marked; /* 0 - Not Marked, 1 - Marked, 2 - Some file under is marked */
+   wxString fullname; /* full name with path */
+   wxString filename; /* only filename, no path */
+};
+
 /*
  * wxbPanel for restoring files
  */
@@ -100,7 +114,7 @@ class wxbRestorePanel : public wxbPanel
       void UpdateTreeItem(wxTreeItemId item, bool updatelist, bool recurse);
 
       /* Parse dir command results. */
-      wxString* ParseList(wxString line);
+      int ParseList(wxString line, wxbDirEntry* entry);
 
       /* Sets a list item state, and update its parents and children if it is a directory */
       void SetListItemState(long listitem, int newstate);

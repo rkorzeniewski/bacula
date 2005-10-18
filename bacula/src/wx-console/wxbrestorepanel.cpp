@@ -78,18 +78,14 @@ WX_DEFINE_LIST(wxbEventList);
 class wxbTreeItemData : public wxTreeItemData {
    public:
       wxbTreeItemData(wxString path, wxString name, int marked, long listid = -1);
-      wxbTreeItemData(wxString path, wxString name, wxString marked, long listid = -1);
       ~wxbTreeItemData();
       wxString GetPath();
       wxString GetName();
       
       int GetMarked();
       void SetMarked(int marked);
-      void SetMarked(wxString marked);
       
       long GetListId();
-
-      static int GetMarkedStatus(wxString file);
    private:
       wxString* path; /* Full path */
       wxString* name; /* File name */
@@ -104,13 +100,6 @@ wxbTreeItemData::wxbTreeItemData(wxString path, wxString name, int marked, long 
    this->listid = listid;
 }
 
-wxbTreeItemData::wxbTreeItemData(wxString path, wxString name, wxString marked, long listid): wxTreeItemData() {
-   this->path = new wxString(path);
-   this->name = new wxString(name);
-   SetMarked(marked);
-   this->listid = listid;
-}
-
 wxbTreeItemData::~wxbTreeItemData() {
    delete path;
    delete name;
@@ -118,18 +107,6 @@ wxbTreeItemData::~wxbTreeItemData() {
 
 int wxbTreeItemData::GetMarked() {
    return marked;
-}
-
-void wxbTreeItemData::SetMarked(wxString marked) {
-   if (marked == wxT("*")) {
-      this->marked = 1;
-   }
-   else if (marked == wxT("+")) {
-      this->marked = 2;
-   }
-   else {
-      this->marked = 0;
-   }
 }
 
 void wxbTreeItemData::SetMarked(int marked) {
@@ -146,25 +123,6 @@ wxString wxbTreeItemData::GetPath() {
 
 wxString wxbTreeItemData::GetName() {
    return *name;
-}
-
-/*wxbTreeItemData* wxbTreeItemData::GetChild(wxString dirname) {
-   int marked = GetMarkedStatus(dirname);
-   return new wxbTreeItemData(path + (marked ? dirname.Mid(1) : dirname), marked);
-}*/
-
-int wxbTreeItemData::GetMarkedStatus(wxString file) {
-   if (file.Length() == 0)
-      return 0;
-   
-   switch (file.GetChar(0)) {
-       case '*':
-          return 1;
-       case '+':
-          return 2;
-       default:
-          return 0;
-    }
 }
 
 // ----------------------------------------------------------------------------
@@ -1454,7 +1412,7 @@ void wxbRestorePanel::UpdateTreeItem(wxTreeItemId item, bool updatelist, bool re
 
    if (updatelist)
       list->DeleteAllItems();
-   dt = wxbUtils::WaitForEnd(wxT("dir\n"), true);
+   dt = wxbUtils::WaitForEnd(wxT(".dir\n"), true);
    
    wxString str;
    
@@ -1467,14 +1425,14 @@ void wxbRestorePanel::UpdateTreeItem(wxTreeItemId item, bool updatelist, bool re
 
       str.RemoveLast();
 
-      wxString* file = ParseList(str);
+      wxbDirEntry entry;
       
-      if (file == NULL)
+      if (!ParseList(str, &entry))
             break;
 
       wxTreeItemId treeid;
 
-      if (file[8].GetChar(file[8].Length()-1) == '/') {
+      if (entry.fullname.GetChar(entry.fullname.Length()-1) == '/') {
          wxString itemStr;
 
 #if wxCHECK_VERSION(2, 6, 0)
@@ -1489,12 +1447,11 @@ void wxbRestorePanel::UpdateTreeItem(wxTreeItemId item, bool updatelist, bool re
 
          while (treeid.IsOk()) {
             itemStr = ((wxbTreeItemData*)tree->GetItemData(treeid))->GetName();
-            if (file[8] == itemStr) {
-               int stat = wxbTreeItemData::GetMarkedStatus(file[6]);
-               if (static_cast<wxbTreeItemData*>(tree->GetItemData(treeid))->GetMarked() != stat) {
-                  tree->SetItemImage(treeid, stat, wxTreeItemIcon_Normal);
-                  tree->SetItemImage(treeid, stat, wxTreeItemIcon_Selected);
-                  static_cast<wxbTreeItemData*>(tree->GetItemData(treeid))->SetMarked(file[6]);
+            if (entry.fullname == itemStr) {
+               if (static_cast<wxbTreeItemData*>(tree->GetItemData(treeid))->GetMarked() != entry.marked) {
+                  tree->SetItemImage(treeid, entry.marked, wxTreeItemIcon_Normal);
+                  tree->SetItemImage(treeid, entry.marked, wxTreeItemIcon_Selected);
+                  static_cast<wxbTreeItemData*>(tree->GetItemData(treeid))->SetMarked(entry.marked);
                }
                if ((recurse) && (tree->IsExpanded(treeid))) {
                   UpdateTreeItem(treeid, false, true);
@@ -1506,25 +1463,22 @@ void wxbRestorePanel::UpdateTreeItem(wxTreeItemId item, bool updatelist, bool re
          }
 
          if (!updated) {
-            int img = wxbTreeItemData::GetMarkedStatus(file[6]);
-            treeid = tree->AppendItem(item, wxbUtils::ConvertToPrintable(file[8]), img, img, new wxbTreeItemData(file[7], file[8], file[6]));
+            treeid = tree->AppendItem(item, wxbUtils::ConvertToPrintable(entry.filename), entry.marked, entry.marked, new wxbTreeItemData(entry.filename, entry.fullname, entry.marked));
          }
       }
 
       if (updatelist) {
-         long ind = list->InsertItem(list->GetItemCount(), wxbTreeItemData::GetMarkedStatus(file[6]));
-         wxbTreeItemData* data = new wxbTreeItemData(file[7], file[8], file[6], ind);
+         long ind = list->InsertItem(list->GetItemCount(), entry.marked);
+         wxbTreeItemData* data = new wxbTreeItemData(entry.filename, entry.fullname, entry.marked, ind);
          data->SetId(treeid);
          list->SetItemData(ind, (long)data);
-         list->SetItem(ind, 1, wxbUtils::ConvertToPrintable(file[8])); // filename
-         list->SetItem(ind, 2, file[4]); //Size
-         list->SetItem(ind, 3, file[5]); //date
-         list->SetItem(ind, 4, file[0]); //perm
-         list->SetItem(ind, 5, file[2]); //user
-         list->SetItem(ind, 6, file[3]); //grp
+         list->SetItem(ind, 1, wxbUtils::ConvertToPrintable(entry.filename));
+         list->SetItem(ind, 2, entry.size);
+         list->SetItem(ind, 3, entry.date);
+         list->SetItem(ind, 4, entry.perm);
+         list->SetItem(ind, 5, entry.user);
+         list->SetItem(ind, 6, entry.group);
       }
-
-      delete[] file;
    }
    
    delete dt;
@@ -1533,55 +1487,65 @@ void wxbRestorePanel::UpdateTreeItem(wxTreeItemId item, bool updatelist, bool re
    status = choosing;
 }
 
-/* Parse dir command results. */
-
-/*
- * It sure would be nice to have some comments here, especially
- *  when setting up ret[7] and ret[8].  
- * Also, it would be a lot easier for everyone if this were based
- *  on variable width fields everywhere.  All the fields except
- *  the last (filename) are separated by spaces (the date is 
- *  composed of two blank terminated fields date + time.
- */
-wxString* wxbRestorePanel::ParseList(wxString line) {
+/* Parse .dir command results, returns true if the result has been stored in entry, false otherwise. */
+int wxbRestorePanel::ParseList(wxString line, wxbDirEntry* entry) {
    /* See ls_output in dird/ua_tree.c */
-  
-   //drwxrwxrwx  111 root     root           0  2004-04-03 14:35:21  f:/tocd/NVSU 1.00.00/
-   //+ 10     +  +i+ +   8  + +   8  ++   10  +  +      19         + *+ ->
-   //0           12  i+15     i+24    i+32      i+42                i+62
- 
-   int i;
-   
-   if (line.Length() < 63)
-      return NULL;
+   //-rw-r-----,1,root,root,41575,2005-10-18 18:21:36, ,/usr/var/bacula/working/bacula.sql
 
-   wxString* ret = new wxString[9];
-
-   ret[0] = line.Mid(0, 10).Trim();       // modes
+   wxStringTokenizer tkz(line, wxT(","));
    
-   /* Column 1 has a variable width  */
-   i = line.find(' ', 14) - 14;
-   ret[1] = line.Mid(12, 2+i).Trim();     // number of links
+   if (!tkz.HasMoreTokens())
+      return false;
+   entry->perm = tkz.GetNextToken();
    
-   ret[2] = line.Mid(15+i, 8).Trim();     // user
-   ret[3] = line.Mid(24+i, 8).Trim();     // group
-   ret[4] = line.Mid(32+i, 10).Trim();    // file size
-   ret[5] = line.Mid(42+i, 19).Trim();    // date + time
-   ret[6] = line.Mid(63+i, 1);            // drive letter or /
-   ret[7] = line.Mid(63+i).Trim();        // filename
+   if (!tkz.HasMoreTokens())
+      return false;
+   entry->nlink = tkz.GetNextToken();
    
-   if (ret[6] == wxT(" ")) ret[6] = wxT("");
-
-   if (ret[7].GetChar(ret[7].Length()-1) == '/') {
-      ret[8] = ret[7];
-      ret[8].RemoveLast();
-      ret[8] = ret[7].Mid(ret[8].Find('/', true)+1);
+   if (!tkz.HasMoreTokens())
+      return false;
+   entry->user = tkz.GetNextToken();
+   
+   if (!tkz.HasMoreTokens())
+      return false;
+   entry->group = tkz.GetNextToken();
+   
+   if (!tkz.HasMoreTokens())
+      return false;
+   entry->size = tkz.GetNextToken();
+   
+   if (!tkz.HasMoreTokens())
+      return false;
+   entry->date = tkz.GetNextToken();
+   
+   if (!tkz.HasMoreTokens())
+      return false;
+   wxString marked = tkz.GetNextToken();
+   if (marked == wxT("*")) {
+      entry->marked = 1;
+   }
+   else if (marked == wxT("+")) {
+      entry->marked = 2;
    }
    else {
-      ret[8] = ret[7].Mid(ret[7].Find('/', true)+1);
+      entry->marked = 0;
+   }
+   
+   if (!tkz.HasMoreTokens())
+      return false;
+   entry->fullname = tkz.GetNextToken();
+   
+   /* Get only the filename (cut path by finding the last '/') */
+   if (entry->fullname.GetChar(entry->fullname.Length()-1) == '/') {
+      wxString tmp = entry->fullname;
+      tmp.RemoveLast();
+      entry->filename = entry->fullname.Mid(tmp.Find('/', true)+1);
+   }
+   else {
+      entry->filename = entry->fullname.Mid(entry->fullname.Find('/', true)+1);
    }
 
-   return ret;
+   return true;
 }
 
 /* Sets a list item state, and update its parents and children if it is a directory */
