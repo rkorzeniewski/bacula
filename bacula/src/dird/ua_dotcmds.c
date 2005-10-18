@@ -213,10 +213,10 @@ static int backupscmd(UAContext *ua, const char *cmd)
    if (!open_db(ua)) {
       return 1;
    }
-   if (ua->argc == 2 && strcmp(ua->argk[1], "client") != 0) {
+   if (ua->argc != 3 || strcmp(ua->argk[1], "client") != 0 || strcmp(ua->argk[2], "fileset") != 0) {
       return 1;
    }
-   Mmsg(ua->cmd, client_backups, ua->argv[1]);
+   Mmsg(ua->cmd, client_backups, ua->argv[1], ua->argv[2]);
    if (!db_sql_query(ua->db, ua->cmd, client_backups_handler, (void *)ua)) {
       bsendmsg(ua, _("Query failed: %s. ERR=%s\n"), ua->cmd, db_strerror(ua->db));
       return 1;
