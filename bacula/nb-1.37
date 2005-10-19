@@ -5,6 +5,7 @@ General:
 
 Changes to 1.37.*:
 19Oct05
+ - configure: add check for dd, remove check for df
  - block.c:do_dvd_size_checks: Check we are writing to a dvd before doing tests
    (reported by David Raine on the list, "[Bacula-users] LTO drive - End Of Volume error").
  - Update bacula-sd.conf.in to use dvd-handler correctly.
