@@ -25,6 +25,7 @@ import sys
 import re
 import signal
 import time
+import array
 
 class disk:
 # Configurable values:
@@ -163,9 +164,9 @@ class disk:
       processi = popen2.Popen4(cmd)
       status = processi.wait()
       if not os.WIFEXITED(status):
-         raise DVDError(self.dvdrwmediainfo + " process did not exit correctly.")
+         raise DVDError(0, self.dvdrwmediainfo + " process did not exit correctly.")
       if os.WEXITSTATUS(status) != 0:
-         raise DVDError("Cannot get media info from " + self.dvdrwmediainfo)
+         raise DVDError(0, "Cannot get media info from " + self.dvdrwmediainfo)
          return
       result = processi.fromchild.read()
       
@@ -180,18 +181,18 @@ class disk:
       if mediatype:
          self.disktype = mediatype.group(2)
       else:
-         raise DVDError("Media type not found in " + self.dvdrwmediainfo + " output")
+         raise DVDError(0, "Media type not found in " + self.dvdrwmediainfo + " output")
       
       if self.disktype == "DVD-RW":
          if mediamode:
             self.diskmode = mediamode.group(1)
          else:
-            raise DVDError("Media mode not found for DVD-RW in " + self.dvdrwmediainfo + " output")
+            raise DVDError(0, "Media mode not found for DVD-RW in " + self.dvdrwmediainfo + " output")
       
       if status:
          self.diskstatus = status.group(1)
       else:
-         raise DVDError("Disc status not found in " + self.dvdrwmediainfo + " output")
+         raise DVDError(0, "Disc status not found in " + self.dvdrwmediainfo + " output")
 
       
       self.mediumtype_collected = 1
@@ -285,6 +286,42 @@ class disk:
       if os.WEXITSTATUS(status) != 0:
          raise DVDError(os.WEXITSTATUS(status), cmd + " exited with status " + str(os.WEXITSTATUS(status)) + ", signal/status " + str(status))
 
+   def prepare(self):
+      if not self.is_RW():
+         raise DVDError(0, "I won't prepare a non-rewritable medium")
+      
+      # Blank DVD+RW when there is no data on it
+      if self.is_plus_RW() and self.is_blank():
+         print "DVD+RW looks brand-new, blank it to fix some DVD-writers bugs."
+         self.blank()
+         return # It has been completely blanked: Medium is ready to be used by Bacula
+      
+      if self.is_minus_RW() and (not self.is_restricted_overwrite()):
+         print "DVD-RW is in " + self.diskmode + " mode, reformating it to Restricted Overwrite"
+         self.reformat_minus_RW()
+         return # Reformated: Medium is ready to be used by Bacula
+      
+      # TODO: Check if /dev/fd/0 and /dev/zero exists, otherwise, run self.blank()
+      
+      cmd = "dd if=/dev/zero bs=1024 count=512 | " + self.growcmd + " -Z " + self.device + "=/dev/fd/0"
+      print "Running " + cmd
+      oldsig = signal.signal(signal.SIGTERM, self.term_handler)
+      proc = popen2.Popen4(cmd)
+      self.pid = proc.pid
+      status = proc.poll() 
+      while status == -1:
+         line = proc.fromchild.readline()
+         while len(line) > 0:
+            print line,
+            line = proc.fromchild.readline()
+         time.sleep(1)
+         status = proc.poll()
+      self.pid = 0
+      print
+      signal.signal(signal.SIGTERM, oldsig)
+      if os.WEXITSTATUS(status) != 0:
+         raise DVDError(os.WEXITSTATUS(status), cmd + " exited with status " + str(os.WEXITSTATUS(status)) + ", signal/status " + str(status))
+
    def blank(self):
       cmd = self.growcmd + " -Z " + self.device + "=/dev/zero"
       print "Running " + cmd
@@ -344,17 +381,23 @@ Usage:
 dvd-handler DEVICE test
 dvd-handler DEVICE free
 dvd-handler DEVICE write APPEND FILE
+dvd-handler DEVICE blank
 
 where DEVICE is a device name like /dev/sr0 or /dev/dvd.
 
 Operations:
-test       Scan the device and report the information found.
+test      Scan the device and report the information found.
            This operation needs no further arguments.
-free       Scan the device and report the available space.
-write      Write a part file to disk.
+free      Scan the device and report the available space.
+write     Write a part file to disk.
            This operation needs two additional arguments.
            The first indicates to append (0) or restart the
            disk (1). The second is the file to write.
+prepare   Prepare a DVD+/-RW for being used by Bacula.
+           Note: This is only useful if you already have some
+           non-Bacula data on a medium, and you want to use
+           it with Bacula. Don't run this on blank media, it
+           is useless.
 """
    sys.exit(1)
 
@@ -378,6 +421,21 @@ if "free" == sys.argv[2]:
          print "No Error reported."
    else:
       print "Wrong number of arguments for free operation."
+      usage()
+elif "prepare" == sys.argv[2]:
+   if len(sys.argv) == 3:
+      try:
+         dvd.prepare()
+      except DVDError, e:
+         print "Error while preparing medium: ", str(e)
+         if e.errno != 0:
+            sys.exit(e.errno & 0x7F)
+         else:
+            sys.exit(errno.EPIPE)
+      else:
+         print "Medium prepared successfully."
+   else:
+      print "Wrong number of arguments for prepare operation."
       usage()
 elif "test" == sys.argv[2]:
    try:
@@ -403,6 +461,6 @@ elif "write" == sys.argv[2]:
       usage()
       sys.exit(1)
 else:
-   print "No operation - use test, free or write."
+   print "No operation - use test, free, prepare or write."
    print "THIS MIGHT BE A CASE OF DEBUGGING BACULA OR AN ERROR!"
 sys.exit(0)
