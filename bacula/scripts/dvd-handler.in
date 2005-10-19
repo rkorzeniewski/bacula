@@ -20,6 +20,7 @@
 
 import popen2
 import os
+import os.path
 import errno
 import sys
 import re
@@ -33,6 +34,7 @@ class disk:
    dvdrwmediainfo = "@DVDRWMEDIAINFO@"
    growcmd = "@GROWISOFS@"
    dvdrwformat = "@DVDRWFORMAT@"
+   dd = "@DD@"
    margin = 10485760 # 10 mb security margin
 
    # Comment the following line if you want the tray to be reloaded
@@ -302,8 +304,12 @@ class disk:
          return # Reformated: Medium is ready to be used by Bacula
       
       # TODO: Check if /dev/fd/0 and /dev/zero exists, otherwise, run self.blank()
+      if not os.path.exists("/dev/fd/0") or not os.path.exists("/dev/zero"):
+         print "/dev/fd/0 or /dev/zero doesn't exist, blank the medium completely."
+         self.blank()
+         return
       
-      cmd = "dd if=/dev/zero bs=1024 count=512 | " + self.growcmd + " -Z " + self.device + "=/dev/fd/0"
+      cmd = self.dd + " if=/dev/zero bs=1024 count=512 | " + self.growcmd + " -Z " + self.device + "=/dev/fd/0"
       print "Running " + cmd
       oldsig = signal.signal(signal.SIGTERM, self.term_handler)
       proc = popen2.Popen4(cmd)
