@@ -782,11 +782,14 @@ static bool do_dvd_size_checks(DCR *dcr)
    JCR *jcr = dcr->jcr;
    DEV_BLOCK *block = dcr->block;
 
+   /* Don't go further if the device is not a dvd */
+   if (!dev->is_dvd()) {
+      return true;
+   }
+   
    /* Limit maximum part size to value specified by user 
-    * (not applicable to tapes/fifos)   
     */
-   if (!(dev->is_tape() || dev->is_fifo()) && dev->max_part_size > 0 &&
-        (dev->part_size + block->binbuf) >= dev->max_part_size) {
+   if (dev->max_part_size > 0 && ((dev->part_size + block->binbuf) >= dev->max_part_size)) {
       if (dev->part < dev->num_parts) {
          Jmsg3(dcr->jcr, M_FATAL, 0, _("Error while writing, current part number"
                " is less than the total number of parts (%d/%d, device=%s)\n"),
