@@ -3,6 +3,11 @@
 
 General:
 
+Changes to 1.37.42:
+22Oct05
+- Insure that all the SD tools init the Autochanger
+  resources.
+
 Changes to 1.37.41:
 22Oct05
 - Print error message if no Changer Command found.

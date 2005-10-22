@@ -49,6 +49,7 @@ int     authenticate_director(JCR *jcr);
 int     authenticate_filed(JCR *jcr);
 
 /* From autochanger.c */
+bool     init_autochangers();
 int      autoload_device(DCR *dcr, int writing, BSOCK *dir);
 bool     autochanger_cmd(DCR *dcr, BSOCK *dir, const char *cmd);
 bool     unload_autochanger(DCR *dcr, int loaded);
