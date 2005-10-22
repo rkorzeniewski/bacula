@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     10 October 2005
+                     22 October 2005
 
 Major development:      
 Project                     Developer
@@ -50,7 +50,11 @@ Document:
 - Does WildFile match against full name?  Doc.
 
 For 1.39:
-  of column positions in wx-console.
+- Add a new Autochanger directive "Global lock = yes|no"
+  that provides a global lock on calling mtx-changer so
+  that multiple autochanger definitions can reference
+  the same physical autochanger.
+- Look at -D_FORTIFY_SOURCE=2
 - Close STDOUT if debug_level == 0
 - Add recycle event.
 - Add scratch pool event.
@@ -1496,4 +1500,3 @@ Block Position: 0
 - Run the regression scripts on Solaris and FreeBSD
 -  Figure out how to package gui, and rescue programs.
 - Add a .dir command to restore tree code to eliminate the problem
-
