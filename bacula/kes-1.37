@@ -5,6 +5,7 @@ General:
 
 Changes to 1.37.41:
 22Oct05
+- Print error message if no Changer Command found.
 - Apply fix from Martin Simmons to clear structure before
   using it in IPADDR -- fixes a bind() bug on AIX.
 14Oct05
