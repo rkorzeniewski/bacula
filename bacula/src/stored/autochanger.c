@@ -29,6 +29,57 @@ static void lock_changer(DCR *dcr);
 static void unlock_changer(DCR *dcr);
 static bool unload_other_drive(DCR *dcr, int slot);
 
+/* Init all the autochanger resources found */
+bool init_autochangers()
+{
+   bool OK = true;
+   AUTOCHANGER *changer;
+   /* Ensure that the media_type for each device is the same */
+   foreach_res(changer, R_AUTOCHANGER) {
+      DEVRES *device;
+      char *media_type = NULL;
+      foreach_alist(device, changer->device) {
+         /*
+          * If the device does not have a changer name or changer command
+          *   defined, used the one from the Autochanger resource 
+          */
+         if (!device->changer_name && changer->changer_name) {
+            device->changer_name = bstrdup(changer->changer_name);
+         }
+         if (!device->changer_command && changer->changer_command) {
+            device->changer_command = bstrdup(changer->changer_command);
+         }
+         if (!device->changer_name) {
+            Jmsg(NULL, M_ERROR, 0, 
+               _("No Changer Name given for device %s. Cannot continue.\n"),
+               device->hdr.name);
+            OK = false;
+         }   
+         if (!device->changer_command) {
+            Jmsg(NULL, M_ERROR, 0, 
+               _("No Changer Command given for device %s. Cannot continue.\n"),
+               device->hdr.name);
+            OK = false;
+         }   
+
+         if (media_type == NULL) {
+            media_type = device->media_type;     /* get Media Type of first device */
+            continue;
+         }     
+         /* Ensure that other devices Media Types are the same */
+         if (strcmp(media_type, device->media_type) != 0) {
+            Jmsg(NULL, M_ERROR, 0, 
+               _("Media Type not the same for all devices in changer %s. Cannot continue.\n"),
+               changer->hdr.name);
+            OK = false;
+            continue;
+         }
+      }
+   }
+   return OK;
+}
+
+
 /*
  * Called here to do an autoload using the autochanger, if
  *  configured, and if a Slot has been defined for this Volume.
