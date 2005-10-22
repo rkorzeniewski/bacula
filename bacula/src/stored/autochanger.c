@@ -148,6 +148,11 @@ int get_autochanger_loaded_slot(DCR *dcr)
    uint32_t timeout = dcr->device->max_changer_wait;
    int drive = dcr->dev->drive_index;
 
+   if (!dcr->device->changer_command) {
+      Jmsg(jcr, M_FATAL, 0, _("3992 Missing Changer command.\n"));
+      return -1;
+   }
+
    results = get_pool_memory(PM_MESSAGE);
    changer = get_pool_memory(PM_FNAME);
 

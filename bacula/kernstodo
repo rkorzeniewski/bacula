@@ -50,11 +50,16 @@ Document:
 - Does WildFile match against full name?  Doc.
 
 For 1.39:
+<<<<<<< kernstodo
+- Add binary tree search for tree routines.
+- Eliminate use of column positions in wx-console.
+=======
 - Add a new Autochanger directive "Global lock = yes|no"
   that provides a global lock on calling mtx-changer so
   that multiple autochanger definitions can reference
   the same physical autochanger.
 - Look at -D_FORTIFY_SOURCE=2
+>>>>>>> 1.576
 - Close STDOUT if debug_level == 0
 - Add recycle event.
 - Add scratch pool event.
