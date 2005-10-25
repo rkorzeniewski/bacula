@@ -269,12 +269,12 @@ int db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    if (jr->JobId == 0) {
       Mmsg(mdb->cmd, "SELECT VolSessionId,VolSessionTime,"
 "PoolId,StartTime,EndTime,JobFiles,JobBytes,JobTDate,Job,JobStatus,"
-"Type,Level,ClientId "
+"Type,Level,ClientId,Name "
 "FROM Job WHERE Job='%s'", jr->Job);
     } else {
       Mmsg(mdb->cmd, "SELECT VolSessionId,VolSessionTime,"
 "PoolId,StartTime,EndTime,JobFiles,JobBytes,JobTDate,Job,JobStatus,"
-"Type,Level,ClientId "
+"Type,Level,ClientId,Name "
 "FROM Job WHERE JobId=%s", 
           edit_int64(jr->JobId, ed1));
     }
@@ -303,6 +303,7 @@ int db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    jr->JobType = (int)*row[10];
    jr->JobLevel = (int)*row[11];
    jr->ClientId = str_to_uint64(row[12]!=NULL?row[12]:(char *)"");
+   bstrncpy(jr->Name, row[13]!=NULL?row[13]:"", sizeof(jr->Name));
    sql_free_result(mdb);
 
    db_unlock(mdb);
