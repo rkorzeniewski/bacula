@@ -589,7 +589,6 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       bsendmsg(ua, _("You have selected the following JobId: %s\n"), rx->JobIds);
    }
 
-   memset(&jr, 0, sizeof(JOB_DBR));
 
    rx->TotalFiles = 0;
    for (p=rx->JobIds; ; ) {
@@ -604,6 +603,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       if (jr.JobId == JobId) {
          continue;                    /* duplicate of last JobId */
       }
+      memset(&jr, 0, sizeof(JOB_DBR));
       jr.JobId = JobId;
       if (!db_get_job_record(ua->jcr, ua->db, &jr)) {
          char ed1[50];

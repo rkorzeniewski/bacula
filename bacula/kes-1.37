@@ -4,6 +4,9 @@
 General:
 
 Changes to 1.37.42:
+25Oct05 
+- Make db_get_job_record() return Name so that the ACL
+  can be checked.  Fixes bug #446
 22Oct05
 - Insure that all the SD tools init the Autochanger
   resources.
