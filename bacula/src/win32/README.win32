@@ -5,7 +5,6 @@ the native Win32 bconsole program and the wx-console GUI console
 program.
 
 The directory structure is:
-
   bacula/src/win32      Makefiles and scripts
     baculafd            Visual Studio Files
       Release           Release objects, and bacula-fd.exe
@@ -21,6 +20,9 @@ The directory structure is:
     findlib             Links to core findlib code
     lib                 Links to core lib code
 
+  docs                  Bacula documentation directory with pre-build
+                        doc files
+
   depkgs-win32
     pthreads            The POSIX pthreads library (third party)
     zlib                The zlib library (third party)
@@ -29,7 +31,32 @@ The directory structure is:
 depkgs-win32 is released in a separate .tar.gz file that contains the
 source for the above mentioned libraries needed to build the
 Win32 Bacula.  It can be found in the Source Forge Bacula project
-release section.
+release section.  Docs is released as a separate tar file, which is
+created from the bacula CVS docs project (module).             
+
+
+Instructions if you want to build bacula-fd with VSS 
+(Volume Shadow Copy Service) support. Note, the non-VSS build is
+no longer supported though you may be able to get it to work by
+copy the file src/win32/baculafd/baculanovssfd.mak into 
+src/win32/baculafd/baculafd.mak before running the "make" command
+below:
+
+- VSS support works for both WinXP machines and Win 2003 machines.
+- you need to get the VSS SDK: 
+  http://www.microsoft.com/downloads/details.aspx?FamilyID=0B4F56E4-0CCC-4626-826A-ED2C4C95C871&displaylang=en
+- copy the 'inc' and 'lib' directories from this SDK to 
+  'bacula/src/win32/compat/vss'. Note, generally these files
+  are installed in c:/Program\ Files/Microsoft/VSSSDK71
+- you should then have 'bacula/src/win32/compat/vss/inc' and 
+  'bacula/src/win32/compat/vss/lib'
+  both with 'Win2003' and 'WinXP' subdirectories
+- add 'WIN32_VSS' as preprocessor directive
+- you should get a single bacula-fd.exe that runs on all platforms and has 
+  VSS support for WinXP and 2003 enabled
+- Once you have added the VSS SDK files as a subdirectory to the build
+  tree, follow the original instructions for building Bacula given
+  below.
 
 To build it:
 - For this version of Bacula, you must have msvcr71.dll
@@ -59,27 +86,38 @@ To build it:
 - cd bacula
   ./configure --enable-client-only
   cd src/win32
+- ensure that the docs are copied into docs at the bacula
+  directory level.
   make
 
-Instructions if you want to build bacula-fd with VSS 
-(Volume Shadow Copy Service) support:
-
-- VSS support works for both WinXP machines and Win 2003 machines.
-- you need to get the VSS SDK: 
-  http://www.microsoft.com/downloads/details.aspx?FamilyID=0B4F56E4-0CCC-4626-826A-ED2C4C95C871&displaylang=en
-- copy the 'inc' and 'lib' directories from this SDK to 
-  'bacula/src/win32/compat/vss'. Note, generally these files
-  are installed in c:/Program\ Files/Microsoft/VSSSDK71
-- you should then have 'bacula/src/win32/compat/vss/inc' and 
-  'bacula/src/win32/compat/vss/lib'
-  both with 'Win2003' and 'WinXP' subdirectories
-- add 'WIN32_VSS' as preprocessor directive
-- you should get a single bacula-fd.exe that runs on all platforms and has 
-  VSS support for WinXP and 2003 enabled
-- Follow the instructions given above for building it.
-
-That should be all there is too it. The winbacula-1.xx.y.exe 
-should be in the current directory.
+Here is the script that I use under cygwin to build it:
+==== build script =========
+#!/bin/sh
+cd bacula
+mkdir -p src/win32/compat/vss
+cp -a c:/Program\ Files/Microsoft/VSSSDK71/inc src/win32/compat/vss
+cp -a c:/Program\ Files/Microsoft/VSSSDK71/lib src/win32/compat/vss
+./configure \
+  --enable-client-only \
+  --sbindir=/bacula/bin \
+  --sysconfdir=/bacula/bin \
+  --enable-smartalloc \
+  --enable-static-tools \
+  --with-working-dir=/bacula/working \
+  --with-pid-dir=/bacula/working \
+  --with-subsys-dir=/bacula/working
+rm -rf docs
+cp -a ../docs .
+cd src/win32
+make
+VERSION=`sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' ../version.h`
+cp -pf winbacula-$VERSION.exe k:/home/kern/bacula/winbacula-vss-$VERSION.exe
+if test $? = 0 ; then
+  echo "winbacula-$VERSION.exe copied to k:/home/kern/bacula/winbacula-vss-$VERSION.exe"
+else
+  echo "Build failed ..."
+fi
+======== end build script ==============
 
 
 See License.txt for the License.
