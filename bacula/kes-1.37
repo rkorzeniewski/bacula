@@ -4,6 +4,8 @@
 General:
 
 Changes to 1.37.42:
+26Oct05
+- Update README.win32 instructions.
 25Oct05 
 - Make db_get_job_record() return Name so that the ACL
   can be checked.  Fixes bug #446
