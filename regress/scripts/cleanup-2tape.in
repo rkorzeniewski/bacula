@@ -4,9 +4,9 @@
 #
 scripts/cleanup
 
-if test ! x@autochanger@ = x/dev/null; then
+if test x@autochanger@ != x/dev/null; then
    drive=`bin/mtx-changer @autochanger@ loaded`
-   if test ! x${drive} = x2; then
+   if test x${drive} != x2; then
       bin/mtx-changer @autochanger@ unload 0 @tape_drive@ 0
       bin/mtx-changer @autochanger@ load 2 @tape_drive@ 0
    fi
@@ -18,9 +18,9 @@ fi
 #
 # If we have an autochanger always load tape in slot 1
 #
-if test ! x@autochanger@ = x/dev/null; then
+if test x@autochanger@ != x/dev/null; then
    drive=`bin/mtx-changer @autochanger@ loaded`
-   if test ! x${drive} = x1; then
+   if test x${drive} != x1; then
       bin/mtx-changer @autochanger@ unload 0 @tape_drive@ 0
       bin/mtx-changer @autochanger@ load 1 @tape_drive@ 0
    fi
