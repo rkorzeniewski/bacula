@@ -488,6 +488,8 @@ int dvd_open_next_part(DCR *dcr)
     *  needed. If num_parts represents what is on the DVD
     *  we should only need to change it when writing a part
     *  to the DVD.
+    * NB. As dvd_write_part increments dev->num_parts, I also
+    *  think it is not needed.
     */
    if (dev->num_parts < dev->part) {
       Dmsg2(100, "Set npart=%d to part=%d\n", dev->num_parts, dev->part);
