@@ -696,6 +696,7 @@ static bool terminate_writing_volume(DCR *dcr)
    
    if (dev->is_dvd()) {
       dvd_write_part(dcr);                 /* write last part */
+      dev->VolCatInfo.VolCatParts = dev->num_parts;
    }
    
    if (!dir_update_volume_info(dcr, false)) {

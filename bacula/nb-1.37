@@ -4,6 +4,8 @@
 General:
 
 Changes to 1.37.*:
+26Oct05
+ - dvd.c: update VolParts when writing the last part.
 19Oct05
  - configure: add check for dd, remove check for df
  - block.c:do_dvd_size_checks: Check we are writing to a dvd before doing tests
