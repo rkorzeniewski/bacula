@@ -1447,7 +1447,7 @@ void wxbRestorePanel::UpdateTreeItem(wxTreeItemId item, bool updatelist, bool re
 
          while (treeid.IsOk()) {
             itemStr = ((wxbTreeItemData*)tree->GetItemData(treeid))->GetName();
-            if (entry.fullname == itemStr) {
+            if (entry.filename == itemStr) {
                if (static_cast<wxbTreeItemData*>(tree->GetItemData(treeid))->GetMarked() != entry.marked) {
                   tree->SetItemImage(treeid, entry.marked, wxTreeItemIcon_Normal);
                   tree->SetItemImage(treeid, entry.marked, wxTreeItemIcon_Selected);
@@ -1463,13 +1463,13 @@ void wxbRestorePanel::UpdateTreeItem(wxTreeItemId item, bool updatelist, bool re
          }
 
          if (!updated) {
-            treeid = tree->AppendItem(item, wxbUtils::ConvertToPrintable(entry.filename), entry.marked, entry.marked, new wxbTreeItemData(entry.filename, entry.fullname, entry.marked));
+            treeid = tree->AppendItem(item, wxbUtils::ConvertToPrintable(entry.filename), entry.marked, entry.marked, new wxbTreeItemData(entry.fullname, entry.filename, entry.marked));
          }
       }
 
       if (updatelist) {
          long ind = list->InsertItem(list->GetItemCount(), entry.marked);
-         wxbTreeItemData* data = new wxbTreeItemData(entry.filename, entry.fullname, entry.marked, ind);
+         wxbTreeItemData* data = new wxbTreeItemData(entry.fullname, entry.filename, entry.marked, ind);
          data->SetId(treeid);
          list->SetItemData(ind, (long)data);
          list->SetItem(ind, 1, wxbUtils::ConvertToPrintable(entry.filename));
