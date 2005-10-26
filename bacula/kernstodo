@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     22 October 2005
+                     26 October 2005
 
 Major development:      
 Project                     Developer
@@ -9,8 +9,6 @@ Version 1.37                Kern (see below)
 
 Final items for 1.37 before release:
 1. Fix bugs
-- Fix JobACL with restore by JobId.
-- Mount after manually unloading changer causes hang in SD
 - Check if ANSI tape labeling works with drive in
   read-only mode.
    > > btape: label.c:299 write_volume_label()
@@ -1502,3 +1500,6 @@ Block Position: 0
 - Run the regression scripts on Solaris and FreeBSD
 -  Figure out how to package gui, and rescue programs.
 - Add a .dir command to restore tree code to eliminate the problem
+- Mount after manually unloading changer causes hang in SD
+- Fix JobACL with restore by JobId.
+
