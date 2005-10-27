@@ -1,33 +1,31 @@
 
-          Release Notes for Bacula 1.37.40
+          Release Notes for Bacula 1.38.0
 
-  Bacula code: Total files = 420 Total lines = 138,212 (*.h *.c *.in)
+  Bacula code: Total files = 420 Total lines = 138,440 (*.h *.c *.in)
+  20,440 additional lines of code since version 1.36.3
 
 Major Changes:
 - Fixed out of order Volumes in restore.
 - Improved algorithm for reserving drives in multiple drive
-  autochangers.
+  autochangers. Autochange users MUST use the new Autochanger
+  resource in the Storage daemon.
 - There is a new database format that is not compatible
   with previous databases. You must upgrade if converting
   from 1.36.x. No changes from version 1.37.30.
 - The Director, Storage daemon, and File daemons are
-  Deamons are not compatible with  prior versions. 
+  Deamons are not compatible with prior versions. 
   All FDs must be upgraded at the same time.
-- Multiple drive autochanger support. You *must* update
-  your SD conf file.
 - Support for ANSI/IBM labels.
-- New communications protocol between DIR and SD to reserve 
-  drives.
 - Faster database inserts due to combining the MD5/SHA1 into
   the attributes record, eliminating one INSERT/file backed up.
 - Python Event support has been added. See below for
-  configuration and details. Unfortunately, it is not yet complete
-  and the only really useful function is defining a new
-  Volume name.
-- DVD writing support, using parts, and a lot of new directives in
+  configuration and details. The implementation is somewhat minimal,
+  so the functionality is not complete. The Python interface
+  has not been extensively tested, so please consider it BETA.
+- DVD writing support, using parts, and some new directives in
   the Device resource of the Storage configuration file thanks
   to Nicolas Boichat. Please note that this code is still 
-  experimental and should be carefully tested before using in
+  BETA and should be carefully tested before using in
   production.
 - Seven new options keywords in a FileSet resource:
   ignorecase, fstype, hfsplussupport, wilddir, wildfile, regexdir,
@@ -36,7 +34,7 @@ Major Changes:
   records have been removed from the catalog.
 - Restore of a directory (non-recursive, i.e. only one level).
 - Support for TLS (ssl) between all the daemon connections thanks
-  to Landon Fuller. This is mostly untested.
+  to Landon Fuller.                         
 - Any Volume in the Pool named Scratch may be reassigned to any
   other Pool when a new Volume is needed.
 - You may clone a Job and thus write (almost) the same data
@@ -50,11 +48,10 @@ Major Changes:
   turn on VSS with "Enable VSS = yes" in your FileSet resource.
 - New manual format with an index (thanks to Karl Cunningham).
 - New Web site format (thanks to Michael Scherer).
-- SQLite3 support, but it seems to run at 1/2 to 1/4 the speed of
-  SQLite2.
+- SQLite3 support.
 - Web-bacula, previously a separate project by Juan Luis Frances,
-  is now included in the Bacula GUI release (yet to be fully
-  created).
+  is now included in the Bacula GUI release. This is a management
+  level tool for reporting the state of Bacula jobs.
 - The code is now Internationalized so that it can be localized
   in native languages.  Thanks to Nicolas Boichat.
 
@@ -76,7 +73,7 @@ New Directives:
   and differential jobs. The since=... is ignored when level=Full.
   A cloned job will not start additional clones, so it is not possible
   to recurse.
-- New Options keywords in a FileSet directive:
+- New Options keywords in a FileSet directive (backported to 1.36.3):
   - WildDir xxx
     Will do a wild card match against directories (files will not
     be matched).
@@ -164,7 +161,7 @@ New configure options:
   required only if you do not want the default /usr/share.
 
 Items to note!!!
-- If you use an Autochanger, you *must* update your SD conf file
+- If you use an Autochanger, you MUST update your SD conf file
   to use the new Autochanger resource.  Otherwise, certain commands
   such as "update slots" may not work.
 - You must add --with-python=[DIR] to the configure command line
@@ -185,13 +182,14 @@ Items to note!!!
 Other Items:
 - Security fixes for temp files created in mtx-changer, during
   ./configure, and during making of Rescue disk.
-- 2 new scripts, dvd-writepart and dvd-freespace, in the scripts directory,
-  which are designed to be used as parameters to Write Part Command and
+- A new script, dvd-handler, in the scripts directory,
+  which is designed to be used as parameters to Write Part Command and
   Free Space Command. They need the dvd+rw-tools to be installed
-  (http://fy.chalmers.se/~appro/linux/DVD+RW/).
+  (http://fy.chalmers.se/~appro/linux/DVD+RW/) AND, the growisofs
+  program must be patched using the 
+  <bacula-source>/patches/dvd+rw-tools-5.21.4.10.8.bacula.patch
   You must have Python installed to run the scripts.
 - Part files support: File volumes can now be split into multiple
   files, called "parts".
-
 - For the details of the Python scripting support, please see the new
   Python Scripting chapter in the manual.

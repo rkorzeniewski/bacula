@@ -1,3 +1,83 @@
+Changes to 1.37.42:
+26Oct05
+- Don't overwrite pthreadVCE.dll or msvcr71.dll during Win32 
+  install.
+- Update README.win32 instructions.
+25Oct05 
+- Make db_get_job_record() return Name so that the ACL
+  can be checked.  Fixes bug #446
+22Oct05
+- Insure that all the SD tools init the Autochanger
+  resources.
+
+Changes to 1.37.41:
+22Oct05
+- Print error message if no Changer Command found.
+- Apply fix from Martin Simmons to clear structure before
+  using it in IPADDR -- fixes a bind() bug on AIX.
+14Oct05
+- Add NetBSD fstype patch from Geert Hendrickx <ghen@telenet.be>
+- Update num_parts only when writing to DVD.
+13Oct05
+- Fix error conditions in bpipe.c DVD routine (terminate buffer).
+- Use a bigger buffer 32K as suggested by Arno in bpipe.c.
+- Increase dvd mount timeout with patch from Arno.
+- Modify DVD code so that it keeps a state flag that indicates
+  when the freespace variable is valid. freespace_errno, now has
+  either 0 or an errno. There are no negative errnos.
+- Create is_freespace_ok() to test state flag. Also, set_freespace_ok()
+  and clear_freespace_ok(). Modify code to use them.  This
+  simplifies a bit the logic of the freespace code.
+- Edit 64bit debug values correctly in dvd.c
+- Fix %e variable to check num_parts rather than part.
+- Use static buffer instead of static buffers for FI_to_ascii()
+  and stream_to_ascii() debug routines in SD. This is to prevent
+  possible race conditions between two threads (possibly Phil's
+  unmount problem).
+12Oct05
+- Add a .dir command that separates arguments with commas. It
+  is intended to be used in the tree routines to get a 
+  machine readable output for GUIs like wx-console.
+- Make configure set dvd-handler to have execute permission.
+- Install dvd-handler as is done for other dvd-xxx scripts.
+- In block.c call dvd_write_part() to write last part rather
+  than dvd_open_next_part().
+- Prefix some DVD subroutines with dvd_
+11Oct05
+- Add extra debug to Update media error for VolFiles decrease
+  error.
+- Do not update dev->file on set_ateof() for non-tape.
+10Oct05
+- Mark DVD volume in error if part cannot be written.
+- If a DVD is mounted, unmount it before asking operator
+  to mount an different one.
+- Add Arno's dvd-handler script to the scripts directory and
+  integrate with configure.  It replaces both existing scripts.
+- Make default schedule start at 23:10
+- Implement gui release in Makefile. It creates two .tar.gz
+  bacula-web and bimagemgr.
+08Oct05
+- Add README plus tar release to gui project.
+- Manual documentation
+- Tweak bacula.man doc
+- Add PRAGMA synchronous = NORMAL; to SQLite3 tables. This
+  speeds up SQLite3 so it is only about 10% slower than version
+  2.xx.  Thanks to Russell Howe for this tip.
+- Add msvcr71.dll to pebuilder .inf file as it is needed by
+  Bacula FD.  Thanks to Brandon for passing this fix to Scott.
+05Oct05
+- Add VolumePurged method to Python JobEvents class.  Fixes
+  bug #428 (I think).
+- Add JobId index to File table for MySQL.
+- Correct tray-monitor crash of bacula-dir. qstatus_cmd()  
+  code referenced the wrong pointer. Fixes bug #438.
+- Add bacualnovss.mak file from Martin.
+- Remove Pool from restore string in wbrestorepanel.cpp. Patch
+  from user for bug #433.
+- Correct code in wbrestorpanel.cpp with misplaced parens. Patch
+  from user for bug #431
+- Correct printing filenames/date/times in wbrestorepanel.cpp due to bad
+  column alignment. Patch from user for bug #432.
 
 Changes to 1.37.40:
 01Oct05
@@ -1394,3 +1474,98 @@ Changes to 1.37.2:
 - Make built-in variables table driven.
 - First cut of Python Events for Bacula. Director only.
   StartJob, EndJob, NewVolume events.
+
+
+              Technical notes on version 1.37  
+                      Nicolas Boichat
+
+General:
+
+Changes to 1.37.*:
+26Oct05
+ - dvd.c: update VolParts when writing the last part.
+19Oct05
+ - configure: add check for dd, remove check for df
+ - block.c:do_dvd_size_checks: Check we are writing to a dvd before doing tests
+   (reported by David Raine on the list, "[Bacula-users] LTO drive - End Of Volume error").
+ - Update bacula-sd.conf.in to use dvd-handler correctly.
+ - dvd.c:dvd_write_part: Increase timeout when writing the first part (see the code for
+   more details).
+18Oct05
+ - Modify .backups command to get a fileset parameter (fix bug #444).
+17Oct05
+ - Fix bug when recycling DVD devices (append flag was removed).
+ - Add tests for dvd+rw-format in configure script.
+ - scripts/dvd-handler: Reformat DVD-RW when needed. This needs dvd+rw-format.
+ - Add patch for dvd+rw-tools in patches dir (this should probably be elsewhere).
+16Oct05
+ - Remove scripts/dvd-freespace and scripts/dvd-writepart, as they are now
+   merged into scripts/dvd-handler. Note: Documentation needs to be updated.
+ - scripts/dvd-handler: "zero" brand-new DVD+/-RW to fix a problem with some
+   DVD-writers, thanks to Arno Lehmann for reporting this, and providing the
+   way to fix it.
+ - new scripts/dvd-handler. Note: it also needs a patched version of dvd+rw-tools.
+ - new scripts/dvd-freespace. Note: it needs a patched version of dvd+rw-tools.
+ - dvd.c:dvd_write_part: Don't write empty part. (Fix 4GB crossing bug reported by Arno Lehmann)
+14Oct05
+ - dvd.c:dvd_write_part: Use part_size and not max_part_size when setting write timeout.
+ - dvd.c:do_mount_dev: When checking if the DVD is mounted, do not count ., .. and .keep (needed on Gentoo).
+15Aug05
+ - Convert dvd-writepart to Python.
+ - Increase delay from 3 seconds to 5 seconds between SIGTERM and SIGKILL when
+   killing external programs.
+13Aug05
+ - Add gettext macros in autoconf/gettext-macros.
+ - Modify how localedir is set in configure.in.
+ - Remove setlocale check (useless).
+10Aug05
+ - Mark translatable strings in all source files.
+08Aug05
+ - Create French and Italian translation files (fr.po, it.po).
+ - Add support for translation in configure and Makefiles.
+ - Update autoconf/aclocal.m4 so it is automatically created with aclocal
+   (Note: autoconf/gnome-macros is not used anymore, it may be removed).
+30Jul05
+ - Fix src/lib/bpipe.c:run_program and run_program_full_output to detect if the watchdog
+   killed the program, and return an error if it is the case.
+26Apr05
+ - Modify parse_config to get a LEX_ERROR_HANDLER as a parameter 
+ - lex_open_file now returns NULL if the file can't be opened. All calling functions have
+   been adapted.
+ - Remove set_exit_on_error function
+07Apr05
+ - Fix "unknown device type" problem with DVD devices.
+ - Fix crash when there is no media in the DVD drive.
+09Jan05
+ - Update the documentation and ReleaseNotes.
+05Jan05
+ - Add FreeSpaceCommand in Device (SD configuration file) and implement it.
+ - Some modifications (again) on how guessed volume names are handled (now it should work).
+ - Part files on the hard disk are removed if they are empty.
+04Jan05
+ - Major fixes on how guessed volume names are handled.
+ - Minor fix in src/stored/append.c.
+ - Replace, when possible, POOLMEM by POOL_MEM in the new code of src/stored/dev.c.
+ - New script, scripts/dvd-freespace, which gets the free space available on a writable DVD.
+03Jan05
+ - Add WritePartAfterJob directive in Job resource (Director)
+ - Add WritePartAfterJob directive in Schedule Resource (Director)
+ - Implement these new directives
+02Jan05
+ - New function, open_guess_name_dev in src/stored/dev.c, which tries to guess the volume
+   name of a mounted device, so the label can be read.  
+ - New script, scripts/dvd-writepart, which write parts to DVD+/-R(W).
+ - Removed WriteFirstPartCommand directive in Device (SD configuration file).
+ - Use readdir_r instead of readdir (src/stored/dev.c:open_guess_name_dev).
+01Jan05
+ - Add RequiresMount, MountPoint, MountCommand, UnmountCommand directives in Device (SD configuration file).
+ - Implement these directives (volumes can now be restored from a manually written DVD). 
+ - Add WriteFirstPartCommand, WritePartCommand directives in Device (SD configuration file).
+ - Implement these directives (DVD writing now works).
+ - New function run_program_full_output in src/lib/bpipe.c.
+ - Lots of bugfixes and cleanups in the new code.
+29Dec04
+ - Add VolParts field in Media table
+ - Add MaximumPartSize directive in Device (SD configuration file)
+ - File Volumes can now be splitted in multiple files ("parts")
+ - Fix SQL error in sql_list while doing "llist jobmedia"

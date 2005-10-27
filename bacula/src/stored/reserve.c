@@ -303,9 +303,9 @@ static bool use_storage_cmd(JCR *jcr)
     * If there are multiple devices, the director sends us
     *   use_device for each device that it wants to use.
     */
-   Dmsg1(100, "<dird: %s", dir->msg);
    jcr->dirstore = New(alist(10, not_owned_by_alist));
    do {
+      Dmsg1(100, "<dird: %s", dir->msg);
       ok = sscanf(dir->msg, use_storage, store_name.c_str(), 
                   media_type.c_str(), pool_name.c_str(), 
                   pool_type.c_str(), &append, &Copy, &Stripe) == 7;
@@ -328,6 +328,7 @@ static bool use_storage_cmd(JCR *jcr)
 
       /* Now get all devices */
       while (bnet_recv(dir) >= 0) {
+         Dmsg1(100, "<dird device: %s", dir->msg);
          ok = sscanf(dir->msg, use_device, dev_name.c_str()) == 1;
          if (!ok) {
             break;
