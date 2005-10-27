@@ -178,7 +178,9 @@ int32_t bnet_recv(BSOCK * bsock)
    int32_t nbytes;
    int32_t pktsiz;
 
-   ASSERT(bsock != NULL);
+   if (!bsock) {
+      return BNET_HARDEOF;
+   }
    bsock->msg[0] = 0;
    bsock->msglen = 0;
    if (bsock->errors || bsock->terminated) {
