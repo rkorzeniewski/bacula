@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     26 October 2005
+                     28 October 2005
 
 Major development:      
 Project                     Developer
@@ -8,37 +8,6 @@ Version 1.37                Kern (see below)
 ========================================================
 
 Final items for 1.37 before release:
-1. Fix bugs
-- Check if ANSI tape labeling works with drive in
-  read-only mode.
-   > > btape: label.c:299 write_volume_label()
-   > > btape: label.c:302 Label type=0
-   > > btape: dev.c:648 rewind_dev fd=3 "VTS0" (/dev/tape0)
-   > > btape: label.c:530 Start create_volume_label()
-   > >
-   > > Volume Label:
-   > > Id                : Bacula 1.0 immortal
-   > > VerNo             : 11
-   > > VolName           : 450340
-   > > PrevVolName       :
-   > > VolFile           : 0
-   > > LabelType         : PRE_LABEL
-   > > LabelSize         : 0
-   > > PoolName          : Default
-   > > MediaType         : VTS
-   > > PoolType          : Backup
-   > > HostName          : sysrmr.eia.doe.gov
-   > > btape: ansi_label.c:282 Write ANSI label type=2
-   > > 15-Sep 13:12 btape: btape Fatal error: ansi_label.c:303 Could not
-   > > write ANSI VOL1
-   > > label. ERR=Bad file descriptor
-
-- Check "update slots=7 scan storage=DLT drive=0" with    
-  non-bacula tape in the drive.
-
--  --without-openssl breaks at least on Solaris.
--  Arno had to do -- to get update slots=x to work
-   UPDATE Media SET InChanger=0,Slot=0 WHERE InChanger>0 AND Slot>0; (MySQL)
 
 Document:
 - Does ClientRunAfterJob fail the job on a bad return code?
@@ -1502,4 +1471,3 @@ Block Position: 0
 - Add a .dir command to restore tree code to eliminate the problem
 - Mount after manually unloading changer causes hang in SD
 - Fix JobACL with restore by JobId.
-

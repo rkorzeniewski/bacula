@@ -15,3 +15,28 @@ chmod 644 /etc/log.d/conf/services/bacula.conf
 
 To test your installation run logwatch (as root):
 /etc/log.d/logwatch
+
+The following is the kind of output you could expect to be added to the
+standard logwatch listing:
+
+ --------------------- bacula Begin ------------------------ 
+
+Jobs Run:
+2005-09-02 2012 backupNightlySave.2005-09-02_01.05.00
+     BackupOK
+
+2005-09-02 2013 scottNightlySave.2005-09-02_01.05.01
+     BackupOK
+
+2005-09-02 2014 marthaNightlySave.2005-09-02_01.05.02
+     BackupOK
+
+2005-09-02 2015 lyndaNightlySave.2005-09-02_01.05.03
+     BackupOK
+
+2005-09-02 2016 backupBackupCatalog.2005-09-02_01.10.00
+     BackupOK
+
+
+ ---------------------- bacula End ------------------------- 
+
