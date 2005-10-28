@@ -178,6 +178,13 @@ Items to note!!!
   you want TLS communications encryption support.
 - Disk seeking during restores does not yet work correctly in
   all cases, so it is turned off.
+- Note, with gcc (GCC) 4.0.1 20050727 (Red Hat 4.0.1-5) on an
+  AMD64 CPU running 64 bit CentOS4, there is a compiler bug that
+  generates bad code that causes Bacula to segment fault.
+  Typically you will see this in the Storage daemon first.  The
+  solution is to compile Bacula ensuring that no optimization is
+  turned on (normally it is -O2).
+
 
 Other Items:
 - Security fixes for temp files created in mtx-changer, during
