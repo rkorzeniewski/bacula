@@ -7,21 +7,18 @@
  *    Version $Id$
  */
 /*
-   Copyright (C) 2004 Kern Sibbald and John Walker
+   Copyright (C) 2004-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
 #ifndef WXBRESTOREPANEL_H
@@ -140,14 +137,14 @@ class wxbRestorePanel : public wxbPanel
 /* Status related */
       enum status_enum
       {
-	 disabled,    // The panel is not activatable
-	 activable,   // The panel is activable, but not activated
-	 entered,     // The panel is activated
-	 choosing,    // The user is choosing files to restore
-	 listing,     // Dir listing is in progress
-	 configuring, // The user is configuring restore process
-	 restoring,   // Bacula is restoring files
-	 finished     // Retore done (state will change in activable)
+         disabled,    // The panel is not activatable
+         activable,   // The panel is activable, but not activated
+         entered,     // The panel is activated
+         choosing,    // The user is choosing files to restore
+         listing,     // Dir listing is in progress
+         configuring, // The user is configuring restore process
+         restoring,   // Bacula is restoring files
+         finished     // Retore done (state will change in activable)
       };
 
       status_enum status;
