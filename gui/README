@@ -37,7 +37,7 @@ For bimagemgr:
   make install
   ...
 
-To create a distribution tar file (NOT YET IMPLEMENTED!!!!!)
+To create a distribution tar file
    cd <gui>
    ./configure --with-bacula=<bacula-source-directory>
    make clean
