@@ -1,3 +1,6 @@
+
+Released as 1.38.0 28Oct05:
+
 Changes to 1.37.42:
 26Oct05
 - Don't overwrite pthreadVCE.dll or msvcr71.dll during Win32 
