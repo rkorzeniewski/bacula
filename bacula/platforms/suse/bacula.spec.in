@@ -12,6 +12,7 @@
 %define daemon_group bacula
 %define group_file /etc/group
 %define groupadd /usr/sbin/groupadd
+%define _rescuever 1.8.1
 
 # platform defines - set one below or define the build_xxx on the command line
 # RedHat builds
@@ -58,7 +59,7 @@ exit 1
 %define mysql 0
 %{?build_mysql:%define mysql 1}
 # if using mysql 4.x define this and mysql above
-# currently: Mandrake 10.1, SuSE 9.2, RHEL4
+# currently: Mandrake 10.1, SuSE 9.2, RHEL4 and Fedora Core 4
 %define mysql4 0
 %{?build_mysql4:%define mysql4 1}
 %define sqlite 0
@@ -108,11 +109,17 @@ License: GPL v2
 Source0:http://www.prdownloads.sourceforge.net/bacula/%{name}-%{version}.tar.gz
 Source1:http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.tar.gz
 Source2: Release_Notes-%{version}-%{release}.tar.gz
+Source3:http://www.prdownloads.sourceforge.net/bacula/%{name}-docs-%{version}.tar.gz
+Source4:http://www.prdownloads.sourceforge.net/bacula/%{name}-rescue-%{_rescuever}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-root
 URL: http://www.bacula.org/
 Vendor: The Bacula Team
 Distribution: %{_dist}
 Packager: D. Scott Barninger <barninger@fairfieldcomputers.com>
+
+%define _docsrc ../%{name}-docs-%{version}
+%define _rescuesrc ../%{name}-rescue-%{_rescuever}
+
 BuildRequires: atk-devel, ncurses-devel, pango-devel, perl
 BuildRequires: libstdc++-devel, libxml2-devel, zlib-devel, pkgconfig
 %if %{rh7}
@@ -224,6 +231,7 @@ Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
 Provides: bacula-dir, bacula-sd, bacula-fd, bacula-server
 Conflicts: bacula-client
+Obsoletes: bacula-rescue
 Requires: ncurses, libstdc++, zlib
 
 %if %{rh7}
@@ -309,6 +317,7 @@ This build incorporates sqlite as the catalog database, statically compiled.
 Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
 Provides: bacula-fd
+Obsoletes: bacula-rescue
 Requires: libstdc++, zlib
 
 %if %{rh7}
@@ -446,6 +455,8 @@ server packages.
 %setup
 %setup -T -D -b 1
 %setup -T -D -b 2
+%setup -T -D -b 3
+%setup -T -D -b 4
 
 %build
 
@@ -462,15 +473,16 @@ make mtx
 cd ${cwd}
 
 # patches for the bundled sqlite scripts
+# as of 1.38.0 first 3 patches no longer needed
 
 # patch the make_sqlite_tables script for installation bindir
-patch src/cats/make_sqlite_tables.in src/cats/make_sqlite_tables.in.patch
+# patch src/cats/make_sqlite_tables.in src/cats/make_sqlite_tables.in.patch
 
 # patch the create_sqlite_database script for installation bindir
-patch src/cats/create_sqlite_database.in src/cats/create_sqlite_database.in.patch
+#patch src/cats/create_sqlite_database.in src/cats/create_sqlite_database.in.patch
 
 # patch the make_catalog_backup script for installation bindir
-patch src/cats/make_catalog_backup.in src/cats/make_catalog_backup.in.patch
+#patch src/cats/make_catalog_backup.in src/cats/make_catalog_backup.in.patch
 
 # patch the update_sqlite_tables script for installation bindir
 patch src/cats/update_sqlite_tables.in src/cats/update_sqlite_tables.in.patch
@@ -641,6 +653,15 @@ chmod 755 $RPM_BUILD_ROOT/etc/log.d/scripts/services/bacula
 chmod 644 $RPM_BUILD_ROOT/etc/log.d/conf/logfiles/bacula.conf
 chmod 644 $RPM_BUILD_ROOT/etc/log.d/conf/services/bacula.conf
 
+# install the rescue files
+mkdir $RPM_BUILD_ROOT/etc/bacula/rescue
+cp -p %{_rescuesrc}/Makefile* $RPM_BUILD_ROOT/etc/bacula/rescue/
+cp -p %{_rescuesrc}/README $RPM_BUILD_ROOT/etc/bacula/rescue/
+cp -p %{_rescuesrc}/configure $RPM_BUILD_ROOT/etc/bacula/rescue/
+cp -p %{_rescuesrc}/version.h $RPM_BUILD_ROOT/etc/bacula/rescue/
+cp -pr %{_rescuesrc}/linux $RPM_BUILD_ROOT/etc/bacula/rescue/
+cp -pr %{_rescuesrc}/autoconf $RPM_BUILD_ROOT/etc/bacula/rescue/
+
 # now clean up permissions that are left broken by the install
 chmod o-r $RPM_BUILD_ROOT/etc/bacula/query.sql
 chmod o-rwx $RPM_BUILD_ROOT/var/bacula
@@ -678,14 +699,16 @@ chmod 644 $RPM_BUILD_ROOT/etc/bacula/tray-monitor.conf
 /etc/bacula/mtx-changer
 /etc/bacula/btraceback.dbx
 /etc/bacula/btraceback.gdb
-/etc/bacula/dvd-freespace
-/etc/bacula/dvd-writepart
+#/etc/bacula/dvd-freespace
+#/etc/bacula/dvd-writepart
+/etc/bacula/dvd-handler
 /etc/init.d/bacula-dir
 /etc/init.d/bacula-fd
 /etc/init.d/bacula-sd
+/etc/bacula/rescue
 
 %doc COPYING ChangeLog ReleaseNotes VERIFYING kernstodo 
-%doc ../Release_Notes-%{version}-%{release}.txt
+%doc %{_docsrc}/bacula.pdf %{_docsrc}/developers.pdf %{_docsrc}/html-manual ../Release_Notes-%{version}-%{release}.txt
 /usr/man/man1/*
 
 /etc/logrotate.d/bacula
@@ -811,14 +834,16 @@ fi
 /etc/bacula/mtx-changer
 /etc/bacula/btraceback.dbx
 /etc/bacula/btraceback.gdb
-/etc/bacula/dvd-freespace
-/etc/bacula/dvd-writepart
+#/etc/bacula/dvd-freespace
+#/etc/bacula/dvd-writepart
+/etc/bacula/dvd-handler
 /etc/init.d/bacula-dir
 /etc/init.d/bacula-fd
 /etc/init.d/bacula-sd
+/etc/bacula/rescue
 
 %doc COPYING ChangeLog ReleaseNotes VERIFYING kernstodo 
-%doc ../Release_Notes-%{version}-%{release}.txt
+%doc %{_docsrc}/bacula.pdf %{_docsrc}/developers.pdf %{_docsrc}/html-manual ../Release_Notes-%{version}-%{release}.txt
 /usr/man/man1/*
 
 /etc/logrotate.d/bacula
@@ -952,14 +977,16 @@ fi
 /etc/bacula/mtx-changer
 /etc/bacula/btraceback.dbx
 /etc/bacula/btraceback.gdb
-/etc/bacula/dvd-freespace
-/etc/bacula/dvd-writepart
+#/etc/bacula/dvd-freespace
+#/etc/bacula/dvd-writepart
+/etc/bacula/dvd-handler
 /etc/init.d/bacula-dir
 /etc/init.d/bacula-fd
 /etc/init.d/bacula-sd
+/etc/bacula/rescue
 
 %doc COPYING ChangeLog ReleaseNotes VERIFYING kernstodo 
-%doc ../Release_Notes-%{version}-%{release}.txt
+%doc %{_docsrc}/bacula.pdf %{_docsrc}/developers.pdf %{_docsrc}/html-manual ../Release_Notes-%{version}-%{release}.txt
 /usr/man/man1/*
 
 /etc/logrotate.d/bacula
@@ -1062,9 +1089,11 @@ fi
 
 /etc/bacula/bconsole
 /etc/init.d/bacula-fd
+/etc/bacula/rescue
 
 %doc COPYING ChangeLog ReleaseNotes VERIFYING kernstodo 
-%doc ../Release_Notes-%{version}-%{release}.txt
+%doc %{_docsrc}/bacula.pdf %{_docsrc}/developers.pdf %{_docsrc}/html-manual ../Release_Notes-%{version}-%{release}.txt
+
 /etc/logrotate.d/bacula
 
 %config(noreplace) /etc/bacula/bacula-fd.conf
@@ -1135,6 +1164,11 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 
 
 %changelog
+* Sun Oct 30 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- 1.38.0 release
+- add docs (from prebuilt tarball) and rescue packages back in
+- remove dvd-freespace and dvd-writepart files, add dvd-handler
+- remove 3 of 4 sqlite script patches as not needed
 * Sun Jul 24 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - changes for 1.38
 - remove docs and rescue sections (remove static fd)
