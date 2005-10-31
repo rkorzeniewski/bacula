@@ -90,6 +90,8 @@ Makefiles:
 
 clean:
 	@$(RMF) *~ 1 2 3 diff */diff  *.tar.gz
+	@$(RMF) config.log config.out config.status
+	@rm -rf autom4te.cache
 
 # clean for distribution
 distclean: clean
