@@ -1,13 +1,16 @@
                 
 Projects:
                      Bacula Projects Roadmap 
-                       10 October 2005
+                       28 October 2005
 
 Below, you will find more information on future projects:
 
 Item 1:   Implement a Migration job type that will move the job
           data from one device to another.
-  Status: Partially coded in 1.37 -- much more to do.
+  Origin: Sponsored by Riege Sofware International GmbH. Contact:
+          Daniel Holtkamp <holtkamp at riege dot com>
+  Status: Partially coded in 1.37 -- much more to do. Assigned to
+          Kern.
 
   What:   The ability to copy, move, or archive data that is on a
           device to another device is very important. 
@@ -30,6 +33,8 @@ Item 1:   Implement a Migration job type that will move the job
 
 Item 2:   Implement a Bacula GUI/management tool using Python
           and Qt.
+
+  Origin: Kern
   Status: 
 
   What:   Implement a Bacula console, and management tools
@@ -47,6 +52,7 @@ Item 2:   Implement a Bacula GUI/management tool using Python
           access to making additions or modifications.
 
 Item 3:   Implement a Python interface to the Bacula catalog.
+  Origin: Kern
   Status: 
 
   What:   Implement an interface for Python scripts to access
@@ -56,6 +62,7 @@ Item 3:   Implement a Python interface to the Bacula catalog.
           Python scripts.
 
 Item 4:   Implement more Python events in Bacula.
+  Origin: 
   Status: 
 
   What:   Allow Python scripts to be called at more places 
@@ -65,8 +72,13 @@ Item 4:   Implement more Python events in Bacula.
   Why:    This will permit users to customize Bacula through
           Python scripts.
 
+  Notes:  Recycle event
+          Scratch pool event
+          NeedVolume event
+
 
 Item 5:   Implement Base jobs.
+  Origin: Kern
   Status: 
   
   What:   A base job is sort of like a Full save except that you 
@@ -99,6 +111,7 @@ Item 5:   Implement Base jobs.
           list and compare it for each file to be saved.
 
 Item 6:   Add Plug-ins to the FileSet Include statements.
+  Origin:
   Status: Partially coded in 1.37 -- much more to do.
 
   What:   Allow users to specify wild-card and/or regular
@@ -113,6 +126,7 @@ Item 6:   Add Plug-ins to the FileSet Include statements.
           stopping/starting it, for example.
 
 Item 7:   Implement huge exclude list support using hashing.
+  Origin: Kern
   Status: 
 
   What:   Allow users to specify very large exclude list (currently
@@ -129,7 +143,8 @@ Item 7:   Implement huge exclude list support using hashing.
 
 Item  8:  Implement data encryption (as opposed to communications
           encryption)
-  Status: Landon Fuller is currently working on this.
+  Origin: Sponsored by Landon and 13 contributors to EFF.
+  Status: Landon Fuller is currently implementing this.
                   
   What:   Currently the data that is stored on the Volume is not
           encrypted. For confidentiality, encryption of data at
@@ -138,6 +153,68 @@ Item  8:  Implement data encryption (as opposed to communications
           decrypts the data in the File daemon during a restore.
 
   Why:    Large sites require this.
+
+Item 9:   Permit multiple Media Types in an Autochanger
+  Origin: 
+  Status: 
+
+  What:   Modify the Storage daemon so that multiple Media Types
+          can be specified in an autochanger. This would be somewhat
+          of a simplistic implementation in that each drive would
+          still be allowed to have only one Media Type.  However,
+          the Storage daemon will ensure that only a drive with
+          the Media Type that matches what the Director specifies
+          is chosen.
+
+  Why:    This will permit user with several different drive types
+          to make full use of their autochangers.
+
+Item 10:  Allow two different autochanger definitions that refer
+          to the same autochanger.
+  Origin: Kern
+  Status: 
+
+  What:   Currently, the autochanger script is locked based on
+          the autochanger. That is, if multiple drives are being
+          simultaneously used, the Storage daemon ensures that only
+          one drive at a time can access the mtx-changer script.
+          This change would base the locking on the control device,
+          rather than the autochanger. It would then permit two autochanger
+          definitions for the same autochanger, but with different 
+          drives. Logically, the autochanger could then be "partitioned"
+          for different jobs, clients, or class of jobs, and if the locking
+          is based on the control device (e.g. /dev/sg0) the mtx-changer
+          script will be locked appropriately.
+
+  Why:    This will permit users to partition autochangers for specific
+          use. It would also permit implementation of multiple Media
+          Types with no changes to the Storage daemon.
+
+Item 11:  Implement red/black binary tree routines.
+  Origin: Kern
+  Status: 
+
+  What:   Implement a red/black binary tree class. This could 
+          then replace the current binary insert/search routines
+          used in the restore in memory tree.  This could significantly
+          speed up the creation of the in memory restore tree.
+
+  Why:    Performance enhancement.
+
+
+
+
+============= Empty RFC form ===========
+Item n:   One line summary ...
+  Origin: Name and email of originator.
+  Status: 
+
+  What:   More detailed explanation ...
+
+  Why:    Why it is important ...
+
+  Notes:  Additional notes or features ...
+============== End RFC form ==============
 
 
 Items completed for release 1.38.0:
@@ -152,7 +229,7 @@ Items completed for release 1.38.0:
 #-   Built in support for communications encryption (TLS) 
        done by Landon Fuller.
 #    Support for Unicode characters
-       (via UTF-8) on Win32 machines thanks to Thorsten Engle.
+       (via UTF-8) on Win32 machines thanks to Thorsten Engel.
 Item  8:  Break the one-to-one Relationship between a Job and a
           Specific Storage Device (or Devices if #10 is implemented).
 
