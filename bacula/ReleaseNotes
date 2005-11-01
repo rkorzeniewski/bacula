@@ -170,7 +170,13 @@ Items to note!!!
 - When linking with --with-python, there are a few warnings that
   can be ignored.
 - You must either create a new catalog database or upgrade your
-  old database.
+  old database. After installation, run from your scripts
+  directory:
+
+       ./upgrade_bacula_tables
+
+  You can also find this script in the <bacula-source>/src/cats
+  directory.
 - The Director, Storage daemon, and File daemons are
   Deamons are not compatible with  prior versions. 
   All FDs must be upgraded at the same time.
