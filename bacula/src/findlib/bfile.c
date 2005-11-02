@@ -97,6 +97,94 @@ const char *stream_to_ascii(int stream)
    }
 }
 
+#ifdef USE_WIN32STREAMEXTRACTION
+BOOL processWin32BackupAPIBlock (BFILE *bfd, void *pBuffer, size_t dwSize)
+{   
+   /* pByte contains the buffer 
+      dwSize the len to be processed. function assumes to be called in successive
+      incremental order over the complete BackupRead stream beginning at pos 0 and
+      ending at the end. */
+
+   PROCESS_WIN32_BACKUPAPIBLOCK_CONTEXT* pContext = &(bfd->win32DecompContext);
+   BOOL bContinue = FALSE;
+   LONGLONG dwDataOffset = 0;
+   LONGLONG dwDataLen;
+
+   /* Win32 Stream Header size without name of strem.
+      = sizeof (WIN32_STREAM_ID)- sizeof(WCHAR*); */
+   DWORD dwSizeHeader = 20; 
+
+   do {               
+      if (pContext->liNextHeader >= dwSize) {                        
+         dwDataLen = dwSize-dwDataOffset;
+         bContinue = FALSE; /* 1 iteration is enough */
+      }
+      else {                        
+         dwDataLen = pContext->liNextHeader-dwDataOffset;
+         bContinue = TRUE; /* multiple iterations may be necessary */
+      }
+
+      /* flush */
+      /* copy block of real DATA */
+      if (pContext->bIsInData) {
+         if (bwrite(bfd, ((LPBYTE)pBuffer)+dwDataOffset, dwDataLen) != (ssize_t)dwDataLen)            
+            return FALSE;         
+      }
+
+      if (pContext->liNextHeader < dwSize) {/* is a header in this block ? */
+         DWORD dwOffsetTarget;
+         DWORD dwOffsetSource;
+            
+         if (pContext->liNextHeader < 0) {
+            /* start of header was before this block,
+               so we continue with the part in the current block */                                   
+            dwOffsetTarget = abs (pContext->liNextHeader);
+            dwOffsetSource = 0;                            
+         }
+         else {
+            /* start of header is inside of this block */
+            dwOffsetTarget = 0;
+            dwOffsetSource = pContext->liNextHeader;                        
+         }
+
+         DWORD dwHeaderPartLen = dwSizeHeader-dwOffsetTarget;
+         BOOL bHeaderIsComplete;
+
+         if (dwHeaderPartLen <= dwSize-dwOffsetSource) 
+            /* header (or rest of header) is completely available in current block */
+            bHeaderIsComplete = TRUE;                                                        
+         else  {
+            /* header will continue in next block */
+            bHeaderIsComplete = FALSE;
+            dwHeaderPartLen = dwSize-dwOffsetSource;
+         }
+
+         /* copy the available portion of header to persistent copy */
+         memcpy (((LPBYTE) &pContext->header_stream)+dwOffsetTarget, ((LPBYTE) pBuffer)+dwOffsetSource, dwHeaderPartLen);
+
+         /* recalculate position of next header */
+         if (bHeaderIsComplete) {
+            dwDataOffset = pContext->liNextHeader+dwSizeHeader+pContext->header_stream.dwStreamNameSize;
+            pContext->liNextHeader = dwDataOffset+pContext->header_stream.Size.QuadPart;
+            pContext->bIsInData = pContext->header_stream.dwStreamId == BACKUP_DATA;
+            if (dwDataOffset == dwSize)
+                  bContinue = FALSE;
+         }
+         else {
+            /* stop and continue with next block */
+            bContinue = FALSE;
+            pContext->bIsInData = FALSE;
+         }
+      }                
+   } while (bContinue);    
+
+   /* set "NextHeader" relative to the beginning of the next block */
+   pContext->liNextHeader-= dwSize;
+
+   return TRUE;
+}
+#endif
+
 
 
 /* ===============================================================
@@ -178,7 +266,12 @@ bool is_stream_supported(int stream)
 #endif
    case STREAM_WIN32_DATA:
    case STREAM_WIN32_GZIP_DATA:
-      return have_win32_api();
+#ifdef USE_WIN32STREAMEXTRACTION
+      return true;
+#else
+      return have_win32_api();      
+#endif
+
 
    case STREAM_MACOS_FORK_DATA:
    case STREAM_HFSPLUS_ATTRIBUTES:
@@ -214,7 +307,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
    POOLMEM *win32_fname_wchar;
 
    DWORD dwaccess, dwflags, dwshare;
-   
+
    /* Convert to Windows path format */
    win32_fname = get_pool_memory(PM_FNAME);
    win32_fname_wchar = get_pool_memory(PM_FNAME);
@@ -333,6 +426,10 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
    }
    bfd->errmsg = NULL;
    bfd->lpContext = NULL;
+#ifdef USE_WIN32STREAMEXTRACTION
+   bfd->win32DecompContext.bIsInData = FALSE;
+   bfd->win32DecompContext.liNextHeader = 0;
+#endif
    free_pool_memory(win32_fname_wchar);
    free_pool_memory(win32_fname);
    return bfd->mode == BF_CLOSED ? -1 : 1;
@@ -540,8 +637,10 @@ bool is_stream_supported(int stream)
    case STREAM_GZIP_DATA:
    case STREAM_SPARSE_GZIP_DATA:
 #endif
+#ifndef USE_WIN32STREAMEXTRACTION
    case STREAM_WIN32_DATA:
    case STREAM_WIN32_GZIP_DATA:
+#endif
 #ifndef HAVE_DARWIN_OS
    case STREAM_MACOS_FORK_DATA:
    case STREAM_HFSPLUS_ATTRIBUTES:
@@ -552,6 +651,12 @@ bool is_stream_supported(int stream)
 #ifdef HAVE_LIBZ
    case STREAM_GZIP_DATA:
    case STREAM_SPARSE_GZIP_DATA:
+#endif
+#ifdef USE_WIN32STREAMEXTRACTION
+   case STREAM_WIN32_DATA:
+#endif
+#if defined(USE_WIN32STREAMEXTRACTION) && defined(HAVE_LIBZ)
+   case STREAM_WIN32_GZIP_DATA:    
 #endif
    case STREAM_UNIX_ATTRIBUTES:
    case STREAM_FILE_DATA:
@@ -615,6 +720,12 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
    bfd->berrno = errno;
    Dmsg1(400, "Open file %d\n", bfd->fid);
    errno = bfd->berrno;
+
+#ifdef USE_WIN32STREAMEXTRACTION
+   bfd->win32DecompContext.bIsInData = FALSE;
+   bfd->win32DecompContext.liNextHeader = 0;
+#endif
+
    return bfd->fid;
 }
 
