@@ -41,6 +41,14 @@ struct Python_IO {
 };
 #endif
 
+#ifdef USE_WIN32STREAMEXTRACTION
+typedef struct _PROCESS_WIN32_BACKUPAPIBLOCK_CONTEXT {
+        LONGLONG        liNextHeader;
+        BOOL            bIsInData;
+        WIN32_STREAM_ID header_stream;        
+} PROCESS_WIN32_BACKUPAPIBLOCK_CONTEXT;
+#endif
+
 /*  =======================================================
  *
  *   W I N D O W S
@@ -74,6 +82,10 @@ struct BFILE {
    char *prog;                        /* reader/writer program if any */
    JCR *jcr;                          /* jcr for editing job codes */
    Python_IO pio;                     /* Python I/O routines */
+#ifdef USE_WIN32STREAMEXTRACTION
+   PROCESS_WIN32_BACKUPAPIBLOCK_CONTEXT win32DecompContext; /* context for decomposition of win32 backup streams */
+   int use_backup_decomp;             /* set if using BackupRead Stream Decomposition */
+#endif
 };
 
 HANDLE bget_handle(BFILE *bfd);
@@ -94,6 +106,10 @@ struct BFILE {
    char *prog;                        /* reader/writer program if any */
    JCR *jcr;                          /* jcr for editing job codes */
    Python_IO pio;                     /* Python I/O routines */
+#ifdef USE_WIN32STREAMEXTRACTION
+   PROCESS_WIN32_BACKUPAPIBLOCK_CONTEXT win32DecompContext; /* context for decomposition of win32 backup streams */
+   int use_backup_decomp;             /* set if using BackupRead Stream Decomposition */
+#endif
 };
 
 #endif
@@ -117,5 +133,9 @@ ssize_t bread(BFILE *bfd, void *buf, size_t count);
 ssize_t bwrite(BFILE *bfd, void *buf, size_t count);
 off_t   blseek(BFILE *bfd, off_t offset, int whence);
 const char   *stream_to_ascii(int stream);
+
+#ifdef USE_WIN32STREAMEXTRACTION
+BOOL processWin32BackupAPIBlock (BFILE *bfd, void *pBuffer, size_t dwSize);
+#endif
 
 #endif /* __BFILE_H */

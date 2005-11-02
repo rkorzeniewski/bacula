@@ -90,6 +90,9 @@ enum {
 #define FO_NO_HARDLINK  (1<<15)       /* don't handle hard links */
 #define FO_IGNORECASE   (1<<16)       /* Ignore file name case */
 #define FO_HFSPLUS      (1<<17)       /* Resource forks and Finder Info */
+#ifdef USE_WIN32STREAMEXTRACTION
+#define FO_WIN32DECOMP  (1<<18)       /* Use BackupRead decomposition */
+#endif
 
 struct s_included_file {
    struct s_included_file *next;

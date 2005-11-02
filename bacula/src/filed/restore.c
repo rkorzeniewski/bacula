@@ -290,6 +290,15 @@ void do_restore(JCR *jcr)
                   || stream == STREAM_WIN32_GZIP_DATA) {
                flags |= FO_GZIP;
             }
+
+#ifdef USE_WIN32STREAMEXTRACTION
+/* THIS DETERMINES IF WE USE THE WIN32 BACKUPSTREAM DECOMPOSITION */
+            if (is_win32_stream(stream) && !have_win32_api()) {
+               set_portable_backup(&bfd);
+               flags |= FO_WIN32DECOMP;
+            }
+#endif
+
             if (extract_data(jcr, &bfd, sd->msg, sd->msglen, &fileAddr, flags) < 0) {
                extract = false;
                bclose(&bfd);
@@ -534,6 +543,17 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
       Dmsg2(30, "Write %u bytes, total before write=%s\n", wsize, edit_uint64(jcr->JobBytes, ec1));
    }
 
+#ifdef USE_WIN32STREAMEXTRACTION
+   if (flags & FO_WIN32DECOMP) {
+      if (!processWin32BackupAPIBlock(bfd, wbuf, wsize)) {
+         berrno be;
+         Jmsg2(jcr, M_ERROR, 0, _("Write error in Win32 Block Decomposition on %s: %s\n"), 
+               jcr->last_fname, be.strerror(bfd->berrno));
+         return -1;
+      }
+   }
+   else
+#endif
    if (bwrite(bfd, wbuf, wsize) != (ssize_t)wsize) {
       berrno be;
       Jmsg2(jcr, M_ERROR, 0, _("Write error on %s: %s\n"), 
