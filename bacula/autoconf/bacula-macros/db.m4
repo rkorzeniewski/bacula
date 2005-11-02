@@ -321,7 +321,7 @@ AC_ARG_WITH(postgresql,
           AC_MSG_ERROR(Invalid PostgreSQL directory $withval - unable to find libpq-fe.h under $withval)
       fi
       POSTGRESQL_LFLAGS="-L$POSTGRESQL_LIBDIR -lpq"
-      AC_CHECK_FUNC(crypt, , AC_CHECK_LIB(crypt, crypt, [POSTGRESQL_LFLAGS="-lcrypt $POSTGRESQL_LFLAGS"]))
+      AC_CHECK_FUNC(crypt, , AC_CHECK_LIB(crypt, crypt, [POSTGRESQL_LFLAGS="$POSTGRESQL_LFLAGS -lcrypt"]))
       SQL_INCLUDE=-I$POSTGRESQL_INCDIR
       SQL_LFLAGS=$POSTGRESQL_LFLAGS
       SQL_BINDIR=$POSTGRESQL_BINDIR
@@ -802,4 +802,3 @@ else
   $1_TRUE='#'
   $1_FALSE=
 fi])
-
