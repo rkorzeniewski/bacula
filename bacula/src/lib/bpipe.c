@@ -371,7 +371,7 @@ int run_program_full_output(char *prog, int wait, POOLMEM *results)
    stat2 = close_bpipe(bpipe);
    stat1 = stat2 != 0 ? stat2 : stat1;
    
-   Dmsg1(900, "Run program returning %d\n", stat);
+   Dmsg1(900, "Run program returning %d\n", stat1);
    free_pool_memory(tmp);
    free(buf);
    return stat1;
