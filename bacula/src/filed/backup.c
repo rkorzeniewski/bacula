@@ -224,9 +224,6 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
 
    Dmsg1(130, "bfiled: sending %s to stored\n", ff_pkt->fname);
 
-   if (!encode_and_send_attributes(jcr, ff_pkt, data_stream)) {
-      return 0;
-   }
 
    /*
     * Setup for signature handling.
@@ -244,6 +241,10 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
             ff_pkt->reader);
          return 0;
       }
+   }
+
+   if (!encode_and_send_attributes(jcr, ff_pkt, data_stream)) {
+      return 0;
    }
 
    /*
