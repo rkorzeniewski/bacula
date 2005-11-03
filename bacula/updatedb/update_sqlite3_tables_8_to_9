@@ -8,9 +8,9 @@ echo "Depending on the size of your database,"
 echo "this script may take several minutes to run."
 echo " "
 
-bindir=@SQL_BINDIR@
-cd @working_dir@
-sqlite=@DB_NAME@
+bindir=/usr/bin
+cd /var/bacula/working
+sqlite=postgresql
 
 ${bindir}/${sqlite} $* bacula.db <<END-OF-DATA
 BEGIN TRANSACTION;

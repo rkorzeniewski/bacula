@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# shell script to update SQLite from version 1.36 to 1.37.12
+# shell script to update SQLite from version 1.36 to 1.38
 #
 echo " "
 echo "This script will update a Bacula SQLite database from version 8 to 9"
