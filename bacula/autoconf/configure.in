@@ -2005,6 +2005,9 @@ chmod 755 $c/grant_mysql_privileges   $c/drop_mysql_tables     $c/drop_mysql_dat
 chmod 755 $c/create_sqlite_database   $c/update_sqlite_tables  $c/make_sqlite_tables
 chmod 755 $c/grant_sqlite_privileges  $c/drop_sqlite_tables    $c/drop_sqlite_database
 
+chmod 755 $c/create_sqlite3_database   $c/update_sqlite3_tables  $c/make_sqlite3_tables
+chmod 755 $c/grant_sqlite3_privileges  $c/drop_sqlite3_tables	 $c/drop_sqlite3_database
+
 chmod 755 $c/create_postgresql_database  $c/update_postgresql_tables $c/make_postgresql_tables
 chmod 755 $c/grant_postgresql_privileges $c/drop_postgresql_tables   $c/drop_postgresql_database
 
