@@ -248,31 +248,33 @@ bool have_win32_api()
 
 
 /*
- * Return 1 if we support the stream
- *        0 if we do not support the stream
+ * Return true  if we support the stream
+ *        false if we do not support the stream
  */
 bool is_stream_supported(int stream)
 {
    /* No Win32 backup on this machine */
    switch (stream) {
-/*#ifndef HAVE_LIBZ
-   case STREAM_GZIP_DATA:
-   case STREAM_SPARSE_GZIP_DATA:
-      return 0;
-#endif*/
    case STREAM_WIN32_DATA:
+#ifdef HAVE_ZLIB
    case STREAM_WIN32_GZIP_DATA:
+#endif
 #ifdef USE_WIN32STREAMEXTRACTION
       return true;
 #else
       return have_win32_api();      
 #endif
 
-/*
+/* Streams known not to be supported */
+#ifndef HAVE_LIBZ
+   case STREAM_GZIP_DATA:
+   case STREAM_SPARSE_GZIP_DATA:
+   case STREAM_WIN32_GZIP_DATA:
+#endif
    case STREAM_MACOS_FORK_DATA:
    case STREAM_HFSPLUS_ATTRIBUTES:
       return false;
-*/
+
    /* Known streams */
 #ifdef HAVE_LIBZ
    case STREAM_GZIP_DATA:
