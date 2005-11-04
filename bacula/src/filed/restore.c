@@ -35,6 +35,7 @@ static char rec_header[] = "rechdr %ld %ld %ld %ld %ld";
 #ifdef HAVE_LIBZ
 static const char *zlib_strerror(int stat);
 #endif
+
 int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
       uint64_t *addr, int flags);
 
@@ -291,13 +292,10 @@ void do_restore(JCR *jcr)
                flags |= FO_GZIP;
             }
 
-#ifdef USE_WIN32STREAMEXTRACTION
-/* THIS DETERMINES IF WE USE THE WIN32 BACKUPSTREAM DECOMPOSITION */
             if (is_win32_stream(stream) && !have_win32_api()) {
                set_portable_backup(&bfd);
-               flags |= FO_WIN32DECOMP;
+               flags |= FO_WIN32DECOMP;    /* "decompose BackupWrite data */
             }
-#endif
 
             if (extract_data(jcr, &bfd, sd->msg, sd->msglen, &fileAddr, flags) < 0) {
                extract = false;

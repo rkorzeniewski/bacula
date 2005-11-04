@@ -7,19 +7,14 @@
    Copyright (C) 2001-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -90,9 +85,7 @@ enum {
 #define FO_NO_HARDLINK  (1<<15)       /* don't handle hard links */
 #define FO_IGNORECASE   (1<<16)       /* Ignore file name case */
 #define FO_HFSPLUS      (1<<17)       /* Resource forks and Finder Info */
-#ifdef USE_WIN32STREAMEXTRACTION
 #define FO_WIN32DECOMP  (1<<18)       /* Use BackupRead decomposition */
-#endif
 
 struct s_included_file {
    struct s_included_file *next;
