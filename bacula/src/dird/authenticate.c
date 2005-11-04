@@ -92,7 +92,7 @@ bool authenticate_storage_daemon(JCR *jcr, STORE *store)
       stop_bsock_timer(tid);
       Dmsg0(50, _("Director and Storage daemon passwords or names not the same.\n"));
       Jmsg0(jcr, M_FATAL, 0,
-            _("Unable to authenticate with Storage daemon. Possible causes:\n"
+            _("Director unable to authenticate with Storage daemon. Possible causes:\n"
             "Passwords or names not the same or\n"
             "Maximum Concurrent Jobs exceeded on the SD or\n"
             "SD networking messed up (restart daemon).\n"
