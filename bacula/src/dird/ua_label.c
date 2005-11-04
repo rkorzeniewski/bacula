@@ -66,11 +66,12 @@ static bool get_user_slot_list(UAContext *ua, char *slot_list, int num_slots)
    int i;
    const char *msg;
 
+   /* slots are numbered 1 to num_slots */
    for (int i=0; i <= num_slots; i++) {
       slot_list[i] = 0;
    }
    i = find_arg_with_value(ua, "slots");
-   if (i >= 0) {
+   if (i > 0) {
       /* scan slot list in ua->argv[i] */
       char *p, *e, *h;
       int beg, end;
@@ -117,7 +118,7 @@ static bool get_user_slot_list(UAContext *ua, char *slot_list, int num_slots)
             msg = _("Values must be be greater than zero.\n");
             goto bail_out;
          }
-         if (end >= num_slots) {
+         if (end > num_slots) {
             msg = _("Slot too large.\n");
             goto bail_out;
          }
@@ -127,14 +128,14 @@ static bool get_user_slot_list(UAContext *ua, char *slot_list, int num_slots)
       }
    } else {
       /* Turn everything on */
-      for (i=0; i <= num_slots; i++) {
+      for (i=1; i <= num_slots; i++) {
          slot_list[i] = 1;
       }
    }
    Dmsg0(100, "Slots turned on:\n");
    for (i=1; i <= num_slots; i++) {
       if (slot_list[i]) {
-         Dmsg1(100, "%d\n", i);
+         Dmsg1(000, "%d\n", i);
       }
    }
    return true;
