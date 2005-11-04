@@ -255,11 +255,11 @@ bool is_stream_supported(int stream)
 {
    /* No Win32 backup on this machine */
    switch (stream) {
-#ifndef HAVE_LIBZ
+/*#ifndef HAVE_LIBZ
    case STREAM_GZIP_DATA:
    case STREAM_SPARSE_GZIP_DATA:
       return 0;
-#endif
+#endif*/
    case STREAM_WIN32_DATA:
    case STREAM_WIN32_GZIP_DATA:
 #ifdef USE_WIN32STREAMEXTRACTION
@@ -268,11 +268,11 @@ bool is_stream_supported(int stream)
       return have_win32_api();      
 #endif
 
-
+/*
    case STREAM_MACOS_FORK_DATA:
    case STREAM_HFSPLUS_ATTRIBUTES:
       return false;
-
+*/
    /* Known streams */
 #ifdef HAVE_LIBZ
    case STREAM_GZIP_DATA:
@@ -628,7 +628,7 @@ bool set_prog(BFILE *bfd, char *prog, JCR *jcr)
 bool is_stream_supported(int stream)
 {
    /* No Win32 backup on this machine */
-   switch (stream) {
+/*   switch (stream) {
 #ifndef HAVE_LIBZ
    case STREAM_GZIP_DATA:
    case STREAM_SPARSE_GZIP_DATA:
@@ -642,6 +642,7 @@ bool is_stream_supported(int stream)
    case STREAM_HFSPLUS_ATTRIBUTES:
 #endif
       return false;
+*/
 
    /* Known streams */
 #ifdef HAVE_LIBZ
@@ -666,11 +667,11 @@ bool is_stream_supported(int stream)
    case STREAM_MACOS_FORK_DATA:
    case STREAM_HFSPLUS_ATTRIBUTES:
 #endif
-   case 0:                            /* compatibility with old tapes */
+   case 0:   /* compatibility with old tapes */
       return true;
 
    }
-   return 0;
+   return false;
 }
 
 int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
