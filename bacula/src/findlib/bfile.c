@@ -12,19 +12,14 @@
    Copyright (C) 2003-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -110,8 +105,9 @@ BOOL processWin32BackupAPIBlock (BFILE *bfd, void *pBuffer, size_t dwSize)
    LONGLONG dwDataOffset = 0;
    LONGLONG dwDataLen;
 
-   /* Win32 Stream Header size without name of strem.
-      = sizeof (WIN32_STREAM_ID)- sizeof(WCHAR*); */
+   /* Win32 Stream Header size without name of stream.
+    * = sizeof (WIN32_STREAM_ID)- sizeof(WCHAR*); 
+    */
    DWORD dwSizeHeader = 20; 
 
    do {               
@@ -636,10 +632,10 @@ bool is_stream_supported(int stream)
 #ifndef HAVE_LIBZ
    case STREAM_GZIP_DATA:
    case STREAM_SPARSE_GZIP_DATA:
+   case STREAM_WIN32_GZIP_DATA:    
 #endif
 #ifndef USE_WIN32STREAMEXTRACTION
    case STREAM_WIN32_DATA:
-   case STREAM_WIN32_GZIP_DATA:
 #endif
 #ifndef HAVE_DARWIN_OS
    case STREAM_MACOS_FORK_DATA:
@@ -654,9 +650,9 @@ bool is_stream_supported(int stream)
 #endif
 #ifdef USE_WIN32STREAMEXTRACTION
    case STREAM_WIN32_DATA:
-#endif
-#if defined(USE_WIN32STREAMEXTRACTION) && defined(HAVE_LIBZ)
+# ifdef HAVE_LIBZ 
    case STREAM_WIN32_GZIP_DATA:    
+# endif
 #endif
    case STREAM_UNIX_ATTRIBUTES:
    case STREAM_FILE_DATA:
@@ -676,36 +672,6 @@ bool is_stream_supported(int stream)
    }
    return 0;
 }
-
-/* Old file reader code */
-#ifdef xxx
-   if (bfd->prog) {
-      POOLMEM *ecmd = get_pool_memory(PM_FNAME);
-      ecmd = edit_job_codes(bfd->jcr, ecmd, bfd->prog, fname);
-      const char *pmode;
-      if (flags & O_RDONLY) {
-         pmode = "r";
-      } else {
-         pmode = "w";
-      }
-      bfd->bpipe = open_bpipe(ecmd, 0, pmode);
-      if (bfd->bpipe == NULL) {
-         bfd->berrno = errno;
-         bfd->fid = -1;
-         free_pool_memory(ecmd);
-         return -1;
-      }
-      free_pool_memory(ecmd);
-      if (flags & O_RDONLY) {
-         bfd->fid = fileno(bfd->bpipe->rfd);
-      } else {
-         bfd->fid = fileno(bfd->bpipe->wfd);
-      }
-      errno = 0;
-      return bfd->fid;
-   }
-#endif
-
 
 int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 {
