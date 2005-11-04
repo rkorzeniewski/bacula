@@ -96,9 +96,10 @@ const char *stream_to_ascii(int stream)
 BOOL processWin32BackupAPIBlock (BFILE *bfd, void *pBuffer, size_t dwSize)
 {   
    /* pByte contains the buffer 
-      dwSize the len to be processed. function assumes to be called in successive
-      incremental order over the complete BackupRead stream beginning at pos 0 and
-      ending at the end. */
+      dwSize the len to be processed.  function assumes to be
+      called in successive incremental order over the complete
+      BackupRead stream beginning at pos 0 and ending at the end.
+    */
 
    PROCESS_WIN32_BACKUPAPIBLOCK_CONTEXT* pContext = &(bfd->win32DecompContext);
    BOOL bContinue = FALSE;
@@ -132,8 +133,9 @@ BOOL processWin32BackupAPIBlock (BFILE *bfd, void *pBuffer, size_t dwSize)
          DWORD dwOffsetSource;
             
          if (pContext->liNextHeader < 0) {
-            /* start of header was before this block,
-               so we continue with the part in the current block */                                   
+            /* start of header was before this block, so we
+             * continue with the part in the current block 
+             */
             dwOffsetTarget = abs (pContext->liNextHeader);
             dwOffsetSource = 0;                            
          }
@@ -147,7 +149,9 @@ BOOL processWin32BackupAPIBlock (BFILE *bfd, void *pBuffer, size_t dwSize)
          BOOL bHeaderIsComplete;
 
          if (dwHeaderPartLen <= dwSize-dwOffsetSource) 
-            /* header (or rest of header) is completely available in current block */
+            /* header (or rest of header) is completely available
+               in current block 
+             */
             bHeaderIsComplete = TRUE;                                                        
          else  {
             /* header will continue in next block */
