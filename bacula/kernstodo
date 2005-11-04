@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     29 October 2005
+                     03 November 2005
 
 Major development:      
 Project                     Developer
@@ -19,7 +19,6 @@ Document:
 
 For 1.39:
 - Look at -D_FORTIFY_SOURCE=2
-- Close STDOUT if debug_level == 0
 - Add Win32 FileSet definition somewhere
 - Look at fixing restore status stats in SD.
 - Make selection of Database used in restore correspond to
