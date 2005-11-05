@@ -371,13 +371,16 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
  * Currently this is not a problem as the only other stream, resource forks,
  * are not handled as sparse files.
  */
-int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, struct CHKSUM *chksum)
+static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, struct CHKSUM *chksum)
 {
    BSOCK *sd = jcr->store_bsock;
    uint64_t fileAddr = 0;             /* file address */
    char *rbuf, *wbuf;
    int rsize = jcr->buf_size;      /* read buffer size */
    POOLMEM *msgsave;
+#ifdef FD_NO_SEND_TEST
+   return 1;
+#endif
 
    msgsave = sd->msg;
    rbuf = sd->msg;                    /* read buffer */
@@ -534,6 +537,9 @@ static bool read_and_send_acl(JCR *jcr, int acltype, int stream)
    BSOCK *sd = jcr->store_bsock;
    POOLMEM *msgsave;
    int len;
+#ifdef FD_NO_SEND_TEST
+   return true;
+#endif
 
    len = bacl_get(jcr, acltype);
    if (len < 0) {

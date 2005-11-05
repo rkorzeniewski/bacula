@@ -3,9 +3,9 @@
  */
 
 #undef  VERSION
-#define VERSION "1.38.0"
-#define BDATE   "04 November 2005"
-#define LSMDATE "04Nov05"
+#define VERSION "1.38.1"
+#define BDATE   "05 November 2005"
+#define LSMDATE "05Nov05"
 
 /* Debug flags */
 #undef  DEBUG
@@ -38,6 +38,31 @@
 
 
 /* The following are turned on for performance testing */
+/*  
+ * If you turn on the NO_ATTRIBUTES_TEST and rebuild, the SD
+ *  will receive the attributes from the FD, will write them
+ *  to disk, then when the data is written to tape, it will
+ *  read back the attributes, but they will not be sent to
+ *  the Director. So this will eliminate: 1. the comm time
+ *  to send the attributes to the Director. 2. the time it
+ *  takes the Director to put them in the catalog database.
+ */
 /* #define NO_ATTRIBUTES_TEST 1 */
+
+/* 
+* If you turn on NO_TAPE_WRITE_TEST and rebuild, the SD
+*  will do all normal actions, but will not write to the
+*  Volume.  Note, this means a lot of functions such as
+*  labeling will not work, so you must use it only when 
+*  Bacula is going to append to a Volume. This will eliminate
+*  the time it takes to write to the Volume (not the time
+*  it takes to do any positioning).
+*/
 /* #define NO_TAPE_WRITE_TEST 1 */
+
+/*
+ * If you turn on FD_NO_SEND_TEST and rebuild, the FD will
+ *  not send any attributes or data to the SD. This will
+ *  eliminate the comm time sending to the SD.
+ */
 /* #define FD_NO_SEND_TEST 1 */
