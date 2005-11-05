@@ -708,7 +708,7 @@ chmod 644 $RPM_BUILD_ROOT/etc/bacula/tray-monitor.conf
 /etc/bacula/rescue
 
 %doc COPYING ChangeLog ReleaseNotes VERIFYING kernstodo 
-%doc %{_docsrc}/bacula.pdf %{_docsrc}/developers.pdf %{_docsrc}/html-manual ../Release_Notes-%{version}-%{release}.txt
+%doc %{_docsrc}/manual/bacula.pdf %{_docsrc}/developers/developers.pdf %{_docsrc}/manual/bacula ../Release_Notes-%{version}-%{release}.txt
 /usr/man/man1/*
 
 /etc/logrotate.d/bacula
@@ -843,7 +843,7 @@ fi
 /etc/bacula/rescue
 
 %doc COPYING ChangeLog ReleaseNotes VERIFYING kernstodo 
-%doc %{_docsrc}/bacula.pdf %{_docsrc}/developers.pdf %{_docsrc}/html-manual ../Release_Notes-%{version}-%{release}.txt
+%doc %{_docsrc}/manual/bacula.pdf %{_docsrc}/developers/developers.pdf %{_docsrc}/manual/bacula ../Release_Notes-%{version}-%{release}.txt
 /usr/man/man1/*
 
 /etc/logrotate.d/bacula
@@ -986,7 +986,7 @@ fi
 /etc/bacula/rescue
 
 %doc COPYING ChangeLog ReleaseNotes VERIFYING kernstodo 
-%doc %{_docsrc}/bacula.pdf %{_docsrc}/developers.pdf %{_docsrc}/html-manual ../Release_Notes-%{version}-%{release}.txt
+%doc %{_docsrc}/manual/bacula.pdf %{_docsrc}/developers/developers.pdf %{_docsrc}/manual/bacula ../Release_Notes-%{version}-%{release}.txt
 /usr/man/man1/*
 
 /etc/logrotate.d/bacula
@@ -1092,7 +1092,7 @@ fi
 /etc/bacula/rescue
 
 %doc COPYING ChangeLog ReleaseNotes VERIFYING kernstodo 
-%doc %{_docsrc}/bacula.pdf %{_docsrc}/developers.pdf %{_docsrc}/html-manual ../Release_Notes-%{version}-%{release}.txt
+%doc %{_docsrc}/manual/bacula.pdf %{_docsrc}/developers/developers.pdf %{_docsrc}/manual/bacula ../Release_Notes-%{version}-%{release}.txt
 
 /etc/logrotate.d/bacula
 
@@ -1164,6 +1164,9 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 
 
 %changelog
+* Sat Nov 05 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- 1.38.0 release
+- kern changed location of pdf files and html manual in docs package
 * Sun Oct 30 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - 1.38.0 release
 - add docs (from prebuilt tarball) and rescue packages back in
