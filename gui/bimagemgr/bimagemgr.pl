@@ -28,7 +28,7 @@
 # MA 02111-1307, USA.
 ##
 
-my $VERSION = "0.2.6";
+my $VERSION = "0.2.7";
 
 require 5.000; use strict 'vars', 'refs', 'subs';
 use DBI;
@@ -379,7 +379,7 @@ sub UpdateImageTable {
 		$sth2->execute();
 		$exists = $sth2->fetchrow_array;
 		if ($exists ne $id) {
-			$dbh->do("INSERT into CDImages SET MediaId=$id");
+			$dbh->do("INSERT into CDImages VALUES ($id,\"0000-00-00 00:00:00\")");
 		}
 		$sth2->finish();
 	}
@@ -577,3 +577,6 @@ sub HTMLdie {
 # add conditional in Burn() to prevent updating of CDImages
 # for catalog or CD/RW blanking burns
 #
+# 0.2.7 06 Nov 2005
+# bug 461 - correct INSERT syntax in UpdateImageTable to
+# work with PostgreSQL
