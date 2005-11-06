@@ -27,6 +27,7 @@ grant all on cdimages	  to ${USER};
 grant all on mediatype	  to ${USER};
 grant all on storage	  to ${USER};
 grant all on device	  to ${USER};
+grant all on status	  to ${USER};
 
 -- for sequences on those tables
 

@@ -10,7 +10,7 @@ echo " "
 
 bindir=/usr/bin
 cd /var/bacula/working
-sqlite=postgresql
+sqlite=sqlite
 
 ${bindir}/${sqlite} $* bacula.db <<END-OF-DATA
 BEGIN TRANSACTION;
@@ -109,7 +109,7 @@ INSERT INTO Media (
    VolRetention, VolUseDuration, MaxVolJobs,
    MaxVolFiles, MaxVolBytes,
    InChanger, StorageId, MediaAddressing,
-   VolReadTime, VolWriteTime,	    
+   VolReadTime, VolWriteTime,       
    EndFile, EndBlock)
    SELECT * FROM Media_backup;
 

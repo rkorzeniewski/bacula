@@ -1,5 +1,29 @@
 
-Released as 1.38.0 28Oct05:
+
+Changes to 1.38.1:
+- Apply patch supplied by Eric Bollinger to fix PostgreSQL    
+  grant on status. Bug #465
+- Apply patch supplied by Eric Bollinger to fix PostgreSQL
+  update script. Bug #464
+- Fix off by one for last Slot of autochanger for label.
+- Update release date.
+- Tweak an authentication error message in dir.
+- Fix autoloader so that mutex is set and released around
+  each run_program().  There was a missing set.
+- Remove an unnecessary drive release in autochanger.
+- Modify configure.in to add execute option to sqlite3 catalog  
+  scripts.
+- Create update_xxx_table_8_to_9 scripts for updatedb
+- Fix wrong variable in bpipe.c debug output reported by user.
+- Fix improper placement of encode_and_send_attributes() in
+  FD backup.c causing first file of non-portable Win32 backup
+  to have wrong stream. Reported by Thorsten.
+- Move the -lcrypt for PostgreSQL after the PostgreSQL libs in
+  autoconf/bacula-macros/db.m4 as suggested by user.  Fixes bug #457.
+- Remove @STATIC_CONS@ from tray-monitor Makefile as suggested
+  by user. Fixes bug #456.
+
+Released 1.38.0 (28Oct05): 31 October 2005
 
 Changes to 1.37.42:
 26Oct05

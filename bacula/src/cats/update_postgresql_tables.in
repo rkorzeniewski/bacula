@@ -21,13 +21,13 @@ ALTER TABLE pool ADD COLUMN labeltype integer;
 UPDATE pool set labeltype=0;
 ALTER TABLE pool ALTER COLUMN labeltype SET NOT NULL;
 ALTER TABLE pool ADD COLUMN NextPoolId	      integer;
-ALTER TABLE pool SET NextPoolId=0;
+UPDATE pool SET NextPoolId=0;
 ALTER TABLE pool ADD COLUMN MigrationHighBytes BIGINT;
-ALTER TABLE pool SET MigrationHighBytes=0;
+UPDATE pool SET MigrationHighBytes=0;
 ALTER TABLE pool ADD COLUMN MigrationLowBytes  BIGINT;
-ALTER TABLE pool SET MigrationLowBytes=0;
+UPDATE pool SET MigrationLowBytes=0;
 ALTER TABLE pool ADD COLUMN MigrationTime      BIGINT;
-ALTER TABLE pool SET MigrationTime=0;
+UPDATE pool SET MigrationTime=0;
 
 
 ALTER TABLE jobmedia ADD COLUMN Copy integer;
@@ -51,7 +51,7 @@ CREATE TABLE Device (
    DeviceId SERIAL,
    Name TEXT NOT NULL,
    MediaTypeId INTEGER NOT NULL,
-   StorageId INTEGER UNSIGNED,
+   StorageId INTEGER,
    DevMounts INTEGER NOT NULL DEFAULT 0,
    DevReadBytes BIGINT NOT NULL DEFAULT 0,
    DevWriteBytes BIGINT NOT NULL DEFAULT 0,
@@ -60,7 +60,7 @@ CREATE TABLE Device (
    DevReadTime BIGINT NOT NULL DEFAULT 0,
    DevWriteTime BIGINT NOT NULL DEFAULT 0,
    DevReadTimeSinceCleaning BIGINT NOT NULL DEFAULT 0,
-   DevWriteTimeSinceCleaning BIGINT UNSIGNED DEFAULT 0,
+   DevWriteTimeSinceCleaning BIGINT DEFAULT 0,
    CleaningDate TIMESTAMP WITHOUT TIME ZONE,
    CleaningPeriod BIGINT NOT NULL DEFAULT 0,
    PRIMARY KEY(DeviceId)
