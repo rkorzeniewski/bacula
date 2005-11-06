@@ -1,10 +1,25 @@
 
-          Release Notes for Bacula 1.38.0
+          Release Notes for Bacula 1.38.1
 
   Bacula code: Total files = 420 Total lines = 138,440 (*.h *.c *.in)
   20,440 additional lines of code since version 1.36.3
 
-Major Changes:
+Changes since 1.38.0:
+- Fix several problems with PostgreSQL scripts.   
+- Critical: allow restore of the first file of non-portable Win32 backup.
+- Important: with muliple concurrent jobs the autochanger could get
+  confused because of a missing mutex.
+- Fix accessing last slot in label and update slots.       
+- Modify configure.in to add execute option to sqlite3 catalog  
+  scripts.
+- Create update_xxx_table_8_to_9 scripts for updatedb
+- Move the -lcrypt for PostgreSQL after the PostgreSQL libs in
+  autoconf/bacula-macros/db.m4 as suggested by user.  Fixes bug #457.
+- Remove @STATIC_CONS@ from tray-monitor Makefile as suggested
+  by user. Fixes bug #456.
+
+
+Major Changes in 1.38:
 - Fixed out of order Volumes in restore.
 - Improved algorithm for reserving drives in multiple drive
   autochangers. Autochange users MUST use the new Autochanger
@@ -190,6 +205,11 @@ Items to note!!!
   Typically you will see this in the Storage daemon first.  The
   solution is to compile Bacula ensuring that no optimization is
   turned on (normally it is -O2).
+  This same compiler bug has been reported and confirmed with
+  gcc (GCC) 4.0.2 20050901 (prerelease) (SUSE Linux) running on
+  an AMD64 CPU.  This for the moment, I would recommend that all
+  users of GCC 4.0.1 or greater turn off all optimization when
+  compiling.
 
 
 Other Items:

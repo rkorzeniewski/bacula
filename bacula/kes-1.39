@@ -1,0 +1,13 @@
+              Technical notes on version 1.39  
+                        Kern Sibbald
+
+General:
+
+Changes to 1.39.0:
+- Apply patch supplied by Eric Bollinger to fix PostgreSQL    
+  grant on status. Bug #465
+- Apply patch supplied by Eric Bollinger to fix PostgreSQL
+  update script. Bug #464
+- Tweak #ifdefing a bit in new Win32 stream code.
+- Fix #ifdeffing for FD_NO_SEND_TEST.
+- Add documentation of performance #defines

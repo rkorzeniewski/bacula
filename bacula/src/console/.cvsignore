@@ -8,3 +8,4 @@ bconsole
 bconsole.conf
 startit
 stopit
+static-bconsole

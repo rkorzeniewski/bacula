@@ -6,3 +6,4 @@ gnome-console.conf
 2
 3
 main.c
+static-gnome-console
