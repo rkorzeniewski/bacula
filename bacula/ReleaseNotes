@@ -17,7 +17,7 @@ Changes since 1.38.0:
   autoconf/bacula-macros/db.m4 as suggested by user.  Fixes bug #457.
 - Remove @STATIC_CONS@ from tray-monitor Makefile as suggested
   by user. Fixes bug #456.
-
+- AMD64 users see compiler bug warning below!!!!!!!!!
 
 Major Changes in 1.38:
 - Fixed out of order Volumes in restore.
