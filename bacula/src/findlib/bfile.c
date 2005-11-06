@@ -634,7 +634,7 @@ bool set_prog(BFILE *bfd, char *prog, JCR *jcr)
 bool is_stream_supported(int stream)
 {
    /* No Win32 backup on this machine */
-/*   switch (stream) {
+     switch (stream) {
 #ifndef HAVE_LIBZ
    case STREAM_GZIP_DATA:
    case STREAM_SPARSE_GZIP_DATA:
@@ -648,7 +648,6 @@ bool is_stream_supported(int stream)
    case STREAM_HFSPLUS_ATTRIBUTES:
 #endif
       return false;
-*/
 
    /* Known streams */
 #ifdef HAVE_LIBZ
