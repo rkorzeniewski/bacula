@@ -17,6 +17,8 @@
 /* If this is set stdout will not be closed on startup */
 #define DEVELOPER 1
 
+/* #define USE_BSNPRINTF */
+
 /* Debug flags not normally turned on */
 
 /* #define FILE_SEEK 1 */  

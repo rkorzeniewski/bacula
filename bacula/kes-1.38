@@ -4,6 +4,8 @@
 General:
 
 Changes to 1.38.1:
+- Change autostart install for FreeBSD to look for rc.conf  
+  rather than rc.local as suggested fix for bug #466.
 - Apply patch supplied by Eric Bollinger to fix PostgreSQL    
   grant on status. Bug #465
 - Apply patch supplied by Eric Bollinger to fix PostgreSQL
