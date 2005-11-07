@@ -605,14 +605,18 @@ void wxbMainFrame::Print(wxString str, int status)
    if (status == CS_CONNECTED) {
       SetStatusText(_("Connected to the director."));
       typeCtrl->ClearCommandList();
-      wxbDataTokenizer* dt = wxbUtils::WaitForEnd(wxT(".help"), true);
-      int i, j;
-      wxString str;
-      for (i = 0; i < (int)dt->GetCount(); i++) {
-         str = (*dt)[i];
-         str.RemoveLast();
-         if ((j = str.Find(' ')) > -1) {
-            typeCtrl->AddCommand(str.Mid(0, j), str.Mid(j+1));
+      bool parsed = false;
+      while (!parsed) {
+         wxbDataTokenizer* dt = wxbUtils::WaitForEnd(wxT(".help"), true);
+         int i, j;
+         wxString str;
+         for (i = 0; i < (int)dt->GetCount(); i++) {
+            str = (*dt)[i];
+            str.RemoveLast();
+            if ((j = str.Find(' ')) > -1) {
+               typeCtrl->AddCommand(str.Mid(0, j), str.Mid(j+1));
+               parsed = true;
+            }
          }
       }
       EnablePanels();
