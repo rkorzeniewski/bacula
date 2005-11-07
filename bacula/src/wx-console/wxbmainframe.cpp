@@ -606,8 +606,9 @@ void wxbMainFrame::Print(wxString str, int status)
       SetStatusText(_("Connected to the director."));
       typeCtrl->ClearCommandList();
       bool parsed = false;
-      while (!parsed) {
-         wxbDataTokenizer* dt = wxbUtils::WaitForEnd(wxT(".help"), true);
+      int retries = 3;
+      wxbDataTokenizer* dt = wxbUtils::WaitForEnd(wxT(".help"), true);
+      while (true) {
          int i, j;
          wxString str;
          for (i = 0; i < (int)dt->GetCount(); i++) {
@@ -618,6 +619,10 @@ void wxbMainFrame::Print(wxString str, int status)
                parsed = true;
             }
          }
+         retries--;
+         if ((parsed) || (!retries))
+            break;
+         dt = wxbUtils::WaitForEnd(wxT(""), true);
       }
       EnablePanels();
       menuFile->Enable(MenuConnect, true);
