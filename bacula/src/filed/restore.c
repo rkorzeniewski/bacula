@@ -294,7 +294,7 @@ void do_restore(JCR *jcr)
 
             if (is_win32_stream(stream) && !have_win32_api()) {
                set_portable_backup(&bfd);
-               flags |= FO_WIN32DECOMP;    /* "decompose BackupWrite data */
+               flags |= FO_WIN32DECOMP;    /* "decompose" BackupWrite data */
             }
 
             if (extract_data(jcr, &bfd, sd->msg, sd->msglen, &fileAddr, flags) < 0) {
