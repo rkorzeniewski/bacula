@@ -37,10 +37,24 @@ struct Python_IO {
 #endif
 
 #ifdef USE_WIN32STREAMEXTRACTION
+
+/* this should physically correspond to WIN32_STREAM_ID
+ * from winbase.h on Win32. We didn't inlcude cStreamName
+ * as we don't use it and don't need it for a correct struct size.
+ */
+
+typedef struct _BWIN32_STREAM_ID {
+        int32_t        dwStreamId;
+        int32_t        dwStreamAttributes;
+        int64_t        Size;
+        int32_t        dwStreamNameSize;        
+} BWIN32_STREAM_ID, *LPBWIN32_STREAM_ID ;
+
+
 typedef struct _PROCESS_WIN32_BACKUPAPIBLOCK_CONTEXT {
-        LONGLONG        liNextHeader;
-        BOOL            bIsInData;
-        WIN32_STREAM_ID header_stream;        
+        int64_t          liNextHeader;
+        bool             bIsInData;
+        BWIN32_STREAM_ID header_stream;        
 } PROCESS_WIN32_BACKUPAPIBLOCK_CONTEXT;
 #endif
 

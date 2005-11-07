@@ -93,6 +93,43 @@ const char *stream_to_ascii(int stream)
 }
 
 #ifdef USE_WIN32STREAMEXTRACTION
+   
+void int64_LE2BE(int64_t* pBE, const int64_t v)
+{
+   /* convert little endian to big endian */
+   if (htonl(1) != 1L) { /* no work if on little endian machine */
+	   memcpy(pBE, &v, sizeof(int64_t));
+   } else {
+	   int i;
+	   uint8_t rv[sizeof(int64_t)];
+	   uint8_t *pv = (uint8_t *) &v;
+
+	   for (i = 0; i < 8; i++) {
+	      rv[i] = pv[7 - i];
+	   }
+	   memcpy(pBE, &rv, sizeof(int64_t));
+   }    
+}
+
+
+void int32_LE2BE(int32_t* pBE, const int32_t v)
+{
+   /* convert little endian to big endian */
+   if (htonl(1) != 1L) { /* no work if on little endian machine */
+	   memcpy(pBE, &v, sizeof(int32_t));
+   } else {
+	   int i;
+	   uint8_t rv[sizeof(int32_t)];
+	   uint8_t *pv = (uint8_t *) &v;
+
+	   for (i = 0; i < 4; i++) {
+	      rv[i] = pv[3 - i];
+	   }
+	   memcpy(pBE, &rv, sizeof(int32_t));
+   }    
+}
+
+
 BOOL processWin32BackupAPIBlock (BFILE *bfd, void *pBuffer, size_t dwSize)
 {   
    /* pByte contains the buffer 
@@ -102,14 +139,14 @@ BOOL processWin32BackupAPIBlock (BFILE *bfd, void *pBuffer, size_t dwSize)
     */
 
    PROCESS_WIN32_BACKUPAPIBLOCK_CONTEXT* pContext = &(bfd->win32DecompContext);
-   BOOL bContinue = FALSE;
-   LONGLONG dwDataOffset = 0;
-   LONGLONG dwDataLen;
+   bool bContinue = FALSE;
+   int64_t dwDataOffset = 0;
+   int64_t dwDataLen;
 
    /* Win32 Stream Header size without name of stream.
     * = sizeof (WIN32_STREAM_ID)- sizeof(WCHAR*); 
     */
-   DWORD dwSizeHeader = 20; 
+   int32_t dwSizeHeader = 20; 
 
    do {               
       if (pContext->liNextHeader >= dwSize) {                        
@@ -129,8 +166,8 @@ BOOL processWin32BackupAPIBlock (BFILE *bfd, void *pBuffer, size_t dwSize)
       }
 
       if (pContext->liNextHeader < dwSize) {/* is a header in this block ? */
-         DWORD dwOffsetTarget;
-         DWORD dwOffsetSource;
+         int32_t dwOffsetTarget;
+         int32_t dwOffsetSource;
             
          if (pContext->liNextHeader < 0) {
             /* start of header was before this block, so we
@@ -145,8 +182,8 @@ BOOL processWin32BackupAPIBlock (BFILE *bfd, void *pBuffer, size_t dwSize)
             dwOffsetSource = pContext->liNextHeader;                        
          }
 
-         DWORD dwHeaderPartLen = dwSizeHeader-dwOffsetTarget;
-         BOOL bHeaderIsComplete;
+         int32_t dwHeaderPartLen = dwSizeHeader-dwOffsetTarget;
+         bool bHeaderIsComplete;
 
          if (dwHeaderPartLen <= dwSize-dwOffsetSource) 
             /* header (or rest of header) is completely available
@@ -164,8 +201,15 @@ BOOL processWin32BackupAPIBlock (BFILE *bfd, void *pBuffer, size_t dwSize)
 
          /* recalculate position of next header */
          if (bHeaderIsComplete) {
-            dwDataOffset = pContext->liNextHeader+dwSizeHeader+pContext->header_stream.dwStreamNameSize;
-            pContext->liNextHeader = dwDataOffset+pContext->header_stream.Size.QuadPart;
+            /* convert stream name size (32 bit little endian) to machine type */
+            int32_t dwNameSize; 
+            int32_LE2BE (&dwNameSize, pContext->header_stream.dwStreamNameSize);
+            dwDataOffset = dwNameSize+pContext->liNextHeader+dwSizeHeader;
+            
+            /* convert stream size (64 bit little endian) to machine type */
+            int64_LE2BE (&(pContext->liNextHeader), pContext->header_stream.Size);
+            pContext->liNextHeader += dwDataOffset;
+
             pContext->bIsInData = pContext->header_stream.dwStreamId == BACKUP_DATA;
             if (dwDataOffset == dwSize)
                   bContinue = FALSE;
@@ -257,7 +301,7 @@ bool have_win32_api()
  */
 bool is_stream_supported(int stream)
 {
-   /* No Win32 backup on this machine */
+   /* With Win32 backup on this machine */
    switch (stream) {
    case STREAM_WIN32_DATA:
 #ifdef HAVE_ZLIB
