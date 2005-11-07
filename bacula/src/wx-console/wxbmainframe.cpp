@@ -579,7 +579,7 @@ void wxbMainFrame::Print(wxString str, int status)
       consoleCtrl->AppendText(consoleBuffer);
       consoleBuffer = wxT("");
       SetStatusText(_("Console thread terminated."));
-#ifndef HAVE_WIN32
+#ifdef HAVE_WIN32
       consoleCtrl->PageDown();
 #else
       consoleCtrl->ScrollLines(1);
@@ -627,7 +627,7 @@ void wxbMainFrame::Print(wxString str, int status)
    if (status == CS_DISCONNECTED) {
       consoleCtrl->AppendText(consoleBuffer);
       consoleBuffer = wxT("");
-#ifndef HAVE_WIN32
+#ifdef HAVE_WIN32
       consoleCtrl->PageDown();
 #else
       consoleCtrl->ScrollLines(1);
@@ -708,7 +708,7 @@ void wxbMainFrame::Print(wxString str, int status)
    if (status == CS_DEBUG) {
       consoleCtrl->AppendText(consoleBuffer);
       consoleBuffer = wxT("");
-#ifndef HAVE_WIN32
+#ifdef HAVE_WIN32
       consoleCtrl->PageDown();
 #else
       consoleCtrl->ScrollLines(1);
@@ -730,7 +730,7 @@ void wxbMainFrame::Print(wxString str, int status)
       consoleCtrl->AppendText(consoleBuffer);
       consoleBuffer = wxT("");
 
-#ifndef HAVE_WIN32
+#ifdef HAVE_WIN32
       consoleCtrl->PageDown();
 #else
       consoleCtrl->ScrollLines(1);
