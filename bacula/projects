@@ -1,7 +1,7 @@
                 
 Projects:
                      Bacula Projects Roadmap 
-                       28 October 2005
+                       08 November 2005
 
 Below, you will find more information on future projects:
 
@@ -9,6 +9,7 @@ Item 1:   Implement a Migration job type that will move the job
           data from one device to another.
   Origin: Sponsored by Riege Sofware International GmbH. Contact:
           Daniel Holtkamp <holtkamp at riege dot com>
+  Date:   28 October 2005
   Status: Partially coded in 1.37 -- much more to do. Assigned to
           Kern.
 
@@ -31,10 +32,28 @@ Item 1:   Implement a Migration job type that will move the job
            Highwater size (keep total size)
            Lowwater mark
 
-Item 2:   Implement a Bacula GUI/management tool using Python
+Item 2:   Implement extraction of Win32 BackupWrite data.
+  Origin: Thorsten Engel <thorsten.engel at matrix-computer dot com>
+  Date:   28 October 2005
+  Status: Assigned to Thorsten. Implemented in current CVS
+
+  What:   This provides the Bacula File daemon with code that
+          can pick apart the stream output that Microsoft writes
+          for BackupWrite data, and thus the data can be read
+          and restored on non-Win32 machines.
+
+  Why:    BackupWrite data is the portable=no option in Win32
+          FileSets, and in previous Baculas, this data could
+          only be extracted using a Win32 FD. With this new code,
+          the Windows data can be extracted and restored on
+          any OS.
+
+
+Item 3:   Implement a Bacula GUI/management tool using Python
           and Qt.
 
   Origin: Kern
+  Date:   28 October 2005
   Status: 
 
   What:   Implement a Bacula console, and management tools
@@ -51,7 +70,8 @@ Item 2:   Implement a Bacula GUI/management tool using Python
           Python, which will give many more users easy (or easier)
           access to making additions or modifications.
 
-Item 3:   Implement a Python interface to the Bacula catalog.
+Item 4:   Implement a Python interface to the Bacula catalog.
+  Date:   28 October 2005
   Origin: Kern
   Status: 
 
@@ -61,7 +81,8 @@ Item 3:   Implement a Python interface to the Bacula catalog.
   Why:    This will permit users to customize Bacula through
           Python scripts.
 
-Item 4:   Implement more Python events in Bacula.
+Item 5:   Implement more Python events in Bacula.
+  Date:   28 October 2005
   Origin: 
   Status: 
 
@@ -77,7 +98,8 @@ Item 4:   Implement more Python events in Bacula.
           NeedVolume event
 
 
-Item 5:   Implement Base jobs.
+Item 6:   Implement Base jobs.
+  Date:   28 October 2005
   Origin: Kern
   Status: 
   
@@ -110,7 +132,8 @@ Item 5:   Implement Base jobs.
           FD a list of files/attribs, and the FD must search the
           list and compare it for each file to be saved.
 
-Item 6:   Add Plug-ins to the FileSet Include statements.
+Item 7:   Add Plug-ins to the FileSet Include statements.
+  Date:   28 October 2005
   Origin:
   Status: Partially coded in 1.37 -- much more to do.
 
@@ -125,7 +148,8 @@ Item 6:   Add Plug-ins to the FileSet Include statements.
           plug-in knows how to backup his Oracle database without
           stopping/starting it, for example.
 
-Item 7:   Implement huge exclude list support using hashing.
+Item 8:   Implement huge exclude list support using hashing.
+  Date:   28 October 2005
   Origin: Kern
   Status: 
 
@@ -141,8 +165,9 @@ Item 7:   Implement huge exclude list support using hashing.
           backup set will be *much* smaller.
 
 
-Item  8:  Implement data encryption (as opposed to communications
+Item  9:  Implement data encryption (as opposed to communications
           encryption)
+  Date:   28 October 2005
   Origin: Sponsored by Landon and 13 contributors to EFF.
   Status: Landon Fuller is currently implementing this.
                   
@@ -154,7 +179,7 @@ Item  8:  Implement data encryption (as opposed to communications
 
   Why:    Large sites require this.
 
-Item 9:   Permit multiple Media Types in an Autochanger
+Item 10:  Permit multiple Media Types in an Autochanger
   Origin: 
   Status: 
 
@@ -169,8 +194,9 @@ Item 9:   Permit multiple Media Types in an Autochanger
   Why:    This will permit user with several different drive types
           to make full use of their autochangers.
 
-Item 10:  Allow two different autochanger definitions that refer
+Item 11:  Allow two different autochanger definitions that refer
           to the same autochanger.
+  Date:   28 October 2005
   Origin: Kern
   Status: 
 
@@ -190,7 +216,8 @@ Item 10:  Allow two different autochanger definitions that refer
           use. It would also permit implementation of multiple Media
           Types with no changes to the Storage daemon.
 
-Item 11:  Implement red/black binary tree routines.
+Item 12:  Implement red/black binary tree routines.
+  Date:   28 October 2005
   Origin: Kern
   Status: 
 
@@ -206,6 +233,7 @@ Item 11:  Implement red/black binary tree routines.
 
 ============= Empty RFC form ===========
 Item n:   One line summary ...
+  Date:   Date submitted 
   Origin: Name and email of originator.
   Status: 
 
@@ -213,7 +241,7 @@ Item n:   One line summary ...
 
   Why:    Why it is important ...
 
-  Notes:  Additional notes or features ...
+  Notes:  Additional notes or features (omit if not used)
 ============== End RFC form ==============
 
 
