@@ -1282,7 +1282,7 @@ void wxbRestorePanel::CmdMark(wxTreeItemId treeitem, long* listitems, int listsi
       }
       
       if (listitems != NULL) {
-         for (int i = 0; i < listsize; i++) {
+         for (int i = 0; i < itemdatasize; i++) {
             itemdata[i] = (wxbTreeItemData*)list->GetItemData(listitems[i]);
          }
       }
@@ -1373,7 +1373,7 @@ void wxbRestorePanel::CmdMark(wxTreeItemId treeitem, long* listitems, int listsi
          treeitem = tree->GetItemParent(treeitem);*/
       }
       else {
-         for (int i = 0; i < listsize; i++) {
+         for (int i = 0; i < itemdatasize; i++) {
             SetListItemState(listitems[i], state);
          }
          listadd->Enable(state == 0);
