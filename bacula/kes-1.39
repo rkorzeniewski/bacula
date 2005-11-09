@@ -4,6 +4,9 @@
 General:
 
 Changes to 1.39.0:
+- Fix seg fault when clicking on Add button in wx-console
+  restore panel.  Bug #470.
+- Fix copyright date and URL typo -- bug #468.
 - Change autostart install for FreeBSD to look for rc.conf  
   rather than rc.local as suggested fix for bug #466.
 - Apply patch supplied by Eric Bollinger to fix PostgreSQL    
