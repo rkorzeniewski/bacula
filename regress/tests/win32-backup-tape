@@ -1,0 +1,72 @@
+#!/bin/sh
+#
+# Run a simple backup of the Bacula build directory 
+#   to a tape then restore it, we do that twice to ensure that
+#   we can correctly append to a tape.
+#
+debug=1
+if test "$debug" -eq 1 ; then
+  out="tee"
+else
+  out="output"
+fi
+
+cwd=`pwd`
+scripts/copy-win32-confs
+scripts/cleanup-tape
+
+echo "${cwd}/build" >/tmp/file-list
+
+echo " "
+echo " "
+echo " === Starting Win32 Backup tape test at `date +%R:%S` ==="
+echo " === Starting Win32 Backup tape test at `date +%R:%S` ===" >>working/log
+echo " "
+
+cat <<END_OF_DATA >tmp/bconcmds
+@output /dev/null
+messages
+@$out tmp/log1.out
+label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default drive=0
+run job=NightlySave yes
+@sleep 10
+status storage=DDS-4
+@sleep 30
+messages
+wait
+messages
+@# 
+@# now do a restore
+@#
+@$out tmp/log2.out
+restore where=c:/tmp/bacula-restores select all storage=DDS-4 done
+yes
+wait
+messages
+END_OF_DATA
+if test "$debug" -eq 1 ; then
+  bin/bacula start
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+else
+  bin/bacula start 2>&1 >/dev/null
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+fi
+
+scripts/check_for_zombie_jobs storage=DDS-4
+
+bin/bacula stop 2>&1 >/dev/null
+grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
+bstat=$?
+grep "^  Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
+rstat=$?
+if [ $bstat != 0 -o $rstat != 0 ] ; then
+   echo " "
+   echo " "
+   echo "  !!!!! Win32 Backup tape test failed!!! !!!!! "
+   echo "  !!!!! Win32 Backup tape test failed!!! !!!!! " >>test.out
+   echo " "
+else
+   echo "  ===== Win32 Backup tape test OK ===== "
+   echo "  ===== Win32 Backup tape test OK ===== " >>test.out
+   scripts/cleanup
+fi

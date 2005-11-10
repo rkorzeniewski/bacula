@@ -30,10 +30,10 @@ cp src/tools/testls ../bin
 cd ..
 bin/bacula stop
 cd bin
-./create_bacula_database
-./drop_bacula_tables
-./make_bacula_tables
-./grant_bacula_privileges
+./create_bacula_database bacula
+./drop_bacula_tables bacula
+./make_bacula_tables bacula
+./grant_bacula_privileges bacula
 cd ..
 # Start and stop Bacula to ensure conf files are OK
 bin/bacula start
