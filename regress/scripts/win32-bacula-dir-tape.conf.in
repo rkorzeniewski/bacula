@@ -13,7 +13,7 @@
 #
 
 Director {                            # define myself
-  Name = @hostname@-dir
+  Name = rufus-dir
   DIRport = 8101                # where we listen for UA connections
   QueryFile = "@scriptdir@/query.sql"
   WorkingDirectory = "@working_dir@"
@@ -57,8 +57,10 @@ Job {
 FileSet {
   Name = "Full Set"
   Enable VSS = yes
-  Include { Options { signature=MD5 }
-    File =  "c:"
+  Include { Options { signature=MD5; portable=no  
+      compression=GZIP }
+#   File =  "c:/cygwin"   # big   
+    File =  "c:/cygwin/home/kern/bacula/k"
   }
 }
 
@@ -80,7 +82,7 @@ Client {
   Address = tibs
   FDPort = 9102
   Catalog = MyCatalog
-  Password = "xBzFq+a9llZyGyfMaNO9e3outP86/1AUAT8P34RoT62G"
+  Password = "pNvX1WiXnwv2C/F7E52LGvw6rKjbbPvu2kyuPa9pVaL3"
   File Retention = 30d                # 30 days
   Job Retention = 180d                # six months
   AutoPrune = yes                     # Prune expired Jobs/Files
