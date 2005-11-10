@@ -96,7 +96,6 @@ clean:
 
 distclean: clean
 	$(RMF) Makefile
-	$(RMF) -r CVS
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	cd $(topdir) \
