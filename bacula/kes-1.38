@@ -4,6 +4,7 @@
 General:
 
 Changes to 1.38.1:
+- Remove delete of CVS from all makefiles.
 - Fix seg fault when clicking on Add button in wx-console
   restore panel.  Bug #470.
 - Fix copyright date and URL typo -- bug #468.

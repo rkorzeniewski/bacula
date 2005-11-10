@@ -5,6 +5,7 @@
   20,440 additional lines of code since version 1.36.3
 
 Changes since 1.38.0:
+- Fix autostart install for FreeBSD.
 - Fix several problems with PostgreSQL scripts.   
 - Critical: allow restore of the first file of non-portable Win32 backup.
 - Important: with muliple concurrent jobs the autochanger could get

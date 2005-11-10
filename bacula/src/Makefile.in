@@ -52,7 +52,6 @@ distclean: realclean
 	if test $(srcdir) = .; then $(MAKE) realclean; fi
 	@(cd $(srcdir) && $(RMF) Makefile)
 	@$(RMF) config.h host.h
-	@$(RMF) -r CVS
 
 devclean: realclean
 	if test $(srcdir) = .; then $(MAKE) realclean; fi

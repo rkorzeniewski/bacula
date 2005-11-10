@@ -122,7 +122,7 @@ realclean: clean
 
 distclean: realclean
 	if test $(srcdir) = .; then $(MAKE) realclean; fi
-	(cd $(srcdir); $(RMF) Makefile; $(RMF) -r CVS)
+	(cd $(srcdir); $(RMF) Makefile)
 
 # Semi-automatic generation of dependencies:
 # Use gcc -MM because X11 `makedepend' doesn't work on all systems
