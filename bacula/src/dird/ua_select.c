@@ -839,6 +839,7 @@ STORE *get_storage_resource(UAContext *ua, bool use_default)
    return store;
 }
 
+/* Get drive that we are working with for this storage */
 int get_storage_drive(UAContext *ua, STORE *store)
 {
    int i, drive = -1;
@@ -847,12 +848,22 @@ int get_storage_drive(UAContext *ua, STORE *store)
    if (i >=0) {
       drive = atoi(ua->argv[i]);
    } else if (store && store->autochanger) {
-      ua->cmd[0] = 0;
-      if (!get_cmd(ua, _("Enter autochanger drive[0]: "))) {
-         drive = -1;  /* None */
-      } else {
-         drive = atoi(ua->cmd);
+      /* If our structure is not set ask SD for # drives */
+      if (store->drives == 0) {
+         store->drives = get_num_drives_from_SD(ua);
       }
+      /* If only one drive, default = 0 */
+      if (store->drives == 1) {
+         drive = 0;
+      } else {
+         /* Ask user to enter drive number */
+         ua->cmd[0] = 0;
+         if (!get_cmd(ua, _("Enter autochanger drive[0]: "))) {
+            drive = -1;  /* None */
+         } else {
+            drive = atoi(ua->cmd);
+         }
+     }
    }
    return drive;
 }

@@ -240,6 +240,7 @@ public:
    char *media_type;
    alist *device;                     /* Alternate devices for this Storage */
    int  autochanger;                  /* set if autochanger */
+   int  drives;                       /* number of drives in autochanger */
    uint32_t MaxConcurrentJobs;        /* Maximume concurrent jobs */
    uint32_t NumConcurrentJobs;        /* number of concurrent jobs running */
    int tls_enable;                    /* Enable TLS */

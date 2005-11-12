@@ -421,12 +421,18 @@ bool autochanger_cmd(DCR *dcr, BSOCK *dir, const char *cmd)
       return false;
    }
 
-   changer = get_pool_memory(PM_FNAME);
    /* List command? */
    if (strcmp(cmd, "list") == 0) {
       unload_autochanger(dcr, -1);
    }
+   if (strcmp(cmd, "drives") == 0) {
+      AUTOCHANGER *changer_res = dcr->device->changer_res;
+      bnet_fsend(dir, "drives=%d\n", changer_res->device->size());
+      Dmsg1(100, "drives=%d\n", changer_res->device->size());
+      return true;
+   }
 
+   changer = get_pool_memory(PM_FNAME);
    lock_changer(dcr);
    /* Now issue the command */
    changer = edit_device_codes(dcr, changer, 
@@ -444,14 +450,14 @@ bool autochanger_cmd(DCR *dcr, BSOCK *dir, const char *cmd)
          Dmsg1(100, "<stored: %s\n", dir->msg);
          bnet_send(dir);
       }
-   } else {
+   } else if (strcmp(cmd, "slots") == 0 ) {
       /* For slots command, read a single line */
       bstrncpy(dir->msg, "slots=", len);
       fgets(dir->msg+6, len-6, bpipe->rfd);
       dir->msglen = strlen(dir->msg);
       Dmsg1(100, "<stored: %s", dir->msg);
       bnet_send(dir);
-   }
+   } 
                  
    stat = close_bpipe(bpipe);
    if (stat != 0) {

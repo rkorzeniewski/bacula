@@ -4,6 +4,20 @@
 General:
 
 Changes to 1.38.1:
+12Oct05
+- Implement "autochanger drives" protocol so that Dir knows
+  how many drives an autochanger has.
+- Do not request drive number in label, ... if only one drive.
+- Turn off debug code.
+- Fix update slots to clear slot number of every slot before
+  setting it.  This fixes (I believe) bug #471
+- Make unmount unload the autochanger slot.
+- Modify open() on mount to be read-only and non-blocking,      
+  otherwise the mount can block for a long time.
+- Make a few error message numbers unique.
+- Make a few error messages more correct.
+- Apply patch from Thorsten to fix Win98 stat() command.
+10Oct05
 - Remove delete of CVS from all makefiles.
 - Fix seg fault when clicking on Add button in wx-console
   restore panel.  Bug #470.
