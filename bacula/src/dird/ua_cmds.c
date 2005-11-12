@@ -1262,12 +1262,13 @@ static void do_mount_cmd(UAContext *ua, const char *command)
    if (!store) {
       return;
    }
+   set_storage(jcr, store);
+
    drive = get_storage_drive(ua, store);
 
    Dmsg3(120, "Found storage, MediaType=%s DevName=%s drive=%d\n",
       store->media_type, store->dev_name(), drive);
 
-   set_storage(jcr, store);
    if (!connect_to_storage_daemon(jcr, 10, SDConnectTimeout, 1)) {
       bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
       return;

@@ -96,9 +96,9 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
 
    free_pool_memory(jcr->acl_text);
 
-   bnet_sig(sd, BNET_EOD);            /* end of sending data */
-
    stop_heartbeat_monitor(jcr);
+
+   bnet_sig(sd, BNET_EOD);            /* end of sending data */
 
    if (jcr->big_buf) {
       free(jcr->big_buf);

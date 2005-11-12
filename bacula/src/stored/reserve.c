@@ -788,7 +788,7 @@ static int can_reserve_drive(DCR *dcr, RCTX &rctx)
             return 1;
          } else {
             /* Changing pool, unload old tape if any in drive */
-            Dmsg0(200, "got dev: num_writers=0, reserved, pool change\n");
+            Dmsg0(200, "got dev: num_writers=0, not reserved, pool change, unload changer\n");
             unload_autochanger(dcr, 0);
          }
       }

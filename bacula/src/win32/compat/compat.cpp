@@ -423,24 +423,12 @@ stat(const char *file, struct stat *sb)
 
    memset(sb, 0, sizeof(*sb));
 
-   if (g_platform_id == VER_PLATFORM_WIN32_WINDOWS) {
-      return stat2(file, sb);
-   }
-
-   // otherwise we're on NT
-#if 0
-   WCHAR buf[32767];
-   buf[0] = '\\';
-   buf[1] = '\\';
-   buf[2] = '?';
-   buf[3] = '\\';
-
-   wchar_win32_path(file, buf+4);
-
-   if (!GetFileAttributesExW((WCHAR *)buf, GetFileExInfoStandard, &data)) {
-      return stat2(file, sb);
-   }
-#else
+   /* why not allow win 95 to use p_GetFileAttributesExA ? 
+    * this function allows _some_ open files to be stat'ed 
+    * if (g_platform_id == VER_PLATFORM_WIN32_WINDOWS) {
+    *    return stat2(file, sb);
+    * }
+    */
 
    if (p_GetFileAttributesExW) {
       /* dynamically allocate enough space for UCS2 filename */
@@ -460,8 +448,6 @@ stat(const char *file, struct stat *sb)
    } else {
       return stat2(file, sb);
    }
-
-#endif
 
    sb->st_mode = 0777;               /* start with everything */
    if (data.dwFileAttributes & FILE_ATTRIBUTE_READONLY) {

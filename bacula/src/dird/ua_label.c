@@ -135,7 +135,7 @@ static bool get_user_slot_list(UAContext *ua, char *slot_list, int num_slots)
    Dmsg0(100, "Slots turned on:\n");
    for (i=1; i <= num_slots; i++) {
       if (slot_list[i]) {
-         Dmsg1(000, "%d\n", i);
+         Dmsg1(100, "%d\n", i);
       }
    }
    return true;
@@ -191,7 +191,7 @@ int update_slots(UAContext *ua)
    /* Walk through the list updating the media records */
    for (vl=vol_list; vl; vl=vl->next) {
       if (vl->Slot > max_slots) {
-         bsendmsg(ua, _("Slot %d larger than max %d ignored.\n"),
+         bsendmsg(ua, _("Slot %d greater than max %d ignored.\n"),
             vl->Slot, max_slots);
          continue;
       }
@@ -210,16 +210,16 @@ int update_slots(UAContext *ua)
          Dmsg2(100, "Got Vol=%s from SD for Slot=%d\n", vl->VolName, vl->Slot);
       }
       slot_list[vl->Slot] = 0;        /* clear Slot */
+      memset(&mr, 0, sizeof(mr));
+      mr.Slot = vl->Slot;
+      mr.InChanger = 1;
+      mr.StorageId = store->StorageId;
+      /* Set InChanger to zero for this Slot */
+      db_lock(ua->db);
+      db_make_inchanger_unique(ua->jcr, ua->db, &mr);
+      db_unlock(ua->db);
       if (!vl->VolName) {
-         Dmsg1(100, "No VolName for Slot=%d setting InChanger to zero.\n", vl->Slot);
-         memset(&mr, 0, sizeof(mr));
-         mr.Slot = vl->Slot;
-         mr.InChanger = 1;
-         mr.StorageId = store->StorageId;
-         /* Set InChanger to zero for this Slot */
-         db_lock(ua->db);
-         db_make_inchanger_unique(ua->jcr, ua->db, &mr);
-         db_unlock(ua->db);
+         Dmsg1(000, "No VolName for Slot=%d setting InChanger to zero.\n", vl->Slot);
          bsendmsg(ua, _("No VolName for Slot=%d set InChanger to zero.\n"), vl->Slot);
          continue;
       }
@@ -245,8 +245,8 @@ int update_slots(UAContext *ua)
          db_unlock(ua->db);
          continue;
       } else {
-         bsendmsg(ua, _("Record for Volume \"%s\" not found in catalog.\n"),
-             mr.VolumeName);
+         bsendmsg(ua, _("Volume \"%s\" not found in catalog. Slot=%d set InChanger to zero.\n"),
+             mr.VolumeName, vl->Slot);
       }
       db_unlock(ua->db);
    }
@@ -878,8 +878,8 @@ static int get_num_slots_from_SD(UAContext *ua)
 
    bstrncpy(dev_name, store->dev_name(), sizeof(dev_name));
    bash_spaces(dev_name);
-   /* Ask for autochanger list of volumes */
-   bnet_fsend(sd, _("autochanger slots %s \n"), dev_name);
+   /* Ask for autochanger number of slots */
+   bnet_fsend(sd, _("autochanger slots %s\n"), dev_name);
 
    while (bnet_recv(sd) >= 0) {
       if (sscanf(sd->msg, "slots=%d\n", &slots) == 1) {
@@ -892,6 +892,39 @@ static int get_num_slots_from_SD(UAContext *ua)
    bsendmsg(ua, _("Device \"%s\" has %d slots.\n"), store->dev_name(), slots);
    return slots;
 }
+
+/*
+ * We get the number of drives in the changer from the SD
+ */
+int get_num_drives_from_SD(UAContext *ua)
+{
+   STORE *store = ua->jcr->store;
+   char dev_name[MAX_NAME_LENGTH];
+   BSOCK *sd;
+   int drives = 0;
+
+
+   if (!(sd=open_sd_bsock(ua))) {
+      return 0;
+   }
+
+   bstrncpy(dev_name, store->dev_name(), sizeof(dev_name));
+   bash_spaces(dev_name);
+   /* Ask for autochanger number of slots */
+   bnet_fsend(sd, _("autochanger drives %s\n"), dev_name);
+
+   while (bnet_recv(sd) >= 0) {
+      if (sscanf(sd->msg, "drives=%d\n", &drives) == 1) {
+         break;
+      } else {
+         bsendmsg(ua, "%s", sd->msg);
+      }
+   }
+   close_sd_bsock(ua);
+//   bsendmsg(ua, _("Device \"%s\" has %d drives.\n"), store->dev_name(), drives);
+   return drives;
+}
+
 
 
 
