@@ -67,8 +67,10 @@ Build instructions:
      This is not absolutely necessary, but this will remove annoying warnings.
 
    + Launch Build->Configuration Manager, then select "Unicode Release"
-     (when you do this VC++ is busy and inactive for a little moment, don't worry about it .-))
      and close this window. Then run Build->Build Solution.
+   + If the build of wx-console fails, try removing the comments around
+     #ifndef (line 145) and #endif (line 147) in file:
+     <dev dir>/bacula/src/win32/compat/compat.h
    + Repeat the operation for the "Unicode Debug" configuration if needed.
 
  - Bacula:
