@@ -94,7 +94,7 @@ exit 1
 %define _dist %(grep White /etc/whitebox-release)
 %endif
 %if %{su9}
-%define _dist %(grep SuSE /etc/SuSE-release)
+%define _dist %(grep -i SuSE /etc/SuSE-release)
 %endif
 %if %{mdk}
 %define _dist %(grep Mandrake /etc/mandrake-release)
@@ -1164,6 +1164,8 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 
 
 %changelog
+* Sun Nov 13 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- minor edit to _dist for SLES9 compatibility
 * Sat Nov 05 2005 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - 1.38.0 release
 - kern changed location of pdf files and html manual in docs package
