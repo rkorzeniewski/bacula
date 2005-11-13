@@ -4,6 +4,11 @@
 General:
 
 Changes to 1.38.1:
+13Oct05
+- Turn off API debug output unless debug set to avoid confusing
+  the user.
+- Add Solaris ACL detection in configure.in as supplied by
+  Attila Fulop. 
 12Oct05
 - Implement "autochanger drives" protocol so that Dir knows
   how many drives an autochanger has.

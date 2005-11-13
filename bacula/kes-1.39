@@ -4,6 +4,10 @@
 General:
 
 Changes to 1.39.0:
+13Oct05
+- Remove the USE_WIN32STREAMEXTRACTION #defines (always on)
+  and correct a few minor problems to make it build on Linux.
+10Oct05
 - Remove delete of CVS from all Makefiles
 - Fix seg fault when clicking on Add button in wx-console
   restore panel.  Bug #470.
