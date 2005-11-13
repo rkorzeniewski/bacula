@@ -1263,7 +1263,6 @@ static void do_mount_cmd(UAContext *ua, const char *command)
       return;
    }
    set_storage(jcr, store);
-
    drive = get_storage_drive(ua, store);
 
    Dmsg3(120, "Found storage, MediaType=%s DevName=%s drive=%d\n",

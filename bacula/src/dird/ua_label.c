@@ -165,8 +165,8 @@ int update_slots(UAContext *ua)
    if (!store) {
       return 1;
    }
-   drive = get_storage_drive(ua, store);
    set_storage(ua->jcr, store);
+   drive = get_storage_drive(ua, store);
 
    scan = find_arg(ua, N_("scan")) >= 0;
 
@@ -309,8 +309,8 @@ static int do_label(UAContext *ua, const char *cmd, int relabel)
    if (!store) {
       return 1;
    }
-   drive = get_storage_drive(ua, store);
    set_storage(ua->jcr, store);
+   drive = get_storage_drive(ua, store);
 
    if (label_barcodes) {
       label_from_barcodes(ua, drive);
