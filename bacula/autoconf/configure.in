@@ -1572,10 +1572,15 @@ if test x$FDLIBS = x-lz; then
   have_zlib=yes
 fi
 
+#
+# Check for ACL libraries
+#
 have_acl=no
 AC_CHECK_HEADER(sys/acl.h)
 AC_CHECK_FUNC(acl_get_file, [have_acl=yes],
-	[AC_CHECK_LIB(acl, acl_get_file, [have_acl=yes; FDLIBS="-lacl $FDLIBS"])]
+   [AC_CHECK_LIB(acl, acl_get_file, [have_acl=yes; FDLIBS="-lacl $FDLIBS"], 
+      [AC_CHECK_LIB(sec, acltotext, [have_acl=yes; FDLIBS="-lsec $FDLIBS"])]
+    )]
 )
 if test $have_acl = yes; then
    AC_DEFINE(HAVE_ACL)
@@ -1584,11 +1589,11 @@ fi
 dnl Check for pthread libraries
 PTHREAD_LIB=""
 AC_CHECK_LIB(pthread, pthread_create, PTHREAD_LIB="-lpthread",
-	[AC_CHECK_LIB(pthreads, pthread_create, PTHREAD_LIB="-lpthreads",
-	    [AC_CHECK_LIB(c_r, pthread_create, PTHREAD_LIB="-lc_r",
-		[AC_CHECK_FUNC(pthread_create)]
-	    )]
-	)]
+   [AC_CHECK_LIB(pthreads, pthread_create, PTHREAD_LIB="-lpthreads",
+      [AC_CHECK_LIB(c_r, pthread_create, PTHREAD_LIB="-lc_r",
+	    [AC_CHECK_FUNC(pthread_create)]
+       )]
+    )]
 )
 
 AC_SUBST(FDLIBS)

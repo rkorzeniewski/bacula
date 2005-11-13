@@ -227,7 +227,7 @@ void do_restore(JCR *jcr)
 
          attr->data_stream = decode_stat(attr->attr, &attr->statp, &attr->LinkFI);
 
-         if (!is_stream_supported(attr->data_stream)) {
+         if (!is_restore_stream_supported(attr->data_stream)) {
             if (!non_support_data++) {
                Jmsg(jcr, M_ERROR, 0, _("%s stream not supported on this Client.\n"),
                   stream_to_ascii(attr->data_stream));
@@ -541,7 +541,6 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
       Dmsg2(30, "Write %u bytes, total before write=%s\n", wsize, edit_uint64(jcr->JobBytes, ec1));
    }
 
-#ifdef USE_WIN32STREAMEXTRACTION
    if (flags & FO_WIN32DECOMP) {
       if (!processWin32BackupAPIBlock(bfd, wbuf, wsize)) {
          berrno be;
@@ -549,10 +548,7 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
                jcr->last_fname, be.strerror(bfd->berrno));
          return -1;
       }
-   }
-   else
-#endif
-   if (bwrite(bfd, wbuf, wsize) != (ssize_t)wsize) {
+   } else if (bwrite(bfd, wbuf, wsize) != (ssize_t)wsize) {
       berrno be;
       Jmsg2(jcr, M_ERROR, 0, _("Write error on %s: %s\n"), 
             jcr->last_fname, be.strerror(bfd->berrno));

@@ -36,12 +36,13 @@ struct Python_IO {
 };
 #endif
 
-#ifdef USE_WIN32STREAMEXTRACTION
 
 /* this should physically correspond to WIN32_STREAM_ID
  * from winbase.h on Win32. We didn't inlcude cStreamName
  * as we don't use it and don't need it for a correct struct size.
  */
+
+#define WIN32_BACKUP_DATA 1
 
 typedef struct _BWIN32_STREAM_ID {
         int32_t        dwStreamId;
@@ -56,7 +57,6 @@ typedef struct _PROCESS_WIN32_BACKUPAPIBLOCK_CONTEXT {
         bool             bIsInData;
         BWIN32_STREAM_ID header_stream;        
 } PROCESS_WIN32_BACKUPAPIBLOCK_CONTEXT;
-#endif
 
 /*  =======================================================
  *
@@ -91,10 +91,8 @@ struct BFILE {
    char *prog;                        /* reader/writer program if any */
    JCR *jcr;                          /* jcr for editing job codes */
    Python_IO pio;                     /* Python I/O routines */
-#ifdef USE_WIN32STREAMEXTRACTION
    PROCESS_WIN32_BACKUPAPIBLOCK_CONTEXT win32DecompContext; /* context for decomposition of win32 backup streams */
    int use_backup_decomp;             /* set if using BackupRead Stream Decomposition */
-#endif
 };
 
 HANDLE bget_handle(BFILE *bfd);
@@ -115,10 +113,8 @@ struct BFILE {
    char *prog;                        /* reader/writer program if any */
    JCR *jcr;                          /* jcr for editing job codes */
    Python_IO pio;                     /* Python I/O routines */
-#ifdef USE_WIN32STREAMEXTRACTION
    PROCESS_WIN32_BACKUPAPIBLOCK_CONTEXT win32DecompContext; /* context for decomposition of win32 backup streams */
    int use_backup_decomp;             /* set if using BackupRead Stream Decomposition */
-#endif
 };
 
 #endif
@@ -130,7 +126,7 @@ bool    set_portable_backup(BFILE *bfd);
 bool    set_prog(BFILE *bfd, char *prog, JCR *jcr);
 bool    have_win32_api();
 bool    is_portable_backup(BFILE *bfd);
-bool    is_stream_supported(int stream);
+bool    is_restore_stream_supported(int stream);
 bool    is_win32_stream(int stream);
 char   *xberror(BFILE *bfd);          /* DO NOT USE  -- use berrno class */
 int     bopen(BFILE *bfd, const char *fname, int flags, mode_t mode);
@@ -143,8 +139,6 @@ ssize_t bwrite(BFILE *bfd, void *buf, size_t count);
 off_t   blseek(BFILE *bfd, off_t offset, int whence);
 const char   *stream_to_ascii(int stream);
 
-#ifdef USE_WIN32STREAMEXTRACTION
-BOOL processWin32BackupAPIBlock (BFILE *bfd, void *pBuffer, size_t dwSize);
-#endif
+bool processWin32BackupAPIBlock (BFILE *bfd, void *pBuffer, ssize_t dwSize);
 
 #endif /* __BFILE_H */
