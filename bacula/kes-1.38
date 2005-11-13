@@ -5,6 +5,8 @@ General:
 
 Changes to 1.38.1:
 13Oct05
+- Add doc on setting up Win32 environment variable supplied
+  by Kees van den Broek.               
 - Turn off API debug output unless debug set to avoid confusing
   the user.
 - Add Solaris ACL detection in configure.in as supplied by

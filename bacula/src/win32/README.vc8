@@ -50,6 +50,7 @@ Installation instructions:
 Build instructions:
  - deppkgs:
    + Start VC++ 2005 command prompt (in the start menu)
+   + run "<vc++ install dir>\VC\PlatformSDK\SetEnv.Cmd"
    + cd <dev dir>/deppkgs-win32/zlib
    + run "nmake -f win32\Makefile.msc" (don't worry about the warnings)
    + cd <dev dir>/deppkgs-win32/pthreads

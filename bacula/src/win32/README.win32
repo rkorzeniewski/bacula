@@ -66,6 +66,10 @@ To build it:
 - Make sure nmake is on your PATH.
 - Make sure your COMSPEC is properly setup (see full dump of
   my cygwin environment below).
+- Running the following command may help setup the environment
+  variables used by VC++ (I don't use this command, but it might
+  just solve your problems).
+    run "<vc++ install dir>\VC\PlatformSDK\SetEnv.Cmd"
 - The build is done in an rxvt window under the latest version
   of cygwin.
 - You need the Platform SDK installed.
