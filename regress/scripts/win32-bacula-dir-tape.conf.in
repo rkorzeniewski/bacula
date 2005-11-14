@@ -89,6 +89,19 @@ Client {
   Maximum Concurrent Jobs = 4
 }
 
+Client {
+  Name = localhost-fd
+  Address = localhost
+  FDPort = 8102
+  Catalog = MyCatalog
+  Password = "xevrjURYoCHhn26RaJoWbeWXEY/a3VqGKp/37tgWiuHc"
+  File Retention = 30d                # 30 days
+  Job Retention = 180d                # six months
+  AutoPrune = yes                     # Prune expired Jobs/Files
+  Maximum Concurrent Jobs = 4
+}
+
+
 # Definition of DDS tape storage device
 Storage {
   Name = DDS-4
