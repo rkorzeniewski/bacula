@@ -4,7 +4,16 @@
 General:
 
 Changes to 1.38.1:
+14Oct05
+- Apply SunOS patch for ACLs submitted by David Duchscher.                  
+- Make sure to set storage before trying to set drive.
+- Add bacula_mail_summary.sh to examples directory. It makes
+  a single email summary of any number of jobs. Submitted
+  by Adrew J. Millar.
+- Make sure when we do a mount to unblock the device even
+  if the drive could not be opened.  
 13Oct05
+- Merge Scott's new spec files.
 - Add doc on setting up Win32 environment variable supplied
   by Kees van den Broek.               
 - Turn off API debug output unless debug set to avoid confusing
