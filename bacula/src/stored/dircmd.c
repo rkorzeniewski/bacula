@@ -581,6 +581,11 @@ static bool mount_cmd(JCR *jcr)
                bnet_fsend(dir, _("3901 open device failed: ERR=%s\n"),
                   strerror_dev(dev));
                dev->open_nowait = false;
+               if (dev->dev_blocked == BST_UNMOUNTED) {
+                  /* We blocked the device, so unblock it */
+                  Dmsg0(100, "Unmounted. Unblocking device\n");
+                  unblock_device(dev);
+               }
                break;
             }
             dev->open_nowait = false;

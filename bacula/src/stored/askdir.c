@@ -477,7 +477,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
 
       stat = wait_for_sysop(dcr);
       if (dev->poll) {
-         Dmsg1(400, "Poll timeout in create append vol on device %s\n", dev->print_name());
+         Dmsg1(000, "Poll timeout in create append vol on device %s\n", dev->print_name());
          continue;
       }
 
@@ -486,7 +486,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
             Mmsg(dev->errmsg, _("Max time exceeded waiting to mount Storage Device %s for Job %s\n"),
                dev->print_name(), jcr->Job);
             Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
-            Dmsg1(400, "Gave up waiting on device %s\n", dev->print_name());
+            Dmsg1(000, "Gave up waiting on device %s\n", dev->print_name());
             return false;             /* exceeded maximum waits */
          }
          continue;
@@ -503,7 +503,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
          Jmsg(jcr, M_WARNING, 0, _("pthread error in mount_next_volume stat=%d ERR=%s\n"), stat,
             be.strerror(stat));
       }
-      Dmsg1(400, "Someone woke me for device %s\n", dev->print_name());
+      Dmsg1(000, "Someone woke me for device %s\n", dev->print_name());
 
       /* If no VolumeName, and cannot get one, try again */
       P(dev->mutex);
@@ -531,7 +531,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
    }
    set_jcr_job_status(jcr, JS_Running);
    dir_send_job_status(jcr);
-   Dmsg0(400, "leave dir_ask_sysop_to_mount_create_appendable_volume\n");
+   Dmsg0(000, "leave dir_ask_sysop_to_mount_create_appendable_volume\n");
    return true;
 }
 

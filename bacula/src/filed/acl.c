@@ -47,10 +47,6 @@
 
 #include "bacula.h"
 #include "filed.h"
-/* So we can free system allocated memory */
-#undef free
-#undef malloc
-#define malloc &* dont use malloc in this routine
 
 #else
 /*
@@ -117,6 +113,9 @@ JCR jcr;
    || !( defined(HAVE_LINUX_OS) \
       || defined(HAVE_FREEBSD_OS) \
       || defined(HAVE_DARWIN_OS) \
+      || defined(HAVE_IRIX_OS) \
+      || defined(HAVE_OSF1_OS) \
+      || defined(HAVE_SUN_OS) \
        )
 
 /* bacl_get() returns the lenght of the string, or -1 on error. */
@@ -318,7 +317,7 @@ int bacl_get(JCR *jcr, int acltype)
    if (acl(jcr->last_fname, GETACL, n, acls) == n) {
       if ((acl_text = acltotext(acls, n)) != NULL) {
          len = pm_strcpy(jcr->acl_text, acl_text);
-         free(acl_text);
+         actuallyfree(acl_text);
          free(acls);
          return len;
       }
@@ -336,11 +335,11 @@ int bacl_set(JCR *jcr, int acltype)
    if (!acls) {
       return -1;
    }
-   if (acl(jcr->last_fname, SETACL, n, acls) != 0) {
-      free(acls);
+   if (acl(jcr->last_fname, SETACL, n, acls) == -1) {
+      actuallyfree(acls);
       return -1;
    }
-   free(acls);
+   actuallyfree(acls);
    return 0;
 }
 

@@ -359,24 +359,25 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
    /* Use system open() */
    while ((fd = ::open(dev_name, mode+nonblocking, MODE_RW)) < 0) {
       berrno be;
-      Dmsg2(100, "Open error errno=%d ERR=%s\n", errno, be.strerror());
-      if (errno == EINTR || errno == EAGAIN) {
+      dev_errno = errno;
+      Dmsg5(050, "Open omode=%d mode=%x nonblock=%d error errno=%d ERR=%s\n", 
+           omode, mode, nonblocking, errno, be.strerror());
+      if (dev_errno == EINTR || dev_errno == EAGAIN) {
          Dmsg0(100, "Continue open\n");
          continue;
       }
       /* Busy wait for specified time (default = 5 mins) */
-      if (errno == EBUSY && timeout-- > 0) {
+      if (dev_errno == EBUSY && timeout-- > 0) {
          Dmsg2(100, "Device %s busy. ERR=%s\n", print_name(), be.strerror());
          bmicrosleep(1, 0);
          continue;
       }
       /* IO error (no volume) try 10 times every 6 seconds */
-      if (errno == EIO && ioerrcnt-- > 0) {
+      if (dev_errno == EIO && ioerrcnt-- > 0) {
          bmicrosleep(5, 0);
          Dmsg0(100, "Continue open\n");
          continue;
       }
-      dev_errno = errno;
       Mmsg2(errmsg, _("Unable to open device %s: ERR=%s\n"),
             print_name(), be.strerror(dev_errno));
       /* Stop any open timer we set */
