@@ -37,6 +37,7 @@ Job {
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
   Maximum Concurrent Jobs = 4
   SpoolData = yes
+# Prefer Mounted Volumes = no
 }
 
 
@@ -95,7 +96,6 @@ Storage {
   Device = DDS-4                      # must be same as Device in Storage daemon
   Media Type = DDS-4                  # must be same as MediaType in Storage daemon
   Maximum Concurrent Jobs = 4
-  Prefer Mounted Volumes = no
 # Autochanger = yes
 }
 
