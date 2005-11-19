@@ -228,8 +228,59 @@ Item 12:  Implement red/black binary tree routines.
 
   Why:    Performance enhancement.
 
+Item 13:  Let Bacula log tape usage and handle drive cleaning cycles.
+  Date:   November 11, 2005
+  Origin: Arno Lehmann <al at its-lehmann dot de>
+  Status:
 
-Item 13:  Merging of multiple backups into a single one. (Also called Synthetic
+  What:   Make Bacula manage tape life cycle information and drive 
+          cleaning cycles.
+
+  Why:    Both parts of this project are important when operating backups.
+          We need to know which tapes need replacement, and we need to
+          make sure the drives are cleaned when necessary.  While many
+          tape libraries and even autoloaders can handle all this
+          automatically, support by Bacula can be helpful for smaller
+          (older) libraries and single drives.  Also, checking drive
+          status during operation can prevent some failures (as I had to
+          learn the hard way...)
+
+  Notes:  First, Bacula could (and even does, to some limited extent)
+          record tape and drive usage.  For tapes, the number of mounts,
+          the amount of data, and the time the tape has actually been
+          running could be recorded.  Data fields for Read and Write time
+          and Nmber of mounts already exist in the catalog (I'm not sure
+          if VolBytes is the sum of all bytes ever written to that volume
+          by Bacula).  This information can be important when determining
+          which media to replace.  For the tape drives known to Bacula,
+          similar information is interesting to determine the device
+          status and expected life time: Time it's been Reading and
+          Writing, number of tape Loads / Unloads / Errors.  This
+          information is not yet recorded as far as I know.
+
+          The next step would be implementing drive cleaning setup.
+          Bacula already has knowledge about cleaning tapes.  Once it has
+          some information about cleaning cycles (measured in drive run
+          time, number of tapes used, or calender days, for example) it
+          can automatically execute tape cleaning (with an autochanger,
+          obviously) or ask for operator assistence loading a cleaning
+          tape.
+
+          The next step would be to implement TAPEALERT checks not only
+          when changing tapes and only sending he information to the
+          administrator, but rather checking after each tape error,
+          checking on a regular basis (for example after each tape file),
+          and also before unloading and after loading a new tape.  Then,
+          depending on the drives TAPEALERT state and the know drive
+          cleaning state Bacula could automatically schedule later
+          cleaning, clean immediately, or inform the operator.
+
+          Implementing this would perhaps require another catalog change
+          and perhaps major changes in SD code and the DIR-SD protocoll,
+          so I'd only consider this worth implementing if it would
+          actually be used or even needed by many people. 
+
+Item 14:  Merging of multiple backups into a single one. (Also called Synthetic
           Backup or Consolidation).
 
   Origin: Marc Cousin and Eric Bollengier 
@@ -237,33 +288,34 @@ Item 13:  Merging of multiple backups into a single one. (Also called Synthetic
   Status: Depends on first implementing project Item 1 (Migration).
 
   What:   A merged backup is a backup made without connecting to the Client.
-          It would be a Merge of existing backups into a single backup.  In
-          effect, it is like a restore but to the backup medium.
+          It would be a Merge of existing backups into a single backup.
+          In effect, it is like a restore but to the backup medium.
 
-          For instance, say that last sunday we made a full backup.  Then all
-          week long, we created incremental backups, in order to do them
-          fast. Now comes sunday again, and we need another full.  The merged
-          backup makes it possible to do instead an incremental backup (during
-          the night for instance), and then create a merged backup during the
-          day, by using the full and incrementals from the week. The merged
-          backup will be exactly like a full made sunday night on the tape, but
-          the production interruption on the Client will be minimal, as the
-          Client will only have to send incrementals.
+          For instance, say that last sunday we made a full backup.  Then
+          all week long, we created incremental backups, in order to do
+          them fast.  Now comes sunday again, and we need another full.
+          The merged backup makes it possible to do instead an incremental
+          backup (during the night for instance), and then create a merged
+          backup during the day, by using the full and incrementals from
+          the week.  The merged backup will be exactly like a full made
+          sunday night on the tape, but the production interruption on the
+          Client will be minimal, as the Client will only have to send
+          incrementals.
 
-          In fact, if it's done correctly, you could merge all the Incrementals
-          into single Incremental, or all the Incrementals and the last
-          Differential into a new Differential, or the Full, last differential
-          and all the Incrementals into a new Full backup.  And there is no
-          need to involve the Client.
+          In fact, if it's done correctly, you could merge all the
+          Incrementals into single Incremental, or all the Incrementals
+          and the last Differential into a new Differential, or the Full,
+          last differential and all the Incrementals into a new Full
+          backup.  And there is no need to involve the Client.
 
   Why:    The benefit is that :
           - the Client just does an incremental ;
           - the merged backup on tape is just as a single full backup,
             and can be restored very fast.
 
-          This is also a way of reducing the backup data since the old data can
-          then be pruned (or not) from the catalog, possibly allowing older
-          volumes to be recycled
+          This is also a way of reducing the backup data since the old
+          data can then be pruned (or not) from the catalog, possibly
+          allowing older volumes to be recycled
 
 
 
