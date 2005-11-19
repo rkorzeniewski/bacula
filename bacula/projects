@@ -317,7 +317,7 @@ Item 14:  Merging of multiple backups into a single one. (Also called Synthetic
           data can then be pruned (or not) from the catalog, possibly
           allowing older volumes to be recycled
 
-Item 1:   Automatic disabling of devices
+Item 15:  Automatic disabling of devices
    Date:   2005-11-11
    Origin: Peter Eriksson <peter at ifm.liu dot se>
    Status:
@@ -342,6 +342,24 @@ Item 1:   Automatic disabling of devices
           many drives Bacula could have just automatically disabled
           further use of that drive and used one of the other ones
           instead.
+
+
+Item 16:  Directive/mode to backup only file changes, not entire file
+  Date:   11 November 2005
+  Origin: Joshua Kugler <joshua dot kugler at uaf dot edu>
+          Marek Bajon <mbajon at bimsplus dot com dot pl>
+  Status: RFC
+
+  What:   Currently when a file changes, the entire file will be backed up in
+          the next incremental or full backup.  To save space on the tapes
+          it would be nice to have a mode whereby only the changes to the
+          file would be backed up when it is changed.
+
+  Why:    This would save lots of space when backing up large files such as 
+          logs, mbox files, Outlook PST files and the like.
+
+  Notes:  This would require the usage of disk-based volumes as comparing 
+          files would not be feasible using a tape drive.
 
 
 ============= Empty RFC form ===========
