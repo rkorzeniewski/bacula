@@ -18,8 +18,38 @@ scripts/cleanup
 scripts/copy-2tape-confs
 scripts/prepare-two-tapes
  
-# Make a relatively large backup set 20 x source code directory
+# Make a relatively large backup set 50 x source code directory
 echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >>/tmp/file-list
 echo "${cwd}/build" >>/tmp/file-list
 echo "${cwd}/build" >>/tmp/file-list
 echo "${cwd}/build" >>/tmp/file-list

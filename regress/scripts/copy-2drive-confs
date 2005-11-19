@@ -7,4 +7,3 @@ outf="tmp/sed_tmp"
 echo "s%# Autochanger = yes%  Autochanger = yes%g" >${outf}
 cp bin/bacula-dir.conf tmp/1
 sed -f ${outf} tmp/1 >bin/bacula-dir.conf
-touch bin/tape_options
