@@ -3,6 +3,14 @@
 
 This is Bacula's regression script directory.
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Warning!!!! Make sure not to run it on the same system 
+with your production Catalog because the tables will all
+be cleared. You can run it on the your production system
+if you use a different database.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
 To set it up, create your personal configuration file, by
 copying prototype.conf to xxx.conf or simply editing prototype.conf
 directly.
