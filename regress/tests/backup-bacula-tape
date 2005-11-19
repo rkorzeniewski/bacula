@@ -40,25 +40,25 @@ status storage=DDS-4
 status storage=DDS-4
 status storage=DDS-4
 status storage=DDS-4
-sleep 1
+@sleep 1
 status storage=DDS-4
 status storage=DDS-4
 status storage=DDS-4
 status storage=DDS-4
 status storage=DDS-4
-sleep 1
+@sleep 1
 status storage=DDS-4
 status storage=DDS-4
 status storage=DDS-4
 status storage=DDS-4
 status storage=DDS-4
-sleep 1
+@sleep 1
 status storage=DDS-4
 status storage=DDS-4
 status storage=DDS-4
 status storage=DDS-4
 status storage=DDS-4
-sleep 1
+@sleep 1
 status storage=DDS-4
 status storage=DDS-4
 status storage=DDS-4
@@ -73,6 +73,7 @@ messages
 restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
 yes
 wait
+list volumes
 messages
 END_OF_DATA
 
@@ -95,16 +96,20 @@ cat <<END_OF_DATA >tmp/bconcmds
 @$out /dev/null
 messages
 @$out tmp/log1.out
+list volumes
 run job=NightlySave yes
 wait
+list volumes
 messages
 @# 
 @# now do a second restore
 @#
 @$out tmp/log2.out
+list volumes
 restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
 yes
 wait
+list volumes
 messages
 @$out
 quit
