@@ -85,6 +85,7 @@ label storage=DDS-4 volume=TestVolume002 slot=2 pool=Default drive=0
 run job=NightlySave level=Full pool=Default yes
 @# wait between starting jobs
 @sleep 60
+@#setdebug level=100 storage=DDS-4
 run job=NightlySave level=Full pool=Full yes
 @sleep 10
 messages
