@@ -14,6 +14,12 @@ email address!
 
 Make sure that depkgs is pre-built if it isn't 
 already: (cd your-depkgs; make sqlite).
+Using the .conf file, you can now select between any Catalog type:
+SQLite, SQLite3, MySQL, or PostgreSQL.  Be aware, however, if you
+use an installed database on a production server, running these
+tests will delete all the tables !!!!!!!!!!!!!!!!!!  I run my
+tests on a non-production machine, and in addition, I normally use
+SQLite as the database, while my production uses MySQL.
 
 Then do:
 
@@ -34,7 +40,8 @@ self-initalizing and should clean up after itself.
 
 Not all the tests yet report OK.  This is simply because there are
 some spurious differences that I haven't yet taken the time to
-eliminate.  The working scrips as of 24 Apr 03 are:
+eliminate.  The working scrips as of 24 Apr 03 are (this is
+way out of date!):
 
 backup-bacula-test
 sparse-test
@@ -46,6 +53,18 @@ verify-vol-test
 
 The tests expect you to execute them from the main regress 
 directory!               
+
+You can run all the disk based tests by doing:
+
+  ./do_file
+
+You can run all the disk and most of the tape tests by doing:
+
+  ./do_all
+
+Each of the above calls one or more scripts. By looking at the
+scripts available in this directory, you can see that there are a number
+of options for running tests.
 
 You can run them individually as:
 
@@ -83,16 +102,6 @@ conf files, and you do not need a new copy of the source, you can simply do:
 
 Debugging failed tests:
 The simplest thing to do is to edit tests/xxxx where xxxx is the name of
-a or the test that is failing and change all:
- 
- @output
-
-to
-  
- @tee
-
-re-run the test. The output will display on your terminal.  In rare cases,        
-for example to get bacula debug output, you might want to remove the
-"2>&1 >/dev/null" from the end of the bin/bacula call or from the end
-of the diff call, assuming you want to "see" the diff output.
-    
+the test, and change the line "debug=0" to "debug=1".  If the test has
+not been updated to have the debug variable, please notify Kern, and I
+will be happy to fix it -- I am upgrading them one at a time.

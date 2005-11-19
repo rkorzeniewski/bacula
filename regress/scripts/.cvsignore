@@ -20,3 +20,4 @@ bacula-sd-2drive.conf
 bacula-sd-win32-tape.conf
 bacula-sd-2drive.conf
 bacula-dir-win32-tape.conf
+win32-bacula-dir-tape.conf
