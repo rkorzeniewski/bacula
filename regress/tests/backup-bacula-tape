@@ -3,6 +3,8 @@
 # Run a simple backup of the Bacula build directory 
 #   to a tape then restore it, we do that twice to ensure that
 #   we can correctly append to a tape.
+# We also use the purge and the relabel commands as
+#   well as a pile of status storage commands.
 #
 debug=0 
 if test "$debug" -eq 1 ; then
