@@ -317,6 +317,31 @@ Item 14:  Merging of multiple backups into a single one. (Also called Synthetic
           data can then be pruned (or not) from the catalog, possibly
           allowing older volumes to be recycled
 
+Item 1:   Automatic disabling of devices
+   Date:   2005-11-11
+   Origin: Peter Eriksson <peter at ifm.liu dot se>
+   Status:
+
+   What:  After a configurable amount of fatal errors with a tape drive
+          Bacula should automatically disable further use of a certain
+          tape drive. There should also be "disable"/"enable" commands in
+          the "bconsole" tool.
+
+   Why:   On a multi-drive jukebox there is a possibility of tape drives
+          going bad during large backups (needing a cleaning tape run,
+          tapes getting stuck). It would be advantageous if Bacula would
+          automatically disable further use of a problematic tape drive
+          after a configurable amount of errors has occured.
+
+          An example: I have a multi-drive jukebox (6 drives, 380+ slots)
+          where tapes occasionally get stuck inside the drive. Bacula will
+          notice that the "mtx-changer" command will fail and then fail
+          any backup jobs trying to use that drive. However, it will still
+          keep on trying to run new jobs using that drive and fail -
+          forever, and thus failing lots and lots of jobs... Since we have
+          many drives Bacula could have just automatically disabled
+          further use of that drive and used one of the other ones
+          instead.
 
 
 ============= Empty RFC form ===========
