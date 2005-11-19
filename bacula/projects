@@ -229,6 +229,42 @@ Item 12:  Implement red/black binary tree routines.
   Why:    Performance enhancement.
 
 
+Item 13:  Merging of multiple backups into a single one. (Also called Synthetic
+          Backup or Consolidation).
+
+  Origin: Marc Cousin and Eric Bollengier 
+  Date:   15 November 2005
+  Status: Depends on first implementing project Item 1 (Migration).
+
+  What:   A merged backup is a backup made without connecting to the Client.
+          It would be a Merge of existing backups into a single backup.  In
+          effect, it is like a restore but to the backup medium.
+
+          For instance, say that last sunday we made a full backup.  Then all
+          week long, we created incremental backups, in order to do them
+          fast. Now comes sunday again, and we need another full.  The merged
+          backup makes it possible to do instead an incremental backup (during
+          the night for instance), and then create a merged backup during the
+          day, by using the full and incrementals from the week. The merged
+          backup will be exactly like a full made sunday night on the tape, but
+          the production interruption on the Client will be minimal, as the
+          Client will only have to send incrementals.
+
+          In fact, if it's done correctly, you could merge all the Incrementals
+          into single Incremental, or all the Incrementals and the last
+          Differential into a new Differential, or the Full, last differential
+          and all the Incrementals into a new Full backup.  And there is no
+          need to involve the Client.
+
+  Why:    The benefit is that :
+          - the Client just does an incremental ;
+          - the merged backup on tape is just as a single full backup,
+            and can be restored very fast.
+
+          This is also a way of reducing the backup data since the old data can
+          then be pruned (or not) from the catalog, possibly allowing older
+          volumes to be recycled
+
 
 
 ============= Empty RFC form ===========
