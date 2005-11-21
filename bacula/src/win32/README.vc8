@@ -7,8 +7,12 @@ the official way to build the released FD.  See README.win32 for the
 "official" instructions.)
 
 What you need to download:
-- Visual C++ Express Edition Beta 2 (2MB + 66MB)
-  http://lab.msdn.microsoft.com/express/visualc/default.aspx
+- Visual C++ 2005 Express Edition (2MB + 66MB)
+  http://msdn.microsoft.com/vstudio/express/visualc/download/  
+  NOTE: You may want to download the whole CD for offline usage 
+  instead of the web installer, as Microsoft will
+  start to charge for VC++ one year after the product launch 
+  (launch was in November 2005, see VC++ FAQ).
 
 - Windows® Server 2003 SP1 Platform SDK Full Download (385MB)
   http://www.microsoft.com/downloads/details.aspx?FamilyId=A55B6B43-E24F-4EA3-A93E-40C0EC4F68E5&displaylang=en
@@ -73,7 +77,15 @@ Build instructions:
      <dev dir>/bacula/src/win32/compat/compat.h
    + Repeat the operation for the "Unicode Debug" configuration if needed.
 
+Deploy instructions
  - Bacula:
+   + To deploy bacula on Windows clients, create a setup using NSIS 
+     (Nullsoft Scriptable Install System).
+     http://nsis.sourceforge.net/Download
+   + Modify the default <dev dir>\bacula\src\win32\winbacula.nsi.in 
+     script to include your own customizations.
+     Also change all references to msvcr71.dll to msvcr80.dll to 
+     reflect the DLL used by VC++ 2005
    + Open <dev dir>/bacula/src/win32/bacula.sln
    + Launch Build->Configuration Manager, then select your configuration.
    + Then run Build->Build Solution (this will build wx-console, bconsole and bacula-fd).
