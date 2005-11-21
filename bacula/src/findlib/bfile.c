@@ -154,7 +154,7 @@ bool processWin32BackupAPIBlock (BFILE *bfd, void *pBuffer, ssize_t dwSize)
       }
       else {                        
          dwDataLen = pContext->liNextHeader-dwDataOffset;
-         bContinue = TRUE; /* multiple iterations may be necessary */
+         bContinue = true; /* multiple iterations may be necessary */
       }
 
       /* flush */
@@ -172,10 +172,9 @@ bool processWin32BackupAPIBlock (BFILE *bfd, void *pBuffer, ssize_t dwSize)
             /* start of header was before this block, so we
              * continue with the part in the current block 
              */
-            dwOffsetTarget = abs (pContext->liNextHeader);
+            dwOffsetTarget = -pContext->liNextHeader;        
             dwOffsetSource = 0;                            
-         }
-         else {
+         } else {
             /* start of header is inside of this block */
             dwOffsetTarget = 0;
             dwOffsetSource = pContext->liNextHeader;                        
@@ -734,13 +733,10 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 int bopen_rsrc(BFILE *bfd, const char *fname, int flags, mode_t mode)
 {
    POOLMEM *rsrc_fname;
-   size_t fname_len;
 
-   fname_len = strlen(fname);
    rsrc_fname = get_pool_memory(PM_FNAME);
-   bstrncpy(rsrc_fname, fname, fname_len + 1);
-   bstrncpy(rsrc_fname + fname_len, _PATH_RSRCFORKSPEC,
-      strlen(_PATH_RSRCFORKSPEC) + 1);
+   pm_strcpy(rsrc_fname, fname);
+   pm_strcat(rsrc_fname, _PATH_RSRCFORKSPEC);
    bopen(bfd, rsrc_fname, flags, mode);
    free_pool_memory(rsrc_fname);
    return bfd->fid;

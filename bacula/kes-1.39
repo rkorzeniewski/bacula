@@ -4,7 +4,10 @@
 General:
 
 Changes to 1.39.0:
-20Oct05
+21Nov05
+- Remove abs() in bfile.c so that it compiles on Solaris. 
+  Bug #491.
+20Nov05
 - Fix crash in tray-monitor when daemon disconnects. Bug #479.
 - Fix bnet-server bug found on OpenBSD. Bug #486
 - Fix cancel failure bug. Bug #481
@@ -14,7 +17,7 @@ Changes to 1.39.0:
 - Fix memory overrun in bfile.c in building OS X resource
   fork filename. Bug #489 
 - Add Pool name to SD status output.
-14Oct05
+14Nov05
 - Apply SunOS patch for ACLs submitted by David Duchscher.                  
 - Make sure to set storage before trying to set drive.
 - Add bacula_mail_summary.sh to examples directory. It makes
@@ -22,10 +25,10 @@ Changes to 1.39.0:
   by Adrew J. Millar.
 - Make sure when we do a mount to unblock the device even
   if the drive could not be opened.  
-13Oct05
+13Nov05
 - Remove the USE_WIN32STREAMEXTRACTION #defines (always on)
   and correct a few minor problems to make it build on Linux.
-10Oct05
+10Nov05
 - Remove delete of CVS from all Makefiles
 - Fix seg fault when clicking on Add button in wx-console
   restore panel.  Bug #470.
