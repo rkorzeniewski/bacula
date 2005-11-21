@@ -4,6 +4,24 @@
 General:
 
 Changes to 1.39.0:
+20Oct05
+- Fix crash in tray-monitor when daemon disconnects. Bug #479.
+- Fix bnet-server bug found on OpenBSD. Bug #486
+- Fix cancel failure bug. Bug #481
+- Fix failure when Pool name has spaces. Bug #487   
+- Fix SD crash in autochanger code. Mutex failure. Bug #488
+- Fix a couple of free()s in src/filed/acl.c
+- Fix memory overrun in bfile.c in building OS X resource
+  fork filename. Bug #489 
+- Add Pool name to SD status output.
+14Oct05
+- Apply SunOS patch for ACLs submitted by David Duchscher.                  
+- Make sure to set storage before trying to set drive.
+- Add bacula_mail_summary.sh to examples directory. It makes
+  a single email summary of any number of jobs. Submitted
+  by Adrew J. Millar.
+- Make sure when we do a mount to unblock the device even
+  if the drive could not be opened.  
 13Oct05
 - Remove the USE_WIN32STREAMEXTRACTION #defines (always on)
   and correct a few minor problems to make it build on Linux.

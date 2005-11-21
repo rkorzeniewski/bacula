@@ -169,7 +169,7 @@ BSR *find_next_bsr(BSR *root_bsr, DEVICE *dev)
       Dmsg2(300, "No nxt_bsr use_pos=%d repos=%d\n", root_bsr->use_positioning, root_bsr->reposition);
       return NULL;
    }
-   Dmsg2(100, "use_pos=%d repos=%d\n", root_bsr->use_positioning, root_bsr->reposition);
+   Dmsg2(300, "use_pos=%d repos=%d\n", root_bsr->use_positioning, root_bsr->reposition);
    root_bsr->mount_next_volume = false;
    for (bsr=root_bsr; bsr; bsr=bsr->next) {
       if (bsr->done || !match_volume(bsr, bsr->volume, &dev->VolHdr, 1)) {
@@ -252,7 +252,7 @@ static BSR *find_smallest_volfile(BSR *found_bsr, BSR *bsr)
 bool match_set_eof(BSR *bsr, DEV_RECORD *rec)
 {
    BSR *rbsr = rec->bsr;
-   Dmsg1(100, "match_set %d\n", rbsr != NULL);
+   Dmsg1(300, "match_set %d\n", rbsr != NULL);
    if (!rbsr) {
       return false;
    }
@@ -261,7 +261,7 @@ bool match_set_eof(BSR *bsr, DEV_RECORD *rec)
    if (rbsr->count && rbsr->found >= rbsr->count) {
       rbsr->done = true;
       rbsr->root->reposition = true;
-      Dmsg2(100, "match_set_eof reposition count=%d found=%d\n",
+      Dmsg2(500, "match_set_eof reposition count=%d found=%d\n",
          rbsr->count, rbsr->found);
       return true;
    }
@@ -284,19 +284,19 @@ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
       goto no_match;
    }
    if (!match_volfile(bsr, bsr->volfile, rec, 1)) {
-      Dmsg2(100, "Fail on file. bsr=%d rec=%d\n", bsr->volfile->efile,
+      Dmsg2(300, "Fail on file. bsr=%d rec=%d\n", bsr->volfile->efile,
          rec->File);
       goto no_match;
    }
    if (!match_sesstime(bsr, bsr->sesstime, rec, 1)) {
-      Dmsg2(100, "Fail on sesstime. bsr=%d rec=%d\n",
+      Dmsg2(300, "Fail on sesstime. bsr=%d rec=%d\n",
          bsr->sesstime->sesstime, rec->VolSessionTime);
       goto no_match;
    }
 
    /* NOTE!! This test MUST come after the sesstime test */
    if (!match_sessid(bsr, bsr->sessid, rec)) {
-      Dmsg2(100, "Fail on sessid. bsr=%d rec=%d\n",
+      Dmsg2(300, "Fail on sessid. bsr=%d rec=%d\n",
          bsr->sessid->sessid, rec->VolSessionId);
       goto no_match;
    }
@@ -449,7 +449,7 @@ static int match_volfile(BSR *bsr, BSR_VOLFILE *volfile, DEV_RECORD *rec, bool d
    if (!(rec->state & REC_ISTAPE)) {
       return 1;                       /* All File records OK for this match */
    }
-// Dmsg3(100, "match_volfile: sfile=%d efile=%d recfile=%d\n",
+// Dmsg3(300, "match_volfile: sfile=%d efile=%d recfile=%d\n",
 //             volfile->sfile, volfile->efile, rec->File);
    if (volfile->sfile <= rec->File && volfile->efile >= rec->File) {
       return 1;
@@ -466,7 +466,7 @@ static int match_volfile(BSR *bsr, BSR_VOLFILE *volfile, DEV_RECORD *rec, bool d
    if (volfile->done && done) {
       bsr->done = true;
       bsr->root->reposition = true;
-      Dmsg2(100, "bsr done from volfile rec=%d volefile=%d\n",
+      Dmsg2(300, "bsr done from volfile rec=%d volefile=%d\n",
          rec->File, volfile->efile);
    }
    return 0;
@@ -503,7 +503,7 @@ static int match_sesstime(BSR *bsr, BSR_SESSTIME *sesstime, DEV_RECORD *rec, boo
    if (sesstime->done && done) {
       bsr->done = true;
       bsr->root->reposition = true;
-      Dmsg0(100, "bsr done from sesstime\n");
+      Dmsg0(300, "bsr done from sesstime\n");
    }
    return 0;
 }
@@ -549,7 +549,7 @@ static int match_findex(BSR *bsr, BSR_FINDEX *findex, DEV_RECORD *rec, bool done
    if (findex->done && done) {
       bsr->done = true;
       bsr->root->reposition = true;
-      Dmsg1(100, "bsr done from findex %d\n", rec->FileIndex);
+      Dmsg1(300, "bsr done from findex %d\n", rec->FileIndex);
    }
    return 0;
 }

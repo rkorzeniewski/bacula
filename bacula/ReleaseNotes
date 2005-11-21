@@ -1,12 +1,31 @@
 
-          Release Notes for Bacula 1.38.1
+          Release Notes for Bacula 1.38.2
 
   Bacula code: Total files = 420 Total lines = 138,440 (*.h *.c *.in)
-  20,440 additional lines of code since version 1.36.3
+      20,440 additional lines of code since version 1.36.3
 
-Changes since 1.38.0:
-- Fix autostart install for FreeBSD.
-- Fix several problems with PostgreSQL scripts.   
+Changes to 1.38.2:
+- Fix crash in tray-monitor when daemon disconnects. Bug #479.
+- Fix bnet-server bug found on OpenBSD. Bug #486
+- Fix cancel failure bug. Bug #481
+- Fix failure when Pool name has spaces. Bug #487   
+- Fix SD crash in autochanger code. Mutex failure. Bug #488
+- Fix a couple of free()s in src/filed/acl.c
+- Fix memory overrun in bfile.c in building OS X resource
+  fork filename. Bug #489 
+- Add Pool name to SD status output.
+
+Changes to 1.38.1:
+- Corrected ACL for Solaris (David Duchscher and Attila Fulop).
+- Add bacula_mail_summary.sh to examples directory. It makes
+  a single email summary of any number of jobs. Submitted
+  by Adrew J. Millar.
+- Unmount command now unloads autochanger.
+- Fix hang in FD (Martin Simmons)
+- Fix Win98 stat() problem in FD (Thorsten Engel)
+- Fix update slots which did not clear missing tapes.
+- Fix autostart install for FreeBSD (user reported)
+- Fix several problems with PostgreSQL scripts (Eric Bollinger)
 - Critical: allow restore of the first file of non-portable Win32 backup.
 - Important: with muliple concurrent jobs the autochanger could get
   confused because of a missing mutex.

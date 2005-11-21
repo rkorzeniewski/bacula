@@ -1,0 +1,412 @@
+
+ This patch fixes the following bugs:
+
+- Fix crash in tray-monitor when daemon disconnects. Bug #479.
+- Fix bnet-server bug found on OpenBSD. Bug #486 (bug originator
+  says that this patch does not fix his problem)
+- Fix cancel failure bug. Bug #481
+- Fix failure when Pool name has spaces. Bug #487
+- Fix SD crash in autochanger code. Mutex failure. Bug #488
+- Fix a couple of free()s in src/filed/acl.c
+- Fix memory overrun in bfile.c in building OS X resource
+  fork filename. Bug #489
+
+This patch is applied to Bacula source version 1.38.1 and will
+produce Bacula source version 1.38.2.  Apply it with:
+
+   cd <bacula-1.38.1-source>
+   ./configure (your options) if not already done
+   patch -p0 <1.38.1-to-1.38.2.patch
+   make
+   make install
+
+Index: kes-1.38
+===================================================================
+RCS file: /cvsroot/bacula/bacula/kes-1.38,v
+retrieving revision 1.1.2.13
+diff -u -r1.1.2.13 kes-1.38
+--- kes-1.38	14 Nov 2005 20:20:38 -0000	1.1.2.13
++++ kes-1.38	21 Nov 2005 12:53:36 -0000
+@@ -3,6 +3,17 @@
+ 
+ General:
+ 
++Changes after release of 1.38.1:
++20Oct05
++- Fix crash in tray-monitor when daemon disconnects. Bug #479.
++- Fix bnet-server bug found on OpenBSD. Bug #486
++- Fix cancel failure bug. Bug #481
++- Fix failure when Pool name has spaces. Bug #487   
++- Fix SD crash in autochanger code. Mutex failure. Bug #488
++- Fix a couple of free()s in src/filed/acl.c
++- Fix memory overrun in bfile.c in building OS X resource
++  fork filename. Bug #489 
++
+ Changes to 1.38.1:
+ 14Oct05
+ - Apply SunOS patch for ACLs submitted by David Duchscher.                  
+Index: src/version.h
+===================================================================
+RCS file: /cvsroot/bacula/bacula/src/version.h,v
+retrieving revision 1.554.2.14
+diff -u -r1.554.2.14 version.h
+--- src/version.h	14 Nov 2005 14:21:58 -0000	1.554.2.14
++++ src/version.h	21 Nov 2005 12:53:37 -0000
+@@ -3,9 +3,9 @@
+  */
+ 
+ #undef  VERSION
+-#define VERSION "1.38.1"
+-#define BDATE   "14 November 2005"
+-#define LSMDATE "14Nov05"
++#define VERSION "1.38.2"
++#define BDATE   "20 November 2005"
++#define LSMDATE "20Nov05"
+ 
+ /* Debug flags */
+ #undef  DEBUG
+Index: src/dird/catreq.c
+===================================================================
+RCS file: /cvsroot/bacula/bacula/src/dird/catreq.c,v
+retrieving revision 1.77.2.1
+diff -u -r1.77.2.1 catreq.c
+--- src/dird/catreq.c	26 Oct 2005 14:02:04 -0000	1.77.2.1
++++ src/dird/catreq.c	21 Nov 2005 12:53:37 -0000
+@@ -10,7 +10,7 @@
+  *  Basic tasks done here:
+  *      Handle Catalog services.
+  *
+- *   Version $Id: catreq.c,v 1.77.2.1 2005/10/26 14:02:04 kerns Exp $
++ *   Version $Id: catreq.c,v 1.79 2005/10/11 20:40:52 kerns Exp $
+  */
+ /*
+    Copyright (C) 2001-2005 Kern Sibbald
+@@ -117,6 +117,7 @@
+    if (sscanf(bs->msg, Find_media, &Job, &index, &pool_name, &mr.MediaType) == 4) {
+       memset(&pr, 0, sizeof(pr));
+       bstrncpy(pr.Name, pool_name, sizeof(pr.Name));
++      unbash_spaces(pr.Name);
+       ok = db_get_pool_record(jcr, jcr->db, &pr);
+       if (ok) {
+          mr.PoolId = pr.PoolId;
+Index: src/dird/ua_restore.c
+===================================================================
+RCS file: /cvsroot/bacula/bacula/src/dird/ua_restore.c,v
+retrieving revision 1.101.2.1
+diff -u -r1.101.2.1 ua_restore.c
+--- src/dird/ua_restore.c	26 Oct 2005 14:02:04 -0000	1.101.2.1
++++ src/dird/ua_restore.c	21 Nov 2005 12:53:37 -0000
+@@ -10,7 +10,7 @@
+  *
+  *     Kern Sibbald, July MMII
+  *
+- *   Version $Id: ua_restore.c,v 1.101.2.1 2005/10/26 14:02:04 kerns Exp $
++ *   Version $Id: ua_restore.c,v 1.102 2005/10/25 17:06:42 kerns Exp $
+  */
+ /*
+    Copyright (C) 2002-2005 Kern Sibbald
+@@ -573,6 +573,7 @@
+          }
+          return 2;
+ 
++      case -2:                        /* Period entered to cancel */
+       case 11:                        /* Cancel or quit */
+          return 0;
+       }
+Index: src/dird/ua_run.c
+===================================================================
+RCS file: /cvsroot/bacula/bacula/src/dird/ua_run.c,v
+retrieving revision 1.71
+diff -u -r1.71 ua_run.c
+--- src/dird/ua_run.c	10 Aug 2005 16:35:19 -0000	1.71
++++ src/dird/ua_run.c	21 Nov 2005 12:53:38 -0000
+@@ -851,6 +851,8 @@
+             bsendmsg(ua, _("You must set the bootstrap file to NULL to be able to specify a JobId.\n"));
+          }
+          goto try_again;
++      case -1:                        /* error or cancel */
++         goto bail_out;
+       default:
+          goto try_again;
+       }
+Index: src/dird/ua_select.c
+===================================================================
+RCS file: /cvsroot/bacula/bacula/src/dird/ua_select.c,v
+retrieving revision 1.65.2.1
+diff -u -r1.65.2.1 ua_select.c
+--- src/dird/ua_select.c	12 Nov 2005 17:30:52 -0000	1.65.2.1
++++ src/dird/ua_select.c	21 Nov 2005 12:53:39 -0000
+@@ -4,7 +4,7 @@
+  *
+  *     Kern Sibbald, October MMI
+  *
+- *   Version  $Id: ua_select.c,v 1.65.2.1 2005/11/12 17:30:52 kerns Exp $
++ *   Version  $Id: ua_select.c,v 1.66 2005/11/12 17:31:19 kerns Exp $
+  */
+ /*
+    Copyright (C) 2001-2005 Kern Sibbald
+@@ -149,7 +149,9 @@
+       }
+    }
+    UnlockRes();
+-   do_prompt(ua, _("Storage"),  _("Select Storage resource"), name, sizeof(name));
++   if (do_prompt(ua, _("Storage"),  _("Select Storage resource"), name, sizeof(name)) < 0) {
++      return NULL;
++   }
+    store = (STORE *)GetResWithName(R_STORAGE, name);
+    return store;
+ }
+@@ -170,7 +172,9 @@
+       }
+    }
+    UnlockRes();
+-   do_prompt(ua, _("FileSet"), _("Select FileSet resource"), name, sizeof(name));
++   if (do_prompt(ua, _("FileSet"), _("Select FileSet resource"), name, sizeof(name)) < 0) {
++      return NULL;
++   }
+    fs = (FILESET *)GetResWithName(R_FILESET, name);
+    return fs;
+ }
+@@ -202,7 +206,9 @@
+          }
+       }
+       UnlockRes();
+-      do_prompt(ua, _("Catalog"),  _("Select Catalog resource"), name, sizeof(name));
++      if (do_prompt(ua, _("Catalog"),  _("Select Catalog resource"), name, sizeof(name)) < 0) {
++         return NULL;
++      }
+       catalog = (CAT *)GetResWithName(R_CATALOG, name);
+    }
+    return catalog;
+@@ -225,7 +231,9 @@
+       }
+    }
+    UnlockRes();
+-   do_prompt(ua, _("Job"), _("Select Job resource"), name, sizeof(name));
++   if (do_prompt(ua, _("Job"), _("Select Job resource"), name, sizeof(name)) < 0) {
++      return NULL;
++   }
+    job = (JOB *)GetResWithName(R_JOB, name);
+    return job;
+ }
+@@ -246,7 +254,9 @@
+       }
+    }
+    UnlockRes();
+-   do_prompt(ua, _("Job"), _("Select Restore Job"), name, sizeof(name));
++   if (do_prompt(ua, _("Job"), _("Select Restore Job"), name, sizeof(name)) < 0) {
++      return NULL;
++   }
+    job = (JOB *)GetResWithName(R_JOB, name);
+    return job;
+ }
+@@ -269,7 +279,9 @@
+       }
+    }
+    UnlockRes();
+-   do_prompt(ua, _("Client"),  _("Select Client (File daemon) resource"), name, sizeof(name));
++   if (do_prompt(ua, _("Client"),  _("Select Client (File daemon) resource"), name, sizeof(name)) < 0) {
++      return NULL;
++   }
+    client = (CLIENT *)GetResWithName(R_CLIENT, name);
+    return client;
+ }
+@@ -551,7 +563,9 @@
+       }
+    }
+    UnlockRes();
+-   do_prompt(ua, _("Pool"), _("Select Pool resource"), name, sizeof(name));
++   if (do_prompt(ua, _("Pool"), _("Select Pool resource"), name, sizeof(name)) < 0) {
++      return NULL;
++   }
+    pool = (POOL *)GetResWithName(R_POOL, name);
+    return pool;
+ }
+@@ -673,12 +687,16 @@
+  *  Returns: -1 on error
+  *            index base 0 on success, and choice
+  *               is copied to prompt if not NULL
++ *             prompt is set to the chosen prompt item string
+  */
+ int do_prompt(UAContext *ua, const char *automsg, const char *msg, char *prompt, int max_prompt)
+ {
+    int i, item;
+    char pmsg[MAXSTRING];
+ 
++   if (prompt) {
++      *prompt = 0;
++   }
+    if (ua->num_prompts == 2) {
+       item = 1;
+       if (prompt) {
+@@ -698,15 +716,11 @@
+       bsendmsg(ua, "%6d: %s\n", i, ua->prompt[i]);
+    }
+ 
+-   if (prompt) {
+-      *prompt = 0;
+-   }
+-
+    for ( ;; ) {
+       /* First item is the prompt string, not the items */
+       if (ua->num_prompts == 1) {
+          bsendmsg(ua, _("Selection is empty!\n"));
+-         item = 0;                    /* list is empty ! */
++         item = -1;                    /* list is empty ! */
+          break;
+       }
+       if (ua->num_prompts == 2) {
+@@ -741,7 +755,7 @@
+       free(ua->prompt[i]);
+    }
+    ua->num_prompts = 0;
+-   return item - 1;
++   return item>0 ? item-1 : item;
+ }
+ 
+ 
+Index: src/dird/ua_update.c
+===================================================================
+RCS file: /cvsroot/bacula/bacula/src/dird/ua_update.c,v
+retrieving revision 1.7
+diff -u -r1.7 ua_update.c
+--- src/dird/ua_update.c	28 Aug 2005 12:22:02 -0000	1.7
++++ src/dird/ua_update.c	21 Nov 2005 12:53:39 -0000
+@@ -590,7 +590,7 @@
+          update_all_vols_from_pool(ua);
+          return 1;
+       default:                        /* Done or error */
+-         bsendmsg(ua, _("Selection done.\n"));
++         bsendmsg(ua, _("Selection terminated.\n"));
+          return 1;
+       }
+    }
+Index: src/filed/acl.c
+===================================================================
+RCS file: /cvsroot/bacula/bacula/src/filed/acl.c,v
+retrieving revision 1.10.2.1
+diff -u -r1.10.2.1 acl.c
+--- src/filed/acl.c	14 Nov 2005 20:20:38 -0000	1.10.2.1
++++ src/filed/acl.c	21 Nov 2005 12:53:39 -0000
+@@ -26,7 +26,7 @@
+  *
+  *   Written by Preben 'Peppe' Guldberg, December MMIV
+  *
+- *   Version $Id: acl.c,v 1.10.2.1 2005/11/14 20:20:38 kerns Exp $
++ *   Version $Id: acl.c,v 1.11 2005/11/14 20:20:20 kerns Exp $
+  */
+ /*
+    Copyright (C) 2004-2005 Kern Sibbald
+@@ -140,7 +140,7 @@
+ 
+    if ((acl_text = acl_get(jcr->last_fname)) != NULL) {
+       len = pm_strcpy(jcr->acl_text, acl_text);
+-      free(acl_text);
++      actuallyfree(acl_text);
+       return len;
+    }
+    return -1;
+@@ -270,7 +270,7 @@
+    if ((n = getacl(jcr->last_fname, n, acls)) > 0) {
+       if ((acl_text = acltostr(n, acls, FORM_SHORT)) != NULL) {
+          len = pm_strcpy(jcr->acl_text, acl_text);
+-         free(acl_text);
++         actuallyfree(acl_text);
+          return len;
+       }
+    }
+Index: src/findlib/bfile.c
+===================================================================
+RCS file: /cvsroot/bacula/bacula/src/findlib/bfile.c,v
+retrieving revision 1.40
+diff -u -r1.40 bfile.c
+--- src/findlib/bfile.c	10 Aug 2005 16:35:19 -0000	1.40
++++ src/findlib/bfile.c	21 Nov 2005 12:53:39 -0000
+@@ -623,13 +623,10 @@
+ int bopen_rsrc(BFILE *bfd, const char *fname, int flags, mode_t mode)
+ {
+    POOLMEM *rsrc_fname;
+-   size_t fname_len;
+ 
+-   fname_len = strlen(fname);
+    rsrc_fname = get_pool_memory(PM_FNAME);
+-   bstrncpy(rsrc_fname, fname, fname_len + 1);
+-   bstrncpy(rsrc_fname + fname_len, _PATH_RSRCFORKSPEC,
+-      strlen(_PATH_RSRCFORKSPEC) + 1);
++   pm_strcpy(rsrc_fname, fname);
++   pm_strcat(rsrc_fname, _PATH_RSRCFORKSPEC);
+    bopen(bfd, rsrc_fname, flags, mode);
+    free_pool_memory(rsrc_fname);
+    return bfd->fid;
+Index: src/lib/bnet_server.c
+===================================================================
+RCS file: /cvsroot/bacula/bacula/src/lib/bnet_server.c,v
+retrieving revision 1.39
+diff -u -r1.39 bnet_server.c
+--- src/lib/bnet_server.c	18 Aug 2005 15:37:40 -0000	1.39
++++ src/lib/bnet_server.c	21 Nov 2005 12:53:39 -0000
+@@ -153,7 +153,6 @@
+          /* Error, get out */
+          foreach_dlist(fd_ptr, &sockfds) {
+             close(fd_ptr->fd);
+-            free((void *)fd_ptr);
+          }
+          Emsg1(M_FATAL, 0, _("Error in select: %s\n"), be.strerror());
+          break;
+Index: src/stored/autochanger.c
+===================================================================
+RCS file: /cvsroot/bacula/bacula/src/stored/autochanger.c,v
+retrieving revision 1.47.2.3
+diff -u -r1.47.2.3 autochanger.c
+--- src/stored/autochanger.c	12 Nov 2005 17:30:53 -0000	1.47.2.3
++++ src/stored/autochanger.c	21 Nov 2005 12:53:39 -0000
+@@ -4,7 +4,7 @@
+  *
+  *   Kern Sibbald, August MMII
+  *                            
+- *   Version $Id: autochanger.c,v 1.47.2.3 2005/11/12 17:30:53 kerns Exp $
++ *   Version $Id: autochanger.c,v 1.51 2005/11/12 17:31:19 kerns Exp $
+  */
+ /*
+    Copyright (C) 2002-2005 Kern Sibbald
+@@ -163,6 +163,7 @@
+             rtn_stat = -1;            /* hard error */
+          }
+          Dmsg2(400, "load slot %d status=%d\n", slot, status);
++         unlock_changer(dcr);
+       } else {
+          status = 0;                  /* we got what we want */
+          dev->Slot = slot;            /* set currently loaded slot */
+@@ -174,7 +175,6 @@
+    } else {
+       rtn_stat = 0;                   /* no changer found */
+    }
+-   unlock_changer(dcr);
+    free_pool_memory(changer);
+    return rtn_stat;
+ 
+Index: src/tray-monitor/tray-monitor.c
+===================================================================
+RCS file: /cvsroot/bacula/bacula/src/tray-monitor/tray-monitor.c,v
+retrieving revision 1.25.2.1
+diff -u -r1.25.2.1 tray-monitor.c
+--- src/tray-monitor/tray-monitor.c	1 Oct 2005 10:20:18 -0000	1.25.2.1
++++ src/tray-monitor/tray-monitor.c	21 Nov 2005 12:53:39 -0000
+@@ -4,7 +4,7 @@
+  *
+  *     Nicolas Boichat, August MMIV
+  *
+- *     Version $Id: tray-monitor.c,v 1.25.2.1 2005/10/01 10:20:18 kerns Exp $
++ *     Version $Id: tray-monitor.c,v 1.26 2005/09/28 19:24:57 kerns Exp $
+  */
+ 
+ /*
+@@ -881,7 +881,7 @@
+       }
+ 
+       if (item->D_sock == NULL) {
+-         g_slist_append(*list, (void *)_("Cannot connect to daemon.\n"));
++         g_slist_append(*list, g_string_new(_("Cannot connect to daemon.\n")));
+          changeStatusMessage(item, _("Cannot connect to daemon."));
+          item->state = error;
+          item->oldstate = error;

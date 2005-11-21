@@ -180,10 +180,8 @@ int start_storage_daemon_job(JCR *jcr, alist *store, int append)
     *  associated with each Storage. It selects the first
     *  available one.
     *
-    * Note, the outer loop is not yet implemented.
     */
    foreach_alist(storage, store) {
-//    storage = (STORE *)store->first();
       pm_strcpy(store_name, storage->hdr.name);
       bash_spaces(store_name);
       pm_strcpy(media_type, storage->media_type);

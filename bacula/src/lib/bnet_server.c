@@ -153,7 +153,6 @@ bnet_thread_server(dlist *addrs, int max_clients, workq_t *client_wq,
          /* Error, get out */
          foreach_dlist(fd_ptr, &sockfds) {
             close(fd_ptr->fd);
-            free((void *)fd_ptr);
          }
          Emsg1(M_FATAL, 0, _("Error in select: %s\n"), be.strerror());
          break;

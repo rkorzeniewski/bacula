@@ -117,6 +117,7 @@ void catalog_request(JCR *jcr, BSOCK *bs)
    if (sscanf(bs->msg, Find_media, &Job, &index, &pool_name, &mr.MediaType) == 4) {
       memset(&pr, 0, sizeof(pr));
       bstrncpy(pr.Name, pool_name, sizeof(pr.Name));
+      unbash_spaces(pr.Name);
       ok = db_get_pool_record(jcr, jcr->db, &pr);
       if (ok) {
          mr.PoolId = pr.PoolId;

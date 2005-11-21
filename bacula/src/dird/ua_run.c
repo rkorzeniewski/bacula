@@ -851,6 +851,8 @@ try_again:
             bsendmsg(ua, _("You must set the bootstrap file to NULL to be able to specify a JobId.\n"));
          }
          goto try_again;
+      case -1:                        /* error or cancel */
+         goto bail_out;
       default:
          goto try_again;
       }
