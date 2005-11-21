@@ -149,7 +149,9 @@ STORE *select_storage_resource(UAContext *ua)
       }
    }
    UnlockRes();
-   do_prompt(ua, _("Storage"),  _("Select Storage resource"), name, sizeof(name));
+   if (do_prompt(ua, _("Storage"),  _("Select Storage resource"), name, sizeof(name)) < 0) {
+      return NULL;
+   }
    store = (STORE *)GetResWithName(R_STORAGE, name);
    return store;
 }
@@ -170,7 +172,9 @@ FILESET *select_fileset_resource(UAContext *ua)
       }
    }
    UnlockRes();
-   do_prompt(ua, _("FileSet"), _("Select FileSet resource"), name, sizeof(name));
+   if (do_prompt(ua, _("FileSet"), _("Select FileSet resource"), name, sizeof(name)) < 0) {
+      return NULL;
+   }
    fs = (FILESET *)GetResWithName(R_FILESET, name);
    return fs;
 }
@@ -202,7 +206,9 @@ CAT *get_catalog_resource(UAContext *ua)
          }
       }
       UnlockRes();
-      do_prompt(ua, _("Catalog"),  _("Select Catalog resource"), name, sizeof(name));
+      if (do_prompt(ua, _("Catalog"),  _("Select Catalog resource"), name, sizeof(name)) < 0) {
+         return NULL;
+      }
       catalog = (CAT *)GetResWithName(R_CATALOG, name);
    }
    return catalog;
@@ -225,7 +231,9 @@ JOB *select_job_resource(UAContext *ua)
       }
    }
    UnlockRes();
-   do_prompt(ua, _("Job"), _("Select Job resource"), name, sizeof(name));
+   if (do_prompt(ua, _("Job"), _("Select Job resource"), name, sizeof(name)) < 0) {
+      return NULL;
+   }
    job = (JOB *)GetResWithName(R_JOB, name);
    return job;
 }
@@ -246,7 +254,9 @@ JOB *select_restore_job_resource(UAContext *ua)
       }
    }
    UnlockRes();
-   do_prompt(ua, _("Job"), _("Select Restore Job"), name, sizeof(name));
+   if (do_prompt(ua, _("Job"), _("Select Restore Job"), name, sizeof(name)) < 0) {
+      return NULL;
+   }
    job = (JOB *)GetResWithName(R_JOB, name);
    return job;
 }
@@ -269,7 +279,9 @@ CLIENT *select_client_resource(UAContext *ua)
       }
    }
    UnlockRes();
-   do_prompt(ua, _("Client"),  _("Select Client (File daemon) resource"), name, sizeof(name));
+   if (do_prompt(ua, _("Client"),  _("Select Client (File daemon) resource"), name, sizeof(name)) < 0) {
+      return NULL;
+   }
    client = (CLIENT *)GetResWithName(R_CLIENT, name);
    return client;
 }
@@ -551,7 +563,9 @@ POOL *select_pool_resource(UAContext *ua)
       }
    }
    UnlockRes();
-   do_prompt(ua, _("Pool"), _("Select Pool resource"), name, sizeof(name));
+   if (do_prompt(ua, _("Pool"), _("Select Pool resource"), name, sizeof(name)) < 0) {
+      return NULL;
+   }
    pool = (POOL *)GetResWithName(R_POOL, name);
    return pool;
 }
@@ -673,12 +687,16 @@ void add_prompt(UAContext *ua, const char *prompt)
  *  Returns: -1 on error
  *            index base 0 on success, and choice
  *               is copied to prompt if not NULL
+ *             prompt is set to the chosen prompt item string
  */
 int do_prompt(UAContext *ua, const char *automsg, const char *msg, char *prompt, int max_prompt)
 {
    int i, item;
    char pmsg[MAXSTRING];
 
+   if (prompt) {
+      *prompt = 0;
+   }
    if (ua->num_prompts == 2) {
       item = 1;
       if (prompt) {
@@ -698,15 +716,11 @@ int do_prompt(UAContext *ua, const char *automsg, const char *msg, char *prompt,
       bsendmsg(ua, "%6d: %s\n", i, ua->prompt[i]);
    }
 
-   if (prompt) {
-      *prompt = 0;
-   }
-
    for ( ;; ) {
       /* First item is the prompt string, not the items */
       if (ua->num_prompts == 1) {
          bsendmsg(ua, _("Selection is empty!\n"));
-         item = 0;                    /* list is empty ! */
+         item = -1;                    /* list is empty ! */
          break;
       }
       if (ua->num_prompts == 2) {
@@ -741,7 +755,7 @@ done:
       free(ua->prompt[i]);
    }
    ua->num_prompts = 0;
-   return item - 1;
+   return item>0 ? item-1 : item;
 }
 
 

@@ -140,7 +140,7 @@ int bacl_get(JCR *jcr, int acltype)
 
    if ((acl_text = acl_get(jcr->last_fname)) != NULL) {
       len = pm_strcpy(jcr->acl_text, acl_text);
-      free(acl_text);
+      actuallyfree(acl_text);
       return len;
    }
    return -1;
@@ -270,7 +270,7 @@ int bacl_get(JCR *jcr, int acltype)
    if ((n = getacl(jcr->last_fname, n, acls)) > 0) {
       if ((acl_text = acltostr(n, acls, FORM_SHORT)) != NULL) {
          len = pm_strcpy(jcr->acl_text, acl_text);
-         free(acl_text);
+         actuallyfree(acl_text);
          return len;
       }
    }

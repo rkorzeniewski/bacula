@@ -361,6 +361,43 @@ Item 16:  Directive/mode to backup only file changes, not entire file
   Notes:  This would require the usage of disk-based volumes as comparing 
           files would not be feasible using a tape drive.
 
+Item 17:  Quick release of FD-SD connection
+  Origin: Frank Volf (frank at deze dot org)
+  Date:   17 november 2005
+  Status:
+
+   What:  In the bacula implementation a backup is finished after all data
+          and attributes are succesfully written to storage.  When using a
+          tape backup it is very annoying that a backup can take a day,
+          simply because the current tape (or whatever) is full and the
+          administrator has not put a new one in.  During that time the
+          system cannot be taken off-line, because there is still an open
+          session between the storage daemon and the file daemon on the
+          client.
+
+          Although this is a very good strategey for making "safe backups"
+          This can be annoying for e.g.  laptops, that must remain
+          connected until the bacukp is completed.
+
+          Using a new feature called "migration" it will be possible to
+          spool first to harddisk (using a special 'spool' migration
+          scheme) and then migrate the backup to tape.
+
+          There is still the problem of getting the attributes committed.
+          If it takes a very long time to do, with the current code, the
+          job has not terminated, and the File daemon is not freed up.  The
+          Storage daemon should release the File daemon as soon as all the
+          file data and all the attributes have been sent to it (the SD).
+          Currently the SD waits until everything is on tape and all the
+          attributes are transmitted to the Director before signalling
+          completion to the FD. I don't think I would have any problem
+          changing this.  The reason is that even if the FD reports back to
+          the Dir that all is OK, the job will not terminate until the SD
+          has done the same thing -- so in a way keeping the SD-FD link
+          open to the very end is not really very productive ...
+
+   Why:   Makes backup of laptops much easier.
+
 
 ============= Empty RFC form ===========
 Item n:   One line summary ...
@@ -376,33 +413,4 @@ Item n:   One line summary ...
 ============== End RFC form ==============
 
 
-Items completed for release 1.38.0:
-#4   Embedded Python Scripting (implemented in all Daemons)
-#5   Events that call a Python program (Implemented in all
-       daemons, but more cleanup work to be done).
-#6   Select one from among Multiple Storage Devices for Job.
-       This is already implemented in 1.37.
-#7   Single Job Writing to Multiple Storage Devices. This is
-       currently implemented with a Clone feature.
-#-   Full multiple drive Autochanger support (done in 1.37)
-#-   Built in support for communications encryption (TLS) 
-       done by Landon Fuller.
-#    Support for Unicode characters
-       (via UTF-8) on Win32 machines thanks to Thorsten Engel.
-Item  8:  Break the one-to-one Relationship between a Job and a
-          Specific Storage Device (or Devices if #10 is implemented).
-
-Completed items from last year's list:
-Item 1:   Multiple simultaneous Jobs. (done)
-Item 3:   Write the bscan program -- also write a bcopy program (done).
-Item 5:   Implement Label templates (done).
-Item 6:   Write a regression script (done)
-Item 9:   Add SSL to daemon communications (done by Landon Fuller)
-Item 10:  Define definitive tape format (done)
-Item 3:   GUI for interactive restore. Partially Implemented in 1.34
-          Note, there is now a complete Webmin plugin, a partial
-          GNOME console, and an excellent wx-console GUI.
-Item 4:   GUI for interactive backup
-Item 2:   Job Data Spooling.
-    Done: Regular expression matching.
-Item 10:  New daemon communication protocol (this has been dropped).
+Items completed for release 1.38.0 -- see kernsdone

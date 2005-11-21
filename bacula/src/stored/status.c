@@ -264,6 +264,7 @@ static void list_running_jobs(BSOCK *user)
    bool found = false;
    int bps, sec;
    JCR *jcr;
+   DCR *dcr;
    char JobName[MAX_NAME_LENGTH];
    char b1[30], b2[30], b3[30];
 
@@ -273,7 +274,8 @@ static void list_running_jobs(BSOCK *user)
          bnet_fsend(user, _("%s Job %s waiting for Client connection.\n"),
             job_type_to_str(jcr->JobType), jcr->Job);
       }
-      if (jcr->dcr && jcr->dcr->device) {
+      dcr = jcr->dcr;
+      if (dcr && dcr->device) {
          bstrncpy(JobName, jcr->Job, sizeof(JobName));
          /* There are three periods after the Job name */
          char *p;
@@ -282,13 +284,16 @@ static void list_running_jobs(BSOCK *user)
                *p = 0;
             }
          }
-         bnet_fsend(user, _("%s %s job %s JobId=%d Volume=\"%s\" device=\"%s\"\n"),
+         bnet_fsend(user, _("%s %s job %s JobId=%d Volume=\"%s\"\n"
+                            "    pool=\"%s\" device=\"%s\"\n"),
                    job_level_to_str(jcr->JobLevel),
                    job_type_to_str(jcr->JobType),
                    JobName,
                    jcr->JobId,
-                   jcr->dcr->VolumeName,
-                   jcr->dcr->device->device_name);
+                   dcr->VolumeName,
+                   dcr->pool_name,
+                   dcr->dev?dcr->dev->print_name(): 
+                            dcr->device->device_name);
          sec = time(NULL) - jcr->run_time;
          if (sec <= 0) {
             sec = 1;

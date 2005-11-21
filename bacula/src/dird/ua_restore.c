@@ -409,7 +409,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       }
       done = true;
       switch (do_prompt(ua, "", _("Select item: "), NULL, 0)) {
-      case -1:                        /* error */
+      case -1:                        /* error or cancel */
          return 0;
       case 0:                         /* list last 20 Jobs run */
          gui_save = ua->jcr->gui;

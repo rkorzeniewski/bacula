@@ -163,6 +163,7 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
             rtn_stat = -1;            /* hard error */
          }
          Dmsg2(400, "load slot %d status=%d\n", slot, status);
+         unlock_changer(dcr);
       } else {
          status = 0;                  /* we got what we want */
          dev->Slot = slot;            /* set currently loaded slot */
@@ -174,7 +175,6 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
    } else {
       rtn_stat = 0;                   /* no changer found */
    }
-   unlock_changer(dcr);
    free_pool_memory(changer);
    return rtn_stat;
 

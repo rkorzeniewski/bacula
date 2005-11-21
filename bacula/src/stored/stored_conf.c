@@ -222,16 +222,16 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
          res->res_dev.hdr.name,
          res->res_dev.media_type, res->res_dev.device_name,
          res->res_dev.label_type);
-      sendit(sock, "        rew_wait=%d min_bs=%d max_bs=%d\n",
+      sendit(sock, "        rew_wait=%d min_bs=%d max_bs=%d chgr_wait=%d\n",
          res->res_dev.max_rewind_wait, res->res_dev.min_block_size,
-         res->res_dev.max_block_size);
+         res->res_dev.max_block_size, res->res_dev.max_changer_wait);
       sendit(sock, "        max_jobs=%d max_files=%" lld " max_size=%" lld "\n",
          res->res_dev.max_volume_jobs, res->res_dev.max_volume_files,
          res->res_dev.max_volume_size);
       sendit(sock, "        max_file_size=%" lld " capacity=%" lld "\n",
          res->res_dev.max_file_size, res->res_dev.volume_capacity);
-      sendit(sock, "         spool_directory=%s\n", NPRT(res->res_dev.spool_directory));
-      sendit(sock, "         max_spool_size=%" lld " max_job_spool_size=%" lld "\n",
+      sendit(sock, "        spool_directory=%s\n", NPRT(res->res_dev.spool_directory));
+      sendit(sock, "        max_spool_size=%" lld " max_job_spool_size=%" lld "\n",
          res->res_dev.max_spool_size, res->res_dev.max_job_spool_size);
       if (res->res_dev.changer_res) {
          sendit(sock, "         changer=%p\n", res->res_dev.changer_res);

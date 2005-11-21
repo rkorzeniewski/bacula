@@ -590,7 +590,7 @@ static int update_volume(UAContext *ua)
          update_all_vols_from_pool(ua);
          return 1;
       default:                        /* Done or error */
-         bsendmsg(ua, _("Selection done.\n"));
+         bsendmsg(ua, _("Selection terminated.\n"));
          return 1;
       }
    }

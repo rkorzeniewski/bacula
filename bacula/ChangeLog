@@ -1,6 +1,42 @@
 
+Changes to 1.38.2:
+- Fix crash in tray-monitor when daemon disconnects. Bug #479.
+- Fix bnet-server bug found on OpenBSD. Bug #486
+- Fix cancel failure bug. Bug #481
+- Fix failure when Pool name has spaces. Bug #487   
+- Fix SD crash in autochanger code. Mutex failure. Bug #488
+- Fix a couple of free()s in src/filed/acl.c
+- Fix memory overrun in bfile.c in building OS X resource
+  fork filename. Bug #489 
+- Add Pool name to SD status output.
 
 Changes to 1.38.1:
+- Apply SunOS patch for ACLs submitted by David Duchscher.                  
+- Make sure to set storage before trying to set drive.
+- Add bacula_mail_summary.sh to examples directory. It makes
+  a single email summary of any number of jobs. Submitted
+  by Adrew J. Millar.
+- Make sure when we do a mount to unblock the device even
+  if the drive could not be opened.  
+- Merge Scott's new spec files.
+- Add doc on setting up Win32 environment variable supplied
+  by Kees van den Broek.               
+- Turn off API debug output unless debug set to avoid confusing
+  the user.
+- Add Solaris ACL detection in configure.in as supplied by
+  Attila Fulop. 
+- Implement "autochanger drives" protocol so that Dir knows
+  how many drives an autochanger has.
+- Do not request drive number in label, ... if only one drive.
+- Turn off debug code.
+- Fix update slots to clear slot number of every slot before
+  setting it.  This fixes (I believe) bug #471
+- Make unmount unload the autochanger slot.
+- Modify open() on mount to be read-only and non-blocking,      
+  otherwise the mount can block for a long time.
+- Make a few error message numbers unique.
+- Make a few error messages more correct.
+- Apply patch from Thorsten to fix Win98 stat() command.
 - Remove delete of CVS from all makefiles.
 - Fix seg fault when clicking on Add button in wx-console
   restore panel.  Bug #470.

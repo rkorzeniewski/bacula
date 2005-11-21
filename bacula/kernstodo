@@ -1,13 +1,11 @@
                     Kern's ToDo List
-                     03 November 2005
+                     21 November 2005
 
 Major development:      
 Project                     Developer
 =======                     =========                         
 Version 1.37                Kern (see below)
 ========================================================
-
-Final items for 1.37 before release:
 
 Document:
 - Does ClientRunAfterJob fail the job on a bad return code?
@@ -18,6 +16,8 @@ Document:
 - Does WildFile match against full name?  Doc.
 
 For 1.39:
+- Make sure that all do_prompt() calls in Dir check for
+  -1 (error) and -2 (cancel) returns.
 - Look at -D_FORTIFY_SOURCE=2
 - Add Win32 FileSet definition somewhere
 - Look at fixing restore status stats in SD.
@@ -27,6 +27,12 @@ For 1.39:
   encountered, read many times (as it currently does), and if the
   block cannot be read, skip to the next block, and try again.  If
   that fails, skip to the next file and try again, ...
+- Add level table:
+  create table LevelType (LevelType binary(1), LevelTypeLong tinyblob);
+  insert into LevelType (LevelType,LevelTypeLong) values
+  ("F","Full"),
+  ("D","Diff"),
+  ("I","Inc");
 - Add ACL to restore only to original location.
 - Add a recursive mark command (rmark) to restore.
 - "Minimum Job Interval = nnn" sets minimum interval between Jobs
@@ -1246,219 +1252,4 @@ Block Position: 0
 ====
 
 
-=== Done
-- Save mount point for directories not traversed with onefs=yes.
-- Add seconds to start and end times in the Job report output.
-- if 2 concurrent backups are attempted on the same tape
-  drive (autoloader) into different tape pools, one of them will exit
-  fatally instead of halting until the drive is idle
-- Update StartTime if job held in Job Queue.
-- Look at www.nu2.nu/pebuilder as a helper for full windows
-  bare metal restore. (done by Scott)
-- Fix orphanned buffers:
-   Orphaned buffer:      24 bytes allocated at line 808 of rufus-dir job.c
-   Orphaned buffer:      40 bytes allocated at line 45 of rufus-dir alist.c
-- Implement Preben's suggestion to add
-  File System Types = ext2, ext3 
-  to FileSets, thus simplifying backup of *all* local partitions.
-- Try to open a device on each Job if it was not opened
-  when the SD started.
-- Add dump of VolSessionId/Time and FileIndex with bls.
-- If Bacula does not find the right tape in the Autochanger,
-  then mark the tape in error and move on rather than asking
-  for operator intervention.
-- Cancel command should include JobId in list of Jobs.
-- Add performance testing hooks
-- Bootstrap from JobMedia records.
-- Implement WildFile and WildDir to solve problem of 
-  saving only *.doc files.
-- Fix
-   Please use the "label"  command to create a new Volume for:
-       Storage:      DDS-4-changer
-       Media type:   
-       Pool:         Default
-   label
-   The defined Storage resources are:
-- Copy Changer Device and Changer Command from Autochanger
-  to Device resource in SD if none given in Device resource.
-- 1. Automatic use of more than one drive in an autochanger (done)
-- 2. Automatic selection of the correct drive for each Job (i.e.
-     selects a drive with an appropriate Volume for the Job) (done)
-- 6. Allow multiple simultaneous Jobs referencing the same pool write
-    to several tapes (some new directive(s) are are probably needed for
-    this) (done)
-- Locking (done)
-- Key on Storage rather than Pool (done)
-- Allow multiple drives to use same Pool (change jobq.c DIR) (done).
-- Synchronize multiple drives so that not more
-  than one loads a tape and any time (done)
-- 4. Use Changer Device and Changer Command specified in the
-     Autochanger resource, if none is found in the Device resource.
-    You can continue to specify them in the Device resource if you want
-    or need them to be different for each device.
-- 5. Implement a new Device directive (perhaps "Autoselect = yes/no") 
-    that can allow a Device be part of an Autochanger, and hence the changer
-    script protected, but if set to no, will prevent the Device from being 
-    automatically selected from the changer. This allows the device to
-    be directly accessed through its Device name, but not through the
-    AutoChanger name.
-#6   Select one from among Multiple Storage Devices for Job
-#5   Events that call a Python program 
-     (Implemented in Dir/SD)
-- Make sure the Device name is in the Query packet returned.
-- Don't start a second file job if one is already running.
-- Implement EOF/EOV labels for ANSI labels
-- Implement IBM labels.
-- When Python creates a new label, the tape is immediately
-  recycled and no label created. This happens when using   
-  autolabeling -- even when Python doesn't generate the name.
-- Scratch Pool where the volumes can be re-assigned to any Pool.
-- 28-Mar 23:19 rufus-sd: acquire.c:379 Device "DDS-4" (/dev/nst0) 
-  is busy reading. Job 6 canceled.
-- Remove separate thread for opening devices in SD.  On the other
-  hand, don't block waiting for open() for devices.
-- Fix code to either handle updating NumVol or to calculate it in
-  Dir next_vol.c
-- Ensure that you cannot exclude a directory or a file explicitly
-  Included with File.
-#4   Embedded Python Scripting 
-     (Implemented in Dir/SD/FD)
-- Add Python writable variable for changing the Priority,
-    Client, Storage, JobStatus (error), ...
-- SD Python
-  - Solicit Events
-- Add disk seeking on restore; turn off seek on tapes.
-  stored/match_bsr.c
-- Look at dird_conf.c:1000: warning: `int size' 
-  might be used uninitialized in this function
-- Indicate when a Job is purged/pruned during restore.
-- Implement some way to turn off automatic pruning in Jobs.
-- Implement a way an Admin Job can prune, possibly multiple
-  clients -- Python script?
-- Look at Preben's acl.c error handling code.
-- SD crashes after a tape restore then doing a backup. 
-- If drive is opened read/write, close it and re-open
-  read-only if doing a restore, and vice-versa.
-- Windows restore:
-  data-fd: RestoreFiles.2004-12-07_15.56.42 Error:
-  > ..\findlib\../../findlib/create_file.c:275 Could not open e:/: ERR=Der
-  > Prozess kann nicht auf die Datei zugreifen, da sie von einem anderen
-  > Prozess verwendet wird.
-  Restore restores all files, but then fails at the end trying
-  to set the attributes of e:
-  from failed jobs.- Resolve the problem between Device name and Archive name,
-  and fix SD messages.
-- Tell the "restore" user when browsing is no longer possible.
-- Add a restore directory-x
-- Write non-optimized bsrs from the JobMedia and Media records,
-  even after Files are pruned.
-- Delete Stripe and Copy from VolParams to save space.
-- Fix option 2 of restore -- list where file is backed up -- require Client,
-  then list last 20 backups.
-- Finish implementation of passing all Storage and Device needs to
-  the SD.
-- Move test for max wait time exceeded in job.c up -- Peter's idea.
-##   Consider moving docs to their own project.
-##   Move rescue to its own project.
-- Add client version to the Client name line that prints in
-  the Job report.
-- Fix the Rescue CDROM.
-- By the way: on page http://www.bacula.org/?page=tapedrives , at the 
-  bottom, the link to "Tape Testing Chapter" is broken. It goes to 
-  /html-manual/... while the others point to /rel-manual/...
-- Device resource needs the "name" of the SD.
-- Specify a single directory to restore.
-- Implement MediaType keyword in bsr?   
-- Add a date and time stamp at the beginning of every line in the 
-  Job report (Volker Sauer).
-- Add level to estimate command.
-- Add "limit=n" for "list jobs"
-- Make bootstrap filename unique.
-- Make Dmsg look at global before calling subroutine.
-- From Chris Hull:
-   it seems to be complaining about 12:00pm which should be a valid 12
-   hour time.  I changed the time to 11:59am and everything works fine.
-   Also 12:00am works fine.  0:00pm also works (which I don't think
-   should).  None of the values 12:00pm - 12:59pm work for that matter.
-- Require restore via the restore command or make a restore Job
-  get the bootstrap file.
-- Implement Maximum Job Spool Size
-- Fix 3993 error in SD. It forgets to look at autochanger
-  resource for device command, ...
-- 3. Prevent two drives requesting the same Volume in any given
-     autochanger, by checking if a Volume is mounted on another drive
-     in an Autochanger.
-- Upgrade to MySQL 4.1.12 See:  
-  http://dev.mysql.com/doc/mysql/en/Server_SQL_mode.html
-- Add # Job Level date to bsr file
-- Implement "PreferMountedVolumes = yes|no" in Job resource.
-##   Integrate web-bacula into a new Bacula project with
-     bimagemgr.
-- Cleaning tapes should have Status "Cleaning" rather than append.
-- Make sure that Python has access to Client address/port so that
-  it can check if Clients are alive.
-- Review all items in "restore".
-- Fix PostgreSQL GROUP BY problems in restore.
-- Fix PostgreSQL sql problems in bugs.
-- After rename
-  04-Jul 13:01 MainSD: Rufus.2005-07-04_01.05.02 Warning: Director wanted Volume 
-     "DLT-13Feb04".
-  Current Volume "DLT-04Jul05" not acceptable because:
-  1997 Volume "DLT-13Feb04" not in catalog.
-  04-Jul 13:01 MainSD: Please mount Volume "DLT-04Jul05" on Storage Device 
-     "HP DLT 80" (/dev/nst0) for Job Rufus.2005-07-04_01.05.02
-##   Create a new GUI chapter explaining all the GUI programs.
--    Make "update slots" when pointing to Autochanger, remove
-     all Volumes from other drives.  "update slots all-drives"?
-     No, this is done by modifying mtx-changer to list what is
-     in the drives.
-- Finish TLS implementation.
-- Port limiting -m in iptables to prevent DoS attacks
-  could cause broken pipes on Bacula.
-6. Build and test the Volume Shadow Copy (VSS) for Win32. 
--  Allow cancel of unknown Job
--  State not saved when closing Win32 FD by icon
--  bsr-opt-test fails. bsr deleted. Fix.
--  Move Python daemon variables from Job to Bacula object.
-   WorkingDir, ConfigFile
-- Document that Bootstrap files can be written with cataloging
-  turned off.
-- Document details of ANSI/IBM labels
-- OS linux 2.4
-  1) ADIC, DLT, FastStor 4000, 7*20GB
-- Linux Sony LIB-D81, AIT-3 library works.
-- Doc the following
-  to activate, check or disable the hardware compression feature on my 
-  exb-8900 i use the exabyte "MammothTool" you can get it here:
-  http://www.exabyte.com/support/online/downloads/index.cfm
-  There is a solaris version of this tool. With option -C 0 or 1 you can 
-  disable or activate compression. Start this tool without any options for 
-  a small reference.
-- Document Heartbeat Interval in the dealing with firewalls section.
-- Document new CDROM directory.
-- On Win32 working directory must have drive letter ????
-- On Win32 working directory must be writable by SYSTEM to
-  do restores.
-- Document that ChangerDevice is used for Alert command.
-- Add better documentation on how restores can be done
-8. Take one more try at making DVD writing work (no go)
-7. Write a bacula-web document
-- Why isn't the DEVICE structure defined when doing
-  a reservation?
-- Multi-drive changer seems to only use drive 0
-  Multiple drives don't seem to be opened.
-- My database is growing
-- Call GetLastError() in the berrno constructor rather
-  than delaying until strerror.
-- Tape xxx in drive 0, requested in drive 1
-- The mount command does not work with drives other than 0.
-- A mount should cause the SD to re-examine what Slot is   
-  loaded.
-- The SD locks on to the first available drive then
-  wants a Volume that is released but in another drive --
-  chaos.
-- Run the regression scripts on Solaris and FreeBSD
--  Figure out how to package gui, and rescue programs.
-- Add a .dir command to restore tree code to eliminate the problem
-- Mount after manually unloading changer causes hang in SD
-- Fix JobACL with restore by JobId.
+=== Done -- see kernsdone
