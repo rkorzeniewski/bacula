@@ -6,7 +6,8 @@ General:
 Changes to 1.38.2:
 20Oct05
 - Fix crash in tray-monitor when daemon disconnects. Bug #479.
-- Fix bnet-server bug found on OpenBSD. Bug #486
+- Fix bnet-server bug found on OpenBSD. Bug #486 (bug originator
+  says this does not fix *his* bug).
 - Fix cancel failure bug. Bug #481
 - Fix failure when Pool name has spaces. Bug #487   
 - Fix SD crash in autochanger code. Mutex failure. Bug #488
@@ -14,6 +15,7 @@ Changes to 1.38.2:
 - Fix memory overrun in bfile.c in building OS X resource
   fork filename. Bug #489 
 - Add Pool name to SD status output.
+- Add Python install dir for Solaris to configure. Bug #492
 
 Changes to 1.38.1:
 14Oct05

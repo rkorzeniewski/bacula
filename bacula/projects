@@ -1,7 +1,7 @@
                 
 Projects:
                      Bacula Projects Roadmap 
-                       08 November 2005
+                       22 November 2005
 
 Below, you will find more information on future projects:
 
@@ -397,6 +397,102 @@ Item 17:  Quick release of FD-SD connection
           open to the very end is not really very productive ...
 
    Why:   Makes backup of laptops much easier.
+
+
+Item 18:  Add support for CACHEDIR.TAG
+  Origin: Norbert Kiesel <nkiesel at tbdnetworks dot com>
+  Date:   21 November 2005
+  Status:
+
+  What:   CACHDIR.TAG is a proposal for identifying directories which
+          should be ignored for archiving/backup.  It works by ignoring
+          directory trees which have a file named CACHEDIR.TAG with a
+          specific content.  See
+          http://www.brynosaurus.com/cachedir/spec.html
+          for details.
+
+          From Peter Eriksson:
+          I suggest that if this is implemented (I've also asked for this
+          feature some year ago) that it is made compatible with Legato
+          Networkers ".nsr" files where you can specify a lot of options on
+          how to handle files/directories (including denying further
+          parsing of .nsr files lower down into the directory trees).  A
+          PDF version of the .nsr man page can be viewed at:
+
+          http://www.ifm.liu.se/~peter/nsr.pdf
+
+  Why:    It's a nice alternative to "exclude" patterns for directories
+          which don't have regular pathnames.  Also, it allows users to
+          control backup for themself.  Implementation should be pretty
+          simple.  GNU tar >= 1.14 or so supports it, too.
+
+  Notes:  I envision this as an optional feature to a fileset
+          specification.
+
+Item 19:  Implement new {Client}Run{Before|After}Job feature.
+  Date:   26 September 2005
+  Origin: Phil Stracchino <phil.stracchino at speakeasy dot net>
+  Status: 
+
+  What:   Some time ago, there was a discussion of RunAfterJob and
+          ClientRunAfterJob, and the fact that they do not run after failed
+          jobs.  At the time, there was a suggestion to add a
+          RunAfterFailedJob directive (and, presumably, a matching
+          ClientRunAfterFailedJob directive), but to my knowledge these
+          were never implemented.
+
+          An alternate way of approaching the problem has just occurred to
+          me.  Suppose the RunBeforeJob and RunAfterJob directives were
+          expanded in a manner something like this example:
+
+          RunBeforeJob {
+              Command = "/opt/bacula/etc/checkhost %c"
+              RunsOnClient = No
+              RunsAtJobLevels = All       # All, Full, Diff, Inc
+              AbortJobOnError = Yes
+          }
+          RunBeforeJob {
+              Command = c:/bacula/systemstate.bat
+              RunsOnClient = yes
+              RunsAtJobLevels = All       # All, Full, Diff, Inc
+              AbortJobOnError = No
+          }
+
+          RunAfterJob {
+              Command = c:/bacula/deletestatefile.bat
+              RunsOnClient = Yes
+              RunsAtJobLevels = All       # All, Full, Diff, Inc
+              RunsOnSuccess = Yes
+              RunsOnFailure = Yes
+          }
+          RunAfterJob {
+              Command = c:/bacula/somethingelse.bat
+              RunsOnClient = Yes
+              RunsAtJobLevels = All
+              RunsOnSuccess = No
+              RunsOnFailure = Yes
+          }
+          RunAfterJob {
+              Command = "/opt/bacula/etc/checkhost -v %c"
+              RunsOnClient = No
+              RunsAtJobLevels = All
+              RunsOnSuccess = No
+              RunsOnFailure = Yes
+          }
+
+
+  Why:    It would be a significant change to the structure of the
+          directives, but allows for a lot more flexibility, including
+          RunAfter commands that will run regardless of whether the job
+          succeeds, or RunBefore tasks that still allow the job to run even
+          if that specific RunBefore fails.
+
+  Notes:  By Kern: I would prefer to have a single new Resource called
+          RunScript, and within that resource an additional directive:
+
+            RunBeforeJob = Yes|No
+
+          If no, it runs it after the job.
 
 
 ============= Empty RFC form ===========

@@ -14948,7 +14948,7 @@ if test "${with_python+set}" = set; then
   PYTHON_LIBS=
   if test "$withval" != "no"; then
      if test "$withval" = "yes"; then
-	for python_root in /usr /usr/local; do
+	for python_root in /usr /usr/local /usr/sfw; do
 	  if test -f $python_root/include/python2.2/Python.h; then
 	     PYTHON_INCDIR=-I$python_root/include/python2.2
 	     PYTHON_LIBS="-L$python_root/lib/python2.2/config -lpython2.2"
