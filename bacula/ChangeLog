@@ -9,6 +9,7 @@ Changes to 1.38.2:
 - Fix memory overrun in bfile.c in building OS X resource
   fork filename. Bug #489 
 - Add Pool name to SD status output.
+- Add Python install dir for Solaris to configure. Bug #492
 
 Changes to 1.38.1:
 - Apply SunOS patch for ACLs submitted by David Duchscher.                  
