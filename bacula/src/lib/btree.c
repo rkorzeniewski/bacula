@@ -142,7 +142,7 @@ bnode *btree::search(bnode *item, int compare(bnode *item1, bnode *item2))
    int comp;
 
    x = head;
-   while (x && !found) {
+   while (x) {
       comp = compare(item, x);
       if (comp < 0) {
          x = x->left;
@@ -150,6 +150,7 @@ bnode *btree::search(bnode *item, int compare(bnode *item1, bnode *item2))
          x = x->right;
       } else {
          found = x;
+         break;
       }
    }
    return found;
@@ -250,7 +251,6 @@ bnode *btree::any(bnode *item)
       if (!x->parent) {
          return NULL;
       }
-      /* Move up in tree */
       down = false;
       /* Go up one and return parent */
       return x->parent;
@@ -316,28 +316,44 @@ void btree::destroy()
 {
    bnode *x, *y = NULL;
 
-   for (x=first(); (y=any(x)); ) {
+   x = first();
+// printf("head=%p first=%p left=%p right=%p\n", head, x, x->left, x->right);
+
+   for (  ; (y=any(x)); ) {
       /* Prune the last item */
-      if (!x->parent) {
-         head = x;
-      } else if (x == x->parent->left) {
-         x->parent->left = NULL;
-      } else if (x == x->parent->right) {
-         x->parent->right = NULL;
+      if (x->parent) {
+         if (x == x->parent->left) {
+            x->parent->left = NULL;
+         } else if (x == x->parent->right) {
+            x->parent->right = NULL;
+         }
       }
       if (!x->left && !x->right) {
+         if (head == x) {  
+            head = NULL;
+         }
+//       if (num_items<30) {
+//          printf("free nitems=%d item=%p left=%p right=%p\n", num_items, x, x->left, x->right);
+//       }   
          free((void *)x);      /* free previous node */
+         num_items--;
       }
       x = y;                  /* save last node */
    }
    if (x) {
+      if (x == head) {
+         head = NULL;
+      }
+//    printf("free nitems=%d item=%p left=%p right=%p\n", num_items, x, x->left, x->right);
       free((void *)x);
+      num_items--;
    }
-   if (y) {
-      free((void *)y);
+   if (head) {
+//    printf("Free head\n");
+      free((void *)head);
    }
+// printf("free nitems=%d\n", num_items);
 
-   num_items = 0;
    head = NULL;
 }
 
@@ -385,6 +401,7 @@ int main()
             jcr = (MYJCR *)malloc(sizeof(MYJCR));
             memset(jcr, 0, sizeof(MYJCR));
             jcr->buf = bstrdup(buf);
+//          printf("buf=%p %s\n", jcr, jcr->buf);
             jcr1 = (MYJCR *)jcr_chain->insert((bnode *)jcr, my_compare);
             if (jcr != jcr1) {
                Dmsg2(000, "Insert of %s vs %s failed.\n", jcr->buf, jcr1->buf);
@@ -398,56 +415,59 @@ int main()
       buf[0]--;
    }
    printf("%d items appended\n", CNT*CNT*CNT);
+   printf("num_items=%d\n", jcr_chain->size());
+
    jcr = (MYJCR *)malloc(sizeof(MYJCR));
    memset(jcr, 0, sizeof(MYJCR));
-   strcpy(buf, "a");
-   jcr->buf = bstrdup(buf);
-   if (jcr_chain->search((bnode *)jcr, my_compare)) {
-      printf("One less failed!!!!\n");
+
+   jcr->buf = bstrdup("a");
+   if ((jcr1=(MYJCR *)jcr_chain->search((bnode *)jcr, my_compare))) {
+      printf("One less failed!!!! Got: %s\n", jcr1->buf);
    } else {
       printf("One less: OK\n");
    }
    free(jcr->buf);
-   strcpy(buf, "ZZZZZZZZZZZZZZZZ");
-   jcr->buf = bstrdup(buf);
-   if (jcr_chain->search((bnode *)jcr, my_compare)) {
-      printf("One greater failed!!!!\n");
+
+   jcr->buf = bstrdup("ZZZZZZZZZZZZZZZZ");
+   if ((jcr1=(MYJCR *)jcr_chain->search((bnode *)jcr, my_compare))) {
+      printf("One greater failed!!!! Got:%s\n", jcr1->buf);
    } else {
       printf("One greater: OK\n");
    }
    free(jcr->buf);
-   strcpy(buf, "AAA");
-   jcr->buf = bstrdup(buf);
-   if (jcr_chain->search((bnode *)jcr, my_compare)) {
-      printf("Search for AAA failed!!!!\n");
+
+   jcr->buf = bstrdup("AAA");
+   if ((jcr1=(MYJCR *)jcr_chain->search((bnode *)jcr, my_compare))) {
+      printf("Search for AAA got %s\n", jcr1->buf);
    } else {
-      printf("AAA: OK\n");
-   }
-   free(jcr->buf);
-   strcpy(buf, "ZZZ");
-   jcr->buf = bstrdup(buf);
-   if (jcr_chain->search((bnode *)jcr, my_compare)) {
-      printf("Search for ZZZ failed!!!!\n");
-   } else {
-      printf("ZZZ: OK\n");
+      printf("Search for AAA not found\n"); 
    }
    free(jcr->buf);
 
+   jcr->buf = bstrdup("ZZZ");
+   if ((jcr1 = (MYJCR *)jcr_chain->search((bnode *)jcr, my_compare))) {
+      printf("Search for ZZZ got %s\n", jcr1->buf);
+   } else {
+      printf("Search for ZZZ not found\n"); 
+   }
+   free(jcr->buf);
    free(jcr);
 
 
    printf("Find each of %d items in tree.\n", count);
-   for (jcr=(MYJCR *)jcr_chain->first(); (jcr=(MYJCR *)jcr_chain->next((bnode *)jcr)); ) {
+   for (jcr=(MYJCR *)jcr_chain->first(); jcr; (jcr=(MYJCR *)jcr_chain->next((bnode *)jcr)) ) {
 //    printf("Got: %s\n", jcr->buf);
       if (!jcr_chain->search((bnode *)jcr, my_compare)) {
          printf("btree binary_search item not found = %s\n", jcr->buf);
       }
    }
    printf("Free each of %d items in tree.\n", count);
-   for (jcr=(MYJCR *)jcr_chain->first(); (jcr=(MYJCR *)jcr_chain->next((bnode *)jcr)); ) {
+   for (jcr=(MYJCR *)jcr_chain->first(); jcr; (jcr=(MYJCR *)jcr_chain->next((bnode *)jcr)) ) {
+//    printf("Free: %p %s\n", jcr, jcr->buf);
       free(jcr->buf);
       jcr->buf = NULL;
    }
+   printf("num_items=%d\n", jcr_chain->size());
    delete jcr_chain;
 
 
