@@ -4,6 +4,8 @@
 General:
 
 Changes to 1.39.0:
+23Nov05
+- Add red-black btree routines
 21Nov05
 - Remove abs() in bfile.c so that it compiles on Solaris. 
   Bug #491.

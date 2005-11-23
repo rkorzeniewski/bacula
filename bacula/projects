@@ -488,11 +488,26 @@ Item 19:  Implement new {Client}Run{Before|After}Job feature.
           if that specific RunBefore fails.
 
   Notes:  By Kern: I would prefer to have a single new Resource called
-          RunScript, and within that resource an additional directive:
+          RunScript. More notes from Phil:
 
-            RunBeforeJob = Yes|No
+            RunsWhen = Before|After
+            RunsAtJobLevels = All|Full|Diff|Inc
 
-          If no, it runs it after the job.
+          The AbortJobOnError, RunsOnSuccess and RunsOnFailure directives
+          could be optional, and possibly RunsWhen as well.
+
+          If omitted, RunsWhen would default to Before.
+
+          AbortJobOnError would be ignored unless RunsWhen was set to Before
+          (or RunsBefore Job set to Yes), and would default to Yes if
+          omitted.  If AbortJobOnError was set to No, failure of the script
+          would still generate a warning.
+
+          RunsOnSuccess would be ignored unless RunsWhen was set to After
+          (or RunsBeforeJob set to No), and default to Yes.
+
+          RunsOnFailure would be ignored unless RunsWhen was set to After,
+          and default to No.
 
 
 ============= Empty RFC form ===========
