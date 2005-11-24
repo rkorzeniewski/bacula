@@ -552,7 +552,7 @@ Item 21:  Allow FD to initiate a backup
    Why:   Makes backup of laptops much easier.
 
 
-============= Empty RFC form ===========
+============= Empty Feature Request form ===========
 Item n:   One line summary ...
   Date:   Date submitted 
   Origin: Name and email of originator.
@@ -563,7 +563,6 @@ Item n:   One line summary ...
   Why:    Why it is important ...
 
   Notes:  Additional notes or features (omit if not used)
-============== End RFC form ==============
+============== End Feature Request form ==============
 
 
-Items completed for release 1.38.0 -- see kernsdone
