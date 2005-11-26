@@ -100,6 +100,9 @@ Item 5:   Implement more Python events in Bacula.
           Scratch pool event
           NeedVolume event
           MediaFull event
+           
+          Also add a way to get a listing of currently running
+          jobs (possibly also scheduled jobs).
 
 
 Item 6:   Implement Base jobs.
@@ -232,57 +235,74 @@ Item 12:  Implement red/black binary tree routines.
 
   Why:    Performance enhancement.
 
-Item 13:  Let Bacula log tape usage and handle drive cleaning cycles.
-  Date:   November 11, 2005
-  Origin: Arno Lehmann <al at its-lehmann dot de>
-  Status:
+Item 13L   Improve Baculas tape and drive usage management.
+   Date:   8 November 2005, November 11, 2005
+   Origin: Adam Thornton <athornton at sinenomine dot net>,
+           Arno Lehmann <al at its-lehmann dot de>
+   Status:
 
-  What:   Make Bacula manage tape life cycle information and drive 
-          cleaning cycles.
+   What:   Make Bacula manage tape life cycle information, tape reuse
+           times and drive cleaning cycles.
 
-  Why:    Both parts of this project are important when operating backups.
-          We need to know which tapes need replacement, and we need to
-          make sure the drives are cleaned when necessary.  While many
-          tape libraries and even autoloaders can handle all this
-          automatically, support by Bacula can be helpful for smaller
-          (older) libraries and single drives.  Also, checking drive
-          status during operation can prevent some failures (as I had to
-          learn the hard way...)
+   Why:    All three parts of this project are important when operating
+           backups.
+           We need to know which tapes need replacement, and we need to
+           make sure the drives are cleaned when necessary.  While many
+           tape libraries and even autoloaders can handle all this
+           automatically, support by Bacula can be helpful for smaller
+           (older) libraries and single drives.  Limiting the number of
+           times a tape is used might prevent tape errors when using
+           tapes until the drives can't read it any more.  Also, checking
+           drive status during operation can prevent some failures (as I
+           [Arno] had to learn the hard way...)
 
-  Notes:  First, Bacula could (and even does, to some limited extent)
-          record tape and drive usage.  For tapes, the number of mounts,
-          the amount of data, and the time the tape has actually been
-          running could be recorded.  Data fields for Read and Write time
-          and Nmber of mounts already exist in the catalog (I'm not sure
-          if VolBytes is the sum of all bytes ever written to that volume
-          by Bacula).  This information can be important when determining
-          which media to replace.  For the tape drives known to Bacula,
-          similar information is interesting to determine the device
-          status and expected life time: Time it's been Reading and
-          Writing, number of tape Loads / Unloads / Errors.  This
-          information is not yet recorded as far as I know.
+   Notes:  First, Bacula could (and even does, to some limited extent)
+           record tape and drive usage.  For tapes, the number of mounts,
+           the amount of data, and the time the tape has actually been
+           running could be recorded.  Data fields for Read and Write
+           time and Number of mounts already exist in the catalog (I'm
+           not sure if VolBytes is the sum of all bytes ever written to
+           that volume by Bacula).  This information can be important
+           when determining which media to replace.  The ability to mark
+           Volumes as "used up" after a given number of write cycles
+           should also be implemented so that a tape is never actually
+           worn out.  For the tape drives known to Bacula, similar
+           information is interesting to determine the device status and
+           expected life time: Time it's been Reading and Writing, number
+           of tape Loads / Unloads / Errors.  This information is not yet
+           recorded as far as I [Arno] know.  A new volume status would
+           be necessary for the new state, like "Used up" or "Worn out".
+           Volumes with this state could be used for restores, but not
+           for writing. These volumes should be migrated first (assuming
+           migration is implemented) and, once they are no longer needed,
+           could be moved to a Trash pool.
 
-          The next step would be implementing drive cleaning setup.
-          Bacula already has knowledge about cleaning tapes.  Once it has
-          some information about cleaning cycles (measured in drive run
-          time, number of tapes used, or calender days, for example) it
-          can automatically execute tape cleaning (with an autochanger,
-          obviously) or ask for operator assistence loading a cleaning
-          tape.
+           The next step would be to implement a drive cleaning setup.
+           Bacula already has knowledge about cleaning tapes.  Once it
+           has some information about cleaning cycles (measured in drive
+           run time, number of tapes used, or calender days, for example)
+           it can automatically execute tape cleaning (with an
+           autochanger, obviously) or ask for operator assistence loading
+           a cleaning tape.
 
-          The next step would be to implement TAPEALERT checks not only
-          when changing tapes and only sending he information to the
-          administrator, but rather checking after each tape error,
-          checking on a regular basis (for example after each tape file),
-          and also before unloading and after loading a new tape.  Then,
-          depending on the drives TAPEALERT state and the know drive
-          cleaning state Bacula could automatically schedule later
-          cleaning, clean immediately, or inform the operator.
+           The final step would be to implement TAPEALERT checks not only
+           when changing tapes and only sending the information to the
+           administrator, but rather checking after each tape error,
+           checking on a regular basis (for example after each tape
+           file), and also before unloading and after loading a new tape.
+           Then, depending on the drives TAPEALERT state and the known
+           drive cleaning state Bacula could automatically schedule later
+           cleaning, clean immediately, or inform the operator.
 
-          Implementing this would perhaps require another catalog change
-          and perhaps major changes in SD code and the DIR-SD protocoll,
-          so I'd only consider this worth implementing if it would
-          actually be used or even needed by many people. 
+           Implementing this would perhaps require another catalog change
+           and perhaps major changes in SD code and the DIR-SD protocoll,
+           so I'd only consider this worth implementing if it would
+           actually be used or even needed by many people.
+
+           Implemention of these projects could happen in three distinct
+           sub-projects: Measuring Tape and Drive usage, retiring
+           volumes, and handling drive cleaning and TAPEALERTs.
+
 
 Item 14:  Merging of multiple backups into a single one. (Also called Synthetic
           Backup or Consolidation).
@@ -516,30 +536,7 @@ Item 19:  Implement new {Client}Run{Before|After}Job feature.
           line so that the same script can be used both before/after.
           David Boyes.
 
-Item 20:  "Maximum Rewrite (Recycle) Times" for a tape
-    Date: 8 November 2005
-  Origin: Adam Thornton <athornton at sinenomine dot net>
-  Status: 
-
-    What: The ability to use a Volume for at most N re-write times, marking  
-          it unavailable after that.
-
-     Why: I was working with a customer this morning who mentioned that it
-          would be useful to automatically age out tapes that had been
-          rewritten enough times that the media lifespan was becoming
-          questionable (his old backup system supported saying "rewrite this
-          tape 50 times at most." Neither Maximum Volume Jobs nor Volume Use
-          Duration quite does this, because you can have multiple jobs per
-          volume, and it's not entirely guaranteed that time and number of
-          write cycles map linearly (although they probably do in actual
-          usage), and also because "Used" volumes can be recycled, and the
-          status we want here is something like "full and now unwriteable."
-          I haven't looked but I suspect this would require a change in the
-          database format, to keep track of how many cycles a volume has
-          been through, and maybe an additional Status type.
-
-
-Item 21:  Allow FD to initiate a backup
+Item 20:  Allow FD to initiate a backup
   Origin: Frank Volf (frank at deze dot org)
   Date:   17 november 2005
   Status:
@@ -564,5 +561,3 @@ Item n:   One line summary ...
 
   Notes:  Additional notes or features (omit if not used)
 ============== End Feature Request form ==============
-
-
