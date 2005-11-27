@@ -7,7 +7,7 @@ Below, you will find more information on future projects:
 
 Item 1:   Implement a Migration job type that will move the job
           data from one device to another.
-  Origin: Sponsored by Riege Sofware International GmbH. Contact:
+  Origin: Sponsored by Riege Software International GmbH. Contact:
           Daniel Holtkamp <holtkamp at riege dot com>
   Date:   28 October 2005
   Status: Partially coded in 1.37 -- much more to do. Assigned to
@@ -122,7 +122,7 @@ Item 6:   Implement Base jobs.
           pulled in where necessary.
 
   Why:    This is something none of the competition does, as far as
-          we know (except perhpas BackupPC, which is a Perl program that
+          we know (except perhaps BackupPC, which is a Perl program that
           saves to disk only).  It is big win for the user, it
           makes Bacula stand out as offering a unique
           optimization that immediately saves time and money.
@@ -235,7 +235,7 @@ Item 12:  Implement red/black binary tree routines.
 
   Why:    Performance enhancement.
 
-Item 13L   Improve Baculas tape and drive usage management.
+Item 13:   Improve Baculas tape and drive usage management.
    Date:   8 November 2005, November 11, 2005
    Origin: Adam Thornton <athornton at sinenomine dot net>,
            Arno Lehmann <al at its-lehmann dot de>
@@ -282,7 +282,7 @@ Item 13L   Improve Baculas tape and drive usage management.
            has some information about cleaning cycles (measured in drive
            run time, number of tapes used, or calender days, for example)
            it can automatically execute tape cleaning (with an
-           autochanger, obviously) or ask for operator assistence loading
+           autochanger, obviously) or ask for operator assistance loading
            a cleaning tape.
 
            The final step would be to implement TAPEALERT checks not only
@@ -295,11 +295,11 @@ Item 13L   Improve Baculas tape and drive usage management.
            cleaning, clean immediately, or inform the operator.
 
            Implementing this would perhaps require another catalog change
-           and perhaps major changes in SD code and the DIR-SD protocoll,
+           and perhaps major changes in SD code and the DIR-SD protocol,
            so I'd only consider this worth implementing if it would
            actually be used or even needed by many people.
 
-           Implemention of these projects could happen in three distinct
+           Implementation of these projects could happen in three distinct
            sub-projects: Measuring Tape and Drive usage, retiring
            volumes, and handling drive cleaning and TAPEALERTs.
 
@@ -315,14 +315,14 @@ Item 14:  Merging of multiple backups into a single one. (Also called Synthetic
           It would be a Merge of existing backups into a single backup.
           In effect, it is like a restore but to the backup medium.
 
-          For instance, say that last sunday we made a full backup.  Then
+          For instance, say that last Sunday we made a full backup.  Then
           all week long, we created incremental backups, in order to do
-          them fast.  Now comes sunday again, and we need another full.
+          them fast.  Now comes Sunday again, and we need another full.
           The merged backup makes it possible to do instead an incremental
           backup (during the night for instance), and then create a merged
           backup during the day, by using the full and incrementals from
           the week.  The merged backup will be exactly like a full made
-          sunday night on the tape, but the production interruption on the
+          Sunday night on the tape, but the production interruption on the
           Client will be minimal, as the Client will only have to send
           incrementals.
 
@@ -355,7 +355,7 @@ Item 15:  Automatic disabling of devices
           going bad during large backups (needing a cleaning tape run,
           tapes getting stuck). It would be advantageous if Bacula would
           automatically disable further use of a problematic tape drive
-          after a configurable amount of errors has occured.
+          after a configurable amount of errors has occurred.
 
           An example: I have a multi-drive jukebox (6 drives, 380+ slots)
           where tapes occasionally get stuck inside the drive. Bacula will
@@ -387,11 +387,11 @@ Item 16:  Directive/mode to backup only file changes, not entire file
 
 Item 17:  Quick release of FD-SD connection
   Origin: Frank Volf (frank at deze dot org)
-  Date:   17 november 2005
+  Date:   17 November 2005
   Status:
 
-   What:  In the bacula implementation a backup is finished after all data
-          and attributes are succesfully written to storage.  When using a
+   What:  In the Bacula implementation a backup is finished after all data
+          and attributes are successfully written to storage.  When using a
           tape backup it is very annoying that a backup can take a day,
           simply because the current tape (or whatever) is full and the
           administrator has not put a new one in.  During that time the
@@ -399,9 +399,9 @@ Item 17:  Quick release of FD-SD connection
           session between the storage daemon and the file daemon on the
           client.
 
-          Although this is a very good strategey for making "safe backups"
+          Although this is a very good strategy for making "safe backups"
           This can be annoying for e.g.  laptops, that must remain
-          connected until the bacukp is completed.
+          connected until the backup is completed.
 
           Using a new feature called "migration" it will be possible to
           spool first to harddisk (using a special 'spool' migration
@@ -413,7 +413,7 @@ Item 17:  Quick release of FD-SD connection
           Storage daemon should release the File daemon as soon as all the
           file data and all the attributes have been sent to it (the SD).
           Currently the SD waits until everything is on tape and all the
-          attributes are transmitted to the Director before signalling
+          attributes are transmitted to the Director before signaling
           completion to the FD. I don't think I would have any problem
           changing this.  The reason is that even if the FD reports back to
           the Dir that all is OK, the job will not terminate until the SD
@@ -447,7 +447,7 @@ Item 18:  Add support for CACHEDIR.TAG
 
   Why:    It's a nice alternative to "exclude" patterns for directories
           which don't have regular pathnames.  Also, it allows users to
-          control backup for themself.  Implementation should be pretty
+          control backup for themselves.  Implementation should be pretty
           simple.  GNU tar >= 1.14 or so supports it, too.
 
   Notes:  I envision this as an optional feature to a fileset
@@ -538,7 +538,7 @@ Item 19:  Implement new {Client}Run{Before|After}Job feature.
 
 Item 20:  Allow FD to initiate a backup
   Origin: Frank Volf (frank at deze dot org)
-  Date:   17 november 2005
+  Date:   17 November 2005
   Status:
 
    What:  Provide some means, possibly by a restricted console that
@@ -547,6 +547,82 @@ Item 20:  Allow FD to initiate a backup
           a Director that is firewalled can do the backup.
 
    Why:   Makes backup of laptops much easier.
+
+Item 21:  Multiple threads in file daemon for the same job
+  Date:   27 November 2005
+  Origin: Ove Risberg (Ove.Risberg at octocode dot com)
+  Status:
+
+  What:   I want the file daemon to start multiple threads for a backup
+          job so the fastest possible backup can be made.
+
+          The file daemon could parse the FileSet information and start
+          one thread for each File entry located on a separate
+          filesystem.
+
+          A configuration option in the job section should be used to
+          enable or disable this feature. The configuration option could
+          specify the maximum number of threads in the file daemon.
+
+          If the theads could spool the data to separate spool files
+          the restore process will not be much slower.
+
+  Why:    Multiple concurrent backups of a large fileserver with many
+          disks and controllers will be much faster.
+
+  Notes:  I am willing to try to implement this but I will probably
+          need some help and advice.  (No problem -- Kern)
+
+Item 22:  Archival of Data to Tape
+
+  Date:   Nov. 24/2005 
+
+  Origin: Ray Pengelly [ray at biomed dot queensu dot ca
+  Status: 
+
+  What:   The ability to archive data to storage based on certain parameters
+          such as age, size, or location.  Once the data has been written to
+          storage and logged it is then pruned from the originating
+          filesystem. Note! We are talking about user's files and not
+          Bacula Volumes.
+
+  Why:    This would allow fully automatic storage management which becomes
+          useful for large datastores.  It would also allow for auto-staging
+          from one media type to another.
+
+          Example 1) Medical imaging needs to store large amounts of data.
+          They decide to keep data on their servers for 6 months and then put
+          it away for long term storage.  The server then finds all files
+          older than 6 months writes them to tape.  The files are then removed
+          from the server.
+
+          Example 2) All data that hasn't been accessed in 2 months could be
+          moved from high-cost, fibre-channel disk storage to a low-cost
+          large-capacity SATA disk storage pool which doesn't have as quick of
+          access time.  Then after another 6 months (or possibly as one
+          storage pool gets full) data is migrated to Tape.
+
+
+Item 22:  Deletion of Disk-Based Volumes
+  Date:   Nov 25, 2005
+  Origin: Ross Boylan <RossBoylan at stanfordalumni dot org> (edited
+          by Kern)
+  Status:         
+
+   What:  Provide a way for Bacula to automatically remove Volumes
+          from the filesystem, or optionally to truncate them.
+          Obviously, the Volume must be pruned prior removal.
+
+  Why:    This would allow users more control over their Volumes and
+          prevent disk based volumes from consuming too much space.
+
+  Notes:  The following two directives might do the trick:
+
+          Volume Data Retention = <time period>
+          Remove Volume After = <time period>
+
+          The migration project should also remove a Volume that is
+          migrated. This might also work for tape Volumes.
 
 
 ============= Empty Feature Request form ===========
