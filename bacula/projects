@@ -1,12 +1,39 @@
                 
 Projects:
                      Bacula Projects Roadmap 
-                       24 November 2005
+                       29 November 2005
+
+Summary:
+Item 1:   Implement Migration that  moves Jobs from one Pool to another.
+Item 2:   Implement extraction of Win32 BackupWrite data.
+Item 3:   Implement a Bacula GUI/management tool using Python.
+Item 4:   Implement a Python interface to the Bacula catalog.
+Item 5:   Implement more Python events in Bacula.
+Item 6:   Implement Base jobs.
+Item 7:   Add Plug-ins to the FileSet Include statements.
+Item 8:   Implement huge exclude list support using hashing.
+Item 9:   Implement data encryption (as opposed to comm encryption)
+Item 10:  Permit multiple Media Types in an Autochanger
+Item 11:  Allow different autochanger definitions for one autochanger.
+Item 12:  Implement red/black binary tree routines.
+Item 13:  Improve Baculas tape and drive usage and cleaning management.
+Item 14:  Merge multiple backups (Synthetic Backup or Consolidation).
+Item 15:  Automatic disabling of devices
+Item 16:  Directive/mode to backup only file changes, not entire file
+Item 17:  Quick release of FD-SD connection after backup.
+Item 18:  Add support for FileSets in user directories  CACHEDIR.TAG
+Item 19:  Implement new {Client}Run{Before|After}Job feature.
+Item 20:  Allow FD to initiate a backup
+Item 21:  Multiple threads in file daemon for the same job
+Item 22:  Archival (removal) of User Files to Tape
+Item 23:  Deletion of Disk-Based  BaculaVolumes
+Item 24:  Accurate restoration of renamed/deleted files from
+Item 25:  Implement creation and maintenance of copy pools
+
 
 Below, you will find more information on future projects:
 
-Item 1:   Implement a Migration job type that will move the job
-          data from one device to another.
+Item 1:   Implement Migration that moves Jobs from one Pool to another.
   Origin: Sponsored by Riege Software International GmbH. Contact:
           Daniel Holtkamp <holtkamp at riege dot com>
   Date:   28 October 2005
@@ -52,15 +79,13 @@ Item 2:   Implement extraction of Win32 BackupWrite data.
           any OS.
 
 
-Item 3:   Implement a Bacula GUI/management tool using Python
-          and Qt.
-
+Item 3:   Implement a Bacula GUI/management tool using Python.
   Origin: Kern
   Date:   28 October 2005
   Status: 
 
   What:   Implement a Bacula console, and management tools
-          using Python and Qt.
+          using Python and Qt or GTK.
 
   Why:    Don't we already have a wxWidgets GUI?  Yes, but
           it is written in C++ and changes to the user interface
@@ -72,6 +97,10 @@ Item 3:   Implement a Bacula GUI/management tool using Python
           must be implement.  In addition, the code will be in
           Python, which will give many more users easy (or easier)
           access to making additions or modifications.
+
+ Notes:   This is currently being implemented using Python-GTK by       
+          Lucas Di Pentima <lucas at lunix dot com dot ar>
+
 
 Item 4:   Implement a Python interface to the Bacula catalog.
   Date:   28 October 2005
@@ -172,8 +201,7 @@ Item 8:   Implement huge exclude list support using hashing.
           backup set will be *much* smaller.
 
 
-Item  9:  Implement data encryption (as opposed to communications
-          encryption)
+Item  9:  Implement data encryption (as opposed to comm encryption)
   Date:   28 October 2005
   Origin: Sponsored by Landon and 13 contributors to EFF.
   Status: Landon Fuller is currently implementing this.
@@ -187,8 +215,8 @@ Item  9:  Implement data encryption (as opposed to communications
   Why:    Large sites require this.
 
 Item 10:  Permit multiple Media Types in an Autochanger
-  Origin: 
-  Status: 
+  Origin: Kern
+  Status: Now implemented
 
   What:   Modify the Storage daemon so that multiple Media Types
           can be specified in an autochanger. This would be somewhat
@@ -201,8 +229,7 @@ Item 10:  Permit multiple Media Types in an Autochanger
   Why:    This will permit user with several different drive types
           to make full use of their autochangers.
 
-Item 11:  Allow two different autochanger definitions that refer
-          to the same autochanger.
+Item 11:  Allow different autochanger definitions for one autochanger.
   Date:   28 October 2005
   Origin: Kern
   Status: 
@@ -235,78 +262,76 @@ Item 12:  Implement red/black binary tree routines.
 
   Why:    Performance enhancement.
 
-Item 13:   Improve Baculas tape and drive usage management.
-   Date:   8 November 2005, November 11, 2005
-   Origin: Adam Thornton <athornton at sinenomine dot net>,
-           Arno Lehmann <al at its-lehmann dot de>
-   Status:
+Item 13:  Improve Baculas tape and drive usage and cleaning management.
+  Date:   8 November 2005, November 11, 2005
+  Origin: Adam Thornton <athornton at sinenomine dot net>,
+          Arno Lehmann <al at its-lehmann dot de>
+  Status:
 
-   What:   Make Bacula manage tape life cycle information, tape reuse
-           times and drive cleaning cycles.
+  What:   Make Bacula manage tape life cycle information, tape reuse
+          times and drive cleaning cycles.
 
-   Why:    All three parts of this project are important when operating
-           backups.
-           We need to know which tapes need replacement, and we need to
-           make sure the drives are cleaned when necessary.  While many
-           tape libraries and even autoloaders can handle all this
-           automatically, support by Bacula can be helpful for smaller
-           (older) libraries and single drives.  Limiting the number of
-           times a tape is used might prevent tape errors when using
-           tapes until the drives can't read it any more.  Also, checking
-           drive status during operation can prevent some failures (as I
-           [Arno] had to learn the hard way...)
+  Why:    All three parts of this project are important when operating
+          backups.
+          We need to know which tapes need replacement, and we need to
+          make sure the drives are cleaned when necessary.  While many
+          tape libraries and even autoloaders can handle all this
+          automatically, support by Bacula can be helpful for smaller
+          (older) libraries and single drives.  Limiting the number of
+          times a tape is used might prevent tape errors when using
+          tapes until the drives can't read it any more.  Also, checking
+          drive status during operation can prevent some failures (as I
+          [Arno] had to learn the hard way...)
 
-   Notes:  First, Bacula could (and even does, to some limited extent)
-           record tape and drive usage.  For tapes, the number of mounts,
-           the amount of data, and the time the tape has actually been
-           running could be recorded.  Data fields for Read and Write
-           time and Number of mounts already exist in the catalog (I'm
-           not sure if VolBytes is the sum of all bytes ever written to
-           that volume by Bacula).  This information can be important
-           when determining which media to replace.  The ability to mark
-           Volumes as "used up" after a given number of write cycles
-           should also be implemented so that a tape is never actually
-           worn out.  For the tape drives known to Bacula, similar
-           information is interesting to determine the device status and
-           expected life time: Time it's been Reading and Writing, number
-           of tape Loads / Unloads / Errors.  This information is not yet
-           recorded as far as I [Arno] know.  A new volume status would
-           be necessary for the new state, like "Used up" or "Worn out".
-           Volumes with this state could be used for restores, but not
-           for writing. These volumes should be migrated first (assuming
-           migration is implemented) and, once they are no longer needed,
-           could be moved to a Trash pool.
+  Notes:  First, Bacula could (and even does, to some limited extent)
+          record tape and drive usage.  For tapes, the number of mounts,
+          the amount of data, and the time the tape has actually been
+          running could be recorded.  Data fields for Read and Write
+          time and Number of mounts already exist in the catalog (I'm
+          not sure if VolBytes is the sum of all bytes ever written to
+          that volume by Bacula).  This information can be important
+          when determining which media to replace.  The ability to mark
+          Volumes as "used up" after a given number of write cycles
+          should also be implemented so that a tape is never actually
+          worn out.  For the tape drives known to Bacula, similar
+          information is interesting to determine the device status and
+          expected life time: Time it's been Reading and Writing, number
+          of tape Loads / Unloads / Errors.  This information is not yet
+          recorded as far as I [Arno] know.  A new volume status would
+          be necessary for the new state, like "Used up" or "Worn out".
+          Volumes with this state could be used for restores, but not
+          for writing. These volumes should be migrated first (assuming
+          migration is implemented) and, once they are no longer needed,
+          could be moved to a Trash pool.
 
-           The next step would be to implement a drive cleaning setup.
-           Bacula already has knowledge about cleaning tapes.  Once it
-           has some information about cleaning cycles (measured in drive
-           run time, number of tapes used, or calender days, for example)
-           it can automatically execute tape cleaning (with an
-           autochanger, obviously) or ask for operator assistance loading
-           a cleaning tape.
+          The next step would be to implement a drive cleaning setup.
+          Bacula already has knowledge about cleaning tapes.  Once it
+          has some information about cleaning cycles (measured in drive
+          run time, number of tapes used, or calender days, for example)
+          it can automatically execute tape cleaning (with an
+          autochanger, obviously) or ask for operator assistance loading
+          a cleaning tape.
 
-           The final step would be to implement TAPEALERT checks not only
-           when changing tapes and only sending the information to the
-           administrator, but rather checking after each tape error,
-           checking on a regular basis (for example after each tape
-           file), and also before unloading and after loading a new tape.
-           Then, depending on the drives TAPEALERT state and the known
-           drive cleaning state Bacula could automatically schedule later
-           cleaning, clean immediately, or inform the operator.
+          The final step would be to implement TAPEALERT checks not only
+          when changing tapes and only sending the information to the
+          administrator, but rather checking after each tape error,
+          checking on a regular basis (for example after each tape
+          file), and also before unloading and after loading a new tape.
+          Then, depending on the drives TAPEALERT state and the known
+          drive cleaning state Bacula could automatically schedule later
+          cleaning, clean immediately, or inform the operator.
 
-           Implementing this would perhaps require another catalog change
-           and perhaps major changes in SD code and the DIR-SD protocol,
-           so I'd only consider this worth implementing if it would
-           actually be used or even needed by many people.
+          Implementing this would perhaps require another catalog change
+          and perhaps major changes in SD code and the DIR-SD protocol,
+          so I'd only consider this worth implementing if it would
+          actually be used or even needed by many people.
 
-           Implementation of these projects could happen in three distinct
-           sub-projects: Measuring Tape and Drive usage, retiring
-           volumes, and handling drive cleaning and TAPEALERTs.
+          Implementation of these projects could happen in three distinct
+          sub-projects: Measuring Tape and Drive usage, retiring
+          volumes, and handling drive cleaning and TAPEALERTs.
 
 
-Item 14:  Merging of multiple backups into a single one. (Also called Synthetic
-          Backup or Consolidation).
-
+Item 14:  Merge multiple backups (Synthetic Backup or Consolidation).
   Origin: Marc Cousin and Eric Bollengier 
   Date:   15 November 2005
   Status: Depends on first implementing project Item 1 (Migration).
@@ -385,7 +410,7 @@ Item 16:  Directive/mode to backup only file changes, not entire file
   Notes:  This would require the usage of disk-based volumes as comparing 
           files would not be feasible using a tape drive.
 
-Item 17:  Quick release of FD-SD connection
+Item 17:  Quick release of FD-SD connection after backup.
   Origin: Frank Volf (frank at deze dot org)
   Date:   17 November 2005
   Status:
@@ -423,7 +448,7 @@ Item 17:  Quick release of FD-SD connection
    Why:   Makes backup of laptops much easier.
 
 
-Item 18:  Add support for CACHEDIR.TAG
+Item 18:  Add support for FileSets in user directories  CACHEDIR.TAG
   Origin: Norbert Kiesel <nkiesel at tbdnetworks dot com>
   Date:   21 November 2005
   Status:
@@ -573,7 +598,7 @@ Item 21:  Multiple threads in file daemon for the same job
   Notes:  I am willing to try to implement this but I will probably
           need some help and advice.  (No problem -- Kern)
 
-Item 22:  Archival of Data to Tape
+Item 22:  Archival (removal) of User Files to Tape
 
   Date:   Nov. 24/2005 
 
@@ -603,7 +628,7 @@ Item 22:  Archival of Data to Tape
           storage pool gets full) data is migrated to Tape.
 
 
-Item 22:  Deletion of Disk-Based Volumes
+Item 23:  Deletion of Disk-Based Bacula Volumes
   Date:   Nov 25, 2005
   Origin: Ross Boylan <RossBoylan at stanfordalumni dot org> (edited
           by Kern)
@@ -623,6 +648,76 @@ Item 22:  Deletion of Disk-Based Volumes
 
           The migration project should also remove a Volume that is
           migrated. This might also work for tape Volumes.
+
+
+Item 24:  Accurate restoration of renamed/deleted files from
+          Incremental/Differential backups
+  Date:   28 November 2005
+  Origin: Martin Simmons (martin at lispworks dot com)
+  Status:
+
+  What:   When restoring a fileset for a specified date (including "most
+          recent"), Bacula should give you exactly the files and directories
+          that existed at the time of the last backup prior to that date.
+
+          Currently this only works if the last backup was a Full backup.
+          When the last backup was Incremental/Differential, files and
+          directories that have been renamed or deleted since the last Full
+          backup are not currently restored correctly.  Ditto for files with
+          extra/fewer hard links than at the time of the last Full backup.
+
+  Why:    Incremental/Differential would be much more useful if this worked.
+
+  Notes:  Item 14 (Merging of multiple backups into a single one) seems to
+          rely on this working, otherwise the merged backups will not be
+          truely equivalent to a Full backup.  
+
+          Kern: notes shortened. This can be done without the need for 
+          inodes. It is essentially the same as the current Verify job,
+          but one additional database record must be written, which does 
+          not need any database change.
+
+Item 25:  Implement creation and maintenance of copy pools
+  Date:   27 November 2005
+  Origin: David Boyes (dboyes at sinenomine dot net)
+  Status:
+
+  What:   I would like Bacula to have the capability to write copies
+          of backed-up data on multiple physical volumes selected
+          from different pools without transferring the data
+          multiple times, and to accept any of the copy volumes
+          as valid for restore.
+
+  Why:    In many cases, businesses are required to keep offsite
+          copies of backup volumes, or just wish for simple
+          protection against a human operator dropping a storage
+          volume and damaging it. The ability to generate multiple
+          volumes in the course of a single backup job allows
+          customers to simple check out one copy and send it
+          offsite, marking it as out of changer or otherwise
+          unavailable. Currently, the library and magazine
+          management capability in Bacula does not make this process
+          simple.
+
+          Restores would use the copy of the data on the first
+          available volume, in order of copy pool chain definition.
+
+          This is also a major scalability issue -- as the number of
+          clients increases beyond several thousand, and the volume
+          of data increases, transferring the data multiple times to
+          produce additional copies of the backups will become
+          physically impossible due to transfer speed
+          issues. Generating multiple copies at server side will
+          become the only practical option. 
+
+  How:    I suspect that this will require adding a multiplexing
+          SD that appears to be a SD to a specific FD, but 1-n FDs
+          to the specific back end SDs managing the primary and copy
+          pools.  Storage pools will also need to acquire parameters
+          to define the pools to be used for copies. 
+
+  Notes:  I would commit some of my developers' time if we can agree
+          on the design and behavior. 
 
 
 ============= Empty Feature Request form ===========
