@@ -40,6 +40,35 @@ Job {
 # Prefer Mounted Volumes = no
 }
 
+Job {
+  Name = "NightlySave1"
+  Type = Backup
+  Client=@hostname@-fd 
+  FileSet="Full Set"
+  Storage = DDS-4
+  Messages = Standard
+  Pool = Default
+  Write Bootstrap = "@working_dir@/NightlySave.bsr"
+  Maximum Concurrent Jobs = 4
+  SpoolData = yes
+# Prefer Mounted Volumes = no
+  Client Run Before Job = "/bin/sleep 120"
+}
+
+Job {
+  Name = "NightlySave2"
+  Type = Backup
+  Client=@hostname@-fd 
+  FileSet="Full Set"
+  Storage = DDS-4
+  Messages = Standard
+  Pool = Default
+  Write Bootstrap = "@working_dir@/NightlySave.bsr"
+  Maximum Concurrent Jobs = 4
+  SpoolData = yes
+# Prefer Mounted Volumes = no
+}
+
 
 # Standard Restore template, to be changed by Console program
 Job {
