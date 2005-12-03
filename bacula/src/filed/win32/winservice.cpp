@@ -457,32 +457,6 @@ _("Provides file backup and restore services. Bacula -- the network backup solut
       CloseServiceHandle(hsrvmanager);
       CloseServiceHandle(hservice);
 
-#ifdef xxx_needed
-      // Now install the servicehelper registry setting...
-      // Locate the RunService registry entry
-      HKEY runapps;
-      if (RegCreateKey(HKEY_LOCAL_MACHINE, 
-              "Software\\Microsoft\\Windows\\CurrentVersion\\Run",
-              &runapps) != ERROR_SUCCESS) {
-         MessageBox(NULL, "WARNING: Unable to install the ServiceHelper hook\nGlobal user-specific registry settings will not be loaded", 
-            szAppName, MB_ICONEXCLAMATION | MB_OK);
-      } else {
-         char servicehelpercmd[pathlength];
-
-         // Append the service-helper-start flag to the end of the path:
-         if ((int)strlen(path) + 4 + (int)strlen(BaculaRunServiceHelper) < pathlength) {
-            sprintf(servicehelpercmd, "\"%s\" %s", path, BaculaRunServiceHelper);
-
-            // Add the Bacula Service Helper entry
-             if (RegSetValueEx(runapps, szAppName, 0, REG_SZ,
-                 (unsigned char *)servicehelpercmd, strlen(servicehelpercmd)+1) != ERROR_SUCCESS) {
-                MessageBox(NULL, "WARNING:Unable to install the ServiceHelper hook\nGlobal user-specific registry settings will not be loaded", szAppName, MB_ICONEXCLAMATION | MB_OK);
-             }
-             RegCloseKey(runapps);
-         }
-      }
-#endif
-
       // Everything went fine
       MessageBox(NULL,
               _("The Bacula File service was successfully installed.\n"
@@ -547,19 +521,6 @@ bacService::RemoveService()
    case VER_PLATFORM_WIN32_NT:
       SC_HANDLE   hservice;
       SC_HANDLE   hsrvmanager;
-
-#ifdef xxx_needed
-      // Attempt to remove the service-helper hook
-      HKEY runapps;
-      if (RegOpenKey(HKEY_LOCAL_MACHINE, "Software\\Microsoft\\Windows\\CurrentVersion\\Run",
-              &runapps) == ERROR_SUCCESS) {
-         // Attempt to delete the Bacula key
-         if (RegDeleteValue(runapps, szAppName) != ERROR_SUCCESS) {
-            MessageBox(NULL, "WARNING:The ServiceHelper hook entry could not be removed from the registry", szAppName, MB_ICONEXCLAMATION | MB_OK);
-         }
-         RegCloseKey(runapps);
-      }
-#endif
 
       // Open the SCM
       hsrvmanager = OpenSCManager(

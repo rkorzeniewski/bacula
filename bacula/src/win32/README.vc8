@@ -76,6 +76,10 @@ Build instructions:
      #ifndef (line 145) and #endif (line 147) in file:
      <dev dir>/bacula/src/win32/compat/compat.h
    + Repeat the operation for the "Unicode Debug" configuration if needed.
+   + Open <dev dir>/bacula/src/win32/bacula.sln
+   + Launch Build->Configuration Manager, then select your configuration.
+   + Then run Build->Build Solution (this will build wx-console, bconsole 
+     and bacula-fd).
 
 Deploy instructions
  - Bacula:
@@ -84,12 +88,20 @@ Deploy instructions
      http://nsis.sourceforge.net/Download
    + Modify the default <dev dir>\bacula\src\win32\winbacula.nsi.in 
      script to include your own customizations.
-     Also change all references to msvcr71.dll to msvcr80.dll to 
-     reflect the DLL used by VC++ 2005
-   + Open <dev dir>/bacula/src/win32/bacula.sln
-   + Launch Build->Configuration Manager, then select your configuration.
-   + Then run Build->Build Solution (this will build wx-console, bconsole and bacula-fd).
-   + Don't forget to copy pthreadVCE.dll from <dev dir>/deppkgs-win32/pthreads and
-     iconv.dll and intl.dll from <dev dir>/deppkgs-win32/gettext/bin to
-     the Release and Debug directories in src/win32/baculafd, src/win32/wx-console
-     and src/win32/console.
+     These are the required modifications:
+     
+     * Remove all references to msvcr71.dll, as this is a pre VC++ 2005 library.
+     * VC++ 2005 compiled binaries require a new way of deploying DLLs: WinSxS.
+       More info: http://blogs.msdn.com/nikolad/archive/2005/03/18/398720.aspx
+       Collect the following 4 files from c:\WINDOWS\WinSxS and copy them into the
+       directory where winbacula.nsi resides. Also add them to winbacula.nsi where
+       msvcr71.dll was previously.
+       
+       File msvcm80.dll
+       File msvcp80.dll
+       File msvcr80.dll
+       File Microsoft.VC80.CRT.manifest
+       
+       Modify Microsoft.VC80.CRT.manifest to match the version number mentioned in
+       bacula-fd.exe.intermediate.manifest that is in /bacula/src/win32/baculafd/Release.
+

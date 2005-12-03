@@ -245,7 +245,7 @@ void init_signals(void terminate(int sig))
    sig_names[SIGWAITING] = _("No runnable lwp");
 #endif
 #ifdef SIGLWP
-   sig_names[SIGLWP]    = _("SIGLWP special signal used by thread library");
+   sig_names[SIGLWP]     = _("SIGLWP special signal used by thread library");
 #endif
 #ifdef SIGFREEZE
    sig_names[SIGFREEZE] = _("Checkpoint Freeze");

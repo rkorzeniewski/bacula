@@ -535,6 +535,7 @@ static void label_from_barcodes(UAContext *ua, int drive)
             mr.VolBytes = 1;
             bstrncpy(mr.VolStatus, "Cleaning", sizeof(mr.VolStatus));
             mr.MediaType[0] = 0;
+            mr.StorageId = store->StorageId;
             if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
                 bsendmsg(ua, "%s", db_strerror(ua->db));
             }
@@ -659,6 +660,7 @@ static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
       if (media_record_exists) {      /* we update it */
          mr->VolBytes = 1;
          mr->InChanger = 1;
+         mr->StorageId = ua->jcr->store->StorageId;
          if (!db_update_media_record(ua->jcr, ua->db, mr)) {
              bsendmsg(ua, "%s", db_strerror(ua->db));
              ok = false;
@@ -667,6 +669,7 @@ static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
          set_pool_dbr_defaults_in_media_dbr(mr, pr);
          mr->VolBytes = 1;               /* flag indicating Volume labeled */
          mr->InChanger = 1;
+         mr->StorageId = ua->jcr->store->StorageId;
          if (db_create_media_record(ua->jcr, ua->db, mr)) {
             bsendmsg(ua, _("Catalog record for Volume \"%s\", Slot %d  successfully created.\n"),
             mr->VolumeName, mr->Slot);

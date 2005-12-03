@@ -136,8 +136,7 @@ bool fixup_device_block_write_error(DCR *dcr)
    /*
     * Walk through all attached jcrs indicating the volume has changed
     */
-   Dmsg1(100, "Walk attached jcrs. Volume=%s\n", dev->VolCatInfo.VolCatName);
-// for (JCR *mjcr=NULL; (mjcr=next_attached_jcr(dev, mjcr)); ) {
+   Dmsg1(100, "Walk attached dcrs. Volume=%s\n", dev->VolCatInfo.VolCatName);
    DCR *mdcr;
    foreach_dlist(mdcr, dev->attached_dcrs) {
       JCR *mjcr = mdcr->jcr;

@@ -94,7 +94,7 @@ bool do_restore(JCR *jcr)
    /*
     * Now start a job with the Storage daemon
     */
-   if (!start_storage_daemon_job(jcr, jcr->storage, SD_READ)) {
+   if (!start_storage_daemon_job(jcr, jcr->storage, NULL)) {
       restore_cleanup(jcr, JS_ErrorTerminated);
       return false;
    }

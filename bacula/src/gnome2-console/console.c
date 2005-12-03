@@ -48,8 +48,8 @@ GtkWidget *restore_file_selection;
 GtkWidget *dir_select;
 GtkWidget *about1;           /* about box */
 GtkWidget *label_dialog;
-GdkFont   *text_font = NULL;
 PangoFontDescription *font_desc;
+PangoFontDescription *console_font_desc = NULL;
 pthread_mutex_t cmd_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t  cmd_wait;
 char cmd[1000];
@@ -292,12 +292,7 @@ int main(int argc, char *argv[])
    gtk_widget_show(console);
 
 /*
- * Thanks to Phil Stracchino for providing the font configuration code.
- * original default:
-   text_font = gdk_font_load("-misc-fixed-medium-r-normal-*-*-130-*-*-c-*-koi8-r");
- * this works for me:
-   text_font = gdk_font_load("-Bigelow & Holmes-lucida console-medium-r-semi condensed-*-12-0-100-100-m-0-iso8859-1");
- * and, new automagic:font specification!
+ * Gtk2/pango have different font names. Gnome2 comes with "Monospace 10"
  */
 
    LockRes();
@@ -306,8 +301,9 @@ int main(int argc, char *argv[])
           Dmsg1(400, "No fontface for %s\n", con_font->hdr.name);
           continue;
        }
-       text_font = gdk_font_load(con_font->fontface);
-       if (text_font == NULL) {
+       Dmsg1(100, "Now loading: %s\n",con_font->fontface);
+        console_font_desc = pango_font_description_from_string(con_font->fontface);
+       if (console_font_desc == NULL) {
            Dmsg2(400, "Load of requested ConsoleFont \"%s\" (%s) failed!\n",
                   con_font->hdr.name, con_font->fontface);
        } else {
@@ -318,16 +314,16 @@ int main(int argc, char *argv[])
    }
    UnlockRes();
 
-   if (text_font == NULL) {
-       Dmsg1(400, "Attempting to load fallback font %s\n",
-              "-misc-fixed-medium-r-normal-*-*-130-*-*-c-*-iso8859-1");
-       text_font = gdk_font_load("-misc-fixed-medium-r-normal-*-*-130-*-*-c-*-iso8859-1");
-   }
    font_desc = pango_font_description_from_string("LucidaTypewriter 9");
    gtk_widget_modify_font(console, font_desc);
-   gtk_widget_modify_font(text1, font_desc);
    gtk_widget_modify_font(entry1, font_desc);
    gtk_widget_modify_font(status1, font_desc);
+   if (console_font_desc) {
+      gtk_widget_modify_font(text1, console_font_desc);
+      pango_font_description_free(console_font_desc);
+   } else {
+      gtk_widget_modify_font(text1, font_desc);
+   }
    pango_font_description_free(font_desc);
 
    if (test_config) {

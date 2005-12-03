@@ -258,19 +258,23 @@ void catalog_request(JCR *jcr, BSOCK *bs)
       mr.VolWriteTime = sdmr.VolWriteTime;
       mr.VolParts     = sdmr.VolParts;
       bstrncpy(mr.VolStatus, sdmr.VolStatus, sizeof(mr.VolStatus));
+      if (jcr->store->StorageId) {
+         mr.StorageId = jcr->store->StorageId;
+      }
 
       Dmsg2(400, "db_update_media_record. Stat=%s Vol=%s\n", mr.VolStatus, mr.VolumeName);
       /*
-       * Check if it has expired, and if not update the DB. Note, if
-       *   Volume has expired, has_volume_expired() will update the DB.
+       * Update the database, then before sending the response to the
+       *  SD, check if the Volume has expired.
        */
-      if (has_volume_expired(jcr, &mr) || db_update_media_record(jcr, jcr->db, &mr)) {
-         send_volume_info_to_storage_daemon(jcr, bs, &mr);
-      } else {
+      if (!db_update_media_record(jcr, jcr->db, &mr)) {
          Jmsg(jcr, M_FATAL, 0, _("Catalog error updating Media record. %s"),
             db_strerror(jcr->db));
          bnet_fsend(bs, _("1993 Update Media error\n"));
          Dmsg0(400, "send error\n");
+      } else {
+         (void)has_volume_expired(jcr, &mr);
+         send_volume_info_to_storage_daemon(jcr, bs, &mr);
       }
       db_unlock(jcr->db);
 

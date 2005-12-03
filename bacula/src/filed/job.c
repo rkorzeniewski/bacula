@@ -1508,7 +1508,7 @@ static int open_sd_read_session(JCR *jcr)
    /*
     * Open Read Session with Storage daemon
     */
-   bnet_fsend(sd, read_open, jcr->VolumeName,
+   bnet_fsend(sd, read_open, "DummyVolume",
       jcr->VolSessionId, jcr->VolSessionTime, jcr->StartFile, jcr->EndFile,
       jcr->StartBlock, jcr->EndBlock);
    Dmsg1(110, ">stored: %s", sd->msg);

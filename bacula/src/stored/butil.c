@@ -171,11 +171,13 @@ static DCR *setup_to_access_device(JCR *jcr, char *dev_name,
       if (!acquire_device_for_read(dcr)) {
          return NULL;
       }
+      jcr->read_dcr = dcr;
    } else {
       if (!first_open_device(dcr)) {
          Jmsg1(jcr, M_FATAL, 0, _("Cannot open %s\n"), dev->print_name());
          return NULL;
       }
+      jcr->dcr = dcr;        /* write dcr */
    }
    return dcr;
 }

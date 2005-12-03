@@ -218,7 +218,7 @@ static void *job_thread(void *arg)
          admin_cleanup(jcr, JS_ErrorTerminated);
       }
       break;
-   case JT_MIGRATION:
+   case JT_MIGRATE:
    case JT_COPY:
    case JT_ARCHIVE:
       if (!do_mac_init(jcr)) {             /* migration, archive, copy */
@@ -294,7 +294,7 @@ static void *job_thread(void *arg)
             admin_cleanup(jcr, JS_ErrorTerminated);
          }
          break;
-      case JT_MIGRATION:
+      case JT_MIGRATE:
       case JT_COPY:
       case JT_ARCHIVE:
          if (do_mac(jcr)) {              /* migration, archive, copy */

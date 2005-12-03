@@ -3,6 +3,29 @@
 
 General:
 
+Changes to 1.39.1:
+03Dec05
+- Fix font code in gnome2 console user patch. Fixes bug #501.
+- Fix malformatted bnet error message that caused seg fault
+  fixes bug 502
+- Applied user patch to improve README.vc8 in src/win32.
+29Nov05
+- Add Migrate, Copy, Archive Job types (some where there)
+- Correct some more editing of JobId's (for 64 bit compatibility).
+- Ensure that StorageId is stored in Media record when ever possible.
+- Add Migration Job to Job.
+- Add Migration Time, Migration High Bytes, Migration Low Bytes
+  Next Pool to Pool resource.
+- Add more code to mac.c (migration archive copy).
+- Change Start Storage daemon job to require read and write storage
+  pointers.
+- Pass read storage data to SD as well as write storage data.
+- Remove old code from winservice.cpp
+- Break on error in scan.
+- Fix typo in signal.c
+- Separate read/write DCR in SD.  Add jcr->read_dcr.
+- Cleanup how find_device() works.
+- Add read output to Status in SD.
 Changes to 1.39.0:
 23Nov05
 - Add red-black btree routines

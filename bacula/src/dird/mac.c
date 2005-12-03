@@ -43,6 +43,24 @@ bool do_mac_init(JCR *jcr)
    JOB_DBR jr;
    JobId_t input_jobid;
    char *Name;
+   RESTORE_CTX rx;
+   UAContext *ua;
+   const char *Type;
+
+   switch(jcr->JobType) {
+   case JT_MIGRATE:
+      Type = "Migration";
+      break;
+   case JT_ARCHIVE:
+      Type = "Archive";
+      break;
+   case JT_COPY:
+      Type = "Copy";
+      break;
+   default:
+      Type = "Unknown";
+      break;
+   }
 
    if (!get_or_create_fileset_record(jcr)) {
       return false;
@@ -52,7 +70,7 @@ bool do_mac_init(JCR *jcr)
     * Find JobId of last job that ran.
     */
    memcpy(&jr, &jcr->jr, sizeof(jr));
-   Name = jcr->job->hdr.name;
+   Name = jcr->job->migration_job->hdr.name;
    Dmsg1(100, "find last jobid for: %s\n", NPRT(Name));
    if (!db_find_last_jobid(jcr, jcr->db, Name, &jr)) {
       Jmsg(jcr, M_FATAL, 0, _(
@@ -60,8 +78,22 @@ bool do_mac_init(JCR *jcr)
       return false;
    }
    input_jobid = jr.JobId;
-   jcr->JobLevel = jr.JobLevel;
    Dmsg1(100, "Last jobid=%d\n", input_jobid);
+
+   jcr->target_jr.JobId = input_jobid;
+   if (!db_get_job_record(jcr, jcr->db, &jcr->target_jr)) {
+      Jmsg(jcr, M_FATAL, 0, _("Could not get job record for previous Job. ERR=%s"),
+           db_strerror(jcr->db));
+      return false;
+   }
+   if (jcr->target_jr.JobStatus != 'T') {
+      Jmsg(jcr, M_FATAL, 0, _("Last Job %d did not terminate normally. JobStatus=%c\n"),
+         input_jobid, jcr->target_jr.JobStatus);
+      return false;
+   }
+   Jmsg(jcr, M_INFO, 0, _("%s using JobId=%d Job=%s\n"),
+      Type, jcr->target_jr.JobId, jcr->target_jr.Job);
+
 
    /*
     * Get the Pool record -- first apply any level defined pools
@@ -98,6 +130,32 @@ bool do_mac_init(JCR *jcr)
    }
    jcr->PoolId = pr.PoolId;               /****FIXME**** this can go away */
    jcr->jr.PoolId = pr.PoolId;
+
+   memset(&rx, 0, sizeof(rx));
+   rx.bsr = new_bsr();
+   rx.JobIds = "";                       
+   rx.bsr->JobId = jcr->target_jr.JobId;
+   ua = new_ua_context(jcr);
+   complete_bsr(ua, rx.bsr);
+   rx.bsr->fi = new_findex();
+   rx.bsr->fi->findex = 1;
+   rx.bsr->fi->findex2 = jcr->target_jr.JobFiles;
+   jcr->ExpectedFiles = write_bsr_file(ua, rx);
+   if (jcr->ExpectedFiles == 0) {
+      free_ua_context(ua);
+      free_bsr(rx.bsr);
+      return false;
+   }
+   if (jcr->RestoreBootstrap) {
+      free(jcr->RestoreBootstrap);
+   }
+   POOLMEM *fname = get_pool_memory(PM_MESSAGE);
+   make_unique_restore_filename(ua, &fname);
+   jcr->RestoreBootstrap = bstrdup(fname);
+   free_ua_context(ua);
+   free_bsr(rx.bsr);
+   free_pool_memory(fname);
+
    jcr->needs_sd = true;
    return true;
 }
@@ -112,9 +170,10 @@ bool do_mac(JCR *jcr)
 {
    int stat;
    const char *Type;
+   char ed1[100];
 
    switch(jcr->JobType) {
-   case JT_MIGRATION:
+   case JT_MIGRATE:
       Type = "Migration";
       break;
    case JT_ARCHIVE:
@@ -130,8 +189,8 @@ bool do_mac(JCR *jcr)
 
 
    /* Print Job Start message */
-   Jmsg(jcr, M_INFO, 0, _("Start %s JobId %u, Job=%s\n"),
-        Type, jcr->JobId, jcr->Job);
+   Jmsg(jcr, M_INFO, 0, _("Start %s JobId %s, Job=%s\n"),
+        Type, edit_uint64(jcr->JobId, ed1), jcr->Job);
 
    set_jcr_job_status(jcr, JS_Running);
    Dmsg2(100, "JobId=%d JobLevel=%c\n", jcr->jr.JobId, jcr->jr.JobLevel);
@@ -157,7 +216,7 @@ bool do_mac(JCR *jcr)
    /*
     * Now start a job with the Storage daemon
     */
-   if (!start_storage_daemon_job(jcr, jcr->storage, SD_APPEND)) {
+   if (!start_storage_daemon_job(jcr, jcr->storage, jcr->storage)) {
       return false;
    }
    /*
@@ -203,7 +262,7 @@ void mac_cleanup(JCR *jcr, int TermCode)
    const char *Type;
 
    switch(jcr->JobType) {
-   case JT_MIGRATION:
+   case JT_MIGRATE:
       Type = "Migration";
       break;
    case JT_ARCHIVE:

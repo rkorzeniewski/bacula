@@ -284,7 +284,7 @@ static bool read_open_session(JCR *jcr)
       return false;
    }
 
-   if (sscanf(fd->msg, read_open, jcr->dcr->VolumeName, &jcr->read_VolSessionId,
+   if (sscanf(fd->msg, read_open, jcr->read_dcr->VolumeName, &jcr->read_VolSessionId,
          &jcr->read_VolSessionTime, &jcr->read_StartFile, &jcr->read_EndFile,
          &jcr->read_StartBlock, &jcr->read_EndBlock) == 7) {
       if (jcr->session_opened) {
@@ -292,7 +292,7 @@ static bool read_open_session(JCR *jcr)
          return false;
       }
       Dmsg4(100, "read_open_session got: JobId=%d Vol=%s VolSessId=%ld VolSessT=%ld\n",
-         jcr->JobId, jcr->dcr->VolumeName, jcr->read_VolSessionId,
+         jcr->JobId, jcr->read_dcr->VolumeName, jcr->read_VolSessionId,
          jcr->read_VolSessionTime);
       Dmsg4(100, "  StartF=%ld EndF=%ld StartB=%ld EndB=%ld\n",
          jcr->read_StartFile, jcr->read_EndFile, jcr->read_StartBlock,

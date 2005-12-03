@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     21 November 2005
+                     30 November 2005
 
 Major development:      
 Project                     Developer
@@ -16,8 +16,14 @@ Document:
 - Does WildFile match against full name?  Doc.
 
 For 1.39:
-- Make sure that all do_prompt() calls in Dir check for
-  -1 (error) and -2 (cancel) returns.
+- Queue warning/error messages during restore so that they
+  are reported at the end of the report rather than being
+  hidden in the file listing ...
+- A Volume taken from Scratch should take on the retention period
+  of the new pool.
+- Correct doc for Maximum Changer Wait (and others) accepting only
+  integers.
+- Fix Maximum Changer Wait (and others) to accept qualifiers.
 - Look at -D_FORTIFY_SOURCE=2
 - Add Win32 FileSet definition somewhere
 - Look at fixing restore status stats in SD.
@@ -1252,4 +1258,6 @@ Block Position: 0
 ====
 
 
-=== Done -- see kernsdone
+=== Done
+- Make sure that all do_prompt() calls in Dir check for
+  -1 (error) and -2 (cancel) returns.

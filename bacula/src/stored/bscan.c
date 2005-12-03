@@ -259,7 +259,7 @@ int main (int argc, char *argv[])
    if (!bjcr) {
       exit(1);
    }
-   dev = bjcr->dcr->dev;
+   dev = bjcr->read_dcr->dev;
    if (showProgress) {
       char ed1[50];
       struct stat sb;
@@ -356,7 +356,7 @@ static void do_scan()
 
    /* Detach bscan's jcr as we are not a real Job on the tape */
 
-   read_records(bjcr->dcr, record_cb, bscan_mount_next_read_volume);
+   read_records(bjcr->read_dcr, record_cb, bscan_mount_next_read_volume);
 
    free_attr(attr);
 }
@@ -499,7 +499,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 
          /* process label, if Job record exists don't update db */
          mjcr = create_job_record(db, &jr, &label, rec);
-         dcr = mjcr->dcr;
+         dcr = mjcr->read_dcr;
          update_db = save_update_db;
 
          jr.PoolId = pr.PoolId;
@@ -571,7 +571,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 
          /* Create JobMedia record */
          create_jobmedia_record(db, mjcr);
-         dev->attached_dcrs->remove(mjcr->dcr);
+         dev->attached_dcrs->remove(mjcr->read_dcr);
          free_jcr(mjcr);
 
          break;
@@ -603,7 +603,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
                if (!db_update_job_end_record(bjcr, db, &jr)) {
                   Pmsg1(0, _("Could not update job record. ERR=%s\n"), db_strerror(db));
                }
-               mjcr->dcr = NULL;
+               mjcr->read_dcr = NULL;
                free_jcr(mjcr);
             }
          }
@@ -631,7 +631,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       }
       return true;
    }
-   dcr = mjcr->dcr;
+   dcr = mjcr->read_dcr;
    if (dcr->VolFirstIndex == 0) {
       dcr->VolFirstIndex = block->FirstIndex;
    }
@@ -760,6 +760,10 @@ static void bscan_free_jcr(JCR *jcr)
       free_dcr(jcr->dcr);
       jcr->dcr = NULL;
    }
+   if (jcr->read_dcr) {
+      free_dcr(jcr->read_dcr);
+      jcr->read_dcr = NULL;
+   }
    Dmsg0(200, "End bscan free_jcr\n");
 }
 
@@ -771,7 +775,7 @@ static int create_file_attributes_record(B_DB *db, JCR *mjcr,
                                char *fname, char *lname, int type,
                                char *ap, DEV_RECORD *rec)
 {
-   DCR *dcr = mjcr->dcr;
+   DCR *dcr = mjcr->read_dcr;
    ar.fname = fname;
    ar.link = lname;
    ar.ClientId = mjcr->ClientId;
@@ -1103,7 +1107,7 @@ static int update_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *elabel,
 static int create_jobmedia_record(B_DB *db, JCR *mjcr)
 {
    JOBMEDIA_DBR jmr;
-   DCR *dcr = mjcr->dcr;
+   DCR *dcr = mjcr->read_dcr;
 
    if (dev->is_tape()) {
       dcr->EndBlock = dev->EndBlock;
@@ -1198,7 +1202,8 @@ static JCR *create_jcr(JOB_DBR *jr, DEV_RECORD *rec, uint32_t JobId)
    jobjcr->VolSessionId = rec->VolSessionId;
    jobjcr->VolSessionTime = rec->VolSessionTime;
    jobjcr->ClientId = jr->ClientId;
-   new_dcr(jobjcr, dev);
+   jobjcr->read_dcr = new_dcr(jobjcr, dev);
+
    return jobjcr;
 }
 

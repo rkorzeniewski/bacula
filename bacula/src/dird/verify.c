@@ -176,6 +176,7 @@ bool do_verify(JCR *jcr)
    const char *level;
    BSOCK   *fd;
    int stat;
+   char ed1[100];
 
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
@@ -183,8 +184,8 @@ bool do_verify(JCR *jcr)
    }
 
    /* Print Job Start message */
-   Jmsg(jcr, M_INFO, 0, _("Start Verify JobId=%d Level=%s Job=%s\n"),
-      jcr->JobId, level_to_str(jcr->JobLevel), jcr->Job);
+   Jmsg(jcr, M_INFO, 0, _("Start Verify JobId=%s Level=%s Job=%s\n"),
+      edit_uint64(jcr->JobId, ed1), level_to_str(jcr->JobLevel), jcr->Job);
 
    if (jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG) {
       /*
@@ -197,7 +198,7 @@ bool do_verify(JCR *jcr)
       /*
        * Now start a job with the Storage daemon
        */
-      if (!start_storage_daemon_job(jcr, jcr->storage, SD_READ)) {
+      if (!start_storage_daemon_job(jcr, jcr->storage, NULL)) {
          return false;
       }
       /*

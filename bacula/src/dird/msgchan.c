@@ -119,14 +119,13 @@ bool update_device_res(JCR *jcr, DEVICE *dev)
 /*
  * Start a job with the Storage daemon
  */
-int start_storage_daemon_job(JCR *jcr, alist *store, int append)
+bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
 {
-   bool ok = false;
+   bool ok = true;
    STORE *storage;
    BSOCK *sd;
    char auth_key[100];
    POOL_MEM store_name, device_name, pool_name, pool_type, media_type;
-   char PoolId[50];
    int copy = 0;
    int stripe = 0;
 
@@ -170,7 +169,6 @@ int start_storage_daemon_job(JCR *jcr, alist *store, int append)
    pm_strcpy(pool_name, jcr->pool->hdr.name);
    bash_spaces(pool_type);
    bash_spaces(pool_name);
-   edit_int64(jcr->PoolId, PoolId);
 
    /*
     * We have two loops here. The first comes from the 
@@ -181,36 +179,76 @@ int start_storage_daemon_job(JCR *jcr, alist *store, int append)
     *  available one.
     *
     */
-   foreach_alist(storage, store) {
-      pm_strcpy(store_name, storage->hdr.name);
-      bash_spaces(store_name);
-      pm_strcpy(media_type, storage->media_type);
-      bash_spaces(media_type);
-      bnet_fsend(sd, use_storage, store_name.c_str(), media_type.c_str(), 
-                 pool_name.c_str(), pool_type.c_str(), append, copy, stripe);
+   /* Do read side of storage daemon */
+   if (ok && rstore) {
+      foreach_alist(storage, rstore) {
+         pm_strcpy(store_name, storage->hdr.name);
+         bash_spaces(store_name);
+         pm_strcpy(media_type, storage->media_type);
+         bash_spaces(media_type);
+         bnet_fsend(sd, use_storage, store_name.c_str(), media_type.c_str(), 
+                    pool_name.c_str(), pool_type.c_str(), 0, copy, stripe);
 
-      DEVICE *dev;
-      /* Loop over alternative storage Devices until one is OK */
-      foreach_alist(dev, storage->device) {
-         pm_strcpy(device_name, dev->hdr.name);
-         bash_spaces(device_name);
-         bnet_fsend(sd, use_device, device_name.c_str());
-         Dmsg1(100, ">stored: %s", sd->msg);
+         DEVICE *dev;
+         /* Loop over alternative storage Devices until one is OK */
+         foreach_alist(dev, storage->device) {
+            pm_strcpy(device_name, dev->hdr.name);
+            bash_spaces(device_name);
+            bnet_fsend(sd, use_device, device_name.c_str());
+            Dmsg1(100, ">stored: %s", sd->msg);
+         }
+         bnet_sig(sd, BNET_EOD);            /* end of Devices */
+         bnet_sig(sd, BNET_EOD);            /* end of Storages */
+         if (bget_dirmsg(sd) > 0) {
+            Dmsg1(100, "<stored: %s", sd->msg);
+            /* ****FIXME**** save actual device name */
+            ok = sscanf(sd->msg, OK_device, device_name.c_str()) == 1;
+         } else {
+            POOL_MEM err_msg;
+            pm_strcpy(err_msg, sd->msg); /* save message */
+            Jmsg(jcr, M_FATAL, 0, _("\n"
+               "     Storage daemon didn't accept Device \"%s\" because:\n     %s"),
+               device_name.c_str(), err_msg.c_str()/* sd->msg */);
+            ok = false;
+         }
+         break;
       }
-      bnet_sig(sd, BNET_EOD);            /* end of Devices */
-      bnet_sig(sd, BNET_EOD);            /* end of Storages */
-      if (bget_dirmsg(sd) > 0) {
-         Dmsg1(100, "<stored: %s", sd->msg);
-         /* ****FIXME**** save actual device name */
-         ok = sscanf(sd->msg, OK_device, device_name.c_str()) == 1;
-      } else {
-         POOL_MEM err_msg;
-         pm_strcpy(err_msg, sd->msg); /* save message */
-         Jmsg(jcr, M_FATAL, 0, _("\n"
-            "     Storage daemon didn't accept Device \"%s\" because:\n     %s"),
-            device_name.c_str(), err_msg.c_str()/* sd->msg */);
+   }
+
+   /* Do write side of storage daemon */
+   if (ok && wstore) {
+      foreach_alist(storage, wstore) {
+         pm_strcpy(store_name, storage->hdr.name);
+         bash_spaces(store_name);
+         pm_strcpy(media_type, storage->media_type);
+         bash_spaces(media_type);
+         bnet_fsend(sd, use_storage, store_name.c_str(), media_type.c_str(), 
+                    pool_name.c_str(), pool_type.c_str(), 1, copy, stripe);
+
+         DEVICE *dev;
+         /* Loop over alternative storage Devices until one is OK */
+         foreach_alist(dev, storage->device) {
+            pm_strcpy(device_name, dev->hdr.name);
+            bash_spaces(device_name);
+            bnet_fsend(sd, use_device, device_name.c_str());
+            Dmsg1(100, ">stored: %s", sd->msg);
+         }
+         bnet_sig(sd, BNET_EOD);            /* end of Devices */
+         bnet_sig(sd, BNET_EOD);            /* end of Storages */
+         if (bget_dirmsg(sd) > 0) {
+            Dmsg1(100, "<stored: %s", sd->msg);
+            /* ****FIXME**** save actual device name */
+            ok = sscanf(sd->msg, OK_device, device_name.c_str()) == 1;
+         } else {
+            POOL_MEM err_msg;
+            pm_strcpy(err_msg, sd->msg); /* save message */
+            Jmsg(jcr, M_FATAL, 0, _("\n"
+               "     Storage daemon didn't accept Device \"%s\" because:\n     %s"),
+               device_name.c_str(), err_msg.c_str()/* sd->msg */);
+            ok = false;
+         }
+         break;
       }
-      break;
    }
    if (ok) {
       ok = bnet_fsend(sd, "run");

@@ -4,7 +4,7 @@ Projects:
                        29 November 2005
 
 Summary:
-Item 1:   Implement Migration that  moves Jobs from one Pool to another.
+Item 1:   Implement Migration that moves Jobs from one Pool to another.
 Item 2:   Implement extraction of Win32 BackupWrite data.
 Item 3:   Implement a Bacula GUI/management tool using Python.
 Item 4:   Implement a Python interface to the Bacula catalog.
@@ -718,7 +718,18 @@ Item 25:  Implement creation and maintenance of copy pools
 
   Notes:  I would commit some of my developers' time if we can agree
           on the design and behavior. 
+===============================================
+Not in Dec 2005 Vote:
+Item n:   One line summary ...
+  Date:   29 November 2005
+  Origin: Florian Schnabel <florian.schnabel at docufy dot de>
+  Status:
 
+     What: An easy option to skip a certain job  on a certain date.
+     Why:  You could then easily skip tape backups on holidays.  Especially
+           if you got no autochanger and can only fit one backup on a tape
+           that would be really handy, other jobs could proceed normally
+           and you won't get errors that way.
 
 ============= Empty Feature Request form ===========
 Item n:   One line summary ...

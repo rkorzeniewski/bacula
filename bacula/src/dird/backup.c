@@ -138,11 +138,12 @@ bool do_backup(JCR *jcr)
    int tls_need = BNET_TLS_NONE;
    BSOCK   *fd;
    STORE *store;
+   char ed1[100];
 
 
    /* Print Job Start message */
-   Jmsg(jcr, M_INFO, 0, _("Start Backup JobId %u, Job=%s\n"),
-        jcr->JobId, jcr->Job);
+   Jmsg(jcr, M_INFO, 0, _("Start Backup JobId %s, Job=%s\n"),
+        edit_uint64(jcr->JobId, ed1), jcr->Job);
 
    set_jcr_job_status(jcr, JS_Running);
    Dmsg2(100, "JobId=%d JobLevel=%c\n", jcr->jr.JobId, jcr->jr.JobLevel);
@@ -168,7 +169,7 @@ bool do_backup(JCR *jcr)
    /*
     * Now start a job with the Storage daemon
     */
-   if (!start_storage_daemon_job(jcr, jcr->storage, SD_APPEND)) {
+   if (!start_storage_daemon_job(jcr, NULL, jcr->storage)) {
       return false;
    }
    /*

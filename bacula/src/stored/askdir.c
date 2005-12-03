@@ -503,7 +503,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
          Jmsg(jcr, M_WARNING, 0, _("pthread error in mount_next_volume stat=%d ERR=%s\n"), stat,
             be.strerror(stat));
       }
-      Dmsg1(000, "Someone woke me for device %s\n", dev->print_name());
+      Dmsg1(100, "Someone woke me for device %s\n", dev->print_name());
 
       /* If no VolumeName, and cannot get one, try again */
       P(dev->mutex);
@@ -531,7 +531,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
    }
    set_jcr_job_status(jcr, JS_Running);
    dir_send_job_status(jcr);
-   Dmsg0(000, "leave dir_ask_sysop_to_mount_create_appendable_volume\n");
+   Dmsg0(100, "leave dir_ask_sysop_to_mount_create_appendable_volume\n");
    return true;
 }
 
