@@ -29,16 +29,10 @@
  */
 DCR *new_dcr(JCR *jcr, DEVICE *dev)
 {
-   if (jcr && jcr->dcr) {
-      return jcr->dcr;
-   }
    DCR *dcr = (DCR *)malloc(sizeof(DCR));
    memset(dcr, 0, sizeof(DCR));
    dcr->jcr = jcr;
    if (dev) {
-      if (jcr) {
-         jcr->dcr = dcr;
-      }
       dcr->dev = dev;
       dcr->device = dev->device;
       dcr->block = new_block(dev);
@@ -275,7 +269,6 @@ default_path:
 get_out:
    dev->unblock();
    if (!vol_ok) {
-      free_dcr(dcr);
       dcr = NULL;
    }
    return dcr;
@@ -423,6 +416,7 @@ bool release_device(DCR *dcr)
    JCR *jcr = dcr->jcr;
    DEVICE *dev = dcr->dev;
    bool ok = true;
+   bool was_reading = false;
 
    lock_device(dev);
    Dmsg1(100, "release_device device is %s\n", dev->is_tape()?"tape":"disk");
@@ -436,6 +430,7 @@ bool release_device(DCR *dcr)
 
    if (dev->can_read()) {
       dev->clear_read();              /* clear read bit */
+      was_reading = true;
 
       /******FIXME**** send read volume usage statistics to director */
 
@@ -510,7 +505,11 @@ bool release_device(DCR *dcr)
    }
    unlock_device(dev);
    free_dcr(dcr);
-   jcr->dcr = NULL;
+   if (was_reading) {
+      jcr->read_dcr = NULL;
+   } else {
+      jcr->dcr = NULL;
+   }
    pthread_cond_broadcast(&wait_device_release);
    return ok;
 }

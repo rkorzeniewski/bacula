@@ -196,7 +196,8 @@ static bool despool_data(DCR *dcr, bool commit)
 
    Dmsg0(100, "Despooling data\n");
    if (commit) {
-      Jmsg(jcr, M_INFO, 0, _("Committing spooled data to Volume. Despooling %s bytes ...\n"),
+      Jmsg(jcr, M_INFO, 0, _("Committing spooled data to Volume \"%s\". Despooling %s bytes ...\n"),
+         jcr->dcr->VolumeName,
          edit_uint64_with_commas(jcr->dcr->job_spool_size, ec1));
    }
    else {

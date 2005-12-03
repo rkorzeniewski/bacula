@@ -214,11 +214,11 @@ static void do_extract(char *devname)
    if (!jcr) {
       exit(1);
    }
-   dev = jcr->dcr->dev;
+   dev = jcr->read_dcr->dev;
    if (!dev) {
       exit(1);
    }
-   dcr = jcr->dcr;
+   dcr = jcr->read_dcr;
 
    /* Make sure where directory exists and that it is a directory */
    if (stat(where, &statp) < 0) {

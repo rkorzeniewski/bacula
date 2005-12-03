@@ -176,3 +176,17 @@ SELECT DISTINCT Job.JobId as JobId,Job.Name as Name,Job.StartTime as StartTime,
  AND Media.MediaId=JobMedia.MediaId              
  AND JobMedia.JobId=Job.JobId
  ORDER by Job.StartTime;
+# 16
+:List File record for given Job and File
+*Enter JobId:
+*Enter Full path (no filename) with trailing slash:
+*Enter Filename:
+SELECT File.JobId AS JobId,FileIndex FROM File,Path,Filename 
+  WHERE File.JobId=%1 AND
+  Path.Path='%2' AND Filename.Name='%3' AND
+  File.PathId=Path.PathId AND File.FilenameId=Filename.FilenameId;
+SELECT JobId,Name,VolSessionId,VolsessionTime,JobFiles FROM Job WHERE JobId=%1;
+SELECT JobId,MediaId,FirstIndex,LastIndex,StartFile,EndFile,StartBlock,EndBlock,
+  VolIndex FROM JobMedia WHERE JobId=%1;
+SELECT VolumeName FROM Media,JobMedia WHERE JobMedia.JobId=%1 AND
+  Media.MediaId=JobMedia.MediaId;

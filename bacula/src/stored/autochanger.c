@@ -37,7 +37,6 @@ bool init_autochangers()
    /* Ensure that the media_type for each device is the same */
    foreach_res(changer, R_AUTOCHANGER) {
       DEVRES *device;
-      char *media_type = NULL;
       foreach_alist(device, changer->device) {
          /*
           * If the device does not have a changer name or changer command
@@ -62,6 +61,7 @@ bool init_autochangers()
             OK = false;
          }   
 
+#ifdef xxx_needed
          if (media_type == NULL) {
             media_type = device->media_type;     /* get Media Type of first device */
             continue;
@@ -74,6 +74,7 @@ bool init_autochangers()
             OK = false;
             continue;
          }
+#endif
       }
    }
    return OK;

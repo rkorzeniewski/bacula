@@ -468,6 +468,7 @@ void *device_initialization(void *arg)
             Jmsg1(NULL, M_ERROR, 0, _("Could not open device %s\n"), dev->print_name());
             Dmsg1(20, "Could not open device %s\n", dev->print_name());
             free_dcr(dcr);
+            jcr->dcr = NULL;
             continue;
          }
       }
@@ -482,6 +483,7 @@ void *device_initialization(void *arg)
          }
       }
       free_dcr(dcr);
+      jcr->dcr = NULL;
    }
    free_jcr(jcr); 
    init_done = true;
@@ -524,6 +526,10 @@ void terminate_stored(int sig)
             /* ***FIXME*** wiffle through all dcrs */
             if (jcr->dcr && jcr->dcr->dev && jcr->dcr->dev->dev_blocked) {
                pthread_cond_broadcast(&jcr->dcr->dev->wait_next_vol);
+               pthread_cond_broadcast(&wait_device_release);
+            }
+            if (jcr->read_dcr && jcr->read_dcr->dev && jcr->read_dcr->dev->dev_blocked) {
+               pthread_cond_broadcast(&jcr->read_dcr->dev->wait_next_vol);
                pthread_cond_broadcast(&wait_device_release);
             }
             bmicrosleep(0, 50000);

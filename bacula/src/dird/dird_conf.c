@@ -236,6 +236,7 @@ RES_ITEM job_items[] = {
    {"fileset",   store_res,     ITEM(res_job.fileset),  R_FILESET, ITEM_REQUIRED, 0},
    {"schedule",  store_res,     ITEM(res_job.schedule), R_SCHEDULE, 0, 0},
    {"verifyjob", store_res,     ITEM(res_job.verify_job), R_JOB, 0, 0},
+   {"migrationjob", store_res,  ITEM(res_job.migration_job), R_JOB, 0, 0},
    {"jobdefs",   store_res,     ITEM(res_job.jobdefs),    R_JOBDEFS, 0, 0},
    {"run",       store_alist_str, ITEM(res_job.run_cmds), 0, 0, 0},
    {"where",    store_dir,      ITEM(res_job.RestoreWhere), 0, 0, 0},
@@ -321,6 +322,10 @@ static RES_ITEM pool_items[] = {
    {"catalogfiles",    store_yesno,   ITEM(res_pool.catalog_files),  1, ITEM_DEFAULT,  1},
    {"volumeretention", store_time,    ITEM(res_pool.VolRetention),   0, ITEM_DEFAULT, 60*60*24*365},
    {"volumeuseduration", store_time,  ITEM(res_pool.VolUseDuration), 0, 0, 0},
+   {"migrationtime",  store_time,     ITEM(res_pool.MigrationTime), 0, 0, 0},
+   {"migrationhighbytes", store_size, ITEM(res_pool.MigrationHighBytes), 0, 0, 0},
+   {"migrationlowbytes", store_size,  ITEM(res_pool.MigrationLowBytes), 0, 0, 0},
+   {"nextpool",       store_res,      ITEM(res_pool.NextPool), R_POOL, 0, 0},
    {"autoprune",       store_yesno,   ITEM(res_pool.AutoPrune), 1, ITEM_DEFAULT, 1},
    {"recycle",         store_yesno,   ITEM(res_pool.Recycle),     1, ITEM_DEFAULT, 1},
    {NULL, NULL, NULL, 0, 0, 0}
@@ -400,6 +405,8 @@ struct s_jt jobtypes[] = {
    {"admin",         JT_ADMIN},
    {"verify",        JT_VERIFY},
    {"restore",       JT_RESTORE},
+   {"copy",          JT_COPY},
+   {"migrate",       JT_MIGRATE},
    {NULL,            0}
 };
 
@@ -434,7 +441,7 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
 {
    URES *res = (URES *)reshdr;
    bool recurse = true;
-   char ed1[100], ed2[100];
+   char ed1[100], ed2[100], ed3[100];
    DEVICE *dev;
 
    if (res == NULL) {
@@ -460,13 +467,8 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       }
       break;
    case R_CONSOLE:
-#ifdef HAVE_TLS
       sendit(sock, _("Console: name=%s SSL=%d\n"),
          res->res_con.hdr.name, res->res_con.tls_enable);
-#else
-      sendit(sock, _("Console: name=%s SSL=%d\n"),
-         res->res_con.hdr.name, BNET_TLS_NONE);
-#endif
       break;
    case R_COUNTER:
       if (res->res_counter.WrapCounter) {
@@ -771,6 +773,14 @@ next_run:
               res->res_pool.recycle_oldest_volume,
               res->res_pool.purge_oldest_volume,
               res->res_pool.MaxVolJobs, res->res_pool.MaxVolFiles);
+      sendit(sock, _("      MigTime=%s MigHiBytes=%s MigLoBytes=%s\n"),
+              edit_utime(res->res_pool.MigrationTime, ed1, sizeof(ed1)),
+              edit_uint64(res->res_pool.MigrationHighBytes, ed2),
+              edit_uint64(res->res_pool.MigrationLowBytes, ed3));
+      if (res->res_pool.NextPool) {
+         sendit(sock, _("  --> "));
+         dump_resource(-R_POOL, (RES *)res->res_pool.NextPool, sendit, sock);
+      }
       break;
    case R_MSGS:
       sendit(sock, _("Messages: name=%s\n"), res->res_msgs.hdr.name);
@@ -1137,13 +1147,26 @@ void save_resource(int type, RES_ITEM *items, int pass)
       switch (type) {
       /* Resources not containing a resource */
       case R_CATALOG:
-      case R_POOL:
       case R_MSGS:
       case R_FILESET:
       case R_DEVICE:
          break;
 
-      /* Resources containing another resource or alist */
+      /*
+       * Resources containing another resource or alist. First
+       *  look up the resource which contains another resource. It
+       *  was written during pass 1.  Then stuff in the pointers to
+       *  the resources it contains, which were inserted this pass.
+       *  Finally, it will all be stored back.
+       */
+      case R_POOL:
+         /* Find resource saved in pass 1 */
+         if ((res = (URES *)GetResWithName(R_POOL, res_all.res_con.hdr.name)) == NULL) {
+            Emsg1(M_ERROR_TERM, 0, _("Cannot find Pool resource %s\n"), res_all.res_con.hdr.name);
+         }
+         /* Update it with pointer to NextPool from this pass (res_all) */
+         res->res_pool.NextPool = res_all.res_pool.NextPool;
+         break;
       case R_CONSOLE:
          if ((res = (URES *)GetResWithName(R_CONSOLE, res_all.res_con.hdr.name)) == NULL) {
             Emsg1(M_ERROR_TERM, 0, _("Cannot find Console resource %s\n"), res_all.res_con.hdr.name);

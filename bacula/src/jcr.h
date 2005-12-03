@@ -45,12 +45,12 @@
 #define JT_BACKUP                'B'  /* Backup Job */
 #define JT_VERIFY                'V'  /* Verify Job */
 #define JT_RESTORE               'R'  /* Restore Job */
-#define JT_CONSOLE               'C'  /* console program */
+#define JT_CONSOLE               'c'  /* console program */
 #define JT_SYSTEM                'I'  /* internal system "job" */
 #define JT_ADMIN                 'D'  /* admin job */
 #define JT_ARCHIVE               'A'  /* Archive Job */
-#define JT_COPY                  'Y'  /* Copy Job */
-#define JT_MIGRATION             'M'  /* Migration Job */
+#define JT_COPY                  'C'  /* Copy Job */
+#define JT_MIGRATE               'M'  /* Migration Job */
 #define JT_SCAN                  'S'  /* Scan Job */
 
 /* Job Status. Some of these are stored in the DB */
@@ -239,6 +239,7 @@ public:
    JCR *prev_dev;                     /* previous JCR attached to device */
    pthread_cond_t job_start_wait;     /* Wait for FD to start Job */
    int type;
+   DCR *read_dcr;                     /* device context for reading */
    DCR *dcr;                          /* device context record */
    alist *dcrs;                       /* list of dcrs open */
    POOLMEM *job_name;                 /* base Job name (not unique) */

@@ -137,7 +137,7 @@ bool run_cmd(JCR *jcr)
    Dmsg1(100, "Run_cmd: %s\n", jcr->dir_bsock->msg);
    /* The following jobs don't need the FD */
    switch (jcr->JobType) {
-   case JT_MIGRATION:
+   case JT_MIGRATE:
    case JT_COPY:
    case JT_ARCHIVE:
       jcr->authenticated = true;
@@ -345,6 +345,10 @@ void stored_free_jcr(JCR *jcr)
    if (jcr->dcr) {
       free_dcr(jcr->dcr);
       jcr->dcr = NULL;
+   }
+   if (jcr->read_dcr) {
+      free_dcr(jcr->read_dcr);
+      jcr->read_dcr = NULL;
    }
    return;
 }

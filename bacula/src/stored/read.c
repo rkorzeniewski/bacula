@@ -41,7 +41,7 @@ bool do_read_data(JCR *jcr)
 {
    BSOCK *fd = jcr->file_bsock;
    bool ok = true;
-   DCR *dcr = jcr->dcr;
+   DCR *dcr = jcr->read_dcr;
 
    Dmsg0(20, "Start read data.\n");
 

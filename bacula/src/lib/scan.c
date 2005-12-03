@@ -406,6 +406,7 @@ switch_top:
       } else if (*buf++ != *fmt++) {
 //       Dmsg2(000, "Mismatch buf=%c fmt=%c\n", *--buf, *--fmt);
          error = true;
+         break;
       }
    }
    va_end(ap);

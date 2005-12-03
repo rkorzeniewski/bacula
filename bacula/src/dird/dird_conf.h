@@ -316,7 +316,10 @@ public:
    POOL      *full_pool;              /* Pool for Full backups */
    POOL      *inc_pool;               /* Pool for Incremental backups */
    POOL      *dif_pool;               /* Pool for Differental backups */
-   JOB       *verify_job;             /* Job name to verify */
+   union {
+      JOB       *verify_job;          /* Job name to verify */
+      JOB       *migration_job;       /* Job name to migrate */
+   };
    JOB       *jobdefs;                /* Job defaults */
    alist     *run_cmds;               /* Run commands */
    uint32_t NumConcurrentJobs;        /* number of concurrent jobs running */
@@ -421,6 +424,10 @@ public:
    uint32_t MaxVolJobs;               /* Maximum jobs on the Volume */
    uint32_t MaxVolFiles;              /* Maximum files on the Volume */
    uint64_t MaxVolBytes;              /* Maximum bytes on the Volume */
+   utime_t MigrationTime;             /* Time to migrate to next pool */
+   uint32_t MigrationHighBytes;       /* When migration starts */
+   uint32_t MigrationLowBytes;        /* When migration stops */
+   POOL  *NextPool;                   /* Next pool for migration */
    int   AutoPrune;                   /* default for pool auto prune */
    int   Recycle;                     /* default for media recycle yes/no */
 };

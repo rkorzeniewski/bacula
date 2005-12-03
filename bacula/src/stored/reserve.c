@@ -450,7 +450,6 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
 {
    bool first = true;
    bool ok;
-   DCR *dcr = NULL;
    DIRSTORE *store;
    char *device_name;
 
@@ -496,9 +495,6 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
       }
 #endif
    }
-   if (dcr) {
-      free_dcr(dcr);
-   }
    return ok;
 }
 
@@ -539,10 +535,7 @@ static int search_res_for_device(RCTX &rctx)
          foreach_alist(rctx.device, changer->device) {
             Dmsg1(100, "Try changer device %s\n", rctx.device->hdr.name);
             stat = reserve_device(rctx);
-            if (stat == -1) {            /* hard error */
-               return -1;
-            }
-            if (stat == 0) {             /* must wait, try next one */
+            if (stat != 1) {             /* try another device */
                continue;
             }
             POOL_MEM dev_name;
@@ -599,7 +592,6 @@ static int reserve_device(RCTX &rctx)
       Dmsg1(100, ">dird: %s", dir->msg);
       return -1;
    }
-   rctx.jcr->dcr = dcr;
    bstrncpy(dcr->pool_name, rctx.store->pool_name, name_len);
    bstrncpy(dcr->pool_type, rctx.store->pool_type, name_len);
    bstrncpy(dcr->media_type, rctx.store->media_type, name_len);
@@ -617,12 +609,18 @@ static int reserve_device(RCTX &rctx)
         }
       }
       ok = reserve_device_for_append(dcr, rctx);
+      if (ok) {
+         rctx.jcr->dcr = dcr;
+      }
       Dmsg3(200, "dev_name=%s mediatype=%s ok=%d\n", dcr->dev_name, dcr->media_type, ok);
    } else {
       ok = reserve_device_for_read(dcr);
+      if (ok) {
+         rctx.jcr->read_dcr = dcr;
+      }
    }
    if (!ok) {
-      free_dcr(rctx.jcr->dcr);
+      free_dcr(dcr);
       return 0;
    }
    return 1;

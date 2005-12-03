@@ -394,8 +394,9 @@ bool bnet_send(BSOCK * bsock)
          }
       } else {
          Qmsg5(bsock->jcr, M_ERROR, 0,
-               _("Wrote %d bytes to %s:%s:%d, but only %d accepted.\n"), bsock->who,
-               bsock->host, bsock->port, bsock->msglen, rc);
+               _("Wrote %d bytes to %s:%s:%d, but only %d accepted.\n"),
+               sizeof(int32_t), bsock->who,
+               bsock->host, bsock->port, rc);
       }
       return false;
    }

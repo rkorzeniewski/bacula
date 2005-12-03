@@ -837,7 +837,7 @@ STORE *get_storage_resource(UAContext *ua, bool use_default)
       store = NULL;
    }
 
-   if (!store && store_name) {
+   if (!store && store_name && store_name[0] != 0) {
       store = (STORE *)GetResWithName(R_STORAGE, store_name);
       if (!store) {
          bsendmsg(ua, _("Storage resource \"%s\": not found\n"), store_name);
