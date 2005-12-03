@@ -82,11 +82,13 @@ messages
 @$out tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 slot=1 pool=Full drive=0
 label storage=DDS-4 volume=TestVolume002 slot=2 pool=Default drive=0
-run job=NightlySave level=Full pool=Default yes
+list volumes
+@# Start job with Client run before and sleep
+run job=NightlySave1 level=Full pool=Default yes
 @# wait between starting jobs
 @sleep 60
 @#setdebug level=100 storage=DDS-4
-run job=NightlySave level=Full pool=Full yes
+run job=NightlySave2 level=Full pool=Full yes
 @sleep 10
 messages
 @sleep 10
@@ -95,6 +97,7 @@ messages
 status storage=DDS-4
 messages
 wait
+list volumes
 messages
 @# 
 @# now do a restore

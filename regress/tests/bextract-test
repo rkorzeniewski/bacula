@@ -4,7 +4,7 @@
 #   split the archive into two volumes, then build a BSR with
 #   the restore command and use bextract to restore the files.
 #
-debug=0
+debug=1
 if test "$debug" -eq 1 ; then
   out="tee"
 else
@@ -23,7 +23,7 @@ echo " === Starting bextract-test at `date +%R:%S` ===" >working/log
 echo " "
 
 cat <<END_OF_DATA >tmp/bconcmds
-@$out /dev/null
+@output /dev/null
 messages
 @$out tmp/log1.out
 label storage=File1 volume=TestVolume001
