@@ -179,8 +179,8 @@ int main (int argc, char *argv[])
 
    parse_config(configfile);
 
-   if (init_tls() != 0) {
-      Emsg0(M_ERROR, 0, _("TLS library initialization failed.\n"));
+   if (init_crypto() != 0) {
+      Emsg0(M_ERROR, 0, _("Cryptography library initialization failed.\n"));
       terminate_filed(1);
    }
 
@@ -260,7 +260,7 @@ void terminate_filed(int sig)
    free_config_resources();
    term_msg();
    stop_watchdog();
-   cleanup_tls();
+   cleanup_crypto();
    close_memory_pool();               /* release free memory in pool */
    sm_dump(false);                    /* dump orphaned buffers */
    exit(sig);
@@ -326,6 +326,75 @@ static int check_resources()
             Emsg2(M_FATAL, 0, _("Failed to initialize TLS context for File daemon \"%s\" in %s.\n"),
                                 me->hdr.name, configfile);
             OK = false;
+         }
+      }
+
+      if (me->pki_encrypt || me->pki_sign) {
+#ifndef HAVE_CRYPTO
+         Jmsg(NULL, M_FATAL, 0, _("PKI encryption/signing enabled but not compiled into Bacula.\n"));
+         OK = false;
+#endif
+      }
+
+      /* pki_encrypt implies pki_sign */
+      if (me->pki_encrypt) {
+         me->pki_sign = true;
+      }
+
+      if ((me->pki_encrypt || me->pki_sign) && !me->pki_keypairfile) {
+         Emsg2(M_FATAL, 0, _("\"PKI Key Pair\" must be defined for File"
+            " daemon \"%s\" in %s if either \"PKI Sign\" or"
+	    " \"PKI Encrypt\" are enabled.\n"), me->hdr.name, configfile);
+         OK = false;
+      }
+
+      /* If everything is well, attempt to initialize our public/private keys */
+      if (OK && (me->pki_encrypt || me->pki_sign)) {
+         char *filepath;
+
+         /* Load our keypair */
+         me->pki_keypair = crypto_keypair_new();
+         if (!me->pki_keypair) {
+            Emsg0(M_FATAL, 0, _("Failed to allocate a new keypair object.\n"));
+            OK = false;
+         } else {
+            if (!crypto_keypair_load_cert(me->pki_keypair, me->pki_keypairfile)) {
+               Emsg2(M_FATAL, 0, _("Failed to load public certificate for File"
+                     " daemon \"%s\" in %s.\n"), me->hdr.name, configfile);
+               OK = false;
+            }
+
+            if (!crypto_keypair_load_key(me->pki_keypair, me->pki_keypairfile, NULL, NULL)) {
+               Emsg2(M_FATAL, 0, _("Failed to load private key for File"
+                     " daemon \"%s\" in %s.\n"), me->hdr.name, configfile);
+               OK = false;
+            }
+         }
+
+         /*
+          * Trusted Signers. We're always trusted. me->pki_keypair
+          * will be deallocated when me->pki_signers is deallocated.
+          */
+         me->pki_signers = New(alist(10, not_owned_by_alist));
+         me->pki_signers->append(me->pki_keypair);
+
+         /* If additional trusted keys have been specified, load them up */
+         foreach_alist(filepath, me->pki_trustedkeys) {
+            X509_KEYPAIR *keypair;
+
+            keypair = crypto_keypair_new();
+            if (!keypair) {
+               Emsg0(M_FATAL, 0, _("Failed to allocate a new keypair object.\n"));
+               OK = false;
+            } else {
+               if (crypto_keypair_load_cert(keypair, filepath)) {
+                  me->pki_signers->append(keypair);
+               } else {
+                  Emsg3(M_FATAL, 0, _("Failed to load trusted signer certificate"
+                     " from file %s for File daemon \"%s\" in %s.\n"), filepath, me->hdr.name, configfile);
+                  OK = false;
+               }
+            }
          }
       }
    }

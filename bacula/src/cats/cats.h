@@ -614,8 +614,8 @@ struct ATTR_DBR {
    DBId_t PathId;
    DBId_t FilenameId;
    FileId_t FileId;
-   char *Sig;
-   int SigType;
+   char *Digest;
+   int DigestType;
 };
 
 
@@ -628,8 +628,8 @@ struct FILE_DBR {
    DBId_t PathId;
    JobId_t  MarkId;
    char LStat[256];
-   char SIG[50];
-   int SigType;                       /* NO_SIG/MD5_SIG/SHA1_SIG */
+   char Digest[BASE64_SIZE(CRYPTO_DIGEST_MAX_SIZE)];
+   int DigestType;                    /* NO_SIG/MD5_SIG/SHA1_SIG */
 };
 
 /* Pool record -- same format as database */

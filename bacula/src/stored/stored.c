@@ -185,8 +185,8 @@ int main (int argc, char *argv[])
 
    parse_config(configfile);
 
-   if (init_tls() != 0) {
-      Jmsg((JCR *)NULL, M_ERROR_TERM, 0, _("TLS library initialization failed.\n"));
+   if (init_crypto() != 0) {
+      Jmsg((JCR *)NULL, M_ERROR_TERM, 0, _("Cryptography library initialization failed.\n"));
    }
 
    if (!check_resources()) {
@@ -565,7 +565,7 @@ void terminate_stored(int sig)
    }
    term_msg();
    stop_watchdog();
-   cleanup_tls();
+   cleanup_crypto();
    free_volume_list();
    close_memory_pool();
 

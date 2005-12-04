@@ -396,8 +396,8 @@ int main(int argc, char *argv[])
 
    parse_config(configfile);
 
-   if (init_tls() != 0) {
-      Emsg0(M_ERROR_TERM, 0, _("TLS library initialization failed.\n"));
+   if (init_crypto() != 0) {
+      Emsg0(M_ERROR_TERM, 0, _("Cryptography library initialization failed.\n"));
    }
 
    if (!check_resources()) {
@@ -549,7 +549,7 @@ static void terminate_console(int sig)
       exit(1);
    }
    already_here = true;
-   cleanup_tls();
+   cleanup_crypto();
    free_pool_memory(args);
    con_term();
    (void)WSACleanup();               /* Cleanup Windows sockets */

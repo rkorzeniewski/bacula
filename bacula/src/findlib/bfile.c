@@ -70,8 +70,8 @@ const char *stream_to_ascii(int stream)
       return _("File attributes");
    case STREAM_FILE_DATA:
       return _("File data");
-   case STREAM_MD5_SIGNATURE:
-      return _("MD5 signature");
+   case STREAM_MD5_DIGEST:
+      return _("MD5 digest");
    case STREAM_UNIX_ATTRIBUTES_EX:
       return _("Extended attributes");
    case STREAM_SPARSE_DATA:
@@ -80,12 +80,18 @@ const char *stream_to_ascii(int stream)
       return _("Program names");
    case STREAM_PROGRAM_DATA:
       return _("Program data");
-   case STREAM_SHA1_SIGNATURE:
-      return _("SHA1 signature");
+   case STREAM_SHA1_DIGEST:
+      return _("SHA1 digest");
    case STREAM_MACOS_FORK_DATA:
       return _("HFS+ resource fork");
    case STREAM_HFSPLUS_ATTRIBUTES:
       return _("HFS+ Finder Info");
+   case STREAM_SHA256_DIGEST:
+      return _("SHA256 digest");
+   case STREAM_SHA512_DIGEST:
+      return _("SHA512 digest");
+   case STREAM_SIGNED_DIGEST:
+      return _("Signed digest");
    default:
       sprintf(buf, "%d", stream);
       return (const char *)buf;
@@ -322,12 +328,19 @@ bool is_restore_stream_supported(int stream)
    case STREAM_WIN32_DATA:
    case STREAM_UNIX_ATTRIBUTES:
    case STREAM_FILE_DATA:
-   case STREAM_MD5_SIGNATURE:
+   case STREAM_MD5_DIGEST:
    case STREAM_UNIX_ATTRIBUTES_EX:
    case STREAM_SPARSE_DATA:
    case STREAM_PROGRAM_NAMES:
    case STREAM_PROGRAM_DATA:
-   case STREAM_SHA1_SIGNATURE:
+   case STREAM_SHA1_DIGEST:
+#ifdef HAVE_SHA2
+   case STREAM_SHA256_DIGEST:
+   case STREAM_SHA512_DIGEST:
+#endif
+#ifdef HAVE_CRYPTO
+   case STREAM_SIGNED_DIGEST:
+#endif
    case 0:                            /* compatibility with old tapes */
       return true;
    }
@@ -691,12 +704,16 @@ bool is_restore_stream_supported(int stream)
    case STREAM_WIN32_DATA:
    case STREAM_UNIX_ATTRIBUTES:
    case STREAM_FILE_DATA:
-   case STREAM_MD5_SIGNATURE:
+   case STREAM_MD5_DIGEST:
    case STREAM_UNIX_ATTRIBUTES_EX:
    case STREAM_SPARSE_DATA:
    case STREAM_PROGRAM_NAMES:
    case STREAM_PROGRAM_DATA:
-   case STREAM_SHA1_SIGNATURE:
+   case STREAM_SHA1_DIGEST:
+#ifdef HAVE_SHA2
+   case STREAM_SHA256_DIGEST:
+   case STREAM_SHA512_DIGEST:
+#endif
 #ifdef HAVE_DARWIN_OS
    case STREAM_MACOS_FORK_DATA:
    case STREAM_HFSPLUS_ATTRIBUTES:

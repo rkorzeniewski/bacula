@@ -86,6 +86,8 @@ enum {
 #define FO_IGNORECASE   (1<<16)       /* Ignore file name case */
 #define FO_HFSPLUS      (1<<17)       /* Resource forks and Finder Info */
 #define FO_WIN32DECOMP  (1<<18)       /* Use BackupRead decomposition */
+#define FO_SHA256       (1<<19)       /* Do SHA256 checksum */
+#define FO_SHA512       (1<<20)       /* Do SHA512 checksum */
 
 struct s_included_file {
    struct s_included_file *next;

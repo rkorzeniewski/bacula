@@ -139,12 +139,15 @@
  *
  *   STREAM_UNIX_ATTRIBUTES
  *   STREAM_UNIX_ATTRIBUTES_EX
- *   STREAM_MD5_SIGNATURE
- *   STREAM_SHA1_SIGNATURE
+ *   STREAM_MD5_DIGEST
+ *   STREAM_SHA1_DIGEST
+ *   STREAM_SHA256_DIGEST
+ *   STREAM_SHA512_DIGEST
  */
+#define STREAM_NONE               0    /* Reserved Non-Stream */
 #define STREAM_UNIX_ATTRIBUTES    1    /* Generic Unix attributes */
 #define STREAM_FILE_DATA          2    /* Standard uncompressed data */
-#define STREAM_MD5_SIGNATURE      3    /* MD5 signature for the file */
+#define STREAM_MD5_DIGEST         3    /* MD5 digest for the file */
 #define STREAM_GZIP_DATA          4    /* GZip compressed file data */
 /* Extended Unix attributes with Win32 Extended data.  Deprecated. */
 #define STREAM_UNIX_ATTRIBUTES_EX 5    /* Extended Unix attr for Win32 EX */
@@ -152,7 +155,7 @@
 #define STREAM_SPARSE_GZIP_DATA   7
 #define STREAM_PROGRAM_NAMES      8    /* program names for program data */
 #define STREAM_PROGRAM_DATA       9    /* Data needing program */
-#define STREAM_SHA1_SIGNATURE    10    /* SHA1 signature for the file */
+#define STREAM_SHA1_DIGEST       10    /* SHA1 digest for the file */
 #define STREAM_WIN32_DATA        11    /* Win32 BackupRead data */
 #define STREAM_WIN32_GZIP_DATA   12    /* Gzipped Win32 BackupRead data */
 #define STREAM_MACOS_FORK_DATA   13    /* Mac resource fork */
@@ -161,6 +164,11 @@
 #define STREAM_UNIX_ATTRIBUTES_ACCESS_ACL 15 /* Standard ACL attributes on UNIX */
 #define STREAM_UNIX_ATTRIBUTES_DEFAULT_ACL 16 /* Default ACL attributes on UNIX */
 /*** FIXME ***/
+#define STREAM_SHA256_DIGEST     17    /* SHA-256 digest for the file */
+#define STREAM_SHA512_DIGEST     18    /* SHA-512 digest for the file */
+#define STREAM_SIGNED_DIGEST     19    /* Signed File Digest, ASN.1 Encoded */
+#define STREAM_ENCRYPTED_FILE_DATA 20  /* Encrypted, uncompressed data */
+#define STREAM_ENCRYPTED_WIN32_DATA 21 /* Encrypted, uncompressed Win32 BackupRead data */
 
 
 /*
@@ -198,13 +206,6 @@
 
 /* Definitions for upper part of type word (see above). */
 #define AR_DATA_STREAM (1<<16)        /* Data stream id present */
-
-/*
- * Internal code for Signature types
- */
-#define NO_SIG   0
-#define MD5_SIG  1
-#define SHA1_SIG 2
 
 /*
  * Tape label types -- stored in catalog

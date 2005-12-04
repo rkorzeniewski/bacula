@@ -28,6 +28,8 @@
 #ifndef __BMD5_H
 #define __BMD5_H
 
+#define MD5HashSize 16
+
 struct MD5Context {
    uint32_t buf[4];
    uint32_t bits[2];

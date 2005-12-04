@@ -36,6 +36,7 @@ static char rec_header[] = "rechdr %ld %ld %ld %ld %ld";
 static const char *zlib_strerror(int stat);
 #endif
 
+int verify_signature(JCR *jcr, SIGNATURE *sig);
 int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
       uint64_t *addr, int flags);
 
@@ -81,6 +82,7 @@ void do_restore(JCR *jcr)
    BFILE altbfd;                      /* Alternative data stream */
    uint64_t alt_addr = 0;             /* Write address for alternative stream */
    intmax_t alt_size = 0;             /* Size of alternate stream */
+   SIGNATURE *sig = NULL;             /* Cryptographic signature (if any) for file */
    int flags;                         /* Options for extract_data() */
    int stat;
    ATTR *attr;
@@ -137,7 +139,8 @@ void do_restore(JCR *jcr)
     *    or  c. Alternate data stream (e.g. Resource Fork)
     *    or  d. Finder info
     *    or  e. ACLs
-    *    or  f. Possibly MD5 or SHA1 record
+    *    or  f. Possibly a cryptographic signature
+    *    or  g. Possibly MD5 or SHA1 record
     *   3. Repeat step 1
     *
     * NOTE: We keep track of two bacula file descriptors:
@@ -195,7 +198,7 @@ void do_restore(JCR *jcr)
          Dmsg1(30, "Stream=Unix Attributes. extract=%d\n", extract);
          /*
           * If extracting, it was from previous stream, so
-          * close the output file.
+          * close the output file and validate the signature.
           */
          if (extract) {
             if (size > 0 && !is_bopen(&bfd)) {
@@ -203,6 +206,23 @@ void do_restore(JCR *jcr)
             }
             set_attributes(jcr, attr, &bfd);
             extract = false;
+
+            /* Verify the cryptographic signature, if any */
+            if (jcr->pki_sign) {
+               if (sig) {
+                  if (!verify_signature(jcr, sig)) {
+                     // TODO landonf: Better signature failure handling.
+                     // The failure is reported to the director in verify_signature() ...
+                     Dmsg1(100, "Bad signature on %s\n", jcr->last_fname);
+                  } else {
+                     Dmsg1(100, "Signature good on %s\n", jcr->last_fname);
+                  }
+                  crypto_sign_free(sig);
+                  sig = NULL;
+               } else {
+                  Jmsg1(jcr, M_ERROR, 0, _("Missing cryptographic signature for %s\n"), jcr->last_fname);
+               }
+            }
             Dmsg0(30, "Stop extracting.\n");
          } else if (is_bopen(&bfd)) {
             Jmsg0(jcr, M_ERROR, 0, _("Logic error: output file should not be open\n"));
@@ -370,8 +390,15 @@ void do_restore(JCR *jcr)
 #endif
          break;
 
-      case STREAM_MD5_SIGNATURE:
-      case STREAM_SHA1_SIGNATURE:
+      case STREAM_SIGNED_DIGEST:
+         /* Save signature. */
+         sig = crypto_sign_decode(sd->msg, (size_t) sd->msglen);
+         break;
+
+      case STREAM_MD5_DIGEST:
+      case STREAM_SHA1_DIGEST:
+      case STREAM_SHA256_DIGEST:
+      case STREAM_SHA512_DIGEST:
          break;
 
       case STREAM_PROGRAM_NAMES:
@@ -474,6 +501,66 @@ static const char *zlib_strerror(int stat)
    }
 }
 #endif
+
+static int do_file_digest(FF_PKT *ff_pkt, void *pkt, bool top_level) {
+   JCR *jcr = (JCR *) pkt;
+   return (digest_file(jcr, ff_pkt, jcr->digest));
+}
+
+/*
+ * Verify the signature for the last restored file
+ * Return value is either true (signature correct)
+ * or false (signature could not be verified).
+ */
+int verify_signature(JCR *jcr, SIGNATURE *sig)
+{
+   X509_KEYPAIR *keypair;
+   DIGEST *digest = NULL;
+   crypto_error_t err;
+
+
+   /* Iterate through the trusted signers */
+   foreach_alist(keypair, jcr->pki_signers) {
+      err = crypto_sign_get_digest(sig, jcr->pki_keypair, &digest);
+
+      switch (err) {
+      case CRYPTO_ERROR_NONE:
+         /* Signature found, digest allocated */
+         jcr->digest = digest;
+
+         /* Checksum the entire file */
+         if (find_one_file(jcr, jcr->ff, do_file_digest, jcr, jcr->last_fname, (dev_t)-1, 1) != 0) {
+            Jmsg(jcr, M_ERROR, 0, _("Signature validation failed for %s: \n"), jcr->last_fname);
+            return false;
+         }
+
+         /* Verify the signature */
+         if ((err = crypto_sign_verify(sig, keypair, digest)) != CRYPTO_ERROR_NONE) {
+            Jmsg2(jcr, M_ERROR, 0, _("Signature validation failed for %s: %s\n"), jcr->last_fname, crypto_strerror(err));
+            crypto_digest_free(digest);
+            return false;
+         }
+
+         /* Valid signature */
+         crypto_digest_free(digest);
+         return true;
+
+      case CRYPTO_ERROR_NOSIGNER:
+         /* Signature not found, try again */
+         continue;
+      default:
+         /* Something strange happened (that shouldn't happen!)... */
+         Jmsg2(jcr, M_ERROR, 0, _("Signature validation failed for %s: %s\n"), jcr->last_fname, crypto_strerror(err));
+         if (digest) {
+            crypto_digest_free(digest);
+         }
+         return false;
+      }
+   }
+
+   /* Unreachable */
+   return false;
+}
 
 /*
  * In the context of jcr, write data to bfd.

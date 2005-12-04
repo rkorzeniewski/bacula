@@ -53,16 +53,16 @@ extern int UpdateDB(const char *file, int line, JCR *jcr, B_DB *db, char *update
  *
  * -----------------------------------------------------------------------
  */
-/* Update the attributes record by adding the MD5 signature */
+/* Update the attributes record by adding the file digest */
 int
-db_add_SIG_to_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, char *SIG,
+db_add_digest_to_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, char *digest,
                           int type)
 {
    int stat;
-   char ed1[50];
+   char ed1[CRYPTO_DIGEST_MAX_SIZE];
 
    db_lock(mdb);
-   Mmsg(mdb->cmd, "UPDATE File SET MD5='%s' WHERE FileId=%s", SIG, 
+   Mmsg(mdb->cmd, "UPDATE File SET MD5='%s' WHERE FileId=%s", digest, 
       edit_int64(FileId, ed1));
    stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    db_unlock(mdb);

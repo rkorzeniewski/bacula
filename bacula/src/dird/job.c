@@ -644,13 +644,13 @@ bool get_or_create_fileset_record(JCR *jcr)
    bstrncpy(fsr.FileSet, jcr->fileset->hdr.name, sizeof(fsr.FileSet));
    if (jcr->fileset->have_MD5) {
       struct MD5Context md5c;
-      unsigned char signature[16];
+      unsigned char digest[MD5HashSize];
       memcpy(&md5c, &jcr->fileset->md5c, sizeof(md5c));
-      MD5Final(signature, &md5c);
-      bin_to_base64(fsr.MD5, (char *)signature, 16); /* encode 16 bytes */
+      MD5Final(digest, &md5c);
+      bin_to_base64(fsr.MD5, (char *)digest, MD5HashSize);
       bstrncpy(jcr->fileset->MD5, fsr.MD5, sizeof(jcr->fileset->MD5));
    } else {
-      Jmsg(jcr, M_WARNING, 0, _("FileSet MD5 signature not found.\n"));
+      Jmsg(jcr, M_WARNING, 0, _("FileSet MD5 digest not found.\n"));
    }
    if (!jcr->fileset->ignore_fs_changes ||
        !db_get_fileset_record(jcr, jcr->db, &fsr)) {

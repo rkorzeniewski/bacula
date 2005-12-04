@@ -103,7 +103,7 @@ static RES_ITEM options_items[] = {
 enum {
    INC_KW_NONE,
    INC_KW_COMPRESSION,
-   INC_KW_SIGNATURE,
+   INC_KW_DIGEST,
    INC_KW_ENCRYPTION,
    INC_KW_VERIFY,
    INC_KW_ONEFS,
@@ -129,7 +129,7 @@ enum {
  */
 static struct s_kw FS_option_kw[] = {
    {"compression", INC_KW_COMPRESSION},
-   {"signature",   INC_KW_SIGNATURE},
+   {"signature",   INC_KW_DIGEST},
    {"encryption",  INC_KW_ENCRYPTION},
    {"verify",      INC_KW_VERIFY},
    {"onefs",       INC_KW_ONEFS},
@@ -163,8 +163,10 @@ struct s_fs_opt {
  * included files.
  */
 static struct s_fs_opt FS_options[] = {
-   {"md5",      INC_KW_SIGNATURE,    "M"},
-   {"sha1",     INC_KW_SIGNATURE,    "S"},
+   {"md5",      INC_KW_DIGEST,        "M"},
+   {"sha1",     INC_KW_DIGEST,        "S"},
+   {"sha256",   INC_KW_DIGEST,       "S2"},
+   {"sha512",   INC_KW_DIGEST,       "S3"},
    {"gzip",     INC_KW_COMPRESSION,  "Z6"},
    {"gzip1",    INC_KW_COMPRESSION,  "Z1"},
    {"gzip2",    INC_KW_COMPRESSION,  "Z2"},
