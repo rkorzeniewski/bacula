@@ -440,8 +440,19 @@ static void list_scheduled_jobs(UAContext *ua)
    bool hdr_printed = false;
    dlist sched;
    sched_pkt *sp;
+   int days, i;
 
    Dmsg0(200, "enter list_sched_jobs()\n");
+
+   days = 1;
+   i = find_arg_with_value(ua, N_("days"));
+   if (i >= 0) {
+     days = atoi(ua->argv[i]);
+     if ((days < 0) || (days > 50)) {
+       bsendmsg(ua, _("Ignoring illegal value for days.\n"));
+       days = 1;
+     }
+   }
 
    /* Loop through all jobs */
    LockRes();
@@ -449,7 +460,7 @@ static void list_scheduled_jobs(UAContext *ua)
       if (!acl_access_ok(ua, Job_ACL, job->hdr.name)) {
          continue;
       }
-      for (run=NULL; (run = find_next_run(run, job, runtime)); ) {
+      for (run=NULL; (run = find_next_run(run, job, runtime, days)); ) {
          level = job->JobLevel;
          if (run->level) {
             level = run->level;

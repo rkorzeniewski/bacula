@@ -755,8 +755,8 @@ bool unser_volume_label(DEVICE *dev, DEV_RECORD *rec)
    unser_string(dev->VolHdr.ProgDate);
 
    ser_end(rec->data, SER_LENGTH_Volume_Label);
-   Dmsg0(90, "unser_vol_label\n");
-   if (debug_level >= 90) {
+   Dmsg0(190, "unser_vol_label\n");
+   if (debug_level >= 190) {
       dump_volume_label(dev);
    }
    return true;

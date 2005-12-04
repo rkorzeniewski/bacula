@@ -242,7 +242,9 @@ bail_out:
    return -1;
 }
 
-
+/*
+ * Set pointer to instantiated events class
+ */
 static PyObject *set_job_events(PyObject *self, PyObject *arg)
 {
    PyObject *eObject;
@@ -261,7 +263,7 @@ static PyObject *set_job_events(PyObject *self, PyObject *arg)
    return Py_None;
 }
 
-/* Run a Bacula command */
+/* Run a Bacula job */
 static PyObject *job_run(PyObject *self, PyObject *arg)
 {
    JCR *jcr;

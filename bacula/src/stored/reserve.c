@@ -612,7 +612,6 @@ static int reserve_device(RCTX &rctx)
       if (ok) {
          rctx.jcr->dcr = dcr;
       }
-      Dmsg3(200, "dev_name=%s mediatype=%s ok=%d\n", dcr->dev_name, dcr->media_type, ok);
    } else {
       ok = reserve_device_for_read(dcr);
       if (ok) {
@@ -623,6 +622,8 @@ static int reserve_device(RCTX &rctx)
       free_dcr(dcr);
       return 0;
    }
+   Dmsg4(100, "Reserved dev_name=%s mediatype=%s pool=%s ok=%d\n",
+         dcr->dev_name, dcr->media_type, dcr->pool_name, ok);
    return 1;
 }
 

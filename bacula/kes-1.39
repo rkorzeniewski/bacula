@@ -3,6 +3,16 @@
 
 General:
 
+Changes to 1.39.2:
+- Landon merged his data encription changes into the HEAD
+- Apply days keyword patch from Alexander.Bergolth at wu-wien.ac.at 
+  If this patch is applied, the number of days can be specified with
+  "list nextvol days=xx"
+  or
+  "status dir days=xx"
+  My use case is to be able to preview the next scheduled job (and the 
+  next tape to be used) on fridays if there are no scheduled jobs during 
+  the weekend.
 Changes to 1.39.1:
 03Dec05
 - Fix font code in gnome2 console user patch. Fixes bug #501.
