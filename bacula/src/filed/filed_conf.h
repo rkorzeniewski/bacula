@@ -71,6 +71,10 @@ struct CLIENT {
    utime_t heartbeat_interval;        /* Interval to send heartbeats to Dir */
    utime_t SDConnectTimeout;          /* timeout in seconds */
    uint32_t max_network_buffer_size;  /* max network buf size */
+   int pki_sign;                      /* Enable Data Integrity Verification via Digital Signatures */
+   int pki_encrypt;                   /* Enable Data Encryption */
+   char *pki_keypairfile;             /* PKI Key Pair File */
+   alist *pki_trustedkeys;            /* PKI Trusted Public Keys */
    int tls_enable;                    /* Enable TLS */
    int tls_require;                   /* Require TLS */
    char *tls_ca_certfile;             /* TLS CA Certificate File */
@@ -78,6 +82,8 @@ struct CLIENT {
    char *tls_certfile;                /* TLS Client Certificate File */
    char *tls_keyfile;                 /* TLS Client Key File */
 
+   X509_KEYPAIR *pki_keypair;         /* Shared PKI Public/Private Keypair */
+   alist *pki_signers;                /* Shared PKI Trusted Signers */
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
 };
 

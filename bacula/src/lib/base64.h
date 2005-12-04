@@ -1,12 +1,13 @@
 /*
- * Bacula File Daemon specific configuration and defines
+ *   Generic base 64 input and output routines
  *
- *     Kern Sibbald, Jan MMI
+ *    Written by Kern E. Sibbald, March MM.
  *
  *   Version $Id$
  */
+
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2005 Kern Sibbald and John Walker
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -25,18 +26,5 @@
 
  */
 
-#define FILE_DAEMON 1
-#include "filed_conf.h"
-#include "findlib/find.h"
-#include "jcr.h"
-#include "acl.h"
-#include "protos.h"                   /* file daemon prototypes */
-#ifdef HAVE_LIBZ
-#include <zlib.h>                     /* compression headers */
-#else
-#define uLongf uint32_t
-#endif
-
-extern const int win32_client;              /* Are we running on Windows? */
-
-extern CLIENT *me;                    /* "Global" Client resource */
+/* Maximum size of len bytes after base64 encoding */
+#define BASE64_SIZE(len) (((len + 3 - (len % 3)) / 3) * 4)

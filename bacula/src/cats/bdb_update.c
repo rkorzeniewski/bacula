@@ -197,7 +197,7 @@ int db_update_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
    return stat;
 }
 
-int db_add_SIG_to_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, char *SIG, int type)
+int db_add_digest_to_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, char *digest, int type)
 {
    return 1;
 }

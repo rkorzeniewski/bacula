@@ -48,7 +48,7 @@ static int  create_client_record(B_DB *db, CLIENT_DBR *cr);
 static int  create_fileset_record(B_DB *db, FILESET_DBR *fsr);
 static int  create_jobmedia_record(B_DB *db, JCR *jcr);
 static JCR *create_jcr(JOB_DBR *jr, DEV_RECORD *rec, uint32_t JobId);
-static int update_SIG_record(B_DB *db, char *SIGbuf, DEV_RECORD *rec, int type);
+static int update_digest_record(B_DB *db, char *digest, DEV_RECORD *rec, int type);
 
 
 /* Global variables */
@@ -372,6 +372,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    DEVICE *dev = dcr->dev;
    JCR *bjcr = dcr->jcr;
    DEV_BLOCK *block = dcr->block;
+   char digest[BASE64_SIZE(CRYPTO_DIGEST_MAX_SIZE)];
 
    if (rec->data_len > 0) {
       mr.VolBytes += rec->data_len + WRITE_RECHDR_LENGTH; /* Accumulate Volume bytes */
@@ -699,24 +700,44 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       free_jcr(mjcr);                 /* done using JCR */
       break;
 
-   case STREAM_MD5_SIGNATURE:
-      char MD5buf[50];
-      bin_to_base64(MD5buf, (char *)rec->data, 16); /* encode 16 bytes */
+   case STREAM_MD5_DIGEST:
+      bin_to_base64(digest, (char *)rec->data, CRYPTO_DIGEST_MD5_SIZE);
       if (verbose > 1) {
-         Pmsg1(000, _("Got MD5 record: %s\n"), MD5buf);
+         Pmsg1(000, _("Got MD5 record: %s\n"), digest);
       }
-      update_SIG_record(db, MD5buf, rec, MD5_SIG);
+      update_digest_record(db, digest, rec, CRYPTO_DIGEST_MD5);
       break;
 
-   case STREAM_SHA1_SIGNATURE:
-      char SIGbuf[50];
-      bin_to_base64(SIGbuf, (char *)rec->data, 20); /* encode 20 bytes */
+   case STREAM_SHA1_DIGEST:
+      bin_to_base64(digest, (char *)rec->data, CRYPTO_DIGEST_SHA1_SIZE);
       if (verbose > 1) {
-         Pmsg1(000, _("Got SHA1 record: %s\n"), SIGbuf);
+         Pmsg1(000, _("Got SHA1 record: %s\n"), digest);
       }
-      update_SIG_record(db, SIGbuf, rec, SHA1_SIG);
+      update_digest_record(db, digest, rec, CRYPTO_DIGEST_SHA1);
       break;
 
+   case STREAM_SHA256_DIGEST:
+      bin_to_base64(digest, (char *)rec->data, CRYPTO_DIGEST_SHA256_SIZE);
+      if (verbose > 1) {
+         Pmsg1(000, _("Got SHA256 record: %s\n"), digest);
+      }
+      update_digest_record(db, digest, rec, CRYPTO_DIGEST_SHA256);
+      break;
+
+   case STREAM_SHA512_DIGEST:
+      bin_to_base64(digest, (char *)rec->data, CRYPTO_DIGEST_SHA512_SIZE);
+      if (verbose > 1) {
+         Pmsg1(000, _("Got SHA512 record: %s\n"), digest);
+      }
+      update_digest_record(db, digest, rec, CRYPTO_DIGEST_SHA512);
+      break;
+
+   case STREAM_SIGNED_DIGEST:
+      // TODO landonf: Investigate signed digest support in bscan
+      if (verbose > 1) {
+         Pmsg0(000, _("Got signed digest record\n"));
+      }
+      break;
 
    case STREAM_PROGRAM_NAMES:
       if (verbose) {
@@ -1148,7 +1169,7 @@ static int create_jobmedia_record(B_DB *db, JCR *mjcr)
 /*
  * Simulate the database call that updates the MD5/SHA1 record
  */
-static int update_SIG_record(B_DB *db, char *SIGbuf, DEV_RECORD *rec, int type)
+static int update_digest_record(B_DB *db, char *digest, DEV_RECORD *rec, int type)
 {
    JCR *mjcr;
 
@@ -1168,7 +1189,7 @@ static int update_SIG_record(B_DB *db, char *SIGbuf, DEV_RECORD *rec, int type)
       return 1;
    }
 
-   if (!db_add_SIG_to_file_record(bjcr, db, mjcr->FileId, SIGbuf, type)) {
+   if (!db_add_digest_to_file_record(bjcr, db, mjcr->FileId, digest, type)) {
       Pmsg1(0, _("Could not add MD5/SHA1 to File record. ERR=%s\n"), db_strerror(db));
       free_jcr(mjcr);
       return 0;

@@ -222,7 +222,7 @@ bool read_records(DCR *dcr,
             break;                    /* read second part of record */
          }
          ok = record_cb(dcr, rec);
-         if (rec->Stream == STREAM_MD5_SIGNATURE || rec->Stream == STREAM_SHA1_SIGNATURE) {
+         if (crypto_digest_stream_type(rec->Stream) != CRYPTO_DIGEST_NONE) {
             Dmsg3(300, "Done FI=%u before set_eof pos %u:%u\n", rec->FileIndex,
                   dev->file, dev->block_num);
             if (match_set_eof(jcr->bsr, rec) && try_repositioning(jcr, rec, dev)) {

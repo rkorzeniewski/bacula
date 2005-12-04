@@ -49,6 +49,7 @@ void do_verify_volume(JCR *jcr)
    uint32_t size;
    uint32_t VolSessionId, VolSessionTime, file_index;
    uint32_t record_file_index;
+   char digest[BASE64_SIZE(CRYPTO_DIGEST_MAX_SIZE)];
    int type, stat;
 
    sd = jcr->store_bsock;
@@ -209,27 +210,42 @@ void do_verify_volume(JCR *jcr)
       case STREAM_WIN32_GZIP_DATA:
       case STREAM_GZIP_DATA:
       case STREAM_SPARSE_GZIP_DATA:
+      case STREAM_SIGNED_DIGEST:
 
 	/* Do nothing */
 	break;
 
-      case STREAM_MD5_SIGNATURE:
-	 char MD5buf[30];
-	 bin_to_base64(MD5buf, (char *)sd->msg, 16); /* encode 16 bytes */
-         Dmsg2(400, "send inx=%d MD5=%s\n", jcr->JobFiles, MD5buf);
-         bnet_fsend(dir, "%d %d %s *MD5-%d*", jcr->JobFiles, STREAM_MD5_SIGNATURE, MD5buf,
-	    jcr->JobFiles);
+      case STREAM_MD5_DIGEST:
+         bin_to_base64(digest, (char *)sd->msg, CRYPTO_DIGEST_MD5_SIZE);
+         Dmsg2(400, "send inx=%d MD5=%s\n", jcr->JobFiles, digest);
+         bnet_fsend(dir, "%d %d %s *MD5-%d*", jcr->JobFiles, STREAM_MD5_DIGEST, digest,
+                    jcr->JobFiles);
          Dmsg2(20, "bfiled>bdird: MD5 len=%d: msg=%s\n", dir->msglen, dir->msg);
-	 break;
+         break;
 
-      case STREAM_SHA1_SIGNATURE:
-	 char SHA1buf[30];
-	 bin_to_base64(SHA1buf, (char *)sd->msg, 20); /* encode 20 bytes */
-         Dmsg2(400, "send inx=%d SHA1=%s\n", jcr->JobFiles, SHA1buf);
-         bnet_fsend(dir, "%d %d %s *SHA1-%d*", jcr->JobFiles, STREAM_SHA1_SIGNATURE,
-	    SHA1buf, jcr->JobFiles);
+      case STREAM_SHA1_DIGEST:
+         bin_to_base64(digest, (char *)sd->msg, CRYPTO_DIGEST_SHA1_SIZE);
+         Dmsg2(400, "send inx=%d SHA1=%s\n", jcr->JobFiles, digest);
+         bnet_fsend(dir, "%d %d %s *SHA1-%d*", jcr->JobFiles, STREAM_SHA1_DIGEST,
+                    digest, jcr->JobFiles);
          Dmsg2(20, "bfiled>bdird: SHA1 len=%d: msg=%s\n", dir->msglen, dir->msg);
-	 break;
+         break;
+
+      case STREAM_SHA256_DIGEST:
+         bin_to_base64(digest, (char *)sd->msg, CRYPTO_DIGEST_SHA256_SIZE);
+         Dmsg2(400, "send inx=%d SHA256=%s\n", jcr->JobFiles, digest);
+         bnet_fsend(dir, "%d %d %s *SHA256-%d*", jcr->JobFiles, STREAM_SHA256_DIGEST,
+                    digest, jcr->JobFiles);
+         Dmsg2(20, "bfiled>bdird: SHA256 len=%d: msg=%s\n", dir->msglen, dir->msg);
+         break;
+
+      case STREAM_SHA512_DIGEST:
+         bin_to_base64(digest, (char *)sd->msg, CRYPTO_DIGEST_SHA512_SIZE);
+         Dmsg2(400, "send inx=%d SHA512=%s\n", jcr->JobFiles, digest);
+         bnet_fsend(dir, "%d %d %s *SHA512-%d*", jcr->JobFiles, STREAM_SHA512_DIGEST,
+                    digest, jcr->JobFiles);
+         Dmsg2(20, "bfiled>bdird: SHA512 len=%d: msg=%s\n", dir->msglen, dir->msg);
+         break;
 
       default:
          Pmsg2(0, "None of above!!! stream=%d data=%s\n", stream,sd->msg);

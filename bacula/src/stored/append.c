@@ -208,9 +208,9 @@ bool do_append_data(JCR *jcr)
             FI_to_ascii(buf1, rec.FileIndex), rec.VolSessionId,
             stream_to_ascii(buf2, rec.Stream, rec.FileIndex), rec.data_len);
 
-         /* Send attributes and MD5 to Director for Catalog */
-         if (stream == STREAM_UNIX_ATTRIBUTES    || stream == STREAM_MD5_SIGNATURE ||
-             stream == STREAM_UNIX_ATTRIBUTES_EX || stream == STREAM_SHA1_SIGNATURE) {
+         /* Send attributes and digest to Director for Catalog */
+         if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_UNIX_ATTRIBUTES_EX ||
+             crypto_digest_stream_type(stream) != CRYPTO_DIGEST_NONE) {
             if (!jcr->no_attributes) {
                if (are_attributes_spooled(jcr)) {
                   jcr->dir_bsock->spool = true;

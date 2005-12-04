@@ -173,6 +173,10 @@ void *handle_client_request(void *dirp)
    jcr->last_fname[0] = 0;
    jcr->client_name = get_memory(strlen(my_name) + 1);
    pm_strcpy(jcr->client_name, my_name);
+   jcr->pki_sign = me->pki_sign;
+   jcr->pki_encrypt = me->pki_encrypt;
+   jcr->pki_keypair = me->pki_keypair;
+   jcr->pki_signers = me->pki_signers;
    dir->jcr = jcr;
    enable_backup_privileges(NULL, 1 /* ignore_errors */);
 
@@ -865,7 +869,32 @@ static void set_options(findFOPTS *fo, const char *opts)
          fo->flags |= FO_READFIFO;
          break;
       case 'S':
-         fo->flags |= FO_SHA1;
+	 switch(*(p + 1)) {
+         case ' ':
+            /* Old director did not specify SHA variant */
+            fo->flags |= FO_SHA1;
+            break;
+	 case '1':
+	    fo->flags |= FO_SHA1;
+            p++;
+	    break;
+#ifdef HAVE_SHA2
+	 case '2':
+	    fo->flags |= FO_SHA256;
+            p++;
+	    break;
+	 case '3':
+	    fo->flags |= FO_SHA512;
+            p++;
+      	    break;
+#endif
+	 default:
+	    /* Automatically downgrade to SHA-1 if an unsupported
+	     * SHA variant is specified */
+	    fo->flags |= FO_SHA1;
+            p++;
+	    break;
+	 }
          break;
       case 's':
          fo->flags |= FO_SPARSE;

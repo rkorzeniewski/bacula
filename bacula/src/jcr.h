@@ -229,6 +229,11 @@ public:
    volatile BSOCK *hb_bsock;          /* duped SD socket */
    volatile BSOCK *hb_dir_bsock;      /* duped DIR socket */
    POOLMEM *RunAfterJob;              /* Command to run after job */
+   bool pki_sign;                     /* Enable PKI Signatures? */
+   bool pki_encrypt;                  /* Enable PKI Encryption? */
+   DIGEST *digest;                    /* Last file's digest context */
+   X509_KEYPAIR *pki_keypair;         /* Encryption key pair */
+   alist *pki_signers;                /* Trusted Signers */
    DIRRES* director;                  /* Director resource */
 #endif /* FILE_DAEMON */
 

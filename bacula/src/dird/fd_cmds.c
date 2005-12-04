@@ -29,6 +29,7 @@
 
 #include "bacula.h"
 #include "dird.h"
+#include "findlib/find.h"
 
 /* Commands sent to File daemon */
 static char filesetcmd[]  = "fileset%s\n"; /* set full fileset */
@@ -508,7 +509,7 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
    jcr->FileIndex = 0;
 
    Dmsg0(120, "bdird: waiting to receive file attributes\n");
-   /* Pickup file attributes and signature */
+   /* Pickup file attributes and digest */
    while (!fd->errors && (n = bget_dirmsg(fd)) > 0) {
 
    /*****FIXME****** improve error handling to stop only on
@@ -518,11 +519,11 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
       long file_index;
       int stream, len;
       char *attr, *p, *fn;
-      char Opts_SIG[MAXSTRING];      /* either Verify opts or MD5/SHA1 signature */
-      char SIG[MAXSTRING];
+      char Opts_Digest[MAXSTRING];      /* either Verify opts or MD5/SHA1 digest */
+      char digest[CRYPTO_DIGEST_MAX_SIZE];
 
       jcr->fname = check_pool_memory_size(jcr->fname, fd->msglen);
-      if ((len = sscanf(fd->msg, "%ld %d %s", &file_index, &stream, Opts_SIG)) != 3) {
+      if ((len = sscanf(fd->msg, "%ld %d %s", &file_index, &stream, Opts_Digest)) != 3) {
          Jmsg(jcr, M_FATAL, 0, _("<filed: bad attributes, expected 3 fields got %d\n"
 "msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
          set_jcr_job_status(jcr, JS_ErrorTerminated);
@@ -554,8 +555,8 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
          ar.ClientId = jcr->ClientId;
          ar.PathId = 0;
          ar.FilenameId = 0;
-         ar.Sig = NULL;
-         ar.SigType = 0;
+         ar.Digest = NULL;
+         ar.DigestType = CRYPTO_DIGEST_NONE;
 
          Dmsg2(111, "dird<filed: stream=%d %s\n", stream, jcr->fname);
          Dmsg1(120, "dird<filed: attr=%s\n", attr);
@@ -566,17 +567,17 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
             continue;
          }
          jcr->FileId = ar.FileId;
-      } else if (stream == STREAM_MD5_SIGNATURE || stream == STREAM_SHA1_SIGNATURE) {
+      } else if (crypto_digest_stream_type(stream) != CRYPTO_DIGEST_NONE) {
          if (jcr->FileIndex != (uint32_t)file_index) {
-            Jmsg2(jcr, M_ERROR, 0, _("MD5/SHA1 index %d not same as attributes %d\n"),
-               file_index, jcr->FileIndex);
+            Jmsg3(jcr, M_ERROR, 0, _("%s index %d not same as attributes %d\n"),
+               stream_to_ascii(stream), file_index, jcr->FileIndex);
             set_jcr_job_status(jcr, JS_Error);
             continue;
          }
-         db_escape_string(SIG, Opts_SIG, strlen(Opts_SIG));
-         Dmsg2(120, "SIGlen=%d SIG=%s\n", strlen(SIG), SIG);
-         if (!db_add_SIG_to_file_record(jcr, jcr->db, jcr->FileId, SIG,
-                   stream==STREAM_MD5_SIGNATURE?MD5_SIG:SHA1_SIG)) {
+         db_escape_string(digest, Opts_Digest, strlen(Opts_Digest));
+         Dmsg2(120, "DigestLen=%d Digest=%s\n", strlen(digest), digest);
+         if (!db_add_digest_to_file_record(jcr, jcr->db, jcr->FileId, digest,
+                   crypto_digest_stream_type(stream))) {
             Jmsg1(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
             set_jcr_job_status(jcr, JS_Error);
          }

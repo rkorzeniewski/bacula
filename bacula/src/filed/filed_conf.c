@@ -89,12 +89,16 @@ static RES_ITEM cli_items[] = {
    {"heartbeatinterval", store_time, ITEM(res_client.heartbeat_interval), 0, ITEM_DEFAULT, 0},
    {"sdconnecttimeout", store_time,ITEM(res_client.SDConnectTimeout), 0, ITEM_DEFAULT, 60 * 30},
    {"maximumnetworkbuffersize", store_pint, ITEM(res_client.max_network_buffer_size), 0, 0, 0},
-   {"tlsenable",            store_yesno,     ITEM(res_client.tls_enable), 1, 0, 0},
-   {"tlsrequire",           store_yesno,     ITEM(res_client.tls_require), 1, 0, 0},
-   {"tlscacertificatefile", store_dir,       ITEM(res_client.tls_ca_certfile), 0, 0, 0},
-   {"tlscacertificatedir",  store_dir,       ITEM(res_client.tls_ca_certdir), 0, 0, 0},
-   {"tlscertificate",       store_dir,       ITEM(res_client.tls_certfile), 0, 0, 0},
-   {"tlskey",               store_dir,       ITEM(res_client.tls_keyfile), 0, 0, 0},
+   {"pkisignatures",         store_yesno,     ITEM(res_client.pki_sign), 1, ITEM_DEFAULT, 0},
+   {"pkiencryption",         store_yesno,     ITEM(res_client.pki_encrypt), 1, ITEM_DEFAULT, 0},
+   {"pkikeypair",            store_dir,       ITEM(res_client.pki_keypairfile), 0, 0, 0},
+   {"pkitrustedsigner",      store_alist_str, ITEM(res_client.pki_trustedkeys), 0, 0, 0},
+   {"tlsenable",             store_yesno,     ITEM(res_client.tls_enable),  1, 0, 0},
+   {"tlsrequire",            store_yesno,     ITEM(res_client.tls_require), 1, 0, 0},
+   {"tlscacertificatefile",  store_dir,       ITEM(res_client.tls_ca_certfile), 0, 0, 0},
+   {"tlscacertificatedir",   store_dir,       ITEM(res_client.tls_ca_certdir), 0, 0, 0},
+   {"tlscertificate",        store_dir,       ITEM(res_client.tls_certfile), 0, 0, 0},
+   {"tlskey",                store_dir,       ITEM(res_client.tls_keyfile), 0, 0, 0},
    {NULL, NULL, NULL, 0, 0, 0}
 };
 
@@ -240,6 +244,20 @@ void free_resource(RES *sres, int type)
       if (res->res_client.FDaddrs) {
          free_addresses(res->res_client.FDaddrs);
       }
+      if (res->res_client.pki_keypairfile) { 
+         free(res->res_client.pki_keypairfile);
+      }
+      /* Also frees res_client.pki_keypair */
+      if (res->res_client.pki_trustedkeys) {
+         delete res->res_client.pki_trustedkeys;
+      }
+      if (res->res_client.pki_signers) {
+         X509_KEYPAIR *keypair;
+         foreach_alist(keypair, res->res_client.pki_signers) {
+            crypto_keypair_free(keypair);
+         }
+         delete res->res_client.pki_signers;
+      }
       if (res->res_client.tls_ctx) { 
          free_tls_context(res->res_client.tls_ctx);
       }
@@ -321,6 +339,8 @@ void save_resource(int type, RES_ITEM *items, int pass)
             if ((res = (URES *)GetResWithName(R_CLIENT, res_all.res_dir.hdr.name)) == NULL) {
                Emsg1(M_ABORT, 0, _("Cannot find Client resource %s\n"), res_all.res_dir.hdr.name);
             }
+            res->res_client.pki_trustedkeys = res_all.res_client.pki_trustedkeys;
+            res->res_client.pki_signers = res_all.res_client.pki_signers;
             res->res_client.messages = res_all.res_client.messages;
             break;
          default:

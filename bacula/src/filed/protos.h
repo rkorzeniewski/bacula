@@ -23,12 +23,15 @@
  */
 
 extern bool blast_data_to_storage_daemon(JCR *jcr, char *addr);
-extern void do_verify(JCR *jcr);
 extern void do_verify_volume(JCR *jcr);
 extern void do_restore(JCR *jcr);
 extern int authenticate_director(JCR *jcr);
 extern int authenticate_storagedaemon(JCR *jcr);
 extern int make_estimate(JCR *jcr);
+
+/* From verify.c */
+int digest_file(JCR *jcr, FF_PKT *ff_pkt, DIGEST *digest);
+void do_verify(JCR *jcr);
 
 /* From heartbeat.c */
 void start_heartbeat_monitor(JCR *jcr);

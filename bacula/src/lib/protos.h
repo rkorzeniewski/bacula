@@ -113,6 +113,29 @@ void hmac_md5(uint8_t* text, int text_len, uint8_t*  key,
 
 uint32_t bcrc32(uint8_t *buf, int len);
 
+/* crypto.c */
+int              init_crypto                 (void);
+int              cleanup_crypto              (void);
+DIGEST *         crypto_digest_new           (crypto_digest_t type);
+int              crypto_digest_update        (DIGEST *digest, const void *data, size_t length);
+int              crypto_digest_finalize      (DIGEST *digest, void *dest, size_t *length);
+void             crypto_digest_free          (DIGEST *digest);
+SIGNATURE *      crypto_sign_new             (void);
+crypto_error_t   crypto_sign_get_digest      (SIGNATURE *sig, X509_KEYPAIR *keypair, DIGEST **digest);
+crypto_error_t   crypto_sign_verify          (SIGNATURE *sig, X509_KEYPAIR *keypair, DIGEST *digest);
+int              crypto_sign_add_signer      (SIGNATURE *sig, DIGEST *digest, X509_KEYPAIR *keypair);
+int              crypto_sign_encode          (SIGNATURE *sig, void *dest, size_t *length);
+SIGNATURE *      crypto_sign_decode          (const void *sigData, size_t length);
+void             crypto_sign_free            (SIGNATURE *sig);
+X509_KEYPAIR *   crypto_keypair_new          (void);
+int              crypto_keypair_load_cert    (X509_KEYPAIR *keypair, const char *file);
+int              crypto_keypair_load_key     (X509_KEYPAIR *keypair, const char *file, CRYPTO_PEM_PASSWD_CB *pem_callback, const void *pem_userdata);
+void             crypto_keypair_free         (X509_KEYPAIR *keypair);
+int              crypto_default_pem_callback (char *buf, int size, const void *userdata);
+const char *     crypto_digest_name          (DIGEST *digest);
+crypto_digest_t  crypto_digest_stream_type   (int stream);
+const char *     crypto_strerror             (crypto_error_t error);
+
 /* daemon.c */
 void     daemon_start            ();
 
@@ -209,14 +232,11 @@ int             bsscanf(const char *buf, const char *fmt, ...);
 
 
 /* tls.c */
-int              init_tls                (void);
-int              cleanup_tls             (void);
-
 TLS_CONTEXT      *new_tls_context        (const char *ca_certfile,
                                           const char *ca_certdir,
                                           const char *certfile,
                                           const char *keyfile,
-                                          TLS_PEM_PASSWD_CB *pem_callback,
+                                          CRYPTO_PEM_PASSWD_CB *pem_callback,
                                           const void *pem_userdata,
                                           const char *dhfile,
                                           bool verify_peer);

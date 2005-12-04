@@ -136,7 +136,7 @@ int db_get_file_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, FILE_DBR *fdbr)
          } else {
             fdbr->FileId = (FileId_t)str_to_int64(row[0]);
             bstrncpy(fdbr->LStat, row[1], sizeof(fdbr->LStat));
-            bstrncpy(fdbr->SIG, row[2], sizeof(fdbr->SIG));
+            bstrncpy(fdbr->Digest, row[2], sizeof(fdbr->Digest));
             stat = 1;
          }
       } else {

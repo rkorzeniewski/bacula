@@ -223,8 +223,8 @@ wxString console_thread::LoadConfig(wxString configfile) {
       return errmsg;
    }
    
-   if (init_tls() != 0) {
-      Jmsg(NULL, M_ERROR_TERM, 0, wxString(_("TLS library initialization failed.\n")).mb_str(*wxConvCurrent));
+   if (init_crypto() != 0) {
+      Jmsg(NULL, M_ERROR_TERM, 0, wxString(_("Cryptographic library initialization failed.\n")).mb_str(*wxConvCurrent));
    }
 
    if (!check_resources()) {

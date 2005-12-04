@@ -110,7 +110,7 @@ bool db_update_storage_record(JCR *jcr, B_DB *mdb, STORAGE_DBR *sr);
 int  db_update_media_record(JCR *jcr, B_DB *db, MEDIA_DBR *mr);
 int  db_update_media_defaults(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr);
 int  db_update_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr);
-int  db_add_SIG_to_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, char *SIG, int type);
+int  db_add_digest_to_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, char *digest, int type);
 int  db_mark_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, JobId_t JobId);
 void db_make_inchanger_unique(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr);
 
