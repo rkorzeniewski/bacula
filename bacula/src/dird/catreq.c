@@ -162,16 +162,6 @@ void catalog_request(JCR *jcr, BSOCK *bs)
             } else if (strcmp(mr.MediaType, jcr->store->media_type) != 0) {
                reason = _("not correct MediaType");
             } else {
-              /*
-               * ****FIXME***
-               *   This test (accept_any_volume) is turned off
-               *   because it doesn't properly check if the volume
-               *   really is out of sequence!
-               *
-               * } else if (!jcr->pool->accept_any_volume) {
-               *    reason = "Volume not in sequence";
-               */
-
                /*
                 * Now try recycling if necessary
                 *   reason set non-NULL if we cannot use it

@@ -97,7 +97,7 @@ bool do_backup_init(JCR *jcr)
          }
       }
    }
-   jcr->PoolId = pr.PoolId;               /****FIXME**** this can go away */
+   jcr->PoolId = pr.PoolId;
    jcr->jr.PoolId = pr.PoolId;
 
    Dmsg2(900, "cloned=%d run_cmds=%p\n", jcr->cloned, jcr->job->run_cmds);
