@@ -4,7 +4,7 @@
 #   split the archive into two volumes, then build a BSR with
 #   the restore command and use bextract to restore the files.
 #
-debug=1
+debug=0
 if test "$debug" -eq 1 ; then
   out="tee"
 else

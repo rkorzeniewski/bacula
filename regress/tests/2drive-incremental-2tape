@@ -31,6 +31,12 @@ echo "${cwd}/tmp/build/ficheriro1.txt" >restore-list
 echo "${cwd}/tmp/build/ficheriro2.txt" >>restore-list
 cd ${cwd}
 
+# Turn off Prefer Mounted Volumes so we use 2 drives
+outf="tmp/sed_tmp"
+echo "s%# Prefer Mounted Volumes%  Prefer Mounted Volumes%g" >${outf}
+cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
+sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
+
 echo " "
 echo " "
 echo " === Starting 2drive-incremental-2tape test ==="
