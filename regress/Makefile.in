@@ -18,13 +18,13 @@ first_rule: all
 
 all:
 
-setup: bacula
+setup: bacula sed
 
 # 
 # Some machines cannot handle the sticky bit and other garbage that
 #  is in weird-files, so we load and run it only on Linux machines.
 #
-bacula: all sed
+bacula: all
 	@rm -rf bin build weird-files tmp
 	(if test x`uname` = xLinux -o x`uname` = xFreeBSD ; then \
 	   tar xfz weird-files.tar.gz ;\

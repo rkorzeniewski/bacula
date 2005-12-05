@@ -35,6 +35,8 @@ cd ${cwd}
 outf="tmp/sed_tmp"
 echo "s%# Prefer Mounted Volumes%  Prefer Mounted Volumes%g" >${outf}
 cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
+# Comment the next line out to write everything to one drive
+#  otherwise, it writes the two jobs to different drives
 sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
 
 echo " "
@@ -50,10 +52,11 @@ messages
 @$out tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 slot=1 Pool=Default drive=0
 label storage=DDS-4 volume=TestVolume002 slot=2 Pool=Default drive=1
-setdebug level=100 storage=DDS-4
+@#setdebug level=100 storage=DDS-4
 run job=NightlySave yes
 run job=NightlySave yes
 wait
+list volumes
 status storage=DDS-4
 messages
 quit
@@ -79,6 +82,7 @@ status storage=DDS-4
 @#setdebug level=400 storage=DDS-4
 run level=Incremental job=NightlySave yes
 wait
+list volumes
 status storage=DDS-4
 messages
 @# 
