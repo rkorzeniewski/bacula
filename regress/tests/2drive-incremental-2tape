@@ -45,11 +45,12 @@ echo " "
 
 # Write out bconsole commands
 cat <<END_OF_DATA >tmp/bconcmds
-@$out /dev/null
+@output /dev/null
 messages
 @$out tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 slot=1 Pool=Default drive=0
 label storage=DDS-4 volume=TestVolume002 slot=2 Pool=Default drive=1
+setdebug level=100 storage=DDS-4
 run job=NightlySave yes
 run job=NightlySave yes
 wait
