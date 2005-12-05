@@ -66,9 +66,9 @@ int read_dev_volume_label(DCR *dcr)
    bool want_ansi_label;
    bool have_ansi_label = false;
 
-   Dmsg3(100, "Enter read_volume_label device=%s vol=%s dev_Vol=%s\n",
-      dev->print_name(), VolName, dev->VolHdr.VolumeName[0]?dev->VolHdr.VolumeName:
-      "*NULL*");
+   Dmsg4(100, "Enter read_volume_label res=%d device=%s vol=%s dev_Vol=%s\n",
+      dev->reserved_device, dev->print_name(), VolName, 
+      dev->VolHdr.VolumeName[0]?dev->VolHdr.VolumeName:"*NULL*");
 
    if (!dev->is_open()) {
       Emsg0(M_ABORT, 0, _("BAD call to read_dev_volume_label\n"));
@@ -85,7 +85,7 @@ int read_dev_volume_label(DCR *dcr)
          if (!dev->poll && jcr->label_errors++ > 100) {
             Jmsg(jcr, M_FATAL, 0, _("Too many tries: %s"), jcr->errmsg);
          }
-         Dmsg0(100, "return VOL_NAME_ERROR\n");
+         Dmsg0(150, "return VOL_NAME_ERROR\n");
          stat = VOL_NAME_ERROR;
          goto bail_out;
       }
@@ -194,7 +194,7 @@ int read_dev_volume_label(DCR *dcr)
       if (!dev->poll && jcr->label_errors++ > 100) {
          Jmsg(jcr, M_FATAL, 0, _("Too many tries: %s"), jcr->errmsg);
       }
-      Dmsg0(100, "return VOL_LABEL_ERROR\n");
+      Dmsg0(150, "return VOL_LABEL_ERROR\n");
       stat = VOL_LABEL_ERROR;
       goto bail_out;
    }
@@ -215,7 +215,7 @@ int read_dev_volume_label(DCR *dcr)
       if (!dev->poll && jcr->label_errors++ > 100) {
          Jmsg(jcr, M_FATAL, 0, "Too many tries: %s", jcr->errmsg);
       }
-      Dmsg0(100, "return VOL_NAME_ERROR\n");
+      Dmsg0(150, "return VOL_NAME_ERROR\n");
       stat = VOL_NAME_ERROR;
       goto bail_out;
    }
@@ -242,7 +242,7 @@ int read_dev_volume_label(DCR *dcr)
 bail_out:
    empty_block(block);
    rewind_dev(dev);
-   Dmsg1(100, "return %d\n", stat);
+   Dmsg1(150, "return %d\n", stat);
    return stat;
 }
 
@@ -302,7 +302,7 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *Po
    if (dev->open(dcr, OPEN_READ_WRITE) < 0) {
       goto bail_out;
    }
-   Dmsg1(100, "Label type=%d\n", dev->label_type);
+   Dmsg1(150, "Label type=%d\n", dev->label_type);
    if (!rewind_dev(dev)) {
       free_volume(dev);
       memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
@@ -446,7 +446,7 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
       dev->VolCatInfo.VolCatWrites = 1;
       dev->VolCatInfo.VolCatReads = 1;
    }
-   Dmsg0(100, "dir_update_vol_info. Set Append\n");
+   Dmsg0(150, "dir_update_vol_info. Set Append\n");
    bstrncpy(dev->VolCatInfo.VolCatStatus, "Append", sizeof(dev->VolCatInfo.VolCatStatus));
    if (!dir_update_volume_info(dcr, true)) {  /* indicate doing relabel */
       return false;
@@ -523,7 +523,7 @@ static void create_volume_label_record(DCR *dcr, DEV_RECORD *rec)
    rec->VolSessionId = jcr->VolSessionId;
    rec->VolSessionTime = jcr->VolSessionTime;
    rec->Stream = jcr->NumVolumes;
-   Dmsg2(100, "Created Vol label rec: FI=%s len=%d\n", FI_to_ascii(buf, rec->FileIndex),
+   Dmsg2(150, "Created Vol label rec: FI=%s len=%d\n", FI_to_ascii(buf, rec->FileIndex),
       rec->data_len);
 }
 
@@ -668,7 +668,7 @@ bool write_session_label(DCR *dcr, int label)
     *  read the next block).
     */
    if (!can_write_record_to_block(block, rec)) {
-      Dmsg0(100, "Cannot write session label to block.\n");
+      Dmsg0(150, "Cannot write session label to block.\n");
       if (!write_block_to_device(dcr)) {
          Dmsg0(90, "Got session label write_block_to_dev error.\n");
          /* ****FIXME***** errno is not set here */

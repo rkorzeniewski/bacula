@@ -380,7 +380,7 @@ static void prt_runtime(UAContext *ua, sched_pkt *sp)
       }
       if (ok) {
          mr.PoolId = jcr->PoolId;
-         ok = find_next_volume_for_append(jcr, &mr, 0);
+         ok = find_next_volume_for_append(jcr, &mr, 1, false/*no create*/);
       }
       if (!ok) {
          bstrncpy(mr.VolumeName, "*unknown*", sizeof(mr.VolumeName));

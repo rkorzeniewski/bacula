@@ -407,18 +407,18 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
       /* List next volume */
       } else if (strcasecmp(ua->argk[i], N_("nextvol")) == 0 ||
                  strcasecmp(ua->argk[i], N_("nextvolume")) == 0) {
-	 n = 1;
+         n = 1;
          j = find_arg_with_value(ua, N_("days"));
          if (j >= 0) {
             n = atoi(ua->argv[j]);
-	    if ((n < 0) || (n > 50)) {
-	      bsendmsg(ua, _("Ignoring illegal value for days.\n"));
-	      n = 1;
-	    }
+            if ((n < 0) || (n > 50)) {
+              bsendmsg(ua, _("Ignoring illegal value for days.\n"));
+              n = 1;
+            }
          }
          list_nextvol(ua, n);
       } else if (strcasecmp(ua->argk[i], N_("limit")) == 0
-		 || strcasecmp(ua->argk[i], N_("days")) == 0) {
+                 || strcasecmp(ua->argk[i], N_("days")) == 0) {
          /* Ignore it */
       } else {
          bsendmsg(ua, _("Unknown list keyword: %s\n"), NPRT(ua->argk[i]));
@@ -465,14 +465,14 @@ static bool list_nextvol(UAContext *ua, int ndays)
       memset(&pr, 0, sizeof(pr));
       pr.PoolId = jcr->PoolId;
       if (! db_get_pool_record(ua->jcr, ua->db, &pr)) {
-	 strcpy(pr.Name, "*UnknownPool*");
+         strcpy(pr.Name, "*UnknownPool*");
       }
-      if (!find_next_volume_for_append(jcr, &mr, 0)) {
-	 bsendmsg(ua, _("Could not find next Volume for Job %s (%s, %s).\n"),
-	    job->hdr.name, pr.Name, level_to_str(run->level));
+      if (!find_next_volume_for_append(jcr, &mr, 1, false/*no create*/)) {
+         bsendmsg(ua, _("Could not find next Volume for Job %s (%s, %s).\n"),
+            job->hdr.name, pr.Name, level_to_str(run->level));
       } else {
          bsendmsg(ua,
-	    _("The next Volume to be used by Job \"%s\" (%s, %s) will be %s\n"),
+            _("The next Volume to be used by Job \"%s\" (%s, %s) will be %s\n"),
             job->hdr.name, pr.Name, level_to_str(run->level), mr.VolumeName);
          found = true;
       }
@@ -483,7 +483,7 @@ static bool list_nextvol(UAContext *ua, int ndays)
    }
    if (!found) {
       bsendmsg(ua, _("Could not find next Volume for Job %s.\n"),
-	 job->hdr.name);
+         job->hdr.name);
       return false;
    }
    return true;
@@ -523,58 +523,58 @@ RUN *find_next_run(RUN *run, JOB *job, time_t &runtime, int ndays)
        * Find runs in next 24 hours
        */
       for (day = 0; day <= ndays; day++) {
-	 future = now + (day * 60 * 60 * 24);
+         future = now + (day * 60 * 60 * 24);
 
-	 /* Break down the time into components */
-	 localtime_r(&future, &tm);
-	 mday = tm.tm_mday - 1;
-	 wday = tm.tm_wday;
-	 month = tm.tm_mon;
-	 wom = mday / 7;
-	 woy = tm_woy(future);
+         /* Break down the time into components */
+         localtime_r(&future, &tm);
+         mday = tm.tm_mday - 1;
+         wday = tm.tm_wday;
+         month = tm.tm_mon;
+         wom = mday / 7;
+         woy = tm_woy(future);
 
-	 is_scheduled = bit_is_set(mday, run->mday) && bit_is_set(wday, run->wday) &&
+         is_scheduled = bit_is_set(mday, run->mday) && bit_is_set(wday, run->wday) &&
             bit_is_set(month, run->month) && bit_is_set(wom, run->wom) &&
             bit_is_set(woy, run->woy);
  
 #ifdef xxx
-	 Dmsg2(000, "day=%d is_scheduled=%d\n", day, is_scheduled);
-	 Dmsg1(000, "bit_set_mday=%d\n", bit_is_set(mday, run->mday));
-	 Dmsg1(000, "bit_set_wday=%d\n", bit_is_set(wday, run->wday));
-	 Dmsg1(000, "bit_set_month=%d\n", bit_is_set(month, run->month));
-	 Dmsg1(000, "bit_set_wom=%d\n", bit_is_set(wom, run->wom));
-	 Dmsg1(000, "bit_set_woy=%d\n", bit_is_set(woy, run->woy));
+         Dmsg2(000, "day=%d is_scheduled=%d\n", day, is_scheduled);
+         Dmsg1(000, "bit_set_mday=%d\n", bit_is_set(mday, run->mday));
+         Dmsg1(000, "bit_set_wday=%d\n", bit_is_set(wday, run->wday));
+         Dmsg1(000, "bit_set_month=%d\n", bit_is_set(month, run->month));
+         Dmsg1(000, "bit_set_wom=%d\n", bit_is_set(wom, run->wom));
+         Dmsg1(000, "bit_set_woy=%d\n", bit_is_set(woy, run->woy));
 #endif
 
-	 if (is_scheduled) { /* Jobs scheduled on that day */
+         if (is_scheduled) { /* Jobs scheduled on that day */
 #ifdef xxx
-	    char buf[300], num[10];
-	    bsnprintf(buf, sizeof(buf), "tm.hour=%d hour=", tm.tm_hour);
-	    for (i=0; i<24; i++) {
-	       if (bit_is_set(i, run->hour)) {
-		  bsnprintf(num, sizeof(num), "%d ", i);
-		  bstrncat(buf, num, sizeof(buf));
-	       }
-	    }
-	    bstrncat(buf, "\n", sizeof(buf));
-	    Dmsg1(000, "%s", buf);
+            char buf[300], num[10];
+            bsnprintf(buf, sizeof(buf), "tm.hour=%d hour=", tm.tm_hour);
+            for (i=0; i<24; i++) {
+               if (bit_is_set(i, run->hour)) {
+                  bsnprintf(num, sizeof(num), "%d ", i);
+                  bstrncat(buf, num, sizeof(buf));
+               }
+            }
+            bstrncat(buf, "\n", sizeof(buf));
+            Dmsg1(000, "%s", buf);
 #endif
-	    /* find time (time_t) job is to be run */
-	    localtime_r(&future, &runtm);
-	    for (i= 0; i < 24; i++) {
-	       if (bit_is_set(i, run->hour)) {
-		  runtm.tm_hour = i;
-		  runtm.tm_min = run->minute;
-		  runtm.tm_sec = 0;
-		  runtime = mktime(&runtm);
-		  Dmsg2(200, "now=%d runtime=%d\n", now, runtime);
-		  if ((runtime > now) && (runtime < endtime)) {
-		     Dmsg2(200, "Found it level=%d %c\n", run->level, run->level);
-		     return run;         /* found it, return run resource */
-		  }
-	       }
-	    }
-	 }
+            /* find time (time_t) job is to be run */
+            localtime_r(&future, &runtm);
+            for (i= 0; i < 24; i++) {
+               if (bit_is_set(i, run->hour)) {
+                  runtm.tm_hour = i;
+                  runtm.tm_min = run->minute;
+                  runtm.tm_sec = 0;
+                  runtime = mktime(&runtm);
+                  Dmsg2(200, "now=%d runtime=%d\n", now, runtime);
+                  if ((runtime > now) && (runtime < endtime)) {
+                     Dmsg2(200, "Found it level=%d %c\n", run->level, run->level);
+                     return run;         /* found it, return run resource */
+                  }
+               }
+            }
+         }
       }
    } /* end for loop over runs */
    /* Nothing found */

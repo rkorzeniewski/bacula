@@ -35,7 +35,7 @@
  *   MEDIA_DBR mr (zeroed out)
  *   create -- whether or not to create a new volume
  */
-int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, bool create)
+int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index, bool create)
 {
    int retry = 0;
    bool ok;
@@ -58,7 +58,7 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, bool create)
       /*
        *  1. Look for volume with "Append" status.
        */
-      ok = db_find_next_volume(jcr, jcr->db, 1, InChanger, mr);
+      ok = db_find_next_volume(jcr, jcr->db, index, InChanger, mr);
       Dmsg2(100, "catreq after find_next_vol ok=%d FW=%d\n", ok, mr->FirstWritten);
       if (!ok) {
          /*

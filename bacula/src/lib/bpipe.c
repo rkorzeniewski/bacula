@@ -269,11 +269,11 @@ int run_program(char *prog, int wait, POOLMEM *results)
          stat1 = ferror(bpipe->rfd);
       }
       if (stat1 < 0) {
-         Dmsg2(100, "Run program fgets stat=%d ERR=%s\n", stat1, strerror(errno));
+         Dmsg2(150, "Run program fgets stat=%d ERR=%s\n", stat1, strerror(errno));
       } else if (stat1 != 0) {
-         Dmsg1(100, "Run program fgets stat=%d\n", stat1);
+         Dmsg1(150, "Run program fgets stat=%d\n", stat1);
          if (bpipe->timer_id) {
-            Dmsg1(100, "Run program fgets killed=%d\n", bpipe->timer_id->killed);
+            Dmsg1(150, "Run program fgets killed=%d\n", bpipe->timer_id->killed);
             /* NB: I'm not sure it is really useful for run_program. Without the
              * following lines run_program would not detect if the program was killed
              * by the watchdog. */
@@ -288,7 +288,7 @@ int run_program(char *prog, int wait, POOLMEM *results)
    }
    stat2 = close_bpipe(bpipe);
    stat1 = stat2 != 0 ? stat2 : stat1;
-   Dmsg1(100, "Run program returning %d\n", stat1);
+   Dmsg1(150, "Run program returning %d\n", stat1);
    return stat1;
 }
 
@@ -356,7 +356,7 @@ int run_program_full_output(char *prog, int wait, POOLMEM *results)
       } else if (stat1 != 0) {
          Dmsg1(900, "Run program fgets stat=%d\n", stat1);
          if (bpipe->timer_id) {
-            Dmsg1(100, "Run program fgets killed=%d\n", bpipe->timer_id->killed);
+            Dmsg1(150, "Run program fgets killed=%d\n", bpipe->timer_id->killed);
             if (bpipe->timer_id->killed) {
                pm_strcat(tmp, _("Program killed by Bacula watchdog (timeout)\n"));
                stat1 = ETIME;
