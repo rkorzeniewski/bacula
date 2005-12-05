@@ -419,7 +419,7 @@ static bool use_storage_cmd(JCR *jcr)
          }
       }
       /* Look for an exact match all drives */
-      rctx.PreferMountedVols = false;                
+      rctx.PreferMountedVols = true;
       rctx.exact_match = true;
       rctx.available_autochanger = false;
       if ((ok = find_suitable_device_for_job(jcr, rctx))) {

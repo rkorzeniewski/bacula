@@ -291,7 +291,8 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    time_t ttime;
    struct tm tm;
    int stat;
-   char ed1[50], ed2[50], ed3[50], ed4[50], ed5[50];
+   char ed1[50], ed2[50], ed3[50], ed4[50], ed5[50], ed6[50], ed7[50];
+   char ed8[50], ed9[50];
 
 
    Dmsg1(100, "update_media: FirstWritten=%d\n", mr->FirstWritten);
@@ -333,7 +334,8 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
         "VolFiles=%u,VolBlocks=%u,VolBytes=%s,VolMounts=%u,VolErrors=%u,"
         "VolWrites=%u,MaxVolBytes=%s,VolStatus='%s',"
         "Slot=%d,InChanger=%d,VolReadTime=%s,VolWriteTime=%s,VolParts=%d,"
-        "LabelType=%d,StorageId=%s"
+        "LabelType=%d,StorageId=%s,PoolId=%s,VolRetention=%s,VolUseDuration=%s,"
+        "MaxVolJobs=%d,MaxVolFiles=%d,MaxVolBytes=%s"
         " WHERE VolumeName='%s'",
         mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
         mr->VolMounts, mr->VolErrors, mr->VolWrites,
@@ -344,6 +346,11 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
         mr->VolParts,
         mr->LabelType,
         edit_int64(mr->StorageId, ed5),
+        edit_int64(mr->PoolId, ed6),
+        edit_uint64(mr->VolRetention, ed7),
+        edit_uint64(mr->VolUseDuration, ed8),
+        mr->MaxVolJobs, mr->MaxVolFiles,
+        edit_uint64(mr->MaxVolBytes, ed9),
         mr->VolumeName);
 
    Dmsg1(400, "%s\n", mdb->cmd);
