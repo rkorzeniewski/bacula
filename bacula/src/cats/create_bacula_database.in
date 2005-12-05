@@ -5,7 +5,7 @@
 #
 if test xsqlite = x@DB_NAME@ -o xsqlite3 = x@DB_NAME@ ; then
   echo "Creating SQLite database"
-  @scriptdir@/create_@DB_NAME@_database $*
+  @scriptdir@/create_@DB_NAME@_database
 else
   if test xmysql = x@DB_NAME@ ; then
     echo "Creating MySQL database"

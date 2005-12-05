@@ -45,7 +45,7 @@ bool do_append_data(JCR *jcr)
    char buf1[100], buf2[100];
 
 
-   Dmsg0(100, "Start append data.\n");
+   Dmsg1(100, "Start append data. res=%d\n", dev->reserved_device);
 
    memset(&rec, 0, sizeof(rec));
 

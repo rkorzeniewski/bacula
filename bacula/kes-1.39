@@ -4,6 +4,16 @@
 General:
 
 Changes to 1.39.2:
+05Dec05
+- Remove argument from create_bacula_database for SQLite as it
+  caused an error.
+- Add back index code so that two drive autochangers can get
+  a second tape.
+- Change a bunch of debug levels to aid debugging autochangers.
+- Fix reservation so that mutexes are properly applied.
+- Rework reservation algorithm so that two drives can be used
+  at the same time.
+04Dec05
 - Landon merged his data encription changes into the HEAD
 - Apply days keyword patch from Alexander.Bergolth at wu-wien.ac.at 
   If this patch is applied, the number of days can be specified with

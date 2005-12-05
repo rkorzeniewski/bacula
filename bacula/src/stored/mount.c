@@ -48,7 +48,7 @@ bool mount_next_write_volume(DCR *dcr, bool release)
    JCR *jcr = dcr->jcr;
    DEV_BLOCK *block = dcr->block;
 
-   Dmsg1(100, "Enter mount_next_volume(release=%d)\n", release);
+   Dmsg1(150, "Enter mount_next_volume(release=%d)\n", release);
 
    init_device_wait_timers(dcr);
 
@@ -74,7 +74,7 @@ mount_next_vol:
    }
    recycle = false;
    if (release) {
-      Dmsg0(100, "mount_next_volume release=1\n");
+      Dmsg0(150, "mount_next_volume release=1\n");
       release_volume(dcr);
       ask = true;                     /* ask operator to mount tape */
    }
@@ -94,7 +94,7 @@ mount_next_vol:
    if (job_canceled(jcr)) {
       return false;
    }
-   Dmsg3(100, "After find_next_append. Vol=%s Slot=%d Parts=%d\n",
+   Dmsg3(150, "After find_next_append. Vol=%s Slot=%d Parts=%d\n",
          dcr->VolCatInfo.VolCatName, dcr->VolCatInfo.Slot, dcr->VolCatInfo.VolCatParts);
    
    /*
@@ -115,7 +115,7 @@ mount_next_vol:
       autochanger = false;
       dcr->VolCatInfo.Slot = 0;
    }
-   Dmsg1(100, "autoload_dev returns %d\n", autochanger);
+   Dmsg1(200, "autoload_dev returns %d\n", autochanger);
    /*
     * If we autochanged to correct Volume or (we have not just
     *   released the Volume AND we can automount) we go ahead
@@ -123,25 +123,25 @@ mount_next_vol:
     *   we will err, recurse and ask the operator the next time.
     */
    if (!release && dev->is_tape() && dev_cap(dev, CAP_AUTOMOUNT)) {
-      Dmsg0(100, "(1)Ask=0");
+      Dmsg0(150, "(1)Ask=0\n");
       ask = false;                 /* don't ask SYSOP this time */
    }
    /* Don't ask if not removable */
    if (!dev_cap(dev, CAP_REM)) {
-      Dmsg0(100, "(2)Ask=0");
+      Dmsg0(150, "(2)Ask=0\n");
       ask = false;
    }
-   Dmsg2(100, "Ask=%d autochanger=%d\n", ask, autochanger);
+   Dmsg2(150, "Ask=%d autochanger=%d\n", ask, autochanger);
    release = true;                /* release next time if we "recurse" */
 
    if (ask && !dir_ask_sysop_to_mount_volume(dcr)) {
-      Dmsg0(100, "Error return ask_sysop ...\n");
+      Dmsg0(150, "Error return ask_sysop ...\n");
       return false;          /* error return */
    }
    if (job_canceled(jcr)) {
       return false;
    }
-   Dmsg1(100, "want vol=%s\n", dcr->VolumeName);
+   Dmsg1(150, "want vol=%s\n", dcr->VolumeName);
 
    if (dev->poll && dev_cap(dev, CAP_CLOSEONPOLL)) {
       force_close_device(dev);
@@ -177,7 +177,7 @@ read_volume:
       return false;
    }
 
-   Dmsg2(100, "Want dirVol=%s dirStat=%s\n", dcr->VolumeName,
+   Dmsg2(150, "Want dirVol=%s dirStat=%s\n", dcr->VolumeName,
       dcr->VolCatInfo.VolCatStatus);
    /*
     * At this point, dev->VolCatInfo has what is in the drive, if anything,
@@ -185,7 +185,7 @@ read_volume:
     */
    switch (vol_label_status) {
    case VOL_OK:
-      Dmsg1(100, "Vol OK name=%s\n", dcr->VolumeName);
+      Dmsg1(150, "Vol OK name=%s\n", dcr->VolumeName);
       memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
       recycle = strcmp(dev->VolCatInfo.VolCatStatus, "Recycle") == 0;
       break;                    /* got a Volume */
@@ -200,7 +200,7 @@ read_volume:
          goto mount_next_vol;
       }
 
-      Dmsg1(100, "Vol NAME Error Name=%s\n", dcr->VolumeName);
+      Dmsg1(150, "Vol NAME Error Name=%s\n", dcr->VolumeName);
       /* If polling and got a previous bad name, ignore it */
       if (dev->poll && strcmp(dev->BadVolName, dev->VolHdr.VolumeName) == 0) {
          ask = true;
@@ -238,7 +238,7 @@ read_volume:
       /* This was not the volume we expected, but it is OK with
        * the Director, so use it.
        */
-      Dmsg1(100, "want new name=%s\n", dcr->VolumeName);
+      Dmsg1(150, "want new name=%s\n", dcr->VolumeName);
       memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
       recycle = strcmp(dev->VolCatInfo.VolCatStatus, "Recycle") == 0;
       break;                /* got a Volume */
@@ -267,15 +267,15 @@ read_volume:
       if (dev_cap(dev, CAP_LABEL) && (dcr->VolCatInfo.VolCatBytes == 0 ||
             (!dev->is_tape() && strcmp(dcr->VolCatInfo.VolCatStatus,
                                    "Recycle") == 0))) {
-         Dmsg0(100, "Create volume label\n");
+         Dmsg0(150, "Create volume label\n");
          /* Create a new Volume label and write it to the device */
          if (!write_new_volume_label_to_dev(dcr, dcr->VolumeName,
                 dcr->pool_name)) {
-            Dmsg0(100, "!write_vol_label\n");
+            Dmsg0(150, "!write_vol_label\n");
             mark_volume_in_error(dcr);
             goto mount_next_vol;
          }
-         Dmsg0(100, "dir_update_vol_info. Set Append\n");
+         Dmsg0(150, "dir_update_vol_info. Set Append\n");
          /* Copy Director's info into the device info */
          memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
          if (!dir_update_volume_info(dcr, true)) {  /* indicate tape labeled */
@@ -363,7 +363,7 @@ read_volume:
          }
       }
       dev->VolCatInfo.VolCatMounts++;      /* Update mounts */
-      Dmsg1(100, "update volinfo mounts=%d\n", dev->VolCatInfo.VolCatMounts);
+      Dmsg1(150, "update volinfo mounts=%d\n", dev->VolCatInfo.VolCatMounts);
       if (!dir_update_volume_info(dcr, false)) {
          return false;
       }
@@ -381,7 +381,7 @@ read_volume:
        */
 #ifdef xxx
       if (dev->is_dvd()) {
-         Dmsg2(100, "DVD/File sanity check addr=%u vs endblock=%u\n", (unsigned int)dev->file_addr, (unsigned int)dev->VolCatInfo.EndBlock);
+         Dmsg2(150, "DVD/File sanity check addr=%u vs endblock=%u\n", (unsigned int)dev->file_addr, (unsigned int)dev->VolCatInfo.EndBlock);
          if (dev->file_addr == dev->VolCatInfo.EndBlock+1) {
             Jmsg(jcr, M_INFO, 0, _("Ready to append to end of Volume \"%s\" at file address=%u.\n"),
                  dcr->VolumeName, (unsigned int)dev->file_addr);
@@ -401,7 +401,7 @@ read_volume:
       empty_block(block);             /* we used it for reading so set for write */
    }
    dev->set_append();
-   Dmsg0(100, "set APPEND, normal return from read_dev_for_append\n");
+   Dmsg0(150, "set APPEND, normal return from read_dev_for_append\n");
    return true;
 }
 
@@ -417,7 +417,7 @@ void mark_volume_in_error(DCR *dcr)
         dcr->VolumeName);
    memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
    bstrncpy(dev->VolCatInfo.VolCatStatus, "Error", sizeof(dev->VolCatInfo.VolCatStatus));
-   Dmsg0(100, "dir_update_vol_info. Set Error.\n");
+   Dmsg0(150, "dir_update_vol_info. Set Error.\n");
    dir_update_volume_info(dcr, false);
 }
 

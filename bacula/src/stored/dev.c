@@ -653,7 +653,8 @@ bool rewind_dev(DEVICE *dev)
    struct mtop mt_com;
    unsigned int i;
 
-   Dmsg2(29, "rewind_dev fd=%d %s\n", dev->fd, dev->print_name());
+   Dmsg3(29, "rewind_dev res=%d fd=%d %s\n", dev->reserved_device, 
+      dev->fd, dev->print_name());
    if (dev->fd < 0) {
       if (!dev->is_dvd()) { /* In case of major error, the fd is not open on DVD, so we don't want to abort. */
          dev->dev_errno = EBADF;
@@ -1700,7 +1701,7 @@ int flush_dev(DEVICE *dev)
 static void do_close(DEVICE *dev)
 {
 
-   Dmsg1(29, "really close_dev %s\n", dev->print_name());
+   Dmsg1(100, "really close_dev %s\n", dev->print_name());
    if (dev->fd >= 0) {
       close(dev->fd);
    }
@@ -1754,7 +1755,8 @@ void DEVICE::close()
    /*if (fd >= 0 && use_count == 1) {*/
    /* No need to check if fd >= 0: it is checked again
     * in do_close, and do_close MUST be called for volumes
-    * splitted in parts, even if fd == -1. */
+    * split in parts, even if fd == -1. 
+    */
    if (use_count == 1) {
       do_close(this);
    } else if (use_count > 0) {

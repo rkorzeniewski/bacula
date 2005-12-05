@@ -122,7 +122,7 @@ void catalog_request(JCR *jcr, BSOCK *bs)
       ok = db_get_pool_record(jcr, jcr->db, &pr);
       if (ok) {
          mr.PoolId = pr.PoolId;
-         ok = find_next_volume_for_append(jcr, &mr, true /*permit create new vol*/);
+         ok = find_next_volume_for_append(jcr, &mr, index, true /*permit create new vol*/);
       }
       /*
        * Send Find Media response to Storage daemon

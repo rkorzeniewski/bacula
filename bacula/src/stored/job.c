@@ -134,7 +134,7 @@ bool run_cmd(JCR *jcr)
    struct timespec timeout;
    int errstat;
 
-   Dmsg1(100, "Run_cmd: %s\n", jcr->dir_bsock->msg);
+   Dmsg1(200, "Run_cmd: %s\n", jcr->dir_bsock->msg);
    /* The following jobs don't need the FD */
    switch (jcr->JobType) {
    case JT_MIGRATE:
