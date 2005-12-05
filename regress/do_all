@@ -7,8 +7,5 @@ if [ ! -e bin/tape_options ] ; then
 fi
 ./all-tape-and-file-tests
 ./endtime
-if [ ! -e bin/tape_options ] ; then
-  touch bin/tape_options
-fi
 ./all-non-root-2tape-tests
 ./endtime
