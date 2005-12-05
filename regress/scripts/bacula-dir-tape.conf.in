@@ -36,7 +36,6 @@ Job {
   Pool = Default
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
   Maximum Concurrent Jobs = 4
-# Prefer Mounted Volumes = no
   SpoolData = yes
 # Prefer Mounted Volumes = no
 }
