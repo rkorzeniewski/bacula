@@ -83,13 +83,6 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index, bool create)
                      continue;           /* retry again accepting any volume */
                   }
                }
-               Dmsg2(200, "find_recycled_volume2 %d FW=%d\n", ok, mr->FirstWritten);
-               if (!ok && create) {
-                  /*
-                   * 5. Try "creating" a new Volume
-                   */
-                  ok = newVolume(jcr, mr);
-               }
             }
          }
 
@@ -99,7 +92,7 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index, bool create)
             POOLMEM *query;
             char ed1[50], ed2[50];
             /*
-             * 6. Try pulling a volume from the Scratch pool
+             * 5. Try pulling a volume from the Scratch pool
              */ 
              memset(&pr, 0, sizeof(pr));
              bstrncpy(pr.Name, "Scratch", sizeof(pr.Name));
@@ -121,8 +114,28 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index, bool create)
                    /* Set new Pool Id in smr record, then copy it to mr */
                    smr.PoolId = mr->PoolId;
                    memcpy(mr, &smr, sizeof(MEDIA_DBR));
+                   memset(&pr, 0, sizeof(pr));
+                   bstrncpy(pr.Name, jcr->pool->hdr.name, sizeof(pr.Name));
+                   /* Set default parameters from current pool */
+                   if (db_get_pool_record(jcr, jcr->db, &pr)) {
+                      set_pool_dbr_defaults_in_media_dbr(mr, &pr);
+                      if (!db_update_media_record(jcr, jcr->db, mr)) {
+                         Jmsg(jcr, M_WARNING, 0, _("Unable to update Volume record: ERR=%s"), 
+                            db_strerror(jcr->db));
+                      }
+                   } else {
+                      Jmsg(jcr, M_WARNING, 0, _("Unable to get Pool record: ERR=%s"), 
+                         db_strerror(jcr->db));
+                   }
                 }
              }
+         }
+
+         if (!ok && create) {
+            /*
+             * 6. Try "creating" a new Volume
+             */
+            ok = newVolume(jcr, mr);
          }
          /*
           *  Look at more drastic ways to find an Appendable Volume
@@ -138,14 +151,14 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index, bool create)
                UAContext *ua;
                Dmsg0(400, "Try purge.\n");
                /*
-                * 5.  Try to purging oldest volume only if not UA calling us.
+                * 7.  Try to purging oldest volume only if not UA calling us.
                 */
                ua = new_ua_context(jcr);
                if (jcr->pool->purge_oldest_volume && create) {
                   Jmsg(jcr, M_INFO, 0, _("Purging oldest volume \"%s\"\n"), mr->VolumeName);
                   ok = purge_jobs_from_volume(ua, mr);
                /*
-                * 5. or try recycling the oldest volume
+                * 8. or try recycling the oldest volume
                 */
                } else if (jcr->pool->recycle_oldest_volume) {
                   Jmsg(jcr, M_INFO, 0, _("Pruning oldest volume \"%s\"\n"), mr->VolumeName);
