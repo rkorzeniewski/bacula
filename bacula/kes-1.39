@@ -7,6 +7,9 @@ Changes to 1.39.2:
 07Dec05
 - Remove warning message about multiple saves of hardlinked files
   from find_one.c as it can generate too many warning messages.
+- Modify most restore error messages to be queued so that they
+  appear at the end of the job rather than mixted with the restore
+  listing where they could be "lost".
 06Dec05
 - Reset timeout values before select() per patch from 
   Frank Sweetser for problems with non-blocking sockets.

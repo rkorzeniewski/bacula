@@ -83,20 +83,20 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
       switch (replace) {
       case REPLACE_IFNEWER:
          if (attr->statp.st_mtime <= mstatp.st_mtime) {
-            Jmsg(jcr, M_SKIPPED, 0, _("File skipped. Not newer: %s\n"), attr->ofname);
+            Qmsg(jcr, M_SKIPPED, 0, _("File skipped. Not newer: %s\n"), attr->ofname);
             return CF_SKIP;
          }
          break;
 
       case REPLACE_IFOLDER:
          if (attr->statp.st_mtime >= mstatp.st_mtime) {
-            Jmsg(jcr, M_SKIPPED, 0, _("File skipped. Not older: %s\n"), attr->ofname);
+            Qmsg(jcr, M_SKIPPED, 0, _("File skipped. Not older: %s\n"), attr->ofname);
             return CF_SKIP;
          }
          break;
 
       case REPLACE_NEVER:
-         Jmsg(jcr, M_SKIPPED, 0, _("File skipped. Already exists: %s\n"), attr->ofname);
+         Qmsg(jcr, M_SKIPPED, 0, _("File skipped. Already exists: %s\n"), attr->ofname);
          return CF_SKIP;
 
       case REPLACE_ALWAYS:
@@ -121,7 +121,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
          /* Get rid of old copy */
          if (unlink(attr->ofname) == -1) {
             berrno be;
-            Jmsg(jcr, M_ERROR, 0, _("File %s already exists and could not be replaced. ERR=%s.\n"),
+            Qmsg(jcr, M_ERROR, 0, _("File %s already exists and could not be replaced. ERR=%s.\n"),
                attr->ofname, be.strerror());
             /* Continue despite error */
          }
@@ -173,7 +173,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
          }
          Dmsg1(50, "Create file: %s\n", attr->ofname);
          if (is_bopen(bfd)) {
-            Jmsg1(jcr, M_ERROR, 0, _("bpkt already open fid=%d\n"), bfd->fid);
+            Qmsg1(jcr, M_ERROR, 0, _("bpkt already open fid=%d\n"), bfd->fid);
             bclose(bfd);
          }
          /*
@@ -195,7 +195,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
                attr->ofname[pnl] = 0;                 /* terminate path */
                Dmsg1(000, "Do chdir %s\n", attr->ofname);
                if (save_cwd(&cwd) != 0) {
-                  Jmsg0(jcr, M_ERROR, 0, _("Could not save_dirn"));
+                  Qmsg0(jcr, M_ERROR, 0, _("Could not save_dirn"));
                   attr->ofname[pnl] = savechr;
                   return CF_ERROR;
                }
@@ -204,7 +204,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
                   *e = 0;
                   if (chdir(p) < 0) {
                      berrno be;
-                     Jmsg2(jcr, M_ERROR, 0, _("Could not chdir to %s: ERR=%s\n"),
+                     Qmsg2(jcr, M_ERROR, 0, _("Could not chdir to %s: ERR=%s\n"),
                            attr->ofname, be.strerror());
                      restore_cwd(&cwd, NULL, NULL);
                      free_cwd(&cwd);
@@ -217,7 +217,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
                }
                if (chdir(p) < 0) {
                   berrno be;
-                  Jmsg2(jcr, M_ERROR, 0, _("Could not chdir to %s: ERR=%s\n"),
+                  Qmsg2(jcr, M_ERROR, 0, _("Could not chdir to %s: ERR=%s\n"),
                         attr->ofname, be.strerror());
                   restore_cwd(&cwd, NULL, NULL);
                   free_cwd(&cwd);
@@ -237,7 +237,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
                   return CF_EXTRACT;
                }
             }
-            Jmsg2(jcr, M_ERROR, 0, _("Could not create %s: ERR=%s\n"),
+            Qmsg2(jcr, M_ERROR, 0, _("Could not create %s: ERR=%s\n"),
                   attr->ofname, be.strerror(bfd->berrno));
             return CF_ERROR;
          }
@@ -250,7 +250,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
             Dmsg1(200, "Restore fifo: %s\n", attr->ofname);
             if (mkfifo(attr->ofname, attr->statp.st_mode) != 0 && errno != EEXIST) {
                berrno be;
-               Jmsg2(jcr, M_ERROR, 0, _("Cannot make fifo %s: ERR=%s\n"),
+               Qmsg2(jcr, M_ERROR, 0, _("Cannot make fifo %s: ERR=%s\n"),
                      attr->ofname, be.strerror());
                return CF_ERROR;
             }
@@ -258,7 +258,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
             Dmsg1(200, "Restore node: %s\n", attr->ofname);
             if (mknod(attr->ofname, attr->statp.st_mode, attr->statp.st_rdev) != 0 && errno != EEXIST) {
                berrno be;
-               Jmsg2(jcr, M_ERROR, 0, _("Cannot make node %s: ERR=%s\n"),
+               Qmsg2(jcr, M_ERROR, 0, _("Cannot make node %s: ERR=%s\n"),
                      attr->ofname, be.strerror());
                return CF_ERROR;
             }
@@ -274,12 +274,12 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
                tid = NULL;
             }
             if (is_bopen(bfd)) {
-               Jmsg1(jcr, M_ERROR, 0, _("bpkt already open fid=%d\n"), bfd->fid);
+               Qmsg1(jcr, M_ERROR, 0, _("bpkt already open fid=%d\n"), bfd->fid);
             }
             if ((bopen(bfd, attr->ofname, mode, 0)) < 0) {
                berrno be;
                be.set_errno(bfd->berrno);
-               Jmsg2(jcr, M_ERROR, 0, _("Could not open %s: ERR=%s\n"),
+               Qmsg2(jcr, M_ERROR, 0, _("Could not open %s: ERR=%s\n"),
                      attr->ofname, be.strerror());
                stop_thread_timer(tid);
                return CF_ERROR;
@@ -294,7 +294,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
          Dmsg2(130, "FT_LNK should restore: %s -> %s\n", attr->ofname, attr->olname);
          if (symlink(attr->olname, attr->ofname) != 0 && errno != EEXIST) {
             berrno be;
-            Jmsg3(jcr, M_ERROR, 0, _("Could not symlink %s -> %s: ERR=%s\n"),
+            Qmsg3(jcr, M_ERROR, 0, _("Could not symlink %s -> %s: ERR=%s\n"),
                   attr->ofname, attr->olname, be.strerror());
             return CF_ERROR;
          }
@@ -304,7 +304,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
          Dmsg2(130, "Hard link %s => %s\n", attr->ofname, attr->olname);
          if (link(attr->olname, attr->ofname) != 0) {
             berrno be;
-            Jmsg3(jcr, M_ERROR, 0, _("Could not hard link %s -> %s: ERR=%s\n"),
+            Qmsg3(jcr, M_ERROR, 0, _("Could not hard link %s -> %s: ERR=%s\n"),
                   attr->ofname, attr->olname, be.strerror());
             return CF_ERROR;
          }
@@ -325,7 +325,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
        */
       if (!is_portable_backup(bfd)) {
          if (is_bopen(bfd)) {
-            Jmsg1(jcr, M_ERROR, 0, _("bpkt already open fid=%d\n"), bfd->fid);
+            Qmsg1(jcr, M_ERROR, 0, _("bpkt already open fid=%d\n"), bfd->fid);
          }
          if ((bopen(bfd, attr->ofname, O_WRONLY|O_BINARY, 0)) < 0) {
             berrno be;
@@ -336,7 +336,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
                return CF_SKIP;
             }
 #endif
-            Jmsg2(jcr, M_ERROR, 0, _("Could not open %s: ERR=%s\n"),
+            Qmsg2(jcr, M_ERROR, 0, _("Could not open %s: ERR=%s\n"),
                   attr->ofname, be.strerror());
             return CF_ERROR;
          }
@@ -355,10 +355,10 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
    case FT_NORECURSE:
    case FT_NOFSCHG:
    case FT_NOOPEN:
-      Jmsg2(jcr, M_ERROR, 0, _("Original file %s not saved: type=%d\n"), attr->fname, attr->type);
+      Qmsg2(jcr, M_ERROR, 0, _("Original file %s not saved: type=%d\n"), attr->fname, attr->type);
       break;
    default:
-      Jmsg2(jcr, M_ERROR, 0, _("Unknown file type %d; not restored: %s\n"), attr->type, attr->fname);
+      Qmsg2(jcr, M_ERROR, 0, _("Unknown file type %d; not restored: %s\n"), attr->type, attr->fname);
       break;
    }
    return CF_ERROR;
@@ -389,7 +389,7 @@ static int separate_path_and_file(JCR *jcr, char *fname, char *ofile)
       /* The filename length must not be zero here because we
        *  are dealing with a file (i.e. FT_REGE or FT_REG).
        */
-      Jmsg1(jcr, M_ERROR, 0, _("Zero length filename: %s\n"), fname);
+      Qmsg1(jcr, M_ERROR, 0, _("Zero length filename: %s\n"), fname);
       return -1;
    }
    pnl = f - ofile - 1;

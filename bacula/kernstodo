@@ -17,6 +17,7 @@ Document:
 - %d and %v only valid on Director, not for ClientRunBefore/After.
 
 For 1.39:
+- Make hardlink code at line 240 of find_one.c use binary search.
 - Queue warning/error messages during restore so that they
   are reported at the end of the report rather than being
   hidden in the file listing ...
