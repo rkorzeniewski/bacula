@@ -538,9 +538,9 @@ int bnet_wait_data(BSOCK * bsock, int sec)
 
    FD_ZERO(&fdset);
    FD_SET((unsigned)bsock->fd, &fdset);
-   tv.tv_sec = sec;
-   tv.tv_usec = 0;
    for (;;) {
+      tv.tv_sec = sec;
+      tv.tv_usec = 0;
       switch (select(bsock->fd + 1, &fdset, NULL, NULL, &tv)) {
       case 0:                      /* timeout */
          bsock->b_errno = 0;

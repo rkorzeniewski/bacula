@@ -432,8 +432,6 @@ static inline bool openssl_bsock_session_start(BSOCK *bsock, bool server)
 
    /* Zero the fdset, we'll set our fd prior to each invocation of select() */
    FD_ZERO(&fdset);
-   tv.tv_sec = 10;
-   tv.tv_usec = 0;
    fdmax = bsock->fd + 1;
 
    /* Ensure that socket is non-blocking */
@@ -452,31 +450,37 @@ static inline bool openssl_bsock_session_start(BSOCK *bsock, bool server)
 
       /* Handle errors */
       switch (SSL_get_error(tls->openssl, err)) {
-           case SSL_ERROR_NONE:
-              stat = true;
-              goto cleanup;
-           case SSL_ERROR_ZERO_RETURN:
-              /* TLS connection was cleanly shut down */
-              openssl_post_errors(M_ERROR, _("Connect failure"));
-              stat = false;
-              goto cleanup;
-           case SSL_ERROR_WANT_READ:
-              /* If we timeout of a select, this will be unset */
-              FD_SET((unsigned) bsock->fd, &fdset);
-              /* Block until we can read */
-              select(fdmax, &fdset, NULL, &fdset, &tv);
-              break;
-           case SSL_ERROR_WANT_WRITE:
-              /* If we timeout of a select, this will be unset */
-              FD_SET((unsigned) bsock->fd, &fdset);
-              /* Block until we can write */
-              select(fdmax, NULL, &fdset, &fdset, &tv);
-              break;
-           default:
-              /* Socket Error Occured */
-              openssl_post_errors(M_ERROR, _("Connect failure"));
-              stat = false;
-              goto cleanup;
+      case SSL_ERROR_NONE:
+         stat = true;
+         goto cleanup;
+      case SSL_ERROR_ZERO_RETURN:
+         /* TLS connection was cleanly shut down */
+         openssl_post_errors(M_ERROR, _("Connect failure"));
+         stat = false;
+         goto cleanup;
+      case SSL_ERROR_WANT_READ:
+         /* If we timeout of a select, this will be unset */
+         FD_SET((unsigned) bsock->fd, &fdset);
+         /* Set our timeout */
+         tv.tv_sec = 10;
+         tv.tv_usec = 0;
+         /* Block until we can read */
+         select(fdmax, &fdset, NULL, &fdset, &tv);
+         break;
+      case SSL_ERROR_WANT_WRITE:
+         /* If we timeout of a select, this will be unset */
+         FD_SET((unsigned) bsock->fd, &fdset);
+         /* Set our timeout */
+         tv.tv_sec = 10;
+         tv.tv_usec = 0;
+         /* Block until we can write */
+         select(fdmax, NULL, &fdset, &fdset, &tv);
+         break;
+      default:
+         /* Socket Error Occured */
+         openssl_post_errors(M_ERROR, _("Connect failure"));
+         stat = false;
+         goto cleanup;
       }
 
       if (bsock->timed_out) {
@@ -575,8 +579,6 @@ static inline int openssl_bsock_readwrite(BSOCK *bsock, char *ptr, int nbytes, b
 
    /* Zero the fdset, we'll set our fd prior to each invocation of select() */
    FD_ZERO(&fdset);
-   tv.tv_sec = 10;
-   tv.tv_usec = 0;
    fdmax = bsock->fd + 1;
 
    /* Ensure that socket is non-blocking */
@@ -598,32 +600,36 @@ static inline int openssl_bsock_readwrite(BSOCK *bsock, char *ptr, int nbytes, b
 
       /* Handle errors */
       switch (SSL_get_error(tls->openssl, nwritten)) {
-         case SSL_ERROR_NONE:
-            nleft -= nwritten;
-            if (nleft) {
-               ptr += nwritten;
-            }
-            break;
-         case SSL_ERROR_ZERO_RETURN:
-            /* TLS connection was cleanly shut down */
-            openssl_post_errors(M_ERROR, _("TLS read/write failure."));
-            goto cleanup;
-         case SSL_ERROR_WANT_READ:
-            /* If we timeout of a select, this will be unset */
-            FD_SET((unsigned) bsock->fd, &fdset);
-            /* Block until we can read */
-            select(fdmax, &fdset, NULL, &fdset, &tv);
-            break;
-         case SSL_ERROR_WANT_WRITE:
-            /* If we timeout of a select, this will be unset */
-            FD_SET((unsigned) bsock->fd, &fdset);
-            /* Block until we can write */
-            select(fdmax, NULL, &fdset, &fdset, &tv);
-            break;
-         default:
-            /* Socket Error Occured */
-            openssl_post_errors(M_ERROR, _("TLS read/write failure."));
-            goto cleanup;
+      case SSL_ERROR_NONE:
+         nleft -= nwritten;
+         if (nleft) {
+            ptr += nwritten;
+         }
+         break;
+      case SSL_ERROR_ZERO_RETURN:
+         /* TLS connection was cleanly shut down */
+         openssl_post_errors(M_ERROR, _("TLS read/write failure."));
+         goto cleanup;
+      case SSL_ERROR_WANT_READ:
+         /* If we timeout of a select, this will be unset */
+         FD_SET((unsigned) bsock->fd, &fdset);
+         tv.tv_sec = 10;
+         tv.tv_usec = 0;
+         /* Block until we can read */
+         select(fdmax, &fdset, NULL, &fdset, &tv);
+         break;
+      case SSL_ERROR_WANT_WRITE:
+         /* If we timeout of a select, this will be unset */
+         FD_SET((unsigned) bsock->fd, &fdset);
+         tv.tv_sec = 10;
+         tv.tv_usec = 0;
+         /* Block until we can write */
+         select(fdmax, NULL, &fdset, &fdset, &tv);
+         break;
+      default:
+         /* Socket Error Occured */
+         openssl_post_errors(M_ERROR, _("TLS read/write failure."));
+         goto cleanup;
       }
 
       /* Everything done? */

@@ -105,26 +105,26 @@ void term_last_jobs_list()
    }
 }
 
-void read_last_jobs_list(int fd, uint64_t addr)
+bool read_last_jobs_list(int fd, uint64_t addr)
 {
    struct s_last_job *je, job;
    uint32_t num;
 
    Dmsg1(100, "read_last_jobs seek to %d\n", (int)addr);
    if (addr == 0 || lseek(fd, (off_t)addr, SEEK_SET) < 0) {
-      return;
+      return false;
    }
    if (read(fd, &num, sizeof(num)) != sizeof(num)) {
-      return;
+      return false;
    }
    Dmsg1(100, "Read num_items=%d\n", num);
    if (num > 4 * max_last_jobs) {  /* sanity check */
-      return;
+      return false;
    }
    for ( ; num; num--) {
       if (read(fd, &job, sizeof(job)) != sizeof(job)) {
          Dmsg1(000, "Read job entry. ERR=%s\n", strerror(errno));
-         return;
+         return false;
       }
       if (job.JobId > 0) {
          je = (struct s_last_job *)malloc(sizeof(struct s_last_job));
@@ -140,6 +140,7 @@ void read_last_jobs_list(int fd, uint64_t addr)
          }
       }
    }
+   return true;
 }
 
 uint64_t write_last_jobs_list(int fd, uint64_t addr)
