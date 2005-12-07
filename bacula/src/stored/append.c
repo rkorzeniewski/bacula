@@ -40,10 +40,20 @@ bool do_append_data(JCR *jcr)
    BSOCK *fd_sock = jcr->file_bsock;
    bool ok = true;
    DEV_RECORD rec;
-   DCR *dcr = jcr->dcr;
-   DEVICE *dev = dcr->dev;
    char buf1[100], buf2[100];
+   DCR *dcr = jcr->dcr;
+   DEVICE *dev;
 
+
+   if (!dcr) { 
+      Jmsg0(jcr, M_FATAL, 0, _("DCR is NULL!!!\n"));
+      return false;
+   }                                              
+   dev = dcr->dev;
+   if (!dev) { 
+      Jmsg0(jcr, M_FATAL, 0, _("DEVICE is NULL!!!\n"));
+      return false;
+   }                                              
 
    Dmsg1(100, "Start append data. res=%d\n", dev->reserved_device);
 
@@ -53,7 +63,7 @@ bool do_append_data(JCR *jcr)
 
    if (!bnet_set_buffer_size(ds, dcr->device->max_network_buffer_size, BNET_SETBUF_WRITE)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
-      Jmsg(jcr, M_FATAL, 0, _("Unable to set network buffer size.\n"));
+      Jmsg0(jcr, M_FATAL, 0, _("Unable to set network buffer size.\n"));
       return false;
    }
 

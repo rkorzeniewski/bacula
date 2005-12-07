@@ -489,6 +489,7 @@ void read_state_file(char *dir, const char *progname, int port)
 {
    int sfd;
    ssize_t stat;
+   bool ok = false;
    POOLMEM *fname = get_pool_memory(PM_FNAME);
    struct s_state_hdr hdr;
    int hdr_size = sizeof(hdr);
@@ -499,7 +500,7 @@ void read_state_file(char *dir, const char *progname, int port)
    if ((sfd = open(fname, O_RDONLY|O_BINARY, 0)) < 0) {
       Dmsg3(010, "Could not open state file. sfd=%d size=%d: ERR=%s\n",
                     sfd, sizeof(hdr), strerror(errno));
-           goto bail_out;
+      goto bail_out;
    }
    if ((stat=read(sfd, &hdr, hdr_size)) != hdr_size) {
       Dmsg4(010, "Could not read state file. sfd=%d stat=%d size=%d: ERR=%s\n",
@@ -516,11 +517,17 @@ void read_state_file(char *dir, const char *progname, int port)
       goto bail_out;
    }
 // Dmsg1(010, "Read header of %d bytes.\n", sizeof(hdr));
-   read_last_jobs_list(sfd, hdr.last_jobs_addr);
+   if (!read_last_jobs_list(sfd, hdr.last_jobs_addr)) {
+      goto bail_out;
+   }
+   ok = true;
 bail_out:
    if (sfd >= 0) {
       close(sfd);
    }
+   if (!ok) {
+      unlink(fname);
+    }
    free_pool_memory(fname);
 }
 
@@ -530,17 +537,20 @@ bail_out:
 void write_state_file(char *dir, const char *progname, int port)
 {
    int sfd;
+   bool ok = false;
    POOLMEM *fname = get_pool_memory(PM_FNAME);
 
    Mmsg(&fname, "%s/%s.%d.state", dir, progname, port);
    /* Create new state file */
    if ((sfd = open(fname, O_CREAT|O_WRONLY|O_BINARY, 0640)) < 0) {
-      Dmsg2(000, "Could not create state file. %s ERR=%s\n", fname, strerror(errno));
-      Emsg2(M_ERROR, 0, _("Could not create state file. %s ERR=%s\n"), fname, strerror(errno));
+      berrno be;
+      Dmsg2(000, "Could not create state file. %s ERR=%s\n", fname, be.strerror());
+      Emsg2(M_ERROR, 0, _("Could not create state file. %s ERR=%s\n"), fname, be.strerror());
       goto bail_out;
    }
    if (write(sfd, &state_hdr, sizeof(state_hdr)) != sizeof(state_hdr)) {
-      Dmsg1(000, "Write hdr error: ERR=%s\n", strerror(errno));
+      berrno be;
+      Dmsg1(000, "Write hdr error: ERR=%s\n", be.strerror());
       goto bail_out;
    }
 // Dmsg1(010, "Wrote header of %d bytes\n", sizeof(state_hdr));
@@ -548,16 +558,23 @@ void write_state_file(char *dir, const char *progname, int port)
    state_hdr.reserved[0] = write_last_jobs_list(sfd, state_hdr.last_jobs_addr);
 // Dmsg1(010, "write last job end = %d\n", (int)state_hdr.reserved[0]);
    if (lseek(sfd, 0, SEEK_SET) < 0) {
-      Dmsg1(000, "lseek error: ERR=%s\n", strerror(errno));
+      berrno be;
+      Dmsg1(000, "lseek error: ERR=%s\n", be.strerror());
       goto bail_out;
    }
    if (write(sfd, &state_hdr, sizeof(state_hdr)) != sizeof(state_hdr)) {
-      Pmsg1(000, _("Write final hdr error: ERR=%s\n"), strerror(errno));
+      berrno be;
+      Pmsg1(000, _("Write final hdr error: ERR=%s\n"), be.strerror());
+      goto bail_out;
    }
+   ok = true;
 // Dmsg1(010, "rewrote header = %d\n", sizeof(state_hdr));
 bail_out:
    if (sfd >= 0) {
       close(sfd);
+   }
+   if (!ok) {
+      unlink(fname);
    }
    free_pool_memory(fname);
 }

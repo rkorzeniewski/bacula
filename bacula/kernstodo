@@ -14,6 +14,7 @@ Document:
 - Document the multiple-drive-changer.txt script.
 - Pruning with Admin job.
 - Does WildFile match against full name?  Doc.
+- %d and %v only valid on Director, not for ClientRunBefore/After.
 
 For 1.39:
 - Queue warning/error messages during restore so that they

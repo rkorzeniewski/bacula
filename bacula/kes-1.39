@@ -4,6 +4,17 @@
 General:
 
 Changes to 1.39.2:
+07Dec05
+- Remove warning message about multiple saves of hardlinked files
+  from find_one.c as it can generate too many warning messages.
+06Dec05
+- Reset timeout values before select() per patch from 
+  Frank Sweetser for problems with non-blocking sockets.
+- Unlink the state file if either reading or writing it gets
+  errors.  Hopefully this will fix Win32 exit problems.
+- Add sanity check in append.c to ensure that dcr is not NULL.
+  This can happen if multiple drive autochanger SCSI control
+  channel and drive indicies do not correspond.
 05Dec05
 - Get next volume from Scratch pool before creating a volume.
 - Set new Pool defaults in Vol when moved from Scratch Pool.
