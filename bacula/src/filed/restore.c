@@ -54,7 +54,7 @@ int bclose_chksize(JCR *jcr, BFILE *bfd, off_t osize)
    fsize = blseek(bfd, 0, SEEK_CUR);
    bclose(bfd);                              /* first close file */
    if (fsize > 0 && fsize != osize) {
-      Jmsg3(jcr, M_ERROR, 0, _("Size of data or stream of %s not correct. Original %s, restored %s.\n"),
+      Qmsg3(jcr, M_ERROR, 0, _("Size of data or stream of %s not correct. Original %s, restored %s.\n"),
             jcr->last_fname, edit_uint64(osize, ec1),
             edit_uint64(fsize, ec2));
       return -1;
@@ -371,7 +371,7 @@ void do_restore(JCR *jcr)
          pm_strcpy(jcr->acl_text, sd->msg);
          Dmsg2(400, "Restoring ACL type 0x%2x <%s>\n", BACL_TYPE_ACCESS, jcr->acl_text);
          if (bacl_set(jcr, BACL_TYPE_ACCESS) != 0) {
-               Jmsg1(jcr, M_WARNING, 0, _("Can't restore ACL of %s\n"), jcr->last_fname);
+               Qmsg1(jcr, M_WARNING, 0, _("Can't restore ACL of %s\n"), jcr->last_fname);
          }
 #else 
          non_support_acl++;
@@ -383,7 +383,7 @@ void do_restore(JCR *jcr)
          pm_strcpy(jcr->acl_text, sd->msg);
          Dmsg2(400, "Restoring ACL type 0x%2x <%s>\n", BACL_TYPE_DEFAULT, jcr->acl_text);
          if (bacl_set(jcr, BACL_TYPE_DEFAULT) != 0) {
-               Jmsg1(jcr, M_WARNING, 0, _("Can't restore default ACL of %s\n"), jcr->last_fname);
+               Qmsg1(jcr, M_WARNING, 0, _("Can't restore default ACL of %s\n"), jcr->last_fname);
          }
 #else 
          non_support_acl++;
@@ -530,13 +530,13 @@ int verify_signature(JCR *jcr, SIGNATURE *sig)
 
          /* Checksum the entire file */
          if (find_one_file(jcr, jcr->ff, do_file_digest, jcr, jcr->last_fname, (dev_t)-1, 1) != 0) {
-            Jmsg(jcr, M_ERROR, 0, _("Signature validation failed for %s: \n"), jcr->last_fname);
+            Qmsg(jcr, M_ERROR, 0, _("Signature validation failed for %s: \n"), jcr->last_fname);
             return false;
          }
 
          /* Verify the signature */
          if ((err = crypto_sign_verify(sig, keypair, digest)) != CRYPTO_ERROR_NONE) {
-            Jmsg2(jcr, M_ERROR, 0, _("Signature validation failed for %s: %s\n"), jcr->last_fname, crypto_strerror(err));
+            Qmsg2(jcr, M_ERROR, 0, _("Signature validation failed for %s: %s\n"), jcr->last_fname, crypto_strerror(err));
             crypto_digest_free(digest);
             return false;
          }
@@ -550,7 +550,7 @@ int verify_signature(JCR *jcr, SIGNATURE *sig)
          continue;
       default:
          /* Something strange happened (that shouldn't happen!)... */
-         Jmsg2(jcr, M_ERROR, 0, _("Signature validation failed for %s: %s\n"), jcr->last_fname, crypto_strerror(err));
+         Qmsg2(jcr, M_ERROR, 0, _("Signature validation failed for %s: %s\n"), jcr->last_fname, crypto_strerror(err));
          if (digest) {
             crypto_digest_free(digest);
          }
@@ -613,7 +613,7 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
       Dmsg2(100, "Comp_len=%d msglen=%d\n", compress_len, wsize);
       if ((stat=uncompress((Byte *)jcr->compress_buf, &compress_len,
                   (const Byte *)wbuf, (uLong)rsize)) != Z_OK) {
-         Jmsg(jcr, M_ERROR, 0, _("Uncompression error on file %s. ERR=%s\n"),
+         Qmsg(jcr, M_ERROR, 0, _("Uncompression error on file %s. ERR=%s\n"),
                jcr->last_fname, zlib_strerror(stat));
          return -1;
       }
@@ -621,7 +621,7 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
       wsize = compress_len;
       Dmsg2(100, "Write uncompressed %d bytes, total before write=%s\n", compress_len, edit_uint64(jcr->JobBytes, ec1));
 #else
-      Jmsg(jcr, M_ERROR, 0, _("GZIP data stream found, but GZIP not configured!\n"));
+      Qmsg(jcr, M_ERROR, 0, _("GZIP data stream found, but GZIP not configured!\n"));
       return -1;
 #endif
    } else {

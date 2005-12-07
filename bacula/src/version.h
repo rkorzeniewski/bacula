@@ -4,8 +4,8 @@
 
 #undef  VERSION
 #define VERSION "1.39.2"
-#define BDATE   "06 December 2005"
-#define LSMDATE "06Dec05"
+#define BDATE   "07 December 2005"
+#define LSMDATE "07Dec05"
 
 /* Debug flags */
 #undef  DEBUG
