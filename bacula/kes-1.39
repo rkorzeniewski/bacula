@@ -5,6 +5,7 @@ General:
 
 Changes to 1.39.2:
 08Dec05
+- Fix Win32 built to work with new crypto code.
 - Apply patch supplied by user (slightly modified) to fix
   correct detection of holes in block devices and FIFOs. 
   Bug # 506.
