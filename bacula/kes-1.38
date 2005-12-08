@@ -3,8 +3,8 @@
 
 General:
 
-Changes to 1.38.2:
-20Oct05
+Changes to 1.38.2: 22 November 2005
+20Nov05
 - Fix crash in tray-monitor when daemon disconnects. Bug #479.
 - Fix bnet-server bug found on OpenBSD. Bug #486 (bug originator
   says this does not fix *his* bug).
@@ -17,8 +17,8 @@ Changes to 1.38.2:
 - Add Pool name to SD status output.
 - Add Python install dir for Solaris to configure. Bug #492
 
-Changes to 1.38.1:
-14Oct05
+Changes to 1.38.1: 15 November 2005
+14Nov05
 - Apply SunOS patch for ACLs submitted by David Duchscher.                  
 - Make sure to set storage before trying to set drive.
 - Add bacula_mail_summary.sh to examples directory. It makes
@@ -26,7 +26,7 @@ Changes to 1.38.1:
   by Adrew J. Millar.
 - Make sure when we do a mount to unblock the device even
   if the drive could not be opened.  
-13Oct05
+13Nov05
 - Merge Scott's new spec files.
 - Add doc on setting up Win32 environment variable supplied
   by Kees van den Broek.               
@@ -34,7 +34,7 @@ Changes to 1.38.1:
   the user.
 - Add Solaris ACL detection in configure.in as supplied by
   Attila Fulop. 
-12Oct05
+12Nov05
 - Implement "autochanger drives" protocol so that Dir knows
   how many drives an autochanger has.
 - Do not request drive number in label, ... if only one drive.
@@ -47,7 +47,7 @@ Changes to 1.38.1:
 - Make a few error message numbers unique.
 - Make a few error messages more correct.
 - Apply patch from Thorsten to fix Win98 stat() command.
-10Oct05
+10Nov05
 - Remove delete of CVS from all makefiles.
 - Fix seg fault when clicking on Add button in wx-console
   restore panel.  Bug #470.

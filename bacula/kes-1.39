@@ -4,7 +4,16 @@
 General:
 
 Changes to 1.39.2:
+08Dec05
+- Apply patch supplied by user (slightly modified) to fix
+  correct detection of holes in block devices and FIFOs. 
+  Bug # 506.
+- Apply patch supplied by user (slightly modified) 
+  to fix SD hang with multiple pools and bad client
+  IP. Fixes bug # 508.
 07Dec05
+- Add nagios plugin to the examples directory. Submitted by
+  Christian Masopust.
 - Remove warning message about multiple saves of hardlinked files
   from find_one.c as it can generate too many warning messages.
 - Modify most restore error messages to be queued so that they
