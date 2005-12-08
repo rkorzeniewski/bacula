@@ -1,11 +1,9 @@
                     Kern's ToDo List
-                     30 November 2005
+                     07 December 2005
 
 Major development:      
 Project                     Developer
 =======                     =========                         
-Version 1.37                Kern (see below)
-========================================================
 
 Document:
 - Does ClientRunAfterJob fail the job on a bad return code?
