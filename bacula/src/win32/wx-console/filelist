@@ -13,6 +13,7 @@
 ..\lib\btime
 ..\lib\cram-md5
 ..\lib\crc32
+..\lib\crypto
 ..\lib\daemon
 ..\lib\dlist
 ..\lib\edit

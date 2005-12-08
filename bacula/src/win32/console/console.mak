@@ -54,6 +54,7 @@ CLEAN :
         -@erase "$(INTDIR)\console_conf.obj"
         -@erase "$(INTDIR)\cram-md5.obj"
         -@erase "$(INTDIR)\crc32.obj"
+        -@erase "$(INTDIR)\crypto.obj"
         -@erase "$(INTDIR)\dlist.obj"
         -@erase "$(INTDIR)\edit.obj"
         -@erase "$(INTDIR)\getopt.obj"
@@ -106,6 +107,7 @@ LINK32_OBJS= \
         "$(INTDIR)\console_conf.obj" \
         "$(INTDIR)\cram-md5.obj" \
         "$(INTDIR)\crc32.obj" \
+        "$(INTDIR)\crypto.obj" \
         "$(INTDIR)\dlist.obj" \
         "$(INTDIR)\edit.obj" \
         "$(INTDIR)\getopt.obj" \
@@ -163,6 +165,7 @@ CLEAN :
         -@erase "$(INTDIR)\console_conf.obj"
         -@erase "$(INTDIR)\cram-md5.obj"
         -@erase "$(INTDIR)\crc32.obj"
+        -@erase "$(INTDIR)\crypto.obj"
         -@erase "$(INTDIR)\dlist.obj"
         -@erase "$(INTDIR)\edit.obj"
         -@erase "$(INTDIR)\getopt.obj"
@@ -216,6 +219,7 @@ LINK32_OBJS= \
         "$(INTDIR)\console_conf.obj" \
         "$(INTDIR)\cram-md5.obj" \
         "$(INTDIR)\crc32.obj" \
+        "$(INTDIR)\crypto.obj" \
         "$(INTDIR)\dlist.obj" \
         "$(INTDIR)\edit.obj" \
         "$(INTDIR)\getopt.obj" \
@@ -364,6 +368,13 @@ SOURCE=..\lib\crc32.cpp
 
 "$(INTDIR)\crc32.obj" : $(SOURCE) "$(INTDIR)"
         $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+SOURCE=..\lib\crypto.cpp
+
+"$(INTDIR)\crypto.obj" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
+
 
 
 SOURCE=..\lib\dlist.cpp

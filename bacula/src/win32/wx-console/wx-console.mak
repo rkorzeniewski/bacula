@@ -55,6 +55,7 @@ CLEAN :
 	-@erase "$(INTDIR)\btime.obj"
 	-@erase "$(INTDIR)\cram-md5.obj"
 	-@erase "$(INTDIR)\crc32.obj"
+	-@erase "$(INTDIR)\crypto.obj"
 	-@erase "$(INTDIR)\daemon.obj"
 	-@erase "$(INTDIR)\dlist.obj"
 	-@erase "$(INTDIR)\edit.obj"
@@ -132,6 +133,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\btime.obj" \
 	"$(INTDIR)\cram-md5.obj" \
 	"$(INTDIR)\crc32.obj" \
+	"$(INTDIR)\crypto.obj" \
 	"$(INTDIR)\daemon.obj" \
 	"$(INTDIR)\dlist.obj" \
 	"$(INTDIR)\edit.obj" \
@@ -225,6 +227,8 @@ CLEAN :
 	-@erase "$(INTDIR)\cram-md5.sbr"
 	-@erase "$(INTDIR)\crc32.obj
 	-@erase "$(INTDIR)\crc32.sbr"
+	-@erase "$(INTDIR)\crypto.obj
+	-@erase "$(INTDIR)\crypto.sbr"
 	-@erase "$(INTDIR)\daemon.obj
 	-@erase "$(INTDIR)\daemon.sbr"
 	-@erase "$(INTDIR)\dlist.obj
@@ -342,6 +346,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\btime.sbr" \
 	"$(INTDIR)\cram-md5.sbr" \
 	"$(INTDIR)\crc32.sbr" \
+	"$(INTDIR)\crypto.sbr" \
 	"$(INTDIR)\daemon.sbr" \
 	"$(INTDIR)\dlist.sbr" \
 	"$(INTDIR)\edit.sbr" \
@@ -414,6 +419,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\btime.obj" \
 	"$(INTDIR)\cram-md5.obj" \
 	"$(INTDIR)\crc32.obj" \
+	"$(INTDIR)\crypto.obj" \
 	"$(INTDIR)\daemon.obj" \
 	"$(INTDIR)\dlist.obj" \
 	"$(INTDIR)\edit.obj" \
@@ -780,6 +786,25 @@ SOURCE=..\lib\cram-md5.cpp
 
 FILENAME=crc32
 SOURCE=..\lib\crc32.cpp
+!IF  "$(CFG)" == "wx-console - Win32 Release"
+
+
+"$(INTDIR)\$(FILENAME).obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "wx-console - Win32 Debug"
+
+
+"$(INTDIR)\$(FILENAME).obj"	"$(INTDIR)\$(FILENAME).sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+
+FILENAME=crypto
+SOURCE=..\lib\crypto.cpp
 !IF  "$(CFG)" == "wx-console - Win32 Release"
 
 
