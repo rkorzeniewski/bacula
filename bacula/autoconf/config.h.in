@@ -274,9 +274,6 @@
 /* Define if encryption support should be enabled */
 #undef HAVE_CRYPTO
 
-/* Define if the SHA-2 family of digest algorithms is available */
-#undef HAVE_SHA2
-
 /* Define to 1 if you have the <curses.h> header file. */
 #undef HAVE_CURSES_H
 
@@ -515,6 +512,9 @@
 
 /* Define to 1 if you have the `setsid' function. */
 #undef HAVE_SETSID
+
+/* Define if the SHA-2 family of digest algorithms is available */
+#undef HAVE_SHA2
 
 /* Define to 1 if you have the `signal' function. */
 #undef HAVE_SIGNAL

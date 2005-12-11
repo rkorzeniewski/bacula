@@ -331,7 +331,7 @@ bool bootstrap_cmd(JCR *jcr)
       goto bail_out;
    }
    while (bnet_recv(fd) >= 0) {
-       Dmsg1(400, "stored<filed: bootstrap file %s\n", fd->msg);
+       Dmsg1(400, "stored<filed: bootstrap file %s", fd->msg);
        fputs(fd->msg, bs);
    }
    fclose(bs);

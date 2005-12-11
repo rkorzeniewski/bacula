@@ -456,7 +456,7 @@ void *device_initialization(void *arg)
          continue;
       }
 
-      dcr = new_dcr(jcr, dev);
+      jcr->dcr = dcr = new_dcr(jcr, dev);
       if (dev->is_autochanger()) {
          /* If autochanger set slot in dev sturcture */
          get_autochanger_loaded_slot(dcr);

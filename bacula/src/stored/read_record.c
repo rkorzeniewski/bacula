@@ -157,7 +157,7 @@ bool read_records(DCR *dcr,
       record = 0;
       rec->state = 0;
       Dmsg1(300, "Block empty %d\n", is_block_empty(rec));
-      for (rec->state=0; !is_block_empty(rec); ) {
+      for (rec->state=0; ok && !is_block_empty(rec); ) {
          if (!read_record_from_block(block, rec)) {
             Dmsg3(400, "!read-break. state=%s blk=%d rem=%d\n", rec_state_to_str(rec),
                   block->BlockNumber, rec->remainder);
@@ -215,6 +215,7 @@ bool read_records(DCR *dcr,
                continue;              /* we don't want record, read next one */
             }
          }
+         dcr->VolLastIndex = rec->FileIndex;  /* let caller know where we are */
          if (is_partial_record(rec)) {
             Dmsg6(300, "Partial, break. recno=%d state=%s blk=%d SI=%d ST=%d FI=%d\n", record,
                rec_state_to_str(rec), block->BlockNumber,

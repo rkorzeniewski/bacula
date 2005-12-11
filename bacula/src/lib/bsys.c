@@ -510,6 +510,7 @@ void read_state_file(char *dir, const char *progname, int port)
    if (hdr.version != state_hdr.version) {
       Dmsg2(010, "Bad hdr version. Wanted %d got %d\n",
          state_hdr.version, hdr.version);
+      goto bail_out;
    }
    hdr.id[13] = 0;
    if (strcmp(hdr.id, state_hdr.id) != 0) {

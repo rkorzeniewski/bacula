@@ -1994,6 +1994,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/cats/drop_bacula_tables \
 	   src/cats/drop_bacula_database \
 	   src/findlib/Makefile \
+	   src/pygtk-console/Makefile \
 	   src/tools/Makefile \
 	   src/win32/winbacula.nsi \
 	   src/win32/baculafd/bacula-fd.conf \
