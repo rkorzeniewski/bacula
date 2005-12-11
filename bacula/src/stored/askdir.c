@@ -477,7 +477,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
 
       stat = wait_for_sysop(dcr);
       if (dev->poll) {
-         Dmsg1(000, "Poll timeout in create append vol on device %s\n", dev->print_name());
+         Dmsg1(100, "Poll timeout in create append vol on device %s\n", dev->print_name());
          continue;
       }
 
@@ -486,7 +486,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
             Mmsg(dev->errmsg, _("Max time exceeded waiting to mount Storage Device %s for Job %s\n"),
                dev->print_name(), jcr->Job);
             Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
-            Dmsg1(000, "Gave up waiting on device %s\n", dev->print_name());
+            Dmsg1(100, "Gave up waiting on device %s\n", dev->print_name());
             return false;             /* exceeded maximum waits */
          }
          continue;

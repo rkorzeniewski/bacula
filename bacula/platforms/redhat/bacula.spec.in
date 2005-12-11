@@ -64,13 +64,14 @@ exit 1
 # currently: Mandrake 10.1, SuSE 9.2, RHEL4 and Fedora Core 4
 %define mysql4 0
 %{?build_mysql4:%define mysql4 1}
+%{?build_mysql4:%define mysql 1}
 %define sqlite 0
 %{?build_sqlite:%define sqlite 1}
 %define postgresql 0
 %{?build_postgresql:%define postgresql 1}
 
 # test for a database definition
-%if ! %{mysql} && ! %{sqlite} && ! %{postgresql}
+%if ! %{mysql} && ! %{sqlite} && ! %{postgresql} && ! %{mysql4}
 %{error: You must specify database support. Please examine the spec file.}
 exit 1
 %endif
@@ -105,7 +106,7 @@ exit 1
 Summary: Bacula - The Network Backup Solution
 Name: bacula
 Version: @VERSION@
-Release: 1
+Release: 2
 Group: System Environment/Daemons
 License: GPL v2
 Source0:http://www.prdownloads.sourceforge.net/bacula/%{name}-%{version}.tar.gz

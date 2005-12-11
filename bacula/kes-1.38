@@ -3,6 +3,78 @@
 
 General:
 
+Changes to 1.38.3:
+09Dec05
+- Merge updates into 1.38 branch
+- Update specs to include mysql4 define.
+- Stop read_record() if status not ok in second loop.
+- Return rec->FileIndex in dcr->VolLastIndex for normal
+  and partial records in read_record().  This allows bscan
+  to get FileIndex at EOT correct.
+- Fix butil.c to correctly set dcr -- fixes seg fault in bls.
+08Dec05
+- Apply patch supplied by user (slightly modified) to fix
+  correct detection of holes in block devices and FIFOs. 
+  Bug # 506.
+- Apply patch supplied by user (slightly modified) 
+  to fix SD hang with multiple pools and bad client
+  IP. Fixes bug # 508.
+07Dec05
+- Add nagios plugin to the examples directory. Submitted by
+  Christian Masopust.
+- Remove warning message about multiple saves of hardlinked files
+  from find_one.c as it can generate too many warning messages.
+06Dec05
+- Reset timeout values before select() per patch from 
+  Frank Sweetser for problems with non-blocking sockets.
+- Unlink the state file if either reading or writing it gets
+  errors.  Hopefully this will fix Win32 exit problems.
+- Add sanity check in append.c to ensure that dcr is not NULL.
+  This can happen if multiple drive autochanger SCSI control
+  channel and drive indicies do not correspond.
+05Dec05
+- Get next volume from Scratch pool before creating a volume.
+- Set new Pool defaults in Vol when moved from Scratch Pool.
+- Remove argument from create_bacula_database for SQLite as it
+  caused an error.
+- Add back next_vol index code so that two drive autochangers can get
+  a second tape.
+- Change a bunch of debug levels to aid debugging autochangers.
+- Fix reservation so that mutexes are properly applied.
+- Rework reservation algorithm so that two drives can be used
+  at the same time.
+04Dec05
+- Apply days keyword patch from Alexander.Bergolth at wu-wien.ac.at 
+  If this patch is applied, the number of days can be specified with
+  "list nextvol days=xx"
+  or
+  "status dir days=xx"
+  My use case is to be able to preview the next scheduled job (and the 
+  next tape to be used) on fridays if there are no scheduled jobs during 
+  the weekend.
+Changes to 1.39.1:
+03Dec05
+- Fix font code in gnome2 console user patch. Fixes bug #501.
+- Fix malformatted bnet error message that caused seg fault
+  fixes bug 502
+- Applied user patch to improve README.vc8 in src/win32.
+29Nov05
+- Correct some more editing of JobId's (for 64 bit compatibility).
+- Ensure that StorageId is stored in Media record when ever possible.
+- Add Migration Job to Job.
+- Change Start Storage daemon job to require read and write storage
+  pointers.
+- Pass read storage data to SD as well as write storage data.
+- Remove old code from winservice.cpp
+- Break on error in scan.
+- Fix typo in signal.c
+- Separate read/write DCR in SD.  Add jcr->read_dcr.
+- Cleanup how find_device() works.
+- Add read output to Status in SD.
+21Nov05
+- Remove abs() in bfile.c so that it compiles on Solaris. 
+  Bug #491.
+
 Changes to 1.38.2: 22 November 2005
 20Nov05
 - Fix crash in tray-monitor when daemon disconnects. Bug #479.

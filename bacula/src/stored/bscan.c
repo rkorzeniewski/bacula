@@ -321,6 +321,7 @@ static bool bscan_mount_next_read_volume(DCR *dcr)
 //       mdcr->EndBlock = (uint32_t)dcr->file_addr;
 //       mdcr->EndFile = (uint32_t)(dcr->file_addr >> 32);
       }
+      mjcr->read_dcr->VolLastIndex = dcr->VolLastIndex;
       if (!create_jobmedia_record(db, mjcr)) {
          Pmsg2(000, _("Could not create JobMedia record for Volume=%s Job=%s\n"),
             dev->VolCatInfo.VolCatName, mjcr->Job);
@@ -571,6 +572,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
          mjcr->JobStatus = JS_Terminated;
 
          /* Create JobMedia record */
+         mjcr->read_dcr->VolLastIndex = dcr->VolLastIndex;
          create_jobmedia_record(db, mjcr);
          dev->attached_dcrs->remove(mjcr->read_dcr);
          free_jcr(mjcr);
@@ -1144,7 +1146,7 @@ static int create_jobmedia_record(B_DB *db, JCR *mjcr)
    jmr.JobId = mjcr->JobId;
    jmr.MediaId = mr.MediaId;
    jmr.FirstIndex = dcr->VolFirstIndex;
-   jmr.LastIndex = dcr->FileIndex;
+   jmr.LastIndex = dcr->VolLastIndex;
    jmr.StartFile = dcr->StartFile;
    jmr.EndFile = dcr->EndFile;
    jmr.StartBlock = dcr->StartBlock;

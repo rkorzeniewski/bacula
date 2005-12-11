@@ -4,6 +4,19 @@
 General:
 
 Changes to 1.39.2:
+10Dec05
+- Merge changes made to 1.38.3 into HEAD
+- Add stubs for pygtk-console code
+- Create Makefile.in for pygtk-console code
+09Dec05
+- Merge updates into 1.38 branch
+- Update specs to include mysql4 define.
+- Fix when attributes are sent, must be after binit().
+- Stop read_record() if status not ok in second loop.
+- Return rec->FileIndex in dcr->VolLastIndex for normal
+  and partial records in read_record().  This allows bscan
+  to get FileIndex at EOT correct.
+- Fix butil.c to correctly set dcr -- fixes seg fault in bls.
 08Dec05
 - Fix Win32 built to work with new crypto code.
 - Apply patch supplied by user (slightly modified) to fix
