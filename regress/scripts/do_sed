@@ -11,11 +11,7 @@ if test $# != 6 ; then
 fi
 out="/tmp/sed_tmp"
 cwd=`pwd`
-host=`hostname | tr '.' ' ' | cut -f 1 -d ' '`
-if test x$host = x ; then
-   host=localhost 
-fi
-host="localhost"
+HOST="localhost"
 # Create sed command script
 echo "s%@sbindir@%${cwd}/bin%g" >${out}
 echo "s%@scriptdir@%${cwd}/bin%g" >>${out}
@@ -26,7 +22,7 @@ echo "s%@job_email@%${1}%g" >>${out}
 echo "s%@tape_drive@%${2}%g" >>${out}
 echo "s%@autochanger@%${3}%g" >>${out}
 echo "s%@tmpdir@%${cwd}/tmp%g" >>${out}
-echo "s%@hostname@%${host}%g" >>${out}
+echo "s%@hostname@%${HOST}%g" >>${out}
 echo "s%@changer_path@%${4}%g" >>${out}
 echo "s%@tape_drive1@%${5}%g" >>${out}
 echo "s%@smtp_host@%${6}%g" >>${out}
