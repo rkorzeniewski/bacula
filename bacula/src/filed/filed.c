@@ -372,27 +372,59 @@ static int check_resources()
          }
 
          /*
-          * Trusted Signers. We're always trusted. me->pki_keypair
-          * will be deallocated when me->pki_signers is deallocated.
+          * Trusted Signers. We're always trusted.
           */
          me->pki_signers = New(alist(10, not_owned_by_alist));
-         me->pki_signers->append(me->pki_keypair);
+         me->pki_signers->append(crypto_keypair_dup(me->pki_keypair));
 
          /* If additional trusted keys have been specified, load them up */
-         foreach_alist(filepath, me->pki_trustedkeys) {
-            X509_KEYPAIR *keypair;
+	 if (me->pki_trustedkeys) {
+            foreach_alist(filepath, me->pki_trustedkeys) {
+               X509_KEYPAIR *keypair;
 
-            keypair = crypto_keypair_new();
-            if (!keypair) {
-               Emsg0(M_FATAL, 0, _("Failed to allocate a new keypair object.\n"));
-               OK = false;
-            } else {
-               if (crypto_keypair_load_cert(keypair, filepath)) {
-                  me->pki_signers->append(keypair);
-               } else {
-                  Emsg3(M_FATAL, 0, _("Failed to load trusted signer certificate"
-                     " from file %s for File daemon \"%s\" in %s.\n"), filepath, me->hdr.name, configfile);
+               keypair = crypto_keypair_new();
+               if (!keypair) {
+                  Emsg0(M_FATAL, 0, _("Failed to allocate a new keypair object.\n"));
                   OK = false;
+               } else {
+                  if (crypto_keypair_load_cert(keypair, filepath)) {
+                     me->pki_signers->append(keypair);
+                  } else {
+                     Emsg3(M_FATAL, 0, _("Failed to load trusted signer certificate"
+                        " from file %s for File daemon \"%s\" in %s.\n"), filepath, me->hdr.name, configfile);
+                     OK = false;
+                  }
+               }
+            }
+	 }
+
+         if (me->pki_encrypt) {
+            /*
+             * Trusted readers. We're always trusted.
+             * The symmetric session key will be encrypted for each of these readers.
+             */
+            me->pki_readers = New(alist(10, not_owned_by_alist));
+            me->pki_readers->append(crypto_keypair_dup(me->pki_keypair));
+
+
+            /* If additional keys have been specified, load them up */
+            if (me->pki_masterkeys) {
+               foreach_alist(filepath, me->pki_masterkeys) {
+                  X509_KEYPAIR *keypair;
+
+                  keypair = crypto_keypair_new();
+                  if (!keypair) {
+                     Emsg0(M_FATAL, 0, _("Failed to allocate a new keypair object.\n"));
+                     OK = false;
+                  } else {
+                     if (crypto_keypair_load_cert(keypair, filepath)) {
+                        me->pki_signers->append(keypair);
+                     } else {
+                        Emsg3(M_FATAL, 0, _("Failed to load master key certificate"
+                           " from file %s for File daemon \"%s\" in %s.\n"), filepath, me->hdr.name, configfile);
+                        OK = false;
+                     }
+                  }
                }
             }
          }

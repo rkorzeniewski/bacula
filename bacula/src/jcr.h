@@ -234,6 +234,8 @@ public:
    DIGEST *digest;                    /* Last file's digest context */
    X509_KEYPAIR *pki_keypair;         /* Encryption key pair */
    alist *pki_signers;                /* Trusted Signers */
+   alist *pki_readers;                /* Trusted Readers */
+   CRYPTO_RECIPIENTS *pki_recipients; /* PKE Public Keys + Symmetric Session Keys */
    DIRRES* director;                  /* Director resource */
 #endif /* FILE_DAEMON */
 

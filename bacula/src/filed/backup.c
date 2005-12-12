@@ -47,6 +47,8 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
 {
    BSOCK *sd;
    bool ok = true;
+   // TODO landonf: Allow user to specify encryption algorithm
+   crypto_cipher_t cipher = CRYPTO_CIPHER_AES_128_CBC;
 
    sd = jcr->store_bsock;
 
@@ -79,6 +81,11 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
    jcr->compress_buf_size = jcr->buf_size + ((jcr->buf_size+999) / 1000) + 30;
    jcr->compress_buf = get_memory(jcr->compress_buf_size);
 
+   if (jcr->pki_encrypt) {
+      /* Create per-job session encryption context */
+      jcr->pki_recipients = crypto_recipients_new(cipher, jcr->pki_readers);
+   }
+
    Dmsg1(300, "set_find_options ff=%p\n", jcr->ff);
    set_find_options((FF_PKT *)jcr->ff, jcr->incremental, jcr->mtime);
    Dmsg0(300, "start find files\n");
@@ -108,6 +115,11 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
       free_pool_memory(jcr->compress_buf);
       jcr->compress_buf = NULL;
    }
+
+   if (jcr->pki_recipients) {
+      crypto_recipients_free(jcr->pki_recipients);
+   }
+
    Dmsg1(100, "end blast_data ok=%d\n", ok);
    return ok;
 }
