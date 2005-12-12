@@ -27,7 +27,7 @@ echo " === Starting bscan-tape at `date +%R:%S` ===" >>working/log
 echo " "
 
 cat <<END_OF_DATA >tmp/bconcmds
-@$out /dev/null
+@output /dev/null
 estimate job=NightlySave listing
 estimate job=NightlySave listing
 estimate job=NightlySave listing

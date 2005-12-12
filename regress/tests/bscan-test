@@ -51,6 +51,7 @@ messages
 quit
 END_OF_DATA
 
+# run backup
 if test "$debug" -eq 1 ; then
   bin/bacula start
   cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
@@ -62,17 +63,21 @@ fi
 scripts/check_for_zombie_jobs storage=File1
 bin/bacula stop 2>&1 >/dev/null
 echo "volume=TestVolume001|TestVolume002" >tmp/bscan.bsr
-bin/bscan -w working -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf ${cwd}/tmp 2>&1 >/dev/null
-#bin/bscan -w working -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf ${cwd}/tmp
-bin/bacula start 2>&1 >/dev/null
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
-#bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
+
+if test "$debug" -eq 1 ; then
+  bin/bscan -w working -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf ${cwd}/tmp
+else
+  bin/bscan -w working -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf ${cwd}/tmp 2>&1 >/dev/null
+fi
+
+cat <<END_OF_DATA >tmp/bconcmds
 @$out /dev/null
 messages
 @$out tmp/log2.out
 @# 
 @# now do a restore
 @#
+@#setdebug level=400 storage=File1
 restore bootstrap=${cwd}/tmp/kern.bsr where=${cwd}/tmp/bacula-restores select all storage=File1 done
 yes
 wait
@@ -80,6 +85,17 @@ messages
 @$out
 quit
 END_OF_DATA
+
+# now run restore
+if test "$debug" -eq 1 ; then
+  bin/bacula start
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+else
+  bin/bacula start 2>&1 >/dev/null
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+fi
+
+
 scripts/check_for_zombie_jobs storage=File1
 bin/bacula stop 2>&1 >/dev/null
 grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
