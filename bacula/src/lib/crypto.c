@@ -73,7 +73,8 @@
  *
  * CryptoData ::= SEQUENCE {
  *    version			  Version DEFAULT v0,
- *    contentEncryptionAlgorithm  ContentEncryptionAlgorithmIdentifier
+ *    contentEncryptionAlgorithm  ContentEncryptionAlgorithmIdentifier,
+ *    iv                          InitializationVector,
  *    recipientInfo		  RecipientInfo
  * }
  *
@@ -103,6 +104,10 @@
  * SignatureAlgorithmIdentifier ::= AlgorithmIdentifier
  *
  * KeyEncryptionAlgorithmIdentifier ::= AlgorithmIdentifier
+ *
+ * ContentEncryptionAlgorithmIdentifier ::= AlgorithmIdentifier
+ *
+ * InitializationVector ::= OCTET STRING
  *
  * SignatureValue ::= OCTET STRING
  *
@@ -160,6 +165,7 @@ typedef struct {
 typedef struct {
    ASN1_INTEGER *version;
    ASN1_OBJECT *contentEncryptionAlgorithm;
+   ASN1_OCTET_STRING *iv;
    STACK_OF(RecipientInfo) *recipientInfo;
 } CryptoData;
 
@@ -170,10 +176,12 @@ ASN1_SEQUENCE(SignatureData) = {
 
 ASN1_SEQUENCE(CryptoData) = {
    ASN1_SIMPLE(CryptoData, version, ASN1_INTEGER),
+   ASN1_SIMPLE(CryptoData, iv, ASN1_OCTET_STRING),
    ASN1_SET_OF(CryptoData, recipientInfo, RecipientInfo)
 } ASN1_SEQUENCE_END(CryptoData);
 
 IMPLEMENT_ASN1_FUNCTIONS(SignerInfo)
+IMPLEMENT_ASN1_FUNCTIONS(RecipientInfo)
 IMPLEMENT_ASN1_FUNCTIONS(SignatureData)
 IMPLEMENT_ASN1_FUNCTIONS(CryptoData)
 IMPLEMENT_STACK_OF(SignerInfo)
@@ -261,6 +269,14 @@ struct Signature {
    SignatureData *sigData;
 };
 
+/* Encryption Key Data */
+struct Crypto_Recipients {
+   CryptoData *cryptoData;                        /* ASN.1 Structure */
+   EVP_CIPHER *openssl_cipher;                    /* OpenSSL Cipher Object */
+   unsigned char session_key[EVP_MAX_KEY_LENGTH]; /* Private symmetric session key */
+   size_t session_key_len;                        /* Symmetric session key length */
+};
+
 /* PEM Password Dispatch Context */
 typedef struct PEM_CB_Context {
    CRYPTO_PEM_PASSWD_CB *pem_callback;
@@ -343,6 +359,49 @@ X509_KEYPAIR *crypto_keypair_new (void) {
 
    return keypair;
 }
+
+/*
+ * Create a copy of a keypair object. The underlying
+ * EVP objects are not duplicated, as no EVP_PKEY_dup()
+ * API is available. Instead, the reference count is
+ * incremented.
+ */
+X509_KEYPAIR *crypto_keypair_dup (X509_KEYPAIR *keypair)
+{
+   X509_KEYPAIR *newpair;
+
+   newpair = crypto_keypair_new();
+
+   if (!newpair) {
+      /* Allocation failed */
+      return NULL;
+   }
+
+   /* Increment the public key ref count */
+   if (keypair->pubkey) {
+      CRYPTO_add(&(keypair->pubkey->references), 1, CRYPTO_LOCK_EVP_PKEY);
+      newpair->pubkey = keypair->pubkey;
+   }
+
+   /* Increment the private key ref count */
+   if (keypair->privkey) {
+      CRYPTO_add(&(keypair->privkey->references), 1, CRYPTO_LOCK_EVP_PKEY);
+      newpair->privkey = keypair->privkey;
+   }
+
+   /* Duplicate the keyid */
+   if (keypair->keyid) {
+      newpair->keyid = M_ASN1_OCTET_STRING_dup(keypair->keyid);
+      if (!newpair->keyid) {
+	 /* Allocation failed */
+	 crypto_keypair_free(newpair);
+	 return NULL;
+      }
+   }
+
+   return newpair;
+}
+
 
 /*
  * Load a public key from a PEM-encoded x509 certificate.
@@ -813,6 +872,169 @@ void crypto_sign_free(SIGNATURE *sig)
 {
    SignatureData_free(sig->sigData);
    free (sig);
+}
+
+/*
+ * Create a new encryption recipient.
+ *  Returns: A pointer to a CRYPTO_RECIPIENTS object on success.
+ *	     NULL on failure.
+ */
+CRYPTO_RECIPIENTS *crypto_recipients_new (crypto_cipher_t cipher, alist *pubkeys)
+{
+   CRYPTO_RECIPIENTS *cr;
+   X509_KEYPAIR *keypair;
+   const EVP_CIPHER *ec;
+   unsigned char *iv;
+   int iv_len;
+
+   /* Allocate our recipient description structures */
+   cr = (CRYPTO_RECIPIENTS *) malloc(sizeof(CRYPTO_RECIPIENTS));
+   if (!cr) {
+      return NULL;
+   }
+
+   cr->cryptoData = CryptoData_new();
+
+   if (!cr->cryptoData) {
+      /* Allocation failed in OpenSSL */
+      free(cr);
+      return NULL;
+   }
+
+   /* Set the ASN.1 structure version number */
+   ASN1_INTEGER_set(cr->cryptoData->version, BACULA_ASN1_VERSION);
+
+   /*
+    * Acquire a cipher instance and set the ASN.1 cipher NID
+    */
+   switch (cipher) {
+   case CRYPTO_CIPHER_AES_128_CBC:
+      /* AES 128 bit CBC */
+      cr->cryptoData->contentEncryptionAlgorithm = OBJ_nid2obj(NID_aes_128_cbc);
+      ec = EVP_aes_128_cbc();
+      break;
+   case CRYPTO_CIPHER_AES_192_CBC:
+      /* AES 192 bit CBC */
+      cr->cryptoData->contentEncryptionAlgorithm = OBJ_nid2obj(NID_aes_192_cbc);
+      ec = EVP_aes_192_cbc();
+      break;
+   case CRYPTO_CIPHER_AES_256_CBC:
+      /* AES 256 bit CBC */
+      cr->cryptoData->contentEncryptionAlgorithm = OBJ_nid2obj(NID_aes_256_cbc);
+      ec = EVP_aes_256_cbc();
+      break;
+   case CRYPTO_CIPHER_BLOWFISH_CBC:
+      /* Blowfish CBC */
+      cr->cryptoData->contentEncryptionAlgorithm = OBJ_nid2obj(NID_bf_cbc);
+      ec = EVP_bf_cbc();
+      break;
+   default:
+      Emsg0(M_ERROR, 0, _("Unsupported cipher type specified\n"));
+      crypto_recipients_free(cr);
+      return NULL;
+   }
+
+   /* Generate a symmetric session key */
+   cr->session_key_len = EVP_CIPHER_key_length(ec);
+   if (RAND_bytes(cr->session_key, cr->session_key_len) <= 0) {
+      /* OpenSSL failure */
+      crypto_recipients_free(cr);
+      return NULL;
+   }
+
+   /* Generate an IV if possible */
+   if ((iv_len = EVP_CIPHER_iv_length(ec))) {
+      iv = (unsigned char *) malloc(iv_len);
+      if (!iv) {
+	 /* Malloc failure */
+	 crypto_recipients_free(cr);
+	 return NULL;
+      }
+
+      /* Generate random IV */
+      if (RAND_bytes(iv, iv_len) <= 0) {
+	 /* OpenSSL failure */
+	 crypto_recipients_free(cr);
+	 return NULL;
+      }
+
+      /* Store it in our ASN.1 structure */
+      if (!M_ASN1_OCTET_STRING_set(cr->cryptoData->iv, iv, iv_len)) {
+	 /* Allocation failed in OpenSSL */
+	 crypto_recipients_free(cr);
+	 return NULL;
+      }
+   }
+
+   /*
+    * Create RecipientInfo structures for supplied
+    * public keys.
+    */
+   foreach_alist(keypair, pubkeys) {
+      RecipientInfo *ri;
+      unsigned char *ekey;
+      int ekey_len;
+
+      ri = RecipientInfo_new();
+      if (!ri) {
+	 /* Allocation failed in OpenSSL */
+	 crypto_recipients_free(cr);
+	 return NULL;
+      }
+
+      /* Set the ASN.1 structure version number */
+      ASN1_INTEGER_set(ri->version, BACULA_ASN1_VERSION);
+
+      /* Drop the string allocated by OpenSSL, and add our subjectKeyIdentifier */
+      M_ASN1_OCTET_STRING_free(ri->subjectKeyIdentifier);
+      ri->subjectKeyIdentifier = M_ASN1_OCTET_STRING_dup(keypair->keyid);
+
+      /* Set our key encryption algorithm. We currently require RSA */
+      assert(keypair->pubkey && EVP_PKEY_type(keypair->pubkey->type) == EVP_PKEY_RSA);
+      ri->keyEncryptionAlgorithm = OBJ_nid2obj(NID_rsaEncryption);
+
+      /* Encrypt the session key */
+      ekey = (unsigned char *) malloc(EVP_PKEY_size(keypair->pubkey));
+      if (!ekey) {
+	 RecipientInfo_free(ri);
+	 crypto_recipients_free(cr);
+	 return NULL;
+      }
+
+      if ((ekey_len = EVP_PKEY_encrypt(ekey, cr->session_key, cr->session_key_len, keypair->pubkey)) <= 0) {
+	 /* OpenSSL failure */
+	 RecipientInfo_free(ri);
+	 crypto_recipients_free(cr);
+	 free(ekey);
+	 return NULL;
+      }
+
+      /* Store it in our ASN.1 structure */
+      if (!M_ASN1_OCTET_STRING_set(ri->encryptedKey, ekey, ekey_len)) {
+	 /* Allocation failed in OpenSSL */
+	 RecipientInfo_free(ri);
+	 crypto_recipients_free(cr);
+	 free(ekey);
+	 return NULL;
+      }
+
+      /* Free the encrypted key buffer */
+      free(ekey);
+
+      /* Push the new RecipientInfo structure onto the stack */
+      sk_RecipientInfo_push(cr->cryptoData->recipientInfo, ri);
+   }
+
+   return cr;
+}
+
+/*
+ * Free memory associated with a crypto recipient object.
+ */
+void crypto_recipients_free (CRYPTO_RECIPIENTS *cr)
+{
+   CryptoData_free(cr->cryptoData);
+   free(cr);
 }
 
 /*

@@ -93,6 +93,7 @@ static RES_ITEM cli_items[] = {
    {"pkiencryption",         store_yesno,     ITEM(res_client.pki_encrypt), 1, ITEM_DEFAULT, 0},
    {"pkikeypair",            store_dir,       ITEM(res_client.pki_keypairfile), 0, 0, 0},
    {"pkitrustedsigner",      store_alist_str, ITEM(res_client.pki_trustedkeys), 0, 0, 0},
+   {"pkimasterkey",          store_alist_str, ITEM(res_client.pki_masterkeys), 0, 0, 0},
    {"tlsenable",             store_yesno,     ITEM(res_client.tls_enable),  1, 0, 0},
    {"tlsrequire",            store_yesno,     ITEM(res_client.tls_require), 1, 0, 0},
    {"tlscacertificatefile",  store_dir,       ITEM(res_client.tls_ca_certfile), 0, 0, 0},
@@ -247,6 +248,9 @@ void free_resource(RES *sres, int type)
       if (res->res_client.pki_keypairfile) { 
          free(res->res_client.pki_keypairfile);
       }
+      if (res->res_client.pki_keypair) {
+	 crypto_keypair_free(res->res_client.pki_keypair);
+      }
       /* Also frees res_client.pki_keypair */
       if (res->res_client.pki_trustedkeys) {
          delete res->res_client.pki_trustedkeys;
@@ -258,6 +262,17 @@ void free_resource(RES *sres, int type)
          }
          delete res->res_client.pki_signers;
       }
+      if (res->res_client.pki_masterkeys) {
+         delete res->res_client.pki_masterkeys;
+      }
+      if (res->res_client.pki_readers) {
+         X509_KEYPAIR *keypair;
+         foreach_alist(keypair, res->res_client.pki_readers) {
+            crypto_keypair_free(keypair);
+         }
+         delete res->res_client.pki_signers;
+      }
+
       if (res->res_client.tls_ctx) { 
          free_tls_context(res->res_client.tls_ctx);
       }

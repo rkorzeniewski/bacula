@@ -45,6 +45,9 @@ typedef struct Digest DIGEST;
 /* Opaque Message Signature Structure */
 typedef struct Signature SIGNATURE;
 
+/* Opaque PKI Symmetric Key Data Structure */
+typedef struct Crypto_Recipients CRYPTO_RECIPIENTS;
+
 /* PEM Decryption Passphrase Callback */
 typedef int (CRYPTO_PEM_PASSWD_CB) (char *buf, int size, const void *userdata);
 
@@ -57,6 +60,15 @@ typedef enum {
    CRYPTO_DIGEST_SHA256 = 3,
    CRYPTO_DIGEST_SHA512 = 4
 } crypto_digest_t;
+
+/* Cipher Types */
+typedef enum {
+   /* These are not stored on disk */
+   CRYPTO_CIPHER_AES_128_CBC,
+   CRYPTO_CIPHER_AES_192_CBC,
+   CRYPTO_CIPHER_AES_256_CBC,
+   CRYPTO_CIPHER_BLOWFISH_CBC
+} crypto_cipher_t;
 
 /* Crypto API Errors */
 typedef enum {
