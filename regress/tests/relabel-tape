@@ -4,7 +4,7 @@
 #   then backup four times, each with incremental then finally restore.
 #   It should require at least 4 different bsrs.
 #
-debug=0
+debug=1
 if test "$debug" -eq 1 ; then
   out="tee"
 else
@@ -23,7 +23,7 @@ echo " === Starting relabel-tape at `date +%R:%S` ===" >>working/log
 echo " "
 
 cat <<END_OF_DATA >tmp/bconcmds
-@$out /dev/null
+@output /dev/null
 messages
 @$out tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default
@@ -33,11 +33,9 @@ messages
 add pool=Default
 0
 TestVolume002
-0
-no
+@# set status to append
 update volume=TestVolume001
 1
-4 
 .
 run job=NightlySave level=Full yes
 @sleep 20
@@ -46,7 +44,10 @@ unmount
 purge volume=TestVolume001
 relabel oldvolume=TestVolume001 volume=TestVolume003 slot=0 pool=Default
 list volumes
+mount
 messages
+wait
+run job=NightlySave level=Full yes
 wait
 messages
 @$out
