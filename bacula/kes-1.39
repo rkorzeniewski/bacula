@@ -4,6 +4,14 @@
 General:
 
 Changes to 1.39.2:
+13Dec05
+- Add stubs for non-crypto build.
+12Dec05
+- Use localhost if no network configured
+11Dec05
+- Eliminated duplicate MaxVolBytes in cat update -- bug 509.
+- Remove debug print.
+- Add bail_out in error during state file reading.
 10Dec05
 - Merge changes made to 1.38.3 into HEAD
 - Add stubs for pygtk-console code

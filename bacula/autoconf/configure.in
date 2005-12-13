@@ -1657,6 +1657,9 @@ PSCMD="ps -e"
 WIN32=
 MACOSX=
 hostname=`uname -n | cut -d '.' -f 1`
+if x${hostname} = x ; then
+  hostname="localhost"
+fi
 case "$DISTNAME" in
 aix)
 	DISTVER=`uname -r`
@@ -1794,7 +1797,6 @@ redhat)
 	    platforms/redhat/bacula-dir \
 	    platforms/redhat/bacula.spec \
 	    "
-	hostname=`hostname -s`
   ;;
 mandrake)
 	DISTVER=`cat /etc/mandrake-release | grep release |\

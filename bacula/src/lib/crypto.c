@@ -60,22 +60,22 @@
  *    2.4 - RecipientInfo
  *
  * BaculaCrypto { iso(1) identified-organization(3) usdod(6)
- *		  internet(1) private(4) enterprises(1) three-rings(22054)
- *		  external(500) bacula(2) published(1) bacula-encryption(1)
- *		  asn1-modules(1) bacula-crypto(1) }
+ *                internet(1) private(4) enterprises(1) three-rings(22054)
+ *                external(500) bacula(2) published(1) bacula-encryption(1)
+ *                asn1-modules(1) bacula-crypto(1) }
  *
  * DEFINITIONS AUTOMATIC TAGS ::=
  * BEGIN
  *
  * SignatureData ::= SEQUENCE {
- *    version	      Version DEFAULT v0,
+ *    version         Version DEFAULT v0,
  *    signerInfo      SignerInfo }
  *
  * CryptoData ::= SEQUENCE {
- *    version			  Version DEFAULT v0,
+ *    version                     Version DEFAULT v0,
  *    contentEncryptionAlgorithm  ContentEncryptionAlgorithmIdentifier,
  *    iv                          InitializationVector,
- *    recipientInfo		  RecipientInfo
+ *    recipientInfo               RecipientInfo
  * }
  *
  * SignerInfo ::= SET OF SignerInfo
@@ -84,17 +84,17 @@
  * Version ::= INTEGER { v0(0) }
  *
  * SignerInfo ::= SEQUENCE {
- *    version		      Version,
+ *    version                 Version,
  *    subjectKeyIdentifier    SubjectKeyIdentifier,
- *    digestAlgorithm	      DigestAlgorithmIdentifier,
+ *    digestAlgorithm         DigestAlgorithmIdentifier,
  *    signatureAlgorithm      SignatureAlgorithmIdentifier,
- *    signature 	      SignatureValue }
+ *    signature               SignatureValue }
  *
  * RecipientInfo ::= SEQUENCE {
- *    version		      Version
+ *    version                 Version
  *    subjectKeyIdentifier    SubjectKeyIdentifier
  *    keyEncryptionAlgorithm  KeyEncryptionAlgorithmIdentifier
- *    encryptedKey	      EncryptedKey
+ *    encryptedKey            EncryptedKey
  * }
  *
  * SubjectKeyIdentifier ::= OCTET STRING
@@ -212,13 +212,13 @@ IMPLEMENT_STACK_OF(RecipientInfo)
 #define sk_SignerInfo_is_sorted(st) SKM_sk_is_sorted(SignerInfo, (st))
 
 #define d2i_ASN1_SET_OF_SignerInfo(st, pp, length, d2i_func, free_func, ex_tag, ex_class) \
-	SKM_ASN1_SET_OF_d2i(SignerInfo, (st), (pp), (length), (d2i_func), (free_func), (ex_tag), (ex_class)) 
+        SKM_ASN1_SET_OF_d2i(SignerInfo, (st), (pp), (length), (d2i_func), (free_func), (ex_tag), (ex_class)) 
 #define i2d_ASN1_SET_OF_SignerInfo(st, pp, i2d_func, ex_tag, ex_class, is_set) \
-	SKM_ASN1_SET_OF_i2d(SignerInfo, (st), (pp), (i2d_func), (ex_tag), (ex_class), (is_set))
+        SKM_ASN1_SET_OF_i2d(SignerInfo, (st), (pp), (i2d_func), (ex_tag), (ex_class), (is_set))
 #define ASN1_seq_pack_SignerInfo(st, i2d_func, buf, len) \
-	SKM_ASN1_seq_pack(SignerInfo, (st), (i2d_func), (buf), (len))
+        SKM_ASN1_seq_pack(SignerInfo, (st), (i2d_func), (buf), (len))
 #define ASN1_seq_unpack_SignerInfo(buf, len, d2i_func, free_func) \
-	SKM_ASN1_seq_unpack(SignerInfo, (buf), (len), (d2i_func), (free_func))
+        SKM_ASN1_seq_unpack(SignerInfo, (buf), (len), (d2i_func), (free_func))
 
 #define sk_RecipientInfo_new(st) SKM_sk_new(RecipientInfo, (st))
 #define sk_RecipientInfo_new_null() SKM_sk_new_null(RecipientInfo)
@@ -242,13 +242,13 @@ IMPLEMENT_STACK_OF(RecipientInfo)
 #define sk_RecipientInfo_is_sorted(st) SKM_sk_is_sorted(RecipientInfo, (st))
 
 #define d2i_ASN1_SET_OF_RecipientInfo(st, pp, length, d2i_func, free_func, ex_tag, ex_class) \
-	SKM_ASN1_SET_OF_d2i(RecipientInfo, (st), (pp), (length), (d2i_func), (free_func), (ex_tag), (ex_class)) 
+        SKM_ASN1_SET_OF_d2i(RecipientInfo, (st), (pp), (length), (d2i_func), (free_func), (ex_tag), (ex_class)) 
 #define i2d_ASN1_SET_OF_RecipientInfo(st, pp, i2d_func, ex_tag, ex_class, is_set) \
-	SKM_ASN1_SET_OF_i2d(RecipientInfo, (st), (pp), (i2d_func), (ex_tag), (ex_class), (is_set))
+        SKM_ASN1_SET_OF_i2d(RecipientInfo, (st), (pp), (i2d_func), (ex_tag), (ex_class), (is_set))
 #define ASN1_seq_pack_RecipientInfo(st, i2d_func, buf, len) \
-	SKM_ASN1_seq_pack(RecipientInfo, (st), (i2d_func), (buf), (len))
+        SKM_ASN1_seq_pack(RecipientInfo, (st), (i2d_func), (buf), (len))
 #define ASN1_seq_unpack_RecipientInfo(buf, len, d2i_func, free_func) \
-	SKM_ASN1_seq_unpack(RecipientInfo, (buf), (len), (d2i_func), (free_func))
+        SKM_ASN1_seq_unpack(RecipientInfo, (buf), (len), (d2i_func), (free_func))
 /* End of util/mkstack.pl block */
 
 /* X509 Public/Private Key Pair Structure */
@@ -286,7 +286,7 @@ typedef struct PEM_CB_Context {
 /*
  * Extract subjectKeyIdentifier from x509 certificate.
  * Returns: On success, an ASN1_OCTET_STRING that must be freed via M_ASN1_OCTET_STRING_free().
- *	    NULL on failure.
+ *          NULL on failure.
  */
 static ASN1_OCTET_STRING *openssl_cert_keyid(X509 *cert){
    X509_EXTENSION *ext;
@@ -323,7 +323,7 @@ static ASN1_OCTET_STRING *openssl_cert_keyid(X509 *cert){
 
       /* Decode ASN1 item in data */
       keyid = (ASN1_OCTET_STRING *) ASN1_item_d2i(NULL, &ext_value_data, ext->value->length,
-						  ASN1_ITEM_ptr(method->it));
+                                                  ASN1_ITEM_ptr(method->it));
    } else {
       /* Old style ASN1 */
 
@@ -341,7 +341,7 @@ static ASN1_OCTET_STRING *openssl_cert_keyid(X509 *cert){
 /*
  * Create a new keypair object.
  *  Returns: A pointer to a X509 KEYPAIR object on success.
- *	     NULL on failure.
+ *           NULL on failure.
  */
 X509_KEYPAIR *crypto_keypair_new (void) {
    X509_KEYPAIR *keypair;
@@ -393,9 +393,9 @@ X509_KEYPAIR *crypto_keypair_dup (X509_KEYPAIR *keypair)
    if (keypair->keyid) {
       newpair->keyid = M_ASN1_OCTET_STRING_dup(keypair->keyid);
       if (!newpair->keyid) {
-	 /* Allocation failed */
-	 crypto_keypair_free(newpair);
-	 return NULL;
+         /* Allocation failed */
+         crypto_keypair_free(newpair);
+         return NULL;
       }
    }
 
@@ -406,7 +406,7 @@ X509_KEYPAIR *crypto_keypair_dup (X509_KEYPAIR *keypair)
 /*
  * Load a public key from a PEM-encoded x509 certificate.
  *  Returns: true on success
- *	     false on failure
+ *           false on failure
  */
 int crypto_keypair_load_cert (X509_KEYPAIR *keypair, const char *file)
 {
@@ -464,11 +464,11 @@ static int crypto_pem_callback_dispatch (char *buf, int size, int rwflag, void *
 /*
  * Load a PEM-encoded private key.
  *  Returns: true on success
- *	     false on failure
+ *           false on failure
  */
 int crypto_keypair_load_key (X509_KEYPAIR *keypair, const char *file,
-			     CRYPTO_PEM_PASSWD_CB *pem_callback,
-			     const void *pem_userdata)
+                             CRYPTO_PEM_PASSWD_CB *pem_callback,
+                             const void *pem_userdata)
 {
    BIO *bio;
    PEM_CB_CONTEXT ctx;
@@ -518,7 +518,7 @@ void crypto_keypair_free (X509_KEYPAIR *keypair)
 /*
  * Create a new message digest context of the specified type
  *  Returns: A pointer to a DIGEST object on success.
- *	     NULL on failure.
+ *           NULL on failure.
  */
 DIGEST *crypto_digest_new (crypto_digest_t type)
 {
@@ -569,7 +569,7 @@ err:
 /*
  * Hash length bytes of data into the provided digest context.
  * Returns: true on success
- *	    false on failure
+ *          false on failure
  */
 bool crypto_digest_update (DIGEST *digest, const void *data, size_t length) {
    if (EVP_DigestUpdate(&digest->ctx, data, length) == 0) {
@@ -584,7 +584,7 @@ bool crypto_digest_update (DIGEST *digest, const void *data, size_t length) {
  * in length. The result size can be determined with crypto_digest_size().
  *
  * Returns: true on success
- *	    false on failure
+ *          false on failure
  */
 bool crypto_digest_finalize (DIGEST *digest, void *dest, size_t *length) {
    if (!EVP_DigestFinal(&digest->ctx, (unsigned char *) dest, length)) {
@@ -606,7 +606,7 @@ void crypto_digest_free (DIGEST *digest)
 /*
  * Create a new message signature context.
  *  Returns: A pointer to a SIGNATURE object on success.
- *	     NULL on failure.
+ *           NULL on failure.
  */
 SIGNATURE *crypto_sign_new (void)
 {
@@ -635,7 +635,7 @@ SIGNATURE *crypto_sign_new (void)
  * For a given public key, find the associated SignatureInfo record
  * and create a digest context for signature validation
  * Returns: CRYPTO_ERROR_NONE on success, with the newly allocated DIGEST in digest.
- *	    A crypto_error_t value on failure.
+ *          A crypto_error_t value on failure.
  */
 crypto_error_t crypto_sign_get_digest(SIGNATURE *sig, X509_KEYPAIR *keypair, DIGEST **digest)
 {
@@ -648,33 +648,33 @@ crypto_error_t crypto_sign_get_digest(SIGNATURE *sig, X509_KEYPAIR *keypair, DIG
    for (i = 0; i < sk_SignerInfo_num(signers); i++) {
       si = sk_SignerInfo_value(signers, i);
       if (M_ASN1_OCTET_STRING_cmp(keypair->keyid, si->subjectKeyIdentifier) == 0) {
-	 /* Get the digest algorithm and allocate a digest context */
-	 switch (OBJ_obj2nid(si->digestAlgorithm)) {
-	 case NID_md5:
-	    *digest = crypto_digest_new(CRYPTO_DIGEST_MD5);
-	    break;
-	 case NID_sha1:
-	    *digest = crypto_digest_new(CRYPTO_DIGEST_SHA1);
-	    break;
+         /* Get the digest algorithm and allocate a digest context */
+         switch (OBJ_obj2nid(si->digestAlgorithm)) {
+         case NID_md5:
+            *digest = crypto_digest_new(CRYPTO_DIGEST_MD5);
+            break;
+         case NID_sha1:
+            *digest = crypto_digest_new(CRYPTO_DIGEST_SHA1);
+            break;
 #ifdef HAVE_SHA2
-	 case NID_sha256:
-	    *digest = crypto_digest_new(CRYPTO_DIGEST_SHA256);
-	    break;
-	 case NID_sha512:
-	    *digest = crypto_digest_new(CRYPTO_DIGEST_SHA512);
-	    break;
+         case NID_sha256:
+            *digest = crypto_digest_new(CRYPTO_DIGEST_SHA256);
+            break;
+         case NID_sha512:
+            *digest = crypto_digest_new(CRYPTO_DIGEST_SHA512);
+            break;
 #endif
-	 default:
-	    *digest = NULL;
-	    return CRYPTO_ERROR_INVALID_DIGEST;
-	 }
+         default:
+            *digest = NULL;
+            return CRYPTO_ERROR_INVALID_DIGEST;
+         }
 
          /* Shouldn't happen */
-	 if (*digest == NULL) {
-	    return CRYPTO_ERROR_INVALID_DIGEST;
-	 } else {
-	    return CRYPTO_ERROR_NONE;
-	 }
+         if (*digest == NULL) {
+            return CRYPTO_ERROR_INVALID_DIGEST;
+         } else {
+            return CRYPTO_ERROR_NONE;
+         }
       }
    }
 
@@ -684,7 +684,7 @@ crypto_error_t crypto_sign_get_digest(SIGNATURE *sig, X509_KEYPAIR *keypair, DIG
 /*
  * For a given signature, public key, and digest, verify the SIGNATURE.
  * Returns: CRYPTO_ERROR_NONE on success.
- *	    A crypto_error_t value on failure.
+ *          A crypto_error_t value on failure.
  */
 crypto_error_t crypto_sign_verify(SIGNATURE *sig, X509_KEYPAIR *keypair, DIGEST *digest)
 {
@@ -704,20 +704,20 @@ crypto_error_t crypto_sign_verify(SIGNATURE *sig, X509_KEYPAIR *keypair, DIGEST 
    for (i = 0; i < sk_SignerInfo_num(signers); i++) {
       si = sk_SignerInfo_value(signers, i);
       if (M_ASN1_OCTET_STRING_cmp(keypair->keyid, si->subjectKeyIdentifier) == 0) {
-	 /* Extract the signature data */
-	 sigLen = M_ASN1_STRING_length(si->signature);
-	 sigData = M_ASN1_STRING_data(si->signature);
+         /* Extract the signature data */
+         sigLen = M_ASN1_STRING_length(si->signature);
+         sigData = M_ASN1_STRING_data(si->signature);
 
-	 ok = EVP_VerifyFinal(&digest->ctx, sigData, sigLen, keypair->pubkey);
-	 if (ok >= 1) {
-	    return CRYPTO_ERROR_NONE;
-	 } else if (ok == 0) {
-	    return CRYPTO_ERROR_BAD_SIGNATURE;
-	 } else if (ok < 0) {
+         ok = EVP_VerifyFinal(&digest->ctx, sigData, sigLen, keypair->pubkey);
+         if (ok >= 1) {
+            return CRYPTO_ERROR_NONE;
+         } else if (ok == 0) {
+            return CRYPTO_ERROR_BAD_SIGNATURE;
+         } else if (ok < 0) {
             /* Shouldn't happen */
             openssl_post_errors(M_ERROR, _("OpenSSL error occured"));
-	    return CRYPTO_ERROR_INTERNAL;
-	 }
+            return CRYPTO_ERROR_INTERNAL;
+         }
       }
    }
 
@@ -729,7 +729,7 @@ crypto_error_t crypto_sign_verify(SIGNATURE *sig, X509_KEYPAIR *keypair, DIGEST 
 /*
  * Add a new signer
  *  Returns: true on success
- *	     false on failure
+ *           false on failure
  */
 int crypto_sign_add_signer(SIGNATURE *sig, DIGEST *digest, X509_KEYPAIR *keypair)
 {
@@ -817,7 +817,7 @@ err:
  * space for the output.
  *
  * Returns: true on success, stores the encoded data in dest, and the size in length.
- *	    false on failure.
+ *          false on failure.
  */
 int crypto_sign_encode(SIGNATURE *sig, void *dest, size_t *length)
 {
@@ -835,7 +835,7 @@ int crypto_sign_encode(SIGNATURE *sig, void *dest, size_t *length)
  * size of sigData.
  *
  * Returns: SIGNATURE instance on success.
- *	    NULL on failure.
+ *          NULL on failure.
 
  */
 
@@ -877,7 +877,7 @@ void crypto_sign_free(SIGNATURE *sig)
 /*
  * Create a new encryption recipient.
  *  Returns: A pointer to a CRYPTO_RECIPIENTS object on success.
- *	     NULL on failure.
+ *           NULL on failure.
  */
 CRYPTO_RECIPIENTS *crypto_recipients_new (crypto_cipher_t cipher, alist *pubkeys)
 {
@@ -946,23 +946,23 @@ CRYPTO_RECIPIENTS *crypto_recipients_new (crypto_cipher_t cipher, alist *pubkeys
    if ((iv_len = EVP_CIPHER_iv_length(ec))) {
       iv = (unsigned char *) malloc(iv_len);
       if (!iv) {
-	 /* Malloc failure */
-	 crypto_recipients_free(cr);
-	 return NULL;
+         /* Malloc failure */
+         crypto_recipients_free(cr);
+         return NULL;
       }
 
       /* Generate random IV */
       if (RAND_bytes(iv, iv_len) <= 0) {
-	 /* OpenSSL failure */
-	 crypto_recipients_free(cr);
-	 return NULL;
+         /* OpenSSL failure */
+         crypto_recipients_free(cr);
+         return NULL;
       }
 
       /* Store it in our ASN.1 structure */
       if (!M_ASN1_OCTET_STRING_set(cr->cryptoData->iv, iv, iv_len)) {
-	 /* Allocation failed in OpenSSL */
-	 crypto_recipients_free(cr);
-	 return NULL;
+         /* Allocation failed in OpenSSL */
+         crypto_recipients_free(cr);
+         return NULL;
       }
    }
 
@@ -977,9 +977,9 @@ CRYPTO_RECIPIENTS *crypto_recipients_new (crypto_cipher_t cipher, alist *pubkeys
 
       ri = RecipientInfo_new();
       if (!ri) {
-	 /* Allocation failed in OpenSSL */
-	 crypto_recipients_free(cr);
-	 return NULL;
+         /* Allocation failed in OpenSSL */
+         crypto_recipients_free(cr);
+         return NULL;
       }
 
       /* Set the ASN.1 structure version number */
@@ -996,26 +996,26 @@ CRYPTO_RECIPIENTS *crypto_recipients_new (crypto_cipher_t cipher, alist *pubkeys
       /* Encrypt the session key */
       ekey = (unsigned char *) malloc(EVP_PKEY_size(keypair->pubkey));
       if (!ekey) {
-	 RecipientInfo_free(ri);
-	 crypto_recipients_free(cr);
-	 return NULL;
+         RecipientInfo_free(ri);
+         crypto_recipients_free(cr);
+         return NULL;
       }
 
       if ((ekey_len = EVP_PKEY_encrypt(ekey, cr->session_key, cr->session_key_len, keypair->pubkey)) <= 0) {
-	 /* OpenSSL failure */
-	 RecipientInfo_free(ri);
-	 crypto_recipients_free(cr);
-	 free(ekey);
-	 return NULL;
+         /* OpenSSL failure */
+         RecipientInfo_free(ri);
+         crypto_recipients_free(cr);
+         free(ekey);
+         return NULL;
       }
 
       /* Store it in our ASN.1 structure */
       if (!M_ASN1_OCTET_STRING_set(ri->encryptedKey, ekey, ekey_len)) {
-	 /* Allocation failed in OpenSSL */
-	 RecipientInfo_free(ri);
-	 crypto_recipients_free(cr);
-	 free(ekey);
-	 return NULL;
+         /* Allocation failed in OpenSSL */
+         RecipientInfo_free(ri);
+         crypto_recipients_free(cr);
+         free(ekey);
+         return NULL;
       }
 
       /* Free the encrypted key buffer */
@@ -1041,7 +1041,7 @@ void crypto_recipients_free (CRYPTO_RECIPIENTS *cr)
  * Perform global initialization of OpenSSL
  * This function is not thread safe.
  *  Returns: 0 on success
- *	     errno on failure
+ *           errno on failure
  */
 int init_crypto (void)
 {
@@ -1071,7 +1071,7 @@ int init_crypto (void)
  * All cryptographic operations must be completed before calling this function.
  * This function is not thread safe.
  *  Returns: 0 on success
- *	     errno on failure
+ *           errno on failure
  */
 int cleanup_crypto (void)
 {
@@ -1156,10 +1156,10 @@ bool crypto_digest_update (DIGEST *digest, const void *data, size_t length) {
    case CRYPTO_DIGEST_SHA1:
       int ret;
       if ((ret = SHA1Update(&digest->sha1, (const u_int8_t *) data, length)) == shaSuccess) {
-	 return true;
+         return true;
       } else {
          Emsg1(M_ERROR, 0, _("SHA1Update() returned an error: %d\n"), ret);
-	 return false;
+         return false;
       }
       break;
    default:
@@ -1184,9 +1184,9 @@ bool crypto_digest_finalize (DIGEST *digest, void *dest, size_t *length) {
       assert(*length >= CRYPTO_DIGEST_SHA1_SIZE);
       *length = CRYPTO_DIGEST_SHA1_SIZE;
       if (SHA1Final(&digest->sha1, (u_int8_t *) dest) == shaSuccess) {
-	 return true;
+         return true;
       } else {
-	 return false;
+         return false;
       }
       break;
    default:
@@ -1218,9 +1218,13 @@ void crypto_sign_free (SIGNATURE *sig) { }
 
 
 X509_KEYPAIR *crypto_keypair_new (void) { return NULL; }
+X509_KEYPAIR *crypto_keypair_dup (X509_KEYPAIR *keypair) { return NULL; }
 int crypto_keypair_load_cert (X509_KEYPAIR *keypair, const char *file) { return false; }
 int crypto_keypair_load_key (X509_KEYPAIR *keypair, const char *file, CRYPTO_PEM_PASSWD_CB *pem_callback, const void *pem_userdata) { return false; }
 void crypto_keypair_free (X509_KEYPAIR *keypair) { }
+
+CRYPTO_RECIPIENTS *crypto_recipients_new (crypto_cipher_t cipher, alist *pubkeys) { return NULL; }
+void crypto_recipients_free (CRYPTO_RECIPIENTS *cr) { }
 
 #endif /* HAVE_CRYPTO */
 
