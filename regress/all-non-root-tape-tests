@@ -16,6 +16,7 @@ tests/restore-by-file-tape
 tests/small-file-size-tape
 tests/truncate-bug-tape
 tests/two-pool-tape
+tests/2drive-incremental-2tape
 echo " "
 echo " "
 echo "Test results"

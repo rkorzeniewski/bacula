@@ -4,7 +4,7 @@
 #   then backup four times, each with incremental then finally restore.
 #   It should require at least 4 different bsrs.
 #
-debug=1
+debug=0
 if test "$debug" -eq 1 ; then
   out="tee"
 else

@@ -5,7 +5,11 @@
 #
 # This script uses the autochanger and two tapes
 #
-debug=1
+if test ! -e /dev/nst1; then
+   echo "Skipping 2drive-incremenatal-2tape test"
+   exit
+fi
+debug=0
 if test "$debug" -eq 1 ; then
   out="tee"
 else
