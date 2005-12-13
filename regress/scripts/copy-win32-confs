@@ -3,3 +3,9 @@
 /bin/cp -f scripts/win32-bacula-sd-tape.conf bin/bacula-sd.conf
 /bin/cp -f scripts/win32-bacula-fd.conf bin/bacula-fd.conf
 /bin/cp -f scripts/test-console.conf bin/bconsole.conf
+
+# get proper SD tape definitions
+cp -f scripts/linux_tape_options bin/tape_options
+if test x`uname` = xFreeBSD ; then
+   cp -f scripts/freebsd_tape_options bin/tape_options
+fi

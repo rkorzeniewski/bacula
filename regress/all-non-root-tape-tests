@@ -15,6 +15,7 @@ tests/relabel-tape
 tests/restore-by-file-tape
 tests/small-file-size-tape
 tests/truncate-bug-tape
+tests/two-pool-tape
 echo " "
 echo " "
 echo "Test results"

@@ -9,6 +9,7 @@ if test $# != 6 ; then
    echo "  and the sixth must be the smtp or email host"
    exit 1
 fi
+mkdir -p ${cwd}/bin
 out="/tmp/sed_tmp"
 cwd=`pwd`
 HOST="localhost"
@@ -43,6 +44,7 @@ sed -f ${out} ${cwd}/scripts/cleanup-tape.in >${cwd}/scripts/cleanup-tape
 sed -f ${out} ${cwd}/scripts/cleanup-2tape.in >${cwd}/scripts/cleanup-2tape
 sed -f ${out} ${cwd}/scripts/cleanup-2drive.in >${cwd}/scripts/cleanup-2drive
 sed -f ${out} ${cwd}/scripts/prepare-two-tapes.in >${cwd}/scripts/prepare-two-tapes
+
 cp ${cwd}/bin/bacula-sd.conf /tmp/bac$$
 sed s%/tmp%${cwd}/tmp%g /tmp/bac$$ >${cwd}/bin/bacula-sd.conf
 chmod 777 ${cwd}/scripts/cleanup-*tape ${cwd}/scripts/cleanup-*drive ${cwd}/scripts/prepare-two-tapes
