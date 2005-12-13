@@ -7,7 +7,7 @@
 #  is in /tmp/file-list, which is by default the Bacula
 #  source code (i.e. the build directory).
 #
-debug=1
+debug=0
 if test "$debug" -eq 1 ; then
   out="tee"
 else
@@ -18,53 +18,8 @@ scripts/cleanup
 scripts/copy-2tape-confs
 scripts/prepare-two-tapes
  
-# Make a relatively large backup set 50 x source code directory
+# Make a relatively large backup set 5 x source code directory
 echo "${cwd}/build" >/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
 echo "${cwd}/build" >>/tmp/file-list
 echo "${cwd}/build" >>/tmp/file-list
 echo "${cwd}/build" >>/tmp/file-list
@@ -77,7 +32,7 @@ echo " === Starting Two Pool Tape test at `date +%R:%S` ===" >>working/log
 echo " "
 # Write out bconsole commands to a file
 cat <<END_OF_DATA >tmp/bconcmds
-@$out /dev/null
+@output /dev/null
 messages
 @$out tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 slot=1 pool=Full drive=0
@@ -85,9 +40,13 @@ label storage=DDS-4 volume=TestVolume002 slot=2 pool=Default drive=0
 list volumes
 @# Start job with Client run before and sleep
 run job=NightlySave1 level=Full pool=Default yes
+run job=NightlySave1 level=Full pool=Default yes
+run job=NightlySave1 level=Full pool=Default yes
 @# wait between starting jobs
 @sleep 60
 @#setdebug level=100 storage=DDS-4
+run job=NightlySave2 level=Full pool=Full yes
+run job=NightlySave2 level=Full pool=Full yes
 run job=NightlySave2 level=Full pool=Full yes
 @sleep 10
 messages

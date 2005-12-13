@@ -7,3 +7,9 @@ outf="tmp/sed_tmp"
 echo "s%# Autochanger = yes%  Autochanger = yes%g" >${outf}
 cp bin/bacula-dir.conf tmp/1
 sed -f ${outf} tmp/1 >bin/bacula-dir.conf
+
+# get proper SD tape definitions
+cp -f scripts/linux_tape_options bin/tape_options
+if test x`uname` = xFreeBSD ; then
+   cp -f scripts/freebsd_tape_options bin/tape_options
+fi
