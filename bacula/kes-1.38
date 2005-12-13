@@ -4,6 +4,12 @@
 General:
 
 Changes to 1.38.3:
+12Dec05
+- Use localhost if no network configured
+11Dec05
+- Eliminated duplicate MaxVolBytes in cat update -- bug 509.
+- Remove debug print.
+- Add bail_out in error during state file reading.
 09Dec05
 - Merge updates into 1.38 branch
 - Update specs to include mysql4 define.

@@ -5,26 +5,21 @@
  *
  *    Version $Id$
  */
-
 /*
    Copyright (C) 2000-2005 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
+
 
 /* The following is necessary so that we do not include
  * the dummy external definition of DB.
@@ -291,8 +286,8 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    time_t ttime;
    struct tm tm;
    int stat;
-   char ed1[50], ed2[50], ed3[50], ed4[50], ed5[50], ed6[50], ed7[50];
-   char ed8[50], ed9[50];
+   char ed1[50], ed2[50], ed3[50], ed4[50]; 
+   char ed5[50], ed6[50], ed7[50], ed8[50];
 
 
    Dmsg1(100, "update_media: FirstWritten=%d\n", mr->FirstWritten);
@@ -335,7 +330,7 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
         "VolWrites=%u,MaxVolBytes=%s,VolStatus='%s',"
         "Slot=%d,InChanger=%d,VolReadTime=%s,VolWriteTime=%s,VolParts=%d,"
         "LabelType=%d,StorageId=%s,PoolId=%s,VolRetention=%s,VolUseDuration=%s,"
-        "MaxVolJobs=%d,MaxVolFiles=%d,MaxVolBytes=%s"
+        "MaxVolJobs=%d,MaxVolFiles=%d"
         " WHERE VolumeName='%s'",
         mr->VolJobs, mr->VolFiles, mr->VolBlocks, edit_uint64(mr->VolBytes, ed1),
         mr->VolMounts, mr->VolErrors, mr->VolWrites,
@@ -350,7 +345,6 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
         edit_uint64(mr->VolRetention, ed7),
         edit_uint64(mr->VolUseDuration, ed8),
         mr->MaxVolJobs, mr->MaxVolFiles,
-        edit_uint64(mr->MaxVolBytes, ed9),
         mr->VolumeName);
 
    Dmsg1(400, "%s\n", mdb->cmd);
