@@ -28,6 +28,10 @@ echo "s%@changer_path@%${4}%g" >>${out}
 echo "s%@tape_drive1@%${5}%g" >>${out}
 echo "s%@smtp_host@%${6}%g" >>${out}
 
+echo "AUTOCHANGER=\"${3}\"" >config.out
+echo "TAPE_DRIVE1=\"${5}\"" >>config.out
+
+
 # process .in files with sed script
 sed -f ${out} ${cwd}/scripts/test-bacula-dir.conf.in >${cwd}/scripts/test-bacula-dir.conf
 sed -f ${out} ${cwd}/scripts/new-test-bacula-dir.conf.in >${cwd}/scripts/new-test-bacula-dir.conf

@@ -7,6 +7,11 @@
 #  is in /tmp/file-list, which is by default the Bacula
 #  source code (i.e. the build directory).
 #
+. config.out
+if test x${AUTOCHANGER} = x/dev/null ; then
+   echo "two-pool-tape test skipped. No autochanger."
+   exit
+fi
 debug=0
 if test "$debug" -eq 1 ; then
   out="tee"
