@@ -5,8 +5,9 @@
 #
 # This script uses the autochanger and two tapes
 #
-if test ! -e /dev/nst1; then
-   echo "Skipping 2drive-incremenatal-2tape test"
+. config.out
+if test x${TAPE_DRIVE1} = x/dev/null ; then
+   echo "Skipping 2drive-incremenatal-2tape test. No second drive."
    exit
 fi
 debug=0

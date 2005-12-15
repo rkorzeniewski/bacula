@@ -5,6 +5,11 @@
 #  Note, this test simulates the tape filling and writing to
 #   the next tape.
 #
+. config.out
+if test x${AUTOCHANGER} = x/dev/null ; then
+   echo "two-volume-tape test skipped. No autochanger."
+   exit
+fi
 debug=0
 if test "$debug" -eq 1 ; then
   out="tee"
