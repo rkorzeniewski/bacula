@@ -760,7 +760,10 @@ void wxbMainFrame::Print(wxString str, int status)
 void wxbMainFrame::Send(wxString str)
 {
    if (ct != NULL) {
-      ct->Write(str.mb_str(*wxConvCurrent));
+      /* wxString may contain everything in UNICODE
+       * -> convert to UTF-8 and send to director
+       */
+      ct->Write (str.mb_str(wxConvUTF8));
       typeCtrl->SetValue(wxT(""));
       consoleCtrl->SetDefaultStyle(wxTextAttr(*wxRED));
       consoleCtrl->AppendText(wxbUtils::ConvertToPrintable(str));      
