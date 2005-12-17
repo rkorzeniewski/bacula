@@ -1,8 +1,70 @@
 
-          Release Notes for Bacula 1.38.2
+          Release Notes for Bacula 1.38.3
 
-  Bacula code: Total files = 420 Total lines = 138,440 (*.h *.c *.in)
+  Bacula code: Total files = 424 Total lines = 140,955 (*.h *.c *.in)
       20,440 additional lines of code since version 1.36.3
+
+Changes to 1.38.3:
+- This is mainly a bug release fix. In addition, the multiple drive
+  reservation algorithm has been rewritten.
+- Simplify the O_NONBLOCK open() code for tape drives,
+  and always open nonblocking.
+- Do not wait for open() if EIO returned (shouldn't happen).
+- Eliminate 3 argument to tape open().
+- Correct the slot # edited in the 3995 Bad autochanger unload
+  message.
+- With -S on bscan (show progress) do not divide by zero.
+- Make cancel pthread_cond_signal() pthread_cond_broadcast().
+- When dcr is freed, also broadcast dev->wait_next_vol signal.
+- Remove unused code in wait_for_device.  
+- Make wait_for_device() always return after 60 seconds of wait.
+- Use localhost if no network configured
+- Eliminated duplicate MaxVolBytes in cat update -- bug 509.
+- Update specs to include mysql4 define.
+- Return rec->FileIndex in dcr->VolLastIndex for normal
+  and partial records in read_record().  This allows bscan
+  to get FileIndex at EOT correct.
+- Fix butil.c to correctly set dcr -- fixes seg fault in bls.
+- Apply patch supplied by user (slightly modified) to fix
+  correct detection of holes in block devices and FIFOs. 
+  Bug # 506.
+- Apply patch supplied by user (slightly modified) 
+  to fix SD hang with multiple pools and bad client
+  IP. Fixes bug # 508.
+- Add nagios plugin to the examples directory. Submitted by
+  Christian Masopust.
+- Remove warning message about multiple saves of hardlinked files
+  from find_one.c as it can generate too many warning messages.
+- Reset timeout values before select() per patch from 
+  Frank Sweetser for problems with non-blocking sockets.
+- Unlink the state file if either reading or writing it gets
+  errors.  Hopefully this will fix Win32 exit problems.
+- Get next volume from Scratch pool before creating a volume.
+- Set new Pool defaults in Vol when moved from Scratch Pool.
+- Remove argument from create_bacula_database for SQLite as it
+  caused an error.
+- Fix reservation so that mutexes are properly applied.
+- Rework reservation algorithm so that two drives can be used
+  at the same time.
+- Apply days keyword patch from Alexander.Bergolth at wu-wien.ac.at 
+  If this patch is applied, the number of days can be specified with
+  "list nextvol days=xx"
+  or
+  "status dir days=xx"
+  My use case is to be able to preview the next scheduled job (and the 
+  next tape to be used) on fridays if there are no scheduled jobs during 
+  the weekend.
+- Fix font code in gnome2 console user patch. Fixes bug #501.
+- Fix malformatted bnet error message that caused seg fault
+  fixes bug 502
+- Applied user patch to improve README.vc8 in src/win32.
+- Ensure that StorageId is stored in Media record when ever possible.
+- Remove old code from winservice.cpp
+- Break on error in scan.
+- Fix typo in signal.c
+- Separate read/write DCR in SD.  Add jcr->read_dcr.
+- Cleanup how find_device() works.
+- Remove abs() in bfile.c so that it compiles on Solaris. Bug #491.
 
 Changes to 1.38.2:
 - Fix crash in tray-monitor when daemon disconnects. Bug #479.

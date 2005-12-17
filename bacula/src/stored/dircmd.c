@@ -273,11 +273,11 @@ static bool cancel_cmd(JCR *cjcr)
          }
          /* If thread waiting on mount, wake him */
          if (jcr->dcr && jcr->dcr->dev && jcr->dcr->dev->waiting_for_mount()) {
-             pthread_cond_signal(&jcr->dcr->dev->wait_next_vol);
+             pthread_cond_broadcast(&jcr->dcr->dev->wait_next_vol);
              pthread_cond_broadcast(&wait_device_release);
          }
          if (jcr->read_dcr && jcr->read_dcr->dev && jcr->read_dcr->dev->waiting_for_mount()) {
-             pthread_cond_signal(&jcr->read_dcr->dev->wait_next_vol);
+             pthread_cond_broadcast(&jcr->read_dcr->dev->wait_next_vol);
              pthread_cond_broadcast(&wait_device_release);
          }
          bnet_fsend(dir, _("3000 Job %s marked to be canceled.\n"), jcr->Job);

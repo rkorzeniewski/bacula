@@ -2119,11 +2119,13 @@ static void do_unfill()
     * Note, re-reading last block may have caused us to
     *   loose track of where we are (block number unknown).
     */
+   Pmsg0(-1, _("Rewinding.\n"));
    if (!rewind_dev(dev)) {                /* get to a known place on tape */
       goto bail_out;
    }
    /* Read the first 10000 records */
-   Pmsg0(-1, _("Reading the first 10000 records.\n"));
+   Pmsg2(-1, _("Reading the first 10000 records from %u:%u.\n"),
+      dev->file, dev->block_num);
    quickie_count = 0;
    read_records(dcr, quickie_cb, my_mount_next_read_volume);
    Pmsg4(-1, _("Reposition from %u:%u to %u:%u\n"), dev->file, dev->block_num,
@@ -2218,14 +2220,9 @@ bail_out:
 static bool quickie_cb(DCR *dcr, DEV_RECORD *rec)
 {
    DEVICE *dev = dcr->dev;
-   if (dev->file != 0) {
-      Pmsg3(-1, _("ERROR! device at %d:%d count=%d\n"), dev->file, dev->block_num,
-         quickie_count);
-      return false;
-   }
    quickie_count++;
    if (quickie_count == 10000) {
-      Pmsg2(-1, _("1000 records read now at %d:%d\n"), dev->file, dev->block_num);
+      Pmsg2(-1, _("10000 records read now at %d:%d\n"), dev->file, dev->block_num);
    }
    return quickie_count < 10000;
 }

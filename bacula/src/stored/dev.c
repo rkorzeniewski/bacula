@@ -328,10 +328,9 @@ void DEVICE::set_mode(int new_mode)
  */
 void DEVICE::open_tape_device(DCR *dcr, int omode) 
 {
-   int nonblocking = 0;
    file_size = 0;
    int timeout;
-   int ioerrcnt = 10;
+   int nonblocking = O_NONBLOCK;
    Dmsg0(29, "open dev: device is tape\n");
 
    if (is_tape() && is_autochanger()) {
@@ -341,14 +340,6 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
    set_mode(omode);
    timeout = max_open_wait;
    errno = 0;
-#ifdef HAVE_LINUX_OS
-   if (open_nowait) {
-       /* Set wait counters to zero for no wait */
-       timeout = ioerrcnt = 0;
-       /* Open drive in non-block mode */
-       nonblocking = O_NONBLOCK;
-   }
-#endif
    if (is_fifo() && timeout) {
       /* Set open timer */
       tid = start_thread_timer(pthread_self(), timeout);
@@ -357,7 +348,7 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
    Dmsg3(100, "Try open %s mode=%s nonblocking=%d\n", print_name(),
       mode_to_str(omode), nonblocking);
    /* Use system open() */
-   while ((fd = ::open(dev_name, mode+nonblocking, MODE_RW)) < 0) {
+   while ((fd = ::open(dev_name, mode+nonblocking)) < 0) {
       berrno be;
       dev_errno = errno;
       Dmsg5(050, "Open omode=%d mode=%x nonblock=%d error errno=%d ERR=%s\n", 
@@ -372,12 +363,6 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
          bmicrosleep(1, 0);
          continue;
       }
-      /* IO error (no volume) try 10 times every 6 seconds */
-      if (dev_errno == EIO && ioerrcnt-- > 0) {
-         bmicrosleep(5, 0);
-         Dmsg0(100, "Continue open\n");
-         continue;
-      }
       Mmsg2(errmsg, _("Unable to open device %s: ERR=%s\n"),
             print_name(), be.strerror(dev_errno));
       /* Stop any open timer we set */
@@ -389,12 +374,9 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
       break;
    }
 
-   if (nonblocking) {
-      set_blocking();
-   }
-
    if (fd >= 0) {
       openmode = omode;              /* save open mode */
+      set_blocking();   
       Dmsg2(100, "openmode=%d %s\n", openmode, mode_to_str(openmode));
       dev_errno = 0;
       set_opened();
@@ -415,12 +397,18 @@ void DEVICE::set_blocking()
 {
    int oflags;
    /* Try to reset blocking */
+#ifdef xxx
    if ((oflags = fcntl(fd, F_GETFL, 0)) < 0 ||
        fcntl(fd, F_SETFL, oflags & ~O_NONBLOCK) < 0) {
       berrno be;
       ::close(fd);                   /* use system close() */
-      fd = ::open(dev_name, mode, MODE_RW);       
+      fd = ::open(dev_name, mode);       
       Dmsg2(100, "fcntl error. ERR=%s. Close-reopen fd=%d\n", be.strerror(), fd);
+   }
+#endif
+   oflags = fcntl(fd, F_GETFL, 0);       
+   if (oflags > 0 && (oflags & O_NONBLOCK)) {
+      fcntl(fd, F_SETFL, oflags & ~O_NONBLOCK);
    }
 }
 

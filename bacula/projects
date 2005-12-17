@@ -102,6 +102,12 @@ Item  3:  Accurate restoration of renamed/deleted files from
           but one additional database record must be written, which does 
           not need any database change.
 
+          Kern: see if we can correct restoration of directories if
+          replace=ifnewer is set.  Currently, if the directory does not
+          exist, a "dummy" directory is created, then when all the files
+          are updated, the dummy directory is newer so the real values
+          are not updated.
+
 Item 4:   Implement a Bacula GUI/management tool using Python.
   Origin: Kern
   Date:   28 October 2005
