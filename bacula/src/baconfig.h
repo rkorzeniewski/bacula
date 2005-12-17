@@ -128,7 +128,7 @@
 /*
  * Default network buffer size
  */
-#define DEFAULT_NETWORK_BUFFER_SIZE (32 * 1024)
+#define DEFAULT_NETWORK_BUFFER_SIZE (64 * 1024)
 
 /*
  * Stream definitions.  Once defined these must NEVER

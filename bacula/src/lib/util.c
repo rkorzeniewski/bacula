@@ -460,7 +460,7 @@ void make_session_key(char *key, char *seed, int mode)
 
      sprintf(s + strlen(s), "%lu", (unsigned long)getpid());
      sprintf(s + strlen(s), "%lu", (unsigned long)getppid());
-     getcwd(s + strlen(s), 256);
+     (void)getcwd(s + strlen(s), 256);
      sprintf(s + strlen(s), "%lu", (unsigned long)clock());
      sprintf(s + strlen(s), "%lu", (unsigned long)time(NULL));
 #ifdef Solaris

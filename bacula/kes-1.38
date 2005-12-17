@@ -4,12 +4,43 @@
 General:
 
 Changes to 1.38.3:
+17Dec05
+- Fix seg fault if user labels a drive directory bug #513
+- Remove quotes around Version as it breaks things.
+16Dec05
+- Merge in Aleksandar Milivojevic's mods to the spec file.
+- Apply sparse code fix for raw drives and fifos. Bug 506
+- Thorsten fixed Unicode cd problem with wx-console bug 505.
+Beta release 14Dec05:
+14Dec05
+- Correct reservation system to do a last ditch try
+  for any mounted volume, then anyone anywhere.
+- Add quotes around table Version because of
+  error in MySQL 4.1.15 -- bug report submitted.
+- Correct some minor problems with btape in the fill
+  command.
+- Updates to ssh-tunnel from Joshua Kugler.
+- Added a report.pl program from Jonas Bjorklund.            
+- Simplify the O_NONBLOCK open() code for tape drives,
+  and always open nonblocking.
+- Do not wait for open() if EIO returned (shouldn't happen).
+- Eliminate 3 argument to tape open().
+- Correct the slot # edited in the 3995 Bad autochanger unload
+  message.
+- With -S on bscan (show progress) do not divide by zero.
+  Bug #510
+13Dec05
+- Make cancel pthread_cond_signal() pthread_cond_broadcast().
+- When dcr is freed, also broadcast dev->wait_next_vol signal.
+- Remove unused code in wait_for_device.  
+- Make wait_for_device() always return after 60 seconds of wait.
 12Dec05
 - Use localhost if no network configured
 11Dec05
 - Eliminated duplicate MaxVolBytes in cat update -- bug 509.
 - Remove debug print.
 - Add bail_out in error during state file reading.
+Beta release 10Dec05:
 09Dec05
 - Merge updates into 1.38 branch
 - Update specs to include mysql4 define.
@@ -58,7 +89,6 @@ Changes to 1.38.3:
   My use case is to be able to preview the next scheduled job (and the 
   next tape to be used) on fridays if there are no scheduled jobs during 
   the weekend.
-Changes to 1.39.1:
 03Dec05
 - Fix font code in gnome2 console user patch. Fixes bug #501.
 - Fix malformatted bnet error message that caused seg fault

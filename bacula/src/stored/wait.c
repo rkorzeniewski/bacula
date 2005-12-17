@@ -26,7 +26,7 @@
 #include "bacula.h"                   /* pull in global headers */
 #include "stored.h"                   /* pull in Storage Deamon headers */
 
-static bool double_jcr_wait_time(JCR *jcr);
+//static bool double_jcr_wait_time(JCR *jcr);
 
 
 /*
@@ -166,10 +166,8 @@ bool wait_for_device(JCR *jcr, bool first)
    struct timeval tv;
    struct timezone tz;
    struct timespec timeout;
-// time_t last_heartbeat = 0;
    int stat = 0;
-   int add_wait;
-   bool ok = false;
+   bool ok = true;
 
    Dmsg0(100, "Enter wait_for_device\n");
    P(device_release_mutex);
@@ -178,78 +176,23 @@ bool wait_for_device(JCR *jcr, bool first)
       Jmsg(jcr, M_MOUNT, 0, _("Job %s waiting to reserve a device.\n"), jcr->Job);
    }
 
-   /*
-    * Wait requested time (dev->rem_wait_sec).  However, we also wake up every
-    *    HB_TIME seconds and send a heartbeat to the FD and the Director
-    *    to keep stateful firewalls from closing them down while waiting
-    *    for the operator.
-    */
-   add_wait = jcr->rem_wait_sec;
-   if (me->heartbeat_interval && add_wait > me->heartbeat_interval) {
-      add_wait = me->heartbeat_interval;
-   }
+   gettimeofday(&tv, &tz);
+   timeout.tv_nsec = tv.tv_usec * 1000;
+   timeout.tv_sec = tv.tv_sec + 120;
 
-   for ( ; !job_canceled(jcr); ) {
-      time_t now, start;
+   Dmsg0(100, "I'm going to wait for a device.\n");
 
-      gettimeofday(&tv, &tz);
-      timeout.tv_nsec = tv.tv_usec * 1000;
-      timeout.tv_sec = tv.tv_sec + add_wait;
+   /* Wait required time */
+   stat = pthread_cond_timedwait(&wait_device_release, &device_release_mutex, &timeout);
+   Dmsg1(100, "Wokeup from sleep on device stat=%d\n", stat);
 
-      Dmsg3(100, "I'm going to wait for a device. HB=%d wait=%d remwait=%d\n", 
-         (int)me->heartbeat_interval, jcr->wait_sec, jcr->rem_wait_sec);
-      start = time(NULL);
-      /* Wait required time */
-      stat = pthread_cond_timedwait(&wait_device_release, &device_release_mutex, &timeout);
-      Dmsg1(100, "Wokeup from sleep on device stat=%d\n", stat);
-
-      now = time(NULL);
-      jcr->rem_wait_sec -= (now - start);
-
-/* Not turned on yet */
-#ifdef needed
-      /* Note, this always triggers the first time. We want that. */
-      if (me->heartbeat_interval) {
-         if (now - last_heartbeat >= me->heartbeat_interval) {
-            /* send heartbeats */
-            if (jcr->file_bsock) {
-               bnet_sig(jcr->file_bsock, BNET_HEARTBEAT);
-               Dmsg0(400, "Send heartbeat to FD.\n");
-            }
-            if (jcr->dir_bsock) {
-               bnet_sig(jcr->dir_bsock, BNET_HEARTBEAT);
-            }
-            last_heartbeat = now;
-         }
-      }
-#endif
-
-      if (stat != ETIMEDOUT) {     /* if someone woke us up */
-         ok = true;
-         break;                    /* allow caller to examine device */
-      }
-      if (jcr->rem_wait_sec <= 0) {  /* on exceeding wait time return */
-         Dmsg0(400, "Exceed wait time.\n");
-         if (!double_jcr_wait_time(jcr)) {
-            break;                 /* give up */
-         }
-         Jmsg(jcr, M_MOUNT, 0, _("Job %s waiting to reserve a device.\n"), jcr->Job);
-      }
-
-      add_wait = jcr->wait_sec - (now - start);
-      if (add_wait < 0) {
-         add_wait = 0;
-      }
-      if (me->heartbeat_interval && add_wait > me->heartbeat_interval) {
-         add_wait = me->heartbeat_interval;
-      }
-   }
 
    V(device_release_mutex);
    Dmsg1(100, "Return from wait_device ok=%d\n", ok);
    return ok;
 }
 
+#ifdef xxx
 /*
  * The jcr timers are used for waiting on any device *
  * Returns: true if time doubled
@@ -268,3 +211,4 @@ static bool double_jcr_wait_time(JCR *jcr)
    }
    return true;
 }
+#endif

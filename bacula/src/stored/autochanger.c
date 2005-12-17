@@ -428,8 +428,12 @@ bool autochanger_cmd(DCR *dcr, BSOCK *dir, const char *cmd)
    }
    if (strcmp(cmd, "drives") == 0) {
       AUTOCHANGER *changer_res = dcr->device->changer_res;
-      bnet_fsend(dir, "drives=%d\n", changer_res->device->size());
-      Dmsg1(100, "drives=%d\n", changer_res->device->size());
+      int drives = 1;
+      if (changer_res) {
+         drives = changer_res->device->size();
+      }
+      bnet_fsend(dir, "drives=%d\n", drives);
+      Dmsg1(100, "drives=%d\n", drives);
       return true;
    }
 

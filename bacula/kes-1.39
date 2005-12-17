@@ -3,6 +3,36 @@
 
 General:
 
+Changes to 1.39.3:
+17Dec05
+- Fix seg fault if user labels a drive directory bug #513
+- Remove quotes around Version as it breaks things.
+16Dec05
+- Merge in Aleksandar Milivojevic's mods to the spec file.
+- Apply sparse code fix for raw drives and fifos. Bug 506
+- Thorsten fixed Unicode cd problem with wx-console bug 505.
+14Dec05
+- Correct reservation system to do a last ditch try
+  for any mounted volume, then anyone anywhere.
+- Add quotes around table Version because of
+  error in MySQL 4.1.15 -- bug report submitted.
+- Correct some minor problems with btape in the fill
+  command.
+- Updates to ssh-tunnel from Joshua Kugler.
+- Added a report.pl program from Jonas Bjorklund.            
+- Simplify the O_NONBLOCK open() code for tape drives,
+  and always open nonblocking.
+- Do not wait for open() if EIO returned (shouldn't happen).
+- Eliminate 3 argument to tape open().
+- Correct the slot # edited in the 3995 Bad autochanger unload
+  message.
+- With -S on bscan (show progress) do not divide by zero.
+13Dec05
+- Make cancel pthread_cond_signal() pthread_cond_broadcast().
+- When dcr is freed, also broadcast dev->wait_next_vol signal.
+- Remove unused code in wait_for_device.  
+- Make wait_for_device() always return after 60 seconds of wait.
+
 Changes to 1.39.2:
 13Dec05
 - Add stubs for non-crypto build.

@@ -612,16 +612,16 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
                    Pw(con_lock);      /* get write lock on console message file */
                    errno = 0;
                    if (dtlen) {
-                      fwrite(dt, dtlen, 1, con_fd);
+                      (void)fwrite(dt, dtlen, 1, con_fd);
                    }
                    len = strlen(msg);
                    if (len > 0) {
-                      fwrite(msg, len, 1, con_fd);
+                      (void)fwrite(msg, len, 1, con_fd);
                       if (msg[len-1] != '\n') {
-                         fwrite("\n", 2, 1, con_fd);
+                         (void)fwrite("\n", 2, 1, con_fd);
                       }
                    } else {
-                      fwrite("\n", 2, 1, con_fd);
+                      (void)fwrite("\n", 2, 1, con_fd);
                    }
                    fflush(con_fd);
                    console_msg_pending = TRUE;
