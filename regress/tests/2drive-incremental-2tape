@@ -63,6 +63,8 @@ run job=NightlySave yes
 run job=NightlySave yes
 run job=NightlySave yes
 run job=NightlySave yes
+@sleep 3
+status storage=DDS-4
 wait
 list volumes
 list jobs
