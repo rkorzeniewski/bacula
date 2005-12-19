@@ -60,8 +60,12 @@ label storage=DDS-4 volume=TestVolume002 slot=2 Pool=Default drive=1
 @#setdebug level=100 storage=DDS-4
 run job=NightlySave yes
 run job=NightlySave yes
+run job=NightlySave yes
+run job=NightlySave yes
+run job=NightlySave yes
 wait
 list volumes
+list jobs
 status storage=DDS-4
 messages
 quit
