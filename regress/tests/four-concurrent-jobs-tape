@@ -33,6 +33,8 @@ run job=NightlySave level=Full Storage=DDS-4 yes
 @sleep 2
 status dir
 @sleep 5
+status dir
+status storage=DDS-4
 messages
 wait
 messages
