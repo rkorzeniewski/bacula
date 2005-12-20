@@ -111,6 +111,7 @@ void free_dcr(DCR *dcr)
    }
    free_unused_volume(dcr);           /* free unused vols attached to this dcr */
    free(dcr);
+   pthread_cond_broadcast(&dev->wait_next_vol);
    pthread_cond_broadcast(&wait_device_release);
 }
 

@@ -3,9 +3,17 @@
 
 General:
 
+Beta release 20Dec05:
 Changes to 1.38.3:
+19Dec05
+- Implement load balancing code.
+- Pull a few files from 1.39 where we can maintain compatibility.
+- Rewrite reservation algorithm again. Rename variables to be
+  more logical, add HEARTBEAT with Director, allow cancel of
+  jobs stuck in reservation, add last resourt any_drive.
 17Dec05
-- Fix seg fault if user labels a drive directory bug #513
+- Remove quotes from Version table name -- it breaks things.
+- Fix seg fault if user labels a drive directly bug #513
 - Remove quotes around Version as it breaks things.
 16Dec05
 - Merge in Aleksandar Milivojevic's mods to the spec file.

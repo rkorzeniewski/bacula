@@ -7,6 +7,19 @@
 Changes to 1.38.3:
 - This is mainly a bug release fix. In addition, the multiple drive
   reservation algorithm has been rewritten.
+- Implement load balancing code.
+- Rewrite reservation algorithm again. Rename variables to be
+  more logical, add HEARTBEAT with Director, allow cancel of
+  jobs stuck in reservation, add last resourt any_drive.
+- Fix seg fault if user labels a drive directly bug #513
+- Remove quotes around Version as it breaks things.
+- Merge in Aleksandar Milivojevic's mods to the spec file.
+- Apply sparse code fix for raw drives and fifos. Bug 506
+- Thorsten fixed Unicode cd problem with wx-console bug 505.
+- Correct reservation system to do a last ditch try
+  for any mounted volume, then anyone anywhere.
+- Updates to ssh-tunnel from Joshua Kugler.
+- Added a report.pl program from Jonas Bjorklund.            
 - Simplify the O_NONBLOCK open() code for tape drives,
   and always open nonblocking.
 - Do not wait for open() if EIO returned (shouldn't happen).

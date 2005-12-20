@@ -635,7 +635,7 @@ void do_messages(UAContext *ua, const char *cmd)
 {
    char msg[2000];
    int mlen;
-   int do_truncate = FALSE;
+   bool do_truncate = false;
 
    Pw(con_lock);
    pthread_cleanup_push(con_lock_release, (void *)NULL);
@@ -646,7 +646,7 @@ void do_messages(UAContext *ua, const char *cmd)
       strcpy(ua->UA_sock->msg, msg);
       ua->UA_sock->msglen = mlen;
       bnet_send(ua->UA_sock);
-      do_truncate = TRUE;
+      do_truncate = true;
    }
    if (do_truncate) {
       ftruncate(fileno(con_fd), 0L);
