@@ -5,6 +5,9 @@ General:
 
 Beta release 20Dec05:
 Changes to 1.38.3:
+20Dec05
+- Fix seg fault in exit of acquire when canceling a job --
+  reported by Wolfgang Denk
 19Dec05
 - Implement load balancing code.
 - Pull a few files from 1.39 where we can maintain compatibility.

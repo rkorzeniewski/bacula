@@ -388,16 +388,6 @@ DCR *acquire_device_for_append(DCR *dcr)
    if (jcr->NumVolumes == 0) {
       jcr->NumVolumes = 1;
    }
-   goto ok_out;
-
-/*
- * If we jump here, it is an error return because
- *  rtn_dev will still be NULL
- */
-get_out:
-   free_dcr(dcr);
-   dcr = NULL;
-ok_out:
    P(dev->mutex);
    if (dcr->reserved_device) {
       dev->reserved_device--;
@@ -407,6 +397,21 @@ ok_out:
    V(dev->mutex);
    dev->unblock();
    return dcr;
+
+/*
+ * Error return
+ */
+get_out:
+   P(dev->mutex);
+   if (dcr->reserved_device) {
+      dev->reserved_device--;
+      Dmsg1(100, "Dec reserve=%d\n", dev->reserved_device);
+      dcr->reserved_device = false;
+   }
+   V(dev->mutex);
+   free_dcr(dcr);
+   dev->unblock();
+   return NULL;
 }
 
 /*
