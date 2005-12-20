@@ -4,6 +4,10 @@
 General:
 
 Changes to 1.39.3:
+20Dec05
+- Pull in latest reservation system changes from 1.38
+- Make .messages command always print messages regardless
+  of the automessages flag.
 17Dec05
 - Fix seg fault if user labels a drive directory bug #513
 - Remove quotes around Version as it breaks things.

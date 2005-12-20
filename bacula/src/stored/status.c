@@ -160,13 +160,12 @@ bool status_cmd(JCR *jcr)
    list_volumes(user);
    bnet_fsend(user, _("====\n\n"));
        
-
 #ifdef xxx
-   if (debug_level > 0) {
+   if (debug_level > 10) {
       bnet_fsend(user, _("====\n\n"));
       dump_resource(R_DEVICE, resources[R_DEVICE-r_first].res_head, sendit, user);
+      bnet_fsend(user, _("====\n\n"));
    }
-   bnet_fsend(user, _("====\n\n"));
 #endif
 
    list_spool_stats(user);

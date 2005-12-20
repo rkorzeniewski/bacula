@@ -168,6 +168,7 @@ bool wait_for_device(JCR *jcr, bool first)
    struct timespec timeout;
    int stat = 0;
    bool ok = true;
+   const int wait_time = 10 * 60;       /* wait 10 minutes */
 
    Dmsg0(100, "Enter wait_for_device\n");
    P(device_release_mutex);
@@ -178,7 +179,7 @@ bool wait_for_device(JCR *jcr, bool first)
 
    gettimeofday(&tv, &tz);
    timeout.tv_nsec = tv.tv_usec * 1000;
-   timeout.tv_sec = tv.tv_sec + 120;
+   timeout.tv_sec = tv.tv_sec + wait_time;
 
    Dmsg0(100, "I'm going to wait for a device.\n");
 

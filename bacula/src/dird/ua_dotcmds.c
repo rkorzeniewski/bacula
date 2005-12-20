@@ -34,9 +34,10 @@ extern int r_last;
 extern struct s_res resources[];
 extern char my_name[];
 extern const char *client_backups;
+extern int console_msg_pending;
 
 /* Imported functions */
-extern int qmessagescmd(UAContext *ua, const char *cmd);
+extern int do_messages(UAContext *ua, const char *cmd);
 extern int quit_cmd(UAContext *ua, const char *cmd);
 extern int qhelp_cmd(UAContext *ua, const char *cmd);
 extern int qstatus_cmd(UAContext *ua, const char *cmd);
@@ -53,6 +54,7 @@ static int defaultscmd(UAContext *ua, const char *cmd);
 static int typescmd(UAContext *ua, const char *cmd);
 static int backupscmd(UAContext *ua, const char *cmd);
 static int levelscmd(UAContext *ua, const char *cmd);
+static int getmsgscmd(UAContext *ua, const char *cmd);
 
 struct cmdstruct { const char *key; int (*func)(UAContext *ua, const char *cmd); const char *help; };
 static struct cmdstruct commands[] = {
@@ -68,7 +70,7 @@ static struct cmdstruct commands[] = {
  { N_(".status"),     qstatus_cmd,  NULL},
  { N_(".storage"),    storagecmd,   NULL},
  { N_(".defaults"),   defaultscmd,  NULL},
- { N_(".messages"),   qmessagescmd, NULL},
+ { N_(".messages"),   getmsgscmd,   NULL},
  { N_(".help"),       qhelp_cmd,    NULL},
  { N_(".quit"),       quit_cmd,     NULL},
  { N_(".exit"),       quit_cmd,     NULL}
@@ -108,6 +110,14 @@ int do_a_dot_command(UAContext *ua, const char *cmd)
       bnet_send(ua->UA_sock);
    }
    return stat;
+}
+
+static int getmsgscmd(UAContext *ua, const char *cmd)
+{
+   if (console_msg_pending) {
+      do_messages(ua, cmd);
+   }
+   return 1;
 }
 
 /*
