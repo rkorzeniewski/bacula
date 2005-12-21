@@ -456,17 +456,17 @@ void* console_thread::Entry() {
       else if (stat == BNET_SIGNAL) {
          if (UA_sock->msglen == BNET_PROMPT) {
             csprint(NULL, CS_PROMPT);
-         }
-         else if (UA_sock->msglen == BNET_EOD) {
+         } else if (UA_sock->msglen == BNET_EOD) {
             last_is_eod = 1;
             if (!do_not_forward_eod)
                csprint(NULL, CS_END);
-         }
-         else if (UA_sock->msglen == BNET_HEARTBEAT) {
+         } else if (UA_sock->msglen == BNET_HEARTBEAT) {
             bnet_sig(UA_sock, BNET_HB_RESPONSE);
             csprint(_("<< Heartbeat signal received, answered. >>\n"), CS_DEBUG);
-         }
-         else {
+         } else if (UA_sock->msglen == BNET_START_SELECT ||
+                    UA_sock->msglen == BNET_END_SELECT) {
+           /* Ignore start/end selections for now */
+         } else {
             csprint(_("<< Unexpected signal received : "), CS_DEBUG);
             csprint(bnet_sig_to_ascii(UA_sock), CS_DEBUG);
             csprint(">>\n", CS_DEBUG);

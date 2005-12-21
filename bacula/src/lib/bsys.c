@@ -659,7 +659,7 @@ char *bfgets(char *s, int size, FILE *fd)
             *p = 0;
          }
          else { /* Mac (\r only) */
-            ungetc(ch, fd); /* Push next character back to fd */
+            (void)ungetc(ch, fd); /* Push next character back to fd */
          }
          break;
       }

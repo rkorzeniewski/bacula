@@ -5,6 +5,19 @@ General:
 
 Changes to 1.39.3:
 20Dec05
+- Modify gui on command to set only GUI mode and not batch.
+- Modify .messages command to always print messages regardless
+  of the mode.
+- If GUI mode is on, suppress automatic printing of 
+  You have messages. 
+- Delete old bnet packet code.
+- Ignore new BNET_START_SELECT and BNET_END_SELECT signals in
+  wx-console.
+- Modify restore command in wx-console to set gui on and to use
+  only .messages instead of messages.  Hopefully this fixes bug
+  #514.
+- Fix seg fault in exit of acquire when canceling a job --
+  reported by Wolfgang Denk
 - Pull in latest reservation system changes from 1.38
 - Make .messages command always print messages regardless
   of the automessages flag.

@@ -535,6 +535,17 @@ export LDFLAGS=-L/usr/lib64/mysql
         --sysconfdir=/etc/bacula \
         --with-scriptdir=/etc/bacula \
         --enable-smartalloc \
+        --enable-client-only \
+        --enable-static-fd
+
+make
+
+%configure \
+        --prefix=/usr \
+        --sbindir=/usr/sbin \
+        --sysconfdir=/etc/bacula \
+        --with-scriptdir=/etc/bacula \
+        --enable-smartalloc \
 %if %{gconsole}
         --enable-gnome \
 %endif
@@ -624,6 +635,8 @@ rm -f $RPM_BUILD_ROOT/etc/bacula/startmysql
 rm -f $RPM_BUILD_ROOT/etc/bacula/stopmysql
 %endif
 
+rm -f $RPM_BUILD_ROOT/usr/sbin/static-bacula-fd
+
 # install the init scripts
 %if %{su9}
 cp -p platforms/suse/bacula-dir $RPM_BUILD_ROOT/etc/init.d/bacula-dir
@@ -695,6 +708,9 @@ cp -p %{_rescuesrc}/configure $RPM_BUILD_ROOT/etc/bacula/rescue/
 cp -p %{_rescuesrc}/version.h $RPM_BUILD_ROOT/etc/bacula/rescue/
 cp -pr %{_rescuesrc}/linux $RPM_BUILD_ROOT/etc/bacula/rescue/
 cp -pr %{_rescuesrc}/autoconf $RPM_BUILD_ROOT/etc/bacula/rescue/
+touch $RPM_BUILD_ROOT/etc/bacula/rescue/linux/cdrom/rpm_release
+cp -p src/filed/static-bacula-fd $RPM_BUILD_ROOT/etc/bacula/rescue/linux/cdrom/bacula/bin/bacula-fd
+rm -f src/filed/static-bacula-fd
 
 # now clean up permissions that are left broken by the install
 chmod o-r $RPM_BUILD_ROOT/etc/bacula/query.sql
