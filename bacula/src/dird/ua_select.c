@@ -711,10 +711,12 @@ int do_prompt(UAContext *ua, const char *automsg, const char *msg, char *prompt,
       item = -1;
       goto done;
    }
+// bnet_sig(ua->UA_sock, BNET_START_SELECT);
    bsendmsg(ua, ua->prompt[0]);
    for (i=1; i < ua->num_prompts; i++) {
       bsendmsg(ua, "%6d: %s\n", i, ua->prompt[i]);
    }
+// bnet_sig(ua->UA_sock, BNET_END_SELECT);
 
    for ( ;; ) {
       /* First item is the prompt string, not the items */

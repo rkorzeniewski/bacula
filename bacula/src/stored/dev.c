@@ -266,6 +266,7 @@ DEVICE::open(DCR *dcr, int omode)
       } else {
         ::close(fd); /* use system close so correct mode will be used on open */
         fd = -1;
+        clear_opened();
         Dmsg0(100, "Close fd for mode change.\n");
       }
    }
@@ -383,6 +384,8 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
       use_count = 1;
       update_pos_dev(this);                /* update position */
       set_os_device_parameters(this);      /* do system dependent stuff */
+   } else {
+      clear_opened();
    }
 
    /* Stop any open() timer we started */
@@ -429,6 +432,7 @@ void DEVICE::open_file_device(int omode)
       Mmsg(errmsg, _("Could not open file device %s. No Volume name given.\n"),
          print_name());
       fd = -1;
+      clear_opened();
       return;
    }
 
@@ -453,6 +457,7 @@ void DEVICE::open_file_device(int omode)
       dev_errno = errno;
       Mmsg2(errmsg, _("Could not open: %s, ERR=%s\n"), archive_name.c_str(), 
             be.strerror());
+      clear_opened();
       Dmsg1(29, "open failed: %s", errmsg);
       Emsg0(M_FATAL, 0, errmsg);
    } else {
@@ -488,6 +493,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
       Mmsg(errmsg, _("Could not open file device %s. No Volume name given.\n"),
          print_name());
       fd = -1;
+      clear_opened();
       return;
    }
 
@@ -598,6 +604,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
          /* Use system close() */
          ::close(fd);
          fd = -1;
+         clear_opened();
       } else {
          part_size = filestat.st_size;
          dev_errno = 0;
@@ -618,6 +625,8 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
             }
          }*/
       }
+   } else {
+      clear_opened();
    }
 }
 

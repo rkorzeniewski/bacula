@@ -119,18 +119,6 @@ bool do_restore(JCR *jcr)
    fd = jcr->file_bsock;
    set_jcr_job_status(jcr, JS_Running);
 
-#ifdef xxx
-   if (!send_include_list(jcr)) {
-      restore_cleanup(jcr, JS_ErrorTerminated);
-      return false;
-   }
-
-   if (!send_exclude_list(jcr)) {
-      restore_cleanup(jcr, JS_ErrorTerminated);
-      return false;
-   }
-#endif
-
    /*
     * send Storage daemon address to the File daemon,
     *   then wait for File daemon to make connection

@@ -55,10 +55,10 @@ int autodisplay_cmd(UAContext *ua, const char *cmd)
 
    switch (find_arg_keyword(ua, kw)) {
    case 0:
-      ua->auto_display_messages = 1;
+      ua->auto_display_messages = true;
       break;
    case 1:
-      ua->auto_display_messages = 0;
+      ua->auto_display_messages = false;
       break;
    default:
       bsendmsg(ua, _("ON or OFF keyword missing.\n"));
@@ -68,7 +68,7 @@ int autodisplay_cmd(UAContext *ua, const char *cmd)
 }
 
 /*
- * Turn batch processing on/off
+ * Turn GUI mode on/off
  */
 int gui_cmd(UAContext *ua, const char *cmd)
 {
@@ -79,12 +79,10 @@ int gui_cmd(UAContext *ua, const char *cmd)
 
    switch (find_arg_keyword(ua, kw)) {
    case 0:
-      ua->batch = true;
-      ua->jcr->gui = true;
+      ua->jcr->gui = ua->gui = true;
       break;
    case 1:
-      ua->batch = false;
-      ua->jcr->gui = false;
+      ua->jcr->gui = ua->gui = false;
       break;
    default:
       bsendmsg(ua, _("ON or OFF keyword missing.\n"));
@@ -649,7 +647,7 @@ void do_messages(UAContext *ua, const char *cmd)
       do_truncate = true;
    }
    if (do_truncate) {
-      ftruncate(fileno(con_fd), 0L);
+      (void)ftruncate(fileno(con_fd), 0L);
    }
    console_msg_pending = FALSE;
    ua->user_notified_msg_pending = FALSE;

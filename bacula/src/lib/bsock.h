@@ -66,7 +66,9 @@ enum {
    BNET_HB_RESPONSE    = -7,          /* Only response permited to HB */
    BNET_PROMPT         = -8,          /* Prompt for UA */
    BNET_BTIME          = -9,          /* Send UTC btime */
-   BNET_BREAK          = -10          /* Stop current command -- ctl-c */
+   BNET_BREAK          = -10,         /* Stop current command -- ctl-c */
+   BNET_START_SELECT   = -11,         /* Start of a selection list */
+   BNET_END_SELECT     = -12          /* End of a select list */
 };
 
 #define BNET_SETBUF_READ  1           /* Arg for bnet_set_buffer_size */
@@ -85,35 +87,3 @@ enum {
 #define BNET_TLS_OK       1           /* can do, but not required on my end */
 #define BNET_TLS_REQUIRED 2           /* TLS is required */
 
-/*
- * This is the structure of the in memory BPKT
- */
-typedef struct s_bpkt {
-   char *id;                          /* String identifier or name of field */
-   uint8_t type;                      /* field type */
-   uint32_t len;                      /* field length for string, name, bytes */
-   void *value;                       /* pointer to value */
-} BPKT;
-
-/*
- * These are the data types that can be sent.
- * For all values other than string, the storage space
- *  is assumed to be allocated in the receiving packet.
- *  For BP_STRING if the *value is non-zero, it is a
- *  pointer to a POOLMEM buffer, and the Memory Pool
- *  routines will be used to assure that the length is
- *  adequate. NOTE!!! This pointer will be changed
- *  if the memory is reallocated (sort of like Mmsg(&pool)
- *  does). If the pointer is NULL, a POOLMEM
- *  buffer will be allocated.
- */
-#define BP_EOF       0                /* end of file */
-#define BP_CHAR      1                /* Character */
-#define BP_INT32     1                /* 32 bit integer */
-#define BP_UINT32    3                /* Unsigned 32 bit integer */
-#define BP_INT64     4                /* 64 bit integer */
-#define BP_STRING    5                /* string */
-#define BP_NAME      6                /* Name string -- limited length */
-#define BP_BYTES     7                /* Binary bytes */
-#define BP_FLOAT32   8                /* 32 bit floating point */
-#define BP_FLOAT64   9                /* 64 bit floating point */
