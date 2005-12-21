@@ -3,6 +3,13 @@
 # Run a simple backup of the Bacula build directory using the compressed option
 #   then restore it.
 #
+
+debug=0
+if test "$debug" -eq 1 ; then
+  out="tee"
+else
+  out="output"
+fi
 cwd=`pwd`
 scripts/copy-test-confs
 scripts/cleanup
@@ -22,11 +29,10 @@ echo " === Starting restore-by-file-test at `date +%R:%S` ==="
 echo " === Starting restore-by-file-test at `date +%R:%S` ===" >>working/log
 echo " "
 
-bin/bacula start 2>&1 >/dev/null
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
-@output tmp/log1.out
+@$out tmp/log1.out
 label storage=File volume=TestVolume001
 run job=CompressedTest yes
 wait
@@ -34,7 +40,7 @@ messages
 @# 
 @# now do a restore
 @#
-@output tmp/log2.out
+@$out tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores storage=File
 7
 <${cwd}/tmp/restore-list
@@ -42,9 +48,18 @@ restore where=${cwd}/tmp/bacula-restores storage=File
 yes
 wait
 messages
-@output
+@$out
 quit
 END_OF_DATA
+
+if test "$debug" -eq 1 ; then
+  bin/bacula start
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+else
+  bin/bacula start 2>&1 >/dev/null
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+fi
+
 scripts/check_for_zombie_jobs storage=File
 bin/bacula stop 2>&1 >/dev/null
 grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
