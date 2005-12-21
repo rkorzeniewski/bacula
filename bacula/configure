@@ -29570,7 +29570,7 @@ PSCMD="ps -e"
 WIN32=
 MACOSX=
 hostname=`uname -n | cut -d '.' -f 1`
-if x${hostname} = x ; then
+if test x${hostname} = x ; then
   hostname="localhost"
 fi
 case "$DISTNAME" in

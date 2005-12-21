@@ -482,6 +482,21 @@ static struct s_state_hdr state_hdr = {
    0
 };
 
+#ifdef HAVE_WIN32
+#undef open
+#undef read
+#undef write
+#undef lseek
+#undef close
+#undef O_BINARY 
+#define open _open
+#define read _read
+#define write _write
+#define lseek _lseeki64
+#define close _close
+#define O_BINARY _O_BINARY
+#endif
+
 /*
  * Open and read the state file for the daemon
  */
@@ -497,7 +512,7 @@ void read_state_file(char *dir, const char *progname, int port)
    Mmsg(&fname, "%s/%s.%d.state", dir, progname, port);
    /* If file exists, see what we have */
 // Dmsg1(10, "O_BINARY=%d\n", O_BINARY);
-   if ((sfd = open(fname, O_RDONLY|O_BINARY, 0)) < 0) {
+   if ((sfd = open(fname, O_RDONLY|O_BINARY)) < 0) {
       Dmsg3(010, "Could not open state file. sfd=%d size=%d: ERR=%s\n",
                     sfd, sizeof(hdr), strerror(errno));
       goto bail_out;
@@ -543,6 +558,7 @@ void write_state_file(char *dir, const char *progname, int port)
 
    Mmsg(&fname, "%s/%s.%d.state", dir, progname, port);
    /* Create new state file */
+   unlink(fname);
    if ((sfd = open(fname, O_CREAT|O_WRONLY|O_BINARY, 0640)) < 0) {
       berrno be;
       Dmsg2(000, "Could not create state file. %s ERR=%s\n", fname, be.strerror());
