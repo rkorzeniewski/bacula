@@ -508,9 +508,11 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
          stat = search_res_for_device(rctx); 
          if (stat == 1) {             /* found available device */
             rctx.suitable_device = true;
+            Dmsg1(100, "Suitable device found=%s\n", device_name);
             ok = true;
             break;
          } else if (stat == 0) {      /* device busy */
+            Dmsg1(100, "Suitable busy device found=%s\n", device_name);
             rctx.suitable_device = true;   /* but it is busy, so continue looking */
          }
          /* otherwise error */
@@ -583,7 +585,7 @@ static int search_res_for_device(RCTX &rctx)
          }
       }
    }
-   return 0;                    /* nothing found */
+   return -1;                    /* nothing found */
 }
 
 /*

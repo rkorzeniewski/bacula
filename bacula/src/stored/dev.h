@@ -41,6 +41,15 @@
 #define steal_device_lock(d, p, s) _steal_device_lock(__FILE__, __LINE__, (d), (p), s)
 #define give_back_device_lock(d, p) _give_back_device_lock(__FILE__, __LINE__, (d), (p))
 
+/* Return values from wait_for_sysop() */
+enum {
+   W_ERROR = 1,
+   W_TIMEOUT,
+   W_POLL,
+   W_MOUNT,
+   W_WAKE
+};
+
 /* Arguments to open_dev() */
 enum {
    CREATE_READ_WRITE = 1,
@@ -94,7 +103,7 @@ enum {
 #define dev_state(dev, st_state) ((dev)->state & (st_state))
 
 /* Device state bits */
-#define ST_OPENED          (1<<0)     /* set when device opened */
+#define ST_XXXXXX          (1<<0)     /* was ST_OPENED */
 #define ST_TAPE            (1<<1)     /* is a tape device */
 #define ST_FILE            (1<<2)     /* is a file device */
 #define ST_FIFO            (1<<3)     /* is a fifo device */
@@ -121,9 +130,9 @@ enum {
    BST_UNMOUNTED,                     /* User unmounted device */
    BST_WAITING_FOR_SYSOP,             /* Waiting for operator to mount tape */
    BST_DOING_ACQUIRE,                 /* Opening/validating/moving tape */
-   BST_WRITING_LABEL,                  /* Labeling a tape */
-   BST_UNMOUNTED_WAITING_FOR_SYSOP,    /* Closed by user during mount request */
-   BST_MOUNT                           /* Mount request */
+   BST_WRITING_LABEL,                 /* Labeling a tape */
+   BST_UNMOUNTED_WAITING_FOR_SYSOP,   /* User unmounted during wait for op */
+   BST_MOUNT                          /* Mount request */
 };
 
 /* Volume Catalog Information structure definition */
@@ -189,7 +198,6 @@ public:
    /* New access control in process of being implemented */
    brwlock_t lock;                    /* New mutual exclusion lock */
 
-   int use_count;                     /* usage count on this device 0 or 1 */
    int fd;                            /* file descriptor */
    int capabilities;                  /* capabilities mask */
    int state;                         /* state mask */
@@ -197,7 +205,6 @@ public:
    int mode;                          /* read/write modes */
    int openmode;                      /* parameter passed to open_dev (useful to reopen the device) */
    bool autoselect;                   /* Autoselect in autochanger */
-   bool open_nowait;                  /* If set, don't wait on open */
    int label_type;                    /* Bacula/ANSI/IBM label types */
    uint32_t drive_index;              /* Autochanger drive index (base 0) */
    int32_t  Slot;                     /* Slot currently in drive (base 1) */
@@ -258,7 +265,7 @@ public:
    int is_file() const { return state & ST_FILE; }
    int is_fifo() const { return state & ST_FIFO; }
    int is_dvd() const  { return state & ST_DVD; }
-   int is_open() const { return state & ST_OPENED; }
+   int is_open() const { return fd >= 0; }
    int is_offline() const { return state & ST_OFFLINE; }
    int is_labeled() const { return state & ST_LABEL; }
    int is_mounted() const { return state & ST_MOUNTED; }
@@ -290,7 +297,6 @@ public:
    bool weof() { return !weof_dev(this, 1); };
    bool fsr(int num);   /* in dev.c */
    bool fsf(int num);   /* in dev.c */
-   bool rewind() { return rewind_dev(this); };
    const char *strerror() const;
    const char *archive_name() const;
    const char *name() const;
@@ -303,7 +309,6 @@ public:
    void set_labeled() { state |= ST_LABEL; };
    void set_read() { state |= ST_READ; };
    void set_offline() { state |= ST_OFFLINE; };
-   void set_opened() { state |= ST_OPENED; };
    void set_mounted() { state |= ST_MOUNTED; };
    void set_media() { state |= ST_MEDIA; };
    void set_short_block() { state |= ST_SHORT; };
@@ -318,7 +323,7 @@ public:
    void clear_offline() { state &= ~ST_OFFLINE; };
    void clear_eot() { state &= ~ST_EOT; };
    void clear_eof() { state &= ~ST_EOF; };
-   void clear_opened() { state &= ~ST_OPENED; };
+   void clear_opened() { fd = -1; };
    void clear_mounted() { state &= ~ST_MOUNTED; };
    void clear_media() { state &= ~ST_MEDIA; };
    void clear_short_block() { state &= ~ST_SHORT; };
@@ -328,6 +333,7 @@ public:
    void unblock();      /* in dev.c */
    void close();        /* in dev.c */
    int open(DCR *dcr, int mode); /* in dev.c */
+   bool rewind(DCR *dcr);         /* in dev.c */
 
 
    void set_blocked(int block) { dev_blocked = block; };

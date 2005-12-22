@@ -366,7 +366,7 @@ static void labelcmd()
          Pmsg1(0, _("Device open failed. ERR=%s\n"), strerror_dev(dev));
       }
    }
-   rewind_dev(dev);
+   dev->rewind(dcr);
    write_new_volume_label_to_dev(dcr, cmd, "Default");
    Pmsg1(-1, _("Wrote Volume label for volume \"%s\".\n"), cmd);
 }
@@ -431,7 +431,7 @@ static void loadcmd()
  */
 static void rewindcmd()
 {
-   if (!rewind_dev(dev)) {
+   if (!dev->rewind(dcr)) {
       Pmsg1(0, _("Bad status from rewind. ERR=%s\n"), strerror_dev(dev));
       clrerror_dev(dev, -1);
    } else {
@@ -771,7 +771,7 @@ static int write_read_test()
       "This is an *essential* feature ...\n\n"));
    block = dcr->block;
    rec = new_record();
-   if (!rewind_dev(dev)) {
+   if (!dev->rewind(dcr)) {
       Pmsg1(0, _("Bad status from rewind. ERR=%s\n"), strerror_dev(dev));
       goto bail_out;
    }
@@ -813,7 +813,7 @@ static int write_read_test()
    if (dev_cap(dev, CAP_TWOEOF)) {
       weofcmd();
    }
-   if (!rewind_dev(dev)) {
+   if (!dev->rewind(dcr)) {
       Pmsg1(0, _("Bad status from rewind. ERR=%s\n"), strerror_dev(dev));
       goto bail_out;
    } else {
@@ -883,7 +883,7 @@ static int position_test()
       "This is an *essential* feature ...\n\n"));
    empty_block(block);
    rec = new_record();
-   if (!rewind_dev(dev)) {
+   if (!dev->rewind(dcr)) {
       Pmsg1(0, _("Bad status from rewind. ERR=%s\n"), strerror_dev(dev));
       goto bail_out;
    }
@@ -925,7 +925,7 @@ static int position_test()
    if (dev_cap(dev, CAP_TWOEOF)) {
       weofcmd();
    }
-   if (!rewind_dev(dev)) {
+   if (!dev->rewind(dcr)) {
       Pmsg1(0, _("Bad status from rewind. ERR=%s\n"), strerror_dev(dev));
       goto bail_out;
    } else {
@@ -1194,7 +1194,7 @@ try_again:
     * a failure.
     */
    bmicrosleep(sleep_time, 0);
-   if (!rewind_dev(dev) || weof_dev(dev,1) < 0) {
+   if (!dev->rewind(dcr) || weof_dev(dev,1) < 0) {
       Pmsg1(0, _("Bad status from rewind. ERR=%s\n"), strerror_dev(dev));
       clrerror_dev(dev, -1);
       Pmsg0(-1, _("\nThe test failed, probably because you need to put\n"
@@ -1823,7 +1823,7 @@ static void fillcmd()
    dev->min_block_size = dev->max_block_size;
    set_volume_name("TestVolume1", 1);
 
-   if (!dev->rewind()) {
+   if (!dev->rewind(dcr)) {
       Pmsg0(000, _("Rewind failed.\n"));
    }
    if (!dev->weof()) {
@@ -2120,7 +2120,7 @@ static void do_unfill()
     *   loose track of where we are (block number unknown).
     */
    Pmsg0(-1, _("Rewinding.\n"));
-   if (!rewind_dev(dev)) {                /* get to a known place on tape */
+   if (!dev->rewind(dcr)) {                /* get to a known place on tape */
       goto bail_out;
    }
    /* Read the first 10000 records */

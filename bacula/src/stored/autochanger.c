@@ -417,6 +417,9 @@ bool autochanger_cmd(DCR *dcr, BSOCK *dir, const char *cmd)
 
    if (!dev->is_autochanger() || !dcr->device->changer_name ||
        !dcr->device->changer_command) {
+      if (strcmp(cmd, "drives") == 0) {
+         bnet_fsend(dir, "drives=1\n");
+      }
       bnet_fsend(dir, _("3993 Device %s not an autochanger device.\n"),
          dev->print_name());
       return false;

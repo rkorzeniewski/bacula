@@ -58,6 +58,7 @@ bool mount_next_write_volume(DCR *dcr, bool release)
     *  Volume, ...)
     */
 mount_next_vol:
+   Dmsg1(150, "mount_next_vol retry=%d\n", retry);
    /* Ignore retry if this is poll request */
    if (!dev->poll && retry++ > 4) {
       /* Last ditch effort before giving up, force operator to respond */
@@ -299,6 +300,7 @@ read_volume:
       /* NOTE! Fall-through wanted. */
    case VOL_NO_MEDIA:
    default:
+      Dmsg0(200, "VOL_NO_MEDIA or default.\n");
       /* Send error message */
       if (!dev->poll) {
       } else {

@@ -4,7 +4,25 @@
 General:
 
 Changes to 1.39.3:
-20Dec05
+22Dec05
+- Simplify code in askdir.c that waits for creating an appendable
+  volume so that it can handle multiple returns from the wait
+  code.
+- Modify the wait code to permit multiple returns.
+- Return a zero when "autochanger drives" is called and
+  it is not an autochanger.
+- Make rewind_dev() a method taking a DCR as an argument.
+  This permits closing and reopening the drive if the
+  rewind fails as happens if the drive was loaded while the
+  file descriptor was open. This refreshes the file descriptor.
+- Remove the ST_OPENED flag and always rely on fd < 0 for knowing
+  if the device is open or not.  This should eliminate
+  Arnos problem.
+- Return error if reserve cannot find at least one suitable device.
+- Make wait_for_sysop() return correct state information.
+- Fix Win32 state file problem. write was not using compat
+  code. This should fix bug #500.
+21Dec05
 - Modify gui on command to set only GUI mode and not batch.
 - Modify .messages command to always print messages regardless
   of the mode.

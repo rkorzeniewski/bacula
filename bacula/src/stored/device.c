@@ -262,7 +262,6 @@ bool first_open_device(DCR *dcr)
        mode = OPEN_READ_ONLY;
     }
    Dmsg0(129, "Opening device.\n");
-   dev->open_nowait = true;
    if (dev->open(dcr, mode) < 0) {
       Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), dev->errmsg);
       ok = false;
@@ -271,7 +270,6 @@ bool first_open_device(DCR *dcr)
    Dmsg1(129, "open dev %s OK\n", dev->print_name());
 
 bail_out:
-   dev->open_nowait = false;
    unlock_device(dev);
    return ok;
 }
@@ -315,7 +313,6 @@ void close_device(DEVICE *dev)
 }
 
 /*
- * Used when unmounting the device, ignore use_count
  */
 void force_close_device(DEVICE *dev)
 {
@@ -323,12 +320,8 @@ void force_close_device(DEVICE *dev)
       return;
    }
    Dmsg1(29, "Force close_dev %s\n", dev->print_name());
-   dev->use_count = 1;
+   free_volume(dev);
    dev->close();
-
-#ifdef FULL_DEBUG
-   ASSERT(dev->use_count >= 0);
-#endif
 }
 
 
@@ -453,7 +446,6 @@ void _give_back_device_lock(const char *file, int line, DEVICE *dev, bsteal_lock
    dev->no_wait_id = hold->no_wait_id;
    Dmsg1(400, "return lock. new=%s\n", dev->print_blocked());
    if (dev->num_waiting > 0) {
-      Dmsg0(400, "Broadcast\n");
       pthread_cond_broadcast(&dev->wait); /* wake them up */
    }
 }
