@@ -237,7 +237,7 @@ init_dev(JCR *jcr, DEVRES *device)
       Jmsg0(jcr, M_ERROR_TERM, 0, dev->errmsg);
    }
 
-   dev->fd = -1;
+   dev->clear_opened();
    dev->attached_dcrs = New(dlist(dcr, &dcr->dev_link));
    Dmsg2(29, "init_dev: tape=%d dev_name=%s\n", dev->is_tape(), dev->dev_name);
    
@@ -265,7 +265,6 @@ DEVICE::open(DCR *dcr, int omode)
          return fd;
       } else {
         ::close(fd); /* use system close so correct mode will be used on open */
-        fd = -1;
         clear_opened();
         Dmsg0(100, "Close fd for mode change.\n");
       }
@@ -315,17 +314,6 @@ void DEVICE::set_mode(int new_mode)
 }
 
 /*
- * If the flage open_nowait is set, which is the case
- *   when the daemon is initially trying to open the device,
- *   we open it with O_NONBLOCK set and O_RONLY, which will
- *   allow us to open normal Linux tape drives with no tape
- *   in the drive without blocking.  We then immediately
- *   set blocking status so that if we read from the device they
- *   will be normal blocking reads.
- *
- * If later, we want to write on the device, it will be freed and
- *   reopened, but hopefully there will be a tape in the drive so
- *   we will not block.
  */
 void DEVICE::open_tape_device(DCR *dcr, int omode) 
 {
@@ -380,8 +368,6 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
       set_blocking();   
       Dmsg2(100, "openmode=%d %s\n", openmode, mode_to_str(openmode));
       dev_errno = 0;
-      set_opened();
-      use_count = 1;
       update_pos_dev(this);                /* update position */
       set_os_device_parameters(this);      /* do system dependent stuff */
    } else {
@@ -431,7 +417,6 @@ void DEVICE::open_file_device(int omode)
    if (VolCatInfo.VolCatName[0] == 0) {
       Mmsg(errmsg, _("Could not open file device %s. No Volume name given.\n"),
          print_name());
-      fd = -1;
       clear_opened();
       return;
    }
@@ -457,13 +442,10 @@ void DEVICE::open_file_device(int omode)
       dev_errno = errno;
       Mmsg2(errmsg, _("Could not open: %s, ERR=%s\n"), archive_name.c_str(), 
             be.strerror());
-      clear_opened();
       Dmsg1(29, "open failed: %s", errmsg);
       Emsg0(M_FATAL, 0, errmsg);
    } else {
       dev_errno = 0;
-      set_opened();
-      use_count = 1;
       update_pos_dev(this);                /* update position */
    }
    Dmsg5(29, "open dev: %s fd=%d opened, part=%d/%d, part_size=%u\n", 
@@ -492,7 +474,6 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
          print_name());
       Mmsg(errmsg, _("Could not open file device %s. No Volume name given.\n"),
          print_name());
-      fd = -1;
       clear_opened();
       return;
    }
@@ -519,7 +500,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
             Mmsg(errmsg, _("The media in the device %s is not empty, please blank it before writing anything to it.\n"), print_name());
             Emsg0(M_FATAL, 0, errmsg);
             unmount_dev(this, 1); /* Unmount the device, so the operator can change it. */
-            fd = -1;
+            clear_opened();
             return;
          }
       }
@@ -535,14 +516,14 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
          else {
             Mmsg(errmsg, _("There is no valid media in the device %s.\n"), print_name());
             Emsg0(M_FATAL, 0, errmsg);
-            fd = -1;
+            clear_opened();
             return;
          }
       }
       else {
          Mmsg(errmsg, _("Could not mount device %s.\n"), print_name());
          Emsg0(M_FATAL, 0, errmsg);
-         fd = -1;
+         clear_opened();
          return;
       }
    }
@@ -603,13 +584,10 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
          Dmsg1(29, "open failed: %s", errmsg);
          /* Use system close() */
          ::close(fd);
-         fd = -1;
          clear_opened();
       } else {
          part_size = filestat.st_size;
          dev_errno = 0;
-         set_opened();
-         use_count = 1;
          update_pos_dev(this);                /* update position */
          
          /* NB: It seems this code is wrong... part number is incremented in open_next_part, not here */
@@ -625,77 +603,83 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
             }
          }*/
       }
-   } else {
-      clear_opened();
    }
 }
 
-
-#ifdef debug_tracing
-#undef rewind_dev
-bool _rewind_dev(char *file, int line, DEVICE *dev)
-{
-   Dmsg3(100, "rewind_dev fd=%d called from %s:%d\n", dev->fd, file, line);
-   return rewind_dev(dev);
-}
-#endif
 
 /*
  * Rewind the device.
  *  Returns: true  on success
  *           false on failure
  */
-bool rewind_dev(DEVICE *dev)
+bool DEVICE::rewind(DCR *dcr)
 {
    struct mtop mt_com;
    unsigned int i;
+   bool first = true;
 
-   Dmsg3(29, "rewind_dev res=%d fd=%d %s\n", dev->reserved_device, 
-      dev->fd, dev->print_name());
-   if (dev->fd < 0) {
-      if (!dev->is_dvd()) { /* In case of major error, the fd is not open on DVD, so we don't want to abort. */
-         dev->dev_errno = EBADF;
-         Mmsg1(dev->errmsg, _("Bad call to rewind_dev. Device %s not open\n"),
-            dev->print_name());
-         Emsg0(M_ABORT, 0, dev->errmsg);
+   Dmsg3(29, "rewind res=%d fd=%d %s\n", reserved_device, fd, print_name());
+   if (fd < 0) {
+      if (!is_dvd()) { /* In case of major error, the fd is not open on DVD, so we don't want to abort. */
+         dev_errno = EBADF;
+         Mmsg1(errmsg, _("Bad call to rewind. Device %s not open\n"),
+            print_name());
+         Emsg0(M_ABORT, 0, errmsg);
       }
       return false;
    }
-   dev->state &= ~(ST_EOT|ST_EOF|ST_WEOT);  /* remove EOF/EOT flags */
-   dev->block_num = dev->file = 0;
-   dev->file_size = 0;
-   dev->file_addr = 0;
-   if (dev->is_tape()) {
+   state &= ~(ST_EOT|ST_EOF|ST_WEOT);  /* remove EOF/EOT flags */
+   block_num = file = 0;
+   file_size = 0;
+   file_addr = 0;
+   if (is_tape()) {
       mt_com.mt_op = MTREW;
       mt_com.mt_count = 1;
       /* If we get an I/O error on rewind, it is probably because
        * the drive is actually busy. We loop for (about 5 minutes)
        * retrying every 5 seconds.
        */
-      for (i=dev->max_rewind_wait; ; i -= 5) {
-         if (ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
+      for (i=max_rewind_wait; ; i -= 5) {
+         if (ioctl(fd, MTIOCTOP, (char *)&mt_com) < 0) {
             berrno be;
-            clrerror_dev(dev, MTREW);
-            if (i == dev->max_rewind_wait) {
+            clrerror_dev(this, MTREW);
+            if (i == max_rewind_wait) {
                Dmsg1(200, "Rewind error, %s. retrying ...\n", be.strerror());
             }
-            if (dev->dev_errno == EIO && i > 0) {
+            /*
+             * This is a gross hack, because if the user has the
+             *   device mounted (i.e. open), then uses mtx to load
+             *   a tape, the current open file descriptor is invalid.
+             *   So, we close the drive and re-open it.
+             */
+            if (first && dcr) {
+               int open_mode = openmode;
+               ::close(fd);
+               clear_opened();
+               open(dcr, open_mode);
+               if (fd < 0) {
+                  return false;
+               }
+               first = false;
+               continue;
+            }
+            if (dev_errno == EIO && i > 0) {
                Dmsg0(200, "Sleeping 5 seconds.\n");
                bmicrosleep(5, 0);
                continue;
             }
-            Mmsg2(dev->errmsg, _("Rewind error on %s. ERR=%s.\n"),
-               dev->print_name(), be.strerror());
+            Mmsg2(errmsg, _("Rewind error on %s. ERR=%s.\n"),
+               print_name(), be.strerror());
             return false;
          }
          break;
       }
-   } else if (dev->is_file()) {      
-      if (lseek_dev(dev, (off_t)0, SEEK_SET) < 0) {
+   } else if (is_file()) {      
+      if (lseek_dev(this, (off_t)0, SEEK_SET) < 0) {
          berrno be;
-         dev->dev_errno = errno;
-         Mmsg2(dev->errmsg, _("lseek_dev error on %s. ERR=%s.\n"),
-            dev->print_name(), be.strerror());
+         dev_errno = errno;
+         Mmsg2(errmsg, _("lseek_dev error on %s. ERR=%s.\n"),
+            print_name(), be.strerror());
          return false;
       }
    }
@@ -818,7 +802,7 @@ eod_dev(DEVICE *dev)
       Dmsg0(100,"Using FAST FSF for EOM\n");
       /* If unknown position, rewind */
       if (!dev_get_os_pos(dev, &mt_stat)) {
-        if (!rewind_dev(dev)) {
+        if (!dev->rewind(NULL)) {
           return false;
         }
       }
@@ -867,7 +851,7 @@ eod_dev(DEVICE *dev)
       /*
        * Rewind then use FSF until EOT reached
        */
-      if (!rewind_dev(dev)) {
+      if (!dev->rewind(NULL)) {
          return false;
       }
       /*
@@ -1138,7 +1122,7 @@ bool offline_or_rewind_dev(DEVICE *dev)
     *  done, all future references to the drive get and I/O error.
     */
       clrerror_dev(dev, MTREW);
-      return rewind_dev(dev);
+      return dev->rewind(NULL);
    }
 }
 
@@ -1476,8 +1460,8 @@ reposition_dev(DEVICE *dev, uint32_t file, uint32_t block)
    Dmsg4(100, "reposition_dev from %u:%u to %u:%u\n",
       dev->file, dev->block_num, file, block);
    if (file < dev->file) {
-      Dmsg0(100, "Rewind_dev\n");
-      if (!rewind_dev(dev)) {
+      Dmsg0(100, "Rewind\n");
+      if (!dev->rewind(NULL)) {
          return false;
       }
    }
@@ -1700,7 +1684,7 @@ static void do_close(DEVICE *dev)
 
    Dmsg1(100, "really close_dev %s\n", dev->print_name());
    if (dev->fd >= 0) {
-      close(dev->fd);
+      ::close(dev->fd);
    }
 
    if (!unmount_dev(dev, 1)) {
@@ -1722,8 +1706,8 @@ static void do_close(DEVICE *dev)
    }
    
    /* Clean up device packet so it can be reused */
-   dev->fd = -1;
-   dev->state &= ~(ST_OPENED|ST_LABEL|ST_READ|ST_APPEND|ST_EOT|ST_WEOT|ST_EOF);
+   dev->clear_opened();
+   dev->state &= ~(ST_LABEL|ST_READ|ST_APPEND|ST_EOT|ST_WEOT|ST_EOF);
    dev->label_type = B_BACULA_LABEL;
    dev->file = dev->block_num = 0;
    dev->file_size = 0;
@@ -1740,7 +1724,6 @@ static void do_close(DEVICE *dev)
       stop_thread_timer(dev->tid);
       dev->tid = 0;
    }
-   dev->use_count = 0;
    dev->openmode = 0;
 }
 
@@ -1749,20 +1732,7 @@ static void do_close(DEVICE *dev)
  */
 void DEVICE::close()
 {
-   /*if (fd >= 0 && use_count == 1) {*/
-   /* No need to check if fd >= 0: it is checked again
-    * in do_close, and do_close MUST be called for volumes
-    * split in parts, even if fd == -1. 
-    */
-   if (use_count == 1) {
-      do_close(this);
-   } else if (use_count > 0) {
-      use_count--;
-   }
-
-#ifdef FULL_DEBUG
-   ASSERT(use_count >= 0);
-#endif
+   do_close(this);
 }
 
 

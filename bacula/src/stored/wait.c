@@ -32,7 +32,7 @@
 /*
  * Wait for SysOp to mount a tape on a specific device
  *
- *   Returns: status from pthread_cond_timedwait() 
+ *   Returns: W_ERROR, W_TIMEOUT, W_POLL, W_MOUNT, or W_WAKE 
  */
 int wait_for_sysop(DCR *dcr)
 {
@@ -82,8 +82,8 @@ int wait_for_sysop(DCR *dcr)
       timeout.tv_nsec = tv.tv_usec * 1000;
       timeout.tv_sec = tv.tv_sec + add_wait;
 
-      Dmsg3(400, "I'm going to sleep on device %s. HB=%d wait=%d\n", dev->print_name(),
-         (int)me->heartbeat_interval, dev->wait_sec);
+      Dmsg4(400, "I'm going to sleep on device %s. HB=%d wait=%d add_wait=%d\n", 
+         dev->print_name(), (int)me->heartbeat_interval, dev->wait_sec, add_wait);
       start = time(NULL);
       /* Wait required time */
       stat = pthread_cond_timedwait(&dev->wait_next_vol, &dev->mutex, &timeout);
@@ -108,33 +108,55 @@ int wait_for_sysop(DCR *dcr)
          }
       }
 
+      if (stat == EINVAL) {
+         berrno be;
+         Dmsg1(000, "pthread stat=%d\n", stat);
+         Jmsg1(jcr, M_FATAL, 0, _("pthread timedwait error. ERR=%s\n"), be.strerror(stat));
+         stat = W_ERROR;               /* error */
+         break;
+      }
+
+
+      if (dev->rem_wait_sec <= 0) {  /* on exceeding wait time return */
+         Dmsg0(400, "Exceed wait time.\n");
+         stat = W_TIMEOUT;
+         break;
+      }
+
       /*
        * Check if user unmounted the device while we were waiting
        */
       unmounted = is_device_unmounted(dev);
 
-      if (stat != ETIMEDOUT) {     /* we blocked the device */
-         break;                    /* on error return */
-      }
-      if (dev->rem_wait_sec <= 0) {  /* on exceeding wait time return */
-         Dmsg0(400, "Exceed wait time.\n");
-         break;
-      }
-
       if (!unmounted && dev->vol_poll_interval &&
           (now - first_start >= dev->vol_poll_interval)) {
          Dmsg1(400, "In wait blocked=%s\n", dev->print_blocked());
          dev->poll = true;            /* returning a poll event */
+         stat = W_POLL;
          break;
       }
       /*
        * Check if user mounted the device while we were waiting
        */
       if (dev->get_blocked() == BST_MOUNT) {   /* mount request ? */
-         stat = 0;
+         stat = W_MOUNT;
          break;
       }
 
+      /*
+       * If we did not timeout, then some event happened, so
+       *   return to check if state changed.   
+       */
+      if (stat != 0) {
+         stat = W_WAKE;          /* someone woke us */
+         break;
+      }
+
+      /* 
+       * At this point, we know we woke up because of a timeout,
+       *   that was due to a heartbeat, so we just update
+       *   the wait counters and continue.
+       */
       add_wait = dev->wait_sec - (now - start);
       if (add_wait < 0) {
          add_wait = 0;

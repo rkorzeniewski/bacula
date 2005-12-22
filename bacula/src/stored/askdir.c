@@ -174,8 +174,8 @@ static bool do_get_volume_info(DCR *dcr)
                &vol.EndFile, &vol.EndBlock, &vol.VolCatParts,
                &vol.LabelType);
     if (n != 21) {
-       Dmsg2(100, "Bad response from Dir fields=%d: %s\n", n, dir->msg);
-       Mmsg(jcr->errmsg, _("Error getting Volume info: %s\n"), dir->msg);
+       Dmsg2(100, "Bad response from Dir fields=%d: %s", n, dir->msg);
+       Mmsg(jcr->errmsg, _("Error getting Volume info: %s"), dir->msg);
        return false;
     }
     vol.InChanger = InChanger;        /* bool in structure */
@@ -209,8 +209,8 @@ bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw writing)
     bnet_fsend(dir, Get_Vol_Info, jcr->Job, dcr->VolCatInfo.VolCatName,
        writing==GET_VOL_INFO_FOR_WRITE?1:0);
     Dmsg1(100, ">dird: %s", dir->msg);
-    bool OK = do_get_volume_info(dcr);
-    return OK;
+    bool ok = do_get_volume_info(dcr);
+    return ok;
 }
 
 /*
@@ -240,8 +240,8 @@ bool dir_find_next_appendable_volume(DCR *dcr)
        unbash_spaces(dcr->media_type);
        unbash_spaces(dcr->pool_name);
        Dmsg1(100, ">dird: %s", dir->msg);
-       bool OK = do_get_volume_info(dcr);
-       if (OK) {
+       bool ok = do_get_volume_info(dcr);
+       if (ok) {
           if (dcr->any_volume || !is_volume_in_use(dcr)) {
              found = true;
              break;
@@ -409,12 +409,10 @@ bool dir_update_file_attributes(DCR *dcr, DEV_RECORD *rec)
  */
 bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
 {
-   int stat = 0, jstat;
-   bool unmounted;
-   bool first = true;
+   int stat = W_TIMEOUT;
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
-   bool OK = false;
+   bool got_vol = false;
 
    Dmsg0(400, "enter dir_ask_sysop_to_create_appendable_volume\n");
    ASSERT(dev->dev_blocked);
@@ -426,38 +424,13 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
          Jmsg(jcr, M_INFO, 0, "%s", dev->errmsg);
          return false;
       }
-      /* First pass, we *know* there are no appendable volumes, so no need to call */
-      if (!first) {
-         P(dev->mutex);
-         OK = dir_find_next_appendable_volume(dcr);   /* get suggested volume */
-         V(dev->mutex);
-      }
-      if (!first && OK) {
-         unmounted = is_device_unmounted(dev);
-         /*
-          * If we have a valid volume name and we are not
-          *   removable media, return now, or if we have a
-          *   Slot for an autochanger, otherwise wait
-          *   for the operator to mount the media.
-          */
-         if (!unmounted && ((dcr->VolumeName[0] && !dev_cap(dev, CAP_REM) &&
-                dev_cap(dev, CAP_LABEL)) ||
-                 (dcr->VolumeName[0] && dcr->VolCatInfo.Slot))) {
-            Dmsg0(400, "Return 1 from mount without wait.\n");
-            return true;
-         }
-         jstat = JS_WaitMount;
-         if (!dev->poll) {
-            Jmsg(jcr, M_MOUNT, 0, _(
-"Please mount Volume \"%s\" on Storage Device %s for Job %s\n"
-"Use \"mount\" command to release Job.\n"),
-              dcr->VolumeName, dev->print_name(), jcr->Job);
-            Dmsg3(400, "Mount %s on %s for Job %s\n",
-                  dcr->VolumeName, dcr->dev_name, jcr->Job);
-         }
+      P(dev->mutex);
+      got_vol = dir_find_next_appendable_volume(dcr);   /* get suggested volume */
+      V(dev->mutex);
+      if (got_vol) {
+         return true;
       } else {
-         jstat = JS_WaitMedia;
-         if (!dev->poll) {
+         if (stat == W_TIMEOUT || stat == W_MOUNT) {
             Jmsg(jcr, M_MOUNT, 0, _(
 "Job %s waiting. Cannot find any appendable volumes.\n"
 "Please use the \"label\"  command to create a new Volume for:\n"
@@ -470,18 +443,18 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
                dcr->pool_name);
          }
       }
-      first = false;
 
-      jcr->JobStatus = jstat;
+      jcr->JobStatus = JS_WaitMedia;
       dir_send_job_status(jcr);
 
       stat = wait_for_sysop(dcr);
+      Dmsg1(100, "Back from wait_for_sysop stat=%d\n", stat);
       if (dev->poll) {
          Dmsg1(100, "Poll timeout in create append vol on device %s\n", dev->print_name());
          continue;
       }
 
-      if (stat == ETIMEDOUT) {
+      if (stat == W_TIMEOUT) {
          if (!double_dev_wait_time(dev)) {
             Mmsg(dev->errmsg, _("Max time exceeded waiting to mount Storage Device %s for Job %s\n"),
                dev->print_name(), jcr->Job);
@@ -491,43 +464,13 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
          }
          continue;
       }
-      if (stat == EINVAL) {
+      if (stat == W_ERROR) {
          berrno be;
-         Mmsg2(dev->errmsg, _("pthread error in mount_next_volume stat=%d ERR=%s\n"),
-               stat, be.strerror(stat));
+         Mmsg0(dev->errmsg, _("pthread error in mount_next_volume.\n"));
          Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
          return false;
       }
-      if (stat != 0) {
-         berrno be;
-         Jmsg(jcr, M_WARNING, 0, _("pthread error in mount_next_volume stat=%d ERR=%s\n"), stat,
-            be.strerror(stat));
-      }
       Dmsg1(100, "Someone woke me for device %s\n", dev->print_name());
-
-      /* If no VolumeName, and cannot get one, try again */
-      P(dev->mutex);
-      if (dcr->VolumeName[0] == 0 && !job_canceled(jcr) &&
-          !dir_find_next_appendable_volume(dcr)) {
-         V(dev->mutex);
-         Jmsg(jcr, M_MOUNT, 0, _(
-"Someone woke me up, but I cannot find any appendable\n"
-"volumes for Job=%s.\n"), jcr->Job);
-         /* Restart wait counters after user interaction */
-         init_device_wait_timers(dcr);
-         continue;
-      }
-      V(dev->mutex);
-      unmounted = is_device_unmounted(dev);
-      if (unmounted) {
-         Dmsg0(400, "Device is unmounted. Must wait.\n");
-         continue;                    /* continue to wait */
-      }
-
-      /*
-       * Device mounted, we have a volume, break and return
-       */
-      break;
    }
    set_jcr_job_status(jcr, JS_Running);
    dir_send_job_status(jcr);
@@ -549,7 +492,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
  */
 bool dir_ask_sysop_to_mount_volume(DCR *dcr)
 {
-   int stat = 0;
+   int stat = W_TIMEOUT;
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
 
@@ -569,7 +512,13 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
       if (dev->is_dvd()) {   
          unmount_dev(dev, 0);
       }
-      if (!dev->poll) {
+      
+      /*
+       * If we are not polling, and the wait timeout or the
+       *   user explicitly did a mount, send him the message.
+       *   Otherwise skip it.
+       */
+      if (!dev->poll && (stat == W_TIMEOUT || stat == W_MOUNT)) {
          Jmsg(jcr, M_MOUNT, 0, _("Please mount Volume \"%s\" on Storage Device %s for Job %s\n"),
               dcr->VolumeName, dev->print_name(), jcr->Job);
          Dmsg3(400, "Mount \"%s\" on device \"%s\" for Job %s\n",
@@ -579,14 +528,15 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
       jcr->JobStatus = JS_WaitMount;
       dir_send_job_status(jcr);
 
-      stat = wait_for_sysop(dcr);    ;     /* wait on device */
+      stat = wait_for_sysop(dcr);          /* wait on device */
+      Dmsg1(100, "Back from wait_for_sysop stat=%d\n", stat);
       if (dev->poll) {
          Dmsg1(400, "Poll timeout in mount vol on device %s\n", dev->print_name());
          Dmsg1(400, "Blocked=%s\n", dev->print_blocked());
          return true;
       }
 
-      if (stat == ETIMEDOUT) {
+      if (stat == W_TIMEOUT) {
          if (!double_dev_wait_time(dev)) {
             Mmsg(dev->errmsg, _("Max time exceeded waiting to mount Storage Device %s for Job %s\n"),
                dev->print_name(), jcr->Job);
@@ -596,17 +546,11 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
          }
          continue;
       }
-      if (stat == EINVAL) {
+      if (stat == W_ERROR) {
          berrno be;
-         Mmsg2(dev->errmsg, _("pthread error in mount_volume stat=%d ERR=%s\n"),
-               stat, be.strerror(stat));
+         Mmsg(dev->errmsg, _("pthread error in mount_volume\n"));
          Jmsg(jcr, M_FATAL, 0, "%s", dev->errmsg);
          return false;
-      }
-      if (stat != 0) {
-         berrno be;
-         Jmsg(jcr, M_FATAL, 0, _("pthread error in mount_next_volume stat=%d: ERR=%s\n"), stat,
-            be.strerror(stat));
       }
       Dmsg1(400, "Someone woke me for device %s\n", dev->print_name());
       break;

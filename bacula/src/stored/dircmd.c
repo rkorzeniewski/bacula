@@ -191,7 +191,7 @@ void *handle_connection_request(void *arg)
       if ((bnet_stat = bnet_recv(bs)) <= 0) {
          break;               /* connection terminated */
       }
-      Dmsg1(199, "<dird: %s\n", bs->msg);
+      Dmsg1(199, "<dird: %s", bs->msg);
       /* Ensure that device initialization is complete */
       while (!init_done) {
          bmicrosleep(1, 0);
@@ -259,7 +259,7 @@ static bool cancel_cmd(JCR *cjcr)
 
    if (sscanf(dir->msg, "cancel Job=%127s", Job) == 1) {
       if (!(jcr=get_jcr_by_full_name(Job))) {
-         bnet_fsend(dir, _("3902 Job %s not found.\n"), Job);
+         bnet_fsend(dir, _("3904 Job %s not found.\n"), Job);
       } else {
          P(jcr->mutex);
          oldStatus = jcr->JobStatus;
@@ -273,12 +273,12 @@ static bool cancel_cmd(JCR *cjcr)
          }
          /* If thread waiting on mount, wake him */
          if (jcr->dcr && jcr->dcr->dev && jcr->dcr->dev->waiting_for_mount()) {
-             pthread_cond_broadcast(&jcr->dcr->dev->wait_next_vol);
-             pthread_cond_broadcast(&wait_device_release);
+            pthread_cond_broadcast(&jcr->dcr->dev->wait_next_vol);
+            pthread_cond_broadcast(&wait_device_release);
          }
          if (jcr->read_dcr && jcr->read_dcr->dev && jcr->read_dcr->dev->waiting_for_mount()) {
-             pthread_cond_broadcast(&jcr->read_dcr->dev->wait_next_vol);
-             pthread_cond_broadcast(&wait_device_release);
+            pthread_cond_broadcast(&jcr->read_dcr->dev->wait_next_vol);
+            pthread_cond_broadcast(&wait_device_release);
          }
          bnet_fsend(dir, _("3000 Job %s marked to be canceled.\n"), jcr->Job);
          free_jcr(jcr);
@@ -573,6 +573,7 @@ static bool mount_cmd(JCR *jcr)
       if (dcr) {
          dev = dcr->dev;
          P(dev->mutex);               /* Use P to avoid indefinite block */
+         Dmsg1(100, "mount cmd blocked=%d\n", dev->dev_blocked);
          switch (dev->dev_blocked) {         /* device blocked? */
          case BST_WAITING_FOR_SYSOP:
             /* Someone is waiting, wake him */
@@ -588,11 +589,9 @@ static bool mount_cmd(JCR *jcr)
          case BST_UNMOUNTED_WAITING_FOR_SYSOP:
          case BST_UNMOUNTED:
             /* We freed the device, so reopen it and wake any waiting threads */
-            dev->open_nowait = true;
             if (dev->open(dcr, OPEN_READ_ONLY) < 0) {
                bnet_fsend(dir, _("3901 open device failed: ERR=%s\n"),
                   strerror_dev(dev));
-               dev->open_nowait = false;
                if (dev->dev_blocked == BST_UNMOUNTED) {
                   /* We blocked the device, so unblock it */
                   Dmsg0(100, "Unmounted. Unblocking device\n");
@@ -600,7 +599,6 @@ static bool mount_cmd(JCR *jcr)
                }
                break;
             }
-            dev->open_nowait = false;
             read_dev_volume_label(dcr);
             if (dev->dev_blocked == BST_UNMOUNTED) {
                /* We blocked the device, so unblock it */
@@ -644,14 +642,11 @@ static bool mount_cmd(JCR *jcr)
                              dev->print_name());
                }
             } else if (dev->is_tape()) {
-               dev->open_nowait = true;
                if (dev->open(dcr, OPEN_READ_ONLY) < 0) {
                   bnet_fsend(dir, _("3901 open device failed: ERR=%s\n"),
                      strerror_dev(dev));
-                  dev->open_nowait = false;
                   break;
                }
-               dev->open_nowait = false;
                read_label(dcr);
                if (dev->is_labeled()) {
                   bnet_fsend(dir, _("3001 Device %s is already mounted with Volume \"%s\"\n"),

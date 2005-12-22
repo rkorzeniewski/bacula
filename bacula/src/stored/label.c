@@ -98,7 +98,7 @@ int read_dev_volume_label(DCR *dcr)
    dev->clear_read();
    dev->label_type = B_BACULA_LABEL;
 
-   if (!rewind_dev(dev)) {
+   if (!dev->rewind(dcr)) {
       Mmsg(jcr->errmsg, _("Couldn't rewind device %s: ERR=%s\n"), 
          dev->print_name(), strerror_dev(dev));
       Dmsg1(30, "return VOL_NO_MEDIA: %s", jcr->errmsg);
@@ -125,7 +125,7 @@ int read_dev_volume_label(DCR *dcr)
          goto bail_out;
       }
       if (stat != VOL_OK) {           /* Not an ANSI/IBM label, so re-read */
-         rewind_dev(dev);
+         dev->rewind(dcr);
       } else {
          have_ansi_label = true;
       }
@@ -227,7 +227,7 @@ int read_dev_volume_label(DCR *dcr)
    Dmsg0(30, "Leave read_volume_label() VOL_OK\n");
    /* If we are a streaming device, we only get one chance to read */
    if (!dev_cap(dev, CAP_STREAM)) {
-      rewind_dev(dev);
+      dev->rewind(dcr);
       if (have_ansi_label) {
          stat = read_ansi_ibm_label(dcr);            
          /* If we want a label and didn't find it, return error */
@@ -241,7 +241,7 @@ int read_dev_volume_label(DCR *dcr)
 
 bail_out:
    empty_block(block);
-   rewind_dev(dev);
+   dev->rewind(dcr);
    Dmsg1(150, "return %d\n", stat);
    return stat;
 }
@@ -303,7 +303,7 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *Po
       goto bail_out;
    }
    Dmsg1(150, "Label type=%d\n", dev->label_type);
-   if (!rewind_dev(dev)) {
+   if (!dev->rewind(dcr)) {
       free_volume(dev);
       memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
       Dmsg2(30, "Bad status on %s from rewind: ERR=%s\n", dev->print_name(), strerror_dev(dev));
@@ -322,7 +322,7 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *Po
     */
    if (dev->label_type != B_BACULA_LABEL) {
       if (read_ansi_ibm_label(dcr) != VOL_OK) {
-         rewind_dev(dev);
+         dev->rewind(dcr);
          goto bail_out;
       }
    } else if (!write_ansi_ibm_labels(dcr, ANSI_VOL_LABEL, VolName)) {
@@ -396,7 +396,7 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
     *  avoids re-writing the ANSI label, which we do not want to do.
     */
    if (!dev_cap(dev, CAP_STREAM)) {
-      if (!rewind_dev(dev)) {
+      if (!dev->rewind(dcr)) {
          Jmsg2(jcr, M_WARNING, 0, _("Rewind error on device %s: ERR=%s\n"),
                dev->print_name(), strerror_dev(dev));
       }
@@ -414,7 +414,7 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
        */
       if (dev->label_type != B_BACULA_LABEL) {
          if (read_ansi_ibm_label(dcr) != VOL_OK) {
-            rewind_dev(dev);
+            dev->rewind(dcr);
             return false;
          }
       } else if (!write_ansi_ibm_labels(dcr, ANSI_VOL_LABEL, dev->VolHdr.VolumeName)) {
