@@ -1,5 +1,154 @@
 
-Changes to 1.38.2:
+Changes to 1.38.3:
+Beta release 23Dec05:
+22Dec05
+- Add OPENSSL_INC to console dependencies, lib dependencies, and
+  wx-console dependencies in Makefile.in
+- Add OPENSSL INC/LIB to gnome2_console Makefile.in.
+- Simplify code in askdir.c that waits for creating an appendable
+  volume so that it can handle multiple returns from the wait
+  code.
+- Modify the wait code to permit multiple returns.
+- Return a zero when "autochanger drives" is called and
+  it is not an autochanger.
+- Make rewind_dev() a method taking a DCR as an argument.
+  This permits closing and reopening the drive if the
+  rewind fails as happens if the drive was loaded while the
+  file descriptor was open. This refreshes the file descriptor.
+- Remove the ST_OPENED flag and always rely on fd < 0 for knowing
+  if the device is open or not.  This should eliminate
+  Arnos problem.
+- Return error if reserve cannot find at least one suitable device.
+- Make wait_for_sysop() return correct state information.
+- Fix Win32 state file problem. write was not using compat
+  code. This should fix bug #500.
+21Dec05
+- Modify gui on command to set only GUI mode and not batch.
+- Modify .messages command to always print messages regardless
+  of the mode.                
+- If GUI mode is on, suppress automatic printing of 
+  You have messages. 
+- Delete old bnet packet code.
+- Ignore new BNET_START_SELECT and BNET_END_SELECT signals in
+  wx-console.
+- Modify restore command in wx-console to set gui on and to use
+  only .messages instead of messages.  Hopefully this fixes bug
+  #514.
+Beta release 20Dec05:
+20Dec05
+- Fix seg fault in exit of acquire when canceling a job --
+  reported by Wolfgang Denk
+19Dec05
+- Implement load balancing code.
+- Pull a few files from 1.39 where we can maintain compatibility.
+- Rewrite reservation algorithm again. Rename variables to be
+  more logical, add HEARTBEAT with Director, allow cancel of
+  jobs stuck in reservation, add last resourt any_drive.
+17Dec05
+- Remove quotes from Version table name -- it breaks things.
+- Fix seg fault if user labels a drive directly bug #513
+- Remove quotes around Version as it breaks things.
+16Dec05
+- Merge in Aleksandar Milivojevic's mods to the spec file.
+- Apply sparse code fix for raw drives and fifos. Bug 506
+- Thorsten fixed Unicode cd problem with wx-console bug 505.
+14Dec05
+- Correct reservation system to do a last ditch try
+  for any mounted volume, then anyone anywhere.
+- Add quotes around table Version because of 
+  error in MySQL 4.1.15 -- bug report submitted.
+- Correct some minor problems with btape in the fill
+  command.
+- Updates to ssh-tunnel from Joshua Kugler.
+- Added a report.pl program from Jonas Bjorklund.            
+- Simplify the O_NONBLOCK open() code for tape drives,
+  and always open nonblocking.
+- Do not wait for open() if EIO returned (shouldn't happen).
+- Eliminate 3 argument to tape open().
+- Correct the slot # edited in the 3995 Bad autochanger unload
+  message.
+- With -S on bscan (show progress) do not divide by zero.
+13Dec05
+- Make cancel pthread_cond_signal() pthread_cond_broadcast().
+- When dcr is freed, also broadcast dev->wait_next_vol signal.
+- Remove unused code in wait_for_device.  
+- Make wait_for_device() always return after 120 seconds of wait.
+12Dec05
+- Use localhost if no network configured
+11Dec05
+- Eliminated duplicate MaxVolBytes in cat update -- bug 509.
+- Remove debug print.
+- Add bail_out in error during state file reading.
+09Dec05
+- Merge updates into 1.38 branch
+- Update specs to include mysql4 define.
+- Stop read_record() if status not ok in second loop.
+- Return rec->FileIndex in dcr->VolLastIndex for normal
+  and partial records in read_record().  This allows bscan
+  to get FileIndex at EOT correct.
+- Fix butil.c to correctly set dcr -- fixes seg fault in bls.
+08Dec05
+- Apply patch supplied by user (slightly modified) to fix
+  correct detection of holes in block devices and FIFOs. 
+  Bug # 506.
+- Apply patch supplied by user (slightly modified) 
+  to fix SD hang with multiple pools and bad client
+  IP. Fixes bug # 508.
+07Dec05
+- Add nagios plugin to the examples directory. Submitted by
+  Christian Masopust.
+- Remove warning message about multiple saves of hardlinked files
+  from find_one.c as it can generate too many warning messages.
+06Dec05
+- Reset timeout values before select() per patch from 
+  Frank Sweetser for problems with non-blocking sockets.
+- Unlink the state file if either reading or writing it gets
+  errors.  Hopefully this will fix Win32 exit problems.
+- Add sanity check in append.c to ensure that dcr is not NULL.
+  This can happen if multiple drive autochanger SCSI control
+  channel and drive indicies do not correspond.
+05Dec05
+- Get next volume from Scratch pool before creating a volume.
+- Set new Pool defaults in Vol when moved from Scratch Pool.
+- Remove argument from create_bacula_database for SQLite as it
+  caused an error.
+- Add back next_vol index code so that two drive autochangers can get
+  a second tape.
+- Change a bunch of debug levels to aid debugging autochangers.
+- Fix reservation so that mutexes are properly applied.
+- Rework reservation algorithm so that two drives can be used
+  at the same time.
+04Dec05
+- Apply days keyword patch from Alexander.Bergolth at wu-wien.ac.at 
+  If this patch is applied, the number of days can be specified with
+  "list nextvol days=xx"
+  or
+  "status dir days=xx"
+  My use case is to be able to preview the next scheduled job (and the 
+  next tape to be used) on fridays if there are no scheduled jobs during 
+  the weekend.
+03Dec05
+- Fix font code in gnome2 console user patch. Fixes bug #501.
+- Fix malformatted bnet error message that caused seg fault
+  fixes bug 502
+- Applied user patch to improve README.vc8 in src/win32.
+29Nov05
+- Correct some more editing of JobId's (for 64 bit compatibility).
+- Ensure that StorageId is stored in Media record when ever possible.
+- Add Migration Job to Job.
+- Change Start Storage daemon job to require read and write storage
+  pointers.
+- Pass read storage data to SD as well as write storage data.
+- Remove old code from winservice.cpp
+- Break on error in scan.
+- Fix typo in signal.c
+- Separate read/write DCR in SD.  Add jcr->read_dcr.
+- Cleanup how find_device() works.
+- Add read output to Status in SD.
+21Nov05
+- Remove abs() in bfile.c so that it compiles on Solaris. Bug #491.
+
+Changes to 1.38.2: 22 November 2005
 - Fix crash in tray-monitor when daemon disconnects. Bug #479.
 - Fix bnet-server bug found on OpenBSD. Bug #486
 - Fix cancel failure bug. Bug #481
@@ -11,7 +160,7 @@ Changes to 1.38.2:
 - Add Pool name to SD status output.
 - Add Python install dir for Solaris to configure. Bug #492
 
-Changes to 1.38.1:
+Changes to 1.38.1: 15 November 2005
 - Apply SunOS patch for ACLs submitted by David Duchscher.                  
 - Make sure to set storage before trying to set drive.
 - Add bacula_mail_summary.sh to examples directory. It makes

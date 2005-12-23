@@ -4,7 +4,11 @@
 General:
 
 Changes to 1.38.3:
+Beta release 23Dec05:
 22Dec05
+- Add OPENSSL_INC to console dependencies, lib dependencies, and
+  wx-console dependencies in Makefile.in
+- Add OPENSSL INC/LIB to gnome2_console Makefile.in.
 - Simplify code in askdir.c that waits for creating an appendable
   volume so that it can handle multiple returns from the wait
   code.
