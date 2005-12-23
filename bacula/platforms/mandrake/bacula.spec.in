@@ -18,7 +18,7 @@
 %define group_file /etc/group
 %define useradd /usr/sbin/useradd
 %define groupadd /usr/sbin/groupadd
-%define _rescuever 1.8.1
+%define _rescuever 1.8.2
 
 # platform defines - set one below or define the build_xxx on the command line
 # RedHat builds
