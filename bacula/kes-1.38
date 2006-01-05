@@ -3,7 +3,14 @@
 
 General:
 
-Changes to 1.38.3:
+Release 1.38.3 05Jan06:
+04Jan06
+- Move the suitable_drive flag to a better place to prevent
+  premature termination of the reservation if all drives
+  are busy -- should fix Arno's diff/inc pool failures.
+26Dec05
+- Add mutex to single thread VSS code in Win32.
+
 Beta release 23Dec05:
 22Dec05
 - Add OPENSSL_INC to console dependencies, lib dependencies, and

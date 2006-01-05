@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     07 December 2005
+                     26 December 2005
 
 Major development:      
 Project                     Developer
@@ -13,6 +13,16 @@ Document:
 - Pruning with Admin job.
 - Does WildFile match against full name?  Doc.
 - %d and %v only valid on Director, not for ClientRunBefore/After.
+
+Priority:
+- Implement status that shows why a job is being held in reserve, or
+  rather why none of the drives are suitable.
+- Implement a way to disable a drive (so you can use the second
+  drive of an autochanger, and the first one will not be used or
+  even defined).
+- Implement code that makes the Dir aware that a drive is an             
+  autochanger (so the user doesn't need to use the Autochanger = yes 
+  directive).
 
 For 1.39:
 - Make hardlink code at line 240 of find_one.c use binary search.

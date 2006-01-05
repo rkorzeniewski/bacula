@@ -4,6 +4,13 @@
 General:
 
 Changes to 1.39.3:
+04Jan06
+- Start implementing Verify list output.
+- Move the suitable_drive flag to a better place to prevent
+  premature termination of the reservation if all drives
+  are busy -- should fix Arno's diff/inc pool failures.
+26Dec05
+- Add mutex to single thread VSS code in Win32.
 22Dec05
 - Simplify code in askdir.c that waits for creating an appendable
   volume so that it can handle multiple returns from the wait
