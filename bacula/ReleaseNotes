@@ -299,6 +299,11 @@ New configure options:
   required only if you do not want the default /usr/share.
 
 Items to note!!!
+- The Storage daemon now keeps track of what tapes it is using
+  (was not the case in 1.36.x). This means that you must be much
+  more careful when removing tapes and putting up a new one. In
+  general, you should always do a "unmount" prior to removing a
+  tape, and a "mount" after putting a new one into the drive.
 - If you use an Autochanger, you MUST update your SD conf file
   to use the new Autochanger resource.  Otherwise, certain commands
   such as "update slots" may not work.
@@ -349,3 +354,8 @@ Other Items:
   files, called "parts".
 - For the details of the Python scripting support, please see the new
   Python Scripting chapter in the manual.
+- The default user/group for the Director and Storage daemon installed
+  by rpms is bacula/bacula, thus you may need to add additional permissions
+  to your database, or modify the permissions of the tape drive.  If
+  all else fails, change to using user=root.  However, it is more secure
+  to use user=bacula.

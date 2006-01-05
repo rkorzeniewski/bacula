@@ -284,7 +284,10 @@ public:
    char *RunAfterFailedJob;           /* Run program after Job that errs */
    char *ClientRunBeforeJob;          /* Run client program before Job */
    char *ClientRunAfterJob;           /* Run client program after Job */
-   char *WriteBootstrap;              /* Where to write bootstrap Job updates */
+   union {
+      char *WriteBootstrap;           /* Where to write bootstrap Job updates */
+      char *WriteVerifyList;          /* List of changed files */
+   };
    int   replace;                     /* How (overwrite, ..) */
    utime_t MaxRunTime;                /* max run time in seconds */
    utime_t MaxWaitTime;               /* max blocking time in seconds */

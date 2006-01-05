@@ -9,7 +9,7 @@
  *
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -507,15 +507,15 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
          rctx.device_name = device_name;
          stat = search_res_for_device(rctx); 
          if (stat == 1) {             /* found available device */
-            rctx.suitable_device = true;
             Dmsg1(100, "Suitable device found=%s\n", device_name);
             ok = true;
             break;
          } else if (stat == 0) {      /* device busy */
             Dmsg1(100, "Suitable busy device found=%s\n", device_name);
-            rctx.suitable_device = true;   /* but it is busy, so continue looking */
+         } else {
+            /* otherwise error */
+            Dmsg0(100, "No suitable device found.\n");
          }
-         /* otherwise error */
       }
       if (ok) {
          break;
@@ -623,6 +623,7 @@ static int reserve_device(RCTX &rctx)
       return -1;  /* no use waiting */
    }  
 
+   rctx.suitable_device = true;
    Dmsg2(100, "Try reserve %s jobid=%d\n", rctx.device->hdr.name,
          rctx.jcr->JobId);
    dcr = new_dcr(rctx.jcr, rctx.device->dev);

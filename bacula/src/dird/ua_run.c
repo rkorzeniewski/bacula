@@ -48,6 +48,7 @@ int run_cmd(UAContext *ua, const char *cmd)
    const char *replace;
    char *when, *verify_job_name, *catalog_name;
    char *since = NULL;
+   char *verify_list;
    bool cloned = false;
    int Priority = 0;
    int i, j, opt, files = 0;
@@ -79,6 +80,7 @@ int run_cmd(UAContext *ua, const char *cmd)
       "catalog",                      /* 17 override catalog */
       "since",                        /* 18 since */
       "cloned",                       /* 19 cloned */
+      "verifylist",                   /* 20 verify output list */
       NULL};
 
 #define YES_POS 14
@@ -100,6 +102,7 @@ int run_cmd(UAContext *ua, const char *cmd)
    replace = NULL;
    verify_job_name = NULL;
    catalog_name = NULL;
+   verify_list = NULL;
 
    for (i=1; i<ua->argc; i++) {
       Dmsg2(800, "Doing arg %d = %s\n", i, ua->argk[i]);
@@ -244,6 +247,11 @@ int run_cmd(UAContext *ua, const char *cmd)
 
             case 19: /* cloned */
                cloned = true;
+               kw_ok = true;
+               break;
+
+            case 20: /* write verify list output */
+               verify_list = ua->argv[i];
                kw_ok = true;
                break;
 
@@ -541,6 +549,12 @@ try_again:
          } else {
             Name = "";
          }
+         if (!verify_list) {
+            verify_list = job->WriteVerifyList;
+         }
+         if (!verify_list) {
+            verify_list = "";
+         }
          bsendmsg(ua, _("Run %s job\n"
 "JobName:     %s\n"
 "FileSet:     %s\n"
@@ -549,6 +563,7 @@ try_again:
 "Storage:     %s\n"
 "Pool:        %s\n"
 "Verify Job:  %s\n"
+"Verify List: %s\n"
 "When:        %s\n"
 "Priority:    %d\n"),
               _("Verify"),
@@ -559,6 +574,7 @@ try_again:
               jcr->store->hdr.name,
               NPRT(jcr->pool->hdr.name),
               Name,
+              verify_list,
               bstrutime(dt, sizeof(dt), jcr->sched_time),
               jcr->JobPriority);
       }
@@ -626,7 +642,6 @@ try_again:
       bsendmsg(ua, _("Unknown Job Type=%d\n"), jcr->JobType);
       goto bail_out;
    }
-
 
    if (!get_cmd(ua, _("OK to run? (yes/mod/no): "))) {
       goto bail_out;

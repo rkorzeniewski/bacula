@@ -239,9 +239,13 @@ RES_ITEM job_items[] = {
    {"migrationjob", store_res,  ITEM(res_job.migration_job), R_JOB, 0, 0},
    {"jobdefs",   store_res,     ITEM(res_job.jobdefs),    R_JOBDEFS, 0, 0},
    {"run",       store_alist_str, ITEM(res_job.run_cmds), 0, 0, 0},
+   /* Root of where to restore files */
    {"where",    store_dir,      ITEM(res_job.RestoreWhere), 0, 0, 0},
+   /* Where to find bootstrap during restore */
    {"bootstrap",store_dir,      ITEM(res_job.RestoreBootstrap), 0, 0, 0},
+   /* Where to write bootstrap file during backup */
    {"writebootstrap",store_dir, ITEM(res_job.WriteBootstrap), 0, 0, 0},
+   {"writeverifylist",store_dir, ITEM(res_job.WriteVerifyList), 0, 0, 0},
    {"replace",  store_replace,  ITEM(res_job.replace), 0, ITEM_DEFAULT, REPLACE_ALWAYS},
    {"maxruntime",   store_time, ITEM(res_job.MaxRunTime), 0, 0, 0},
    {"fullmaxwaittime",  store_time, ITEM(res_job.FullMaxWaitTime), 0, 0, 0},
