@@ -364,7 +364,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
          }
          flags = ff_pkt->flags;
          ff_pkt->flags &= ~(FO_GZIP|FO_SPARSE);
-         stat = send_data(jcr, STREAM_MACOS_FORK_DATA, ff_pkt, digest);
+         stat = send_data(jcr, STREAM_MACOS_FORK_DATA, ff_pkt, digest, signing_digest);
          ff_pkt->flags = flags;
          bclose(&ff_pkt->bfd);
          if (!stat) {
@@ -380,8 +380,8 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       if (digest) {
          crypto_digest_update(digest, sd->msg, sd->msglen);
       }
-      if (signature_digest) {
-         crypto_digest_update(signature_digest, sd->msg, sd->msglen);
+      if (signing_digest) {
+         crypto_digest_update(signing_digest, sd->msg, sd->msglen);
       }
       bnet_send(sd);
       bnet_sig(sd, BNET_EOD);
