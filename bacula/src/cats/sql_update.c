@@ -107,8 +107,8 @@ db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
       (char)(jr->JobLevel), dt, 
       edit_int64(jr->ClientId, ed1),
       edit_uint64(JobTDate, ed2), 
-      edit_int64(jr->JobId, ed3),
-      edit_int64(jr->PoolId, ed4));
+      edit_int64(jr->PoolId, ed3),
+      edit_int64(jr->JobId, ed4));
 
    stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    mdb->changes = 0;
