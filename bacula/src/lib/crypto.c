@@ -587,7 +587,7 @@ bool crypto_digest_update (DIGEST *digest, const void *data, size_t length) {
  *          false on failure
  */
 bool crypto_digest_finalize (DIGEST *digest, void *dest, size_t *length) {
-   if (!EVP_DigestFinal(&digest->ctx, (unsigned char *) dest, length)) {
+   if (!EVP_DigestFinal(&digest->ctx, (unsigned char *) dest, (unsigned int *) length)) {
       return false;
    } else {
       return true;
