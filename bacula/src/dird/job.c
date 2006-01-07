@@ -427,7 +427,7 @@ bool cancel_job(UAContext *ua, JCR *jcr)
 
 static void job_monitor_destructor(watchdog_t *self)
 {
-   JCR *control_jcr = (JCR *) self->data;
+   JCR *control_jcr = (JCR *)self->data;
 
    free_jcr(control_jcr);
 }
@@ -446,8 +446,6 @@ static void job_monitor_watchdog(watchdog_t *self)
       if (jcr->JobId == 0) {
          Dmsg2(800, "Skipping JCR %p (%s) with JobId 0\n",
                jcr, jcr->Job);
-         /* Keep reference counts correct */
-         free_jcr(jcr);
          continue;
       }
 
@@ -466,12 +464,12 @@ static void job_monitor_watchdog(watchdog_t *self)
          cancel_job(ua, jcr);
          free_ua_context(ua);
 
-         Dmsg1(800, "Have cancelled JCR %p\n", jcr);
+         Dmsg2(800, "Have cancelled JCR %p Job=%d\n", jcr, jcr->JobId);
       }
 
       /* Keep reference counts correct */
-      free_jcr(jcr);
    }
+   endeach_jcr(jcr);
 }
 
 /*

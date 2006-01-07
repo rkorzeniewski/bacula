@@ -7,7 +7,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2001-2005 Kern Sibbald
+   Copyright (C) 2001-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -66,8 +66,8 @@ int qstatus_cmd(UAContext *ua, const char *cmd)
             bsendmsg(ua, DotStatusJob, edit_int64(njcr->JobId, ed1), 
                      njcr->JobStatus, njcr->JobErrors);
          }
-         free_jcr(njcr);
       }
+      endeach_jcr(njcr);
    } else if (strcasecmp(ua->argk[2], "last") == 0) {
       bsendmsg(ua, OKqstatus, ua->argk[2]);
       if ((last_jobs) && (last_jobs->size() > 0)) {
@@ -507,7 +507,6 @@ static void list_running_jobs(UAContext *ua)
    Dmsg0(200, "enter list_run_jobs()\n");
    bsendmsg(ua, _("\nRunning Jobs:\n"));
    foreach_jcr(jcr) {
-      njobs++;
       if (jcr->JobId == 0) {      /* this is us */
          /* this is a console or other control job. We only show console
           * jobs in the status output.
@@ -516,10 +515,12 @@ static void list_running_jobs(UAContext *ua)
             bstrftime_nc(dt, sizeof(dt), jcr->start_time);
             bsendmsg(ua, _("Console connected at %s\n"), dt);
          }
-         njobs--;
-      }
-      free_jcr(jcr);
+         continue;
+      }       
+      njobs++;
    }
+   endeach_jcr(jcr);
+
    if (njobs == 0) {
       /* Note the following message is used in regress -- don't change */
       bsendmsg(ua, _("No Jobs running.\n====\n"));
@@ -531,7 +532,6 @@ static void list_running_jobs(UAContext *ua)
    bsendmsg(ua, _("======================================================================\n"));
    foreach_jcr(jcr) {
       if (jcr->JobId == 0 || !acl_access_ok(ua, Job_ACL, jcr->job->hdr.name)) {
-         free_jcr(jcr);
          continue;
       }
       njobs++;
@@ -650,8 +650,8 @@ static void list_running_jobs(UAContext *ua)
          free_pool_memory(emsg);
          pool_mem = false;
       }
-      free_jcr(jcr);
    }
+   endeach_jcr(jcr);
    bsendmsg(ua, _("====\n"));
    Dmsg0(200, "leave list_run_jobs()\n");
 }

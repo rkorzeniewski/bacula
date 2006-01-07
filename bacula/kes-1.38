@@ -3,6 +3,20 @@
 
 General:
 
+1.38.4:
+07Jan06
+- Add PoolId to Job record when updating it at job start time.
+06Jan06
+- Pull in more code from 1.39 so that there are fewer file
+  differences (the new ua_dotcmds.c, base64.h, crypto.h
+  hmac.c jcr.c (dird and lib) lib.h md5.h parse_conf.c 
+  util.c. Aside from ua_dotcmds.c these are mostly crypto
+  upgrades.
+- Implement new method of walking the jcr chain. The
+  incr/dec of the use_count is done within the walking
+  routines.  This should prevent a jcr from being freed
+  from under the walk routines.
+
 Release 1.38.3 05Jan06:
 04Jan06
 - Move the suitable_drive flag to a better place to prevent

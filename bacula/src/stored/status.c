@@ -7,7 +7,7 @@
  *
  */
 /*
-   Copyright (C) 2003-2005 Kern Sibbald
+   Copyright (C) 2003-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -330,8 +330,9 @@ static void list_running_jobs(BSOCK *user)
          }
 #endif
       }
-      free_jcr(jcr);
    }
+   endeach_jcr(jcr);
+
    if (!found) {
       bnet_fsend(user, _("No Jobs running.\n"));
    }
@@ -499,8 +500,8 @@ bool qstatus_cmd(JCR *jcr)
          if (njcr->JobId != 0) {
             bnet_fsend(dir, DotStatusJob, njcr->JobId, njcr->JobStatus, njcr->JobErrors);
          }
-         free_jcr(njcr);
       }
+      endeach_jcr(njcr);
    } else if (strcmp(time.c_str(), "last") == 0) {
       bnet_fsend(dir, OKqstatus, time.c_str());
       if ((last_jobs) && (last_jobs->size() > 0)) {

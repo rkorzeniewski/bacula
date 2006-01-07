@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     26 December 2005
+                     07 January 2006
 
 Major development:      
 Project                     Developer
@@ -1271,3 +1271,9 @@ Block Position: 0
 === Done
 - Make sure that all do_prompt() calls in Dir check for
   -1 (error) and -2 (cancel) returns.
+- Fix foreach_jcr() to have free_jcr() inside next().
+  jcr=jcr_walk_start();
+  for ( ; jcr; (jcr=jcr_walk_next(jcr)) )
+  ...
+  jcr_walk_end(jcr);
+

@@ -14,7 +14,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -100,6 +100,9 @@ bool do_backup_init(JCR *jcr)
    jcr->PoolId = pr.PoolId;
    jcr->jr.PoolId = pr.PoolId;
 
+   /*
+    * Fire off any clone jobs (run directives)
+    */
    Dmsg2(900, "cloned=%d run_cmds=%p\n", jcr->cloned, jcr->job->run_cmds);
    if (!jcr->cloned && jcr->job->run_cmds) {
       char *runcmd;

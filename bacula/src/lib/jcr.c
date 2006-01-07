@@ -23,7 +23,7 @@
  *
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -388,7 +388,7 @@ void b_free_jcr(const char *file, int line, JCR *jcr)
 void free_jcr(JCR *jcr)
 {
 
-   Dmsg1(3400, "Enter free_jcr 0x%x\n", jcr);
+   Dmsg2(3400, "Enter free_jcr 0x%x job=%d\n", jcr, jcr->JobId);
 
 #endif
 
@@ -402,7 +402,7 @@ void free_jcr(JCR *jcr)
    Dmsg3(3400, "Dec free_jcr 0x%x use_count=%d jobid=%d\n", jcr, jcr->use_count, jcr->JobId);
    if (jcr->use_count > 0) {          /* if in use */
       unlock_jcr_chain();
-      Dmsg2(3400, "free_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+      Dmsg3(3400, "free_jcr 0x%x job=%d use_count=%d\n", jcr, jcr->JobId, jcr->use_count);
       return;
    }
 
@@ -574,7 +574,40 @@ static void unlock_jcr_chain()
 }
 
 
-JCR *get_next_jcr(JCR *prev_jcr)
+/*
+ * Start walk of jcr chain
+ * The proper way to walk the jcr chain is:
+ *    JCR *jcr;
+ *    foreach_jcr(jcr) {
+ *      ...
+ *    }
+ *    endeach_jcr(jcr);
+ *
+ *  It is possible to leave out the endeach_jcr(jcr), but
+ *   in that case, the last jcr referenced must be explicitly
+ *   released with:
+ *
+ *    free_jcr(jcr);
+ *  
+ */
+JCR *jcr_walk_start() 
+{
+   JCR *jcr;
+   lock_jcr_chain();
+   jcr = (JCR *)jcrs->first();
+   if (jcr) {
+      jcr->inc_use_count();
+      Dmsg3(3400, "Inc jcr_walk_start 0x%x job=%d use_count=%d\n", jcr, 
+            jcr->JobId, jcr->use_count);
+   }
+   unlock_jcr_chain();
+   return jcr;
+}
+
+/*
+ * Get next jcr from chain, and release current one
+ */
+JCR *jcr_walk_next(JCR *prev_jcr)
 {
    JCR *jcr;
 
@@ -582,12 +615,31 @@ JCR *get_next_jcr(JCR *prev_jcr)
    jcr = (JCR *)jcrs->next(prev_jcr);
    if (jcr) {
       jcr->inc_use_count();
-      Dmsg2(3400, "Inc get_next_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+      Dmsg3(3400, "Inc jcr_walk_next 0x%x job=%d use_count=%d\n", jcr, 
+         jcr->JobId, jcr->use_count);
    }
    unlock_jcr_chain();
+   if (prev_jcr) {
+      free_jcr(prev_jcr);
+   }
    return jcr;
 }
 
+/*
+ * Release last jcr referenced
+ */
+void jcr_walk_end(JCR *jcr)
+{
+   if (jcr) {
+      free_jcr(jcr);
+   }
+}
+
+
+/*
+ * Setup to call the timeout check routine every 30 seconds
+ *  This routine will check any timers that have been enabled.
+ */
 bool init_jcr_subsystem(void)
 {
    watchdog_t *wd = new_watchdog();
@@ -615,7 +667,6 @@ static void jcr_timeout_check(watchdog_t *self)
     */
    foreach_jcr(jcr) {
       if (jcr->JobId == 0) {
-         free_jcr(jcr);
          continue;
       }
       fd = jcr->store_bsock;
@@ -623,7 +674,7 @@ static void jcr_timeout_check(watchdog_t *self)
          timer_start = fd->timer_start;
          if (timer_start && (watchdog_time - timer_start) > fd->timeout) {
             fd->timer_start = 0;      /* turn off timer */
-            fd->timed_out = TRUE;
+            fd->timed_out = true;
             Jmsg(jcr, M_ERROR, 0, _(
 "Watchdog sending kill after %d secs to thread stalled reading Storage daemon.\n"),
                  watchdog_time - timer_start);
@@ -635,7 +686,7 @@ static void jcr_timeout_check(watchdog_t *self)
          timer_start = fd->timer_start;
          if (timer_start && (watchdog_time - timer_start) > fd->timeout) {
             fd->timer_start = 0;      /* turn off timer */
-            fd->timed_out = TRUE;
+            fd->timed_out = true;
             Jmsg(jcr, M_ERROR, 0, _(
 "Watchdog sending kill after %d secs to thread stalled reading File daemon.\n"),
                  watchdog_time - timer_start);
@@ -647,15 +698,15 @@ static void jcr_timeout_check(watchdog_t *self)
          timer_start = fd->timer_start;
          if (timer_start && (watchdog_time - timer_start) > fd->timeout) {
             fd->timer_start = 0;      /* turn off timer */
-            fd->timed_out = TRUE;
+            fd->timed_out = true;
             Jmsg(jcr, M_ERROR, 0, _(
 "Watchdog sending kill after %d secs to thread stalled reading Director.\n"),
                  watchdog_time - timer_start);
             pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
          }
       }
-      free_jcr(jcr);
    }
+   endeach_jcr(jcr);
 
    Dmsg0(3400, "Finished JCR timeout checks\n");
 }

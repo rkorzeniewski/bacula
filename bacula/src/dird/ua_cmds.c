@@ -7,7 +7,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -402,12 +402,11 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
       /* Count Jobs running */
       foreach_jcr(jcr) {
          if (jcr->JobId == 0) {      /* this is us */
-            free_jcr(jcr);
             continue;
          }
-         free_jcr(jcr);
          njobs++;
       }
+      endeach_jcr(jcr);
 
       if (njobs == 0) {
          bsendmsg(ua, _("No Jobs running.\n"));
@@ -417,13 +416,12 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
       foreach_jcr(jcr) {
          char ed1[50];
          if (jcr->JobId == 0) {      /* this is us */
-            free_jcr(jcr);
             continue;
          }
          bsnprintf(buf, sizeof(buf), _("JobId=%s Job=%s"), edit_int64(jcr->JobId, ed1), jcr->Job);
          add_prompt(ua, buf);
-         free_jcr(jcr);
       }
+      endeach_jcr(jcr);
 
       if (do_prompt(ua, _("Job"),  _("Choose Job to cancel"), buf, sizeof(buf)) < 0) {
          return 1;
@@ -1356,11 +1354,11 @@ int wait_cmd(UAContext *ua, const char *cmd)
       foreach_jcr(jcr) {
          if (jcr->JobId != 0) {
             running = true;
-            free_jcr(jcr);
             break;
          }
-         free_jcr(jcr);
       }
+      endeach_jcr(jcr);
+
       if (running) {
          bmicrosleep(1, 0);
       }
