@@ -9,7 +9,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -80,7 +80,9 @@
    jcr->JobStatus == JS_FatalError)
 
 #define foreach_jcr(jcr) \
-   for ((jcr)=NULL; ((jcr)=get_next_jcr(jcr)); )
+   for (jcr=jcr_walk_start(); jcr; (jcr=jcr_walk_next(jcr)) )
+
+#define endeach_jcr(jcr) jcr_walk_end(jcr)
 
 #define SD_APPEND 1
 #define SD_READ   0

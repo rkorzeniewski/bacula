@@ -8,7 +8,7 @@
  *
  */
 /*
-   Copyright (C) 2004-2005 Kern Sibbald
+   Copyright (C) 2004-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -337,7 +337,6 @@ static PyObject *job_cancel(PyObject *self, PyObject *args)
    }
    foreach_jcr(jcr) {
       if (jcr->JobId == 0) {
-         free_jcr(jcr);
          continue;
       }
       if (jcr->JobId == JobId) {
@@ -345,6 +344,8 @@ static PyObject *job_cancel(PyObject *self, PyObject *args)
          break;
       }
    }
+   /* endeach_jcr(jcr) not needed because freed below */
+
    if (!found) {
       /* ***FIXME*** raise exception */
       return NULL;

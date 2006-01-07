@@ -120,6 +120,6 @@ case "$COMMAND" in
       ;;
 
    slots)
-      ${MTX} -f $CHANGER status slot  | wc -l
+      ${MTX} -f $CHANGER status slot  | wc -l | bc
       ;;
 esac

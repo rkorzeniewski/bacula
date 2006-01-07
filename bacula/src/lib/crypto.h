@@ -19,7 +19,7 @@
  * license please contact Landon Fuller <landonf@opendarwin.org>.
  */
 /*
-   Copyright (C) 2005 Kern Sibbald
+   Copyright (C) 2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -97,8 +97,8 @@ typedef enum {
  * This must be kept in sync with the available message digest algorithms.
  * Just in case someone forgets, I've added assertions
  * to crypto_digest_finalize().
- * 	MD5: 128 bits
- * 	SHA-1: 160 bits
+ *      MD5: 128 bits
+ *      SHA-1: 160 bits
  */
 #ifndef HAVE_SHA2
 #define CRYPTO_DIGEST_MAX_SIZE CRYPTO_DIGEST_SHA1_SIZE

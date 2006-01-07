@@ -6,7 +6,7 @@
  *    Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -19,7 +19,6 @@
    the file LICENSE for additional details.
 
  */
-
 
 /* The following is necessary so that we do not include
  * the dummy external definition of DB.
@@ -54,7 +53,7 @@ db_add_digest_to_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, char *digest,
                           int type)
 {
    int stat;
-   char ed1[CRYPTO_DIGEST_MAX_SIZE];
+   char ed1[50];
 
    db_lock(mdb);
    Mmsg(mdb->cmd, "UPDATE File SET MD5='%s' WHERE FileId=%s", digest, 
@@ -94,7 +93,7 @@ db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    struct tm tm;
    btime_t JobTDate;
    int stat;
-   char ed1[50], ed2[50], ed3[50];
+   char ed1[50], ed2[50], ed3[50], ed4[50];
 
    stime = jr->StartTime;
    localtime_r(&stime, &tm);
@@ -103,12 +102,13 @@ db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 
    db_lock(mdb);
    Mmsg(mdb->cmd, "UPDATE Job SET JobStatus='%c',Level='%c',StartTime='%s',"
-"ClientId=%s,JobTDate=%s WHERE JobId=%s",
+"ClientId=%s,JobTDate=%s,PoolId=%s WHERE JobId=%s",
       (char)(jcr->JobStatus),
       (char)(jr->JobLevel), dt, 
       edit_int64(jr->ClientId, ed1),
       edit_uint64(JobTDate, ed2), 
-      edit_int64(jr->JobId, ed3));
+      edit_int64(jr->JobId, ed3),
+      edit_int64(jr->PoolId, ed4));
 
    stat = UPDATE_DB(jcr, mdb, mdb->cmd);
    mdb->changes = 0;

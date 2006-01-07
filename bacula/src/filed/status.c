@@ -7,7 +7,7 @@
  *
  */
 /*
-   Copyright (C) 2001-2005 Kern Sibbald
+   Copyright (C) 2001-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -156,7 +156,6 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
       }
       sendit(msg, len, arg);
       if (njcr->JobId == 0) {
-         free_jcr(njcr);
          continue;
       }
       sec = time(NULL) - njcr->start_time;
@@ -188,8 +187,9 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
          len = Mmsg(msg, _("    SDSocket closed.\n"));
          sendit(msg, len, arg);
       }
-      free_jcr(njcr);
    }
+   endeach_jcr(njcr);
+
    Dmsg0(1000, "Begin status jcr loop.\n");
    if (!found) {
       len = Mmsg(msg, _("No Jobs running.\n"));
@@ -334,8 +334,8 @@ int qstatus_cmd(JCR *jcr)
          if (njcr->JobId != 0) {
             bnet_fsend(dir, DotStatusJob, njcr->JobId, njcr->JobStatus, njcr->JobErrors);
          }
-         free_jcr(njcr);
       }
+      endeach_jcr(njcr);
    } else if (strcmp(time, "last") == 0) {
       bnet_fsend(dir, OKqstatus, time);
       if ((last_jobs) && (last_jobs->size() > 0)) {
@@ -460,11 +460,11 @@ char *bac_status(char *buf, int buf_len)
       if (njcr->JobId != 0) {
          stat = JS_Running;
          termstat = _("Bacula Running");
-         free_jcr(njcr);
          break;
       }
-      free_jcr(njcr);
    }
+   endeach_jcr(njcr);
+
    if (stat != 0) {
       goto done;
    }

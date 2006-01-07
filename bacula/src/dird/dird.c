@@ -7,7 +7,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -431,8 +431,8 @@ void reload_config(int sig)
             job_end_push(jcr, reload_job_end_cb, (void *)((long int)table));
             njobs++;
          }
-         free_jcr(jcr);
       }
+      endeach_jcr(jcr);
    }
 
    /* Reset globals */
