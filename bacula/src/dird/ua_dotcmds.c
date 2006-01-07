@@ -296,7 +296,6 @@ static int defaultscmd(UAContext *ua, const char *cmd)
        bsendmsg(ua, "address=%s", storage->address);
        bsendmsg(ua, "media_type=%s", storage->media_type);
        bsendmsg(ua, "sdport=%d", storage->SDport);
-       bsendmsg(ua, "name=%s", storage->hdr.name);
        bsendmsg(ua, "device=%s", device->hdr.name);
        if (storage->device->size() > 1)
 	 while ((device = (DEVICE *)storage->device->next()))
