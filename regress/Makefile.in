@@ -31,8 +31,8 @@ bacula: all
 	 fi)
 	rm -rf tmp working
 	mkdir tmp working
-	echo "Doing: scripts/setup ${BACULA_SOURCE} ${EMAIL} ${WHICHDB} ${TCPWRAPPERS}"
-	scripts/setup ${BACULA_SOURCE} ${EMAIL} ${WHICHDB} ${TCPWRAPPERS} ${SMTP_HOST}
+	echo "Doing: scripts/setup ${BACULA_SOURCE} ${EMAIL} ${WHICHDB} ${TCPWRAPPERS} ${OPENSSL}"
+	scripts/setup ${BACULA_SOURCE} ${EMAIL} ${WHICHDB} ${TCPWRAPPERS} ${SMTP_HOST} ${OPENSSL}
 
 sed:
 	echo "Doing: scripts/do_sed ${EMAIL} ${TAPE_DRIVE} ${AUTOCHANGER} ${AUTOCHANGER_PATH} ${TAPE_DRIVE1} ${SMTP_HOST}"

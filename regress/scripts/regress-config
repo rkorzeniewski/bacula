@@ -18,6 +18,7 @@ CFLAGS="-g -O2 -Wall" \
     --with-smtp-host=$5 \
     $3 \
     --with-baseport=8101 \
-    $4
+    $4 \
+    $6
 
 exit 0
