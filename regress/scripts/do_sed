@@ -39,6 +39,7 @@ sed -f ${out} ${cwd}/scripts/testa-bacula-dir.conf.in >${cwd}/scripts/testa-bacu
 sed -f ${out} ${cwd}/scripts/test-bacula-fd.conf.in >${cwd}/scripts/test-bacula-fd.conf
 sed -f ${out} ${cwd}/scripts/test-bacula-sd.conf.in >${cwd}/scripts/test-bacula-sd.conf
 sed -f ${out} ${cwd}/scripts/test-console.conf.in >${cwd}/scripts/test-console.conf
+sed -f ${out} ${cwd}/scripts/crypto-bacula-fd.conf.in >${cwd}/scripts/crypto-bacula-fd.conf
 sed -f ${out} ${cwd}/scripts/bacula-dir-tape.conf.in >${cwd}/scripts/bacula-dir-tape.conf
 sed -f ${out} ${cwd}/scripts/win32-bacula-dir-tape.conf.in >${cwd}/scripts/win32-bacula-dir-tape.conf
 sed -f ${out} ${cwd}/scripts/bacula-sd-tape.conf.in >${cwd}/scripts/bacula-sd-tape.conf

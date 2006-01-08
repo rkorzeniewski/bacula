@@ -1,0 +1,76 @@
+#!/bin/sh
+#
+# Run a simple backup (with encryption) of the Bacula build directory
+#   then verify the signatures.
+#
+debug=0
+if test "$debug" -eq 1 ; then
+  out="tee"
+else
+  out="output"
+fi
+
+cwd=`pwd`
+scripts/copy-crypto-confs
+scripts/cleanup
+echo "${cwd}/build" >/tmp/file-list
+
+echo " "
+echo " "
+echo " === Starting Filed Encryption Test at `date +%R:%S` ==="
+echo " === Starting Filed Encryption Test at `date +%R:%S` ===" >>working/log
+echo " "
+
+cat <<END_OF_DATA >tmp/bconcmds
+@$out /dev/null
+messages
+@$out tmp/log1.out
+setdebug level=1 storage=File sd
+label storage=File volume=TestVolume001
+run job=NightlySave yes
+wait
+messages
+@# 
+@# now do a verify volume
+@#
+@$out ${cwd}/tmp/original
+run job=VerifyVolume
+yes
+wait
+messages
+@$out
+quit
+END_OF_DATA
+
+if test "$debug" -eq 1 ; then
+  bin/bacula start
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+else
+  bin/bacula start 2>&1 >/dev/null
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+fi
+
+sleep 2
+scripts/check_for_zombie_jobs storage=File 
+bin/bacula stop 2>&1 >/dev/null
+grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
+bstat=$?
+grep "^  Termination: *Verify OK" ${cwd}/tmp/original 2>&1 >/dev/null
+if [ $? != 0 -o $bstat != 0 ] ; then
+   echo " "
+   echo " "
+   echo "  !!!!! Filed Encryption Verification failed!!! !!!!! "
+   echo "  !!!!! Filed Encryption Verification failed!!! !!!!! " >>test.out
+   if [ $bstat != 0 ] ; then
+      echo "  !!!!! Bad Job termination status     !!!!! "
+      echo "  !!!!! Bad Job termination status     !!!!! " >>test.out
+   else
+      echo "  !!!!! Restored files differ          !!!!! "
+      echo "  !!!!! Restored files differ          !!!!! " >>test.out
+   fi
+   echo " "
+else
+   echo "  ===== Filed Encryption Verification Test OK ===== "
+   echo "  ===== Filed Encryption Verification Test OK ===== " >>test.out
+   scripts/cleanup
+fi
