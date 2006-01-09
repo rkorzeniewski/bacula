@@ -31,10 +31,13 @@ run job=NightlySave yes
 wait
 messages
 @# 
-@# now do a verify volume
+@# now do a restore
 @#
-@$out ${cwd}/tmp/original
-run job=VerifyVolume
+@$out tmp/log2.out
+restore where=${cwd}/tmp/bacula-restores storage=File
+5
+mark *
+
 yes
 wait
 messages
@@ -55,7 +58,7 @@ scripts/check_for_zombie_jobs storage=File
 bin/bacula stop 2>&1 >/dev/null
 grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
 bstat=$?
-grep "^  Termination: *Verify OK" ${cwd}/tmp/original 2>&1 >/dev/null
+grep "^  Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
 if [ $? != 0 -o $bstat != 0 ] ; then
    echo " "
    echo " "
