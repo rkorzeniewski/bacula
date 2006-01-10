@@ -2,6 +2,10 @@
 #
 # Run all tape tests
 #
+. config.out
+if test ! x$AUTOCHANGER = x/dev/null ; then
+   mtx -f $AUTOCHANGER load 1 >/dev/null &2>/dev/null
+fi
 cp test.out test1.out
 tests/test0
 tests/backup-bacula-tape
