@@ -308,7 +308,7 @@ static int defaultscmd(UAContext *ua, const char *cmd)
      if (pool) {
        bsendmsg(ua, "pool=%s", pool->hdr.name);
        bsendmsg(ua, "pool_type=%s", pool->pool_type);
-       bsendmsg(ua, "label_format=%s", pool->label_format);
+       bsendmsg(ua, "label_format=%s", pool->label_format?pool->label_format:"");
        bsendmsg(ua, "use_volume_once=%d", pool->use_volume_once);
        bsendmsg(ua, "accept_any_volume=%d", pool->accept_any_volume);
        bsendmsg(ua, "purge_oldest_volume=%d", pool->purge_oldest_volume);
