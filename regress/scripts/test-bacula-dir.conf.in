@@ -86,6 +86,7 @@ Job {
   Pool = Default
   Maximum Concurrent Jobs = 4
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
+# Max Run Time = 15 seconds
 }
 
 Job {

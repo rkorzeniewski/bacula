@@ -4,6 +4,13 @@
 #   then backup four times, each with incremental then finally restore.
 #   It should require at least 4 different bsrs.
 #
+debug=0
+if test "$debug" -eq 1 ; then
+  out="tee"
+else
+  out="output"
+fi
+
 cwd=`pwd`
 scripts/copy-test-confs
 scripts/cleanup
@@ -15,20 +22,28 @@ echo " === Starting four-jobs-test at `date +%R:%S` ==="
 echo " === Starting four-jobs-test at `date +%R:%S` ===" >>working/log
 echo " "
 
-bin/bacula start 2>&1 >/dev/null
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 estimate job=CompressedTest listing
 estimate job=CompressedTest listing
 estimate job=CompressedTest listing
 messages
-@output tmp/log1.out
+@$out tmp/log1.out
 label storage=File volume=TestVolume001
 run job=CompressedTest yes
 wait
 messages
 quit
 END_OF_DATA
+
+if test "$debug" -eq 1 ; then
+  bin/bacula start
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+else
+  bin/bacula start 2>&1 >/dev/null
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+fi
+
 scripts/check_for_zombie_jobs storage=File
 echo "Backup 1 done"
 # make some files for the incremental to pick up
@@ -38,16 +53,23 @@ touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
 #
 # run a second job
 #
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
-@output tmp/log1.out
+@$out  tmp/log1.out
 run job=CompressedTest
 yes
 wait
 messages
 quit
 END_OF_DATA
+
+if test "$debug" -eq 1 ; then
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+else
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+fi
+
 scripts/check_for_zombie_jobs storage=File
 echo "Backup 2 done"
 touch ${cwd}/build/src/dird/*.c
@@ -55,7 +77,7 @@ touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
 #
 # run a third job
 #
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
 @output tmp/log1.out
@@ -65,6 +87,13 @@ wait
 messages
 quit
 END_OF_DATA
+
+if test "$debug" -eq 1 ; then
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+else
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+fi
+
 scripts/check_for_zombie_jobs storage=File
 echo "Backup 3 done"
 # make some files for the incremental to pick up
@@ -72,7 +101,7 @@ touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
 #
 # run a fourth job
 #
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
 @output tmp/log1.out
@@ -82,12 +111,19 @@ wait
 messages
 quit
 END_OF_DATA
+
+if test "$debug" -eq 1 ; then
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+else
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+fi
+
 scripts/check_for_zombie_jobs storage=File
 echo "Backup 4 done"
 # 
 # now do several restores to ensure we cleanup between jobs
 #
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 restore where=${cwd}/tmp/bacula-restores select all storage=File done
 yes
@@ -95,7 +131,7 @@ wait
 restore where=${cwd}/tmp/bacula-restores select all storage=File done
 yes
 wait
-@output tmp/log2.out
+@$out tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select storage=File
 unmark *
 mark *
@@ -106,6 +142,13 @@ messages
 @output
 quit
 END_OF_DATA
+
+if test "$debug" -eq 1 ; then
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+else
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+fi
+
 scripts/check_for_zombie_jobs storage=File
 bin/bacula stop 2>&1 >/dev/null
 grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
