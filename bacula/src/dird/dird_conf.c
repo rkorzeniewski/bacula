@@ -22,7 +22,7 @@
  *     Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -183,6 +183,7 @@ static RES_ITEM store_items[] = {
    {"device",      store_device,   ITEM(res_store.device),     R_DEVICE, ITEM_REQUIRED, 0},
    {"mediatype",   store_strname,  ITEM(res_store.media_type), 0, ITEM_REQUIRED, 0},
    {"autochanger", store_yesno,    ITEM(res_store.autochanger), 1, ITEM_DEFAULT, 0},
+   {"enabled",     store_yesno,    ITEM(res_store.enabled),     1, ITEM_DEFAULT, 1},
    {"maximumconcurrentjobs", store_pint, ITEM(res_store.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},
    {"sddport", store_pint, ITEM(res_store.SDDport), 0, 0, 0}, /* deprecated */
    {"tlsenable",            store_yesno,     ITEM(res_store.tls_enable), 1, 0, 0},
@@ -258,6 +259,7 @@ RES_ITEM job_items[] = {
    {"prunejobs",   store_yesno, ITEM(res_job.PruneJobs), 1, ITEM_DEFAULT, 0},
    {"prunefiles",  store_yesno, ITEM(res_job.PruneFiles), 1, ITEM_DEFAULT, 0},
    {"prunevolumes",store_yesno, ITEM(res_job.PruneVolumes), 1, ITEM_DEFAULT, 0},
+   {"enabled",     store_yesno, ITEM(res_job.enabled), 1, ITEM_DEFAULT, 1},
    {"spoolattributes",store_yesno, ITEM(res_job.SpoolAttributes), 1, ITEM_DEFAULT, 0},
    {"spooldata",   store_yesno, ITEM(res_job.spool_data), 1, ITEM_DEFAULT, 0},
    {"rerunfailedlevels",   store_yesno, ITEM(res_job.rerun_failed_levels), 1, ITEM_DEFAULT, 0},
@@ -534,15 +536,16 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       break;
    case R_JOB:
    case R_JOBDEFS:
-      sendit(sock, _("%s: name=%s JobType=%d level=%s Priority=%d MaxJobs=%u\n"),
+      sendit(sock, _("%s: name=%s JobType=%d level=%s Priority=%d Enabled=%d\n"),
          type == R_JOB ? _("Job") : _("JobDefs"),
          res->res_job.hdr.name, res->res_job.JobType,
          level_to_str(res->res_job.JobLevel), res->res_job.Priority,
-         res->res_job.MaxConcurrentJobs);
-      sendit(sock, _("     Resched=%d Times=%d Interval=%s Spool=%d WritePartAfterJob=%d\n"),
-          res->res_job.RescheduleOnError, res->res_job.RescheduleTimes,
-          edit_uint64_with_commas(res->res_job.RescheduleInterval, ed1),
-          res->res_job.spool_data, res->res_job.write_part_after_job);
+         res->res_job.enabled);
+      sendit(sock, _("     MaxJobs=%u Resched=%d Times=%d Interval=%s Spool=%d WritePartAfterJob=%d\n"),
+         res->res_job.MaxConcurrentJobs, 
+         res->res_job.RescheduleOnError, res->res_job.RescheduleTimes,
+         edit_uint64_with_commas(res->res_job.RescheduleInterval, ed1),
+         res->res_job.spool_data, res->res_job.write_part_after_job);
       if (res->res_job.client) {
          sendit(sock, _("  --> "));
          dump_resource(-R_CLIENT, (RES *)res->res_job.client, sendit, sock);

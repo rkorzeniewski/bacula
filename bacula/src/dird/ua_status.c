@@ -457,7 +457,7 @@ static void list_scheduled_jobs(UAContext *ua)
    /* Loop through all jobs */
    LockRes();
    foreach_res(job, R_JOB) {
-      if (!acl_access_ok(ua, Job_ACL, job->hdr.name)) {
+      if (!acl_access_ok(ua, Job_ACL, job->hdr.name) || !job->enabled) {
          continue;
       }
       for (run=NULL; (run = find_next_run(run, job, runtime, days)); ) {

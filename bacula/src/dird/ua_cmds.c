@@ -56,6 +56,8 @@ extern int update_cmd(UAContext *ua, const char *cmd);
 static int add_cmd(UAContext *ua, const char *cmd);
 static int create_cmd(UAContext *ua, const char *cmd);
 static int cancel_cmd(UAContext *ua, const char *cmd);
+static int enable_cmd(UAContext *ua, const char *cmd);
+static int disable_cmd(UAContext *ua, const char *cmd);
 static int setdebug_cmd(UAContext *ua, const char *cmd);
 static int trace_cmd(UAContext *ua, const char *cmd);
 static int var_cmd(UAContext *ua, const char *cmd);
@@ -91,6 +93,8 @@ static struct cmdstruct commands[] = {
  { N_("cancel"),     cancel_cmd,    _("cancel [<jobid=nnn> | <job=name>] -- cancel a job")},
  { N_("create"),     create_cmd,    _("create DB Pool from resource")},
  { N_("delete"),     delete_cmd,    _("delete [pool=<pool-name> | media volume=<volume-name>]")},
+ { N_("disable"),    disable_cmd,   _("disable <job=name> -- disable a job")},
+ { N_("enable"),     enable_cmd,    _("enable <job=name> -- enable a job")},
  { N_("estimate"),   estimate_cmd,  _("performs FileSet estimate, listing gives full listing")},
  { N_("exit"),       quit_cmd,      _("exit = quit")},
  { N_("gui"),        gui_cmd,       _("gui [on|off] -- non-interactive gui mode")},
@@ -606,6 +610,49 @@ static int setip_cmd(UAContext *ua, const char *cmd)
             client->hdr.name, client->address);
 get_out:
    UnlockRes();
+   return 1;
+}
+
+
+static void do_en_disable_cmd(UAContext *ua, bool setting)
+{
+   JOB *job;
+   int i;
+
+   i = find_arg_with_value(ua, N_("job")); 
+   if (i < 0) { 
+      job = select_job_resource(ua);
+      if (!job) {
+         return;
+      }
+   } else {
+      LockRes();
+      job = (JOB *)GetResWithName(R_JOB, ua->argv[i]);
+      UnlockRes();
+   } 
+   if (!job) {
+      bsendmsg(ua, _("Job \"%s\" not found.\n"), ua->argv[i]);
+      return;
+   }
+
+   if (!acl_access_ok(ua, Job_ACL, job->hdr.name)) {
+      bsendmsg(ua, _("Illegal command from this console.\n"));
+      return;
+   }
+   job->enabled = setting;
+   bsendmsg(ua, _("Job \"%s\" %sabled\n"), job->hdr.name, setting?"en":"dis");
+   return;
+}
+
+static int enable_cmd(UAContext *ua, const char *cmd)
+{
+   do_en_disable_cmd(ua, true);
+   return 1;
+}
+
+static int disable_cmd(UAContext *ua, const char *cmd)
+{
+   do_en_disable_cmd(ua, false);
    return 1;
 }
 
