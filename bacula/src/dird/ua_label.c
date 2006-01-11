@@ -7,7 +7,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2003-2005 Kern Sibbald
+   Copyright (C) 2003-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -171,6 +171,7 @@ int update_slots(UAContext *ua)
    scan = find_arg(ua, N_("scan")) >= 0;
 
    max_slots = get_num_slots_from_SD(ua);
+   Dmsg1(100, "max_slots=%d\n", max_slots);
    if (max_slots <= 0) {
       bsendmsg(ua, _("No slots in changer to scan.\n"));
       return 1;
@@ -187,6 +188,9 @@ int update_slots(UAContext *ua)
       bsendmsg(ua, _("No Volumes found to label, or no barcodes.\n"));
       goto bail_out;
    }
+
+   /* First zap out any InChanger with StorageId=0 */
+   db_sql_query(ua->db, "UPDATE Media SET InChanger=0 WHERE StorageId=0", NULL, NULL);
 
    /* Walk through the list updating the media records */
    for (vl=vol_list; vl; vl=vl->next) {
@@ -220,7 +224,7 @@ int update_slots(UAContext *ua)
       db_unlock(ua->db);
       if (!vl->VolName) {
          Dmsg1(000, "No VolName for Slot=%d setting InChanger to zero.\n", vl->Slot);
-         bsendmsg(ua, _("No VolName for Slot=%d set InChanger to zero.\n"), vl->Slot);
+         bsendmsg(ua, _("No VolName for Slot=%d InChanger set to zero.\n"), vl->Slot);
          continue;
       }
       memset(&mr, 0, sizeof(mr));
@@ -245,7 +249,7 @@ int update_slots(UAContext *ua)
          db_unlock(ua->db);
          continue;
       } else {
-         bsendmsg(ua, _("Volume \"%s\" not found in catalog. Slot=%d set InChanger to zero.\n"),
+         bsendmsg(ua, _("Volume \"%s\" not found in catalog. Slot=%d InChanger set to zero.\n"),
              mr.VolumeName, vl->Slot);
       }
       db_unlock(ua->db);

@@ -6,7 +6,7 @@
  *    Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -251,6 +251,7 @@ public:
    char *tls_keyfile;                 /* TLS Client Key File */
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
    int64_t StorageId;                 /* Set from Storage DB record */
+   int enabled;                       /* Set if device is enabled */
 
    /* Methods */
    char *dev_name() const;
@@ -308,7 +309,8 @@ public:
    int RescheduleTimes;               /* Number of times to reschedule job */
    utime_t RescheduleInterval;        /* Reschedule interval */
    utime_t JobRetention;              /* job retention period in seconds */
-   bool write_part_after_job;         /* Set to write part after job in SD */
+   int write_part_after_job;          /* Set to write part after job in SD */
+   int enabled;                       /* Set if job enabled */
    
    MSGS      *messages;               /* How and where to send messages */
    SCHED     *schedule;               /* When -- Automatic schedule */

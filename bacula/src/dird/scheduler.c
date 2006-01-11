@@ -10,7 +10,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -88,6 +88,7 @@ JCR *wait_for_next_job(char *one_shot_job_to_run)
    /* Wait until we have something in the
     * next hour or so.
     */
+again:
    while (jobs_to_run->empty()) {
       find_runs();
       if (!jobs_to_run->empty()) {
@@ -127,11 +128,14 @@ JCR *wait_for_next_job(char *one_shot_job_to_run)
    }
    run = next_job->run;               /* pick up needed values */
    job = next_job->job;
-   run->last_run = now;               /* mark as run now */
-
-   dump_job(next_job, _("Run job"));
-
+   if (job->enabled) {
+      dump_job(next_job, _("Run job"));
+   }
    free(next_job);
+   if (!job->enabled) {
+      goto again;                     /* ignore this job */
+   }
+   run->last_run = now;               /* mark as run now */
 
    jcr = new_jcr(sizeof(JCR), dird_free_jcr);
    ASSERT(job);
@@ -234,7 +238,7 @@ static void find_runs()
    LockRes();
    foreach_res(job, R_JOB) {
       sched = job->schedule;
-      if (sched == NULL) {            /* scheduled? */
+      if (sched == NULL || !job->enabled) { /* scheduled? or enabled? */
          continue;                    /* no, skip this job */
       }
       Dmsg1(1200, "Got job: %s\n", job->hdr.name);

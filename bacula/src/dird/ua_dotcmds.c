@@ -11,7 +11,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2002-2005 Kern Sibbald
+   Copyright (C) 2002-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -258,8 +258,12 @@ static int defaultscmd(UAContext *ua, const char *cmd)
    STORE *storage;
    POOL *pool;
 
+   if (ua->argc != 2) {
+      return 1;
+   }
+
    /* Job defaults */   
-   if (ua->argc == 2 && strcmp(ua->argk[1], "job") == 0) {
+   if (strcmp(ua->argk[1], "job") == 0) {
       job = (JOB *)GetResWithName(R_JOB, ua->argv[1]);
       if (job) {
          STORE *store;
@@ -273,10 +277,11 @@ static int defaultscmd(UAContext *ua, const char *cmd)
          bsendmsg(ua, "level=%s", level_to_str(job->JobLevel));
          bsendmsg(ua, "type=%s", job_type_to_str(job->JobType));
          bsendmsg(ua, "fileset=%s", job->fileset->hdr.name);
+         bsendmsg(ua, "enabled=%d", job->enabled);
       }
    } 
    /* Client defaults */
-   else if(ua->argc == 2 && strcmp(ua->argk[1], "client") == 0) {
+   else if (strcmp(ua->argk[1], "client") == 0) {
      client = (CLIENT *)GetResWithName(R_CLIENT, ua->argv[1]);
      if (client) {
        bsendmsg(ua, "client=%s", client->hdr.name);
@@ -288,22 +293,25 @@ static int defaultscmd(UAContext *ua, const char *cmd)
      }
    }
    /* Storage defaults */
-   else if(ua->argc == 2 && strcmp(ua->argk[1], "storage") == 0) {
+   else if (strcmp(ua->argk[1], "storage") == 0) {
      storage = (STORE *)GetResWithName(R_STORAGE, ua->argv[1]);
-     DEVICE *device = (DEVICE *)storage->device->first();
+     DEVICE *device;
      if (storage) {
        bsendmsg(ua, "storage=%s", storage->hdr.name);
        bsendmsg(ua, "address=%s", storage->address);
+       bsendmsg(ua, "enabled=%d", storage->enabled);
        bsendmsg(ua, "media_type=%s", storage->media_type);
        bsendmsg(ua, "sdport=%d", storage->SDport);
+       device = (DEVICE *)storage->device->first();
        bsendmsg(ua, "device=%s", device->hdr.name);
-       if (storage->device->size() > 1)
-	 while ((device = (DEVICE *)storage->device->next()))
-	   bsendmsg(ua, ",%s", device->hdr.name);
+       if (storage->device->size() > 1) {
+         while ((device = (DEVICE *)storage->device->next()))
+           bsendmsg(ua, ",%s", device->hdr.name);
+       }
      }
    }
    /* Pool defaults */
-   else if(ua->argc == 2 && strcmp(ua->argk[1], "pool") == 0) {
+   else if (strcmp(ua->argk[1], "pool") == 0) {
      pool = (POOL *)GetResWithName(R_POOL, ua->argv[1]);
      if (pool) {
        bsendmsg(ua, "pool=%s", pool->hdr.name);
