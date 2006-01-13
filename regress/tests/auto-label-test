@@ -24,12 +24,13 @@ echo " === Starting auto-label-test at `date +%R:%S` ===" >>working/log
 echo " "
 
 cat <<END_OF_DATA >tmp/bconcmds
-@$out /dev/null
+@output /dev/null
+messages
+@$out tmp/log1.out
 status all
 status all
 list pools
 messages
-@$out tmp/log1.out
 run job=CompressedTest storage=File yes
 list pools
 list volumes
