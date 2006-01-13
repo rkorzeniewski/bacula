@@ -46,19 +46,6 @@ a resonable run.  Each test is totally independent of any other
 test. Aside from the required "make setup", each test is totally
 self-initalizing and should clean up after itself.
 
-Not all the tests yet report OK.  This is simply because there are
-some spurious differences that I haven't yet taken the time to
-eliminate.  The working scrips as of 24 Apr 03 are (this is
-way out of date!):
-
-backup-bacula-test
-sparse-test
-compressed-test
-sparse-compressed-test
-two-jobs-test
-wierd-files-test
-verify-vol-test
-
 The tests expect you to execute them from the main regress 
 directory!               
 
@@ -113,3 +100,8 @@ The simplest thing to do is to edit tests/xxxx where xxxx is the name of
 the test, and change the line "debug=0" to "debug=1".  If the test has
 not been updated to have the debug variable, please notify Kern, and I
 will be happy to fix it -- I am upgrading them one at a time.
+
+Also, if you run from time to time on a computer that is not connected
+to the network, please be sure that "hostname" is set to "localhost",
+otherwise, your tests may fail because the hostname used by Bacula's
+./configure cannot be properly resolved.
