@@ -204,6 +204,7 @@ void do_verify_volume(JCR *jcr)
 	 break;
 
       /* Data streams to ignore */
+      case STREAM_ENCRYPTED_SESSION_DATA:
       case STREAM_FILE_DATA:
       case STREAM_SPARSE_DATA:
       case STREAM_WIN32_DATA:
