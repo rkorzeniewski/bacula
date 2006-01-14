@@ -46,7 +46,7 @@ typedef struct Digest DIGEST;
 typedef struct Signature SIGNATURE;
 
 /* Opaque PKI Symmetric Key Data Structure */
-typedef struct Crypto_Recipients CRYPTO_RECIPIENTS;
+typedef struct Crypto_Session CRYPTO_SESSION;
 
 /* PEM Decryption Passphrase Callback */
 typedef int (CRYPTO_PEM_PASSWD_CB) (char *buf, int size, const void *userdata);

@@ -269,8 +269,8 @@ struct Signature {
    SignatureData *sigData;
 };
 
-/* Encryption Key Data */
-struct Crypto_Recipients {
+/* Encryption Session Data */
+struct Crypto_Session {
    CryptoData *cryptoData;                        /* ASN.1 Structure */
    EVP_CIPHER *openssl_cipher;                    /* OpenSSL Cipher Object */
    unsigned char session_key[EVP_MAX_KEY_LENGTH]; /* Private symmetric session key */
@@ -875,34 +875,34 @@ void crypto_sign_free(SIGNATURE *sig)
 }
 
 /*
- * Create a new encryption recipient.
- *  Returns: A pointer to a CRYPTO_RECIPIENTS object on success.
+ * Create a new encryption session.
+ *  Returns: A pointer to a CRYPTO_SESSION object on success.
  *           NULL on failure.
  */
-CRYPTO_RECIPIENTS *crypto_recipients_new (crypto_cipher_t cipher, alist *pubkeys)
+CRYPTO_SESSION *crypto_session_new (crypto_cipher_t cipher, alist *pubkeys)
 {
-   CRYPTO_RECIPIENTS *cr;
+   CRYPTO_SESSION *cs;
    X509_KEYPAIR *keypair;
    const EVP_CIPHER *ec;
    unsigned char *iv;
    int iv_len;
 
-   /* Allocate our recipient description structures */
-   cr = (CRYPTO_RECIPIENTS *) malloc(sizeof(CRYPTO_RECIPIENTS));
-   if (!cr) {
+   /* Allocate our session description structures */
+   cs = (CRYPTO_SESSION *) malloc(sizeof(CRYPTO_SESSION));
+   if (!cs) {
       return NULL;
    }
 
-   cr->cryptoData = CryptoData_new();
+   cs->cryptoData = CryptoData_new();
 
-   if (!cr->cryptoData) {
+   if (!cs->cryptoData) {
       /* Allocation failed in OpenSSL */
-      free(cr);
+      free(cs);
       return NULL;
    }
 
    /* Set the ASN.1 structure version number */
-   ASN1_INTEGER_set(cr->cryptoData->version, BACULA_ASN1_VERSION);
+   ASN1_INTEGER_set(cs->cryptoData->version, BACULA_ASN1_VERSION);
 
    /*
     * Acquire a cipher instance and set the ASN.1 cipher NID
@@ -910,35 +910,35 @@ CRYPTO_RECIPIENTS *crypto_recipients_new (crypto_cipher_t cipher, alist *pubkeys
    switch (cipher) {
    case CRYPTO_CIPHER_AES_128_CBC:
       /* AES 128 bit CBC */
-      cr->cryptoData->contentEncryptionAlgorithm = OBJ_nid2obj(NID_aes_128_cbc);
+      cs->cryptoData->contentEncryptionAlgorithm = OBJ_nid2obj(NID_aes_128_cbc);
       ec = EVP_aes_128_cbc();
       break;
    case CRYPTO_CIPHER_AES_192_CBC:
       /* AES 192 bit CBC */
-      cr->cryptoData->contentEncryptionAlgorithm = OBJ_nid2obj(NID_aes_192_cbc);
+      cs->cryptoData->contentEncryptionAlgorithm = OBJ_nid2obj(NID_aes_192_cbc);
       ec = EVP_aes_192_cbc();
       break;
    case CRYPTO_CIPHER_AES_256_CBC:
       /* AES 256 bit CBC */
-      cr->cryptoData->contentEncryptionAlgorithm = OBJ_nid2obj(NID_aes_256_cbc);
+      cs->cryptoData->contentEncryptionAlgorithm = OBJ_nid2obj(NID_aes_256_cbc);
       ec = EVP_aes_256_cbc();
       break;
    case CRYPTO_CIPHER_BLOWFISH_CBC:
       /* Blowfish CBC */
-      cr->cryptoData->contentEncryptionAlgorithm = OBJ_nid2obj(NID_bf_cbc);
+      cs->cryptoData->contentEncryptionAlgorithm = OBJ_nid2obj(NID_bf_cbc);
       ec = EVP_bf_cbc();
       break;
    default:
       Emsg0(M_ERROR, 0, _("Unsupported cipher type specified\n"));
-      crypto_recipients_free(cr);
+      crypto_session_free(cs);
       return NULL;
    }
 
    /* Generate a symmetric session key */
-   cr->session_key_len = EVP_CIPHER_key_length(ec);
-   if (RAND_bytes(cr->session_key, cr->session_key_len) <= 0) {
+   cs->session_key_len = EVP_CIPHER_key_length(ec);
+   if (RAND_bytes(cs->session_key, cs->session_key_len) <= 0) {
       /* OpenSSL failure */
-      crypto_recipients_free(cr);
+      crypto_session_free(cs);
       return NULL;
    }
 
@@ -947,21 +947,21 @@ CRYPTO_RECIPIENTS *crypto_recipients_new (crypto_cipher_t cipher, alist *pubkeys
       iv = (unsigned char *) malloc(iv_len);
       if (!iv) {
          /* Malloc failure */
-         crypto_recipients_free(cr);
+         crypto_session_free(cs);
          return NULL;
       }
 
       /* Generate random IV */
       if (RAND_bytes(iv, iv_len) <= 0) {
          /* OpenSSL failure */
-         crypto_recipients_free(cr);
+         crypto_session_free(cs);
          return NULL;
       }
 
       /* Store it in our ASN.1 structure */
-      if (!M_ASN1_OCTET_STRING_set(cr->cryptoData->iv, iv, iv_len)) {
+      if (!M_ASN1_OCTET_STRING_set(cs->cryptoData->iv, iv, iv_len)) {
          /* Allocation failed in OpenSSL */
-         crypto_recipients_free(cr);
+         crypto_session_free(cs);
          return NULL;
       }
    }
@@ -978,7 +978,7 @@ CRYPTO_RECIPIENTS *crypto_recipients_new (crypto_cipher_t cipher, alist *pubkeys
       ri = RecipientInfo_new();
       if (!ri) {
          /* Allocation failed in OpenSSL */
-         crypto_recipients_free(cr);
+         crypto_session_free(cs);
          return NULL;
       }
 
@@ -997,14 +997,14 @@ CRYPTO_RECIPIENTS *crypto_recipients_new (crypto_cipher_t cipher, alist *pubkeys
       ekey = (unsigned char *) malloc(EVP_PKEY_size(keypair->pubkey));
       if (!ekey) {
          RecipientInfo_free(ri);
-         crypto_recipients_free(cr);
+         crypto_session_free(cs);
          return NULL;
       }
 
-      if ((ekey_len = EVP_PKEY_encrypt(ekey, cr->session_key, cr->session_key_len, keypair->pubkey)) <= 0) {
+      if ((ekey_len = EVP_PKEY_encrypt(ekey, cs->session_key, cs->session_key_len, keypair->pubkey)) <= 0) {
          /* OpenSSL failure */
          RecipientInfo_free(ri);
-         crypto_recipients_free(cr);
+         crypto_session_free(cs);
          free(ekey);
          return NULL;
       }
@@ -1013,7 +1013,7 @@ CRYPTO_RECIPIENTS *crypto_recipients_new (crypto_cipher_t cipher, alist *pubkeys
       if (!M_ASN1_OCTET_STRING_set(ri->encryptedKey, ekey, ekey_len)) {
          /* Allocation failed in OpenSSL */
          RecipientInfo_free(ri);
-         crypto_recipients_free(cr);
+         crypto_session_free(cs);
          free(ekey);
          return NULL;
       }
@@ -1022,19 +1022,73 @@ CRYPTO_RECIPIENTS *crypto_recipients_new (crypto_cipher_t cipher, alist *pubkeys
       free(ekey);
 
       /* Push the new RecipientInfo structure onto the stack */
-      sk_RecipientInfo_push(cr->cryptoData->recipientInfo, ri);
+      sk_RecipientInfo_push(cs->cryptoData->recipientInfo, ri);
    }
 
-   return cr;
+   return cs;
 }
 
 /*
- * Free memory associated with a crypto recipient object.
+ * Encodes the CryptoData structure. The length argument is used to specify the
+ * size of dest. A length of 0 will cause no data to be written to dest, and the
+ * required length to be written to length. The caller can then allocate sufficient
+ * space for the output.
+ *
+ * Returns: true on success, stores the encoded data in dest, and the size in length.
+ *          false on failure.
  */
-void crypto_recipients_free (CRYPTO_RECIPIENTS *cr)
+bool crypto_session_encode(CRYPTO_SESSION *cs, void *dest, size_t *length)
 {
-   CryptoData_free(cr->cryptoData);
-   free(cr);
+   if (*length == 0) {
+      *length = i2d_CryptoData(cs->cryptoData, NULL);
+      return true;
+   }
+
+   *length = i2d_CryptoData(cs->cryptoData, (unsigned char **) &dest);
+   return true;
+}
+
+/*
+ * Decodes the CryptoData structure. The length argument is
+ * used to specify the size of data.
+ *
+ * Returns: CRYPTO_SESSION instance on success.
+ *          NULL on failure.
+ */
+// TODO landonf: Unimplemented, requires a private key to decrypt session key
+CRYPTO_SESSION *crypto_session_decode(const void *data, size_t length)
+{
+   CRYPTO_SESSION *cs;
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800FL)
+   const unsigned char *p = (const unsigned char *) data;
+#else
+   unsigned char *p = (unsigned char *) data;
+#endif
+
+   cs = (CRYPTO_SESSION *) malloc(sizeof(CRYPTO_SESSION));
+   if (!cs) {
+      return NULL;
+   }
+
+   /* d2i_CryptoData modifies the supplied pointer */
+   cs->cryptoData = d2i_CryptoData(NULL, &p, length);
+
+   if (!cs->cryptoData) {
+      /* Allocation / Decoding failed in OpenSSL */
+      openssl_post_errors(M_ERROR, _("CryptoData decoding failed"));
+      return NULL;
+   }
+
+   return cs;
+}
+
+/*
+ * Free memory associated with a crypto session object.
+ */
+void crypto_session_free (CRYPTO_SESSION *cs)
+{
+   CryptoData_free(cs->cryptoData);
+   free(cs);
 }
 
 /*
@@ -1213,7 +1267,7 @@ crypto_error_t crypto_sign_verify (SIGNATURE *sig, X509_KEYPAIR *keypair, DIGEST
 int crypto_sign_add_signer (SIGNATURE *sig, DIGEST *digest, X509_KEYPAIR *keypair) { return false; }
 int crypto_sign_encode (SIGNATURE *sig, void *dest, size_t *length) { return false; }
 
-SIGNATURE *crypto_sign_decode (const void *sigData, size_t length) { return false; }
+SIGNATURE *crypto_sign_decode (const void *sigData, size_t length) { return NULL; }
 void crypto_sign_free (SIGNATURE *sig) { }
 
 
@@ -1223,8 +1277,10 @@ int crypto_keypair_load_cert (X509_KEYPAIR *keypair, const char *file) { return 
 int crypto_keypair_load_key (X509_KEYPAIR *keypair, const char *file, CRYPTO_PEM_PASSWD_CB *pem_callback, const void *pem_userdata) { return false; }
 void crypto_keypair_free (X509_KEYPAIR *keypair) { }
 
-CRYPTO_RECIPIENTS *crypto_recipients_new (crypto_cipher_t cipher, alist *pubkeys) { return NULL; }
-void crypto_recipients_free (CRYPTO_RECIPIENTS *cr) { }
+CRYPTO_SESSION *crypto_session_new (crypto_cipher_t cipher, alist *pubkeys) { return NULL; }
+void crypto_session_free (CRYPTO_SESSION *cs) { }
+bool crypto_session_encode(CRYPTO_SESSION *cs, void *dest, size_t *length) { return false; }
+CRYPTO_SESSION *crypto_session_decode(const void *data, size_t length) { return NULL; }
 
 #endif /* HAVE_CRYPTO */
 

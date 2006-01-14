@@ -81,9 +81,35 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
    jcr->compress_buf_size = jcr->buf_size + ((jcr->buf_size+999) / 1000) + 30;
    jcr->compress_buf = get_memory(jcr->compress_buf_size);
 
+   /* Create encryption session data and a cached, DER-encoded session data
+    * structure. We use a single session key for each backup, so we'll encode
+    * the session data only once. */
    if (jcr->pki_encrypt) {
+      size_t size = 0;
+
       /* Create per-job session encryption context */
-      jcr->pki_recipients = crypto_recipients_new(cipher, jcr->pki_readers);
+      jcr->pki_session = crypto_session_new(cipher, jcr->pki_readers);
+
+      /* Get the session data size */
+      if (crypto_session_encode(jcr->pki_session, NULL, &size) == false) {
+         Jmsg(jcr, M_FATAL, 0, _("An error occured while encrypting the stream.\n"));
+         return 0;
+      }
+
+      /* Allocate buffer */
+      jcr->pki_session_encoded = malloc(size);
+      if (!jcr->pki_session_encoded) {
+         return 0;
+      }
+
+      /* Encode session data */
+      if (crypto_session_encode(jcr->pki_session, jcr->pki_session_encoded, &size) == false) {
+         Jmsg(jcr, M_FATAL, 0, _("An error occured while encrypting the stream.\n"));
+         return 0;
+      }
+
+      /* ... and store the encoded size */
+      jcr->pki_session_encoded_size = size;
    }
 
    Dmsg1(300, "set_find_options ff=%p\n", jcr->ff);
@@ -116,8 +142,11 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
       jcr->compress_buf = NULL;
    }
 
-   if (jcr->pki_recipients) {
-      crypto_recipients_free(jcr->pki_recipients);
+   if (jcr->pki_session) {
+      crypto_session_free(jcr->pki_session);
+   }
+   if (jcr->pki_session_encoded) {
+      free(jcr->pki_session_encoded);
    }
 
    Dmsg1(100, "end blast_data ok=%d\n", ok);
@@ -338,6 +367,26 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
          stop_thread_timer(tid);
          tid = NULL;
       }
+
+      /* Set up the encryption context, send the session data to the SD */
+      if (jcr->pki_encrypt) {
+         /* Send our header */
+         bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_ENCRYPTED_SESSION_DATA);
+
+         /* Grow the bsock buffer to fit our message if necessary */
+         if ((size_t) sizeof_pool_memory(sd->msg) < jcr->pki_session_encoded_size) {
+            sd->msg = realloc_pool_memory(sd->msg, jcr->pki_session_encoded_size);
+         }
+
+         /* Copy our message over and send it */
+         memcpy(sd->msg, jcr->pki_session_encoded, jcr->pki_session_encoded_size);
+         sd->msglen = jcr->pki_session_encoded_size;
+         jcr->JobBytes += sd->msglen;
+
+         bnet_send(sd);
+         bnet_sig(sd, BNET_EOD);
+      }
+
       stat = send_data(jcr, data_stream, ff_pkt, digest, signing_digest);
       bclose(&ff_pkt->bfd);
       if (!stat) {
@@ -426,7 +475,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       /* Allocate signature data buffer */
       buf = malloc(size);
       if (!buf) {
-         free(buf);
+         crypto_sign_free(sig);
          return 0;
       }
 

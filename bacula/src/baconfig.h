@@ -166,9 +166,10 @@
 /*** FIXME ***/
 #define STREAM_SHA256_DIGEST     17    /* SHA-256 digest for the file */
 #define STREAM_SHA512_DIGEST     18    /* SHA-512 digest for the file */
-#define STREAM_SIGNED_DIGEST     19    /* Signed File Digest, ASN.1 Encoded */
+#define STREAM_SIGNED_DIGEST     19    /* Signed File Digest, ASN.1, DER Encoded */
 #define STREAM_ENCRYPTED_FILE_DATA 20  /* Encrypted, uncompressed data */
 #define STREAM_ENCRYPTED_WIN32_DATA 21 /* Encrypted, uncompressed Win32 BackupRead data */
+#define STREAM_ENCRYPTED_SESSION_DATA 22 /* Encrypted Session Data, ASN.1, DER Encoded */
 
 
 /*

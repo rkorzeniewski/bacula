@@ -237,7 +237,9 @@ public:
    X509_KEYPAIR *pki_keypair;         /* Encryption key pair */
    alist *pki_signers;                /* Trusted Signers */
    alist *pki_readers;                /* Trusted Readers */
-   CRYPTO_RECIPIENTS *pki_recipients; /* PKE Public Keys + Symmetric Session Keys */
+   CRYPTO_SESSION *pki_session;       /* PKE Public Keys + Symmetric Session Keys */
+   void *pki_session_encoded;         /* Cached DER-encoded copy of pki_session */
+   size_t pki_session_encoded_size;   /* Size of DER-encoded pki_session */
    DIRRES* director;                  /* Director resource */
 #endif /* FILE_DAEMON */
 

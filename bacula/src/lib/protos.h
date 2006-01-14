@@ -127,8 +127,10 @@ int                crypto_sign_add_signer      (SIGNATURE *sig, DIGEST *digest, 
 int                crypto_sign_encode          (SIGNATURE *sig, void *dest, size_t *length);
 SIGNATURE *        crypto_sign_decode          (const void *sigData, size_t length);
 void               crypto_sign_free            (SIGNATURE *sig);
-CRYPTO_RECIPIENTS *crypto_recipients_new       (crypto_cipher_t cipher, alist *pubkeys);
-void               crypto_recipients_free      (CRYPTO_RECIPIENTS *cr);
+CRYPTO_SESSION *   crypto_session_new          (crypto_cipher_t cipher, alist *pubkeys);
+void               crypto_session_free         (CRYPTO_SESSION *cs);
+bool               crypto_session_encode       (CRYPTO_SESSION *cs, void *dest, size_t *length);
+CRYPTO_SESSION *   crypto_session_decode       (const void *data, size_t length);
 X509_KEYPAIR *     crypto_keypair_new          (void);
 X509_KEYPAIR *     crypto_keypair_dup          (X509_KEYPAIR *keypair);
 int                crypto_keypair_load_cert    (X509_KEYPAIR *keypair, const char *file);

@@ -135,12 +135,13 @@ void do_restore(JCR *jcr)
     *   1. Stream record header
     *   2. Stream data
     *        a. Attributes (Unix or Win32)
-    *    or  b. File data for the file
-    *    or  c. Alternate data stream (e.g. Resource Fork)
-    *    or  d. Finder info
-    *    or  e. ACLs
-    *    or  f. Possibly a cryptographic signature
-    *    or  g. Possibly MD5 or SHA1 record
+    *        b. Possibly stream encryption session data (e.g., symmetric session key)
+    *    or  c. File data for the file
+    *    or  d. Alternate data stream (e.g. Resource Fork)
+    *    or  e. Finder info
+    *    or  f. ACLs
+    *    or  g. Possibly a cryptographic signature
+    *    or  h. Possibly MD5 or SHA1 record
     *   3. Repeat step 1
     *
     * NOTE: We keep track of two bacula file descriptors:
@@ -294,6 +295,12 @@ void do_restore(JCR *jcr)
          break;
 
       /* Data stream */
+      case STREAM_ENCRYPTED_SESSION_DATA:
+         // TODO landonf: Implement
+         // sig = crypto_sign_decode(sd->msg, (size_t) sd->msglen);
+         Dmsg1(30, "Stream=Encrypted Session Data, size: %d\n", sd->msglen);
+         break;
+
       case STREAM_FILE_DATA:
       case STREAM_SPARSE_DATA:
       case STREAM_WIN32_DATA:
@@ -302,7 +309,8 @@ void do_restore(JCR *jcr)
       case STREAM_WIN32_GZIP_DATA:
          /* Force an expected, consistent stream type here */
          if (extract && (prev_stream == stream || prev_stream == STREAM_UNIX_ATTRIBUTES
-                  || prev_stream == STREAM_UNIX_ATTRIBUTES_EX)) {
+                  || prev_stream == STREAM_UNIX_ATTRIBUTES_EX
+                  || prev_stream == STREAM_ENCRYPTED_SESSION_DATA)) {
             flags = 0;
             if (stream == STREAM_SPARSE_DATA || stream == STREAM_SPARSE_GZIP_DATA) {
                flags |= FO_SPARSE;

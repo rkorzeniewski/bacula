@@ -115,6 +115,8 @@ const char *stream_to_ascii(char *buf, int stream, int fi)
        return "SHA512";
     case STREAM_SIGNED_DIGEST:
        return "SIGNED-DIGEST";
+    case STREAM_ENCRYPTED_SESSION_DATA:
+       return "ENCRYPTED-SESSION-DATA";
     case -STREAM_UNIX_ATTRIBUTES:
        return "contUATTR";
     case -STREAM_FILE_DATA:
@@ -149,6 +151,8 @@ const char *stream_to_ascii(char *buf, int stream, int fi)
        return "contSHA512";
     case -STREAM_SIGNED_DIGEST:
        return "contSIGNED-DIGEST";
+    case -STREAM_ENCRYPTED_SESSION_DATA:
+       return "contENCRYPTED-SESSION-DATA";
     default:
        sprintf(buf, "%d", stream);
        return buf;

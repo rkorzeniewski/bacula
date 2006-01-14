@@ -734,8 +734,15 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       update_digest_record(db, digest, rec, CRYPTO_DIGEST_SHA512);
       break;
 
+   case STREAM_ENCRYPTED_SESSION_DATA:
+      // TODO landonf: Investigate crypto support in bscan
+      if (verbose > 1) {
+         Pmsg0(000, _("Got signed digest record\n"));
+      }
+      break;
+
    case STREAM_SIGNED_DIGEST:
-      // TODO landonf: Investigate signed digest support in bscan
+      // TODO landonf: Investigate crypto support in bscan
       if (verbose > 1) {
          Pmsg0(000, _("Got signed digest record\n"));
       }
