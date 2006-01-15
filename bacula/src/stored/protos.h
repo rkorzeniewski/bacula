@@ -4,7 +4,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -223,6 +223,7 @@ void    create_volume_list();
 void    free_volume_list();
 void    list_volumes(BSOCK *user);
 bool    is_volume_in_use(DCR *dcr);
+void    send_drive_reserve_messages(JCR *jcr, BSOCK *user);
 
 
 /* From spool.c */

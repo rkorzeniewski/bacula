@@ -11,7 +11,7 @@
  *
  */
 /*
-   Copyright (C) 2003-2005 Kern Sibbald
+   Copyright (C) 2003-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -33,7 +33,7 @@
  */
 void alist::grow_list()
 {
-   if (num_items == 0) {
+   if (items == NULL) {
       if (num_grow == 0) {
          num_grow = 1;                /* default if not initialized */
       }
