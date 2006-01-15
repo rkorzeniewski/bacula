@@ -76,6 +76,7 @@ static bool reserve_device_for_read(DCR *dcr);
 static bool reserve_device_for_append(DCR *dcr, RCTX &rctx);
 static bool use_storage_cmd(JCR *jcr);
 bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx);
+static void queue_reserve_message(JCR *jcr);
 
 /* Requests from the Director daemon */
 static char use_storage[]  = "use storage=%127s media_type=%127s "
@@ -307,6 +308,8 @@ static bool use_storage_cmd(JCR *jcr)
    int Copy, Stripe;
    DIRSTORE *store;
    RCTX rctx;
+   char *msg;
+   alist *msgs;
 
    memset(&rctx, 0, sizeof(RCTX));
    rctx.jcr = jcr;
@@ -315,6 +318,7 @@ static bool use_storage_cmd(JCR *jcr)
     *   use_device for each device that it wants to use.
     */
    jcr->dirstore = New(alist(10, not_owned_by_alist));
+   msgs = jcr->reserve_msgs = New(alist(10, not_owned_by_alist));  
    do {
       Dmsg1(100, "<dird: %s", dir->msg);
       ok = sscanf(dir->msg, use_storage, store_name.c_str(), 
@@ -363,6 +367,7 @@ static bool use_storage_cmd(JCR *jcr)
    }
 #endif
 
+   init_jcr_device_wait_timers(jcr);
    /*                    
     * At this point, we have a list of all the Director's Storage
     *  resources indicated for this Job, which include Pool, PoolType,
@@ -375,6 +380,10 @@ static bool use_storage_cmd(JCR *jcr)
    if (ok) {
       bool first = true;           /* print wait message once */
       for ( ; !job_canceled(jcr); ) {
+         P(search_lock);           /* only one thread at a time */
+         while ((msg = (char *)msgs->pop())) {
+            free(msg);
+         }
          rctx.suitable_device = false;
          rctx.have_volume = false;
          rctx.any_drive = false;
@@ -389,13 +398,13 @@ static bool use_storage_cmd(JCR *jcr)
                rctx.PreferMountedVols, rctx.exact_match, rctx.suitable_device,
                rctx.autochanger_only, rctx.any_drive);
             if ((ok = find_suitable_device_for_job(jcr, rctx))) {
-               goto done;
+               break;
             }
             /* Look through all drives possibly for low_use drive */
             if (rctx.low_use_drive) {
                rctx.try_low_use_drive = true;
                if ((ok = find_suitable_device_for_job(jcr, rctx))) {
-                  goto done;
+                  break;
                }
                rctx.try_low_use_drive = false;
             }
@@ -404,7 +413,7 @@ static bool use_storage_cmd(JCR *jcr)
                rctx.PreferMountedVols, rctx.exact_match, rctx.suitable_device,
                rctx.autochanger_only, rctx.any_drive);
             if ((ok = find_suitable_device_for_job(jcr, rctx))) {
-               goto done;
+               break;
             }
          }
          /* Look for an exact match all drives */
@@ -415,7 +424,7 @@ static bool use_storage_cmd(JCR *jcr)
             rctx.PreferMountedVols, rctx.exact_match, rctx.suitable_device,
             rctx.autochanger_only, rctx.any_drive);
          if ((ok = find_suitable_device_for_job(jcr, rctx))) {
-            goto done;
+            break;
          }
          /* Look for any mounted drive */
          rctx.exact_match = false;
@@ -423,7 +432,7 @@ static bool use_storage_cmd(JCR *jcr)
             rctx.PreferMountedVols, rctx.exact_match, rctx.suitable_device,
             rctx.autochanger_only, rctx.any_drive);
          if ((ok = find_suitable_device_for_job(jcr, rctx))) {
-            goto done;
+            break;
          }
          /* Try any drive */
          rctx.any_drive = true;
@@ -431,14 +440,21 @@ static bool use_storage_cmd(JCR *jcr)
             rctx.PreferMountedVols, rctx.exact_match, rctx.suitable_device,
             rctx.autochanger_only, rctx.any_drive);
          if ((ok = find_suitable_device_for_job(jcr, rctx))) {
-            goto done;
+            break;
          }
+         /* Unlock before possible wait */
+         V(search_lock);
          if (!rctx.suitable_device || !wait_for_device(jcr, first)) {
             break;       /* Get out, failure ... */
          }   
          first = false;
          bnet_sig(dir, BNET_HEARTBEAT);  /* Inform Dir that we are alive */
       }
+      /* Note if !ok then search_lock is already cleared */
+      if (ok) {
+         V(search_lock);
+         goto all_done;
+      } 
 
       /*
        * If we get here, there are no suitable devices available, which
@@ -466,17 +482,19 @@ static bool use_storage_cmd(JCR *jcr)
       Dmsg1(100, ">dird: %s", dir->msg);
    }
 
-done:
+all_done:
    foreach_alist(store, jcr->dirstore) {
       delete store->device;
       delete store;
    }
    delete jcr->dirstore;
-#ifdef implemented
-   while (error=(char*)rctx->errors.first()) {
-      free(error);
+   P(search_lock);
+   while ((msg = (char *)msgs->pop())) {
+      free(msg);
    }
-#endif
+   delete msgs;
+   jcr->reserve_msgs = NULL;
+   V(search_lock);
    return ok;
 }
 
@@ -497,9 +515,7 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
    Dmsg4(100, "PrefMnt=%d exact=%d suitable=%d chgronly=%d\n",
       rctx.PreferMountedVols, rctx.exact_match, rctx.suitable_device,
       rctx.autochanger_only);
-   init_jcr_device_wait_timers(jcr);
    ok = false;
-   P(search_lock);
    foreach_alist(store, jcr->dirstore) {
       rctx.store = store;
       foreach_alist(device_name, store->device) {
@@ -521,7 +537,6 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
          break;
       }
    }
-   V(search_lock);
 
    return ok;
 }
@@ -624,7 +639,7 @@ static int reserve_device(RCTX &rctx)
    }  
 
    rctx.suitable_device = true;
-   Dmsg2(100, "Try reserve %s jobid=%d\n", rctx.device->hdr.name,
+   Dmsg2(100, "Try reserve %s JobId=%u\n", rctx.device->hdr.name,
          rctx.jcr->JobId);
    dcr = new_dcr(rctx.jcr, rctx.device->dev);
    if (!dcr) {
@@ -641,8 +656,8 @@ static int reserve_device(RCTX &rctx)
       if (rctx.exact_match && !rctx.have_volume) {
          dcr->any_volume = true;
          if (dir_find_next_appendable_volume(dcr)) {
-            Dmsg1(100, "Looking for Volume=%s\n", dcr->VolumeName);
             bstrncpy(rctx.VolumeName, dcr->VolumeName, sizeof(rctx.VolumeName));
+            Dmsg2(100, "JobId=%u looking for Volume=%s\n", rctx.jcr->JobId, rctx.VolumeName);
             rctx.have_volume = true;
          } else {
             Dmsg0(100, "No next volume found\n");
@@ -691,16 +706,18 @@ static bool reserve_device_for_read(DCR *dcr)
 
    if (is_device_unmounted(dev)) {             
       Dmsg1(200, "Device %s is BLOCKED due to user unmount.\n", dev->print_name());
-      Mmsg(jcr->errmsg, _("Device %s is BLOCKED due to user unmount.\n"),
-           dev->print_name());
+      Mmsg(jcr->errmsg, _("3601 JobId=%u device %s is BLOCKED due to user unmount.\n"),
+           jcr->JobId, dev->print_name());
+      queue_reserve_message(jcr);
       goto bail_out;
    }
 
    if (dev->is_busy()) {
       Dmsg4(200, "Device %s is busy ST_READ=%d num_writers=%d reserved=%d.\n", dev->print_name(),
          dev->state & ST_READ?1:0, dev->num_writers, dev->reserved_device);
-      Mmsg1(jcr->errmsg, _("Device %s is busy.\n"),
-            dev->print_name());
+      Mmsg(jcr->errmsg, _("3602 JobId=%u device %s is busy (already reading/writing).\n"),
+            jcr->JobId, dev->print_name());
+      queue_reserve_message(jcr);
       goto bail_out;
    }
 
@@ -741,15 +758,19 @@ static bool reserve_device_for_append(DCR *dcr, RCTX &rctx)
 
    /* If device is being read, we cannot write it */
    if (dev->can_read()) {
-      Mmsg1(jcr->errmsg, _("Device %s is busy reading.\n"), dev->print_name());
+      Mmsg(jcr->errmsg, _("3603 JobId=%u device %s is busy reading.\n"), 
+         jcr->JobId, dev->print_name());
       Dmsg1(100, "%s", jcr->errmsg);
+      queue_reserve_message(jcr);
       goto bail_out;
    }
 
    /* If device is unmounted, we are out of luck */
    if (is_device_unmounted(dev)) {
-      Mmsg(jcr->errmsg, _("Device %s is BLOCKED due to user unmount.\n"), dev->print_name());
+      Mmsg(jcr->errmsg, _("3604 JobId=%u device %s is BLOCKED due to user unmount.\n"), 
+         jcr->JobId, dev->print_name());
       Dmsg1(100, "%s", jcr->errmsg);
+      queue_reserve_message(jcr);
       goto bail_out;
    }
 
@@ -795,7 +816,7 @@ static int can_reserve_drive(DCR *dcr, RCTX &rctx)
        *  helps spread the load to the least used drives.  
        */
       if (rctx.try_low_use_drive && dev == rctx.low_use_drive) {
-         Dmsg3(100, "OK dev=%s == low_drive=%s. JobId=%d\n",
+         Dmsg3(100, "OK dev=%s == low_drive=%s. JobId=%u\n",
             dev->print_name(), rctx.low_use_drive->print_name(), jcr->JobId);
          return 1;
       }
@@ -811,19 +832,29 @@ static int can_reserve_drive(DCR *dcr, RCTX &rctx)
             Dmsg1(100, "not low use num_writers=%d\n", dev->num_writers+ 
                dev->reserved_device);
          }
-         Dmsg1(100, "failed: !prefMnt && busy. JobId=%d\n", jcr->JobId);
+         Dmsg1(100, "failed: !prefMnt && busy. JobId=%u\n", jcr->JobId);
+         Mmsg(jcr->errmsg, _("3605 JobId=%u wants free drive but device %s is busy.\n"), 
+            jcr->JobId, dev->print_name());
+         queue_reserve_message(jcr);
          return 0;
       }
 
       /* Check for prefer mounted volumes */
       if (rctx.PreferMountedVols && !dev->VolHdr.VolumeName[0] && dev->is_tape()) {
-         Dmsg1(100, "failed: want mounted -- no vol JobId=%d\n", jcr->JobId);
+         Mmsg(jcr->errmsg, _("3606 JobId=%u wants mounted, but drive %s has no Volume.\n"), 
+            jcr->JobId, dev->print_name());
+         queue_reserve_message(jcr);
+         Dmsg1(100, "failed: want mounted -- no vol JobId=%u\n", jcr->JobId);
          return 0;                 /* No volume mounted */
       }
 
       /* Check for exact Volume name match */
       if (rctx.exact_match && rctx.have_volume &&
           strcmp(dev->VolHdr.VolumeName, rctx.VolumeName) != 0) {
+         Mmsg(jcr->errmsg, _("3607 JobId=%u wants Vol=\"%s\" drive has Vol=\"%s\" on drive %s.\n"), 
+            jcr->JobId, rctx.VolumeName, dev->VolHdr.VolumeName, 
+            dev->print_name());
+         queue_reserve_message(jcr);
          Dmsg2(100, "failed: Not exact match have=%s want=%s\n",
                dev->VolHdr.VolumeName, rctx.VolumeName);
          return 0;
@@ -834,7 +865,7 @@ static int can_reserve_drive(DCR *dcr, RCTX &rctx)
    if (rctx.autochanger_only && dev->num_writers == 0 &&
        dev->VolHdr.VolumeName[0] == 0) {
       /* Device is available but not yet reserved, reserve it for us */
-      Dmsg2(100, "OK Res Unused autochanger %s JobId=%d.\n",
+      Dmsg2(100, "OK Res Unused autochanger %s JobId=%u.\n",
          dev->print_name(), jcr->JobId);
       bstrncpy(dev->pool_name, dcr->pool_name, sizeof(dev->pool_name));
       bstrncpy(dev->pool_type, dcr->pool_type, sizeof(dev->pool_type));
@@ -851,11 +882,14 @@ static int can_reserve_drive(DCR *dcr, RCTX &rctx)
          if (strcmp(dev->pool_name, dcr->pool_name) == 0 &&
              strcmp(dev->pool_type, dcr->pool_type) == 0) {
             /* OK, compatible device */
-            Dmsg2(100, "OK dev: %s num_writers=0, reserved, pool matches JobId=%d\n",
+            Dmsg2(100, "OK dev: %s num_writers=0, reserved, pool matches JobId=%u\n",
                dev->print_name(), jcr->JobId);
             return 1;
          } else {
-            /* Drive not suitable for us */
+            /* Drive Pool not suitable for us */
+            Mmsg(jcr->errmsg, _("3608 JobId=%u wants Pool=\"%s\" but have Pool=\"%s\" on drive %s.\n"), 
+                  jcr->JobId, dcr->pool_name, dev->pool_name, dev->print_name());
+            queue_reserve_message(jcr);
             Dmsg2(100, "failed: busy num_writers=0, reserved, pool=%s wanted=%s\n",
                dev->pool_name, dcr->pool_name);
             return 0;                 /* wait */
@@ -864,7 +898,7 @@ static int can_reserve_drive(DCR *dcr, RCTX &rctx)
          /* Device in append mode, check if changing pool */
          if (strcmp(dev->pool_name, dcr->pool_name) == 0 &&
              strcmp(dev->pool_type, dcr->pool_type) == 0) {
-            Dmsg2(100, "OK dev: %s num_writers=0, can_append, pool matches. JobId=%d\n",
+            Dmsg2(100, "OK dev: %s num_writers=0, can_append, pool matches. JobId=%u\n",
                dev->print_name(), jcr->JobId);
             /* OK, compatible device */
             return 1;
@@ -875,7 +909,7 @@ static int can_reserve_drive(DCR *dcr, RCTX &rctx)
          }
       }
       /* Device is available but not yet reserved, reserve it for us */
-      Dmsg2(100, "OK Dev avail reserved %s JobId=%d\n", dev->print_name(),
+      Dmsg2(100, "OK Dev avail reserved %s JobId=%u\n", dev->print_name(),
          jcr->JobId);
       bstrncpy(dev->pool_name, dcr->pool_name, sizeof(dev->pool_name));
       bstrncpy(dev->pool_type, dcr->pool_type, sizeof(dev->pool_type));
@@ -890,21 +924,86 @@ static int can_reserve_drive(DCR *dcr, RCTX &rctx)
       /* Yes, now check if we want the same Pool and pool type */
       if (strcmp(dev->pool_name, dcr->pool_name) == 0 &&
           strcmp(dev->pool_type, dcr->pool_type) == 0) {
-         Dmsg2(100, "OK dev: %s num_writers>=0, can_append, pool matches. JobId=%d\n",
+         Dmsg2(100, "OK dev: %s num_writers>=0, can_append, pool matches. JobId=%u\n",
             dev->print_name(), jcr->JobId);
          /* OK, compatible device */
          return 1;
       } else {
-         /* Drive not suitable for us */
+         /* Drive Pool not suitable for us */
+         Mmsg(jcr->errmsg, _("3609 JobId=%u wants Pool=\"%s\" but have Pool=\"%s\" on drive %s.\n"), 
+               jcr->JobId, dcr->pool_name, dev->pool_name, dev->print_name());
+         queue_reserve_message(jcr);
          Dmsg2(100, "failed: busy num_writers>0, can_append, pool=%s wanted=%s\n",
             dev->pool_name, dcr->pool_name);
          return 0;                    /* wait */
       }
    } else {
       Pmsg0(000, _("Logic error!!!! Should not get here.\n"));
+      Mmsg(jcr->errmsg, _("3910 JobId=%u Logic error!!!! drive %s Should not get here.\n"),
+            jcr->JobId, dev->print_name());
+      queue_reserve_message(jcr);
       Jmsg0(jcr, M_FATAL, 0, _("Logic error!!!! Should not get here.\n"));
       return -1;                      /* error, should not get here */
    }
-   Dmsg2(100, "failed: No reserve %s JobId=%d\n", dev->print_name(), jcr->JobId);
+   Mmsg(jcr->errmsg, _("3911 JobId=%u failed reserve drive %s.\n"), 
+         jcr->JobId, dev->print_name());
+   queue_reserve_message(jcr);
+   Dmsg2(100, "failed: No reserve %s JobId=%u\n", dev->print_name(), jcr->JobId);
    return 0;
+}
+
+/*
+ * search_lock is already set on entering this routine 
+ */
+static void queue_reserve_message(JCR *jcr)
+{
+   int i;   
+   alist *msgs = jcr->reserve_msgs;
+   char *msg;
+
+   if (!msgs) {
+      return;
+   }
+   /*
+    * Look for duplicate message.  If found, do
+    * not insert
+    */
+   for (i=msgs->size()-1; i >= 0; i--) {
+      msg = (char *)msgs->get(i);
+      if (!msg) {
+         return;
+      }
+      /* Comparison based on 4 digit message number */
+      if (strncmp(msg, jcr->errmsg, 4) == 0) {
+         return;
+      }
+   }      
+   /* Message unique, so insert it */
+   jcr->reserve_msgs->push(bstrdup(jcr->errmsg));
+}
+
+/*
+ * Send any reservation messages queued for this jcr
+ */
+void send_drive_reserve_messages(JCR *jcr, BSOCK *user)
+{
+   int i;
+   alist *msgs;
+   char *msg;
+
+   P(search_lock);
+   msgs = jcr->reserve_msgs;
+   if (!msgs || msgs->size() == 0) {
+      V(search_lock);
+      return;
+   }
+   for (i=msgs->size()-1; i >= 0; i--) {
+      msg = (char *)msgs->get(i);
+      if (msg) {
+         bnet_fsend(user, "   %s", msg);
+      } else {
+         break;
+      }
+   }
+   V(search_lock);
 }

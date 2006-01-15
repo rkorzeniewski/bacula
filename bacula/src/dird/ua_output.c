@@ -518,7 +518,8 @@ RUN *find_next_run(RUN *run, JOB *job, time_t &runtime, int ndays)
    }
    for ( ; run; run=run->next) {
       /*
-       * Find runs in next 24 hours
+       * Find runs in next 24 hours.  Day 0 is today, so if
+       *   ndays=1, look at today and tomorrow.
        */
       for (day = 0; day <= ndays; day++) {
          future = now + (day * 60 * 60 * 24);

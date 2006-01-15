@@ -254,7 +254,7 @@ void terminate_filed(int sig)
    if (configfile != NULL) {
       free(configfile);
    }
-   if (debug_level > 5) {
+   if (debug_level > 0) {
       print_memory_pool_stats();
    }
    free_config_resources();
@@ -344,7 +344,7 @@ static int check_resources()
       if ((me->pki_encrypt || me->pki_sign) && !me->pki_keypairfile) {
          Emsg2(M_FATAL, 0, _("\"PKI Key Pair\" must be defined for File"
             " daemon \"%s\" in %s if either \"PKI Sign\" or"
-	    " \"PKI Encrypt\" are enabled.\n"), me->hdr.name, configfile);
+            " \"PKI Encrypt\" are enabled.\n"), me->hdr.name, configfile);
          OK = false;
       }
 
@@ -378,7 +378,7 @@ static int check_resources()
          me->pki_signers->append(crypto_keypair_dup(me->pki_keypair));
 
          /* If additional trusted keys have been specified, load them up */
-	 if (me->pki_trustedkeys) {
+         if (me->pki_trustedkeys) {
             foreach_alist(filepath, me->pki_trustedkeys) {
                X509_KEYPAIR *keypair;
 
@@ -396,7 +396,7 @@ static int check_resources()
                   }
                }
             }
-	 }
+         }
 
          if (me->pki_encrypt) {
             /*

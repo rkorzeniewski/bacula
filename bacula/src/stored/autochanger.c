@@ -7,7 +7,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2002-2005 Kern Sibbald
+   Copyright (C) 2002-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -151,6 +151,8 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
          dcr->VolCatInfo.Slot = slot;    /* slot to be loaded */
          changer = edit_device_codes(dcr, changer, 
                       dcr->device->changer_command, "load");
+         offline_or_rewind_dev(dev);
+         force_close_device(dev);
          status = run_program(changer, timeout, NULL);
          if (status == 0) {
             Jmsg(jcr, M_INFO, 0, _("3305 Autochanger \"load slot %d, drive %d\", status is OK.\n"),
@@ -217,7 +219,7 @@ int get_autochanger_loaded_slot(DCR *dcr)
    status = run_program(changer, timeout, results);
    Dmsg3(50, "run_prog: %s stat=%d result=%s\n", changer, status, results);
    if (status == 0) {
-      loaded = atoi(results);
+      loaded = str_to_int32(results);
       if (loaded > 0) {
          Jmsg(jcr, M_INFO, 0, _("3302 Autochanger \"loaded drive %d\", result is Slot %d.\n"),
               drive, loaded);
@@ -285,10 +287,6 @@ bool unload_autochanger(DCR *dcr, int loaded)
       loaded = get_autochanger_loaded_slot(dcr);
    }
 
-   /* We are going to load a new tape, so close the device */
-   offline_or_rewind_dev(dev);
-   force_close_device(dev);
-
    if (loaded > 0) {
       POOLMEM *changer = get_pool_memory(PM_FNAME);
       lock_changer(dcr);
@@ -299,6 +297,8 @@ bool unload_autochanger(DCR *dcr, int loaded)
       dcr->VolCatInfo.Slot = loaded;
       changer = edit_device_codes(dcr, changer, 
                    dcr->device->changer_command, "unload");
+      offline_or_rewind_dev(dev);
+      force_close_device(dev);
       int stat = run_program(changer, timeout, NULL);
       dcr->VolCatInfo.Slot = slot;
       if (stat != 0) {
@@ -357,10 +357,6 @@ static bool unload_other_drive(DCR *dcr, int slot)
       return false;
    }
 
-   /* We are going to unload a tape, so close the device */
-   offline_or_rewind_dev(dev);
-   force_close_device(dev);
-
    POOLMEM *changer_cmd = get_pool_memory(PM_FNAME);
    lock_changer(dcr);
    Jmsg(jcr, M_INFO, 0,
@@ -377,6 +373,8 @@ static bool unload_other_drive(DCR *dcr, int slot)
    changer_cmd = edit_device_codes(dcr, changer_cmd, 
                 dcr->device->changer_command, "unload");
    Dmsg1(200, "Run program=%s\n", changer_cmd);
+   offline_or_rewind_dev(dev);
+   force_close_device(dev);
    int stat = run_program(changer_cmd, timeout, NULL);
    dcr->VolCatInfo.Slot = save_slot;
    dcr->dev = save_dev;
@@ -459,12 +457,16 @@ bool autochanger_cmd(DCR *dcr, BSOCK *dir, const char *cmd)
          bnet_send(dir);
       }
    } else if (strcmp(cmd, "slots") == 0 ) {
+      char buf[100], *p;
       /* For slots command, read a single line */
-      bstrncpy(dir->msg, "slots=", len);
-      fgets(dir->msg+6, len-6, bpipe->rfd);
-      dir->msglen = strlen(dir->msg);
+      buf[0] = 0;
+      fgets(buf, sizeof(buf)-1, bpipe->rfd);
+      buf[sizeof(buf)-1] = 0;
+      /* Strip any leading space in front of # of slots */
+      for (p=buf; B_ISSPACE(*p); p++)
+        { }
+      bnet_fsend(dir, "slots=%s", p);
       Dmsg1(100, "<stored: %s", dir->msg);
-      bnet_send(dir);
    } 
                  
    stat = close_bpipe(bpipe);

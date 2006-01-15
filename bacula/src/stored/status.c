@@ -46,6 +46,7 @@ static char DotStatusJob[] = "JobId=%d JobStatus=%c JobErrors=%d\n";
 static void send_blocked_status(JCR *jcr, DEVICE *dev);
 static void list_terminated_jobs(void *arg);
 static void list_running_jobs(BSOCK *user);
+static void list_jobs_waiting_on_reservation(BSOCK *user);
 static void sendit(const char *msg, int len, void *arg);
 static const char *level_to_str(int level);
 
@@ -85,6 +86,11 @@ bool status_cmd(JCR *jcr)
     * List running jobs
     */
    list_running_jobs(user);
+
+   /*
+    * List jobs stuck in reservation system
+    */
+   list_jobs_waiting_on_reservation(user);
 
    /*
     * List terminated jobs
@@ -338,6 +344,23 @@ static void list_running_jobs(BSOCK *user)
    }
    bnet_fsend(user, _("====\n"));
 }
+
+static void list_jobs_waiting_on_reservation(BSOCK *user)
+{ 
+   JCR *jcr;
+
+   bnet_fsend(user, _("\nJobs waiting to reserve a drive:\n"));
+   foreach_jcr(jcr) {
+      if (!jcr->reserve_msgs) {
+         continue;
+      }
+      send_drive_reserve_messages(jcr, user);
+   }
+   endeach_jcr(jcr);
+
+   bnet_fsend(user, _("====\n"));
+}
+
 
 static void list_terminated_jobs(void *arg)
 {

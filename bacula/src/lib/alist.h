@@ -4,7 +4,7 @@
  *  Kern Sibbald, June MMIII
  */
 /*
-   Copyright (C) 2003-2005 Kern Sibbald
+   Copyright (C) 2003-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -33,7 +33,7 @@
 
 #ifdef the_easy_way
 #define foreach_alist(var, list) \
-        for(((void*)(var))=(list)->first(); (var); ((void*)(var))=(list)->next(var)); )
+        for(((void*)(var))=(list)->first(); (var); ((void*)(var))=(list)->next()); )
 #endif
 
 
@@ -75,7 +75,7 @@ public:
 
    /* Use it as a stack, pushing and poping from the end */
    void push(void *item) { append(item); };
-   void pop() { num_items?NULL:remove(num_items-1); };
+   void *pop() { return remove(num_items-1); };
 };
 
 inline void * alist::operator [](int index) const {

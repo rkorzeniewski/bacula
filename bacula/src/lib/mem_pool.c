@@ -21,22 +21,17 @@
  */
 
 /*
-   Copyright (C) 2000-2004 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -354,6 +349,33 @@ void free_pool_memory(POOLMEM *obuf)
 #endif /* SMARTALLOC */
 
 
+/*
+ * Clean up memory pool periodically
+ *
+ */
+static time_t last_garbage_collection = 0;
+const int garbage_interval = 24 * 60 * 60;  /* garbage collect every 24 hours */
+
+void garbage_collect_memory_pool()
+{
+   time_t now;
+
+   Dmsg0(200, "garbage collect memory pool\n");
+   P(mutex);
+   if (last_garbage_collection == 0) {
+      last_garbage_collection = time(NULL);
+      V(mutex);
+      return;
+   }
+   now = time(NULL);
+   if (now >= last_garbage_collection + garbage_interval) {
+      last_garbage_collection = now;
+      V(mutex);
+      close_memory_pool();
+   } else {
+      V(mutex);
+   }
+}
 
 
 
@@ -362,6 +384,9 @@ void free_pool_memory(POOLMEM *obuf)
 void close_memory_pool()
 {
    struct abufhead *buf, *next;
+   int count = 0;
+   uint64_t bytes = 0;
+   char ed1[50];
 
    sm_check(__FILE__, __LINE__, false);
    P(mutex);
@@ -369,12 +394,16 @@ void close_memory_pool()
       buf = pool_ctl[i].free_buf;
       while (buf) {
          next = buf->next;
+         count++;
+         bytes += sizeof_pool_memory((char *)buf);
          free((char *)buf);
          buf = next;
       }
       pool_ctl[i].free_buf = NULL;
    }
+   Dmsg2(100, "Freed mem_pool count=%d size=%s\n", count, edit_uint64_with_commas(bytes, ed1));
    V(mutex);
+
 }
 
 #ifdef DEBUG

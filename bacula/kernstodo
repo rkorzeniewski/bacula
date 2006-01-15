@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     07 January 2006
+                     11 January 2006
 
 Major development:      
 Project                     Developer
@@ -15,8 +15,6 @@ Document:
 - %d and %v only valid on Director, not for ClientRunBefore/After.
 
 Priority:
-- Implement status that shows why a job is being held in reserve, or
-  rather why none of the drives are suitable.
 - Implement a way to disable a drive (so you can use the second
   drive of an autochanger, and the first one will not be used or
   even defined).
@@ -29,10 +27,6 @@ For 1.39:
 - Queue warning/error messages during restore so that they
   are reported at the end of the report rather than being
   hidden in the file listing ...
-- A Volume taken from Scratch should take on the retention period
-  of the new pool.
-- Correct doc for Maximum Changer Wait (and others) accepting only
-  integers.
 - Fix Maximum Changer Wait (and others) to accept qualifiers.
 - Look at -D_FORTIFY_SOURCE=2
 - Add Win32 FileSet definition somewhere
@@ -1276,4 +1270,9 @@ Block Position: 0
   for ( ; jcr; (jcr=jcr_walk_next(jcr)) )
   ...
   jcr_walk_end(jcr);
-
+- A Volume taken from Scratch should take on the retention period
+  of the new pool.
+- Correct doc for Maximum Changer Wait (and others) accepting only
+  integers.
+- Implement status that shows why a job is being held in reserve, or
+  rather why none of the drives are suitable.

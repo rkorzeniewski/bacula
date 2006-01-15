@@ -5,7 +5,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -147,6 +147,7 @@
 #define STREAM_NONE               0    /* Reserved Non-Stream */
 #define STREAM_UNIX_ATTRIBUTES    1    /* Generic Unix attributes */
 #define STREAM_FILE_DATA          2    /* Standard uncompressed data */
+#define STREAM_MD5_SIGNATURE      3    /* deprecated */
 #define STREAM_MD5_DIGEST         3    /* MD5 digest for the file */
 #define STREAM_GZIP_DATA          4    /* GZip compressed file data */
 /* Extended Unix attributes with Win32 Extended data.  Deprecated. */
@@ -155,6 +156,7 @@
 #define STREAM_SPARSE_GZIP_DATA   7
 #define STREAM_PROGRAM_NAMES      8    /* program names for program data */
 #define STREAM_PROGRAM_DATA       9    /* Data needing program */
+#define STREAM_SHA1_SIGNATURE    10    /* deprecated */
 #define STREAM_SHA1_DIGEST       10    /* SHA1 digest for the file */
 #define STREAM_WIN32_DATA        11    /* Win32 BackupRead data */
 #define STREAM_WIN32_GZIP_DATA   12    /* Gzipped Win32 BackupRead data */
