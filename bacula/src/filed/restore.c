@@ -300,9 +300,12 @@ void do_restore(JCR *jcr)
 
       /* Data stream */
       case STREAM_ENCRYPTED_SESSION_DATA:
+	 crypto_error_t cryptoerr;
          Dmsg1(30, "Stream=Encrypted Session Data, size: %d\n", sd->msglen);
-         /* Save session keys . */
-         switch(crypto_session_decode(sd->msg, (size_t) sd->msglen, jcr->pki_recipients, &cs)) {
+
+         /* Decode and save session keys. */
+         cryptoerr = crypto_session_decode(sd->msg, (size_t) sd->msglen, jcr->pki_recipients, &cs);
+         switch(cryptoerr) {
          case CRYPTO_ERROR_NONE:
             /* Success */
             break;
@@ -314,7 +317,7 @@ void do_restore(JCR *jcr)
             break;
          default:
             /* Shouldn't happen */
-            Jmsg(jcr, M_ERROR, 0, _("An error occured while decoding encrypted session data stream."));
+            Jmsg1(jcr, M_ERROR, 0, _("An error occured while decoding encrypted session data stream: %s"), crypto_strerror(cryptoerr));
             break;
          }
 
