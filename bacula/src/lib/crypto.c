@@ -272,8 +272,7 @@ struct Signature {
 /* Encryption Session Data */
 struct Crypto_Session {
    CryptoData *cryptoData;                        /* ASN.1 Structure */
-   EVP_CIPHER *openssl_cipher;                    /* OpenSSL Cipher Object */
-   unsigned char session_key[EVP_MAX_KEY_LENGTH]; /* Private symmetric session key */
+   unsigned char *session_key;                    /* Private symmetric session key */
    size_t session_key_len;                        /* Symmetric session key length */
 };
 
@@ -459,6 +458,55 @@ static int crypto_pem_callback_dispatch (char *buf, int size, int rwflag, void *
 {
    PEM_CB_CONTEXT *ctx = (PEM_CB_CONTEXT *) userdata;
    return (ctx->pem_callback(buf, size, ctx->pem_userdata));
+}
+
+/*
+ * Check a PEM-encoded file
+ * for the existence of a private key.
+ * Returns: true if a private key is found
+ *          false otherwise
+ */
+bool crypto_keypair_has_key (const char *file) {
+   BIO *bio;
+   char *name = NULL;
+   char *header = NULL;
+   unsigned char *data = NULL;
+   bool retval = false;
+   long len;
+
+   if (!(bio = BIO_new_file(file, "r"))) {
+      openssl_post_errors(M_ERROR, _("Unable to open private key file"));
+      return false;
+   }
+
+   while (PEM_read_bio(bio, &name, &header, &data, &len)) {
+      /* We don't care what the data is, just that it's there */
+      OPENSSL_free(header);
+      OPENSSL_free(data);
+
+      /*
+       * PEM Header Found, check for a private key
+       * Due to OpenSSL limitations, we must specifically
+       * list supported PEM private key encodings.
+       */
+      if (strcmp(name, PEM_STRING_RSA) == 0
+            || strcmp(name, PEM_STRING_DSA) == 0
+            || strcmp(name, PEM_STRING_PKCS8) == 0
+            || strcmp(name, PEM_STRING_PKCS8INF) == 0) {
+         retval = true;
+         OPENSSL_free(name);
+         break;
+      } else {
+         OPENSSL_free(name);
+      }
+   }
+
+   /* Free our bio */
+   BIO_free(bio);
+
+   /* Post PEM-decoding error messages, if any */
+   openssl_post_errors(M_ERROR, _("Unable to read private key from file"));
+   return retval;
 }
 
 /*
@@ -893,6 +941,10 @@ CRYPTO_SESSION *crypto_session_new (crypto_cipher_t cipher, alist *pubkeys)
       return NULL;
    }
 
+   /* Initialize required fields */
+   cs->session_key = NULL;
+
+   /* Allocate a CryptoData structure */
    cs->cryptoData = CryptoData_new();
 
    if (!cs->cryptoData) {
@@ -936,6 +988,7 @@ CRYPTO_SESSION *crypto_session_new (crypto_cipher_t cipher, alist *pubkeys)
 
    /* Generate a symmetric session key */
    cs->session_key_len = EVP_CIPHER_key_length(ec);
+   cs->session_key = (unsigned char *) malloc(cs->session_key_len);
    if (RAND_bytes(cs->session_key, cs->session_key_len) <= 0) {
       /* OpenSSL failure */
       crypto_session_free(cs);
@@ -955,6 +1008,7 @@ CRYPTO_SESSION *crypto_session_new (crypto_cipher_t cipher, alist *pubkeys)
       if (RAND_bytes(iv, iv_len) <= 0) {
          /* OpenSSL failure */
          crypto_session_free(cs);
+         free(iv);
          return NULL;
       }
 
@@ -962,8 +1016,10 @@ CRYPTO_SESSION *crypto_session_new (crypto_cipher_t cipher, alist *pubkeys)
       if (!M_ASN1_OCTET_STRING_set(cs->cryptoData->iv, iv, iv_len)) {
          /* Allocation failed in OpenSSL */
          crypto_session_free(cs);
+         free(iv);
          return NULL;
       }
+      free(iv);
    }
 
    /*
@@ -1054,11 +1110,15 @@ bool crypto_session_encode(CRYPTO_SESSION *cs, void *dest, size_t *length)
  *
  * Returns: CRYPTO_SESSION instance on success.
  *          NULL on failure.
+ * Returns: CRYPTO_ERROR_NONE and a pointer to a newly allocated CRYPTO_SESSION structure in *session on success.
+ *          A crypto_error_t value on failure.
  */
-// TODO landonf: Unimplemented, requires a private key to decrypt session key
-CRYPTO_SESSION *crypto_session_decode(const void *data, size_t length)
+crypto_error_t crypto_session_decode(const void *data, size_t length, alist *keypairs, CRYPTO_SESSION **session)
 {
    CRYPTO_SESSION *cs;
+   X509_KEYPAIR *keypair;
+   STACK_OF(RecipientInfo) *recipients;
+   crypto_error_t retval = CRYPTO_ERROR_NONE;
 #if (OPENSSL_VERSION_NUMBER >= 0x0090800FL)
    const unsigned char *p = (const unsigned char *) data;
 #else
@@ -1067,7 +1127,7 @@ CRYPTO_SESSION *crypto_session_decode(const void *data, size_t length)
 
    cs = (CRYPTO_SESSION *) malloc(sizeof(CRYPTO_SESSION));
    if (!cs) {
-      return NULL;
+      return CRYPTO_ERROR_INTERNAL;
    }
 
    /* d2i_CryptoData modifies the supplied pointer */
@@ -1076,10 +1136,67 @@ CRYPTO_SESSION *crypto_session_decode(const void *data, size_t length)
    if (!cs->cryptoData) {
       /* Allocation / Decoding failed in OpenSSL */
       openssl_post_errors(M_ERROR, _("CryptoData decoding failed"));
-      return NULL;
+      retval = CRYPTO_ERROR_INTERNAL;
+      goto err;
    }
 
-   return cs;
+   recipients = cs->cryptoData->recipientInfo;
+
+   /*
+    * Find a matching RecipientInfo structure for a supplied
+    * public key
+    */
+   foreach_alist(keypair, keypairs) {
+      RecipientInfo *ri;
+      int i;
+
+      /* Private key available? */
+      if (keypair->privkey == NULL) {
+         continue;
+      }
+
+      for (i = 0; i < sk_RecipientInfo_num(recipients); i++) {
+         ri = sk_RecipientInfo_value(recipients, i);
+
+         /* Match against the subjectKeyIdentifier */
+         if (M_ASN1_OCTET_STRING_cmp(keypair->keyid, ri->subjectKeyIdentifier) == 0) {
+            /* Match found, extract symmetric encryption session data */
+            
+            /* RSA is required. */
+            assert(EVP_PKEY_type(keypair->privkey->type) == EVP_PKEY_RSA);
+
+            /* If we recieve a RecipientInfo structure that does not use
+             * RSA, return an error */
+            if (OBJ_obj2nid(ri->keyEncryptionAlgorithm) != NID_rsaEncryption) {
+               retval = CRYPTO_ERROR_INVALID_CRYPTO;
+               goto err;
+            }
+
+            /* Decrypt the session key */
+            /* Allocate sufficient space for the largest possible decrypted data */
+            cs->session_key = (unsigned char *) malloc(EVP_PKEY_size(keypair->privkey));
+            cs->session_key_len = EVP_PKEY_decrypt(cs->session_key, M_ASN1_STRING_data(ri->encryptedKey),
+                                  M_ASN1_STRING_length(ri->encryptedKey), keypair->privkey);
+
+            if (cs->session_key_len <= 0) {
+               openssl_post_errors(M_ERROR, _("Failure decrypting the session key"));
+               retval = CRYPTO_ERROR_DECRYPTION;
+               goto err;
+            }
+
+            /* Session key successfully extracted, return the CRYPTO_SESSION structure */
+            *session = cs;
+            return CRYPTO_ERROR_NONE;
+         }
+      }
+   }
+
+   /* No matching recipient found */
+   return CRYPTO_ERROR_NORECIPIENT;
+
+err:
+   crypto_session_free(cs);
+   return retval;
 }
 
 /*
@@ -1087,7 +1204,12 @@ CRYPTO_SESSION *crypto_session_decode(const void *data, size_t length)
  */
 void crypto_session_free (CRYPTO_SESSION *cs)
 {
-   CryptoData_free(cs->cryptoData);
+   if (cs->cryptoData) {
+      CryptoData_free(cs->cryptoData);
+   }
+   if (cs->session_key){
+      free(cs->session_key);
+   }
    free(cs);
 }
 
@@ -1274,13 +1396,14 @@ void crypto_sign_free (SIGNATURE *sig) { }
 X509_KEYPAIR *crypto_keypair_new (void) { return NULL; }
 X509_KEYPAIR *crypto_keypair_dup (X509_KEYPAIR *keypair) { return NULL; }
 int crypto_keypair_load_cert (X509_KEYPAIR *keypair, const char *file) { return false; }
+bool crypto_keypair_has_key (const char *file) { return false; }
 int crypto_keypair_load_key (X509_KEYPAIR *keypair, const char *file, CRYPTO_PEM_PASSWD_CB *pem_callback, const void *pem_userdata) { return false; }
 void crypto_keypair_free (X509_KEYPAIR *keypair) { }
 
 CRYPTO_SESSION *crypto_session_new (crypto_cipher_t cipher, alist *pubkeys) { return NULL; }
 void crypto_session_free (CRYPTO_SESSION *cs) { }
 bool crypto_session_encode(CRYPTO_SESSION *cs, void *dest, size_t *length) { return false; }
-CRYPTO_SESSION *crypto_session_decode(const void *data, size_t length) { return NULL; }
+crypto_error_t crypto_session_decode(const void *data, size_t length, alist *keypairs, CRYPTO_SESSION **session) { return CRYPTO_ERROR_INTERNAL; }
 
 #endif /* HAVE_CRYPTO */
 
@@ -1347,10 +1470,16 @@ const char *crypto_strerror(crypto_error_t error) {
       return "No error";
    case CRYPTO_ERROR_NOSIGNER:
       return "Signer not found";
+   case CRYPTO_ERROR_NORECIPIENT:
+      return "Recipient not found";
    case CRYPTO_ERROR_INVALID_DIGEST:
       return "Unsupported digest algorithm";
+   case CRYPTO_ERROR_INVALID_CRYPTO:
+      return "Unsupported encryption algorithm";
    case CRYPTO_ERROR_BAD_SIGNATURE:
       return "Signature is invalid";
+   case CRYPTO_ERROR_DECRYPTION:
+      return "Decryption error";
    case CRYPTO_ERROR_INTERNAL:
       /* This shouldn't happen */
       return "Internal error";

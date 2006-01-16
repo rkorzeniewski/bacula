@@ -91,9 +91,9 @@ static RES_ITEM cli_items[] = {
    {"maximumnetworkbuffersize", store_pint, ITEM(res_client.max_network_buffer_size), 0, 0, 0},
    {"pkisignatures",         store_yesno,     ITEM(res_client.pki_sign), 1, ITEM_DEFAULT, 0},
    {"pkiencryption",         store_yesno,     ITEM(res_client.pki_encrypt), 1, ITEM_DEFAULT, 0},
-   {"pkikeypair",            store_dir,       ITEM(res_client.pki_keypairfile), 0, 0, 0},
-   {"pkitrustedsigner",      store_alist_str, ITEM(res_client.pki_trustedkeys), 0, 0, 0},
-   {"pkimasterkey",          store_alist_str, ITEM(res_client.pki_masterkeys), 0, 0, 0},
+   {"pkikeypair",            store_dir,       ITEM(res_client.pki_keypair_file), 0, 0, 0},
+   {"pkisigner",             store_alist_str, ITEM(res_client.pki_signing_key_files), 0, 0, 0},
+   {"pkimasterkey",          store_alist_str, ITEM(res_client.pki_master_key_files), 0, 0, 0},
    {"tlsenable",             store_yesno,     ITEM(res_client.tls_enable),  1, 0, 0},
    {"tlsrequire",            store_yesno,     ITEM(res_client.tls_require), 1, 0, 0},
    {"tlscacertificatefile",  store_dir,       ITEM(res_client.tls_ca_certfile), 0, 0, 0},
@@ -245,15 +245,16 @@ void free_resource(RES *sres, int type)
       if (res->res_client.FDaddrs) {
          free_addresses(res->res_client.FDaddrs);
       }
-      if (res->res_client.pki_keypairfile) { 
-         free(res->res_client.pki_keypairfile);
+
+      if (res->res_client.pki_keypair_file) { 
+         free(res->res_client.pki_keypair_file);
       }
       if (res->res_client.pki_keypair) {
-	 crypto_keypair_free(res->res_client.pki_keypair);
+         crypto_keypair_free(res->res_client.pki_keypair);
       }
-      /* Also frees res_client.pki_keypair */
-      if (res->res_client.pki_trustedkeys) {
-         delete res->res_client.pki_trustedkeys;
+
+      if (res->res_client.pki_signing_key_files) {
+         delete res->res_client.pki_signing_key_files;
       }
       if (res->res_client.pki_signers) {
          X509_KEYPAIR *keypair;
@@ -262,15 +263,17 @@ void free_resource(RES *sres, int type)
          }
          delete res->res_client.pki_signers;
       }
-      if (res->res_client.pki_masterkeys) {
-         delete res->res_client.pki_masterkeys;
+
+      if (res->res_client.pki_master_key_files) {
+         delete res->res_client.pki_master_key_files;
       }
-      if (res->res_client.pki_readers) {
+
+      if (res->res_client.pki_recipients) {
          X509_KEYPAIR *keypair;
-         foreach_alist(keypair, res->res_client.pki_readers) {
+         foreach_alist(keypair, res->res_client.pki_recipients) {
             crypto_keypair_free(keypair);
          }
-         delete res->res_client.pki_signers;
+         delete res->res_client.pki_recipients;
       }
 
       if (res->res_client.tls_ctx) { 
@@ -354,8 +357,12 @@ void save_resource(int type, RES_ITEM *items, int pass)
             if ((res = (URES *)GetResWithName(R_CLIENT, res_all.res_dir.hdr.name)) == NULL) {
                Emsg1(M_ABORT, 0, _("Cannot find Client resource %s\n"), res_all.res_dir.hdr.name);
             }
-            res->res_client.pki_trustedkeys = res_all.res_client.pki_trustedkeys;
+            res->res_client.pki_signing_key_files = res_all.res_client.pki_signing_key_files;
+            res->res_client.pki_master_key_files = res_all.res_client.pki_master_key_files;
+
             res->res_client.pki_signers = res_all.res_client.pki_signers;
+            res->res_client.pki_recipients = res_all.res_client.pki_recipients;
+
             res->res_client.messages = res_all.res_client.messages;
             break;
          default:

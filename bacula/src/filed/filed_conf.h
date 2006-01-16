@@ -73,9 +73,9 @@ struct CLIENT {
    uint32_t max_network_buffer_size;  /* max network buf size */
    int pki_sign;                      /* Enable Data Integrity Verification via Digital Signatures */
    int pki_encrypt;                   /* Enable Data Encryption */
-   char *pki_keypairfile;             /* PKI Key Pair File */
-   alist *pki_trustedkeys;            /* PKI Trusted Public Keys */
-   alist *pki_masterkeys;             /* PKI Master Keys */
+   char *pki_keypair_file;            /* PKI Key Pair File */
+   alist *pki_signing_key_files;      /* PKI Signing Key Files */
+   alist *pki_master_key_files;       /* PKI Master Key Files */
    int tls_enable;                    /* Enable TLS */
    int tls_require;                   /* Require TLS */
    char *tls_ca_certfile;             /* TLS CA Certificate File */
@@ -85,7 +85,7 @@ struct CLIENT {
 
    X509_KEYPAIR *pki_keypair;         /* Shared PKI Public/Private Keypair */
    alist *pki_signers;                /* Shared PKI Trusted Signers */
-   alist *pki_readers;                /* Shared PKI Recipients */
+   alist *pki_recipients;             /* Shared PKI Recipients */
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
 };
 

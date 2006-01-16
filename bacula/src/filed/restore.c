@@ -83,6 +83,7 @@ void do_restore(JCR *jcr)
    uint64_t alt_addr = 0;             /* Write address for alternative stream */
    intmax_t alt_size = 0;             /* Size of alternate stream */
    SIGNATURE *sig = NULL;             /* Cryptographic signature (if any) for file */
+   CRYPTO_SESSION *cs = NULL;         /* Cryptographic session data (if any) for file */
    int flags;                         /* Options for extract_data() */
    int stat;
    ATTR *attr;
@@ -218,12 +219,22 @@ void do_restore(JCR *jcr)
                   } else {
                      Dmsg1(100, "Signature good on %s\n", jcr->last_fname);
                   }
-                  crypto_sign_free(sig);
-                  sig = NULL;
                } else {
                   Jmsg1(jcr, M_ERROR, 0, _("Missing cryptographic signature for %s\n"), jcr->last_fname);
                }
             }
+
+            /* Free Signature */
+            if (sig) {
+               crypto_sign_free(sig);
+               sig = NULL;
+            }
+
+            if (cs) {
+               crypto_session_free(cs);
+               cs = NULL;
+            }
+
             Dmsg0(30, "Stop extracting.\n");
          } else if (is_bopen(&bfd)) {
             Jmsg0(jcr, M_ERROR, 0, _("Logic error: output file should not be open\n"));
@@ -296,9 +307,24 @@ void do_restore(JCR *jcr)
 
       /* Data stream */
       case STREAM_ENCRYPTED_SESSION_DATA:
-         // TODO landonf: Implement
-         // sig = crypto_sign_decode(sd->msg, (size_t) sd->msglen);
          Dmsg1(30, "Stream=Encrypted Session Data, size: %d\n", sd->msglen);
+         /* Save session keys . */
+         switch(crypto_session_decode(sd->msg, (size_t) sd->msglen, jcr->pki_recipients, &cs)) {
+         case CRYPTO_ERROR_NONE:
+            /* Success */
+            break;
+         case CRYPTO_ERROR_NORECIPIENT:
+            Jmsg(jcr, M_ERROR, 0, _("Missing private key required to decrypt encrypted backup data."));
+            break;
+         case CRYPTO_ERROR_DECRYPTION:
+            Jmsg(jcr, M_ERROR, 0, _("Decrypt of the session key failed."));
+            break;
+         default:
+            /* Shouldn't happen */
+            Jmsg(jcr, M_ERROR, 0, _("An error occured while decoding encrypted session data stream."));
+            break;
+         }
+
          break;
 
       case STREAM_FILE_DATA:

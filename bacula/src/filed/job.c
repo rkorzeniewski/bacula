@@ -177,7 +177,7 @@ void *handle_client_request(void *dirp)
    jcr->pki_encrypt = me->pki_encrypt;
    jcr->pki_keypair = me->pki_keypair;
    jcr->pki_signers = me->pki_signers;
-   jcr->pki_readers = me->pki_readers;
+   jcr->pki_recipients = me->pki_recipients;
    dir->jcr = jcr;
    enable_backup_privileges(NULL, 1 /* ignore_errors */);
 

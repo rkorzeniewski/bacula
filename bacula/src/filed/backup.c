@@ -88,7 +88,7 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
       size_t size = 0;
 
       /* Create per-job session encryption context */
-      jcr->pki_session = crypto_session_new(cipher, jcr->pki_readers);
+      jcr->pki_session = crypto_session_new(cipher, jcr->pki_recipients);
 
       /* Get the session data size */
       if (crypto_session_encode(jcr->pki_session, NULL, &size) == false) {
