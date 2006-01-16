@@ -212,13 +212,8 @@ void do_restore(JCR *jcr)
             /* Verify the cryptographic signature, if any */
             if (jcr->pki_sign) {
                if (sig) {
-                  if (!verify_signature(jcr, sig)) {
-                     // TODO landonf: Better signature failure handling.
-                     // The failure is reported to the director in verify_signature() ...
-                     Dmsg1(100, "Bad signature on %s\n", jcr->last_fname);
-                  } else {
-                     Dmsg1(100, "Signature good on %s\n", jcr->last_fname);
-                  }
+                  // Failure is reported in verify_signature() ...
+                  verify_signature(jcr, sig);
                } else {
                   Jmsg1(jcr, M_ERROR, 0, _("Missing cryptographic signature for %s\n"), jcr->last_fname);
                }
@@ -229,12 +224,10 @@ void do_restore(JCR *jcr)
                crypto_sign_free(sig);
                sig = NULL;
             }
-
             if (cs) {
                crypto_session_free(cs);
                cs = NULL;
             }
-
             Dmsg0(30, "Stop extracting.\n");
          } else if (is_bopen(&bfd)) {
             Jmsg0(jcr, M_ERROR, 0, _("Logic error: output file should not be open\n"));
@@ -468,6 +461,15 @@ void do_restore(JCR *jcr)
     */
    if (is_bopen(&altbfd)) {
       bclose_chksize(jcr, &altbfd, alt_size);
+      /* Verify the cryptographic signature on the last file, if any */
+      if (jcr->pki_sign) {
+         if (sig) {
+            // Failure is reported in verify_signature() ...
+            verify_signature(jcr, sig);
+         } else {
+            Jmsg1(jcr, M_ERROR, 0, _("Missing cryptographic signature for %s\n"), jcr->last_fname);
+         }
+      }
    }
    if (extract) {
       set_attributes(jcr, attr, &bfd);
@@ -481,6 +483,16 @@ void do_restore(JCR *jcr)
 bail_out:
    set_jcr_job_status(jcr, JS_ErrorTerminated);
 ok_out:
+
+   /* Free Signature & Crypto Session */
+   if (sig) {
+      crypto_sign_free(sig);
+      sig = NULL;
+   }
+   if (cs) {
+      crypto_session_free(cs);
+      cs = NULL;
+   }
    if (jcr->compress_buf) {
       free(jcr->compress_buf);
       jcr->compress_buf = NULL;
@@ -545,13 +557,13 @@ static int do_file_digest(FF_PKT *ff_pkt, void *pkt, bool top_level) {
  * Verify the signature for the last restored file
  * Return value is either true (signature correct)
  * or false (signature could not be verified).
+ * TODO landonf: Better signature failure handling.
  */
 int verify_signature(JCR *jcr, SIGNATURE *sig)
 {
    X509_KEYPAIR *keypair;
    DIGEST *digest = NULL;
    crypto_error_t err;
-
 
    /* Iterate through the trusted signers */
    foreach_alist(keypair, jcr->pki_signers) {
@@ -570,12 +582,14 @@ int verify_signature(JCR *jcr, SIGNATURE *sig)
 
          /* Verify the signature */
          if ((err = crypto_sign_verify(sig, keypair, digest)) != CRYPTO_ERROR_NONE) {
+            Dmsg1(100, "Bad signature on %s\n", jcr->last_fname);
             Qmsg2(jcr, M_ERROR, 0, _("Signature validation failed for %s: %s\n"), jcr->last_fname, crypto_strerror(err));
             crypto_digest_free(digest);
             return false;
          }
 
          /* Valid signature */
+         Dmsg1(100, "Signature good on %s\n", jcr->last_fname);
          crypto_digest_free(digest);
          return true;
 
@@ -592,7 +606,9 @@ int verify_signature(JCR *jcr, SIGNATURE *sig)
       }
    }
 
-   /* Unreachable */
+   /* No signer */
+   Dmsg1(100, "Could not find a valid public key for signature on %s\n", jcr->last_fname);
+   crypto_digest_free(digest);
    return false;
 }
 
