@@ -341,7 +341,7 @@ static int check_resources()
          me->pki_sign = true;
       }
 
-      if ((me->pki_encrypt || me->pki_sign) && !me->pki_keypairfile) {
+      if ((me->pki_encrypt || me->pki_sign) && !me->pki_keypair_file) {
          Emsg2(M_FATAL, 0, _("\"PKI Key Pair\" must be defined for File"
             " daemon \"%s\" in %s if either \"PKI Sign\" or"
             " \"PKI Encrypt\" are enabled.\n"), me->hdr.name, configfile);
@@ -351,20 +351,19 @@ static int check_resources()
       /* If everything is well, attempt to initialize our public/private keys */
       if (OK && (me->pki_encrypt || me->pki_sign)) {
          char *filepath;
-
          /* Load our keypair */
          me->pki_keypair = crypto_keypair_new();
          if (!me->pki_keypair) {
             Emsg0(M_FATAL, 0, _("Failed to allocate a new keypair object.\n"));
             OK = false;
          } else {
-            if (!crypto_keypair_load_cert(me->pki_keypair, me->pki_keypairfile)) {
+            if (!crypto_keypair_load_cert(me->pki_keypair, me->pki_keypair_file)) {
                Emsg2(M_FATAL, 0, _("Failed to load public certificate for File"
                      " daemon \"%s\" in %s.\n"), me->hdr.name, configfile);
                OK = false;
             }
 
-            if (!crypto_keypair_load_key(me->pki_keypair, me->pki_keypairfile, NULL, NULL)) {
+            if (!crypto_keypair_load_key(me->pki_keypair, me->pki_keypair_file, NULL, NULL)) {
                Emsg2(M_FATAL, 0, _("Failed to load private key for File"
                      " daemon \"%s\" in %s.\n"), me->hdr.name, configfile);
                OK = false;
@@ -375,11 +374,13 @@ static int check_resources()
           * Trusted Signers. We're always trusted.
           */
          me->pki_signers = New(alist(10, not_owned_by_alist));
-         me->pki_signers->append(crypto_keypair_dup(me->pki_keypair));
+         if (me->pki_keypair) {
+            me->pki_signers->append(crypto_keypair_dup(me->pki_keypair));
+         }
 
-         /* If additional trusted keys have been specified, load them up */
-         if (me->pki_trustedkeys) {
-            foreach_alist(filepath, me->pki_trustedkeys) {
+         /* If additional signing public keys have been specified, load them up */
+         if (me->pki_signing_key_files) {
+            foreach_alist(filepath, me->pki_signing_key_files) {
                X509_KEYPAIR *keypair;
 
                keypair = crypto_keypair_new();
@@ -389,6 +390,16 @@ static int check_resources()
                } else {
                   if (crypto_keypair_load_cert(keypair, filepath)) {
                      me->pki_signers->append(keypair);
+
+                     /* Attempt to load a private key, if available */
+                     if (crypto_keypair_has_key(filepath)) {
+                        if (!crypto_keypair_load_key(keypair, filepath, NULL, NULL)) {
+                           Emsg3(M_FATAL, 0, _("Failed to load private key from file %s for File"
+                              " daemon \"%s\" in %s.\n"), filepath, me->hdr.name, configfile);
+                           OK = false;
+                        }
+                     }
+
                   } else {
                      Emsg3(M_FATAL, 0, _("Failed to load trusted signer certificate"
                         " from file %s for File daemon \"%s\" in %s.\n"), filepath, me->hdr.name, configfile);
@@ -398,32 +409,42 @@ static int check_resources()
             }
          }
 
-         if (me->pki_encrypt) {
-            /*
-             * Trusted readers. We're always trusted.
-             * The symmetric session key will be encrypted for each of these readers.
-             */
-            me->pki_readers = New(alist(10, not_owned_by_alist));
-            me->pki_readers->append(crypto_keypair_dup(me->pki_keypair));
+         /*
+          * Crypto recipients. We're always included as a recipient.
+          * The symmetric session key will be encrypted for each of these readers.
+          */
+         me->pki_recipients = New(alist(10, not_owned_by_alist));
+         if (me->pki_keypair) {
+            me->pki_recipients->append(crypto_keypair_dup(me->pki_keypair));
+         }
 
 
-            /* If additional keys have been specified, load them up */
-            if (me->pki_masterkeys) {
-               foreach_alist(filepath, me->pki_masterkeys) {
-                  X509_KEYPAIR *keypair;
+         /* If additional keys have been specified, load them up */
+         if (me->pki_master_key_files) {
+            foreach_alist(filepath, me->pki_master_key_files) {
+               X509_KEYPAIR *keypair;
 
-                  keypair = crypto_keypair_new();
-                  if (!keypair) {
-                     Emsg0(M_FATAL, 0, _("Failed to allocate a new keypair object.\n"));
-                     OK = false;
-                  } else {
-                     if (crypto_keypair_load_cert(keypair, filepath)) {
-                        me->pki_signers->append(keypair);
-                     } else {
-                        Emsg3(M_FATAL, 0, _("Failed to load master key certificate"
-                           " from file %s for File daemon \"%s\" in %s.\n"), filepath, me->hdr.name, configfile);
-                        OK = false;
+               keypair = crypto_keypair_new();
+               if (!keypair) {
+                  Emsg0(M_FATAL, 0, _("Failed to allocate a new keypair object.\n"));
+                  OK = false;
+               } else {
+                  if (crypto_keypair_load_cert(keypair, filepath)) {
+                     me->pki_recipients->append(keypair);
+
+                     /* Attempt to load a private key, if available */
+                     if (crypto_keypair_has_key(filepath)) {
+                        if (!crypto_keypair_load_key(keypair, filepath, NULL, NULL)) {
+                           Emsg3(M_FATAL, 0, _("Failed to load private key from file %s for File"
+                              " daemon \"%s\" in %s.\n"), filepath, me->hdr.name, configfile);
+                           OK = false;
+                        }
                      }
+
+                  } else {
+                     Emsg3(M_FATAL, 0, _("Failed to load master key certificate"
+                        " from file %s for File daemon \"%s\" in %s.\n"), filepath, me->hdr.name, configfile);
+                     OK = false;
                   }
                }
             }

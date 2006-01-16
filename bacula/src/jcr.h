@@ -236,7 +236,7 @@ public:
    DIGEST *digest;                    /* Last file's digest context */
    X509_KEYPAIR *pki_keypair;         /* Encryption key pair */
    alist *pki_signers;                /* Trusted Signers */
-   alist *pki_readers;                /* Trusted Readers */
+   alist *pki_recipients;             /* Trusted Recipients */
    CRYPTO_SESSION *pki_session;       /* PKE Public Keys + Symmetric Session Keys */
    void *pki_session_encoded;         /* Cached DER-encoded copy of pki_session */
    size_t pki_session_encoded_size;   /* Size of DER-encoded pki_session */

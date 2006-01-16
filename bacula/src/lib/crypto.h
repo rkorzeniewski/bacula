@@ -74,9 +74,12 @@ typedef enum {
 typedef enum {
    CRYPTO_ERROR_NONE           = 0, /* No error */
    CRYPTO_ERROR_NOSIGNER       = 1, /* Signer not found */
-   CRYPTO_ERROR_INVALID_DIGEST = 2, /* Unsupported digest algorithm */
-   CRYPTO_ERROR_BAD_SIGNATURE  = 3, /* Signature is invalid */
-   CRYPTO_ERROR_INTERNAL       = 4  /* Internal Error */
+   CRYPTO_ERROR_NORECIPIENT    = 2, /* Recipient not found */
+   CRYPTO_ERROR_INVALID_DIGEST = 3, /* Unsupported digest algorithm */
+   CRYPTO_ERROR_INVALID_CRYPTO = 4, /* Unsupported encryption algorithm */
+   CRYPTO_ERROR_BAD_SIGNATURE  = 5, /* Signature is invalid */
+   CRYPTO_ERROR_DECRYPTION     = 6, /* Decryption error */
+   CRYPTO_ERROR_INTERNAL       = 7  /* Internal Error */
 } crypto_error_t;
 
 /* Message Digest Sizes */
