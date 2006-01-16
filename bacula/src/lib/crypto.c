@@ -443,6 +443,7 @@ int crypto_keypair_load_cert (X509_KEYPAIR *keypair, const char *file)
        goto err;
    }
 
+   X509_free(cert);
    return true;
 
 err:
