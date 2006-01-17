@@ -176,6 +176,7 @@ ASN1_SEQUENCE(SignatureData) = {
 
 ASN1_SEQUENCE(CryptoData) = {
    ASN1_SIMPLE(CryptoData, version, ASN1_INTEGER),
+   ASN1_SIMPLE(CryptoData, contentEncryptionAlgorithm, ASN1_OBJECT),
    ASN1_SIMPLE(CryptoData, iv, ASN1_OCTET_STRING),
    ASN1_SET_OF(CryptoData, recipientInfo, RecipientInfo)
 } ASN1_SEQUENCE_END(CryptoData);
@@ -913,6 +914,7 @@ SIGNATURE *crypto_sign_decode(const void *sigData, size_t length)
    if (!sig->sigData) {
       /* Allocation / Decoding failed in OpenSSL */
       openssl_post_errors(M_ERROR, _("Signature decoding failed"));
+      free(sig);
       return NULL;
    }
 
@@ -1136,6 +1138,9 @@ crypto_error_t crypto_session_decode(const void *data, size_t length, alist *key
       return CRYPTO_ERROR_INTERNAL;
    }
 
+   /* Initialize required fields */
+   cs->session_key = NULL;
+
    /* d2i_CryptoData modifies the supplied pointer */
    cs->cryptoData = d2i_CryptoData(NULL, &p, length);
 
@@ -1239,7 +1244,7 @@ CIPHER_CONTEXT *crypto_cipher_new (CRYPTO_SESSION *cs, bool encrypt, size_t *blo
     */
    if ((ec = EVP_get_cipherbyobj(cs->cryptoData->contentEncryptionAlgorithm)) == NULL) {
       Emsg1(M_ERROR, 0, _("Unsupported contentEncryptionAlgorithm: %d\n"), OBJ_obj2nid(cs->cryptoData->contentEncryptionAlgorithm));
-      crypto_cipher_free(cipher_ctx);
+      free(cipher_ctx);
       return NULL;
    }
 
@@ -1345,8 +1350,11 @@ int init_crypto (void)
    /* Load libssl and libcrypto human-readable error strings */
    SSL_load_error_strings();
 
-   /* Register OpenSSL ciphers */
+   /* Initialize OpenSSL SSL  library */
    SSL_library_init();
+
+   /* Register OpenSSL ciphers and digests */
+   OpenSSL_add_all_algorithms();
 
    if (!openssl_seed_prng()) {
       Emsg0(M_ERROR_TERM, 0, _("Failed to seed OpenSSL PRNG\n"));
@@ -1382,6 +1390,9 @@ int cleanup_crypto (void)
 
    /* Free libssl and libcrypto error strings */
    ERR_free_strings();
+
+   /* Free all ciphers and digests */
+   EVP_cleanup();
 
    /* Free memory used by PRNG */
    RAND_cleanup();
