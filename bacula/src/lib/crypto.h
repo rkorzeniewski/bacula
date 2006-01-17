@@ -113,6 +113,9 @@ typedef enum {
 #define CRYPTO_DIGEST_MAX_SIZE CRYPTO_DIGEST_SHA512_SIZE
 #endif
 
+/* Dummy Value */
+#define CRYPTO_CIPHER_MAX_BLOCK_SIZE 0
+
 #endif /* HAVE_OPENSSL */
 
 #endif /* __CRYPTO_H_ */
