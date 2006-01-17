@@ -3,6 +3,67 @@
 
 General:
 
+Changes to 1.39.4
+17Jan06
+- Add patch from bug #527 to allow RedHat user to specify
+  options/user/group for starting each daemon in      
+  /etc/sysconf/bacula.
+16Jan06
+- Add two new queries to query.sql provided by Arno. One
+  list volumes known to the Storage device, and the other
+  lists volumes possibly needing replacement (error, ...).
+15Jan06
+- Add periodic (every 24 hours) garbage collection of memory 
+  pool by releasing free buffers.
+14Jan06
+- Correct bug counting sized (for display only) in smartall.c
+- Print FD mempool stats if debug > 0 rather than 5.
+12Jan06
+- Make db_lock() mutex error fail the job rather than abort
+  Bacula.  Canceling the job caused the mutex to fail.
+- Correct bug in alist.c that re-allocated the list if the
+  number of items goes to zero.
+- Move the reservation system thread locking to the top level
+  so that one job at a time tries all possible drives before
+  waiting.
+- Implement a reservation 'fail' message queue that is built         
+  and destroyed on each pass through the reservation system.
+  These messages are displayed in a 'Jobs waiting to reserve
+  a drive' list during a 'status storage='.  Note, multiple
+  messages will generally print for each JobId because they
+  represent the different problems with either the same drive
+  or different drives.  If this output proves too confusing
+  of voluminous, I will display it only when debug level 1
+  or greater is enabled in the SD.
+11Jan06
+- Add enable/disable job=<job-name>.  This command prevents
+  the specified job from being scheduled. Even when disabled,
+  the job can be manually started from the console.
+- During 'update slots' clear all InChanger flags where the
+  StorageId is zero (old Media records).
+
+Beta release 1.38.4:
+09Jan06
+- Fix autochanger code to strip leading spaces from returned
+  slots number. Remove bc from chio-changer.
+- Back port a bit of 1.39 crypto code to reduce diffs.
+- Fix first call to autochanger that missed close()ing the
+  drive. Put close() just before each run_program().  Fixes
+  Arno's changer bug.
+07Jan06
+- Add PoolId to Job record when updating it at job start time.
+06Jan06
+- Pull in more code from 1.39 so that there are fewer file
+  differences (the new ua_dotcmds.c, base64.h, crypto.h
+  hmac.c jcr.c (dird and lib) lib.h md5.h parse_conf.c 
+  util.c. Aside from ua_dotcmds.c these are mostly crypto
+  upgrades.
+- Implement new method of walking the jcr chain. The
+  incr/dec of the use_count is done within the walking
+  routines.  This should prevent a jcr from being freed
+  from under the walk routines.
+
+
 Changes to 1.39.3:
 04Jan06
 - Start implementing Verify list output.
