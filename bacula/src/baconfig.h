@@ -30,6 +30,13 @@
 #define TRUE  1
 #define FALSE 0
 
+#ifndef MAX
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#endif
+#ifndef MIN
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif
+
 #ifdef HAVE_TLS
 #define have_tls 1
 #else
@@ -166,12 +173,15 @@
 #define STREAM_UNIX_ATTRIBUTES_ACCESS_ACL 15 /* Standard ACL attributes on UNIX */
 #define STREAM_UNIX_ATTRIBUTES_DEFAULT_ACL 16 /* Default ACL attributes on UNIX */
 /*** FIXME ***/
-#define STREAM_SHA256_DIGEST     17    /* SHA-256 digest for the file */
-#define STREAM_SHA512_DIGEST     18    /* SHA-512 digest for the file */
-#define STREAM_SIGNED_DIGEST     19    /* Signed File Digest, ASN.1, DER Encoded */
-#define STREAM_ENCRYPTED_FILE_DATA 20  /* Encrypted, uncompressed data */
-#define STREAM_ENCRYPTED_WIN32_DATA 21 /* Encrypted, uncompressed Win32 BackupRead data */
-#define STREAM_ENCRYPTED_SESSION_DATA 22 /* Encrypted Session Data, ASN.1, DER Encoded */
+#define STREAM_SHA256_DIGEST              17   /* SHA-256 digest for the file */
+#define STREAM_SHA512_DIGEST              18   /* SHA-512 digest for the file */
+#define STREAM_SIGNED_DIGEST              19   /* Signed File Digest, ASN.1, DER Encoded */
+#define STREAM_ENCRYPTED_FILE_DATA        20   /* Encrypted, uncompressed data */
+#define STREAM_ENCRYPTED_WIN32_DATA       21   /* Encrypted, uncompressed Win32 BackupRead data */
+#define STREAM_ENCRYPTED_SESSION_DATA     22   /* Encrypted Session Data, ASN.1, DER Encoded */
+#define STREAM_ENCRYPTED_FILE_GZIP_DATA   23   /* Encrypted, compressed data */
+#define STREAM_ENCRYPTED_WIN32_GZIP_DATA  24   /* Encrypted, compressed Win32 BackupRead data */
+#define STREAM_ENCRYPTED_MACOS_FORK_DATA  25   /* Encrypted, uncompressed Mac resource fork */
 
 
 /*

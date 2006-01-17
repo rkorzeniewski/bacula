@@ -117,6 +117,16 @@ const char *stream_to_ascii(char *buf, int stream, int fi)
        return "SIGNED-DIGEST";
     case STREAM_ENCRYPTED_SESSION_DATA:
        return "ENCRYPTED-SESSION-DATA";
+    case STREAM_ENCRYPTED_FILE_DATA:
+       return "ENCRYPTED-FILE";
+    case STREAM_ENCRYPTED_FILE_GZIP_DATA:
+       return "ENCRYPTED-GZIP";
+    case STREAM_ENCRYPTED_WIN32_DATA:
+       return "ENCRYPTED-WIN32-DATA";
+    case STREAM_ENCRYPTED_WIN32_GZIP_DATA:
+       return "ENCRYPTED-WIN32-GZIP";
+    case STREAM_ENCRYPTED_MACOS_FORK_DATA:
+       return "ENCRYPTED-MACOS-RSRC";
     case -STREAM_UNIX_ATTRIBUTES:
        return "contUATTR";
     case -STREAM_FILE_DATA:
@@ -153,6 +163,16 @@ const char *stream_to_ascii(char *buf, int stream, int fi)
        return "contSIGNED-DIGEST";
     case -STREAM_ENCRYPTED_SESSION_DATA:
        return "contENCRYPTED-SESSION-DATA";
+    case -STREAM_ENCRYPTED_FILE_DATA:
+       return "contENCRYPTED-FILE";
+    case -STREAM_ENCRYPTED_FILE_GZIP_DATA:
+       return "contENCRYPTED-GZIP";
+    case -STREAM_ENCRYPTED_WIN32_DATA:
+       return "contENCRYPTED-WIN32-DATA";
+    case -STREAM_ENCRYPTED_WIN32_GZIP_DATA:
+       return "contENCRYPTED-WIN32-GZIP";
+    case -STREAM_ENCRYPTED_MACOS_FORK_DATA:
+       return "contENCRYPTED-MACOS-RSRC";
     default:
        sprintf(buf, "%d", stream);
        return buf;

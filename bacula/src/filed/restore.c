@@ -329,16 +329,23 @@ void do_restore(JCR *jcr)
       case STREAM_GZIP_DATA:
       case STREAM_SPARSE_GZIP_DATA:
       case STREAM_WIN32_GZIP_DATA:
+      case STREAM_ENCRYPTED_FILE_DATA:
+      case STREAM_ENCRYPTED_WIN32_DATA:
+      case STREAM_ENCRYPTED_FILE_GZIP_DATA:
+      case STREAM_ENCRYPTED_WIN32_GZIP_DATA:
          /* Force an expected, consistent stream type here */
          if (extract && (prev_stream == stream || prev_stream == STREAM_UNIX_ATTRIBUTES
                   || prev_stream == STREAM_UNIX_ATTRIBUTES_EX
                   || prev_stream == STREAM_ENCRYPTED_SESSION_DATA)) {
             flags = 0;
+
             if (stream == STREAM_SPARSE_DATA || stream == STREAM_SPARSE_GZIP_DATA) {
                flags |= FO_SPARSE;
             }
+
             if (stream == STREAM_GZIP_DATA || stream == STREAM_SPARSE_GZIP_DATA
-                  || stream == STREAM_WIN32_GZIP_DATA) {
+                  || stream == STREAM_WIN32_GZIP_DATA || stream == STREAM_ENCRYPTED_FILE_GZIP_DATA
+                  || stream == STREAM_ENCRYPTED_WIN32_GZIP_DATA) {
                flags |= FO_GZIP;
             }
 
@@ -357,6 +364,7 @@ void do_restore(JCR *jcr)
 
       /* Resource fork stream - only recorded after a file to be restored */
       /* Silently ignore if we cannot write - we already reported that */
+      case STREAM_ENCRYPTED_MACOS_FORK_DATA:
       case STREAM_MACOS_FORK_DATA:
 #ifdef HAVE_DARWIN_OS
          if (extract) {

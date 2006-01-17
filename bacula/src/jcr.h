@@ -240,6 +240,7 @@ public:
    CRYPTO_SESSION *pki_session;       /* PKE Public Keys + Symmetric Session Keys */
    void *pki_session_encoded;         /* Cached DER-encoded copy of pki_session */
    size_t pki_session_encoded_size;   /* Size of DER-encoded pki_session */
+   POOLMEM *crypto_buf;               /* Encryption/Decryption buffer */
    DIRRES* director;                  /* Director resource */
 #endif /* FILE_DAEMON */
 

@@ -276,6 +276,11 @@ struct Crypto_Session {
    size_t session_key_len;                        /* Symmetric session key length */
 };
 
+/* Symmetric Cipher Context */
+struct Cipher_Context {
+   EVP_CIPHER_CTX ctx;
+};
+
 /* PEM Password Dispatch Context */
 typedef struct PEM_CB_Context {
    CRYPTO_PEM_PASSWD_CB *pem_callback;
@@ -1215,6 +1220,115 @@ void crypto_session_free (CRYPTO_SESSION *cs)
 }
 
 /*
+ * Create a new crypto cipher context with the specified session object
+ *  Returns: A pointer to a CIPHER_CONTEXT object on success. The cipher block size is returned in blocksize.
+ *           NULL on failure.
+ */
+CIPHER_CONTEXT *crypto_cipher_new (CRYPTO_SESSION *cs, bool encrypt, size_t *blocksize)
+{
+   CIPHER_CONTEXT *cipher_ctx;
+   const EVP_CIPHER *ec;
+
+   cipher_ctx = (CIPHER_CONTEXT *) malloc(sizeof(CIPHER_CONTEXT));
+   if (!cipher_ctx) {
+      return NULL;
+   }
+
+   /*
+    * Acquire a cipher instance for the given ASN.1 cipher NID
+    */
+   if ((ec = EVP_get_cipherbyobj(cs->cryptoData->contentEncryptionAlgorithm)) == NULL) {
+      Emsg1(M_ERROR, 0, _("Unsupported contentEncryptionAlgorithm: %d\n"), OBJ_obj2nid(cs->cryptoData->contentEncryptionAlgorithm));
+      crypto_cipher_free(cipher_ctx);
+      return NULL;
+   }
+
+   /* Initialize the OpenSSL cipher context */
+   EVP_CIPHER_CTX_init(&cipher_ctx->ctx);
+   if (encrypt) {
+      /* Initialize for encryption */
+      if (!EVP_CipherInit_ex(&cipher_ctx->ctx, ec, NULL, NULL, NULL, 1)) {
+         openssl_post_errors(M_ERROR, _("OpenSSL cipher context initialization failed"));
+         goto err;
+      }
+   } else {
+      /* Initialize for decryption */
+      if (!EVP_CipherInit_ex(&cipher_ctx->ctx, ec, NULL, NULL, NULL, 0)) {
+         openssl_post_errors(M_ERROR, _("OpenSSL cipher context initialization failed"));
+         goto err;
+      }
+   }
+
+   /* Set the key size */
+   if (!EVP_CIPHER_CTX_set_key_length(&cipher_ctx->ctx, cs->session_key_len)) {
+      openssl_post_errors(M_ERROR, _("Encryption session provided an invalid symmetric key"));
+      goto err;
+   }
+
+   /* Validate the IV length */
+   if (EVP_CIPHER_iv_length(ec) != M_ASN1_STRING_length(cs->cryptoData->iv)) {
+      openssl_post_errors(M_ERROR, _("Encryption session provided an invalid IV"));
+      goto err;
+   }
+   
+   /* Add the key and IV to the cipher context */
+   if (!EVP_CipherInit_ex(&cipher_ctx->ctx, NULL, NULL, cs->session_key, M_ASN1_STRING_data(cs->cryptoData->iv), -1)) {
+      openssl_post_errors(M_ERROR, _("OpenSSL cipher context key/IV initialization failed"));
+      goto err;
+   }
+
+   *blocksize = EVP_CIPHER_CTX_block_size(&cipher_ctx->ctx);
+   return cipher_ctx;
+
+err:
+   crypto_cipher_free(cipher_ctx);
+   return NULL;
+}
+
+
+/*
+ * Encrypt/Decrypt length bytes of data using the provided cipher context
+ * Returns: true on success, number of bytes output in written
+ *          false on failure
+ */
+bool crypto_cipher_update (CIPHER_CONTEXT *cipher_ctx, const void *data, size_t length, const void *dest, size_t *written) {
+   if (!EVP_CipherUpdate(&cipher_ctx->ctx, (unsigned char *) dest, (int *) written, (const unsigned char *) data, length)) {
+      /* This really shouldn't fail */
+      return false;
+   } else {
+      return true;
+   }
+}
+
+/*
+ * Finalize the cipher context, writing any remaining data and necessary padding
+ * to dest, and the size in written.
+ * The result size will either be one block of data or zero.
+ *
+ * Returns: true on success
+ *          false on failure
+ */
+bool crypto_cipher_finalize (CIPHER_CONTEXT *cipher_ctx, void *dest, size_t *written) {
+   if (!EVP_CipherFinal_ex(&cipher_ctx->ctx, (unsigned char *) dest, (int *) written)) {
+      /* This really shouldn't fail */
+      return false;
+   } else {
+      return true;
+   }
+}
+
+
+/*
+ * Free memory associated with a cipher context.
+ */
+void crypto_cipher_free (CIPHER_CONTEXT *cipher_ctx)
+{
+   EVP_CIPHER_CTX_cleanup(&cipher_ctx->ctx);
+   free (cipher_ctx);
+}
+
+
+/*
  * Perform global initialization of OpenSSL
  * This function is not thread safe.
  *  Returns: 0 on success
@@ -1403,8 +1517,13 @@ void crypto_keypair_free (X509_KEYPAIR *keypair) { }
 
 CRYPTO_SESSION *crypto_session_new (crypto_cipher_t cipher, alist *pubkeys) { return NULL; }
 void crypto_session_free (CRYPTO_SESSION *cs) { }
-bool crypto_session_encode(CRYPTO_SESSION *cs, void *dest, size_t *length) { return false; }
-crypto_error_t crypto_session_decode(const void *data, size_t length, alist *keypairs, CRYPTO_SESSION **session) { return CRYPTO_ERROR_INTERNAL; }
+bool crypto_session_encode (CRYPTO_SESSION *cs, void *dest, size_t *length) { return false; }
+crypto_error_t crypto_session_decode (const void *data, size_t length, alist *keypairs, CRYPTO_SESSION **session) { return CRYPTO_ERROR_INTERNAL; }
+
+CIPHER_CONTEXT *crypto_cipher_new (CRYPTO_SESSION *cs, bool encrypt, size_t *blocksize) { return NULL; }
+bool crypto_cipher_update (CIPHER_CONTEXT *cipher_ctx, const void *data, size_t length, const void *dest, size_t *written) { return false; }
+bool crypto_cipher_finalize (CIPHER_CONTEXT *cipher_ctx, void *dest, size_t *written) { return false; }
+void crypto_cipher_free (CIPHER_CONTEXT *cipher_ctx) { }
 
 #endif /* HAVE_CRYPTO */
 

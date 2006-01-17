@@ -88,6 +88,7 @@ enum {
 #define FO_WIN32DECOMP  (1<<18)       /* Use BackupRead decomposition */
 #define FO_SHA256       (1<<19)       /* Do SHA256 checksum */
 #define FO_SHA512       (1<<20)       /* Do SHA512 checksum */
+#define FO_ENCRYPT      (1<<21)       /* Encrypt data stream */
 
 struct s_included_file {
    struct s_included_file *next;

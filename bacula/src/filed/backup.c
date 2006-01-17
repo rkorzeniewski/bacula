@@ -110,6 +110,9 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
 
       /* ... and store the encoded size */
       jcr->pki_session_encoded_size = size;
+
+      /* Allocate the encryption/decryption buffer */
+      jcr->crypto_buf = get_memory(CRYPTO_CIPHER_MAX_BLOCK_SIZE);
    }
 
    Dmsg1(300, "set_find_options ff=%p\n", jcr->ff);
@@ -140,6 +143,10 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
    if (jcr->compress_buf) {
       free_pool_memory(jcr->compress_buf);
       jcr->compress_buf = NULL;
+   }
+   if (jcr->crypto_buf) {
+      free_pool_memory(jcr->crypto_buf);
+      jcr->crypto_buf = NULL;
    }
 
    if (jcr->pki_session) {
@@ -308,13 +315,17 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
    if (jcr->pki_sign) {
       signing_digest = crypto_digest_new(signing_algorithm);
    }
-
    /* Full-stop if a failure occured initializing the signature digest */
    if (jcr->pki_sign && signing_digest == NULL) {
       Jmsg(jcr, M_NOTSAVED, 0, _("%s signature digest initialization failed\n"),
          stream_to_ascii(signing_algorithm));
       jcr->Errors++;
       return 1;
+   }
+
+   /* Enable encryption */
+   if (jcr->pki_encrypt) {
+      ff_pkt->flags |= FO_ENCRYPT;
    }
 
    /* Initialise the file descriptor we use for data and other streams. */
@@ -544,6 +555,11 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
    char *rbuf, *wbuf;
    int rsize = jcr->buf_size;      /* read buffer size */
    POOLMEM *msgsave;
+   CIPHER_CONTEXT *cipher_ctx = NULL; /* Quell bogus uninitialized warnings */
+   const void *cipher_input;
+   size_t cipher_input_len;
+   size_t cipher_block_size;
+   size_t encrypted_len;
 #ifdef FD_NO_SEND_TEST
    return 1;
 #endif
@@ -551,10 +567,10 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
    msgsave = sd->msg;
    rbuf = sd->msg;                    /* read buffer */
    wbuf = sd->msg;                    /* write buffer */
+   cipher_input = rbuf;               /* encrypt uncompressed data */
 
 
    Dmsg1(300, "Saving data, type=%d\n", ff_pkt->type);
-
 
 #ifdef HAVE_LIBZ
    uLong compress_len, max_compress_len = 0;
@@ -569,8 +585,29 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
          max_compress_len = jcr->compress_buf_size; /* set max length */
       }
       wbuf = jcr->compress_buf;    /* compressed output here */
+      cipher_input = jcr->compress_buf; /* encrypt compressed data */
    }
 #endif
+
+   if (ff_pkt->flags & FO_ENCRYPT) {
+      /* Allocate the cipher context */
+      if ((cipher_ctx = crypto_cipher_new(jcr->pki_session, true, &cipher_block_size)) == NULL) {
+         /* Shouldn't happen! */
+         Jmsg0(jcr, M_FATAL, 0, _("Failed to initialize encryption context"));
+         goto err;
+      }
+
+      /*
+       * Grow the crypto buffer, if necessary.
+       * crypto_cipher_update() will buffer up to (cipher_block_size - 1).
+       * We grow crypto_buf to the maximum number of blocks that
+       * could be returned for the given read buffer size.
+       * (Using the larger of either rsize or max_compress_len)
+       */
+      jcr->crypto_buf = check_pool_memory_size(jcr->crypto_buf, (MAX((size_t) rsize, max_compress_len) + cipher_block_size - 1) / cipher_block_size * cipher_block_size);
+
+      wbuf = jcr->crypto_buf; /* Encrypted, possibly compressed output here. */
+   }
 
    /*
     * Send Data header to Storage daemon
@@ -579,7 +616,7 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
    if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, stream)) {
       Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
             bnet_strerror(sd));
-      return 0;
+      goto err;
    }
    Dmsg1(300, ">stored: datahdr %s\n", sd->msg);
 
@@ -628,6 +665,9 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
       jcr->ReadBytes += sd->msglen;         /* count bytes read */
       fileAddr += sd->msglen;
 
+      /* Uncompressed cipher input length */
+      cipher_input_len = sd->msglen;
+
       /* Update checksum if requested */
       if (digest) {
          crypto_digest_update(digest, rbuf, sd->msglen);
@@ -650,17 +690,33 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
                (const Bytef *)rbuf, (uLong)sd->msglen,
                ff_pkt->GZIP_level)) != Z_OK) {
             Jmsg(jcr, M_FATAL, 0, _("Compression error: %d\n"), zstat);
-            sd->msg = msgsave;
-            sd->msglen = 0;
             set_jcr_job_status(jcr, JS_ErrorTerminated);
-            return 0;
+            goto err;
          }
          Dmsg2(400, "compressed len=%d uncompressed len=%d\n",
             compress_len, sd->msglen);
 
          sd->msglen = compress_len;      /* set compressed length */
+         cipher_input_len = compress_len;
       }
 #endif
+
+      if (ff_pkt->flags & FO_ENCRYPT) {
+         /* Encrypt the input block */
+         if (crypto_cipher_update(cipher_ctx, cipher_input, cipher_input_len, jcr->crypto_buf, &encrypted_len)) {
+            if (encrypted_len == 0) {
+               /* No full block of data available, read more data */
+               continue;
+            }
+            Dmsg2(400, "encrypted len=%d unencrypted len=%d\n",
+               encrypted_len, sd->msglen);
+            sd->msglen = encrypted_len; /* set encrypted length */
+         } else {
+            /* Encryption failed. Shouldn't happen. */
+            Jmsg(jcr, M_FATAL, 0, _("Encryption error\n"));
+            goto err;
+         }
+      }
 
       /* Send the buffer to the Storage daemon */
       if (!sparseBlock) {
@@ -671,18 +727,42 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
          if (!bnet_send(sd)) {
             Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
                   bnet_strerror(sd));
-            sd->msg = msgsave;     /* restore bnet buffer */
-            sd->msglen = 0;
-            return 0;
+            goto err;
          }
       }
       Dmsg1(130, "Send data to SD len=%d\n", sd->msglen);
       /*          #endif */
-      jcr->JobBytes += sd->msglen;      /* count bytes saved possibly compressed */
+      jcr->JobBytes += sd->msglen;      /* count bytes saved possibly compressed/encrypted */
       sd->msg = msgsave;                /* restore read buffer */
 
    } /* end while read file data */
 
+   /* Send any remaining encrypted data + padding */
+   if (ff_pkt->flags & FO_ENCRYPT) {
+      if (!crypto_cipher_finalize(cipher_ctx, jcr->crypto_buf, &encrypted_len)) {
+         /* Padding failed. Shouldn't happen. */
+         Jmsg(jcr, M_FATAL, 0, _("Encryption padding error\n"));
+         goto err;
+      }
+
+      if (encrypted_len > 0) {
+         sd->msglen = encrypted_len; /* set encrypted length */
+
+         /* Send remaining encrypted data to the SD */
+         if (ff_pkt->flags & FO_SPARSE) {
+            sd->msglen += SPARSE_FADDR_SIZE; /* include fileAddr in size */
+         }
+         sd->msg = wbuf;              /* set correct write buffer */
+         if (!bnet_send(sd)) {
+            Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+                  bnet_strerror(sd));
+            goto err;
+         }
+         Dmsg1(130, "Send data to SD len=%d\n", sd->msglen);
+         jcr->JobBytes += sd->msglen;      /* count bytes saved possibly compressed/encrypted */
+         sd->msg = msgsave;                /* restore bnet buffer */
+      }
+   }
 
    if (sd->msglen < 0) {
       berrno be;
@@ -697,10 +777,23 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
    if (!bnet_sig(sd, BNET_EOD)) {        /* indicate end of file data */
       Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
             bnet_strerror(sd));
-      return 0;
+      goto err;
+   }
+
+   /* Free the cipher context */
+   if (cipher_ctx) {
+      crypto_cipher_free(cipher_ctx);
    }
 
    return 1;
+
+err:
+   if (cipher_ctx) {
+      crypto_cipher_free(cipher_ctx);
+   }
+   sd->msg = msgsave; /* restore bnet buffer */
+   sd->msglen = 0;
+   return 0;
 }
 
 /*
@@ -770,7 +863,11 @@ static bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_strea
 #endif
 
    /* Find what data stream we will use, then encode the attributes */
-   data_stream = select_data_stream(ff_pkt);
+   if ((data_stream = select_data_stream(ff_pkt)) == STREAM_NONE) {
+      /* This should not happen */
+      Jmsg0(jcr, M_FATAL, 0, _("Invalid file flags, no supported data stream type.\n"));
+      return false;
+   }
    encode_stat(attribs, ff_pkt, data_stream);
 
    /* Now possibly extend the attributes */
