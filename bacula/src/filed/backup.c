@@ -593,7 +593,7 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
       /* Allocate the cipher context */
       if ((cipher_ctx = crypto_cipher_new(jcr->pki_session, true, &cipher_block_size)) == NULL) {
          /* Shouldn't happen! */
-         Jmsg0(jcr, M_FATAL, 0, _("Failed to initialize encryption context"));
+         Jmsg0(jcr, M_FATAL, 0, _("Failed to initialize encryption context\n"));
          goto err;
       }
 
