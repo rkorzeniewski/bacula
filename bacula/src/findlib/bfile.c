@@ -48,6 +48,8 @@ bool is_win32_stream(int stream)
    switch (stream) {
    case STREAM_WIN32_DATA:
    case STREAM_WIN32_GZIP_DATA:
+   case STREAM_ENCRYPTED_WIN32_DATA:
+   case STREAM_ENCRYPTED_WIN32_GZIP_DATA:
       return true;
    }
    return false;
@@ -92,6 +94,16 @@ const char *stream_to_ascii(int stream)
       return _("SHA512 digest");
    case STREAM_SIGNED_DIGEST:
       return _("Signed digest");
+   case STREAM_ENCRYPTED_FILE_DATA:
+      return _("Encrypted File data");
+   case STREAM_ENCRYPTED_FILE_GZIP_DATA:
+      return _("Encrypted GZIP data");
+   case STREAM_ENCRYPTED_WIN32_DATA:
+      return _("Encrypted Win32 data");
+   case STREAM_ENCRYPTED_WIN32_GZIP_DATA:
+      return _("Encrypted Win32 GZIP data");
+   case STREAM_ENCRYPTED_MACOS_FORK_DATA:
+      return _("Encrypted HFS+ resource fork");
    default:
       sprintf(buf, "%d", stream);
       return (const char *)buf;
@@ -317,6 +329,7 @@ bool is_restore_stream_supported(int stream)
 #endif
    case STREAM_MACOS_FORK_DATA:
    case STREAM_HFSPLUS_ATTRIBUTES:
+   case STREAM_ENCRYPTED_MACOS_FORK_DATA:
       return false;
 
    /* Known streams */
@@ -340,6 +353,10 @@ bool is_restore_stream_supported(int stream)
 #endif
 #ifdef HAVE_CRYPTO
    case STREAM_SIGNED_DIGEST:
+   case STREAM_ENCRYPTED_FILE_DATA:
+   case STREAM_ENCRYPTED_FILE_GZIP_DATA:
+   case STREAM_ENCRYPTED_WIN32_DATA:
+   case STREAM_ENCRYPTED_WIN32_GZIP_DATA:
 #endif
    case 0:                            /* compatibility with old tapes */
       return true;
@@ -714,10 +731,20 @@ bool is_restore_stream_supported(int stream)
    case STREAM_SHA256_DIGEST:
    case STREAM_SHA512_DIGEST:
 #endif
+#ifdef HAVE_CRYPTO
+   case STREAM_SIGNED_DIGEST:
+   case STREAM_ENCRYPTED_FILE_DATA:
+   case STREAM_ENCRYPTED_FILE_GZIP_DATA:
+   case STREAM_ENCRYPTED_WIN32_DATA:
+   case STREAM_ENCRYPTED_WIN32_GZIP_DATA:
+#endif
 #ifdef HAVE_DARWIN_OS
    case STREAM_MACOS_FORK_DATA:
    case STREAM_HFSPLUS_ATTRIBUTES:
-#endif
+#ifdef HAVE_CRYPTO
+   case STREAM_ENCRYPTED_MACOS_FORK_DATA:
+#endif /* HAVE_CRYPTO */
+#endif /* HAVE_DARWIN_OS */
    case 0:   /* compatibility with old tapes */
       return true;
 

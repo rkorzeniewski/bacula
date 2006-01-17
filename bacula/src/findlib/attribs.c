@@ -56,6 +56,15 @@ int select_data_stream(FF_PKT *ff_pkt)
 {
    int stream;
 
+   /*
+    *  Fix all incompatible options
+    */
+
+   /* No sparse option for encrypted data */
+   if (ff_pkt->flags & FO_ENCRYPT) {
+      ff_pkt->flags &= ~FO_SPARSE;
+   }
+
    /* Note, no sparse option for win32_data */
    if (!is_portable_backup(&ff_pkt->bfd)) {
       stream = STREAM_WIN32_DATA;
@@ -65,17 +74,65 @@ int select_data_stream(FF_PKT *ff_pkt)
    } else {
       stream = STREAM_FILE_DATA;
    }
+
+   /* Encryption is only supported for file data */
+   if (stream != STREAM_FILE_DATA && stream != STREAM_WIN32_DATA &&
+         stream != STREAM_MACOS_FORK_DATA) {
+      ff_pkt->flags &= ~FO_ENCRYPT;
+   }
+
+   /* Compression is not supported for Mac fork data */
+   if (stream == STREAM_MACOS_FORK_DATA) {
+      ff_pkt->flags &= ~FO_GZIP;
+   }
+
+   /*
+    * Handle compression and encryption options
+    */
 #ifdef HAVE_LIBZ
    if (ff_pkt->flags & FO_GZIP) {
-      if (stream == STREAM_WIN32_DATA) {
+      switch (stream) {
+      case STREAM_WIN32_DATA:
          stream = STREAM_WIN32_GZIP_DATA;
-      } else if (stream == STREAM_FILE_DATA) {
-         stream = STREAM_GZIP_DATA;
-      } else {
+         break;
+      case STREAM_SPARSE_DATA:
          stream = STREAM_SPARSE_GZIP_DATA;
+         break;
+      case STREAM_FILE_DATA:
+         stream = STREAM_GZIP_DATA;
+         break;
+      default:
+         /* All stream types that do not support gzip should clear out
+          * FO_GZIP above, and this code block should be unreachable. */
+         ASSERT(!ff_pkt->flags & FO_GZIP);
+         return STREAM_NONE;
       }
    }
 #endif
+#ifdef HAVE_CRYPTO
+   if (ff_pkt->flags & FO_ENCRYPT) {
+      switch (stream) {
+      case STREAM_WIN32_DATA:
+         stream = STREAM_ENCRYPTED_WIN32_DATA;
+         break;
+      case STREAM_WIN32_GZIP_DATA:
+         stream = STREAM_ENCRYPTED_WIN32_GZIP_DATA;
+         break;
+      case STREAM_FILE_DATA:
+         stream = STREAM_ENCRYPTED_FILE_DATA;
+         break;
+      case STREAM_GZIP_DATA:
+         stream = STREAM_ENCRYPTED_FILE_GZIP_DATA;
+         break;
+      default:
+         /* All stream types that do not support encryption should clear out
+          * FO_ENCRYPT above, and this code block should be unreachable. */
+         ASSERT(!ff_pkt->flags & FO_ENCRYPT);
+         return STREAM_NONE;
+      }
+   }
+#endif
+
    return stream;
 }
 
