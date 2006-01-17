@@ -177,16 +177,19 @@ SELECT DISTINCT Job.JobId as JobId,Job.Name as Name,Job.StartTime as StartTime,
  AND JobMedia.JobId=Job.JobId
  ORDER by Job.StartTime;
 # 16
-:List File record for given Job and File
-*Enter JobId:
-*Enter Full path (no filename) with trailing slash:
-*Enter Filename:
-SELECT File.JobId AS JobId,FileIndex FROM File,Path,Filename 
-  WHERE File.JobId=%1 AND
-  Path.Path='%2' AND Filename.Name='%3' AND
-  File.PathId=Path.PathId AND File.FilenameId=Filename.FilenameId;
-SELECT JobId,Name,VolSessionId,VolsessionTime,JobFiles FROM Job WHERE JobId=%1;
-SELECT JobId,MediaId,FirstIndex,LastIndex,StartFile,EndFile,StartBlock,EndBlock,
-  VolIndex FROM JobMedia WHERE JobId=%1;
-SELECT VolumeName FROM Media,JobMedia WHERE JobMedia.JobId=%1 AND
-  Media.MediaId=JobMedia.MediaId;
+:List Volumes Bacula thinks are in changer:
+SELECT MediaId,VolumeName,VolBytes/(1024*1024*1024) AS GB,Storage.Name 
+  AS Storage,Slot,Pool.Name AS Pool,MediaType,VolStatus
+  FROM Media,Pool,Storage
+  WHERE Media.PoolId=Pool.PoolId
+  AND Slot>0 AND InChanger=1
+  AND Media.StorageId=Storage.StorageId
+  ORDER BY MediaType ASC, Slot ASC;
+# 17
+:List Volumes likely to need replacement from age or errors
+SELECT VolumeName AS Volume,VolMounts AS Mounts,VolErrors AS Errors,
+         VolWrites AS Writes,VolStatus AS Status
+  FROM Media
+  WHERE (VolErrors>0) OR (VolStatus='Error') OR (VolMounts>50) OR
+         (VolStatus='Disabled') OR (VolWrites>3999999)
+  ORDER BY VolStatus ASC, VolErrors,VolMounts,VolumeName DESC;

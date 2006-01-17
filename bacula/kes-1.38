@@ -3,7 +3,11 @@
 
 General:
 
-Release 1.38.4:
+Release 1.38.4 released 17Jan06:
+16Jan06
+- Add two new queries to query.sql provided by Arno. One
+  list volumes known to the Storage device, and the other
+  lists volumes possibly needing replacement (error, ...).
 15Jan06
 - Add periodic (every 24 hours) garbage collection of memory 
   pool by releasing free buffers.
