@@ -1,5 +1,5 @@
 # Bacula RPM spec file
-# Copyright (C) 2000-2005 Kern Sibbald
+# Copyright (C) 2000-2006 Kern Sibbald
 
 # Platform Build Configuration
 
@@ -13,7 +13,7 @@
 %define file_daemon_user root
 %define daemon_group bacula
 # group that has write access to tape devices, usually disk on Linux
-%define device_group disk
+%define storage_daemon_group disk
 %define user_file /etc/passwd
 %define group_file /etc/group
 %define useradd /usr/sbin/useradd
@@ -567,7 +567,7 @@ make
         --with-dir-user=%{director_daemon_user} \
         --with-dir-group=%{daemon_group} \
         --with-sd-user=%{storage_daemon_user} \
-        --with-sd-group=%{daemon_group} \
+        --with-sd-group=%{storage_daemon_group} \
         --with-fd-user=%{file_daemon_user} \
         --with-fd-group=%{daemon_group} \
         --with-dir-password="XXX_REPLACE_WITH_DIRECTOR_PASSWORD_XXX" \
@@ -775,16 +775,14 @@ chmod 644 $RPM_BUILD_ROOT/etc/bacula/tray-monitor.conf
 %attr(0750, root, %{daemon_group}) /etc/bacula/update_bacula_tables
 %attr(0750, root, %{daemon_group}) /etc/bacula/make_catalog_backup
 %attr(0750, root, %{daemon_group}) /etc/bacula/delete_catalog_backup
-%attr(0750, root, %{daemon_group}) /etc/bacula/mtx-changer
-%attr(0640, root, %{daemon_group}) /etc/bacula/btraceback.dbx
-%attr(0640, root, %{daemon_group}) /etc/bacula/btraceback.gdb
-#%attr(0750, root, %{daemon_group}) /etc/bacula/dvd-freespace
-#%attr(0750, root, %{daemon_group}) /etc/bacula/dvd-writepart
-%attr(0750, root, %{daemon_group}) /etc/bacula/dvd-handler
+%attr(0644, root, %{daemon_group}) /etc/bacula/btraceback.dbx
+%attr(0644, root, %{daemon_group}) /etc/bacula/btraceback.gdb
+%attr(0750, root, %{daemon_group}) /etc/bacula/rescue
 %attr(0750, root, %{daemon_group}) /etc/init.d/bacula-dir
 %attr(0750, root, %{daemon_group}) /etc/init.d/bacula-fd
-%attr(0750, root, %{daemon_group}) /etc/init.d/bacula-sd
-%attr(0750, root, %{daemon_group}) /etc/bacula/rescue
+%attr(0750, root, %{storage_daemon_group}) /etc/bacula/dvd-handler
+%attr(0750, root, %{storage_daemon_group}) /etc/init.d/bacula-sd
+%attr(0750, root, %{storage_daemon_group}) /etc/bacula/mtx-changer
 
 %doc COPYING ChangeLog ReleaseNotes VERIFYING kernstodo 
 %doc %{_docsrc}/manual/bacula.pdf %{_docsrc}/developers/developers.pdf %{_docsrc}/manual/bacula ../Release_Notes-%{version}-%{release}.txt
@@ -793,7 +791,7 @@ chmod 644 $RPM_BUILD_ROOT/etc/bacula/tray-monitor.conf
 /etc/log.d/scripts/services/bacula
 %attr(0640, root, %{daemon_group}) %config(noreplace) /etc/bacula/bacula-dir.conf
 %attr(0640, root, %{daemon_group}) %config(noreplace) /etc/bacula/bacula-fd.conf
-%attr(0640, root, %{daemon_group}) %config(noreplace) /etc/bacula/bacula-sd.conf
+%attr(0640, root, %{storage_daemon_group}) %config(noreplace) /etc/bacula/bacula-sd.conf
 %attr(0640, root, %{daemon_group}) %config(noreplace) /etc/bacula/bconsole.conf
 %attr(0640, root, %{daemon_group}) %config(noreplace) /etc/log.d/conf/logfiles/bacula.conf
 %attr(0640, root, %{daemon_group}) %config(noreplace) /etc/log.d/conf/services/bacula.conf
@@ -858,9 +856,15 @@ if [ -z "$HAVE_BACULA" ]; then
         echo "The group %{daemon_group} has been added to %{group_file}."
         echo "See the manual chapter \"Running Bacula\" for details."
 fi
+HAVE_BACULA=`grep %{storage_daemon_group} %{group_file} 2>/dev/null`
+if [ -z "$HAVE_BACULA" ]; then
+        %{groupadd} -r %{storage_daemon_group} > /dev/null 2>&1
+        echo "The group %{storage_daemon_group} has been added to %{group_file}."
+        echo "See the manual chapter \"Running Bacula\" for details."
+fi
 HAVE_BACULA=`grep %{storage_daemon_user} %{user_file} 2>/dev/null`
 if [ -z "$HAVE_BACULA" ]; then
-        %{useradd} -r -c "Bacula" -d %{working_dir} -g %{daemon_group} -G %{device_group} -M -n -s /sbin/nologin %{storage_daemon_user} > /dev/null 2>&1
+        %{useradd} -r -c "Bacula" -d %{working_dir} -g %{storage_daemon_group} -M -n -s /sbin/nologin %{storage_daemon_user} > /dev/null 2>&1
         echo "The user %{storage_daemon_user} has been added to %{user_file}."
         echo "See the manual chapter \"Running Bacula\" for details."
 fi
@@ -1005,10 +1009,10 @@ fi
 
 
 %files mtx
-/usr/sbin/loaderinfo
-/usr/sbin/mtx
-/usr/sbin/scsitape
-/usr/sbin/tapeinfo
+%attr(0750, root, %{storage_daemon_group}) /usr/sbin/loaderinfo
+%attr(0750, root, %{storage_daemon_group}) /usr/sbin/mtx
+%attr(0750, root, %{storage_daemon_group}) /usr/sbin/scsitape
+%attr(0750, root, %{storage_daemon_group}) /usr/sbin/tapeinfo
 /usr/man/man1/*
 
 
@@ -1030,8 +1034,8 @@ fi
 
 /usr/sbin/bacula-fd
 /usr/sbin/btraceback
-%attr(0640, root, %{daemon_group}) /etc/bacula/btraceback.gdb
-%attr(0640, root, %{daemon_group}) /etc/bacula/btraceback.dbx
+%attr(0644, root, %{daemon_group}) /etc/bacula/btraceback.gdb
+%attr(0644, root, %{daemon_group}) /etc/bacula/btraceback.dbx
 /usr/sbin/bsmtp
 /usr/sbin/bconsole
 
