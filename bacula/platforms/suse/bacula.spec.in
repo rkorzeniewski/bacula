@@ -113,7 +113,7 @@ exit 1
 %define _dist %(grep White /etc/whitebox-release)
 %endif
 %if %{su9}
-%define _dist %(grep SuSE /etc/SuSE-release)
+%define _dist %(grep -i SuSE /etc/SuSE-release)
 %endif
 %if %{mdk}
 %define _dist %(grep Mandrake /etc/mandrake-release)
@@ -404,8 +404,7 @@ database.
 %package gconsole
 Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
-Requires: atk, libstdc++, zlib, pango, libxml2, bacula-fd
-Requires: usermode, openssl
+Requires: atk, libstdc++, zlib, pango, libxml2, bacula-fd, openssl
 %endif
 
 %if %{gconsole} && %{su9}
@@ -460,6 +459,9 @@ Requires: freetype
 %endif
 %if %{gconsole} && %{su9}
 Requires: xsu
+%endif
+%if %{gconsole} && ! %{su9}
+Requires: usermode
 %endif
 
 %if %{gconsole}
@@ -723,6 +725,10 @@ chmod 644 $RPM_BUILD_ROOT/etc/bacula/tray-monitor.conf
 %clean
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf "$RPM_BUILD_ROOT"
 
+
+# Note to Kern and Aleksandar: I'm leveing this for now but this is very bad
+# practice to specify permissions per previous discussion with Michael Johnson.
+# The build should take care of the 0750 etc.
 
 %if %{mysql}
 # MySQL specific files
@@ -1154,6 +1160,12 @@ fi
 %endif
 
 %changelog
+* Sat Jan 21 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- 1.38.5 release
+- fix usermode required on suse, suse doesn't have usermode (xsu instead)
+- refix compat for _dist on SLES9 which seems to have been removed
+- added note regarding Aleksandar's use of specific permissions in attrib macros
+- need to review and add specific fc4 build currently using fc3 Requires
 * Wed Dec 14 2005 Aleksandar Milivojevic <alex@milivojevic.org>
 - 1.38.2 release
 - Reorganize files and pre/post sections to remove repetitions
