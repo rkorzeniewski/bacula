@@ -52,12 +52,14 @@
 # SuSE build
 %define su9 0
 %{?build_su9:%define su9 1}
+%define su10 0
+%{?build_su10:%define su10 1}
 # Mandrake build
 %define mdk 0
 %{?build_mdk:%define mdk 1}
 
 # test for a platform definition
-%if ! %{rh7} && ! %{rh8} && ! %{rh9} && ! %{fc1} && ! %{fc3} && ! %{wb3} && ! %{su9} && ! %{mdk}
+%if ! %{rh7} && ! %{rh8} && ! %{rh9} && ! %{fc1} && ! %{fc3} && ! %{wb3} && ! %{su9} && ! %{su10} && ! %{mdk}
 %{error: You must specify a platform. Please examine the spec file.}
 exit 1
 %endif
@@ -112,7 +114,7 @@ exit 1
 %if %{wb3} && ! %{rhel3}
 %define _dist %(grep White /etc/whitebox-release)
 %endif
-%if %{su9}
+%if %{su9} || %{su10}
 %define _dist %(grep -i SuSE /etc/SuSE-release)
 %endif
 %if %{mdk}
@@ -169,6 +171,24 @@ BuildRequires: gconf2-devel
 BuildRequires: linc-devel
 BuildRequires: freetype2-devel
 %endif
+%if %{su10}
+BuildRequires: termcap
+BuildRequires: libgnome >= 2.12
+BuildRequires: gtk2-devel >= 2.8
+BuildRequires: libgnomeui-devel >= 2.12
+BuildRequires: glibc-devel >= 2.3
+BuildRequires: ORBit2-devel
+BuildRequires: libart_lgpl-devel >= 2.3
+BuildRequires: libbonobo-devel >= 2.10
+BuildRequires: libbonoboui-devel >= 2.10
+BuildRequires: bonobo-activation-devel
+BuildRequires: gconf2-devel
+BuildRequires: freetype2-devel
+BuildRequires: cairo-devel
+BuildRequires: fontconfig-devel >= 2.3
+BuildRequires: gnome-vfs2-devel >= 2.12
+BuildRequires: libpng-devel
+%endif
 %if %{mdk}
 BuildRequires: libtermcap-devel
 BuildRequires: gtk2-devel >= 2.0
@@ -197,7 +217,7 @@ BuildRequires: bonobo-activation-devel
 BuildRequires: GConf2-devel
 BuildRequires: freetype-devel
 %endif
-%if ! %{rh7} && ! %{su9} && ! %{mdk} && ! %{fc3}
+%if ! %{rh7} && ! %{su9} && ! %{su10} && ! %{mdk} && ! %{fc3}
 BuildRequires: libtermcap-devel
 BuildRequires: gtk2-devel >= 2.0
 BuildRequires: libgnomeui-devel >= 2.0
@@ -260,11 +280,11 @@ Requires: ncurses, libstdc++, zlib, openssl, mtx
 Requires: glibc >= 2.2
 Requires: libtermcap
 %endif
-%if %{su9}
+%if %{su9} || %{su10}
 Requires: glibc >= 2.3
 Requires: termcap
 %endif
-%if ! %{rh7} && ! %{su9}
+%if ! %{rh7} && ! %{su9} && ! %{su10}
 Requires: glibc >= 2.3
 Requires: libtermcap
 %endif
@@ -273,7 +293,7 @@ Requires: libtermcap
 Requires: mysql >= 3.23
 Requires: mysql-server >= 3.23
 %endif
-%if %{mysql} && ! %{su9} && ! %{mdk} && %{mysql4}
+%if %{mysql} && ! %{su9} && ! %{su10} && ! %{mdk} && %{mysql4}
 Requires: mysql >= 4.0
 Requires: mysql-server >= 4.0
 %endif
@@ -283,6 +303,10 @@ Requires: mysql >= 3.23
 Requires: mysql-client >= 3.23
 %endif
 %if %{mysql} && %{su9} && %{mysql4}
+Requires: mysql >= 4.0
+Requires: mysql-client >= 4.0
+%endif
+%if %{mysql} && %{su10} && %{mysql4}
 Requires: mysql >= 4.0
 Requires: mysql-client >= 4.0
 %endif
@@ -358,11 +382,11 @@ Requires: libstdc++, zlib, openssl
 Requires: glibc >= 2.2
 Requires: libtermcap
 %endif
-%if %{su9}
+%if %{su9} || %{su10}
 Requires: glibc >= 2.3
 Requires: termcap
 %endif
-%if ! %{rh7} && ! %{su9}
+%if ! %{rh7} && ! %{su9} && ! %{su10}
 Requires: glibc >= 2.3
 Requires: libtermcap
 %endif
@@ -421,6 +445,23 @@ Requires: gconf2
 Requires: linc
 Requires: freetype2
 %endif
+%if %{gconsole} && %{su10}
+Requires: gtk2 >= 2.8
+Requires: libgnome >= 2.12
+Requires: libgnomeui >= 2.12
+Requires: glibc >= 2.3
+Requires: ORBit2
+Requires: libart_lgpl >= 2.3
+Requires: libbonobo >= 2.10
+Requires: libbonoboui >= 2.10
+Requires: bonobo-activation
+Requires: gconf2
+Requires: freetype2
+Requires: cairo
+Requires: fontconfig >= 2.3
+Requires: gnome-vfs2 >= 2.12
+Requires: libpng
+%endif
 %if %{gconsole} && %{mdk}
 Requires: gtk2 >= 2.0
 Requires: libgnomeui2
@@ -444,7 +485,7 @@ Requires: bonobo-activation
 Requires: GConf2
 Requires: freetype
 %endif
-%if %{gconsole} && ! %{su9} && ! %{mdk} && ! %{fc3}
+%if %{gconsole} && ! %{su9} && ! %{su10} && ! %{mdk} && ! %{fc3}
 Requires: gtk2 >= 2.0
 Requires: libgnomeui >= 2.0
 Requires: glibc >= 2.3
@@ -460,7 +501,10 @@ Requires: freetype
 %if %{gconsole} && %{su9}
 Requires: xsu
 %endif
-%if %{gconsole} && ! %{su9}
+%if %{gconsole} && %{su10}
+Requires: xsu
+%endif
+%if %{gconsole} && ! %{su9} && ! %{su10}
 Requires: usermode
 %endif
 
@@ -490,7 +534,7 @@ server packages.
 
 %build
 
-%if %{su9}
+%if %{su9} || %{su10}
 export LDFLAGS="-L/usr/lib/termcap"
 %endif
 
@@ -519,6 +563,9 @@ patch src/cats/update_sqlite_tables.in src/cats/update_sqlite_tables.in.patch
 
 # patch the bacula-dir init script to remove sqlite service
 %if %{sqlite} && %{su9}
+patch platforms/suse/bacula-dir.in platforms/suse/bacula-dir-suse-sqlite.patch
+%endif
+%if %{sqlite} && %{su10}
 patch platforms/suse/bacula-dir.in platforms/suse/bacula-dir-suse-sqlite.patch
 %endif
 
@@ -596,7 +643,7 @@ mkdir -p $RPM_BUILD_ROOT/usr/share/pixmaps
 mkdir -p $RPM_BUILD_ROOT/usr/share/applications
 %endif
 mkdir -p $RPM_BUILD_ROOT/etc/bacula/updatedb
-%if %{gconsole} && ! %{su9}
+%if %{gconsole} && ! %{su9} && ! %{su10}
 mkdir -p $RPM_BUILD_ROOT/etc/pam.d
 mkdir -p $RPM_BUILD_ROOT/etc/security/console.apps
 mkdir -p $RPM_BUILD_ROOT/usr/bin
@@ -640,7 +687,7 @@ rm -f $RPM_BUILD_ROOT/etc/bacula/stopmysql
 rm -f $RPM_BUILD_ROOT/usr/sbin/static-bacula-fd
 
 # install the init scripts
-%if %{su9}
+%if %{su9} || %{su10}
 cp -p platforms/suse/bacula-dir $RPM_BUILD_ROOT/etc/init.d/bacula-dir
 cp -p platforms/suse/bacula-fd $RPM_BUILD_ROOT/etc/init.d/bacula-fd
 cp -p platforms/suse/bacula-sd $RPM_BUILD_ROOT/etc/init.d/bacula-sd
@@ -650,7 +697,7 @@ cp -p platforms/mandrake/bacula-dir $RPM_BUILD_ROOT/etc/init.d/bacula-dir
 cp -p platforms/mandrake/bacula-fd $RPM_BUILD_ROOT/etc/init.d/bacula-fd
 cp -p platforms/mandrake/bacula-sd $RPM_BUILD_ROOT/etc/init.d/bacula-sd
 %endif
-%if ! %{su9} && ! %{mdk}
+%if ! %{su9} && ! %{su10} && ! %{mdk}
 cp -p platforms/redhat/bacula-dir $RPM_BUILD_ROOT/etc/init.d/bacula-dir
 cp -p platforms/redhat/bacula-fd $RPM_BUILD_ROOT/etc/init.d/bacula-fd
 cp -p platforms/redhat/bacula-sd $RPM_BUILD_ROOT/etc/init.d/bacula-sd
@@ -659,6 +706,12 @@ chmod 0754 $RPM_BUILD_ROOT/etc/init.d/*
 
 # install the menu stuff
 %if %{gconsole} && %{su9}
+cp -p scripts/bacula.png $RPM_BUILD_ROOT/usr/share/pixmaps/bacula.png
+cp -p scripts/bacula.desktop.gnome2.xsu $RPM_BUILD_ROOT/usr/share/applications/bacula.desktop
+cp -p src/tray-monitor/generic.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/bacula-tray-monitor.xpm
+cp -p scripts/bacula-tray-monitor.desktop $RPM_BUILD_ROOT/usr/share/applications/bacula-tray-monitor.desktop
+%endif
+%if %{gconsole} && %{su10}
 cp -p scripts/bacula.png $RPM_BUILD_ROOT/usr/share/pixmaps/bacula.png
 cp -p scripts/bacula.desktop.gnome2.xsu $RPM_BUILD_ROOT/usr/share/applications/bacula.desktop
 cp -p src/tray-monitor/generic.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/bacula-tray-monitor.xpm
@@ -725,34 +778,29 @@ chmod 644 $RPM_BUILD_ROOT/etc/bacula/tray-monitor.conf
 %clean
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf "$RPM_BUILD_ROOT"
 
-
-# Note to Kern and Aleksandar: I'm leveing this for now but this is very bad
-# practice to specify permissions per previous discussion with Michael Johnson.
-# The build should take care of the 0750 etc.
-
 %if %{mysql}
 # MySQL specific files
 %files mysql
 %defattr(-, root, root)
-%attr(0750, root, %{daemon_group}) /etc/bacula/create_mysql_database
-%attr(0750, root, %{daemon_group}) /etc/bacula/drop_mysql_database
-%attr(0750, root, %{daemon_group}) /etc/bacula/make_mysql_tables
-%attr(0750, root, %{daemon_group}) /etc/bacula/drop_mysql_tables
-%attr(0750, root, %{daemon_group}) /etc/bacula/update_mysql_tables
-%attr(0750, root, %{daemon_group}) /etc/bacula/grant_mysql_privileges
-%attr(0750, root, %{daemon_group}) /etc/bacula/startmysql
-%attr(0750, root, %{daemon_group}) /etc/bacula/stopmysql
+%attr(-, root, %{daemon_group}) /etc/bacula/create_mysql_database
+%attr(-, root, %{daemon_group}) /etc/bacula/drop_mysql_database
+%attr(-, root, %{daemon_group}) /etc/bacula/make_mysql_tables
+%attr(-, root, %{daemon_group}) /etc/bacula/drop_mysql_tables
+%attr(-, root, %{daemon_group}) /etc/bacula/update_mysql_tables
+%attr(-, root, %{daemon_group}) /etc/bacula/grant_mysql_privileges
+%attr(-, root, %{daemon_group}) /etc/bacula/startmysql
+%attr(-, root, %{daemon_group}) /etc/bacula/stopmysql
 %endif
 
 %if %{sqlite}
 %files sqlite
 %defattr(-,root,root)
-%attr(0750, root, %{daemon_group}) /etc/bacula/create_sqlite_database
-%attr(0750, root, %{daemon_group}) /etc/bacula/drop_sqlite_database
-%attr(0750, root, %{daemon_group}) /etc/bacula/grant_sqlite_privileges
-%attr(0750, root, %{daemon_group}) /etc/bacula/make_sqlite_tables
-%attr(0750, root, %{daemon_group}) /etc/bacula/drop_sqlite_tables
-%attr(0750, root, %{daemon_group}) /etc/bacula/update_sqlite_tables
+%attr(-, root, %{daemon_group}) /etc/bacula/create_sqlite_database
+%attr(-, root, %{daemon_group}) /etc/bacula/drop_sqlite_database
+%attr(-, root, %{daemon_group}) /etc/bacula/grant_sqlite_privileges
+%attr(-, root, %{daemon_group}) /etc/bacula/make_sqlite_tables
+%attr(-, root, %{daemon_group}) /etc/bacula/drop_sqlite_tables
+%attr(-, root, %{daemon_group}) /etc/bacula/update_sqlite_tables
 %{sqlite_bindir}/libsqlite.a
 %{sqlite_bindir}/sqlite.h
 %{sqlite_bindir}/sqlite
@@ -761,48 +809,48 @@ chmod 644 $RPM_BUILD_ROOT/etc/bacula/tray-monitor.conf
 %if %{postgresql}
 %files postgresql
 %defattr(-,root,root)
-%attr(0750, root, %{daemon_group}) /etc/bacula/create_postgresql_database
-%attr(0750, root, %{daemon_group}) /etc/bacula/drop_postgresql_database
-%attr(0750, root, %{daemon_group}) /etc/bacula/make_postgresql_tables
-%attr(0750, root, %{daemon_group}) /etc/bacula/drop_postgresql_tables
-%attr(0750, root, %{daemon_group}) /etc/bacula/update_postgresql_tables
-%attr(0750, root, %{daemon_group}) /etc/bacula/grant_postgresql_privileges
+%attr(-, root, %{daemon_group}) /etc/bacula/create_postgresql_database
+%attr(-, root, %{daemon_group}) /etc/bacula/drop_postgresql_database
+%attr(-, root, %{daemon_group}) /etc/bacula/make_postgresql_tables
+%attr(-, root, %{daemon_group}) /etc/bacula/drop_postgresql_tables
+%attr(-, root, %{daemon_group}) /etc/bacula/update_postgresql_tables
+%attr(-, root, %{daemon_group}) /etc/bacula/grant_postgresql_privileges
 %endif
 
 # The rest is DB backend independent
-%attr(0750, root, %{daemon_group}) %dir /etc/bacula
-%attr(0750, root, %{daemon_group}) /etc/bacula/bacula
-%attr(0750, root, %{daemon_group}) /etc/bacula/bconsole
-%attr(0750, root, %{daemon_group}) /etc/bacula/create_bacula_database
-%attr(0750, root, %{daemon_group}) /etc/bacula/drop_bacula_database
-%attr(0750, root, %{daemon_group}) /etc/bacula/grant_bacula_privileges
-%attr(0750, root, %{daemon_group}) /etc/bacula/make_bacula_tables
-%attr(0750, root, %{daemon_group}) /etc/bacula/drop_bacula_tables
-%attr(0750, root, %{daemon_group}) /etc/bacula/update_bacula_tables
-%attr(0750, root, %{daemon_group}) /etc/bacula/make_catalog_backup
-%attr(0750, root, %{daemon_group}) /etc/bacula/delete_catalog_backup
-%attr(0644, root, %{daemon_group}) /etc/bacula/btraceback.dbx
-%attr(0644, root, %{daemon_group}) /etc/bacula/btraceback.gdb
-%attr(0750, root, %{daemon_group}) /etc/bacula/rescue
-%attr(0750, root, %{daemon_group}) /etc/init.d/bacula-dir
-%attr(0750, root, %{daemon_group}) /etc/init.d/bacula-fd
-%attr(0750, root, %{storage_daemon_group}) /etc/bacula/dvd-handler
-%attr(0750, root, %{storage_daemon_group}) /etc/init.d/bacula-sd
-%attr(0750, root, %{storage_daemon_group}) /etc/bacula/mtx-changer
+%attr(-, root, %{daemon_group}) %dir /etc/bacula
+%attr(-, root, %{daemon_group}) /etc/bacula/bacula
+%attr(-, root, %{daemon_group}) /etc/bacula/bconsole
+%attr(-, root, %{daemon_group}) /etc/bacula/create_bacula_database
+%attr(-, root, %{daemon_group}) /etc/bacula/drop_bacula_database
+%attr(-, root, %{daemon_group}) /etc/bacula/grant_bacula_privileges
+%attr(-, root, %{daemon_group}) /etc/bacula/make_bacula_tables
+%attr(-, root, %{daemon_group}) /etc/bacula/drop_bacula_tables
+%attr(-, root, %{daemon_group}) /etc/bacula/update_bacula_tables
+%attr(-, root, %{daemon_group}) /etc/bacula/make_catalog_backup
+%attr(-, root, %{daemon_group}) /etc/bacula/delete_catalog_backup
+%attr(-, root, %{daemon_group}) /etc/bacula/btraceback.dbx
+%attr(-, root, %{daemon_group}) /etc/bacula/btraceback.gdb
+%attr(-, root, %{daemon_group}) /etc/bacula/rescue
+%attr(-, root, %{daemon_group}) /etc/init.d/bacula-dir
+%attr(-, root, %{daemon_group}) /etc/init.d/bacula-fd
+%attr(-, root, %{storage_daemon_group}) /etc/bacula/dvd-handler
+%attr(-, root, %{storage_daemon_group}) /etc/init.d/bacula-sd
+%attr(-, root, %{storage_daemon_group}) /etc/bacula/mtx-changer
 
 %doc COPYING ChangeLog ReleaseNotes VERIFYING kernstodo 
 %doc %{_docsrc}/manual/bacula.pdf %{_docsrc}/developers/developers.pdf %{_docsrc}/manual/bacula ../Release_Notes-%{version}-%{release}.txt
 
 /etc/logrotate.d/bacula
 /etc/log.d/scripts/services/bacula
-%attr(0640, root, %{daemon_group}) %config(noreplace) /etc/bacula/bacula-dir.conf
-%attr(0640, root, %{daemon_group}) %config(noreplace) /etc/bacula/bacula-fd.conf
-%attr(0640, root, %{storage_daemon_group}) %config(noreplace) /etc/bacula/bacula-sd.conf
-%attr(0640, root, %{daemon_group}) %config(noreplace) /etc/bacula/bconsole.conf
-%attr(0640, root, %{daemon_group}) %config(noreplace) /etc/log.d/conf/logfiles/bacula.conf
-%attr(0640, root, %{daemon_group}) %config(noreplace) /etc/log.d/conf/services/bacula.conf
-%attr(0640, root, %{daemon_group}) /etc/bacula/query.sql
-%attr(0770, root, %{daemon_group}) %dir %{working_dir}
+%attr(-, root, %{daemon_group}) %config(noreplace) /etc/bacula/bacula-dir.conf
+%attr(-, root, %{daemon_group}) %config(noreplace) /etc/bacula/bacula-fd.conf
+%attr(-, root, %{storage_daemon_group}) %config(noreplace) /etc/bacula/bacula-sd.conf
+%attr(-, root, %{daemon_group}) %config(noreplace) /etc/bacula/bconsole.conf
+%attr(-, root, %{daemon_group}) %config(noreplace) /etc/log.d/conf/logfiles/bacula.conf
+%attr(-, root, %{daemon_group}) %config(noreplace) /etc/log.d/conf/services/bacula.conf
+%attr(-, root, %{daemon_group}) /etc/bacula/query.sql
+%attr(-, root, %{daemon_group}) %dir %{working_dir}
 
 /usr/sbin/bacula-dir
 /usr/sbin/bacula-fd
@@ -1015,33 +1063,33 @@ fi
 
 
 %files mtx
-%attr(0750, root, %{storage_daemon_group}) /usr/sbin/loaderinfo
-%attr(0750, root, %{storage_daemon_group}) /usr/sbin/mtx
-%attr(0750, root, %{storage_daemon_group}) /usr/sbin/scsitape
-%attr(0750, root, %{storage_daemon_group}) /usr/sbin/tapeinfo
+%attr(-, root, %{storage_daemon_group}) /usr/sbin/loaderinfo
+%attr(-, root, %{storage_daemon_group}) /usr/sbin/mtx
+%attr(-, root, %{storage_daemon_group}) /usr/sbin/scsitape
+%attr(-, root, %{storage_daemon_group}) /usr/sbin/tapeinfo
 /usr/man/man1/*
 
 
 %files client
 %defattr(-,root,root)
-%attr(0750, root, %{daemon_group}) %dir /etc/bacula
-%attr(0750, root, %{daemon_group}) /etc/bacula/bconsole
+%attr(-, root, %{daemon_group}) %dir /etc/bacula
+%attr(-, root, %{daemon_group}) /etc/bacula/bconsole
 /etc/init.d/bacula-fd
-%attr(0750, root, %{daemon_group}) /etc/bacula/rescue
+%attr(-, root, %{daemon_group}) /etc/bacula/rescue
 
 %doc COPYING ChangeLog ReleaseNotes VERIFYING kernstodo 
 %doc %{_docsrc}/manual/bacula.pdf %{_docsrc}/developers/developers.pdf %{_docsrc}/manual/bacula ../Release_Notes-%{version}-%{release}.txt
 
 /etc/logrotate.d/bacula
 
-%attr(0640, root, %{daemon_group}) %config(noreplace) /etc/bacula/bacula-fd.conf
-%attr(0640, root, %{daemon_group}) %config(noreplace) /etc/bacula/bconsole.conf
-%attr(0770, root, %{daemon_group}) %dir %{working_dir}
+%attr(-, root, %{daemon_group}) %config(noreplace) /etc/bacula/bacula-fd.conf
+%attr(-, root, %{daemon_group}) %config(noreplace) /etc/bacula/bconsole.conf
+%attr(-, root, %{daemon_group}) %dir %{working_dir}
 
 /usr/sbin/bacula-fd
 /usr/sbin/btraceback
-%attr(0644, root, %{daemon_group}) /etc/bacula/btraceback.gdb
-%attr(0644, root, %{daemon_group}) /etc/bacula/btraceback.dbx
+%attr(-, root, %{daemon_group}) /etc/bacula/btraceback.gdb
+%attr(-, root, %{daemon_group}) /etc/bacula/btraceback.dbx
 /usr/sbin/bsmtp
 /usr/sbin/bconsole
 
@@ -1108,9 +1156,9 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 %files gconsole
 %defattr(-,root,root)
 /usr/sbin/gnome-console
-%attr(0750, root, %{daemon_group}) %dir /etc/bacula
-%attr(075, root, %{daemon_group}) /etc/bacula/gconsole
-%attr(0640, root, %{daemon_group}) %config(noreplace) /etc/bacula/gnome-console.conf
+%attr(-, root, %{daemon_group}) %dir /etc/bacula
+%attr(-, root, %{daemon_group}) /etc/bacula/gconsole
+%attr(-, root, %{daemon_group}) %config(noreplace) /etc/bacula/gnome-console.conf
 /usr/share/pixmaps/bacula.png
 %endif
 
@@ -1125,7 +1173,7 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 /usr/share/applications/bacula-tray-monitor.desktop
 %endif
 
-%if %{gconsole} && ! %{su9}
+%if %{gconsole} && ! %{su9} && ! %{su10}
 # add the console helper files
 %config(noreplace,missingok) /etc/pam.d/gnome-console
 %config(noreplace,missingok) /etc/security/console.apps/gnome-console
@@ -1160,6 +1208,9 @@ fi
 %endif
 
 %changelog
+* Mon Jan 23 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- add SuSE 10.0 build
+- remove specific permission in attrib macros
 * Sat Jan 21 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - 1.38.5 release
 - fix usermode required on suse, suse doesn't have usermode (xsu instead)
