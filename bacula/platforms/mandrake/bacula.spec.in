@@ -34,7 +34,7 @@
 %define fc3 0
 %{?build_fc3:%define fc3 1}
 %define fc4 0
-%{?build_fc4:%define fc3 1}
+%{?build_fc4:%define fc4 1}
 # Whitebox Enterprise build
 %define wb3 0
 %{?build_wb3:%define wb3 1}
@@ -59,7 +59,7 @@
 %{?build_mdk:%define mdk 1}
 
 # test for a platform definition
-%if ! %{rh7} && ! %{rh8} && ! %{rh9} && ! %{fc1} && ! %{fc3} && ! %{wb3} && ! %{su9} && ! %{su10} && ! %{mdk}
+%if ! %{rh7} && ! %{rh8} && ! %{rh9} && ! %{fc1} && ! %{fc3} && ! %{fc4} && ! %{wb3} && ! %{su9} && ! %{su10} && ! %{mdk}
 %{error: You must specify a platform. Please examine the spec file.}
 exit 1
 %endif
@@ -102,7 +102,7 @@ exit 1
 %if %{rh7} || %{rh8} || %{rh9} || %{rhel3} || %{rhel4}
 %define _dist %(grep Red /etc/redhat-release)
 %endif
-%if %{fc1}
+%if %{fc1} || %{fc4}
 %define _dist %(grep Fedora /etc/redhat-release)
 %endif
 %if %{centos4}
@@ -217,7 +217,20 @@ BuildRequires: bonobo-activation-devel
 BuildRequires: GConf2-devel
 BuildRequires: freetype-devel
 %endif
-%if ! %{rh7} && ! %{su9} && ! %{su10} && ! %{mdk} && ! %{fc3}
+%if %{fc4}
+BuildRequires: libtermcap-devel
+BuildRequires: gtk2-devel >= 2.6
+BuildRequires: libgnomeui-devel >= 2.10
+BuildRequires: glibc-devel >= 2.3
+BuildRequires: ORBit2-devel
+BuildRequires: libart_lgpl-devel >= 2.3
+BuildRequires: libbonobo-devel >= 2.8
+BuildRequires: libbonoboui-devel >= 2.8
+BuildRequires: bonobo-activation-devel
+BuildRequires: GConf2-devel
+BuildRequires: freetype-devel
+%endif
+%if ! %{rh7} && ! %{su9} && ! %{su10} && ! %{mdk} && ! %{fc3} && ! %{fc4}
 BuildRequires: libtermcap-devel
 BuildRequires: gtk2-devel >= 2.0
 BuildRequires: libgnomeui-devel >= 2.0
@@ -485,7 +498,19 @@ Requires: bonobo-activation
 Requires: GConf2
 Requires: freetype
 %endif
-%if %{gconsole} && ! %{su9} && ! %{su10} && ! %{mdk} && ! %{fc3}
+%if %{gconsole} && %{fc4}  
+Requires: gtk2 >= 2.6
+Requires: libgnomeui >= 2.10
+Requires: glibc >= 2.3
+Requires: ORBit2
+Requires: libart_lgpl >= 2.3
+Requires: libbonobo >= 2.8
+Requires: libbonoboui >= 2.8
+Requires: bonobo-activation
+Requires: GConf2
+Requires: freetype
+%endif
+%if %{gconsole} && ! %{su9} && ! %{su10} && ! %{mdk} && ! %{fc3} && ! %{fc4}
 Requires: gtk2 >= 2.0
 Requires: libgnomeui >= 2.0
 Requires: glibc >= 2.3
@@ -717,7 +742,7 @@ cp -p scripts/bacula.desktop.gnome2.xsu $RPM_BUILD_ROOT/usr/share/applications/b
 cp -p src/tray-monitor/generic.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/bacula-tray-monitor.xpm
 cp -p scripts/bacula-tray-monitor.desktop $RPM_BUILD_ROOT/usr/share/applications/bacula-tray-monitor.desktop
 %endif
-%if %{rh8} || %{rh9} || %{wb3} || %{fc1} || %{fc3} || %{mdk}
+%if %{rh8} || %{rh9} || %{wb3} || %{fc1} || %{fc3} || %{fc4} || %{mdk}
 %define iftrick 1
 %else
 %define iftrick 0
@@ -1208,6 +1233,8 @@ fi
 %endif
 
 %changelog
+* Fri Jan 27 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- add fc4 dependencies
 * Mon Jan 23 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - add SuSE 10.0 build
 - remove specific permission in attrib macros
