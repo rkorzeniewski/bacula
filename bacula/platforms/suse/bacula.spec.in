@@ -613,6 +613,9 @@ export LDFLAGS=-L/usr/lib64/mysql
         --with-scriptdir=/etc/bacula \
         --enable-smartalloc \
         --enable-client-only \
+	%if %{mdk}
+	--disable-nls \
+	%endif
         --enable-static-fd
 
 make
@@ -1238,6 +1241,7 @@ fi
 %changelog
 * Sun Jan 29 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - add centos3 build tag
+- fix link error of static-fd on Mandrake with --disable-nls
 * Fri Jan 27 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - add fc4 dependencies
 * Mon Jan 23 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
