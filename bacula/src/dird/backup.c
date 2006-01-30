@@ -186,6 +186,10 @@ bool do_backup(JCR *jcr)
    }
    Dmsg0(150, "Storage daemon connection OK\n");
 
+   if (!bnet_fsend(jcr->store_bsock, "run")) {
+      return false;
+   }
+
    set_jcr_job_status(jcr, JS_WaitFD);
    if (!connect_to_file_daemon(jcr, 10, FDConnectTimeout, 1)) {
       return false;
@@ -223,8 +227,7 @@ bool do_backup(JCR *jcr)
       }
    }
 
-   bnet_fsend(fd, storaddr, store->address, store->SDDport,
-              tls_need);
+   bnet_fsend(fd, storaddr, store->address, store->SDDport, tls_need);
    if (!response(jcr, fd, OKstore, "Storage", DISPLAY_ERROR)) {
       return false;
    }

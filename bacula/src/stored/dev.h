@@ -58,6 +58,15 @@ enum {
    OPEN_WRITE_ONLY
 };
 
+/* Device types */
+enum {
+   B_FILE_DEV = 1,
+   B_TAPE_DEV,
+   B_DVD_DEV,
+   B_FIFO_DEV,
+   B_PROG_DEV
+};
+
 /* Generic status bits returned from status_dev() */
 #define BMT_TAPE           (1<<0)     /* is tape device */
 #define BMT_EOF            (1<<1)     /* just read EOF */
@@ -104,11 +113,12 @@ enum {
 
 /* Device state bits */
 #define ST_XXXXXX          (1<<0)     /* was ST_OPENED */
-#define ST_TAPE            (1<<1)     /* is a tape device */
-#define ST_FILE            (1<<2)     /* is a file device */
-#define ST_FIFO            (1<<3)     /* is a fifo device */
-#define ST_DVD             (1<<4)     /* is a DVD device */  
-#define ST_PROG            (1<<5)     /* is a program device */
+#define ST_XXXXX           (1<<1)     /* was ST_TAPE */
+#define ST_XXXX            (1<<2)     /* was ST_FILE */
+#define ST_XXX             (1<<3)     /* was ST_FIFO */
+#define ST_XX              (1<<4)     /* was ST_DVD */
+#define ST_X               (1<<5)     /* was ST_PROG */
+
 #define ST_LABEL           (1<<6)     /* label found */
 #define ST_MALLOC          (1<<7)     /* dev packet malloc'ed in init_dev() */
 #define ST_APPEND          (1<<8)     /* ready for Bacula append */
@@ -204,6 +214,7 @@ public:
    int dev_errno;                     /* Our own errno */
    int mode;                          /* read/write modes */
    int openmode;                      /* parameter passed to open_dev (useful to reopen the device) */
+   int dev_type;                      /* device type */
    bool autoselect;                   /* Autoselect in autochanger */
    int label_type;                    /* Bacula/ANSI/IBM label types */
    uint32_t drive_index;              /* Autochanger drive index (base 0) */
@@ -259,12 +270,15 @@ public:
    int num_wait;
 
    /* Methods */
+   int has_cap(int cap) const { return capabilities & cap; }
    int is_autochanger() const { return capabilities & CAP_AUTOCHANGER; }
    int requires_mount() const { return capabilities & CAP_REQMOUNT; }
-   int is_tape() const { return state & ST_TAPE; }
-   int is_file() const { return state & ST_FILE; }
-   int is_fifo() const { return state & ST_FIFO; }
-   int is_dvd() const  { return state & ST_DVD; }
+   int is_removable() const { return capabilities & CAP_REM; }
+   int is_tape() const { return dev_type == B_TAPE_DEV; }
+   int is_file() const { return dev_type == B_FILE_DEV; }
+   int is_fifo() const { return dev_type == B_FIFO_DEV; }
+   int is_dvd() const  { return dev_type == B_DVD_DEV; }
+   int is_prog() const  { return dev_type == B_PROG_DEV; }
    int is_open() const { return fd >= 0; }
    int is_offline() const { return state & ST_OFFLINE; }
    int is_labeled() const { return state & ST_LABEL; }
@@ -295,8 +309,6 @@ public:
                      dev_blocked == BST_WAITING_FOR_SYSOP ||
                      dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP); };
    bool weof() { return !weof_dev(this, 1); };
-   bool fsr(int num);   /* in dev.c */
-   bool fsf(int num);   /* in dev.c */
    const char *strerror() const;
    const char *archive_name() const;
    const char *name() const;
@@ -307,7 +319,7 @@ public:
    void set_eof() { state |= ST_EOF; };
    void set_append() { state |= ST_APPEND; };
    void set_labeled() { state |= ST_LABEL; };
-   void set_read() { state |= ST_READ; };
+   inline void set_read() { state |= ST_READ; };
    void set_offline() { state |= ST_OFFLINE; };
    void set_mounted() { state |= ST_MOUNTED; };
    void set_media() { state |= ST_MEDIA; };
@@ -329,12 +341,22 @@ public:
    void clear_short_block() { state &= ~ST_SHORT; };
    void clear_freespace_ok() { state &= ~ST_FREESPACE_OK; }
 
-   void block(int why); /* in dev.c */
-   void unblock();      /* in dev.c */
-   void close();        /* in dev.c */
+   void block(int why);          /* in dev.c */
+   void unblock();               /* in dev.c */
+   void close();                 /* in dev.c */
+   bool truncate(DCR *dcr);      /* in dev.c */
    int open(DCR *dcr, int mode); /* in dev.c */
-   bool rewind(DCR *dcr);         /* in dev.c */
-
+   bool rewind(DCR *dcr);        /* in dev.c */
+   bool mount(int timeout);      /* in dev.c */
+   bool unmount(int timeout);    /* in dev.c */
+   void edit_mount_codes(POOL_MEM &omsg, const char *imsg); /* in dev.c */
+   bool offline_or_rewind();     /* in dev.c */
+   bool offline();               /* in dev.c */
+   bool bsf(int count);          /* in dev.c */
+   bool eod();                   /* in dev.c */
+   bool fsr(int num);            /* in dev.c */
+   bool fsf(int num);            /* in dev.c */
+   bool scan_dir_for_volume(DCR *dcr); /* in scan.c */
 
    void set_blocked(int block) { dev_blocked = block; };
    int  get_blocked() const { return dev_blocked; };
@@ -342,11 +364,12 @@ public:
    bool is_blocked() const { return dev_blocked != BST_NOT_BLOCKED; };
 
 private:
-   void set_mode(int omode); /* in dev.c */
+   bool do_mount(int mount, int timeout);      /* in dev.c */
+   void set_mode(int omode);                   /* in dev.c */
    void open_tape_device(DCR *dcr, int omode); /* in dev.c */
-   void open_file_device(int omode); /* in dev.c */
-   void open_dvd_device(DCR *dcr, int omode); /* in dev.c */
-   void set_blocking(); /* in dev.c */
+   void open_file_device(DCR *dcr, int omode); /* in dev.c */
+   void open_dvd_device(DCR *dcr, int omode);  /* in dev.c */
+   void set_blocking();                        /* in dev.c */
 
 };
 

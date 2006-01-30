@@ -71,7 +71,7 @@ extern int connect_to_file_daemon(JCR *jcr, int retry_interval,
                                   int max_retry_time, int verbose);
 extern bool send_include_list(JCR *jcr);
 extern bool send_exclude_list(JCR *jcr);
-extern bool send_bootstrap_file(JCR *jcr);
+extern bool send_bootstrap_file(JCR *jcr, BSOCK *sock);
 extern bool send_level_command(JCR *jcr);
 extern int get_attributes_and_put_in_catalog(JCR *jcr);
 extern int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId);

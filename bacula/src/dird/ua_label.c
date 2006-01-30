@@ -147,7 +147,7 @@ bail_out:
 /*
  * Update Slots corresponding to Volumes in autochanger
  */
-int update_slots(UAContext *ua)
+void update_slots(UAContext *ua)
 {
    STORE *store;
    vol_list_t *vl, *vol_list = NULL;
@@ -159,11 +159,11 @@ int update_slots(UAContext *ua)
 
 
    if (!open_db(ua)) {
-      return 1;
+      return;
    }
    store = get_storage_resource(ua, true/*arg is storage*/);
    if (!store) {
-      return 1;
+      return;
    }
    set_storage(ua->jcr, store);
    drive = get_storage_drive(ua, store);
@@ -174,12 +174,12 @@ int update_slots(UAContext *ua)
    Dmsg1(100, "max_slots=%d\n", max_slots);
    if (max_slots <= 0) {
       bsendmsg(ua, _("No slots in changer to scan.\n"));
-      return 1;
+      return;
    }
    slot_list = (char *)malloc(max_slots+1);
    if (!get_user_slot_list(ua, slot_list, max_slots)) {
       free(slot_list);
-      return 1;
+      return;
    }
 
    vol_list = get_vol_list_from_SD(ua, scan);
@@ -273,7 +273,7 @@ bail_out:
    free(slot_list);
    close_sd_bsock(ua);
 
-   return 1;
+   return;
 }
 
 

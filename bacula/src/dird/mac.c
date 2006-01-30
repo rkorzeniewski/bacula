@@ -8,14 +8,14 @@
  *  Basic tasks done here:
  *     Open DB and create records for this job.
  *     Open Message Channel with Storage daemon to tell him a job will be starting.
- *     Open connection with File daemon and pass him commands
+ *     Open connection with Storage daemon and pass him commands
  *       to do the backup.
- *     When the File daemon finishes the job, update the DB.
+ *     When the Storage daemon finishes the job, update the DB.
  *
  *   Version $Id$
  */
 /*
-   Copyright (C) 2004-2005 Kern Sibbald
+   Copyright (C) 2004-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -32,6 +32,8 @@
 #include "bacula.h"
 #include "dird.h"
 #include "ua.h"
+
+static char OKbootstrap[] = "3000 OK bootstrap\n";
 
 /* 
  * Called here before the job is run to do the job
@@ -98,7 +100,7 @@ bool do_mac_init(JCR *jcr)
    /*
     * Get the Pool record -- first apply any level defined pools
     */
-   switch (jcr->JobLevel) {
+   switch (jcr->target_jr.JobLevel) {
    case L_FULL:
       if (jcr->full_pool) {
          jcr->pool = jcr->full_pool;
@@ -171,6 +173,7 @@ bool do_mac(JCR *jcr)
    int stat;
    const char *Type;
    char ed1[100];
+   BSOCK *sd;
 
    switch(jcr->JobType) {
    case JT_MIGRATE:
@@ -213,19 +216,31 @@ bool do_mac(JCR *jcr)
    if (!connect_to_storage_daemon(jcr, 10, SDConnectTimeout, 1)) {
       return false;
    }
+   sd = jcr->store_bsock;
    /*
     * Now start a job with the Storage daemon
     */
-   if (!start_storage_daemon_job(jcr, jcr->storage, jcr->storage)) {
+   if (!start_storage_daemon_job(jcr, jcr->storage, NULL)) {
       return false;
    }
+   Dmsg0(150, "Storage daemon connection OK\n");
+
+   if (!send_bootstrap_file(jcr, sd) ||
+       !response(jcr, sd, OKbootstrap, "Bootstrap", DISPLAY_ERROR)) {
+      return false;
+   }
+
+
    /*
     * Now start a Storage daemon message thread
     */
    if (!start_storage_daemon_message_thread(jcr)) {
       return false;
    }
-   Dmsg0(150, "Storage daemon connection OK\n");
+
+   if (!bnet_fsend(sd, "run")) {
+      return false;
+   }
 
    /* Pickup Job termination data */
    set_jcr_job_status(jcr, JS_Running);
@@ -252,8 +267,8 @@ bool do_mac(JCR *jcr)
 void mac_cleanup(JCR *jcr, int TermCode)
 {
    char sdt[50], edt[50];
-   char ec1[30], ec2[30], ec3[30], ec4[30], ec5[30], compress[50];
-   char term_code[100], fd_term_msg[100], sd_term_msg[100];
+   char ec3[30], ec4[30], ec5[30], compress[50];
+   char term_code[100], sd_term_msg[100];
    const char *term_msg;
    int msg_type;
    MEDIA_DBR mr;
@@ -359,14 +374,14 @@ void mac_cleanup(JCR *jcr, int TermCode)
    switch (jcr->JobStatus) {
       case JS_Terminated:
          if (jcr->Errors || jcr->SDErrors) {
-            term_msg = _("Backup OK -- with warnings");
+            term_msg = _("%s OK -- with warnings");
          } else {
-            term_msg = _("Backup OK");
+            term_msg = _("%s OK");
          }
          break;
       case JS_FatalError:
       case JS_ErrorTerminated:
-         term_msg = _("*** Backup Error ***");
+         term_msg = _("*** %s Error ***");
          msg_type = M_ERROR;          /* Generate error message */
          if (jcr->store_bsock) {
             bnet_sig(jcr->store_bsock, BNET_TERMINATE);
@@ -376,7 +391,7 @@ void mac_cleanup(JCR *jcr, int TermCode)
          }
          break;
       case JS_Canceled:
-         term_msg = _("Backup Canceled");
+         term_msg = _("%s Canceled");
          if (jcr->store_bsock) {
             bnet_sig(jcr->store_bsock, BNET_TERMINATE);
             if (jcr->SD_msg_chan) {
@@ -385,10 +400,10 @@ void mac_cleanup(JCR *jcr, int TermCode)
          }
          break;
       default:
-         term_msg = term_code;
-         sprintf(term_code, _("Inappropriate term code: %c\n"), jcr->JobStatus);
+         term_msg = _("Inappropriate %s term code");
          break;
    }
+   bsnprintf(term_code, sizeof(term_code), term_msg, Type);
    bstrftimes(sdt, sizeof(sdt), jcr->jr.StartTime);
    bstrftimes(edt, sizeof(edt), jcr->jr.EndTime);
    RunTime = jcr->jr.EndTime - jcr->jr.StartTime;
@@ -420,7 +435,6 @@ void mac_cleanup(JCR *jcr, int TermCode)
          bsnprintf(compress, sizeof(compress), "%.1f %%", (float)compression);
       }
    }
-   jobstatus_to_ascii(jcr->FDJobStatus, fd_term_msg, sizeof(fd_term_msg));
    jobstatus_to_ascii(jcr->SDJobStatus, sd_term_msg, sizeof(sd_term_msg));
 
 // bmicrosleep(15, 0);                /* for debugging SIGHUP */
@@ -434,9 +448,7 @@ void mac_cleanup(JCR *jcr, int TermCode)
 "  Pool:                   \"%s\"\n"
 "  Start time:             %s\n"
 "  End time:               %s\n"
-"  FD Files Written:       %s\n"
 "  SD Files Written:       %s\n"
-"  FD Bytes Written:       %s\n"
 "  SD Bytes Written:       %s\n"
 "  Rate:                   %.1f KB/s\n"
 "  Software Compression:   %s\n"
@@ -444,9 +456,7 @@ void mac_cleanup(JCR *jcr, int TermCode)
 "  Volume Session Id:      %d\n"
 "  Volume Session Time:    %d\n"
 "  Last Volume Bytes:      %s\n"
-"  Non-fatal FD errors:    %d\n"
 "  SD Errors:              %d\n"
-"  FD termination status:  %s\n"
 "  SD termination status:  %s\n"
 "  Termination:            %s\n\n"),
    VERSION,
@@ -460,9 +470,7 @@ void mac_cleanup(JCR *jcr, int TermCode)
         jcr->pool->hdr.name,
         sdt,
         edt,
-        edit_uint64_with_commas(jcr->jr.JobFiles, ec1),
         edit_uint64_with_commas(jcr->SDJobFiles, ec4),
-        edit_uint64_with_commas(jcr->jr.JobBytes, ec2),
         edit_uint64_with_commas(jcr->SDJobBytes, ec5),
         (float)kbps,
         compress,
@@ -470,11 +478,9 @@ void mac_cleanup(JCR *jcr, int TermCode)
         jcr->VolSessionId,
         jcr->VolSessionTime,
         edit_uint64_with_commas(mr.VolBytes, ec3),
-        jcr->Errors,
         jcr->SDErrors,
-        fd_term_msg,
         sd_term_msg,
-        term_msg);
+        term_code);
 
    Dmsg0(100, "Leave mac_cleanup()\n");
 }

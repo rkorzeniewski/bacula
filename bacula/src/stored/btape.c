@@ -14,7 +14,7 @@
  *
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -483,7 +483,7 @@ static void weofcmd()
  */
 static void eomcmd()
 {
-   if (!eod_dev(dev)) {
+   if (!dev->eod()) {
       Pmsg1(0, "%s", strerror_dev(dev));
       return;
    } else {
@@ -513,7 +513,7 @@ static void bsfcmd()
       num = 1;
    }
 
-   if (!bsf_dev(dev, num)) {
+   if (!dev->bsf(num)) {
       Pmsg1(0, _("Bad status from bsf. ERR=%s\n"), strerror_dev(dev));
    } else {
       Pmsg2(0, _("Backspaced %d file%s.\n"), num, num==1?"":"s");
@@ -699,12 +699,12 @@ static int re_read_block_test()
    if (dev_cap(dev, CAP_TWOEOF)) {
       weofcmd();
    }
-   if (!bsf_dev(dev, 1)) {
+   if (!dev->bsf(1)) {
       Pmsg1(0, _("Backspace file failed! ERR=%s\n"), strerror_dev(dev));
       goto bail_out;
    }
    if (dev_cap(dev, CAP_TWOEOF)) {
-      if (!bsf_dev(dev, 1)) {
+      if (!dev->bsf(1)) {
          Pmsg1(0, _("Backspace file failed! ERR=%s\n"), strerror_dev(dev));
          goto bail_out;
       }
@@ -1053,7 +1053,7 @@ static int append_test()
    if (dev_cap(dev, CAP_TWOEOF)) {
       weofcmd();
    }
-   force_close_device(dev);              /* release device */
+   dev->close();              /* release device */
    if (!open_the_device()) {
       return -1;
    }
@@ -1147,9 +1147,8 @@ try_again:
    Dmsg1(100, "Results from loaded query=%s\n", results);
    if (loaded) {
       dcr->VolCatInfo.Slot = loaded;
-      offline_or_rewind_dev(dev);
       /* We are going to load a new tape, so close the device */
-      force_close_device(dev);
+      dev->close();
       Pmsg2(-1, _("3302 Issuing autochanger \"unload %d %d\" command.\n"),
          loaded, dev->drive_index);
       changer = edit_device_codes(dcr, changer, 
@@ -1174,7 +1173,7 @@ try_again:
    changer = edit_device_codes(dcr, changer, 
                 dcr->device->changer_command, "load");
    Dmsg1(100, "Changer=%s\n", changer);
-   force_close_device(dev);
+   dev->close();
    status = run_program(changer, timeout, results);
    if (status == 0) {
       Pmsg2(-1,  _("3303 Autochanger \"load %d %d\" status is OK.\n"),
@@ -2103,11 +2102,11 @@ static void do_unfill()
       /* Multiple Volume tape */
       /* Close device so user can use autochanger if desired */
       if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
-         offline_dev(dev);
+         dev->offline();
       }
       autochanger = autoload_device(dcr, 1, NULL);
       if (!autochanger) {
-         force_close_device(dev);
+         dev->close();
          get_cmd(_("Mount first tape. Press enter when ready: "));
       }
       free_restore_volume_list(jcr);
@@ -2115,8 +2114,7 @@ static void do_unfill()
       set_volume_name("TestVolume1", 1);
       jcr->bsr = NULL;
       create_restore_volume_list(jcr);
-      close_device(dev);
-      dev->state &= ~(ST_READ|ST_APPEND);
+      dev->close();
       dev->num_writers = 0;
       if (!acquire_device_for_read(dcr)) {
          Pmsg1(-1, "%s", dev->errmsg);
@@ -2167,7 +2165,7 @@ static void do_unfill()
    /* Multiple Volume tape */
    /* Close device so user can use autochanger if desired */
    if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
-      offline_dev(dev);
+      dev->offline();
    }
 
    free_restore_volume_list(jcr);
@@ -2176,7 +2174,7 @@ static void do_unfill()
    create_restore_volume_list(jcr);
    autochanger = autoload_device(dcr, 1, NULL);
    if (!autochanger) {
-      force_close_device(dev);
+      dev->close();
       get_cmd(_("Mount second tape. Press enter when ready: "));
    }
 
@@ -2677,11 +2675,7 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
    if (dcr->VolumeName[0] == 0) {
       return dir_ask_sysop_to_create_appendable_volume(dcr);
    }
-   /* Close device so user can use autochanger if desired */
-   if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
-      offline_dev(dev);
-   }
-   force_close_device(dev);
+   dev->close();
    Pmsg1(-1, "%s", dev->errmsg);           /* print reason */
    if (dcr->VolumeName[0] == 0 || strcmp(dcr->VolumeName, "TestVolume2") == 0) {
       fprintf(stderr, _("Mount second Volume on device %s and press return when ready: "),
@@ -2706,11 +2700,11 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
    }
    /* Close device so user can use autochanger if desired */
    if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
-      offline_dev(dev);
+      dev->offline();
    }
    autochanger = autoload_device(dcr, 1, NULL);
    if (!autochanger) {
-      force_close_device(dev);
+      dev->close();
       fprintf(stderr, _("Mount blank Volume on device %s and press return when ready: "),
          dev->print_name());
       getchar();
@@ -2753,8 +2747,7 @@ static bool my_mount_next_read_volume(DCR *dcr)
    set_volume_name("TestVolume2", 2);
    jcr->bsr = NULL;
    create_restore_volume_list(jcr);
-   close_device(dev);
-   dev->clear_read();
+   dev->close();
    if (!acquire_device_for_read(dcr)) {
       Pmsg2(0, _("Cannot open Dev=%s, Vol=%s\n"), dev->print_name(), dcr->VolumeName);
       return false;

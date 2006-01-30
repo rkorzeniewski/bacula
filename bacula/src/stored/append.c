@@ -251,10 +251,7 @@ bool do_append_data(JCR *jcr)
    /* Create Job status for end of session label */
    set_jcr_job_status(jcr, ok?JS_Terminated:JS_ErrorTerminated);
 
-   Dmsg1(200, "Write session label JobStatus=%d\n", jcr->JobStatus);
-   if ((!ok || job_canceled(jcr)) && dev->VolCatInfo.VolCatName[0] == 0) {
-      Pmsg0(000, _("NULL Volume name. This shouldn't happen!!!\n"));
-   }
+   Dmsg1(200, "Write EOS label JobStatus=%c\n", jcr->JobStatus);
 
    /*
     * If !OK, check if we can still write. This may not be the case

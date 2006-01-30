@@ -6,7 +6,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -34,6 +34,8 @@ RES **res_head = sres_head;
 
 
 /* Forward referenced subroutines */
+static void store_devtype(LEX *lc, RES_ITEM *item, int index, int pass);
+
 
 /* We build the current resource here statically,
  * then move it to dynamic memory */
@@ -95,6 +97,7 @@ static RES_ITEM dev_items[] = {
    {"name",                  store_name,   ITEM(res_dev.hdr.name),        0, ITEM_REQUIRED, 0},
    {"description",           store_str,    ITEM(res_dir.hdr.desc),        0, 0, 0},
    {"mediatype",             store_strname,ITEM(res_dev.media_type),      0, ITEM_REQUIRED, 0},
+   {"devicetype",            store_devtype,ITEM(res_dev.dev_type), 0, 0, 0},
    {"archivedevice",         store_strname,ITEM(res_dev.device_name),     0, ITEM_REQUIRED, 0},
    {"hardwareendoffile",     store_yesno,  ITEM(res_dev.cap_bits), CAP_EOF,  ITEM_DEFAULT, 1},
    {"hardwareendofmedium",   store_yesno,  ITEM(res_dev.cap_bits), CAP_EOM,  ITEM_DEFAULT, 1},
@@ -174,7 +177,48 @@ RES_TABLE resources[] = {
    {NULL,            NULL,          0}
 };
 
+/*
+ * Device types
+ *
+ *   device type     device code = token
+ */
+struct s_kw {
+   const char *name;
+   int token;
+};
 
+static s_kw dev_types[] = {
+   {"file",          B_FILE_DEV},
+   {"tape",          B_TAPE_DEV},
+   {"dvd",           B_DVD_DEV},
+   {"fifo",          B_FIFO_DEV},
+   {NULL,            0}
+};
+
+
+/*
+ * Store Device Type (File, FIFO, Tape, DVD)
+ *
+ */
+static void store_devtype(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+   int token, i;
+
+   token = lex_get_token(lc, T_NAME);
+   /* Store the label pass 2 so that type is defined */
+   for (i=0; dev_types[i].name; i++) {
+      if (strcasecmp(lc->str, dev_types[i].name) == 0) {
+         *(int *)(item->value) = dev_types[i].token;
+         i = 0;
+         break;
+      }
+   }
+   if (i != 0) {
+      scan_err1(lc, _("Expected a Device Type keyword, got: %s"), lc->str);
+   }
+   scan_to_eol(lc);
+   set_bit(index, res_all.hdr.item_present);
+}
 
 
 /* Dump contents of resource */

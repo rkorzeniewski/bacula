@@ -91,7 +91,6 @@ void     clrerror_dev(DEVICE *dev, int func);
 bool     update_pos_dev(DEVICE *dev);
 bool     rewind_dev(DEVICE *dev);
 bool     load_dev(DEVICE *dev);
-bool     offline_dev(DEVICE *dev);
 int      flush_dev(DEVICE *dev);
 int      weof_dev(DEVICE *dev, int num);
 int      write_block(DEVICE *dev);
@@ -103,7 +102,6 @@ bool     bsr_dev(DEVICE *dev, int num);
 void     attach_jcr_to_device(DEVICE *dev, JCR *jcr);
 void     detach_jcr_from_device(DEVICE *dev, JCR *jcr);
 JCR     *next_attached_jcr(DEVICE *dev, JCR *jcr);
-bool     offline_or_rewind_dev(DEVICE *dev);
 bool     reposition_dev(DEVICE *dev, uint32_t file, uint32_t block);
 void     init_device_wait_timers(DCR *dcr);
 void     init_jcr_device_wait_timers(JCR *jcr);
@@ -118,18 +116,16 @@ uint32_t dev_file(DEVICE *dev);
 int  dvd_open_next_part(DCR *dcr);
 bool dvd_write_part(DCR *dcr); 
 bool dvd_close_job(DCR *dcr);
-bool mount_dev(DEVICE* dev, int timeout);
-bool unmount_dev(DEVICE* dev, int timeout);
+bool mount_dvd(DEVICE* dev, int timeout);
+bool unmount_dvd(DEVICE* dev, int timeout);
 void update_free_space_dev(DEVICE *dev);
 void make_mounted_dvd_filename(DEVICE *dev, POOL_MEM &archive_name);
 void make_spooled_dvd_filename(DEVICE *dev, POOL_MEM &archive_name);
-bool truncate_dvd_dev(DCR *dcr);
+bool truncate_dvd(DCR *dcr);
 bool check_can_write_on_non_blank_dvd(DCR *dcr);
 
 /* From device.c */
 bool     open_device(DCR *dcr);
-void     close_device(DEVICE *dev);
-void     force_close_device(DEVICE *dev);
 bool     first_open_device(DCR *dcr);
 bool     fixup_device_block_write_error(DCR *dcr);
 void     _lock_device(const char *file, int line, DEVICE *dev);
@@ -150,7 +146,7 @@ void     *handle_connection_request(void *arg);
 
 /* From fd_cmds.c */
 void     run_job(JCR *jcr);
-bool     bootstrap_cmd(JCR *jcr);
+bool get_bootstrap_file(JCR *jcr, BSOCK *bsock);
 
 /* From job.c */
 void     stored_free_jcr(JCR *jcr);
