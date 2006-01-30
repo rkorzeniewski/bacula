@@ -13,7 +13,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -43,7 +43,6 @@ static char runafter[]    = "RunAfterJob %s\n";
 /* Responses received from File daemon */
 static char OKinc[]       = "2000 OK include\n";
 static char OKjob[]       = "2000 OK Job";
-static char OKbootstrap[] = "2000 OK bootstrap\n";
 static char OKlevel[]     = "2000 OK level\n";
 static char OKRunBefore[] = "2000 OK RunBefore\n";
 static char OKRunAfter[]  = "2000 OK RunAfter\n";
@@ -422,19 +421,19 @@ bool send_exclude_list(JCR *jcr)
 
 
 /*
- * Send bootstrap file if any to the File daemon.
- *  This is used for restore and verify VolumeToCatalog
+ * Send bootstrap file if any to the socket given (FD or SD).
+ *  This is used for restore, verify VolumeToCatalog, and
+ *  for migration.
  */
-bool send_bootstrap_file(JCR *jcr)
+bool send_bootstrap_file(JCR *jcr, BSOCK *sock)
 {
    FILE *bs;
    char buf[1000];
-   BSOCK *fd = jcr->file_bsock;
    const char *bootstrap = "bootstrap\n";
 
    Dmsg1(400, "send_bootstrap_file: %s\n", jcr->RestoreBootstrap);
    if (!jcr->RestoreBootstrap) {
-      return 1;
+      return true;
    }
    bs = fopen(jcr->RestoreBootstrap, "r");
    if (!bs) {
@@ -442,23 +441,19 @@ bool send_bootstrap_file(JCR *jcr)
       Jmsg(jcr, M_FATAL, 0, _("Could not open bootstrap file %s: ERR=%s\n"),
          jcr->RestoreBootstrap, be.strerror());
       set_jcr_job_status(jcr, JS_ErrorTerminated);
-      return 0;
+      return false;
    }
-   bnet_fsend(fd, bootstrap);
+   bnet_fsend(sock, bootstrap);
    while (fgets(buf, sizeof(buf), bs)) {
-      bnet_fsend(fd, "%s", buf);
+      bnet_fsend(sock, "%s", buf);
    }
-   bnet_sig(fd, BNET_EOD);
+   bnet_sig(sock, BNET_EOD);
    fclose(bs);
    if (jcr->unlink_bsr) {
       unlink(jcr->RestoreBootstrap);
       jcr->unlink_bsr = false;
    }                         
-   if (!response(jcr, fd, OKbootstrap, "Bootstrap", DISPLAY_ERROR)) {
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
-      return 0;
-   }
-   return 1;
+   return true;
 }
 
 /*

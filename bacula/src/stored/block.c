@@ -9,7 +9,7 @@
  *
  */
 /*
-   Copyright (C) 2001-2005 Kern Sibbald
+   Copyright (C) 2001-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -613,13 +613,13 @@ static void reread_last_block(DCR *dcr)
     */
    if (dev->is_tape() && dev_cap(dev, CAP_BSR)) {
       /* Now back up over what we wrote and read the last block */
-      if (!bsf_dev(dev, 1)) {
+      if (!dev->bsf(1)) {
          berrno be;
          ok = false;
          Jmsg(jcr, M_ERROR, 0, _("Backspace file at EOT failed. ERR=%s\n"), 
               be.strerror(dev->dev_errno));
       }
-      if (ok && dev_cap(dev, CAP_TWOEOF) && !bsf_dev(dev, 1)) {
+      if (ok && dev->has_cap(CAP_TWOEOF) && !dev->bsf(1)) {
          berrno be;
          ok = false;
          Jmsg(jcr, M_ERROR, 0, _("Backspace file at EOT failed. ERR=%s\n"), 

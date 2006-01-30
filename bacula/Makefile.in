@@ -168,7 +168,7 @@ Makefiles:
 	(cd scripts; \
 	chmod 755 startmysql stopmysql bacula startit stopit btraceback; \
 	chmod 755 mtx-changer bconsole gconsole devel_bacula; \
-	chmod 755 dvd-freespace dvd-writepart)
+	chmod 755 dvd-handler)
 
 	(cd src/cats; \
 	chmod 755 create_bacula_database      update_bacula_tables     make_bacula_tables; \

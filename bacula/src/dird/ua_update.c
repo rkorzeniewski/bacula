@@ -30,7 +30,8 @@ extern char *list_pool;               /* in sql_cmds.c */
 
 /* Imported functions */
 void set_pooldbr_from_poolres(POOL_DBR *pr, POOL *pool, e_pool_op op);
-int update_slots(UAContext *ua);
+void update_slots(UAContext *ua);
+
 
 
 /* Forward referenced functions */
@@ -340,6 +341,7 @@ static int update_volume(UAContext *ua)
    POOLMEM *query;
    char ed1[130];
    bool done = false;
+   int i;
    const char *kw[] = {
       _("VolStatus"),                /* 0 */
       _("VolRetention"),             /* 1 */
@@ -353,7 +355,7 @@ static int update_volume(UAContext *ua)
       _("AllFromPool"),              /* 9 */
       NULL };
 
-   for (int i=0; kw[i]; i++) {
+   for (i=0; kw[i]; i++) {
       int j;
       POOL_DBR pr;
       if ((j=find_arg_with_value(ua, kw[i])) > 0) {
@@ -403,9 +405,6 @@ static int update_volume(UAContext *ua)
    }
 
    for ( ; !done; ) {
-      if (!select_media_dbr(ua, &mr)) {
-         return 0;
-      }
       bsendmsg(ua, _("Updating Volume \"%s\"\n"), mr.VolumeName);
       start_prompt(ua, _("Parameters to modify:\n"));
       add_prompt(ua, _("Volume Status"));
@@ -422,7 +421,14 @@ static int update_volume(UAContext *ua)
       add_prompt(ua, _("Volume from Pool"));
       add_prompt(ua, _("All Volumes from Pool"));
       add_prompt(ua, _("Done"));
-      switch (do_prompt(ua, "", _("Select parameter to modify"), NULL, 0)) {
+      i = do_prompt(ua, "", _("Select parameter to modify"), NULL, 0);  
+      /* For All Volumes from Pool we don't need a Volume record */
+      if (i != 12) {
+         if (!select_media_dbr(ua, &mr)) {  /* Get Volume record */
+            return 0;
+         }
+      }
+      switch (i) {
       case 0:                         /* Volume Status */
          /* Modify Volume Status */
          bsendmsg(ua, _("Current Volume status is: %s\n"), mr.VolStatus);

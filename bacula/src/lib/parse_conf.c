@@ -33,7 +33,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -136,7 +136,7 @@ struct s_kw {
  *
  *   tape label      label code = token
  */
-struct s_kw tapelabels[] = {
+static s_kw tapelabels[] = {
    {"bacula",        B_BACULA_LABEL},
    {"ansi",          B_ANSI_LABEL},
    {"ibm",           B_IBM_LABEL},

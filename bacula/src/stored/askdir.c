@@ -7,7 +7,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -510,7 +510,7 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
       }
 
       if (dev->is_dvd()) {   
-         unmount_dev(dev, 0);
+         unmount_dvd(dev, 0);
       }
       
       /*

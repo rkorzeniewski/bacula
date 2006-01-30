@@ -165,6 +165,7 @@ public:
    BSOCK *ua;                         /* User agent */
    JOB *job;                          /* Job resource */
    JOB *verify_job;                   /* Job resource of verify target job */
+   JOB *migration_job;                /* Job resource of migration target job */
    alist *storage;                    /* Storage possibilities */
    STORE *store;                      /* Storage daemon selected */
    CLIENT *client;                    /* Client resource */

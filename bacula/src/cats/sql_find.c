@@ -188,10 +188,10 @@ db_find_failed_job_since(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM *stime, int &
  *   VERIFY_CATALOG we want the JobId of the last INIT.
  *   For VERIFY_VOLUME_TO_CATALOG, we want the JobId of the last Job.
  *
- * Returns: 1 on success
- *          0 on failure
+ * Returns: true  on success
+ *          false on failure
  */
-int
+bool
 db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr)
 {
    SQL_ROW row;
@@ -207,7 +207,8 @@ db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr)
            L_VERIFY_INIT, jr->Name, 
            edit_int64(jr->ClientId, ed1));
    } else if (jr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG ||
-              jr->JobLevel == L_VERIFY_DISK_TO_CATALOG) {
+              jr->JobLevel == L_VERIFY_DISK_TO_CATALOG ||
+              jr->JobType == JT_MIGRATE) {
       if (Name) {
          Mmsg(mdb->cmd,
 "SELECT JobId FROM Job WHERE Type='B' AND JobStatus='T' AND "
@@ -221,18 +222,18 @@ db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr)
    } else {
       Mmsg1(&mdb->errmsg, _("Unknown Job level=%c\n"), jr->JobLevel);
       db_unlock(mdb);
-      return 0;
+      return false;
    }
    Dmsg1(100, "Query: %s\n", mdb->cmd);
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);
-      return 0;
+      return false;
    }
    if ((row = sql_fetch_row(mdb)) == NULL) {
       Mmsg1(&mdb->errmsg, _("No Job found for: %s.\n"), mdb->cmd);
       sql_free_result(mdb);
       db_unlock(mdb);
-      return 0;
+      return false;
    }
 
    jr->JobId = str_to_int64(row[0]);
@@ -242,11 +243,11 @@ db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr)
    if (jr->JobId <= 0) {
       Mmsg1(&mdb->errmsg, _("No Job found for: %s\n"), mdb->cmd);
       db_unlock(mdb);
-      return 0;
+      return false;
    }
 
    db_unlock(mdb);
-   return 1;
+   return true;
 }
 
 /*

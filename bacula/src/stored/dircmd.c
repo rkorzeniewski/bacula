@@ -20,7 +20,7 @@
  *
  */
 /*
-   Copyright (C) 2001-2005 Kern Sibbald
+   Copyright (C) 2001-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -71,6 +71,7 @@ static bool setdebug_cmd(JCR *jcr);
 static bool cancel_cmd(JCR *cjcr);
 static bool mount_cmd(JCR *jcr);
 static bool unmount_cmd(JCR *jcr);
+static bool bootstrap_cmd(JCR *jcr);
 static bool changer_cmd(JCR *sjcr);
 static bool do_label(JCR *jcr, int relabel);
 static DCR *find_device(JCR *jcr, POOL_MEM &dev_name, int drive);
@@ -344,9 +345,9 @@ static bool do_label(JCR *jcr, int relabel)
          dev = dcr->dev;
          P(dev->mutex);               /* Use P to avoid indefinite block */
          if (!dev->is_open()) {
-            Dmsg0(400, "Can relabel. Device is not open\n");
+            Dmsg1(400, "Can %slabel. Device is not open\n", relabel?"re":"");
             label_volume_if_ok(dcr, oldname, newname, poolname, slot, relabel);
-            force_close_device(dev);
+            dev->close();
          /* Under certain "safe" conditions, we can steal the lock */
          } else if (dev->can_steal_lock()) {
             Dmsg0(400, "Can relabel. can_steal_lock\n");
@@ -390,13 +391,25 @@ static void label_volume_if_ok(DCR *dcr, char *oldname,
    bsteal_lock_t hold;
    DEVICE *dev = dcr->dev;
    int label_status;
+   int mode;
 
    steal_device_lock(dev, &hold, BST_WRITING_LABEL);
    Dmsg1(100, "Stole device %s lock, writing label.\n", dev->print_name());
 
-   /* Note, try_autoload_device() opens the device */
    if (!try_autoload_device(dcr->jcr, slot, newname)) {
       goto bail_out;                  /* error */
+   }
+
+   /* Ensure that the device is open -- autoload_device() closes it */
+   if (dev->is_tape()) {
+      mode = OPEN_READ_WRITE;
+   } else {
+      mode = CREATE_READ_WRITE;
+   }
+   if (dev->open(dcr, mode) < 0) {
+      bnet_fsend(dir, _("3910 Unable to open device %s: ERR=%s\n"),
+         dev->print_name(), dev->strerror());
+      return;      
    }
 
    /* See what we have for a Volume */
@@ -515,40 +528,42 @@ static DCR *find_device(JCR *jcr, POOL_MEM &devname, int drive)
          break;
       }
    }
-   foreach_res(changer, R_AUTOCHANGER) {
-      /* Find resource, and make sure we were able to open it */
-      if (fnmatch(devname.c_str(), changer->hdr.name, 0) == 0) {
-         /* Try each device in this AutoChanger */
-         foreach_alist(device, changer->device) {
-            Dmsg1(100, "Try changer device %s\n", device->hdr.name);
-            if (!device->dev) {
-               device->dev = init_dev(jcr, device);
+   if (!found) {
+      foreach_res(changer, R_AUTOCHANGER) {
+         /* Find resource, and make sure we were able to open it */
+         if (fnmatch(devname.c_str(), changer->hdr.name, 0) == 0) {
+            /* Try each device in this AutoChanger */
+            foreach_alist(device, changer->device) {
+               Dmsg1(100, "Try changer device %s\n", device->hdr.name);
+               if (!device->dev) {
+                  device->dev = init_dev(jcr, device);
+               }
+               if (!device->dev) {
+                  Dmsg1(100, "Device %s could not be opened. Skipped\n", devname.c_str());
+                  Jmsg(jcr, M_WARNING, 0, _("\n"
+                     "     Device \"%s\" in changer \"%s\" requested by DIR could not be opened or does not exist.\n"),
+                       device->hdr.name, devname.c_str());
+                  continue;
+               }
+               if (!device->dev->autoselect) {
+                  Dmsg1(100, "Device %s not autoselect skipped.\n", devname.c_str());
+                  continue;              /* device is not available */
+               }
+               if (drive < 0 || drive == (int)device->dev->drive_index) {
+                  Dmsg1(20, "Found changer device %s\n", device->hdr.name);
+                  found = true;
+                  break;
+               }
+               Dmsg3(100, "Device %s drive wrong: want=%d got=%d skipping\n",
+                  devname.c_str(), drive, (int)device->dev->drive_index);
             }
-            if (!device->dev) {
-               Dmsg1(100, "Device %s could not be opened. Skipped\n", devname.c_str());
-               Jmsg(jcr, M_WARNING, 0, _("\n"
-                  "     Device \"%s\" in changer \"%s\" requested by DIR could not be opened or does not exist.\n"),
-                    device->hdr.name, devname.c_str());
-               continue;
-            }
-            if (!device->dev->autoselect) {
-               Dmsg1(100, "Device %s not autoselect skipped.\n", devname.c_str());
-               continue;              /* device is not available */
-            }
-            if (drive < 0 || drive == (int)device->dev->drive_index) {
-               Dmsg1(20, "Found changer device %s\n", device->hdr.name);
-               found = true;
-               break;
-            }
-            Dmsg3(100, "Device %s drive wrong: want=%d got=%d skipping\n",
-               devname.c_str(), drive, (int)device->dev->drive_index);
+            break;                    /* we found it but could not open a device */
          }
-         break;                    /* we found it but could not open a device */
       }
    }
 
    if (found) {
-      Dmsg1(100, "Found changer device %s\n", device->hdr.name);
+      Dmsg1(100, "Found device %s\n", device->hdr.name);
       dcr = new_dcr(jcr, device->dev);
       dcr->device = device;
       jcr->dcr = dcr;
@@ -657,7 +672,7 @@ static bool mount_cmd(JCR *jcr)
                              dev->print_name());
                }
             } else if (dev->is_dvd()) {
-               if (mount_dev(dev, 1)) {
+               if (mount_dvd(dev, 1)) {
                   bnet_fsend(dir, _("3002 Device %s is mounted.\n"), 
                      dev->print_name());
                } else {
@@ -715,8 +730,7 @@ static bool unmount_cmd(JCR *jcr)
             Dmsg2(90, "%d waiter dev_block=%d. doing unmount\n", dev->num_waiting,
                dev->dev_blocked);
             if (!unload_autochanger(jcr->dcr, -1)) {
-               offline_or_rewind_dev(dev);
-               force_close_device(dev);
+               dev->close();
             }
             dev->dev_blocked = BST_UNMOUNTED_WAITING_FOR_SYSOP;
             bnet_fsend(dir, _("3001 Device %s unmounted.\n"), 
@@ -743,8 +757,7 @@ static bool unmount_cmd(JCR *jcr)
             dev->dev_blocked = BST_UNMOUNTED;
             dev->no_wait_id = 0;
             if (!unload_autochanger(jcr->dcr, -1)) {
-               offline_or_rewind_dev(dev);
-               force_close_device(dev);
+               dev->close();
             }
             bnet_fsend(dir, _("3002 Device %s unmounted.\n"), 
                dev->print_name());
@@ -828,6 +841,10 @@ static bool release_cmd(JCR *jcr)
 }
 
 
+static bool bootstrap_cmd(JCR *jcr)
+{
+   return get_bootstrap_file(jcr, jcr->dir_bsock);
+}
 
 /*
  * Autochanger command from Director
@@ -902,7 +919,7 @@ static bool readlabel_cmd(JCR *jcr)
          P(dev->mutex);               /* Use P to avoid indefinite block */
          if (!dev->is_open()) {
             read_volume_label(jcr, dev, Slot);
-            force_close_device(dev);
+            dev->close();
          /* Under certain "safe" conditions, we can steal the lock */
          } else if (dev->can_steal_lock()) {
             read_volume_label(jcr, dev, Slot);
@@ -924,6 +941,7 @@ static bool readlabel_cmd(JCR *jcr)
    bnet_sig(dir, BNET_EOD);
    return true;
 }
+
 
 /*
  * Read the tape label
@@ -965,19 +983,11 @@ static bool try_autoload_device(JCR *jcr, int slot, const char *VolName)
 {
    DCR *dcr = jcr->dcr;
    BSOCK *dir = jcr->dir_bsock;
-   DEVICE *dev = dcr->dev;
 
    bstrncpy(dcr->VolumeName, VolName, sizeof(dcr->VolumeName));
    dcr->VolCatInfo.Slot = slot;
    dcr->VolCatInfo.InChanger = slot > 0;
    if (autoload_device(dcr, 0, dir) < 0) {    /* autoload if possible */
-      return false;
-   }
-
-   /* Ensure that the device is open -- autoload_device() closes it */
-   if (dev->open(dcr, OPEN_READ_WRITE) < 0) {
-      bnet_fsend(dir, _("3910 Unable to open device %s: ERR=%s\n"),
-         dev->print_name(), dev->strerror());
       return false;
    }
    return true;

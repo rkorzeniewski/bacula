@@ -13,7 +13,7 @@
  *
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -53,9 +53,10 @@ static bool append_end_session(JCR *jcr);
 static bool read_open_session(JCR *jcr);
 static bool read_data_cmd(JCR *jcr);
 static bool read_close_session(JCR *jcr);
+static bool bootstrap_cmd(JCR *jcr);
 
 /* Exported function */
-bool bootstrap_cmd(JCR *jcr);
+bool get_bootstrap_file(JCR *jcr, BSOCK *bs);
 
 struct s_cmds {
    const char *cmd;
@@ -93,7 +94,7 @@ static char ERROR_bootstrap[] = "3904 Error bootstrap\n";
 
 /* Information sent to the Director */
 static char Job_start[] = "3010 Job %s start\n";
-static char Job_end[]   =
+char Job_end[]   =
    "3099 Job %s end JobStatus=%d JobFiles=%d JobBytes=%s\n";
 
 /*
@@ -309,9 +310,13 @@ static bool read_open_session(JCR *jcr)
    return true;
 }
 
-bool bootstrap_cmd(JCR *jcr)
+static bool bootstrap_cmd(JCR *jcr)
 {
-   BSOCK *fd = jcr->file_bsock;
+   return get_bootstrap_file(jcr, jcr->file_bsock);
+}
+
+bool get_bootstrap_file(JCR *jcr, BSOCK *sock)
+{
    POOLMEM *fname = get_pool_memory(PM_FNAME);
    FILE *bs;
    bool ok = false;
@@ -330,9 +335,9 @@ bool bootstrap_cmd(JCR *jcr)
          jcr->RestoreBootstrap, strerror(errno));
       goto bail_out;
    }
-   while (bnet_recv(fd) >= 0) {
-       Dmsg1(400, "stored<filed: bootstrap file %s", fd->msg);
-       fputs(fd->msg, bs);
+   while (bnet_recv(sock) >= 0) {
+       Dmsg1(400, "stored<filed: bootstrap file %s", sock->msg);
+       fputs(sock->msg, bs);
    }
    fclose(bs);
    jcr->bsr = parse_bsr(jcr, jcr->RestoreBootstrap);
@@ -350,10 +355,10 @@ bail_out:
    free_pool_memory(jcr->RestoreBootstrap);
    jcr->RestoreBootstrap = NULL;
    if (!ok) {
-      bnet_fsend(fd, ERROR_bootstrap);
+      bnet_fsend(sock, ERROR_bootstrap);
       return false;
    }
-   return bnet_fsend(fd, OK_bootstrap);
+   return bnet_fsend(sock, OK_bootstrap);
 }
 
 

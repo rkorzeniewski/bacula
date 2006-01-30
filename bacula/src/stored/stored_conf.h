@@ -4,7 +4,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -75,7 +75,7 @@ public:
    utime_t heartbeat_interval;        /* Interval to send hb to FD */
    int tls_enable;                    /* Enable TLS */
    int tls_require;                   /* Require TLS */
-   int tls_verify_peer;              /* TLS Verify Client Certificate */
+   int tls_verify_peer;               /* TLS Verify Client Certificate */
    char *tls_ca_certfile;             /* TLS CA Certificate File */
    char *tls_ca_certdir;              /* TLS CA Certificate Directory */
    char *tls_certfile;                /* TLS Server Certificate File */
@@ -107,6 +107,7 @@ public:
    char *changer_command;             /* Changer command  -- external program */
    char *alert_command;               /* Alert command -- external program */
    char *spool_directory;             /* Spool file directory */
+   int   dev_type;                    /* device type */
    int   label_type;                  /* label type */
    int   autoselect;                  /* Automatically select from AutoChanger */
    uint32_t drive_index;              /* Autochanger drive index */

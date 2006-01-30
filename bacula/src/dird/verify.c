@@ -14,7 +14,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -43,6 +43,7 @@ static char storaddr[]     = "storage address=%s port=%d ssl=0\n";
 /* Responses received from File daemon */
 static char OKverify[]    = "2000 OK verify\n";
 static char OKstore[]     = "2000 OK storage\n";
+static char OKbootstrap[] = "2000 OK bootstrap\n";
 
 /* Forward referenced functions */
 static void prt_fname(JCR *jcr);
@@ -208,6 +209,10 @@ bool do_verify(JCR *jcr)
          return false;
       }
       Dmsg0(50, "Storage daemon connection OK\n");
+
+      if (!bnet_fsend(jcr->store_bsock, "run")) {
+         return false;
+      }
    }
    /*
     * OK, now connect to the File daemon
@@ -258,7 +263,8 @@ bool do_verify(JCR *jcr)
       /*
        * Send the bootstrap file -- what Volumes/files to restore
        */
-      if (!send_bootstrap_file(jcr)) {
+      if (!send_bootstrap_file(jcr, fd) ||
+          !response(jcr, fd, OKbootstrap, "Bootstrap", DISPLAY_ERROR)) {
          return false;
       }
 

@@ -16,7 +16,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -249,10 +249,6 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
          }
          break;
       }
-   }
-   if (ok) {
-      ok = bnet_fsend(sd, "run");
-      Dmsg1(100, ">stored: %s\n", sd->msg);
    }
    return ok;
 }

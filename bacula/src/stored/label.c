@@ -8,7 +8,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -71,7 +71,9 @@ int read_dev_volume_label(DCR *dcr)
       dev->VolHdr.VolumeName[0]?dev->VolHdr.VolumeName:"*NULL*");
 
    if (!dev->is_open()) {
-      Emsg0(M_ABORT, 0, _("BAD call to read_dev_volume_label\n"));
+      if (dev->open(dcr, OPEN_READ_ONLY) < 0) {
+         return VOL_IO_ERROR;
+      }
    }
    if (dev->is_labeled()) {              /* did we already read label? */
       /* Compare Volume Names allow special wild card */
@@ -287,8 +289,6 @@ bool write_volume_label_to_block(DCR *dcr)
  *            after the label will be destroyed,
  *            in fact, we write the label 5 times !!!!
  *
- *  This routine expects that open_device() was previously called.
- *
  *  This routine should be used only when labeling a blank tape.
  */
 bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *PoolName)
@@ -300,7 +300,10 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *Po
    empty_block(dcr->block);
 
    if (dev->open(dcr, OPEN_READ_WRITE) < 0) {
-      goto bail_out;
+      /* If device is not tape, attempt to create it */
+      if (dev->is_tape() || dev->open(dcr, CREATE_READ_WRITE) < 0) {
+         goto bail_out;
+      }
    }
    Dmsg1(150, "Label type=%d\n", dev->label_type);
    if (!dev->rewind(dcr)) {
@@ -401,7 +404,7 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
                dev->print_name(), strerror_dev(dev));
       }
       if (recycle) {
-         if (!truncate_dev(dcr)) {
+         if (!dev->truncate(dcr)) {
             Jmsg2(jcr, M_WARNING, 0, _("Truncate error on device %s: ERR=%s\n"),
                   dev->print_name(), strerror_dev(dev));
          }

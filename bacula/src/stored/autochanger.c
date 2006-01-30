@@ -104,6 +104,9 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
    int rtn_stat = -1;                 /* error status */
    POOLMEM *changer;
 
+   if (!dev->is_autochanger()) {
+      return 0;
+   }
    slot = dcr->VolCatInfo.InChanger ? dcr->VolCatInfo.Slot : 0;
    /*
     * Handle autoloaders here.  If we cannot autoload it, we
@@ -151,8 +154,7 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
          dcr->VolCatInfo.Slot = slot;    /* slot to be loaded */
          changer = edit_device_codes(dcr, changer, 
                       dcr->device->changer_command, "load");
-         offline_or_rewind_dev(dev);
-         force_close_device(dev);
+         dev->close();
          status = run_program(changer, timeout, NULL);
          if (status == 0) {
             Jmsg(jcr, M_INFO, 0, _("3305 Autochanger \"load slot %d, drive %d\", status is OK.\n"),
@@ -297,8 +299,7 @@ bool unload_autochanger(DCR *dcr, int loaded)
       dcr->VolCatInfo.Slot = loaded;
       changer = edit_device_codes(dcr, changer, 
                    dcr->device->changer_command, "unload");
-      offline_or_rewind_dev(dev);
-      force_close_device(dev);
+      dev->close();
       int stat = run_program(changer, timeout, NULL);
       dcr->VolCatInfo.Slot = slot;
       if (stat != 0) {
@@ -373,8 +374,7 @@ static bool unload_other_drive(DCR *dcr, int slot)
    changer_cmd = edit_device_codes(dcr, changer_cmd, 
                 dcr->device->changer_command, "unload");
    Dmsg1(200, "Run program=%s\n", changer_cmd);
-   offline_or_rewind_dev(dev);
-   force_close_device(dev);
+   dev->close();
    int stat = run_program(changer_cmd, timeout, NULL);
    dcr->VolCatInfo.Slot = save_slot;
    dcr->dev = save_dev;

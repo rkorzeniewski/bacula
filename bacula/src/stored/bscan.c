@@ -1255,10 +1255,7 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
    DEVICE *dev = dcr->dev;
    Dmsg0(20, "Enter dir_ask_sysop_to_mount_volume\n");
    /* Close device so user can use autochanger if desired */
-   if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
-      offline_dev(dev);
-   }
-   force_close_device(dev);
+   dev->close();
    fprintf(stderr, _("Mount Volume \"%s\" on device %s and press return when ready: "),
          dcr->VolumeName, dev->print_name());
    getchar();

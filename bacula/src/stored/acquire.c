@@ -6,7 +6,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2002-2005 Kern Sibbald
+   Copyright (C) 2002-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -86,6 +86,10 @@ void free_dcr(DCR *dcr)
    if (dcr->reserved_device) {
       lock_device(dev);
       dev->reserved_device--;
+      /* If we set read mode in reserving, remove it */
+      if (dev->can_read()) {
+         dev->clear_read();
+      }
       Dmsg1(100, "Dec reserve=%d\n", dev->reserved_device);
       dcr->reserved_device = false;
       if (dev->num_writers < 0) {
@@ -227,10 +231,11 @@ DCR *acquire_device_for_read(DCR *dcr)
 default_path:
          tape_previously_mounted = true;
          
-         /* If the device requires mount, close it, so the device can be ejected.
-          * FIXME: This should perhaps be done for all devices. */
+         /*
+          * If the device requires mount, close it, so the device can be ejected.
+          */
          if (dev->requires_mount()) {
-            force_close_device(dev);
+            dev->close();
          }
          
          /* Call autochanger only once unless ask_sysop called */
@@ -481,8 +486,7 @@ bool release_device(DCR *dcr)
 
    /* If no writers, close if file or !CAP_ALWAYS_OPEN */
    if (dev->num_writers == 0 && (!dev->is_tape() || !dev_cap(dev, CAP_ALWAYSOPEN))) {
-      offline_or_rewind_dev(dev);
-      close_device(dev);
+      dev->close();
    }
 
    /* Fire off Alert command and include any output */

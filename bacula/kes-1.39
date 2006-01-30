@@ -3,6 +3,22 @@
 
 General:
 
+Changes to 1.39.5
+30Jan06
+- Continue implementing migration.
+- Implement support for removable filesystems in SD.
+- Ensure that btraceback scripts can be read by anyone.
+- Replace dvd-freespace and dvd-writepart by dvd-handler.
+- Correct bug where canceling restore before the FD contacts
+  the SD causes the drive to be left in read mode.
+- Move ofline_or_rewind into DEVICE::close().
+- Eliminate close_device.
+- Convert several dev subroutines to methods (e.g. bsf,
+  eod, ...)
+- Eliminate force_close_device().
+- Implement Device Type directive in Device resource that
+  can have values File, Tape, Fifo, DVD, or Prog.
+- Add has_cap() method to Device.
 Changes to 1.39.4
 17Jan06
 - Add patch from bug #527 to allow RedHat user to specify

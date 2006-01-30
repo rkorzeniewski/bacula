@@ -21,7 +21,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -304,11 +304,9 @@ bool response(JCR *jcr, BSOCK *bs, char *resp, const char *cmd, e_prtmsg prtmsg)
       return false;
    }
    if ((n = bget_dirmsg(bs)) >= 0) {
-      Dmsg0(900, bs->msg);
       if (strcmp(bs->msg, resp) == 0) {
          return true;
       }
-      Dmsg1(900, "Bad response: ERR=%s", bs->msg);
       if (prtmsg == DISPLAY_ERROR) {
          Jmsg(jcr, M_FATAL, 0, _("Bad response to %s command: wanted %s, got %s\n"),
             cmd, resp, bs->msg);

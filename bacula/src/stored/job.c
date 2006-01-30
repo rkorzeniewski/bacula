@@ -7,7 +7,7 @@
  *
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -29,6 +29,7 @@ extern uint32_t VolSessionTime;
 
 /* Imported functions */
 extern uint32_t newVolSessionId();
+extern bool do_mac(JCR *jcr);
 
 /* Requests from the Director daemon */
 static char jobcmd[] = "JobId=%d job=%127s job_name=%127s client_name=%127s "
@@ -141,7 +142,7 @@ bool run_cmd(JCR *jcr)
    case JT_COPY:
    case JT_ARCHIVE:
       jcr->authenticated = true;
-      run_job(jcr);
+      do_mac(jcr);
       return false;
    }
 
@@ -247,7 +248,6 @@ bool query_cmd(JCR *jcr)
    Dmsg1(100, "<dird: %s\n", dir->msg);
    if (ok) {
       unbash_spaces(dev_name);
-//    LockRes();
       foreach_res(device, R_DEVICE) {
          /* Find resource, and make sure we were able to open it */
          if (fnmatch(dev_name.c_str(), device->hdr.name, 0) == 0) {
@@ -257,7 +257,6 @@ bool query_cmd(JCR *jcr)
             if (!device->dev) {
                break;
             }  
-//          UnlockRes();
             ok = dir_update_device(jcr, device->dev);
             if (ok) {
                ok = bnet_fsend(dir, OK_query);
@@ -270,7 +269,6 @@ bool query_cmd(JCR *jcr)
       foreach_res(changer, R_AUTOCHANGER) {
          /* Find resource, and make sure we were able to open it */
          if (fnmatch(dev_name.c_str(), changer->hdr.name, 0) == 0) {
-//          UnlockRes();
             if (!changer->device || changer->device->size() == 0) {
                continue;              /* no devices */
             }
@@ -284,7 +282,6 @@ bool query_cmd(JCR *jcr)
          }
       }
       /* If we get here, the device/autochanger was not found */
-//    UnlockRes();
       unbash_spaces(dir->msg);
       pm_strcpy(jcr->errmsg, dir->msg);
       bnet_fsend(dir, NO_device, dev_name.c_str());
