@@ -7,7 +7,7 @@
  *   Version  $Id$
  */
 /*
-   Copyright (C) 2001-2005 Kern Sibbald
+   Copyright (C) 2001-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -631,6 +631,7 @@ int get_job_dbr(UAContext *ua, JOB_DBR *jr)
          bstrncpy(jr->Job, ua->argv[i], sizeof(jr->Job));
       } else if (strcasecmp(ua->argk[i], N_("jobid")) == 0 && ua->argv[i]) {
          jr->JobId = str_to_int64(ua->argv[i]);
+         jr->Job[0] = 0;
       } else {
          continue;
       }
@@ -643,6 +644,16 @@ int get_job_dbr(UAContext *ua, JOB_DBR *jr)
       return jr->JobId;
    }
 
+   jr->JobId = 0;
+   jr->Job[0] = 0;
+
+   for (i=1; i<ua->argc; i++) {
+      if (strcasecmp(ua->argk[i], N_("jobname")) == 0 && ua->argv[i]) {
+         jr->JobId = 0;
+         bstrncpy(jr->Name, ua->argv[i], sizeof(jr->Name));
+         break;
+      }
+   }
    if (!select_job_dbr(ua, jr)) {  /* try once more */
       return 0;
    }

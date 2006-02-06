@@ -65,7 +65,7 @@ static void add_file_and_part_name(DEVICE *dev, POOL_MEM &archive_name)
       bsnprintf(partnumber, sizeof(partnumber), "%d", dev->part);
       pm_strcat(archive_name, partnumber);
    }
-   Dmsg1(100, "Exit make_dvd_filename: arch=%s\n", archive_name.c_str());
+   Dmsg1(400, "Exit make_dvd_filename: arch=%s\n", archive_name.c_str());
 }  
 
 /* Mount the device.
@@ -259,7 +259,7 @@ void update_free_space_dev(DEVICE* dev)
    
    while (1) {
       if (run_program_full_output(ocmd.c_str(), dev->max_open_wait/2, results) == 0) {
-         Dmsg1(100, "Free space program run : %s\n", results);
+         Dmsg1(400, "Free space program run : %s\n", results);
          free = str_to_int64(results);
          if (free >= 0) {
             dev->free_space = free;
@@ -472,7 +472,7 @@ int dvd_open_next_part(DCR *dcr)
          }
       }
 
-      Dmsg2(100, "num_parts=%d part=%d\n", dev->num_parts, dev->part);
+      Dmsg2(400, "num_parts=%d part=%d\n", dev->num_parts, dev->part);
       dev->VolCatInfo.VolCatParts = dev->part;
       make_spooled_dvd_filename(dev, archive_name);   /* makes spool name */
       
@@ -497,11 +497,11 @@ int dvd_open_next_part(DCR *dcr)
     *  think it is not needed.
     */
    if (dev->num_parts < dev->part) {
-      Dmsg2(100, "Set npart=%d to part=%d\n", dev->num_parts, dev->part);
+      Dmsg2(400, "Set npart=%d to part=%d\n", dev->num_parts, dev->part);
       dev->num_parts = dev->part;
       dev->VolCatInfo.VolCatParts = dev->part;
    }
-   Dmsg2(50, "Call dev->open(vol=%s, mode=%d\n", dev->VolCatInfo.VolCatName, 
+   Dmsg2(400, "Call dev->open(vol=%s, mode=%d\n", dev->VolCatInfo.VolCatName, 
          dev->openmode);
    /* Open next part */
    
@@ -537,17 +537,17 @@ int dvd_open_first_part(DCR *dcr, int mode)
    dev->part_start = 0;
    dev->part = 0;
    
-   Dmsg2(50, "Call dev->open(vol=%s, mode=%d)\n", dcr->VolCatInfo.VolCatName, 
+   Dmsg2(400, "Call dev->open(vol=%s, mode=%d)\n", dcr->VolCatInfo.VolCatName, 
          mode);
    int append = dev->can_append();
    if (dev->open(dcr, mode) < 0) {
-      Dmsg0(50, "open dev() failed\n");
+      Dmsg0(400, "open dev() failed\n");
       return -1;
    }
    if (append && (dev->part == dev->num_parts)) { /* If needed, set the append flag back */
       dev->set_append();
    }
-   Dmsg2(50, "Leave open_first_part state=%s append=%d\n", dev->is_open()?"open":"not open", dev->can_append());
+   Dmsg2(400, "Leave open_first_part state=%s append=%d\n", dev->is_open()?"open":"not open", dev->can_append());
    
    return dev->fd;
 }
@@ -560,17 +560,17 @@ off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
    off_t pos;
    char ed1[50], ed2[50];
    
-   Dmsg3(100, "Enter lseek_dev fd=%d part=%d nparts=%d\n", dev->fd,
+   Dmsg3(400, "Enter lseek_dev fd=%d part=%d nparts=%d\n", dev->fd,
       dev->part, dev->num_parts);
    if (!dev->is_dvd()) { 
-      Dmsg0(100, "Using sys lseek\n");
+      Dmsg0(400, "Using sys lseek\n");
       return lseek(dev->fd, offset, whence);
    }
       
    dcr = (DCR *)dev->attached_dcrs->first();  /* any dcr will do */
    switch(whence) {
    case SEEK_SET:
-      Dmsg2(100, "lseek_dev SEEK_SET to %s (part_start=%s)\n",
+      Dmsg2(400, "lseek_dev SEEK_SET to %s (part_start=%s)\n",
          edit_uint64(offset, ed1), edit_uint64(dev->part_start, ed2));
       if ((uint64_t)offset >= dev->part_start) {
          if (((uint64_t)offset == dev->part_start) || ((uint64_t)offset < (dev->part_start+dev->part_size))) {
@@ -583,7 +583,7 @@ off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
          } else {
             /* Load next part, and start again */
             if (dvd_open_next_part(dcr) < 0) {
-               Dmsg0(100, "lseek_dev failed while trying to open the next part\n");
+               Dmsg0(400, "lseek_dev failed while trying to open the next part\n");
                return -1;
             }
             return lseek_dev(dev, offset, SEEK_SET);
@@ -596,27 +596,27 @@ off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
           * until the right one is loaded
           */
          if (dvd_open_first_part(dcr, dev->openmode) < 0) {
-            Dmsg0(100, "lseek_dev failed while trying to open the first part\n");
+            Dmsg0(400, "lseek_dev failed while trying to open the first part\n");
             return -1;
          }
          return lseek_dev(dev, offset, SEEK_SET);
       }
       break;
    case SEEK_CUR:
-      Dmsg1(100, "lseek_dev SEEK_CUR to %s\n", edit_uint64(offset, ed1));
+      Dmsg1(400, "lseek_dev SEEK_CUR to %s\n", edit_uint64(offset, ed1));
       if ((pos = lseek(dev->fd, (off_t)0, SEEK_CUR)) < 0) {
          return pos;   
       }
       pos += dev->part_start;
       if (offset == 0) {
-         Dmsg1(100, "lseek_dev SEEK_CUR returns %s\n", edit_uint64(pos, ed1));
+         Dmsg1(400, "lseek_dev SEEK_CUR returns %s\n", edit_uint64(pos, ed1));
          return pos;
       } else { /* Not used in Bacula, but should work */
          return lseek_dev(dev, pos, SEEK_SET);
       }
       break;
    case SEEK_END:
-      Dmsg1(100, "lseek_dev SEEK_END to %s\n", edit_uint64(offset, ed1));
+      Dmsg1(400, "lseek_dev SEEK_END to %s\n", edit_uint64(offset, ed1));
       /*
        * Bacula does not use offsets for SEEK_END
        *  Also, Bacula uses seek_end only when it wants to
@@ -625,7 +625,7 @@ off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
        *  itself is read-only (as currently implemented).
        */
       if (offset > 0) { /* Not used by bacula */
-         Dmsg1(100, "lseek_dev SEEK_END called with an invalid offset %s\n", 
+         Dmsg1(400, "lseek_dev SEEK_END called with an invalid offset %s\n", 
             edit_uint64(offset, ed1));
          errno = EINVAL;
          return -1;
@@ -637,7 +637,7 @@ off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
          if ((pos = lseek(dev->fd, (off_t)0, SEEK_END)) < 0) {
             return pos;   
          } else {
-            Dmsg1(100, "lseek_dev SEEK_END returns %s\n", 
+            Dmsg1(400, "lseek_dev SEEK_END returns %s\n", 
                   edit_uint64(pos + dev->part_start, ed1));
             return pos + dev->part_start;
          }
@@ -652,19 +652,19 @@ off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
          int modesave = dev->openmode;
          /* Works because num_parts > 0. */
          if (dvd_open_first_part(dcr, OPEN_READ_ONLY) < 0) {
-            Dmsg0(100, "lseek_dev failed while trying to open the first part\n");
+            Dmsg0(400, "lseek_dev failed while trying to open the first part\n");
             return -1;
          }
          if (dev->num_parts > 0) {
             while (dev->part < (dev->num_parts-1)) {
                if (dvd_open_next_part(dcr) < 0) {
-                  Dmsg0(100, "lseek_dev failed while trying to open the next part\n");
+                  Dmsg0(400, "lseek_dev failed while trying to open the next part\n");
                   return -1;
                }
             }
             dev->openmode = modesave;
             if (dvd_open_next_part(dcr) < 0) {
-               Dmsg0(100, "lseek_dev failed while trying to open the next part\n");
+               Dmsg0(400, "lseek_dev failed while trying to open the next part\n");
                return -1;
             }
          }
@@ -688,7 +688,7 @@ bool dvd_close_job(DCR *dcr)
     * that requires mount, it will be written to the device.
     */
    if (dev->is_dvd() && jcr->write_part_after_job && (dev->part_size > 0)) {
-      Dmsg1(100, "Writing last part=%d write_partafter_job is set.\n",
+      Dmsg1(400, "Writing last part=%d write_partafter_job is set.\n",
          dev->part);
       if (dev->part < dev->num_parts) {
          Jmsg3(jcr, M_FATAL, 0, _("Error while writing, current part number is less than the total number of parts (%d/%d, device=%s)\n"),
@@ -721,17 +721,17 @@ bool truncate_dvd(DCR *dcr) {
    dcr->VolCatInfo.VolCatParts = 0;
    dev->VolCatInfo.VolCatParts = 0;
    
-   Dmsg0(100, "truncate_dvd: Opening first part (1)...\n");
+   Dmsg0(400, "truncate_dvd: Opening first part (1)...\n");
    
    dev->truncating = true;
    if (dvd_open_first_part(dcr, OPEN_READ_WRITE) < 0) {
-      Dmsg0(100, "truncate_dvd: Error while opening first part (1).\n");
+      Dmsg0(400, "truncate_dvd: Error while opening first part (1).\n");
       dev->truncating = false;
       return false;
    }
    dev->truncating = false;
 
-   Dmsg0(100, "truncate_dvd: Truncating...\n");
+   Dmsg0(400, "truncate_dvd: Truncating...\n");
 
    /* If necessary, truncate it. */
    if (ftruncate(dev->fd, 0) != 0) {
@@ -745,10 +745,10 @@ bool truncate_dvd(DCR *dcr) {
    dev->fd = -1;
    dev->clear_opened();
    
-   Dmsg0(100, "truncate_dvd: Opening first part (2)...\n");
+   Dmsg0(400, "truncate_dvd: Opening first part (2)...\n");
    
    if (!dvd_write_part(dcr)) {
-      Dmsg0(100, "truncate_dvd: Error while writing to DVD.\n");
+      Dmsg0(400, "truncate_dvd: Error while writing to DVD.\n");
       return false;
    }
    
@@ -758,7 +758,7 @@ bool truncate_dvd(DCR *dcr) {
    dev->VolCatInfo.VolCatParts = 0;
    
    if (dvd_open_first_part(dcr, OPEN_READ_WRITE) < 0) {
-      Dmsg0(100, "truncate_dvd: Error while opening first part (2).\n");
+      Dmsg0(400, "truncate_dvd: Error while opening first part (2).\n");
       return false;
    }
 

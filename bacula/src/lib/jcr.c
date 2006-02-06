@@ -66,6 +66,9 @@ static pthread_mutex_t jcr_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static pthread_mutex_t job_start_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+static pthread_mutex_t last_jobs_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+
 void lock_jobs()
 {
    P(job_start_mutex);
@@ -177,14 +180,12 @@ uint64_t write_last_jobs_list(int fd, uint64_t addr)
 
 void lock_last_jobs_list()
 {
-   /* Use jcr chain mutex */
-   lock_jcr_chain();
+   P(last_jobs_mutex);
 }
 
 void unlock_last_jobs_list()
 {
-   /* Use jcr chain mutex */
-   unlock_jcr_chain();
+   V(last_jobs_mutex);
 }
 
 /*
@@ -667,6 +668,7 @@ static void jcr_timeout_check(watchdog_t *self)
     * blocked for more than specified max time.
     */
    foreach_jcr(jcr) {
+      Dmsg2(3400, "jcr_timeout_check JobId=%u jcr=0x%x\n", jcr->JobId, jcr);
       if (jcr->JobId == 0) {
          continue;
       }

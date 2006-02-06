@@ -8,22 +8,17 @@
  *
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -32,15 +27,17 @@
 #define __RECORD_H 1
 
 /* Return codes from read_device_volume_label() */
-#define VOL_NOT_READ      0               /* Volume label not read */
-#define VOL_OK            1               /* volume name OK */
-#define VOL_NO_LABEL      2               /* volume not labeled */
-#define VOL_IO_ERROR      3               /* volume I/O error */
-#define VOL_NAME_ERROR    4               /* Volume name mismatch */
-#define VOL_CREATE_ERROR  5               /* Error creating label */
-#define VOL_VERSION_ERROR 6               /* Bacula version error */
-#define VOL_LABEL_ERROR   7               /* Bad label type */
-#define VOL_NO_MEDIA      8               /* Hard error -- no media present */
+enum {
+   VOL_NOT_READ = 1,                      /* Volume label not read */
+   VOL_OK,                                /* volume name OK */
+   VOL_NO_LABEL,                          /* volume not labeled */
+   VOL_IO_ERROR,                          /* volume I/O error */
+   VOL_NAME_ERROR,                        /* Volume name mismatch */
+   VOL_CREATE_ERROR,                      /* Error creating label */
+   VOL_VERSION_ERROR,                     /* Bacula version error */
+   VOL_LABEL_ERROR,                       /* Bad label type */
+   VOL_NO_MEDIA                           /* Hard error -- no media present */
+};
 
 
 /*  See block.h for RECHDR_LENGTH */

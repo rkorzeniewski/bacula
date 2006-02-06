@@ -14,7 +14,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -205,7 +205,7 @@ bool read_records(DCR *dcr,
                Dmsg2(300, "All done=(file:block) %u:%u\n", dev->file, dev->block_num);
                break;
             } else if (stat == 0) {  /* no match */
-               Dmsg4(300, "Clear rem=%d FI=%d before set_eof pos %u:%u\n",
+               Dmsg4(300, "BSR no match: clear rem=%d FI=%d before set_eof pos %u:%u\n",
                   rec->remainder, rec->FileIndex, dev->file, dev->block_num);
                rec->remainder = 0;
                rec->state &= ~REC_PARTIAL_RECORD;

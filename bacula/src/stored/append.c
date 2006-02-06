@@ -69,6 +69,7 @@ bool do_append_data(JCR *jcr)
 
    if (!acquire_device_for_append(dcr)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
+      jcr->dcr = NULL;
       return false;
    }
 

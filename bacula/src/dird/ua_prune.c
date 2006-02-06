@@ -8,7 +8,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2002-2005 Kern Sibbald
+   Copyright (C) 2002-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -163,7 +163,7 @@ int prunecmd(UAContext *ua, const char *cmd)
       NULL};
 
    if (!open_db(ua)) {
-      return 01;
+      return false;
    }
 
    /* First search args */
@@ -177,32 +177,32 @@ int prunecmd(UAContext *ua, const char *cmd)
    case 0:  /* prune files */
       client = get_client_resource(ua);
       if (!client || !confirm_retention(ua, &client->FileRetention, "File")) {
-         return 0;
+         return false;
       }
       prune_files(ua, client);
-      return 1;
+      return true;
    case 1:  /* prune jobs */
       client = get_client_resource(ua);
       if (!client || !confirm_retention(ua, &client->JobRetention, "Job")) {
-         return 0;
+         return false;
       }
       /* ****FIXME**** allow user to select JobType */
       prune_jobs(ua, client, JT_BACKUP);
       return 1;
    case 2:  /* prune volume */
       if (!select_pool_and_media_dbr(ua, &pr, &mr)) {
-         return 0;
+         return false;
       }
       if (!confirm_retention(ua, &mr.VolRetention, "Volume")) {
-         return 0;
+         return false;
       }
       prune_volume(ua, &mr);
-      return 1;
+      return true;
    default:
       break;
    }
 
-   return 1;
+   return true;
 }
 
 /*
@@ -240,7 +240,7 @@ int prune_files(UAContext *ua, CLIENT *client)
    /* Select Jobs -- for counting */
    Mmsg(query, select_job, edit_uint64(now - period, ed1), 
         edit_int64(cr.ClientId, ed2));
-   Dmsg1(050, "select sql=%s\n", query);
+   Dmsg3(050, "select now=%u period=%u sql=%s\n", (uint32_t)now, (uint32_t)period, query);
    if (!db_sql_query(ua->db, query, file_count_handler, (void *)&del)) {
       if (ua->verbose) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
@@ -270,7 +270,7 @@ int prune_files(UAContext *ua, CLIENT *client)
 
    for (i=0; i < del.num_ids; i++) {
       Mmsg(query, del_File, edit_int64(del.JobId[i], ed1));
-      Dmsg1(050, "Delete JobId=%s\n", ed1);
+      Dmsg1(000, "Delete Files JobId=%s\n", ed1);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       /*
        * Now mark Job as having files purged. This is necessary to
@@ -280,7 +280,7 @@ int prune_files(UAContext *ua, CLIENT *client)
        */
       Mmsg(query, upd_Purged, edit_int64(del.JobId[i], ed1));
       db_sql_query(ua->db, query, NULL, (void *)NULL);
-      Dmsg1(050, "Del sql=%s\n", query);
+      Dmsg1(000, "Update Purged sql=%s\n", query);
    }
    edit_uint64_with_commas(del.num_ids, ed1);
    bsendmsg(ua, _("Pruned Files from %s Jobs for client %s from catalog.\n"),
@@ -304,7 +304,7 @@ static void drop_temp_tables(UAContext *ua)
    }
 }
 
-static int create_temp_tables(UAContext *ua)
+static bool create_temp_tables(UAContext *ua)
 {
    int i;
    /* Create temp tables and indicies */
@@ -312,10 +312,10 @@ static int create_temp_tables(UAContext *ua)
       if (!db_sql_query(ua->db, create_deltabs[i], NULL, (void *)NULL)) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
          Dmsg0(050, "create DelTables table failed\n");
-         return 0;
+         return false;
       }
    }
-   return 1;
+   return true;
 }
 
 

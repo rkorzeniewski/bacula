@@ -263,7 +263,8 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
 {
    SQL_ROW row;
    int numrows;
-   const char *changer, *order;
+   const char *order;
+
    char ed1[50];
 
    db_lock(mdb);
@@ -280,11 +281,13 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
           edit_int64(mr->PoolId, ed1), mr->MediaType);
      item = 1;
    } else {
+      char changer[100];
       /* Find next available volume */
       if (InChanger) {
-         changer = "AND InChanger=1";
+         bsnprintf(changer, sizeof(changer), "AND InChanger=1 AND StorageId=%s",
+            edit_int64(mr->StorageId, ed1));
       } else {
-         changer = "";
+         changer[0] = 0;
       }
       if (strcmp(mr->VolStatus, "Recycled") == 0 ||
           strcmp(mr->VolStatus, "Purged") == 0) {

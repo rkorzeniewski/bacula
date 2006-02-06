@@ -49,7 +49,7 @@ static char OK_device[]  = "3000 OK use device device=%s\n";
 /* Storage Daemon requests */
 static char Job_start[]  = "3010 Job %127s start\n";
 static char Job_end[]    =
-   "3099 Job %127s end JobStatus=%d JobFiles=%d JobBytes=%" lld "\n";
+   "3099 Job %127s end JobStatus=%d JobFiles=%d JobBytes=%lld\n";
 
 /* Forward referenced functions */
 extern "C" void *msg_thread(void *arg);
@@ -198,20 +198,19 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
             Dmsg1(100, ">stored: %s", sd->msg);
          }
          bnet_sig(sd, BNET_EOD);            /* end of Devices */
-         bnet_sig(sd, BNET_EOD);            /* end of Storages */
-         if (bget_dirmsg(sd) > 0) {
-            Dmsg1(100, "<stored: %s", sd->msg);
-            /* ****FIXME**** save actual device name */
-            ok = sscanf(sd->msg, OK_device, device_name.c_str()) == 1;
-         } else {
-            POOL_MEM err_msg;
-            pm_strcpy(err_msg, sd->msg); /* save message */
-            Jmsg(jcr, M_FATAL, 0, _("\n"
-               "     Storage daemon didn't accept Device \"%s\" because:\n     %s"),
-               device_name.c_str(), err_msg.c_str()/* sd->msg */);
-            ok = false;
-         }
-         break;
+      }
+      bnet_sig(sd, BNET_EOD);            /* end of Storages */
+      if (bget_dirmsg(sd) > 0) {
+         Dmsg1(100, "<stored: %s", sd->msg);
+         /* ****FIXME**** save actual device name */
+         ok = sscanf(sd->msg, OK_device, device_name.c_str()) == 1;
+      } else {
+         POOL_MEM err_msg;
+         pm_strcpy(err_msg, sd->msg); /* save message */
+         Jmsg(jcr, M_FATAL, 0, _("\n"
+            "     Storage daemon didn't accept Device \"%s\" because:\n     %s"),
+            device_name.c_str(), err_msg.c_str()/* sd->msg */);
+         ok = false;
       }
    }
 
@@ -234,20 +233,19 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
             Dmsg1(100, ">stored: %s", sd->msg);
          }
          bnet_sig(sd, BNET_EOD);            /* end of Devices */
-         bnet_sig(sd, BNET_EOD);            /* end of Storages */
-         if (bget_dirmsg(sd) > 0) {
-            Dmsg1(100, "<stored: %s", sd->msg);
-            /* ****FIXME**** save actual device name */
-            ok = sscanf(sd->msg, OK_device, device_name.c_str()) == 1;
-         } else {
-            POOL_MEM err_msg;
-            pm_strcpy(err_msg, sd->msg); /* save message */
-            Jmsg(jcr, M_FATAL, 0, _("\n"
-               "     Storage daemon didn't accept Device \"%s\" because:\n     %s"),
-               device_name.c_str(), err_msg.c_str()/* sd->msg */);
-            ok = false;
-         }
-         break;
+      }
+      bnet_sig(sd, BNET_EOD);            /* end of Storages */
+      if (bget_dirmsg(sd) > 0) {
+         Dmsg1(100, "<stored: %s", sd->msg);
+         /* ****FIXME**** save actual device name */
+         ok = sscanf(sd->msg, OK_device, device_name.c_str()) == 1;
+      } else {
+         POOL_MEM err_msg;
+         pm_strcpy(err_msg, sd->msg); /* save message */
+         Jmsg(jcr, M_FATAL, 0, _("\n"
+            "     Storage daemon didn't accept Device \"%s\" because:\n     %s"),
+            device_name.c_str(), err_msg.c_str()/* sd->msg */);
+         ok = false;
       }
    }
    return ok;
@@ -317,12 +315,13 @@ extern "C" void *msg_thread(void *arg)
     */
    Dmsg0(100, "Start msg_thread loop\n");
    while ((stat=bget_dirmsg(sd)) >= 0) {
-      Dmsg1(200, "<stored: %s", sd->msg);
-      if (sscanf(sd->msg, Job_start, &Job) == 1) {
+      int stat;
+      Dmsg1(3400, "<stored: %s", sd->msg);
+      if (sscanf(sd->msg, Job_start, Job) == 1) {
          continue;
       }
-      if (sscanf(sd->msg, Job_end, &Job, &JobStatus, &JobFiles,
-                 &JobBytes) == 4) {
+      if ((stat=sscanf(sd->msg, Job_end, Job, &JobStatus, &JobFiles,
+                 &JobBytes)) == 4) {
          jcr->SDJobStatus = JobStatus; /* termination status */
          jcr->SDJobFiles = JobFiles;
          jcr->SDJobBytes = JobBytes;

@@ -5,7 +5,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -409,6 +409,7 @@ static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sess
    case EOS_LABEL:
       rtype = _("End Job Session");
       break;
+   case 0:
    case EOM_LABEL:
       rtype = _("End of Medium");
       break;

@@ -13,7 +13,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2001-2005 Kern Sibbald
+   Copyright (C) 2001-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -122,6 +122,9 @@ void catalog_request(JCR *jcr, BSOCK *bs)
       ok = db_get_pool_record(jcr, jcr->db, &pr);
       if (ok) {
          mr.PoolId = pr.PoolId;
+         if (jcr->store->StorageId) {
+            mr.StorageId = jcr->store->StorageId;
+         }
          ok = find_next_volume_for_append(jcr, &mr, index, true /*permit create new vol*/);
       }
       /*
@@ -276,8 +279,13 @@ void catalog_request(JCR *jcr, BSOCK *bs)
       &jm.FirstIndex, &jm.LastIndex, &jm.StartFile, &jm.EndFile,
       &jm.StartBlock, &jm.EndBlock, &jm.Copy, &jm.Stripe) == 9) {
 
-      jm.JobId = jcr->JobId;
-      jm.MediaId = jcr->MediaId;
+      if (jcr->target_jcr) {
+         jm.JobId = jcr->target_jcr->JobId;
+         jm.MediaId = jcr->MediaId;
+      } else {
+         jm.JobId = jcr->JobId;
+         jm.MediaId = jcr->MediaId;
+      }
       Dmsg6(400, "create_jobmedia JobId=%d MediaId=%d SF=%d EF=%d FI=%d LI=%d\n",
          jm.JobId, jm.MediaId, jm.StartFile, jm.EndFile, jm.FirstIndex, jm.LastIndex);
       if (!db_create_jobmedia_record(jcr, jcr->db, &jm)) {
@@ -386,7 +394,11 @@ void catalog_update(JCR *jcr, BSOCK *bs)
       ar->FileIndex = FileIndex;
       ar->Stream = Stream;
       ar->link = NULL;
-      ar->JobId = jcr->JobId;
+      if (jcr->target_jcr) {
+         ar->JobId = jcr->target_jcr->JobId;
+      } else {
+         ar->JobId = jcr->JobId;
+      }
       ar->Digest = NULL;
       ar->DigestType = CRYPTO_DIGEST_NONE;
       jcr->cached_attribute = true;
@@ -394,11 +406,6 @@ void catalog_update(JCR *jcr, BSOCK *bs)
       Dmsg2(400, "dird<filed: stream=%d %s\n", Stream, fname);
       Dmsg1(400, "dird<filed: attr=%s\n", attr);
 
-#ifdef xxx_old_code
-      if (!db_create_file_attributes_record(jcr, jcr->db, ar)) {
-         Jmsg1(jcr, M_FATAL, 0, _("Attribute create error. %s"), db_strerror(jcr->db));
-      }
-#endif
    } else if (crypto_digest_stream_type(Stream) != CRYPTO_DIGEST_NONE) {
       fname = p;
       if (ar->FileIndex != FileIndex) {

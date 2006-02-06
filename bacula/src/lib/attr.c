@@ -59,13 +59,13 @@ int unpack_attributes_record(JCR *jcr, int32_t stream, char *rec, ATTR *attr)
     *
     */
    attr->stream = stream;
-   Dmsg1(100, "Attr: %s\n", rec);
+   Dmsg1(400, "Attr: %s\n", rec);
    if (sscanf(rec, "%d %d", &attr->file_index, &attr->type) != 2) {
       Jmsg(jcr, M_FATAL, 0, _("Error scanning attributes: %s\n"), rec);
       Dmsg1(100, "\nError scanning attributes. %s\n", rec);
       return 0;
    }
-   Dmsg2(100, "Got Attr: FilInx=%d type=%d\n", attr->file_index, attr->type);
+   Dmsg2(400, "Got Attr: FilInx=%d type=%d\n", attr->file_index, attr->type);
    if (attr->type & AR_DATA_STREAM) {
       attr->data_stream = 1;
    } else {
@@ -96,7 +96,7 @@ int unpack_attributes_record(JCR *jcr, int32_t stream, char *rec, ATTR *attr)
       from_base64(&val, p);
       attr->data_stream = (int32_t)val;
    }
-   Dmsg7(200, "unpack_attr FI=%d Type=%d fname=%s attr=%s lname=%s attrEx=%s ds=%d\n",
+   Dmsg7(400, "unpack_attr FI=%d Type=%d fname=%s attr=%s lname=%s attrEx=%s ds=%d\n",
       attr->file_index, attr->type, attr->fname, attr->attr, attr->lname,
       attr->attrEx, attr->data_stream);
    *attr->ofname = 0;

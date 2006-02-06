@@ -11,7 +11,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2002-2005 Kern Sibbald
+   Copyright (C) 2002-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -309,7 +309,7 @@ static int purge_files_from_client(UAContext *ua, CLIENT *client)
 
    for (i=0; i < del.num_ids; i++) {
       edit_int64(del.JobId[i], ed1);
-      Dmsg1(050, "Delete JobId=%s\n", ed1);
+      Dmsg1(050, "Delete Files JobId=%s\n", ed1);
       Mmsg(query, "DELETE FROM File WHERE JobId=%s", ed1);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       /*
@@ -320,7 +320,7 @@ static int purge_files_from_client(UAContext *ua, CLIENT *client)
        */
       Mmsg(query, "UPDATE Job Set PurgedFiles=1 WHERE JobId=%s", ed1);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
-      Dmsg1(050, "Del sql=%s\n", query);
+      Dmsg1(050, "Update Purged sql=%s\n", query);
    }
    bsendmsg(ua, _("%d Files for client \"%s\" purged from %s catalog.\n"), del.num_ids,
       client->hdr.name, client->catalog->hdr.name);
@@ -395,7 +395,7 @@ static int purge_jobs_from_client(UAContext *ua, CLIENT *client)
     */
    for (i=0; i < del.num_ids; i++) {
       edit_int64(del.JobId[i], ed1);
-      Dmsg1(050, "Delete JobId=%s\n", ed1); 
+      Dmsg1(050, "Delete Files JobId=%s\n", ed1); 
       if (!del.PurgedFiles[i]) {
          Mmsg(query, "DELETE FROM File WHERE JobId=%s", ed1);
          db_sql_query(ua->db, query, NULL, (void *)NULL);
@@ -404,11 +404,11 @@ static int purge_jobs_from_client(UAContext *ua, CLIENT *client)
 
       Mmsg(query, "DELETE FROM Job WHERE JobId=%s", ed1);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
-      Dmsg1(050, "Del sql=%s\n", query);
+      Dmsg1(050, "Delete Job sql=%s\n", query);
 
       Mmsg(query, "DELETE FROM JobMedia WHERE JobId=%s", ed1);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
-      Dmsg1(050, "Del sql=%s\n", query);
+      Dmsg1(050, "Delete JobMedia sql=%s\n", query);
    }
    bsendmsg(ua, _("%d Jobs for client %s purged from %s catalog.\n"), del.num_ids,
       client->hdr.name, client->catalog->hdr.name);
@@ -580,5 +580,5 @@ bool mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
    } else {
       bsendmsg(ua, _("Cannot purge Volume with VolStatus=%s\n"), mr->VolStatus);
    }
-   return strcpy(mr->VolStatus, "Purged") == 0;
+   return strcmp(mr->VolStatus, "Purged") == 0;
 }

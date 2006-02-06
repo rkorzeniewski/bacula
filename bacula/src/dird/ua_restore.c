@@ -194,7 +194,7 @@ int restore_cmd(UAContext *ua, const char *cmd)
    if (find_arg(ua, N_("yes")) > 0) {
       pm_strcat(ua->cmd, " yes");    /* pass it on to the run command */
    }
-   Dmsg1(400, "Submitting: %s\n", ua->cmd);
+   Dmsg1(100, "Submitting: %s\n", ua->cmd);
    parse_ua_args(ua);
    run_cmd(ua, ua->cmd);
    free_rx(&rx);

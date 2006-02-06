@@ -7,7 +7,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2002-2005 Kern Sibbald
+   Copyright (C) 2002-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -278,9 +278,11 @@ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
                      SESSION_LABEL *sessrec, bool done)
 {
    if (bsr->done) {
+      Dmsg0(300, "bsr->done set\n");
       goto no_match;
    }
    if (!match_volume(bsr, bsr->volume, volrec, 1)) {
+      Dmsg2(300, "bsr vol=%s != rec vol=%s\n", bsr->volume, volrec);
       goto no_match;
    }
    if (!match_volfile(bsr, bsr->volfile, rec, 1)) {
@@ -326,22 +328,28 @@ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
     *   the rec->bsr = bsr optimization above.
     */
    if (!match_jobid(bsr, bsr->JobId, sessrec, 1)) {
+      Dmsg0(300, "fail on JobId\n");
       goto no_match;
 
    }
    if (!match_job(bsr, bsr->job, sessrec, 1)) {
+      Dmsg0(300, "fail on Job\n");
       goto no_match;
    }
    if (!match_client(bsr, bsr->client, sessrec, 1)) {
+      Dmsg0(300, "fail on Client\n");
       goto no_match;
    }
    if (!match_job_type(bsr, bsr->JobType, sessrec, 1)) {
+      Dmsg0(300, "fail on Job type\n");
       goto no_match;
    }
    if (!match_job_level(bsr, bsr->JobLevel, sessrec, 1)) {
+      Dmsg0(300, "fail on Job level\n");
       goto no_match;
    }
    if (!match_stream(bsr, bsr->stream, rec, 1)) {
+      Dmsg0(300, "fail on stream\n");
       goto no_match;
    }
    return 1;

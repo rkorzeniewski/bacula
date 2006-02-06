@@ -258,7 +258,7 @@ static int defaultscmd(UAContext *ua, const char *cmd)
    STORE *storage;
    POOL *pool;
 
-   if (ua->argc != 2) {
+   if (ua->argc != 2 || !ua->argv[1]) {
       return 1;
    }
 

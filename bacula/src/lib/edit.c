@@ -97,6 +97,39 @@ char *edit_uint64_with_commas(uint64_t val, char *buf)
 }
 
 /*
+ * Edit an integer into "human-readable" format with four or fewer
+ * significant digits followed by a suffix that indicates the scale
+ * factor.  The buf array inherits a 27 byte minimim length
+ * requirement from edit_unit64_with_commas(), although the output
+ * string is limited to eight characters.
+ */
+char *edit_uint64_with_suffix(uint64_t val, char *buf)
+{
+  int commas = 0;
+  char *c, mbuf[50];
+  char *suffix[] =
+    { "", "K", "M", "G", "T", "P", "E", "Z", "Y", "FIX ME" };
+  int suffixes = sizeof(suffix) / sizeof(*suffix);
+
+  edit_uint64_with_commas(val, mbuf);
+
+  if ((c = strchr(mbuf, ',')) != NULL) {
+    commas++;
+    *c++ = '.';
+    while  ((c = strchr(c, ',')) != NULL) {
+      commas++;
+      *c++ = '\0';
+    }
+    mbuf[5] = '\0'; // drop this to get '123.456 TB' rather than '123.4 TB'
+  }
+
+  if (commas >= suffixes)
+    commas = suffixes - 1;
+  bsnprintf(buf, 27, "%s %s", mbuf, suffix[commas]);
+  return buf;
+}
+
+/*
  * Edit an integer number, the supplied buffer
  * must be at least 27 bytes long.  The incoming number
  * is always widened to 64 bits.
