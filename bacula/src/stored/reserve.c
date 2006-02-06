@@ -358,9 +358,9 @@ static bool use_storage_cmd(JCR *jcr)
    /* ***FIXME**** remove after 1.38 release */
    char *device_name;
    foreach_alist(store, jcr->dirstore) {
-      Dmsg4(100, "Storage=%s media_type=%s pool=%s pool_type=%s\n", 
+      Dmsg5(100, "Storage=%s media_type=%s pool=%s pool_type=%s append=%d\n", 
          store->name, store->media_type, store->pool_name, 
-         store->pool_type);
+         store->pool_type, store->append);
       foreach_alist(device_name, store->device) {
          Dmsg1(100, "   Device=%s\n", device_name);
       }

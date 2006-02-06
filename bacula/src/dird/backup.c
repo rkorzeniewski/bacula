@@ -326,6 +326,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
 {
    char sdt[50], edt[50], schedt[50];
    char ec1[30], ec2[30], ec3[30], ec4[30], ec5[30], compress[50];
+   char ec6[30], ec7[30], elapsed[50];
    char term_code[100], fd_term_msg[100], sd_term_msg[100];
    const char *term_msg;
    int msg_type;
@@ -361,68 +362,8 @@ void backup_cleanup(JCR *jcr, int TermCode)
       set_jcr_job_status(jcr, JS_ErrorTerminated);
    }
 
-   /* Now update the bootstrap file if any */
-   if (jcr->JobStatus == JS_Terminated && jcr->jr.JobBytes &&
-       jcr->job->WriteBootstrap) {
-      FILE *fd;
-      BPIPE *bpipe = NULL;
-      int got_pipe = 0;
-      char *fname = jcr->job->WriteBootstrap;
-      VOL_PARAMS *VolParams = NULL;
-      int VolCount;
+   update_bootstrap_file(jcr);
 
-      if (*fname == '|') {
-         fname++;
-         got_pipe = 1;
-         bpipe = open_bpipe(fname, 0, "w");
-         fd = bpipe ? bpipe->wfd : NULL;
-      } else {
-         /* ***FIXME*** handle BASE */
-         fd = fopen(fname, jcr->JobLevel==L_FULL?"w+":"a+");
-      }
-      if (fd) {
-         VolCount = db_get_job_volume_parameters(jcr, jcr->db, jcr->JobId,
-                    &VolParams);
-         if (VolCount == 0) {
-            Jmsg(jcr, M_ERROR, 0, _("Could not get Job Volume Parameters to "
-                 "update Bootstrap file. ERR=%s\n"), db_strerror(jcr->db));
-             if (jcr->SDJobFiles != 0) {
-                set_jcr_job_status(jcr, JS_ErrorTerminated);
-             }
-
-         }
-         /* Start output with when and who wrote it */
-         bstrftimes(edt, sizeof(edt), time(NULL));
-         fprintf(fd, "# %s - %s - %s%s\n", edt, jcr->jr.Job,
-                 level_to_str(jcr->JobLevel), jcr->since);
-         for (int i=0; i < VolCount; i++) {
-            /* Write the record */
-            fprintf(fd, "Volume=\"%s\"\n", VolParams[i].VolumeName);
-            fprintf(fd, "MediaType=\"%s\"\n", VolParams[i].MediaType);
-            fprintf(fd, "VolSessionId=%u\n", jcr->VolSessionId);
-            fprintf(fd, "VolSessionTime=%u\n", jcr->VolSessionTime);
-            fprintf(fd, "VolFile=%u-%u\n", VolParams[i].StartFile,
-                         VolParams[i].EndFile);
-            fprintf(fd, "VolBlock=%u-%u\n", VolParams[i].StartBlock,
-                         VolParams[i].EndBlock);
-            fprintf(fd, "FileIndex=%d-%d\n", VolParams[i].FirstIndex,
-                         VolParams[i].LastIndex);
-         }
-         if (VolParams) {
-            free(VolParams);
-         }
-         if (got_pipe) {
-            close_bpipe(bpipe);
-         } else {
-            fclose(fd);
-         }
-      } else {
-         berrno be;
-         Jmsg(jcr, M_ERROR, 0, _("Could not open WriteBootstrap file:\n"
-              "%s: ERR=%s\n"), fname, be.strerror());
-         set_jcr_job_status(jcr, JS_ErrorTerminated);
-      }
-   }
 
    msg_type = M_INFO;                 /* by default INFO message */
    switch (jcr->JobStatus) {
@@ -506,11 +447,12 @@ void backup_cleanup(JCR *jcr, int TermCode)
 "  Scheduled time:         %s\n"
 "  Start time:             %s\n"
 "  End time:               %s\n"
+"  Elapsed time:           %s\n"
 "  Priority:               %d\n"
 "  FD Files Written:       %s\n"
 "  SD Files Written:       %s\n"
-"  FD Bytes Written:       %s\n"
-"  SD Bytes Written:       %s\n"
+"  FD Bytes Written:       %s (%sB)\n"
+"  SD Bytes Written:       %s (%sB)\n"
 "  Rate:                   %.1f KB/s\n"
 "  Software Compression:   %s\n"
 "  Volume name(s):         %s\n"
@@ -535,17 +477,20 @@ void backup_cleanup(JCR *jcr, int TermCode)
         schedt,
         sdt,
         edt,
+        edit_utime(RunTime, elapsed, sizeof(elapsed)),
         jcr->JobPriority,
         edit_uint64_with_commas(jcr->jr.JobFiles, ec1),
-        edit_uint64_with_commas(jcr->SDJobFiles, ec4),
-        edit_uint64_with_commas(jcr->jr.JobBytes, ec2),
+        edit_uint64_with_commas(jcr->SDJobFiles, ec2),
+        edit_uint64_with_commas(jcr->jr.JobBytes, ec3),
+        edit_uint64_with_suffix(jcr->jr.JobBytes, ec4),
         edit_uint64_with_commas(jcr->SDJobBytes, ec5),
+        edit_uint64_with_suffix(jcr->SDJobBytes, ec6),
         (float)kbps,
         compress,
         jcr->VolumeName,
         jcr->VolSessionId,
         jcr->VolSessionTime,
-        edit_uint64_with_commas(mr.VolBytes, ec3),
+        edit_uint64_with_commas(mr.VolBytes, ec7),
         jcr->Errors,
         jcr->SDErrors,
         fd_term_msg,
@@ -553,4 +498,71 @@ void backup_cleanup(JCR *jcr, int TermCode)
         term_msg);
 
    Dmsg0(100, "Leave backup_cleanup()\n");
+}
+
+void update_bootstrap_file(JCR *jcr)
+{
+   /* Now update the bootstrap file if any */
+   if (jcr->JobStatus == JS_Terminated && jcr->jr.JobBytes &&
+       jcr->job->WriteBootstrap) {
+      FILE *fd;
+      BPIPE *bpipe = NULL;
+      int got_pipe = 0;
+      char *fname = jcr->job->WriteBootstrap;
+      VOL_PARAMS *VolParams = NULL;
+      int VolCount;
+      char edt[50];
+
+      if (*fname == '|') {
+         fname++;
+         got_pipe = 1;
+         bpipe = open_bpipe(fname, 0, "w");
+         fd = bpipe ? bpipe->wfd : NULL;
+      } else {
+         /* ***FIXME*** handle BASE */
+         fd = fopen(fname, jcr->JobLevel==L_FULL?"w+":"a+");
+      }
+      if (fd) {
+         VolCount = db_get_job_volume_parameters(jcr, jcr->db, jcr->JobId,
+                    &VolParams);
+         if (VolCount == 0) {
+            Jmsg(jcr, M_ERROR, 0, _("Could not get Job Volume Parameters to "
+                 "update Bootstrap file. ERR=%s\n"), db_strerror(jcr->db));
+             if (jcr->SDJobFiles != 0) {
+                set_jcr_job_status(jcr, JS_ErrorTerminated);
+             }
+
+         }
+         /* Start output with when and who wrote it */
+         bstrftimes(edt, sizeof(edt), time(NULL));
+         fprintf(fd, "# %s - %s - %s%s\n", edt, jcr->jr.Job,
+                 level_to_str(jcr->JobLevel), jcr->since);
+         for (int i=0; i < VolCount; i++) {
+            /* Write the record */
+            fprintf(fd, "Volume=\"%s\"\n", VolParams[i].VolumeName);
+            fprintf(fd, "MediaType=\"%s\"\n", VolParams[i].MediaType);
+            fprintf(fd, "VolSessionId=%u\n", jcr->VolSessionId);
+            fprintf(fd, "VolSessionTime=%u\n", jcr->VolSessionTime);
+            fprintf(fd, "VolFile=%u-%u\n", VolParams[i].StartFile,
+                         VolParams[i].EndFile);
+            fprintf(fd, "VolBlock=%u-%u\n", VolParams[i].StartBlock,
+                         VolParams[i].EndBlock);
+            fprintf(fd, "FileIndex=%d-%d\n", VolParams[i].FirstIndex,
+                         VolParams[i].LastIndex);
+         }
+         if (VolParams) {
+            free(VolParams);
+         }
+         if (got_pipe) {
+            close_bpipe(bpipe);
+         } else {
+            fclose(fd);
+         }
+      } else {
+         berrno be;
+         Jmsg(jcr, M_ERROR, 0, _("Could not open WriteBootstrap file:\n"
+              "%s: ERR=%s\n"), fname, be.strerror());
+         set_jcr_job_status(jcr, JS_ErrorTerminated);
+      }
+   }
 }

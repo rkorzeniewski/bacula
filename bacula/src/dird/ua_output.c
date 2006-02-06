@@ -9,7 +9,7 @@
  */
 
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -266,7 +266,7 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
       } else if (strcasecmp(ua->argk[i], N_("jobtotals")) == 0) {
          db_list_job_totals(ua->jcr, ua->db, &jr, prtit, ua);
 
-      /* List JOBID */
+      /* List JOBID=nn */
       } else if (strcasecmp(ua->argk[i], N_("jobid")) == 0) {
          if (ua->argv[i]) {
             jobid = str_to_int64(ua->argv[i]);
@@ -276,11 +276,18 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
             }
          }
 
-      /* List JOB */
+      /* List JOB=xxx */
       } else if (strcasecmp(ua->argk[i], N_("job")) == 0 && ua->argv[i]) {
          bstrncpy(jr.Job, ua->argv[i], MAX_NAME_LENGTH);
          jr.JobId = 0;
          db_list_job_records(ua->jcr, ua->db, &jr, prtit, ua, llist);
+
+      /* List JOBNAME=xxx */
+      } else if (strcasecmp(ua->argk[i], N_("job")) == 0 && ua->argv[i]) {
+         bstrncpy(jr.Name, ua->argv[i], MAX_NAME_LENGTH);
+         jr.JobId = 0;
+         db_list_job_records(ua->jcr, ua->db, &jr, prtit, ua, llist);
+
 
       /* List FILES */
       } else if (strcasecmp(ua->argk[i], N_("files")) == 0) {

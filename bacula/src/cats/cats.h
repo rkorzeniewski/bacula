@@ -14,7 +14,7 @@
  *    Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -335,6 +335,7 @@ struct B_DB {
 
 /* "Generic" names for easier conversion */
 #define sql_store_result(x)   mysql_store_result((x)->db)
+#define sql_use_result(x)     mysql_use_result((x)->db)
 #define sql_free_result(x)    mysql_free_result((x)->result)
 #define sql_fetch_row(x)      mysql_fetch_row((x)->result)
 #define sql_query(x, y)       mysql_query((x)->db, (y))

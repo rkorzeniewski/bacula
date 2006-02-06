@@ -270,14 +270,22 @@ db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
             edit_int64(jr->JobId, ed1));
       }
    } else {
-      if (jr->JobId == 0 && jr->Job[0] == 0) {
+      if (jr->Name[0] != 0) {
+         Mmsg(mdb->cmd,
+            "SELECT JobId,Name,StartTime,Type,Level,JobFiles,JobBytes,JobStatus "
+            "FROM Job WHERE Name='%s' ORDER BY StartTime,JobId ASC", jr->Name);
+      } else if (jr->Job[0] != 0) {
+         Mmsg(mdb->cmd,
+            "SELECT JobId,Name,StartTime,Type,Level,JobFiles,JobBytes,JobStatus "
+            "FROM Job WHERE Job='%s' ORDER BY StartTime,JobId ASC", jr->Job);
+      } else if (jr->JobId != 0) {
+         Mmsg(mdb->cmd, 
+            "SELECT JobId,Name,StartTime,Type,Level,JobFiles,JobBytes,JobStatus "
+            "FROM Job WHERE JobId=%s", edit_int64(jr->JobId, ed1));
+      } else {                           /* single record */
          Mmsg(mdb->cmd,
            "SELECT JobId,Name,StartTime,Type,Level,JobFiles,JobBytes,JobStatus "
-           "FROM Job ORDER BY StartTime%s", limit);
-      } else {                           /* single record */
-         Mmsg(mdb->cmd, "SELECT JobId,Name,StartTime,Type,Level,"
-            "JobFiles,JobBytes,JobStatus FROM Job WHERE JobId=%s", 
-            edit_int64(jr->JobId, ed1));
+           "FROM Job ORDER BY StartTime,JobId ASC%s", limit);
       }
    }
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {

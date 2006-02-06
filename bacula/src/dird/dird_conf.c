@@ -331,7 +331,8 @@ static RES_ITEM pool_items[] = {
    {"migrationtime",  store_time,     ITEM(res_pool.MigrationTime), 0, 0, 0},
    {"migrationhighbytes", store_size, ITEM(res_pool.MigrationHighBytes), 0, 0, 0},
    {"migrationlowbytes", store_size,  ITEM(res_pool.MigrationLowBytes), 0, 0, 0},
-   {"nextpool",       store_res,      ITEM(res_pool.NextPool), R_POOL, 0, 0},
+   {"nextpool",      store_res,       ITEM(res_pool.NextPool), R_POOL, 0, 0},
+   {"storage",       store_alist_res, ITEM(res_pool.storage),  R_STORAGE, 0, 0},
    {"autoprune",       store_yesno,   ITEM(res_pool.AutoPrune), 1, ITEM_DEFAULT, 1},
    {"recycle",         store_yesno,   ITEM(res_pool.Recycle),     1, ITEM_DEFAULT, 1},
    {NULL, NULL, NULL, 0, 0, 0}
@@ -788,6 +789,13 @@ next_run:
          sendit(sock, _("  --> "));
          dump_resource(-R_POOL, (RES *)res->res_pool.NextPool, sendit, sock);
       }
+      if (res->res_pool.storage) {
+         STORE *store;
+         foreach_alist(store, res->res_pool.storage) {
+            sendit(sock, _("  --> "));
+            dump_resource(-R_STORAGE, (RES *)store, sendit, sock);
+         }
+      }
       break;
    case R_MSGS:
       sendit(sock, _("Messages: name=%s\n"), res->res_msgs.hdr.name);
@@ -1035,6 +1043,9 @@ void free_resource(RES *sres, int type)
       if (res->res_pool.cleaning_prefix) {
          free(res->res_pool.cleaning_prefix);
       }
+      if (res->res_pool.storage) {
+         delete res->res_pool.storage;
+      }
       break;
    case R_SCHEDULE:
       if (res->res_sch.run) {
@@ -1171,8 +1182,9 @@ void save_resource(int type, RES_ITEM *items, int pass)
          if ((res = (URES *)GetResWithName(R_POOL, res_all.res_con.hdr.name)) == NULL) {
             Emsg1(M_ERROR_TERM, 0, _("Cannot find Pool resource %s\n"), res_all.res_con.hdr.name);
          }
-         /* Update it with pointer to NextPool from this pass (res_all) */
+         /* Explicitly copy resource pointers from this pass (res_all) */
          res->res_pool.NextPool = res_all.res_pool.NextPool;
+         res->res_pool.storage    = res_all.res_pool.storage;
          break;
       case R_CONSOLE:
          if ((res = (URES *)GetResWithName(R_CONSOLE, res_all.res_con.hdr.name)) == NULL) {

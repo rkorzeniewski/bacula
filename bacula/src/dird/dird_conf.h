@@ -433,6 +433,7 @@ public:
    uint32_t MigrationHighBytes;       /* When migration starts */
    uint32_t MigrationLowBytes;        /* When migration stops */
    POOL  *NextPool;                   /* Next pool for migration */
+   alist *storage;                    /* Where is device -- list of Storage to be used */
    int   AutoPrune;                   /* default for pool auto prune */
    int   Recycle;                     /* default for media recycle yes/no */
 };

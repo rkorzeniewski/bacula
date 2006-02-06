@@ -170,10 +170,11 @@ bool do_mac_init(JCR *jcr)
  */
 bool do_mac(JCR *jcr)
 {
-   int stat;
    const char *Type;
    char ed1[100];
    BSOCK *sd;
+   JOB *job, *tjob;
+   JCR *tjcr;
 
    switch(jcr->JobType) {
    case JT_MIGRATE:
@@ -191,16 +192,49 @@ bool do_mac(JCR *jcr)
    }
 
 
+   Dmsg4(100, "Target: Name=%s JobId=%d Type=%c Level=%c\n",
+      jcr->target_jr.Name, jcr->target_jr.JobId, 
+      jcr->target_jr.JobType, jcr->target_jr.JobLevel);
+
+   Dmsg4(100, "Current: Name=%s JobId=%d Type=%c Level=%c\n",
+      jcr->jr.Name, jcr->jr.JobId, 
+      jcr->jr.JobType, jcr->jr.JobLevel);
+
+   LockRes();
+   job = (JOB *)GetResWithName(R_JOB, jcr->jr.Name);
+   tjob = (JOB *)GetResWithName(R_JOB, jcr->target_jr.Name);
+   UnlockRes();
+   if (!job || !tjob) {
+      return false;
+   }
+
+   tjcr = jcr->target_jcr = new_jcr(sizeof(JCR), dird_free_jcr);
+   set_jcr_defaults(tjcr, tjob);
+
+   if (!setup_job(tjcr)) {
+      return false;
+   }
+   tjcr->PoolId = jcr->PoolId;
+   tjcr->jr.PoolId = jcr->jr.PoolId;
+   tjcr->jr.FileSetId = jcr->jr.FileSetId;
+
    /* Print Job Start message */
    Jmsg(jcr, M_INFO, 0, _("Start %s JobId %s, Job=%s\n"),
         Type, edit_uint64(jcr->JobId, ed1), jcr->Job);
 
+   set_jcr_job_status(jcr, JS_Running);
    set_jcr_job_status(jcr, JS_Running);
    Dmsg2(100, "JobId=%d JobLevel=%c\n", jcr->jr.JobId, jcr->jr.JobLevel);
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
       return false;
    }
+
+   if (!db_update_job_start_record(tjcr, tjcr->db, &tjcr->jr)) {
+      Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(tjcr->db));
+      return false;
+   }
+
 
    /*
     * Open a message channel connection with the Storage
@@ -210,6 +244,7 @@ bool do_mac(JCR *jcr)
     */
    Dmsg0(110, "Open connection with storage daemon\n");
    set_jcr_job_status(jcr, JS_WaitSD);
+   set_jcr_job_status(tjcr, JS_WaitSD);
    /*
     * Start conversation with Storage daemon
     */
@@ -220,7 +255,7 @@ bool do_mac(JCR *jcr)
    /*
     * Now start a job with the Storage daemon
     */
-   if (!start_storage_daemon_job(jcr, jcr->storage, NULL)) {
+   if (!start_storage_daemon_job(jcr, tjcr->storage, jcr->storage)) {
       return false;
    }
    Dmsg0(150, "Storage daemon connection OK\n");
@@ -242,19 +277,16 @@ bool do_mac(JCR *jcr)
       return false;
    }
 
-   /* Pickup Job termination data */
    set_jcr_job_status(jcr, JS_Running);
+   set_jcr_job_status(tjcr, JS_Running);
 
+   /* Pickup Job termination data */
    /* Note, the SD stores in jcr->JobFiles/ReadBytes/JobBytes/Errors */
    wait_for_storage_daemon_termination(jcr);
 
-   if (jcr->JobStatus != JS_Terminated) {
-      stat = jcr->JobStatus;
-   } else {
-      stat = jcr->SDJobStatus;
-   }
-   if (stat == JS_Terminated) {
-      mac_cleanup(jcr, stat);
+   jcr->JobStatus = jcr->SDJobStatus;
+   if (jcr->JobStatus == JS_Terminated) {
+      mac_cleanup(jcr, jcr->JobStatus);
       return true;
    }
    return false;
@@ -266,15 +298,17 @@ bool do_mac(JCR *jcr)
  */
 void mac_cleanup(JCR *jcr, int TermCode)
 {
-   char sdt[50], edt[50];
-   char ec3[30], ec4[30], ec5[30], compress[50];
+   char sdt[MAX_TIME_LENGTH], edt[MAX_TIME_LENGTH];
+   char ec1[30], ec2[30], ec3[30];
    char term_code[100], sd_term_msg[100];
    const char *term_msg;
    int msg_type;
    MEDIA_DBR mr;
-   double kbps, compression;
+   double kbps;
    utime_t RunTime;
    const char *Type;
+   JCR *tjcr = jcr->target_jcr;
+   POOL_MEM query(PM_MESSAGE);
 
    switch(jcr->JobType) {
    case JT_MIGRATE:
@@ -291,12 +325,31 @@ void mac_cleanup(JCR *jcr, int TermCode)
       break;
    }
 
+   /* Ensure target is defined to avoid a lot of testing */
+   if (!tjcr) {
+      tjcr = jcr;
+   }
+   tjcr->JobFiles = jcr->JobFiles = jcr->SDJobFiles;
+   tjcr->JobBytes = jcr->JobBytes = jcr->SDJobBytes;
+   tjcr->VolSessionId = jcr->VolSessionId;
+   tjcr->VolSessionTime = jcr->VolSessionTime;
+
    Dmsg2(100, "Enter mac_cleanup %d %c\n", TermCode, TermCode);
    dequeue_messages(jcr);             /* display any queued messages */
    memset(&mr, 0, sizeof(mr));
    set_jcr_job_status(jcr, TermCode);
+   set_jcr_job_status(tjcr, TermCode);
+
 
    update_job_end_record(jcr);        /* update database */
+   update_job_end_record(tjcr);
+
+   Mmsg(query, "UPDATE Job SET StartTime='%s',EndTime='%s',"
+               "JobTDate=%s WHERE JobId=%s", 
+      jcr->target_jr.cStartTime, jcr->target_jr.cEndTime, 
+      edit_uint64(jcr->target_jr.JobTDate, ec1),
+      edit_uint64(tjcr->jr.JobId, ec2));
+   db_sql_query(tjcr->db, query.c_str(), NULL, NULL);
 
    if (!db_get_job_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_WARNING, 0, _("Error getting job record for stats: %s"),
@@ -311,64 +364,7 @@ void mac_cleanup(JCR *jcr, int TermCode)
       set_jcr_job_status(jcr, JS_ErrorTerminated);
    }
 
-   /* Now update the bootstrap file if any */
-   if (jcr->JobStatus == JS_Terminated && jcr->jr.JobBytes &&
-       jcr->job->WriteBootstrap) {
-      FILE *fd;
-      BPIPE *bpipe = NULL;
-      int got_pipe = 0;
-      char *fname = jcr->job->WriteBootstrap;
-      VOL_PARAMS *VolParams = NULL;
-      int VolCount;
-
-      if (*fname == '|') {
-         fname++;
-         got_pipe = 1;
-         bpipe = open_bpipe(fname, 0, "w");
-         fd = bpipe ? bpipe->wfd : NULL;
-      } else {
-         /* ***FIXME*** handle BASE */
-         fd = fopen(fname, jcr->JobLevel==L_FULL?"w+":"a+");
-      }
-      if (fd) {
-         VolCount = db_get_job_volume_parameters(jcr, jcr->db, jcr->JobId,
-                    &VolParams);
-         if (VolCount == 0) {
-            Jmsg(jcr, M_ERROR, 0, _("Could not get Job Volume Parameters to "
-                 "update Bootstrap file. ERR=%s\n"), db_strerror(jcr->db));
-             if (jcr->SDJobFiles != 0) {
-                set_jcr_job_status(jcr, JS_ErrorTerminated);
-             }
-
-         }
-         for (int i=0; i < VolCount; i++) {
-            /* Write the record */
-            fprintf(fd, "Volume=\"%s\"\n", VolParams[i].VolumeName);
-            fprintf(fd, "MediaType=\"%s\"\n", VolParams[i].MediaType);
-            fprintf(fd, "VolSessionId=%u\n", jcr->VolSessionId);
-            fprintf(fd, "VolSessionTime=%u\n", jcr->VolSessionTime);
-            fprintf(fd, "VolFile=%u-%u\n", VolParams[i].StartFile,
-                         VolParams[i].EndFile);
-            fprintf(fd, "VolBlock=%u-%u\n", VolParams[i].StartBlock,
-                         VolParams[i].EndBlock);
-            fprintf(fd, "FileIndex=%d-%d\n", VolParams[i].FirstIndex,
-                         VolParams[i].LastIndex);
-         }
-         if (VolParams) {
-            free(VolParams);
-         }
-         if (got_pipe) {
-            close_bpipe(bpipe);
-         } else {
-            fclose(fd);
-         }
-      } else {
-         berrno be;
-         Jmsg(jcr, M_ERROR, 0, _("Could not open WriteBootstrap file:\n"
-              "%s: ERR=%s\n"), fname, be.strerror());
-         set_jcr_job_status(jcr, JS_ErrorTerminated);
-      }
-   }
+   update_bootstrap_file(tjcr);
 
    msg_type = M_INFO;                 /* by default INFO message */
    switch (jcr->JobStatus) {
@@ -412,7 +408,7 @@ void mac_cleanup(JCR *jcr, int TermCode)
    } else {
       kbps = (double)jcr->jr.JobBytes / (1000 * RunTime);
    }
-   if (!db_get_job_volume_names(jcr, jcr->db, jcr->jr.JobId, &jcr->VolumeName)) {
+   if (!db_get_job_volume_names(tjcr, tjcr->db, tjcr->jr.JobId, &tjcr->VolumeName)) {
       /*
        * Note, if the job has erred, most likely it did not write any
        *  tape, so suppress this "error" message since in that case
@@ -420,27 +416,18 @@ void mac_cleanup(JCR *jcr, int TermCode)
        *  normal exit should we complain about this error.
        */
       if (jcr->JobStatus == JS_Terminated && jcr->jr.JobBytes) {
-         Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
+         Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(tjcr->db));
       }
-      jcr->VolumeName[0] = 0;         /* none */
+      tjcr->VolumeName[0] = 0;         /* none */
    }
 
-   if (jcr->ReadBytes == 0) {
-      bstrncpy(compress, "None", sizeof(compress));
-   } else {
-      compression = (double)100 - 100.0 * ((double)jcr->JobBytes / (double)jcr->ReadBytes);
-      if (compression < 0.5) {
-         bstrncpy(compress, "None", sizeof(compress));
-      } else {
-         bsnprintf(compress, sizeof(compress), "%.1f %%", (float)compression);
-      }
-   }
    jobstatus_to_ascii(jcr->SDJobStatus, sd_term_msg, sizeof(sd_term_msg));
 
 // bmicrosleep(15, 0);                /* for debugging SIGHUP */
 
    Jmsg(jcr, msg_type, 0, _("Bacula %s (%s): %s\n"
-"  JobId:                  %d\n"
+"  Migration JobId:        %u\n"
+"  Backup JobId:           %u\n"
 "  Job:                    %s\n"
 "  Backup Level:           %s%s\n"
 "  Client:                 %s\n"
@@ -451,7 +438,6 @@ void mac_cleanup(JCR *jcr, int TermCode)
 "  SD Files Written:       %s\n"
 "  SD Bytes Written:       %s\n"
 "  Rate:                   %.1f KB/s\n"
-"  Software Compression:   %s\n"
 "  Volume name(s):         %s\n"
 "  Volume Session Id:      %d\n"
 "  Volume Session Time:    %d\n"
@@ -461,8 +447,9 @@ void mac_cleanup(JCR *jcr, int TermCode)
 "  Termination:            %s\n\n"),
    VERSION,
    LSMDATE,
-        edt,
+        edt, 
         jcr->jr.JobId,
+        tjcr->jr.JobId,
         jcr->jr.Job,
         level_to_str(jcr->JobLevel), jcr->since,
         jcr->client->hdr.name,
@@ -470,17 +457,17 @@ void mac_cleanup(JCR *jcr, int TermCode)
         jcr->pool->hdr.name,
         sdt,
         edt,
-        edit_uint64_with_commas(jcr->SDJobFiles, ec4),
-        edit_uint64_with_commas(jcr->SDJobBytes, ec5),
+        edit_uint64_with_commas(jcr->SDJobFiles, ec2),
+        edit_uint64_with_commas(jcr->SDJobBytes, ec3),
         (float)kbps,
-        compress,
-        jcr->VolumeName,
+        tjcr->VolumeName,
         jcr->VolSessionId,
         jcr->VolSessionTime,
-        edit_uint64_with_commas(mr.VolBytes, ec3),
+        edit_uint64_with_commas(mr.VolBytes, ec1),
         jcr->SDErrors,
         sd_term_msg,
         term_code);
 
-   Dmsg0(100, "Leave mac_cleanup()\n");
+   Dmsg1(100, "Leave mac_cleanup() target_jcr=0x%x\n", jcr->target_jcr);
+   free_jcr(jcr->target_jcr);
 }

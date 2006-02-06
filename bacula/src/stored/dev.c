@@ -612,7 +612,7 @@ bool DEVICE::rewind(DCR *dcr)
    unsigned int i;
    bool first = true;
 
-   Dmsg3(29, "rewind res=%d fd=%d %s\n", reserved_device, fd, print_name());
+   Dmsg3(400, "rewind res=%d fd=%d %s\n", reserved_device, fd, print_name());
    if (fd < 0) {
       if (!is_dvd()) { /* In case of major error, the fd is not open on DVD, so we don't want to abort. */
          dev_errno = EBADF;

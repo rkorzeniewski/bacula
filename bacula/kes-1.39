@@ -4,7 +4,11 @@
 General:
 
 Changes to 1.39.5
+06Feb06
+- Implement first cut of Migration.
 30Jan06
+- Apply user supplied patch for more readable rate output
+  in job report.
 - Continue implementing migration.
 - Implement support for removable filesystems in SD.
 - Ensure that btraceback scripts can be read by anyone.

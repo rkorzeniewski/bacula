@@ -164,8 +164,10 @@ public:
    volatile bool sd_msg_thread_done;  /* Set when Storage message thread terms */
    BSOCK *ua;                         /* User agent */
    JOB *job;                          /* Job resource */
-   JOB *verify_job;                   /* Job resource of verify target job */
-   JOB *migration_job;                /* Job resource of migration target job */
+   union {
+      JOB *verify_job;                /* Job resource of verify target job */
+      JOB *migration_job;             /* Job resource of migration target job */
+   };  
    alist *storage;                    /* Storage possibilities */
    STORE *store;                      /* Storage daemon selected */
    CLIENT *client;                    /* Client resource */
@@ -189,6 +191,7 @@ public:
    POOLMEM *fname;                    /* name to put into catalog */
    JOB_DBR jr;                        /* Job DB record for current job */
    JOB_DBR target_jr;                 /* target job */
+   JCR *target_jcr;                   /* target job control record */
    char FSCreateTime[MAX_TIME_LENGTH]; /* FileSet CreateTime as returned from DB */
    char since[MAX_TIME_LENGTH];       /* since time */
    uint32_t RestoreJobId;             /* Id specified by UA */

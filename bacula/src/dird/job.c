@@ -73,8 +73,22 @@ void term_job_server()
  */
 JobId_t run_job(JCR *jcr)
 {
-   int stat, errstat;
-   JobId_t JobId = 0;
+   int stat;
+   if (setup_job(jcr)) {
+      /* Queue the job to be run */
+      if ((stat = jobq_add(&job_queue, jcr)) != 0) {
+         berrno be;
+         Jmsg(jcr, M_FATAL, 0, _("Could not add job queue: ERR=%s\n"), be.strerror(stat));
+         return 0;
+      }
+      return jcr->JobId;
+   }
+   return 0;
+}            
+
+bool setup_job(JCR *jcr) 
+{
+   int errstat;
 
    P(jcr->mutex);
    sm_check(__FILE__, __LINE__, true);
@@ -117,7 +131,7 @@ JobId_t run_job(JCR *jcr)
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
       goto bail_out;
    }
-   JobId = jcr->JobId = jcr->jr.JobId;
+   jcr->JobId = jcr->jr.JobId;
    Dmsg4(100, "Created job record JobId=%d Name=%s Type=%c Level=%c\n",
        jcr->JobId, jcr->Job, jcr->jr.JobType, jcr->jr.JobLevel);
 
@@ -133,17 +147,9 @@ JobId_t run_job(JCR *jcr)
 
    Dmsg0(200, "Add jrc to work queue\n");
 
-   /* Queue the job to be run */
-   if ((stat = jobq_add(&job_queue, jcr)) != 0) {
-      berrno be;
-      Jmsg(jcr, M_FATAL, 0, _("Could not add job queue: ERR=%s\n"), be.strerror(stat));
-      JobId = 0;
-      goto bail_out;
-   }
-   Dmsg0(100, "Done run_job()\n");
 
    V(jcr->mutex);
-   return JobId;
+   return true;
 
 bail_out:
    if (jcr->fname) {
@@ -151,7 +157,7 @@ bail_out:
       jcr->fname = NULL;
    }
    V(jcr->mutex);
-   return JobId;
+   return false;
 }
 
 

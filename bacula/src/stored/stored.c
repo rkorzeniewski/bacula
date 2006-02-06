@@ -215,7 +215,7 @@ int main (int argc, char *argv[])
    /* Ensure that Volume Session Time and Id are both
     * set and are both non-zero.
     */
-   VolSessionTime = (long)daemon_start_time;
+   VolSessionTime = (uint32_t)daemon_start_time;
    if (VolSessionTime == 0) { /* paranoid */
       Jmsg0(NULL, M_ABORT, 0, _("Volume Session Time is ZERO!\n"));
    }

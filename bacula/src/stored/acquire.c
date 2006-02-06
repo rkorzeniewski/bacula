@@ -190,12 +190,12 @@ DCR *acquire_device_for_read(DCR *dcr)
       Dmsg1(100, "bstored: open vol=%s\n", dcr->VolumeName);
       if (dev->open(dcr, OPEN_READ_ONLY) < 0) {
          if (dev->dev_errno == EIO) {   /* no tape loaded */
-           Jmsg3(jcr, M_WARNING, 0, _("Open device %s Volume \"%s\" failed (EIO): ERR=%s\n"),
+           Jmsg3(jcr, M_WARNING, 0, _("Read open device %s Volume \"%s\" failed (EIO): ERR=%s\n"),
                  dev->print_name(), dcr->VolumeName, strerror_dev(dev));
             goto default_path;
          }
          
-         Jmsg3(jcr, M_FATAL, 0, _("Open device %s Volume \"%s\" failed: ERR=%s\n"),
+         Jmsg3(jcr, M_FATAL, 0, _("Read open device %s Volume \"%s\" failed: ERR=%s\n"),
              dev->print_name(), dcr->VolumeName, strerror_dev(dev));
          goto get_out;
       }
@@ -414,7 +414,6 @@ get_out:
       dcr->reserved_device = false;
    }
    V(dev->mutex);
-   free_dcr(dcr);
    dev->unblock();
    return NULL;
 }
@@ -429,7 +428,6 @@ bool release_device(DCR *dcr)
    JCR *jcr = dcr->jcr;
    DEVICE *dev = dcr->dev;
    bool ok = true;
-   bool was_reading = false;
 
    lock_device(dev);
    Dmsg1(100, "release_device device is %s\n", dev->is_tape()?"tape":"disk");
@@ -443,7 +441,6 @@ bool release_device(DCR *dcr)
 
    if (dev->can_read()) {
       dev->clear_read();              /* clear read bit */
-      was_reading = true;
 
       /******FIXME**** send read volume usage statistics to director */
 
@@ -516,11 +513,12 @@ bool release_device(DCR *dcr)
       free_pool_memory(alert);
    }
    unlock_device(dev);
-   free_dcr(dcr);
-   if (was_reading) {
+   if (jcr->read_dcr == dcr) {
       jcr->read_dcr = NULL;
-   } else {
+   }
+   if (jcr->dcr == dcr) {
       jcr->dcr = NULL;
    }
+   free_dcr(dcr);
    return ok;
 }
