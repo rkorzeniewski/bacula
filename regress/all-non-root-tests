@@ -29,6 +29,12 @@ tests/two-vol-test
 tests/verify-vol-test
 tests/weird-files2-test
 tests/weird-files-test
+# 
+# The following are Virtual Disk Autochanger tests
+tests/two-pool-test
+tests/two-volume-disk
+tests/incremental-2disk
+tests/2drive-incremental-2disk
 echo " "
 echo "Test results"
 cat test.out

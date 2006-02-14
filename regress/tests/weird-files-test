@@ -3,7 +3,7 @@
 # Run a simple backup of the Bacula build directory
 #   then restore it.
 #
-debug=0
+debug=0 
 if test "$debug" -eq 1 ; then
   out="tee"
 else
