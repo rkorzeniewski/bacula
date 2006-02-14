@@ -192,7 +192,7 @@ void *handle_connection_request(void *arg)
       if ((bnet_stat = bnet_recv(bs)) <= 0) {
          break;               /* connection terminated */
       }
-      Dmsg1(199, "<dird: %s", bs->msg);
+      Dmsg1(199, "<dird: %s\n", bs->msg);
       /* Ensure that device initialization is complete */
       while (!init_done) {
          bmicrosleep(1, 0);
@@ -873,7 +873,7 @@ static bool changer_cmd(JCR *jcr)
       if (dcr) {
          dev = dcr->dev;
          P(dev->mutex);               /* Use P to avoid indefinite block */
-         if (!dev->is_tape()) {
+         if (!dev->device->changer_res) {     
             bnet_fsend(dir, _("3995 Device %s is not an autochanger.\n"), 
                dev->print_name());
          /* Under certain "safe" conditions, we can steal the lock */

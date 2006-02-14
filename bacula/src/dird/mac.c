@@ -42,11 +42,7 @@ static char OKbootstrap[] = "3000 OK bootstrap\n";
 bool do_mac_init(JCR *jcr)
 {
    POOL_DBR pr;
-   JOB_DBR jr;
-   JobId_t input_jobid;
    char *Name;
-   RESTORE_CTX rx;
-   UAContext *ua;
    const char *Type;
 
    switch(jcr->JobType) {
@@ -71,18 +67,17 @@ bool do_mac_init(JCR *jcr)
    /*
     * Find JobId of last job that ran.
     */
-   memcpy(&jr, &jcr->jr, sizeof(jr));
    Name = jcr->job->migration_job->hdr.name;
    Dmsg1(100, "find last jobid for: %s\n", NPRT(Name));
-   if (!db_find_last_jobid(jcr, jcr->db, Name, &jr)) {
-      Jmsg(jcr, M_FATAL, 0, _(
-           _("Unable to find JobId of previous Job for this client.\n")));
+   jcr->target_jr.JobType = JT_BACKUP;
+   if (!db_find_last_jobid(jcr, jcr->db, Name, &jcr->target_jr)) {
+      Jmsg(jcr, M_FATAL, 0, 
+           _("Previous job \"%s\" not found. ERR=%s\n"), Name,
+           db_strerror(jcr->db));
       return false;
    }
-   input_jobid = jr.JobId;
-   Dmsg1(100, "Last jobid=%d\n", input_jobid);
+   Dmsg1(100, "Last jobid=%d\n", jcr->target_jr.JobId);
 
-   jcr->target_jr.JobId = input_jobid;
    if (!db_get_job_record(jcr, jcr->db, &jcr->target_jr)) {
       Jmsg(jcr, M_FATAL, 0, _("Could not get job record for previous Job. ERR=%s"),
            db_strerror(jcr->db));
@@ -90,7 +85,7 @@ bool do_mac_init(JCR *jcr)
    }
    if (jcr->target_jr.JobStatus != 'T') {
       Jmsg(jcr, M_FATAL, 0, _("Last Job %d did not terminate normally. JobStatus=%c\n"),
-         input_jobid, jcr->target_jr.JobStatus);
+         jcr->target_jr.JobId, jcr->target_jr.JobStatus);
       return false;
    }
    Jmsg(jcr, M_INFO, 0, _("%s using JobId=%d Job=%s\n"),
@@ -130,35 +125,19 @@ bool do_mac_init(JCR *jcr)
          Jmsg(jcr, M_INFO, 0, _("Pool %s created in database.\n"), pr.Name);
       }
    }
-   jcr->PoolId = pr.PoolId;               /****FIXME**** this can go away */
    jcr->jr.PoolId = pr.PoolId;
 
-   memset(&rx, 0, sizeof(rx));
-   rx.bsr = new_bsr();
-   rx.JobIds = "";                       
-   rx.bsr->JobId = jcr->target_jr.JobId;
-   ua = new_ua_context(jcr);
-   complete_bsr(ua, rx.bsr);
-   rx.bsr->fi = new_findex();
-   rx.bsr->fi->findex = 1;
-   rx.bsr->fi->findex2 = jcr->target_jr.JobFiles;
-   jcr->ExpectedFiles = write_bsr_file(ua, rx);
-   if (jcr->ExpectedFiles == 0) {
-      free_ua_context(ua);
-      free_bsr(rx.bsr);
+   /* If pool storage specified, use it instead of job storage */
+   copy_storage(jcr, jcr->pool->storage);
+
+   if (!jcr->storage) {
+      Jmsg(jcr, M_FATAL, 0, _("No Storage specification found in Job or Pool.\n"));
       return false;
    }
-   if (jcr->RestoreBootstrap) {
-      free(jcr->RestoreBootstrap);
-   }
-   POOLMEM *fname = get_pool_memory(PM_MESSAGE);
-   make_unique_restore_filename(ua, &fname);
-   jcr->RestoreBootstrap = bstrdup(fname);
-   free_ua_context(ua);
-   free_bsr(rx.bsr);
-   free_pool_memory(fname);
 
-   jcr->needs_sd = true;
+   if (!create_restore_bootstrap_file(jcr)) {
+      return false;
+   }
    return true;
 }
 
@@ -170,6 +149,8 @@ bool do_mac_init(JCR *jcr)
  */
 bool do_mac(JCR *jcr)
 {
+   POOL_DBR pr;
+   POOL *pool;
    const char *Type;
    char ed1[100];
    BSOCK *sd;
@@ -209,14 +190,65 @@ bool do_mac(JCR *jcr)
    }
 
    tjcr = jcr->target_jcr = new_jcr(sizeof(JCR), dird_free_jcr);
+   memcpy(&tjcr->target_jr, &jcr->target_jr, sizeof(tjcr->target_jr));
    set_jcr_defaults(tjcr, tjob);
 
    if (!setup_job(tjcr)) {
       return false;
    }
-   tjcr->PoolId = jcr->PoolId;
+   /* Set output PoolId and FileSetId. */
    tjcr->jr.PoolId = jcr->jr.PoolId;
    tjcr->jr.FileSetId = jcr->jr.FileSetId;
+
+   /*
+    * Get the PoolId used with the original job. Then
+    *  find the pool name from the database record.
+    */
+   memset(&pr, 0, sizeof(pr));
+   pr.PoolId = tjcr->target_jr.PoolId;
+   if (!db_get_pool_record(jcr, jcr->db, &pr)) {
+      char ed1[50];
+      Jmsg(jcr, M_FATAL, 0, _("Pool for JobId %s not in database. ERR=%s\n"),
+            edit_int64(pr.PoolId, ed1), db_strerror(jcr->db));
+         return false;
+   }
+   /* Get the pool resource corresponding to the original job */
+   pool = (POOL *)GetResWithName(R_POOL, pr.Name);
+   if (!pool) {
+      Jmsg(jcr, M_FATAL, 0, _("Pool resource \"%s\" not found.\n"), pr.Name);
+      return false;
+   }
+
+   /* If pool storage specified, use it for restore */
+   copy_storage(tjcr, pool->storage);
+
+   /* If the original backup pool has a NextPool, make sure a 
+    *  record exists in the database.
+    */
+   if (pool->NextPool) {
+      memset(&pr, 0, sizeof(pr));
+      bstrncpy(pr.Name, pool->NextPool->hdr.name, sizeof(pr.Name));
+
+      while (!db_get_pool_record(jcr, jcr->db, &pr)) { /* get by Name */
+         /* Try to create the pool */
+         if (create_pool(jcr, jcr->db, pool->NextPool, POOL_OP_CREATE) < 0) {
+            Jmsg(jcr, M_FATAL, 0, _("Pool \"%s\" not in database. %s"), pr.Name,
+               db_strerror(jcr->db));
+            return false;
+         } else {
+            Jmsg(jcr, M_INFO, 0, _("Pool \"%s\" created in database.\n"), pr.Name);
+         }
+      }
+      /*
+       * put the "NextPool" resource pointer in our jcr so that we
+       * can pull the Storage reference from it.
+       */
+      tjcr->pool = jcr->pool = pool->NextPool;
+      tjcr->jr.PoolId = jcr->jr.PoolId = pr.PoolId;
+   }
+
+   /* If pool storage specified, use it instead of job storage for backup */
+   copy_storage(jcr, jcr->pool->storage);
 
    /* Print Job Start message */
    Jmsg(jcr, M_INFO, 0, _("Start %s JobId %s, Job=%s\n"),
@@ -255,6 +287,9 @@ bool do_mac(JCR *jcr)
    /*
     * Now start a job with the Storage daemon
     */
+   Dmsg2(000, "Read store=%s, write store=%s\n", 
+      ((STORE *)tjcr->storage->first())->hdr.name,
+      ((STORE *)jcr->storage->first())->hdr.name);
    if (!start_storage_daemon_job(jcr, tjcr->storage, jcr->storage)) {
       return false;
    }
@@ -299,7 +334,7 @@ bool do_mac(JCR *jcr)
 void mac_cleanup(JCR *jcr, int TermCode)
 {
    char sdt[MAX_TIME_LENGTH], edt[MAX_TIME_LENGTH];
-   char ec1[30], ec2[30], ec3[30];
+   char ec1[30], ec2[30], ec3[30], ec4[30], elapsed[50];
    char term_code[100], sd_term_msg[100];
    const char *term_msg;
    int msg_type;
@@ -426,8 +461,9 @@ void mac_cleanup(JCR *jcr, int TermCode)
 // bmicrosleep(15, 0);                /* for debugging SIGHUP */
 
    Jmsg(jcr, msg_type, 0, _("Bacula %s (%s): %s\n"
-"  Migration JobId:        %u\n"
-"  Backup JobId:           %u\n"
+"  Old Backup JobId:       %u\n"
+"  New Backup JobId:       %u\n"
+"  JobId:                  %u\n"
 "  Job:                    %s\n"
 "  Backup Level:           %s%s\n"
 "  Client:                 %s\n"
@@ -435,8 +471,10 @@ void mac_cleanup(JCR *jcr, int TermCode)
 "  Pool:                   \"%s\"\n"
 "  Start time:             %s\n"
 "  End time:               %s\n"
+"  Elapsed time:           %s\n"
+"  Priority:               %d\n"
 "  SD Files Written:       %s\n"
-"  SD Bytes Written:       %s\n"
+"  SD Bytes Written:       %s (%sB)\n"
 "  Rate:                   %.1f KB/s\n"
 "  Volume name(s):         %s\n"
 "  Volume Session Id:      %d\n"
@@ -448,8 +486,9 @@ void mac_cleanup(JCR *jcr, int TermCode)
    VERSION,
    LSMDATE,
         edt, 
-        jcr->jr.JobId,
+        jcr->target_jr.JobId,
         tjcr->jr.JobId,
+        jcr->jr.JobId,
         jcr->jr.Job,
         level_to_str(jcr->JobLevel), jcr->since,
         jcr->client->hdr.name,
@@ -457,8 +496,11 @@ void mac_cleanup(JCR *jcr, int TermCode)
         jcr->pool->hdr.name,
         sdt,
         edt,
+        edit_utime(RunTime, elapsed, sizeof(elapsed)),
+        jcr->JobPriority,
         edit_uint64_with_commas(jcr->SDJobFiles, ec2),
         edit_uint64_with_commas(jcr->SDJobBytes, ec3),
+        edit_uint64_with_suffix(jcr->jr.JobBytes, ec4),
         (float)kbps,
         tjcr->VolumeName,
         jcr->VolSessionId,
@@ -469,5 +511,7 @@ void mac_cleanup(JCR *jcr, int TermCode)
         term_code);
 
    Dmsg1(100, "Leave mac_cleanup() target_jcr=0x%x\n", jcr->target_jcr);
-   free_jcr(jcr->target_jcr);
+   if (jcr->target_jcr) {
+      free_jcr(jcr->target_jcr);
+   }
 }

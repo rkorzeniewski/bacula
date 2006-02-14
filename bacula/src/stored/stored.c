@@ -10,7 +10,7 @@
  *
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -228,7 +228,7 @@ int main (int argc, char *argv[])
     /*
      * Start the device allocation thread
      */
-   create_volume_list();              /* do before device_init */
+   init_volume_list();                /* do before device_init */
    if (pthread_create(&thid, NULL, device_initialization, NULL) != 0) {
       Emsg1(M_ABORT, 0, _("Unable to create thread. ERR=%s\n"), strerror(errno));
    }

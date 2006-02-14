@@ -43,6 +43,11 @@ install: installdirs
 	   $(MV) -f ${DESTDIR}${scriptdir}/mtx-changer ${DESTDIR}${scriptdir}/mtx-changer.old; \
 	fi
 	$(INSTALL_SCRIPT) mtx-changer $(DESTDIR)$(scriptdir)/mtx-changer
+	@if  test -f ${DESTDIR}${scriptdir}/disk-changer; then \
+	   echo "  ==> Saving existing disk-changer to disk-changer.old"; \
+	   $(MV) -f ${DESTDIR}${scriptdir}/disk-changer ${DESTDIR}${scriptdir}/disk-changer.old; \
+	fi
+	$(INSTALL_SCRIPT) disk-changer $(DESTDIR)$(scriptdir)/disk-changer
 	@if  test -f ${DESTDIR}${scriptdir}/dvd-handler; then \
 	   echo "  ==> Saving existing dvd-handler to dvd-handler.old"; \
 	   $(MV) -f ${DESTDIR}${scriptdir}/dvd-handler ${DESTDIR}${scriptdir}/dvd-handler.old; \
@@ -66,6 +71,7 @@ uninstall:
 	(cd $(DESTDIR)$(scriptdir); $(RMF) bacula)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) fd)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) mtx-changer)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) disk-changer)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) dvd-handler)  
 	(cd $(DESTDIR)$(scriptdir); $(RMF) btraceback.gdb)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) btraceback.dbx)
@@ -76,7 +82,7 @@ Makefile: Makefile.in
 	cd $(topdir) \
 	    && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 	chmod 755 startmysql stopmysql bacula startit stopit btraceback
-	chmod 755 mtx-changer dvd-handler bconsole gconsole
+	chmod 755 disk-changer mtx-changer dvd-handler bconsole gconsole
 
 Makefiles:
 	$(SHELL) config.status

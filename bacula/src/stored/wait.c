@@ -9,7 +9,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -190,7 +190,7 @@ bool wait_for_device(JCR *jcr, bool first)
    struct timespec timeout;
    int stat = 0;
    bool ok = true;
-   const int wait_time = 10 * 60;       /* wait 10 minutes */
+   const int wait_time = 5 * 60;       /* wait 5 minutes */
 
    Dmsg0(100, "Enter wait_for_device\n");
    P(device_release_mutex);

@@ -101,7 +101,7 @@ int prune_volumes(JCR *jcr)
    db_lock(jcr->db);
 
    /* Get the List of all media ids in the current Pool */
-   if (!db_get_media_ids(jcr, jcr->db, jcr->PoolId, &num_ids, &ids)) {
+   if (!db_get_media_ids(jcr, jcr->db, jcr->jr.PoolId, &num_ids, &ids)) {
       Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
       goto bail_out;
    }
@@ -114,7 +114,7 @@ int prune_volumes(JCR *jcr)
          continue;
       }
       /* Prune only Volumes from current Pool */
-      if (jcr->PoolId != mr.PoolId) {
+      if (jcr->jr.PoolId != mr.PoolId) {
          continue;
       }
       /* Prune only Volumes with status "Full", or "Used" */

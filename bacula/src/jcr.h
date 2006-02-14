@@ -185,7 +185,6 @@ public:
    volatile int FDJobStatus;          /* File daemon Job Status */
    uint32_t ExpectedFiles;            /* Expected restore files */
    uint32_t MediaId;                  /* DB record IDs associated with this job */
-   uint32_t PoolId;                   /* Pool record id */
    FileId_t FileId;                   /* Last file id inserted */
    uint32_t FileIndex;                /* Last FileIndex processed */
    POOLMEM *fname;                    /* name to put into catalog */

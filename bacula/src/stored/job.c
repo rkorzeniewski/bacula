@@ -347,5 +347,14 @@ void stored_free_jcr(JCR *jcr)
       free_dcr(jcr->read_dcr);
       jcr->read_dcr = NULL;
    }
+   if (jcr->dirstore) {
+      DIRSTORE *store;
+      foreach_alist(store, jcr->dirstore) {
+         delete store->device;
+         delete store;
+      }
+      delete jcr->dirstore;
+      jcr->dirstore = NULL;
+   }
    return;
 }

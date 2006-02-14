@@ -105,7 +105,7 @@ db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
             jr->JobType, L_INCREMENTAL, L_DIFFERENTIAL, L_FULL, jr->Name,
             edit_int64(jr->ClientId, ed1), edit_int64(jr->FileSetId, ed2));
       } else {
-         Mmsg1(&mdb->errmsg, _("Unknown level=%d\n"), jr->JobLevel);
+         Mmsg1(mdb->errmsg, _("Unknown level=%d\n"), jr->JobLevel);
          goto bail_out;
       }
    } else {
@@ -199,6 +199,7 @@ db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr)
 
    /* Find last full */
    db_lock(mdb);
+   Dmsg2(100, "JobLevel=%d JobType=%d\n", jr->JobLevel, jr->JobType);
    if (jr->JobLevel == L_VERIFY_CATALOG) {
       Mmsg(mdb->cmd,
 "SELECT JobId FROM Job WHERE Type='V' AND Level='%c' AND "
@@ -208,7 +209,7 @@ db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr)
            edit_int64(jr->ClientId, ed1));
    } else if (jr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG ||
               jr->JobLevel == L_VERIFY_DISK_TO_CATALOG ||
-              jr->JobType == JT_MIGRATE) {
+              jr->JobType == JT_BACKUP) {
       if (Name) {
          Mmsg(mdb->cmd,
 "SELECT JobId FROM Job WHERE Type='B' AND JobStatus='T' AND "
@@ -220,7 +221,7 @@ db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr)
            edit_int64(jr->ClientId, ed1));
       }
    } else {
-      Mmsg1(&mdb->errmsg, _("Unknown Job level=%c\n"), jr->JobLevel);
+      Mmsg1(&mdb->errmsg, _("Unknown Job level=%d\n"), jr->JobLevel);
       db_unlock(mdb);
       return false;
    }

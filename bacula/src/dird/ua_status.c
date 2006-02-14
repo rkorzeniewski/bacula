@@ -379,7 +379,7 @@ static void prt_runtime(UAContext *ua, sched_pkt *sp)
          close_db = true;             /* new db opened, remember to close it */
       }
       if (ok) {
-         mr.PoolId = jcr->PoolId;
+         mr.PoolId = jcr->jr.PoolId;
          ok = find_next_volume_for_append(jcr, &mr, 1, false/*no create*/);
       }
       if (!ok) {

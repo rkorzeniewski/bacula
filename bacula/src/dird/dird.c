@@ -559,6 +559,7 @@ static int check_resources()
          for (i=0; job_items[i].name; i++) {
             char **def_svalue, **svalue;  /* string value */
             int *def_ivalue, *ivalue;     /* integer value */
+            bool *def_bvalue, *bvalue;    /* bool value */
             int64_t *def_lvalue, *lvalue; /* 64 bit values */
             uint32_t offset;
 
@@ -608,9 +609,9 @@ static int check_resources()
                   }
                /*
                 * Handle integer fields
-                *    Note, our store_yesno does not handle bitmaped fields
+                *    Note, our store_bit does not handle bitmaped fields
                 */
-               } else if (job_items[i].handler == store_yesno   ||
+               } else if (job_items[i].handler == store_bit     ||
                           job_items[i].handler == store_pint    ||
                           job_items[i].handler == store_jobtype ||
                           job_items[i].handler == store_level   ||
@@ -633,6 +634,16 @@ static int check_resources()
                        job->hdr.name, job_items[i].name, *def_lvalue, i, offset);
                   lvalue = (int64_t *)((char *)job + offset);
                   *lvalue = *def_lvalue;
+                  set_bit(i, job->hdr.item_present);
+               /*
+                * Handle bool fields
+                */
+               } else if (job_items[i].handler == store_bool) {
+                  def_bvalue = (bool *)((char *)(job->jobdefs) + offset);
+                  Dmsg5(400, "Job \"%s\", field \"%s\" def_bvalue=%d item %d offset=%u\n",
+                       job->hdr.name, job_items[i].name, *def_bvalue, i, offset);
+                  bvalue = (bool *)((char *)job + offset);
+                  *bvalue = *def_bvalue;
                   set_bit(i, job->hdr.item_present);
                }
             }

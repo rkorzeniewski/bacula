@@ -213,6 +213,8 @@ bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw writing)
     return ok;
 }
 
+
+
 /*
  * Get info on the next appendable volume in the Director's database
  * Returns: true  on success
@@ -226,6 +228,10 @@ bool dir_find_next_appendable_volume(DCR *dcr)
     JCR *jcr = dcr->jcr;
     BSOCK *dir = jcr->dir_bsock;
     bool found = false;
+    /* This mutex should keep different devices from getting the
+     * same Volume.  
+     */
+    static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
     Dmsg0(200, "dir_find_next_appendable_volume\n");
     /*
@@ -233,6 +239,7 @@ bool dir_find_next_appendable_volume(DCR *dcr)
      *   the most available could already be mounted on another
      *   drive, so we continue looking for a not in use Volume.
      */
+    P(mutex);
     for (int vol_index=1;  vol_index < 20; vol_index++) {
        bash_spaces(dcr->media_type);
        bash_spaces(dcr->pool_name);
@@ -251,15 +258,18 @@ bool dir_find_next_appendable_volume(DCR *dcr)
           }
        } else {
           Dmsg0(200, "No volume info, return false\n");
-          return false;
+          found = false;
+          break;
        }
     }
     if (found) {
        Dmsg0(400, "dir_find_next_appendable_volume return true\n");
        new_volume(dcr, dcr->VolumeName);   /* reserve volume */
+       V(mutex);
        return true;
     }
     dcr->VolumeName[0] = 0;
+    V(mutex);
     return false;
 }
 

@@ -4,8 +4,61 @@
 General:
 
 Changes to 1.39.5
+14Feb06
+- Add disk-changer to scripts directory + configure/Makefile
+- Eliminate PoolId from jcr -- it is in jcr->jr.PoolId
+- Implement store_bit scanner to replace store_yesno.  Mostly done.
+- Implement new store_bool that stores in a bool. 
+- Add true/false to yes/no conf directives.
+- Make first cut at changing appropriate store_yesno to store_bool.
+- Complete implementation of Pool storage devices.
+- Move starting clones to job.c
+- Move create_restore_bootstrap_file() to job.c
+- Make copy_storage() more general to be able to handle
+  Pool storage.
+- Cleanup a lot of migration code for manual running, including
+  using Pool storage.
+- Move getting a scratch Volume into a subroutine.
+- Make all places a Volume that is added to a pool to 
+  respect max vols.
+- Fix bug in autochanger recycle code (improper edit 64 bit).
+- Fix segfault in restore command when no value specified.
+- Start adding code to handle multiple MediaTypes in restore.
+- Eliminate race condition in getting Volume name for
+  two drive autochanger.
+- More debug code in autochanger.
+- Add storage keyword to bootstrap file, add parsing.
+- Move slot in bsr file into Volume record as there will be
+  a different slot for each Volume.
+- Create reserve.h
+07Feb06
+- Implement Pool storage overrides.
 06Feb06
 - Implement first cut of Migration.
+- Implement mysql_use_result() from patch by Karl Hakimian.
+  This reduces significantly the memory consumption during
+  the restore tree building, and hence runs faster too.
+- Implement StorageId patch supplied by user (reggie) in bug
+  #536.  This should permit Bacula to work correctly with two
+  autochangers.
+- Implement Job listing variations suggested by a user.
+- Move updating bootstrap code in backup.c to subroutine
+  update_bootstrap_file().
+- Add new job status elapsed time and bytes written user
+  friendly job report output patch sent by a user.
+- Implement a storage list in Pools.
+- Separate out setup_job() code from run_job().
+- Get migration working -- lots of changes in mac.c in both
+  DIR and SD.
+- Apply patch from user (Eric Bollinger I think) that fixes a  
+  DIR crash when no arguments are supplied to a dot command.
+- Fix typo (strcpy->strcmp) in ua_prune.c as reported by Martin.
+- Fix command arg name->volume in label command of gnome-console.
+- Fix SD acquire.c to release correct DCR by explicitly testing
+  on the dcr address rather than trying to "devine" if it is a read
+  or write dcr.  This failed in error conditions when the device was
+  not fully setup.
+ 
 30Jan06
 - Apply user supplied patch for more readable rate output
   in job report.

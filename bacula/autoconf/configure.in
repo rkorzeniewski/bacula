@@ -1932,6 +1932,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   scripts/bacula.desktop.gnome2.xsu \
 	   scripts/gnome-console.console_apps \
 	   scripts/mtx-changer \
+	   scripts/disk-changer \
 	   scripts/dvd-handler \
 	   scripts/bacula-tray-monitor.desktop \
 	   scripts/logwatch/Makefile \

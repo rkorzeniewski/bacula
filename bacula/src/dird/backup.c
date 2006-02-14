@@ -97,34 +97,17 @@ bool do_backup_init(JCR *jcr)
          }
       }
    }
-   jcr->PoolId = pr.PoolId;
    jcr->jr.PoolId = pr.PoolId;
 
-   /*
-    * Fire off any clone jobs (run directives)
-    */
-   Dmsg2(900, "cloned=%d run_cmds=%p\n", jcr->cloned, jcr->job->run_cmds);
-   if (!jcr->cloned && jcr->job->run_cmds) {
-      char *runcmd;
-      JOB *job = jcr->job;
-      POOLMEM *cmd = get_pool_memory(PM_FNAME);
-      UAContext *ua = new_ua_context(jcr);
-      ua->batch = true;
-      foreach_alist(runcmd, job->run_cmds) {
-         cmd = edit_job_codes(jcr, cmd, runcmd, "");              
-         Mmsg(ua->cmd, "run %s cloned=yes", cmd);
-         Dmsg1(900, "=============== Clone cmd=%s\n", ua->cmd);
-         parse_ua_args(ua);                 /* parse command */
-         int stat = run_cmd(ua, ua->cmd);
-         if (stat == 0) {
-            Jmsg(jcr, M_ERROR, 0, _("Could not start clone job.\n"));
-         } else {
-            Jmsg(jcr, M_INFO, 0, _("Clone JobId %d started.\n"), stat);
-         }
-      }
-      free_ua_context(ua);
-      free_pool_memory(cmd);
+   /* If pool storage specified, use it instead of job storage */
+   copy_storage(jcr, jcr->pool->storage);
+
+   if (!jcr->storage) {
+      Jmsg(jcr, M_FATAL, 0, _("No Storage specification found in Job or Pool.\n"));
+      return false;
    }
+
+   create_clones(jcr);                /* run any clone jobs */
 
    return true;
 }

@@ -222,7 +222,7 @@ static int add_cmd(UAContext *ua, const char *cmd)
       pr.MaxVols, pr.PoolType);
 
    while (pr.MaxVols > 0 && pr.NumVols >= pr.MaxVols) {
-      bsendmsg(ua, _("Pool already has maximum volumes = %d\n"), pr.MaxVols);
+      bsendmsg(ua, _("Pool already has maximum volumes=%d\n"), pr.MaxVols);
       for (;;) {
          if (!get_pint(ua, _("Enter new maximum (zero for unlimited): "))) {
             return 1;

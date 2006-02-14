@@ -191,8 +191,10 @@ void init_resource(int type, RES_ITEM *items, int pass)
             (items[i].flags & ITEM_DEFAULT) ? "yes" : "no",
             items[i].default_value);
       if (items[i].flags & ITEM_DEFAULT && items[i].default_value != 0) {
-         if (items[i].handler == store_yesno) {
+         if (items[i].handler == store_bit) {
             *(int *)(items[i].value) |= items[i].code;
+         } else if (items[i].handler == store_bool) {
+            *(bool *)(items[i].value) = items[i].default_value;
          } else if (items[i].handler == store_pint ||
                     items[i].handler == store_int) {
             *(int *)(items[i].value) = items[i].default_value;
@@ -688,19 +690,35 @@ void store_time(LEX *lc, RES_ITEM *item, int index, int pass)
 
 
 /* Store a yes/no in a bit field */
-void store_yesno(LEX *lc, RES_ITEM *item, int index, int pass)
+void store_bit(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    lex_get_token(lc, T_NAME);
-   if (strcasecmp(lc->str, "yes") == 0) {
+   if (strcasecmp(lc->str, "yes") == 0 || strcasecmp(lc->str, "true") == 0) {
       *(int *)(item->value) |= item->code;
-   } else if (strcasecmp(lc->str, "no") == 0) {
+   } else if (strcasecmp(lc->str, "no") == 0 || strcasecmp(lc->str, "false") == 0) {
       *(int *)(item->value) &= ~(item->code);
    } else {
-      scan_err3(lc, _("Expect a %s or %s, got: %s"), "YES", "NO", lc->str); /* YES and NO must not be translated */
+      scan_err2(lc, _("Expect %s, got: %s"), "YES, NO, TRUE, or FALSE", lc->str); /* YES and NO must not be translated */
    }
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
 }
+
+/* Store a bool in a bit field */
+void store_bool(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+   lex_get_token(lc, T_NAME);
+   if (strcasecmp(lc->str, "yes") == 0 || strcasecmp(lc->str, "true") == 0) {
+      *(bool *)(item->value) = true;
+   } else if (strcasecmp(lc->str, "no") == 0 || strcasecmp(lc->str, "false") == 0) {
+      *(bool *)(item->value) = false;
+   } else {
+      scan_err2(lc, _("Expect %s, got: %s"), "YES, NO, TRUE, or FALSE", lc->str); /* YES and NO must not be translated */
+   }
+   scan_to_eol(lc);
+   set_bit(index, res_all.hdr.item_present);
+}
+
 
 /*
  * Store Tape Label Type (Bacula, ANSI, IBM)

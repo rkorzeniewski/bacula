@@ -267,7 +267,7 @@ int purgecmd(UAContext *ua, const char *cmd)
 static int purge_files_from_client(UAContext *ua, CLIENT *client)
 {
    struct s_file_del_ctx del;
-   char *query = (char *)get_pool_memory(PM_MESSAGE);
+   POOLMEM *query = get_pool_memory(PM_MESSAGE);
    int i;
    CLIENT_DBR cr;
    char ed1[50];
@@ -340,13 +340,12 @@ bail_out:
  * is older than the retention period, we unconditionally delete
  * it and all File records for that Job.  This is simple enough that no
  * temporary tables are needed. We simply make an in memory list of
- * the JobIds meeting the prune conditions, then delete the Job,
- * Files, and JobMedia records in that list.
+ * the JobIds then delete the Job, Files, and JobMedia records in that list.
  */
 static int purge_jobs_from_client(UAContext *ua, CLIENT *client)
 {
    struct s_job_del_ctx del;
-   char *query = (char *)get_pool_memory(PM_MESSAGE);
+   POOLMEM *query = get_pool_memory(PM_MESSAGE);
    int i;
    CLIENT_DBR cr;
    char ed1[50];
@@ -426,10 +425,10 @@ bail_out:
 
 void purge_files_from_job(UAContext *ua, JOB_DBR *jr)
 {
-   char *query = (char *)get_pool_memory(PM_MESSAGE);
+   POOLMEM *query = get_pool_memory(PM_MESSAGE);
    char ed1[50];
 
-   edit_int64(jr->JobId,ed1);
+   edit_int64(jr->JobId, ed1);
    Mmsg(query, "DELETE FROM File WHERE JobId=%s", ed1);
    db_sql_query(ua->db, query, NULL, (void *)NULL);
 
@@ -448,7 +447,7 @@ void purge_files_from_volume(UAContext *ua, MEDIA_DBR *mr )
  */
 int purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr)
 {
-   char *query = (char *)get_pool_memory(PM_MESSAGE);
+   POOLMEM *query = get_pool_memory(PM_MESSAGE);
    struct s_count_ctx cnt;
    struct s_file_del_ctx del;
    int i, stat = 0;

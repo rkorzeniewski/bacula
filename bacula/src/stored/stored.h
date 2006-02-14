@@ -40,6 +40,7 @@
 #include "stored_conf.h"
 #include "bsr.h"
 #include "jcr.h"
+#include "reserve.h"
 #include "protos.h"
 #ifdef HAVE_LIBZ
 #include <zlib.h>                     /* compression headers */

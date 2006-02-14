@@ -249,6 +249,15 @@ static int get_client_name(UAContext *ua, RESTORE_CTX *rx)
    return 1;
 }
 
+static bool has_value(UAContext *ua, int i)
+{
+   if (!ua->argv[i]) {
+      bsendmsg(ua, _("Missing value for keyword: %s\n"), ua->argk[i]);
+      return false;
+   }
+   return true;
+}
+
 /*
  * The first step in the restore process is for the user to
  *  select a list of JobIds from which he will subsequently
@@ -321,6 +330,9 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       /* Found keyword in kw[] list, process it */
       switch (j) {
       case 0:                            /* jobid */
+         if (!has_value(ua, i)) {
+            return 0;
+         }
          if (*rx->JobIds != 0) {
             pm_strcat(rx->JobIds, ",");
          }
@@ -332,6 +344,9 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
          have_date = true;
          break;
       case 2:                            /* before */
+         if (!has_value(ua, i)) {
+            return 0;
+         }
          if (str_to_utime(ua->argv[i]) == 0) {
             bsendmsg(ua, _("Improper date format: %s\n"), ua->argv[i]);
             return 0;
@@ -341,6 +356,9 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
          break;
       case 3:                            /* file */
       case 4:                            /* dir */
+         if (!has_value(ua, i)) {
+            return 0;
+         }
          if (!have_date) {
             bstrutime(date, sizeof(date), time(NULL));
          }
@@ -365,6 +383,9 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
          done = true;
          break;
       case 6:                            /* pool specified */
+         if (!has_value(ua, i)) {
+            return 0;
+         }
          rx->pool = (POOL *)GetResWithName(R_POOL, ua->argv[i]);
          if (!rx->pool) {
             bsendmsg(ua, _("Error: Pool resource \"%s\" does not exist.\n"), ua->argv[i]);

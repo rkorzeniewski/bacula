@@ -11,7 +11,7 @@
 #
 #  So Bacula will always call with all the following arguments, even though
 #    in come cases, not all are used.
-
+#
 #  mtx-changer "changer-device" "command" "slot" "archive-device" "drive-index"
 #		   $1		   $2	    $3	      $4	       $5
 #
@@ -35,6 +35,20 @@
 #
 
 MTX=@MTX@
+
+#
+# log whats done
+#
+# to turn on logging, uncomment the following line
+#touch @working_dir@/mtx.log
+#
+dbgfile="@working_dir@/mtx.log"
+debug() {
+    if test -e $dbgfile; then
+	echo "`date +\"%Y%m%d-%H:%M:%S\"` $*" >> $dbgfile
+    fi
+}
+
 
 #
 # Create a temporary file
@@ -65,19 +79,44 @@ wait_for_drive() {
     if mt -f $1 status | grep ONLINE  >/dev/null 2>&1; then
       break
     fi
-#   echo "Device $1 - not ready, retrying..."
+    debug "Device $1 - not ready, retrying..."
     sleep 1
     i=`expr $i + 1`
   done
 }
 
+# check parameter count on commandline
+#
+check_parm_count() {
+    pCount=$1
+    pCountNeed=$2
+    if test $pCount -lt $pCountNeed; then
+	echo "usage: mtx-changer ctl-device command [slot archive-device drive-index]"
+	echo "	Insufficient number of arguments arguments given."
+	if test $pCount -lt 2; then
+	    echo "  Mimimum usage is first two arguments ..."
+	else
+	    echo "  Command expected $pCountNeed arguments"
+	fi
+	exit 1
+    fi
+}
 
-if test $# -lt 2 ; then
-  echo "usage: mtx-changer ctl-device command slot archive-device drive"
-  echo "  Insufficient number of arguments arguments given."
-  echo "  Mimimum usage is first two arguments ..."
-  exit 1
-fi
+# Check for special cases where only 2 arguments are needed, 
+#  all others are a minimum of 5
+#
+case $2 in
+    list)
+	check_parm_count $# 2
+	;;
+    slots)
+	check_parm_count $# 2
+	;;
+    *)
+	check_parm_count $# 5
+	;;
+esac
+
 
 # Setup arguments
 ctl=$1
@@ -86,36 +125,20 @@ slot=$3
 device=$4
 drive=$5
 
-
-#
-# Check for special cases where only 2 arguments are needed, 
-#  all others are a minimum of 3
-case $cmd in
-   list)
-     ;;
-   slots)
-     ;;
-   *)
-     if test $# -lt 5; then
-	echo "usage: mtx-changer ctl-device command slot archive-device drive"
-	echo "	Insufficient number of arguments arguments given."
-	exit 1
-     fi
-     ;;
-esac
-
+debug "Parms: $ctl $cmd $slot $device $drive"
 
 case $cmd in 
    unload)
-#     echo "Doing mtx -f $ctl unload $slot $drive"
+      debug "Doing mtx -f $ctl unload $slot $drive"
 #
 # enable the following line if you need to eject the cartridge
 #     mt -f $device offline
+#     sleep 10
       ${MTX} -f $ctl unload $slot $drive
       ;;
 
    load)
-#     echo "Doing mtx -f $ctl load $slot $drive"
+      debug "Doing mtx -f $ctl load $slot $drive"
       ${MTX} -f $ctl load $slot $drive
       rtn=$?
 #
@@ -127,13 +150,15 @@ case $cmd in
       ;;
 
    list) 
-#     echo "Doing mtx -f $ctl -- to list volumes"
+      debug "Doing mtx -f $ctl -- to list volumes"
       make_temp_file
+# Enable the following if you are using barcodes and need an inventory
+#     $(MTX) -f $ctl inventory
       ${MTX} -f $ctl status >${TMPFILE}
       rtn=$?
       cat ${TMPFILE} | grep " *Storage Element [0-9]*:.*Full" | awk "{print \$3 \$4}" | sed "s/Full *\(:VolumeTag=\)*//"
       cat ${TMPFILE} | grep "^Data Transfer Element [0-9]*:Full (Storage Element [0-9]" | awk '{printf "%s:%s\n",$7,$10}'
-      rm -f ${TMPFILE} 2>&1 >/dev/null
+      rm -f ${TMPFILE} >/dev/null 2>&1
 #
 # If you have a VXA PacketLoader and the above does not work, try
 #  turning it off and enabling the following line.
@@ -142,18 +167,18 @@ case $cmd in
       ;;
 
    loaded)
-#     echo "Doing mtx -f $ctl $drive -- to find what is loaded"
+      debug "Doing mtx -f $ctl $drive -- to find what is loaded"
       make_temp_file
       ${MTX} -f $ctl status >${TMPFILE}
       rtn=$?
       cat ${TMPFILE} | grep "^Data Transfer Element $drive:Full" | awk "{print \$7}"
       cat ${TMPFILE} | grep "^Data Transfer Element $drive:Empty" | awk "{print 0}"
-      rm -f ${TMPFILE} 2>&1 >/dev/null
+      rm -f ${TMPFILE} >/dev/null 2>&1
       exit $rtn
       ;;
 
    slots)
-#     echo "Doing mtx -f $ctl -- to get count of slots"
+      debug "Doing mtx -f $ctl -- to get count of slots"
       ${MTX} -f $ctl status | grep " *Storage Changer" | awk "{print \$5}"
       ;;
 esac

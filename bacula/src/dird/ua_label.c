@@ -544,6 +544,10 @@ static void label_from_barcodes(UAContext *ua, int drive)
                 bsendmsg(ua, "%s", db_strerror(ua->db));
             }
          } else {                        /* create the media record */
+            if (pr.MaxVols > 0 && pr.NumVols >= pr.MaxVols) {
+               bsendmsg(ua, _("Maximum pool Volumes=%d reached.\n"), pr.MaxVols);
+               goto bail_out;
+            }
             set_pool_dbr_defaults_in_media_dbr(&mr, &pr);
             bstrncpy(mr.VolStatus, "Cleaning", sizeof(mr.VolStatus));
             mr.MediaType[0] = 0;

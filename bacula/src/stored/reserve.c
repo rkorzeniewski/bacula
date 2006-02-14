@@ -26,43 +26,6 @@
 #include "bacula.h"
 #include "stored.h"
 
-/*
- *   Use Device command from Director
- *   He tells is what Device Name to use, the Media Type,
- *      the Pool Name, and the Pool Type.
- *
- *    Ensure that the device exists and is opened, then store
- *      the media and pool info in the JCR.  This class is used
- *      only temporarily in this file.
- */
-class DIRSTORE {
-public:
-   alist *device;
-   bool append;
-   char name[MAX_NAME_LENGTH];
-   char media_type[MAX_NAME_LENGTH];
-   char pool_name[MAX_NAME_LENGTH];
-   char pool_type[MAX_NAME_LENGTH];
-};
-
-/* Reserve context */
-class RCTX {
-public:
-   JCR *jcr;
-   char *device_name;
-   DIRSTORE *store;
-   DEVRES   *device;
-   DEVICE *low_use_drive;             /* Low use drive candidate */
-   int num_writers;                   /* for selecting low use drive */
-   bool try_low_use_drive;            /* see if low use drive available */
-   bool any_drive;                    /* Accept any drive if set */
-   bool PreferMountedVols;            /* Prefer volumes already mounted */
-   bool exact_match;                  /* Want exact volume */
-   bool have_volume;                  /* Have DIR suggested vol name */
-   bool suitable_device;              /* at least one device is suitable */
-   bool autochanger_only;             /* look at autochangers only */
-   char VolumeName[MAX_NAME_LENGTH];  /* Vol name suggested by DIR */
-};
 
 static dlist *vol_list = NULL;
 static pthread_mutex_t vol_list_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -75,8 +38,8 @@ static int reserve_device(RCTX &rctx);
 static bool reserve_device_for_read(DCR *dcr);
 static bool reserve_device_for_append(DCR *dcr, RCTX &rctx);
 static bool use_storage_cmd(JCR *jcr);
-bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx);
 static void queue_reserve_message(JCR *jcr);
+static void release_msgs(JCR *jcr);
 
 /* Requests from the Director daemon */
 static char use_storage[]  = "use storage=%127s media_type=%127s "
@@ -246,7 +209,7 @@ void list_volumes(BSOCK *user)
 }
       
 /* Create the Volume list */
-void create_volume_list()
+void init_volume_list()
 {
    VOLRES *dummy = NULL;
    if (vol_list == NULL) {
@@ -483,11 +446,15 @@ static bool use_storage_cmd(JCR *jcr)
    }
 
 all_done:
-   foreach_alist(store, jcr->dirstore) {
-      delete store->device;
-      delete store;
-   }
-   delete jcr->dirstore;
+   release_msgs(jcr);
+   return ok;
+}
+
+static void release_msgs(JCR *jcr)
+{
+   alist *msgs = jcr->reserve_msgs;
+   char *msg;
+
    P(search_lock);
    while ((msg = (char *)msgs->pop())) {
       free(msg);
@@ -495,9 +462,7 @@ all_done:
    delete msgs;
    jcr->reserve_msgs = NULL;
    V(search_lock);
-   return ok;
 }
-
 
 /*
  * Search for a device suitable for this job.
@@ -527,7 +492,7 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
             ok = true;
             break;
          } else if (stat == 0) {      /* device busy */
-            Dmsg1(100, "Suitable busy device found=%s\n", device_name);
+            Dmsg1(100, "Suitable device found=%s, not used: busy\n", device_name);
          } else {
             /* otherwise error */
             Dmsg0(100, "No suitable device found.\n");
@@ -567,10 +532,10 @@ static int search_res_for_device(RCTX &rctx)
             }
             POOL_MEM dev_name;
             if (rctx.store->append == SD_APPEND) {
-               Dmsg2(100, "Device %s reserved=%d.\n", rctx.device_name,
+               Dmsg2(100, "Device %s reserved=%d for append.\n", rctx.device->hdr.name,
                   rctx.jcr->dcr->dev->reserved_device);
             } else {
-               Dmsg2(100, "Device %s reserved=%d.\n", rctx.device_name,
+               Dmsg2(100, "Device %s reserved=%d for read.\n", rctx.device->hdr.name,
                   rctx.jcr->read_dcr->dev->reserved_device);
             }
             pm_strcpy(dev_name, rctx.device->hdr.name);
@@ -617,6 +582,8 @@ static int reserve_device(RCTX &rctx)
    const int name_len = MAX_NAME_LENGTH;
 
    /* Make sure MediaType is OK */
+   Dmsg2(100, "MediaType device=%s request=%s\n",
+         rctx.device->media_type, rctx.store->media_type);
    if (strcmp(rctx.device->media_type, rctx.store->media_type) != 0) {
       return -1;
    }
@@ -724,6 +691,10 @@ static bool reserve_device_for_read(DCR *dcr)
    dev->clear_append();
    dev->set_read();
    ok = true;
+   dev->reserved_device++;
+   Dmsg3(100, "Inc reserve=%d dev=%s %p\n", dev->reserved_device, 
+      dev->print_name(), dev);
+   dcr->reserved_device = true;
 
 bail_out:
    V(dev->mutex);
