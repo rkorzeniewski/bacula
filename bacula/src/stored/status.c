@@ -155,7 +155,7 @@ bool status_cmd(JCR *jcr)
 
       } else {
          if (dev) {
-            bnet_fsend(user, _("Device %s is not open or does not exist.\n"), dev->print_name());
+            bnet_fsend(user, _("Device %s is not open.\n"), dev->print_name());
          } else {
             bnet_fsend(user, _("Device \"%s\" is not open or does not exist.\n"), device->hdr.name);
          }

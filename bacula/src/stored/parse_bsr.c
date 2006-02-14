@@ -7,7 +7,7 @@
  */
 
 /*
-   Copyright (C) 2002-2005 Kern Sibbald
+   Copyright (C) 2002-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -29,6 +29,7 @@ typedef BSR * (ITEM_HANDLER)(LEX *lc, BSR *bsr);
 
 static BSR *store_vol(LEX *lc, BSR *bsr);
 static BSR *store_mediatype(LEX *lc, BSR *bsr);
+static BSR *store_storage(LEX *lc, BSR *bsr);
 static BSR *store_client(LEX *lc, BSR *bsr);
 static BSR *store_job(LEX *lc, BSR *bsr);
 static BSR *store_jobid(LEX *lc, BSR *bsr);
@@ -73,6 +74,7 @@ struct kw_items items[] = {
    {"volblock", store_volblock},
    {"stream",  store_stream},
    {"slot",    store_slot},
+   {"storage",    store_storage},
    {NULL, NULL}
 
 };
@@ -267,6 +269,28 @@ static BSR *store_mediatype(LEX *lc, BSR *bsr)
    }
    return bsr;
 }
+
+/* Shove the Storage name in each Volume in the current bsr */
+static BSR *store_storage(LEX *lc, BSR *bsr)
+{
+   int token;
+
+   token = lex_get_token(lc, T_STRING);
+   if (token == T_ERROR) {
+      return NULL;
+   }
+   if (!bsr->volume) {
+      Emsg1(M_ERROR,0, _("Storage %s in bsr at inappropriate place.\n"),
+         lc->str);
+      return bsr;
+   }
+   BSR_VOLUME *bv;
+   for (bv=bsr->volume; bv; bv=bv->next) {
+      bstrncpy(bv->storage, lc->str, sizeof(bv->storage));
+   }
+   return bsr;
+}
+
 
 
 static BSR *store_client(LEX *lc, BSR *bsr)
@@ -603,7 +627,12 @@ static BSR *store_slot(LEX *lc, BSR *bsr)
    if (token == T_ERROR) {
       return NULL;
    }
-   bsr->Slot = lc->pint32_val;
+   if (!bsr->volume) {
+      Emsg1(M_ERROR,0, _("Slot %d in bsr at inappropriate place.\n"),
+         lc->pint32_val);
+      return bsr;
+   }
+   bsr->volume->Slot = lc->pint32_val;
    scan_to_eol(lc);
    return bsr;
 }
@@ -677,6 +706,9 @@ void dump_volume(BSR_VOLUME *volume)
 {
    if (volume) {
       Pmsg1(-1, _("VolumeName  : %s\n"), volume->VolumeName);
+      Pmsg1(-1, _("  MediaType : %s\n"), volume->MediaType);
+      Pmsg1(-1, _("  Storage   : %s\n"), volume->storage);
+      Pmsg1(-1, _("  Slot      : %d\n"), volume->Slot);
       dump_volume(volume->next);
    }
 }
@@ -730,9 +762,6 @@ void dump_bsr(BSR *bsr, bool recurse)
    dump_jobid(bsr->JobId);
    dump_job(bsr->job);
    dump_findex(bsr->FileIndex);
-   if (bsr->Slot) {
-      Pmsg1(-1, _("Slot        : %u\n"), bsr->Slot);
-   }
    if (bsr->count) {
       Pmsg1(-1, _("count       : %u\n"), bsr->count);
       Pmsg1(-1, _("found       : %u\n"), bsr->found);
@@ -875,6 +904,8 @@ void create_restore_volume_list(JCR *jcr)
             vol = new_restore_volume();
             bstrncpy(vol->VolumeName, bsrvol->VolumeName, sizeof(vol->VolumeName));
             bstrncpy(vol->MediaType,  bsrvol->MediaType,  sizeof(vol->MediaType));
+            bstrncpy(vol->storage, bsrvol->storage, sizeof(vol->storage));
+            vol->Slot = bsrvol->Slot;
             vol->start_file = sfile;
             if (add_restore_volume(jcr, vol)) {
                jcr->NumVolumes++;

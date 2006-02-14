@@ -463,12 +463,12 @@ static bool list_nextvol(UAContext *ua, int ndays)
       if (!complete_jcr_for_job(jcr, job, pool)) {
          return false;
       }
-      mr.PoolId = jcr->PoolId;
+      mr.PoolId = jcr->jr.PoolId;
       if (run->storage) {
          jcr->store = run->storage;
       }
       memset(&pr, 0, sizeof(pr));
-      pr.PoolId = jcr->PoolId;
+      pr.PoolId = jcr->jr.PoolId;
       if (! db_get_pool_record(ua->jcr, ua->db, &pr)) {
          strcpy(pr.Name, "*UnknownPool*");
       }
@@ -626,7 +626,6 @@ int complete_jcr_for_job(JCR *jcr, JOB *job, POOL *pool)
          Jmsg(jcr, M_INFO, 0, _("Pool %s created in database.\n"), pr.Name);
       }
    }
-   jcr->PoolId = pr.PoolId;
    jcr->jr.PoolId = pr.PoolId;
    return 1;
 }

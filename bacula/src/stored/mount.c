@@ -57,7 +57,8 @@ bool mount_next_write_volume(DCR *dcr, bool release)
    DEV_BLOCK *block = dcr->block;
    int mode;
 
-   Dmsg1(150, "Enter mount_next_volume(release=%d)\n", release);
+   Dmsg2(150, "Enter mount_next_volume(release=%d) dev=%s\n", release,
+      dev->print_name());
 
    init_device_wait_timers(dcr);
 
@@ -164,9 +165,9 @@ mount_next_vol:
       mode = OPEN_READ_WRITE;
    }
    while (dev->open(dcr, mode) < 0) {
-      Dmsg0(000, "open_device failed\n");
+      Dmsg0(150, "open_device failed\n");
       if (dev->is_file() && dev->is_removable()) {
-         Dmsg0(000, "call scan_dir_for_vol\n");
+         Dmsg0(150, "call scan_dir_for_vol\n");
          if (dev->scan_dir_for_volume(dcr)) {
             break;                    /* got a valid volume */
          }
@@ -394,7 +395,9 @@ read_volume:
       empty_block(block);             /* we used it for reading so set for write */
    }
    dev->set_append();
-   Dmsg0(150, "set APPEND, normal return from read_dev_for_append\n");
+   Dmsg1(150, "set APPEND, normal return from mount_next_write_volume. dev=%s\n",
+      dev->print_name());
+
    return true;
 }
 

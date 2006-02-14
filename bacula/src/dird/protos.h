@@ -97,9 +97,11 @@ extern bool get_or_create_fileset_record(JCR *jcr);
 extern JobId_t run_job(JCR *jcr);
 extern bool cancel_job(UAContext *ua, JCR *jcr);
 extern void init_jcr_job_record(JCR *jcr);
-extern void copy_storage(JCR *new_jcr, JCR *old_jcr);
+extern void copy_storage(JCR *jcr, alist *storage);
 extern void set_storage(JCR *jcr, STORE *store);
 extern bool setup_job(JCR *jcr);
+extern void create_clones(JCR *jcr);
+extern bool create_restore_bootstrap_file(JCR *jcr);
 
 /* mac.c */
 extern bool do_mac(JCR *jcr);
@@ -152,6 +154,7 @@ enum e_pool_op {
 };
 int create_pool(JCR *jcr, B_DB *db, POOL *pool, e_pool_op op);
 void set_pool_dbr_defaults_in_media_dbr(MEDIA_DBR *mr, POOL_DBR *pr);
+void set_pooldbr_from_poolres(POOL_DBR *pr, POOL *pool, e_pool_op op);
 
 /* ua_input.c */
 int get_cmd(UAContext *ua, const char *prompt);

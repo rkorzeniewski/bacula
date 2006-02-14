@@ -215,11 +215,12 @@ VOLRES *new_volume(DCR *dcr, const char *VolumeName);
 VOLRES *find_volume(const char *VolumeName);
 bool    free_volume(DEVICE *dev);
 void    free_unused_volume(DCR *dcr);
-void    create_volume_list();
+void    init_volume_list();
 void    free_volume_list();
 void    list_volumes(BSOCK *user);
 bool    is_volume_in_use(DCR *dcr);
 void    send_drive_reserve_messages(JCR *jcr, BSOCK *user);
+bool    find_suitable_device_for_job(JCR *jcr, RCTX &rctx);
 
 
 /* From spool.c */

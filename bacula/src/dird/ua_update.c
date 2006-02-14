@@ -29,7 +29,6 @@
 extern char *list_pool;               /* in sql_cmds.c */
 
 /* Imported functions */
-void set_pooldbr_from_poolres(POOL_DBR *pr, POOL *pool, e_pool_op op);
 void update_slots(UAContext *ua);
 
 
@@ -515,7 +514,7 @@ static int update_volume(UAContext *ua)
          }
          Slot = ua->pint32_val;
          if (pr.MaxVols > 0 && Slot > (int)pr.MaxVols) {
-            bsendmsg(ua, _("Invalid slot, it must be between 0 and %d\n"),
+            bsendmsg(ua, _("Invalid slot, it must be between 0 and MaxVols=%d\n"),
                pr.MaxVols);
             break;
          }

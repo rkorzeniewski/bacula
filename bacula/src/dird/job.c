@@ -406,7 +406,7 @@ bool cancel_job(UAContext *ua, JCR *jcr)
       /* Cancel Storage daemon */
       if (jcr->store_bsock) {
          if (!ua->jcr->storage) {
-            copy_storage(ua->jcr, jcr);
+            copy_storage(ua->jcr, jcr->storage);
          } else {
             set_storage(ua->jcr, jcr->store);
          }
@@ -828,7 +828,6 @@ void dird_free_jcr(JCR *jcr)
  */
 void set_jcr_defaults(JCR *jcr, JOB *job)
 {
-   STORE *st;
    jcr->job = job;
    jcr->JobType = job->JobType;
    switch (jcr->JobType) {
@@ -842,18 +841,7 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    }
    jcr->JobPriority = job->Priority;
    /* Copy storage definitions -- deleted in dir_free_jcr above */
-   if (job->storage) {
-      if (jcr->storage) {
-         delete jcr->storage;
-      }
-      jcr->storage = New(alist(10, not_owned_by_alist));
-      foreach_alist(st, job->storage) {
-         jcr->storage->append(st);
-      }
-   }
-   if (jcr->storage) {
-      jcr->store = (STORE *)jcr->storage->first();
-   }
+   copy_storage(jcr, job->storage);
    jcr->client = job->client;
    if (!jcr->client_name) {
       jcr->client_name = get_pool_memory(PM_NAME);
@@ -897,27 +885,27 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    }
 }
 
-/*
- * copy the storage definitions from an old JCR to a new one
+
+/* 
+ * Copy the storage definitions from an alist to the JCR
  */
-void copy_storage(JCR *new_jcr, JCR *old_jcr)
+void copy_storage(JCR *jcr, alist *storage)
 {
-   if (old_jcr->storage) {
+   if (storage) {
       STORE *st;
-      if (old_jcr->storage) {
-         delete old_jcr->storage;
+      if (jcr->storage) {
+         delete jcr->storage;
       }
-      new_jcr->storage = New(alist(10, not_owned_by_alist));
-      foreach_alist(st, old_jcr->storage) {
-         new_jcr->storage->append(st);
+      jcr->storage = New(alist(10, not_owned_by_alist));
+      foreach_alist(st, storage) {
+         jcr->storage->append(st);
       }
-   }
-   if (old_jcr->store) {
-      new_jcr->store = old_jcr->store;
-   } else if (new_jcr->storage) {
-      new_jcr->store = (STORE *)new_jcr->storage->first();
+   }               
+   if (jcr->storage) {
+      jcr->store = (STORE *)jcr->storage->first();
    }
 }
+
 
 /* Set storage override */
 void set_storage(JCR *jcr, STORE *store)
@@ -932,4 +920,65 @@ void set_storage(JCR *jcr, STORE *store)
    }
    /* Store not in list, so add it */
    jcr->storage->prepend(store);
+}
+
+void create_clones(JCR *jcr)
+{
+   /*
+    * Fire off any clone jobs (run directives)
+    */
+   Dmsg2(900, "cloned=%d run_cmds=%p\n", jcr->cloned, jcr->job->run_cmds);
+   if (!jcr->cloned && jcr->job->run_cmds) {
+      char *runcmd;
+      JOB *job = jcr->job;
+      POOLMEM *cmd = get_pool_memory(PM_FNAME);
+      UAContext *ua = new_ua_context(jcr);
+      ua->batch = true;
+      foreach_alist(runcmd, job->run_cmds) {
+         cmd = edit_job_codes(jcr, cmd, runcmd, "");              
+         Mmsg(ua->cmd, "run %s cloned=yes", cmd);
+         Dmsg1(900, "=============== Clone cmd=%s\n", ua->cmd);
+         parse_ua_args(ua);                 /* parse command */
+         int stat = run_cmd(ua, ua->cmd);
+         if (stat == 0) {
+            Jmsg(jcr, M_ERROR, 0, _("Could not start clone job.\n"));
+         } else {
+            Jmsg(jcr, M_INFO, 0, _("Clone JobId %d started.\n"), stat);
+         }
+      }
+      free_ua_context(ua);
+      free_pool_memory(cmd);
+   }
+}
+
+bool create_restore_bootstrap_file(JCR *jcr)
+{
+   RESTORE_CTX rx;
+   UAContext *ua;
+   memset(&rx, 0, sizeof(rx));
+   rx.bsr = new_bsr();
+   rx.JobIds = "";                       
+   rx.bsr->JobId = jcr->target_jr.JobId;
+   ua = new_ua_context(jcr);
+   complete_bsr(ua, rx.bsr);
+   rx.bsr->fi = new_findex();
+   rx.bsr->fi->findex = 1;
+   rx.bsr->fi->findex2 = jcr->target_jr.JobFiles;
+   jcr->ExpectedFiles = write_bsr_file(ua, rx);
+   if (jcr->ExpectedFiles == 0) {
+      free_ua_context(ua);
+      free_bsr(rx.bsr);
+      return false;
+   }
+   if (jcr->RestoreBootstrap) {
+      free(jcr->RestoreBootstrap);
+   }
+   POOLMEM *fname = get_pool_memory(PM_MESSAGE);
+   make_unique_restore_filename(ua, &fname);
+   jcr->RestoreBootstrap = bstrdup(fname);
+   free_ua_context(ua);
+   free_bsr(rx.bsr);
+   free_pool_memory(fname);
+   jcr->needs_sd = true;
+   return true;
 }

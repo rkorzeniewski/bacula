@@ -9,7 +9,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2001-2005 Kern Sibbald
+   Copyright (C) 2001-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -25,6 +25,9 @@
 
 #include "bacula.h"
 #include "dird.h"
+
+static bool get_scratch_volume(JCR *jcr, MEDIA_DBR *mr, bool InChanger);
+
 
 /*
  *  Items needed:
@@ -43,7 +46,7 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index, bool create)
    STORE *store = jcr->store;
 
    bstrncpy(mr->MediaType, store->media_type, sizeof(mr->MediaType));
-   Dmsg2(100, "CatReq FindMedia: Id=%d, MediaType=%s\n", (int)mr->PoolId, mr->MediaType);
+   Dmsg2(100, "CatReq FindMedia: PoolId=%d, MediaType=%s\n", (int)mr->PoolId, mr->MediaType);
    /*
     * If we are using an Autochanger, restrict Volume
     *   search to the Autochanger on the first pass
@@ -87,48 +90,10 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index, bool create)
          }
 
          if (!ok) {
-            MEDIA_DBR smr;
-            POOL_DBR pr;
-            POOLMEM *query;
-            char ed1[50], ed2[50];
             /*
              * 5. Try pulling a volume from the Scratch pool
              */ 
-             memset(&pr, 0, sizeof(pr));
-             bstrncpy(pr.Name, "Scratch", sizeof(pr.Name));
-             if (db_get_pool_record(jcr, jcr->db, &pr)) {
-                memset(&smr, 0, sizeof(smr));
-                smr.PoolId = pr.PoolId;
-                bstrncpy(smr.VolStatus, "Append", sizeof(smr.VolStatus));  /* want only appendable volumes */
-                bstrncpy(smr.MediaType, mr->MediaType, sizeof(smr.MediaType));
-                if (db_find_next_volume(jcr, jcr->db, 1, InChanger, &smr)) {
-                   query = get_pool_memory(PM_MESSAGE);
-                   db_lock(jcr->db);
-                   Mmsg(query, "UPDATE Media SET PoolId=%s WHERE MediaId=%s",
-                        edit_int64(mr->PoolId, ed1),
-                        edit_int64(smr.MediaId, ed2));
-                   ok = db_sql_query(jcr->db, query, NULL, NULL);  
-                   db_unlock(jcr->db);
-                   Jmsg(jcr, M_INFO, 0, _("Using Volume \"%s\" from 'Scratch' pool.\n"), 
-                        smr.VolumeName);
-                   /* Set new Pool Id in smr record, then copy it to mr */
-                   smr.PoolId = mr->PoolId;
-                   memcpy(mr, &smr, sizeof(MEDIA_DBR));
-                   memset(&pr, 0, sizeof(pr));
-                   bstrncpy(pr.Name, jcr->pool->hdr.name, sizeof(pr.Name));
-                   /* Set default parameters from current pool */
-                   if (db_get_pool_record(jcr, jcr->db, &pr)) {
-                      set_pool_dbr_defaults_in_media_dbr(mr, &pr);
-                      if (!db_update_media_record(jcr, jcr->db, mr)) {
-                         Jmsg(jcr, M_WARNING, 0, _("Unable to update Volume record: ERR=%s"), 
-                            db_strerror(jcr->db));
-                      }
-                   } else {
-                      Jmsg(jcr, M_WARNING, 0, _("Unable to get Pool record: ERR=%s"), 
-                         db_strerror(jcr->db));
-                   }
-                }
-             }
+            ok = get_scratch_volume(jcr, mr, InChanger);
          }
 
          if (!ok && create) {
@@ -332,4 +297,72 @@ void check_if_volume_valid_or_recyclable(JCR *jcr, MEDIA_DBR *mr, const char **r
             "recycle current volume, as it still contains unpruned data)");
       }
    }
+}
+
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
+static bool get_scratch_volume(JCR *jcr, MEDIA_DBR *mr, bool InChanger)
+{
+   MEDIA_DBR smr;
+   POOL_DBR spr, pr;
+   bool ok = false;
+   char ed1[50], ed2[50];
+
+   /* Only one thread at a time can pull from the scratch pool */
+   P(mutex);
+   /*   
+    * Get pool record where the Scratch Volume will go
+    */
+   memset(&pr, 0, sizeof(pr));
+   bstrncpy(pr.Name, jcr->pool->hdr.name, sizeof(pr.Name));
+   if (!db_get_pool_record(jcr, jcr->db, &pr)) {
+      Jmsg(jcr, M_WARNING, 0, _("Unable to get Pool record: ERR=%s"), 
+           db_strerror(jcr->db));
+      goto bail_out;
+   }
+   if (pr.MaxVols > 0 && pr.NumVols >= pr.MaxVols) {
+      Jmsg(jcr, M_WARNING, 0, _("Unable to use Scratch Volume, Pool full MaxVols=%d\n"),
+         pr.MaxVols);
+      goto bail_out;
+   }
+   /* 
+    * Get Pool record for Scratch Pool
+    */
+   memset(&spr, 0, sizeof(spr));
+   bstrncpy(spr.Name, "Scratch", sizeof(spr.Name));
+   if (db_get_pool_record(jcr, jcr->db, &spr)) {
+      memset(&smr, 0, sizeof(smr));
+      smr.PoolId = spr.PoolId;
+      bstrncpy(smr.VolStatus, "Append", sizeof(smr.VolStatus));  /* want only appendable volumes */
+      bstrncpy(smr.MediaType, mr->MediaType, sizeof(smr.MediaType));
+      if (db_find_next_volume(jcr, jcr->db, 1, InChanger, &smr)) {
+         POOL_MEM query(PM_MESSAGE);
+         db_lock(jcr->db);
+         Mmsg(query, "UPDATE Media SET PoolId=%s WHERE MediaId=%s",
+              edit_int64(mr->PoolId, ed1),
+              edit_int64(smr.MediaId, ed2));
+         ok = db_sql_query(jcr->db, query.c_str(), NULL, NULL);  
+         db_unlock(jcr->db);
+         if (!ok) {
+            Jmsg(jcr, M_WARNING, 0, _("Failed to move Scratch Volume. ERR=%s\n"),
+               db_strerror(jcr->db));
+           goto bail_out;
+          }
+         Jmsg(jcr, M_INFO, 0, _("Using Volume \"%s\" from 'Scratch' pool.\n"), 
+              smr.VolumeName);
+         /* Set new Pool Id in smr record, then copy it to mr */
+         smr.PoolId = mr->PoolId;
+         memcpy(mr, &smr, sizeof(MEDIA_DBR));
+         /* Set default parameters from current pool */
+         set_pool_dbr_defaults_in_media_dbr(mr, &pr);
+         if (!db_update_media_record(jcr, jcr->db, mr)) {
+            Jmsg(jcr, M_WARNING, 0, _("Unable to update Volume record: ERR=%s"), 
+                 db_strerror(jcr->db));
+            ok = false;
+         }
+      }
+   }
+bail_out:
+   V(mutex);
+   return ok;
 }

@@ -69,8 +69,8 @@ static RES_ITEM dir_items[] = {
    {"dirport",     store_int,      ITEM(dir_res.DIRport),  0, ITEM_DEFAULT, 9101},
    {"address",     store_str,      ITEM(dir_res.address),  0, ITEM_REQUIRED, 0},
    {"password",    store_password, ITEM(dir_res.password), 0, 0, 0},
-   {"tlsenable",      store_yesno,     ITEM(dir_res.tls_enable), 1, 0, 0},
-   {"tlsrequire",     store_yesno,     ITEM(dir_res.tls_require), 1, 0, 0},
+   {"tlsenable",      store_bit,     ITEM(dir_res.tls_enable), 1, 0, 0},
+   {"tlsrequire",     store_bit,     ITEM(dir_res.tls_require), 1, 0, 0},
    {"tlscacertificatefile", store_dir, ITEM(dir_res.tls_ca_certfile), 0, 0, 0},
    {"tlscacertificatedir", store_dir,  ITEM(dir_res.tls_ca_certdir), 0, 0, 0},
    {"tlscertificate", store_dir,       ITEM(dir_res.tls_certfile), 0, 0, 0},
@@ -82,8 +82,8 @@ static RES_ITEM con_items[] = {
    {"name",        store_name,     ITEM(con_res.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,      ITEM(con_res.hdr.desc), 0, 0, 0},
    {"password",    store_password, ITEM(con_res.password), 0, ITEM_REQUIRED, 0},
-   {"tlsenable",      store_yesno,     ITEM(con_res.tls_enable), 1, 0, 0},
-   {"tlsrequire",     store_yesno,     ITEM(con_res.tls_require), 1, 0, 0},
+   {"tlsenable",      store_bit,     ITEM(con_res.tls_enable), 1, 0, 0},
+   {"tlsrequire",     store_bit,     ITEM(con_res.tls_require), 1, 0, 0},
    {"tlscacertificatefile", store_dir, ITEM(con_res.tls_ca_certfile), 0, 0, 0},
    {"tlscacertificatedir", store_dir,  ITEM(con_res.tls_ca_certdir), 0, 0, 0},
    {"tlscertificate", store_dir,       ITEM(con_res.tls_certfile), 0, 0, 0},
@@ -95,7 +95,7 @@ static RES_ITEM con_font_items[] = {
    {"name",        store_name,     ITEM(con_font.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,      ITEM(con_font.hdr.desc), 0, 0, 0},
    {"font",        store_str,      ITEM(con_font.fontface), 0, 0, 0},
-   {"requiressl",  store_yesno,    ITEM(con_font.require_ssl), 1, ITEM_DEFAULT, 0},
+   {"requiressl",  store_bit,    ITEM(con_font.require_ssl), 1, ITEM_DEFAULT, 0},
    {NULL, NULL, NULL, 0, 0, 0}
 };
 

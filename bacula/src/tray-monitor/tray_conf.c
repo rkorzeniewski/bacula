@@ -8,14 +8,14 @@
 *   1. The generic lexical scanner in lib/lex.c and lib/lex.h
 *
 *   2. The generic config  scanner in lib/parse_config.c and
-*	lib/parse_config.h.
-*	These files contain the parser code, some utility
-*	routines, and the common store routines (name, int,
-*	string).
+*       lib/parse_config.h.
+*       These files contain the parser code, some utility
+*       routines, and the common store routines (name, int,
+*       string).
 *
 *   3. The daemon specific file, which contains the Resource
-*	definitions as well as any specific store routines
-*	for the resource records.
+*       definitions as well as any specific store routines
+*       for the resource records.
 *
 *     Nicolas Boichat, August MMIV
 *
@@ -69,12 +69,12 @@ int  res_all_size = sizeof(res_all);
 /*
 *    Monitor Resource
 *
-*   name	   handler     value		     code flags    default_value
+*   name           handler     value                 code flags    default_value
 */
 static RES_ITEM mon_items[] = {
    {"name",        store_name,     ITEM(res_monitor.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,      ITEM(res_monitor.hdr.desc), 0, 0, 0},
-   {"requiressl",  store_yesno,    ITEM(res_monitor.require_ssl), 1, ITEM_DEFAULT, 0},
+   {"requiressl",  store_bit,    ITEM(res_monitor.require_ssl), 1, ITEM_DEFAULT, 0},
    {"password",    store_password, ITEM(res_monitor.password), 0, ITEM_REQUIRED, 0},
    {"refreshinterval",  store_time,ITEM(res_monitor.RefreshInterval),  0, ITEM_DEFAULT, 5},
    {"fdconnecttimeout", store_time,ITEM(res_monitor.FDConnectTimeout), 0, ITEM_DEFAULT, 60 * 30},
@@ -88,14 +88,14 @@ static RES_ITEM dir_items[] = {
    {"description", store_str,      ITEM(res_dir.hdr.desc), 0, 0, 0},
    {"dirport",     store_int,      ITEM(res_dir.DIRport),  0, ITEM_DEFAULT, 9101},
    {"address",     store_str,      ITEM(res_dir.address),  0, 0, 0},
-   {"enablessl",   store_yesno,    ITEM(res_dir.enable_ssl), 1, ITEM_DEFAULT, 0},
+   {"enablessl",   store_bit,    ITEM(res_dir.enable_ssl), 1, ITEM_DEFAULT, 0},
    {NULL, NULL, NULL, 0, 0, 0}
 };
 
 /*
 *    Client or File daemon resource
 *
-*   name	   handler     value		     code flags    default_value
+*   name           handler     value                 code flags    default_value
 */
 
 static RES_ITEM cli_items[] = {
@@ -104,13 +104,13 @@ static RES_ITEM cli_items[] = {
    {"address",  store_str,        ITEM(res_client.address),  0, ITEM_REQUIRED, 0},
    {"fdport",   store_pint,       ITEM(res_client.FDport),   0, ITEM_DEFAULT, 9102},
    {"password", store_password,   ITEM(res_client.password), 0, ITEM_REQUIRED, 0},
-   {"enablessl", store_yesno,     ITEM(res_client.enable_ssl), 1, ITEM_DEFAULT, 0},
+   {"enablessl", store_bit,     ITEM(res_client.enable_ssl), 1, ITEM_DEFAULT, 0},
    {NULL, NULL, NULL, 0, 0, 0}
 };
 
 /* Storage daemon resource
 *
-*   name	   handler     value		     code flags    default_value
+*   name           handler     value                 code flags    default_value
 */
 static RES_ITEM store_items[] = {
    {"name",        store_name,     ITEM(res_store.hdr.name),   0, ITEM_REQUIRED, 0},
@@ -120,7 +120,7 @@ static RES_ITEM store_items[] = {
    {"sdaddress",   store_str,      ITEM(res_store.address),    0, 0, 0},
    {"password",    store_password, ITEM(res_store.password),   0, ITEM_REQUIRED, 0},
    {"sdpassword",  store_password, ITEM(res_store.password),   0, 0, 0},
-   {"enablessl",   store_yesno,    ITEM(res_store.enable_ssl),  1, ITEM_DEFAULT, 0},
+   {"enablessl",   store_bit,    ITEM(res_store.enable_ssl),  1, ITEM_DEFAULT, 0},
    {NULL, NULL, NULL, 0, 0, 0}
 };
 
@@ -131,7 +131,7 @@ static RES_ITEM store_items[] = {
 *  NOTE!!! keep it in the same order as the R_codes
 *    or eliminate all resources[rindex].name
 *
-*  name	     items	  rcode        res_head
+*  name      items        rcode        res_head
 */
 RES_TABLE resources[] = {
    {"monitor",      mon_items,    R_MONITOR},
@@ -152,7 +152,7 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       sendit(sock, _("No %s resource defined\n"), res_to_str(type));
       return;
    }
-   if (type < 0) {		      /* no recursion */
+   if (type < 0) {                    /* no recursion */
       type = - type;
       recurse = false;
    }
@@ -194,7 +194,7 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
 */
 void free_resource(RES *sres, int type)
 {
-   RES *nres;			      /* next resource if linked */
+   RES *nres;                         /* next resource if linked */
    URES *res = (URES *)sres;
 
    if (res == NULL)
@@ -258,14 +258,14 @@ void save_resource(int type, RES_ITEM *items, int pass)
    */
    for (i=0; items[i].name; i++) {
       if (items[i].flags & ITEM_REQUIRED) {
-	 if (!bit_is_set(i, res_all.res_monitor.hdr.item_present)) {
-	       Emsg2(M_ERROR_TERM, 0, _("%s item is required in %s resource, but not found.\n"),
-		  items[i].name, resources[rindex]);
-	 }
+         if (!bit_is_set(i, res_all.res_monitor.hdr.item_present)) {
+               Emsg2(M_ERROR_TERM, 0, _("%s item is required in %s resource, but not found.\n"),
+                  items[i].name, resources[rindex]);
+         }
       }
       /* If this triggers, take a look at lib/parse_conf.h */
       if (i >= MAX_RES_ITEMS) {
-	 Emsg1(M_ERROR_TERM, 0, _("Too many items in %s resource\n"), resources[rindex]);
+         Emsg1(M_ERROR_TERM, 0, _("Too many items in %s resource\n"), resources[rindex]);
       }
    }
 
@@ -282,22 +282,22 @@ void save_resource(int type, RES_ITEM *items, int pass)
       case R_CLIENT:
       case R_STORAGE:
       case R_DIRECTOR:
-	 break;
+         break;
       default:
-	 Emsg1(M_ERROR, 0, _("Unknown resource type %d in save_resource.\n"), type);
-	 error = 1;
-	 break;
+         Emsg1(M_ERROR, 0, _("Unknown resource type %d in save_resource.\n"), type);
+         error = 1;
+         break;
       }
       /* Note, the resource name was already saved during pass 1,
       * so here, we can just release it.
       */
       if (res_all.res_monitor.hdr.name) {
-	 free(res_all.res_monitor.hdr.name);
-	 res_all.res_monitor.hdr.name = NULL;
+         free(res_all.res_monitor.hdr.name);
+         res_all.res_monitor.hdr.name = NULL;
       }
       if (res_all.res_monitor.hdr.desc) {
-	 free(res_all.res_monitor.hdr.desc);
-	 res_all.res_monitor.hdr.desc = NULL;
+         free(res_all.res_monitor.hdr.desc);
+         res_all.res_monitor.hdr.desc = NULL;
       }
       return;
    }
@@ -330,21 +330,21 @@ void save_resource(int type, RES_ITEM *items, int pass)
       memcpy(res, &res_all, size);
       if (!res_head[rindex]) {
    res_head[rindex] = (RES *)res; /* store first entry */
-	 Dmsg3(900, "Inserting first %s res: %s index=%d\n", res_to_str(type),
-	 res->res_monitor.hdr.name, rindex);
+         Dmsg3(900, "Inserting first %s res: %s index=%d\n", res_to_str(type),
+         res->res_monitor.hdr.name, rindex);
       } else {
    RES *next;
    /* Add new res to end of chain */
    for (next=res_head[rindex]; next->next; next=next->next) {
       if (strcmp(next->name, res->res_monitor.hdr.name) == 0) {
-	 Emsg2(M_ERROR_TERM, 0,
-		  _("Attempt to define second %s resource named \"%s\" is not permitted.\n"),
-	 resources[rindex].name, res->res_monitor.hdr.name);
+         Emsg2(M_ERROR_TERM, 0,
+                  _("Attempt to define second %s resource named \"%s\" is not permitted.\n"),
+         resources[rindex].name, res->res_monitor.hdr.name);
       }
    }
    next->next = (RES *)res;
-	 Dmsg4(900, "Inserting %s res: %s index=%d pass=%d\n", res_to_str(type),
-	 res->res_monitor.hdr.name, rindex, pass);
+         Dmsg4(900, "Inserting %s res: %s index=%d pass=%d\n", res_to_str(type),
+         res->res_monitor.hdr.name, rindex, pass);
       }
    }
 }

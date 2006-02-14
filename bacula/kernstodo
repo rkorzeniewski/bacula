@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     11 January 2006
+                     08 February 2006
 
 Major development:      
 Project                     Developer
@@ -15,14 +15,13 @@ Document:
 - %d and %v only valid on Director, not for ClientRunBefore/After.
 
 Priority:
-- Implement a way to disable a drive (so you can use the second
-  drive of an autochanger, and the first one will not be used or
-  even defined).
 - Implement code that makes the Dir aware that a drive is an             
   autochanger (so the user doesn't need to use the Autochanger = yes 
   directive).
 
 For 1.39:
+- Detect resource deadlock in Migrate when same job wants to read
+  and write the same device.
 - Make hardlink code at line 240 of find_one.c use binary search.
 - Queue warning/error messages during restore so that they
   are reported at the end of the report rather than being
@@ -1276,3 +1275,9 @@ Block Position: 0
   integers.
 - Implement status that shows why a job is being held in reserve, or
   rather why none of the drives are suitable.
+- Implement a way to disable a drive (so you can use the second
+  drive of an autochanger, and the first one will not be used or
+  even defined).
+- Make sure Maximum Volumes is respected in Pools when adding
+  Volumes (e.g. when pulling a Scratch volume).
+

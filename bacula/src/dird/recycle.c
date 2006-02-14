@@ -78,7 +78,7 @@ int recycle_oldest_purged_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
    if (InChanger) {
       char changer[100];
       bsnprintf(changer, sizeof(changer), "AND InChanger=1 AND StorageId=%s",
-         mr->StorageId);
+         edit_uint64(mr->StorageId, ed1));
       Mmsg(query, select, edit_int64(mr->PoolId, ed1), mr->MediaType, changer);
    } else {
       Mmsg(query, select, edit_int64(mr->PoolId, ed1), mr->MediaType, "");

@@ -321,7 +321,7 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
    int nonblocking = O_NONBLOCK;
    Dmsg0(29, "open dev: device is tape\n");
 
-   if (is_tape() && is_autochanger()) {
+   if (is_autochanger()) {
       get_autochanger_loaded_slot(dcr);
    }
 
@@ -407,22 +407,33 @@ void DEVICE::open_file_device(DCR *dcr, int omode)
 {
    POOL_MEM archive_name(PM_FNAME);
 
+   if (is_autochanger()) {
+      get_autochanger_loaded_slot(dcr);
+   }
+
    /*
     * Handle opening of File Archive (not a tape)
     */     
 
-   if (VolCatInfo.VolCatName[0] == 0) {
-      Mmsg(errmsg, _("Could not open file device %s. No Volume name given.\n"),
-         print_name());
-      clear_opened();
-      return;
-   }
-
    pm_strcpy(archive_name, dev_name);
-   if (archive_name.c_str()[strlen(archive_name.c_str())-1] != '/') {
-      pm_strcat(archive_name, "/");
+   /*  
+    * If this is a virtual autochanger (i.e. changer_res != NULL)
+    *  we simply use the deviced name, assuming it has been
+    *  appropriately setup by the "autochanger".
+    */
+   if (!device->changer_res) {
+      if (VolCatInfo.VolCatName[0] == 0) {
+         Mmsg(errmsg, _("Could not open file device %s. No Volume name given.\n"),
+            print_name());
+         clear_opened();
+         return;
+      }
+
+      if (archive_name.c_str()[strlen(archive_name.c_str())-1] != '/') {
+         pm_strcat(archive_name, "/");
+      }
+      pm_strcat(archive_name, VolCatInfo.VolCatName);
    }
-   pm_strcat(archive_name, VolCatInfo.VolCatName);
 
    mount(1);                          /* do mount if required */
          
@@ -1801,7 +1812,7 @@ bool DEVICE::do_mount(int mount, int dotimeout)
    
    edit_mount_codes(ocmd, icmd);
    
-   Dmsg2(200, "do_mount_dvd: cmd=%s mounted=%d\n", ocmd.c_str(), !!is_mounted());
+   Dmsg2(000, "do_mount_dvd: cmd=%s mounted=%d\n", ocmd.c_str(), !!is_mounted());
 
    if (dotimeout) {
       /* Try at most 1 time to (un)mount the device. This should perhaps be configurable. */

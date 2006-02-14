@@ -102,9 +102,6 @@ public:
    uint32_t MaxConcurrentJobs;        /* Max concurrent jobs for whole director */
    utime_t FDConnectTimeout;          /* timeout for connect in seconds */
    utime_t SDConnectTimeout;          /* timeout in seconds */
-   int tls_enable;                    /* Enable TLS */
-   int tls_require;                   /* Require TLS */
-   int tls_verify_peer;              /* TLS Verify Client Certificate */
    char *tls_ca_certfile;             /* TLS CA Certificate File */
    char *tls_ca_certdir;              /* TLS CA Certificate Directory */
    char *tls_certfile;                /* TLS Server Certificate File */
@@ -112,6 +109,9 @@ public:
    char *tls_dhfile;                  /* TLS Diffie-Hellman Parameters */
    alist *tls_allowed_cns;            /* TLS Allowed Clients */
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
+   bool tls_enable;                   /* Enable TLS */
+   bool tls_require;                  /* Require TLS */
+   bool tls_verify_peer;              /* TLS Verify Client Certificate */
 };
 
 /*
@@ -168,9 +168,6 @@ public:
    RES   hdr;
    char *password;                    /* UA server password */
    alist *ACL_lists[Num_ACL];         /* pointers to ACLs */
-   int tls_enable;                    /* Enable TLS */
-   int tls_require;                   /* Require TLS */
-   int tls_verify_peer;              /* TLS Verify Client Certificate */
    char *tls_ca_certfile;             /* TLS CA Certificate File */
    char *tls_ca_certdir;              /* TLS CA Certificate Directory */
    char *tls_certfile;                /* TLS Server Certificate File */
@@ -178,6 +175,9 @@ public:
    char *tls_dhfile;                  /* TLS Diffie-Hellman Parameters */
    alist *tls_allowed_cns;            /* TLS Allowed Clients */
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
+   bool tls_enable;                   /* Enable TLS */
+   bool tls_require;                  /* Require TLS */
+   bool tls_verify_peer;              /* TLS Verify Client Certificate */
 };
 
 
@@ -189,7 +189,7 @@ class CAT {
 public:
    RES   hdr;
 
-   int   db_port;                     /* Port -- not yet implemented */
+   int   db_port;                     /* Port */
    char *db_address;                  /* host name for remote access */
    char *db_socket;                   /* Socket for local access */
    char *db_password;
@@ -208,7 +208,6 @@ public:
    RES   hdr;
 
    int   FDport;                      /* Where File daemon listens */
-   int   AutoPrune;                   /* Do automatic pruning? */
    utime_t FileRetention;             /* file retention period in seconds */
    utime_t JobRetention;              /* job retention period in seconds */
    char *address;
@@ -216,13 +215,14 @@ public:
    CAT *catalog;                      /* Catalog resource */
    uint32_t MaxConcurrentJobs;        /* Maximume concurrent jobs */
    uint32_t NumConcurrentJobs;        /* number of concurrent jobs running */
-   int tls_enable;                    /* Enable TLS */
-   int tls_require;                   /* Require TLS */
    char *tls_ca_certfile;             /* TLS CA Certificate File */
    char *tls_ca_certdir;              /* TLS CA Certificate Directory */
    char *tls_certfile;                /* TLS Client Certificate File */
    char *tls_keyfile;                 /* TLS Client Key File */
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
+   bool tls_enable;                   /* Enable TLS */
+   bool tls_require;                  /* Require TLS */
+   bool AutoPrune;                    /* Do automatic pruning? */
 };
 
 /*
@@ -239,19 +239,19 @@ public:
    char *password;
    char *media_type;
    alist *device;                     /* Alternate devices for this Storage */
-   int  autochanger;                  /* set if autochanger */
-   int  drives;                       /* number of drives in autochanger */
    uint32_t MaxConcurrentJobs;        /* Maximume concurrent jobs */
    uint32_t NumConcurrentJobs;        /* number of concurrent jobs running */
-   int tls_enable;                    /* Enable TLS */
-   int tls_require;                   /* Require TLS */
    char *tls_ca_certfile;             /* TLS CA Certificate File */
    char *tls_ca_certdir;              /* TLS CA Certificate Directory */
    char *tls_certfile;                /* TLS Client Certificate File */
    char *tls_keyfile;                 /* TLS Client Key File */
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
+   bool tls_enable;                   /* Enable TLS */
+   bool tls_require;                  /* Require TLS */
+   bool enabled;                      /* Set if device is enabled */
+   bool  autochanger;                 /* set if autochanger */
    int64_t StorageId;                 /* Set from Storage DB record */
-   int enabled;                       /* Set if device is enabled */
+   int  drives;                       /* number of drives in autochanger */
 
    /* Methods */
    char *dev_name() const;
@@ -296,21 +296,21 @@ public:
    utime_t DiffMaxWaitTime;           /* Max Differential job wait time */
    utime_t IncMaxWaitTime;            /* Max Incremental job wait time */
    utime_t MaxStartDelay;             /* max start delay in seconds */
-   int PrefixLinks;                   /* prefix soft links with Where path */
-   int PruneJobs;                     /* Force pruning of Jobs */
-   int PruneFiles;                    /* Force pruning of Files */
-   int PruneVolumes;                  /* Force pruning of Volumes */
-   int SpoolAttributes;               /* Set to spool attributes in SD */
-   int spool_data;                    /* Set to spool data in SD */
-   int rerun_failed_levels;           /* Upgrade to rerun failed levels */
-   int PreferMountedVolumes;          /* Prefer vols mounted rather than new one */
-   uint32_t MaxConcurrentJobs;        /* Maximume concurrent jobs */
-   int RescheduleOnError;             /* Set to reschedule on error */
-   int RescheduleTimes;               /* Number of times to reschedule job */
    utime_t RescheduleInterval;        /* Reschedule interval */
    utime_t JobRetention;              /* job retention period in seconds */
-   int write_part_after_job;          /* Set to write part after job in SD */
-   int enabled;                       /* Set if job enabled */
+   uint32_t MaxConcurrentJobs;        /* Maximume concurrent jobs */
+   int RescheduleTimes;               /* Number of times to reschedule job */
+   bool RescheduleOnError;            /* Set to reschedule on error */
+   bool PrefixLinks;                  /* prefix soft links with Where path */
+   bool PruneJobs;                    /* Force pruning of Jobs */
+   bool PruneFiles;                   /* Force pruning of Files */
+   bool PruneVolumes;                 /* Force pruning of Volumes */
+   bool SpoolAttributes;              /* Set to spool attributes in SD */
+   bool spool_data;                   /* Set to spool data in SD */
+   bool rerun_failed_levels;          /* Upgrade to rerun failed levels */
+   bool PreferMountedVolumes;         /* Prefer vols mounted rather than new one */
+   bool write_part_after_job;         /* Set to write part after job in SD */
+   bool enabled;                      /* Set if job enabled */
    
    MSGS      *messages;               /* How and where to send messages */
    SCHED     *schedule;               /* When -- Automatic schedule */
@@ -373,8 +373,8 @@ public:
    bool have_MD5;                     /* set if MD5 initialized */
    struct MD5Context md5c;            /* MD5 of include/exclude */
    char MD5[30];                      /* base 64 representation of MD5 */
-   int ignore_fs_changes;             /* Don't force Full if FS changed */
-   int enable_vss;                    /* Enable Volume Shadow Copy */
+   bool ignore_fs_changes;            /* Don't force Full if FS changed */
+   bool enable_vss;                   /* Enable Volume Shadow Copy */
 };
 
 
@@ -416,13 +416,6 @@ public:
    char *label_format;                /* Label format string */
    char *cleaning_prefix;             /* Cleaning label prefix */
    int   LabelType;                   /* Bacula/ANSI/IBM label type */
-   int   use_catalog;                 /* maintain catalog for media */
-   int   catalog_files;               /* maintain file entries in catalog */
-   int   use_volume_once;             /* write on volume only once */
-   int   accept_any_volume;           /* accept any volume */
-   int   purge_oldest_volume;         /* purge oldest volume */
-   int   recycle_oldest_volume;       /* attempt to recycle oldest volume */
-   int   recycle_current_volume;      /* attempt recycle of current volume */
    uint32_t max_volumes;              /* max number of volumes */
    utime_t VolRetention;              /* volume retention period in seconds */
    utime_t VolUseDuration;            /* duration volume can be used */
@@ -434,8 +427,15 @@ public:
    uint32_t MigrationLowBytes;        /* When migration stops */
    POOL  *NextPool;                   /* Next pool for migration */
    alist *storage;                    /* Where is device -- list of Storage to be used */
-   int   AutoPrune;                   /* default for pool auto prune */
-   int   Recycle;                     /* default for media recycle yes/no */
+   bool  use_catalog;                 /* maintain catalog for media */
+   bool  catalog_files;               /* maintain file entries in catalog */
+   bool  use_volume_once;             /* write on volume only once */
+   bool  accept_any_volume;           /* accept any volume */
+   bool  purge_oldest_volume;         /* purge oldest volume */
+   bool  recycle_oldest_volume;       /* attempt to recycle oldest volume */
+   bool  recycle_current_volume;      /* attempt recycle of current volume */
+   bool  AutoPrune;                   /* default for pool auto prune */
+   bool  Recycle;                     /* default for media recycle yes/no */
 };
 
 

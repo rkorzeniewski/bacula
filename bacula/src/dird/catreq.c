@@ -160,7 +160,7 @@ void catalog_request(JCR *jcr, BSOCK *bs)
              *   Pool matches, and it is either Append or Recycle
              *   and Media Type matches and Pool allows any volume.
              */
-            if (mr.PoolId != jcr->PoolId) {
+            if (mr.PoolId != jcr->jr.PoolId) {
                reason = _("not in Pool");
             } else if (strcmp(mr.MediaType, jcr->store->media_type) != 0) {
                reason = _("not correct MediaType");
