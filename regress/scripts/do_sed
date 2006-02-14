@@ -9,9 +9,9 @@ if test $# != 6 ; then
    echo "  and the sixth must be the smtp or email host"
    exit 1
 fi
+cwd=`pwd`
 mkdir -p ${cwd}/bin
 out="/tmp/sed_tmp"
-cwd=`pwd`
 HOST="localhost"
 # Create sed command script
 echo "s%@sbindir@%${cwd}/bin%g" >${out}
@@ -27,6 +27,7 @@ echo "s%@hostname@%${HOST}%g" >>${out}
 echo "s%@changer_path@%${4}%g" >>${out}
 echo "s%@tape_drive1@%${5}%g" >>${out}
 echo "s%@smtp_host@%${6}%g" >>${out}
+echo "s%@disk_drive@%${cwd}/tmp/disk-changer%g" >>${out}
 
 echo "AUTOCHANGER=\"${3}\"" >config.out
 echo "TAPE_DRIVE1=\"${5}\"" >>config.out
@@ -44,7 +45,9 @@ sed -f ${out} ${cwd}/scripts/bacula-dir-tape.conf.in >${cwd}/scripts/bacula-dir-
 sed -f ${out} ${cwd}/scripts/win32-bacula-dir-tape.conf.in >${cwd}/scripts/win32-bacula-dir-tape.conf
 sed -f ${out} ${cwd}/scripts/bacula-sd-tape.conf.in >${cwd}/scripts/bacula-sd-tape.conf
 sed -f ${out} ${cwd}/scripts/bacula-sd-2tape.conf.in >${cwd}/scripts/bacula-sd-2tape.conf
+sed -f ${out} ${cwd}/scripts/bacula-sd-2disk.conf.in >${cwd}/scripts/bacula-sd-2disk.conf
 sed -f ${out} ${cwd}/scripts/bacula-sd-2drive.conf.in >${cwd}/scripts/bacula-sd-2drive.conf
+sed -f ${out} ${cwd}/scripts/bacula-sd-2disk-drive.conf.in >${cwd}/scripts/bacula-sd-2disk-drive.conf
 sed -f ${out} ${cwd}/scripts/cleanup-tape.in >${cwd}/scripts/cleanup-tape
 sed -f ${out} ${cwd}/scripts/cleanup-2tape.in >${cwd}/scripts/cleanup-2tape
 sed -f ${out} ${cwd}/scripts/cleanup-2drive.in >${cwd}/scripts/cleanup-2drive

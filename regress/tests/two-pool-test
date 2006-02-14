@@ -1,0 +1,106 @@
+#!/bin/sh
+#
+# This is Arno's test.  It uses two pools, two tapes, and
+#  an autochanger. Note, the Director has three Pools in its 
+#  conf:  Default, Full, and Inc.  Default is used in the
+#  NightlySave job by default.  What is backed up is what
+#  is in /tmp/file-list, which is by default the Bacula
+#  source code (i.e. the build directory).
+#
+#  Note, we use the virtual disk autochanger.
+#
+. config.out
+if test x${AUTOCHANGER} = x/dev/null ; then
+   echo "two-pool-test skipped. No autochanger."
+   exit
+fi
+debug=0
+if test "$debug" -eq 1 ; then
+  out="tee"
+else
+  out="output"
+fi
+cwd=`pwd`
+scripts/cleanup
+scripts/copy-2disk-confs
+scripts/prepare-two-disks
+ 
+# Make a relatively large backup set 5 x source code directory
+#  Reduced to 1 for portable
+echo "${cwd}/build" >/tmp/file-list
+
+echo " "
+echo " "
+echo " === Starting Two Pool Test at `date +%R:%S` ==="
+echo " === Starting Two Pool Test at `date +%R:%S` ===" >>working/log
+echo " "
+# Write out bconsole commands to a file
+cat <<END_OF_DATA >tmp/bconcmds
+@output /dev/null
+messages
+@$out tmp/log1.out
+label storage=DDS-4 volume=TestVolume001 slot=1 pool=Full drive=0
+label storage=DDS-4 volume=TestVolume002 slot=2 pool=Default drive=0
+list volumes
+@# Start job with Client run before and sleep
+run job=NightlySave1 level=Full pool=Default yes
+run job=NightlySave1 level=Full pool=Default yes
+run job=NightlySave1 level=Full pool=Default yes
+@# wait between starting jobs
+@sleep 60
+@#setdebug level=100 storage=DDS-4
+run job=NightlySave2 level=Full pool=Full yes
+run job=NightlySave2 level=Full pool=Full yes
+run job=NightlySave2 level=Full pool=Full yes
+@sleep 10
+messages
+@sleep 10
+messages
+@sleep 10
+status storage=DDS-4
+messages
+wait
+list volumes
+messages
+@# 
+@# now do a restore
+@#
+@$out tmp/log2.out
+restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
+yes
+wait
+messages
+@$out
+quit
+END_OF_DATA
+
+# start Bacula and run bconsole commands
+if test "$debug" -eq 1 ; then
+  bin/bacula start
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+else
+  bin/bacula start 2>&1 >/dev/null
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+fi
+# Make sure no jobs are still running (debug check)
+scripts/check_for_zombie_jobs storage=DDS-4
+
+# stop Bacula
+bin/bacula stop 2>&1 >/dev/null
+# Check if backup done correctly
+grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
+bstat=$?
+grep "^  Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
+rstat=$?
+diff -r build tmp/bacula-restores${cwd}/build 2>&1 >/dev/null
+if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
+   echo " "
+   echo " "
+   echo "  !!!!! Two Pool Test Bacula source failed!!! !!!!! "
+   echo "  !!!!! Two Pool Test failed!!! !!!!! " >>test.out
+   echo " "
+else
+   echo "  ===== Two Pool Test Bacula source OK ===== "
+   echo "  ===== Two Pool Test OK ===== " >>test.out
+#  scripts/cleanup
+fi
