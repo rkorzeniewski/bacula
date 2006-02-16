@@ -12,7 +12,7 @@
 # $Id$
 #
 # If you set in your Device resource
-#   Changer Command = "path-to-this-script/chio-changer" %c %o %S %a %d
+#   Changer Command = "path-to-this-script/chio-changer %c %o %S %a %d"
 # you will have the following input to this script:
 #   chio-changer "changer-device" "command" "slot" "tape-device" "drive-index"
 #                       $1           $2       $3         $4            $5
