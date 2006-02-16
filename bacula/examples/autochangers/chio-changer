@@ -10,9 +10,9 @@
 # - it automatically stows the cartridge to the slot it came from when
 #   unloading.
 # - a load will automatically unload the drive if there is a
-    different cartridge loaded.
+#   different cartridge loaded.
 # - it uses chio instead of mtx (which is
-    available as a package) 
+#   available as a package) 
 #
 #  If you set in your Device resource
 #
