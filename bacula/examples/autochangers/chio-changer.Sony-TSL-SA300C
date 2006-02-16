@@ -30,7 +30,7 @@
 #
 
 # This simulates a barcode reader in the changer.
-# The labes of the virtual barcode reader are located in the BARCODE_FILE
+# The labels of the virtual barcode reader are located in the BARCODE_FILE
 SIMULATE_BARCODE=true
 BARCODE_FILE=/usr/local/etc/bacula-barcodes
 
