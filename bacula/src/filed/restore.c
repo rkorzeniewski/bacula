@@ -536,18 +536,20 @@ void do_restore(JCR *jcr)
          cipher_ctx = NULL;
       }
       set_attributes(jcr, attr, &bfd);
+
+      /* Verify the cryptographic signature on the last file, if any */
+      if (jcr->pki_sign) {
+         if (sig) {
+            // Failure is reported in verify_signature() ...
+            verify_signature(jcr, sig);
+         } else {
+            Jmsg1(jcr, M_ERROR, 0, _("Missing cryptographic signature for %s\n"), jcr->last_fname);
+         }
+      }
    }
+
    if (is_bopen(&bfd)) {
       bclose(&bfd);
-   }
-   /* Verify the cryptographic signature on the last file, if any */
-   if (jcr->pki_sign) {
-      if (sig) {
-         // Failure is reported in verify_signature() ...
-         verify_signature(jcr, sig);
-      } else {
-         Jmsg1(jcr, M_ERROR, 0, _("Missing cryptographic signature for %s\n"), jcr->last_fname);
-      }
    }
 
    set_jcr_job_status(jcr, JS_Terminated);
