@@ -441,7 +441,7 @@ static void label_volume_if_ok(DCR *dcr, char *oldname,
    case VOL_IO_ERROR:
    case VOL_NO_LABEL:
       if (!write_new_volume_label_to_dev(dcr, newname, poolname)) {
-         bnet_fsend(dir, _("3912 Failed to label Volume: ERR=%s\n"), strerror_dev(dev));
+         bnet_fsend(dir, _("3912 Failed to label Volume: ERR=%s\n"), dev->bstrerror());
          break;
       }
       bstrncpy(dcr->VolumeName, newname, sizeof(dcr->VolumeName));
@@ -450,7 +450,7 @@ static void label_volume_if_ok(DCR *dcr, char *oldname,
          newname, dev->print_name());
       break;
    case VOL_NO_MEDIA:
-      bnet_fsend(dir, _("3912 Failed to label Volume: ERR=%s\n"), strerror_dev(dev));
+      bnet_fsend(dir, _("3912 Failed to label Volume: ERR=%s\n"), dev->bstrerror());
       break;
    default:
       bnet_fsend(dir, _("3913 Cannot label Volume. "
@@ -606,7 +606,7 @@ static bool mount_cmd(JCR *jcr)
             /* We freed the device, so reopen it and wake any waiting threads */
             if (dev->open(dcr, OPEN_READ_ONLY) < 0) {
                bnet_fsend(dir, _("3901 open device failed: ERR=%s\n"),
-                  strerror_dev(dev));
+                  dev->bstrerror());
                if (dev->dev_blocked == BST_UNMOUNTED) {
                   /* We blocked the device, so unblock it */
                   Dmsg0(100, "Unmounted. Unblocking device\n");
@@ -659,7 +659,7 @@ static bool mount_cmd(JCR *jcr)
             } else if (dev->is_tape()) {
                if (dev->open(dcr, OPEN_READ_ONLY) < 0) {
                   bnet_fsend(dir, _("3901 open device failed: ERR=%s\n"),
-                     strerror_dev(dev));
+                     dev->bstrerror());
                   break;
                }
                read_label(dcr);
@@ -676,7 +676,7 @@ static bool mount_cmd(JCR *jcr)
                   bnet_fsend(dir, _("3002 Device %s is mounted.\n"), 
                      dev->print_name());
                } else {
-                  bnet_fsend(dir, _("3907 %s"), strerror_dev(dev));
+                  bnet_fsend(dir, _("3907 %s"), dev->bstrerror());
                } 
             } else { /* must be file */
                bnet_fsend(dir, _("3906 File device %s is always mounted.\n"),

@@ -86,6 +86,11 @@ bool read_records(DCR *dcr,
                break;
             }
             jcr->mount_next_volume = false;
+            /*  
+             * The Device can change at the end of a tape, so refresh it
+             *   from the dcr.
+             */
+            dev = dcr->dev;
             /*
              * We just have a new tape up, now read the label (first record)
              *  and pass it off to the callback routine, then continue
@@ -280,7 +285,7 @@ static bool try_repositioning(JCR *jcr, DEV_RECORD *rec, DEVICE *dev)
       Dmsg4(300, "Try_Reposition from (file:block) %u:%u to %u:%u\n",
             dev->file, dev->block_num, bsr->volfile->sfile,
             bsr->volblock->sblock);
-      reposition_dev(dev, bsr->volfile->sfile, bsr->volblock->sblock);
+      dev->reposition(bsr->volfile->sfile, bsr->volblock->sblock);
       rec->Block = 0;
    }
    return false;
@@ -304,7 +309,7 @@ static BSR *position_to_first_file(JCR *jcr, DEVICE *dev)
             bsr->volfile->sfile, bsr->volblock->sblock);
          Dmsg2(300, "Forward spacing to file:block %u:%u.\n",
             bsr->volfile->sfile, bsr->volblock->sblock);
-         reposition_dev(dev, bsr->volfile->sfile, bsr->volblock->sblock);
+         dev->reposition(bsr->volfile->sfile, bsr->volblock->sblock);
       }
    }
    return bsr;

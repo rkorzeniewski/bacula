@@ -246,7 +246,7 @@ static bool despool_data(DCR *dcr, bool commit)
       ok = write_block_to_device(dcr);
       if (!ok) {
          Jmsg2(jcr, M_FATAL, 0, _("Fatal append error on device %s: ERR=%s\n"),
-               dcr->dev->print_name(), strerror_dev(dcr->dev));
+               dcr->dev->print_name(), dcr->dev->bstrerror());
       }
       Dmsg3(800, "Write block ok=%d FI=%d LI=%d\n", ok, block->FirstIndex, block->LastIndex);
    }

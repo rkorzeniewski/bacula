@@ -293,9 +293,9 @@ bool open_device(DCR *dcr)
        * (when there is no DVD, or when the one inserted is a wrong one) */
       if (!dev->poll && !dev->is_dvd() && !dev->is_removable()) {
          Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open device %s: ERR=%s\n"),
-            dev->print_name(), strerror_dev(dev));
+            dev->print_name(), dev->bstrerror());
          Pmsg2(000, _("Unable to open archive %s: ERR=%s\n"), 
-            dev->print_name(), strerror_dev(dev));
+            dev->print_name(), dev->bstrerror());
       }
       return false;
    }

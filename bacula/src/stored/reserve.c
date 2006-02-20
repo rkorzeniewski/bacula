@@ -33,13 +33,11 @@ static pthread_mutex_t search_lock = PTHREAD_MUTEX_INITIALIZER;
 
 /* Forward referenced functions */
 static int can_reserve_drive(DCR *dcr, RCTX &rctx);
-static int search_res_for_device(RCTX &rctx);
 static int reserve_device(RCTX &rctx);
 static bool reserve_device_for_read(DCR *dcr);
 static bool reserve_device_for_append(DCR *dcr, RCTX &rctx);
 static bool use_storage_cmd(JCR *jcr);
 static void queue_reserve_message(JCR *jcr);
-static void release_msgs(JCR *jcr);
 
 /* Requests from the Director daemon */
 static char use_storage[]  = "use storage=%127s media_type=%127s "
@@ -180,6 +178,7 @@ bail_out:
 void free_unused_volume(DCR *dcr)
 {
    VOLRES *vol;
+
    P(vol_list_lock);
    for (vol=(VOLRES *)vol_list->first(); vol; vol=(VOLRES *)vol_list->next(vol)) {
       if (vol->dcr == dcr && (vol->dev == NULL || 
@@ -342,6 +341,7 @@ static bool use_storage_cmd(JCR *jcr)
     */
    if (ok) {
       bool first = true;           /* print wait message once */
+      rctx.notify_dir = true;
       for ( ; !job_canceled(jcr); ) {
          P(search_lock);           /* only one thread at a time */
          while ((msg = (char *)msgs->pop())) {
@@ -450,11 +450,14 @@ all_done:
    return ok;
 }
 
-static void release_msgs(JCR *jcr)
+void release_msgs(JCR *jcr)
 {
    alist *msgs = jcr->reserve_msgs;
    char *msg;
 
+   if (!msgs) {
+      return;
+   }
    P(search_lock);
    while ((msg = (char *)msgs->pop())) {
       free(msg);
@@ -510,7 +513,7 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
  * Search for a particular storage device with particular storage
  *  characteristics (MediaType).
  */
-static int search_res_for_device(RCTX &rctx) 
+int search_res_for_device(RCTX &rctx) 
 {
    AUTOCHANGER *changer;
    BSOCK *dir = rctx.jcr->dir_bsock;
@@ -538,10 +541,14 @@ static int search_res_for_device(RCTX &rctx)
                Dmsg2(100, "Device %s reserved=%d for read.\n", rctx.device->hdr.name,
                   rctx.jcr->read_dcr->dev->reserved_device);
             }
-            pm_strcpy(dev_name, rctx.device->hdr.name);
-            bash_spaces(dev_name);
-            ok = bnet_fsend(dir, OK_device, dev_name.c_str());  /* Return real device name */
-            Dmsg1(100, ">dird changer: %s", dir->msg);
+            if (rctx.notify_dir) {
+               pm_strcpy(dev_name, rctx.device->hdr.name);
+               bash_spaces(dev_name);
+               ok = bnet_fsend(dir, OK_device, dev_name.c_str());  /* Return real device name */
+               Dmsg1(100, ">dird changer: %s", dir->msg);
+            } else {
+               ok = true;
+            }
             return ok ? 1 : -1;
          }
       }
@@ -557,10 +564,13 @@ static int search_res_for_device(RCTX &rctx)
             if (stat != 1) {
                return stat;
             }
-            Dmsg1(220, "Got: %s", dir->msg);
-            bash_spaces(rctx.device_name);
-            ok = bnet_fsend(dir, OK_device, rctx.device_name);
-            Dmsg1(100, ">dird dev: %s", dir->msg);
+            if (rctx.notify_dir) {
+               bash_spaces(rctx.device_name);
+               ok = bnet_fsend(dir, OK_device, rctx.device_name);
+               Dmsg1(100, ">dird dev: %s", dir->msg);
+            } else {
+               ok = true;
+            }
             return ok ? 1 : -1;
          }
       }

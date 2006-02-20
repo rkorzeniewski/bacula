@@ -292,7 +292,7 @@ int main (int argc, char *argv[])
    }
 
    free_jcr(bjcr);
-   term_dev(dev);
+   dev->term();
    return 0;
 }
 
@@ -1246,9 +1246,6 @@ bool    dir_ask_sysop_to_create_appendable_volume(DCR *dcr) { return 1; }
 bool    dir_update_file_attributes(DCR *dcr, DEV_RECORD *rec) { return 1;}
 bool    dir_send_job_status(JCR *jcr) {return 1;}
 int     generate_job_event(JCR *jcr, const char *event) { return 1; }
-VOLRES *new_volume(DCR *dcr, const char *VolumeName) { return NULL; }
-bool    free_volume(DEVICE *dev) { return true; }
-void    free_unused_volume(DCR *dcr) { }
 
 bool dir_ask_sysop_to_mount_volume(DCR *dcr)
 {

@@ -189,10 +189,18 @@ bool do_mac(JCR *jcr)
       return false;
    }
 
+   /* 
+    * Target jcr is the new Job that corresponds to the original
+    *  target job. It "runs" at the same time as the current 
+    *  migration job and becomes a new backup job that replaces
+    *  the original backup job.  Most operations on the current
+    *  migration jcr are also done on the target jcr.
+    */
    tjcr = jcr->target_jcr = new_jcr(sizeof(JCR), dird_free_jcr);
    memcpy(&tjcr->target_jr, &jcr->target_jr, sizeof(tjcr->target_jr));
-   set_jcr_defaults(tjcr, tjob);
 
+   /* Turn the tjcr into a "real" job */
+   set_jcr_defaults(tjcr, tjob);
    if (!setup_job(tjcr)) {
       return false;
    }
@@ -218,6 +226,9 @@ bool do_mac(JCR *jcr)
       Jmsg(jcr, M_FATAL, 0, _("Pool resource \"%s\" not found.\n"), pr.Name);
       return false;
    }
+
+   /* Check Migration time and High/Low water marks */
+   /* ***FIXME*** */
 
    /* If pool storage specified, use it for restore */
    copy_storage(tjcr, pool->storage);

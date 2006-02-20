@@ -93,7 +93,7 @@ bool do_append_data(JCR *jcr)
     */
    if (!write_session_label(dcr, SOS_LABEL)) {
       Jmsg1(jcr, M_FATAL, 0, _("Write session label failed. ERR=%s\n"),
-         strerror_dev(dev));
+         dev->bstrerror());
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       ok = false;
    }
@@ -203,9 +203,9 @@ bool do_append_data(JCR *jcr)
                        rec.remainder);
             if (!write_block_to_device(dcr)) {
                Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
-                  dev->print_name(), strerror_dev(dev));
+                  dev->print_name(), dev->bstrerror());
                Jmsg2(jcr, M_FATAL, 0, _("Fatal append error on device %s: ERR=%s\n"),
-                     dev->print_name(), strerror_dev(dev));
+                     dev->print_name(), dev->bstrerror());
                ok = false;
                break;
             }
@@ -261,7 +261,7 @@ bool do_append_data(JCR *jcr)
    if (ok || dev->can_write()) {
       if (!write_session_label(dcr, EOS_LABEL)) {
          Jmsg1(jcr, M_FATAL, 0, _("Error writting end session label. ERR=%s\n"),
-               strerror_dev(dev));
+               dev->bstrerror());
          set_jcr_job_status(jcr, JS_ErrorTerminated);
          ok = false;
       }
@@ -272,7 +272,7 @@ bool do_append_data(JCR *jcr)
       /* Flush out final partial block of this session */
       if (!write_block_to_device(dcr)) {
          Jmsg2(jcr, M_FATAL, 0, _("Fatal append error on device %s: ERR=%s\n"),
-               dev->print_name(), strerror_dev(dev));
+               dev->print_name(), dev->bstrerror());
          Dmsg0(100, _("Set ok=FALSE after write_block_to_device.\n"));
          ok = false;
       }

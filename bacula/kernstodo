@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     08 February 2006
+                     17 February 2006
 
 Major development:      
 Project                     Developer
@@ -20,6 +20,9 @@ Priority:
   directive).
 
 For 1.39:
+- Keep same dcr when switching device ...
+- Job retention period in a Pool (and hence Volume).  The job would
+  then be migrated.
 - Detect resource deadlock in Migrate when same job wants to read
   and write the same device.
 - Make hardlink code at line 240 of find_one.c use binary search.
@@ -1280,4 +1283,3 @@ Block Position: 0
   even defined).
 - Make sure Maximum Volumes is respected in Pools when adding
   Volumes (e.g. when pulling a Scratch volume).
-

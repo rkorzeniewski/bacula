@@ -76,6 +76,19 @@ CREATE TABLE job
 
 CREATE INDEX job_name_idx on job (name);
 
+CREATE TABLE MAC (
+    JobId	      serial	  not null,
+    OriginalJobId     serial	  not null,
+    JobType	      char(1)	  not null,
+    JobLevel	      char(1)	  not null,
+    schedtime	      timestamp   without time zone not null,
+    starttime	      timestamp   without time zone,
+    endtime	      timestamp   without time zone,
+    jobtdate	      bigint	  not null,
+    primary key (jobid)
+);
+
+
 CREATE TABLE fileset
 (
     filesetid	      serial	  not null,
@@ -113,6 +126,7 @@ CREATE TABLE media
     slot	      integer	  not null default 0,
     poolid	      integer	  not null,
     mediatype	      text	  not null,
+    mediatypeid       integer	  not null,
     labeltype	      integer	  not null default 0,
     firstwritten      timestamp   without time zone,
     lastwritten       timestamp   without time zone,
@@ -138,11 +152,13 @@ CREATE TABLE media
     maxvolbytes       bigint	  not null default 0,
     inchanger	      smallint	  not null default 0,
     StorageId	      integer		   default 0,
+    DeviceId	      integer		   default 0,
     mediaaddressing   smallint	  not null default 0,
     volreadtime       bigint	  not null default 0,
     volwritetime      bigint	  not null default 0,
     endfile	      integer	  not null default 0,
     endblock	      bigint	  not null default 0,
+    LocationId	      integer		   default 0,
     primary key (mediaid)
 );
 

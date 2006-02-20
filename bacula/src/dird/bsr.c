@@ -11,7 +11,7 @@
  */
 
 /*
-   Copyright (C) 2002-2005 Kern Sibbald
+   Copyright (C) 2002-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -51,6 +51,27 @@ static void free_findex(RBSR_FINDEX *fi)
       next = fi->next;
       free(fi);
    }
+}
+
+/* 
+ * Get storage device name from Storage resource
+ */
+static bool get_storage_device(char *device, char *storage)
+{
+   STORE *store;
+   if (storage[0] == 0) {
+      return false;
+   }
+   store = (STORE *)GetResWithName(R_STORAGE, storage);    
+   if (!store) {
+      return false;
+   }
+   DEVICE *dev = (DEVICE *)(store->device->first());
+   if (!dev) {
+      return false;
+   }
+   bstrncpy(device, dev->hdr.name, MAX_NAME_LENGTH);
+   return true;
 }
 
 /*
@@ -278,6 +299,7 @@ static uint32_t write_bsr(UAContext *ua, RESTORE_CTX &rx, FILE *fd)
    bool first = true;
    char *p;
    JobId_t JobId;
+   char device[MAX_NAME_LENGTH];
    RBSR *bsr;
    if (*rx.JobIds == 0) {
       for (bsr=rx.bsr; bsr; bsr=bsr->next) {
@@ -293,6 +315,12 @@ static uint32_t write_bsr(UAContext *ua, RESTORE_CTX &rx, FILE *fd)
             }
             fprintf(fd, "Volume=\"%s\"\n", bsr->VolParams[i].VolumeName);
             fprintf(fd, "MediaType=\"%s\"\n", bsr->VolParams[i].MediaType);
+            if (get_storage_device(device, bsr->VolParams[i].Storage)) {
+               fprintf(fd, "Device=\"%s\"\n", device);
+            }
+            if (bsr->VolParams[i].Slot > 0) {
+               fprintf(fd, "Slot=%d\n", bsr->VolParams[i].Slot);
+            }
             fprintf(fd, "VolSessionId=%u\n", bsr->VolSessionId);
             fprintf(fd, "VolSessionTime=%u\n", bsr->VolSessionTime);
             if (bsr->VolParams[i].StartFile == bsr->VolParams[i].EndFile) {
@@ -346,6 +374,12 @@ static uint32_t write_bsr(UAContext *ua, RESTORE_CTX &rx, FILE *fd)
             }
             fprintf(fd, "Volume=\"%s\"\n", bsr->VolParams[i].VolumeName);
             fprintf(fd, "MediaType=\"%s\"\n", bsr->VolParams[i].MediaType);
+            if (get_storage_device(device, bsr->VolParams[i].Storage)) {
+               fprintf(fd, "Device=\"%s\"\n", device);
+            }
+            if (bsr->VolParams[i].Slot > 0) {
+               fprintf(fd, "Slot=%d\n", bsr->VolParams[i].Slot);
+            }
             fprintf(fd, "VolSessionId=%u\n", bsr->VolSessionId);
             fprintf(fd, "VolSessionTime=%u\n", bsr->VolSessionTime);
             if (bsr->VolParams[i].StartFile == bsr->VolParams[i].EndFile) {

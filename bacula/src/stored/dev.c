@@ -131,7 +131,6 @@ init_dev(JCR *jcr, DEVRES *device)
 
    dev = (DEVICE *)malloc(sizeof(DEVICE));
    memset(dev, 0, sizeof(DEVICE));
-   dev->state = ST_MALLOC;
 
    /* Copy user supplied device parameters from Resource */
    dev->dev_name = get_memory(strlen(device->device_name)+1);
@@ -139,6 +138,7 @@ init_dev(JCR *jcr, DEVRES *device)
    dev->prt_name = get_memory(strlen(device->device_name) + strlen(device->hdr.name) + 20);
    /* We edit "Resource-name" (physical-name) */
    Mmsg(dev->prt_name, "\"%s\" (%s)", device->hdr.name, device->device_name);
+   Dmsg1(400, "Allocate dev=%s\n", dev->print_name());
    dev->capabilities = device->cap_bits;
    dev->min_block_size = device->min_block_size;
    dev->max_block_size = device->max_block_size;
@@ -162,7 +162,9 @@ init_dev(JCR *jcr, DEVRES *device)
    if (dev->vol_poll_interval && dev->vol_poll_interval < 60) {
       dev->vol_poll_interval = 60;
    }
+   /* Link the dev and device structures together */
    dev->device = device;
+   device->dev = dev;
 
    if (dev->is_fifo()) {
       dev->capabilities |= CAP_STREAM; /* set stream device */
@@ -1391,41 +1393,40 @@ bool DEVICE::fsr(int num)
  *   Returns:  false on failure
  *             true  on success
  */
-bool
-bsr_dev(DEVICE *dev, int num)
+bool DEVICE::bsr(int num)
 {
    struct mtop mt_com;
    int stat;
 
-   if (dev->fd < 0) {
-      dev->dev_errno = EBADF;
-      Mmsg0(dev->errmsg, _("Bad call to bsr_dev. Device not open\n"));
-      Emsg0(M_FATAL, 0, dev->errmsg);
+   if (fd < 0) {
+      dev_errno = EBADF;
+      Mmsg0(errmsg, _("Bad call to bsr_dev. Device not open\n"));
+      Emsg0(M_FATAL, 0, errmsg);
       return false;
    }
 
-   if (!dev->is_tape()) {
+   if (!is_tape()) {
       return false;
    }
 
-   if (!dev->has_cap(CAP_BSR)) {
-      Mmsg1(dev->errmsg, _("ioctl MTBSR not permitted on %s.\n"), dev->print_name());
+   if (!has_cap(CAP_BSR)) {
+      Mmsg1(errmsg, _("ioctl MTBSR not permitted on %s.\n"), print_name());
       return false;
    }
 
    Dmsg0(29, "bsr_dev\n");
-   dev->block_num -= num;
-   dev->state &= ~(ST_EOF|ST_EOT|ST_EOF);
+   block_num -= num;
+   state &= ~(ST_EOF|ST_EOT|ST_EOF);
    mt_com.mt_op = MTBSR;
    mt_com.mt_count = num;
-   stat = ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
+   stat = ioctl(fd, MTIOCTOP, (char *)&mt_com);
    if (stat < 0) {
       berrno be;
-      clrerror_dev(dev, MTBSR);
-      Mmsg2(dev->errmsg, _("ioctl MTBSR error on %s. ERR=%s.\n"),
-         dev->print_name(), be.strerror());
+      clrerror_dev(this, MTBSR);
+      Mmsg2(errmsg, _("ioctl MTBSR error on %s. ERR=%s.\n"),
+         print_name(), be.strerror());
    }
-   update_pos_dev(dev);
+   update_pos_dev(this);
    return stat == 0;
 }
 
@@ -1434,59 +1435,58 @@ bsr_dev(DEVICE *dev, int num)
  * Returns: false on failure
  *          true  on success
  */
-bool
-reposition_dev(DEVICE *dev, uint32_t file, uint32_t block)
+bool DEVICE::reposition(uint32_t rfile, uint32_t rblock)
 {
-   if (dev->fd < 0) {
-      dev->dev_errno = EBADF;
-      Mmsg0(dev->errmsg, _("Bad call to reposition_dev. Device not open\n"));
-      Emsg0(M_FATAL, 0, dev->errmsg);
+   if (fd < 0) {
+      dev_errno = EBADF;
+      Mmsg0(errmsg, _("Bad call to reposition. Device not open\n"));
+      Emsg0(M_FATAL, 0, errmsg);
       return false;
    }
 
-   if (!dev->is_tape()) {
-      off_t pos = (((off_t)file)<<32) + (off_t)block;
+   if (!is_tape()) {
+      off_t pos = (((off_t)rfile)<<32) + (off_t)rblock;
       Dmsg1(100, "===== lseek_dev to %d\n", (int)pos);
-      if (lseek_dev(dev, pos, SEEK_SET) == (off_t)-1) {
+      if (lseek_dev(this, pos, SEEK_SET) == (off_t)-1) {
          berrno be;
-         dev->dev_errno = errno;
-         Mmsg2(dev->errmsg, _("lseek_dev error on %s. ERR=%s.\n"),
-            dev->print_name(), be.strerror());
+         dev_errno = errno;
+         Mmsg2(errmsg, _("lseek_dev error on %s. ERR=%s.\n"),
+            print_name(), be.strerror());
          return false;
       }
-      dev->file = file;
-      dev->block_num = block;
-      dev->file_addr = pos;
+      file = rfile;
+      block_num = rblock;
+      file_addr = pos;
       return true;
    }
-   Dmsg4(100, "reposition_dev from %u:%u to %u:%u\n",
-      dev->file, dev->block_num, file, block);
-   if (file < dev->file) {
+   Dmsg4(100, "reposition from %u:%u to %u:%u\n",
+      file, block_num, rfile, rblock);
+   if (rfile < file) {
       Dmsg0(100, "Rewind\n");
-      if (!dev->rewind(NULL)) {
+      if (!rewind(NULL)) {
          return false;
       }
    }
-   if (file > dev->file) {
-      Dmsg1(100, "fsf %d\n", file-dev->file);
-      if (!dev->fsf(file-dev->file)) {
-         Dmsg1(100, "fsf failed! ERR=%s\n", strerror_dev(dev));
+   if (rfile > file) {
+      Dmsg1(100, "fsf %d\n", rfile-file);
+      if (!fsf(rfile-file)) {
+         Dmsg1(100, "fsf failed! ERR=%s\n", bstrerror());
          return false;
       }
-      Dmsg2(100, "wanted_file=%d at_file=%d\n", file, dev->file);
+      Dmsg2(100, "wanted_file=%d at_file=%d\n", rfile, file);
    }
-   if (block < dev->block_num) {
-      Dmsg2(100, "wanted_blk=%d at_blk=%d\n", block, dev->block_num);
+   if (rblock < block_num) {
+      Dmsg2(100, "wanted_blk=%d at_blk=%d\n", rblock, block_num);
       Dmsg0(100, "bsf 1\n");
-      dev->bsf(1);
+      bsf(1);
       Dmsg0(100, "fsf_dev 1\n");
-      dev->fsf(1);
-      Dmsg2(100, "wanted_blk=%d at_blk=%d\n", block, dev->block_num);
+      fsf(1);
+      Dmsg2(100, "wanted_blk=%d at_blk=%d\n", rblock, block_num);
    }
-   if (dev->has_cap(CAP_POSITIONBLOCKS) && block > dev->block_num) {
+   if (has_cap(CAP_POSITIONBLOCKS) && rblock > block_num) {
       /* Ignore errors as Bacula can read to the correct block */
-      Dmsg1(100, "fsr %d\n", block-dev->block_num);
-      return dev->fsr(block-dev->block_num);
+      Dmsg1(100, "fsr %d\n", rblock-block_num);
+      return fsr(rblock-block_num);
    }
    return true;
 }
@@ -1539,18 +1539,6 @@ weof_dev(DEVICE *dev, int num)
        }
    }
    return stat;
-}
-
-/*
- * Return string message with last error in English
- *  Be careful not to call this routine from within dev.c
- *  while editing an Mmsg() or you will end up in a recursive
- *  loop creating a Segmentation Violation.
- */
-char *
-strerror_dev(DEVICE *dev)
-{
-   return dev->errmsg;
 }
 
 
@@ -1670,15 +1658,6 @@ clrerror_dev(DEVICE *dev, int func)
    Dmsg0(200, "Did MTCSE\n");
 }
 #endif
-}
-
-/*
- * Flush buffer contents
- *  No longer used.
- */
-int flush_dev(DEVICE *dev)
-{
-   return 1;
 }
 
 /*
@@ -1999,41 +1978,35 @@ uint32_t dev_file(DEVICE *dev)
 /*
  * Free memory allocated for the device
  */
-void
-term_dev(DEVICE *dev)
+void DEVICE::term(void)
 {
-   if (!dev) {
-      dev->dev_errno = EBADF;
-      Mmsg0(dev->errmsg, _("Bad call to term_dev. Device not open\n"));
-      Emsg0(M_FATAL, 0, dev->errmsg);
-      return;
+   Dmsg1(900, "term dev: %s\n", print_name());
+   close();
+   if (dev_name) {
+      free_memory(dev_name);
+      dev_name = NULL;
    }
-   Dmsg1(29, "term_dev: %s\n", dev->print_name());
-   dev->close();
-   if (dev->dev_name) {
-      free_memory(dev->dev_name);
-      dev->dev_name = NULL;
+   if (prt_name) {
+      free_memory(prt_name);
+      prt_name = NULL;
    }
-   if (dev->prt_name) {
-      free_memory(dev->prt_name);
-      dev->prt_name = NULL;
+   if (errmsg) {
+      free_pool_memory(errmsg);
+      errmsg = NULL;
    }
-   if (dev->errmsg) {
-      free_pool_memory(dev->errmsg);
-      dev->errmsg = NULL;
+   pthread_mutex_destroy(&mutex);
+   pthread_cond_destroy(&wait);
+   pthread_cond_destroy(&wait_next_vol);
+   pthread_mutex_destroy(&spool_mutex);
+   rwl_destroy(&lock);
+   if (attached_dcrs) {
+      delete attached_dcrs;
+      attached_dcrs = NULL;
    }
-   pthread_mutex_destroy(&dev->mutex);
-   pthread_cond_destroy(&dev->wait);
-   pthread_cond_destroy(&dev->wait_next_vol);
-   pthread_mutex_destroy(&dev->spool_mutex);
-   rwl_destroy(&dev->lock);
-   if (dev->attached_dcrs) {
-      delete dev->attached_dcrs;
-      dev->attached_dcrs = NULL;
+   if (device) {
+      device->dev = NULL;
    }
-   if (dev->state & ST_MALLOC) {
-      free((char *)dev);
-   }
+   free((char *)this);
 }
 
 /*

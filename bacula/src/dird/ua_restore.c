@@ -44,6 +44,7 @@ extern char *uar_sel_all_temp1,  *uar_sel_fileset, *uar_mediatype;
 extern char *uar_jobid_fileindex, *uar_dif,        *uar_sel_all_temp;
 extern char *uar_count_files,     *uar_jobids_fileindex;
 extern char *uar_jobid_fileindex_from_dir;
+extern char *uar_jobid_fileindex_from_table;
 
 
 
@@ -69,6 +70,7 @@ static void insert_one_file_or_dir(UAContext *ua, RESTORE_CTX *rx, char *date, b
 static int get_client_name(UAContext *ua, RESTORE_CTX *rx);
 static int get_date(UAContext *ua, char *date, int date_len);
 static int count_handler(void *ctx, int num_fields, char **row);
+static bool insert_table_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *table);
 
 /*
  *   Restore files
@@ -229,6 +231,15 @@ static void free_rx(RESTORE_CTX *rx)
    free_name_list(&rx->name_list);
 }
 
+static bool has_value(UAContext *ua, int i)
+{
+   if (!ua->argv[i]) {
+      bsendmsg(ua, _("Missing value for keyword: %s\n"), ua->argk[i]);
+      return false;
+   }
+   return true;
+}
+
 static int get_client_name(UAContext *ua, RESTORE_CTX *rx)
 {
    /* If no client name specified yet, get it now */
@@ -237,6 +248,9 @@ static int get_client_name(UAContext *ua, RESTORE_CTX *rx)
       /* try command line argument */
       int i = find_arg_with_value(ua, N_("client"));
       if (i >= 0) {
+         if (!has_value(ua, i)) {
+            return 0;
+         }
          bstrncpy(rx->ClientName, ua->argv[i], sizeof(rx->ClientName));
          return 1;
       }
@@ -249,14 +263,6 @@ static int get_client_name(UAContext *ua, RESTORE_CTX *rx)
    return 1;
 }
 
-static bool has_value(UAContext *ua, int i)
-{
-   if (!ua->argv[i]) {
-      bsendmsg(ua, _("Missing value for keyword: %s\n"), ua->argk[i]);
-      return false;
-   }
-   return true;
-}
 
 /*
  * The first step in the restore process is for the user to
@@ -695,6 +701,10 @@ static void insert_one_file_or_dir(UAContext *ua, RESTORE_CTX *rx, char *date, b
       }
       fclose(ffd);
       break;
+   case '?':
+      p++;
+      insert_table_into_findex_list(ua, rx, p);
+      break;
    default:
       if (dir) {
          insert_dir_into_findex_list(ua, rx, ua->cmd, date);
@@ -783,6 +793,36 @@ static bool insert_dir_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *di
    return true;
 }
 
+/*
+ * Get the JobId and FileIndexes of all files in the specified table
+ */
+static bool insert_table_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *table)
+{
+   char ed1[50];
+
+   strip_trailing_junk(table);
+   Mmsg(rx->query, uar_jobid_fileindex_from_table, table);
+
+   rx->found = false;
+   /* Find and insert jobid and File Index */
+   if (!db_sql_query(ua->db, rx->query, jobid_fileindex_handler, (void *)rx)) {
+      bsendmsg(ua, _("Query failed: %s. ERR=%s\n"),
+         rx->query, db_strerror(ua->db));
+   }
+   if (!rx->found) {
+      bsendmsg(ua, _("No table found: %s\n"), table);
+      return true;
+   }
+   /*
+    * Find the MediaTypes for this JobId and add to the name_list
+    */
+   Mmsg(rx->query, uar_mediatype, edit_int64(rx->JobId, ed1));
+   if (!db_sql_query(ua->db, rx->query, unique_name_list_handler, (void *)&rx->name_list)) {
+      bsendmsg(ua, "%s", db_strerror(ua->db));
+      return false;
+   }
+   return true;
+}
 
 static void split_path_and_filename(RESTORE_CTX *rx, char *name)
 {

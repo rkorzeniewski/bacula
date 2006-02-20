@@ -29,7 +29,7 @@ typedef BSR * (ITEM_HANDLER)(LEX *lc, BSR *bsr);
 
 static BSR *store_vol(LEX *lc, BSR *bsr);
 static BSR *store_mediatype(LEX *lc, BSR *bsr);
-static BSR *store_storage(LEX *lc, BSR *bsr);
+static BSR *store_device(LEX *lc, BSR *bsr);
 static BSR *store_client(LEX *lc, BSR *bsr);
 static BSR *store_job(LEX *lc, BSR *bsr);
 static BSR *store_jobid(LEX *lc, BSR *bsr);
@@ -72,9 +72,9 @@ struct kw_items items[] = {
    {"exclude", store_exclude},
    {"volfile", store_volfile},
    {"volblock", store_volblock},
-   {"stream",  store_stream},
-   {"slot",    store_slot},
-   {"storage",    store_storage},
+   {"stream",   store_stream},
+   {"slot",     store_slot},
+   {"device",   store_device},
    {NULL, NULL}
 
 };
@@ -270,8 +270,8 @@ static BSR *store_mediatype(LEX *lc, BSR *bsr)
    return bsr;
 }
 
-/* Shove the Storage name in each Volume in the current bsr */
-static BSR *store_storage(LEX *lc, BSR *bsr)
+/* Shove the Device name in each Volume in the current bsr */
+static BSR *store_device(LEX *lc, BSR *bsr)
 {
    int token;
 
@@ -280,13 +280,13 @@ static BSR *store_storage(LEX *lc, BSR *bsr)
       return NULL;
    }
    if (!bsr->volume) {
-      Emsg1(M_ERROR,0, _("Storage %s in bsr at inappropriate place.\n"),
+      Emsg1(M_ERROR,0, _("Device \"%s\" in bsr at inappropriate place.\n"),
          lc->str);
       return bsr;
    }
    BSR_VOLUME *bv;
    for (bv=bsr->volume; bv; bv=bv->next) {
-      bstrncpy(bv->storage, lc->str, sizeof(bv->storage));
+      bstrncpy(bv->device, lc->str, sizeof(bv->device));
    }
    return bsr;
 }
@@ -707,7 +707,7 @@ void dump_volume(BSR_VOLUME *volume)
    if (volume) {
       Pmsg1(-1, _("VolumeName  : %s\n"), volume->VolumeName);
       Pmsg1(-1, _("  MediaType : %s\n"), volume->MediaType);
-      Pmsg1(-1, _("  Storage   : %s\n"), volume->storage);
+      Pmsg1(-1, _("  Device    : %s\n"), volume->device);
       Pmsg1(-1, _("  Slot      : %d\n"), volume->Slot);
       dump_volume(volume->next);
    }
@@ -904,7 +904,7 @@ void create_restore_volume_list(JCR *jcr)
             vol = new_restore_volume();
             bstrncpy(vol->VolumeName, bsrvol->VolumeName, sizeof(vol->VolumeName));
             bstrncpy(vol->MediaType,  bsrvol->MediaType,  sizeof(vol->MediaType));
-            bstrncpy(vol->storage, bsrvol->storage, sizeof(vol->storage));
+            bstrncpy(vol->device, bsrvol->device, sizeof(vol->device));
             vol->Slot = bsrvol->Slot;
             vol->start_file = sfile;
             if (add_restore_volume(jcr, vol)) {
