@@ -56,5 +56,6 @@ public:
    bool have_volume;                  /* Have DIR suggested vol name */
    bool suitable_device;              /* at least one device is suitable */
    bool autochanger_only;             /* look at autochangers only */
+   bool notify_dir;                   /* Notify DIR about device */
    char VolumeName[MAX_NAME_LENGTH];  /* Vol name suggested by DIR */
 };

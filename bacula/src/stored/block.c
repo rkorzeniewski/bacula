@@ -480,7 +480,7 @@ bool write_block_to_dev(DCR *dcr)
       if (weof_dev(dev, 1) != 0) {            /* write eof */
          Dmsg0(190, "WEOF error in max file size.\n");
          Jmsg(jcr, M_FATAL, 0, _("Unable to write EOF. ERR=%s\n"), 
-            strerror_dev(dev));
+            dev->bstrerror());
          terminate_writing_volume(dcr);
          dev->dev_errno = ENOSPC;
          return false;
@@ -626,7 +626,7 @@ static void reread_last_block(DCR *dcr)
               be.strerror(dev->dev_errno));
       }
       /* Backspace over record */
-      if (ok && !bsr_dev(dev, 1)) {
+      if (ok && !dev->bsr(1)) {
          berrno be;
          ok = false;
          Jmsg(jcr, M_ERROR, 0, _("Backspace record at EOT failed. ERR=%s\n"), 
@@ -637,7 +637,7 @@ static void reread_last_block(DCR *dcr)
           *    rewind(), but if we do that, higher levels in cleaning up, will
           *    most likely write the EOS record over the beginning of the
           *    tape.  The rewind *is* done later in mount.c when another
-          *    tape is requested. Note, the clrerror_dev() call in bsr_dev()
+          *    tape is requested. Note, the clrerror_dev() call in bsr()
           *    calls ioctl(MTCERRSTAT), which *should* fix the problem.
           */
       }
@@ -801,7 +801,7 @@ static bool do_dvd_size_checks(DCR *dcr)
       
       if (dvd_open_next_part(dcr) < 0) {
          Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open device next part %s: ERR=%s\n"),
-                dev->print_name(), strerror_dev(dev));
+                dev->print_name(), dev->bstrerror());
          dev->dev_errno = EIO;
          return false;
       }
@@ -911,7 +911,7 @@ reread:
         (dev->part < dev->num_parts)) {
       if (dvd_open_next_part(dcr) < 0) {
          Jmsg2(dcr->jcr, M_FATAL, 0, _("Unable to open device next part %s: ERR=%s\n"),
-               dev->print_name(), strerror_dev(dev));
+               dev->print_name(), dev->bstrerror());
          dev->dev_errno = EIO;
          return false;
       }
@@ -994,8 +994,8 @@ reread:
       /* Attempt to reposition to re-read the block */
       if (dev->is_tape()) {
          Dmsg0(200, "BSR for reread; block too big for buffer.\n");
-         if (!bsr_dev(dev, 1)) {
-            Jmsg(jcr, M_ERROR, 0, "%s", strerror_dev(dev));
+         if (!dev->bsr(1)) {
+            Jmsg(jcr, M_ERROR, 0, "%s", dev->bstrerror());
             block->read_len = 0;
             return false;
          }

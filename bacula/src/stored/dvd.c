@@ -703,7 +703,7 @@ bool dvd_close_job(DCR *dcr)
          update the part number. */
       if (ok && (dvd_open_next_part(dcr) < 0)) {
          Jmsg2(jcr, M_FATAL, 0, _("Unable to write part %s: ERR=%s\n"),
-               dev->print_name(), strerror_dev(dev));
+               dev->print_name(), dev->bstrerror());
          dev->dev_errno = EIO;
          ok = false;
       }

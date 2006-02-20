@@ -405,6 +405,10 @@ static int purge_jobs_from_client(UAContext *ua, CLIENT *client)
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       Dmsg1(050, "Delete Job sql=%s\n", query);
 
+      Mmsg(query, "DELETE FROM MAC WHERE JobId=%s", ed1);
+      db_sql_query(ua->db, query, NULL, (void *)NULL);
+      Dmsg1(050, "Delete MAC sql=%s\n", query);
+
       Mmsg(query, "DELETE FROM JobMedia WHERE JobId=%s", ed1);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       Dmsg1(050, "Delete JobMedia sql=%s\n", query);
@@ -522,6 +526,8 @@ int purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr)
       Mmsg(query, "DELETE FROM File WHERE JobId=%s", ed1);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       Mmsg(query, "DELETE FROM Job WHERE JobId=%s", ed1);
+      db_sql_query(ua->db, query, NULL, (void *)NULL);
+      Mmsg(query, "DELETE FROM MAC WHERE JobId=%s", ed1);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       Mmsg(query, "DELETE FROM JobMedia WHERE JobId=%s", ed1);
       db_sql_query(ua->db, query, NULL, (void *)NULL);

@@ -546,6 +546,8 @@ struct JOB_DBR {
    uint32_t JobErrors;
    uint32_t JobMissingFiles;
    uint64_t JobBytes;
+   int PurgedFiles;
+   int HasBase;
 
    /* Note, FirstIndex, LastIndex, Start/End File and Block
     * are only used in the JobMedia record.
@@ -564,6 +566,33 @@ struct JOB_DBR {
    int limit;                         /* limit records to display */
    faddr_t rec_addr;
 };
+
+/* 
+ * Suplementary record for Migration, archive, copy jobs
+ */
+/* MAC record */
+struct MAC_DBR {
+   JobId_t JobId;                     /* Id of this job */
+   JobId_t OriginalJobId;             /* Id of job migrated, copied or archived */
+   /* 
+    * The following are the actual values for this job. This
+    *  is needed because the values in the corresponding Job
+    *  record were set to the values of the original backup job.
+    */
+   int JobType;                       /* Actual job type */
+   int JobLevel;                      /* Actual job level */
+   time_t SchedTime;                  /* Actual time job scheduled */
+   time_t StartTime;                  /* Actual Job start time */
+   time_t EndTime;                    /* Actual Job termination time */
+   utime_t JobTDate;                  /* Actual Backup time/date in seconds */
+
+   char cSchedTime[MAX_TIME_LENGTH];
+   char cStartTime[MAX_TIME_LENGTH];
+   char cEndTime[MAX_TIME_LENGTH];
+
+};
+
+
 
 /* Job Media information used to create the media records
  * for each Volume used for the job.
@@ -588,6 +617,7 @@ struct JOBMEDIA_DBR {
 struct VOL_PARAMS {
    char VolumeName[MAX_NAME_LENGTH];  /* Volume name */
    char MediaType[MAX_NAME_LENGTH];   /* Media Type */
+   char Storage[MAX_NAME_LENGTH];     /* Storage name */
    uint32_t VolIndex;                 /* Volume seqence no. */
    uint32_t FirstIndex;               /* First index this Volume */
    uint32_t LastIndex;                /* Last index this Volume */
@@ -595,6 +625,7 @@ struct VOL_PARAMS {
    uint32_t EndFile;                  /* End file on Volume */
    uint32_t StartBlock;               /* start block on tape */
    uint32_t EndBlock;                 /* last block */
+   int32_t Slot;                      /* Slot */
 // uint32_t Copy;                     /* identical copy */
 // uint32_t Stripe;                   /* RAIT strip number */
 };

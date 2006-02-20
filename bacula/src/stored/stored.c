@@ -449,7 +449,7 @@ void *device_initialization(void *arg)
 
    foreach_res(device, R_DEVICE) {
       Dmsg1(90, "calling init_dev %s\n", device->device_name);
-      device->dev = dev = init_dev(NULL, device);
+      dev = init_dev(NULL, device);
       Dmsg1(10, "SD init done %s\n", device->device_name);
       if (!dev) {
          Jmsg1(NULL, M_ERROR, 0, _("Could not initialize %s\n"), device->device_name);
@@ -548,7 +548,8 @@ void terminate_stored(int sig)
       Dmsg1(10, "Term device %s\n", device->device_name);
       if (device->dev) {
          free_volume(device->dev);
-         term_dev(device->dev);
+         device->dev->term();
+         device->dev = NULL;
       } else {
          Dmsg1(10, "No dev structure %s\n", device->device_name);
       }

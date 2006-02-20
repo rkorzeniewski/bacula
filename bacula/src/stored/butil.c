@@ -93,6 +93,7 @@ JCR *setup_jcr(const char *name, char *dev_name, BSR *bsr,
    pm_strcpy(jcr->fileset_md5, "Dummy.fileset.md5");
 
    init_autochangers();
+   init_volume_list();
 
    dcr = setup_to_access_device(jcr, dev_name, VolumeName, mode);
    if (!dcr) {

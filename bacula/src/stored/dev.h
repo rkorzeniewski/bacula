@@ -339,13 +339,15 @@ public:
    void clear_mounted() { state &= ~ST_MOUNTED; };
    void clear_media() { state &= ~ST_MEDIA; };
    void clear_short_block() { state &= ~ST_SHORT; };
-   void clear_freespace_ok() { state &= ~ST_FREESPACE_OK; }
+   void clear_freespace_ok() { state &= ~ST_FREESPACE_OK; };
+   char *bstrerror(void) { return errmsg; };
 
    void block(int why);          /* in dev.c */
    void unblock();               /* in dev.c */
    void close();                 /* in dev.c */
    bool truncate(DCR *dcr);      /* in dev.c */
    int open(DCR *dcr, int mode); /* in dev.c */
+   void term(void);              /* in dev.c */
    bool rewind(DCR *dcr);        /* in dev.c */
    bool mount(int timeout);      /* in dev.c */
    bool unmount(int timeout);    /* in dev.c */
@@ -356,7 +358,9 @@ public:
    bool eod();                   /* in dev.c */
    bool fsr(int num);            /* in dev.c */
    bool fsf(int num);            /* in dev.c */
+   bool bsr(int num);            /* in dev.c */
    bool scan_dir_for_volume(DCR *dcr); /* in scan.c */
+   bool reposition(uint32_t rfile, uint32_t rblock); /* in dev.c */
 
    void set_blocked(int block) { dev_blocked = block; };
    int  get_blocked() const { return dev_blocked; };

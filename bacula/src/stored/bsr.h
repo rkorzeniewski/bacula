@@ -33,7 +33,7 @@ struct VOL_LIST {
    VOL_LIST *next;
    char VolumeName[MAX_NAME_LENGTH];
    char MediaType[MAX_NAME_LENGTH];
-   char storage[MAX_NAME_LENGTH];   /* ***FIXME*** use alist here */
+   char device[MAX_NAME_LENGTH];   /* ***FIXME*** use alist here */
    int Slot;
    uint32_t start_file;
 };
@@ -52,7 +52,7 @@ struct BSR_VOLUME {
    BSR_VOLUME *next;
    char VolumeName[MAX_NAME_LENGTH];
    char MediaType[MAX_NAME_LENGTH];
-   char storage[MAX_NAME_LENGTH];   /* ***FIXME*** use alist here */
+   char device[MAX_NAME_LENGTH];   /* ***FIXME*** use alist here */
    int32_t       Slot;                /* Slot */
 };
 

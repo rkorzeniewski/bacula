@@ -47,6 +47,7 @@ const char *del_File     = "DELETE FROM File WHERE JobId=%s";
 const char *upd_Purged   = "UPDATE Job Set PurgedFiles=1 WHERE JobId=%s";
 const char *cnt_DelCand  = "SELECT count(*) FROM DelCandidates";
 const char *del_Job      = "DELETE FROM Job WHERE JobId=%s";
+const char *del_MAC      = "DELETE FROM MAC WHERE JobId=%s";
 const char *del_JobMedia = "DELETE FROM JobMedia WHERE JobId=%s";
 const char *cnt_JobMedia = "SELECT count(*) FROM JobMedia WHERE MediaId=%s";
 const char *sel_JobMedia = "SELECT JobId FROM JobMedia WHERE MediaId=%s";
@@ -395,3 +396,6 @@ const char *uar_jobid_fileindex_from_dir =
    "GROUP BY File.FileIndex ";
 #endif
  
+/* Query to get list of files from table -- presuably built by an external program */
+const char *uar_jobid_fileindex_from_table = 
+   "SELECT JobId, FileIndex from %s";

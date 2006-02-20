@@ -4,6 +4,28 @@
 General:
 
 Changes to 1.39.5
+20Feb06
+- Note!!! Your database must be updated, or you must create 
+  a new database. I have not yet incremented the database level.
+- Add Location table. 
+- Add LocationId, DeviceId, and MediaTypeId to Media record.
+18Feb06
+- Implement create/get mac record in database for adding extended
+  Migration data to the job record.
+- Add new MAC table to update/make database scripts.
+- Return Storage name used when getting VolumeNames for a job.
+- Change bsr file keyword Storage to Device, which is more accurate.
+- Ensure that Mac records are pruned/purged.
+- Tweak SD tools to deal with changing media type.
+- Integrate more dev.c subroutines as methods (e.g. strerror, bsr, ...)
+- Pass pointer to dcr pointer to acquire_device_for_read() so
+  that the subroutine can switch devices, and hence dcrs.
+- Modify the multiple MediaType read code to re-use the same
+  dcr when switching devices. This makes the code much more
+  robust.
+- Integrate patch from Karl Hakimian that reads JobIds, FileIndexes
+  from a table for restore.
+- Add Storage name to VolParams, but it really should be Device.
 14Feb06
 - Add disk-changer to scripts directory + configure/Makefile
 - Eliminate PoolId from jcr -- it is in jcr->jr.PoolId

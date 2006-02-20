@@ -102,7 +102,7 @@ int read_dev_volume_label(DCR *dcr)
 
    if (!dev->rewind(dcr)) {
       Mmsg(jcr->errmsg, _("Couldn't rewind device %s: ERR=%s\n"), 
-         dev->print_name(), strerror_dev(dev));
+         dev->print_name(), dev->bstrerror());
       Dmsg1(30, "return VOL_NO_MEDIA: %s", jcr->errmsg);
       return VOL_NO_MEDIA;
    }
@@ -141,14 +141,14 @@ int read_dev_volume_label(DCR *dcr)
    if (!read_block_from_dev(dcr, NO_BLOCK_NUMBER_CHECK)) {
       Mmsg(jcr->errmsg, _("Requested Volume \"%s\" on %s is not a Bacula "
            "labeled Volume, because: ERR=%s"), NPRT(VolName), 
-           dev->print_name(), strerror_dev(dev));
+           dev->print_name(), dev->bstrerror());
       Dmsg1(30, "%s", jcr->errmsg);
    } else if (!read_record_from_block(block, record)) {
       Mmsg(jcr->errmsg, _("Could not read Volume label from block.\n"));
       Dmsg1(30, "%s", jcr->errmsg);
    } else if (!unser_volume_label(dev, record)) {
       Mmsg(jcr->errmsg, _("Could not unserialize Volume label: ERR=%s\n"),
-         strerror_dev(dev));
+         dev->bstrerror());
       Dmsg1(30, "%s", jcr->errmsg);
    } else if (strcmp(dev->VolHdr.Id, BaculaId) != 0 &&
               strcmp(dev->VolHdr.Id, OldBaculaId) != 0) {
@@ -309,7 +309,7 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *Po
    if (!dev->rewind(dcr)) {
       free_volume(dev);
       memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
-      Dmsg2(30, "Bad status on %s from rewind: ERR=%s\n", dev->print_name(), strerror_dev(dev));
+      Dmsg2(30, "Bad status on %s from rewind: ERR=%s\n", dev->print_name(), dev->bstrerror());
       if (!forge_on) {
          goto bail_out;
       }
@@ -338,7 +338,7 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *Po
    /* Temporarily mark in append state to enable writing */
    dev->set_append();
    if (!write_record_to_block(dcr->block, dcr->rec)) {
-      Dmsg2(30, "Bad Label write on %s: ERR=%s\n", dev->print_name(), strerror_dev(dev));
+      Dmsg2(30, "Bad Label write on %s: ERR=%s\n", dev->print_name(), dev->bstrerror());
       goto bail_out;
    } else {
       Dmsg2(30, "Wrote label of %d bytes to %s\n", dcr->rec->data_len, dev->print_name());
@@ -346,7 +346,7 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *Po
 
    Dmsg0(99, "Call write_block_to_dev()\n");
    if (!write_block_to_dev(dcr)) {
-      Dmsg2(30, "Bad Label write on %s: ERR=%s\n", dev->print_name(), strerror_dev(dev));
+      Dmsg2(30, "Bad Label write on %s: ERR=%s\n", dev->print_name(), dev->bstrerror());
       goto bail_out;
    }
    Dmsg0(99, " Wrote block to device\n");
@@ -401,12 +401,12 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
    if (!dev_cap(dev, CAP_STREAM)) {
       if (!dev->rewind(dcr)) {
          Jmsg2(jcr, M_WARNING, 0, _("Rewind error on device %s: ERR=%s\n"),
-               dev->print_name(), strerror_dev(dev));
+               dev->print_name(), dev->bstrerror());
       }
       if (recycle) {
          if (!dev->truncate(dcr)) {
             Jmsg2(jcr, M_WARNING, 0, _("Truncate error on device %s: ERR=%s\n"),
-                  dev->print_name(), strerror_dev(dev));
+                  dev->print_name(), dev->bstrerror());
          }
       }
 
@@ -428,7 +428,7 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
       Dmsg1(200, "Attempt to write to device fd=%d.\n", dev->fd);
       if (!write_block_to_dev(dcr)) {
          Jmsg2(jcr, M_ERROR, 0, _("Unable to write device %s: ERR=%s\n"),
-            dev->print_name(), strerror_dev(dev));
+            dev->print_name(), dev->bstrerror());
          Dmsg0(200, "===ERROR write block to dev\n");
          return false;
       }

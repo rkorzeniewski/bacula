@@ -335,7 +335,7 @@ read_volume:
          dcr->VolumeName);
       if (!dev->eod()) {
          Jmsg(jcr, M_ERROR, 0, _("Unable to position to end of data on device %s: ERR=%s\n"),
-            dev->print_name(), strerror_dev(dev));
+            dev->print_name(), dev->bstrerror());
          mark_volume_in_error(dcr);
          goto mount_next_vol;
       }

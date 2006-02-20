@@ -1237,9 +1237,11 @@ static void do_job_delete(UAContext *ua, JobId_t JobId)
 
    Mmsg(query, "DELETE FROM Job WHERE JobId=%s", edit_int64(JobId, ed1));
    db_sql_query(ua->db, query, NULL, (void *)NULL);
-   Mmsg(query, "DELETE FROM File WHERE JobId=%s", edit_int64(JobId, ed1));
+   Mmsg(query, "DELETE FROM MAC WHERE JobId=%s", ed1);
    db_sql_query(ua->db, query, NULL, (void *)NULL);
-   Mmsg(query, "DELETE FROM JobMedia WHERE JobId=%s", edit_int64(JobId, ed1));
+   Mmsg(query, "DELETE FROM File WHERE JobId=%s", ed1);
+   db_sql_query(ua->db, query, NULL, (void *)NULL);
+   Mmsg(query, "DELETE FROM JobMedia WHERE JobId=%s", ed1);
    db_sql_query(ua->db, query, NULL, (void *)NULL);
    free_pool_memory(query);
    bsendmsg(ua, _("Job %s and associated records deleted from the catalog.\n"), edit_int64(JobId, ed1));

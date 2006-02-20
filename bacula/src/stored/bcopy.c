@@ -190,8 +190,8 @@ int main (int argc, char *argv[])
    free_jcr(in_jcr);
    free_jcr(out_jcr);
 
-   term_dev(in_dev);
-   term_dev(out_dev);
+   in_dev->term();
+   out_dev->term();
    return 0;
 }
 
@@ -231,16 +231,16 @@ static bool record_cb(DCR *in_dcr, DEV_RECORD *rec)
                        rec->remainder);
             if (!write_block_to_device(out_jcr->dcr)) {
                Dmsg2(90, "Got write_block_to_dev error on device %s: ERR=%s\n",
-                  out_dev->print_name(), strerror_dev(out_dev));
+                  out_dev->print_name(), out_dev->bstrerror());
                Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
-                     strerror_dev(out_dev));
+                     out_dev->bstrerror());
             }
          }
          if (!write_block_to_device(out_jcr->dcr)) {
             Dmsg2(90, "Got write_block_to_dev error on device %s: ERR=%s\n",
-               out_dev->print_name(), strerror_dev(out_dev));
+               out_dev->print_name(), out_dev->bstrerror());
             Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
-                  strerror_dev(out_dev));
+                  out_dev->bstrerror());
          }
          break;
       case EOM_LABEL:
@@ -261,9 +261,9 @@ static bool record_cb(DCR *in_dcr, DEV_RECORD *rec)
                  rec->remainder);
       if (!write_block_to_device(out_jcr->dcr)) {
          Dmsg2(90, "Got write_block_to_dev error on device %s: ERR=%s\n",
-            out_dev->print_name(), strerror_dev(out_dev));
+            out_dev->print_name(), out_dev->bstrerror());
          Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
-               strerror_dev(out_dev));
+               out_dev->bstrerror());
          break;
       }
    }
@@ -279,9 +279,6 @@ bool    dir_create_jobmedia_record(DCR *dcr) { return 1; }
 bool    dir_ask_sysop_to_create_appendable_volume(DCR *dcr) { return 1; }
 bool    dir_update_file_attributes(DCR *dcr, DEV_RECORD *rec) { return 1;}
 bool    dir_send_job_status(JCR *jcr) {return 1;}
-VOLRES *new_volume(DCR *dcr, const char *VolumeName) { return NULL; }
-bool    free_volume(DEVICE *dev) { return true; }
-void    free_unused_volume(DCR *dcr) { }
 
 
 bool dir_ask_sysop_to_mount_volume(DCR *dcr)

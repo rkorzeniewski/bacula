@@ -23,7 +23,7 @@ uint32_t new_VolSessionId();
 
 /* From acquire.c */
 DCR     *acquire_device_for_append(DCR *dcr);
-DCR     *acquire_device_for_read(DCR *dcr);
+bool     acquire_device_for_read(DCR *dcr);
 bool     release_device(DCR *dcr);
 DCR     *new_dcr(JCR *jcr, DEVICE *dev);
 void     free_dcr(DCR *dcr);
@@ -98,11 +98,9 @@ uint32_t status_dev(DEVICE *dev);
 bool     eod_dev(DEVICE *dev);
 bool     fsf_dev(DEVICE *dev, int num);
 bool     bsf_dev(DEVICE *dev, int num);
-bool     bsr_dev(DEVICE *dev, int num);
 void     attach_jcr_to_device(DEVICE *dev, JCR *jcr);
 void     detach_jcr_from_device(DEVICE *dev, JCR *jcr);
 JCR     *next_attached_jcr(DEVICE *dev, JCR *jcr);
-bool     reposition_dev(DEVICE *dev, uint32_t file, uint32_t block);
 void     init_device_wait_timers(DCR *dcr);
 void     init_jcr_device_wait_timers(JCR *jcr);
 bool     double_dev_wait_time(DEVICE *dev);
@@ -221,6 +219,8 @@ void    list_volumes(BSOCK *user);
 bool    is_volume_in_use(DCR *dcr);
 void    send_drive_reserve_messages(JCR *jcr, BSOCK *user);
 bool    find_suitable_device_for_job(JCR *jcr, RCTX &rctx);
+int     search_res_for_device(RCTX &rctx);
+void    release_msgs(JCR *jcr);
 
 
 /* From spool.c */

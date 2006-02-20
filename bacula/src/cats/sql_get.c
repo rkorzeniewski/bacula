@@ -10,7 +10,7 @@
  */
 
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -257,10 +257,10 @@ static int db_get_path_record(JCR *jcr, B_DB *mdb)
 
 /*
  * Get Job record for given JobId or Job name
- * Returns: 0 on failure
- *          1 on success
+ * Returns: false on failure
+ *          true  on success
  */
-int db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
+bool db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 {
    SQL_ROW row;
    char ed1[50];
@@ -281,13 +281,13 @@ int db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);
-      return 0;                       /* failed */
+      return false;                   /* failed */
    }
    if ((row = sql_fetch_row(mdb)) == NULL) {
       Mmsg1(mdb->errmsg, _("No Job found for JobId %s\n"), edit_int64(jr->JobId, ed1));
       sql_free_result(mdb);
       db_unlock(mdb);
-      return 0;                       /* failed */
+      return false;                   /* failed */
    }
 
    jr->VolSessionId = str_to_uint64(row[0]);
@@ -307,8 +307,49 @@ int db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    sql_free_result(mdb);
 
    db_unlock(mdb);
+   return true;
+}
+
+/*
+ * Get MAC record for given JobId
+ * Returns: false on failure
+ *          true  on success
+ */
+bool db_get_mac_record(JCR *jcr, B_DB *mdb, MAC_DBR *mr)
+{
+   SQL_ROW row;
+   char ed1[50];
+
+   db_lock(mdb);
+   Mmsg(mdb->cmd, "SELECT OriginalJobId,JobType,JobLevel,"
+"SchedTime,StartTime,EndTime,JobTDate"
+"FROM MAC WHERE JobId=%s", 
+      edit_int64(mr->JobId, ed1));
+
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
+      db_unlock(mdb);
+      return 0;                       /* failed */
+   }
+   if ((row = sql_fetch_row(mdb)) == NULL) {
+      Mmsg1(mdb->errmsg, _("No MAC record found for JobId %s\n"), ed1);
+      sql_free_result(mdb);
+      db_unlock(mdb);
+      return false;                   /* failed */
+   }
+
+   mr->OriginalJobId = str_to_int64(row[0]);
+   mr->JobType = (int)*row[1];
+   mr->JobLevel = (int)*row[2];
+   bstrncpy(mr->cSchedTime, row[3]!=NULL?row[3]:"", sizeof(mr->cSchedTime));
+   bstrncpy(mr->cStartTime, row[4]!=NULL?row[4]:"", sizeof(mr->cStartTime));
+   bstrncpy(mr->cEndTime, row[5]!=NULL?row[5]:"", sizeof(mr->cEndTime));
+   mr->JobTDate = str_to_int64(row[6]);
+   sql_free_result(mdb);
+
+   db_unlock(mdb);
    return 1;
 }
+
 
 /*
  * Find VolumeNames for a given JobId
@@ -386,7 +427,8 @@ int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, JobId_t JobId, VOL_PARAMS 
    db_lock(mdb);
    Mmsg(mdb->cmd,
 "SELECT VolumeName,MediaType,FirstIndex,LastIndex,StartFile,"
-"JobMedia.EndFile,StartBlock,JobMedia.EndBlock,Copy,Stripe"
+"JobMedia.EndFile,StartBlock,JobMedia.EndBlock,Copy,Stripe,"
+"Slot,StorageId"
 " FROM JobMedia,Media WHERE JobMedia.JobId=%s"
 " AND JobMedia.MediaId=Media.MediaId ORDER BY VolIndex,JobMediaId",
         edit_int64(JobId, ed1));
@@ -394,14 +436,16 @@ int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, JobId_t JobId, VOL_PARAMS 
    Dmsg1(130, "VolNam=%s\n", mdb->cmd);
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
       mdb->num_rows = sql_num_rows(mdb);
-      Dmsg1(130, "Num rows=%d\n", mdb->num_rows);
+      Dmsg1(200, "Num rows=%d\n", mdb->num_rows);
       if (mdb->num_rows <= 0) {
          Mmsg1(mdb->errmsg, _("No volumes found for JobId=%d\n"), JobId);
          stat = 0;
       } else {
          stat = mdb->num_rows;
+         DBId_t *SId;
          if (stat > 0) {
             *VolParams = Vols = (VOL_PARAMS *)malloc(stat * sizeof(VOL_PARAMS));
+            SId = (DBId_t *)malloc(stat * sizeof(DBId_t));
          }
          for (i=0; i < stat; i++) {
             if ((row = sql_fetch_row(mdb)) == NULL) {
@@ -410,6 +454,7 @@ int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, JobId_t JobId, VOL_PARAMS 
                stat = 0;
                break;
             } else {
+               DBId_t StorageId;
                bstrncpy(Vols[i].VolumeName, row[0], MAX_NAME_LENGTH);
                bstrncpy(Vols[i].MediaType, row[1], MAX_NAME_LENGTH);
                Vols[i].FirstIndex = str_to_uint64(row[2]);
@@ -420,6 +465,21 @@ int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, JobId_t JobId, VOL_PARAMS 
                Vols[i].EndBlock = str_to_uint64(row[7]);
 //             Vols[i].Copy = str_to_uint64(row[8]);
 //             Vols[i].Stripe = str_to_uint64(row[9]);
+               Vols[i].Slot = str_to_uint64(row[10]);
+               StorageId = str_to_uint64(row[11]);
+               Vols[i].Storage[0] = 0;
+               SId[i] = StorageId;
+            }
+         }
+         for (i=0; i < stat; i++) {
+            if (SId[i] != 0) {
+               Mmsg(mdb->cmd, "SELECT Name from Storage WHERE StorageId=%s",
+                  edit_int64(SId[i], ed1));
+               if (QUERY_DB(jcr, mdb, mdb->cmd)) {
+                  if ((row = sql_fetch_row(mdb)) != NULL) {
+                     bstrncpy(Vols[i].Storage, row[0], MAX_NAME_LENGTH);
+                  }
+               }
             }
          }
       }
