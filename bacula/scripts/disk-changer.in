@@ -6,7 +6,7 @@
 #
 #  If you set in your Device resource
 #
-#  Changer Command = "path-to-this-script/disk-changer" %c %o %S %a %d
+#  Changer Command = "path-to-this-script/disk-changer %c %o %S %a %d"
 #    you will have the following input to this script:
 #
 #  So Bacula will always call with all the following arguments, even though
