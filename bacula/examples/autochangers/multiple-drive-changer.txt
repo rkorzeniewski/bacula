@@ -99,7 +99,7 @@ Content-Disposition: inline;
 #
 #  If you set in your Device resource
 #
-#  Changer Command = "path-to-this-script/multitape-changer" %c %o %S %a %d
+#  Changer Command = "path-to-this-script/multitape-changer %c %o %S %a %d"
 #    you will have the following input to this script:
 #
 #  multitape-changer "changer-device" "command" "slot" "archive-device" "drive-index"
@@ -255,4 +255,3 @@ case $cmd in
 esac
 
 --------------050209030507060501040304--
-
