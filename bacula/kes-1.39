@@ -3,7 +3,14 @@
 
 General:
 
-Changes to 1.39.5
+Changes to 1.39.6
+23Feb06
+- Add Rudolf Cejka's new rc-chio-changer.
+- Implement pulling Volume from Scratch Pool if the
+  Volume is in the autochanger.
+- Implement additional command arguments for update Volume.
+
+Changes to 1.39.5 
 22Feb06
 - Back port changes to 1.38.5
 - Fix recycle SQL for StorageId.

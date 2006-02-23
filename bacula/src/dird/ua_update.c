@@ -172,76 +172,122 @@ static void update_voluseduration(UAContext *ua, char *val, MEDIA_DBR *mr)
 
 static void update_volmaxjobs(UAContext *ua, char *val, MEDIA_DBR *mr)
 {
-   POOLMEM *query = get_pool_memory(PM_MESSAGE);
+   POOL_MEM query(PM_MESSAGE);
    char ed1[50];
    Mmsg(query, "UPDATE Media SET MaxVolJobs=%s WHERE MediaId=%s",
       val, edit_int64(mr->MediaId,ed1));
-   if (!db_sql_query(ua->db, query, NULL, NULL)) {
+   if (!db_sql_query(ua->db, query.c_str(), NULL, NULL)) {
       bsendmsg(ua, "%s", db_strerror(ua->db));
    } else {
       bsendmsg(ua, _("New max jobs is: %s\n"), val);
    }
-   free_pool_memory(query);
 }
 
 static void update_volmaxfiles(UAContext *ua, char *val, MEDIA_DBR *mr)
 {
-   POOLMEM *query = get_pool_memory(PM_MESSAGE);
+   POOL_MEM query(PM_MESSAGE);
    char ed1[50];
    Mmsg(query, "UPDATE Media SET MaxVolFiles=%s WHERE MediaId=%s",
       val, edit_int64(mr->MediaId, ed1));
-   if (!db_sql_query(ua->db, query, NULL, NULL)) {
+   if (!db_sql_query(ua->db, query.c_str(), NULL, NULL)) {
       bsendmsg(ua, "%s", db_strerror(ua->db));
    } else {
       bsendmsg(ua, _("New max files is: %s\n"), val);
    }
-   free_pool_memory(query);
 }
 
 static void update_volmaxbytes(UAContext *ua, char *val, MEDIA_DBR *mr)
 {
    uint64_t maxbytes;
    char ed1[50], ed2[50];
-   POOLMEM *query;
+   POOL_MEM query(PM_MESSAGE);
 
    if (!size_to_uint64(val, strlen(val), &maxbytes)) {
       bsendmsg(ua, _("Invalid max. bytes specification: %s\n"), val);
       return;
    }
-   query = get_pool_memory(PM_MESSAGE);
    Mmsg(query, "UPDATE Media SET MaxVolBytes=%s WHERE MediaId=%s",
       edit_uint64(maxbytes, ed1), edit_int64(mr->MediaId, ed2));
-   if (!db_sql_query(ua->db, query, NULL, NULL)) {
+   if (!db_sql_query(ua->db, query.c_str(), NULL, NULL)) {
       bsendmsg(ua, "%s", db_strerror(ua->db));
    } else {
       bsendmsg(ua, _("New Max bytes is: %s\n"), edit_uint64(maxbytes, ed1));
    }
-   free_pool_memory(query);
 }
 
 static void update_volrecycle(UAContext *ua, char *val, MEDIA_DBR *mr)
 {
    int recycle;
    char ed1[50];
-   POOLMEM *query;
+   POOL_MEM query(PM_MESSAGE);
    if (strcasecmp(val, _("yes")) == 0) {
       recycle = 1;
    } else if (strcasecmp(val, _("no")) == 0) {
       recycle = 0;
    } else {
-      bsendmsg(ua, _("Invalid value. It must by yes or no.\n"));
+      bsendmsg(ua, _("Invalid value. It must be yes or no.\n"));
       return;
    }
-   query = get_pool_memory(PM_MESSAGE);
    Mmsg(query, "UPDATE Media SET Recycle=%d WHERE MediaId=%s",
       recycle, edit_int64(mr->MediaId, ed1));
-   if (!db_sql_query(ua->db, query, NULL, NULL)) {
+   if (!db_sql_query(ua->db, query.c_str(), NULL, NULL)) {
       bsendmsg(ua, "%s", db_strerror(ua->db));
    } else {
       bsendmsg(ua, _("New Recycle flag is: %s\n"),
          mr->Recycle==1?_("yes"):_("no"));
    }
-   free_pool_memory(query);
+}
+
+static void update_volinchanger(UAContext *ua, char *val, MEDIA_DBR *mr)
+{
+   int InChanger;
+   char ed1[50];
+
+   POOL_MEM query(PM_MESSAGE);
+   if (strcasecmp(val, _("yes")) == 0) {
+      InChanger = 1;
+   } else if (strcasecmp(val, _("no")) == 0) {
+      InChanger = 0;
+   } else {
+      bsendmsg(ua, _("Invalid value. It must be yes or no.\n"));
+      return;
+   }
+   Mmsg(query, "UPDATE Media SET InChanger=%d WHERE MediaId=%s",
+      InChanger, edit_int64(mr->MediaId, ed1));
+   if (!db_sql_query(ua->db, query.c_str(), NULL, NULL)) {
+      bsendmsg(ua, "%s", db_strerror(ua->db));
+   } else {
+      bsendmsg(ua, _("New InChanger flag is: %s\n"),
+         mr->InChanger==1?_("yes"):_("no"));
+   }
+}
+
+
+static void update_volslot(UAContext *ua, char *val, MEDIA_DBR *mr)
+{
+   POOL_DBR pr;
+
+   memset(&pr, 0, sizeof(POOL_DBR));
+   pr.PoolId = mr->PoolId;
+   if (!db_get_pool_record(ua->jcr, ua->db, &pr)) {
+      bsendmsg(ua, "%s", db_strerror(ua->db));
+      return;
+   }
+   mr->Slot = atoi(val);
+   if (pr.MaxVols > 0 && mr->Slot > (int)pr.MaxVols) {
+      bsendmsg(ua, _("Invalid slot, it must be between 0 and MaxVols=%d\n"),
+         pr.MaxVols);
+      return;
+   }
+   /*
+    * Make sure to use db_update... rather than doing this directly,
+    *   so that any Slot is handled correctly.
+    */
+   if (!db_update_media_record(ua->jcr, ua->db, mr)) {
+      bsendmsg(ua, _("Error updating media record Slot: ERR=%s"), db_strerror(ua->db));
+   } else {
+      bsendmsg(ua, _("New Slot is: %d\n"), mr->Slot);
+   }
 }
 
 /* Modify the Pool in which this Volume is located */
@@ -349,16 +395,20 @@ static int update_volume(UAContext *ua)
       _("MaxVolFiles"),              /* 4 */
       _("MaxVolBytes"),              /* 5 */
       _("Recycle"),                  /* 6 */
-      _("Pool"),                     /* 7 */
-      _("FromPool"),                 /* 8 */
-      _("AllFromPool"),              /* 9 */
+      _("InChanger"),                /* 7 */
+      _("Slot"),                     /* 8 */
+      _("Pool"),                     /* 9 */
+      _("FromPool"),                 /* 10 */
+      _("AllFromPool"),              /* 11 !!! see below !!! */
       NULL };
+
+#define AllFromPool 11               /* keep this updated with above */
 
    for (i=0; kw[i]; i++) {
       int j;
       POOL_DBR pr;
       if ((j=find_arg_with_value(ua, kw[i])) > 0) {
-         if (i != 9 && !select_media_dbr(ua, &mr)) {
+         if (i != AllFromPool && !select_media_dbr(ua, &mr)) {
             return 0;
          }
          switch (i) {
@@ -384,6 +434,12 @@ static int update_volume(UAContext *ua)
             update_volrecycle(ua, ua->argv[j], &mr);
             break;
          case 7:
+            update_volinchanger(ua, ua->argv[j], &mr);
+            break;
+         case 8:
+            update_volslot(ua, ua->argv[j], &mr);
+            break;
+         case 9:
             memset(&pr, 0, sizeof(POOL_DBR));
             pr.PoolId = mr.PoolId;
             if (!db_get_pool_record(ua->jcr, ua->db, &pr)) {
@@ -392,10 +448,10 @@ static int update_volume(UAContext *ua)
             }
             update_vol_pool(ua, ua->argv[j], &mr, &pr);
             break;
-         case 8:
+         case 10:
             update_vol_from_pool(ua, &mr);
             return 1;
-         case 9:
+         case 11:
             update_all_vols_from_pool(ua);
             return 1;
          }
@@ -500,36 +556,13 @@ static int update_volume(UAContext *ua)
          break;
 
       case 7:                         /* Slot */
-         int Slot;
-
-         memset(&pr, 0, sizeof(POOL_DBR));
-         pr.PoolId = mr.PoolId;
-         if (!db_get_pool_record(ua->jcr, ua->db, &pr)) {
-            bsendmsg(ua, "%s", db_strerror(ua->db));
-            return 0;
-         }
          bsendmsg(ua, _("Current Slot is: %d\n"), mr.Slot);
          if (!get_pint(ua, _("Enter new Slot: "))) {
             return 0;
          }
-         Slot = ua->pint32_val;
-         if (pr.MaxVols > 0 && Slot > (int)pr.MaxVols) {
-            bsendmsg(ua, _("Invalid slot, it must be between 0 and MaxVols=%d\n"),
-               pr.MaxVols);
-            break;
-         }
-         mr.Slot = Slot;
-         /*
-          * Make sure to use db_update... rather than doing this directly,
-          *   so that any Slot is handled correctly.
-          */
-         if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
-            bsendmsg(ua, _("Error updating media record Slot: ERR=%s"), db_strerror(ua->db));
-         } else {
-            bsendmsg(ua, _("New Slot is: %d\n"), mr.Slot);
-         }
+         update_volslot(ua, ua->cmd, &mr);
          break;
-
+         
       case 8:                         /* InChanger */
          bsendmsg(ua, _("Current InChanger flag is: %d\n"), mr.InChanger);
          if (!get_yesno(ua, _("Set InChanger flag? yes/no: "))) {

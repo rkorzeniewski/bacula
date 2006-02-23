@@ -1,13 +1,7 @@
 #!/bin/sh
 #
 # Bacula interface to chio autoloader
-#
-# This script was written by Rudolf Cejka
-#   I'm sending rewrite of examples/autochangers/chio-bacula for
-#   FreeBSD under name chio-changer, which tries to save all features
-#   from original code and add the possibility to list real barcodes
-#   from library.  I hope that this version is somewhat nicer.
-#
+# (by Rudolf Cejka <cejkar@fit.vutbr.cz>)
 #
 # $Id$
 #
@@ -19,16 +13,22 @@
 # for example (on a FreeBSD system):
 #   chio-changer /dev/ch0 load 1 /dev/nsa0 0
 #
-# If you need an offline, refer to the drive as $4, for example:
-#   mt -f $4 offline
-#
-# Many changers need an offline before the chio unload.
-# Also many changers need to sleep some time after the chio load.
-#
 # If you change the script, take care to return either the chio exit
 # code or a 0. If the script exits with a non-zero exit code, Bacula
 # will assume the request failed.
 #
+
+# Uncomment the following line, if you need to eject a tape before moving
+# it from the drive.
+#OFFLINE=yes
+
+# Uncomment the following line, if you need to wait for some time
+# (in seconds) after (un)loading a tape.
+#SLEEP=10
+
+# Uncomment the following line, if you do not have a changer with volume
+# reader.
+#FAKE_BARCODES=/usr/local/etc/bacula-barcodes
 
 PROGNAME=`basename $0`
 
@@ -50,18 +50,13 @@ Example:
 EOF
 }
 
-# This simulates a barcode reader in the changer:
-#FAKE_BARCODES=/usr/local/etc/bacula-barcodes
-
-# Time to wait for (un)loading
-SLEEP=10
-
 # Default settings
 CHANGER=/dev/ch0
 TAPE=/dev/nsa0
 DRIVE=0
 
 CHIO=/bin/chio
+MT=/usr/bin/mt
 
 if [ $# -lt 2 ]; then
   usage
@@ -73,11 +68,6 @@ if [ -n "$1" ]; then
 fi
 COMMAND=$2
 SLOT=$3
-if [ "${SLOT}" = slot ]; then
-  # btape says "... slot 1 drive 0"
-  shift
-  SLOT=$3
-fi
 if [ -n "$4" ]; then
   TAPE=$4
 fi
@@ -87,9 +77,12 @@ fi
 
 case ${COMMAND} in
 unload)
-  # Enable the following line(s) if you need to eject the cartridge.
-  #mt -f ${TAPE} offline
-  #sleep ${SLEEP}
+  if [ "${OFFLINE}" = yes ]; then
+    ${MT} -f ${TAPE} offline
+  fi
+  if [ -n "${SLEEP}" ]; then
+    sleep ${SLEEP}
+  fi
   if [ -z "${SLOT}" ]; then
     ${CHIO} -f ${CHANGER} return drive ${DRIVE}
   else
@@ -108,8 +101,11 @@ unload)
   ;;
 load)
   ${CHIO} -f ${CHANGER} move slot $((${SLOT} - 1)) drive ${DRIVE}
-  # Enable the following line if you need to wait after chio load.
-  #RET=$? ; sleep ${SLEEP} ; exit ${RET}
+  RET=$?
+  if [ -n "${SLEEP}" ]; then
+    sleep ${SLEEP}
+  fi
+  exit ${RET}
   ;;
 list)
   if [ -z "${FAKE_BARCODES}" ]; then
