@@ -305,24 +305,25 @@ void store_msgs(LEX *lc, RES_ITEM *item, int index, int pass)
  */
 static void scan_types(LEX *lc, MSGS *msg, int dest_code, char *where, char *cmd)
 {
-   int i, found, quit, is_not;
+   int i; 
+   bool found, is_not;
    int msg_type = 0;
    char *str;
 
-   for (quit=0; !quit;) {
+   for ( ;; ) {
       lex_get_token(lc, T_NAME);            /* expect at least one type */
-      found = FALSE;
+      found = false;
       if (lc->str[0] == '!') {
-         is_not = TRUE;
+         is_not = true;
          str = &lc->str[1];
       } else {
-         is_not = FALSE;
+         is_not = false;
          str = &lc->str[0];
       }
       for (i=0; msg_types[i].name; i++) {
          if (strcasecmp(str, msg_types[i].name) == 0) {
             msg_type = msg_types[i].token;
-            found = TRUE;
+            found = true;
             break;
          }
       }
@@ -335,12 +336,10 @@ static void scan_types(LEX *lc, MSGS *msg, int dest_code, char *where, char *cmd
          for (i=1; i<=M_MAX; i++) {      /* yes set all types */
             add_msg_dest(msg, dest_code, i, where, cmd);
          }
+      } else if (is_not) {
+         rem_msg_dest(msg, dest_code, msg_type, where);
       } else {
-         if (is_not) {
-            rem_msg_dest(msg, dest_code, msg_type, where);
-         } else {
-            add_msg_dest(msg, dest_code, msg_type, where, cmd);
-         }
+         add_msg_dest(msg, dest_code, msg_type, where, cmd);
       }
       if (lc->ch != ',') {
          break;

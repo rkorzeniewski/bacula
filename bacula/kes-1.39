@@ -3,7 +3,17 @@
 
 General:
 
-Changes to 1.39.6
+26Feb06
+- Fix the block listing bug pointed out by Arno.
+- Update the po files at Eric's request.
+
+24Feb06
+- Fix Maximum Changer Wait, Maximum Open Wait, Maximum Rewind Wait to 
+  accept time qualifiers.
+- Make catalog respect ACL.
+- Add recycle count to Media record.
+
+Changes to 1.39.6-beta1 24Feb04
 23Feb06
 - Add Rudolf Cejka's new rc-chio-changer.
 - Implement pulling Volume from Scratch Pool if the

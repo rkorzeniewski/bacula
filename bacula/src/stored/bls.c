@@ -45,7 +45,6 @@ static bool dump_label = false;
 static bool list_blocks = false;
 static bool list_jobs = false;
 static DEV_RECORD *rec;
-static DEV_BLOCK *block;
 static JCR *jcr;
 static SESSION_LABEL sessrec;
 static uint32_t num_files = 0;
@@ -216,7 +215,6 @@ int main (int argc, char *argv[])
       }
       dcr = jcr->dcr;
       rec = new_record();
-      block = new_block(dev);
       attr = new_attr();
       /*
        * Assume that we have already read the volume label.
@@ -251,7 +249,6 @@ static void do_close(JCR *jcr)
    release_device(jcr->dcr);
    free_attr(attr);
    free_record(rec);
-   free_block(block);
    free_jcr(jcr);
    dev->term();
 }
@@ -260,6 +257,7 @@ static void do_close(JCR *jcr)
 /* List just block information */
 static void do_blocks(char *infname)
 {
+   DEV_BLOCK *block = dcr->block;
    char buf1[100], buf2[100];
    for ( ;; ) {
       if (!read_block_from_device(dcr, NO_BLOCK_NUMBER_CHECK)) {

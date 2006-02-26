@@ -146,7 +146,7 @@ bool acl_access_ok(UAContext *ua, int acl, char *item, int len);
 int do_a_command(UAContext *ua, const char *cmd);
 int do_a_dot_command(UAContext *ua, const char *cmd);
 int qmessagescmd(UAContext *ua, const char *cmd);
-int open_db(UAContext *ua);
+bool open_db(UAContext *ua);
 void close_db(UAContext *ua);
 enum e_pool_op {
    POOL_OP_UPDATE,

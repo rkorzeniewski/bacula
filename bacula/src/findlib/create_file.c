@@ -254,6 +254,8 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
                      attr->ofname, be.strerror());
                return CF_ERROR;
             }
+         } else if(S_ISSOCK(attr->statp.st_mode)) {
+             Dmsg1(200, "Skipping restore of socket: %s\n", attr->ofname);
          } else {
             Dmsg1(200, "Restore node: %s\n", attr->ofname);
             if (mknod(attr->ofname, attr->statp.st_mode, attr->statp.st_rdev) != 0 && errno != EEXIST) {

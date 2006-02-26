@@ -159,6 +159,10 @@ CREATE TABLE media
     endfile	      integer	  not null default 0,
     endblock	      bigint	  not null default 0,
     LocationId	      integer		   default 0,
+    recyclcount       integer	  not null default 0,
+    initialwrite      timestamp   without time zone,
+    scratchpoolid     integer default 0,
+    recyclepoolid     integer default 0,
     primary key (mediaid)
 );
 

@@ -15,14 +15,8 @@ Document:
 - %d and %v only valid on Director, not for ClientRunBefore/After.
 
 Priority:
-- Implement code that makes the Dir aware that a drive is an             
-  autochanger (so the user doesn't need to use the Autochanger = yes 
-  directive).
 
 For 1.39:
-- Does Bacula backup Windows shortcuts?
-- Add recycle count to Media record.
-- Add initial write date to Media record.
 - Job retention period in a Pool (and hence Volume).  The job would
   then be migrated.
 - Detect resource deadlock in Migrate when same job wants to read
@@ -31,7 +25,6 @@ For 1.39:
 - Queue warning/error messages during restore so that they
   are reported at the end of the report rather than being
   hidden in the file listing ...
-- Fix Maximum Changer Wait (and others) to accept qualifiers.
 - Look at -D_FORTIFY_SOURCE=2
 - Add Win32 FileSet definition somewhere
 - Look at fixing restore status stats in SD.
@@ -54,7 +47,6 @@ For 1.39:
   running of that Job (i.e. lets any previous invocation finish
   before doing Interval testing).
 - Look at simplifying File exclusions.
-- Fix store_yesno to be store_bitmask.
 - New directive "Delete purged Volumes"
 - new pool XXX with ScratchPoolId = MyScratchPool's PoolId and
   let it fill itself, and RecyclePoolId = XXX's PoolId so I can
@@ -62,8 +54,7 @@ For 1.39:
   MyScratchPool
 - If I want to remove this pool, I set RecyclePoolId = MyScratchPool's
   PoolId, and when it is empty remove it.
-- Figure out how to recycle Scratch volumes back to the Scratch
-  Pool.
+- Figure out how to recycle Scratch volumes back to the Scratch Pool.
 - Add Volume=SCRTCH
 - Allow Check Labels to be used with Bacula labels.
 - "Resuming" a failed backup (lost line for example) by using the
@@ -73,17 +64,6 @@ For 1.39:
   days before it needs changing.
 - Command to show next tape that will be used for a job even
   if the job is not scheduled.
---- create_file.c.orig  Fri Jul  8 12:13:05 2005
-+++ create_file.c       Fri Jul  8 12:13:07 2005
-@@ -195,6 +195,8 @@
-                     attr->ofname, be.strerror());
-               return CF_ERROR;
-            }
-+        } else if(S_ISSOCK(attr->statp.st_mode)) {
-+            Dmsg1(200, "Skipping socket: %s\n", attr->ofname);
-         } else {          
-             Dmsg1(200, "Restore node: %s\n", attr->ofname);
-            if (mknod(attr->ofname, attr->statp.st_mode, attr->statp.st_rdev) != 0 && errno != EEXIST) {
 - From: Arunav Mandal <amandal@trolltech.com>
   1. When jobs are running and bacula for some reason crashes or if I do a 
   restart it remembers and jobs it was running before it crashed or restarted 
@@ -108,12 +88,6 @@ For 1.39:
 
 - Fix bpipe.c so that it does not modify results pointer.
   ***FIXME*** calling sequence should be changed.
-1.xx Major Projects:
-#3   Migration (Move, Copy, Archive Jobs)
-#7   Single Job Writing to Multiple Storage Devices
-- Reserve blocks other restore jobs when first cannot connect
-  to SD.
-- Add true/false to conf same as yes/no
 - For Windows disaster recovery see http://unattended.sf.net/
 - regardless of the retention period, Bacula will not prune the
   last Full, Diff, or Inc File data until a month after the
@@ -1286,3 +1260,26 @@ Block Position: 0
 - Make sure Maximum Volumes is respected in Pools when adding
   Volumes (e.g. when pulling a Scratch volume).
 - Keep same dcr when switching device ...
+- Implement code that makes the Dir aware that a drive is an             
+  autochanger (so the user doesn't need to use the Autochanger = yes 
+  directive).
+- Make catalog respect ACL.
+- Add recycle count to Media record.
+- Add initial write date to Media record.
+- Fix store_yesno to be store_bitmask.
+--- create_file.c.orig  Fri Jul  8 12:13:05 2005
++++ create_file.c       Fri Jul  8 12:13:07 2005
+@@ -195,6 +195,8 @@
+                     attr->ofname, be.strerror());
+               return CF_ERROR;
+            }
++        } else if(S_ISSOCK(attr->statp.st_mode)) {
++            Dmsg1(200, "Skipping socket: %s\n", attr->ofname);
+         } else {          
+             Dmsg1(200, "Restore node: %s\n", attr->ofname);
+            if (mknod(attr->ofname, attr->statp.st_mode, attr->statp.st_rdev) != 0 && errno != EEXIST) {
+- Add true/false to conf same as yes/no
+- Reserve blocks other restore jobs when first cannot connect to SD.
+- Fix Maximum Changer Wait, Maximum Open Wait, Maximum Rewind Wait to 
+  accept time qualifiers.
+
