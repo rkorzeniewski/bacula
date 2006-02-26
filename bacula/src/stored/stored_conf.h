@@ -112,8 +112,8 @@ public:
    int   autoselect;                  /* Automatically select from AutoChanger */
    uint32_t drive_index;              /* Autochanger drive index */
    uint32_t cap_bits;                 /* Capabilities of this device */
-   uint32_t max_changer_wait;         /* Changer timeout */
-   uint32_t max_rewind_wait;          /* maximum secs to wait for rewind */
+   utime_t max_changer_wait;          /* Changer timeout */
+   utime_t max_rewind_wait;           /* maximum secs to wait for rewind */
    uint32_t max_open_wait;            /* maximum secs to wait for open */
    uint32_t max_open_vols;            /* maximum simultaneous open volumes */
    uint32_t min_block_size;           /* min block size */

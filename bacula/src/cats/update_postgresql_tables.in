@@ -17,6 +17,14 @@ ALTER TABLE media ADD COLUMN MediaTypeId integer;
 UPDATE media SET MediaTypeId=0;
 ALTER TABLE media ADD COLUMN LocationId integer;
 UPDATE media SET LocationId=0;
+ALTER TABLE media ADD COLUMN RecycleCount integer;
+UPDATE media SET RecycleCount=0;
+ALTER TABLE media ADD COLUMN InitialWrite timestamp without time zone;
+UPDATE media SET InitialWrite=0;
+ALTER TABLE media ADD COLUMN scratchpoolid integer;
+UPDATE media SET scratchpoolid=0;
+ALTER TABLE media ADD COLUMN recyclepoolid integer;
+UPDATE media SET recyclepoolid=0;
 
 
 CREATE TABLE MAC (

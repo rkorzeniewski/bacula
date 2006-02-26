@@ -1449,10 +1449,10 @@ static int version_cmd(UAContext *ua, const char *cmd)
  * a "use catalog xxx" command, we simply find the first
  * catalog resource and open it.
  */
-int open_db(UAContext *ua)
+bool open_db(UAContext *ua)
 {
    if (ua->db) {
-      return 1;
+      return true;
    }
    if (!ua->catalog) {
       LockRes();
@@ -1460,7 +1460,11 @@ int open_db(UAContext *ua)
       UnlockRes();
       if (!ua->catalog) {
          bsendmsg(ua, _("Could not find a Catalog resource\n"));
-         return 0;
+         return false;
+      } else if (!acl_access_ok(ua, Catalog_ACL, ua->catalog->hdr.name)) {
+         bsendmsg(ua, _("You must specify a \"use <catalog-name>\" command before continuing.\n"));
+         ua->catalog = NULL;
+         return false;
       } else {
          bsendmsg(ua, _("Using default Catalog name=%s DB=%s\n"),
             ua->catalog->hdr.name, ua->catalog->db_name);
@@ -1481,11 +1485,11 @@ int open_db(UAContext *ua)
          bsendmsg(ua, "%s", db_strerror(ua->db));
       }
       close_db(ua);
-      return 0;
+      return false;
    }
    ua->jcr->db = ua->db;
    Dmsg1(150, "DB %s opened\n", ua->catalog->db_name);
-   return 1;
+   return true;
 }
 
 void close_db(UAContext *ua)
