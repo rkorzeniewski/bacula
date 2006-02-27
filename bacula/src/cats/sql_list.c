@@ -6,7 +6,7 @@
  *    Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -282,7 +282,7 @@ db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
          Mmsg(mdb->cmd, 
             "SELECT JobId,Name,StartTime,Type,Level,JobFiles,JobBytes,JobStatus "
             "FROM Job WHERE JobId=%s", edit_int64(jr->JobId, ed1));
-      } else {                           /* single record */
+      } else {                           /* all records */
          Mmsg(mdb->cmd,
            "SELECT JobId,Name,StartTime,Type,Level,JobFiles,JobBytes,JobStatus "
            "FROM Job ORDER BY StartTime,JobId ASC%s", limit);

@@ -30,6 +30,7 @@
 #include <Python.h>
 
 extern char *configfile;
+extern struct s_jl joblevels[];
 extern JCR *get_jcr_from_PyObject(PyObject *self);
 extern PyObject *find_method(PyObject *eventsObject, PyObject *method, 
          const char *name);
@@ -82,6 +83,7 @@ static struct s_vars setvars[] = {
    { "JobReport",   "s"},
    { "VolumeName",  "s"},
    { "Priority",    "i"},
+   { "JobLevel",    "s"},
 
    { NULL,             NULL}
 };
@@ -235,7 +237,27 @@ int job_setattr(PyObject *self, char *attrname, PyObject *value)
       break;
    case 2:                            /* Priority */
       Dmsg1(000, "Set priority=%d\n", intval);
-      return 0;
+      if (intval >= 1 && intval <= 100) {
+         jcr->JobPriority = intval;
+      } else {
+         PyErr_SetString(PyExc_ValueError, _("Priority must be 1-100"));
+         return -1;
+      }
+   case 3:                            /* Job Level */
+      if (strcmp("JobInit", jcr->event) != 0) {
+         PyErr_SetString(PyExc_RuntimeError, _("Job Level can be set only during JobInit"));
+         return -1;
+      }
+      for (i=0; joblevels[i].level_name; i++) {
+         if (strcmp(strval, joblevels[i].level_name) == 0) {
+            if (joblevels[i].job_type == jcr->JobType) {
+               jcr->JobLevel = joblevels[i].level;
+               return 0;
+            }
+         }
+      }
+      PyErr_SetString(PyExc_ValueError, _("Bad JobLevel string"));
+      return -1;
    }
 bail_out:
    PyErr_SetString(PyExc_AttributeError, attrname);

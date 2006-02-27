@@ -396,7 +396,18 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
             bstrncpy(jcr->Job, ua->argv[i], sizeof(jcr->Job));
          }
          break;
+      } else if (strcasecmp(ua->argk[i], _("jobuid")) == 0) {
+         if (!ua->argv[i]) {
+            break;
+         }
+         if (!(jcr=get_jcr_by_full_name(ua->argv[i]))) {
+            bsendmsg(ua, _("Warning Job %s is not running. Continuing anyway ...\n"), ua->argv[i]);
+            jcr = new_jcr(sizeof(JCR), dird_free_jcr);
+            bstrncpy(jcr->Job, ua->argv[i], sizeof(jcr->Job));
+         }
+         break;
       }
+
    }
    /* If we still do not have a jcr,
     *   throw up a list and ask the user to select one.
@@ -435,7 +446,6 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
             return 1;
          }
       }
-      /* NOTE! This increments the ref_count */
       sscanf(buf, "JobId=%d Job=%127s", &njobs, JobName);
       jcr = get_jcr_by_full_name(JobName);
       if (!jcr) {
