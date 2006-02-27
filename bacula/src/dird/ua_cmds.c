@@ -127,7 +127,7 @@ static struct cmdstruct commands[] = {
  { N_("use"),        use_cmd,       _("use catalog xxx")},
  { N_("var"),        var_cmd,       _("does variable expansion")},
  { N_("version"),    version_cmd,   _("print Director version")},
- { N_("wait"),       wait_cmd,      _("wait until no jobs are running")},
+ { N_("wait"),       wait_cmd,      _("wait until no jobs are running [<jobname=name> | <jobid=nnn> | <jobuid=complete_name>]")},
              };
 #define comsize (sizeof(commands)/sizeof(struct cmdstruct))
 
@@ -1401,27 +1401,158 @@ int quit_cmd(UAContext *ua, const char *cmd)
    return 1;
 }
 
+/* Handler to get job status */
+static int status_handler(void *ctx, int num_fields, char **row)
+{
+   char *val = (char *)ctx;
+
+   if (row[0]) {
+      *val = row[0][0];
+   } else {
+      *val = '?';               /* Unknown by default */
+   }
+
+   return 0;
+}
+
 /*
  * Wait until no job is running
  */
 int wait_cmd(UAContext *ua, const char *cmd)
 {
    JCR *jcr;
+
+   /* no args
+    * Wait until no job is running
+    */
+   if (ua->argc == 1) {
+      bmicrosleep(0, 200000);            /* let job actually start */
+      for (bool running=true; running; ) {
+         running = false;
+         foreach_jcr(jcr) {
+            if (jcr->JobId != 0) {
+               running = true;
+               break;
+            }
+         }
+         endeach_jcr(jcr);
+
+         if (running) {
+            bmicrosleep(1, 0);
+         }
+      }
+      return 1;
+   }
+
+   /* we have jobid, jobname or jobuid argument */
+
+   uint32_t jobid = 0 ;
+
+   if (!open_db(ua)) {
+      bsendmsg(ua, _("ERR: Can't open db\n")) ;
+      return 1;
+   }
+
+   for (int i=1; i<ua->argc; i++) {
+      if (strcasecmp(ua->argk[i], "jobid") == 0) {
+         if (!ua->argv[i]) {
+            break;
+         }
+         jobid = str_to_int64(ua->argv[i]);
+         break;
+      } else if (strcasecmp(ua->argk[i], "jobname") == 0 ||
+                 strcasecmp(ua->argk[i], "job") == 0) {
+         if (!ua->argv[i]) {
+            break;
+         }
+         jcr=get_jcr_by_partial_name(ua->argv[i]) ;
+         if (jcr) {
+            jobid = jcr->JobId ;
+            free_jcr(jcr);
+         }
+         break;
+      } else if (strcasecmp(ua->argk[i], "jobuid") == 0) {
+         if (!ua->argv[i]) {
+            break;
+         }
+         jcr=get_jcr_by_full_name(ua->argv[i]) ;
+         if (jcr) {
+            jobid = jcr->JobId ;
+            free_jcr(jcr);
+         }
+         break;
+      }
+   }
+
+   if (jobid == 0) {
+      bsendmsg(ua, _("ERR: Job was not found\n"));
+      return 1 ;
+   }
+
+   /*
+    * We wait the end of job
+    */
+
    bmicrosleep(0, 200000);            /* let job actually start */
    for (bool running=true; running; ) {
       running = false;
-      foreach_jcr(jcr) {
-         if (jcr->JobId != 0) {
-            running = true;
-            break;
-         }
+
+      jcr=get_jcr_by_id(jobid) ;
+
+      if (jcr) {
+         running = true ;
+         free_jcr(jcr);
       }
-      endeach_jcr(jcr);
 
       if (running) {
          bmicrosleep(1, 0);
       }
    }
+
+   /*
+    * We have to get JobStatus
+    */
+
+   int status ;
+   char jobstatus = '?';        /* Unknown by default */
+   char buf[256] ;
+
+   bsnprintf(buf, sizeof(buf),
+             "SELECT JobStatus FROM Job WHERE JobId='%i'", jobid);
+
+
+   db_sql_query(ua->db, buf,
+                status_handler, (void *)&jobstatus);
+
+   switch (jobstatus) {
+   case JS_Error:
+      status = 1 ;         /* Warning */
+      break;
+
+   case JS_FatalError:
+   case JS_ErrorTerminated:
+   case JS_Canceled:
+      status = 2 ;         /* Critical */
+      break;
+
+   case JS_Terminated:
+      status = 0 ;         /* Ok */
+      break;
+
+   default:
+      status = 3 ;         /* Unknown */
+      break;
+   }
+
+   bsendmsg(ua, "JobId=%i\n", jobid) ;
+   bsendmsg(ua, "JobStatus=%s (%c)\n", 
+            job_status_to_str(jobstatus), 
+            jobstatus) ;
+
+   if (ua->gui) {
+      bsendmsg(ua, "ExitStatus=%i\n", status) ;
+   }
+
    return 1;
 }
 
