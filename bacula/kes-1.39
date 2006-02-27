@@ -3,6 +3,19 @@
 
 General:
 
+27Feb06
+- Modify the Python class examples to inherit object -- new way
+  of defining classes. Patch from Felix Schwartz.
+- Implement jobuid to replace old usage of job in keywords as
+  suggested by Eric Bollengier.
+- Apply patch for enhancing wait from Eric Bollengier. On can now:
+   wait  (wait for all jobs to stop)
+   wait jobid=nn
+   wait jobuid=unique id
+   wait job=job-name
+- Implement write variables for Python to set Priority (anytime), and
+  Job Level, only during JobInit event.
+
 26Feb06
 - Fix the block listing bug pointed out by Arno.
 - Update the po files at Eric's request.

@@ -626,7 +626,7 @@ int get_job_dbr(UAContext *ua, JOB_DBR *jr)
    int i;
 
    for (i=1; i<ua->argc; i++) {
-      if (strcasecmp(ua->argk[i], N_("job")) == 0 && ua->argv[i]) {
+      if (strcasecmp(ua->argk[i], N_("jobuid")) == 0 && ua->argv[i]) {
          jr->JobId = 0;
          bstrncpy(jr->Job, ua->argv[i], sizeof(jr->Job));
       } else if (strcasecmp(ua->argk[i], N_("jobid")) == 0 && ua->argv[i]) {
@@ -648,7 +648,8 @@ int get_job_dbr(UAContext *ua, JOB_DBR *jr)
    jr->Job[0] = 0;
 
    for (i=1; i<ua->argc; i++) {
-      if (strcasecmp(ua->argk[i], N_("jobname")) == 0 && ua->argv[i]) {
+      if ((strcasecmp(ua->argk[i], N_("jobname")) == 0 ||
+           strcasecmp(ua->argk[i], N_("job")) == 0) && ua->argv[i]) {
          jr->JobId = 0;
          bstrncpy(jr->Name, ua->argv[i], sizeof(jr->Name));
          break;
@@ -831,12 +832,25 @@ STORE *get_storage_resource(UAContext *ua, bool use_default)
             free_jcr(jcr);
             break;
 
-         } else if (strcasecmp(ua->argk[i], N_("job")) == 0) {
+         } else if (strcasecmp(ua->argk[i], N_("job")) == 0 ||
+                    strcasecmp(ua->argk[i], N_("jobname")) == 0) {
             if (!ua->argv[i]) {
                bsendmsg(ua, _("Expecting job=xxx, got: %s.\n"), ua->argk[i]);
                return NULL;
             }
             if (!(jcr=get_jcr_by_partial_name(ua->argv[i]))) {
+               bsendmsg(ua, _("Job \"%s\" is not running.\n"), ua->argv[i]);
+               return NULL;
+            }
+            store = jcr->store;
+            free_jcr(jcr);
+            break;
+         } else if (strcasecmp(ua->argk[i], N_("jobuid")) == 0) {
+            if (!ua->argv[i]) {
+               bsendmsg(ua, _("Expecting jobuid=xxx, got: %s.\n"), ua->argk[i]);
+               return NULL;
+            }
+            if (!(jcr=get_jcr_by_full_name(ua->argv[i]))) {
                bsendmsg(ua, _("Job \"%s\" is not running.\n"), ua->argv[i]);
                return NULL;
             }

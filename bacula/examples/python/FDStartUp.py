@@ -6,7 +6,7 @@ import sys, bacula
 
 # This is the list of Bacula daemon events that you
 #  can receive.
-class BaculaEvents:
+class BaculaEvents(object):
   def __init__(self):
      # Called here when a new Bacula Events class is
      #  is created. Normally not used 
@@ -44,7 +44,7 @@ bacula.set_events(BaculaEvents()) # register daemon events desired
 """
   There are the Job events that you can receive.
 """
-class JobEvents:
+class JobEvents(object):
   def __init__(self):
      # Called here when you instantiate the Job. Not
      # normally used
