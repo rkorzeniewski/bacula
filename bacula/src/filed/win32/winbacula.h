@@ -56,7 +56,7 @@ extern HINSTANCE        hAppInstance;
 extern const char       *szAppName;
 extern DWORD            mainthreadId;
 
-// Main UPS server routine
+// Main Bacula server routine
 extern int BaculaAppMain();
 
 extern void LogErrorMsg(char *msg);

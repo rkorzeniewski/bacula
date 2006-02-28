@@ -143,6 +143,35 @@ BOOL VSSClient::GetShadowPath(const char *szFilePath, char *szShadowPath, int nB
    return FALSE;   
 }
 
+BOOL VSSClient::GetShadowPathW(const WCHAR *szFilePath, WCHAR *szShadowPath, int nBuflen)
+{
+   if (!m_bBackupIsInitialized)
+      return FALSE;
+
+   /* check for valid pathname */
+   BOOL bIsValidName;
+   
+   bIsValidName = wcslen(szFilePath) > 3;
+   if (bIsValidName)
+      bIsValidName &= iswalpha (szFilePath[0]) &&
+                      szFilePath[1]==':' && 
+                      szFilePath[2] == '\\';
+
+   if (bIsValidName) {
+      int nDriveIndex = towupper(szFilePath[0])-'A';
+      if (m_szShadowCopyName[nDriveIndex][0] != 0) {
+         wcsncpy(szShadowPath, CA2W(m_szShadowCopyName[nDriveIndex]), nBuflen);
+         nBuflen -= (int)strlen(m_szShadowCopyName[nDriveIndex]);
+         wcsncat(szShadowPath, szFilePath+2, nBuflen);
+         return TRUE;
+      }
+   }
+   
+   wcsncpy(szShadowPath,  szFilePath, nBuflen);
+   errno = EINVAL;
+   return FALSE;   
+}
+
 
 const size_t VSSClient::GetWriterCount()
 {

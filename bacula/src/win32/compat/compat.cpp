@@ -34,6 +34,7 @@
 
 
 #define USE_WIN32_COMPAT_IO 1
+#define USE_WIN32_32KPATHCONVERSION 1
 
 extern void d_msg(const char *file, int line, int level, const char *fmt,...);
 extern DWORD   g_platform_id;
@@ -89,6 +90,188 @@ void conv_unix_to_win32_path(const char *name, char *win32_name, DWORD dwSize)
        free_pool_memory(pszBuf);
     }
 #endif
+}
+
+POOLMEM* 
+make_wchar_win32_path(POOLMEM* pszUCSPath, BOOL* pBIsRawPath /*= NULL*/)
+{
+   /* created 02/27/2006 Thorsten Engel
+      
+      This function expects an UCS-encoded standard WCHAR in pszUCSPath and
+      will complete the input path to an absolue path of the form \\?\c:\path\file
+
+      With this trick, it is possible to have 32K characters long paths.
+
+      Optionally one can use pBIsRawPath to determine id pszUCSPath contains a path
+      to a raw windows partition */
+
+   if (pBIsRawPath)
+      *pBIsRawPath = FALSE;
+
+   if (!p_GetCurrentDirectoryW)
+      return pszUCSPath;
+   
+   WCHAR* name = (WCHAR*) pszUCSPath;
+
+   /* if it has already the desired form, exit without changes */
+   if (wcslen(name) > 3 && wcsncmp (name, L"\\\\?\\", 4) == 0)
+      return pszUCSPath;
+
+   POOLMEM* pwszBuf = get_pool_memory (PM_FNAME);
+   POOLMEM* pwszCurDirBuf = get_pool_memory (PM_FNAME);
+   DWORD dwCurDirPathSize = 0;
+
+   /* get buffer with enough size (name+max 6. wchars+1 null terminator */
+   DWORD dwBufCharsNeeded = (wcslen(name)+7);
+   pwszBuf = check_pool_memory_size(pwszBuf, dwBufCharsNeeded*sizeof(WCHAR));
+      
+   /* add \\?\ to support 32K long filepaths 
+      it is important to make absolute paths, so we add drive and
+      current path if necessary */
+
+   BOOL bAddDrive = TRUE;
+   BOOL bAddCurrentPath = TRUE;
+   BOOL bAddPrefix = TRUE;
+
+   /* does path begin with drive? if yes, it is absolute */
+   if (wcslen(name) > 3 && (iswalpha (*name) && *(name+1) == ':'
+       && (*(name+2) == '\\' || *(name+2) == '/'))) {
+      bAddDrive = FALSE;
+      bAddCurrentPath = FALSE;
+   }
+
+   /* is path absolute? */
+   if (*name == '/' || *name == '\\')
+      bAddCurrentPath = FALSE; 
+
+   /* is path relative to itself?, if yes, skip ./ */
+   if (wcslen(name) > 2 && ((wcsncmp (name, L"./", 2) == 0) || (wcsncmp (name, L".\\", 2) == 0))) {
+      name+=2;
+   }
+
+   /* is path of form '//./'? */   
+   if (wcslen(name) > 3 && ((wcsncmp (name, L"//./", 4) == 0) || (wcsncmp (name, L"\\\\.\\", 4) == 0))) {
+      bAddDrive = FALSE;
+      bAddCurrentPath = FALSE;
+      bAddPrefix = FALSE;
+      if (pBIsRawPath)
+         *pBIsRawPath = TRUE;
+   }
+
+   int nParseOffset = 0;
+   
+   /* add 4 bytes header */
+   if (bAddPrefix) {
+      nParseOffset = 4;
+      wcscpy ((WCHAR*) pwszBuf,L"\\\\?\\");
+   }
+
+   /* get current path if needed */
+   if (bAddDrive || bAddCurrentPath) {
+      dwCurDirPathSize = p_GetCurrentDirectoryW(0, NULL);
+      if (dwCurDirPathSize > 0) {
+         /* get directory into own buffer as it may either return c:\... or \\?\C:\.... */         
+         pwszCurDirBuf = check_pool_memory_size(pwszCurDirBuf, (dwCurDirPathSize+1)*sizeof(WCHAR));
+         p_GetCurrentDirectoryW(dwCurDirPathSize,(WCHAR*)pwszCurDirBuf);
+      }
+      else
+      {
+         /* we have no info for doing so */
+         bAddDrive = FALSE;
+         bAddCurrentPath = FALSE;
+      }
+   }
+      
+
+   /* add drive if needed */
+   if (bAddDrive && !bAddCurrentPath) {
+      WCHAR szDrive[3];
+
+      if (dwCurDirPathSize > 3 && wcsncmp ((LPCWSTR)pwszCurDirBuf, L"\\\\?\\", 4) == 0)
+         /* copy drive character */
+         wcsncpy ((WCHAR*) szDrive, (LPCWSTR)pwszCurDirBuf+4,2);          
+      else
+         /* copy drive character */
+         wcsncpy ((WCHAR*) szDrive, (LPCWSTR)pwszCurDirBuf,2);  
+
+      szDrive[2] = 0;
+            
+      wcscat ((WCHAR*) pwszBuf, szDrive);  
+      nParseOffset +=2;
+   }
+
+   /* add path if needed */
+   if (bAddCurrentPath) {
+      /* the 1 add. character is for the eventually added backslash */
+      dwBufCharsNeeded += dwCurDirPathSize+1; 
+      pwszBuf = check_pool_memory_size(pwszBuf, dwBufCharsNeeded*sizeof(WCHAR));
+      /* get directory into own buffer as it may either return c:\... or \\?\C:\.... */
+      
+      if (dwCurDirPathSize > 3 && wcsncmp ((LPCWSTR)pwszCurDirBuf, L"\\\\?\\", 4) == 0)
+         /* copy complete string */
+         wcscpy ((WCHAR*) pwszBuf, (LPCWSTR)pwszCurDirBuf);          
+      else
+         /* append path  */
+         wcscat ((WCHAR*) pwszBuf, (LPCWSTR)pwszCurDirBuf);       
+
+      nParseOffset = wcslen ((LPCWSTR) pwszBuf);
+
+      /* check if path ends with backslash, if not, add one */
+      if (*((WCHAR*) pwszBuf+nParseOffset-1) != L'\\') {
+         wcscat ((WCHAR*) pwszBuf, L"\\");
+         nParseOffset++;
+      }      
+   }
+
+
+   WCHAR* win32_name = (WCHAR*) pwszBuf+nParseOffset;
+
+   while (*name) {
+      /* Check for Unix separator and convert to Win32 */
+      if (*name == '/') {
+         *win32_name++ = '\\';     /* convert char */
+         /* If Win32 separated that is "quoted", remove quote */
+/* HELPME (Thorsten Engel): I don't understand the following part
+   and it removes a backslash from e.g. "\\.\c:" which I need for 
+   RAW device access. So I took it out */
+/*      } else if (*name == '\\' && name[1] == '\\') {
+         *win32_name++ = '\\';
+         name++;  */                 /* skip first \ */ 
+      } else {
+         *win32_name++ = *name;    /* copy character */
+      }
+      name++;
+   }
+   
+   /* null terminate string */
+   *win32_name = 0;
+
+#ifdef WIN32_VSS
+   /* here we convert to VSS specific file name which
+   can get longer because VSS will make something like
+   \\\\?\\GLOBALROOT\\Device\\HarddiskVolumeShadowCopy1\\bacula\\uninstall.exe
+   from c:\bacula\uninstall.exe
+   */ 
+   if (g_pVSSClient && enable_vss && g_pVSSClient->IsInitialized()) {
+      /* is output buffer large enough? */
+      pwszBuf = check_pool_memory_size(pwszBuf, (dwBufCharsNeeded+MAX_PATH)*sizeof(WCHAR));
+      /* create temp. buffer */
+      POOLMEM* pszBuf = get_pool_memory (PM_FNAME);
+      pszBuf = check_pool_memory_size(pszBuf, (dwBufCharsNeeded+MAX_PATH)*sizeof(WCHAR));
+      if (bAddPrefix)
+         nParseOffset = 4;
+      else
+         nParseOffset = 0; 
+      wcsncpy  ((WCHAR*) pszBuf, (WCHAR*) pwszBuf+nParseOffset, wcslen((WCHAR*)pwszBuf)+1-nParseOffset);
+      g_pVSSClient->GetShadowPathW((WCHAR*)pszBuf,(WCHAR*)pwszBuf,dwBufCharsNeeded+MAX_PATH);
+      free_pool_memory(pszBuf);
+   }   
+#endif
+
+   free_pool_memory (pszUCSPath);
+   free_pool_memory (pwszCurDirBuf);
+
+   return pwszBuf;
 }
 
 int
@@ -149,6 +332,23 @@ wchar_win32_path(const char *name, WCHAR *win32_name)
     } else {
         *win32_name = 0;
     }
+}
+
+int 
+make_win32_path_UTF8_2_wchar(POOLMEM **pszUCS, const char *pszUTF, BOOL* pBIsRawPath /*= NULL*/)
+{
+   /* helper to convert from utf-8 to UCS-2 and to complete a path for 32K path syntax */
+   int nRet = UTF8_2_wchar(pszUCS, pszUTF);
+
+#ifdef USE_WIN32_32KPATHCONVERSION
+   /* add \\?\ to support 32K long filepaths */
+   *pszUCS = make_wchar_win32_path(*pszUCS, pBIsRawPath);
+#else
+   if (pBIsRawPath)
+      *pBIsRawPath = FALSE;
+#endif
+
+   return nRet;
 }
 
 #ifndef HAVE_VC8
@@ -272,7 +472,7 @@ statDir(const char *file, struct stat *sb)
    // use unicode or ascii
    if (p_FindFirstFileW) {
       POOLMEM* pwszBuf = get_pool_memory (PM_FNAME);
-      UTF8_2_wchar(&pwszBuf, file);
+      make_win32_path_UTF8_2_wchar(&pwszBuf, file);
 
       h = p_FindFirstFileW((LPCWSTR) pwszBuf, &info_w);
       free_pool_memory(pwszBuf);
@@ -339,7 +539,7 @@ stat2(const char *file, struct stat *sb)
 
     if (p_GetFileAttributesW) {
       POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
-      UTF8_2_wchar(&pwszBuf, tmpbuf);
+      make_win32_path_UTF8_2_wchar(&pwszBuf, tmpbuf);
 
       attr = p_GetFileAttributesW((LPCWSTR) pwszBuf);
       free_pool_memory(pwszBuf);
@@ -350,7 +550,7 @@ stat2(const char *file, struct stat *sb)
     if (attr == -1) {
         const char *err = errorString();
         d_msg(__FILE__, __LINE__, 99,
-              "GetFileAttrubtes(%s): %s\n", tmpbuf, err);
+              "GetFileAttributes(%s): %s\n", tmpbuf, err);
         LocalFree((void *)err);
         errno = b_errno_win32;
         return -1;
@@ -433,7 +633,7 @@ stat(const char *file, struct stat *sb)
    if (p_GetFileAttributesExW) {
       /* dynamically allocate enough space for UCS2 filename */
       POOLMEM* pwszBuf = get_pool_memory (PM_FNAME);
-      UTF8_2_wchar(&pwszBuf, file);
+      make_win32_path_UTF8_2_wchar(&pwszBuf, file);
 
       BOOL b = p_GetFileAttributesExW((LPCWSTR) pwszBuf, GetFileExInfoStandard, &data);
       free_pool_memory(pwszBuf);
@@ -679,7 +879,8 @@ opendir(const char *path)
     // convert to WCHAR
     if (p_FindFirstFileW) {
       POOLMEM* pwcBuf = get_pool_memory(PM_FNAME);;
-      UTF8_2_wchar(&pwcBuf,rval->spec);
+      make_win32_path_UTF8_2_wchar(&pwcBuf,rval->spec);
+
       rval->dirh = p_FindFirstFileW((LPCWSTR)pwcBuf, &rval->data_w);
 
       free_pool_memory(pwcBuf);
@@ -894,9 +1095,10 @@ win32_chdir(const char *dir)
 {
    if (p_SetCurrentDirectoryW) {
       POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
-      UTF8_2_wchar(&pwszBuf, dir);
+      make_win32_path_UTF8_2_wchar(&pwszBuf, dir);
 
       BOOL b=p_SetCurrentDirectoryW((LPCWSTR)pwszBuf);
+      
       free_pool_memory(pwszBuf);
 
       if (!b) {
@@ -920,7 +1122,7 @@ win32_mkdir(const char *dir)
 {
    if (p_wmkdir){
       POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
-      UTF8_2_wchar(&pwszBuf, dir);
+      make_win32_path_UTF8_2_wchar(&pwszBuf, dir);
 
       int n=p_wmkdir((LPCWSTR)pwszBuf);
       free_pool_memory(pwszBuf);
@@ -941,7 +1143,8 @@ win32_getcwd(char *buf, int maxlen)
       pwszBuf = check_pool_memory_size (pwszBuf, maxlen*sizeof(WCHAR));
 
       n = p_GetCurrentDirectoryW(maxlen, (LPWSTR) pwszBuf);
-      n = wchar_2_UTF8 (buf, (WCHAR*)pwszBuf, maxlen)-1;
+      if (n!=0)
+         n = wchar_2_UTF8 (buf, (WCHAR*)pwszBuf, maxlen)-1;
       free_pool_memory(pwszBuf);
 
    } else if (p_GetCurrentDirectoryA)
@@ -1063,7 +1266,8 @@ win32_unlink(const char *filename)
    int nRetCode;
    if (p_wunlink) {
       POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
-      UTF8_2_wchar(&pwszBuf, filename);
+      make_win32_path_UTF8_2_wchar(&pwszBuf, filename);
+
       nRetCode = _wunlink((LPCWSTR) pwszBuf);
 
       /* special case if file is readonly,
@@ -1527,7 +1731,7 @@ utime(const char *fname, struct utimbuf *times)
 
     if (p_CreateFileW) {
       POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
-      UTF8_2_wchar(&pwszBuf, tmpbuf);
+      make_win32_path_UTF8_2_wchar(&pwszBuf, tmpbuf);
 
       h = p_CreateFileW((LPCWSTR) pwszBuf,
                         FILE_WRITE_ATTRIBUTES,
@@ -1572,7 +1776,7 @@ open(const char *file, int flags, int mode)
 {
    if (p_wopen) {
       POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
-      UTF8_2_wchar(&pwszBuf, file);
+      make_win32_path_UTF8_2_wchar(&pwszBuf, file);
 
       int nRet = p_wopen((LPCWSTR) pwszBuf, flags|_O_BINARY, mode);
       free_pool_memory(pwszBuf);
@@ -1653,7 +1857,7 @@ open(const char *file, int flags, int mode)
 
     if (p_CreateFileW) {
        POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
-       UTF8_2_wchar(pwszBuf, file);
+       make_win32_path_UTF8_2_wchar(pwszBuf, file);
 
        foo = p_CreateFileW((LPCWSTR) pwszBuf, access, shareMode, NULL, create, msflags, NULL);
        free_pool_memory(pwszBuf);
