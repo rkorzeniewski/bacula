@@ -512,12 +512,12 @@ int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
 
    attribsEx[0] = 0;                  /* no extended attributes */
 
+   unix_name_to_win32(&ff_pkt->sys_fname, ff_pkt->fname);
+
    // try unicode version
    if (p_GetFileAttributesExW)  {
-      unix_name_to_win32(&ff_pkt->sys_fname, ff_pkt->fname);
-
       POOLMEM* pwszBuf = get_pool_memory (PM_FNAME);   
-      UTF8_2_wchar(&pwszBuf, ff_pkt->sys_fname);
+      make_win32_path_UTF8_2_wchar(&pwszBuf, ff_pkt->fname);
 
       BOOL b=p_GetFileAttributesExW((LPCWSTR) pwszBuf, GetFileExInfoStandard, (LPVOID)&atts);
       free_pool_memory(pwszBuf);
@@ -529,9 +529,7 @@ int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
    }
    else {
       if (!p_GetFileAttributesExA)
-         return STREAM_UNIX_ATTRIBUTES;
-
-      unix_name_to_win32(&ff_pkt->sys_fname, ff_pkt->fname);
+         return STREAM_UNIX_ATTRIBUTES;      
 
       if (!p_GetFileAttributesExA(ff_pkt->sys_fname, GetFileExInfoStandard,
                               (LPVOID)&atts)) {
@@ -632,8 +630,6 @@ static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    win32_ofile = get_pool_memory(PM_FNAME);
    unix_name_to_win32(&win32_ofile, attr->ofname);
 
-
-
    /* At this point, we have reconstructed the WIN32_FILE_ATTRIBUTE_DATA pkt */
 
    if (!is_bopen(ofd)) {
@@ -657,7 +653,7 @@ static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    {
       if (p_SetFileAttributesW) {
          POOLMEM* pwszBuf = get_pool_memory (PM_FNAME);   
-         UTF8_2_wchar(&pwszBuf, win32_ofile);
+         make_win32_path_UTF8_2_wchar(&pwszBuf, attr->ofname);
 
          BOOL b=p_SetFileAttributesW((LPCWSTR)pwszBuf, atts.dwFileAttributes & SET_ATTRS);
          free_pool_memory(pwszBuf);

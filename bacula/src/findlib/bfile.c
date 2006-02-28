@@ -386,7 +386,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
       return 0;
 
    if (p_CreateFileW && p_MultiByteToWideChar)               
-      UTF8_2_wchar(&win32_fname_wchar, win32_fname);
+      make_win32_path_UTF8_2_wchar(&win32_fname_wchar, fname);
 
    if (flags & O_CREAT) {             /* Create */
       if (bfd->use_backup_api) {
