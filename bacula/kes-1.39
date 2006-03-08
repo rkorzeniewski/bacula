@@ -3,6 +3,7 @@
 
 General:
 08Mar06
+- Remove old code from findlib/create_file.c
 - Rename mac.c migrate.c
 - Add user friendly display of VolBytes in job report.
 - Rename target... to previous... to make it a bit easier to
