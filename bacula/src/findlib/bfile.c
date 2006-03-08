@@ -9,7 +9,7 @@
  *
  */
 /*
-   Copyright (C) 2003-2005 Kern Sibbald
+   Copyright (C) 2003-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -761,6 +761,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
    }
 
    /* Normal file open */
+   Dmsg1(400, "open file %s\n", fname);
    bfd->fid = open(fname, flags, mode);
    bfd->berrno = errno;
    Dmsg1(400, "Open file %d\n", bfd->fid);

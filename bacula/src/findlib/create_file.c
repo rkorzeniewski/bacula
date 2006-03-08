@@ -7,7 +7,7 @@
  *
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -72,7 +72,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
    }
 
    new_mode = attr->statp.st_mode;
-   Dmsg2(300, "newmode=%x file=%s\n", new_mode, attr->ofname);
+   Dmsg3(200, "type=%d newmode=%x file=%s\n", attr->type, new_mode, attr->ofname);
    parent_mode = S_IWUSR | S_IXUSR | new_mode;
    gid = attr->statp.st_gid;
    uid = attr->statp.st_uid;
@@ -104,11 +104,11 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
       }
    }
    switch (attr->type) {
+   case FT_RAW:                       /* raw device to be written */
+   case FT_FIFO:                      /* FIFO to be written to */
    case FT_LNKSAVED:                  /* Hard linked, file already saved */
    case FT_LNK:
-   case FT_RAW:
-   case FT_FIFO:
-   case FT_SPEC:
+   case FT_SPEC:                      /* fifo, ... to be backed up */
    case FT_REGE:                      /* empty file */
    case FT_REG:                       /* regular file */
       /* 
@@ -117,7 +117,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
        *  we may blow away a FIFO that is being used to read the
        *  restore data, or we may blow away a partition definition.
        */
-      if (exists && attr->type != FT_RAW) {
+      if (exists && attr->type != FT_RAW && attr->type != FT_FIFO) {
          /* Get rid of old copy */
          if (unlink(attr->ofname) == -1) {
             berrno be;
@@ -284,6 +284,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
             mode =  O_WRONLY | O_BINARY;
             /* Timeout open() in 60 seconds */
             if (attr->type == FT_FIFO) {
+               Dmsg0(200, "Set FIFO timer\n");
                tid = start_thread_timer(pthread_self(), 60);
             } else {
                tid = NULL;
@@ -291,6 +292,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
             if (is_bopen(bfd)) {
                Qmsg1(jcr, M_ERROR, 0, _("bpkt already open fid=%d\n"), bfd->fid);
             }
+            Dmsg2(200, "open %s mode=0x%x\n", attr->ofname, mode);
             if ((bopen(bfd, attr->ofname, mode, 0)) < 0) {
                berrno be;
                be.set_errno(bfd->berrno);

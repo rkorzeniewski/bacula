@@ -61,6 +61,7 @@ void store_level(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_replace(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_acl(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_device(LEX *lc, RES_ITEM *item, int index, int pass);
+static void store_migtype(LEX *lc, RES_ITEM *item, int index, int pass);
 
 
 /* We build the current resource here as we are
@@ -237,8 +238,9 @@ RES_ITEM job_items[] = {
    {"fileset",   store_res,     ITEM(res_job.fileset),  R_FILESET, ITEM_REQUIRED, 0},
    {"schedule",  store_res,     ITEM(res_job.schedule), R_SCHEDULE, 0, 0},
    {"verifyjob", store_res,     ITEM(res_job.verify_job), R_JOB, 0, 0},
-   {"migrationjob", store_res,  ITEM(res_job.migration_job), R_JOB, 0, 0},
+   {"jobtoverify", store_res,   ITEM(res_job.verify_job), R_JOB, 0, 0},
    {"jobdefs",   store_res,     ITEM(res_job.jobdefs),    R_JOBDEFS, 0, 0},
+   {"nextpool",  store_res,     ITEM(res_job.next_pool),  R_POOL, 0, 0},
    {"run",       store_alist_str, ITEM(res_job.run_cmds), 0, 0, 0},
    /* Root of where to restore files */
    {"where",    store_dir,      ITEM(res_job.RestoreWhere), 0, 0, 0},
@@ -275,6 +277,8 @@ RES_ITEM job_items[] = {
    {"rescheduletimes", store_pint, ITEM(res_job.RescheduleTimes), 0, 0, 0},
    {"priority",   store_pint, ITEM(res_job.Priority), 0, ITEM_DEFAULT, 10},
    {"writepartafterjob",   store_bool, ITEM(res_job.write_part_after_job), 0, ITEM_DEFAULT, false},
+   {"selectionpattern", store_str, ITEM(res_job.selection_pattern), 0, 0, 0},
+   {"selectiontype", store_migtype, ITEM(res_job.selection_type), 0, 0, 0},
    {NULL, NULL, NULL, 0, 0, 0}
 };
 
@@ -412,10 +416,27 @@ struct s_jt jobtypes[] = {
    {"admin",         JT_ADMIN},
    {"verify",        JT_VERIFY},
    {"restore",       JT_RESTORE},
-   {"copy",          JT_COPY},
    {"migrate",       JT_MIGRATE},
    {NULL,            0}
 };
+
+
+/* Keywords (RHS) permitted in Selection type records
+ *
+ *   type_name       job_type
+ */
+struct s_jt migtypes[] = {
+   {"smallestvolume",   MT_SMALLEST_VOL},
+   {"oldestvolume",     MT_OLDEST_VOL},
+   {"pooloccupancy",    MT_POOL_OCCUPANCY},
+   {"pooltime",         MT_POOL_TIME},
+   {"client",           MT_CLIENT},
+   {"volume",           MT_VOLUME},
+   {"job",              MT_JOB},
+   {"sqlquery",         MT_SQLQUERY},
+   {NULL,            0}
+};
+
 
 
 /* Options permitted in Restore replace= */
@@ -547,6 +568,9 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
          res->res_job.RescheduleOnError, res->res_job.RescheduleTimes,
          edit_uint64_with_commas(res->res_job.RescheduleInterval, ed1),
          res->res_job.spool_data, res->res_job.write_part_after_job);
+      if (res->res_job.JobType == JT_MIGRATE) {
+         sendit(sock, _("     SelectionType=%d\n"), res->res_job.selection_type);
+      }
       if (res->res_job.client) {
          sendit(sock, _("  --> "));
          dump_resource(-R_CLIENT, (RES *)res->res_job.client, sendit, sock);
@@ -609,6 +633,9 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
          foreach_alist(runcmd, res->res_job.run_cmds) {
             sendit(sock, _("  --> Run=%s\n"), runcmd);
          }
+      }
+      if (res->res_job.selection_pattern) {
+         sendit(sock, _("  --> SelectionPattern=%s\n"), NPRT(res->res_job.selection_pattern));
       }
       if (res->res_job.messages) {
          sendit(sock, _("  --> "));
@@ -1084,6 +1111,9 @@ void free_resource(RES *sres, int type)
       if (res->res_job.ClientRunAfterJob) {
          free(res->res_job.ClientRunAfterJob);
       }
+      if (res->res_job.selection_pattern) {
+         free(res->res_job.selection_pattern);
+      }
       if (res->res_job.run_cmds) {
          delete res->res_job.run_cmds;
       }
@@ -1393,6 +1423,31 @@ static void store_device(LEX *lc, RES_ITEM *item, int index, int pass)
       store_alist_res(lc, item, index, pass);
    }
 }
+
+/*
+ * Store JobType (backup, verify, restore)
+ *
+ */
+static void store_migtype(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+   int token, i;
+
+   token = lex_get_token(lc, T_NAME);
+   /* Store the type both pass 1 and pass 2 */
+   for (i=0; migtypes[i].type_name; i++) {
+      if (strcasecmp(lc->str, migtypes[i].type_name) == 0) {
+         *(int *)(item->value) = migtypes[i].job_type;
+         i = 0;
+         break;
+      }
+   }
+   if (i != 0) {
+      scan_err1(lc, _("Expected a Migration Job Type keyword, got: %s"), lc->str);
+   }
+   scan_to_eol(lc);
+   set_bit(index, res_all.hdr.item_present);
+}
+
 
 
 /*

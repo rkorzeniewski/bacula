@@ -103,10 +103,10 @@ extern bool setup_job(JCR *jcr);
 extern void create_clones(JCR *jcr);
 extern bool create_restore_bootstrap_file(JCR *jcr);
 
-/* mac.c */
-extern bool do_mac(JCR *jcr);
-extern bool do_mac_init(JCR *jcr);
-extern void mac_cleanup(JCR *jcr, int TermCode);
+/* migration.c */
+extern bool do_migration(JCR *jcr);
+extern bool do_migration_init(JCR *jcr);
+extern void migration_cleanup(JCR *jcr, int TermCode);
 
 
 /* mountreq.c */

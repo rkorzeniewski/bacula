@@ -298,7 +298,7 @@ public:
    utime_t MaxStartDelay;             /* max start delay in seconds */
    utime_t RescheduleInterval;        /* Reschedule interval */
    utime_t JobRetention;              /* job retention period in seconds */
-   uint32_t MaxConcurrentJobs;        /* Maximume concurrent jobs */
+   uint32_t MaxConcurrentJobs;        /* Maximum concurrent jobs */
    int RescheduleTimes;               /* Number of times to reschedule job */
    bool RescheduleOnError;            /* Set to reschedule on error */
    bool PrefixLinks;                  /* prefix soft links with Where path */
@@ -321,9 +321,11 @@ public:
    POOL      *full_pool;              /* Pool for Full backups */
    POOL      *inc_pool;               /* Pool for Incremental backups */
    POOL      *dif_pool;               /* Pool for Differental backups */
+   POOL      *next_pool;              /* Next Pool for Migration */
+   char      *selection_pattern;
+   int        selection_type;
    union {
       JOB       *verify_job;          /* Job name to verify */
-      JOB       *migration_job;       /* Job name to migrate */
    };
    JOB       *jobdefs;                /* Job defaults */
    alist     *run_cmds;               /* Run commands */

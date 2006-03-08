@@ -7,7 +7,7 @@
  *
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -870,32 +870,32 @@ static void set_options(findFOPTS *fo, const char *opts)
          fo->flags |= FO_READFIFO;
          break;
       case 'S':
-	 switch(*(p + 1)) {
+         switch(*(p + 1)) {
          case ' ':
             /* Old director did not specify SHA variant */
             fo->flags |= FO_SHA1;
             break;
-	 case '1':
-	    fo->flags |= FO_SHA1;
+         case '1':
+            fo->flags |= FO_SHA1;
             p++;
-	    break;
+            break;
 #ifdef HAVE_SHA2
-	 case '2':
-	    fo->flags |= FO_SHA256;
+         case '2':
+            fo->flags |= FO_SHA256;
             p++;
-	    break;
-	 case '3':
-	    fo->flags |= FO_SHA512;
+            break;
+         case '3':
+            fo->flags |= FO_SHA512;
             p++;
-      	    break;
+            break;
 #endif
-	 default:
-	    /* Automatically downgrade to SHA-1 if an unsupported
-	     * SHA variant is specified */
-	    fo->flags |= FO_SHA1;
+         default:
+            /* Automatically downgrade to SHA-1 if an unsupported
+             * SHA variant is specified */
+            fo->flags |= FO_SHA1;
             p++;
-	    break;
-	 }
+            break;
+         }
          break;
       case 's':
          fo->flags |= FO_SPARSE;

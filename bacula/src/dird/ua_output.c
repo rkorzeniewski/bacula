@@ -202,7 +202,7 @@ bail_out:
  *
  *  list jobs           - lists all jobs run
  *  list jobid=nnn      - list job data for jobid
- *  list jobuid=uname   - list job data for unique jobid
+ *  list ujobid=uname   - list job data for unique jobid
  *  list job=name       - list all jobs with "name"   
  *  list jobname=name   - same as above 
  *  list jobmedia jobid=<nn>
@@ -285,8 +285,8 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
          jr.JobId = 0;
          db_list_job_records(ua->jcr, ua->db, &jr, prtit, ua, llist);
 
-      /* List JOBUID=xxx */
-      } else if (strcasecmp(ua->argk[i], N_("jobuid")) == 0 && ua->argv[i]) {
+      /* List UJOBID=xxx */
+      } else if (strcasecmp(ua->argk[i], N_("ujobid")) == 0 && ua->argv[i]) {
          bstrncpy(jr.Job, ua->argv[i], MAX_NAME_LENGTH);
          jr.JobId = 0;
          db_list_job_records(ua->jcr, ua->db, &jr, prtit, ua, llist);
@@ -295,7 +295,7 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
       } else if (strcasecmp(ua->argk[i], N_("files")) == 0) {
 
          for (j=i+1; j<ua->argc; j++) {
-            if (strcasecmp(ua->argk[j], N_("jobuid")) == 0 && ua->argv[j]) {
+            if (strcasecmp(ua->argk[j], N_("ujobid")) == 0 && ua->argv[j]) {
                bstrncpy(jr.Job, ua->argv[j], MAX_NAME_LENGTH);
                jr.JobId = 0;
                db_get_job_record(ua->jcr, ua->db, &jr);
@@ -314,7 +314,7 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
       } else if (strcasecmp(ua->argk[i], N_("jobmedia")) == 0) {
          int done = FALSE;
          for (j=i+1; j<ua->argc; j++) {
-            if (strcasecmp(ua->argk[j], N_("jobuid")) == 0 && ua->argv[j]) {
+            if (strcasecmp(ua->argk[j], N_("ujobid")) == 0 && ua->argv[j]) {
                bstrncpy(jr.Job, ua->argv[j], MAX_NAME_LENGTH);
                jr.JobId = 0;
                db_get_job_record(ua->jcr, ua->db, &jr);
@@ -352,7 +352,7 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
                  strcasecmp(ua->argk[i], N_("volumes")) == 0) {
          bool done = false;
          for (j=i+1; j<ua->argc; j++) {
-            if (strcasecmp(ua->argk[j], N_("jobuid")) == 0 && ua->argv[j]) {
+            if (strcasecmp(ua->argk[j], N_("ujobid")) == 0 && ua->argv[j]) {
                bstrncpy(jr.Job, ua->argv[j], MAX_NAME_LENGTH);
                jr.JobId = 0;
                db_get_job_record(ua->jcr, ua->db, &jr);

@@ -13,7 +13,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2002-2005 Kern Sibbald
+   Copyright (C) 2002-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -1153,7 +1153,14 @@ bail_out:
 }
 
 
-/* Return next JobId from comma separated list */
+/* 
+ * Return next JobId from comma separated list   
+ *
+ * Returns:
+ *   1 if next JobId returned
+ *   0 if no more JobIds are in list
+ *  -1 there is an error
+ */
 int get_next_jobid_from_list(char **p, JobId_t *JobId)
 {
    char jobid[30];

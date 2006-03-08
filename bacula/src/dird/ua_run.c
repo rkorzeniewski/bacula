@@ -7,7 +7,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2001-2005 Kern Sibbald
+   Copyright (C) 2001-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -47,7 +47,7 @@ int run_cmd(UAContext *ua, const char *cmd)
    char *where, *fileset_name, *client_name, *bootstrap;
    const char *replace;
    char *when, *verify_job_name, *catalog_name;
-   char *migration_job_name;
+   char *previous_job_name;
    char *since = NULL;
    char *verify_list;
    bool cloned = false;
@@ -56,7 +56,7 @@ int run_cmd(UAContext *ua, const char *cmd)
    bool kw_ok;
    JOB *job = NULL;
    JOB *verify_job = NULL;
-   JOB *migration_job = NULL;
+   JOB *previous_job = NULL;
    STORE *store = NULL;
    CLIENT *client = NULL;
    FILESET *fileset = NULL;
@@ -104,7 +104,7 @@ int run_cmd(UAContext *ua, const char *cmd)
    bootstrap = NULL;
    replace = NULL;
    verify_job_name = NULL;
-   migration_job_name = NULL;
+   previous_job_name = NULL;
    catalog_name = NULL;
    verify_list = NULL;
 
@@ -114,7 +114,7 @@ int run_cmd(UAContext *ua, const char *cmd)
       /* Keep looking until we find a good keyword */
       for (j=0; !kw_ok && kw[j]; j++) {
          if (strcasecmp(ua->argk[i], _(kw[j])) == 0) {
-            /* Note, yes and run have no value, so do not err */
+            /* Note, yes and run have no value, so do not fail */
             if (!ua->argv[i] && j != YES_POS /*yes*/) {
                bsendmsg(ua, _("Value missing for keyword %s\n"), ua->argk[i]);
                return 1;
@@ -259,11 +259,11 @@ int run_cmd(UAContext *ua, const char *cmd)
                kw_ok = true;
                break;
             case 21: /* Migration Job */
-               if (migration_job_name) {
+               if (previous_job_name) {
                   bsendmsg(ua, _("Migration Job specified twice.\n"));
                   return 0;
                }
-               migration_job_name = ua->argv[i];
+               previous_job_name = ua->argv[i];
                kw_ok = true;
                break;
 
@@ -414,14 +414,14 @@ int run_cmd(UAContext *ua, const char *cmd)
       verify_job = job->verify_job;
    }
 
-   if (migration_job_name) {
-      migration_job = (JOB *)GetResWithName(R_JOB, migration_job_name);
-      if (!migration_job) {
-         bsendmsg(ua, _("Migration Job \"%s\" not found.\n"), migration_job_name);
-         migration_job = select_job_resource(ua);
+   if (previous_job_name) {
+      previous_job = (JOB *)GetResWithName(R_JOB, previous_job_name);
+      if (!previous_job) {
+         bsendmsg(ua, _("Migration Job \"%s\" not found.\n"), previous_job_name);
+         previous_job = select_job_resource(ua);
       }
    } else {
-      migration_job = job->verify_job;
+      previous_job = job->verify_job;
    }
 
 
@@ -433,7 +433,7 @@ int run_cmd(UAContext *ua, const char *cmd)
    set_jcr_defaults(jcr, job);
 
    jcr->verify_job = verify_job;
-   jcr->migration_job = migration_job;
+   jcr->previous_job = previous_job;
    set_storage(jcr, store);
    jcr->client = client;
    jcr->fileset = fileset;
@@ -513,6 +513,7 @@ try_again:
       }
    }
    if (jid) {
+      /* Note, this is also MigrateJobId */
       jcr->RestoreJobId = str_to_int64(jid);
    }
 
@@ -673,7 +674,7 @@ try_again:
                      "FileSet:       %s\n"
                      "Client:        %s\n"
                      "Storage:       %s\n"
-                     "Migration Job: %s\n"
+                     "JobId:         %s\n"
                      "When:          %s\n"
                      "Catalog:       %s\n"
                      "Priority:      %d\n"),
@@ -684,7 +685,7 @@ try_again:
            jcr->fileset->hdr.name,
            jcr->client->hdr.name,
            jcr->store->hdr.name,
-           jcr->migration_job->hdr.name,
+           jcr->MigrateJobId==0?"*None*":edit_uint64(jcr->MigrateJobId, ec1),
            bstrutime(dt, sizeof(dt), jcr->sched_time),
            jcr->catalog->hdr.name,
            jcr->JobPriority);

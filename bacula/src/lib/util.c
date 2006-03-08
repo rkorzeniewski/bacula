@@ -510,7 +510,7 @@ void make_session_key(char *key, char *seed, int mode)
  *  %d = Director's name
  *  %e = Job Exit code
  *  %i = JobId
- *  %j = Unique Job name
+ *  %j = Unique Job id
  *  %l = job level
  *  %n = Unadorned Job name
  *  %s = Since time

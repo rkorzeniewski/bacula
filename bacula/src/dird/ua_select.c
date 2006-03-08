@@ -626,7 +626,7 @@ int get_job_dbr(UAContext *ua, JOB_DBR *jr)
    int i;
 
    for (i=1; i<ua->argc; i++) {
-      if (strcasecmp(ua->argk[i], N_("jobuid")) == 0 && ua->argv[i]) {
+      if (strcasecmp(ua->argk[i], N_("ujobid")) == 0 && ua->argv[i]) {
          jr->JobId = 0;
          bstrncpy(jr->Job, ua->argv[i], sizeof(jr->Job));
       } else if (strcasecmp(ua->argk[i], N_("jobid")) == 0 && ua->argv[i]) {
@@ -845,9 +845,9 @@ STORE *get_storage_resource(UAContext *ua, bool use_default)
             store = jcr->store;
             free_jcr(jcr);
             break;
-         } else if (strcasecmp(ua->argk[i], N_("jobuid")) == 0) {
+         } else if (strcasecmp(ua->argk[i], N_("ujobid")) == 0) {
             if (!ua->argv[i]) {
-               bsendmsg(ua, _("Expecting jobuid=xxx, got: %s.\n"), ua->argk[i]);
+               bsendmsg(ua, _("Expecting ujobid=xxx, got: %s.\n"), ua->argk[i]);
                return NULL;
             }
             if (!(jcr=get_jcr_by_full_name(ua->argv[i]))) {

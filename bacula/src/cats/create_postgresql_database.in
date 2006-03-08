@@ -5,8 +5,17 @@
 
 bindir=@SQL_BINDIR@
 
+# use SQL_ASCII to be able to put any filename into
+#  the database even those created with unusual character sets
+ENCODING="ENCODING 'SQL_ASCII'"
+# use UTF8 if you are using standard Unix/Linux LANG specifications
+#  that use UTF8 -- this is normally the default and *should* be
+#  your standard.  Bacula consoles work correctly *only* with UTF8.
+#ENCODING="ENCODING 'UTF8'"
+     
+
 if $bindir/psql -f - -d template1 $* <<END-OF-DATA
-CREATE DATABASE bacula;
+CREATE DATABASE bacula $ENCODING;
 END-OF-DATA
 then
    echo "Creation of bacula database succeeded."
