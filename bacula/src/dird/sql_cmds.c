@@ -7,7 +7,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2002-2005 Kern Sibbald
+   Copyright (C) 2002-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -68,7 +68,7 @@ const char *drop_deltabs[] = {
 
 /* List of SQL commands to create temp table and indicies  */
 const char *create_deltabs[] = {
-   "CREATE TABLE DelCandidates ("
+   "CREATE TEMPORARY TABLE DelCandidates ("
 #ifdef HAVE_MYSQL
       "JobId INTEGER UNSIGNED NOT NULL, "
       "PurgedFiles TINYINT, "
@@ -211,7 +211,7 @@ const char *uar_del_temp  = "DROP TABLE temp";
 const char *uar_del_temp1 = "DROP TABLE temp1";
 
 const char *uar_create_temp =
-   "CREATE TABLE temp ("
+   "CREATE TEMPORARY TABLE temp ("
 #ifdef HAVE_POSTGRESQL
    "JobId INTEGER NOT NULL,"
    "JobTDate BIGINT,"
@@ -239,7 +239,7 @@ const char *uar_create_temp =
 #endif
 
 const char *uar_create_temp1 =
-   "CREATE TABLE temp1 ("
+   "CREATE TEMPORARY TABLE temp1 ("
 #ifdef HAVE_POSTGRESQL
    "JobId INTEGER NOT NULL,"
    "JobTDate BIGINT)";

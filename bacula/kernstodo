@@ -6,7 +6,6 @@ Project                     Developer
 =======                     =========                         
 
 Document:
-- Does ClientRunAfterJob fail the job on a bad return code?
 - Document cleaning up the spool files:
   db, pid, state, bsr, mail, conmsg, spool
 - Document the multiple-drive-changer.txt script.
@@ -17,6 +16,68 @@ Document:
 Priority:
 
 For 1.39:
+- Print warning message if LANG environment variable does not specify
+  UTF-8.
+=== Migration from David ===
+What I'd like to see: 
+
+Job {
+  Name = "<poolname>-migrate"
+  Type = Migrate
+  Messages = Standard
+  Pool = Default
+  Migration Selection Type = LowestUtil | OldestVol | PoolOccupancy |
+Client | PoolResidence | Volume | JobName | SQLquery
+  Migration Selection Pattern = "regexp"
+  Next Pool = <override>
+}
+
+There should be no need for a Level (migration is always Full, since you
+don't calculate differential/incremental differences for migration),
+Storage should be determined by the volume types in the pool, and Client
+is really a selection issue.  Migration should always occur to the
+NextPool defined in the pool definition. If no nextpool is defined, the
+job should end with a reason of "no place to go". If Next Pool statement
+is present, we override the check in the pool definition and use the
+pool specified. 
+
+Here's how I'd define Migration Selection Types: 
+
+LowestUtil -- Identify the volume in the pool with the least data on it
+and empty it. No Migration Selection Pattern required. 
+
+OldestVol -- Identify the LRU volume with data written, and empty it. No
+Migration Selection Pattern required. 
+
+PoolOccupancy -- if pool occupancy exceeds <highmig>, migrate volumes
+(starting with most full volumes) until pool occupancy drops below
+<lowmig>. Pool highmig and lowmig values are in pool definition, no
+Migration Selection Pattern required.
+
+Client  -- Migrate data from selected client only. Migration Selection
+Pattern regexp provides pattern to select client names, eg ^FS00* makes
+all client names starting with FS00 eligible for migration. 
+
+PoolResidence -- Migrate data sitting in pool for longer than
+PoolResidence value in pool definition. Migration Selection Pattern
+optional; if specified, override value in pool definition (value in
+minutes). 
+
+Volume -- Migrate all data on specified volumes. Migration Selection
+Pattern regexp provides selection criteria for volumes to be migrated.
+Volumes must exist in pool to be eligible for migration. 
+
+Jobname -- Migration all jobs matching name. Migration Selection Pattern
+regexp provides pattern to select jobnames existing in pool. 
+
+SQLQuery -- Migrate all jobuids returned by the supplied SQL query.
+Migration Selection Pattern contains SQL query to execute; should return
+a list of 1 or more jobuids to migrate.
+
+[ possibly a Python event -- kes ]
+===
+- Network error on Win32 should set Win32 error code.
+- What happens when you rename a Disk Volume?
 - Job retention period in a Pool (and hence Volume).  The job would
   then be migrated.
 - Detect resource deadlock in Migrate when same job wants to read
@@ -221,6 +282,50 @@ For 1.39:
 
   - It remains to be seen how the backup performance of the DIR's will be
   affected when comparing the catalog for a large filesystem.
+
+==== 
+From David:
+How about introducing a Type = MgmtPolicy job type? That job type would
+be responsible for scanning the Bacula environment looking for specific
+conditions, and submitting the appropriate jobs for implementing said
+policy, eg: 
+
+Job {
+   Name = "Migration-Policy"
+   Type = MgmtPolicy
+   Policy Selection Job Type = Migrate
+   Scope = "<keyword> <operator> <regexp>"
+   Threshold = "<keyword> <operator> <regexp>"
+   Job Template = <template-name>
+}
+
+Where <keyword> is any legal job keyword, <operator> is a comparison
+operator (=,<,>,!=, logical operators AND/OR/NOT) and <regexp> is a
+appropriate regexp. I could see an argument for Scope and Threshold
+being SQL queries if we want to support full flexibility. The
+Migration-Policy job would then get scheduled as frequently as a site
+felt necessary (suggested default: every 15 minutes). 
+
+Example: 
+
+Job {
+   Name = "Migration-Policy"
+   Type = MgmtPolicy
+   Policy Selection Job Type = Migration
+   Scope = "Pool=*"
+   Threshold = "Migration Selection Type = LowestUtil"
+   Job Template = "MigrationTemplate"
+}
+
+would select all pools for examination and generate a job based on
+MigrationTemplate to automatically select the volume with the lowest
+usage and migrate it's contents to the nextpool defined for that pool. 
+
+This policy abstraction would be really handy for adjusting the behavior
+of Bacula according to site-selectable criteria (one thing that pops
+into mind is Amanda's ability to automatically adjust backup levels
+depending on various criteria).
+
 
 =====
 
@@ -1282,4 +1387,4 @@ Block Position: 0
 - Reserve blocks other restore jobs when first cannot connect to SD.
 - Fix Maximum Changer Wait, Maximum Open Wait, Maximum Rewind Wait to 
   accept time qualifiers.
-
+- Does ClientRunAfterJob fail the job on a bad return code?

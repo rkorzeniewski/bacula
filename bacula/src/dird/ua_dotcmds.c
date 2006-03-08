@@ -139,7 +139,9 @@ static int jobscmd(UAContext *ua, const char *cmd)
    JOB *job = NULL;
    LockRes();
    while ( (job = (JOB *)GetNextRes(R_JOB, (RES *)job)) ) {
-      bsendmsg(ua, "%s\n", job->hdr.name);
+      if (acl_access_ok(ua, Job_ACL, job->hdr.name)) {
+         bsendmsg(ua, "%s\n", job->hdr.name);
+      }
    }
    UnlockRes();
    return 1;
@@ -150,7 +152,9 @@ static int filesetscmd(UAContext *ua, const char *cmd)
    FILESET *fs = NULL;
    LockRes();
    while ( (fs = (FILESET *)GetNextRes(R_FILESET, (RES *)fs)) ) {
-      bsendmsg(ua, "%s\n", fs->hdr.name);
+      if (acl_access_ok(ua, FileSet_ACL, fs->hdr.name)) {
+         bsendmsg(ua, "%s\n", fs->hdr.name);
+      }
    }
    UnlockRes();
    return 1;
@@ -161,7 +165,9 @@ static int clientscmd(UAContext *ua, const char *cmd)
    CLIENT *client = NULL;
    LockRes();
    while ( (client = (CLIENT *)GetNextRes(R_CLIENT, (RES *)client)) ) {
-      bsendmsg(ua, "%s\n", client->hdr.name);
+      if (acl_access_ok(ua, Client_ACL, client->hdr.name)) {
+         bsendmsg(ua, "%s\n", client->hdr.name);
+      }
    }
    UnlockRes();
    return 1;
@@ -183,7 +189,9 @@ static int poolscmd(UAContext *ua, const char *cmd)
    POOL *pool = NULL;
    LockRes();
    while ( (pool = (POOL *)GetNextRes(R_POOL, (RES *)pool)) ) {
-      bsendmsg(ua, "%s\n", pool->hdr.name);
+      if (acl_access_ok(ua, Pool_ACL, pool->hdr.name)) {
+         bsendmsg(ua, "%s\n", pool->hdr.name);
+      }
    }
    UnlockRes();
    return 1;
@@ -194,7 +202,9 @@ static int storagecmd(UAContext *ua, const char *cmd)
    STORE *store = NULL;
    LockRes();
    while ( (store = (STORE *)GetNextRes(R_STORAGE, (RES *)store)) ) {
-      bsendmsg(ua, "%s\n", store->hdr.name);
+      if (acl_access_ok(ua, Storage_ACL, store->hdr.name)) {
+         bsendmsg(ua, "%s\n", store->hdr.name);
+      }
    }
    UnlockRes();
    return 1;
@@ -226,6 +236,10 @@ static int backupscmd(UAContext *ua, const char *cmd)
    if (ua->argc != 3 || strcmp(ua->argk[1], "client") != 0 || strcmp(ua->argk[2], "fileset") != 0) {
       return 1;
    }
+   if (!acl_access_ok(ua, Client_ACL, ua->argv[1]) ||
+       !acl_access_ok(ua, FileSet_ACL, ua->argv[2])) {
+      return 1;
+   }
    Mmsg(ua->cmd, client_backups, ua->argv[1], ua->argv[2]);
    if (!db_sql_query(ua->db, ua->cmd, client_backups_handler, (void *)ua)) {
       bsendmsg(ua, _("Query failed: %s. ERR=%s\n"), ua->cmd, db_strerror(ua->db));
@@ -246,8 +260,6 @@ static int levelscmd(UAContext *ua, const char *cmd)
    return 1;
 }
 
-
-
 /*
  * Return default values for a job
  */
@@ -264,6 +276,9 @@ static int defaultscmd(UAContext *ua, const char *cmd)
 
    /* Job defaults */   
    if (strcmp(ua->argk[1], "job") == 0) {
+      if (!acl_access_ok(ua, Job_ACL, ua->argv[1])) {
+         return 1;
+      }
       job = (JOB *)GetResWithName(R_JOB, ua->argv[1]);
       if (job) {
          STORE *store;
@@ -282,6 +297,9 @@ static int defaultscmd(UAContext *ua, const char *cmd)
    } 
    /* Client defaults */
    else if (strcmp(ua->argk[1], "client") == 0) {
+     if (!acl_access_ok(ua, Client_ACL, ua->argv[1])) {
+        return 1;   
+     }
      client = (CLIENT *)GetResWithName(R_CLIENT, ua->argv[1]);
      if (client) {
        bsendmsg(ua, "client=%s", client->hdr.name);
@@ -294,6 +312,9 @@ static int defaultscmd(UAContext *ua, const char *cmd)
    }
    /* Storage defaults */
    else if (strcmp(ua->argk[1], "storage") == 0) {
+     if (!acl_access_ok(ua, Storage_ACL, ua->argv[1])) {
+        return 1;
+     }
      storage = (STORE *)GetResWithName(R_STORAGE, ua->argv[1]);
      DEVICE *device;
      if (storage) {
@@ -312,6 +333,9 @@ static int defaultscmd(UAContext *ua, const char *cmd)
    }
    /* Pool defaults */
    else if (strcmp(ua->argk[1], "pool") == 0) {
+     if (!acl_access_ok(ua, Pool_ACL, ua->argv[1])) {
+        return 1;
+     }
      pool = (POOL *)GetResWithName(R_POOL, ua->argv[1]);
      if (pool) {
        bsendmsg(ua, "pool=%s", pool->hdr.name);

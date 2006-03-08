@@ -2,10 +2,34 @@
                         Kern Sibbald
 
 General:
+08Mar06
+- Rename mac.c migrate.c
+- Add user friendly display of VolBytes in job report.
+- Rename target... to previous... to make it a bit easier to
+  understand.
+- Add selection type and selection pattern to Migration (idea
+  given by David Boyes). 
 
+04Mar06
+- The po files should now be current.
+- Fix new sql_use_result() code to properly release the
+  buffers in all cases.
+- Use the keyword ujobid to mean the unique job id; job or jobname
+  to mean the Job name given on the Name directive, and jobid to
+  be the numeric (non-unique) job id.
+- Allow listing by any of the above.
+- Add the user friendly job report code for reporting job elapsed time
+  and rates with suffexes from John Kodis <kodis at comcast.net>.
+- Add Priority and JobLevel as Python settable items.
+- Use TEMPORARY table creation where the table is created by
+  Bacula.
+- Add new code submitted by Eric for waiting on specific jobid.
+- Add ACL checking for the dot commands.
+- Fix restore of writable FIFOs.
+- Fix a bug in bpipe where the string was freed too early.
 27Feb06
 - Modify the Python class examples to inherit object -- new way
-  of defining classes. Patch from Felix Schwartz.
+  of defining classes. Patch from Felix Schwarz.
 - Implement jobuid to replace old usage of job in keywords as
   suggested by Eric Bollengier.
 - Apply patch for enhancing wait from Eric Bollengier. On can now:
@@ -15,11 +39,9 @@ General:
    wait job=job-name
 - Implement write variables for Python to set Priority (anytime), and
   Job Level, only during JobInit event.
-
 26Feb06
 - Fix the block listing bug pointed out by Arno.
 - Update the po files at Eric's request.
-
 24Feb06
 - Fix Maximum Changer Wait, Maximum Open Wait, Maximum Rewind Wait to 
   accept time qualifiers.
@@ -101,7 +123,8 @@ Changes to 1.39.5
 - Move updating bootstrap code in backup.c to subroutine
   update_bootstrap_file().
 - Add new job status elapsed time and bytes written user
-  friendly job report output patch sent by a user.
+  friendly job report output patch sent by John Kodis
+  <kodis at comcast.ne>.
 - Implement a storage list in Pools.
 - Separate out setup_job() code from run_job().
 - Get migration working -- lots of changes in mac.c in both

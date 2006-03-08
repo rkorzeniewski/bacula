@@ -314,6 +314,7 @@ unsigned long mysql_real_escape_string(MYSQL *mysql, char *to, const char *from,
 int db_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handler, void *ctx)
 {
    SQL_ROW row;
+   bool send = true;
 
    db_lock(mdb);
    if (sql_query(mdb, query) != 0) {
@@ -323,11 +324,20 @@ int db_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handler
    }
    if (result_handler != NULL) {
       if ((mdb->result = sql_use_result(mdb)) != NULL) {
-         int num_fields = sql_num_fields(mdb);
+         int num_fields = 0;                     
 
+         /* We *must* fetch all rows */
          while ((row = sql_fetch_row(mdb)) != NULL) {
-            if (result_handler(ctx, num_fields, row))
-               break;
+            if (send) {
+               /* the result handler returns 1 when it has
+                *  seen all the data it wants.  However, we
+                *  loop to the end of the data.
+                */
+               num_fields++;
+               if (result_handler(ctx, num_fields, row)) {
+                  send = false;
+               }
+            }
          }
 
          sql_free_result(mdb);

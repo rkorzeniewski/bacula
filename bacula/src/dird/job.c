@@ -225,10 +225,8 @@ static void *job_thread(void *arg)
       }
       break;
    case JT_MIGRATE:
-   case JT_COPY:
-   case JT_ARCHIVE:
-      if (!do_mac_init(jcr)) {             /* migration, archive, copy */
-         mac_cleanup(jcr, JS_ErrorTerminated);
+      if (!do_migration_init(jcr)) { 
+         migration_cleanup(jcr, JS_ErrorTerminated);
       }
       break;
    default:
@@ -303,10 +301,10 @@ static void *job_thread(void *arg)
       case JT_MIGRATE:
       case JT_COPY:
       case JT_ARCHIVE:
-         if (do_mac(jcr)) {              /* migration, archive, copy */
+         if (do_migration(jcr)) {
             do_autoprune(jcr);
          } else {
-            mac_cleanup(jcr, JS_ErrorTerminated);
+            migration_cleanup(jcr, JS_ErrorTerminated);
          }
          break;
       default:
@@ -958,12 +956,12 @@ bool create_restore_bootstrap_file(JCR *jcr)
    memset(&rx, 0, sizeof(rx));
    rx.bsr = new_bsr();
    rx.JobIds = "";                       
-   rx.bsr->JobId = jcr->target_jr.JobId;
+   rx.bsr->JobId = jcr->previous_jr.JobId;
    ua = new_ua_context(jcr);
    complete_bsr(ua, rx.bsr);
    rx.bsr->fi = new_findex();
    rx.bsr->fi->findex = 1;
-   rx.bsr->fi->findex2 = jcr->target_jr.JobFiles;
+   rx.bsr->fi->findex2 = jcr->previous_jr.JobFiles;
    jcr->ExpectedFiles = write_bsr_file(ua, rx);
    if (jcr->ExpectedFiles == 0) {
       free_ua_context(ua);

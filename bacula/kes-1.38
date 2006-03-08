@@ -3,6 +3,74 @@
 
 General:
 
+Release 1.38.6 beta3 4Mar06
+04Mar06
+- The po files should now be current.
+- Fix new sql_use_result() code to properly release the
+  buffers in all cases.
+- Convert to using new Python class definitons with (object).
+- Use the keyword ujobid to mean the unique job id; job or jobname
+  to mean the Job name given on the Name directive, and jobid to
+  be the numeric (non-unique) job id.
+- Allow listing by any of the above.
+- Add the user friendly job report code for reporting job elapsed time
+  and rates with suffexes from John Kodis <kodis at comcast.net>.
+- Add Priority and JobLevel as Python settable items.
+- Use TEMPORARY table creation where the table is created by
+  Bacula.
+- Add new code submitted by Eric for waiting on specific jobid.
+- Add ACL checking for the dot commands.
+- Fix restore of writable FIFOs.
+- Fix a bug in bpipe where the string was freed too early.
+
+26Feb06
+- Fix bug reported by Arno listing blocks with bls
+- Update the po files at Eric's request.
+
+Release 1.38.6-beta2 25Feb06
+25Feb06
+- Add sql_use_result() define.
+
+Release 1.38.6 beta1 24Feb06
+24Feb06
+- Don't open default catalog if not in ACL.
+
+22Feb06
+- Add virtual disk autochanger code.
+- Add user supplied bug fix to make two autochangers work
+  correctly using StorageId with InChanger checks.
+- Correct new/old_jcr confusion in copy_storage().
+- Remove & from Job during scan in msgchan.c -- probably
+  trashed the stack.
+- When getting the next Volume if no Volume in Append mode   
+  exists and we are dealing with an Autochanger, search
+  for a Scratch Volume.  
+- Check for missing value in dot commands -- bug fix.
+- Fix bug in update barcodes command line scanning.
+- Make sure Pool Max Vols is respected.
+- Check that user supplied a value before referencing
+  it in restore -- pointed out by Karl Hakimian. 
+- Add Karl Hakimian's table insert code.
+- Don't ask user to select a specific Volume when
+  updating all volumes in a Pool.
+- Remove reservation if set for read when removing dcr.
+- Lock code that requests next appendable volume so that
+  two jobs to get the same Volume at the same time.
+- Add new Device Type = xxx code. Values are file, tape,
+  dvd, and fifo.
+- Preserve certain modes (ST_LABEL|ST_APPEND|ST_READ) across
+  a re-open to change read/write permission on a device.
+- Correct a misplaced double quote in certain autochanger  
+  scripts.
+- Make make_catalog_backup.in a bit more portable.
+- Implement Karl Hakimian's sql_use_result(), which speeds
+  up restore tree building and reduces the memory load.
+- Correct a number of minor bugs in getting a Volume from  
+  the Scratch Pool.
+- Implement additional command line options for update Volume.
+- Don't require user to enter a Volume name when updating
+  all Volumes in a pool.
+
 Release 1.38.5 released 19Jan06:
 19Jan06
 - Apply label barcodes fix supplied by Rudolf Cejka.

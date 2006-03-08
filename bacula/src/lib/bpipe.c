@@ -6,7 +6,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2002-2005 Kern Sibbald
+   Copyright (C) 2002-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -62,13 +62,13 @@ BPIPE *open_bpipe(char *prog, int wait, const char *mode)
       printf("argc=%d argv=%s:\n", i, bargv[i]);
    }
 #endif
-   free_pool_memory(tprog);
 
    /* Each pipe is one way, write one end, read the other, so we need two */
    if (mode_write && pipe(writep) == -1) {
       save_errno = errno;
       free(bpipe);
       errno = save_errno;
+      free_pool_memory(tprog);
       return NULL;
    }
    if (mode_read && pipe(readp) == -1) {
@@ -79,6 +79,7 @@ BPIPE *open_bpipe(char *prog, int wait, const char *mode)
       }
       free(bpipe);
       errno = save_errno;
+      free_pool_memory(tprog);
       return NULL;
    }
    /* Start worker process */
@@ -95,6 +96,7 @@ BPIPE *open_bpipe(char *prog, int wait, const char *mode)
       }
       free(bpipe);
       errno = save_errno;
+      free_pool_memory(tprog);
       return NULL;
 
    case 0:                            /* child */
@@ -120,11 +122,10 @@ BPIPE *open_bpipe(char *prog, int wait, const char *mode)
       }
       exit(255);                      /* unknown errno */
 
-
-
    default:                           /* parent */
       break;
    }
+   free_pool_memory(tprog);
    if (mode_read) {
       close(readp[1]);                /* close unused parent fds */
       bpipe->rfd = fdopen(readp[0], "r"); /* open file descriptor */

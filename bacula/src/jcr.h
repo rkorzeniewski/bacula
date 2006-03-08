@@ -74,6 +74,18 @@
 #define JS_WaitStartTime         't'  /* Waiting for start time */
 #define JS_WaitPriority          'p'  /* Waiting for higher priority jobs to finish */
 
+/* Migration selection types */
+enum {
+   MT_SMALLEST_VOL = 1,
+   MT_OLDEST_VOL,
+   MT_POOL_OCCUPANCY,
+   MT_POOL_TIME,
+   MT_CLIENT,
+   MT_VOLUME,
+   MT_JOB,
+   MT_SQLQUERY
+};
+
 #define job_canceled(jcr) \
   (jcr->JobStatus == JS_Canceled || \
    jcr->JobStatus == JS_ErrorTerminated || \
@@ -164,10 +176,7 @@ public:
    volatile bool sd_msg_thread_done;  /* Set when Storage message thread terms */
    BSOCK *ua;                         /* User agent */
    JOB *job;                          /* Job resource */
-   union {
-      JOB *verify_job;                /* Job resource of verify target job */
-      JOB *migration_job;             /* Job resource of migration target job */
-   };  
+   JOB *verify_job;                   /* Job resource of verify previous job */
    alist *storage;                    /* Storage possibilities */
    STORE *store;                      /* Storage daemon selected */
    CLIENT *client;                    /* Client resource */
@@ -189,11 +198,15 @@ public:
    uint32_t FileIndex;                /* Last FileIndex processed */
    POOLMEM *fname;                    /* name to put into catalog */
    JOB_DBR jr;                        /* Job DB record for current job */
-   JOB_DBR target_jr;                 /* target job */
-   JCR *target_jcr;                   /* target job control record */
+   JOB_DBR previous_jr;               /* previous job database record */
+   JOB *previous_job;                 /* Job resource of migration previous job */
+   JCR *previous_jcr;                 /* previous job control record */
    char FSCreateTime[MAX_TIME_LENGTH]; /* FileSet CreateTime as returned from DB */
    char since[MAX_TIME_LENGTH];       /* since time */
-   uint32_t RestoreJobId;             /* Id specified by UA */
+   union {
+      JobId_t RestoreJobId;           /* Id specified by UA */
+      JobId_t MigrateJobId;
+   };
    POOLMEM *client_uname;             /* client uname */
    int replace;                       /* Replace option */
    int NumVols;                       /* Number of Volume used in pool */

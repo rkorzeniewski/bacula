@@ -1,7 +1,7 @@
 /*
  *
- *   Bacula Director -- mac.c -- responsible for doing
- *     migration, archive, and copy jobs.
+ *   Bacula Director -- migrate.c -- responsible for doing
+ *     migration jobs.
  *
  *     Kern Sibbald, September MMIV
  *
@@ -34,30 +34,22 @@
 #include "ua.h"
 
 static char OKbootstrap[] = "3000 OK bootstrap\n";
+static bool get_job_to_migrate(JCR *jcr);
 
 /* 
  * Called here before the job is run to do the job
  *   specific setup.
  */
-bool do_mac_init(JCR *jcr)
+bool do_migration_init(JCR *jcr)
 {
    POOL_DBR pr;
-   char *Name;
-   const char *Type;
 
-   switch(jcr->JobType) {
-   case JT_MIGRATE:
-      Type = "Migration";
-      break;
-   case JT_ARCHIVE:
-      Type = "Archive";
-      break;
-   case JT_COPY:
-      Type = "Copy";
-      break;
-   default:
-      Type = "Unknown";
-      break;
+   if (!get_job_to_migrate(jcr)) {
+      return false;
+   }
+
+   if (jcr->previous_jr.JobId == 0) {
+      return true;                    /* no work */
    }
 
    if (!get_or_create_fileset_record(jcr)) {
@@ -65,37 +57,9 @@ bool do_mac_init(JCR *jcr)
    }
 
    /*
-    * Find JobId of last job that ran.
-    */
-   Name = jcr->job->migration_job->hdr.name;
-   Dmsg1(100, "find last jobid for: %s\n", NPRT(Name));
-   jcr->target_jr.JobType = JT_BACKUP;
-   if (!db_find_last_jobid(jcr, jcr->db, Name, &jcr->target_jr)) {
-      Jmsg(jcr, M_FATAL, 0, 
-           _("Previous job \"%s\" not found. ERR=%s\n"), Name,
-           db_strerror(jcr->db));
-      return false;
-   }
-   Dmsg1(100, "Last jobid=%d\n", jcr->target_jr.JobId);
-
-   if (!db_get_job_record(jcr, jcr->db, &jcr->target_jr)) {
-      Jmsg(jcr, M_FATAL, 0, _("Could not get job record for previous Job. ERR=%s"),
-           db_strerror(jcr->db));
-      return false;
-   }
-   if (jcr->target_jr.JobStatus != 'T') {
-      Jmsg(jcr, M_FATAL, 0, _("Last Job %d did not terminate normally. JobStatus=%c\n"),
-         jcr->target_jr.JobId, jcr->target_jr.JobStatus);
-      return false;
-   }
-   Jmsg(jcr, M_INFO, 0, _("%s using JobId=%d Job=%s\n"),
-      Type, jcr->target_jr.JobId, jcr->target_jr.Job);
-
-
-   /*
     * Get the Pool record -- first apply any level defined pools
     */
-   switch (jcr->target_jr.JobLevel) {
+   switch (jcr->previous_jr.JobLevel) {
    case L_FULL:
       if (jcr->full_pool) {
          jcr->pool = jcr->full_pool;
@@ -142,40 +106,28 @@ bool do_mac_init(JCR *jcr)
 }
 
 /*
- * Do a Migration, Archive, or Copy of a previous job
+ * Do a Migration of a previous job
  *
  *  Returns:  false on failure
  *            true  on success
  */
-bool do_mac(JCR *jcr)
+bool do_migration(JCR *jcr)
 {
    POOL_DBR pr;
    POOL *pool;
-   const char *Type;
    char ed1[100];
    BSOCK *sd;
    JOB *job, *tjob;
    JCR *tjcr;
 
-   switch(jcr->JobType) {
-   case JT_MIGRATE:
-      Type = "Migration";
-      break;
-   case JT_ARCHIVE:
-      Type = "Archive";
-      break;
-   case JT_COPY:
-      Type = "Copy";
-      break;
-   default:
-      Type = "Unknown";
-      break;
+   if (jcr->previous_jr.JobId == 0) {
+      jcr->JobStatus = JS_Terminated;
+      migration_cleanup(jcr, jcr->JobStatus);
+      return true;                    /* no work */
    }
-
-
    Dmsg4(100, "Target: Name=%s JobId=%d Type=%c Level=%c\n",
-      jcr->target_jr.Name, jcr->target_jr.JobId, 
-      jcr->target_jr.JobType, jcr->target_jr.JobLevel);
+      jcr->previous_jr.Name, jcr->previous_jr.JobId, 
+      jcr->previous_jr.JobType, jcr->previous_jr.JobLevel);
 
    Dmsg4(100, "Current: Name=%s JobId=%d Type=%c Level=%c\n",
       jcr->jr.Name, jcr->jr.JobId, 
@@ -183,7 +135,7 @@ bool do_mac(JCR *jcr)
 
    LockRes();
    job = (JOB *)GetResWithName(R_JOB, jcr->jr.Name);
-   tjob = (JOB *)GetResWithName(R_JOB, jcr->target_jr.Name);
+   tjob = (JOB *)GetResWithName(R_JOB, jcr->previous_jr.Name);
    UnlockRes();
    if (!job || !tjob) {
       return false;
@@ -196,8 +148,8 @@ bool do_mac(JCR *jcr)
     *  the original backup job.  Most operations on the current
     *  migration jcr are also done on the target jcr.
     */
-   tjcr = jcr->target_jcr = new_jcr(sizeof(JCR), dird_free_jcr);
-   memcpy(&tjcr->target_jr, &jcr->target_jr, sizeof(tjcr->target_jr));
+   tjcr = jcr->previous_jcr = new_jcr(sizeof(JCR), dird_free_jcr);
+   memcpy(&tjcr->previous_jr, &jcr->previous_jr, sizeof(tjcr->previous_jr));
 
    /* Turn the tjcr into a "real" job */
    set_jcr_defaults(tjcr, tjob);
@@ -213,9 +165,8 @@ bool do_mac(JCR *jcr)
     *  find the pool name from the database record.
     */
    memset(&pr, 0, sizeof(pr));
-   pr.PoolId = tjcr->target_jr.PoolId;
+   pr.PoolId = tjcr->previous_jr.PoolId;
    if (!db_get_pool_record(jcr, jcr->db, &pr)) {
-      char ed1[50];
       Jmsg(jcr, M_FATAL, 0, _("Pool for JobId %s not in database. ERR=%s\n"),
             edit_int64(pr.PoolId, ed1), db_strerror(jcr->db));
          return false;
@@ -262,8 +213,8 @@ bool do_mac(JCR *jcr)
    copy_storage(jcr, jcr->pool->storage);
 
    /* Print Job Start message */
-   Jmsg(jcr, M_INFO, 0, _("Start %s JobId %s, Job=%s\n"),
-        Type, edit_uint64(jcr->JobId, ed1), jcr->Job);
+   Jmsg(jcr, M_INFO, 0, _("Start Migration JobId %s, Job=%s\n"),
+        edit_uint64(jcr->JobId, ed1), jcr->Job);
 
    set_jcr_job_status(jcr, JS_Running);
    set_jcr_job_status(jcr, JS_Running);
@@ -332,9 +283,155 @@ bool do_mac(JCR *jcr)
 
    jcr->JobStatus = jcr->SDJobStatus;
    if (jcr->JobStatus == JS_Terminated) {
-      mac_cleanup(jcr, jcr->JobStatus);
+      migration_cleanup(jcr, jcr->JobStatus);
       return true;
    }
+   return false;
+}
+
+/*
+ * Callback handler make list of JobIds
+ */
+static int jobid_handler(void *ctx, int num_fields, char **row)
+{
+   POOLMEM *JobIds = (POOLMEM *)ctx;
+
+   if (JobIds[0] != 0) {
+      pm_strcat(JobIds, ",");
+   }
+   pm_strcat(JobIds, row[0]);
+   return 0;
+}
+
+const char *sql_smallest_vol = 
+   "SELECT MediaId FROM Media,Pool WHERE"
+   " VolStatus in ('Full','Used') AND"
+   " Media.PoolId=Pool.PoolId AND Pool.Name='%s'"
+   " ORDER BY VolBytes ASC LIMIT 1";
+
+const char *sql_oldest_vol = 
+   "SELECT MediaId FROM Media,Pool WHERE"
+   " VolStatus in ('Full','Used') AND"
+   " Media.PoolId=Pool.PoolId AND Pool.Name='%s'"
+   " ORDER BY LastWritten ASC LIMIT 1";
+
+const char *sql_jobids_from_mediaid =
+   "SELECT DISTINCT Job.JobId FROM JobMedia,Job"
+   " WHERE JobMedia.JobId=Job.JobId AND JobMedia.MediaId=%s"
+   " ORDER by Job.StartTime";
+
+
+
+/*
+ * Returns: false on error
+ *          true  if OK and jcr->previous_jr filled in
+ */
+static bool get_job_to_migrate(JCR *jcr)
+{
+   char ed1[30];
+   POOL_MEM query(PM_MESSAGE);
+   POOLMEM *JobIds = get_pool_memory(PM_MESSAGE);
+
+   if (jcr->MigrateJobId != 0) {
+      jcr->previous_jr.JobId = jcr->MigrateJobId;
+   } else {
+      switch (jcr->job->selection_type) {
+      case MT_SMALLEST_VOL:
+         Mmsg(query, sql_smallest_vol, jcr->pool->hdr.name);
+         JobIds = get_pool_memory(PM_MESSAGE);
+         JobIds[0] = 0;
+         if (!db_sql_query(jcr->db, query.c_str(), jobid_handler, (void *)JobIds)) {
+            Jmsg(jcr, M_FATAL, 0,
+                 _("SQL to get Volume failed. ERR=%s\n"), db_strerror(jcr->db));
+            goto bail_out;
+         }
+         if (JobIds[0] == 0) {
+            Jmsg(jcr, M_INFO, 0, _("No Volumes found to migrate.\n"));
+            goto ok_out;
+         }
+         Mmsg(query, sql_jobids_from_mediaid, JobIds);
+         JobIds[0] = 0;
+         if (!db_sql_query(jcr->db, query.c_str(), jobid_handler, (void *)JobIds)) {
+            Jmsg(jcr, M_FATAL, 0,
+                 _("SQL to get Volume failed. ERR=%s\n"), db_strerror(jcr->db));
+            goto bail_out;
+         }
+         Dmsg1(000, "Jobids=%s\n", JobIds);
+         goto ok_out;
+         break;
+      case MT_OLDEST_VOL:
+         Mmsg(query, sql_oldest_vol, jcr->pool->hdr.name);
+         JobIds = get_pool_memory(PM_MESSAGE);
+         JobIds[0] = 0;
+         if (!db_sql_query(jcr->db, query.c_str(), jobid_handler, (void *)JobIds)) {
+            Jmsg(jcr, M_FATAL, 0,
+                 _("SQL to get Volume failed. ERR=%s\n"), db_strerror(jcr->db));
+            goto bail_out;
+         }
+         if (JobIds[0] == 0) {
+            Jmsg(jcr, M_INFO, 0, _("No jobs found to migrate.\n"));
+            goto ok_out;
+         }
+         Mmsg(query, sql_jobids_from_mediaid, JobIds);
+         JobIds[0] = 0;
+         if (!db_sql_query(jcr->db, query.c_str(), jobid_handler, (void *)JobIds)) {
+            Jmsg(jcr, M_FATAL, 0,
+                 _("SQL to get Volume failed. ERR=%s\n"), db_strerror(jcr->db));
+            goto bail_out;
+         }
+         Dmsg1(000, "Jobids=%s\n", JobIds);
+         goto ok_out;
+         break;
+      case MT_POOL_OCCUPANCY:
+         break;
+      case MT_POOL_TIME:
+         break;
+      case MT_CLIENT:
+         break;
+      case MT_VOLUME:
+         break;
+      case MT_JOB:
+         break;
+      case MT_SQLQUERY:
+         JobIds[0] = 0;
+         if (!jcr->job->selection_pattern) {
+            Jmsg(jcr, M_FATAL, 0, _("No selection pattern specified.\n"));
+            goto bail_out;
+         }
+         if (!db_sql_query(jcr->db, query.c_str(), jobid_handler, (void *)JobIds)) {
+            Jmsg(jcr, M_FATAL, 0,
+                 _("SQL to get Volume failed. ERR=%s\n"), db_strerror(jcr->db));
+            goto bail_out;
+         }
+         if (JobIds[0] == 0) {
+            Jmsg(jcr, M_INFO, 0, _("No jobs found to migrate.\n"));
+            goto ok_out;
+         }
+         Dmsg1(000, "Jobids=%s\n", JobIds);
+         goto bail_out;
+         break;
+      default:
+         Jmsg(jcr, M_FATAL, 0, _("Unknown Migration Selection Type.\n"));
+         goto bail_out;
+      }
+   }
+   Dmsg1(100, "Last jobid=%d\n", jcr->previous_jr.JobId);
+
+   if (!db_get_job_record(jcr, jcr->db, &jcr->previous_jr)) {
+      Jmsg(jcr, M_FATAL, 0, _("Could not get job record for JobId %s to migrate. ERR=%s"),
+           edit_int64(jcr->previous_jr.JobId, ed1),
+           db_strerror(jcr->db));
+      goto bail_out;
+   }
+   Jmsg(jcr, M_INFO, 0, _("Migration using JobId=%d Job=%s\n"),
+      jcr->previous_jr.JobId, jcr->previous_jr.Job);
+
+ok_out:
+   free_pool_memory(JobIds);
+   return true;
+
+bail_out:
+   free_pool_memory(JobIds);
    return false;
 }
 
@@ -342,34 +439,18 @@ bool do_mac(JCR *jcr)
 /*
  * Release resources allocated during backup.
  */
-void mac_cleanup(JCR *jcr, int TermCode)
+void migration_cleanup(JCR *jcr, int TermCode)
 {
    char sdt[MAX_TIME_LENGTH], edt[MAX_TIME_LENGTH];
-   char ec1[30], ec2[30], ec3[30], ec4[30], elapsed[50];
+   char ec1[30], ec2[30], ec3[30], ec4[30], ec5[30], elapsed[50];
    char term_code[100], sd_term_msg[100];
    const char *term_msg;
    int msg_type;
    MEDIA_DBR mr;
    double kbps;
    utime_t RunTime;
-   const char *Type;
-   JCR *tjcr = jcr->target_jcr;
+   JCR *tjcr = jcr->previous_jcr;
    POOL_MEM query(PM_MESSAGE);
-
-   switch(jcr->JobType) {
-   case JT_MIGRATE:
-      Type = "Migration";
-      break;
-   case JT_ARCHIVE:
-      Type = "Archive";
-      break;
-   case JT_COPY:
-      Type = "Copy";
-      break;
-   default:
-      Type = "Unknown";
-      break;
-   }
 
    /* Ensure target is defined to avoid a lot of testing */
    if (!tjcr) {
@@ -380,7 +461,7 @@ void mac_cleanup(JCR *jcr, int TermCode)
    tjcr->VolSessionId = jcr->VolSessionId;
    tjcr->VolSessionTime = jcr->VolSessionTime;
 
-   Dmsg2(100, "Enter mac_cleanup %d %c\n", TermCode, TermCode);
+   Dmsg2(100, "Enter migrate_cleanup %d %c\n", TermCode, TermCode);
    dequeue_messages(jcr);             /* display any queued messages */
    memset(&mr, 0, sizeof(mr));
    set_jcr_job_status(jcr, TermCode);
@@ -392,8 +473,8 @@ void mac_cleanup(JCR *jcr, int TermCode)
 
    Mmsg(query, "UPDATE Job SET StartTime='%s',EndTime='%s',"
                "JobTDate=%s WHERE JobId=%s", 
-      jcr->target_jr.cStartTime, jcr->target_jr.cEndTime, 
-      edit_uint64(jcr->target_jr.JobTDate, ec1),
+      jcr->previous_jr.cStartTime, jcr->previous_jr.cEndTime, 
+      edit_uint64(jcr->previous_jr.JobTDate, ec1),
       edit_uint64(tjcr->jr.JobId, ec2));
    db_sql_query(tjcr->db, query.c_str(), NULL, NULL);
 
@@ -445,7 +526,7 @@ void mac_cleanup(JCR *jcr, int TermCode)
          term_msg = _("Inappropriate %s term code");
          break;
    }
-   bsnprintf(term_code, sizeof(term_code), term_msg, Type);
+   bsnprintf(term_code, sizeof(term_code), term_msg, "Migration");
    bstrftimes(sdt, sizeof(sdt), jcr->jr.StartTime);
    bstrftimes(edt, sizeof(edt), jcr->jr.EndTime);
    RunTime = jcr->jr.EndTime - jcr->jr.StartTime;
@@ -490,14 +571,14 @@ void mac_cleanup(JCR *jcr, int TermCode)
 "  Volume name(s):         %s\n"
 "  Volume Session Id:      %d\n"
 "  Volume Session Time:    %d\n"
-"  Last Volume Bytes:      %s\n"
+"  Last Volume Bytes:      %s (%sB)\n"
 "  SD Errors:              %d\n"
 "  SD termination status:  %s\n"
 "  Termination:            %s\n\n"),
    VERSION,
    LSMDATE,
         edt, 
-        jcr->target_jr.JobId,
+        jcr->previous_jr.JobId,
         tjcr->jr.JobId,
         jcr->jr.JobId,
         jcr->jr.Job,
@@ -509,20 +590,21 @@ void mac_cleanup(JCR *jcr, int TermCode)
         edt,
         edit_utime(RunTime, elapsed, sizeof(elapsed)),
         jcr->JobPriority,
-        edit_uint64_with_commas(jcr->SDJobFiles, ec2),
-        edit_uint64_with_commas(jcr->SDJobBytes, ec3),
-        edit_uint64_with_suffix(jcr->jr.JobBytes, ec4),
+        edit_uint64_with_commas(jcr->SDJobFiles, ec1),
+        edit_uint64_with_commas(jcr->SDJobBytes, ec2),
+        edit_uint64_with_suffix(jcr->jr.JobBytes, ec3),
         (float)kbps,
         tjcr->VolumeName,
         jcr->VolSessionId,
         jcr->VolSessionTime,
-        edit_uint64_with_commas(mr.VolBytes, ec1),
+        edit_uint64_with_commas(mr.VolBytes, ec4),
+        edit_uint64_with_suffix(mr.VolBytes, ec5),
         jcr->SDErrors,
         sd_term_msg,
         term_code);
 
-   Dmsg1(100, "Leave mac_cleanup() target_jcr=0x%x\n", jcr->target_jcr);
-   if (jcr->target_jcr) {
-      free_jcr(jcr->target_jcr);
+   Dmsg1(100, "Leave migrate_cleanup() previous_jcr=0x%x\n", jcr->previous_jcr);
+   if (jcr->previous_jcr) {
+      free_jcr(jcr->previous_jcr);
    }
 }

@@ -4,7 +4,7 @@ environment for building the native Win32 Bacula File daemon,
 the native Win32 bconsole program and the wx-console GUI console
 program.
 
-The directory structure is:
+The directory structure that you need to have is:
   bacula/src/win32      Makefiles and scripts
     baculafd            Visual Studio Files
       Release           Release objects, and bacula-fd.exe
@@ -34,7 +34,6 @@ Win32 Bacula.  It can be found in the Source Forge Bacula project
 release section.  Docs is released as a separate tar file, which is
 created from the bacula CVS docs project (module).             
 
-
 Instructions if you want to build bacula-fd with VSS 
 (Volume Shadow Copy Service) support. Note, the non-VSS build is
 no longer supported though you may be able to get it to work by
@@ -59,10 +58,13 @@ below:
   below.
 
 To build it:
+- We are using Microsoft Visual Studio .NET 2003 as the compiler,
+  but the build is done via scripting using the latest Cygwin
+  environment.
 - For this version of Bacula, you must have msvcr71.dll
-  installed in c:/windows/system32.  The winbacula.nsi.in
+  installed in c:/windows/system32 (i.e. Windows VC++ 2003)
+  The winbacula.nsi.in
   and pebuilder Makefile.in files have this hard coded in.
-- We are using Microsoft Visual Studio .NET 2003.
 - Make sure nmake is on your PATH.
 - Make sure your COMSPEC is properly setup (see full dump of
   my cygwin environment below).

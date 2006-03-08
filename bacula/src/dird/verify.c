@@ -60,7 +60,7 @@ bool do_verify_init(JCR *jcr)
    JobId_t verify_jobid = 0;
    const char *Name;
 
-   memset(&jcr->target_jr, 0, sizeof(jcr->target_jr));
+   memset(&jcr->previous_jr, 0, sizeof(jcr->previous_jr));
 
    Dmsg1(9, "bdird: created client %s record\n", jcr->client->hdr.name);
 
@@ -104,19 +104,19 @@ bool do_verify_init(JCR *jcr)
    if (jcr->JobLevel == L_VERIFY_CATALOG ||
        jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG ||
        jcr->JobLevel == L_VERIFY_DISK_TO_CATALOG) {
-      jcr->target_jr.JobId = verify_jobid;
-      if (!db_get_job_record(jcr, jcr->db, &jcr->target_jr)) {
+      jcr->previous_jr.JobId = verify_jobid;
+      if (!db_get_job_record(jcr, jcr->db, &jcr->previous_jr)) {
          Jmsg(jcr, M_FATAL, 0, _("Could not get job record for previous Job. ERR=%s"),
               db_strerror(jcr->db));
          return false;
       }
-      if (jcr->target_jr.JobStatus != 'T') {
+      if (jcr->previous_jr.JobStatus != 'T') {
          Jmsg(jcr, M_FATAL, 0, _("Last Job %d did not terminate normally. JobStatus=%c\n"),
-            verify_jobid, jcr->target_jr.JobStatus);
+            verify_jobid, jcr->previous_jr.JobStatus);
          return false;
       }
       Jmsg(jcr, M_INFO, 0, _("Verifying against JobId=%d Job=%s\n"),
-         jcr->target_jr.JobId, jcr->target_jr.Job);
+         jcr->previous_jr.JobId, jcr->previous_jr.Job);
    }
 
    /*
@@ -136,7 +136,7 @@ bool do_verify_init(JCR *jcr)
    if (jcr->JobLevel == L_VERIFY_DISK_TO_CATALOG && jcr->verify_job) {
       jcr->fileset = jcr->verify_job->fileset;
    }
-   Dmsg2(100, "ClientId=%u JobLevel=%c\n", jcr->target_jr.ClientId, jcr->JobLevel);
+   Dmsg2(100, "ClientId=%u JobLevel=%c\n", jcr->previous_jr.ClientId, jcr->JobLevel);
    return true;
 }
 
@@ -285,19 +285,19 @@ bool do_verify(JCR *jcr)
       Dmsg0(10, "Verify level=catalog\n");
       jcr->sd_msg_thread_done = true;   /* no SD msg thread, so it is done */
       jcr->SDJobStatus = JS_Terminated;
-      get_attributes_and_compare_to_catalog(jcr, jcr->target_jr.JobId);
+      get_attributes_and_compare_to_catalog(jcr, jcr->previous_jr.JobId);
       break;
 
    case L_VERIFY_VOLUME_TO_CATALOG:
       Dmsg0(10, "Verify level=volume\n");
-      get_attributes_and_compare_to_catalog(jcr, jcr->target_jr.JobId);
+      get_attributes_and_compare_to_catalog(jcr, jcr->previous_jr.JobId);
       break;
 
    case L_VERIFY_DISK_TO_CATALOG:
       Dmsg0(10, "Verify level=disk_to_catalog\n");
       jcr->sd_msg_thread_done = true;   /* no SD msg thread, so it is done */
       jcr->SDJobStatus = JS_Terminated;
-      get_attributes_and_compare_to_catalog(jcr, jcr->target_jr.JobId);
+      get_attributes_and_compare_to_catalog(jcr, jcr->previous_jr.JobId);
       break;
 
    case L_VERIFY_INIT:
@@ -421,7 +421,7 @@ void verify_cleanup(JCR *jcr, int TermCode)
          jcr->fileset->hdr.name,
          level_to_str(jcr->JobLevel),
          jcr->client->hdr.name,
-         jcr->target_jr.JobId,
+         jcr->previous_jr.JobId,
          Name,
          sdt,
          edt,
@@ -454,7 +454,7 @@ void verify_cleanup(JCR *jcr, int TermCode)
          jcr->fileset->hdr.name,
          level_to_str(jcr->JobLevel),
          jcr->client->hdr.name,
-         jcr->target_jr.JobId,
+         jcr->previous_jr.JobId,
          Name,
          sdt,
          edt,
@@ -551,7 +551,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
           */
          fdbr.FileId = 0;
          if (!db_get_file_attributes_record(jcr, jcr->db, jcr->fname,
-              &jcr->target_jr, &fdbr)) {
+              &jcr->previous_jr, &fdbr)) {
             Jmsg(jcr, M_INFO, 0, _("New file: %s\n"), jcr->fname);
             Dmsg1(020, _("File not in catalog: %s\n"), jcr->fname);
             stat = JS_Differences;

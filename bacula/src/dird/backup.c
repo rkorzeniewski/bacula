@@ -309,7 +309,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
 {
    char sdt[50], edt[50], schedt[50];
    char ec1[30], ec2[30], ec3[30], ec4[30], ec5[30], compress[50];
-   char ec6[30], ec7[30], elapsed[50];
+   char ec6[30], ec7[30], ec8[30], elapsed[50];
    char term_code[100], fd_term_msg[100], sd_term_msg[100];
    const char *term_msg;
    int msg_type;
@@ -346,7 +346,6 @@ void backup_cleanup(JCR *jcr, int TermCode)
    }
 
    update_bootstrap_file(jcr);
-
 
    msg_type = M_INFO;                 /* by default INFO message */
    switch (jcr->JobStatus) {
@@ -441,7 +440,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
 "  Volume name(s):         %s\n"
 "  Volume Session Id:      %d\n"
 "  Volume Session Time:    %d\n"
-"  Last Volume Bytes:      %s\n"
+"  Last Volume Bytes:      %s (%sB)\n"
 "  Non-fatal FD errors:    %d\n"
 "  SD Errors:              %d\n"
 "  FD termination status:  %s\n"
@@ -474,6 +473,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
         jcr->VolSessionId,
         jcr->VolSessionTime,
         edit_uint64_with_commas(mr.VolBytes, ec7),
+        edit_uint64_with_suffix(mr.VolBytes, ec8),
         jcr->Errors,
         jcr->SDErrors,
         fd_term_msg,
