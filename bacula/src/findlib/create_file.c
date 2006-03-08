@@ -185,76 +185,8 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
                   attr->ofname, be.strerror());
             return CF_ERROR;
          }
-
-         /* this doesn't solve the Microsoft problem - Thorsten Engel 
-            so I reused the code of V 1.40
-         /*
-          * If the open fails, we attempt to cd into the directory
-          *  and create the file with a relative path rather than
-          *  the full absolute path.  This is for Win32 where
-          *  path names may be too long to create.
-          */
-         /*
-         if ((bopen(bfd, attr->ofname, mode, S_IRUSR | S_IWUSR)) < 0) {
-            berrno be;
-            int stat;
-            Dmsg2(000, "bopen failed errno=%d: ERR=%s\n", bfd->berrno,  
-               be.strerror(bfd->berrno));            
-            if (strlen(attr->ofname) > 250) {   // Microsoft limitation 
-               char savechr;
-               char *p, *e;
-               struct saved_cwd cwd;
-               savechr = attr->ofname[pnl];
-               attr->ofname[pnl] = 0;                 // terminate path 
-               Dmsg1(000, "Do chdir %s\n", attr->ofname);
-               if (save_cwd(&cwd) != 0) {
-                  Qmsg0(jcr, M_ERROR, 0, _("Could not save_dirn"));
-                  attr->ofname[pnl] = savechr;
-                  return CF_ERROR;
-               }
-               p = attr->ofname;
-               while ((e = strchr(p, '/'))) {
-                  *e = 0;
-                  if (chdir(p) < 0) {
-                     berrno be;
-                     Qmsg2(jcr, M_ERROR, 0, _("Could not chdir to %s: ERR=%s\n"),
-                           attr->ofname, be.strerror());
-                     restore_cwd(&cwd, NULL, NULL);
-                     free_cwd(&cwd);
-                     attr->ofname[pnl] = savechr;
-                     *e = '/';
-                     return CF_ERROR;
-                  }
-                  *e = '/';
-                  p = e + 1;
-               }
-               if (chdir(p) < 0) {
-                  berrno be;
-                  Qmsg2(jcr, M_ERROR, 0, _("Could not chdir to %s: ERR=%s\n"),
-                        attr->ofname, be.strerror());
-                  restore_cwd(&cwd, NULL, NULL);
-                  free_cwd(&cwd);
-                  attr->ofname[pnl] = savechr;
-                  return CF_ERROR;
-               }
-               attr->ofname[pnl] = savechr;
-               Dmsg1(000, "Do open %s\n", &attr->ofname[pnl+1]);
-               if ((bopen(bfd, &attr->ofname[pnl+1], mode, S_IRUSR | S_IWUSR)) < 0) {
-                  stat = CF_ERROR;
-               } else {
-                  stat = CF_EXTRACT;
-               }
-               restore_cwd(&cwd, NULL, NULL);
-               free_cwd(&cwd);
-               if (stat == CF_EXTRACT) {
-                  return CF_EXTRACT;
-               }
-            }
-            Qmsg2(jcr, M_ERROR, 0, _("Could not create %s: ERR=%s\n"),
-                  attr->ofname, be.strerror(bfd->berrno));
-            return CF_ERROR; 
-         }*/
          return CF_EXTRACT;
+
 #ifndef HAVE_WIN32  // none of these exists on MS Windows
       case FT_RAW:                    /* Bacula raw device e.g. /dev/sda1 */
       case FT_FIFO:                   /* Bacula fifo to save data */
