@@ -31,7 +31,7 @@ status all
 status all
 list pools
 messages
-@#setdebug level=400 storage=File
+@#setdebug level=110 storage=File
 run job=CompressedTest storage=File yes
 list pools
 list volumes
