@@ -191,6 +191,9 @@ bool complete_bsr(UAContext *ua, RBSR *bsr)
    return true;
 }
 
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static uint32_t uniq = 0;
+
 void make_unique_restore_filename(UAContext *ua, POOLMEM **fname)
 {
    JCR *jcr = ua->jcr;
@@ -199,10 +202,16 @@ void make_unique_restore_filename(UAContext *ua, POOLMEM **fname)
       Mmsg(fname, "%s", ua->argv[i]);              
       jcr->unlink_bsr = false;
    } else {
-      Mmsg(fname, "%s/%s.restore.%s.bsr", working_directory, my_name, 
-         jcr->Job);
+      P(mutex);
+      uniq++;
+      V(mutex);
+      Mmsg(fname, "%s/%s.restore.%u.bsr", working_directory, my_name, uniq);
       jcr->unlink_bsr = true;
    }
+   if (jcr->RestoreBootstrap) {
+      free(jcr->RestoreBootstrap);
+   }
+   jcr->RestoreBootstrap = bstrdup(*fname);
 }
 
 /*

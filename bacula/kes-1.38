@@ -2,6 +2,34 @@
                         Kern Sibbald
 
 General:
+14Mar06
+- Add more jcr methods and make mutex and use_count private.
+- Create lock/unlock methods for jcr.
+- Fix PostgreSQL bug doing sql_data_seeek() by explicitly reading
+  records to get to seek position.
+- Integrate patch from bug #561 to correct conio.c signal definitions.
+- Fix Rescheduling failed Jobs. Ensure that SD message thread 
+  terminates correctly by doing pthread_kill(). Do not destroy
+  SD cond wait variable between executions of the job. Use local
+  mutex for cond variable to avoid blocking jcr chain. Fix poor 
+  use of jcr use count in jobq.c for restarted jobs.
+- Fix obsolete usage of foreach_dlist() to use foreach_jcr() in
+  lib/jcr.c -- prevents locking the jcr chaing.
+- Apply patch from bug #564, which corrects listing volumes with
+  multiple autochangers. Apply same fix to next volume list.
+- Fix bug #562 where restore bootstrap file is not unique.
+- Use new routine lock_reservations() to lock the reservations
+  system, and call it while looking for a volume in askdir.c.
+  This could possibly fix bug #543.
+- Stop SD command loop if job is canceled.
+
+09Mar06
+- Use John Kodis' edit_with_suffix code to edit VolBytes.
+- Backport some fixes for acquire.c. Most importantly, to explicitly
+  have a reserved_device flag for acquire_for_read().  Hopefully
+  this will correct the remaining issues with failed restores holding
+  a drive.
+- Add a job_canceled() check in SD command loop.
 
 Release 1.38.6 beta3 4Mar06
 04Mar06

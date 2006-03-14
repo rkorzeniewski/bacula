@@ -90,7 +90,7 @@ bool setup_job(JCR *jcr)
 {
    int errstat;
 
-   P(jcr->mutex);
+   jcr->lock();
    sm_check(__FILE__, __LINE__, true);
    init_msg(jcr, jcr->messages);
 
@@ -102,6 +102,9 @@ bool setup_job(JCR *jcr)
    }
    jcr->term_wait_inited = true;
 
+   create_unique_job_name(jcr, jcr->job->hdr.name);
+   set_jcr_job_status(jcr, JS_Created);
+   jcr->unlock();
 
    /*
     * Open database
@@ -124,8 +127,6 @@ bool setup_job(JCR *jcr)
    /*
     * Create Job record
     */
-   create_unique_job_name(jcr, jcr->job->hdr.name);
-   set_jcr_job_status(jcr, JS_Created);
    init_jcr_job_record(jcr);
    if (!db_create_job_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
@@ -148,7 +149,6 @@ bool setup_job(JCR *jcr)
    Dmsg0(200, "Add jrc to work queue\n");
 
 
-   V(jcr->mutex);
    return true;
 
 bail_out:
@@ -156,7 +156,6 @@ bail_out:
       free_memory(jcr->fname);
       jcr->fname = NULL;
    }
-   V(jcr->mutex);
    return false;
 }
 
@@ -784,10 +783,6 @@ void dird_free_jcr_pointers(JCR *jcr)
       free_pool_memory(jcr->client_uname);
       jcr->client_uname = NULL;
    }
-   if (jcr->term_wait_inited) {
-      pthread_cond_destroy(&jcr->term_wait);
-      jcr->term_wait_inited = false;
-   }
    if (jcr->attr) {
       free_pool_memory(jcr->attr);
       jcr->attr = NULL;
@@ -808,6 +803,10 @@ void dird_free_jcr(JCR *jcr)
    Dmsg0(200, "Start dird free_jcr\n");
 
    dird_free_jcr_pointers(jcr);
+   if (jcr->term_wait_inited) {
+      pthread_cond_destroy(&jcr->term_wait);
+      jcr->term_wait_inited = false;
+   }
 
    /* Delete lists setup to hold storage pointers */
    if (jcr->storage) {
@@ -968,15 +967,8 @@ bool create_restore_bootstrap_file(JCR *jcr)
       free_bsr(rx.bsr);
       return false;
    }
-   if (jcr->RestoreBootstrap) {
-      free(jcr->RestoreBootstrap);
-   }
-   POOLMEM *fname = get_pool_memory(PM_MESSAGE);
-   make_unique_restore_filename(ua, &fname);
-   jcr->RestoreBootstrap = bstrdup(fname);
    free_ua_context(ua);
    free_bsr(rx.bsr);
-   free_pool_memory(fname);
    jcr->needs_sd = true;
    return true;
 }

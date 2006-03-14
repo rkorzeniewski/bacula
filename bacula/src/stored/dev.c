@@ -1503,7 +1503,7 @@ weof_dev(DEVICE *dev, int num)
 {
    struct mtop mt_com;
    int stat;
-   Dmsg0(29, "weof_dev\n");
+   Dmsg0(129, "weof_dev\n");
    
    if (dev->fd < 0) {
       dev->dev_errno = EBADF;
@@ -1672,6 +1672,8 @@ void DEVICE::close()
    if (fd >= 0) {
       ::close(fd);
    } else {
+      Dmsg2(100, "device %s already closed vol=%s\n", print_name(),
+         VolHdr.VolumeName);
       return;                         /* already closed */
    }
 
@@ -1705,8 +1707,8 @@ void DEVICE::close()
    part_size = 0;
    part_start = 0;
    EndFile = EndBlock = 0;
-   memset(&VolCatInfo, 0, sizeof(VolCatInfo));
    free_volume(this);
+   memset(&VolCatInfo, 0, sizeof(VolCatInfo));
    memset(&VolHdr, 0, sizeof(VolHdr));
    if (tid) {
       stop_thread_timer(tid);
@@ -1744,7 +1746,7 @@ bool DEVICE::truncate(DCR *dcr) /* We need the DCR for DVD-writing */
  */
 bool DEVICE::mount(int timeout) 
 {
-   Dmsg0(90, "Enter mount\n");
+   Dmsg0(190, "Enter mount\n");
    if (is_mounted()) {
       return true;
    } else if (requires_mount()) {

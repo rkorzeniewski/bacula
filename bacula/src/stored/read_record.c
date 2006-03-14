@@ -107,10 +107,10 @@ bool read_records(DCR *dcr,
 
          } else if (dev->at_eof()) {
             if (verbose) {
-               Jmsg(jcr, M_INFO, 0, _("Got EOF at file %u  on device %s, Volume \"%s\"\n"),
+               Jmsg(jcr, M_INFO, 0, _("End of file %u  on device %s, Volume \"%s\"\n"),
                   dev->file, dev->print_name(), dcr->VolumeName);
             }
-            Dmsg3(200, "Got EOF at file %u  on device %s, Volume \"%s\"\n",
+            Dmsg3(200, "End of file %u  on device %s, Volume \"%s\"\n",
                   dev->file, dev->print_name(), dcr->VolumeName);
             continue;
          } else if (dev->is_short_block()) {

@@ -18,22 +18,17 @@
  *
  */
 /*
-   Copyright (C) 2003-2005 Kern Sibbald
+   Copyright (C) 2003-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -182,7 +177,8 @@ void *sched_wait(void *arg)
    }
    /* Check every 30 seconds if canceled */
    while (wtime > 0) {
-      Dmsg2(2300, "Waiting on sched time, jobid=%d secs=%d\n", jcr->JobId, wtime);
+      Dmsg3(2300, "Waiting on sched time, jobid=%d secs=%d use=%d\n", 
+         jcr->JobId, wtime, jcr->use_count());
       if (wtime > 30) {
          wtime = 30;
       }
@@ -192,9 +188,8 @@ void *sched_wait(void *arg)
       }
       wtime = jcr->sched_time - time(NULL);
    }
-   P(jcr->mutex);                     /* lock jcr */
+   Dmsg1(200, "resched use=%d\n", jcr->use_count());
    jobq_add(jq, jcr);
-   V(jcr->mutex);
    free_jcr(jcr);                     /* we are done with jcr */
    Dmsg0(2300, "Exit sched_wait\n");
    return NULL;
@@ -203,9 +198,6 @@ void *sched_wait(void *arg)
 /*
  *  Add a job to the queue
  *    jq is a queue that was created with jobq_init
- *
- *  On entry jcr->mutex must be locked.
- *
  */
 int jobq_add(jobq_t *jq, JCR *jcr)
 {
@@ -216,14 +208,14 @@ int jobq_add(jobq_t *jq, JCR *jcr)
    pthread_t id;
    wait_pkt *sched_pkt;
 
-   Dmsg3(2300, "jobq_add jobid=%d jcr=0x%x use_count=%d\n", jcr->JobId, jcr, jcr->use_count);
+   Dmsg3(2300, "jobq_add jobid=%d jcr=0x%x use_count=%d\n", jcr->JobId, jcr, jcr->use_count());
    if (jq->valid != JOBQ_VALID) {
       Jmsg0(jcr, M_ERROR, 0, "Jobq_add queue not initialized.\n");
       return EINVAL;
    }
 
-   jcr->use_count++;                  /* mark jcr in use by us */
-   Dmsg3(2300, "jobq_add jobid=%d jcr=0x%x use_count=%d\n", jcr->JobId, jcr, jcr->use_count);
+   jcr->inc_use_count();                 /* mark jcr in use by us */
+   Dmsg3(2300, "jobq_add jobid=%d jcr=0x%x use_count=%d\n", jcr->JobId, jcr, jcr->use_count());
    if (!job_canceled(jcr) && wtime > 0) {
       set_thread_concurrency(jq->max_workers + 2);
       sched_pkt = (wait_pkt *)malloc(sizeof(wait_pkt));
@@ -240,12 +232,12 @@ int jobq_add(jobq_t *jq, JCR *jcr)
    if ((stat = pthread_mutex_lock(&jq->mutex)) != 0) {
       berrno be;
       Jmsg1(jcr, M_ERROR, 0, _("pthread_mutex_lock: ERR=%s\n"), be.strerror(stat));
-      jcr->use_count--;               /* release jcr */
+      free_jcr(jcr);                    /* release jcr */
       return stat;
    }
 
    if ((item = (jobq_item_t *)malloc(sizeof(jobq_item_t))) == NULL) {
-      jcr->use_count--;               /* release jcr */
+      free_jcr(jcr);                    /* release jcr */
       return ENOMEM;
    }
    item->jcr = jcr;
@@ -444,10 +436,12 @@ void *jobq_server(void *arg)
          V(jq->mutex);
 
          /* Call user's routine here */
-         Dmsg1(2300, "Calling user engine for jobid=%d\n", jcr->JobId);
+         Dmsg2(2300, "Calling user engine for jobid=%d use=%d\n", jcr->JobId,
+            jcr->use_count());
          jq->engine(je->jcr);
 
-         Dmsg1(2300, "Back from user engine jobid=%d.\n", jcr->JobId);
+         Dmsg2(2300, "Back from user engine jobid=%d use=%d.\n", jcr->JobId,
+            jcr->use_count());
 
          /* Reacquire job queue lock */
          P(jq->mutex);
@@ -490,11 +484,12 @@ void *jobq_server(void *arg)
             jcr->JobStatus = JS_WaitStartTime;
             jcr->SDJobStatus = 0;
             if (jcr->JobBytes == 0) {
-               Dmsg1(2300, "Requeue job=%d\n", jcr->JobId);
+               Dmsg2(2300, "Requeue job=%d use=%d\n", jcr->JobId, jcr->use_count());
                jcr->JobStatus = JS_WaitStartTime;
                V(jq->mutex);
                jobq_add(jq, jcr);     /* queue the job to run again */
                P(jq->mutex);
+               free_jcr(jcr);         /* release jcr */
                free(je);              /* free the job entry */
                continue;              /* look for another job to run */
             }
@@ -523,7 +518,7 @@ void *jobq_server(void *arg)
             db_close_database(jcr, jcr->db);
             jcr->db = NULL;
          }
-         Dmsg2(2300, "====== Termination job=%d use_cnt=%d\n", jcr->JobId, jcr->use_count);
+         Dmsg2(2300, "====== Termination job=%d use_cnt=%d\n", jcr->JobId, jcr->use_count());
          jcr->SDJobStatus = 0;
          V(jq->mutex);                /* release internal lock */
          free_jcr(jcr);

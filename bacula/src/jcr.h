@@ -109,15 +109,22 @@ typedef void (JCR_free_HANDLER)(JCR *jcr);
 
 /* Job Control Record (JCR) */
 class JCR {
+private:
+   pthread_mutex_t mutex;             /* jcr mutex */
+   volatile int _use_count;           /* use count */
 public:
-   void inc_use_count(void) {P(mutex); use_count++; V(mutex); };
-   void dec_use_count(void) {P(mutex); use_count--; V(mutex); };
+   void inc_use_count(void) {P(mutex); _use_count++; V(mutex); };
+   void dec_use_count(void) {P(mutex); _use_count--; V(mutex); };
+   int  use_count() { return _use_count; };
+   void init_mutex(void) {pthread_mutex_init(&mutex, NULL); };
+   void destroy_mutex(void) {pthread_mutex_destroy(&mutex); };
+   void lock() {P(mutex); };
+   void unlock() {V(mutex); };
+   bool is_job_canceled() {return job_canceled(this); };
 
    /* Global part of JCR common to all daemons */
    dlink link;                        /* JCR chain link */
-   volatile int use_count;            /* use count */
    pthread_t my_thread_id;            /* id of thread controlling jcr */
-   pthread_mutex_t mutex;             /* jcr mutex */
    BSOCK *dir_bsock;                  /* Director bsock or NULL if we are him */
    BSOCK *store_bsock;                /* Storage connection socket */
    BSOCK *file_bsock;                 /* File daemon connection socket */
@@ -169,7 +176,7 @@ public:
    /* This should be empty in the library */
 
 #ifdef DIRECTOR_DAEMON
-   /* Director Daemon specific part of JCR */
+   /* Director Daemon specific data part of JCR */
    pthread_t SD_msg_chan;             /* Message channel thread id */
    pthread_cond_t term_wait;          /* Wait for job termination */
    workq_ele_t *work_item;            /* Work queue item if scheduled */

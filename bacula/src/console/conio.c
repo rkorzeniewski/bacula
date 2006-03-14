@@ -9,7 +9,7 @@
 
 */
 /*
-   Copyright (C) 1981-2005 Kern Sibbald
+   Copyright (C) 1981-2006 Kern Sibbald
              Yes, that is 1981 no error.
 
    This program is free software; you can redistribute it and/or
@@ -961,12 +961,8 @@ static void rawmode(FILE *input)
    /* Defaults, the main program can override these */
    signal(SIGQUIT, SIG_IGN);
    signal(SIGHUP, SIG_IGN);
-// signal(SIGSTOP, SIG_IGN);
    signal(SIGINT, sigintcatcher);
    signal(SIGWINCH, SIG_IGN);
-   signal(SIGQUIT, SIG_IGN);
-// signal(SIGCHLD, SIG_IGN);
-// signal(SIGTSTP, SIG_IGN);
 
    if (!termtype) {
       printf("Cannot get terminal type.\n");

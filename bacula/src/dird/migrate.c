@@ -305,13 +305,13 @@ static int jobid_handler(void *ctx, int num_fields, char **row)
 
 const char *sql_smallest_vol = 
    "SELECT MediaId FROM Media,Pool WHERE"
-   " VolStatus in ('Full','Used') AND"
+   " VolStatus in ('Full','Used','Error') AND"
    " Media.PoolId=Pool.PoolId AND Pool.Name='%s'"
    " ORDER BY VolBytes ASC LIMIT 1";
 
 const char *sql_oldest_vol = 
    "SELECT MediaId FROM Media,Pool WHERE"
-   " VolStatus in ('Full','Used') AND"
+   " VolStatus in ('Full','Used','Error') AND"
    " Media.PoolId=Pool.PoolId AND Pool.Name='%s'"
    " ORDER BY LastWritten ASC LIMIT 1";
 
@@ -319,6 +319,40 @@ const char *sql_jobids_from_mediaid =
    "SELECT DISTINCT Job.JobId FROM JobMedia,Job"
    " WHERE JobMedia.JobId=Job.JobId AND JobMedia.MediaId=%s"
    " ORDER by Job.StartTime";
+
+const char *sql_pool_bytes =
+   "SELECT SUM(VolBytes) FROM Media,Pool WHERE"
+   " VolStatus in ('Full','Used','Error','Append') AND"
+   " Media.PoolId=Pool.PoolId AND Pool.Name='%s'";
+
+const char *sql_vol_bytes =
+   "SELECT MediaId FROM Media,Pool WHERE"
+   " VolStatus in ('Full','Used','Error') AND"
+   " Media.PoolId=Pool.PoolId AND Pool.Name='%s' AND"
+   " VolBytes<%s ORDER BY LastWritten ASC LIMIT 1";
+
+const char *sql_client =
+   "SELECT DISTINCT Client.Name from Client,Pool,Media,Job,JobMedia "
+   " WHERE Media.PoolId=Pool.PoolId AND Pool.Name='%s' AND"
+   " JobMedia.JobId=Job.JobId AND Job.ClientId=Client.ClientId AND"
+   " Job.PoolId=Media.PoolId";
+
+const char *sql_job =
+   "SELECT DISTINCT Job.Name from Client,Pool,Media,Job,JobMedia "
+   " WHERE Media.PoolId=Pool.PoolId AND Pool.Name='%s' AND"
+   " JobMedia.JobId=Job.JobId AND Job.ClientId=Client.ClientId AND"
+   " Job.PoolId=Media.PoolId";
+
+const char *sql_ujobid =
+   "SELECT DISTINCT Job.Job from Client,Pool,Media,Job,JobMedia "
+   " WHERE Media.PoolId=Pool.PoolId AND Pool.Name='%s' AND"
+   " JobMedia.JobId=Job.JobId AND Job.ClientId=Client.ClientId AND"
+   " Job.PoolId=Media.PoolId";
+
+const char *sql_vol = 
+   "SELECT DISTINCT VolumeName FROM Media,Pool WHERE"
+   " VolStatus in ('Full','Used','Error') AND"
+   " Media.PoolId=Pool.PoolId AND Pool.Name='%s'";
 
 
 
@@ -331,6 +365,9 @@ static bool get_job_to_migrate(JCR *jcr)
    char ed1[30];
    POOL_MEM query(PM_MESSAGE);
    POOLMEM *JobIds = get_pool_memory(PM_MESSAGE);
+   JobId_t JobId;
+   int stat;
+   char *p;
 
    if (jcr->MigrateJobId != 0) {
       jcr->previous_jr.JobId = jcr->MigrateJobId;
@@ -357,7 +394,6 @@ static bool get_job_to_migrate(JCR *jcr)
             goto bail_out;
          }
          Dmsg1(000, "Jobids=%s\n", JobIds);
-         goto ok_out;
          break;
       case MT_OLDEST_VOL:
          Mmsg(query, sql_oldest_vol, jcr->pool->hdr.name);
@@ -380,9 +416,20 @@ static bool get_job_to_migrate(JCR *jcr)
             goto bail_out;
          }
          Dmsg1(000, "Jobids=%s\n", JobIds);
-         goto ok_out;
          break;
       case MT_POOL_OCCUPANCY:
+         Mmsg(query, sql_pool_bytes, jcr->pool->hdr.name);
+         JobIds = get_pool_memory(PM_MESSAGE);
+         JobIds[0] = 0;
+         if (!db_sql_query(jcr->db, query.c_str(), jobid_handler, (void *)JobIds)) {
+            Jmsg(jcr, M_FATAL, 0,
+                 _("SQL to get Volume failed. ERR=%s\n"), db_strerror(jcr->db));
+            goto bail_out;
+         }
+         if (JobIds[0] == 0) {
+            Jmsg(jcr, M_INFO, 0, _("No jobs found to migrate.\n"));
+            goto ok_out;
+         }
          break;
       case MT_POOL_TIME:
          break;
@@ -415,7 +462,20 @@ static bool get_job_to_migrate(JCR *jcr)
          goto bail_out;
       }
    }
-   Dmsg1(100, "Last jobid=%d\n", jcr->previous_jr.JobId);
+
+   p = JobIds;
+   stat = get_next_jobid_from_list(&p, &JobId);
+   Dmsg2(000, "get_next_jobid stat=%d JobId=%u\n", stat, JobId);
+   if (stat < 0) {
+      Jmsg(jcr, M_FATAL, 0, _("Invalid JobId found.\n"));
+      goto bail_out;
+   } else if (stat == 0) {
+      Jmsg(jcr, M_INFO, 0, _("No JobIds found to migrate.\n"));
+      goto ok_out;
+   }
+   
+   jcr->previous_jr.JobId = JobId;
+   Dmsg1(000, "Last jobid=%d\n", jcr->previous_jr.JobId);
 
    if (!db_get_job_record(jcr, jcr->db, &jcr->previous_jr)) {
       Jmsg(jcr, M_FATAL, 0, _("Could not get job record for JobId %s to migrate. ERR=%s"),

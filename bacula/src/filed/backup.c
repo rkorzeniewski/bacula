@@ -875,11 +875,11 @@ static bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_strea
 
    Dmsg3(300, "File %s\nattribs=%s\nattribsEx=%s\n", ff_pkt->fname, attribs, attribsEx);
 
-   P(jcr->mutex);
+   jcr->lock();
    jcr->JobFiles++;                    /* increment number of files sent */
    ff_pkt->FileIndex = jcr->JobFiles;  /* return FileIndex */
    pm_strcpy(jcr->last_fname, ff_pkt->fname);
-   V(jcr->mutex);
+   jcr->unlock();
 
    /*
     * Send Attributes header to Storage daemon

@@ -229,8 +229,8 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    jcr->job_end_push.init(1, false);
    jcr->sched_time = time(NULL);
    jcr->daemon_free_jcr = daemon_free_jcr;    /* plug daemon free routine */
-   jcr->use_count = 1;
-   pthread_mutex_init(&(jcr->mutex), NULL);
+   jcr->inc_use_count();
+   jcr->init_mutex();
    jcr->JobStatus = JS_Created;       /* ready to run */
    jcr->VolumeName = get_pool_memory(PM_FNAME);
    jcr->VolumeName[0] = 0;
@@ -329,7 +329,7 @@ static void free_common_jcr(JCR *jcr)
    default:
       break;
    }
-   pthread_mutex_destroy(&jcr->mutex);
+   jcr->destroy_mutex();
 
    delete jcr->msg_queue;
    close_msg(jcr);                    /* close messages for this job */
@@ -396,14 +396,14 @@ void free_jcr(JCR *jcr)
    dequeue_messages(jcr);
    lock_jcr_chain();
    jcr->dec_use_count();              /* decrement use count */
-   if (jcr->use_count < 0) {
+   if (jcr->use_count() < 0) {
       Emsg2(M_ERROR, 0, _("JCR use_count=%d JobId=%d\n"),
-         jcr->use_count, jcr->JobId);
+         jcr->use_count(), jcr->JobId);
    }
-   Dmsg3(3400, "Dec free_jcr 0x%x use_count=%d jobid=%d\n", jcr, jcr->use_count, jcr->JobId);
-   if (jcr->use_count > 0) {          /* if in use */
+   Dmsg3(3400, "Dec free_jcr 0x%x use_count=%d jobid=%d\n", jcr, jcr->use_count(), jcr->JobId);
+   if (jcr->use_count() > 0) {          /* if in use */
       unlock_jcr_chain();
-      Dmsg3(3400, "free_jcr 0x%x job=%d use_count=%d\n", jcr, jcr->JobId, jcr->use_count);
+      Dmsg3(3400, "free_jcr 0x%x job=%d use_count=%d\n", jcr, jcr->JobId, jcr->use_count());
       return;
    }
 
@@ -432,15 +432,14 @@ JCR *get_jcr_by_id(uint32_t JobId)
 {
    JCR *jcr;
 
-   lock_jcr_chain();                    /* lock chain */
-   foreach_dlist(jcr, jcrs) {
+   foreach_jcr(jcr) {
       if (jcr->JobId == JobId) {
          jcr->inc_use_count();
-         Dmsg2(3400, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+         Dmsg2(3400, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count());
          break;
       }
    }
-   unlock_jcr_chain();
+   endeach_jcr(jcr);
    return jcr;
 }
 
@@ -453,16 +452,15 @@ JCR *get_jcr_by_session(uint32_t SessionId, uint32_t SessionTime)
 {
    JCR *jcr;
 
-   lock_jcr_chain();
-   foreach_dlist(jcr, jcrs) {
+   foreach_jcr(jcr) {
       if (jcr->VolSessionId == SessionId &&
           jcr->VolSessionTime == SessionTime) {
          jcr->inc_use_count();
-         Dmsg2(3400, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+         Dmsg2(3400, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count());
          break;
       }
    }
-   unlock_jcr_chain();
+   endeach_jcr(jcr);
    return jcr;
 }
 
@@ -482,16 +480,15 @@ JCR *get_jcr_by_partial_name(char *Job)
    if (!Job) {
       return NULL;
    }
-   lock_jcr_chain();
    len = strlen(Job);
-   foreach_dlist(jcr, jcrs) {
+   foreach_jcr(jcr) {
       if (strncmp(Job, jcr->Job, len) == 0) {
          jcr->inc_use_count();
-         Dmsg2(3400, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+         Dmsg2(3400, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count());
          break;
       }
    }
-   unlock_jcr_chain();
+   endeach_jcr(jcr);
    return jcr;
 }
 
@@ -509,15 +506,14 @@ JCR *get_jcr_by_full_name(char *Job)
    if (!Job) {
       return NULL;
    }
-   lock_jcr_chain();
-   foreach_dlist(jcr, jcrs) {
+   foreach_jcr(jcr) {
       if (strcmp(jcr->Job, Job) == 0) {
          jcr->inc_use_count();
-         Dmsg2(3400, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count);
+         Dmsg2(3400, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count());
          break;
       }
    }
-   unlock_jcr_chain();
+   endeach_jcr(jcr);
    return jcr;
 }
 
@@ -600,7 +596,7 @@ JCR *jcr_walk_start()
    if (jcr) {
       jcr->inc_use_count();
       Dmsg3(3400, "Inc jcr_walk_start 0x%x job=%d use_count=%d\n", jcr, 
-            jcr->JobId, jcr->use_count);
+            jcr->JobId, jcr->use_count());
    }
    unlock_jcr_chain();
    return jcr;
@@ -618,7 +614,7 @@ JCR *jcr_walk_next(JCR *prev_jcr)
    if (jcr) {
       jcr->inc_use_count();
       Dmsg3(3400, "Inc jcr_walk_next 0x%x job=%d use_count=%d\n", jcr, 
-         jcr->JobId, jcr->use_count);
+         jcr->JobId, jcr->use_count());
    }
    unlock_jcr_chain();
    if (prev_jcr) {

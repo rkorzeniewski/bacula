@@ -33,6 +33,8 @@
 #include "bacula.h"
 #include "dird.h"
 
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
 /* Commands sent to Storage daemon */
 static char jobcmd[]     = "JobId=%d job=%s job_name=%s client_name=%s "
    "type=%d level=%d FileSet=%s NoAttr=%d SpoolAttr=%d FileSetMD5=%s "
@@ -260,34 +262,30 @@ int start_storage_daemon_message_thread(JCR *jcr)
    int status;
    pthread_t thid;
 
-   P(jcr->mutex);
-   jcr->use_count++;                  /* mark in use by msg thread */
+   jcr->inc_use_count();              /* mark in use by msg thread */
    jcr->sd_msg_thread_done = false;
    jcr->SD_msg_chan = 0;
-   V(jcr->mutex);
    Dmsg0(100, "Start SD msg_thread.\n");
    if ((status=pthread_create(&thid, NULL, msg_thread, (void *)jcr)) != 0) {
       berrno be;
       Jmsg1(jcr, M_ABORT, 0, _("Cannot create message thread: %s\n"), be.strerror(status));
    }
-   Dmsg0(100, "SD msg_thread started.\n");
    /* Wait for thread to start */
    while (jcr->SD_msg_chan == 0) {
       bmicrosleep(0, 50);
    }
+   Dmsg1(100, "SD msg_thread started. use=%d\n", jcr->use_count());
    return 1;
 }
 
 extern "C" void msg_thread_cleanup(void *arg)
 {
    JCR *jcr = (JCR *)arg;
-   Dmsg0(200, "End msg_thread\n");
    db_end_transaction(jcr, jcr->db);       /* terminate any open transaction */
-   P(jcr->mutex);
    jcr->sd_msg_thread_done = true;
-   pthread_cond_broadcast(&jcr->term_wait); /* wakeup any waiting threads */
    jcr->SD_msg_chan = 0;
-   V(jcr->mutex);
+   pthread_cond_broadcast(&jcr->term_wait); /* wakeup any waiting threads */
+   Dmsg1(100, "=== End msg_thread. use=%d\n", jcr->use_count());
    free_jcr(jcr);                     /* release jcr */
 }
 
@@ -314,9 +312,8 @@ extern "C" void *msg_thread(void *arg)
    /* Read the Storage daemon's output.
     */
    Dmsg0(100, "Start msg_thread loop\n");
-   while ((stat=bget_dirmsg(sd)) >= 0) {
-      int stat;
-      Dmsg1(3400, "<stored: %s", sd->msg);
+   while (!job_canceled(jcr) && bget_dirmsg(sd) >= 0) {
+      Dmsg1(400, "<stored: %s", sd->msg);
       if (sscanf(sd->msg, Job_start, Job) == 1) {
          continue;
       }
@@ -327,6 +324,7 @@ extern "C" void *msg_thread(void *arg)
          jcr->SDJobBytes = JobBytes;
          break;
       }
+      Dmsg2(400, "end loop stat=%d use=%d\n", stat, jcr->use_count());
    }
    if (is_bnet_error(sd)) {
       jcr->SDJobStatus = JS_ErrorTerminated;
@@ -339,8 +337,6 @@ void wait_for_storage_daemon_termination(JCR *jcr)
 {
    int cancel_count = 0;
    /* Now wait for Storage daemon to terminate our message thread */
-   set_jcr_job_status(jcr, JS_WaitSD);
-   P(jcr->mutex);
    while (!jcr->sd_msg_thread_done) {
       struct timeval tv;
       struct timezone tz;
@@ -348,18 +344,25 @@ void wait_for_storage_daemon_termination(JCR *jcr)
 
       gettimeofday(&tv, &tz);
       timeout.tv_nsec = 0;
-      timeout.tv_sec = tv.tv_sec + 10; /* wait 10 seconds */
-      Dmsg0(300, "I'm waiting for message thread termination.\n");
-      pthread_cond_timedwait(&jcr->term_wait, &jcr->mutex, &timeout);
+      timeout.tv_sec = tv.tv_sec + 5; /* wait 5 seconds */
+      Dmsg0(400, "I'm waiting for message thread termination.\n");
+      P(mutex);
+      pthread_cond_timedwait(&jcr->term_wait, &mutex, &timeout);
+      V(mutex);
       if (job_canceled(jcr)) {
+         if (jcr->SD_msg_chan) {
+            jcr->store_bsock->timed_out = 1;
+            jcr->store_bsock->terminated = 1;
+            Dmsg2(400, "kill jobid=%d use=%d\n", (int)jcr->JobId, jcr->use_count());
+            pthread_kill(jcr->SD_msg_chan, TIMEOUT_SIGNAL);
+         }
          cancel_count++;
       }
       /* Give SD 30 seconds to clean up after cancel */
-      if (cancel_count == 3) {
+      if (cancel_count == 6) {
          break;
       }
    }
-   V(jcr->mutex);
    set_jcr_job_status(jcr, JS_Terminated);
 }
 
@@ -377,7 +380,7 @@ extern "C" void *device_thread(void *arg)
    jcr = new_control_jcr("*DeviceInit*", JT_SYSTEM);
    for (i=0; i < MAX_TRIES; i++) {
       if (!connect_to_storage_daemon(jcr, 10, 30, 1)) {
-         Dmsg0(000, "Failed connecting to SD.\n");
+         Dmsg0(900, "Failed connecting to SD.\n");
          continue;
       }
       LockRes();

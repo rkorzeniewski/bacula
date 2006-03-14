@@ -328,16 +328,11 @@ static int cancel_cmd(JCR *jcr)
          bnet_fsend(dir, _("2901 Job %s not found.\n"), Job);
       } else {
          if (cjcr->store_bsock) {
-            P(cjcr->mutex);
             cjcr->store_bsock->timed_out = 1;
             cjcr->store_bsock->terminated = 1;
-/*
- * #if !defined(HAVE_CYGWIN) && !defined(HAVE_WIN32)
- */
 #if !defined(HAVE_CYGWIN)
             pthread_kill(cjcr->my_thread_id, TIMEOUT_SIGNAL);
 #endif
-            V(cjcr->mutex);
          }
          set_jcr_job_status(cjcr, JS_Canceled);
          free_jcr(cjcr);
@@ -397,7 +392,7 @@ static int job_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
    POOLMEM *sd_auth_key;
-
+   
    sd_auth_key = get_memory(dir->msglen);
    if (sscanf(dir->msg, jobcmd,  &jcr->JobId, jcr->Job,
               &jcr->VolSessionId, &jcr->VolSessionTime,

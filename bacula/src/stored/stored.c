@@ -54,7 +54,7 @@ char *configfile = NULL;
 bool init_done = false;
 
 /* Global static variables */
-static int foreground = 0;
+static bool foreground = 0;
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static workq_t dird_workq;            /* queue for processing connections */
 
@@ -87,8 +87,8 @@ static void usage()
 int main (int argc, char *argv[])
 {
    int ch;
-   int no_signals = FALSE;
-   int test_config = FALSE;
+   bool no_signals = false;
+   bool test_config = false;
    pthread_t thid;
    char *uid = NULL;
    char *gid = NULL;
@@ -128,7 +128,7 @@ int main (int argc, char *argv[])
          break;
 
       case 'f':                    /* run in foreground */
-         foreground = TRUE;
+         foreground = true;
          break;
 
       case 'g':                    /* set group id */
@@ -140,11 +140,11 @@ int main (int argc, char *argv[])
          break;
 
       case 's':                    /* no signals */
-         no_signals = TRUE;
+         no_signals = true;
          break;
 
       case 't':
-         test_config = TRUE;
+         test_config = true;
          break;
 
       case 'u':                    /* set uid */
@@ -193,6 +193,8 @@ int main (int argc, char *argv[])
       Jmsg((JCR *)NULL, M_ERROR_TERM, 0, _("Please correct configuration file: %s\n"), configfile);
    }
 
+   init_reservations_lock();
+
    if (test_config) {
       terminate_stored(0);
    }
@@ -228,7 +230,7 @@ int main (int argc, char *argv[])
     /*
      * Start the device allocation thread
      */
-   init_volume_list();                /* do before device_init */
+   create_volume_list();              /* do before device_init */
    if (pthread_create(&thid, NULL, device_initialization, NULL) != 0) {
       Emsg1(M_ABORT, 0, _("Unable to create thread. ERR=%s\n"), strerror(errno));
    }
@@ -564,6 +566,7 @@ void terminate_stored(int sig)
    if (debug_level > 10) {
       print_memory_pool_stats();
    }
+   term_reservations_lock();
    term_msg();
    stop_watchdog();
    cleanup_crypto();

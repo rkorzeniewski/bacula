@@ -465,15 +465,18 @@ static bool list_nextvol(UAContext *ua, int ndays)
       if (!complete_jcr_for_job(jcr, job, pool)) {
          return false;
       }
-      mr.PoolId = jcr->jr.PoolId;
-      if (run->storage) {
-         jcr->store = run->storage;
-      }
       memset(&pr, 0, sizeof(pr));
       pr.PoolId = jcr->jr.PoolId;
       if (! db_get_pool_record(ua->jcr, ua->db, &pr)) {
          strcpy(pr.Name, "*UnknownPool*");
       }
+      mr.PoolId = jcr->jr.PoolId;
+      if (run->storage) {
+         jcr->store = run->storage;
+      } else {
+         jcr->store = (STORE *)job->storage->first();
+      }
+      mr.StorageId = jcr->store->StorageId;
       if (!find_next_volume_for_append(jcr, &mr, 1, false/*no create*/)) {
          bsendmsg(ua, _("Could not find next Volume for Job %s (%s, %s).\n"),
             job->hdr.name, pr.Name, level_to_str(run->level));

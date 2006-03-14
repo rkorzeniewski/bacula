@@ -24,6 +24,8 @@
 #include "bacula.h"
 #include "stored.h"
 
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
 /* Imported variables */
 extern uint32_t VolSessionTime;
 
@@ -159,14 +161,14 @@ bool run_cmd(JCR *jcr)
     *  when he does, we will be released, unless the 30 minutes
     *  expires.
     */
-   P(jcr->mutex);
+   P(mutex);
    for ( ;!job_canceled(jcr); ) {
-      errstat = pthread_cond_timedwait(&jcr->job_start_wait, &jcr->mutex, &timeout);
+      errstat = pthread_cond_timedwait(&jcr->job_start_wait, &mutex, &timeout);
       if (errstat == 0 || errstat == ETIMEDOUT) {
          break;
       }
    }
-   V(jcr->mutex);
+   V(mutex);
 
    memset(jcr->sd_auth_key, 0, strlen(jcr->sd_auth_key));
 
@@ -215,12 +217,10 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
       Dmsg1(110, "OK Authentication Job %s\n", jcr->Job);
    }
 
-   P(jcr->mutex);
    if (!jcr->authenticated) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
    }
    pthread_cond_signal(&jcr->job_start_wait); /* wake waiting job */
-   V(jcr->mutex);
    free_jcr(jcr);
    return;
 }
