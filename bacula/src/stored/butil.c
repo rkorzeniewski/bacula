@@ -12,7 +12,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -93,7 +93,7 @@ JCR *setup_jcr(const char *name, char *dev_name, BSR *bsr,
    pm_strcpy(jcr->fileset_md5, "Dummy.fileset.md5");
 
    init_autochangers();
-   init_volume_list();
+   create_volume_list();
 
    dcr = setup_to_access_device(jcr, dev_name, VolumeName, mode);
    if (!dcr) {
@@ -120,6 +120,8 @@ static DCR *setup_to_access_device(JCR *jcr, char *dev_name,
    DEVRES *device;
    DCR *dcr;
    char VolName[MAX_NAME_LENGTH];
+
+   init_reservations_lock();
 
    /*
     * If no volume name already given and no bsr, and it is a file,

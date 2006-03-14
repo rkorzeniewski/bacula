@@ -170,27 +170,27 @@ bool do_backup(JCR *jcr)
    Dmsg0(150, "Storage daemon connection OK\n");
 
    if (!bnet_fsend(jcr->store_bsock, "run")) {
-      return false;
+      goto bail_out;
    }
 
    set_jcr_job_status(jcr, JS_WaitFD);
    if (!connect_to_file_daemon(jcr, 10, FDConnectTimeout, 1)) {
-      return false;
+      goto bail_out;
    }
 
    set_jcr_job_status(jcr, JS_Running);
    fd = jcr->file_bsock;
 
    if (!send_include_list(jcr)) {
-      return false;
+      goto bail_out;
    }
 
    if (!send_exclude_list(jcr)) {
-      return false;
+      goto bail_out;
    }
 
    if (!send_level_command(jcr)) {
-      return false;
+      goto bail_out;
    }
 
    /*
@@ -212,18 +212,18 @@ bool do_backup(JCR *jcr)
 
    bnet_fsend(fd, storaddr, store->address, store->SDDport, tls_need);
    if (!response(jcr, fd, OKstore, "Storage", DISPLAY_ERROR)) {
-      return false;
+      goto bail_out;
    }
 
 
    if (!send_run_before_and_after_commands(jcr)) {
-      return false;
+      goto bail_out;
    }
 
    /* Send backup command */
    bnet_fsend(fd, backupcmd);
    if (!response(jcr, fd, OKbackup, "backup", DISPLAY_ERROR)) {
-      return false;
+      goto bail_out;
    }
 
    /* Pickup Job termination data */
@@ -232,6 +232,14 @@ bool do_backup(JCR *jcr)
       backup_cleanup(jcr, stat);
       return true;
    }     
+   return false;
+
+/* Come here only after starting SD thread */
+bail_out:
+   set_jcr_job_status(jcr, JS_ErrorTerminated);
+   Dmsg1(400, "wait for sd. use=%d\n", jcr->use_count());
+   wait_for_storage_daemon_termination(jcr);
+   Dmsg1(400, "after wait for sd. use=%d\n", jcr->use_count());
    return false;
 }
 

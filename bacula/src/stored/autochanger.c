@@ -148,7 +148,7 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
           * Load the desired cassette
           */
          lock_changer(dcr);
-         Dmsg1(400, "Doing changer load slot %d\n", slot);
+         Dmsg1(100, "Doing changer load slot %d\n", slot);
          Jmsg(jcr, M_INFO, 0,
               _("3304 Issuing autochanger \"load slot %d, drive %d\" command.\n"),
               slot, drive);
@@ -161,21 +161,24 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
          if (status == 0) {
             Jmsg(jcr, M_INFO, 0, _("3305 Autochanger \"load slot %d, drive %d\", status is OK.\n"),
                     slot, drive);
+            Dmsg2(100, "load slot %d, drive %d, status is OK.\n", slot, drive);
             dev->Slot = slot;         /* set currently loaded slot */
          } else {
-           berrno be;
-           be.set_errno(status);
+            berrno be;
+            be.set_errno(status);
+            Dmsg3(100, "load slot %d, drive %d, bad stats=%s.\n", slot, drive,
+               be.strerror());
             Jmsg(jcr, M_FATAL, 0, _("3992 Bad autochanger \"load slot %d, drive %d\": ERR=%s.\n"),
                     slot, drive, be.strerror());
             rtn_stat = -1;            /* hard error */
          }
-         Dmsg2(400, "load slot %d status=%d\n", slot, status);
+         Dmsg2(100, "load slot %d status=%d\n", slot, status);
          unlock_changer(dcr);
       } else {
          status = 0;                  /* we got what we want */
          dev->Slot = slot;            /* set currently loaded slot */
       }
-      Dmsg1(400, "After changer, status=%d\n", status);
+      Dmsg1(100, "After changer, status=%d\n", status);
       if (status == 0) {              /* did we succeed? */
          rtn_stat = 1;                /* tape loaded by changer */
       }
@@ -220,9 +223,9 @@ int get_autochanger_loaded_slot(DCR *dcr)
         drive);
    changer = edit_device_codes(dcr, changer, dcr->device->changer_command, "loaded");
    *results = 0;
-   Dmsg1(200, "Run program=%s\n", changer);
+   Dmsg1(100, "Run program=%s\n", changer);
    status = run_program(changer, timeout, results);
-   Dmsg3(200, "run_prog: %s stat=%d result=%s\n", changer, status, results);
+   Dmsg3(100, "run_prog: %s stat=%d result=%s\n", changer, status, results);
    if (status == 0) {
       loaded = str_to_int32(results);
       if (loaded > 0) {
@@ -251,7 +254,7 @@ static void lock_changer(DCR *dcr)
 {
    AUTOCHANGER *changer_res = dcr->device->changer_res;
    if (changer_res) {
-      Dmsg1(100, "Locking changer %s\n", changer_res->hdr.name);
+      Dmsg1(200, "Locking changer %s\n", changer_res->hdr.name);
       P(changer_res->changer_mutex);  /* Lock changer script */
    }
 }
@@ -260,7 +263,7 @@ static void unlock_changer(DCR *dcr)
 {
    AUTOCHANGER *changer_res = dcr->device->changer_res;
    if (changer_res) {
-      Dmsg1(100, "Unlocking changer %s\n", changer_res->hdr.name);
+      Dmsg1(200, "Unlocking changer %s\n", changer_res->hdr.name);
       V(changer_res->changer_mutex);  /* Unlock changer script */
    }
 }
@@ -303,7 +306,7 @@ bool unload_autochanger(DCR *dcr, int loaded)
       changer = edit_device_codes(dcr, changer, 
                    dcr->device->changer_command, "unload");
       dev->close();
-      Dmsg1(200, "Run program=%s\n", changer);
+      Dmsg1(100, "Run program=%s\n", changer);
       int stat = run_program(changer, timeout, NULL);
       dcr->VolCatInfo.Slot = slot;
       if (stat != 0) {
@@ -356,7 +359,11 @@ static bool unload_other_drive(DCR *dcr, int slot)
    }
 
    /* The Volume we want is on another device. */
-       
+   if (dev->is_busy()) {
+      Dmsg4(100, "Vol %s for dev=%s in use dev=%s slot=%d\n",
+           dcr->VolumeName, dcr->dev->print_name(),
+           dev->print_name(), slot);
+   }   
    for (int i=0; i < 3; i++) {
       if (dev->is_busy()) {
          wait_for_device(dcr->jcr, first);
@@ -369,8 +376,9 @@ static bool unload_other_drive(DCR *dcr, int slot)
    if (dev->is_busy()) {
       Jmsg(jcr, M_WARNING, 0, _("Volume \"%s\" is in use by device %s\n"),
            dcr->VolumeName, dev->print_name());
-      Dmsg2(200, "Volume \"%s\" is in use by device %s\n",
-           dcr->VolumeName, dev->print_name());
+      Dmsg4(100, "Vol %s for dev=%s is busy dev=%s slot=%d\n",
+           dcr->VolumeName, dcr->dev->print_name(), dev->print_name(), slot);
+      Dmsg2(100, "num_writ=%d reserv=%d\n", dev->num_writers, dev->reserved_device);
       V(dev->mutex);
       return false;
    }
@@ -381,7 +389,7 @@ static bool unload_other_drive(DCR *dcr, int slot)
         _("3307 Issuing autochanger \"unload slot %d, drive %d\" command.\n"),
         slot, dev->drive_index);
 
-   Dmsg2(200, "Issuing autochanger \"unload slot %d, drive %d\" command.\n",
+   Dmsg2(100, "Issuing autochanger \"unload slot %d, drive %d\" command.\n",
         slot, dev->drive_index);
 
    save_dev = dcr->dev;
@@ -393,7 +401,7 @@ static bool unload_other_drive(DCR *dcr, int slot)
    dev->close();
    Dmsg2(200, "close dev=%s reserve=%d\n", dev->print_name(), 
       dev->reserved_device);
-   Dmsg1(200, "Run program=%s\n", changer_cmd);
+   Dmsg1(100, "Run program=%s\n", changer_cmd);
    int stat = run_program(changer_cmd, timeout, NULL);
    dcr->VolCatInfo.Slot = save_slot;
    dcr->dev = save_dev;
@@ -403,12 +411,12 @@ static bool unload_other_drive(DCR *dcr, int slot)
       Jmsg(jcr, M_INFO, 0, _("3995 Bad autochanger \"unload slot %d, drive %d\": ERR=%s.\n"),
               slot, dev->drive_index, be.strerror());
 
-      Dmsg3(200, "Bad autochanger \"unload slot %d, drive %d\": ERR=%s.\n",
+      Dmsg3(100, "Bad autochanger \"unload slot %d, drive %d\": ERR=%s.\n",
               slot, dev->drive_index, be.strerror());
       ok = false;
    } else {
       dev->Slot = 0;            /* nothing loaded */
-      Dmsg0(200, "Slot unloaded\n");
+      Dmsg0(100, "Slot unloaded\n");
    }
    unlock_changer(dcr);
    V(dev->mutex);

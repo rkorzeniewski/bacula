@@ -262,7 +262,7 @@ db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr)
 int
 db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr)
 {
-   SQL_ROW row;
+   SQL_ROW row = NULL;
    int numrows;
    const char *order;
 
@@ -313,23 +313,26 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
    }
 
    numrows = sql_num_rows(mdb);
-   if (item > numrows) {
-      Mmsg2(&mdb->errmsg, _("Request for Volume item %d greater than max %d\n"),
+   if (item > numrows || item < 1) {
+      Mmsg2(&mdb->errmsg, _("Request for Volume item %d greater than max %d or less than 1\n"),
          item, numrows);
       db_unlock(mdb);
       return 0;
    }
 
-   /* Seek to desired item
-    * Note, we use base 1; SQL uses base 0
+   /* Note, we previously seeked to the row using:
+    *  sql_data_seek(mdb, item-1);
+    * but this failed on PostgreSQL, so now we loop
+    * over all the records.  This should not be too horrible since
+    * the maximum Volumes we look at in any case is 20.
     */
-   sql_data_seek(mdb, item-1);
-
-   if ((row = sql_fetch_row(mdb)) == NULL) {
-      Mmsg1(&mdb->errmsg, _("No Volume record found for item %d.\n"), item);
-      sql_free_result(mdb);
-      db_unlock(mdb);
-      return 0;
+   while (item-- > 0) {
+      if ((row = sql_fetch_row(mdb)) == NULL) {
+         Mmsg1(&mdb->errmsg, _("No Volume record found for item %d.\n"), item);
+         sql_free_result(mdb);
+         db_unlock(mdb);
+         return 0;
+      }
    }
 
    /* Return fields in Media Record */

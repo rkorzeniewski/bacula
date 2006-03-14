@@ -243,7 +243,7 @@ bool send_level_command(JCR *jcr)
 /*
  * Send either an Included or an Excluded list to FD
  */
-static int send_fileset(JCR *jcr)
+static bool send_fileset(JCR *jcr)
 {
    FILESET *fileset = jcr->fileset;
    BSOCK   *fd = jcr->file_bsock;
@@ -385,11 +385,11 @@ static int send_fileset(JCR *jcr)
    if (!response(jcr, fd, OKinc, "Include", DISPLAY_ERROR)) {
       goto bail_out;
    }
-   return 1;
+   return true;
 
 bail_out:
    set_jcr_job_status(jcr, JS_ErrorTerminated);
-   return 0;
+   return false;
 
 }
 

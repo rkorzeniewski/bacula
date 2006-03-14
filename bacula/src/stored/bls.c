@@ -277,7 +277,7 @@ static void do_blocks(char *infname)
             free_record(record);
             Jmsg(jcr, M_INFO, 0, _("Mounted Volume \"%s\".\n"), dcr->VolumeName);
          } else if (dev->at_eof()) {
-            Jmsg(jcr, M_INFO, 0, _("Got EOF at file %u on device %s, Volume \"%s\"\n"),
+            Jmsg(jcr, M_INFO, 0, _("End of file %u on device %s, Volume \"%s\"\n"),
                dev->file, dev->print_name(), dcr->VolumeName);
             Dmsg0(20, "read_record got eof. try again\n");
             continue;

@@ -289,10 +289,10 @@ void do_restore(JCR *jcr)
             extract = true;
             /* FALLTHROUGH */
          case CF_CREATED:        /* File created, but there is no content */
-            P(jcr->mutex);
+            jcr->lock();  
             pm_strcpy(jcr->last_fname, attr->ofname);
-            V(jcr->mutex);
             jcr->JobFiles++;
+            jcr->unlock();
             fileAddr = 0;
             print_ls_output(jcr, attr);
 #ifdef HAVE_DARWIN_OS

@@ -2,6 +2,30 @@
                         Kern Sibbald
 
 General:
+14Mar06
+- Add more jcr methods and make mutex and use_count private.
+- Create lock/unlock methods for jcr.
+- Fix PostgreSQL bug doing sql_data_seeek() by explicitly reading
+  records to get to seek position.
+- Integrate patch from bug #561 to correct conio.c signal definitions.
+- Fix Rescheduling failed Jobs. Ensure that SD message thread 
+  terminates correctly by doing pthread_kill(). Do not destroy
+  SD cond wait variable between executions of the job. Use local
+  mutex for cond variable to avoid blocking jcr chain. Fix poor 
+  use of jcr use count in jobq.c for restarted jobs.
+- Fix obsolete usage of foreach_dlist() to use foreach_jcr() in
+  lib/jcr.c -- prevents locking the jcr chaing.
+- Apply patch from bug #564, which corrects listing volumes with
+  multiple autochangers. Apply same fix to next volume list.
+- Fix bug #562 where restore bootstrap file is not unique.
+- More details in implementing David's migration syntax proposal.
+- Save and restore dcr when swapping drives so that if we have
+  a write dcr it is not lost.
+- Use new routine lock_reservations() to lock the reservations
+  system, and call it while looking for a volume in askdir.c.
+  This could possibly fix bug #543.
+- Stop SD command loop if job is canceled.
+
 08Mar06
 - Remove old code from findlib/create_file.c
 - Rename mac.c migrate.c

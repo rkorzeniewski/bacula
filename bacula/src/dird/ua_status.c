@@ -360,6 +360,7 @@ struct sched_pkt {
    int priority;
    time_t runtime;
    POOL *pool;
+   STORE *store;
 };
 
 static void prt_runtime(UAContext *ua, sched_pkt *sp)
@@ -380,6 +381,7 @@ static void prt_runtime(UAContext *ua, sched_pkt *sp)
       }
       if (ok) {
          mr.PoolId = jcr->jr.PoolId;
+         mr.StorageId = sp->store->StorageId;
          ok = find_next_volume_for_append(jcr, &mr, 1, false/*no create*/);
       }
       if (!ok) {
@@ -435,6 +437,7 @@ static void list_scheduled_jobs(UAContext *ua)
    time_t runtime;
    RUN *run;
    JOB *job;
+   STORE* store;
    int level, num_jobs = 0;
    int priority;
    bool hdr_printed = false;
@@ -469,6 +472,11 @@ static void list_scheduled_jobs(UAContext *ua)
          if (run->Priority) {
             priority = run->Priority;
          }
+         if (run->storage) {
+            store = run->storage;
+         } else {
+            store = (STORE *)job->storage->first();
+         }
          if (!hdr_printed) {
             prt_runhdr(ua);
             hdr_printed = true;
@@ -479,6 +487,7 @@ static void list_scheduled_jobs(UAContext *ua)
          sp->priority = priority;
          sp->runtime = runtime;
          sp->pool = run->pool;
+         sp->store = store;
          sched.binary_insert_multiple(sp, my_compare);
          num_jobs++;
       }

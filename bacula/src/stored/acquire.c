@@ -48,6 +48,7 @@ bool acquire_device_for_read(DCR *dcr)
    int i;
    int vol_label_status;
    
+   Dmsg1(50, "jcr->dcr=%p\n", jcr->dcr);
    dev->block(BST_DOING_ACQUIRE);
 
    if (dev->num_writers > 0) {
@@ -84,6 +85,9 @@ bool acquire_device_for_read(DCR *dcr)
       RCTX rctx;
       DIRSTORE *store;
       int stat;
+      DCR *dcr_save = jcr->dcr;
+
+      jcr->dcr = NULL;
       memset(&rctx, 0, sizeof(RCTX));
       rctx.jcr = jcr;
       jcr->reserve_msgs = New(alist(10, not_owned_by_alist));
@@ -132,9 +136,12 @@ bool acquire_device_for_read(DCR *dcr)
          /* error */
          Jmsg1(jcr, M_FATAL, 0, _("No suitable device found to read Volume \"%s\"\n"),
             vol->VolumeName);
+         jcr->dcr = dcr_save;
          goto get_out;
       }
+      jcr->dcr = dcr_save;
    }
+
 
    init_device_wait_timers(dcr);
 
@@ -255,6 +262,7 @@ get_out:
    }
    V(dev->mutex);
    dev->unblock();
+   Dmsg1(50, "jcr->dcr=%p\n", jcr->dcr);
    return ok;
 }
 

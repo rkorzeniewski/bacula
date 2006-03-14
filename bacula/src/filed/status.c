@@ -172,9 +172,9 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
            edit_uint64_with_commas(njcr->num_files_examined, b1));
       sendit(msg, len, arg);
       if (njcr->JobFiles > 0) {
-         P(njcr->mutex);
+         njcr->lock();
          len = Mmsg(msg, _("    Processing file: %s\n"), njcr->last_fname);
-         V(njcr->mutex);
+         njcr->unlock();
          sendit(msg, len, arg);
       }
 

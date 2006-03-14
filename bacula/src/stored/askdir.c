@@ -162,7 +162,7 @@ static bool do_get_volume_info(DCR *dcr)
        return false;
     }
     memset(&vol, 0, sizeof(vol));
-    Dmsg1(100, "<dird %s", dir->msg);
+    Dmsg1(110, "<dird %s", dir->msg);
     n = sscanf(dir->msg, OK_media, vol.VolCatName,
                &vol.VolCatJobs, &vol.VolCatFiles,
                &vol.VolCatBlocks, &vol.VolCatBytes,
@@ -174,7 +174,7 @@ static bool do_get_volume_info(DCR *dcr)
                &vol.EndFile, &vol.EndBlock, &vol.VolCatParts,
                &vol.LabelType);
     if (n != 21) {
-       Dmsg2(100, "Bad response from Dir fields=%d: %s", n, dir->msg);
+       Dmsg2(110, "Bad response from Dir fields=%d: %s", n, dir->msg);
        Mmsg(jcr->errmsg, _("Error getting Volume info: %s"), dir->msg);
        return false;
     }
@@ -228,10 +228,6 @@ bool dir_find_next_appendable_volume(DCR *dcr)
     JCR *jcr = dcr->jcr;
     BSOCK *dir = jcr->dir_bsock;
     bool found = false;
-    /* This mutex should keep different devices from getting the
-     * same Volume.  
-     */
-    static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
     Dmsg0(200, "dir_find_next_appendable_volume\n");
     /*
@@ -239,7 +235,7 @@ bool dir_find_next_appendable_volume(DCR *dcr)
      *   the most available could already be mounted on another
      *   drive, so we continue looking for a not in use Volume.
      */
-    P(mutex);
+    lock_reservations();
     for (int vol_index=1;  vol_index < 20; vol_index++) {
        bash_spaces(dcr->media_type);
        bash_spaces(dcr->pool_name);
@@ -257,7 +253,8 @@ bool dir_find_next_appendable_volume(DCR *dcr)
              continue;
           }
        } else {
-          Dmsg0(200, "No volume info, return false\n");
+          Dmsg2(100, "No vol. index %d return false. dev=%s\n", vol_index,
+             dcr->dev->print_name());
           found = false;
           break;
        }
@@ -265,11 +262,11 @@ bool dir_find_next_appendable_volume(DCR *dcr)
     if (found) {
        Dmsg0(400, "dir_find_next_appendable_volume return true\n");
        new_volume(dcr, dcr->VolumeName);   /* reserve volume */
-       V(mutex);
+       unlock_reservations();
        return true;
     }
     dcr->VolumeName[0] = 0;
-    V(mutex);
+    unlock_reservations();
     return false;
 }
 

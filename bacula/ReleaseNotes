@@ -1,8 +1,15 @@
 
-          Release Notes for Bacula 1.38.6-beta3
+          Release Notes for Bacula 1.38.6-beta5
 
-  Bacula code: Total files = 418 Total lines = 136,328 (*.h *.c *.in)
+  Bacula code: Total files = 419 Total lines = 137,078 (*.h *.c *.in)
       20,440 additional lines of code since version 1.36.3
+
+!!!! Important !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  If you are compiling for a 64 bit machine, you need to ensure
+  that the code is compiled with the -O0 (- oh zero) option otherwise
+  the SD will crash on most all operations -- apparently due to
+  a compiler bug in gcc's 64 bit code generation.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 New features:
 - For autochanger get Scratch tape if in autochanger if
@@ -20,8 +27,7 @@ New features:
   to the unique job identification that Bacula creates for each
   job.  
 - The job report for Backups has a few more user friendly ways
-  of displaying the information submitted by John Kodis
-  <kodis at comcast.net>.
+  of displaying the information.
 - The wait command can now be made to wait for jobids.
 - New command line keywords are permitted in update volume. They
   are Inchanger=yes/no, slot=nn.      
@@ -43,6 +49,26 @@ Major bug fixes:
 Minor bug fixes:
 - See below:
 
+Release 1.38.6 beta5 14Mar06
+- Add more jcr methods and make mutex and use_count private.
+- Create lock/unlock methods for jcr.
+- Fix PostgreSQL bug doing sql_data_seeek() by explicitly reading
+  records to get to seek position.
+- Integrate patch from bug #561 to correct conio.c signal definitions.
+- Fix Rescheduling failed Jobs. Ensure that SD message thread 
+  terminates correctly by doing pthread_kill(). Do not destroy
+  SD cond wait variable between executions of the job. Use local
+  mutex for cond variable to avoid blocking jcr chain. Fix poor 
+  use of jcr use count in jobq.c for restarted jobs.
+- Fix obsolete usage of foreach_dlist() to use foreach_jcr() in
+  lib/jcr.c -- prevents locking the jcr chaing.
+- Apply patch from bug #564, which corrects listing volumes with
+  multiple autochangers. Apply same fix to next volume list.
+- Fix bug #562 where restore bootstrap file is not unique.
+- Use new routine lock_reservations() to lock the reservations
+  system, and call it while looking for a volume in askdir.c.
+  This could possibly fix bug #543.
+- Stop SD command loop if job is canceled.
 
 Release 1.38.6 beta3 4Mar06
 04Mar06
@@ -55,7 +81,7 @@ Release 1.38.6 beta3 4Mar06
   be the numeric (non-unique) job id.
 - Allow listing by any of the above.
 - Add the user friendly job report code for reporting job elapsed time
-  and rates with suffexes submitted by John Kodis <kodis at comcast.net>
+  and rates with suffexes.
 - Add Priority and JobLevel as Python settable items.
 - Use TEMPORARY table creation where the table is created by
   Bacula.

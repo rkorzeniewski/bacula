@@ -62,55 +62,63 @@ bool do_mac(JCR *jcr)
 
    Dmsg0(20, "Start read data.\n");
 
+   if (!jcr->read_dcr || !jcr->dcr) {
+      Jmsg(jcr, M_FATAL, 0, _("Read and write devices not properly initialized.\n"));
+      goto bail_out;
+   }
+   Dmsg2(000, "read_dcr=%p write_dcr=%p\n", jcr->read_dcr, jcr->dcr);
+
 
    create_restore_volume_list(jcr);
    if (jcr->NumVolumes == 0) {
       Jmsg(jcr, M_FATAL, 0, _("No Volume names found for %s.\n"), Type);
-      free_restore_volume_list(jcr);
-      return false;
+      goto bail_out;
    }
 
    Dmsg3(200, "Found %d volumes names for %s. First=%s\n", jcr->NumVolumes,
       jcr->VolList->VolumeName, Type);
 
-   /* Ready device for reading */
-   if (!acquire_device_for_read(jcr->read_dcr)) {
-      ok = false;
+   /* Ready devices for reading and writing */
+   if (!acquire_device_for_read(jcr->read_dcr) ||
+       !acquire_device_for_append(jcr->dcr)) {
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
       goto bail_out;
    }
 
-   if (!acquire_device_for_append(jcr->dcr)) {
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
-      ok = false;
-      goto bail_out;
-   }
    jcr->dcr->VolFirstIndex = jcr->dcr->VolLastIndex = 0;
    jcr->run_time = time(NULL);
 
    ok = read_records(jcr->read_dcr, record_cb, mount_next_read_volume);
+   goto ok_out;
 
 bail_out:
+   ok = false;
 
-   dev = jcr->dcr->dev;
-   if (ok || dev->can_write()) {
-      /* Flush out final partial block of this session */
-      if (!write_block_to_device(jcr->dcr)) {
-         Jmsg2(jcr, M_FATAL, 0, _("Fatal append error on device %s: ERR=%s\n"),
-               dev->print_name(), dev->bstrerror());
-         Dmsg0(100, _("Set ok=FALSE after write_block_to_device.\n"));
+ok_out:
+   if (jcr->dcr) {
+      dev = jcr->dcr->dev;
+      if (ok || dev->can_write()) {
+         /* Flush out final partial block of this session */
+         if (!write_block_to_device(jcr->dcr)) {
+            Jmsg2(jcr, M_FATAL, 0, _("Fatal append error on device %s: ERR=%s\n"),
+                  dev->print_name(), dev->bstrerror());
+            Dmsg0(100, _("Set ok=FALSE after write_block_to_device.\n"));
+            ok = false;
+         }
+      }  
+
+
+      if (ok && dev->is_dvd()) {
+         ok = dvd_close_job(jcr->dcr);   /* do DVD cleanup if any */
+      }
+      /* Release the device -- and send final Vol info to DIR */
+      release_device(jcr->dcr);
+   }
+
+   if (jcr->read_dcr) {
+      if (!release_device(jcr->read_dcr)) {
          ok = false;
       }
-   }  
-
-
-   if (ok && dev->is_dvd()) {
-      ok = dvd_close_job(jcr->dcr);   /* do DVD cleanup if any */
-   }
-   /* Release the device -- and send final Vol info to DIR */
-   release_device(jcr->dcr);
-
-   if (!release_device(jcr->read_dcr)) {
-      ok = false;
    }
 
    free_restore_volume_list(jcr);

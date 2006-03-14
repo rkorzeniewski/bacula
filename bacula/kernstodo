@@ -16,6 +16,8 @@ Document:
 Priority:
 
 For 1.39:
+- Some users claim that they must do two prune commands to get a
+  Volume marked as purged.
 - Print warning message if LANG environment variable does not specify
   UTF-8.
 === Migration from David ===

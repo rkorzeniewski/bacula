@@ -270,7 +270,7 @@ int prune_files(UAContext *ua, CLIENT *client)
 
    for (i=0; i < del.num_ids; i++) {
       Mmsg(query, del_File, edit_int64(del.JobId[i], ed1));
-      Dmsg1(000, "Delete Files JobId=%s\n", ed1);
+      Dmsg1(200, "Delete Files JobId=%s\n", ed1);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       /*
        * Now mark Job as having files purged. This is necessary to
@@ -280,7 +280,7 @@ int prune_files(UAContext *ua, CLIENT *client)
        */
       Mmsg(query, upd_Purged, edit_int64(del.JobId[i], ed1));
       db_sql_query(ua->db, query, NULL, (void *)NULL);
-      Dmsg1(000, "Update Purged sql=%s\n", query);
+      Dmsg1(200, "Update Purged sql=%s\n", query);
    }
    edit_uint64_with_commas(del.num_ids, ed1);
    bsendmsg(ua, _("Pruned Files from %s Jobs for client %s from catalog.\n"),

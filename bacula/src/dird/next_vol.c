@@ -301,7 +301,8 @@ void check_if_volume_valid_or_recyclable(JCR *jcr, MEDIA_DBR *mr, const char **r
          }
       } else {
          *reason = _("but should be Append, Purged or Recycle (cannot automatically "
-            "recycle current volume, as it still contains unpruned data)");
+            "recycle current volume, as it still contains unpruned data "
+            "or the Volume Retention time has not expired.)");
       }
    }
 }

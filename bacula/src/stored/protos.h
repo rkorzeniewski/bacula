@@ -208,12 +208,16 @@ bool read_records(DCR *dcr,
        bool mount_cb(DCR *dcr));
 
 /* From reserve.c */
+void    init_reservations_lock();
+void    term_reservations_lock();
+void    lock_reservations();
+void    unlock_reservations();
 void    release_volume(DCR *dcr);
 VOLRES *new_volume(DCR *dcr, const char *VolumeName);
 VOLRES *find_volume(const char *VolumeName);
 bool    free_volume(DEVICE *dev);
 void    free_unused_volume(DCR *dcr);
-void    init_volume_list();
+void    create_volume_list();
 void    free_volume_list();
 void    list_volumes(BSOCK *user);
 bool    is_volume_in_use(DCR *dcr);
