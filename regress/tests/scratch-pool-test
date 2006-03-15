@@ -53,7 +53,6 @@ wait
 messages
 list volumes
 llist volume=TestVolume001
-quit
 @# 
 @# now do a restore
 @#
@@ -73,7 +72,6 @@ else
   bin/bacula start 2>&1 >/dev/null
   cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
 fi
-exit
 scripts/check_for_zombie_jobs storage=DDS-4
 
 bin/bacula stop 2>&1 >/dev/null
