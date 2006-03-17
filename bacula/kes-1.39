@@ -2,6 +2,20 @@
                         Kern Sibbald
 
 General:
+17Mar06
+- Implement regex test program in tools directory.
+- Attempt to fix time problem with bsmtp with foreign langs.
+- Add strip_trailing_newline() submitted by user.
+- Implement regex matching in migrate.c
+16Mar06
+- Fix bug #537 to allow arbitrary time to mount a volume for
+  restore, if polling is turned on.     
+- If dir_user or dir-group is specified in ./configure apply it to
+  the working-dir. Fixes bug #533.
+- If rescheduling a job cancel the previous incarnation with the SD.
+  Fixes bugs #566 and 557.
+- Fix bug #567 do_message() definition type conflict.
+
 14Mar06
 - Add more jcr methods and make mutex and use_count private.
 - Create lock/unlock methods for jcr.

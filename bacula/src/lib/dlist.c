@@ -2,7 +2,7 @@
  *  Bacula doubly linked list routines.
  *
  *    dlist is a doubly linked list with the links being in the
- *	 list data item.
+ *       list data item.
  *
  *   Kern Sibbald, July MMIII
  *
@@ -10,7 +10,7 @@
  *
  */
 /*
-   Copyright (C) 2003-2005 Kern Sibbald
+   Copyright (C) 2003-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -41,8 +41,8 @@ void dlist::append(void *item)
       ((dlink *)(((char *)tail)+loffset))->next = item;
    }
    tail = item;
-   if (head == NULL) {		      /* if empty list, */
-      head = item;		      /* item is head as well */
+   if (head == NULL) {                /* if empty list, */
+      head = item;                    /* item is head as well */
    }
    num_items++;
 }
@@ -58,8 +58,8 @@ void dlist::prepend(void *item)
       ((dlink *)(((char *)head)+loffset))->prev = item;
    }
    head = item;
-   if (tail == NULL) {		      /* if empty list, */
-      tail = item;		      /* item is tail too */
+   if (tail == NULL) {                /* if empty list, */
+      tail = item;                    /* item is tail too */
    }
    num_items++;
 }
@@ -102,8 +102,8 @@ void dlist::insert_after(void *item, void *where)
  *  Insert an item in the list, but only if it is unique
  *  otherwise, the item is returned non inserted
  *
- * Returns: item	 if item inserted
- *	    other_item	 if same value already exists (item not inserted)
+ * Returns: item         if item inserted
+ *          other_item   if same value already exists (item not inserted)
  */
 void *dlist::binary_insert(void *item, int compare(void *item1, void *item2))
 {
@@ -119,16 +119,16 @@ void *dlist::binary_insert(void *item, int compare(void *item1, void *item2))
    if (num_items == 1) {
       comp = compare(item, first());
       if (comp < 0) {
-	 prepend(item);
+         prepend(item);
        //Dmsg0(000, "Insert before first.\n");
-	 return item;
+         return item;
       } else if (comp > 0) {
-	 insert_after(item, first());
+         insert_after(item, first());
        //Dmsg0(000, "Insert after first.\n");
-	 return item;
+         return item;
       } else {
        //Dmsg0(000, "Same as first.\n");
-	 return first();
+         return first();
       }
    }
    /* Check against last item */
@@ -164,25 +164,25 @@ void *dlist::binary_insert(void *item, int compare(void *item1, void *item2))
       int nxt;
       nxt = (low + high) / 2;
       while (nxt > cur) {
-	 cur_item = next(cur_item);
-	 cur++;
+         cur_item = next(cur_item);
+         cur++;
       }
       while (nxt < cur) {
-	 cur_item = prev(cur_item);
-	 cur--;
+         cur_item = prev(cur_item);
+         cur--;
       }
     //Dmsg1(000, "Compare item to %d\n", cur);
       comp = compare(item, cur_item);
     //Dmsg2(000, "Compare item to %d = %d\n", cur, comp);
       if (comp < 0) {
-	 high = cur;
+         high = cur;
        //Dmsg2(000, "set high; low=%d high=%d\n", low, high);
       } else if (comp > 0) {
-	 low = cur + 1;
+         low = cur + 1;
        //Dmsg2(000, "set low; low=%d high=%d\n", low, high);
       } else {
        //Dmsg1(000, "Same as item %d\n", cur);
-	 return cur_item;
+         return cur_item;
       }
    }
    if (high == cur) {
@@ -225,9 +225,9 @@ void *dlist::binary_search(void *item, int compare(void *item1, void *item2))
    if (num_items == 1) {
       comp = compare(item, cur_item);
       if (comp == 0) {
-	 return cur_item;
+         return cur_item;
       } else {
-	 return NULL;
+         return NULL;
       }
    }
    low = 1;
@@ -239,35 +239,35 @@ void *dlist::binary_search(void *item, int compare(void *item1, void *item2))
       nxt = (low + high) / 2;
       /* Now get cur pointing to nxt */
       while (nxt > cur) {
-	 cur_item = next(cur_item);
-	 cur++;
+         cur_item = next(cur_item);
+         cur++;
       }
       while (nxt < cur) {
-	 cur_item = prev(cur_item);
-	 cur--;
+         cur_item = prev(cur_item);
+         cur--;
       }
       comp = compare(item, cur_item);
       //Dmsg2(000, "Compare item to %d = %d\n", cur, comp);
       if (comp < 0) {
-	 high = cur;
+         high = cur;
          //Dmsg2(000, "set high; low=%d high=%d\n", low, high);
       } else if (comp > 0) {
-	 low = cur + 1;
+         low = cur + 1;
          //Dmsg2(000, "set low; low=%d high=%d\n", low, high);
       } else {
-	 return cur_item;
+         return cur_item;
       }
    }
    /*
     * low == high can only happen if low just 
-    *	got incremented from cur, and we have
-    *	not yet tested cur+1
+    *   got incremented from cur, and we have
+    *   not yet tested cur+1
     */
    if (low == high) {
       cur_item = next(cur_item);
       comp = compare(item, cur_item);
       if (comp == 0) {
-	 return cur_item;
+         return cur_item;
       }
    }
    return NULL;
@@ -281,15 +281,15 @@ void dlist::remove(void *item)
    if (item == head) {
       head = ilink->next;
       if (head) {
-	 ((dlink *)(((char *)head)+loffset))->prev = NULL;
+         ((dlink *)(((char *)head)+loffset))->prev = NULL;
       }
       if (item == tail) {
-	 tail = ilink->prev;
+         tail = ilink->prev;
       }
    } else if (item == tail) {
       tail = ilink->prev;
       if (tail) {
-	 ((dlink *)(((char *)tail)+loffset))->next = NULL;
+         ((dlink *)(((char *)tail)+loffset))->next = NULL;
       }
    } else {
       xitem = ilink->next;
@@ -371,7 +371,7 @@ int main()
       jcr->buf = bstrdup(buf);
       jcr_chain->prepend(jcr);
       if (i == 10) {
-	 save_jcr = jcr;
+         save_jcr = jcr;
       }
    }
 
@@ -401,7 +401,7 @@ int main()
       jcr->buf = bstrdup(buf);
       jcr_chain->append(jcr);
       if (i == 10) {
-	 save_jcr = jcr;
+         save_jcr = jcr;
       }
    }
 
@@ -432,21 +432,21 @@ int main()
    int count = 0;
    for (int i=0; i<CNT; i++) {
       for (int j=0; j<CNT; j++) {
-	 for (int k=0; k<CNT; k++) {
-	    count++;
-	    if ((count & 0x3FF) == 0) {
+         for (int k=0; k<CNT; k++) {
+            count++;
+            if ((count & 0x3FF) == 0) {
                Dmsg1(000, "At %d\n", count);
-	    }
-	    jcr = (MYJCR *)malloc(sizeof(MYJCR));
-	    jcr->buf = bstrdup(buf);
-	    jcr1 = (MYJCR *)jcr_chain->binary_insert(jcr, my_compare);
-	    if (jcr != jcr1) {
+            }
+            jcr = (MYJCR *)malloc(sizeof(MYJCR));
+            jcr->buf = bstrdup(buf);
+            jcr1 = (MYJCR *)jcr_chain->binary_insert(jcr, my_compare);
+            if (jcr != jcr1) {
                Dmsg2(000, "Insert of %s vs %s failed.\n", jcr->buf, jcr1->buf);
-	    }
-	    buf[1]--;
-	 }
+            }
+            buf[1]--;
+         }
          buf[1] = 'Z';
-	 buf[2]--;
+         buf[2]--;
       }
       buf[2] = 'Z';
       buf[0]--;

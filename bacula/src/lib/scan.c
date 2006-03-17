@@ -49,6 +49,16 @@ void strip_trailing_junk(char *cmd)
       *p-- = 0;
 }
 
+/* Strip any trailing newline characters from the string */
+void strip_trailing_newline(char *cmd)
+{
+   char *p;
+   p = cmd + strlen(cmd) - 1;
+
+   while ((p >= cmd) && (*p == '\n' || *p == '\r'))
+      *p-- = 0;
+}
+
 /* Strip any trailing slashes from a directory path */
 void strip_trailing_slashes(char *dir)
 {

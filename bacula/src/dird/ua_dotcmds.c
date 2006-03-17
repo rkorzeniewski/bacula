@@ -37,7 +37,7 @@ extern const char *client_backups;
 extern int console_msg_pending;
 
 /* Imported functions */
-extern int do_messages(UAContext *ua, const char *cmd);
+extern void do_messages(UAContext *ua, const char *cmd);
 extern int quit_cmd(UAContext *ua, const char *cmd);
 extern int qhelp_cmd(UAContext *ua, const char *cmd);
 extern int qstatus_cmd(UAContext *ua, const char *cmd);

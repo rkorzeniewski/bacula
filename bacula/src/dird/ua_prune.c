@@ -30,7 +30,7 @@
 /* Forward referenced functions */
 
 
-#define MAX_DEL_LIST_LEN 1000000
+#define MAX_DEL_LIST_LEN 2000000
 
 /* Imported variables */
 extern char *select_job;
@@ -46,6 +46,7 @@ extern char *del_File;
 extern char *upd_Purged;
 extern char *cnt_DelCand;
 extern char *del_Job;
+extern char *del_MAC;
 extern char *del_JobMedia;
 extern char *cnt_JobMedia;
 extern char *sel_JobMedia;
@@ -556,6 +557,8 @@ int prune_volume(UAContext *ua, MEDIA_DBR *mr)
       db_sql_query(ua->db, query, NULL, (void *)NULL);
       Mmsg(query, del_JobMedia, ed1);
       db_sql_query(ua->db, query, NULL, (void *)NULL);
+      Mmsg(query, del_MAC, ed1);
+      db_sql_query(ua->db, query, NULL, (void *)NULL);
       Dmsg1(050, "Del sql=%s\n", query);
       del.num_del++;
    }
@@ -567,8 +570,18 @@ int prune_volume(UAContext *ua, MEDIA_DBR *mr)
          del.num_del == 1 ? "Job" : "Jobs", mr->VolumeName);
    }
 
-   /* If purged, mark it so */
-   if (del.num_ids == del.num_del) {
+   /*
+    * Find out how many Jobs remain on this Volume by
+    *  counting the JobMedia records.
+    */
+   cnt.count = 0;
+   Mmsg(query, cnt_JobMedia, edit_int64(mr->MediaId, ed1));
+   if (!db_sql_query(ua->db, query, count_handler, (void *)&cnt)) {
+      bsendmsg(ua, "%s", db_strerror(ua->db));
+      Dmsg0(050, "Count failed\n");
+      goto bail_out;
+   }
+   if (cnt.count == 0) {
       Dmsg0(200, "Volume is purged.\n");
       stat = mark_media_purged(ua, mr);
    }

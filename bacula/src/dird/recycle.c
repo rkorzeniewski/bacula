@@ -46,23 +46,23 @@ static int oldest_handler(void *ctx, int num_fields, char **row)
 
 /* Forward referenced functions */
 
-int find_recycled_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
+bool find_recycled_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
 {
    bstrncpy(mr->VolStatus, "Recycle", sizeof(mr->VolStatus));
    if (db_find_next_volume(jcr, jcr->db, 1, InChanger, mr)) {
       jcr->MediaId = mr->MediaId;
       Dmsg1(20, "Find_next_vol MediaId=%u\n", jcr->MediaId);
       pm_strcpy(jcr->VolumeName, mr->VolumeName);
-      return 1;
+      return true;
    }
-   return 0;
+   return false;
 }
 
 
 /*
  *   Look for oldest Purged volume
  */
-int recycle_oldest_purged_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
+bool recycle_oldest_purged_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
 {
    struct s_oldest_ctx oldest;
    char ed1[50];
@@ -88,7 +88,7 @@ int recycle_oldest_purged_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
       Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
       Dmsg0(100, "return 0  recycle_oldest_purged_volume query\n");
       free_pool_memory(query);
-      return 0;
+      return false;
    }
    free_pool_memory(query);
    Dmsg1(100, "Oldest mediaid=%d\n", oldest.MediaId);
@@ -98,13 +98,13 @@ int recycle_oldest_purged_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
          if (recycle_volume(jcr, mr)) {
             Jmsg(jcr, M_INFO, 0, _("Recycled volume \"%s\"\n"), mr->VolumeName);
             Dmsg1(100, "return 1  recycle_oldest_purged_volume Vol=%s\n", mr->VolumeName);
-            return 1;
+            return true;
          }
       }
       Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
    }
    Dmsg0(100, "return 0  recycle_oldest_purged_volume end\n");
-   return 0;
+   return false;
 }
 
 /*

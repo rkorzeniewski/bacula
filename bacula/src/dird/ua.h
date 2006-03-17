@@ -98,7 +98,7 @@ struct RESTORE_CTX {
    NAME_LIST name_list;
 };
 
-#define MAX_ID_LIST_LEN 1000000
+#define MAX_ID_LIST_LEN 2000000
 
 
 #endif

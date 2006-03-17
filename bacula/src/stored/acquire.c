@@ -47,6 +47,7 @@ bool acquire_device_for_read(DCR *dcr)
    bool try_autochanger = true;
    int i;
    int vol_label_status;
+   int retry = 0;
    
    Dmsg1(50, "jcr->dcr=%p\n", jcr->dcr);
    dev->block(BST_DOING_ACQUIRE);
@@ -156,7 +157,11 @@ bool acquire_device_for_read(DCR *dcr)
       Jmsg1(jcr, M_WARNING, 0, "%s", jcr->errmsg);
    }
    
-   for (i=0; i<5; i++) {
+   for ( ;; ) {
+      /* If not polling limit retries */
+      if (!dev->poll && retry++ > 10) {
+         break;
+      }
       dev->clear_labeled();              /* force reread of label */
       if (job_canceled(jcr)) {
          Mmsg1(dev->errmsg, _("Job %d canceled.\n"), jcr->JobId);
@@ -204,6 +209,12 @@ bool acquire_device_for_read(DCR *dcr)
          if (tape_initially_mounted) {
             tape_initially_mounted = false;
             goto default_path;
+         }
+         /* If polling and got a previous bad name, ignore it */
+         if (dev->poll && strcmp(dev->BadVolName, dev->VolHdr.VolumeName) == 0) {
+            goto default_path;
+         } else {
+             bstrncpy(dev->BadVolName, dev->VolHdr.VolumeName, sizeof(dev->BadVolName));
          }
          /* Fall through */
       default:
