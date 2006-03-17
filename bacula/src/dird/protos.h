@@ -34,9 +34,9 @@ extern int do_autoprune(JCR *jcr);
 extern int prune_volumes(JCR *jcr);
 
 /* autorecycle.c */
-extern int recycle_oldest_purged_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr);
+extern bool recycle_oldest_purged_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr);
 extern int recycle_volume(JCR *jcr, MEDIA_DBR *mr);
-extern int find_recycled_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr);
+extern bool find_recycled_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr);
 
 /* backup.c */
 extern int wait_for_job_termination(JCR *jcr);

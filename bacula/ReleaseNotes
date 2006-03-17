@@ -1,5 +1,5 @@
 
-          Release Notes for Bacula 1.38.6-beta5
+          Release Notes for Bacula 1.38.6-beta6
 
   Bacula code: Total files = 419 Total lines = 137,078 (*.h *.c *.in)
       20,440 additional lines of code since version 1.36.3
@@ -48,6 +48,18 @@ Major bug fixes:
 
 Minor bug fixes:
 - See below:
+
+Release 1.38.6 beta6 16Mar06
+- Fix bug #537 to allow arbitrary time to mount a volume for
+  restore, if polling is turned on.     
+- Disallow multiple storage specifications for a job. Should fix Arno's
+  problem.
+- Add back a missing store of poolid in jr.poolid.    
+- If dir_user or dir-group is specified in ./configure apply it to
+  the working-dir. Fixes bug #533.
+- If rescheduling a job cancel the previous incarnation with the SD.
+  Fixes bugs #566 and 557.
+- Fix bug #567 do_message() definition type conflict.
 
 Release 1.38.6 beta5 14Mar06
 - Add more jcr methods and make mutex and use_count private.

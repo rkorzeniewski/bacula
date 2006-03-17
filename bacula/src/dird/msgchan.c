@@ -141,6 +141,16 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
    if (jcr->fileset->MD5[0] == 0) {
       bstrncpy(jcr->fileset->MD5, "**Dummy**", sizeof(jcr->fileset->MD5));
    }
+   /* If rescheduling, cancel the previous incarnation of this job
+    *  with the SD, which might be waiting on the FD connection.
+    *  If we do not cancel it the SD will not accept a new connection
+    *  for the same jobid.
+    */
+   if (jcr->reschedule_count) {
+      bnet_fsend(sd, "cancel Job=%s\n", jcr->Job);
+      while (bnet_recv(sd) >= 0)
+         { }
+   } 
    bnet_fsend(sd, jobcmd, jcr->JobId, jcr->Job, jcr->job->hdr.name,
               jcr->client->hdr.name, jcr->JobType, jcr->JobLevel,
               jcr->fileset->hdr.name, !jcr->pool->catalog_files,

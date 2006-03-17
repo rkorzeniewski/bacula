@@ -4,6 +4,8 @@
 @MCOMMON@
 
 working_dir=@working_dir@
+dir_group=@dir_group@
+dir_user=@dir_user@
 
 srcdir =	@srcdir@
 VPATH = 	@srcdir@
@@ -88,6 +90,10 @@ installdirs:
 	$(MKDIR) $(DESTDIR)$(sysconfdir)
 	$(MKDIR) $(DESTDIR)$(scriptdir)
 	$(MKDIR) $(DESTDIR)$(working_dir)
+	if test "x$(dir_user)" != "x" ; then \
+	   chown -f $(dir_user) $(DESTDIR)$(working_dir); fi
+	if test "x$(dir_group)" != "x" ; then \
+	   chown -f :$(dir_group) $(DESTDIR)$(working_dir); fi
 #	$(MKDIR) $(DESTDIR)$(mandir)
 
 gnomedirs:

@@ -2,6 +2,19 @@
                         Kern Sibbald
 
 General:
+16Mar06
+- Fix bug #537 to allow arbitrary time to mount a volume for
+  restore, if polling is turned on.     
+- Disallow multiple storage specifications for a job. Should fix Arno's
+  problem.
+- Add back a missing store of poolid in jr.poolid.    
+- If dir_user or dir-group is specified in ./configure apply it to
+  the working-dir. Fixes bug #533.
+- If rescheduling a job cancel the previous incarnation with the SD.
+  Fixes bugs #566 and 557.
+- Fix bug #567 do_message() definition type conflict.
+
+
 14Mar06
 - Add more jcr methods and make mutex and use_count private.
 - Create lock/unlock methods for jcr.
