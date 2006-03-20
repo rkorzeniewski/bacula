@@ -125,6 +125,8 @@ _("\n"
 "       -f          set the From: field\n"
 "       -h          use mailhost:port as the SMTP server\n"
 "       -s          set the Subject: field\n"
+"       -r          set the Reply-To: field\n"
+"       -l          set the maximum number of lines that should be sent (default: unlimited)\n"
 "       -?          print this message.\n"
 "\n"), MY_NAME);
 
@@ -142,6 +144,7 @@ int main (int argc, char *argv[])
     struct sockaddr_in sin;
     struct hostent *hp;
     int s, r, i, ch;
+    unsigned long maxlines, lines;
     struct passwd *pwd;
     char *cp, *p;
     time_t now = time(NULL);
@@ -152,8 +155,9 @@ int main (int argc, char *argv[])
    textdomain("bacula");
 
    my_name_is(argc, argv, "bsmtp");
+   maxlines = 0;
 
-   while ((ch = getopt(argc, argv, "c:d:f:h:r:s:?")) != -1) {
+   while ((ch = getopt(argc, argv, "c:d:f:h:r:s:l:?")) != -1) {
       switch (ch) {
       case 'c':
          Dmsg1(20, "cc=%s\n", optarg);
@@ -190,6 +194,11 @@ int main (int argc, char *argv[])
       case 'r':                    /* reply address */
          reply_addr = optarg;
          break;
+
+      case 'l':
+	 Dmsg1(20, "maxlines=%s\n", optarg);
+	 maxlines = (unsigned long) atol(optarg);
+	 break;
 
       case '?':
       default:
@@ -359,13 +368,23 @@ hp:
    /*
     *  Send message body
     */
+   lines = 0;
    while (fgets(buf, sizeof(buf), stdin)) {
+      if (maxlines > 0 && ++lines > maxlines) {
+         Dmsg1(20, "skip line because of maxlines limit: %lu\n", maxlines);
+	 continue;
+      }
       buf[strlen(buf)-1] = 0;
       if (strcmp(buf, ".") == 0) { /* quote lone dots */
          fprintf(sfp, "..\r\n");
       } else {                     /* pass body through unchanged */
          fprintf(sfp, "%s\r\n", buf);
       }
+   }
+
+   if (lines > maxlines) {
+      Dmsg1(10, "hit maxlines limit: %lu\n", maxlines);
+      fprintf(sfp, "\r\n[maximum of %lu lines exceeded, skipped %lu lines of output]\r\n", maxlines, lines-maxlines);
    }
 
    /*
