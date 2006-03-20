@@ -2,6 +2,9 @@
                         Kern Sibbald
 
 General:
+20Mar06
+- Integrate addition of line count limitation to bsmtp -l from
+  Sebastian Stark <stark at tuebingen.mpg.de>
 17Mar06
 - Implement regex test program in tools directory.
 - Attempt to fix time problem with bsmtp with foreign langs.
