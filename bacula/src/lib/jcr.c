@@ -229,8 +229,8 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    jcr->job_end_push.init(1, false);
    jcr->sched_time = time(NULL);
    jcr->daemon_free_jcr = daemon_free_jcr;    /* plug daemon free routine */
-   jcr->inc_use_count();
    jcr->init_mutex();
+   jcr->inc_use_count();   
    jcr->JobStatus = JS_Created;       /* ready to run */
    jcr->VolumeName = get_pool_memory(PM_FNAME);
    jcr->VolumeName[0] = 0;
