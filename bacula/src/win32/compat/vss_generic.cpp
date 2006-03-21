@@ -67,6 +67,8 @@ using namespace std;
 #ifdef B_VSS_XP
    #pragma message("compile VSS for Windows XP")   
    #define VSSClientGeneric VSSClientXP
+   // wait is not available under XP...
+   #define VSS_TIMEOUT
 
    #include "vss/inc/WinXP/vss.h"
    #include "vss/inc/WinXP/vswriter.h"
@@ -85,6 +87,8 @@ using namespace std;
 #ifdef B_VSS_W2K3
    #pragma message("compile VSS for Windows 2003")
    #define VSSClientGeneric VSSClient2003
+   // wait x ms for a VSS asynchronous operation (-1 = infinite)
+   #define VSS_TIMEOUT (DWORD) 300000
 
    #include "vss/inc/Win2003/vss.h"
    #include "vss/inc/Win2003/vswriter.h"
@@ -278,7 +282,7 @@ BOOL VSSClientGeneric::Initialize(DWORD dwContext, BOOL bDuringRestore)
 void VSSClientGeneric::WaitAndCheckForAsyncOperation(IVssAsync* pAsync)
 {
      // Wait until the async operation finishes
-    HRESULT hr = pAsync->Wait();
+    HRESULT hr = pAsync->Wait(VSS_TIMEOUT);
 
     // Check the result of the asynchronous operation
     HRESULT hrReturned = S_OK;
