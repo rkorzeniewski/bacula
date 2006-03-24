@@ -36,7 +36,7 @@
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /* Commands sent to Storage daemon */
-static char jobcmd[]     = "JobId=%d job=%s job_name=%s client_name=%s "
+static char jobcmd[]     = "JobId=%s job=%s job_name=%s client_name=%s "
    "type=%d level=%d FileSet=%s NoAttr=%d SpoolAttr=%d FileSetMD5=%s "
    "SpoolData=%d WritePartAfterJob=%d PreferMountedVols=%d\n";
 static char use_storage[] = "use storage=%s media_type=%s pool_name=%s "
@@ -51,7 +51,7 @@ static char OK_device[]  = "3000 OK use device device=%s\n";
 /* Storage Daemon requests */
 static char Job_start[]  = "3010 Job %127s start\n";
 static char Job_end[]    =
-   "3099 Job %127s end JobStatus=%d JobFiles=%d JobBytes=%lld\n";
+   "3099 Job %127s end JobStatus=%d JobFiles=%d JobBytes=%" lld "\n";
 
 /* Forward referenced functions */
 extern "C" void *msg_thread(void *arg);
@@ -128,16 +128,21 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
    BSOCK *sd;
    char auth_key[100];
    POOL_MEM store_name, device_name, pool_name, pool_type, media_type;
+   POOL_MEM job_name, client_name, fileset_name;
    int copy = 0;
    int stripe = 0;
+   char ed1[30];
 
    sd = jcr->store_bsock;
    /*
     * Now send JobId and permissions, and get back the authorization key.
     */
-   bash_spaces(jcr->job->hdr.name);
-   bash_spaces(jcr->client->hdr.name);
-   bash_spaces(jcr->fileset->hdr.name);
+   pm_strcpy(job_name, jcr->job->hdr.name);
+   bash_spaces(job_name);
+   pm_strcpy(client_name, jcr->client->hdr.name);
+   bash_spaces(client_name);
+   pm_strcpy(fileset_name, jcr->fileset->hdr.name);
+   bash_spaces(fileset_name);
    if (jcr->fileset->MD5[0] == 0) {
       bstrncpy(jcr->fileset->MD5, "**Dummy**", sizeof(jcr->fileset->MD5));
    }
@@ -151,15 +156,13 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
       while (bnet_recv(sd) >= 0)
          { }
    } 
-   bnet_fsend(sd, jobcmd, jcr->JobId, jcr->Job, jcr->job->hdr.name,
-              jcr->client->hdr.name, jcr->JobType, jcr->JobLevel,
-              jcr->fileset->hdr.name, !jcr->pool->catalog_files,
+   bnet_fsend(sd, jobcmd, edit_int64(jcr->JobId, ed1), jcr->Job, 
+              job_name.c_str(), client_name.c_str(), 
+              jcr->JobType, jcr->JobLevel,
+              fileset_name.c_str(), !jcr->pool->catalog_files,
               jcr->job->SpoolAttributes, jcr->fileset->MD5, jcr->spool_data, 
               jcr->write_part_after_job, jcr->job->PreferMountedVolumes);
    Dmsg1(100, ">stored: %s\n", sd->msg);
-   unbash_spaces(jcr->job->hdr.name);
-   unbash_spaces(jcr->client->hdr.name);
-   unbash_spaces(jcr->fileset->hdr.name);
    if (bget_dirmsg(sd) > 0) {
        Dmsg1(100, "<stored: %s", sd->msg);
        if (sscanf(sd->msg, OKjob, &jcr->VolSessionId,
@@ -217,11 +220,6 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
          /* ****FIXME**** save actual device name */
          ok = sscanf(sd->msg, OK_device, device_name.c_str()) == 1;
       } else {
-         POOL_MEM err_msg;
-         pm_strcpy(err_msg, sd->msg); /* save message */
-         Jmsg(jcr, M_FATAL, 0, _("\n"
-            "     Storage daemon didn't accept Device \"%s\" because:\n     %s"),
-            device_name.c_str(), err_msg.c_str()/* sd->msg */);
          ok = false;
       }
    }
@@ -252,12 +250,20 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
          /* ****FIXME**** save actual device name */
          ok = sscanf(sd->msg, OK_device, device_name.c_str()) == 1;
       } else {
-         POOL_MEM err_msg;
+         ok = false;
+      }
+   }
+   if (!ok) {
+      POOL_MEM err_msg;
+      if (sd->msg[0]) {
          pm_strcpy(err_msg, sd->msg); /* save message */
          Jmsg(jcr, M_FATAL, 0, _("\n"
-            "     Storage daemon didn't accept Device \"%s\" because:\n     %s"),
-            device_name.c_str(), err_msg.c_str()/* sd->msg */);
-         ok = false;
+              "     Storage daemon didn't accept Device \"%s\" because:\n     %s"),
+              device_name.c_str(), err_msg.c_str()/* sd->msg */);
+      } else { 
+         Jmsg(jcr, M_FATAL, 0, _("\n"
+              "     Storage daemon didn't accept Device \"%s\" command.\n"), 
+              device_name.c_str());
       }
    }
    return ok;

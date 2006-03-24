@@ -409,9 +409,10 @@ static bool use_storage_cmd(JCR *jcr)
     */
    if (ok) {
       bool first = true;           /* print wait message once */
+      bool fail = false;
       rctx.notify_dir = true;
-      for ( ; !job_canceled(jcr); ) {
-         lock_reservations();           /* only one thread at a time */
+      lock_reservations();
+      for ( ; !fail && !job_canceled(jcr); ) {
          while ((msg = (char *)msgs->pop())) {
             free(msg);
          }
@@ -473,48 +474,41 @@ static bool use_storage_cmd(JCR *jcr)
          if ((ok = find_suitable_device_for_job(jcr, rctx))) {
             break;
          }
-         /* Unlock before possible wait */
+         /* Keep reservations locked *except* during wait_for_device() */
          unlock_reservations();
          if (!rctx.suitable_device || !wait_for_device(jcr, first)) {
             Dmsg0(100, "Fail. !suitable_device || !wait_for_device\n");
-            break;       /* Get out, failure ... */
+            fail = true;
          }   
+         lock_reservations();
          first = false;
          bnet_sig(dir, BNET_HEARTBEAT);  /* Inform Dir that we are alive */
       }
-      /* Note if !ok then search_lock is already cleared */
-      if (ok) {
-         unlock_reservations();
-         goto all_done;
-      } 
-
-      /*
-       * If we get here, there are no suitable devices available, which
-       *  means nothing configured.  If a device is suitable but busy
-       *  with another Volume, we will not come here.
-       */
-      if (verbose) {
+      unlock_reservations();
+      if (!ok) {
+         /*
+          * If we get here, there are no suitable devices available, which
+          *  means nothing configured.  If a device is suitable but busy
+          *  with another Volume, we will not come here.
+          */
          unbash_spaces(dir->msg);
          pm_strcpy(jcr->errmsg, dir->msg);
          Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
-      }
-      Jmsg(jcr, M_FATAL, 0, _("\n"
-         "     Device \"%s\" with MediaType \"%s\" requested by DIR not found in SD Device resources.\n"),
-           dev_name.c_str(), media_type.c_str());
-      bnet_fsend(dir, NO_device, dev_name.c_str());
+         Jmsg(jcr, M_FATAL, 0, _("\n"
+            "     Device \"%s\" with MediaType \"%s\" requested by DIR not found in SD Device resources.\n"),
+              dev_name.c_str(), media_type.c_str());
+         bnet_fsend(dir, NO_device, dev_name.c_str());
 
-      Dmsg1(100, ">dird: %s", dir->msg);
+         Dmsg1(100, ">dird: %s", dir->msg);
+      }
    } else {
       unbash_spaces(dir->msg);
       pm_strcpy(jcr->errmsg, dir->msg);
-      if (verbose) {
-         Jmsg(jcr, M_INFO, 0, _("Failed command: %s\n"), jcr->errmsg);
-      }
+      Jmsg(jcr, M_FATAL, 0, _("Failed command: %s\n"), jcr->errmsg);
       bnet_fsend(dir, BAD_use, jcr->errmsg);
       Dmsg1(100, ">dird: %s", dir->msg);
    }
 
-all_done:
    release_msgs(jcr);
    return ok;
 }
@@ -748,7 +742,10 @@ static bool reserve_device_for_read(DCR *dcr)
 
    ASSERT(dcr);
 
+   /* Get locks in correct order */
+   unlock_reservations();
    P(dev->mutex);
+   lock_reservations();
 
    if (is_device_unmounted(dev)) {             
       Dmsg1(200, "Device %s is BLOCKED due to user unmount.\n", dev->print_name());

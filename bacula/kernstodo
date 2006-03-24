@@ -16,6 +16,10 @@ Document:
 Priority:
 
 For 1.39:
+- Fix re-read of last block to check if job has actually written
+  a block, and check if block was written by a different job
+  (i.e. multiple simultaneous jobs writing).
+- JobStatus and Termination codes.
 - Some users claim that they must do two prune commands to get a
   Volume marked as purged.
 - Print warning message if LANG environment variable does not specify

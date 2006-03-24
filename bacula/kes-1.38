@@ -2,6 +2,31 @@
                         Kern Sibbald
 
 General:
+24Mar06
+- Create datestyle fix for PostgreSQL. Fixes bug #574.
+- Correct editing of JobId from int to int64 in fd_cmds.c
+- Eliminate FileSet name race with bash_spaces() and multiple
+  threads by bashing in a local.
+- Fix error return from 'use storage' to print a correct error
+  message rather than nothing.
+- Correct false re-read last block error message when two jobs 
+  are simultaneously writing at the end of a tape.
+- Simplify exit conditions in the reserve.c code to avoid  
+  possible non-release of reservation_lock().
+- Suffle lock order in reserve to avoid deadlock between
+  reservation lock and device mutex.
+- Add Thorsten's VSS timeout code to 1.38 branch.
+21Mar06
+- Initialize jcr mutex before first use. Thanks to Thorsten for
+  tracking this down for me !!!! as it broke the Win32 build.
+20Mar06
+- Integrate addition of line count limitation to bsmtp -l from
+  Sebastian Stark <stark at tuebingen.mpg.de>
+17Mar06
+- Implement regex test program in tools directory.
+- Attempt to fix time problem with bsmtp with foreign langs.
+- Add strip_trailing_newline() submitted by user.
+
 16Mar06
 - Fix bug #537 to allow arbitrary time to mount a volume for
   restore, if polling is turned on.     

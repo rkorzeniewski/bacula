@@ -31,6 +31,11 @@ New features:
 - The wait command can now be made to wait for jobids.
 - New command line keywords are permitted in update volume. They
   are Inchanger=yes/no, slot=nn.      
+- Add two new console commands: enable job=<job-name> and 
+  disable job=<job-name>. When a job is disabled, it will not
+  be started by the scheduler.  If you disable a job and restart
+  Bacula or reload the .conf file, the job will be re-enabled.
+- Add a new Job resource directive "enable = yes|no".
  
 Major bug fixes:
 - Fix race condition in multiple-drive autochangers where

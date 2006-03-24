@@ -33,7 +33,7 @@
 
 /* Commands sent to File daemon */
 static char filesetcmd[]  = "fileset%s\n"; /* set full fileset */
-static char jobcmd[]      = "JobId=%d Job=%s SDid=%u SDtime=%u Authorization=%s\n";
+static char jobcmd[]      = "JobId=%s Job=%s SDid=%u SDtime=%u Authorization=%s\n";
 /* Note, mtime_only is not used here -- implemented as file option */
 static char levelcmd[]    = "level = %s%s mtime_only=%d\n";
 static char runbefore[]   = "RunBeforeJob %s\n";
@@ -67,6 +67,7 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
                            int verbose)
 {
    BSOCK   *fd;
+   char ed1[30];
 
    if (!jcr->file_bsock) {
       fd = bnet_connect(jcr, retry_interval, max_retry_time,
@@ -92,7 +93,7 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
    /*
     * Now send JobId and authorization key
     */
-   bnet_fsend(fd, jobcmd, jcr->JobId, jcr->Job, jcr->VolSessionId,
+   bnet_fsend(fd, jobcmd, edit_int64(jcr->JobId, ed1), jcr->Job, jcr->VolSessionId,
       jcr->VolSessionTime, jcr->sd_auth_key);
    if (strcmp(jcr->sd_auth_key, "dummy") != 0) {
       memset(jcr->sd_auth_key, 0, strlen(jcr->sd_auth_key));

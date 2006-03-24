@@ -8,7 +8,7 @@
  *    Version $Id$
  */
 /*
-   Copyright (C) 2003-2005 Kern Sibbald
+   Copyright (C) 2003-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -174,6 +174,8 @@ db_open_database(JCR *jcr, B_DB *mdb)
       V(mutex);
       return 0;
    }
+
+   sql_query(mdb, "SET datestyle TO 'ISO, YMD'");
 
    mdb->connected = true;
    V(mutex);
