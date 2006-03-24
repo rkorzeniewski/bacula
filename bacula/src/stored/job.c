@@ -41,7 +41,7 @@ static char jobcmd[] = "JobId=%d job=%127s job_name=%127s client_name=%127s "
 
 /* Responses sent to Director daemon */
 static char OKjob[]     = "3000 OK Job SDid=%u SDtime=%u Authorization=%s\n";
-static char BAD_job[]   = "3915 Bad Job command: %s\n";
+static char BAD_job[]   = "3915 Bad Job command. stat=%d CMD: %s\n";
 //static char OK_query[]  = "3001 OK query\n";
 //static char NO_query[]  = "3918 Query failed\n";
 //static char BAD_query[] = "3917 Bad query command: %s\n";
@@ -64,22 +64,22 @@ bool job_cmd(JCR *jcr)
    POOL_MEM job_name, client_name, job, fileset_name, fileset_md5;
    int JobType, level, spool_attributes, no_attributes, spool_data;
    int write_part_after_job, PreferMountedVols;
-
+   int stat;
    JCR *ojcr;
 
    /*
     * Get JobId and permissions from Director
     */
    Dmsg1(100, "<dird: %s", dir->msg);
-   if (sscanf(dir->msg, jobcmd, &JobId, job.c_str(), job_name.c_str(),
+   stat = sscanf(dir->msg, jobcmd, &JobId, job.c_str(), job_name.c_str(),
               client_name.c_str(),
               &JobType, &level, fileset_name.c_str(), &no_attributes,
               &spool_attributes, fileset_md5.c_str(), &spool_data, 
-              &write_part_after_job, &PreferMountedVols) != 13) {
+              &write_part_after_job, &PreferMountedVols);
+   if (stat != 13) {
       pm_strcpy(jcr->errmsg, dir->msg);
-      bnet_fsend(dir, BAD_job, jcr->errmsg);
+      bnet_fsend(dir, BAD_job, stat, jcr->errmsg);
       Dmsg1(100, ">dird: %s", dir->msg);
-      Emsg1(M_FATAL, 0, _("Bad Job Command from Director: %s\n"), jcr->errmsg);
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       return false;
    }

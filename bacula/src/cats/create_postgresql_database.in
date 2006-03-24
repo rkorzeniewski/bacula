@@ -16,6 +16,7 @@ ENCODING="ENCODING 'SQL_ASCII'"
 
 if $bindir/psql -f - -d template1 $* <<END-OF-DATA
 CREATE DATABASE bacula $ENCODING;
+ALTER DATABASE bacula SET datestyle TO 'ISO, YMD';
 END-OF-DATA
 then
    echo "Creation of bacula database succeeded."

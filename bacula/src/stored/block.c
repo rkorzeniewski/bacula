@@ -649,12 +649,17 @@ static void reread_last_block(DCR *dcr)
             Jmsg(jcr, M_ERROR, 0, _("Re-read last block at EOT failed. ERR=%s"), 
                  dev->errmsg);
          } else {
-            if (lblock->BlockNumber+1 == block->BlockNumber) {
-               Jmsg(jcr, M_INFO, 0, _("Re-read of last block succeeded.\n"));
-            } else {
+            /*
+             * If we wrote block and the block numbers don't agree
+             *  we have a possible problem.
+             */
+            if (lblock->VolSessionId == block->VolSessionId &&
+                lblock->BlockNumber+1 != block->BlockNumber) {
                Jmsg(jcr, M_ERROR, 0, _(
-"Re-read of last block failed. Last block=%u Current block=%u.\n"),
+"Re-read of last block OK, but block numbers differ. Last block=%u Current block=%u.\n"),
                     lblock->BlockNumber, block->BlockNumber);
+            } else {
+               Jmsg(jcr, M_INFO, 0, _("Re-read of last block succeeded.\n"));
             }
          }
          free_block(lblock);
