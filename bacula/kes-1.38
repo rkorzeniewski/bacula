@@ -2,6 +2,12 @@
                         Kern Sibbald
 
 General:
+25Mar06
+- Split the bacula start/start script into four files:
+   bacula         -- starts and stops calling other scripts
+   bacula-ctl-dir -- starts/stops the director
+   bacula-ctl-fd  -- starts/stops the File daemon
+   bacula-ctl-sd  -- starts/stops the Storage daemon
 24Mar06
 - Create datestyle fix for PostgreSQL. Fixes bug #574.
 - Correct editing of JobId from int to int64 in fd_cmds.c

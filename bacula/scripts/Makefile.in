@@ -38,6 +38,9 @@ install: installdirs
 	$(INSTALL_SCRIPT) bconsole $(DESTDIR)$(scriptdir)/bconsole
 	$(INSTALL_SCRIPT) gconsole $(DESTDIR)$(scriptdir)/gconsole
 	$(INSTALL_SCRIPT) bacula $(DESTDIR)$(scriptdir)/bacula
+	$(INSTALL_SCRIPT) bacula-ctl-dir $(DESTDIR)$(scriptdir)/bacula-ctl-dir
+	$(INSTALL_SCRIPT) bacula-ctl-fd $(DESTDIR)$(scriptdir)/bacula-ctl-fd
+	$(INSTALL_SCRIPT) bacula-ctl-sd $(DESTDIR)$(scriptdir)/bacula-ctl-sd
 	@if  test -f ${DESTDIR}${scriptdir}/mtx-changer; then \
 	   echo "  ==> Saving existing mtx-changer to mtx-changer.old"; \
 	   $(MV) -f ${DESTDIR}${scriptdir}/mtx-changer ${DESTDIR}${scriptdir}/mtx-changer.old; \
@@ -69,6 +72,9 @@ uninstall:
 	(cd $(DESTDIR)$(scriptdir); $(RMF) bconsole)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) gconsole)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) bacula)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) bacula-ctl-dir)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) bacula-ctl-fd)
+	(cd $(DESTDIR)$(scriptdir); $(RMF) bacula-ctl-sd)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) fd)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) mtx-changer)
 	(cd $(DESTDIR)$(scriptdir); $(RMF) disk-changer)
@@ -82,11 +88,13 @@ Makefile: Makefile.in
 	cd $(topdir) \
 	    && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 	chmod 755 startmysql stopmysql bacula startit stopit btraceback
+	chmod 755 bacula-ctl-dir bacula-ctl-fd bacula-ctl-sd
 	chmod 755 disk-changer mtx-changer dvd-handler bconsole gconsole
 
 Makefiles:
 	$(SHELL) config.status
 	chmod 755 startmysql stopmysql bacula startit stopit btraceback
+	chmod 755 bacula-ctl-dir bacula-ctl-fd bacula-ctl-sd
 	chmod 755 mtx-changer dvd-handler bconsole gconsole
 
 clean:
@@ -95,6 +103,7 @@ clean:
 # clean for distribution
 distclean: clean
 	@$(RMF) startmysql stopmysql bacula fd startit stopit btraceback
+	@$(RMF) bacula-ctl-dir bacula-ctl-fd bacula-ctl-sd
 	@$(RMF) bconsole gconsole logrotate bacula.desktop 
 	@$(RMF) bacula.desktop.gnome1 bacula.desktop.gnome2 mtx-changer dvd-handler
 	@$(RMF) gnome-console.console_apps bacula.desktop.gnome2.xsu

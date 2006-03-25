@@ -24,3 +24,6 @@ bacula.desktop.gnome2.xsu
 bacula.desktop.gnome2.consolehelper
 bacula.desktop.gnome1.xsu
 bacula.desktop.gnome1.consolehelper
+bacula-ctl-dir
+bacula-ctl-fd
+bacula-ctl-sd
