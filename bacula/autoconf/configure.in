@@ -1921,6 +1921,9 @@ AC_OUTPUT([autoconf/Make.common \
 	   scripts/bconsole \
 	   scripts/gconsole \
 	   scripts/bacula \
+	   scripts/bacula-ctl-dir \
+	   scripts/bacula-ctl-fd \
+	   scripts/bacula-ctl-sd \
 	   scripts/devel_bacula \
 	   scripts/Makefile \
 	   scripts/logrotate \
