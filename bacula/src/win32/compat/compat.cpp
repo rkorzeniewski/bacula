@@ -70,7 +70,8 @@ void conv_unix_to_win32_path(const char *name, char *win32_name, DWORD dwSize)
         name++;
     }
     /* Strip any trailing slash, if we stored something */
-    if (*fname != 0 && win32_name[-1] == '\\') {
+    /* but leave "c:\" with backslash (root directory case */
+    if (*fname != 0 && win32_name[-1] == '\\' && strlen (fname) != 3) {
         win32_name[-1] = 0;
     } else {
         *win32_name = 0;
@@ -134,7 +135,7 @@ make_wchar_win32_path(POOLMEM* pszUCSPath, BOOL* pBIsRawPath /*= NULL*/)
    BOOL bAddPrefix = TRUE;
 
    /* does path begin with drive? if yes, it is absolute */
-   if (wcslen(name) > 3 && (iswalpha (*name) && *(name+1) == ':'
+   if (wcslen(name) >= 3 && (iswalpha (*name) && *(name+1) == ':'
        && (*(name+2) == '\\' || *(name+2) == '/'))) {
       bAddDrive = FALSE;
       bAddCurrentPath = FALSE;
@@ -873,7 +874,12 @@ opendir(const char *path)
        conv_unix_to_win32_path(path, tspec, max_len);
     }
 
-    bstrncat(tspec, "\\*", max_len);
+    // add backslash only if there is none yet (think of c:\)
+    if (tspec[strlen(tspec)-1] != '\\')
+      bstrncat(tspec, "\\*", max_len);
+    else
+      bstrncat(tspec, "*", max_len);
+
     rval->spec = tspec;
 
     // convert to WCHAR
