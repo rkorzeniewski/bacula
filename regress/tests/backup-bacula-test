@@ -89,7 +89,7 @@ if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
    fi
    echo " "
 else
-   echo "  ===== Backup Bacula Test OK ===== "
-   echo "  ===== Backup Bacula Test OK ===== " >>test.out
+   echo "  ===== Backup Bacula Test OK `date +%R:%S` ===== "
+   echo "  ===== Backup Bacula Test OK `date +%R:%S` ===== " >>test.out
    scripts/cleanup
 fi

@@ -170,7 +170,7 @@ if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
    fi
    echo " "
 else
-   echo "  ===== four-jobs-test Bacula source OK ===== "
-   echo "  ===== four-jobs-test OK ===== " >>test.out
+   echo "  ===== four-jobs-test Bacula source OK `date +%R:%S` ===== "
+   echo "  ===== four-jobs-test OK `date +%R:%S` ===== " >>test.out
    scripts/cleanup
 fi

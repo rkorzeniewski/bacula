@@ -73,7 +73,7 @@ if [ $? != 0 -o $bstat != 0 ] ; then
    fi
    echo " "
 else
-   echo "  ===== Filed Encryption Verification Test OK ===== "
-   echo "  ===== Filed Encryption Verification Test OK ===== " >>test.out
+   echo "  ===== Filed Encryption Verification Test OK `date +%R:%S` ===== "
+   echo "  ===== Filed Encryption Verification Test OK `date +%R:%S` ===== " >>test.out
    scripts/cleanup
 fi

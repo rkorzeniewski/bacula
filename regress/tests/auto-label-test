@@ -91,7 +91,7 @@ if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
    fi
    echo " "
 else
-   echo "  ===== auto-label-test OK ===== "
-   echo "  ===== auto-label-test OK ===== " >>test.out
+   echo "  ===== auto-label-test OK `date +%R:%S` ===== "
+   echo "  ===== auto-label-test OK `date +%R:%S` ===== " >>test.out
    scripts/cleanup
 fi

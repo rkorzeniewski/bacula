@@ -122,7 +122,7 @@ if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
    fi
    echo " "
 else
-   echo "  ===== differential-test Bacula source OK ===== "
-   echo "  ===== differential-test OK ===== " >>test.out
+   echo "  ===== differential-test Bacula source OK `date +%R:%S` ===== "
+   echo "  ===== differential-test OK `date +%R:%S` ===== " >>test.out
    scripts/cleanup
 fi

@@ -89,8 +89,8 @@ if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
    echo " "
    exit 1
 else
-   echo "  ===== four-concurrent-jobs-test Bacula source OK ===== "
-   echo "  ===== four-concurrent-jobs-test OK ===== " >>test.out
-#  scripts/cleanup
+   echo "  ===== four-concurrent-jobs-test Bacula source OK `date +%R:%S` ===== "
+   echo "  ===== four-concurrent-jobs-test OK `date +%R:%S` ===== " >>test.out
+   scripts/cleanup
    exit 0
 fi

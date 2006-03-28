@@ -88,8 +88,8 @@ if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
    fi
    echo " "
 else
-   echo "  ===== Weird files test OK ===== "
-   echo "  ===== Weird files test OK ===== " >>test.out
+   echo "  ===== Weird files test OK `date +%R:%S` ===== "
+   echo "  ===== Weird files test OK `date +%R:%S` ===== " >>test.out
    cd ${cwd}
    scripts/cleanup
 fi

@@ -70,7 +70,7 @@ if [ $? != 0 -o $bstat != 0 ] ; then
    fi
    echo " "
 else
-   echo "  ===== Verify Volume Test OK ===== "
-   echo "  ===== Verify Volume Test OK ===== " >>test.out
+   echo "  ===== Verify Volume Test OK `date +%R:%S` ===== "
+   echo "  ===== Verify Volume Test OK `date +%R:%S` ===== " >>test.out
    scripts/cleanup
 fi

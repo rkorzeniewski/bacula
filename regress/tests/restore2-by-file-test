@@ -59,7 +59,7 @@ if [ $dstat != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
    echo "Diff status         = $dstat"
    echo " "
 else
-   echo "  ===== restore2-by-file-test Bacula source OK ===== "
-   echo "  ===== restore2-by-file-test OK ===== " >>test.out
+   echo "  ===== restore2-by-file-test Bacula source OK `date +%R:%S` ===== "
+   echo "  ===== restore2-by-file-test OK `date +%R:%S` ===== " >>test.out
    scripts/cleanup
 fi

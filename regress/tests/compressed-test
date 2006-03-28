@@ -61,7 +61,7 @@ if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
    fi
    echo " "
 else
-   echo "  ===== compressed-test Bacula source OK ===== "
-   echo "  ===== compressed-test OK ===== " >>test.out
+   echo "  ===== compressed-test Bacula source OK `date +%R:%S` ===== "
+   echo "  ===== compressed-test OK `date +%R:%S` ===== " >>test.out
    scripts/cleanup
 fi

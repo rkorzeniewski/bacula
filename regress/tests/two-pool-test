@@ -100,7 +100,7 @@ if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
    echo "  !!!!! Two Pool Test failed!!! !!!!! " >>test.out
    echo " "
 else
-   echo "  ===== Two Pool Test Bacula source OK ===== "
-   echo "  ===== Two Pool Test OK ===== " >>test.out
-#  scripts/cleanup
+   echo "  ===== Two Pool Test Bacula source OK `date +%R:%S` ===== "
+   echo "  ===== Two Pool Test OK `date +%R:%S` ===== " >>test.out
+   scripts/cleanup
 fi
