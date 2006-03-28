@@ -73,7 +73,7 @@ if [ $? != 0 -o $bstat != 0 ] ; then
    fi
    echo " "
 else
-   echo "  ===== bextract-test Bacula source OK ===== "
-   echo "  ===== bextract-test OK ===== " >>test.out
+   echo "  ===== bextract-test Bacula source OK `date +%R:%S` ===== "
+   echo "  ===== bextract-test OK `date +%R:%S` ===== " >>test.out
    scripts/cleanup
 fi

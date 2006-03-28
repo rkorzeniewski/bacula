@@ -2,6 +2,7 @@
 #
 # Run all tests
 #
+rm -f test1.out
 tests/test0
 echo " "
 tests/auto-label-test

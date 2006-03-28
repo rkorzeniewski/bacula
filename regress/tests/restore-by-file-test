@@ -81,7 +81,7 @@ if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
    fi
    echo " "
 else
-   echo "  ===== restore-by-file-test Bacula source OK ===== "
-   echo "  ===== restore-by-file-test OK ===== " >>test.out
+   echo "  ===== restore-by-file-test Bacula source OK `date +%R:%S` ===== "
+   echo "  ===== restore-by-file-test OK `date +%R:%S` ===== " >>test.out
    scripts/cleanup
 fi
