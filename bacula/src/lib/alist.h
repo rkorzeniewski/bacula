@@ -26,15 +26,16 @@
  *
  * Loop var through each member of list
  */
+#ifdef HAVE_GCC
+#define foreach_alist(var, list) \
+        for((var)=(typeof(var))(list)->first(); (var); (var)=(typeof(var))(list)->next() )
+#else
 #define foreach_alist(var, list) \
     for((*((void **)&(var))=(void*)((list)->first())); \
          (var); \
          (*((void **)&(var))=(void*)((list)->next())))
-
-#ifdef the_easy_way
-#define foreach_alist(var, list) \
-        for(((void*)(var))=(list)->first(); (var); ((void*)(var))=(list)->next()); )
 #endif
+
 
 
 /* Second arg of init */

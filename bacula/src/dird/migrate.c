@@ -398,7 +398,7 @@ static bool get_job_to_migrate(JCR *jcr)
    int stat, rc;
    char *p;
    dlist *item_chain;
-   uitem *item; 
+   uitem *item = NULL;
    char prbuf[500];
    regex_t preg;
 

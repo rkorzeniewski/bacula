@@ -4,7 +4,7 @@
 // Copyright transferred from MATRIX-Computer GmbH to
 //   Kern Sibbald by express permission.
 //
-//  Copyright (C) 2005 Kern Sibbald
+//  Copyright (C) 2005-2006 Kern Sibbald
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -88,7 +88,8 @@ using namespace std;
    #pragma message("compile VSS for Windows 2003")
    #define VSSClientGeneric VSSClient2003
    // wait x ms for a VSS asynchronous operation (-1 = infinite)
-   #define VSS_TIMEOUT (DWORD) 300000
+   // unfortunately, it doesn't work, so do not set timeout
+   #define VSS_TIMEOUT
 
    #include "vss/inc/Win2003/vss.h"
    #include "vss/inc/Win2003/vswriter.h"
@@ -281,7 +282,9 @@ BOOL VSSClientGeneric::Initialize(DWORD dwContext, BOOL bDuringRestore)
 
 void VSSClientGeneric::WaitAndCheckForAsyncOperation(IVssAsync* pAsync)
 {
-     // Wait until the async operation finishes
+    // Wait until the async operation finishes
+    // unfortunately we can't use a timeout here yet.
+    // the interface would allow it on W2k3, but it is not implemented yet....
     HRESULT hr = pAsync->Wait(VSS_TIMEOUT);
 
     // Check the result of the asynchronous operation

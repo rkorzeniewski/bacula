@@ -2,22 +2,17 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -32,14 +27,14 @@ typedef void (MSG_RES_HANDLER)(LEX *lc, RES_ITEM *item, int index, int pass);
 struct RES_ITEM {
    const char *name;                  /* Resource name i.e. Director, ... */
    MSG_RES_HANDLER *handler;          /* Routine storing the resource item */
-   void **value;                      /* Where to store the item */
+   char **value;                      /* Where to store the item */
    int  code;                         /* item code/additional info */
    int  flags;                        /* flags: default, required, ... */
    int  default_value;                /* default value */
 };
 
 /* For storing name_addr items in res_items table */
-#define ITEM(x) ((void **)&res_all.x)
+#define ITEM(x) ((char **)&res_all.x)
 
 #define MAX_RES_ITEMS 70              /* maximum resource items per RES */
 
@@ -114,13 +109,14 @@ void save_resource(int type, RES_ITEM *item, int pass);
 const char *res_to_str(int rcode);
 
 /* Loop through each resource of type, returning in var */
+#ifdef HAVE_GCC
+#define foreach_res(var, type) \
+        for((var)=NULL; ((var)=(typeof(var))GetNextRes((type), (RES *)var));)
+#else 
 #define foreach_res(var, type) \
     for(var=NULL; (*((void **)&(var))=(void *)GetNextRes((type), (RES *)var));)
-
-#ifdef the_old_way
-#define foreach_res(var, type) \
-        for((var)=NULL; (((void *)(var))=GetNextRes((type), (RES *)var));)
 #endif
+
 
 
 void store_str(LEX *lc, RES_ITEM *item, int index, int pass);

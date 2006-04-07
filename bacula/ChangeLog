@@ -1,5 +1,155 @@
 
-Release 1.38.4 16Jan06 released 17 Jan 06:
+Release 1.38.6 (28Mar06) released 29Mar06
+28Mar06
+- Back port from 1.39 fixes to lib/jcr.c to use foreach_jcr() 
+  and new jcr chain locking.
+26Mar06
+- Fix a long standing bug in the bacula start/stop scripts.
+- Attempt to add the new bacula-ctl-* files to the rpm.
+- Switch to using typeof() for list traversing to avoid
+  as many FC5 g++ compiler warnings as possible.
+25Mar06
+- Split the bacula start/start script into four files:
+   bacula         -- starts and stops calling other scripts
+   bacula-ctl-dir -- starts/stops the director
+   bacula-ctl-fd  -- starts/stops the File daemon
+   bacula-ctl-sd  -- starts/stops the Storage daemon
+24Mar06
+- Create datestyle fix for PostgreSQL. Fixes bug #574.
+- Correct editing of JobId from int to int64 in fd_cmds.c
+- Eliminate FileSet name race with bash_spaces() and multiple
+  threads by bashing in a local.
+- Fix error return from 'use storage' to print a correct error
+  message rather than nothing.
+- Correct false re-read last block error message when two jobs 
+  are simultaneously writing at the end of a tape.
+- Simplify exit conditions in the reserve.c code to avoid  
+  possible non-release of reservation_lock().
+- Suffle lock order in reserve to avoid deadlock between
+  reservation lock and device mutex.
+- Add Thorsten's VSS timeout code to 1.38 branch.
+21Mar06
+- Initialize jcr mutex before first use. Thanks to Thorsten for
+  tracking this down for me !!!! as it broke the Win32 build.
+20Mar06
+- Integrate addition of line count limitation to bsmtp -l from
+  Sebastian Stark <stark at tuebingen.mpg.de>
+17Mar06
+- Implement regex test program in tools directory.
+- Attempt to fix time problem with bsmtp with foreign langs.
+- Add strip_trailing_newline() submitted by user.
+
+Release 1.38.6 beta6
+16Mar06
+- Fix bug #537 to allow arbitrary time to mount a volume for
+  restore, if polling is turned on.     
+- Disallow multiple storage specifications for a job. Should fix Arno's
+  problem.
+- Add back a missing store of poolid in jr.poolid.    
+- If dir_user or dir-group is specified in ./configure apply it to
+  the working-dir. Fixes bug #533.
+- If rescheduling a job cancel the previous incarnation with the SD.
+  Fixes bugs #566 and 557.
+- Fix bug #567 do_message() definition type conflict.
+
+Release 1.38.6 beta5
+14Mar06
+- Add more jcr methods and make mutex and use_count private.
+- Create lock/unlock methods for jcr.
+- Fix PostgreSQL bug doing sql_data_seeek() by explicitly reading
+  records to get to seek position.
+- Integrate patch from bug #561 to correct conio.c signal definitions.
+- Fix Rescheduling failed Jobs. Ensure that SD message thread 
+  terminates correctly by doing pthread_kill(). Do not destroy
+  SD cond wait variable between executions of the job. Use local
+  mutex for cond variable to avoid blocking jcr chain. Fix poor 
+  use of jcr use count in jobq.c for restarted jobs.
+- Fix obsolete usage of foreach_dlist() to use foreach_jcr() in
+  lib/jcr.c -- prevents locking the jcr chaing.
+- Apply patch from bug #564, which corrects listing volumes with
+  multiple autochangers. Apply same fix to next volume list.
+- Fix bug #562 where restore bootstrap file is not unique.
+- Use new routine lock_reservations() to lock the reservations
+  system, and call it while looking for a volume in askdir.c.
+  This could possibly fix bug #543.
+- Stop SD command loop if job is canceled.
+
+Beta4 attached to a bug report but not distributed.
+04Mar06
+- Fix new sql_use_result() code to properly release the
+  buffers in all cases.
+- Convert to using new Python class definitons with (object).
+- Use the keyword ujobid to mean the unique job id; job or jobname
+  to mean the Job name given on the Name directive, and jobid to
+  be the numeric (non-unique) job id.
+- Allow listing by any of the above.
+- Add the user friendly job report code for reporting job elapsed time
+  and rates with suffexes.
+- Add Priority and JobLevel as Python settable items.
+- Use TEMPORARY table creation where the table is created by
+  Bacula.
+- Add new code submitted by Eric for waiting on specific jobid.
+- Add ACL checking for the dot commands.
+- Fix restore of writable FIFOs.
+- Fix a bug in bpipe where the string was freed too early.
+
+26Feb06
+- Fix bug reported by Arno listing blocks with bls
+- Update the po files at Eric's request.
+
+Release 1.38.6-beta2 25Feb06
+25Feb06
+- Add sql_use_result() define.
+
+Release 1.38.6 beta1 24Feb06
+24Feb06
+- Don't open default catalog if not in ACL.
+22Feb06
+- Add virtual disk autochanger code.
+- Add user supplied bug fix to make two autochangers work
+  correctly using StorageId with InChanger checks.
+- Correct new/old_jcr confusion in copy_storage().
+- Remove & from Job during scan in msgchan.c -- probably
+  trashed the stack.
+- When getting the next Volume if no Volume in Append mode   
+  exists and we are dealing with an Autochanger, search
+  for a Scratch Volume.  
+- Check for missing value in dot commands -- bug fix.
+- Fix bug in update barcodes command line scanning.
+- Make sure Pool Max Vols is respected.
+- Check that user supplied a value before referencing
+  it in restore -- pointed out by Karl Hakimian. 
+- Add Karl Hakimian's table insert code.
+- Don't ask user to select a specific Volume when
+  updating all volumes in a Pool.
+- Remove reservation if set for read when removing dcr.
+- Lock code that requests next appendable volume so that
+  two jobs to get the same Volume at the same time.
+- Add new Device Type = xxx code. Values are file, tape,
+  dvd, and fifo.
+- Preserve certain modes (ST_LABEL|ST_APPEND|ST_READ) across
+  a re-open to change read/write permission on a device.
+- Correct a misplaced double quote in certain autochanger  
+  scripts.
+- Make make_catalog_backup.in a bit more portable.
+- Implement Karl Hakimian's sql_use_result(), which speeds
+  up restore tree building and reduces the memory load.
+- Correct a number of minor bugs in getting a Volume from  
+  the Scratch Pool.
+- Implement additional command line options for update Volume.
+- Don't require user to enter a Volume name when updating
+  all Volumes in a pool.
+
+Release 1.38.5 released 19Jan06:
+19Jan06
+- Apply label barcodes fix supplied by Rudolf Cejka.
+18Jan06
+- Modify standard rpm installation to set SD group to disk
+  so that SD will by default have access to tape drives.
+- Allow users to specify user/group and start options
+  for each daemon in /etc/sysconf/bacula file.
+
+Release 1.38.4 14Jan06 released 17 Jan 06:
 16Jan06
 - Add two new queries to query.sql provided by Arno. One
   list volumes known to the Storage device, and the other
@@ -71,7 +221,7 @@ Beta release 23Dec05:
   volume so that it can handle multiple returns from the wait
   code.
 - Modify the wait code to permit multiple returns.
-- Return a zero when "autochanger drives" is called and
+- Return a zero when 'autochanger drives' is called and
   it is not an autochanger.
 - Make rewind_dev() a method taking a DCR as an argument.
   This permits closing and reopening the drive if the
@@ -183,9 +333,9 @@ Beta release 20Dec05:
 04Dec05
 - Apply days keyword patch from Alexander.Bergolth at wu-wien.ac.at 
   If this patch is applied, the number of days can be specified with
-  "list nextvol days=xx"
+  'list nextvol days=xx'
   or
-  "status dir days=xx"
+  'status dir days=xx'
   My use case is to be able to preview the next scheduled job (and the 
   next tape to be used) on fridays if there are no scheduled jobs during 
   the weekend.
@@ -237,7 +387,7 @@ Changes to 1.38.1: 15 November 2005
   the user.
 - Add Solaris ACL detection in configure.in as supplied by
   Attila Fulop. 
-- Implement "autochanger drives" protocol so that Dir knows
+- Implement 'autochanger drives' protocol so that Dir knows
   how many drives an autochanger has.
 - Do not request drive number in label, ... if only one drive.
 - Turn off debug code.
@@ -411,7 +561,7 @@ Changes to 1.37.39:
 - Make new_volume walk through all Vols looking for dev 
   to release.
 16Sep05
-- Make "quit" command in console always allowed.
+- Make 'quit' command in console always allowed.
 - Remove the storage list between each console command to
   keep Dir from remembering a previously selected SD.
 - Add code to reservation VOLRES subroutines to try to ensure
@@ -422,7 +572,7 @@ Changes to 1.37.39:
 - Apply Nicolas' dvd-freespace.in patch.
 - Make sure SQL table names are not translated.
 - Eliminate incorrect message saying barcodes not
-  found in "label barcodes" -- fixes bug report.
+  found in 'label barcodes' -- fixes bug report.
 
 Changes to 1.37.38:
 07Sep05
@@ -447,7 +597,7 @@ Changes to 1.37.37:
 - Correct ssize_t problem in build of Win32
 - Add code to llprint pools and volumes to debug next item.
 - From bug report, fix resetting Pool defaults in Volume. It
-  was a typo "Max" was missing in several places.
+  was a typo 'Max' was missing in several places.
 - Don't allow translation of database Volume Status values.
 
 Changes to 1.37.37 released 26 Aug 05
@@ -484,7 +634,7 @@ Changes to 1.37.36 released 22 Aug 05
   other searches.
 - Fix picking up drive in Dir so that it is not done in
   the status command.
-- Eliminate double check on "loaded" for autochanger.
+- Eliminate double check on 'loaded' for autochanger.
 17Aug05
 - Start coding better reservation algorithm
 - Always look for slot for label command.
@@ -543,7 +693,7 @@ Changes to 1.37.34:
   search to avoid two threads competing for the same
   resource.
 - Correct a return code in find_suitable_device_for_job()
-  Possibly cause of "busy writing to another volume".
+  Possibly cause of 'busy writing to another volume'.
 03Aug05
 - Modify open() for tape so nonblocking really works.  
 - Use fcntl() to reset blocking status rather than close()
@@ -672,7 +822,7 @@ Changes to 1.37.31:
    been adapted.
  - Remove set_exit_on_error function
 07Apr05
- - Fix "unknown device type" problem with DVD devices.
+ - Fix 'unknown device type' problem with DVD devices.
  - Fix crash when there is no media in the DVD drive.
 09Jan05
  - Update the documentation and ReleaseNotes.
@@ -705,12 +855,12 @@ Changes to 1.37.31:
 29Dec04
  - Add VolParts field in Media table
  - Add MaximumPartSize directive in Device (SD configuration file)
- - File Volumes can now be splitted in multiple files ("parts")
- - Fix SQL error in sql_list while doing "llist jobmedia"
+ - File Volumes can now be splitted in multiple files ('parts')
+ - Fix SQL error in sql_list while doing 'llist jobmedia'
 
 Changes to 1.37.30 released 16 July 2005:
 14Jul05
-- Fix "dir" command scanning field misalignment in
+- Fix 'dir' command scanning field misalignment in
   wx-console.
 - Switch to using the wxWidgets Unicode library.
 - Include msvcr71.dll in distribution.
@@ -790,7 +940,7 @@ Changes to 1.37.28:
   file sizes for restore and dir of catalog, otherwise
   GB sizes are truncated -- fixes bug report.
 - Modify wx-console to know about 10 character widths.
-- Allow decending into top level directory if "recurse=no"
+- Allow decending into top level directory if 'recurse=no'
   is set.  Fixes a bug report.
 - Install pthreadVCE.dll when installing console or wx-console
   on Win32 systems. Fixes bug report.
@@ -808,12 +958,12 @@ Changes to 1.37.28:
 30Jun05
 - Detect device mounted for DVD and suppress be sure to 
   mount message after label.
-- Set Cleaning tape status to "Cleaning" and force no
+- Set Cleaning tape status to 'Cleaning' and force no
   MediaType.
 - Get DVD writing working with new standard Bacula open()
   code.
 - Rename get_filename() to make more sense.
-- Detect "is already mounted on" on mount command so to avoid
+- Detect 'is already mounted on' on mount command so to avoid
   error if device is already mounted.
 - Eliminated guess_name() code. It may be necessary to
   add it back later.
@@ -904,7 +1054,7 @@ Changes from Nicolas Boichat:
    been adapted.
  - Remove set_exit_on_error function
 07Apr05
- - Fix "unknown device type" problem with DVD devices.
+ - Fix 'unknown device type' problem with DVD devices.
  - Fix crash when there is no media in the DVD drive.
 09Jan05
  - Update the documentation and ReleaseNotes.
@@ -937,8 +1087,8 @@ Changes from Nicolas Boichat:
 29Dec04
  - Add VolParts field in Media table
  - Add MaximumPartSize directive in Device (SD configuration file)
- - File Volumes can now be splitted in multiple files ("parts")
- - Fix SQL error in sql_list while doing "llist jobmedia"
+ - File Volumes can now be splitted in multiple files ('parts')
+ - Fix SQL error in sql_list while doing 'llist jobmedia'
 
 Changes to 1.37.23:
 - Renamed to make unique version for open_next_part()
@@ -1038,7 +1188,7 @@ Changes to 1.37.19:
 - Make restore.bsr have unique name.
 - Allow user to define bsr filename on restore command line
   with bootstrap=xxx.bsr
-- Add limit=nnn to "list jobs" command.
+- Add limit=nnn to 'list jobs' command.
 - Remove old restore code that did not use .bsr file.
 - unlink automatically generated bsr file.
 - Cleanup heartbeat code so that duped fd is almost sure
@@ -1178,7 +1328,7 @@ Changes to 1.37.14:
   by a user.
 26Apr05
 - Apply Tru64 patch supplied by Pascal Pederiva <freebsd@paped.com>
-- Apply Unicode fixes for Win32 from "Thorsten Engel" 
+- Apply Unicode fixes for Win32 from 'Thorsten Engel' 
   <thorsten.engel@matrix-computer.com>
 - More work on Python read feature in FD.
 22Apr05
@@ -1346,21 +1496,21 @@ Changes to 1.37.6:
 - Fix scanf of PoolId in catreq to handle 64 bit Ids.
 10Mar05
 - Add new ua_update.c file and move update_cmd there.
-- Modify "update slots" to obtain actual number of slots.
+- Modify 'update slots' to obtain actual number of slots.
 - Tweak autochanger code to handle new slots request.
 - Modify autochanger code to lock/unlock around slots and
   update slots code.
 09Mar05
 - Patch the FD so that it does not issue an error message if
   it attempts to restore the permissions on a Win32 drive.
-- Edit "Resource-name" (physical-name) for the device name
+- Edit 'Resource-name' (physical-name) for the device name
   everywhere in the SD.
 - Remove .linked.tex files in preparation for cutover to
   using .tex in place of .wml.
 08Mar05
 - Copy latest config.sub and config.guess from autoconf.
 - Try new way of identifying drives with:
-   "resource-name" (physical-name)
+   'resource-name' (physical-name)
   More work need to a complete conversion.
 07Mar05
 - Rework some of the autochanger data so that the DIR has   
@@ -1375,7 +1525,7 @@ Changes to 1.37.6:
 - Force all the Media Type records of all devices in an Autochanger
   to be the same.
 06Mar05
-- Add new "run" command to Job resource in DIR. This permits
+- Add new 'run' command to Job resource in DIR. This permits
   cloning a job as many times as you want.
 - Pass PoolId to SD on Query request. It is now used in the
   Find_media catalog request.
@@ -1441,7 +1591,7 @@ Changes to 1.37.4:
   attempt to fix a bug report.
 23Feb05
 - Corrected SunOs to SunOS in btraceback (user submitted).
-- Applied patch from Roger Haa¥kansson <hson@ludd.luth.se>
+- Applied patch from Roger Haakansson <hson@ludd.luth.se>
   to warn the user of defective AWKs during ./configure.
 20Feb05
 - Add some changes submitted by a user for HP client build.
@@ -1496,7 +1646,7 @@ Changes to 1.37.3:
 15Feb05
 - Fix Media LabelDate and FirstWritten to be correctly set.
 - Fix deadlock in multiple simultaneous jobs.
-- Fix tape "truncation"/"number of files" after restore bug.
+- Fix tape 'truncation'/'number of files' after restore bug.
 10Feb05
 - Ensure that correct error messages are returned when
   reading an ANSI label.
@@ -1552,7 +1702,7 @@ Changes to 1.37.3:
   boot correctly.
 - Implement ANSI labels -- not yet tested.
   This required changes to DB format. No upgrade script yet.
-  Note, more work needed to modify "update" command to handle
+  Note, more work needed to modify 'update' command to handle
   changing label types, also must restrict volume name lengths
   to 6 characters.
 - Add new Device, Storage, and MediaType records to DB. No
@@ -1568,7 +1718,7 @@ Changes to 1.37.3:
   a single alist, and imply sending data to each Storage daemon 
   simultaneously.
 - Implement Device query command between DIR and SD.
-- Allow DIR to "reserve" a Device. It will then be acquired
+- Allow DIR to 'reserve' a Device. It will then be acquired
   when the FD connects to the SD.
 - Turn all DIR resources into classes, and implement a few class
   methods -- more to come.
@@ -1698,7 +1848,7 @@ Changes to 1.37.2:
 - Remove duplicate code from chksum.h (mentioned by Preben).
 13Dec04
 - Integrate Tim Oberfoell <oberfoell@web.de> patch to ACLs
-  to handle both the "standard" and "default" ACLs.
+  to handle both the 'standard' and 'default' ACLs.
 12Dec04
 - Integrated Preben 'Peppe' Guldberg <peppe@wielders.org>
   three cleanup patches (btest, verify, find).
@@ -1751,7 +1901,7 @@ Changes to 1.37.2:
 - Add python 2.3 to config search list (user submitted patch)
 - Add JobStatus to Python variables.
 28Nov04
-- Add "python restart" command in Console.
+- Add 'python restart' command in Console.
 - Make built-in variables table driven.
 - First cut of Python Events for Bacula. Director only.
   StartJob, EndJob, NewVolume events.
@@ -1768,7 +1918,7 @@ Changes to 1.37.*:
 19Oct05
  - configure: add check for dd, remove check for df
  - block.c:do_dvd_size_checks: Check we are writing to a dvd before doing tests
-   (reported by David Raine on the list, "[Bacula-users] LTO drive - End Of Volume error").
+   (reported by David Raine on the list, '[Bacula-users] LTO drive - End Of Volume error').
  - Update bacula-sd.conf.in to use dvd-handler correctly.
  - dvd.c:dvd_write_part: Increase timeout when writing the first part (see the code for
    more details).
@@ -1782,7 +1932,7 @@ Changes to 1.37.*:
 16Oct05
  - Remove scripts/dvd-freespace and scripts/dvd-writepart, as they are now
    merged into scripts/dvd-handler. Note: Documentation needs to be updated.
- - scripts/dvd-handler: "zero" brand-new DVD+/-RW to fix a problem with some
+ - scripts/dvd-handler: 'zero' brand-new DVD+/-RW to fix a problem with some
    DVD-writers, thanks to Arno Lehmann for reporting this, and providing the
    way to fix it.
  - new scripts/dvd-handler. Note: it also needs a patched version of dvd+rw-tools.
@@ -1815,7 +1965,7 @@ Changes to 1.37.*:
    been adapted.
  - Remove set_exit_on_error function
 07Apr05
- - Fix "unknown device type" problem with DVD devices.
+ - Fix 'unknown device type' problem with DVD devices.
  - Fix crash when there is no media in the DVD drive.
 09Jan05
  - Update the documentation and ReleaseNotes.
@@ -1848,5 +1998,5 @@ Changes to 1.37.*:
 29Dec04
  - Add VolParts field in Media table
  - Add MaximumPartSize directive in Device (SD configuration file)
- - File Volumes can now be splitted in multiple files ("parts")
- - Fix SQL error in sql_list while doing "llist jobmedia"
+ - File Volumes can now be splitted in multiple files ('parts')
+ - Fix SQL error in sql_list while doing 'llist jobmedia'
