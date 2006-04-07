@@ -88,6 +88,7 @@ bool acquire_device_for_read(DCR *dcr)
       int stat;
       DCR *dcr_save = jcr->dcr;
 
+      lock_reservations();
       jcr->dcr = NULL;
       memset(&rctx, 0, sizeof(RCTX));
       rctx.jcr = jcr;
@@ -109,6 +110,7 @@ bool acquire_device_for_read(DCR *dcr)
        */
       stat = search_res_for_device(rctx);
       release_msgs(jcr);              /* release queued messages */
+      unlock_reservations();
       if (stat == 1) {
          DCR *new_dcr = jcr->read_dcr;
          dev->unblock();

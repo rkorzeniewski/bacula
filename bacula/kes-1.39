@@ -2,6 +2,21 @@
                         Kern Sibbald
 
 General:
+- Remove timed wait for VSS on Win2K3 as it is not yet
+  implemented.
+- Correct bacula.in script to reference bacula-ctl-xx in the
+  sysconfig directory rather than the bin directory.
+26Mar06
+- Fix a long standing bug in the bacula start/stop scripts.
+- Attempt to add the new bacula-ctl-* files to the rpm.
+- Switch to using typeof() for list traversing to avoid
+  as many FC5 g++ compiler warnings as possible.
+25Mar06
+- Split the bacula start/start script into four files:
+   bacula         -- starts and stops calling other scripts
+   bacula-ctl-dir -- starts/stops the director
+   bacula-ctl-fd  -- starts/stops the File daemon
+   bacula-ctl-sd  -- starts/stops the Storage daemon
 24Mar06
 - Create datestyle fix for PostgreSQL. Fixes bug #574.
 - Correct editing of JobId from int to int64 in fd_cmds.c

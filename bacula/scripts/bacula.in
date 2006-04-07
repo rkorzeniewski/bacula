@@ -13,38 +13,35 @@
 #  easier to "steal" this code for the development 
 #  environment where they are different.
 #  
-BACFDBIN=@sbindir@
 BACFDCFG=@sysconfdir@
-BACSDBIN=@sbindir@
 BACSDCFG=@sysconfdir@
-BACDIRBIN=@sbindir@
 BACDIRCFG=@sysconfdir@
 
 case "$1" in
    start)
-      [ -x ${BACSDBIN}/bacula-ctl-sd ] && ${BACSDBIN}/bacula-ctl-sd $1 $2
-      [ -x ${BACFDBIN}/bacula-ctl-fd ] && ${BACFDBIN}/bacula-ctl-fd $1 $2
-      [ -x ${BACDIRBIN}/bacula-ctl-dir ] && ${BACDIRBIN}/bacula-ctl-dir $1 $2
+      [ -x ${BACSDCFG}/bacula-ctl-sd ] && ${BACSDCFG}/bacula-ctl-sd $1 $2
+      [ -x ${BACFDCFG}/bacula-ctl-fd ] && ${BACFDCFG}/bacula-ctl-fd $1 $2
+      [ -x ${BACDIRCFG}/bacula-ctl-dir ] && ${BACDIRCFG}/bacula-ctl-dir $1 $2
       ;;
 
    stop)
       # Stop the FD first so that SD will fail jobs and update catalog
-      [ -x ${BACFDBIN}/bacula-ctl-fd ] && ${BACFDBIN}/bacula-ctl-fd $1 $2
-      [ -x ${BACSDBIN}/bacula-ctl-sd ] && ${BACSDBIN}/bacula-ctl-sd $1 $2
-      [ -x ${BACDIRBIN}/bacula-ctl-dir ] && ${BACDIRBIN}/bacula-ctl-dir $1 $2
+      [ -x ${BACFDCFG}/bacula-ctl-fd ] && ${BACFDCFG}/bacula-ctl-fd $1 $2
+      [ -x ${BACSDCFG}/bacula-ctl-sd ] && ${BACSDCFG}/bacula-ctl-sd $1 $2
+      [ -x ${BACDIRCFG}/bacula-ctl-dir ] && ${BACDIRCFG}/bacula-ctl-dir $1 $2
       echo
+      sleep 6
       ;;
 
    restart)
       $0 stop
-      sleep 5
       $0 start
       ;;
 
    status)
-      [ -x ${BACSDBIN}/bacula-ctl-sd ] && ${BACSDBIN}/bacula-ctl-sd status
-      [ -x ${BACFDBIN}/bacula-ctl-fd ] && ${BACFDBIN}/bacula-ctl-fd status
-      [ -x ${BACDIRBIN}/bacula-ctl-dir ] && ${BACDIRBIN}/bacula-ctl-dir status
+      [ -x ${BACSDCFG}/bacula-ctl-sd ] && ${BACSDCFG}/bacula-ctl-sd status
+      [ -x ${BACFDCFG}/bacula-ctl-fd ] && ${BACFDCFG}/bacula-ctl-fd status
+      [ -x ${BACDIRCFG}/bacula-ctl-dir ] && ${BACDIRCFG}/bacula-ctl-dir status
       ;;
 
    *)

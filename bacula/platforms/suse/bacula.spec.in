@@ -5,7 +5,7 @@
 
 # basic defines for every build
 %define depkgs ../depkgs
-%define depkgs_version 22Jun05
+%define depkgs_version 28Mar06
 %define sqlite_bindir /usr/lib/bacula/sqlite
 %define working_dir /var/bacula
 %define director_daemon_user bacula
@@ -18,7 +18,8 @@
 %define group_file /etc/group
 %define useradd /usr/sbin/useradd
 %define groupadd /usr/sbin/groupadd
-%define _rescuever 1.8.2
+%define usermod /usr/sbin/usermod
+%define _rescuever 1.8.3
 
 # platform defines - set one below or define the build_xxx on the command line
 # RedHat builds
@@ -121,7 +122,7 @@ exit 1
 %define _dist %(grep -i SuSE /etc/SuSE-release)
 %endif
 %if %{mdk}
-%define _dist %(grep Mandrake /etc/mandrake-release)
+%define _dist %(grep Mand /etc/mandrake-release)
 %endif
 
 # Should we build gconsole, possible only if gnome >= 2.0 available
@@ -130,6 +131,8 @@ exit 1
 %else
 %define gconsole 1
 %endif
+# specifically disallow gconsole if desired
+%{?nobuild_gconsole:%define gconsole 0}
 
 Summary: Bacula - The Network Backup Solution
 Name: bacula
@@ -142,6 +145,8 @@ Source1:http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.t
 Source2: Release_Notes-%{version}-%{release}.tar.gz
 Source3:http://www.prdownloads.sourceforge.net/bacula/%{name}-docs-%{version}.tar.gz
 Source4:http://www.prdownloads.sourceforge.net/bacula/%{name}-rescue-%{_rescuever}.tar.gz
+Patch0: bacula-1.38.6-script.patch
+Patch1: bacula-1.38.6-makefile.patch
 BuildRoot: %{_tmppath}/%{name}-root
 URL: http://www.bacula.org/
 Vendor: The Bacula Team
@@ -152,19 +157,23 @@ Packager: D. Scott Barninger <barninger@fairfieldcomputers.com>
 %define _rescuesrc ../%{name}-rescue-%{_rescuever}
 
 BuildRequires: atk-devel, ncurses-devel, pango-devel, perl
-BuildRequires: libstdc++-devel, libxml2-devel, zlib-devel, pkgconfig
+BuildRequires: libstdc++-devel, libxml2-devel, zlib-devel
 BuildRequires: openssl-devel
+%if %{gconsole}
+BuildRequires: pkgconfig
+%endif
 %if %{rh7}
 BuildRequires: libtermcap-devel
 BuildRequires: glibc-devel >= 2.2
-BuildRequires: ORBit-devel
 %endif
 %if %{su9}
 BuildRequires: termcap
+BuildRequires: glibc-devel >= 2.3
+%endif
+%if %{su9} && %{gconsole}
 BuildRequires: libgnome >= 2.0
 BuildRequires: gtk2-devel >= 2.0
 BuildRequires: libgnomeui-devel >= 2.0
-BuildRequires: glibc-devel >= 2.3
 BuildRequires: ORBit2-devel
 BuildRequires: libart_lgpl-devel >= 2.0
 BuildRequires: libbonobo-devel >= 2.0
@@ -176,10 +185,12 @@ BuildRequires: freetype2-devel
 %endif
 %if %{su10}
 BuildRequires: termcap
+BuildRequires: glibc-devel >= 2.3
+%endif
+%if %{su10} && %{gconsole}
 BuildRequires: libgnome >= 2.12
 BuildRequires: gtk2-devel >= 2.8
 BuildRequires: libgnomeui-devel >= 2.12
-BuildRequires: glibc-devel >= 2.3
 BuildRequires: ORBit2-devel
 BuildRequires: libart_lgpl-devel >= 2.3
 BuildRequires: libbonobo-devel >= 2.10
@@ -194,24 +205,28 @@ BuildRequires: libpng-devel
 %endif
 %if %{mdk}
 BuildRequires: libtermcap-devel
+BuildRequires: libstdc++-static-devel
+BuildRequires: glibc-static-devel
+BuildRequires: glibc-devel >= 2.3
+%endif
+%if %{mdk} && %{gconsole}
 BuildRequires: gtk2-devel >= 2.0
 BuildRequires: libgnomeui2-devel >= 2.0
-BuildRequires: glibc-devel >= 2.3
 BuildRequires: libORBit2-devel
 BuildRequires: libart_lgpl-devel >= 2.0
 BuildRequires: libbonobo2_0-devel
 BuildRequires: libbonoboui2_0-devel
 BuildRequires: libbonobo-activation-devel
 BuildRequires: libGConf2-devel
-BuildRequires: libstdc++-static-devel
-BuildRequires: glibc-static-devel
 BuildRequires: freetype2-devel
 %endif
 %if %{fc3}
 BuildRequires: libtermcap-devel
+BuildRequires: glibc-devel >= 2.3
+%endif
+%if %{fc3} && %{gconsole}
 BuildRequires: gtk2-devel >= 2.4
 BuildRequires: libgnomeui-devel >= 2.8
-BuildRequires: glibc-devel >= 2.3
 BuildRequires: ORBit2-devel
 BuildRequires: libart_lgpl-devel >= 2.3
 BuildRequires: libbonobo-devel >= 2.8
@@ -222,9 +237,11 @@ BuildRequires: freetype-devel
 %endif
 %if %{fc4}
 BuildRequires: libtermcap-devel
+BuildRequires: glibc-devel >= 2.3
+%endif
+%if %{fc4} && %{gconsole}
 BuildRequires: gtk2-devel >= 2.6
 BuildRequires: libgnomeui-devel >= 2.10
-BuildRequires: glibc-devel >= 2.3
 BuildRequires: ORBit2-devel
 BuildRequires: libart_lgpl-devel >= 2.3
 BuildRequires: libbonobo-devel >= 2.8
@@ -235,9 +252,11 @@ BuildRequires: freetype-devel
 %endif
 %if ! %{rh7} && ! %{su9} && ! %{su10} && ! %{mdk} && ! %{fc3} && ! %{fc4}
 BuildRequires: libtermcap-devel
+BuildRequires: glibc-devel >= 2.3
+%endif
+%if ! %{rh7} && ! %{su9} && ! %{su10} && ! %{mdk} && ! %{fc3} && ! %{fc4} && %{gconsole}
 BuildRequires: gtk2-devel >= 2.0
 BuildRequires: libgnomeui-devel >= 2.0
-BuildRequires: glibc-devel >= 2.3
 BuildRequires: ORBit2-devel
 BuildRequires: libart_lgpl-devel >= 2.0
 BuildRequires: libbonobo-devel >= 2.0
@@ -560,6 +579,9 @@ server packages.
 %setup -T -D -b 3
 %setup -T -D -b 4
 
+%patch0
+%patch1 -p1
+
 %build
 
 %if %{su9} || %{su10}
@@ -613,9 +635,9 @@ export LDFLAGS=-L/usr/lib64/mysql
         --with-scriptdir=/etc/bacula \
         --enable-smartalloc \
         --enable-client-only \
-	%if %{mdk}
-	--disable-nls \
-	%endif
+        %if %{mdk}
+        --disable-nls \
+        %endif
         --enable-static-fd
 
 make
@@ -713,6 +735,11 @@ rm -f $RPM_BUILD_ROOT/etc/bacula/grant_mysql_privileges
 %if %{postgresql}
 rm -f $RPM_BUILD_ROOT/etc/bacula/startmysql
 rm -f $RPM_BUILD_ROOT/etc/bacula/stopmysql
+%endif
+
+# fixme - make installs gconsole script for build without gconsole
+%if ! %{gconsole}
+rm -f $RPM_BUILD_ROOT/etc/bacula/gconsole
 %endif
 
 rm -f $RPM_BUILD_ROOT/usr/sbin/static-bacula-fd
@@ -863,6 +890,10 @@ chmod 644 $RPM_BUILD_ROOT/etc/bacula/tray-monitor.conf
 %attr(-, root, %{daemon_group}) /etc/bacula/btraceback.dbx
 %attr(-, root, %{daemon_group}) /etc/bacula/btraceback.gdb
 %attr(-, root, %{daemon_group}) /etc/bacula/rescue
+%attr(-, root, %{daemon_group}) /etc/bacula/disk-changer
+%attr(-, root, %{daemon_group}) /etc/bacula/bacula-ctl-dir
+%attr(-, root, %{daemon_group}) /etc/bacula/bacula-ctl-fd
+%attr(-, root, %{daemon_group}) /etc/bacula/bacula-ctl-sd
 %attr(-, root, %{daemon_group}) /etc/init.d/bacula-dir
 %attr(-, root, %{daemon_group}) /etc/init.d/bacula-fd
 %attr(-, root, %{storage_daemon_group}) /etc/bacula/dvd-handler
@@ -934,7 +965,8 @@ if [ -s /etc/bacula/console.conf ];then
         cp -p /etc/bacula/console.conf /etc/bacula/bconsole.conf
 fi
 
-# create the daemon user and group
+# create the daemon users and groups
+# first create the groups if they don't exist
 HAVE_BACULA=`grep %{daemon_group} %{group_file} 2>/dev/null`
 if [ -z "$HAVE_BACULA" ]; then
         %{groupadd} -r %{daemon_group} > /dev/null 2>&1
@@ -947,23 +979,40 @@ if [ -z "$HAVE_BACULA" ]; then
         echo "The group %{storage_daemon_group} has been added to %{group_file}."
         echo "See the manual chapter \"Running Bacula\" for details."
 fi
+# now create the users if they do not exist
+# we do not use the -g option allowing the primary group to be set to system default
+# this will be a unique group on redhat type systems or the group users on some systems
 HAVE_BACULA=`grep %{storage_daemon_user} %{user_file} 2>/dev/null`
 if [ -z "$HAVE_BACULA" ]; then
-        %{useradd} -r -c "Bacula" -d %{working_dir} -g %{storage_daemon_group} -M -n -s /sbin/nologin %{storage_daemon_user} > /dev/null 2>&1
+        %{useradd} -r -c "Bacula" -d %{working_dir} -M -n -s /sbin/nologin %{storage_daemon_user} > /dev/null 2>&1
         echo "The user %{storage_daemon_user} has been added to %{user_file}."
         echo "See the manual chapter \"Running Bacula\" for details."
 fi
 HAVE_BACULA=`grep %{director_daemon_user} %{user_file} 2>/dev/null`
 if [ -z "$HAVE_BACULA" ]; then
-        %{useradd} -r -c "Bacula" -d %{working_dir} -g %{daemon_group} -M -n -s /sbin/nologin %{director_daemon_user} > /dev/null 2>&1
+        %{useradd} -r -c "Bacula" -d %{working_dir} -M -n -s /sbin/nologin %{director_daemon_user} > /dev/null 2>&1
         echo "The user %{director_daemon_user} has been added to %{user_file}."
         echo "See the manual chapter \"Running Bacula\" for details."
 fi
 HAVE_BACULA=`grep %{file_daemon_user} %{user_file} 2>/dev/null`
 if [ -z "$HAVE_BACULA" ]; then
-        %{useradd} -r -c "Bacula" -d %{working_dir} -g %{daemon_group} -M -n -s /sbin/nologin %{file_daemon_user} > /dev/null 2>&1
+        %{useradd} -r -c "Bacula" -d %{working_dir} -M -n -s /sbin/nologin %{file_daemon_user} > /dev/null 2>&1
         echo "The user %{file_daemon_user} has been added to %{user_file}."
         echo "See the manual chapter \"Running Bacula\" for details."
+fi
+# now we add the supplementary groups, this is ok to call even if the users already exist
+# we only do this if the user is NOT root
+IS_ROOT=%{director_daemon_user}
+if [ "$IS_ROOT" != "root" ]; then
+%{usermod} %{director_daemon_user} -G %{daemon_group}
+fi
+IS_ROOT=%{storage_daemon_user}
+if [ "$IS_ROOT" != "root" ]; then
+%{usermod} %{storage_daemon_user} -G %{daemon_group},%{storage_daemon_group}
+fi
+IS_ROOT=%{file_daemon_user}
+if [ "$IS_ROOT" != "root" ]; then
+%{usermod} %{file_daemon_user} -G %{daemon_group}
 fi
 
 %if %{mysql}
@@ -1133,11 +1182,19 @@ if [ -z "$HAVE_BACULA" ]; then
         echo "The group %{daemon_group} has been added to %{group_file}."
         echo "See the manual chapter \"Running Bacula\" for details."
 fi
+# we do not use the -g option allowing the primary group to be set to system default
+# this will be a unique group on redhat type systems or the group users on some systems
 HAVE_BACULA=`grep %{file_daemon_user} %{user_file} 2>/dev/null`
 if [ -z "$HAVE_BACULA" ]; then
-        %{useradd} -r -c "Bacula" -d %{working_dir} -g %{daemon_group} -M -n -s /sbin/nologin %{file_daemon_user} > /dev/null 2>&1
+        %{useradd} -r -c "Bacula" -d %{working_dir} -M -n -s /sbin/nologin %{file_daemon_user} > /dev/null 2>&1
         echo "The user %{file_daemon_user} has been added to %{user_file}."
         echo "See the manual chapter \"Running Bacula\" for details."
+fi
+# now we add the supplementary group, this is ok to call even if the user already exists
+# we only do this if the user is NOT root
+IS_ROOT=%{file_daemon_user}
+if [ "$IS_ROOT" != "root" ]; then
+%{usermod} %{file_daemon_user} -G %{daemon_group}
 fi
 
 %post client
@@ -1239,6 +1296,10 @@ fi
 %endif
 
 %changelog
+* Sun Apr 02 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- 1.38.6 release
+- fix problem specifying more than one primary group for user bacula
+- add build switch to not build gconsole regardless of platform
 * Sun Jan 29 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - add centos3 build tag
 - fix link error of static-fd on Mandrake with --disable-nls
