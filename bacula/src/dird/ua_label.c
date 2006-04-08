@@ -736,16 +736,16 @@ static char *get_volume_name_from_SD(UAContext *ua, int Slot, int drive)
    bstrncpy(dev_name, store->dev_name(), sizeof(dev_name));
    bash_spaces(dev_name);
    /* Ask for autochanger list of volumes */
-   bnet_fsend(sd, _("readlabel %s Slot=%d drive=%d\n"), dev_name, Slot, drive);
+   bnet_fsend(sd, NT_("readlabel %s Slot=%d drive=%d\n"), dev_name, Slot, drive);
    Dmsg1(100, "Sent: %s", sd->msg);
 
    /* Get Volume name in this Slot */
    while (bnet_recv(sd) >= 0) {
       bsendmsg(ua, "%s", sd->msg);
       Dmsg1(100, "Got: %s", sd->msg);
-      if (strncmp(sd->msg, "3001 Volume=", 12) == 0) {
+      if (strncmp(sd->msg, NT_("3001 Volume="), 12) == 0) {
          VolName = (char *)malloc(sd->msglen);
-         if (sscanf(sd->msg, "3001 Volume=%s Slot=%d", VolName, &rtn_slot) == 2) {
+         if (sscanf(sd->msg, NT_("3001 Volume=%s Slot=%d"), VolName, &rtn_slot) == 2) {
             break;
          }
          free(VolName);
@@ -778,7 +778,7 @@ static vol_list_t *get_vol_list_from_SD(UAContext *ua, bool scan)
    bstrncpy(dev_name, store->dev_name(), sizeof(dev_name));
    bash_spaces(dev_name);
    /* Ask for autochanger list of volumes */
-   bnet_fsend(sd, _("autochanger list %s \n"), dev_name);
+   bnet_fsend(sd, NT_("autochanger list %s \n"), dev_name);
 
    /* Read and organize list of Volumes */
    while (bnet_recv(sd) >= 0) {
@@ -890,7 +890,7 @@ static int get_num_slots_from_SD(UAContext *ua)
    bstrncpy(dev_name, store->dev_name(), sizeof(dev_name));
    bash_spaces(dev_name);
    /* Ask for autochanger number of slots */
-   bnet_fsend(sd, _("autochanger slots %s\n"), dev_name);
+   bnet_fsend(sd, NT_("autochanger slots %s\n"), dev_name);
 
    while (bnet_recv(sd) >= 0) {
       if (sscanf(sd->msg, "slots=%d\n", &slots) == 1) {
@@ -922,10 +922,10 @@ int get_num_drives_from_SD(UAContext *ua)
    bstrncpy(dev_name, store->dev_name(), sizeof(dev_name));
    bash_spaces(dev_name);
    /* Ask for autochanger number of slots */
-   bnet_fsend(sd, _("autochanger drives %s\n"), dev_name);
+   bnet_fsend(sd, NT_("autochanger drives %s\n"), dev_name);
 
    while (bnet_recv(sd) >= 0) {
-      if (sscanf(sd->msg, "drives=%d\n", &drives) == 1) {
+      if (sscanf(sd->msg, NT_("drives=%d\n"), &drives) == 1) {
          break;
       } else {
          bsendmsg(ua, "%s", sd->msg);

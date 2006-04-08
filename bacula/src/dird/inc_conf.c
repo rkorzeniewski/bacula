@@ -531,21 +531,25 @@ static void store_fname(LEX *lc, RES_ITEM *item, int index, int pass)
       /* Pickup Filename string
        */
       switch (token) {
-         case T_IDENTIFIER:
-         case T_UNQUOTED_STRING:
-         case T_QUOTED_STRING:
-            if (res_all.res_fs.have_MD5) {
-               MD5Update(&res_all.res_fs.md5c, (unsigned char *)lc->str, lc->str_len);
-            }
-            incexe = &res_incexe;
-            if (incexe->name_list.size() == 0) {
-               incexe->name_list.init(10, true);
-            }
-            incexe->name_list.append(bstrdup(lc->str));
-            Dmsg1(900, "Add to name_list %s\n", lc->str);
-            break;
-         default:
-            scan_err1(lc, _("Expected a filename, got: %s"), lc->str);
+      case T_IDENTIFIER:
+      case T_UNQUOTED_STRING:
+         if (strchr(lc->str, '\\')) {
+            scan_err1(lc, _("Backslash found. Use forward slashes or quote the string.: %s\n"), lc->str);
+            /* NOT REACHED */
+         }
+      case T_QUOTED_STRING:
+         if (res_all.res_fs.have_MD5) {
+            MD5Update(&res_all.res_fs.md5c, (unsigned char *)lc->str, lc->str_len);
+         }
+         incexe = &res_incexe;
+         if (incexe->name_list.size() == 0) {
+            incexe->name_list.init(10, true);
+         }
+         incexe->name_list.append(bstrdup(lc->str));
+         Dmsg1(900, "Add to name_list %s\n", lc->str);
+         break;
+      default:
+         scan_err1(lc, _("Expected a filename, got: %s"), lc->str);
       }
    }
    scan_to_eol(lc);

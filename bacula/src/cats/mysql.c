@@ -132,7 +132,6 @@ db_open_database(JCR *jcr, B_DB *mdb)
    mysql_server_init(0, NULL, NULL);
 #endif
    mysql_init(&(mdb->mysql));
-   mdb->mysql.reconnect = 1;             /* so connection does not timeout */
    Dmsg0(50, "mysql_init done\n");
    /* If connection fails, try at 5 sec intervals for 30 seconds. */
    for (int retry=0; retry < 6; retry++) {
@@ -153,6 +152,7 @@ db_open_database(JCR *jcr, B_DB *mdb)
       bmicrosleep(5,0);
    }
 
+   mdb->mysql.reconnect = 1;             /* so connection does not timeout */
    Dmsg0(50, "mysql_real_connect done\n");
    Dmsg3(50, "db_user=%s db_name=%s db_password=%s\n", mdb->db_user, mdb->db_name,
             mdb->db_password==NULL?"(NULL)":mdb->db_password);

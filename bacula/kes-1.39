@@ -2,6 +2,17 @@
                         Kern Sibbald
 
 General:
+08Apr06
+- Tweak license to include Microsoft restrictions.
+- Move mysql.reconnect to after real_connect().  Thanks to
+  Frank Sweetser for the patch.
+- Disallow a backslash in a File = directive (Windows junk)
+  unless the string is quoted.                     
+- Apply Eric's patch to ua_label.c so that daemon protocol
+  is not translated.
+- Add NT_ definition for strings that should not be translated.
+- Apply NT_() to ua_label.c
+
 - Remove timed wait for VSS on Win2K3 as it is not yet
   implemented.
 - Correct bacula.in script to reference bacula-ctl-xx in the
