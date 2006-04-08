@@ -95,6 +95,8 @@
       #define setlocale(p, d)
    #endif
 #endif /* ENABLE_NLS */
+/* Use the following for strings not to be translated */
+#define NT_(s) (s)   
 
 /* This should go away! ****FIXME***** */
 #define MAXSTRING 500

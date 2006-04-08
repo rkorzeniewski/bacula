@@ -138,7 +138,7 @@ int get_cmd(const char *prompt);
 
 /*********************************************************************
  *
- *         Main Bacula Pool Creation Program
+ *     Bacula tape testing program
  *
  */
 int main(int margc, char *margv[])

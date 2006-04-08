@@ -7,7 +7,7 @@ License:
 For the most part, Bacula is licensed under the GPL version 2         
 and any code that is Copyright Kern Sibbald and John Walker or
 Copyright Kern Sibbald (after November 2004) with the GPL
-indication is so licensed, but with the following four additions:
+indication is so licensed, but with the following five additions:
 
 Linking: 
 Bacula may be linked with any libraries permitted under the GPL,
@@ -51,7 +51,7 @@ the copyright license set forth in this Agreement.
 
 Code falling under the above conditions will be marked as follows:
 
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -67,6 +67,20 @@ Code falling under the above conditions will be marked as follows:
    License along with this program; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
    MA 02111-1307, USA.
+
+Windows:
+Certain source code used to build the Windows version of the Bacula
+File daemon is copyrighted and or trademarked by Microsoft and may
+contain Microsoft intellectual property (examples: Microsoft VC++, the
+source to the VSS libraries, the Microsoft C runtime libraries).  As
+such we cannot and do not distribute that software. The compiler is
+available for purchase, and Microsoft provides a free version of the
+compiler. The source code and libraries are available for download from
+Microsoft public Web servers.  We have documented in the src/win32
+directory how we build the Windows File daemon and many users have
+succeeded in doing so themselves.  Our intention is to respect as
+closely as possible Open Source practices while maintaining full
+respect for proprietary and copyrighted code.
 
 =====================================
 
