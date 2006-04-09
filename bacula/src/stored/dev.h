@@ -182,8 +182,6 @@ typedef struct s_steal_lock {
 } bsteal_lock_t;
 
 struct DEVRES;                        /* Device resource defined in stored_conf.h */
-int      weof_dev(DEVICE *dev, int num);
-bool     rewind_dev(DEVICE *dev);
 
 class DCR; /* forward reference */
 /*
@@ -308,7 +306,6 @@ public:
                     (dev_blocked == BST_UNMOUNTED ||
                      dev_blocked == BST_WAITING_FOR_SYSOP ||
                      dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP); };
-   bool weof() { return !weof_dev(this, 1); };
    const char *strerror() const;
    const char *archive_name() const;
    const char *name() const;
@@ -359,8 +356,10 @@ public:
    bool fsr(int num);            /* in dev.c */
    bool fsf(int num);            /* in dev.c */
    bool bsr(int num);            /* in dev.c */
+   bool weof(int num);           /* in dev.c */
    bool scan_dir_for_volume(DCR *dcr); /* in scan.c */
    bool reposition(uint32_t rfile, uint32_t rblock); /* in dev.c */
+   void clrerror(int func);     /* in dev.c */
 
    void set_blocked(int block) { dev_blocked = block; };
    int  get_blocked() const { return dev_blocked; };

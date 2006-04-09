@@ -10,7 +10,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2005 Kern Sibbald
+   Copyright (C) 2005-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -78,7 +78,7 @@ int read_ansi_ibm_label(DCR *dcr)
       } while (stat == -1 && errno == EINTR);
       if (stat < 0) {
          berrno be;
-         clrerror_dev(dev, -1);
+         dev->clrerror(-1);
          Dmsg1(100, "Read device got: ERR=%s\n", be.strerror());
          Mmsg2(jcr->errmsg, _("Read error on device %s in ANSI label. ERR=%s\n"),
             dev->dev_name, be.strerror());
@@ -332,7 +332,7 @@ bool write_ansi_ibm_labels(DCR *dcr, int type, const char *VolName)
       if (stat != sizeof(label)) {
          berrno be;
          if (stat == -1) {
-            clrerror_dev(dev, -1);
+            dev->clrerror(-1);
             if (dev->dev_errno == 0) {
                dev->dev_errno = ENOSPC; /* out of space */
             }
@@ -361,7 +361,7 @@ bool write_ansi_ibm_labels(DCR *dcr, int type, const char *VolName)
       if (stat != sizeof(label)) {
          berrno be;
          if (stat == -1) {
-            clrerror_dev(dev, -1);
+            dev->clrerror(-1);
             if (dev->dev_errno == 0) {
                dev->dev_errno = ENOSPC; /* out of space */
             }
@@ -370,14 +370,14 @@ bool write_ansi_ibm_labels(DCR *dcr, int type, const char *VolName)
                be.strerror());
                return false;
             }
-            weof_dev(dev, 1);
+            dev->weof(1);
             return true;
          } else {
             Jmsg(jcr, M_FATAL, 0, _("Could not write ANSI HDR1 label.\n"));
             return false;
          }
       }
-      if (weof_dev(dev, 1) < 0) {
+      if (!dev->weof(1)) {
          Jmsg(jcr, M_FATAL, 0, _("Error writing EOF to tape. ERR=%s"), dev->errmsg);
          return false;
       }

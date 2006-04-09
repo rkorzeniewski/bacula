@@ -649,7 +649,7 @@ bool DEVICE::rewind(DCR *dcr)
       for (i=max_rewind_wait; ; i -= 5) {
          if (ioctl(fd, MTIOCTOP, (char *)&mt_com) < 0) {
             berrno be;
-            clrerror_dev(this, MTREW);
+            clrerror(MTREW);
             if (i == max_rewind_wait) {
                Dmsg1(200, "Rewind error, %s. retrying ...\n", be.strerror());
             }
@@ -831,7 +831,7 @@ bool DEVICE::eod()
 
       if (ioctl(fd, MTIOCTOP, (char *)&mt_com) < 0) {
          berrno be;
-         clrerror_dev(this, mt_com.mt_op);
+         clrerror(mt_com.mt_op);
          Dmsg1(50, "ioctl error: %s\n", be.strerror());
          update_pos_dev(this);
          Mmsg2(errmsg, _("ioctl MTEOM error on %s. ERR=%s.\n"),
@@ -841,7 +841,7 @@ bool DEVICE::eod()
 
       if (!dev_get_os_pos(this, &mt_stat)) {
          berrno be;
-         clrerror_dev(this, -1);
+         clrerror(-1);
          Mmsg2(errmsg, _("ioctl MTIOCGET error on %s. ERR=%s.\n"),
             print_name(), be.strerror());
          return false;
@@ -1126,7 +1126,7 @@ bool DEVICE::offline_or_rewind()
     *  such as backspacing after writing and EOF. If it is not
     *  done, all future references to the drive get and I/O error.
     */
-      clrerror_dev(this, MTREW);
+      clrerror(MTREW);
       return rewind(NULL);
    }
 }
@@ -1178,7 +1178,7 @@ bool DEVICE::fsf(int num)
          berrno be;
          set_eot();
          Dmsg0(200, "Set ST_EOT\n");
-         clrerror_dev(this, MTFSF);
+         clrerror(MTFSF);
          Mmsg2(errmsg, _("ioctl MTFSF error on %s. ERR=%s.\n"),
             print_name(), be.strerror());
          Dmsg1(200, "%s", errmsg);
@@ -1222,7 +1222,7 @@ bool DEVICE::fsf(int num)
             } else {
                berrno be;
                set_eot();
-               clrerror_dev(this, -1);
+               clrerror(-1);
                Dmsg2(100, "Set ST_EOT read errno=%d. ERR=%s\n", dev_errno,
                   be.strerror());
                Mmsg2(errmsg, _("read error on %s. ERR=%s.\n"),
@@ -1254,7 +1254,7 @@ bool DEVICE::fsf(int num)
             berrno be;
             set_eot();
             Dmsg0(100, "Set ST_EOT\n");
-            clrerror_dev(this, MTFSF);
+            clrerror(MTFSF);
             Mmsg2(errmsg, _("ioctl MTFSF error on %s. ERR=%s.\n"),
                print_name(), be.strerror());
             Dmsg0(100, "Got < 0 for MTFSF\n");
@@ -1323,7 +1323,7 @@ bool DEVICE::bsf(int num)
    stat = ioctl(fd, MTIOCTOP, (char *)&mt_com);
    if (stat < 0) {
       berrno be;
-      clrerror_dev(this, MTBSF);
+      clrerror(MTBSF);
       Mmsg2(errmsg, _("ioctl MTBSF error on %s. ERR=%s.\n"),
          print_name(), be.strerror());
    }
@@ -1367,7 +1367,7 @@ bool DEVICE::fsr(int num)
    } else {
       berrno be;
       struct mtget mt_stat;
-      clrerror_dev(this, MTFSR);
+      clrerror(MTFSR);
       Dmsg1(100, "FSF fail: ERR=%s\n", be.strerror());
       if (dev_get_os_pos(this, &mt_stat)) {
          Dmsg4(100, "Adjust from %d:%d to %d:%d\n", file,
@@ -1422,7 +1422,7 @@ bool DEVICE::bsr(int num)
    stat = ioctl(fd, MTIOCTOP, (char *)&mt_com);
    if (stat < 0) {
       berrno be;
-      clrerror_dev(this, MTBSR);
+      clrerror(MTBSR);
       Mmsg2(errmsg, _("ioctl MTBSR error on %s. ERR=%s.\n"),
          print_name(), be.strerror());
    }
@@ -1495,50 +1495,49 @@ bool DEVICE::reposition(uint32_t rfile, uint32_t rblock)
 
 /*
  * Write an end of file on the device
- *   Returns: 0 on success
- *            non-zero on failure
+ *   Returns: true on success
+ *            false on failure
  */
-int
-weof_dev(DEVICE *dev, int num)
+bool DEVICE::weof(int num)
 {
    struct mtop mt_com;
    int stat;
    Dmsg0(129, "weof_dev\n");
    
-   if (dev->fd < 0) {
-      dev->dev_errno = EBADF;
-      Mmsg0(dev->errmsg, _("Bad call to weof_dev. Device not open\n"));
-      Emsg0(M_FATAL, 0, dev->errmsg);
-      return -1;
+   if (fd < 0) {
+      dev_errno = EBADF;
+      Mmsg0(errmsg, _("Bad call to weof_dev. Device not open\n"));
+      Emsg0(M_FATAL, 0, errmsg);
+      return false;
    }
-   dev->file_size = 0;
+   file_size = 0;
 
-   if (!dev->is_tape()) {
-      return 0;
+   if (!is_tape()) {
+      return true;
    }
-   if (!dev->can_append()) {
-      Mmsg0(dev->errmsg, _("Attempt to WEOF on non-appendable Volume\n"));
-      Emsg0(M_FATAL, 0, dev->errmsg);
-      return -1;
+   if (!can_append()) {
+      Mmsg0(errmsg, _("Attempt to WEOF on non-appendable Volume\n"));
+      Emsg0(M_FATAL, 0, errmsg);
+      return false;
    }
       
-   dev->state &= ~(ST_EOT | ST_EOF);  /* remove EOF/EOT flags */
+   state &= ~(ST_EOT | ST_EOF);  /* remove EOF/EOT flags */
    mt_com.mt_op = MTWEOF;
    mt_com.mt_count = num;
-   stat = ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
+   stat = ioctl(fd, MTIOCTOP, (char *)&mt_com);
    if (stat == 0) {
-      dev->block_num = 0;
-      dev->file += num;
-      dev->file_addr = 0;
+      block_num = 0;
+      file += num;
+      file_addr = 0;
    } else {
       berrno be;
-      clrerror_dev(dev, MTWEOF);
+      clrerror(MTWEOF);
       if (stat == -1) {
-         Mmsg2(dev->errmsg, _("ioctl MTWEOF error on %s. ERR=%s.\n"),
-            dev->print_name(), be.strerror());
+         Mmsg2(errmsg, _("ioctl MTWEOF error on %s. ERR=%s.\n"),
+            print_name(), be.strerror());
        }
    }
-   return stat;
+   return stat == 0;
 }
 
 
@@ -1546,19 +1545,18 @@ weof_dev(DEVICE *dev, int num)
  * If implemented in system, clear the tape
  * error status.
  */
-void
-clrerror_dev(DEVICE *dev, int func)
+void DEVICE::clrerror(int func)
 {
    const char *msg = NULL;
    struct mtget mt_stat;
    char buf[100];
 
-   dev->dev_errno = errno;         /* save errno */
+   dev_errno = errno;         /* save errno */
    if (errno == EIO) {
-      dev->VolCatInfo.VolCatErrors++;
+      VolCatInfo.VolCatErrors++;
    }
 
-   if (!dev->is_tape()) {
+   if (!is_tape()) {
       return;
    }
    if (errno == ENOTTY || errno == ENOSYS) { /* Function not implemented */
@@ -1568,29 +1566,29 @@ clrerror_dev(DEVICE *dev, int func)
          break;
       case MTWEOF:
          msg = "WTWEOF";
-         dev->capabilities &= ~CAP_EOF; /* turn off feature */
+         capabilities &= ~CAP_EOF; /* turn off feature */
          break;
 #ifdef MTEOM
       case MTEOM:
          msg = "WTEOM";
-         dev->capabilities &= ~CAP_EOM; /* turn off feature */
+         capabilities &= ~CAP_EOM; /* turn off feature */
          break;
 #endif
       case MTFSF:
          msg = "MTFSF";
-         dev->capabilities &= ~CAP_FSF; /* turn off feature */
+         capabilities &= ~CAP_FSF; /* turn off feature */
          break;
       case MTBSF:
          msg = "MTBSF";
-         dev->capabilities &= ~CAP_BSF; /* turn off feature */
+         capabilities &= ~CAP_BSF; /* turn off feature */
          break;
       case MTFSR:
          msg = "MTFSR";
-         dev->capabilities &= ~CAP_FSR; /* turn off feature */
+         capabilities &= ~CAP_FSR; /* turn off feature */
          break;
       case MTBSR:
          msg = "MTBSR";
-         dev->capabilities &= ~CAP_BSR; /* turn off feature */
+         capabilities &= ~CAP_BSR; /* turn off feature */
          break;
       case MTREW:
          msg = "MTREW";
@@ -1610,19 +1608,39 @@ clrerror_dev(DEVICE *dev, int func)
          msg = "MTSRSZ";
          break;
 #endif
+#ifdef MTLOAD
+      case MTLOAD:
+         msg = "MTLOAD";
+         break;
+#endif
+#ifdef MTUNLOCK
+      case MTUNLOCK:
+         msg = "MTUNLOCK";
+         break;
+#endif
+      case MTOFFL:
+         msg = "MTOFFL";
+         break;
       default:
          bsnprintf(buf, sizeof(buf), _("unknown func code %d"), func);
          msg = buf;
          break;
       }
       if (msg != NULL) {
-         dev->dev_errno = ENOSYS;
-         Mmsg1(dev->errmsg, _("I/O function \"%s\" not supported on this device.\n"), msg);
-         Emsg0(M_ERROR, 0, dev->errmsg);
+         dev_errno = ENOSYS;
+         Mmsg1(errmsg, _("I/O function \"%s\" not supported on this device.\n"), msg);
+         Emsg0(M_ERROR, 0, errmsg);
       }
    }
+
+   /*
+    * Now we try different methods of clearing the error
+    *  status on the drive so that it is not locked for
+    *  further operations.
+    */
+
    /* On some systems such as NetBSD, this clears all errors */
-   ioctl(dev->fd, MTIOCGET, (char *)&mt_stat);
+   ioctl(fd, MTIOCGET, (char *)&mt_stat);
 
 /* Found on Linux */
 #ifdef MTIOCLRERR
@@ -1631,7 +1649,7 @@ clrerror_dev(DEVICE *dev, int func)
    mt_com.mt_op = MTIOCLRERR;
    mt_com.mt_count = 1;
    /* Clear any error condition on the tape */
-   ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
+   ioctl(fd, MTIOCTOP, (char *)&mt_com);
    Dmsg0(200, "Did MTIOCLRERR\n");
 }
 #endif
@@ -1641,9 +1659,9 @@ clrerror_dev(DEVICE *dev, int func)
 {
    /* Read and clear SCSI error status */
    union mterrstat mt_errstat;
-   Dmsg2(200, "Doing MTIOCERRSTAT errno=%d ERR=%s\n", dev->dev_errno,
-      strerror(dev->dev_errno));
-   ioctl(dev->fd, MTIOCERRSTAT, (char *)&mt_errstat);
+   Dmsg2(200, "Doing MTIOCERRSTAT errno=%d ERR=%s\n", dev_errno,
+      strerror(dev_errno));
+   ioctl(fd, MTIOCERRSTAT, (char *)&mt_errstat);
 }
 #endif
 
@@ -1654,7 +1672,7 @@ clrerror_dev(DEVICE *dev, int func)
    mt_com.mt_op = MTCSE;
    mt_com.mt_count = 1;
    /* Clear any error condition on the tape */
-   ioctl(dev->fd, MTIOCTOP, (char *)&mt_com);
+   ioctl(fd, MTIOCTOP, (char *)&mt_com);
    Dmsg0(200, "Did MTCSE\n");
 }
 #endif
@@ -2080,7 +2098,7 @@ void set_os_device_parameters(DEVICE *dev)
       mt_com.mt_op = MTSETBLK;
       mt_com.mt_count = 0;
       if (ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
-         clrerror_dev(dev, MTSETBLK);
+         dev->clrerror(MTSETBLK);
       }
       mt_com.mt_op = MTSETDRVBUFFER;
       mt_com.mt_count = MT_ST_CLEARBOOLEANS;
@@ -2091,7 +2109,7 @@ void set_os_device_parameters(DEVICE *dev)
          mt_com.mt_count |= MT_ST_FAST_MTEOM;
       }
       if (ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
-         clrerror_dev(dev, MTSETBLK);
+         dev->clrerror(MTSETBLK);
       }
    }
    return;
@@ -2104,13 +2122,13 @@ void set_os_device_parameters(DEVICE *dev)
       mt_com.mt_op = MTSETBSIZ;
       mt_com.mt_count = 0;
       if (ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
-         clrerror_dev(dev, MTSETBSIZ);
+         dev->clrerror(MTSETBSIZ);
       }
       /* Get notified at logical end of tape */
       mt_com.mt_op = MTEWARN;
       mt_com.mt_count = 1;
       if (ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
-         clrerror_dev(dev, MTEWARN);
+         dev->clrerror(MTEWARN);
       }
    }
    return;
@@ -2123,7 +2141,7 @@ void set_os_device_parameters(DEVICE *dev)
       mt_com.mt_op = MTSETBSIZ;
       mt_com.mt_count = 0;
       if (ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
-         clrerror_dev(dev, MTSETBSIZ);
+         dev->clrerror(MTSETBSIZ);
       }
    }
    return;
@@ -2136,7 +2154,7 @@ void set_os_device_parameters(DEVICE *dev)
       mt_com.mt_op = MTSRSZ;
       mt_com.mt_count = 0;
       if (ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
-         clrerror_dev(dev, MTSRSZ);
+         dev->clrerror(MTSRSZ);
       }
    }
    return;

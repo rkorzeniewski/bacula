@@ -2,6 +2,8 @@
                         Kern Sibbald
 
 General:
+09Apr06
+- Make weof() and clrerror() methods of class DEVICE.
 08Apr06
 - Tweak license to include Microsoft restrictions.
 - Move mysql.reconnect to after real_connect().  Thanks to
