@@ -103,10 +103,11 @@ LEX *lex_close_file(LEX *lf)
 {
    LEX *of;
 
-   Dmsg1(2000, "Close lex file: %s\n", lf->fname);
    if (lf == NULL) {
       Emsg0(M_ABORT, 0, _("Close of NULL file\n"));
    }
+   Dmsg1(2000, "Close lex file: %s\n", lf->fname);
+
    of = lf->next;
    fclose(lf->fd);
    Dmsg1(2000, "Close cfg file %s\n", lf->fname);
@@ -289,7 +290,7 @@ static uint32_t scan_pint(LEX *lf, char *str)
       errno = 0;
       val = str_to_int64(str);
       if (errno != 0 || val < 0) {
-         scan_err1(lf, _("expected a postive integer number, got: %s"), str);
+         scan_err1(lf, _("expected a positive integer number, got: %s"), str);
          /* NOT REACHED */
       }
    }
