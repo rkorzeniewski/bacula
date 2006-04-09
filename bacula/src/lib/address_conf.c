@@ -431,7 +431,7 @@ void store_addresses(LEX * lc, RES_ITEM * item, int index, int pass)
       }
       token = lex_get_token(lc, T_SKIP_EOL);
       if (token != T_BOB) {
-         scan_err1(lc, _("Expected a block beginn { , got: %s"), lc->str);
+         scan_err1(lc, _("Expected a block begin { , got: %s"), lc->str);
       }
       token = lex_get_token(lc, T_SKIP_EOL);
       exist = EMPTYLINE;
@@ -505,7 +505,7 @@ void store_addresses_address(LEX * lc, RES_ITEM * item, int index, int pass)
 
    int token = lex_get_token(lc, T_SKIP_EOL);
    if (!(token == T_UNQUOTED_STRING || token == T_NUMBER || token == T_IDENTIFIER)) {
-      scan_err1(lc, _("Expected a hostname or IP nummer, got: %s"), lc->str);
+      scan_err1(lc, _("Expected an IP number or a hostname, got: %s"), lc->str);
    }
    char *errstr;
    if (pass == 1 && !add_address((dlist **) (item->value), IPADDR::R_SINGLE_ADDR,
