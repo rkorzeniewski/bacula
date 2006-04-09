@@ -477,7 +477,7 @@ bool write_block_to_dev(DCR *dcr)
        (dev->file_size+block->binbuf) >= dev->max_file_size) {
       dev->file_size = 0;             /* reset file size */
 
-      if (weof_dev(dev, 1) != 0) {            /* write eof */
+      if (!dev->weof(1)) {            /* write eof */
          Dmsg0(190, "WEOF error in max file size.\n");
          Jmsg(jcr, M_FATAL, 0, _("Unable to write EOF. ERR=%s\n"), 
             dev->bstrerror());
@@ -529,7 +529,7 @@ bool write_block_to_dev(DCR *dcr)
        */
       if (stat == -1) {
          berrno be;
-         clrerror_dev(dev, -1);
+         dev->clrerror(-1);
          if (dev->dev_errno == 0) {
             dev->dev_errno = ENOSPC;        /* out of space */
          }
@@ -685,7 +685,7 @@ static bool terminate_writing_volume(DCR *dcr)
        goto bail_out;
    }
    dcr->block->write_failed = true;
-   if (weof_dev(dev, 1) != 0) {         /* end the tape */
+   if (!dev->weof(1)) {         /* end the tape */
       dev->VolCatInfo.VolCatErrors++;
       Jmsg(dcr->jcr, M_ERROR, 0, _("Error writing final EOF to tape. This Volume may not be readable.\n"
            "%s"), dev->errmsg);
@@ -723,7 +723,7 @@ static bool terminate_writing_volume(DCR *dcr)
    /* Set new file/block parameters for current dcr */
    set_new_file_parameters(dcr);
 
-   if (ok && dev_cap(dev, CAP_TWOEOF) && weof_dev(dev, 1) != 0) {  /* end the tape */
+   if (ok && dev_cap(dev, CAP_TWOEOF) && !dev->weof(1)) {  /* end the tape */
       dev->VolCatInfo.VolCatErrors++;
       /* This may not be fatal since we already wrote an EOF */
       Jmsg(dcr->jcr, M_ERROR, 0, "%s", dev->errmsg);
@@ -938,7 +938,7 @@ reread:
    } while (stat == -1 && (errno == EINTR || errno == EIO) && retry++ < 11);
    if (stat < 0) {
       berrno be;
-      clrerror_dev(dev, -1);
+      dev->clrerror(-1);
       Dmsg1(200, "Read device got: ERR=%s\n", be.strerror());
       block->read_len = 0;
       Mmsg4(dev->errmsg, _("Read error at file:blk %u:%u on device %s. ERR=%s.\n"),

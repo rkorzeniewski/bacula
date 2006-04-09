@@ -460,7 +460,7 @@ bool release_device(DCR *dcr)
          }
          /* If no more writers, write an EOF */
          if (!dev->num_writers && dev->can_write()) {
-            weof_dev(dev, 1);
+            dev->weof(1);
             write_ansi_ibm_labels(dcr, ANSI_EOF_LABEL, dev->VolHdr.VolumeName);
          }
          if (!dev->at_weot()) {

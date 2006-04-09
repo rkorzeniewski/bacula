@@ -433,7 +433,7 @@ static void rewindcmd()
 {
    if (!dev->rewind(dcr)) {
       Pmsg1(0, _("Bad status from rewind. ERR=%s\n"), dev->bstrerror());
-      clrerror_dev(dev, -1);
+      dev->clrerror(-1);
    } else {
       Pmsg1(0, _("Rewound %s\n"), dev->print_name());
    }
@@ -444,7 +444,7 @@ static void rewindcmd()
  */
 static void clearcmd()
 {
-   clrerror_dev(dev, -1);
+   dev->clrerror(-1);
 }
 
 /*
@@ -452,7 +452,6 @@ static void clearcmd()
  */
 static void weofcmd()
 {
-   int stat;
    int num = 1;
    if (argc > 1) {
       num = atoi(argk[1]);
@@ -461,8 +460,8 @@ static void weofcmd()
       num = 1;
    }
 
-   if ((stat = weof_dev(dev, num)) < 0) {
-      Pmsg2(0, _("Bad status from weof %d. ERR=%s\n"), stat, dev->bstrerror());
+   if (!dev->weof(num)) {
+      Pmsg1(0, _("Bad status from weof. ERR=%s\n"), dev->bstrerror());
       return;
    } else {
       if (num==1) {
@@ -1193,9 +1192,9 @@ try_again:
     * a failure.
     */
    bmicrosleep(sleep_time, 0);
-   if (!dev->rewind(dcr) || weof_dev(dev,1) < 0) {
+   if (!dev->rewind(dcr) || !dev->weof(1)) {
       Pmsg1(0, _("Bad status from rewind. ERR=%s\n"), dev->bstrerror());
-      clrerror_dev(dev, -1);
+      dev->clrerror(-1);
       Pmsg0(-1, _("\nThe test failed, probably because you need to put\n"
                 "a longer sleep time in the mtx-script in the load) case.\n"
                 "Adding a 30 second sleep and trying again ...\n"));
@@ -1205,8 +1204,8 @@ try_again:
       Pmsg1(0, _("Rewound %s\n"), dev->print_name());
    }
 
-   if ((status = weof_dev(dev, 1)) < 0) {
-      Pmsg2(0, _("Bad status from weof %d. ERR=%s\n"), status, dev->bstrerror());
+   if (!dev->weof(1)) {
+      Pmsg1(0, _("Bad status from weof. ERR=%s\n"), dev->bstrerror());
       goto bail_out;
    } else {
       Pmsg1(0, _("Wrote EOF to %s\n"), dev->print_name());
@@ -1590,7 +1589,7 @@ static void scancmd()
    for (;;) {
       if ((stat = read(dev->fd, buf, sizeof(buf))) < 0) {
          berrno be;
-         clrerror_dev(dev, -1);
+         dev->clrerror(-1);
          Mmsg2(dev->errmsg, _("read error on %s. ERR=%s.\n"),
             dev->dev_name, be.strerror());
          Pmsg2(0, _("Bad status from read %d. ERR=%s\n"), stat, dev->bstrerror());
@@ -1826,7 +1825,7 @@ static void fillcmd()
    if (!dev->rewind(dcr)) {
       Pmsg0(000, _("Rewind failed.\n"));
    }
-   if (!dev->weof()) {
+   if (!dev->weof(1)) {
       Pmsg0(000, _("Write EOF failed.\n"));
    }
    labelcmd();
@@ -1940,7 +1939,7 @@ static void fillcmd()
             strftime(buf1, sizeof(buf1), "%T", &tm);
             Pmsg1(-1, _("%s Flush block, write EOF\n"), buf1);
             flush_block(block, 0);
-            weof_dev(dev, 1);
+            dev->weof(1);
          }
 
          /* Get out after writing 10 blocks to the second tape */

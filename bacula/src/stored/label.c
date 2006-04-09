@@ -351,7 +351,7 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *Po
    }
    Dmsg0(99, " Wrote block to device\n");
 
-   if (weof_dev(dev, 1) == 0) {
+   if (dev->weof(1)) {
       dev->set_labeled();
       write_ansi_ibm_labels(dcr, ANSI_EOF_LABEL, dev->VolHdr.VolumeName);
    }
