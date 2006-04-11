@@ -58,22 +58,22 @@ static int getmsgscmd(UAContext *ua, const char *cmd);
 
 struct cmdstruct { const char *key; int (*func)(UAContext *ua, const char *cmd); const char *help; };
 static struct cmdstruct commands[] = {
- { N_(".die"),        diecmd,       NULL},
- { N_(".jobs"),       jobscmd,      NULL},
- { N_(".filesets"),   filesetscmd,  NULL},
- { N_(".clients"),    clientscmd,   NULL},
- { N_(".msgs"),       msgscmd,      NULL},
- { N_(".pools"),      poolscmd,     NULL},
- { N_(".types"),      typescmd,     NULL},
- { N_(".backups"),    backupscmd,   NULL},
- { N_(".levels"),     levelscmd,    NULL},
- { N_(".status"),     qstatus_cmd,  NULL},
- { N_(".storage"),    storagecmd,   NULL},
- { N_(".defaults"),   defaultscmd,  NULL},
- { N_(".messages"),   getmsgscmd,   NULL},
- { N_(".help"),       qhelp_cmd,    NULL},
- { N_(".quit"),       quit_cmd,     NULL},
- { N_(".exit"),       quit_cmd,     NULL}
+ { NT_(".die"),        diecmd,       NULL},
+ { NT_(".jobs"),       jobscmd,      NULL},
+ { NT_(".filesets"),   filesetscmd,  NULL},
+ { NT_(".clients"),    clientscmd,   NULL},
+ { NT_(".msgs"),       msgscmd,      NULL},
+ { NT_(".pools"),      poolscmd,     NULL},
+ { NT_(".types"),      typescmd,     NULL},
+ { NT_(".backups"),    backupscmd,   NULL},
+ { NT_(".levels"),     levelscmd,    NULL},
+ { NT_(".status"),     qstatus_cmd,  NULL},
+ { NT_(".storage"),    storagecmd,   NULL},
+ { NT_(".defaults"),   defaultscmd,  NULL},
+ { NT_(".messages"),   getmsgscmd,   NULL},
+ { NT_(".help"),       qhelp_cmd,    NULL},
+ { NT_(".quit"),       quit_cmd,     NULL},
+ { NT_(".exit"),       quit_cmd,     NULL}
              };
 #define comsize (sizeof(commands)/sizeof(struct cmdstruct))
 

@@ -87,47 +87,47 @@ int quit_cmd(UAContext *ua, const char *cmd);
 
 struct cmdstruct { const char *key; int (*func)(UAContext *ua, const char *cmd); const char *help; };
 static struct cmdstruct commands[] = {
- { N_("add"),        add_cmd,         _("add media to a pool")},
- { N_("autodisplay"), autodisplay_cmd, _("autodisplay [on|off] -- console messages")},
- { N_("automount"),   automount_cmd,  _("automount [on|off] -- after label")},
- { N_("cancel"),     cancel_cmd,    _("cancel [<jobid=nnn> | <job=name>] -- cancel a job")},
- { N_("create"),     create_cmd,    _("create DB Pool from resource")},
- { N_("delete"),     delete_cmd,    _("delete [pool=<pool-name> | media volume=<volume-name>]")},
- { N_("disable"),    disable_cmd,   _("disable <job=name> -- disable a job")},
- { N_("enable"),     enable_cmd,    _("enable <job=name> -- enable a job")},
- { N_("estimate"),   estimate_cmd,  _("performs FileSet estimate, listing gives full listing")},
- { N_("exit"),       quit_cmd,      _("exit = quit")},
- { N_("gui"),        gui_cmd,       _("gui [on|off] -- non-interactive gui mode")},
- { N_("help"),       help_cmd,      _("print this command")},
- { N_("list"),       list_cmd,      _("list [pools | jobs | jobtotals | media <pool=pool-name> | files <jobid=nn>]; from catalog")},
- { N_("label"),      label_cmd,     _("label a tape")},
- { N_("llist"),      llist_cmd,     _("full or long list like list command")},
- { N_("messages"),   messagescmd,   _("messages")},
- { N_("mount"),      mount_cmd,     _("mount <storage-name>")},
- { N_("prune"),      prunecmd,      _("prune expired records from catalog")},
- { N_("purge"),      purgecmd,      _("purge records from catalog")},
- { N_("python"),     python_cmd,    _("python control commands")},
- { N_("quit"),       quit_cmd,      _("quit")},
- { N_("query"),      querycmd,      _("query catalog")},
- { N_("restore"),    restore_cmd,   _("restore files")},
- { N_("relabel"),    relabel_cmd,   _("relabel a tape")},
- { N_("release"),    release_cmd,   _("release <storage-name>")},
- { N_("reload"),     reload_cmd,    _("reload conf file")},
- { N_("run"),        run_cmd,       _("run <job-name>")},
- { N_("status"),     status_cmd,    _("status [storage | client]=<name>")},
- { N_("setdebug"),   setdebug_cmd,  _("sets debug level")},
- { N_("setip"),      setip_cmd,     _("sets new client address -- if authorized")},
- { N_("show"),       show_cmd,      _("show (resource records) [jobs | pools | ... | all]")},
- { N_("sqlquery"),   sqlquerycmd,   _("use SQL to query catalog")},
- { N_("time"),       time_cmd,      _("print current time")},
- { N_("trace"),      trace_cmd,     _("turn on/off trace to file")},
- { N_("unmount"),    unmount_cmd,   _("unmount <storage-name>")},
- { N_("umount"),     unmount_cmd,   _("umount <storage-name> for old-time Unix guys")},
- { N_("update"),     update_cmd,    _("update Volume, Pool or slots")},
- { N_("use"),        use_cmd,       _("use catalog xxx")},
- { N_("var"),        var_cmd,       _("does variable expansion")},
- { N_("version"),    version_cmd,   _("print Director version")},
- { N_("wait"),       wait_cmd,      _("wait until no jobs are running [<jobname=name> | <jobid=nnn> | <ujobid=complete_name>]")},
+ { NT_("add"),        add_cmd,         _("add media to a pool")},
+ { NT_("autodisplay"), autodisplay_cmd, _("autodisplay [on|off] -- console messages")},
+ { NT_("automount"),   automount_cmd,  _("automount [on|off] -- after label")},
+ { NT_("cancel"),     cancel_cmd,    _("cancel [<jobid=nnn> | <job=name>] -- cancel a job")},
+ { NT_("create"),     create_cmd,    _("create DB Pool from resource")},
+ { NT_("delete"),     delete_cmd,    _("delete [pool=<pool-name> | media volume=<volume-name>]")},
+ { NT_("disable"),    disable_cmd,   _("disable <job=name> -- disable a job")},
+ { NT_("enable"),     enable_cmd,    _("enable <job=name> -- enable a job")},
+ { NT_("estimate"),   estimate_cmd,  _("performs FileSet estimate, listing gives full listing")},
+ { NT_("exit"),       quit_cmd,      _("exit = quit")},
+ { NT_("gui"),        gui_cmd,       _("gui [on|off] -- non-interactive gui mode")},
+ { NT_("help"),       help_cmd,      _("print this command")},
+ { NT_("list"),       list_cmd,      _("list [pools | jobs | jobtotals | media <pool=pool-name> | files <jobid=nn>]; from catalog")},
+ { NT_("label"),      label_cmd,     _("label a tape")},
+ { NT_("llist"),      llist_cmd,     _("full or long list like list command")},
+ { NT_("messages"),   messagescmd,   _("messages")},
+ { NT_("mount"),      mount_cmd,     _("mount <storage-name>")},
+ { NT_("prune"),      prunecmd,      _("prune expired records from catalog")},
+ { NT_("purge"),      purgecmd,      _("purge records from catalog")},
+ { NT_("python"),     python_cmd,    _("python control commands")},
+ { NT_("quit"),       quit_cmd,      _("quit")},
+ { NT_("query"),      querycmd,      _("query catalog")},
+ { NT_("restore"),    restore_cmd,   _("restore files")},
+ { NT_("relabel"),    relabel_cmd,   _("relabel a tape")},
+ { NT_("release"),    release_cmd,   _("release <storage-name>")},
+ { NT_("reload"),     reload_cmd,    _("reload conf file")},
+ { NT_("run"),        run_cmd,       _("run <job-name>")},
+ { NT_("status"),     status_cmd,    _("status [storage | client]=<name>")},
+ { NT_("setdebug"),   setdebug_cmd,  _("sets debug level")},
+ { NT_("setip"),      setip_cmd,     _("sets new client address -- if authorized")},
+ { NT_("show"),       show_cmd,      _("show (resource records) [jobs | pools | ... | all]")},
+ { NT_("sqlquery"),   sqlquerycmd,   _("use SQL to query catalog")},
+ { NT_("time"),       time_cmd,      _("print current time")},
+ { NT_("trace"),      trace_cmd,     _("turn on/off trace to file")},
+ { NT_("unmount"),    unmount_cmd,   _("unmount <storage-name>")},
+ { NT_("umount"),     unmount_cmd,   _("umount <storage-name> for old-time Unix guys")},
+ { NT_("update"),     update_cmd,    _("update Volume, Pool or slots")},
+ { NT_("use"),        use_cmd,       _("use catalog xxx")},
+ { NT_("var"),        var_cmd,       _("does variable expansion")},
+ { NT_("version"),    version_cmd,   _("print Director version")},
+ { NT_("wait"),       wait_cmd,      _("wait until no jobs are running [<jobname=name> | <jobid=nnn> | <ujobid=complete_name>]")},
              };
 #define comsize (sizeof(commands)/sizeof(struct cmdstruct))
 
@@ -629,7 +629,7 @@ static void do_en_disable_cmd(UAContext *ua, bool setting)
    JOB *job;
    int i;
 
-   i = find_arg_with_value(ua, N_("job")); 
+   i = find_arg_with_value(ua, NT_("job")); 
    if (i < 0) { 
       job = select_job_resource(ua);
       if (!job) {
@@ -1110,9 +1110,9 @@ static int reload_cmd(UAContext *ua, const char *cmd)
 static int delete_cmd(UAContext *ua, const char *cmd)
 {
    static const char *keywords[] = {
-      N_("volume"),
-      N_("pool"),
-      N_("jobid"),
+      NT_("volume"),
+      NT_("pool"),
+      NT_("jobid"),
       NULL};
 
    if (!open_db(ua)) {
@@ -1172,7 +1172,7 @@ static void delete_job(UAContext *ua)
    JobId_t JobId;
    char *s,*sep,*tok;
 
-   int i = find_arg_with_value(ua, N_("jobid"));
+   int i = find_arg_with_value(ua, NT_("jobid"));
    if (i >= 0) {
       if (strchr(ua->argv[i], ',') != NULL || strchr(ua->argv[i], '-') != NULL) {
         s = bstrdup(ua->argv[i]);

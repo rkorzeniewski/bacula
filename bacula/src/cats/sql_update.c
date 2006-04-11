@@ -64,7 +64,7 @@ db_add_digest_to_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, char *digest,
 }
 
 /* Mark the file record as being visited during database
- * verify compare. Stuff JobId into MarkedId field
+ * verify compare. Stuff JobId into the MarkId field
  */
 int db_mark_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, JobId_t JobId)
 {

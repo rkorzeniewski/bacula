@@ -190,7 +190,7 @@ int restore_cmd(UAContext *ua, const char *cmd)
           job->hdr.name, rx.ClientName, rx.store?rx.store->hdr.name:"",
           jcr->RestoreBootstrap, rx.selected_files, ua->catalog->hdr.name);
    }
-   if (find_arg(ua, N_("yes")) > 0) {
+   if (find_arg(ua, NT_("yes")) > 0) {
       pm_strcat(ua->cmd, " yes");    /* pass it on to the run command */
    }
    Dmsg1(100, "Submitting: %s\n", ua->cmd);
@@ -243,7 +243,7 @@ static int get_client_name(UAContext *ua, RESTORE_CTX *rx)
    if (!rx->ClientName[0]) {
       CLIENT_DBR cr;
       /* try command line argument */
-      int i = find_arg_with_value(ua, N_("client"));
+      int i = find_arg_with_value(ua, NT_("client"));
       if (i >= 0) {
          if (!has_value(ua, i)) {
             return 0;
@@ -971,7 +971,7 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
       /* Check MediaType and select storage that corresponds */
       get_storage_from_mediatype(ua, &rx->name_list, rx);
 
-      if (find_arg(ua, N_("done")) < 0) {
+      if (find_arg(ua, NT_("done")) < 0) {
          /* Let the user interact in selecting which files to restore */
          OK = user_select_files_from_tree(&tree);
       }

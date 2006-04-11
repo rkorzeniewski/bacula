@@ -38,7 +38,7 @@ EXTRAOBJS = @OBJLIST@
 DIRCONFOBJS = ../dird/dird_conf.o ../dird/run_conf.o ../dird/inc_conf.o
 
 NODIRTOOLS = bsmtp
-DIRTOOLS = bsmtp dbcheck fstype testfind testls regex
+DIRTOOLS = bsmtp dbcheck fstype testfind testls regex wild
 TOOLS = $(@DIR_TOOLS@)
 
 INSNODIRTOOLS = bsmtp
@@ -78,6 +78,11 @@ testls: ../findlib/libfind.a ../lib/libbac.a testls.o
 regex:	../findlib/libfind.a ../lib/libbac.a regex.o
 	$(CXX) -g $(LDFLAGS) -L. -L../lib -o $@ regex.o \
 	  $(DLIB) -lbac -lm $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
+
+wild:	../findlib/libfind.a ../lib/libbac.a wild.o
+	$(CXX) -g $(LDFLAGS) -L. -L../lib -o $@ wild.o \
+	  $(DLIB) -lbac -lm $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
+
 
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status

@@ -2,7 +2,34 @@
                         Kern Sibbald
 
 General:
+Release 1.38.8
+11Apr06
+- Modify Makefile to change the permissions on Working Directory
+  to 770 if the directory is created.
+- Do not fail the Makefile if changing the permissions or 
+  owner/group on WorkingDir fails.
+- Remove early selection of Scratch Volumes in the recycling
+  algorithm.
+- Correct the old recycling algorithm so that Scratch Volumes
+  are selected when looking for a Volume in the changer.
+- Correct a typo in the Verify SQL reported by Joe Park.
+10Apr06
+- Remove automatic case folding on Windows FDs. You must
+  explictly use the 'Ignore Case = yes' option.
+- Remove the code added to 1.38.6 and 1.38.7 that pulls a
+  scratch volume in an Autochanger early in the 'recycling'
+  algorithm.  
+08Apr06
+- Tweak license to include Microsoft restrictions.
+- Move mysql.reconnect to after real_connect().  Thanks to
+  Frank Sweetser for the patch.
+- Disallow a backslash in a File = directive (Windows junk)
+  unless the string is quoted.
+- Apply Eric's patch to ua_label.c so that daemon protocol
+  is not translated.
+
 Release 1.38.7 (06Apr06) released 07Apr06
+06Apr06
 - Remove timed wait for VSS on Win2K3 as it is not yet
   implemented.
 - Correct bacula.in script to reference bacula-ctl-xx in the

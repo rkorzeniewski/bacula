@@ -126,11 +126,11 @@ bool do_migration(JCR *jcr)
       migration_cleanup(jcr, jcr->JobStatus);
       return true;                    /* no work */
    }
-   Dmsg4(100, "Target: Name=%s JobId=%d Type=%c Level=%c\n",
+   Dmsg4(000, "Target: Name=%s JobId=%d Type=%c Level=%c\n",
       jcr->previous_jr.Name, jcr->previous_jr.JobId, 
       jcr->previous_jr.JobType, jcr->previous_jr.JobLevel);
 
-   Dmsg4(100, "Current: Name=%s JobId=%d Type=%c Level=%c\n",
+   Dmsg4(000, "Current: Name=%s JobId=%d Type=%c Level=%c\n",
       jcr->jr.Name, jcr->jr.JobId, 
       jcr->jr.JobType, jcr->jr.JobLevel);
 
@@ -219,7 +219,7 @@ bool do_migration(JCR *jcr)
 
    set_jcr_job_status(jcr, JS_Running);
    set_jcr_job_status(tjcr, JS_Running);
-   Dmsg2(100, "JobId=%d JobLevel=%c\n", jcr->jr.JobId, jcr->jr.JobLevel);
+   Dmsg2(000, "JobId=%d JobLevel=%c\n", jcr->jr.JobId, jcr->jr.JobLevel);
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
       return false;
@@ -325,7 +325,7 @@ static int unique_name_handler(void *ctx, int num_fields, char **row)
    
    memset(new_item, 0, sizeof(uitem));
    new_item->item = bstrdup(row[0]);
-
+   Dmsg1(000, "Item=%s\n", row[0]);
    item = (uitem *)list->binary_insert((void *)new_item, item_compare);
    if (item != new_item) {            /* already in list */
       free(new_item->item);
@@ -370,9 +370,14 @@ const char *sql_client =
    " Job.PoolId=Media.PoolId";
 
 const char *sql_job =
-   "SELECT DISTINCT Job.Name from Pool,Media,Job,JobMedia "
-   " WHERE Media.PoolId=Pool.PoolId AND Pool.Name='%s' AND"
-   " JobMedia.JobId=Job.JobId AND Job.PoolId=Media.PoolId";
+   "SELECT DISTINCT Job.Name from Job,Pool"
+   " WHERE Pool.Name='%s' AND Job.PoolId=Pool.PoolId";
+
+const char *sql_jobids_from_job =
+   "SELECT DISTINCT Job.JobId FROM Job,Pool"
+   " WHERE Job.Name=%s AND Pool.Name='%s' AND Job.PoolId=Pool.PoolId"
+   " ORDER by Job.StartTime";
+
 
 const char *sql_ujobid =
    "SELECT DISTINCT Job.Job from Client,Pool,Media,Job,JobMedia "
@@ -399,11 +404,14 @@ static bool get_job_to_migrate(JCR *jcr)
    char *p;
    dlist *item_chain;
    uitem *item = NULL;
+   uitem *last_item = NULL;
    char prbuf[500];
    regex_t preg;
 
+   JobIds[0] = 0;
    if (jcr->MigrateJobId != 0) {
       jcr->previous_jr.JobId = jcr->MigrateJobId;
+      Dmsg1(000, "previous jobid=%u\n", jcr->MigrateJobId);
    } else {
       switch (jcr->job->selection_type) {
       case MT_SMALLEST_VOL:
@@ -427,7 +435,7 @@ static bool get_job_to_migrate(JCR *jcr)
                  _("SQL to get Volume failed. ERR=%s\n"), db_strerror(jcr->db));
             goto bail_out;
          }
-         Dmsg1(000, "Jobids=%s\n", JobIds);
+         Dmsg1(000, "Smallest Vol Jobids=%s\n", JobIds);
          break;
       case MT_OLDEST_VOL:
          Mmsg(query, sql_oldest_vol, jcr->pool->hdr.name);
@@ -449,7 +457,7 @@ static bool get_job_to_migrate(JCR *jcr)
                  _("SQL to get Volume failed. ERR=%s\n"), db_strerror(jcr->db));
             goto bail_out;
          }
-         Dmsg1(000, "Jobids=%s\n", JobIds);
+         Dmsg1(000, "Oldest Vol Jobids=%s\n", JobIds);
          break;
       case MT_POOL_OCCUPANCY:
          Mmsg(query, sql_pool_bytes, jcr->pool->hdr.name);
@@ -464,14 +472,17 @@ static bool get_job_to_migrate(JCR *jcr)
             Jmsg(jcr, M_INFO, 0, _("No jobs found to migrate.\n"));
             goto ok_out;
          }
+         Dmsg1(000, "Pool Occupancy Jobids=%s\n", JobIds);
          break;
       case MT_POOL_TIME:
+         Dmsg0(000, "Pool time not implemented\n");
          break;
       case MT_CLIENT:
          if (!jcr->job->selection_pattern) {
-            Jmsg(jcr, M_FATAL, 0, _("No selection pattern specified.\n"));
+            Jmsg(jcr, M_FATAL, 0, _("No Migration Client selection pattern specified.\n"));
             goto bail_out;
          }
+         Dmsg1(000, "Client regex=%s\n", jcr->job->selection_pattern);
          rc = regcomp(&preg, jcr->job->selection_pattern, REG_EXTENDED);
          if (rc != 0) {
             regerror(rc, &preg, prbuf, sizeof(prbuf));
@@ -502,9 +513,10 @@ static bool get_job_to_migrate(JCR *jcr)
          break;
       case MT_VOLUME:
          if (!jcr->job->selection_pattern) {
-            Jmsg(jcr, M_FATAL, 0, _("No selection pattern specified.\n"));
+            Jmsg(jcr, M_FATAL, 0, _("No Migration Volume selection pattern specified.\n"));
             goto bail_out;
          }
+         Dmsg1(000, "Volume regex=%s\n", jcr->job->selection_pattern);
          rc = regcomp(&preg, jcr->job->selection_pattern, REG_EXTENDED);
          if (rc != 0) {
             regerror(rc, &preg, prbuf, sizeof(prbuf));
@@ -535,43 +547,78 @@ static bool get_job_to_migrate(JCR *jcr)
          break;
       case MT_JOB:
          if (!jcr->job->selection_pattern) {
-            Jmsg(jcr, M_FATAL, 0, _("No selection pattern specified.\n"));
+            Jmsg(jcr, M_FATAL, 0, _("No Migration Job selection pattern specified.\n"));
             goto bail_out;
          }
+         Dmsg1(000, "Job regex=%s\n", jcr->job->selection_pattern);
          rc = regcomp(&preg, jcr->job->selection_pattern, REG_EXTENDED);
          if (rc != 0) {
             regerror(rc, &preg, prbuf, sizeof(prbuf));
             Jmsg(jcr, M_FATAL, 0, _("Could not compile regex pattern \"%s\" ERR=%s\n"),
                  jcr->job->selection_pattern, prbuf);
+            goto bail_out;
          }
          item_chain = New(dlist(item, &item->link));
          Mmsg(query, sql_job, jcr->pool->hdr.name);
-         Dmsg1(100, "query=%s\n", query.c_str());
+         Dmsg1(000, "query=%s\n", query.c_str());
          if (!db_sql_query(jcr->db, query.c_str(), unique_name_handler, 
               (void *)item_chain)) {
             Jmsg(jcr, M_FATAL, 0,
                  _("SQL to get Job failed. ERR=%s\n"), db_strerror(jcr->db));
             goto bail_out;
          }
-         /* Now apply the regex and create the jobs */
+         /* Now apply the regex and remove any item not matched */
          foreach_dlist(item, item_chain) {
             const int nmatch = 30;
             regmatch_t pmatch[nmatch];
+            if (last_item) {
+               free(last_item->item);
+               item_chain->remove(last_item);
+            }
+            Dmsg1(000, "Jobitem=%s\n", item->item);
             rc = regexec(&preg, item->item, nmatch, pmatch,  0);
             if (rc == 0) {
-               Dmsg1(000, "Do Job=%s\n", item->item);
+               last_item = NULL;   /* keep this one */
+            } else {   
+               last_item = item;
             }
-            free(item->item);
+         }
+         if (last_item) {
+            free(last_item->item);
+            item_chain->remove(last_item);
          }
          regfree(&preg);
+         /* 
+          * At this point, we have a list of items in item_chain
+          *  that have been matched by the regex, so now we need
+          *  to look up their jobids.
+          */
+         JobIds = get_pool_memory(PM_MESSAGE);
+         JobIds[0] = 0;
+         foreach_dlist(item, item_chain) {
+            Dmsg1(000, "Got Job: %s\n", item->item);
+            Mmsg(query, sql_jobids_from_job, item->item, jcr->pool->hdr.name);
+            if (!db_sql_query(jcr->db, query.c_str(), jobid_handler, (void *)JobIds)) {
+               Jmsg(jcr, M_FATAL, 0,
+                    _("SQL failed. ERR=%s\n"), db_strerror(jcr->db));
+               goto bail_out;
+            }
+         }
+         if (JobIds[0] == 0) {
+            Jmsg(jcr, M_INFO, 0, _("No jobs found to migrate.\n"));
+            goto ok_out;
+         }
+         Dmsg1(000, "Job Jobids=%s\n", JobIds);
+         free_pool_memory(JobIds);
          delete item_chain;
          break;
       case MT_SQLQUERY:
          JobIds[0] = 0;
          if (!jcr->job->selection_pattern) {
-            Jmsg(jcr, M_FATAL, 0, _("No selection pattern specified.\n"));
+            Jmsg(jcr, M_FATAL, 0, _("No Migration SQL selection pattern specified.\n"));
             goto bail_out;
          }
+         Dmsg1(000, "SQL=%s\n", jcr->job->selection_pattern);
          if (!db_sql_query(jcr->db, query.c_str(), jobid_handler, (void *)JobIds)) {
             Jmsg(jcr, M_FATAL, 0,
                  _("SQL to get Volume failed. ERR=%s\n"), db_strerror(jcr->db));
@@ -591,6 +638,7 @@ static bool get_job_to_migrate(JCR *jcr)
    }
 
    p = JobIds;
+   JobId = 0;
    stat = get_next_jobid_from_list(&p, &JobId);
    Dmsg2(000, "get_next_jobid stat=%d JobId=%u\n", stat, JobId);
    if (stat < 0) {

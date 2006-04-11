@@ -98,14 +98,14 @@ int status_cmd(UAContext *ua, const char *cmd)
    Dmsg1(20, "status:%s:\n", cmd);
 
    for (i=1; i<ua->argc; i++) {
-      if (strcasecmp(ua->argk[i], N_("all")) == 0) {
+      if (strcasecmp(ua->argk[i], NT_("all")) == 0) {
          do_all_status(ua);
          return 1;
-      } else if (strcasecmp(ua->argk[i], N_("dir")) == 0 ||
-                 strcasecmp(ua->argk[i], N_("director")) == 0) {
+      } else if (strcasecmp(ua->argk[i], NT_("dir")) == 0 ||
+                 strcasecmp(ua->argk[i], NT_("director")) == 0) {
          do_director_status(ua);
          return 1;
-      } else if (strcasecmp(ua->argk[i], N_("client")) == 0) {
+      } else if (strcasecmp(ua->argk[i], NT_("client")) == 0) {
          client = get_client_resource(ua);
          if (client) {
             do_client_status(ua, client);
@@ -124,10 +124,10 @@ int status_cmd(UAContext *ua, const char *cmd)
        char prmt[MAX_NAME_LENGTH];
 
       start_prompt(ua, _("Status available for:\n"));
-      add_prompt(ua, N_("Director"));
-      add_prompt(ua, N_("Storage"));
-      add_prompt(ua, N_("Client"));
-      add_prompt(ua, N_("All"));
+      add_prompt(ua, NT_("Director"));
+      add_prompt(ua, NT_("Storage"));
+      add_prompt(ua, NT_("Client"));
+      add_prompt(ua, NT_("All"));
       Dmsg0(20, "do_prompt: select daemon\n");
       if ((item=do_prompt(ua, "",  _("Select daemon type for status"), prmt, sizeof(prmt))) < 0) {
          return 1;
@@ -448,7 +448,7 @@ static void list_scheduled_jobs(UAContext *ua)
    Dmsg0(200, "enter list_sched_jobs()\n");
 
    days = 1;
-   i = find_arg_with_value(ua, N_("days"));
+   i = find_arg_with_value(ua, NT_("days"));
    if (i >= 0) {
      days = atoi(ua->argv[i]);
      if ((days < 0) || (days > 50)) {

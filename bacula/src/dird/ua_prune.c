@@ -158,9 +158,9 @@ int prunecmd(UAContext *ua, const char *cmd)
    int kw;
 
    static const char *keywords[] = {
-      N_("Files"),
-      N_("Jobs"),
-      N_("Volume"),
+      NT_("Files"),
+      NT_("Jobs"),
+      NT_("Volume"),
       NULL};
 
    if (!open_db(ua)) {

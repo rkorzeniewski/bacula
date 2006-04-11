@@ -49,8 +49,8 @@ static bool list_nextvol(UAContext *ua, int ndays);
 int autodisplay_cmd(UAContext *ua, const char *cmd)
 {
    static const char *kw[] = {
-      N_("on"),
-      N_("off"),
+      NT_("on"),
+      NT_("off"),
       NULL};
 
    switch (find_arg_keyword(ua, kw)) {
@@ -73,8 +73,8 @@ int autodisplay_cmd(UAContext *ua, const char *cmd)
 int gui_cmd(UAContext *ua, const char *cmd)
 {
    static const char *kw[] = {
-      N_("on"),
-      N_("off"),
+      NT_("on"),
+      NT_("off"),
       NULL};
 
    switch (find_arg_keyword(ua, kw)) {
@@ -95,19 +95,19 @@ int gui_cmd(UAContext *ua, const char *cmd)
 
 struct showstruct {const char *res_name; int type;};
 static struct showstruct reses[] = {
-   {N_("directors"),  R_DIRECTOR},
-   {N_("clients"),    R_CLIENT},
-   {N_("counters"),   R_COUNTER},
-   {N_("devices"),    R_DEVICE},
-   {N_("jobs"),       R_JOB},
-   {N_("storages"),   R_STORAGE},
-   {N_("catalogs"),   R_CATALOG},
-   {N_("schedules"),  R_SCHEDULE},
-   {N_("filesets"),   R_FILESET},
-   {N_("pools"),      R_POOL},
-   {N_("messages"),   R_MSGS},
-   {N_("all"),        -1},
-   {N_("help"),       -2},
+   {NT_("directors"),  R_DIRECTOR},
+   {NT_("clients"),    R_CLIENT},
+   {NT_("counters"),   R_COUNTER},
+   {NT_("devices"),    R_DEVICE},
+   {NT_("jobs"),       R_JOB},
+   {NT_("storages"),   R_STORAGE},
+   {NT_("catalogs"),   R_CATALOG},
+   {NT_("schedules"),  R_SCHEDULE},
+   {NT_("filesets"),   R_FILESET},
+   {NT_("pools"),      R_POOL},
+   {NT_("messages"),   R_MSGS},
+   {NT_("all"),        -1},
+   {NT_("help"),       -2},
    {NULL,           0}
 };
 
@@ -256,20 +256,20 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
    /* Scan arguments looking for things to do */
    for (i=1; i<ua->argc; i++) {
       /* List JOBS */
-      if (strcasecmp(ua->argk[i], N_("jobs")) == 0) {
+      if (strcasecmp(ua->argk[i], NT_("jobs")) == 0) {
          /* Apply any limit */
-         j = find_arg_with_value(ua, N_("limit"));
+         j = find_arg_with_value(ua, NT_("limit"));
          if (j >= 0) {
             jr.limit = atoi(ua->argv[j]);
          }
          db_list_job_records(ua->jcr, ua->db, &jr, prtit, ua, llist);
 
          /* List JOBTOTALS */
-      } else if (strcasecmp(ua->argk[i], N_("jobtotals")) == 0) {
+      } else if (strcasecmp(ua->argk[i], NT_("jobtotals")) == 0) {
          db_list_job_totals(ua->jcr, ua->db, &jr, prtit, ua);
 
       /* List JOBID=nn */
-      } else if (strcasecmp(ua->argk[i], N_("jobid")) == 0) {
+      } else if (strcasecmp(ua->argk[i], NT_("jobid")) == 0) {
          if (ua->argv[i]) {
             jobid = str_to_int64(ua->argv[i]);
             if (jobid > 0) {
@@ -279,28 +279,28 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
          }
 
       /* List JOB=xxx */
-      } else if ((strcasecmp(ua->argk[i], N_("job")) == 0 ||
-                  strcasecmp(ua->argk[i], N_("jobname")) == 0) && ua->argv[i]) {
+      } else if ((strcasecmp(ua->argk[i], NT_("job")) == 0 ||
+                  strcasecmp(ua->argk[i], NT_("jobname")) == 0) && ua->argv[i]) {
          bstrncpy(jr.Name, ua->argv[i], MAX_NAME_LENGTH);
          jr.JobId = 0;
          db_list_job_records(ua->jcr, ua->db, &jr, prtit, ua, llist);
 
       /* List UJOBID=xxx */
-      } else if (strcasecmp(ua->argk[i], N_("ujobid")) == 0 && ua->argv[i]) {
+      } else if (strcasecmp(ua->argk[i], NT_("ujobid")) == 0 && ua->argv[i]) {
          bstrncpy(jr.Job, ua->argv[i], MAX_NAME_LENGTH);
          jr.JobId = 0;
          db_list_job_records(ua->jcr, ua->db, &jr, prtit, ua, llist);
 
       /* List FILES */
-      } else if (strcasecmp(ua->argk[i], N_("files")) == 0) {
+      } else if (strcasecmp(ua->argk[i], NT_("files")) == 0) {
 
          for (j=i+1; j<ua->argc; j++) {
-            if (strcasecmp(ua->argk[j], N_("ujobid")) == 0 && ua->argv[j]) {
+            if (strcasecmp(ua->argk[j], NT_("ujobid")) == 0 && ua->argv[j]) {
                bstrncpy(jr.Job, ua->argv[j], MAX_NAME_LENGTH);
                jr.JobId = 0;
                db_get_job_record(ua->jcr, ua->db, &jr);
                jobid = jr.JobId;
-            } else if (strcasecmp(ua->argk[j], N_("jobid")) == 0 && ua->argv[j]) {
+            } else if (strcasecmp(ua->argk[j], NT_("jobid")) == 0 && ua->argv[j]) {
                jobid = str_to_int64(ua->argv[j]);
             } else {
                continue;
@@ -311,15 +311,15 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
          }
 
       /* List JOBMEDIA */
-      } else if (strcasecmp(ua->argk[i], N_("jobmedia")) == 0) {
+      } else if (strcasecmp(ua->argk[i], NT_("jobmedia")) == 0) {
          int done = FALSE;
          for (j=i+1; j<ua->argc; j++) {
-            if (strcasecmp(ua->argk[j], N_("ujobid")) == 0 && ua->argv[j]) {
+            if (strcasecmp(ua->argk[j], NT_("ujobid")) == 0 && ua->argv[j]) {
                bstrncpy(jr.Job, ua->argv[j], MAX_NAME_LENGTH);
                jr.JobId = 0;
                db_get_job_record(ua->jcr, ua->db, &jr);
                jobid = jr.JobId;
-            } else if (strcasecmp(ua->argk[j], N_("jobid")) == 0 && ua->argv[j]) {
+            } else if (strcasecmp(ua->argk[j], NT_("jobid")) == 0 && ua->argv[j]) {
                jobid = str_to_int64(ua->argv[j]);
             } else {
                continue;
@@ -333,8 +333,8 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
          }
 
       /* List POOLS */
-      } else if (strcasecmp(ua->argk[i], N_("pool")) == 0 ||
-                 strcasecmp(ua->argk[i], N_("pools")) == 0) {
+      } else if (strcasecmp(ua->argk[i], NT_("pool")) == 0 ||
+                 strcasecmp(ua->argk[i], NT_("pools")) == 0) {
          POOL_DBR pr;
          memset(&pr, 0, sizeof(pr));
          if (ua->argv[i]) {
@@ -342,22 +342,22 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
          }
          db_list_pool_records(ua->jcr, ua->db, &pr, prtit, ua, llist);
 
-      } else if (strcasecmp(ua->argk[i], N_("clients")) == 0) {
+      } else if (strcasecmp(ua->argk[i], NT_("clients")) == 0) {
          db_list_client_records(ua->jcr, ua->db, prtit, ua, llist);
 
 
       /* List MEDIA or VOLUMES */
-      } else if (strcasecmp(ua->argk[i], N_("media")) == 0 ||
-                 strcasecmp(ua->argk[i], N_("volume")) == 0 ||
-                 strcasecmp(ua->argk[i], N_("volumes")) == 0) {
+      } else if (strcasecmp(ua->argk[i], NT_("media")) == 0 ||
+                 strcasecmp(ua->argk[i], NT_("volume")) == 0 ||
+                 strcasecmp(ua->argk[i], NT_("volumes")) == 0) {
          bool done = false;
          for (j=i+1; j<ua->argc; j++) {
-            if (strcasecmp(ua->argk[j], N_("ujobid")) == 0 && ua->argv[j]) {
+            if (strcasecmp(ua->argk[j], NT_("ujobid")) == 0 && ua->argv[j]) {
                bstrncpy(jr.Job, ua->argv[j], MAX_NAME_LENGTH);
                jr.JobId = 0;
                db_get_job_record(ua->jcr, ua->db, &jr);
                jobid = jr.JobId;
-            } else if (strcasecmp(ua->argk[j], N_("jobid")) == 0 && ua->argv[j]) {
+            } else if (strcasecmp(ua->argk[j], NT_("jobid")) == 0 && ua->argv[j]) {
                jobid = str_to_int64(ua->argv[j]);
             } else {
                continue;
@@ -380,7 +380,7 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
             }
             /* Is a specific pool wanted? */
             for (i=1; i<ua->argc; i++) {
-               if (strcasecmp(ua->argk[i], N_("pool")) == 0) {
+               if (strcasecmp(ua->argk[i], NT_("pool")) == 0) {
                   if (!get_pool_dbr(ua, &pr)) {
                      bsendmsg(ua, _("No Pool specified.\n"));
                      return 1;
@@ -412,10 +412,10 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
             return 1;
          }
       /* List next volume */
-      } else if (strcasecmp(ua->argk[i], N_("nextvol")) == 0 ||
-                 strcasecmp(ua->argk[i], N_("nextvolume")) == 0) {
+      } else if (strcasecmp(ua->argk[i], NT_("nextvol")) == 0 ||
+                 strcasecmp(ua->argk[i], NT_("nextvolume")) == 0) {
          n = 1;
-         j = find_arg_with_value(ua, N_("days"));
+         j = find_arg_with_value(ua, NT_("days"));
          if (j >= 0) {
             n = atoi(ua->argv[j]);
             if ((n < 0) || (n > 50)) {
@@ -424,8 +424,8 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
             }
          }
          list_nextvol(ua, n);
-      } else if (strcasecmp(ua->argk[i], N_("limit")) == 0
-                 || strcasecmp(ua->argk[i], N_("days")) == 0) {
+      } else if (strcasecmp(ua->argk[i], NT_("limit")) == 0
+                 || strcasecmp(ua->argk[i], NT_("days")) == 0) {
          /* Ignore it */
       } else {
          bsendmsg(ua, _("Unknown list keyword: %s\n"), NPRT(ua->argk[i]));

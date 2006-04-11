@@ -89,11 +89,16 @@ installdirs:
 	$(MKDIR) $(DESTDIR)$(sbindir)
 	$(MKDIR) $(DESTDIR)$(sysconfdir)
 	$(MKDIR) $(DESTDIR)$(scriptdir)
-	$(MKDIR) $(DESTDIR)$(working_dir)
+	if test ! -e $(DESTDIR)$(working_dir) ; then \
+	   $(MKDIR) $(DESTDIR)$(working_dir); \
+	   -chmod 770 $(DESTDIR)$(working_dir); \
+	fi
 	if test "x$(dir_user)" != "x" ; then \
-	   chown -f $(dir_user) $(DESTDIR)$(working_dir); fi
+	   -chown -f $(dir_user) $(DESTDIR)$(working_dir); \
+	fi
 	if test "x$(dir_group)" != "x" ; then \
-	   chown -f :$(dir_group) $(DESTDIR)$(working_dir); fi
+	   -chown -f :$(dir_group) $(DESTDIR)$(working_dir); \
+	fi
 #	$(MKDIR) $(DESTDIR)$(mandir)
 
 gnomedirs:
@@ -172,18 +177,16 @@ Makefile: Makefile.in
 Makefiles:
 	$(SHELL) config.status
 	(cd scripts; \
-	chmod 755 startmysql stopmysql bacula startit stopit btraceback; \
-	chmod 755 mtx-changer bconsole gconsole devel_bacula; \
-	chmod 755 dvd-handler)
+	 chmod 755 startmysql stopmysql bacula startit stopit btraceback; \
+	 chmod 755 mtx-changer bconsole gconsole devel_bacula; \
+	 chmod 755 dvd-handler)
 
 	(cd src/cats; \
-	chmod 755 create_bacula_database      update_bacula_tables     make_bacula_tables; \
-	chmod 755 grant_bacula_privileges     drop_bacula_tables       drop_bacula_database; \
-	   \
-	chmod 755 create_@DB_NAME@_database   update_@DB_NAME@_tables  make_@DB_NAME@_tables; \
-	chmod 755 grant_@DB_NAME@_privileges  drop_@DB_NAME@_tables    drop_@DB_NAME@_database; \
-	   \
-	chmod 755 make_catalog_backup delete_catalog_backup)
+	 chmod 755 create_bacula_database      update_bacula_tables	make_bacula_tables; \
+	 chmod 755 grant_bacula_privileges     drop_bacula_tables	drop_bacula_database; \
+	 chmod 755 create_@DB_NAME@_database   update_@DB_NAME@_tables	make_@DB_NAME@_tables; \
+	 chmod 755 grant_@DB_NAME@_privileges  drop_@DB_NAME@_tables	drop_@DB_NAME@_database; \
+	 chmod 755 make_catalog_backup delete_catalog_backup)
 
 clean:
 	@for I in ${all_subdirs}; \
