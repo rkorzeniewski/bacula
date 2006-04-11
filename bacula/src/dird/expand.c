@@ -33,7 +33,7 @@
 
 
 static int date_item(JCR *jcr, int code,
-	      const char **val_ptr, int *val_len, int *val_size)
+              const char **val_ptr, int *val_len, int *val_size)
 {
    struct tm tm;
    time_t now = time(NULL);
@@ -42,25 +42,25 @@ static int date_item(JCR *jcr, int code,
    char buf[10];
 
    switch (code) {
-   case 1:			      /* year */
+   case 1:                            /* year */
       val = tm.tm_year + 1900;
       break;
-   case 2:			      /* month */
+   case 2:                            /* month */
       val = tm.tm_mon + 1;
       break;
-   case 3:			      /* day */
+   case 3:                            /* day */
       val = tm.tm_mday;
       break;
-   case 4:			      /* hour */
+   case 4:                            /* hour */
       val = tm.tm_hour;
       break;
-   case 5:			      /* minute */
+   case 5:                            /* minute */
       val = tm.tm_min;
       break;
-   case 6:			      /* second */
+   case 6:                            /* second */
       val = tm.tm_sec;
       break;
-   case 7:			      /* Week day */
+   case 7:                            /* Week day */
       val = tm.tm_wday;
       break;
    }
@@ -72,51 +72,51 @@ static int date_item(JCR *jcr, int code,
 }
 
 static int job_item(JCR *jcr, int code,
-	      const char **val_ptr, int *val_len, int *val_size)
+              const char **val_ptr, int *val_len, int *val_size)
 {
    const char *str = " ";
    char buf[20];
 
    switch (code) {
-   case 1:			      /* Job */
+   case 1:                            /* Job */
       str = jcr->job->hdr.name;
       break;
    case 2:                            /* Director's name */
       str = my_name;
       break;
-   case 3:			      /* level */
+   case 3:                            /* level */
       str = job_level_to_str(jcr->JobLevel);
       break;
-   case 4:			      /* type */
+   case 4:                            /* type */
       str = job_type_to_str(jcr->JobType);
       break;
-   case 5:			      /* JobId */
+   case 5:                            /* JobId */
       bsnprintf(buf, sizeof(buf), "%d", jcr->JobId);
       str = buf;
       break;
-   case 6:			      /* Client */
+   case 6:                            /* Client */
       str = jcr->client->hdr.name;
       if (!str) {
-	 str = " ";
+         str = " ";
       }
       break;
-   case 7:			      /* NumVols */
+   case 7:                            /* NumVols */
       bsnprintf(buf, sizeof(buf), "%d", jcr->NumVols);
       str = buf;
       break;
-   case 8:			      /* Pool */
+   case 8:                            /* Pool */
       str = jcr->pool->hdr.name;
       break;
-   case 9:			      /* Storage */
+   case 9:                            /* Storage */
       str = jcr->store->hdr.name;
       break;
-   case 10:			      /* Catalog */
+   case 10:                           /* Catalog */
       str = jcr->catalog->hdr.name;
       break;
-   case 11:			      /* MediaType */
+   case 11:                           /* MediaType */
       str = jcr->store->media_type;
       break;
-   case 12:			      /* JobName */
+   case 12:                           /* JobName */
       str = jcr->Job;
       break;
    }
@@ -128,32 +128,32 @@ static int job_item(JCR *jcr, int code,
 
 
 struct s_built_in_vars {const char *var_name; int code; int (*func)(JCR *jcr, int code,
-			 const char **val_ptr, int *val_len, int *val_size);};
+                         const char **val_ptr, int *val_len, int *val_size);};
 
 /*
  * Table of build in variables
  */
 static struct s_built_in_vars built_in_vars[] = {
-   { N_("Year"),       1, date_item},
-   { N_("Month"),      2, date_item},
-   { N_("Day"),        3, date_item},
-   { N_("Hour"),       4, date_item},
-   { N_("Minute"),     5, date_item},
-   { N_("Second"),     6, date_item},
-   { N_("WeekDay"),    7, date_item},
+   { NT_("Year"),       1, date_item},
+   { NT_("Month"),      2, date_item},
+   { NT_("Day"),        3, date_item},
+   { NT_("Hour"),       4, date_item},
+   { NT_("Minute"),     5, date_item},
+   { NT_("Second"),     6, date_item},
+   { NT_("WeekDay"),    7, date_item},
 
-   { N_("Job"),        1, job_item},
-   { N_("Dir"),        2, job_item},
-   { N_("Level"),      3, job_item},
-   { N_("Type"),       4, job_item},
-   { N_("JobId"),      5, job_item},
-   { N_("Client"),     6, job_item},
-   { N_("NumVols"),    7, job_item},
-   { N_("Pool"),       8, job_item},
-   { N_("Storage"),    9, job_item},
-   { N_("Catalog"),   10, job_item},
-   { N_("MediaType"), 11, job_item},
-   { N_("JobName"),   12, job_item},
+   { NT_("Job"),        1, job_item},
+   { NT_("Dir"),        2, job_item},
+   { NT_("Level"),      3, job_item},
+   { NT_("Type"),       4, job_item},
+   { NT_("JobId"),      5, job_item},
+   { NT_("Client"),     6, job_item},
+   { NT_("NumVols"),    7, job_item},
+   { NT_("Pool"),       8, job_item},
+   { NT_("Storage"),    9, job_item},
+   { NT_("Catalog"),   10, job_item},
+   { NT_("MediaType"), 11, job_item},
+   { NT_("JobName"),   12, job_item},
 
    { NULL, 0, NULL}
 };
@@ -164,20 +164,20 @@ static struct s_built_in_vars built_in_vars[] = {
  *   call the appropriate subroutine to do the work.
  */
 static var_rc_t lookup_built_in_var(var_t *ctx, void *my_ctx,
-	  const char *var_ptr, int var_len, int var_index,
-	  const char **val_ptr, int *val_len, int *val_size)
+          const char *var_ptr, int var_len, int var_index,
+          const char **val_ptr, int *val_len, int *val_size)
 {
    JCR *jcr = (JCR *)my_ctx;
    int stat;
 
    for (int i=0; _(built_in_vars[i].var_name); i++) {
       if (strncmp(_(built_in_vars[i].var_name), var_ptr, var_len) == 0) {
-	 stat = (*built_in_vars[i].func)(jcr, built_in_vars[i].code,
-	    val_ptr, val_len, val_size);
-	 if (stat) {
-	    return VAR_OK;
-	 }
-	 break;
+         stat = (*built_in_vars[i].func)(jcr, built_in_vars[i].code,
+            val_ptr, val_len, val_size);
+         if (stat) {
+            return VAR_OK;
+         }
+         break;
       }
    }
    return VAR_ERR_UNDEFINED_VARIABLE;
@@ -188,8 +188,8 @@ static var_rc_t lookup_built_in_var(var_t *ctx, void *my_ctx,
  * Search counter variables
  */
 static var_rc_t lookup_counter_var(var_t *ctx, void *my_ctx,
-	  const char *var_ptr, int var_len, int var_inc, int var_index,
-	  const char **val_ptr, int *val_len, int *val_size)
+          const char *var_ptr, int var_len, int var_inc, int var_index,
+          const char **val_ptr, int *val_len, int *val_size)
 {
    char buf[MAXSTRING];
    var_rc_t stat = VAR_ERR_UNDEFINED_VARIABLE;
@@ -202,48 +202,48 @@ static var_rc_t lookup_counter_var(var_t *ctx, void *my_ctx,
    LockRes();
    for (COUNTER *counter=NULL; (counter = (COUNTER *)GetNextRes(R_COUNTER, (RES *)counter)); ) {
       if (strcmp(counter->hdr.name, buf) == 0) {
-	 Dmsg2(100, "Counter=%s val=%d\n", buf, counter->CurrentValue);
-	 /* -1 => return size of array */
-	if (var_index == -1) {
-	    bsnprintf(buf, sizeof(buf), "%d", counter->CurrentValue);
-	    *val_len = bsnprintf(buf, sizeof(buf), "%d", strlen(buf));
-	    *val_ptr = buf;
-	    *val_size = 0;                  /* don't try to free val_ptr */
-	    return VAR_OK;
-	 } else {
-	    bsnprintf(buf, sizeof(buf), "%d", counter->CurrentValue);
-	    *val_ptr = bstrdup(buf);
-	    *val_len = strlen(buf);
-	    *val_size = *val_len + 1;
-	 }
-	 if (var_inc) { 	      /* increment the variable? */
-	    if (counter->CurrentValue == counter->MaxValue) {
-	       counter->CurrentValue = counter->MinValue;
-	    } else {
-	       counter->CurrentValue++;
-	    }
-	    if (counter->Catalog) {   /* update catalog if need be */
-	       COUNTER_DBR cr;
-	       JCR *jcr = (JCR *)my_ctx;
-	       memset(&cr, 0, sizeof(cr));
-	       bstrncpy(cr.Counter, counter->hdr.name, sizeof(cr.Counter));
-	       cr.MinValue = counter->MinValue;
-	       cr.MaxValue = counter->MaxValue;
-	       cr.CurrentValue = counter->CurrentValue;
-	       Dmsg1(100, "New value=%d\n", cr.CurrentValue);
-	       if (counter->WrapCounter) {
-		  bstrncpy(cr.WrapCounter, counter->WrapCounter->hdr.name, sizeof(cr.WrapCounter));
-	       } else {
-		  cr.WrapCounter[0] = 0;
-	       }
-	       if (!db_update_counter_record(jcr, jcr->db, &cr)) {
-		  Jmsg(jcr, M_ERROR, 0, _("Count not update counter %s: ERR=%s\n"),
-		     counter->hdr.name, db_strerror(jcr->db));
-	       }
-	    }
-	 }
-	 stat = VAR_OK;
-	 break;
+         Dmsg2(100, "Counter=%s val=%d\n", buf, counter->CurrentValue);
+         /* -1 => return size of array */
+        if (var_index == -1) {
+            bsnprintf(buf, sizeof(buf), "%d", counter->CurrentValue);
+            *val_len = bsnprintf(buf, sizeof(buf), "%d", strlen(buf));
+            *val_ptr = buf;
+            *val_size = 0;                  /* don't try to free val_ptr */
+            return VAR_OK;
+         } else {
+            bsnprintf(buf, sizeof(buf), "%d", counter->CurrentValue);
+            *val_ptr = bstrdup(buf);
+            *val_len = strlen(buf);
+            *val_size = *val_len + 1;
+         }
+         if (var_inc) {               /* increment the variable? */
+            if (counter->CurrentValue == counter->MaxValue) {
+               counter->CurrentValue = counter->MinValue;
+            } else {
+               counter->CurrentValue++;
+            }
+            if (counter->Catalog) {   /* update catalog if need be */
+               COUNTER_DBR cr;
+               JCR *jcr = (JCR *)my_ctx;
+               memset(&cr, 0, sizeof(cr));
+               bstrncpy(cr.Counter, counter->hdr.name, sizeof(cr.Counter));
+               cr.MinValue = counter->MinValue;
+               cr.MaxValue = counter->MaxValue;
+               cr.CurrentValue = counter->CurrentValue;
+               Dmsg1(100, "New value=%d\n", cr.CurrentValue);
+               if (counter->WrapCounter) {
+                  bstrncpy(cr.WrapCounter, counter->WrapCounter->hdr.name, sizeof(cr.WrapCounter));
+               } else {
+                  cr.WrapCounter[0] = 0;
+               }
+               if (!db_update_counter_record(jcr, jcr->db, &cr)) {
+                  Jmsg(jcr, M_ERROR, 0, _("Count not update counter %s: ERR=%s\n"),
+                     counter->hdr.name, db_strerror(jcr->db));
+               }
+            }
+         }
+         stat = VAR_OK;
+         break;
       }
    }
    UnlockRes();
@@ -255,8 +255,8 @@ static var_rc_t lookup_counter_var(var_t *ctx, void *my_ctx,
  * Called here from "core" expand code to look up a variable
  */
 static var_rc_t lookup_var(var_t *ctx, void *my_ctx,
-	  const char *var_ptr, int var_len, int var_inc, int var_index,
-	  const char **val_ptr, int *val_len, int *val_size)
+          const char *var_ptr, int var_len, int var_inc, int var_index,
+          const char **val_ptr, int *val_len, int *val_size)
 {
    char buf[MAXSTRING], *val, *p, *v;
    var_rc_t stat;
@@ -264,12 +264,12 @@ static var_rc_t lookup_var(var_t *ctx, void *my_ctx,
 
    /* Note, if val_size > 0 and val_ptr!=NULL, the core code will free() it */
    if ((stat = lookup_built_in_var(ctx, my_ctx, var_ptr, var_len, var_index,
-	val_ptr, val_len, val_size)) == VAR_OK) {
+        val_ptr, val_len, val_size)) == VAR_OK) {
       return VAR_OK;
    }
 
    if ((stat = lookup_counter_var(ctx, my_ctx, var_ptr, var_len, var_inc, var_index,
-	val_ptr, val_len, val_size)) == VAR_OK) {
+        val_ptr, val_len, val_size)) == VAR_OK) {
       return VAR_OK;
    }
 
@@ -287,11 +287,11 @@ static var_rc_t lookup_var(var_t *ctx, void *my_ctx,
    /* He wants to index the "array" */
    count = 1;
    /* Find the size of the "array"
-    *	each element is separated by a |
+    *   each element is separated by a |
     */
    for (p = val; *p; p++) {
       if (*p == '|') {
-	 count++;
+         count++;
       }
    }
    Dmsg3(100, "For %s, reqest index=%d have=%d\n",
@@ -300,10 +300,10 @@ static var_rc_t lookup_var(var_t *ctx, void *my_ctx,
    /* -1 => return size of array */
    if (var_index == -1) {
       int len;
-      if (count == 1) { 	      /* if not array */
-	 len = strlen(val);	      /* return length of string */
+      if (count == 1) {               /* if not array */
+         len = strlen(val);           /* return length of string */
       } else {
-	 len = count;		      /* else return # array items */
+         len = count;                 /* else return # array items */
       }
       *val_len = bsnprintf(buf, sizeof(buf), "%d", len);
       *val_ptr = buf;
@@ -320,12 +320,12 @@ static var_rc_t lookup_var(var_t *ctx, void *my_ctx,
    count = 0;
    for (p=val; *p; ) {
       if (*p == '|') {
-	 if (count < var_index) {
-	    val = ++p;
-	    count++;
-	    continue;
-	 }
-	 break;
+         if (count < var_index) {
+            val = ++p;
+            count++;
+            continue;
+         }
+         break;
       }
       p++;
    }
@@ -352,10 +352,10 @@ static var_rc_t lookup_var(var_t *ctx, void *my_ctx,
  *   out_ptr points to string to be returned
  */
 static var_rc_t operate_var(var_t *var, void *my_ctx,
-	  const char *op_ptr, int op_len,
-	  const char *arg_ptr, int arg_len,
-	  const char *val_ptr, int val_len,
-	  char **out_ptr, int *out_len, int *out_size)
+          const char *op_ptr, int op_len,
+          const char *arg_ptr, int arg_len,
+          const char *val_ptr, int val_len,
+          char **out_ptr, int *out_len, int *out_size)
 {
    var_rc_t stat = VAR_ERR_UNDEFINED_OPERATION;
    Dmsg0(100, "Enter operate_var\n");
@@ -366,7 +366,7 @@ static var_rc_t operate_var(var_t *var, void *my_ctx,
    if (op_len == 3 && strncmp(op_ptr, "inc", 3) == 0) {
       char buf[MAXSTRING];
       if (val_len > (int)sizeof(buf) - 1) {
-	  return VAR_ERR_OUT_OF_MEMORY;
+          return VAR_ERR_OUT_OF_MEMORY;
       }
       memcpy(buf, arg_ptr, arg_len);
       buf[arg_len] = 0;
@@ -376,10 +376,10 @@ static var_rc_t operate_var(var_t *var, void *my_ctx,
       Dmsg1(100, "Val=%s\n", buf);
       LockRes();
       for (COUNTER *counter=NULL; (counter = (COUNTER *)GetNextRes(R_COUNTER, (RES *)counter)); ) {
-	 if (strcmp(counter->hdr.name, buf) == 0) {
-	    Dmsg2(100, "counter=%s val=%s\n", counter->hdr.name, buf);
-	    break;
-	 }
+         if (strcmp(counter->hdr.name, buf) == 0) {
+            Dmsg2(100, "counter=%s val=%s\n", counter->hdr.name, buf);
+            break;
+         }
       }
       UnlockRes();
       return stat;
@@ -393,7 +393,7 @@ static var_rc_t operate_var(var_t *var, void *my_ctx,
  * Expand an input line and return it.
  *
  *  Returns: 0 on failure
- *	     1 on success and exp has expanded input
+ *           1 on success and exp has expanded input
  */
 int variable_expansion(JCR *jcr, char *inp, POOLMEM **exp)
 {
@@ -435,7 +435,7 @@ int variable_expansion(JCR *jcr, char *inp, POOLMEM **exp)
    /* expand variables */
    if ((stat = var_expand(var_ctx, inp, in_len, &outp, &out_len, 0)) != VAR_OK) {
        Jmsg(jcr, M_ERROR, 0, _("Cannot expand expression \"%s\": ERR=%s\n"),
-	  inp, var_strerror(var_ctx, stat));
+          inp, var_strerror(var_ctx, stat));
        goto bail_out;
    }
 

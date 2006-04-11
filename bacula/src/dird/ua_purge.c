@@ -156,21 +156,21 @@ int purgecmd(UAContext *ua, const char *cmd)
    MEDIA_DBR mr;
    JOB_DBR  jr;
    static const char *keywords[] = {
-      N_("files"),
-      N_("jobs"),
-      N_("volume"),
+      NT_("files"),
+      NT_("jobs"),
+      NT_("volume"),
       NULL};
 
    static const char *files_keywords[] = {
-      N_("Job"),
-      N_("JobId"),
-      N_("Client"),
-      N_("Volume"),
+      NT_("Job"),
+      NT_("JobId"),
+      NT_("Client"),
+      NT_("Volume"),
       NULL};
 
    static const char *jobs_keywords[] = {
-      N_("Client"),
-      N_("Volume"),
+      NT_("Client"),
+      NT_("Volume"),
       NULL};
 
    bsendmsg(ua, _(
@@ -223,7 +223,7 @@ int purgecmd(UAContext *ua, const char *cmd)
       }
    /* Volume */
    case 2:
-      while ((i=find_arg(ua, N_("volume"))) >= 0) {
+      while ((i=find_arg(ua, NT_("volume"))) >= 0) {
          if (select_media_dbr(ua, &mr)) {
             purge_jobs_from_volume(ua, &mr);
          }

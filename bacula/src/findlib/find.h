@@ -4,7 +4,7 @@
  *     Kern Sibbald MMI
  */
 /*
-   Copyright (C) 2001-2005 Kern Sibbald
+   Copyright (C) 2001-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -170,7 +170,7 @@ struct HFSPLUS_INFO {
  * first argument to the find_files callback subroutine.
  */
 struct FF_PKT {
-   char *fname;                       /* filename */
+   char *fname;                       /* full filename */
    char *link;                        /* link if file linked */
    POOLMEM *sys_fname;                /* system filename */
    struct stat statp;                 /* stat packet */

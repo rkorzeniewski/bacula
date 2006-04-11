@@ -2,6 +2,28 @@
                         Kern Sibbald
 
 General:
+11Apr06
+- More work on migration.
+- Implement wild program in tools directory for testing
+  wild-cards. Almost identical to the regex program.
+- Up port VSS single thread locking code.
+- Replace N_(..) by NT_(...) to inhibit translation of
+  commands.
+- Modify Makefile to change the permissions on Working Directory
+  to 770 if the directory is created.
+- Do not fail the Makefile if changing the permissions or 
+  owner/group on WorkingDir fails.
+- Remove early selection of Scratch Volumes in the recycling
+  algorithm.
+- Correct the old recycling algorithm so that Scratch Volumes
+  are selected when looking for a Volume in the changer.
+- Correct a typo in the Verify SQL reported by Joe Park.
+10Apr06
+- Remove automatic case folding on Windows FDs. You must
+  explictly use the 'Ignore Case = yes' option.
+- Remove the code added to 1.38.6 and 1.38.7 that pulls a
+  scratch volume in an Autochanger early in the 'recycling'
+  algorithm.  
 09Apr06
 - Make weof() and clrerror() methods of class DEVICE.
 08Apr06

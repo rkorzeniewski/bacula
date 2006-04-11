@@ -25,6 +25,7 @@
 #include "filed.h"
 #ifdef WIN32_VSS
 #include "vss.h"   
+static pthread_mutex_t vss_mutex = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
 extern char my_name[];
@@ -739,6 +740,8 @@ static void add_fileset(JCR *jcr, const char *item)
 static bool term_fileset(JCR *jcr)
 {
    FF_PKT *ff = jcr->ff;
+
+#ifdef xxx
    findFILESET *fileset = ff->fileset;
    int i, j, k;
 
@@ -816,6 +819,7 @@ static bool term_fileset(JCR *jcr)
          Dmsg1(400, "F %s\n", (char *)incexe->name_list.get(j));
       }
    }
+#endif
    return ff->fileset->state != state_error;
 }
 
@@ -946,7 +950,7 @@ static int fileset_cmd(JCR *jcr)
    }
    while (bnet_recv(dir) >= 0) {
       strip_trailing_junk(dir->msg);
-      Dmsg1(400, "Fileset: %s\n", dir->msg);
+      Dmsg1(500, "Fileset: %s\n", dir->msg);
       add_fileset(jcr, dir->msg);
    }
    if (!term_fileset(jcr)) {
@@ -1237,6 +1241,8 @@ static int backup_cmd(JCR *jcr)
 #ifdef WIN32_VSS
    /* START VSS ON WIN 32 */
    if (g_pVSSClient && enable_vss) {
+      /* Run only one at a time */
+      P(vss_mutex);
       if (g_pVSSClient->InitializeForBackup()) {
          /* tell vss which drives to snapshot */   
          char szWinDriveLetters[27];   
@@ -1329,8 +1335,10 @@ cleanup:
 #ifdef WIN32_VSS
    /* STOP VSS ON WIN 32 */
    /* tell vss to close the backup session */
-   if (g_pVSSClient && enable_vss == 1)
+   if (g_pVSSClient && enable_vss) {
       g_pVSSClient->CloseBackup();
+      V(vss_mutex);
+   }
 #endif
 
    bnet_fsend(dir, EndJob, jcr->JobStatus, jcr->JobFiles,

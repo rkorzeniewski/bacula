@@ -70,20 +70,20 @@ struct s_vars {
 
 /* Read-only variables */
 static struct s_vars getvars[] = {
-   { N_("FDName"),     "s"},          /* 0 */
-   { N_("Level"),      "s"},          /* 1 */
-   { N_("Type"),       "s"},          /* 2 */
-   { N_("JobId"),      "i"},          /* 3 */
-   { N_("Client"),     "s"},          /* 4 */
-   { N_("JobName"),    "s"},          /* 5 */
-   { N_("JobStatus"),  "s"},          /* 6 */
+   { NT_("FDName"),     "s"},          /* 0 */
+   { NT_("Level"),      "s"},          /* 1 */
+   { NT_("Type"),       "s"},          /* 2 */
+   { NT_("JobId"),      "i"},          /* 3 */
+   { NT_("Client"),     "s"},          /* 4 */
+   { NT_("JobName"),    "s"},          /* 5 */
+   { NT_("JobStatus"),  "s"},          /* 6 */
 
    { NULL,             NULL}
 };
 
 /* Writable variables */
 static struct s_vars setvars[] = {
-   { N_("JobReport"),   "s"},
+   { NT_("JobReport"),   "s"},
 
    { NULL,             NULL}
 };

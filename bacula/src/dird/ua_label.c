@@ -168,7 +168,7 @@ void update_slots(UAContext *ua)
    set_storage(ua->jcr, store);
    drive = get_storage_drive(ua, store);
 
-   scan = find_arg(ua, N_("scan")) >= 0;
+   scan = find_arg(ua, NT_("scan")) >= 0;
 
    max_slots = get_num_slots_from_SD(ua);
    Dmsg1(100, "max_slots=%d\n", max_slots);
