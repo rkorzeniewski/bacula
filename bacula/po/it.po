@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bacula 1.38\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2006-04-08 16:29+0200\n"
+"POT-Creation-Date: 2006-04-11 20:26+0200\n"
 "PO-Revision-Date: 2005-08-08 17:50+0200\n"
 "Last-Translator:  <fparacchini@alteanet.it>\n"
 "Language-Team: Italian <bacula-devel@lists.sourceforge.net>\n"
@@ -776,7 +776,7 @@ msgid "%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n"
 msgstr ""
 
 #: src/stored/bls.c:441 src/stored/bscan.c:1256 src/stored/bextract.c:477
-#: src/stored/btape.c:2684 src/stored/bcopy.c:287
+#: src/stored/btape.c:2683 src/stored/bcopy.c:287
 #: platforms/debian/bacula-1.38.5.orig/src/stored/bls.c:445
 #: platforms/debian/bacula-1.38.5.orig/src/stored/bextract.c:479
 #: platforms/debian/bacula-1.38.5.orig/src/stored/bcopy.c:290
@@ -960,7 +960,7 @@ msgstr ""
 msgid "    Drive %d is not loaded.\n"
 msgstr ""
 
-#: src/stored/status.c:227 src/stored/btape.c:548
+#: src/stored/status.c:227 src/stored/btape.c:547
 #: platforms/debian/bacula-1.38.5.orig/src/stored/status.c:227
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:548
 #, c-format
@@ -980,7 +980,7 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/stored/status.c:259 src/stored/btape.c:580
+#: src/stored/status.c:259 src/stored/btape.c:579
 #: platforms/debian/bacula-1.38.5.orig/src/stored/status.c:259
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:580
 #, c-format
@@ -1145,7 +1145,7 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-#: src/stored/status.c:415 src/stored/btape.c:1157 src/lib/util.c:187
+#: src/stored/status.c:415 src/stored/btape.c:1156 src/lib/util.c:187
 #: src/lib/util.c:254 src/filed/status.c:254 src/dird/ua_status.c:725
 #: platforms/debian/bacula-1.38.5.orig/src/lib/util.c:187
 #: platforms/debian/bacula-1.38.5.orig/src/lib/util.c:254
@@ -1400,7 +1400,7 @@ msgstr ""
 msgid "Unable to set network buffer size.\n"
 msgstr ""
 
-#: src/stored/append.c:95 src/stored/btape.c:1853
+#: src/stored/append.c:95 src/stored/btape.c:1852
 #: platforms/debian/bacula-1.38.5.orig/src/stored/append.c:94
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1854
 #, c-format
@@ -1442,7 +1442,7 @@ msgstr ""
 msgid "Network error on data channel. ERR=%s\n"
 msgstr ""
 
-#: src/stored/append.c:263 src/stored/btape.c:1975
+#: src/stored/append.c:263 src/stored/btape.c:1974
 #: platforms/debian/bacula-1.38.5.orig/src/stored/append.c:265
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1976
 #, c-format
@@ -2883,8 +2883,8 @@ msgstr ""
 msgid "Loaded %s\n"
 msgstr ""
 
-#: src/stored/btape.c:435 src/stored/btape.c:775 src/stored/btape.c:817
-#: src/stored/btape.c:887 src/stored/btape.c:929 src/stored/btape.c:1197
+#: src/stored/btape.c:435 src/stored/btape.c:774 src/stored/btape.c:816
+#: src/stored/btape.c:886 src/stored/btape.c:928 src/stored/btape.c:1196
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:435
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:775
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:817
@@ -2895,74 +2895,72 @@ msgstr ""
 msgid "Bad status from rewind. ERR=%s\n"
 msgstr ""
 
-#: src/stored/btape.c:438 src/stored/btape.c:1205
+#: src/stored/btape.c:438 src/stored/btape.c:1204
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:438
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1206
 #, c-format
 msgid "Rewound %s\n"
 msgstr ""
 
-#: src/stored/btape.c:465 src/stored/btape.c:1209
-#: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:465
-#: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1210
+#: src/stored/btape.c:464 src/stored/btape.c:1208
 #, c-format
-msgid "Bad status from weof %d. ERR=%s\n"
+msgid "Bad status from weof. ERR=%s\n"
 msgstr ""
 
-#: src/stored/btape.c:469
+#: src/stored/btape.c:468
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:469
 #, c-format
 msgid "Wrote 1 EOF to %s\n"
 msgstr ""
 
-#: src/stored/btape.c:472
+#: src/stored/btape.c:471
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:472
 #, c-format
 msgid "Wrote %d EOFs to %s\n"
 msgstr ""
 
-#: src/stored/btape.c:490
+#: src/stored/btape.c:489
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:490
 msgid "Moved to end of medium.\n"
 msgstr ""
 
-#: src/stored/btape.c:517
+#: src/stored/btape.c:516
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:517
 #, c-format
 msgid "Bad status from bsf. ERR=%s\n"
 msgstr ""
 
-#: src/stored/btape.c:519
+#: src/stored/btape.c:518
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:519
 #, c-format
 msgid "Backspaced %d file%s.\n"
 msgstr ""
 
-#: src/stored/btape.c:536
+#: src/stored/btape.c:535
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:536
 #, c-format
 msgid "Bad status from bsr. ERR=%s\n"
 msgstr ""
 
-#: src/stored/btape.c:538
+#: src/stored/btape.c:537
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:538
 #, c-format
 msgid "Backspaced %d record%s.\n"
 msgstr ""
 
-#: src/stored/btape.c:566
+#: src/stored/btape.c:565
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:566
 #, c-format
 msgid "Device status:\n"
 msgstr ""
 
-#: src/stored/btape.c:585
+#: src/stored/btape.c:584
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:585
 #, c-format
 msgid "Status:\n"
 msgstr ""
 
-#: src/stored/btape.c:600
+#: src/stored/btape.c:599
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:600
 msgid ""
 "Test writting larger and larger records.\n"
@@ -2972,30 +2970,30 @@ msgid ""
 "plus the header exceeds the block size (by default about 64K)\n"
 msgstr ""
 
-#: src/stored/btape.c:606 src/dird/ua_label.c:498
+#: src/stored/btape.c:605 src/dird/ua_label.c:498
 #: platforms/debian/bacula-1.38.5.orig/src/dird/ua_label.c:501
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:606
 msgid "Do you want to continue? (y/n): "
 msgstr ""
 
-#: src/stored/btape.c:608 src/stored/btape.c:1814
+#: src/stored/btape.c:607 src/stored/btape.c:1813
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:608
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1815
 msgid "Command aborted.\n"
 msgstr ""
 
-#: src/stored/btape.c:624
+#: src/stored/btape.c:623
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:624
 #, c-format
 msgid "Block %d i=%d\n"
 msgstr ""
 
-#: src/stored/btape.c:650
+#: src/stored/btape.c:649
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:650
 msgid "Skipping read backwards test because BSR turned off.\n"
 msgstr ""
 
-#: src/stored/btape.c:654
+#: src/stored/btape.c:653
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:654
 msgid ""
 "\n"
@@ -3010,9 +3008,9 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/stored/btape.c:667 src/stored/btape.c:678 src/stored/btape.c:689
-#: src/stored/btape.c:787 src/stored/btape.c:803 src/stored/btape.c:899
-#: src/stored/btape.c:915 src/stored/btape.c:1523 src/stored/btape.c:2405
+#: src/stored/btape.c:666 src/stored/btape.c:677 src/stored/btape.c:688
+#: src/stored/btape.c:786 src/stored/btape.c:802 src/stored/btape.c:898
+#: src/stored/btape.c:914 src/stored/btape.c:1522 src/stored/btape.c:2404
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:667
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:678
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:689
@@ -3025,9 +3023,9 @@ msgstr ""
 msgid "Error writing record to block.\n"
 msgstr ""
 
-#: src/stored/btape.c:671 src/stored/btape.c:682 src/stored/btape.c:693
-#: src/stored/btape.c:791 src/stored/btape.c:807 src/stored/btape.c:903
-#: src/stored/btape.c:919 src/stored/btape.c:1527 src/stored/btape.c:2409
+#: src/stored/btape.c:670 src/stored/btape.c:681 src/stored/btape.c:692
+#: src/stored/btape.c:790 src/stored/btape.c:806 src/stored/btape.c:902
+#: src/stored/btape.c:918 src/stored/btape.c:1526 src/stored/btape.c:2408
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:671
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:682
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:693
@@ -3040,74 +3038,74 @@ msgstr ""
 msgid "Error writing block to device.\n"
 msgstr ""
 
-#: src/stored/btape.c:674
+#: src/stored/btape.c:673
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:674
 #, c-format
 msgid "Wrote first record of %d bytes.\n"
 msgstr ""
 
-#: src/stored/btape.c:685
+#: src/stored/btape.c:684
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:685
 #, c-format
 msgid "Wrote second record of %d bytes.\n"
 msgstr ""
 
-#: src/stored/btape.c:696
+#: src/stored/btape.c:695
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:696
 #, c-format
 msgid "Wrote third record of %d bytes.\n"
 msgstr ""
 
-#: src/stored/btape.c:703 src/stored/btape.c:708
+#: src/stored/btape.c:702 src/stored/btape.c:707
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:703
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:708
 #, c-format
 msgid "Backspace file failed! ERR=%s\n"
 msgstr ""
 
-#: src/stored/btape.c:712
+#: src/stored/btape.c:711
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:712
 msgid "Backspaced over EOF OK.\n"
 msgstr ""
 
-#: src/stored/btape.c:714
+#: src/stored/btape.c:713
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:714
 #, c-format
 msgid "Backspace record failed! ERR=%s\n"
 msgstr ""
 
-#: src/stored/btape.c:717
+#: src/stored/btape.c:716
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:717
 msgid "Backspace record OK.\n"
 msgstr ""
 
-#: src/stored/btape.c:720 src/stored/btape.c:726
+#: src/stored/btape.c:719 src/stored/btape.c:725
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:720
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:726
 #, c-format
 msgid "Read block failed! ERR=%s\n"
 msgstr ""
 
-#: src/stored/btape.c:731
+#: src/stored/btape.c:730
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:731
 msgid "Bad data in record. Test failed!\n"
 msgstr ""
 
-#: src/stored/btape.c:735
+#: src/stored/btape.c:734
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:735
 msgid ""
 "\n"
 "Block re-read correct. Test succeeded!\n"
 msgstr ""
 
-#: src/stored/btape.c:736
+#: src/stored/btape.c:735
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:736
 msgid ""
 "=== End Write, backup, and re-read test ===\n"
 "\n"
 msgstr ""
 
-#: src/stored/btape.c:743
+#: src/stored/btape.c:742
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:743
 msgid ""
 "This is not terribly serious since Bacula only uses\n"
@@ -3120,7 +3118,7 @@ msgid ""
 "to your Storage daemon's Device resource definition.\n"
 msgstr ""
 
-#: src/stored/btape.c:767
+#: src/stored/btape.c:766
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:767
 msgid ""
 "\n"
@@ -3134,8 +3132,8 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/stored/btape.c:795 src/stored/btape.c:811 src/stored/btape.c:907
-#: src/stored/btape.c:923
+#: src/stored/btape.c:794 src/stored/btape.c:810 src/stored/btape.c:906
+#: src/stored/btape.c:922
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:795
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:811
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:907
@@ -3144,43 +3142,43 @@ msgstr ""
 msgid "Wrote 1000 blocks of %d bytes.\n"
 msgstr ""
 
-#: src/stored/btape.c:820 src/stored/btape.c:932
+#: src/stored/btape.c:819 src/stored/btape.c:931
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:820
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:932
 msgid "Rewind OK.\n"
 msgstr ""
 
-#: src/stored/btape.c:827 src/stored/btape.c:981
+#: src/stored/btape.c:826 src/stored/btape.c:980
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:827
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:981
 msgid "Got EOF on tape.\n"
 msgstr ""
 
-#: src/stored/btape.c:832
+#: src/stored/btape.c:831
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:832
 #, c-format
 msgid "Read block %d failed! ERR=%s\n"
 msgstr ""
 
-#: src/stored/btape.c:838
+#: src/stored/btape.c:837
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:838
 #, c-format
 msgid "Read record failed. Block %d! ERR=%s\n"
 msgstr ""
 
-#: src/stored/btape.c:844 src/stored/btape.c:1011
+#: src/stored/btape.c:843 src/stored/btape.c:1010
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:844
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1011
 #, c-format
 msgid "Bad data in record. Expected %d, got %d at byte %d. Test failed!\n"
 msgstr ""
 
-#: src/stored/btape.c:851
+#: src/stored/btape.c:850
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:851
 msgid "1000 blocks re-read correctly.\n"
 msgstr ""
 
-#: src/stored/btape.c:854 src/stored/btape.c:1018
+#: src/stored/btape.c:853 src/stored/btape.c:1017
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:854
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1018
 msgid ""
@@ -3188,7 +3186,7 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/stored/btape.c:879
+#: src/stored/btape.c:878
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:879
 msgid ""
 "\n"
@@ -3202,18 +3200,18 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/stored/btape.c:972
+#: src/stored/btape.c:971
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:972
 #, c-format
 msgid "Reposition to file:block %d:%d\n"
 msgstr ""
 
-#: src/stored/btape.c:974
+#: src/stored/btape.c:973
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:974
 msgid "Reposition error.\n"
 msgstr ""
 
-#: src/stored/btape.c:987
+#: src/stored/btape.c:986
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:987
 #, c-format
 msgid ""
@@ -3221,7 +3219,7 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/stored/btape.c:989
+#: src/stored/btape.c:988
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:989
 msgid ""
 "This may be because the tape drive block size is not\n"
@@ -3236,19 +3234,19 @@ msgid ""
 " in your Device resource.\n"
 msgstr ""
 
-#: src/stored/btape.c:1005
+#: src/stored/btape.c:1004
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1005
 #, c-format
 msgid "Read record failed! ERR=%s\n"
 msgstr ""
 
-#: src/stored/btape.c:1016
+#: src/stored/btape.c:1015
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1016
 #, c-format
 msgid "Block %d re-read correctly.\n"
 msgstr ""
 
-#: src/stored/btape.c:1037
+#: src/stored/btape.c:1036
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1037
 msgid ""
 "\n"
@@ -3263,20 +3261,20 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/stored/btape.c:1061
+#: src/stored/btape.c:1060
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1061
 msgid "Now moving to end of medium.\n"
 msgstr ""
 
-#: src/stored/btape.c:1063 src/stored/btape.c:1292
+#: src/stored/btape.c:1062 src/stored/btape.c:1291
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1063
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1293
 #, c-format
 msgid "We should be in file 3. I am at file %d. %s\n"
 msgstr ""
 
-#: src/stored/btape.c:1064 src/stored/btape.c:1082 src/stored/btape.c:1281
-#: src/stored/btape.c:1293 src/stored/btape.c:1306 src/stored/btape.c:1323
+#: src/stored/btape.c:1063 src/stored/btape.c:1081 src/stored/btape.c:1280
+#: src/stored/btape.c:1292 src/stored/btape.c:1305 src/stored/btape.c:1322
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1064
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1082
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1282
@@ -3286,8 +3284,8 @@ msgstr ""
 msgid "This is correct!"
 msgstr ""
 
-#: src/stored/btape.c:1064 src/stored/btape.c:1082 src/stored/btape.c:1281
-#: src/stored/btape.c:1293 src/stored/btape.c:1306 src/stored/btape.c:1323
+#: src/stored/btape.c:1063 src/stored/btape.c:1081 src/stored/btape.c:1280
+#: src/stored/btape.c:1292 src/stored/btape.c:1305 src/stored/btape.c:1322
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1064
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1082
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1282
@@ -3297,7 +3295,7 @@ msgstr ""
 msgid "This is NOT correct!!!!"
 msgstr ""
 
-#: src/stored/btape.c:1070
+#: src/stored/btape.c:1069
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1070
 msgid ""
 "\n"
@@ -3305,38 +3303,38 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/stored/btape.c:1077
+#: src/stored/btape.c:1076
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1077
 msgid ""
 "Done appending, there should be no I/O errors\n"
 "\n"
 msgstr ""
 
-#: src/stored/btape.c:1078
+#: src/stored/btape.c:1077
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1078
 msgid "Doing Bacula scan of blocks:\n"
 msgstr ""
 
-#: src/stored/btape.c:1080
+#: src/stored/btape.c:1079
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1080
 msgid "End scanning the tape.\n"
 msgstr ""
 
-#: src/stored/btape.c:1081 src/stored/btape.c:1305
+#: src/stored/btape.c:1080 src/stored/btape.c:1304
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1081
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1306
 #, c-format
 msgid "We should be in file 4. I am at file %d. %s\n"
 msgstr ""
 
-#: src/stored/btape.c:1106
+#: src/stored/btape.c:1105
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1106
 msgid ""
 "\n"
 "Autochanger enabled, but no name or no command device specified.\n"
 msgstr ""
 
-#: src/stored/btape.c:1110
+#: src/stored/btape.c:1109
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1110
 msgid ""
 "\n"
@@ -3345,14 +3343,14 @@ msgid ""
 " that I can write on in Slot 1.\n"
 msgstr ""
 
-#: src/stored/btape.c:1113
+#: src/stored/btape.c:1112
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1113
 msgid ""
 "\n"
 "Do you wish to continue with the Autochanger test? (y/n): "
 msgstr ""
 
-#: src/stored/btape.c:1120
+#: src/stored/btape.c:1119
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1120
 msgid ""
 "\n"
@@ -3361,88 +3359,88 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/stored/btape.c:1129
+#: src/stored/btape.c:1128
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1129
 msgid "3301 Issuing autochanger \"loaded\" command.\n"
 msgstr ""
 
-#: src/stored/btape.c:1138
+#: src/stored/btape.c:1137
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1138
 #, c-format
 msgid "3991 Bad autochanger command: %s\n"
 msgstr ""
 
-#: src/stored/btape.c:1139
+#: src/stored/btape.c:1138
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1139
 #, c-format
 msgid "3991 result=\"%s\": ERR=%s\n"
 msgstr ""
 
-#: src/stored/btape.c:1143
+#: src/stored/btape.c:1142
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1143
 #, c-format
 msgid "Slot %d loaded. I am going to unload it.\n"
 msgstr ""
 
-#: src/stored/btape.c:1145
+#: src/stored/btape.c:1144
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1145
 msgid "Nothing loaded in the drive. OK.\n"
 msgstr ""
 
-#: src/stored/btape.c:1152
+#: src/stored/btape.c:1151
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1153
 #, c-format
 msgid "3302 Issuing autochanger \"unload %d %d\" command.\n"
 msgstr ""
 
-#: src/stored/btape.c:1157
+#: src/stored/btape.c:1156
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1158
 #, c-format
 msgid "unload status=%s %d\n"
 msgstr ""
 
-#: src/stored/btape.c:1157
+#: src/stored/btape.c:1156
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1158
 msgid "Bad"
 msgstr ""
 
-#: src/stored/btape.c:1160
+#: src/stored/btape.c:1159
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1161
 #, c-format
 msgid "3992 Bad autochanger command: %s\n"
 msgstr ""
 
-#: src/stored/btape.c:1161
+#: src/stored/btape.c:1160
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1162
 #, c-format
 msgid "3992 result=\"%s\": ERR=%s\n"
 msgstr ""
 
-#: src/stored/btape.c:1171
+#: src/stored/btape.c:1170
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1172
 #, c-format
 msgid "3303 Issuing autochanger \"load %d %d\" command.\n"
 msgstr ""
 
-#: src/stored/btape.c:1179
+#: src/stored/btape.c:1178
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1180
 #, c-format
 msgid "3303 Autochanger \"load %d %d\" status is OK.\n"
 msgstr ""
 
-#: src/stored/btape.c:1183
+#: src/stored/btape.c:1182
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1184
 #, c-format
 msgid "3993 Bad autochanger command: %s\n"
 msgstr ""
 
-#: src/stored/btape.c:1184
+#: src/stored/btape.c:1183
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1185
 #, c-format
 msgid "3993 result=\"%s\": ERR=%s\n"
 msgstr ""
 
-#: src/stored/btape.c:1199
+#: src/stored/btape.c:1198
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1200
 msgid ""
 "\n"
@@ -3451,13 +3449,13 @@ msgid ""
 "Adding a 30 second sleep and trying again ...\n"
 msgstr ""
 
-#: src/stored/btape.c:1212
+#: src/stored/btape.c:1211
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1213
 #, c-format
 msgid "Wrote EOF to %s\n"
 msgstr ""
 
-#: src/stored/btape.c:1216
+#: src/stored/btape.c:1215
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1217
 #, c-format
 msgid ""
@@ -3470,7 +3468,7 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/stored/btape.c:1221
+#: src/stored/btape.c:1220
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1222
 msgid ""
 "\n"
@@ -3478,12 +3476,12 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/stored/btape.c:1232
+#: src/stored/btape.c:1231
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1233
 msgid "You must correct this error or the Autochanger will not work.\n"
 msgstr ""
 
-#: src/stored/btape.c:1250
+#: src/stored/btape.c:1249
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1251
 msgid ""
 "\n"
@@ -3496,13 +3494,13 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/stored/btape.c:1275
+#: src/stored/btape.c:1274
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1276
 msgid "Now forward spacing 1 file.\n"
 msgstr ""
 
-#: src/stored/btape.c:1277 src/stored/btape.c:1289 src/stored/btape.c:1302
-#: src/stored/btape.c:1320 src/stored/btape.c:1489
+#: src/stored/btape.c:1276 src/stored/btape.c:1288 src/stored/btape.c:1301
+#: src/stored/btape.c:1319 src/stored/btape.c:1488
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1278
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1290
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1303
@@ -3512,23 +3510,23 @@ msgstr ""
 msgid "Bad status from fsr. ERR=%s\n"
 msgstr ""
 
-#: src/stored/btape.c:1280
+#: src/stored/btape.c:1279
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1281
 #, c-format
 msgid "We should be in file 1. I am at file %d. %s\n"
 msgstr ""
 
-#: src/stored/btape.c:1287
+#: src/stored/btape.c:1286
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1288
 msgid "Now forward spacing 2 files.\n"
 msgstr ""
 
-#: src/stored/btape.c:1300
+#: src/stored/btape.c:1299
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1301
 msgid "Now forward spacing 4 files.\n"
 msgstr ""
 
-#: src/stored/btape.c:1312
+#: src/stored/btape.c:1311
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1313
 msgid ""
 "The test worked this time. Please add:\n"
@@ -3538,18 +3536,18 @@ msgid ""
 "to your Device resource for this drive.\n"
 msgstr ""
 
-#: src/stored/btape.c:1318
+#: src/stored/btape.c:1317
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1319
 msgid "Now forward spacing 1 more file.\n"
 msgstr ""
 
-#: src/stored/btape.c:1322
+#: src/stored/btape.c:1321
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1323
 #, c-format
 msgid "We should be in file 5. I am at file %d. %s\n"
 msgstr ""
 
-#: src/stored/btape.c:1327
+#: src/stored/btape.c:1326
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1328
 msgid ""
 "\n"
@@ -3557,21 +3555,21 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/stored/btape.c:1331
+#: src/stored/btape.c:1330
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1332
 msgid ""
 "\n"
 "The forward space file test failed.\n"
 msgstr ""
 
-#: src/stored/btape.c:1333
+#: src/stored/btape.c:1332
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1334
 msgid ""
 "You have Fast Forward Space File enabled.\n"
 "I am turning it off then retrying the test.\n"
 msgstr ""
 
-#: src/stored/btape.c:1339
+#: src/stored/btape.c:1338
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1340
 msgid ""
 "You must correct this error or Bacula will not work.\n"
@@ -3580,7 +3578,7 @@ msgid ""
 "in your device resource. Use with caution.\n"
 msgstr ""
 
-#: src/stored/btape.c:1371
+#: src/stored/btape.c:1370
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1372
 msgid ""
 "\n"
@@ -3591,7 +3589,7 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/stored/btape.c:1379
+#: src/stored/btape.c:1378
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1380
 msgid ""
 "\n"
@@ -3604,7 +3602,7 @@ msgid ""
 "to your Device resource in the Storage conf file.\n"
 msgstr ""
 
-#: src/stored/btape.c:1386
+#: src/stored/btape.c:1385
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1387
 msgid ""
 "\n"
@@ -3612,7 +3610,7 @@ msgid ""
 "That appears *NOT* to have corrected the problem.\n"
 msgstr ""
 
-#: src/stored/btape.c:1391
+#: src/stored/btape.c:1390
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1392
 msgid ""
 "\n"
@@ -3621,7 +3619,7 @@ msgid ""
 "Setting \"BSF at EOM = yes\" and retrying append test.\n"
 msgstr ""
 
-#: src/stored/btape.c:1396
+#: src/stored/btape.c:1395
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1397
 msgid ""
 "\n"
@@ -3635,7 +3633,7 @@ msgid ""
 "to your Device resource in the Storage conf file.\n"
 msgstr ""
 
-#: src/stored/btape.c:1407
+#: src/stored/btape.c:1406
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1408
 msgid ""
 "\n"
@@ -3663,7 +3661,7 @@ msgid ""
 "in your device resource. Use with caution.\n"
 msgstr ""
 
-#: src/stored/btape.c:1428
+#: src/stored/btape.c:1427
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1429
 msgid ""
 "\n"
@@ -3688,89 +3686,89 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/stored/btape.c:1467
+#: src/stored/btape.c:1466
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1468
 #, c-format
 msgid "Bad status from fsf. ERR=%s\n"
 msgstr ""
 
-#: src/stored/btape.c:1471
+#: src/stored/btape.c:1470
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1472
 msgid "Forward spaced 1 file.\n"
 msgstr ""
 
-#: src/stored/btape.c:1474
+#: src/stored/btape.c:1473
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1475
 #, c-format
 msgid "Forward spaced %d files.\n"
 msgstr ""
 
-#: src/stored/btape.c:1493
+#: src/stored/btape.c:1492
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1494
 msgid "Forward spaced 1 record.\n"
 msgstr ""
 
-#: src/stored/btape.c:1496
+#: src/stored/btape.c:1495
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1497
 #, c-format
 msgid "Forward spaced %d records.\n"
 msgstr ""
 
-#: src/stored/btape.c:1530
+#: src/stored/btape.c:1529
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1531
 #, c-format
 msgid "Wrote one record of %d bytes.\n"
 msgstr ""
 
-#: src/stored/btape.c:1532
+#: src/stored/btape.c:1531
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1533
 msgid "Wrote block to device.\n"
 msgstr ""
 
-#: src/stored/btape.c:1547
+#: src/stored/btape.c:1546
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1548
 msgid "Enter length to read: "
 msgstr ""
 
-#: src/stored/btape.c:1552
+#: src/stored/btape.c:1551
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1553
 msgid "Bad length entered, using default of 1024 bytes.\n"
 msgstr ""
 
-#: src/stored/btape.c:1561
+#: src/stored/btape.c:1560
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1562
 #, c-format
 msgid "Read of %d bytes gives stat=%d. ERR=%s\n"
 msgstr ""
 
-#: src/stored/btape.c:1584 src/stored/btape.c:1633
+#: src/stored/btape.c:1583 src/stored/btape.c:1632
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1585
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1634
 #, c-format
 msgid "End of tape\n"
 msgstr ""
 
-#: src/stored/btape.c:1589
+#: src/stored/btape.c:1588
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1590
 #, c-format
 msgid "Starting scan at file %u\n"
 msgstr ""
 
-#: src/stored/btape.c:1594 src/stored/dev.c:1228
+#: src/stored/btape.c:1593 src/stored/dev.c:1228
 #: platforms/debian/bacula-1.38.5.orig/src/stored/dev.c:1223
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1595
 #, c-format
 msgid "read error on %s. ERR=%s.\n"
 msgstr ""
 
-#: src/stored/btape.c:1596
+#: src/stored/btape.c:1595
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1597
 #, c-format
 msgid "Bad status from read %d. ERR=%s\n"
 msgstr ""
 
-#: src/stored/btape.c:1599 src/stored/btape.c:1613 src/stored/btape.c:1677
-#: src/stored/btape.c:1689 src/stored/btape.c:1702 src/stored/btape.c:1718
+#: src/stored/btape.c:1598 src/stored/btape.c:1612 src/stored/btape.c:1676
+#: src/stored/btape.c:1688 src/stored/btape.c:1701 src/stored/btape.c:1717
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1600
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1614
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1678
@@ -3781,8 +3779,8 @@ msgstr ""
 msgid "1 block of %d bytes in file %d\n"
 msgstr ""
 
-#: src/stored/btape.c:1602 src/stored/btape.c:1616 src/stored/btape.c:1680
-#: src/stored/btape.c:1692 src/stored/btape.c:1705 src/stored/btape.c:1721
+#: src/stored/btape.c:1601 src/stored/btape.c:1615 src/stored/btape.c:1679
+#: src/stored/btape.c:1691 src/stored/btape.c:1704 src/stored/btape.c:1720
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1603
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1617
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1681
@@ -3793,33 +3791,33 @@ msgstr ""
 msgid "%d blocks of %d bytes in file %d\n"
 msgstr ""
 
-#: src/stored/btape.c:1624 src/stored/btape.c:1696
+#: src/stored/btape.c:1623 src/stored/btape.c:1695
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1625
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1697
 #, c-format
 msgid "End of File mark.\n"
 msgstr ""
 
-#: src/stored/btape.c:1645 src/stored/btape.c:1749
+#: src/stored/btape.c:1644 src/stored/btape.c:1748
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1646
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1750
 #, c-format
 msgid "Total files=%d, blocks=%d, bytes = %s\n"
 msgstr ""
 
-#: src/stored/btape.c:1709
+#: src/stored/btape.c:1708
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1710
 #, c-format
 msgid "Short block read.\n"
 msgstr ""
 
-#: src/stored/btape.c:1712
+#: src/stored/btape.c:1711
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1713
 #, c-format
 msgid "Error reading block. ERR=%s\n"
 msgstr ""
 
-#: src/stored/btape.c:1736
+#: src/stored/btape.c:1735
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1737
 #, c-format
 msgid ""
@@ -3827,13 +3825,13 @@ msgid ""
 "s rlen=%d\n"
 msgstr ""
 
-#: src/stored/btape.c:1758
+#: src/stored/btape.c:1757
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1759
 #, c-format
 msgid "Device status: %u. ERR=%s\n"
 msgstr ""
 
-#: src/stored/btape.c:1788
+#: src/stored/btape.c:1787
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1789
 msgid ""
 "\n"
@@ -3859,90 +3857,90 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/stored/btape.c:1805
+#: src/stored/btape.c:1804
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1806
 msgid ""
 "Do you want to run the simplified test (s) with one tape\n"
 "or the complete multiple tape (m) test: (s/m) "
 msgstr ""
 
-#: src/stored/btape.c:1808
+#: src/stored/btape.c:1807
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1809
 msgid "Simple test (single tape) selected.\n"
 msgstr ""
 
-#: src/stored/btape.c:1811
+#: src/stored/btape.c:1810
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1812
 msgid "Multiple tape test selected.\n"
 msgstr ""
 
-#: src/stored/btape.c:1827
+#: src/stored/btape.c:1826
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1828
 msgid "Rewind failed.\n"
 msgstr ""
 
-#: src/stored/btape.c:1830
+#: src/stored/btape.c:1829
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1831
 msgid "Write EOF failed.\n"
 msgstr ""
 
-#: src/stored/btape.c:1857
+#: src/stored/btape.c:1856
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1858
 msgid "Wrote Start of Session label.\n"
 msgstr ""
 
-#: src/stored/btape.c:1888
+#: src/stored/btape.c:1887
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1889
 #, c-format
 msgid "%s Begin writing Bacula records to tape ...\n"
 msgstr ""
 
-#: src/stored/btape.c:1890
+#: src/stored/btape.c:1889
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1891
 #, c-format
 msgid "%s Begin writing Bacula records to first tape ...\n"
 msgstr ""
 
-#: src/stored/btape.c:1931
+#: src/stored/btape.c:1930
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1932
 #, c-format
 msgid "Wrote blk_block=%u, dev_blk_num=%u VolBytes=%s rate=%.1f KB/s\n"
 msgstr ""
 
-#: src/stored/btape.c:1941
+#: src/stored/btape.c:1940
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1942
 #, c-format
 msgid "%s Flush block, write EOF\n"
 msgstr ""
 
-#: src/stored/btape.c:1952
+#: src/stored/btape.c:1951
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1953
 msgid "Not OK\n"
 msgstr ""
 
-#: src/stored/btape.c:1980
+#: src/stored/btape.c:1979
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1981
 msgid "Set ok=false after write_block_to_device.\n"
 msgstr ""
 
-#: src/stored/btape.c:1983
+#: src/stored/btape.c:1982
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1984
 msgid "Wrote End of Session label.\n"
 msgstr ""
 
-#: src/stored/btape.c:2007
+#: src/stored/btape.c:2006
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2008
 #, c-format
 msgid "Wrote state file last_block_num1=%d last_block_num2=%d\n"
 msgstr ""
 
-#: src/stored/btape.c:2011
+#: src/stored/btape.c:2010
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2012
 #, c-format
 msgid "Could not create state file: %s ERR=%s\n"
 msgstr ""
 
-#: src/stored/btape.c:2019
+#: src/stored/btape.c:2018
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2020
 #, c-format
 msgid ""
@@ -3951,7 +3949,7 @@ msgid ""
 "%s Done filling tape at %d:%d. Now beginning re-read of tape ...\n"
 msgstr ""
 
-#: src/stored/btape.c:2023
+#: src/stored/btape.c:2022
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2024
 #, c-format
 msgid ""
@@ -3960,7 +3958,7 @@ msgid ""
 "%s Done filling tapes at %d:%d. Now beginning re-read of first tape ...\n"
 msgstr ""
 
-#: src/stored/btape.c:2062
+#: src/stored/btape.c:2061
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2063
 msgid ""
 "\n"
@@ -3968,7 +3966,7 @@ msgid ""
 "the fill command.\n"
 msgstr ""
 
-#: src/stored/btape.c:2068
+#: src/stored/btape.c:2067
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2069
 #, c-format
 msgid ""
@@ -3977,30 +3975,30 @@ msgid ""
 "You must redo the fill command.\n"
 msgstr ""
 
-#: src/stored/btape.c:2110
+#: src/stored/btape.c:2109
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2111
 msgid "Mount first tape. Press enter when ready: "
 msgstr ""
 
-#: src/stored/btape.c:2129
+#: src/stored/btape.c:2128
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2131
 msgid "Rewinding.\n"
 msgstr ""
 
-#: src/stored/btape.c:2134
+#: src/stored/btape.c:2133
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2136
 #, c-format
 msgid "Reading the first 10000 records from %u:%u.\n"
 msgstr ""
 
-#: src/stored/btape.c:2138 src/stored/btape.c:2205
+#: src/stored/btape.c:2137 src/stored/btape.c:2204
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2140
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2207
 #, c-format
 msgid "Reposition from %u:%u to %u:%u\n"
 msgstr ""
 
-#: src/stored/btape.c:2141 src/stored/btape.c:2192 src/stored/btape.c:2208
+#: src/stored/btape.c:2140 src/stored/btape.c:2191 src/stored/btape.c:2207
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2143
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2194
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2210
@@ -4008,13 +4006,13 @@ msgstr ""
 msgid "Reposition error. ERR=%s\n"
 msgstr ""
 
-#: src/stored/btape.c:2144
+#: src/stored/btape.c:2143
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2146
 #, c-format
 msgid "Reading block %u.\n"
 msgstr ""
 
-#: src/stored/btape.c:2146 src/stored/btape.c:2197 src/stored/btape.c:2213
+#: src/stored/btape.c:2145 src/stored/btape.c:2196 src/stored/btape.c:2212
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2148
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2199
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2215
@@ -4022,7 +4020,7 @@ msgstr ""
 msgid "Error reading block: ERR=%s\n"
 msgstr ""
 
-#: src/stored/btape.c:2151
+#: src/stored/btape.c:2150
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2153
 msgid ""
 "\n"
@@ -4030,7 +4028,7 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/stored/btape.c:2153
+#: src/stored/btape.c:2152
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2155
 msgid ""
 "\n"
@@ -4038,25 +4036,25 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/stored/btape.c:2178
+#: src/stored/btape.c:2177
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2180
 msgid "Mount second tape. Press enter when ready: "
 msgstr ""
 
-#: src/stored/btape.c:2190
+#: src/stored/btape.c:2189
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2192
 #, c-format
 msgid "Reposition from %u:%u to 0:1\n"
 msgstr ""
 
-#: src/stored/btape.c:2195 src/stored/btape.c:2211
+#: src/stored/btape.c:2194 src/stored/btape.c:2210
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2197
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2213
 #, c-format
 msgid "Reading block %d.\n"
 msgstr ""
 
-#: src/stored/btape.c:2201
+#: src/stored/btape.c:2200
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2203
 msgid ""
 "\n"
@@ -4064,7 +4062,7 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/stored/btape.c:2217
+#: src/stored/btape.c:2216
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2219
 msgid ""
 "\n"
@@ -4072,26 +4070,26 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/stored/btape.c:2232
+#: src/stored/btape.c:2231
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2234
 #, c-format
 msgid "10000 records read now at %d:%d\n"
 msgstr ""
 
-#: src/stored/btape.c:2255 src/stored/btape.c:2266 src/stored/btape.c:2314
+#: src/stored/btape.c:2254 src/stored/btape.c:2265 src/stored/btape.c:2313
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2257
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2268
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2316
 msgid "Last block written"
 msgstr ""
 
-#: src/stored/btape.c:2257 src/stored/btape.c:2267
+#: src/stored/btape.c:2256 src/stored/btape.c:2266
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2259
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2269
 msgid "Block read back"
 msgstr ""
 
-#: src/stored/btape.c:2258
+#: src/stored/btape.c:2257
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2260
 #, c-format
 msgid ""
@@ -4100,7 +4098,7 @@ msgid ""
 "The blocks differ at byte %u\n"
 msgstr ""
 
-#: src/stored/btape.c:2259
+#: src/stored/btape.c:2258
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2261
 msgid ""
 "\n"
@@ -4111,30 +4109,30 @@ msgid ""
 "to write multi-tape Volumes.!!!!\n"
 msgstr ""
 
-#: src/stored/btape.c:2298
+#: src/stored/btape.c:2297
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2300
 #, c-format
 msgid "Last block at: %u:%u this_dev_block_num=%d\n"
 msgstr ""
 
-#: src/stored/btape.c:2312
+#: src/stored/btape.c:2311
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2314
 #, c-format
 msgid "Block not written: FileIndex=%u blk_block=%u Size=%u\n"
 msgstr ""
 
-#: src/stored/btape.c:2316
+#: src/stored/btape.c:2315
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2318
 msgid "Block not written"
 msgstr ""
 
-#: src/stored/btape.c:2331
+#: src/stored/btape.c:2330
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2333
 #, c-format
 msgid "End of tape %d:%d. VolumeCapacity=%s. Write rate = %.1f KB/s\n"
 msgstr ""
 
-#: src/stored/btape.c:2340 src/stored/bcopy.c:235 src/stored/bcopy.c:242
+#: src/stored/btape.c:2339 src/stored/bcopy.c:235 src/stored/bcopy.c:242
 #: src/stored/bcopy.c:265
 #: platforms/debian/bacula-1.38.5.orig/src/stored/bcopy.c:235
 #: platforms/debian/bacula-1.38.5.orig/src/stored/bcopy.c:242
@@ -4144,200 +4142,200 @@ msgstr ""
 msgid "Cannot fixup device error. %s\n"
 msgstr ""
 
-#: src/stored/btape.c:2381
+#: src/stored/btape.c:2380
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2383
 msgid "Test writing blocks of 64512 bytes to tape.\n"
 msgstr ""
 
-#: src/stored/btape.c:2383
+#: src/stored/btape.c:2382
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2385
 msgid "How many blocks do you want to write? (1000): "
 msgstr ""
 
-#: src/stored/btape.c:2398
+#: src/stored/btape.c:2397
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2400
 #, c-format
 msgid "Begin writing %d Bacula blocks to tape ...\n"
 msgstr ""
 
-#: src/stored/btape.c:2450
+#: src/stored/btape.c:2449
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2452
 #, c-format
 msgid "Begin writing raw blocks of %u bytes.\n"
 msgstr ""
 
-#: src/stored/btape.c:2470
+#: src/stored/btape.c:2469
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2472
 #, c-format
 msgid "Write failed at block %u. stat=%d ERR=%s\n"
 msgstr ""
 
-#: src/stored/btape.c:2500
+#: src/stored/btape.c:2499
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2502
 #, c-format
 msgid "Begin writing Bacula blocks of %u bytes.\n"
 msgstr ""
 
-#: src/stored/btape.c:2519
+#: src/stored/btape.c:2518
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2521
 #, c-format
 msgid "Write failed at block %u.\n"
 msgstr ""
 
-#: src/stored/btape.c:2526
+#: src/stored/btape.c:2525
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2528
 msgid "test autochanger"
 msgstr ""
 
-#: src/stored/btape.c:2527
+#: src/stored/btape.c:2526
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2529
 msgid "backspace file"
 msgstr ""
 
-#: src/stored/btape.c:2528
+#: src/stored/btape.c:2527
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2530
 msgid "backspace record"
 msgstr ""
 
-#: src/stored/btape.c:2529
+#: src/stored/btape.c:2528
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2531
 msgid "fill tape using Bacula writes"
 msgstr ""
 
-#: src/stored/btape.c:2530
+#: src/stored/btape.c:2529
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2532
 msgid "list device capabilities"
 msgstr ""
 
-#: src/stored/btape.c:2531
+#: src/stored/btape.c:2530
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2533
 msgid "clear tape errors"
 msgstr ""
 
-#: src/stored/btape.c:2532
+#: src/stored/btape.c:2531
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2534
 msgid "go to end of Bacula data for append"
 msgstr ""
 
-#: src/stored/btape.c:2533
+#: src/stored/btape.c:2532
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2535
 msgid "go to the physical end of medium"
 msgstr ""
 
-#: src/stored/btape.c:2534
+#: src/stored/btape.c:2533
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2536
 msgid "fill tape, write onto second volume"
 msgstr ""
 
-#: src/stored/btape.c:2535
+#: src/stored/btape.c:2534
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2537
 msgid "read filled tape"
 msgstr ""
 
-#: src/stored/btape.c:2536
+#: src/stored/btape.c:2535
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2538
 msgid "forward space a file"
 msgstr ""
 
-#: src/stored/btape.c:2537
+#: src/stored/btape.c:2536
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2539
 msgid "forward space a record"
 msgstr ""
 
-#: src/stored/btape.c:2538 src/dird/ua_cmds.c:101
+#: src/stored/btape.c:2537 src/dird/ua_cmds.c:101
 #: platforms/debian/bacula-1.38.5.orig/src/dird/ua_cmds.c:101
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2540
 msgid "print this command"
 msgstr ""
 
-#: src/stored/btape.c:2539
+#: src/stored/btape.c:2538
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2541
 msgid "write a Bacula label to the tape"
 msgstr ""
 
-#: src/stored/btape.c:2540
+#: src/stored/btape.c:2539
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2542
 msgid "load a tape"
 msgstr ""
 
-#: src/stored/btape.c:2541
+#: src/stored/btape.c:2540
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2543
 msgid "quit btape"
 msgstr ""
 
-#: src/stored/btape.c:2542
+#: src/stored/btape.c:2541
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2544
 msgid "use write() to fill tape"
 msgstr ""
 
-#: src/stored/btape.c:2543
+#: src/stored/btape.c:2542
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2545
 msgid "read and print the Bacula tape label"
 msgstr ""
 
-#: src/stored/btape.c:2544
+#: src/stored/btape.c:2543
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2546
 msgid "test record handling functions"
 msgstr ""
 
-#: src/stored/btape.c:2545
+#: src/stored/btape.c:2544
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2547
 msgid "rewind the tape"
 msgstr ""
 
-#: src/stored/btape.c:2546
+#: src/stored/btape.c:2545
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2548
 msgid "read() tape block by block to EOT and report"
 msgstr ""
 
-#: src/stored/btape.c:2547
+#: src/stored/btape.c:2546
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2549
 msgid "Bacula read block by block to EOT and report"
 msgstr ""
 
-#: src/stored/btape.c:2548
+#: src/stored/btape.c:2547
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2550
 msgid "print tape status"
 msgstr ""
 
-#: src/stored/btape.c:2549
+#: src/stored/btape.c:2548
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2551
 msgid "General test Bacula tape functions"
 msgstr ""
 
-#: src/stored/btape.c:2550
+#: src/stored/btape.c:2549
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2552
 msgid "write an EOF on the tape"
 msgstr ""
 
-#: src/stored/btape.c:2551
+#: src/stored/btape.c:2550
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2553
 msgid "write a single Bacula block"
 msgstr ""
 
-#: src/stored/btape.c:2552
+#: src/stored/btape.c:2551
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2554
 msgid "read a single record"
 msgstr ""
 
-#: src/stored/btape.c:2553
+#: src/stored/btape.c:2552
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2555
 msgid "quick fill command"
 msgstr ""
 
-#: src/stored/btape.c:2574
+#: src/stored/btape.c:2573
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2576
 #, c-format
 msgid "%s is an illegal command\n"
 msgstr ""
 
-#: src/stored/btape.c:2584
+#: src/stored/btape.c:2583
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2586
 #, c-format
 msgid "Interactive commands:\n"
 msgstr ""
 
-#: src/stored/btape.c:2585 src/dird/ua_tree.c:622 src/dird/ua_cmds.c:1564
+#: src/stored/btape.c:2584 src/dird/ua_tree.c:622 src/dird/ua_cmds.c:1564
 #: platforms/debian/bacula-1.38.5.orig/src/dird/ua_tree.c:622
 #: platforms/debian/bacula-1.38.5.orig/src/dird/ua_cmds.c:1421
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2587
@@ -4347,7 +4345,7 @@ msgid ""
 "  =======    ===========\n"
 msgstr ""
 
-#: src/stored/btape.c:2594
+#: src/stored/btape.c:2593
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2596
 #, c-format
 msgid ""
@@ -4366,38 +4364,38 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/stored/btape.c:2681
+#: src/stored/btape.c:2680
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2687
 #, c-format
 msgid "Mount second Volume on device %s and press return when ready: "
 msgstr ""
 
-#: src/stored/btape.c:2708
+#: src/stored/btape.c:2707
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2714
 #, c-format
 msgid "Mount blank Volume on device %s and press return when ready: "
 msgstr ""
 
-#: src/stored/btape.c:2726
+#: src/stored/btape.c:2725
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2732
 #, c-format
 msgid "End of Volume \"%s\"\n"
 msgstr ""
 
-#: src/stored/btape.c:2738
+#: src/stored/btape.c:2737
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2744
 #, c-format
 msgid "Read block=%u, VolBytes=%s rate=%.1f KB/s\n"
 msgstr ""
 
-#: src/stored/btape.c:2752 src/stored/mount.c:540
+#: src/stored/btape.c:2751 src/stored/mount.c:540
 #: platforms/debian/bacula-1.38.5.orig/src/stored/mount.c:500
 #: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:2759
 #, c-format
 msgid "Cannot open Dev=%s, Vol=%s\n"
 msgstr ""
 
-#: src/stored/dvd.c:155 src/stored/dev.c:1824
+#: src/stored/dvd.c:155 src/stored/dev.c:1842
 #: platforms/debian/bacula-1.38.5.orig/src/stored/dvd.c:153
 #, c-format
 msgid "Device %s cannot be mounted. ERR=%s\n"
@@ -4439,7 +4437,7 @@ msgstr ""
 msgid "Unable to write part %s: ERR=%s\n"
 msgstr ""
 
-#: src/stored/dvd.c:739 src/stored/dev.c:1736
+#: src/stored/dvd.c:739 src/stored/dev.c:1754
 #: platforms/debian/bacula-1.38.5.orig/src/stored/dev.c:1755
 #: platforms/debian/bacula-1.38.5.orig/src/stored/dvd.c:734
 #, c-format
@@ -4853,7 +4851,7 @@ msgstr ""
 msgid "Autochanger error: ERR=%s\n"
 msgstr ""
 
-#: src/stored/fd_cmds.c:329 src/filed/job.c:986
+#: src/stored/fd_cmds.c:329 src/filed/job.c:990
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:962
 #: platforms/debian/bacula-1.38.5.orig/src/stored/fd_cmds.c:329
 #, c-format
@@ -5565,34 +5563,34 @@ msgstr ""
 msgid "Bad call to reposition. Device not open\n"
 msgstr ""
 
-#: src/stored/dev.c:1510
+#: src/stored/dev.c:1509
 #: platforms/debian/bacula-1.38.5.orig/src/stored/dev.c:1508
 msgid "Bad call to weof_dev. Device not open\n"
 msgstr ""
 
-#: src/stored/dev.c:1520
+#: src/stored/dev.c:1519
 #: platforms/debian/bacula-1.38.5.orig/src/stored/dev.c:1518
 msgid "Attempt to WEOF on non-appendable Volume\n"
 msgstr ""
 
-#: src/stored/dev.c:1537
+#: src/stored/dev.c:1536
 #: platforms/debian/bacula-1.38.5.orig/src/stored/dev.c:1535
 #, c-format
 msgid "ioctl MTWEOF error on %s. ERR=%s.\n"
 msgstr ""
 
-#: src/stored/dev.c:1567
+#: src/stored/dev.c:1565
 #: platforms/debian/bacula-1.38.5.orig/src/stored/dev.c:1577
 msgid "Got ENOTTY on read/write!\n"
 msgstr ""
 
-#: src/stored/dev.c:1614
+#: src/stored/dev.c:1625
 #: platforms/debian/bacula-1.38.5.orig/src/stored/dev.c:1624
 #, c-format
 msgid "unknown func code %d"
 msgstr ""
 
-#: src/stored/dev.c:1620
+#: src/stored/dev.c:1631
 #: platforms/debian/bacula-1.38.5.orig/src/stored/dev.c:1630
 #, c-format
 msgid "I/O function \"%s\" not supported on this device.\n"
@@ -7214,68 +7212,64 @@ msgstr ""
 msgid "Config error: %s\n"
 msgstr ""
 
-#: src/lib/lex.c:108 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:108
+#: src/lib/lex.c:107 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:108
 msgid "Close of NULL file\n"
 msgstr ""
 
-#: src/lib/lex.c:181 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:181
+#: src/lib/lex.c:182 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:181
 msgid "get_char: called after EOF\n"
 msgstr ""
 
-#: src/lib/lex.c:220 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:220
+#: src/lib/lex.c:221 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:220
 #, c-format
 msgid "Config token too long, file: %s, line %d, begins at line %d\n"
 msgstr ""
 
-#: src/lib/lex.c:244 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:244
+#: src/lib/lex.c:245 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:244
 msgid "none"
 msgstr ""
 
-#: src/lib/lex.c:245 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:245
+#: src/lib/lex.c:246 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:245
 msgid "comment"
 msgstr ""
 
-#: src/lib/lex.c:246 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:246
+#: src/lib/lex.c:247 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:246
 msgid "number"
 msgstr ""
 
-#: src/lib/lex.c:247 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:247
+#: src/lib/lex.c:248 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:247
 msgid "ip_addr"
 msgstr ""
 
-#: src/lib/lex.c:248 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:248
+#: src/lib/lex.c:249 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:248
 msgid "identifier"
 msgstr ""
 
-#: src/lib/lex.c:249 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:249
+#: src/lib/lex.c:250 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:249
 msgid "string"
 msgstr ""
 
-#: src/lib/lex.c:250 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:250
+#: src/lib/lex.c:251 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:250
 msgid "quoted_string"
 msgstr ""
 
-#: src/lib/lex.c:286 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:286
+#: src/lib/lex.c:287 src/lib/lex.c:293
+#: platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:286
 #, c-format
 msgid "expected a positive integer number, got: %s"
 msgstr ""
 
-#: src/lib/lex.c:292 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:292
-#, c-format
-msgid "expected a postive integer number, got: %s"
-msgstr ""
-
-#: src/lib/lex.c:504 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:504
+#: src/lib/lex.c:505 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:504
 #, c-format
 msgid "Cannot open included config file %s: %s\n"
 msgstr ""
 
-#: src/lib/lex.c:539 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:539
+#: src/lib/lex.c:540 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:539
 #, c-format
 msgid "expected an integer or a range, got %s: %s"
 msgstr ""
 
-#: src/lib/lex.c:553 src/lib/lex.c:561 src/lib/lex.c:572 src/lib/lex.c:580
+#: src/lib/lex.c:554 src/lib/lex.c:562 src/lib/lex.c:573 src/lib/lex.c:581
 #: platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:553
 #: platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:561
 #: platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:572
@@ -7284,17 +7278,17 @@ msgstr ""
 msgid "expected an integer number, got %s: %s"
 msgstr ""
 
-#: src/lib/lex.c:590 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:590
+#: src/lib/lex.c:591 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:590
 #, c-format
 msgid "expected a name, got %s: %s"
 msgstr ""
 
-#: src/lib/lex.c:594 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:594
+#: src/lib/lex.c:595 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:594
 #, c-format
 msgid "name %s length %d too long, max is %d\n"
 msgstr ""
 
-#: src/lib/lex.c:602 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:602
+#: src/lib/lex.c:603 platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:602
 #, c-format
 msgid "expected a string, got %s: %s"
 msgstr ""
@@ -7912,7 +7906,7 @@ msgstr ""
 msgid "can't resolve hostname(%s) %s"
 msgstr ""
 
-#: src/lib/address_conf.c:403
+#: src/lib/address_conf.c:403 src/lib/address_conf.c:434
 #: platforms/debian/bacula-1.38.5.orig/src/lib/address_conf.c:403
 #, c-format
 msgid "Expected a block begin { , got: %s"
@@ -7948,12 +7942,6 @@ msgstr ""
 msgid "Expected a equal =, got: %s"
 msgstr ""
 
-#: src/lib/address_conf.c:434
-#: platforms/debian/bacula-1.38.5.orig/src/lib/address_conf.c:434
-#, c-format
-msgid "Expected a block beginn { , got: %s"
-msgstr ""
-
 #: src/lib/address_conf.c:441 src/lib/address_conf.c:456
 #: platforms/debian/bacula-1.38.5.orig/src/lib/address_conf.c:441
 #: platforms/debian/bacula-1.38.5.orig/src/lib/address_conf.c:456
@@ -7977,7 +7965,7 @@ msgstr ""
 msgid "Expected a number or a string, got: %s"
 msgstr ""
 
-#: src/lib/address_conf.c:474
+#: src/lib/address_conf.c:474 src/lib/address_conf.c:508
 #: platforms/debian/bacula-1.38.5.orig/src/lib/address_conf.c:474
 #, c-format
 msgid "Expected an IP number or a hostname, got: %s"
@@ -7999,12 +7987,6 @@ msgstr ""
 #: platforms/debian/bacula-1.38.5.orig/src/lib/address_conf.c:492
 #, c-format
 msgid "Can't add hostname(%s) and port(%s) to addrlist (%s)"
-msgstr ""
-
-#: src/lib/address_conf.c:508
-#: platforms/debian/bacula-1.38.5.orig/src/lib/address_conf.c:508
-#, c-format
-msgid "Expected a hostname or IP nummer, got: %s"
 msgstr ""
 
 #: src/lib/address_conf.c:513 src/lib/address_conf.c:527
@@ -10857,7 +10839,7 @@ msgstr ""
 msgid "Cannot change permissions of %s: ERR=%s\n"
 msgstr ""
 
-#: src/findlib/match.c:184 src/filed/job.c:926
+#: src/findlib/match.c:184 src/filed/job.c:930
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:902
 #: platforms/debian/bacula-1.38.5.orig/src/findlib/match.c:184
 #, c-format
@@ -11287,7 +11269,7 @@ msgstr ""
 msgid "Connecting to Storage %s:%d"
 msgstr ""
 
-#: src/tray-monitor/tray-monitor.c:874 src/filed/job.c:1153
+#: src/tray-monitor/tray-monitor.c:874 src/filed/job.c:1157
 #: src/dird/msgchan.c:80
 #: platforms/debian/bacula-1.38.5.orig/src/dird/msgchan.c:78
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1129
@@ -11855,251 +11837,251 @@ msgstr ""
 msgid "Invalid file flags, no supported data stream type.\n"
 msgstr ""
 
-#: src/filed/job.c:328 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:324
+#: src/filed/job.c:329 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:324
 #, c-format
 msgid "2901 Job %s not found.\n"
 msgstr ""
 
-#: src/filed/job.c:339 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:340
+#: src/filed/job.c:340 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:340
 #, c-format
 msgid "2001 Job %s marked to be canceled.\n"
 msgstr ""
 
-#: src/filed/job.c:342 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:343
+#: src/filed/job.c:343 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:343
 msgid "2902 Error scanning cancel command.\n"
 msgstr ""
 
-#: src/filed/job.c:361 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:362
+#: src/filed/job.c:362 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:362
 #, c-format
 msgid "2991 Bad setdebug command: %s\n"
 msgstr ""
 
-#: src/filed/job.c:377 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:378
+#: src/filed/job.c:378 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:378
 #, c-format
 msgid "Bad estimate command: %s"
 msgstr ""
 
-#: src/filed/job.c:378 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:379
+#: src/filed/job.c:379 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:379
 msgid "2992 Bad estimate command.\n"
 msgstr ""
 
-#: src/filed/job.c:401 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:402
+#: src/filed/job.c:402 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:402
 #, c-format
 msgid "Bad Job Command: %s"
 msgstr ""
 
-#: src/filed/job.c:421 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:422
+#: src/filed/job.c:422 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:422
 #, c-format
 msgid "Bad RunBeforeJob command: %s\n"
 msgstr ""
 
-#: src/filed/job.c:422 src/filed/job.c:435
+#: src/filed/job.c:423 src/filed/job.c:436
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:423
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:436
 msgid "2905 Bad RunBeforeJob command.\n"
 msgstr ""
 
-#: src/filed/job.c:448 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:449
+#: src/filed/job.c:449 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:449
 #, c-format
 msgid "Bad RunAfter command: %s\n"
 msgstr ""
 
-#: src/filed/job.c:449 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:450
+#: src/filed/job.c:450 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:450
 msgid "2905 Bad RunAfterJob command.\n"
 msgstr ""
 
-#: src/filed/job.c:475 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:476
+#: src/filed/job.c:476 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:476
 #, c-format
 msgid "%s could not execute. ERR=%s\n"
 msgstr ""
 
-#: src/filed/job.c:484 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:485
+#: src/filed/job.c:485 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:485
 #, c-format
 msgid "%s: %s\n"
 msgstr ""
 
-#: src/filed/job.c:489 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:490
+#: src/filed/job.c:490 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:490
 #, c-format
 msgid "%s returned non-zero status=%d. ERR=%s\n"
 msgstr ""
 
-#: src/filed/job.c:565 src/dird/fd_cmds.c:321
+#: src/filed/job.c:566 src/dird/fd_cmds.c:321
 #: platforms/debian/bacula-1.38.5.orig/src/dird/fd_cmds.c:320
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:566
 #, c-format
 msgid "Cannot run program: %s. ERR=%s\n"
 msgstr ""
 
-#: src/filed/job.c:574 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:575
+#: src/filed/job.c:575 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:575
 #, c-format
 msgid "Error running program: %s. RtnStat=%d ERR=%s\n"
 msgstr ""
 
-#: src/filed/job.c:584 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:585
+#: src/filed/job.c:585 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:585
 #, c-format
 msgid "Cannot open FileSet input file: %s. ERR=%s\n"
 msgstr ""
 
-#: src/filed/job.c:678 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:679
+#: src/filed/job.c:679 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:679
 #, c-format
 msgid "REGEX %s compile error. ERR=%s\n"
 msgstr ""
 
-#: src/filed/job.c:732 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:733
+#: src/filed/job.c:733 platforms/debian/bacula-1.38.5.orig/src/filed/job.c:733
 #, c-format
 msgid "Invalid FileSet command: %s\n"
 msgstr ""
 
-#: src/filed/job.c:1085
+#: src/filed/job.c:1089
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1061
 #, c-format
 msgid "DIR and FD clocks differ by %d seconds, FD automatically adjusting.\n"
 msgstr ""
 
-#: src/filed/job.c:1093
+#: src/filed/job.c:1097
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1069
 #, c-format
 msgid "Unknown backup level: %s\n"
 msgstr ""
 
-#: src/filed/job.c:1105
+#: src/filed/job.c:1109
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1081
 #, c-format
 msgid "Bad level command: %s\n"
 msgstr ""
 
-#: src/filed/job.c:1126
+#: src/filed/job.c:1130
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1102
 #, c-format
 msgid "Bad session command: %s"
 msgstr ""
 
-#: src/filed/job.c:1147
+#: src/filed/job.c:1151
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1123
 #, c-format
 msgid "Bad storage command: %s"
 msgstr ""
 
-#: src/filed/job.c:1156
+#: src/filed/job.c:1160
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1132
 #, c-format
 msgid "Failed to connect to Storage daemon: %s:%d\n"
 msgstr ""
 
-#: src/filed/job.c:1168
+#: src/filed/job.c:1172
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1144
 msgid "Failed to authenticate Storage daemon.\n"
 msgstr ""
 
-#: src/filed/job.c:1194
+#: src/filed/job.c:1198
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1170
 msgid "Cannot contact Storage daemon\n"
 msgstr ""
 
-#: src/filed/job.c:1212
+#: src/filed/job.c:1216
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1188
 #, c-format
 msgid "Bad response to append open: %s\n"
 msgstr ""
 
-#: src/filed/job.c:1217
+#: src/filed/job.c:1221
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1193
 msgid "Bad response from stored to open command\n"
 msgstr ""
 
-#: src/filed/job.c:1244
+#: src/filed/job.c:1250
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1222
 #, c-format
 msgid "Generate VSS snapshots. Driver=\"%s\", Drive(s)=\"%s\"\n"
 msgstr ""
 
-#: src/filed/job.c:1247
+#: src/filed/job.c:1253
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1225
 #, c-format
 msgid "Generate VSS snapshots failed. ERR=%s\n"
 msgstr ""
 
-#: src/filed/job.c:1254
+#: src/filed/job.c:1260
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1232
 #, c-format
 msgid "Generate VSS snapshot of drive \"%c:\\\" failed\n"
 msgstr ""
 
-#: src/filed/job.c:1263
+#: src/filed/job.c:1269
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1241
 #, c-format
 msgid "VSS Writer: %s\n"
 msgstr ""
 
-#: src/filed/job.c:1267
+#: src/filed/job.c:1273
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1245
 msgid "No drive letters found for generating VSS snapshots.\n"
 msgstr ""
 
-#: src/filed/job.c:1270
+#: src/filed/job.c:1276
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1248
 msgid "VSS was not initialized properly. VSS support is disabled.\n"
 msgstr ""
 
-#: src/filed/job.c:1319
+#: src/filed/job.c:1325
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1297
 msgid "Append Close with SD failed.\n"
 msgstr ""
 
-#: src/filed/job.c:1323
+#: src/filed/job.c:1329
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1301
 #, c-format
 msgid "Bad status %d returned from Storage Daemon.\n"
 msgstr ""
 
-#: src/filed/job.c:1356
+#: src/filed/job.c:1364
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1336
 #, c-format
 msgid "2994 Bad verify command: %s\n"
 msgstr ""
 
-#: src/filed/job.c:1371 src/filed/job.c:1410
+#: src/filed/job.c:1379 src/filed/job.c:1418
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1351
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1390
 #, c-format
 msgid "2994 Bad verify level: %s\n"
 msgstr ""
 
-#: src/filed/job.c:1450
+#: src/filed/job.c:1458
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1430
 #, c-format
 msgid "Bad replace command. CMD=%s\n"
 msgstr ""
 
-#: src/filed/job.c:1527
+#: src/filed/job.c:1535
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1507
 msgid "Improper calling sequence.\n"
 msgstr ""
 
-#: src/filed/job.c:1547
+#: src/filed/job.c:1555
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1527
 #, c-format
 msgid "Bad response to SD read open: %s\n"
 msgstr ""
 
-#: src/filed/job.c:1552
+#: src/filed/job.c:1560
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1532
 msgid "Bad response from stored to read open command\n"
 msgstr ""
 
-#: src/filed/job.c:1618
+#: src/filed/job.c:1626
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1598
 #, c-format
 msgid "Comm error with SD. bad response to %s. ERR=%s\n"
 msgstr ""
 
-#: src/filed/job.c:1621
+#: src/filed/job.c:1629
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1601
 #, c-format
 msgid "Bad response to %s command. Wanted %s, got %s\n"
 msgstr ""
 
-#: src/filed/job.c:1642 src/dird/fd_cmds.c:442
+#: src/filed/job.c:1650 src/dird/fd_cmds.c:442
 #: platforms/debian/bacula-1.38.5.orig/src/dird/fd_cmds.c:441
 #: platforms/debian/bacula-1.38.5.orig/src/filed/job.c:1622
 #, c-format
@@ -14450,7 +14432,7 @@ msgstr ""
 msgid "No Job status returned from FD.\n"
 msgstr ""
 
-#: src/dird/backup.c:338 src/dird/admin.c:82 src/dird/migrate.c:669
+#: src/dird/backup.c:338 src/dird/admin.c:82 src/dird/migrate.c:717
 #: platforms/debian/bacula-1.38.5.orig/src/dird/mac.c:287
 #: platforms/debian/bacula-1.38.5.orig/src/dird/admin.c:82
 #: platforms/debian/bacula-1.38.5.orig/src/dird/backup.c:343
@@ -14464,7 +14446,7 @@ msgstr ""
 msgid "Error getting client record for stats: %s"
 msgstr ""
 
-#: src/dird/backup.c:351 src/dird/migrate.c:676
+#: src/dird/backup.c:351 src/dird/migrate.c:724
 #: platforms/debian/bacula-1.38.5.orig/src/dird/mac.c:294
 #: platforms/debian/bacula-1.38.5.orig/src/dird/backup.c:356
 #, c-format
@@ -15294,118 +15276,118 @@ msgstr ""
 msgid "Pruned %d %s on Volume \"%s\" from catalog.\n"
 msgstr ""
 
-#: src/dird/next_vol.c:130
+#: src/dird/next_vol.c:128
 #: platforms/debian/bacula-1.38.5.orig/src/dird/next_vol.c:158
 #, c-format
 msgid "Purging oldest volume \"%s\"\n"
 msgstr ""
 
-#: src/dird/next_vol.c:136
+#: src/dird/next_vol.c:134
 #: platforms/debian/bacula-1.38.5.orig/src/dird/next_vol.c:164
 #, c-format
 msgid "Pruning oldest volume \"%s\"\n"
 msgstr ""
 
-#: src/dird/next_vol.c:155
+#: src/dird/next_vol.c:153
 #: platforms/debian/bacula-1.38.5.orig/src/dird/next_vol.c:183
 msgid "We seem to be looping trying to find the next volume. I give up.\n"
 msgstr ""
 
-#: src/dird/next_vol.c:180
+#: src/dird/next_vol.c:178
 #: platforms/debian/bacula-1.38.5.orig/src/dird/next_vol.c:208
 #, c-format
 msgid "Max Volume bytes exceeded. Marking Volume \"%s\" as Full.\n"
 msgstr ""
 
-#: src/dird/next_vol.c:187
+#: src/dird/next_vol.c:185
 #: platforms/debian/bacula-1.38.5.orig/src/dird/next_vol.c:215
 #, c-format
 msgid "Volume used once. Marking Volume \"%s\" as Used.\n"
 msgstr ""
 
-#: src/dird/next_vol.c:194
+#: src/dird/next_vol.c:192
 #: platforms/debian/bacula-1.38.5.orig/src/dird/next_vol.c:222
 #, c-format
 msgid "Max Volume jobs exceeded. Marking Volume \"%s\" as Used.\n"
 msgstr ""
 
-#: src/dird/next_vol.c:201
+#: src/dird/next_vol.c:199
 #: platforms/debian/bacula-1.38.5.orig/src/dird/next_vol.c:229
 #, c-format
 msgid "Max Volume files exceeded. Marking Volume \"%s\" as Used.\n"
 msgstr ""
 
-#: src/dird/next_vol.c:211
+#: src/dird/next_vol.c:209
 #: platforms/debian/bacula-1.38.5.orig/src/dird/next_vol.c:239
 #, c-format
 msgid "Max configured use duration exceeded. Marking Volume \"%s\" as Used.\n"
 msgstr ""
 
-#: src/dird/next_vol.c:221
+#: src/dird/next_vol.c:219
 #: platforms/debian/bacula-1.38.5.orig/src/dird/next_vol.c:249
 #, c-format
 msgid "Catalog error updating volume \"%s\". ERR=%s"
 msgstr ""
 
-#: src/dird/next_vol.c:242
+#: src/dird/next_vol.c:240
 #: platforms/debian/bacula-1.38.5.orig/src/dird/next_vol.c:270
 msgid "volume has expired"
 msgstr ""
 
-#: src/dird/next_vol.c:260 src/dird/next_vol.c:296
+#: src/dird/next_vol.c:258 src/dird/next_vol.c:294
 #: platforms/debian/bacula-1.38.5.orig/src/dird/next_vol.c:288
 #: platforms/debian/bacula-1.38.5.orig/src/dird/next_vol.c:324
 #, c-format
 msgid "Recycled current volume \"%s\"\n"
 msgstr ""
 
-#: src/dird/next_vol.c:265
+#: src/dird/next_vol.c:263
 #: platforms/debian/bacula-1.38.5.orig/src/dird/next_vol.c:293
 msgid "and recycling of current volume failed"
 msgstr ""
 
-#: src/dird/next_vol.c:271
+#: src/dird/next_vol.c:269
 #: platforms/debian/bacula-1.38.5.orig/src/dird/next_vol.c:299
 msgid "but should be Append, Purged or Recycle"
 msgstr ""
 
-#: src/dird/next_vol.c:299
+#: src/dird/next_vol.c:297
 #: platforms/debian/bacula-1.38.5.orig/src/dird/next_vol.c:327
 msgid ""
 "but should be Append, Purged or Recycle (recycling of the current volume "
 "failed)"
 msgstr ""
 
-#: src/dird/next_vol.c:303
+#: src/dird/next_vol.c:301
 msgid ""
 "but should be Append, Purged or Recycle (cannot automatically recycle "
 "current volume, as it still contains unpruned data or the Volume Retention "
 "time has not expired.)"
 msgstr ""
 
-#: src/dird/next_vol.c:344
+#: src/dird/next_vol.c:342
 #: platforms/debian/bacula-1.38.5.orig/src/dird/next_vol.c:127
 #, c-format
 msgid "Unable to get Pool record: ERR=%s"
 msgstr ""
 
-#: src/dird/next_vol.c:349
+#: src/dird/next_vol.c:347
 #, c-format
 msgid "Unable add Scratch Volume, Pool \"%s\" full MaxVols=%d\n"
 msgstr ""
 
-#: src/dird/next_vol.c:362
+#: src/dird/next_vol.c:360
 #, c-format
 msgid "Failed to move Scratch Volume. ERR=%s\n"
 msgstr ""
 
-#: src/dird/next_vol.c:366
+#: src/dird/next_vol.c:364
 #: platforms/debian/bacula-1.38.5.orig/src/dird/next_vol.c:112
 #, c-format
 msgid "Using Volume \"%s\" from 'Scratch' pool.\n"
 msgstr ""
 
-#: src/dird/next_vol.c:374
+#: src/dird/next_vol.c:372
 #: platforms/debian/bacula-1.38.5.orig/src/dird/next_vol.c:123
 #, c-format
 msgid "Unable to update Volume record: ERR=%s"
@@ -17464,92 +17446,108 @@ msgstr ""
 msgid "Start Migration JobId %s, Job=%s\n"
 msgstr ""
 
-#: src/dird/migrate.c:415 src/dird/migrate.c:427 src/dird/migrate.c:438
-#: src/dird/migrate.c:449 src/dird/migrate.c:460 src/dird/migrate.c:577
+#: src/dird/migrate.c:423 src/dird/migrate.c:435 src/dird/migrate.c:446
+#: src/dird/migrate.c:457 src/dird/migrate.c:468 src/dird/migrate.c:624
 #, c-format
 msgid "SQL to get Volume failed. ERR=%s\n"
 msgstr ""
 
-#: src/dird/migrate.c:419
+#: src/dird/migrate.c:427
 msgid "No Volumes found to migrate.\n"
 msgstr ""
 
-#: src/dird/migrate.c:442
+#: src/dird/migrate.c:450
 msgid "No Volume found to migrate.\n"
 msgstr ""
 
-#: src/dird/migrate.c:464 src/dird/migrate.c:581
+#: src/dird/migrate.c:472 src/dird/migrate.c:608 src/dird/migrate.c:628
 msgid "No jobs found to migrate.\n"
 msgstr ""
 
-#: src/dird/migrate.c:472 src/dird/migrate.c:505 src/dird/migrate.c:538
-#: src/dird/migrate.c:572
-msgid "No selection pattern specified.\n"
+#: src/dird/migrate.c:482
+msgid "No Migration Client selection pattern specified.\n"
 msgstr ""
 
-#: src/dird/migrate.c:478 src/dird/migrate.c:511 src/dird/migrate.c:544
+#: src/dird/migrate.c:489 src/dird/migrate.c:523 src/dird/migrate.c:557
 #, c-format
 msgid "Could not compile regex pattern \"%s\" ERR=%s\n"
 msgstr ""
 
-#: src/dird/migrate.c:487
+#: src/dird/migrate.c:498
 #, c-format
 msgid "SQL to get Client failed. ERR=%s\n"
 msgstr ""
 
-#: src/dird/migrate.c:520 src/dird/migrate.c:553
+#: src/dird/migrate.c:516
+msgid "No Migration Volume selection pattern specified.\n"
+msgstr ""
+
+#: src/dird/migrate.c:532 src/dird/migrate.c:567
 #, c-format
 msgid "SQL to get Job failed. ERR=%s\n"
 msgstr ""
 
-#: src/dird/migrate.c:588
+#: src/dird/migrate.c:550
+msgid "No Migration Job selection pattern specified.\n"
+msgstr ""
+
+#: src/dird/migrate.c:603
+#, c-format
+msgid "SQL failed. ERR=%s\n"
+msgstr ""
+
+#: src/dird/migrate.c:618
+msgid "No Migration SQL selection pattern specified.\n"
+msgstr ""
+
+#: src/dird/migrate.c:635
 msgid "Unknown Migration Selection Type.\n"
 msgstr ""
 
-#: src/dird/migrate.c:597
+#: src/dird/migrate.c:645
 msgid "Invalid JobId found.\n"
 msgstr ""
 
-#: src/dird/migrate.c:600
+#: src/dird/migrate.c:648
 msgid "No JobIds found to migrate.\n"
 msgstr ""
 
-#: src/dird/migrate.c:608
+#: src/dird/migrate.c:656
 #, c-format
 msgid "Could not get job record for JobId %s to migrate. ERR=%s"
 msgstr ""
 
-#: src/dird/migrate.c:613
+#: src/dird/migrate.c:661
 #, c-format
 msgid "Migration using JobId=%d Job=%s\n"
 msgstr ""
 
-#: src/dird/migrate.c:687
+#: src/dird/migrate.c:735
 #, c-format
 msgid "%s OK -- with warnings"
 msgstr ""
 
-#: src/dird/migrate.c:689
+#: src/dird/migrate.c:737
 #, c-format
 msgid "%s OK"
 msgstr ""
 
-#: src/dird/migrate.c:694
+#: src/dird/migrate.c:742
 #, c-format
 msgid "*** %s Error ***"
 msgstr ""
 
-#: src/dird/migrate.c:704
+#: src/dird/migrate.c:752
 #, c-format
 msgid "%s Canceled"
 msgstr ""
 
-#: src/dird/migrate.c:713
+#: src/dird/migrate.c:761
 #, c-format
 msgid "Inappropriate %s term code"
 msgstr ""
 
-#: src/dird/migrate.c:742
+#: src/dird/migrate.c:790
 #, c-format
 msgid ""
 "Bacula %s (%s): %s\n"
@@ -17578,10 +17576,25 @@ msgid ""
 "\n"
 msgstr ""
 
+#: platforms/debian/bacula-1.38.5.orig/src/lib/lex.c:292
+#, c-format
+msgid "expected a postive integer number, got: %s"
+msgstr ""
+
 #: platforms/debian/bacula-1.38.5.orig/src/lib/bnet_pkt.c:89
 #: platforms/debian/bacula-1.38.5.orig/src/lib/bnet_pkt.c:147
 #, c-format
 msgid "Unknown BPKT type: %d\n"
+msgstr ""
+
+#: platforms/debian/bacula-1.38.5.orig/src/lib/address_conf.c:434
+#, c-format
+msgid "Expected a block beginn { , got: %s"
+msgstr ""
+
+#: platforms/debian/bacula-1.38.5.orig/src/lib/address_conf.c:508
+#, c-format
+msgid "Expected a hostname or IP nummer, got: %s"
 msgstr ""
 
 #: platforms/debian/bacula-1.38.5.orig/src/lib/parse_conf.c:699
@@ -17846,6 +17859,12 @@ msgstr ""
 #: platforms/debian/bacula-1.38.5.orig/src/stored/block.c:656
 #, c-format
 msgid "Re-read of last block failed. Last block=%u Current block=%u.\n"
+msgstr ""
+
+#: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:465
+#: platforms/debian/bacula-1.38.5.orig/src/stored/btape.c:1210
+#, c-format
+msgid "Bad status from weof %d. ERR=%s\n"
 msgstr ""
 
 #: src/baconfig.h:59 platforms/debian/bacula-1.38.5.orig/src/baconfig.h:55
