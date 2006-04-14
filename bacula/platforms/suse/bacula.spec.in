@@ -145,8 +145,6 @@ Source1:http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.t
 Source2: Release_Notes-%{version}-%{release}.tar.gz
 Source3:http://www.prdownloads.sourceforge.net/bacula/%{name}-docs-%{version}.tar.gz
 Source4:http://www.prdownloads.sourceforge.net/bacula/%{name}-rescue-%{_rescuever}.tar.gz
-Patch0: bacula-1.38.6-script.patch
-Patch1: bacula-1.38.6-makefile.patch
 BuildRoot: %{_tmppath}/%{name}-root
 URL: http://www.bacula.org/
 Vendor: The Bacula Team
@@ -579,9 +577,6 @@ server packages.
 %setup -T -D -b 3
 %setup -T -D -b 4
 
-%patch0
-%patch1 -p1
-
 %build
 
 %if %{su9} || %{su10}
@@ -635,9 +630,9 @@ export LDFLAGS=-L/usr/lib64/mysql
         --with-scriptdir=/etc/bacula \
         --enable-smartalloc \
         --enable-client-only \
-        %if %{mdk}
-        --disable-nls \
-        %endif
+	%if %{mdk}
+	--disable-nls \
+	%endif
         --enable-static-fd
 
 make
@@ -926,6 +921,8 @@ chmod 644 $RPM_BUILD_ROOT/etc/bacula/tray-monitor.conf
 /usr/sbin/bconsole
 /usr/sbin/dbcheck
 /usr/sbin/bsmtp
+/usr/sbin/bregex
+/usr/sbin/bwild
 
 %if %{mysql}
 %pre mysql
@@ -984,19 +981,19 @@ fi
 # this will be a unique group on redhat type systems or the group users on some systems
 HAVE_BACULA=`grep %{storage_daemon_user} %{user_file} 2>/dev/null`
 if [ -z "$HAVE_BACULA" ]; then
-        %{useradd} -r -c "Bacula" -d %{working_dir} -M -n -s /sbin/nologin %{storage_daemon_user} > /dev/null 2>&1
+        %{useradd} -r -c "Bacula" -d %{working_dir} -M -s /sbin/nologin %{storage_daemon_user} > /dev/null 2>&1
         echo "The user %{storage_daemon_user} has been added to %{user_file}."
         echo "See the manual chapter \"Running Bacula\" for details."
 fi
 HAVE_BACULA=`grep %{director_daemon_user} %{user_file} 2>/dev/null`
 if [ -z "$HAVE_BACULA" ]; then
-        %{useradd} -r -c "Bacula" -d %{working_dir} -M -n -s /sbin/nologin %{director_daemon_user} > /dev/null 2>&1
+        %{useradd} -r -c "Bacula" -d %{working_dir} -M -s /sbin/nologin %{director_daemon_user} > /dev/null 2>&1
         echo "The user %{director_daemon_user} has been added to %{user_file}."
         echo "See the manual chapter \"Running Bacula\" for details."
 fi
 HAVE_BACULA=`grep %{file_daemon_user} %{user_file} 2>/dev/null`
 if [ -z "$HAVE_BACULA" ]; then
-        %{useradd} -r -c "Bacula" -d %{working_dir} -M -n -s /sbin/nologin %{file_daemon_user} > /dev/null 2>&1
+        %{useradd} -r -c "Bacula" -d %{working_dir} -M -s /sbin/nologin %{file_daemon_user} > /dev/null 2>&1
         echo "The user %{file_daemon_user} has been added to %{user_file}."
         echo "See the manual chapter \"Running Bacula\" for details."
 fi
@@ -1186,7 +1183,7 @@ fi
 # this will be a unique group on redhat type systems or the group users on some systems
 HAVE_BACULA=`grep %{file_daemon_user} %{user_file} 2>/dev/null`
 if [ -z "$HAVE_BACULA" ]; then
-        %{useradd} -r -c "Bacula" -d %{working_dir} -M -n -s /sbin/nologin %{file_daemon_user} > /dev/null 2>&1
+        %{useradd} -r -c "Bacula" -d %{working_dir} -M -s /sbin/nologin %{file_daemon_user} > /dev/null 2>&1
         echo "The user %{file_daemon_user} has been added to %{user_file}."
         echo "See the manual chapter \"Running Bacula\" for details."
 fi
@@ -1296,6 +1293,11 @@ fi
 %endif
 
 %changelog
+* Fri Apr 14 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- 1.38.8 release
+* Sun Apr 08 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- 1.38.7 release
+- remove -n option from useradd scripts
 * Sun Apr 02 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - 1.38.6 release
 - fix problem specifying more than one primary group for user bacula
