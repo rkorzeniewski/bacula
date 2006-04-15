@@ -1,5 +1,5 @@
 
-          Release Notes for Bacula 1.38.7
+          Release Notes for Bacula 1.38.8
 
   Bacula code: Total files = 419 Total lines = 137,078 (*.h *.c *.in)
       20,440 additional lines of code since version 1.36.3
@@ -17,7 +17,33 @@
   a compiler bug in gcc's 64 bit code generation.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-New features:
+Warning:
+- The Windows FD no longer automatically folds the case
+  in wild-card comparions. To get the same behavior as before,
+  you must explicitly use "Ignore Case = yes" in your FileSet.
+- Backslashes are no longer permitted in File directives
+  (typical error for Windows users), unless the string is
+  enclosed in double quotes, in which case, the backslashes
+  must be doubled.   
+- The new algorithm for selecting Volumes from the Scratch
+  pool that was implemented in 1.38.6 and 1.38.7 is abandoned 
+  in favor of a corrected version of the 1.38.5 algorithm.
+
+New features for 1.38.8:
+- Regex, RegexFile, and RegexDir are now implemented in the
+  Win32 FD.  However, this is new experimental code that is
+  largely untested. It may not work, it may cause memory 
+  leaks, or it may even crash the FD. Please test carefully
+  before using.
+- On Linux/Unix systems there are two new programs, bregex
+  and bwild that allow you to test regular expressions and
+  wild-cards. These programs are installed with the other   
+  binaries. They are not available on Win32 systems.
+
+Fixes: 
+- See below.
+
+New Features from pre-1.38.8 releases:
 - For autochanger get Scratch tape if in autochanger if
   no appendable Volumes are available.
 - New virtual disk autochanger.  See scripts/disk-changer for
@@ -62,7 +88,43 @@ Major bug fixes:
 Minor bug fixes:
 - See below:
 
-Release 1.38.6-1 (05Apr06) released 
+Release 1.38.8 (14Apr06)               
+14Apr06
+- Correct Makefile for Solaris /bin/sh
+- Correct mtx-changer.in for Solaris /bin/sh
+- Abort if a conf resource does not have a Name =
+12Apr06
+- Change the name of the regex program to bregex.
+- Add the bwild program to the tools directory. It is similar
+  to the bregex program.
+- Implement create bregex.h and bregex.c in src/lib from the
+  Python regexp program.  
+- Use the new bregex.c to implement Regex expressions on Win32.
+11Apr06
+- Modify Makefile to change the permissions on Working Directory
+  to 770 if the directory is created.
+- Do not fail the Makefile if changing the permissions or 
+  owner/group on WorkingDir fails.
+- Correct the old recycling algorithm so that Scratch Volumes
+  are selected when looking for a Volume in the changer.
+- Correct a typo in the Verify SQL reported by Joe Park.
+10Apr06
+- Remove automatic case folding on Windows FDs. You must
+  explictly use the 'Ignore Case = yes' option.
+- Remove the code added to 1.38.6 and 1.38.7 that pulls a
+  scratch volume in an Autochanger early in the 'recycling'
+  algorithm.  
+08Apr06
+- Tweak license to include Microsoft restrictions.
+- Move mysql.reconnect to after real_connect().  Thanks to
+  Frank Sweetser for the patch.
+- Disallow a backslash in a File = directive (Windows junk)
+  unless the string is quoted.
+- Apply Eric's patch to ua_label.c so that daemon protocol
+  is not translated.
+
+Release 1.38.7 (06Apr06) released 07Apr06
+06Apr06
 - Remove timed wait for VSS on Win2K3 as it is not yet
   implemented.
 - Correct bacula.in script to reference bacula-ctl-xx in the

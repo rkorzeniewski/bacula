@@ -17,8 +17,27 @@
  */
 
 #include "bacula.h"
-#ifdef HAVE_REGEX_H
+
+/*
+ *  If you define BACULA_REGEX, bregex will be built with the
+ *  Bacula bregex library, which is the same code that we
+ *  use on Win32, thus using Linux, you can test your Win32
+ *  expressions. Otherwise, this program will link with the
+ *  system library routines.
+ */
+//#define BACULA_REGEX
+
+#ifdef BACULA_REGEX
+
+#include "lib/bregex.h"
+
+#else
+#ifndef HAVE_REGEX_H
+#include "lib/bregex.h"
+#else
 #include <regex.h>
+#endif
+
 #endif
 
 
@@ -26,7 +45,7 @@ static void usage()
 {
    fprintf(stderr,
 "\n"
-"Usage: regex [-d debug_level] -f <data-file>\n"
+"Usage: bregex [-d debug_level] -f <data-file>\n"
 "       -f          specify file of data to be matched\n"
 "       -l          suppress line numbers\n"
 "       -n          print lines that do not match\n"
@@ -39,10 +58,6 @@ static void usage()
 
 int main(int argc, char *const *argv)
 {
-#ifndef HAVE_REGEX_H
-   printf("The regex libraries don't seem to be available.\n");
-   exit(1);
-#else
    regex_t preg;
    char prbuf[500];
    char *fname = NULL;
@@ -133,5 +148,4 @@ int main(int argc, char *const *argv)
       regfree(&preg);
    }
    exit(0);
-#endif
 }

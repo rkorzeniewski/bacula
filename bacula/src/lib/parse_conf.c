@@ -857,6 +857,9 @@ parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error)
                level--;
                state = p_none;
                Dmsg0(900, "T_EOB => define new resource\n");
+               if (res_all.hdr.name == NULL) {
+                  scan_err0(lc, _("Name not specified for resource"));
+               }
                save_resource(res_type, items, pass);  /* save resource */
                break;
 

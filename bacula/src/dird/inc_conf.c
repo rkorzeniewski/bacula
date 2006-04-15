@@ -23,7 +23,9 @@
 
 #include "bacula.h"
 #include "dird.h"
-#ifdef HAVE_REGEX_H
+#ifndef HAVE_REGEX_H
+#include "lib/regex.h"
+#else
 #include <regex.h>
 #endif
 
