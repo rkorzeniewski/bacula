@@ -2,14 +2,25 @@
                         Kern Sibbald
 
 General:
-Release 1.38.8
+Release 1.38.8 (14Apr06) released 14Apr06
+15Apr06
+- Correct Makefile bug found by Dan Langille.
+14Apr06
+- Correct Makefile for Solaris /bin/sh
+- Correct mtx-changer.in for Solaris /bin/sh
+- Abort if a conf resource does not have a Name =
+12Apr06
+- Change the name of the regex program to bregex.
+- Add the bwild program to the tools directory. It is similar
+  to the bregex program.
+- Implement create bregex.h and bregex.c in src/lib from the
+  Python regexp program.  
+- Use the new bregex.c to implement Regex expressions on Win32.
 11Apr06
 - Modify Makefile to change the permissions on Working Directory
   to 770 if the directory is created.
 - Do not fail the Makefile if changing the permissions or 
   owner/group on WorkingDir fails.
-- Remove early selection of Scratch Volumes in the recycling
-  algorithm.
 - Correct the old recycling algorithm so that Scratch Volumes
   are selected when looking for a Volume in the changer.
 - Correct a typo in the Verify SQL reported by Joe Park.

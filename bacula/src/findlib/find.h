@@ -43,7 +43,9 @@ struct utimbuf {
 
 #include "lib/fnmatch.h"
 
-#ifdef HAVE_REGEX_H
+#ifndef HAVE_REGEX_H
+#include "lib/bregex.h"
+#else
 #include <regex.h>
 #endif
 

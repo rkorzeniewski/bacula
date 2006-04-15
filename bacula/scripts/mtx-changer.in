@@ -44,7 +44,7 @@ MTX=@MTX@
 #
 dbgfile="@working_dir@/mtx.log"
 debug() {
-    if test -e $dbgfile; then
+    if test -f $dbgfile; then
 	echo "`date +\"%Y%m%d-%H:%M:%S\"` $*" >> $dbgfile
     fi
 }

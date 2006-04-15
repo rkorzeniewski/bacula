@@ -2,6 +2,19 @@
                         Kern Sibbald
 
 General:
+15Apr06
+- Correct Makefile bug found by Dan Langille.
+14Apr06
+- Correct Makefile for Solaris /bin/sh
+- Correct mtx-changer.in for Solaris /bin/sh
+- Abort if a conf resource does not have a Name =
+12Apr06
+- Change the name of the regex program to bregex.
+- Add the bwild program to the tools directory. It is similar
+  to the bregex program.
+- Implement create bregex.h and bregex.c in src/lib from the
+  Python regexp program.  
+- Use the new bregex.c to implement Regex expressions on Win32.
 11Apr06
 - More work on migration.
 - Implement wild program in tools directory for testing

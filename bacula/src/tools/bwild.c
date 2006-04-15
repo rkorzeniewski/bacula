@@ -24,7 +24,7 @@ static void usage()
 {
    fprintf(stderr,
 "\n"
-"Usage: wild [-d debug_level] -f <data-file>\n"
+"Usage: bwild [-d debug_level] -f <data-file>\n"
 "       -f          specify file of data to be matched\n"
 "       -i          use case insenitive match\n"
 "       -l          suppress line numbers\n"
@@ -34,13 +34,6 @@ static void usage()
 
    exit(1);
 }
-
-/* Fold case in fnmatch() on Win32 */
-#ifdef WIN32
-static const int fnmode = FNM_CASEFOLD;
-#else
-static const int fnmode = 0;
-#endif
 
 int main(int argc, char *const *argv)
 {
@@ -116,7 +109,7 @@ int main(int argc, char *const *argv)
       while (fgets(data, sizeof(data)-1, fd)) {
          strip_trailing_newline(data);
          lineno++;
-         rc = fnmatch(pat, data, fnmode | ic);
+         rc = fnmatch(pat, data, ic);
          if ((match_only && rc == 0) || (!match_only && rc != 0)) {
             if (no_linenos) {
                printf("%s\n", data);

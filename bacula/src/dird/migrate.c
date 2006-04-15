@@ -32,7 +32,11 @@
 #include "bacula.h"
 #include "dird.h"
 #include "ua.h"
+#ifndef HAVE_REGEX_H
+#include "lib/bregex.h"
+#else
 #include <regex.h>
+#endif
 
 static char OKbootstrap[] = "3000 OK bootstrap\n";
 static bool get_job_to_migrate(JCR *jcr);

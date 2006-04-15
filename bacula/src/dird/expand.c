@@ -126,7 +126,6 @@ static int job_item(JCR *jcr, int code,
    return 1;
 }
 
-
 struct s_built_in_vars {const char *var_name; int code; int (*func)(JCR *jcr, int code,
                          const char **val_ptr, int *val_len, int *val_size);};
 

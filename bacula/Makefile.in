@@ -89,15 +89,15 @@ installdirs:
 	$(MKDIR) $(DESTDIR)$(sbindir)
 	$(MKDIR) $(DESTDIR)$(sysconfdir)
 	$(MKDIR) $(DESTDIR)$(scriptdir)
-	if test ! -e $(DESTDIR)$(working_dir) ; then \
+	-if test ! -d $(DESTDIR)$(working_dir) ; then \
 	   $(MKDIR) $(DESTDIR)$(working_dir); \
-	   -chmod 770 $(DESTDIR)$(working_dir); \
+	   chmod 770 $(DESTDIR)$(working_dir); \
 	fi
-	if test "x$(dir_user)" != "x" ; then \
-	   -chown -f $(dir_user) $(DESTDIR)$(working_dir); \
+	-if test "x$(dir_user)" != "x" ; then \
+	   chown -f $(dir_user) $(DESTDIR)$(working_dir); \
 	fi
-	if test "x$(dir_group)" != "x" ; then \
-	   -chown -f :$(dir_group) $(DESTDIR)$(working_dir); \
+	-if test "x$(dir_group)" != "x" ; then \
+	   chown -f :$(dir_group) $(DESTDIR)$(working_dir); \
 	fi
 #	$(MKDIR) $(DESTDIR)$(mandir)
 
