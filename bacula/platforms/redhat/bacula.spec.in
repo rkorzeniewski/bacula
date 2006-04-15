@@ -58,9 +58,12 @@
 %{?build_su9:%define su9 1}
 %define su10 0
 %{?build_su10:%define su10 1}
-# Mandrake build
+# Mandrake builds
 %define mdk 0
 %{?build_mdk:%define mdk 1}
+%define mdv 0
+%{?build_mdv:%define mdv 1}
+%{?build_mdv:%define mdk 1}
 
 # test for a platform definition
 %if ! %{rh7} && ! %{rh8} && ! %{rh9} && ! %{fc1} && ! %{fc3} && ! %{fc4} && ! %{wb3} && ! %{su9} && ! %{su10} && ! %{mdk}
@@ -140,11 +143,11 @@ Version: @VERSION@
 Release: 1
 Group: System Environment/Daemons
 License: GPL v2
-Source0:http://www.prdownloads.sourceforge.net/bacula/%{name}-%{version}.tar.gz
-Source1:http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.tar.gz
+Source0: http://www.prdownloads.sourceforge.net/bacula/%{name}-%{version}.tar.gz
+Source1: http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.tar.gz
 Source2: Release_Notes-%{version}-%{release}.tar.gz
-Source3:http://www.prdownloads.sourceforge.net/bacula/%{name}-docs-%{version}.tar.gz
-Source4:http://www.prdownloads.sourceforge.net/bacula/%{name}-rescue-%{_rescuever}.tar.gz
+Source3: http://www.prdownloads.sourceforge.net/bacula/%{name}-docs-%{version}.tar.gz
+Source4: http://www.prdownloads.sourceforge.net/bacula/%{name}-rescue-%{_rescuever}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-root
 URL: http://www.bacula.org/
 Vendor: The Bacula Team
@@ -207,11 +210,22 @@ BuildRequires: libstdc++-static-devel
 BuildRequires: glibc-static-devel
 BuildRequires: glibc-devel >= 2.3
 %endif
-%if %{mdk} && %{gconsole}
+%if %{mdk} && !%{mdv} && %{gconsole}
 BuildRequires: gtk2-devel >= 2.0
 BuildRequires: libgnomeui2-devel >= 2.0
 BuildRequires: libORBit2-devel
 BuildRequires: libart_lgpl-devel >= 2.0
+BuildRequires: libbonobo2_0-devel
+BuildRequires: libbonoboui2_0-devel
+BuildRequires: libbonobo-activation-devel
+BuildRequires: libGConf2-devel
+BuildRequires: freetype2-devel
+%endif
+%if %{mdv} && %{gconsole}
+BuildRequires: gtk2-devel >= 2.8
+BuildRequires: libgnomeui2-devel >= 2.10
+BuildRequires: libORBit2-devel
+BuildRequires: libart_lgpl-devel >= 2.3
 BuildRequires: libbonobo2_0-devel
 BuildRequires: libbonoboui2_0-devel
 BuildRequires: libbonobo-activation-devel
@@ -495,7 +509,7 @@ Requires: fontconfig >= 2.3
 Requires: gnome-vfs2 >= 2.12
 Requires: libpng
 %endif
-%if %{gconsole} && %{mdk}
+%if %{gconsole} && %{mdk} && !%{mdv}
 Requires: gtk2 >= 2.0
 Requires: libgnomeui2
 Requires: glibc >= 2.3
@@ -503,6 +517,17 @@ Requires: ORBit2
 Requires: libart_lgpl >= 2.0
 Requires: libbonobo >= 2.0
 Requires: libbonoboui >= 2.0
+Requires: GConf2
+Requires: freetype2
+%endif
+%if %{gconsole} && %{mdv}
+Requires: gtk2 >= 2.8
+Requires: libgnomeui2
+Requires: glibc >= 2.3
+Requires: ORBit2
+Requires: libart_lgpl >= 2.3
+Requires: libbonobo >= 2.10
+Requires: libbonoboui >= 2.10
 Requires: GConf2
 Requires: freetype2
 %endif
@@ -1295,6 +1320,7 @@ fi
 %changelog
 * Fri Apr 14 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - 1.38.8 release
+- dependency update for Mandriva
 * Sun Apr 08 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - 1.38.7 release
 - remove -n option from useradd scripts
