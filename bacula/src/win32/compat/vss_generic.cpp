@@ -127,7 +127,9 @@ inline wstring AppendBackslash(wstring str)
 // Get the unique volume name for the given path
 inline wstring GetUniqueVolumeNameForPath(wstring path)
 {
+#if 0  
     _ASSERTE(path.length() > 0);    
+#endif
 
     // Add the backslash termination, if needed
     path = AppendBackslash(path);

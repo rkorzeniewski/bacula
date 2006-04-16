@@ -24,8 +24,19 @@
 #include "bacula.h"
 #include "jcr.h"
 
-int execvp_errors[] = {EACCES, ENOEXEC, EFAULT, EINTR, E2BIG,
-                     ENAMETOOLONG, ENOMEM, ETXTBSY, ENOENT};
+int execvp_errors[] = {
+	EACCES,
+	ENOEXEC,
+	EFAULT,
+	EINTR,
+	E2BIG,
+	ENAMETOOLONG,
+	ENOMEM,
+#ifndef WIN32
+	ETXTBSY,
+#endif
+	ENOENT
+};
 int num_execvp_errors = (int)(sizeof(execvp_errors)/sizeof(int));
 
 
@@ -221,7 +232,11 @@ int close_bpipe(BPIPE *bpipe)
          }
          Dmsg1(800, "child status=%d\n", stat & ~b_errno_exit);
       } else if (WIFSIGNALED(chldstatus)) {  /* process died */
+#ifndef WIN32
          stat = WTERMSIG(chldstatus);
+#else
+#warning "WTERMSIG undefined in Win32 !!!"
+#endif
          Dmsg1(800, "Child died from signale %d\n", stat);
          stat |= b_errno_signal;      /* exit signal returned */
       }

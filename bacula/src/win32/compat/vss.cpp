@@ -4,7 +4,7 @@
 // Copyright transferred from MATRIX-Computer GmbH to
 //   Kern Sibbald by express permission.
 //
-//  Copyright (C) 2005 Kern Sibbald
+//  Copyright (C) 2005-2006 Kern Sibbald
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -55,12 +55,15 @@
 #include <fstream>
 using namespace std;   
 
+#ifndef HAVE_MINGW
 #include <atlcomcli.h>
 #include <objbase.h>
 
 
 // Used for safe string manipulation
 #include <strsafe.h>
+#endif
+
 #include "vss.h"
 
 
@@ -80,8 +83,8 @@ VSSClient::VSSClient()
     m_pVectorWriterStates = new vector<int>;
     m_pVectorWriterInfo = new vector<string>;
     m_uidCurrentSnapshotSet = GUID_NULL;
-    memset(m_wszUniqueVolumeName,0, sizeof(m_wszUniqueVolumeName));
-    memset(m_szShadowCopyName,0, sizeof(m_szShadowCopyName));
+    memset(m_wszUniqueVolumeName, 0, sizeof(m_wszUniqueVolumeName));
+    memset(m_szShadowCopyName, 0, sizeof(m_szShadowCopyName));
 }
 
 // Destructor
@@ -100,7 +103,7 @@ VSSClient::~VSSClient()
    if (m_pVectorWriterInfo)
       delete (m_pVectorWriterInfo);
 
-   // Call CoUninitialize if the CoInitialize was performed sucesfully
+   // Call CoUninitialize if the CoInitialize was performed successfully
    if (m_bCoInitializeCalled)
       CoUninitialize();
 }

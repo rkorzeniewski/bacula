@@ -42,7 +42,7 @@ extern int enable_vss;
 
 // from MicroSoft SDK (KES) is the diff between Jan 1 1601 and Jan 1 1970
 #ifdef HAVE_MINGW
-#define WIN32_FILETIME_ADJUST 0x19DB1DED53E8000UL //Not sure it works
+#define WIN32_FILETIME_ADJUST 0x19DB1DED53E8000ULL //Not sure it works
 #else
 #define WIN32_FILETIME_ADJUST 0x19DB1DED53E8000I64
 #endif

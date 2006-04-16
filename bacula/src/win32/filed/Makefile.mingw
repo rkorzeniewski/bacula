@@ -1,0 +1,504 @@
+# New makefile for win32 bacula executables
+# Using MinGW cross-compiler on GNU/Linux
+# 
+
+# Configuration
+
+# Version for cross-tools-3.4.2
+INCLUDE_MINGW = -I/data/cross-tools/mingw32/mingw32/include
+INCLUDE_GCC = -I/data/cross-tools/mingw32/include
+
+# For cross-tools-2.95.3
+#INCLUDE_MINGW = -I/data/cross-tools/include
+#INCLUDE_GCC = -I/data/cross-tools/i386-mingw32msvc/include
+
+INCLUDE_BACULA = -I../compat -I../.. -I../../win32/zlib
+INCLUDE_PTHREAD = -I/data/cross-tools-pthread/include
+INCLUDE_VSS = -I/data/Master/backup/vss-sdk/inc
+INCLUDE_ICONS = -I../../filed/win32
+
+INCLUDES = \
+		$(INCLUDE_GCC) \
+		$(INCLUDE_MINGW) \
+		$(INCLUDE_BACULA) \
+		$(INCLUDE_PTHREAD) \
+		$(INCLUDE_VSS) \
+		$(INCLUDE_ICONS) \
+
+EXCLUDED_INCLUDES = \
+
+HAVES = \
+	-DHAVE_STDINT_H \
+	-DHAVE_STDARG_H \
+	-DHAVE_STDLIB_H \
+	-DHAVE_ALLOCA_H \
+	-DHAVE_LIMITS_H \
+	-DHAVE_SYS_SOCKET_H \
+	-DHAVE_SYS_WAIT_H \
+	-DHAVE_SSL \
+	-DHAVE_MINGW \
+	-DHAVE_WIN32 \
+	-DHAVE_U_INT64_T \
+	-DHAVE_UINT64_T \
+	-DHAVE_ZLIB_H \
+	-DHAVE_LIBZ \
+
+HAVE_NOT = \
+	-DHAVE_SYS_BITYPES_H \
+	-DSIZEOF_LONG_LONG_INT=8
+
+NOT_DEFINED = \
+	
+DEFINES = \
+	-DWIN32 \
+	$(HAVES) \
+	-DCOMPILING_BACULA \
+	-DWIN32_VSS \
+
+CC = mingw32-g++ $(DEFINES) $(INCLUDES)
+CXX = mingw32-g++ $(DEFINES) $(INCLUDES) 2>&1
+WINDRES = mingw32-windres
+
+#CC = i386-mingw32msvc-g++ $(DEFINES) $(INCLUDES)
+#CXX = i386-mingw32msvc-g++ $(DEFINES) $(INCLUDES)
+#WINDRES = i386-mingw32msvc-windres
+
+# first: all bacula-fd.exe
+first: all
+
+INTDIR = .
+
+##########################################################################
+
+# Files in src/win32/filed/
+OBJS_FILED_FAILED = \
+
+OBJS_FILED = \
+        $(INTDIR)/authenticate.o \
+        $(INTDIR)/backup.o \
+        $(INTDIR)/chksum.o \
+        $(INTDIR)/estimate.o \
+        $(INTDIR)/filed.o \
+        $(INTDIR)/filed_conf.o \
+        $(INTDIR)/heartbeat.o \
+        $(INTDIR)/job.o \
+        $(INTDIR)/restore.o \
+        $(INTDIR)/status.o \
+        $(INTDIR)/verify.o \
+        $(INTDIR)/verify_vol.o \
+        $(OBJS_FILED_FAILED)
+
+
+authenticate.o:	../filed/authenticate.cpp
+	$(CXX) -c ../filed/authenticate.cpp -o authenticate.o
+
+backup.o:	../filed/backup.cpp
+	$(CXX) -c ../filed/backup.cpp -o backup.o
+
+chksum.o:	../filed/chksum.cpp
+	$(CXX) -c ../filed/chksum.cpp -o chksum.o
+
+estimate.o:	../filed/estimate.cpp
+	$(CXX) -c ../filed/estimate.cpp -o estimate.o
+
+filed.o:	../filed/filed.cpp
+	$(CXX) -c ../filed/filed.cpp -o filed.o
+
+filed_conf.o:	../filed/filed_conf.cpp
+	$(CXX) -c ../filed/filed_conf.cpp -o filed_conf.o
+
+heartbeat.o:	../filed/heartbeat.cpp
+	$(CXX) -c ../filed/heartbeat.cpp -o heartbeat.o
+
+job.o:	../filed/job.cpp
+	$(CXX) -c ../filed/job.cpp -o job.o
+
+restore.o:	../filed/restore.cpp
+	$(CXX) -c ../filed/restore.cpp -o restore.o
+
+status.o:	../filed/status.cpp
+	$(CXX) -c ../filed/status.cpp -o status.o
+
+verify.o:	../filed/verify.cpp
+	$(CXX) -c ../filed/verify.cpp -o verify.o
+
+verify_vol.o:	../filed/verify_vol.cpp
+	$(CXX) -c ../filed/verify_vol.cpp -o verify_vol.o
+
+######################################################################
+
+# Files in src/compat
+OBJS_COMPAT_FAILED = \
+		$(INTDIR)/vss_w2k3.o \
+
+OBJS_COMPAT = \
+		$(INTDIR)/print.o \
+		$(INTDIR)/compat.o \
+		$(INTDIR)/getopt.o \
+		$(INTDIR)/vss.o \
+		$(INTDIR)/vss_xp.o \
+		$(OBJS_COMPAT_FAILED)
+
+compat.o:	../compat/compat.cpp
+	$(CXX) -c ../compat/compat.cpp -o compat.o
+# TODO
+
+getopt.o:	../compat/getopt.c
+	$(CXX) -c ../compat/getopt.c -o getopt.o
+
+print.o:	../compat/print.cpp
+	$(CXX) -c ../compat/print.cpp -o print.o
+
+vss.o:	../compat/vss.cpp
+	$(CXX) -c ../compat/vss.cpp -o vss.o
+# TODO
+
+vss_xp.o:	../compat/vss_xp.cpp
+	$(CXX) -c ../compat/vss_xp.cpp -o vss_xp.o
+# TODO
+
+vss_w2k3.o:	../compat/vss_w2k3.cpp
+	$(CXX) -c ../compat/vss_w2k3.cpp -o vss_w2k3.o
+# TODO
+
+
+
+######################################################################
+
+# Files in src/filed/win32
+OBJS_WIN = \
+        $(INTDIR)/winabout.o \
+        $(INTDIR)/winevents.o \
+        $(INTDIR)/winservice.o \
+        $(INTDIR)/winstat.o \
+        $(INTDIR)/wintray.o \
+		$(INTDIR)/winmain.o \
+        $(INTDIR)/winres.res
+
+winabout.o:	../../filed/win32/winabout.cpp
+	$(CXX) -c ../../filed/win32/winabout.cpp -o winabout.o
+
+winevents.o:	../../filed/win32/winevents.cpp
+	$(CXX) -c ../../filed/win32/winevents.cpp -o winevents.o
+
+winmain.o:	../../filed/win32/winmain.cpp
+	$(CXX) -c ../../filed/win32/winmain.cpp -o winmain.o
+# TODO
+
+winservice.o:	../../filed/win32/winservice.cpp
+	$(CXX) -c ../../filed/win32/winservice.cpp -o winservice.o
+
+winstat.o:	../../filed/win32/winstat.cpp
+	$(CXX) -c ../../filed/win32/winstat.cpp -o winstat.o
+
+wintray.o:	../../filed/win32/wintray.cpp
+	$(CXX) -c ../../filed/win32/wintray.cpp -o wintray.o
+
+winres.res:	../../filed/win32/winres.rc
+	$(WINDRES) $(INCLUDE_ICONS) -O coff ../../filed/win32/winres.rc -o winres.res
+#	$(WINDRES) --help
+#	mingw32-nm winres.res
+
+######################################################################
+
+# Files in ??? Needed ???
+
+#       $(INTDIR)/StdAfx.o
+
+######################################################################
+
+# Files in src/findlib
+OBJS_FINDLIB = \
+        $(INTDIR)/attribs.o \
+        $(INTDIR)/bfile.o \
+        $(INTDIR)/create_file.o \
+        $(INTDIR)/enable_priv.o \
+        $(INTDIR)/find.o \
+        $(INTDIR)/find_one.o \
+        $(INTDIR)/fstype.o \
+        $(INTDIR)/makepath.o \
+        $(INTDIR)/match.o \
+        $(INTDIR)/save-cwd.o
+
+attribs.o:	../../findlib/attribs.c
+	$(CXX) -c ../../findlib/attribs.c -o attribs.o
+
+bfile.o:	../../findlib/bfile.c
+	$(CXX) -c ../../findlib/bfile.c -o bfile.o
+
+create_file.o:	../../findlib/create_file.c
+	$(CXX) -c ../../findlib/create_file.c -o create_file.o
+
+enable_priv.o:	../../findlib/enable_priv.c
+	$(CXX) -c ../../findlib/enable_priv.c -o enable_priv.o
+
+find.o:	../../findlib/find.c
+	$(CXX) -c ../../findlib/find.c -o find.o
+
+find_one.o:	../../findlib/find_one.c
+	$(CXX) -c ../../findlib/find_one.c -o find_one.o
+
+fstype.o:	../../findlib/fstype.c
+	$(CXX) -c ../../findlib/fstype.c -o fstype.o
+
+makepath.o:	../../findlib/makepath.c
+	$(CXX) -c ../../findlib/makepath.c -o makepath.o
+
+match.o:	../../findlib/match.c
+	$(CXX) -c ../../findlib/match.c -o match.o
+
+save-cwd.o:	../../findlib/save-cwd.c
+	$(CXX) -c ../../findlib/save-cwd.c -o save-cwd.o
+
+
+######################################################################
+
+# Files in src/win32/lib, based on files in src/lib
+LIB_OBJS_FAILED = \
+        $(INTDIR)/bpipe.o \
+
+LIB_OBJS = \
+        $(INTDIR)/address_conf.o \
+        $(INTDIR)/alist.o \
+        $(INTDIR)/alloc.o \
+        $(INTDIR)/attr.o \
+        $(INTDIR)/base64.o \
+        $(INTDIR)/berrno.o \
+        $(INTDIR)/bget_msg.o \
+        $(INTDIR)/bnet.o \
+        $(INTDIR)/bnet_server.o \
+        $(INTDIR)/bshm.o \
+        $(INTDIR)/bsys.o \
+        $(INTDIR)/btime.o \
+        $(INTDIR)/btimers.o \
+        $(INTDIR)/cram-md5.o \
+        $(INTDIR)/crc32.o \
+        $(INTDIR)/daemon.o \
+        $(INTDIR)/dlist.o \
+        $(INTDIR)/edit.o \
+        $(INTDIR)/fnmatch.o \
+        $(INTDIR)/hmac.o \
+        $(INTDIR)/htable.o \
+        $(INTDIR)/idcache.o \
+        $(INTDIR)/jcr.o \
+        $(INTDIR)/lex.o \
+        $(INTDIR)/md5.o \
+        $(INTDIR)/mem_pool.o \
+        $(INTDIR)/message.o \
+        $(INTDIR)/parse_conf.o \
+        $(INTDIR)/pythonlib.o \
+        $(INTDIR)/queue.o \
+        $(INTDIR)/regex.o \
+        $(INTDIR)/res.o \
+        $(INTDIR)/rwlock.o \
+        $(INTDIR)/semlock.o \
+        $(INTDIR)/serial.o \
+        $(INTDIR)/sha1.o \
+        $(INTDIR)/signal.o \
+        $(INTDIR)/smartall.o \
+        $(INTDIR)/tls.o \
+        $(INTDIR)/var.o \
+        $(INTDIR)/watchdog.o \
+        $(INTDIR)/winapi.o \
+        $(INTDIR)/workq.o \
+        $(INTDIR)/scan.o \
+        $(INTDIR)/tree.o \
+        $(INTDIR)/util.o \
+        $(LIB_OBJS_FAILED) \
+
+OBJS = $(LIB_OBJS) $(OBJS_COMPAT) $(OBJS_WIN) $(OBJS_FINDLIB) $(OBJS_FILED)
+
+LIBS = \
+	-L/data/cross-tools/mingw32/mingw32/lib \
+	/data/cross-tools/mingw32/mingw32/lib/libole32.a \
+	/data/cross-tools/mingw32/mingw32/lib/liboleaut32.a \
+	/data/cross-tools/mingw32/mingw32/lib/libuser32.a \
+	/data/cross-tools/mingw32/mingw32/lib/libadvapi32.a \
+	/data/cross-tools/mingw32/mingw32/lib/libgdi32.a \
+	/data/cross-tools/mingw32/mingw32/lib/libwsock32.a \
+	/data/cross-tools/mingw32/mingw32/lib/libshell32.a \
+	/data/cross-tools/mingw32/mingw32/lib/libnetapi32.a \
+	/data/cross-tools/mingw32/mingw32/lib/libuuid.a \
+	/data/cross-tools-pthread/lib/libpthreadGCE2.a \
+	/data/Master/backup/bacula/bacula/src/win32/zlib/libz.a \
+
+# LIBS = \
+#	-L/data/cross-tools/mingw32/mingw32/lib \
+#	libole32.a \
+#	liboleaut32.a \
+#	/data/cross-tools/mingw32/mingw32/lib/libuser32.a \
+#	/data/cross-tools/mingw32/mingw32/lib/libadvapi32.a \
+#	/data/cross-tools/mingw32/mingw32/lib/libgdi32.a \
+#	/data/cross-tools/mingw32/mingw32/lib/libwsock32.a \
+#	/data/cross-tools/mingw32/mingw32/lib/libshell32.a \
+
+#	pthreadVCE.a \
+#	zlib.a
+
+#
+# Rules for generating from ../lib
+# 
+
+address_conf.o:	../lib/address_conf.cpp
+	$(CXX) -c ../lib/address_conf.cpp -o address_conf.o
+
+alist.o:	../lib/alist.cpp
+	$(CXX) -c ../lib/alist.cpp -o alist.o
+
+alloc.o:	../lib/alloc.cpp
+	$(CXX) -c ../lib/alloc.cpp -o alloc.o
+
+attr.o:	../lib/attr.cpp
+	$(CXX) -c ../lib/attr.cpp -o attr.o
+
+base64.o:	../lib/base64.cpp
+	$(CXX) -c ../lib/base64.cpp -o base64.o
+
+berrno.o:	../lib/berrno.cpp
+	$(CXX) -c ../lib/berrno.cpp -o berrno.o
+
+bget_msg.o:	../lib/bget_msg.cpp
+	$(CXX) -c ../lib/bget_msg.cpp -o bget_msg.o
+
+bnet.o:	../lib/bnet.cpp
+	$(CXX) -c ../lib/bnet.cpp -o bnet.o
+
+bnet_server.o:	../lib/bnet_server.cpp
+	$(CXX) -c ../lib/bnet_server.cpp -o bnet_server.o
+
+bpipe.o:	../lib/bpipe.cpp
+	$(CXX) -c ../lib/bpipe.cpp -o bpipe.o
+
+bshm.o:	../lib/bshm.cpp
+	$(CXX) -c ../lib/bshm.cpp -o bshm.o
+
+bsys.o:	../lib/bsys.cpp
+	$(CXX) -c ../lib/bsys.cpp -o bsys.o
+
+btime.o:	../lib/btime.cpp
+	$(CXX) -c ../lib/btime.cpp -o btime.o
+
+btimers.o:	../lib/btimers.cpp
+	$(CXX) -c ../lib/btimers.cpp -o btimers.o
+
+cram-md5.o:	../lib/cram-md5.cpp
+	$(CXX) -c ../lib/cram-md5.cpp -o cram-md5.o
+
+crc32.o:	../lib/crc32.cpp
+	$(CXX) -c ../lib/crc32.cpp -o crc32.o
+
+daemon.o:	../lib/daemon.cpp
+	$(CXX) -c ../lib/daemon.cpp -o daemon.o
+
+dlist.o:	../lib/dlist.cpp
+	$(CXX) -c ../lib/dlist.cpp -o dlist.o
+
+edit.o:	../lib/edit.cpp
+	$(CXX) -c ../lib/edit.cpp -o edit.o
+
+fnmatch.o:	../lib/fnmatch.cpp
+	$(CXX) -c ../lib/fnmatch.cpp -o fnmatch.o
+
+hmac.o:	../lib/hmac.cpp
+	$(CXX) -c ../lib/hmac.cpp -o hmac.o
+
+htable.o:	../lib/htable.cpp
+	$(CXX) -c ../lib/htable.cpp -o htable.o
+
+idcache.o:	../lib/idcache.cpp
+	$(CXX) -c ../lib/idcache.cpp -o idcache.o
+
+jcr.o:	../lib/jcr.cpp
+	$(CXX) -c ../lib/jcr.cpp -o jcr.o
+
+lex.o:	../lib/lex.cpp
+	$(CXX) -c ../lib/lex.cpp -o lex.o
+
+md5.o:	../lib/md5.cpp
+	$(CXX) -c ../lib/md5.cpp -o md5.o
+
+mem_pool.o:	../lib/mem_pool.cpp
+	$(CXX) -c ../lib/mem_pool.cpp -o mem_pool.o
+
+message.o:	../lib/message.cpp
+	$(CXX) -c ../lib/message.cpp -o message.o
+
+parse_conf.o:	../lib/parse_conf.cpp
+	$(CXX) -c ../lib/parse_conf.cpp -o parse_conf.o
+
+pythonlib.o:	../lib/pythonlib.cpp
+	$(CXX) -c ../lib/pythonlib.cpp -o pythonlib.o
+
+queue.o:	../lib/queue.cpp
+	$(CXX) -c ../lib/queue.cpp -o queue.o
+
+regex.o:	../lib/regex.cpp
+	$(CXX) -c ../lib/regex.cpp -o regex.o
+
+res.o:	../lib/res.cpp
+	$(CXX) -c ../lib/res.cpp -o res.o
+
+rwlock.o:	../lib/rwlock.cpp
+	$(CXX) -c ../lib/rwlock.cpp -o rwlock.o
+
+scan.o:	../lib/scan.cpp
+	$(CXX) -c ../lib/scan.cpp -o scan.o
+
+semlock.o:	../lib/semlock.cpp
+	$(CXX) -c ../lib/semlock.cpp -o semlock.o
+
+serial.o:	../lib/serial.cpp
+	$(CXX) -c ../lib/serial.cpp -o serial.o
+
+sha1.o:	../lib/sha1.cpp
+	$(CXX) -c ../lib/sha1.cpp -o sha1.o
+
+signal.o:	../lib/signal.cpp
+	$(CXX) -c ../lib/signal.cpp -o signal.o
+
+smartall.o:	../lib/smartall.cpp
+	$(CXX) -c ../lib/smartall.cpp -o smartall.o
+
+tls.o:	../lib/tls.cpp
+	$(CXX) -c ../lib/tls.cpp -o tls.o
+
+tree.o:	../lib/tree.cpp
+	$(CXX) -c ../lib/tree.cpp -o tree.o
+
+util.o:	../lib/util.cpp
+	$(CXX) -c ../lib/util.cpp -o util.o
+
+var.o:	../lib/var.cpp
+	$(CXX) -c ../lib/var.cpp -o var.o
+
+watchdog.o:	../lib/watchdog.cpp
+	$(CXX) -c ../lib/watchdog.cpp -o watchdog.o
+
+winapi.o:	../lib/winapi.cpp
+	$(CXX) -c ../lib/winapi.cpp -o winapi.o
+
+workq.o:	../lib/workq.cpp
+	$(CXX) -c ../lib/workq.cpp -o workq.o
+
+# Targets
+
+all: bacula-fd.exe
+#	echo $PATH
+
+# all: $(LIB_OBJS) $(OBJS_FILED) $(OBJS_COMPAT) $(OBJS_WIN) $(OBJS_FINDLIB)
+# all: $(LIB_OBJS) $(OBJS_FILED) $(OBJS_WIN) $(OBJS_FINDLIB)
+
+# all: $(OBJS_FILED)	# OK
+# all: $(OBJS_COMPAT)	# TODO vss...
+# all: $(OBJS_WIN)		# OK
+# all: $(OBJS_FINDLIB)	# OK
+# all: $(LIB_OBJS)		# OK
+
+# Link the executable ...
+bacula-fd.exe: $(OBJS)
+	$(CXX) $(OBJS) $(LIBS) -o bacula-fd.exe
+
+# TODO ...
+# Fix vss files: check for consistent levels of pointer indirection
+# bpipe.c: WTERMSIG undefined
+# getopt.c: alloca redefined warning
