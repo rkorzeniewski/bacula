@@ -2,6 +2,9 @@
                         Kern Sibbald
 
 General:
+16Apr06
+- Change store_bit() to store_bool() for the Spooling in 
+  dird_conf.c -- bug reported by Robert Nelson.
 15Apr06
 - Correct Makefile bug found by Dan Langille.
 14Apr06
