@@ -137,6 +137,11 @@ exit 1
 # specifically disallow gconsole if desired
 %{?nobuild_gconsole:%define gconsole 0}
 
+# Should we build wxconsole, only wxWidgets >=2.6 is supported
+# currently only SuSE 10 and FC4
+%define wxconsole 0
+%{?build_wxconsole:%define wxconsole 1}
+
 Summary: Bacula - The Network Backup Solution
 Name: bacula
 Version: @VERSION@
@@ -293,6 +298,10 @@ BuildRequires: rh-postgresql-devel >= 7
 
 %if %{postgresql} && ! %{wb3}
 BuildRequires: postgresql-devel >= 7
+%endif
+
+%if %{wxconsole}
+BuildRequires: wxGTK-devel >= 2.6
 %endif
 
 %description
@@ -594,6 +603,37 @@ This is the Gnome Console package. It is an add-on to the client or
 server packages.
 %endif
 
+%if %{wxconsole}
+%package wxconsole
+Summary: Bacula - The Network Backup Solution
+Group: System Environment/Daemons
+Requires: wxGTK >= 2.6, libstdc++, openssl
+%endif
+
+%if %{wxconsole} && %{su10}
+Requires: gtk2 >= 2.8
+%endif
+
+%if %{wxconsole} && %{fc4}  
+Requires: gtk2 >= 2.6
+%endif
+
+%if %{wxconsole}
+%description wxconsole
+Bacula - It comes by night and sucks the vital essence from your computers.
+
+Bacula is a set of computer programs that permit you (or the system 
+administrator) to manage backup, recovery, and verification of computer 
+data across a network of computers of different kinds. In technical terms, 
+it is a network client/server based backup program. Bacula is relatively 
+easy to use and efficient, while offering many advanced storage management 
+features that make it easy to find and recover lost or damaged files. 
+Bacula source code has been released under the GPL version 2 license.
+
+This is the WXWindows Console package. It is an add-on to the client or
+server packages.
+%endif
+
 %prep
 
 %setup
@@ -682,6 +722,9 @@ make
 %endif
 %if %{postgresql}
         --with-postgresql \
+%endif
+%if %{wxconsole}
+	--enable-wx-console \
 %endif
         --with-working-dir=%{working_dir} \
         --with-pid-dir=/var/run \
@@ -795,6 +838,10 @@ cp -p scripts/bacula.desktop.gnome2.xsu $RPM_BUILD_ROOT/usr/share/applications/b
 cp -p src/tray-monitor/generic.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/bacula-tray-monitor.xpm
 cp -p scripts/bacula-tray-monitor.desktop $RPM_BUILD_ROOT/usr/share/applications/bacula-tray-monitor.desktop
 %endif
+%if %{wxconsole} && %{su10}
+cp -p src/wx-console/wxwin16x16.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/wxwin16x16.xpm
+cp -p scripts/wxconsole.desktop.xsu $RPM_BUILD_ROOT/usr/share/applications/wxconsole.desktop
+%endif
 %if %{rh8} || %{rh9} || %{wb3} || %{fc1} || %{fc3} || %{fc4} || %{mdk}
 %define iftrick 1
 %else
@@ -810,6 +857,13 @@ ln -sf consolehelper $RPM_BUILD_ROOT/usr/bin/gnome-console
 %if %{gconsole} && ! %{rh8}
 cp -p src/tray-monitor/generic.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/bacula-tray-monitor.xpm
 cp -p scripts/bacula-tray-monitor.desktop $RPM_BUILD_ROOT/usr/share/applications/bacula-tray-monitor.desktop
+%endif
+%if %{wxconsole} && %{iftrick}
+cp -p src/wx-console/wxwin16x16.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/wxwin16x16.xpm
+cp -p scripts/wxconsole.desktop.consolehelper $RPM_BUILD_ROOT/usr/share/applications/wxconsole.desktop
+cp -p scripts/wxconsole.console_apps $RPM_BUILD_ROOT/etc/security/console.apps/wxconsole
+cp -p scripts/wxconsole.pamd $RPM_BUILD_ROOT/etc/pam.d/wxconsole
+ln -sf consolehelper $RPM_BUILD_ROOT/usr/bin/wxconsole
 %endif
 
 # install sqlite
@@ -844,6 +898,11 @@ cp -pr %{_rescuesrc}/autoconf $RPM_BUILD_ROOT/etc/bacula/rescue/
 touch $RPM_BUILD_ROOT/etc/bacula/rescue/linux/cdrom/rpm_release
 cp -p src/filed/static-bacula-fd $RPM_BUILD_ROOT/etc/bacula/rescue/linux/cdrom/bacula/bin/bacula-fd
 rm -f src/filed/static-bacula-fd
+
+%if %{wxconsole}
+mv $RPM_BUILD_ROOT/usr/sbin/wx-console $RPM_BUILD_ROOT/usr/sbin/wxconsole
+mv $RPM_BUILD_ROOT/etc/bacula/wx-console.conf $RPM_BUILD_ROOT/etc/bacula/wxconsole.conf
+%endif
 
 # now clean up permissions that are left broken by the install
 chmod o-r $RPM_BUILD_ROOT/etc/bacula/query.sql
@@ -1317,7 +1376,56 @@ if [ -d /etc/bacula ]; then
 fi
 %endif
 
+%if %{wxconsole}
+%files wxconsole
+%defattr(-,root,root)
+/usr/sbin/wxconsole
+%attr(-, root, %{daemon_group}) %dir /etc/bacula
+%attr(-, root, %{daemon_group}) %config(noreplace) /etc/bacula/wxconsole.conf
+/usr/share/pixmaps/wxwin16x16.xpm
+%endif
+
+%if %{wxconsole}
+/usr/share/applications/wxconsole.desktop
+%endif
+
+%if %{wxconsole} && ! %{su9} && ! %{su10}
+# add the console helper files
+%config(noreplace,missingok) /etc/pam.d/wxconsole
+%config(noreplace,missingok) /etc/security/console.apps/wxconsole
+/usr/bin/wxconsole
+%endif
+
+%if %{wxconsole}
+%pre wxconsole
+# create the daemon group
+HAVE_BACULA=`grep %{daemon_group} %{group_file} 2>/dev/null`
+if [ -z "$HAVE_BACULA" ]; then
+        %{groupadd} -r %{daemon_group} > /dev/null 2>&1
+        echo "The group %{daemon_group} has been added to %{group_file}."
+        echo "See the manual chapter \"Running Bacula\" for details."
+fi
+
+%post wxconsole
+# generate passwords if needed
+if [ -d /etc/bacula ]; then
+        cd /etc/bacula
+        for file in *.conf; do
+                for string in XXX_REPLACE_WITH_DIRECTOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_PASSWORD_XXX XXX_REPLACE_WITH_DIRECTOR_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_MONITOR_PASSWORD_XXX; do
+                        need_password=`grep $string $file 2>/dev/null`
+                        if [ -n "$need_password" ]; then
+                                pass=`openssl rand -base64 33`
+                                sed "s-$string-$pass-g" $file > $file.new
+                                cp -f $file.new $file; rm -f $file.new
+                        fi
+                done
+        done
+fi
+%endif
+
 %changelog
+* Sun Apr 16 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- add wxconsole package
 * Fri Apr 14 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - 1.38.8 release
 - dependency update for Mandriva
