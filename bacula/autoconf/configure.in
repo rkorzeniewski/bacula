@@ -1940,6 +1940,9 @@ AC_OUTPUT([autoconf/Make.common \
 	   scripts/bacula-tray-monitor.desktop \
 	   scripts/logwatch/Makefile \
 	   scripts/logwatch/logfile.bacula.conf \
+           scripts/wxconsole.console_apps \
+           scripts/wxconsole.desktop.consolehelper \
+           scripts/wxconsole.desktop.xsu \
 	   src/Makefile \
 	   src/host.h \
 	   src/console/Makefile \
