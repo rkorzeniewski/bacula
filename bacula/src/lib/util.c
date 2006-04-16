@@ -120,7 +120,8 @@ unbash_spaces(POOL_MEM &pm)
    }
 }
 
-#if    HAVE_WIN32 && !HAVE_CONSOLE && !HAVE_WXCONSOLE
+/* kludge below disabled for MinGW, due to link problems ... */
+#if    HAVE_WIN32 && !HAVE_CONSOLE && !HAVE_WXCONSOLE && !HAVE_MINGW
 extern long _timezone;
 extern int _daylight;
 extern long _dstbias;
@@ -133,7 +134,7 @@ char *encode_time(time_t time, char *buf)
    struct tm tm;
    int n = 0;
 
-#if    HAVE_WIN32 && !HAVE_CONSOLE && !HAVE_WXCONSOLE
+#if    HAVE_WIN32 && !HAVE_CONSOLE && !HAVE_WXCONSOLE && !HAVE_MINGW
     /*
      * Gross kludge to avoid a seg fault in Microsoft's CRT localtime_r(),
      *  which incorrectly references a NULL returned from gmtime() if
