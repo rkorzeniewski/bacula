@@ -824,6 +824,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
    LSMDATE,
         edt, 
         prev_jcr ? jcr->previous_jr.JobId : 0, 
+        prev_jcr ? prev_jcr->jr.JobId : 0,
         jcr->jr.JobId,
         jcr->jr.Job,
         level_to_str(jcr->JobLevel), jcr->since,
