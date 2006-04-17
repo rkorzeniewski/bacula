@@ -142,6 +142,16 @@ exit 1
 %define wxconsole 0
 %{?build_wxconsole:%define wxconsole 1}
 
+# define the basic package description
+%define blurb Bacula - It comes by night and sucks the vital essence from your computers.
+%define blurb2 Bacula is a set of computer programs that permit you (or the system
+%define blurb3 administrator) to manage backup, recovery, and verification of computer
+%define blurb4 data across a network of computers of different kinds. In technical terms,
+%define blurb5 it is a network client/server based backup program. Bacula is relatively
+%define blurb6 easy to use and efficient, while offering many advanced storage management
+%define blurb7 features that make it easy to find and recover lost or damaged files.
+%define blurb8 Bacula source code has been released under the GPL version 2 license.
+
 Summary: Bacula - The Network Backup Solution
 Name: bacula
 Version: @VERSION@
@@ -305,15 +315,15 @@ BuildRequires: wxGTK-devel >= 2.6
 %endif
 
 %description
-Bacula - It comes by night and sucks the vital essence from your computers.
+%{blurb}
 
-Bacula is a set of computer programs that permit you (or the system 
-administrator) to manage backup, recovery, and verification of computer 
-data across a network of computers of different kinds. In technical terms, 
-it is a network client/server based backup program. Bacula is relatively 
-easy to use and efficient, while offering many advanced storage management 
-features that make it easy to find and recover lost or damaged files. 
-Bacula source code has been released under the GPL version 2 license.
+%{blurb2}
+%{blurb3}
+%{blurb4}
+%{blurb5}
+%{blurb6}
+%{blurb7}
+%{blurb8}
 
 %if %{mysql}
 %package mysql
@@ -395,15 +405,15 @@ Requires: postgresql-server >= 7
 %description postgresql
 %endif
 
-Bacula - It comes by night and sucks the vital essence from your computers.
+%{blurb}
 
-Bacula is a set of computer programs that permit you (or the system 
-administrator) to manage backup, recovery, and verification of computer 
-data across a network of computers of different kinds. In technical terms, 
-it is a network client/server based backup program. Bacula is relatively 
-easy to use and efficient, while offering many advanced storage management 
-features that make it easy to find and recover lost or damaged files. 
-Bacula source code has been released under the GPL version 2 license.
+%{blurb2}
+%{blurb3}
+%{blurb4}
+%{blurb5}
+%{blurb6}
+%{blurb7}
+%{blurb8}
 
 %if %{mysql}
 This build requires MySQL to be installed separately as the catalog database.
@@ -448,15 +458,15 @@ Requires: libtermcap
 %endif
 
 %description client
-Bacula - It comes by night and sucks the vital essence from your computers.
+%{blurb}
 
-Bacula is a set of computer programs that permit you (or the system 
-administrator) to manage backup, recovery, and verification of computer 
-data across a network of computers of different kinds. In technical terms, 
-it is a network client/server based backup program. Bacula is relatively 
-easy to use and efficient, while offering many advanced storage management 
-features that make it easy to find and recover lost or damaged files. 
-Bacula source code has been released under the GPL version 2 license.
+%{blurb2}
+%{blurb3}
+%{blurb4}
+%{blurb5}
+%{blurb6}
+%{blurb7}
+%{blurb8}
 
 This is the File daemon (Client) only package. It includes the command line 
 console program.
@@ -467,15 +477,15 @@ Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
 
 %description updatedb
-Bacula - It comes by night and sucks the vital essence from your computers.
+%{blurb}
 
-Bacula is a set of computer programs that permit you (or the system 
-administrator) to manage backup, recovery, and verification of computer 
-data across a network of computers of different kinds. In technical terms, 
-it is a network client/server based backup program. Bacula is relatively 
-easy to use and efficient, while offering many advanced storage management 
-features that make it easy to find and recover lost or damaged files. 
-Bacula source code has been released under the GPL version 2 license.
+%{blurb2}
+%{blurb3}
+%{blurb4}
+%{blurb5}
+%{blurb6}
+%{blurb7}
+%{blurb8}
 
 This package installs scripts for updating older versions of the bacula
 database.
@@ -589,15 +599,15 @@ Requires: usermode
 
 %if %{gconsole}
 %description gconsole
-Bacula - It comes by night and sucks the vital essence from your computers.
+%{blurb}
 
-Bacula is a set of computer programs that permit you (or the system 
-administrator) to manage backup, recovery, and verification of computer 
-data across a network of computers of different kinds. In technical terms, 
-it is a network client/server based backup program. Bacula is relatively 
-easy to use and efficient, while offering many advanced storage management 
-features that make it easy to find and recover lost or damaged files. 
-Bacula source code has been released under the GPL version 2 license.
+%{blurb2}
+%{blurb3}
+%{blurb4}
+%{blurb5}
+%{blurb6}
+%{blurb7}
+%{blurb8}
 
 This is the Gnome Console package. It is an add-on to the client or
 server packages.
@@ -614,21 +624,25 @@ Requires: wxGTK >= 2.6, libstdc++, openssl
 Requires: gtk2 >= 2.8
 %endif
 
+%if %{wxconsole} && %{fc3}  
+Requires: gtk2 >= 2.4
+%endif
+
 %if %{wxconsole} && %{fc4}  
 Requires: gtk2 >= 2.6
 %endif
 
 %if %{wxconsole}
 %description wxconsole
-Bacula - It comes by night and sucks the vital essence from your computers.
+%{blurb}
 
-Bacula is a set of computer programs that permit you (or the system 
-administrator) to manage backup, recovery, and verification of computer 
-data across a network of computers of different kinds. In technical terms, 
-it is a network client/server based backup program. Bacula is relatively 
-easy to use and efficient, while offering many advanced storage management 
-features that make it easy to find and recover lost or damaged files. 
-Bacula source code has been released under the GPL version 2 license.
+%{blurb2}
+%{blurb3}
+%{blurb4}
+%{blurb5}
+%{blurb6}
+%{blurb7}
+%{blurb8}
 
 This is the WXWindows Console package. It is an add-on to the client or
 server packages.
@@ -680,7 +694,6 @@ patch platforms/suse/bacula-dir.in platforms/suse/bacula-dir-suse-sqlite.patch
 %endif
 
 # 64 bit lib location hacks
-# this is the location on redhat type platforms, don't know about others yet
 %if %{x86_64}
 export LDFLAGS=-L/usr/lib64
 %endif
@@ -1329,9 +1342,6 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 %attr(-, root, %{daemon_group}) /etc/bacula/gconsole
 %attr(-, root, %{daemon_group}) %config(noreplace) /etc/bacula/gnome-console.conf
 /usr/share/pixmaps/bacula.png
-%endif
-
-%if %{gconsole}
 /usr/share/applications/bacula.desktop
 %endif
 
@@ -1383,9 +1393,6 @@ fi
 %attr(-, root, %{daemon_group}) %dir /etc/bacula
 %attr(-, root, %{daemon_group}) %config(noreplace) /etc/bacula/wxconsole.conf
 /usr/share/pixmaps/wxwin16x16.xpm
-%endif
-
-%if %{wxconsole}
 /usr/share/applications/wxconsole.desktop
 %endif
 
@@ -1424,6 +1431,8 @@ fi
 %endif
 
 %changelog
+* Mon Apr 17 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- redundant code cleanup
 * Sun Apr 16 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - add wxconsole package
 * Fri Apr 14 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
