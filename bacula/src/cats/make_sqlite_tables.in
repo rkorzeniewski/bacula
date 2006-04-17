@@ -85,6 +85,12 @@ CREATE TABLE MAC (
    PRIMARY KEY(JobId)
    );
 
+CREATE TABLE Location (
+   LocationId INTEGER,
+   Location TINYBLOB NOT NULL,
+   PRIMARY KEY(LocationId)
+   );
+
 
 CREATE TABLE FileSet (
    FileSetId INTEGER,

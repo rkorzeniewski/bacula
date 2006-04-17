@@ -124,6 +124,11 @@ CREATE TABLE MAC (
    PRIMARY KEY(JobId)
    );
 
+CREATE TABLE Location (
+   LocationId INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
+   Location TINYBLOB NOT NULL,
+   PRIMARY KEY(LocationId)
+   );
 
 # 
 CREATE TABLE FileSet (
