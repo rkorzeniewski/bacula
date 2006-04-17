@@ -197,7 +197,7 @@ init_msg(JCR *jcr, MSGS *msg)
          add_msg_dest(daemon_msgs, MD_STDOUT, i, NULL, NULL);
       }
 #endif
-      Dmsg1(050, "Create daemon global message resource 0x%x\n", daemon_msgs);
+      Dmsg1(050, "Create daemon global message resource %p\n", daemon_msgs);
       return;
    }
 
@@ -235,7 +235,7 @@ init_msg(JCR *jcr, MSGS *msg)
       daemon_msgs->dest_chain = temp_chain;
       memcpy(daemon_msgs->send_msg, msg->send_msg, sizeof(msg->send_msg));
    }
-   Dmsg2(250, "Copy message resource 0x%x to 0x%x\n", msg, temp_chain);
+   Dmsg2(250, "Copy message resource %p to %p\n", msg, temp_chain);
 
 }
 
@@ -289,7 +289,7 @@ void add_msg_dest(MSGS *msg, int dest_code, int msg_type, char *where, char *mai
    for (d=msg->dest_chain; d; d=d->next) {
       if (dest_code == d->dest_code && ((where == NULL && d->where == NULL) ||
                      (strcmp(where, d->where) == 0))) {
-         Dmsg4(850, "Add to existing d=%x msgtype=%d destcode=%d where=%s\n",
+         Dmsg4(850, "Add to existing d=%p msgtype=%d destcode=%d where=%s\n",
              d, msg_type, dest_code, NPRT(where));
          set_bit(msg_type, d->msg_types);
          set_bit(msg_type, msg->send_msg);  /* set msg_type bit in our local */
@@ -309,7 +309,7 @@ void add_msg_dest(MSGS *msg, int dest_code, int msg_type, char *where, char *mai
    if (mail_cmd) {
       d->mail_cmd = bstrdup(mail_cmd);
    }
-   Dmsg5(850, "add new d=%x msgtype=%d destcode=%d where=%s mailcmd=%s\n",
+   Dmsg5(850, "add new d=%p msgtype=%d destcode=%d where=%s mailcmd=%s\n",
           d, msg_type, dest_code, NPRT(where), NPRT(d->mail_cmd));
    msg->dest_chain = d;
 }
@@ -324,11 +324,11 @@ void rem_msg_dest(MSGS *msg, int dest_code, int msg_type, char *where)
    DEST *d;
 
    for (d=msg->dest_chain; d; d=d->next) {
-      Dmsg2(850, "Remove_msg_dest d=%x where=%s\n", d, NPRT(d->where));
+      Dmsg2(850, "Remove_msg_dest d=%p where=%s\n", d, NPRT(d->where));
       if (bit_is_set(msg_type, d->msg_types) && (dest_code == d->dest_code) &&
           ((where == NULL && d->where == NULL) ||
                      (strcmp(where, d->where) == 0))) {
-         Dmsg3(850, "Found for remove d=%x msgtype=%d destcode=%d\n",
+         Dmsg3(850, "Found for remove d=%p msgtype=%d destcode=%d\n",
                d, msg_type, dest_code);
          clear_bit(msg_type, d->msg_types);
          Dmsg0(850, "Return rem_msg_dest\n");
@@ -393,7 +393,7 @@ void close_msg(JCR *jcr)
    POOLMEM *cmd, *line;
    int len, stat;
 
-   Dmsg1(850, "Close_msg jcr=0x%x\n", jcr);
+   Dmsg1(580, "Close_msg jcr=%p\n", jcr);
 
    if (jcr == NULL) {                /* NULL -> global chain */
       msgs = daemon_msgs;
@@ -405,7 +405,7 @@ void close_msg(JCR *jcr)
    if (msgs == NULL) {
       return;
    }
-   Dmsg1(850, "===Begin close msg resource at 0x%x\n", msgs);
+   Dmsg1(850, "===Begin close msg resource at %p\n", msgs);
    cmd = get_pool_memory(PM_MESSAGE);
    for (d=msgs->dest_chain; d; ) {
       if (d->fd) {
@@ -1253,7 +1253,6 @@ void Qmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...)
       P(msg_queue_mutex);
       jcr->msg_queue->append(item);
       V(msg_queue_mutex);
-//    Dmsg1(000, "queue item=%lu\n", (long unsigned)item);
    }
    free_memory(pool_buf);
 }
@@ -1267,7 +1266,6 @@ void dequeue_messages(JCR *jcr)
    P(msg_queue_mutex);
    jcr->dequeuing = true;
    foreach_dlist(item, jcr->msg_queue) {
-//    Dmsg1(000, "dequeue item=%lu\n", (long unsigned)item);
       Jmsg(jcr, item->type, item->mtime, "%s", item->msg);
    }
    jcr->msg_queue->destroy();
