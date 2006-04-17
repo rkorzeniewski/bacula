@@ -702,7 +702,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
    update_job_end_record(jcr);        /* update database */
 
    /* Check if we actually did something */
-   if (!prev_jcr) {
+   if (prev_jcr) {
       prev_jcr->JobFiles = jcr->JobFiles = jcr->SDJobFiles;
       prev_jcr->JobBytes = jcr->JobBytes = jcr->SDJobBytes;
       prev_jcr->VolSessionId = jcr->VolSessionId;
