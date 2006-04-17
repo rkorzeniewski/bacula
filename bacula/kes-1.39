@@ -4,6 +4,8 @@
 General:
 17Apr06
 - Correct some problems with database creation (new tables).
+- Replace a bunch of old 0x%x by %p.
+- Get first cut of Migration with Job selection working.
 16Apr06
 - Change store_bit() to store_bool() for the Spooling in 
   dird_conf.c -- bug reported by Robert Nelson.

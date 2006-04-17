@@ -82,6 +82,7 @@ a list of 1 or more jobuids to migrate.
 
 [ possibly a Python event -- kes ]
 ===
+- Document export LDFLAGS=-L/usr/lib64
 - Don't attempt to restore from "Disabled" Volumes.
 - Network error on Win32 should set Win32 error code.
 - What happens when you rename a Disk Volume?
