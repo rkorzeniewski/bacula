@@ -418,6 +418,77 @@ static bool get_job_to_migrate(JCR *jcr)
       Dmsg1(000, "previous jobid=%u\n", jcr->MigrateJobId);
    } else {
       switch (jcr->job->selection_type) {
+      case MT_JOB:
+         if (!jcr->job->selection_pattern) {
+            Jmsg(jcr, M_FATAL, 0, _("No Migration Job selection pattern specified.\n"));
+            goto bail_out;
+         }
+         Dmsg1(000, "Job regex=%s\n", jcr->job->selection_pattern);
+         /* Complie regex expression */
+         rc = regcomp(&preg, jcr->job->selection_pattern, REG_EXTENDED);
+         if (rc != 0) {
+            regerror(rc, &preg, prbuf, sizeof(prbuf));
+            Jmsg(jcr, M_FATAL, 0, _("Could not compile regex pattern \"%s\" ERR=%s\n"),
+                 jcr->job->selection_pattern, prbuf);
+            goto bail_out;
+         }
+         item_chain = New(dlist(item, &item->link));
+         /* Basic query for Job names */
+         Mmsg(query, sql_job, jcr->pool->hdr.name);
+         Dmsg1(000, "query=%s\n", query.c_str());
+         if (!db_sql_query(jcr->db, query.c_str(), unique_name_handler, 
+              (void *)item_chain)) {
+            Jmsg(jcr, M_FATAL, 0,
+                 _("SQL to get Job failed. ERR=%s\n"), db_strerror(jcr->db));
+            goto bail_out;
+         }
+         /* Now apply the regex to the job names and remove any item not matched */
+         foreach_dlist(item, item_chain) {
+            const int nmatch = 30;
+            regmatch_t pmatch[nmatch];
+            if (last_item) {
+               free(last_item->item);
+               Dmsg1(000, "Remove item %s\n", last_item->item);
+               item_chain->remove(last_item);
+            }
+            Dmsg1(000, "Jobitem=%s\n", item->item);
+            rc = regexec(&preg, item->item, nmatch, pmatch,  0);
+            if (rc == 0) {
+               last_item = NULL;   /* keep this one */
+            } else {   
+               last_item = item;
+            }
+         }
+         if (last_item) {
+            free(last_item->item);
+            Dmsg1(000, "Remove item %s\n", last_item->item);
+            item_chain->remove(last_item);
+         }
+         regfree(&preg);
+         /* 
+          * At this point, we have a list of items in item_chain
+          *  that have been matched by the regex, so now we need
+          *  to look up their jobids.
+          */
+         JobIds = get_pool_memory(PM_MESSAGE);
+         JobIds[0] = 0;
+         foreach_dlist(item, item_chain) {
+            Dmsg1(000, "Got Job: %s\n", item->item);
+            Mmsg(query, sql_jobids_from_job, item->item, jcr->pool->hdr.name);
+            if (!db_sql_query(jcr->db, query.c_str(), jobid_handler, (void *)JobIds)) {
+               Jmsg(jcr, M_FATAL, 0,
+                    _("SQL failed. ERR=%s\n"), db_strerror(jcr->db));
+               goto bail_out;
+            }
+         }
+         if (JobIds[0] == 0) {
+            Jmsg(jcr, M_INFO, 0, _("No jobs found to migrate.\n"));
+            goto ok_out;
+         }
+         Dmsg1(000, "Job Jobids=%s\n", JobIds);
+         free_pool_memory(JobIds);
+         delete item_chain;
+         break;
       case MT_SMALLEST_VOL:
          Mmsg(query, sql_smallest_vol, jcr->pool->hdr.name);
          JobIds = get_pool_memory(PM_MESSAGE);
@@ -549,73 +620,6 @@ static bool get_job_to_migrate(JCR *jcr)
          regfree(&preg);
          delete item_chain;
          break;
-      case MT_JOB:
-         if (!jcr->job->selection_pattern) {
-            Jmsg(jcr, M_FATAL, 0, _("No Migration Job selection pattern specified.\n"));
-            goto bail_out;
-         }
-         Dmsg1(000, "Job regex=%s\n", jcr->job->selection_pattern);
-         rc = regcomp(&preg, jcr->job->selection_pattern, REG_EXTENDED);
-         if (rc != 0) {
-            regerror(rc, &preg, prbuf, sizeof(prbuf));
-            Jmsg(jcr, M_FATAL, 0, _("Could not compile regex pattern \"%s\" ERR=%s\n"),
-                 jcr->job->selection_pattern, prbuf);
-            goto bail_out;
-         }
-         item_chain = New(dlist(item, &item->link));
-         Mmsg(query, sql_job, jcr->pool->hdr.name);
-         Dmsg1(000, "query=%s\n", query.c_str());
-         if (!db_sql_query(jcr->db, query.c_str(), unique_name_handler, 
-              (void *)item_chain)) {
-            Jmsg(jcr, M_FATAL, 0,
-                 _("SQL to get Job failed. ERR=%s\n"), db_strerror(jcr->db));
-            goto bail_out;
-         }
-         /* Now apply the regex and remove any item not matched */
-         foreach_dlist(item, item_chain) {
-            const int nmatch = 30;
-            regmatch_t pmatch[nmatch];
-            if (last_item) {
-               free(last_item->item);
-               item_chain->remove(last_item);
-            }
-            Dmsg1(000, "Jobitem=%s\n", item->item);
-            rc = regexec(&preg, item->item, nmatch, pmatch,  0);
-            if (rc == 0) {
-               last_item = NULL;   /* keep this one */
-            } else {   
-               last_item = item;
-            }
-         }
-         if (last_item) {
-            free(last_item->item);
-            item_chain->remove(last_item);
-         }
-         regfree(&preg);
-         /* 
-          * At this point, we have a list of items in item_chain
-          *  that have been matched by the regex, so now we need
-          *  to look up their jobids.
-          */
-         JobIds = get_pool_memory(PM_MESSAGE);
-         JobIds[0] = 0;
-         foreach_dlist(item, item_chain) {
-            Dmsg1(000, "Got Job: %s\n", item->item);
-            Mmsg(query, sql_jobids_from_job, item->item, jcr->pool->hdr.name);
-            if (!db_sql_query(jcr->db, query.c_str(), jobid_handler, (void *)JobIds)) {
-               Jmsg(jcr, M_FATAL, 0,
-                    _("SQL failed. ERR=%s\n"), db_strerror(jcr->db));
-               goto bail_out;
-            }
-         }
-         if (JobIds[0] == 0) {
-            Jmsg(jcr, M_INFO, 0, _("No jobs found to migrate.\n"));
-            goto ok_out;
-         }
-         Dmsg1(000, "Job Jobids=%s\n", JobIds);
-         free_pool_memory(JobIds);
-         delete item_chain;
-         break;
       case MT_SQLQUERY:
          JobIds[0] = 0;
          if (!jcr->job->selection_pattern) {
@@ -688,49 +692,62 @@ void migration_cleanup(JCR *jcr, int TermCode)
    MEDIA_DBR mr;
    double kbps;
    utime_t RunTime;
-   JCR *tjcr = jcr->previous_jcr;
+   JCR *prev_jcr = jcr->previous_jcr;
    POOL_MEM query(PM_MESSAGE);
-
-   /* Ensure target is defined to avoid a lot of testing */
-   if (!tjcr) {
-      tjcr = jcr;
-   }
-   tjcr->JobFiles = jcr->JobFiles = jcr->SDJobFiles;
-   tjcr->JobBytes = jcr->JobBytes = jcr->SDJobBytes;
-   tjcr->VolSessionId = jcr->VolSessionId;
-   tjcr->VolSessionTime = jcr->VolSessionTime;
 
    Dmsg2(100, "Enter migrate_cleanup %d %c\n", TermCode, TermCode);
    dequeue_messages(jcr);             /* display any queued messages */
    memset(&mr, 0, sizeof(mr));
    set_jcr_job_status(jcr, TermCode);
-   set_jcr_job_status(tjcr, TermCode);
-
-
    update_job_end_record(jcr);        /* update database */
-   update_job_end_record(tjcr);
 
-   Mmsg(query, "UPDATE Job SET StartTime='%s',EndTime='%s',"
-               "JobTDate=%s WHERE JobId=%s", 
-      jcr->previous_jr.cStartTime, jcr->previous_jr.cEndTime, 
-      edit_uint64(jcr->previous_jr.JobTDate, ec1),
-      edit_uint64(tjcr->jr.JobId, ec2));
-   db_sql_query(tjcr->db, query.c_str(), NULL, NULL);
+   /* Check if we actually did something */
+   if (!prev_jcr) {
+      prev_jcr->JobFiles = jcr->JobFiles = jcr->SDJobFiles;
+      prev_jcr->JobBytes = jcr->JobBytes = jcr->SDJobBytes;
+      prev_jcr->VolSessionId = jcr->VolSessionId;
+      prev_jcr->VolSessionTime = jcr->VolSessionTime;
 
-   if (!db_get_job_record(jcr, jcr->db, &jcr->jr)) {
-      Jmsg(jcr, M_WARNING, 0, _("Error getting job record for stats: %s"),
-         db_strerror(jcr->db));
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
-   }
+      set_jcr_job_status(prev_jcr, TermCode);
 
-   bstrncpy(mr.VolumeName, jcr->VolumeName, sizeof(mr.VolumeName));
-   if (!db_get_media_record(jcr, jcr->db, &mr)) {
-      Jmsg(jcr, M_WARNING, 0, _("Error getting Media record for Volume \"%s\": ERR=%s"),
-         mr.VolumeName, db_strerror(jcr->db));
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
-   }
 
-   update_bootstrap_file(tjcr);
+      update_job_end_record(prev_jcr);
+
+      Mmsg(query, "UPDATE Job SET StartTime='%s',EndTime='%s',"
+                  "JobTDate=%s WHERE JobId=%s", 
+         jcr->previous_jr.cStartTime, jcr->previous_jr.cEndTime, 
+         edit_uint64(jcr->previous_jr.JobTDate, ec1),
+         edit_uint64(prev_jcr->jr.JobId, ec2));
+      db_sql_query(prev_jcr->db, query.c_str(), NULL, NULL);
+
+      if (!db_get_job_record(jcr, jcr->db, &jcr->jr)) {
+         Jmsg(jcr, M_WARNING, 0, _("Error getting job record for stats: %s"),
+            db_strerror(jcr->db));
+         set_jcr_job_status(jcr, JS_ErrorTerminated);
+      }
+
+      bstrncpy(mr.VolumeName, jcr->VolumeName, sizeof(mr.VolumeName));
+      if (!db_get_media_record(jcr, jcr->db, &mr)) {
+         Jmsg(jcr, M_WARNING, 0, _("Error getting Media record for Volume \"%s\": ERR=%s"),
+            mr.VolumeName, db_strerror(jcr->db));
+         set_jcr_job_status(jcr, JS_ErrorTerminated);
+      }
+
+      update_bootstrap_file(prev_jcr);
+
+      if (!db_get_job_volume_names(prev_jcr, prev_jcr->db, prev_jcr->jr.JobId, &prev_jcr->VolumeName)) {
+         /*
+          * Note, if the job has erred, most likely it did not write any
+          *  tape, so suppress this "error" message since in that case
+          *  it is normal.  Or look at it the other way, only for a
+          *  normal exit should we complain about this error.
+          */
+         if (jcr->JobStatus == JS_Terminated && jcr->jr.JobBytes) {
+            Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(prev_jcr->db));
+         }
+         prev_jcr->VolumeName[0] = 0;         /* none */
+      }
+  }
 
    msg_type = M_INFO;                 /* by default INFO message */
    switch (jcr->JobStatus) {
@@ -774,18 +791,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
    } else {
       kbps = (double)jcr->jr.JobBytes / (1000 * RunTime);
    }
-   if (!db_get_job_volume_names(tjcr, tjcr->db, tjcr->jr.JobId, &tjcr->VolumeName)) {
-      /*
-       * Note, if the job has erred, most likely it did not write any
-       *  tape, so suppress this "error" message since in that case
-       *  it is normal.  Or look at it the other way, only for a
-       *  normal exit should we complain about this error.
-       */
-      if (jcr->JobStatus == JS_Terminated && jcr->jr.JobBytes) {
-         Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(tjcr->db));
-      }
-      tjcr->VolumeName[0] = 0;         /* none */
-   }
+
 
    jobstatus_to_ascii(jcr->SDJobStatus, sd_term_msg, sizeof(sd_term_msg));
 
@@ -817,8 +823,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
    VERSION,
    LSMDATE,
         edt, 
-        jcr->previous_jr.JobId,
-        tjcr->jr.JobId,
+        prev_jcr ? jcr->previous_jr.JobId : 0, 
         jcr->jr.JobId,
         jcr->jr.Job,
         level_to_str(jcr->JobLevel), jcr->since,
@@ -833,7 +838,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
         edit_uint64_with_commas(jcr->SDJobBytes, ec2),
         edit_uint64_with_suffix(jcr->jr.JobBytes, ec3),
         (float)kbps,
-        tjcr->VolumeName,
+        prev_jcr ? prev_jcr->VolumeName : "",
         jcr->VolSessionId,
         jcr->VolSessionTime,
         edit_uint64_with_commas(mr.VolBytes, ec4),

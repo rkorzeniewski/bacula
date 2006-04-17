@@ -40,10 +40,10 @@ CREATE TABLE MAC (
 );
 
 CREATE TABLE Location (
-   LocationId SERIAL,
+   LocationId SERIAL NOT NULL,
    Location TEXT NOT NULL,
-   PRIMARY KEY(LocationId)
-   );
+   PRIMARY KEY (LocationId)
+);
 
 
 INSERT INTO version (versionId) VALUES (9);

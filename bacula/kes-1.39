@@ -2,6 +2,8 @@
                         Kern Sibbald
 
 General:
+17Apr06
+- Correct some problems with database creation (new tables).
 16Apr06
 - Change store_bit() to store_bool() for the Spooling in 
   dird_conf.c -- bug reported by Robert Nelson.
