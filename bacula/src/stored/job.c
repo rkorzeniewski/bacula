@@ -305,6 +305,7 @@ bool query_cmd(JCR *jcr)
  */
 void stored_free_jcr(JCR *jcr)
 {
+   Dmsg1(900, "stored_free_jcr JobId=%u\n", jcr->JobId);
    if (jcr->file_bsock) {
       bnet_close(jcr->file_bsock);
       jcr->file_bsock = NULL;
@@ -347,14 +348,25 @@ void stored_free_jcr(JCR *jcr)
       free_dcr(jcr->read_dcr);
       jcr->read_dcr = NULL;
    }
-   if (jcr->dirstore) {
+
+   if (jcr->read_store) {
       DIRSTORE *store;
-      foreach_alist(store, jcr->dirstore) {
+      foreach_alist(store, jcr->read_store) {
          delete store->device;
          delete store;
       }
-      delete jcr->dirstore;
-      jcr->dirstore = NULL;
+      delete jcr->read_store;
+      jcr->read_store = NULL;
    }
+   if (jcr->write_store) {
+      DIRSTORE *store;
+      foreach_alist(store, jcr->write_store) {
+         delete store->device;
+         delete store;
+      }
+      delete jcr->write_store;
+      jcr->write_store = NULL;
+   }
+
    return;
 }

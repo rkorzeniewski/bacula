@@ -2,6 +2,17 @@
                         Kern Sibbald
 
 General:
+18Apr06
+- Remove the -f option from the chown in Makefile.in for more
+  portability.
+- Change setting the group in Makefile.in to use chgrp for
+  more portability.
+- Implement a write_store and read_store to replace
+  dirstore in reserve.c
+- Implement a Bacula read/write lock for Python rather
+  than using the Python lock to avoid recursive problems.
+- Correct the uninstall directory names in filed/Makefile.in
+  as reported by a user.
 17Apr06
 - Correct some problems with database creation (new tables).
 - Replace a bunch of old 0x%x by %p.

@@ -57,5 +57,6 @@ public:
    bool suitable_device;              /* at least one device is suitable */
    bool autochanger_only;             /* look at autochangers only */
    bool notify_dir;                   /* Notify DIR about device */
+   bool append;                       /* set if append device */
    char VolumeName[MAX_NAME_LENGTH];  /* Vol name suggested by DIR */
 };
