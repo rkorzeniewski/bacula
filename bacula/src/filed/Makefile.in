@@ -137,8 +137,8 @@ install: all
 
 uninstall:
 	(cd $(DESTDIR)$(sbindir); $(RMF) bacula-fd)
-	(cd $(DESTDIR)$(sbindir); $(RMF) bacula-fd.conf)
-	(cd $(DESTDIR)$(sbindir); $(RMF) bacula-fd.conf.new)
+	(cd $(DESTDIR)$(sysconfdir); $(RMF) bacula-fd.conf)
+	(cd $(DESTDIR)$(sysconfdir); $(RMF) bacula-fd.conf.new)
 
 
 

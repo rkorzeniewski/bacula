@@ -222,6 +222,8 @@ void init_python_interpreter(const char *progname, const char *scripts,
 void term_python_interpreter();
 //extern EVENT_HANDLER *generate_daemon_event;
 int generate_daemon_event(JCR *jcr, const char *event);
+void lock_python();
+void unlock_python();
 
 /* signal.c */
 void             init_signals             (void terminate(int sig));

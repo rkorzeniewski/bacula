@@ -340,6 +340,7 @@ static bool use_storage_cmd(JCR *jcr)
    RCTX rctx;
    char *msg;
    alist *msgs;
+   alist *dirstore;
 
    memset(&rctx, 0, sizeof(RCTX));
    rctx.jcr = jcr;
@@ -347,7 +348,8 @@ static bool use_storage_cmd(JCR *jcr)
     * If there are multiple devices, the director sends us
     *   use_device for each device that it wants to use.
     */
-   jcr->dirstore = New(alist(10, not_owned_by_alist));
+   dirstore = New(alist(10, not_owned_by_alist));
+// Dmsg2(000, "dirstore=%p JobId=%u\n", dirstore, jcr->JobId);
    msgs = jcr->reserve_msgs = New(alist(10, not_owned_by_alist));  
    do {
       Dmsg1(100, "<dird: %s", dir->msg);
@@ -357,12 +359,18 @@ static bool use_storage_cmd(JCR *jcr)
       if (!ok) {
          break;
       }
+      if (append) {
+         jcr->write_store = dirstore;
+      } else {
+         jcr->read_store = dirstore;
+      }
+      rctx.append = append;
       unbash_spaces(store_name);
       unbash_spaces(media_type);
       unbash_spaces(pool_name);
       unbash_spaces(pool_type);
       store = new DIRSTORE;
-      jcr->dirstore->append(store);
+      dirstore->append(store);
       memset(store, 0, sizeof(DIRSTORE));
       store->device = New(alist(10));
       bstrncpy(store->name, store_name, sizeof(store->name));
@@ -387,7 +395,7 @@ static bool use_storage_cmd(JCR *jcr)
    /* This loop is debug code and can be removed */
    /* ***FIXME**** remove after 1.38 release */
    char *device_name;
-   foreach_alist(store, jcr->dirstore) {
+   foreach_alist(store, dirstore) {
       Dmsg5(110, "Storage=%s media_type=%s pool=%s pool_type=%s append=%d\n", 
          store->name, store->media_type, store->pool_name, 
          store->pool_type, store->append);
@@ -538,7 +546,13 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
    bool ok;
    DIRSTORE *store;
    char *device_name;
+   alist *dirstore;
 
+   if (rctx.append) {
+      dirstore = jcr->write_store;
+   } else {
+      dirstore = jcr->read_store;
+   }
    /* 
     * For each storage device that the user specified, we
     *  search and see if there is a resource for that device.
@@ -547,7 +561,7 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
       rctx.PreferMountedVols, rctx.exact_match, rctx.suitable_device,
       rctx.autochanger_only);
    ok = false;
-   foreach_alist(store, jcr->dirstore) {
+   foreach_alist(store, dirstore) {
       rctx.store = store;
       foreach_alist(device_name, store->device) {
          int stat;

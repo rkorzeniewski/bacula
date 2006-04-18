@@ -292,7 +292,8 @@ public:
    bool spool_data;                   /* set to spool data */
    int CurVol;                        /* Current Volume count */
    DIRRES* director;                  /* Director resource */
-   alist *dirstore;                   /* list of storage devices sent by DIR */ 
+   alist *write_store;                /* list of write storage devices sent by DIR */ 
+   alist *read_store;                 /* list of read devices sent by DIR */
    alist *reserve_msgs;               /* reserve fail messages */
    bool write_part_after_job;         /* Set to write part after job */
    bool PreferMountedVols;            /* Prefer mounted vols rather than new */

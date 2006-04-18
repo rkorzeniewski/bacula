@@ -449,8 +449,8 @@ static bool get_job_to_migrate(JCR *jcr)
             const int nmatch = 30;
             regmatch_t pmatch[nmatch];
             if (last_item) {
-               free(last_item->item);
                Dmsg1(000, "Remove item %s\n", last_item->item);
+               free(last_item->item);
                item_chain->remove(last_item);
             }
             Dmsg1(000, "Jobitem=%s\n", item->item);
