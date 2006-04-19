@@ -58,6 +58,7 @@ typedef char POOLMEM;
 
 int wchar_2_UTF8(char *pszUTF, const WCHAR *pszUCS, int cchChar = MAX_PATH_UTF8);
 int UTF8_2_wchar(POOLMEM **pszUCS, const char *pszUTF);
+int make_win32_path_UTF8_2_wchar(POOLMEM **pszUCS, const char *pszUTF, BOOL* pBIsRawPath = NULL);
 
 
 /* In ADVAPI32.DLL */

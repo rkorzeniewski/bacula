@@ -104,7 +104,7 @@ int select_data_stream(FF_PKT *ff_pkt)
       default:
          /* All stream types that do not support gzip should clear out
           * FO_GZIP above, and this code block should be unreachable. */
-         ASSERT(!ff_pkt->flags & FO_GZIP);
+         ASSERT(!(ff_pkt->flags & FO_GZIP));
          return STREAM_NONE;
       }
    }
