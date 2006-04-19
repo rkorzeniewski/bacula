@@ -69,7 +69,7 @@
 #include <ctype.h>
 #include <fcntl.h>
 #include <io.h>
-
+#include <lmcons.h>
 #if defined HAVE_MINGW
 #include <stdint.h>
 #include <sys/stat.h>
