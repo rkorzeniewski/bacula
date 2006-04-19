@@ -40,6 +40,7 @@ extern void d_msg(const char *, int, int, const char *, ...);
 HINSTANCE       hAppInstance;
 const char      *szAppName = "Bacula";
 DWORD           mainthreadId;
+bool silent = false;
 
 /* Imported variables */
 extern DWORD    g_servicethread;
@@ -61,7 +62,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
    char *szCmdLine = CmdLine;
    char *wordPtr, *tempPtr;
    int i, quote;
-   bool silent = false;
 
    /* Save the application instance and main thread id */
    hAppInstance = hInstance;
@@ -182,14 +182,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
       /* /install */
       if (strncmp(&szCmdLine[i], BaculaInstallService, strlen(BaculaInstallService)) == 0) {
          /* Install Bacula as a service */
-         bacService::InstallService(silent);
+         bacService::InstallService();
          i += strlen(BaculaInstallService);
          continue;
       }
       /* /remove */
       if (strncmp(&szCmdLine[i], BaculaRemoveService, strlen(BaculaRemoveService)) == 0) {
          /* Remove the Bacula service */
-         bacService::RemoveService(silent);
+         bacService::RemoveService();
          i += strlen(BaculaRemoveService);
          continue;
       }
