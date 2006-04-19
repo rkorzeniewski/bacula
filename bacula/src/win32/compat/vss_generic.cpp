@@ -67,9 +67,7 @@ using namespace std;
 #ifdef B_VSS_XP
    #pragma message("compile VSS for Windows XP")   
    #define VSSClientGeneric VSSClientXP
-   // wait is not available under XP...
-   #define VSS_TIMEOUT
-
+   
    #include "vss/inc/WinXP/vss.h"
    #include "vss/inc/WinXP/vswriter.h"
    #include "vss/inc/WinXP/vsbackup.h"
@@ -87,10 +85,7 @@ using namespace std;
 #ifdef B_VSS_W2K3
    #pragma message("compile VSS for Windows 2003")
    #define VSSClientGeneric VSSClient2003
-   // wait x ms for a VSS asynchronous operation (-1 = infinite)
-   // unfortunately, it doesn't work, so do not set timeout
-   #define VSS_TIMEOUT
-
+   
    #include "vss/inc/Win2003/vss.h"
    #include "vss/inc/Win2003/vswriter.h"
    #include "vss/inc/Win2003/vsbackup.h"
@@ -180,7 +175,7 @@ inline wstring GetStringFromWriterStatus(VSS_WRITER_STATE eWriterStatus)
     CHECK_CASE_FOR_CONSTANT(VSS_WS_FAILED_AT_BACKUP_COMPLETE);
     CHECK_CASE_FOR_CONSTANT(VSS_WS_FAILED_AT_PRE_RESTORE);
     CHECK_CASE_FOR_CONSTANT(VSS_WS_FAILED_AT_POST_RESTORE);
-
+    
     default:
         return wstring(L"Error or Undefined");
     }
@@ -242,7 +237,7 @@ BOOL VSSClientGeneric::Initialize(DWORD dwContext, BOOL bDuringRestore)
          NULL                            //  Reserved parameter
          );
 
-      if (FAILED(hr)) {
+      if (FAILED(hr)) {         
          errno = b_errno_win32;
          return FALSE;
       }
@@ -257,7 +252,7 @@ BOOL VSSClientGeneric::Initialize(DWORD dwContext, BOOL bDuringRestore)
 
    // Create the internal backup components object
    hr = p_CreateVssBackupComponents((IVssBackupComponents**) &m_pVssObject);
-   if (FAILED(hr)) {
+   if (FAILED(hr)) {      
       errno = b_errno_win32;
       return FALSE;
    }
@@ -271,6 +266,33 @@ BOOL VSSClientGeneric::Initialize(DWORD dwContext, BOOL bDuringRestore)
       }
    }
 #endif
+
+   if (!bDuringRestore) {
+       // 1. InitializeForBackup
+       hr = ((IVssBackupComponents*) m_pVssObject)->InitializeForBackup();
+       if (FAILED(hr)) {
+           errno = b_errno_win32; 
+           return FALSE;
+       }
+ 
+       // 2. SetBackupState
+       hr = ((IVssBackupComponents*) m_pVssObject)->SetBackupState(true, true, VSS_BT_FULL, false);
+       if (FAILED(hr)) {
+           errno = b_errno_win32;
+           return FALSE;
+       }
+       
+       CComPtr<IVssAsync>  pAsync1;       
+       // 3. GatherWriterMetaData
+       hr = ((IVssBackupComponents*) m_pVssObject)->GatherWriterMetadata(&pAsync1);
+       if (FAILED(hr)) {
+           errno = b_errno_win32;
+           return FALSE;
+       }
+        // Waits for the async operation to finish and checks the result
+       WaitAndCheckForAsyncOperation(pAsync1);
+   }
+
 
    // We are during restore now?
    m_bDuringRestore = bDuringRestore;
@@ -287,7 +309,7 @@ void VSSClientGeneric::WaitAndCheckForAsyncOperation(IVssAsync* pAsync)
     // Wait until the async operation finishes
     // unfortunately we can't use a timeout here yet.
     // the interface would allow it on W2k3, but it is not implemented yet....
-    HRESULT hr = pAsync->Wait(VSS_TIMEOUT);
+    HRESULT hr = pAsync->Wait();
 
     // Check the result of the asynchronous operation
     HRESULT hrReturned = S_OK;
@@ -326,48 +348,21 @@ BOOL VSSClientGeneric::CreateSnapshots(char* szDriveLetters)
 
    IVssBackupComponents *pVss = (IVssBackupComponents*)m_pVssObject;
 
-   // 1. InitializeForBackup
-   HRESULT hr = pVss->InitializeForBackup();
-   if (FAILED(hr)) {
-      errno = b_errno_win32;
-      return FALSE;
-   }
-   
-   // 2. SetBackupState
-   hr = pVss->SetBackupState(true, true, VSS_BT_FULL, false);
-   if (FAILED(hr)) {
-      errno = b_errno_win32;
-      return FALSE;
-   }
-
-   CComPtr<IVssAsync>  pAsync1;
-   CComPtr<IVssAsync>  pAsync2;   
-   CComPtr<IVssAsync>  pAsync3;   
-   VSS_ID pid;
-
-   // 3. GatherWriterMetaData
-   hr = pVss->GatherWriterMetadata(&pAsync3);
-   if (FAILED(hr)) {
-      errno = b_errno_win32;
-      return FALSE;
-   }
-
-   // Waits for the async operation to finish and checks the result
-   WaitAndCheckForAsyncOperation(pAsync3);
-
-   CheckWriterStatus();
-
-   // 4. startSnapshotSet
+   /* startSnapshotSet */
 
    pVss->StartSnapshotSet(&m_uidCurrentSnapshotSet);
 
-   // 4. AddToSnapshotSet
+   /* AddToSnapshotSet */
 
    WCHAR szDrive[3];
    szDrive[1] = ':';
    szDrive[2] = 0;
 
    wstring volume;
+
+   CComPtr<IVssAsync>  pAsync1;
+   CComPtr<IVssAsync>  pAsync2;   
+   VSS_ID pid;
 
    for (size_t i=0; i < strlen (szDriveLetters); i++) {
       szDrive[0] = szDriveLetters[i];
@@ -376,22 +371,33 @@ BOOL VSSClientGeneric::CreateSnapshots(char* szDriveLetters)
       if (SUCCEEDED(pVss->AddToSnapshotSet((LPWSTR)volume.c_str(), GUID_NULL, &pid)))
          wcsncpy (m_wszUniqueVolumeName[szDriveLetters[i]-'A'], (LPWSTR) volume.c_str(), MAX_PATH);
       else
+      {            
          szDriveLetters[i] = tolower (szDriveLetters[i]);               
+      }
    }
 
-   // 5. PrepareForBackup
-   pVss->PrepareForBackup(&pAsync1);
+   /* PrepareForBackup */
+   if (FAILED(pVss->PrepareForBackup(&pAsync1))) {      
+      return FALSE;   
+   }
    
    // Waits for the async operation to finish and checks the result
    WaitAndCheckForAsyncOperation(pAsync1);
 
-   // 6. DoSnapShotSet
-   pVss->DoSnapshotSet(&pAsync2);
+   /* get latest info about writer status */
+   if (!CheckWriterStatus()) {
+      return FALSE;
+   }
+
+   /* DoSnapShotSet */   
+   if (FAILED(pVss->DoSnapshotSet(&pAsync2))) {      
+      return FALSE;   
+   }
 
    // Waits for the async operation to finish and checks the result
    WaitAndCheckForAsyncOperation(pAsync2); 
    
-   /* query snapshot info */
+   /* query snapshot info */   
    QuerySnapshotSet(m_uidCurrentSnapshotSet);
 
    m_bBackupIsInitialized = true;
@@ -418,6 +424,9 @@ BOOL VSSClientGeneric::CloseBackup()
          errno = b_errno_win32;
          pVss->AbortBackup();
       }
+
+      /* get latest info about writer status */
+      CheckWriterStatus();
 
       if (m_uidCurrentSnapshotSet != GUID_NULL) {
          VSS_ID idNonDeletedSnapshotID = GUID_NULL;
@@ -506,6 +515,9 @@ void VSSClientGeneric::QuerySnapshotSet(GUID snapshotSetID)
 // Check the status for all selected writers
 BOOL VSSClientGeneric::CheckWriterStatus()
 {
+    /* 
+    http://msdn.microsoft.com/library/default.asp?url=/library/en-us/vss/base/ivssbackupcomponents_startsnapshotset.asp
+    */
     IVssBackupComponents* pVss = (IVssBackupComponents*) m_pVssObject;
     vector<int>* pVWriterStates = (vector<int>*) m_pVectorWriterStates;
     vector<string>* pVWriterInfo = (vector<string>*) m_pVectorWriterInfo;   
@@ -549,38 +561,48 @@ BOOL VSSClientGeneric::CheckWriterStatus()
                              &eWriterStatus,
                              &hrWriterFailure);
         if (FAILED(hr)) {
-           continue;
+            /* unknown */
+            pVWriterStates->push_back(0);               
         }
-        
-        // If the writer is in non-stable state, break
-        switch(eWriterStatus) {
-        case VSS_WS_FAILED_AT_IDENTIFY:
-        case VSS_WS_FAILED_AT_PREPARE_BACKUP:
-        case VSS_WS_FAILED_AT_PREPARE_SNAPSHOT:
-        case VSS_WS_FAILED_AT_FREEZE:
-        case VSS_WS_FAILED_AT_THAW:
-        case VSS_WS_FAILED_AT_POST_SNAPSHOT:
-        case VSS_WS_FAILED_AT_BACKUP_COMPLETE:
-        case VSS_WS_FAILED_AT_PRE_RESTORE:
-        case VSS_WS_FAILED_AT_POST_RESTORE:
-#ifdef B_VSS_W2K3
-        case VSS_WS_FAILED_AT_BACKUPSHUTDOWN:
-#endif
-           /* failed */
-           pVWriterStates->push_back(-1);
-           break;
+        else {            
+            switch(eWriterStatus) {
+            case VSS_WS_FAILED_AT_IDENTIFY:
+            case VSS_WS_FAILED_AT_PREPARE_BACKUP:
+            case VSS_WS_FAILED_AT_PREPARE_SNAPSHOT:
+            case VSS_WS_FAILED_AT_FREEZE:
+            case VSS_WS_FAILED_AT_THAW:
+            case VSS_WS_FAILED_AT_POST_SNAPSHOT:
+            case VSS_WS_FAILED_AT_BACKUP_COMPLETE:
+            case VSS_WS_FAILED_AT_PRE_RESTORE:
+            case VSS_WS_FAILED_AT_POST_RESTORE:
+    #ifdef B_VSS_W2K3
+            case VSS_WS_FAILED_AT_BACKUPSHUTDOWN:
+    #endif
+                /* failed */
+                pVWriterStates->push_back(-1);
+                break;
 
-        default:
-           /* okay */
-           pVWriterStates->push_back(1);                
+            default:
+                /* ok */
+                pVWriterStates->push_back(1);
+            }
         }
 
-               
+        /* store text info */
         stringstream osf;      
         osf << "\"" << CW2A(bstrWriterName) << "\", State: " << eWriterStatus << " (" << CW2A(GetStringFromWriterStatus(eWriterStatus).c_str()) << ")";
     
         pVWriterInfo->push_back(osf.str());
+        SysFreeString (bstrWriterName);
     }
+
+    hr = pVss->FreeWriterStatus();
+
+    if (FAILED(hr)) {
+        errno = b_errno_win32;
+        return FALSE;
+    } 
+
     errno = 0;
     return TRUE;
 }

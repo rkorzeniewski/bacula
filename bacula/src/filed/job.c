@@ -1243,38 +1243,37 @@ static int backup_cmd(JCR *jcr)
    if (g_pVSSClient && enable_vss) {
       /* Run only one at a time */
       P(vss_mutex);
-      if (g_pVSSClient->InitializeForBackup()) {
-         /* tell vss which drives to snapshot */   
-         char szWinDriveLetters[27];   
-         if (get_win32_driveletters(jcr->ff, szWinDriveLetters)) {
+      if (g_pVSSClient->InitializeForBackup()) {   
+        /* tell vss which drives to snapshot */   
+        char szWinDriveLetters[27];   
+        if (get_win32_driveletters(jcr->ff, szWinDriveLetters)) {
             Jmsg(jcr, M_INFO, 0, _("Generate VSS snapshots. Driver=\"%s\", Drive(s)=\"%s\"\n"), g_pVSSClient->GetDriverName(), szWinDriveLetters);
-            if (!g_pVSSClient->CreateSnapshots(szWinDriveLetters)) {
-               berrno be;
-               Jmsg(jcr, M_WARNING, 0, _("Generate VSS snapshots failed. ERR=%s\n"),
-                  be.strerror());
+            if (!g_pVSSClient->CreateSnapshots(szWinDriveLetters)) {               
+               Jmsg(jcr, M_WARNING, 0, _("Generate VSS snapshots failed.\n"));
+               jcr->Errors++;
             } else {
                /* tell user if snapshot creation of a specific drive failed */
                size_t i;
                for (i=0; i<strlen (szWinDriveLetters); i++) {
                   if (islower(szWinDriveLetters[i])) {
                      Jmsg(jcr, M_WARNING, 0, _("Generate VSS snapshot of drive \"%c:\\\" failed\n"), szWinDriveLetters[i]);
+                     jcr->Errors++;
                   }
                }
                /* inform user about writer states */
-               for (i=0; i<g_pVSSClient->GetWriterCount(); i++) {
-                  int msg_type = M_INFO;
-                  if (g_pVSSClient->GetWriterState(i) < 0) {
-                     msg_type = M_WARNING;
-                  }
-                  Jmsg(jcr, msg_type, 0, _("VSS Writer: %s\n"), g_pVSSClient->GetWriterInfo(i));
-               }
+               for (i=0; i<g_pVSSClient->GetWriterCount(); i++)                
+                  if (g_pVSSClient->GetWriterState(i) < 1) {
+                     Jmsg(jcr, M_WARNING, 0, _("VSS Writer (PrepareForBackup): %s\n"), g_pVSSClient->GetWriterInfo(i));                    
+                     jcr->Errors++;
+                  }                            
             }
-         } else {
+        } else {
             Jmsg(jcr, M_INFO, 0, _("No drive letters found for generating VSS snapshots.\n"));
-         }
+        }
       } else {
-         Jmsg(jcr, M_WARNING, 0, _("VSS was not initialized properly. VSS support is disabled.\n"));
-      }
+         berrno be;
+         Jmsg(jcr, M_WARNING, 0, _("VSS was not initialized properly. VSS support is disabled. ERR=%s\n"), be.strerror());
+      } 
    }
 #endif
 
@@ -1336,7 +1335,17 @@ cleanup:
    /* STOP VSS ON WIN 32 */
    /* tell vss to close the backup session */
    if (g_pVSSClient && enable_vss) {
-      g_pVSSClient->CloseBackup();
+      if (g_pVSSClient->CloseBackup()) {             
+         /* inform user about writer states */
+         for (size_t i=0; i<g_pVSSClient->GetWriterCount(); i++) {
+            int msg_type = M_INFO;
+            if (g_pVSSClient->GetWriterState(i) < 1) {
+               msg_type = M_WARNING;
+               jcr->Errors++;
+            }
+            Jmsg(jcr, msg_type, 0, _("VSS Writer (BackupComplete): %s\n"), g_pVSSClient->GetWriterInfo(i));
+         }
+      }
       V(vss_mutex);
    }
 #endif
