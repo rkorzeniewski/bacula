@@ -52,13 +52,13 @@ public:
 
    // Routine called by WinMain to cause Bacula to be installed
    // as a service.
-   int BaculaServiceMain();
+   static int BaculaServiceMain();
 
    // Routine to install the Apcupsd service on the local machine
-   int InstallService(bool silent);
+   static int InstallService();
 
    // Routine to remove the Apcupsd service from the local machine
-   int RemoveService(bool silent);
+   static int RemoveService();
 
    // SERVICE SUPPORT FUNCTIONS
 

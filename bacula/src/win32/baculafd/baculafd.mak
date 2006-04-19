@@ -57,11 +57,11 @@ CLEAN :
         -@erase "$(INTDIR)\bsys.obj"
         -@erase "$(INTDIR)\btime.obj"
         -@erase "$(INTDIR)\btimers.obj"
-        -@erase "$(INTDIR)\chksum.obj"
         -@erase "$(INTDIR)\compat.obj"
         -@erase "$(INTDIR)\cram-md5.obj"
         -@erase "$(INTDIR)\crc32.obj"
         -@erase "$(INTDIR)\create_file.obj"
+        -@erase "$(INTDIR)\crypto.obj"
         -@erase "$(INTDIR)\daemon.obj"
         -@erase "$(INTDIR)\dlist.obj"
         -@erase "$(INTDIR)\edit.obj"
@@ -154,11 +154,11 @@ LINK32_OBJS= \
         "$(INTDIR)\bsys.obj" \
         "$(INTDIR)\btime.obj" \
         "$(INTDIR)\btimers.obj" \
-        "$(INTDIR)\chksum.obj" \
         "$(INTDIR)\compat.obj" \
         "$(INTDIR)\cram-md5.obj" \
         "$(INTDIR)\crc32.obj" \
         "$(INTDIR)\create_file.obj" \
+        "$(INTDIR)\crypto.obj" \
         "$(INTDIR)\daemon.obj" \
         "$(INTDIR)\dlist.obj" \
         "$(INTDIR)\edit.obj" \
@@ -271,8 +271,6 @@ CLEAN :
         -@erase "$(INTDIR)\btime.sbr"
         -@erase "$(INTDIR)\btimers.obj"
         -@erase "$(INTDIR)\btimers.sbr"
-        -@erase "$(INTDIR)\chksum.obj"
-        -@erase "$(INTDIR)\chksum.sbr"
         -@erase "$(INTDIR)\compat.obj"
         -@erase "$(INTDIR)\compat.sbr"
         -@erase "$(INTDIR)\cram-md5.obj"
@@ -281,6 +279,8 @@ CLEAN :
         -@erase "$(INTDIR)\crc32.sbr"
         -@erase "$(INTDIR)\create_file.obj"
         -@erase "$(INTDIR)\create_file.sbr"
+        -@erase "$(INTDIR)\crypto.obj"
+        -@erase "$(INTDIR)\crypto.sbr"
         -@erase "$(INTDIR)\daemon.obj"
         -@erase "$(INTDIR)\daemon.sbr"
         -@erase "$(INTDIR)\dlist.obj"
@@ -430,11 +430,11 @@ BSC32_SBRS= \
         "$(INTDIR)\bsys.sbr" \
         "$(INTDIR)\btime.sbr" \
         "$(INTDIR)\btimers.sbr" \
-        "$(INTDIR)\chksum.sbr" \
         "$(INTDIR)\compat.sbr" \
         "$(INTDIR)\cram-md5.sbr" \
         "$(INTDIR)\crc32.sbr" \
         "$(INTDIR)\create_file.sbr" \
+        "$(INTDIR)\crypto.sbr" \
         "$(INTDIR)\daemon.sbr" \
         "$(INTDIR)\dlist.sbr" \
         "$(INTDIR)\edit.sbr" \
@@ -520,11 +520,11 @@ LINK32_OBJS= \
         "$(INTDIR)\bsys.obj" \
         "$(INTDIR)\btime.obj" \
         "$(INTDIR)\btimers.obj" \
-        "$(INTDIR)\chksum.obj" \
         "$(INTDIR)\compat.obj" \
         "$(INTDIR)\cram-md5.obj" \
         "$(INTDIR)\crc32.obj" \
         "$(INTDIR)\create_file.obj" \
+        "$(INTDIR)\crypto.obj" \
         "$(INTDIR)\daemon.obj" \
         "$(INTDIR)\dlist.obj" \
         "$(INTDIR)\edit.obj" \
@@ -944,25 +944,6 @@ SOURCE=..\lib\btimers.cpp
 !ENDIF 
 
 
-SOURCE=..\filed\chksum.cpp
-
-!IF  "$(CFG)" == "baculafd - Win32 Release"
-
-
-"$(INTDIR)\chksum.obj" : $(SOURCE) "$(INTDIR)"
-        $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
-
-
-"$(INTDIR)\chksum.obj" "$(INTDIR)\chksum.sbr" : $(SOURCE) "$(INTDIR)"
-        $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
-
-
 SOURCE=..\compat\compat.cpp
 
 !IF  "$(CFG)" == "baculafd - Win32 Release"
@@ -1034,6 +1015,25 @@ SOURCE=..\findlib\create_file.cpp
 
 
 !ENDIF 
+
+SOURCE=..\findlib\crypto.cpp
+
+!IF  "$(CFG)" == "baculafd - Win32 Release"
+
+
+"$(INTDIR)\crypto.obj" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "baculafd - Win32 Debug"
+
+
+"$(INTDIR)\crypto.obj"     "$(INTDIR)\crypto.sbr" : $(SOURCE) "$(INTDIR)"
+        $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 
 SOURCE=..\lib\daemon.cpp
 

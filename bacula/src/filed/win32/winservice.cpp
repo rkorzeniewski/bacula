@@ -55,6 +55,7 @@ void set_service_description(SC_HANDLE hSCManager, SC_HANDLE hService,
 bacService init;
 
 extern DWORD   g_platform_id;
+extern bool    silent;
 
 bacService::bacService()
 {
@@ -343,7 +344,7 @@ void ServiceStop()
 
 // SERVICE INSTALL ROUTINE
 int
-bacService::InstallService(bool silent)
+bacService::InstallService()
 {
    const int pathlength = 2048;
    char path[pathlength];
@@ -484,7 +485,7 @@ _("Provides file backup and restore services. Bacula -- the network backup solut
 
 // SERVICE REMOVE ROUTINE
 int
-bacService::RemoveService(bool silent)
+bacService::RemoveService()
 {
    // How to remove the Bacula service depends upon the OS
    switch (g_platform_id) {
