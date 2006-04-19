@@ -48,20 +48,24 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
    if (bs->msglen < 25 || bs->msglen > 200) {
       Dmsg2(50, "Bad Hello command from Director at %s. Len=%d.\n",
             bs->who, bs->msglen);
+       char addr[64];
+       char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who : addr;
       Emsg2(M_FATAL, 0, _("Bad Hello command from Director at %s. Len=%d.\n"),
-            bs->who, bs->msglen);
+	     who, bs->msglen);
       return 0;
    }
    dirname = get_pool_memory(PM_MESSAGE);
    dirname = check_pool_memory_size(dirname, bs->msglen);
 
    if (sscanf(bs->msg, "Hello Director %s calling\n", dirname) != 1) {
+       char addr[64];
+       char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who : addr;
       free_pool_memory(dirname);
       bs->msg[100] = 0;
       Dmsg2(50, "Bad Hello command from Director at %s: %s\n",
             bs->who, bs->msg);
       Emsg2(M_FATAL, 0, _("Bad Hello command from Director at %s: %s\n"),
-            bs->who, bs->msg);
+	    who, bs->msg);
       return 0;
    }
    unbash_spaces(dirname);
@@ -72,11 +76,10 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
    }
    UnlockRes();
    if (!director) {
-      Dmsg2(50, "Connection from unknown Director %s at %s rejected.\n",
-            dirname, bs->who);
-      Emsg2(M_FATAL, 0, _("Connection from unknown Director %s at %s rejected.\n"
-       "Please see http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors for help.\n"),
-            dirname, bs->who);
+       char addr[64];
+       char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who : addr;
+      Emsg2(M_FATAL, 0, _("Connection from unknown Director %s at %s rejected.\n"), 
+	    dirname, who);
       free_pool_memory(dirname);
       return 0;
    }
@@ -97,21 +100,24 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
    }
 
    btimer_t *tid = start_bsock_timer(bs, AUTH_TIMEOUT);
-   auth_success = cram_md5_auth(bs, director->password, tls_local_need);
+   auth_success = cram_md5_auth(bs, director->password, tls_local_need);  
    if (auth_success) {
       auth_success = cram_md5_get_auth(bs, director->password, &tls_remote_need);
       if (!auth_success) {
-         Dmsg1(50, "cram_get_auth failed for %s\n", bs->who);
+	  char addr[64];
+	  char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who : addr;
+	  Dmsg1(50, "cram_get_auth failed for %s\n", who);
       }
    } else {
-      Dmsg1(50, "cram_auth failed for %s\n", bs->who);
+       char addr[64];
+       char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who : addr;
+       Dmsg1(50, "cram_auth failed for %s\n", who);
    }
    if (!auth_success) {
-      Emsg1(M_FATAL, 0, _("Incorrect password given by Director at %s.\n"
-       "Please see http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors for help.\n"),
-            bs->who);
-      director = NULL;
-      goto auth_fatal;
+       Emsg1(M_FATAL, 0, _("Incorrect password given by Director at %s.\n"),
+	     bs->who);
+       director = NULL;
+       goto auth_fatal;
    }
 
    /* Verify that the remote host is willing to meet our TLS requirements */

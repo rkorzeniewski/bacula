@@ -29,8 +29,8 @@ static void terminate_dird(int sig);
 static int check_resources();
 
 /* Exported subroutines */
-
 extern "C" void reload_config(int sig);
+extern void invalidate_schedules();
 
 
 /* Imported subroutines */
@@ -291,7 +291,7 @@ struct RELOAD_TABLE {
    RES **res_table;
 };
 
-static const int max_reloads = 10;
+static const int max_reloads = 32;
 static RELOAD_TABLE reload_table[max_reloads];
 
 static void init_reload(void)
@@ -422,6 +422,7 @@ void reload_config(int sig)
       }
       table = rtable;                 /* release new, bad, saved table below */
    } else {
+      invalidate_schedules();
       /*
        * Hook all active jobs so that they release this table
        */
@@ -680,8 +681,8 @@ static int check_resources()
                          catalog->db_port, catalog->db_socket,
                          catalog->mult_db_connections);
       if (!db || !db_open_database(NULL, db)) {
-         Jmsg(NULL, M_FATAL, 0, _("Could not open database \"%s\".\n"),
-              catalog->db_name);
+         Jmsg(NULL, M_FATAL, 0, _("Could not open Catalog \"%s\", database \"%s\".\n"),
+              catalog->hdr.name, catalog->db_name);
          if (db) {
             Jmsg(NULL, M_FATAL, 0, _("%s"), db_strerror(db));
          }

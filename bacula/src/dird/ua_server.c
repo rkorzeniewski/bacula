@@ -96,7 +96,7 @@ JCR *new_control_jcr(const char *base_name, int job_type)
    jcr->sched_time = jcr->start_time;
    jcr->JobType = job_type;
    jcr->JobLevel = L_NONE;
-   jcr->JobStatus = JS_Running;
+   set_jcr_job_status(jcr, JS_Running);
    jcr->JobId = 0;
    return jcr;
 }

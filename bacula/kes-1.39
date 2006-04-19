@@ -2,6 +2,24 @@
                         Kern Sibbald
 
 General:
+19Apr06
+- Apply patch from Christopher Hull
+  - Allow multiple connections to database with different
+    parameters.
+  - Invalidate the scheduler when doing a reload. Fixes seg
+    fault, but still 60 second window.
+  - Additional info in Reschedule message.
+  - Use set_jcr_job_status() everywhere to prevent loss of
+    cancel, error.
+  - Display peer IP in FD if error from connecting DIR.
+  - Don't increment file count for DIRBEGIN.
+  - Replace illegal characters in Win32 filename by _.
+  - Add SE_CREATE_PERMANENT_NAME privilege in Win32.
+  - Hash hard link filenames rather than linked list.
+  - Fix for security failure in chdir on Win32.
+  - Add CreateDirectoryA/W win32 API entry points.
+- Add /silent option to Win32 FD for Install/Remove service.
+- Always print Heap statistics in FD.
 18Apr06
 - Remove the -f option from the chown in Makefile.in for more
   portability.

@@ -6,7 +6,7 @@
  *     Kern Sibbald MMIII
  */
 /*
-   Copyright (C) 2003-2005 Kern Sibbald
+   Copyright (C) 2003-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -48,6 +48,8 @@ t_SetProcessShutdownParameters p_SetProcessShutdownParameters = NULL;
 
 t_CreateFileA   p_CreateFileA = NULL;
 t_CreateFileW   p_CreateFileW = NULL;
+t_CreateDirectoryA   p_CreateDirectoryA;
+t_CreateDirectoryW   p_CreateDirectoryW;
 
 t_wunlink p_wunlink = NULL;
 t_wmkdir p_wmkdir = NULL;
@@ -100,6 +102,11 @@ InitWinAPIWrapper()
           GetProcAddress(hLib, "CreateFileA");
       p_CreateFileW = (t_CreateFileW)
           GetProcAddress(hLib, "CreateFileW");      
+
+      p_CreateDirectoryA = (t_CreateDirectoryA)
+          GetProcAddress(hLib, "CreateDirectoryA");
+      p_CreateDirectoryW = (t_CreateDirectoryW)
+          GetProcAddress(hLib, "CreateDirectoryW");      
 
       /* attribute calls */
       p_GetFileAttributesA = (t_GetFileAttributesA)

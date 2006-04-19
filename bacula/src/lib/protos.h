@@ -38,6 +38,7 @@ char     *bstrncpy               (char *dest, const char *src, int maxlen);
 char     *bstrncpy               (char *dest, POOL_MEM &src, int maxlen);
 char     *bstrncat               (char *dest, const char *src, int maxlen);
 char     *bstrncat               (char *dest, POOL_MEM &src, int maxlen);
+bool      bstrcmp                (const char *s1, const char *s2);
 int       cstrlen                (const char *str);
 void     *b_malloc               (const char *file, int line, size_t size);
 #ifndef DEBUG
@@ -75,6 +76,7 @@ BSOCK *    bnet_connect          (JCR *jcr, int retry_interval,
 void       bnet_close            (BSOCK *bsock);
 BSOCK *    init_bsock            (JCR *jcr, int sockfd, const char *who, const char *ip,
                                   int port, struct sockaddr *client_addr);
+int       bnet_get_peer           (BSOCK *bs, char *buf, socklen_t buflen);
 BSOCK *    dup_bsock             (BSOCK *bsock);
 void       term_bsock            (BSOCK *bsock);
 const char *bnet_strerror         (BSOCK *bsock);

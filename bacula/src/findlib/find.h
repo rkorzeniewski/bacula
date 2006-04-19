@@ -201,7 +201,7 @@ struct FF_PKT {
    alist fstypes;                     /* allowed file system types */
 
    /* List of all hard linked files found */
-   struct f_link *linklist;           /* hard linked files */
+   struct f_link **linkhash;          /* hard linked files */
 
    /* Darwin specific things.
     * To avoid clutter, we always include rsrc_bfd and volhas_attrlist */

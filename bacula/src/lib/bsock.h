@@ -53,6 +53,7 @@ struct BSOCK {
    FILE *spool_fd;                    /* spooling file */
    JCR *jcr;                          /* jcr or NULL for error msgs */
    struct sockaddr client_addr;    /* client's IP address */
+   struct sockaddr_in peer_addr;    /* peer's IP address */
 };
 
 /* Signal definitions for use in bnet_sig() */

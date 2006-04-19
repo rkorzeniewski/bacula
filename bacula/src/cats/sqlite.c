@@ -5,26 +5,21 @@
  *
  *    Version $Id$
  */
-
 /*
-   Copyright (C) 2002-2005 Kern Sibbald
+   Copyright (C) 2002-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
+
 
 
 /* The following is necessary so that we do not include
@@ -69,7 +64,9 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
    /* Look to see if DB already open */
    if (!mult_db_connections) {
       for (mdb=NULL; (mdb=(B_DB *)qnext(&db_list, &mdb->bq)); ) {
-         if (strcmp(mdb->db_name, db_name) == 0) {
+         if (bstrcmp(mdb->db_name, db_name) &&
+             bstrcmp(mdb->db_address, db_address) &&
+             mdb->db_port == db_port) {
             Dmsg2(300, "DB REopen %d %s\n", mdb->ref_count, db_name);
             mdb->ref_count++;
             V(mutex);

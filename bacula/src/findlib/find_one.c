@@ -53,6 +53,25 @@ struct f_link {
     char name[1];                     /* The name */
 };
 
+typedef struct f_link link_t;
+#define LINK_HASHTABLE_BITS 16
+#define LINK_HASHTABLE_SIZE (1<<LINK_HASHTABLE_BITS)
+#define LINK_HASHTABLE_MASK (LINK_HASHTABLE_SIZE-1)
+
+static inline int LINKHASH(const struct stat &info)
+{
+    int hash = info.st_dev;
+    unsigned long long i = info.st_ino;
+    hash ^= i;
+    i >>= 16;
+    hash ^= i;
+    i >>= 16;
+    hash ^= i;
+    i >>= 16;
+    hash ^= i;
+    return hash & LINK_HASHTABLE_MASK;
+}
+
 static void free_dir_ff_pkt(FF_PKT *dir_ff_pkt)
 {
    free(dir_ff_pkt->fname);
@@ -231,9 +250,14 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
            || S_ISSOCK(ff_pkt->statp.st_mode))) {
 
        struct f_link *lp;
+       if (ff_pkt->linkhash == NULL) {
+	   ff_pkt->linkhash = (link_t **)bmalloc(LINK_HASHTABLE_SIZE * sizeof(link_t *));
+	   memset(ff_pkt->linkhash, 0, LINK_HASHTABLE_SIZE * sizeof(link_t *));
+       }
+       const int linkhash = LINKHASH(ff_pkt->statp);
 
       /* Search link list of hard linked files */
-      for (lp = ff_pkt->linklist; lp; lp = lp->next)
+       for (lp = ff_pkt->linkhash[linkhash]; lp; lp = lp->next)
          if (lp->ino == (ino_t)ff_pkt->statp.st_ino &&
              lp->dev == (dev_t)ff_pkt->statp.st_dev) {
              /* If we have already backed up the hard linked file don't do it again */
@@ -252,8 +276,8 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
       lp->ino = ff_pkt->statp.st_ino;
       lp->dev = ff_pkt->statp.st_dev;
       bstrncpy(lp->name, fname, len);
-      lp->next = ff_pkt->linklist;
-      ff_pkt->linklist = lp;
+       lp->next = ff_pkt->linkhash[linkhash];
+       ff_pkt->linkhash[linkhash] = lp;
       ff_pkt->linked = lp;            /* mark saved link */
    } else {
       ff_pkt->linked = NULL;
@@ -392,7 +416,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
       dir_ff_pkt->included_files_list = NULL;
       dir_ff_pkt->excluded_files_list = NULL;
       dir_ff_pkt->excluded_paths_list = NULL;
-      dir_ff_pkt->linklist = NULL;
+      dir_ff_pkt->linkhash = NULL;
 
       /*
        * Do not descend into subdirectories (recurse) if the
@@ -551,9 +575,15 @@ int term_find_one(FF_PKT *ff)
 {
    struct f_link *lp, *lc;
    int count = 0;
+   int i;
 
+   
+   if (ff->linkhash == NULL) return 0;
+
+   for (i =0 ; i < LINK_HASHTABLE_SIZE; i ++) {
    /* Free up list of hard linked files */
-   for (lp = ff->linklist; lp;) {
+       lp = ff->linkhash[i];
+       while (lp) {
       lc = lp;
       lp = lp->next;
       if (lc) {
@@ -561,6 +591,9 @@ int term_find_one(FF_PKT *ff)
          count++;
       }
    }
-   ff->linklist = NULL;
+       ff->linkhash[i] = NULL;
+   }
+   free(ff->linkhash);
+   ff->linkhash = NULL;
    return count;
 }

@@ -127,7 +127,7 @@ bool do_migration(JCR *jcr)
    JCR *prev_jcr;
 
    if (jcr->previous_jr.JobId == 0) {
-      jcr->JobStatus = JS_Terminated;
+      set_jcr_job_status(jcr, JS_Terminated);
       migration_cleanup(jcr, jcr->JobStatus);
       return true;                    /* no work */
    }
@@ -287,7 +287,7 @@ bool do_migration(JCR *jcr)
    /* Note, the SD stores in jcr->JobFiles/ReadBytes/JobBytes/Errors */
    wait_for_storage_daemon_termination(jcr);
 
-   jcr->JobStatus = jcr->SDJobStatus;
+   set_jcr_job_status(jcr, jcr->SDJobStatus);
    if (jcr->JobStatus == JS_Terminated) {
       migration_cleanup(jcr, jcr->JobStatus);
       return true;

@@ -25,7 +25,7 @@
 // by Kern E. Sibbald.  Many thanks to ATT and James Weatherall,
 // the original author, for providing an excellent template.
 //
-// Copyright (2000-2003) Kern E. Sibbald
+// Copyright (C) 2000-2006 Kern E. Sibbald
 //
 
 
@@ -343,7 +343,7 @@ void ServiceStop()
 
 // SERVICE INSTALL ROUTINE
 int
-bacService::InstallService()
+bacService::InstallService(bool silent)
 {
    const int pathlength = 2048;
    char path[pathlength];
@@ -402,13 +402,15 @@ bacService::InstallService()
       RegCloseKey(runservices);
 
       // We have successfully installed the service!
-      MessageBox(NULL,
+      if (!silent) {
+         MessageBox(NULL,
               _("The Bacula File service was successfully installed.\n"
               "The service may be started by double clicking on the\n"
               "Bacula \"Start\" icon and will be automatically\n"
               "be run the next time this machine is rebooted. "),
               szAppName,
               MB_ICONINFORMATION | MB_OK);
+      }
       break;
 
    // Windows NT, Win2K, WinXP
@@ -458,12 +460,14 @@ _("Provides file backup and restore services. Bacula -- the network backup solut
       CloseServiceHandle(hservice);
 
       // Everything went fine
-      MessageBox(NULL,
+      if (!silent) {
+         MessageBox(NULL,
               _("The Bacula File service was successfully installed.\n"
               "The service may be started from the Control Panel and will\n"
               "automatically be run the next time this machine is rebooted."),
               szAppName,
               MB_ICONINFORMATION | MB_OK);
+      }
       break;
    default:
       log_error_message("Unknown Windows System version"); 
@@ -480,7 +484,7 @@ _("Provides file backup and restore services. Bacula -- the network backup solut
 
 // SERVICE REMOVE ROUTINE
 int
-bacService::RemoveService()
+bacService::RemoveService(bool silent)
 {
    // How to remove the Bacula service depends upon the OS
    switch (g_platform_id) {
@@ -514,7 +518,9 @@ bacService::RemoveService()
       }
 
       // We have successfully removed the service!
-      MessageBox(NULL, _("The Bacula service has been removed"), szAppName, MB_ICONINFORMATION | MB_OK);
+      if (!silent) {
+         MessageBox(NULL, _("The Bacula service has been removed"), szAppName, MB_ICONINFORMATION | MB_OK);
+      }
       break;
 
    // Windows NT, Win2K, WinXP
@@ -549,8 +555,10 @@ bacService::RemoveService()
             }
 
             // Now remove the service from the SCM
-            if(DeleteService(hservice)) {
-               MessageBox(NULL, _("The Bacula service has been removed"), szAppName, MB_ICONINFORMATION | MB_OK);
+            if (DeleteService(hservice)) {
+               if (!silent) {
+                  MessageBox(NULL, _("The Bacula service has been removed"), szAppName, MB_ICONINFORMATION | MB_OK);
+               }
             } else {
                MessageBox(NULL, _("The Bacula service could not be removed"), szAppName, MB_ICONEXCLAMATION | MB_OK);
             }
