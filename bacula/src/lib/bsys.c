@@ -8,7 +8,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -111,6 +111,16 @@ char *bstrncat(char *dest, POOL_MEM &src, int maxlen)
    strncat(dest, src.c_str(), maxlen-1);
    dest[maxlen-1] = 0;
    return dest;
+}
+
+/*
+ * Allows one or both pointers to be NULL
+ */
+bool bstrcmp(const char *s1, const char *s2)
+{
+   if (s1 == s2) return true;
+   if (s1 == NULL || s2 == NULL) return false;
+   return strcmp(s1, s2) == 0;
 }
 
 /*

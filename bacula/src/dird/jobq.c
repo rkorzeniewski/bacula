@@ -467,25 +467,28 @@ void *jobq_server(void *arg)
              jcr->job->RescheduleTimes > 0 &&
              jcr->JobType == JT_BACKUP &&
              jcr->reschedule_count < jcr->job->RescheduleTimes) {
-             char dt[50];
+             char dt[50], dt2[50];
 
              /*
               * Reschedule this job by cleaning it up, but
               *  reuse the same JobId if possible.
               */
+            time_t now = time(NULL);
             jcr->reschedule_count++;
-            jcr->sched_time = time(NULL) + jcr->job->RescheduleInterval;
-            Dmsg2(2300, "Rescheduled Job %s to re-run in %d seconds.\n", jcr->Job,
-               (int)jcr->job->RescheduleInterval);
-            bstrftime(dt, sizeof(dt), time(NULL));
-            Jmsg(jcr, M_INFO, 0, _("Rescheduled Job %s at %s to re-run in %d seconds.\n"),
-               jcr->Job, dt, (int)jcr->job->RescheduleInterval);
+            jcr->sched_time = now + jcr->job->RescheduleInterval;
+            bstrftime(dt, sizeof(dt), now);
+            bstrftime(dt2, sizeof(dt2), jcr->sched_time);
+            Dmsg4(2300, "Rescheduled Job %s to re-run in %d seconds.(now=%u,then=%u)\n", jcr->Job,
+                  (int)jcr->job->RescheduleInterval, now, jcr->sched_time);
+            Jmsg(jcr, M_INFO, 0, _("Rescheduled Job %s at %s to re-run in %d seconds (%s).\n"),
+                 jcr->Job, dt, (int)jcr->job->RescheduleInterval, dt2);
             dird_free_jcr_pointers(jcr);     /* partial cleanup old stuff */
-            jcr->JobStatus = JS_WaitStartTime;
+            jcr->JobStatus = -1;
+            set_jcr_job_status(jcr, JS_WaitStartTime);
             jcr->SDJobStatus = 0;
             if (jcr->JobBytes == 0) {
                Dmsg2(2300, "Requeue job=%d use=%d\n", jcr->JobId, jcr->use_count());
-               jcr->JobStatus = JS_WaitStartTime;
+               set_jcr_job_status(jcr, JS_WaitStartTime);
                V(jq->mutex);
                jobq_add(jq, jcr);     /* queue the job to run again */
                P(jq->mutex);
@@ -503,7 +506,8 @@ void *jobq_server(void *arg)
             set_jcr_defaults(njcr, jcr->job);
             njcr->reschedule_count = jcr->reschedule_count;
             njcr->JobLevel = jcr->JobLevel;
-            njcr->JobStatus = jcr->JobStatus;
+            njcr->JobStatus = -1;
+            set_jcr_job_status(njcr, jcr->JobStatus);
             copy_storage(njcr, jcr->storage);
             njcr->messages = jcr->messages;
             Dmsg0(2300, "Call to run new job\n");

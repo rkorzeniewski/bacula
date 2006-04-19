@@ -32,9 +32,9 @@
 
 
 /*=============================================================*/
-/*							       */
-/*		   * * *  U n i x * * * *		       */
-/*							       */
+/*                                                             */
+/*                 * * *  U n i x * * * *                      */
+/*                                                             */
 /*=============================================================*/
 
 #if !defined(HAVE_CYGWIN) && !defined(HAVE_WIN32)
@@ -48,9 +48,9 @@ int enable_backup_privileges(JCR *jcr, int ignore_errors)
 
 
 /*=============================================================*/
-/*							       */
-/*		   * * *  W i n 3 2 * * * *		       */
-/*							       */
+/*                                                             */
+/*                 * * *  W i n 3 2 * * * *                    */
+/*                                                             */
 /*=============================================================*/
 
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
@@ -64,14 +64,13 @@ enable_priv(JCR *jcr, HANDLE hToken, char *name, int ignore_errors)
     DWORD lerror;
 
     if (!(p_LookupPrivilegeValue && p_AdjustTokenPrivileges)) {
-       return 0;		      /* not avail on this OS */
+       return 0;                      /* not avail on this OS */
     }
 
     // Get the LUID for the security privilege.
     if (!p_LookupPrivilegeValue(NULL, name,  &tkp.Privileges[0].Luid)) {
-       if (!ignore_errors) {
-	  win_error(jcr, "LookupPrivilegeValue", GetLastError());
-       }
+       win_error(jcr, "LookupPrivilegeValue", GetLastError());
+       return 0;
     }
 
     /* Set the security privilege for this process. */
@@ -81,10 +80,10 @@ enable_priv(JCR *jcr, HANDLE hToken, char *name, int ignore_errors)
     lerror = GetLastError();
     if (lerror != ERROR_SUCCESS) {
        if (!ignore_errors) {
-	  char buf[200];
-	  strcpy(buf, _("AdjustTokenPrivileges set "));
-	  bstrncat(buf, name, sizeof(buf));
-	  win_error(jcr, buf, lerror);
+          char buf[200];
+          strcpy(buf, _("AdjustTokenPrivileges set "));
+          bstrncat(buf, name, sizeof(buf));
+          win_error(jcr, buf, lerror);
        }
        return 0;
     }
@@ -102,16 +101,16 @@ int enable_backup_privileges(JCR *jcr, int ignore_errors)
     int stat = 0;
 
     if (!p_OpenProcessToken) {
-       return 0;		      /* No avail on this OS */
+       return 0;                      /* No avail on this OS */
     }
 
     hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, GetCurrentProcessId());
 
     // Get a token for this process.
     if (!p_OpenProcessToken(hProcess,
-	    TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken)) {
+            TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken)) {
        if (!ignore_errors) {
-	  win_error(jcr, "OpenProcessToken", GetLastError());
+          win_error(jcr, "OpenProcessToken", GetLastError());
        }
        /* Forge on anyway */
     }
@@ -144,6 +143,9 @@ int enable_backup_privileges(JCR *jcr, int ignore_errors)
     if (enable_priv(jcr, hToken, SE_TCB_NAME, ignore_errors)) {
        stat |= 1<<8;
     }
+    if (enable_priv(jcr, hToken, SE_CREATE_PERMANENT_NAME, ignore_errors)) {
+       stat |= 1<<10;
+    }
     if (stat) {
        stat |= 1<<9;
     }
@@ -153,4 +155,4 @@ int enable_backup_privileges(JCR *jcr, int ignore_errors)
     return stat;
 }
 
-#endif	/* HAVE_CYGWIN */
+#endif  /* HAVE_CYGWIN */

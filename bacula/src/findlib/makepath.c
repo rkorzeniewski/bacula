@@ -217,12 +217,17 @@ make_path(
       /* Because of silly Win32 security, we allow everything */
       tmp_mode = S_IRWXUGO;
       re_protect = 0;
-#endif
 
+#endif
+#if defined(HAVE_WIN32)
+      // chdir can fail if permissions are sufficiently restricted since I don't think
+      // backup/restore security rights affect ChangeWorkingDirectory
+      cwd.do_chdir = 0;
+#else
       /* If we can record the current working directory, we may be able
 	 to do the chdir optimization.	*/
       cwd.do_chdir = !save_cwd(&cwd);
-
+#endif
       /* If we've saved the cwd and DIRPATH is an absolute pathname,
 	 we must chdir to `/' in order to enable the chdir optimization.
 	 So if chdir ("/") fails, turn off the optimization.  */

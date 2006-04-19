@@ -8,7 +8,7 @@
  *
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -182,14 +182,13 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
 #else
    crypto_digest_t signing_algorithm = CRYPTO_DIGEST_SHA1;
 #endif
-   BSOCK *sd;
    JCR *jcr = (JCR *)vjcr;
+   BSOCK *sd = jcr->store_bsock;
 
    if (job_canceled(jcr)) {
       return 0;
    }
 
-   sd = jcr->store_bsock;
    jcr->num_files_examined++;         /* bump total file count */
 
    switch (ff_pkt->type) {
@@ -206,6 +205,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       Dmsg2(130, "FT_LNK saving: %s -> %s\n", ff_pkt->fname, ff_pkt->link);
       break;
    case FT_DIRBEGIN:
+      jcr->num_files_examined--;      /* correct file count */
       return 1;                       /* not used */
    case FT_NORECURSE:
      Jmsg(jcr, M_INFO, 1, _("     Recursion turned off. Will not descend into %s\n"),

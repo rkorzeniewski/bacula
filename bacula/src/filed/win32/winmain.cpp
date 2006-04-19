@@ -1,20 +1,15 @@
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
    This file is patterned after the VNC Win32 code by ATT
   
@@ -66,6 +61,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
    char *szCmdLine = CmdLine;
    char *wordPtr, *tempPtr;
    int i, quote;
+   bool silent = false;
 
    /* Save the application instance and main thread id */
    hAppInstance = hInstance;
@@ -167,11 +163,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
       /* Now check for command-line arguments */
 
-      /* /service helper - probably only needed on win9x */
-      if (strncmp(&szCmdLine[i], BaculaRunServiceHelper, strlen(BaculaRunServiceHelper)) == 0
-          && g_platform_id == VER_PLATFORM_WIN32_NT) {
-         /* exit with result "okay" */
-         return 0;          
+      /* /silent install quietly -- no prompts */
+      if (strncmp(&szCmdLine[i], "/silent", strlen("/silent")) == 0) {
+         silent = true;
+         i += strlen("/silent");
       }
 
       /* /service start service */
@@ -187,14 +182,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
       /* /install */
       if (strncmp(&szCmdLine[i], BaculaInstallService, strlen(BaculaInstallService)) == 0) {
          /* Install Bacula as a service */
-         bacService::InstallService();
+         bacService::InstallService(silent);
          i += strlen(BaculaInstallService);
          continue;
       }
       /* /remove */
       if (strncmp(&szCmdLine[i], BaculaRemoveService, strlen(BaculaRemoveService)) == 0) {
          /* Remove the Bacula service */
-         bacService::RemoveService();
+         bacService::RemoveService(silent);
          i += strlen(BaculaRemoveService);
          continue;
       }

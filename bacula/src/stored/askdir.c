@@ -451,7 +451,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
          }
       }
 
-      jcr->JobStatus = JS_WaitMedia;
+      set_jcr_job_status(jcr, JS_WaitMedia);
       dir_send_job_status(jcr);
 
       stat = wait_for_sysop(dcr);
@@ -532,7 +532,7 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
                dcr->VolumeName, dev->print_name(), jcr->Job);
       }
 
-      jcr->JobStatus = JS_WaitMount;
+      set_jcr_job_status(jcr, JS_WaitMount);
       dir_send_job_status(jcr);
 
       stat = wait_for_sysop(dcr);          /* wait on device */

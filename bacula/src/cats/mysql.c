@@ -64,7 +64,9 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
    /* Look to see if DB already open */
    if (!mult_db_connections) {
       for (mdb=NULL; (mdb=(B_DB *)qnext(&db_list, &mdb->bq)); ) {
-         if (strcmp(mdb->db_name, db_name) == 0) {
+         if (bstrcmp(mdb->db_name, db_name) &&
+             bstrcmp(mdb->db_address, db_address) &&
+             mdb->db_port == db_port) {
             Dmsg2(100, "DB REopen %d %s\n", mdb->ref_count, db_name);
             mdb->ref_count++;
             V(mutex);

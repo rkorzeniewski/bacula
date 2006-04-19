@@ -931,6 +931,12 @@ try_again:
       Dmsg1(800, "Calling run_job job=%x\n", jcr->job);
 start_job:
       JobId = run_job(jcr);
+#if 0  
+      bsendmsg(ua, "<job director=\"console\" time=\"%u\" status=\"%c\" type=\"%c\" "
+              "jobid=\"%u\" job=\"%s\" level=\"%c\" finished=\"false\" priority=\"%u\"/>\n",
+               time(NULL), jcr->JobStatus, jcr->JobType, jcr->JobId,
+              jcr->Job, jcr->JobLevel, jcr->JobPriority);
+#endif
       free_jcr(jcr);                  /* release jcr */
       if (JobId == 0) {
          bsendmsg(ua, _("Job failed.\n"));

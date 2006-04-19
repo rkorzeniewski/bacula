@@ -77,6 +77,29 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
    gid = attr->statp.st_gid;
    uid = attr->statp.st_uid;
 
+#ifdef HAVE_WIN32
+   if (!bfd->use_backup_api) {
+      // eliminate invalid windows filename characters from foreign filenames
+      char *ch = (char *)attr->ofname;
+      if (ch[0] != 0 && ch[1] != 0) {
+         ch+=2;
+         while (*ch) {
+            switch (*ch) {
+            case ':':
+            case '<':
+            case '>':
+            case '*':
+            case '?':
+            case '|':
+               *ch = '_';
+                break;
+            }
+            ch++;
+         }
+      }
+   }
+#endif
+
    Dmsg2(400, "Replace=%c %d\n", (char)replace, replace);
    if (lstat(attr->ofname, &mstatp) == 0) {
       exists = true;

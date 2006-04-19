@@ -6,22 +6,17 @@
  *     Kern Sibbald MMIII
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2003-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -47,11 +42,23 @@ typedef char POOLMEM;
 #endif
 
 // unicode enabling of win 32 needs some defines and functions
-#define MAX_PATH_UTF8    MAX_PATH*3
+
+// using an average of 3 bytes per character is probably fine in
+// practice but I believe that Windows actually uses UTF-16 encoding
+// as opposed to UCS2 which means characters 0x10000-0x10ffff are
+// valid and result in 4 byte UTF-8 encodings.
+#define MAX_PATH_UTF8    MAX_PATH*4  // strict upper bound on UTF-16 to UTF-8 conversion
+// from
+// http://msdn.microsoft.com/library/default.asp?url=/library/en-us/fileio/fs/getfileattributesex.asp
+// In the ANSI version of this function, the name is limited to
+// MAX_PATH characters. To extend this limit to 32,767 wide
+// characters, call the Unicode version of the function and prepend
+// "\\?\" to the path. For more information, see Naming a File.
+#define MAX_PATH_W 32767
 
 int wchar_2_UTF8(char *pszUTF, const WCHAR *pszUCS, int cchChar = MAX_PATH_UTF8);
 int UTF8_2_wchar(POOLMEM **pszUCS, const char *pszUTF);
-int make_win32_path_UTF8_2_wchar(POOLMEM **pszUCS, const char *pszUTF, BOOL* pBIsRawPath = NULL);
+
 
 /* In ADVAPI32.DLL */
 
@@ -89,6 +96,9 @@ typedef HANDLE (WINAPI * t_CreateFileA) (LPCSTR, DWORD ,DWORD, LPSECURITY_ATTRIB
 typedef HANDLE (WINAPI * t_CreateFileW) (LPCWSTR, DWORD ,DWORD, LPSECURITY_ATTRIBUTES,
         DWORD , DWORD, HANDLE);
 
+typedef BOOL (WINAPI * t_CreateDirectoryA) (LPCSTR, LPSECURITY_ATTRIBUTES);
+typedef BOOL (WINAPI * t_CreateDirectoryW) (LPCWSTR, LPSECURITY_ATTRIBUTES);
+
 typedef BOOL (WINAPI * t_SetProcessShutdownParameters)(DWORD, DWORD);
 typedef BOOL (WINAPI * t_BackupRead)(HANDLE,LPBYTE,DWORD,LPDWORD,BOOL,BOOL,LPVOID*);
 typedef BOOL (WINAPI * t_BackupWrite)(HANDLE,LPBYTE,DWORD,LPDWORD,BOOL,BOOL,LPVOID*);
@@ -123,6 +133,10 @@ extern t_SetFileAttributesW   p_SetFileAttributesW;
 
 extern t_CreateFileA   p_CreateFileA;
 extern t_CreateFileW   p_CreateFileW;
+
+extern t_CreateDirectoryA   p_CreateDirectoryA;
+extern t_CreateDirectoryW   p_CreateDirectoryW;
+
 extern t_SetProcessShutdownParameters p_SetProcessShutdownParameters;
 extern t_BackupRead         p_BackupRead;
 extern t_BackupWrite        p_BackupWrite;

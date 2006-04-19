@@ -25,7 +25,7 @@
 // by Kern E. Sibbald.  Many thanks to ATT and James Weatherall,
 // the original author, for providing an excellent template.
 //
-// Copyright (2000) Kern E. Sibbald
+// Copyright (C) 2000-2006 Kern E. Sibbald
 //
 
 
@@ -46,19 +46,19 @@ class bacService;
 class bacService
 {
 public:
-	bacService();
+        bacService();
 
    // SERVICE INSTALL & START FUNCTIONS
 
    // Routine called by WinMain to cause Bacula to be installed
    // as a service.
-   static int BaculaServiceMain();
+   int BaculaServiceMain();
 
    // Routine to install the Apcupsd service on the local machine
-   static int InstallService();
+   int InstallService(bool silent);
 
    // Routine to remove the Apcupsd service from the local machine
-   static int RemoveService();
+   int RemoveService(bool silent);
 
    // SERVICE SUPPORT FUNCTIONS
 
