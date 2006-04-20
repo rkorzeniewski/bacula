@@ -580,7 +580,7 @@ DIGEST *crypto_digest_new (crypto_digest_t type)
    DIGEST *digest;
    const EVP_MD *md = NULL; /* Quell invalid uninitialized warnings */
 
-   digest = (DIGEST *) malloc(sizeof(DIGEST));
+   digest = (DIGEST *)malloc(sizeof(DIGEST));
    digest->type = type;
 
    /* Initialize the OpenSSL message digest context */
@@ -1430,7 +1430,7 @@ DIGEST *crypto_digest_new (crypto_digest_t type)
 {
    DIGEST *digest;
 
-   digest = (DIGEST *) malloc(sizeof(DIGEST));
+   digest = (DIGEST *)malloc(sizeof(DIGEST));
    digest->type = type;
 
    switch (type) {
@@ -1449,7 +1449,8 @@ DIGEST *crypto_digest_new (crypto_digest_t type)
    return (digest);
 }
 
-bool crypto_digest_update (DIGEST *digest, const void *data, size_t length) {
+bool crypto_digest_update(DIGEST *digest, const void *data, size_t length)
+{
    switch (digest->type) {
    case CRYPTO_DIGEST_MD5:
       /* Doesn't return anything ... */
@@ -1469,7 +1470,7 @@ bool crypto_digest_update (DIGEST *digest, const void *data, size_t length) {
    }
 }
 
-bool crypto_digest_finalize (DIGEST *digest, void *dest, size_t *length) {
+bool crypto_digest_finalize(DIGEST *digest, void *dest, size_t *length) {
 
    switch (digest->type) {
    case CRYPTO_DIGEST_MD5:
@@ -1478,7 +1479,7 @@ bool crypto_digest_finalize (DIGEST *digest, void *dest, size_t *length) {
       assert(*length >= CRYPTO_DIGEST_MD5_SIZE);
       *length = CRYPTO_DIGEST_MD5_SIZE;
       /* Doesn't return anything ... */
-      MD5Final((unsigned char *) dest, &digest->md5);
+      MD5Final((unsigned char *)dest, &digest->md5);
       return true;
    case CRYPTO_DIGEST_SHA1:
       /* Guard against programmer error by either the API client or
@@ -1498,7 +1499,7 @@ bool crypto_digest_finalize (DIGEST *digest, void *dest, size_t *length) {
    return false;
 }
 
-void crypto_digest_free (DIGEST *digest)
+void crypto_digest_free(DIGEST *digest)
 {
    free (digest);
 }

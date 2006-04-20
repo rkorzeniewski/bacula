@@ -88,7 +88,7 @@ db_create_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
       jr->JobId = 0;
       ok = false;
    } else {
-      jr->JobId = sql_insert_id(mdb, N_("Job"));
+      jr->JobId = sql_insert_id(mdb, NT_("Job"));
       ok = true;
    }
    db_unlock(mdb);
@@ -137,7 +137,7 @@ db_create_mac_record(JCR *jcr, B_DB *mdb, MAC_DBR *mr)
       mr->JobId = 0;
       ok = false;
    } else {
-      mr->JobId = sql_insert_id(mdb, N_("Job"));
+      mr->JobId = sql_insert_id(mdb, NT_("Job"));
       ok = true;
    }
    db_unlock(mdb);
@@ -249,7 +249,7 @@ db_create_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
       pr->PoolId = 0;
       stat = false;
    } else {
-      pr->PoolId = sql_insert_id(mdb, N_("Pool"));
+      pr->PoolId = sql_insert_id(mdb, NT_("Pool"));
       stat = true;
    }
    db_unlock(mdb);
@@ -296,7 +296,7 @@ db_create_device_record(JCR *jcr, B_DB *mdb, DEVICE_DBR *dr)
       dr->DeviceId = 0;
       ok = false;
    } else {
-      dr->DeviceId = sql_insert_id(mdb, N_("Device"));
+      dr->DeviceId = sql_insert_id(mdb, NT_("Device"));
       ok = true;
    }
    db_unlock(mdb);
@@ -354,7 +354,7 @@ bool db_create_storage_record(JCR *jcr, B_DB *mdb, STORAGE_DBR *sr)
       Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
       ok = false;
    } else {
-      sr->StorageId = sql_insert_id(mdb, N_("Storage"));
+      sr->StorageId = sql_insert_id(mdb, NT_("Storage"));
       sr->created = true;
       ok = true;
    }
@@ -402,7 +402,7 @@ db_create_mediatype_record(JCR *jcr, B_DB *mdb, MEDIATYPE_DBR *mr)
       mr->MediaTypeId = 0;
       stat = false;
    } else {
-      mr->MediaTypeId = sql_insert_id(mdb, N_("MediaType"));
+      mr->MediaTypeId = sql_insert_id(mdb, NT_("MediaType"));
       stat = true;
    }
    db_unlock(mdb);
@@ -473,7 +473,7 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
             mdb->cmd, sql_strerror(mdb));
       stat = 0;
    } else {
-      mr->MediaId = sql_insert_id(mdb, N_("Media"));
+      mr->MediaId = sql_insert_id(mdb, NT_("Media"));
       stat = 1;
       if (mr->set_label_date) {
          char dt[MAX_TIME_LENGTH];
@@ -555,7 +555,7 @@ int db_create_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr)
       cr->ClientId = 0;
       stat = 0;
    } else {
-      cr->ClientId = sql_insert_id(mdb, N_("Client"));
+      cr->ClientId = sql_insert_id(mdb, NT_("Client"));
       stat = 1;
    }
    db_unlock(mdb);
@@ -666,7 +666,7 @@ bool db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
       fsr->FileSetId = 0;
       stat = false;
    } else {
-      fsr->FileSetId = sql_insert_id(mdb, N_("FileSet"));
+      fsr->FileSetId = sql_insert_id(mdb, NT_("FileSet"));
       fsr->created = true;
       stat = true;
    }
@@ -766,7 +766,7 @@ static int db_create_file_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    ASSERT(ar->PathId);
    ASSERT(ar->FilenameId);
 
-   if (ar->Digest == NULL) {
+   if (ar->Digest == NULL || ar->Digest[0] == 0) {
       digest = no_digest;
    } else {
       digest = ar->Digest;
@@ -786,7 +786,7 @@ static int db_create_file_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
       ar->FileId = 0;
       stat = 0;
    } else {
-      ar->FileId = sql_insert_id(mdb, N_("File"));
+      ar->FileId = sql_insert_id(mdb, NT_("File"));
       stat = 1;
    }
    return stat;
@@ -850,7 +850,7 @@ static int db_create_path_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
       ar->PathId = 0;
       stat = 0;
    } else {
-      ar->PathId = sql_insert_id(mdb, N_("Path"));
+      ar->PathId = sql_insert_id(mdb, NT_("Path"));
       stat = 1;
    }
 
@@ -904,7 +904,7 @@ static int db_create_filename_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
       Jmsg(jcr, M_FATAL, 0, "%s", mdb->errmsg);
       ar->FilenameId = 0;
    } else {
-      ar->FilenameId = sql_insert_id(mdb, N_("Filename"));
+      ar->FilenameId = sql_insert_id(mdb, NT_("Filename"));
    }
    return ar->FilenameId > 0;
 }
