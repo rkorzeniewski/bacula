@@ -3,6 +3,8 @@
 
 General:
 20Apr06
+- Ensure that DB signature is never NULL.
+- Ensure that DB table names are not translated.
 - Fix scheduler to handle time skew (eg daylight savings).
 - Fix scheduler to use lock_jobs() to avoid most problems
   with reload. Window is now milliseconds.
