@@ -6,7 +6,6 @@
 ..\lib\berrno
 ..\lib\bget_msg
 ..\lib\bnet
-..\lib\bnet_pkt
 ..\lib\bnet_server
 ..\lib\bshm
 ..\lib\bsys

@@ -48,7 +48,6 @@ CLEAN :
 	-@erase "$(INTDIR)\berrno.obj"
 	-@erase "$(INTDIR)\bget_msg.obj"
 	-@erase "$(INTDIR)\bnet.obj"
-	-@erase "$(INTDIR)\bnet_pkt.obj"
 	-@erase "$(INTDIR)\bnet_server.obj"
 	-@erase "$(INTDIR)\bshm.obj"
 	-@erase "$(INTDIR)\bsys.obj"
@@ -126,7 +125,6 @@ LINK32_OBJS= \
 	"$(INTDIR)\berrno.obj" \
 	"$(INTDIR)\bget_msg.obj" \
 	"$(INTDIR)\bnet.obj" \
-	"$(INTDIR)\bnet_pkt.obj" \
 	"$(INTDIR)\bnet_server.obj" \
 	"$(INTDIR)\bshm.obj" \
 	"$(INTDIR)\bsys.obj" \
@@ -213,8 +211,6 @@ CLEAN :
 	-@erase "$(INTDIR)\bget_msg.sbr"
 	-@erase "$(INTDIR)\bnet.obj
 	-@erase "$(INTDIR)\bnet.sbr"
-	-@erase "$(INTDIR)\bnet_pkt.obj
-	-@erase "$(INTDIR)\bnet_pkt.sbr"
 	-@erase "$(INTDIR)\bnet_server.obj
 	-@erase "$(INTDIR)\bnet_server.sbr"
 	-@erase "$(INTDIR)\bshm.obj
@@ -339,7 +335,6 @@ BSC32_SBRS= \
 	"$(INTDIR)\berrno.sbr" \
 	"$(INTDIR)\bget_msg.sbr" \
 	"$(INTDIR)\bnet.sbr" \
-	"$(INTDIR)\bnet_pkt.sbr" \
 	"$(INTDIR)\bnet_server.sbr" \
 	"$(INTDIR)\bshm.sbr" \
 	"$(INTDIR)\bsys.sbr" \
@@ -412,7 +407,6 @@ LINK32_OBJS= \
 	"$(INTDIR)\berrno.obj" \
 	"$(INTDIR)\bget_msg.obj" \
 	"$(INTDIR)\bnet.obj" \
-	"$(INTDIR)\bnet_pkt.obj" \
 	"$(INTDIR)\bnet_server.obj" \
 	"$(INTDIR)\bshm.obj" \
 	"$(INTDIR)\bsys.obj" \
@@ -653,25 +647,6 @@ SOURCE=..\lib\bget_msg.cpp
 
 FILENAME=bnet
 SOURCE=..\lib\bnet.cpp
-!IF  "$(CFG)" == "wx-console - Win32 Release"
-
-
-"$(INTDIR)\$(FILENAME).obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ELSEIF  "$(CFG)" == "wx-console - Win32 Debug"
-
-
-"$(INTDIR)\$(FILENAME).obj"	"$(INTDIR)\$(FILENAME).sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
-
-
-FILENAME=bnet_pkt
-SOURCE=..\lib\bnet_pkt.cpp
 !IF  "$(CFG)" == "wx-console - Win32 Release"
 
 

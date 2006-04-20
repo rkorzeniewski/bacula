@@ -1016,7 +1016,7 @@ SOURCE=..\findlib\create_file.cpp
 
 !ENDIF 
 
-SOURCE=..\findlib\crypto.cpp
+SOURCE=..\lib\crypto.cpp
 
 !IF  "$(CFG)" == "baculafd - Win32 Release"
 
