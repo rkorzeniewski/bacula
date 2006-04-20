@@ -231,7 +231,6 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    jcr->daemon_free_jcr = daemon_free_jcr;    /* plug daemon free routine */
    jcr->init_mutex();
    jcr->inc_use_count();   
-   set_jcr_job_status(jcr, JS_Created);       /* ready to run */
    jcr->VolumeName = get_pool_memory(PM_FNAME);
    jcr->VolumeName[0] = 0;
    jcr->errmsg = get_pool_memory(PM_MESSAGE);
@@ -241,7 +240,7 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    jcr->JobId = 0;
    jcr->JobType = JT_SYSTEM;          /* internal job until defined */
    jcr->JobLevel = L_NONE;
-   jcr->JobStatus = JS_Created;
+   set_jcr_job_status(jcr, JS_Created);       /* ready to run */
 
    sigtimer.sa_flags = 0;
    sigtimer.sa_handler = timeout_handler;
