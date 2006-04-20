@@ -50,7 +50,7 @@ struct job_item {
 static dlist *jobs_to_run;               /* list of jobs to be run */
 
 /* Time interval in secs to sleep if nothing to be run */
-static int const NEXT_CHECK_SECS = 60;
+static int const next_check_secs = 60;
 
 /* Forward referenced subroutines */
 static void find_runs();
@@ -85,7 +85,7 @@ JCR *wait_for_next_job(char *one_shot_job_to_run)
    JCR *jcr;
    JOB *job;
    RUN *run;
-   time_t now;
+   time_t now, prev;
    static bool first = true;
    job_item *next_job = NULL;
 
@@ -114,7 +114,7 @@ again:
       if (!jobs_to_run->empty()) {
          break;
       }
-      bmicrosleep(NEXT_CHECK_SECS, 0); /* recheck once per minute */
+      bmicrosleep(next_check_secs, 0); /* recheck once per minute */
    }
 
 #ifdef  list_chain
@@ -139,7 +139,9 @@ again:
    /* Now wait for the time to run the job */
    for (;;) {
       time_t twait;
-      if (schedules_invalidated) { /** discard scheduled queue and rebuild with new schedule objects. **/
+      /** discard scheduled queue and rebuild with new schedule objects. **/
+      lock_jobs();
+      if (schedules_invalidated) { 
           dump_job(next_job, "Invalidated job");
           free(next_job);
           while (!jobs_to_run->empty()) {
@@ -151,13 +153,23 @@ again:
           schedules_invalidated = false;
           goto again;
       }
-      now = time(NULL);
+      unlock_jobs();
+      prev = now = time(NULL);
       twait = next_job->runtime - now;
       if (twait <= 0) {               /* time to run it */
          break;
       }
-      bmicrosleep((NEXT_CHECK_SECS<twait)?NEXT_CHECK_SECS:twait, 0); /* recheck at least once per minute */      
+      /* Recheck at least once per minute */
+      bmicrosleep((next_check_secs < twait)?next_check_secs:twait, 0);
+      /* Attempt to handle clock shift from/to daylight savings time
+       * we allow a skew of 10 seconds before invalidating everything.
+       */
+      now = time(NULL);
+      if (now < prev+10 || now > (prev+next_check_secs+10)) {
+         schedules_invalidated = true;
+      }
    }
+   jcr = new_jcr(sizeof(JCR), dird_free_jcr);
    run = next_job->run;               /* pick up needed values */
    job = next_job->job;
    if (job->enabled) {
@@ -165,11 +177,11 @@ again:
    }
    free(next_job);
    if (!job->enabled) {
+      free_jcr(jcr);
       goto again;                     /* ignore this job */
    }
    run->last_run = now;               /* mark as run now */
 
-   jcr = new_jcr(sizeof(JCR), dird_free_jcr);
    ASSERT(job);
    set_jcr_defaults(jcr, job);
    if (run->level) {

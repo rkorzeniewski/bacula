@@ -2,6 +2,10 @@
                         Kern Sibbald
 
 General:
+20Apr06
+- Fix scheduler to handle time skew (eg daylight savings).
+- Fix scheduler to use lock_jobs() to avoid most problems
+  with reload. Window is now milliseconds.
 19Apr06
 - Apply patch from Christopher Hull
   - Allow multiple connections to database with different
