@@ -1190,6 +1190,12 @@ static int backup_cmd(JCR *jcr)
    int SDJobStatus;
    char ed1[50], ed2[50];
 
+#ifdef WIN32_VSS
+   if (g_pVSSClient && enable_vss)
+      /* Run only one at a time */
+      P(vss_mutex);
+#endif
+
    set_jcr_job_status(jcr, JS_Blocked);
    jcr->JobType = JT_BACKUP;
    Dmsg1(100, "begin backup ff=%p\n", jcr->ff);
@@ -1240,9 +1246,7 @@ static int backup_cmd(JCR *jcr)
 
 #ifdef WIN32_VSS
    /* START VSS ON WIN 32 */
-   if (g_pVSSClient && enable_vss) {
-      /* Run only one at a time */
-      P(vss_mutex);
+   if (g_pVSSClient && enable_vss) {      
       if (g_pVSSClient->InitializeForBackup()) {   
         /* tell vss which drives to snapshot */   
         char szWinDriveLetters[27];   
