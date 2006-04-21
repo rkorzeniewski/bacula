@@ -252,6 +252,21 @@ void MD5Transform(uint32_t buf[4], uint32_t in[16])
 
 #ifdef MD5_SUM
 #define OUTPUT_BASE64 1
+
+static void usage()
+{
+   fprintf(stderr,
+"\n"
+"Usage: md5sum [-d decode] <data-file>\n"
+"       -d          decode the data file\n"
+"       -?          print this message.\n"
+"\n\n");
+
+   exit(1);
+}
+
+static bool decode = false;
+
 /*
  * Reads a single ASCII file and prints the HEX md5 sum.
  */
@@ -262,15 +277,34 @@ int main(int argc, char *argv[])
    MD5Context ctx;
    char buf[5000];
    char signature[20];
+   int ch;
+
+   while ((ch = getopt(argc, argv, "d?")) != -1) {
+      switch (ch) {
+      case 'd':
+         decode = true;                
+         break;
+      case '?':
+      default:
+         usage();
+      }
+   }
+
+   argc -= optind;
+   argv += optind;
 
    if (argc < 1) {
       printf("Must have filename\n");
       exit(1);
    }
-   fd = fopen(argv[1], "r");
+
+   fd = fopen(argv[0], "r");
    if (!fd) {
-      printf("Could not open %s: ERR=%s\n", argv[1], strerror(errno));
+      printf("Could not open %s: ERR=%s\n", argv[0], strerror(errno));
       exit(1);
+   }
+   if (decode) {
+      goto decode_it;
    }
    MD5Init(&ctx);
    while (fgets(buf, sizeof(buf), fd)) {
@@ -286,6 +320,35 @@ int main(int argc, char *argv[])
    bin_to_base64(MD5buf, (char *)signature, 16); /* encode 16 bytes */
    printf("  %s", MD5buf);
 #endif
-   printf("  %s\n", argv[1]);
+   printf("  %s\n", argv[0]);
+   exit(0);
+
+decode_it:
+   while (fgets(buf, sizeof(buf), fd)) {
+      char bin[40];
+      unsigned char *p = (unsigned char *)buf;
+      unsigned char ch;
+      int val;
+      for (int i=0; i < 16; i++) {
+         if (*p <= '9') {
+            val = *p - '0';
+         } else {
+            val = *p - 'a' + 10;
+         }
+         ch = val << 4;
+         p++;
+         if (*p <= '9') {
+            val = *p - '0';
+         } else {
+            val = *p - 'a' + 10;
+         }
+         signature[i] = ch + val;
+         p++;
+      }
+      signature[16] = 0;
+      printf("%s", buf);
+      bin_to_base64(bin, (char *)signature, 16);
+      printf("%s\n", bin);
+   }
 }
 #endif

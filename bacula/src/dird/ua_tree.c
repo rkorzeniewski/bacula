@@ -472,6 +472,7 @@ static void ls_output(char *buf, const char *fname, const char *tag,
    char ec1[30];
    char en1[30], en2[30];
    int n;
+   time_t time;
 
    p = encode_mode(statp->st_mode, buf);
    if (dot_cmd) {
@@ -495,7 +496,13 @@ static void ls_output(char *buf, const char *fname, const char *tag,
       p += n;
       n = sprintf(p, "%10.10s  ", edit_uint64(statp->st_size, ec1));
       p += n;
-      p = encode_time(statp->st_ctime, p);
+      if (statp->st_ctime > statp->st_mtime) {
+         time = statp->st_ctime;
+      } else {
+         time = statp->st_mtime;
+      }
+      /* Display most recent time */
+      p = encode_time(time, p);
       *p++ = ' ';
       *p++ = *tag;
    }

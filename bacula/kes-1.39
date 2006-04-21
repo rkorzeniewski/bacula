@@ -2,6 +2,38 @@
                         Kern Sibbald
 
 General:
+21Apr06
+- Implement using pg_config for finding PostgreSQL files.
+  Fixes bug #600. Patch supplied by user.
+- Remove -t option from mktemp in mtx_changer.in and use
+  working directory. Fixes bug #578.
+- Update job start time after the any run before job so that
+  files created by the script are only backed up once. Fixes
+  bug #599.
+- Strip trailing newline only from filenames entered in
+  the restore command when reading a file. This permits
+  the user to enter filenames with trailing spaces. Fixes
+  bug #549. The user supplied a patch that I modified slightly.
+- Use the most recent time (st_mtime, st_ctime) in the dir
+  command in restore. This gives the user a better idea of what
+  the newest file really is. This fixes bug #574. The fix
+  was suggested by the user.
+- Implement a compatible version of base64. This permits external
+  programs to duplicate Bacula's base64 algorithm using standard
+  routines. This fixes bugs #296, and 565. Patch submitted by   
+  author of bug #565.  
+  ================= Note ========================
+  Previous Signatures stored in the database are no longer
+  compatible with this. The main downside is for Verify jobs,
+  and doing an InitCatalog run will fix the problem. Also, the
+  authentication between the deamons is changed, so all daemons
+  must be simultaneously upgraded.
+  ==============================================
+  If you don't like this fix, set:
+    const bool compatible = true;
+  to
+    const bool compatible = false;
+  in src/lib/base64.c
 20Apr06
 - Ensure that DB signature is never NULL.
 - Ensure that DB table names are not translated.
