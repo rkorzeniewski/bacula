@@ -460,28 +460,29 @@ static int update_volume(UAContext *ua)
    }
 
    for ( ; !done; ) {
-      bsendmsg(ua, _("Updating Volume \"%s\"\n"), mr.VolumeName);
       start_prompt(ua, _("Parameters to modify:\n"));
-      add_prompt(ua, _("Volume Status"));
-      add_prompt(ua, _("Volume Retention Period"));
-      add_prompt(ua, _("Volume Use Duration"));
-      add_prompt(ua, _("Maximum Volume Jobs"));
-      add_prompt(ua, _("Maximum Volume Files"));
-      add_prompt(ua, _("Maximum Volume Bytes"));
-      add_prompt(ua, _("Recycle Flag"));
-      add_prompt(ua, _("Slot"));
-      add_prompt(ua, _("InChanger Flag"));
-      add_prompt(ua, _("Volume Files"));
-      add_prompt(ua, _("Pool"));
-      add_prompt(ua, _("Volume from Pool"));
-      add_prompt(ua, _("All Volumes from Pool"));
-      add_prompt(ua, _("Done"));
+      add_prompt(ua, _("Volume Status"));              /* 0 */
+      add_prompt(ua, _("Volume Retention Period"));    /* 1 */
+      add_prompt(ua, _("Volume Use Duration"));        /* 2 */
+      add_prompt(ua, _("Maximum Volume Jobs"));        /* 3 */
+      add_prompt(ua, _("Maximum Volume Files"));       /* 4 */
+      add_prompt(ua, _("Maximum Volume Bytes"));       /* 5 */
+      add_prompt(ua, _("Recycle Flag"));               /* 6 */
+      add_prompt(ua, _("Slot"));                       /* 7 */
+      add_prompt(ua, _("InChanger Flag"));             /* 8 */
+      add_prompt(ua, _("Volume Files"));               /* 9 */
+      add_prompt(ua, _("Pool"));                       /* 10 */
+      add_prompt(ua, _("Volume from Pool"));           /* 11 */
+      add_prompt(ua, _("All Volumes from Pool"));      /* 12 */
+      add_prompt(ua, _("Done"));                       /* 13 */
       i = do_prompt(ua, "", _("Select parameter to modify"), NULL, 0);  
+
       /* For All Volumes from Pool we don't need a Volume record */
-      if (i != 12) {
+      if (i != 12 && i != 13) {
          if (!select_media_dbr(ua, &mr)) {  /* Get Volume record */
             return 0;
          }
+         bsendmsg(ua, _("Updating Volume \"%s\"\n"), mr.VolumeName);
       }
       switch (i) {
       case 0:                         /* Volume Status */

@@ -722,7 +722,7 @@ static bool insert_file_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *f
 {
    char ed1[50];
 
-   strip_trailing_junk(file);
+   strip_trailing_newline(file);
    split_path_and_filename(rx, file);
    if (*rx->JobIds == 0) {
       Mmsg(rx->query, uar_jobid_fileindex, date, rx->path, rx->fname, 

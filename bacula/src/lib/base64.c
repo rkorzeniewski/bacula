@@ -6,7 +6,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -22,6 +22,8 @@
 
 
 #include "bacula.h"
+
+const bool compatible = true;
 
 #ifdef TEST_MODE
 #include <glob.h>
@@ -141,7 +143,11 @@ bin_to_base64(char *buf, char *bin, int len)
    for (i=0; i<len; ) {
       if (rem < 6) {
          reg <<= 8;
-         reg |= (int8_t)bin[i++];
+         if (compatible) {
+            reg |= (int8_t)bin[i++] & 0xFF;
+         } else {
+           reg |= (int8_t)bin[i++];
+         }
          rem += 8;
       }
       save = reg;
@@ -155,7 +161,11 @@ bin_to_base64(char *buf, char *bin, int len)
       for (i=1; i<rem; i++) {
          mask = (mask << 1) | 1;
       }
-      buf[j++] = base64_digits[reg & mask];
+      if (compatible) {
+         buf[j++] = base64_digits[(reg & mask) << 6 - rem];
+      } else {
+         buf[j++] = base64_digits[reg & mask];
+      }
    }
    buf[j] = 0;
    return j;
