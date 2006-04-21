@@ -33,7 +33,7 @@ LIBOBJS = find.o match.o find_one.o attribs.o create_file.o \
 
 # inference rules
 .c.o:
-	$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+	$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(OPENSSL_INC) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
 all: Makefile libfind.a ../lib/libbac.a
 	@echo "==== Make of findlib is good ===="
