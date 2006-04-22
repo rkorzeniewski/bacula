@@ -90,13 +90,16 @@ typedef UINT64 u_int64_t;
 typedef UINT64 uint64_t;
 typedef INT64 int64_t;
 typedef UINT32 uint32_t;
-typedef long int32_t;
 typedef INT64 intmax_t;
 typedef unsigned char uint8_t;
-typedef float float32_t;
 typedef unsigned short uint16_t;
 typedef signed short int16_t;
 typedef signed char int8_t;
+#ifndef HAVE_MINGW
+typedef long int32_t;
+typedef float float32_t;
+typedef double float64_t;
+#endif
 
 #ifndef HAVE_VC8
 typedef long time_t;
@@ -121,7 +124,6 @@ typedef int BOOL;
 #endif
 #endif
 
-typedef double float64_t;
 typedef UINT32 u_int32_t;
 typedef unsigned char u_int8_t;
 typedef unsigned short u_int16_t;
@@ -146,7 +148,7 @@ typedef UINT32 mode_t;
 /* #ifndef _WX_DEFS_H_  ssize_t is defined in wx/defs.h */
 typedef INT64  ssize_t;
 /* #endif */
-#endif //HAVE_MINGW
+#endif /* HAVE_MINGW */
 
 struct dirent {
     uint64_t    d_ino;
@@ -171,12 +173,12 @@ struct timezone {
 };
 
 int strcasecmp(const char*, const char *);
-int strncasecmp(const char*, const char *, int);
 int gettimeofday(struct timeval *, struct timezone *);
 
 #define ETIMEDOUT 55
 
 #ifndef HAVE_MINGW
+int strncasecmp(const char*, const char *, int);
 
 #ifndef _STAT_DEFINED
 struct stat
@@ -250,18 +252,22 @@ struct stat
 #endif
 
 #ifndef HAVE_VC8
+#ifndef HAVE_MINGW
 int umask(int);
 off_t lseek(int, off_t, int);
 int dup2(int, int);
 int close(int fd);
-#ifndef HAVE_WXCONSOLE
+#endif
+#if !defined(HAVE_WXCONSOLE) && !defined(HAVE_MINGW)
 ssize_t read(int fd, void *, ssize_t nbytes);
 ssize_t write(int fd, const void *, ssize_t nbytes);
 #endif
 #endif
 int lchown(const char *, uid_t uid, gid_t gid);
 int chown(const char *, uid_t uid, gid_t gid);
+#ifndef HAVE_MINGW
 int chmod(const char *, mode_t mode);
+#endif
 int inet_aton(const char *cp, struct in_addr *inp);
 int kill(int pid, int signo);
 int pipe(int []);
@@ -295,6 +301,7 @@ int __sprintf(char *str, const char *fmt, ...);
 
 #define HAVE_OLD_SOCKOPT
 
+struct timespec;
 int readdir(unsigned int fd, struct dirent *dirp, unsigned int count);
 int nanosleep(const struct timespec*, struct timespec *);
 struct tm *localtime_r(const time_t *, struct tm *);

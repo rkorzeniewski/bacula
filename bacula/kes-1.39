@@ -2,6 +2,8 @@
                         Kern Sibbald
 
 General:
+22Apr06
+- Integrate most of the MinGW changes -- more to do.
 21Apr06
 - Implement using pg_config for finding PostgreSQL files.
   Fixes bug #600. Patch supplied by user.

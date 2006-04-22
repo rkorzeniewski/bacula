@@ -1130,7 +1130,7 @@ win32_mkdir(const char *dir)
       POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
       make_win32_path_UTF8_2_wchar(&pwszBuf, dir);
 
-      int n=p_wmkdir((LPCWSTR)pwszBuf);
+      int n = p_wmkdir((LPCWSTR)pwszBuf);
       free_pool_memory(pwszBuf);
       return n;
    }
