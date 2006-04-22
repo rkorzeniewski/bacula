@@ -183,7 +183,8 @@ void *bmalloc(size_t size)
 
   buf = malloc(size);
   if (buf == NULL) {
-     Emsg1(M_ABORT, 0, _("Out of memory: ERR=%s\n"), strerror(errno));
+     berrno be;
+     Emsg1(M_ABORT, 0, _("Out of memory: ERR=%s\n"), be.strerror());
   }
   return buf;
 }
@@ -199,7 +200,8 @@ void *b_malloc(const char *file, int line, size_t size)
   buf = malloc(size);
 #endif
   if (buf == NULL) {
-     e_msg(file, line, M_ABORT, 0, _("Out of memory: ERR=%s\n"), strerror(errno));
+     berrno be;
+     e_msg(file, line, M_ABORT, 0, _("Out of memory: ERR=%s\n"), be.strerror());
   }
   return buf;
 }
@@ -209,7 +211,8 @@ void *brealloc (void *buf, size_t size)
 {
    buf = realloc(buf, size);
    if (buf == NULL) {
-      Emsg1(M_ABORT, 0, _("Out of memory: ERR=%s\n"), strerror(errno));
+      berrno be;
+      Emsg1(M_ABORT, 0, _("Out of memory: ERR=%s\n"), be.strerror());
    }
    return buf;
 }
@@ -221,7 +224,8 @@ void *bcalloc (size_t size1, size_t size2)
 
    buf = calloc(size1, size2);
    if (buf == NULL) {
-      Emsg1(M_ABORT, 0, _("Out of memory: ERR=%s\n"), strerror(errno));
+      berrno be;
+      Emsg1(M_ABORT, 0, _("Out of memory: ERR=%s\n"), be.strerror());
    }
    return buf;
 }
