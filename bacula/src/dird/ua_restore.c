@@ -496,7 +496,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
             return 0;
          }
          bsendmsg(ua, _("Enter file names with paths, or < to enter a filename\n"
-                        "containg a list of file names with paths, and terminate\n"
+                        "containing a list of file names with paths, and terminate\n"
                         "them with a blank line.\n"));
          for ( ;; ) {
             if (!get_cmd(ua, _("Enter full filename: "))) {
@@ -521,7 +521,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
             return 0;
          }
          bsendmsg(ua, _("Enter file names with paths, or < to enter a filename\n"
-                        "containg a list of file names with paths, and terminate\n"
+                        "containing a list of file names with paths, and terminate\n"
                         "them with a blank line.\n"));
          for ( ;; ) {
             if (!get_cmd(ua, _("Enter full filename: "))) {
@@ -575,7 +575,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
             return 0;
          }
          bsendmsg(ua, _("Enter full directory names or start the name\n"
-                        "with a < to indicate it is a filename containg a list\n"
+                        "with a < to indicate it is a filename containing a list\n"
                         "of directories and terminate them with a blank line.\n"));
          for ( ;; ) {
             if (!get_cmd(ua, _("Enter directory name: "))) {
