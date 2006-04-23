@@ -337,7 +337,7 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
 {
    struct s_job_del_ctx del;
    struct s_count_ctx cnt;
-   POOLMEM *query = (char *)get_pool_memory(PM_MESSAGE);
+   POOLMEM *query = get_pool_memory(PM_MESSAGE);
    int i;
    utime_t now, period;
    CLIENT_DBR cr;
@@ -472,7 +472,7 @@ bail_out:
  */
 int prune_volume(UAContext *ua, MEDIA_DBR *mr)
 {
-   POOLMEM *query = (char *)get_pool_memory(PM_MESSAGE);
+   POOLMEM *query = get_pool_memory(PM_MESSAGE);
    struct s_count_ctx cnt;
    struct s_file_del_ctx del;
    int i, stat = 0;
