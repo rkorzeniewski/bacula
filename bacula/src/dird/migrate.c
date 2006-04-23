@@ -43,6 +43,7 @@ static bool get_job_to_migrate(JCR *jcr);
 struct idpkt;
 static bool regex_find_jobids(JCR *jcr, idpkt *ids, const char *query1,
                  const char *query2, const char *type);
+static void start_migration_job(JCR *jcr);
 
 /* 
  * Called here before the job is run to do the job
@@ -449,8 +450,9 @@ static bool get_job_to_migrate(JCR *jcr)
    ids.count = 0;
 
    if (jcr->MigrateJobId != 0) {
-      jcr->previous_jr.JobId = jcr->MigrateJobId;
       Dmsg1(000, "previous jobid=%u\n", jcr->MigrateJobId);
+      edit_uint64(jcr->MigrateJobId, ids.list);
+      ids.count = 1;
    } else {
       switch (jcr->job->selection_type) {
       case MT_JOB:
@@ -513,6 +515,8 @@ static bool get_job_to_migrate(JCR *jcr)
    JobId = 0;
    stat = get_next_jobid_from_list(&p, &JobId);
    Dmsg2(000, "get_next_jobid stat=%d JobId=%u\n", stat, JobId);
+   jcr->MigrateJobId = JobId;
+   start_migration_job(jcr);
    if (stat < 0) {
       Jmsg(jcr, M_FATAL, 0, _("Invalid JobId found.\n"));
       goto bail_out;
@@ -522,7 +526,7 @@ static bool get_job_to_migrate(JCR *jcr)
    }
    
    jcr->previous_jr.JobId = JobId;
-   Dmsg1(000, "Last jobid=%d\n", jcr->previous_jr.JobId);
+   Dmsg1(000, "Previous jobid=%d\n", jcr->previous_jr.JobId);
 
    if (!db_get_job_record(jcr, jcr->db, &jcr->previous_jr)) {
       Jmsg(jcr, M_FATAL, 0, _("Could not get job record for JobId %s to migrate. ERR=%s"),
@@ -540,6 +544,25 @@ ok_out:
 bail_out:
    free_pool_memory(ids.list);
    return false;
+}
+
+static void start_migration_job(JCR *jcr)
+{
+   UAContext *ua = new_ua_context(jcr);
+   char ed1[50];
+   ua->batch = true;
+   Mmsg(ua->cmd, "run %s jobid=%s", jcr->job->hdr.name, 
+        edit_uint64(jcr->MigrateJobId, ed1));
+   Dmsg1(000, "=============== Migration cmd=%s\n", ua->cmd);
+   parse_ua_args(ua);                 /* parse command */
+// int stat = run_cmd(ua, ua->cmd);
+   int stat = (int)jcr->MigrateJobId;
+   if (stat == 0) {
+      Jmsg(jcr, M_ERROR, 0, _("Could not start migration job.\n"));
+   } else {
+      Jmsg(jcr, M_INFO, 0, _("Migration JobId %d started.\n"), stat);
+   }
+   free_ua_context(ua);
 }
 
 

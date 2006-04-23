@@ -88,6 +88,8 @@ minutes).
 
 [ possibly a Python event -- kes ]
 ===
+- run_cmd() returns int should return JobId_t
+- get_next_jobid_from_list() returns int should return JobId_t
 - Document export LDFLAGS=-L/usr/lib64
 - Don't attempt to restore from "Disabled" Volumes.
 - Network error on Win32 should set Win32 error code.
