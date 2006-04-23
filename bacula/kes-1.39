@@ -2,6 +2,11 @@
                         Kern Sibbald
 
 General:
+23Apr06
+- Add 'Dir Status' button to the gnome console.
+- More work on migration.
+- Restore non-compatible base64 coding to permit compatibility.
+- Display heap stats in Storage daemon without debug level.
 22Apr06
 - Integrate most of the MinGW changes -- more to do.
 21Apr06
