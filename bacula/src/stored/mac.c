@@ -66,7 +66,7 @@ bool do_mac(JCR *jcr)
       Jmsg(jcr, M_FATAL, 0, _("Read and write devices not properly initialized.\n"));
       goto bail_out;
    }
-   Dmsg2(000, "read_dcr=%p write_dcr=%p\n", jcr->read_dcr, jcr->dcr);
+   Dmsg2(100, "read_dcr=%p write_dcr=%p\n", jcr->read_dcr, jcr->dcr);
 
 
    create_restore_volume_list(jcr);

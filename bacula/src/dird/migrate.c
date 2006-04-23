@@ -40,8 +40,8 @@
 
 static char OKbootstrap[] = "3000 OK bootstrap\n";
 static bool get_job_to_migrate(JCR *jcr);
-struct jobitems;
-static bool regex_find_jobids(JCR *jcr, jobitems *ji, const char *query1,
+struct idpkt;
+static bool regex_find_jobids(JCR *jcr, idpkt *ids, const char *query1,
                  const char *query2, const char *type);
 
 /* 
@@ -298,25 +298,26 @@ bool do_migration(JCR *jcr)
    return false;
 }
 
-struct jobitems {
-   POOLMEM *JobIds;
+struct idpkt {
+   POOLMEM *list;
    uint32_t count;
 };
 
 /*
- * Callback handler make list of JobIds
+ * Callback handler make list of DB Ids
  */
-static int jobid_handler(void *ctx, int num_fields, char **row)
+static int dbid_handler(void *ctx, int num_fields, char **row)
 {
-   jobitems *ji = (jobitems *)ctx;
+   idpkt *ids = (idpkt *)ctx;
 
-   if (ji->count == 0) {
-      ji->JobIds[0] = 0;
+   Dmsg3(000, "count=%d Ids=%p %s\n", ids->count, ids->list, ids->list);
+   if (ids->count == 0) {
+      ids->list[0] = 0;
    } else {
-      pm_strcat(ji->JobIds, ",");
+      pm_strcat(ids->list, ",");
    }
-   pm_strcat(ji->JobIds, row[0]);
-   ji->count++;
+   pm_strcat(ids->list, row[0]);
+   ids->count++;
    return 0;
 }
 
@@ -440,29 +441,31 @@ static bool get_job_to_migrate(JCR *jcr)
    JobId_t JobId;
    int stat;
    char *p;
-   jobitems ji;
+   idpkt ids;
 
-   ji.JobIds = get_pool_memory(PM_MESSAGE);
+   ids.list = get_pool_memory(PM_MESSAGE);
+   Dmsg1(000, "list=%p\n", ids.list);
+   ids.list[0] = 0;
+   ids.count = 0;
 
-   ji.count = 0;
    if (jcr->MigrateJobId != 0) {
       jcr->previous_jr.JobId = jcr->MigrateJobId;
       Dmsg1(000, "previous jobid=%u\n", jcr->MigrateJobId);
    } else {
       switch (jcr->job->selection_type) {
       case MT_JOB:
-         if (!regex_find_jobids(jcr, &ji, sql_job, sql_jobids_from_job, "Job")) {
+         if (!regex_find_jobids(jcr, &ids, sql_job, sql_jobids_from_job, "Job")) {
             goto bail_out;
          } 
          break;
       case MT_CLIENT:
-         if (!regex_find_jobids(jcr, &ji, sql_client, 
+         if (!regex_find_jobids(jcr, &ids, sql_client, 
               sql_jobids_from_client, "Client")) {
             goto bail_out;
          } 
          break;
       case MT_VOLUME:
-         if (!regex_find_jobids(jcr, &ji, sql_vol, 
+         if (!regex_find_jobids(jcr, &ids, sql_vol, 
              sql_jobids_from_vol, "Volume")) {
             goto bail_out;
          } 
@@ -474,7 +477,7 @@ static bool get_job_to_migrate(JCR *jcr)
          }
          Dmsg1(000, "SQL=%s\n", jcr->job->selection_pattern);
          if (!db_sql_query(jcr->db, jcr->job->selection_pattern,
-              jobid_handler, (void *)&ji)) {
+              dbid_handler, (void *)&ids)) {
             Jmsg(jcr, M_FATAL, 0,
                  _("SQL failed. ERR=%s\n"), db_strerror(jcr->db));
             goto bail_out;
@@ -506,7 +509,7 @@ static bool get_job_to_migrate(JCR *jcr)
       }
    }
 
-   p = ji.JobIds;
+   p = ids.list;
    JobId = 0;
    stat = get_next_jobid_from_list(&p, &JobId);
    Dmsg2(000, "get_next_jobid stat=%d JobId=%u\n", stat, JobId);
@@ -531,16 +534,16 @@ static bool get_job_to_migrate(JCR *jcr)
       jcr->previous_jr.JobId, jcr->previous_jr.Job);
 
 ok_out:
-   free_pool_memory(ji.JobIds);
+   free_pool_memory(ids.list);
    return true;
 
 bail_out:
-   free_pool_memory(ji.JobIds);
+   free_pool_memory(ids.list);
    return false;
 }
 
 
-static bool regex_find_jobids(JCR *jcr, jobitems *ji, const char *query1,
+static bool regex_find_jobids(JCR *jcr, idpkt *ids, const char *query1,
                  const char *query2, const char *type) {
    dlist *item_chain;
    uitem *item = NULL;
@@ -568,6 +571,7 @@ static bool regex_find_jobids(JCR *jcr, jobitems *ji, const char *query1,
    }
    /* Basic query for names */
    Mmsg(query, query1, jcr->pool->hdr.name);
+   Dmsg1(000, "query1=%s\n", query.c_str());
    if (!db_sql_query(jcr->db, query.c_str(), unique_name_handler, 
         (void *)item_chain)) {
       Jmsg(jcr, M_FATAL, 0,
@@ -602,23 +606,25 @@ static bool regex_find_jobids(JCR *jcr, jobitems *ji, const char *query1,
     *  that have been matched by the regex, so now we need
     *  to look up their jobids.
     */
-   ji->count = 0;
+   ids->count = 0;
    foreach_dlist(item, item_chain) {
       Dmsg1(000, "Got Job: %s\n", item->item);
       Mmsg(query, query2, item->item, jcr->pool->hdr.name);
-      if (!db_sql_query(jcr->db, query.c_str(), jobid_handler, (void *)&ji)) {
+      Dmsg1(000, "query2=%s\n", query.c_str());
+      if (!db_sql_query(jcr->db, query.c_str(), dbid_handler, (void *)ids)) {
          Jmsg(jcr, M_FATAL, 0,
               _("SQL failed. ERR=%s\n"), db_strerror(jcr->db));
          goto bail_out;
       }
    }
-   if (ji->count == 0) {
+   if (ids->count == 0) {
       Jmsg(jcr, M_INFO, 0, _("No %ss found to migrate.\n"), type);
-      ok = true;
    }
+   ok = true;
 bail_out:
-   Dmsg1(000, "Job Jobids=%s\n", ji->JobIds);
+   Dmsg2(000, "Count=%d Jobids=%s\n", ids->count, ids->list);
    delete item_chain;
+   Dmsg0(000, "After delete item_chain\n");
    return ok;
 }
 
@@ -630,6 +636,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
 {
    char sdt[MAX_TIME_LENGTH], edt[MAX_TIME_LENGTH];
    char ec1[30], ec2[30], ec3[30], ec4[30], ec5[30], elapsed[50];
+   char ec6[50], ec7[50], ec8[50];
    char term_code[100], sd_term_msg[100];
    const char *term_msg;
    int msg_type;
@@ -738,13 +745,11 @@ void migration_cleanup(JCR *jcr, int TermCode)
 
    jobstatus_to_ascii(jcr->SDJobStatus, sd_term_msg, sizeof(sd_term_msg));
 
-// bmicrosleep(15, 0);                /* for debugging SIGHUP */
-
    Jmsg(jcr, msg_type, 0, _("Bacula %s (%s): %s\n"
-"  Old Backup JobId:       %u\n"
-"  New Backup JobId:       %u\n"
-"  JobId:                  %u\n"
-"  Job:                    %s\n"
+"  Prev Backup JobId:      %s\n"
+"  New Backup JobId:       %s\n"
+"  Migration JobId:        %s\n"
+"  Migration Job:          %s\n"
 "  Backup Level:           %s%s\n"
 "  Client:                 %s\n"
 "  FileSet:                \"%s\" %s\n"
@@ -766,9 +771,9 @@ void migration_cleanup(JCR *jcr, int TermCode)
    VERSION,
    LSMDATE,
         edt, 
-        prev_jcr ? jcr->previous_jr.JobId : 0, 
-        prev_jcr ? prev_jcr->jr.JobId : 0,
-        jcr->jr.JobId,
+        prev_jcr ? edit_uint64(jcr->previous_jr.JobId, ec6) : "0", 
+        prev_jcr ? edit_uint64(prev_jcr->jr.JobId, ec7) : "0",
+        edit_uint64(jcr->jr.JobId, ec8),
         jcr->jr.Job,
         level_to_str(jcr->JobLevel), jcr->since,
         jcr->client->hdr.name,
@@ -791,10 +796,10 @@ void migration_cleanup(JCR *jcr, int TermCode)
         sd_term_msg,
         term_code);
 
-   Dmsg1(000, "migrate_cleanup() previous_jcr=0x%x\n", jcr->previous_jcr);
+   Dmsg1(100, "migrate_cleanup() previous_jcr=0x%x\n", jcr->previous_jcr);
    if (jcr->previous_jcr) {
-//    free_jcr(jcr->previous_jcr);
-//    jcr->previous_jcr = NULL;
+      free_jcr(jcr->previous_jcr);
+      jcr->previous_jcr = NULL;
    }
-   Dmsg0(000, "Leave migrate_cleanup()\n");
+   Dmsg0(100, "Leave migrate_cleanup()\n");
 }
