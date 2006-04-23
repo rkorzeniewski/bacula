@@ -704,3 +704,9 @@ on_restore_job_entry_changed(GtkEditable *editable, gpointer user_data)
    /* Set defaults that correspond to new job selection */
    set_restore_dialog_defaults();
 }
+
+void
+on_dir_button_clicked(GtkToolButton *toolbutton, gpointer user_data)
+{
+   write_director("status dir");
+}

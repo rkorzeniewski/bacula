@@ -23,7 +23,7 @@
 
 #include "bacula.h"
 
-const bool compatible = true;
+const bool compatible = false;
 
 #ifdef TEST_MODE
 #include <glob.h>

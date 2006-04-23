@@ -61,7 +61,7 @@ bool status_cmd(JCR *jcr)
    DEVICE *dev;
    BSOCK *user = jcr->dir_bsock;
    char dt[MAX_TIME_LENGTH];
-   char b1[30], b2[30], b3[30];
+   char b1[35], b2[35], b3[35], b4[35];
    int bpb;
 
    bnet_fsend(user, _("\n%s Version: %s (%s) %s %s %s\n"), my_name,
@@ -73,14 +73,11 @@ bool status_cmd(JCR *jcr)
    else {
       bnet_fsend(user, _("Daemon started %s, %d Jobs run since started.\n"), dt, num_jobs_run);
    }
-   if (debug_level > 0) {
-      char b1[35], b2[35], b3[35], b4[35];
-      bnet_fsend(user, _(" Heap: bytes=%s max_bytes=%s bufs=%s max_bufs=%s\n"),
-            edit_uint64_with_commas(sm_bytes, b1),
-            edit_uint64_with_commas(sm_max_bytes, b2),
-            edit_uint64_with_commas(sm_buffers, b3),
-            edit_uint64_with_commas(sm_max_buffers, b4));
-   }
+   bnet_fsend(user, _(" Heap: bytes=%s max_bytes=%s bufs=%s max_bufs=%s\n"),
+         edit_uint64_with_commas(sm_bytes, b1),
+         edit_uint64_with_commas(sm_max_bytes, b2),
+         edit_uint64_with_commas(sm_buffers, b3),
+         edit_uint64_with_commas(sm_max_buffers, b4));
 
    /*
     * List running jobs

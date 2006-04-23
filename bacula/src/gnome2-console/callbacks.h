@@ -340,3 +340,7 @@ on_select_files_button_clicked         (GtkButton       *button,
 void
 on_restore_cancel_clicked              (GtkButton       *button,
 					gpointer         user_data);
+
+void
+on_dir_button_clicked                  (GtkToolButton   *toolbutton,
+                                        gpointer         user_data);

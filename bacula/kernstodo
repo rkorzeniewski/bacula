@@ -49,6 +49,20 @@ pool specified.
 
 Here's how I'd define Migration Selection Types: 
 
+With Regexes:
+Client  -- Migrate data from selected client only. Migration Selection
+Pattern regexp provides pattern to select client names, eg ^FS00* makes
+all client names starting with FS00 eligible for migration. 
+
+Jobname -- Migration all jobs matching name. Migration Selection Pattern
+regexp provides pattern to select jobnames existing in pool. 
+
+Volume -- Migrate all data on specified volumes. Migration Selection
+Pattern regexp provides selection criteria for volumes to be migrated.
+Volumes must exist in pool to be eligible for migration. 
+
+
+With Regex optional:
 LowestUtil -- Identify the volume in the pool with the least data on it
 and empty it. No Migration Selection Pattern required. 
 
@@ -60,25 +74,17 @@ PoolOccupancy -- if pool occupancy exceeds <highmig>, migrate volumes
 <lowmig>. Pool highmig and lowmig values are in pool definition, no
 Migration Selection Pattern required.
 
-Client  -- Migrate data from selected client only. Migration Selection
-Pattern regexp provides pattern to select client names, eg ^FS00* makes
-all client names starting with FS00 eligible for migration. 
+
+No regex:
+SQLQuery -- Migrate all jobuids returned by the supplied SQL query.
+Migration Selection Pattern contains SQL query to execute; should return
+a list of 1 or more jobuids to migrate.
 
 PoolResidence -- Migrate data sitting in pool for longer than
 PoolResidence value in pool definition. Migration Selection Pattern
 optional; if specified, override value in pool definition (value in
 minutes). 
 
-Volume -- Migrate all data on specified volumes. Migration Selection
-Pattern regexp provides selection criteria for volumes to be migrated.
-Volumes must exist in pool to be eligible for migration. 
-
-Jobname -- Migration all jobs matching name. Migration Selection Pattern
-regexp provides pattern to select jobnames existing in pool. 
-
-SQLQuery -- Migrate all jobuids returned by the supplied SQL query.
-Migration Selection Pattern contains SQL query to execute; should return
-a list of 1 or more jobuids to migrate.
 
 [ possibly a Python event -- kes ]
 ===
