@@ -974,7 +974,7 @@ readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result)
 
       // copy unicode
       if (dp->valid_w) {
-         char szBuf[MAX_PATH_UTF8];
+         char szBuf[MAX_PATH_UTF8+1];
          wchar_2_UTF8(szBuf,dp->data_w.cFileName);
          dp->offset += copyin(*entry, szBuf);
       } else if (dp->valid_a) { // copy ansi (only 1 will be valid)
