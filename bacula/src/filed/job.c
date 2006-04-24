@@ -1190,8 +1190,14 @@ static int backup_cmd(JCR *jcr)
    int SDJobStatus;
    char ed1[50], ed2[50];
 
+   // capture state here, if client is backed up by multiple directors
+   // and one enables vss and the other does not then enable_vss can change
+   // between here and where its evaluated after the job completes.
+   BOOL bDoVSS = FALSE;
+
 #ifdef WIN32_VSS
-   if (g_pVSSClient && enable_vss)
+   bDoVSS = g_pVSSClient && enable_vss;
+   if (bDoVSS)
       /* Run only one at a time */
       P(vss_mutex);
 #endif
@@ -1246,7 +1252,7 @@ static int backup_cmd(JCR *jcr)
 
 #ifdef WIN32_VSS
    /* START VSS ON WIN 32 */
-   if (g_pVSSClient && enable_vss) {      
+   if (bDoVSS) {      
       if (g_pVSSClient->InitializeForBackup()) {   
         /* tell vss which drives to snapshot */   
         char szWinDriveLetters[27];   
@@ -1338,7 +1344,7 @@ cleanup:
 #ifdef WIN32_VSS
    /* STOP VSS ON WIN 32 */
    /* tell vss to close the backup session */
-   if (g_pVSSClient && enable_vss) {
+   if (bDoVSS) {
       if (g_pVSSClient->CloseBackup()) {             
          /* inform user about writer states */
          for (size_t i=0; i<g_pVSSClient->GetWriterCount(); i++) {
