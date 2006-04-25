@@ -3,6 +3,7 @@
 
 General:
 25Apr06
+- Write first cut of README.mingw32
 - Add back ua_label barcode fix from Rufolf Cejka.
 - Integrate the majority of the Mingw cross-tools submission
   made by Howard Thomson. Everything compiles, with zlib, openssl,
