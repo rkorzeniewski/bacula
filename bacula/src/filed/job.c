@@ -1190,12 +1190,12 @@ static int backup_cmd(JCR *jcr)
    int SDJobStatus;
    char ed1[50], ed2[50];
 
+#ifdef WIN32_VSS
    // capture state here, if client is backed up by multiple directors
    // and one enables vss and the other does not then enable_vss can change
    // between here and where its evaluated after the job completes.
-   BOOL bDoVSS = FALSE;
+   bool bDoVSS = false;
 
-#ifdef WIN32_VSS
    bDoVSS = g_pVSSClient && enable_vss;
    if (bDoVSS)
       /* Run only one at a time */
