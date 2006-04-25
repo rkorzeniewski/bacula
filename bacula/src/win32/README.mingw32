@@ -1,0 +1,84 @@
+
+This file documents building the Bacula Win32 FD using the cross-tool
+on a Linux (possibly other Unix) system.
+
+The basic directory structure you need to have is:
+  bacula                     top level directory -- any name 
+    bacula-source            top level Bacula source directory -- any name
+      src
+        win32                main directory where the Win32 FD is built.
+          compat             Bacula win32 emulation lib for Unix calls
+
+    dekpgs-win32             
+       pthreads              The POSIX pthreads library (third party)
+       zlib                  The zlib library (third party)
+       wx                    The wxWidgets library (third party)
+       openssl               The OpenSSL library (third party)
+
+    cross-tools              Cross compliation tools (gcc, g++, mingw, ...)
+       vss                   A copy of the Windows VSS directory
+         inc
+           ...
+         lib
+           ...
+
+depkgs-win32 is released in a separate .tar.gz file that contains the
+source for the above mentioned libraries needed to build the
+Win32 Bacula.  It can be found in the Source Forge Bacula project
+release section.  Docs is released as a separate tar file, which is
+created from the bacula CVS docs project (module).
+
+cross-tools is a directory that you create. There is a script, described
+below, that will download all the necessary files and build them. You need
+only run that script once, unless we move to a new version of the tools.
+In addition, you must download the Microsoft VSS libraries, install them
+on a Windows system. We are not allowed to distribute those files so you
+must do it yourself.  Normally the files will be installed in:
+
+   c:/Program Files/VSSSDK71
+
+you need only copy everything under that directory into cross-tools/vss.
+Note, only the inc and lib directories are needed (and I'm not even sure
+that the lib directory is needed).  
+
+Now, once you have the directory structure as defined above, you do
+the following once:
+
+  cd bacula/bacula-source
+  ./configure (any standard set of config options the exact ones   
+               are not important).
+  cd src/win32
+  ./build-win32-cross-tools
+
+The above only needs to be done once unless we change the cross-tools 
+version.  In general, you can run the script multiple times with no
+problem. For it to work, you must have a valid gcc compiler installed on
+your system as well as wget.  There may be other dependencies.
+
+After building the cross-tools, you can proceed to build the depkgs-win32 
+packages, which must use the cross-tools compiler. For the moment, this is
+under construction. In the end, you will do:
+ 
+   cd depkgs-win32
+   ./build-mingw32
+
+The above only needs to be done once as well as long as the cross-tools or
+depkgs-win32 versions do not change.
+
+Finally, to build the Win32 Bacula FD, do the following:
+
+   cd bacula-source/src/win32
+   make
+
+if all goes well, you will end with bacula-fd.exe and pthreadGCE.dll in
+the current directory.
+
+Items to be done:
+- Complete the automated build of depkgs-win32
+- Modify the Win32 build to turn on OpenSSL
+- Build the other Win32 tools (bsmtp, wx-console, bconsole, ...)
+
+
+
+
+    
