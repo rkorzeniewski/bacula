@@ -74,11 +74,7 @@ if all goes well, you will end with bacula-fd.exe and pthreadGCE.dll in
 the current directory.
 
 Items to be done:
+- Get VSS builds to work
 - Complete the automated build of depkgs-win32
 - Modify the Win32 build to turn on OpenSSL
 - Build the other Win32 tools (bsmtp, wx-console, bconsole, ...)
-
-
-
-
-    
