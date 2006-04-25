@@ -307,7 +307,7 @@ static int do_label(UAContext *ua, const char *cmd, int relabel)
    /* Look for one of the barcode keywords */
    if (!relabel && (i=find_arg_keyword(ua, barcode_keyword)) >= 0) {
       /* Now find the keyword in the list */
-      if ((j = find_arg(ua, barcode_keyword[i]))) {
+      if ((j = find_arg(ua, barcode_keyword[i])) > 0) {
          *ua->argk[j] = 0;      /* zap barcode keyword */
       }
       label_barcodes = true;

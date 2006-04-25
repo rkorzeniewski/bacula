@@ -3,6 +3,7 @@
 
 General:
 25Apr06
+- Fix barcode test, eliminate BOOL (doesn't exist on Linux).
 - Write first cut of README.mingw32
 - Add back ua_label barcode fix from Rufolf Cejka.
 - Integrate the majority of the Mingw cross-tools submission
