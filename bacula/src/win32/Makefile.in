@@ -24,7 +24,7 @@ INCLUDE_OPENSSL = -I$(CROSSTOOLS)/openssl/include
 
 LIB_MINGW = $(MINGW)/mingw32/lib
 LIB_PTHREADS = $(DEPKGS)/pthreads/pthreadGCE.dll
-#LIB_ZLIB = $(DEPKGS)/libz.a
+LIB_ZLIB = $(DEPKGS)/zlib/libz.a
 #LIB_SSL = $(DEPKGS)/openssl/libssl.a
 #LIB_CRYPTO = $(DEPKGS)/openssl/libcrypto.a
 
@@ -35,6 +35,7 @@ INCLUDES = \
 	$(INCLUDE_MINGW) \
 	$(INCLUDE_PTHREADS) \
 	$(INCLUDE_BACULA) \
+	$(INCLUDE_ZLIB) \
 	$(INCLUDE_ICONS)
 
 #	$(INCLUDE_VSS) \
@@ -43,11 +44,11 @@ INCLUDES = \
 
 HAVES = \
 	-DHAVE_MINGW \
+	-DHAVE_ZLIB_H \
+	-DHAVE_LIBZ \
 	-DHAVE_WIN32
 
 #	 -DWIN32_VSS \
-#	 -DHAVE_ZLIB_H \
-#	 -DHAVE_LIBZ \
 #	 -DHAVE_OPENSSL \
 #	 -DHAVE_TLS \
 	
