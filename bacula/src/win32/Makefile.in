@@ -23,7 +23,7 @@ INCLUDE_ICONS = -I ../filed/win32
 INCLUDE_OPENSSL = -I$(CROSSTOOLS)/openssl/include
 
 LIB_MINGW = $(MINGW)/mingw32/lib
-LIB_PTHREADS = $(DEPKGS)/pthreads/libpthreadGCE.a
+LIB_PTHREADS = $(DEPKGS)/pthreads/pthreadGCE.dll
 #LIB_ZLIB = $(DEPKGS)/libz.a
 #LIB_SSL = $(DEPKGS)/openssl/libssl.a
 #LIB_CRYPTO = $(DEPKGS)/openssl/libcrypto.a
@@ -177,7 +177,7 @@ wintray.o:	../filed/win32/wintray.cpp
 	$(CXX) -c ../filed/win32/wintray.cpp -o $(OBJDIR)/wintray.o
 
 winres.res:	../filed/win32/winres.rc
-	$(WINDRES) $(INCLUDE_ICONS) -o coff ../filed/win32/winres.rc -o $(OBJDIR)/winres.res
+	$(WINDRES) $(INCLUDE_ICONS) -O coff ../filed/win32/winres.rc -o $(OBJDIR)/winres.res
 #	$(WINDRES) --help
 #	mingw32-nm winres.res
 
@@ -249,6 +249,7 @@ LIB_OBJS = \
 	$(OBJDIR)/btimers.o \
 	$(OBJDIR)/cram-md5.o \
 	$(OBJDIR)/crc32.o \
+	$(OBJDIR)/crypto.o \
 	$(OBJDIR)/daemon.o \
 	$(OBJDIR)/dlist.o \
 	$(OBJDIR)/edit.o \
@@ -353,6 +354,9 @@ cram-md5.o:	../lib/cram-md5.c
 crc32.o:	../lib/crc32.c
 	$(CXX) -c ../lib/crc32.c -o $(OBJDIR)/crc32.o
 
+crypto.o:      ../lib/crypto.c
+	$(CXX) -c ../lib/crypto.c -o $(OBJDIR)/crypto.o
+
 daemon.o:	../lib/daemon.c
 	$(CXX) -c ../lib/daemon.c -o $(OBJDIR)/daemon.o
 
@@ -449,10 +453,12 @@ all: bacula-fd.exe
 
 clean:
 	rm -f $(OBJDIR)/*.o $(OBJDIR)/bacula-fd.exe $(OBJDIR)/winres.res
+	rm -f pthreadGCE.dll
 
 # Link the executable ...
 bacula-fd.exe: $(OBJS)
 	$(CXX) $(OBJS) $(LIBS) -o $(OBJDIR)/bacula-fd.exe
+	cp -f $(DEPKGS)/pthreads/pthreadGCE.dll .
 
 # TODO ...
 # Fix vss files: check for consistent levels of pointer indirection
