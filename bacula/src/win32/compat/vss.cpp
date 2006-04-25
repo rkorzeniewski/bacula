@@ -21,6 +21,7 @@
 // Created On      : Fri May 06 21:44:00 2005
 
 
+#ifdef WIN32_VSS
 #include <stdio.h>
 #include <basetsd.h>
 #include <stdarg.h>
@@ -31,9 +32,7 @@
 #include <windows.h>
 #include <wincon.h>
 #include <winbase.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #include <conio.h>
 #include <process.h>
 #include <errno.h>
@@ -55,10 +54,16 @@
 #include <fstream>
 using namespace std;   
 
-#ifndef HAVE_MINGW
-#include <atlcomcli.h>
+#ifdef HAVE_MINGW
+   
+//#include <atlcomcli.h>
+#include "ms_atl.h"
 #include <objbase.h>
 
+#else 
+
+#include <atlcomcli.h>
+#include <objbase.h>
 
 // Used for safe string manipulation
 #include <strsafe.h>
@@ -163,7 +168,7 @@ BOOL VSSClient::GetShadowPathW(const WCHAR *szFilePath, WCHAR *szShadowPath, int
    if (bIsValidName) {
       int nDriveIndex = towupper(szFilePath[0])-'A';
       if (m_szShadowCopyName[nDriveIndex][0] != 0) {
-         wcsncpy(szShadowPath, CA2W(m_szShadowCopyName[nDriveIndex]), nBuflen);
+//       wcsncpy(szShadowPath, CA2W(m_szShadowCopyName[nDriveIndex]), nBuflen);
          nBuflen -= (int)strlen(m_szShadowCopyName[nDriveIndex]);
          wcsncat(szShadowPath, szFilePath+2, nBuflen);
          return TRUE;
@@ -194,3 +199,4 @@ const int VSSClient::GetWriterState(size_t nIndex)
    vector<int>* pV = (vector<int>*) m_pVectorWriterStates;   
    return pV->at(nIndex);
 }
+#endif

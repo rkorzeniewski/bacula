@@ -4,7 +4,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -27,8 +27,13 @@
 #endif
 
 #ifdef WIN32
+#ifdef HAVE_MINGW
+#include "mingwconfig.h"
+#include "winhost.h"
+#else
 #include "winconfig.h"
 #include "winhost.h"
+#endif
 #else
 #include "config.h"
 #include "host.h"
@@ -93,7 +98,7 @@
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
 #endif
-#ifdef HAVE_WIN32
+#if defined(HAVE_WIN32) & !defined(HAVE_MINGW)
 #include <winsock2.h>
 #else
 #include <sys/stat.h>

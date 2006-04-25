@@ -1,3 +1,5 @@
+winres.res
+Makefile.vcpp
 install
 install-debug
 winbacula.nsi

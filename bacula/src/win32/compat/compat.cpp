@@ -287,7 +287,7 @@ wchar_2_UTF8(char *pszUTF, const WCHAR *pszUCS, int cchChar)
          return nRet;
       }
    else
-      return NULL;
+      return 0;
 }
 
 int
@@ -306,7 +306,7 @@ UTF8_2_wchar(POOLMEM **ppszUCS, const char *pszUTF)
       return nRet;
    }
    else
-      return NULL;
+      return 0;
 }
 
 

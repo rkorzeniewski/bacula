@@ -4,7 +4,7 @@
 // Copyright transferred from Raider Solutions, Inc to
 //   Kern Sibbald and John Walker by express permission.
 //
-// Copyright (C) 2004-2005 Kern Sibbald
+// Copyright (C) 2004-2006 Kern Sibbald
 //
 //   This program is free software; you can redistribute it and/or
 //   modify it under the terms of the GNU General Public License as
@@ -55,7 +55,6 @@
 #include <wincon.h>
 #include <winbase.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdarg.h>
 #include <conio.h>
 #include <process.h>
@@ -70,10 +69,7 @@
 #include <fcntl.h>
 #include <io.h>
 #include <lmcons.h>
-#if defined HAVE_MINGW
-#include <stdint.h>
-#include <sys/stat.h>
-#endif
+#include <dirent.h>
 
 #include "getopt.h"
 
@@ -148,6 +144,7 @@ typedef UINT32 mode_t;
 /* #ifndef _WX_DEFS_H_  ssize_t is defined in wx/defs.h */
 typedef INT64  ssize_t;
 /* #endif */
+
 #endif /* HAVE_MINGW */
 
 struct dirent {
@@ -156,8 +153,8 @@ struct dirent {
     uint16_t    d_reclen;
     char        d_name[256];
 };
-
 typedef void DIR;
+
 
 #ifndef __cplusplus
 #ifndef true

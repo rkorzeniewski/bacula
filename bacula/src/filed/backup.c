@@ -587,6 +587,8 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
       wbuf = jcr->compress_buf;    /* compressed output here */
       cipher_input = jcr->compress_buf; /* encrypt compressed data */
    }
+#else
+   const uint32_t max_compress_len = 0;
 #endif
 
    if (ff_pkt->flags & FO_ENCRYPT) {

@@ -8,6 +8,7 @@ cd ..
 TOP_DIR=`pwd`
 cd ${BUILD_DIR}
 AC_SUBST(BUILD_DIR)
+AC_SUBST(TOP_DIR)
 AC_CONFIG_AUX_DIR(${BUILD_DIR}/autoconf)
 AC_CONFIG_HEADER(src/config.h:autoconf/config.h.in)
 
@@ -1940,9 +1941,9 @@ AC_OUTPUT([autoconf/Make.common \
 	   scripts/bacula-tray-monitor.desktop \
 	   scripts/logwatch/Makefile \
 	   scripts/logwatch/logfile.bacula.conf \
-           scripts/wxconsole.console_apps \
-           scripts/wxconsole.desktop.consolehelper \
-           scripts/wxconsole.desktop.xsu \
+	   scripts/wxconsole.console_apps \
+	   scripts/wxconsole.desktop.consolehelper \
+	   scripts/wxconsole.desktop.xsu \
 	   src/Makefile \
 	   src/host.h \
 	   src/console/Makefile \
@@ -2008,6 +2009,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/win32/winbacula.nsi \
 	   src/win32/baculafd/bacula-fd.conf \
 	   src/win32/Makefile \
+	   src/win32/Makefile.vcpp \
 	   src/win32/console/bconsole.conf \
 	   src/win32/wx-console/wx-console.conf \
 	   src/win32/pebuilder/Makefile \
