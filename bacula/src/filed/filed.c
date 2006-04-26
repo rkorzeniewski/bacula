@@ -7,7 +7,7 @@
  *
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -36,15 +36,7 @@ static int check_resources();
 
 /* Exported variables */
 CLIENT *me;                           /* my resource */
-char OK_msg[]   = "2000 OK\n";
-char TERM_msg[] = "2999 Terminate\n";
 bool no_signals = false;
-
-#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
-const int win32_client = 1;
-#else
-const int win32_client = 0;
-#endif
 
 
 #define CONFIG_FILE "./bacula-fd.conf" /* default config file */

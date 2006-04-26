@@ -32,7 +32,7 @@ LIBSRCS = alloc.c attr.c base64.c berrno.c bsys.c bget_msg.c \
 	  res.c rwlock.c scan.c serial.c sha1.c \
 	  semlock.c signal.c smartall.c tls.c tree.c \
 	  util.c var.c watchdog.c workq.c btimers.c \
-	  address_conf.c pythonlib.c 
+	  address_conf.c pythonlib.c winapi.c
 
 
 LIBOBJS = alloc.o attr.o base64.o berrno.o bsys.o bget_msg.o \
@@ -45,7 +45,7 @@ LIBOBJS = alloc.o attr.o base64.o berrno.o bsys.o bget_msg.o \
 	  res.o rwlock.o scan.o serial.o sha1.o \
 	  semlock.o signal.o smartall.o tls.o tree.o \
 	  util.o var.o watchdog.o workq.o btimers.o \
-	  address_conf.o pythonlib.o
+	  address_conf.o pythonlib.o winapi.o
 
 
 EXTRAOBJS = @OBJLIST@

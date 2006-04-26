@@ -8,7 +8,7 @@
  *
  */
 /*
-   Copyright (C) 2001-2005 Kern Sibbald
+   Copyright (C) 2001-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -24,8 +24,8 @@
 
 #include "bacula.h"                   /* pull in global headers */
 
-extern char OK_msg[];
-extern char TERM_msg[];
+static char OK_msg[]   = "2000 OK\n";
+static char TERM_msg[] = "2999 Terminate\n";
 
 #define msglvl 500
 
