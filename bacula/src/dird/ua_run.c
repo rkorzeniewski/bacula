@@ -113,7 +113,7 @@ int run_cmd(UAContext *ua, const char *cmd)
       kw_ok = false;
       /* Keep looking until we find a good keyword */
       for (j=0; !kw_ok && kw[j]; j++) {
-         if (strcasecmp(ua->argk[i], _(kw[j])) == 0) {
+         if (strcasecmp(ua->argk[i], kw[j]) == 0) {
             /* Note, yes and run have no value, so do not fail */
             if (!ua->argv[i] && j != YES_POS /*yes*/) {
                bsendmsg(ua, _("Value missing for keyword %s\n"), ua->argk[i]);

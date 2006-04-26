@@ -71,7 +71,7 @@ int find_arg_keyword(UAContext *ua, const char **list)
 {
    for (int i=1; i<ua->argc; i++) {
       for(int j=0; list[j]; j++) {
-         if (strcasecmp(_(list[j]), ua->argk[i]) == 0) {
+         if (strcasecmp(list[j], ua->argk[i]) == 0) {
             return j;
          }
       }
@@ -190,7 +190,7 @@ CAT *get_catalog_resource(UAContext *ua)
    int i;
 
    for (i=1; i<ua->argc; i++) {
-      if (strcasecmp(ua->argk[i], _("catalog")) == 0 && ua->argv[i]) {
+      if (strcasecmp(ua->argk[i], NT_("catalog")) == 0 && ua->argv[i]) {
          if (acl_access_ok(ua, Catalog_ACL, ua->argv[i])) {
             catalog = (CAT *)GetResWithName(R_CATALOG, ua->argv[i]);
             break;
@@ -334,8 +334,8 @@ int get_client_dbr(UAContext *ua, CLIENT_DBR *cr)
       bsendmsg(ua, _("Could not find Client %s: ERR=%s"), cr->Name, db_strerror(ua->db));
    }
    for (i=1; i<ua->argc; i++) {
-      if ((strcasecmp(ua->argk[i], _("client")) == 0 ||
-           strcasecmp(ua->argk[i], _("fd")) == 0) && ua->argv[i]) {
+      if ((strcasecmp(ua->argk[i], NT_("client")) == 0 ||
+           strcasecmp(ua->argk[i], NT_("fd")) == 0) && ua->argv[i]) {
          if (!acl_access_ok(ua, Client_ACL, ua->argv[i])) {
             break;
          }
