@@ -3,6 +3,7 @@
 
 General:
 26Apr06
+- Fix bug in build-win32-cross-tools script reported by Howard
 - Implement cross compiled bconsole
 25Apr06
 - Fix barcode test, eliminate BOOL (doesn't exist on Linux).
