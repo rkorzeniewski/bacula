@@ -26,6 +26,8 @@
 
 #include "winapi.h"
 
+int win32_client = 1;
+
 #ifdef WIN32_VSS
 #include "vss.h"   
 #endif
@@ -243,5 +245,10 @@ InitWinAPIWrapper()
    }
 #endif /* WIN32_VSS */
 }
+
+#else
+
+/* Not Windows */
+int win32_client = 0;
 
 #endif

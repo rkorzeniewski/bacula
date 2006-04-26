@@ -7,7 +7,7 @@
  *
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -50,6 +50,7 @@ int console_msg_pending = 0;
 char con_fname[500];                  /* Console filename */
 FILE *con_fd = NULL;                  /* Console file descriptor */
 brwlock_t con_lock;                   /* Console lock structure */
+
 
 #ifdef HAVE_POSTGRESQL
 char catalog_db[] = "PostgreSQL";

@@ -119,15 +119,15 @@ verify_vol.o:	../filed/verify_vol.c
 
 ######################################################################
 
-# Files in win32/compat
+# Files in src/win32/compat
 
 OBJS_COMPAT = \
-		$(OBJDIR)/print.o \
-		$(OBJDIR)/compat.o \
-		$(OBJDIR)/getopt.o \
-		$(OBJDIR)/vss.o \
-		$(OBJDIR)/vss_xp.o \
-		$(OBJDIR)/vss_w2k3.o \
+	$(OBJDIR)/print.o \
+	$(OBJDIR)/compat.o \
+	$(OBJDIR)/getopt.o \
+	$(OBJDIR)/vss.o \
+	$(OBJDIR)/vss_xp.o \
+	$(OBJDIR)/vss_w2k3.o \
 
 compat.o:	./compat/compat.cpp
 	$(CXX) -c ./compat/compat.cpp -o $(OBJDIR)/compat.o
@@ -230,7 +230,7 @@ save-cwd.o:	../findlib/save-cwd.c
 
 ######################################################################
 
-# Files in src/win32/lib, based on files in src/lib
+# Files files in src/lib
 
 LIB_OBJS = \
 	$(OBJDIR)/address_conf.o \
@@ -281,24 +281,6 @@ LIB_OBJS = \
 	$(OBJDIR)/scan.o \
 	$(OBJDIR)/tree.o \
 	$(OBJDIR)/util.o \
-
-OBJS = $(LIB_OBJS) $(OBJS_COMPAT) $(OBJS_WIN) $(OBJS_FINDLIB) $(OBJS_FILED)
-
-LIBS = \
-	-L$(LIB_MINGW) \
-	$(LIB_PTHREADS) \
-	$(LIB_SSL) \
-	$(LIB_CRYPTO) \
-	$(LIB_ZLIB) \
-	$(LIB_MINGW)/libole32.a \
-	$(LIB_MINGW)/liboleaut32.a \
-	$(LIB_MINGW)/libuser32.a \
-	$(LIB_MINGW)/libadvapi32.a \
-	$(LIB_MINGW)/libgdi32.a \
-	$(LIB_MINGW)/libwsock32.a \
-	$(LIB_MINGW)/libshell32.a \
-	$(LIB_MINGW)/libnetapi32.a \
-	$(LIB_MINGW)/libuuid.a
 
 #
 # Rules for generating from ../lib
@@ -448,18 +430,84 @@ winapi.o:	../lib/winapi.c
 workq.o:	../lib/workq.c
 	$(CXX) -c ../lib/workq.c -o $(OBJDIR)/workq.o
 
+
+######################################################################
+
+# Files in src/console
+OBJS_CONSOLE = \
+	$(OBJDIR)/cons_authenticate.o \
+	$(OBJDIR)/console.o \
+	$(OBJDIR)/console_conf.o
+
+cons_authenticate.o:  ../console/authenticate.c
+	$(CXX) -I../src/console -c ../console/authenticate.c -o $(OBJDIR)/cons_authenticate.o
+
+console.o:  ../console/console.c
+	$(CXX) -I../src/console -c ../console/console.c -o $(OBJDIR)/console.o
+
+console_conf.o:  ../console/console_conf.c
+	$(CXX) -I../src/console -c ../console/console_conf.c -o $(OBJDIR)/console_conf.o
+
+######################################################################
+
+
+FD_OBJS = $(LIB_OBJS) $(OBJS_COMPAT) $(OBJS_WIN) $(OBJS_FINDLIB) $(OBJS_FILED)
+
+FD_LIBS = \
+	-L$(LIB_MINGW) \
+	$(LIB_PTHREADS) \
+	$(LIB_SSL) \
+	$(LIB_CRYPTO) \
+	$(LIB_ZLIB) \
+	$(LIB_MINGW)/libole32.a \
+	$(LIB_MINGW)/liboleaut32.a \
+	$(LIB_MINGW)/libuser32.a \
+	$(LIB_MINGW)/libadvapi32.a \
+	$(LIB_MINGW)/libgdi32.a \
+	$(LIB_MINGW)/libwsock32.a \
+	$(LIB_MINGW)/libshell32.a \
+	$(LIB_MINGW)/libnetapi32.a \
+	$(LIB_MINGW)/libuuid.a
+
+CONS_OBJS = $(LIB_OBJS) $(OBJS_COMPAT) $(OBJS_CONSOLE)
+
+CONS_LIBS = \
+	-L$(LIB_MINGW) \
+	$(LIB_PTHREADS) \
+	$(LIB_SSL) \
+	$(LIB_CRYPTO) \
+	$(LIB_MINGW)/libole32.a \
+	$(LIB_MINGW)/liboleaut32.a \
+	$(LIB_MINGW)/libuser32.a \
+	$(LIB_MINGW)/libadvapi32.a \
+	$(LIB_MINGW)/libgdi32.a \
+	$(LIB_MINGW)/libwsock32.a \
+	$(LIB_MINGW)/libshell32.a \
+	$(LIB_MINGW)/libnetapi32.a \
+	$(LIB_MINGW)/libuuid.a
+
+
+
 # Targets
 
-all: bacula-fd.exe
+all: bacula-fd.exe bconsole.exe
 
 clean:
 	rm -f $(OBJDIR)/*.o $(OBJDIR)/bacula-fd.exe $(OBJDIR)/winres.res
-	rm -f pthreadGCE.dll
+	rm -f pthreadGCE.dll $(OBJDIR)/bconsole.exe
 
-# Link the executable ...
-bacula-fd.exe: $(OBJS)
-	$(CXX) $(OBJS) $(LIBS) -o $(OBJDIR)/bacula-fd.exe
+# Link the File daemon executable ...
+bacula-fd.exe: $(FD_OBJS)
+	$(CXX) $(FD_OBJS) $(FD_LIBS) -o $(OBJDIR)/bacula-fd.exe
 	cp -f $(DEPKGS)/pthreads/pthreadGCE.dll .
+
+# Link the File daemon executable ...
+bconsole.exe: $(CONS_OBJS)
+	$(CXX) $(CONS_OBJS) $(CONS_LIBS) -o $(OBJDIR)/bconsole.exe
+	cp -f $(DEPKGS)/pthreads/pthreadGCE.dll .
+
+
+
 
 # TODO ...
 # Fix vss files: check for consistent levels of pointer indirection

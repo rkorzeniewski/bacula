@@ -7,7 +7,7 @@
  *     Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -52,9 +52,6 @@ extern int rl_catch_signals;
 
 /* Imported functions */
 int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons);
-
-/* Dummy functions */
-int generate_daemon_event(JCR *jcr, const char *event) { return 1; }
 
 /* Forward referenced functions */
 static void terminate_console(int sig);
