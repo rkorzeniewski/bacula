@@ -82,7 +82,7 @@ OBJS_FILED = \
 	$(OBJDIR)/restore.o \
 	$(OBJDIR)/status.o \
 	$(OBJDIR)/verify.o \
-	$(OBJDIR)/verify_vol.o \
+	$(OBJDIR)/verify_vol.o
 
 authenticate.o: ../filed/authenticate.c
 	$(CXX) -c ../filed/authenticate.c -o $(OBJDIR)/authenticate.o
@@ -127,7 +127,7 @@ OBJS_COMPAT = \
 	$(OBJDIR)/getopt.o \
 	$(OBJDIR)/vss.o \
 	$(OBJDIR)/vss_xp.o \
-	$(OBJDIR)/vss_w2k3.o \
+	$(OBJDIR)/vss_w2k3.o
 
 compat.o:	./compat/compat.cpp
 	$(CXX) -c ./compat/compat.cpp -o $(OBJDIR)/compat.o
@@ -280,7 +280,7 @@ LIB_OBJS = \
 	$(OBJDIR)/workq.o \
 	$(OBJDIR)/scan.o \
 	$(OBJDIR)/tree.o \
-	$(OBJDIR)/util.o \
+	$(OBJDIR)/util.o
 
 #
 # Rules for generating from ../lib
