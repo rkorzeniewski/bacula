@@ -65,6 +65,9 @@ PREFIX=${BUILDDIR}/${TARGET}
 mkdir -p ${BUILDDIR}
 mkdir -p ${BUILDDIR}/${TARGET}
 
+echo "Building cross tools in ${BUILDDIR} ..."
+echo " "
+
 # Purge anything and everything already in the $PREFIX
 #(also known as the destination or installation) directory?
 # Set to "Y" to purge, any other value omits the purge step.
