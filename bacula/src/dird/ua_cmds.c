@@ -153,9 +153,9 @@ int do_a_command(UAContext *ua, const char *cmd)
 
    len = strlen(ua->argk[0]);
    for (i=0; i<comsize; i++) {     /* search for command */
-      if (strncasecmp(ua->argk[0],  _(commands[i].key), len) == 0) {
+      if (strncasecmp(ua->argk[0],  commands[i].key, len) == 0) {
          /* Check if command permitted, but "quit" is always OK */
-         if (strcmp(ua->argk[0], "quit") != 0 &&
+         if (strcmp(ua->argk[0], NT_("quit")) != 0 &&
              !acl_access_ok(ua, Command_ACL, ua->argk[0], len)) {
             break;
          }
@@ -178,7 +178,7 @@ int do_a_command(UAContext *ua, const char *cmd)
 void set_pool_dbr_defaults_in_media_dbr(MEDIA_DBR *mr, POOL_DBR *pr)
 {
    mr->PoolId = pr->PoolId;
-   bstrncpy(mr->VolStatus, "Append", sizeof(mr->VolStatus));
+   bstrncpy(mr->VolStatus, NT_("Append"), sizeof(mr->VolStatus));
    mr->Recycle = pr->Recycle;
    mr->VolRetention = pr->VolRetention;
    mr->VolUseDuration = pr->VolUseDuration;
@@ -355,7 +355,7 @@ int automount_cmd(UAContext *ua, const char *cmd)
       onoff = ua->argk[1];
    }
 
-   ua->automount = (strcasecmp(onoff, _("off")) == 0) ? 0 : 1;
+   ua->automount = (strcasecmp(onoff, NT_("off")) == 0) ? 0 : 1;
    return 1;
 }
 
@@ -375,7 +375,7 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
    }
 
    for (i=1; i<ua->argc; i++) {
-      if (strcasecmp(ua->argk[i], _("jobid")) == 0) {
+      if (strcasecmp(ua->argk[i], NT_("jobid")) == 0) {
          uint32_t JobId;
          if (!ua->argv[i]) {
             break;
@@ -386,7 +386,7 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
             return 1;
          }
          break;
-      } else if (strcasecmp(ua->argk[i], _("job")) == 0) {
+      } else if (strcasecmp(ua->argk[i], NT_("job")) == 0) {
          if (!ua->argv[i]) {
             break;
          }
@@ -396,7 +396,7 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
             bstrncpy(jcr->Job, ua->argv[i], sizeof(jcr->Job));
          }
          break;
-      } else if (strcasecmp(ua->argk[i], _("ujobid")) == 0) {
+      } else if (strcasecmp(ua->argk[i], NT_("ujobid")) == 0) {
          if (!ua->argv[i]) {
             break;
          }
@@ -578,7 +578,7 @@ extern DIRRES *director;
  */
 static int python_cmd(UAContext *ua, const char *cmd)
 {
-   if (ua->argc >= 1 && strcasecmp(ua->argk[1], _("restart")) == 0) {
+   if (ua->argc >= 1 && strcasecmp(ua->argk[1], NT_("restart")) == 0) {
       term_python_interpreter();
       init_python_interpreter(director->hdr.name, 
          director->scripts_directory, "DirStartUp");
@@ -863,9 +863,9 @@ static int setdebug_cmd(UAContext *ua, const char *cmd)
          }
       }
 
-      if (strcasecmp(ua->argk[i], "store") == 0 ||
-          strcasecmp(ua->argk[i], "storage") == 0 ||
-          strcasecmp(ua->argk[i], "sd") == 0) {
+      if (strcasecmp(ua->argk[i], NT_("store")) == 0 ||
+          strcasecmp(ua->argk[i], NT_("storage")) == 0 ||
+          strcasecmp(ua->argk[i], NT_("sd")) == 0) {
          store = NULL;
          if (ua->argv[i]) {
             store = (STORE *)GetResWithName(R_STORAGE, ua->argv[i]);
@@ -886,10 +886,10 @@ static int setdebug_cmd(UAContext *ua, const char *cmd)
     * prompt the user.
     */
    start_prompt(ua, _("Available daemons are: \n"));
-   add_prompt(ua, "Director");
-   add_prompt(ua, "Storage");
-   add_prompt(ua, "Client");
-   add_prompt(ua, "All");
+   add_prompt(ua, _("Director"));
+   add_prompt(ua, _("Storage"));
+   add_prompt(ua, _("Client"));
+   add_prompt(ua, _("All"));
    switch(do_prompt(ua, "", _("Select daemon type to set debug level"), NULL, 0)) {
    case 0:                         /* Director */
       debug_level = level;
@@ -932,7 +932,7 @@ static int trace_cmd(UAContext *ua, const char *cmd)
       onoff = ua->argk[1];
    }
 
-   set_trace((strcasecmp(onoff, _("off")) == 0) ? false : true);
+   set_trace((strcasecmp(onoff, NT_("off")) == 0) ? false : true);
    return 1;
 
 }
@@ -969,30 +969,30 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
 
    jcr->JobLevel = L_FULL;
    for (int i=1; i<ua->argc; i++) {
-      if (strcasecmp(ua->argk[i], "client") == 0 ||
-          strcasecmp(ua->argk[i], "fd") == 0) {
+      if (strcasecmp(ua->argk[i], NT_("client")) == 0 ||
+          strcasecmp(ua->argk[i], NT_("fd")) == 0) {
          if (ua->argv[i]) {
             client = (CLIENT *)GetResWithName(R_CLIENT, ua->argv[i]);
             continue;
          }
       }
-      if (strcasecmp(ua->argk[i], "job") == 0) {
+      if (strcasecmp(ua->argk[i], NT_("job")) == 0) {
          if (ua->argv[i]) {
             job = (JOB *)GetResWithName(R_JOB, ua->argv[i]);
             continue;
          }
       }
-      if (strcasecmp(ua->argk[i], "fileset") == 0) {
+      if (strcasecmp(ua->argk[i], NT_("fileset")) == 0) {
          if (ua->argv[i]) {
             fileset = (FILESET *)GetResWithName(R_FILESET, ua->argv[i]);
             continue;
          }
       }
-      if (strcasecmp(ua->argk[i], "listing") == 0) {
+      if (strcasecmp(ua->argk[i], NT_("listing")) == 0) {
          listing = 1;
          continue;
       }
-      if (strcasecmp(ua->argk[i], "level") == 0) {
+      if (strcasecmp(ua->argk[i], NT_("level")) == 0) {
          if (!get_level_from_name(ua->jcr, ua->argv[i])) {
             bsendmsg(ua, _("Level %s not valid.\n"), ua->argv[i]);
          }
@@ -1574,7 +1574,7 @@ int qhelp_cmd(UAContext *ua, const char *cmd)
    unsigned int i;
 
    for (i=0; i<comsize; i++) {
-      bsendmsg(ua, "%s %s\n", _(commands[i].key), _(commands[i].help));
+      bsendmsg(ua, "%s %s\n", commands[i].key, _(commands[i].help));
    }
    return 1;
 }

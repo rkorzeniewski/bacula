@@ -343,25 +343,35 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
  */
 static int separate_path_and_file(JCR *jcr, char *fname, char *ofile)
 {
-   char *f, *p;
+   char *f, *p, *q;
    int fnl, pnl;
 
    /* Separate pathname and filename */
-   for (p=f=ofile; *p; p++) {
+   for (q=p=f=ofile; *p; p++) {
       if (*p == '/') {
-         f = p;                    /* possible filename */
+         f = q;                    /* possible filename */
       }
+#ifdef HAVE_WIN32
+      if (*p == '\\') {            /* strip backslashes on Win32 */
+         continue;
+      }
+      *q++ = *p;                   /* copy data */
+#else
+      q++;
+#endif
    }
+
    if (*f == '/') {
       f++;
    }
+   *q = 0;                         /* terminate string */
 
-   fnl = p - f;
+   fnl = q - f;
    if (fnl == 0) {
       /* The filename length must not be zero here because we
        *  are dealing with a file (i.e. FT_REGE or FT_REG).
        */
-      Qmsg1(jcr, M_ERROR, 0, _("Zero length filename: %s\n"), fname);
+      Jmsg1(jcr, M_ERROR, 0, _("Zero length filename: %s\n"), fname);
       return -1;
    }
    pnl = f - ofile - 1;
@@ -380,7 +390,7 @@ static int path_already_seen(JCR *jcr, char *path, int pnl)
    if (jcr->cached_pnl == pnl && strcmp(path, jcr->cached_path) == 0) {
       return 1;
    }
-   pm_strcpy(&jcr->cached_path, path);
+   pm_strcpy(jcr->cached_path, path);
    jcr->cached_pnl = pnl;
    return 0;
 }
