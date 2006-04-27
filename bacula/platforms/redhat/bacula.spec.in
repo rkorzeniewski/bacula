@@ -8,12 +8,16 @@
 %define depkgs_version 28Mar06
 %define sqlite_bindir /usr/lib/bacula/sqlite
 %define working_dir /var/bacula
+
+# NOTE these defines are used in some rather complex useradd and groupadd
+# commands. If you change them examine the post scripts for consequences.
 %define director_daemon_user bacula
 %define storage_daemon_user bacula
 %define file_daemon_user root
 %define daemon_group bacula
 # group that has write access to tape devices, usually disk on Linux
 %define storage_daemon_group disk
+
 %define user_file /etc/passwd
 %define group_file /etc/group
 %define useradd /usr/sbin/useradd
@@ -1078,19 +1082,19 @@ fi
 # this will be a unique group on redhat type systems or the group users on some systems
 HAVE_BACULA=`grep %{storage_daemon_user} %{user_file} 2>/dev/null`
 if [ -z "$HAVE_BACULA" ]; then
-        %{useradd} -r -c "Bacula" -d %{working_dir} -M -s /sbin/nologin %{storage_daemon_user} > /dev/null 2>&1
+        %{useradd} -r -c "Bacula" -d %{working_dir} -g %{storage_daemon_group} -M -s /sbin/nologin %{storage_daemon_user} > /dev/null 2>&1
         echo "The user %{storage_daemon_user} has been added to %{user_file}."
         echo "See the manual chapter \"Running Bacula\" for details."
 fi
 HAVE_BACULA=`grep %{director_daemon_user} %{user_file} 2>/dev/null`
 if [ -z "$HAVE_BACULA" ]; then
-        %{useradd} -r -c "Bacula" -d %{working_dir} -M -s /sbin/nologin %{director_daemon_user} > /dev/null 2>&1
+        %{useradd} -r -c "Bacula" -d %{working_dir} -g %{daemon_group} -M -s /sbin/nologin %{director_daemon_user} > /dev/null 2>&1
         echo "The user %{director_daemon_user} has been added to %{user_file}."
         echo "See the manual chapter \"Running Bacula\" for details."
 fi
 HAVE_BACULA=`grep %{file_daemon_user} %{user_file} 2>/dev/null`
 if [ -z "$HAVE_BACULA" ]; then
-        %{useradd} -r -c "Bacula" -d %{working_dir} -M -s /sbin/nologin %{file_daemon_user} > /dev/null 2>&1
+        %{useradd} -r -c "Bacula" -d %{working_dir} -g %{daemon_group} -M -s /sbin/nologin %{file_daemon_user} > /dev/null 2>&1
         echo "The user %{file_daemon_user} has been added to %{user_file}."
         echo "See the manual chapter \"Running Bacula\" for details."
 fi
@@ -1280,7 +1284,7 @@ fi
 # this will be a unique group on redhat type systems or the group users on some systems
 HAVE_BACULA=`grep %{file_daemon_user} %{user_file} 2>/dev/null`
 if [ -z "$HAVE_BACULA" ]; then
-        %{useradd} -r -c "Bacula" -d %{working_dir} -M -s /sbin/nologin %{file_daemon_user} > /dev/null 2>&1
+        %{useradd} -r -c "Bacula" -d %{working_dir} -g %{daemon_group} -M -s /sbin/nologin %{file_daemon_user} > /dev/null 2>&1
         echo "The user %{file_daemon_user} has been added to %{user_file}."
         echo "See the manual chapter \"Running Bacula\" for details."
 fi
@@ -1431,6 +1435,8 @@ fi
 %endif
 
 %changelog
+* Thu Apr 27 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- add -g param back to useradd statements Bug 605
 * Mon Apr 17 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - redundant code cleanup
 * Sun Apr 16 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
