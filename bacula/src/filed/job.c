@@ -1266,7 +1266,7 @@ static int backup_cmd(JCR *jcr)
                size_t i;
                for (i=0; i<strlen (szWinDriveLetters); i++) {
                   if (islower(szWinDriveLetters[i])) {
-                     Jmsg(jcr, M_WARNING, 0, _("Generate VSS snapshot of drive \"%c:\\\" failed\n"), szWinDriveLetters[i]);
+                     Jmsg(jcr, M_WARNING, 0, _("Generate VSS snapshot of drive \"%c:\\\" failed. VSS support is disabled on this drive.\n"), szWinDriveLetters[i]);
                      jcr->Errors++;
                   }
                }
