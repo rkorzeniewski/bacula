@@ -127,6 +127,30 @@ void do_restore(JCR *jcr)
    }
    jcr->buf_size = sd->msglen;
 
+#ifdef stbernard_implemented
+/  #if defined(HAVE_WIN32)
+   bool        bResumeOfmOnExit = FALSE;
+   if (isOpenFileManagerRunning()) {
+       if ( pauseOpenFileManager() ) {
+          Jmsg(jcr, M_INFO, 0, _("Open File Manager paused\n") );
+          bResumeOfmOnExit = TRUE;
+       }
+       else {
+          Jmsg(jcr, M_ERROR, 0, _("FAILED to pause Open File Manager\n") );
+       }
+   }
+   {
+       char username[UNLEN+1];
+       DWORD usize = sizeof(username);
+       int privs = enable_backup_privileges(NULL, 1);
+       if (GetUserName(username, &usize)) {
+          Jmsg2(jcr, M_INFO, 0, _("Running as '%s'. Privmask=%#08x\n"), username,
+       } else {
+          Jmsg(jcr, M_WARNING, 0, _("Failed to retrieve current UserName\n"));
+       }
+   }
+#endif
+
 #ifdef HAVE_LIBZ
    uint32_t compress_buf_size = jcr->buf_size + 12 + ((jcr->buf_size+999) / 1000) + 100;
    jcr->compress_buf = (char *)bmalloc(compress_buf_size);

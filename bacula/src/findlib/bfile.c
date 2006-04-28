@@ -397,26 +397,24 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
          dwflags = 0;
       }
 
-   // unicode or ansii open for create write
-   if (p_CreateFileW && p_MultiByteToWideChar) {   
-      bfd->fh = p_CreateFileW((LPCWSTR)win32_fname_wchar,
-             dwaccess,                /* Requested access */
-             0,                       /* Shared mode */
-             NULL,                    /* SecurityAttributes */
-             CREATE_ALWAYS,           /* CreationDisposition */
-             dwflags,                 /* Flags and attributes */
-             NULL);                   /* TemplateFile */
-   }
-   else {
-      bfd->fh = p_CreateFileA(win32_fname,
-             dwaccess,                /* Requested access */
-             0,                       /* Shared mode */
-             NULL,                    /* SecurityAttributes */
-             CREATE_ALWAYS,           /* CreationDisposition */
-             dwflags,                 /* Flags and attributes */
-             NULL);                   /* TemplateFile */
-   }
-
+      // unicode or ansii open for create write
+      if (p_CreateFileW && p_MultiByteToWideChar) {   
+         bfd->fh = p_CreateFileW((LPCWSTR)win32_fname_wchar,
+                dwaccess,                /* Requested access */
+                0,                       /* Shared mode */
+                NULL,                    /* SecurityAttributes */
+                CREATE_ALWAYS,           /* CreationDisposition */
+                dwflags,                 /* Flags and attributes */
+                NULL);                   /* TemplateFile */
+      } else {
+         bfd->fh = p_CreateFileA(win32_fname,
+                dwaccess,                /* Requested access */
+                0,                       /* Shared mode */
+                NULL,                    /* SecurityAttributes */
+                CREATE_ALWAYS,           /* CreationDisposition */
+                dwflags,                 /* Flags and attributes */
+                NULL);                   /* TemplateFile */
+      }
 
       bfd->mode = BF_WRITE;
 
@@ -429,26 +427,25 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
          dwflags = 0;
       }
 
-   // unicode or ansii open for open existing write
-   if (p_CreateFileW && p_MultiByteToWideChar) {   
-      bfd->fh = p_CreateFileW((LPCWSTR)win32_fname_wchar,
-             dwaccess,                /* Requested access */
-             0,                       /* Shared mode */
-             NULL,                    /* SecurityAttributes */
-             OPEN_EXISTING,           /* CreationDisposition */
-             dwflags,                 /* Flags and attributes */
-             NULL);                   /* TemplateFile */
-   }
-   else {
-      bfd->fh = p_CreateFileA(win32_fname,
-             dwaccess,                /* Requested access */
-             0,                       /* Shared mode */
-             NULL,                    /* SecurityAttributes */
-             OPEN_EXISTING,           /* CreationDisposition */
-             dwflags,                 /* Flags and attributes */
-             NULL);                   /* TemplateFile */
+      // unicode or ansii open for open existing write
+      if (p_CreateFileW && p_MultiByteToWideChar) {   
+         bfd->fh = p_CreateFileW((LPCWSTR)win32_fname_wchar,
+                dwaccess,                /* Requested access */
+                0,                       /* Shared mode */
+                NULL,                    /* SecurityAttributes */
+                OPEN_EXISTING,           /* CreationDisposition */
+                dwflags,                 /* Flags and attributes */
+                NULL);                   /* TemplateFile */
+      } else {
+         bfd->fh = p_CreateFileA(win32_fname,
+                dwaccess,                /* Requested access */
+                0,                       /* Shared mode */
+                NULL,                    /* SecurityAttributes */
+                OPEN_EXISTING,           /* CreationDisposition */
+                dwflags,                 /* Flags and attributes */
+                NULL);                   /* TemplateFile */
 
-   }
+      }
 
       bfd->mode = BF_WRITE;
 
@@ -464,24 +461,23 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
       }
 
       // unicode or ansii open for open existing read
-   if (p_CreateFileW && p_MultiByteToWideChar) {   
-      bfd->fh = p_CreateFileW((LPCWSTR)win32_fname_wchar,
-             dwaccess,                /* Requested access */
-             dwshare,                 /* Share modes */
-             NULL,                    /* SecurityAttributes */
-             OPEN_EXISTING,           /* CreationDisposition */
-             dwflags,                 /* Flags and attributes */
-             NULL);                   /* TemplateFile */
-   }
-   else {
-      bfd->fh = p_CreateFileA(win32_fname,
-             dwaccess,                /* Requested access */
-             dwshare,                 /* Share modes */
-             NULL,                    /* SecurityAttributes */
-             OPEN_EXISTING,           /* CreationDisposition */
-             dwflags,                 /* Flags and attributes */
-             NULL);                   /* TemplateFile */
-   }
+      if (p_CreateFileW && p_MultiByteToWideChar) {   
+         bfd->fh = p_CreateFileW((LPCWSTR)win32_fname_wchar,
+                dwaccess,                /* Requested access */
+                dwshare,                 /* Share modes */
+                NULL,                    /* SecurityAttributes */
+                OPEN_EXISTING,           /* CreationDisposition */
+                dwflags,                 /* Flags and attributes */
+                NULL);                   /* TemplateFile */
+      } else {
+         bfd->fh = p_CreateFileA(win32_fname,
+                dwaccess,                /* Requested access */
+                dwshare,                 /* Share modes */
+                NULL,                    /* SecurityAttributes */
+                OPEN_EXISTING,           /* CreationDisposition */
+                dwflags,                 /* Flags and attributes */
+                NULL);                   /* TemplateFile */
+      }
 
       bfd->mode = BF_READ;
    }

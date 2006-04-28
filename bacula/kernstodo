@@ -88,6 +88,7 @@ minutes).
 
 [ possibly a Python event -- kes ]
 ===
+- Integrate Christopher's St. Bernard code.
 - run_cmd() returns int should return JobId_t
 - get_next_jobid_from_list() returns int should return JobId_t
 - Document export LDFLAGS=-L/usr/lib64
@@ -98,7 +99,6 @@ minutes).
   then be migrated.
 - Detect resource deadlock in Migrate when same job wants to read
   and write the same device.
-- Make hardlink code at line 240 of find_one.c use binary search.
 - Queue warning/error messages during restore so that they
   are reported at the end of the report rather than being
   hidden in the file listing ...
@@ -107,6 +107,8 @@ minutes).
 - Look at fixing restore status stats in SD.
 - Make selection of Database used in restore correspond to
   client.
+- Look at using ioctl(FIMAP) and FIGETBSZ for sparse files.
+  http://www.informatik.uni-frankfurt.de/~loizides/reiserfs/fibmap.html
 - Implement a mode that says when a hard read error is
   encountered, read many times (as it currently does), and if the
   block cannot be read, skip to the next block, and try again.  If
@@ -118,6 +120,7 @@ minutes).
   ("D","Diff"),
   ("I","Inc");
 - Add ACL to restore only to original location.
+- Show files/second in client status output.
 - Add a recursive mark command (rmark) to restore.
 - "Minimum Job Interval = nnn" sets minimum interval between Jobs
   of the same level and does not permit multiple simultaneous
@@ -1404,3 +1407,4 @@ Block Position: 0
 - Fix Maximum Changer Wait, Maximum Open Wait, Maximum Rewind Wait to 
   accept time qualifiers.
 - Does ClientRunAfterJob fail the job on a bad return code?
+- Make hardlink code at line 240 of find_one.c use binary search.

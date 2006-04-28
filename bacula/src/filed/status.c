@@ -127,8 +127,6 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
          sizeof(off_t), sizeof(size_t), debug_level, get_trace());
    sendit(msg, len, arg);
 
-   list_terminated_jobs(sendit, arg);
-
    /*
     * List running jobs
     */
@@ -188,13 +186,15 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
    }
    endeach_jcr(njcr);
 
-   Dmsg0(1000, "Begin status jcr loop.\n");
    if (!found) {
       len = Mmsg(msg, _("No Jobs running.\n"));
       sendit(msg, len, arg);
    }
    len = Mmsg(msg, _("====\n"));
    sendit(msg, len, arg);
+
+   list_terminated_jobs(sendit, arg);
+
    free_pool_memory(msg);
 }
 

@@ -1058,6 +1058,7 @@ static int level_cmd(JCR *jcr)
          goto bail_out;
       }
       since_time = str_to_uint64(buf);  /* this is the since time */
+      Dmsg1(100, "since_time=%d\n", (int)since_time);
       char ed1[50], ed2[50];
       /*
        * Sync clocks by polling him for the time. We take
@@ -1077,8 +1078,10 @@ static int level_cmd(JCR *jcr)
          }
          his_time = str_to_uint64(buf);
          rt = get_current_btime() - bt_start; /* compute round trip time */
-         bt_adj -= his_time - bt_start - rt/2;
-         Dmsg2(200, "rt=%s adj=%s\n", edit_uint64(rt, ed1), edit_uint64(bt_adj, ed2));
+         Dmsg2(100, "Dirtime=%s FDtime=%s\n", edit_uint64(his_time, ed1),
+               edit_uint64(bt_start, ed2));
+         bt_adj +=  bt_start - his_time - rt/2;
+         Dmsg2(100, "rt=%s adj=%s\n", edit_uint64(rt, ed1), edit_uint64(bt_adj, ed2));
       }
 
       bt_adj = bt_adj / 8;            /* compute average time */
