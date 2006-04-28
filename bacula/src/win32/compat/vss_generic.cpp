@@ -20,7 +20,7 @@
 // Author          : Thorsten Engel
 // Created On      : Fri May 06 21:44:00 2005
 
-#ifdef WIN32_VSS
+
 #include <stdio.h>
 #include <basetsd.h>
 #include <stdarg.h>
@@ -45,8 +45,6 @@
 #include <direct.h>
 #include <ctype.h>
 #include <fcntl.h>
-#include <io.h>
-
 
 // STL includes
 #include <vector>
@@ -54,7 +52,7 @@
 #include <string>
 #include <sstream>
 #include <fstream>
-using namespace std;   
+using namespace std;
 
 #include <atlcomcli.h>
 #include <objbase.h>
@@ -122,9 +120,7 @@ inline wstring AppendBackslash(wstring str)
 // Get the unique volume name for the given path
 inline wstring GetUniqueVolumeNameForPath(wstring path)
 {
-#if 0  
     _ASSERTE(path.length() > 0);    
-#endif
 
     // Add the backslash termination, if needed
     path = AppendBackslash(path);
@@ -154,11 +150,11 @@ inline wstring GetUniqueVolumeNameForPath(wstring path)
 #define GEN_MAKE_W(A) GEN_MERGE(L, A)
 
 #define CHECK_CASE_FOR_CONSTANT(value)                      \
-    case value: return wstring(GEN_MAKE_W(#value));
+    case value: return (GEN_MAKE_W(#value));
 
 
 // Convert a writer status into a string
-inline wstring GetStringFromWriterStatus(VSS_WRITER_STATE eWriterStatus)
+inline const WCHAR* GetStringFromWriterStatus(VSS_WRITER_STATE eWriterStatus)
 {
     switch (eWriterStatus) {
     CHECK_CASE_FOR_CONSTANT(VSS_WS_STABLE);
@@ -177,7 +173,7 @@ inline wstring GetStringFromWriterStatus(VSS_WRITER_STATE eWriterStatus)
     CHECK_CASE_FOR_CONSTANT(VSS_WS_FAILED_AT_POST_RESTORE);
     
     default:
-        return wstring(L"Error or Undefined");
+        return L"Error or Undefined";
     }
 }
 
@@ -304,33 +300,56 @@ BOOL VSSClientGeneric::Initialize(DWORD dwContext, BOOL bDuringRestore)
 }
 
 
-void VSSClientGeneric::WaitAndCheckForAsyncOperation(IVssAsync* pAsync)
+BOOL VSSClientGeneric::WaitAndCheckForAsyncOperation(IVssAsync* pAsync)
 {
-    // Wait until the async operation finishes
-    // unfortunately we can't use a timeout here yet.
-    // the interface would allow it on W2k3, but it is not implemented yet....
-    HRESULT hr = pAsync->Wait();
+   // Wait until the async operation finishes
+   // unfortunately we can't use a timeout here yet.
+   // the interface would allow it on W2k3,
+   // but it is not implemented yet....
 
-    // Check the result of the asynchronous operation
-    HRESULT hrReturned = S_OK;
-    hr = pAsync->QueryStatus(&hrReturned, NULL);
+   HRESULT hr;
 
-    // Check if the async operation succeeded...
-    if(FAILED(hrReturned)) {
+   // Check the result of the asynchronous operation
+   HRESULT hrReturned = S_OK;
+
+   int timeout = 600; // 10 minutes....
+
+   int queryErrors = 0;
+   do {
+      if (hrReturned != S_OK) 
+         Sleep(1000);
+   
+      hrReturned = S_OK;
+      hr = pAsync->QueryStatus(&hrReturned, NULL);
+   
+      if (FAILED(hr)) 
+         queryErrors++;
+   } while ((timeout-- > 0) && (hrReturned == VSS_S_ASYNC_PENDING));
+
+   if (hrReturned == VSS_S_ASYNC_FINISHED)
+      return TRUE;
+
+   
+#ifdef DEBUG
+   // Check if the async operation succeeded...
+   if(hrReturned != VSS_S_ASYNC_FINISHED) {   
       PWCHAR pwszBuffer = NULL;
       DWORD dwRet = ::FormatMessageW(
-         FORMAT_MESSAGE_ALLOCATE_BUFFER 
-         | FORMAT_MESSAGE_FROM_SYSTEM 
-         | FORMAT_MESSAGE_IGNORE_INSERTS,
-         NULL, hrReturned, 
-         MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), 
-         (LPWSTR)&pwszBuffer, 0, NULL);
+                        FORMAT_MESSAGE_ALLOCATE_BUFFER 
+                        | FORMAT_MESSAGE_FROM_SYSTEM 
+                        | FORMAT_MESSAGE_IGNORE_INSERTS,
+                        NULL, hrReturned, 
+                        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), 
+                        (LPWSTR)&pwszBuffer, 0, NULL);
 
-      // No message found for this error. Just return <Unknown>
-      if (dwRet != 0) {
+      if (dwRet != 0) {         
          LocalFree(pwszBuffer);         
-      }
-    }
+      }      
+      errno = b_errno_win32;
+   }
+#endif
+
+   return FALSE;
 }
 
 BOOL VSSClientGeneric::CreateSnapshots(char* szDriveLetters)
@@ -501,8 +520,8 @@ void VSSClientGeneric::QuerySnapshotSet(GUID snapshotSetID)
       // Print the shadow copy (if not filtered out)
       if (Snap.m_SnapshotSetId == snapshotSetID)  {
          for (char ch='A'-'A';ch<='Z'-'A';ch++) {
-            if (wcscmp(Snap.m_pwszOriginalVolumeName, m_wszUniqueVolumeName[ch]) == 0) {               
-               WideCharToMultiByte(CP_UTF8,0,Snap.m_pwszSnapshotDeviceObject,-1,m_szShadowCopyName[ch],MAX_PATH*2,NULL,NULL);               
+            if (wcscmp(Snap.m_pwszOriginalVolumeName, m_wszUniqueVolumeName[ch]) == 0) {       
+               wcsncpy (m_szShadowCopyName[ch],Snap.m_pwszSnapshotDeviceObject, MAX_PATH-1);               
                break;
             }
          }
@@ -519,11 +538,7 @@ BOOL VSSClientGeneric::CheckWriterStatus()
     http://msdn.microsoft.com/library/default.asp?url=/library/en-us/vss/base/ivssbackupcomponents_startsnapshotset.asp
     */
     IVssBackupComponents* pVss = (IVssBackupComponents*) m_pVssObject;
-    vector<int>* pVWriterStates = (vector<int>*) m_pVectorWriterStates;
-    vector<string>* pVWriterInfo = (vector<string>*) m_pVectorWriterInfo;   
-
-    pVWriterStates->clear();
-    pVWriterInfo->clear();
+    DestroyWriterInfo();
 
     // Gather writer status to detect potential errors
     CComPtr<IVssAsync>  pAsync;
@@ -544,6 +559,8 @@ BOOL VSSClientGeneric::CheckWriterStatus()
        errno = b_errno_win32;
        return FALSE;
     }
+
+    int nState;
     
     // Enumerate each writer
     for (unsigned iWriter = 0; iWriter < cWriters; iWriter++) {
@@ -561,8 +578,8 @@ BOOL VSSClientGeneric::CheckWriterStatus()
                              &eWriterStatus,
                              &hrWriterFailure);
         if (FAILED(hr)) {
-            /* unknown */
-            pVWriterStates->push_back(0);               
+            /* unknown */            
+            nState = 0;
         }
         else {            
             switch(eWriterStatus) {
@@ -578,22 +595,31 @@ BOOL VSSClientGeneric::CheckWriterStatus()
     #ifdef B_VSS_W2K3
             case VSS_WS_FAILED_AT_BACKUPSHUTDOWN:
     #endif
-                /* failed */
-                pVWriterStates->push_back(-1);
+                /* failed */                
+                nState = -1;
                 break;
 
             default:
                 /* ok */
-                pVWriterStates->push_back(1);
+                nState = 1;
             }
         }
 
         /* store text info */
-        stringstream osf;      
-        osf << "\"" << CW2A(bstrWriterName) << "\", State: " << eWriterStatus << " (" << CW2A(GetStringFromWriterStatus(eWriterStatus).c_str()) << ")";
-    
-        pVWriterInfo->push_back(osf.str());
-        SysFreeString (bstrWriterName);
+        CComBSTR str;
+        char szBuf[16];
+        itoa(eWriterStatus, szBuf, 16);
+                
+        str = "\"";
+        str.Append (bstrWriterName);
+        str.Append ("\", State: 0x");
+        str.Append (szBuf);
+        str.Append (" (");
+        str.Append (GetStringFromWriterStatus(eWriterStatus));
+        str.Append (")");
+               
+        AppendWriterInfo(nState, CW2A(str));
+     //   SysFreeString (bstrWriterName);
     }
 
     hr = pVss->FreeWriterStatus();
@@ -606,4 +632,3 @@ BOOL VSSClientGeneric::CheckWriterStatus()
     errno = 0;
     return TRUE;
 }
-#endif
