@@ -439,7 +439,17 @@ errorString(void)
                  0,
                  NULL);
 
-   return (const char *) lpMsgBuf;
+   /* Strip any \r or \n */
+   char *rval = (char *) lpMsgBuf;
+   char *cp = strchr(rval, '\r');
+   if (cp != NULL) {
+      *cp = 0;
+   } else {
+      cp = strchr(rval, '\n');
+      if (cp != NULL)
+         *cp = 0;
+   }
+   return rval;
 }
 
 #ifndef HAVE_MINGW
@@ -1315,6 +1325,7 @@ win32_unlink(const char *filename)
 
 char WIN_VERSION_LONG[64];
 char WIN_VERSION[32];
+char WIN_RAWVERSION[32];
 
 class winver {
 public:
@@ -1338,8 +1349,11 @@ winver::winver(void)
         version = "Unknown";
         platform = "Unknown";
     }
-    else
-        switch (_mkversion(osvinfo.dwPlatformId, osvinfo.dwMajorVersion, osvinfo.dwMinorVersion))
+        const int ver = _mkversion(osvinfo.dwPlatformId,
+                                   osvinfo.dwMajorVersion,
+                                   osvinfo.dwMinorVersion);
+        snprintf(WIN_RAWVERSION, sizeof(WIN_RAWVERSION), "Windows %#08x", ver);
+         switch (ver)
         {
         case MS_WINDOWS_95: (version =  "Windows 95"); break;
         case MS_WINDOWS_98: (version =  "Windows 98"); break;
@@ -1348,7 +1362,7 @@ winver::winver(void)
         case MS_WINDOWS_2K: (version =  "Windows 2000");platform = "NT"; break;
         case MS_WINDOWS_XP: (version =  "Windows XP");platform = "NT"; break;
         case MS_WINDOWS_S2003: (version =  "Windows Server 2003");platform = "NT"; break;
-        default: version = "Windows ??"; break;
+        default: version = WIN_RAWVERSION; break;
         }
 
     bstrncpy(WIN_VERSION_LONG, version, sizeof(WIN_VERSION_LONG));
@@ -1420,12 +1434,18 @@ getArgv0(const char *cmdline)
 HANDLE
 CreateChildProcess(const char *cmdline, HANDLE in, HANDLE out, HANDLE err)
 {
+    static const char *comspec = NULL;
     PROCESS_INFORMATION piProcInfo;
     STARTUPINFOA siStartInfo;
     BOOL bFuncRetn = FALSE;
 
-    // Set up members of the PROCESS_INFORMATION structure.
+    if (comspec == NULL) {
+       comspec = getenv("COMSPEC");
+    }
+    if (comspec == NULL) // should never happen
+        return INVALID_HANDLE_VALUE;
 
+    // Set up members of the PROCESS_INFORMATION structure.
     ZeroMemory( &piProcInfo, sizeof(PROCESS_INFORMATION) );
 
     // Set up members of the STARTUPINFO structure.
@@ -1453,18 +1473,14 @@ CreateChildProcess(const char *cmdline, HANDLE in, HANDLE out, HANDLE err)
     // Create the child process.
 
     char exeFile[256];
+    int cmdLen = strlen(cmdline) + strlen(comspec) + 16;
 
-    const char *comspec = getenv("COMSPEC");
+    char *cmdLine = (char *)alloca(cmdLen);
 
-    if (comspec == NULL) // should never happen
-        return INVALID_HANDLE_VALUE;
-
-    char *cmdLine = (char *)alloca(strlen(cmdline) + strlen(comspec) + 16);
-
-    strcpy(exeFile, comspec);
-    strcpy(cmdLine, comspec);
-    strcat(cmdLine, " /c ");
-    strcat(cmdLine, cmdline);
+    bstrncpy(exeFile, comspec, sizeof(exeFile));
+    bstrncpy(cmdLine, comspec, cmdLen);
+    bstrncat(cmdLine, " /c ", cmdLen);
+    bstrncat(cmdLine, cmdline, cmdLen);
 
     // try to execute program
     bFuncRetn = CreateProcessA(exeFile,
@@ -1726,9 +1742,9 @@ int
 utime(const char *fname, struct utimbuf *times)
 {
     FILETIME acc, mod;
-    char tmpbuf[1024];
+    char tmpbuf[5000];
 
-    conv_unix_to_win32_path(fname, tmpbuf, 1024);
+    conv_unix_to_win32_path(fname, tmpbuf, 5000);
 
     cvt_utime_to_ftime(times->actime, acc);
     cvt_utime_to_ftime(times->modtime, mod);
@@ -1739,22 +1755,22 @@ utime(const char *fname, struct utimbuf *times)
       POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
       make_win32_path_UTF8_2_wchar(&pwszBuf, tmpbuf);
 
-      h = p_CreateFileW((LPCWSTR) pwszBuf,
+      h = p_CreateFileW((LPCWSTR)pwszBuf,
                         FILE_WRITE_ATTRIBUTES,
-                        FILE_SHARE_WRITE,
+                        FILE_SHARE_WRITE|FILE_SHARE_READ|FILE_SHARE_DELETE,
                         NULL,
                         OPEN_EXISTING,
-                        0,
+                        FILE_FLAG_BACKUP_SEMANTICS, // required for directories
                         NULL);
 
       free_pool_memory(pwszBuf);
     } else if (p_CreateFileA) {
       h = p_CreateFileA(tmpbuf,
                         FILE_WRITE_ATTRIBUTES,
-                        FILE_SHARE_WRITE,
+                        FILE_SHARE_WRITE|FILE_SHARE_READ|FILE_SHARE_DELETE,
                         NULL,
                         OPEN_EXISTING,
-                        0,
+                        FILE_FLAG_BACKUP_SEMANTICS, // required for directories
                         NULL);
     }
 
@@ -1867,8 +1883,7 @@ open(const char *file, int flags, int mode)
 
        foo = p_CreateFileW((LPCWSTR) pwszBuf, access, shareMode, NULL, create, msflags, NULL);
        free_pool_memory(pwszBuf);
-    }
-    else if (p_CreateFileA)
+    } else if (p_CreateFileA)
        foo = CreateFile(file, access, shareMode, NULL, create, msflags, NULL);
 
     if (INVALID_HANDLE_VALUE == foo) {

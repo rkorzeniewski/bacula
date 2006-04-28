@@ -2,6 +2,29 @@
                         Kern Sibbald
 
 General:
+28Apr06
+- Start implementing Christopher's St.Bernard code.
+- Add Christopher's mods for opening files.
+- Strip \r \n from Win32 error messages (Christopher)
+- Add more info about Win32 system if unknown (Christopher)
+- Use bstrn(cpy, cat) routines to avoid overrun in compat.cpp
+- Fix a number of incorrect strings marked for translation, when
+  they should not be (e.g. commands).
+- Fix StartTime bug reported for ClientRunBeforeJob and RunBeforeJob
+  Patches supplied by user in bugs #608 and #599.
+- Use most recent of st_ctime and st_mtime in restore tree DIR
+  listing. This fixes some problems with Win32 printing incorrect
+  values.
+- Correct the clock shift comm time calculation between the DIR
+  and the FD. It was added rather than subtracted.
+- Strip all backslashes in filenames to be restored on Win32
+  machines -- the names should all be in Unix format, and if
+  there are any backslashes it is most likely due to an improper
+  FileSet definition, and the files will not otherwise be 
+  restorable.
+- Remove lib/regex.c (replaced by bregex.c).
+- Delete src/win32/License.txt
+- Modify installer to install LICENSE
 26Apr06
 - Fix bug in build-win32-cross-tools script reported by Howard
 - Implement cross compiled bconsole

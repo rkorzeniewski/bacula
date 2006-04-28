@@ -220,6 +220,22 @@ bool do_backup(JCR *jcr)
       goto bail_out;
    }
 
+   /*    
+    * We re-update the job start record so that the start
+    *  time is set after the run before job.  This avoids 
+    *  that any files created by the run before job will
+    *  be saved twice.  They will be backed up in the current
+    *  job, but not in the next one unless they are changed.
+    *  Without this, they will be backed up in this job and
+    *  in the next job run because in that case, their date 
+    *   is after the start of this run.
+    */
+   jcr->start_time = time(NULL);
+   jcr->jr.StartTime = jcr->start_time;
+   if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
+      Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
+   }
+
    /* Send backup command */
    bnet_fsend(fd, backupcmd);
    if (!response(jcr, fd, OKbackup, "backup", DISPLAY_ERROR)) {

@@ -194,7 +194,7 @@ static void send_since_time(JCR *jcr)
    char ed1[50];
 
    stime = str_to_utime(jcr->stime);
-   bnet_fsend(fd, levelcmd, _("since_utime "), edit_uint64(stime, ed1), 0);
+   bnet_fsend(fd, levelcmd, NT_("since_utime "), edit_uint64(stime, ed1), 0);
    while (bget_dirmsg(fd) >= 0) {  /* allow him to poll us to sync clocks */
       Jmsg(jcr, M_INFO, 0, "%s\n", fd->msg);
    }

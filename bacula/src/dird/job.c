@@ -275,6 +275,8 @@ static void *job_thread(void *arg)
        *  in the next job run because in that case, their date
        *   is after the start of this run.
        */
+      jcr->start_time = time(NULL);
+      jcr->jr.StartTime = jcr->start_time;
       if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
          Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
       }
