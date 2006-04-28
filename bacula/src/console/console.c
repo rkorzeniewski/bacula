@@ -288,17 +288,29 @@ static void read_and_process_input(FILE *input, BSOCK *UA_sock)
 
 /*
  * Call-back for reading a passphrase for an encrypted PEM file
- * This function uses getpass(), which uses a static buffer and is NOT thread-safe.
+ * This function uses getpass(), 
+ *  which uses a static buffer and is NOT thread-safe.
  */
 static int tls_pem_callback(char *buf, int size, const void *userdata)
 {
 #ifdef HAVE_TLS
-   const char *prompt = (const char *) userdata;
+# ifdef HAVE_MINGW
+   const char *prompt = (const char *)userdata;
+   sendit(prompt)
+   if (win32_cgets(buf, size) == NULL) {
+      buf[0] = 0;
+      return 0;
+   } else {
+      return strlen(buf);
+   }
+# else
+   const char *prompt = (const char *)userdata;
    char *passwd;
 
    passwd = getpass(prompt);
    bstrncpy(buf, passwd, size);
-   return (strlen(buf));
+   return strlen(buf);
+# endif
 #else
    buf[0] = 0;
    return 0;
