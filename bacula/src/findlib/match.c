@@ -49,7 +49,7 @@ static const int fnmode = 0;
 #undef bmalloc
 #define bmalloc(x) sm_malloc(__FILE__, __LINE__, x)
 
-extern const int win32_client;
+extern int win32_client;
 
 int
 match_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt, bool), void *his_pkt)
