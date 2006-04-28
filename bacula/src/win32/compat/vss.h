@@ -51,13 +51,15 @@ public:
     BOOL GetShadowPathW (const WCHAR* szFilePath, WCHAR* szShadowPath, int nBuflen); /* nBuflen in characters */
 
     const size_t GetWriterCount();
-    const char* GetWriterInfo(size_t nIndex);
-    const int   GetWriterState(size_t nIndex);
+    const char* GetWriterInfo(int nIndex);
+    const int   GetWriterState(int nIndex);
+    void DestroyWriterInfo();
+    void AppendWriterInfo(int nState, const char* pszInfo);
     const BOOL  IsInitialized() { return m_bBackupIsInitialized; };
          
 private:
     virtual BOOL Initialize(DWORD dwContext, BOOL bDuringRestore = FALSE) = 0;
-    virtual void WaitAndCheckForAsyncOperation(IVssAsync*  pAsync) = 0;
+    virtual BOOL WaitAndCheckForAsyncOperation(IVssAsync*  pAsync) = 0;
     virtual void QuerySnapshotSet(GUID snapshotSetID) = 0;
 
 protected:
@@ -75,10 +77,10 @@ protected:
 
     // drive A will be stored on position 0,Z on pos. 25
     WCHAR                           m_wszUniqueVolumeName[26][MAX_PATH]; // approx. 7 KB
-    char /* in utf-8 */             m_szShadowCopyName[26][MAX_PATH*2]; // approx. 7 KB
-
-    void*                           m_pVectorWriterStates;
-    void*                           m_pVectorWriterInfo;
+    WCHAR                           m_szShadowCopyName[26][MAX_PATH]; // approx. 7 KB
+    
+    void*                           m_pAlistWriterState;
+    void*                           m_pAlistWriterInfoText;
 };
 
 class VSSClientXP:public VSSClient
@@ -91,7 +93,7 @@ public:
    virtual const char* GetDriverName() { return "VSS WinXP"; };
 private:
    virtual BOOL Initialize(DWORD dwContext, BOOL bDuringRestore);
-   virtual void WaitAndCheckForAsyncOperation(IVssAsync* pAsync);
+   virtual BOOL WaitAndCheckForAsyncOperation(IVssAsync* pAsync);
    virtual void QuerySnapshotSet(GUID snapshotSetID);
    BOOL CheckWriterStatus();   
 };
@@ -106,7 +108,7 @@ public:
    virtual const char* GetDriverName() { return "VSS Win 2003"; };
 private:
    virtual BOOL Initialize(DWORD dwContext, BOOL bDuringRestore);
-   virtual void WaitAndCheckForAsyncOperation(IVssAsync*  pAsync);
+   virtual BOOL WaitAndCheckForAsyncOperation(IVssAsync*  pAsync);
    virtual void QuerySnapshotSet(GUID snapshotSetID);
    BOOL CheckWriterStatus();
 };

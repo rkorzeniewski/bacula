@@ -22,52 +22,11 @@
 
 
 #ifdef WIN32_VSS
-#include <stdio.h>
-#include <basetsd.h>
-#include <stdarg.h>
-#include <sys/types.h>
-#include <process.h>
-#include <direct.h>
-#include <winsock2.h>
-#include <windows.h>
-#include <wincon.h>
-#include <winbase.h>
-#include <stdlib.h>
-#include <conio.h>
-#include <process.h>
-#include <errno.h>
-#include <string.h>
-#include <time.h>
-#include <signal.h>
-#include <malloc.h>
-#include <setjmp.h>
-#include <direct.h>
-#include <ctype.h>
-#include <fcntl.h>
-#include <io.h>
+#include "compat.h"
+#include "bacula.h"
 
-
-// STL includes
-#include <vector>
-#include <algorithm>
-#include <string>
-#include <fstream>
-using namespace std;   
-
-#ifdef HAVE_MINGW
-   
-//#include <atlcomcli.h>
 #include "ms_atl.h"
 #include <objbase.h>
-
-#else 
-
-#include <atlcomcli.h>
-#include <objbase.h>
-
-// Used for safe string manipulation
-#include <strsafe.h>
-#endif
 
 #include "vss.h"
 
@@ -85,8 +44,8 @@ VSSClient::VSSClient()
     m_bDuringRestore = false;
     m_bBackupIsInitialized = false;
     m_pVssObject = NULL;
-    m_pVectorWriterStates = new vector<int>;
-    m_pVectorWriterInfo = new vector<string>;
+    m_pAlistWriterState = New (alist(10, not_owned_by_alist));
+    m_pAlistWriterInfoText = New (alist(10, owned_by_alist));
     m_uidCurrentSnapshotSet = GUID_NULL;
     memset(m_wszUniqueVolumeName, 0, sizeof(m_wszUniqueVolumeName));
     memset(m_szShadowCopyName, 0, sizeof(m_szShadowCopyName));
@@ -102,11 +61,9 @@ VSSClient::~VSSClient()
       m_pVssObject = NULL;
    }
 
-   if (m_pVectorWriterStates)
-      delete (m_pVectorWriterStates);
-
-   if (m_pVectorWriterInfo)
-      delete (m_pVectorWriterInfo);
+   DestroyWriterInfo();
+   delete (alist*) m_pAlistWriterState;
+   delete (alist*) m_pAlistWriterInfoText;
 
    // Call CoUninitialize if the CoInitialize was performed successfully
    if (m_bCoInitializeCalled)
@@ -139,10 +96,12 @@ BOOL VSSClient::GetShadowPath(const char *szFilePath, char *szShadowPath, int nB
    if (bIsValidName) {
       int nDriveIndex = toupper(szFilePath[0])-'A';
       if (m_szShadowCopyName[nDriveIndex][0] != 0) {
-         strncpy(szShadowPath, m_szShadowCopyName[nDriveIndex], nBuflen);
-         nBuflen -= (int)strlen(m_szShadowCopyName[nDriveIndex]);
-         strncat(szShadowPath, szFilePath+2, nBuflen);
-         return TRUE;
+
+         if (WideCharToMultiByte(CP_UTF8,0,m_szShadowCopyName[nDriveIndex],-1,szShadowPath,nBuflen-1,NULL,NULL)) {
+            nBuflen -= (int)strlen(szShadowPath);
+            strncat(szShadowPath, szFilePath+2, nBuflen);
+            return TRUE;
+         }
       }
    }
    
@@ -168,8 +127,8 @@ BOOL VSSClient::GetShadowPathW(const WCHAR *szFilePath, WCHAR *szShadowPath, int
    if (bIsValidName) {
       int nDriveIndex = towupper(szFilePath[0])-'A';
       if (m_szShadowCopyName[nDriveIndex][0] != 0) {
-//       wcsncpy(szShadowPath, CA2W(m_szShadowCopyName[nDriveIndex]), nBuflen);
-         nBuflen -= (int)strlen(m_szShadowCopyName[nDriveIndex]);
+         wcsncpy(szShadowPath, m_szShadowCopyName[nDriveIndex], nBuflen);
+         nBuflen -= (int)wcslen(m_szShadowCopyName[nDriveIndex]);
          wcsncat(szShadowPath, szFilePath+2, nBuflen);
          return TRUE;
       }
@@ -183,20 +142,41 @@ BOOL VSSClient::GetShadowPathW(const WCHAR *szFilePath, WCHAR *szShadowPath, int
 
 const size_t VSSClient::GetWriterCount()
 {
-   vector<int>* pV = (vector<int>*) m_pVectorWriterStates;
+   alist* pV = (alist*) m_pAlistWriterInfoText;
    return pV->size();
 }
 
-const char* VSSClient::GetWriterInfo(size_t nIndex)
+const char* VSSClient::GetWriterInfo(int nIndex)
 {
-   vector<string>* pV = (vector<string>*) m_pVectorWriterInfo;   
-   return pV->at(nIndex).c_str();
+   alist* pV = (alist*) m_pAlistWriterInfoText;
+   return (char*) pV->get(nIndex);
 }
 
 
-const int VSSClient::GetWriterState(size_t nIndex)
+const int VSSClient::GetWriterState(int nIndex)
 {
-   vector<int>* pV = (vector<int>*) m_pVectorWriterStates;   
-   return pV->at(nIndex);
+   alist* pV = (alist*) m_pAlistWriterState;   
+   return (int) pV->get(nIndex);
+}
+
+void VSSClient::AppendWriterInfo(int nState, const char* pszInfo)
+{
+   alist* pT = (alist*) m_pAlistWriterInfoText;
+   alist* pS = (alist*) m_pAlistWriterState;
+
+   pT->push (bstrdup(pszInfo));
+   pS->push ((void*) nState);   
+}
+
+void VSSClient::DestroyWriterInfo()
+{
+   alist* pT = (alist*) m_pAlistWriterInfoText;
+   alist* pS = (alist*) m_pAlistWriterState;
+
+   while (!pT->empty())
+      free (pT->pop());
+
+   while (!pS->empty())
+      pS->pop();      
 }
 #endif
