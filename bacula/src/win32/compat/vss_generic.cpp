@@ -21,6 +21,8 @@
 // Created On      : Fri May 06 21:44:00 2005
 
 
+#ifdef WIN32_VSS
+
 #include <stdio.h>
 #include <basetsd.h>
 #include <stdarg.h>
@@ -632,3 +634,5 @@ BOOL VSSClientGeneric::CheckWriterStatus()
     errno = 0;
     return TRUE;
 }
+
+#endif
