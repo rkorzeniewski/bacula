@@ -2,6 +2,12 @@
                         Kern Sibbald
 
 General:
+29Apr06
+- Integrate Howard's VSS patch. Tweak it a bit. VSS now
+  works in the MinGW build with the exception that there
+  is a problem with accented characters -- i.e. there is
+  some mapping problem with wide characters.
+- The code no longer compiles with Microsoft VC++.
 28Apr06
 - Start implementing Christopher's St.Bernard code.
 - Add Christopher's mods for opening files.

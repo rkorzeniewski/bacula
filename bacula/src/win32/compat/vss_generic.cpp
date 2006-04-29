@@ -23,30 +23,7 @@
 
 #ifdef WIN32_VSS
 
-#include <stdio.h>
-#include <basetsd.h>
-#include <stdarg.h>
-#include <sys/types.h>
-#include <process.h>
-#include <direct.h>
-#include <winsock2.h>
-#include <windows.h>
-#include <wincon.h>
-#include <winbase.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <conio.h>
-#include <process.h>
-#include <errno.h>
-#include <string.h>
-#include <time.h>
-#include <signal.h>
-#include <malloc.h>
-#include <setjmp.h>
-#include <direct.h>
-#include <ctype.h>
-#include <fcntl.h>
+#include "compat.h"
 
 // STL includes
 #include <vector>
@@ -56,13 +33,17 @@
 #include <fstream>
 using namespace std;
 
-#include <atlcomcli.h>
+#include "ms_atl.h"
 #include <objbase.h>
 
+#ifdef HAVE_STRSAFE_H
 // Used for safe string manipulation
 #include <strsafe.h>
+#endif
 
 #include "../../lib/winapi.h"
+
+class IXMLDOMDocument;
 
 #ifdef B_VSS_XP
    #pragma message("compile VSS for Windows XP")   
@@ -122,15 +103,17 @@ inline wstring AppendBackslash(wstring str)
 // Get the unique volume name for the given path
 inline wstring GetUniqueVolumeNameForPath(wstring path)
 {
-    _ASSERTE(path.length() > 0);    
+    if (!path.length() > 0) {
+       return L"";
+    }
 
     // Add the backslash termination, if needed
     path = AppendBackslash(path);
 
     // Get the root path of the volume
-    WCHAR volumeRootPath[MAX_PATH];
-    WCHAR volumeName[MAX_PATH];
-    WCHAR volumeUniqueName[MAX_PATH];
+    wchar_t volumeRootPath[MAX_PATH];
+    wchar_t volumeName[MAX_PATH];
+    wchar_t volumeUniqueName[MAX_PATH];
 
     if (!p_GetVolumePathNameW || !p_GetVolumePathNameW((LPCWSTR)path.c_str(), volumeRootPath, MAX_PATH))
       return L"";
@@ -156,7 +139,7 @@ inline wstring GetUniqueVolumeNameForPath(wstring path)
 
 
 // Convert a writer status into a string
-inline const WCHAR* GetStringFromWriterStatus(VSS_WRITER_STATE eWriterStatus)
+inline const wchar_t* GetStringFromWriterStatus(VSS_WRITER_STATE eWriterStatus)
 {
     switch (eWriterStatus) {
     CHECK_CASE_FOR_CONSTANT(VSS_WS_STABLE);
@@ -282,13 +265,13 @@ BOOL VSSClientGeneric::Initialize(DWORD dwContext, BOOL bDuringRestore)
        
        CComPtr<IVssAsync>  pAsync1;       
        // 3. GatherWriterMetaData
-       hr = ((IVssBackupComponents*) m_pVssObject)->GatherWriterMetadata(&pAsync1);
+       hr = ((IVssBackupComponents*) m_pVssObject)->GatherWriterMetadata(&pAsync1.p);
        if (FAILED(hr)) {
            errno = b_errno_win32;
            return FALSE;
        }
         // Waits for the async operation to finish and checks the result
-       WaitAndCheckForAsyncOperation(pAsync1);
+       WaitAndCheckForAsyncOperation(pAsync1.p);
    }
 
 
@@ -335,7 +318,7 @@ BOOL VSSClientGeneric::WaitAndCheckForAsyncOperation(IVssAsync* pAsync)
 #ifdef DEBUG
    // Check if the async operation succeeded...
    if(hrReturned != VSS_S_ASYNC_FINISHED) {   
-      PWCHAR pwszBuffer = NULL;
+      Pwchar_t pwszBuffer = NULL;
       DWORD dwRet = ::FormatMessageW(
                         FORMAT_MESSAGE_ALLOCATE_BUFFER 
                         | FORMAT_MESSAGE_FROM_SYSTEM 
@@ -375,7 +358,7 @@ BOOL VSSClientGeneric::CreateSnapshots(char* szDriveLetters)
 
    /* AddToSnapshotSet */
 
-   WCHAR szDrive[3];
+   wchar_t szDrive[3];
    szDrive[1] = ':';
    szDrive[2] = 0;
 
@@ -398,12 +381,12 @@ BOOL VSSClientGeneric::CreateSnapshots(char* szDriveLetters)
    }
 
    /* PrepareForBackup */
-   if (FAILED(pVss->PrepareForBackup(&pAsync1))) {      
+   if (FAILED(pVss->PrepareForBackup(&pAsync1.p))) {      
       return FALSE;   
    }
    
    // Waits for the async operation to finish and checks the result
-   WaitAndCheckForAsyncOperation(pAsync1);
+   WaitAndCheckForAsyncOperation(pAsync1.p);
 
    /* get latest info about writer status */
    if (!CheckWriterStatus()) {
@@ -411,12 +394,12 @@ BOOL VSSClientGeneric::CreateSnapshots(char* szDriveLetters)
    }
 
    /* DoSnapShotSet */   
-   if (FAILED(pVss->DoSnapshotSet(&pAsync2))) {      
+   if (FAILED(pVss->DoSnapshotSet(&pAsync2.p))) {      
       return FALSE;   
    }
 
    // Waits for the async operation to finish and checks the result
-   WaitAndCheckForAsyncOperation(pAsync2); 
+   WaitAndCheckForAsyncOperation(pAsync2.p); 
    
    /* query snapshot info */   
    QuerySnapshotSet(m_uidCurrentSnapshotSet);
@@ -437,9 +420,9 @@ BOOL VSSClientGeneric::CloseBackup()
       
       m_bBackupIsInitialized = false;
 
-      if (SUCCEEDED(pVss->BackupComplete(&pAsync))) {
+      if (SUCCEEDED(pVss->BackupComplete(&pAsync.p))) {
          // Waits for the async operation to finish and checks the result
-         WaitAndCheckForAsyncOperation(pAsync);
+         WaitAndCheckForAsyncOperation(pAsync.p);
          bRet = TRUE;     
       } else {
          errno = b_errno_win32;
@@ -498,7 +481,7 @@ void VSSClientGeneric::QuerySnapshotSet(GUID snapshotSetID)
    HRESULT hr = pVss->Query( GUID_NULL, 
          VSS_OBJECT_NONE, 
          VSS_OBJECT_SNAPSHOT, 
-         &pIEnumSnapshots );    
+         (IVssEnumObject**)(&pIEnumSnapshots) );    
 
    // If there are no shadow copies, just return
    if (FAILED(hr)) {
@@ -513,7 +496,7 @@ void VSSClientGeneric::QuerySnapshotSet(GUID snapshotSetID)
    while (true) {
       // Get the next element
       ULONG ulFetched;
-      hr = pIEnumSnapshots->Next( 1, &Prop, &ulFetched );
+      hr = (pIEnumSnapshots.p)->Next( 1, &Prop, &ulFetched );
 
       // We reached the end of list
       if (ulFetched == 0)
@@ -545,14 +528,14 @@ BOOL VSSClientGeneric::CheckWriterStatus()
     // Gather writer status to detect potential errors
     CComPtr<IVssAsync>  pAsync;
     
-    HRESULT hr = pVss->GatherWriterStatus(&pAsync);
+    HRESULT hr = pVss->GatherWriterStatus(&pAsync.p);
     if (FAILED(hr)) {
        errno = b_errno_win32;
        return FALSE;
     } 
 
     // Waits for the async operation to finish and checks the result
-    WaitAndCheckForAsyncOperation(pAsync);
+    WaitAndCheckForAsyncOperation(pAsync.p);
       
     unsigned cWriters = 0;
 
@@ -606,21 +589,21 @@ BOOL VSSClientGeneric::CheckWriterStatus()
                 nState = 1;
             }
         }
-
         /* store text info */
-        CComBSTR str;
-        char szBuf[16];
-        itoa(eWriterStatus, szBuf, 16);
-                
-        str = "\"";
-        str.Append (bstrWriterName);
-        str.Append ("\", State: 0x");
-        str.Append (szBuf);
-        str.Append (" (");
-        str.Append (GetStringFromWriterStatus(eWriterStatus));
-        str.Append (")");
-               
-        AppendWriterInfo(nState, CW2A(str));
+        char str[1000];
+        char szBuf[200];
+        itoa(eWriterStatus, szBuf, sizeof(szBuf));
+        strcpy(str, "\"");
+        wchar_2_UTF8(szBuf, bstrWriterName.p, sizeof(szBuf));
+        strcat(str, szBuf);
+        strcat(str, "\", State: 0x");
+        strcat(str, szBuf);
+        strcat(str, " (");
+        wchar_2_UTF8(szBuf, GetStringFromWriterStatus(eWriterStatus), sizeof(szBuf));
+        strcat(str, szBuf);
+        strcat(str, ")");
+
+        AppendWriterInfo(nState, (const char *)str);
      //   SysFreeString (bstrWriterName);
     }
 

@@ -7,8 +7,7 @@ vss_generic will handle all versions and
 switch between different headers to include.
 */
 
+#ifdef WIN32_VSS
 #define B_VSS_W2K3
 #include "vss_generic.cpp"
-
-
-
+#endif

@@ -9,20 +9,20 @@ template <class T> class CComPtr
 public:
 
 /* Attribute(s) ... */
-	T* p;
+        T* p;
 
 /* Creation ... */
-	CComPtr()
-	{
-		p = NULL;
-	}
-	
+        CComPtr()
+        {
+           p = NULL;
+        }
+        
 /* Destructor ... */
-	~CComPtr()
-	{
-		if (p)
-			p->Release();
-	}
+        ~CComPtr()
+        {
+           if (p)
+              p->Release();
+        }
 };
 
 class CComBSTR
@@ -30,24 +30,24 @@ class CComBSTR
 
 public:
 
-	BSTR p;
+        BSTR p;
 
 /* Creation ... */
-	CComBSTR()
-	{
-		p = NULL;
-	}
+        CComBSTR()
+        {
+           p = NULL;
+        }
 
 /* Destructor ... */
-	~CComBSTR()
-	{
-		::SysFreeString(p);
-	}
+        ~CComBSTR()
+        {
+             ::SysFreeString(p);
+        }
 
 /* Address-of operator */
-	BSTR* operator&()
-	{
-		return &p;
-	}
+        BSTR* operator&()
+        {
+           return &p;
+        }
 
 };

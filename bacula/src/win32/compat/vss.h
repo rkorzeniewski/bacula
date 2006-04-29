@@ -5,7 +5,7 @@
 // Copyright transferred from MATRIX-Computer GmbH to
 //   Kern Sibbald by express permission.
 //
-//  Copyright (C) 2005 Kern Sibbald
+//  Copyright (C) 2005-2006 Kern Sibbald
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -48,7 +48,7 @@ public:
     virtual BOOL CloseBackup() = 0;
     virtual const char* GetDriverName() = 0;
     BOOL GetShadowPath  (const char* szFilePath, char* szShadowPath, int nBuflen);
-    BOOL GetShadowPathW (const WCHAR* szFilePath, WCHAR* szShadowPath, int nBuflen); /* nBuflen in characters */
+    BOOL GetShadowPathW (const wchar_t* szFilePath, wchar_t* szShadowPath, int nBuflen); /* nBuflen in characters */
 
     const size_t GetWriterCount();
     const char* GetWriterInfo(int nIndex);
@@ -76,8 +76,8 @@ protected:
     BOOL                            m_bBackupIsInitialized;
 
     // drive A will be stored on position 0,Z on pos. 25
-    WCHAR                           m_wszUniqueVolumeName[26][MAX_PATH]; // approx. 7 KB
-    WCHAR                           m_szShadowCopyName[26][MAX_PATH]; // approx. 7 KB
+    wchar_t                           m_wszUniqueVolumeName[26][MAX_PATH]; // approx. 7 KB
+    wchar_t                           m_szShadowCopyName[26][MAX_PATH]; // approx. 7 KB
     
     void*                           m_pAlistWriterState;
     void*                           m_pAlistWriterInfoText;

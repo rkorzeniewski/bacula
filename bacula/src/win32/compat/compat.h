@@ -50,6 +50,7 @@
 #include <sys/types.h>
 #include <process.h>
 #include <direct.h>
+#include <wchar.h>
 #include <winsock2.h>
 #include <windows.h>
 #include <wincon.h>

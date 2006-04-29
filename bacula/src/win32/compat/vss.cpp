@@ -34,7 +34,6 @@
 #pragma comment(lib,"atlsd.lib")
 
 
-
 // Constructor
 VSSClient::VSSClient()
 {
@@ -110,7 +109,7 @@ BOOL VSSClient::GetShadowPath(const char *szFilePath, char *szShadowPath, int nB
    return FALSE;   
 }
 
-BOOL VSSClient::GetShadowPathW(const WCHAR *szFilePath, WCHAR *szShadowPath, int nBuflen)
+BOOL VSSClient::GetShadowPathW(const wchar_t *szFilePath, wchar_t *szShadowPath, int nBuflen)
 {
    if (!m_bBackupIsInitialized)
       return FALSE;
@@ -179,4 +178,5 @@ void VSSClient::DestroyWriterInfo()
    while (!pS->empty())
       pS->pop();      
 }
+
 #endif

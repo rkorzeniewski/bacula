@@ -53,7 +53,7 @@ the following once:
 The above only needs to be done once unless we change the cross-tools 
 version.  In general, you can run the script multiple times with no
 problem. For it to work, you must have a valid gcc compiler installed on
-your system as well as wget.  There may be other dependencies.
+your system as well as wget and texinfo.  There may be other dependencies.
 
 After building the cross-tools, you can proceed to build the depkgs-win32 
 packages, which must use the cross-tools compiler.
@@ -70,7 +70,7 @@ Finally, to build the Win32 Bacula FD and bconsole, do the following:
    make
 
 if all goes well, you will end with bacula-fd.exe, bconsole.exe,
-and pthreadGCE.dll in the current directory.
+pthreadGCE.dll, and mingwm10.dll in the current directory.
 
 Items to be done:
 - Get VSS builds to work

@@ -17,10 +17,10 @@ DEPKGS = $(TOPDIR)/depkgs-win32
 INCLUDE_BACULA = -I .. -I ./compat
 INCLUDE_PTHREADS = -I$(DEPKGS)/pthreads
 INCLUDE_ZLIB = -I$(DEPKGS)/zlib
-INCLUDE_ATL = -I$(CROSSTOOLS)/atlmfc/include
+#INCLUDE_ATL = -I$(CROSSTOOLS)/atlmfc/include
 INCLUDE_VSS = -I$(CROSSTOOLS)
 INCLUDE_ICONS = -I ../filed/win32
-INCLUDE_OPENSSL = -I$(CROSSTOOLS)/openssl/include
+INCLUDE_OPENSSL = -I$(DEPKGS)/openssl/include
 
 LIB_MINGW = $(MINGW)/mingw32/lib
 LIB_PTHREADS = $(DEPKGS)/pthreads/pthreadGCE.dll
@@ -36,9 +36,9 @@ INCLUDES = \
 	$(INCLUDE_PTHREADS) \
 	$(INCLUDE_BACULA) \
 	$(INCLUDE_ZLIB) \
+	$(INCLUDE_VSS) \
 	$(INCLUDE_ICONS)
 
-#	$(INCLUDE_VSS) \
 #	$(INCLUDE_ATL) \
 #	$(INCLUDE_OPENSSL)
 
@@ -46,9 +46,9 @@ HAVES = \
 	-DHAVE_MINGW \
 	-DHAVE_ZLIB_H \
 	-DHAVE_LIBZ \
+	-DWIN32_VSS \
 	-DHAVE_WIN32
 
-#	 -DWIN32_VSS \
 #	 -DHAVE_OPENSSL \
 #	 -DHAVE_TLS \
 	
@@ -141,10 +141,10 @@ print.o:	./compat/print.cpp
 vss.o:		./compat/vss.cpp
 	$(CXX) -c ./compat/vss.cpp -o $(OBJDIR)/vss.o
 
-vss_xp.o:	./compat/vss_XP.cpp
+vss_xp.o:	./compat/vss_XP.cpp ./compat/vss_generic.cpp
 	$(CXX) -c ./compat/vss_XP.cpp -o $(OBJDIR)/vss_xp.o
 
-vss_w2k3.o:	./compat/vss_W2K3.cpp
+vss_w2k3.o:	./compat/vss_W2K3.cpp ./compat/vss_generic.cpp
 	$(CXX) -c ./compat/vss_W2K3.cpp -o $(OBJDIR)/vss_w2k3.o
 
 ######################################################################
@@ -500,11 +500,13 @@ clean:
 bacula-fd.exe: $(FD_OBJS)
 	$(CXX) $(FD_OBJS) $(FD_LIBS) -o $(OBJDIR)/bacula-fd.exe
 	cp -f $(DEPKGS)/pthreads/pthreadGCE.dll .
+	cp -f $(MINGW)/mingw32/bin/mingwm10.dll .
 
 # Link the File daemon executable ...
 bconsole.exe: $(CONS_OBJS)
 	$(CXX) $(CONS_OBJS) $(CONS_LIBS) -o $(OBJDIR)/bconsole.exe
 	cp -f $(DEPKGS)/pthreads/pthreadGCE.dll .
+	cp -f $(MINGW)/mingw32/bin/mingwm10.dll .
 
 
 

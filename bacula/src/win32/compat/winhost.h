@@ -23,7 +23,7 @@
 
 #define HOST_OS  "Linux"
 #define DISTNAME "Cross-compile"
-#define DISTVER  "1"
+#define DISTVER  "Win32"
 
 #else
 extern char WIN_VERSION_LONG[];
