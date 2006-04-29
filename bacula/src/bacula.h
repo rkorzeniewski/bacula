@@ -30,6 +30,8 @@
 #ifdef HAVE_MINGW
 #include "mingwconfig.h"
 #include "winhost.h"
+#define _STAT_H       /* don't pull in MinGW stat.h */
+#define _STAT_DEFINED /* don't pull in MinGW stat.h */
 #else
 #include "winconfig.h"
 #include "winhost.h"
@@ -101,7 +103,7 @@
 #if defined(HAVE_WIN32) & !defined(HAVE_MINGW)
 #include <winsock2.h>
 #else
-#include <sys/stat.h>
+//#include <sys/stat.h>
 #endif
 #include <sys/time.h>
 #if HAVE_SYS_WAIT_H

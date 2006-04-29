@@ -31,15 +31,16 @@
 
 // WinUPS header file
 
+#ifdef HAVE_MINGW
+#include "compat.h"
+#endif
+
 #define STRICT 1
 #include <windows.h>
 #include <stdio.h>
 #include <process.h>
 #include "winres.h"
 
-#ifdef HAVE_MINGW
-#include "compat.h"
-#endif
 
 // Application specific messages
 

@@ -33,6 +33,10 @@
 
 #ifndef __COMPAT_H_
 #define __COMPAT_H_
+#ifndef _STAT_H
+#define _STAT_H       /* don't pull in MinGW stat.h */
+#define _STAT_DEFINED /* don't pull in MinGW stat.h */
+#endif
 
 #if (defined _MSC_VER) && (_MSC_VER >= 1400) // VC8+
 #pragma warning(disable : 4996) // Either disable all deprecation warnings,
@@ -175,10 +179,6 @@ int gettimeofday(struct timeval *, struct timezone *);
 
 #define ETIMEDOUT 55
 
-#ifndef HAVE_MINGW
-int strncasecmp(const char*, const char *, int);
-
-#ifndef _STAT_DEFINED
 struct stat
 {
     _dev_t      st_dev;
@@ -195,7 +195,6 @@ struct stat
     uint32_t    st_blksize;
     uint64_t    st_blocks;
 };
-#endif
 
 #undef  S_IFMT
 #define S_IFMT         0170000         /* file type mask */
@@ -218,7 +217,6 @@ struct stat
 #define S_ISCHR(x) 0
 #define S_ISBLK(x)  (((x) & S_IFMT) == S_IFBLK)
 #define S_ISFIFO(x) 0
-#endif //HAVE_MINGW
 
 #define S_IRGRP         000040
 #define S_IWGRP         000020
@@ -273,6 +271,7 @@ int fork();
 int waitpid(int, int *, int);
 
 #ifndef HAVE_MINGW
+int strncasecmp(const char*, const char *, int);
 int utime(const char *filename, struct utimbuf *buf);
 int open(const char *, int, int);
 #define vsnprintf __vsnprintf
@@ -307,6 +306,7 @@ struct tm *gmtime_r(const time_t *, struct tm *);
 long int random(void);
 void srandom(unsigned int seed);
 int lstat(const char *, struct stat *);
+int stat(const char *file, struct stat *sb);
 long pathconf(const char *, int);
 int readlink(const char *, char *, int);
 #define _PC_PATH_MAX 1

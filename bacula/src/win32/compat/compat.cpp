@@ -453,7 +453,6 @@ errorString(void)
    return rval;
 }
 
-#ifndef HAVE_MINGW
 
 static int
 statDir(const char *file, struct stat *sb)
@@ -547,7 +546,7 @@ stat2(const char *file, struct stat *sb)
     char tmpbuf[1024];
     conv_unix_to_win32_path(file, tmpbuf, 1024);
 
-    DWORD attr = -1;
+    DWORD attr = (DWORD)-1;
 
     if (p_GetFileAttributesW) {
       POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
@@ -688,8 +687,6 @@ stat(const char *file, struct stat *sb)
    sb->st_ctime = cvt_ftime_to_utime(data.ftCreationTime);
    return 0;
 }
-
-#endif //HAVE_MINGW
 
 int
 lstat(const char *file, struct stat *sb)

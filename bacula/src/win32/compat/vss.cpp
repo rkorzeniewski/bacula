@@ -22,8 +22,8 @@
 
 
 #ifdef WIN32_VSS
-#include "compat.h"
 #include "bacula.h"
+#include "compat.h"
 
 #include "ms_atl.h"
 #include <objbase.h>
