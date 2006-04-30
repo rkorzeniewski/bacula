@@ -401,7 +401,7 @@ void reload_config(int sig)
    reload_table[table].res_table = save_config_resources();
    Dmsg1(100, "Saved old config in table %d\n", table);
 
-   ok = parse_config(configfile, 0);  /* no exit on error */
+   ok = parse_config(configfile, 0, M_ERROR);  /* no exit on error */
 
    Dmsg0(100, "Reloaded config file\n");
    if (!ok || !check_resources()) {

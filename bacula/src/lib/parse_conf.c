@@ -759,7 +759,7 @@ enum parse_state {
  *  scan_error handler is to die on an error.
  */
 int
-parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error)
+parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error, int err_type)
 {
    LEX *lc = NULL;
    int token, i, pass;
@@ -784,6 +784,7 @@ parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error)
          } else {
             lex_set_default_error_handler(lc);
          }
+         lex_set_error_handler_error_type(lc, err_type) ;
          bstrncpy(lc->str, cf, sizeof(lc->str));
          lc->fname = lc->str;
          scan_err2(lc, _("Cannot open config file \"%s\": %s\n"),
@@ -791,6 +792,7 @@ parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error)
          free(lc);
          return 0;
       }
+      lex_set_error_handler_error_type(lc, err_type) ;
       while ((token=lex_get_token(lc, T_ALL)) != T_EOF) {
          Dmsg1(900, "parse got token=%s\n", lex_tok_to_str(token));
          switch (state) {

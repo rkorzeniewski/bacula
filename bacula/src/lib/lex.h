@@ -101,6 +101,7 @@ typedef struct s_lex_context {
    int32_t int32_val;
    int64_t int64_val;
    void (*scan_error)(const char *file, int line, struct s_lex_context *lc, const char *msg, ...);
+   int err_type;                      /* message level for scan_error (M_..) */
    void *caller_ctx;                  /* caller private data */
 } LEX;
 
