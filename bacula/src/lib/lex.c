@@ -74,6 +74,10 @@ static void s_err(const char *file, int line, LEX *lc, const char *msg, ...)
    bvsnprintf(buf, sizeof(buf), msg, arg_ptr);
    va_end(arg_ptr);
 
+   if (lc->err_type == 0) { 	/* M_ERROR_TERM by default */
+      lc->err_type = M_ERROR_TERM;
+   }
+
    if (lc->line_no > lc->begin_line_no) {
       bsnprintf(more, sizeof(more),
                 _("Problem probably begins at line %d.\n"), lc->begin_line_no);
@@ -81,11 +85,11 @@ static void s_err(const char *file, int line, LEX *lc, const char *msg, ...)
       more[0] = 0;
    }  
    if (lc->line_no > 0) {
-      e_msg(file, line, M_ERROR_TERM, 0, _("Config error: %s\n"
+      e_msg(file, line, lc->err_type, 0, _("Config error: %s\n"
 "            : line %d, col %d of file %s\n%s\n%s"),
          buf, lc->line_no, lc->col_no, lc->fname, lc->line, more);
    } else {
-      e_msg(file, line, M_ERROR_TERM, 0, _("Config error: %s\n"), buf);
+      e_msg(file, line, lc->err_type, 0, _("Config error: %s\n"), buf);
    }
 }
 
@@ -94,6 +98,16 @@ void lex_set_default_error_handler(LEX *lf)
    lf->scan_error = s_err;
 }
 
+/*
+ * Set err_type used in error_handler
+ * return the old value
+ */
+int lex_set_error_handler_error_type(LEX *lf, int err_type)
+{
+   int old = lf->err_type;
+   lf->err_type = err_type;
+   return old;
+}
 
 /*
  * Free the current file, and retrieve the contents
@@ -156,6 +170,7 @@ LEX *lex_open_file(LEX *lf, const char *filename, LEX_ERROR_HANDLER *scan_error)
    } else {
       lf = nf;                        /* start new packet */
       memset(lf, 0, sizeof(LEX));
+      lex_set_error_handler_error_type(lf, M_ERROR_TERM);
    }
    if (scan_error) {
       lf->scan_error = scan_error;
