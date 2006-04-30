@@ -2,6 +2,8 @@
                         Kern Sibbald
 
 General:
+30Apr06
+- Reloading a bad configuration file doesn't kill director any more.
 29Apr06
 - Fix problem of accents with new Win32 code.
 - Integrate Howard's VSS patch. Tweak it a bit. VSS now
