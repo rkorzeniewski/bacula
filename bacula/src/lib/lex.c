@@ -499,7 +499,7 @@ lex_get_token(LEX *lf, int expect)
             LEX* lfori = lf;
             
             lf->state = lex_none;
-            lf = lex_open_file(lf, lf->str, NULL);
+            lf = lex_open_file(lf, lf->str, lf->scan_error);
             if (lf == NULL) {
                berrno be;
                scan_err2(lfori, _("Cannot open included config file %s: %s\n"),
