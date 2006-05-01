@@ -30,6 +30,7 @@ LIB_ZLIB = $(DEPKGS)/zlib/libz.a
 
 BIN_DIR = $(MINGW)/bin
 
+
 INCLUDES = \
 	$(INCLUDE_GCC) \
 	$(INCLUDE_MINGW) \
@@ -62,9 +63,12 @@ DEFINES = \
 CC = $(BIN_DIR)/mingw32-g++ $(DEFINES) $(INCLUDES)
 CXX = $(BIN_DIR)/mingw32-g++ $(DEFINES) $(INCLUDES) 2>&1
 WINDRES = $(BIN_DIR)/mingw32-windres
+AR = $(BIN_DIR)/mingw32-ar
+RANLIB = $(BIN_DIR)/mingw32-ranlib
 
 first: all
 
+LIBDIR = ./lib
 OBJDIR = .
 
 ##########################################################################
@@ -232,203 +236,204 @@ save-cwd.o:	../findlib/save-cwd.c
 
 # Files files in src/lib
 
+
 LIB_OBJS = \
-	$(OBJDIR)/address_conf.o \
-	$(OBJDIR)/alist.o \
-	$(OBJDIR)/alloc.o \
-	$(OBJDIR)/attr.o \
-	$(OBJDIR)/base64.o \
-	$(OBJDIR)/berrno.o \
-	$(OBJDIR)/bget_msg.o \
-	$(OBJDIR)/bnet.o \
-	$(OBJDIR)/bnet_server.o \
-	$(OBJDIR)/bpipe.o \
-	$(OBJDIR)/bregex.o \
-	$(OBJDIR)/bshm.o \
-	$(OBJDIR)/bsys.o \
-	$(OBJDIR)/btime.o \
-	$(OBJDIR)/btimers.o \
-	$(OBJDIR)/cram-md5.o \
-	$(OBJDIR)/crc32.o \
-	$(OBJDIR)/crypto.o \
-	$(OBJDIR)/daemon.o \
-	$(OBJDIR)/dlist.o \
-	$(OBJDIR)/edit.o \
-	$(OBJDIR)/fnmatch.o \
-	$(OBJDIR)/hmac.o \
-	$(OBJDIR)/htable.o \
-	$(OBJDIR)/idcache.o \
-	$(OBJDIR)/jcr.o \
-	$(OBJDIR)/lex.o \
-	$(OBJDIR)/md5.o \
-	$(OBJDIR)/mem_pool.o \
-	$(OBJDIR)/message.o \
-	$(OBJDIR)/parse_conf.o \
-	$(OBJDIR)/pythonlib.o \
-	$(OBJDIR)/queue.o \
-	$(OBJDIR)/res.o \
-	$(OBJDIR)/rwlock.o \
-	$(OBJDIR)/semlock.o \
-	$(OBJDIR)/serial.o \
-	$(OBJDIR)/sha1.o \
-	$(OBJDIR)/signal.o \
-	$(OBJDIR)/smartall.o \
-	$(OBJDIR)/tls.o \
-	$(OBJDIR)/var.o \
-	$(OBJDIR)/watchdog.o \
-	$(OBJDIR)/winapi.o \
-	$(OBJDIR)/workq.o \
-	$(OBJDIR)/scan.o \
-	$(OBJDIR)/tree.o \
-	$(OBJDIR)/util.o
+	$(LIBDIR)/address_conf.o \
+	$(LIBDIR)/alist.o \
+	$(LIBDIR)/alloc.o \
+	$(LIBDIR)/attr.o \
+	$(LIBDIR)/base64.o \
+	$(LIBDIR)/berrno.o \
+	$(LIBDIR)/bget_msg.o \
+	$(LIBDIR)/bnet.o \
+	$(LIBDIR)/bnet_server.o \
+	$(LIBDIR)/bpipe.o \
+	$(LIBDIR)/bregex.o \
+	$(LIBDIR)/bshm.o \
+	$(LIBDIR)/bsys.o \
+	$(LIBDIR)/btime.o \
+	$(LIBDIR)/btimers.o \
+	$(LIBDIR)/cram-md5.o \
+	$(LIBDIR)/crc32.o \
+	$(LIBDIR)/crypto.o \
+	$(LIBDIR)/daemon.o \
+	$(LIBDIR)/dlist.o \
+	$(LIBDIR)/edit.o \
+	$(LIBDIR)/fnmatch.o \
+	$(LIBDIR)/hmac.o \
+	$(LIBDIR)/htable.o \
+	$(LIBDIR)/idcache.o \
+	$(LIBDIR)/jcr.o \
+	$(LIBDIR)/lex.o \
+	$(LIBDIR)/md5.o \
+	$(LIBDIR)/mem_pool.o \
+	$(LIBDIR)/message.o \
+	$(LIBDIR)/parse_conf.o \
+	$(LIBDIR)/pythonlib.o \
+	$(LIBDIR)/queue.o \
+	$(LIBDIR)/res.o \
+	$(LIBDIR)/rwlock.o \
+	$(LIBDIR)/semlock.o \
+	$(LIBDIR)/serial.o \
+	$(LIBDIR)/sha1.o \
+	$(LIBDIR)/signal.o \
+	$(LIBDIR)/smartall.o \
+	$(LIBDIR)/tls.o \
+	$(LIBDIR)/var.o \
+	$(LIBDIR)/watchdog.o \
+	$(LIBDIR)/winapi.o \
+	$(LIBDIR)/workq.o \
+	$(LIBDIR)/scan.o \
+	$(LIBDIR)/tree.o \
+	$(LIBDIR)/util.o
 
 #
 # Rules for generating from ../lib
 # 
 
 address_conf.o: ../lib/address_conf.c
-	$(CXX) -c ../lib/address_conf.c -o $(OBJDIR)/address_conf.o
+	$(CXX) -c ../lib/address_conf.c -o $(LIBDIR)/address_conf.o
 
 alist.o:	../lib/alist.c
-	$(CXX) -c ../lib/alist.c -o $(OBJDIR)/alist.o
+	$(CXX) -c ../lib/alist.c -o $(LIBDIR)/alist.o
 
 alloc.o:	../lib/alloc.c
-	$(CXX) -c ../lib/alloc.c -o $(OBJDIR)/alloc.o
+	$(CXX) -c ../lib/alloc.c -o $(LIBDIR)/alloc.o
 
 attr.o: ../lib/attr.c
-	$(CXX) -c ../lib/attr.c -o $(OBJDIR)/attr.o
+	$(CXX) -c ../lib/attr.c -o $(LIBDIR)/attr.o
 
 base64.o:	../lib/base64.c
-	$(CXX) -c ../lib/base64.c -o $(OBJDIR)/base64.o
+	$(CXX) -c ../lib/base64.c -o $(LIBDIR)/base64.o
 
 berrno.o:	../lib/berrno.c
-	$(CXX) -c ../lib/berrno.c -o $(OBJDIR)/berrno.o
+	$(CXX) -c ../lib/berrno.c -o $(LIBDIR)/berrno.o
 
 bget_msg.o:	../lib/bget_msg.c
-	$(CXX) -c ../lib/bget_msg.c -o $(OBJDIR)/bget_msg.o
+	$(CXX) -c ../lib/bget_msg.c -o $(LIBDIR)/bget_msg.o
 
 bnet.o: ../lib/bnet.c
-	$(CXX) -c ../lib/bnet.c -o $(OBJDIR)/bnet.o
+	$(CXX) -c ../lib/bnet.c -o $(LIBDIR)/bnet.o
 
 bnet_server.o:	../lib/bnet_server.c
-	$(CXX) -c ../lib/bnet_server.c -o $(OBJDIR)/bnet_server.o
+	$(CXX) -c ../lib/bnet_server.c -o $(LIBDIR)/bnet_server.o
 
 bpipe.o:	../lib/bpipe.c
-	$(CXX) -c ../lib/bpipe.c -o $(OBJDIR)/bpipe.o
+	$(CXX) -c ../lib/bpipe.c -o $(LIBDIR)/bpipe.o
 
 bregex.o:	 ../lib/bregex.c
-	$(CXX) -c ../lib/bregex.c -o $(OBJDIR)/bregex.o
+	$(CXX) -c ../lib/bregex.c -o $(LIBDIR)/bregex.o
 
 bshm.o: ../lib/bshm.c
-	$(CXX) -c ../lib/bshm.c -o $(OBJDIR)/bshm.o
+	$(CXX) -c ../lib/bshm.c -o $(LIBDIR)/bshm.o
 
 bsys.o: ../lib/bsys.c
-	$(CXX) -c ../lib/bsys.c -o $(OBJDIR)/bsys.o
+	$(CXX) -c ../lib/bsys.c -o $(LIBDIR)/bsys.o
 
 btime.o:	../lib/btime.c
-	$(CXX) -c ../lib/btime.c -o $(OBJDIR)/btime.o
+	$(CXX) -c ../lib/btime.c -o $(LIBDIR)/btime.o
 
 btimers.o:	../lib/btimers.c
-	$(CXX) -c ../lib/btimers.c -o $(OBJDIR)/btimers.o
+	$(CXX) -c ../lib/btimers.c -o $(LIBDIR)/btimers.o
 
 cram-md5.o:	../lib/cram-md5.c
-	$(CXX) -c ../lib/cram-md5.c -o $(OBJDIR)/cram-md5.o
+	$(CXX) -c ../lib/cram-md5.c -o $(LIBDIR)/cram-md5.o
 
 crc32.o:	../lib/crc32.c
-	$(CXX) -c ../lib/crc32.c -o $(OBJDIR)/crc32.o
+	$(CXX) -c ../lib/crc32.c -o $(LIBDIR)/crc32.o
 
 crypto.o:      ../lib/crypto.c
-	$(CXX) -c ../lib/crypto.c -o $(OBJDIR)/crypto.o
+	$(CXX) -c ../lib/crypto.c -o $(LIBDIR)/crypto.o
 
 daemon.o:	../lib/daemon.c
-	$(CXX) -c ../lib/daemon.c -o $(OBJDIR)/daemon.o
+	$(CXX) -c ../lib/daemon.c -o $(LIBDIR)/daemon.o
 
 dlist.o:	../lib/dlist.c
-	$(CXX) -c ../lib/dlist.c -o $(OBJDIR)/dlist.o
+	$(CXX) -c ../lib/dlist.c -o $(LIBDIR)/dlist.o
 
 edit.o: ../lib/edit.c
-	$(CXX) -c ../lib/edit.c -o $(OBJDIR)/edit.o
+	$(CXX) -c ../lib/edit.c -o $(LIBDIR)/edit.o
 
 fnmatch.o:	../lib/fnmatch.c
-	$(CXX) -c ../lib/fnmatch.c -o $(OBJDIR)/fnmatch.o
+	$(CXX) -c ../lib/fnmatch.c -o $(LIBDIR)/fnmatch.o
 
 hmac.o: ../lib/hmac.c
-	$(CXX) -c ../lib/hmac.c -o $(OBJDIR)/hmac.o
+	$(CXX) -c ../lib/hmac.c -o $(LIBDIR)/hmac.o
 
 htable.o:	../lib/htable.c
-	$(CXX) -c ../lib/htable.c -o $(OBJDIR)/htable.o
+	$(CXX) -c ../lib/htable.c -o $(LIBDIR)/htable.o
 
 idcache.o:	../lib/idcache.c
-	$(CXX) -c ../lib/idcache.c -o $(OBJDIR)/idcache.o
+	$(CXX) -c ../lib/idcache.c -o $(LIBDIR)/idcache.o
 
 jcr.o:	../lib/jcr.c
-	$(CXX) -c ../lib/jcr.c -o $(OBJDIR)/jcr.o
+	$(CXX) -c ../lib/jcr.c -o $(LIBDIR)/jcr.o
 
 lex.o:	../lib/lex.c
-	$(CXX) -c ../lib/lex.c -o $(OBJDIR)/lex.o
+	$(CXX) -c ../lib/lex.c -o $(LIBDIR)/lex.o
 
 md5.o:	../lib/md5.c
-	$(CXX) -c ../lib/md5.c -o $(OBJDIR)/md5.o
+	$(CXX) -c ../lib/md5.c -o $(LIBDIR)/md5.o
 
 mem_pool.o:	../lib/mem_pool.c
-	$(CXX) -c ../lib/mem_pool.c -o $(OBJDIR)/mem_pool.o
+	$(CXX) -c ../lib/mem_pool.c -o $(LIBDIR)/mem_pool.o
 
 message.o:	../lib/message.c
-	$(CXX) -c ../lib/message.c -o $(OBJDIR)/message.o
+	$(CXX) -c ../lib/message.c -o $(LIBDIR)/message.o
 
 parse_conf.o:	../lib/parse_conf.c
-	$(CXX) -c ../lib/parse_conf.c -o $(OBJDIR)/parse_conf.o
+	$(CXX) -c ../lib/parse_conf.c -o $(LIBDIR)/parse_conf.o
 
 pythonlib.o:	../lib/pythonlib.c
-	$(CXX) -c ../lib/pythonlib.c -o $(OBJDIR)/pythonlib.o
+	$(CXX) -c ../lib/pythonlib.c -o $(LIBDIR)/pythonlib.o
 
 queue.o:	../lib/queue.c
-	$(CXX) -c ../lib/queue.c -o $(OBJDIR)/queue.o
+	$(CXX) -c ../lib/queue.c -o $(LIBDIR)/queue.o
 
 res.o:	../lib/res.c
-	$(CXX) -c ../lib/res.c -o $(OBJDIR)/res.o
+	$(CXX) -c ../lib/res.c -o $(LIBDIR)/res.o
 
 rwlock.o:	../lib/rwlock.c
-	$(CXX) -c ../lib/rwlock.c -o $(OBJDIR)/rwlock.o
+	$(CXX) -c ../lib/rwlock.c -o $(LIBDIR)/rwlock.o
 
 scan.o: ../lib/scan.c
-	$(CXX) -c ../lib/scan.c -o $(OBJDIR)/scan.o
+	$(CXX) -c ../lib/scan.c -o $(LIBDIR)/scan.o
 
 semlock.o:	../lib/semlock.c
-	$(CXX) -c ../lib/semlock.c -o $(OBJDIR)/semlock.o
+	$(CXX) -c ../lib/semlock.c -o $(LIBDIR)/semlock.o
 
 serial.o:	../lib/serial.c
-	$(CXX) -c ../lib/serial.c -o $(OBJDIR)/serial.o
+	$(CXX) -c ../lib/serial.c -o $(LIBDIR)/serial.o
 
 sha1.o: ../lib/sha1.c
-	$(CXX) -c ../lib/sha1.c -o $(OBJDIR)/sha1.o
+	$(CXX) -c ../lib/sha1.c -o $(LIBDIR)/sha1.o
 
 signal.o:	../lib/signal.c
-	$(CXX) -c ../lib/signal.c -o $(OBJDIR)/signal.o
+	$(CXX) -c ../lib/signal.c -o $(LIBDIR)/signal.o
 
 smartall.o:	../lib/smartall.c
-	$(CXX) -c ../lib/smartall.c -o $(OBJDIR)/smartall.o
+	$(CXX) -c ../lib/smartall.c -o $(LIBDIR)/smartall.o
 
 tls.o:	../lib/tls.c
-	$(CXX) -c ../lib/tls.c -o $(OBJDIR)/tls.o
+	$(CXX) -c ../lib/tls.c -o $(LIBDIR)/tls.o
 
 tree.o: ../lib/tree.c
-	$(CXX) -c ../lib/tree.c -o $(OBJDIR)/tree.o
+	$(CXX) -c ../lib/tree.c -o $(LIBDIR)/tree.o
 
 util.o: ../lib/util.c
-	$(CXX) -c ../lib/util.c -o $(OBJDIR)/util.o
+	$(CXX) -c ../lib/util.c -o $(LIBDIR)/util.o
 
 var.o:	../lib/var.c
-	$(CXX) -c ../lib/var.c -o $(OBJDIR)/var.o
+	$(CXX) -c ../lib/var.c -o $(LIBDIR)/var.o
 
 watchdog.o:	../lib/watchdog.c
-	$(CXX) -c ../lib/watchdog.c -o $(OBJDIR)/watchdog.o
+	$(CXX) -c ../lib/watchdog.c -o $(LIBDIR)/watchdog.o
 
 winapi.o:	../lib/winapi.c
-	$(CXX) -c ../lib/winapi.c -o $(OBJDIR)/winapi.o
+	$(CXX) -c ../lib/winapi.c -o $(LIBDIR)/winapi.o
 
 workq.o:	../lib/workq.c
-	$(CXX) -c ../lib/workq.c -o $(OBJDIR)/workq.o
+	$(CXX) -c ../lib/workq.c -o $(LIBDIR)/workq.o
 
 
 ######################################################################
@@ -440,15 +445,74 @@ OBJS_CONSOLE = \
 	$(OBJDIR)/console_conf.o
 
 cons_authenticate.o:  ../console/authenticate.c
-	$(CXX) -I../src/console -c ../console/authenticate.c -o $(OBJDIR)/cons_authenticate.o
+	$(CXX) -I ../console -c ../console/authenticate.c -o $(OBJDIR)/cons_authenticate.o
 
 console.o:  ../console/console.c
-	$(CXX) -I../src/console -c ../console/console.c -o $(OBJDIR)/console.o
+	$(CXX) -I ../console -c ../console/console.c -o $(OBJDIR)/console.o
 
 console_conf.o:  ../console/console_conf.c
-	$(CXX) -I../src/console -c ../console/console_conf.c -o $(OBJDIR)/console_conf.o
+	$(CXX) -I ../console -c ../console/console_conf.c -o $(OBJDIR)/console_conf.o
 
 ######################################################################
+
+# Files in src/wx-console
+OBJS_WXCONSOLE = \
+	$(OBJDIR)/wx_authenticate.o \
+	$(OBJDIR)/main.o \
+	$(OBJDIR)/console_thread.o \
+	$(OBJDIR)/console_conf.o \
+	$(OBJDIR)/wxbrestorepanel.o \
+	$(OBJDIR)/wxbmainframe.o \
+	$(OBJDIR)/wxbtableparser.o \
+	$(OBJDIR)/wxbtreectrl.o \
+	$(OBJDIR)/wxbutils.o \
+	$(OBJDIR)/wxbconfigpanel.o \
+	$(OBJDIR)/wxbconfigfileeditor.o \
+	$(OBJDIR)/wxbhistorytextctrl.o \
+	$(OBJDIR)/wx-console.res
+
+wx_authenticate.o:  ../wx-console/authenticate.c
+	$(CXX) -I../wx-console -c ../wx-console/authenticate.c -o $(OBJDIR)/wx_authenticate.o
+
+main.o:  ../wx-console/main.c
+	$(CXX) -I../wx-console -c ../wx-console/main.c -o $(OBJDIR)/main.o
+
+console_thread.o:  ../wx-console/console_thread.c
+	$(CXX) -I../wx-console -c ../wx-console/console_thread.c -o $(OBJDIR)/console_thread.o
+
+console_conf.o:  ../wx-console/console_conf.c
+	$(CXX) -I../wx-console -c ../wx-console/console_conf.c -o $(OBJDIR)/console_conf.o
+
+wxbrestorepanel.o:  ../wx-console/wxbrestorepanel.c
+	$(CXX) -I../wx-console -c ../wx-console/wxbrestorepanel.c -o $(OBJDIR)/wxbrestorepanel.o
+
+wxbmainframe.o:  ../wx-console/wxbmainframe.c
+	$(CXX) -I../wx-console -c ../wx-console/wxbwxbtableparserframe.c -o $(OBJDIR)/wxbmainframe.o
+
+wxbtableparser.o:  ../wx-console/wxbtableparser.c
+	$(CXX) -I../wx-console -c ../wx-console/wxbtableparser.c -o $(OBJDIR)/main.o
+
+wxbtreectrl.o:	../wx-console/wxbtreectrl.c
+	$(CXX) -I../wx-console -c ../wx-console/wxbtreectrl.c -o $(OBJDIR)/wxbtreectrl.o
+
+wxbutils.o:  ../wx-console/wxbutils.c
+	$(CXX) -I../wx-console -c ../wx-console/wxbutils.c -o $(OBJDIR)/wxbutils.o
+
+wxbconfigpanel.o:  ../wx-console/wxbconfigpanel.c
+	$(CXX) -I../wx-console -c ../wx-console/wxbconfigpanel.c -o $(OBJDIR)/wxbconfigpanel.o
+
+wxbconfigfileeditor.o:	../wx-console/wxbconfigfileeditor.c
+	$(CXX) -I../wx-console -c ../wx-console/wxbconfigfileeditor.c -o $(OBJDIR)/wxbconfigfileeditor.o
+
+wxbhistorytextctrl.o:  ../wx-console/wxbhistorytextctrl.c
+	$(CXX) -I../wx-console -c ../wx-console/wxbhistorytextctrl.c -o $(OBJDIR)/wxbhistorytextctrl.o
+
+wx-console.res:     ../wx-console/wx-console_private.rc
+	$(WINDRES) -I../wx-console -O coff ../wx-console/wx-console_private.rc -o $(OBJDIR)/wx-console.res
+
+
+######################################################################
+
 
 
 FD_OBJS = $(LIB_OBJS) $(OBJS_COMPAT) $(OBJS_WIN) $(OBJS_FINDLIB) $(OBJS_FILED)
@@ -486,15 +550,29 @@ CONS_LIBS = \
 	$(LIB_MINGW)/libnetapi32.a \
 	$(LIB_MINGW)/libuuid.a
 
+WXCONS_OBJS = $(LIB_OBJS) $(OBJS_COMPAT) $(OBJS_WXCONSOLE)
+
+WXCONS_LIBS = \
+	-L$(LIB_MINGW) \
+	$(LIB_PTHREADS) \
+	$(LIB_SSL) \
+	$(LIB_CRYPTO) \
+	$(LIB_MINGW)/libole32.a \
+	$(LIB_MINGW)/liboleaut32.a \
+	$(LIB_MINGW)/libuser32.a \
+	$(LIB_MINGW)/libadvapi32.a \
+	$(LIB_MINGW)/libgdi32.a \
+	$(LIB_MINGW)/libwsock32.a \
+	$(LIB_MINGW)/libshell32.a \
+	$(LIB_MINGW)/libnetapi32.a \
+	$(LIB_MINGW)/libuuid.a
+
+
 
 
 # Targets
 
 all: bacula-fd.exe bconsole.exe
-
-clean:
-	rm -f $(OBJDIR)/*.o $(OBJDIR)/bacula-fd.exe $(OBJDIR)/winres.res
-	rm -f pthreadGCE.dll $(OBJDIR)/bconsole.exe
 
 # Link the File daemon executable ...
 bacula-fd.exe: $(FD_OBJS)
@@ -507,6 +585,19 @@ bconsole.exe: $(CONS_OBJS)
 	$(CXX) $(CONS_OBJS) $(CONS_LIBS) -o $(OBJDIR)/bconsole.exe
 	cp -f $(DEPKGS)/pthreads/pthreadGCE.dll .
 	cp -f $(MINGW)/mingw32/bin/mingwm10.dll .
+
+# Link the File daemon executable ...
+#  Not yet complete
+wx-console.exe: $(WXCONS_OBJS)
+	$(CXX) $(WXCONS_OBJS) $(WXCONS_LIBS) -o $(OBJDIR)/wx-console.exe
+	cp -f $(DEPKGS)/pthreads/pthreadGCE.dll .
+	cp -f $(MINGW)/mingw32/bin/mingwm10.dll .
+
+
+clean:
+	rm -f $(OBJDIR)/*.o $(OBJDIR)/bacula-fd.exe $(OBJDIR)/winres.res
+	rm -f $(LIBDIR)/*.o *.a
+	rm -f pthreadGCE.dll $(OBJDIR)/bconsole.exe
 
 
 
