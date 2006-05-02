@@ -177,7 +177,9 @@ struct timezone {
 int strcasecmp(const char*, const char *);
 int gettimeofday(struct timeval *, struct timezone *);
 
+#ifndef ETIMEDOUT
 #define ETIMEDOUT 55
+#endif
 
 struct stat
 {
@@ -301,8 +303,8 @@ int __sprintf(char *str, const char *fmt, ...);
 struct timespec;
 int readdir(unsigned int fd, struct dirent *dirp, unsigned int count);
 int nanosleep(const struct timespec*, struct timespec *);
-struct tm *localtime_r(const time_t *, struct tm *);
-struct tm *gmtime_r(const time_t *, struct tm *);
+//struct tm *localtime_r(const time_t *, struct tm *);
+//struct tm *gmtime_r(const time_t *, struct tm *);
 long int random(void);
 void srandom(unsigned int seed);
 int lstat(const char *, struct stat *);
@@ -311,8 +313,6 @@ long pathconf(const char *, int);
 int readlink(const char *, char *, int);
 #define _PC_PATH_MAX 1
 #define _PC_NAME_MAX 2
-
-
 
 int geteuid();
 
@@ -330,11 +330,6 @@ struct group {
 struct passwd *getpwuid(uid_t);
 struct group *getgrgid(uid_t);
 
-#ifndef HAVE_MINGW
-#define R_OK 04
-#define W_OK 02
-#endif //HAVE_MINGW
-
 struct sigaction {
     int sa_flags;
     void (*sa_handler)(int);
@@ -346,10 +341,16 @@ struct sigaction {
 #define unlink win32_unlink
 #define chdir win32_chdir
 int syslog(int, const char *, const char *);
+#ifndef LOG_DAEMON
 #define LOG_DAEMON 0
+#endif
+#ifndef LOG_ERR
 #define LOG_ERR 0
+#endif
 
 #ifndef HAVE_MINGW
+#define R_OK 04
+#define W_OK 02
 int stat(const char *, struct stat *);
 #ifdef __cplusplus
 #define access _access
@@ -377,15 +378,34 @@ int win32_unlink(const char *filename);
 
 char* win32_cgets (char* buffer, int len);
 
-
 int WSA_Init(void);
 
 #ifdef HAVE_MINGW
 void closelog();
+void openlog(const char *ident, int option, int facility);
 #endif //HAVE_MINGW
 
 #ifndef INVALID_FILE_ATTRIBUTES
 #define INVALID_FILE_ATTRIBUTES ((DWORD)-1)
+#endif
+
+/* Temp kludge ***FIXME*** */
+#ifdef __APCUPSD__
+#define SIGCHLD 0
+#define SIGALRM 0
+#define SIGHUP 0
+#define SIGCHLD 0
+#define SIGPIPE 0
+unsigned int alarm(unsigned int seconds);
+#define PM_FNAME 2000
+#define PM_MESSAGE 2000
+#define get_pool_memory(x) (char *)malloc(x)
+#define free_pool_memory(x) free((char *)x)
+#define check_pool_memory_size(x, y) x
+#define ASSERT(x) 
+#define bstrncat astrncat
+#define bstrncpy astrncpy
+
 #endif
 
 #endif /* __COMPAT_H_ */

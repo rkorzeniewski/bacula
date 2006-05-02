@@ -1,11 +1,12 @@
 #
 # Makefile for win32 bacula executables
 # Using MinGW cross-compiler on GNU/Linux
+#  
+#  Written for Bacula by Howard Thomson, April 2006
 # 
 
 # Configuration
 
-# Version for cross-tools-3.4.2
 TOPDIR = @TOP_DIR@
 CROSSTOOLS = $(TOPDIR)/cross-tools
 MINGW = $(CROSSTOOLS)/mingw32
@@ -71,6 +72,7 @@ first: all
 LIBDIR = ./lib
 OBJDIR = .
 
+
 ##########################################################################
 
 # Files in src/win32/filed/
@@ -88,38 +90,38 @@ OBJS_FILED = \
 	$(OBJDIR)/verify.o \
 	$(OBJDIR)/verify_vol.o
 
-authenticate.o: ../filed/authenticate.c
-	$(CXX) -c ../filed/authenticate.c -o $(OBJDIR)/authenticate.o
+$(OBJDIR)/authenticate.o: ../filed/authenticate.c
+	$(CXX) -c $< -o $@		
 
-backup.o:	../filed/backup.c
-	$(CXX) -c ../filed/backup.c -o $(OBJDIR)/backup.o
+$(OBJDIR)/backup.o:	  ../filed/backup.c
+	$(CXX) -c $< -o $@		
 
-estimate.o:	../filed/estimate.c
-	$(CXX) -c ../filed/estimate.c -o $(OBJDIR)/estimate.o
+$(OBJDIR)/estimate.o:	  ../filed/estimate.c
+	$(CXX) -c $< -o $@		
 
-filed.o:	../filed/filed.c
-	$(CXX) -c ../filed/filed.c -o $(OBJDIR)/filed.o
+$(OBJDIR)/filed.o:	  ../filed/filed.c
+	$(CXX) -c $< -o $@		
 
-filed_conf.o:	../filed/filed_conf.c
-	$(CXX) -c ../filed/filed_conf.c -o $(OBJDIR)/filed_conf.o
+$(OBJDIR)/filed_conf.o:   ../filed/filed_conf.c
+	$(CXX) -c $< -o $@		
 
-heartbeat.o:	../filed/heartbeat.c
-	$(CXX) -c ../filed/heartbeat.c -o $(OBJDIR)/heartbeat.o
+$(OBJDIR)/heartbeat.o:	  ../filed/heartbeat.c
+	$(CXX) -c $< -o $@		
 
-job.o:	../filed/job.c
-	$(CXX) -c ../filed/job.c -o $(OBJDIR)/job.o
+$(OBJDIR)/job.o:  ../filed/job.c
+	$(CXX) -c $< -o $@		
 
-restore.o:	../filed/restore.c
-	$(CXX) -c ../filed/restore.c -o $(OBJDIR)/restore.o
+$(OBJDIR)/restore.o:	  ../filed/restore.c
+	$(CXX) -c $< -o $@		
 
-status.o:	../filed/status.c
-	$(CXX) -c ../filed/status.c -o $(OBJDIR)/status.o
+$(OBJDIR)/status.o:	  ../filed/status.c
+	$(CXX) -c $< -o $@		
 
-verify.o:	../filed/verify.c
-	$(CXX) -c ../filed/verify.c -o $(OBJDIR)/verify.o
+$(OBJDIR)/verify.o:	  ../filed/verify.c
+	$(CXX) -c $< -o $@		
 
-verify_vol.o:	../filed/verify_vol.c
-	$(CXX) -c ../filed/verify_vol.c -o $(OBJDIR)/verify_vol.o
+$(OBJDIR)/verify_vol.o:   ../filed/verify_vol.c
+	$(CXX) -c $< -o $@		
 
 ######################################################################
 
@@ -133,23 +135,23 @@ OBJS_COMPAT = \
 	$(OBJDIR)/vss_xp.o \
 	$(OBJDIR)/vss_w2k3.o
 
-compat.o:	./compat/compat.cpp
-	$(CXX) -c ./compat/compat.cpp -o $(OBJDIR)/compat.o
+$(OBJDIR)/compat.o:	  ./compat/compat.cpp
+	$(CXX) -c $< -o $@		
 
-getopt.o:	./compat/getopt.c
-	$(CXX) -c ./compat/getopt.c -o $(OBJDIR)/getopt.o
+$(OBJDIR)/getopt.o:	  ./compat/getopt.c
+	$(CXX) -c $< -o $@		
 
-print.o:	./compat/print.cpp
-	$(CXX) -c ./compat/print.cpp -o $(OBJDIR)/print.o
+$(OBJDIR)/print.o:	  ./compat/print.cpp
+	$(CXX) -c $< -o $@		
 
-vss.o:		./compat/vss.cpp
-	$(CXX) -c ./compat/vss.cpp -o $(OBJDIR)/vss.o
+$(OBJDIR)/vss.o:	  ./compat/vss.cpp
+	$(CXX) -c $< -o $@		
 
-vss_xp.o:	./compat/vss_XP.cpp ./compat/vss_generic.cpp
-	$(CXX) -c ./compat/vss_XP.cpp -o $(OBJDIR)/vss_xp.o
+$(OBJDIR)/vss_xp.o:	  ./compat/vss_XP.cpp ./compat/vss_generic.cpp
+	$(CXX) -c $< -o $@		
 
-vss_w2k3.o:	./compat/vss_W2K3.cpp ./compat/vss_generic.cpp
-	$(CXX) -c ./compat/vss_W2K3.cpp -o $(OBJDIR)/vss_w2k3.o
+$(OBJDIR)/vss_w2k3.o:	  ./compat/vss_W2K3.cpp ./compat/vss_generic.cpp
+	$(CXX) -c $< -o $@		
 
 ######################################################################
 
@@ -163,28 +165,26 @@ OBJS_WIN = \
 	$(OBJDIR)/winmain.o \
 	$(OBJDIR)/winres.res
 
-winabout.o:	../filed/win32/winabout.cpp
-	$(CXX) -c ../filed/win32/winabout.cpp -o $(OBJDIR)/winabout.o
+$(OBJDIR)/winabout.o:	  ../filed/win32/winabout.cpp
+	$(CXX) -c $< -o $@		
 
-winevents.o:	../filed/win32/winevents.cpp
-	$(CXX) -c ../filed/win32/winevents.cpp -o $(OBJDIR)/winevents.o
+$(OBJDIR)/winevents.o:	  ../filed/win32/winevents.cpp
+	$(CXX) -c $< -o $@		
 
-winmain.o:	../filed/win32/winmain.cpp
-	$(CXX) -c ../filed/win32/winmain.cpp -o $(OBJDIR)/winmain.o
+$(OBJDIR)/winmain.o:	  ../filed/win32/winmain.cpp
+	$(CXX) -c $< -o $@		
 
-winservice.o:	../filed/win32/winservice.cpp
-	$(CXX) -c ../filed/win32/winservice.cpp -o $(OBJDIR)/winservice.o
+$(OBJDIR)/winservice.o:   ../filed/win32/winservice.cpp
+	$(CXX) -c $< -o $@		
 
-winstat.o:	../filed/win32/winstat.cpp
-	$(CXX) -c ../filed/win32/winstat.cpp -o $(OBJDIR)/winstat.o
+$(OBJDIR)/winstat.o:	  ../filed/win32/winstat.cpp
+	$(CXX) -c $< -o $@		
 
-wintray.o:	../filed/win32/wintray.cpp
-	$(CXX) -c ../filed/win32/wintray.cpp -o $(OBJDIR)/wintray.o
+$(OBJDIR)/wintray.o:	  ../filed/win32/wintray.cpp
+	$(CXX) -c $< -o $@		
 
-winres.res:	../filed/win32/winres.rc
-	$(WINDRES) $(INCLUDE_ICONS) -O coff ../filed/win32/winres.rc -o $(OBJDIR)/winres.res
-#	$(WINDRES) --help
-#	mingw32-nm winres.res
+$(OBJDIR)/winres.res:	  ../filed/win32/winres.rc
+	$(WINDRES) $(INCLUDE_ICONS) -O coff $< -o $@
 
 ######################################################################
 
@@ -201,35 +201,35 @@ OBJS_FINDLIB = \
 	$(OBJDIR)/match.o \
 	$(OBJDIR)/save-cwd.o
 
-attribs.o:	../findlib/attribs.c
-	$(CXX) -c ../findlib/attribs.c -o $(OBJDIR)/attribs.o
+$(OBJDIR)/attribs.o:	  ../findlib/attribs.c
+	$(CXX) -c $< -o $@		
 
-bfile.o:	../findlib/bfile.c
-	$(CXX) -c ../findlib/bfile.c -o $(OBJDIR)/bfile.o
+$(OBJDIR)/bfile.o:	  ../findlib/bfile.c
+	$(CXX) -c $< -o $@		
 
-create_file.o:	../findlib/create_file.c
-	$(CXX) -c ../findlib/create_file.c -o $(OBJDIR)/create_file.o
+$(OBJDIR)/create_file.o:  ../findlib/create_file.c
+	$(CXX) -c $< -o $@		
 
-enable_priv.o:	../findlib/enable_priv.c
-	$(CXX) -c ../findlib/enable_priv.c -o $(OBJDIR)/enable_priv.o
+$(OBJDIR)/enable_priv.o:  ../findlib/enable_priv.c
+	$(CXX) -c $< -o $@		
 
-find.o: ../findlib/find.c
-	$(CXX) -c ../findlib/find.c -o $(OBJDIR)/find.o
+$(OBJDIR)/find.o: ../findlib/find.c
+	$(CXX) -c $< -o $@		
 
-find_one.o:	../findlib/find_one.c
-	$(CXX) -c ../findlib/find_one.c -o $(OBJDIR)/find_one.o
+$(OBJDIR)/find_one.o:	  ../findlib/find_one.c
+	$(CXX) -c $< -o $@		
 
-fstype.o:	../findlib/fstype.c
-	$(CXX) -c ../findlib/fstype.c -o $(OBJDIR)/fstype.o
+$(OBJDIR)/fstype.o:	  ../findlib/fstype.c
+	$(CXX) -c $< -o $@		
 
-makepath.o:	../findlib/makepath.c
-	$(CXX) -c ../findlib/makepath.c -o $(OBJDIR)/makepath.o
+$(OBJDIR)/makepath.o:	  ../findlib/makepath.c
+	$(CXX) -c $< -o $@		
 
-match.o:	../findlib/match.c
-	$(CXX) -c ../findlib/match.c -o $(OBJDIR)/match.o
+$(OBJDIR)/match.o:	  ../findlib/match.c
+	$(CXX) -c $< -o $@		
 
-save-cwd.o:	../findlib/save-cwd.c
-	$(CXX) -c ../findlib/save-cwd.c -o $(OBJDIR)/save-cwd.o
+$(OBJDIR)/save-cwd.o:	  ../findlib/save-cwd.c
+	$(CXX) -c $< -o $@		
 
 
 ######################################################################
@@ -249,7 +249,6 @@ LIB_OBJS = \
 	$(LIBDIR)/bnet_server.o \
 	$(LIBDIR)/bpipe.o \
 	$(LIBDIR)/bregex.o \
-	$(LIBDIR)/bshm.o \
 	$(LIBDIR)/bsys.o \
 	$(LIBDIR)/btime.o \
 	$(LIBDIR)/btimers.o \
@@ -291,149 +290,146 @@ LIB_OBJS = \
 # Rules for generating from ../lib
 # 
 
-address_conf.o: ../lib/address_conf.c
-	$(CXX) -c ../lib/address_conf.c -o $(LIBDIR)/address_conf.o
+$(LIBDIR)/address_conf.o: ../lib/address_conf.c
+	$(CXX) -c $< -o $@		
 
-alist.o:	../lib/alist.c
-	$(CXX) -c ../lib/alist.c -o $(LIBDIR)/alist.o
+$(LIBDIR)/alist.o:	  ../lib/alist.c
+	$(CXX) -c $< -o $@		
 
-alloc.o:	../lib/alloc.c
-	$(CXX) -c ../lib/alloc.c -o $(LIBDIR)/alloc.o
+$(LIBDIR)/alloc.o:	  ../lib/alloc.c
+	$(CXX) -c $< -o $@		
 
-attr.o: ../lib/attr.c
-	$(CXX) -c ../lib/attr.c -o $(LIBDIR)/attr.o
+$(LIBDIR)/attr.o: ../lib/attr.c
+	$(CXX) -c $< -o $@		
 
-base64.o:	../lib/base64.c
-	$(CXX) -c ../lib/base64.c -o $(LIBDIR)/base64.o
+$(LIBDIR)/base64.o:	  ../lib/base64.c
+	$(CXX) -c $< -o $@		
 
-berrno.o:	../lib/berrno.c
-	$(CXX) -c ../lib/berrno.c -o $(LIBDIR)/berrno.o
+$(LIBDIR)/berrno.o:	  ../lib/berrno.c
+	$(CXX) -c $< -o $@		
 
-bget_msg.o:	../lib/bget_msg.c
-	$(CXX) -c ../lib/bget_msg.c -o $(LIBDIR)/bget_msg.o
+$(LIBDIR)/bget_msg.o:	  ../lib/bget_msg.c
+	$(CXX) -c $< -o $@		
 
-bnet.o: ../lib/bnet.c
-	$(CXX) -c ../lib/bnet.c -o $(LIBDIR)/bnet.o
+$(LIBDIR)/bnet.o: ../lib/bnet.c
+	$(CXX) -c $< -o $@		
 
-bnet_server.o:	../lib/bnet_server.c
-	$(CXX) -c ../lib/bnet_server.c -o $(LIBDIR)/bnet_server.o
+$(LIBDIR)/bnet_server.o:  ../lib/bnet_server.c
+	$(CXX) -c $< -o $@		
 
-bpipe.o:	../lib/bpipe.c
-	$(CXX) -c ../lib/bpipe.c -o $(LIBDIR)/bpipe.o
+$(LIBDIR)/bpipe.o:	  ../lib/bpipe.c
+	$(CXX) -c $< -o $@		
 
-bregex.o:	 ../lib/bregex.c
-	$(CXX) -c ../lib/bregex.c -o $(LIBDIR)/bregex.o
+$(LIBDIR)/bregex.o:	   ../lib/bregex.c
+	$(CXX) -c $< -o $@		
 
-bshm.o: ../lib/bshm.c
-	$(CXX) -c ../lib/bshm.c -o $(LIBDIR)/bshm.o
+$(LIBDIR)/bsys.o: ../lib/bsys.c
+	$(CXX) -c $< -o $@		
 
-bsys.o: ../lib/bsys.c
-	$(CXX) -c ../lib/bsys.c -o $(LIBDIR)/bsys.o
+$(LIBDIR)/btime.o:	  ../lib/btime.c
+	$(CXX) -c $< -o $@		
 
-btime.o:	../lib/btime.c
-	$(CXX) -c ../lib/btime.c -o $(LIBDIR)/btime.o
+$(LIBDIR)/btimers.o:	  ../lib/btimers.c
+	$(CXX) -c $< -o $@		
 
-btimers.o:	../lib/btimers.c
-	$(CXX) -c ../lib/btimers.c -o $(LIBDIR)/btimers.o
+$(LIBDIR)/cram-md5.oc:	   ../lib/cram-md5.c
+	$(CXX) -c $< -o $@		
 
-cram-md5.o:	../lib/cram-md5.c
-	$(CXX) -c ../lib/cram-md5.c -o $(LIBDIR)/cram-md5.o
+$(LIBDIR)/crc32.o:	  ../lib/crc32.c
+	$(CXX) -c $< -o $@		
 
-crc32.o:	../lib/crc32.c
-	$(CXX) -c ../lib/crc32.c -o $(LIBDIR)/crc32.o
+$(LIBDIR)/crypto.o:	 ../lib/crypto.c
+	$(CXX) -c $< -o $@		
 
-crypto.o:      ../lib/crypto.c
-	$(CXX) -c ../lib/crypto.c -o $(LIBDIR)/crypto.o
+$(LIBDIR)/daemon.o:	  ../lib/daemon.c
+	$(CXX) -c $< -o $@		
 
-daemon.o:	../lib/daemon.c
-	$(CXX) -c ../lib/daemon.c -o $(LIBDIR)/daemon.o
+$(LIBDIR)/dlist.o:	  ../lib/dlist.c
+	$(CXX) -c $< -o $@		
 
-dlist.o:	../lib/dlist.c
-	$(CXX) -c ../lib/dlist.c -o $(LIBDIR)/dlist.o
+$(LIBDIR)/edit.o:	../lib/edit.c
+	$(CXX) -c $< -o $@		
 
-edit.o: ../lib/edit.c
-	$(CXX) -c ../lib/edit.c -o $(LIBDIR)/edit.o
+$(LIBDIR)/fnmatch.o:	  ../lib/fnmatch.c
+	$(CXX) -c $< -o $@		
 
-fnmatch.o:	../lib/fnmatch.c
-	$(CXX) -c ../lib/fnmatch.c -o $(LIBDIR)/fnmatch.o
+$(LIBDIR)/hmac.o: ../lib/hmac.c
+	$(CXX) -c $< -o $@		
 
-hmac.o: ../lib/hmac.c
-	$(CXX) -c ../lib/hmac.c -o $(LIBDIR)/hmac.o
+$(LIBDIR)/htable.o:	  ../lib/htable.c
+	$(CXX) -c $< -o $@		
 
-htable.o:	../lib/htable.c
-	$(CXX) -c ../lib/htable.c -o $(LIBDIR)/htable.o
+$(LIBDIR)/idcache.o:	  ../lib/idcache.c
+	$(CXX) -c $< -o $@		
 
-idcache.o:	../lib/idcache.c
-	$(CXX) -c ../lib/idcache.c -o $(LIBDIR)/idcache.o
+$(LIBDIR)/jcr.o:  ../lib/jcr.c
+	$(CXX) -c $< -o $@		
 
-jcr.o:	../lib/jcr.c
-	$(CXX) -c ../lib/jcr.c -o $(LIBDIR)/jcr.o
+$(LIBDIR)/lex.o:  ../lib/lex.c
+	$(CXX) -c $< -o $@		
 
-lex.o:	../lib/lex.c
-	$(CXX) -c ../lib/lex.c -o $(LIBDIR)/lex.o
+$(LIBDIR)/md5.o:  ../lib/md5.c
+	$(CXX) -c $< -o $@		
 
-md5.o:	../lib/md5.c
-	$(CXX) -c ../lib/md5.c -o $(LIBDIR)/md5.o
+$(LIBDIR)/mem_pool.o:	  ../lib/mem_pool.c
+	$(CXX) -c $< -o $@		
 
-mem_pool.o:	../lib/mem_pool.c
-	$(CXX) -c ../lib/mem_pool.c -o $(LIBDIR)/mem_pool.o
+$(LIBDIR)/message.o:	  ../lib/message.c
+	$(CXX) -c $< -o $@		
 
-message.o:	../lib/message.c
-	$(CXX) -c ../lib/message.c -o $(LIBDIR)/message.o
+$(LIBDIR)/parse_conf.o:   ../lib/parse_conf.c
+	$(CXX) -c $< -o $@		
 
-parse_conf.o:	../lib/parse_conf.c
-	$(CXX) -c ../lib/parse_conf.c -o $(LIBDIR)/parse_conf.o
+$(LIBDIR)/pythonlib.o:	  ../lib/pythonlib.c
+	$(CXX) -c $< -o $@		
 
-pythonlib.o:	../lib/pythonlib.c
-	$(CXX) -c ../lib/pythonlib.c -o $(LIBDIR)/pythonlib.o
+$(LIBDIR)/queue.o:	  ../lib/queue.c
+	$(CXX) -c $< -o $@		
 
-queue.o:	../lib/queue.c
-	$(CXX) -c ../lib/queue.c -o $(LIBDIR)/queue.o
+$(LIBDIR)/res.o:  ../lib/res.c
+	$(CXX) -c $< -o $@		
 
-res.o:	../lib/res.c
-	$(CXX) -c ../lib/res.c -o $(LIBDIR)/res.o
+$(LIBDIR)/rwlock.o:	  ../lib/rwlock.c
+	$(CXX) -c $< -o $@		
 
-rwlock.o:	../lib/rwlock.c
-	$(CXX) -c ../lib/rwlock.c -o $(LIBDIR)/rwlock.o
+$(LIBDIR)/scan.o: ../lib/scan.c
+	$(CXX) -c $< -o $@		
 
-scan.o: ../lib/scan.c
-	$(CXX) -c ../lib/scan.c -o $(LIBDIR)/scan.o
+$(LIBDIR)/semlock.o:	  ../lib/semlock.c
+	$(CXX) -c $< -o $@		
 
-semlock.o:	../lib/semlock.c
-	$(CXX) -c ../lib/semlock.c -o $(LIBDIR)/semlock.o
+$(LIBDIR)/serial.o:	  ../lib/serial.c
+	$(CXX) -c $< -o $@		
 
-serial.o:	../lib/serial.c
-	$(CXX) -c ../lib/serial.c -o $(LIBDIR)/serial.o
+$(LIBDIR)/sha1.o: ../lib/sha1.c
+	$(CXX) -c $< -o $@		
 
-sha1.o: ../lib/sha1.c
-	$(CXX) -c ../lib/sha1.c -o $(LIBDIR)/sha1.o
+$(LIBDIR)/signal.o:	  ../lib/signal.c
+	$(CXX) -c $< -o $@		
 
-signal.o:	../lib/signal.c
-	$(CXX) -c ../lib/signal.c -o $(LIBDIR)/signal.o
+$(LIBDIR)/smartall.o:	  ../lib/smartall.c
+	$(CXX) -c $< -o $@		
 
-smartall.o:	../lib/smartall.c
-	$(CXX) -c ../lib/smartall.c -o $(LIBDIR)/smartall.o
+$(LIBDIR)/tls.o:  ../lib/tls.c
+	$(CXX) -c $< -o $@		
 
-tls.o:	../lib/tls.c
-	$(CXX) -c ../lib/tls.c -o $(LIBDIR)/tls.o
+$(LIBDIR)/tree.o: ../lib/tree.c
+	$(CXX) -c $< -o $@		
 
-tree.o: ../lib/tree.c
-	$(CXX) -c ../lib/tree.c -o $(LIBDIR)/tree.o
+$(LIBDIR)/util.o: ../lib/util.c
+	$(CXX) -c $< -o $@		
 
-util.o: ../lib/util.c
-	$(CXX) -c ../lib/util.c -o $(LIBDIR)/util.o
+$(LIBDIR)/var.o:  ../lib/var.c
+	$(CXX) -c $< -o $@		
 
-var.o:	../lib/var.c
-	$(CXX) -c ../lib/var.c -o $(LIBDIR)/var.o
+$(LIBDIR)/watchdog.o:	  ../lib/watchdog.c
+	$(CXX) -c $< -o $@		
 
-watchdog.o:	../lib/watchdog.c
-	$(CXX) -c ../lib/watchdog.c -o $(LIBDIR)/watchdog.o
+$(LIBDIR)/winapi.o:	  ../lib/winapi.c
+	$(CXX) -c $< -o $@		
 
-winapi.o:	../lib/winapi.c
-	$(CXX) -c ../lib/winapi.c -o $(LIBDIR)/winapi.o
-
-workq.o:	../lib/workq.c
-	$(CXX) -c ../lib/workq.c -o $(LIBDIR)/workq.o
+$(LIBDIR)/workq.o:	  ../lib/workq.c
+	$(CXX) -c $< -o $@		
 
 
 ######################################################################
@@ -480,8 +476,8 @@ main.o:  ../wx-console/main.c
 console_thread.o:  ../wx-console/console_thread.c
 	$(CXX) -I../wx-console -c ../wx-console/console_thread.c -o $(OBJDIR)/console_thread.o
 
-console_conf.o:  ../wx-console/console_conf.c
-	$(CXX) -I../wx-console -c ../wx-console/console_conf.c -o $(OBJDIR)/console_conf.o
+wx_console_conf.o:  ../wx-console/console_conf.c
+	$(CXX) -I../wx-console -c ../wx-console/console_conf.c -o $(OBJDIR)/wx_console_conf.o
 
 wxbrestorepanel.o:  ../wx-console/wxbrestorepanel.c
 	$(CXX) -I../wx-console -c ../wx-console/wxbrestorepanel.c -o $(OBJDIR)/wxbrestorepanel.o

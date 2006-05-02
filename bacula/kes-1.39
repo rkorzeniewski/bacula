@@ -2,7 +2,11 @@
                         Kern Sibbald
 
 General:
-01Ma06
+02May06
+- Simplify Win32 Makefile
+- Correct count of buffers/bytes used by smartall.c
+- Updated compat.h after porting apcupsd to MinGW.
+01May06
 - Work on getting wx-console building on MinGW. wxWidgets now builds
   started adding Makefile ...
 - Moved MinGW library objects to src/win32/lib to reduce clutter.

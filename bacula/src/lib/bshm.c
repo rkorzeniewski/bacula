@@ -18,26 +18,21 @@
  *  available to all the threads.
  *
  */
-
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
+
 
 #ifdef implemented
 
@@ -46,7 +41,7 @@
 #if !defined(HAVE_CYGWIN) && !defined(HAVE_WIN32)
 
 #ifdef NEED_SHARED_MEMORY
-#define SHM_KEY 0x0BACB01	     /* key for shared memory */
+#define SHM_KEY 0x0BACB01            /* key for shared memory */
 static key_t shmkey = SHM_KEY;
 #define MAX_TRIES 1000
 
@@ -66,9 +61,9 @@ void shm_create(BSHM *shm)
    Dmsg1(110, "shm_create size=%d\n", shm->size);
    for (i=0; i<MAX_TRIES; i++) {
       if ((shmid = shmget(shmkey, shm->size, shm->perms | IPC_CREAT)) < 0) {
-	 Emsg1(M_WARN, 0, _("shmget failure key = %x\n"), shmkey);
-	 shmkey++;
-	 continue;
+         Emsg1(M_WARN, 0, _("shmget failure key = %x\n"), shmkey);
+         shmkey++;
+         continue;
       }
       not_found = FALSE;
       break;
@@ -78,10 +73,10 @@ void shm_create(BSHM *shm)
    shm->shmkey = shmkey;
    shm->shmid = shmid;
    Dmsg2(110, "shm_create return key=%x id=%d\n", shmkey, shmid);
-   shmkey++;			      /* leave set for next time */
+   shmkey++;                          /* leave set for next time */
 #else
    shm->shmbuf = NULL;
-   shm->shmkey = 0;		      /* reference count */
+   shm->shmkey = 0;                   /* reference count */
 #endif
 }
 
@@ -108,7 +103,7 @@ void *shm_open(BSHM *shm)
    if (!shm->shmbuf) {
       shm->shmbuf = bmalloc(shm->size);
    }
-   shm->shmkey++;		      /* reference count */
+   shm->shmkey++;                     /* reference count */
    V(mutex);
    return shm->shmbuf;
 #endif
@@ -120,12 +115,12 @@ void shm_close(BSHM *shm)
 #ifdef NEED_SHARED_MEMORY
    if (shm->size) {
       if (shmdt(shm->shmbuf) < 0) {
-	 Emsg1(M_ERROR, 0, _("Error detaching shared memory: %s\n"), strerror(errno));
+         Emsg1(M_ERROR, 0, _("Error detaching shared memory: %s\n"), strerror(errno));
       }
    }
 #else
    P(mutex);
-   shm->shmkey--;		      /* reference count */
+   shm->shmkey--;                     /* reference count */
    V(mutex);
 #endif
 }
@@ -136,7 +131,7 @@ void shm_destroy(BSHM *shm)
 #ifdef NEED_SHARED_MEMORY
    if (shm->size) {
       if (shmctl(shm->shmid, IPC_RMID, NULL) < 0) {
-	 Emsg1(M_ERROR, 0, _("Could not destroy shared memory: %s\n"), strerror(errno));
+         Emsg1(M_ERROR, 0, _("Could not destroy shared memory: %s\n"), strerror(errno));
       }
    }
 #else

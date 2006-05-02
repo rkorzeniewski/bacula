@@ -188,8 +188,10 @@ void sm_free(const char *file, int line, void *fp)
       V(mutex);
       Emsg2(M_ABORT, 0, _("Buffer overrun called from %s:%d\n"), file, line);
    }
-   sm_buffers--;
-   sm_bytes -= head->ablen;
+   if (sm_buffers > 0) {
+      sm_buffers--;
+      sm_bytes -= head->ablen;
+   }
 
    qdchain(qp);
    V(mutex);
@@ -283,8 +285,8 @@ void *sm_realloc(const char *fname, int lineno, void *ptr, unsigned int size)
       return NULL from  realloc()  and  leave  the  buffer  in  PTR
       intact.  */
 
-   sm_buffers--;
-   sm_bytes -= head->ablen;
+// sm_buffers--;
+// sm_bytes -= head->ablen;
 
    if ((buf = smalloc(fname, lineno, size)) != NULL) {
       memcpy(buf, ptr, (int) sm_min(size, osize));

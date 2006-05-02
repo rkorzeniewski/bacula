@@ -88,6 +88,9 @@ minutes).
 
 [ possibly a Python event -- kes ]
 ===
+- Directive: at <event> "command"
+- Command: pycmd "command" generates "command" event.  How to
+  attach to a specific job?
 - Integrate Christopher's St. Bernard code.
 - run_cmd() returns int should return JobId_t
 - get_next_jobid_from_list() returns int should return JobId_t

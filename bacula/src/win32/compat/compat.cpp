@@ -21,13 +21,23 @@
 // Created On      : Sat Jan 31 15:55:00 2004
 // $Id$
 
+#ifdef __APCUPSD__
+
+#include "apc.h"
+#include "compat.h"
+#include "winapi.h"
+
+#else
+
 #include "bacula.h"
 #include "compat.h"
-#define b_errno_win32 (1<<29)
-
+#include "jcr.h"
+#include "../../lib/winapi.h"
 #include "vss.h"
 
-#include "../../lib/winapi.h"
+#endif
+
+#define b_errno_win32 (1<<29)
 
 
 /* to allow the usage of the original version in this file here */
@@ -1332,8 +1342,6 @@ public:
 
 static winver INIT;                     // cause constructor to be called before main()
 
-#include "bacula.h"
-#include "jcr.h"
 
 winver::winver(void)
 {
@@ -1971,4 +1979,13 @@ dup2(int, int)
 #ifdef HAVE_MINGW
 /* syslog function, added by Nicolas Boichat */
 void closelog() {}
+void openlog(const char *ident, int option, int facility) {}  
 #endif //HAVE_MINGW
+
+/* Temp kludges ***FIXME**** */
+#ifdef __APCUPSD__
+unsigned int alarm(unsigned int seconds) 
+{
+   return 0;
+}
+#endif
