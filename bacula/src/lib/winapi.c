@@ -20,7 +20,11 @@
 
  */
 
+#ifdef __APCUPSD__
+#include "apc.h"
+#else
 #include "bacula.h"
+#endif
 
 #if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
 
