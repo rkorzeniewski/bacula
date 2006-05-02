@@ -23,7 +23,37 @@
 
 #ifdef WIN32_VSS
 
+#ifdef HAVE_MINGW
 #include "compat.h"
+#else
+#include <stdio.h>
+#include <basetsd.h>
+#include <stdarg.h>
+#include <sys/types.h>
+#include <process.h>
+#include <direct.h>
+#include <winsock2.h>
+#include <windows.h>
+#include <wincon.h>
+#include <winbase.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <conio.h>
+#include <process.h>
+#include <errno.h>
+#include <string.h>
+#include <time.h>
+#include <signal.h>
+#include <malloc.h>
+#include <setjmp.h>
+#include <direct.h>
+#include <ctype.h>
+#include <fcntl.h>
+#include <io.h>
+#endif
+
+
 
 // STL includes
 #include <vector>
@@ -591,20 +621,19 @@ BOOL VSSClientGeneric::CheckWriterStatus()
         }
         /* store text info */
         char str[1000];
-        char szBuf[200];
-        itoa(eWriterStatus, szBuf, sizeof(szBuf));
+        char szBuf[200];        
         strcpy(str, "\"");
         wchar_2_UTF8(szBuf, bstrWriterName.p, sizeof(szBuf));
         strcat(str, szBuf);
         strcat(str, "\", State: 0x");
+        itoa(eWriterStatus, szBuf, sizeof(szBuf));
         strcat(str, szBuf);
         strcat(str, " (");
         wchar_2_UTF8(szBuf, GetStringFromWriterStatus(eWriterStatus), sizeof(szBuf));
         strcat(str, szBuf);
         strcat(str, ")");
 
-        AppendWriterInfo(nState, (const char *)str);
-     //   SysFreeString (bstrWriterName);
+        AppendWriterInfo(nState, (const char *)str);     
     }
 
     hr = pVss->FreeWriterStatus();
