@@ -18,16 +18,27 @@ DEPKGS = $(TOPDIR)/depkgs-win32
 INCLUDE_BACULA = -I .. -I ./compat
 INCLUDE_PTHREADS = -I$(DEPKGS)/pthreads
 INCLUDE_ZLIB = -I$(DEPKGS)/zlib
-#INCLUDE_ATL = -I$(CROSSTOOLS)/atlmfc/include
 INCLUDE_VSS = -I$(CROSSTOOLS)
 INCLUDE_ICONS = -I ../filed/win32
 INCLUDE_OPENSSL = -I$(DEPKGS)/openssl/include
+INCLUDE_WX = -I$(DEPKGS)/wx/include
 
 LIB_MINGW = $(MINGW)/mingw32/lib
 LIB_PTHREADS = $(DEPKGS)/pthreads/pthreadGCE.dll
 LIB_ZLIB = $(DEPKGS)/zlib/libz.a
-#LIB_SSL = $(DEPKGS)/openssl/libssl.a
-#LIB_CRYPTO = $(DEPKGS)/openssl/libcrypto.a
+LIB_SSL = $(DEPKGS)/openssl/libssl.a
+LIB_CRYPTO = $(DEPKGS)/openssl/libcrypto.a
+
+LIBWX = $(DEPKGS)/wx/build-mingw32/lib
+LIB_WX = $(LIBWX)/libwx_base-2.6.a \
+	 $(LIBWX)/libwx_base_net-2.6.a \
+	 $(LIBWX)/libwx_base_xml-2.6.a \
+	 $(LIBWX)/libwx_msw_core-2.6.a \
+	 $(LIBWX)/libwx_msw_adv-2.6.a \
+	 $(LIBWX)/libwx_msw_html-2.6.a \
+	 $(LIBWX)/libwx_msw_media-2.6.a \
+	 $(LIBWX)/libwx_msw_qa-2.6.a \
+	 $(LIBWX)/libwx_msw_xrc-2.6.a
 
 BIN_DIR = $(MINGW)/bin
 
@@ -41,7 +52,6 @@ INCLUDES = \
 	$(INCLUDE_VSS) \
 	$(INCLUDE_ICONS)
 
-#	$(INCLUDE_ATL) \
 #	$(INCLUDE_OPENSSL)
 
 HAVES = \
@@ -440,14 +450,16 @@ OBJS_CONSOLE = \
 	$(OBJDIR)/console.o \
 	$(OBJDIR)/console_conf.o
 
-cons_authenticate.o:  ../console/authenticate.c
-	$(CXX) -I ../console -c ../console/authenticate.c -o $(OBJDIR)/cons_authenticate.o
+CONS_INC = -I ../console
 
-console.o:  ../console/console.c
-	$(CXX) -I ../console -c ../console/console.c -o $(OBJDIR)/console.o
+$(OBJDIR)/cons_authenticate.o:	../console/authenticate.c
+	$(CXX) $(CONS_INC) -c $< -o $@		    
 
-console_conf.o:  ../console/console_conf.c
-	$(CXX) -I ../console -c ../console/console_conf.c -o $(OBJDIR)/console_conf.o
+$(OBJDIR)/console.o:  ../console/console.c
+	$(CXX) $(CONS_INC) -c $< -o $@		    
+
+$(OBJDIR)/console_conf.o:  ../console/console_conf.c
+	$(CXX) $(CONS_INC) -c $< -o $@		    
 
 ######################################################################
 
@@ -467,44 +479,46 @@ OBJS_WXCONSOLE = \
 	$(OBJDIR)/wxbhistorytextctrl.o \
 	$(OBJDIR)/wx-console.res
 
-wx_authenticate.o:  ../wx-console/authenticate.c
-	$(CXX) -I../wx-console -c ../wx-console/authenticate.c -o $(OBJDIR)/wx_authenticate.o
+WX_INC = -DHAVE_WXCONSOLE -D__CYGWIN__ -D__WINDOWS__ -I ../wx-console $(INCLUDE_WX)
 
-main.o:  ../wx-console/main.c
-	$(CXX) -I../wx-console -c ../wx-console/main.c -o $(OBJDIR)/main.o
+$(OBJDIR)/wx_authenticate.o:  ../wx-console/authenticate.c
+	$(CXX) $(WX_INC) -c $< -o $@		  
 
-console_thread.o:  ../wx-console/console_thread.c
-	$(CXX) -I../wx-console -c ../wx-console/console_thread.c -o $(OBJDIR)/console_thread.o
+$(OBJDIR)/main.o:  ../wx-console/main.cpp
+	$(CXX) $(WX_INC) -c $< -o $@		  
 
-wx_console_conf.o:  ../wx-console/console_conf.c
-	$(CXX) -I../wx-console -c ../wx-console/console_conf.c -o $(OBJDIR)/wx_console_conf.o
+$(OBJDIR)/console_thread.o:  ../wx-console/console_thread.cpp
+	$(CXX) $(WX_INC) -c $< -o $@		  
 
-wxbrestorepanel.o:  ../wx-console/wxbrestorepanel.c
-	$(CXX) -I../wx-console -c ../wx-console/wxbrestorepanel.c -o $(OBJDIR)/wxbrestorepanel.o
+$(OBJDIR)/wx_console_conf.o:  ../wx-console/console_conf.c
+	$(CXX) $(WX_INC) -c $< -o $@		  
 
-wxbmainframe.o:  ../wx-console/wxbmainframe.c
-	$(CXX) -I../wx-console -c ../wx-console/wxbwxbtableparserframe.c -o $(OBJDIR)/wxbmainframe.o
+$(OBJDIR)/wxbrestorepanel.o:  ../wx-console/wxbrestorepanel.cpp
+	$(CXX) $(WX_INC) -c $< -o $@		  
 
-wxbtableparser.o:  ../wx-console/wxbtableparser.c
-	$(CXX) -I../wx-console -c ../wx-console/wxbtableparser.c -o $(OBJDIR)/main.o
+$(OBJDIR)/wxbmainframe.o:  ../wx-console/wxbmainframe.cpp
+	$(CXX) $(WX_INC) -c $< -o $@		  
 
-wxbtreectrl.o:	../wx-console/wxbtreectrl.c
-	$(CXX) -I../wx-console -c ../wx-console/wxbtreectrl.c -o $(OBJDIR)/wxbtreectrl.o
+$(OBJDIR)/wxbtableparser.o:  ../wx-console/wxbtableparser.cpp
+	$(CXX) $(WX_INC) -c $< -o $@		  
 
-wxbutils.o:  ../wx-console/wxbutils.c
-	$(CXX) -I../wx-console -c ../wx-console/wxbutils.c -o $(OBJDIR)/wxbutils.o
+$(OBJDIR)/wxbtreectrl.o:  ../wx-console/wxbtreectrl.cpp
+	$(CXX) $(WX_INC) -c $< -o $@		  
 
-wxbconfigpanel.o:  ../wx-console/wxbconfigpanel.c
-	$(CXX) -I../wx-console -c ../wx-console/wxbconfigpanel.c -o $(OBJDIR)/wxbconfigpanel.o
+$(OBJDIR)/wxbutils.o:  ../wx-console/wxbutils.cpp
+	$(CXX) $(WX_INC) -c $< -o $@		  
 
-wxbconfigfileeditor.o:	../wx-console/wxbconfigfileeditor.c
-	$(CXX) -I../wx-console -c ../wx-console/wxbconfigfileeditor.c -o $(OBJDIR)/wxbconfigfileeditor.o
+$(OBJDIR)/wxbconfigpanel.o:  ../wx-console/wxbconfigpanel.cpp
+	$(CXX) $(WX_INC) -c $< -o $@		  
 
-wxbhistorytextctrl.o:  ../wx-console/wxbhistorytextctrl.c
-	$(CXX) -I../wx-console -c ../wx-console/wxbhistorytextctrl.c -o $(OBJDIR)/wxbhistorytextctrl.o
+$(OBJDIR)/wxbconfigfileeditor.o:  ../wx-console/wxbconfigfileeditor.cpp
+	$(CXX) $(WX_INC) -c $< -o $@		  
 
-wx-console.res:     ../wx-console/wx-console_private.rc
-	$(WINDRES) -I../wx-console -O coff ../wx-console/wx-console_private.rc -o $(OBJDIR)/wx-console.res
+$(OBJDIR)/wxbhistorytextctrl.o:  ../wx-console/wxbhistorytextctrl.cpp
+	$(CXX) $(WX_INC) -c $< -o $@		  
+
+$(OBJDIR)/wx-console.res:     ../wx-console/wx-console_private.rc
+	$(WINDRES) $(WX_INC) -O coff $< -o $@
 
 
 ######################################################################
@@ -570,6 +584,9 @@ WXCONS_LIBS = \
 
 all: bacula-fd.exe bconsole.exe
 
+#$(LIBDIR)/libbac.a: $(LIB_OBJS)
+#	$(AR) ars $@ $(LIB_OBJS)
+
 # Link the File daemon executable ...
 bacula-fd.exe: $(FD_OBJS)
 	$(CXX) $(FD_OBJS) $(FD_LIBS) -o $(OBJDIR)/bacula-fd.exe
@@ -585,7 +602,7 @@ bconsole.exe: $(CONS_OBJS)
 # Link the File daemon executable ...
 #  Not yet complete
 wx-console.exe: $(WXCONS_OBJS)
-	$(CXX) $(WXCONS_OBJS) $(WXCONS_LIBS) -o $(OBJDIR)/wx-console.exe
+	$(CXX) $(WX_INC) $(WXCONS_OBJS) $(WXCONS_LIBS) -o $(OBJDIR)/wx-console.exe
 	cp -f $(DEPKGS)/pthreads/pthreadGCE.dll .
 	cp -f $(MINGW)/mingw32/bin/mingwm10.dll .
 
@@ -596,9 +613,6 @@ clean:
 	rm -f pthreadGCE.dll $(OBJDIR)/bconsole.exe
 
 
-
-
 # TODO ...
 # Fix vss files: check for consistent levels of pointer indirection
-# vss_generic.c: VSS_TIMEOUT defined as empty/null
 # bpipe.c: WTERMSIG undefined
