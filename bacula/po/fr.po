@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Bacula 1.38\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
 "POT-Creation-Date: 2006-02-26 10:24+0100\n"
-"PO-Revision-Date: 2006-04-13 22:51+0200\n"
+"PO-Revision-Date: 2006-05-03 22:52+0200\n"
 "Last-Translator: Eric Bollengier <eric@eb.homelinux.org>\n"
 "Language-Team: French <bacula-devel-fr@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -1784,25 +1784,25 @@ msgstr "Backup"
 
 #: src/lib/util.c:289 src/dird/ua_run.c:594
 msgid "Verify"
-msgstr ""
+msgstr "Vérifier"
 
 #: src/lib/util.c:292 src/gnome2-console/interface.c:261
 #: src/wx-console/wxbrestorepanel.cpp:384
 #: src/wx-console/wxbrestorepanel.cpp:1949
 msgid "Restore"
-msgstr ""
+msgstr "Restaurer"
 
 #: src/lib/util.c:295 src/dird/ua_run.c:540
 msgid "Admin"
-msgstr ""
+msgstr "Admin"
 
 #: src/lib/util.c:298
 msgid "Migrate"
-msgstr ""
+msgstr "Migrer"
 
 #: src/lib/util.c:301
 msgid "Copy"
-msgstr ""
+msgstr "Copier"
 
 #: src/lib/util.c:304
 msgid "Unknown Type"
@@ -1811,27 +1811,27 @@ msgstr ""
 #: src/lib/util.c:319 src/dird/ua_run.c:731 src/filed/status.c:368
 #: src/stored/status.c:451
 msgid "Base"
-msgstr ""
+msgstr "Base"
 
 #: src/lib/util.c:321 src/dird/ua_run.c:732 src/filed/status.c:370
 #: src/stored/status.c:453
 msgid "Full"
-msgstr ""
+msgstr "Full"
 
 #: src/lib/util.c:324 src/dird/ua_run.c:733 src/filed/status.c:373
 #: src/stored/status.c:456
 msgid "Incremental"
-msgstr ""
+msgstr "Incrémental"
 
 #: src/lib/util.c:327 src/dird/ua_run.c:734 src/filed/status.c:376
 #: src/stored/status.c:459
 msgid "Differential"
-msgstr ""
+msgstr "Différentiel"
 
 #: src/lib/util.c:330 src/dird/ua_run.c:735 src/filed/status.c:379
 #: src/stored/status.c:462
 msgid "Since"
-msgstr ""
+msgstr "Depuis"
 
 #: src/lib/util.c:333 src/dird/ua_run.c:759 src/filed/status.c:382
 #: src/stored/status.c:465
@@ -1940,7 +1940,7 @@ msgstr ""
 
 #: src/lib/message.c:378
 msgid "Bacula Message"
-msgstr ""
+msgstr "Message de Bacula"
 
 #: src/lib/message.c:431
 msgid "open mail pipe failed.\n"
@@ -1963,6 +1963,9 @@ msgid ""
 "CMD=%s\n"
 "ERR=%s\n"
 msgstr ""
+"La commande mail s'est terminée en erreur.\n"
+"CMD=%s\n"
+"ERR=%s\n"
 
 #: src/lib/message.c:650
 #, c-format
@@ -2293,7 +2296,7 @@ msgstr ""
 
 #: src/cats/sql.c:451
 msgid "No results to list.\n"
-msgstr ""
+msgstr "Liste vide.\n"
 
 #: src/cats/sql_get.c:130
 #, c-format
@@ -2510,7 +2513,7 @@ msgstr ""
 
 #: src/cats/sql_find.c:96
 msgid "No prior Full backup Job record found.\n"
-msgstr ""
+msgstr "Pas de précédent backup Full en base.\n"
 
 #: src/cats/sql_find.c:108
 #, c-format
@@ -2706,7 +2709,7 @@ msgstr "Sélectionnez le FileSet"
 
 #: src/dird/ua_select.c:193
 msgid "catalog"
-msgstr "catalogue"
+msgstr "catalog"
 
 #: src/dird/ua_select.c:201
 msgid "The defined Catalog resources are:\n"
@@ -3251,7 +3254,7 @@ msgstr "La priorité (Priority) est déjà spécifiée.\n"
 
 #: src/dird/ua_run.c:221
 msgid "Priority must be positive nonzero setting it to 10.\n"
-msgstr "La priorité doit être supérieure à zero. Utilisation d'une priorité de 10.\n"
+msgstr "La priorité doit être supérieure à zéro. Utilisation d'une priorité de 10.\n"
 
 #: src/dird/ua_run.c:231
 msgid "Verify Job specified twice.\n"
@@ -5886,35 +5889,35 @@ msgstr ""
 
 #: src/dird/ua_update.c:465
 msgid "Volume Status"
-msgstr ""
+msgstr "Statut d'un volume"
 
 #: src/dird/ua_update.c:466
 msgid "Volume Retention Period"
-msgstr ""
+msgstr "Période de rétention d'un volume"
 
 #: src/dird/ua_update.c:467
 msgid "Volume Use Duration"
-msgstr ""
+msgstr "Durée d'utilisation d'un volume"
 
 #: src/dird/ua_update.c:468
 msgid "Maximum Volume Jobs"
-msgstr ""
+msgstr "Nombre maximum de job sur un volume"
 
 #: src/dird/ua_update.c:469
 msgid "Maximum Volume Files"
-msgstr ""
+msgstr "Nombre maximum de fichier sur un volume"
 
 #: src/dird/ua_update.c:470
 msgid "Maximum Volume Bytes"
-msgstr ""
+msgstr "Taille maximum d'un volume"
 
 #: src/dird/ua_update.c:471
 msgid "Recycle Flag"
-msgstr ""
+msgstr "Flag de recyclage"
 
 #: src/dird/ua_update.c:473
 msgid "InChanger Flag"
-msgstr ""
+msgstr "Flag InChanger"
 
 #: src/dird/ua_update.c:474
 msgid "Volume Files"
@@ -5988,7 +5991,7 @@ msgstr "La valeur actuelle est : %s\n"
 
 #: src/dird/ua_update.c:542
 msgid "Enter new Maximum Bytes: "
-msgstr ""
+msgstr "Saisissez la nouvelle taille maximum (octets) : "
 
 #: src/dird/ua_update.c:550
 #, c-format
@@ -6002,11 +6005,11 @@ msgstr ""
 #: src/dird/ua_update.c:559
 #, c-format
 msgid "Current Slot is: %d\n"
-msgstr ""
+msgstr "Le slot courant est : %d\n"
 
 #: src/dird/ua_update.c:560
 msgid "Enter new Slot: "
-msgstr ""
+msgstr "Saisissez le nouveau slot : "
 
 #: src/dird/ua_update.c:567
 #, c-format
@@ -6067,11 +6070,11 @@ msgstr "Sélection terminée.\n"
 #: src/dird/ua_update.c:664
 #, c-format
 msgid "db_update_pool_record returned %d. ERR=%s\n"
-msgstr ""
+msgstr "db_update_pool_record a retourné %d. ERR=%s\n"
 
 #: src/dird/ua_update.c:671
 msgid "Pool DB record updated from resource.\n"
-msgstr ""
+msgstr "Les paramètres du Pool en base ont été mis à jour depuis la configuration.\n"
 
 #: src/dird/ua_label.c:89
 msgid "Negative numbers not permitted\n"
@@ -6091,11 +6094,11 @@ msgstr ""
 
 #: src/dird/ua_label.c:112
 msgid "Input value is not an integer.\n"
-msgstr ""
+msgstr "La valeur saisie n'est pas un nombre.\n"
 
 #: src/dird/ua_label.c:118
 msgid "Values must be be greater than zero.\n"
-msgstr ""
+msgstr "Les valeurs doivent être supérieurs à zéro.\n"
 
 #: src/dird/ua_label.c:122
 msgid "Slot too large.\n"
@@ -6107,7 +6110,7 @@ msgstr "Pas de slot dans le magasin à scanner.\n"
 
 #: src/dird/ua_label.c:188 src/dird/ua_label.c:484
 msgid "No Volumes found to label, or no barcodes.\n"
-msgstr ""
+msgstr "Pas de volume à labéliser ou pas de codebar.\n"
 
 #: src/dird/ua_label.c:198
 #, c-format
@@ -6117,22 +6120,22 @@ msgstr "Le slot %d est ignoré car il est supérieur au maximum %d.\n"
 #: src/dird/ua_label.c:227
 #, c-format
 msgid "No VolName for Slot=%d InChanger set to zero.\n"
-msgstr ""
+msgstr "Pas de volume sur le Slot %d. Mise à zéro de InChanger.\n"
 
 #: src/dird/ua_label.c:242
 #, c-format
 msgid "Catalog record for Volume \"%s\" updated to reference slot %d.\n"
-msgstr ""
+msgstr "Mise à jour des informations du volume « %s » dans le catalogue (Slot=%d).\n"
 
 #: src/dird/ua_label.c:246
 #, c-format
 msgid "Catalog record for Volume \"%s\" is up to date.\n"
-msgstr ""
+msgstr "Le volume « %s » est à jour dans le catalogue.\n"
 
 #: src/dird/ua_label.c:252
 #, c-format
 msgid "Volume \"%s\" not found in catalog. Slot=%d InChanger set to zero.\n"
-msgstr ""
+msgstr "Volume « %s » absent du catalogue. mise à zéro de InChanger pour le Slot=%d.\n"
 
 #: src/dird/ua_label.c:344
 #, c-format
@@ -6187,7 +6190,7 @@ msgstr ""
 
 #: src/dird/ua_label.c:498 src/stored/btape.c:606
 msgid "Do you want to continue? (y/n): "
-msgstr "Vous voulez continuer ? (y/n) : "
+msgstr "Voulez vous continuer ? (y/n) : "
 
 #: src/dird/ua_label.c:519
 #, c-format
@@ -6623,6 +6626,9 @@ msgid ""
 "with a < to indicate it is a filename containg a list\n"
 "of directories and terminate them with a blank line.\n"
 msgstr ""
+"Saisissez les répertoires complets ou bien le nom d'un\n"
+"fichier (commençant par <) contenant la liste des répertoires et\n"
+"terminez la saisie par une ligne vide.\n"
 
 #: src/dird/ua_restore.c:584
 msgid "Enter directory name: "
@@ -6649,7 +6655,7 @@ msgstr ""
 #: src/dird/ua_restore.c:637
 #, c-format
 msgid "Unable to get Job record for JobId=%s: ERR=%s\n"
-msgstr ""
+msgstr "Impossible de récupérer le Job du JobId=%s : ERR=%s\n"
 
 #: src/dird/ua_restore.c:642
 #, c-format
@@ -6831,7 +6837,7 @@ msgstr "enable <job=name> -- active un job"
 
 #: src/dird/ua_cmds.c:98
 msgid "performs FileSet estimate, listing gives full listing"
-msgstr ""
+msgstr "estimate <listing> -- estime un FileSet (listing donne la liste des fichiers)"
 
 #: src/dird/ua_cmds.c:99 src/console/console.c:157
 msgid "exit = quit"
@@ -6839,7 +6845,7 @@ msgstr "exit = quit"
 
 #: src/dird/ua_cmds.c:100
 msgid "gui [on|off] -- non-interactive gui mode"
-msgstr ""
+msgstr "gui [on|off] -- mode non interactif (pour interface graphique)"
 
 #: src/dird/ua_cmds.c:101 src/stored/btape.c:2538
 msgid "print this command"
@@ -6849,7 +6855,7 @@ msgstr "affiche cette commande"
 msgid ""
 "list [pools | jobs | jobtotals | media <pool=pool-name> | files <jobid=nn>]; "
 "from catalog"
-msgstr ""
+msgstr "list [pools | jobs | jobtotals | media <pool=pool-name> | files <jobid=nn>] -- depuis le catalogue"
 
 #: src/dird/ua_cmds.c:103
 msgid "label a tape"
@@ -6861,7 +6867,7 @@ msgstr ""
 
 #: src/dird/ua_cmds.c:105
 msgid "messages"
-msgstr ""
+msgstr "messages"
 
 #: src/dird/ua_cmds.c:106
 msgid "mount <storage-name>"
@@ -7247,7 +7253,7 @@ msgstr ""
 #: src/dird/ua_output.c:365
 #, c-format
 msgid "Jobid %d used %d Volume(s): %s\n"
-msgstr ""
+msgstr "JobId %d a utilisé %d volume(s) : %s\n"
 
 #: src/dird/ua_output.c:383
 msgid "No Pool specified.\n"
@@ -7587,12 +7593,12 @@ msgstr ""
 #: src/filed/job.c:991 src/stored/fd_cmds.c:334
 #, c-format
 msgid "Could not create bootstrap file %s: ERR=%s\n"
-msgstr ""
+msgstr "Impossible de créer le fichier bootstrap %s : ERR=%s\n"
 
 #: src/filed/job.c:1090
 #, c-format
 msgid "DIR and FD clocks differ by %d seconds, FD automatically adjusting.\n"
-msgstr ""
+msgstr "L'horloge du client et du director ont %d secondes d'écart, le client s'est ajusté automatiquement.\n"
 
 #: src/filed/job.c:1098
 #, c-format
@@ -7625,7 +7631,7 @@ msgstr ""
 
 #: src/filed/job.c:1199
 msgid "Cannot contact Storage daemon\n"
-msgstr ""
+msgstr "Impossible de se connecter au démon Storage\n"
 
 #: src/filed/job.c:1217
 #, c-format
@@ -7639,17 +7645,17 @@ msgstr ""
 #: src/filed/job.c:1249
 #, c-format
 msgid "Generate VSS snapshots. Driver=\"%s\", Drive(s)=\"%s\"\n"
-msgstr ""
+msgstr "Création des snapshot VSS. Driver=« %s », Lecteur(s)=« %s »\n"
 
 #: src/filed/job.c:1252
 #, c-format
 msgid "Generate VSS snapshots failed. ERR=%s\n"
-msgstr ""
+msgstr "Erreur durant la création des snapshots. ERR=%s\n"
 
 #: src/filed/job.c:1259
 #, c-format
 msgid "Generate VSS snapshot of drive \"%c:\\\" failed\n"
-msgstr ""
+msgstr "Erreur lors de la création du snapshot VSS du lecteur « %c:\\\\ »\n"
 
 #: src/filed/job.c:1268
 #, c-format
@@ -11613,7 +11619,7 @@ msgstr ""
 #: src/stored/askdir.c:178
 #, c-format
 msgid "Error getting Volume info: %s"
-msgstr ""
+msgstr "Erreur pendant la récupération des informations sur un Volume : %s"
 
 #: src/stored/askdir.c:299 src/stored/askdir.c:300
 msgid "Attempt to update_volume_info in read mode!!!\n"
@@ -11665,12 +11671,12 @@ msgstr ""
 #: src/stored/askdir.c:517
 #, c-format
 msgid "Job %s canceled while waiting for mount on Storage Device %s.\n"
-msgstr ""
+msgstr "Le Job %s a été annulé pendant qu'il attendait le montage sur le Storage Device %s.\n"
 
 #: src/stored/askdir.c:532
 #, c-format
 msgid "Please mount Volume \"%s\" on Storage Device %s for Job %s\n"
-msgstr ""
+msgstr "Merci de monter le Volume « %s » sur le Storage Device « %s » pour le Job %s\n"
 
 #: src/stored/askdir.c:561
 msgid "pthread error in mount_volume\n"
@@ -11695,17 +11701,17 @@ msgstr ""
 #: src/stored/autochanger.c:153
 #, c-format
 msgid "3304 Issuing autochanger \"load slot %d, drive %d\" command.\n"
-msgstr ""
+msgstr "3304 Envoi de la commande « load slot %d, drive %d » à l'autochangeur.\n"
 
 #: src/stored/autochanger.c:162
 #, c-format
 msgid "3305 Autochanger \"load slot %d, drive %d\", status is OK.\n"
-msgstr ""
+msgstr "3305 Autochangeur « load slot %d, drive %d », le résultat est OK.\n"
 
 #: src/stored/autochanger.c:168
 #, c-format
 msgid "3992 Bad autochanger \"load slot %d, drive %d\": ERR=%s.\n"
-msgstr ""
+msgstr "3992 Erreur sur l'autochangeur « load slot %d, drive %d » : ERR=%s.\n"
 
 #: src/stored/autochanger.c:209
 msgid "3992 Missing Changer command.\n"
@@ -11714,47 +11720,47 @@ msgstr ""
 #: src/stored/autochanger.c:219
 #, c-format
 msgid "3301 Issuing autochanger \"loaded drive %d\" command.\n"
-msgstr ""
+msgstr "3301 Envoi de la commande « loaded drive %d » à l'autochangeur.\n"
 
 #: src/stored/autochanger.c:229
 #, c-format
 msgid "3302 Autochanger \"loaded drive %d\", result is Slot %d.\n"
-msgstr ""
+msgstr "3302 Autochangeur « loaded drive %d », le resultat est Slot %d.\n"
 
 #: src/stored/autochanger.c:233
 #, c-format
 msgid "3302 Autochanger \"loaded drive %d\", result: nothing loaded.\n"
-msgstr ""
+msgstr "3302 Autochangeur « loaded drive %d », résultat : lecteur vide.\n"
 
 #: src/stored/autochanger.c:240
 #, c-format
 msgid "3991 Bad autochanger \"loaded drive %d\" command: ERR=%s.\n"
-msgstr ""
+msgstr "3991 Erreur sur l'autochangeur « loaded drive %d » : ERR=%s.\n"
 
 #: src/stored/autochanger.c:299 src/stored/autochanger.c:381
 #, c-format
 msgid "3307 Issuing autochanger \"unload slot %d, drive %d\" command.\n"
-msgstr ""
+msgstr "3307 Envoi de la commande « unload slot %d, drive %d » à l'autochangeur.\n"
 
 #: src/stored/autochanger.c:312 src/stored/autochanger.c:403
 #, c-format
 msgid "3995 Bad autochanger \"unload slot %d, drive %d\": ERR=%s.\n"
-msgstr ""
+msgstr "3995 Erreur sur l'autochangeur « unload slot %d, drive %d » : ERR=%s.\n"
 
 #: src/stored/autochanger.c:370
 #, c-format
 msgid "Volume \"%s\" is in use by device %s\n"
-msgstr ""
+msgstr "Le volume « %s » est utilisé par le device %s\n"
 
 #: src/stored/autochanger.c:441
 #, c-format
 msgid "3993 Device %s not an autochanger device.\n"
-msgstr ""
+msgstr "3993 Le Device %s n'est pas un autochangeur.\n"
 
 #: src/stored/autochanger.c:466
 #, c-format
 msgid "3306 Issuing autochanger \"%s\" command.\n"
-msgstr ""
+msgstr "3306 Envoi de la commande « %s » à l'autochangeur.\n"
 
 #: src/stored/autochanger.c:469
 msgid "3996 Open bpipe failed.\n"
@@ -11763,7 +11769,7 @@ msgstr ""
 #: src/stored/autochanger.c:496
 #, c-format
 msgid "Autochanger error: ERR=%s\n"
-msgstr ""
+msgstr "Erreur sur l'autochangeur : ERR=%s\n"
 
 #: src/stored/block.c:79
 #, c-format
