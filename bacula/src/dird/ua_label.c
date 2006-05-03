@@ -499,7 +499,7 @@ static void label_from_barcodes(UAContext *ua, int drive)
       }
       bsendmsg(ua, "%4d  %s\n", vl->Slot, vl->VolName);
    }
-   if (!get_yesno(ua, _("Do you want to continue? (yes/no): ")) ||
+   if (!get_yesno(ua, _("Do you want to continue? (yes|no): ")) ||
        (ua->pint32_val == 0)) {
       goto bail_out;
    }
