@@ -126,7 +126,18 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
    Dmsg1(400, "Want changer slot=%d\n", slot);
 
    changer = get_pool_memory(PM_FNAME);
-   if (slot > 0 && dcr->device->changer_name && dcr->device->changer_command) {
+   if (slot <= 0) {
+      Jmsg(jcr, M_INFO, 0, _("Invalid slot=%d defined, cannot autoload Volume.\n"), slot);
+      rtn_stat = 0;
+   } else if (!dcr->device->changer_name) {
+      Jmsg(jcr, M_INFO, 0, _("No \"Changer Device\" given cannot autoload Volume.\n"));
+      rtn_stat = 0;
+  } else if (!dcr->device->changer_command) {
+      Jmsg(jcr, M_INFO, 0, _("No \"Changer Command\" given cannot autoload Volume.\n"));
+      rtn_stat = 0;
+  } else {
+      /* Attempt to load the Volume */
+
       uint32_t timeout = dcr->device->max_changer_wait;
       int loaded, status;
 
@@ -182,8 +193,6 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
       if (status == 0) {              /* did we succeed? */
          rtn_stat = 1;                /* tape loaded by changer */
       }
-   } else {
-      rtn_stat = 0;                   /* no changer found */
    }
    free_pool_memory(changer);
    return rtn_stat;

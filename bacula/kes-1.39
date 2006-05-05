@@ -2,6 +2,10 @@
                         Kern Sibbald
 
 General:
+05May06
+- Correct EOF with no \n lex.c problem.
+- Tweak compat.h compat.cpp and merge with apcupsd
+- Add additional INFO messages if autochanger cannot be used.
 02May06
 - Simplify Win32 Makefile
 - Correct count of buffers/bytes used by smartall.c
