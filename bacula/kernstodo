@@ -12,6 +12,13 @@ Document:
 - Pruning with Admin job.
 - Does WildFile match against full name?  Doc.
 - %d and %v only valid on Director, not for ClientRunBefore/After.
+- During tests with the 260 char fix code, I found one problem:
+  if the system "sees" a long path once, it seems to forget it's
+  working drive (e.g.  c:\), which will lead to a problem during
+  the next job (create bootstrap file will fail).  Here is the
+  workaround: specify absolute working and pid directory in
+  bacula-fd.conf (e.g.  c:\bacula\working instead of
+  \bacula\working).
 
 Priority:
 
@@ -88,6 +95,123 @@ minutes).
 
 [ possibly a Python event -- kes ]
 ===
+- Mount on an Autochanger with no tape in the drive causes:
+   Automatically selected Storage: LTO-changer
+   Enter autochanger drive[0]: 0
+   3301 Issuing autochanger "loaded drive 0" command.
+   3302 Autochanger "loaded drive 0", result: nothing loaded.
+   3301 Issuing autochanger "loaded drive 0" command.
+   3302 Autochanger "loaded drive 0", result: nothing loaded.
+   3902 Cannot mount Volume on Storage Device "LTO-Drive1" (/dev/nst0) because:
+   Couldn't rewind device "LTO-Drive1" (/dev/nst0): ERR=dev.c:678 Rewind error on "LTO-Drive1" (/dev/nst0). ERR=No medium found.
+   3905 Device "LTO-Drive1" (/dev/nst0) open but no Bacula volume is mounted.
+   If this is not a blank tape, try unmounting and remounting the Volume.
+- If Drive 0 is blocked, and drive 1 is set "Autoselect=no", drive 1 will
+  be used.
+- Autochanger did not change volumes.  
+   select * from Storage;
+   +-----------+-------------+-------------+
+   | StorageId | Name        | AutoChanger |
+   +-----------+-------------+-------------+
+   |         1 | LTO-changer |           0 |
+   +-----------+-------------+-------------+
+   05-May 03:50 roxie-sd: 3302 Autochanger "loaded drive 0", result is Slot 11.
+   05-May 03:50 roxie-sd: Tibs.2006-05-05_03.05.02 Warning: Director wanted Volume "LT
+    Current Volume "LT0-002" not acceptable because:
+    1997 Volume "LT0-002" not in catalog.
+   05-May 03:50 roxie-sd: Tibs.2006-05-05_03.05.02 Error: Autochanger Volume "LT0-002"
+    Setting InChanger to zero in catalog.
+   05-May 03:50 roxie-dir: Tibs.2006-05-05_03.05.02 Error: Unable to get Media record
+
+   05-May 03:50 roxie-sd: Tibs.2006-05-05_03.05.02 Fatal error: Error getting Volume i
+   05-May 03:50 roxie-sd: Tibs.2006-05-05_03.05.02 Fatal error: Job 530 canceled.
+   05-May 03:50 roxie-sd: Tibs.2006-05-05_03.05.02 Fatal error: spool.c:249 Fatal appe
+   05-May 03:49 Tibs: Tibs.2006-05-05_03.05.02 Fatal error: c:\cygwin\home\kern\bacula
+   , got
+     (missing)
+    llist volume=LTO-002
+              MediaId: 6
+           VolumeName: LTO-002
+                 Slot: 0
+               PoolId: 1
+            MediaType: LTO-2
+         FirstWritten: 2006-05-05 03:11:54
+          LastWritten: 2006-05-05 03:50:23
+            LabelDate: 2005-12-26 16:52:40
+              VolJobs: 1
+             VolFiles: 0
+            VolBlocks: 1
+            VolMounts: 0
+             VolBytes: 206
+            VolErrors: 0
+            VolWrites: 0
+     VolCapacityBytes: 0
+            VolStatus: 
+              Recycle: 1
+         VolRetention: 31,536,000
+       VolUseDuration: 0
+           MaxVolJobs: 0
+          MaxVolFiles: 0
+          MaxVolBytes: 0
+            InChanger: 0
+              EndFile: 0
+             EndBlock: 0
+             VolParts: 0
+            LabelType: 0
+            StorageId: 1
+
+   Note VolStatus is blank!!!!!
+   llist volume=LTO-003
+             MediaId: 7
+          VolumeName: LTO-003
+                Slot: 12
+              PoolId: 1
+           MediaType: LTO-2
+        FirstWritten: 0000-00-00 00:00:00
+         LastWritten: 0000-00-00 00:00:00
+           LabelDate: 2005-12-26 16:52:40
+             VolJobs: 0
+            VolFiles: 0
+           VolBlocks: 0
+           VolMounts: 0
+            VolBytes: 1
+           VolErrors: 0
+           VolWrites: 0
+    VolCapacityBytes: 0
+           VolStatus: Append
+             Recycle: 1
+        VolRetention: 31,536,000
+      VolUseDuration: 0
+          MaxVolJobs: 0
+         MaxVolFiles: 0
+         MaxVolBytes: 0
+           InChanger: 0
+             EndFile: 0
+            EndBlock: 0
+            VolParts: 0
+           LabelType: 0
+           StorageId: 1
+===
+   mount
+   Automatically selected Storage: LTO-changer
+   Enter autochanger drive[0]: 0
+   3301 Issuing autochanger "loaded drive 0" command.
+   3302 Autochanger "loaded drive 0", result: nothing loaded.
+   3301 Issuing autochanger "loaded drive 0" command.
+   3302 Autochanger "loaded drive 0", result: nothing loaded.
+   3902 Cannot mount Volume on Storage Device "LTO-Drive1" (/dev/nst0) because:
+   Couldn't rewind device "LTO-Drive1" (/dev/nst0): ERR=dev.c:678 Rewind error on "LTO-Drive1" (/dev/nst0). ERR=No medium found.
+
+   3905 Device "LTO-Drive1" (/dev/nst0) open but no Bacula volume is mounted.
+   If this is not a blank tape, try unmounting and remounting the Volume.
+
+- The btape fill command does not seem to use the Autochanger
+- Make Windows installer default to system disk drive.
+- Look at using ioctl(FIOBMAP, ...) on Linux, and 
+  DeviceIoControl(...,  FSCTL_QUERY_ALLOCATED_RANGES, ...) on
+  Win32 for sparse files.
+  http://www.flexhex.com/docs/articles/sparse-files.phtml
+  http://www.informatik.uni-frankfurt.de/~loizides/reiserfs/fibmap.html
 - Directive: at <event> "command"
 - Command: pycmd "command" generates "command" event.  How to
   attach to a specific job?

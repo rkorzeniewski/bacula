@@ -824,14 +824,15 @@ gettimeofday(struct timeval *tv, struct timezone *)
 
 }
 
-int
-syslog(int type, const char *fmt, const char *msg)
+/* For apcupsd this is in src/lib/wincompat.c */
+#ifndef __APCUPSD__
+extern "C" void syslog(int type, const char *fmt, ...) 
 {
 /*#ifndef HAVE_CONSOLE
     MessageBox(NULL, msg, "Bacula", MB_OK);
 #endif*/
-    return 0;
 }
+#endif
 
 struct passwd *
 getpwuid(uid_t)
