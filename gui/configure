@@ -2428,7 +2428,7 @@ MCOMMON=./autoconf/Make.common
 
 
 
-                                                  ac_config_files="$ac_config_files autoconf/Make.common Makefile bimagemgr/Makefile bimagemgr/bacula-bimagemgr.spec $PFILES"
+                                                  ac_config_files="$ac_config_files autoconf/Make.common Makefile bimagemgr/Makefile bacula-gui.spec $PFILES"
           ac_config_commands="$ac_config_commands default"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -2987,7 +2987,7 @@ do
   "autoconf/Make.common" ) CONFIG_FILES="$CONFIG_FILES autoconf/Make.common" ;;
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
   "bimagemgr/Makefile" ) CONFIG_FILES="$CONFIG_FILES bimagemgr/Makefile" ;;
-  "bimagemgr/bacula-bimagemgr.spec" ) CONFIG_FILES="$CONFIG_FILES bimagemgr/bacula-bimagemgr.spec" ;;
+  "bacula-gui.spec" ) CONFIG_FILES="$CONFIG_FILES bacula-gui.spec" ;;
   "$PFILES" ) CONFIG_FILES="$CONFIG_FILES $PFILES" ;;
   "default" ) CONFIG_COMMANDS="$CONFIG_COMMANDS default" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
