@@ -271,7 +271,7 @@ AC_OUTPUT([    \
 	   autoconf/Make.common \
 	   Makefile \
 	   bimagemgr/Makefile \
-	   bimagemgr/bacula-bimagemgr.spec \
+	   bacula-gui.spec \
 	   $PFILES ],  
 	  [ ]
 )
