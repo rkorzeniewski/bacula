@@ -1,5 +1,5 @@
 bimagemgr.pl
-14 Nov 2004
+06 May 2006
 
 This is a utility to monitor and burn file backups to CDR. It is a web
 based interface written in perl. It requires perl and an apache or other
@@ -45,10 +45,22 @@ Note: step 3 should also be done in /etc/init.d/bacula-sd but released versions
 of this file prior to 1.36 do not support it. In that case it would be necessary after 
 a reboot of the server to execute '/etc/bacula/bacula restart'.
 
-For bacula-1.36 installed from rpm -
+For bacula-1.38 installed from tarball -
+1. Your configure statement should include:
+	--with-dir-user=bacula
+        --with-dir-group=bacula
+        --with-sd-user=bacula
+        --with-sd-group=disk
+        --with-fd-user=root
+        --with-fd-group=bacula
+2. Add the user apache to the bacula group for Red Hat or Mandrake systems. 
+For SuSE systems add the user wwwrun to the bacula group.
+3. Check/change ownership of all of your Volume files to root.bacula
+
+For bacula-1.36 or bacula-1.38 installed from rpm -
 1. Add the user apache to the group bacula for Red Hat or Mandrake systems. 
 For SuSE systems add the user wwwrun to the bacula group.
-2. Change ownership of all of your Volume files to root.bacula
+2. Check/change ownership of all of your Volume files to root.bacula
 
 bimagemgr will now be able to read the Volume files but they are still not 
 world readable.
@@ -60,4 +72,5 @@ be taken if you are sure of the security of your environment as it exposes
 the backup Volume files to world read.
 
 That's it. Call the script from a web browser as http://server/cgi-bin/bimagemgr.pl
-place a blank cd in your recorder and press a Burn button.
+place a blank cd in your recorder and press a Burn button. See the bimagemgr section 
+in the bacula manual for more information.
