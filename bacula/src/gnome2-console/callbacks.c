@@ -706,7 +706,7 @@ on_restore_job_entry_changed(GtkEditable *editable, gpointer user_data)
 }
 
 void
-on_dir_button_clicked(GtkToolButton *toolbutton, gpointer user_data)
+on_dir_button_clicked(GtkButton *toolbutton, gpointer user_data)
 {
    write_director("status dir");
 }

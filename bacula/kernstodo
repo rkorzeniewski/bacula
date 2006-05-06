@@ -205,6 +205,9 @@ minutes).
    3905 Device "LTO-Drive1" (/dev/nst0) open but no Bacula volume is mounted.
    If this is not a blank tape, try unmounting and remounting the Volume.
 
+- Add VolumeState (enable, disable, archive)
+- Add VolumeLock to prevent all but lock holder (SD) from updating
+  the Volume data (with the exception of VolumeState).
 - The btape fill command does not seem to use the Autochanger
 - Make Windows installer default to system disk drive.
 - Look at using ioctl(FIOBMAP, ...) on Linux, and 
