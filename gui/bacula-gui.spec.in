@@ -88,7 +88,7 @@ which have.
 Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
 
-Requires: php >= 4
+Requires: php >= 4, bacula-server
 %if %{mdk}
 Requires: apache
 %else
