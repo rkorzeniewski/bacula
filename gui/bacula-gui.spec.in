@@ -49,6 +49,7 @@ Group: System Environment/Daemons
 Copyright: GPL v2
 Source0: %{web}-%{version}.tar.gz
 Source1: %{bimagemgr}-%{version}.tar.gz
+Source2: bacula-docs-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-root
 URL: http://www.bacula.org/
 BuildArchitectures: noarch
@@ -105,12 +106,14 @@ web server based utility to monitor your bacula server.
 
 # unpack both sources inside a directory with package name and version
 %setup -c %{name} -D -b 1
+%setup -c %{name} -T -D -b 2
 
 %build
 
 %install
 
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf "$RPM_BUILD_ROOT"
+rm -rf docs
 
 mkdir -p $RPM_BUILD_ROOT%{cgidir}
 mkdir -p $RPM_BUILD_ROOT%{docdir}/%{web}
@@ -137,10 +140,33 @@ cp -r -p %{web}-%{version}/* $RPM_BUILD_ROOT%{docdir}/%{web}/
 
 chmod 644 $RPM_BUILD_ROOT%{sysconfdir}/README.bacula-web
 
+# remove the standard doc files from the install directory
+rm -f $RPM_BUILD_ROOT%{docdir}/%{web}/ChangeLog
+rm -f $RPM_BUILD_ROOT%{docdir}/%{web}/CONTACT
+rm -f $RPM_BUILD_ROOT%{docdir}/%{web}/COPYING
+rm -f $RPM_BUILD_ROOT%{docdir}/%{web}/README
+rm -f $RPM_BUILD_ROOT%{docdir}/%{web}/TODO
+
+# setup the docs dir
+mkdir -p docs/%{bimagemgr}
+mkdir docs/%{web}
+
+cp -p %{bimagemgr}-%{version}/README docs/%{bimagemgr}/
+
+cp -p %{web}-%{version}/README docs/%{web}/
+cp -p %{web}-%{version}/ChangeLog docs/%{web}/
+cp -p %{web}-%{version}/CONTACT docs/%{web}/
+cp -p %{web}-%{version}/COPYING docs/%{web}/
+cp -p bacula-docs-%{version}/%{web}/%{web}.pdf docs/%{web}/
+
 %clean
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf "$RPM_BUILD_ROOT"
+rm -rf docs
 
 %files bimagemgr
+%defattr(-,root,root)
+%doc docs/%{bimagemgr}/*
+
 %defattr(-,%{binowner},%{bingroup})
 %{cgidir}/bimagemgr.pl
 %{sysconfdir}/create_cdimage_table.pl
@@ -153,13 +179,28 @@ chmod 644 $RPM_BUILD_ROOT%{sysconfdir}/README.bacula-web
 %{docdir}/temp.html
 
 %files web
+%defattr(-,root,root)
+%doc docs/%{web}/*
+
 %defattr(-,%{binowner},%{bingroup})
 %{sysconfdir}/README.bacula-web
 
 %defattr(-,%{dataowner},%{datagroup})
-%{docdir}/%{web}/*
+%{docdir}/%{web}/*.php
+%{docdir}/%{web}/*.po
+%{docdir}/%{web}/*.inc
+%config(noreplace) %{docdir}/%{web}/configs
+%{docdir}/%{web}/external_packages
+%{docdir}/%{web}/images
+%{docdir}/%{web}/js
+%{docdir}/%{web}/locale
+%{docdir}/%{web}/templates
+%{docdir}/%{web}/templates_c
 
 %changelog
+* Sun May 07 2006 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- refine files section for web
+- add documentation
 * Sat May 06 2006 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - was bimagemgr spec convert to bacula-gui spec. include bacula-web
 * Thu Dec 09 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
