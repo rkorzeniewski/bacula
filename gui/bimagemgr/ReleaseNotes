@@ -1,0 +1,10 @@
+bimagemgr Release Notes
+
+Release 0.3
+
+
+Configuration information has been separated out of bimagemgr.pl into a new 
+file config.pm. This file will not be overwritten by the installer when 
+upgrading in the future. If you are upgrading from earlier releases you will 
+need to transfer your configuration information out of bimagemgr.pl into the 
+new config.pm

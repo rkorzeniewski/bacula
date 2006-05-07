@@ -121,6 +121,7 @@ mkdir -p $RPM_BUILD_ROOT%{sysconfdir}
 
 # install bimagemgr files
 cp -p %{bimagemgr}-%{version}/bimagemgr.pl $RPM_BUILD_ROOT%{cgidir}/
+cp -p %{bimagemgr}-%{version}/config.pm $RPM_BUILD_ROOT%{cgidir}/
 cp -p %{bimagemgr}-%{version}/create_cdimage_table.pl $RPM_BUILD_ROOT%{sysconfdir}/
 cp -p %{bimagemgr}-%{version}/README $RPM_BUILD_ROOT%{sysconfdir}/README.bimagemgr
 cp -p %{bimagemgr}-%{version}/bimagemgr.gif $RPM_BUILD_ROOT%{docdir}/
@@ -129,6 +130,7 @@ cp -p %{bimagemgr}-%{version}/clearpixel.gif $RPM_BUILD_ROOT%{docdir}/
 cp -p %{bimagemgr}-%{version}/temp.html $RPM_BUILD_ROOT%{docdir}/
 
 chmod 755 $RPM_BUILD_ROOT%{cgidir}/bimagemgr.pl
+chmod 750 $RPM_BUILD_ROOT%{cgidir}/config.pm
 chmod 750 $RPM_BUILD_ROOT%{sysconfdir}/create_cdimage_table.pl
 chmod 644 $RPM_BUILD_ROOT%{sysconfdir}/README.bimagemgr
 chmod 644 $RPM_BUILD_ROOT%{docdir}/*.gif
@@ -152,6 +154,9 @@ mkdir -p docs/%{bimagemgr}
 mkdir docs/%{web}
 
 cp -p %{bimagemgr}-%{version}/README docs/%{bimagemgr}/
+cp -p %{bimagemgr}-%{version}/COPYING docs/%{bimagemgr}/
+cp -p %{bimagemgr}-%{version}/ChangeLog docs/%{bimagemgr}/
+cp -p %{bimagemgr}-%{version}/ReleaseNotes docs/%{bimagemgr}/
 
 cp -p %{web}-%{version}/README docs/%{web}/
 cp -p %{web}-%{version}/ChangeLog docs/%{web}/
@@ -177,6 +182,7 @@ rm -rf docs
 
 %defattr(-,%{dataowner},%{datagroup})
 %{docdir}/temp.html
+$config(noreplace) %{cgidir}/config.pm
 
 %files web
 %defattr(-,root,root)
@@ -201,6 +207,7 @@ rm -rf docs
 * Sun May 07 2006 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - refine files section for web
 - add documentation
+- add config.pm for bimagemgr
 * Sat May 06 2006 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - was bimagemgr spec convert to bacula-gui spec. include bacula-web
 * Thu Dec 09 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
