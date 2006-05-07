@@ -1,0 +1,35 @@
+
+ Changelog
+
+ 0.2 14 Aug 2004
+ first functional version
+
+ 0.2.1 15 Aug 2004
+ add configuration option for Postgresql driver
+
+ 0.2.2 21 Aug 2004
+ add Reset subroutine and version display
+
+ 0.2.3 21 Aug 2004
+ add burn of catalog
+ add instructions to the main display
+
+ 0.2.4 23 Aug 2004
+ correct equivalence operator in Burn function
+
+ 0.2.5 28 Aug 2004
+ add blank of CD/RW disk
+
+ 0.2.6 29 Aug 2004
+ add conditional in Burn() to prevent updating of CDImages
+ for catalog or CD/RW blanking burns
+
+ 0.2.7 06 Nov 2005
+ bug 461 - correct INSERT syntax in UpdateImageTable to
+ work with PostgreSQL
+
+ 0.3 07 May 2006
+ separate ChangeLog from program
+ separate program configuration into config.pm
+ add COPYING file
+

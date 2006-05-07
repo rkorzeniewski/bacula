@@ -3,7 +3,7 @@
 # bimagemgr.pl
 # burn manager for bacula CD image files
 #
-# Copyright (C) 2004 Kern Sibbald
+# Copyright (C) 2004-2006 Kern Sibbald
 #
 # Thu Dec 09 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>
 # ASSIGNMENT OF COPYRIGHT
@@ -28,74 +28,67 @@
 # MA 02111-1307, USA.
 ##
 
-my $VERSION = "0.2.7";
+my $VERSION = "0.3";
 
 require 5.000; use strict 'vars', 'refs', 'subs';
 use DBI;
 
-#-------------------------------------------------------------------#
-# Program Configuration
+# get program configuration
+use config;
+
+my $prog_config = config->new();
 
 ## web server configuration
 #
 # web server path to program from server root
-my $prog_name = "/cgi-bin/bimagemgr.pl";
+my $prog_name = $prog_config->{'prog_name'};
 #
 # web server host
-my $http_host="localhost";
+my $http_host = $prog_config->{'http_host'};
 #
 # path to graphics from document root
-my $logo_graphic = "/bimagemgr.gif";
-my $spacer_graphic = "/clearpixel.gif";
-my $burn_graphic = "/cdrom_spins.gif";
+my $logo_graphic = $prog_config->{'logo_graphic'};
+my $spacer_graphic = $prog_config->{'spacer_graphic'};
+my $burn_graphic = $prog_config->{'burn_graphic'};
 ##
 
 ## database configuration
 #
 # database name
-my $database = "bacula";
+my $database = $prog_config->{'database'} ;
 #
 # database host
-my $host = "backup";
+my $host = $prog_config->{'host'};
 #
 # database user
-my $user = "bacula";
+my $user = $prog_config->{'user'};
 #
 # database password
-my $password = "";
+my $password = $prog_config->{'password'};
 #
-# database driver selection - uncomment one set
-# MySQL
-my $db_driver = "mysql";
-my $db_name_param = "database";
-my $catalog_dump = "mysqldump --host=$host --user=$user --password=$password $database";
-# Postgresql
-# my $db_driver = "Pg";
-# my $db_name_param = "dbname";
-# my $catalog_dump = "pg_dump --host=$host --username=$user --password=$password $database";
-##
+# database driver selection
+my $db_driver = $prog_config->{'db_driver'};
+my $db_name_param = $prog_config->{'db_name_param'};
+my $catalog_dump = $prog_config->{'catalog_dump'};
 
 # path to backup files
-my $image_path = "/mnt/backup/backup";
+my $image_path = $prog_config->{'image_path'};
 
 ## path to cdrecord and burner settings
-my $cdrecord = "/usr/bin/cdrecord";
-my $mkisofs = "/usr/bin/mkisofs";
-my $cdburner = "1,0,0";
-my $burner_speed = "40";
-# burnfree option - uncomment one
-#my $burnfree = "driveropts=noburnfree"; # no buffer underrun protection
-my $burnfree = "driveropts=burnfree"; # with buffer underrun
+my $cdrecord = $prog_config->{'cdrecord'};
+my $mkisofs = $prog_config->{'mkisofs'};
+my $cdburner = $prog_config->{'cdburner'};
+my $burner_speed = $prog_config->{'burner_speed'};
+my $burnfree = $prog_config->{'burnfree'};
 ##
 
 # temporary files
-my $tempfile="temp.html";
-my $tempfile_path="/var/www/html/temp.html";
-my $working_dir="/var/tmp";
+my $tempfile=$prog_config->{'tempfile'};
+my $tempfile_path=$prog_config->{'tempfile_path'};
+my $working_dir=$prog_config->{'working_dir'};
 
 # copyright info for page footer
-my $copyright = "Copyright &copy; 2004 The Bacula Team";
-#-------------------------------------------------------------------#
+my $copyright = "Copyright &copy; 2004-2006 The Bacula Team";
 
 my %input = &getcgivars;
 my $action = $input{'action'};
@@ -551,32 +544,3 @@ sub HTMLdie {
 	exit ;
 }
 
-#-------------------------------------------------------------------#
-# Changelog
-#
-# 0.2 14 Aug 2004
-# first functional version
-#
-# 0.2.1 15 Aug 2004
-# add configuration option for Postgresql driver
-#
-# 0.2.2 21 Aug 2004
-# add Reset subroutine and version display
-#
-# 0.2.3 21 Aug 2004
-# add burn of catalog
-# add instructions to the main display
-#
-# 0.2.4 23 Aug 2004
-# correct equivalence operator in Burn function
-#
-# 0.2.5 28 Aug 2004
-# add blank of CD/RW disk
-#
-# 0.2.6 29 Aug 2004
-# add conditional in Burn() to prevent updating of CDImages
-# for catalog or CD/RW blanking burns
-#
-# 0.2.7 06 Nov 2005
-# bug 461 - correct INSERT syntax in UpdateImageTable to
-# work with PostgreSQL

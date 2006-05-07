@@ -18,6 +18,7 @@ install:
 	$(INSTALL) -d $(DESTDIR)$(SYSCONFDIR)
 
 	$(INSTALL) -o $(BINOWNER) -g $(BINGROUP) -m 755 bimagemgr.pl $(DESTDIR)$(CGIDIR)
+	$(INSTALL) -o $(DATAOWNER) -g $(DATAGROUP) -m 755 config.pm $(DESTDIR)$(CGIDIR)
 	$(INSTALL) -o $(BINOWNER) -g $(BINGROUP) -m 750 create_cdimage_table.pl $(DESTDIR)$(SYSCONFDIR)
 	$(INSTALL) -o $(BINOWNER) -g $(BINGROUP) -m 644 README $(DESTDIR)$(SYSCONFDIR)/README.bimagemgr
 	$(INSTALL) -o $(BINOWNER) -g $(BINGROUP) -m 644 bimagemgr.gif $(DESTDIR)$(DOCDIR)
@@ -32,4 +33,5 @@ uninstall:
 	rm -f $(DESTDIR)$(DOCDIR)/temp.html
 	rm -f $(DESTDIR)$(SYSCONFDIR)/create_cdimage_table.pl
 	rm -f $(DESTDIR)$(CGIDIR)/bimagemgr.pl
+	rm -f $(DESTDIR)$(CGIDIR)/config.pm
 	rm -f $(DESTDIR)$(SYSCONFDIR)/README.bimagemgr
