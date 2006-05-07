@@ -1,5 +1,6 @@
 # Makefile to install bimagemgr utility
 # 29 Aug 2004 D. Scott Barninger
+# 07 May 2006 D. Scott Barninger
 
 BINOWNER=@bimagemgr_binowner@
 BINGROUP=@bimagemgr_bingroup@
@@ -18,7 +19,18 @@ install:
 	$(INSTALL) -d $(DESTDIR)$(SYSCONFDIR)
 
 	$(INSTALL) -o $(BINOWNER) -g $(BINGROUP) -m 755 bimagemgr.pl $(DESTDIR)$(CGIDIR)
-	$(INSTALL) -o $(DATAOWNER) -g $(DATAGROUP) -m 750 config.pm $(DESTDIR)$(CGIDIR)
+
+	if test -e $(DESTDIR)$(CGIDIR)/config.pm ; then \
+		$(INSTALL) -o $(DATAOWNER) -g $(DATAGROUP) -m 750 config.pm $(DESTDIR)$(CGIDIR)/config.pm.new ; \
+		echo ; \
+		echo *******************WARNING***********************; \
+		echo New config file installed as ; \
+		echo $(DESTDIR)$(CGIDIR)/config.pm.new ; \
+		echo ; \
+	else \
+		$(INSTALL) -o $(DATAOWNER) -g $(DATAGROUP) -m 750 config.pm $(DESTDIR)$(CGIDIR) ; \
+	fi
+
 	$(INSTALL) -o $(BINOWNER) -g $(BINGROUP) -m 750 create_cdimage_table.pl $(DESTDIR)$(SYSCONFDIR)
 	$(INSTALL) -o $(BINOWNER) -g $(BINGROUP) -m 644 README $(DESTDIR)$(SYSCONFDIR)/README.bimagemgr
 	$(INSTALL) -o $(BINOWNER) -g $(BINGROUP) -m 644 bimagemgr.gif $(DESTDIR)$(DOCDIR)
@@ -33,5 +45,5 @@ uninstall:
 	rm -f $(DESTDIR)$(DOCDIR)/temp.html
 	rm -f $(DESTDIR)$(SYSCONFDIR)/create_cdimage_table.pl
 	rm -f $(DESTDIR)$(CGIDIR)/bimagemgr.pl
-	rm -f $(DESTDIR)$(CGIDIR)/config.pm
+	rm -f $(DESTDIR)$(CGIDIR)/config.pm*
 	rm -f $(DESTDIR)$(SYSCONFDIR)/README.bimagemgr
