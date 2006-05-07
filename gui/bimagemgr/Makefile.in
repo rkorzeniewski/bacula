@@ -18,7 +18,7 @@ install:
 	$(INSTALL) -d $(DESTDIR)$(SYSCONFDIR)
 
 	$(INSTALL) -o $(BINOWNER) -g $(BINGROUP) -m 755 bimagemgr.pl $(DESTDIR)$(CGIDIR)
-	$(INSTALL) -o $(DATAOWNER) -g $(DATAGROUP) -m 755 config.pm $(DESTDIR)$(CGIDIR)
+	$(INSTALL) -o $(DATAOWNER) -g $(DATAGROUP) -m 750 config.pm $(DESTDIR)$(CGIDIR)
 	$(INSTALL) -o $(BINOWNER) -g $(BINGROUP) -m 750 create_cdimage_table.pl $(DESTDIR)$(SYSCONFDIR)
 	$(INSTALL) -o $(BINOWNER) -g $(BINGROUP) -m 644 README $(DESTDIR)$(SYSCONFDIR)/README.bimagemgr
 	$(INSTALL) -o $(BINOWNER) -g $(BINGROUP) -m 644 bimagemgr.gif $(DESTDIR)$(DOCDIR)
