@@ -41,6 +41,8 @@ exit 1
 %define datagroup www
 %endif
 
+%define groupmod /usr/sbin/groupmod
+
 Summary: Bacula - The Network Backup Solution
 Name: bacula-gui
 Version: @VERSION@
@@ -203,11 +205,21 @@ $config(noreplace) %{cgidir}/config.pm
 %{docdir}/%{web}/templates
 %{docdir}/%{web}/templates_c
 
+%post bimagemgr
+
+# add the web server user to group bacula
+%{groupmod} -A %{dataowner} bacula
+
+%postun bimagemgr
+# remove the web server user to group bacula
+%{groupmod} -R %{dataowner} bacula
+
 %changelog
 * Sun May 07 2006 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - refine files section for web
 - add documentation
 - add config.pm for bimagemgr
+- add post script bimagemgr to add web server user to group bacula
 * Sat May 06 2006 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - was bimagemgr spec convert to bacula-gui spec. include bacula-web
 * Thu Dec 09 2004 D. Scott Barninger <barninger at fairfieldcomputers.com>

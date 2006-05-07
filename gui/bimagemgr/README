@@ -1,5 +1,5 @@
 bimagemgr.pl
-06 May 2006
+07 May 2006
 
 This is a utility to monitor and burn file backups to CDR. It is a web
 based interface written in perl. It requires perl and an apache or other
@@ -14,7 +14,7 @@ network if you are willing to relax permissions on the backup Volume files
 Installation:
 
 1. Examine the Makefile and adjust it to your configuration if needed.
-2. Edit the configuration section of bimagemgr.pl to fit your configuration.
+2. Edit config.pm to fit your configuration.
 3. Do 'make install' as root.
 4. Edit httpd.conf and change the Timeout value. The web server must not time
 out and close the connection before the burn process is finished. The exact
@@ -61,6 +61,10 @@ For bacula-1.36 or bacula-1.38 installed from rpm -
 1. Add the user apache to the group bacula for Red Hat or Mandrake systems. 
 For SuSE systems add the user wwwrun to the bacula group.
 2. Check/change ownership of all of your Volume files to root.bacula
+
+bimagemgr installed from rpm > 1.38.9 will add the web server user to the 
+bacula group in a post install script. Be sure to edit the configuration 
+information in config.pm after installation of rpm package.
 
 bimagemgr will now be able to read the Volume files but they are still not 
 world readable.

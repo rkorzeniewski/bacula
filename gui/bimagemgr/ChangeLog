@@ -32,4 +32,5 @@
  separate ChangeLog from program
  separate program configuration into config.pm
  add COPYING file
+ add post install script to rpm to add web server user to group bacula
 
