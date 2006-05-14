@@ -11,8 +11,7 @@ It can be run on the same server as bacula or on another machine on the
 network if you are willing to relax permissions on the backup Volume files 
 (see below).
 
-Installation:
-
+Installation from tarball:
 1. Examine the Makefile and adjust it to your configuration if needed.
 2. Edit config.pm to fit your configuration.
 3. Do 'make install' as root.
@@ -23,8 +22,18 @@ burning on the bacula server on on another machine across your network. In my
 case I set it to 1000 seconds. Restart httpd.
 5. Make sure that cdrecord is setuid root.
 
+Installation from rpm package:
+1. Install the rpm package for your platform.
+2. Edit /cgi-bin/config.pm to fit your configuration.
+3. Edit httpd.conf and change the Timeout value. The web server must not time
+out and close the connection before the burn process is finished. The exact
+value needed may vary depending upon your cd recorder speed and whether you are
+burning on the bacula server on on another machine across your network. In my 
+case I set it to 1000 seconds. Restart httpd.
+4. Make sure that cdrecord is setuid root.
+
 For bacula systems less than 1.36:
-1. Edit the configuration section of create_cdimage_table.pl to fit your configuration.
+1. Edit the configuration section of config.pm to fit your configuration.
 2. Run /etc/bacula/create_cdimage_table.pl from a console on your bacula
 server (as root) to add the CDImage table to your bacula database.
 
