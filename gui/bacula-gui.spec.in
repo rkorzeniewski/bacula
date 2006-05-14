@@ -159,6 +159,7 @@ cp -p %{bimagemgr}-%{version}/README docs/%{bimagemgr}/
 cp -p %{bimagemgr}-%{version}/COPYING docs/%{bimagemgr}/
 cp -p %{bimagemgr}-%{version}/ChangeLog docs/%{bimagemgr}/
 cp -p %{bimagemgr}-%{version}/ReleaseNotes docs/%{bimagemgr}/
+cp -p bacula-docs-%{version}/manual/%{bimagemgr}.pdf docs/%{bimagemgr}/
 
 cp -p %{web}-%{version}/README docs/%{web}/
 cp -p %{web}-%{version}/ChangeLog docs/%{web}/
@@ -215,6 +216,8 @@ $config(noreplace) %{cgidir}/config.pm
 %{groupmod} -R %{dataowner} bacula
 
 %changelog
+* Sun May 14 2006 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- add bimagemgr manual
 * Sun May 07 2006 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - refine files section for web
 - add documentation
