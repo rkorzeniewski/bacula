@@ -11,3 +11,5 @@ new config.pm file.
 
 A post install script in the rpm package will add the web server user to the 
 group bacula.
+
+Support for SQLite databases has been added.

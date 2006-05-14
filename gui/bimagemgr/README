@@ -1,11 +1,11 @@
 bimagemgr.pl
-07 May 2006
+14 May 2006
 
 This is a utility to monitor and burn file backups to CDR. It is a web
 based interface written in perl. It requires perl and an apache or other
 http server. It also requires the perl DBI module and the driver for the
 database used to store your bacula catalog. It has been tested on MySQL
-catalogs but an untested configuration is present for Postgresql.
+catalogs but an untested configuration is present for Postgresql and SQLite.
 
 It can be run on the same server as bacula or on another machine on the 
 network if you are willing to relax permissions on the backup Volume files 

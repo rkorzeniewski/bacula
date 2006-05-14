@@ -33,4 +33,7 @@
  separate program configuration into config.pm
  add COPYING file
  add post install script to rpm to add web server user to group bacula
+ 0.3 14 May 2006
+ add support for SQLite databases
+
 

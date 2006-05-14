@@ -71,6 +71,12 @@ sub new {
 	# $self->{db_driver} = "Pg";
 	# $self->{db_name_param} = "dbname";
 	# $self->{catalog_dump} = "pg_dump --host=$self->{'host'} --username=$self->{'user'} --password=$self->{'password'} $self->{'database'}";
+	# SQLite
+	$self->{sqlitebindir} = "/usr/lib/bacula/sqlite";
+	$self->{bacula_working_dir} = "/var/bacula";
+	# $self->{db_driver} = "SQLite";
+	# $self->{db_name_param} = "dbname";
+	# $self->{catalog_dump} = "echo \".dump\" | $self->{'sqlitebindir'}/sqlite $self->{'bacula_working_dir'}/$self->{'database'}.db";
 	##
 
 	# path to backup files

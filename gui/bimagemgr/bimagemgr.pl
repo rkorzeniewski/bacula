@@ -70,6 +70,8 @@ my $password = $prog_config->{'password'};
 my $db_driver = $prog_config->{'db_driver'};
 my $db_name_param = $prog_config->{'db_name_param'};
 my $catalog_dump = $prog_config->{'catalog_dump'};
+my $sqlitebindir = $prog_config->{'sqlitebindir'};
+my $bacula_working_dir = $prog_config->{'bacula_working_dir'};
 
 # path to backup files
 my $image_path = $prog_config->{'image_path'};
@@ -141,8 +143,15 @@ sub Display {
 	&UpdateImageTable();
 
 	# connect to database
-	my $dbh = DBI->connect("DBI:$db_driver:$db_name_param=$database;host=$host","$user","$password",
+	my ($dbh);
+	if ( $db_driver eq "SQLite" ) {
+		$dbh = DBI->connect("DBI:$db_driver:$db_name_param=$bacula_working_dir/$database.db","","",
 			{'RaiseError' => 1}) || &HTMLdie("Unable to connect to database.");
+	}
+	else {
+		$dbh = DBI->connect("DBI:$db_driver:$db_name_param=$database;host=$host","$user","$password",
+			{'RaiseError' => 1}) || &HTMLdie("Unable to connect to database.");
+	}
 	my $sth = $dbh->prepare("SELECT Media.VolumeName,Media.LastWritten,CDImages.LastBurn,
 		Media.VolWrites,Media.VolStatus 
 		FROM CDImages,Media 
@@ -328,8 +337,13 @@ sub Burn {
 		my $burndate = "$sysdate $systime";
 	
 		# connect to database
-		my $dbh = DBI->connect("DBI:$db_driver:$db_name_param=$database;host=$host","$user","$password",
-			{'RaiseError' => 1}) || &HTMLdie("Unable to connect to database.");
+		my ($dbh);
+		if ( $db_driver eq "SQLite" ) {
+			$dbh = DBI->connect("DBI:$db_driver:$db_name_param=$bacula_working_dir/$database.db","","",{'RaiseError' => 1}) || &HTMLdie("Unable to connect to database.");
+		}
+		else {
+			$dbh = DBI->connect("DBI:$db_driver:$db_name_param=$database;host=$host","$user","$password",{'RaiseError' => 1}) || &HTMLdie("Unable to connect to database.");
+		}
 		# get the MediaId for our volume
 		my $sth = $dbh->prepare("SELECT MediaId from Media WHERE VolumeName = \"$vol\"");
 		$sth->execute();
@@ -353,8 +367,15 @@ sub UpdateImageTable {
 	my ($data,@MediaId,$id,$exists,$sth1,$sth2);
 
 	# connect to database
-	my $dbh = DBI->connect("DBI:$db_driver:$db_name_param=$database;host=$host","$user","$password",
+	my ($dbh);
+	if ( $db_driver eq "SQLite" ) {
+		$dbh = DBI->connect("DBI:$db_driver:$db_name_param=$bacula_working_dir/$database.db","","",
 			{'RaiseError' => 1}) || &HTMLdie("Unable to connect to database.");
+	}
+	else {
+		$dbh = DBI->connect("DBI:$db_driver:$db_name_param=$database;host=$host","$user","$password",
+			{'RaiseError' => 1}) || &HTMLdie("Unable to connect to database.");
+	}
 
 	# get the list of current MediaId
 	$sth1 = $dbh->prepare("SELECT MediaId from Media");
@@ -390,8 +411,15 @@ sub Reset {
 	my ($id,$sth);
 
 	# connect to database
-	my $dbh = DBI->connect("DBI:$db_driver:$db_name_param=$database;host=$host","$user","$password",
+	my ($dbh);
+	if ( $db_driver eq "SQLite" ) {
+		$dbh = DBI->connect("DBI:$db_driver:$db_name_param=$bacula_working_dir/$database.db","","",
 			{'RaiseError' => 1}) || &HTMLdie("Unable to connect to database.");
+	}
+	else {
+		$dbh = DBI->connect("DBI:$db_driver:$db_name_param=$database;host=$host","$user","$password",
+			{'RaiseError' => 1}) || &HTMLdie("Unable to connect to database.");
+	}
 
 	# get the MediaId
 	$sth = $dbh->prepare("SELECT MediaId FROM Media WHERE VolumeName=\"$vol\"");
