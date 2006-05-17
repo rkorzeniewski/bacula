@@ -643,6 +643,21 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
    if (S_ISBLK(ff_pkt->statp.st_mode))
       rsize = (rsize/512) * 512;      
 #endif
+   
+#ifdef HAVE_LIBZ
+   /* 
+    * instead of using compress2 for every block (with 256KB alloc + free per block)
+    * we init the zlib once per file which leads to less pagefaults on large files (>64K)
+    */
+   
+   z_stream zstream;
+   zstream.zalloc = Z_NULL;
+   zstream.zfree = Z_NULL;
+   zstream.opaque = Z_NULL;
+   zstream.state = Z_NULL;
+
+	BOOL blibzInited = deflateInit(&zstream, ff_pkt->GZIP_level) == Z_OK;
+#endif
 
    /*
     * Read the file data
@@ -682,19 +697,25 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
 
 #ifdef HAVE_LIBZ
       /* Do compression if turned on */
-      if (!sparseBlock && ff_pkt->flags & FO_GZIP) {
+      if (!sparseBlock && (ff_pkt->flags & FO_GZIP) && blibzInited) {
          int zstat;
          compress_len = max_compress_len;
          Dmsg4(400, "cbuf=0x%x len=%u rbuf=0x%x len=%u\n", cbuf, compress_len,
             rbuf, sd->msglen);
-         /* NOTE! This call modifies compress_len !!! */
-         if ((zstat=compress2((Bytef *)cbuf, &compress_len,
-               (const Bytef *)rbuf, (uLong)sd->msglen,
-               ff_pkt->GZIP_level)) != Z_OK) {
+         
+         zstream.next_in   = (Bytef *)rbuf;
+			zstream.avail_in  = sd->msglen;		
+         zstream.next_out  = (Bytef *)cbuf;
+			zstream.avail_out = compress_len;
+
+         if ((zstat=deflate(&zstream, Z_FINISH)) != Z_STREAM_END) {
             Jmsg(jcr, M_FATAL, 0, _("Compression error: %d\n"), zstat);
             set_jcr_job_status(jcr, JS_ErrorTerminated);
             goto err;
          }
+         compress_len = zstream.total_out;
+         blibzInited = deflateReset (&zstream) == Z_OK;
+
          Dmsg2(400, "compressed len=%d uncompressed len=%d\n",
             compress_len, sd->msglen);
 
@@ -786,13 +807,23 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
    if (cipher_ctx) {
       crypto_cipher_free(cipher_ctx);
    }
+#ifdef HAVE_LIBZ
+   /* Free the zlib stream */
+   deflateEnd(&zstream);
+#endif
 
    return 1;
 
 err:
+   /* Free the cipher context */
    if (cipher_ctx) {
       crypto_cipher_free(cipher_ctx);
    }
+#ifdef HAVE_LIBZ
+   /* Free the zlib stream */
+   deflateEnd(&zstream);
+#endif
+
    sd->msg = msgsave; /* restore bnet buffer */
    sd->msglen = 0;
    return 0;
