@@ -248,7 +248,7 @@ InitWinAPIWrapper()
          break;
    }
 #endif /* WIN32_VSS */
-   atexit (Win32ConvCleanupCache);
+   atexit(Win32ConvCleanupCache);
 }
 
 #else
