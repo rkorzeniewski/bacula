@@ -714,7 +714,7 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
             goto err;
          }
          compress_len = zstream.total_out;
-         blibzInited = deflateReset (&zstream) == Z_OK;
+         blibzInited = deflateReset(&zstream) == Z_OK;
 
          Dmsg2(400, "compressed len=%d uncompressed len=%d\n",
             compress_len, sd->msglen);

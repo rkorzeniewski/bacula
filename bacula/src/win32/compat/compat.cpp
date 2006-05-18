@@ -45,19 +45,19 @@
    conversion is called 3 times (lstat, attribs, open),
    by using the cache this is reduced to 1 time */
 
-POOLMEM* g_pWin32ConvUTF8Cache = get_pool_memory (PM_FNAME);
-POOLMEM* g_pWin32ConvUCS2Cache = get_pool_memory (PM_FNAME);
+POOLMEM *g_pWin32ConvUTF8Cache = get_pool_memory (PM_FNAME);
+POOLMEM *g_pWin32ConvUCS2Cache = get_pool_memory (PM_FNAME);
 static pthread_mutex_t Win32Convmutex = PTHREAD_MUTEX_INITIALIZER;
 
 void Win32ConvCleanupCache()
 {
    if (g_pWin32ConvUTF8Cache) {
-      free_pool_memory (g_pWin32ConvUTF8Cache);
+      free_pool_memory(g_pWin32ConvUTF8Cache);
       g_pWin32ConvUTF8Cache = NULL;
    }
 
    if (g_pWin32ConvUCS2Cache) {
-      free_pool_memory (g_pWin32ConvUCS2Cache);   
+      free_pool_memory(g_pWin32ConvUCS2Cache);   
       g_pWin32ConvUCS2Cache = NULL;
    }
 }
@@ -128,7 +128,7 @@ void conv_unix_to_win32_path(const char *name, char *win32_name, DWORD dwSize)
 }
 
 POOLMEM* 
-make_wchar_win32_path(POOLMEM* pszUCSPath, BOOL* pBIsRawPath /*= NULL*/)
+make_wchar_win32_path(POOLMEM *pszUCSPath, BOOL *pBIsRawPath /*= NULL*/)
 {
    /* created 02/27/2006 Thorsten Engel
       
@@ -146,14 +146,14 @@ make_wchar_win32_path(POOLMEM* pszUCSPath, BOOL* pBIsRawPath /*= NULL*/)
    if (!p_GetCurrentDirectoryW)
       return pszUCSPath;
    
-   wchar_t * name = (wchar_t *) pszUCSPath;
+   wchar_t *name = (wchar_t *) pszUCSPath;
 
    /* if it has already the desired form, exit without changes */
-   if (wcslen(name) > 3 && wcsncmp (name, L"\\\\?\\", 4) == 0)
+   if (wcslen(name) > 3 && wcsncmp(name, L"\\\\?\\", 4) == 0)
       return pszUCSPath;
 
-   POOLMEM* pwszBuf = get_pool_memory (PM_FNAME);
-   POOLMEM* pwszCurDirBuf = get_pool_memory (PM_FNAME);
+   POOLMEM *pwszBuf = get_pool_memory(PM_FNAME);
+   POOLMEM *pwszCurDirBuf = get_pool_memory(PM_FNAME);
    DWORD dwCurDirPathSize = 0;
 
    /* get buffer with enough size (name+max 6. wchars+1 null terminator */
@@ -180,12 +180,12 @@ make_wchar_win32_path(POOLMEM* pszUCSPath, BOOL* pBIsRawPath /*= NULL*/)
       bAddCurrentPath = FALSE; 
 
    /* is path relative to itself?, if yes, skip ./ */
-   if (wcslen(name) > 2 && ((wcsncmp (name, L"./", 2) == 0) || (wcsncmp (name, L".\\", 2) == 0))) {
+   if (wcslen(name) > 2 && ((wcsncmp(name, L"./", 2) == 0) || (wcsncmp(name, L".\\", 2) == 0))) {
       name+=2;
    }
 
    /* is path of form '//./'? */   
-   if (wcslen(name) > 3 && ((wcsncmp (name, L"//./", 4) == 0) || (wcsncmp (name, L"\\\\.\\", 4) == 0))) {
+   if (wcslen(name) > 3 && ((wcsncmp(name, L"//./", 4) == 0) || (wcsncmp(name, L"\\\\.\\", 4) == 0))) {
       bAddDrive = FALSE;
       bAddCurrentPath = FALSE;
       bAddPrefix = FALSE;
@@ -242,7 +242,7 @@ make_wchar_win32_path(POOLMEM* pszUCSPath, BOOL* pBIsRawPath /*= NULL*/)
       pwszBuf = check_pool_memory_size(pwszBuf, dwBufCharsNeeded*sizeof(wchar_t));
       /* get directory into own buffer as it may either return c:\... or \\?\C:\.... */
       
-      if (dwCurDirPathSize > 3 && wcsncmp ((LPCWSTR)pwszCurDirBuf, L"\\\\?\\", 4) == 0)
+      if (dwCurDirPathSize > 3 && wcsncmp((LPCWSTR)pwszCurDirBuf, L"\\\\?\\", 4) == 0)
          /* copy complete string */
          wcscpy((wchar_t *) pwszBuf, (LPCWSTR)pwszCurDirBuf);          
       else
@@ -259,7 +259,7 @@ make_wchar_win32_path(POOLMEM* pszUCSPath, BOOL* pBIsRawPath /*= NULL*/)
    }
 
 
-   wchar_t * win32_name = (wchar_t *)pwszBuf+nParseOffset;
+   wchar_t *win32_name = (wchar_t *)pwszBuf+nParseOffset;
 
    while (*name) {
       /* Check for Unix separator and convert to Win32 */
@@ -303,8 +303,8 @@ make_wchar_win32_path(POOLMEM* pszUCSPath, BOOL* pBIsRawPath /*= NULL*/)
    }   
 #endif
 
-   free_pool_memory (pszUCSPath);
-   free_pool_memory (pwszCurDirBuf);
+   free_pool_memory(pszUCSPath);
+   free_pool_memory(pwszCurDirBuf);
 
    return pwszBuf;
 }
@@ -374,10 +374,10 @@ make_win32_path_UTF8_2_wchar(POOLMEM **pszUCS, const char *pszUTF, BOOL* pBIsRaw
 {
    P(Win32Convmutex);
    /* if we find the utf8 string in cache, we use the cached ucs2 version */
-   if (bstrcmp (pszUTF, g_pWin32ConvUTF8Cache)) {
+   if (bstrcmp(pszUTF, g_pWin32ConvUTF8Cache)) {
       int32_t nBufSize = sizeof_pool_memory(g_pWin32ConvUCS2Cache);
       *pszUCS = check_pool_memory_size(*pszUCS, nBufSize);      
-      wcscpy ((LPWSTR) *pszUCS, (LPWSTR) g_pWin32ConvUCS2Cache);
+      wcscpy((LPWSTR) *pszUCS, (LPWSTR) g_pWin32ConvUCS2Cache);
       V(Win32Convmutex);
       return nBufSize / sizeof (WCHAR);
    }
@@ -396,10 +396,10 @@ make_win32_path_UTF8_2_wchar(POOLMEM **pszUCS, const char *pszUTF, BOOL* pBIsRaw
    /* populate cache */   
    int32_t nBufSize = sizeof_pool_memory(*pszUCS);
    g_pWin32ConvUCS2Cache = check_pool_memory_size(g_pWin32ConvUCS2Cache, nBufSize);
-   wcscpy ((LPWSTR) g_pWin32ConvUCS2Cache, (LPWSTR) *pszUCS);
-   nBufSize = strlen (pszUTF)+1;
+   wcscpy((LPWSTR) g_pWin32ConvUCS2Cache, (LPWSTR) *pszUCS);
+   nBufSize = strlen(pszUTF)+1;
    g_pWin32ConvUTF8Cache = check_pool_memory_size(g_pWin32ConvUTF8Cache, nBufSize);
-   bstrncpy (g_pWin32ConvUTF8Cache, pszUTF, nBufSize);
+   bstrncpy(g_pWin32ConvUTF8Cache, pszUTF, nBufSize);
    V(Win32Convmutex);
 
    return nRet;
