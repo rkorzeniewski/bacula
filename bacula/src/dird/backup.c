@@ -158,6 +158,16 @@ bool do_backup(JCR *jcr)
    if (!start_storage_daemon_job(jcr, NULL, jcr->storage)) {
       return false;
    }
+
+   /*
+    * Start the job prior to starting the message thread below
+    * to avoid two threads from using the BSOCK structure at
+    * the same time.
+    */
+   if (!bnet_fsend(jcr->store_bsock, "run")) {
+      return false;
+   }
+
    /*
     * Now start a Storage daemon message thread.  Note,
     *   this thread is used to provide the catalog services
@@ -168,10 +178,6 @@ bool do_backup(JCR *jcr)
       return false;
    }
    Dmsg0(150, "Storage daemon connection OK\n");
-
-   if (!bnet_fsend(jcr->store_bsock, "run")) {
-      goto bail_out;
-   }
 
    set_jcr_job_status(jcr, JS_WaitFD);
    if (!connect_to_file_daemon(jcr, 10, FDConnectTimeout, 1)) {

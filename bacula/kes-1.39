@@ -2,6 +2,11 @@
                         Kern Sibbald
 
 General:
+21May06
+- Move DIR "run" command to SD before starting the message thread
+  as suggested by Cristopher Hull to avoid a race deadlock from
+  two threads using the bsock structure.
+- Modify LICENSE to correct some problems pointed out by Debian.
 05May06
 - Correct EOF with no \n lex.c problem.
 - Tweak compat.h compat.cpp and merge with apcupsd
