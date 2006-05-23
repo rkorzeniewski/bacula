@@ -77,9 +77,27 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
     * This gives a bit extra plus room for the sparse addr if any.
     * Note, we adjust the read size to be smaller so that the
     * same output buffer can be used without growing it.
+    *
+    * The zlib compression workset is initialized here to minimise
+    * the "per file" load. The jcr member is only set, if the init was successful.
     */
    jcr->compress_buf_size = jcr->buf_size + ((jcr->buf_size+999) / 1000) + 30;
    jcr->compress_buf = get_memory(jcr->compress_buf_size);
+
+#ifdef HAVE_LIBZ
+   z_stream *pZlibStream = (z_stream*) malloc(sizeof(z_stream));  
+   if (pZlibStream) {
+      pZlibStream->zalloc = Z_NULL;      
+      pZlibStream->zfree = Z_NULL;
+      pZlibStream->opaque = Z_NULL;
+      pZlibStream->state = Z_NULL;
+
+      if (deflateInit(pZlibStream, Z_DEFAULT_COMPRESSION) == Z_OK)
+         jcr->pZLIB_compress_workset = pZlibStream;
+      else
+         free (pZlibStream);
+   }
+#endif
 
    /* Create encryption session data and a cached, DER-encoded session data
     * structure. We use a single session key for each backup, so we'll encode
@@ -144,11 +162,18 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
       free_pool_memory(jcr->compress_buf);
       jcr->compress_buf = NULL;
    }
+   if (jcr->pZLIB_compress_workset) {
+      /* Free the zlib stream */
+#ifdef HAVE_LIBZ
+      deflateEnd((z_stream *) jcr->pZLIB_compress_workset);
+#endif
+      free (jcr->pZLIB_compress_workset);
+      jcr->pZLIB_compress_workset = NULL;
+   }
    if (jcr->crypto_buf) {
       free_pool_memory(jcr->crypto_buf);
       jcr->crypto_buf = NULL;
    }
-
    if (jcr->pki_session) {
       crypto_session_free(jcr->pki_session);
    }
@@ -575,6 +600,7 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
 #ifdef HAVE_LIBZ
    uLong compress_len, max_compress_len = 0;
    const Bytef *cbuf = NULL;
+   int zstat;
 
    if (ff_pkt->flags & FO_GZIP) {
       if (ff_pkt->flags & FO_SPARSE) {
@@ -586,6 +612,21 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
       }
       wbuf = jcr->compress_buf;    /* compressed output here */
       cipher_input = jcr->compress_buf; /* encrypt compressed data */
+
+      /* 
+       * Only change zlib parameters if there is no pending operation.
+       * This should never happen as deflaterset is called after each
+       * deflate.
+       */
+
+      if (((z_stream*)jcr->pZLIB_compress_workset)->total_in == 0) {
+         /* set gzip compression level - must be done per file */
+         if ((zstat=deflateParams((z_stream*)jcr->pZLIB_compress_workset, ff_pkt->GZIP_level, Z_DEFAULT_STRATEGY)) != Z_OK) {
+            Jmsg(jcr, M_FATAL, 0, _("Compression deflateParams error: %d\n"), zstat);
+            set_jcr_job_status(jcr, JS_ErrorTerminated);
+            goto err;
+         }
+      }
    }
 #else
    const uint32_t max_compress_len = 0;
@@ -644,21 +685,6 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
       rsize = (rsize/512) * 512;      
 #endif
    
-#ifdef HAVE_LIBZ
-   /* 
-    * instead of using compress2 for every block (with 256KB alloc + free per block)
-    * we init the zlib once per file which leads to less pagefaults on large files (>64K)
-    */
-   
-   z_stream zstream;
-   zstream.zalloc = Z_NULL;
-   zstream.zfree = Z_NULL;
-   zstream.opaque = Z_NULL;
-   zstream.state = Z_NULL;
-
-	BOOL blibzInited = deflateInit(&zstream, ff_pkt->GZIP_level) == Z_OK;
-#endif
-
    /*
     * Read the file data
     */
@@ -697,24 +723,28 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
 
 #ifdef HAVE_LIBZ
       /* Do compression if turned on */
-      if (!sparseBlock && (ff_pkt->flags & FO_GZIP) && blibzInited) {
-         int zstat;
+      if (!sparseBlock && (ff_pkt->flags & FO_GZIP) && jcr->pZLIB_compress_workset) {         
          compress_len = max_compress_len;
          Dmsg4(400, "cbuf=0x%x len=%u rbuf=0x%x len=%u\n", cbuf, compress_len,
             rbuf, sd->msglen);
          
-         zstream.next_in   = (Bytef *)rbuf;
-			zstream.avail_in  = sd->msglen;		
-         zstream.next_out  = (Bytef *)cbuf;
-			zstream.avail_out = compress_len;
+         ((z_stream*)jcr->pZLIB_compress_workset)->next_in   = (Bytef *)rbuf;
+			((z_stream*)jcr->pZLIB_compress_workset)->avail_in  = sd->msglen;		
+         ((z_stream*)jcr->pZLIB_compress_workset)->next_out  = (Bytef *)cbuf;
+			((z_stream*)jcr->pZLIB_compress_workset)->avail_out = compress_len;
 
-         if ((zstat=deflate(&zstream, Z_FINISH)) != Z_STREAM_END) {
-            Jmsg(jcr, M_FATAL, 0, _("Compression error: %d\n"), zstat);
+         if ((zstat=deflate((z_stream*)jcr->pZLIB_compress_workset, Z_FINISH)) != Z_STREAM_END) {
+            Jmsg(jcr, M_FATAL, 0, _("Compression deflate error: %d\n"), zstat);
             set_jcr_job_status(jcr, JS_ErrorTerminated);
             goto err;
          }
-         compress_len = zstream.total_out;
-         blibzInited = deflateReset(&zstream) == Z_OK;
+         compress_len = ((z_stream*)jcr->pZLIB_compress_workset)->total_out;
+         /* reset zlib stream to be able to begin from scratch again */
+         if ((zstat=deflateReset((z_stream*)jcr->pZLIB_compress_workset)) != Z_OK) {
+            Jmsg(jcr, M_FATAL, 0, _("Compression deflateReset error: %d\n"), zstat);
+            set_jcr_job_status(jcr, JS_ErrorTerminated);
+            goto err;
+         }
 
          Dmsg2(400, "compressed len=%d uncompressed len=%d\n",
             compress_len, sd->msglen);
@@ -807,11 +837,6 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
    if (cipher_ctx) {
       crypto_cipher_free(cipher_ctx);
    }
-#ifdef HAVE_LIBZ
-   /* Free the zlib stream */
-   deflateEnd(&zstream);
-#endif
-
    return 1;
 
 err:
@@ -819,10 +844,6 @@ err:
    if (cipher_ctx) {
       crypto_cipher_free(cipher_ctx);
    }
-#ifdef HAVE_LIBZ
-   /* Free the zlib stream */
-   deflateEnd(&zstream);
-#endif
 
    sd->msg = msgsave; /* restore bnet buffer */
    sd->msglen = 0;
