@@ -45,8 +45,9 @@
    conversion is called 3 times (lstat, attribs, open),
    by using the cache this is reduced to 1 time */
 
-POOLMEM *g_pWin32ConvUTF8Cache = get_pool_memory (PM_FNAME);
-POOLMEM *g_pWin32ConvUCS2Cache = get_pool_memory (PM_FNAME);
+static POOLMEM *g_pWin32ConvUTF8Cache = get_pool_memory (PM_FNAME);
+static POOLMEM *g_pWin32ConvUCS2Cache = get_pool_memory (PM_FNAME);
+static DWORD g_dwWin32ConvUTF8strlen = 0;
 static pthread_mutex_t Win32Convmutex = PTHREAD_MUTEX_INITIALIZER;
 
 void Win32ConvCleanupCache()
@@ -60,6 +61,8 @@ void Win32ConvCleanupCache()
       free_pool_memory(g_pWin32ConvUCS2Cache);   
       g_pWin32ConvUCS2Cache = NULL;
    }
+
+   g_dwWin32ConvUTF8strlen = 0;
 }
 
 
@@ -373,13 +376,17 @@ int
 make_win32_path_UTF8_2_wchar(POOLMEM **pszUCS, const char *pszUTF, BOOL* pBIsRawPath /*= NULL*/)
 {
    P(Win32Convmutex);
-   /* if we find the utf8 string in cache, we use the cached ucs2 version */
-   if (bstrcmp(pszUTF, g_pWin32ConvUTF8Cache)) {
-      int32_t nBufSize = sizeof_pool_memory(g_pWin32ConvUCS2Cache);
-      *pszUCS = check_pool_memory_size(*pszUCS, nBufSize);      
-      wcscpy((LPWSTR) *pszUCS, (LPWSTR) g_pWin32ConvUCS2Cache);
-      V(Win32Convmutex);
-      return nBufSize / sizeof (WCHAR);
+   /* if we find the utf8 string in cache, we use the cached ucs2 version.
+      we compare the stringlength first (quick check) and then compare the content.            
+   */
+   if (g_dwWin32ConvUTF8strlen == strlen(pszUTF)) {
+      if (bstrcmp(pszUTF, g_pWin32ConvUTF8Cache)) {
+         int32_t nBufSize = sizeof_pool_memory(g_pWin32ConvUCS2Cache);
+         *pszUCS = check_pool_memory_size(*pszUCS, nBufSize);      
+         wcscpy((LPWSTR) *pszUCS, (LPWSTR) g_pWin32ConvUCS2Cache);
+         V(Win32Convmutex);
+         return nBufSize / sizeof (WCHAR);
+      }
    }
 
    /* helper to convert from utf-8 to UCS-2 and to complete a path for 32K path syntax */
@@ -393,13 +400,13 @@ make_win32_path_UTF8_2_wchar(POOLMEM **pszUCS, const char *pszUTF, BOOL* pBIsRaw
       *pBIsRawPath = FALSE;
 #endif
 
-   /* populate cache */   
-   int32_t nBufSize = sizeof_pool_memory(*pszUCS);
-   g_pWin32ConvUCS2Cache = check_pool_memory_size(g_pWin32ConvUCS2Cache, nBufSize);
+   /* populate cache */      
+   g_pWin32ConvUCS2Cache = check_pool_memory_size(g_pWin32ConvUCS2Cache, sizeof_pool_memory(*pszUCS));
    wcscpy((LPWSTR) g_pWin32ConvUCS2Cache, (LPWSTR) *pszUCS);
-   nBufSize = strlen(pszUTF)+1;
-   g_pWin32ConvUTF8Cache = check_pool_memory_size(g_pWin32ConvUTF8Cache, nBufSize);
-   bstrncpy(g_pWin32ConvUTF8Cache, pszUTF, nBufSize);
+   
+   g_dwWin32ConvUTF8strlen = strlen(pszUTF);
+   g_pWin32ConvUTF8Cache = check_pool_memory_size(g_pWin32ConvUTF8Cache, g_dwWin32ConvUTF8strlen+1);
+   bstrncpy(g_pWin32ConvUTF8Cache, pszUTF, g_dwWin32ConvUTF8strlen+1);
    V(Win32Convmutex);
 
    return nRet;
