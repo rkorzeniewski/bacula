@@ -242,6 +242,7 @@ public:
    char *big_buf;                     /* I/O buffer */
    POOLMEM *compress_buf;             /* Compression buffer */
    int32_t compress_buf_size;         /* Length of compression buffer */
+   void *pZLIB_compress_workset;      /* zlib compression session data */
    int replace;                       /* Replace options */
    int buf_size;                      /* length of buffer */
    FF_PKT *ff;                        /* Find Files packet */
