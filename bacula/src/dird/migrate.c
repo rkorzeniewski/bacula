@@ -273,6 +273,10 @@ bool do_migration(JCR *jcr)
       return false;
    }
 
+   if (!bnet_fsend(sd, "run")) {
+      return false;
+   }
+
    /*
     * Now start a Storage daemon message thread
     */
@@ -280,9 +284,6 @@ bool do_migration(JCR *jcr)
       return false;
    }
 
-   if (!bnet_fsend(sd, "run")) {
-      return false;
-   }
 
    set_jcr_job_status(jcr, JS_Running);
    set_jcr_job_status(prev_jcr, JS_Running);

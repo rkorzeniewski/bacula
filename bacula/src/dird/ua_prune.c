@@ -123,7 +123,7 @@ static int job_delete_handler(void *ctx, int num_fields, char **row)
       del->PurgedFiles = (char *)brealloc(del->PurgedFiles, del->max_ids);
    }
    del->JobId[del->num_ids] = (JobId_t)str_to_int64(row[0]);
-   del->PurgedFiles[del->num_ids++] = (char)str_to_int64(row[0]);
+   del->PurgedFiles[del->num_ids++] = (char)str_to_int64(row[1]);
    return 0;
 }
 

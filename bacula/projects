@@ -37,7 +37,7 @@ Below, you will find more information on future projects:
 Item  1:  Implement data encryption (as opposed to comm encryption)
   Date:   28 October 2005
   Origin: Sponsored by Landon and 13 contributors to EFF.
-  Status: Landon Fuller is currently implementing this.
+  Status: Landon Fuller has implemented this in 1.39.x.
                   
   What:   Currently the data that is stored on the Volume is not
           encrypted. For confidentiality, encryption of data at
@@ -51,7 +51,7 @@ Item 2:   Implement Migration that moves Jobs from one Pool to another.
   Origin: Sponsored by Riege Software International GmbH. Contact:
           Daniel Holtkamp <holtkamp at riege dot com>
   Date:   28 October 2005
-  Status: Partially coded in 1.37 -- much more to do. Assigned to
+  Status: Partially working in 1.39, more to do. Assigned to
           Kern.
 
   What:   The ability to copy, move, or archive data that is on a
@@ -111,7 +111,7 @@ Item  3:  Accurate restoration of renamed/deleted files from
 Item 4:   Implement a Bacula GUI/management tool using Python.
   Origin: Kern
   Date:   28 October 2005
-  Status: 
+  Status: Lucus is working on this for Python GTK+.
 
   What:   Implement a Bacula console, and management tools
           using Python and Qt or GTK.
@@ -289,7 +289,7 @@ Item  8:  Implement creation and maintenance of copy pools
 Item  9:  Implement new {Client}Run{Before|After}Job feature.
   Date:   26 September 2005
   Origin: Phil Stracchino <phil.stracchino at speakeasy dot net>
-  Status: 
+  Status: Done. This has been implemented by Eric Bollengier
 
   What:   Some time ago, there was a discussion of RunAfterJob and
           ClientRunAfterJob, and the fact that they do not run after failed
@@ -719,18 +719,6 @@ Item 25:  Implement huge exclude list support using hashing.
           do a Bacula restore. By excluding the base OS files, the
           backup set will be *much* smaller.
 
-===============================================
-Not in Dec 2005 Vote:
-Item n:   Allow skipping execution of Jobs
-  Date:   29 November 2005
-  Origin: Florian Schnabel <florian.schnabel at docufy dot de>
-  Status:
-
-     What: An easy option to skip a certain job  on a certain date.
-     Why:  You could then easily skip tape backups on holidays.  Especially
-           if you got no autochanger and can only fit one backup on a tape
-           that would be really handy, other jobs could proceed normally
-           and you won't get errors that way.
 
 ============= Empty Feature Request form ===========
 Item n:   One line summary ...
@@ -744,3 +732,51 @@ Item n:   One line summary ...
 
   Notes:  Additional notes or features (omit if not used)
 ============== End Feature Request form ==============
+
+
+===============================================
+Feature requests submitted after cutoff for December 2005 vote
+===============================================
+Item n:   Allow skipping execution of Jobs
+  Date:   29 November 2005
+  Origin: Florian Schnabel <florian.schnabel at docufy dot de>
+  Status:
+
+     What: An easy option to skip a certain job  on a certain date.
+     Why:  You could then easily skip tape backups on holidays.  Especially
+           if you got no autochanger and can only fit one backup on a tape
+           that would be really handy, other jobs could proceed normally
+           and you won't get errors that way.
+
+===================================================
+
+Item n: archive data
+
+  Origin: calvin streeting calvin@absentdream.com
+  Date:   15/5/2006
+
+  What:   The abilty to archive to media (dvd/cd) in a uncompressd format
+          for dead filing (archiving not backing up)
+
+  Why:  At my works when jobs are finished and moved off of the main file
+        servers (raid based systems) onto a simple linux file server (ide based
+        system) so users can find old information without contacting the IT
+        dept.
+
+        So this data dosn't realy change it only gets added to,
+        But it also needs backing up.  At the moment it takes
+        about 8 hours to back up our servers (working data) so
+        rather than add more time to existing backups i am trying
+        to implement a system where we backup the acrhive data to
+        cd/dvd these disks would only need to be appended to
+        (burn only new/changed files to new disks for off site
+        storage).  basialy understand the differnce between
+        achive data and live data.
+
+  Notes: scan the data and email me when it needs burning divide
+          into predifind chunks keep a recored of what is on what
+          disk make me a label (simple php->mysql=>pdf stuff) i
+          could do this bit ability to save data uncompresed so
+          it can be read in any other system (future proof data)
+          save the catalog with the disk as some kind of menu
+          system

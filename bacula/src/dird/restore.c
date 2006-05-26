@@ -99,6 +99,9 @@ bool do_restore(JCR *jcr)
       restore_cleanup(jcr, JS_ErrorTerminated);
       return false;
    }
+   if (!bnet_fsend(jcr->store_bsock, "run")) {
+      return false;
+   }
    /*
     * Now start a Storage daemon message thread
     */
@@ -108,9 +111,6 @@ bool do_restore(JCR *jcr)
    }
    Dmsg0(50, "Storage daemon connection OK\n");
 
-   if (!bnet_fsend(jcr->store_bsock, "run")) {
-      return false;
-   }
 
    /*
     * Start conversation with File daemon

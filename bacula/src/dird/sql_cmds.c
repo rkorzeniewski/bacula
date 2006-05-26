@@ -110,7 +110,7 @@ const char *insert_delcand =
  * (i.e. no files, ...) for deletion.
  */
 const char *select_backup_del =
-   "SELECT DISTINCT DelCandidates.JobId "
+   "SELECT DISTINCT DelCandidates.JobId,DelCandidates.PurgedFiles "
    "FROM Job,DelCandidates "
    "WHERE (Job.JobTDate<%s AND ((DelCandidates.JobFiles=0) OR "
    "(DelCandidates.JobStatus!='T'))) OR "
@@ -126,7 +126,7 @@ const char *select_backup_del =
  * This is the list of Jobs to delete for a Verify Job.
  */
 const char *select_verify_del =
-   "SELECT DISTINCT DelCandidates.JobId "
+   "SELECT DISTINCT DelCandidates.JobId,DelCandidates.PurgedFiles "
    "FROM Job,DelCandidates "
    "WHERE (Job.JobTdate<%s AND DelCandidates.JobStatus!='T') OR "
    "(Job.JobTDate>%s "
@@ -141,7 +141,7 @@ const char *select_verify_del =
  * This is the list of Jobs to delete for a Restore Job.
  */
 const char *select_restore_del =
-   "SELECT DISTINCT DelCandidates.JobId "
+   "SELECT DISTINCT DelCandidates.JobId,DelCandidates.PurgedFiles "
    "FROM Job,DelCandidates "
    "WHERE (Job.JobTdate<%s AND DelCandidates.JobStatus!='T') OR "
    "(Job.JobTDate>%s "
@@ -152,7 +152,7 @@ const char *select_restore_del =
  * This is the list of Jobs to delete for an Admin Job.
  */
 const char *select_admin_del =
-   "SELECT DISTINCT DelCandidates.JobId "
+   "SELECT DISTINCT DelCandidates.JobId,DelCandidates.PurgedFiles "
    "FROM Job,DelCandidates "
    "WHERE (Job.JobTdate<%s AND DelCandidates.JobStatus!='T') OR "
    "(Job.JobTDate>%s "

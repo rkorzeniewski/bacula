@@ -208,6 +208,16 @@ int jobq_add(jobq_t *jq, JCR *jcr)
    pthread_t id;
    wait_pkt *sched_pkt;
 
+   if (!jcr->term_wait_inited) { 
+      /* Initialize termination condition variable */
+      if ((stat = pthread_cond_init(&jcr->term_wait, NULL)) != 0) {
+         berrno be;
+         Jmsg1(jcr, M_FATAL, 0, _("Unable to init job cond variable: ERR=%s\n"), be.strerror(stat));
+         return stat;
+      }
+      jcr->term_wait_inited = true;
+   }                           
+                             
    Dmsg3(2300, "jobq_add jobid=%d jcr=0x%x use_count=%d\n", jcr->JobId, jcr, jcr->use_count());
    if (jq->valid != JOBQ_VALID) {
       Jmsg0(jcr, M_ERROR, 0, "Jobq_add queue not initialized.\n");
@@ -466,7 +476,8 @@ void *jobq_server(void *arg)
              jcr->JobStatus != JS_Canceled &&
              jcr->job->RescheduleTimes > 0 &&
              jcr->JobType == JT_BACKUP &&
-             jcr->reschedule_count < jcr->job->RescheduleTimes) {
+             (jcr->job->RescheduleTimes == 0 ||
+              jcr->reschedule_count < jcr->job->RescheduleTimes)) {
              char dt[50], dt2[50];
 
              /*
@@ -488,7 +499,6 @@ void *jobq_server(void *arg)
             jcr->SDJobStatus = 0;
             if (jcr->JobBytes == 0) {
                Dmsg2(2300, "Requeue job=%d use=%d\n", jcr->JobId, jcr->use_count());
-               set_jcr_job_status(jcr, JS_WaitStartTime);
                V(jq->mutex);
                jobq_add(jq, jcr);     /* queue the job to run again */
                P(jq->mutex);
@@ -501,10 +511,11 @@ void *jobq_server(void *arg)
              *   the old JobId or there will be database record
              *   conflicts.  We now create a new job, copying the
              *   appropriate fields.
-             */
+             */           
             JCR *njcr = new_jcr(sizeof(JCR), dird_free_jcr);
             set_jcr_defaults(njcr, jcr->job);
             njcr->reschedule_count = jcr->reschedule_count;
+            njcr->sched_time = jcr->sched_time;
             njcr->JobLevel = jcr->JobLevel;
             njcr->JobStatus = -1;
             set_jcr_job_status(njcr, jcr->JobStatus);

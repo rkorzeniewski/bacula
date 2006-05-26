@@ -91,6 +91,7 @@ enum {
 #define FO_SHA256       (1<<19)       /* Do SHA256 checksum */
 #define FO_SHA512       (1<<20)       /* Do SHA512 checksum */
 #define FO_ENCRYPT      (1<<21)       /* Encrypt data stream */
+#define FO_NOATIME      (1<<22)       /* Use O_NOATIME to prevent atime change */
 
 struct s_included_file {
    struct s_included_file *next;

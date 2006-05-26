@@ -484,7 +484,7 @@ static void ls_output(char *buf, const char *fname, const char *tag,
       p += n;
       n = sprintf(p, "%s,", edit_uint64(statp->st_size, ec1));
       p += n;
-      p = encode_time(statp->st_ctime, p);
+      p = encode_time(statp->st_mtime, p);
       *p++ = ',';
       *p++ = *tag;
       *p++ = ',';

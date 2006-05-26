@@ -23,6 +23,12 @@ Document:
 Priority:
 
 For 1.39:
+- Implement VolumeState as discussed with Arno.
+- Install man pages
+- Document techniques for restoring large numbers of files.
+- Document setting my.cnf to big file usage.
+- Add example of proper index output to doc.
+   show index from File;
 - Fix re-read of last block to check if job has actually written
   a block, and check if block was written by a different job
   (i.e. multiple simultaneous jobs writing).
