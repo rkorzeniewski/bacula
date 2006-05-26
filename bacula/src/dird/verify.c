@@ -177,6 +177,9 @@ bool do_verify(JCR *jcr)
       if (!start_storage_daemon_job(jcr, jcr->storage, NULL)) {
          return false;
       }
+      if (!bnet_fsend(jcr->store_bsock, "run")) {
+         return false;
+      }
       /*
        * Now start a Storage daemon message thread
        */
@@ -185,9 +188,6 @@ bool do_verify(JCR *jcr)
       }
       Dmsg0(50, "Storage daemon connection OK\n");
 
-      if (!bnet_fsend(jcr->store_bsock, "run")) {
-         return false;
-      }
    }
    /*
     * OK, now connect to the File daemon

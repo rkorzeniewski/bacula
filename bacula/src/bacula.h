@@ -67,8 +67,14 @@
 #if HAVE_ALLOCA_H
 #include <alloca.h>
 #endif
+
 #include <errno.h>
 #include <fcntl.h>
+
+/* O_NOATIME is defined at fcntl.h when supported */
+#ifndef O_NOATIME
+#define O_NOATIME 0
+#endif
 
 #ifdef xxxxx
 #ifdef HAVE_GETOPT_LONG

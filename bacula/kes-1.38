@@ -525,9 +525,9 @@ Changes to 1.38.1: 15 November 2005
 - Fix copyright date and URL typo -- bug #468.
 - Change autostart install for FreeBSD to look for rc.conf  
   rather than rc.local as suggested fix for bug #466.
-- Apply patch supplied by Eric Bollinger to fix PostgreSQL    
+- Apply patch supplied by Eric Bollengier to fix PostgreSQL    
   grant on status. Bug #465
-- Apply patch supplied by Eric Bollinger to fix PostgreSQL
+- Apply patch supplied by Eric Bollengier to fix PostgreSQL
   update script. Bug #464
 - Fix off by one for last Slot of autochanger for label.
 - Update release date.

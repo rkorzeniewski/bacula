@@ -758,7 +758,25 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 
    /* Normal file open */
    Dmsg1(400, "open file %s\n", fname);
-   bfd->fid = open(fname, flags, mode);
+   /* We use fnctl to set O_NOATIME if requested to avoid open error */
+   bfd->fid = open(fname, flags & ~O_NOATIME, mode);
+   /* Set O_NOATIME if possible */
+   if (bfd->fid != -1 && flags & O_NOATIME) {
+      int oldflags = fcntl(bfd->fid, F_GETFL, 0);
+      if (oldflags == -1) {
+         bfd->berrno = errno;
+         close(bfd->fid);
+         bfd->fid = -1;
+      } else {
+         int ret = fcntl(bfd->fid, F_SETFL, oldflags | O_NOATIME);
+        /* EPERM means setting O_NOATIME was not allowed  */
+         if (ret == -1 && errno != EPERM) {
+            bfd->berrno = errno;
+            close(bfd->fid);
+            bfd->fid = -1;
+         }
+      }
+   }
    bfd->berrno = errno;
    Dmsg1(400, "Open file %d\n", bfd->fid);
    errno = bfd->berrno;

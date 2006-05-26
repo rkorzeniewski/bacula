@@ -380,16 +380,26 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
 {
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
+   bool can_write = true;
 
    if (dev->open(dcr, OPEN_READ_WRITE) < 0) {
-      return false;
+      /* If device is DVD, attempt to create it */
+      if (!dev->is_dvd()) {
+         return false;
+      }
+      if (dev->open(dcr, CREATE_READ_WRITE) < 0) {
+         /* We forge on for a DVD but don't do any writing */
+         can_write = false;
+      }
    }
    Dmsg2(190, "set append found freshly labeled volume. fd=%d dev=%x\n", dev->fd, dev);
    dev->VolHdr.LabelType = VOL_LABEL; /* set Volume label */
    dev->set_append();
-   if (!write_volume_label_to_block(dcr)) {
-      Dmsg0(200, "Error from write volume label.\n");
-      return false;
+   if (can_write) {
+      if (!write_volume_label_to_block(dcr)) {
+         Dmsg0(200, "Error from write volume label.\n");
+         return false;
+      }
    }
    /*
     * If we are not dealing with a streaming device,
@@ -398,7 +408,7 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
     * We do not write the block now if this is an ANSI label. This
     *  avoids re-writing the ANSI label, which we do not want to do.
     */
-   if (!dev_cap(dev, CAP_STREAM)) {
+   if (can_write && !dev_cap(dev, CAP_STREAM)) {
       if (!dev->rewind(dcr)) {
          Jmsg2(jcr, M_WARNING, 0, _("Rewind error on device %s: ERR=%s\n"),
                dev->print_name(), dev->bstrerror());

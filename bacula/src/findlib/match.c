@@ -180,6 +180,9 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, const char *fname)
             inc->level = *++rp - '0';
             Dmsg1(200, "Compression level=%d\n", inc->level);
             break;
+         case 'K':
+            inc->options |= FO_NOATIME;
+            break;
          default:
             Emsg1(M_ERROR, 0, _("Unknown include/exclude option: %c\n"), *rp);
             break;

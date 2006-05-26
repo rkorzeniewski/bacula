@@ -97,6 +97,7 @@ static RES_ITEM options_items[] = {
    {"ignorecase",      store_opts,    NULL,     0, 0, 0},
    {"fstype",          store_fstype,  NULL,     0, 0, 0},
    {"hfsplussupport",  store_opts,    NULL,     0, 0, 0},
+   {"noatime",         store_opts,    NULL,     0, 0, 0},
    {NULL, NULL, NULL, 0, 0, 0}
 };
 
@@ -120,7 +121,8 @@ enum {
    INC_KW_EXCLUDE,
    INC_KW_ACL,
    INC_KW_IGNORECASE,
-   INC_KW_HFSPLUS
+   INC_KW_HFSPLUS,
+   INC_KW_NOATIME
 };
 
 /*
@@ -147,6 +149,7 @@ static struct s_kw FS_option_kw[] = {
    {"aclsupport",  INC_KW_ACL},
    {"ignorecase",  INC_KW_IGNORECASE},
    {"hfsplussupport", INC_KW_HFSPLUS},
+   {"noatime",     INC_KW_NOATIME},
    {NULL,          0}
 };
 
@@ -208,6 +211,8 @@ static struct s_fs_opt FS_options[] = {
    {"no",       INC_KW_IGNORECASE,    "0"},
    {"yes",      INC_KW_HFSPLUS,       "R"},   /* "R" for resource fork */
    {"no",       INC_KW_HFSPLUS,       "0"},
+   {"yes",      INC_KW_NOATIME,       "K"},
+   {"no",       INC_KW_NOATIME,       "0"},
    {NULL,       0,                      0}
 };
 

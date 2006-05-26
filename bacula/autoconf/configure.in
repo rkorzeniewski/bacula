@@ -1914,6 +1914,7 @@ fi
 
 AC_OUTPUT([autoconf/Make.common \
 	   Makefile \
+	   manpages/Makefile \
 	   scripts/startmysql \
 	   scripts/stopmysql \
 	   scripts/btraceback \

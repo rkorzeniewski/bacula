@@ -176,8 +176,8 @@ UAContext *new_ua_context(JCR *jcr)
    ua->db = jcr->db;
    ua->cmd = get_pool_memory(PM_FNAME);
    ua->args = get_pool_memory(PM_FNAME);
-   ua->verbose = 1;
-   ua->automount = TRUE;
+   ua->verbose = true;
+   ua->automount = true;
    return ua;
 }
 

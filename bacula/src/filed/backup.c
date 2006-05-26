@@ -387,7 +387,8 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       } else {
          tid = NULL;
       }
-      if (bopen(&ff_pkt->bfd, ff_pkt->fname, O_RDONLY | O_BINARY, 0) < 0) {
+      int noatime = ff_pkt->flags & FO_NOATIME ? O_NOATIME : 0;
+      if (bopen(&ff_pkt->bfd, ff_pkt->fname, O_RDONLY | O_BINARY | noatime, 0) < 0) {
          ff_pkt->ff_errno = errno;
          berrno be;
          Jmsg(jcr, M_NOTSAVED, 0, _("     Cannot open %s: ERR=%s.\n"), ff_pkt->fname,
@@ -729,9 +730,9 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
             rbuf, sd->msglen);
          
          ((z_stream*)jcr->pZLIB_compress_workset)->next_in   = (Bytef *)rbuf;
-			((z_stream*)jcr->pZLIB_compress_workset)->avail_in  = sd->msglen;		
+                        ((z_stream*)jcr->pZLIB_compress_workset)->avail_in  = sd->msglen;               
          ((z_stream*)jcr->pZLIB_compress_workset)->next_out  = (Bytef *)cbuf;
-			((z_stream*)jcr->pZLIB_compress_workset)->avail_out = compress_len;
+                        ((z_stream*)jcr->pZLIB_compress_workset)->avail_out = compress_len;
 
          if ((zstat=deflate((z_stream*)jcr->pZLIB_compress_workset, Z_FINISH)) != Z_STREAM_END) {
             Jmsg(jcr, M_FATAL, 0, _("Compression deflate error: %d\n"), zstat);
