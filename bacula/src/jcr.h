@@ -254,7 +254,7 @@ public:
    pthread_t heartbeat_id;            /* id of heartbeat thread */
    volatile BSOCK *hb_bsock;          /* duped SD socket */
    volatile BSOCK *hb_dir_bsock;      /* duped DIR socket */
-   POOLMEM *RunAfterJob;              /* Command to run after job */
+   alist *RunScripts;                 /* Commands to run before and after job */
    bool pki_sign;                     /* Enable PKI Signatures? */
    bool pki_encrypt;                  /* Enable PKI Encryption? */
    DIGEST *digest;                    /* Last file's digest context */
@@ -321,8 +321,6 @@ public:
 #endif /* STORAGE_DAEMON */
 
 };
-
-
 
 /*
  * Structure for all daemons that keeps some summary

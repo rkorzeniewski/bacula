@@ -83,6 +83,7 @@ struct FILESET;
 struct POOL;
 struct RUN;
 struct DEVICE;
+struct RUNSCRIPT;
 
 /*
  *   Director Resource
@@ -280,11 +281,7 @@ public:
    int   RestoreJobId;                /* What -- JobId to restore */
    char *RestoreWhere;                /* Where on disk to restore -- directory */
    char *RestoreBootstrap;            /* Bootstrap file */
-   char *RunBeforeJob;                /* Run program before Job */
-   char *RunAfterJob;                 /* Run program after Job */
-   char *RunAfterFailedJob;           /* Run program after Job that errs */
-   char *ClientRunBeforeJob;          /* Run client program before Job */
-   char *ClientRunAfterJob;           /* Run client program after Job */
+   alist *RunScripts;                 /* Run {client} program {after|before} Job */
    union {
       char *WriteBootstrap;           /* Where to write bootstrap Job updates */
       char *WriteVerifyList;          /* List of changed files */

@@ -222,7 +222,7 @@ bool do_backup(JCR *jcr)
    }
 
 
-   if (!send_run_before_and_after_commands(jcr)) {
+   if (!send_runscripts_commands(jcr)) {
       goto bail_out;
    }
 

@@ -149,7 +149,7 @@ bool do_restore(JCR *jcr)
    }
 
 
-   if (!send_run_before_and_after_commands(jcr)) {
+   if (!send_runscripts_commands(jcr)) {
       restore_cleanup(jcr, JS_ErrorTerminated);
       return false;
    }

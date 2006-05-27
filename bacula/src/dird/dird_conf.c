@@ -62,7 +62,10 @@ void store_replace(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_acl(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_device(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_migtype(LEX *lc, RES_ITEM *item, int index, int pass);
-
+static void store_runscript(LEX *lc, RES_ITEM *item, int index, int pass);
+static void store_runscript_when(LEX *lc, RES_ITEM *item, int index, int pass);
+static void store_runscript_cmd(LEX *lc, RES_ITEM *item, int index, int pass);
+static void store_short_runscript(LEX *lc, RES_ITEM *item, int index, int pass);
 
 /* We build the current resource here as we are
  * scanning the resource configuration definition,
@@ -266,11 +269,11 @@ RES_ITEM job_items[] = {
    {"spooldata",   store_bool, ITEM(res_job.spool_data), 0, ITEM_DEFAULT, false},
    {"rerunfailedlevels",   store_bool, ITEM(res_job.rerun_failed_levels), 0, ITEM_DEFAULT, false},
    {"prefermountedvolumes", store_bool, ITEM(res_job.PreferMountedVolumes), 0, ITEM_DEFAULT, true},
-   {"runbeforejob", store_str,  ITEM(res_job.RunBeforeJob), 0, 0, 0},
-   {"runafterjob",  store_str,  ITEM(res_job.RunAfterJob),  0, 0, 0},
-   {"runafterfailedjob",  store_str,  ITEM(res_job.RunAfterFailedJob),  0, 0, 0},
-   {"clientrunbeforejob", store_str,  ITEM(res_job.ClientRunBeforeJob), 0, 0, 0},
-   {"clientrunafterjob",  store_str,  ITEM(res_job.ClientRunAfterJob),  0, 0, 0},
+   {"runbeforejob", store_short_runscript,  ITEM(res_job.RunScripts),  0, 0, 0},
+   {"runafterjob",  store_short_runscript,  ITEM(res_job.RunScripts),  0, 0, 0},
+   {"runafterfailedjob",  store_short_runscript,  ITEM(res_job.RunScripts),  0, 0, 0},
+   {"clientrunbeforejob", store_short_runscript,  ITEM(res_job.RunScripts),  0, 0, 0},
+   {"clientrunafterjob",  store_short_runscript,  ITEM(res_job.RunScripts),  0, 0, 0},
    {"maximumconcurrentjobs", store_pint, ITEM(res_job.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},
    {"rescheduleonerror", store_bool, ITEM(res_job.RescheduleOnError), 0, ITEM_DEFAULT, false},
    {"rescheduleinterval", store_time, ITEM(res_job.RescheduleInterval), 0, ITEM_DEFAULT, 60 * 30},
@@ -279,6 +282,7 @@ RES_ITEM job_items[] = {
    {"writepartafterjob",   store_bool, ITEM(res_job.write_part_after_job), 0, ITEM_DEFAULT, false},
    {"selectionpattern", store_str, ITEM(res_job.selection_pattern), 0, 0, 0},
    {"selectiontype", store_migtype, ITEM(res_job.selection_type), 0, 0, 0},
+   {"runscript", store_runscript, ITEM(res_job.RunScripts), 0, ITEM_NO_EQUALS, 0},
    {NULL, NULL, NULL, 0, 0, 0}
 };
 
@@ -589,15 +593,6 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       if (res->res_job.RestoreBootstrap) {
          sendit(sock, _("  --> Bootstrap=%s\n"), NPRT(res->res_job.RestoreBootstrap));
       }
-      if (res->res_job.RunBeforeJob) {
-         sendit(sock, _("  --> RunBefore=%s\n"), NPRT(res->res_job.RunBeforeJob));
-      }
-      if (res->res_job.RunAfterJob) {
-         sendit(sock, _("  --> RunAfter=%s\n"), NPRT(res->res_job.RunAfterJob));
-      }
-      if (res->res_job.RunAfterFailedJob) {
-         sendit(sock, _("  --> RunAfterFailed=%s\n"), NPRT(res->res_job.RunAfterFailedJob));
-      }
       if (res->res_job.WriteBootstrap) {
          sendit(sock, _("  --> WriteBootstrap=%s\n"), NPRT(res->res_job.WriteBootstrap));
       }
@@ -607,6 +602,18 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
             sendit(sock, _("  --> "));
             dump_resource(-R_STORAGE, (RES *)store, sendit, sock);
          }
+      }
+      if (res->res_job.RunScripts) {
+        RUNSCRIPT *script;
+        foreach_alist(script, res->res_job.RunScripts) {
+           sendit(sock, _(" --> RunScript\n"));
+           sendit(sock, _("  --> Command=%s\n"), NPRT(script->command));
+           sendit(sock, _("  --> Target=%s\n"),  NPRT(script->target));
+           sendit(sock, _("  --> RunOnSuccess=%u\n"),  script->on_success);
+           sendit(sock, _("  --> RunOnFailure=%u\n"),  script->on_failure);
+           sendit(sock, _("  --> AbortJobOnError=%u\n"),  script->abort_on_error);
+           sendit(sock, _("  --> RunWhen=%u\n"),  script->when);
+        }
       }
       if (res->res_job.pool) {
          sendit(sock, _("  --> "));
@@ -1096,21 +1103,6 @@ void free_resource(RES *sres, int type)
       if (res->res_job.WriteBootstrap) {
          free(res->res_job.WriteBootstrap);
       }
-      if (res->res_job.RunBeforeJob) {
-         free(res->res_job.RunBeforeJob);
-      }
-      if (res->res_job.RunAfterJob) {
-         free(res->res_job.RunAfterJob);
-      }
-      if (res->res_job.RunAfterFailedJob) {
-         free(res->res_job.RunAfterFailedJob);
-      }
-      if (res->res_job.ClientRunBeforeJob) {
-         free(res->res_job.ClientRunBeforeJob);
-      }
-      if (res->res_job.ClientRunAfterJob) {
-         free(res->res_job.ClientRunAfterJob);
-      }
       if (res->res_job.selection_pattern) {
          free(res->res_job.selection_pattern);
       }
@@ -1119,6 +1111,10 @@ void free_resource(RES *sres, int type)
       }
       if (res->res_job.storage) {
          delete res->res_job.storage;
+      }
+      if (res->res_job.RunScripts) {
+         free_runscripts(res->res_job.RunScripts);
+         delete res->res_job.RunScripts;
       }
       break;
    case R_MSGS:
@@ -1255,6 +1251,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
          res->res_job.verify_job = res_all.res_job.verify_job;
          res->res_job.jobdefs    = res_all.res_job.jobdefs;
          res->res_job.run_cmds   = res_all.res_job.run_cmds;
+         res->res_job.RunScripts = res_all.res_job.RunScripts;
          break;
       case R_COUNTER:
          if ((res = (URES *)GetResWithName(R_COUNTER, res_all.res_counter.hdr.name)) == NULL) {
@@ -1542,5 +1539,196 @@ void store_acl(LEX *lc, RES_ITEM *item, int index, int pass)
       }
       break;
    }
+   set_bit(index, res_all.hdr.item_present);
+}
+
+
+/* Store a runscript->when in a bit field */
+static void store_runscript_when(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+   lex_get_token(lc, T_NAME);
+
+   if (strcasecmp(lc->str, "before") == 0) {
+      *(int *)(item->value) = SCRIPT_Before ;
+   } else if (strcasecmp(lc->str, "after") == 0) {
+      *(int *)(item->value) = SCRIPT_After;
+   } else if (strcasecmp(lc->str, "always") == 0) {
+      *(int *)(item->value) = SCRIPT_Any;
+   } else {
+      scan_err2(lc, _("Expect %s, got: %s"), "Before, After or Always", lc->str);
+   }
+   scan_to_eol(lc);
+}
+
+/* Store a runscript->target
+ * 
+ */
+static void store_runscript_target(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+   lex_get_token(lc, T_STRING);
+
+   if (pass == 2) {
+      if (strcmp(lc->str, "%c") == 0) {
+	 ((RUNSCRIPT*) item->value)->set_target(lc->str);
+      } else if (strcmp(lc->str, "yes") == 0) {
+	 ((RUNSCRIPT*) item->value)->set_target("%c");
+      } else if (strcmp(lc->str, "no") == 0) {
+	 /* store nothing, run on director */
+      } else {
+	 RES *res = GetResWithName(R_CLIENT, lc->str);
+	 if (res == NULL) {
+	    scan_err3(lc, _("Could not find config Resource %s referenced on line %d : %s\n"),
+		      lc->str, lc->line_no, lc->line);
+	 }
+
+	 ((RUNSCRIPT*) item->value)->set_target(lc->str);
+      }
+   }
+   scan_to_eol(lc);
+}
+
+/* Store a runscript->command in a bit field
+ * 
+ */
+static void store_runscript_cmd(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+   lex_get_token(lc, T_STRING);
+
+   if (pass == 2) {
+      ((RUNSCRIPT*) item->value)->set_command(lc->str);
+   }
+   scan_to_eol(lc);
+}
+
+static void store_short_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+   lex_get_token(lc, T_STRING);
+   alist **runscripts = (alist **)(item->value) ;
+
+   if (pass == 2) {
+      RUNSCRIPT *script = new_runscript();
+
+      script->set_command(lc->str);
+
+      if (strcmp(item->name, "runbeforejob") == 0) {
+	 script->when = SCRIPT_Before;
+	 script->abort_on_error = true;
+
+      } else if (strcmp(item->name, "runafterjob") == 0) {
+	 script->when = SCRIPT_After;
+	 script->on_success = true;
+	 script->on_failure = false;
+	 
+      } else if (strcmp(item->name, "clientrunafterjob") == 0) {
+	 script->when = SCRIPT_After;
+	 script->set_target("%c");
+	 script->on_success = true;
+	 script->on_failure = false;
+
+      } else if (strcmp(item->name, "clientrunbeforejob") == 0) {
+	 script->when = SCRIPT_Before;
+	 script->set_target("%c");
+	 script->abort_on_error = true;
+
+      } else if (strcmp(item->name, "runafterfailedjob") == 0) {
+	 script->when = SCRIPT_After;
+	 script->on_failure = true;
+	 script->on_success = false;
+      }
+
+      if (*runscripts == NULL) {
+        *runscripts = New(alist(10, not_owned_by_alist));
+      }
+      
+      (*runscripts)->append(script);
+      script->debug();
+   }
+
+   scan_to_eol(lc);
+}
+
+static RUNSCRIPT  res_runscript;
+
+/*
+ * new RunScript items
+ *   name             handler         value                                code flags default_value
+ */
+static RES_ITEM runscript_items[] = {
+   {"command", store_runscript_cmd,   (char **)&res_runscript,            0,  ITEM_REQUIRED, 0}, 
+   {"target", store_runscript_target, (char **)&res_runscript,            0,  0, 0}, 
+   {"runsonsuccess",    store_bool,   (char **)&res_runscript.on_success, 0,  0, 0},
+   {"runsonfailure",    store_bool,   (char **)&res_runscript.on_failure, 0,  0, 0},
+   {"abortjobonerror", store_bool,    (char **)&res_runscript.abort_on_error, 0, 0,   0},
+   {"runswhen", store_runscript_when, (char **)&res_runscript.when,       0,  0, 0},
+   {"runsonclient", store_runscript_target, (char **)&res_runscript,       0,  0, 0}, /* TODO */
+
+   {NULL, NULL, NULL, 0, 0, 0}
+};
+
+/*
+ * Store RunScript info
+ *
+ *  Note, when this routine is called, we are inside a Job
+ *  resource.  We treat the RunScript like a sort of
+ *  mini-resource within the Job resource.
+ */
+static void store_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+   int token, i;
+   alist **runscripts = (alist **)(item->value) ;
+
+   Dmsg1(200, "store_runscript: begin store_runscript pass=%i\n", pass);
+
+   res_runscript.reset_default();      /* setting on_success, on_failure, abort_on_error */
+   
+   token = lex_get_token(lc, T_SKIP_EOL);
+   
+   if (token != T_BOB) {
+      scan_err1(lc, _("Expecting open brace. Got %s"), lc->str);
+   }
+   
+   while ((token = lex_get_token(lc, T_SKIP_EOL)) != T_EOF) {
+      if (token == T_EOB) {
+        break;
+      }
+      if (token != T_IDENTIFIER) {
+        scan_err1(lc, _("Expecting keyword, got: %s\n"), lc->str);
+      }
+      for (i=0; runscript_items[i].name; i++) {
+        if (strcasecmp(runscript_items[i].name, lc->str) == 0) {
+           token = lex_get_token(lc, T_SKIP_EOL);
+           if (token != T_EQUALS) {
+              scan_err1(lc, _("expected an equals, got: %s"), lc->str);
+           }
+           
+           /* Call item handler */
+           runscript_items[i].handler(lc, &runscript_items[i], i, pass);
+           i = -1;
+           break;
+        }
+      }
+      
+      if (i >=0) {
+        scan_err1(lc, _("Keyword %s not permitted in this resource"), lc->str);
+      }
+   }
+
+   if (pass == 2) {
+      if (res_runscript.command == NULL) {
+	 scan_err2(lc, _("%s item is required in %s resource, but not found.\n"),
+		   "command", "runscript");
+      }
+      RUNSCRIPT *script = new_runscript();
+      memcpy(script, &res_runscript, sizeof(RUNSCRIPT));
+      
+      if (*runscripts == NULL) {
+        *runscripts = New(alist(10, not_owned_by_alist));
+      }
+      
+      (*runscripts)->append(script);
+      script->debug();
+   }
+
+   scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
 }

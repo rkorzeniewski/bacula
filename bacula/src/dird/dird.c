@@ -555,6 +555,19 @@ static int check_resources()
                job->storage->append(st);
             }
          }
+         /* Handle RunScripts alists specifically */
+         if (jobdefs->RunScripts) {
+            RUNSCRIPT *rs, *elt;
+	    
+	    if (!job->RunScripts) {
+	       job->RunScripts = New(alist(10, not_owned_by_alist));
+	    }
+	   
+	    foreach_alist(rs, jobdefs->RunScripts) {
+	       elt = copy_runscript(rs);
+               job->RunScripts->append(elt); /* we have to free it */
+            }
+         }
 
          /* Transfer default items from JobDefs Resource */
          for (i=0; job_items[i].name; i++) {
