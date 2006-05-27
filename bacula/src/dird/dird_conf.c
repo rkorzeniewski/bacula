@@ -1718,6 +1718,12 @@ static void store_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
 	 scan_err2(lc, _("%s item is required in %s resource, but not found.\n"),
 		   "command", "runscript");
       }
+
+      /* run on client by default */
+      if (res_runscript.target == NULL) {
+	 res_runscript.set_target("%c");
+      }
+
       RUNSCRIPT *script = new_runscript();
       memcpy(script, &res_runscript, sizeof(RUNSCRIPT));
       
