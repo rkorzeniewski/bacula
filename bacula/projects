@@ -288,7 +288,7 @@ Item  8:  Implement creation and maintenance of copy pools
 
 Item  9:  Implement new {Client}Run{Before|After}Job feature.
   Date:   26 September 2005
-  Origin: Phil Stracchino <phil.stracchino at speakeasy dot net>
+  Origin: Phil Stracchino
   Status: Done. This has been implemented by Eric Bollengier
 
   What:   Some time ago, there was a discussion of RunAfterJob and
@@ -298,45 +298,63 @@ Item  9:  Implement new {Client}Run{Before|After}Job feature.
           ClientRunAfterFailedJob directive), but to my knowledge these
           were never implemented.
 
+          The current implementation doesn't permit to add new feature easily.
+
           An alternate way of approaching the problem has just occurred to
           me.  Suppose the RunBeforeJob and RunAfterJob directives were
-          expanded in a manner something like this example:
+          expanded in a manner like this example:
 
-          RunBeforeJob {
+          RunScript {
               Command = "/opt/bacula/etc/checkhost %c"
-              RunsOnClient = No
-              RunsAtJobLevels = All       # All, Full, Diff, Inc
-              AbortJobOnError = Yes
+              RunsOnClient = No          # default
+              AbortJobOnError = Yes      # default
+              RunsWhen = Before
           }
-          RunBeforeJob {
+          RunScript {
               Command = c:/bacula/systemstate.bat
               RunsOnClient = yes
-              RunsAtJobLevels = All       # All, Full, Diff, Inc
               AbortJobOnError = No
+              RunsWhen = After
+              RunsOnFailure = yes
           }
 
-          RunAfterJob {
+          RunScript {
               Command = c:/bacula/deletestatefile.bat
-              RunsOnClient = Yes
-              RunsAtJobLevels = All       # All, Full, Diff, Inc
-              RunsOnSuccess = Yes
-              RunsOnFailure = Yes
-          }
-          RunAfterJob {
-              Command = c:/bacula/somethingelse.bat
-              RunsOnClient = Yes
-              RunsAtJobLevels = All
-              RunsOnSuccess = No
-              RunsOnFailure = Yes
-          }
-          RunAfterJob {
-              Command = "/opt/bacula/etc/checkhost -v %c"
-              RunsOnClient = No
-              RunsAtJobLevels = All
-              RunsOnSuccess = No
-              RunsOnFailure = Yes
+              Target = rico-fd
+              RunsWhen = Always
           }
 
+          It's now possible to specify more than 1 command per Job.
+          (you can stop your database and your webserver without a script)
+
+          ex :
+          Job {
+              Name = "Client1"
+              JobDefs = "DefaultJob"
+              Write Bootstrap = "/tmp/bacula/var/bacula/working/Client1.bsr"
+              FileSet = "Minimal"
+
+              RunBeforeJob = "echo test before ; echo test before2"       
+              RunBeforeJob = "echo test before (2nd time)"
+              RunBeforeJob = "echo test before (3rd time)"
+              RunAfterJob = "echo test after"
+              ClientRunAfterJob = "echo test after client"
+
+              RunScript {
+                Command = "echo test RunScript in error"
+                Runsonclient = yes
+                RunsOnSuccess = no
+                RunsOnFailure = yes
+                RunsWhen = After            # never by default
+              }
+              RunScript {
+                Command = "echo test RunScript on success"
+                Runsonclient = yes
+                RunsOnSuccess = yes # default
+                RunsOnFailure = no  # default
+                RunsWhen = After
+              }
+          }
 
   Why:    It would be a significant change to the structure of the
           directives, but allows for a lot more flexibility, including
@@ -344,19 +362,19 @@ Item  9:  Implement new {Client}Run{Before|After}Job feature.
           succeeds, or RunBefore tasks that still allow the job to run even
           if that specific RunBefore fails.
 
-  Notes:  By Kern: I would prefer to have a single new Resource called
-          RunScript. More notes from Phil:
+  Notes:  (More notes from Phil, Kern, David and Eric)
+          I would prefer to have a single new Resource called
+          RunScript.
 
-            RunBeforeJob = yes|no
-            RunAfterJob = yes|no
-            RunsAtJobLevels = All|Full|Diff|Inc
+            RunsWhen = After|Before|Always
+            RunsAtJobLevels = All|Full|Diff|Inc # not yet implemented
 
           The AbortJobOnError, RunsOnSuccess and RunsOnFailure directives
-          could be optional, and possibly RunsWhen as well.
+          could be optional, and possibly RunWhen as well.
 
           AbortJobOnError would be ignored unless RunsWhen was set to Before
-          (or RunsBefore Job set to Yes), and would default to Yes if
-          omitted.  If AbortJobOnError was set to No, failure of the script
+          and would default to Yes if omitted.
+          If AbortJobOnError was set to No, failure of the script
           would still generate a warning.
 
           RunsOnSuccess would be ignored unless RunsWhen was set to After
@@ -367,7 +385,6 @@ Item  9:  Implement new {Client}Run{Before|After}Job feature.
 
           Allow having the before/after status on the script command
           line so that the same script can be used both before/after.
-          David Boyes.
 
 Item 10:  Merge multiple backups (Synthetic Backup or Consolidation).
   Origin: Marc Cousin and Eric Bollengier 
