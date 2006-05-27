@@ -2,6 +2,9 @@
                         Kern Sibbald
 
 General:
+27May06
+- Add Eric Bollengier patch for new RunScript directive. It breaks
+  compatibility between dird and fd.
 26May06
 - Prevent DVD code from rewriting label if the device cannot be
   opened read/write.
