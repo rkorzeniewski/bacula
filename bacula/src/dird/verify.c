@@ -262,7 +262,7 @@ bool do_verify(JCR *jcr)
       return false;
    }
 
-   if (!send_run_before_and_after_commands(jcr)) {
+   if (!send_runscripts_commands(jcr)) {
       return false;
    }
 

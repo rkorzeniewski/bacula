@@ -36,16 +36,15 @@ static char filesetcmd[]  = "fileset%s\n"; /* set full fileset */
 static char jobcmd[]      = "JobId=%s Job=%s SDid=%u SDtime=%u Authorization=%s\n";
 /* Note, mtime_only is not used here -- implemented as file option */
 static char levelcmd[]    = "level = %s%s mtime_only=%d\n";
-static char runbefore[]   = "RunBeforeJob %s\n";
-static char runafter[]    = "RunAfterJob %s\n";
-
+static char runscript[]   = "Run OnSuccess=%u OnFailure=%u AbortOnError=%u When=%u Command=%s\n";
+static char runbeforenow[]= "RunBeforeNow\n";
 
 /* Responses received from File daemon */
-static char OKinc[]       = "2000 OK include\n";
-static char OKjob[]       = "2000 OK Job";
-static char OKlevel[]     = "2000 OK level\n";
-static char OKRunBefore[] = "2000 OK RunBefore\n";
-static char OKRunAfter[]  = "2000 OK RunAfter\n";
+static char OKinc[]          = "2000 OK include\n";
+static char OKjob[]          = "2000 OK Job";
+static char OKlevel[]        = "2000 OK level\n";
+static char OKRunScript[]    = "2000 OK RunScript\n";
+static char OKRunBeforeNow[] = "2000 OK RunBeforeNow\n";
 
 /* Forward referenced functions */
 
@@ -458,33 +457,64 @@ bool send_bootstrap_file(JCR *jcr, BSOCK *sock)
 }
 
 /*
- * Send ClientRunBeforeJob and ClientRunAfterJob to File daemon
+ * Send RunScripts to File daemon
  */
-int send_run_before_and_after_commands(JCR *jcr)
+int send_runscripts_commands(JCR *jcr)
 {
    POOLMEM *msg = get_pool_memory(PM_FNAME);
    BSOCK *fd = jcr->file_bsock;
-   if (jcr->job->ClientRunBeforeJob) {
-      pm_strcpy(msg, jcr->job->ClientRunBeforeJob);
-      bash_spaces(msg);
-      bnet_fsend(fd, runbefore, msg);
-      if (!response(jcr, fd, OKRunBefore, "ClientRunBeforeJob", DISPLAY_ERROR)) {
-         set_jcr_job_status(jcr, JS_ErrorTerminated);
-         free_pool_memory(msg);
-         return 0;
-      }
+   RUNSCRIPT *cmd;
+   bool launch_before_cmd = false;
+   POOLMEM *ehost = get_pool_memory(PM_FNAME);
+
+   Dmsg0(120, "bdird: sending runscripts to fd\n");
+   
+   foreach_alist(cmd, jcr->job->RunScripts) {
+      
+      if (cmd->can_run_at_level(jcr->JobLevel) && cmd->target) {
+
+         ehost = edit_job_codes(jcr, ehost, cmd->target, "");
+         Dmsg2(200, "bdird: runscript %s -> %s\n", cmd->target, ehost);
+
+         if (strcmp(ehost, jcr->client->hdr.name) == 0) {
+            pm_strcpy(msg, cmd->command);
+            bash_spaces(msg);
+            bnet_fsend(fd, runscript, cmd->on_success, 
+                                      cmd->on_failure,
+                                      cmd->abort_on_error,
+                                      cmd->when,
+                                      msg);
+
+            Dmsg1(120, "bdird: sending runscripts to fd '%s'\n", cmd->command);
+
+            if (!response(jcr, fd, OKRunScript, "RunScript", DISPLAY_ERROR)) {
+               set_jcr_job_status(jcr, JS_ErrorTerminated);
+               free_pool_memory(msg);
+               free_pool_memory(ehost);
+               return 0;
+            }
+            launch_before_cmd=true;
+         }
+         /*
+           else {
+           send command to an other client
+           }
+         */
+      }        
    }
-   if (jcr->job->ClientRunAfterJob) {
-      fd->msglen = pm_strcpy(msg, jcr->job->ClientRunAfterJob);
-      bash_spaces(msg);
-      bnet_fsend(fd, runafter, msg);
-      if (!response(jcr, fd, OKRunAfter, "ClientRunAfterJob", DISPLAY_ERROR)) {
-         set_jcr_job_status(jcr, JS_ErrorTerminated);
-         free_pool_memory(msg);
-         return 0;
+   
+   /* TODO : we have to play with other client */
+   if (launch_before_cmd) {
+      bnet_fsend(fd, runbeforenow);
+      if (!response(jcr, fd, OKRunBeforeNow, "RunBeforeNow", DISPLAY_ERROR)) {
+        set_jcr_job_status(jcr, JS_ErrorTerminated);
+        free_pool_memory(msg);
+        free_pool_memory(ehost);
+        return 0;
       }
    }
    free_pool_memory(msg);
+   free_pool_memory(ehost);
    return 1;
 }
 

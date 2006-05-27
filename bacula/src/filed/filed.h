@@ -26,6 +26,7 @@
 #include "jcr.h"
 #include "acl.h"
 #include "protos.h"                   /* file daemon prototypes */
+#include "lib/runscript.h"
 #ifdef HAVE_LIBZ
 #include <zlib.h>                     /* compression headers */
 #else

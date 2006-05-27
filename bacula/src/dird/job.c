@@ -184,6 +184,13 @@ static void *job_thread(void *arg)
       set_jcr_job_status(jcr, JS_Canceled);
    }
 
+   /* TODO : check if it is used somewhere */
+   if (jcr->job->RunScripts == NULL)
+   {
+      Dmsg0(200, "Warning, job->RunScripts is empty\n");
+      jcr->job->RunScripts = New(alist(10, not_owned_by_alist));
+   }
+
    /*                                
     * Note, we continue, even if the job is canceled above. This
     *  will permit proper setting of the job start record and
@@ -243,28 +250,9 @@ static void *job_thread(void *arg)
 
    } else {
 
-      /* Run Job */
-      if (jcr->job->RunBeforeJob) {
-         POOLMEM *before = get_pool_memory(PM_FNAME);
-         int status;
-         BPIPE *bpipe;
-         char line[MAXSTRING];
+      /* Run any script BeforeJob on dird */
+      run_scripts(jcr, jcr->job->RunScripts, "BeforeJob");
 
-         before = edit_job_codes(jcr, before, jcr->job->RunBeforeJob, "");
-         bpipe = open_bpipe(before, 0, "r");
-         free_pool_memory(before);
-         while (fgets(line, sizeof(line), bpipe->rfd)) {
-            Jmsg(jcr, M_INFO, 0, _("RunBefore: %s"), line);
-         }
-         status = close_bpipe(bpipe);
-         if (status != 0) {
-            berrno be;
-            Jmsg(jcr, M_FATAL, 0, _("RunBeforeJob error: ERR=%s\n"), be.strerror(status));
-            set_jcr_job_status(jcr, JS_FatalError);
-            update_job_end_record(jcr);
-            goto bail_out;
-         }
-      }
       /*
        * We re-update the job start record so that the start
        *  time is set after the run before job.  This avoids
@@ -324,37 +312,9 @@ static void *job_thread(void *arg)
          Pmsg1(0, _("Unimplemented job type: %d\n"), jcr->JobType);
          break;
       }
-      if ((jcr->job->RunAfterJob && jcr->JobStatus == JS_Terminated) ||
-          (jcr->job->RunAfterFailedJob && jcr->JobStatus != JS_Terminated)) {
-         POOLMEM *after = get_pool_memory(PM_FNAME);
-         int status;
-         BPIPE *bpipe;
-         char line[MAXSTRING];
 
-         if (jcr->JobStatus == JS_Terminated) {
-            after = edit_job_codes(jcr, after, jcr->job->RunAfterJob, "");
-         } else {
-            after = edit_job_codes(jcr, after, jcr->job->RunAfterFailedJob, "");
-         }
-         bpipe = open_bpipe(after, 0, "r");
-         free_pool_memory(after);
-         while (fgets(line, sizeof(line), bpipe->rfd)) {
-            Jmsg(jcr, M_INFO, 0, _("RunAfter: %s"), line);
-         }
-         status = close_bpipe(bpipe);
-         /*
-          * Note, if we get an error here, do not mark the
-          *  job in error, simply report the error condition.
-          */
-         if (status != 0) {
-            berrno be;
-            if (jcr->JobStatus == JS_Terminated) {
-               Jmsg(jcr, M_WARNING, 0, _("RunAfterJob error: ERR=%s\n"), be.strerror(status));
-            } else {
-               Jmsg(jcr, M_FATAL, 0, _("RunAfterFailedJob error: ERR=%s\n"), be.strerror(status));
-            }
-         }
-      }
+      run_scripts(jcr, jcr->job->RunScripts, "AfterJob");
+
       /* Send off any queued messages */
       if (jcr->msg_queue->size() > 0) {
          dequeue_messages(jcr);

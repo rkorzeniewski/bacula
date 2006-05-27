@@ -79,7 +79,7 @@ extern int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId);
 extern int put_file_into_catalog(JCR *jcr, long file_index, char *fname,
                           char *link, char *attr, int stream);
 extern void get_level_since_time(JCR *jcr, char *since, int since_len);
-extern int send_run_before_and_after_commands(JCR *jcr);
+extern int send_runscripts_commands(JCR *jcr);
 
 /* getmsg.c */
 enum e_prtmsg {

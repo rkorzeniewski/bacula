@@ -55,9 +55,10 @@ static int response(JCR *jcr, BSOCK *sd, char *resp, const char *cmd);
 static void filed_free_jcr(JCR *jcr);
 static int open_sd_read_session(JCR *jcr);
 static int send_bootstrap_file(JCR *jcr);
+static int runscript_cmd(JCR *jcr);
 static int runbefore_cmd(JCR *jcr);
 static int runafter_cmd(JCR *jcr);
-static bool run_cmd(JCR *jcr, char *cmd, const char *name);
+static int runbeforenow_cmd(JCR *jcr);
 static void set_options(findFOPTS *fo, const char *opts);
 
 
@@ -88,8 +89,10 @@ static struct s_cmds cmds[] = {
    {"storage ",     storage_cmd,   0},
    {"verify",       verify_cmd,    0},
    {"bootstrap",    bootstrap_cmd, 0},
+   {"RunBeforeNow", runbeforenow_cmd, 0},
    {"RunBeforeJob", runbefore_cmd, 0},
    {"RunAfterJob",  runafter_cmd,  0},
+   {"Run",          runscript_cmd, 0},
    {NULL,       NULL}                  /* list terminator */
 };
 
@@ -103,7 +106,7 @@ static char verifycmd[]   = "verify level=%30s\n";
 static char estimatecmd[] = "estimate listing=%d\n";
 static char runbefore[]   = "RunBeforeJob %s\n";
 static char runafter[]    = "RunAfterJob %s\n";
-
+static char runscript[]   = "Run OnSuccess=%u OnFailure=%u AbortOnError=%u When=%u Command=%s\n";
 /* Responses sent to Director */
 static char errmsg[]      = "2999 Invalid command\n";
 static char no_auth[]     = "2998 No Authorization\n";
@@ -122,7 +125,10 @@ static char OKsetdebug[]  = "2000 OK setdebug=%d\n";
 static char BADjob[]      = "2901 Bad Job\n";
 static char EndJob[]      = "2800 End Job TermCode=%d JobFiles=%u ReadBytes=%s JobBytes=%s Errors=%u\n";
 static char OKRunBefore[] = "2000 OK RunBefore\n";
+static char OKRunBeforeNow[] = "2000 OK RunBeforeNow\n";
 static char OKRunAfter[]  = "2000 OK RunAfter\n";
+static char OKRunScript[] = "2000 OK RunScript\n";
+
 
 /* Responses received from Storage Daemon */
 static char OK_end[]       = "3000 OK end\n";
@@ -130,7 +136,7 @@ static char OK_close[]     = "3000 OK close Status = %d\n";
 static char OK_open[]      = "3000 OK open ticket = %d\n";
 static char OK_data[]      = "3000 OK data\n";
 static char OK_append[]    = "3000 OK append data\n";
-static char OKSDbootstrap[] = "3000 OK bootstrap\n";
+static char OKSDbootstrap[]= "3000 OK bootstrap\n";
 
 
 /* Commands sent to Storage Daemon */
@@ -170,6 +176,7 @@ void *handle_client_request(void *dirp)
    jcr->dir_bsock = dir;
    jcr->ff = init_find_files();
    jcr->start_time = time(NULL);
+   jcr->RunScripts = New(alist(10, not_owned_by_alist));
    jcr->last_fname = get_pool_memory(PM_FNAME);
    jcr->last_fname[0] = 0;
    jcr->client_name = get_memory(strlen(my_name) + 1);
@@ -227,9 +234,9 @@ void *handle_client_request(void *dirp)
       bnet_sig(jcr->store_bsock, BNET_TERMINATE);
    }
 
-   if (jcr->RunAfterJob && !job_canceled(jcr)) {
-      run_cmd(jcr, jcr->RunAfterJob, "ClientRunAfterJob");
-   }
+   /* run after job */
+   run_scripts(jcr, jcr->RunScripts, "ClientAfterJob");
+
    generate_daemon_event(jcr, "JobEnd");
 
    dequeue_messages(jcr);             /* send any queued messages */
@@ -415,6 +422,7 @@ static int runbefore_cmd(JCR *jcr)
    bool ok;
    BSOCK *dir = jcr->dir_bsock;
    POOLMEM *cmd = get_memory(dir->msglen+1);
+   RUNSCRIPT *script;
 
    Dmsg1(100, "runbefore_cmd: %s", dir->msg);
    if (sscanf(dir->msg, runbefore, cmd) != 1) {
@@ -427,7 +435,12 @@ static int runbefore_cmd(JCR *jcr)
    unbash_spaces(cmd);
 
    /* Run the command now */
-   ok = run_cmd(jcr, cmd, "ClientRunBeforeJob");
+   script = new_runscript();
+   script->set_command(cmd);
+   script->when = SCRIPT_Before;
+   ok = script->run(jcr, "ClientRunBeforeJob");
+   free_runscript(script);
+
    free_memory(cmd);
    if (ok) {
       bnet_fsend(dir, OKRunBefore);
@@ -438,10 +451,19 @@ static int runbefore_cmd(JCR *jcr)
    }
 }
 
+static int runbeforenow_cmd(JCR *jcr)
+{
+   BSOCK *dir = jcr->dir_bsock;
+
+   run_scripts(jcr, jcr->RunScripts, "ClientBeforeJob");
+   return  bnet_fsend(dir, OKRunBeforeNow);
+}
+
 static int runafter_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
    POOLMEM *msg = get_memory(dir->msglen+1);
+   RUNSCRIPT *cmd;
 
    Dmsg1(100, "runafter_cmd: %s", dir->msg);
    if (sscanf(dir->msg, runafter, msg) != 1) {
@@ -452,47 +474,49 @@ static int runafter_cmd(JCR *jcr)
       return 0;
    }
    unbash_spaces(msg);
-   if (jcr->RunAfterJob) {
-      free_pool_memory(jcr->RunAfterJob);
-   }
-   jcr->RunAfterJob = get_pool_memory(PM_FNAME);
-   pm_strcpy(jcr->RunAfterJob, msg);
+
+   cmd = new_runscript();
+   cmd->set_command(msg);
+   cmd->on_success = true;
+   cmd->on_failure = false;
+   cmd->when = SCRIPT_After;
+
+   jcr->RunScripts->append(cmd);
+
    free_pool_memory(msg);
    return bnet_fsend(dir, OKRunAfter);
 }
 
-static bool run_cmd(JCR *jcr, char *cmd, const char *name)
+static int runscript_cmd(JCR *jcr)
 {
-   POOLMEM *ecmd = get_pool_memory(PM_FNAME);
-   int status;
-   BPIPE *bpipe;
-   char line[MAXSTRING];
+   BSOCK *dir = jcr->dir_bsock;
+   POOLMEM *msg = get_memory(dir->msglen+1);
 
-   ecmd = edit_job_codes(jcr, ecmd, cmd, "");
-   bpipe = open_bpipe(ecmd, 0, "r");
-   free_pool_memory(ecmd);
-   if (bpipe == NULL) {
-      berrno be;
-      Jmsg(jcr, M_FATAL, 0, _("%s could not execute. ERR=%s\n"), name,
-         be.strerror());
-      return false;
+   RUNSCRIPT *cmd = new_runscript() ;
+
+   Dmsg1(100, "runscript_cmd: '%s'\n", dir->msg);
+   if (sscanf(dir->msg, runscript, &cmd->on_success, 
+                                  &cmd->on_failure,
+                                  &cmd->abort_on_error,
+                                  &cmd->when,
+                                  msg) != 5) {
+      pm_strcpy(jcr->errmsg, dir->msg);
+      Jmsg1(jcr, M_FATAL, 0, _("Bad RunScript command: %s\n"), jcr->errmsg);
+      bnet_fsend(dir, _("2905 Bad RunScript command.\n"));
+      free_runscript(cmd);
+      free_memory(msg);
+      return 0;
    }
-   while (fgets(line, sizeof(line), bpipe->rfd)) {
-      int len = strlen(line);
-      if (len > 0 && line[len-1] == '\n') {
-         line[len-1] = 0;
-      }
-      Jmsg(jcr, M_INFO, 0, _("%s: %s\n"), name, line);
-   }
-   status = close_bpipe(bpipe);
-   if (status != 0) {
-      berrno be;
-      Jmsg(jcr, M_FATAL, 0, _("%s returned non-zero status=%d. ERR=%s\n"), name,
-         status, be.strerror(status));
-      return false;
-   }
-   return true;
+   unbash_spaces(msg);
+
+   cmd->set_command(msg);
+   cmd->debug();
+   jcr->RunScripts->append(cmd);
+
+   free_pool_memory(msg);
+   return bnet_fsend(dir, OKRunScript);
 }
+
 
 static bool init_fileset(JCR *jcr)
 {
@@ -1304,6 +1328,10 @@ static int backup_cmd(JCR *jcr)
       Dmsg0(110, "Error in blast_data.\n");
    } else {
       set_jcr_job_status(jcr, JS_Terminated);
+
+      /* run shortly after end of data transmission */ 
+      run_scripts(jcr, jcr->RunScripts, "ClientAfterJobShort");
+
       if (jcr->JobStatus != JS_Terminated) {
          bnet_suppress_error_messages(sd, 1);
          goto cleanup;                /* bail out now */
@@ -1618,10 +1646,8 @@ static void filed_free_jcr(JCR *jcr)
    if (jcr->last_fname) {
       free_pool_memory(jcr->last_fname);
    }
-   if (jcr->RunAfterJob) {
-      free_pool_memory(jcr->RunAfterJob);
-   }
-
+   free_runscripts(jcr->RunScripts);
+   delete jcr->RunScripts;
 
    return;
 }

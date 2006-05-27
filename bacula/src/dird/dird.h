@@ -37,6 +37,7 @@
 #include "protos.h"
 
 #include "jobq.h"
+#include "lib/runscript.h"
 
 /* Globals that dird.c exports */
 extern DIRRES *director;                     /* Director resource */
