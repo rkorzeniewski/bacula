@@ -953,8 +953,9 @@ static bool is_cleaning_tape(UAContext *ua, MEDIA_DBR *mr, POOL_DBR *pr)
    /* Find Pool resource */
    ua->jcr->pool = (POOL *)GetResWithName(R_POOL, pr->Name);
    if (!ua->jcr->pool) {
-      bsendmsg(ua, _("Pool \"%s\" resource not found!\n"), pr->Name);
-      return true;
+      bsendmsg(ua, _("Pool \"%s\" resource not found for volume \"%s\"!\n"),
+         pr->Name, mr->VolumeName);
+      return false;
    }
    if (ua->jcr->pool->cleaning_prefix == NULL) {
       return false;

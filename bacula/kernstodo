@@ -1544,3 +1544,5 @@ Block Position: 0
   accept time qualifiers.
 - Does ClientRunAfterJob fail the job on a bad return code?
 - Make hardlink code at line 240 of find_one.c use binary search.
+- Add ACL error messages in src/filed/acl.c.
+

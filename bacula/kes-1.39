@@ -2,6 +2,12 @@
                         Kern Sibbald
 
 General:
+01Jun06
+- Implement partial error messages for src/filed/acl.c
+- Fix return code to fail when doing update barcodes and
+  Pool resource is not found. This previously caused Volumes
+  to be labeled as cleaning tapes.
+- Small updates to projects.
 27May06
 - Add Eric Bollengier patch for new RunScript directive. It breaks
   compatibility between dird and fd.
