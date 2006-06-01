@@ -487,7 +487,8 @@ Item 13:  Multiple threads in file daemon for the same job
 Item 14:  Implement red/black binary tree routines.
   Date:   28 October 2005
   Origin: Kern
-  Status: 
+  Status: Class code is complete. Code needs to be integrated into
+          restore tree code.
 
   What:   Implement a red/black binary tree class. This could 
           then replace the current binary insert/search routines
@@ -499,7 +500,8 @@ Item 14:  Implement red/black binary tree routines.
 Item 15:  Add support for FileSets in user directories  CACHEDIR.TAG
   Origin: Norbert Kiesel <nkiesel at tbdnetworks dot com>
   Date:   21 November 2005
-  Status:
+  Status: (I think this is better done using a Python event that I
+           will implement in version 1.39.x).
 
   What:   CACHDIR.TAG is a proposal for identifying directories which
           should be ignored for archiving/backup.  It works by ignoring
@@ -530,7 +532,7 @@ Item 15:  Add support for FileSets in user directories  CACHEDIR.TAG
 Item 16:  Implement extraction of Win32 BackupWrite data.
   Origin: Thorsten Engel <thorsten.engel at matrix-computer dot com>
   Date:   28 October 2005
-  Status: Assigned to Thorsten. Implemented in current CVS
+  Status: Done. Assigned to Thorsten. Implemented in current CVS
 
   What:   This provides the Bacula File daemon with code that
           can pick apart the stream output that Microsoft writes
@@ -660,7 +662,7 @@ Item 21:  Quick release of FD-SD connection after backup.
 
 Item 22:  Permit multiple Media Types in an Autochanger
   Origin: Kern
-  Status: Now implemented
+  Status: Done. Implemented in 1.38.9 (I think).  
 
   What:   Modify the Storage daemon so that multiple Media Types
           can be specified in an autochanger. This would be somewhat
@@ -769,7 +771,7 @@ Item n:   Allow skipping execution of Jobs
 
 Item n: archive data
 
-  Origin: calvin streeting calvin@absentdream.com
+  Origin: calvin streeting calvin at absentdream dot com
   Date:   15/5/2006
 
   What:   The abilty to archive to media (dvd/cd) in a uncompressd format
