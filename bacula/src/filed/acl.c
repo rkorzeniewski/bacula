@@ -202,7 +202,7 @@ int bacl_set(JCR *jcr, int acltype)
       berrno be;
       Jmsg2(jcr, M_ERROR, 0, _("acl_from_text error on file \"%s\": ERR=%s\n"),
          jcr->last_fname, be.strerror());
-      Dmsg3(100, "acl_from_text error acl=%s file=%s ERR=%s\n"), 
+      Dmsg3(100, "acl_from_text error acl=%s file=%s ERR=%s\n",  
          jcr->acl_text, jcr->last_fname, be.strerror());
       return -1;
    }
@@ -219,9 +219,10 @@ int bacl_set(JCR *jcr, int acltype)
 #endif
 
    if (acl_set_file(jcr->last_fname, ostype, acl) != 0) {
+      berrno be;
       Jmsg2(jcr, M_ERROR, 0, _("acl_set_file error on file \"%s\": ERR=%s\n"),
          jcr->last_fname, be.strerror());
-      Dmsg3(100, "acl_set_file error acl=%s file=%s ERR=%s\n"), 
+      Dmsg3(100, "acl_set_file error acl=%s file=%s ERR=%s\n",  
          jcr->acl_text, jcr->last_fname, be.strerror());
       acl_free(acl);
       return -1;
