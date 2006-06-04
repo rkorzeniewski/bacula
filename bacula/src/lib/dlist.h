@@ -36,7 +36,7 @@
  *
  * Loop var through each member of list
  */
-#if defined(__GNUC__)
+#ifdef HAVE_TYPEOF
 #define foreach_dlist(var, list) \
         for((var)=NULL; ((var)=(typeof(var))(list)->next(var)); )
 #else

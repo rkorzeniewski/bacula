@@ -206,13 +206,18 @@ void encode_stat(char *buf, FF_PKT *ff_pkt, int data_stream)
 
 
 /* Do casting according to unknown type to keep compiler happy */
-#if !HAVE_GCC & HAVE_SUN_OS
-#define plug(st, val) st = val        /* brain damaged compiler */
+#ifdef HAVE_TYPEOF
+  #define plug(st, val) st = (typeof st)val
 #else
-template <class T> void plug(T &st, uint64_t val)
-    { st = static_cast<T>(val); }
+  #if !HAVE_GCC & HAVE_SUN_OS
+    /* Sun compiler does not handle templates correctly */
+    #define plug(st, val) st = val
+  #else
+    /* Use templates to do the casting */
+    template <class T> void plug(T &st, uint64_t val)
+      { st = static_cast<T>(val); }
+  #endif
 #endif
-
 
 /* Decode a stat packet from base64 characters */
 int decode_stat(char *buf, struct stat *statp, int32_t *LinkFI)
