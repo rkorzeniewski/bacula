@@ -26,7 +26,7 @@
  *
  * Loop var through each member of list
  */
-#if defined(__GNUC__)
+#ifdef HAVE_TYPEOF
 #define foreach_alist(var, list) \
         for((var)=(typeof(var))(list)->first(); (var); (var)=(typeof(var))(list)->next() )
 #else
