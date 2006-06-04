@@ -40,6 +40,8 @@
 %{?build_fc3:%define fc3 1}
 %define fc4 0
 %{?build_fc4:%define fc4 1}
+%define fc5 0
+%{?build_fc5:%define fc5 1}
 # Whitebox Enterprise build
 %define wb3 0
 %{?build_wb3:%define wb3 1}
@@ -70,7 +72,7 @@
 %{?build_mdv:%define mdk 1}
 
 # test for a platform definition
-%if ! %{rh7} && ! %{rh8} && ! %{rh9} && ! %{fc1} && ! %{fc3} && ! %{fc4} && ! %{wb3} && ! %{su9} && ! %{su10} && ! %{mdk}
+%if ! %{rh7} && ! %{rh8} && ! %{rh9} && ! %{fc1} && ! %{fc3} && ! %{fc4} && ! %{fc5} && ! %{wb3} && ! %{su9} && ! %{su10} && ! %{mdk}
 %{error: You must specify a platform. Please examine the spec file.}
 exit 1
 %endif
@@ -80,7 +82,7 @@ exit 1
 %define mysql 0
 %{?build_mysql:%define mysql 1}
 # if using mysql 4.x define this and mysql above
-# currently: Mandrake 10.1, SuSE 9.2, RHEL4 and Fedora Core 4
+# currently: Mandrake 10.1, SuSE 9.x & 10.x, RHEL4 and Fedora Core 4 & 5
 %define mysql4 0
 %{?build_mysql4:%define mysql4 1}
 %{?build_mysql4:%define mysql 1}
@@ -113,7 +115,7 @@ exit 1
 %if %{rh7} || %{rh8} || %{rh9} || %{rhel3} || %{rhel4}
 %define _dist %(grep Red /etc/redhat-release)
 %endif
-%if %{fc1} || %{fc4}
+%if %{fc1} || %{fc4} || %{fc5}
 %define _dist %(grep Fedora /etc/redhat-release)
 %endif
 %if %{centos4} || %{centos3}
@@ -281,11 +283,25 @@ BuildRequires: bonobo-activation-devel
 BuildRequires: GConf2-devel
 BuildRequires: freetype-devel
 %endif
-%if ! %{rh7} && ! %{su9} && ! %{su10} && ! %{mdk} && ! %{fc3} && ! %{fc4}
+%if %{fc5}
+BuildRequires: libtermcap-devel
+BuildRequires: glibc-devel >= 2.4
+%endif
+%if %{fc5} && %{gconsole}
+BuildRequires: gtk2-devel >= 2.8
+BuildRequires: libgnomeui-devel >= 2.14
+BuildRequires: ORBit2-devel
+BuildRequires: libart_lgpl-devel >= 2.3
+BuildRequires: libbonobo-devel >= 2.14
+BuildRequires: libbonoboui-devel >= 2.14
+BuildRequires: GConf2-devel
+BuildRequires: freetype-devel
+%endif
+%if ! %{rh7} && ! %{su9} && ! %{su10} && ! %{mdk} && ! %{fc3} && ! %{fc4} && ! %{fc5}
 BuildRequires: libtermcap-devel
 BuildRequires: glibc-devel >= 2.3
 %endif
-%if ! %{rh7} && ! %{su9} && ! %{su10} && ! %{mdk} && ! %{fc3} && ! %{fc4} && %{gconsole}
+%if ! %{rh7} && ! %{su9} && ! %{su10} && ! %{mdk} && ! %{fc3} && ! %{fc4} && ! %{fc5} && %{gconsole}
 BuildRequires: gtk2-devel >= 2.0
 BuildRequires: libgnomeui-devel >= 2.0
 BuildRequires: ORBit2-devel
@@ -354,8 +370,12 @@ Requires: libtermcap
 Requires: glibc >= 2.3
 Requires: termcap
 %endif
-%if ! %{rh7} && ! %{su9} && ! %{su10}
+%if ! %{rh7} && ! %{su9} && ! %{su10} && ! %{fc5}
 Requires: glibc >= 2.3
+Requires: libtermcap
+%endif
+%if %{fc5}
+Requires: glibc >= 2.4
 Requires: libtermcap
 %endif
 
@@ -456,8 +476,12 @@ Requires: libtermcap
 Requires: glibc >= 2.3
 Requires: termcap
 %endif
-%if ! %{rh7} && ! %{su9} && ! %{su10}
+%if ! %{rh7} && ! %{su9} && ! %{su10} && ! %{fc5}
 Requires: glibc >= 2.3
+Requires: libtermcap
+%endif
+%if %{fc5}
+Requires: glibc >= 2.4
 Requires: libtermcap
 %endif
 
@@ -578,7 +602,18 @@ Requires: bonobo-activation
 Requires: GConf2
 Requires: freetype
 %endif
-%if %{gconsole} && ! %{su9} && ! %{su10} && ! %{mdk} && ! %{fc3} && ! %{fc4}
+%if %{gconsole} && %{fc5}  
+Requires: gtk2 >= 2.8
+Requires: libgnomeui >= 2.14
+Requires: glibc >= 2.4
+Requires: ORBit2
+Requires: libart_lgpl >= 2.3
+Requires: libbonobo >= 2.14
+Requires: libbonoboui >= 2.14
+Requires: GConf2
+Requires: freetype
+%endif
+%if %{gconsole} && ! %{su9} && ! %{su10} && ! %{mdk} && ! %{fc3} && ! %{fc4} && ! %{fc5}
 Requires: gtk2 >= 2.0
 Requires: libgnomeui >= 2.0
 Requires: glibc >= 2.3
@@ -634,6 +669,10 @@ Requires: gtk2 >= 2.4
 
 %if %{wxconsole} && %{fc4}  
 Requires: gtk2 >= 2.6
+%endif
+
+%if %{wxconsole} && %{fc5}  
+Requires: gtk2 >= 2.8
 %endif
 
 %if %{wxconsole}
@@ -859,7 +898,7 @@ cp -p scripts/bacula-tray-monitor.desktop $RPM_BUILD_ROOT/usr/share/applications
 cp -p src/wx-console/wxwin16x16.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/wxwin16x16.xpm
 cp -p scripts/wxconsole.desktop.xsu $RPM_BUILD_ROOT/usr/share/applications/wxconsole.desktop
 %endif
-%if %{rh8} || %{rh9} || %{wb3} || %{fc1} || %{fc3} || %{fc4} || %{mdk}
+%if %{rh8} || %{rh9} || %{wb3} || %{fc1} || %{fc3} || %{fc4} || %{fc5} || %{mdk}
 %define iftrick 1
 %else
 %define iftrick 0
@@ -1102,15 +1141,15 @@ fi
 # we only do this if the user is NOT root
 IS_ROOT=%{director_daemon_user}
 if [ "$IS_ROOT" != "root" ]; then
-%{usermod} %{director_daemon_user} -G %{daemon_group}
+%{usermod} -G %{daemon_group} %{director_daemon_user}
 fi
 IS_ROOT=%{storage_daemon_user}
 if [ "$IS_ROOT" != "root" ]; then
-%{usermod} %{storage_daemon_user} -G %{daemon_group},%{storage_daemon_group}
+%{usermod} -G %{daemon_group},%{storage_daemon_group} %{storage_daemon_user}
 fi
 IS_ROOT=%{file_daemon_user}
 if [ "$IS_ROOT" != "root" ]; then
-%{usermod} %{file_daemon_user} -G %{daemon_group}
+%{usermod} -G %{daemon_group} %{file_daemon_user}
 fi
 
 %if %{mysql}
@@ -1292,7 +1331,7 @@ fi
 # we only do this if the user is NOT root
 IS_ROOT=%{file_daemon_user}
 if [ "$IS_ROOT" != "root" ]; then
-%{usermod} %{file_daemon_user} -G %{daemon_group}
+%{usermod} -G %{daemon_group} %{file_daemon_user}
 fi
 
 %post client
@@ -1435,6 +1474,9 @@ fi
 %endif
 
 %changelog
+* Sun Jun 03 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- fix usermod statements
+- add fc5 target
 * Thu Apr 27 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - add -g param back to useradd statements Bug 605
 * Mon Apr 17 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
