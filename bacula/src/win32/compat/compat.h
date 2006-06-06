@@ -342,14 +342,14 @@ struct sigaction {
 #define unlink win32_unlink
 #define chdir win32_chdir
 extern "C" void syslog(int type, const char *fmt, ...);
+
+#ifndef HAVE_MINGW
 #ifndef LOG_DAEMON
 #define LOG_DAEMON 0
 #endif
 #ifndef LOG_ERR
 #define LOG_ERR 0
 #endif
-
-#ifndef HAVE_MINGW
 #define R_OK 04
 #define W_OK 02
 int stat(const char *, struct stat *);

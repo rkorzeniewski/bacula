@@ -281,6 +281,7 @@ LIB_OBJS = \
 	$(LIBDIR)/pythonlib.o \
 	$(LIBDIR)/queue.o \
 	$(LIBDIR)/res.o \
+	$(LIBDIR)/runscript.o \
 	$(LIBDIR)/rwlock.o \
 	$(LIBDIR)/semlock.o \
 	$(LIBDIR)/serial.o \
@@ -398,6 +399,10 @@ $(LIBDIR)/queue.o:	  ../lib/queue.c
 
 $(LIBDIR)/res.o:  ../lib/res.c
 	$(CXX) -c $< -o $@		
+
+$(LIBDIR)/runscript.o:	../lib/runscript.c
+	$(CXX) -c $< -o $@		
+
 
 $(LIBDIR)/rwlock.o:	  ../lib/rwlock.c
 	$(CXX) -c $< -o $@		
