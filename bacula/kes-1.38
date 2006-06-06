@@ -2,6 +2,12 @@
                         Kern Sibbald
 
 General:
+04Jun06
+- Modify configure.in to check for typeof().
+- Better detection of postgresql installation if pg_conf works.
+- Fix RescheduleTimes = 0 bug (should not reschedule).
+- Down port from 1.39: fixes for reload, autochanger error messages,
+  scheduler fixes for reload and day light savings change, 
 01Jun06
 - Implement partial error messages for src/filed/acl.c
 - Fix return code to fail when doing update barcodes and
@@ -11,8 +17,6 @@ General:
 26May06
 - Prevent DVD code from rewriting label if the device cannot be
   opened read/write.
-- Used __GNUC__ to detect GNU g++ as suggested by John Goerzen to
-  fix Debian build bug.
 - Fix Dir/SD run race in migrate.c, verify.c, and restore.c
 - Update projects file.
 24May06
