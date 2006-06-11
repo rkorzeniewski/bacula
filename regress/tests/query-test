@@ -1,9 +1,16 @@
 #!/bin/sh
 #
 # Run a simple backup of the Bacula build directory then create some           
-#   new files, do a Decremental then a bunch of query commands
+#   new files, do a Differental then a bunch of query commands
 #   and finally restore the two files.
 #
+debug=0
+if test "$debug" -eq 1 ; then
+  out="tee"
+else
+  out="output"
+fi
+
 cwd=`pwd`
 scripts/copy-test-confs
 scripts/cleanup
@@ -22,10 +29,10 @@ echo " === Starting query-test at `date +%R:%S` ===" >>working/log
 echo " "
 
 bin/bacula start 2>&1 >/dev/null
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
-@output tmp/log1.out
+@$out tmp/log1.out
 label storage=File volume=TestVolume001
 label storage=File volume=TestVolume002
 run job=CompressedTest yes
@@ -33,26 +40,40 @@ wait
 messages
 quit
 END_OF_DATA
+if test "$debug" -eq 1 ; then
+  bin/bacula start
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+else
+  bin/bacula start 2>&1 >/dev/null
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+fi
 scripts/check_for_zombie_jobs storage=File
 echo "ficheriro1.txt" >${cwd}/tmp/build/ficheriro1.txt
 echo "ficheriro2.txt" >${cwd}/tmp/build/ficheriro2.txt
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
-@output tmp/log1.out
-@# Force decremental on the second Volume
+@$out tmp/log1.out
+@# Force differental on the second Volume
 update volume=TestVolume001 VolStatus=Used
-run level=decremental job=CompressedTest yes
+run level=differental job=CompressedTest yes
 wait
 messages
 @output
 END_OF_DATA
+if test "$debug" -eq 1 ; then
+  bin/bacula start
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+else
+  bin/bacula start 2>&1 >/dev/null
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+fi
 scripts/check_for_zombie_jobs storage=File
 echo "ficheriro2.txt" >${cwd}/tmp/build/ficheriro2.txt
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
-@output tmp/log1.out
+@$out tmp/log1.out
 run level=incremental job=CompressedTest yes
 wait
 messages
@@ -61,37 +82,35 @@ messages
 @#
 query
 1
+ficheriro1.txt
 query
 2
-ficheriro1.txt
-query
-3
 ${cwd}/tmp/build/
 ficheriro1.txt
-Client1
+localhost-fd
 query
-7
+6
 TestVolume001
 query
-8
+7
 1
 query
+8
+localhost-fd
+query
 9
-Client1
+Default
 query
 10
-Default
 query
 11
 query
 12
-query
-13
 1
 @# 
 @# now do a restore
 @#
-@output tmp/log2.out
+@$out tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores storage=File file=<${cwd}/tmp/restore-list
 yes
 wait
@@ -99,6 +118,13 @@ messages
 @output
 quit
 END_OF_DATA
+if test "$debug" -eq 1 ; then
+  bin/bacula start
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+else
+  bin/bacula start 2>&1 >/dev/null
+  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+fi
 scripts/check_for_zombie_jobs storage=File
 bin/bacula stop 2>&1 >/dev/null
 grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
