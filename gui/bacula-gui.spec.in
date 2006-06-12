@@ -48,7 +48,7 @@ Name: bacula-gui
 Version: @VERSION@
 Release: 1
 Group: System Environment/Daemons
-Copyright: GPL v2
+License: GPL v2
 Source0: %{web}-%{version}.tar.gz
 Source1: %{bimagemgr}-%{version}.tar.gz
 Source2: bacula-docs-%{version}.tar.gz
