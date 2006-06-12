@@ -185,7 +185,7 @@ rm -rf docs
 
 %defattr(-,%{dataowner},%{datagroup})
 %{docdir}/temp.html
-$config(noreplace) %{cgidir}/config.pm
+%config(noreplace) %{cgidir}/config.pm
 
 %files web
 %defattr(-,root,root)
