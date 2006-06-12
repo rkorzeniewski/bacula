@@ -23,7 +23,7 @@
 %define useradd /usr/sbin/useradd
 %define groupadd /usr/sbin/groupadd
 %define usermod /usr/sbin/usermod
-%define _rescuever 1.8.3
+%define _rescuever 1.8.4
 
 # platform defines - set one below or define the build_xxx on the command line
 # RedHat builds
@@ -1474,6 +1474,8 @@ fi
 %endif
 
 %changelog
+* Mon Jun 12 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- 1.38.10 bump rescue version
 * Sun Jun 03 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - fix usermod statements
 - add fc5 target
