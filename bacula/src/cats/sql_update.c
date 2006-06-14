@@ -97,7 +97,7 @@ db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 
    stime = jr->StartTime;
    localtime_r(&stime, &tm);
-   strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
+   strftime(dt, sizeof(dt), "%Y-%m-%d %H:%M:%S", &tm);
    JobTDate = (btime_t)stime;
 
    db_lock(mdb);
@@ -153,7 +153,7 @@ db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 
    ttime = jr->EndTime;
    localtime_r(&ttime, &tm);
-   strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
+   strftime(dt, sizeof(dt), "%Y-%m-%d %H:%M:%S", &tm);
    JobTDate = ttime;
 
    db_lock(mdb);
@@ -296,7 +296,7 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       Dmsg1(400, "Set FirstWritten Vol=%s\n", mr->VolumeName);
       ttime = mr->FirstWritten;
       localtime_r(&ttime, &tm);
-      strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
+      strftime(dt, sizeof(dt), "%Y-%m-%d %H:%M:%S", &tm);
       Mmsg(mdb->cmd, "UPDATE Media SET FirstWritten='%s'"
            " WHERE VolumeName='%s'", dt, mr->VolumeName);
       stat = UPDATE_DB(jcr, mdb, mdb->cmd);
@@ -310,7 +310,7 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
          ttime = time(NULL);
       }
       localtime_r(&ttime, &tm);
-      strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
+      strftime(dt, sizeof(dt), "%Y-%m-%d %H:%M:%S", &tm);
       Mmsg(mdb->cmd, "UPDATE Media SET LabelDate='%s' "
            "WHERE VolumeName='%s'", dt, mr->VolumeName);
       UPDATE_DB(jcr, mdb, mdb->cmd);
@@ -319,7 +319,7 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    if (mr->LastWritten != 0) {
       ttime = mr->LastWritten;
       localtime_r(&ttime, &tm);
-      strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
+      strftime(dt, sizeof(dt), "%Y-%m-%d %H:%M:%S", &tm);
       Mmsg(mdb->cmd, "UPDATE Media Set LastWritten='%s' "
            "WHERE VolumeName='%s'", dt, mr->VolumeName);
       UPDATE_DB(jcr, mdb, mdb->cmd);

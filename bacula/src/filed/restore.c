@@ -315,6 +315,7 @@ void do_restore(JCR *jcr)
          case CF_CREATED:        /* File created, but there is no content */
             jcr->lock();  
             pm_strcpy(jcr->last_fname, attr->ofname);
+            jcr->last_type = attr->type;
             jcr->JobFiles++;
             jcr->unlock();
             fileAddr = 0;

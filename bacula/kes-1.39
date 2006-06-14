@@ -2,6 +2,13 @@
                         Kern Sibbald
 
 General:
+14Jun06
+- Remove xpg4 lib from FreeBSD build as it is no longer needed and
+  sometimes creates install problems.
+- Change a couple of %T in strftime to %H:%M:%S as seen in Robert
+  Nelson's code.  More to do.
+- Convert a few store_bit to store_bool in filed_conf.c.    
+- DVD tweak to block.c as supplied by Uwe Muessel.
 04Jun06
 - Modify configure.in to check for typeof().
 - In findlib/attribs.c use typeof instead of templates if possible.

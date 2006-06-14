@@ -1586,8 +1586,6 @@ AC_FUNC_SETPGRP 		      dnl check for BSD setpgrp.
 # AC_FUNC_FNMATCH    dnl use local version
 
 
-dnl# FreeBSD needs to link libxpg4
-AC_CHECK_LIB(xpg4, setlocale, [LIBS="$LIBS -lxpg4"])
 AC_CHECK_LIB(intl, gettext, [LIBS="$LIBS -lintl"])
 
 

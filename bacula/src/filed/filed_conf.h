@@ -45,10 +45,10 @@ struct DIRRES {
    RES   hdr;
    char *password;                    /* Director password */
    char *address;                     /* Director address or zero */
-   int monitor;                       /* Have only access to status and .status functions */
-   int tls_enable;                    /* Enable TLS */
-   int tls_require;                   /* Require TLS */
-   int tls_verify_peer;              /* TLS Verify Client Certificate */
+   bool monitor;                      /* Have only access to status and .status functions */
+   bool tls_enable;                   /* Enable TLS */
+   bool tls_require;                  /* Require TLS */
+   bool tls_verify_peer;              /* TLS Verify Client Certificate */
    char *tls_ca_certfile;             /* TLS CA Certificate File */
    char *tls_ca_certdir;              /* TLS CA Certificate Directory */
    char *tls_certfile;                /* TLS Server Certificate File */
@@ -71,13 +71,13 @@ struct CLIENT {
    utime_t heartbeat_interval;        /* Interval to send heartbeats to Dir */
    utime_t SDConnectTimeout;          /* timeout in seconds */
    uint32_t max_network_buffer_size;  /* max network buf size */
-   int pki_sign;                      /* Enable Data Integrity Verification via Digital Signatures */
-   int pki_encrypt;                   /* Enable Data Encryption */
+   bool pki_sign;                     /* Enable Data Integrity Verification via Digital Signatures */
+   bool pki_encrypt;                  /* Enable Data Encryption */
    char *pki_keypair_file;            /* PKI Key Pair File */
    alist *pki_signing_key_files;      /* PKI Signing Key Files */
    alist *pki_master_key_files;       /* PKI Master Key Files */
-   int tls_enable;                    /* Enable TLS */
-   int tls_require;                   /* Require TLS */
+   bool tls_enable;                   /* Enable TLS */
+   bool tls_require;                  /* Require TLS */
    char *tls_ca_certfile;             /* TLS CA Certificate File */
    char *tls_ca_certdir;              /* TLS CA Certificate Directory */
    char *tls_certfile;                /* TLS Client Certificate File */
