@@ -234,6 +234,7 @@ public:
    uint32_t num_files_examined;       /* files examined this job */
    POOLMEM *last_fname;               /* last file saved/verified */
    POOLMEM *acl_text;                 /* text of ACL for backup */
+   int last_type;                     /* type of last file saved/verified */
    /*********FIXME********* add missing files and files to be retried */
    int incremental;                   /* set if incremental for SINCE */
    time_t mtime;                      /* begin time for SINCE */

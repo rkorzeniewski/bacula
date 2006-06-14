@@ -75,6 +75,7 @@ static int32_t fmtfp(char *buffer, int32_t currlen, int32_t maxlen,
 #define DP_C_INT64   4
 
 #define char_to_int(p) ((p)- '0')
+#undef MAX
 #define MAX(p,q) (((p) >= (q)) ? (p) : (q))
 
 /*

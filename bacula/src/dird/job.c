@@ -247,9 +247,7 @@ static void *job_thread(void *arg)
 
    if (job_canceled(jcr)) {
       update_job_end_record(jcr);
-
    } else {
-
       /* Run any script BeforeJob on dird */
       run_scripts(jcr, jcr->job->RunScripts, "BeforeJob");
 
@@ -321,7 +319,6 @@ static void *job_thread(void *arg)
       }
    }
 
-bail_out:
    generate_daemon_event(jcr, "JobEnd");
    Dmsg1(50, "======== End Job stat=%c ==========\n", jcr->JobStatus);
    sm_check(__FILE__, __LINE__, true);

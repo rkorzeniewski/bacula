@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -251,8 +251,8 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
 
        struct f_link *lp;
        if (ff_pkt->linkhash == NULL) {
-	   ff_pkt->linkhash = (link_t **)bmalloc(LINK_HASHTABLE_SIZE * sizeof(link_t *));
-	   memset(ff_pkt->linkhash, 0, LINK_HASHTABLE_SIZE * sizeof(link_t *));
+           ff_pkt->linkhash = (link_t **)bmalloc(LINK_HASHTABLE_SIZE * sizeof(link_t *));
+           memset(ff_pkt->linkhash, 0, LINK_HASHTABLE_SIZE * sizeof(link_t *));
        }
        const int linkhash = LINKHASH(ff_pkt->statp);
 

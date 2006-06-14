@@ -25,17 +25,17 @@
 #include "jcr.h"
 
 int execvp_errors[] = {
-	EACCES,
-	ENOEXEC,
-	EFAULT,
-	EINTR,
-	E2BIG,
-	ENAMETOOLONG,
-	ENOMEM,
+        EACCES,
+        ENOEXEC,
+        EFAULT,
+        EINTR,
+        E2BIG,
+        ENAMETOOLONG,
+        ENOMEM,
 #ifndef WIN32
-	ETXTBSY,
+        ETXTBSY,
 #endif
-	ENOENT
+        ENOENT
 };
 int num_execvp_errors = (int)(sizeof(execvp_errors)/sizeof(int));
 
@@ -237,7 +237,7 @@ int close_bpipe(BPIPE *bpipe)
 #else
 #warning "WTERMSIG undefined in Win32 !!!"
 #endif
-         Dmsg1(800, "Child died from signale %d\n", stat);
+         Dmsg1(800, "Child died from signal %d\n", stat);
          stat |= b_errno_signal;      /* exit signal returned */
       }
    }

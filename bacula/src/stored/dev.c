@@ -781,7 +781,7 @@ bool DEVICE::eod()
    if (at_eot()) {
       return true;
    }
-   state &= ~(ST_EOF);  /* remove EOF flags */
+   clear_eof();         /* remove EOF flag */
    block_num = file = 0;
    file_size = 0;
    file_addr = 0;
@@ -793,7 +793,7 @@ bool DEVICE::eod()
 //    Dmsg1(100, "====== Seek to %lld\n", pos);
       if (pos >= 0) {
          update_pos_dev(this);
-         state |= ST_EOT;
+         set_eot();
          return true;
       }
       dev_errno = errno;
@@ -1283,10 +1283,12 @@ bool DEVICE::fsf(int num)
    }
    update_pos_dev(this);
    Dmsg1(200, "Return %d from FSF\n", stat);
-   if (at_eof())
+   if (at_eof()) {
       Dmsg0(200, "ST_EOF set on exit FSF\n");
-   if (at_eot())
+   }
+   if (at_eot()) {
       Dmsg0(200, "ST_EOT set on exit FSF\n");
+   }
    Dmsg1(200, "Return from FSF file=%d\n", file);
    return stat == 0;
 }
@@ -1314,7 +1316,8 @@ bool DEVICE::bsf(int num)
       return false;
    }
    Dmsg0(29, "bsf\n");
-   state &= ~(ST_EOT|ST_EOF);
+   clear_eot();
+   clear_eof();
    file -= num;
    file_addr = 0;
    file_size = 0;
@@ -1416,7 +1419,8 @@ bool DEVICE::bsr(int num)
 
    Dmsg0(29, "bsr_dev\n");
    block_num -= num;
-   state &= ~(ST_EOF|ST_EOT|ST_EOF);
+   clear_eof();
+   clear_eot();
    mt_com.mt_op = MTBSR;
    mt_com.mt_count = num;
    stat = ioctl(fd, MTIOCTOP, (char *)&mt_com);
@@ -1521,7 +1525,8 @@ bool DEVICE::weof(int num)
       return false;
    }
       
-   state &= ~(ST_EOT | ST_EOF);  /* remove EOF/EOT flags */
+   clear_eof();
+   clear_eot();
    mt_com.mt_op = MTWEOF;
    mt_com.mt_count = num;
    stat = ioctl(fd, MTIOCTOP, (char *)&mt_com);

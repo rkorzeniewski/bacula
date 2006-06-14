@@ -2,6 +2,16 @@
                         Kern Sibbald
 
 General:
+Release 1.38.10 (08Jun06) released 12JunO6
+08Jun06
+- Modify setting ACLs to suppress error message if the file is a
+  symbolic link since the file linked to may not yet be created,
+  and symbolic links really should not have attributes ...
+- Remove old regex code from baconfig.h
+06Jun06
+- Complete implementation of acl.c error message during restore.
+  During backups, errors getting acls are silently ignored, as was
+  previously the case.
 04Jun06
 - Modify configure.in to check for typeof().
 - Better detection of postgresql installation if pg_conf works.
