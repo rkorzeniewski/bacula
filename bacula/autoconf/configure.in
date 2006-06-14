@@ -1730,8 +1730,8 @@ freebsd)
 	DISTVER=`uname -a |awk '{print $3}'`
 	VER=`echo $DISTVER | cut -c 1`
 	if test x$VER = x4 ; then
-	   PTHREAD_LIB="-pthread"
-	   CFLAGS="${CFLAGS} -pthread"
+	   PTHREAD_LIB=""${PTHREAD_LIBS}"
+	   CFLAGS="${CFLAGS} ${PTHREAD_CFLAGS}"
 	fi
 	lld="qd"
 	llu="qu"
