@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     22 February 2006
+                     20 June 2006
 
 Major development:      
 Project                     Developer
@@ -23,6 +23,11 @@ Document:
 Priority:
 
 For 1.39:
+- Make authentication failures single threaded.
+- Make base64.c (bin_to_base64) take a buffer length 
+  argument to avoid overruns.
+- Fix catreq.c digestbuf at line 411 in src/dird/catreq.c 
+  and verify that other buffers cannot overrun.
 - Implement VolumeState as discussed with Arno.
 - Install man pages
 - Document techniques for restoring large numbers of files.
@@ -1545,4 +1550,3 @@ Block Position: 0
 - Does ClientRunAfterJob fail the job on a bad return code?
 - Make hardlink code at line 240 of find_one.c use binary search.
 - Add ACL error messages in src/filed/acl.c.
-
