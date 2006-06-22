@@ -136,14 +136,13 @@ int
 db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 {
    char dt[MAX_TIME_LENGTH];
+   char rdt[MAX_TIME_LENGTH];
    time_t ttime;
    struct tm tm;
    int stat;
    char ed1[30], ed2[30], ed3[50];
    btime_t JobTDate;
-   char PoolId    [50];
-   char FileSetId [50];
-   char ClientId  [50];
+   char PoolId[50], FileSetId[50], ClientId[50], PriorJobId[50];
 
 
    /* some values are set to zero, which translates to NULL in SQL */
@@ -151,19 +150,36 @@ db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    edit_num_or_null(FileSetId, sizeof(FileSetId), jr->FileSetId);
    edit_num_or_null(ClientId,  sizeof(ClientId),  jr->ClientId);
 
+   if (jr->PriorJobId) {
+      bstrncpy(PriorJobId, edit_int64(jr->PriorJobId, ed1), sizeof(PriorJobId));
+   } else {
+      bstrncpy(PriorJobId, "0", sizeof(PriorJobId));
+   }
+
    ttime = jr->EndTime;
    localtime_r(&ttime, &tm);
    strftime(dt, sizeof(dt), "%Y-%m-%d %H:%M:%S", &tm);
+
+   if (jr->RealEndTime == 0) {
+      jr->RealEndTime = jr->EndTime;
+   }
+   ttime = jr->RealEndTime;
+   localtime_r(&ttime, &tm);
+   strftime(rdt, sizeof(rdt), "%Y-%m-%d %H:%M:%S", &tm);
+
    JobTDate = ttime;
 
    db_lock(mdb);
    Mmsg(mdb->cmd,
-      "UPDATE Job SET JobStatus='%c', EndTime='%s', "
-"ClientId=%s, JobBytes=%s, JobFiles=%u, JobErrors=%u, VolSessionId=%u, "
-"VolSessionTime=%u, PoolId=%s, FileSetId=%s, JobTDate=%s WHERE JobId=%s",
+      "UPDATE Job SET JobStatus='%c',EndTime='%s',"
+"ClientId=%s,JobBytes=%s,JobFiles=%u,JobErrors=%u,VolSessionId=%u,"
+"VolSessionTime=%u,PoolId=%s,FileSetId=%s,JobTDate=%s,"
+"RealEndTime='%s',PriorJobId=%s WHERE JobId=%s",
       (char)(jr->JobStatus), dt, ClientId, edit_uint64(jr->JobBytes, ed1),
       jr->JobFiles, jr->JobErrors, jr->VolSessionId, jr->VolSessionTime,
       PoolId, FileSetId, edit_uint64(JobTDate, ed2), 
+      rdt, 
+      PriorJobId,
       edit_int64(jr->JobId, ed3));
 
    stat = UPDATE_DB(jcr, mdb, mdb->cmd);

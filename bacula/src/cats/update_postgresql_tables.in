@@ -25,23 +25,22 @@ ALTER TABLE media ADD COLUMN scratchpoolid integer;
 UPDATE media SET scratchpoolid=0;
 ALTER TABLE media ADD COLUMN recyclepoolid integer;
 UPDATE media SET recyclepoolid=0;
+ALTER TABLE media ADD COLUMN enabled integer;
+UPDATE media SET enabled=1;
+
+ALTER TABLE job ADD COLUMN RealEndTime timestamp without time zone;
+UPDATE job SET RealEndTime=0;
+ALTER TABLE job ADD COLUMN PriorJobId integer;
+UPDATE job SET PriorJobId=0;
+
+ALTER TABLE jobmedia DROP COLUMN Stripe;
 
 
-CREATE TABLE MAC (
-    JobId	      serial	  not null,
-    OriginalJobId     serial	  not null,
-    JobType	      char(1)	  not null,
-    JobLevel	      char(1)	  not null,
-    SchedTime	      timestamp   without time zone not null,
-    StartTime	      timestamp   without time zone,
-    EndTime	      timestamp   without time zone,
-    JobTDate	      bigint	  not null,
-    primary key (JobId)
-);
 
 CREATE TABLE Location (
    LocationId SERIAL NOT NULL,
    Location TEXT NOT NULL,
+   Cost integer not null default 0,
    PRIMARY KEY (LocationId)
 );
 

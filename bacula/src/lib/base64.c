@@ -23,6 +23,11 @@
 
 #include "bacula.h"
 
+/*
+ * If compatible is true, the bin_to_base64 routine will be compatible
+ * with what the rest of the world uses.  However, this would destroy
+ * existing database compatibility.
+ */
 const bool compatible = false;
 
 #ifdef TEST_MODE
@@ -144,9 +149,9 @@ bin_to_base64(char *buf, char *bin, int len)
       if (rem < 6) {
          reg <<= 8;
          if (compatible) {
-            reg |= (int8_t)bin[i++] & 0xFF;
+            reg |= (uint8_t)bin[i++];
          } else {
-           reg |= (int8_t)bin[i++];
+            reg |= (int8_t)bin[i++];
          }
          rem += 8;
       }
@@ -157,10 +162,14 @@ bin_to_base64(char *buf, char *bin, int len)
       rem -= 6;
    }
    if (rem) {
+#ifdef OLDxxxx
       mask = 1;
       for (i=1; i<rem; i++) {
          mask = (mask << 1) | 1;
       }
+#else 
+      mask = (1 << rem) - 1;
+#endif
       if (compatible) {
          buf[j++] = base64_digits[(reg & mask) << 6 - rem];
       } else {

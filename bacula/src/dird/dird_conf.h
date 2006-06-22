@@ -414,7 +414,7 @@ public:
    char *pool_type;                   /* Pool type */
    char *label_format;                /* Label format string */
    char *cleaning_prefix;             /* Cleaning label prefix */
-   int   LabelType;                   /* Bacula/ANSI/IBM label type */
+   int32_t LabelType;                 /* Bacula/ANSI/IBM label type */
    uint32_t max_volumes;              /* max number of volumes */
    utime_t VolRetention;              /* volume retention period in seconds */
    utime_t VolUseDuration;            /* duration volume can be used */
@@ -457,6 +457,7 @@ union URES {
    COUNTER    res_counter;
    DEVICE     res_dev;
    RES        hdr;
+   RUNSCRIPT  res_runscript;
 };
 
 

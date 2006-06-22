@@ -536,9 +536,11 @@ struct JOB_DBR {
    DBId_t ClientId;                   /* Id of client */
    DBId_t PoolId;                     /* Id of pool */
    DBId_t FileSetId;                  /* Id of FileSet */
+   DBId_t PriorJobId;                 /* Id of migrated (prior) job */
    time_t SchedTime;                  /* Time job scheduled */
    time_t StartTime;                  /* Job start time */
-   time_t EndTime;                    /* Job termination time */
+   time_t EndTime;                    /* Job termination time of orig job */
+   time_t RealEndTime;                /* Job termination time of this job */
    utime_t JobTDate;                  /* Backup time/date in seconds */
    uint32_t VolSessionId;
    uint32_t VolSessionTime;
@@ -567,33 +569,6 @@ struct JOB_DBR {
    faddr_t rec_addr;
 };
 
-/* 
- * Suplementary record for Migration, archive, copy jobs
- */
-/* MAC record */
-struct MAC_DBR {
-   JobId_t JobId;                     /* Id of this job */
-   JobId_t OriginalJobId;             /* Id of job migrated, copied or archived */
-   /* 
-    * The following are the actual values for this job. This
-    *  is needed because the values in the corresponding Job
-    *  record were set to the values of the original backup job.
-    */
-   int JobType;                       /* Actual job type */
-   int JobLevel;                      /* Actual job level */
-   time_t SchedTime;                  /* Actual time job scheduled */
-   time_t StartTime;                  /* Actual Job start time */
-   time_t EndTime;                    /* Actual Job termination time */
-   utime_t JobTDate;                  /* Actual Backup time/date in seconds */
-
-   char cSchedTime[MAX_TIME_LENGTH];
-   char cStartTime[MAX_TIME_LENGTH];
-   char cEndTime[MAX_TIME_LENGTH];
-
-};
-
-
-
 /* Job Media information used to create the media records
  * for each Volume used for the job.
  */
@@ -609,7 +584,6 @@ struct JOBMEDIA_DBR {
    uint32_t StartBlock;               /* start block on tape */
    uint32_t EndBlock;                 /* last block */
    uint32_t Copy;                     /* identical copy */
-   uint32_t Stripe;                   /* RAIT strip number */
 };
 
 
@@ -756,7 +730,12 @@ struct MEDIA_DBR {
    DBId_t   StorageId;                /* Storage record Id */
    uint32_t EndFile;                  /* Last file on volume */
    uint32_t EndBlock;                 /* Last block on volume */
-   char VolStatus[20];                /* Volume status */
+   char     VolStatus[20];            /* Volume status */
+   DBId_t   DeviceId;                 /* Device where Vol last written */
+   DBId_t   LocationId;               /* Where Volume is -- user defined */
+   DBId_t   ScratchPoolId;            /* Where to move if scratch */
+   DBId_t   RecyclePoolId;            /* Where to move when recycled */
+   int32_t  Enabled;                  /* disabled=0, enabled=1, archived=2 */
    /* Extra stuff not in DB */
    faddr_t rec_addr;                  /* found record address */
    /* Since the database returns times as strings, this is how we pass

@@ -7,22 +7,17 @@
  */
 
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -31,7 +26,7 @@
 /* The following is necessary so that we do not include
  * the dummy external definition of DB.
  */
-#define __SQL_C 		      /* indicate that this is sql.c */
+#define __SQL_C                       /* indicate that this is sql.c */
 
 #include "bacula.h"
 #include "cats.h"
@@ -56,9 +51,9 @@ extern int DeleteDB(const char *file, int line, JCR *jcr, B_DB *db, char *delete
  *  Media records.
  *
  *  Returns: 0 on error
- *	     1 on success
- *	     PoolId = number of Pools deleted (should be 1)
- *	     NumVols = number of Media records deleted
+ *           1 on success
+ *           PoolId = number of Pools deleted (should be 1)
+ *           NumVols = number of Media records deleted
  */
 int
 db_delete_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
@@ -77,19 +72,19 @@ db_delete_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
 
       if (mdb->num_rows == 0) {
          Mmsg(mdb->errmsg, _("No pool record %s exists\n"), pr->Name);
-	 sql_free_result(mdb);
-	 db_unlock(mdb);
-	 return 0;
+         sql_free_result(mdb);
+         db_unlock(mdb);
+         return 0;
       } else if (mdb->num_rows != 1) {
          Mmsg(mdb->errmsg, _("Expecting one pool record, got %d\n"), mdb->num_rows);
-	 sql_free_result(mdb);
-	 db_unlock(mdb);
-	 return 0;
+         sql_free_result(mdb);
+         db_unlock(mdb);
+         return 0;
       }
       if ((row = sql_fetch_row(mdb)) == NULL) {
          Mmsg1(&mdb->errmsg, _("Error fetching row %s\n"), sql_strerror(mdb));
-	 db_unlock(mdb);
-	 return 0;
+         db_unlock(mdb);
+         return 0;
       }
       pr->PoolId = str_to_int64(row[0]);
       sql_free_result(mdb);
@@ -116,10 +111,10 @@ db_delete_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
 
 struct s_del_ctx {
    JobId_t *JobId;
-   int num_ids; 		      /* ids stored */
-   int max_ids; 		      /* size of array */
-   int num_del; 		      /* number deleted */
-   int tot_ids; 		      /* total to process */
+   int num_ids;                       /* ids stored */
+   int max_ids;                       /* size of array */
+   int num_del;                       /* number deleted */
+   int tot_ids;                       /* total to process */
 };
 
 /*
@@ -139,7 +134,7 @@ static int delete_handler(void *ctx, int num_fields, char **row)
    if (del->num_ids == del->max_ids) {
       del->max_ids = (del->max_ids * 3) / 2;
       del->JobId = (JobId_t *)brealloc(del->JobId, sizeof(JobId_t) *
-	 del->max_ids);
+         del->max_ids);
    }
    del->JobId[del->num_ids++] = (JobId_t)str_to_int64(row[0]);
    return 0;
@@ -222,7 +217,7 @@ int db_purge_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       return 0;
    }
    /* Delete associated records */
-   do_media_purge(mdb, mr);	      /* Note, always purge */
+   do_media_purge(mdb, mr);           /* Note, always purge */
 
    /* Mark Volume as purged */
    strcpy(mr->VolStatus, "Purged");

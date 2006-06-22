@@ -62,43 +62,43 @@ static INCEXE res_incexe;
  *   name             handler     value    code flags default_value
  */
 static RES_ITEM newinc_items[] = {
-   {"file",            store_fname,   NULL,     0, 0, 0},
-   {"options",         options_res,   NULL,     0, 0, 0},
-   {NULL, NULL, NULL, 0, 0, 0}
+   {"file",            store_fname,   {0},      0, 0, 0},
+   {"options",         options_res,   {0},      0, 0, 0},
+   {NULL, NULL, {0}, 0, 0, 0}
 };
 
 /*
  * Items that are valid in an Options resource
  */
 static RES_ITEM options_items[] = {
-   {"compression",     store_opts,    NULL,     0, 0, 0},
-   {"signature",       store_opts,    NULL,     0, 0, 0},
-   {"verify",          store_opts,    NULL,     0, 0, 0},
-   {"onefs",           store_opts,    NULL,     0, 0, 0},
-   {"recurse",         store_opts,    NULL,     0, 0, 0},
-   {"sparse",          store_opts,    NULL,     0, 0, 0},
-   {"hardlinks",       store_opts,    NULL,     0, 0, 0},
-   {"readfifo",        store_opts,    NULL,     0, 0, 0},
-   {"replace",         store_opts,    NULL,     0, 0, 0},
-   {"portable",        store_opts,    NULL,     0, 0, 0},
-   {"mtimeonly",       store_opts,    NULL,     0, 0, 0},
-   {"keepatime",       store_opts,    NULL,     0, 0, 0},
-   {"regex",           store_regex,   NULL,     0, 0, 0},
-   {"regexdir",        store_regex,   NULL,     1, 0, 0},
-   {"regexfile",       store_regex,   NULL,     2, 0, 0},
-   {"base",            store_base,    NULL,     0, 0, 0},
-   {"wild",            store_wild,    NULL,     0, 0, 0},
-   {"wilddir",         store_wild,    NULL,     1, 0, 0},
-   {"wildfile",        store_wild,    NULL,     2, 0, 0},
-   {"exclude",         store_opts,    NULL,     0, 0, 0},
-   {"aclsupport",      store_opts,    NULL,     0, 0, 0},
-   {"reader",          store_reader,  NULL,     0, 0, 0},
-   {"writer",          store_writer,  NULL,     0, 0, 0},
-   {"ignorecase",      store_opts,    NULL,     0, 0, 0},
-   {"fstype",          store_fstype,  NULL,     0, 0, 0},
-   {"hfsplussupport",  store_opts,    NULL,     0, 0, 0},
-   {"noatime",         store_opts,    NULL,     0, 0, 0},
-   {NULL, NULL, NULL, 0, 0, 0}
+   {"compression",     store_opts,    {0},     0, 0, 0},
+   {"signature",       store_opts,    {0},     0, 0, 0},
+   {"verify",          store_opts,    {0},     0, 0, 0},
+   {"onefs",           store_opts,    {0},     0, 0, 0},
+   {"recurse",         store_opts,    {0},     0, 0, 0},
+   {"sparse",          store_opts,    {0},     0, 0, 0},
+   {"hardlinks",       store_opts,    {0},     0, 0, 0},
+   {"readfifo",        store_opts,    {0},     0, 0, 0},
+   {"replace",         store_opts,    {0},     0, 0, 0},
+   {"portable",        store_opts,    {0},     0, 0, 0},
+   {"mtimeonly",       store_opts,    {0},     0, 0, 0},
+   {"keepatime",       store_opts,    {0},     0, 0, 0},
+   {"regex",           store_regex,   {0},     0, 0, 0},
+   {"regexdir",        store_regex,   {0},     1, 0, 0},
+   {"regexfile",       store_regex,   {0},     2, 0, 0},
+   {"base",            store_base,    {0},     0, 0, 0},
+   {"wild",            store_wild,    {0},     0, 0, 0},
+   {"wilddir",         store_wild,    {0},     1, 0, 0},
+   {"wildfile",        store_wild,    {0},     2, 0, 0},
+   {"exclude",         store_opts,    {0},     0, 0, 0},
+   {"aclsupport",      store_opts,    {0},     0, 0, 0},
+   {"reader",          store_reader,  {0},     0, 0, 0},
+   {"writer",          store_writer,  {0},     0, 0, 0},
+   {"ignorecase",      store_opts,    {0},     0, 0, 0},
+   {"fstype",          store_fstype,  {0},     0, 0, 0},
+   {"hfsplussupport",  store_opts,    {0},     0, 0, 0},
+   {"noatime",         store_opts,    {0},     0, 0, 0},
+   {NULL, NULL, {0}, 0, 0, 0}
 };
 
 

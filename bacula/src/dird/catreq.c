@@ -95,6 +95,7 @@ void catalog_request(JCR *jcr, BSOCK *bs)
    int index, ok, label, writing;
    POOLMEM *omsg;
    POOL_DBR pr;
+   uint32_t Stripe;
 
    memset(&mr, 0, sizeof(mr));
    memset(&sdmr, 0, sizeof(sdmr));
@@ -276,7 +277,7 @@ void catalog_request(JCR *jcr, BSOCK *bs)
     */
    } else if (sscanf(bs->msg, Create_job_media, &Job,
       &jm.FirstIndex, &jm.LastIndex, &jm.StartFile, &jm.EndFile,
-      &jm.StartBlock, &jm.EndBlock, &jm.Copy, &jm.Stripe) == 9) {
+      &jm.StartBlock, &jm.EndBlock, &jm.Copy, &Stripe) == 9) {
 
       if (jcr->previous_jcr) {
          jm.JobId = jcr->previous_jcr->JobId;

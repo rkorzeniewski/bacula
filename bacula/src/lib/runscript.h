@@ -22,12 +22,6 @@
 #ifndef __RUNSCRIPT_H_
 #define __RUNSCRIPT_H_ 1
 
-#if defined(FILE_DAEMON) || defined(DIRECTOR_DAEMON)
-# define USE_RUNSCRIPT
-#endif
-
-#ifdef USE_RUNSCRIPT
-
 /* Usage:
  *
  * #define USE_RUNSCRIPT
@@ -46,10 +40,10 @@
  * RUNSCRIPT->when can take following value : 
  */
 enum {
-   SCRIPT_Never  = 0,
-   SCRIPT_After  = 1,		/* AfterJob */
-   SCRIPT_Before = 2,		/* BeforeJob */
-   SCRIPT_Any    = 3           	/* Before and After */
+   SCRIPT_Never  = 1,
+   SCRIPT_After  = 2,           /* AfterJob */
+   SCRIPT_Before = 3,           /* BeforeJob */
+   SCRIPT_Any    = 4            /* Before and After */
 };
 
 /*
@@ -57,10 +51,10 @@ enum {
  */
 class RUNSCRIPT {
 public:
-   POOLMEM *command;		/* command string */
-   POOLMEM *target;		/* host target */
-   char level;			/* Base|Full|Incr...|All (NYI) */
-   bool on_success;		/* executre command on job success (After) */
+   POOLMEM *command;            /* command string */
+   POOLMEM *target;             /* host target */
+   char level;                  /* Base|Full|Incr...|All (NYI) */
+   bool on_success;             /* executre command on job success (After) */
    bool on_failure;             /* executre command on job failure (After) */
    bool abort_on_error;         /* abort job on error (Before) */
    int  when;                   /* SCRIPT_Before|Script_After BEFORE/AFTER JOB*/
@@ -70,7 +64,7 @@ public:
    void set_command(const POOLMEM *cmd);
    void set_target(const POOLMEM *client_name);
    void reset_default(bool free_string = false);
-   bool is_local();		/* true if running on local host */
+   bool is_local();             /* true if running on local host */
    void debug();
 };
 
@@ -88,7 +82,5 @@ void free_runscript(RUNSCRIPT *script);
 
 /* foreach_alist free RUNSCRIPT */
 void free_runscripts(alist *runscripts); /* you have to free alist */
-
-#endif /* USE_RUNSCRIPT */
 
 #endif /* __RUNSCRIPT_H_ */

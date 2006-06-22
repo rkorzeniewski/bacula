@@ -36,6 +36,7 @@ CREATE TEMPORARY TABLE Media_backup (
    VolWrites INTEGER UNSIGNED DEFAULT 0,
    VolCapacityBytes BIGINT UNSIGNED DEFAULT 0,
    VolStatus VARCHAR(20) NOT NULL,
+   Enabled TINYINT DEFAULT 1,
    Recycle TINYINT DEFAULT 0,
    VolRetention BIGINT UNSIGNED DEFAULT 0,
    VolUseDuration BIGINT UNSIGNED DEFAULT 0,
@@ -63,7 +64,7 @@ INSERT INTO Media_backup SELECT
    MediaType, LabelType, 0, FirstWritten, LastWritten,
    LabelDate, VolJobs, VolFiles, VolBlocks,
    VolMounts, VolBytes, VolParts, VolErrors, VolWrites,
-   VolCapacityBytes, VolStatus, Recycle,
+   VolCapacityBytes, VolStatus, 1, Recycle,
    VolRetention, VolUseDuration, MaxVolJobs,
    MaxVolFiles, MaxVolBytes, InChanger, 
    StorageId, 0, MediaAddressing,
@@ -94,6 +95,7 @@ CREATE TABLE Media (
    VolWrites INTEGER UNSIGNED DEFAULT 0,
    VolCapacityBytes BIGINT UNSIGNED DEFAULT 0,
    VolStatus VARCHAR(20) NOT NULL,
+   Enabled TINYINT DEFAULT 1,
    Recycle TINYINT DEFAULT 0,
    VolRetention BIGINT UNSIGNED DEFAULT 0,
    VolUseDuration BIGINT UNSIGNED DEFAULT 0,
@@ -121,7 +123,7 @@ INSERT INTO Media (
    MediaType, MediaTypeId, LabelType, FirstWritten, LastWritten,
    LabelDate, VolJobs, VolFiles, VolBlocks,
    VolMounts, VolBytes, VolParts, VolErrors, VolWrites,
-   VolCapacityBytes, VolStatus, Recycle,
+   VolCapacityBytes, VolStatus, Enabled, Recycle,
    VolRetention, VolUseDuration, MaxVolJobs,
    MaxVolFiles, MaxVolBytes,
    InChanger, StorageId, DeviceId, MediaAddressing,
@@ -134,22 +136,87 @@ INSERT INTO Media (
 DROP TABLE Media_backup;
 CREATE INDEX inx8 ON Media (PoolId);
 
-
-CREATE TABLE MAC (
+CREATE TEMPORARY TABLE job_backup
+{
    JobId INTEGER,
-   OriginalJobId INTEGER,
-   JobType CHAR NOT NULL,
-   JobLevel CHAR NOT NULL,
+   Job VARCHAR(128) NOT NULL,
+   Name VARCHAR(128) NOT NULL,
+   Type CHAR NOT NULL,
+   Level CHAR NOT NULL,
+   ClientId INTEGER REFERENCES Client DEFAULT 0,
+   JobStatus CHAR NOT NULL,
    SchedTime DATETIME NOT NULL,
    StartTime DATETIME DEFAULT 0,
    EndTime DATETIME DEFAULT 0,
+   RealEndTime DATETIME DEFAULT 0,
    JobTDate BIGINT UNSIGNED DEFAULT 0,
-   PRIMARY KEY(JobId)
+   VolSessionId INTEGER UNSIGNED DEFAULT 0,
+   VolSessionTime INTEGER UNSIGNED DEFAULT 0,
+   JobFiles INTEGER UNSIGNED DEFAULT 0,
+   JobBytes BIGINT UNSIGNED DEFAULT 0,
+   JobErrors INTEGER UNSIGNED DEFAULT 0,
+   JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
+   PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
+   FileSetId INTEGER UNSIGNED REFERENCES FileSet DEFAULT 0,
+   PriorJobId INTEGER UNSIGNED REFERENCES Job DEFAULT 0,
+   PurgedFiles TINYINT DEFAULT 0,
+   HasBase TINYINT DEFAULT 0,
+   PRIMARY KEY(JobId) 
    );
+
+INSERT INTO Job_backup SELECT 
+   JobId, Job, Name, Type, Level, ClientId, JobStatus,
+   SchedTime, StartTime, EndTime, 0,
+   JobTDate, VolSessionId, VolSessionTime, 
+   JobFiles, JobBytes, JobErrors, JobMissingFiles, 
+   PoolId, FileSetId, 0, PurgedFiles, HasBase,
+   PRIMARY KEY(JobId) 
+   );
+   FROM Job;
+
+DROP TABLE Job;
+CREATE TEMPORARY TABLE Job
+{
+   JobId INTEGER,
+   Job VARCHAR(128) NOT NULL,
+   Name VARCHAR(128) NOT NULL,
+   Type CHAR NOT NULL,
+   Level CHAR NOT NULL,
+   ClientId INTEGER REFERENCES Client DEFAULT 0,
+   JobStatus CHAR NOT NULL,
+   SchedTime DATETIME NOT NULL,
+   StartTime DATETIME DEFAULT 0,
+   EndTime DATETIME DEFAULT 0,
+   RealEndTime DATETIME DEFAULT 0,
+   JobTDate BIGINT UNSIGNED DEFAULT 0,
+   VolSessionId INTEGER UNSIGNED DEFAULT 0,
+   VolSessionTime INTEGER UNSIGNED DEFAULT 0,
+   JobFiles INTEGER UNSIGNED DEFAULT 0,
+   JobBytes BIGINT UNSIGNED DEFAULT 0,
+   JobErrors INTEGER UNSIGNED DEFAULT 0,
+   JobMissingFiles INTEGER UNSIGNED DEFAULT 0,
+   PoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
+   FileSetId INTEGER UNSIGNED REFERENCES FileSet DEFAULT 0,
+   PriorJobId INTEGER UNSIGNED REFERENCES Job DEFAULT 0,
+   PurgedFiles TINYINT DEFAULT 0,
+   HasBase TINYINT DEFAULT 0,
+   PRIMARY KEY(JobId) 
+   );
+
+INSERT INTO Job SELECT 
+   JobId, Job, Name, Type, Level, ClientId, JobStatus,
+   SchedTime, StartTime, EndTime, RealEndTime,
+   JobTDate, VolSessionId, VolSessionTime, 
+   JobFiles, JobBytes, JobErrors, JobMissingFiles, 
+   PoolId, FileSetId, PriorJobId, PurgedFiles, HasBase
+   FROM Job_backup;
+
+DROP TABLE Job_backup;
 
 CREATE TABLE Location (
    LocationId INTEGER,
    Location VARCHAR(128) NOT NULL,
+   Counter INTEGER DEFAULT 0,
    PRIMARY KEY(LocationId)
    );
  

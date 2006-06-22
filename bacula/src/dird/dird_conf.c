@@ -110,7 +110,7 @@ static RES_ITEM dir_items[] = {
    {"tlskey",               store_dir,       ITEM(res_dir.tls_keyfile), 0, 0, 0},
    {"tlsdhfile",            store_dir,       ITEM(res_dir.tls_dhfile), 0, 0, 0},
    {"tlsallowedcn",         store_alist_str, ITEM(res_dir.tls_allowed_cns), 0, 0, 0},
-   {NULL, NULL, NULL, 0, 0, 0}
+   {NULL, NULL, {0}, 0, 0, 0}
 };
 
 /*
@@ -140,7 +140,7 @@ static RES_ITEM con_items[] = {
    {"tlskey",               store_dir,       ITEM(res_con.tls_keyfile), 0, 0, 0},
    {"tlsdhfile",            store_dir,       ITEM(res_con.tls_dhfile), 0, 0, 0},
    {"tlsallowedcn",         store_alist_str, ITEM(res_con.tls_allowed_cns), 0, 0, 0},
-   {NULL, NULL, NULL, 0, 0, 0}
+   {NULL, NULL, {0}, 0, 0, 0}
 };
 
 
@@ -169,7 +169,7 @@ static RES_ITEM cli_items[] = {
    {"tlscacertificatedir",  store_dir,       ITEM(res_client.tls_ca_certdir), 0, 0, 0},
    {"tlscertificate",       store_dir,       ITEM(res_client.tls_certfile), 0, 0, 0},
    {"tlskey",               store_dir,       ITEM(res_client.tls_keyfile), 0, 0, 0},
-   {NULL, NULL, NULL, 0, 0, 0}
+   {NULL, NULL, {0}, 0, 0, 0}
 };
 
 /* Storage daemon resource
@@ -196,7 +196,7 @@ static RES_ITEM store_items[] = {
    {"tlscacertificatedir",  store_dir,       ITEM(res_store.tls_ca_certdir), 0, 0, 0},
    {"tlscertificate",       store_dir,       ITEM(res_store.tls_certfile), 0, 0, 0},
    {"tlskey",               store_dir,       ITEM(res_store.tls_keyfile), 0, 0, 0},
-   {NULL, NULL, NULL, 0, 0, 0}
+   {NULL, NULL, {0}, 0, 0, 0}
 };
 
 /*
@@ -218,7 +218,7 @@ static RES_ITEM cat_items[] = {
    {"dbsocket", store_str,      ITEM(res_cat.db_socket),   0, 0, 0},
    /* Turned off for the moment */
    {"multipleconnections", store_bit, ITEM(res_cat.mult_db_connections), 0, 0, 0},
-   {NULL, NULL, NULL, 0, 0, 0}
+   {NULL, NULL, {0}, 0, 0, 0}
 };
 
 /*
@@ -283,7 +283,7 @@ RES_ITEM job_items[] = {
    {"selectionpattern", store_str, ITEM(res_job.selection_pattern), 0, 0, 0},
    {"selectiontype", store_migtype, ITEM(res_job.selection_type), 0, 0, 0},
    {"runscript", store_runscript, ITEM(res_job.RunScripts), 0, ITEM_NO_EQUALS, 0},
-   {NULL, NULL, NULL, 0, 0, 0}
+   {NULL, NULL, {0}, 0, 0, 0}
 };
 
 /* FileSet resource
@@ -293,11 +293,11 @@ RES_ITEM job_items[] = {
 static RES_ITEM fs_items[] = {
    {"name",        store_name, ITEM(res_fs.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,  ITEM(res_fs.hdr.desc), 0, 0, 0},
-   {"include",     store_inc,  NULL,                  0, ITEM_NO_EQUALS, 0},
-   {"exclude",     store_inc,  NULL,                  1, ITEM_NO_EQUALS, 0},
+   {"include",     store_inc,  {0},                   0, ITEM_NO_EQUALS, 0},
+   {"exclude",     store_inc,  {0},                   1, ITEM_NO_EQUALS, 0},
    {"ignorefilesetchanges", store_bool, ITEM(res_fs.ignore_fs_changes), 0, ITEM_DEFAULT, false},
    {"enablevss",   store_bool, ITEM(res_fs.enable_vss), 0, ITEM_DEFAULT, false},
-   {NULL,          NULL,       NULL,                  0, 0, 0}
+   {NULL,          NULL,       {0},                  0, 0, 0}
 };
 
 /* Schedule -- see run_conf.c */
@@ -309,7 +309,7 @@ static RES_ITEM sch_items[] = {
    {"name",     store_name,  ITEM(res_sch.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str, ITEM(res_sch.hdr.desc), 0, 0, 0},
    {"run",      store_run,   ITEM(res_sch.run),      0, 0, 0},
-   {NULL, NULL, NULL, 0, 0, 0}
+   {NULL, NULL, {0}, 0, 0, 0}
 };
 
 /* Pool resource
@@ -343,7 +343,7 @@ static RES_ITEM pool_items[] = {
    {"storage",       store_alist_res, ITEM(res_pool.storage),  R_STORAGE, 0, 0},
    {"autoprune",       store_bool,    ITEM(res_pool.AutoPrune), 0, ITEM_DEFAULT, true},
    {"recycle",         store_bool,    ITEM(res_pool.Recycle),   0, ITEM_DEFAULT, true},
-   {NULL, NULL, NULL, 0, 0, 0}
+   {NULL, NULL, {0}, 0, 0, 0}
 };
 
 /*
@@ -357,7 +357,7 @@ static RES_ITEM counter_items[] = {
    {"maximum",         store_pint,    ITEM(res_counter.MaxValue),        0, ITEM_DEFAULT, INT32_MAX},
    {"wrapcounter",     store_res,     ITEM(res_counter.WrapCounter),     R_COUNTER, 0, 0},
    {"catalog",         store_res,     ITEM(res_counter.Catalog),         R_CATALOG, 0, 0},
-   {NULL, NULL, NULL, 0, 0, 0}
+   {NULL, NULL, {0}, 0, 0, 0}
 };
 
 
@@ -1569,19 +1569,19 @@ static void store_runscript_target(LEX *lc, RES_ITEM *item, int index, int pass)
 
    if (pass == 2) {
       if (strcmp(lc->str, "%c") == 0) {
-	 ((RUNSCRIPT*) item->value)->set_target(lc->str);
+         ((RUNSCRIPT*) item->value)->set_target(lc->str);
       } else if (strcmp(lc->str, "yes") == 0) {
-	 ((RUNSCRIPT*) item->value)->set_target("%c");
+         ((RUNSCRIPT*) item->value)->set_target("%c");
       } else if (strcmp(lc->str, "no") == 0) {
-	 /* store nothing, run on director */
+         /* store nothing, run on director */
       } else {
-	 RES *res = GetResWithName(R_CLIENT, lc->str);
-	 if (res == NULL) {
-	    scan_err3(lc, _("Could not find config Resource %s referenced on line %d : %s\n"),
-		      lc->str, lc->line_no, lc->line);
-	 }
+         RES *res = GetResWithName(R_CLIENT, lc->str);
+         if (res == NULL) {
+            scan_err3(lc, _("Could not find config Resource %s referenced on line %d : %s\n"),
+                      lc->str, lc->line_no, lc->line);
+         }
 
-	 ((RUNSCRIPT*) item->value)->set_target(lc->str);
+         ((RUNSCRIPT*) item->value)->set_target(lc->str);
       }
    }
    scan_to_eol(lc);
@@ -1611,29 +1611,29 @@ static void store_short_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
       script->set_command(lc->str);
 
       if (strcmp(item->name, "runbeforejob") == 0) {
-	 script->when = SCRIPT_Before;
-	 script->abort_on_error = true;
+         script->when = SCRIPT_Before;
+         script->abort_on_error = true;
 
       } else if (strcmp(item->name, "runafterjob") == 0) {
-	 script->when = SCRIPT_After;
-	 script->on_success = true;
-	 script->on_failure = false;
-	 
+         script->when = SCRIPT_After;
+         script->on_success = true;
+         script->on_failure = false;
+         
       } else if (strcmp(item->name, "clientrunafterjob") == 0) {
-	 script->when = SCRIPT_After;
-	 script->set_target("%c");
-	 script->on_success = true;
-	 script->on_failure = false;
+         script->when = SCRIPT_After;
+         script->set_target("%c");
+         script->on_success = true;
+         script->on_failure = false;
 
       } else if (strcmp(item->name, "clientrunbeforejob") == 0) {
-	 script->when = SCRIPT_Before;
-	 script->set_target("%c");
-	 script->abort_on_error = true;
+         script->when = SCRIPT_Before;
+         script->set_target("%c");
+         script->abort_on_error = true;
 
       } else if (strcmp(item->name, "runafterfailedjob") == 0) {
-	 script->when = SCRIPT_After;
-	 script->on_failure = true;
-	 script->on_success = false;
+         script->when = SCRIPT_After;
+         script->on_failure = true;
+         script->on_success = false;
       }
 
       if (*runscripts == NULL) {
@@ -1654,15 +1654,14 @@ static RUNSCRIPT  res_runscript;
  *   name             handler         value                                code flags default_value
  */
 static RES_ITEM runscript_items[] = {
-   {"command", store_runscript_cmd,   (char **)&res_runscript,            0,  ITEM_REQUIRED, 0}, 
-   {"target", store_runscript_target, (char **)&res_runscript,            0,  0, 0}, 
-   {"runsonsuccess",    store_bool,   (char **)&res_runscript.on_success, 0,  0, 0},
-   {"runsonfailure",    store_bool,   (char **)&res_runscript.on_failure, 0,  0, 0},
-   {"abortjobonerror", store_bool,    (char **)&res_runscript.abort_on_error, 0, 0,   0},
-   {"runswhen", store_runscript_when, (char **)&res_runscript.when,       0,  0, 0},
-   {"runsonclient", store_runscript_target, (char **)&res_runscript,       0,  0, 0}, /* TODO */
-
-   {NULL, NULL, NULL, 0, 0, 0}
+   {"command", store_runscript_cmd,   ITEM(res_runscript),           0,  ITEM_REQUIRED, 0}, 
+   {"target", store_runscript_target, ITEM(res_runscript),            0,  0, 0}, 
+   {"runsonsuccess",    store_bool,   ITEM(res_runscript.on_success), 0,  0, 0},
+   {"runsonfailure",    store_bool,   ITEM(res_runscript.on_failure), 0,  0, 0},
+   {"abortjobonerror", store_bool,    ITEM(res_runscript.abort_on_error), 0, 0,   0},
+   {"runswhen", store_runscript_when, ITEM(res_runscript.when),       0,  0, 0},
+   {"runsonclient", store_runscript_target, ITEM(res_runscript),       0,  0, 0}, /* TODO */
+   {NULL, NULL, {0}, 0, 0, 0}
 };
 
 /*
@@ -1715,13 +1714,13 @@ static void store_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
 
    if (pass == 2) {
       if (res_runscript.command == NULL) {
-	 scan_err2(lc, _("%s item is required in %s resource, but not found.\n"),
-		   "command", "runscript");
+         scan_err2(lc, _("%s item is required in %s resource, but not found.\n"),
+                   "command", "runscript");
       }
 
       /* run on client by default */
       if (res_runscript.target == NULL) {
-	 res_runscript.set_target("%c");
+         res_runscript.set_target("%c");
       }
 
       RUNSCRIPT *script = new_runscript();

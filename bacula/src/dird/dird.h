@@ -25,6 +25,7 @@
 
  */
 
+#include "lib/runscript.h"
 #include "dird_conf.h"
 
 #define DIRECTOR_DAEMON 1
@@ -37,7 +38,6 @@
 #include "protos.h"
 
 #include "jobq.h"
-#include "lib/runscript.h"
 
 /* Globals that dird.c exports */
 extern DIRRES *director;                     /* Director resource */

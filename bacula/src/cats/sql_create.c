@@ -6,7 +6,7 @@
  *    Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -95,55 +95,6 @@ db_create_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    return ok;
 }
 
-/* Create a new migration, archive, copy
- * Returns: false on failure
- *          true  on success
- */
-bool
-db_create_mac_record(JCR *jcr, B_DB *mdb, MAC_DBR *mr)
-{
-   char schedt[MAX_TIME_LENGTH], sdt[MAX_TIME_LENGTH], edt[MAX_TIME_LENGTH];
-   time_t stime;
-   struct tm tm;
-   bool ok;
-   utime_t JobTDate;
-   char ed1[30], ed2[30];
-
-   db_lock(mdb);
-
-   stime = mr->SchedTime;
-   ASSERT(stime != 0);
-
-   localtime_r(&stime, &tm);
-   strftime(schedt, sizeof(schedt), "%Y-%m-%d %T", &tm);
-   JobTDate = (utime_t)stime;
-   localtime_r(&mr->StartTime, &tm);
-   strftime(sdt, sizeof(sdt), "%Y-%m-%d %T", &tm);
-   localtime_r(&mr->EndTime, &tm);
-   strftime(edt, sizeof(edt), "%Y-%m-%d %T", &tm);
-
-   /* Must create it */
-   Mmsg(mdb->cmd,
-"INSERT INTO MAC (OriginaJobId,JobType,JobLevel,SchedTime,"
-"StartTime,EndTime,JobTDate) VALUES "
-"('%s','%c','%c','%s','%s','%s',%s)",
-           edit_int64(mr->OriginalJobId, ed1),
-           (char)(mr->JobType), (char)(mr->JobLevel),
-           schedt, sdt, edt, edit_uint64(JobTDate, ed2));
-
-   if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
-      Mmsg2(&mdb->errmsg, _("Create DB MAC record %s failed. ERR=%s\n"),
-            mdb->cmd, sql_strerror(mdb));
-      mr->JobId = 0;
-      ok = false;
-   } else {
-      mr->JobId = sql_insert_id(mdb, NT_("Job"));
-      ok = true;
-   }
-   db_unlock(mdb);
-   return ok;
-}
-
 
 /* Create a JobMedia record for medium used this job
  * Returns: false on failure
@@ -167,15 +118,19 @@ db_create_jobmedia_record(JCR *jcr, B_DB *mdb, JOBMEDIA_DBR *jm)
    }
    count++;
 
+   /* Note, jm->Strip is not used and is not likely to be used
+    * in the near future, so I have removed it from the insert
+    * to save space in the DB. KES June 2006.
+    */
    Mmsg(mdb->cmd,
         "INSERT INTO JobMedia (JobId,MediaId,FirstIndex,LastIndex,"
-        "StartFile,EndFile,StartBlock,EndBlock,VolIndex,Copy,Stripe) "
-        "VALUES (%s,%s,%u,%u,%u,%u,%u,%u,%u,%u,%u)",
+        "StartFile,EndFile,StartBlock,EndBlock,VolIndex,Copy) "
+        "VALUES (%s,%s,%u,%u,%u,%u,%u,%u,%u,%u)",
         edit_int64(jm->JobId, ed1),
         edit_int64(jm->MediaId, ed2),
         jm->FirstIndex, jm->LastIndex,
         jm->StartFile, jm->EndFile, jm->StartBlock, jm->EndBlock,count,
-        jm->Copy, jm->Stripe);
+        jm->Copy);
 
    Dmsg0(300, mdb->cmd);
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
@@ -421,6 +376,7 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
    int stat;
    char ed1[50], ed2[50], ed3[50], ed4[50], ed5[50], ed6[50], ed7[50], ed8[50];
+   char ed9[50], ed10[50], ed11[50], ed12[50];
    struct tm tm;
 
    db_lock(mdb);
@@ -444,8 +400,10 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 "INSERT INTO Media (VolumeName,MediaType,MediaTypeId,PoolId,MaxVolBytes,"
 "VolCapacityBytes,Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,"
 "VolStatus,Slot,VolBytes,InChanger,VolReadTime,VolWriteTime,VolParts,"
-"EndFile,EndBlock,LabelType,StorageId,DeviceId,LocationId) "
-"VALUES ('%s','%s',0,%u,%s,%s,%d,%s,%s,%u,%u,'%s',%d,%s,%d,%s,%s,%d,0,0,%d,%s,0,0)",
+"EndFile,EndBlock,LabelType,StorageId,DeviceId,LocationId,"
+"ScratchPoolId,RecyclePoolId,Enabled)"
+"VALUES ('%s','%s',0,%u,%s,%s,%d,%s,%s,%u,%u,'%s',%d,%s,%d,%s,%s,%d,0,0,%d,%s,"
+"%s,%s,%s,%s,%d)",
           mr->VolumeName,
           mr->MediaType, mr->PoolId,
           edit_uint64(mr->MaxVolBytes,ed1),
@@ -463,7 +421,12 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
           edit_uint64(mr->VolWriteTime, ed7),
           mr->VolParts,
           mr->LabelType,
-          edit_int64(mr->StorageId, ed8) 
+          edit_int64(mr->StorageId, ed8), 
+          edit_int64(mr->DeviceId, ed9), 
+          edit_int64(mr->LocationId, ed10), 
+          edit_int64(mr->ScratchPoolId, ed11), 
+          edit_int64(mr->RecyclePoolId, ed12), 
+          mr->Enabled
           );
 
 
