@@ -98,7 +98,7 @@ RES_ITEM msgs_items[] = {
    {"director",    store_msgs, ITEM(res_msgs), MD_DIRECTOR, 0, 0},
    {"console",     store_msgs, ITEM(res_msgs), MD_CONSOLE,  0, 0},
    {"operator",    store_msgs, ITEM(res_msgs), MD_OPERATOR, 0, 0},
-   {NULL, NULL,    NULL,       0,              0}
+   {NULL,          NULL,       {0},       0, 0, 0}
 };
 
 struct s_mtypes {

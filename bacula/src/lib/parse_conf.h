@@ -17,6 +17,7 @@
  */
 
 struct RES_ITEM;                    /* Declare forward referenced structure */
+struct RES;                         /* Declare forware referenced structure */
 typedef void (MSG_RES_HANDLER)(LEX *lc, RES_ITEM *item, int index, int pass);
 
 /* This is the structure that defines
@@ -27,14 +28,25 @@ typedef void (MSG_RES_HANDLER)(LEX *lc, RES_ITEM *item, int index, int pass);
 struct RES_ITEM {
    const char *name;                  /* Resource name i.e. Director, ... */
    MSG_RES_HANDLER *handler;          /* Routine storing the resource item */
-   char **value;                      /* Where to store the item */
+   union {
+      char **value;                   /* Where to store the item */
+      char **charvalue;
+      uint32_t ui32value;
+      int32_t i32value;
+      uint64_t ui64value;
+      int64_t i64value;
+      bool boolvalue;
+      utime_t utimevalue;
+      RES *resvalue;
+      RES **presvalue;
+   };
    int  code;                         /* item code/additional info */
    int  flags;                        /* flags: default, required, ... */
    int  default_value;                /* default value */
 };
 
 /* For storing name_addr items in res_items table */
-#define ITEM(x) ((char **)&res_all.x)
+#define ITEM(x) {(char **)&res_all.x}
 
 #define MAX_RES_ITEMS 70              /* maximum resource items per RES */
 

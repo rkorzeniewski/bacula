@@ -60,6 +60,7 @@ CREATE TABLE job
     schedtime	      timestamp   without time zone not null,
     starttime	      timestamp   without time zone,
     endtime	      timestamp   without time zone,
+    realendtime       timestamp   without time zone,
     jobtdate	      bigint	  not null,
     volsessionid      integer	  not null default 0,
     volsessiontime    integer	  not null default 0,
@@ -71,26 +72,16 @@ CREATE TABLE job
     filesetid	      integer,
     purgedfiles       smallint	  not null default 0,
     hasbase	      smallint	  not null default 0,
+    priorjobid	      integer	  not null default 0,
     primary key (jobid)
 );
 
 CREATE INDEX job_name_idx on job (name);
 
-CREATE TABLE MAC (
-    JobId	      serial	  not null,
-    OriginalJobId     serial	  not null,
-    JobType	      char(1)	  not null,
-    JobLevel	      char(1)	  not null,
-    schedtime	      timestamp   without time zone not null,
-    starttime	      timestamp   without time zone,
-    endtime	      timestamp   without time zone,
-    jobtdate	      bigint	  not null,
-    primary key (jobid)
-);
-
 CREATE TABLE Location (
    LocationId	      serial	  not null,
    Location	      text	  not null,
+   Cost 	      integer	  not null default 0,
    primary key (LocationId)
 );
 
@@ -119,7 +110,6 @@ CREATE TABLE jobmedia
     endblock	      bigint	  not null default 0,
     volindex	      integer	  not null default 0,
     copy	      integer	  not null default 0,
-    stripe	      integer	  not null default 0,
     primary key (jobmediaid)
 );
 
@@ -150,6 +140,7 @@ CREATE TABLE media
 	check (volstatus in ('Full','Archive','Append',
 	      'Recycle','Purged','Read-Only','Disabled',
 	      'Error','Busy','Used','Cleaning','Scratch')),
+    enabled	      smallint	  not null default 1,
     recycle	      smallint	  not null default 0,
     volretention      bigint	  not null default 0,
     voluseduration    bigint	  not null default 0,

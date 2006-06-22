@@ -44,7 +44,6 @@ void db_end_transaction(JCR *jcr, B_DB *mdb);
 /* create.c */
 int db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
 bool db_create_job_record(JCR *jcr, B_DB *db, JOB_DBR *jr);
-bool db_create_mac_record(JCR *jcr, B_DB *db, MAC_DBR *mr);
 int db_create_media_record(JCR *jcr, B_DB *db, MEDIA_DBR *media_dbr);
 int db_create_client_record(JCR *jcr, B_DB *db, CLIENT_DBR *cr);
 bool db_create_fileset_record(JCR *jcr, B_DB *db, FILESET_DBR *fsr);
@@ -69,7 +68,6 @@ bool db_find_failed_job_since(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM *stime, 
 bool db_get_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pdbr);
 int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr);
 bool db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr);
-bool db_get_mac_record(JCR *jcr, B_DB *mdb, MAC_DBR *mr);
 int db_get_job_volume_names(JCR *jcr, B_DB *mdb, JobId_t JobId, POOLMEM **VolumeNames);
 int db_get_file_attributes_record(JCR *jcr, B_DB *mdb, char *fname, JOB_DBR *jr, FILE_DBR *fdbr);
 int db_get_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr);

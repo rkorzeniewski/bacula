@@ -311,47 +311,6 @@ bool db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 }
 
 /*
- * Get MAC record for given JobId
- * Returns: false on failure
- *          true  on success
- */
-bool db_get_mac_record(JCR *jcr, B_DB *mdb, MAC_DBR *mr)
-{
-   SQL_ROW row;
-   char ed1[50];
-
-   db_lock(mdb);
-   Mmsg(mdb->cmd, "SELECT OriginalJobId,JobType,JobLevel,"
-"SchedTime,StartTime,EndTime,JobTDate"
-"FROM MAC WHERE JobId=%s", 
-      edit_int64(mr->JobId, ed1));
-
-   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
-      db_unlock(mdb);
-      return 0;                       /* failed */
-   }
-   if ((row = sql_fetch_row(mdb)) == NULL) {
-      Mmsg1(mdb->errmsg, _("No MAC record found for JobId %s\n"), ed1);
-      sql_free_result(mdb);
-      db_unlock(mdb);
-      return false;                   /* failed */
-   }
-
-   mr->OriginalJobId = str_to_int64(row[0]);
-   mr->JobType = (int)*row[1];
-   mr->JobLevel = (int)*row[2];
-   bstrncpy(mr->cSchedTime, row[3]!=NULL?row[3]:"", sizeof(mr->cSchedTime));
-   bstrncpy(mr->cStartTime, row[4]!=NULL?row[4]:"", sizeof(mr->cStartTime));
-   bstrncpy(mr->cEndTime, row[5]!=NULL?row[5]:"", sizeof(mr->cEndTime));
-   mr->JobTDate = str_to_int64(row[6]);
-   sql_free_result(mdb);
-
-   db_unlock(mdb);
-   return 1;
-}
-
-
-/*
  * Find VolumeNames for a given JobId
  *  Returns: 0 on error or no Volumes found
  *           number of volumes on success
@@ -427,7 +386,7 @@ int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, JobId_t JobId, VOL_PARAMS 
    db_lock(mdb);
    Mmsg(mdb->cmd,
 "SELECT VolumeName,MediaType,FirstIndex,LastIndex,StartFile,"
-"JobMedia.EndFile,StartBlock,JobMedia.EndBlock,Copy,Stripe,"
+"JobMedia.EndFile,StartBlock,JobMedia.EndBlock,Copy,"
 "Slot,StorageId"
 " FROM JobMedia,Media WHERE JobMedia.JobId=%s"
 " AND JobMedia.MediaId=Media.MediaId ORDER BY VolIndex,JobMediaId",
@@ -464,9 +423,8 @@ int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, JobId_t JobId, VOL_PARAMS 
                Vols[i].StartBlock = str_to_uint64(row[6]);
                Vols[i].EndBlock = str_to_uint64(row[7]);
 //             Vols[i].Copy = str_to_uint64(row[8]);
-//             Vols[i].Stripe = str_to_uint64(row[9]);
-               Vols[i].Slot = str_to_uint64(row[10]);
-               StorageId = str_to_uint64(row[11]);
+               Vols[i].Slot = str_to_uint64(row[9]);
+               StorageId = str_to_uint64(row[10]);
                Vols[i].Storage[0] = 0;
                SId[i] = StorageId;
             }

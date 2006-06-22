@@ -195,13 +195,13 @@ void db_list_jobmedia_records(JCR *jcr, B_DB *mdb, uint32_t JobId,
       if (JobId > 0) {                   /* do by JobId */
          Mmsg(mdb->cmd, "SELECT JobMediaId,JobId,Media.MediaId,Media.VolumeName,"
             "FirstIndex,LastIndex,StartFile,JobMedia.EndFile,StartBlock,"
-            "JobMedia.EndBlock,Copy,Stripe "
+            "JobMedia.EndBlock,Copy "
             "FROM JobMedia,Media WHERE Media.MediaId=JobMedia.MediaId "
             "AND JobMedia.JobId=%s", edit_int64(JobId, ed1));
       } else {
          Mmsg(mdb->cmd, "SELECT JobMediaId,JobId,Media.MediaId,Media.VolumeName,"
             "FirstIndex,LastIndex,StartFile,JobMedia.EndFile,StartBlock,"
-            "JobMedia.EndBlock,Copy,Stripe "
+            "JobMedia.EndBlock,Copy "
             "FROM JobMedia,Media WHERE Media.MediaId=JobMedia.MediaId");
       }
 

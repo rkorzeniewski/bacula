@@ -9,7 +9,7 @@
  *
  */
 /*
-   Copyright (C) 2002-2005 Kern Sibbald
+   Copyright (C) 2002-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -25,6 +25,7 @@
 
 #include "bacula.h"
 #include "cats/cats.h"
+#include "lib/runscript.h"
 #include "dird/dird_conf.h"
 
 /* Dummy functions */

@@ -7,7 +7,7 @@
  */
 
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -22,4 +22,6 @@
  */
 
 /* Maximum size of len bytes after base64 encoding */
-#define BASE64_SIZE(len) (((len + 3 - (len % 3)) / 3) * 4)
+#define BASE64_SIZE(len) ((4 * len + 2) / 3 + 1)
+
+// #define BASE64_SIZE(len) (((len + 3 - (len % 3)) / 3) * 4)

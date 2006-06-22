@@ -2,6 +2,26 @@
                         Kern Sibbald
 
 General:
+22Jun06
+- Update some very old licenses in src/cats.
+- Modify the database format for handling Migration jobs:
+   Add PriorJobId, RealEndTime to Job table
+   Delete MAC table
+   Remove Stripe from JobMedia record (not used, wasting space)
+   Add ScratchPoolId, RecyclePoolId, Enabled to Media record
+   Add Cost to Location table.
+- Delete mac_record subroutines.
+- Add new table values to create/update/get routines as appropriate.
+- Update the update_tables and make_tables scripts.
+- Make a first cut in using a union where multiple pointers (actually
+  pointers to pointers) are stored.
+- Make some changes to base64.c suggested by Robert and others and add
+  a small amount of documentation.
+- Add some changes suggested by Peter for Solaris (bregex...)
+- Make runscript.h always built because it needs to be pulled into
+  more places.  In particular its RES was left out of a union.
+- Renumber the enum{} list in runscript.h to avoid starting from zero.
+  This makes it slightly easier to detect uninitialized variables.
 14Jun06
 - Remove xpg4 lib from FreeBSD build as it is no longer needed and
   sometimes creates install problems.
