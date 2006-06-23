@@ -3,7 +3,7 @@
 #  Test if Bacula can automatically create a Volume label.
 #
 
-debug=0
+debug=1
 if test "$debug" -eq 1 ; then
   out="tee"
 else
