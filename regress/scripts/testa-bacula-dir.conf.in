@@ -133,7 +133,6 @@ Pool {
   Recycle = yes                       # Bacula can automatically recycle Volumes
   AutoPrune = yes                     # Prune expired volumes
   Volume Retention = 365d             # one year
-  Accept Any Volume = yes             # write on any volume in the pool
 }
 
 Pool {
@@ -142,7 +141,6 @@ Pool {
   Recycle = yes                       # Bacula can automatically recycle Volumes
   AutoPrune = yes                     # Prune expired volumes
   Volume Retention = 365d             # one year
-  Accept Any Volume = yes             # write on any volume in the pool
   Maximum Volumes = 10
   MaximumVolumeBytes = 10M
   LabelFormat = Small
