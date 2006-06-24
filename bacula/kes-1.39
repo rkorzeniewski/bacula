@@ -3,6 +3,8 @@
 
 General:
 24Jun06
+- Harden authentication failure in FD by single threading errors
+  and forcing a 6 second wait.
 - ========= Remove Accept Any Volume ========= directive.
 - Major cleanup and simplification of regress using shell functions
   (more tests to be converted to new format)   
