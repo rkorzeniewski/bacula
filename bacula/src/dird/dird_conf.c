@@ -332,7 +332,6 @@ static RES_ITEM pool_items[] = {
    {"maximumvolumejobs", store_pint,  ITEM(res_pool.MaxVolJobs),    0, 0,       0},
    {"maximumvolumefiles", store_pint, ITEM(res_pool.MaxVolFiles),   0, 0,       0},
    {"maximumvolumebytes", store_size, ITEM(res_pool.MaxVolBytes),   0, 0,       0},
-   {"acceptanyvolume", store_bool,    ITEM(res_pool.accept_any_volume), 0, ITEM_DEFAULT, true},
    {"catalogfiles",    store_bool,    ITEM(res_pool.catalog_files),  0, ITEM_DEFAULT, true},
    {"volumeretention", store_time,    ITEM(res_pool.VolRetention),   0, ITEM_DEFAULT, 60*60*24*365},
    {"volumeuseduration", store_time,  ITEM(res_pool.VolUseDuration), 0, 0, 0},
@@ -799,9 +798,9 @@ next_run:
    case R_POOL:
       sendit(sock, _("Pool: name=%s PoolType=%s\n"), res->res_pool.hdr.name,
               res->res_pool.pool_type);
-      sendit(sock, _("      use_cat=%d use_once=%d acpt_any=%d cat_files=%d\n"),
+      sendit(sock, _("      use_cat=%d use_once=%d cat_files=%d\n"),
               res->res_pool.use_catalog, res->res_pool.use_volume_once,
-              res->res_pool.accept_any_volume, res->res_pool.catalog_files);
+              res->res_pool.catalog_files);
       sendit(sock, _("      max_vols=%d auto_prune=%d VolRetention=%s\n"),
               res->res_pool.max_volumes, res->res_pool.AutoPrune,
               edit_utime(res->res_pool.VolRetention, ed1, sizeof(ed1)));

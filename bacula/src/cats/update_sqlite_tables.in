@@ -222,7 +222,7 @@ CREATE TABLE Location (
  
 
 DELETE FROM Version;
-INSERT INTO Version (VersionId) VALUES (9);
+INSERT INTO Version (VersionId) VALUES (10);
 
 COMMIT;
 

@@ -148,27 +148,29 @@ db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr,
          Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,Slot,PoolId,"
             "MediaType,FirstWritten,LastWritten,LabelDate,VolJobs,"
             "VolFiles,VolBlocks,VolMounts,VolBytes,VolErrors,VolWrites,"
-            "VolCapacityBytes,VolStatus,Recycle,VolRetention,"
+            "VolCapacityBytes,VolStatus,Enabled,Recycle,VolRetention,"
             "VolUseDuration,MaxVolJobs,MaxVolFiles,MaxVolBytes,InChanger,"
-            "EndFile,EndBlock,VolParts,LabelType,StorageId"
+            "EndFile,EndBlock,VolParts,LabelType,StorageId,DeviceId,"
+            "LocationId,RecycleCount,InitialWrite,ScratchPoolId,RecyclePoolId"
             " FROM Media WHERE Media.VolumeName='%s'", mdbr->VolumeName);
       } else {
          Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,Slot,PoolId,"
             "MediaType,FirstWritten,LastWritten,LabelDate,VolJobs,"
             "VolFiles,VolBlocks,VolMounts,VolBytes,VolErrors,VolWrites,"
-            "VolCapacityBytes,VolStatus,Recycle,VolRetention,"
+            "VolCapacityBytes,VolStatus,Enabled,Recycle,VolRetention,"
             "VolUseDuration,MaxVolJobs,MaxVolFiles,MaxVolBytes,InChanger,"
-            "EndFile,EndBlock,VolParts,LabelType,StorageId"
+            "EndFile,EndBlock,VolParts,LabelType,StorageId,DeviceId,"
+            "LocationId,RecycleCount,InitialWrite,ScratchPoolId,RecyclePoolId"
             " FROM Media WHERE Media.PoolId=%s ORDER BY MediaId", 
             edit_int64(mdbr->PoolId, ed1));
       }
    } else {
       if (mdbr->VolumeName[0] != 0) {
-         Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolStatus,"
+         Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolStatus,Enabled,"
             "VolBytes,VolFiles,VolRetention,Recycle,Slot,InChanger,MediaType,LastWritten "
             "FROM Media WHERE Media.VolumeName='%s'", mdbr->VolumeName);
       } else {
-         Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolStatus,"
+         Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolStatus,Enabled,"
             "VolBytes,VolFiles,VolRetention,Recycle,Slot,InChanger,MediaType,LastWritten "
             "FROM Media WHERE Media.PoolId=%s ORDER BY MediaId", 
             edit_int64(mdbr->PoolId, ed1));

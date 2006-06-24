@@ -274,7 +274,7 @@ bool db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
     } else {
       Mmsg(mdb->cmd, "SELECT VolSessionId,VolSessionTime,"
 "PoolId,StartTime,EndTime,JobFiles,JobBytes,JobTDate,Job,JobStatus,"
-"Type,Level,ClientId,Name "
+"Type,Level,ClientId,Name,PriorJobId,RealEndTime "
 "FROM Job WHERE JobId=%s", 
           edit_int64(jr->JobId, ed1));
     }
@@ -304,6 +304,8 @@ bool db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    jr->JobLevel = (int)*row[11];
    jr->ClientId = str_to_uint64(row[12]!=NULL?row[12]:(char *)"");
    bstrncpy(jr->Name, row[13]!=NULL?row[13]:"", sizeof(jr->Name));
+   jr->PriorJobId = str_to_uint64(row[14]!=NULL?row[14]:(char *)"");
+   bstrncpy(jr->cRealEndTime, row[15]!=NULL?row[15]:"", sizeof(jr->cRealEndTime));
    sql_free_result(mdb);
 
    db_unlock(mdb);
@@ -860,7 +862,9 @@ bool db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
          "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
          "MediaType,VolStatus,PoolId,VolRetention,VolUseDuration,MaxVolJobs,"
          "MaxVolFiles,Recycle,Slot,FirstWritten,LastWritten,InChanger,"
-         "EndFile,EndBlock,VolParts,LabelType,LabelDate,StorageId "
+         "EndFile,EndBlock,VolParts,LabelType,LabelDate,StorageId,"
+         "Enabled,LocationId,RecycleCount,InitialWrite,"
+         "ScratchPoolId,RecyclePoolId "
          "FROM Media WHERE MediaId=%s", 
          edit_int64(mr->MediaId, ed1));
    } else {                           /* find by name */
@@ -868,7 +872,9 @@ bool db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
          "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
          "MediaType,VolStatus,PoolId,VolRetention,VolUseDuration,MaxVolJobs,"
          "MaxVolFiles,Recycle,Slot,FirstWritten,LastWritten,InChanger,"
-         "EndFile,EndBlock,VolParts,LabelType,LabelDate,StorageId "
+         "EndFile,EndBlock,VolParts,LabelType,LabelDate,StorageId,"
+         "Enabled,LocationId,RecycleCount,InitialWrite,"
+         "ScratchPoolId,RecyclePoolId "
          "FROM Media WHERE VolumeName='%s'", mr->VolumeName);
    }
 
@@ -917,6 +923,14 @@ bool db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
             bstrncpy(mr->cLabelDate, row[27]!=NULL?row[27]:"", sizeof(mr->cLabelDate));
             mr->LabelDate = (time_t)str_to_utime(mr->cLabelDate);
             mr->StorageId = str_to_int64(row[28]);
+            mr->Enabled = str_to_int64(row[29]);
+            mr->LocationId = str_to_int64(row[30]);
+            mr->RecycleCount = str_to_int64(row[31]);
+            bstrncpy(mr->cInitialWrite, row[32]!=NULL?row[32]:"", sizeof(mr->cInitialWrite));
+            mr->InitialWrite = (time_t)str_to_utime(mr->cInitialWrite);
+            mr->ScratchPoolId = str_to_int64(row[33]);
+            mr->RecyclePoolId = str_to_int64(row[34]);
+            
             ok = true;
          }
       } else {

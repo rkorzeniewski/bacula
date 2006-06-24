@@ -42,6 +42,17 @@ For 1.39:
   Volume marked as purged.
 - Print warning message if LANG environment variable does not specify
   UTF-8.
+- New dot commands from Arno.
+  .update volume [enabled|disabled|*see below]
+  .show device=xxx lists information from one storage device, including 
+     devices (I'm not even sure that information exists in the DIR...)
+  .move eject device=xxx mostly the same as 'unmount xxx' but perhaps with 
+     better machine-readable output like "Ok" or "Error busy"
+  .move eject device=xxx toslot=yyy the same as above, but with a new 
+     target slot. The catalog should be updated accordingly.
+  .move transfer device=xxx fromslot=yyy toslot=zzz
+
+
 === Migration from David ===
 What I'd like to see: 
 

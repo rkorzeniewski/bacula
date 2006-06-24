@@ -134,7 +134,7 @@ else
         BA_CONDITIONAL(HAVE_SGI_OS, $FALSEPRG)
 fi
 
-if test $HAVE_UNAME=yes -a x`uname -s` = xIRIX
+if test $HAVE_UNAME=yes -a x`uname -s` = xIRIX -o x`uname -s` = xIRIX64
 then
         BA_CONDITIONAL(HAVE_IRIX_OS, $TRUEPRG)
         AC_DEFINE(HAVE_IRIX_OS)

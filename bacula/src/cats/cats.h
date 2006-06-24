@@ -67,7 +67,7 @@ typedef int (DB_RESULT_HANDLER)(void *, int, char **);
 
 #ifdef HAVE_SQLITE
 
-#define BDB_VERSION 9
+#define BDB_VERSION 10
 
 #include <sqlite.h>
 
@@ -175,7 +175,7 @@ SQL_FIELD *my_sqlite_fetch_field(B_DB *mdb);
 #ifdef HAVE_SQLITE3
 
 
-#define BDB_VERSION 9
+#define BDB_VERSION 10
 
 #include <sqlite3.h>
 
@@ -290,7 +290,7 @@ SQL_FIELD *my_sqlite_fetch_field(B_DB *mdb);
 
 #ifdef HAVE_MYSQL
 
-#define BDB_VERSION 9
+#define BDB_VERSION 10
 
 #include <mysql.h>
 
@@ -355,7 +355,7 @@ struct B_DB {
 
 #ifdef HAVE_POSTGRESQL
 
-#define BDB_VERSION 9
+#define BDB_VERSION 10
 
 #include <libpq-fe.h>
 
@@ -564,6 +564,7 @@ struct JOB_DBR {
    char cSchedTime[MAX_TIME_LENGTH];
    char cStartTime[MAX_TIME_LENGTH];
    char cEndTime[MAX_TIME_LENGTH];
+   char cRealEndTime[MAX_TIME_LENGTH];
    /* Extra stuff not in DB */
    int limit;                         /* limit records to display */
    faddr_t rec_addr;
@@ -703,9 +704,10 @@ struct MEDIA_DBR {
    char VolumeName[MAX_NAME_LENGTH];  /* Volume name */
    char MediaType[MAX_NAME_LENGTH];   /* Media type */
    DBId_t PoolId;                     /* Pool id */
-   time_t   FirstWritten;             /* Time Volume first written */
+   time_t   FirstWritten;             /* Time Volume first written this usage */
    time_t   LastWritten;              /* Time Volume last written */
    time_t   LabelDate;                /* Date/Time Volume labeled */
+   time_t   InitialWrite;             /* Date/Time Volume first written */
    int32_t  LabelType;                /* Label (Bacula/ANSI/IBM) */
    uint32_t VolJobs;                  /* number of jobs on this medium */
    uint32_t VolFiles;                 /* Number of files */
@@ -726,16 +728,17 @@ struct MEDIA_DBR {
    uint32_t MaxVolFiles;              /* Max files on Volume */
    int32_t  Recycle;                  /* recycle yes/no */
    int32_t  Slot;                     /* slot in changer */
+   int32_t  Enabled;                  /* 0=disabled, 1=enabled, 2=archived */
    int32_t  InChanger;                /* Volume currently in changer */
    DBId_t   StorageId;                /* Storage record Id */
    uint32_t EndFile;                  /* Last file on volume */
    uint32_t EndBlock;                 /* Last block on volume */
+   uint32_t RecycleCount;             /* Number of times recycled */
    char     VolStatus[20];            /* Volume status */
    DBId_t   DeviceId;                 /* Device where Vol last written */
    DBId_t   LocationId;               /* Where Volume is -- user defined */
    DBId_t   ScratchPoolId;            /* Where to move if scratch */
    DBId_t   RecyclePoolId;            /* Where to move when recycled */
-   int32_t  Enabled;                  /* disabled=0, enabled=1, archived=2 */
    /* Extra stuff not in DB */
    faddr_t rec_addr;                  /* found record address */
    /* Since the database returns times as strings, this is how we pass
@@ -744,6 +747,7 @@ struct MEDIA_DBR {
    char    cFirstWritten[MAX_TIME_LENGTH]; /* FirstWritten returned from DB */
    char    cLastWritten[MAX_TIME_LENGTH];  /* LastWritten returned from DB */
    char    cLabelDate[MAX_TIME_LENGTH];    /* LabelData returned from DB */
+   char    cInitialWrite[MAX_TIME_LENGTH]; /* InitialWrite returned from DB */
    bool    set_first_written;                
    bool    set_label_date;
 };

@@ -470,15 +470,20 @@ bail_out:
 /*
  * Prune a given Volume
  */
-int prune_volume(UAContext *ua, MEDIA_DBR *mr)
+bool prune_volume(UAContext *ua, MEDIA_DBR *mr)
 {
    POOLMEM *query = get_pool_memory(PM_MESSAGE);
    struct s_count_ctx cnt;
    struct s_file_del_ctx del;
-   int i, stat = 0;
+   int i;          
+   bool ok = false;
    JOB_DBR jr;
    utime_t now, period;
    char ed1[50];
+
+   if (mr->Enabled == 2) {
+      return false;                   /* Cannot prune archived volumes */
+   }
 
    db_lock(ua->db);
    memset(&jr, 0, sizeof(jr));
@@ -501,7 +506,7 @@ int prune_volume(UAContext *ua, MEDIA_DBR *mr)
       if (strcmp(mr->VolStatus, "Append") == 0 && verbose) {
          bsendmsg(ua, _("There are no Jobs associated with Volume \"%s\". Prune not needed.\n"),
             mr->VolumeName);
-         stat = 1;
+         ok = true;
          goto bail_out;
       }
       /* If volume not already purged, do so */
@@ -509,7 +514,7 @@ int prune_volume(UAContext *ua, MEDIA_DBR *mr)
          bsendmsg(ua, _("There are no Jobs associated with Volume \"%s\". Marking it purged.\n"),
             mr->VolumeName);
       }
-      stat = mark_media_purged(ua, mr);
+      ok = mark_media_purged(ua, mr);
       goto bail_out;
    }
 
@@ -583,11 +588,11 @@ int prune_volume(UAContext *ua, MEDIA_DBR *mr)
    }
    if (cnt.count == 0) {
       Dmsg0(200, "Volume is purged.\n");
-      stat = mark_media_purged(ua, mr);
+      ok = mark_media_purged(ua, mr);
    }
 
 bail_out:
    db_unlock(ua->db);
    free_pool_memory(query);
-   return stat;
+   return ok;
 }

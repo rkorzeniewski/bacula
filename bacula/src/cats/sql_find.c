@@ -277,7 +277,7 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
           "FirstWritten,LastWritten,VolStatus,InChanger,VolParts,"
           "LabelType "
           "FROM Media WHERE PoolId=%s AND MediaType='%s' AND VolStatus IN ('Full',"
-          "'Recycle','Purged','Used','Append') "
+          "'Recycle','Purged','Used','Append') AND Enabled=1 "
           "ORDER BY LastWritten LIMIT 1", 
           edit_int64(mr->PoolId, ed1), mr->MediaType);
      item = 1;
@@ -301,12 +301,14 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
           "VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
           "FirstWritten,LastWritten,VolStatus,InChanger,VolParts,"
           "LabelType "
-          "FROM Media WHERE PoolId=%s AND MediaType='%s' AND VolStatus='%s' "
+          "FROM Media WHERE PoolId=%s AND MediaType='%s' AND Enabled=1 "
+          "AND VolStatus='%s' "
           "%s "
           "%s LIMIT %d",
           edit_int64(mr->PoolId, ed1), mr->MediaType,
           mr->VolStatus, changer, order, item);
    }
+   Dmsg1(100, "fnextvol=%s\n", mdb->cmd);
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);
       return 0;
@@ -361,6 +363,7 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
    mr->InChanger = str_to_int64(row[20]);
    mr->VolParts = str_to_int64(row[21]);
    mr->LabelType = str_to_int64(row[22]);
+   mr->Enabled = 1;   /* ensured via query */
    sql_free_result(mdb);
 
    db_unlock(mdb);

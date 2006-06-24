@@ -35,8 +35,6 @@ UPDATE job SET PriorJobId=0;
 
 ALTER TABLE jobmedia DROP COLUMN Stripe;
 
-
-
 CREATE TABLE Location (
    LocationId SERIAL NOT NULL,
    Location TEXT NOT NULL,
@@ -45,7 +43,8 @@ CREATE TABLE Location (
 );
 
 
-INSERT INTO version (versionId) VALUES (9);
+DELETE FROM version;
+INSERT INTO version (versionId) VALUES (10);
 
 vacuum;
 

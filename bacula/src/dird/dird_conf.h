@@ -429,7 +429,6 @@ public:
    bool  use_catalog;                 /* maintain catalog for media */
    bool  catalog_files;               /* maintain file entries in catalog */
    bool  use_volume_once;             /* write on volume only once */
-   bool  accept_any_volume;           /* accept any volume */
    bool  purge_oldest_volume;         /* purge oldest volume */
    bool  recycle_oldest_volume;       /* attempt to recycle oldest volume */
    bool  recycle_current_volume;      /* attempt recycle of current volume */

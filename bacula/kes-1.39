@@ -2,6 +2,18 @@
                         Kern Sibbald
 
 General:
+24Jun06
+- ========= Remove Accept Any Volume ========= directive.
+- Major cleanup and simplification of regress using shell functions
+  (more tests to be converted to new format)   
+- Add detection of 64 bit Irix as indicated by user.
+- Increment catalog database id from 9 to 10.
+- Add a few of the new database fields to the various C++
+  structures.
+- Implement code to fill in the most important new fields (e.g.
+  Media Enable).
+- Ensure that most of the new fields are in create/get/insert/update.
+  More work to be done.
 22Jun06
 - Update some very old licenses in src/cats.
 - Modify the database format for handling Migration jobs:

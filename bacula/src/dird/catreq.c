@@ -221,6 +221,9 @@ void catalog_request(JCR *jcr, BSOCK *bs)
       if (label || mr.LabelDate == 0) {
          mr.LabelDate = jcr->start_time;
          mr.set_label_date = true;
+         if (mr.InitialWrite == 0) {
+            mr.InitialWrite = jcr->start_time;
+         }
          Dmsg2(400, "label=%d labeldate=%d\n", label, mr.LabelDate);
       } else {
          /*

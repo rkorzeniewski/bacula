@@ -186,6 +186,7 @@ void set_pool_dbr_defaults_in_media_dbr(MEDIA_DBR *mr, POOL_DBR *pr)
    mr->MaxVolFiles = pr->MaxVolFiles;
    mr->MaxVolBytes = pr->MaxVolBytes;
    mr->LabelType = pr->LabelType;
+   mr->Enabled = 1;
 }
 
 
@@ -316,6 +317,7 @@ getVolName:
       mr.Slot = Slot++;
       mr.InChanger = InChanger;
       mr.StorageId = store->StorageId;
+      mr.Enabled = 1;
       Dmsg1(200, "Create Volume %s\n", mr.VolumeName);
       if (!db_create_media_record(ua->jcr, ua->db, &mr)) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
@@ -483,7 +485,6 @@ void set_pooldbr_from_poolres(POOL_DBR *pr, POOL *pool, e_pool_op op)
    pr->LabelType = pool->LabelType;
    pr->UseOnce = pool->use_volume_once;
    pr->UseCatalog = pool->use_catalog;
-   pr->AcceptAnyVolume = pool->accept_any_volume;
    pr->Recycle = pool->Recycle;
    pr->VolRetention = pool->VolRetention;
    pr->VolUseDuration = pool->VolUseDuration;
