@@ -115,7 +115,7 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
       }
 
       /* Allocate buffer */
-      jcr->pki_session_encoded = malloc(size);
+      jcr->pki_session_encoded = (uint8_t *)malloc(size);
       if (!jcr->pki_session_encoded) {
          return 0;
       }
@@ -491,7 +491,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
    if (signing_digest) {
       SIGNATURE *sig;
       size_t size = 0;
-      void *buf;
+      uint8_t *buf;
 
       if ((sig = crypto_sign_new()) == NULL) {
          Jmsg(jcr, M_FATAL, 0, _("Failed to allocate memory for stream signature.\n"));
@@ -510,7 +510,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       }
 
       /* Allocate signature data buffer */
-      buf = malloc(size);
+      buf = (uint8_t *)malloc(size);
       if (!buf) {
          crypto_sign_free(sig);
          return 0;
@@ -544,12 +544,12 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
 
    /* Terminate any digest and send it to Storage daemon and the Director */
    if (digest) {
-      char md[CRYPTO_DIGEST_MAX_SIZE];
+      uint8_t md[CRYPTO_DIGEST_MAX_SIZE];
       size_t size;
 
       size = sizeof(md);
 
-      if (crypto_digest_finalize(digest, &md, &size)) {
+      if (crypto_digest_finalize(digest, md, &size)) {
          bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, digest_stream);
          Dmsg1(300, "bfiled>stored:header %s\n", sd->msg);
          memcpy(sd->msg, md, size);
@@ -714,12 +714,12 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
 
       /* Update checksum if requested */
       if (digest) {
-         crypto_digest_update(digest, rbuf, sd->msglen);
+         crypto_digest_update(digest, (uint8_t *)rbuf, sd->msglen);
       }
 
       /* Update signing digest if requested */
       if (signing_digest) {
-         crypto_digest_update(signing_digest, rbuf, sd->msglen);
+         crypto_digest_update(signing_digest, (uint8_t *)rbuf, sd->msglen);
       }
 
 #ifdef HAVE_LIBZ

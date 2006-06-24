@@ -3,6 +3,8 @@
 
 General:
 24Jun06
+- Eliminate crypto type punning problems by eliminating void * and
+  using uint8_t * instead.
 - Harden authentication failure in FD by single threading errors
   and forcing a 6 second wait.
 - ========= Remove Accept Any Volume ========= directive.
