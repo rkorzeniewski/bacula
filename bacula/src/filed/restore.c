@@ -7,7 +7,7 @@
  *
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -28,12 +28,21 @@
 #include <sys/attr.h>
 #endif
 
+#if defined(HAVE_CRYPTO)
+const bool have_crypto = true;
+#else
+const bool have_crypto = false;
+#endif
+
 /* Data received from Storage Daemon */
 static char rec_header[] = "rechdr %ld %ld %ld %ld %ld";
 
 /* Forward referenced functions */
-#ifdef HAVE_LIBZ
+#if   defined(HAVE_LIBZ)
 static const char *zlib_strerror(int stat);
+const bool have_libz = true;
+#else
+const bool have_libz = false;
 #endif
 
 int verify_signature(JCR *jcr, SIGNATURE *sig);
@@ -151,15 +160,15 @@ void do_restore(JCR *jcr)
    }
 #endif
 
-#ifdef HAVE_LIBZ
-   uint32_t compress_buf_size = jcr->buf_size + 12 + ((jcr->buf_size+999) / 1000) + 100;
-   jcr->compress_buf = (char *)bmalloc(compress_buf_size);
-   jcr->compress_buf_size = compress_buf_size;
-#endif
+   if (have_libz) {
+      uint32_t compress_buf_size = jcr->buf_size + 12 + ((jcr->buf_size+999) / 1000) + 100;
+      jcr->compress_buf = (char *)bmalloc(compress_buf_size);
+      jcr->compress_buf_size = compress_buf_size;
+   }
 
-#ifdef HAVE_CRYPTO
-   jcr->crypto_buf = get_memory(CRYPTO_CIPHER_MAX_BLOCK_SIZE);
-#endif
+   if (have_crypto) {
+      jcr->crypto_buf = get_memory(CRYPTO_CIPHER_MAX_BLOCK_SIZE);
+   }
    
    /*
     * Get a record from the Storage daemon. We are guaranteed to
@@ -628,7 +637,6 @@ ok_out:
 
 }
 
-#ifdef HAVE_LIBZ
 /*
  * Convert ZLIB error code into an ASCII message
  */
@@ -654,10 +662,10 @@ static const char *zlib_strerror(int stat)
       return _("*none*");
    }
 }
-#endif
 
-static int do_file_digest(FF_PKT *ff_pkt, void *pkt, bool top_level) {
-   JCR *jcr = (JCR *) pkt;
+static int do_file_digest(FF_PKT *ff_pkt, void *pkt, bool top_level) 
+{
+   JCR *jcr = (JCR *)pkt;
    return (digest_file(jcr, ff_pkt, jcr->digest));
 }
 
@@ -734,9 +742,9 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
    uint32_t wsize;                    /* write size */
    uint32_t rsize;                    /* read size */
    char ec1[50];                      /* Buffer printing huge values */
-   const void *cipher_input;          /* Decryption input */
-   size_t cipher_input_len;           /* Decryption input length */
-   size_t decrypted_len = 0;          /* Decryption output length */
+   const uint8_t *cipher_input;       /* Decryption input */
+   uint32_t cipher_input_len;         /* Decryption input length */
+   uint32_t decrypted_len = 0;        /* Decryption output length */
 
    if (flags & FO_SPARSE) {
       ser_declare;
@@ -761,8 +769,8 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
       rsize = buflen;
    }
    wsize = rsize;
-   cipher_input = wbuf;
-   cipher_input_len = wsize;
+   cipher_input = (uint8_t *)wbuf;
+   cipher_input_len = (uint32_t)wsize;
 
    if (flags & FO_GZIP) {
 #ifdef HAVE_LIBZ
@@ -782,7 +790,7 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
       }
       wbuf = jcr->compress_buf;
       wsize = compress_len;
-      cipher_input = jcr->compress_buf; /* decrypt decompressed data */
+      cipher_input = (uint8_t *)jcr->compress_buf; /* decrypt decompressed data */
       cipher_input_len = compress_len;
       Dmsg2(100, "Write uncompressed %d bytes, total before write=%s\n", compress_len, edit_uint64(jcr->JobBytes, ec1));
 #else
@@ -805,7 +813,7 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
 
 
       /* Encrypt the input block */
-      if (!crypto_cipher_update(cipher, cipher_input, cipher_input_len, jcr->crypto_buf, &decrypted_len)) {
+      if (!crypto_cipher_update(cipher, cipher_input, cipher_input_len, (uint8_t *)jcr->crypto_buf, &decrypted_len)) {
          /* Decryption failed. Shouldn't happen. */
          Jmsg(jcr, M_FATAL, 0, _("Decryption error\n"));
          return -1;
@@ -863,7 +871,7 @@ bool flush_cipher(JCR *jcr, BFILE *bfd, int flags, CIPHER_CONTEXT *cipher, size_
    /* Write out the remaining block and free the cipher context */
    jcr->crypto_buf = check_pool_memory_size(jcr->crypto_buf, cipher_block_size);
 
-   if (!crypto_cipher_finalize(cipher, jcr->crypto_buf, &decrypted_len)) {
+   if (!crypto_cipher_finalize(cipher, (uint8_t *)jcr->crypto_buf, &decrypted_len)) {
       /* Writing out the final, buffered block failed. Shouldn't happen. */
       Jmsg1(jcr, M_FATAL, 0, _("Decryption error for %s\n"), jcr->last_fname);
    }
