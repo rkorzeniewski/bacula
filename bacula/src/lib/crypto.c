@@ -626,7 +626,8 @@ err:
  * Returns: true on success
  *          false on failure
  */
-bool crypto_digest_update (DIGEST *digest, const uint8_t *data, uint32_t length) {
+bool crypto_digest_update(DIGEST *digest, const uint8_t *data, uint32_t length)
+{
    if (EVP_DigestUpdate(&digest->ctx, data, length) == 0) {
       return true;
    } else { 
@@ -1296,8 +1297,9 @@ err:
  * Returns: true on success, number of bytes output in written
  *          false on failure
  */
-bool crypto_cipher_update (CIPHER_CONTEXT *cipher_ctx, const void *data, size_t length, const void *dest, size_t *written) {
-   if (!EVP_CipherUpdate(&cipher_ctx->ctx, (unsigned char *) dest, (int *) written, (const unsigned char *) data, length)) {
+bool crypto_cipher_update(CIPHER_CONTEXT *cipher_ctx, const uint8_t *data, uint32_t length, const uint8_t *dest, uint32_t *written)
+{
+   if (!EVP_CipherUpdate(&cipher_ctx->ctx, (unsigned char *)dest, (int *)written, (const unsigned char *)data, length)) {
       /* This really shouldn't fail */
       return false;
    } else {
@@ -1449,7 +1451,7 @@ DIGEST *crypto_digest_new (crypto_digest_t type)
    return (digest);
 }
 
-bool crypto_digest_update(DIGEST *digest, const void *data, size_t length)
+bool crypto_digest_update(DIGEST *digest, const uint8_t *data, uint32_t length)
 {
    switch (digest->type) {
    case CRYPTO_DIGEST_MD5:
@@ -1470,8 +1472,8 @@ bool crypto_digest_update(DIGEST *digest, const void *data, size_t length)
    }
 }
 
-bool crypto_digest_finalize(DIGEST *digest, void *dest, size_t *length) {
-
+bool crypto_digest_finalize(DIGEST *digest, uint8_t *dest, uint32_t *length) 
+{
    switch (digest->type) {
    case CRYPTO_DIGEST_MD5:
       /* Guard against programmer error by either the API client or
@@ -1514,9 +1516,9 @@ crypto_error_t crypto_sign_get_digest (SIGNATURE *sig, X509_KEYPAIR *keypair, DI
 crypto_error_t crypto_sign_verify (SIGNATURE *sig, X509_KEYPAIR *keypair, DIGEST *digest) { return CRYPTO_ERROR_INTERNAL; }
 
 int crypto_sign_add_signer (SIGNATURE *sig, DIGEST *digest, X509_KEYPAIR *keypair) { return false; }
-int crypto_sign_encode (SIGNATURE *sig, void *dest, size_t *length) { return false; }
+int crypto_sign_encode (SIGNATURE *sig, uint8_t *dest, uint32_t *length) { return false; }
 
-SIGNATURE *crypto_sign_decode (const void *sigData, size_t length) { return NULL; }
+SIGNATURE *crypto_sign_decode (const uint8_t *sigData, uint32_t length) { return NULL; }
 void crypto_sign_free (SIGNATURE *sig) { }
 
 
@@ -1529,12 +1531,12 @@ void crypto_keypair_free (X509_KEYPAIR *keypair) { }
 
 CRYPTO_SESSION *crypto_session_new (crypto_cipher_t cipher, alist *pubkeys) { return NULL; }
 void crypto_session_free (CRYPTO_SESSION *cs) { }
-bool crypto_session_encode (CRYPTO_SESSION *cs, void *dest, size_t *length) { return false; }
-crypto_error_t crypto_session_decode (const void *data, size_t length, alist *keypairs, CRYPTO_SESSION **session) { return CRYPTO_ERROR_INTERNAL; }
+bool crypto_session_encode (CRYPTO_SESSION *cs, uint8_t *dest, uint32_t *length) { return false; }
+crypto_error_t crypto_session_decode(const uint8_t *data, uint32_t length, alist *keypairs, CRYPTO_SESSION **session) { return CRYPTO_ERROR_INTERNAL; }
 
-CIPHER_CONTEXT *crypto_cipher_new (CRYPTO_SESSION *cs, bool encrypt, size_t *blocksize) { return NULL; }
-bool crypto_cipher_update (CIPHER_CONTEXT *cipher_ctx, const void *data, size_t length, const void *dest, size_t *written) { return false; }
-bool crypto_cipher_finalize (CIPHER_CONTEXT *cipher_ctx, void *dest, size_t *written) { return false; }
+CIPHER_CONTEXT *crypto_cipher_new (CRYPTO_SESSION *cs, bool encrypt, uint32_t *blocksize) { return NULL; }
+bool crypto_cipher_update (CIPHER_CONTEXT *cipher_ctx, const uint8_t *data, uint32_t length, const uint8_t *dest, uint32_t *written) { return false; }
+bool crypto_cipher_finalize (CIPHER_CONTEXT *cipher_ctx, uint8_t *dest, uint32_t *written) { return false; }
 void crypto_cipher_free (CIPHER_CONTEXT *cipher_ctx) { }
 
 #endif /* HAVE_CRYPTO */

@@ -135,8 +135,8 @@ bool               crypto_session_encode       (CRYPTO_SESSION *cs, uint8_t *des
 crypto_error_t     crypto_session_decode       (const uint8_t *data, uint32_t length, alist *keypairs, CRYPTO_SESSION **session); 
 CRYPTO_SESSION *   crypto_session_decode       (const uint8_t *data, uint32_t length);
 CIPHER_CONTEXT *   crypto_cipher_new           (CRYPTO_SESSION *cs, bool encrypt, uint32_t *blocksize);
-bool               crypto_cipher_update        (CIPHER_CONTEXT *cipher_ctx, const void *data, uint32_t length, const void *dest, size_t *written);
-bool               crypto_cipher_finalize      (CIPHER_CONTEXT *cipher_ctx, void *dest, size_t *written);
+bool               crypto_cipher_update        (CIPHER_CONTEXT *cipher_ctx, const uint8_t *data, uint32_t length, const uint8_t *dest, uint32_t *written);
+bool               crypto_cipher_finalize      (CIPHER_CONTEXT *cipher_ctx, uint8_t *dest, uint32_t *written);
 void               crypto_cipher_free          (CIPHER_CONTEXT *cipher_ctx);
 X509_KEYPAIR *     crypto_keypair_new          (void);
 X509_KEYPAIR *     crypto_keypair_dup          (X509_KEYPAIR *keypair);

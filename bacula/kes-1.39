@@ -3,6 +3,8 @@
 
 General:
 24Jun06
+- Turn on new bsnprintf() code.
+- Fix crypto when not using openssl. I previously overlooked this.
 - Eliminate crypto type punning problems by eliminating void * and
   using uint8_t * instead.
 - Harden authentication failure in FD by single threading errors

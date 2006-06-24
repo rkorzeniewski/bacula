@@ -85,7 +85,7 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
    jcr->compress_buf = get_memory(jcr->compress_buf_size);
 
 #ifdef HAVE_LIBZ
-   z_stream *pZlibStream = (z_stream*) malloc(sizeof(z_stream));  
+   z_stream *pZlibStream = (z_stream*)malloc(sizeof(z_stream));  
    if (pZlibStream) {
       pZlibStream->zalloc = Z_NULL;      
       pZlibStream->zfree = Z_NULL;
@@ -103,13 +103,13 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
     * structure. We use a single session key for each backup, so we'll encode
     * the session data only once. */
    if (jcr->pki_encrypt) {
-      size_t size = 0;
+      uint32_t size = 0;
 
       /* Create per-job session encryption context */
       jcr->pki_session = crypto_session_new(cipher, jcr->pki_recipients);
 
       /* Get the session data size */
-      if (crypto_session_encode(jcr->pki_session, NULL, &size) == false) {
+      if (crypto_session_encode(jcr->pki_session, (uint8_t *)0, &size) == false) {
          Jmsg(jcr, M_FATAL, 0, _("An error occured while encrypting the stream.\n"));
          return 0;
       }
@@ -165,7 +165,7 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
    if (jcr->pZLIB_compress_workset) {
       /* Free the zlib stream */
 #ifdef HAVE_LIBZ
-      deflateEnd((z_stream *) jcr->pZLIB_compress_workset);
+      deflateEnd((z_stream *)jcr->pZLIB_compress_workset);
 #endif
       free (jcr->pZLIB_compress_workset);
       jcr->pZLIB_compress_workset = NULL;
@@ -582,10 +582,10 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
    int rsize = jcr->buf_size;      /* read buffer size */
    POOLMEM *msgsave;
    CIPHER_CONTEXT *cipher_ctx = NULL; /* Quell bogus uninitialized warnings */
-   const void *cipher_input;
-   size_t cipher_input_len;
-   size_t cipher_block_size;
-   size_t encrypted_len;
+   const uint8_t *cipher_input;
+   uint32_t cipher_input_len;
+   uint32_t cipher_block_size;
+   uint32_t encrypted_len;
 #ifdef FD_NO_SEND_TEST
    return 1;
 #endif
@@ -593,7 +593,7 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
    msgsave = sd->msg;
    rbuf = sd->msg;                    /* read buffer */
    wbuf = sd->msg;                    /* write buffer */
-   cipher_input = rbuf;               /* encrypt uncompressed data */
+   cipher_input = (uint8_t *)rbuf;    /* encrypt uncompressed data */
 
 
    Dmsg1(300, "Saving data, type=%d\n", ff_pkt->type);
@@ -612,7 +612,7 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
          max_compress_len = jcr->compress_buf_size; /* set max length */
       }
       wbuf = jcr->compress_buf;    /* compressed output here */
-      cipher_input = jcr->compress_buf; /* encrypt compressed data */
+      cipher_input = (uint8_t *)jcr->compress_buf; /* encrypt compressed data */
 
       /* 
        * Only change zlib parameters if there is no pending operation.
@@ -757,7 +757,7 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
 
       if (ff_pkt->flags & FO_ENCRYPT) {
          /* Encrypt the input block */
-         if (crypto_cipher_update(cipher_ctx, cipher_input, cipher_input_len, jcr->crypto_buf, &encrypted_len)) {
+         if (crypto_cipher_update(cipher_ctx, cipher_input, cipher_input_len, (uint8_t *)jcr->crypto_buf, &encrypted_len)) {
             if (encrypted_len == 0) {
                /* No full block of data available, read more data */
                continue;
@@ -793,7 +793,7 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
 
    /* Send any remaining encrypted data + padding */
    if (ff_pkt->flags & FO_ENCRYPT) {
-      if (!crypto_cipher_finalize(cipher_ctx, jcr->crypto_buf, &encrypted_len)) {
+      if (!crypto_cipher_finalize(cipher_ctx, (uint8_t *)jcr->crypto_buf, &encrypted_len)) {
          /* Padding failed. Shouldn't happen. */
          Jmsg(jcr, M_FATAL, 0, _("Encryption padding error\n"));
          goto err;

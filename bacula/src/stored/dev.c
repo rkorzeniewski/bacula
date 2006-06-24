@@ -288,9 +288,7 @@ DEVICE::open(DCR *dcr, int omode)
       open_file_device(dcr, omode);
    }
    state |= preserve;                 /* reset any important state info */
-   if (preserve) {
-      Dmsg1(000, "preserve=0x%x\n", preserve);
-   }
+   Dmsg1(100, "preserve=0x%x\n", preserve);
    return fd;
 }
 
