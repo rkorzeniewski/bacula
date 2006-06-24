@@ -3,23 +3,23 @@
 # Run a simple backup of the Bacula build directory using the compressed option
 #   then restore a few selected files.
 #
+TestName="restore2-by-file-test"
+JobName=restore2byfile
+. scripts/functions
+set_debug 0
+
 cwd=`pwd`
 scripts/copy-test-confs
 scripts/cleanup
 echo "${cwd}/build" >/tmp/file-list
 sed s%\^%${cwd}% ${cwd}/scripts/flist >${cwd}/tmp/restore2-list
 
-echo " "
-echo " "
-echo " === Starting restore2-by-file-test at `date +%R:%S` ==="
-echo " === Starting restore2-by-file-test at `date +%R:%S` ===" >>working/log
-echo " "
+start_test
 
-bin/bacula start 2>&1 >/dev/null
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
-@output tmp/log1.out
+@$out tmp/log1.out
 label storage=File volume=TestVolume001
 run job=CompressedTest yes
 wait
@@ -27,7 +27,7 @@ messages
 @# 
 @# now do a restore
 @#
-@output tmp/log2.out
+@$out tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores storage=File file=<${cwd}/tmp/restore2-list
 yes
 wait
@@ -35,12 +35,12 @@ messages
 @output
 quit
 END_OF_DATA
-scripts/check_for_zombie_jobs storage=File
-bin/bacula stop 2>&1 >/dev/null
-grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
-bstat=$?
-grep "^  Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
-rstat=$?
+
+run_bacula
+check_for_zombie_jobs storage=File
+stop_bacula
+
+check_two_logs
 dstat=0
 for i in `cat ${cwd}/tmp/restore2-list`; do  
    diff $i ${cwd}/tmp/bacula-restores$i
@@ -48,18 +48,4 @@ for i in `cat ${cwd}/tmp/restore2-list`; do
       dstat=1
    fi
 done
-if [ $dstat != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
-   echo " "
-   echo " "
-   echo "  !!!!! restore2-by-file-test Bacula source failed!!! !!!!! "
-   echo "  !!!!! restore2-by-file-test failed!!! !!!!! " >>test.out
-   echo " "
-   echo "Backup term status  = $bstat"
-   echo "Restore term status = $rstat"
-   echo "Diff status         = $dstat"
-   echo " "
-else
-   echo "  ===== restore2-by-file-test Bacula source OK `date +%R:%S` ===== "
-   echo "  ===== restore2-by-file-test OK `date +%R:%S` ===== " >>test.out
-   scripts/cleanup
-fi
+end_test

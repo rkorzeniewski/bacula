@@ -5,22 +5,23 @@
 #   volumes to be recycled, and cycling through the volumes
 #   twice. Tests maxvoljobs and volretention.
 #
+TestName="recycle-test"
+JobName=Recycle
+. scripts/functions
+set_debug 0
+
 cwd=`pwd`
 scripts/copy-test-confs
 scripts/cleanup
 echo "${cwd}/build" >/tmp/file-list
+change_jobname $JobName
 
-echo " "
-echo " "
-echo " === Starting recycle-test at `date +%R:%S` ==="
-echo " === Starting recycle-test at `date +%R:%S` ===" >working/log
-echo " "
+start_test
 
-#bin/bacula start 2>&1 >/dev/null
-bin/bacula start
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
+@$out tmp/log1.out
 label storage=File1 volume=TestVolume001
 label storage=File1 volume=TestVolume002
 label storage=File1 volume=TestVolume003
@@ -31,36 +32,35 @@ update Volume=TestVolume002 maxvoljobs=1
 update Volume=TestVolume003 volretention=10s
 update Volume=TestVolume003 maxvoljobs=1
 list volumes
-run job=NightlySave storage=File1 level=full yes
+run job=$JobName storage=File1 level=full yes
 wait
 messages
 list volumes
-run job=NightlySave storage=File1 level=full yes
+run job=$JobName storage=File1 level=full yes
 wait
 messages
 list volumes
-run job=NightlySave storage=File1 level=full yes
+run job=$JobName storage=File1 level=full yes
 wait
 messages
 list volumes
 @sleep 10
-run job=NightlySave storage=File1 level=full yes
+run job=$JobName storage=File1 level=full yes
 wait
 messages
 list volumes
-run job=NightlySave storage=File1 level=full yes
+run job=$JobName storage=File1 level=full yes
 wait
 messages
-@output tmp/log1.out
 list volumes
-run job=NightlySave storage=File1 level=full yes
+run job=$JobName storage=File1 level=full yes
 wait
 messages
 list volumes
 @# 
 @# now do a restore
 @#
-@output tmp/log2.out
+@$out tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select storage=File1
 unmark *
 mark *
@@ -71,28 +71,11 @@ messages
 @output
 quit
 END_OF_DATA
-scripts/check_for_zombie_jobs storage=File1
-bin/bacula stop 2>&1 >/dev/null
-grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
-bstat=$?
-grep "^  Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
-rstat=$?
-diff -r build  tmp/bacula-restores${cwd}/build 2>&1 >/dev/null
-if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
-   echo " "
-   echo " "
-   echo "  !!!!! recycle-test Bacula source failed!!! !!!!! "
-   echo "  !!!!! recycle-test failed!!! !!!!! " >>test.out
-   if [ $bstat != 0 -o $rstat != 0 ] ; then
-      echo "  !!!!! Bad Job termination status     !!!!! "
-      echo "  !!!!! Bad Job termination status     !!!!! " >>test.out
-   else
-      echo "  !!!!! Restored files differ          !!!!! "
-      echo "  !!!!! Restored files differ          !!!!! " >>test.out
-   fi
-   echo " "
-else
-   echo "  ===== recycle-test Bacula source OK `date +%R:%S` ===== "
-   echo "  ===== recycle-test OK `date +%R:%S` ===== " >>test.out
-   scripts/cleanup
-fi
+
+run_bacula
+check_for_zombie_jobs storage=File1
+stop_bacula
+
+check_two_logs
+check_restore_diff
+end_test

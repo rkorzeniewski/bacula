@@ -3,23 +3,18 @@
 # Run a simple backup of the Bacula build directory
 #   then verify the catalog.           
 #
-debug=0
-if test "$debug" -eq 1 ; then
-  out="tee"
-else
-  out="output"
-fi
+TestName="verify-vol-test"
+JobName=VerifyVol
+. scripts/functions
+set_debug 0
 
 cwd=`pwd`
 scripts/copy-test-confs
 scripts/cleanup
 echo "${cwd}/build" >/tmp/file-list
+change_jobname $JobName
 
-echo " "
-echo " "
-echo " === Starting verify Volume Test at `date +%R:%S` ==="
-echo " === Starting verify Volume Test at `date +%R:%S` ===" >>working/log
-echo " "
+start_test
 
 cat <<END_OF_DATA >tmp/bconcmds
 @$out /dev/null
@@ -27,7 +22,7 @@ messages
 @$out tmp/log1.out
 setdebug level=1 storage=File sd
 label storage=File volume=TestVolume001
-run job=NightlySave yes
+run job=$JobName yes
 wait
 messages
 @# 
@@ -42,35 +37,15 @@ messages
 quit
 END_OF_DATA
 
-if test "$debug" -eq 1 ; then
-  bin/bacula start
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
-else
-  bin/bacula start 2>&1 >/dev/null
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
-fi
+run_bacula
 
 sleep 2
-scripts/check_for_zombie_jobs storage=File 
-bin/bacula stop 2>&1 >/dev/null
+check_for_zombie_jobs storage=File 
+stop_bacula
+
 grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
 bstat=$?
 grep "^  Termination: *Verify OK" ${cwd}/tmp/original 2>&1 >/dev/null
-if [ $? != 0 -o $bstat != 0 ] ; then
-   echo " "
-   echo " "
-   echo "  !!!!! Verify Volume failed!!! !!!!! "
-   echo "  !!!!! Verify Volume failed!!! !!!!! " >>test.out
-   if [ $bstat != 0 ] ; then
-      echo "  !!!!! Bad Job termination status     !!!!! "
-      echo "  !!!!! Bad Job termination status     !!!!! " >>test.out
-   else
-      echo "  !!!!! Restored files differ          !!!!! "
-      echo "  !!!!! Restored files differ          !!!!! " >>test.out
-   fi
-   echo " "
-else
-   echo "  ===== Verify Volume Test OK `date +%R:%S` ===== "
-   echo "  ===== Verify Volume Test OK `date +%R:%S` ===== " >>test.out
-   scripts/cleanup
-fi
+rstat=$?
+dstat=0
+end_test
