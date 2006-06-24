@@ -626,7 +626,7 @@ err:
  * Returns: true on success
  *          false on failure
  */
-bool crypto_digest_update (DIGEST *digest, const void *data, size_t length) {
+bool crypto_digest_update (DIGEST *digest, const uint8_t *data, uint32_t length) {
    if (EVP_DigestUpdate(&digest->ctx, data, length) == 0) {
       return true;
    } else { 
@@ -641,8 +641,8 @@ bool crypto_digest_update (DIGEST *digest, const void *data, size_t length) {
  * Returns: true on success
  *          false on failure
  */
-bool crypto_digest_finalize (DIGEST *digest, void *dest, size_t *length) {
-   if (!EVP_DigestFinal(&digest->ctx, (unsigned char *) dest, (unsigned int *) length)) {
+bool crypto_digest_finalize (DIGEST *digest, uint8_t *dest, uint32_t *length) {
+   if (!EVP_DigestFinal(&digest->ctx, dest, (unsigned int *)length)) {
       return false;
    } else {
       return true;
@@ -874,14 +874,14 @@ err:
  * Returns: true on success, stores the encoded data in dest, and the size in length.
  *          false on failure.
  */
-int crypto_sign_encode(SIGNATURE *sig, void *dest, size_t *length)
+int crypto_sign_encode(SIGNATURE *sig, uint8_t *dest, size_t *length)
 {
    if (*length == 0) {
       *length = i2d_SignatureData(sig->sigData, NULL);
       return true;
    }
 
-   *length = i2d_SignatureData(sig->sigData, (unsigned char **) &dest);
+   *length = i2d_SignatureData(sig->sigData, (unsigned char **)&dest);
    return true;
 }
 
@@ -894,16 +894,16 @@ int crypto_sign_encode(SIGNATURE *sig, void *dest, size_t *length)
 
  */
 
-SIGNATURE *crypto_sign_decode(const void *sigData, size_t length)
+SIGNATURE *crypto_sign_decode(const uint8_t *sigData, size_t length)
 {
    SIGNATURE *sig;
 #if (OPENSSL_VERSION_NUMBER >= 0x0090800FL)
    const unsigned char *p = (const unsigned char *) sigData;
 #else
-   unsigned char *p = (unsigned char *) sigData;
+   unsigned char *p = (unsigned char *)sigData;
 #endif
 
-   sig = (SIGNATURE *) malloc(sizeof(SIGNATURE));
+   sig = (SIGNATURE *)malloc(sizeof(SIGNATURE));
    if (!sig) {
       return NULL;
    }
@@ -1101,14 +1101,14 @@ CRYPTO_SESSION *crypto_session_new (crypto_cipher_t cipher, alist *pubkeys)
  * Returns: true on success, stores the encoded data in dest, and the size in length.
  *          false on failure.
  */
-bool crypto_session_encode(CRYPTO_SESSION *cs, void *dest, size_t *length)
+bool crypto_session_encode(CRYPTO_SESSION *cs, uint8_t *dest, size_t *length)
 {
    if (*length == 0) {
       *length = i2d_CryptoData(cs->cryptoData, NULL);
       return true;
    }
 
-   *length = i2d_CryptoData(cs->cryptoData, (unsigned char **) &dest);
+   *length = i2d_CryptoData(cs->cryptoData, &dest);
    return true;
 }
 
@@ -1121,16 +1121,16 @@ bool crypto_session_encode(CRYPTO_SESSION *cs, void *dest, size_t *length)
  * Returns: CRYPTO_ERROR_NONE and a pointer to a newly allocated CRYPTO_SESSION structure in *session on success.
  *          A crypto_error_t value on failure.
  */
-crypto_error_t crypto_session_decode(const void *data, size_t length, alist *keypairs, CRYPTO_SESSION **session)
+crypto_error_t crypto_session_decode(const uint8_t *data, size_t length, alist *keypairs, CRYPTO_SESSION **session)
 {
    CRYPTO_SESSION *cs;
    X509_KEYPAIR *keypair;
    STACK_OF(RecipientInfo) *recipients;
    crypto_error_t retval = CRYPTO_ERROR_NONE;
 #if (OPENSSL_VERSION_NUMBER >= 0x0090800FL)
-   const unsigned char *p = (const unsigned char *) data;
+   const unsigned char *p = (const unsigned char *)data;
 #else
-   unsigned char *p = (unsigned char *) data;
+   unsigned char *p = (unsigned char *)data;
 #endif
 
    cs = (CRYPTO_SESSION *) malloc(sizeof(CRYPTO_SESSION));

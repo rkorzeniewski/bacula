@@ -79,7 +79,7 @@ static RES_ITEM mon_items[] = {
    {"refreshinterval",  store_time,ITEM(res_monitor.RefreshInterval),  0, ITEM_DEFAULT, 5},
    {"fdconnecttimeout", store_time,ITEM(res_monitor.FDConnectTimeout), 0, ITEM_DEFAULT, 60 * 30},
    {"sdconnecttimeout", store_time,ITEM(res_monitor.SDConnectTimeout), 0, ITEM_DEFAULT, 60 * 30},
-   {NULL, NULL, NULL, 0, 0, 0}
+   {NULL, NULL, {0}, 0, 0, 0}
 };
 
 /*  Director's that we can contact */
@@ -89,7 +89,7 @@ static RES_ITEM dir_items[] = {
    {"dirport",     store_int,      ITEM(res_dir.DIRport),  0, ITEM_DEFAULT, 9101},
    {"address",     store_str,      ITEM(res_dir.address),  0, 0, 0},
    {"enablessl",   store_bit,    ITEM(res_dir.enable_ssl), 1, ITEM_DEFAULT, 0},
-   {NULL, NULL, NULL, 0, 0, 0}
+   {NULL, NULL, {0}, 0, 0, 0}
 };
 
 /*
@@ -105,7 +105,7 @@ static RES_ITEM cli_items[] = {
    {"fdport",   store_pint,       ITEM(res_client.FDport),   0, ITEM_DEFAULT, 9102},
    {"password", store_password,   ITEM(res_client.password), 0, ITEM_REQUIRED, 0},
    {"enablessl", store_bit,     ITEM(res_client.enable_ssl), 1, ITEM_DEFAULT, 0},
-   {NULL, NULL, NULL, 0, 0, 0}
+   {NULL, NULL, {0}, 0, 0, 0}
 };
 
 /* Storage daemon resource
@@ -121,7 +121,7 @@ static RES_ITEM store_items[] = {
    {"password",    store_password, ITEM(res_store.password),   0, ITEM_REQUIRED, 0},
    {"sdpassword",  store_password, ITEM(res_store.password),   0, 0, 0},
    {"enablessl",   store_bit,    ITEM(res_store.enable_ssl),  1, ITEM_DEFAULT, 0},
-   {NULL, NULL, NULL, 0, 0, 0}
+   {NULL, NULL, {0}, 0, 0, 0}
 };
 
 /*

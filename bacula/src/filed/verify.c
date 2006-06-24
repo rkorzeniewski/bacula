@@ -241,14 +241,14 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt, bool top_level)
             return 1;
          }
 
-         if (crypto_digest_finalize(digest, &md, &size)) {
+         if (crypto_digest_finalize(digest, (uint8_t *)md, &size)) {
             char *digest_buf;
             const char *digest_name;
             
-            digest_buf = (char *) malloc(BASE64_SIZE(size));
+            digest_buf = (char *)malloc(BASE64_SIZE(size));
             digest_name = crypto_digest_name(digest);
 
-            bin_to_base64(digest_buf, (char *) md, size);
+            bin_to_base64(digest_buf, md, size);
             Dmsg3(400, "send inx=%d %s=%s\n", jcr->JobFiles, digest_name, digest_buf);
             bnet_fsend(dir, "%d %d %s *%s-%d*", jcr->JobFiles, digest_stream, digest_buf,
                        digest_name, jcr->JobFiles);
@@ -324,8 +324,8 @@ int read_digest(BFILE *bfd, DIGEST *digest, JCR *jcr)
    char buf[DEFAULT_NETWORK_BUFFER_SIZE];
    int64_t n;
 
-   while ((n=bread(bfd, &buf, sizeof(buf))) > 0) {
-      crypto_digest_update(digest, &buf, n);
+   while ((n=bread(bfd, buf, sizeof(buf))) > 0) {
+      crypto_digest_update(digest, (uint8_t *)buf, n);
       jcr->JobBytes += n;
       jcr->ReadBytes += n;
    }

@@ -31,7 +31,7 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 /*********************************************************************
  *
  */
-static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
+static bool authenticate(int rcode, BSOCK *bs, JCR* jcr)
 {
    POOLMEM *dirname = get_pool_memory(PM_MESSAGE);
    DIRRES *director = NULL;
@@ -151,12 +151,12 @@ auth_fatal:
    free_pool_memory(dirname);
    jcr->director = director;
    /* Single thread all failures to avoid DOS */
-   if (auth_success) {
+   if (!auth_success) {
       P(mutex);
       bmicrosleep(6, 0);
       V(mutex);
    }
-   return (director != NULL);
+   return auth_success;
 }
 
 /*
@@ -172,10 +172,6 @@ int authenticate_director(JCR *jcr)
    BSOCK *dir = jcr->dir_bsock;
 
    if (!authenticate(R_DIRECTOR, dir, jcr)) {
-      /* Single thread all failures to avoid DOS */
-      P(mutex);
-      bmicrosleep(6, 0);
-      V(mutex);
       bnet_fsend(dir, "%s", Dir_sorry);
       Emsg0(M_FATAL, 0, _("Unable to authenticate Director\n"));
       return 0;
