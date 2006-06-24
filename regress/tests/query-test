@@ -4,12 +4,10 @@
 #   new files, do a Differental then a bunch of query commands
 #   and finally restore the two files.
 #
-debug=0
-if test "$debug" -eq 1 ; then
-  out="tee"
-else
-  out="output"
-fi
+TestName="query-test"
+JobName=query
+. scripts/functions
+set_debug 0
 
 cwd=`pwd`
 scripts/copy-test-confs
@@ -22,13 +20,8 @@ echo "${cwd}/tmp/build/ficheriro1.txt" >restore-list
 echo "${cwd}/tmp/build/ficheriro2.txt" >>restore-list
 cd ${cwd}
 
-echo " "
-echo " "
-echo " === Starting query-test at `date +%R:%S` ==="
-echo " === Starting query-test at `date +%R:%S` ===" >>working/log
-echo " "
+start_test
 
-bin/bacula start 2>&1 >/dev/null
 cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
@@ -40,16 +33,13 @@ wait
 messages
 quit
 END_OF_DATA
-if test "$debug" -eq 1 ; then
-  bin/bacula start
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
-else
-  bin/bacula start 2>&1 >/dev/null
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
-fi
-scripts/check_for_zombie_jobs storage=File
+
+run_bacula
+check_for_zombie_jobs storage=File
+
 echo "ficheriro1.txt" >${cwd}/tmp/build/ficheriro1.txt
 echo "ficheriro2.txt" >${cwd}/tmp/build/ficheriro2.txt
+
 cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
@@ -61,14 +51,10 @@ wait
 messages
 @output
 END_OF_DATA
-if test "$debug" -eq 1 ; then
-  bin/bacula start
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
-else
-  bin/bacula start 2>&1 >/dev/null
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
-fi
-scripts/check_for_zombie_jobs storage=File
+
+run_bacula
+check_for_zombie_jobs storage=File
+
 echo "ficheriro2.txt" >${cwd}/tmp/build/ficheriro2.txt
 cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
@@ -118,39 +104,16 @@ messages
 @output
 quit
 END_OF_DATA
-if test "$debug" -eq 1 ; then
-  bin/bacula start
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
-else
-  bin/bacula start 2>&1 >/dev/null
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
-fi
-scripts/check_for_zombie_jobs storage=File
-bin/bacula stop 2>&1 >/dev/null
-grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
-bstat=$?
-grep "^  Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
-rstat=$?
+
+run_bacula
+check_for_zombie_jobs storage=File
+stop_bacula
+
 #
 # Delete .c files because we will only restored the txt files
 #
 rm -f tmp/build/*.c
-diff -r tmp/build tmp/bacula-restores${cwd}/tmp/build 2>&1 >/dev/null
-if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
-   echo " "
-   echo " "
-   echo "  !!!!! query-test Bacula source failed!!! !!!!! "
-   echo "  !!!!! query-test failed!!! !!!!! " >>test.out
-   if [ $bstat != 0 -o $rstat != 0 ] ; then
-      echo "  !!!!! Bad Job termination status     !!!!! "
-      echo "  !!!!! Bad Job termination status     !!!!! " >>test.out
-   else
-      echo "  !!!!! Restored files differ          !!!!! "
-      echo "  !!!!! Restored files differ          !!!!! " >>test.out
-   fi
-   echo " "
-else
-   echo "  ===== query-test Bacula source OK `date +%R:%S` ===== "
-   echo "  ===== query-test OK `date +%R:%S` ===== " >>test.out
-   scripts/cleanup
-fi
+
+check_two_logs
+check_restore_tmp_build_diff
+end_test

@@ -7,16 +7,14 @@
 #
 #  Note we use the viritual disk autochanger
 #
+TestName="two-volume-test"
+JobName=TwoVolume
+. scripts/functions
+set_debug 0
 . config.out
 if test x${AUTOCHANGER} = x/dev/null ; then
    echo "two-volume-test skipped. No autochanger."
    exit
-fi
-debug=0
-if test "$debug" -eq 1 ; then
-  out="tee"
-else
-  out="output"
 fi
 cwd=`pwd`
 scripts/cleanup
@@ -30,11 +28,9 @@ echo "s%# Maximum File Size%  Maximum File Size%g" >${outf}
 cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
 sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
 
-echo " "
-echo " "
-echo " === Starting Two Volume Test at `date +%R:%S` ==="
-echo " === Starting Two Volume Test at `date +%R:%S` ===" >>working/log
-echo " "
+change_jobname $JobName
+
+start_test
 # Write out bconsole commands
 cat <<END_OF_DATA >tmp/bconcmds
 @$out /dev/null
@@ -44,7 +40,7 @@ label storage=DDS-4 volume=TestVolume001 slot=1 pool=Default drive=0
 label storage=DDS-4 volume=TestVolume002 slot=2 pool=Default drive=0
 update Volume=TestVolume001 MaxVolBytes=3000000 pool=Default drive=0
 @#setdebug level=1000 client 
-run job=NightlySave yes
+run job=$JobName yes
 wait
 messages
 @# 
@@ -59,29 +55,10 @@ messages
 quit
 END_OF_DATA
 
-if test "$debug" -eq 1 ; then
-  bin/bacula start
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
-else
-  bin/bacula start 2>&1 >/dev/null
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
-fi
-scripts/check_for_zombie_jobs storage=DDS-4
+run_bacula
+check_for_zombie_jobs storage=DDS-4
+stop_bacula
 
-bin/bacula stop 2>&1 >/dev/null
-grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
-bstat=$?
-grep "^  Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
-rstat=$?
-diff -r build tmp/bacula-restores${cwd}/build 2>&1 >/dev/null
-if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
-   echo " "
-   echo " "
-   echo "  !!!!! Two Volume Test Bacula source failed!!! !!!!! "
-   echo "  !!!!! Two Volume Test failed!!! !!!!! " >>test.out
-   echo " "
-else
-   echo "  ===== Two Volume Test Bacula source OK `date +%R:%S` ===== "
-   echo "  ===== Two Volume Test OK `date +%R:%S` ===== " >>test.out
-   scripts/cleanup
-fi
+check_two_logs
+check_restore_diff
+end_test

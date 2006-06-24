@@ -3,6 +3,11 @@
 # Run a simple backup of the Bacula build directory then create some           
 #   new files, do an Incremental and restore those two files.
 #
+TestName="incremental-test"
+JobName=Incremental 
+. scripts/functions
+set_debug 0
+
 cwd=`pwd`
 scripts/copy-test-confs
 scripts/cleanup
@@ -14,17 +19,12 @@ echo "${cwd}/tmp/build/ficheriro1.txt" >restore-list
 echo "${cwd}/tmp/build/ficheriro2.txt" >>restore-list
 cd ${cwd}
 
-echo " "
-echo " "
-echo " === Starting incremental-test at `date +%R:%S` ==="
-echo " === Starting incremental-test at `date +%R:%S` ===" >>working/log
-echo " "
+start_test
 
-bin/bacula start 2>&1 >/dev/null
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
-@output tmp/log1.out
+@$out tmp/log1.out
 label storage=File volume=TestVolume001
 label storage=File volume=TestVolume002
 run job=CompressedTest yes
@@ -32,17 +32,20 @@ wait
 messages
 quit
 END_OF_DATA
-scripts/check_for_zombie_jobs storage=File
+
+run_bacula
+check_for_zombie_jobs storage=File
 #
 # Now create two new files to be restored later
 #
 sleep 1
 echo "ficheriro1.txt" >${cwd}/tmp/build/ficheriro1.txt
 cp -f ${cwd}/tmp/build/dird.c ${cwd}/tmp/build/ficheriro2.txt
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+
+cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
-@output tmp/log1.out
+@$out tmp/log1.out
 @# Force Incremental on the second Volume
 update volume=TestVolume001 VolStatus=Used
 run level=Differential job=CompressedTest yes
@@ -50,76 +53,95 @@ wait
 messages
 quit
 END_OF_DATA
+
+run_bconsole
+
 sleep 1
 touch ${cwd}/tmp/build/ficheriro1.txt
 touch ${cwd}/tmp/build/ficheriro2.txt
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+
+cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
-@output tmp/log1.out
+@$out tmp/log1.out
 run level=Incremental job=CompressedTest yes
 wait
 messages
 quit
 END_OF_DATA
+
+run_bconsole
+
 sleep 1
 cd ${cwd}/tmp/build
 cp -f ficheriro2.txt 1
 sed "s%a%b%g" 1 >ficheriro2.txt
 rm -f 1
 cd ${cwd}
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
-@output tmp/log1.out
+@$out tmp/log1.out
 run level=Differential job=CompressedTest yes
 wait
 messages
 quit
 END_OF_DATA
+
+run_bconsole
+
 sleep 1
 touch ${cwd}/tmp/build/ficheriro1.txt
 touch ${cwd}/tmp/build/ficheriro2.txt
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
-@output tmp/log1.out
+@$out tmp/log1.out
 run level=Incremental job=CompressedTest yes
 wait
 messages
 quit
 END_OF_DATA
+
+run_bconsole
+
 sleep 1
 touch ${cwd}/tmp/build/ficheriro1.txt
 touch ${cwd}/tmp/build/ficheriro2.txt
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
-@output tmp/log1.out
+@$out tmp/log1.out
 run level=Incremental job=CompressedTest yes
 wait
 messages
 quit
 END_OF_DATA
+
+run_bconsole
+
 sleep 1
 touch ${cwd}/tmp/build/ficheriro1.txt
 touch ${cwd}/tmp/build/ficheriro2.txt
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
-@output tmp/log1.out
+@$out tmp/log1.out
 run level=Incremental job=CompressedTest yes
 wait
 messages
 quit
 END_OF_DATA
+
+run_bconsole
 sleep 1
 touch ${cwd}/tmp/build/ficheriro1.txt
 touch ${cwd}/tmp/build/ficheriro2.txt
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+
+cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
-@output tmp/log1.out
+@$out tmp/log1.out
 run level=Incremental job=CompressedTest yes
 wait
 messages
@@ -134,32 +156,15 @@ messages
 @output
 quit
 END_OF_DATA
-scripts/check_for_zombie_jobs storage=File
-bin/bacula stop 2>&1 >/dev/null
-grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
-bstat=$?
-grep "^  Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
-rstat=$?
+
+run_bconsole
+check_for_zombie_jobs storage=File
+stop_bacula
+
+check_two_logs
 #
 # Delete .c files because we will only restored the txt files
 #
 rm -f tmp/build/*.c
-diff -r tmp/build tmp/bacula-restores${cwd}/tmp/build 2>&1 >/dev/null
-if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
-   echo " "
-   echo " "
-   echo "  !!!!! incremental-test Bacula source failed!!! !!!!! "
-   echo "  !!!!! incremental-test failed!!! !!!!! " >>test.out
-   if [ $bstat != 0 -o $rstat != 0 ] ; then
-      echo "  !!!!! Bad Job termination status     !!!!! "
-      echo "  !!!!! Bad Job termination status     !!!!! " >>test.out
-   else
-      echo "  !!!!! Restored files differ          !!!!! "
-      echo "  !!!!! Restored files differ          !!!!! " >>test.out
-   fi
-   echo " "
-else
-   echo "  ===== incremental-test Bacula source OK `date +%R:%S` ===== "
-   echo "  ===== incremental-test OK `date +%R:%S` ===== " >>test.out
-   scripts/cleanup
-fi
+check_restore_tmp_build_diff
+end_test

@@ -3,12 +3,10 @@
 # Run a simple backup of the Bacula build directory then create some           
 #   new files, do a differential and restore those two files.
 #
-debug=0
-if test "$debug" -eq 1 ; then
-  out="tee"
-else
-  out="output"
-fi
+TestName="differential-test"
+JobName=differential
+. scripts/functions
+set_debug 0
 
 cwd=`pwd`
 scripts/copy-test-confs
@@ -21,11 +19,7 @@ echo "${cwd}/tmp/build/ficheriro1.txt" >restore-list
 echo "${cwd}/tmp/build/ficheriro2.txt" >>restore-list
 cd ${cwd}
 
-echo " "
-echo " "
-echo " === Starting differential-test at `date +%R:%S` ==="
-echo " === Starting differential-test at `date +%R:%S` ===" >>working/log
-echo " "
+start_test
 
 cat <<END_OF_DATA >tmp/bconcmds
 @$out /dev/null
@@ -39,13 +33,7 @@ messages
 quit
 END_OF_DATA
 
-if test "$debug" -eq 1 ; then
-  bin/bacula start
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
-else
-  bin/bacula start 2>&1 >/dev/null
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
-fi
+run_bacula  
 
 scripts/check_for_zombie_jobs storage=File
 echo "ficheriro1.txt" >${cwd}/tmp/build/ficheriro1.txt
@@ -63,11 +51,7 @@ messages
 @$out
 END_OF_DATA
 
-if test "$debug" -eq 1 ; then
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
-else
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
-fi
+run_bconsole
 
 scripts/check_for_zombie_jobs storage=File
 echo "ficheriro2.txt" >${cwd}/tmp/build/ficheriro2.txt
@@ -91,38 +75,14 @@ messages
 quit
 END_OF_DATA
 
-if test "$debug" -eq 1 ; then
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
-else
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
-fi
-
+run_bconsole
 scripts/check_for_zombie_jobs storage=File
-bin/bacula stop 2>&1 >/dev/null
-grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
-bstat=$?
-grep "^  Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
-rstat=$?
+stop_bacula
+
+check_two_logs
 #
 # Delete .c files because we will only restore the txt files
 #
 rm -f tmp/build/*.c
-diff -r tmp/build tmp/bacula-restores${cwd}/tmp/build 2>&1 >/dev/null
-if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
-   echo " "
-   echo " "
-   echo "  !!!!! differential-test Bacula source failed!!! !!!!! "
-   echo "  !!!!! differential-test failed!!! !!!!! " >>test.out
-   if [ $bstat != 0 -o $rstat != 0 ] ; then
-      echo "  !!!!! Bad Job termination status     !!!!! "
-      echo "  !!!!! Bad Job termination status     !!!!! " >>test.out
-   else
-      echo "  !!!!! Restored files differ          !!!!! "
-      echo "  !!!!! Restored files differ          !!!!! " >>test.out
-   fi
-   echo " "
-else
-   echo "  ===== differential-test Bacula source OK `date +%R:%S` ===== "
-   echo "  ===== differential-test OK `date +%R:%S` ===== " >>test.out
-   scripts/cleanup
-fi
+check_restore_tmp_build_diff
+end_test

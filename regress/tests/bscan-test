@@ -6,23 +6,18 @@
 #   extent tests the purge volume and delete volume commands.
 #
 
-debug=0
-if test "$debug" -eq 1 ; then
-  out="tee"
-else
-  out="output"
-fi
+TestName="bscan-test"
+JobName=bscan
+. scripts/functions
+set_debug 0
 
 cwd=`pwd`
 scripts/copy-test-confs
 scripts/cleanup
 echo "${cwd}/build" >/tmp/file-list
+change_jobname $JobName
 
-echo " "
-echo " "
-echo " === Starting bscan-test at `date +%R:%S` ==="
-echo " === Starting bscan-test at `date +%R:%S` ===" >working/log
-echo " "
+start_test
 
 cat <<END_OF_DATA >tmp/bconcmds
 @$out /dev/null
@@ -33,7 +28,7 @@ TestVolume001
 label storage=File1
 TestVolume002
 update Volume=TestVolume001 MaxVolBytes=3000000
-run job=NightlySave storage=File1
+run job=$JobName storage=File1
 yes
 wait
 messages
@@ -51,17 +46,10 @@ messages
 quit
 END_OF_DATA
 
-# run backup
-if test "$debug" -eq 1 ; then
-  bin/bacula start
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
-else
-  bin/bacula start 2>&1 >/dev/null
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
-fi
+run_bacula
+check_for_zombie_jobs storage=File1
+stop_bacula
 
-scripts/check_for_zombie_jobs storage=File1
-bin/bacula stop 2>&1 >/dev/null
 echo "volume=TestVolume001|TestVolume002" >tmp/bscan.bsr
 
 if test "$debug" -eq 1 ; then
@@ -87,37 +75,10 @@ quit
 END_OF_DATA
 
 # now run restore
-if test "$debug" -eq 1 ; then
-  bin/bacula start
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
-else
-  bin/bacula start 2>&1 >/dev/null
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
-fi
+run_bacula
+check_for_zombie_jobs storage=File1
+stop_bacula
 
-
-scripts/check_for_zombie_jobs storage=File1
-bin/bacula stop 2>&1 >/dev/null
-grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
-bstat=$?
-grep "^  Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
-rstat=$?
-diff -r build  tmp/bacula-restores${cwd}/build 2>&1 >/dev/null
-if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
-   echo " "
-   echo " "
-   echo "  !!!!! bscan-test Bacula source failed!!! !!!!! "
-   echo "  !!!!! bscan-test failed!!! !!!!! " >>test.out
-   if [ $bstat != 0 -o $rstat != 0 ] ; then
-      echo "  !!!!! Bad Job termination status     !!!!! "
-      echo "  !!!!! Bad Job termination status     !!!!! " >>test.out
-   else
-      echo "  !!!!! Restored files differ          !!!!! "
-      echo "  !!!!! Restored files differ          !!!!! " >>test.out
-   fi
-   echo " "
-else
-   echo "  ===== bscan-test Bacula source OK `date +%R:%S` ===== "
-   echo "  ===== bscan-test OK `date +%R:%S` ===== " >>test.out
-   scripts/cleanup
-fi
+check_two_logs
+check_restore_diff
+end_test
