@@ -117,6 +117,10 @@ int prune_volumes(JCR *jcr)
       if (jcr->jr.PoolId != mr.PoolId) {
          continue;
       }
+      /* Don't prune archived volumes */
+      if (mr.Enabled == 2) {
+         continue;
+      }
       /* Prune only Volumes with status "Full", or "Used" */
       if (strcmp(mr.VolStatus, "Full")   == 0 ||
           strcmp(mr.VolStatus, "Used")   == 0) {

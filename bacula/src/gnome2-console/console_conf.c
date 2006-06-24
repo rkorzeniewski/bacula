@@ -75,7 +75,7 @@ static RES_ITEM dir_items[] = {
    {"tlscacertificatedir", store_dir,  ITEM(dir_res.tls_ca_certdir), 0, 0, 0},
    {"tlscertificate", store_dir,       ITEM(dir_res.tls_certfile), 0, 0, 0},
    {"tlskey",         store_dir,       ITEM(dir_res.tls_keyfile), 0, 0, 0},
-   {NULL, NULL, NULL, 0, 0, 0}
+   {NULL, NULL, {0}, 0, 0, 0}
 };
 
 static RES_ITEM con_items[] = {
@@ -88,7 +88,7 @@ static RES_ITEM con_items[] = {
    {"tlscacertificatedir", store_dir,  ITEM(con_res.tls_ca_certdir), 0, 0, 0},
    {"tlscertificate", store_dir,       ITEM(con_res.tls_certfile), 0, 0, 0},
    {"tlskey",         store_dir,       ITEM(con_res.tls_keyfile), 0, 0, 0},
-   {NULL, NULL, NULL, 0, 0, 0}
+   {NULL, NULL, {0}, 0, 0, 0}
 };
 
 static RES_ITEM con_font_items[] = {
@@ -96,7 +96,7 @@ static RES_ITEM con_font_items[] = {
    {"description", store_str,      ITEM(con_font.hdr.desc), 0, 0, 0},
    {"font",        store_str,      ITEM(con_font.fontface), 0, 0, 0},
    {"requiressl",  store_bit,    ITEM(con_font.require_ssl), 1, ITEM_DEFAULT, 0},
-   {NULL, NULL, NULL, 0, 0, 0}
+   {NULL, NULL, {0}, 0, 0, 0}
 };
 
 

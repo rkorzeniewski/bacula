@@ -70,7 +70,7 @@ static RES_ITEM store_items[] = {
    {"tlskey",                store_dir,       ITEM(res_store.tls_keyfile), 0, 0, 0},
    {"tlsdhfile",             store_dir,       ITEM(res_store.tls_dhfile), 0, 0, 0},
    {"tlsallowedcn",          store_alist_str, ITEM(res_store.tls_allowed_cns), 0, 0, 0},
-   {NULL, NULL, 0, 0, 0, 0}
+   {NULL, NULL, {0}, 0, 0, 0}
 };
 
 
@@ -89,7 +89,7 @@ static RES_ITEM dir_items[] = {
    {"tlskey",               store_dir,       ITEM(res_dir.tls_keyfile), 0, 0, 0},
    {"tlsdhfile",            store_dir,       ITEM(res_dir.tls_dhfile), 0, 0, 0},
    {"tlsallowedcn",         store_alist_str, ITEM(res_dir.tls_allowed_cns), 0, 0, 0},
-   {NULL, NULL, 0, 0, 0, 0}
+   {NULL, NULL, {0}, 0, 0, 0}
 };
 
 /* Device definition */
@@ -146,7 +146,7 @@ static RES_ITEM dev_items[] = {
    {"writepartcommand",      store_strname,ITEM(res_dev.write_part_command), 0, 0, 0},
    {"freespacecommand",      store_strname,ITEM(res_dev.free_space_command), 0, 0, 0},
    {"labeltype",             store_label,  ITEM(res_dev.label_type), 0, 0, 0},
-   {NULL, NULL, 0, 0, 0, 0}
+   {NULL, NULL, {0}, 0, 0, 0}
 };
 
 /* Autochanger definition */
@@ -156,7 +156,7 @@ static RES_ITEM changer_items[] = {
    {"device",            store_alist_res, ITEM(res_changer.device),   R_DEVICE, ITEM_REQUIRED, 0},
    {"changerdevice",     store_strname,   ITEM(res_changer.changer_name),    0, ITEM_REQUIRED, 0},
    {"changercommand",    store_strname,   ITEM(res_changer.changer_command), 0, ITEM_REQUIRED, 0},
-   {NULL, NULL, 0, 0, 0, 0}
+   {NULL, NULL, {0}, 0, 0, 0}
 };
 
 

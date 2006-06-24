@@ -219,7 +219,7 @@ int insert_tree_handler(void *ctx, int num_fields, char **row);
 /* ua_prune.c */
 int prune_files(UAContext *ua, CLIENT *client);
 int prune_jobs(UAContext *ua, CLIENT *client, int JobType);
-int prune_volume(UAContext *ua, MEDIA_DBR *mr);
+bool prune_volume(UAContext *ua, MEDIA_DBR *mr);
 
 /* ua_purge.c */
 bool mark_media_purged(UAContext *ua, MEDIA_DBR *mr);

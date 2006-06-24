@@ -682,6 +682,7 @@ static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
          mr->VolBytes = 1;               /* flag indicating Volume labeled */
          mr->InChanger = 1;
          mr->StorageId = ua->jcr->store->StorageId;
+         mr->Enabled = 1;
          if (db_create_media_record(ua->jcr, ua->db, mr)) {
             bsendmsg(ua, _("Catalog record for Volume \"%s\", Slot %d  successfully created.\n"),
             mr->VolumeName, mr->Slot);

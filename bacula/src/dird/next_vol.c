@@ -62,14 +62,15 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index, bool create)
        *  1. Look for volume with "Append" status.
        */
       ok = db_find_next_volume(jcr, jcr->db, index, InChanger, mr);
-      Dmsg2(100, "catreq after find_next_vol ok=%d FW=%d\n", ok, mr->FirstWritten);
+      Dmsg4(100, "after find_next_vol index=%d ok=%d InChanger=%d Vstat=%s\n",
+            index, ok, InChanger, mr->VolStatus);
 
       if (!ok) {
          /*
           * 2. Try finding a recycled volume
           */
          ok = find_recycled_volume(jcr, InChanger, mr);
-         Dmsg2(100, "find_recycled_volume %d FW=%d\n", ok, mr->FirstWritten);
+         Dmsg2(100, "find_recycled_volume ok=%d FW=%d\n", ok, mr->FirstWritten);
          if (!ok) {
             /*
              * 3. Try recycling any purged volume

@@ -367,7 +367,8 @@ void _v(char *file, int line, pthread_mutex_t *m)
 {
    int errstat;
 
-   if ((errstat=pthread_mutex_tryunlock(m)) == 0) {
+   /* Note, this trylock *should* fail if the mutex is locked */
+   if ((errstat=pthread_mutex_trylock(m)) == 0) {
       berrno be;
       e_msg(file, line, M_ERROR, 0, _("Mutex unlock not locked. ERR=%s\n"),
            be.strerror(errstat));

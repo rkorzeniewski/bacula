@@ -83,6 +83,7 @@ bool newVolume(JCR *jcr, MEDIA_DBR *mr)
          goto bail_out;
       }
       pr.NumVols++;
+      mr->Enabled = 1;
       if (db_create_media_record(jcr, jcr->db, mr) &&
          db_update_pool_record(jcr, jcr->db, &pr)) {
          db_unlock(jcr->db);

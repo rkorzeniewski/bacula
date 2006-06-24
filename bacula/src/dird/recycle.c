@@ -70,7 +70,7 @@ bool recycle_oldest_purged_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
    const char *select =
           "SELECT MediaId,LastWritten FROM Media "
           "WHERE PoolId=%s AND Recycle=1 AND VolStatus='Purged' "
-          "AND MediaType='%s' %s"
+          "AND Enabled=1 AND MediaType='%s' %s"
           "ORDER BY LastWritten ASC,MediaId LIMIT 1";
 
    Dmsg0(100, "Enter recycle_oldest_purged_volume\n");

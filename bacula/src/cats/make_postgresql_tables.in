@@ -156,7 +156,7 @@ CREATE TABLE media
     endfile	      integer	  not null default 0,
     endblock	      bigint	  not null default 0,
     LocationId	      integer		   default 0,
-    recyclcount       integer	  not null default 0,
+    recyclecount      integer	  not null default 0,
     initialwrite      timestamp   without time zone,
     scratchpoolid     integer default 0,
     recyclepoolid     integer default 0,
@@ -336,7 +336,7 @@ INSERT INTO Status (JobStatus,JobStatusLong) VALUES
    ('p', 'Waiting on higher priority jobs');
 
 
-INSERT INTO Version (VersionId) VALUES (9);
+INSERT INTO Version (VersionId) VALUES (10);
 
 -- Make sure we have appropriate permissions
 

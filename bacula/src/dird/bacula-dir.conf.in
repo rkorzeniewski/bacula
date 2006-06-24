@@ -273,7 +273,6 @@ Pool {
   Recycle = yes                       # Bacula can automatically recycle Volumes
   AutoPrune = yes                     # Prune expired volumes
   Volume Retention = 365 days         # one year
-  Accept Any Volume = yes             # write on any volume in the pool
 }
 
 #

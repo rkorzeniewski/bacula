@@ -82,7 +82,7 @@ static RES_ITEM cons_items[] = {
    {"tlscacertificatedir", store_dir,  ITEM(res_cons.tls_ca_certdir), 0, 0, 0},
    {"tlscertificate", store_dir,       ITEM(res_cons.tls_certfile), 0, 0, 0},
    {"tlskey",         store_dir,       ITEM(res_cons.tls_keyfile), 0, 0, 0},
-   {NULL, NULL, NULL, 0, 0, 0}
+   {NULL, NULL, {0}, 0, 0, 0}
 };
 
 
@@ -99,7 +99,7 @@ static RES_ITEM dir_items[] = {
    {"tlscacertificatedir", store_dir,  ITEM(res_dir.tls_ca_certdir), 0, 0, 0},
    {"tlscertificate", store_dir,       ITEM(res_dir.tls_certfile), 0, 0, 0},
    {"tlskey",         store_dir,       ITEM(res_dir.tls_keyfile), 0, 0, 0},
-   {NULL, NULL, NULL, 0, 0, 0}
+   {NULL, NULL, {0}, 0, 0, 0}
 };
 
 /*
