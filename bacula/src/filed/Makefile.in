@@ -55,7 +55,8 @@ WIN32LIBS = $(@WIN32@)
 
 # inference rules
 .c.o:
-	$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(PYTHON_INC) $(OPENSSL_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+	@echo "Compiling $<"
+	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(PYTHON_INC) $(OPENSSL_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
 all: Makefile @WIN32@ bacula-fd @STATIC_FD@
 	@echo "==== Make of filed is good ===="
@@ -79,6 +80,7 @@ win32:	$(WIN32OBJS)
 	@rm -f bacula-fd.exe
 
 bacula-fd:  $(SVROBJS) ../findlib/libfind.a ../lib/libbac.a @WIN32@
+	@echo "Linking $@ ..."
 	$(CXX) $(WLDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(SVROBJS) \
 	  $(WIN32LIBS) $(FDLIBS) -lfind -lbac -lm $(PYTHON_LIBS) $(LIBS) \
 	  $(DLIB) $(WRAPLIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)

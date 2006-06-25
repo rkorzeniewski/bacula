@@ -300,7 +300,7 @@ static int tls_pem_callback(char *buf, int size, const void *userdata)
 #ifdef HAVE_TLS
 # ifdef HAVE_MINGW
    const char *prompt = (const char *)userdata;
-   sendit(prompt)
+   sendit(prompt);
    if (win32_cgets(buf, size) == NULL) {
       buf[0] = 0;
       return 0;

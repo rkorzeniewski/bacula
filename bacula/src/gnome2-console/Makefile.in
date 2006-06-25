@@ -49,7 +49,8 @@ CONS_LDFLAGS=$(GNOME_LIBDIR) $(GNOMEUI_LIBS)
 
 # inference rules
 .c.o:
-	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(CONS_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+	@echo "Compiling $<"
+	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(CONS_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
 all: Makefile gnome-console @STATIC_GNOME_CONS@
 	@echo "==== Make of gnome-console is good ===="

@@ -41,7 +41,8 @@ CONS_LDFLAGS=@CONS_LDFLAGS@
 
 # inference rules
 .c.o:
-	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(CONS_INC) $(OPENSSL_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+	echo "Compiling $<"
+	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(CONS_INC) $(OPENSSL_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
 all: Makefile bconsole @STATIC_CONS@
 	@echo "==== Make of console is good ===="

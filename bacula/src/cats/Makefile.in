@@ -40,13 +40,15 @@ LIBOBJS = mysql.o bdb.o bdb_create.o bdb_get.o bdb_update.o \
 
 # inference rules
 .c.o:
-	$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(SQL_INC) $(DINCLUDE) $(CFLAGS) $<
+	@echo "Compiling $<"
+	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(SQL_INC) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
 all: Makefile libsql.a
 	@echo "==== Make of cats is good ===="
 	@echo " "
 
 libsql.a: $(LIBOBJS)
+	@echo "Making $@ ..."	  
 	$(AR) rc  $@ $(LIBOBJS)
 	$(RANLIB) $@
 

@@ -1315,8 +1315,9 @@ bool crypto_cipher_update(CIPHER_CONTEXT *cipher_ctx, const uint8_t *data, uint3
  * Returns: true on success
  *          false on failure
  */
-bool crypto_cipher_finalize (CIPHER_CONTEXT *cipher_ctx, void *dest, size_t *written) {
-   if (!EVP_CipherFinal_ex(&cipher_ctx->ctx, (unsigned char *) dest, (int *) written)) {
+bool crypto_cipher_finalize (CIPHER_CONTEXT *cipher_ctx, uint8_t *dest, uint32_t *written)
+{
+   if (!EVP_CipherFinal_ex(&cipher_ctx->ctx, (unsigned char *)dest, (int *) written)) {
       /* This really shouldn't fail */
       return false;
    } else {

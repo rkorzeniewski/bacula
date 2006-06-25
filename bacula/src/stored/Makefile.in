@@ -80,7 +80,8 @@ FDLIBS=@FDLIBS@
 
 # inference rules
 .c.o:
-	$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(PYTHON_INC) $(OPENSSL_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+	@echo "Compiling $<"
+	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(PYTHON_INC) $(OPENSSL_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
 
 all: Makefile bacula-sd @STATIC_SD@ bls bextract bscan btape bcopy
@@ -88,6 +89,7 @@ all: Makefile bacula-sd @STATIC_SD@ bls bextract bscan btape bcopy
 	@echo " "
 
 bacula-sd: $(SDOBJS) ../lib/libbac.a
+	@echo "Linking $@ ..."
 	$(CXX) $(WLDFLAGS) $(LDFLAGS) -L../lib -o $@ $(SDOBJS) $(FDLIBS) \
 	  -lbac -lm $(PYTHON_LIBS) $(DLIB) $(LIBS) $(WRAPLIBS) \
 	  $(GETTEXT_LIBS) $(OPENSSL_LIBS)
@@ -99,7 +101,8 @@ static-bacula-sd: $(SDOBJS) ../lib/libbac.a
 	strip $@
 
 btape.o: btape.c
-	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) \
+	echo "Compiling $<"
+	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) \
  -I$(basedir) $(OPENSSL_INC) $(DINCLUDE) $(CFLAGS) $<
 
 btape:	$(TAPEOBJS) ../lib/libbac.a ../cats/libsql.a
@@ -107,23 +110,28 @@ btape:	$(TAPEOBJS) ../lib/libbac.a ../cats/libsql.a
  -lsql $(DLIB) -lbac -lm $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
 bls.o:	bls.c
-	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) \
+	echo "Compiling $<"
+	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) \
  -I$(basedir) $(OPENSSL_INC) $(DINCLUDE) $(CFLAGS) $<
 
 bls:	../findlib/libfind.a $(BLSOBJS) ../lib/libbac.a
-	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(BLSOBJS) $(DLIB) -lfind \
+	echo "Compiling $<"
+	$(NO_ECHO)$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(BLSOBJS) $(DLIB) -lfind \
  -lbac -lm $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
 bextract.o: bextract.c
-	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) \
+	echo "Compiling $<"
+	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) \
  -I$(basedir) $(OPENSSL_INC) $(DINCLUDE) $(CFLAGS) $<
 
 bextract: ../findlib/libfind.a $(BEXTOBJS) ../lib/libbac.a
-	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(BEXTOBJS) $(DLIB) $(FDLIBS) \
+	echo "Compiling $<"
+	$(NO_ECHO)$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(BEXTOBJS) $(DLIB) $(FDLIBS) \
  -lfind -lbac -lm $(PYTHON_LIBS) $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
 bscan.o: bscan.c
-	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) \
+	echo "Compiling $<"
+	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) \
  -I$(basedir) $(OPENSSL_INC) $(DINCLUDE) $(CFLAGS) $<
 
 bscan:	../findlib/libfind.a $(SCNOBJS) ../cats/libsql.a
@@ -131,7 +139,8 @@ bscan:	../findlib/libfind.a $(SCNOBJS) ../cats/libsql.a
  -lsql $(DB_LIBS) $(FDLIBS) -lfind -lbac -lm $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
 bcopy.o: bcopy.c
-	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) \
+	echo "Compiling $<"
+	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) \
  -I$(basedir) $(OPENSSL_INC) $(DINCLUDE) $(CFLAGS) $<
 
 bcopy:	$(COPYOBJS) ../findlib/libfind.a ../lib/libbac.a

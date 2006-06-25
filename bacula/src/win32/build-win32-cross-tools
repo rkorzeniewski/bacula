@@ -48,12 +48,17 @@ CROSSTOOLS=cross-tools
 TARGET=mingw32
 
 cwd=`pwd`
+
 cd ${TOPDIR}
 # Make TOPDIR absolute 
 TOPDIR=`pwd`
-BUILDDIR=${TOPDIR}/${CROSSTOOLS}
+
+cd ${cwd}/`dirname $0`
+SCRIPTDIR=`pwd`
 
 cd ${cwd}
+
+BUILDDIR=${TOPDIR}/${CROSSTOOLS}
 
 # Where does the cross-compiler go?
 # This should be the directory into which your cross-compiler
@@ -104,6 +109,7 @@ MINGW_ARCHIVE="mingw-runtime-3.9.tar.gz"
 
 W32API_ARCHIVE="w32api-3.7.tar.gz"
 
+MINGW_UTILS_ARCHIVE="mingw-utils-0.3-src.tar.gz"
 
 # These are the files from the SDL website
 # These are optional, set them to "" if you don't want them)
@@ -184,6 +190,10 @@ function download_files
         download_file "$BINUTILS_ARCHIVE" "$MINGW_URL"
         download_file "$MINGW_ARCHIVE" "$MINGW_URL"
         download_file "$W32API_ARCHIVE" "$MINGW_URL"
+
+        if [ "x$MINGW_UTILS_ARCHIVE" != "x" ]; then
+                download_file "$MINGW_UTILS_ARCHIVE" "$MINGW_URL"
+        fi
 
         if [ "x$OPENGL_ARCHIVE" != "x" ]; then
                 download_file "$OPENGL_ARCHIVE" "$SDL_URL"
@@ -391,6 +401,67 @@ function install_gcc
 }
 
 
+function extract_mingw_utils
+{
+	cd "$SRCDIR"
+	MINGW_UTILS=`tar -tzf "$SRCDIR/$MINGW_UTILS_ARCHIVE" | head -n 1`
+	if [ "x${MINGW_UTILS}" != "x./" ]; then
+	   rm -rf "$MINGW_UTILS"
+	fi
+	echo "Extracting mingw-utils"
+	tar -xzf "$SRCDIR/$MINGW_UTILS_ARCHIVE"
+	cd "$BUILDDIR"
+}
+
+
+function patch_mingw_utils
+{
+	MINGW_UTILS=`tar -tzf "$SRCDIR/$MINGW_UTILS_ARCHIVE" | head -n 1`
+	cd "${SRCDIR}/${MINGW_UTILS}"
+	echo "Patching mingw-utils"
+	patch -p0 < ${SCRIPTDIR}/mingw-utils.patch &> patch.log
+	cd "$BUILDDIR"
+}
+
+
+function configure_mingw_utils
+{
+	cd "$BUILDDIR"
+	rm -rf "mingw-utils"
+	mkdir "mingw-utils"
+	cd "mingw-utils"
+	echo "Configuring mingw-utils"
+	"$SRCDIR/$MINGW_UTILS/configure" --disable-nonportable --prefix="${PREFIX}/${TARGET}" &> configure.log
+	cd "$BUILDDIR"
+}
+
+
+function build_mingw_utils
+{
+	cd "$BUILDDIR/mingw-utils"
+	echo "Building mingw-utils"
+	make CFLAGS="-O2 -fno-exceptions" LDFLAGS="-s" &> make.log
+	if test $? -ne 0; then
+		echo "make of mingw-utils failed - log available: mingw-utils/make.log"
+		exit 1
+	fi
+	cd "$BUILDDIR"
+}
+
+
+function install_mingw_utils
+{
+	cd "$BUILDDIR/mingw-utils"
+	echo "Installing mingw-utils"
+	make install &> make-install.log
+	if test $? -ne 0; then
+		echo "install of mingw-utils failed - log available: mingw-utils/make-install.log"
+		exit 1
+	fi
+	cd "$BUILDDIR"
+}
+
+
 function final_tweaks
 {
         echo "Finalizing installation"
@@ -401,6 +472,9 @@ function final_tweaks
         # Add extra binary links
         if [ ! -f "$PREFIX/$TARGET/bin/objdump" ]; then
                 ln "$PREFIX/bin/$TARGET-objdump" "$PREFIX/$TARGET/bin/objdump"
+        fi
+        if [ ! -f "$PREFIX/$TARGET/bin/dllwrap" ]; then
+                ln "$PREFIX/bin/$TARGET-dllwrap" "$PREFIX/$TARGET/bin/dllwrap"
         fi
 
         # make cc and c++ symlinks to gcc and g++
@@ -447,6 +521,14 @@ patch_gcc
 configure_gcc
 build_gcc
 install_gcc
+
+if test -n "${MINGW_UTILS_ARCHIVE}"; then
+	extract_mingw_utils
+	patch_mingw_utils
+	configure_mingw_utils
+	build_mingw_utils
+	install_mingw_utils
+fi
 
 final_tweaks
 

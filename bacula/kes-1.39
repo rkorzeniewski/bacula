@@ -2,7 +2,20 @@
                         Kern Sibbald
 
 General:
+25Jun06
+- Apply fix for scheduler for missing unlock_jobs().
+- Clean out autoconf caches before rebuilding configure
+- Fix the FreeBSD pthreads lib define updated by Dan.
+- Add missing semicolon in src/console/console.c
+- Add Robert's enhanced version of build-win32-cross-tools
+  as well as his patch file.
+- Note, the new gcc options are likely to break building of
+  wx-console or the tray-monitor ...
 24Jun06
+- Implement Robert's suggestion to suppress printing compile lines.
+- Detect GCC correctly (I hope)
+- If using GCC (actually g++) add the following compiler flags
+  -fno-strict-aliasing -fno-exceptions -fno-rtti
 - Turn on new bsnprintf() code.
 - Fix crypto when not using openssl. I previously overlooked this.
 - Eliminate crypto type punning problems by eliminating void * and
