@@ -41,8 +41,11 @@ AC_PROG_CXX
 AC_PROG_CC_C_O			dnl Determine if C compiler support -c -o.
 AC_PROG_GCC_TRADITIONAL 	dnl Determine if ioctl() need -traditional.
 
-if test "x$CC" = xgcc; then
+BASECC=`basename $CC`
+have_gcc=no
+if test "x$BASECC" = xgcc; then
    AC_DEFINE(HAVE_GCC)
+   have_gcc=yes
 fi
 AC_PATH_PROG(CXX, $CXX, $CXX)
 if test ! -e $CXX; then
@@ -1628,10 +1631,15 @@ AC_DEFINE(FDLIBS)
 
 
 CFLAGS=${CFLAGS--O}
+
+if test x$have_gcc = xyes ; then
+   CPPFLAGS="$CPPFLAGS -fno-strict-aliasing -fno-exceptions -fno-rtti"
+   CFLAGS="$CFLAGS -fno-strict-aliasing -fno-exceptions -fno-rtti"
+fi
 LDFLAGS=${LDFLAGS--O}
 DB_LIBS="${SQL_LFLAGS}"
-
 CPPFLAGS="$CPPFLAGS"
+CFLAGS="$CFLAGS"
 AC_SUBST(DEBUG)
 AC_SUBST(DINCLUDE)
 AC_SUBST(CFLAGS)
@@ -1730,7 +1738,7 @@ freebsd)
 	DISTVER=`uname -a |awk '{print $3}'`
 	VER=`echo $DISTVER | cut -c 1`
 	if test x$VER = x4 ; then
-	   PTHREAD_LIB=""${PTHREAD_LIBS}"
+	   PTHREAD_LIB="${PTHREAD_LIBS}"
 	   CFLAGS="${CFLAGS} ${PTHREAD_CFLAGS}"
 	fi
 	lld="qd"

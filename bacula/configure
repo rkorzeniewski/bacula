@@ -3206,11 +3206,14 @@ echo "${ECHO_T}$ac_cv_prog_gcc_traditional" >&6
   fi
 fi
 
-if test "x$CC" = xgcc; then
+BASECC=`basename $CC`
+have_gcc=no
+if test "x$BASECC" = xgcc; then
    cat >>confdefs.h <<\_ACEOF
 #define HAVE_GCC 1
 _ACEOF
 
+   have_gcc=yes
 fi
 # Extract the first word of "$CXX", so it can be a program name with args.
 set dummy $CXX; ac_word=$2
@@ -4402,7 +4405,7 @@ else
   HAVE_SUN_OS_TRUE='#'
   HAVE_SUN_OS_FALSE=
 fi
-        cat >>confdefs.h <<\_ACEOF
+	cat >>confdefs.h <<\_ACEOF
 #define HAVE_SUN_OS 1
 _ACEOF
 
@@ -4429,7 +4432,7 @@ else
   HAVE_OSF1_OS_TRUE='#'
   HAVE_OSF1_OS_FALSE=
 fi
-        cat >>confdefs.h <<\_ACEOF
+	cat >>confdefs.h <<\_ACEOF
 #define HAVE_OSF1_OS 1
 _ACEOF
 
@@ -4456,7 +4459,7 @@ else
   HAVE_AIX_OS_TRUE='#'
   HAVE_AIX_OS_FALSE=
 fi
-        cat >>confdefs.h <<\_ACEOF
+	cat >>confdefs.h <<\_ACEOF
 #define HAVE_AIX_OS 1
 _ACEOF
 
@@ -4483,7 +4486,7 @@ else
   HAVE_HPUX_OS_TRUE='#'
   HAVE_HPUX_OS_FALSE=
 fi
-        cat >>confdefs.h <<\_ACEOF
+	cat >>confdefs.h <<\_ACEOF
 #define HAVE_HPUX_OS 1
 _ACEOF
 
@@ -4510,7 +4513,7 @@ else
   HAVE_LINUX_OS_TRUE='#'
   HAVE_LINUX_OS_FALSE=
 fi
-        cat >>confdefs.h <<\_ACEOF
+	cat >>confdefs.h <<\_ACEOF
 #define HAVE_LINUX_OS 1
 _ACEOF
 
@@ -4537,7 +4540,7 @@ else
   HAVE_FREEBSD_OS_TRUE='#'
   HAVE_FREEBSD_OS_FALSE=
 fi
-        cat >>confdefs.h <<\_ACEOF
+	cat >>confdefs.h <<\_ACEOF
 #define HAVE_FREEBSD_OS 1
 _ACEOF
 
@@ -4564,7 +4567,7 @@ else
   HAVE_NETBSD_OS_TRUE='#'
   HAVE_NETBSD_OS_FALSE=
 fi
-        cat >>confdefs.h <<\_ACEOF
+	cat >>confdefs.h <<\_ACEOF
 #define HAVE_NETBSD_OS 1
 _ACEOF
 
@@ -4591,7 +4594,7 @@ else
   HAVE_OPENBSD_OS_TRUE='#'
   HAVE_OPENBSD_OS_FALSE=
 fi
-        cat >>confdefs.h <<\_ACEOF
+	cat >>confdefs.h <<\_ACEOF
 #define HAVE_OPENBSD_OS 1
 _ACEOF
 
@@ -4618,7 +4621,7 @@ else
   HAVE_BSDI_OS_TRUE='#'
   HAVE_BSDI_OS_FALSE=
 fi
-        cat >>confdefs.h <<\_ACEOF
+	cat >>confdefs.h <<\_ACEOF
 #define HAVE_BSDI_OS 1
 _ACEOF
 
@@ -4645,7 +4648,7 @@ else
   HAVE_SGI_OS_TRUE='#'
   HAVE_SGI_OS_FALSE=
 fi
-        cat >>confdefs.h <<\_ACEOF
+	cat >>confdefs.h <<\_ACEOF
 #define HAVE_SGI_OS 1
 _ACEOF
 
@@ -4661,7 +4664,7 @@ else
 fi
 fi
 
-if test $HAVE_UNAME=yes -a x`uname -s` = xIRIX
+if test $HAVE_UNAME=yes -a x`uname -s` = xIRIX -o x`uname -s` = xIRIX64
 then
 
 
@@ -4672,7 +4675,7 @@ else
   HAVE_IRIX_OS_TRUE='#'
   HAVE_IRIX_OS_FALSE=
 fi
-        cat >>confdefs.h <<\_ACEOF
+	cat >>confdefs.h <<\_ACEOF
 #define HAVE_IRIX_OS 1
 _ACEOF
 
@@ -4725,70 +4728,70 @@ then
         echo "distname set to $DISTNAME"
 elif test $HAVE_UNAME=yes -a x`uname -s` = xOSF1
 then
-        DISTNAME=alpha
+	DISTNAME=alpha
 elif test $HAVE_UNAME=yes -a x`uname -s` = xAIX
 then
-        DISTNAME=aix
+	DISTNAME=aix
 elif test $HAVE_UNAME=yes -a x`uname -s` = xHP-UX
 then
-        DISTNAME=hpux
+	DISTNAME=hpux
 elif test $HAVE_UNAME=yes -a x`uname -s` = xSunOS
 then
-        DISTNAME=solaris
+	DISTNAME=solaris
 elif test $HAVE_UNAME=yes -a x`uname -s` = xFreeBSD
 then
-        DISTNAME=freebsd
+	DISTNAME=freebsd
 elif test $HAVE_UNAME=yes -a x`uname -s` = xNetBSD
 then
-        DISTNAME=netbsd
+	DISTNAME=netbsd
 elif test $HAVE_UNAME=yes -a x`uname -s` = xOpenBSD
 then
-        DISTNAME=openbsd
+	DISTNAME=openbsd
 elif test $HAVE_UNAME=yes -a x`uname -s` = xIRIX
 then
-        DISTNAME=irix
+	DISTNAME=irix
 elif test $HAVE_UNAME=yes -a x`uname -s` = xBSD/OS
 then
-        DISTNAME=bsdi
+	DISTNAME=bsdi
 elif test -f /etc/SuSE-release
 then
-        DISTNAME=suse
+	DISTNAME=suse
 elif test -d /etc/SuSEconfig
 then
-        DISTNAME=suse5
+	DISTNAME=suse5
 elif test -f /etc/mandrake-release
 then
-        DISTNAME=mandrake
+	DISTNAME=mandrake
 elif test -f /etc/whitebox-release
 then
        DISTNAME=redhat
 elif test -f /etc/redhat-release
 then
-        DISTNAME=redhat
+	DISTNAME=redhat
 elif test -f /etc/gentoo-release
 then
-        DISTNAME=gentoo
+	DISTNAME=gentoo
 elif test -f /etc/debian_version
 then
-        DISTNAME=debian
+	DISTNAME=debian
 elif test -f /etc/slackware-version
 then
-        DISTNAME=slackware
+	DISTNAME=slackware
 elif test $HAVE_UNAME=yes -a x`uname -s` = xDarwin
 then
     DISTNAME=darwin
 elif test -f /etc/engarde-version
 then
-        DISTNAME=engarde
+	DISTNAME=engarde
 elif test "$CYGWIN" = yes
 then
-        DISTNAME=cygwin
-        cat >>confdefs.h <<\_ACEOF
+	DISTNAME=cygwin
+	cat >>confdefs.h <<\_ACEOF
 #define HAVE_CYGWIN 1
 _ACEOF
 
 else
-        DISTNAME=unknown
+	DISTNAME=unknown
 fi
 echo "$as_me:$LINENO: result: done" >&5
 echo "${ECHO_T}done" >&6
@@ -21413,8 +21416,8 @@ int
 main ()
 {
 
-          int mask = sigmask(SIGINT);
-          sigsetmask(mask); sigblock(mask); sigpause(mask);
+	  int mask = sigmask(SIGINT);
+	  sigsetmask(mask); sigblock(mask); sigpause(mask);
 
   ;
   return 0;
@@ -21448,22 +21451,22 @@ else
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-        cat >conftest.$ac_ext <<_ACEOF
+	cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-          #include <signal.h>
-          RETSIGTYPE foo() { }
+	  #include <signal.h>
+	  RETSIGTYPE foo() { }
 int
 main ()
 {
 
-                  int mask = sigmask(SIGINT);
-                  sigset(SIGINT, foo); sigrelse(SIGINT);
-                  sighold(SIGINT); sigpause(SIGINT);
+		  int mask = sigmask(SIGINT);
+		  sigset(SIGINT, foo); sigrelse(SIGINT);
+		  sighold(SIGINT); sigpause(SIGINT);
 
   ;
   return 0;
@@ -29528,10 +29531,15 @@ _ACEOF
 
 
 CFLAGS=${CFLAGS--O}
+
+if test x$have_gcc = xyes ; then
+   CPPFLAGS="$CPPFLAGS -fno-strict-aliasing -fno-exceptions -fno-rtti"
+   CFLAGS="$CFLAGS -fno-strict-aliasing -fno-exceptions -fno-rtti"
+fi
 LDFLAGS=${LDFLAGS--O}
 DB_LIBS="${SQL_LFLAGS}"
-
 CPPFLAGS="$CPPFLAGS"
+CFLAGS="$CFLAGS"
 
 
 
@@ -29629,8 +29637,8 @@ freebsd)
 	DISTVER=`uname -a |awk '{print $3}'`
 	VER=`echo $DISTVER | cut -c 1`
 	if test x$VER = x4 ; then
-	   PTHREAD_LIB="-pthread"
-	   CFLAGS="${CFLAGS} -pthread"
+	   PTHREAD_LIB="${PTHREAD_LIBS}"
+	   CFLAGS="${CFLAGS} ${PTHREAD_CFLAGS}"
 	fi
 	lld="qd"
 	llu="qu"

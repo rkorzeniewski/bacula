@@ -26,6 +26,8 @@ scriptdir = @scriptdir@
 mandir = @mandir@/man8
 manext = 8
 
+NO_ECHO = @
+
 # Tools & program stuff
 CC = @CC@
 CPP = @CPP@
