@@ -5,7 +5,7 @@
 
 # basic defines for every build
 %define depkgs ../depkgs
-%define depkgs_version 28Mar06
+%define depkgs_version 25Jun06
 %define sqlite_bindir /usr/lib/bacula/sqlite
 %define working_dir /var/bacula
 
@@ -169,6 +169,7 @@ Source1: http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.
 Source2: Release_Notes-%{version}-%{release}.tar.gz
 Source3: http://www.prdownloads.sourceforge.net/bacula/%{name}-docs-%{version}.tar.gz
 Source4: http://www.prdownloads.sourceforge.net/bacula/%{name}-rescue-%{_rescuever}.tar.gz
+Patch0: bacula-1.38.9-gnome2console.patch
 BuildRoot: %{_tmppath}/%{name}-root
 URL: http://www.bacula.org/
 Vendor: The Bacula Team
@@ -698,6 +699,8 @@ server packages.
 %setup -T -D -b 2
 %setup -T -D -b 3
 %setup -T -D -b 4
+
+%patch -p0
 
 %build
 
@@ -1474,6 +1477,8 @@ fi
 %endif
 
 %changelog
+* Sun Jun 25 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- update depkgs to 25Jun06
 * Mon Jun 12 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - 1.38.10 bump rescue version
 * Sun Jun 03 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
