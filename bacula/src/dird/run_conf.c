@@ -257,7 +257,7 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
                      lrun.inc_pool = (POOL *)res;
                      break;
                   case 'd':
-                     lrun.dif_pool = (POOL *)res;
+                     lrun.diff_pool = (POOL *)res;
                      break;
                   }
                }

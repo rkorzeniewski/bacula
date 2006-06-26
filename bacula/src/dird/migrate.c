@@ -51,8 +51,6 @@ static void start_migration_job(JCR *jcr);
  */
 bool do_migration_init(JCR *jcr)
 {
-   POOL_DBR pr;
-
    /* If we find a job to migrate it is previous_jr.JobId */
    if (!get_job_to_migrate(jcr)) {
       return false;
@@ -66,43 +64,15 @@ bool do_migration_init(JCR *jcr)
       return false;
    }
 
-   /*
-    * Get the Pool record -- first apply any level defined pools
-    */
-   switch (jcr->previous_jr.JobLevel) {
-   case L_FULL:
-      if (jcr->full_pool) {
-         jcr->pool = jcr->full_pool;
-      }
-      break;
-   case L_INCREMENTAL:
-      if (jcr->inc_pool) {
-         jcr->pool = jcr->inc_pool;
-      }
-      break;
-   case L_DIFFERENTIAL:
-      if (jcr->dif_pool) {
-         jcr->pool = jcr->dif_pool;
-      }
-      break;
-   }
-   memset(&pr, 0, sizeof(pr));
-   bstrncpy(pr.Name, jcr->pool->hdr.name, sizeof(pr.Name));
+   apply_pool_overrides(jcr);
 
-   while (!db_get_pool_record(jcr, jcr->db, &pr)) { /* get by Name */
-      /* Try to create the pool */
-      if (create_pool(jcr, jcr->db, jcr->pool, POOL_OP_CREATE) < 0) {
-         Jmsg(jcr, M_FATAL, 0, _("Pool %s not in database. %s"), pr.Name,
-            db_strerror(jcr->db));
-         return false;
-      } else {
-         Jmsg(jcr, M_INFO, 0, _("Pool %s created in database.\n"), pr.Name);
-      }
+   jcr->jr.PoolId = get_or_create_pool_record(jcr, jcr->pool->hdr.name);
+   if (jcr->jr.PoolId == 0) {
+      return false;
    }
-   jcr->jr.PoolId = pr.PoolId;
 
    /* If pool storage specified, use it instead of job storage */
-   copy_storage(jcr, jcr->pool->storage);
+   copy_storage(jcr, jcr->pool->storage, _("Pool resource"));
 
    if (!jcr->storage) {
       Jmsg(jcr, M_FATAL, 0, _("No Storage specification found in Job or Pool.\n"));
@@ -193,35 +163,27 @@ bool do_migration(JCR *jcr)
    /* ***FIXME*** */
 
    /* If pool storage specified, use it for restore */
-   copy_storage(prev_jcr, pool->storage);
+   copy_storage(prev_jcr, pool->storage, _("Pool resource"));
 
    /* If the original backup pool has a NextPool, make sure a 
     *  record exists in the database.
     */
    if (pool->NextPool) {
-      memset(&pr, 0, sizeof(pr));
-      bstrncpy(pr.Name, pool->NextPool->hdr.name, sizeof(pr.Name));
-
-      while (!db_get_pool_record(jcr, jcr->db, &pr)) { /* get by Name */
-         /* Try to create the pool */
-         if (create_pool(jcr, jcr->db, pool->NextPool, POOL_OP_CREATE) < 0) {
-            Jmsg(jcr, M_FATAL, 0, _("Pool \"%s\" not in database. %s"), pr.Name,
-               db_strerror(jcr->db));
-            return false;
-         } else {
-            Jmsg(jcr, M_INFO, 0, _("Pool \"%s\" created in database.\n"), pr.Name);
-         }
+      jcr->jr.PoolId = get_or_create_pool_record(jcr, pool->NextPool->hdr.name);
+      if (jcr->jr.PoolId == 0) {
+         return false;
       }
       /*
        * put the "NextPool" resource pointer in our jcr so that we
        * can pull the Storage reference from it.
        */
       prev_jcr->pool = jcr->pool = pool->NextPool;
-      prev_jcr->jr.PoolId = jcr->jr.PoolId = pr.PoolId;
+      prev_jcr->jr.PoolId = jcr->jr.PoolId;
+      pm_strcpy(jcr->pool_source, _("NextPool in Pool resource"));
    }
 
    /* If pool storage specified, use it instead of job storage for backup */
-   copy_storage(jcr, jcr->pool->storage);
+   copy_storage(jcr, jcr->pool->storage, _("Pool resource"));
 
    /* Print Job Start message */
    Jmsg(jcr, M_INFO, 0, _("Start Migration JobId %s, Job=%s\n"),
@@ -676,15 +638,21 @@ void migration_cleanup(JCR *jcr, int TermCode)
    set_jcr_job_status(jcr, TermCode);
    update_job_end_record(jcr);        /* update database */
 
-   /* Check if we actually did something */
+   /* 
+    * Check if we actually did something.  
+    *  prev_jcr is jcr of the newly migrated job.
+    */
    if (prev_jcr) {
       prev_jcr->JobFiles = jcr->JobFiles = jcr->SDJobFiles;
       prev_jcr->JobBytes = jcr->JobBytes = jcr->SDJobBytes;
       prev_jcr->VolSessionId = jcr->VolSessionId;
       prev_jcr->VolSessionTime = jcr->VolSessionTime;
+      prev_jcr->jr.RealEndTime = 0; 
+      prev_jcr->jr.PriorJobId = jcr->previous_jr.JobId;
 
       set_jcr_job_status(prev_jcr, TermCode);
 
+  
       update_job_end_record(prev_jcr);
 
       Mmsg(query, "UPDATE Job SET StartTime='%s',EndTime='%s',"
@@ -725,36 +693,36 @@ void migration_cleanup(JCR *jcr, int TermCode)
 
    msg_type = M_INFO;                 /* by default INFO message */
    switch (jcr->JobStatus) {
-      case JS_Terminated:
-         if (jcr->Errors || jcr->SDErrors) {
-            term_msg = _("%s OK -- with warnings");
-         } else {
-            term_msg = _("%s OK");
+   case JS_Terminated:
+      if (jcr->Errors || jcr->SDErrors) {
+         term_msg = _("%s OK -- with warnings");
+      } else {
+         term_msg = _("%s OK");
+      }
+      break;
+   case JS_FatalError:
+   case JS_ErrorTerminated:
+      term_msg = _("*** %s Error ***");
+      msg_type = M_ERROR;          /* Generate error message */
+      if (jcr->store_bsock) {
+         bnet_sig(jcr->store_bsock, BNET_TERMINATE);
+         if (jcr->SD_msg_chan) {
+            pthread_cancel(jcr->SD_msg_chan);
          }
-         break;
-      case JS_FatalError:
-      case JS_ErrorTerminated:
-         term_msg = _("*** %s Error ***");
-         msg_type = M_ERROR;          /* Generate error message */
-         if (jcr->store_bsock) {
-            bnet_sig(jcr->store_bsock, BNET_TERMINATE);
-            if (jcr->SD_msg_chan) {
-               pthread_cancel(jcr->SD_msg_chan);
-            }
+      }
+      break;
+   case JS_Canceled:
+      term_msg = _("%s Canceled");
+      if (jcr->store_bsock) {
+         bnet_sig(jcr->store_bsock, BNET_TERMINATE);
+         if (jcr->SD_msg_chan) {
+            pthread_cancel(jcr->SD_msg_chan);
          }
-         break;
-      case JS_Canceled:
-         term_msg = _("%s Canceled");
-         if (jcr->store_bsock) {
-            bnet_sig(jcr->store_bsock, BNET_TERMINATE);
-            if (jcr->SD_msg_chan) {
-               pthread_cancel(jcr->SD_msg_chan);
-            }
-         }
-         break;
-      default:
-         term_msg = _("Inappropriate %s term code");
-         break;
+      }
+      break;
+   default:
+      term_msg = _("Inappropriate %s term code");
+      break;
    }
    bsnprintf(term_code, sizeof(term_code), term_msg, "Migration");
    bstrftimes(sdt, sizeof(sdt), jcr->jr.StartTime);
@@ -777,7 +745,8 @@ void migration_cleanup(JCR *jcr, int TermCode)
 "  Backup Level:           %s%s\n"
 "  Client:                 %s\n"
 "  FileSet:                \"%s\" %s\n"
-"  Pool:                   \"%s\"\n"
+"  Pool:                   \"%s\" (From %s)\n"
+"  Storage:                \"%s\" (From %s)\n"
 "  Start time:             %s\n"
 "  End time:               %s\n"
 "  Elapsed time:           %s\n"
@@ -802,7 +771,8 @@ void migration_cleanup(JCR *jcr, int TermCode)
         level_to_str(jcr->JobLevel), jcr->since,
         jcr->client->hdr.name,
         jcr->fileset->hdr.name, jcr->FSCreateTime,
-        jcr->pool->hdr.name,
+        jcr->pool->hdr.name, jcr->pool_source,
+        jcr->store->hdr.name, jcr->storage_source,
         sdt,
         edt,
         edit_utime(RunTime, elapsed, sizeof(elapsed)),

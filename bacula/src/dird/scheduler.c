@@ -190,15 +190,19 @@ again:
    }
    if (run->pool) {
       jcr->pool = run->pool;          /* override pool */
+      jcr->run_pool_override = true;
    }
    if (run->full_pool) {
       jcr->full_pool = run->full_pool; /* override full pool */
+      jcr->run_full_pool_override = true;
    }
    if (run->inc_pool) {
       jcr->inc_pool = run->inc_pool;  /* override inc pool */
+      jcr->run_inc_pool_override = true;
    }
-   if (run->dif_pool) {
-      jcr->dif_pool = run->dif_pool;  /* override dif pool */
+   if (run->diff_pool) {
+      jcr->diff_pool = run->diff_pool;  /* override dif pool */
+      jcr->run_diff_pool_override = true;
    }
    if (run->storage) {
       set_storage(jcr, run->storage); /* override storage */

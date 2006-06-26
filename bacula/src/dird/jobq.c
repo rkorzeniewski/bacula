@@ -519,7 +519,7 @@ void *jobq_server(void *arg)
             njcr->JobLevel = jcr->JobLevel;
             njcr->JobStatus = -1;
             set_jcr_job_status(njcr, jcr->JobStatus);
-            copy_storage(njcr, jcr->storage);
+            copy_storage(njcr, jcr->storage, _("previous Job"));
             njcr->messages = jcr->messages;
             Dmsg0(2300, "Call to run new job\n");
             V(jq->mutex);

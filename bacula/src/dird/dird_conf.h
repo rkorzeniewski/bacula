@@ -317,7 +317,7 @@ public:
    POOL      *pool;                   /* Where is media -- Media Pool */
    POOL      *full_pool;              /* Pool for Full backups */
    POOL      *inc_pool;               /* Pool for Incremental backups */
-   POOL      *dif_pool;               /* Pool for Differental backups */
+   POOL      *diff_pool;              /* Pool for Differental backups */
    POOL      *next_pool;              /* Next Pool for Migration */
    char      *selection_pattern;
    int        selection_type;
@@ -476,7 +476,7 @@ public:
    POOL *pool;                        /* Pool override */
    POOL *full_pool;                   /* Pool override */
    POOL *inc_pool;                    /* Pool override */
-   POOL *dif_pool;                    /* Pool override */
+   POOL *diff_pool;                   /* Pool override */
    STORE *storage;                    /* Storage override */
    MSGS *msgs;                        /* Messages override */
    char *since;

@@ -190,7 +190,11 @@ public:
    POOL *pool;                        /* Pool resource */
    POOL *full_pool;                   /* Full backup pool resource */
    POOL *inc_pool;                    /* Incremental backup pool resource */
-   POOL *dif_pool;                    /* Differential backup pool resource */
+   POOL *diff_pool;                    /* Differential backup pool resource */
+   bool run_pool_override;
+   bool run_full_pool_override;
+   bool run_inc_pool_override;
+   bool run_diff_pool_override;
    FILESET *fileset;                  /* FileSet resource */
    CAT *catalog;                      /* Catalog resource */
    MSGS *messages;                    /* Default message handler */
@@ -215,6 +219,8 @@ public:
       JobId_t MigrateJobId;
    };
    POOLMEM *client_uname;             /* client uname */
+   POOLMEM *pool_source;              /* Where pool came from */
+   POOLMEM *storage_source;           /* Where storage came from */
    int replace;                       /* Replace option */
    int NumVols;                       /* Number of Volume used in pool */
    int reschedule_count;              /* Number of times rescheduled */
