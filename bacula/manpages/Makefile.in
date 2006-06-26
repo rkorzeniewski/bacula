@@ -1,5 +1,7 @@
 #
 #
+@MCOMMON@
+
 .PHONY: dummy
 
 MAN8 = bacula.8 bacula-dir.8 bacul-fd.8 bacula-sd.8 \
@@ -11,13 +13,30 @@ MAN1 = bacula-console-gnome.1 bacula-tray-monitor.1 \
       
 
 install:
-	gzip <bacula.8 >bacula.8.gz
-	$(INSTALL_DATA)   bacula.8.gz $(DESTDIR)$(mandir)/bacula.8.gz
-	@rm -f bacula.8.gz
+	$(MKDIR) $(DESTDIR)/$(mandir)/man8
+	for I in ${MAN8}; \
+	  do ($(RMF) $$I.gz; gzip -c $$I >$$I.gz; \
+	     $(INSTALL_DATA) $$I.gz $(DESTDIR)$(mandir)/man8/$$I.gz; \
+	     rm -f $$I.gz); \
+	done
+	$(MKDIR) $(DESTDIR)/$(mandir)/man1
+	for I in ${MAN1}; \
+	  do ($(RMF) $$I.gz; gzip -c $$I >$$I.gz; \
+	     $(INSTALL_DATA) $$I.gz $(DESTDIR)$(mandir)/man1/$$I.gz; \
+	     rm -f $$I.gz); \
+	done
 
 uninstall:
-	(cd $(DESTDIR)$(mandir); $(RMF) bacula.8.gz)
+	for I in ${MAN8}; \
+	  do (rm -f $(DESTDIR)$(mandir)/man8/$$I.gz); \
+	done
+	for I in ${MAN1}; \
+	  do (rm -f $(DESTDIR)$(mandir)/man1/$$I.gz); \
+	done
 
+clean:	dummy
+	$(RMF) *~ 1 2 3 *.bak
+	@find . -name .#* -exec $(RMF) {} \;
 
-tidy:	dummy
-	rm -f *~
+distclean: clean
+	$(RMF) Makefile
