@@ -236,7 +236,7 @@ RES_ITEM job_items[] = {
    {"pool",      store_res,     ITEM(res_job.pool),     R_POOL, ITEM_REQUIRED, 0},
    {"fullbackuppool",  store_res, ITEM(res_job.full_pool),   R_POOL, 0, 0},
    {"incrementalbackuppool",  store_res, ITEM(res_job.inc_pool), R_POOL, 0, 0},
-   {"differentialbackuppool", store_res, ITEM(res_job.dif_pool), R_POOL, 0, 0},
+   {"differentialbackuppool", store_res, ITEM(res_job.diff_pool), R_POOL, 0, 0},
    {"client",    store_res,     ITEM(res_job.client),   R_CLIENT, ITEM_REQUIRED, 0},
    {"fileset",   store_res,     ITEM(res_job.fileset),  R_FILESET, ITEM_REQUIRED, 0},
    {"schedule",  store_res,     ITEM(res_job.schedule), R_SCHEDULE, 0, 0},
@@ -626,9 +626,9 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
          sendit(sock, _("  --> "));
          dump_resource(-R_POOL, (RES *)res->res_job.inc_pool, sendit, sock);
       }
-      if (res->res_job.dif_pool) {
+      if (res->res_job.diff_pool) {
          sendit(sock, _("  --> "));
-         dump_resource(-R_POOL, (RES *)res->res_job.dif_pool, sendit, sock);
+         dump_resource(-R_POOL, (RES *)res->res_job.diff_pool, sendit, sock);
       }
       if (res->res_job.verify_job) {
          sendit(sock, _("  --> "));
@@ -1246,7 +1246,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
          res->res_job.pool       = res_all.res_job.pool;
          res->res_job.full_pool  = res_all.res_job.full_pool;
          res->res_job.inc_pool   = res_all.res_job.inc_pool;
-         res->res_job.dif_pool   = res_all.res_job.dif_pool;
+         res->res_job.diff_pool  = res_all.res_job.diff_pool;
          res->res_job.verify_job = res_all.res_job.verify_job;
          res->res_job.jobdefs    = res_all.res_job.jobdefs;
          res->res_job.run_cmds   = res_all.res_job.run_cmds;

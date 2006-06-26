@@ -48,7 +48,6 @@ static char EndJob[]     = "2800 End Job TermCode=%d JobFiles=%u "
  */
 bool do_backup_init(JCR *jcr)
 {
-   POOL_DBR pr;
 
    if (!get_or_create_fileset_record(jcr)) {
       return false;
@@ -59,48 +58,15 @@ bool do_backup_init(JCR *jcr)
     */
    get_level_since_time(jcr, jcr->since, sizeof(jcr->since));
 
-   /*
-    * Apply any level related Pool selections
-    */
-   switch (jcr->JobLevel) {
-   case L_FULL:
-      if (jcr->full_pool) {
-         jcr->pool = jcr->full_pool;
-      }
-      break;
-   case L_INCREMENTAL:
-      if (jcr->inc_pool) {
-         jcr->pool = jcr->inc_pool;
-      }
-      break;
-   case L_DIFFERENTIAL:
-      if (jcr->dif_pool) {
-         jcr->pool = jcr->dif_pool;
-      }
-      break;
-   }
-   memset(&pr, 0, sizeof(pr));
-   bstrncpy(pr.Name, jcr->pool->hdr.name, sizeof(pr.Name));
+   apply_pool_overrides(jcr);
 
-   if (!db_get_pool_record(jcr, jcr->db, &pr)) { /* get by Name */
-      /* Try to create the pool */
-      if (create_pool(jcr, jcr->db, jcr->pool, POOL_OP_CREATE) < 0) {
-         Jmsg(jcr, M_FATAL, 0, _("Pool %s not in database. %s"), pr.Name,
-            db_strerror(jcr->db));
-         return false;
-      } else {
-         Jmsg(jcr, M_INFO, 0, _("Pool %s created in database.\n"), pr.Name);
-         if (!db_get_pool_record(jcr, jcr->db, &pr)) { /* get by Name */
-            Jmsg(jcr, M_FATAL, 0, _("Pool %s not in database. %s"), pr.Name,
-               db_strerror(jcr->db));
-            return false;
-         }
-      }
+   jcr->jr.PoolId = get_or_create_pool_record(jcr, jcr->pool->hdr.name);
+   if (jcr->jr.PoolId == 0) {
+      return false;
    }
-   jcr->jr.PoolId = pr.PoolId;
 
    /* If pool storage specified, use it instead of job storage */
-   copy_storage(jcr, jcr->pool->storage);
+   copy_storage(jcr, jcr->pool->storage, _("Pool resource"));
 
    if (!jcr->storage) {
       Jmsg(jcr, M_FATAL, 0, _("No Storage specification found in Job or Pool.\n"));
@@ -454,8 +420,8 @@ void backup_cleanup(JCR *jcr, int TermCode)
 "  Backup Level:           %s%s\n"
 "  Client:                 \"%s\" %s\n"
 "  FileSet:                \"%s\" %s\n"
-"  Pool:                   \"%s\"\n"
-"  Storage:                \"%s\"\n"
+"  Pool:                   \"%s\" (From %s)\n"
+"  Storage:                \"%s\" (From %s)\n"
 "  Scheduled time:         %s\n"
 "  Start time:             %s\n"
 "  End time:               %s\n"
@@ -484,8 +450,8 @@ void backup_cleanup(JCR *jcr, int TermCode)
         level_to_str(jcr->JobLevel), jcr->since,
         jcr->client->hdr.name, cr.Uname,
         jcr->fileset->hdr.name, jcr->FSCreateTime,
-        jcr->pool->hdr.name,
-        jcr->store->hdr.name,
+        jcr->pool->hdr.name, jcr->pool_source,
+        jcr->store->hdr.name, jcr->storage_source,
         schedt,
         sdt,
         edt,

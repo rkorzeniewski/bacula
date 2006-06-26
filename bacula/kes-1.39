@@ -2,6 +2,13 @@
                         Kern Sibbald
 
 General:
+26Jun06
+- Add complete text of GPL to LICENSE.
+- Implement job report that indicates where Storage and Pool
+  came from -- with overrides and Pool storage and NextPool,
+  it is all very complicated.
+- Create a few common subroutines for backup.c and migrate.c
+- Eliminate warning messages from tray-monitor.c
 25Jun06
 - Apply fix for scheduler for missing unlock_jobs().
 - Clean out autoconf caches before rebuilding configure

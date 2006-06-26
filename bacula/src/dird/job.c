@@ -124,6 +124,18 @@ bool setup_job(JCR *jcr)
    }
    Dmsg0(50, "DB opened\n");
 
+   if (!jcr->fname) {
+      jcr->fname = get_pool_memory(PM_FNAME);
+   }
+   if (!jcr->pool_source) {
+      jcr->pool_source = get_pool_memory(PM_MESSAGE);
+      pm_strcpy(jcr->pool_source, _("unknown source"));
+   }
+   if (!jcr->storage_source) {
+      jcr->storage_source = get_pool_memory(PM_MESSAGE);
+      pm_strcpy(jcr->storage_source, _("unknown source"));
+   }
+
    /*
     * Create Job record
     */
@@ -147,15 +159,9 @@ bool setup_job(JCR *jcr)
    }
 
    Dmsg0(200, "Add jrc to work queue\n");
-
-
    return true;
 
 bail_out:
-   if (jcr->fname) {
-      free_memory(jcr->fname);
-      jcr->fname = NULL;
-   }
    return false;
 }
 
@@ -200,9 +206,6 @@ static void *job_thread(void *arg)
    generate_job_event(jcr, "JobInit");
    set_jcr_job_status(jcr, JS_Running);   /* this will be set only if no error */
 
-   if (!jcr->fname) {
-      jcr->fname = get_pool_memory(PM_FNAME);
-   }
 
    /*
     * Now, do pre-run stuff, like setting job level (Inc/diff, ...)
@@ -374,7 +377,7 @@ bool cancel_job(UAContext *ua, JCR *jcr)
       /* Cancel Storage daemon */
       if (jcr->store_bsock) {
          if (!ua->jcr->storage) {
-            copy_storage(ua->jcr, jcr->storage);
+            copy_storage(ua->jcr, jcr->storage, _("Job resource")); 
          } else {
             set_storage(ua->jcr, jcr->store);
          }
@@ -571,6 +574,73 @@ static bool job_check_maxruntime(JCR *control_jcr, JCR *jcr)
    return cancel;
 }
 
+/*
+ * Get or create a Pool record with the given name.
+ * Returns: 0 on error
+ *          poolid if OK
+ */
+DBId_t get_or_create_pool_record(JCR *jcr, char *pool_name)
+{
+   POOL_DBR pr;
+
+   memset(&pr, 0, sizeof(pr));
+   bstrncpy(pr.Name, pool_name, sizeof(pr.Name));
+
+   while (!db_get_pool_record(jcr, jcr->db, &pr)) { /* get by Name */
+      /* Try to create the pool */
+      if (create_pool(jcr, jcr->db, jcr->pool, POOL_OP_CREATE) < 0) {
+         Jmsg(jcr, M_FATAL, 0, _("Pool %s not in database. %s"), pr.Name,
+            db_strerror(jcr->db));
+         return 0;
+      } else {
+         Jmsg(jcr, M_INFO, 0, _("Pool %s created in database.\n"), pr.Name);
+      }
+   }
+   return pr.PoolId;
+}
+
+void apply_pool_overrides(JCR *jcr)
+{
+   if (jcr->run_pool_override) {
+      pm_strcat(jcr->pool_source, _("Run Pool override"));
+   }
+   /*
+    * Apply any level related Pool selections
+    */
+   switch (jcr->JobLevel) {
+   case L_FULL:
+      if (jcr->full_pool) {
+         jcr->pool = jcr->full_pool;
+         if (jcr->run_full_pool_override) {
+            pm_strcat(jcr->pool_source, _("Run FullPool override"));
+         } else {
+            pm_strcat(jcr->pool_source, _("Job FullPool override"));
+         }
+      }
+      break;
+   case L_INCREMENTAL:
+      if (jcr->inc_pool) {
+         jcr->pool = jcr->inc_pool;
+         if (jcr->run_inc_pool_override) {
+            pm_strcat(jcr->pool_source, _("Run IncPool override"));
+         } else {
+            pm_strcat(jcr->pool_source, _("Job IncPool override"));
+         }
+      }
+      break;
+   case L_DIFFERENTIAL:
+      if (jcr->diff_pool) {
+         jcr->pool = jcr->diff_pool;
+         if (jcr->run_diff_pool_override) {
+            pm_strcat(jcr->pool_source, _("Run DiffPool override"));
+         } else {
+            pm_strcat(jcr->pool_source, _("Job DiffPool override"));
+         }
+      }
+      break;
+   }
+}
+
 
 /*
  * Get or create a Client record for this Job
@@ -741,6 +811,14 @@ void dird_free_jcr_pointers(JCR *jcr)
       free_pool_memory(jcr->fname);
       jcr->fname = NULL;
    }
+   if (jcr->pool_source) {
+      free_pool_memory(jcr->pool_source);
+      jcr->pool_source = NULL;
+   }
+   if (jcr->storage_source) {
+      free_pool_memory(jcr->storage_source);
+      jcr->storage_source = NULL;
+   }
    if (jcr->stime) {
       Dmsg0(200, "Free JCR stime\n");
       free_pool_memory(jcr->stime);
@@ -807,18 +885,30 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
       jcr->JobLevel = job->JobLevel;
       break;
    }
+   if (!jcr->fname) {
+      jcr->fname = get_pool_memory(PM_FNAME);
+   }
+   if (!jcr->pool_source) {
+      jcr->pool_source = get_pool_memory(PM_MESSAGE);
+      pm_strcpy(jcr->pool_source, _("unknown source"));
+   }
+   if (!jcr->storage_source) {
+      jcr->storage_source = get_pool_memory(PM_MESSAGE);
+      pm_strcpy(jcr->storage_source, _("unknown source"));
+   }
    jcr->JobPriority = job->Priority;
    /* Copy storage definitions -- deleted in dir_free_jcr above */
-   copy_storage(jcr, job->storage);
+   copy_storage(jcr, job->storage, _("Job resource"));
    jcr->client = job->client;
    if (!jcr->client_name) {
       jcr->client_name = get_pool_memory(PM_NAME);
    }
    pm_strcpy(jcr->client_name, jcr->client->hdr.name);
+   pm_strcpy(jcr->pool_source, _("Job resource"));
    jcr->pool = job->pool;
    jcr->full_pool = job->full_pool;
    jcr->inc_pool = job->inc_pool;
-   jcr->dif_pool = job->dif_pool;
+   jcr->diff_pool = job->diff_pool;
    jcr->catalog = job->client->catalog;
    jcr->fileset = job->fileset;
    jcr->messages = job->messages;
@@ -857,7 +947,7 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
 /* 
  * Copy the storage definitions from an alist to the JCR
  */
-void copy_storage(JCR *jcr, alist *storage)
+void copy_storage(JCR *jcr, alist *storage, const char *where)
 {
    if (storage) {
       STORE *st;
@@ -868,6 +958,7 @@ void copy_storage(JCR *jcr, alist *storage)
       foreach_alist(st, storage) {
          jcr->storage->append(st);
       }
+      pm_strcpy(jcr->storage_source, where);
    }               
    if (jcr->storage) {
       jcr->store = (STORE *)jcr->storage->first();

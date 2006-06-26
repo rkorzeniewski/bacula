@@ -596,7 +596,8 @@ static gboolean blink(gpointer data) {
    return true;
 }
 
-static gboolean fd_read(gpointer data) {
+static gboolean fd_read(gpointer data)
+{
    sm_line++;
 #if TRAY_DEBUG_MEMORY
    printf("sm_line=%d\n", sm_line);
@@ -672,7 +673,8 @@ void append_error_string(GString* str, int joberrors) {
    }
 }
 
-void getstatus(monitoritem* item, int current, GString** str) {
+void getstatus(monitoritem* item, int current, GString** str)
+{
    GSList *list, *it;
    stateenum ret = error;
    int jobid = 0, joberrors = 0;
@@ -824,7 +826,9 @@ void getstatus(monitoritem* item, int current, GString** str) {
 
    it = list;
    do {
-      if (it->data) g_string_free((GString*)it->data, TRUE);
+      if (it->data) {
+         g_string_free((GString*)it->data, TRUE);
+      }
    } while ((it = it->next) != NULL);
 
    g_slist_free(list);
@@ -837,7 +841,8 @@ void getstatus(monitoritem* item, int current, GString** str) {
    }
 }
 
-int docmd(monitoritem* item, const char* command, GSList** list) {
+int docmd(monitoritem* item, const char* command, GSList** list) 
+{
    int stat;
    GString* str = NULL;
 
@@ -881,7 +886,7 @@ int docmd(monitoritem* item, const char* command, GSList** list) {
       }
 
       if (item->D_sock == NULL) {
-         (void)g_slist_append(*list, g_string_new(_("Cannot connect to daemon.\n")));
+         *list = g_slist_append(*list, g_string_new(_("Cannot connect to daemon.\n")));
          changeStatusMessage(item, _("Cannot connect to daemon."));
          item->state = error;
          item->oldstate = error;
@@ -891,7 +896,7 @@ int docmd(monitoritem* item, const char* command, GSList** list) {
       if (!authenticate_daemon(item, &jcr)) {
          str = g_string_sized_new(64);
          g_string_printf(str, "ERR=%s\n", item->D_sock->msg);
-         (void)g_slist_append(*list, str);
+         *list = g_slist_append(*list, str);
          item->state = error;
          item->oldstate = error;
          changeStatusMessage(item, _("Authentication error : %s"), item->D_sock->msg);
@@ -920,14 +925,16 @@ int docmd(monitoritem* item, const char* command, GSList** list) {
       }
 
       if (item->type == R_DIRECTOR) { /* Read connection messages... */
-         GSList *list, *it;
-         docmd(item, "", &list); /* Usually invalid, but no matter */
-         it = list;
+         GSList *tlist, *it;
+         docmd(item, "", &tlist); /* Usually invalid, but no matter */
+         it = tlist;
          do {
-            if (it->data) g_string_free((GString*)it->data, TRUE);
+            if (it->data) {
+               g_string_free((GString*)it->data, TRUE);
+            }
          } while ((it = it->next) != NULL);
 
-         g_slist_free(list);
+         g_slist_free(tlist);
       }
    }
 
@@ -936,7 +943,7 @@ int docmd(monitoritem* item, const char* command, GSList** list) {
 
    while(1) {
       if ((stat = bnet_recv(item->D_sock)) >= 0) {
-         (void)g_slist_append(*list, g_string_new(item->D_sock->msg));
+         *list = g_slist_append(*list, g_string_new(item->D_sock->msg));
       }
       else if (stat == BNET_SIGNAL) {
          if (item->D_sock->msglen == BNET_EOD) {
@@ -945,21 +952,21 @@ int docmd(monitoritem* item, const char* command, GSList** list) {
          }
          else if (item->D_sock->msglen == BNET_PROMPT) {
             //fprintf(stderr, "<< PROMPT >>\n");
-            (void)g_slist_append(*list, g_string_new(_("<< Error: BNET_PROMPT signal received. >>\n")));
+            *list = g_slist_append(*list, g_string_new(_("<< Error: BNET_PROMPT signal received. >>\n")));
             return 0;
          }
          else if (item->D_sock->msglen == BNET_HEARTBEAT) {
             bnet_sig(item->D_sock, BNET_HB_RESPONSE);
-            (void)g_slist_append(*list, g_string_new(_("<< Heartbeat signal received, answered. >>\n")));
+            *list = g_slist_append(*list, g_string_new(_("<< Heartbeat signal received, answered. >>\n")));
          }
          else {
             str = g_string_sized_new(64);
             g_string_printf(str, _("<< Unexpected signal received : %s >>\n"), bnet_sig_to_ascii(item->D_sock));
-            (void)g_slist_append(*list, str);
+            *list = g_slist_append(*list, str);
          }
       }
       else { /* BNET_HARDEOF || BNET_ERROR */
-         (void)g_slist_append(*list, g_string_new(_("<ERROR>\n")));
+         *list = g_slist_append(*list, g_string_new(_("<ERROR>\n")));
          item->D_sock = NULL;
          item->state = error;
          item->oldstate = error;
@@ -989,7 +996,8 @@ void writecmd(monitoritem* item, const char* command) {
 }
 
 /* Note: Does not seem to work either on Gnome nor KDE... */
-void trayMessage(const char *fmt,...) {
+void trayMessage(const char *fmt,...)
+{
    char buf[512];
    va_list arg_ptr;
 
