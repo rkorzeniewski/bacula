@@ -3,6 +3,15 @@
 
 General:
 26Jun06
+- Write install/uninstall of new manpages. There are now a
+  pile of man pages. Some of which need a lot of work.
+
+  ============= Warning ==================================
+     The --mandir ./configure option now points to the top level
+     man directory.  The man files will be installed under
+     mandir/man8 and mandir/man1 as appropriate.
+  ===========================================================
+
 - Add complete text of GPL to LICENSE.
 - Implement job report that indicates where Storage and Pool
   came from -- with overrides and Pool storage and NextPool,
