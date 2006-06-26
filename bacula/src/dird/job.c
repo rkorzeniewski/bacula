@@ -602,7 +602,7 @@ DBId_t get_or_create_pool_record(JCR *jcr, char *pool_name)
 void apply_pool_overrides(JCR *jcr)
 {
    if (jcr->run_pool_override) {
-      pm_strcat(jcr->pool_source, _("Run Pool override"));
+      pm_strcpy(jcr->pool_source, _("Run Pool override"));
    }
    /*
     * Apply any level related Pool selections
@@ -612,9 +612,9 @@ void apply_pool_overrides(JCR *jcr)
       if (jcr->full_pool) {
          jcr->pool = jcr->full_pool;
          if (jcr->run_full_pool_override) {
-            pm_strcat(jcr->pool_source, _("Run FullPool override"));
+            pm_strcpy(jcr->pool_source, _("Run FullPool override"));
          } else {
-            pm_strcat(jcr->pool_source, _("Job FullPool override"));
+            pm_strcpy(jcr->pool_source, _("Job FullPool override"));
          }
       }
       break;
@@ -622,9 +622,9 @@ void apply_pool_overrides(JCR *jcr)
       if (jcr->inc_pool) {
          jcr->pool = jcr->inc_pool;
          if (jcr->run_inc_pool_override) {
-            pm_strcat(jcr->pool_source, _("Run IncPool override"));
+            pm_strcpy(jcr->pool_source, _("Run IncPool override"));
          } else {
-            pm_strcat(jcr->pool_source, _("Job IncPool override"));
+            pm_strcpy(jcr->pool_source, _("Job IncPool override"));
          }
       }
       break;
@@ -632,9 +632,9 @@ void apply_pool_overrides(JCR *jcr)
       if (jcr->diff_pool) {
          jcr->pool = jcr->diff_pool;
          if (jcr->run_diff_pool_override) {
-            pm_strcat(jcr->pool_source, _("Run DiffPool override"));
+            pm_strcpy(jcr->pool_source, _("Run DiffPool override"));
          } else {
-            pm_strcat(jcr->pool_source, _("Job DiffPool override"));
+            pm_strcpy(jcr->pool_source, _("Job DiffPool override"));
          }
       }
       break;
