@@ -679,7 +679,7 @@ bool DEVICE::rewind(DCR *dcr)
          }
          break;
       }
-   } else if (is_file()) {      
+   } else if (is_file() || is_dvd()) {
       if (lseek_dev(this, (off_t)0, SEEK_SET) < 0) {
          berrno be;
          dev_errno = errno;
