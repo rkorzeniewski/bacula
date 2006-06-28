@@ -100,7 +100,6 @@ installdirs:
 	-if test "x$(dir_group)" != "x" ; then \
 	   chgrp $(dir_group) $(DESTDIR)$(working_dir); \
 	fi
-#	$(MKDIR) $(DESTDIR)$(mandir)
 
 gnomedirs:
 	$(MKDIR) $(DESTDIR)/usr/share/pixmaps

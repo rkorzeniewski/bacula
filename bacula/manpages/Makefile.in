@@ -9,7 +9,7 @@ MAN8 = bacula.8 bacula-dir.8 bacul-fd.8 bacula-sd.8 \
        btraceback.8 dbcheck.8
 
 MAN1 = bacula-console-gnome.1 bacula-tray-monitor.1 \
-       bacula-traymonitor.1 bacula-wxconsole.1 bsmtp.1
+       bacula-wxconsole.1 bsmtp.1
       
 
 install:
