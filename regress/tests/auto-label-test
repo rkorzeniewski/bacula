@@ -6,7 +6,7 @@
 TestName="auto-label-test"
 JobName=AutoLabel
 . scripts/functions
-set_debug 1
+set_debug 0
 
 cwd=`pwd`
 scripts/copy-test-confs
