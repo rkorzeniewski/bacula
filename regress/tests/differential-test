@@ -18,6 +18,7 @@ echo "${cwd}/tmp/build/ficheriro1.txt" >restore-list
 echo "${cwd}/tmp/build/ficheriro2.txt" >>restore-list
 cd ${cwd}
 
+change_jobname CompressedTest $JobName
 start_test
 
 cat <<END_OF_DATA >tmp/bconcmds
@@ -26,7 +27,7 @@ messages
 @$out tmp/log1.out
 label storage=File volume=TestVolume002
 label storage=File volume=TestVolume001
-run job=CompressedTest yes
+run job=$JobName yes
 wait
 messages
 quit
@@ -44,7 +45,7 @@ messages
 @$out tmp/log1.out
 @# Force differential on the second Volume
 update volume=TestVolume002 VolStatus=Used
-run level=differential job=CompressedTest yes
+run level=differential job=$JobName yes
 wait
 messages
 @$out
@@ -59,7 +60,7 @@ cat <<END_OF_DATA >tmp/bconcmds
 @$out /dev/null
 messages
 @$out tmp/log1.out
-run level=incremental job=CompressedTest yes
+run level=incremental job=$JobName yes
 wait
 messages
 @# 

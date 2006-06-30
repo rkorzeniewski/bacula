@@ -41,7 +41,7 @@ Device {
   RemovableMedia = yes;
   @@sbindir@/tape_options
 # Maximum File Size = 1000000
-# MaximumVolumeSize = 100M
+# MaximumVolumeSize = 400M
 }
 
 # 

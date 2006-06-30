@@ -5,7 +5,7 @@
 #
 
 TestName="restore-by-file-test"
-JobName=SpanVol
+JobName=restorebyfile
 . scripts/functions
 set_debug 0
 
@@ -22,6 +22,7 @@ sed s%\^%${cwd}/tmp/build/% 1 >restore-list
 rm -f 1
 cd ${cwd}
 
+change_jobname CompressedTest $JobName
 start_test
 
 cat <<END_OF_DATA >tmp/bconcmds
@@ -29,7 +30,7 @@ cat <<END_OF_DATA >tmp/bconcmds
 messages
 @$out tmp/log1.out
 label storage=File volume=TestVolume001
-run job=CompressedTest yes
+run job=$JobName yes
 wait
 messages
 @# 

@@ -7,18 +7,17 @@ TestName="auto-label-test"
 JobName=AutoLabel
 . scripts/functions
 set_debug 0
+copy_test_confs
 
-cwd=`pwd`
-scripts/copy-test-confs
-scripts/cleanup
 echo "${cwd}/build" >/tmp/file-list
 
 cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
 sed "s%# Label Format%  Label Format%" ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
 
+change_jobname CompressedTest $JobName
 start_test
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_SCRIPT >tmp/bconcmds
 @output /dev/null
 messages
 @$out tmp/log1.out
@@ -27,7 +26,7 @@ status all
 list pools
 messages
 @#setdebug level=110 storage=File
-run job=CompressedTest storage=File yes
+run job=$JobName storage=File yes
 list pools
 list volumes
 wait
@@ -54,7 +53,7 @@ wait
 messages
 @$out
 quit
-END_OF_DATA
+END_OF_SCRIPT
 
 run_bacula
 check_for_zombie_jobs storage=File

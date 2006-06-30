@@ -12,7 +12,7 @@ if test ! -c /dev/urandom ; then
    echo "No random device. Test skipped.\n"
    exit 0
 fi
-cwd=`pwd`
+
 scripts/copy-testa-confs
 scripts/cleanup
 echo "${cwd}/tmp/largefile" >/tmp/file-list
@@ -21,13 +21,14 @@ echo "Creating a 56MB file with random data ..."
 dd if=/dev/urandom of=${cwd}/tmp/largefile bs=1024 count=55000
 echo "largefile created"
 
+change_jobname MultiVol $JobName
 start_test
 
 cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
 @$out tmp/log1.out
-run job=MultiVol storage=File yes
+run job=$JobName storage=File yes
 wait
 messages
 @# 

@@ -11,7 +11,6 @@ JobName=restore-disk-seek
 . scripts/functions
 set_debug 0
 
-cwd=`pwd`
 scripts/copy-test-confs
 scripts/cleanup
 echo "${cwd}/tmp/build" >/tmp/file-list
@@ -35,6 +34,7 @@ cp -fp ${cwd}/build/src/dird/* ${cwd}/tmp/build
 cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
 sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
 
+change_jobname CompressedTest $JobName
 start_test
 
 cat <<END_OF_DATA >tmp/bconcmds
@@ -42,7 +42,7 @@ cat <<END_OF_DATA >tmp/bconcmds
 messages
 @$out tmp/log1.out
 label storage=File volume=TestVolume001
-run job=CompressedTest yes
+run job=$JobName yes
 wait
 messages
 @# 

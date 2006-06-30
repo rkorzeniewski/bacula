@@ -9,7 +9,6 @@ JobName=query
 . scripts/functions
 set_debug 0
 
-cwd=`pwd`
 scripts/copy-test-confs
 scripts/cleanup
 echo "${cwd}/tmp/build" >/tmp/file-list
@@ -20,6 +19,7 @@ echo "${cwd}/tmp/build/ficheriro1.txt" >restore-list
 echo "${cwd}/tmp/build/ficheriro2.txt" >>restore-list
 cd ${cwd}
 
+change_jobname CompressedTest $JobName
 start_test
 
 cat <<END_OF_DATA >tmp/bconcmds
@@ -28,7 +28,7 @@ messages
 @$out tmp/log1.out
 label storage=File volume=TestVolume001
 label storage=File volume=TestVolume002
-run job=CompressedTest yes
+run job=$JobName yes
 wait
 messages
 quit
@@ -46,7 +46,7 @@ messages
 @$out tmp/log1.out
 @# Force differental on the second Volume
 update volume=TestVolume001 VolStatus=Used
-run level=differental job=CompressedTest yes
+run level=differental job=$JobName yes
 wait
 messages
 @output
@@ -60,7 +60,7 @@ cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
 @$out tmp/log1.out
-run level=incremental job=CompressedTest yes
+run level=incremental job=$JobName yes
 wait
 messages
 @#

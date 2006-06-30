@@ -7,10 +7,10 @@
 TestName="fixed-block-size-tape"
 JobName=fixedblocksize
 . scripts/functions
-set_debug 0
+set_debug 1
 
-scripts/copy-tape-confs
-scripts/cleanup-tape
+copy_tape_confs
+
 echo "${cwd}/build" >/tmp/file-list
 
 cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
@@ -26,7 +26,7 @@ if [ $? != 0 ] ; then
 fi
 rm -f ${cwd}/tmp/1 ${cwd}/tmp/2
 
-change_jobname $JobName
+change_jobname NightlySave $JobName
 start_test
 
 
@@ -35,7 +35,7 @@ cat <<END_OF_DATA >tmp/bconcmds
 messages
 @$out tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default
-run job=NightlySave yes
+run job=$JobName yes
 wait
 messages
 @# 

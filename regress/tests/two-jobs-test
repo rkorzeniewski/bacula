@@ -12,8 +12,8 @@ cwd=`pwd`
 scripts/copy-test-confs
 scripts/cleanup
 echo "${cwd}/build" >/tmp/file-list
-change_jobname $JobName
 
+change_jobname CompressedTest $JobName
 start_test
 
 cat >tmp/bconcmds <<END_OF_DATA
@@ -21,13 +21,13 @@ setdebug level=15  storage=File
 @output /dev/null
 messages
 @output/dev/null
-estimate job=CompressedTest listing
-estimate job=CompressedTest listing
-estimate job=CompressedTest listing
+estimate job=$JobName listing
+estimate job=$JobName listing
+estimate job=$JobName listing
 messages
 @$out tmp/log1.out
 label storage=File volume=TestVolume001
-run job=CompressedTest yes
+run job=$JobName yes
 wait
 messages
 quit
@@ -45,7 +45,7 @@ cat >tmp/bconcmds <<END_OF_DATA
 @output /dev/null
 messages
 @$out tmp/log1.out
-run job=CompressedTest
+run job=$JobName
 yes
 wait
 messages

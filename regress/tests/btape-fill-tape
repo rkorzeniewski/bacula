@@ -7,8 +7,7 @@ JobName=filltape
 . scripts/functions
 set_debug 0
 
-scripts/copy-tape-confs
-scripts/cleanup-tape
+copy_tape_confs
 
 echo "${cwd}/build" >/tmp/file-list
 
@@ -17,13 +16,14 @@ sed "s%# MaximumVolumeSize%  MaximumVolumeSize%" ${cwd}/tmp/1 >${cwd}/bin/bacula
 
 start_test
 
-bin/btape -c bin/bacula-sd.conf DDS-4 <<END_OF_DATA 2>&1 >tmp/log1.out
+cat <<END_OF_DATA >tmp/bconcmds
 fill
 s
 
 quit
 END_OF_DATA
 
+run_btape DDS-4
 
 grep "^The last block on the tape matches\. Test succeeded\." tmp/log1.out 2>&1 >/dev/null
 if [ $? != 0 ] ; then

@@ -14,17 +14,18 @@ scripts/copy-test-confs
 scripts/cleanup
 echo "${cwd}/build" >/tmp/file-list
 
+change_jobname CompressedTest $JobName
 start_test
 
 cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
-estimate job=CompressedTest listing
-estimate job=CompressedTest listing
-estimate job=CompressedTest listing
+estimate job=$JobName listing
+estimate job=$JobName listing
+estimate job=$JobName listing
 messages
 @$out tmp/log1.out
 label storage=File volume=TestVolume001
-run job=CompressedTest yes
+run job=$JobName yes
 wait
 messages
 quit
@@ -44,7 +45,7 @@ cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
 @$out  tmp/log1.out
-run job=CompressedTest
+run job=$JobName
 yes
 wait
 messages
@@ -65,7 +66,7 @@ cat <<END_OF_DATA >tmp/bconcmds
 messages
 @output tmp/log1.out
 label storage=File volume=TestVolume001
-run job=CompressedTest yes
+run job=$JobName yes
 wait
 messages
 quit
@@ -85,7 +86,7 @@ cat <<END_OF_DATA >tmp/bconcmds
 messages
 @output tmp/log1.out
 label storage=File volume=TestVolume001
-run job=CompressedTest yes
+run job=$JobName yes
 wait
 messages
 quit

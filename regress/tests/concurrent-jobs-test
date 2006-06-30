@@ -8,8 +8,8 @@ JobName=concurrent-jobs
 . scripts/functions
 set_debug 0
 
-scripts/copy-test-confs
-scripts/cleanup
+copy_test_confs
+
 echo "${cwd}/tmp/largefile" >/tmp/file-list
 if test -c /dev/urandom ; then
 # Create 56MB file with random data
@@ -28,6 +28,7 @@ fi
 
 echo "largefile created"
 
+change_jobname CompressedTest $JobName
 start_test
      
 cat <<END_OF_DATA >tmp/bconcmds
@@ -35,10 +36,10 @@ cat <<END_OF_DATA >tmp/bconcmds
 messages
 @$out  tmp/log1.out
 label storage=File volume=TestVolume001
-run job=CompressedTest level=Full yes
-run job=CompressedTest level=Full yes
-run job=CompressedTest level=Full yes
-run job=CompressedTest level=Full yes
+run job=$JobName level=Full yes
+run job=$JobName level=Full yes
+run job=$JobName level=Full yes
+run job=$JobName level=Full yes
 wait
 messages
 @# 
@@ -61,5 +62,6 @@ check_for_zombie_jobs storage=File
 stop_bacula
 
 check_two_logs
-check_restore_diff
+diff tmp/largefile  tmp/bacula-restores${cwd}/tmp/largefile 2>&1 >/dev/null
+dstat=$?
 end_test
