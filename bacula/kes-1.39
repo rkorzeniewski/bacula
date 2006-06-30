@@ -2,6 +2,12 @@
                         Kern Sibbald
 
 General:
+30Jun06
+- Robert committed his low impact changes.
+- I removed a size_t from the jcr.h definition.
+- Update the tape regression scripts (still to be tested).
+- Add gcc and gcc-c++ requires to srm as suggested by a user.
+- Require done or quit to exit from in memory tree restore.
 26Jun06
 - Write install/uninstall of new manpages. There are now a
   pile of man pages. Some of which need a lot of work.
