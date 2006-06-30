@@ -1291,8 +1291,8 @@ static int backup_cmd(JCR *jcr)
                jcr->Errors++;
             } else {
                /* tell user if snapshot creation of a specific drive failed */
-               size_t i;
-               for (i=0; i<strlen (szWinDriveLetters); i++) {
+               int i;
+               for (i=0; i < strlen(szWinDriveLetters); i++) {
                   if (islower(szWinDriveLetters[i])) {
                      Jmsg(jcr, M_WARNING, 0, _("Generate VSS snapshot of drive \"%c:\\\" failed. VSS support is disabled on this drive.\n"), szWinDriveLetters[i]);
                      jcr->Errors++;
@@ -1379,7 +1379,7 @@ cleanup:
    if (bDoVSS) {
       if (g_pVSSClient->CloseBackup()) {             
          /* inform user about writer states */
-         for (size_t i=0; i<g_pVSSClient->GetWriterCount(); i++) {
+         for (int i=0; i<(int)g_pVSSClient->GetWriterCount(); i++) {
             int msg_type = M_INFO;
             if (g_pVSSClient->GetWriterState(i) < 1) {
                msg_type = M_WARNING;

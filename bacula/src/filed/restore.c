@@ -351,7 +351,7 @@ void do_restore(JCR *jcr)
          Dmsg1(30, "Stream=Encrypted Session Data, size: %d\n", sd->msglen);
 
          /* Decode and save session keys. */
-         cryptoerr = crypto_session_decode((uint8_t *)sd->msg, (size_t)sd->msglen, jcr->pki_recipients, &cs);
+         cryptoerr = crypto_session_decode((uint8_t *)sd->msg, (uint32_t)sd->msglen, jcr->pki_recipients, &cs);
          switch(cryptoerr) {
          case CRYPTO_ERROR_NONE:
             /* Success */
@@ -500,7 +500,7 @@ void do_restore(JCR *jcr)
 
       case STREAM_SIGNED_DIGEST:
          /* Save signature. */
-         if ((sig = crypto_sign_decode((uint8_t *)sd->msg, (size_t)sd->msglen)) == NULL) {
+         if ((sig = crypto_sign_decode((uint8_t *)sd->msg, (uint32_t)sd->msglen)) == NULL) {
             Jmsg1(jcr, M_ERROR, 0, _("Failed to decode message signature for %s\n"), jcr->last_fname);
          }
          break;

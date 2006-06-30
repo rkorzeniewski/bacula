@@ -9,7 +9,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2002-2005 Kern Sibbald
+   Copyright (C) 2002-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -109,7 +109,8 @@ bool user_select_files_from_tree(TREE_CTX *tree)
       }
       parse_ua_args(ua);
       if (ua->argc == 0) {
-         break;
+         bsendmsg(tree->ua, _("Illegal command. Enter \"done\" to exit.\n"));
+         continue;
       }
 
       len = strlen(ua->argk[0]);

@@ -162,7 +162,7 @@ struct B_DB {
 /* In cats/sqlite.c */
 void       my_sqlite_free_table(B_DB *mdb);
 SQL_ROW    my_sqlite_fetch_row(B_DB *mdb);
-int        my_sqlite_query(B_DB *mdb, char *cmd);
+int        my_sqlite_query(B_DB *mdb, const char *cmd);
 void       my_sqlite_field_seek(B_DB *mdb, int field);
 SQL_FIELD *my_sqlite_fetch_field(B_DB *mdb);
 
@@ -281,7 +281,7 @@ struct B_DB {
 /* In cats/sqlite.c */
 void       my_sqlite_free_table(B_DB *mdb);
 SQL_ROW    my_sqlite_fetch_row(B_DB *mdb);
-int        my_sqlite_query(B_DB *mdb, char *cmd);
+int        my_sqlite_query(B_DB *mdb, const char *cmd);
 void       my_sqlite_field_seek(B_DB *mdb, int field);
 SQL_FIELD *my_sqlite_fetch_field(B_DB *mdb);
 

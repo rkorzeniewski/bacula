@@ -23,13 +23,12 @@ Document:
 Priority:
 
 For 1.39:
-- Make authentication failures single threaded.
+- Correct the Include syntax in the m4.xxx files in examples/conf
+- Get Perl replacement for bregex.c
 - Make base64.c (bin_to_base64) take a buffer length 
   argument to avoid overruns.
-- Fix catreq.c digestbuf at line 411 in src/dird/catreq.c 
   and verify that other buffers cannot overrun.
 - Implement VolumeState as discussed with Arno.
-- Install man pages
 - Document techniques for restoring large numbers of files.
 - Document setting my.cnf to big file usage.
 - Add example of proper index output to doc.
@@ -51,6 +50,15 @@ For 1.39:
   .move eject device=xxx toslot=yyy the same as above, but with a new 
      target slot. The catalog should be updated accordingly.
   .move transfer device=xxx fromslot=yyy toslot=zzz
+
+==== SQL
+# get null file
+select FilenameId from Filename where Name='';
+# Get list of all directories referenced in a Backup.
+select Path.Path from Path,File where File.JobId=nnn and
+  File.FilenameId=(FilenameId-from-above) and File.PathId=Path.PathId
+  order by Path.Path ASC;
+
 
 
 === Migration from David ===
@@ -1561,3 +1569,8 @@ Block Position: 0
 - Does ClientRunAfterJob fail the job on a bad return code?
 - Make hardlink code at line 240 of find_one.c use binary search.
 - Add ACL error messages in src/filed/acl.c.
+- Make authentication failures single threaded.
+- Make Dir and SD authentication errors single threaded.
+- Install man pages
+- Fix catreq.c digestbuf at line 411 in src/dird/catreq.c 
+

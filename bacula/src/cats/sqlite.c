@@ -328,7 +328,7 @@ int db_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handler
 /*
  * Submit a sqlite query and retrieve all the data
  */
-int my_sqlite_query(B_DB *mdb, char *cmd)
+int my_sqlite_query(B_DB *mdb, const char *cmd)
 {
    int stat;
 
@@ -336,7 +336,7 @@ int my_sqlite_query(B_DB *mdb, char *cmd)
       actuallyfree(mdb->sqlite_errmsg);
       mdb->sqlite_errmsg = NULL;
    }
-   stat = sqlite_get_table(mdb->db, cmd, &mdb->result, &mdb->nrow, &mdb->ncolumn,
+   stat = sqlite_get_table(mdb->db, (char *)cmd, &mdb->result, &mdb->nrow, &mdb->ncolumn,
             &mdb->sqlite_errmsg);
    mdb->row = 0;                      /* row fetched */
    return stat;

@@ -411,7 +411,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
          bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_ENCRYPTED_SESSION_DATA);
 
          /* Grow the bsock buffer to fit our message if necessary */
-         if ((size_t) sizeof_pool_memory(sd->msg) < jcr->pki_session_encoded_size) {
+         if (sizeof_pool_memory(sd->msg) < jcr->pki_session_encoded_size) {
             sd->msg = realloc_pool_memory(sd->msg, jcr->pki_session_encoded_size);
          }
 
@@ -527,7 +527,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       Dmsg1(300, "bfiled>stored:header %s\n", sd->msg);
 
       /* Grow the bsock buffer to fit our message if necessary */
-      if ((size_t) sizeof_pool_memory(sd->msg) < size) {
+      if (sizeof_pool_memory(sd->msg) < size) {
          sd->msg = realloc_pool_memory(sd->msg, size);
       }
 
@@ -579,7 +579,7 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
    BSOCK *sd = jcr->store_bsock;
    uint64_t fileAddr = 0;             /* file address */
    char *rbuf, *wbuf;
-   int rsize = jcr->buf_size;      /* read buffer size */
+   int32_t rsize = jcr->buf_size;      /* read buffer size */
    POOLMEM *msgsave;
    CIPHER_CONTEXT *cipher_ctx = NULL; /* Quell bogus uninitialized warnings */
    const uint8_t *cipher_input;
@@ -648,7 +648,7 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
        * could be returned for the given read buffer size.
        * (Using the larger of either rsize or max_compress_len)
        */
-      jcr->crypto_buf = check_pool_memory_size(jcr->crypto_buf, (MAX((size_t) rsize, max_compress_len) + cipher_block_size - 1) / cipher_block_size * cipher_block_size);
+      jcr->crypto_buf = check_pool_memory_size(jcr->crypto_buf, (MAX(rsize, (int32_t)max_compress_len) + cipher_block_size - 1) / cipher_block_size * cipher_block_size);
 
       wbuf = jcr->crypto_buf; /* Encrypted, possibly compressed output here. */
    }
