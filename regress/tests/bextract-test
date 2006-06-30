@@ -9,13 +9,11 @@ JobName="bextract"
 . scripts/functions
 set_debug 0
 
-
-cwd=`pwd`
 scripts/copy-test-confs
 scripts/cleanup
 echo "${cwd}/build" >/tmp/file-list
-change_jobname $JobName 
 
+change_jobname $JobName 
 start_test
 
 cat <<END_OF_DATA >tmp/bconcmds

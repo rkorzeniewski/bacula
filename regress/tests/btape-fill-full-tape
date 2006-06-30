@@ -2,15 +2,16 @@
 #
 # Test the fill command in btape
 #
-cwd=`pwd`
+TestName="btape-fill-full-tape"
+JobName=AutoLabel
+. scripts/functions
+set_debug 0
+
 scripts/copy-tape-confs
 scripts/cleanup-tape
 
-echo " "
-echo " "
-echo " === Starting btape fill test at `date +%R:%S` ==="
-echo " === Starting btape fill test at `date +%R:%S` ===" >>working/log
-echo " "
+change_jobname $JobName
+start_test
 
 bin/btape -c bin/bacula-sd.conf DDS-4 <<END_OF_DATA 2>&1 >tmp/log1.out
 fill

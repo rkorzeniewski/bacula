@@ -8,7 +8,6 @@ JobName=backup
 . scripts/functions
 set_debug 0
 
-cwd=`pwd`
 scripts/copy-confs
 scripts/cleanup
 

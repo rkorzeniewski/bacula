@@ -3,7 +3,11 @@
 # Run a simple backup of the Bacula build directory 
 #  to two tapes where the maximum tape file size is set to 1M
 #
-cwd=`pwd`
+TestName="eot-fail-tape"
+JobName=eotfailtape
+. scripts/functions
+set_debug 0
+
 scripts/copy-tape-confs
 scripts/cleanup-tape
  
@@ -14,26 +18,22 @@ echo "s%# Maximum File Size%  Maximum File Size%g" >${out}
 cp -f ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
 sed -f ${out} ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
 
-echo " "
-echo " "
-echo " === Starting eot-fail-tape test at `date +%R:%S` ==="
-echo " === Starting eot-fail-tape test at `date +%R:%S` ===" >>working/log
-echo " "
+change_jobname $JobName
+start_test
 
-bin/bacula start -d100
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
-@tee /dev/null
+cat <<END_OF_DATA >tmp/bconcmds
+@output /dev/null
 messages
-@tee tmp/log1.out
+@$out tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default
 update Volume=TestVolume001 MaxVolBytes=3000000
-run job=NightlySave yes
+run job=$JobName yes
 wait
 messages
 @# 
 @# now do a restore
 @#
-@tee tmp/log2.out
+@$out tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
 yes
 wait
@@ -41,22 +41,12 @@ messages
 @tee
 quit
 END_OF_DATA
-scripts/check_for_zombie_jobs storage=DDS-4
 
-bin/bacula stop 2>&1 >/dev/null
-grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
-bstat=$?
-grep "^  Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
-rstat=$?
-diff -r build tmp/bacula-restores${cwd}/build 2>&1 >/dev/null
-if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
-   echo " "
-   echo " "
-   echo "  !!!!! eot-fail-tape test Bacula source failed!!! !!!!! "
-   echo "  !!!!! eot-fail-tape test failed!!! !!!!! " >>test.out
-   echo " "
-else
-   echo "  ===== eot-fail-tape test Bacula source OK ===== "
-   echo "  ===== eot-fail-tape test OK ===== " >>test.out
-#  scripts/cleanup
-fi
+run_bacula
+check_for_zombie_jobs storage=DDS-4
+stop_bacula
+
+check_two_logs
+check_restore_diff
+end_test
+

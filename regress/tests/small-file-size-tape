@@ -3,7 +3,11 @@
 # Run a simple backup of the Bacula build directory 
 #   to a tape where the maximum tape file size is set to 1M
 #
-cwd=`pwd`
+TestName="small-file-size-tape"
+JobName=smallfilesize
+. scripts/functions
+set_debug 0
+
 scripts/copy-tape-confs
 scripts/cleanup-tape
 
@@ -11,26 +15,22 @@ echo "${cwd}/build" >/tmp/file-list
 cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
 sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
 
-echo " "
-echo " "
-echo " === Starting Small File Size test at `date +%R:%S` ==="
-echo " === Starting Small File Size test at `date +%R:%S` ===" >>working/log
-echo " "
+change_jobname $JobName
+start_test
 
-bin/bacula start 2>&1 >/dev/null
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
-@output tmp/log1.out
+@$out t tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default
 setdebug level=2 storage=DDS-4
-run job=NightlySave yes
+run job=$JobName yes
 wait
 messages
 @# 
 @# now do a restore
 @#
-@output tmp/log2.out
+@$out   tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select storage=DDS-4
 unmark *
 mark *
@@ -41,21 +41,11 @@ messages
 @output
 quit
 END_OF_DATA
-scripts/check_for_zombie_jobs storage=DDS-4
-bin/bacula stop 2>&1 >/dev/null
-grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
-bstat=$?
-grep "^  Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
-rstat=$?
-diff -r build tmp/bacula-restores${cwd}/build 2>&1 >/dev/null
-if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
-   echo " "
-   echo " "
-   echo "  !!!!! Small File Size test Bacula source failed!!! !!!!! "
-   echo "  !!!!! Small File Size test failed!!! !!!!! " >>test.out
-   echo " "
-else
-   echo "  ===== Small File Size test Bacula source OK ===== "
-   echo "  ===== Small File Size test OK ===== " >>test.out
-#  scripts/cleanup
-fi
+
+run_bacula
+check_for_zombie_jobs storage=DDS-4
+stop_bacula
+
+check_two_logs
+check_restore_diff
+end_test

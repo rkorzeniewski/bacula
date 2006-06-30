@@ -100,3 +100,6 @@ end_test()
       scripts/cleanup
    fi
 }
+
+# Save current directory
+cwd=`pwd`
