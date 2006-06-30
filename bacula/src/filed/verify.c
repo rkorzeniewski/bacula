@@ -232,7 +232,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt, bool top_level)
       /* compute MD5 or SHA1 hash */
       if (digest) {
          char md[CRYPTO_DIGEST_MAX_SIZE];
-         size_t size;
+         uint32_t size;
 
          size = sizeof(md);
          
