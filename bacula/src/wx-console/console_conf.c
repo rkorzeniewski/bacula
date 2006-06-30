@@ -59,15 +59,14 @@ RES **res_head = sres_head;
  * then move it to allocated memory when the resource
  * scan is complete.
  */
-#if defined(HAVE_WIN32) && !defined(HAVE_CYGWIN)  && !defined(HAVE_MINGW)
+#if defined(_MSC_VER)
 extern "C" { // work around visual compiler mangling variables
     URES res_all;
-    int  res_all_size = sizeof(res_all);
 }
 #else
 URES res_all;
-int  res_all_size = sizeof(res_all);
 #endif
+int  res_all_size = sizeof(res_all);
 
 /* Definition of records permitted within each
  * resource with the routine to process the record

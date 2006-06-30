@@ -1084,7 +1084,7 @@ static int time_cmd(UAContext *ua, const char *cmd)
    char sdt[50];
    time_t ttime = time(NULL);
    struct tm tm;
-   localtime_r(&ttime, &tm);
+   (void)localtime_r(&ttime, &tm);
    strftime(sdt, sizeof(sdt), "%d-%b-%Y %H:%M:%S", &tm);
    bsendmsg(ua, "%s\n", sdt);
    return 1;

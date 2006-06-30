@@ -60,8 +60,14 @@ extern int r_first, r_last;           /* first and last resources */
 extern RES_TABLE resources[];
 extern RES **res_head;
 extern RES_ITEM job_items[];
-extern URES res_all;
 
+#if defined(_MSC_VER)
+extern "C" { // work around visual compiler mangling variables
+    extern URES res_all;
+}
+#else
+extern URES res_all;
+#endif
 
 #define CONFIG_FILE "./bacula-dir.conf" /* default configuration file */
 
@@ -250,6 +256,8 @@ int main (int argc, char *argv[])
    }
 
    terminate_dird(0);
+
+   return 0;
 }
 
 /* Cleanup and then exit */

@@ -21,21 +21,12 @@
 // Created On      : Sat Jan 31 15:55:00 2004
 // $Id$
 
-#ifdef __APCUPSD__
-
-#include "apc.h"
-#include "compat.h"
-#include "winapi.h"
-
-#else
-
 #include "bacula.h"
 #include "compat.h"
 #include "jcr.h"
 #include "../../lib/winapi.h"
 #include "vss.h"
 
-#endif
 
 #define b_errno_win32 (1<<29)
 
@@ -459,16 +450,16 @@ srandom(unsigned int seed)
 void
 cvt_utime_to_ftime(const time_t  &time, FILETIME &wintime)
 {
-    uint64_t mstime = time;
-    mstime *= WIN32_FILETIME_SCALE;
-    mstime += WIN32_FILETIME_ADJUST;
+   uint64_t mstime = time;
+   mstime *= WIN32_FILETIME_SCALE;
+   mstime += WIN32_FILETIME_ADJUST;
 
-    #ifdef HAVE_MINGW
-    wintime.dwLowDateTime = (DWORD)(mstime & 0xffffffffUL);
-    #else
-    wintime.dwLowDateTime = (DWORD)(mstime & 0xffffffffI64);
-    #endif
-    wintime.dwHighDateTime = (DWORD) ((mstime>>32)& 0xffffffffUL);
+#if defined(_MSC_VER)
+   wintime.dwLowDateTime = (DWORD)(mstime & 0xffffffffI64);
+#else
+   wintime.dwLowDateTime = (DWORD)(mstime & 0xffffffffUL);
+#endif
+   wintime.dwHighDateTime = (DWORD) ((mstime>>32)& 0xffffffffUL);
 }
 
 time_t
@@ -617,7 +608,7 @@ stat2(const char *file, struct stat *sb)
        attr = p_GetFileAttributesA(tmpbuf);
     }
 
-    if (attr == -1) {
+    if (attr == (DWORD)-1) {
         const char *err = errorString();
         d_msg(__FILE__, __LINE__, 99,
               "GetFileAttributes(%s): %s\n", tmpbuf, err);

@@ -23,8 +23,8 @@
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
-   the file LICENSE for additional details.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   file LICENSE for additional details.
 
  */
 
@@ -71,7 +71,7 @@ int db_create_file_item(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
  * Returns: 0 on failure
  *          1 on success
  */
-int db_create_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
+bool db_create_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 {
    int len;
 

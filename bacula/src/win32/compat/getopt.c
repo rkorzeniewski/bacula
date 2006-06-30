@@ -27,7 +27,7 @@
 #endif
 
 #include <string.h> //for strncmp
-#if defined (WIN32)
+#if defined (HAVE_WIN32)
 #include <malloc.h>
 #endif
 
@@ -41,7 +41,7 @@
 #if defined (HAVE_ALLOCA_H) || (defined(sparc) && (defined(sun) || (!defined(USG) && !defined(SVR4) && !defined(__svr4__))))
 #include <alloca.h>
 #else
-#if !defined (_AIX) && !defined (WIN32)
+#if !defined (_AIX) && !defined (HAVE_WIN32)
 char *alloca ();
 #endif
 #endif /* alloca.h */

@@ -40,7 +40,7 @@ static char qstatus[] = ".status %s\n";
 static char OKqstatus[]   = "2000 OK .status\n";
 static char DotStatusJob[] = "JobId=%d JobStatus=%c JobErrors=%d\n";
 
-#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
+#if defined(HAVE_WIN32)
 static int privs = 0;
 #endif
 #ifdef WIN32_VSS
@@ -71,7 +71,7 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
    len = Mmsg(msg, _("Daemon started %s, %d Job%s run since started.\n"),
         dt, num_jobs_run, num_jobs_run == 1 ? "" : "s");
    sendit(msg, len, arg);
-#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
+#if defined(HAVE_WIN32)
    if (debug_level > 0) {
       if (!privs) {
          privs = enable_backup_privileges(NULL, 1);
@@ -402,7 +402,7 @@ static const char *level_to_str(int level)
 }
 
 
-#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
+#if defined(HAVE_WIN32)
 #include <windows.h>
 
 int bacstat = 0;
@@ -493,4 +493,4 @@ done:
    return buf;
 }
 
-#endif /* HAVE_CYGWIN */
+#endif /* HAVE_WIN32 */

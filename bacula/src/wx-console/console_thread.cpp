@@ -58,7 +58,7 @@ int numdir = 0;
  */
 static int tls_pem_callback(char *buf, int size, const void *userdata)
 {
-#ifdef HAVE_TLS
+#if defined(HAVE_TLS) && !defined(HAVE_WIN32)
    const char *prompt = (const char *) userdata;
    char *passwd;
 
@@ -206,7 +206,7 @@ wxString console_thread::LoadConfig(wxString configfile) {
    MSGS* msgs = (MSGS *)malloc(sizeof(MSGS));
    memset(msgs, 0, sizeof(MSGS));
    for (int i=1; i<=M_MAX; i++) {
-#ifndef WIN32
+#ifndef HAVE_WIN32
       add_msg_dest(msgs, MD_STDOUT, i, NULL, NULL);
 #endif
 //    add_msg_dest(msgs, MD_SYSLOG, i, NULL, NULL);
@@ -274,9 +274,9 @@ void* console_thread::Entry() {
       csprint(NULL, CS_END);
       csprint(NULL, CS_DISCONNECTED);
       csprint(NULL, CS_TERMINATED);
-      #ifdef HAVE_WIN32
-         Exit();
-      #endif
+#ifdef HAVE_WIN32
+      Exit();
+#endif
       return NULL;
    }
    
@@ -285,9 +285,9 @@ void* console_thread::Entry() {
       csprint(NULL, CS_END);
       csprint(NULL, CS_DISCONNECTED);
       csprint(NULL, CS_TERMINATED);
-      #ifdef HAVE_WIN32
-         Exit();
-      #endif
+#ifdef HAVE_WIN32
+      Exit();
+#endif
       return NULL;
    }
    
@@ -311,9 +311,9 @@ void* console_thread::Entry() {
       csprint(NULL, CS_END);
       csprint(NULL, CS_DISCONNECTED);
       csprint(NULL, CS_TERMINATED);
-      #ifdef HAVE_WIN32
-         Exit();
-      #endif
+#ifdef HAVE_WIN32
+      Exit();
+#endif
       return NULL;
    } else if (count == 1) {
       directorchoosen = 1;
@@ -404,9 +404,9 @@ void* console_thread::Entry() {
       csprint(NULL, CS_END);
       csprint(NULL, CS_DISCONNECTED);
       csprint(NULL, CS_TERMINATED);
-      #ifdef HAVE_WIN32
-         Exit();
-      #endif
+#ifdef HAVE_WIN32
+      Exit();
+#endif
       return NULL;
    }
 
@@ -419,9 +419,9 @@ void* console_thread::Entry() {
       csprint(NULL, CS_END);
       csprint(NULL, CS_DISCONNECTED);
       csprint(NULL, CS_TERMINATED);
-      #ifdef HAVE_WIN32
-         Exit();
-      #endif
+#ifdef HAVE_WIN32
+      Exit();
+#endif
       return NULL;
    }
    
@@ -493,9 +493,9 @@ void* console_thread::Entry() {
 
    csprint(NULL, CS_TERMINATED);
 
-   #ifdef HAVE_WIN32
-      Exit();
-   #endif
+#ifdef HAVE_WIN32
+   Exit();
+#endif
    
    return NULL;
 }

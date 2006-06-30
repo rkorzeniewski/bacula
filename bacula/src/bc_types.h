@@ -173,10 +173,6 @@ typedef float             float32_t;
 /* Unix time (time_t) widened to 64 bits */
 #define utime_t int64_t
 
-#ifdef HAVE_CYGWIN
-#define int_least16_t int32_t
-#endif
-
 #ifndef HAVE_SOCKLEN_T
 #define socklen_t int
 #endif

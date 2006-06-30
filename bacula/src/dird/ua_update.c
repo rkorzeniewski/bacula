@@ -26,7 +26,7 @@
 #include "dird.h"
 
 /* External variables */
-extern char *list_pool;               /* in sql_cmds.c */
+extern const char *list_pool;               /* in sql_cmds.c */
 
 /* Imported functions */
 void update_slots(UAContext *ua);

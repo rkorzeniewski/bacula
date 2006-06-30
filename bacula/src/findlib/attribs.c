@@ -26,7 +26,7 @@
 #include "bacula.h"
 #include "find.h"
 
-#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
+#if defined(HAVE_WIN32)
 
 #include "../lib/winapi.h"
 
@@ -36,7 +36,7 @@ static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd);
 void unix_name_to_win32(POOLMEM **win32_name, char *name);
 void win_error(JCR *jcr, char *prefix, POOLMEM *ofile);
 HANDLE bget_handle(BFILE *bfd);
-#endif
+#endif /* HAVE_WIN32 */
 
 /* For old systems that don't have lchown() use chown() */
 #ifndef HAVE_LCHOWN
@@ -219,6 +219,7 @@ void encode_stat(char *buf, FF_PKT *ff_pkt, int data_stream)
   #endif
 #endif
 
+
 /* Decode a stat packet from base64 characters */
 int decode_stat(char *buf, struct stat *statp, int32_t *LinkFI)
 {
@@ -362,7 +363,7 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    bool ok = true;
    off_t fsize;
 
-#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
+#if defined(HAVE_WIN32)
    if (attr->stream == STREAM_UNIX_ATTRIBUTES_EX &&
        set_win32_attributes(jcr, attr, ofd)) {
        if (is_bopen(ofd)) {
@@ -467,7 +468,7 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
 /*                                                             */
 /*=============================================================*/
 
-#if !defined(HAVE_CYGWIN) && !defined(HAVE_WIN32)
+#if !defined(HAVE_WIN32)
 
 /*
  * It is possible to piggyback additional data e.g. ACLs on
@@ -507,7 +508,7 @@ int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
 /*                                                             */
 /*=============================================================*/
 
-#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
+#if defined(HAVE_WIN32)
 
 int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
 {
@@ -726,4 +727,4 @@ void unix_name_to_win32(POOLMEM **win32_name, char *name)
    conv_unix_to_win32_path(name, *win32_name, dwSize);
 }
 
-#endif  /* HAVE_CYGWIN */
+#endif  /* HAVE_WIN32 */

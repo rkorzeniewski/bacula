@@ -253,7 +253,7 @@ bool processWin32BackupAPIBlock (BFILE *bfd, void *pBuffer, ssize_t dwSize)
  * ===============================================================
  */
 
-#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
+#if defined(HAVE_WIN32)
 
 void unix_name_to_win32(POOLMEM **win32_name, char *name);
 extern "C" HANDLE get_osfhandle(int fd);

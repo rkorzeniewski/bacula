@@ -415,7 +415,7 @@ void catalog_update(JCR *jcr, BSOCK *bs)
          Jmsg(jcr, M_WARNING, 0, _("Got %s but not same File as attributes\n"), stream_to_ascii(Stream));
       } else {
          /* Update digest in catalog */
-         char digestbuf[CRYPTO_DIGEST_MAX_SIZE];
+         char digestbuf[BASE64_SIZE(CRYPTO_DIGEST_MAX_SIZE)];
          int len = 0;
          int type = CRYPTO_DIGEST_NONE;
 

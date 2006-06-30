@@ -32,7 +32,7 @@ static void usage()
 {
    fprintf(stderr, _(
 "\n"
-"Usage: fstype [-d debug_level] path ...\n"
+"Usage: fstype [-v] path ...\n"
 "\n"
 "       Print the file system type a given file/directory is on.\n"
 "       The following options are supported:\n"

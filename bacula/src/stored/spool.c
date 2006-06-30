@@ -579,7 +579,7 @@ bool open_attr_spool_file(JCR *jcr, BSOCK *bs)
    POOLMEM *name  = get_pool_memory(PM_MESSAGE);
 
    make_unique_spool_filename(jcr, &name, bs->fd);
-   bs->spool_fd = fopen(name, "w+");
+   bs->spool_fd = fopen(name, "w+b");
    if (!bs->spool_fd) {
       berrno be;
       Jmsg(jcr, M_FATAL, 0, _("fopen attr spool file %s failed: ERR=%s\n"), name,

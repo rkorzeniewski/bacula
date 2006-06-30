@@ -124,7 +124,7 @@ int main (int argc, char *argv[])
          break;
 
       case 'e':                    /* exclude list */
-         if ((fd = fopen(optarg, "r")) == NULL) {
+         if ((fd = fopen(optarg, "rb")) == NULL) {
             Pmsg2(0, _("Could not open exclude file: %s, ERR=%s\n"),
                optarg, strerror(errno));
             exit(1);
@@ -138,7 +138,7 @@ int main (int argc, char *argv[])
          break;
 
       case 'i':                    /* include list */
-         if ((fd = fopen(optarg, "r")) == NULL) {
+         if ((fd = fopen(optarg, "rb")) == NULL) {
             Pmsg2(0, _("Could not open include file: %s, ERR=%s\n"),
                optarg, strerror(errno));
             exit(1);

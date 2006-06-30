@@ -338,9 +338,7 @@ static int cancel_cmd(JCR *jcr)
          if (cjcr->store_bsock) {
             cjcr->store_bsock->timed_out = 1;
             cjcr->store_bsock->terminated = 1;
-#if !defined(HAVE_CYGWIN)
             pthread_kill(cjcr->my_thread_id, TIMEOUT_SIGNAL);
-#endif
          }
          set_jcr_job_status(cjcr, JS_Canceled);
          free_jcr(cjcr);
@@ -400,7 +398,7 @@ static int job_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
    POOLMEM *sd_auth_key;
-   
+
    sd_auth_key = get_memory(dir->msglen);
    if (sscanf(dir->msg, jobcmd,  &jcr->JobId, jcr->Job,
               &jcr->VolSessionId, &jcr->VolSessionTime,
@@ -604,7 +602,7 @@ static void add_file_to_fileset(JCR *jcr, const char *fname, findFILESET *filese
    case '<':
       Dmsg0(100, "Doing < include on client.\n");
       p++;                      /* skip over < */
-      if ((ffd = fopen(p, "r")) == NULL) {
+      if ((ffd = fopen(p, "rb")) == NULL) {
          berrno be;
          Jmsg(jcr, M_FATAL, 0, _("Cannot open FileSet input file: %s. ERR=%s\n"),
             p, be.strerror());
@@ -1011,7 +1009,7 @@ static int bootstrap_cmd(JCR *jcr)
       jcr->Job);
    Dmsg1(400, "bootstrap=%s\n", fname);
    jcr->RestoreBootstrap = fname;
-   bs = fopen(fname, "a+");           /* create file */
+   bs = fopen(fname, "a+b");           /* create file */
    if (!bs) {
       berrno be;
       Jmsg(jcr, M_FATAL, 0, _("Could not create bootstrap file %s: ERR=%s\n"),
@@ -1695,7 +1693,7 @@ static int send_bootstrap_file(JCR *jcr)
    if (!jcr->RestoreBootstrap) {
       return 1;
    }
-   bs = fopen(jcr->RestoreBootstrap, "r");
+   bs = fopen(jcr->RestoreBootstrap, "rb");
    if (!bs) {
       berrno be;
       Jmsg(jcr, M_FATAL, 0, _("Could not open bootstrap file %s: ERR=%s\n"),

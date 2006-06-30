@@ -67,6 +67,7 @@ static int tally_file(FF_PKT *ff_pkt, void *ijcr, bool top_level)
    case FT_NORECURSE:
    case FT_NOFSCHG:
    case FT_INVALIDFS:
+   case FT_INVALIDDT:
    case FT_DIREND:
    case FT_SPEC:
    case FT_RAW:

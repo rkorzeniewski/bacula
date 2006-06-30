@@ -97,7 +97,7 @@ get_win32_driveletters(FF_PKT *ff, char* szDrives)
 {
    /* szDrives must be at least 27 bytes long */
 
-#ifndef WIN32
+#if !defined(HAVE_WIN32)
    return 0;
 #endif
 
@@ -209,9 +209,9 @@ static bool accept_file(FF_PKT *ff)
                if (ff->flags & FO_EXCLUDE) {
                   Dmsg2(100, "Exclude wilddir: %s file=%s\n", (char *)fo->wilddir.get(k),
                      ff->fname);
-                  return false;       /* reject file */
+                  return false;       /* reject dir */
                }
-               return true;           /* accept file */
+               return true;           /* accept dir */
             }
          }
       } else {
@@ -325,6 +325,7 @@ static int our_callback(FF_PKT *ff, void *hpkt, bool top_level)
    case FT_NORECURSE:
    case FT_NOFSCHG:
    case FT_INVALIDFS:
+   case FT_INVALIDDT:
    case FT_NOOPEN:
 //    return ff->callback(ff, hpkt, top_level);
 

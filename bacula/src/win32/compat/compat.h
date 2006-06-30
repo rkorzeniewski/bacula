@@ -177,8 +177,16 @@ struct timezone {
 int strcasecmp(const char*, const char *);
 int gettimeofday(struct timeval *, struct timezone *);
 
+#ifndef EETXTBUSY
+#define EETXTBUSY 26
+#endif
+
 #ifndef ETIMEDOUT
 #define ETIMEDOUT 55
+#endif
+
+#ifndef ENOMEDIUM
+#define ENOMEDIUM 123
 #endif
 
 #ifndef HAVE_WXCONSOLE

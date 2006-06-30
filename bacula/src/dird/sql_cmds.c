@@ -69,14 +69,13 @@ const char *drop_deltabs[] = {
 /* List of SQL commands to create temp table and indicies  */
 const char *create_deltabs[] = {
    "CREATE TEMPORARY TABLE DelCandidates ("
-#ifdef HAVE_MYSQL
+#if defined(HAVE_MYSQL)
       "JobId INTEGER UNSIGNED NOT NULL, "
       "PurgedFiles TINYINT, "
       "FileSetId INTEGER UNSIGNED, "
       "JobFiles INTEGER UNSIGNED, "
       "JobStatus BINARY(1))",
-#else
-#ifdef HAVE_POSTGRESQL
+#elif defined(HAVE_POSTGRESQL)
       "JobId INTEGER NOT NULL, "
       "PurgedFiles SMALLINT, "
       "FileSetId INTEGER, "
@@ -88,7 +87,6 @@ const char *create_deltabs[] = {
       "FileSetId INTEGER UNSIGNED, "
       "JobFiles INTEGER UNSIGNED, "
       "JobStatus CHAR)",
-#endif
 #endif
    "CREATE INDEX DelInx1 ON DelCandidates (JobId)",
    NULL};
@@ -194,7 +192,7 @@ const char *uar_file =
    "AND Job.JobId=File.JobId "
    "AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId "
    "AND Filename.Name='%s' ORDER BY StartTime DESC LIMIT 20";
- #endif
+#endif
 
 
 /*

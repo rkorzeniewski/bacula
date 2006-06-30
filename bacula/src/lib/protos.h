@@ -76,7 +76,7 @@ BSOCK *    bnet_connect          (JCR *jcr, int retry_interval,
 void       bnet_close            (BSOCK *bsock);
 BSOCK *    init_bsock            (JCR *jcr, int sockfd, const char *who, const char *ip,
                                   int port, struct sockaddr *client_addr);
-#ifdef WIN32
+#ifdef HAVE_WIN32
 #ifndef socklen_t
 #define socklen_t int
 #endif

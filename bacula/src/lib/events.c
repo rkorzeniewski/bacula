@@ -138,7 +138,7 @@ bailout:
 
 #endif /* IMPLEMENTED */
 
-#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
+#if defined(HAVE_WIN32)
 
 #include <windows.h>
 
@@ -172,4 +172,4 @@ void FillEventsBox(HWND hwnd, int idlist)
     return;
 }
 
-#endif /* HAVE_CYGWIN */
+#endif /* HAVE_WIN32 */

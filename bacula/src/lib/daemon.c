@@ -34,7 +34,7 @@ extern int debug_level;
 void
 daemon_start()
 {
-#if !defined(HAVE_CYGWIN) && !defined(HAVE_WIN32)
+#if !defined(HAVE_WIN32)
    int i;
    pid_t cpid;
    mode_t oldmask;
@@ -101,6 +101,6 @@ daemon_start()
       }
    }
 
-#endif /* HAVE_CYGWIN */
+#endif /* HAVE_WIN32 */
    Dmsg0(900, "Exit daemon_start\n");
 }

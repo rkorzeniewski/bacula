@@ -25,7 +25,13 @@
 #include "bacula.h"
 #include "dird.h"
 
+#if defined(_MSC_VER)
+extern "C" { // work around visual compiler mangling variables
+   extern URES res_all;
+}
+#else
 extern URES res_all;
+#endif
 extern struct s_jl joblevels[];
 
 /* Forward referenced subroutines */

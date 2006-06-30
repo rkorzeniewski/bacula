@@ -38,7 +38,7 @@
 
 #include "bacula.h"
 
-#if !defined(HAVE_CYGWIN) && !defined(HAVE_WIN32)
+#if !defined(HAVE_WIN32)
 
 #ifdef NEED_SHARED_MEMORY
 #define SHM_KEY 0x0BACB01            /* key for shared memory */
@@ -145,6 +145,6 @@ void shm_destroy(BSHM *shm)
 #endif
 }
 
-#endif /* ! HAVE_CYGWIN */
+#endif /* ! HAVE_WIN32 */
 
 #endif

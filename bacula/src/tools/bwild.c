@@ -19,7 +19,6 @@
 #include "bacula.h"
 #include "lib/fnmatch.h"
 
-
 static void usage()
 {
    fprintf(stderr,

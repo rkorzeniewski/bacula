@@ -157,7 +157,7 @@ bin_to_base64(char *buf, char *bin, int len)
       }
       save = reg;
       reg >>= (rem - 6);
-      buf[j++] = base64_digits[reg & (uint32_t)0x3F];
+      buf[j++] = base64_digits[reg & 0x3F];
       reg = save;
       rem -= 6;
    }

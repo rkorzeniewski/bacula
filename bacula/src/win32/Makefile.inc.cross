@@ -1,0 +1,72 @@
+#
+# Makefile for win32 bacula executables
+# Using MinGW cross-compiler on GNU/Linux
+#
+#  Written by Robert Nelson, June 2006
+#
+
+# Global Configuration
+
+ECHO_CMD = @
+
+TOPDIR = /home/robert/src/bacula-w32
+DEPKGS = $(TOPDIR)/depkgs-test
+
+MINGW_BIN = $(TOPDIR)/cross-tools/mingw32/bin
+MINGW_INCLUDE = $(TOPDIR)/cross-tools/mingw32/mingw32/include
+
+CC = $(MINGW_BIN)/mingw32-g++ $(DEFINES) $(INCLUDES)
+CXX = $(MINGW_BIN)/mingw32-g++ $(DEFINES) $(INCLUDES)
+AR = $(MINGW_BIN)/mingw32-ar
+RANLIB = $(MINGW_BIN)/mingw32-ranlib
+WINDRES = $(MINGW_BIN)/mingw32-windres
+OBJCPY = $(MINGW_BIN)/mingw32-objcopy
+
+CFLAGS = -Wall -mno-cygwin -m32 -mwin32 -mthreads -O3 -fno-strict-aliasing
+LDFLAGS = -Wall -mno-cygwin -Wl,--disable-auto-import
+
+INCLUDE_DDK = -I$(MINGW_INCLUDE)/ddk
+INCLUDE_BACULA = -I../.. -I../compat
+INCLUDE_PTHREADS = -I$(DEPKGS)/include/pthreads
+INCLUDE_ZLIB = -I$(DEPKGS)/include
+INCLUDE_VSS = -I$(DEPKGS)/vss
+INCLUDE_ICONS = -I../libwin32
+INCLUDE_OPENSSL = -I$(DEPKGS)/include
+INCLUDE_WX = -I$(DEPKGS)/lib/wx_dll/msw -I$(DEPKGS)/include
+INCLUDE_MYSQL = -I$(DEPKGS)/include/mysql
+
+LIBS_PTHREADS = \
+	$(DEPKGS)/lib/libpthreadGCE.a
+
+LIBS_ZLIB = \
+	$(DEPKGS)/lib/libz.a
+
+LIBS_SQL = \
+	$(DEPKGS)/lib/libmysql.a
+
+LIBS_SSL = \
+	$(DEPKGS)/lib/libssl.dll.a
+
+LIBS_CRYPTO = \
+	$(DEPKGS)/lib/libcrypto.dll.a
+
+LIBS_WX = \
+	$(DEPKGS)/lib/wx_dll/libwxmsw26_core.a \
+	$(DEPKGS)/lib/wx_dll/libwxbase26.a
+
+LIBS_BACULA = \
+	$(LIBDIR)/libbacula.a
+
+HAVES = \
+	-DHAVE_WIN32 \
+	-DHAVE_MINGW \
+	-DHAVE_ZLIB_H \
+	-DHAVE_LIBZ \
+	-DHAVE_MYSQL \
+	-DHAVE_CRYPTO \
+	-DHAVE_OPENSSL \
+	-DHAVE_TLS
+
+BINDIR = ../release
+LIBDIR = ../release
+OBJDIR = .

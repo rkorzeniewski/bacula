@@ -37,7 +37,7 @@ static int date_item(JCR *jcr, int code,
 {
    struct tm tm;
    time_t now = time(NULL);
-   localtime_r(&now, &tm);
+   (void)localtime_r(&now, &tm);
    int val = 0;
    char buf[10];
 

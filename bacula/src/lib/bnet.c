@@ -1003,7 +1003,7 @@ bool bnet_set_buffer_size(BSOCK * bs, uint32_t size, int rw)
  * Returns previous socket flag
  */
 int bnet_set_nonblocking (BSOCK *bsock) {
-#ifndef WIN32
+#ifndef HAVE_WIN32
    int oflags;
 
    /* Get current flags */
@@ -1038,7 +1038,7 @@ int bnet_set_nonblocking (BSOCK *bsock) {
  */
 int bnet_set_blocking (BSOCK *bsock) 
 {
-#ifndef WIN32
+#ifndef HAVE_WIN32
    int oflags;
    /* Get current flags */
    if ((oflags = fcntl(bsock->fd, F_GETFL, 0)) < 0) {
@@ -1071,7 +1071,7 @@ int bnet_set_blocking (BSOCK *bsock)
  */
 void bnet_restore_blocking (BSOCK *bsock, int flags) 
 {
-#ifndef WIN32
+#ifndef HAVE_WIN32
    if ((fcntl(bsock->fd, F_SETFL, flags)) < 0) {
       berrno be;
       Jmsg1(bsock->jcr, M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.strerror());

@@ -36,12 +36,13 @@ extern int execvp_errors[];
 
 const char *berrno::strerror()
 {
-   int stat = 0;
 #ifdef HAVE_WIN32
    if (berrno_ & b_errno_win32) {
       return (const char *)buf_;
    }
 #else
+   int stat = 0;
+
    if (berrno_ & b_errno_exit) {
       stat = (berrno_ & ~b_errno_exit);       /* remove bit */
       if (stat == 0) {

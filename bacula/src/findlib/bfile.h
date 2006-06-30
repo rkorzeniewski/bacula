@@ -64,7 +64,7 @@ typedef struct _PROCESS_WIN32_BACKUPAPIBLOCK_CONTEXT {
  *
  *  =======================================================
  */
-#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
+#if defined(HAVE_WIN32)
 
 #include <windows.h>
 #include "../lib/winapi.h"
@@ -79,7 +79,7 @@ enum {
 
 /* Basic Win32 low level I/O file packet */
 struct BFILE {
-   int use_backup_api;                /* set if using BackupRead/Write */
+   bool use_backup_api;               /* set if using BackupRead/Write */
    int mode;                          /* set if file is open */
    HANDLE fh;                         /* Win32 file handle */
    int fid;                           /* fd if doing Unix style */

@@ -36,15 +36,15 @@
 extern void print_bsr(UAContext *ua, RBSR *bsr);
 
 /* Imported variables */
-extern char *uar_list_jobs,      *uar_file,        *uar_sel_files;
-extern char *uar_del_temp,       *uar_del_temp1,   *uar_create_temp;
-extern char *uar_create_temp1,   *uar_last_full,   *uar_full;
-extern char *uar_inc,            *uar_list_temp,   *uar_sel_jobid_temp;
-extern char *uar_sel_all_temp1,  *uar_sel_fileset, *uar_mediatype;
-extern char *uar_jobid_fileindex, *uar_dif,        *uar_sel_all_temp;
-extern char *uar_count_files,     *uar_jobids_fileindex;
-extern char *uar_jobid_fileindex_from_dir;
-extern char *uar_jobid_fileindex_from_table;
+extern const char *uar_list_jobs,      *uar_file,        *uar_sel_files;
+extern const char *uar_del_temp,       *uar_del_temp1,   *uar_create_temp;
+extern const char *uar_create_temp1,   *uar_last_full,   *uar_full;
+extern const char *uar_inc,            *uar_list_temp,   *uar_sel_jobid_temp;
+extern const char *uar_sel_all_temp1,  *uar_sel_fileset, *uar_mediatype;
+extern const char *uar_jobid_fileindex, *uar_dif,        *uar_sel_all_temp;
+extern const char *uar_count_files,     *uar_jobids_fileindex;
+extern const char *uar_jobid_fileindex_from_dir;
+extern const char *uar_jobid_fileindex_from_table;
 
 
 
@@ -276,7 +276,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
    char date[MAX_TIME_LENGTH];
    bool have_date = false;
    JobId_t JobId;
-   JOB_DBR jr;
+   JOB_DBR jr = { (JobId_t)-1 };
    bool done = false;
    int i, j;
    const char *list[] = {
@@ -678,7 +678,7 @@ static void insert_one_file_or_dir(UAContext *ua, RESTORE_CTX *rx, char *date, b
    switch (*p) {
    case '<':
       p++;
-      if ((ffd = fopen(p, "r")) == NULL) {
+      if ((ffd = fopen(p, "rb")) == NULL) {
          berrno be;
          bsendmsg(ua, _("Cannot open file %s: ERR=%s\n"),
             p, be.strerror());
