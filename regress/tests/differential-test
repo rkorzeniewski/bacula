@@ -8,7 +8,6 @@ JobName=differential
 . scripts/functions
 set_debug 0
 
-cwd=`pwd`
 scripts/copy-test-confs
 scripts/cleanup
 echo "${cwd}/tmp/build" >/tmp/file-list

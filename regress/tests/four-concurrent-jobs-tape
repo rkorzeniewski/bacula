@@ -2,34 +2,28 @@
 #
 # Run two jobs at the same time
 #
-debug=0
-if test "$debug" -eq 1 ; then
-  out="tee"
-else
-  out="output"
-fi
+TestName="auto-label-test"
+JobName=AutoLabel
+. scripts/functions
+set_debug 0
 
-cwd=`pwd`
 scripts/copy-tape-confs
 scripts/cleanup-tape
 
 echo "${cwd}/build" >/tmp/file-list
 
-echo " "
-echo " "
-echo " === Starting four-concurrent-jobs-tape at `date +%R:%S` ==="
-echo " === Starting four-concurrent-jobs-tape at `date +%R:%S` ===" >>working/log
-echo " "
+change_jobname $JobName
+start_test
 
 cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
 @$out tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default
-run job=NightlySave level=Full Storage=DDS-4 yes
-run job=NightlySave level=Full Storage=DDS-4 yes
-run job=NightlySave level=Full Storage=DDS-4 yes
-run job=NightlySave level=Full Storage=DDS-4 yes
+run job=$JobName level=Full Storage=DDS-4 yes
+run job=$JobName level=Full Storage=DDS-4 yes
+run job=$JobName level=Full Storage=DDS-4 yes
+run job=$JobName level=Full Storage=DDS-4 yes
 @sleep 2
 status dir
 @sleep 5
@@ -52,31 +46,11 @@ messages
 @$out
 quit
 END_OF_DATA
-if test "$debug" -eq 1 ; then
-  bin/bacula start
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
-else
-  bin/bacula start 2>&1 >/dev/null
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
-fi
 
-scripts/check_for_zombie_jobs storage=DDS-4
-bin/bacula stop 2>&1 >/dev/null
-grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
-bstat=$?
-grep "^  Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
-rstat=$?
-diff -r build tmp/bacula-restores${cwd}/build 2>&1 >/dev/null
-if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
-   echo " "
-   echo " "
-   echo "  !!!!! four-concurrent-jobs-tape Bacula source failed!!! !!!!! "
-   echo "  !!!!! four-concurrent-jobs-tape failed!!! !!!!! " >>test.out
-   echo " "
-   exit 1
-else
-   echo "  ===== four-concurrent-jobs-tape Bacula source OK ===== "
-   echo "  ===== four-concurrent-jobs-tape OK ===== " >>test.out
-   scripts/cleanup
-   exit 0
-fi
+run_bacula
+check_for_zombie_jobs storage=DDS-4
+stop_bacula
+
+check_two_logs
+check_restore_diff
+end_test

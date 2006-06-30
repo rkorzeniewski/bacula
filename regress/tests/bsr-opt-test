@@ -11,10 +11,10 @@ JobName=bsr-opt
 . scripts/functions
 set_debug 0
 
-cwd=`pwd`
 scripts/copy-test-confs
 scripts/cleanup
 echo "${cwd}/build" >/tmp/file-list
+
 change_jobname $JobName
 
 start_test

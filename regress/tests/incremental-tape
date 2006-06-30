@@ -3,7 +3,10 @@
 # Run a simple backup of the Bacula build directory then create some           
 #   new files, do an Incremental and restore those two files.
 #
-cwd=`pwd`
+TestName="incremental-tape"
+JobName=IncTape
+. scripts/functions
+set_debug 0
 
 scripts/copy-tape-confs
 scripts/cleanup-tape
@@ -17,37 +20,36 @@ echo "${cwd}/tmp/build/ficheriro1.txt" >restore-list
 echo "${cwd}/tmp/build/ficheriro2.txt" >>restore-list
 cd ${cwd}
 
-echo " "
-echo " "
-echo " === Starting incremental-tape test at `date +%R:%S` ==="
-echo " === Starting incremental-tape test at `date +%R:%S` ===" >>working/log
-echo " "
+change_jobname $JobName
+start_test
 
-bin/bacula start 2>&1 >/dev/null
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
-@output tmp/log1.out
+@$out   tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default
-run job=NightlySave yes
+run job=$JobName yes
 wait
 messages
 quit
 END_OF_DATA
+
 scripts/check_for_zombie_jobs storage=DDS-4
+
 echo "ficheriro1.txt" >${cwd}/tmp/build/ficheriro1.txt
 echo "ficheriro2.txt" >${cwd}/tmp/build/ficheriro2.txt
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+
+cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
-@output tmp/log1.out
-run level=Incremental job=NightlySave yes
+@$out   tmp/log1.out
+run level=Incremental job=$JobName yes
 wait
 messages
 @# 
 @# now do a restore
 @#
-@output tmp/log2.out
+@$out   tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores storage=DDS-4
 7
 <${cwd}/tmp/restore-list
@@ -58,25 +60,16 @@ messages
 @output
 quit
 END_OF_DATA
-scripts/check_for_zombie_jobs storage=DDS-4
-bin/bacula stop 2>&1 >/dev/null
-grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
-bstat=$?
-grep "^  Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
-rstat=$?
+
+run_bacula
+check_for_zombie_jobs storage=DDS-4
+stop_bacula
+
 #
 # Delete .c files because we will only restored the txt files
 #
 rm -f tmp/build/*.c
-diff -r tmp/build tmp/bacula-restores${cwd}/tmp/build 2>&1 >/dev/null
-if [ $? != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
-   echo " "
-   echo " "
-   echo "  !!!!! incremental-tape test Bacula source failed!!! !!!!! "
-   echo "  !!!!! incremental-tape test failed!!! !!!!! " >>test.out
-   echo " "
-else
-   echo "  ===== incremental-tape test Bacula source OK ===== "
-   echo "  ===== incremental-tape test OK ===== " >>test.out
-   scripts/cleanup
-fi
+
+check_two_logs
+check_restore_tmp_build_diff
+end_test
