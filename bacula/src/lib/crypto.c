@@ -875,7 +875,7 @@ err:
  * Returns: true on success, stores the encoded data in dest, and the size in length.
  *          false on failure.
  */
-int crypto_sign_encode(SIGNATURE *sig, uint8_t *dest, size_t *length)
+int crypto_sign_encode(SIGNATURE *sig, uint8_t *dest, uint32_t *length)
 {
    if (*length == 0) {
       *length = i2d_SignatureData(sig->sigData, NULL);
@@ -895,7 +895,7 @@ int crypto_sign_encode(SIGNATURE *sig, uint8_t *dest, size_t *length)
 
  */
 
-SIGNATURE *crypto_sign_decode(const uint8_t *sigData, size_t length)
+SIGNATURE *crypto_sign_decode(const uint8_t *sigData, uint32_t length)
 {
    SIGNATURE *sig;
 #if (OPENSSL_VERSION_NUMBER >= 0x0090800FL)
@@ -1102,7 +1102,7 @@ CRYPTO_SESSION *crypto_session_new (crypto_cipher_t cipher, alist *pubkeys)
  * Returns: true on success, stores the encoded data in dest, and the size in length.
  *          false on failure.
  */
-bool crypto_session_encode(CRYPTO_SESSION *cs, uint8_t *dest, size_t *length)
+bool crypto_session_encode(CRYPTO_SESSION *cs, uint8_t *dest, uint32_t *length)
 {
    if (*length == 0) {
       *length = i2d_CryptoData(cs->cryptoData, NULL);
@@ -1122,7 +1122,7 @@ bool crypto_session_encode(CRYPTO_SESSION *cs, uint8_t *dest, size_t *length)
  * Returns: CRYPTO_ERROR_NONE and a pointer to a newly allocated CRYPTO_SESSION structure in *session on success.
  *          A crypto_error_t value on failure.
  */
-crypto_error_t crypto_session_decode(const uint8_t *data, size_t length, alist *keypairs, CRYPTO_SESSION **session)
+crypto_error_t crypto_session_decode(const uint8_t *data, uint32_t length, alist *keypairs, CRYPTO_SESSION **session)
 {
    CRYPTO_SESSION *cs;
    X509_KEYPAIR *keypair;
@@ -1230,7 +1230,7 @@ void crypto_session_free (CRYPTO_SESSION *cs)
  *  Returns: A pointer to a CIPHER_CONTEXT object on success. The cipher block size is returned in blocksize.
  *           NULL on failure.
  */
-CIPHER_CONTEXT *crypto_cipher_new (CRYPTO_SESSION *cs, bool encrypt, size_t *blocksize)
+CIPHER_CONTEXT *crypto_cipher_new (CRYPTO_SESSION *cs, bool encrypt, uint32_t *blocksize)
 {
    CIPHER_CONTEXT *cipher_ctx;
    const EVP_CIPHER *ec;

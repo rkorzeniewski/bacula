@@ -47,8 +47,8 @@ const bool have_libz = false;
 
 int verify_signature(JCR *jcr, SIGNATURE *sig);
 int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
-      uint64_t *addr, int flags, CIPHER_CONTEXT *cipher, size_t cipher_block_size);
-bool flush_cipher(JCR *jcr, BFILE *bfd, int flags, CIPHER_CONTEXT *cipher, size_t cipher_block_size);
+      uint64_t *addr, int flags, CIPHER_CONTEXT *cipher, uint32_t cipher_block_size);
+bool flush_cipher(JCR *jcr, BFILE *bfd, int flags, CIPHER_CONTEXT *cipher, uint32_t cipher_block_size);
 
 #define RETRY 10                      /* retry wait time */
 
@@ -95,7 +95,7 @@ void do_restore(JCR *jcr)
    SIGNATURE *sig = NULL;             /* Cryptographic signature (if any) for file */
    CRYPTO_SESSION *cs = NULL;         /* Cryptographic session data (if any) for file */
    CIPHER_CONTEXT *cipher_ctx = NULL; /* Cryptographic cipher context (if any) for file */
-   size_t cipher_block_size = 0;      /* Cryptographic algorithm block size for file */
+   uint32_t cipher_block_size = 0;    /* Cryptographic algorithm block size for file */
    int flags = 0;                     /* Options for extract_data() */
    int stat;
    ATTR *attr;
@@ -735,7 +735,7 @@ int verify_signature(JCR *jcr, SIGNATURE *sig)
  * Return value is the number of bytes written, or -1 on errors.
  */
 int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
-      uint64_t *addr, int flags, CIPHER_CONTEXT *cipher, size_t cipher_block_size)
+      uint64_t *addr, int flags, CIPHER_CONTEXT *cipher, uint32_t cipher_block_size)
 {
    int stat;
    char *wbuf;                        /* write buffer */
@@ -864,9 +864,9 @@ ok:
  * writing it to bfd.
  * Return value is true on success, false on failure.
  */
-bool flush_cipher(JCR *jcr, BFILE *bfd, int flags, CIPHER_CONTEXT *cipher, size_t cipher_block_size)
+bool flush_cipher(JCR *jcr, BFILE *bfd, int flags, CIPHER_CONTEXT *cipher, uint32_t cipher_block_size)
 {
-   size_t decrypted_len;
+   uint32_t decrypted_len;
 
    /* Write out the remaining block and free the cipher context */
    jcr->crypto_buf = check_pool_memory_size(jcr->crypto_buf, cipher_block_size);

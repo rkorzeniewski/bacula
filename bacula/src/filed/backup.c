@@ -490,7 +490,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
    /* Terminate the signing digest and send it to the Storage daemon */
    if (signing_digest) {
       SIGNATURE *sig;
-      size_t size = 0;
+      uint32_t size = 0;
       uint8_t *buf;
 
       if ((sig = crypto_sign_new()) == NULL) {
@@ -545,7 +545,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
    /* Terminate any digest and send it to Storage daemon and the Director */
    if (digest) {
       uint8_t md[CRYPTO_DIGEST_MAX_SIZE];
-      size_t size;
+      uint32_t size;
 
       size = sizeof(md);
 
