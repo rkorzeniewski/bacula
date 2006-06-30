@@ -15,8 +15,7 @@ scripts/copy-test-confs
 scripts/cleanup
 echo "${cwd}/build" >/tmp/file-list
 
-change_jobname $JobName
-
+change_jobname NightlySave $JobName
 start_test
 
 cat <<END_OF_DATA >tmp/bconcmds

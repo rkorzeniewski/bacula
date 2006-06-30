@@ -16,7 +16,7 @@ scripts/cleanup-tape
 
 echo "${cwd}/build" >/tmp/file-list
 
-change_job $JobName
+change_jobname NightlySave $JobName
 start_test
 
 
@@ -30,7 +30,7 @@ purge volume=TestVolume001
 relabel pool=Default storage=DDS-4 oldVolume=TestVolume001 volume=TestVolume002 slot=0
 purge volume=TestVolume002
 relabel pool=Default storage=DDS-4 oldVolume=TestVolume002 volume=TestVolume001 slot=0
-run job=NightlySave yes
+run job=$JobName yes
 status storage=DDS-4
 status storage=DDS-4
 status storage=DDS-4
@@ -89,7 +89,7 @@ cat <<END_OF_DATA >tmp/bconcmds
 messages
 @$out tmp/log1.out
 list volumes
-run job=NightlySave yes
+run job=$JobName yes
 wait
 list volumes
 messages

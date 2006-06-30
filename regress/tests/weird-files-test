@@ -17,7 +17,7 @@ fi
 cwd=`pwd`
 scripts/copy-test-confs
 scripts/cleanup
-change_jobname $JobName
+change_jobname NightlySave $JobName
 #
 # Note, we save the weird-files directory twice on purpose
 #  because this causes problems with hard linked files 

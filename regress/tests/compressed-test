@@ -12,6 +12,7 @@ scripts/copy-test-confs
 scripts/cleanup
 echo "${cwd}/build" >/tmp/file-list
 
+change_jobname CompressedTest $JobName
 start_test
       
 cat <<END_OF_DATA >tmp/bconcmds
@@ -22,7 +23,7 @@ status all
 status all
 messages
 label storage=File volume=TestVolume001
-run job=CompressedTest storage=File yes
+run job=$JobName storage=File yes
 wait
 messages
 @# 
@@ -47,4 +48,3 @@ stop_bacula
 check_two_logs
 check_restore_diff
 end_test
-

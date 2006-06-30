@@ -14,6 +14,7 @@ scripts/cleanup
 echo "${cwd}/build" >/tmp/file-list
 sed s%\^%${cwd}% ${cwd}/scripts/flist >${cwd}/tmp/restore2-list
 
+change_jobname CompressedTest $JobName
 start_test
 
 cat <<END_OF_DATA >tmp/bconcmds
@@ -21,7 +22,7 @@ cat <<END_OF_DATA >tmp/bconcmds
 messages
 @$out tmp/log1.out
 label storage=File volume=TestVolume001
-run job=CompressedTest yes
+run job=$JobName yes
 wait
 messages
 @# 

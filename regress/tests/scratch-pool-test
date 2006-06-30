@@ -32,8 +32,8 @@ outf="tmp/sed_tmp"
 echo "s%# Maximum File Size%  Maximum File Size%g" >${outf}
 cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
 sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
-change_jobname $JobName
 
+change_jobname NightlySave $JobName
 start_test
 
 # Write out bconsole commands

@@ -41,6 +41,16 @@ run_bconsole()
    fi
 }
 
+run_btape()
+{
+   if test "$debug" -eq 1 ; then
+     cat tmp/bconcmds | bin/btape -c bin/bacula-sd.conf DDS-4 | tee tmp/log1.out
+   else
+     cat tmp/bconcmds | bin/btape -c bin/bacula-sd.conf DDS-4 2>&1 >tmp/log1.out
+   fi
+}
+
+
 stop_bacula()
 {
    bin/bacula stop 2>&1 >/dev/null
@@ -53,10 +63,18 @@ check_for_zombie_jobs()
 
 change_jobname()
 {
+   if test $# == 1; then
+      oldname=NightlySave
+      newname=$1
+   else
+      oldname=$1
+      newname=$2
+   fi
    rm -f bin/1
    mv bin/bacula-dir.conf bin/1
-   echo "s%NightlySave%$1%g" >/tmp/1
+   echo "s%${oldname}%${newname}%g" >/tmp/1
    sed -f /tmp/1 bin/1 >bin/bacula-dir.conf
+   echo "Job ${oldname} changed to ${newname}"
 }
 
 check_two_logs()
@@ -100,6 +118,19 @@ end_test()
       scripts/cleanup
    fi
 }
+
+copy_tape_confs()
+{
+   scripts/copy-tape-confs
+   scripts/cleanup-tape
+}
+
+copy_test_confs()
+{
+   scripts/copy-test-confs
+   scripts/cleanup
+}
+
 
 # Save current directory
 cwd=`pwd`

@@ -12,7 +12,7 @@ scripts/copy-crypto-confs
 scripts/cleanup
 echo "${cwd}/build" >/tmp/file-list
 
-change_jobname $JobName
+change_jobname NightlySave $JobName
 start_test
 
 cat <<END_OF_DATA >tmp/bconcmds
@@ -21,7 +21,7 @@ messages
 @$out tmp/log1.out
 setdebug level=1 storage=File sd
 label storage=File volume=TestVolume001
-run job=NightlySave yes
+run job=$JobName yes
 wait
 messages
 @# 

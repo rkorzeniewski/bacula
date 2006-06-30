@@ -10,14 +10,14 @@ JobName=bscantape
 . scripts/functions
 set_debug 0
 
-scripts/copy-tape-confs
-scripts/cleanup-tape
+copy_tape_confs
+
 echo "${cwd}/build" >/tmp/file-list
 
 cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
 sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
 
-change_jobname $JobName
+change_jobname NightlySave $JobName
 start_test
 
 cat <<END_OF_DATA >tmp/bconcmds
@@ -39,14 +39,9 @@ messages
 quit
 END_OF_DATA
 
-if test "$debug" -eq 1 ; then
-  bin/bacula start
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
-else
-  bin/bacula start 2>&1 >/dev/null
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
-fi
-scripts/check_for_zombie_jobs storage=DDS-4
+run_bacula
+check_for_zombie_jobs storage=DDS-4
+
 echo "Backup 1 done"
 # make some files for the incremental to pick up
 touch ${cwd}/build/src/dird/*.c ${cwd}/build/src/dird/*.o
@@ -64,15 +59,10 @@ wait
 messages
 quit
 END_OF_DATA
-if test "$debug" -eq 1 ; then
-  bin/bacula start
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
-else
-  bin/bacula start 2>&1 >/dev/null
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
-fi
 
+run_bacula
 scripts/check_for_zombie_jobs storage=DDS-4
+
 echo "Backup 2 done"
 touch ${cwd}/build/src/dird/*.c
 touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
@@ -88,15 +78,10 @@ wait
 messages
 quit
 END_OF_DATA
-if test "$debug" -eq 1 ; then
-  bin/bacula start
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
-else
-  bin/bacula start 2>&1 >/dev/null
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
-fi
 
+run_bacula
 scripts/check_for_zombie_jobs storage=DDS-4
+
 echo "Backup 3 done"
 # make some files for the incremental to pick up
 touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
@@ -104,7 +89,6 @@ touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
 #
 # run a fourth job
 #
-
 cat <<END_OF_DATA >tmp/bconcmds
 @$out /dev/null
 messages
@@ -114,15 +98,12 @@ wait
 messages
 quit
 END_OF_DATA
-if test "$debug" -eq 1 ; then
-  bin/bacula start
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
-else
-  bin/bacula start 2>&1 >/dev/null
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
-fi
+
+run_bacula
 
 scripts/check_for_zombie_jobs storage=DDS-4
+stop_bacula
+
 echo "Backup 4 done"
 #
 # now drop and recreate the database
@@ -133,11 +114,10 @@ cd bin
 ./grant_bacula_privileges 2>&1 >/dev/null
 cd ..
 
-bin/bacula stop 2>&1 >/dev/null
 echo "volume=TestVolume001" >tmp/bscan.bsr
 bin/bscan -w working -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf DDS-4 2>&1 >/dev/null
-bin/bacula start 2>&1 >/dev/null
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
+
+cat <<END_OF_DATA >tmp/bconcmds
 @$out /dev/null
 messages
 @$out tmp/log2.out
