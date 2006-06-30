@@ -407,6 +407,8 @@ int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, JobId_t JobId, VOL_PARAMS 
          if (stat > 0) {
             *VolParams = Vols = (VOL_PARAMS *)malloc(stat * sizeof(VOL_PARAMS));
             SId = (DBId_t *)malloc(stat * sizeof(DBId_t));
+         } else {
+            SId = NULL;
          }
          for (i=0; i < stat; i++) {
             if ((row = sql_fetch_row(mdb)) == NULL) {

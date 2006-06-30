@@ -37,7 +37,7 @@
 /*                                                             */
 /*=============================================================*/
 
-#if !defined(HAVE_CYGWIN) && !defined(HAVE_WIN32)
+#if !defined(HAVE_WIN32)
 
 int enable_backup_privileges(JCR *jcr, int ignore_errors)
  { return 0; }
@@ -53,7 +53,7 @@ int enable_backup_privileges(JCR *jcr, int ignore_errors)
 /*                                                             */
 /*=============================================================*/
 
-#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
+#if defined(HAVE_WIN32)
 
 void win_error(JCR *jcr, char *prefix, DWORD lerror);
 
@@ -155,4 +155,4 @@ int enable_backup_privileges(JCR *jcr, int ignore_errors)
     return stat;
 }
 
-#endif  /* HAVE_CYGWIN */
+#endif  /* HAVE_WIN32 */

@@ -55,7 +55,7 @@ int querycmd(UAContext *ua, const char *cmd)
    if (!open_db(ua)) {
       goto bail_out;
    }
-   if ((fd=fopen(query_file, "r")) == NULL) {
+   if ((fd=fopen(query_file, "rb")) == NULL) {
       bsendmsg(ua, _("Could not open %s: ERR=%s\n"), query_file,
          strerror(errno));
       goto bail_out;

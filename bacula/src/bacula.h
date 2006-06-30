@@ -26,8 +26,8 @@
 #define _LANGUAGE_C_PLUS_PLUS 1
 #endif
 
-#ifdef WIN32
-#ifdef HAVE_MINGW
+#if defined(HAVE_WIN32)
+#if defined(HAVE_MINGW)
 #include "mingwconfig.h"
 #include "winhost.h"
 #define _STAT_H       /* don't pull in MinGW stat.h */

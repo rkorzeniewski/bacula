@@ -52,7 +52,7 @@ static int update_digest_record(B_DB *db, char *digest, DEV_RECORD *rec, int typ
 
 
 /* Global variables */
-#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
+#if defined(HAVE_WIN32)
 int win32_client = 1;
 #else
 int win32_client = 0;

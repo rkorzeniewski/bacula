@@ -499,7 +499,7 @@ void update_bootstrap_file(JCR *jcr)
          fd = bpipe ? bpipe->wfd : NULL;
       } else {
          /* ***FIXME*** handle BASE */
-         fd = fopen(fname, jcr->JobLevel==L_FULL?"w+":"a+");
+         fd = fopen(fname, jcr->JobLevel==L_FULL?"w+b":"a+b");
       }
       if (fd) {
          VolCount = db_get_job_volume_parameters(jcr, jcr->db, jcr->JobId,

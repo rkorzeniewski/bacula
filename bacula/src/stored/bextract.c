@@ -26,7 +26,7 @@
 #include "stored.h"
 #include "findlib/find.h"
 
-#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
+#if defined(HAVE_WIN32)
 int win32_client = 1;
 #else
 int win32_client = 0;
@@ -122,7 +122,7 @@ int main (int argc, char *argv[])
          break;
 
       case 'e':                    /* exclude list */
-         if ((fd = fopen(optarg, "r")) == NULL) {
+         if ((fd = fopen(optarg, "rb")) == NULL) {
             berrno be;
             Pmsg2(0, _("Could not open exclude file: %s, ERR=%s\n"),
                optarg, be.strerror());
@@ -137,7 +137,7 @@ int main (int argc, char *argv[])
          break;
 
       case 'i':                    /* include list */
-         if ((fd = fopen(optarg, "r")) == NULL) {
+         if ((fd = fopen(optarg, "rb")) == NULL) {
             berrno be;
             Pmsg2(0, _("Could not open include file: %s, ERR=%s\n"),
                optarg, be.strerror());

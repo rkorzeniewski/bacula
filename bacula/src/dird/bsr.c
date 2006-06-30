@@ -227,7 +227,7 @@ uint32_t write_bsr_file(UAContext *ua, RESTORE_CTX &rx)
    JobId_t JobId;
 
    make_unique_restore_filename(ua, &fname);
-   fd = fopen(fname, "w+");
+   fd = fopen(fname, "w+b");
    if (!fd) {
       berrno be;
       bsendmsg(ua, _("Unable to create bootstrap file %s. ERR=%s\n"),

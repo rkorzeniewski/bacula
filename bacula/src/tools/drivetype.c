@@ -1,13 +1,13 @@
 /*
- * Program for determining file system type
+ * Program for determining drive type
  *
- *   Written by Preben 'Peppe' Guldberg, December MMIV
+ *   Written by Robert Nelson, June 2006
  *
  *   Version $Id$
  *
  */
 /*
-   Copyright (C) 2004-2005 Kern Sibbald
+   Copyright (C) 2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -17,7 +17,7 @@
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
-   the file LICENSE for additional details.
+   file LICENSE for additional details.
 
  */
 
@@ -32,9 +32,9 @@ static void usage()
 {
    fprintf(stderr, _(
 "\n"
-"Usage: fstype [-v] path ...\n"
+"Usage: drivetype [-v] path ...\n"
 "\n"
-"       Print the file system type a given file/directory is on.\n"
+"       Print the drive type a given file/directory is on.\n"
 "       The following options are supported:\n"
 "\n"
 "       -v     print both path and file system type.\n"
@@ -48,7 +48,7 @@ static void usage()
 int
 main (int argc, char *const *argv)
 {
-   char fs[1000];
+   char dt[100];
    int verbose = 0;
    int status = 0;
    int ch, i;
@@ -75,12 +75,14 @@ main (int argc, char *const *argv)
       usage();
    }
 
+   OSDependentInit();
+ 
    for (i = 0; i < argc; --argc, ++argv) {
-      if (fstype(*argv, fs, sizeof(fs))) {
+      if (drivetype(*argv, dt, sizeof(dt))) {
          if (verbose) {
-            printf("%s: %s\n", *argv, fs);
+            printf("%s: %s\n", *argv, dt);
          } else {
-            puts(fs);
+            puts(dt);
          }
       } else {
          fprintf(stderr, _("%s: unknown\n"), *argv);

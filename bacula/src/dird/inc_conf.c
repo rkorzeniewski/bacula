@@ -51,7 +51,13 @@ static void setup_current_opts(void);
  * then move it to allocated memory when the resource
  * scan is complete.
  */
+#if defined(_MSC_VER)
+extern "C" { // work around visual compiler mangling variables
+    extern URES res_all;
+}
+#else
 extern URES res_all;
+#endif
 extern int  res_all_size;
 
 /* We build the current new Include and Exclude items here */
@@ -246,7 +252,7 @@ static void scan_include_options(LEX *lc, int keyword, char *opts, int optlen)
     */
    } else {
       for (i=0; FS_options[i].name; i++) {
-         if (strcasecmp(lc->str, FS_options[i].name) == 0 && FS_options[i].keyword == keyword) {
+         if (FS_options[i].keyword == keyword && strcasecmp(lc->str, FS_options[i].name) == 0) {
             /* NOTE! maximum 2 letters here or increase option[3] */
             option[0] = FS_options[i].option[0];
             option[1] = FS_options[i].option[1];

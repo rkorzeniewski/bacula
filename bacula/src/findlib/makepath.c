@@ -136,7 +136,7 @@ make_dir(JCR *jcr, const char *dir, const char *dirpath, mode_t mode, int *creat
 int
 isAbsolute(const char *path)
 {
-#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
+#if defined(HAVE_WIN32)
     return path[1] == ':' || *path == '/' || *path == '\\';     /* drivespec:/blah is absolute */
 #else
     return *path == '/';
@@ -213,12 +213,6 @@ make_path(
 	 re_protect = 0;
       }
 
-#if defined(HAVE_CYGWIN)
-      /* Because of silly Win32 security, we allow everything */
-      tmp_mode = S_IRWXUGO;
-      re_protect = 0;
-
-#endif
 #if defined(HAVE_WIN32)
       // chdir can fail if permissions are sufficiently restricted since I don't think
       // backup/restore security rights affect ChangeWorkingDirectory

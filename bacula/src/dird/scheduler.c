@@ -259,7 +259,7 @@ static void find_runs()
 
    /* compute values for time now */
    now = time(NULL);
-   localtime_r(&now, &tm);
+   (void)localtime_r(&now, &tm);
    hour = tm.tm_hour;
    minute = tm.tm_min;
    mday = tm.tm_mday - 1;
@@ -274,7 +274,7 @@ static void find_runs()
     * sleeping.
     */
    next_hour = now + 3600;
-   localtime_r(&next_hour, &tm);
+   (void)localtime_r(&next_hour, &tm);
    nh_hour = tm.tm_hour;
    nh_mday = tm.tm_mday - 1;
    nh_wday = tm.tm_wday;
@@ -336,7 +336,7 @@ static void find_runs()
          Dmsg3(dbglvl, "run@%p: run_now=%d run_nh=%d\n", run, run_now, run_nh);
 
          /* find time (time_t) job is to be run */
-         localtime_r(&now, &tm);      /* reset tm structure */
+         (void)localtime_r(&now, &tm);      /* reset tm structure */
          tm.tm_min = run->minute;     /* set run minute */
          tm.tm_sec = 0;               /* zero secs */
          if (run_now) {

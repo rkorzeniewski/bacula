@@ -65,7 +65,7 @@
 /* Allow printing of NULL pointers */
 #define NPRT(x) (x)?(x):_("*None*")
  
-#ifdef WIN32
+#if defined(HAVE_WIN32)
 #undef ENABLE_NLS
 #endif
 
@@ -218,6 +218,7 @@
  * or saved */
 #define FT_DIRBEGIN  18               /* Directory at beginning (not saved) */
 #define FT_INVALIDFS 19               /* File system not allowed for */
+#define FT_INVALIDDT 20               /* Drive type not allowed for */
 
 /* Definitions for upper part of type word (see above). */
 #define AR_DATA_STREAM (1<<16)        /* Data stream id present */
@@ -562,13 +563,9 @@ extern "C" int getdomainname(char *name, int len);
 extern "C" int mknod ( const char *path, int mode, dev_t device );
 #endif
 
-#ifdef HAVE_CYGWIN
-/* They don't really have it */
-#undef HAVE_GETDOMAINNAME
-#endif
 
 /* Define Winsock functions if we aren't on Windows */
-#if (!defined HAVE_WIN32) || (defined HAVE_CYGWIN)
+#if !defined HAVE_WIN32
 #define WSA_Init() 0 /* 0 = success */
 #define WSACleanup() 0 /* 0 = success */
 #endif

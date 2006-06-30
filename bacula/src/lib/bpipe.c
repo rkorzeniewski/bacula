@@ -32,7 +32,7 @@ int execvp_errors[] = {
         E2BIG,
         ENAMETOOLONG,
         ENOMEM,
-#ifndef WIN32
+#ifndef HAVE_WIN32
         ETXTBSY,
 #endif
         ENOENT
@@ -232,7 +232,7 @@ int close_bpipe(BPIPE *bpipe)
          }
          Dmsg1(800, "child status=%d\n", stat & ~b_errno_exit);
       } else if (WIFSIGNALED(chldstatus)) {  /* process died */
-#ifndef WIN32
+#ifndef HAVE_WIN32
          stat = WTERMSIG(chldstatus);
 #else
 #warning "WTERMSIG undefined in Win32 !!!"

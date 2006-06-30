@@ -71,8 +71,8 @@ db_create_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    stime = jr->SchedTime;
    ASSERT(stime != 0);
 
-   localtime_r(&stime, &tm);
-   strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
+   (void)localtime_r(&stime, &tm);
+   strftime(dt, sizeof(dt), "%Y-%m-%d %H:%M:%S", &tm);
    JobTDate = (utime_t)stime;
 
    /* Must create it */
@@ -443,8 +443,8 @@ db_create_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
          if (mr->LabelDate == 0) {
             mr->LabelDate = time(NULL);
          }
-         localtime_r(&mr->LabelDate, &tm);
-         strftime(dt, sizeof(dt), "%Y-%m-%d %T", &tm);
+         (void)localtime_r(&mr->LabelDate, &tm);
+         strftime(dt, sizeof(dt), "%Y-%m-%d %H:%M:%S", &tm);
          Mmsg(mdb->cmd, "UPDATE Media SET LabelDate='%s' "
               "WHERE MediaId=%d", dt, mr->MediaId);
          stat = UPDATE_DB(jcr, mdb, mdb->cmd);
@@ -615,8 +615,8 @@ bool db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
    if (fsr->CreateTime == 0 && fsr->cCreateTime[0] == 0) {
       fsr->CreateTime = time(NULL);
    }
-   localtime_r(&fsr->CreateTime, &tm);
-   strftime(fsr->cCreateTime, sizeof(fsr->cCreateTime), "%Y-%m-%d %T", &tm);
+   (void)localtime_r(&fsr->CreateTime, &tm);
+   strftime(fsr->cCreateTime, sizeof(fsr->cCreateTime), "%Y-%m-%d %H:%M:%S", &tm);
 
    /* Must create it */
       Mmsg(mdb->cmd, "INSERT INTO FileSet (FileSet,MD5,CreateTime) "

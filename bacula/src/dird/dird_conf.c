@@ -72,7 +72,13 @@ static void store_short_runscript(LEX *lc, RES_ITEM *item, int index, int pass);
  * then move it to allocated memory when the resource
  * scan is complete.
  */
+#if defined(_MSC_VER)
+extern "C" { // work around visual compiler mangling variables
+    URES res_all;
+}
+#else
 URES res_all;
+#endif
 int  res_all_size = sizeof(res_all);
 
 

@@ -74,7 +74,7 @@ static void usage()
  *  Main Bacula Unix Client Program
  *
  */
-#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
+#if defined(HAVE_WIN32)
 #define main BaculaMain
 #endif
 

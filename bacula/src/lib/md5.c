@@ -298,7 +298,7 @@ int main(int argc, char *argv[])
       exit(1);
    }
 
-   fd = fopen(argv[0], "r");
+   fd = fopen(argv[0], "rb");
    if (!fd) {
       printf("Could not open %s: ERR=%s\n", argv[0], strerror(errno));
       exit(1);

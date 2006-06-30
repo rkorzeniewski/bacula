@@ -15,6 +15,7 @@
  *
  *    Version $Id$
  */
+
 /*
    Copyright (C) 2001-2006 Kern Sibbald
 
@@ -26,7 +27,7 @@
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
-   the file LICENSE for additional details.
+   file LICENSE for additional details.
 
  */
 
@@ -59,7 +60,7 @@
  *          1 on success
  */
 
-int db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
+bool db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 {
    JOB_DBR ojr;
    faddr_t rec_addr;

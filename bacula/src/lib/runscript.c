@@ -25,8 +25,6 @@
 #include "bacula.h"
 #include "jcr.h"
 
-#define USE_RUNSCRIPT
-
 #include "runscript.h"
 
 RUNSCRIPT *new_runscript()

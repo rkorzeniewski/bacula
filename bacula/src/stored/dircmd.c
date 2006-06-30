@@ -873,7 +873,7 @@ static bool changer_cmd(JCR *jcr)
       if (dcr) {
          dev = dcr->dev;
          P(dev->mutex);               /* Use P to avoid indefinite block */
-         if (!dev->device->changer_res) {     
+         if (!dev->device->changer_res) {
             bnet_fsend(dir, _("3995 Device %s is not an autochanger.\n"), 
                dev->print_name());
          /* Under certain "safe" conditions, we can steal the lock */

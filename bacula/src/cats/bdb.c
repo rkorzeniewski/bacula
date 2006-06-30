@@ -296,7 +296,7 @@ int bdb_open_jobs_file(B_DB *mdb)
 
    if (!mdb->jobfd) {
       dbf = make_filename(mdb, DB_JOBS_FILENAME);
-      mdb->jobfd = fopen(dbf, "r+");
+      mdb->jobfd = fopen(dbf, "r+b");
       if (!mdb->jobfd) {
          Mmsg2(&mdb->errmsg, "Error opening DB Jobs file %s: ERR=%s\n",
             dbf, strerror(errno));
@@ -318,7 +318,7 @@ int bdb_open_jobmedia_file(B_DB *mdb)
 
    if (!mdb->jobmediafd) {
       dbf = make_filename(mdb, DB_JOBMEDIA_FILENAME);
-      mdb->jobmediafd = fopen(dbf, "r+");
+      mdb->jobmediafd = fopen(dbf, "r+b");
       if (!mdb->jobmediafd) {
          Mmsg2(&mdb->errmsg, "Error opening DB JobMedia file %s: ERR=%s\n",
             dbf, strerror(errno));
@@ -341,7 +341,7 @@ int bdb_open_pools_file(B_DB *mdb)
 
    if (!mdb->poolfd) {
       dbf = make_filename(mdb, DB_POOLS_FILENAME);
-      mdb->poolfd = fopen(dbf, "r+");
+      mdb->poolfd = fopen(dbf, "r+b");
       if (!mdb->poolfd) {
          Mmsg2(&mdb->errmsg, "Error opening DB Pools file %s: ERR=%s\n",
             dbf, strerror(errno));
@@ -364,7 +364,7 @@ int bdb_open_client_file(B_DB *mdb)
 
    if (!mdb->clientfd) {
       dbf = make_filename(mdb, DB_CLIENT_FILENAME);
-      mdb->clientfd = fopen(dbf, "r+");
+      mdb->clientfd = fopen(dbf, "r+b");
       if (!mdb->clientfd) {
          Mmsg2(&mdb->errmsg, "Error opening DB Clients file %s: ERR=%s\n",
             dbf, strerror(errno));
@@ -386,7 +386,7 @@ int bdb_open_fileset_file(B_DB *mdb)
 
    if (!mdb->filesetfd) {
       dbf = make_filename(mdb, DB_CLIENT_FILENAME);
-      mdb->filesetfd = fopen(dbf, "r+");
+      mdb->filesetfd = fopen(dbf, "r+b");
       if (!mdb->filesetfd) {
          Mmsg2(&mdb->errmsg, "Error opening DB FileSet file %s: ERR=%s\n",
             dbf, strerror(errno));
@@ -410,7 +410,7 @@ int bdb_open_media_file(B_DB *mdb)
 
    if (!mdb->mediafd) {
       dbf = make_filename(mdb, DB_MEDIA_FILENAME);
-      mdb->mediafd = fopen(dbf, "r+");
+      mdb->mediafd = fopen(dbf, "r+b");
       if (!mdb->mediafd) {
          Mmsg2(&mdb->errmsg, "Error opening DB Media file %s: ERR=%s\n",
             dbf, strerror(errno));

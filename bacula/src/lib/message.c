@@ -26,10 +26,8 @@
 #include "bacula.h"
 #include "jcr.h"
 
-#if !defined(HAVE_CONSOLE)
-#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
+#if !defined(HAVE_CONSOLE) && defined(HAVE_WIN32)
 #include <windows.h>
-#endif
 #endif
 
 #define FULL_LOCATION 1               /* set for file:line in Debug messages */
@@ -52,18 +50,14 @@ FILE *con_fd = NULL;                  /* Console file descriptor */
 brwlock_t con_lock;                   /* Console lock structure */
 
 
-#ifdef HAVE_POSTGRESQL
+#if defined(HAVE_POSTGRESQL)
 char catalog_db[] = "PostgreSQL";
-#else
-#ifdef HAVE_MYSQL
+#elif defined(HAVE_MYSQL)
 char catalog_db[] = "MySQL";
-#else
-#ifdef HAVE_SQLITE
+#elif defined(HAVE_SQLITE)
 char catalog_db[] = "SQLite";
 #else
 char catalog_db[] = "Internal";
-#endif
-#endif
 #endif
 
 const char *host_os = HOST_OS;
@@ -117,7 +111,7 @@ void my_name_is(int argc, char *argv[], const char *name)
          l++;
       } else {
          l = argv[0];
-#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
+#if defined(HAVE_WIN32)
          /* On Windows allow c: junk */
          if (l[1] == ':') {
             l += 2;
@@ -162,7 +156,9 @@ void
 init_msg(JCR *jcr, MSGS *msg)
 {
    DEST *d, *dnew, *temp_chain = NULL;
+#ifndef HAVE_WIN32
    int i;
+#endif
 
    if (jcr == NULL && msg == NULL) {
       init_last_jobs_list();
@@ -193,7 +189,7 @@ init_msg(JCR *jcr, MSGS *msg)
    if (msg == NULL) {
       daemon_msgs = (MSGS *)malloc(sizeof(MSGS));
       memset(daemon_msgs, 0, sizeof(MSGS));
-#ifndef WIN32
+#ifndef HAVE_WIN32
       for (i=1; i<=M_MAX; i++) {
          add_msg_dest(daemon_msgs, MD_STDOUT, i, NULL, NULL);
       }
@@ -258,7 +254,7 @@ void init_console_msg(const char *wd)
       console_msg_pending = 1;
    }
    close(fd);
-   con_fd = fopen(con_fname, "a+");
+   con_fd = fopen(con_fname, "a+b");
    if (!con_fd) {
       berrno be;
       Emsg2(M_ERROR, 0, _("Could not open console message file %s: ERR=%s\n"),
@@ -606,7 +602,7 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
              case MD_CONSOLE:
                 Dmsg1(850, "CONSOLE for following msg: %s", msg);
                 if (!con_fd) {
-                   con_fd = fopen(con_fname, "a+");
+                   con_fd = fopen(con_fname, "a+b");
                    Dmsg0(850, "Console file not open.\n");
                 }
                 if (con_fd) {
@@ -630,7 +626,7 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
                 }
                 break;
              case MD_SYSLOG:
-                Dmsg1(850, "SYSLOG for collowing msg: %s\n", msg);
+                Dmsg1(850, "SYSLOG for following msg: %s\n", msg);
                 /*
                  * We really should do an openlog() here.
                  */
@@ -661,7 +657,7 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
                 if (!d->fd) {
                    POOLMEM *name = get_pool_memory(PM_MESSAGE);
                    make_unique_mail_filename(jcr, name, d);
-                   d->fd = fopen(name, "w+");
+                   d->fd = fopen(name, "w+b");
                    if (!d->fd) {
                       berrno be;
                       d->fd = stdout;
@@ -683,7 +679,7 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
              case MD_FILE:
                 Dmsg1(850, "FILE for following msg: %s", msg);
                 if (!d->fd) {
-                   d->fd = fopen(d->where, "w+");
+                   d->fd = fopen(d->where, "w+b");
                    if (!d->fd) {
                       berrno be;
                       d->fd = stdout;
@@ -699,7 +695,7 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
              case MD_APPEND:
                 Dmsg1(850, "APPEND for following msg: %s", msg);
                 if (!d->fd) {
-                   d->fd = fopen(d->where, "a");
+                   d->fd = fopen(d->where, "ab");
                    if (!d->fd) {
                       berrno be;
                       d->fd = stdout;
@@ -789,7 +785,7 @@ d_msg(const char *file, int line, int level, const char *fmt,...)
           if (!trace_fd) {
              char fn[200];
              bsnprintf(fn, sizeof(fn), "%s/bacula.trace", working_directory ? working_directory : ".");
-             trace_fd = fopen(fn, "a+");
+             trace_fd = fopen(fn, "a+b");
           }
           if (trace_fd) {
              fputs(buf, trace_fd);
@@ -885,7 +881,7 @@ t_msg(const char *file, int line, int level, const char *fmt,...)
     if (level <= debug_level) {
        if (!trace_fd) {
           bsnprintf(buf, sizeof(buf), "%s/bacula.trace", working_directory);
-          trace_fd = fopen(buf, "a+");
+          trace_fd = fopen(buf, "a+b");
        }
 
 #ifdef FULL_LOCATION

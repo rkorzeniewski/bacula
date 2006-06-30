@@ -181,7 +181,7 @@ typedef struct s_steal_lock {
    int        dev_prev_blocked;       /* previous blocked state */
 } bsteal_lock_t;
 
-struct DEVRES;                        /* Device resource defined in stored_conf.h */
+class DEVRES;                        /* Device resource defined in stored_conf.h */
 
 class DCR; /* forward reference */
 /*

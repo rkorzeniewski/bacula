@@ -537,7 +537,7 @@ RUN *find_next_run(RUN *run, JOB *job, time_t &runtime, int ndays)
          future = now + (day * 60 * 60 * 24);
 
          /* Break down the time into components */
-         localtime_r(&future, &tm);
+         (void)localtime_r(&future, &tm);
          mday = tm.tm_mday - 1;
          wday = tm.tm_wday;
          month = tm.tm_mon;
@@ -571,7 +571,7 @@ RUN *find_next_run(RUN *run, JOB *job, time_t &runtime, int ndays)
             Dmsg1(000, "%s", buf);
 #endif
             /* find time (time_t) job is to be run */
-            localtime_r(&future, &runtm);
+            (void)localtime_r(&future, &runtm);
             for (i= 0; i < 24; i++) {
                if (bit_is_set(i, run->hour)) {
                   runtm.tm_hour = i;

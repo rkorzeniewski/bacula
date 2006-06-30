@@ -866,7 +866,7 @@ try_again:
          }
          if (ua->cmd[0] != 0) {
             jcr->RestoreBootstrap = bstrdup(ua->cmd);
-            fd = fopen(jcr->RestoreBootstrap, "r");
+            fd = fopen(jcr->RestoreBootstrap, "rb");
             if (!fd) {
                bsendmsg(ua, _("Warning cannot open %s: ERR=%s\n"),
                   jcr->RestoreBootstrap, strerror(errno));

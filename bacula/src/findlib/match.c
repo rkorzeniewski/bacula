@@ -39,7 +39,7 @@
 #endif
 
 /* Fold case in fnmatch() on Win32 */
-#ifdef WIN32
+#ifdef HAVE_WIN32
 static const int fnmode = FNM_CASEFOLD;
 #else
 static const int fnmode = 0;
@@ -213,7 +213,7 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, const char *fname)
          break;
       }
    }
-#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
+#if defined(HAVE_WIN32)
    /* Convert any \'s into /'s */
    for (p=inc->fname; *p; p++) {
       if (*p == '\\') {
@@ -247,7 +247,7 @@ void add_fname_to_exclude_list(FF_PKT *ff, const char *fname)
 
    Dmsg1(20, "Add name to exclude: %s\n", fname);
 
-#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
+#if defined(HAVE_WIN32)
    if (strchr(fname, '/') || strchr(fname, '\\')) {
 #else
    if (strchr(fname, '/')) {
@@ -263,7 +263,7 @@ void add_fname_to_exclude_list(FF_PKT *ff, const char *fname)
    exc->next = *list;
    exc->len = len;
    strcpy(exc->fname, fname);
-#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
+#if defined(HAVE_WIN32)
    /* Convert any \'s into /'s */
    for (char *p=exc->fname; *p; p++) {
       if (*p == '\\') {

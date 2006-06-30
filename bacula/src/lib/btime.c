@@ -48,7 +48,7 @@ char *bstrftime(char *dt, int maxlen, utime_t tim)
    struct tm tm;
 
    /* ***FIXME**** the format and localtime_r() should be user configurable */
-   localtime_r(&ttime, &tm);
+   (void)localtime_r(&ttime, &tm);
    strftime(dt, maxlen, "%d-%b-%Y %H:%M", &tm);
    return dt;
 }
@@ -60,7 +60,7 @@ char *bstrftimes(char *dt, int maxlen, utime_t tim)
    struct tm tm;
 
    /* ***FIXME**** the format and localtime_r() should be user configurable */
-   localtime_r(&ttime, &tm);
+   (void)localtime_r(&ttime, &tm);
    strftime(dt, maxlen, "%d-%b-%Y %H:%M:%S", &tm);
    return dt;
 }
@@ -73,7 +73,7 @@ char *bstrftime_ny(char *dt, int maxlen, utime_t tim)
    struct tm tm;
 
    /* ***FIXME**** the format and localtime_r() should be user configurable */
-   localtime_r(&ttime, &tm);
+   (void)localtime_r(&ttime, &tm);
    strftime(dt, maxlen, "%d-%b %H:%M", &tm);
    return dt;
 }
@@ -86,7 +86,7 @@ char *bstrftime_nc(char *dt, int maxlen, utime_t tim)
    struct tm tm;
 
    /* ***FIXME**** the format and localtime_r() should be user configurable */
-   localtime_r(&ttime, &tm);
+   (void)localtime_r(&ttime, &tm);
    /* NOTE! since the compiler complains about %y, I use %y and cut the century */
    strftime(dt, maxlen, "%d-%b-%Y %H:%M", &tm);
    strcpy(dt+7, dt+9);
@@ -99,7 +99,7 @@ char *bstrutime(char *dt, int maxlen, utime_t tim)
 {
    time_t ttime = (time_t)tim;
    struct tm tm;
-   localtime_r(&ttime, &tm);
+   (void)localtime_r(&ttime, &tm);
    strftime(dt, maxlen, "%Y-%m-%d %H:%M:%S", &tm);
    return dt;
 }
@@ -197,12 +197,12 @@ int tm_woy(time_t stime)
    time_t time4;
    struct tm tm;
    memset(&tm, 0, sizeof(struct tm));
-   localtime_r(&stime, &tm);
+   (void)localtime_r(&stime, &tm);
    tm_yday = tm.tm_yday;
    tm.tm_mon = 0;
    tm.tm_mday = 4;
    time4 = mktime(&tm);
-   localtime_r(&time4, &tm);
+   (void)localtime_r(&time4, &tm);
    fty = 1 - tm.tm_wday;
    if (fty <= 0) {
       fty += 7;
@@ -221,7 +221,7 @@ void get_current_time(struct date_time *dt)
    time_t now;
 
    now = time(NULL);
-   gmtime_r(&now, &tm);
+   (void)gmtime_r(&now, &tm);
    Dmsg6(200, "m=%d d=%d y=%d h=%d m=%d s=%d\n", tm.tm_mon+1, tm.tm_mday, tm.tm_year+1900,
       tm.tm_hour, tm.tm_min, tm.tm_sec);
    tm_encode(dt, &tm);

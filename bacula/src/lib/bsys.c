@@ -417,7 +417,7 @@ void b_memset(const char *file, int line, void *mem, int val, size_t num)
 }
 #endif
 
-#if !defined(HAVE_CYGWIN) && !defined(HAVE_WIN32)
+#if !defined(HAVE_WIN32)
 static int del_pid_file_ok = FALSE;
 #endif
 
@@ -426,7 +426,7 @@ static int del_pid_file_ok = FALSE;
  */
 void create_pid_file(char *dir, const char *progname, int port)
 {
-#if !defined(HAVE_CYGWIN) && !defined(HAVE_WIN32)
+#if !defined(HAVE_WIN32)
    int pidfd, len;
    int oldpid;
    char  pidbuf[20];
@@ -469,7 +469,7 @@ void create_pid_file(char *dir, const char *progname, int port)
  */
 int delete_pid_file(char *dir, const char *progname, int port)
 {
-#if !defined(HAVE_CYGWIN)  && !defined(HAVE_WIN32)
+#if !defined(HAVE_WIN32)
    POOLMEM *fname = get_pool_memory(PM_FNAME);
 
    if (!del_pid_file_ok) {

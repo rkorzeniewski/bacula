@@ -45,7 +45,7 @@ extern int QueryDB(const char *file, int line, JCR *jcr, B_DB *db, char *select_
 /*
  * Submit general SQL query
  */
-int db_list_sql_query(JCR *jcr, B_DB *mdb, char *query, DB_LIST_HANDLER *sendit,
+int db_list_sql_query(JCR *jcr, B_DB *mdb, const char *query, DB_LIST_HANDLER *sendit,
                       void *ctx, int verbose, e_list_type type)
 {
    db_lock(mdb);

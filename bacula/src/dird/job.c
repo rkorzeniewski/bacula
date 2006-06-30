@@ -771,7 +771,7 @@ void create_unique_job_name(JCR *jcr, const char *base_name)
    V(mutex);                          /* allow creation of jobs */
    jcr->start_time = now;
    /* Form Unique JobName */
-   localtime_r(&now, &tm);
+   (void)localtime_r(&now, &tm);
    /* Use only characters that are permitted in Windows filenames */
    strftime(dt, sizeof(dt), "%Y-%m-%d_%H.%M.%S", &tm);
    bstrncpy(name, base_name, sizeof(name));

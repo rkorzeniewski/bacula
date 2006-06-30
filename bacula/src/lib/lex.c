@@ -155,7 +155,7 @@ LEX *lex_open_file(LEX *lf, const char *filename, LEX_ERROR_HANDLER *scan_error)
    char *fname = bstrdup(filename);
 
 
-   if ((fd = fopen(fname, "r")) == NULL) {
+   if ((fd = fopen(fname, "rb")) == NULL) {
       return NULL;
    }
    Dmsg1(400, "Open config file: %s\n", fname);

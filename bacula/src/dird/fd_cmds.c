@@ -341,7 +341,7 @@ static bool send_fileset(JCR *jcr)
                break;
             case '<':
                p++;                      /* skip over < */
-               if ((ffd = fopen(p, "r")) == NULL) {
+               if ((ffd = fopen(p, "rb")) == NULL) {
                   berrno be;
                   Jmsg(jcr, M_FATAL, 0, _("Cannot open included file: %s. ERR=%s\n"),
                      p, be.strerror());
@@ -435,7 +435,7 @@ bool send_bootstrap_file(JCR *jcr, BSOCK *sock)
    if (!jcr->RestoreBootstrap) {
       return true;
    }
-   bs = fopen(jcr->RestoreBootstrap, "r");
+   bs = fopen(jcr->RestoreBootstrap, "rb");
    if (!bs) {
       berrno be;
       Jmsg(jcr, M_FATAL, 0, _("Could not open bootstrap file %s: ERR=%s\n"),

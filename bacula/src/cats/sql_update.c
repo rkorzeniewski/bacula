@@ -96,7 +96,7 @@ db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    char ed1[50], ed2[50], ed3[50], ed4[50];
 
    stime = jr->StartTime;
-   localtime_r(&stime, &tm);
+   (void)localtime_r(&stime, &tm);
    strftime(dt, sizeof(dt), "%Y-%m-%d %H:%M:%S", &tm);
    JobTDate = (btime_t)stime;
 
@@ -157,14 +157,14 @@ db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    }
 
    ttime = jr->EndTime;
-   localtime_r(&ttime, &tm);
+   (void)localtime_r(&ttime, &tm);
    strftime(dt, sizeof(dt), "%Y-%m-%d %H:%M:%S", &tm);
 
    if (jr->RealEndTime == 0) {
       jr->RealEndTime = jr->EndTime;
    }
    ttime = jr->RealEndTime;
-   localtime_r(&ttime, &tm);
+   (void)localtime_r(&ttime, &tm);
    strftime(rdt, sizeof(rdt), "%Y-%m-%d %H:%M:%S", &tm);
 
    JobTDate = ttime;
@@ -178,7 +178,7 @@ db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
       (char)(jr->JobStatus), dt, ClientId, edit_uint64(jr->JobBytes, ed1),
       jr->JobFiles, jr->JobErrors, jr->VolSessionId, jr->VolSessionTime,
       PoolId, FileSetId, edit_uint64(JobTDate, ed2), 
-      rdt, 
+      rdt,
       PriorJobId,
       edit_int64(jr->JobId, ed3));
 
@@ -312,7 +312,7 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    if (mr->set_first_written) {
       Dmsg1(400, "Set FirstWritten Vol=%s\n", mr->VolumeName);
       ttime = mr->FirstWritten;
-      localtime_r(&ttime, &tm);
+      (void)localtime_r(&ttime, &tm);
       strftime(dt, sizeof(dt), "%Y-%m-%d %H:%M:%S", &tm);
       Mmsg(mdb->cmd, "UPDATE Media SET FirstWritten='%s'"
            " WHERE VolumeName='%s'", dt, mr->VolumeName);
@@ -326,7 +326,7 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       if (ttime == 0) {
          ttime = time(NULL);
       }
-      localtime_r(&ttime, &tm);
+      (void)localtime_r(&ttime, &tm);
       strftime(dt, sizeof(dt), "%Y-%m-%d %H:%M:%S", &tm);
       Mmsg(mdb->cmd, "UPDATE Media SET LabelDate='%s' "
            "WHERE VolumeName='%s'", dt, mr->VolumeName);
@@ -335,7 +335,7 @@ db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 
    if (mr->LastWritten != 0) {
       ttime = mr->LastWritten;
-      localtime_r(&ttime, &tm);
+      (void)localtime_r(&ttime, &tm);
       strftime(dt, sizeof(dt), "%Y-%m-%d %H:%M:%S", &tm);
       Mmsg(mdb->cmd, "UPDATE Media Set LastWritten='%s' "
            "WHERE VolumeName='%s'", dt, mr->VolumeName);

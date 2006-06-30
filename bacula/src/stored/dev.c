@@ -12,7 +12,7 @@
  *        to carry out operations without worrying about who
  *        set what lock (i.e. race conditions).
  *
- *     Note, this is the device dependent code, and my have
+ *     Note, this is the device dependent code, and may have
  *           to be modified for each system, but is meant to
  *           be as "generic" as possible.
  *
@@ -103,7 +103,7 @@ init_dev(JCR *jcr, DEVRES *device)
    DCR *dcr = NULL;
    DEVICE *dev;
 
-   
+
    /* If no device type specified, try to guess */
    if (!device->dev_type) {
       /* Check that device is available */

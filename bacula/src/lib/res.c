@@ -34,17 +34,6 @@ extern int r_last;
 extern RES_TABLE resources[];
 extern RES **res_head;
 
-#ifdef HAVE_WIN32
-// work around visual studio name manling preventing external linkage since res_all
-// is declared as a different type when instantiated.
-extern "C" CURES res_all;
-extern "C" int res_all_size;
-#else
-extern  CURES res_all;
-extern int res_all_size;
-#endif
-
-
 brwlock_t res_lock;                   /* resource lock */
 static int res_locked = 0;            /* set when resource chains locked -- for debug */
 

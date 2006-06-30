@@ -19,7 +19,7 @@
 #include "bacula.h"
 #include "findlib/find.h"
 
-#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
+#if defined(HAVE_WIN32)
 int win32_client = 1;
 #else
 int win32_client = 0;
@@ -125,7 +125,7 @@ main (int argc, char *const *argv)
       }
    }
    if (inc) {
-      fd = fopen(inc, "r");
+      fd = fopen(inc, "rb");
       if (!fd) {
          printf(_("Could not open include file: %s\n"), inc);
          exit(1);
@@ -138,7 +138,7 @@ main (int argc, char *const *argv)
    }
 
    if (exc) {
-      fd = fopen(exc, "r");
+      fd = fopen(exc, "rb");
       if (!fd) {
          printf(_("Could not open exclude file: %s\n"), exc);
          exit(1);

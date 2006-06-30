@@ -324,7 +324,7 @@ bool get_bootstrap_file(JCR *jcr, BSOCK *sock)
       jcr->Job);
    Dmsg1(400, "bootstrap=%s\n", fname);
    jcr->RestoreBootstrap = fname;
-   bs = fopen(fname, "a+");           /* create file */
+   bs = fopen(fname, "a+b");           /* create file */
    if (!bs) {
       Jmsg(jcr, M_FATAL, 0, _("Could not create bootstrap file %s: ERR=%s\n"),
          jcr->RestoreBootstrap, strerror(errno));

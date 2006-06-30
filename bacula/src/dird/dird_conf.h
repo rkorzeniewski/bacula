@@ -77,13 +77,13 @@ struct s_jt {
 
 /* Definition of the contents of each Resource */
 /* Needed for forward references */
-struct SCHED;
-struct CLIENT;
-struct FILESET;
-struct POOL;
-struct RUN;
-struct DEVICE;
-struct RUNSCRIPT;
+class SCHED;
+class CLIENT;
+class FILESET;
+class POOL;
+class RUN;
+class DEVICE;
+class RUNSCRIPT;
 
 /*
  *   Director Resource

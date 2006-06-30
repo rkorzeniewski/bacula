@@ -85,7 +85,7 @@ public:
 
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
 };
-typedef struct s_res_store STORES;
+typedef class s_res_store STORES;
 
 class AUTOCHANGER {
 public:

@@ -44,11 +44,7 @@
 
 /* Exported variables */
 
-#ifdef HAVE_CYGWIN
-int rl_catch_signals;
-#else
 extern int rl_catch_signals;
-#endif
 #ifdef HAVE_MINGW
 /* Remove when we have real lib in src/lib */
 int enable_vss;
@@ -383,9 +379,9 @@ int main(int argc, char *argv[])
       init_signals(terminate_console);
    }
 
+
 #if !defined(HAVE_WIN32)
    /* Override Bacula default signals */
-// signal(SIGCHLD, SIG_IGN);
    signal(SIGQUIT, SIG_IGN);
    signal(SIGTSTP, got_sigstop);
    signal(SIGCONT, got_sigcontinue);
@@ -533,7 +529,7 @@ try_again:
       FILE *fd;
       pm_strcpy(&UA_sock->msg, env);
       pm_strcat(&UA_sock->msg, "/.bconsolerc");
-      fd = fopen(UA_sock->msg, "r");
+      fd = fopen(UA_sock->msg, "rb");
       if (fd) {
          read_and_process_input(fd, UA_sock);
          fclose(fd);
@@ -780,7 +776,7 @@ static int inputcmd(FILE *input, BSOCK *UA_sock)
       sendit(_("First argument to input command must be a filename.\n"));
       return 1;
    }
-   fd = fopen(argk[1], "r");
+   fd = fopen(argk[1], "rb");
    if (!fd) {
       senditf(_("Cannot open file %s for input. ERR=%s\n"),
          argk[1], strerror(errno));
@@ -809,7 +805,7 @@ static int outputcmd(FILE *input, BSOCK *UA_sock)
 static int do_outputcmd(FILE *input, BSOCK *UA_sock)
 {
    FILE *fd;
-   const char *mode = "a+";
+   const char *mode = "a+b";
 
    if (argc > 3) {
       sendit(_("Too many arguments on output/tee command.\n"));
@@ -855,7 +851,7 @@ static int timecmd(FILE *input, BSOCK *UA_sock)
    char sdt[50];
    time_t ttime = time(NULL);
    struct tm tm;
-   localtime_r(&ttime, &tm);
+   (void)localtime_r(&ttime, &tm);
    strftime(sdt, sizeof(sdt), "%d-%b-%Y %H:%M:%S", &tm);
    sendit("\n");
    return 1;

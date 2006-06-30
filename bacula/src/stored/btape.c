@@ -1881,8 +1881,8 @@ static void fillcmd()
     */
    jcr->dcr->VolFirstIndex = 0;
    time(&jcr->run_time);              /* start counting time for rates */
-   localtime_r(&jcr->run_time, &tm);
-   strftime(buf1, sizeof(buf1), "%T", &tm);
+   (void)localtime_r(&jcr->run_time, &tm);
+   strftime(buf1, sizeof(buf1), "%H:%M:%S", &tm);
    if (simple) {
       Pmsg1(-1, _("%s Begin writing Bacula records to tape ...\n"), buf1);
    } else {
@@ -1935,8 +1935,8 @@ static void fillcmd()
           */
          if ((block->BlockNumber % 32000) == 0) {
             now = time(NULL);
-            localtime_r(&now, &tm);
-            strftime(buf1, sizeof(buf1), "%T", &tm);
+            (void)localtime_r(&now, &tm);
+            strftime(buf1, sizeof(buf1), "%H:%M:%S", &tm);
             Pmsg1(-1, _("%s Flush block, write EOF\n"), buf1);
             flush_block(block, 0);
             dev->weof(1);
@@ -2012,8 +2012,8 @@ static void fillcmd()
    }
 
    now = time(NULL);
-   localtime_r(&now, &tm);
-   strftime(buf1, sizeof(buf1), "%T", &tm);
+   (void)localtime_r(&now, &tm);
+   strftime(buf1, sizeof(buf1), "%H:%M:%S", &tm);
    if (simple) {
       Pmsg3(-1, _("\n\n%s Done filling tape at %d:%d. Now beginning re-read of tape ...\n"),
          buf1, jcr->dcr->dev->file, jcr->dcr->dev->block_num);
