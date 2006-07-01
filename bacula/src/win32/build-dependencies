@@ -272,7 +272,7 @@ process_wxWidgets()
 	then
 		echo Patching wxWidgets
 		do_patch wx.patch -o build/msw/config.mingw32
-		find . -name makefile.gcc -exec sh -c 'sed -f ${SCRIPT_DIR}/patches/wx.sed {} > `echo {} | sed s/\.gcc$/\.mingw32/`' \;
+		find . -name makefile.gcc -exec sh -c "sed -f ${SCRIPT_DIR}/patches/wx.sed {} > \`echo {} | sed s/\.gcc$/\.mingw32/\`" \;
 	fi
 	echo Building wxWidgets
 	cd build/msw
