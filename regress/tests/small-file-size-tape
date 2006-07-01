@@ -8,20 +8,19 @@ JobName=smallfilesize
 . scripts/functions
 set_debug 0
 
-scripts/copy-tape-confs
-scripts/cleanup-tape
+copy_tape_confs
 
 echo "${cwd}/build" >/tmp/file-list
 cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
 sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
 
-change_jobname $JobName
+change_jobname NightlySave $JobName
 start_test
 
 cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
-@$out t tmp/log1.out
+@$out tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default
 setdebug level=2 storage=DDS-4
 run job=$JobName yes

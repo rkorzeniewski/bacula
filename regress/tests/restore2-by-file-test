@@ -7,10 +7,8 @@ TestName="restore2-by-file-test"
 JobName=restore2byfile
 . scripts/functions
 set_debug 0
+copy_test_confs
 
-cwd=`pwd`
-scripts/copy-test-confs
-scripts/cleanup
 echo "${cwd}/build" >/tmp/file-list
 sed s%\^%${cwd}% ${cwd}/scripts/flist >${cwd}/tmp/restore2-list
 
