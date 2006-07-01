@@ -23,7 +23,7 @@
 %define useradd /usr/sbin/useradd
 %define groupadd /usr/sbin/groupadd
 %define usermod /usr/sbin/usermod
-%define _rescuever 1.8.5
+%define _rescuever 1.8.6
 
 # platform defines - set one below or define the build_xxx on the command line
 # RedHat builds
@@ -1492,7 +1492,7 @@ fi
 
 %changelog
 * Sat Jul 01 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
-- update rescuever to 1.8.5
+- update rescuever to 1.8.6
 * Sun Jun 25 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - update depkgs to 25Jun06
 - add mysql5 build tag
