@@ -96,6 +96,7 @@ static char *argv[MAX_CMD_ARGS];
 static int argc;
 
 static int quickie_count = 0;
+static uint64_t write_count = 0;
 static BSR *bsr = NULL;
 static int signals = TRUE;
 static bool ok;
@@ -1958,7 +1959,9 @@ static void fillcmd()
 
       /* Get out after writing 10 blocks to the second tape */
       if (BlockNumber > 10 && stop != 0) {      /* get out */
-         Pmsg0(-1, "Done writing ...\n");
+         char ed1[50];
+         Pmsg1(-1, "Done writing %s records ...\n", 
+             edit_uint64_with_commas(write_count, ed1));
          break;
       }
    }
@@ -2108,17 +2111,18 @@ static void do_unfill()
          dev->close();
          get_cmd(_("Mount first tape. Press enter when ready: "));
       }
-      free_restore_volume_list(jcr);
-      jcr->dcr = new_dcr(jcr, dev);
-      set_volume_name("TestVolume1", 1);
-      jcr->bsr = NULL;
-      create_restore_volume_list(jcr);
-      dev->close();
-      dev->num_writers = 0;
-      if (!acquire_device_for_read(dcr)) {
-         Pmsg1(-1, "%s", dev->errmsg);
-         goto bail_out;
-      }
+   }
+
+   free_restore_volume_list(jcr);
+   jcr->dcr = new_dcr(jcr, dev);
+   set_volume_name("TestVolume1", 1);
+   jcr->bsr = NULL;
+   create_restore_volume_list(jcr);
+   dev->close();
+   dev->num_writers = 0;
+   if (!acquire_device_for_read(dcr)) {
+      Pmsg1(-1, "%s", dev->errmsg);
+      goto bail_out;
    }
    /*
     * We now have the first tape mounted.
@@ -2722,7 +2726,8 @@ static bool my_mount_next_read_volume(DCR *dcr)
    DEV_BLOCK *block = dcr->block;
 
    Dmsg0(20, "Enter my_mount_next_read_volume\n");
-   Pmsg1(000, _("End of Volume \"%s\"\n"), dcr->VolumeName);
+   Pmsg2(000, _("End of Volume \"%s\" %d records.\n"), dcr->VolumeName,
+      quickie_count);
 
    if (LastBlock != block->BlockNumber) {
       VolBytes += block->block_len;

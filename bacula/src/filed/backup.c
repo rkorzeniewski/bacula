@@ -527,7 +527,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       Dmsg1(300, "bfiled>stored:header %s\n", sd->msg);
 
       /* Grow the bsock buffer to fit our message if necessary */
-      if (sizeof_pool_memory(sd->msg) < size) {
+      if (sizeof_pool_memory(sd->msg) < (int32_t)size) {
          sd->msg = realloc_pool_memory(sd->msg, size);
       }
 
