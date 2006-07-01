@@ -3,6 +3,9 @@
 
 General:
 30Jun06
+- Fix a complier warning in files/backup.c
+- Cleanup NOT NULL vs DEFALT 0 in database creation.
+- Tweak btape.
 - Robert committed his low impact changes.
 - I removed a size_t from the jcr.h definition.
 - Update the tape regression scripts (still to be tested).
@@ -44,7 +47,11 @@ General:
   using uint8_t * instead.
 - Harden authentication failure in FD by single threading errors
   and forcing a 6 second wait.
-- ========= Remove Accept Any Volume ========= directive.
+
+  ============= Warning ==================================
+       Removed  "Accept Any Volume" directive.
+  ===========================================================
+
 - Major cleanup and simplification of regress using shell functions
   (more tests to be converted to new format)   
 - Add detection of 64 bit Irix as indicated by user.
