@@ -768,9 +768,9 @@ export LDFLAGS=-L/usr/lib64/mysql
         --with-scriptdir=/etc/bacula \
         --enable-smartalloc \
         --enable-client-only \
-        %if %{mdk}
-        --disable-nls \
-        %endif
+	%if %{mdk}
+	--disable-nls \
+	%endif
         --enable-static-fd
 
 make
@@ -797,7 +797,7 @@ make
         --with-postgresql \
 %endif
 %if %{wxconsole}
-        --enable-wx-console \
+	--enable-wx-console \
 %endif
         --with-working-dir=%{working_dir} \
         --with-pid-dir=/var/run \
@@ -1491,6 +1491,8 @@ fi
 %endif
 
 %changelog
+* Sat Jul 01 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- update rescuever to 1.8.5
 * Sun Jun 25 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - update depkgs to 25Jun06
 - add mysql5 build tag
