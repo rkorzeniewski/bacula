@@ -419,7 +419,7 @@ function patch_mingw_utils
 	MINGW_UTILS=`tar -tzf "$SRCDIR/$MINGW_UTILS_ARCHIVE" | head -n 1`
 	cd "${SRCDIR}/${MINGW_UTILS}"
 	echo "Patching mingw-utils"
-	patch -p0 < ${SCRIPTDIR}/mingw-utils.patch &> patch.log
+	patch -p0 < ${SCRIPTDIR}/patches/mingw-utils.patch &> patch.log
 	cd "$BUILDDIR"
 }
 
