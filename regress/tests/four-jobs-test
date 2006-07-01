@@ -121,7 +121,7 @@ END_OF_DATA
 
 run_bconsole
 check_for_zombie_jobs storage=File
-bacula_stop
+stop_bacula
 
 check_two_logs
 check_restore_diff

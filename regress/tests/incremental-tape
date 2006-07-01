@@ -8,8 +8,8 @@ JobName=IncTape
 . scripts/functions
 set_debug 0
 
-scripts/copy-tape-confs
-scripts/cleanup-tape
+copy_tape_confs
+
 echo "${cwd}/tmp/build" >/tmp/file-list
 if test ! -d ${cwd}/tmp/build ; then
    mkdir ${cwd}/tmp/build
@@ -20,7 +20,7 @@ echo "${cwd}/tmp/build/ficheriro1.txt" >restore-list
 echo "${cwd}/tmp/build/ficheriro2.txt" >>restore-list
 cd ${cwd}
 
-change_jobname $JobName
+change_jobname NightlySave $JobName
 start_test
 
 cat <<END_OF_DATA >tmp/bconcmds
@@ -34,7 +34,8 @@ messages
 quit
 END_OF_DATA
 
-scripts/check_for_zombie_jobs storage=DDS-4
+run_bacula
+check_for_zombie_jobs storage=DDS-4
 
 echo "ficheriro1.txt" >${cwd}/tmp/build/ficheriro1.txt
 echo "ficheriro2.txt" >${cwd}/tmp/build/ficheriro2.txt
@@ -61,7 +62,7 @@ messages
 quit
 END_OF_DATA
 
-run_bacula
+run_bconsole
 check_for_zombie_jobs storage=DDS-4
 stop_bacula
 

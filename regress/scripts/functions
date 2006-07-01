@@ -74,7 +74,7 @@ change_jobname()
    mv bin/bacula-dir.conf bin/1
    echo "s%${oldname}%${newname}%g" >/tmp/1
    sed -f /tmp/1 bin/1 >bin/bacula-dir.conf
-   echo "Job ${oldname} changed to ${newname}"
+#  echo "Job ${oldname} changed to ${newname}"
 }
 
 check_two_logs()
