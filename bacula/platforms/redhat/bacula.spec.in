@@ -183,7 +183,6 @@ Packager: D. Scott Barninger <barninger@fairfieldcomputers.com>
 %define _docsrc ../%{name}-docs-%{version}
 %define _rescuesrc ../%{name}-rescue-%{_rescuever}
 
-BuildRequires: gcc, gcc-c++
 BuildRequires: atk-devel, ncurses-devel, pango-devel, perl
 BuildRequires: libstdc++-devel, libxml2-devel, zlib-devel
 BuildRequires: openssl-devel
