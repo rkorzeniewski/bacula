@@ -10750,6 +10750,7 @@ fi
 
 
 
+
 for ac_header in argz.h limits.h locale.h nl_types.h malloc.h stddef.h \
 stdlib.h string.h unistd.h sys/param.h
 do
@@ -10899,6 +10900,9 @@ _ACEOF
 fi
 
 done
+
+
+
 
 
 
@@ -14956,22 +14960,38 @@ if test "${with_python+set}" = set; then
 	for python_root in /usr /usr/local /usr/sfw; do
 	  if test -f $python_root/include/python2.2/Python.h; then
 	     PYTHON_INCDIR=-I$python_root/include/python2.2
-	     PYTHON_LIBS="-L$python_root/lib/python2.2/config -lpython2.2"
+	     if test -d $python_root/lib64/python2.2/config; then
+	        PYTHON_LIBS="-L$python_root/lib64/python2.2/config -lpython2.2"
+             else
+	        PYTHON_LIBS="-L$python_root/lib/python2.2/config -lpython2.2"
+             fi
 	     break
 	  elif test -f $python_root/include/python2.3/Python.h; then
 	     PYTHON_INCDIR=-I$python_root/include/python2.3
-	     PYTHON_LIBS="-L$python_root/lib/python2.3/config -lpython2.3"
+	     if test -d $python_root/lib64/python2.3/config; then
+	        PYTHON_LIBS="-L$python_root/lib64/python2.3/config -lpython2.3"
+             else
+	        PYTHON_LIBS="-L$python_root/lib/python2.3/config -lpython2.3"
+             fi
 	     break
 	  elif test -f $python_root/include/python2.4/Python.h; then
 	     PYTHON_INCDIR=-I$python_root/include/python2.4
-	     PYTHON_LIBS="-L$python_root/lib/python2.4/config -lpython2.4"
+	     if test -d $python_root/lib64/python2.4/config; then
+	        PYTHON_LIBS="-L$python_root/lib64/python2.4/config -lpython2.4"
+             else
+	        PYTHON_LIBS="-L$python_root/lib/python2.4/config -lpython2.4"
+             fi
 	     break
 	  fi
 	done
 	if test x$PYTHON_INCDIR = x; then
 	  if test -f $prefix/include/Python.h; then
 	     PYTHON_INCDIR=-I$prefix/include
-	     PYTHON_LIBS="-L$prefix/lib/config -lpython"
+	     if test -d $prefix/lib64/config; then
+	        PYTHON_LIBS="-L$prefix/lib64/config -lpython"
+             else
+	        PYTHON_LIBS="-L$prefix/lib/config -lpython"
+             fi
 	  else
 	   echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
@@ -14986,10 +15006,18 @@ echo "$as_me: error: Unable to find Python.h in standard locations" >&2;}
 	   PYTHON_LIBS="-L$withval/config -lpython"
 	elif test -f $withval/include/Python.h; then
 	   PYTHON_INCDIR=-I$withval/include
-	   PYTHON_LIBS="-L$withval/lib/config -lpython"
+	   if test -d $withval/lib64/config; then
+	      PYTHON_LIBS="-L$withval/lib64/config -lpython"
+	   else
+	      PYTHON_LIBS="-L$withval/lib/config -lpython"
+	   fi
 	elif test -f $withval/include/python/Python.h; then
 	   PYTHON_INCDIR=-I$withval/include/python
-	   PYTHON_LIBS="-L$withval/lib/python/config -lpython"
+	   if test -d $withval/lib64/python/config; then
+	      PYTHON_LIBS="-L$withval/lib64/python/config -lpython"
+	   else
+	      PYTHON_LIBS="-L$withval/lib/python/config -lpython"
+	   fi
 	else
 	   echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
@@ -16563,19 +16591,35 @@ echo "$as_me: error: \"You can configure for only one database.\"" >&2;}
               POSTGRESQL_BINDIR=`"$PG_CONFIG" --bindir`
           elif test -f /usr/local/include/libpq-fe.h; then
               POSTGRESQL_INCDIR=/usr/local/include
-              POSTGRESQL_LIBDIR=/usr/local/lib
+              if test -d /usr/local/lib64; then
+                 POSTGRESQL_LIBDIR=/usr/local/lib64
+              else
+                 POSTGRESQL_LIBDIR=/usr/local/lib
+              fi
               POSTGRESQL_BINDIR=/usr/local/bin
           elif test -f /usr/include/libpq-fe.h; then
               POSTGRESQL_INCDIR=/usr/include
-              POSTGRESQL_LIBDIR=/usr/lib
+              if test -d /usr/lib64; then
+                 POSTGRESQL_LIBDIR=/usr/lib64
+              else
+                 POSTGRESQL_LIBDIR=/usr/lib
+              fi
               POSTGRESQL_BINDIR=/usr/bin
           elif test -f /usr/include/pgsql/libpq-fe.h; then
               POSTGRESQL_INCDIR=/usr/include/pgsql
-              POSTGRESQL_LIBDIR=/usr/lib/pgsql
+              if test -d /usr/lib64/pgsql; then
+                 POSTGRESQL_LIBDIR=/usr/lib64/pgsql
+              else
+                 POSTGRESQL_LIBDIR=/usr/lib/pgsql
+              fi
               POSTGRESQL_BINDIR=/usr/bin
           elif test -f /usr/include/postgresql/libpq-fe.h; then
               POSTGRESQL_INCDIR=/usr/include/postgresql
-              POSTGRESQL_LIBDIR=/usr/lib/postgresql
+              if test -d /usr/lib64/postgresql; then
+                 POSTGRESQL_LIBDIR=/usr/lib64/postgresql
+              else
+                 POSTGRESQL_LIBDIR=/usr/lib/postgresql
+              fi
               POSTGRESQL_BINDIR=/usr/bin
           else
               echo "$as_me:$LINENO: result: no" >&5
@@ -16590,7 +16634,11 @@ echo "$as_me: error: Unable to find libpq-fe.h in standard locations" >&2;}
           POSTGRESQL_BINDIR=$withval/bin
       elif test -f $withval/include/postgresql/libpq-fe.h; then
           POSTGRESQL_INCDIR=$withval/include/postgresql
-          POSTGRESQL_LIBDIR=$withval/lib
+     if test -d $withval/lib64/postgresql; then
+         POSTGRESQL_LIBDIR=$withval/lib64/postgresql
+     else
+         POSTGRESQL_LIBDIR=$withval/lib/postgresql
+     fi
           POSTGRESQL_BINDIR=$withval/bin
       else
           echo "$as_me:$LINENO: result: no" >&5
@@ -16806,23 +16854,43 @@ if test "${with_mysql+set}" = set; then
         if test "$withval" = "yes"; then
                 if test -f /usr/local/mysql/include/mysql/mysql.h; then
                         MYSQL_INCDIR=/usr/local/mysql/include/mysql
-                        MYSQL_LIBDIR=/usr/local/mysql/lib/mysql
+                        if test -f /usr/local/mysql/lib64/mysql/libmysqlclient.a; then
+                                MYSQL_LIBDIR=/usr/local/mysql/lib64/mysql
+                        else
+                                MYSQL_LIBDIR=/usr/local/mysql/lib/mysql
+                        fi
                         MYSQL_BINDIR=/usr/local/mysql/bin
                 elif test -f /usr/include/mysql/mysql.h; then
                         MYSQL_INCDIR=/usr/include/mysql
-                        MYSQL_LIBDIR=/usr/lib/mysql
+                        if test -f /usr/lib64/mysql/libmysqlclient.a; then
+                                MYSQL_LIBDIR=/usr/lib64/mysql
+                        else
+                                MYSQL_LIBDIR=/usr/lib/mysql
+                        fi
                         MYSQL_BINDIR=/usr/bin
                 elif test -f /usr/include/mysql.h; then
                         MYSQL_INCDIR=/usr/include
-                        MYSQL_LIBDIR=/usr/lib
+                        if test -f /usr/lib64/libmysqlclient.a; then
+                                MYSQL_LIBDIR=/usr/lib64
+                        else
+                                MYSQL_LIBDIR=/usr/lib
+                        fi
                         MYSQL_BINDIR=/usr/bin
                 elif test -f /usr/local/include/mysql/mysql.h; then
                         MYSQL_INCDIR=/usr/local/include/mysql
-                        MYSQL_LIBDIR=/usr/local/lib/mysql
+                        if test -f /usr/local/lib64/mysql/libmysqlclient.a; then
+                                MYSQL_LIBDIR=/usr/local/lib64/mysql
+                        else
+                                MYSQL_LIBDIR=/usr/local/lib/mysql
+                        fi
                         MYSQL_BINDIR=/usr/local/bin
                 elif test -f /usr/local/include/mysql.h; then
                         MYSQL_INCDIR=/usr/local/include
-                        MYSQL_LIBDIR=/usr/local/lib
+                        if test -f /usr/local/lib64/libmysqlclient.a; then
+                                MYSQL_LIBDIR=/usr/local/lib64
+                        else
+                                MYSQL_LIBDIR=/usr/local/lib
+                        fi
                         MYSQL_BINDIR=/usr/local/bin
                 else
                    echo "$as_me:$LINENO: result: no" >&5
@@ -16834,11 +16902,19 @@ echo "$as_me: error: Unable to find mysql.h in standard locations" >&2;}
         else
                 if test -f $withval/include/mysql/mysql.h; then
                         MYSQL_INCDIR=$withval/include/mysql
-                        MYSQL_LIBDIR=$withval/lib/mysql
+                        if test -f $withval/lib64/mysql/libmysqlclient.a; then
+                                MYSQL_LIBDIR=$withval/lib64/mysql
+                        else
+                                MYSQL_LIBDIR=$withval/lib/mysql
+                        fi
                         MYSQL_BINDIR=$withval/bin
                 elif test -f $withval/include/mysql.h; then
                         MYSQL_INCDIR=$withval/include
-                        MYSQL_LIBDIR=$withval/lib
+                        if test -f "$withval/lib64/libmysqlclient.a"; then
+                                MYSQL_LIBDIR=$withval/lib64
+                        else
+                                MYSQL_LIBDIR=$withval/lib
+                        fi
                         MYSQL_BINDIR=$withval/bin
                 else
                    echo "$as_me:$LINENO: result: no" >&5
@@ -16888,23 +16964,43 @@ if test "${with_embedded_mysql+set}" = set; then
         if test "$withval" = "yes"; then
                 if test -f /usr/local/mysql/include/mysql/mysql.h; then
                         MYSQL_INCDIR=/usr/local/mysql/include/mysql
-                        MYSQL_LIBDIR=/usr/local/mysql/lib/mysql
+                        if test -d /usr/local/mysql/lib64/mysql; then
+                                MYSQL_LIBDIR=/usr/local/mysql/lib64/mysql
+                        else
+                                MYSQL_LIBDIR=/usr/local/mysql/lib/mysql
+                        fi
                         MYSQL_BINDIR=/usr/local/mysql/bin
                 elif test -f /usr/include/mysql/mysql.h; then
                         MYSQL_INCDIR=/usr/include/mysql
-                        MYSQL_LIBDIR=/usr/lib/mysql
+                        if test -d /usr/lib64/mysql; then
+                                MYSQL_LIBDIR=/usr/lib64/mysql
+                        else
+                                MYSQL_LIBDIR=/usr/lib/mysql
+                        fi
                         MYSQL_BINDIR=/usr/bin
                 elif test -f /usr/include/mysql.h; then
                         MYSQL_INCDIR=/usr/include
-                        MYSQL_LIBDIR=/usr/lib
+                        if test -d /usr/lib64; then
+                                MYSQL_LIBDIR=/usr/lib64
+                        else
+                                MYSQL_LIBDIR=/usr/lib
+                        fi
                         MYSQL_BINDIR=/usr/bin
                 elif test -f /usr/local/include/mysql/mysql.h; then
                         MYSQL_INCDIR=/usr/local/include/mysql
-                        MYSQL_LIBDIR=/usr/local/lib/mysql
+                        if test -d /usr/local/lib64/mysql; then
+                                MYSQL_LIBDIR=/usr/local/lib64/mysql
+                        else
+                                MYSQL_LIBDIR=/usr/local/lib/mysql
+                        fi
                         MYSQL_BINDIR=/usr/local/bin
                 elif test -f /usr/local/include/mysql.h; then
                         MYSQL_INCDIR=/usr/local/include
-                        MYSQL_LIBDIR=/usr/local/lib
+                        if test -d /usr/local/lib64; then
+                                MYSQL_LIBDIR=/usr/local/lib64
+                        else
+                                MYSQL_LIBDIR=/usr/local/lib
+                        fi
                         MYSQL_BINDIR=/usr/local/bin
                 else
                    echo "$as_me:$LINENO: result: no" >&5
@@ -16916,11 +17012,19 @@ echo "$as_me: error: Unable to find mysql.h in standard locations" >&2;}
         else
                 if test -f $withval/include/mysql/mysql.h; then
                         MYSQL_INCDIR=$withval/include/mysql
-                        MYSQL_LIBDIR=$withval/lib/mysql
+                        if test -d $withval/lib64/mysql; then
+                                MYSQL_LIBDIR=$withval/lib64/mysql
+                        else
+                                MYSQL_LIBDIR=$withval/lib/mysql
+                        fi
                         MYSQL_BINDIR=$withval/bin
                 elif test -f $withval/include/mysql.h; then
                         MYSQL_INCDIR=$withval/include
-                        MYSQL_LIBDIR=$withval/lib
+                        if test -d $withval/lib64; then
+                                MYSQL_LIBDIR=$withval/lib64
+                        else
+                                MYSQL_LIBDIR=$withval/lib
+                        fi
                         MYSQL_BINDIR=$withval/bin
                 else
                    echo "$as_me:$LINENO: result: no" >&5
@@ -16977,15 +17081,27 @@ if test "${with_sqlite3+set}" = set; then
      if test "$withval" = "yes"; then
         if test -f /usr/local/include/sqlite3.h; then
            SQLITE_INCDIR=/usr/local/include
-           SQLITE_LIBDIR=/usr/local/lib
+           if test -d /usr/local/lib64; then
+              SQLITE_LIBDIR=/usr/local/lib64
+           else
+              SQLITE_LIBDIR=/usr/local/lib
+           fi
            SQLITE_BINDIR=/usr/local/bin
         elif test -f /usr/include/sqlite3.h; then
            SQLITE_INCDIR=/usr/include
-           SQLITE_LIBDIR=/usr/lib
+           if test -d /usr/lib64; then
+              SQLITE_LIBDIR=/usr/lib64
+           else
+              SQLITE_LIBDIR=/usr/lib
+           fi
            SQLITE_BINDIR=/usr/bin
         elif test -f $prefix/include/sqlite3.h; then
            SQLITE_INCDIR=$prefix/include
-           SQLITE_LIBDIR=$prefix/lib
+           if test -d $prefix/lib64; then
+              SQLITE_LIBDIR=$prefix/lib64
+           else
+              SQLITE_LIBDIR=$prefix/lib
+           fi
            SQLITE_BINDIR=$prefix/bin
         else
            echo "$as_me:$LINENO: result: no" >&5
@@ -17001,7 +17117,11 @@ echo "$as_me: error: Unable to find sqlite3.h in standard locations" >&2;}
            SQLITE_BINDIR=$withval
         elif test -f $withval/include/sqlite3.h; then
            SQLITE_INCDIR=$withval/include
-           SQLITE_LIBDIR=$withval/lib
+           if test -d $withval/lib64; then
+              SQLITE_LIBDIR=$withval/lib64
+           else
+              SQLITE_LIBDIR=$withval/lib
+           fi
            SQLITE_BINDIR=$withval/bin
         else
            echo "$as_me:$LINENO: result: no" >&5
@@ -17056,15 +17176,27 @@ if test "${with_sqlite+set}" = set; then
      if test "$withval" = "yes"; then
         if test -f /usr/local/include/sqlite.h; then
            SQLITE_INCDIR=/usr/local/include
-           SQLITE_LIBDIR=/usr/local/lib
+           if test -d /usr/local/lib64; then
+              SQLITE_LIBDIR=/usr/local/lib64
+           else
+              SQLITE_LIBDIR=/usr/local/lib
+           fi
            SQLITE_BINDIR=/usr/local/bin
         elif test -f /usr/include/sqlite.h; then
            SQLITE_INCDIR=/usr/include
-           SQLITE_LIBDIR=/usr/lib
+           if test -d /usr/lib64; then
+              SQLITE_LIBDIR=/usr/lib64
+           else
+              SQLITE_LIBDIR=/usr/lib
+           fi
            SQLITE_BINDIR=/usr/bin
         elif test -f $prefix/include/sqlite.h; then
            SQLITE_INCDIR=$prefix/include
-           SQLITE_LIBDIR=$prefix/lib
+           if test -d $prefix/lib64; then
+              SQLITE_LIBDIR=$prefix/lib64
+           else
+              SQLITE_LIBDIR=$prefix/lib
+           fi
            SQLITE_BINDIR=$prefix/bin
         else
            echo "$as_me:$LINENO: result: no" >&5
@@ -17080,7 +17212,11 @@ echo "$as_me: error: Unable to find sqlite.h in standard locations" >&2;}
            SQLITE_BINDIR=$withval
         elif test -f $withval/include/sqlite.h; then
            SQLITE_INCDIR=$withval/include
-           SQLITE_LIBDIR=$withval/lib
+           if test -d $withval/lib64; then
+              SQLITE_LIBDIR=$withval/lib64
+           else
+              SQLITE_LIBDIR=$withval/lib
+           fi
            SQLITE_BINDIR=$withval/bin
         else
            echo "$as_me:$LINENO: result: no" >&5
@@ -29839,7 +29975,7 @@ if test "x${subsysdir}" = "x${sbindir}" ; then
    exit 1
 fi
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ac_config_files="$ac_config_files autoconf/Make.common Makefile manpages/Makefile scripts/startmysql scripts/stopmysql scripts/btraceback scripts/startit scripts/stopit scripts/bconsole scripts/gconsole scripts/bacula scripts/bacula-ctl-dir scripts/bacula-ctl-fd scripts/bacula-ctl-sd scripts/devel_bacula scripts/Makefile scripts/logrotate scripts/bacula.desktop.gnome1 scripts/bacula.desktop.gnome2 scripts/bacula.desktop.gnome1.consolehelper scripts/bacula.desktop.gnome2.consolehelper scripts/bacula.desktop.gnome1.xsu scripts/bacula.desktop.gnome2.xsu scripts/gnome-console.console_apps scripts/mtx-changer scripts/disk-changer scripts/dvd-handler scripts/bacula-tray-monitor.desktop scripts/logwatch/Makefile scripts/logwatch/logfile.bacula.conf scripts/wxconsole.console_apps scripts/wxconsole.desktop.consolehelper scripts/wxconsole.desktop.xsu src/Makefile src/host.h src/console/Makefile src/console/bconsole.conf src/gnome2-console/Makefile src/gnome2-console/gnome-console.conf src/wx-console/Makefile src/wx-console/wx-console.conf src/tray-monitor/Makefile src/tray-monitor/tray-monitor.conf src/dird/Makefile src/dird/bacula-dir.conf src/lib/Makefile src/stored/Makefile src/stored/bacula-sd.conf src/filed/Makefile src/filed/bacula-fd.conf src/filed/win32/Makefile src/cats/Makefile src/cats/make_catalog_backup src/cats/delete_catalog_backup src/cats/create_postgresql_database src/cats/update_postgresql_tables src/cats/make_postgresql_tables src/cats/grant_postgresql_privileges src/cats/drop_postgresql_tables src/cats/drop_postgresql_database src/cats/create_mysql_database src/cats/update_mysql_tables src/cats/make_mysql_tables src/cats/grant_mysql_privileges src/cats/drop_mysql_tables src/cats/drop_mysql_database src/cats/create_sqlite_database src/cats/update_sqlite_tables src/cats/make_sqlite_tables src/cats/grant_sqlite_privileges src/cats/drop_sqlite_tables src/cats/drop_sqlite_database src/cats/create_sqlite3_database src/cats/update_sqlite3_tables src/cats/make_sqlite3_tables src/cats/grant_sqlite3_privileges src/cats/drop_sqlite3_tables src/cats/drop_sqlite3_database src/cats/sqlite src/cats/mysql src/cats/create_bdb_database src/cats/update_bdb_tables src/cats/make_bdb_tables src/cats/grant_bdb_privileges src/cats/drop_bdb_tables src/cats/drop_bdb_database src/cats/create_bacula_database src/cats/update_bacula_tables src/cats/grant_bacula_privileges src/cats/make_bacula_tables src/cats/drop_bacula_tables src/cats/drop_bacula_database src/findlib/Makefile src/pygtk-console/Makefile src/tools/Makefile src/win32/winbacula.nsi src/win32/baculafd/bacula-fd.conf src/win32/Makefile src/win32/Makefile.vcpp src/win32/console/bconsole.conf src/win32/wx-console/wx-console.conf src/win32/pebuilder/Makefile po/Makefile.in $PFILES"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ac_config_files="$ac_config_files autoconf/Make.common Makefile manpages/Makefile scripts/startmysql scripts/stopmysql scripts/btraceback scripts/startit scripts/stopit scripts/bconsole scripts/gconsole scripts/bacula scripts/bacula-ctl-dir scripts/bacula-ctl-fd scripts/bacula-ctl-sd scripts/devel_bacula scripts/Makefile scripts/logrotate scripts/bacula.desktop.gnome1 scripts/bacula.desktop.gnome2 scripts/bacula.desktop.gnome1.consolehelper scripts/bacula.desktop.gnome2.consolehelper scripts/bacula.desktop.gnome1.xsu scripts/bacula.desktop.gnome2.xsu scripts/gnome-console.console_apps scripts/mtx-changer scripts/disk-changer scripts/dvd-handler scripts/bacula-tray-monitor.desktop scripts/logwatch/Makefile scripts/logwatch/logfile.bacula.conf scripts/wxconsole.console_apps scripts/wxconsole.desktop.consolehelper scripts/wxconsole.desktop.xsu src/Makefile src/host.h src/console/Makefile src/console/bconsole.conf src/gnome2-console/Makefile src/gnome2-console/gnome-console.conf src/wx-console/Makefile src/wx-console/wx-console.conf src/tray-monitor/Makefile src/tray-monitor/tray-monitor.conf src/dird/Makefile src/dird/bacula-dir.conf src/lib/Makefile src/stored/Makefile src/stored/bacula-sd.conf src/filed/Makefile src/filed/bacula-fd.conf src/cats/Makefile src/cats/make_catalog_backup src/cats/delete_catalog_backup src/cats/create_postgresql_database src/cats/update_postgresql_tables src/cats/make_postgresql_tables src/cats/grant_postgresql_privileges src/cats/drop_postgresql_tables src/cats/drop_postgresql_database src/cats/create_mysql_database src/cats/update_mysql_tables src/cats/make_mysql_tables src/cats/grant_mysql_privileges src/cats/drop_mysql_tables src/cats/drop_mysql_database src/cats/create_sqlite_database src/cats/update_sqlite_tables src/cats/make_sqlite_tables src/cats/grant_sqlite_privileges src/cats/drop_sqlite_tables src/cats/drop_sqlite_database src/cats/create_sqlite3_database src/cats/update_sqlite3_tables src/cats/make_sqlite3_tables src/cats/grant_sqlite3_privileges src/cats/drop_sqlite3_tables src/cats/drop_sqlite3_database src/cats/sqlite src/cats/mysql src/cats/create_bdb_database src/cats/update_bdb_tables src/cats/make_bdb_tables src/cats/grant_bdb_privileges src/cats/drop_bdb_tables src/cats/drop_bdb_database src/cats/create_bacula_database src/cats/update_bacula_tables src/cats/grant_bacula_privileges src/cats/make_bacula_tables src/cats/drop_bacula_tables src/cats/drop_bacula_database src/findlib/Makefile src/pygtk-console/Makefile src/tools/Makefile po/Makefile.in $PFILES"
           ac_config_commands="$ac_config_commands default"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
