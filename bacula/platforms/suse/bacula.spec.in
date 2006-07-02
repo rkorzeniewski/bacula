@@ -4,10 +4,53 @@
 # Platform Build Configuration
 
 # basic defines for every build
-%define depkgs ../depkgs
+%define _version @VERSION@
+%define _release 1
 %define depkgs_version 25Jun06
+%define _rescuever 1.8.6
+%define docs_version @VERSION@
+
+# any patches for this release
+# be sure to check the setup section for patch macros
+
+
+#--------------------------------------------------------------------------
+# it should not be necessary to change anything below here for a release
+# except for patch macros in the setup section
+#--------------------------------------------------------------------------
+
+Summary: Bacula - The Network Backup Solution
+Name: bacula
+Version: %{_version}
+Release: %{_release}
+Group: System Environment/Daemons
+License: GPL v2
+Source0: http://www.prdownloads.sourceforge.net/bacula/%{name}-%{version}.tar.gz
+Source1: http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.tar.gz
+Source2: Release_Notes-%{version}-%{release}.tar.gz
+Source3: http://www.prdownloads.sourceforge.net/bacula/%{name}-docs-%{docs_version}.tar.gz
+Source4: http://www.prdownloads.sourceforge.net/bacula/%{name}-rescue-%{_rescuever}.tar.gz
+BuildRoot: %{_tmppath}/%{name}-root
+URL: http://www.bacula.org/
+Vendor: The Bacula Team
+Packager: D. Scott Barninger <barninger@fairfieldcomputers.com>
+
+# define the basic package description
+%define blurb Bacula - It comes by night and sucks the vital essence from your computers.
+%define blurb2 Bacula is a set of computer programs that permit you (or the system
+%define blurb3 administrator) to manage backup, recovery, and verification of computer
+%define blurb4 data across a network of computers of different kinds. In technical terms,
+%define blurb5 it is a network client/server based backup program. Bacula is relatively
+%define blurb6 easy to use and efficient, while offering many advanced storage management
+%define blurb7 features that make it easy to find and recover lost or damaged files.
+%define blurb8 Bacula source code has been released under the GPL version 2 license.
+
+# directory locations
 %define sqlite_bindir /usr/lib/bacula/sqlite
 %define working_dir /var/bacula
+%define _docsrc ../%{name}-docs-%{docs_version}
+%define _rescuesrc ../%{name}-rescue-%{_rescuever}
+%define depkgs ../depkgs
 
 # NOTE these defines are used in some rather complex useradd and groupadd
 # commands. If you change them examine the post scripts for consequences.
@@ -17,13 +60,11 @@
 %define daemon_group bacula
 # group that has write access to tape devices, usually disk on Linux
 %define storage_daemon_group disk
-
 %define user_file /etc/passwd
 %define group_file /etc/group
 %define useradd /usr/sbin/useradd
 %define groupadd /usr/sbin/groupadd
 %define usermod /usr/sbin/usermod
-%define _rescuever 1.8.6
 
 # platform defines - set one below or define the build_xxx on the command line
 # RedHat builds
@@ -138,6 +179,7 @@ exit 1
 %if %{mdk}
 %define _dist %(grep Mand /etc/mandrake-release)
 %endif
+Distribution: %{_dist}
 
 # Should we build gconsole, possible only if gnome >= 2.0 available
 %if %{rh7}
@@ -153,36 +195,7 @@ exit 1
 %define wxconsole 0
 %{?build_wxconsole:%define wxconsole 1}
 
-# define the basic package description
-%define blurb Bacula - It comes by night and sucks the vital essence from your computers.
-%define blurb2 Bacula is a set of computer programs that permit you (or the system
-%define blurb3 administrator) to manage backup, recovery, and verification of computer
-%define blurb4 data across a network of computers of different kinds. In technical terms,
-%define blurb5 it is a network client/server based backup program. Bacula is relatively
-%define blurb6 easy to use and efficient, while offering many advanced storage management
-%define blurb7 features that make it easy to find and recover lost or damaged files.
-%define blurb8 Bacula source code has been released under the GPL version 2 license.
-
-Summary: Bacula - The Network Backup Solution
-Name: bacula
-Version: @VERSION@
-Release: 1
-Group: System Environment/Daemons
-License: GPL v2
-Source0: http://www.prdownloads.sourceforge.net/bacula/%{name}-%{version}.tar.gz
-Source1: http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.tar.gz
-Source2: Release_Notes-%{version}-%{release}.tar.gz
-Source3: http://www.prdownloads.sourceforge.net/bacula/%{name}-docs-%{version}.tar.gz
-Source4: http://www.prdownloads.sourceforge.net/bacula/%{name}-rescue-%{_rescuever}.tar.gz
-BuildRoot: %{_tmppath}/%{name}-root
-URL: http://www.bacula.org/
-Vendor: The Bacula Team
-Distribution: %{_dist}
-Packager: D. Scott Barninger <barninger@fairfieldcomputers.com>
-
-%define _docsrc ../%{name}-docs-%{version}
-%define _rescuesrc ../%{name}-rescue-%{_rescuever}
-
+BuildRequires: gcc, gcc-c++, make, autoconf
 BuildRequires: atk-devel, ncurses-devel, pango-devel, perl
 BuildRequires: libstdc++-devel, libxml2-devel, zlib-devel
 BuildRequires: openssl-devel
@@ -1491,6 +1504,11 @@ fi
 %endif
 
 %changelog
+* Sun Jul 02 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- add requires for standard compiler toolchain
+- move version and release tags up
+- move patches up
+- add docs_version tag
 * Sat Jul 01 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - update rescuever to 1.8.6
 * Sun Jun 25 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
