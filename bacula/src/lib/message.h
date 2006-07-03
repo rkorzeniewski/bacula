@@ -129,10 +129,16 @@ void d_msg(const char *file, int line, int level, const char *fmt,...);
 void e_msg(const char *file, int line, int type, int level, const char *fmt,...);
 void Jmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...);
 void Qmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...);
+bool get_trace(void);
 
-extern int debug_level;
-extern int verbose;
-extern char my_name[];
-extern const char *working_directory;
-extern time_t daemon_start_time;
-extern char catalog_db[];
+
+extern int           DLL_IMP_EXP debug_level;
+extern int           DLL_IMP_EXP verbose;
+extern char          DLL_IMP_EXP my_name[];
+extern const char *  DLL_IMP_EXP working_directory;
+extern time_t        DLL_IMP_EXP daemon_start_time;
+extern char                      catalog_db[];
+
+extern int           DLL_IMP_EXP console_msg_pending;
+extern FILE *        DLL_IMP_EXP con_fd;                 /* Console file descriptor */
+extern brwlock_t     DLL_IMP_EXP con_lock;               /* Console lock structure */

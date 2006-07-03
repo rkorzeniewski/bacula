@@ -75,6 +75,8 @@ main (int argc, char *const *argv)
       usage();
    }
 
+   OSDependentInit();
+
    for (i = 0; i < argc; --argc, ++argv) {
       if (fstype(*argv, fs, sizeof(fs))) {
          if (verbose) {

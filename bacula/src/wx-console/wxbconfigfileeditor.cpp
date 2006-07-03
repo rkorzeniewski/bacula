@@ -21,6 +21,8 @@
 
  */
 
+#include "bacula.h"
+
 #include "wxbconfigfileeditor.h"
 
 #include <wx/file.h>

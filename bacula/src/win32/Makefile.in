@@ -10,26 +10,20 @@
 TOPDIR = @TOP_DIR@
 CROSSTOOLS = $(TOPDIR)/cross-tools
 MINGW = $(CROSSTOOLS)/mingw32
-INCLUDE_MINGW = -I $(MINGW)/mingw32/include
-INCLUDE_GCC = -I $(MINGW)/lib/gcc/mingw32/3.4.5/include
 
-DEPKGS = $(TOPDIR)/depkgs-win32
+DEPKGS = $(TOPDIR)/depkgs-mingw32
 
-INCLUDE_BACULA = -I .. -I ./compat
-INCLUDE_PTHREADS = -I$(DEPKGS)/pthreads
-INCLUDE_ZLIB = -I$(DEPKGS)/zlib
-INCLUDE_VSS = -I$(CROSSTOOLS)
+INCLUDE_BACULA = -I .. -I ./compat -I$(DEPKGS)/include
+INCLUDE_PTHREADS = -I$(DEPKGS)/include/pthreads
+INCLUDE_VSS = -I$(DEPKGS)/vss
 INCLUDE_ICONS = -I ../filed/win32
-INCLUDE_OPENSSL = -I$(DEPKGS)/openssl/include
-INCLUDE_WX = -I$(DEPKGS)/wx/include
 
-LIB_MINGW = $(MINGW)/mingw32/lib
-LIB_PTHREADS = $(DEPKGS)/pthreads/pthreadGCE.dll
-LIB_ZLIB = $(DEPKGS)/zlib/libz.a
-LIB_SSL = $(DEPKGS)/openssl/libssl.a
-LIB_CRYPTO = $(DEPKGS)/openssl/libcrypto.a
+LIB_PTHREADS = -lpthreadGCE
+LIB_ZLIB = -lz
+LIB_SSL = -lssl
+LIB_CRYPTO = -lcrypto
 
-LIBWX = $(DEPKGS)/wx/build-mingw32/lib
+LIBWX = $(DEPKGS)/lib/wx_dll
 LIB_WX = $(LIBWX)/libwx_base-2.6.a \
 	 $(LIBWX)/libwx_base_net-2.6.a \
 	 $(LIBWX)/libwx_base_xml-2.6.a \
@@ -259,6 +253,7 @@ LIB_OBJS = \
 	$(LIBDIR)/bnet_server.o \
 	$(LIBDIR)/bpipe.o \
 	$(LIBDIR)/bregex.o \
+	$(LIBDIR)/bsnprintf.o \
 	$(LIBDIR)/bsys.o \
 	$(LIBDIR)/btime.o \
 	$(LIBDIR)/btimers.o \
@@ -332,6 +327,9 @@ $(LIBDIR)/bpipe.o:	  ../lib/bpipe.c
 	$(CXX) -c $< -o $@		
 
 $(LIBDIR)/bregex.o:	   ../lib/bregex.c
+	$(CXX) -c $< -o $@		
+
+$(LIBDIR)/bsnprintf.o:	   ../lib/bsnprintf.c
 	$(CXX) -c $< -o $@		
 
 $(LIBDIR)/bsys.o: ../lib/bsys.c
@@ -533,37 +531,29 @@ $(OBJDIR)/wx-console.res:     ../wx-console/wx-console_private.rc
 FD_OBJS = $(LIB_OBJS) $(OBJS_COMPAT) $(OBJS_WIN) $(OBJS_FINDLIB) $(OBJS_FILED)
 
 FD_LIBS = \
-	-L$(LIB_MINGW) \
+	-L$(DEPKGS)/lib \
 	$(LIB_PTHREADS) \
 	$(LIB_SSL) \
 	$(LIB_CRYPTO) \
 	$(LIB_ZLIB) \
-	$(LIB_MINGW)/libole32.a \
-	$(LIB_MINGW)/liboleaut32.a \
-	$(LIB_MINGW)/libuser32.a \
-	$(LIB_MINGW)/libadvapi32.a \
-	$(LIB_MINGW)/libgdi32.a \
-	$(LIB_MINGW)/libwsock32.a \
-	$(LIB_MINGW)/libshell32.a \
-	$(LIB_MINGW)/libnetapi32.a \
-	$(LIB_MINGW)/libuuid.a
+	-lgdi32 \
+	-lole32 \
+	-loleaut32 \
+	-lwsock32 \
+	-luuid
 
 CONS_OBJS = $(LIB_OBJS) $(OBJS_COMPAT) $(OBJS_CONSOLE)
 
 CONS_LIBS = \
-	-L$(LIB_MINGW) \
+	-L$(DEPKGS)/lib \
 	$(LIB_PTHREADS) \
 	$(LIB_SSL) \
 	$(LIB_CRYPTO) \
-	$(LIB_MINGW)/libole32.a \
-	$(LIB_MINGW)/liboleaut32.a \
-	$(LIB_MINGW)/libuser32.a \
-	$(LIB_MINGW)/libadvapi32.a \
-	$(LIB_MINGW)/libgdi32.a \
-	$(LIB_MINGW)/libwsock32.a \
-	$(LIB_MINGW)/libshell32.a \
-	$(LIB_MINGW)/libnetapi32.a \
-	$(LIB_MINGW)/libuuid.a
+	-lole32 \
+	-loleaut32 \
+	-lwsock32 \
+	-luuid
+
 
 WXCONS_OBJS = $(LIB_OBJS) $(OBJS_COMPAT) $(OBJS_WXCONSOLE)
 
@@ -572,15 +562,7 @@ WXCONS_LIBS = \
 	$(LIB_PTHREADS) \
 	$(LIB_SSL) \
 	$(LIB_CRYPTO) \
-	$(LIB_MINGW)/libole32.a \
-	$(LIB_MINGW)/liboleaut32.a \
-	$(LIB_MINGW)/libuser32.a \
-	$(LIB_MINGW)/libadvapi32.a \
-	$(LIB_MINGW)/libgdi32.a \
-	$(LIB_MINGW)/libwsock32.a \
-	$(LIB_MINGW)/libshell32.a \
-	$(LIB_MINGW)/libnetapi32.a \
-	$(LIB_MINGW)/libuuid.a
+
 
 
 
@@ -595,20 +577,20 @@ all: bacula-fd.exe bconsole.exe
 # Link the File daemon executable ...
 bacula-fd.exe: $(FD_OBJS)
 	$(CXX) $(FD_OBJS) $(FD_LIBS) -o $(OBJDIR)/bacula-fd.exe
-	cp -f $(DEPKGS)/pthreads/pthreadGCE.dll .
+	cp -f $(DEPKGS)/bin/pthreadGCE.dll .
 	cp -f $(MINGW)/mingw32/bin/mingwm10.dll .
 
 # Link the File daemon executable ...
 bconsole.exe: $(CONS_OBJS)
 	$(CXX) $(CONS_OBJS) $(CONS_LIBS) -o $(OBJDIR)/bconsole.exe
-	cp -f $(DEPKGS)/pthreads/pthreadGCE.dll .
+	cp -f $(DEPKGS)/bin/pthreadGCE.dll .
 	cp -f $(MINGW)/mingw32/bin/mingwm10.dll .
 
 # Link the File daemon executable ...
 #  Not yet complete
 wx-console.exe: $(WXCONS_OBJS)
 	$(CXX) $(WX_INC) $(WXCONS_OBJS) $(WXCONS_LIBS) -o $(OBJDIR)/wx-console.exe
-	cp -f $(DEPKGS)/pthreads/pthreadGCE.dll .
+	cp -f $(DEPKGS)/bin/pthreadGCE.dll .
 	cp -f $(MINGW)/mingw32/bin/mingwm10.dll .
 
 

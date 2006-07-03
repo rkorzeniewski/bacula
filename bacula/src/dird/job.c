@@ -36,7 +36,6 @@ extern void term_scheduler();
 extern void term_ua_server();
 
 /* Imported variables */
-extern time_t watchdog_time;
 
 jobq_t job_queue;
 

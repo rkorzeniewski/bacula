@@ -24,7 +24,6 @@
 #include "bacula.h"
 #include "compat.h"
 #include "jcr.h"
-#include "../../lib/winapi.h"
 #include "vss.h"
 
 

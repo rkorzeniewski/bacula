@@ -21,6 +21,8 @@
 
  */
 
+#include "bacula.h"
+
 #include "wxbmainframe.h" // class's header file
 
 #include "wxbrestorepanel.h"

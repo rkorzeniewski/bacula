@@ -30,10 +30,6 @@
 extern BSOCK *filed_chan;
 extern int r_first, r_last;
 extern struct s_res resources[];
-extern char my_name[];
-extern time_t daemon_start_time;
-extern int num_jobs_run;
-
 
 /* Static variables */
 static char qstatus[] = ".status %127s\n";

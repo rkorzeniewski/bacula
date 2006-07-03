@@ -66,7 +66,17 @@
 #define NPRT(x) (x)?(x):_("*None*")
  
 #if defined(HAVE_WIN32)
+void InitWinAPIWrapper();
+
+#define  OSDependentInit()    InitWinAPIWrapper()
+
 #undef ENABLE_NLS
+#  define DLL_IMP_EXP
+#else
+
+#define DLL_IMP_EXP
+
+#define  OSDependentInit()
 #endif
 
 #ifdef ENABLE_NLS
@@ -476,7 +486,7 @@ int  m_msg(const char *file, int line, POOLMEM *&pool_buf, const char *fmt, ...)
 
 
 /* Use our strdup with smartalloc */
-#ifndef __WXGTK__
+#ifndef HAVE_WXCONSOLE
 #undef strdup
 #define strdup(buf) bad_call_on_strdup_use_bstrdup(buf)
 #endif

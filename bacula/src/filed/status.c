@@ -24,11 +24,6 @@
 #include "bacula.h"
 #include "filed.h"
 
-extern char my_name[];
-extern int num_jobs_run;
-extern time_t daemon_start_time;
-extern bool get_trace(void);
-
 /* Forward referenced functions */
 static void  list_terminated_jobs(void sendit(const char *msg, int len, void *sarg), void *arg);
 static void bsock_sendit(const char *msg, int len, void *arg);
@@ -403,8 +398,6 @@ static const char *level_to_str(int level)
 
 
 #if defined(HAVE_WIN32)
-#include <windows.h>
-
 int bacstat = 0;
 
 struct s_win32_arg {

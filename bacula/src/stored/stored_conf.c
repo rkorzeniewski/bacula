@@ -23,9 +23,6 @@
 #include "bacula.h"
 #include "stored.h"
 
-extern int debug_level;
-
-
 /* First and last resource ids */
 int r_first = R_FIRST;
 int r_last  = R_LAST;

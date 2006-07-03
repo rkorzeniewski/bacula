@@ -48,44 +48,7 @@
 #define __STDC__ 1
 #endif
 
-#include <stdio.h>
-#include <basetsd.h>
-#include <stdarg.h>
-#include <sys/types.h>
-#include <process.h>
-#include <direct.h>
-#include <wchar.h>
-#include <winsock2.h>
-#include <windows.h>
-#include <wincon.h>
-#include <winbase.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <conio.h>
-#include <process.h>
-#include <errno.h>
-#include <string.h>
-#include <time.h>
-#include <signal.h>
 #include <malloc.h>
-#include <setjmp.h>
-#include <direct.h>
-#include <ctype.h>
-#include <fcntl.h>
-#include <io.h>
-#include <lmcons.h>
-#include <dirent.h>
-
-#include "getopt.h"
-
-#define HAVE_WIN32 1
-
-#ifndef HAVE_MINGW
-#ifdef HAVE_CYGWIN
-#undef HAVE_CYGWIN
-#else
-#endif //HAVE_CYGWIN
-#endif //HAVE_MINGW
 
 typedef UINT64 u_int64_t;
 typedef UINT64 uint64_t;
@@ -116,13 +79,6 @@ typedef __int64 off_t;          /* STDC=1 means we can define this */
 #endif
 #else
 typedef long _off_t;            /* must be same as sys/types.h */
-#endif
-
-#ifndef HAVE_MINGW
-#ifndef HAVE_WXCONSOLE
-typedef int BOOL;
-#define bool BOOL
-#endif
 #endif
 
 typedef UINT32 u_int32_t;
@@ -189,7 +145,6 @@ int gettimeofday(struct timeval *, struct timezone *);
 #define ENOMEDIUM 123
 #endif
 
-#ifndef HAVE_WXCONSOLE
 struct stat
 {
     _dev_t      st_dev;
@@ -206,8 +161,6 @@ struct stat
     uint32_t    st_blksize;
     uint64_t    st_blocks;
 };
-
-#endif
 
 #undef  S_IFMT
 #define S_IFMT         0170000         /* file type mask */
@@ -399,23 +352,5 @@ void openlog(const char *ident, int option, int facility);
 #define INVALID_FILE_ATTRIBUTES ((DWORD)-1)
 #endif
 
-/* Temp kludge ***FIXME*** */
-#ifdef __APCUPSD__
-#define SIGCHLD 0
-#define SIGALRM 0
-#define SIGHUP 0
-#define SIGCHLD 0
-#define SIGPIPE 0
-unsigned int alarm(unsigned int seconds);
-#define PM_FNAME 2000
-#define PM_MESSAGE 2000
-#define get_pool_memory(x) (char *)malloc(x)
-#define free_pool_memory(x) free((char *)x)
-#define check_pool_memory_size(x, y) x
-#define ASSERT(x) 
-#define bstrncat astrncat
-#define bstrncpy astrncpy
-
-#endif
 
 #endif /* __COMPAT_H_ */

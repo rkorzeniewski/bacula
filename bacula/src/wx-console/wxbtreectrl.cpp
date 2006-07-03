@@ -20,7 +20,9 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
    the file LICENSE for additional details.
 
- */
+*/
+
+#include "bacula.h"
 
 #include "wxbtreectrl.h"
 

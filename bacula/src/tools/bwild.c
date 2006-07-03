@@ -90,6 +90,8 @@ int main(int argc, char *const *argv)
       usage();
    }
 
+   OSDependentInit();
+
    for ( ;; ) {
       printf("Enter a wild-card: ");
       if (fgets(pat, sizeof(pat)-1, stdin) == NULL) {

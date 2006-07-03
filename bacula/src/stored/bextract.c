@@ -26,12 +26,6 @@
 #include "stored.h"
 #include "findlib/find.h"
 
-#if defined(HAVE_WIN32)
-int win32_client = 1;
-#else
-int win32_client = 0;
-#endif
-
 static void do_extract(char *fname);
 static bool record_cb(DCR *dcr, DEV_RECORD *rec);
 
@@ -97,6 +91,8 @@ int main (int argc, char *argv[])
    working_directory = "/tmp";
    my_name_is(argc, argv, "bextract");
    init_msg(NULL, NULL);              /* setup message handler */
+
+   OSDependentInit();
 
    ff = init_find_files();
    binit(&bfd);

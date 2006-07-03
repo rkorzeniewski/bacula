@@ -21,6 +21,8 @@
 
  */
 
+#include "bacula.h"
+
 #include "wxbutils.h"
 
 #include "wxbmainframe.h"

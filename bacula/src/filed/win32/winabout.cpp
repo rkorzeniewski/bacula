@@ -21,8 +21,10 @@
    Kern E. Sibbald, 2000
 */
 
+#include "bacula.h"
 #include "winbacula.h"
 #include "winabout.h"
+#include "winres.h"
 
 bacAbout::bacAbout()
 {

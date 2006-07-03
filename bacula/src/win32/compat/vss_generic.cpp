@@ -24,7 +24,7 @@
 #ifdef WIN32_VSS
 
 #ifdef HAVE_MINGW
-#include "compat.h"
+#include "bacula.h"
 #else
 #include <stdio.h>
 #include <basetsd.h>
@@ -54,6 +54,7 @@
 #endif
 
 
+#undef setlocale
 
 // STL includes
 #include <vector>
@@ -66,12 +67,16 @@ using namespace std;
 #include "ms_atl.h"
 #include <objbase.h>
 
+#if !defined(ENABLE_NLS)
+#define setlocale(p, d)
+#endif
+
 #ifdef HAVE_STRSAFE_H
 // Used for safe string manipulation
 #include <strsafe.h>
 #endif
 
-#include "../../lib/winapi.h"
+
 
 class IXMLDOMDocument;
 
@@ -79,9 +84,9 @@ class IXMLDOMDocument;
    #pragma message("compile VSS for Windows XP")   
    #define VSSClientGeneric VSSClientXP
    
-   #include "vss/inc/WinXP/vss.h"
-   #include "vss/inc/WinXP/vswriter.h"
-   #include "vss/inc/WinXP/vsbackup.h"
+   #include "inc/WinXP/vss.h"
+   #include "inc/WinXP/vswriter.h"
+   #include "inc/WinXP/vsbackup.h"
    
    /* In VSSAPI.DLL */
    typedef HRESULT (STDAPICALLTYPE* t_CreateVssBackupComponents)(OUT IVssBackupComponents **);
@@ -97,9 +102,9 @@ class IXMLDOMDocument;
    #pragma message("compile VSS for Windows 2003")
    #define VSSClientGeneric VSSClient2003
    
-   #include "vss/inc/Win2003/vss.h"
-   #include "vss/inc/Win2003/vswriter.h"
-   #include "vss/inc/Win2003/vsbackup.h"
+   #include "inc/Win2003/vss.h"
+   #include "inc/Win2003/vswriter.h"
+   #include "inc/Win2003/vsbackup.h"
    
    /* In VSSAPI.DLL */
    typedef HRESULT (STDAPICALLTYPE* t_CreateVssBackupComponents)(OUT IVssBackupComponents **);
@@ -133,7 +138,7 @@ inline wstring AppendBackslash(wstring str)
 // Get the unique volume name for the given path
 inline wstring GetUniqueVolumeNameForPath(wstring path)
 {
-    if (!path.length() > 0) {
+    if (path.length() <= 0) {
        return L"";
     }
 
@@ -348,7 +353,7 @@ BOOL VSSClientGeneric::WaitAndCheckForAsyncOperation(IVssAsync* pAsync)
 #ifdef DEBUG
    // Check if the async operation succeeded...
    if(hrReturned != VSS_S_ASYNC_FINISHED) {   
-      Pwchar_t pwszBuffer = NULL;
+      wchar_t *pwszBuffer = NULL;
       DWORD dwRet = ::FormatMessageW(
                         FORMAT_MESSAGE_ALLOCATE_BUFFER 
                         | FORMAT_MESSAGE_FROM_SYSTEM 

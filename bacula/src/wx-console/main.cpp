@@ -29,7 +29,7 @@
 // headers
 // ----------------------------------------------------------------------------
 
-#include "config.h"
+#include "bacula.h"
 
 #include <wx/wxprec.h>
 #include <wx/config.h>
@@ -38,8 +38,6 @@
 #include "wxbmainframe.h"
 
 #include "csprint.h"
-
-void InitWinAPIWrapper();
 
 /* Dummy functions */
 int generate_daemon_event(JCR *jcr, const char *event) { return 1; }
@@ -77,7 +75,7 @@ bool MyApp::OnInit()
 
    long posx, posy, sizex, sizey;
    int displayx, displayy;
-   InitWinAPIWrapper();
+   OSDependentInit();
    wxConfig::Get()->Read(wxT("/Position/X"), &posx, 50);
    wxConfig::Get()->Read(wxT("/Position/Y"), &posy, 50);
    wxConfig::Get()->Read(wxT("/Size/Width"), &sizex, 780);
@@ -109,7 +107,3 @@ bool MyApp::OnInit()
    
    return TRUE;
 }
-
-#ifndef HAVE_WIN32
-void InitWinAPIWrapper() { };
-#endif

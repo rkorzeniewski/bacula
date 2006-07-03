@@ -20,7 +20,9 @@
    the file LICENSE for additional details.
 
  */
- 
+
+#include "bacula.h"
+
 #include "wxbhistorytextctrl.h"
 
 BEGIN_EVENT_TABLE(wxbHistoryTextCtrl, wxTextCtrl)

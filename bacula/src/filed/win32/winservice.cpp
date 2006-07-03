@@ -37,12 +37,10 @@
 // show events, ...)
 
 
-#include <lmcons.h>
-#undef PASCAL
+#include "bacula.h"
 #include "winbacula.h"
 #include "winservice.h"
 #include "wintray.h"
-#include "bacula.h" 
 
 void set_service_description(SC_HANDLE hSCManager, SC_HANDLE hService,
                              LPSTR lpDesc);

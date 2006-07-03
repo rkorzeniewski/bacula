@@ -28,6 +28,8 @@
 
  */
 
+#include "bacula.h"
+
 #include "wxbtableparser.h" // class's header file
 
 #include "csprint.h"

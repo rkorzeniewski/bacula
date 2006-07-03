@@ -350,7 +350,7 @@ struct s_last_job {
 };
 
 extern struct s_last_job last_job;
-extern dlist *last_jobs;
+extern dlist * DLL_IMP_EXP last_jobs;
 
 
 /* The following routines are found in lib/jcr.c */
@@ -362,6 +362,7 @@ extern JCR *get_jcr_by_partial_name(char *Job);
 extern JCR *get_jcr_by_full_name(char *Job);
 extern JCR *get_next_jcr(JCR *jcr);
 extern void set_jcr_job_status(JCR *jcr, int JobStatus);
+extern int DLL_IMP_EXP num_jobs_run;
 
 #ifdef DEBUG
 extern void b_free_jcr(const char *file, int line, JCR *jcr);

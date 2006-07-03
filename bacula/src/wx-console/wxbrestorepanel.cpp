@@ -49,6 +49,8 @@ Parameters to modify:
 Select parameter to modify (1-11):
        */
 
+#include "bacula.h"
+
 #include "wxbrestorepanel.h"
 
 #include "wxbmainframe.h"

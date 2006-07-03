@@ -33,9 +33,6 @@ extern int r_first;
 extern int r_last;
 extern RES_TABLE resources[];
 extern RES **res_head;
-extern int console_msg_pending;
-extern FILE *con_fd;
-extern brwlock_t con_lock;
 
 /* Imported functions */
 

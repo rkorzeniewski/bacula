@@ -27,10 +27,6 @@
 #include "find.h"
 
 #if defined(HAVE_WIN32)
-
-#include "../lib/winapi.h"
-
-
 /* Forward referenced subroutines */
 static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd);
 void unix_name_to_win32(POOLMEM **win32_name, char *name);

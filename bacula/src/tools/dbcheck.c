@@ -152,6 +152,8 @@ int main (int argc, char *argv[])
    argc -= optind;
    argv += optind;
 
+   OSDependentInit();
+
    if (configfile) {
       CAT *catalog = NULL;
       int found = 0;

@@ -24,8 +24,10 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include "bacula.h"
 #include "winbacula.h"
 #include "winstat.h"
+#include "winres.h"
 
 extern void FillStatusBox(HWND hwnd, int id_list);
 

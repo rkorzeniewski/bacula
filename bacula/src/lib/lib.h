@@ -31,6 +31,10 @@
 #include "btime.h"
 #include "crypto.h"
 #include "mem_pool.h"
+#include "rwlock.h"
+#include "semlock.h"
+#include "queue.h"
+#include "serial.h"
 #include "message.h"
 #include "openssl.h"
 #include "lex.h"
@@ -39,10 +43,6 @@
 #include "bsock.h"
 #include "bshm.h"
 #include "workq.h"
-#include "rwlock.h"
-#include "semlock.h"
-#include "queue.h"
-#include "serial.h"
 #ifndef HAVE_FNMATCH
 #include "fnmatch.h"
 #endif

@@ -28,11 +28,11 @@
 /* _("...") macro returns a wxChar*, so if we need a char*, we need to convert it with:
  * wxString(_("...")).mb_str(*wxConvCurrent) */
 
-#include <wx/intl.h>
-
 #include "bacula.h"
 #include "console_conf.h"
 #include "jcr.h"
+
+#include <wx/intl.h>
 
 #include "csprint.h"
 

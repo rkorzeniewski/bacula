@@ -66,9 +66,6 @@ typedef struct _PROCESS_WIN32_BACKUPAPIBLOCK_CONTEXT {
  */
 #if defined(HAVE_WIN32)
 
-#include <windows.h>
-#include "../lib/winapi.h"
-
 enum {
    BF_CLOSED,
    BF_READ,                           /* BackupRead */

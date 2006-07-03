@@ -138,6 +138,8 @@ int main (int argc, char *argv[])
       usage();
    }
 
+   OSDependentInit();
+
    working_directory = wd;
 
    if (configfile == NULL) {

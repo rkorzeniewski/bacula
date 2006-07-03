@@ -29,7 +29,6 @@
 #include "dird.h"
 
 extern DIRRES *director;
-extern char my_name[];
 
 /* Commands sent to Storage daemon and File daemon and received
  *  from the User Agent */

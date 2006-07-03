@@ -25,10 +25,6 @@
 #include "bacula.h"
 #include "dird.h"
 
-extern char my_name[];
-extern time_t daemon_start_time;
-extern int num_jobs_run;
-
 static void list_scheduled_jobs(UAContext *ua);
 static void list_running_jobs(UAContext *ua);
 static void list_terminated_jobs(UAContext *ua);

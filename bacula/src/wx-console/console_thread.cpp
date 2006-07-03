@@ -26,6 +26,9 @@
 /* _("...") macro returns a wxChar*, so if we need a char*, we need to convert it with:
  * wxString(_("...")).mb_str(*wxConvCurrent) */
 
+#include "bacula.h"
+#include "console_conf.h"
+
 #include "console_thread.h" // class's header file
 
 #include <wx/wxprec.h>
@@ -33,12 +36,9 @@
 #include <wx/thread.h>
 #include <wx/file.h>
 
-#include "console_conf.h"
-
 #include "csprint.h"
 
 #ifdef HAVE_WIN32
-#include <windows.h>
 char OK_msg[]   = "2000 OK\n";
 char TERM_msg[] = "2999 Terminate\n";
 #endif

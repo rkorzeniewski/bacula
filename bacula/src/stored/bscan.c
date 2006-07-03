@@ -51,14 +51,6 @@ static JCR *create_jcr(JOB_DBR *jr, DEV_RECORD *rec, uint32_t JobId);
 static int update_digest_record(B_DB *db, char *digest, DEV_RECORD *rec, int type);
 
 
-/* Global variables */
-#if defined(HAVE_WIN32)
-int win32_client = 1;
-#else
-int win32_client = 0;
-#endif
-
-
 /* Local variables */
 static DEVICE *dev = NULL;
 static B_DB *db;

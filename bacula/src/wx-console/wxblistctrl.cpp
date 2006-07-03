@@ -22,6 +22,8 @@
 
  */
 
+#include "bacula.h"
+
 #include "wxblistctrl.h"
 
 #include "csprint.h"

@@ -28,7 +28,6 @@
 static pthread_mutex_t vss_mutex = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
-extern char my_name[];
 extern CLIENT *me;                    /* our client resource */
 
 int enable_vss = 0;                   /* set to use vss */

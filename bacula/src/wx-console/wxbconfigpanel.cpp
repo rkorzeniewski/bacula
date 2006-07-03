@@ -21,6 +21,8 @@
 
  */
 
+#include "bacula.h"
+
 #include "wxbconfigpanel.h"
 
 #include <wx/arrimpl.cpp>
