@@ -49,7 +49,6 @@ static const int fnmode = 0;
 #undef bmalloc
 #define bmalloc(x) sm_malloc(__FILE__, __LINE__, x)
 
-extern int win32_client;
 
 int
 match_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt, bool), void *his_pkt)
@@ -366,13 +365,15 @@ int file_is_excluded(FF_PKT *ff, const char *file)
 {
    const char *p;
 
+#if defined(HAVE_WIN32)
    /*
     *  ***NB*** this removes the drive from the exclude
     *  rule.  Why?????
     */
-   if (win32_client && file[1] == ':') {
+   if (file[1] == ':') {
       file += 2;
    }
+#endif
 
    if (file_in_excluded_list(ff->excluded_paths_list, file)) {
       return 1;

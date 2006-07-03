@@ -49,7 +49,6 @@ static char OKRunBeforeNow[] = "2000 OK RunBeforeNow\n";
 /* Forward referenced functions */
 
 /* External functions */
-extern int debug_level;
 extern DIRRES *director;
 extern int FDConnectTimeout;
 

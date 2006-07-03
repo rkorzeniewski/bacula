@@ -188,6 +188,8 @@ int main(int margc, char *margv[])
    my_name_is(margc, margv, "btape");
    init_msg(NULL, NULL);
 
+   OSDependentInit();
+
    while ((ch = getopt(margc, margv, "b:c:d:psv?")) != -1) {
       switch (ch) {
       case 'b':                    /* bootstrap file */

@@ -23,12 +23,6 @@
 #include "stored.h"
 #include "findlib/find.h"
 
-#if defined(HAVE_CYGWIN) || defined(HAVE_WIN32)
-int win32_client = 1;
-#else
-int win32_client = 0;
-#endif
-
 /* Dummy functions */
 int generate_daemon_event(JCR *jcr, const char *event) { return 1; }
 
@@ -101,6 +95,8 @@ int main (int argc, char *argv[])
    working_directory = "/tmp";
    my_name_is(argc, argv, "bls");
    init_msg(NULL, NULL);              /* initialize message handler */
+
+   OSDependentInit();
 
    ff = init_find_files();
 

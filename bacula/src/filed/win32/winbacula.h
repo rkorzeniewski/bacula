@@ -29,19 +29,6 @@
 //
 
 
-// WinUPS header file
-
-#ifdef HAVE_MINGW
-#include "compat.h"
-#endif
-
-#define STRICT 1
-#include <windows.h>
-#include <stdio.h>
-#include <process.h>
-#include "winres.h"
-
-
 // Application specific messages
 
 // Message used for system tray notifications

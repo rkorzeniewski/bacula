@@ -15,20 +15,15 @@
   
 */
 
-#ifndef HAVE_WIN32
-#define HAVE_CYGWIN 1
-#endif
-
 #include <unistd.h>
-#include <lmcons.h>
 #include <ctype.h>
+
+#include "bacula.h"
 #include "winbacula.h"
 #include "wintray.h"
 #include "winservice.h"
 #include <signal.h>
 #include <pthread.h>
-#include "../../lib/winapi.h"
-#include "baconfig.h"
 
 extern int BaculaMain(int argc, char *argv[]);
 extern void terminate_filed(int sig);
@@ -40,7 +35,7 @@ extern void d_msg(const char *, int, int, const char *, ...);
 HINSTANCE       hAppInstance;
 const char      *szAppName = "Bacula";
 DWORD           mainthreadId;
-bool silent = false;
+bool            silent = false;
 
 /* Imported variables */
 extern DWORD    g_servicethread;

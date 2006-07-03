@@ -140,8 +140,6 @@ bailout:
 
 #if defined(HAVE_WIN32)
 
-#include <windows.h>
-
 extern UPSINFO myUPS;
 extern int shm_OK;
 

@@ -23,7 +23,6 @@
 #include "bacula.h"
 #include "jcr.h"
 
-extern int win32_client;
 
 ATTR *new_attr()
 {
@@ -141,9 +140,11 @@ void build_attr_output_fnames(JCR *jcr, ATTR *attr)
       const char *fn;
       int wherelen = strlen(jcr->where);
       pm_strcpy(attr->ofname, jcr->where);  /* copy prefix */
-      if (win32_client && attr->fname[1] == ':') {
+#if defined(HAVE_WIN32)
+      if (attr->fname[1] == ':') {
          attr->fname[1] = '/';     /* convert : to / */
       }
+#endif
       fn = attr->fname;            /* take whole name */
       /* Ensure where is terminated with a slash */
       if (jcr->where[wherelen-1] != '/' && fn[0] != '/') {
@@ -166,9 +167,12 @@ void build_attr_output_fnames(JCR *jcr, ATTR *attr)
             attr->olname[0] = 0;
             add_link = false;
          }
-         if (win32_client && attr->lname[1] == ':') {
+
+#if defined(HAVE_WIN32)
+         if (attr->lname[1] == ':') {
             attr->lname[1] = '/';    /* turn : into / */
          }
+#endif
          fn = attr->lname;       /* take whole name */
          /* Ensure where is terminated with a slash */
          if (add_link && jcr->where[wherelen-1] != '/' && fn[0] != '/') {
@@ -177,10 +181,10 @@ void build_attr_output_fnames(JCR *jcr, ATTR *attr)
          pm_strcat(attr->olname, fn);     /* copy rest of link */
       }
    }
-   if (win32_client) {
+#if defined(HAVE_WIN32)
       strip_double_slashes(attr->ofname);
       strip_double_slashes(attr->olname);
-   }
+#endif
 }
 
 extern char *getuser(uid_t uid, char *name, int len);

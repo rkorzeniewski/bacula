@@ -34,15 +34,12 @@
 
 // Implementation of a system tray icon & menu for Bacula
 
-#include "winbacula.h"
-#include "winservice.h"
-#include <lmcons.h>
-
-// Header
-
-#include "wintray.h"
 #include "bacula.h"
 #include "jcr.h"
+#include "winbacula.h"
+#include "winservice.h"
+#include "winres.h"
+#include "wintray.h"
 
 // Constants
 #ifdef properties_implemented

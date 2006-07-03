@@ -37,8 +37,6 @@
 #endif
 
 #ifdef HAVE_WIN32
-#include <windows.h>
-#include "../lib/winapi.h"
 #define isatty(fd) (fd==0)
 #endif
 
@@ -388,10 +386,9 @@ int main(int argc, char *argv[])
    signal(SIGTTIN, got_sigtin);
    signal(SIGTTOU, got_sigtout);
    trapctlc();
-#else
-   InitWinAPIWrapper();
 #endif
-     
+
+   OSDependentInit();
 
    if (argc) {
       usage();

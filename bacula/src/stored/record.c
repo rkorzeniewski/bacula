@@ -27,8 +27,6 @@
 #include "bacula.h"
 #include "stored.h"
 
-extern int debug_level;
-
 /*
  * Convert a FileIndex into a printable
  *   ASCII string.  Not reentrant.

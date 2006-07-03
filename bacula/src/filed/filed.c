@@ -27,9 +27,6 @@
 /* Imported Functions */
 extern void *handle_client_request(void *dir_sock);
 
-/* Imported Variables */
-extern time_t watchdog_sleep_time;
-
 /* Forward referenced functions */
 void terminate_filed(int sig);
 static int check_resources();

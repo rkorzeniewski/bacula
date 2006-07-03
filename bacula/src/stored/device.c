@@ -48,9 +48,6 @@
 
 /* Forward referenced functions */
 
-extern char my_name[];
-extern int debug_level;
-
 /*
  * This is the dreaded moment. We either have an end of
  * medium condition or worse, and error condition.

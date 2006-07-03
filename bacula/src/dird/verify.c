@@ -33,9 +33,6 @@
 #include "dird.h"
 #include "findlib/find.h"
 
-/* Imported Global Variables */
-extern int debug_level;
-
 /* Commands sent to File daemon */
 static char verifycmd[]    = "verify level=%s\n";
 static char storaddr[]     = "storage address=%s port=%d ssl=0\n";

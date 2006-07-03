@@ -29,13 +29,12 @@
 #if defined(HAVE_WIN32)
 #if defined(HAVE_MINGW)
 #include "mingwconfig.h"
-#include "winhost.h"
 #define _STAT_H       /* don't pull in MinGW stat.h */
 #define _STAT_DEFINED /* don't pull in MinGW stat.h */
 #else
 #include "winconfig.h"
-#include "winhost.h"
 #endif
+#include "winhost.h"
 #else
 #include "config.h"
 #include "host.h"
@@ -134,10 +133,24 @@
 /* Local Bacula includes. Be sure to put all the system
  *  includes before these.
  */
+#if defined(HAVE_WIN32)
+#include <windows.h>
+#include "win32/compat/compat.h"
+#endif
+
 #include "version.h"
 #include "bc_types.h"
 #include "baconfig.h"
 #include "lib/lib.h"
+
+#ifdef HAVE_WXCONSOLE
+#undef New
+#undef _
+#endif
+
+#if defined(HAVE_WIN32)
+#include "lib/winapi.h"
+#endif
 
 #ifndef HAVE_ZLIB_H
 #undef HAVE_LIBZ                      /* no good without headers */

@@ -24,8 +24,10 @@
 
 /* Code for the Events dialogue */
 
+#include "bacula.h"
 #include "winbacula.h"
 #include "winevents.h"
+#include "winres.h"
 
 extern "C" void FillEventsBox(HWND hwnd, int id_list);
 

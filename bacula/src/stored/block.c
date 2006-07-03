@@ -27,7 +27,6 @@
 #include "bacula.h"
 #include "stored.h"
 
-extern int debug_level;
 static bool terminate_writing_volume(DCR *dcr);
 static bool do_new_file_bookkeeping(DCR *dcr);
 static bool do_dvd_size_checks(DCR *dcr);

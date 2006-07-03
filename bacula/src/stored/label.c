@@ -28,9 +28,6 @@
 /* Forward referenced functions */
 static void create_volume_label_record(DCR *dcr, DEV_RECORD *rec);
 
-extern char my_name[];
-extern int debug_level;
-
 /*
  * Read the volume label
  *

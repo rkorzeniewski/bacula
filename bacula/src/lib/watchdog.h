@@ -43,3 +43,7 @@ struct s_watchdog_t {
 	time_t next_fire;
 };
 typedef struct s_watchdog_t watchdog_t;
+
+/* Exported globals */
+extern time_t DLL_IMP_EXP watchdog_time;             /* this has granularity of SLEEP_TIME */
+extern time_t DLL_IMP_EXP watchdog_sleep_time;      /* examine things every 60 seconds */
