@@ -5,7 +5,7 @@
 
 # basic defines for every build
 %define _version @VERSION@
-%define _release 1
+%define _release 3
 %define depkgs_version 25Jun06
 %define _rescuever 1.8.6
 %define docs_version @VERSION@
@@ -62,6 +62,8 @@ Packager: D. Scott Barninger <barninger@fairfieldcomputers.com>
 %define storage_daemon_group disk
 %define user_file /etc/passwd
 %define group_file /etc/group
+
+# program locations
 %define useradd /usr/sbin/useradd
 %define groupadd /usr/sbin/groupadd
 %define usermod /usr/sbin/usermod
@@ -195,10 +197,18 @@ Distribution: %{_dist}
 %define wxconsole 0
 %{?build_wxconsole:%define wxconsole 1}
 
+# should we turn on python support
+%define python 0
+%{?build_python:%define python 1}
+
 BuildRequires: gcc, gcc-c++, make, autoconf
 BuildRequires: atk-devel, ncurses-devel, pango-devel, perl
 BuildRequires: libstdc++-devel, libxml2-devel, zlib-devel
 BuildRequires: openssl-devel
+%if %{python}
+BuildRequires: python, python-devel
+%{expand: %%define pyver %(python -c 'import sys;print(sys.version[0:3])')}
+%endif
 %if %{gconsole}
 BuildRequires: pkgconfig
 %endif
@@ -459,6 +469,10 @@ Requires: postgresql-server >= 7
 %description postgresql
 %endif
 
+%if %{python}
+Requires: python >= %{pyver}
+%endif
+
 %{blurb}
 
 %{blurb2}
@@ -513,6 +527,10 @@ Requires: libtermcap
 %if %{fc5}
 Requires: glibc >= 2.4
 Requires: libtermcap
+%endif
+
+%if %{python}
+Requires: python >= %{pyver}
 %endif
 
 %description client
@@ -732,7 +750,7 @@ server packages.
 %build
 
 %if %{su9} || %{su10}
-export LDFLAGS="-L/usr/lib/termcap"
+export LDFLAGS="${LDFLAGS} -L/usr/lib/termcap"
 %endif
 
 cwd=${PWD}
@@ -768,11 +786,15 @@ patch platforms/suse/bacula-dir.in platforms/suse/bacula-dir-suse-sqlite.patch
 
 # 64 bit lib location hacks
 %if %{x86_64}
-export LDFLAGS=-L/usr/lib64
+export LDFLAGS="${LDFLAGS} -L/usr/lib64"
 %endif
 %if %{mysql} && %{x86_64}
-export LDFLAGS=-L/usr/lib64/mysql
+export LDFLAGS="${LDFLAGS} -L/usr/lib64/mysql"
 %endif
+# this MAY be necessary for python support - waiting for feedback to enable
+#%if %{python} && %{x86_64}
+#export LDFLAGS="${LDFLAGS} -L/usr/lib64/python-%{pyver}"
+#%endif
 
 %configure \
         --prefix=/usr \
@@ -811,6 +833,9 @@ make
 %endif
 %if %{wxconsole}
 	--enable-wx-console \
+%endif
+%if %{python}
+	--with-python \
 %endif
         --with-working-dir=%{working_dir} \
         --with-pid-dir=/var/run \
@@ -1504,6 +1529,9 @@ fi
 %endif
 
 %changelog
+* Mon Jul 03 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- add python build support
+- fix LDFLAGS declarations
 * Sun Jul 02 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - add requires for standard compiler toolchain
 - move version and release tags up
