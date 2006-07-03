@@ -59,7 +59,11 @@ select Path.Path from Path,File where File.JobId=nnn and
   File.FilenameId=(FilenameId-from-above) and File.PathId=Path.PathId
   order by Path.Path ASC;
 
+- Look into using Dart for testing
+  http://public.kitware.com/Dart/HTML/Index.shtml
 
+- Look into replacing autotools with cmake
+  http://www.cmake.org/HTML/Index.html
 
 === Migration from David ===
 What I'd like to see: 
@@ -1573,4 +1577,3 @@ Block Position: 0
 - Make Dir and SD authentication errors single threaded.
 - Install man pages
 - Fix catreq.c digestbuf at line 411 in src/dird/catreq.c 
-

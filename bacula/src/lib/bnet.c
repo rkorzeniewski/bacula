@@ -437,18 +437,18 @@ bool bnet_send(BSOCK * bsock)
 
 /*
  * Establish a TLS connection -- server side
- *  Returns: 1 on success
- *           0 failure
+ *  Returns: true  on success
+ *           false on failure
  */
 #ifdef HAVE_TLS
-int bnet_tls_server(TLS_CONTEXT *ctx, BSOCK * bsock, alist *verify_list)
+bool bnet_tls_server(TLS_CONTEXT *ctx, BSOCK * bsock, alist *verify_list)
 {
    TLS_CONNECTION *tls;
    
    tls = new_tls_connection(ctx, bsock->fd);
    if (!tls) {
       Qmsg0(bsock->jcr, M_FATAL, 0, _("TLS connection initialization failed.\n"));
-      return 0;
+      return false;
    }
 
    bsock->tls = tls;
@@ -467,28 +467,27 @@ int bnet_tls_server(TLS_CONTEXT *ctx, BSOCK * bsock, alist *verify_list)
          goto err;
       }
    }
- 
-   return 1;
+   return true;
 
 err:
    free_tls_connection(tls);
    bsock->tls = NULL;
-   return 0;
+   return false;
 }
 
 /*
  * Establish a TLS connection -- client side
- * Returns: 1 on success
- *          0 failure
+ * Returns: true  on success
+ *          false on failure
  */
-int bnet_tls_client(TLS_CONTEXT *ctx, BSOCK * bsock)
+bool bnet_tls_client(TLS_CONTEXT *ctx, BSOCK * bsock)
 {
    TLS_CONNECTION *tls;
 
    tls  = new_tls_connection(ctx, bsock->fd);
    if (!tls) {
       Qmsg0(bsock->jcr, M_FATAL, 0, _("TLS connection initialization failed.\n"));
-      return 0;
+      return false;
    }
 
    bsock->tls = tls;
@@ -502,24 +501,23 @@ int bnet_tls_client(TLS_CONTEXT *ctx, BSOCK * bsock)
       Qmsg1(bsock->jcr, M_FATAL, 0, _("TLS host certificate verification failed. Host %s did not match presented certificate\n"), bsock->host);
       goto err;
    }
- 
-   return 1;
+   return true;
 
 err:
    free_tls_connection(tls);
    bsock->tls = NULL;
-   return 0;
+   return false;
 }
 #else
-int bnet_tls_server(TLS_CONTEXT *ctx, BSOCK * bsock, alist *verify_list)
+bool bnet_tls_server(TLS_CONTEXT *ctx, BSOCK * bsock, alist *verify_list)
 {
-   Jmsg(bsock->jcr, M_ABORT, 0, _("TLS not configured.\n"));
-   return 0;
+   Jmsg(bsock->jcr, M_ABORT, 0, _("TLS enabled but not configured.\n"));
+   return false;
 }
-int bnet_tls_client(TLS_CONTEXT *ctx, BSOCK * bsock)
+bool bnet_tls_client(TLS_CONTEXT *ctx, BSOCK * bsock)
 {
-   Jmsg(bsock->jcr, M_ABORT, 0, _("TLS not configured.\n"));
-   return 0;
+   Jmsg(bsock->jcr, M_ABORT, 0, _("TLS enable but not configured.\n"));
+   return false;
 }
 #endif /* HAVE_TLS */
 
@@ -912,12 +910,12 @@ bool bnet_fsend(BSOCK * bs, const char *fmt, ...)
 int bnet_get_peer(BSOCK *bs, char *buf, socklen_t buflen) {
 #if !defined(HAVE_WIN32)
     if (bs->peer_addr.sin_family == 0) {
-	socklen_t salen = sizeof(bs->peer_addr);
-	int rval = (getpeername)(bs->fd, (struct sockaddr *)&bs->peer_addr, &salen);
-	if (rval < 0) return rval;
+        socklen_t salen = sizeof(bs->peer_addr);
+        int rval = (getpeername)(bs->fd, (struct sockaddr *)&bs->peer_addr, &salen);
+        if (rval < 0) return rval;
     }
     if (!inet_ntop(bs->peer_addr.sin_family, &bs->peer_addr.sin_addr, buf, buflen))
-	return -1;
+        return -1;
 
     return 0;
 #else

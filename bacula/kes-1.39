@@ -2,6 +2,28 @@
                         Kern Sibbald
 
 General:
+04Jul06
+  ======================= Warning ==========================
+     All hash codes in the database are now kept in world
+     compatible base64 format (no = filling). This means that
+     all FileSets will be updated and if you are running
+     verify jobs, you must do an InitCatalog.
+     Authentication uses the new algorithm, but should be
+     backward compatible with 1.38.x
+  ===========================================================
+
+- Modify the authentication routines so that the 1.39.15 Director
+  always runs with the compatible binary to base64 code (same as
+  the rest of the world).  It will however detect if an SD or
+  FD is running the old code and if that is the case, will use
+  the old algorithm for authentication.  However, all consoles must
+  use the compatible algorithm, and all data entered into the database
+  (all hash signatures, MD5, SHA1, ..., and all FileSet hashes) will
+  use the compatible algorithm.
+- Rename the cram_md5 routine names to be slightly more appropriate
+  to what they are doing (challenge and respond).
+- Robert committed his #ifdef and header cleanup.
+
 30Jun06
 - Fix a complier warning in files/backup.c
 - Cleanup NOT NULL vs DEFALT 0 in database creation.

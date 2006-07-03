@@ -248,7 +248,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt, bool top_level)
             digest_buf = (char *)malloc(BASE64_SIZE(size));
             digest_name = crypto_digest_name(digest);
 
-            bin_to_base64(digest_buf, md, size);
+            bin_to_base64(digest_buf, BASE64_SIZE(size), md, size, true);
             Dmsg3(400, "send inx=%d %s=%s\n", jcr->JobFiles, digest_name, digest_buf);
             bnet_fsend(dir, "%d %d %s *%s-%d*", jcr->JobFiles, digest_stream, digest_buf,
                        digest_name, jcr->JobFiles);

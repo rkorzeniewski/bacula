@@ -48,8 +48,8 @@ GtkWidget *restore_file_selection;
 GtkWidget *dir_select;
 GtkWidget *about1;           /* about box */
 GtkWidget *label_dialog;
-PangoFontDescription *font_desc;
-PangoFontDescription *console_font_desc = NULL;
+PangoFontDescription *font_desc = NULL;
+PangoFontDescription *text_font_desc = NULL;
 pthread_mutex_t cmd_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t  cmd_wait;
 char cmd[1000];
@@ -302,8 +302,8 @@ int main(int argc, char *argv[])
           continue;
        }
        Dmsg1(100, "Now loading: %s\n",con_font->fontface);
-        console_font_desc = pango_font_description_from_string(con_font->fontface);
-       if (console_font_desc == NULL) {
+       text_font_desc = pango_font_description_from_string(con_font->fontface);
+       if (text_font_desc == NULL) {
            Dmsg2(400, "Load of requested ConsoleFont \"%s\" (%s) failed!\n",
                   con_font->hdr.name, con_font->fontface);
        } else {
@@ -313,14 +313,21 @@ int main(int argc, char *argv[])
        }
    }
    UnlockRes();
-
+    
    font_desc = pango_font_description_from_string("LucidaTypewriter 9");
+   if (!text_font_desc) {
+      text_font_desc = pango_font_description_from_string("Monospace 10");
+   }
+   if (!text_font_desc) {
+      text_font_desc = pango_font_description_from_string("monospace");
+   }
+
    gtk_widget_modify_font(console, font_desc);
    gtk_widget_modify_font(entry1, font_desc);
    gtk_widget_modify_font(status1, font_desc);
-   if (console_font_desc) {
-      gtk_widget_modify_font(text1, console_font_desc);
-      pango_font_description_free(console_font_desc);
+   if (text_font_desc) {
+      gtk_widget_modify_font(text1, text_font_desc);
+      pango_font_description_free(text_font_desc);
    } else {
       gtk_widget_modify_font(text1, font_desc);
    }

@@ -103,6 +103,7 @@ int unpack_attributes_record(JCR *jcr, int32_t stream, char *rec, ATTR *attr)
    return 1;
 }
 
+#if defined(HAVE_WIN32)
 static void strip_double_slashes(char *fname)
 {
    char *p = fname;
@@ -116,6 +117,7 @@ static void strip_double_slashes(char *fname)
       }
    }
 }
+#endif
 
 /*
  * Build attr->ofname from attr->fname and

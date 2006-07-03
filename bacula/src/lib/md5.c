@@ -317,7 +317,7 @@ int main(int argc, char *argv[])
 #ifdef OUTPUT_BASE64
    char MD5buf[40];                 /* 24 should do */ 
    memset(MD5buf, 0, 40);
-   bin_to_base64(MD5buf, (char *)signature, 16); /* encode 16 bytes */
+   bin_to_base64(MD5buf, sizeof(MD5buf), (char *)signature, 16, true); /* encode 16 bytes */
    printf("  %s", MD5buf);
 #endif
    printf("  %s\n", argv[0]);
@@ -347,7 +347,7 @@ decode_it:
       }
       signature[16] = 0;
       printf("%s", buf);
-      bin_to_base64(bin, (char *)signature, 16);
+      bin_to_base64(bin, sizeof(bin), (char *)signature, 16, true);
       printf("%s\n", bin);
    }
 }

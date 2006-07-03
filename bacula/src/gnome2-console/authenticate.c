@@ -50,6 +50,7 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
    BSOCK *dir = jcr->dir_bsock;
    int tls_local_need = BNET_TLS_NONE;
    int tls_remote_need = BNET_TLS_NONE;
+   int compatible = true;
    char bashed_name[MAX_NAME_LENGTH];
    char *password;
 
@@ -68,8 +69,10 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
    btimer_t *tid = start_bsock_timer(dir, 60 * 5);
    bnet_fsend(dir, hello, bashed_name);
 
-   if (!cram_md5_get_auth(dir, password, &tls_remote_need) ||
-       !cram_md5_auth(dir, password, tls_local_need)) {
+   /* respond to Dir challenge */
+   if (!cram_md5_respond(dir, password, &tls_remote_need, &compatible) ||
+       /* Now challenge dir */
+       !cram_md5_challenge(dir, password, tls_local_need, compatible)) {
       stop_bsock_timer(tid);
       printf(_("%s: Director authorization problem.\n"), my_name);
       set_text(_("Director authorization problem.\n"), -1);

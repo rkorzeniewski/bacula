@@ -7,22 +7,17 @@
  *
  */
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -43,17 +38,16 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
    DIRRES *director = NULL;
    int tls_local_need = BNET_TLS_NONE;
    int tls_remote_need = BNET_TLS_NONE;
+   int compatible = true;                  /* require md5 compatible DIR */
    bool auth_success = false;
-#ifdef HAVE_TLS
    alist *verify_list = NULL;
-#endif
 
    if (rcode != R_DIRECTOR) {
       Dmsg1(50, "I only authenticate Directors, not %d\n", rcode);
       Emsg1(M_FATAL, 0, _("I only authenticate Directors, not %d\n"), rcode);
       return 0;
    }
-   if (bs->msglen < 25 || bs->msglen > 200) {
+   if (bs->msglen < 25 || bs->msglen > 500) {
       Dmsg2(50, "Bad Hello command from Director at %s. Len=%d.\n",
             bs->who, bs->msglen);
       Emsg2(M_FATAL, 0, _("Bad Hello command from Director at %s. Len=%d.\n"),
@@ -63,7 +57,7 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
    dirname = get_pool_memory(PM_MESSAGE);
    dirname = check_pool_memory_size(dirname, bs->msglen);
 
-   if (sscanf(bs->msg, "Hello Director %127s calling\n", dirname) != 1) {
+   if (sscanf(bs->msg, "Hello Director %127s calling", dirname) != 1) {
       bs->msg[100] = 0;
       Dmsg2(50, "Bad Hello command from Director at %s: %s\n",
             bs->who, bs->msg);
@@ -73,12 +67,10 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
    }
    director = NULL;
    unbash_spaces(dirname);
-// LockRes();
    foreach_res(director, rcode) {
       if (strcmp(director->hdr.name, dirname) == 0)
          break;
    }
-// UnlockRes();
    if (!director) {
       Dmsg2(50, "Connection from unknown Director %s at %s rejected.\n",
             dirname, bs->who);
@@ -89,7 +81,6 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
       return 0;
    }
 
-#ifdef HAVE_TLS
    /* TLS Requirement */
    if (director->tls_enable) {
       if (director->tls_require) {
@@ -102,13 +93,12 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
    if (director->tls_verify_peer) {
       verify_list = director->tls_allowed_cns;
    }
-#endif /* HAVE_TLS */
 
    /* Timeout Hello after 10 mins */
    btimer_t *tid = start_bsock_timer(bs, AUTH_TIMEOUT);
-   auth_success = cram_md5_auth(bs, director->password, tls_local_need);
+   auth_success = cram_md5_challenge(bs, director->password, tls_local_need, compatible);
    if (auth_success) {
-      auth_success = cram_md5_get_auth(bs, director->password, &tls_remote_need);
+      auth_success = cram_md5_respond(bs, director->password, &tls_remote_need, &compatible);
       if (!auth_success) {
          Dmsg1(50, "cram_get_auth failed with %s\n", bs->who);
       }
@@ -138,7 +128,6 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
       goto auth_fatal;
    }
 
-#ifdef HAVE_TLS
    if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
       /* Engage TLS! Full Speed Ahead! */
       if (!bnet_tls_server(director->tls_ctx, bs, verify_list)) {
@@ -147,7 +136,6 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
          goto auth_fatal;
       }
    }
-#endif /* HAVE_TLS */
 
 auth_fatal:
    stop_bsock_timer(tid);
@@ -187,12 +175,10 @@ int authenticate_filed(JCR *jcr)
    BSOCK *fd = jcr->file_bsock;
    int tls_local_need = BNET_TLS_NONE;
    int tls_remote_need = BNET_TLS_NONE;
+   int compatible = true;                 /* require md5 compatible FD */
    bool auth_success = false;
-#ifdef HAVE_TLS
    alist *verify_list = NULL;
-#endif
 
-#ifdef HAVE_TLS
    /* TLS Requirement */
    if (me->tls_enable) {
       if (me->tls_require) {
@@ -205,13 +191,14 @@ int authenticate_filed(JCR *jcr)
    if (me->tls_verify_peer) {
       verify_list = me->tls_allowed_cns;
    }
-#endif /* HAVE_TLS */
 
    /* Timeout Hello after 5 mins */
    btimer_t *tid = start_bsock_timer(fd, AUTH_TIMEOUT);
-   auth_success = cram_md5_auth(fd, jcr->sd_auth_key, tls_local_need);
+   /* Challenge FD */
+   auth_success = cram_md5_challenge(fd, jcr->sd_auth_key, tls_local_need, compatible);
    if (auth_success) {
-       auth_success = cram_md5_get_auth(fd, jcr->sd_auth_key, &tls_remote_need);
+       /* Respond to his challenge */
+       auth_success = cram_md5_respond(fd, jcr->sd_auth_key, &tls_remote_need, &compatible);
        if (!auth_success) {
           Dmsg1(50, "cram-get-auth failed with %s\n", fd->who);
        }
@@ -242,7 +229,6 @@ int authenticate_filed(JCR *jcr)
       goto auth_fatal;
    }
 
-#ifdef HAVE_TLS
    if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
       /* Engage TLS! Full Speed Ahead! */
       if (!bnet_tls_server(me->tls_ctx, fd, verify_list)) {
@@ -251,7 +237,6 @@ int authenticate_filed(JCR *jcr)
          goto auth_fatal;
       }
    }
-#endif /* HAVE_TLS */
 
 auth_fatal:
    stop_bsock_timer(tid);

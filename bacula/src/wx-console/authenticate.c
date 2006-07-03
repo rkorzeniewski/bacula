@@ -55,6 +55,7 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
    BSOCK *dir = jcr->dir_bsock;
    int tls_local_need = BNET_TLS_NONE;
    int tls_remote_need = BNET_TLS_NONE;
+   int compatible = true;
    char bashed_name[MAX_NAME_LENGTH];
    char *password;
    TLS_CONTEXT *tls_ctx = NULL;
@@ -68,11 +69,11 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
       password = cons->password;
       /* TLS Requirement */
       if (cons->tls_enable) {
-	 if (cons->tls_require) {
-	    tls_local_need = BNET_TLS_REQUIRED;
-	 } else {
-	    tls_local_need = BNET_TLS_OK;
-	 }
+         if (cons->tls_require) {
+            tls_local_need = BNET_TLS_REQUIRED;
+         } else {
+            tls_local_need = BNET_TLS_OK;
+         }
       }
 
       tls_ctx = cons->tls_ctx;
@@ -81,11 +82,11 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
       password = director->password;
       /* TLS Requirement */
       if (director->tls_enable) {
-	 if (director->tls_require) {
-	    tls_local_need = BNET_TLS_REQUIRED;
-	 } else {
-	    tls_local_need = BNET_TLS_OK;
-	 }
+         if (director->tls_require) {
+            tls_local_need = BNET_TLS_REQUIRED;
+         } else {
+            tls_local_need = BNET_TLS_OK;
+         }
       }
 
       tls_ctx = director->tls_ctx;
@@ -96,10 +97,10 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
    btimer_t *tid = start_bsock_timer(dir, 60 * 5);
    bnet_fsend(dir, hello, bashed_name);
 
-   if (!cram_md5_get_auth(dir, password, &tls_remote_need) ||
-       !cram_md5_auth(dir, password, tls_local_need)) {
+   if (!cram_md5_respond(dir, password, &tls_remote_need, &compatible) ||
+       !cram_md5_challenge(dir, password, tls_local_need, compatible)) {
       goto bail_out;
-   }	   
+   }       
 
    /* Verify that the remote host is willing to meet our TLS requirements */
    if (tls_remote_need < tls_local_need && tls_local_need != BNET_TLS_OK && tls_remote_need != BNET_TLS_OK) {
@@ -116,11 +117,11 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
    /* Is TLS Enabled? */
    if (have_tls) {
       if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
-	 /* Engage TLS! Full Speed Ahead! */
-	 if (!bnet_tls_client(tls_ctx, dir)) {
+         /* Engage TLS! Full Speed Ahead! */
+         if (!bnet_tls_client(tls_ctx, dir)) {
             csprint(_("TLS negotiation failed\n"));
-	    goto bail_out;
-	 }
+            goto bail_out;
+         }
       }
    }
 

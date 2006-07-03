@@ -442,7 +442,7 @@ void catalog_update(JCR *jcr, BSOCK *bs)
                  Stream);
          }
 
-         bin_to_base64(digestbuf, fname, len);
+         bin_to_base64(digestbuf, sizeof(digestbuf), fname, len, true);
          Dmsg3(400, "DigestLen=%d Digest=%s type=%d\n", strlen(digestbuf), digestbuf, Stream);
          if (jcr->cached_attribute) {
             ar->Digest = digestbuf;
