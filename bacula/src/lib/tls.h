@@ -5,7 +5,7 @@
  *
  * Version $Id$
  *
- * Copyright (C) 2005 Kern Sibbald
+ * Copyright (C) 2005-2006 Kern Sibbald
  *
  * This file was contributed to the Bacula project by Landon Fuller
  * and Three Rings Design, Inc.

@@ -52,6 +52,7 @@ bool authenticate_storage_daemon(JCR *jcr, STORE *store)
    char dirname[MAX_NAME_LENGTH];
    int tls_local_need = BNET_TLS_NONE;
    int tls_remote_need = BNET_TLS_NONE;
+   int compatible = true;
    bool auth_success = false;
 
    /*
@@ -77,14 +78,14 @@ bool authenticate_storage_daemon(JCR *jcr, STORE *store)
      }
    }
 
-   auth_success = cram_md5_get_auth(sd, store->password, &tls_remote_need);
+   auth_success = cram_md5_respond(sd, store->password, &tls_remote_need, &compatible);
    if (auth_success) {
-      auth_success = cram_md5_auth(sd, store->password, tls_local_need);
+      auth_success = cram_md5_challenge(sd, store->password, tls_local_need, compatible);
       if (!auth_success) {
-         Dmsg1(50, "cram_auth failed for %s\n", sd->who);
+         Dmsg1(50, "cram_challenge failed for %s\n", sd->who);
       }
    } else {
-      Dmsg1(50, "cram_get_auth failed for %s\n", sd->who);
+      Dmsg1(50, "cram_respond failed for %s\n", sd->who);
    }
 
    if (!auth_success) {
@@ -113,7 +114,6 @@ bool authenticate_storage_daemon(JCR *jcr, STORE *store)
       return 0;
    }
 
-#ifdef HAVE_TLS
    /* Is TLS Enabled? */
    if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
       /* Engage TLS! Full Speed Ahead! */
@@ -123,7 +123,6 @@ bool authenticate_storage_daemon(JCR *jcr, STORE *store)
          return 0;
       }
    }
-#endif
 
    Dmsg1(116, ">stored: %s", sd->msg);
    if (bnet_recv(sd) <= 0) {
@@ -152,6 +151,7 @@ int authenticate_file_daemon(JCR *jcr)
    char dirname[MAX_NAME_LENGTH];
    int tls_local_need = BNET_TLS_NONE;
    int tls_remote_need = BNET_TLS_NONE;
+   int compatible = true;
    bool auth_success = false;
 
    /*
@@ -167,7 +167,6 @@ int authenticate_file_daemon(JCR *jcr)
       return 0;
    }
 
-#ifdef HAVE_TLS
    /* TLS Requirement */
    if (client->tls_enable) {
      if (client->tls_require) {
@@ -176,11 +175,10 @@ int authenticate_file_daemon(JCR *jcr)
         tls_local_need = BNET_TLS_OK;
      }
    }
-#endif
 
-   auth_success = cram_md5_get_auth(fd, client->password, &tls_remote_need);
+   auth_success = cram_md5_respond(fd, client->password, &tls_remote_need, &compatible);
    if (auth_success) {
-      auth_success = cram_md5_auth(fd, client->password, tls_local_need);
+      auth_success = cram_md5_challenge(fd, client->password, tls_local_need, compatible);
       if (!auth_success) {
          Dmsg1(50, "cram_auth failed for %s\n", fd->who);
       }
@@ -213,7 +211,6 @@ int authenticate_file_daemon(JCR *jcr)
       return 0;
    }
 
-#ifdef HAVE_TLS
    /* Is TLS Enabled? */
    if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
       /* Engage TLS! Full Speed Ahead! */
@@ -223,7 +220,6 @@ int authenticate_file_daemon(JCR *jcr)
          return 0;
       }
    }
-#endif
 
    Dmsg1(116, ">filed: %s", fd->msg);
    if (bnet_recv(fd) <= 0) {
@@ -252,13 +248,12 @@ int authenticate_user_agent(UAContext *uac)
    char name[MAX_NAME_LENGTH];
    int tls_local_need = BNET_TLS_NONE;
    int tls_remote_need = BNET_TLS_NONE;
+   int compatible = true;
    CONRES *cons = NULL;
    BSOCK *ua = uac->UA_sock;
    bool auth_success = false;
-#ifdef HAVE_TLS
    TLS_CONTEXT *tls_ctx = NULL;
    alist *verify_list = NULL;
-#endif /* HAVE_TLS */
  
 
 //  Emsg4(M_INFO, 0, _("UA Hello from %s:%s:%d is invalid. Len=%d\n"), ua->who,
@@ -278,7 +273,6 @@ int authenticate_user_agent(UAContext *uac)
 
    name[sizeof(name)-1] = 0;             /* terminate name */
    if (strcmp(name, "*UserAgent*") == 0) {  /* default console */
-#ifdef HAVE_TLS
       /* TLS Requirement */
       if (director->tls_enable) {
          if (director->tls_require) {
@@ -291,15 +285,14 @@ int authenticate_user_agent(UAContext *uac)
       if (director->tls_verify_peer) {
          verify_list = director->tls_allowed_cns;
       }
-#endif /* HAVE_TLS */
 
-      auth_success = cram_md5_auth(ua, director->password, tls_local_need) &&
-           cram_md5_get_auth(ua, director->password, &tls_remote_need);
+      auth_success = cram_md5_challenge(ua, director->password, tls_local_need,
+                                        compatible) &&
+                     cram_md5_respond(ua, director->password, &tls_remote_need, &compatible);
    } else {
       unbash_spaces(name);
       cons = (CONRES *)GetResWithName(R_CONSOLE, name);
       if (cons) {
-#ifdef HAVE_TLS
          /* TLS Requirement */
          if (cons->tls_enable) {
             if (cons->tls_require) {
@@ -312,10 +305,10 @@ int authenticate_user_agent(UAContext *uac)
          if (cons->tls_verify_peer) {
             verify_list = cons->tls_allowed_cns;
          }
-#endif /* HAVE_TLS */
 
-         auth_success = cram_md5_auth(ua, cons->password, tls_local_need) &&
-              cram_md5_get_auth(ua, cons->password, &tls_remote_need);
+         auth_success = cram_md5_challenge(ua, cons->password, tls_local_need,
+                                           compatible) &&
+                     cram_md5_respond(ua, cons->password, &tls_remote_need, &compatible);
 
          if (auth_success) {
             uac->cons = cons;         /* save console resource pointer */
@@ -342,7 +335,6 @@ int authenticate_user_agent(UAContext *uac)
       goto auth_done;
    }
 
-#ifdef HAVE_TLS
    if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
       if (cons) {
          tls_ctx = cons->tls_ctx;
@@ -357,7 +349,6 @@ int authenticate_user_agent(UAContext *uac)
          goto auth_done;
       }
    }
-#endif /* HAVE_TLS */
 
 
 /* Authorization Completed */

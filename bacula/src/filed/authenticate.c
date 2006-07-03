@@ -7,7 +7,7 @@
  *
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -37,6 +37,7 @@ static bool authenticate(int rcode, BSOCK *bs, JCR* jcr)
    DIRRES *director = NULL;
    int tls_local_need = BNET_TLS_NONE;
    int tls_remote_need = BNET_TLS_NONE;
+   int compatible = true;                 /* Want md5 compatible DIR */
    bool auth_success = false;
    alist *verify_list = NULL;
    btimer_t *tid = NULL;
@@ -46,7 +47,7 @@ static bool authenticate(int rcode, BSOCK *bs, JCR* jcr)
       Emsg1(M_FATAL, 0, _("I only authenticate directors, not %d\n"), rcode);
       goto auth_fatal;
    }
-   if (bs->msglen < 25 || bs->msglen > 200) {
+   if (bs->msglen < 25 || bs->msglen > 500) {
       Dmsg2(50, "Bad Hello command from Director at %s. Len=%d.\n",
             bs->who, bs->msglen);
       char addr[64];
@@ -57,7 +58,7 @@ static bool authenticate(int rcode, BSOCK *bs, JCR* jcr)
    }
    dirname = check_pool_memory_size(dirname, bs->msglen);
 
-   if (sscanf(bs->msg, "Hello Director %s calling\n", dirname) != 1) {
+   if (sscanf(bs->msg, "Hello Director %s calling", dirname) != 1) {
        char addr[64];
        char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who : addr;
       bs->msg[100] = 0;
@@ -68,12 +69,10 @@ static bool authenticate(int rcode, BSOCK *bs, JCR* jcr)
       goto auth_fatal;
    }
    unbash_spaces(dirname);
-   LockRes();
    foreach_res(director, R_DIRECTOR) {
       if (strcmp(director->hdr.name, dirname) == 0)
          break;
    }
-   UnlockRes();
    if (!director) {
        char addr[64];
        char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who : addr;
@@ -98,9 +97,10 @@ static bool authenticate(int rcode, BSOCK *bs, JCR* jcr)
    }
 
    tid = start_bsock_timer(bs, AUTH_TIMEOUT);
-   auth_success = cram_md5_auth(bs, director->password, tls_local_need);  
+   /* Challenge the director */
+   auth_success = cram_md5_challenge(bs, director->password, tls_local_need, compatible);  
    if (auth_success) {
-      auth_success = cram_md5_get_auth(bs, director->password, &tls_remote_need);
+      auth_success = cram_md5_respond(bs, director->password, &tls_remote_need, &compatible);
       if (!auth_success) {
           char addr[64];
           char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who : addr;
@@ -188,6 +188,7 @@ int authenticate_storagedaemon(JCR *jcr)
    BSOCK *sd = jcr->store_bsock;
    int tls_local_need = BNET_TLS_NONE;
    int tls_remote_need = BNET_TLS_NONE;
+   int compatible = true;
    bool auth_success = false;
 
    btimer_t *tid = start_bsock_timer(sd, AUTH_TIMEOUT);
@@ -201,13 +202,15 @@ int authenticate_storagedaemon(JCR *jcr)
       }
    }
 
-   auth_success = cram_md5_get_auth(sd, jcr->sd_auth_key, &tls_remote_need);
+   /* Respond to SD challenge */
+   auth_success = cram_md5_respond(sd, jcr->sd_auth_key, &tls_remote_need, &compatible);
    if (!auth_success) {
-      Dmsg1(50, "cram_get_auth failed for %s\n", sd->who);
+      Dmsg1(50, "cram_respond failed for %s\n", sd->who);
    } else {
-      auth_success = cram_md5_auth(sd, jcr->sd_auth_key, tls_local_need);
+      /* Now challenge him */
+      auth_success = cram_md5_challenge(sd, jcr->sd_auth_key, tls_local_need, compatible);
       if (!auth_success) {
-         Dmsg1(50, "cram_auth failed for %s\n", sd->who);
+         Dmsg1(50, "cram_challenge failed for %s\n", sd->who);
       }
    }
 

@@ -23,12 +23,6 @@
 
 #include "bacula.h"
 
-/*
- * If compatible is true, the bin_to_base64 routine will be compatible
- * with what the rest of the world uses.  However, this would destroy
- * existing database compatibility.
- */
-const bool compatible = false;
 
 #ifdef TEST_MODE
 #include <glob.h>
@@ -133,11 +127,14 @@ from_base64(intmax_t *value, char *where)
  * Encode binary data in bin of len bytes into
  * buf as base64 characters.
  *
+ * If compatible is true, the bin_to_base64 routine will be compatible
+ * with what the rest of the world uses.
+ *
  *  Returns: the number of characters stored not
  *           including the EOS
  */
 int
-bin_to_base64(char *buf, char *bin, int len)
+bin_to_base64(char *buf, int buflen, char *bin, int binlen, int compatible)
 {
    uint32_t reg, save, mask;
    int rem, i;
@@ -145,7 +142,8 @@ bin_to_base64(char *buf, char *bin, int len)
 
    reg = 0;
    rem = 0;
-   for (i=0; i<len; ) {
+   buflen--;                       /* allow for storing EOS */
+   for (i=0; i < binlen; ) {
       if (rem < 6) {
          reg <<= 8;
          if (compatible) {
@@ -157,19 +155,14 @@ bin_to_base64(char *buf, char *bin, int len)
       }
       save = reg;
       reg >>= (rem - 6);
-      buf[j++] = base64_digits[reg & 0x3F];
+      if (j < buflen) {
+         buf[j++] = base64_digits[reg & 0x3F];
+      }
       reg = save;
       rem -= 6;
    }
-   if (rem) {
-#ifdef OLDxxxx
-      mask = 1;
-      for (i=1; i<rem; i++) {
-         mask = (mask << 1) | 1;
-      }
-#else 
+   if (rem && j < buflen) {
       mask = (1 << rem) - 1;
-#endif
       if (compatible) {
          buf[j++] = base64_digits[(reg & mask) << 6 - rem];
       } else {
@@ -191,7 +184,7 @@ int main(int argc, char *argv[])
 
 #ifdef xxxx
    for (i=0; i < 1000; i++) {
-      bin_to_base64(buf, (char *)&xx, 4);
+      bin_to_base64(buf, sizeof(buf), (char *)&xx, 4, true);
       printf("xx=%s\n", buf);
       xx++;
    }
@@ -200,7 +193,7 @@ int main(int argc, char *argv[])
    for (i=1; i<100; i++) {
       junk[i] = junk[i-1]-1;
    }
-   len = bin_to_base64(buf, junk, 16);
+   len = bin_to_base64(buf, sizeof(buf) junk, 16, true);
    printf("len=%d junk=%s\n", len, buf);
    return 0;
 }

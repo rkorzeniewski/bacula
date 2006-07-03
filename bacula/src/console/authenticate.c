@@ -11,7 +11,7 @@
  *
  */
 /*
-   Copyright (C) 2001-2005 Kern Sibbald
+   Copyright (C) 2001-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -49,6 +49,7 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
    BSOCK *dir = jcr->dir_bsock;
    int tls_local_need = BNET_TLS_NONE;
    int tls_remote_need = BNET_TLS_NONE;
+   int compatible = true;
    char bashed_name[MAX_NAME_LENGTH];
    char *password;
    TLS_CONTEXT *tls_ctx = NULL;
@@ -90,8 +91,8 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
    btimer_t *tid = start_bsock_timer(dir, 60 * 5);
    bnet_fsend(dir, hello, bashed_name);
 
-   if (!cram_md5_get_auth(dir, password, &tls_remote_need) ||
-       !cram_md5_auth(dir, password, tls_local_need)) {
+   if (!cram_md5_respond(dir, password, &tls_remote_need, &compatible) ||
+       !cram_md5_challenge(dir, password, tls_local_need, compatible)) {
       goto bail_out;
    }
 

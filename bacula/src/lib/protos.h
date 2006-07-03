@@ -31,7 +31,8 @@ void      print_ls_output(JCR *jcr, ATTR *attr);
 void      base64_init            (void);
 int       to_base64              (intmax_t value, char *where);
 int       from_base64            (intmax_t *value, char *where);
-int       bin_to_base64          (char *buf, char *bin, int len);
+int       bin_to_base64          (char *buf, int buflen, char *bin, int binlen, 
+                                  int compatible);
 
 /* bsys.c */
 char     *bstrncpy               (char *dest, const char *src, int maxlen);
@@ -67,9 +68,9 @@ bool       bnet_send             (BSOCK *bsock);
 bool       bnet_fsend            (BSOCK *bs, const char *fmt, ...);
 bool       bnet_set_buffer_size  (BSOCK *bs, uint32_t size, int rw);
 bool       bnet_sig              (BSOCK *bs, int sig);
-int        bnet_tls_server       (TLS_CONTEXT *ctx, BSOCK *bsock,
+bool       bnet_tls_server       (TLS_CONTEXT *ctx, BSOCK *bsock,
                                   alist *verify_list);
-int        bnet_tls_client       (TLS_CONTEXT *ctx, BSOCK *bsock);
+bool       bnet_tls_client       (TLS_CONTEXT *ctx, BSOCK *bsock);
 BSOCK *    bnet_connect          (JCR *jcr, int retry_interval,
                int max_retry_time, const char *name, char *host, char *service,
                int port, int verbose);
@@ -106,10 +107,9 @@ int              close_wpipe(BPIPE *bpipe);
 int              close_bpipe(BPIPE *bpipe);
 
 /* cram-md5.c */
-int cram_md5_get_auth(BSOCK *bs, char *password, int *tls_remote_need);
-int cram_md5_auth(BSOCK *bs, char *password, int tls_local_need);
-void hmac_md5(uint8_t* text, int text_len, uint8_t*  key,
-              int key_len, uint8_t *hmac);
+bool cram_md5_respond(BSOCK *bs, char *password, int *tls_remote_need, int *compatible);
+bool cram_md5_challenge(BSOCK *bs, char *password, int tls_local_need, int compatible);
+void hmac_md5(uint8_t* text, int text_len, uint8_t* key, int key_len, uint8_t *hmac);
 
 /* crc32.c */
 

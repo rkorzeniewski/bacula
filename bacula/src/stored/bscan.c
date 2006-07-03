@@ -695,7 +695,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       break;
 
    case STREAM_MD5_DIGEST:
-      bin_to_base64(digest, (char *)rec->data, CRYPTO_DIGEST_MD5_SIZE);
+      bin_to_base64(digest, sizeof(digest), (char *)rec->data, CRYPTO_DIGEST_MD5_SIZE, true);
       if (verbose > 1) {
          Pmsg1(000, _("Got MD5 record: %s\n"), digest);
       }
@@ -703,7 +703,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       break;
 
    case STREAM_SHA1_DIGEST:
-      bin_to_base64(digest, (char *)rec->data, CRYPTO_DIGEST_SHA1_SIZE);
+      bin_to_base64(digest, sizeof(digest), (char *)rec->data, CRYPTO_DIGEST_SHA1_SIZE, true);
       if (verbose > 1) {
          Pmsg1(000, _("Got SHA1 record: %s\n"), digest);
       }
@@ -711,7 +711,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       break;
 
    case STREAM_SHA256_DIGEST:
-      bin_to_base64(digest, (char *)rec->data, CRYPTO_DIGEST_SHA256_SIZE);
+      bin_to_base64(digest, sizeof(digest), (char *)rec->data, CRYPTO_DIGEST_SHA256_SIZE, true);
       if (verbose > 1) {
          Pmsg1(000, _("Got SHA256 record: %s\n"), digest);
       }
@@ -719,7 +719,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       break;
 
    case STREAM_SHA512_DIGEST:
-      bin_to_base64(digest, (char *)rec->data, CRYPTO_DIGEST_SHA512_SIZE);
+      bin_to_base64(digest, sizeof(digest), (char *)rec->data, CRYPTO_DIGEST_SHA512_SIZE, true);
       if (verbose > 1) {
          Pmsg1(000, _("Got SHA512 record: %s\n"), digest);
       }
