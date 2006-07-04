@@ -201,9 +201,12 @@ Distribution: %{_dist}
 %define python 0
 %{?build_python:%define python 1}
 
+%{expand: %%define gccver %(rpm -q gcc | cut -d - -f 2)}
+%{expand: %%define gccrel %(rpm -q gcc | cut -d - -f 3)}
+
 BuildRequires: gcc, gcc-c++, make, autoconf
 BuildRequires: atk-devel, ncurses-devel, pango-devel, perl
-BuildRequires: libstdc++-devel, libxml2-devel, zlib-devel
+BuildRequires: libstdc++-devel = %{gccver}-%{gccrel}, libxml2-devel, zlib-devel
 BuildRequires: openssl-devel
 %if %{python}
 BuildRequires: python, python-devel
@@ -793,7 +796,7 @@ export LDFLAGS="${LDFLAGS} -L/usr/lib64/mysql"
 %endif
 # this MAY be necessary for python support - waiting for feedback to enable
 #%if %{python} && %{x86_64}
-#export LDFLAGS="${LDFLAGS} -L/usr/lib64/python-%{pyver}"
+#export LDFLAGS="${LDFLAGS} -L/usr/lib64/python%{pyver}"
 #%endif
 
 %configure \
@@ -1529,6 +1532,8 @@ fi
 %endif
 
 %changelog
+* Tue Jul 04 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- add check to buildrequires to make sure libstdc++ version matches gcc
 * Mon Jul 03 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - add python build support
 - fix LDFLAGS declarations
