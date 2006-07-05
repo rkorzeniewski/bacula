@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Create two blank tapes
+# Cread fresh virtual disk changer directory
 #
 rm -rf tmp/disk-changer
 mkdir tmp/disk-changer
