@@ -1,4 +1,7 @@
 #!/bin/sh
+#
+# Setup for using the Virtual Disk Changer (simulates tape changer)
+#
 /bin/cp -f scripts/bacula-dir-tape.conf bin/bacula-dir.conf
 /bin/cp -f scripts/bacula-sd-2disk.conf bin/bacula-sd.conf
 /bin/cp -f scripts/test-bacula-fd.conf bin/bacula-fd.conf
@@ -7,4 +10,3 @@ outf="tmp/sed_tmp"
 echo "s%# Autochanger = yes%  Autochanger = yes%g" >${outf}
 cp bin/bacula-dir.conf tmp/1
 sed -f ${outf} tmp/1 >bin/bacula-dir.conf
-

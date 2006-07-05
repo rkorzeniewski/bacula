@@ -11,10 +11,6 @@ JobName=Inc2disk
 set_debug 0
 
 . config.out
-if test x${AUTOCHANGER} = x/dev/null ; then
-   echo "incremental-2disk test skipped. No autochanger."
-   exit
-fi
 
 stop_bacula
 cd bin

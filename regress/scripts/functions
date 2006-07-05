@@ -115,7 +115,9 @@ end_test()
    else
       echo "  ===== $TestName Bacula source OK `date +%R:%S` ===== "
       echo "  ===== $TestName OK `date +%R:%S` ===== " >>test.out
-      scripts/cleanup
+      if test "$debug" -eq 0 ; then
+         scripts/cleanup
+      fi
    fi
 }
 

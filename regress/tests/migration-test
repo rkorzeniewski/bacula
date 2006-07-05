@@ -1,0 +1,62 @@
+#!/bin/sh
+#
+# Run a simple backup of the Bacula build directory then migrate it
+#   to another device.
+#
+# This script uses the virtual disk autochanger
+#
+TestName="migration-test"
+JobName=MigrationSave
+. scripts/functions
+set_debug 1
+
+. config.out
+
+scripts/copy-migration-confs
+scripts/prepare-two-disks
+scripts/cleanup
+echo "${cwd}/build" >/tmp/file-list
+
+change_jobname NightlySave $JobName
+start_test
+
+#
+# Note, we first backup into Pool Default, then Migrate into
+#  Pool Full.  Pool Default uses Storage=File
+#              Pool Full    uses Storage=DiskChanger
+
+# Write out bconsole commands
+cat <<END_OF_DATA >tmp/bconcmds
+@$out /dev/null
+messages
+@$out tmp/log1.out
+label storage=File volume=FileVolume001 Pool=Default
+label storage=DiskChanger volume=ChangerVolume001 slot=1 Pool=Full drive=0
+label storage=DiskChanger volume=ChangerVolume002 slot=2 Pool=Full drive=0
+list volumes
+run job=$JobName yes
+list volumes
+run job=migrate
+list volumes
+@# 
+@# now do a restore
+@#
+@$out tmp/log2.out
+restore where=${cwd}/tmp/bacula-restores select storage=DiskChanger
+unmark *
+mark *
+done
+yes
+wait
+messages
+@output
+quit
+END_OF_DATA
+
+run_bacula
+check_for_zombie_jobs storage=File
+stop_bacula
+
+check_two_logs
+check_restore_diff
+end_test
