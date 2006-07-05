@@ -75,7 +75,7 @@ bool do_mac(JCR *jcr)
       goto bail_out;
    }
 
-   Dmsg3(200, "Found %d volumes names for %s. First=%s\n", jcr->NumVolumes,
+   Dmsg3(000, "Found %d volumes names for %s. First=%s\n", jcr->NumVolumes,
       jcr->VolList->VolumeName, Type);
 
    /* Ready devices for reading and writing */
@@ -161,10 +161,12 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    char buf1[100], buf2[100];
    int32_t stream;   
    
+   /* We want to write SOS_LABEL and EOS_LABEL */
    switch (rec->FileIndex) {                        
    case PRE_LABEL:
    case VOL_LABEL:
    case EOT_LABEL:
+   case EOM_LABEL:
       return true;                    /* don't write vol labels */
    }
    rec->VolSessionId = jcr->VolSessionId;
@@ -189,6 +191,8 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    jcr->JobBytes += rec->data_len;   /* increment bytes this job */
    if (rec->FileIndex > 0) {
       jcr->JobFiles = rec->FileIndex;
+   } else {
+      return ok;                      /* don't send LABELs to Dir */
    }
    Dmsg4(850, "write_record FI=%s SessId=%d Strm=%s len=%d\n",
       FI_to_ascii(buf1, rec->FileIndex), rec->VolSessionId,

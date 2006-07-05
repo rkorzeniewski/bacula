@@ -35,7 +35,7 @@ const char *client_backups =
    " WHERE Client.Name='%s'"
    " AND FileSet='%s'"
    " AND Client.ClientId=Job.ClientId"
-   " AND JobStatus='T'"
+   " AND JobStatus='T' AND Type='B'" 
    " AND JobMedia.JobId=Job.JobId AND JobMedia.MediaId=Media.MediaId"
    " AND Job.FileSetId=FileSet.FileSetId"
    " ORDER BY Job.StartTime";
@@ -114,9 +114,7 @@ const char *select_backup_del =
    "(DelCandidates.JobStatus!='T'))) OR "
    "(Job.JobTDate>%s "
    "AND Job.ClientId=%s "
-   "AND Job.Type='B' "
-   "AND Job.Level='F' "
-   "AND Job.JobStatus='T' "
+   "AND Job.Level='F' AND Job.JobStatus='T' AND Job.Type='B' "
    "AND Job.FileSetId=DelCandidates.FileSetId)";
 
 /* Select Jobs from the DelCandidates table that have a
@@ -129,9 +127,7 @@ const char *select_verify_del =
    "WHERE (Job.JobTdate<%s AND DelCandidates.JobStatus!='T') OR "
    "(Job.JobTDate>%s "
    "AND Job.ClientId=%s "
-   "AND Job.Type='V' "
-   "AND Job.Level='V' "
-   "AND Job.JobStatus='T' "
+   "AND Job.Type='V' AND Job.Level='V' AND Job.JobStatus='T' "
    "AND Job.FileSetId=DelCandidates.FileSetId)";
 
 
@@ -251,7 +247,7 @@ const char *uar_last_full =
    "FROM Client,Job,JobMedia,Media,FileSet WHERE Client.ClientId=%s "
    "AND Job.ClientId=%s "
    "AND Job.StartTime<'%s' "
-   "AND Level='F' AND JobStatus='T' "
+   "AND Level='F' AND JobStatus='T' AND Type='B' "
    "AND JobMedia.JobId=Job.JobId "
    "AND JobMedia.MediaId=Media.MediaId "
    "AND Job.FileSetId=FileSet.FileSetId "
@@ -264,7 +260,7 @@ const char *uar_full =
    "Job.ClientId,Job.Level,Job.JobFiles,Job.JobBytes,"
    "StartTime,VolumeName,JobMedia.StartFile,VolSessionId,VolSessionTime "
    "FROM temp1,Job,JobMedia,Media WHERE temp1.JobId=Job.JobId "
-   "AND Level='F' AND JobStatus='T' "
+   "AND Level='F' AND JobStatus='T' AND Type='B' "
    "AND JobMedia.JobId=Job.JobId "
    "AND JobMedia.MediaId=Media.MediaId";
 
@@ -278,7 +274,7 @@ const char *uar_dif =
    "AND Job.ClientId=%s "
    "AND JobMedia.JobId=Job.JobId "
    "AND JobMedia.MediaId=Media.MediaId "
-   "AND Job.Level='D' AND JobStatus='T' "
+   "AND Job.Level='D' AND JobStatus='T' AND Type='B' "
    "AND Job.FileSetId=FileSet.FileSetId "
    "AND FileSet.FileSet='%s' "
    "%s"
@@ -294,7 +290,7 @@ const char *uar_inc =
    "AND Job.ClientId=%s "
    "AND JobMedia.JobId=Job.JobId "
    "AND JobMedia.MediaId=Media.MediaId "
-   "AND Job.Level='I' AND JobStatus='T' "
+   "AND Job.Level='I' AND JobStatus='T' AND Type='B' "
    "AND Job.FileSetId=FileSet.FileSetId "
    "AND FileSet.FileSet='%s' "
    "%s";

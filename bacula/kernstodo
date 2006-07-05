@@ -51,6 +51,33 @@ For 1.39:
      target slot. The catalog should be updated accordingly.
   .move transfer device=xxx fromslot=yyy toslot=zzz
 
+- Given all the problems with FIFOs, I think the solution is to do something a
+  little different, though I will look at the code and see if there is not some
+  simple solution (i.e. some bug that was introduced).  What might be a better
+  solution would be to use a FIFO as a sort of "key" to tell Bacula to read and
+  write data to a program rather than the FIFO.  For example, suppose you
+  create a FIFO named:
+
+     /home/kern/my-fifo
+
+  Then, I could imagine if you backup and restore this file with a direct
+  reference as is currently done for fifos, instead, during backup Bacula will
+  execute:
+
+    /home/kern/my-fifo.backup
+
+  and read the data that my-fifo.backup writes to stdout. For restore, Bacula
+  will execute:
+
+    /home/kern/my-fifo.restore
+
+  and send the data backed up to stdout. These programs can either be an
+  executable or a shell script and they need only read/write to stdin/stdout.
+
+  I think this would give a lot of flexibility to the user without making any
+  significant changes to Bacula.
+
+
 ==== SQL
 # get null file
 select FilenameId from Filename where Name='';

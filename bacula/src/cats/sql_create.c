@@ -28,6 +28,8 @@
 #include "bacula.h"
 #include "cats.h"
 
+static const int dbglevel = 500;
+
 #if    HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL
 
 /* -----------------------------------------------------------------------
@@ -673,8 +675,8 @@ int db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
 
    db_lock(mdb);
-   Dmsg1(300, "Fname=%s\n", ar->fname);
-   Dmsg0(500, "put_file_into_catalog\n");
+   Dmsg1(dbglevel, "Fname=%s\n", ar->fname);
+   Dmsg0(dbglevel, "put_file_into_catalog\n");
    /*
     * Make sure we have an acceptable attributes record.
     */
@@ -692,21 +694,21 @@ int db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    if (!db_create_filename_record(jcr, mdb, ar)) {
       goto bail_out;
    }
-   Dmsg1(500, "db_create_filename_record: %s\n", mdb->esc_name);
+   Dmsg1(dbglevel, "db_create_filename_record: %s\n", mdb->esc_name);
 
 
    if (!db_create_path_record(jcr, mdb, ar)) {
       goto bail_out;
    }
-   Dmsg1(500, "db_create_path_record: %s\n", mdb->esc_name);
+   Dmsg1(dbglevel, "db_create_path_record: %s\n", mdb->esc_name);
 
    /* Now create master File record */
    if (!db_create_file_record(jcr, mdb, ar)) {
       goto bail_out;
    }
-   Dmsg0(500, "db_create_file_record OK\n");
+   Dmsg0(dbglevel, "db_create_file_record OK\n");
 
-   Dmsg3(300, "CreateAttributes Path=%s File=%s FilenameId=%d\n", mdb->path, mdb->fname, ar->FilenameId);
+   Dmsg3(dbglevel, "CreateAttributes Path=%s File=%s FilenameId=%d\n", mdb->path, mdb->fname, ar->FilenameId);
    db_unlock(mdb);
    return 1;
 

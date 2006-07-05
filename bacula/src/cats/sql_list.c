@@ -252,10 +252,11 @@ db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
       if (jr->JobId == 0 && jr->Job[0] == 0) {
          Mmsg(mdb->cmd,
             "SELECT JobId,Job,Job.Name,PurgedFiles,Type,Level,"
-            "Job.ClientId,Client.Name,JobStatus,SchedTime,"
-            "StartTime,EndTime,JobTDate,"
+            "Job.ClientId,Client.Name as ClientName,JobStatus,SchedTime,"
+            "StartTime,EndTime,RealEndTime,JobTDate,"
             "VolSessionId,VolSessionTime,JobFiles,JobErrors,"
-            "JobMissingFiles,Job.PoolId,Pool.Name,Job.FileSetId,FileSet.FileSet "
+            "JobMissingFiles,Job.PoolId,Pool.Name as PooLname,PriorJobId,"
+            "Job.FileSetId,FileSet.FileSet "
             "FROM Job,Client,Pool,FileSet WHERE "
             "Client.ClientId=Job.ClientId AND Pool.PoolId=Job.PoolId "
             "AND FileSet.FileSetId=Job.FileSetId  ORDER BY StartTime%s", limit);
@@ -263,9 +264,10 @@ db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
          Mmsg(mdb->cmd,
             "SELECT JobId,Job,Job.Name,PurgedFiles,Type,Level,"
             "Job.ClientId,Client.Name,JobStatus,SchedTime,"
-            "StartTime,EndTime,JobTDate,"
+            "StartTime,EndTime,RealEndTime,JobTDate,"
             "VolSessionId,VolSessionTime,JobFiles,JobErrors,"
-            "JobMissingFiles,Job.PoolId,Pool.Name,Job.FileSetId,FileSet.FileSet "
+            "JobMissingFiles,Job.PoolId,Pool.Name as PooLname,PriorJobId,"
+            "Job.FileSetId,FileSet.FileSet "
             "FROM Job,Client,Pool,FileSet WHERE Job.JobId=%s AND "
             "Client.ClientId=Job.ClientId AND Pool.PoolId=Job.PoolId "
             "AND FileSet.FileSetId=Job.FileSetId", 

@@ -98,7 +98,7 @@ bool do_migration(JCR *jcr)
    char ed1[100];
    BSOCK *sd;
    JOB *job, *prev_job;
-   JCR *prev_jcr;
+   JCR *prev_jcr;                     /* newly migrated job */
 
    if (jcr->previous_jr.JobId == 0) {
       set_jcr_job_status(jcr, JS_Terminated);
@@ -106,7 +106,7 @@ bool do_migration(JCR *jcr)
       return true;                    /* no work */
    }
 
-   Dmsg4(000, "Previous:: Name=%s JobId=%d Type=%c Level=%c\n",
+   Dmsg4(000, "Previous: Name=%s JobId=%d Type=%c Level=%c\n",
       jcr->previous_jr.Name, jcr->previous_jr.JobId, 
       jcr->previous_jr.JobType, jcr->previous_jr.JobLevel);
 
@@ -137,9 +137,17 @@ bool do_migration(JCR *jcr)
    if (!setup_job(prev_jcr)) {
       return false;
    }
-   /* Set output PoolId and FileSetId. */
+
+   /* Now reset the job record from the previous job */
+   memcpy(&prev_jcr->jr, &jcr->previous_jr, sizeof(prev_jcr->jr));
+   /* Update the jr to reflect the new values of PoolId, FileSetId, and JobId. */
    prev_jcr->jr.PoolId = jcr->jr.PoolId;
    prev_jcr->jr.FileSetId = jcr->jr.FileSetId;
+   prev_jcr->jr.JobId = prev_jcr->JobId;
+
+   Dmsg4(000, "Prev_jcr: Name=%s JobId=%d Type=%c Level=%c\n",
+      prev_jcr->jr.Name, prev_jcr->jr.JobId, 
+      prev_jcr->jr.JobType, prev_jcr->jr.JobLevel);
 
    /*
     * Get the PoolId used with the original job. Then
@@ -192,11 +200,18 @@ bool do_migration(JCR *jcr)
    set_jcr_job_status(jcr, JS_Running);
    set_jcr_job_status(prev_jcr, JS_Running);
    Dmsg2(000, "JobId=%d JobLevel=%c\n", jcr->jr.JobId, jcr->jr.JobLevel);
+
+   /* Update job start record for this migration job */
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
       return false;
    }
 
+   Dmsg4(000, "Prev_jcr: Name=%s JobId=%d Type=%c Level=%c\n",
+      prev_jcr->jr.Name, prev_jcr->jr.JobId, 
+      prev_jcr->jr.JobType, prev_jcr->jr.JobLevel);
+
+   /* Update job start record for migrated job */
    if (!db_update_job_start_record(prev_jcr, prev_jcr->db, &prev_jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(prev_jcr->db));
       return false;
@@ -654,12 +669,18 @@ void migration_cleanup(JCR *jcr, int TermCode)
 
   
       update_job_end_record(prev_jcr);
-
+     
+      /* Update final items to set them to the previous job's values */
       Mmsg(query, "UPDATE Job SET StartTime='%s',EndTime='%s',"
                   "JobTDate=%s WHERE JobId=%s", 
          jcr->previous_jr.cStartTime, jcr->previous_jr.cEndTime, 
          edit_uint64(jcr->previous_jr.JobTDate, ec1),
          edit_uint64(prev_jcr->jr.JobId, ec2));
+      db_sql_query(prev_jcr->db, query.c_str(), NULL, NULL);
+
+      /* Now marke the previous job as migrated */
+      Mmsg(query, "UPDATE Job SET Type='%c' WHERE JobId=%s",
+           (char)JT_MIGRATED_JOB, edit_uint64(jcr->previous_jr.JobId, ec1));
       db_sql_query(prev_jcr->db, query.c_str(), NULL, NULL);
 
       if (!db_get_job_record(jcr, jcr->db, &jcr->jr)) {
