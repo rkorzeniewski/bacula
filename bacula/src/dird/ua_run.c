@@ -666,11 +666,9 @@ try_again:
       break;
    case JT_MIGRATE:
       jcr->JobLevel = L_FULL;      /* default level */
-      bsendmsg(ua, _("Run Restore job\n"
+      bsendmsg(ua, _("Run Migration job\n"
                      "JobName:       %s\n"
                      "Bootstrap:     %s\n"
-                     "Where:         %s\n"
-                     "Replace:       %s\n"
                      "FileSet:       %s\n"
                      "Client:        %s\n"
                      "Storage:       %s\n"
@@ -680,8 +678,6 @@ try_again:
                      "Priority:      %d\n"),
            job->hdr.name,
            NPRT(jcr->RestoreBootstrap),
-           jcr->where?jcr->where:NPRT(job->RestoreWhere),
-           replace,
            jcr->fileset->hdr.name,
            jcr->client->hdr.name,
            jcr->store->hdr.name,

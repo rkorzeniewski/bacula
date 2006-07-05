@@ -2,6 +2,8 @@
                         Kern Sibbald
 
 General:
+05Jul06
+- Migration fixes
 04Jul06
   ======================= Warning ==========================
      All hash codes in the database are now kept in world
