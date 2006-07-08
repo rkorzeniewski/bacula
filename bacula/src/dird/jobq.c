@@ -465,11 +465,11 @@ void *jobq_server(void *arg)
          if (jcr->acquired_resource_locks) {
             if (jcr->rstore) {
                jcr->rstore->NumConcurrentJobs = 0;
-               Dmsg1(000, "Dec rncj=%d\n", jcr->rstore->NumConcurrentJobs);
+               Dmsg1(200, "Dec rncj=%d\n", jcr->rstore->NumConcurrentJobs);
             }
             if (jcr->wstore) {
                jcr->wstore->NumConcurrentJobs--;
-               Dmsg1(000, "Dec wncj=%d\n", jcr->wstore->NumConcurrentJobs);
+               Dmsg1(200, "Dec wncj=%d\n", jcr->wstore->NumConcurrentJobs);
             }
             jcr->client->NumConcurrentJobs--;
             jcr->job->NumConcurrentJobs--;
@@ -667,16 +667,16 @@ static bool acquire_resources(JCR *jcr)
 
    jcr->acquired_resource_locks = false;
    if (jcr->rstore) {
-      Dmsg1(000, "Rstore=%s\n", jcr->rstore->name());
+      Dmsg1(200, "Rstore=%s\n", jcr->rstore->name());
       /* 
        * Let only one Restore/verify job run at a time regardless
        *   of MaxConcurrentJobs.
        */ 
       if (jcr->rstore->NumConcurrentJobs == 0) {
          jcr->rstore->NumConcurrentJobs = 1;
-         Dmsg0(000, "Set rncj=1\n");
+         Dmsg0(200, "Set rncj=1\n");
       } else {
-         Dmsg1(000, "Fail rncj=%d\n", jcr->rstore->NumConcurrentJobs);
+         Dmsg1(200, "Fail rncj=%d\n", jcr->rstore->NumConcurrentJobs);
          set_jcr_job_status(jcr, JS_WaitStoreRes);
          return false;
       }
@@ -687,16 +687,16 @@ static bool acquire_resources(JCR *jcr)
           jcr->wstore->NumConcurrentJobs < jcr->wstore->MaxConcurrentJobs) {
          /* Simple case, first job */
          jcr->wstore->NumConcurrentJobs = 1;
-         Dmsg0(000, "Set wncj=1\n");
+         Dmsg0(200, "Set wncj=1\n");
       } else if (jcr->wstore->NumConcurrentJobs < jcr->wstore->MaxConcurrentJobs) {
          jcr->wstore->NumConcurrentJobs++;
-         Dmsg1(000, "Inc wncj=%d\n", jcr->wstore->NumConcurrentJobs);
+         Dmsg1(200, "Inc wncj=%d\n", jcr->wstore->NumConcurrentJobs);
       } else if (jcr->rstore) {
          jcr->rstore->NumConcurrentJobs = 0;      /* back out rstore */
-         Dmsg1(000, "Fail wncj=%d\n", jcr->wstore->NumConcurrentJobs);
+         Dmsg1(200, "Fail wncj=%d\n", jcr->wstore->NumConcurrentJobs);
          skip_this_jcr = true;
       } else {
-         Dmsg1(000, "Fail wncj=%d\n", jcr->wstore->NumConcurrentJobs);
+         Dmsg1(200, "Fail wncj=%d\n", jcr->wstore->NumConcurrentJobs);
          skip_this_jcr = true;
       }
    }
@@ -711,11 +711,11 @@ static bool acquire_resources(JCR *jcr)
       /* Back out previous locks */
       if (jcr->wstore) {
          jcr->wstore->NumConcurrentJobs--;
-         Dmsg1(000, "Dec wncj=%d\n", jcr->wstore->NumConcurrentJobs);
+         Dmsg1(200, "Dec wncj=%d\n", jcr->wstore->NumConcurrentJobs);
       }
       if (jcr->rstore) {
          jcr->rstore->NumConcurrentJobs = 0;
-         Dmsg1(000, "Dec rncj=%d\n", jcr->rstore->NumConcurrentJobs);
+         Dmsg1(200, "Dec rncj=%d\n", jcr->rstore->NumConcurrentJobs);
       }
       set_jcr_job_status(jcr, JS_WaitClientRes);
       return false;
@@ -726,11 +726,11 @@ static bool acquire_resources(JCR *jcr)
       /* Back out previous locks */
       if (jcr->wstore) {
          jcr->wstore->NumConcurrentJobs--;
-         Dmsg1(000, "Dec wncj=%d\n", jcr->wstore->NumConcurrentJobs);
+         Dmsg1(200, "Dec wncj=%d\n", jcr->wstore->NumConcurrentJobs);
       }
       if (jcr->rstore) {
          jcr->rstore->NumConcurrentJobs = 0;
-         Dmsg1(000, "Dec rncj=%d\n", jcr->rstore->NumConcurrentJobs);
+         Dmsg1(200, "Dec rncj=%d\n", jcr->rstore->NumConcurrentJobs);
       }
       jcr->client->NumConcurrentJobs--;
       set_jcr_job_status(jcr, JS_WaitJobRes);
