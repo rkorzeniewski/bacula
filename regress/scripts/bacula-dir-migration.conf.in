@@ -48,12 +48,28 @@ Job {
   FileSet="Full Set"
   Messages = Standard
   Storage = DiskChanger
-  Write Bootstrap = "@working_dir@/migrate.bsr"
+  Write Bootstrap = "@working_dir@/migratejob.bsr"
   Pool = Default
   Maximum Concurrent Jobs = 4
   Selection Type = Job 
   Selection Pattern = ".*Save"
 }
+
+Job {
+  Name = "migrate-volume"
+  Type = Migrate
+  Level = Full
+  Client=@hostname@-fd 
+  FileSet="Full Set"
+  Messages = Standard
+  Storage = DiskChanger
+  Write Bootstrap = "@working_dir@/migratevol.bsr"
+  Pool = Default
+  Maximum Concurrent Jobs = 4
+  Selection Type = Volume
+  Selection Pattern = "File*"
+}
+
 
 # Standard Restore template, to be changed by Console program
 Job {

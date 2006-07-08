@@ -5,10 +5,10 @@
 #
 # This script uses the virtual disk autochanger
 #
-TestName="migration-job-test"
-JobName=MigrationJobSave
+TestName="migration-volume-test"
+JobName=MigrationVolSave
 . scripts/functions
-set_debug 0
+set_debug 1
 
 . config.out
 
@@ -39,9 +39,10 @@ list volumes
 run job=$JobName yes
 run job=$JobName yes
 wait
+update volume=FileVolume001 VolStatus=Used
 list volumes
 @# should migrate two jobs
-run job=migrate yes
+run job=migrate-volume yes
 list volumes
 wait
 messages
@@ -66,4 +67,5 @@ stop_bacula
 
 check_two_logs
 check_restore_diff
+exit
 end_test
