@@ -2,7 +2,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2005 Kern Sibbald
+   Copyright (C) 2005-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License

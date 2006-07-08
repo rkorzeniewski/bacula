@@ -615,38 +615,65 @@ bail_out:
 /*
  * Drop to privilege new userid and new gid if non-NULL
  */
-void drop(char *uid, char *gid)
+void drop(char *uname, char *gname)
 {
-#ifdef HAVE_GRP_H
-   if (gid) {
-      struct group *group;
-      gid_t gr_list[1];
+#if   defined(HAVE_PWD_H) && defined(HAVE_GRP_H)
+   struct passwd *passw = NULL;
+   struct group *group = NULL;
+   gid_t gid;
 
-      if ((group = getgrnam(gid)) == NULL) {
-         Emsg1(M_ERROR_TERM, 0, _("Could not find specified group: %s\n"), gid);
+   Dmsg2(900, "uname=%s gname=%s\n", uname?uname:"NONE", gname?gname:"NONE");
+   if (!uname && !gname) {
+      return;                            /* Nothing to do */
+   }
+
+   if (uname) {
+      if ((passw = getpwnam(uname)) == NULL) {
+         berrno be;
+         Emsg2(M_ERROR_TERM, 0, _("Could not find userid=%s: ERR=%s\n"), uname,
+            be.strerror());
       }
+   } else {
+      if ((passw = getpwuid(getuid())) == NULL) {
+         berrno be;
+         Emsg1(M_ERROR_TERM, 0, _("Could not find password entry. ERR=%s\n"),
+            be.strerror());
+      } else {
+         uname = passw->pw_name;
+      }
+   }
+   if (gname) {
+      if ((group = getgrnam(gname)) == NULL) {
+         berrno be;
+         Emsg2(M_ERROR_TERM, 0, _("Could not find group=%s: ERR=%s\n"), gname,
+            be.strerror());
+      }
+      gid = group->gr_gid;
+   } else {
+      gid = passw->pw_gid;
+   }
+   if (initgroups(passw->pw_name, passw->pw_gid)) {
+      berrno be;
+      if (gname) {
+         Emsg3(M_ERROR_TERM, 0, _("Could not initgroups for group=%s, userid=%s: ERR=%s\n"),         
+            gname, uname, be.strerror());
+      } else {
+         Emsg2(M_ERROR_TERM, 0, _("Could not initgroups for userid=%s: ERR=%s\n"),         
+            uname, be.strerror());
+      }
+   }
+   if (gname) {
       if (setgid(group->gr_gid)) {
-         Emsg1(M_ERROR_TERM, 0, _("Could not set specified group: %s\n"), gid);
-      }
-      gr_list[0] = group->gr_gid;
-      if (setgroups(1, gr_list)) {
-         Emsg1(M_ERROR_TERM, 0, _("Could not set specified group: %s\n"), gid);
+         berrno be;
+         Emsg2(M_ERROR_TERM, 0, _("Could not set group=%s: ERR=%s\n"), gname,
+            be.strerror());
       }
    }
-#endif
-
-#ifdef HAVE_PWD_H
-   if (uid) {
-      struct passwd *passw;
-      if ((passw = getpwnam(uid)) == NULL) {
-         Emsg1(M_ERROR_TERM, 0, _("Could not find specified userid: %s\n"), uid);
-      }
-      if (setuid(passw->pw_uid)) {
-         Emsg1(M_ERROR_TERM, 0, _("Could not set specified userid: %s\n"), uid);
-      }
+   if (setuid(passw->pw_uid)) {
+      berrno be;
+      Emsg1(M_ERROR_TERM, 0, _("Could not set specified userid: %s\n"), uname);
    }
 #endif
-
 }
 
 

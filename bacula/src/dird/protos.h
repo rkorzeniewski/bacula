@@ -175,6 +175,7 @@ RUN *find_next_run(RUN *run, JOB *job, time_t &runtime, int ndays);
 
 /* ua_restore.c */
 int get_next_jobid_from_list(char **p, JobId_t *JobId);
+void find_storage_resource(UAContext *ua, RESTORE_CTX &rx, char *Storage, char *MediaType);
 
 /* ua_server.c */
 void bsendmsg(void *sock, const char *fmt, ...);

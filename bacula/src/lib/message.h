@@ -5,22 +5,17 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -105,16 +100,18 @@ typedef struct s_dest {
 } DEST;
 
 /* Message Destination values for dest field of DEST */
-#define MD_SYSLOG    1                /* send msg to syslog */
-#define MD_MAIL      2                /* email group of messages */
-#define MD_FILE      3                /* write messages to a file */
-#define MD_APPEND    4                /* append messages to a file */
-#define MD_STDOUT    5                /* print messages */
-#define MD_STDERR    6                /* print messages to stderr */
-#define MD_DIRECTOR  7                /* send message to the Director */
-#define MD_OPERATOR  8                /* email a single message to the operator */
-#define MD_CONSOLE   9                /* send msg to UserAgent or console */
-#define MD_MAIL_ON_ERROR 10           /* email messages if job errors */
+enum {
+   MD_SYSLOG = 1,                     /* send msg to syslog */
+   MD_MAIL,                           /* email group of messages */
+   MD_FILE,                           /* write messages to a file */
+   MD_APPEND,                         /* append messages to a file */
+   MD_STDOUT,                         /* print messages */
+   MD_STDERR,                         /* print messages to stderr */
+   MD_DIRECTOR,                       /* send message to the Director */
+   MD_OPERATOR,                       /* email a single message to the operator */
+   MD_CONSOLE,                        /* send msg to UserAgent or console */
+   MD_MAIL_ON_ERROR                   /* email messages if job errors */
+};
 
 /* Queued message item */
 struct MQUEUE_ITEM {

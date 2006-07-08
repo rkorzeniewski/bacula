@@ -310,6 +310,9 @@ static bool bootstrap_cmd(JCR *jcr)
    return get_bootstrap_file(jcr, jcr->file_bsock);
 }
 
+static pthread_mutex_t bsr_mutex = PTHREAD_MUTEX_INITIALIZER;
+static uint32_t bsr_uniq = 0;
+
 bool get_bootstrap_file(JCR *jcr, BSOCK *sock)
 {
    POOLMEM *fname = get_pool_memory(PM_FNAME);
@@ -320,8 +323,11 @@ bool get_bootstrap_file(JCR *jcr, BSOCK *sock)
       unlink(jcr->RestoreBootstrap);
       free_pool_memory(jcr->RestoreBootstrap);
    }
-   Mmsg(fname, "%s/%s.%s.bootstrap", me->working_directory, me->hdr.name,
-      jcr->Job);
+   P(bsr_mutex);
+   bsr_uniq++;
+   Mmsg(fname, "%s/%s.%s.%d.bootstrap", me->working_directory, me->hdr.name,
+      jcr->Job, bsr_uniq);
+   V(bsr_mutex);
    Dmsg1(400, "bootstrap=%s\n", fname);
    jcr->RestoreBootstrap = fname;
    bs = fopen(fname, "a+b");           /* create file */

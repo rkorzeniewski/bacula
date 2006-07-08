@@ -75,7 +75,7 @@ bool do_mac(JCR *jcr)
       goto bail_out;
    }
 
-   Dmsg3(000, "Found %d volumes names for %s. First=%s\n", jcr->NumVolumes,
+   Dmsg3(200, "Found %d volumes names for %s. First=%s\n", jcr->NumVolumes,
       jcr->VolList->VolumeName, Type);
 
    /* Ready devices for reading and writing */

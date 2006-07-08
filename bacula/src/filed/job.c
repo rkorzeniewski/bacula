@@ -993,6 +993,9 @@ static void free_bootstrap(JCR *jcr)
 }
 
 
+static pthread_mutex_t bsr_mutex = PTHREAD_MUTEX_INITIALIZER;
+static uint32_t bsr_uniq = 0;
+
 /* 
  * The Director sends us the bootstrap file, which
  *   we will in turn pass to the SD.
@@ -1004,8 +1007,11 @@ static int bootstrap_cmd(JCR *jcr)
    FILE *bs;
 
    free_bootstrap(jcr);
-   Mmsg(fname, "%s/%s.%s.bootstrap", me->working_directory, me->hdr.name,
-      jcr->Job);
+   P(bsr_mutex);
+   bsr_uniq++;
+   Mmsg(fname, "%s/%s.%s.%d.bootstrap", me->working_directory, me->hdr.name,
+      jcr->Job, bsr_uniq);
+   V(bsr_mutex);
    Dmsg1(400, "bootstrap=%s\n", fname);
    jcr->RestoreBootstrap = fname;
    bs = fopen(fname, "a+b");           /* create file */
