@@ -56,6 +56,8 @@ bool do_restore(JCR *jcr)
    BSOCK   *fd;
    JOB_DBR rjr;                       /* restore job record */
 
+   free_wstorage(jcr);                /* we don't write */
+
    memset(&rjr, 0, sizeof(rjr));
    jcr->jr.JobLevel = L_FULL;         /* Full restore */
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
@@ -95,7 +97,7 @@ bool do_restore(JCR *jcr)
    /*
     * Now start a job with the Storage daemon
     */
-   if (!start_storage_daemon_job(jcr, jcr->storage, NULL)) {
+   if (!start_storage_daemon_job(jcr, jcr->rstorage, NULL)) {
       restore_cleanup(jcr, JS_ErrorTerminated);
       return false;
    }
@@ -129,10 +131,10 @@ bool do_restore(JCR *jcr)
     *   then wait for File daemon to make connection
     *   with Storage daemon.
     */
-   if (jcr->store->SDDport == 0) {
-      jcr->store->SDDport = jcr->store->SDport;
+   if (jcr->rstore->SDDport == 0) {
+      jcr->rstore->SDDport = jcr->rstore->SDport;
    }
-   bnet_fsend(fd, storaddr, jcr->store->address, jcr->store->SDDport);
+   bnet_fsend(fd, storaddr, jcr->rstore->address, jcr->rstore->SDDport);
    Dmsg1(6, "dird>filed: %s\n", fd->msg);
    if (!response(jcr, fd, OKstore, "Storage", DISPLAY_ERROR)) {
       restore_cleanup(jcr, JS_ErrorTerminated);
@@ -191,6 +193,7 @@ bool do_restore(JCR *jcr)
 
 bool do_restore_init(JCR *jcr) 
 {
+   free_wstorage(jcr);
    return true;
 }
 

@@ -123,7 +123,7 @@ void catalog_request(JCR *jcr, BSOCK *bs)
       ok = db_get_pool_record(jcr, jcr->db, &pr);
       if (ok) {
          mr.PoolId = pr.PoolId;
-         mr.StorageId = jcr->store->StorageId;
+         mr.StorageId = jcr->wstore->StorageId;
          ok = find_next_volume_for_append(jcr, &mr, index, true /*permit create new vol*/);
          Dmsg3(100, "find_media idx=%d ok=%d vol=%s\n", index, ok, mr.VolumeName);
       }
@@ -162,7 +162,7 @@ void catalog_request(JCR *jcr, BSOCK *bs)
              */
             if (mr.PoolId != jcr->jr.PoolId) {
                reason = _("not in Pool");
-            } else if (strcmp(mr.MediaType, jcr->store->media_type) != 0) {
+            } else if (strcmp(mr.MediaType, jcr->wstore->media_type) != 0) {
                reason = _("not correct MediaType");
             } else {
                /*
@@ -255,8 +255,8 @@ void catalog_request(JCR *jcr, BSOCK *bs)
       mr.VolWriteTime = sdmr.VolWriteTime;
       mr.VolParts     = sdmr.VolParts;
       bstrncpy(mr.VolStatus, sdmr.VolStatus, sizeof(mr.VolStatus));
-      if (jcr->store->StorageId) {
-         mr.StorageId = jcr->store->StorageId;
+      if (jcr->wstore->StorageId) {
+         mr.StorageId = jcr->wstore->StorageId;
       }
 
       Dmsg2(400, "db_update_media_record. Stat=%s Vol=%s\n", mr.VolStatus, mr.VolumeName);

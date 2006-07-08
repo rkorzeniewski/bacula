@@ -321,9 +321,9 @@ int run_cmd(UAContext *ua, const char *cmd)
    }
    if (!job) {
       return 0;
-   } else if (!acl_access_ok(ua, Job_ACL, job->hdr.name)) {
+   } else if (!acl_access_ok(ua, Job_ACL, job->name())) {
       bsendmsg(ua, _("No authorization. Job \"%s\".\n"),
-         job->hdr.name);
+         job->name());
       return 0;
    }
 
@@ -340,12 +340,12 @@ int run_cmd(UAContext *ua, const char *cmd)
    }
    if (!store) {
       return 1;
-   } else if (!acl_access_ok(ua, Storage_ACL, store->hdr.name)) {
+   } else if (!acl_access_ok(ua, Storage_ACL, store->name())) {
       bsendmsg(ua, _("No authorization. Storage \"%s\".\n"),
-               store->hdr.name);
+               store->name());
       return 0;
    }
-   Dmsg1(800, "Using storage=%s\n", store->hdr.name);
+   Dmsg1(800, "Using storage=%s\n", store->name());
 
    if (pool_name) {
       pool = (POOL *)GetResWithName(R_POOL, pool_name);
@@ -360,12 +360,12 @@ int run_cmd(UAContext *ua, const char *cmd)
    }
    if (!pool) {
       return 0;
-   } else if (!acl_access_ok(ua, Pool_ACL, pool->hdr.name)) {
+   } else if (!acl_access_ok(ua, Pool_ACL, pool->name())) {
       bsendmsg(ua, _("No authorization. Pool \"%s\".\n"),
-               pool->hdr.name);
+               pool->name());
       return 0;
    }
-   Dmsg1(800, "Using pool\n", pool->hdr.name);
+   Dmsg1(800, "Using pool\n", pool->name());
 
    if (client_name) {
       client = (CLIENT *)GetResWithName(R_CLIENT, client_name);
@@ -380,12 +380,12 @@ int run_cmd(UAContext *ua, const char *cmd)
    }
    if (!client) {
       return 0;
-   } else if (!acl_access_ok(ua, Client_ACL, client->hdr.name)) {
+   } else if (!acl_access_ok(ua, Client_ACL, client->name())) {
       bsendmsg(ua, _("No authorization. Client \"%s\".\n"),
-               client->hdr.name);
+               client->name());
       return 0;
    }
-   Dmsg1(800, "Using client=%s\n", client->hdr.name);
+   Dmsg1(800, "Using client=%s\n", client->name());
 
    if (fileset_name) {
       fileset = (FILESET *)GetResWithName(R_FILESET, fileset_name);
@@ -398,9 +398,9 @@ int run_cmd(UAContext *ua, const char *cmd)
    }
    if (!fileset) {
       return 0;
-   } else if (!acl_access_ok(ua, FileSet_ACL, fileset->hdr.name)) {
+   } else if (!acl_access_ok(ua, FileSet_ACL, fileset->name())) {
       bsendmsg(ua, _("No authorization. FileSet \"%s\".\n"),
-               fileset->hdr.name);
+               fileset->name());
       return 0;
    }
 
@@ -434,7 +434,7 @@ int run_cmd(UAContext *ua, const char *cmd)
 
    jcr->verify_job = verify_job;
    jcr->previous_job = previous_job;
-   set_storage(jcr, store);
+   set_rwstorage(jcr, store);
    jcr->client = client;
    jcr->fileset = fileset;
    jcr->pool = pool;
@@ -539,10 +539,10 @@ try_again:
 "When:     %s\n"
 "Priority: %d\n"),
                  _("Admin"),
-                 job->hdr.name,
-                 jcr->fileset->hdr.name,
-                 NPRT(jcr->client->hdr.name),
-                 NPRT(jcr->store->hdr.name),
+                 job->name(),
+                 jcr->fileset->name(),
+                 NPRT(jcr->client->name()),
+                 NPRT(jcr->wstore->name()),
                  bstrutime(dt, sizeof(dt), jcr->sched_time),
                  jcr->JobPriority);
       jcr->JobLevel = L_FULL;
@@ -560,18 +560,18 @@ try_again:
 "When:     %s\n"
 "Priority: %d\n"),
                  _("Backup"),
-                 job->hdr.name,
-                 jcr->fileset->hdr.name,
+                 job->name(),
+                 jcr->fileset->name(),
                  level_to_str(jcr->JobLevel),
-                 jcr->client->hdr.name,
-                 jcr->store->hdr.name,
-                 NPRT(jcr->pool->hdr.name),
+                 jcr->client->name(),
+                 jcr->wstore->name(),
+                 NPRT(jcr->pool->name()),
                  bstrutime(dt, sizeof(dt), jcr->sched_time),
                  jcr->JobPriority);
       } else {  /* JT_VERIFY */
          const char *Name;
          if (jcr->verify_job) {
-            Name = jcr->verify_job->hdr.name;
+            Name = jcr->verify_job->name();
          } else {
             Name = "";
          }
@@ -593,12 +593,12 @@ try_again:
 "When:        %s\n"
 "Priority:    %d\n"),
               _("Verify"),
-              job->hdr.name,
-              jcr->fileset->hdr.name,
+              job->name(),
+              jcr->fileset->name(),
               level_to_str(jcr->JobLevel),
-              jcr->client->hdr.name,
-              jcr->store->hdr.name,
-              NPRT(jcr->pool->hdr.name),
+              jcr->client->name(),
+              jcr->rstore->name(),
+              NPRT(jcr->pool->name()),
               Name,
               verify_list,
               bstrutime(dt, sizeof(dt), jcr->sched_time),
@@ -630,15 +630,15 @@ try_again:
                         "When:       %s\n"
                         "Catalog:    %s\n"
                         "Priority:   %d\n"),
-              job->hdr.name,
+              job->name(),
               NPRT(jcr->RestoreBootstrap),
               jcr->where?jcr->where:NPRT(job->RestoreWhere),
               replace,
-              jcr->fileset->hdr.name,
-              jcr->client->hdr.name,
-              jcr->store->hdr.name,
+              jcr->fileset->name(),
+              jcr->client->name(),
+              jcr->rstore->name(),
               bstrutime(dt, sizeof(dt), jcr->sched_time),
-              jcr->catalog->hdr.name,
+              jcr->catalog->name(),
               jcr->JobPriority);
       } else {
          bsendmsg(ua, _("Run Restore job\n"
@@ -652,15 +652,15 @@ try_again:
                        "When:       %s\n"
                        "Catalog:    %s\n"
                        "Priority:   %d\n"),
-              job->hdr.name,
+              job->name(),
               NPRT(jcr->RestoreBootstrap),
               jcr->where?jcr->where:NPRT(job->RestoreWhere),
               replace,
-              jcr->client->hdr.name,
-              jcr->store->hdr.name,
+              jcr->client->name(),
+              jcr->rstore->name(),
               jcr->RestoreJobId==0?"*None*":edit_uint64(jcr->RestoreJobId, ec1),
               bstrutime(dt, sizeof(dt), jcr->sched_time),
-              jcr->catalog->hdr.name,
+              jcr->catalog->name(),
               jcr->JobPriority);
       }
       break;
@@ -676,14 +676,14 @@ try_again:
                      "When:          %s\n"
                      "Catalog:       %s\n"
                      "Priority:      %d\n"),
-           job->hdr.name,
+           job->name(),
            NPRT(jcr->RestoreBootstrap),
-           jcr->fileset->hdr.name,
-           jcr->client->hdr.name,
-           jcr->store->hdr.name,
+           jcr->fileset->name(),
+           jcr->client->name(),
+           jcr->wstore->name(),
            jcr->MigrateJobId==0?"*None*":edit_uint64(jcr->MigrateJobId, ec1),
            bstrutime(dt, sizeof(dt), jcr->sched_time),
-           jcr->catalog->hdr.name,
+           jcr->catalog->name(),
            jcr->JobPriority);
       break;
    default:
@@ -785,7 +785,7 @@ try_again:
          /* Storage */
          store = select_storage_resource(ua);
          if (store) {
-            set_storage(jcr, store);
+            set_rwstorage(jcr, store);
             goto try_again;
          }
          break;

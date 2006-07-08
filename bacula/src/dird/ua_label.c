@@ -165,7 +165,7 @@ void update_slots(UAContext *ua)
    if (!store) {
       return;
    }
-   set_storage(ua->jcr, store);
+   set_wstorage(ua->jcr, store);
    drive = get_storage_drive(ua, store);
 
    scan = find_arg(ua, NT_("scan")) >= 0;
@@ -317,7 +317,7 @@ static int do_label(UAContext *ua, const char *cmd, int relabel)
    if (!store) {
       return 1;
    }
-   set_storage(ua->jcr, store);
+   set_wstorage(ua->jcr, store);
    drive = get_storage_drive(ua, store);
 
    if (label_barcodes) {
@@ -463,7 +463,7 @@ checkName:
  */
 static void label_from_barcodes(UAContext *ua, int drive)
 {
-   STORE *store = ua->jcr->store;
+   STORE *store = ua->jcr->wstore;
    POOL_DBR pr;
    MEDIA_DBR mr, omr;
    vol_list_t *vl, *vol_list = NULL;
@@ -633,7 +633,7 @@ static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
    if (!(sd=open_sd_bsock(ua))) {
       return false;
    }
-   bstrncpy(dev_name, ua->jcr->store->dev_name(), sizeof(dev_name));
+   bstrncpy(dev_name, ua->jcr->wstore->dev_name(), sizeof(dev_name));
    bash_spaces(dev_name);
    bash_spaces(mr->VolumeName);
    bash_spaces(mr->MediaType);
@@ -672,7 +672,7 @@ static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
       if (media_record_exists) {      /* we update it */
          mr->VolBytes = 1;
          mr->InChanger = 1;
-         mr->StorageId = ua->jcr->store->StorageId;
+         mr->StorageId = ua->jcr->wstore->StorageId;
          if (!db_update_media_record(ua->jcr, ua->db, mr)) {
              bsendmsg(ua, "%s", db_strerror(ua->db));
              ok = false;
@@ -681,7 +681,7 @@ static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
          set_pool_dbr_defaults_in_media_dbr(mr, pr);
          mr->VolBytes = 1;               /* flag indicating Volume labeled */
          mr->InChanger = 1;
-         mr->StorageId = ua->jcr->store->StorageId;
+         mr->StorageId = ua->jcr->wstore->StorageId;
          mr->Enabled = 1;
          if (db_create_media_record(ua->jcr, ua->db, mr)) {
             bsendmsg(ua, _("Catalog record for Volume \"%s\", Slot %d  successfully created.\n"),
@@ -704,11 +704,11 @@ static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
 
 static BSOCK *open_sd_bsock(UAContext *ua)
 {
-   STORE *store = ua->jcr->store;
+   STORE *store = ua->jcr->wstore;
 
    if (!ua->jcr->store_bsock) {
       bsendmsg(ua, _("Connecting to Storage daemon %s at %s:%d ...\n"),
-         store->hdr.name, store->address, store->SDport);
+         store->name(), store->address, store->SDport);
       if (!connect_to_storage_daemon(ua->jcr, 10, SDConnectTimeout, 1)) {
          bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
          return NULL;
@@ -728,7 +728,7 @@ static void close_sd_bsock(UAContext *ua)
 
 static char *get_volume_name_from_SD(UAContext *ua, int Slot, int drive)
 {
-   STORE *store = ua->jcr->store;
+   STORE *store = ua->jcr->wstore;
    BSOCK *sd;
    char dev_name[MAX_NAME_LENGTH];
    char *VolName = NULL;
@@ -769,7 +769,7 @@ static char *get_volume_name_from_SD(UAContext *ua, int Slot, int drive)
  */
 static vol_list_t *get_vol_list_from_SD(UAContext *ua, bool scan)
 {
-   STORE *store = ua->jcr->store;
+   STORE *store = ua->jcr->wstore;
    char dev_name[MAX_NAME_LENGTH];
    BSOCK *sd;
    vol_list_t *vl;
@@ -882,7 +882,7 @@ static void free_vol_list(vol_list_t *vol_list)
  */
 static int get_num_slots_from_SD(UAContext *ua)
 {
-   STORE *store = ua->jcr->store;
+   STORE *store = ua->jcr->wstore;
    char dev_name[MAX_NAME_LENGTH];
    BSOCK *sd;
    int slots = 0;
@@ -914,7 +914,7 @@ static int get_num_slots_from_SD(UAContext *ua)
  */
 int get_num_drives_from_SD(UAContext *ua)
 {
-   STORE *store = ua->jcr->store;
+   STORE *store = ua->jcr->wstore;
    char dev_name[MAX_NAME_LENGTH];
    BSOCK *sd;
    int drives = 0;

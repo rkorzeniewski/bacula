@@ -4,6 +4,19 @@
 General:
 08Jul06
   ======================= Warning ==========================
+  Separate read and write storage in Jobs in the Director. This
+  is a major rewrite of some of the low level code and hence has
+  a high probability of introducing bugs.
+  ==========================================================
+
+- Move the job init code up to *before* the job is put into
+  the job queue (resource allocation queue). This permits the
+  job to establish whether it will read or write or do both.
+- Add name() methods to all the resource classes.
+- Implement separate read and write storage resource 
+  allocation/deallocation in jobq.c
+
+  ======================= Warning ==========================
   Implemented new method of getting the default Storage from the Media
   record rather than from the MediaType for restore.  As a fall
   back, if no Storage is defined, use the MediaType.  This

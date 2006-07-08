@@ -43,7 +43,7 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index, bool create)
    int retry = 0;
    bool ok;
    bool InChanger;
-   STORE *store = jcr->store;
+   STORE *store = jcr->wstore;
 
    bstrncpy(mr->MediaType, store->media_type, sizeof(mr->MediaType));
    Dmsg2(100, "CatReq FindMedia: PoolId=%d, MediaType=%s\n", (int)mr->PoolId, mr->MediaType);

@@ -157,54 +157,6 @@ bool setup_job(JCR *jcr)
       goto bail_out;
    }
 
-   Dmsg0(200, "Add jrc to work queue\n");
-   return true;
-
-bail_out:
-   return false;
-}
-
-
-/*
- * This is the engine called by jobq.c:jobq_add() when we were pulled
- *  from the work queue.
- *  At this point, we are running in our own thread and all
- *    necessary resources are allocated -- see jobq.c
- */
-static void *job_thread(void *arg)
-{
-   JCR *jcr = (JCR *)arg;
-
-   jcr->my_thread_id = pthread_self();
-   pthread_detach(jcr->my_thread_id);
-   sm_check(__FILE__, __LINE__, true);
-
-   Dmsg0(200, "=====Start Job=========\n");
-   jcr->start_time = time(NULL);      /* set the real start time */
-   jcr->jr.StartTime = jcr->start_time;
-
-   if (jcr->job->MaxStartDelay != 0 && jcr->job->MaxStartDelay <
-       (utime_t)(jcr->start_time - jcr->sched_time)) {
-      Jmsg(jcr, M_FATAL, 0, _("Job canceled because max start delay time exceeded.\n"));
-      set_jcr_job_status(jcr, JS_Canceled);
-   }
-
-   /* TODO : check if it is used somewhere */
-   if (jcr->job->RunScripts == NULL)
-   {
-      Dmsg0(200, "Warning, job->RunScripts is empty\n");
-      jcr->job->RunScripts = New(alist(10, not_owned_by_alist));
-   }
-
-   /*                                
-    * Note, we continue, even if the job is canceled above. This
-    *  will permit proper setting of the job start record and
-    *  the error (cancel) will be picked up below.
-    */
-
-   generate_job_event(jcr, "JobInit");
-   set_jcr_job_status(jcr, JS_Running);   /* this will be set only if no error */
-
 
    /*
     * Now, do pre-run stuff, like setting job level (Inc/diff, ...)
@@ -241,6 +193,47 @@ static void *job_thread(void *arg)
       Pmsg1(0, _("Unimplemented job type: %d\n"), jcr->JobType);
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       break;
+   }
+
+   generate_job_event(jcr, "JobInit");
+
+   Dmsg0(200, "Add jrc to work queue\n");
+   return true;
+
+bail_out:
+   return false;
+}
+
+
+/*
+ * This is the engine called by jobq.c:jobq_add() when we were pulled
+ *  from the work queue.
+ *  At this point, we are running in our own thread and all
+ *    necessary resources are allocated -- see jobq.c
+ */
+static void *job_thread(void *arg)
+{
+   JCR *jcr = (JCR *)arg;
+
+   jcr->my_thread_id = pthread_self();
+   pthread_detach(jcr->my_thread_id);
+   sm_check(__FILE__, __LINE__, true);
+
+   Dmsg0(200, "=====Start Job=========\n");
+   set_jcr_job_status(jcr, JS_Running);   /* this will be set only if no error */
+   jcr->start_time = time(NULL);      /* set the real start time */
+   jcr->jr.StartTime = jcr->start_time;
+
+   if (jcr->job->MaxStartDelay != 0 && jcr->job->MaxStartDelay <
+       (utime_t)(jcr->start_time - jcr->sched_time)) {
+      Jmsg(jcr, M_FATAL, 0, _("Job canceled because max start delay time exceeded.\n"));
+      set_jcr_job_status(jcr, JS_Canceled);
+   }
+
+   /* TODO : check if it is used somewhere */
+   if (jcr->job->RunScripts == NULL) {
+      Dmsg0(200, "Warning, job->RunScripts is empty\n");
+      jcr->job->RunScripts = New(alist(10, not_owned_by_alist));
    }
 
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
@@ -375,10 +368,18 @@ bool cancel_job(UAContext *ua, JCR *jcr)
 
       /* Cancel Storage daemon */
       if (jcr->store_bsock) {
-         if (!ua->jcr->storage) {
-            copy_storage(ua->jcr, jcr->storage, _("Job resource")); 
+         if (!ua->jcr->wstorage) {
+            if (jcr->rstorage) {
+               copy_wstorage(ua->jcr, jcr->rstorage, _("Job resource")); 
+            } else {
+               copy_wstorage(ua->jcr, jcr->wstorage, _("Job resource")); 
+            }
          } else {
-            set_storage(ua->jcr, jcr->store);
+            if (jcr->rstorage) {
+               set_wstorage(ua->jcr, jcr->rstore);
+            } else {
+               set_wstorage(ua->jcr, jcr->wstore);
+            }
          }
          if (!connect_to_storage_daemon(ua->jcr, 10, SDConnectTimeout, 1)) {
             bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
@@ -857,9 +858,8 @@ void dird_free_jcr(JCR *jcr)
    }
 
    /* Delete lists setup to hold storage pointers */
-   if (jcr->storage) {
-      delete jcr->storage;
-   }
+   free_rwstorage(jcr);
+
    jcr->job_end_push.destroy();
    Dmsg0(200, "End dird free_jcr\n");
 }
@@ -897,7 +897,7 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    }
    jcr->JobPriority = job->Priority;
    /* Copy storage definitions -- deleted in dir_free_jcr above */
-   copy_storage(jcr, job->storage, _("Job resource"));
+   copy_rwstorage(jcr, job->storage, _("Job resource"));
    jcr->client = job->client;
    if (!jcr->client_name) {
       jcr->client_name = get_pool_memory(PM_NAME);
@@ -942,43 +942,122 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    }
 }
 
+/* 
+ * Copy the storage definitions from an alist to the JCR
+ */
+void copy_rwstorage(JCR *jcr, alist *storage, const char *where)
+{
+   copy_rstorage(jcr, storage, where);
+   copy_wstorage(jcr, storage, where);
+}
+
+
+/* Set storage override */
+void set_rwstorage(JCR *jcr, STORE *store)
+{
+   set_rstorage(jcr, store);
+   set_wstorage(jcr, store);
+}
+
+void free_rwstorage(JCR *jcr)
+{
+   free_rstorage(jcr);
+   free_wstorage(jcr);
+}
 
 /* 
  * Copy the storage definitions from an alist to the JCR
  */
-void copy_storage(JCR *jcr, alist *storage, const char *where)
+void copy_rstorage(JCR *jcr, alist *storage, const char *where)
 {
    if (storage) {
       STORE *st;
-      if (jcr->storage) {
-         delete jcr->storage;
+      if (jcr->rstorage) {
+         delete jcr->rstorage;
       }
-      jcr->storage = New(alist(10, not_owned_by_alist));
+      jcr->rstorage = New(alist(10, not_owned_by_alist));
       foreach_alist(st, storage) {
-         jcr->storage->append(st);
+         jcr->rstorage->append(st);
       }
       pm_strcpy(jcr->storage_source, where);
    }               
-   if (jcr->storage) {
-      jcr->store = (STORE *)jcr->storage->first();
+   if (jcr->rstorage) {
+      jcr->rstore = (STORE *)jcr->rstorage->first();
    }
 }
 
 
 /* Set storage override */
-void set_storage(JCR *jcr, STORE *store)
+void set_rstorage(JCR *jcr, STORE *store)
 {
    STORE *storage;
 
-   jcr->store = store;
-   foreach_alist(storage, jcr->storage) {
+   jcr->rstore = store;
+   foreach_alist(storage, jcr->rstorage) {
       if (store == storage) {
          return;
       }
    }
    /* Store not in list, so add it */
-   jcr->storage->prepend(store);
+   jcr->rstorage->prepend(store);
 }
+
+void free_rstorage(JCR *jcr)
+{
+   if (jcr->rstorage) {
+      delete jcr->rstorage;
+      jcr->rstorage = NULL;
+   }
+   jcr->rstore = NULL;
+}
+
+/* 
+ * Copy the storage definitions from an alist to the JCR
+ */
+void copy_wstorage(JCR *jcr, alist *storage, const char *where)
+{
+   if (storage) {
+      STORE *st;
+      if (jcr->wstorage) {
+         delete jcr->wstorage;
+      }
+      jcr->wstorage = New(alist(10, not_owned_by_alist));
+      foreach_alist(st, storage) {
+         jcr->wstorage->append(st);
+      }
+      pm_strcpy(jcr->storage_source, where);
+   }               
+   if (jcr->wstorage) {
+      jcr->wstore = (STORE *)jcr->wstorage->first();
+   }
+}
+
+
+/* Set storage override */
+void set_wstorage(JCR *jcr, STORE *store)
+{
+   STORE *storage;
+
+   jcr->wstore = store;
+   foreach_alist(storage, jcr->wstorage) {
+      if (store == storage) {
+         return;
+      }
+   }
+   /* Store not in list, so add it */
+   jcr->wstorage->prepend(store);
+}
+
+void free_wstorage(JCR *jcr)
+{
+   if (jcr->wstorage) {
+      delete jcr->wstorage;
+      jcr->wstorage = NULL;
+   }
+   jcr->wstore = NULL;
+}
+
+
 
 void create_clones(JCR *jcr)
 {

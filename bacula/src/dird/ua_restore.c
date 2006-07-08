@@ -178,19 +178,19 @@ int restore_cmd(UAContext *ua, const char *cmd)
       Mmsg(ua->cmd,
           "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s\""
           " where=\"%s\" files=%d catalog=\"%s\"",
-          job->hdr.name, rx.ClientName, rx.store?rx.store->hdr.name:"",
-          jcr->RestoreBootstrap, rx.where, rx.selected_files, ua->catalog->hdr.name);
+          job->name(), rx.ClientName, rx.store?rx.store->name():"",
+          jcr->RestoreBootstrap, rx.where, rx.selected_files, ua->catalog->name());
    } else {
       Mmsg(ua->cmd,
           "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s\""
           " files=%d catalog=\"%s\"",
-          job->hdr.name, rx.ClientName, rx.store?rx.store->hdr.name:"",
-          jcr->RestoreBootstrap, rx.selected_files, ua->catalog->hdr.name);
+          job->name(), rx.ClientName, rx.store?rx.store->name():"",
+          jcr->RestoreBootstrap, rx.selected_files, ua->catalog->name());
    }
    if (find_arg(ua, NT_("yes")) > 0) {
       pm_strcat(ua->cmd, " yes");    /* pass it on to the run command */
    }
-   Dmsg1(100, "Submitting: %s\n", ua->cmd);
+   Dmsg1(200, "Submitting: %s\n", ua->cmd);
    parse_ua_args(ua);
    run_cmd(ua, ua->cmd);
    free_rx(&rx);
@@ -1007,7 +1007,7 @@ static bool select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *dat
    if (rx->pool) {
       POOL_DBR pr;
       memset(&pr, 0, sizeof(pr));
-      bstrncpy(pr.Name, rx->pool->hdr.name, sizeof(pr.Name));
+      bstrncpy(pr.Name, rx->pool->name(), sizeof(pr.Name));
       if (db_get_pool_record(ua->jcr, ua->db, &pr)) {
          bsnprintf(pool_select, sizeof(pool_select), "AND Media.PoolId=%s ", 
             edit_int64(pr.PoolId, ed1));
@@ -1185,52 +1185,6 @@ static int fileset_handler(void *ctx, int num_fields, char **row)
    return 0;
 }
 
-#ifdef xxxx_needed 
-/*
- * Called here with each name to be added to the list. The name is
- *   added to the list if it is not already in the list.
- *
- * Used to make unique list of FileSets
- */
-static int unique_name_list_handler(void *ctx, int num_fields, char **row)
-{
-   NAME_LIST *name = (NAME_LIST *)ctx;
-
-   if (name->num_ids == MAX_ID_LIST_LEN) {
-      return 1;
-   }
-   if (name->num_ids == name->max_ids) {
-      if (name->max_ids == 0) {
-         name->max_ids = 1000;
-         name->name = (char **)bmalloc(sizeof(char *) * name->max_ids);
-      } else {
-         name->max_ids = (name->max_ids * 3) / 2;
-         name->name = (char **)brealloc(name->name, sizeof(char *) * name->max_ids);
-      }
-   }
-   for (int i=0; i<name->num_ids; i++) {
-      if (strcmp(name->name[i], row[0]) == 0) {
-         return 0;                    /* already in list, return */
-      }
-   }
-   /* Add new name to list */
-   name->name[name->num_ids++] = bstrdup(row[0]);
-   return 0;
-}
-
-
-/*
- * Print names in the list
- */
-static void print_name_list(UAContext *ua, NAME_LIST *name_list)
-{
-   for (int i=0; i < name_list->num_ids; i++) {
-      bsendmsg(ua, "%s\n", name_list->name[i]);
-   }
-}
-#endif
-
-
 /*
  * Free names in the list
  */
@@ -1252,6 +1206,7 @@ void find_storage_resource(UAContext *ua, RESTORE_CTX &rx, char *Storage, char *
    STORE *store;
 
    if (rx.store) {
+      Dmsg1(200, "Already have store=%s\n", rx.store->name());
       return;
    }
    /*
@@ -1259,8 +1214,8 @@ void find_storage_resource(UAContext *ua, RESTORE_CTX &rx, char *Storage, char *
     */
    LockRes();
    foreach_res(store, R_STORAGE) {
-      if (strcmp(Storage, store->hdr.name) == 0) {
-         if (acl_access_ok(ua, Storage_ACL, store->hdr.name)) {
+      if (strcmp(Storage, store->name()) == 0) {
+         if (acl_access_ok(ua, Storage_ACL, store->name())) {
             rx.store = store;
          }
          break;
@@ -1274,14 +1229,15 @@ void find_storage_resource(UAContext *ua, RESTORE_CTX &rx, char *Storage, char *
       int i = find_arg_with_value(ua, "storage");
       if (i > 0) {
          store = (STORE *)GetResWithName(R_STORAGE, ua->argv[i]);
-         if (store && !acl_access_ok(ua, Storage_ACL, store->hdr.name)) {
+         if (store && !acl_access_ok(ua, Storage_ACL, store->name())) {
             store = NULL;
          }
       }
       if (store && (store != rx.store)) {
          bsendmsg(ua, _("Warning default storage overridden by \"%s\" on command line.\n"),
-            store->hdr.name);
+            store->name());
          rx.store = store;
+         Dmsg1(200, "Set store=%s\n", rx.store->name());
       }
       return;
    }
@@ -1291,10 +1247,11 @@ void find_storage_resource(UAContext *ua, RESTORE_CTX &rx, char *Storage, char *
       LockRes();
       foreach_res(store, R_STORAGE) {
          if (strcmp(MediaType, store->media_type) == 0) {
-            if (acl_access_ok(ua, Storage_ACL, store->hdr.name)) {
+            if (acl_access_ok(ua, Storage_ACL, store->name())) {
                rx.store = store;
+               Dmsg1(200, "Set store=%s\n", rx.store->name());
                bsendmsg(ua, _("Storage \"%s\" not found, using Storage \"%s\" from MediaType \"%s\".\n"),
-                  Storage, store->hdr.name, MediaType);
+                  Storage, store->name(), MediaType);
             }
             UnlockRes();
             return;
@@ -1307,71 +1264,6 @@ void find_storage_resource(UAContext *ua, RESTORE_CTX &rx, char *Storage, char *
 
    /* Take command line arg, or ask user if none */
    rx.store = get_storage_resource(ua, false /* don't use default */);
+   Dmsg1(200, "Set store=%s\n", rx.store->name());
 
 }
-
-
-#ifdef xxxx_needed
-static void get_storage_from_mediatype(UAContext *ua, NAME_LIST *name_list, RESTORE_CTX *rx)
-{
-   STORE *store;
-
-   if (name_list->num_ids > 1) {
-      bsendmsg(ua, _("Warning, the JobIds that you selected refer to more than one MediaType.\n"
-         "Restore may not be possible. The MediaTypes used are:\n"));
-      print_name_list(ua, name_list);
-//    rx->store = select_storage_resource(ua);
-      return;
-   }
-
-   if (name_list->num_ids == 0) {
-      bsendmsg(ua, _("No MediaType found for your JobIds.\n"));
-      rx->store = select_storage_resource(ua);
-      return;
-   }
-   if (rx->store) {
-      return;
-   }
-   /*
-    * We have a single MediaType, look it up in our Storage resource
-    */
-   LockRes();
-   foreach_res(store, R_STORAGE) {
-      if (strcmp(name_list->name[0], store->media_type) == 0) {
-         if (acl_access_ok(ua, Storage_ACL, store->hdr.name)) {
-            rx->store = store;
-         }
-         break;
-      }
-   }
-   UnlockRes();
-
-   if (rx->store) {
-      /* Check if an explicit storage resource is given */
-      store = NULL;
-      int i = find_arg_with_value(ua, "storage");
-      if (i > 0) {
-         store = (STORE *)GetResWithName(R_STORAGE, ua->argv[i]);
-         if (store && !acl_access_ok(ua, Storage_ACL, store->hdr.name)) {
-            store = NULL;
-         }
-      }
-      if (store && (store != rx->store)) {
-         bsendmsg(ua, _("Warning default storage overridden by %s on command line.\n"),
-            store->hdr.name);
-         rx->store = store;
-      }
-      return;
-   }
-
-   /* Take command line arg, or ask user if none */
-   rx->store = get_storage_resource(ua, false /* don't use default */);
-
-   if (!rx->store) {
-      bsendmsg(ua, _("\nWarning. Unable to find Storage resource for\n"
-         "MediaType \"%s\", needed by the Jobs you selected.\n"
-         "You will be allowed to select a Storage device later.\n"),
-         name_list->name[0]);
-   }
-}
-#endif
