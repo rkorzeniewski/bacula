@@ -2,6 +2,24 @@
                         Kern Sibbald
 
 General:
+08Jul06
+  ======================= Warning ==========================
+  Implemented new method of getting the default Storage from the Media
+  record rather than from the MediaType for restore.  As a fall
+  back, if no Storage is defined, use the MediaType.  This
+  eliminates most all prompts if there are multiple MediaTypes
+  used. This is an important and fundamental change.
+  ==========================================================
+
+- Add more detail (Storage, Device) to list of volumes printed
+  for restore.
+- More code in migrate. In particular start multiple jobs if
+  migrating a volume.
+- Probably overkill, but ensure that the bsr is unique even within a 
+  job in FD and SD.
+- Rework bsys.c drop() so that it now should work as expected.
+- Update a bunch of old copyrights -- particularly in .h files.
+- Remove src/lib/bshm.c/h
 05Jul06
 - Migration fixes
 04Jul06
@@ -25,7 +43,6 @@ General:
 - Rename the cram_md5 routine names to be slightly more appropriate
   to what they are doing (challenge and respond).
 - Robert committed his #ifdef and header cleanup.
-
 30Jun06
 - Fix a complier warning in files/backup.c
 - Cleanup NOT NULL vs DEFALT 0 in database creation.
@@ -39,11 +56,11 @@ General:
 - Write install/uninstall of new manpages. There are now a
   pile of man pages. Some of which need a lot of work.
 
-  ============= Warning ==================================
+  ======================= Warning ==========================
      The --mandir ./configure option now points to the top level
      man directory.  The man files will be installed under
      mandir/man8 and mandir/man1 as appropriate.
-  ===========================================================
+  ==========================================================
 
 - Add complete text of GPL to LICENSE.
 - Implement job report that indicates where Storage and Pool
@@ -65,14 +82,19 @@ General:
 - Detect GCC correctly (I hope)
 - If using GCC (actually g++) add the following compiler flags
   -fno-strict-aliasing -fno-exceptions -fno-rtti
-- Turn on new bsnprintf() code.
+
+  ===================== Warning =============================
+  Turn on new bsnprintf() code.  This could cause print output
+  to look different.
+  ===========================================================
+
 - Fix crypto when not using openssl. I previously overlooked this.
 - Eliminate crypto type punning problems by eliminating void * and
   using uint8_t * instead.
 - Harden authentication failure in FD by single threading errors
   and forcing a 6 second wait.
 
-  ============= Warning ==================================
+  ===================== Warning =============================
        Removed  "Accept Any Volume" directive.
   ===========================================================
 

@@ -2,26 +2,21 @@
  *
  *   Version $Id$
  */
-
 /*
-   Copyright (C) 2000, 2001, 2002 Kern Sibbald and John Walker
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
+
 
 /*  Serialisation support functions from serial.c.  */
 
@@ -47,7 +42,7 @@ extern void unserial_string(uint8_t * * const ptr, char * const str);
 
 /*
 
-			 Serialisation Macros
+                         Serialisation Macros
 
     These macros use a uint8_t pointer, ser_ptr, which must be
     defined by the code which uses them.
@@ -66,7 +61,7 @@ extern void unserial_string(uint8_t * * const ptr, char * const str);
 #define unser_begin(x, s) ser_ptr = ((uint8_t *)(x))
 
 /*  ser_length  --  Determine length in bytes of serialised into a
-		    buffer x.  */
+                    buffer x.  */
 #define ser_length(x)  (ser_ptr - (uint8_t *)(x))
 #define unser_length(x)  (ser_ptr - (uint8_t *)(x))
 
@@ -75,7 +70,7 @@ extern void unserial_string(uint8_t * * const ptr, char * const str);
 #define unser_end(x, s)   ASSERT(ser_length(x) <= (s))
 
 /*  ser_check(x, s)  --  Verify length of serialised data in buffer x is
-			 expected length s.  */
+                         expected length s.  */
 #define ser_check(x, s) ASSERT(ser_length(x) == (s))
 
 /*                          Serialisation                   */

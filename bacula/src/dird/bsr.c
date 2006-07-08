@@ -84,7 +84,7 @@ static bool get_storage_device(char *device, char *storage)
  * We are called here once for each JobMedia record
  *  for each Volume.
  */
-static uint32_t write_findex(UAContext *ua, RBSR_FINDEX *fi,
+static uint32_t write_findex(RBSR_FINDEX *fi,
               int32_t FirstIndex, int32_t LastIndex, FILE *fd)
 {
    uint32_t count = 0;
@@ -194,7 +194,7 @@ bool complete_bsr(UAContext *ua, RBSR *bsr)
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static uint32_t uniq = 0;
 
-void make_unique_restore_filename(UAContext *ua, POOLMEM **fname)
+static void make_unique_restore_filename(UAContext *ua, POOL_MEM &fname)
 {
    JCR *jcr = ua->jcr;
    int i = find_arg_with_value(ua, "bootstrap");
@@ -211,7 +211,7 @@ void make_unique_restore_filename(UAContext *ua, POOLMEM **fname)
    if (jcr->RestoreBootstrap) {
       free(jcr->RestoreBootstrap);
    }
-   jcr->RestoreBootstrap = bstrdup(*fname);
+   jcr->RestoreBootstrap = bstrdup(fname.c_str());
 }
 
 /*
@@ -220,24 +220,30 @@ void make_unique_restore_filename(UAContext *ua, POOLMEM **fname)
 uint32_t write_bsr_file(UAContext *ua, RESTORE_CTX &rx)
 {
    FILE *fd;
-   POOLMEM *fname = get_pool_memory(PM_MESSAGE);
+   POOL_MEM fname(PM_MESSAGE);
+   POOL_MEM volmsg(PM_MESSAGE);
    uint32_t count = 0;;
    bool err;
    char *p;
    JobId_t JobId;
+   char Device[MAX_NAME_LENGTH];
 
-   make_unique_restore_filename(ua, &fname);
-   fd = fopen(fname, "w+b");
+   make_unique_restore_filename(ua, fname);
+   fd = fopen(fname.c_str(), "w+b");
    if (!fd) {
       berrno be;
       bsendmsg(ua, _("Unable to create bootstrap file %s. ERR=%s\n"),
-         fname, be.strerror());
+         fname.c_str(), be.strerror());
       goto bail_out;
    }
    /* Write them to file */
    count = write_bsr(ua, rx, fd);
    err = ferror(fd);
    fclose(fd);
+   if (count == 0) {
+      bsendmsg(ua, _("No files found to restore.\n"));
+      goto bail_out;
+   }
    if (err) {
       bsendmsg(ua, _("Error writing bsr file.\n"));
       count = 0;
@@ -245,11 +251,13 @@ uint32_t write_bsr_file(UAContext *ua, RESTORE_CTX &rx)
    }
 
 
-   bsendmsg(ua, _("Bootstrap records written to %s\n"), fname);
+   bsendmsg(ua, _("Bootstrap records written to %s\n"), fname.c_str());
 
    /* Tell the user what he will need to mount */
    bsendmsg(ua, "\n");
-   bsendmsg(ua, _("The job will require the following Volumes:\n"));
+   bsendmsg(ua, _("The job will require the following\n"
+                  "   Volume(s)                 Storage(s)                SD Device(s)\n"
+                  "===========================================================================\n"));
    /* Create Unique list of Volumes using prompt list */
    start_prompt(ua, "");
    if (*rx.JobIds) {
@@ -261,7 +269,13 @@ uint32_t write_bsr_file(UAContext *ua, RESTORE_CTX &rx)
             }
             for (int i=0; i < nbsr->VolCount; i++) {
                if (nbsr->VolParams[i].VolumeName[0]) {
-                  add_prompt(ua, nbsr->VolParams[i].VolumeName);
+                  if (!get_storage_device(Device, nbsr->VolParams[i].Storage)) {
+                     Device[0] = 0;
+                  }
+                  Mmsg(volmsg, "%-25.25s %-25.25s %-25.25s", 
+                       nbsr->VolParams[i].VolumeName, 
+                       nbsr->VolParams[i].Storage, Device);
+                  add_prompt(ua, volmsg.c_str());
                }
             }
          }
@@ -271,7 +285,13 @@ uint32_t write_bsr_file(UAContext *ua, RESTORE_CTX &rx)
       for (RBSR *nbsr=rx.bsr; nbsr; nbsr=nbsr->next) {
          for (int i=0; i < nbsr->VolCount; i++) {
             if (nbsr->VolParams[i].VolumeName[0]) {
-               add_prompt(ua, nbsr->VolParams[i].VolumeName);
+               if (!get_storage_device(Device, nbsr->VolParams[i].Storage)) {
+                  Device[0] = 0;
+               }
+               Mmsg(volmsg, "%-25.25s %-25.25s %-25.25s", 
+                    nbsr->VolParams[i].VolumeName, 
+                    nbsr->VolParams[i].Storage, Device);
+               add_prompt(ua, volmsg.c_str());
             }
          }
       }
@@ -288,7 +308,6 @@ uint32_t write_bsr_file(UAContext *ua, RESTORE_CTX &rx)
    bsendmsg(ua, "\n");
 
 bail_out:
-   free_pool_memory(fname);
    return count;
 }
 
@@ -322,6 +341,10 @@ static uint32_t write_bsr(UAContext *ua, RESTORE_CTX &rx, FILE *fd)
                bsr->VolParams[i].VolumeName[0] = 0;  /* zap VolumeName */
                continue;
             }
+            if (!rx.store) {
+               find_storage_resource(ua, rx, bsr->VolParams[i].Storage,
+                                             bsr->VolParams[i].MediaType);
+            }
             fprintf(fd, "Volume=\"%s\"\n", bsr->VolParams[i].VolumeName);
             fprintf(fd, "MediaType=\"%s\"\n", bsr->VolParams[i].MediaType);
             if (get_storage_device(device, bsr->VolParams[i].Storage)) {
@@ -347,7 +370,7 @@ static uint32_t write_bsr(UAContext *ua, RESTORE_CTX &rx, FILE *fd)
    //       Dmsg2(100, "bsr VolParam FI=%u LI=%u\n",
    //          bsr->VolParams[i].FirstIndex, bsr->VolParams[i].LastIndex);
 
-            count = write_findex(ua, bsr->fi, bsr->VolParams[i].FirstIndex,
+            count = write_findex(bsr->fi, bsr->VolParams[i].FirstIndex,
                                  bsr->VolParams[i].LastIndex, fd);
             if (count) {
                fprintf(fd, "Count=%u\n", count);
@@ -381,6 +404,10 @@ static uint32_t write_bsr(UAContext *ua, RESTORE_CTX &rx, FILE *fd)
                bsr->VolParams[i].VolumeName[0] = 0;  /* zap VolumeName */
                continue;
             }
+            if (!rx.store) {
+               find_storage_resource(ua, rx, bsr->VolParams[i].Storage,
+                                             bsr->VolParams[i].MediaType);
+            }
             fprintf(fd, "Volume=\"%s\"\n", bsr->VolParams[i].VolumeName);
             fprintf(fd, "MediaType=\"%s\"\n", bsr->VolParams[i].MediaType);
             if (get_storage_device(device, bsr->VolParams[i].Storage)) {
@@ -406,7 +433,7 @@ static uint32_t write_bsr(UAContext *ua, RESTORE_CTX &rx, FILE *fd)
    //       Dmsg2(100, "bsr VolParam FI=%u LI=%u\n",
    //          bsr->VolParams[i].FirstIndex, bsr->VolParams[i].LastIndex);
 
-            count = write_findex(ua, bsr->fi, bsr->VolParams[i].FirstIndex,
+            count = write_findex(bsr->fi, bsr->VolParams[i].FirstIndex,
                                  bsr->VolParams[i].LastIndex, fd);
             if (count) {
                fprintf(fd, "Count=%u\n", count);

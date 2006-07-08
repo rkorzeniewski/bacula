@@ -38,6 +38,8 @@
 #include <regex.h>
 #endif
 
+static const int dbglevel = 100;
+
 static char OKbootstrap[] = "3000 OK bootstrap\n";
 static bool get_job_to_migrate(JCR *jcr);
 struct idpkt;
@@ -79,9 +81,7 @@ bool do_migration_init(JCR *jcr)
       return false;
    }
 
-   if (!create_restore_bootstrap_file(jcr)) {
-      return false;
-   }
+   create_restore_bootstrap_file(jcr);
    return true;
 }
 
@@ -100,17 +100,17 @@ bool do_migration(JCR *jcr)
    JOB *job, *prev_job;
    JCR *prev_jcr;                     /* newly migrated job */
 
-   if (jcr->previous_jr.JobId == 0) {
+   if (jcr->previous_jr.JobId == 0 || jcr->ExpectedFiles == 0) {
       set_jcr_job_status(jcr, JS_Terminated);
       migration_cleanup(jcr, jcr->JobStatus);
       return true;                    /* no work */
    }
 
-   Dmsg4(000, "Previous: Name=%s JobId=%d Type=%c Level=%c\n",
+   Dmsg4(dbglevel, "Previous: Name=%s JobId=%d Type=%c Level=%c\n",
       jcr->previous_jr.Name, jcr->previous_jr.JobId, 
       jcr->previous_jr.JobType, jcr->previous_jr.JobLevel);
 
-   Dmsg4(000, "Current: Name=%s JobId=%d Type=%c Level=%c\n",
+   Dmsg4(dbglevel, "Current: Name=%s JobId=%d Type=%c Level=%c\n",
       jcr->jr.Name, jcr->jr.JobId, 
       jcr->jr.JobType, jcr->jr.JobLevel);
 
@@ -145,7 +145,7 @@ bool do_migration(JCR *jcr)
    prev_jcr->jr.FileSetId = jcr->jr.FileSetId;
    prev_jcr->jr.JobId = prev_jcr->JobId;
 
-   Dmsg4(000, "Prev_jcr: Name=%s JobId=%d Type=%c Level=%c\n",
+   Dmsg4(dbglevel, "Prev_jcr: Name=%s JobId=%d Type=%c Level=%c\n",
       prev_jcr->jr.Name, prev_jcr->jr.JobId, 
       prev_jcr->jr.JobType, prev_jcr->jr.JobLevel);
 
@@ -199,7 +199,7 @@ bool do_migration(JCR *jcr)
 
    set_jcr_job_status(jcr, JS_Running);
    set_jcr_job_status(prev_jcr, JS_Running);
-   Dmsg2(000, "JobId=%d JobLevel=%c\n", jcr->jr.JobId, jcr->jr.JobLevel);
+   Dmsg2(dbglevel, "JobId=%d JobLevel=%c\n", jcr->jr.JobId, jcr->jr.JobLevel);
 
    /* Update job start record for this migration job */
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
@@ -207,7 +207,7 @@ bool do_migration(JCR *jcr)
       return false;
    }
 
-   Dmsg4(000, "Prev_jcr: Name=%s JobId=%d Type=%c Level=%c\n",
+   Dmsg4(dbglevel, "Prev_jcr: Name=%s JobId=%d Type=%c Level=%c\n",
       prev_jcr->jr.Name, prev_jcr->jr.JobId, 
       prev_jcr->jr.JobType, prev_jcr->jr.JobLevel);
 
@@ -237,7 +237,7 @@ bool do_migration(JCR *jcr)
    /*
     * Now start a job with the Storage daemon
     */
-   Dmsg2(000, "Read store=%s, write store=%s\n", 
+   Dmsg2(dbglevel, "Read store=%s, write store=%s\n", 
       ((STORE *)prev_jcr->storage->first())->hdr.name,
       ((STORE *)jcr->storage->first())->hdr.name);
    if (!start_storage_daemon_job(jcr, prev_jcr->storage, jcr->storage)) {
@@ -289,7 +289,7 @@ static int dbid_handler(void *ctx, int num_fields, char **row)
 {
    idpkt *ids = (idpkt *)ctx;
 
-   Dmsg3(000, "count=%d Ids=%p %s\n", ids->count, ids->list, ids->list);
+   Dmsg3(dbglevel, "count=%d Ids=%p %s\n", ids->count, ids->list, ids->list);
    if (ids->count == 0) {
       ids->list[0] = 0;
    } else {
@@ -322,7 +322,7 @@ static int unique_name_handler(void *ctx, int num_fields, char **row)
    
    memset(new_item, 0, sizeof(uitem));
    new_item->item = bstrdup(row[0]);
-   Dmsg1(000, "Item=%s\n", row[0]);
+   Dmsg1(dbglevel, "Item=%s\n", row[0]);
    item = (uitem *)list->binary_insert((void *)new_item, item_compare);
    if (item != new_item) {            /* already in list */
       free(new_item->item);
@@ -423,12 +423,12 @@ static bool get_job_to_migrate(JCR *jcr)
    idpkt ids;
 
    ids.list = get_pool_memory(PM_MESSAGE);
-   Dmsg1(000, "list=%p\n", ids.list);
+   Dmsg1(dbglevel, "list=%p\n", ids.list);
    ids.list[0] = 0;
    ids.count = 0;
 
    if (jcr->MigrateJobId != 0) {
-      Dmsg1(000, "previous jobid=%u\n", jcr->MigrateJobId);
+      Dmsg1(000, "At Job start previous jobid=%u\n", jcr->MigrateJobId);
       edit_uint64(jcr->MigrateJobId, ids.list);
       ids.count = 1;
    } else {
@@ -439,14 +439,12 @@ static bool get_job_to_migrate(JCR *jcr)
          } 
          break;
       case MT_CLIENT:
-         if (!regex_find_jobids(jcr, &ids, sql_client, 
-              sql_jobids_from_client, "Client")) {
+         if (!regex_find_jobids(jcr, &ids, sql_client, sql_jobids_from_client, "Client")) {
             goto bail_out;
          } 
          break;
       case MT_VOLUME:
-         if (!regex_find_jobids(jcr, &ids, sql_vol, 
-             sql_jobids_from_vol, "Volume")) {
+         if (!regex_find_jobids(jcr, &ids, sql_vol, sql_jobids_from_vol, "Volume")) {
             goto bail_out;
          } 
          break;
@@ -455,7 +453,7 @@ static bool get_job_to_migrate(JCR *jcr)
             Jmsg(jcr, M_FATAL, 0, _("No Migration SQL selection pattern specified.\n"));
             goto bail_out;
          }
-         Dmsg1(000, "SQL=%s\n", jcr->job->selection_pattern);
+         Dmsg1(dbglevel, "SQL=%s\n", jcr->job->selection_pattern);
          if (!db_sql_query(jcr->db, jcr->job->selection_pattern,
               dbid_handler, (void *)&ids)) {
             Jmsg(jcr, M_FATAL, 0,
@@ -489,12 +487,31 @@ static bool get_job_to_migrate(JCR *jcr)
       }
    }
 
+   /*
+    * Loop over all jobids except the last one, sending
+    *  them to start_migration_job(), which will start a job
+    *  for each of them.  For the last JobId, we handle it below.
+    */
    p = ids.list;
+   for (int i=1; i < (int)ids.count; i++) {
+      JobId = 0;
+      stat = get_next_jobid_from_list(&p, &JobId);
+      Dmsg2(000, "get_next_jobid stat=%d JobId=%u\n", stat, JobId);
+      jcr->MigrateJobId = JobId;
+      start_migration_job(jcr);
+      if (stat < 0) {
+         Jmsg(jcr, M_FATAL, 0, _("Invalid JobId found.\n"));
+         goto bail_out;
+      } else if (stat == 0) {
+         Jmsg(jcr, M_INFO, 0, _("No JobIds found to migrate.\n"));
+         goto ok_out;
+      }
+   }
+   
+   /* Now get the last JobId and handle it in the current job */
    JobId = 0;
    stat = get_next_jobid_from_list(&p, &JobId);
-   Dmsg2(000, "get_next_jobid stat=%d JobId=%u\n", stat, JobId);
-   jcr->MigrateJobId = JobId;
-   start_migration_job(jcr);
+   Dmsg2(000, "Last get_next_jobid stat=%d JobId=%u\n", stat, JobId);
    if (stat < 0) {
       Jmsg(jcr, M_FATAL, 0, _("Invalid JobId found.\n"));
       goto bail_out;
@@ -502,9 +519,9 @@ static bool get_job_to_migrate(JCR *jcr)
       Jmsg(jcr, M_INFO, 0, _("No JobIds found to migrate.\n"));
       goto ok_out;
    }
-   
+
    jcr->previous_jr.JobId = JobId;
-   Dmsg1(000, "Previous jobid=%d\n", jcr->previous_jr.JobId);
+   Dmsg1(100, "Previous jobid=%d\n", jcr->previous_jr.JobId);
 
    if (!db_get_job_record(jcr, jcr->db, &jcr->previous_jr)) {
       Jmsg(jcr, M_FATAL, 0, _("Could not get job record for JobId %s to migrate. ERR=%s"),
@@ -531,10 +548,10 @@ static void start_migration_job(JCR *jcr)
    ua->batch = true;
    Mmsg(ua->cmd, "run %s jobid=%s", jcr->job->hdr.name, 
         edit_uint64(jcr->MigrateJobId, ed1));
-   Dmsg1(000, "=============== Migration cmd=%s\n", ua->cmd);
+   Dmsg1(dbglevel, "=============== Migration cmd=%s\n", ua->cmd);
    parse_ua_args(ua);                 /* parse command */
-// int stat = run_cmd(ua, ua->cmd);
-   int stat = (int)jcr->MigrateJobId;
+   int stat = run_cmd(ua, ua->cmd);
+// int stat = (int)jcr->MigrateJobId;
    if (stat == 0) {
       Jmsg(jcr, M_ERROR, 0, _("Could not start migration job.\n"));
    } else {
@@ -561,7 +578,7 @@ static bool regex_find_jobids(JCR *jcr, idpkt *ids, const char *query1,
          type);
       goto bail_out;
    }
-   Dmsg1(000, "regex=%s\n", jcr->job->selection_pattern);
+   Dmsg1(dbglevel, "regex=%s\n", jcr->job->selection_pattern);
    /* Compile regex expression */
    rc = regcomp(&preg, jcr->job->selection_pattern, REG_EXTENDED);
    if (rc != 0) {
@@ -572,7 +589,7 @@ static bool regex_find_jobids(JCR *jcr, idpkt *ids, const char *query1,
    }
    /* Basic query for names */
    Mmsg(query, query1, jcr->pool->hdr.name);
-   Dmsg1(000, "query1=%s\n", query.c_str());
+   Dmsg1(dbglevel, "query1=%s\n", query.c_str());
    if (!db_sql_query(jcr->db, query.c_str(), unique_name_handler, 
         (void *)item_chain)) {
       Jmsg(jcr, M_FATAL, 0,
@@ -584,11 +601,11 @@ static bool regex_find_jobids(JCR *jcr, idpkt *ids, const char *query1,
       const int nmatch = 30;
       regmatch_t pmatch[nmatch];
       if (last_item) {
-         Dmsg1(000, "Remove item %s\n", last_item->item);
+         Dmsg1(dbglevel, "Remove item %s\n", last_item->item);
          free(last_item->item);
          item_chain->remove(last_item);
       }
-      Dmsg1(000, "Jobitem=%s\n", item->item);
+      Dmsg1(dbglevel, "Item=%s\n", item->item);
       rc = regexec(&preg, item->item, nmatch, pmatch,  0);
       if (rc == 0) {
          last_item = NULL;   /* keep this one */
@@ -598,7 +615,7 @@ static bool regex_find_jobids(JCR *jcr, idpkt *ids, const char *query1,
    }
    if (last_item) {
       free(last_item->item);
-      Dmsg1(000, "Remove item %s\n", last_item->item);
+      Dmsg1(dbglevel, "Remove item %s\n", last_item->item);
       item_chain->remove(last_item);
    }
    regfree(&preg);
@@ -609,9 +626,9 @@ static bool regex_find_jobids(JCR *jcr, idpkt *ids, const char *query1,
     */
    ids->count = 0;
    foreach_dlist(item, item_chain) {
-      Dmsg1(000, "Got Job: %s\n", item->item);
+      Dmsg2(dbglevel, "Got %s: %s\n", type, item->item);
       Mmsg(query, query2, item->item, jcr->pool->hdr.name);
-      Dmsg1(000, "query2=%s\n", query.c_str());
+      Dmsg1(dbglevel, "query2=%s\n", query.c_str());
       if (!db_sql_query(jcr->db, query.c_str(), dbid_handler, (void *)ids)) {
          Jmsg(jcr, M_FATAL, 0,
               _("SQL failed. ERR=%s\n"), db_strerror(jcr->db));
@@ -623,9 +640,9 @@ static bool regex_find_jobids(JCR *jcr, idpkt *ids, const char *query1,
    }
    ok = true;
 bail_out:
-   Dmsg2(000, "Count=%d Jobids=%s\n", ids->count, ids->list);
+   Dmsg2(dbglevel, "Count=%d Jobids=%s\n", ids->count, ids->list);
    delete item_chain;
-   Dmsg0(000, "After delete item_chain\n");
+   Dmsg0(dbglevel, "After delete item_chain\n");
    return ok;
 }
 
