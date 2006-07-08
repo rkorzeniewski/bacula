@@ -140,13 +140,25 @@ PyObject *job_getattr(PyObject *self, char *attrname)
          goto bail_out;
       }
    case 6:                            /* Pool */
-      return Py_BuildValue(getvars[i].fmt, jcr->pool->hdr.name);
+      return Py_BuildValue(getvars[i].fmt, jcr->pool->name());
    case 7:                            /* Storage */
-      return Py_BuildValue(getvars[i].fmt, jcr->store->hdr.name);
+      if (jcr->wstore) {
+         return Py_BuildValue(getvars[i].fmt, jcr->wstore->name());
+      } else if (jcr->rstore) {
+         return Py_BuildValue(getvars[i].fmt, jcr->rstore->name());
+      } else {
+         goto bail_out;
+      }
    case 8:
-      return Py_BuildValue(getvars[i].fmt, jcr->catalog->hdr.name);
+      return Py_BuildValue(getvars[i].fmt, jcr->catalog->name());
    case  9:                           /* MediaType */
-      return Py_BuildValue(getvars[i].fmt, jcr->store->media_type);
+      if (jcr->wstore) {
+         return Py_BuildValue(getvars[i].fmt, jcr->wstore->media_type);
+      } else if (jcr->rstore) {
+         return Py_BuildValue(getvars[i].fmt, jcr->rstore->media_type);
+      } else {
+         goto bail_out;
+      }
    case 10:                           /* JobName */
       return Py_BuildValue(getvars[i].fmt, jcr->Job);
    case 11:                           /* JobStatus */

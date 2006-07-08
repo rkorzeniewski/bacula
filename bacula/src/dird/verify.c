@@ -57,6 +57,8 @@ bool do_verify_init(JCR *jcr)
    JobId_t verify_jobid = 0;
    const char *Name;
 
+   free_wstorage(jcr);                   /* we don't write */
+
    memset(&jcr->previous_jr, 0, sizeof(jcr->previous_jr));
 
    Dmsg1(9, "bdird: created client %s record\n", jcr->client->hdr.name);
@@ -171,7 +173,7 @@ bool do_verify(JCR *jcr)
       /*
        * Now start a job with the Storage daemon
        */
-      if (!start_storage_daemon_job(jcr, jcr->storage, NULL)) {
+      if (!start_storage_daemon_job(jcr, jcr->rstorage, NULL)) {
          return false;
       }
       if (!bnet_fsend(jcr->store_bsock, "run")) {
@@ -224,10 +226,10 @@ bool do_verify(JCR *jcr)
       /*
        * send Storage daemon address to the File daemon
        */
-      if (jcr->store->SDDport == 0) {
-         jcr->store->SDDport = jcr->store->SDport;
+      if (jcr->rstore->SDDport == 0) {
+         jcr->rstore->SDDport = jcr->rstore->SDport;
       }
-      bnet_fsend(fd, storaddr, jcr->store->address, jcr->store->SDDport);
+      bnet_fsend(fd, storaddr, jcr->rstore->address, jcr->rstore->SDDport);
       if (!response(jcr, fd, OKstore, "Storage", DISPLAY_ERROR)) {
          return false;
       }

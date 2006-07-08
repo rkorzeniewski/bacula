@@ -49,6 +49,8 @@ static char EndJob[]     = "2800 End Job TermCode=%d JobFiles=%u "
 bool do_backup_init(JCR *jcr)
 {
 
+   free_rstorage(jcr);                   /* we don't read so release */
+
    if (!get_or_create_fileset_record(jcr)) {
       return false;
    }
@@ -66,14 +68,16 @@ bool do_backup_init(JCR *jcr)
    }
 
    /* If pool storage specified, use it instead of job storage */
-   copy_storage(jcr, jcr->pool->storage, _("Pool resource"));
+   copy_wstorage(jcr, jcr->pool->storage, _("Pool resource"));
 
-   if (!jcr->storage) {
+   if (!jcr->wstorage) {
       Jmsg(jcr, M_FATAL, 0, _("No Storage specification found in Job or Pool.\n"));
       return false;
    }
 
    create_clones(jcr);                /* run any clone jobs */
+
+   Dmsg2(000, "rstore=%p wstore=%p\n", jcr->rstore, jcr->wstore);
 
    return true;
 }
@@ -121,7 +125,7 @@ bool do_backup(JCR *jcr)
    /*
     * Now start a job with the Storage daemon
     */
-   if (!start_storage_daemon_job(jcr, NULL, jcr->storage)) {
+   if (!start_storage_daemon_job(jcr, NULL, jcr->wstorage)) {
       return false;
    }
 
@@ -168,7 +172,7 @@ bool do_backup(JCR *jcr)
    /*
     * send Storage daemon address to the File daemon
     */
-   store = jcr->store;
+   store = jcr->wstore;
    if (store->SDDport == 0) {
       store->SDDport = store->SDport;
    }
@@ -448,10 +452,10 @@ void backup_cleanup(JCR *jcr, int TermCode)
         jcr->jr.JobId,
         jcr->jr.Job,
         level_to_str(jcr->JobLevel), jcr->since,
-        jcr->client->hdr.name, cr.Uname,
-        jcr->fileset->hdr.name, jcr->FSCreateTime,
-        jcr->pool->hdr.name, jcr->pool_source,
-        jcr->store->hdr.name, jcr->storage_source,
+        jcr->client->name(), cr.Uname,
+        jcr->fileset->name(), jcr->FSCreateTime,
+        jcr->pool->name(), jcr->pool_source,
+        jcr->wstore->name(), jcr->storage_source,
         schedt,
         sdt,
         edt,

@@ -79,7 +79,7 @@ static int job_item(JCR *jcr, int code,
 
    switch (code) {
    case 1:                            /* Job */
-      str = jcr->job->hdr.name;
+      str = jcr->job->name();
       break;
    case 2:                            /* Director's name */
       str = my_name;
@@ -95,7 +95,7 @@ static int job_item(JCR *jcr, int code,
       str = buf;
       break;
    case 6:                            /* Client */
-      str = jcr->client->hdr.name;
+      str = jcr->client->name();
       if (!str) {
          str = " ";
       }
@@ -105,16 +105,24 @@ static int job_item(JCR *jcr, int code,
       str = buf;
       break;
    case 8:                            /* Pool */
-      str = jcr->pool->hdr.name;
+      str = jcr->pool->name();
       break;
    case 9:                            /* Storage */
-      str = jcr->store->hdr.name;
+      if (jcr->wstore) {
+         str = jcr->wstore->name();
+      } else {
+         str = jcr->rstore->name();
+      }
       break;
    case 10:                           /* Catalog */
-      str = jcr->catalog->hdr.name;
+      str = jcr->catalog->name();
       break;
    case 11:                           /* MediaType */
-      str = jcr->store->media_type;
+      if (jcr->wstore) {
+         str = jcr->wstore->media_type;
+      } else {
+         str = jcr->rstore->media_type;
+      }
       break;
    case 12:                           /* JobName */
       str = jcr->Job;
@@ -200,7 +208,7 @@ static var_rc_t lookup_counter_var(var_t *ctx, void *my_ctx,
    buf[var_len] = 0;
    LockRes();
    for (COUNTER *counter=NULL; (counter = (COUNTER *)GetNextRes(R_COUNTER, (RES *)counter)); ) {
-      if (strcmp(counter->hdr.name, buf) == 0) {
+      if (strcmp(counter->name(), buf) == 0) {
          Dmsg2(100, "Counter=%s val=%d\n", buf, counter->CurrentValue);
          /* -1 => return size of array */
         if (var_index == -1) {
@@ -225,19 +233,19 @@ static var_rc_t lookup_counter_var(var_t *ctx, void *my_ctx,
                COUNTER_DBR cr;
                JCR *jcr = (JCR *)my_ctx;
                memset(&cr, 0, sizeof(cr));
-               bstrncpy(cr.Counter, counter->hdr.name, sizeof(cr.Counter));
+               bstrncpy(cr.Counter, counter->name(), sizeof(cr.Counter));
                cr.MinValue = counter->MinValue;
                cr.MaxValue = counter->MaxValue;
                cr.CurrentValue = counter->CurrentValue;
                Dmsg1(100, "New value=%d\n", cr.CurrentValue);
                if (counter->WrapCounter) {
-                  bstrncpy(cr.WrapCounter, counter->WrapCounter->hdr.name, sizeof(cr.WrapCounter));
+                  bstrncpy(cr.WrapCounter, counter->WrapCounter->name(), sizeof(cr.WrapCounter));
                } else {
                   cr.WrapCounter[0] = 0;
                }
                if (!db_update_counter_record(jcr, jcr->db, &cr)) {
                   Jmsg(jcr, M_ERROR, 0, _("Count not update counter %s: ERR=%s\n"),
-                     counter->hdr.name, db_strerror(jcr->db));
+                     counter->name(), db_strerror(jcr->db));
                }
             }
          }
@@ -375,8 +383,8 @@ static var_rc_t operate_var(var_t *var, void *my_ctx,
       Dmsg1(100, "Val=%s\n", buf);
       LockRes();
       for (COUNTER *counter=NULL; (counter = (COUNTER *)GetNextRes(R_COUNTER, (RES *)counter)); ) {
-         if (strcmp(counter->hdr.name, buf) == 0) {
-            Dmsg2(100, "counter=%s val=%s\n", counter->hdr.name, buf);
+         if (strcmp(counter->name(), buf) == 0) {
+            Dmsg2(100, "counter=%s val=%s\n", counter->name(), buf);
             break;
          }
       }

@@ -57,7 +57,7 @@ bool newVolume(JCR *jcr, MEDIA_DBR *mr)
       memset(mr, 0, sizeof(MEDIA_DBR));
       set_pool_dbr_defaults_in_media_dbr(mr, &pr);
       jcr->VolumeName[0] = 0;
-      bstrncpy(mr->MediaType, jcr->store->media_type, sizeof(mr->MediaType));
+      bstrncpy(mr->MediaType, jcr->wstore->media_type, sizeof(mr->MediaType));
       if (generate_job_event(jcr, "NewVolume") == 1 && jcr->VolumeName[0] &&
           is_volume_name_legal(NULL, jcr->VolumeName)) {
          bstrncpy(mr->VolumeName, jcr->VolumeName, sizeof(mr->VolumeName));

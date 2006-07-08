@@ -828,7 +828,7 @@ STORE *get_storage_resource(UAContext *ua, bool use_default)
                bsendmsg(ua, _("JobId %s is not running.\n"), edit_int64(jobid, ed1));
                return NULL;
             }
-            store = jcr->store;
+            store = jcr->wstore;
             free_jcr(jcr);
             break;
 
@@ -842,7 +842,7 @@ STORE *get_storage_resource(UAContext *ua, bool use_default)
                bsendmsg(ua, _("Job \"%s\" is not running.\n"), ua->argv[i]);
                return NULL;
             }
-            store = jcr->store;
+            store = jcr->wstore;
             free_jcr(jcr);
             break;
          } else if (strcasecmp(ua->argk[i], NT_("ujobid")) == 0) {
@@ -854,7 +854,7 @@ STORE *get_storage_resource(UAContext *ua, bool use_default)
                bsendmsg(ua, _("Job \"%s\" is not running.\n"), ua->argv[i]);
                return NULL;
             }
-            store = jcr->store;
+            store = jcr->wstore;
             free_jcr(jcr);
             break;
         }

@@ -146,8 +146,8 @@ int do_a_command(UAContext *ua, const char *cmd)
       return 1;
    }
 
-   while (ua->jcr->storage->size()) {
-      ua->jcr->storage->remove(0);
+   while (ua->jcr->wstorage->size()) {
+      ua->jcr->wstorage->remove(0);
    }
 
    len = strlen(ua->argk[0]);
@@ -672,10 +672,10 @@ static void do_storage_setdebug(UAContext *ua, STORE *store, int level, int trac
    BSOCK *sd;
    JCR *jcr = ua->jcr;
 
-   set_storage(jcr, store);
+   set_wstorage(jcr, store);
    /* Try connecting for up to 15 seconds */
    bsendmsg(ua, _("Connecting to Storage daemon %s at %s:%d\n"),
-      store->hdr.name, store->address, store->SDport);
+      store->name(), store->address, store->SDport);
    if (!connect_to_storage_daemon(jcr, 1, 15, 0)) {
       bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
       return;
@@ -1319,7 +1319,7 @@ static void do_mount_cmd(UAContext *ua, const char *command)
    if (!store) {
       return;
    }
-   set_storage(jcr, store);
+   set_wstorage(jcr, store);
    drive = get_storage_drive(ua, store);
 
    Dmsg3(120, "Found storage, MediaType=%s DevName=%s drive=%d\n",

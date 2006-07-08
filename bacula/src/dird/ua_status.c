@@ -175,7 +175,7 @@ static void do_all_status(UAContext *ua)
    i = 0;
    foreach_res(store, R_STORAGE) {
       found = false;
-      if (!acl_access_ok(ua, Storage_ACL, store->hdr.name)) {
+      if (!acl_access_ok(ua, Storage_ACL, store->name())) {
          continue;
       }
       for (j=0; j<i; j++) {
@@ -209,7 +209,7 @@ static void do_all_status(UAContext *ua)
    i = 0;
    foreach_res(client, R_CLIENT) {
       found = false;
-      if (!acl_access_ok(ua, Client_ACL, client->hdr.name)) {
+      if (!acl_access_ok(ua, Client_ACL, client->name())) {
          continue;
       }
       for (j=0; j<i; j++) {
@@ -277,13 +277,13 @@ static void do_storage_status(UAContext *ua, STORE *store)
 {
    BSOCK *sd;
 
-   set_storage(ua->jcr, store);
+   set_wstorage(ua->jcr, store);
    /* Try connecting for up to 15 seconds */
    bsendmsg(ua, _("Connecting to Storage daemon %s at %s:%d\n"),
-      store->hdr.name, store->address, store->SDport);
+      store->name(), store->address, store->SDport);
    if (!connect_to_storage_daemon(ua->jcr, 1, 15, 0)) {
       bsendmsg(ua, _("\nFailed to connect to Storage daemon %s.\n====\n"),
-         store->hdr.name);
+         store->name());
       if (ua->jcr->store_bsock) {
          bnet_close(ua->jcr->store_bsock);
          ua->jcr->store_bsock = NULL;
@@ -318,10 +318,10 @@ static void do_client_status(UAContext *ua, CLIENT *client)
 
    /* Try to connect for 15 seconds */
    bsendmsg(ua, _("Connecting to Client %s at %s:%d\n"),
-      client->hdr.name, client->address, client->FDport);
+      client->name(), client->address, client->FDport);
    if (!connect_to_file_daemon(ua->jcr, 1, 15, 0)) {
       bsendmsg(ua, _("Failed to connect to Client %s.\n====\n"),
-         client->hdr.name);
+         client->name());
       if (ua->jcr->file_bsock) {
          bnet_close(ua->jcr->file_bsock);
          ua->jcr->file_bsock = NULL;
@@ -396,7 +396,7 @@ static void prt_runtime(UAContext *ua, sched_pkt *sp)
    }
    bsendmsg(ua, _("%-14s %-8s %3d  %-18s %-18s %s\n"),
       level_ptr, job_type_to_str(sp->job->JobType), sp->priority, dt,
-      sp->job->hdr.name, mr.VolumeName);
+      sp->job->name(), mr.VolumeName);
    if (close_db) {
       db_close_database(jcr, jcr->db);
    }
@@ -456,7 +456,7 @@ static void list_scheduled_jobs(UAContext *ua)
    /* Loop through all jobs */
    LockRes();
    foreach_res(job, R_JOB) {
-      if (!acl_access_ok(ua, Job_ACL, job->hdr.name) || !job->enabled) {
+      if (!acl_access_ok(ua, Job_ACL, job->name()) || !job->enabled) {
          continue;
       }
       for (run=NULL; (run = find_next_run(run, job, runtime, days)); ) {
@@ -536,7 +536,7 @@ static void list_running_jobs(UAContext *ua)
    bsendmsg(ua, _(" JobId Level   Name                       Status\n"));
    bsendmsg(ua, _("======================================================================\n"));
    foreach_jcr(jcr) {
-      if (jcr->JobId == 0 || !acl_access_ok(ua, Job_ACL, jcr->job->hdr.name)) {
+      if (jcr->JobId == 0 || !acl_access_ok(ua, Job_ACL, jcr->job->name())) {
          continue;
       }
       njobs++;
@@ -570,13 +570,17 @@ static void list_running_jobs(UAContext *ua)
          break;
       case JS_WaitFD:
          emsg = (char *) get_pool_memory(PM_FNAME);
-         Mmsg(emsg, _("is waiting on Client %s"), jcr->client->hdr.name);
+         Mmsg(emsg, _("is waiting on Client %s"), jcr->client->name());
          pool_mem = true;
          msg = emsg;
          break;
       case JS_WaitSD:
          emsg = (char *) get_pool_memory(PM_FNAME);
-         Mmsg(emsg, _("is waiting on Storage %s"), jcr->store->hdr.name);
+         if (jcr->wstore) {
+            Mmsg(emsg, _("is waiting on Storage %s"), jcr->wstore->name());
+         } else {
+            Mmsg(emsg, _("is waiting on Storage %s"), jcr->rstore->name());
+         }
          pool_mem = true;
          msg = emsg;
          break;
@@ -630,7 +634,7 @@ static void list_running_jobs(UAContext *ua)
             pool_mem = true;
          }
          Mmsg(emsg, _("is waiting for Client %s to connect to Storage %s"),
-              jcr->client->hdr.name, jcr->store->hdr.name);
+              jcr->client->name(), jcr->wstore->name());
          msg = emsg;
          break;
       }

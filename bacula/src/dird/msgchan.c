@@ -69,7 +69,13 @@ bool connect_to_storage_daemon(JCR *jcr, int retry_interval,
    if (jcr->store_bsock) {
       return true;                    /* already connected */
    }
-   store = (STORE *)jcr->storage->first();
+
+   /* If there is a write storage use it */
+   if (jcr->wstorage) {
+      store = (STORE *)jcr->wstorage->first();
+   } else {
+      store = (STORE *)jcr->rstorage->first();
+   }
 
    /*
     *  Open message channel with the Storage daemon

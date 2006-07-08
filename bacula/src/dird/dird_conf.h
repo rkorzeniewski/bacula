@@ -113,7 +113,12 @@ public:
    bool tls_enable;                   /* Enable TLS */
    bool tls_require;                  /* Require TLS */
    bool tls_verify_peer;              /* TLS Verify Client Certificate */
+
+   /* Methods */
+   char *name() const;
 };
+
+inline char *DIRRES::name() const { return hdr.name; }
 
 /*
  * Device Resource
@@ -143,7 +148,12 @@ public:
    char ChangerName[MAX_NAME_LENGTH];
    char VolumeName[MAX_NAME_LENGTH];
    char MediaType[MAX_NAME_LENGTH];
+
+   /* Methods */
+   char *name() const;
 };
+
+inline char *DEVICE::name() const { return hdr.name; }
 
 /*
  * Console ACL positions
@@ -179,7 +189,12 @@ public:
    bool tls_enable;                   /* Enable TLS */
    bool tls_require;                  /* Require TLS */
    bool tls_verify_peer;              /* TLS Verify Client Certificate */
+
+   /* Methods */
+   char *name() const;
 };
+
+inline char *CONRES::name() const { return hdr.name; }
 
 
 /*
@@ -197,7 +212,12 @@ public:
    char *db_user;
    char *db_name;
    int   mult_db_connections;         /* set if multiple connections wanted */
+
+   /* Methods */
+   char *name() const;
 };
+
+inline char *CAT::name() const { return hdr.name; }
 
 
 /*
@@ -224,7 +244,13 @@ public:
    bool tls_enable;                   /* Enable TLS */
    bool tls_require;                  /* Require TLS */
    bool AutoPrune;                    /* Do automatic pruning? */
+
+   /* Methods */
+   char *name() const;
 };
+
+inline char *CLIENT::name() const { return hdr.name; }
+
 
 /*
  *   Store Resource
@@ -327,7 +353,12 @@ public:
    JOB       *jobdefs;                /* Job defaults */
    alist     *run_cmds;               /* Run commands */
    uint32_t NumConcurrentJobs;        /* number of concurrent jobs running */
+
+   /* Methods */
+   char *name() const;
 };
+
+inline char *JOB::name() const { return hdr.name; }
 
 #undef  MAX_FOPTS
 #define MAX_FOPTS 34
@@ -374,8 +405,12 @@ public:
    char MD5[30];                      /* base 64 representation of MD5 */
    bool ignore_fs_changes;            /* Don't force Full if FS changed */
    bool enable_vss;                   /* Enable Volume Shadow Copy */
+
+   /* Methods */
+   char *name() const;
 };
 
+inline char *FILESET::name() const { return hdr.name; }
 
 /*
  *   Schedule Resource
@@ -401,7 +436,11 @@ public:
    COUNTER *WrapCounter;              /* Wrap counter name */
    CAT     *Catalog;                  /* Where to store */
    bool     created;                  /* Created in DB */
+   /* Methods */
+   char *name() const;
 };
+
+inline char *COUNTER::name() const { return hdr.name; }
 
 /*
  *   Pool Resource
@@ -434,7 +473,12 @@ public:
    bool  recycle_current_volume;      /* attempt recycle of current volume */
    bool  AutoPrune;                   /* default for pool auto prune */
    bool  Recycle;                     /* default for media recycle yes/no */
+
+   /* Methods */
+   char *name() const;
 };
+
+inline char *POOL::name() const { return hdr.name; }
 
 
 

@@ -114,13 +114,13 @@ private:
    pthread_mutex_t mutex;             /* jcr mutex */
    volatile int _use_count;           /* use count */
 public:
-   void inc_use_count(void) {P(mutex); _use_count++; V(mutex); };
-   void dec_use_count(void) {P(mutex); _use_count--; V(mutex); };
+   void lock() {P(mutex); };
+   void unlock() {V(mutex); };
+   void inc_use_count(void) {lock(); _use_count++; unlock(); };
+   void dec_use_count(void) {lock(); _use_count--; unlock(); };
    int  use_count() { return _use_count; };
    void init_mutex(void) {pthread_mutex_init(&mutex, NULL); };
    void destroy_mutex(void) {pthread_mutex_destroy(&mutex); };
-   void lock() {P(mutex); };
-   void unlock() {V(mutex); };
    bool is_job_canceled() {return job_canceled(this); };
 
    /* Global part of JCR common to all daemons */
@@ -185,8 +185,10 @@ public:
    BSOCK *ua;                         /* User agent */
    JOB *job;                          /* Job resource */
    JOB *verify_job;                   /* Job resource of verify previous job */
-   alist *storage;                    /* Storage possibilities */
-   STORE *store;                      /* Storage daemon selected */
+   alist *rstorage;                   /* Read storage possibilities */
+   STORE *rstore;                     /* Selected read storage */
+   alist *wstorage;                   /* Write storage possibilities */
+   STORE *wstore;                     /* Selected write storage */
    CLIENT *client;                    /* Client resource */
    POOL *pool;                        /* Pool resource */
    POOL *full_pool;                   /* Full backup pool resource */

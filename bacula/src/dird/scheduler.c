@@ -205,7 +205,7 @@ again:
       jcr->run_diff_pool_override = true;
    }
    if (run->storage) {
-      set_storage(jcr, run->storage); /* override storage */
+      set_rwstorage(jcr, run->storage); /* override storage */
    }
    if (run->msgs) {
       jcr->messages = run->msgs;      /* override messages */

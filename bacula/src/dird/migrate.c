@@ -74,9 +74,9 @@ bool do_migration_init(JCR *jcr)
    }
 
    /* If pool storage specified, use it instead of job storage */
-   copy_storage(jcr, jcr->pool->storage, _("Pool resource"));
+   copy_wstorage(jcr, jcr->pool->storage, _("Pool resource"));
 
-   if (!jcr->storage) {
+   if (!jcr->wstorage) {
       Jmsg(jcr, M_FATAL, 0, _("No Storage specification found in Job or Pool.\n"));
       return false;
    }
@@ -171,7 +171,8 @@ bool do_migration(JCR *jcr)
    /* ***FIXME*** */
 
    /* If pool storage specified, use it for restore */
-   copy_storage(prev_jcr, pool->storage, _("Pool resource"));
+   copy_rstorage(prev_jcr, pool->storage, _("Pool resource"));
+   copy_rstorage(jcr, pool->storage, _("Pool resource"));
 
    /* If the original backup pool has a NextPool, make sure a 
     *  record exists in the database.
@@ -191,7 +192,7 @@ bool do_migration(JCR *jcr)
    }
 
    /* If pool storage specified, use it instead of job storage for backup */
-   copy_storage(jcr, jcr->pool->storage, _("Pool resource"));
+   copy_wstorage(jcr, jcr->pool->storage, _("Pool resource"));
 
    /* Print Job Start message */
    Jmsg(jcr, M_INFO, 0, _("Start Migration JobId %s, Job=%s\n"),
@@ -238,9 +239,9 @@ bool do_migration(JCR *jcr)
     * Now start a job with the Storage daemon
     */
    Dmsg2(dbglevel, "Read store=%s, write store=%s\n", 
-      ((STORE *)prev_jcr->storage->first())->hdr.name,
-      ((STORE *)jcr->storage->first())->hdr.name);
-   if (!start_storage_daemon_job(jcr, prev_jcr->storage, jcr->storage)) {
+      ((STORE *)jcr->rstorage->first())->name(),
+      ((STORE *)jcr->wstorage->first())->name());
+   if (!start_storage_daemon_job(jcr, jcr->rstorage, jcr->wstorage)) {
       return false;
    }
    Dmsg0(150, "Storage daemon connection OK\n");
@@ -807,10 +808,10 @@ void migration_cleanup(JCR *jcr, int TermCode)
         edit_uint64(jcr->jr.JobId, ec8),
         jcr->jr.Job,
         level_to_str(jcr->JobLevel), jcr->since,
-        jcr->client->hdr.name,
-        jcr->fileset->hdr.name, jcr->FSCreateTime,
-        jcr->pool->hdr.name, jcr->pool_source,
-        jcr->store->hdr.name, jcr->storage_source,
+        jcr->client->name(),
+        jcr->fileset->name(), jcr->FSCreateTime,
+        jcr->pool->name(), jcr->pool_source,
+        jcr->wstore->name(), jcr->storage_source,
         sdt,
         edt,
         edit_utime(RunTime, elapsed, sizeof(elapsed)),

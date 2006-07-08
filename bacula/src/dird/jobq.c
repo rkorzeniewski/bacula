@@ -463,9 +463,17 @@ void *jobq_server(void *arg)
           *  put into the ready queue.
           */
          if (jcr->acquired_resource_locks) {
-            jcr->store->NumConcurrentJobs--;
+            if (jcr->rstore) {
+               jcr->rstore->NumConcurrentJobs = 0;
+               Dmsg1(000, "Dec rncj=%d\n", jcr->rstore->NumConcurrentJobs);
+            }
+            if (jcr->wstore) {
+               jcr->wstore->NumConcurrentJobs--;
+               Dmsg1(000, "Dec wncj=%d\n", jcr->wstore->NumConcurrentJobs);
+            }
             jcr->client->NumConcurrentJobs--;
             jcr->job->NumConcurrentJobs--;
+            jcr->acquired_resource_locks = false;
          }
 
          /*
@@ -519,7 +527,16 @@ void *jobq_server(void *arg)
             njcr->JobLevel = jcr->JobLevel;
             njcr->JobStatus = -1;
             set_jcr_job_status(njcr, jcr->JobStatus);
-            copy_storage(njcr, jcr->storage, _("previous Job"));
+            if (jcr->rstore) {
+               copy_rstorage(njcr, jcr->rstorage, _("previous Job"));
+            } else {
+               free_rstorage(njcr);
+            }
+            if (jcr->wstore) {
+               copy_wstorage(njcr, jcr->wstorage, _("previous Job"));
+            } else {
+               free_wstorage(njcr);
+            }
             njcr->messages = jcr->messages;
             Dmsg0(2300, "Call to run new job\n");
             V(jq->mutex);
@@ -582,7 +599,6 @@ void *jobq_server(void *arg)
             /* Got all locks, now remove it from wait queue and append it
              *   to the ready queue
              */
-            jcr->acquired_resource_locks = true;
             jq->waiting_jobs->remove(je);
             jq->ready_jobs->append(je);
             Dmsg1(2300, "moved JobId=%d from wait to ready queue\n", je->jcr->JobId);
@@ -649,26 +665,40 @@ static bool acquire_resources(JCR *jcr)
 {
    bool skip_this_jcr = false;
 
-   if (jcr->JobType == JT_RESTORE || jcr->JobType == JT_VERIFY) {
+   jcr->acquired_resource_locks = false;
+   if (jcr->rstore) {
+      Dmsg1(000, "Rstore=%s\n", jcr->rstore->name());
       /* 
        * Let only one Restore/verify job run at a time regardless
        *   of MaxConcurrentJobs.
        */ 
-      if (jcr->store->NumConcurrentJobs == 0) {
-         jcr->store->NumConcurrentJobs = 1;
+      if (jcr->rstore->NumConcurrentJobs == 0) {
+         jcr->rstore->NumConcurrentJobs = 1;
+         Dmsg0(000, "Set rncj=1\n");
       } else {
+         Dmsg1(000, "Fail rncj=%d\n", jcr->rstore->NumConcurrentJobs);
          set_jcr_job_status(jcr, JS_WaitStoreRes);
          return false;
       }
-   /* We are not doing a Restore or Verify */
-   } else if (jcr->store->NumConcurrentJobs == 0 &&
-              jcr->store->NumConcurrentJobs < jcr->store->MaxConcurrentJobs) {
-       /* Simple case, first job */
-       jcr->store->NumConcurrentJobs = 1;
-   } else if (jcr->store->NumConcurrentJobs < jcr->store->MaxConcurrentJobs) {
-       jcr->store->NumConcurrentJobs++;
-   } else {
-      skip_this_jcr = true;
+   }
+   
+   if (jcr->wstore) {
+      if (jcr->wstore->NumConcurrentJobs == 0 &&
+          jcr->wstore->NumConcurrentJobs < jcr->wstore->MaxConcurrentJobs) {
+         /* Simple case, first job */
+         jcr->wstore->NumConcurrentJobs = 1;
+         Dmsg0(000, "Set wncj=1\n");
+      } else if (jcr->wstore->NumConcurrentJobs < jcr->wstore->MaxConcurrentJobs) {
+         jcr->wstore->NumConcurrentJobs++;
+         Dmsg1(000, "Inc wncj=%d\n", jcr->wstore->NumConcurrentJobs);
+      } else if (jcr->rstore) {
+         jcr->rstore->NumConcurrentJobs = 0;      /* back out rstore */
+         Dmsg1(000, "Fail wncj=%d\n", jcr->wstore->NumConcurrentJobs);
+         skip_this_jcr = true;
+      } else {
+         Dmsg1(000, "Fail wncj=%d\n", jcr->wstore->NumConcurrentJobs);
+         skip_this_jcr = true;
+      }
    }
    if (skip_this_jcr) {
       set_jcr_job_status(jcr, JS_WaitStoreRes);
@@ -679,7 +709,14 @@ static bool acquire_resources(JCR *jcr)
       jcr->client->NumConcurrentJobs++;
    } else {
       /* Back out previous locks */
-      jcr->store->NumConcurrentJobs--;
+      if (jcr->wstore) {
+         jcr->wstore->NumConcurrentJobs--;
+         Dmsg1(000, "Dec wncj=%d\n", jcr->wstore->NumConcurrentJobs);
+      }
+      if (jcr->rstore) {
+         jcr->rstore->NumConcurrentJobs = 0;
+         Dmsg1(000, "Dec rncj=%d\n", jcr->rstore->NumConcurrentJobs);
+      }
       set_jcr_job_status(jcr, JS_WaitClientRes);
       return false;
    }
@@ -687,12 +724,22 @@ static bool acquire_resources(JCR *jcr)
       jcr->job->NumConcurrentJobs++;
    } else {
       /* Back out previous locks */
-      jcr->store->NumConcurrentJobs--;
+      if (jcr->wstore) {
+         jcr->wstore->NumConcurrentJobs--;
+         Dmsg1(000, "Dec wncj=%d\n", jcr->wstore->NumConcurrentJobs);
+      }
+      if (jcr->rstore) {
+         jcr->rstore->NumConcurrentJobs = 0;
+         Dmsg1(000, "Dec rncj=%d\n", jcr->rstore->NumConcurrentJobs);
+      }
       jcr->client->NumConcurrentJobs--;
       set_jcr_job_status(jcr, JS_WaitJobRes);
       return false;
    }
    /* Check actual device availability */
    /* ***FIXME****/
+
+
+   jcr->acquired_resource_locks = true;
    return true;
 }
