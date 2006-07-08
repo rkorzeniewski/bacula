@@ -7,7 +7,7 @@
 TestName="fixed-block-size-tape"
 JobName=fixedblocksize
 . scripts/functions
-set_debug 1
+set_debug 0
 
 copy_tape_confs
 
