@@ -77,8 +77,6 @@ bool do_backup_init(JCR *jcr)
 
    create_clones(jcr);                /* run any clone jobs */
 
-   Dmsg2(000, "rstore=%p wstore=%p\n", jcr->rstore, jcr->wstore);
-
    return true;
 }
 
