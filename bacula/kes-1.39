@@ -2,6 +2,10 @@
                         Kern Sibbald
 
 General:
+09Jul06
+- Modify read_record and friends to properly deal with migration      
+  needs.
+- Update debug code in read_record.    
 08Jul06
   ======================= Warning ==========================
   Separate read and write storage in Jobs in the Director. This

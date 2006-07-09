@@ -385,6 +385,7 @@ DCR *acquire_device_for_append(DCR *dcr)
          }
          goto get_out;
       }
+      Dmsg2(190, "Output pos=%u:%u\n", dcr->dev->file, dcr->dev->block_num);
    }
 
    dev->num_writers++;                /* we are now a writer */

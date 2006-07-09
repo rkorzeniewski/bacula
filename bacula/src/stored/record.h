@@ -94,6 +94,7 @@ struct DEV_RECORD {
    BSR *bsr;                          /* pointer to bsr that matched */
    uint8_t  ser_buf[WRITE_RECHDR_LENGTH];   /* serialized record header goes here */
    POOLMEM *data;                     /* Record data. This MUST be a memory pool item */
+   int32_t match_stat;                /* bsr match status */
 };
 
 

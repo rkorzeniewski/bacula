@@ -937,6 +937,8 @@ bool update_pos_dev(DEVICE *dev)
          ok = false;
       } else {
          dev->file_addr = pos;
+         dev->block_num = (uint32_t)pos;
+         dev->file = (uint32_t)(pos >> 32);
       }
    }
    return ok;
