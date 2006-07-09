@@ -241,15 +241,16 @@ static BSR *find_smallest_volfile(BSR *found_bsr, BSR *bsr)
 }
 
 /*
- * Called to tell the matcher that the end of
- *   the current file has been reached.
+ * Called after the signature record so that
+ *   we can see if the current bsr has been
+ *   fully processed (i.e. is done).
  *  The bsr argument is not used, but is included
  *    for consistency with the other match calls.
  *
  * Returns: true if we should reposition
  *        : false otherwise.
  */
-bool match_set_eof(BSR *bsr, DEV_RECORD *rec)
+bool is_this_bsr_done(BSR *bsr, DEV_RECORD *rec)
 {
    BSR *rbsr = rec->bsr;
    Dmsg1(300, "match_set %d\n", rbsr != NULL);
@@ -261,7 +262,7 @@ bool match_set_eof(BSR *bsr, DEV_RECORD *rec)
    if (rbsr->count && rbsr->found >= rbsr->count) {
       rbsr->done = true;
       rbsr->root->reposition = true;
-      Dmsg2(500, "match_set_eof reposition count=%d found=%d\n",
+      Dmsg2(500, "is_end_this_bsr set reposition=1 count=%d found=%d\n",
          rbsr->count, rbsr->found);
       return true;
    }

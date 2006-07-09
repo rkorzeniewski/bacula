@@ -564,13 +564,13 @@ bool write_block_to_dev(DCR *dcr)
    dev->VolCatInfo.VolCatBlocks++;
    dev->EndBlock = dev->block_num;
    dev->EndFile  = dev->file;
-   dev->block_num++;
    block->BlockNumber++;
 
    /* Update dcr values */
    if (dev->is_tape()) {
       dcr->EndBlock = dev->EndBlock;
       dcr->EndFile  = dev->EndFile;
+      dev->block_num++;
    } else {
       /* Save address of block just written */
       uint64_t addr = dev->file_addr + wlen - 1;

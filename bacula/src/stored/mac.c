@@ -85,6 +85,12 @@ bool do_mac(JCR *jcr)
       goto bail_out;
    }
 
+   Dmsg2(200, "===== After acquire pos %u:%u\n", jcr->dcr->dev->file, jcr->dcr->dev->block_num);
+     
+
+   set_jcr_job_status(jcr, JS_Running);
+   dir_send_job_status(jcr);
+
    jcr->dcr->VolFirstIndex = jcr->dcr->VolLastIndex = 0;
    jcr->run_time = time(NULL);
 
@@ -105,6 +111,7 @@ ok_out:
             Dmsg0(100, _("Set ok=FALSE after write_block_to_device.\n"));
             ok = false;
          }
+         Dmsg2(200, "Flush block to device pos %u:%u\n", dev->file, dev->block_num);
       }  
 
 
@@ -142,7 +149,7 @@ ok_out:
    generate_daemon_event(jcr, "JobEnd");
    bnet_fsend(dir, Job_end, jcr->Job, jcr->JobStatus, jcr->JobFiles,
       edit_uint64(jcr->JobBytes, ec1));
-   Dmsg4(400, Job_end, jcr->Job, jcr->JobStatus, jcr->JobFiles, ec1); 
+   Dmsg4(200, Job_end, jcr->Job, jcr->JobStatus, jcr->JobFiles, ec1); 
        
    bnet_sig(dir, BNET_EOD);           /* send EOD to Director daemon */
 
@@ -156,12 +163,16 @@ ok_out:
  */
 static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 {
-   bool ok = true;
    JCR *jcr = dcr->jcr;
+   DEVICE *dev = jcr->dcr->dev;
    char buf1[100], buf2[100];
    int32_t stream;   
    
-   /* We want to write SOS_LABEL and EOS_LABEL */
+   /* If label and not for us, discard it */
+   if (rec->FileIndex < 0 && rec->match_stat <= 0) {
+      return true;
+   }
+   /* We want to write SOS_LABEL and EOS_LABEL discard all others */
    switch (rec->FileIndex) {                        
    case PRE_LABEL:
    case VOL_LABEL:
@@ -169,32 +180,37 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    case EOM_LABEL:
       return true;                    /* don't write vol labels */
    }
+   /*
+    * Modify record SessionId and SessionTime to correspond to
+    * output.
+    */
    rec->VolSessionId = jcr->VolSessionId;
    rec->VolSessionTime = jcr->VolSessionTime;
-   Dmsg4(850, "before writ_rec FI=%d SessId=%d Strm=%s len=%d\n",
-      rec->FileIndex, rec->VolSessionId, 
-      stream_to_ascii(buf1, rec->Stream,rec->FileIndex),
-      rec->data_len);
+   Dmsg5(200, "before write_rec JobId=%d FI=%s SessId=%d Strm=%s len=%d\n",
+      jcr->JobId,
+      FI_to_ascii(buf1, rec->FileIndex), rec->VolSessionId,
+      stream_to_ascii(buf1, rec->Stream,rec->FileIndex), rec->data_len);
 
    while (!write_record_to_block(jcr->dcr->block, rec)) {
-      Dmsg2(850, "!write_record_to_block data_len=%d rem=%d\n", rec->data_len,
-                 rec->remainder);
+      Dmsg4(200, "!write_record_to_block blkpos=%u:%u len=%d rem=%d\n", 
+            dev->file, dev->block_num, rec->data_len, rec->remainder);
       if (!write_block_to_device(jcr->dcr)) {
-         DEVICE *dev = jcr->dcr->dev;
          Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
             dev->print_name(), dev->bstrerror());
          Jmsg2(jcr, M_FATAL, 0, _("Fatal append error on device %s: ERR=%s\n"),
                dev->print_name(), dev->bstrerror());
          return false;
       }
+      Dmsg2(200, "===== Wrote block new pos %u:%u\n", dev->file, dev->block_num);
    }
    jcr->JobBytes += rec->data_len;   /* increment bytes this job */
    if (rec->FileIndex > 0) {
       jcr->JobFiles = rec->FileIndex;
    } else {
-      return ok;                      /* don't send LABELs to Dir */
+      return true;                    /* don't send LABELs to Dir */
    }
-   Dmsg4(850, "write_record FI=%s SessId=%d Strm=%s len=%d\n",
+   Dmsg5(500, "wrote_record JobId=%d FI=%s SessId=%d Strm=%s len=%d\n",
+      jcr->JobId,
       FI_to_ascii(buf1, rec->FileIndex), rec->VolSessionId,
       stream_to_ascii(buf2, rec->Stream, rec->FileIndex), rec->data_len);
 
@@ -217,5 +233,5 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       }
    }
 
-   return ok;
+   return true;
 }
