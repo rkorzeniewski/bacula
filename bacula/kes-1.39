@@ -2,6 +2,14 @@
                         Kern Sibbald
 
 General:
+10Jul06
+- Correct bug I introduced into RunScripts enum.
+- Add log table to Catalog
+- Purge original job migrated if the migration terminates normally.
+- Cleanup purging of files/jobs so that it is done only in a 
+  single subroutine.
+- Add new VOLMGMT message class.
+- Add Catalog message destination (user conf code remains to be written).
 09Jul06
 - Modify read_record and friends to properly deal with migration      
   needs.
