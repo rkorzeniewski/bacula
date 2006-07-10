@@ -33,6 +33,7 @@
 #undef  M_RESTORED
 #undef  M_SECURITY
 #undef  M_ALERT
+#undef  M_VOLMGMT
 
 /*
  * Most of these message levels are more or less obvious.
@@ -63,6 +64,7 @@
  *
  *  M_ALERT       For Tape Alert messages.
  *
+ *  M_VOLMGMT     Volume Management message
  */
 
 enum {
@@ -81,10 +83,11 @@ enum {
    M_TERM,                            /* Terminating daemon normally */
    M_RESTORED,                        /* ls -l of restored files */
    M_SECURITY,                        /* security violation */
-   M_ALERT                            /* tape alert messages */
+   M_ALERT,                           /* tape alert messages */
+   M_VOLMGMT                          /* Volume management messages */
 };
 
-#define M_MAX      M_ALERT            /* keep this updated ! */
+#define M_MAX      M_VOLMGMT          /* keep this updated ! */
 
 /* Define message destination structure */
 /* *** FIXME **** where should be extended to handle multiple values */
@@ -110,7 +113,8 @@ enum {
    MD_DIRECTOR,                       /* send message to the Director */
    MD_OPERATOR,                       /* email a single message to the operator */
    MD_CONSOLE,                        /* send msg to UserAgent or console */
-   MD_MAIL_ON_ERROR                   /* email messages if job errors */
+   MD_MAIL_ON_ERROR,                  /* email messages if job errors */
+   MD_CATALOG                         /* sent to catalog Log table */
 };
 
 /* Queued message item */
@@ -121,13 +125,15 @@ struct MQUEUE_ITEM {
    char msg[1];
 };
 
-
+ 
 void d_msg(const char *file, int line, int level, const char *fmt,...);
 void e_msg(const char *file, int line, int type, int level, const char *fmt,...);
 void Jmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...);
 void Qmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...);
 bool get_trace(void);
 
+typedef void (*sql_query)(JCR *jcr, const char *cmd);
+extern sql_query p_sql_query;
 
 extern int           DLL_IMP_EXP debug_level;
 extern int           DLL_IMP_EXP verbose;

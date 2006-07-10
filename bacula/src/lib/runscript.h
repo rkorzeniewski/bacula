@@ -37,13 +37,13 @@
  */
 
 /* 
- * RUNSCRIPT->when can take following value : 
+ * RUNSCRIPT->when can take following bit values:
  */
 enum {
-   SCRIPT_Never  = 1,
-   SCRIPT_After  = 2,           /* AfterJob */
-   SCRIPT_Before = 3,           /* BeforeJob */
-   SCRIPT_Any    = 4            /* Before and After */
+   SCRIPT_Never  = 0,
+   SCRIPT_After  = (1<<0),      /* AfterJob */
+   SCRIPT_Before = (1<<1),      /* BeforeJob */
+   SCRIPT_Any    = SCRIPT_Before | SCRIPT_After
 };
 
 /*

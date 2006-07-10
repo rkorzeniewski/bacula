@@ -271,11 +271,16 @@ bool do_migration(JCR *jcr)
    wait_for_storage_daemon_termination(jcr);
 
    set_jcr_job_status(jcr, jcr->SDJobStatus);
-   if (jcr->JobStatus == JS_Terminated) {
-      migration_cleanup(jcr, jcr->JobStatus);
-      return true;
+   if (jcr->JobStatus != JS_Terminated) {
+      return false;
    }
-   return false;
+   migration_cleanup(jcr, jcr->JobStatus);
+   if (prev_jcr) {
+      UAContext *ua = new_ua_context(jcr);
+      purge_files_from_job(ua, jcr->previous_jr.JobId);
+      free_ua_context(ua);
+   }
+   return true;
 }
 
 struct idpkt {

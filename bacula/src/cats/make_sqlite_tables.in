@@ -254,6 +254,13 @@ CREATE TABLE NextId (
    PRIMARY KEY (TableName)
    );
 
+CREATE TABLE Log  
+   JobId INTEGER UNSIGNED REFERENCES Job NOT NULL,
+   LogText TEXT NOT NULL,
+   KEY (JobId)
+   );
+ 
+
 -- Initialize JobId to start at 1
 INSERT INTO NextId (id, TableName) VALUES (1, "Job");
 

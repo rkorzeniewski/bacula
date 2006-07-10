@@ -42,8 +42,6 @@ extern const char *select_verify_del;
 extern const char *select_restore_del;
 extern const char *select_admin_del;
 extern const char *cnt_File;
-extern const char *del_File;
-extern const char *upd_Purged;
 extern const char *cnt_DelCand;
 extern const char *del_Job;
 extern const char *del_MAC;
@@ -270,18 +268,7 @@ int prune_files(UAContext *ua, CLIENT *client)
    db_sql_query(ua->db, query, file_delete_handler, (void *)&del);
 
    for (i=0; i < del.num_ids; i++) {
-      Mmsg(query, del_File, edit_int64(del.JobId[i], ed1));
-      Dmsg1(200, "Delete Files JobId=%s\n", ed1);
-      db_sql_query(ua->db, query, NULL, (void *)NULL);
-      /*
-       * Now mark Job as having files purged. This is necessary to
-       * avoid having too many Jobs to process in future prunings. If
-       * we don't do this, the number of JobId's in our in memory list
-       * could grow very large.
-       */
-      Mmsg(query, upd_Purged, edit_int64(del.JobId[i], ed1));
-      db_sql_query(ua->db, query, NULL, (void *)NULL);
-      Dmsg1(200, "Update Purged sql=%s\n", query);
+      purge_files_from_job(ua, del.JobId[i]);
    }
    edit_uint64_with_commas(del.num_ids, ed1);
    bsendmsg(ua, _("Pruned Files from %s Jobs for client %s from catalog.\n"),
@@ -429,27 +416,10 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
     * Then delete the Job entry, and finally and JobMedia records.
     */
    for (i=0; i < del.num_ids; i++) {
-      edit_int64(del.JobId[i], ed1);
-      Dmsg1(050, "Delete JobId=%s\n", ed1);
       if (!del.PurgedFiles[i]) {
-         Mmsg(query, del_File, ed1);
-         if (!db_sql_query(ua->db, query, NULL, (void *)NULL)) {
-            bsendmsg(ua, "%s", db_strerror(ua->db));
-         }
-         Dmsg1(050, "Del sql=%s\n", query);
+         purge_files_from_job(ua, del.JobId[i]);
       }
-
-      Mmsg(query, del_Job, ed1);
-      if (!db_sql_query(ua->db, query, NULL, (void *)NULL)) {
-         bsendmsg(ua, "%s", db_strerror(ua->db));
-      }
-      Dmsg1(050, "Del sql=%s\n", query);
-
-      Mmsg(query, del_JobMedia, ed1);
-      if (!db_sql_query(ua->db, query, NULL, (void *)NULL)) {
-         bsendmsg(ua, "%s", db_strerror(ua->db));
-      }
-      Dmsg1(050, "Del sql=%s\n", query);
+      purge_job_from_catalog(ua, del.JobId[i]);
    }
    bsendmsg(ua, _("Pruned %d %s for client %s from catalog.\n"), del.num_ids,
       del.num_ids==1?_("Job"):_("Jobs"), client->hdr.name);
@@ -554,17 +524,8 @@ bool prune_volume(UAContext *ua, MEDIA_DBR *mr)
       if (jr.JobTDate >= (now - period)) {
          continue;
       }
-      edit_int64(del.JobId[i], ed1);
-      Dmsg2(200, "Delete JobId=%s Job=%s\n", ed1, jr.Job);
-      Mmsg(query, del_File, ed1);
-      db_sql_query(ua->db, query, NULL, (void *)NULL);
-      Mmsg(query, del_Job, ed1);
-      db_sql_query(ua->db, query, NULL, (void *)NULL);
-      Mmsg(query, del_JobMedia, ed1);
-      db_sql_query(ua->db, query, NULL, (void *)NULL);
-      Mmsg(query, del_MAC, ed1);
-      db_sql_query(ua->db, query, NULL, (void *)NULL);
-      Dmsg1(050, "Del sql=%s\n", query);
+      purge_files_from_job(ua, del.JobId[i]);
+      purge_job_from_catalog(ua, del.JobId[i]);
       del.num_del++;
    }
    if (del.JobId) {

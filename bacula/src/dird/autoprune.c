@@ -39,14 +39,14 @@
  * Auto Prune Jobs and Files. This is called at the end of every
  *   Job.  We do not prune volumes here.
  */
-int do_autoprune(JCR *jcr)
+void do_autoprune(JCR *jcr)
 {
    UAContext *ua;
    CLIENT *client;
    bool pruned;
 
    if (!jcr->client) {                /* temp -- remove me */
-      return 1;
+      return;
    }
 
    ua = new_ua_context(jcr);
@@ -71,7 +71,7 @@ int do_autoprune(JCR *jcr)
    }
 
    free_ua_context(ua);
-   return 1;
+   return;
 }
 
 /*

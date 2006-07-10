@@ -1237,23 +1237,15 @@ static void delete_job_id_range(UAContext *ua, char *tok)
 
 /*
  * do_job_delete now performs the actual delete operation atomically
- * we always return 1 because C++ is pissy about void functions
  */
 
 static void do_job_delete(UAContext *ua, JobId_t JobId)
 {
-   POOLMEM *query = get_pool_memory(PM_MESSAGE);
+   POOL_MEM query(PM_MESSAGE);
    char ed1[50];
 
-   Mmsg(query, "DELETE FROM Job WHERE JobId=%s", edit_int64(JobId, ed1));
-   db_sql_query(ua->db, query, NULL, (void *)NULL);
-   Mmsg(query, "DELETE FROM MAC WHERE JobId=%s", ed1);
-   db_sql_query(ua->db, query, NULL, (void *)NULL);
-   Mmsg(query, "DELETE FROM File WHERE JobId=%s", ed1);
-   db_sql_query(ua->db, query, NULL, (void *)NULL);
-   Mmsg(query, "DELETE FROM JobMedia WHERE JobId=%s", ed1);
-   db_sql_query(ua->db, query, NULL, (void *)NULL);
-   free_pool_memory(query);
+   purge_files_from_job(ua, JobId);
+   purge_job_from_catalog(ua, JobId);
    bsendmsg(ua, _("Job %s and associated records deleted from the catalog.\n"), edit_int64(JobId, ed1));
 }
 

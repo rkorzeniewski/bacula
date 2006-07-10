@@ -56,7 +56,8 @@ struct s_tree_node {
    unsigned int extract_dir: 1;       /* extract dir entry only */
    unsigned int hard_link: 1;         /* set if have hard link */
    unsigned int soft_link: 1;         /* set if is soft link */
-   unsigned int inserted: 1;          /* set when newly inserted */
+   unsigned int inserted: 1;          /* set when node newly inserted */
+   unsigned int loaded: 1;            /* set when the dir is in the tree */
    struct s_tree_node *parent;
    struct s_tree_node *next;          /* next hash of FileIndex */
 };
@@ -76,6 +77,7 @@ struct s_tree_root {
    unsigned int extract_dir: 1;       /* extract dir entry only */
    unsigned int have_link: 1;         /* set if have hard link */
    unsigned int inserted: 1;          /* set when newly inserted */
+   unsigned int loaded: 1;            /* set when the dir is in the tree */
    struct s_tree_node *parent;
    struct s_tree_node *next;          /* next hash of FileIndex */
 

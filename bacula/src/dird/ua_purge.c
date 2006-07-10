@@ -28,6 +28,9 @@
 #include "bacula.h"
 #include "dird.h"
 
+extern const char *del_File;
+extern const char *upd_Purged;
+
 /* Forward referenced functions */
 static int purge_files_from_client(UAContext *ua, CLIENT *client);
 static int purge_jobs_from_client(UAContext *ua, CLIENT *client);
@@ -191,7 +194,7 @@ int purgecmd(UAContext *ua, const char *cmd)
       case 0:                         /* Job */
       case 1:                         /* JobId */
          if (get_job_dbr(ua, &jr)) {
-            purge_files_from_job(ua, &jr);
+            purge_files_from_job(ua, jr.JobId);
          }
          return 1;
       case 2:                         /* client */
@@ -308,19 +311,7 @@ static int purge_files_from_client(UAContext *ua, CLIENT *client)
    db_sql_query(ua->db, query, file_delete_handler, (void *)&del);
 
    for (i=0; i < del.num_ids; i++) {
-      edit_int64(del.JobId[i], ed1);
-      Dmsg1(050, "Delete Files JobId=%s\n", ed1);
-      Mmsg(query, "DELETE FROM File WHERE JobId=%s", ed1);
-      db_sql_query(ua->db, query, NULL, (void *)NULL);
-      /*
-       * Now mark Job as having files purged. This is necessary to
-       * avoid having too many Jobs to process in future prunings. If
-       * we don't do this, the number of JobId's in our in memory list
-       * will grow very large.
-       */
-      Mmsg(query, "UPDATE Job Set PurgedFiles=1 WHERE JobId=%s", ed1);
-      db_sql_query(ua->db, query, NULL, (void *)NULL);
-      Dmsg1(050, "Update Purged sql=%s\n", query);
+      purge_files_from_job(ua, del.JobId[i]);
    }
    bsendmsg(ua, _("%d Files for client \"%s\" purged from %s catalog.\n"), del.num_ids,
       client->hdr.name, client->catalog->hdr.name);
@@ -393,25 +384,11 @@ static int purge_jobs_from_client(UAContext *ua, CLIENT *client)
     * Then delete the Job entry, and finally and JobMedia records.
     */
    for (i=0; i < del.num_ids; i++) {
-      edit_int64(del.JobId[i], ed1);
       Dmsg1(050, "Delete Files JobId=%s\n", ed1); 
       if (!del.PurgedFiles[i]) {
-         Mmsg(query, "DELETE FROM File WHERE JobId=%s", ed1);
-         db_sql_query(ua->db, query, NULL, (void *)NULL);
-         Dmsg1(050, "Del sql=%s\n", query);
+         purge_files_from_job(ua, del.JobId[i]);
       }
-
-      Mmsg(query, "DELETE FROM Job WHERE JobId=%s", ed1);
-      db_sql_query(ua->db, query, NULL, (void *)NULL);
-      Dmsg1(050, "Delete Job sql=%s\n", query);
-
-      Mmsg(query, "DELETE FROM MAC WHERE JobId=%s", ed1);
-      db_sql_query(ua->db, query, NULL, (void *)NULL);
-      Dmsg1(050, "Delete MAC sql=%s\n", query);
-
-      Mmsg(query, "DELETE FROM JobMedia WHERE JobId=%s", ed1);
-      db_sql_query(ua->db, query, NULL, (void *)NULL);
-      Dmsg1(050, "Delete JobMedia sql=%s\n", query);
+      purge_job_from_catalog(ua, del.JobId[i]);
    }
    bsendmsg(ua, _("%d Jobs for client %s purged from %s catalog.\n"), del.num_ids,
       client->hdr.name, client->catalog->hdr.name);
@@ -427,19 +404,42 @@ bail_out:
    return 1;
 }
 
-void purge_files_from_job(UAContext *ua, JOB_DBR *jr)
+void purge_job_from_catalog(UAContext *ua, JobId_t JobId)
 {
-   POOLMEM *query = get_pool_memory(PM_MESSAGE);
+   POOL_MEM query(PM_MESSAGE);
    char ed1[50];
 
-   edit_int64(jr->JobId, ed1);
-   Mmsg(query, "DELETE FROM File WHERE JobId=%s", ed1);
-   db_sql_query(ua->db, query, NULL, (void *)NULL);
+   edit_int64(JobId, ed1);
+   Mmsg(query, "DELETE FROM Job WHERE JobId=%s", ed1);
+   db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
+   Dmsg1(050, "Delete Job sql=%s\n", query.c_str());
 
-   Mmsg(query, "UPDATE Job Set PurgedFiles=1 WHERE JobId=%s", ed1);
-   db_sql_query(ua->db, query, NULL, (void *)NULL);
+   Mmsg(query, "DELETE FROM JobMedia WHERE JobId=%s", ed1);
+   db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
+   Dmsg1(050, "Delete JobMedia sql=%s\n", query.c_str());
 
-   free_pool_memory(query);
+   Mmsg(query, "DELETE FROM Log WHERE JobId=%s", ed1);
+   db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
+   Dmsg1(050, "Delete Log sql=%s\n", query.c_str());
+
+}
+
+void purge_files_from_job(UAContext *ua, JobId_t JobId)
+{
+   POOL_MEM query(PM_MESSAGE);
+   char ed1[50];
+
+   edit_int64(JobId, ed1);
+   Mmsg(query, del_File, ed1);
+   db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
+
+   /*
+    * Now mark Job as having files purged. This is necessary to
+    * avoid having too many Jobs to process in future prunings. If
+    * we don't do this, the number of JobId's in our in memory list
+    * could grow very large.
+    */
+   Mmsg(query, upd_Purged, ed1);
 }
 
 void purge_files_from_volume(UAContext *ua, MEDIA_DBR *mr )
@@ -521,17 +521,8 @@ int purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr)
    }
 
    for (i=0; i < del.num_ids; i++) {
-      edit_int64(del.JobId[i], ed1);
-      Dmsg1(050, "Delete JobId=%s\n", ed1);
-      Mmsg(query, "DELETE FROM File WHERE JobId=%s", ed1);
-      db_sql_query(ua->db, query, NULL, (void *)NULL);
-      Mmsg(query, "DELETE FROM Job WHERE JobId=%s", ed1);
-      db_sql_query(ua->db, query, NULL, (void *)NULL);
-      Mmsg(query, "DELETE FROM MAC WHERE JobId=%s", ed1);
-      db_sql_query(ua->db, query, NULL, (void *)NULL);
-      Mmsg(query, "DELETE FROM JobMedia WHERE JobId=%s", ed1);
-      db_sql_query(ua->db, query, NULL, (void *)NULL);
-      Dmsg1(050, "Del sql=%s\n", query);
+      purge_files_from_job(ua, del.JobId[i]);
+      purge_job_from_catalog(ua, del.JobId[i]);
       del.num_del++;
    }
    if (del.JobId) {

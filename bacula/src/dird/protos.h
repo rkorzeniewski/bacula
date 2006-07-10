@@ -4,7 +4,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -30,7 +30,7 @@ extern int authenticate_file_daemon(JCR *jcr);
 extern int authenticate_user_agent(UAContext *ua);
 
 /* autoprune.c */
-extern int do_autoprune(JCR *jcr);
+extern void do_autoprune(JCR *jcr);
 extern int prune_volumes(JCR *jcr);
 
 /* autorecycle.c */
@@ -235,7 +235,8 @@ bool prune_volume(UAContext *ua, MEDIA_DBR *mr);
 bool mark_media_purged(UAContext *ua, MEDIA_DBR *mr);
 void purge_files_from_volume(UAContext *ua, MEDIA_DBR *mr );
 int purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr);
-void purge_files_from_job(UAContext *ua, JOB_DBR *jr);
+void purge_files_from_job(UAContext *ua, JobId_t JobId);
+void purge_job_from_catalog(UAContext *ua, JobId_t JobId);
 
 
 /* ua_run.c */
