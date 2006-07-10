@@ -26,6 +26,8 @@
 #include "bacula.h"
 #include "jcr.h"
 
+sql_query p_sql_query = NULL;
+
 #define FULL_LOCATION 1               /* set for file:line in Debug messages */
 
 /*
@@ -60,7 +62,7 @@ const char *host_os = HOST_OS;
 const char *distname = DISTNAME;
 const char *distver = DISTVER;
 static FILE *trace_fd = NULL;
-#ifdef HAVE_WIN32
+#if defined(HAVE_WIN32)
 static bool trace = true;
 #else
 static bool trace = false;
@@ -152,15 +154,12 @@ void
 init_msg(JCR *jcr, MSGS *msg)
 {
    DEST *d, *dnew, *temp_chain = NULL;
-#ifndef HAVE_WIN32
-   int i;
-#endif
 
    if (jcr == NULL && msg == NULL) {
       init_last_jobs_list();
    }
 
-#ifndef HAVE_WIN32
+#if defined(HAVE_WIN32)
    /*
     * Make sure we have fd's 0, 1, 2 open
     *  If we don't do this one of our sockets may open
@@ -169,6 +168,7 @@ init_msg(JCR *jcr, MSGS *msg)
     *
     */
    int fd;
+   int i;
    fd = open("/dev/null", O_RDONLY, 0644);
    if (fd > 2) {
       close(fd);
@@ -185,7 +185,7 @@ init_msg(JCR *jcr, MSGS *msg)
    if (msg == NULL) {
       daemon_msgs = (MSGS *)malloc(sizeof(MSGS));
       memset(daemon_msgs, 0, sizeof(MSGS));
-#ifndef HAVE_WIN32
+#if defined(HAVE_WIN32)
       for (i=1; i<=M_MAX; i++) {
          add_msg_dest(daemon_msgs, MD_STDOUT, i, NULL, NULL);
       }
@@ -577,7 +577,7 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
     }
 
     if (type == M_ABORT || type == M_ERROR_TERM) {
-#ifndef HAVE_WIN32
+#if !defined(HAVE_WIN32)
        fputs(dt, stdout);
        fputs(msg, stdout);         /* print this here to INSURE that it is printed */
        fflush(stdout);
@@ -595,6 +595,18 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
     for (d=msgs->dest_chain; d; d=d->next) {
        if (bit_is_set(type, d->msg_types)) {
           switch (d->dest_code) {
+             case MD_CATALOG:
+                char ed1[50];
+                if (!jcr || !jcr->db) {
+                   break;
+                }
+                if (p_sql_query) {
+                   POOL_MEM cmd(PM_MESSAGE);
+                   Mmsg(cmd, "INSERT INTO Log (JobId, LogText) VALUES (%s, '%s')",
+                         edit_int64(jcr->JobId, ed1), msg);
+                   p_sql_query(jcr, cmd.c_str());
+                }
+                break;
              case MD_CONSOLE:
                 Dmsg1(850, "CONSOLE for following msg: %s", msg);
                 if (!con_fd) {

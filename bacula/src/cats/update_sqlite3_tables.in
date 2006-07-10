@@ -213,6 +213,12 @@ INSERT INTO Job SELECT
 
 DROP TABLE Job_backup;
 
+CREATE TABLE Log  
+   JobId INTEGER UNSIGNED REFERENCES Job NOT NULL,
+   LogText TEXT NOT NULL,
+   KEY (JobId)
+   );
+
 CREATE TABLE Location (
    LocationId INTEGER,
    Location VARCHAR(128) NOT NULL,

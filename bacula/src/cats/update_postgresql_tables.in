@@ -42,6 +42,14 @@ CREATE TABLE Location (
    PRIMARY KEY (LocationId)
 );
 
+CREATE TABLE Log
+(
+    JobId	      serial	  not null,
+    LogText	      text	  not null,
+);
+
+create index log_name_idx on Log (JobId);
+
 
 DELETE FROM version;
 INSERT INTO version (versionId) VALUES (10);

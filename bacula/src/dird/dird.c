@@ -27,7 +27,8 @@
 /* Forward referenced subroutines */
 static void terminate_dird(int sig);
 static int check_resources();
-
+static void dir_sql_query(JCR *jcr, const char *cmd);
+  
 /* Exported subroutines */
 extern "C" void reload_config(int sig);
 extern void invalidate_schedules();
@@ -212,6 +213,9 @@ int main (int argc, char *argv[])
 
    my_name_is(0, NULL, director->hdr.name);    /* set user defined name */
 
+   /* Plug database interface for library routines */
+   p_sql_query = (sql_query)dir_sql_query;                                   
+
    FDConnectTimeout = (int)director->FDConnectTimeout;
    SDConnectTimeout = (int)director->SDConnectTimeout;
 
@@ -258,6 +262,14 @@ int main (int argc, char *argv[])
    terminate_dird(0);
 
    return 0;
+}
+
+static void dir_sql_query(JCR *jcr, const char *cmd)
+{
+   if (!jcr || !jcr->db) {
+      return;
+   }
+   db_sql_query(jcr->db, cmd, NULL, NULL);
 }
 
 /* Cleanup and then exit */
@@ -566,13 +578,13 @@ static int check_resources()
          /* Handle RunScripts alists specifically */
          if (jobdefs->RunScripts) {
             RUNSCRIPT *rs, *elt;
-	    
-	    if (!job->RunScripts) {
-	       job->RunScripts = New(alist(10, not_owned_by_alist));
-	    }
-	   
-	    foreach_alist(rs, jobdefs->RunScripts) {
-	       elt = copy_runscript(rs);
+            
+            if (!job->RunScripts) {
+               job->RunScripts = New(alist(10, not_owned_by_alist));
+            }
+           
+            foreach_alist(rs, jobdefs->RunScripts) {
+               elt = copy_runscript(rs);
                job->RunScripts->append(elt); /* we have to free it */
             }
          }

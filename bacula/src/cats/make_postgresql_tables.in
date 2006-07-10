@@ -245,6 +245,15 @@ CREATE TABLE client
 
 create unique index client_name_idx on client (name);
 
+CREATE TABLE Log
+(
+    JobId	      serial	  not null,
+    LogText	      text	  not null,
+);
+
+create index log_name_idx on Log (JobId);
+
+
 
 CREATE TABLE counters
 (
