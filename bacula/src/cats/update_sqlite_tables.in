@@ -222,7 +222,8 @@ CREATE TABLE Log
 CREATE TABLE Location (
    LocationId INTEGER,
    Location VARCHAR(128) NOT NULL,
-   Counter INTEGER DEFAULT 0,
+   Cost INTEGER DEFAULT 0,
+   Enabled TINYINT,
    PRIMARY KEY(LocationId)
    );
  

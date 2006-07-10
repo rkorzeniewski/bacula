@@ -3,6 +3,7 @@
 
 General:
 10Jul06
+- Add Enabled column to Location, correct some typos in DB schemas.
 - Correct bug I introduced into RunScripts enum.
 - Add log table to Catalog
 - Purge original job migrated if the migration terminates normally.
