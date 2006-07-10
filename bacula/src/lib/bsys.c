@@ -621,6 +621,8 @@ void drop(char *uname, char *gname)
    struct passwd *passw = NULL;
    struct group *group = NULL;
    gid_t gid;
+   uid_t uid;
+   char username[1000];         
 
    Dmsg2(900, "uname=%s gname=%s\n", uname?uname:"NONE", gname?gname:"NONE");
    if (!uname && !gname) {
@@ -642,6 +644,10 @@ void drop(char *uname, char *gname)
          uname = passw->pw_name;
       }
    }
+   /* Any OS uname pointer may get overwritten, so save name, uid, and gid */
+   bstrncpy(username, uname, sizeof(username));
+   uid = passw->pw_uid;
+   gid = passw->pw_gid;
    if (gname) {
       if ((group = getgrnam(gname)) == NULL) {
          berrno be;
@@ -649,29 +655,27 @@ void drop(char *uname, char *gname)
             be.strerror());
       }
       gid = group->gr_gid;
-   } else {
-      gid = passw->pw_gid;
    }
-   if (initgroups(passw->pw_name, passw->pw_gid)) {
+   if (initgroups(username, gid)) {
       berrno be;
       if (gname) {
          Emsg3(M_ERROR_TERM, 0, _("Could not initgroups for group=%s, userid=%s: ERR=%s\n"),         
-            gname, uname, be.strerror());
+            gname, username, be.strerror());
       } else {
          Emsg2(M_ERROR_TERM, 0, _("Could not initgroups for userid=%s: ERR=%s\n"),         
-            uname, be.strerror());
+            username, be.strerror());
       }
    }
    if (gname) {
-      if (setgid(group->gr_gid)) {
+      if (setgid(gid)) {
          berrno be;
          Emsg2(M_ERROR_TERM, 0, _("Could not set group=%s: ERR=%s\n"), gname,
             be.strerror());
       }
    }
-   if (setuid(passw->pw_uid)) {
+   if (setuid(uid)) {
       berrno be;
-      Emsg1(M_ERROR_TERM, 0, _("Could not set specified userid: %s\n"), uname);
+      Emsg1(M_ERROR_TERM, 0, _("Could not set specified userid: %s\n"), username);
    }
 #endif
 }

@@ -119,6 +119,7 @@ CREATE TABLE Location (
    LocationId INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
    Location TINYBLOB NOT NULL,
    Cost INTEGER DEFAULT 0,
+   Enabled TINYINT,
    PRIMARY KEY(LocationId)
    );
 

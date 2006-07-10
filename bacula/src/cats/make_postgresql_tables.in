@@ -82,6 +82,7 @@ CREATE TABLE Location (
    LocationId	      serial	  not null,
    Location	      text	  not null,
    Cost 	      integer	  default 0,
+   Enabled	      smallint,
    primary key (LocationId)
 );
 

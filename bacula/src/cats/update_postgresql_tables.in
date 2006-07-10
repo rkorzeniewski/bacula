@@ -38,7 +38,8 @@ ALTER TABLE jobmedia DROP COLUMN Stripe;
 CREATE TABLE Location (
    LocationId SERIAL NOT NULL,
    Location TEXT NOT NULL,
-   Cost integer not null default 0,
+   Cost integer default 0,
+   Enabled integer,
    PRIMARY KEY (LocationId)
 );
 

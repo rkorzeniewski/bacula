@@ -78,7 +78,8 @@ CREATE INDEX inx6 ON Job (Name);
 CREATE TABLE Location (
    LocationId INTEGER,
    Location TINYBLOB NOT NULL,
-   Cost INTEGER,
+   Cost INTEGER DEFAULT 0,
+   Enabled TINYINT,
    PRIMARY KEY(LocationId)
    );
 
