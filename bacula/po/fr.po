@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Bacula 1.38\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
 "POT-Creation-Date: 2006-02-26 10:24+0100\n"
-"PO-Revision-Date: 2006-05-03 22:52+0200\n"
+"PO-Revision-Date: 2006-07-12 22:14+0200\n"
 "Last-Translator: Eric Bollengier <eric@eb.homelinux.org>\n"
 "Language-Team: French <bacula-devel-fr@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -2075,7 +2075,7 @@ msgstr "Vous devez utiliser SQLite, PostgreSQL, ou MySQL\n"
 #: src/cats/postgresql.c:128
 #, c-format
 msgid "Unable to initialize DB lock. ERR=%s\n"
-msgstr ""
+msgstr "Impossible d'initialiser le verrou sur la base. ERR=%s\n"
 
 #: src/cats/bdb.c:162
 #, c-format
@@ -2162,7 +2162,7 @@ msgstr ""
 #: src/cats/sql_create.c:434
 #, c-format
 msgid "Volume \"%s\" already exists.\n"
-msgstr ""
+msgstr "Le volume « %s » existe déjà en base.\n"
 
 #: src/cats/sql_create.c:472
 #, c-format
@@ -2535,7 +2535,7 @@ msgstr ""
 #: src/cats/sql_find.c:234
 #, c-format
 msgid "No Job found for: %s.\n"
-msgstr ""
+msgstr "Pas de job trouvé pour : %s.\n"
 
 #: src/cats/sql_find.c:245
 #, c-format
@@ -2550,16 +2550,16 @@ msgstr ""
 #: src/cats/sql_find.c:329
 #, c-format
 msgid "No Volume record found for item %d.\n"
-msgstr ""
+msgstr "Pas de volume trouvé en base pour l'objet %d.\n"
 
 #: src/cats/sql_list.c:53
 #, c-format
 msgid "Query failed: %s\n"
-msgstr ""
+msgstr "Erreur sur la requête : %s\n"
 
 #: src/cats/mysql.c:60
 msgid "A user name for MySQL must be supplied.\n"
-msgstr ""
+msgstr "Un nom d'utilisateur MySQL doit être fourni.\n"
 
 #: src/cats/mysql.c:161
 #, c-format
@@ -2568,10 +2568,13 @@ msgid ""
 "Database=%s User=%s\n"
 "It is probably not running or your password is incorrect.\n"
 msgstr ""
+"Impossible de se connecter au serveur MySQL.\n"
+"Base=%s Utilisateur=%s\n"
+"Le serveur n'est pas démarré ou bien votre password est invalide.\n"
 
 #: src/cats/postgresql.c:62
 msgid "A user name for PostgreSQL must be supplied.\n"
-msgstr ""
+msgstr "Un nom d'utilisateur PostgreSQL doit être fourni.\n"
 
 #: src/cats/postgresql.c:165
 #, c-format
@@ -2580,6 +2583,9 @@ msgid ""
 "Database=%s User=%s\n"
 "It is probably not running or your password is incorrect.\n"
 msgstr ""
+"Impossible de se connecter au serveur PostgreSQL.\n"
+"Base=%s Utilisateur=%s\n"
+"Le serveur n'est pas démarré ou bien votre password est invalide.\n"
 
 #: src/cats/postgresql.c:506
 #, c-format
@@ -2901,31 +2907,31 @@ msgstr ""
 #: src/dird/ua_select.c:823
 #, c-format
 msgid "Expecting jobid=nn command, got: %s\n"
-msgstr ""
+msgstr "Attendait l'option jobid=nn, pas : %s\n"
 
 #: src/dird/ua_select.c:827
 #, c-format
 msgid "JobId %s is not running.\n"
-msgstr ""
+msgstr "JobId %s n'est pas en cours.\n"
 
 #: src/dird/ua_select.c:836
 #, c-format
 msgid "Expecting job=xxx, got: %s.\n"
-msgstr ""
+msgstr "Attendait l'option job=xxx, pas : %s\n"
 
 #: src/dird/ua_select.c:840
 #, c-format
 msgid "Job \"%s\" is not running.\n"
-msgstr ""
+msgstr "Job « %s » n'est pas en cours.\n"
 
 #: src/dird/ua_select.c:856
 #, c-format
 msgid "Storage resource \"%s\": not found\n"
-msgstr ""
+msgstr "Storage resource « %s » : non trouvé\n"
 
 #: src/dird/ua_select.c:888
 msgid "Enter autochanger drive[0]: "
-msgstr ""
+msgstr "Saisissez le numéro du lecteur de l'autochanger [0] : "
 
 #: src/dird/ua_select.c:918
 msgid "Media Types defined in conf file:\n"
@@ -2937,7 +2943,7 @@ msgstr ""
 
 #: src/dird/ua_select.c:924
 msgid "Select the Media Type"
-msgstr ""
+msgstr "Choisissez le type de Media"
 
 #: src/dird/ua_status.c:126
 msgid "Status available for:\n"
@@ -3037,7 +3043,7 @@ msgstr ""
 
 #: src/dird/ua_status.c:491
 msgid "No Scheduled Jobs.\n"
-msgstr ""
+msgstr "Pas de job programmé.\n"
 
 #: src/dird/ua_status.c:508 src/stored/status.c:277
 msgid ""
@@ -3068,7 +3074,7 @@ msgstr "======================================================================\n
 
 #: src/dird/ua_status.c:540
 msgid "is waiting execution"
-msgstr ""
+msgstr "est en attente d'exécution"
 
 #: src/dird/ua_status.c:543
 msgid "is running"
@@ -3147,7 +3153,7 @@ msgstr "est en attente d'un montage"
 
 #: src/dird/ua_status.c:620
 msgid "is waiting for an appendable Volume"
-msgstr ""
+msgstr "est en attente d'un volume libre"
 
 #: src/dird/ua_status.c:627
 #, c-format
@@ -4031,7 +4037,7 @@ msgstr "affiche l'aide"
 
 #: src/dird/ua_tree.c:67
 msgid "list current directory, wildcards allowed"
-msgstr ""
+msgstr "affiche le contenu du répertoire courant, les jokers (*) fonctionnent"
 
 #: src/dird/ua_tree.c:68
 msgid "list the marked files in and below the cd"
@@ -5270,40 +5276,49 @@ msgid ""
 "for retention periods. Normally you should use the\n"
 "PRUNE command, which respects retention periods.\n"
 msgstr ""
+"\n"
+"Cette commande peut être DANGEUREUSE !\n"
+"\n"
+"Elle supprime tous les enregistrements des fichiers d'un job, \n"
+"d'un client ou d'un volume ; ou bien elle supprime tous les jobs\n"
+"d'un client ou d'un volume sans s'occuper des périodes de rétention.\n"
+"\n"
+"Normalement vous devez utiliser la commande PRUNE qui respecte les périodes\n"
+"de rétention.\n"
 
 #: src/dird/ua_purge.c:237
 msgid "Choose item to purge"
-msgstr ""
+msgstr "Choisissez l'élément à purger"
 
 #: src/dird/ua_purge.c:282
 #, c-format
 msgid "Begin purging files for Client \"%s\"\n"
-msgstr ""
+msgstr "Début de la purge des fichiers du client « %s »\n"
 
 #: src/dird/ua_purge.c:294
 #, c-format
 msgid "No Files found for client %s to purge from %s catalog.\n"
-msgstr ""
+msgstr "Pas de fichier à purger pour le client « %s » dans le catalogue %s.\n"
 
 #: src/dird/ua_purge.c:325
 #, c-format
 msgid "%d Files for client \"%s\" purged from %s catalog.\n"
-msgstr ""
+msgstr "%d fichiers du client « %s » purgé du catalogue %s.\n"
 
 #: src/dird/ua_purge.c:361
 #, c-format
 msgid "Begin purging jobs from Client \"%s\"\n"
-msgstr ""
+msgstr "Début de purge des jobs du client « %s »\n"
 
 #: src/dird/ua_purge.c:372
 #, c-format
 msgid "No Jobs found for client %s to purge from %s catalog.\n"
-msgstr ""
+msgstr "Pas de job à purger pour le client « %s » dans le catalogue %s.\n"
 
 #: src/dird/ua_purge.c:416
 #, c-format
 msgid "%d Jobs for client %s purged from %s catalog.\n"
-msgstr ""
+msgstr "%d jobs du client « %s » purgé du catalogue %s.\n"
 
 #: src/dird/ua_purge.c:467
 #, c-format
@@ -5323,7 +5338,7 @@ msgstr "%d fichier%s du volume « %s » purgé du catalogue.\n"
 #, c-format
 msgid ""
 "There are no more Jobs associated with Volume \"%s\". Marking it purged.\n"
-msgstr ""
+msgstr "Il n'y a plus de job associé avec le volume « %s ». Il est marqué purgé.\n"
 
 #: src/dird/ua_purge.c:586
 #, c-format
@@ -5359,7 +5374,7 @@ msgstr "Bacula "
 #: src/dird/admin.c:108 src/console/console.c:103
 #, c-format
 msgid " ("
-msgstr ""
+msgstr " ("
 
 #: src/dird/admin.c:108
 #, c-format
@@ -5376,7 +5391,7 @@ msgstr ""
 #: src/dird/run_conf.c:188
 #, c-format
 msgid "Expected an equals, got: %s"
-msgstr ""
+msgstr "Attendait un égale, pas : %s"
 
 #: src/dird/run_conf.c:201 src/dird/run_conf.c:213
 #, c-format
@@ -8035,7 +8050,7 @@ msgstr ""
 #: src/filed/status.c:71
 #, c-format
 msgid "Daemon started %s, %d Job%s run since started.\n"
-msgstr ""
+msgstr "Démon démarré le %s, %d job%s lancés depuis.\n"
 
 #: src/filed/status.c:127
 #, c-format
@@ -8044,12 +8059,12 @@ msgstr ""
 
 #: src/filed/status.c:138
 msgid "Running Jobs:\n"
-msgstr ""
+msgstr "Job en cours :\n"
 
 #: src/filed/status.c:149
 #, c-format
 msgid "Director connected at: %s\n"
-msgstr ""
+msgstr "Connexion du director le %s\n"
 
 #: src/filed/status.c:151
 #, c-format
@@ -8082,7 +8097,7 @@ msgstr ""
 
 #: src/filed/status.c:217
 msgid "Terminated Jobs:\n"
-msgstr ""
+msgstr "Job terminés :\n"
 
 #: src/filed/status.c:219
 msgid " JobId  Level     Files         Bytes  Status   Finished        Name \n"
@@ -10858,17 +10873,17 @@ msgstr ""
 #: src/stored/mount.c:334
 #, c-format
 msgid "Volume \"%s\" previously written, moving to end of data.\n"
-msgstr ""
+msgstr "Le volume « %s » contient des données, re-positionnement à la fin.\n"
 
 #: src/stored/mount.c:337
 #, c-format
 msgid "Unable to position to end of data on device %s: ERR=%s\n"
-msgstr ""
+msgstr "Impossible de se positionner à la fin du média sur le device %s : ERR=%s\n"
 
 #: src/stored/mount.c:349
 #, c-format
 msgid "Ready to append to end of Volume \"%s\" at file=%d.\n"
-msgstr ""
+msgstr "Prêt à ajouter des données à la fin du volume « %s » file=%d.\n"
 
 #: src/stored/mount.c:352
 #, c-format
@@ -10880,7 +10895,7 @@ msgstr ""
 #: src/stored/mount.c:380
 #, c-format
 msgid "Ready to append to end of Volume \"%s\" at file address=%u.\n"
-msgstr ""
+msgstr "Prêt à ajouter des données à la fin du volume « %s » file adress=%u.\n"
 
 #: src/stored/mount.c:384
 #, c-format
@@ -10894,7 +10909,7 @@ msgstr ""
 #: src/stored/mount.c:435
 #, c-format
 msgid "Labeled new Volume \"%s\" on device %s.\n"
-msgstr ""
+msgstr "Le nouveau volume « %s » a été labélisé sur le device %s.\n"
 
 #: src/stored/mount.c:440
 #, c-format
@@ -11183,14 +11198,14 @@ msgstr ""
 #: src/stored/wait.c:199
 #, c-format
 msgid "Job %s waiting to reserve a device.\n"
-msgstr ""
+msgstr "Le job %s est en attente de réservation d'un device.\n"
 
 #: src/stored/status.c:67
 #, c-format
 msgid ""
 "\n"
 "%s Version: %s (%s) %s %s %s\n"
-msgstr ""
+msgstr "\n%s Version : %s (%s) %s %s %s\n"
 
 #: src/stored/status.c:103
 msgid ""
@@ -14126,21 +14141,21 @@ msgstr ""
 msgid ""
 "Director authorization problem.\n"
 "Most likely the passwords do not agree.\n"
-"Please see http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors "
+"Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors "
 "for help.\n"
 msgstr ""
 
 #: src/tray-monitor/authenticate.c:127
 msgid ""
 "Director and Storage daemon passwords or names not the same.\n"
-"Please see http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors "
+"Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors "
 "for help.\n"
 msgstr ""
 
 #: src/tray-monitor/authenticate.c:172
 msgid ""
 "Director and File daemon passwords or names not the same.\n"
-"Please see http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors "
+"Please see http://www.bacula.org/html-manual/faq.html#AuthorizationErrors "
 "for help.\n"
 msgstr ""
 
