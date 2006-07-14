@@ -120,42 +120,28 @@ unbash_spaces(POOL_MEM &pm)
    }
 }
 
-/* kludge below disabled for MinGW, due to link problems ... */
-#if    HAVE_WIN32 && !HAVE_CONSOLE && !HAVE_WXCONSOLE && !HAVE_MINGW
-extern long _timezone;
-extern int _daylight;
-extern long _dstbias;
-extern "C" void __tzset(void);
-extern "C" int _isindst(struct tm *);
-#endif
-
 char *encode_time(time_t time, char *buf)
 {
    struct tm tm;
    int n = 0;
 
-#if    HAVE_WIN32 && !HAVE_CONSOLE && !HAVE_WXCONSOLE && !HAVE_MINGW
-    /*
-     * Gross kludge to avoid a seg fault in Microsoft's CRT localtime_r(),
-     *  which incorrectly references a NULL returned from gmtime() if
-     *  the time (adjusted for the current timezone) is invalid.
-     *  This could happen if you have a bad date/time, or perhaps if you
-     *  moved a file from one timezone to another?
-     */
-    struct tm *gtm;
-    time_t gtime;
-    __tzset();
-    gtime = time - _timezone;
-    if (!(gtm = gmtime(&gtime))) {
-       return buf;
-    }
-    if (_daylight && _isindst(gtm)) {
-       gtime -= _dstbias;
-       if (!gmtime(&gtime)) {
-          return buf;
-       }
-    }
+#if defined(HAVE_WIN32)
+   /*
+    * Avoid a seg fault in Microsoft's CRT localtime_r(),
+    *  which incorrectly references a NULL returned from gmtime() if
+    *  time is negative before or after the timezone adjustment.
+    */
+   struct tm *gtm;
+
+   if ((gtm = gmtime(&time)) == NULL) {
+      return buf;
+   }
+
+   if (gtm->tm_year == 1970 && gtm->tm_mon == 1 && gtm->tm_mday < 3) {
+      return buf;
+   }
 #endif
+
    if (localtime_r(&time, &tm)) {
       n = sprintf(buf, "%04d-%02d-%02d %02d:%02d:%02d",
                    tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
@@ -464,10 +450,10 @@ void make_session_key(char *key, char *seed, int mode)
      (void)getcwd(s + strlen(s), 256);
      sprintf(s + strlen(s), "%lu", (unsigned long)clock());
      sprintf(s + strlen(s), "%lu", (unsigned long)time(NULL));
-#ifdef Solaris
+#if defined(Solaris)
      sysinfo(SI_HW_SERIAL,s + strlen(s), 12);
 #endif
-#ifdef HAVE_GETHOSTID
+#if defined(HAVE_GETHOSTID)
      sprintf(s + strlen(s), "%lu", (unsigned long) gethostid());
 #endif
      gethostname(s + strlen(s), 256);

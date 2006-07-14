@@ -159,7 +159,7 @@ init_msg(JCR *jcr, MSGS *msg)
       init_last_jobs_list();
    }
 
-#if defined(HAVE_WIN32)
+#if !defined(HAVE_WIN32)
    /*
     * Make sure we have fd's 0, 1, 2 open
     *  If we don't do this one of our sockets may open
@@ -185,7 +185,7 @@ init_msg(JCR *jcr, MSGS *msg)
    if (msg == NULL) {
       daemon_msgs = (MSGS *)malloc(sizeof(MSGS));
       memset(daemon_msgs, 0, sizeof(MSGS));
-#if defined(HAVE_WIN32)
+#if !defined(HAVE_WIN32)
       for (i=1; i<=M_MAX; i++) {
          add_msg_dest(daemon_msgs, MD_STDOUT, i, NULL, NULL);
       }
