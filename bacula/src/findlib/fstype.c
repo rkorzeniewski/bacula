@@ -44,8 +44,8 @@
    "HAVE_LINUX_OS\n" \
    "HAVE_NETBSD_OS\n" \
    "HAVE_OPENBSD_OS\n" \
-   "HAVE_SUN_OS\n"
-#define bool               int
+   "HAVE_SUN_OS\n" \
+   "HAVE_WIN32\n"
 #define false              0
 #define true               1
 #define bstrncpy           strncpy
@@ -251,6 +251,38 @@ bool fstype(const char *fname, char *fs, int fslen)
    return false;
 }
 /* Tru64 */
+
+#elif defined (HAVE_WIN32)
+/* Windows */
+
+bool fstype(const char *fname, char *fs, int fslen)
+{
+   DWORD componentlength;
+   DWORD fsflags;
+   CHAR rootpath[4];
+   UINT oldmode;
+   BOOL result;
+
+   /* Copy Drive Letter, colon, and backslash to rootpath */
+   bstrncpy(rootpath, fname, sizeof(rootpath));
+
+   /* We don't want any popups if there isn't any media in the drive */
+   oldmode = SetErrorMode(SEM_FAILCRITICALERRORS);
+
+   result = GetVolumeInformation(rootpath, NULL, 0, NULL, &componentlength, &fsflags, fs, fslen);
+
+   SetErrorMode(oldmode);
+
+   if (result) {
+      /* Windows returns NTFS, FAT, etc.  Make it lowercase to be consistent with other OSes */
+      lcase(fs);
+   } else {
+      Dmsg2(10, "GetVolumeInformation() failed for \"%s\", Error = %d.\n", rootpath, GetLastError());
+   }
+
+   return result != 0;
+}
+/* Windows */
 
 #else    /* No recognised OS */
 

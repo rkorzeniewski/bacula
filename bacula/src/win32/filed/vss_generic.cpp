@@ -23,7 +23,7 @@
 
 #ifdef WIN32_VSS
 
-#include <bacula.h>
+#include "bacula.h"
 
 #undef setlocale
 

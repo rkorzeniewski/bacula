@@ -100,7 +100,7 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
    if (!cram_md5_respond(dir, password, &tls_remote_need, &compatible) ||
        !cram_md5_challenge(dir, password, tls_local_need, compatible)) {
       goto bail_out;
-   }       
+   }
 
    /* Verify that the remote host is willing to meet our TLS requirements */
    if (tls_remote_need < tls_local_need && tls_local_need != BNET_TLS_OK && tls_remote_need != BNET_TLS_OK) {

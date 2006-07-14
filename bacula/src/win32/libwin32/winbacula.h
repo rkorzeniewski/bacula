@@ -29,8 +29,6 @@
 //
 
 
-// WinUPS header file
-
 // Application specific messages
 
 // Message used for system tray notifications
