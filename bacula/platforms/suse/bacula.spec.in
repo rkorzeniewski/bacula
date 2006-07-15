@@ -193,7 +193,7 @@ Distribution: %{_dist}
 %{?nobuild_gconsole:%define gconsole 0}
 
 # Should we build wxconsole, only wxWidgets >=2.6 is supported
-# currently only SuSE 10 and FC4
+# currently only SuSE 10 and FC4/FC5
 %define wxconsole 0
 %{?build_wxconsole:%define wxconsole 1}
 
@@ -395,6 +395,11 @@ Group: System Environment/Daemons
 Provides: bacula-dir, bacula-sd, bacula-fd, bacula-server
 Conflicts: bacula-client
 Obsoletes: bacula-rescue
+
+%if %{su9} || %{su10}
+Conflicts: bacula
+%endif
+
 Requires: ncurses, libstdc++, zlib, openssl, mtx
 
 %if %{rh7}
@@ -513,6 +518,11 @@ Conflicts: bacula-mysql
 Conflicts: bacula-sqlite
 Conflicts: bacula-postgresql
 Obsoletes: bacula-rescue
+
+%if %{su9} || %{su10}
+Provides: bacula
+%endif
+
 Requires: libstdc++, zlib, openssl
 
 %if %{rh7}
@@ -868,12 +878,20 @@ mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
 mkdir -p $RPM_BUILD_ROOT/etc/log.d/conf/logfiles
 mkdir -p $RPM_BUILD_ROOT/etc/log.d/conf/services
 mkdir -p $RPM_BUILD_ROOT/etc/log.d/scripts/services
-mkdir -p $RPM_BUILD_ROOT/usr/share/pixmaps
-%if %{gconsole}
-mkdir -p $RPM_BUILD_ROOT/usr/share/applications
-%endif
 mkdir -p $RPM_BUILD_ROOT/etc/bacula/updatedb
-%if %{gconsole} && ! %{su9} && ! %{su10}
+
+%if %{gconsole} || %{wxconsole}
+mkdir -p $RPM_BUILD_ROOT/usr/share/applications
+mkdir -p $RPM_BUILD_ROOT/usr/share/pixmaps
+%endif
+
+%if %{gconsole} || %{wxconsole}
+%define usermode_iftrick 1
+%else
+%define usermode_iftrick 0
+%endif
+
+%if %{usermode_iftrick} && ! %{su9} && ! %{su10}
 mkdir -p $RPM_BUILD_ROOT/etc/pam.d
 mkdir -p $RPM_BUILD_ROOT/etc/security/console.apps
 mkdir -p $RPM_BUILD_ROOT/usr/bin
@@ -1532,6 +1550,10 @@ fi
 %endif
 
 %changelog
+* Sat Jul 15 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- add provides and conflicts for standard suse packages
+* Thu Jul 13 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- fix directory creation when wxconsole and not gconsole
 * Tue Jul 04 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - add check to buildrequires to make sure libstdc++ version matches gcc
 * Mon Jul 03 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
