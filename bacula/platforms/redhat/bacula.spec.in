@@ -19,6 +19,10 @@
 # except for patch macros in the setup section
 #--------------------------------------------------------------------------
 
+# third party packagers
+%define _packager D. Scott Barninger <barninger@fairfieldcomputers.com>
+%{?contrib_packager:%define _packager %{contrib_packager}}
+
 Summary: Bacula - The Network Backup Solution
 Name: bacula
 Version: %{_version}
@@ -33,7 +37,7 @@ Source4: http://www.prdownloads.sourceforge.net/bacula/%{name}-rescue-%{_rescuev
 BuildRoot: %{_tmppath}/%{name}-root
 URL: http://www.bacula.org/
 Vendor: The Bacula Team
-Packager: D. Scott Barninger <barninger@fairfieldcomputers.com>
+Packager: %{_packager}
 
 # define the basic package description
 %define blurb Bacula - It comes by night and sucks the vital essence from your computers.
@@ -1552,6 +1556,7 @@ fi
 %changelog
 * Sat Jul 15 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - add provides and conflicts for standard suse packages
+- add third party packager tag support
 * Thu Jul 13 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - fix directory creation when wxconsole and not gconsole
 * Tue Jul 04 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
