@@ -118,6 +118,10 @@ Packager: %{_packager}
 %{?build_mdv:%define mdv 1}
 %{?build_mdv:%define mdk 1}
 
+# client only build
+%define client_only 0
+%{?build_client_only:%define client_only 1}
+
 # test for a platform definition
 %if ! %{rh7} && ! %{rh8} && ! %{rh9} && ! %{fc1} && ! %{fc3} && ! %{fc4} && ! %{fc5} && ! %{wb3} && ! %{su9} && ! %{su10} && ! %{mdk}
 %{error: You must specify a platform. Please examine the spec file.}
@@ -144,7 +148,7 @@ exit 1
 %{?build_postgresql:%define postgresql 1}
 
 # test for a database definition
-%if ! %{mysql} && ! %{sqlite} && ! %{postgresql}
+%if ! %{mysql} && ! %{sqlite} && ! %{postgresql} && ! %{client_only}
 %{error: You must specify database support. Please examine the spec file.}
 exit 1
 %endif
@@ -204,6 +208,17 @@ Distribution: %{_dist}
 # should we turn on python support
 %define python 0
 %{?build_python:%define python 1}
+
+# for client only build
+%if %{client_only}
+%define mysql 0
+%define mysql4 0
+%define mysql5 0
+%define postgresql 0
+%define sqlite 0
+%define gconsole 0
+%define wxconsole 0
+%endif
 
 %{expand: %%define gccver %(rpm -q gcc | cut -d - -f 2)}
 %{expand: %%define gccrel %(rpm -q gcc | cut -d - -f 3)}
@@ -504,7 +519,11 @@ This build requires PostgreSQL to be installed separately as the catalog databas
 %if %{sqlite}
 This build incorporates sqlite as the catalog database, statically compiled.
 %endif
+%if %{python}
+This build includes python scripting support.
+%endif
 
+%if ! %{client_only}
 %package mtx
 Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
@@ -513,6 +532,7 @@ Provides: mtx
 %description mtx
 This is Bacula's version of mtx tape utilities for Linux distributions that
 do not provide their own mtx package
+%endif
 
 %package client
 Summary: Bacula - The Network Backup Solution
@@ -563,7 +583,11 @@ Requires: python >= %{pyver}
 
 This is the File daemon (Client) only package. It includes the command line 
 console program.
+%if %{python}
+This build includes python scripting support.
+%endif
 
+%if ! %{client_only}
 %package updatedb
 
 Summary: Bacula - The Network Backup Solution
@@ -582,6 +606,7 @@ Group: System Environment/Daemons
 
 This package installs scripts for updating older versions of the bacula
 database.
+%endif
 
 %if %{gconsole}
 %package gconsole
@@ -775,7 +800,9 @@ cd %{depkgs}
 %if %{sqlite}
 make sqlite
 %endif
+%if ! %{client_only}
 make mtx
+%endif
 cd ${cwd}
 
 # patches for the bundled sqlite scripts
@@ -854,6 +881,9 @@ make
 %if %{python}
 	--with-python \
 %endif
+%if %{client_only}
+	--enable-client-only \
+%endif
         --with-working-dir=%{working_dir} \
         --with-pid-dir=/var/run \
         --with-subsys-dir=/var/lock/subsys \
@@ -913,6 +943,7 @@ make \
         working_dir=$RPM_BUILD_ROOT%{working_dir} \
         install
 
+%if ! %{client_only}
 cd %{depkgs}
 make \
         prefix=$RPM_BUILD_ROOT/usr \
@@ -922,6 +953,7 @@ make \
         mandir=$RPM_BUILD_ROOT/usr/man \
         mtx-install
 cd ${cwd}
+%endif
 
 # fixme - make installs the mysql scripts for sqlite build
 %if %{sqlite}
@@ -960,6 +992,10 @@ cp -p platforms/redhat/bacula-fd $RPM_BUILD_ROOT/etc/init.d/bacula-fd
 cp -p platforms/redhat/bacula-sd $RPM_BUILD_ROOT/etc/init.d/bacula-sd
 %endif
 chmod 0754 $RPM_BUILD_ROOT/etc/init.d/*
+%if %{client_only}
+rm -f $RPM_BUILD_ROOT/etc/init.d/bacula-dir
+rm -f $RPM_BUILD_ROOT/etc/init.d/bacula-sd
+%endif
 
 # install the menu stuff
 %if %{gconsole} && %{su9}
@@ -1016,12 +1052,14 @@ cp -p scripts/logrotate $RPM_BUILD_ROOT/etc/logrotate.d/bacula
 cp -p updatedb/* $RPM_BUILD_ROOT/etc/bacula/updatedb/
 
 # install the logwatch scripts
+%if ! %{client_only}
 cp -p scripts/logwatch/bacula $RPM_BUILD_ROOT/etc/log.d/scripts/services/bacula
 cp -p scripts/logwatch/logfile.bacula.conf $RPM_BUILD_ROOT/etc/log.d/conf/logfiles/bacula.conf
 cp -p scripts/logwatch/services.bacula.conf $RPM_BUILD_ROOT/etc/log.d/conf/services/bacula.conf
 chmod 755 $RPM_BUILD_ROOT/etc/log.d/scripts/services/bacula
 chmod 644 $RPM_BUILD_ROOT/etc/log.d/conf/logfiles/bacula.conf
 chmod 644 $RPM_BUILD_ROOT/etc/log.d/conf/services/bacula.conf
+%endif
 
 # install the rescue files
 mkdir $RPM_BUILD_ROOT/etc/bacula/rescue
@@ -1041,11 +1079,26 @@ mv $RPM_BUILD_ROOT/etc/bacula/wx-console.conf $RPM_BUILD_ROOT/etc/bacula/wxconso
 %endif
 
 # now clean up permissions that are left broken by the install
+%if ! %{client_only}
 chmod o-r $RPM_BUILD_ROOT/etc/bacula/query.sql
+%endif
 chmod o-rwx $RPM_BUILD_ROOT/var/bacula
 %if %{gconsole} && ! %{rh8}
 chmod 755 $RPM_BUILD_ROOT/usr/sbin/bacula-tray-monitor
 chmod 644 $RPM_BUILD_ROOT/etc/bacula/tray-monitor.conf
+%endif
+
+# fix me - building enable-client-only installs files not included in bacula-client package
+%if %{client_only}
+rm -f $RPM_BUILD_ROOT/etc/bacula/bacula
+rm -f $RPM_BUILD_ROOT/etc/bacula/bacula-ctl-dir
+rm -f $RPM_BUILD_ROOT/etc/bacula/bacula-ctl-sd
+rm -f $RPM_BUILD_ROOT/etc/bacula/disk-changer
+rm -f $RPM_BUILD_ROOT/etc/bacula/dvd-handler
+rm -f $RPM_BUILD_ROOT/etc/bacula/mtx-changer
+rm -f $RPM_BUILD_ROOT/etc/bacula/startmysql
+rm -f $RPM_BUILD_ROOT/etc/bacula/stopmysql
+rm -rf $RPM_BUILD_ROOT/etc/bacula/updatedb
 %endif
 
 %clean
@@ -1091,6 +1144,7 @@ chmod 644 $RPM_BUILD_ROOT/etc/bacula/tray-monitor.conf
 %endif
 
 # The rest is DB backend independent
+%if ! %{client_only}
 %attr(-, root, %{daemon_group}) %dir /etc/bacula
 %attr(-, root, %{daemon_group}) /etc/bacula/bacula
 %attr(-, root, %{daemon_group}) /etc/bacula/bconsole
@@ -1143,6 +1197,7 @@ chmod 644 $RPM_BUILD_ROOT/etc/bacula/tray-monitor.conf
 /usr/sbin/bsmtp
 /usr/sbin/bregex
 /usr/sbin/bwild
+%endif
 
 %if %{mysql}
 %pre mysql
@@ -1177,6 +1232,7 @@ fi
 fi
 %endif
 
+%if ! %{client_only}
 # check for and copy /etc/bacula/console.conf to bconsole.conf
 if [ -s /etc/bacula/console.conf ];then
         cp -p /etc/bacula/console.conf /etc/bacula/bconsole.conf
@@ -1231,6 +1287,7 @@ IS_ROOT=%{file_daemon_user}
 if [ "$IS_ROOT" != "root" ]; then
 %{usermod} -G %{daemon_group} %{file_daemon_user}
 fi
+%endif
 
 %if %{mysql}
 %post mysql
@@ -1242,12 +1299,14 @@ fi
 %post postgresql
 %endif
 
+%if ! %{client_only}
 # add our links
 if [ "$1" -ge 1 ] ; then
 /sbin/chkconfig --add bacula-dir
 /sbin/chkconfig --add bacula-fd
 /sbin/chkconfig --add bacula-sd
 fi
+%endif
 
 %if %{mysql}
 # test for an existing database
@@ -1326,6 +1385,7 @@ elif [ "$DB_VER" -lt "9" ]; then
 fi
 %endif
 
+%if ! %{client_only}
 # generate passwords if needed
 if [ -d /etc/bacula ]; then
         cd /etc/bacula
@@ -1340,6 +1400,7 @@ if [ -d /etc/bacula ]; then
                 done
         done
 fi
+%endif
 
 %if %{mysql}
 %preun mysql
@@ -1351,26 +1412,31 @@ fi
 %preun postgresql
 %endif
 
+%if ! %{client_only}
 # delete our links
 if [ $1 = 0 ]; then
 /sbin/chkconfig --del bacula-dir
 /sbin/chkconfig --del bacula-fd
 /sbin/chkconfig --del bacula-sd
 fi
+%endif
 
 
+%if ! %{client_only}
 %files mtx
 %attr(-, root, %{storage_daemon_group}) /usr/sbin/loaderinfo
 %attr(-, root, %{storage_daemon_group}) /usr/sbin/mtx
 %attr(-, root, %{storage_daemon_group}) /usr/sbin/scsitape
 %attr(-, root, %{storage_daemon_group}) /usr/sbin/tapeinfo
 /usr/man/man1/*
+%endif
 
 
 %files client
 %defattr(-,root,root)
 %attr(-, root, %{daemon_group}) %dir /etc/bacula
 %attr(-, root, %{daemon_group}) /etc/bacula/bconsole
+/etc/bacula/bacula-ctl-fd
 /etc/init.d/bacula-fd
 %attr(-, root, %{daemon_group}) /etc/bacula/rescue
 
@@ -1387,7 +1453,6 @@ fi
 /usr/sbin/btraceback
 %attr(-, root, %{daemon_group}) /etc/bacula/btraceback.gdb
 %attr(-, root, %{daemon_group}) /etc/bacula/btraceback.dbx
-/usr/sbin/bsmtp
 /usr/sbin/bconsole
 
 
@@ -1441,6 +1506,7 @@ if [ $1 = 0 ]; then
 /sbin/chkconfig --del bacula-fd
 fi
 
+%if ! %{client_only}
 %files updatedb
 %defattr(-,root,%{daemon_group})
 /etc/bacula/updatedb/*
@@ -1456,6 +1522,7 @@ fi
 
 %post updatedb
 echo "The database update scripts were installed to /etc/bacula/updatedb"
+%endif
 
 %if %{gconsole}
 %files gconsole
@@ -1557,6 +1624,9 @@ fi
 * Sat Jul 15 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - add provides and conflicts for standard suse packages
 - add third party packager tag support
+- add build_client_only tag
+- remove bsmtp from client package
+- add bacula-ctl-fd to client package
 * Thu Jul 13 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - fix directory creation when wxconsole and not gconsole
 * Tue Jul 04 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
