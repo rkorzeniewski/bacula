@@ -32,8 +32,8 @@ PLATFORM=su10
 MYSQL=4
 
 # building wxconsole
-# if your platform does not support building wxconsole (wxWidgets >= 2.6)
-# delete the line [--define "build_wxconsole 1" \] below:
+# set to 1 to build wxconsole package else set 0
+WXCONSOLE=0
 
 # enter your name and email address here
 PACKAGER="Your Name <your-email@site.org>"
@@ -48,15 +48,19 @@ ARCH=i586
 
 SRPM=bacula-$VERSION-$RELEASE.src.rpm
 
-# if your platform does not support wxconsole delete the line below
-# defining build_wxconsole
 echo Building MySQL packages for "$PLATFORM"...
 sleep 2
+if [ "$WXCONSOLE" = "1" ]; then
 rpmbuild --rebuild --define "build_${PLATFORM} 1" \
 --define "build_mysql${MYSQL} 1" \
 --define "contrib_packager ${PACKAGER}" \
 --define "build_wxconsole 1" \
 ${SRPM}
+else
+rpmbuild --rebuild --define "build_${PLATFORM} 1" \
+--define "build_mysql${MYSQL} 1" \
+--define "contrib_packager ${PACKAGER}" ${SRPM}
+fi
 
 echo Building PostgreSQL packages for "$PLATFORM"...
 sleep 2
