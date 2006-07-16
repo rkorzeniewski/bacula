@@ -96,6 +96,9 @@ mv -f ${RPMDIR}/bacula-client-${VERSION}-${RELEASE}.${ARCH}.rpm \
 mv -f ${RPMDIR}/bacula-gconsole-${VERSION}-${RELEASE}.${ARCH}.rpm \
 ./bacula-gconsole-${VERSION}-${RELEASE}.${PLATFORM}.${ARCH}.rpm
 
+mv -f ${RPMDIR}/bacula-wxconsole-${VERSION}-${RELEASE}.${ARCH}.rpm \
+./bacula-wxconsole-${VERSION}-${RELEASE}.${PLATFORM}.${ARCH}.rpm
+
 # now sign the packages
 echo Ready to sign packages...
 sleep 2
