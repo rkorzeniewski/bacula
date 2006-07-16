@@ -82,7 +82,7 @@ rpmbuild --rebuild --define "build_${PLATFORM} 1" \
 --define "nobuild_gconsole 1" ${SRPM}
 rm -rf ${RPMBUILD}/*
 
-# delete the updatedb package and any nodebug packages built
+# delete the updatedb package and any debuginfo packages built
 rm -f ${RPMDIR}/bacula*debug*
 rm -f ${RPMDIR}/bacula-updatedb*
 
