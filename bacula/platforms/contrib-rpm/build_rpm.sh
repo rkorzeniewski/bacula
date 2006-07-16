@@ -41,6 +41,9 @@ PACKAGER="Your Name <your-email@site.org>"
 # enter the full path to your RPMS output directory
 RPMDIR=/usr/src/packages/RPMS/i586
 
+# enter the full path to your rpm BUILD directory
+RPMBUILD=/usr/src/packages/BUILD
+
 # enter your arch string here (i386, i586, i686)
 ARCH=i586
 
@@ -61,6 +64,7 @@ rpmbuild --rebuild --define "build_${PLATFORM} 1" \
 --define "build_mysql${MYSQL} 1" \
 --define "contrib_packager ${PACKAGER}" ${SRPM}
 fi
+rm -rf ${RPMBUILD}/*
 
 echo Building PostgreSQL packages for "$PLATFORM"...
 sleep 2
@@ -68,6 +72,7 @@ rpmbuild --rebuild --define "build_${PLATFORM} 1" \
 --define "build_postgresql 1" \
 --define "contrib_packager ${PACKAGER}" \
 --define "nobuild_gconsole 1" ${SRPM}
+rm -rf ${RPMBUILD}/*
 
 echo Building SQLite packages for "$PLATFORM"...
 sleep 2
@@ -75,6 +80,7 @@ rpmbuild --rebuild --define "build_${PLATFORM} 1" \
 --define "build_sqlite 1" \
 --define "contrib_packager ${PACKAGER}" \
 --define "nobuild_gconsole 1" ${SRPM}
+rm -rf ${RPMBUILD}/*
 
 # delete the updatedb package and any nodebug packages built
 rm -f ${RPMDIR}/bacula*debug*
