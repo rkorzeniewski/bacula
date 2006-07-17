@@ -224,7 +224,7 @@ Distribution: %{_dist}
 %{expand: %%define gccrel %(rpm -q gcc | cut -d - -f 3)}
 
 BuildRequires: gcc, gcc-c++, make, autoconf
-BuildRequires: atk-devel, ncurses-devel, pango-devel, perl
+BuildRequires: atk-devel, ncurses-devel, perl
 BuildRequires: libstdc++-devel = %{gccver}-%{gccrel}, libxml2-devel, zlib-devel
 BuildRequires: openssl-devel
 %if %{python}
@@ -232,7 +232,7 @@ BuildRequires: python, python-devel
 %{expand: %%define pyver %(python -c 'import sys;print(sys.version[0:3])')}
 %endif
 %if %{gconsole}
-BuildRequires: pkgconfig
+BuildRequires: pkgconfig, pango-devel
 %endif
 %if %{rh7}
 BuildRequires: libtermcap-devel
@@ -1621,6 +1621,8 @@ fi
 %endif
 
 %changelog
+* Mon Jul 17 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- move pango-devel BuildRequires into gconsole only build
 * Sat Jul 15 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - add provides and conflicts for standard suse packages
 - add third party packager tag support
