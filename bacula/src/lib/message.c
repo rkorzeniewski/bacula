@@ -602,8 +602,9 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
                 }
                 if (p_sql_query) {
                    POOL_MEM cmd(PM_MESSAGE);
-                   Mmsg(cmd, "INSERT INTO Log (JobId, LogText) VALUES (%s, '%s')",
-                         edit_int64(jcr->JobId, ed1), msg);
+                   bstrftimes(dt, sizeof(dt), mtime);
+                   Mmsg(cmd, "INSERT INTO Log (JobId, Time, LogText) VALUES (%s,'%s','%s')",
+                         edit_int64(jcr->JobId, ed1), dt, msg);
                    p_sql_query(jcr, cmd.c_str());
                 }
                 break;

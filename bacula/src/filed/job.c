@@ -1329,11 +1329,11 @@ static int backup_cmd(JCR *jcr)
       bnet_suppress_error_messages(sd, 1);
       bget_msg(sd);                   /* Read final response from append_data */
       Dmsg0(110, "Error in blast_data.\n");
+      /* run shortly after end of data transmission */ 
+      run_scripts(jcr, jcr->RunScripts, "ClientAfterJobShort");
    } else {
       set_jcr_job_status(jcr, JS_Terminated);
 
-      /* run shortly after end of data transmission */ 
-      run_scripts(jcr, jcr->RunScripts, "ClientAfterJobShort");
 
       if (jcr->JobStatus != JS_Terminated) {
          bnet_suppress_error_messages(sd, 1);

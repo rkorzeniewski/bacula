@@ -2,6 +2,21 @@
                         Kern Sibbald
 
 General:
+19July06
+- Add additional fields as specified by Arno to LocationLog.
+- Add comment field to the Media record.
+- Add Time field to the Log record.
+- Correct migration SQL (thanks to Bill Moran) so that it
+  runs with PostgreSQL also.
+- Add spooling/despooling info in status output of SD.
+17July06
+- Spend a lot of time integrating mkcdrec with the rescue disk.
+- Add VOLMGMT message class for volume management messages (none yet).
+- Add CATALOG as a destination.  It goes into the LOG table.
+- Implement the Log table in the DB.
+- Implement the Location Log table in the DB (for user use).
+- At Eric's request add a run_scripts() just after blast_data in
+  src/filed/job.c
 10Jul06
 - Add Enabled column to Location, correct some typos in DB schemas.
 - Correct bug I introduced into RunScripts enum.

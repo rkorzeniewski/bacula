@@ -161,6 +161,7 @@ CREATE TABLE media
     initialwrite      timestamp   without time zone,
     scratchpoolid     integer	  default 0,
     recyclepoolid     integer	  default 0,
+    comment	      text,
     primary key (mediaid)
 );
 
@@ -248,11 +249,27 @@ create unique index client_name_idx on client (name);
 
 CREATE TABLE Log
 (
-    JobId	      serial	  not null,
+    LogId	      serial	  not null,
+    JobId	      integer	  not null,
+    Time	      timestamp   without time zone,
     LogText	      text	  not null,
+    primary key (LogId)
 );
-
 create index log_name_idx on Log (JobId);
+
+CREATE TABLE LocationLog (
+   LocLogId SERIAL NOT NULL,
+   Date timestamp   without time zone,
+   Comment TEXT NOT NULL,
+   MediaId INTEGER DEFAULT 0,
+   LocationId INTEGER DEFAULT 0,
+   newvolstatus text not null
+	check (volstatus in ('Full','Archive','Append',
+	      'Recycle','Purged','Read-Only','Disabled',
+	      'Error','Busy','Used','Cleaning','Scratch')),
+   newenabled smallint,
+   PRIMARY KEY(LocLogId)
+);
 
 
 

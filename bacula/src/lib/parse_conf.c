@@ -95,6 +95,7 @@ RES_ITEM msgs_items[] = {
    {"director",    store_msgs, ITEM(res_msgs), MD_DIRECTOR, 0, 0},
    {"console",     store_msgs, ITEM(res_msgs), MD_CONSOLE,  0, 0},
    {"operator",    store_msgs, ITEM(res_msgs), MD_OPERATOR, 0, 0},
+   {"catalog",     store_msgs, ITEM(res_msgs), MD_CATALOG,  0, 0},
    {NULL,          NULL,       {0},       0, 0, 0}
 };
 
@@ -118,6 +119,7 @@ static struct s_mtypes msg_types[] = {
    {"restored",      M_RESTORED},
    {"security",      M_SECURITY},
    {"alert",         M_ALERT},
+   {"volmgmt",       M_VOLMGMT},
    {"all",           M_MAX+1},
    {NULL,            0}
 };
@@ -228,6 +230,7 @@ void store_msgs(LEX *lc, RES_ITEM *item, int index, int pass)
       case MD_STDERR:
       case MD_SYSLOG:              /* syslog */
       case MD_CONSOLE:
+      case MD_CATALOG:
          scan_types(lc, (MSGS *)(item->value), item->code, NULL, NULL);
          break;
       case MD_OPERATOR:            /* send to operator */
