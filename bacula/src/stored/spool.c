@@ -6,7 +6,7 @@
  *  Version $Id$
  */
 /*
-   Copyright (C) 2004-2005 Kern Sibbald
+   Copyright (C) 2004-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -195,16 +195,20 @@ static bool despool_data(DCR *dcr, bool commit)
    char ec1[50];
 
    Dmsg0(100, "Despooling data\n");
+   /* Commit means that the job is done, so we commit, otherwise, we
+    *  are despooling because of user spool size max or some error  
+    *  (e.g. filesystem full).
+    */
    if (commit) {
       Jmsg(jcr, M_INFO, 0, _("Committing spooled data to Volume \"%s\". Despooling %s bytes ...\n"),
          jcr->dcr->VolumeName,
          edit_uint64_with_commas(jcr->dcr->job_spool_size, ec1));
-   }
-   else {
+   } else {
       Jmsg(jcr, M_INFO, 0, _("Writing spooled data to Volume. Despooling %s bytes ...\n"),
          edit_uint64_with_commas(jcr->dcr->job_spool_size, ec1));
    }
    dcr->spooling = false;
+   dcr->despooling = true;
    lock_device(dcr->dev);
    dcr->dev_locked = true;
 
@@ -281,6 +285,7 @@ static bool despool_data(DCR *dcr, bool commit)
    unlock_device(dcr->dev);
    dcr->dev_locked = false;
    dcr->spooling = true;           /* turn on spooling again */
+   dcr->despooling = false;
    return ok;
 }
 

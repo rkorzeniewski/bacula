@@ -345,7 +345,7 @@ const char *sql_job =
 
 /* Get JobIds from regex'ed Job names */
 const char *sql_jobids_from_job =
-   "SELECT DISTINCT Job.JobId FROM Job,Pool"
+   "SELECT DISTINCT Job.JobId,Job.StartTime FROM Job,Pool"
    " WHERE Job.Name='%s' AND Pool.Name='%s' AND Job.PoolId=Pool.PoolId"
    " ORDER by Job.StartTime";
 
@@ -357,7 +357,7 @@ const char *sql_client =
 
 /* Get JobIds from regex'ed Client names */
 const char *sql_jobids_from_client =
-   "SELECT DISTINCT Job.JobId FROM Job,Pool"
+   "SELECT DISTINCT Job.JobId,Job.StartTime FROM Job,Pool"
    " WHERE Client.Name='%s' AND Pool.Name='%s' AND Job.PoolId=Pool.PoolId"
    " AND Job.ClientId=Client.ClientId "
    " ORDER by Job.StartTime";
@@ -370,7 +370,7 @@ const char *sql_vol =
 
 /* Get JobIds from regex'ed Volume names */
 const char *sql_jobids_from_vol =
-   "SELECT DISTINCT Job.JobId FROM Media,JobMedia,Job"
+   "SELECT DISTINCT Job.JobId,Job.StartTime FROM Media,JobMedia,Job"
    " WHERE Media.VolumeName='%s' AND Media.MediaId=JobMedia.MediaId"
    " AND JobMedia.JobId=Job.JobId" 
    " ORDER by Job.StartTime";
@@ -392,7 +392,7 @@ const char *sql_oldest_vol =
    " ORDER BY LastWritten ASC LIMIT 1";
 
 const char *sql_jobids_from_mediaid =
-   "SELECT DISTINCT Job.JobId FROM JobMedia,Job"
+   "SELECT DISTINCT Job.JobId,Job.StartTime FROM JobMedia,Job"
    " WHERE JobMedia.JobId=Job.JobId AND JobMedia.MediaId=%s"
    " ORDER by Job.StartTime";
 

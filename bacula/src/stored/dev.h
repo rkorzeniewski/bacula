@@ -399,6 +399,7 @@ public:
    int spool_fd;                      /* fd if spooling */
    bool spool_data;                   /* set to spool data */
    bool spooling;                     /* set when actually spooling */
+   bool despooling;                   /* set when despooling */
    bool dev_locked;                   /* set if dev already locked */
    bool NewVol;                       /* set if new Volume mounted */
    bool WroteVol;                     /* set if Volume written */

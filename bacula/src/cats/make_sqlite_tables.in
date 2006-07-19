@@ -72,7 +72,6 @@ CREATE TABLE Job (
    HasBase TINYINT DEFAULT 0,
    PRIMARY KEY(JobId) 
    );
-
 CREATE INDEX inx6 ON Job (Name);
 
 CREATE TABLE Location (
@@ -82,6 +81,27 @@ CREATE TABLE Location (
    Enabled TINYINT,
    PRIMARY KEY(LocationId)
    );
+
+CREATE TABLE LocationLog (
+   LocLogId INTEGER,
+   Date DATETIME NOT NULL,
+   Comment TEXT NOT NULL,
+   MediaId INTEGER UNSIGNED REFERENCES Media DEFAULT 0,
+   LocationId INTEGER UNSIGNED REFERENCES LocationId DEFAULT 0,
+   NewVolStatus VARCHAR(20) NOT NULL,
+   NewEnabled TINYINT NOT NULL,
+   PRIMARY KEY(LocLogId)
+);
+
+
+CREATE TABLE Log (
+   LogId INTEGER,
+   JobId INTEGER UNSIGNED REFERENCES Job NOT NULL,
+   Time DATETIME NOT NULL,
+   LogText TEXT NOT NULL,
+   PRIMARY KEY(LogId) 
+   );
+CREATE INDEX LogInx1 ON File (JobId);
 
 
 CREATE TABLE FileSet (
@@ -151,6 +171,7 @@ CREATE TABLE Media (
    InitialWrite DATETIME DEFAULT 0,
    ScratchPoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
    RecyclePoolId INTEGER UNSIGNED REFERENCES Pool DEFAULT 0,
+   Comment TEXT,
    PRIMARY KEY(MediaId)
    );
 
@@ -255,11 +276,6 @@ CREATE TABLE NextId (
    PRIMARY KEY (TableName)
    );
 
-CREATE TABLE Log  
-   JobId INTEGER UNSIGNED REFERENCES Job NOT NULL,
-   LogText TEXT NOT NULL,
-   KEY (JobId)
-   );
  
 
 -- Initialize JobId to start at 1
