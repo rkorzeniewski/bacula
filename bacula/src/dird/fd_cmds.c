@@ -160,14 +160,14 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
       if (!db_find_job_start_time(jcr, jcr->db, &jcr->jr, &jcr->stime)) {
          /* No job found, so upgrade this one to Full */
          Jmsg(jcr, M_INFO, 0, "%s", db_strerror(jcr->db));
-         Jmsg(jcr, M_INFO, 0, _("No prior or suitable Full backup found. Doing FULL backup.\n"));
+         Jmsg(jcr, M_INFO, 0, _("No prior or suitable Full backup found in catalog. Doing FULL backup.\n"));
          bsnprintf(since, since_len, _(" (upgraded from %s)"),
             level_to_str(jcr->JobLevel));
          jcr->JobLevel = jcr->jr.JobLevel = L_FULL;
       } else {
          if (jcr->job->rerun_failed_levels) {
             if (db_find_failed_job_since(jcr, jcr->db, &jcr->jr, jcr->stime, JobLevel)) {
-               Jmsg(jcr, M_INFO, 0, _("Prior failed job found. Upgrading to %s.\n"),
+               Jmsg(jcr, M_INFO, 0, _("Prior failed job found in catalog. Upgrading to %s.\n"),
                   level_to_str(JobLevel));
                bsnprintf(since, since_len, _(" (upgraded from %s)"),
                   level_to_str(jcr->JobLevel));

@@ -2,14 +2,18 @@
                         Kern Sibbald
 
 General:
-19July06
+22Jul06
+- Tweak catalog make scripts.
+- Fix catalog upgrade scripts so that they work.
+- Correct despooling debug code to eliminate race condition.
+19Jul06
 - Add additional fields as specified by Arno to LocationLog.
 - Add comment field to the Media record.
 - Add Time field to the Log record.
 - Correct migration SQL (thanks to Bill Moran) so that it
   runs with PostgreSQL also.
 - Add spooling/despooling info in status output of SD.
-17July06
+17Jul06
 - Spend a lot of time integrating mkcdrec with the rescue disk.
 - Add VOLMGMT message class for volume management messages (none yet).
 - Add CATALOG as a destination.  It goes into the LOG table.

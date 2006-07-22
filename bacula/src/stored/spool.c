@@ -207,9 +207,11 @@ static bool despool_data(DCR *dcr, bool commit)
       Jmsg(jcr, M_INFO, 0, _("Writing spooled data to Volume. Despooling %s bytes ...\n"),
          edit_uint64_with_commas(jcr->dcr->job_spool_size, ec1));
    }
+   dcr->despool_wait = true;
    dcr->spooling = false;
-   dcr->despooling = true;
    lock_device(dcr->dev);
+   dcr->despool_wait = false;
+   dcr->despooling = true;
    dcr->dev_locked = true;
 
    /*
@@ -282,10 +284,10 @@ static bool despool_data(DCR *dcr, bool commit)
    rdcr->jcr = NULL;
    free_dcr(rdcr);
    free(rdev);
-   unlock_device(dcr->dev);
    dcr->dev_locked = false;
    dcr->spooling = true;           /* turn on spooling again */
    dcr->despooling = false;
+   unlock_device(dcr->dev);
    return ok;
 }
 
