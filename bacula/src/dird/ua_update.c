@@ -388,18 +388,18 @@ static int update_volume(UAContext *ua)
    bool done = false;
    int i;
    const char *kw[] = {
-      _("VolStatus"),                /* 0 */
-      _("VolRetention"),             /* 1 */
-      _("VolUse"),                   /* 2 */
-      _("MaxVolJobs"),               /* 3 */
-      _("MaxVolFiles"),              /* 4 */
-      _("MaxVolBytes"),              /* 5 */
-      _("Recycle"),                  /* 6 */
-      _("InChanger"),                /* 7 */
-      _("Slot"),                     /* 8 */
-      _("Pool"),                     /* 9 */
-      _("FromPool"),                 /* 10 */
-      _("AllFromPool"),              /* 11 !!! see below !!! */
+      NT_("VolStatus"),                /* 0 */
+      NT_("VolRetention"),             /* 1 */
+      NT_("VolUse"),                   /* 2 */
+      NT_("MaxVolJobs"),               /* 3 */
+      NT_("MaxVolFiles"),              /* 4 */
+      NT_("MaxVolBytes"),              /* 5 */
+      NT_("Recycle"),                  /* 6 */
+      NT_("InChanger"),                /* 7 */
+      NT_("Slot"),                     /* 8 */
+      NT_("Pool"),                     /* 9 */
+      NT_("FromPool"),                 /* 10 */
+      NT_("AllFromPool"),              /* 11 !!! see below !!! */
       NULL };
 
 #define AllFromPool 11               /* keep this updated with above */
