@@ -117,11 +117,15 @@ bool get_yesno(UAContext *ua, const char *prompt)
       if (len < 1 || len > 3) {
          continue;
       }
-      if (strncasecmp(ua->cmd, _("yes"), len) == 0) {
+      if ((strncasecmp(ua->cmd,   _("yes"), len) == 0)  ||
+	  (strncasecmp(ua->cmd, NT_("yes"), len) == 0)) 
+      {
          ua->pint32_val = 1;
          return true;
       }
-      if (strncasecmp(ua->cmd, _("no"), len) == 0) {
+      if ((strncasecmp(ua->cmd,   _("no"), len) == 0)  ||
+	  (strncasecmp(ua->cmd, NT_("no"), len) == 0))
+      {
          return true;
       }
       bsendmsg(ua, _("Invalid response. You must answer yes or no.\n"));
