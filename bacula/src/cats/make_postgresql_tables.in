@@ -264,7 +264,7 @@ CREATE TABLE LocationLog (
    MediaId INTEGER DEFAULT 0,
    LocationId INTEGER DEFAULT 0,
    newvolstatus text not null
-	check (volstatus in ('Full','Archive','Append',
+	check (newvolstatus in ('Full','Archive','Append',
 	      'Recycle','Purged','Read-Only','Disabled',
 	      'Error','Busy','Used','Cleaning','Scratch')),
    newenabled smallint,

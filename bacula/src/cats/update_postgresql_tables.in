@@ -3,7 +3,8 @@
 # Shell script to update PostgreSQL tables from version 1.38 to 1.39
 #
 echo " "
-echo "This script will update a Bacula PostgreSQL database from version 9 to 9"
+echo "This script will update a Bacula SQLite database from version 9 to 10"
+echo " which is needed to convert from Bacula version 1.38.x to 1.39.x or higher"
 echo "Depending on the size of your database,"
 echo "this script may take several minutes to run."
 echo " "
@@ -20,7 +21,6 @@ UPDATE media SET LocationId=0;
 ALTER TABLE media ADD COLUMN RecycleCount integer;
 UPDATE media SET RecycleCount=0;
 ALTER TABLE media ADD COLUMN InitialWrite timestamp without time zone;
-UPDATE media SET InitialWrite=0;
 ALTER TABLE media ADD COLUMN scratchpoolid integer;
 UPDATE media SET scratchpoolid=0;
 ALTER TABLE media ADD COLUMN recyclepoolid integer;
@@ -30,7 +30,6 @@ UPDATE media SET enabled=1;
 ALTER TABLE media ADD COLUMN Comment TEXT;
 
 ALTER TABLE job ADD COLUMN RealEndTime timestamp without time zone;
-UPDATE job SET RealEndTime=0;
 ALTER TABLE job ADD COLUMN PriorJobId integer;
 UPDATE job SET PriorJobId=0;
 
@@ -51,7 +50,7 @@ CREATE TABLE LocationLog (
    MediaId INTEGER DEFAULT 0,
    LocationId INTEGER DEFAULT 0,
    newvolstatus text not null
-	check (volstatus in ('Full','Archive','Append',
+	check (newvolstatus in ('Full','Archive','Append',
 	      'Recycle','Purged','Read-Only','Disabled',
 	      'Error','Busy','Used','Cleaning','Scratch')),
    newenabled smallint,

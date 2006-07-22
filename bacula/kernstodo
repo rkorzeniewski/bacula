@@ -19,6 +19,10 @@ Document:
   workaround: specify absolute working and pid directory in
   bacula-fd.conf (e.g.  c:\bacula\working instead of
   \bacula\working).
+- Document techniques for restoring large numbers of files.
+- Document setting my.cnf to big file usage.
+- Add example of proper index output to doc.
+   show index from File;
 
 Priority:
 
@@ -26,14 +30,7 @@ For 1.39:
 - Remove queue.c code.
 - Correct the Include syntax in the m4.xxx files in examples/conf
 - Get Perl replacement for bregex.c
-- Make base64.c (bin_to_base64) take a buffer length 
-  argument to avoid overruns.
-  and verify that other buffers cannot overrun.
-- Implement VolumeState as discussed with Arno.
-- Document techniques for restoring large numbers of files.
-- Document setting my.cnf to big file usage.
-- Add example of proper index output to doc.
-   show index from File;
+- Fix auth compatibility with 1.38
 - Fix re-read of last block to check if job has actually written
   a block, and check if block was written by a different job
   (i.e. multiple simultaneous jobs writing).
@@ -42,15 +39,6 @@ For 1.39:
   Volume marked as purged.
 - Print warning message if LANG environment variable does not specify
   UTF-8.
-- Add LocationId to update volume
-- Add LocationLog
-    LogId
-    Date
-    User text
-    MediaId
-    LocationId
-    NewState???
-- Add Comment to Media record
 - New dot commands from Arno.
   .update volume [enabled|disabled|*see below]
     > However, I could easily imagine an option to "update slots" that says 
@@ -1621,3 +1609,17 @@ Block Position: 0
 - Make Dir and SD authentication errors single threaded.
 - Install man pages
 - Fix catreq.c digestbuf at line 411 in src/dird/catreq.c 
+- Make base64.c (bin_to_base64) take a buffer length 
+  argument to avoid overruns.
+  and verify that other buffers cannot overrun.
+- Implement VolumeState as discussed with Arno.
+- Add LocationId to update volume
+- Add LocationLog
+    LogId
+    Date
+    User text
+    MediaId
+    LocationId
+    NewState???
+- Add Comment to Media record
+

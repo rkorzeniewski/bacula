@@ -307,8 +307,8 @@ static void list_running_jobs(BSOCK *user)
                    dcr->pool_name,
                    dcr->dev?dcr->dev->print_name(): 
                             dcr->device->device_name);
-            bnet_fsend(user, _("    spooling=%d despooling=%d devblocked=%d\n"),
-                   dcr->spooling, dcr->despooling, dcr->dev->dev_blocked); 
+            bnet_fsend(user, _("    spooling=%d despooling=%d despool_wait=%d\n"),
+                   dcr->spooling, dcr->despooling, dcr->despool_wait); 
          }
          sec = time(NULL) - jcr->run_time;
          if (sec <= 0) {
