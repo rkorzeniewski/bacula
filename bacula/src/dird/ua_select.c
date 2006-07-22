@@ -34,6 +34,7 @@ extern struct s_jl joblevels[];
 int confirm_retention(UAContext *ua, utime_t *ret, const char *msg)
 {
    char ed1[100];
+   int val;
 
    for ( ;; ) {
        bsendmsg(ua, _("The current %s retention period is: %s\n"),
@@ -51,11 +52,8 @@ int confirm_retention(UAContext *ua, utime_t *ret, const char *msg)
           }
           continue;
        }
-       if (strcasecmp(ua->cmd, _("yes")) == 0) {
-          return 1;
-       }
-       if (strcasecmp(ua->cmd, _("no")) == 0) {
-          return 0;
+       if (is_yesno(ua->cmd, &val)) {
+          return val;           /* is 1 for yes, 0 for no */
        }
     }
     return 1;

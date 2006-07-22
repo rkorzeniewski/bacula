@@ -99,6 +99,30 @@ bool get_pint(UAContext *ua, const char *prompt)
 }
 
 /*
+ * Test a yes or no response
+ *  Returns:  false if failure
+ *            true  if success => ret == 1 for yes
+ *                                ret == 0 for no
+ */
+bool is_yesno(char *val, int *ret)
+{
+   *ret = 0;
+   if ((strcasecmp(val,   _("yes")) == 0) ||
+       (strcasecmp(val, NT_("yes")) == 0))
+   {
+      *ret = 1;
+   } else if ((strcasecmp(val,   _("no")) == 0) ||
+              (strcasecmp(val, NT_("no")) == 0))
+   {
+      *ret = 0;
+   } else {
+      return false;
+   }
+
+   return true;
+}
+
+/*
  * Gets a yes or no response
  *  Returns:  false if failure
  *            true  if success => ua->pint32_val == 1 for yes
@@ -107,7 +131,7 @@ bool get_pint(UAContext *ua, const char *prompt)
 bool get_yesno(UAContext *ua, const char *prompt)
 {
    int len;
-
+   int ret;
    ua->pint32_val = 0;
    for (;;) {
       if (!get_cmd(ua, prompt)) {
@@ -117,21 +141,13 @@ bool get_yesno(UAContext *ua, const char *prompt)
       if (len < 1 || len > 3) {
          continue;
       }
-      if ((strncasecmp(ua->cmd,   _("yes"), len) == 0)  ||
-	  (strncasecmp(ua->cmd, NT_("yes"), len) == 0)) 
-      {
-         ua->pint32_val = 1;
-         return true;
-      }
-      if ((strncasecmp(ua->cmd,   _("no"), len) == 0)  ||
-	  (strncasecmp(ua->cmd, NT_("no"), len) == 0))
-      {
+      if (is_yesno(ua->cmd, &ret)) {
+         ua->pint32_val = ret;
          return true;
       }
       bsendmsg(ua, _("Invalid response. You must answer yes or no.\n"));
    }
 }
-
 
 void parse_ua_args(UAContext *ua)
 {

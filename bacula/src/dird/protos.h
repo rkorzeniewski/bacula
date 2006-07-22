@@ -169,6 +169,7 @@ void set_pooldbr_from_poolres(POOL_DBR *pr, POOL *pool, e_pool_op op);
 int get_cmd(UAContext *ua, const char *prompt);
 bool get_pint(UAContext *ua, const char *prompt);
 bool get_yesno(UAContext *ua, const char *prompt);
+bool is_yesno(char *val, int *ret);
 void parse_ua_args(UAContext *ua);
 
 /* ua_label.c */
