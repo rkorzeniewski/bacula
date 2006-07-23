@@ -54,14 +54,15 @@ bool cram_md5_challenge(BSOCK *bs, char *password, int tls_local_need, int compa
    }
    /* Send challenge -- no hashing yet */
    bsnprintf(chal, sizeof(chal), "<%u.%u@%s>", (uint32_t)random(), (uint32_t)time(NULL), host);
-   Dmsg2(50, "send: auth cram-md5 %s ssl=%d\n", chal, tls_local_need);
    if (compatible) {
-      if (!bnet_fsend(bs, "auth cram-md5c %s ssl=%d\n", chal, tls_local_need)) {
+      Dmsg2(50, "send: auth cram-md5 %s ssl=%d\n", chal, tls_local_need);
+      if (!bnet_fsend(bs, "auth cram-md5 %s ssl=%d\n", chal, tls_local_need)) {
          Dmsg1(50, "Bnet send challenge error.\n", bnet_strerror(bs));
          return false;
       }
    } else {
       /* Old non-compatible system */
+      Dmsg2(50, "send: auth cram-md5 %s ssl=%d\n", chal, tls_local_need);
       if (!bnet_fsend(bs, "auth cram-md5 %s ssl=%d\n", chal, tls_local_need)) {
          Dmsg1(50, "Bnet send challenge error.\n", bnet_strerror(bs));
          return false;
@@ -82,7 +83,11 @@ bool cram_md5_challenge(BSOCK *bs, char *password, int tls_local_need, int compa
    if (ok) {
       Dmsg1(50, "Authenticate OK %s\n", host);
    } else {
-      Dmsg2(50, "Authenticate NOT OK: wanted %s, got %s\n", host, bs->msg);
+      bin_to_base64(host, sizeof(host), (char *)hmac, 16, false);     
+      ok = strcmp(bs->msg, host) == 0;
+      if (!ok) {
+         Dmsg2(50, "Authenticate NOT OK: wanted %s, got %s\n", host, bs->msg);
+      }
    }
    if (ok) {
       bnet_fsend(bs, "1000 OK auth\n");

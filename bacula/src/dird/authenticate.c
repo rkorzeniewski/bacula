@@ -166,6 +166,7 @@ int authenticate_file_daemon(JCR *jcr)
       Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to File daemon. ERR=%s\n"), bnet_strerror(fd));
       return 0;
    }
+   Dmsg1(50, "Sent: %s", fd->msg);
 
    /* TLS Requirement */
    if (client->tls_enable) {

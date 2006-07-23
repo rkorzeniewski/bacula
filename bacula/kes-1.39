@@ -3,6 +3,7 @@
 
 General:
 22Jul06
+- Tweak authentication to work with 1.38.x FDs. 
 - Tweak catalog make scripts.
 - Fix catalog upgrade scripts so that they work.
 - Correct despooling debug code to eliminate race condition.
