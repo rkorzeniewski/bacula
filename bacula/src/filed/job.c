@@ -233,9 +233,6 @@ void *handle_client_request(void *dirp)
       bnet_sig(jcr->store_bsock, BNET_TERMINATE);
    }
 
-   /* run after job */
-   run_scripts(jcr, jcr->RunScripts, "ClientAfterJob");
-
    generate_daemon_event(jcr, "JobEnd");
 
    dequeue_messages(jcr);             /* send any queued messages */
@@ -1331,9 +1328,12 @@ static int backup_cmd(JCR *jcr)
       Dmsg0(110, "Error in blast_data.\n");
       /* run shortly after end of data transmission */ 
       run_scripts(jcr, jcr->RunScripts, "ClientAfterJobShort");
+
    } else {
       set_jcr_job_status(jcr, JS_Terminated);
 
+      /* run shortly after end of data transmission */   
+      run_scripts(jcr, jcr->RunScripts, "ClientAfterJobShort");
 
       if (jcr->JobStatus != JS_Terminated) {
          bnet_suppress_error_messages(sd, 1);

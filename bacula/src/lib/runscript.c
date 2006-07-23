@@ -120,8 +120,7 @@ int run_scripts(JCR *jcr, alist *runscripts, const char *label)
                                                                                 script->on_success,
                                                                                 script->on_failure,
                                                                                 jcr->JobStatus );
-           script->when ^= SCRIPT_After; /* reset SCRIPT_After bit */
-           runit = true;
+	   runit = true;
         }
       }
 
