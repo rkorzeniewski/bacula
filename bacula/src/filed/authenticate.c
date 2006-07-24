@@ -59,8 +59,8 @@ static bool authenticate(int rcode, BSOCK *bs, JCR* jcr)
    dirname = check_pool_memory_size(dirname, bs->msglen);
 
    if (sscanf(bs->msg, "Hello Director %s calling", dirname) != 1) {
-       char addr[64];
-       char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who : addr;
+      char addr[64];
+      char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who : addr;
       bs->msg[100] = 0;
       Dmsg2(50, "Bad Hello command from Director at %s: %s\n",
             bs->who, bs->msg);

@@ -2,6 +2,16 @@
                         Kern Sibbald
 
 General:
+24Jul06
+- Change cats/sql.c to elimate %-*s format, which I think is turned
+  off in bsnprintf.
+- Add Comment field to llist of a volume.
+- Allow true/false in some yes/no questions.
+- Implement update volume enable=(on|off|true|false|archived|0|1|2)
+- Remove a few /n's when scanning commands from another daemon. This
+  permits adding additional fields later.
+- Modify dbcheck to handle ctl-d and to delete Log table entries.
+- Update README.mingw
 22Jul06
 - Tweak authentication to work with 1.38.x FDs. 
 - Tweak catalog make scripts.

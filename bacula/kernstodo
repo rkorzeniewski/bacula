@@ -23,14 +23,13 @@ Document:
 - Document setting my.cnf to big file usage.
 - Add example of proper index output to doc.
    show index from File;
+- Correct the Include syntax in the m4.xxx files in examples/conf
 
 Priority:
 
 For 1.39:
 - Remove queue.c code.
-- Correct the Include syntax in the m4.xxx files in examples/conf
-- Get Perl replacement for bregex.c
-- Fix auth compatibility with 1.38
+- Fix ClientRunBefore/AfterJob compatibility.
 - Fix re-read of last block to check if job has actually written
   a block, and check if block was written by a different job
   (i.e. multiple simultaneous jobs writing).
@@ -55,6 +54,8 @@ For 1.39:
      target slot. The catalog should be updated accordingly.
   .move transfer device=xxx fromslot=yyy toslot=zzz
 
+Low priority:
+- Get Perl replacement for bregex.c
 
 - Given all the problems with FIFOs, I think the solution is to do something a
   little different, though I will look at the code and see if there is not some
@@ -1622,4 +1623,7 @@ Block Position: 0
     LocationId
     NewState???
 - Add Comment to Media record
+- Fix auth compatibility with 1.38
+- Update dbcheck to include Log table
+- Update llist to include new fields.
 

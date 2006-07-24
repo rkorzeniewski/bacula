@@ -52,8 +52,16 @@ the following once:
 
 The above only needs to be done once unless we change the cross-tools 
 version.  In general, you can run the script multiple times with no
-problem. For it to work, you must have a valid gcc compiler installed on
-your system as well as wget and texinfo.  There may be other dependencies.
+problem. For it to work, you must have at a minimum the following:
+
+  gcc
+  g++
+  wget
+  texinfo
+  bison
+  man2html
+
+and possibly other packages.
 
 After building the cross-tools, you can proceed to build the depkgs-win32 
 packages, which must use the cross-tools compiler.

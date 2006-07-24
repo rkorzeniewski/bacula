@@ -97,15 +97,16 @@ static struct s_cmds cmds[] = {
 
 /* Commands received from director that need scanning */
 static char jobcmd[]      = "JobId=%d Job=%127s SDid=%d SDtime=%d Authorization=%100s";
-static char storaddr[]    = "storage address=%s port=%d ssl=%d\n";
+static char storaddr[]    = "storage address=%s port=%d ssl=%d";
 static char sessioncmd[]  = "session %127s %ld %ld %ld %ld %ld %ld\n";
 static char restorecmd[]  = "restore replace=%c prelinks=%d where=%s\n";
 static char restorecmd1[] = "restore replace=%c prelinks=%d where=\n";
-static char verifycmd[]   = "verify level=%30s\n";
-static char estimatecmd[] = "estimate listing=%d\n";
-static char runbefore[]   = "RunBeforeJob %s\n";
-static char runafter[]    = "RunAfterJob %s\n";
-static char runscript[]   = "Run OnSuccess=%u OnFailure=%u AbortOnError=%u When=%u Command=%s\n";
+static char verifycmd[]   = "verify level=%30s";
+static char estimatecmd[] = "estimate listing=%d";
+static char runbefore[]   = "RunBeforeJob %s";
+static char runafter[]    = "RunAfterJob %s";
+static char runscript[]   = "Run OnSuccess=%u OnFailure=%u AbortOnError=%u When=%u Command=%s";
+
 /* Responses sent to Director */
 static char errmsg[]      = "2999 Invalid command\n";
 static char no_auth[]     = "2998 No Authorization\n";

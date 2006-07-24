@@ -197,10 +197,10 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
             switch (RunFields[i].token) {
             case 's':                 /* Data spooling */
                token = lex_get_token(lc, T_NAME);
-               if (strcasecmp(lc->str, "yes") == 0) {
+               if (strcasecmp(lc->str, "yes") == 0 || strcasecmp(lc->str, "true") == 0) {
                   lrun.spool_data = true;
                   lrun.spool_data_set = true;
-               } else if (strcasecmp(lc->str, "no") == 0) {
+               } else if (strcasecmp(lc->str, "no") == 0 || strcasecmp(lc->str, "false") == 0) {
                   lrun.spool_data = false;
                   lrun.spool_data_set = true;
                } else {
@@ -209,10 +209,10 @@ void store_run(LEX *lc, RES_ITEM *item, int index, int pass)
                break;
             case 'W':                 /* Write part after job */
                token = lex_get_token(lc, T_NAME);
-               if (strcasecmp(lc->str, "yes") == 0) {
+               if (strcasecmp(lc->str, "yes") == 0 || strcasecmp(lc->str, "true") == 0) {
                   lrun.write_part_after_job = true;
                   lrun.write_part_after_job_set = true;
-               } else if (strcasecmp(lc->str, "no") == 0) {
+               } else if (strcasecmp(lc->str, "no") == 0 || strcasecmp(lc->str, "false") == 0) {
                   lrun.write_part_after_job = false;
                   lrun.write_part_after_job_set = true;
                } else {
