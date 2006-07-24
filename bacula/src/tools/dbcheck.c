@@ -56,7 +56,8 @@ static bool batch = false;
 static B_DB *db;
 static ID_LIST id_list;
 static NAME_LIST name_list;
-static char buf[2000];
+static char buf[20000];
+static bool quit = false;
 
 #define MAX_ID_LIST_LEN 10000000
 
@@ -81,7 +82,7 @@ static void eliminate_restore_records();
 static void repair_bad_paths();
 static void repair_bad_filenames();
 static void do_interactive_mode();
-static int yes_no(const char *prompt);
+static bool yes_no(const char *prompt);
 
 
 static void usage()
@@ -266,7 +267,6 @@ int main (int argc, char *argv[])
 
 static void do_interactive_mode()
 {
-   bool quit = false;
    const char *cmd;
 
    printf(_("Hello, this is the database check/correct program.\n"));
@@ -468,7 +468,7 @@ static int id_list_handler(void *ctx, int num_fields, char **row)
    }
    if (lst->num_ids == lst->max_ids) {
       if (lst->max_ids == 0) {
-         lst->max_ids = 1000;
+         lst->max_ids = 10000;
          lst->Id = (uint32_t *)bmalloc(sizeof(uint32_t) * lst->max_ids);
       } else {
          lst->max_ids = (lst->max_ids * 3) / 2;
@@ -522,7 +522,7 @@ static int name_list_handler(void *ctx, int num_fields, char **row)
    }
    if (name->num_ids == name->max_ids) {
       if (name->max_ids == 0) {
-         name->max_ids = 1000;
+         name->max_ids = 10000;
          name->name = (char **)bmalloc(sizeof(char *) * name->max_ids);
       } else {
          name->max_ids = (name->max_ids * 3) / 2;
@@ -590,6 +590,9 @@ static void eliminate_duplicate_filenames()
    if (name_list.num_ids && verbose && yes_no(_("Print the list? (yes/no): "))) {
       print_name_list(&name_list);
    }
+   if (quit) {
+      return;
+   }
    if (fix) {
       /* Loop through list of duplicate names */
       for (int i=0; i<name_list.num_ids; i++) {
@@ -643,6 +646,9 @@ static void eliminate_duplicate_paths()
    printf(_("Found %d duplicate Path records.\n"), name_list.num_ids);
    if (name_list.num_ids && verbose && yes_no(_("Print them? (yes/no): "))) {
       print_name_list(&name_list);
+   }
+   if (quit) {
+      return;
    }
    if (fix) {
       /* Loop through list of duplicate names */
@@ -701,6 +707,9 @@ static void eliminate_orphaned_jobmedia_records()
          }
       }
    }
+   if (quit) {
+      return;
+   }
 
    if (fix && id_list.num_ids > 0) {
       printf(_("Deleting %d orphaned JobMedia records.\n"), id_list.num_ids);
@@ -733,7 +742,9 @@ static void eliminate_orphaned_file_records()
          }
       }
    }
-
+   if (quit) {
+      return;
+   }
    if (fix && id_list.num_ids > 0) {
       printf(_("Deleting %d orphaned File records.\n"), id_list.num_ids);
       delete_id_list("DELETE FROM File WHERE FileId=%u", &id_list);
@@ -761,7 +772,9 @@ static void eliminate_orphaned_path_records()
          db_sql_query(db, buf, print_name_handler, NULL);
       }
    }
-
+   if (quit) {
+      return;
+   }
    if (fix && id_list.num_ids > 0) {
       printf(_("Deleting %d orphaned Path records.\n"), id_list.num_ids);
       delete_id_list("DELETE FROM Path WHERE PathId=%u", &id_list);
@@ -789,7 +802,9 @@ static void eliminate_orphaned_filename_records()
          db_sql_query(db, buf, print_name_handler, NULL);
       }
    }
-
+   if (quit) {
+      return;
+   }
    if (fix && id_list.num_ids > 0) {
       printf(_("Deleting %d orphaned Filename records.\n"), id_list.num_ids);
       delete_id_list("DELETE FROM Filename WHERE FilenameId=%u", &id_list);
@@ -820,7 +835,9 @@ static void eliminate_orphaned_fileset_records()
          }
       }
    }
-
+   if (quit) {
+      return;
+   }
    if (fix && id_list.num_ids > 0) {
       printf(_("Deleting %d orphaned FileSet records.\n"), id_list.num_ids);
       delete_id_list("DELETE FROM FileSet WHERE FileSetId=%u", &id_list);
@@ -858,7 +875,9 @@ static void eliminate_orphaned_client_records()
          }
       }
    }
-
+   if (quit) {
+      return;
+   }
    if (fix && id_list.num_ids > 0) {
       printf(_("Deleting %d orphaned Client records.\n"), id_list.num_ids);
       delete_id_list("DELETE FROM Client WHERE ClientId=%u", &id_list);
@@ -896,10 +915,16 @@ static void eliminate_orphaned_job_records()
          }
       }
    }
-
+   if (quit) {
+      return;
+   }
    if (fix && id_list.num_ids > 0) {
       printf(_("Deleting %d orphaned Job records.\n"), id_list.num_ids);
       delete_id_list("DELETE FROM Job WHERE JobId=%u", &id_list);
+      printf(_("Deleting JobMedia records of orphaned Job records.\n"));
+      delete_id_list("DELETE FROM JobMedia WHERE JobId=%u", &id_list);
+      printf(_("Deleting Log records of orphaned Job records.\n"));
+      delete_id_list("DELETE FROM Log WHERE JobId=%u", &id_list);
    }
 }
 
@@ -927,7 +952,9 @@ static void eliminate_admin_records()
          }
       }
    }
-
+   if (quit) {
+      return;
+   }
    if (fix && id_list.num_ids > 0) {
       printf(_("Deleting %d Admin Job records.\n"), id_list.num_ids);
       delete_id_list("DELETE FROM Job WHERE JobId=%u", &id_list);
@@ -957,7 +984,9 @@ static void eliminate_restore_records()
          }
       }
    }
-
+   if (quit) {
+      return;
+   }
    if (fix && id_list.num_ids > 0) {
       printf(_("Deleting %d Restore Job records.\n"), id_list.num_ids);
       delete_id_list("DELETE FROM Job WHERE JobId=%u", &id_list);
@@ -991,7 +1020,9 @@ static void repair_bad_filenames()
          }
       }
    }
-
+   if (quit) {
+      return;
+   }
    if (fix && id_list.num_ids > 0) {
       POOLMEM *name = get_pool_memory(PM_FNAME);
       char esc_name[5000];
@@ -1049,7 +1080,9 @@ static void repair_bad_paths()
          }
       }
    }
-
+   if (quit) {
+      return;
+   }
    if (fix && id_list.num_ids > 0) {
       POOLMEM *name = get_pool_memory(PM_FNAME);
       char esc_name[5000];
@@ -1087,17 +1120,23 @@ static char *get_cmd(const char *prompt)
    static char cmd[1000];
 
    printf("%s", prompt);
-   if (fgets(cmd, sizeof(cmd), stdin) == NULL)
+   if (fgets(cmd, sizeof(cmd), stdin) == NULL) {
+      printf("\n");
+      quit = true;
       return NULL;
-   printf("\n");
+   }
    strip_trailing_junk(cmd);
    return cmd;
 }
 
-static int yes_no(const char *prompt)
+static bool yes_no(const char *prompt)
 {
    char *cmd;
    cmd = get_cmd(prompt);
+   if (!cmd) {
+      quit = true;
+      return false;
+   }
    return (strcasecmp(cmd, "yes") == 0) || (strcasecmp(cmd, _("yes")) == 0);
 }
 

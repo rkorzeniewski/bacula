@@ -365,6 +365,29 @@ static void update_all_vols_from_pool(UAContext *ua)
    }
 }
 
+static void update_volenabled(UAContext *ua, char *val, MEDIA_DBR *mr)
+{
+   if (strcasecmp(val, "yes") == 0 || strcasecmp(val, "true") == 0) {
+      mr->Enabled = 1;
+   } else if (strcasecmp(val, "no") == 0 || strcasecmp(val, "false") == 0) {
+      mr->Enabled = 0;
+   } else if (strcasecmp(val, "archived") == 0) { 
+      mr->Enabled = 2;
+   } else {
+      mr->Enabled = atoi(val);
+   }
+   if (mr->Enabled < 0 || mr->Enabled > 2) {
+      bsendmsg(ua, _("Invalid Enabled, it must be 0, 1, or 2\n"));
+      return;
+   }
+   if (!db_update_media_record(ua->jcr, ua->db, mr)) {
+      bsendmsg(ua, _("Error updating media record Enabled: ERR=%s"), db_strerror(ua->db));
+   } else {
+      bsendmsg(ua, _("New Enabled is: %d\n"), mr->Enabled);
+   }
+}
+
+
 
 /*
  * Update a media record -- allows you to change the
@@ -381,18 +404,19 @@ static int update_volume(UAContext *ua)
    bool done = false;
    int i;
    const char *kw[] = {
-      NT_("VolStatus"),                /* 0 */
-      NT_("VolRetention"),             /* 1 */
-      NT_("VolUse"),                   /* 2 */
-      NT_("MaxVolJobs"),               /* 3 */
-      NT_("MaxVolFiles"),              /* 4 */
-      NT_("MaxVolBytes"),              /* 5 */
-      NT_("Recycle"),                  /* 6 */
-      NT_("InChanger"),                /* 7 */
-      NT_("Slot"),                     /* 8 */
-      NT_("Pool"),                     /* 9 */
-      NT_("FromPool"),                 /* 10 */
-      NT_("AllFromPool"),              /* 11 !!! see below !!! */
+      _("VolStatus"),                /* 0 */
+      _("VolRetention"),             /* 1 */
+      _("VolUse"),                   /* 2 */
+      _("MaxVolJobs"),               /* 3 */
+      _("MaxVolFiles"),              /* 4 */
+      _("MaxVolBytes"),              /* 5 */
+      _("Recycle"),                  /* 6 */
+      _("InChanger"),                /* 7 */
+      _("Slot"),                     /* 8 */
+      _("Pool"),                     /* 9 */
+      _("FromPool"),                 /* 10 */
+      _("AllFromPool"),              /* 11 !!! see below !!! */
+      _("Enabled"),                  /* 12 */
       NULL };
 
 #define AllFromPool 11               /* keep this updated with above */
@@ -401,6 +425,7 @@ static int update_volume(UAContext *ua)
       int j;
       POOL_DBR pr;
       if ((j=find_arg_with_value(ua, kw[i])) > 0) {
+         /* If all from pool don't select a media record */
          if (i != AllFromPool && !select_media_dbr(ua, &mr)) {
             return 0;
          }
@@ -447,6 +472,9 @@ static int update_volume(UAContext *ua)
          case 11:
             update_all_vols_from_pool(ua);
             return 1;
+         case 12:
+            update_volenabled(ua, ua->argv[j], &mr);
+            break;
          }
          done = true;
       }
@@ -467,11 +495,12 @@ static int update_volume(UAContext *ua)
       add_prompt(ua, _("Pool"));                       /* 10 */
       add_prompt(ua, _("Volume from Pool"));           /* 11 */
       add_prompt(ua, _("All Volumes from Pool"));      /* 12 */
-      add_prompt(ua, _("Done"));                       /* 13 */
+      add_prompt(ua, _("Enabled")),                    /* 13 */
+      add_prompt(ua, _("Done"));                       /* 14 */
       i = do_prompt(ua, "", _("Select parameter to modify"), NULL, 0);  
 
-      /* For All Volumes from Pool we don't need a Volume record */
-      if (i != 12 && i != 13) {
+      /* For All Volumes from Pool and Done, we don't need a Volume record */
+      if (i != 12 && i != 14) {
          if (!select_media_dbr(ua, &mr)) {  /* Get Volume record */
             return 0;
          }
@@ -621,6 +650,24 @@ static int update_volume(UAContext *ua)
       case 12:
          update_all_vols_from_pool(ua);
          return 1;
+
+      case 13:
+         bsendmsg(ua, _("Current Enabled is: %d\n"), mr.Enabled);
+         if (!get_cmd(ua, _("Enter new Enabled: "))) {
+            return 0;
+         }
+         if (strcasecmp(ua->cmd, "yes") == 0 || strcasecmp(ua->cmd, "true") == 0) {
+            mr.Enabled = 1;
+         } else if (strcasecmp(ua->cmd, "no") == 0 || strcasecmp(ua->cmd, "false") == 0) {
+            mr.Enabled = 0;
+         } else if (strcasecmp(ua->cmd, "archived") == 0) { 
+            mr.Enabled = 2;
+         } else {
+            mr.Enabled = atoi(ua->cmd);
+         }
+         update_volenabled(ua, ua->cmd, &mr);
+         break;
+
       default:                        /* Done or error */
          bsendmsg(ua, _("Selection terminated.\n"));
          return 1;
