@@ -372,8 +372,10 @@ struct FOPTS {
    alist wild;                        /* wild card strings */
    alist wilddir;                     /* wild card strings for directories */
    alist wildfile;                    /* wild card strings for files */
+   alist wildbase;                    /* wild card strings for files without '/' */
    alist base;                        /* list of base names */
    alist fstype;                      /* file system type limitation */
+   alist drivetype;                   /* drive type limitation */
    char *reader;                      /* reader program */
    char *writer;                      /* writer program */
 };

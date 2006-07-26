@@ -109,6 +109,34 @@ static int accept_fstype(FF_PKT *ff, void *dummy) {
 }
 
 /*
+ * Check to see if we allow the drive type of a file or directory.
+ * If we do not have a list of drive types, we accept anything.
+ */
+static int accept_drivetype(FF_PKT *ff, void *dummy) {
+   int i;
+   char dt[100];
+   bool accept = true;
+
+   if (ff->drivetypes.size()) {
+      accept = false;
+      if (!drivetype(ff->fname, dt, sizeof(dt))) {
+         Dmsg1(50, "Cannot determine drive type for \"%s\"\n", ff->fname);
+      } else {
+         for (i = 0; i < ff->drivetypes.size(); ++i) {
+            if (strcmp(dt, (char *)ff->drivetypes.get(i)) == 0) {
+               Dmsg2(100, "Accepting drive type %s for \"%s\"\n", dt, ff->fname);
+               accept = true;
+               break;
+            }
+            Dmsg3(200, "drive type %s for \"%s\" does not match %s\n", dt,
+                  ff->fname, ff->drivetypes.get(i));
+         }
+      }
+   }
+   return accept;
+}
+
+/*
  * This function determines whether we can use getattrlist()
  * It's odd, but we have to use the function to determine that...
  * Also, the man pages talk about things as if they were implemented.
@@ -176,7 +204,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
    restore_times.modtime = ff_pkt->statp.st_mtime;
 
    /*
-    * We check for allowed fstypes at top_level and fstype change (below).
+    * We check for allowed fstypes and drivetypes at top_level and fstype change (below).
     */
    if (top_level) {
       if (!accept_fstype(ff_pkt, NULL)) {
@@ -184,7 +212,29 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
          if (ff_pkt->flags & FO_KEEPATIME) {
             utime(fname, &restore_times);
          }
-         Jmsg1(jcr, M_ERROR, 0, _("Top level directory \"%s\" has an unlisted fstype\n"), fname);
+
+         char fs[100];
+
+         if (!fstype(ff_pkt->fname, fs, sizeof(fs))) {
+             bstrncpy(fs, "unknown", sizeof(fs));
+         }
+
+         Jmsg(jcr, M_INFO, 0, _("Top level directory \"%s\" has unlisted fstype \"%s\"\n"), fname, fs);
+         return 1;      /* Just ignore this error - or the whole backup is cancelled */
+      }
+      if (!accept_drivetype(ff_pkt, NULL)) {
+         ff_pkt->type = FT_INVALIDDT;
+         if (ff_pkt->flags & FO_KEEPATIME) {
+            utime(fname, &restore_times);
+         }
+
+         char dt[100];
+
+         if (!drivetype(ff_pkt->fname, dt, sizeof(dt))) {
+             bstrncpy(dt, "unknown", sizeof(dt));
+         }
+
+         Jmsg(jcr, M_INFO, 0, _("Top level directory \"%s\" has an unlisted drive type \"%s\"\n"), fname, dt);
          return 1;      /* Just ignore this error - or the whole backup is cancelled */
       }
       ff_pkt->volhas_attrlist = volume_has_attrlist(fname);

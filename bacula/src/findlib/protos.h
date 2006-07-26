@@ -70,4 +70,7 @@ int make_path(JCR *jcr, const char *argpath, int mode,
 /* from fstype.c */
 bool fstype(const char *fname, char *fs, int fslen);
 
+/* from drivetype.c */
+bool drivetype(const char *fname, char *fs, int fslen);
+
 /* from bfile.c -- see bfile.h */

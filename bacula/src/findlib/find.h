@@ -42,6 +42,7 @@ struct utimbuf {
 #define MODE_RALL (S_IRUSR|S_IRGRP|S_IROTH)
 
 #include "lib/fnmatch.h"
+#include "lib/enh_fnmatch.h"
 
 #ifndef HAVE_REGEX_H
 #include "lib/bregex.h"
@@ -92,6 +93,7 @@ enum {
 #define FO_SHA512       (1<<20)       /* Do SHA512 checksum */
 #define FO_ENCRYPT      (1<<21)       /* Encrypt data stream */
 #define FO_NOATIME      (1<<22)       /* Use O_NOATIME to prevent atime change */
+#define FO_ENHANCEDWILD (1<<23)       /* Enhanced wild card processing */
 
 struct s_included_file {
    struct s_included_file *next;
@@ -135,8 +137,10 @@ struct findFOPTS {
    alist wild;                        /* wild card strings */
    alist wilddir;                     /* wild card strings for directories */
    alist wildfile;                    /* wild card strings for files */
+   alist wildbase;                    /* wild card strings for basenames */
    alist base;                        /* list of base names */
    alist fstype;                      /* file system type limitation */
+   alist drivetype;                   /* drive type limitation */
    char *reader;                      /* reader program */
    char *writer;                      /* writer program */
 };
@@ -200,6 +204,7 @@ struct FF_PKT {
    char *reader;                      /* reader program */
    char *writer;                      /* writer program */
    alist fstypes;                     /* allowed file system types */
+   alist drivetypes;                  /* allowed drive types */
 
    /* List of all hard linked files found */
    struct f_link **linkhash;          /* hard linked files */
