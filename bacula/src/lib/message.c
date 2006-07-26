@@ -743,6 +743,30 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
     }
 }
 
+/*********************************************************************
+ *
+ *  This subroutine returns the filename portion of a Windows 
+ *  path.  It is used because Microsoft Visual Studio sets __FILE__ 
+ *  to the full path.
+ */
+
+inline const char *
+get_basename(const char *pathname)
+{
+#if defined(_MSC_VER)
+   const char *basename;
+   
+   if ((basename = strrchr(pathname, '\\')) == NULL) {
+      basename = pathname;
+   } else {
+      basename++;
+   }
+
+   return basename;
+#else
+   return pathname;
+#endif
+}
 
 /*********************************************************************
  *
@@ -770,17 +794,7 @@ d_msg(const char *file, int line, int level, const char *fmt,...)
     if (level <= debug_level) {
 #ifdef FULL_LOCATION
        if (details) {
-          /* visual studio passes the whole path to the file as well
-           * which makes for very long lines
-           */
-          const char *basename;
-
-          if ((basename = strrchr(file, '\\')) == NULL) {
-             basename = file;
-          } else {
-             basename++;
-          }
-          len = bsnprintf(buf, sizeof(buf), "%s: %s:%d ", my_name, basename, line);
+          len = bsnprintf(buf, sizeof(buf), "%s: %s:%d ", my_name, get_basename(file), line);
        } else {
           len = 0;
        }
@@ -855,14 +869,7 @@ p_msg(const char *file, int line, int level, const char *fmt,...)
 
 #ifdef FULL_LOCATION
     if (level >= 0) {
-       const char *basename;
-
-       if ((basename = strrchr(file, '\\')) == NULL) {
-          basename = file;
-       } else {
-          basename++;
-       }
-       len = bsnprintf(buf, sizeof(buf), "%s: %s:%d ", my_name, basename, line);
+       len = bsnprintf(buf, sizeof(buf), "%s: %s:%d ", my_name, get_basename(file), line);
     } else {
        len = 0;
     }
@@ -907,14 +914,7 @@ t_msg(const char *file, int line, int level, const char *fmt,...)
 
 #ifdef FULL_LOCATION
        if (details) {
-          const char *basename;
-
-          if ((basename = strrchr(file, '\\')) == NULL) {
-             basename = file;
-          } else {
-             basename++;
-          }
-          len = bsnprintf(buf, sizeof(buf), "%s: %s:%d ", my_name, basename, line);
+          len = bsnprintf(buf, sizeof(buf), "%s: %s:%d ", my_name, get_basename(file), line);
        } else {
           len = 0;
        }
@@ -945,14 +945,6 @@ e_msg(const char *file, int line, int type, int level, const char *fmt,...)
     va_list   arg_ptr;
     int len;
 
-    const char *basename;
-
-    if ((basename = strrchr(file, '\\')) == NULL) {
-       basename = file;
-    } else {
-       basename++;
-    }
-
     /*
      * Check if we have a message destination defined.
      * We always report M_ABORT and M_ERROR_TERM
@@ -964,23 +956,23 @@ e_msg(const char *file, int line, int type, int level, const char *fmt,...)
     switch (type) {
     case M_ABORT:
        len = bsnprintf(buf, sizeof(buf), _("%s: ABORTING due to ERROR in %s:%d\n"),
-               my_name, basename, line);
+               my_name, get_basename(file), line);
        break;
     case M_ERROR_TERM:
        len = bsnprintf(buf, sizeof(buf), _("%s: ERROR TERMINATION at %s:%d\n"),
-               my_name, basename, line);
+               my_name, get_basename(file), line);
        break;
     case M_FATAL:
        if (level == -1)            /* skip details */
           len = bsnprintf(buf, sizeof(buf), _("%s: Fatal Error because: "), my_name);
        else
-          len = bsnprintf(buf, sizeof(buf), _("%s: Fatal Error at %s:%d because:\n"), my_name, basename, line);
+          len = bsnprintf(buf, sizeof(buf), _("%s: Fatal Error at %s:%d because:\n"), my_name, get_basename(file), line);
        break;
     case M_ERROR:
        if (level == -1)            /* skip details */
           len = bsnprintf(buf, sizeof(buf), _("%s: ERROR: "), my_name);
        else
-          len = bsnprintf(buf, sizeof(buf), _("%s: ERROR in %s:%d "), my_name, basename, line);
+          len = bsnprintf(buf, sizeof(buf), _("%s: ERROR in %s:%d "), my_name, get_basename(file), line);
        break;
     case M_WARNING:
        len = bsnprintf(buf, sizeof(buf), _("%s: Warning: "), my_name);
@@ -1114,16 +1106,9 @@ void j_msg(const char *file, int line, JCR *jcr, int type, time_t mtime, const c
    va_list   arg_ptr;
    int i, len, maxlen;
    POOLMEM *pool_buf;
-   const char *basename;
-
-   if ((basename = strrchr(file, '\\')) == NULL) {
-      basename = file;
-   } else {
-      basename++;
-   }
 
    pool_buf = get_pool_memory(PM_EMSG);
-   i = Mmsg(pool_buf, "%s:%d ", basename, line);
+   i = Mmsg(pool_buf, "%s:%d ", get_basename(file), line);
 
    for (;;) {
       maxlen = sizeof_pool_memory(pool_buf) - i - 1;
@@ -1150,15 +1135,7 @@ int m_msg(const char *file, int line, POOLMEM **pool_buf, const char *fmt, ...)
    va_list   arg_ptr;
    int i, len, maxlen;
 
-   const char *basename;
-
-   if ((basename = strrchr(file, '\\')) == NULL) {
-      basename = file;
-   } else {
-      basename++;
-   }
-
-   i = sprintf(*pool_buf, "%s:%d ", basename, line);
+   i = sprintf(*pool_buf, "%s:%d ", get_basename(file), line);
 
    for (;;) {
       maxlen = sizeof_pool_memory(*pool_buf) - i - 1;
@@ -1179,15 +1156,7 @@ int m_msg(const char *file, int line, POOLMEM *&pool_buf, const char *fmt, ...)
    va_list   arg_ptr;
    int i, len, maxlen;
 
-   const char *basename;
-
-   if ((basename = strrchr(file, '\\')) == NULL) {
-      basename = file;
-   } else {
-      basename++;
-   }
-
-   i = sprintf(pool_buf, "%s:%d ", basename, line);
+   i = sprintf(pool_buf, "%s:%d ", get_basename(file), line);
 
    for (;;) {
       maxlen = sizeof_pool_memory(pool_buf) - i - 1;
