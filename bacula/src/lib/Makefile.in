@@ -38,7 +38,7 @@ LIBSRCS = alloc.c attr.c base64.c berrno.c bsys.c bget_msg.c \
 LIBOBJS = alloc.o attr.o base64.o berrno.o bsys.o bget_msg.o \
 	  bnet.o bnet_server.o runscript.o \
 	  bpipe.o bsnprintf.o btime.o \
-	  cram-md5.o crc32.o crypto.o daemon.o edit.o fnmatch.o \
+	  cram-md5.o crc32.o crypto.o daemon.o edit.o enh_fnmatch.o fnmatch.o \
 	  hmac.o idcache.o jcr.o lex.o alist.o dlist.o \
 	  md5.o message.o mem_pool.o openssl.o parse_conf.o \
 	  queue.o bregex.o \

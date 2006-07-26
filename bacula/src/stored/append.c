@@ -43,6 +43,7 @@ bool do_append_data(JCR *jcr)
    char buf1[100], buf2[100];
    DCR *dcr = jcr->dcr;
    DEVICE *dev;
+   char ec[50];
 
 
    if (!dcr) { 
@@ -240,6 +241,7 @@ bool do_append_data(JCR *jcr)
          Dmsg0(650, "Enter bnet_get\n");
       }
       Dmsg1(650, "End read loop with FD. Stat=%d\n", n);
+
       if (is_bnet_error(ds)) {
          Dmsg1(350, "Network read error from FD. ERR=%s\n", bnet_strerror(ds));
          Jmsg1(jcr, M_FATAL, 0, _("Network error on data channel. ERR=%s\n"),
@@ -248,6 +250,15 @@ bool do_append_data(JCR *jcr)
          break;
       }
    }
+
+   time_t job_elapsed = time(NULL) - jcr->run_time;
+
+   if (job_elapsed == 0)
+      job_elapsed = 1;
+
+   Jmsg(dcr->jcr, M_INFO, 0, _("Job write elapsed time = %02d:%02d:%02d, Transfer rate = %s bytes/second\n"),
+         job_elapsed / 3600, job_elapsed % 3600 / 60, job_elapsed % 60,
+         edit_uint64_with_commas(jcr->dcr->job_spool_size / job_elapsed, ec));
 
    /* Create Job status for end of session label */
    set_jcr_job_status(jcr, ok?JS_Terminated:JS_ErrorTerminated);

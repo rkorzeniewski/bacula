@@ -663,6 +663,15 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
          for (j=0; j<incexe->num_opts; j++) {
             FOPTS *fo = incexe->opts_list[j];
             sendit(sock, "      O %s\n", fo->opts);
+
+            bool enhanced_wild = false;
+            for (k=0; fo->opts[k]!='\0'; k++) {
+               if (fo->opts[k]=='W') {
+                  enhanced_wild = true;
+                  break;
+               }
+            }
+
             for (k=0; k<fo->regex.size(); k++) {
                sendit(sock, "      R %s\n", fo->regex.get(k));
             }
@@ -681,11 +690,17 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
             for (k=0; k<fo->wildfile.size(); k++) {
                sendit(sock, "      WF %s\n", fo->wildfile.get(k));
             }
+            for (k=0; k<fo->wildbase.size(); k++) {
+               sendit(sock, "      W%c %s\n", enhanced_wild ? 'B' : 'F', fo->wildbase.get(k));
+            }
             for (k=0; k<fo->base.size(); k++) {
                sendit(sock, "      B %s\n", fo->base.get(k));
             }
             for (k=0; k<fo->fstype.size(); k++) {
                sendit(sock, "      X %s\n", fo->fstype.get(k));
+            }
+            for (k=0; k<fo->drivetype.size(); k++) {
+               sendit(sock, "      XD %s\n", fo->drivetype.get(k));
             }
             if (fo->reader) {
                sendit(sock, "      D %s\n", fo->reader);
@@ -866,8 +881,10 @@ static void free_incexe(INCEXE *incexe)
       fopt->wild.destroy();
       fopt->wilddir.destroy();
       fopt->wildfile.destroy();
+      fopt->wildbase.destroy();
       fopt->base.destroy();
       fopt->fstype.destroy();
+      fopt->drivetype.destroy();
       if (fopt->reader) {
          free(fopt->reader);
       }

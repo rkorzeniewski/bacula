@@ -274,6 +274,15 @@ static bool send_fileset(JCR *jcr)
          for (j=0; j<ie->num_opts; j++) {
             FOPTS *fo = ie->opts_list[j];
             bnet_fsend(fd, "O %s\n", fo->opts);
+
+            bool enhanced_wild = false;
+            for (k=0; fo->opts[k]!='\0'; k++) {
+               if (fo->opts[k]=='W') {
+                  enhanced_wild = true;
+                  break;
+               }
+            }
+
             for (k=0; k<fo->regex.size(); k++) {
                bnet_fsend(fd, "R %s\n", fo->regex.get(k));
             }
@@ -292,11 +301,17 @@ static bool send_fileset(JCR *jcr)
             for (k=0; k<fo->wildfile.size(); k++) {
                bnet_fsend(fd, "WF %s\n", fo->wildfile.get(k));
             }
+            for (k=0; k<fo->wildbase.size(); k++) {
+               bnet_fsend(fd, "W%c %s\n", enhanced_wild ? 'B' : 'F', fo->wildbase.get(k));
+            }
             for (k=0; k<fo->base.size(); k++) {
                bnet_fsend(fd, "B %s\n", fo->base.get(k));
             }
             for (k=0; k<fo->fstype.size(); k++) {
                bnet_fsend(fd, "X %s\n", fo->fstype.get(k));
+            }
+            for (k=0; k<fo->drivetype.size(); k++) {
+               bnet_fsend(fd, "XD %s\n", fo->drivetype.get(k));
             }
             if (fo->reader) {
                bnet_fsend(fd, "D %s\n", fo->reader);

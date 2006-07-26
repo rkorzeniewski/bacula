@@ -250,6 +250,10 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
            ff_pkt->fname);
       ff_pkt->type = FT_DIREND;       /* Backup only the directory entry */
       break;
+   case FT_INVALIDDT:
+      Jmsg(jcr, M_INFO, 1, _("     Disallowed drive type. Will not descend into %s\n"),
+           ff_pkt->fname);
+      break;
    case FT_DIREND:
       Dmsg1(130, "FT_DIREND: %s\n", ff_pkt->link);
       break;

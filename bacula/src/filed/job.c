@@ -260,8 +260,10 @@ void *handle_client_request(void *dirp)
             fo->wild.destroy();
             fo->wilddir.destroy();
             fo->wildfile.destroy();
+            fo->wildbase.destroy();
             fo->base.destroy();
             fo->fstype.destroy();
+            fo->drivetype.destroy();
             if (fo->reader) {
                free(fo->reader);
             }
@@ -285,8 +287,10 @@ void *handle_client_request(void *dirp)
             fo->wild.destroy();
             fo->wilddir.destroy();
             fo->wildfile.destroy();
+            fo->wildbase.destroy();
             fo->base.destroy();
             fo->fstype.destroy();
+            fo->drivetype.destroy();
          }
          incexe->opts_list.destroy();
          incexe->name_list.destroy();
@@ -549,8 +553,10 @@ static findFOPTS *start_options(FF_PKT *ff)
       fo->wild.init(1, true);
       fo->wilddir.init(1, true);
       fo->wildfile.init(1, true);
+      fo->wildbase.init(1, true);
       fo->base.init(1, true);
       fo->fstype.init(1, true);
+      fo->drivetype.init(1, true);
       incexe->current_opts = fo;
       incexe->opts_list.append(fo);
    }
@@ -717,8 +723,14 @@ static void add_fileset(JCR *jcr, const char *item)
       break;
    case 'X':
       current_opts = start_options(ff);
-      current_opts->fstype.append(bstrdup(item));
       state = state_options;
+      if (subcode == ' ') {
+         current_opts->fstype.append(bstrdup(item));
+      } else if (subcode == 'D') {
+         current_opts->drivetype.append(bstrdup(item));
+      } else {
+         state = state_error;
+      }
       break;
    case 'W':
       current_opts = start_options(ff);
@@ -729,6 +741,8 @@ static void add_fileset(JCR *jcr, const char *item)
          current_opts->wilddir.append(bstrdup(item));
       } else if (subcode == 'F') {
          current_opts->wildfile.append(bstrdup(item));
+      } else if (subcode == 'B') {
+         current_opts->wildbase.append(bstrdup(item));
       } else {
          state = state_error;
       }
@@ -787,11 +801,17 @@ static bool term_fileset(JCR *jcr)
          for (k=0; k<fo->wildfile.size(); k++) {
             Dmsg1(400, "WF %s\n", (char *)fo->wildfile.get(k));
          }
+         for (k=0; k<fo->wildbase.size(); k++) {
+            Dmsg1(400, "WB %s\n", (char *)fo->wildbase.get(k));
+         }
          for (k=0; k<fo->base.size(); k++) {
             Dmsg1(400, "B %s\n", (char *)fo->base.get(k));
          }
          for (k=0; k<fo->fstype.size(); k++) {
             Dmsg1(400, "X %s\n", (char *)fo->fstype.get(k));
+         }
+         for (k=0; k<fo->drivetype.size(); k++) {
+            Dmsg1(400, "XD %s\n", (char *)fo->drivetype.get(k));
          }
          if (fo->reader) {
             Dmsg1(400, "D %s\n", fo->reader);
@@ -827,11 +847,17 @@ static bool term_fileset(JCR *jcr)
          for (k=0; k<fo->wildfile.size(); k++) {
             Dmsg1(400, "WF %s\n", (char *)fo->wildfile.get(k));
          }
+         for (k=0; k<fo->wildbase.size(); k++) {
+            Dmsg1(400, "WB %s\n", (char *)fo->wildbase.get(k));
+         }
          for (k=0; k<fo->base.size(); k++) {
             Dmsg1(400, "B %s\n", (char *)fo->base.get(k));
          }
          for (k=0; k<fo->fstype.size(); k++) {
             Dmsg1(400, "X %s\n", (char *)fo->fstype.get(k));
+         }
+         for (k=0; k<fo->drivetype.size(); k++) {
+            Dmsg1(400, "XD %s\n", (char *)fo->drivetype.get(k));
          }
       }
       for (j=0; j<incexe->name_list.size(); j++) {
@@ -939,6 +965,9 @@ static void set_options(findFOPTS *fo, const char *opts)
          break;
       case 'w':
          fo->flags |= FO_IF_NEWER;
+         break;
+      case 'W':
+         fo->flags |= FO_ENHANCEDWILD;
          break;
       case 'Z':                 /* gzip compression */
          fo->flags |= FO_GZIP;

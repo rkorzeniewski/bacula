@@ -37,6 +37,7 @@ static void store_newinc(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_regex(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_wild(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_fstype(LEX *lc, RES_ITEM *item, int index, int pass);
+static void store_drivetype(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_opts(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_fname(LEX *lc, RES_ITEM *item, int index, int pass);
 static void options_res(LEX *lc, RES_ITEM *item, int index, int pass);
@@ -104,6 +105,8 @@ static RES_ITEM options_items[] = {
    {"fstype",          store_fstype,  {0},     0, 0, 0},
    {"hfsplussupport",  store_opts,    {0},     0, 0, 0},
    {"noatime",         store_opts,    {0},     0, 0, 0},
+   {"enhancedwild",    store_opts,    {0},     0, 0, 0},
+   {"drivetype",       store_drivetype, {0},     0, 0, 0},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 
@@ -128,7 +131,8 @@ enum {
    INC_KW_ACL,
    INC_KW_IGNORECASE,
    INC_KW_HFSPLUS,
-   INC_KW_NOATIME
+   INC_KW_NOATIME,
+   INC_KW_ENHANCEDWILD
 };
 
 /*
@@ -156,6 +160,7 @@ static struct s_kw FS_option_kw[] = {
    {"ignorecase",  INC_KW_IGNORECASE},
    {"hfsplussupport", INC_KW_HFSPLUS},
    {"noatime",     INC_KW_NOATIME},
+   {"enhancedwild", INC_KW_ENHANCEDWILD},
    {NULL,          0}
 };
 
@@ -219,6 +224,8 @@ static struct s_fs_opt FS_options[] = {
    {"no",       INC_KW_HFSPLUS,       "0"},
    {"yes",      INC_KW_NOATIME,       "K"},
    {"no",       INC_KW_NOATIME,       "0"},
+   {"yes",      INC_KW_ENHANCEDWILD,  "K"},
+   {"no",       INC_KW_ENHANCEDWILD,  "0"},
    {NULL,       0,                      0}
 };
 
@@ -488,9 +495,15 @@ static void store_wild(LEX *lc, RES_ITEM *item, int index, int pass)
             res_incexe.current_opts->wilddir.append(bstrdup(lc->str));
             newsize = res_incexe.current_opts->wilddir.size();
          } else if (item->code == 2) {
-            type = "wildfile";
-            res_incexe.current_opts->wildfile.append(bstrdup(lc->str));
-            newsize = res_incexe.current_opts->wildfile.size();
+            if (strchr(lc->str, '/') != NULL) {
+               type = "wildfile";
+               res_incexe.current_opts->wildfile.append(bstrdup(lc->str));
+               newsize = res_incexe.current_opts->wildfile.size();
+            } else {
+               type = "wildbase";
+               res_incexe.current_opts->wildbase.append(bstrdup(lc->str));
+               newsize = res_incexe.current_opts->wildbase.size();
+            }
          } else {
             type = "wild";
             res_incexe.current_opts->wild.append(bstrdup(lc->str));
@@ -524,6 +537,29 @@ static void store_fstype(LEX *lc, RES_ITEM *item, int index, int pass)
          break;
       default:
          scan_err1(lc, _("Expected an fstype string, got: %s\n"), lc->str);
+      }
+   }
+   scan_to_eol(lc);
+}
+
+/* Store drivetype info */
+static void store_drivetype(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+   int token;
+
+   token = lex_get_token(lc, T_SKIP_EOL);
+   if (pass == 1) {
+      /* Pickup drivetype string */
+      switch (token) {
+      case T_IDENTIFIER:
+      case T_UNQUOTED_STRING:
+      case T_QUOTED_STRING:
+         res_incexe.current_opts->drivetype.append(bstrdup(lc->str));
+         Dmsg3(900, "set drivetype %p size=%d %s\n",
+            res_incexe.current_opts, res_incexe.current_opts->drivetype.size(), lc->str);
+         break;
+      default:
+         scan_err1(lc, _("Expected an drivetype string, got: %s\n"), lc->str);
       }
    }
    scan_to_eol(lc);
@@ -657,8 +693,10 @@ static void setup_current_opts(void)
    fo->wild.init(1, true);
    fo->wilddir.init(1, true);
    fo->wildfile.init(1, true);
+   fo->wildbase.init(1, true);
    fo->base.init(1, true);
    fo->fstype.init(1, true);
+   fo->drivetype.init(1, true);
    res_incexe.current_opts = fo;
    if (res_incexe.num_opts == 0) {
       res_incexe.opts_list = (FOPTS **)malloc(sizeof(FOPTS *));
