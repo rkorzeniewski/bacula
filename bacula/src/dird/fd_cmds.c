@@ -470,6 +470,26 @@ bool send_bootstrap_file(JCR *jcr, BSOCK *sock)
    return true;
 }
 
+/* TODO: drop this with runscript.old_proto in bacula 1.42 */
+static char runbefore[]   = "RunBeforeJob %s\n";
+static char runafter[]    = "RunAfterJob %s\n";
+static char OKRunBefore[] = "2000 OK RunBefore\n";
+static char OKRunAfter[]  = "2000 OK RunAfter\n";
+
+int send_runscript_with_old_proto(JCR *jcr, int when, POOLMEM *msg)
+{
+   int ret;
+   Dmsg1(120, "bdird: sending old runcommand to fd '%s'\n",msg);
+   if (when & SCRIPT_Before) {
+      bnet_fsend(jcr->file_bsock, runbefore, msg);
+      ret = response(jcr, jcr->file_bsock, OKRunBefore, "ClientRunBeforeJob", DISPLAY_ERROR);
+   } else {
+      bnet_fsend(jcr->file_bsock, runafter, msg);
+      ret = response(jcr, jcr->file_bsock, OKRunAfter, "ClientRunAfterJob", DISPLAY_ERROR);
+   }
+   return ret;
+} /* END OF TODO */
+
 /*
  * Send RunScripts to File daemon
  */
@@ -480,6 +500,7 @@ int send_runscripts_commands(JCR *jcr)
    RUNSCRIPT *cmd;
    bool launch_before_cmd = false;
    POOLMEM *ehost = get_pool_memory(PM_FNAME);
+   int result;
 
    Dmsg0(120, "bdird: sending runscripts to fd\n");
    
@@ -493,21 +514,30 @@ int send_runscripts_commands(JCR *jcr)
          if (strcmp(ehost, jcr->client->hdr.name) == 0) {
             pm_strcpy(msg, cmd->command);
             bash_spaces(msg);
-            bnet_fsend(fd, runscript, cmd->on_success, 
-                                      cmd->on_failure,
-                                      cmd->abort_on_error,
-                                      cmd->when,
-                                      msg);
 
             Dmsg1(120, "bdird: sending runscripts to fd '%s'\n", cmd->command);
+            
+            /* TODO: remove this with bacula 1.42 */
+            if (cmd->old_proto) {
+               result = send_runscript_with_old_proto(jcr, cmd->when, msg);
 
-            if (!response(jcr, fd, OKRunScript, "RunScript", DISPLAY_ERROR)) {
+            } else {
+               bnet_fsend(fd, runscript, cmd->on_success, 
+                                         cmd->on_failure,
+                                         cmd->abort_on_error,
+                                         cmd->when,
+                                         msg);
+
+               result = response(jcr, fd, OKRunScript, "RunScript", DISPLAY_ERROR);
+               launch_before_cmd=true;
+            }
+            
+            if (!result) {
                set_jcr_job_status(jcr, JS_ErrorTerminated);
                free_pool_memory(msg);
                free_pool_memory(ehost);
                return 0;
             }
-            launch_before_cmd=true;
          }
          /*
            else {

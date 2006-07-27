@@ -1632,6 +1632,8 @@ static void store_short_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
 
       script->set_command(lc->str);
 
+      /* TODO: remove all script->old_proto with bacula 1.42 */
+
       if (strcmp(item->name, "runbeforejob") == 0) {
          script->when = SCRIPT_Before;
          script->abort_on_error = true;
@@ -1642,12 +1644,14 @@ static void store_short_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
          script->on_failure = false;
          
       } else if (strcmp(item->name, "clientrunafterjob") == 0) {
+         script->old_proto = true;
          script->when = SCRIPT_After;
          script->set_target("%c");
          script->on_success = true;
          script->on_failure = false;
 
       } else if (strcmp(item->name, "clientrunbeforejob") == 0) {
+         script->old_proto = true;
          script->when = SCRIPT_Before;
          script->set_target("%c");
          script->abort_on_error = true;

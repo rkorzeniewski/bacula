@@ -58,6 +58,8 @@ public:
    bool on_failure;             /* executre command on job failure (After) */
    bool abort_on_error;         /* abort job on error (Before) */
    int  when;                   /* SCRIPT_Before|Script_After BEFORE/AFTER JOB*/
+   /* TODO : drop this with bacula 1.42 */
+   bool old_proto;		/* used by old 1.3X protocol */
 
    int run(JCR *job, const char *name="");
    bool can_run_at_level(int JobLevel) { return true;};        /* TODO */
