@@ -2,6 +2,12 @@
                         Kern Sibbald
 
 General:
+27Jul06
+- Several important commits from Robert Nelson for code cleanup and
+  Win32 build.
+- Modify console.c so that when conio is enabled, it converts \n to
+  \n\r before outputting to the console.  Hopefully this will fix
+  the problems with expect in Perl that Eric saw.
 24Jul06
 - Change cats/sql.c to elimate %-*s format, which I think is turned
   off in bsnprintf.

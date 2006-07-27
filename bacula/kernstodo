@@ -29,6 +29,7 @@ Priority:
 
 For 1.39:
 - Remove queue.c code.
+- Add bconsole option to use stdin/out instead of conio.
 - Fix ClientRunBefore/AfterJob compatibility.
 - Fix re-read of last block to check if job has actually written
   a block, and check if block was written by a different job
@@ -1626,4 +1627,3 @@ Block Position: 0
 - Fix auth compatibility with 1.38
 - Update dbcheck to include Log table
 - Update llist to include new fields.
-
