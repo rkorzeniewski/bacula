@@ -295,3 +295,15 @@ Index: Makefile.shared
  link_app.cygwin:
  	$(LINK_APP)
  
+Index: util/mkdef.pl
+--- ../tmp/openssl-0.9.8b/util/mkdef.pl	2006-01-02 06:08:22.000000000 -0800
++++ ./util/mkdef.pl	2006-07-26 23:21:46.000000000 -0700
+@@ -1204,7 +1204,7 @@
+ ; Definition file for the DLL version of the $name library from OpenSSL
+ ;
+ 
+-LIBRARY         $libname	$liboptions
++LIBRARY         $libname.DLL	$liboptions
+ 
+ DESCRIPTION     '$description'
+ 
