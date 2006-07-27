@@ -1,83 +1,86 @@
-
-This file documents building the Bacula Win32 FD using the cross-tool
-on a Linux (possibly other Unix) system.
+This file documents building Bacula for Microsoft Windows using the
+cross-compiler tools on a Linux (or possibly another Unix) system.
 
 The basic directory structure you need to have is:
-  bacula                     top level directory -- any name 
-    bacula-source            top level Bacula source directory -- any name
+
+  bacula-top                 top level directory -- any name 
+    bacula                   top level Bacula source directory -- any name
       src
-        win32                main directory where the Win32 FD is built.
-          compat             Bacula win32 emulation lib for Unix calls
+        win32                main directory where the Windows version is built.
 
-    dekpgs-win32             
-       pthreads              The POSIX pthreads library (third party)
-       zlib                  The zlib library (third party)
-       wx                    The wxWidgets library (third party)
-       openssl               The OpenSSL library (third party)
+    dekpgs-mingw32           3rd Party Dependencies
+      bin              --
+      include            |
+      lib                |
+      man                |   Created by script
+      nsis               |-- ..../bacula/src/win32/build-dependencies
+      scons              |   
+      share              |
+      src                |
+      ssl              --
+      vss
+        inc                  A copy of the Windows VSS/inc directory
 
-    cross-tools              Cross compliation tools (gcc, g++, mingw, ...)
-       vss                   A copy of the Windows VSS directory
-         inc
-           ...
-         lib
-           ...
+    cross-tools              Cross compilation tools (gcc, g++, mingw, ...)
+      binutils-mingw32 --
+      gcc-mingw32        |   Created by script
+      mingw32            |-- ..../bacula/src/win32/build-win32-cross-tools
+      mingw-utils        | 
+      source           --
 
-depkgs-win32 is released in a separate .tar.gz file that contains the
-source for the above mentioned libraries needed to build the
-Win32 Bacula.  It can be found in the Source Forge Bacula project
-release section.  Docs is released as a separate tar file, which is
-created from the bacula CVS docs project (module).
+One-time Setup
+==============
 
-cross-tools is a directory that you create. There is a script, described
-below, that will download all the necessary files and build them. You need
-only run that script once, unless we move to a new version of the tools.
-In addition, you must download the Microsoft VSS libraries, install them
-on a Windows system. We are not allowed to distribute those files so you
-must do it yourself.  Normally the files will be installed in:
+If you're reading this file you've probably already enlisted in the CVS tree or
+extracted the contents of the source tar.  If not you need to do that first.
 
-   c:/Program Files/VSSSDK71
+Once the source is on your system, change to the win32 directory
+	cd ..../bacula/src/win32
 
-you need only copy everything under that directory into cross-tools/vss.
-Note, only the inc and lib directories are needed (and I'm not even sure
-that the lib directory is needed).  
+Download and build the cross compiler tools
+	./build-win32-cross-tools
 
-Now, once you have the directory structure as defined above, you do
-the following once:
+Download and build the 3rd party dependencies
+	./build-dependencies
 
-  cd bacula/bacula-source
-  ./configure (any standard set of config options the exact ones   
-               are not important).
-  cd src/win32
-  ./build-win32-cross-tools
+You need the header files from the Microsoft VSS SDK.  Unfortunately the SDK
+can only be downloaded and installed on a Windows system.  You can find it on
+Microsoft's web-site at:
+
+http://www.microsoft.com/downloads/details.aspx?FamilyID=0b4f56e4-0ccc-4626-826a-ed2c4c95c871&DisplayLang=en
+
+If that link doesn't work then go to http://www.microsoft.com and search for
+
+	"download volume shadow copy service sdk"
+
+Normally the files will be installed in:
+
+	c:/Program Files/VSSSDK72
+
+You only need to copy everything under the c:/Program Files/VSSSDK72/inc
+directory into ..../depkgs-mingw32/vss/inc.
 
 The above only needs to be done once unless we change the cross-tools 
-version.  In general, you can run the script multiple times with no
-problem. For it to work, you must have at a minimum the following:
+or the dependencies versions.  In general, you can run the script multiple
+times with no problem.  For it to work, you must have at a minimum the
+following:
 
-  gcc
-  g++
-  wget
-  texinfo
-  bison
-  man2html
+	gcc
+	g++
+	wget
+	texinfo
+	bison
+	man2html
 
 and possibly other packages.
 
-After building the cross-tools, you can proceed to build the depkgs-win32 
-packages, which must use the cross-tools compiler.
- 
-   cd depkgs-win32
-   ./build-mingw32
+Building
+========
 
-The above only needs to be done once as well as long as the cross-tools or
-depkgs-win32 versions do not change.
+Finally, to build the Microsoft Windows version of Bacula, do the following:
 
-Finally, to build the Win32 Bacula FD and bconsole, do the following:
+	cd ..../bacula/src/win32
+	make
 
-   cd bacula-source/src/win32
-   make
-
-if all goes well, you will end with bacula-fd.exe, bconsole.exe,
-pthreadGCE.dll, and mingwm10.dll in the current directory.
-
-Items to be done:
+If all goes well, you will end with all the executables in the
+..../bacula/src/win32/release directory.
