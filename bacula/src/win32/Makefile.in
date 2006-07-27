@@ -197,6 +197,7 @@ OBJS_FINDLIB = \
 	$(OBJDIR)/attribs.o \
 	$(OBJDIR)/bfile.o \
 	$(OBJDIR)/create_file.o \
+	$(OBJDIR)/drivetype.o \
 	$(OBJDIR)/enable_priv.o \
 	$(OBJDIR)/find.o \
 	$(OBJDIR)/find_one.o \
@@ -212,6 +213,9 @@ $(OBJDIR)/bfile.o:	  ../findlib/bfile.c
 	$(CXX) -c $< -o $@		
 
 $(OBJDIR)/create_file.o:  ../findlib/create_file.c
+	$(CXX) -c $< -o $@		
+
+$(OBJDIR)/drivetype.o:	  ../findlib/drivetype.c
 	$(CXX) -c $< -o $@		
 
 $(OBJDIR)/enable_priv.o:  ../findlib/enable_priv.c
@@ -263,6 +267,7 @@ LIB_OBJS = \
 	$(LIBDIR)/daemon.o \
 	$(LIBDIR)/dlist.o \
 	$(LIBDIR)/edit.o \
+	$(LIBDIR)/enh_fnmatch.o \
 	$(LIBDIR)/fnmatch.o \
 	$(LIBDIR)/hmac.o \
 	$(LIBDIR)/htable.o \
@@ -357,6 +362,9 @@ $(LIBDIR)/dlist.o:	  ../lib/dlist.c
 	$(CXX) -c $< -o $@		
 
 $(LIBDIR)/edit.o:	../lib/edit.c
+	$(CXX) -c $< -o $@		
+
+$(LIBDIR)/enh_fnmatch.o:  ../lib/enh_fnmatch.c
 	$(CXX) -c $< -o $@		
 
 $(LIBDIR)/fnmatch.o:	  ../lib/fnmatch.c
