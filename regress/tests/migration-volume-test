@@ -6,7 +6,7 @@
 # This script uses the virtual disk autochanger
 #
 TestName="migration-volume-test"
-JobName=MigrationVolSave
+JobName=MigVolBackup
 . scripts/functions
 set_debug 1
 
@@ -37,13 +37,26 @@ label storage=DiskChanger volume=ChangerVolume002 slot=2 Pool=Full drive=0
 list volumes
 @# run two jobs (both will be migrated)
 run job=$JobName yes
+wait
 run job=$JobName yes
+@sleep 1
+status storage=File       
+@sleep 1
+status storage=File
+@sleep 1
+status storage=File
 wait
 update volume=FileVolume001 VolStatus=Used
 list volumes
 @# should migrate two jobs
 run job=migrate-volume yes
 list volumes
+@sleep 3
+status storage=DiskChanger
+@sleep 1
+status storage=DiskChanger
+@sleep 1
+status storage=DiskChanger
 wait
 messages
 @# 
@@ -67,5 +80,4 @@ stop_bacula
 
 check_two_logs
 check_restore_diff
-exit
 end_test

@@ -30,6 +30,8 @@ tests/two-vol-test
 tests/verify-vol-test
 tests/weird-files2-test
 tests/weird-files-test
+tests/migration-job-test
+tests/migration-volume-test
 # 
 # The following are Virtual Disk Autochanger tests
 tests/two-pool-test
