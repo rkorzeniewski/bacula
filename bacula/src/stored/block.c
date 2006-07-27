@@ -511,7 +511,11 @@ bool write_block_to_dev(DCR *dcr)
    /*
     * Do write here
     */ 
-   stat = write(dev->fd, block->buf, (size_t)wlen);
+   if (dev->is_tape()) {
+      stat = tape_write(dev->fd, block->buf, (size_t)wlen);
+   } else {
+      stat = write(dev->fd, block->buf, (size_t)wlen);
+   }
 
 #ifdef DEBUG_BLOCK_ZEROING
    if (bp[0] == 0 && bp[1] == 0 && bp[2] == 0 && block->buf[12] == 0) {
@@ -925,7 +929,11 @@ reread:
 //    uint32_t *bp = (uint32_t *)block->buf;
 //    Pmsg3(000, "Read %p %u at %llu\n", block->buf, block->buf_len, lseek(dev->fd, 0, SEEK_CUR));
 
-      stat = read(dev->fd, block->buf, (size_t)block->buf_len);
+      if (dev->is_tape()) {
+         stat = tape_read(dev->fd, block->buf, (size_t)block->buf_len);
+      } else {
+         stat = read(dev->fd, block->buf, (size_t)block->buf_len);
+      }
 
 //    Pmsg8(000, "stat=%d Csum=%u blen=%u bnum=%u %c%c%c%c\n",stat, bp[0],bp[1],bp[2],
 //      block->buf[12],block->buf[13],block->buf[14],block->buf[15]);

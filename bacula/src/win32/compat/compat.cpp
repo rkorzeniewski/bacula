@@ -24,8 +24,6 @@
 #include "bacula.h"
 #include "compat.h"
 #include "jcr.h"
-#include "vss.h"
-
 
 #define b_errno_win32 (1<<29)
 
@@ -39,6 +37,15 @@ static POOLMEM *g_pWin32ConvUTF8Cache = get_pool_memory (PM_FNAME);
 static POOLMEM *g_pWin32ConvUCS2Cache = get_pool_memory (PM_FNAME);
 static DWORD g_dwWin32ConvUTF8strlen = 0;
 static pthread_mutex_t Win32Convmutex = PTHREAD_MUTEX_INITIALIZER;
+
+static t_pVSSPathConvert   g_pVSSPathConvert;
+static t_pVSSPathConvertW  g_pVSSPathConvertW;
+
+void SetVSSPathConvert(t_pVSSPathConvert pPathConvert, t_pVSSPathConvertW pPathConvertW)
+{
+   g_pVSSPathConvert = pPathConvert;
+   g_pVSSPathConvertW = pPathConvertW;
+}
 
 void Win32ConvCleanupCache()
 {
@@ -60,12 +67,12 @@ void Win32ConvCleanupCache()
 #undef fputs
 
 
-#define USE_WIN32_COMPAT_IO 1
+//#define USE_WIN32_COMPAT_IO 1
 #define USE_WIN32_32KPATHCONVERSION 1
 
 extern void d_msg(const char *file, int line, int level, const char *fmt,...);
 extern DWORD   g_platform_id;
-extern int enable_vss;
+extern DWORD   g_MinorVersion;
 
 // from MicroSoft SDK (KES) is the diff between Jan 1 1601 and Jan 1 1970
 #ifdef HAVE_MINGW
@@ -80,6 +87,20 @@ void conv_unix_to_win32_path(const char *name, char *win32_name, DWORD dwSize)
 {
     const char *fname = name;
     char *tname = win32_name;
+
+    if ((name[0] == '/' || name[0] == '\\') &&
+        (name[1] == '/' || name[1] == '\\') &&
+        (name[2] == '.') &&
+        (name[3] == '/' || name[3] == '\\')) {
+
+        *win32_name++ = '\\';
+        *win32_name++ = '\\';
+        *win32_name++ = '.';
+        *win32_name++ = '\\';
+
+        name += 4;
+    }
+
     while (*name) {
         /* Check for Unix separator and convert to Win32 */
         if (name[0] == '/' && name[1] == '/') {  /* double slash? */
@@ -104,20 +125,28 @@ void conv_unix_to_win32_path(const char *name, char *win32_name, DWORD dwSize)
         *win32_name = 0;
     }
 
-#ifdef WIN32_VSS
     /* here we convert to VSS specific file name which
        can get longer because VSS will make something like
        \\\\?\\GLOBALROOT\\Device\\HarddiskVolumeShadowCopy1\\bacula\\uninstall.exe
        from c:\bacula\uninstall.exe
     */
-    if (g_pVSSClient && enable_vss && g_pVSSClient->IsInitialized()) {
+    if (g_pVSSPathConvert != NULL) {
        POOLMEM *pszBuf = get_pool_memory (PM_FNAME);
        pszBuf = check_pool_memory_size(pszBuf, dwSize);
        bstrncpy(pszBuf, tname, strlen(tname)+1);
-       g_pVSSClient->GetShadowPath(pszBuf, tname, dwSize);
+       g_pVSSPathConvert(pszBuf, tname, dwSize);
        free_pool_memory(pszBuf);
     }
-#endif
+}
+
+/* Conversion of a Unix filename to a Win32 filename */
+void unix_name_to_win32(POOLMEM **win32_name, char *name)
+{
+   /* One extra byte should suffice, but we double it */
+   /* add MAX_PATH bytes for VSS shadow copy name */
+   DWORD dwSize = 2*strlen(name)+MAX_PATH;
+   *win32_name = check_pool_memory_size(*win32_name, dwSize);
+   conv_unix_to_win32_path(name, *win32_name, dwSize);
 }
 
 POOLMEM* 
@@ -274,13 +303,12 @@ make_wchar_win32_path(POOLMEM *pszUCSPath, BOOL *pBIsRawPath /*= NULL*/)
    /* null terminate string */
    *win32_name = 0;
 
-#ifdef WIN32_VSS
    /* here we convert to VSS specific file name which
    can get longer because VSS will make something like
    \\\\?\\GLOBALROOT\\Device\\HarddiskVolumeShadowCopy1\\bacula\\uninstall.exe
    from c:\bacula\uninstall.exe
    */ 
-   if (g_pVSSClient && enable_vss && g_pVSSClient->IsInitialized()) {
+   if (g_pVSSPathConvertW != NULL) {
       /* is output buffer large enough? */
       pwszBuf = check_pool_memory_size(pwszBuf, (dwBufCharsNeeded+MAX_PATH)*sizeof(wchar_t));
       /* create temp. buffer */
@@ -291,10 +319,9 @@ make_wchar_win32_path(POOLMEM *pszUCSPath, BOOL *pBIsRawPath /*= NULL*/)
       else
          nParseOffset = 0; 
       wcsncpy((wchar_t *) pszBuf, (wchar_t *) pwszBuf+nParseOffset, wcslen((wchar_t *)pwszBuf)+1-nParseOffset);
-      g_pVSSClient->GetShadowPathW((wchar_t *)pszBuf,(wchar_t *)pwszBuf,dwBufCharsNeeded+MAX_PATH);
+      g_pVSSPathConvertW((wchar_t *)pszBuf,(wchar_t *)pwszBuf,dwBufCharsNeeded+MAX_PATH);
       free_pool_memory(pszBuf);
    }   
-#endif
 
    free_pool_memory(pszUCSPath);
    free_pool_memory(pwszCurDirBuf);
@@ -402,12 +429,17 @@ make_win32_path_UTF8_2_wchar(POOLMEM **pszUCS, const char *pszUTF, BOOL* pBIsRaw
    return nRet;
 }
 
-#ifndef HAVE_VC8
+#if !defined(_MSC_VER) || (_MSC_VER < 1400) // VC8+
 int umask(int)
 {
    return 0;
 }
 #endif
+
+int fcntl(int fd, int cmd)
+{
+   return 0;
+}
 
 int chmod(const char *, mode_t)
 {
@@ -423,14 +455,6 @@ int lchown(const char *k, uid_t, gid_t)
 {
    return 0;
 }
-
-#ifdef needed
-bool fstype(const char *fname, char *fs, int fslen)
-{
-   return true;                       /* accept anything */
-}
-#endif
-
 
 long int
 random(void)
@@ -586,10 +610,54 @@ statDir(const char *file, struct stat *sb)
     return 0;
 }
 
+int
+fstat(int fd, struct stat *sb)
+{
+    BY_HANDLE_FILE_INFORMATION info;
+    char tmpbuf[1024];
+
+    if (!GetFileInformationByHandle((HANDLE)fd, &info)) {
+        const char *err = errorString();
+        d_msg(__FILE__, __LINE__, 99,
+              "GetfileInformationByHandle(%s): %s\n", tmpbuf, err);
+        LocalFree((void *)err);
+        errno = b_errno_win32;
+        return -1;
+    }
+
+    sb->st_dev = info.dwVolumeSerialNumber;
+    sb->st_ino = info.nFileIndexHigh;
+    sb->st_ino <<= 32;
+    sb->st_ino |= info.nFileIndexLow;
+    sb->st_nlink = (short)info.nNumberOfLinks;
+    if (sb->st_nlink > 1) {
+       d_msg(__FILE__, __LINE__, 99,  "st_nlink=%d\n", sb->st_nlink);
+    }
+
+    sb->st_mode = 0777;               /* start with everything */
+    if (info.dwFileAttributes & FILE_ATTRIBUTE_READONLY)
+        sb->st_mode &= ~(S_IRUSR|S_IRGRP|S_IROTH);
+    if (info.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM)
+        sb->st_mode &= ~S_IRWXO; /* remove everything for other */
+    if (info.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN)
+        sb->st_mode |= S_ISVTX; /* use sticky bit -> hidden */
+    sb->st_mode |= S_IFREG;
+
+    sb->st_size = info.nFileSizeHigh;
+    sb->st_size <<= 32;
+    sb->st_size |= info.nFileSizeLow;
+    sb->st_blksize = 4096;
+    sb->st_blocks = (uint32_t)(sb->st_size + 4095)/4096;
+    sb->st_atime = cvt_ftime_to_utime(info.ftLastAccessTime);
+    sb->st_mtime = cvt_ftime_to_utime(info.ftLastWriteTime);
+    sb->st_ctime = cvt_ftime_to_utime(info.ftCreationTime);
+
+    return 0;
+}
+
 static int
 stat2(const char *file, struct stat *sb)
 {
-    BY_HANDLE_FILE_INFORMATION info;
     HANDLE h;
     int rval = 0;
     char tmpbuf[1024];
@@ -627,50 +695,13 @@ stat2(const char *file, struct stat *sb)
         d_msg(__FILE__, __LINE__, 99,
               "Cannot open file for stat (%s):%s\n", tmpbuf, err);
         LocalFree((void *)err);
-        rval = -1;
         errno = b_errno_win32;
-        goto error;
+        return -1;
     }
 
-    if (!GetFileInformationByHandle(h, &info)) {
-        const char *err = errorString();
-        d_msg(__FILE__, __LINE__, 99,
-              "GetfileInformationByHandle(%s): %s\n", tmpbuf, err);
-        LocalFree((void *)err);
-        rval = -1;
-        errno = b_errno_win32;
-        goto error;
-    }
-
-    sb->st_dev = info.dwVolumeSerialNumber;
-    sb->st_ino = info.nFileIndexHigh;
-    sb->st_ino <<= 32;
-    sb->st_ino |= info.nFileIndexLow;
-    sb->st_nlink = (short)info.nNumberOfLinks;
-    if (sb->st_nlink > 1) {
-       d_msg(__FILE__, __LINE__, 99,  "st_nlink=%d\n", sb->st_nlink);
-    }
-
-    sb->st_mode = 0777;               /* start with everything */
-    if (info.dwFileAttributes & FILE_ATTRIBUTE_READONLY)
-        sb->st_mode &= ~(S_IRUSR|S_IRGRP|S_IROTH);
-    if (info.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM)
-        sb->st_mode &= ~S_IRWXO; /* remove everything for other */
-    if (info.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN)
-        sb->st_mode |= S_ISVTX; /* use sticky bit -> hidden */
-    sb->st_mode |= S_IFREG;
-
-    sb->st_size = info.nFileSizeHigh;
-    sb->st_size <<= 32;
-    sb->st_size |= info.nFileSizeLow;
-    sb->st_blksize = 4096;
-    sb->st_blocks = (uint32_t)(sb->st_size + 4095)/4096;
-    sb->st_atime = cvt_ftime_to_utime(info.ftLastAccessTime);
-    sb->st_mtime = cvt_ftime_to_utime(info.ftLastWriteTime);
-    sb->st_ctime = cvt_ftime_to_utime(info.ftCreationTime);
-
-error:
+    rval = fstat((int)h, sb);
     CloseHandle(h);
+ 
     return rval;
 }
 
@@ -735,6 +766,28 @@ stat(const char *file, struct stat *sb)
    sb->st_mtime = cvt_ftime_to_utime(data.ftLastWriteTime);
    sb->st_ctime = cvt_ftime_to_utime(data.ftCreationTime);
    return 0;
+}
+
+int fcntl(int fd, int cmd, long arg)
+{
+   int rval = 0;
+
+   switch (cmd) {
+   case F_GETFL:
+      rval = O_NONBLOCK;
+      break;
+
+   case F_SETFL:
+      rval = 0;
+      break;
+
+   default:
+      errno = EINVAL;
+      rval = -1;
+      break;
+   }
+
+   return rval;
 }
 
 int
@@ -817,23 +870,24 @@ strcasecmp(const char *s1, const char *s2)
 int
 strncasecmp(const char *s1, const char *s2, int len)
 {
-    register int ch1, ch2;
+   register int ch1 = 0, ch2 = 0;
 
-    if (s1==s2)
-        return 0;       /* strings are equal if same object. */
-    else if (!s1)
-        return -1;
-    else if (!s2)
-        return 1;
-    while (len--) {
-        ch1 = *s1;
-        ch2 = *s2;
-        s1++;
-        s2++;
-        if (ch1 == 0 || tolower(ch1) != tolower(ch2)) break;
-    }
+   if (s1==s2)
+      return 0;       /* strings are equal if same object. */
+   else if (!s1)
+      return -1;
+   else if (!s2)
+      return 1;
 
-    return (ch1 - ch2);
+   while (len--) {
+      ch1 = *s1;
+      ch2 = *s2;
+      s1++;
+      s2++;
+      if (ch1 == 0 || tolower(ch1) != tolower(ch2)) break;
+   }
+
+   return (ch1 - ch2);
 }
 
 int
@@ -864,14 +918,17 @@ gettimeofday(struct timeval *tv, struct timezone *)
 }
 
 /* For apcupsd this is in src/lib/wincompat.c */
-#ifndef __APCUPSD__
 extern "C" void syslog(int type, const char *fmt, ...) 
 {
 /*#ifndef HAVE_CONSOLE
     MessageBox(NULL, msg, "Bacula", MB_OK);
 #endif*/
 }
-#endif
+
+void
+closelog()
+{
+}
 
 struct passwd *
 getpwuid(uid_t)
@@ -1412,7 +1469,7 @@ winver::winver(void)
         }
 
     bstrncpy(WIN_VERSION_LONG, version, sizeof(WIN_VERSION_LONG));
-    snprintf(WIN_VERSION, sizeof(WIN_VERSION), "%s %d.%d.%d",
+    snprintf(WIN_VERSION, sizeof(WIN_VERSION), "%s %lu.%lu.%lu",
              platform, osvinfo.dwMajorVersion, osvinfo.dwMinorVersion, osvinfo.dwBuildNumber);
 
 #if 0
@@ -1581,7 +1638,6 @@ CloseIfValid(HANDLE handle)
         CloseHandle(handle);
 }
 
-#ifndef HAVE_MINGW
 BPIPE *
 open_bpipe(char *prog, int wait, const char *mode)
 {
@@ -1707,7 +1763,6 @@ cleanup:
     return NULL;
 }
 
-#endif //HAVE_MINGW
 
 int
 kill(int pid, int signal)
@@ -1721,7 +1776,6 @@ kill(int pid, int signal)
    return rval;
 }
 
-#ifndef HAVE_MINGW
 
 int
 close_bpipe(BPIPE *bpipe)
@@ -1837,67 +1891,9 @@ utime(const char *fname, struct utimbuf *times)
     return rval;
 }
 
-#if USE_WIN32_COMPAT_IO
-
+#if 0
 int
-open(const char *file, int flags, int mode)
-{
-   if (p_wopen) {
-      POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
-      make_win32_path_UTF8_2_wchar(&pwszBuf, file);
-
-      int nRet = p_wopen((LPCWSTR) pwszBuf, flags|_O_BINARY, mode);
-      free_pool_memory(pwszBuf);
-
-      return nRet;
-   }
-
-   return _open(file, flags|_O_BINARY, mode);
-}
-
-/*
- * Note, this works only for a file. If you want
- *   to close a socket, use closesocket().
- *   Bacula has been modified in src/lib/bnet.c
- *   to use closesocket().
- */
-#ifndef HAVE_VC8
-int
-close(int fd)
-{
-    return _close(fd);
-}
-
-#ifndef HAVE_WXCONSOLE
-ssize_t
-read(int fd, void *buf, ssize_t len)
-{
-    return _read(fd, buf, (size_t)len);
-}
-
-ssize_t
-write(int fd, const void *buf, ssize_t len)
-{
-    return _write(fd, buf, (size_t)len);
-}
-#endif
-
-
-off_t
-lseek(int fd, off_t offset, int whence)
-{
-    return (off_t)_lseeki64(fd, offset, whence);
-}
-
-int
-dup2(int fd1, int fd2)
-{
-    return _dup2(fd1, fd2);
-}
-#endif
-#else
-int
-open(const char *file, int flags, int mode)
+file_open(const char *file, int flags, int mode)
 {
     DWORD access = 0;
     DWORD shareMode = 0;
@@ -1910,13 +1906,18 @@ open(const char *file, int flags, int mode)
     else if (flags & O_RDWR) access = GENERIC_READ|GENERIC_WRITE;
     else access = GENERIC_READ;
 
-    if (flags & O_CREAT) create = CREATE_NEW;
-    else create = OPEN_EXISTING;
+    if ((flags & (O_CREAT | O_EXCL)) == (O_CREAT | O_EXCL))
+       create = CREATE_NEW;
+    else if ((flags & (O_CREAT | O_TRUNC)) == (O_CREAT | O_TRUNC))
+       create = CREATE_ALWAYS;
+    else if (flags & O_CREAT)
+       create = OPEN_ALWAYS;
+    else if (flags & O_TRUNC)
+       create = TRUNCATE_EXISTING;
+    else 
+       create = OPEN_EXISTING;
 
-    if (flags & O_TRUNC) create = TRUNCATE_EXISTING;
-
-    if (!(flags & O_EXCL))
-        shareMode = FILE_SHARE_DELETE|FILE_SHARE_READ|FILE_SHARE_WRITE;
+    shareMode = 0;
 
     if (flags & O_APPEND) {
         printf("open...APPEND not implemented yet.");
@@ -1925,7 +1926,7 @@ open(const char *file, int flags, int mode)
 
     if (p_CreateFileW) {
        POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
-       make_win32_path_UTF8_2_wchar(pwszBuf, file);
+       make_win32_path_UTF8_2_wchar(&pwszBuf, file);
 
        foo = p_CreateFileW((LPCWSTR) pwszBuf, access, shareMode, NULL, create, msflags, NULL);
        free_pool_memory(pwszBuf);
@@ -1942,7 +1943,7 @@ open(const char *file, int flags, int mode)
 
 
 int
-close(int fd)
+file_close(int fd)
 {
     if (!CloseHandle((HANDLE)fd)) {
         errno = b_errno_win32;
@@ -1953,7 +1954,7 @@ close(int fd)
 }
 
 ssize_t
-write(int fd, const void *data, ssize_t len)
+file_write(int fd, const void *data, ssize_t len)
 {
     BOOL status;
     DWORD bwrite;
@@ -1965,7 +1966,7 @@ write(int fd, const void *data, ssize_t len)
 
 
 ssize_t
-read(int fd, void *data, ssize_t len)
+file_read(int fd, void *data, ssize_t len)
 {
     BOOL status;
     DWORD bread;
@@ -1977,7 +1978,7 @@ read(int fd, void *data, ssize_t len)
 }
 
 off_t
-lseek(int fd, off_t offset, int whence)
+file_seek(int fd, off_t offset, int whence)
 {
     DWORD method = 0;
     DWORD val;
@@ -2005,27 +2006,14 @@ lseek(int fd, off_t offset, int whence)
 }
 
 int
-dup2(int, int)
+file_dup2(int, int)
 {
     errno = ENOSYS;
     return -1;
 }
-
-
 #endif
-
-#endif //HAVE_MINGW
 
 #ifdef HAVE_MINGW
 /* syslog function, added by Nicolas Boichat */
-void closelog() {}
 void openlog(const char *ident, int option, int facility) {}  
 #endif //HAVE_MINGW
-
-/* Temp kludges ***FIXME**** */
-#ifdef __APCUPSD__
-unsigned int alarm(unsigned int seconds) 
-{
-   return 0;
-}
-#endif

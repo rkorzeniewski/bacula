@@ -29,8 +29,6 @@
 #if defined(HAVE_WIN32)
 #if defined(HAVE_MINGW)
 #include "mingwconfig.h"
-#define _STAT_H       /* don't pull in MinGW stat.h */
-#define _STAT_DEFINED /* don't pull in MinGW stat.h */
 #else
 #include "winconfig.h"
 #endif
@@ -149,7 +147,7 @@
 #endif
 
 #if defined(HAVE_WIN32)
-#include "lib/winapi.h"
+#include "win32/winapi.h"
 #endif
 
 #ifndef HAVE_ZLIB_H

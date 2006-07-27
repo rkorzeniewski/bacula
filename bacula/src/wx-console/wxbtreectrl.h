@@ -37,7 +37,7 @@
 #include <wx/treectrl.h>
 
 BEGIN_DECLARE_EVENT_TYPES()
-   DECLARE_EVENT_TYPE(wxbTREE_MARKED_EVENT,       618)
+   DECLARE_LOCAL_EVENT_TYPE(wxbTREE_MARKED_EVENT,       618)
 END_DECLARE_EVENT_TYPES()
 
 /* Customized tree event, used for marking events */

@@ -223,7 +223,7 @@ static void update_volrecycle(UAContext *ua, char *val, MEDIA_DBR *mr)
    POOL_MEM query(PM_MESSAGE);
    if (!is_yesno(val, &recycle)) {
       bsendmsg(ua, _("Invalid value. It must be yes or no.\n"));
-      return;      
+      return;
    }
    Mmsg(query, "UPDATE Media SET Recycle=%d WHERE MediaId=%s",
       recycle, edit_int64(mr->MediaId, ed1));
@@ -243,7 +243,7 @@ static void update_volinchanger(UAContext *ua, char *val, MEDIA_DBR *mr)
    POOL_MEM query(PM_MESSAGE);
    if (!is_yesno(val, &InChanger)) {
       bsendmsg(ua, _("Invalid value. It must be yes or no.\n"));
-      return;      
+      return;
    }
    Mmsg(query, "UPDATE Media SET InChanger=%d WHERE MediaId=%s",
       InChanger, edit_int64(mr->MediaId, ed1));

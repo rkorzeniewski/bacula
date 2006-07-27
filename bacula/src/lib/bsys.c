@@ -497,21 +497,6 @@ static struct s_state_hdr state_hdr = {
    0
 };
 
-#ifdef HAVE_WIN32
-#undef open
-#undef read
-#undef write
-#undef lseek
-#undef close
-#undef O_BINARY 
-#define open _open
-#define read _read
-#define write _write
-#define lseek _lseeki64
-#define close _close
-#define O_BINARY _O_BINARY
-#endif
-
 /*
  * Open and read the state file for the daemon
  */

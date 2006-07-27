@@ -29,7 +29,7 @@
 /* #undef ssize_t */
 
 /* Define if you want to use MySQL */
-/* #undef HAVE_MYSQL */
+#define HAVE_MYSQL 1
 
 /* Defined if MySQL thread safe library is present */
 /* #undef HAVE_THREAD_SAFE_MYSQL */

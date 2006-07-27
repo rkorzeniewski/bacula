@@ -34,7 +34,7 @@ BEGIN_EVENT_TABLE(wxbTreeCtrl, wxTreeCtrl)
    EVT_RIGHT_DOWN(wxbTreeCtrl::OnRightClicked)
 END_EVENT_TABLE()
 
-DEFINE_EVENT_TYPE(wxbTREE_MARKED_EVENT)
+DEFINE_LOCAL_EVENT_TYPE(wxbTREE_MARKED_EVENT)
 
 wxbTreeCtrl::wxbTreeCtrl(
       wxWindow* parent, wxEvtHandler* handler, wxWindowID id, const wxPoint& pos, const wxSize& size): 

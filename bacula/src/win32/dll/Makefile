@@ -74,7 +74,6 @@ LIB_OBJS = \
 	$(OBJDIR)/bnet_server.o \
 	$(OBJDIR)/bpipe.o \
 	$(OBJDIR)/bregex.o \
-	$(OBJDIR)/bshm.o \
 	$(OBJDIR)/bsnprintf.o \
 	$(OBJDIR)/bsys.o \
 	$(OBJDIR)/btime.o \

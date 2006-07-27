@@ -31,20 +31,17 @@
  */
 
 
-#ifndef __COMPAT_H_
+#if !defined(__COMPAT_H_)
 #define __COMPAT_H_
-#ifndef _STAT_H
+#if !defined(_STAT_H)
 #define _STAT_H       /* don't pull in MinGW stat.h */
 #define _STAT_DEFINED /* don't pull in MinGW stat.h */
 #endif
 
-#if (defined _MSC_VER) && (_MSC_VER >= 1400) // VC8+
+#if defined(_MSC_VER) && (_MSC_VER >= 1400) // VC8+
 #pragma warning(disable : 4996) // Either disable all deprecation warnings,
 // #define _CRT_SECURE_NO_DEPRECATE // Or just turn off warnings about the newly deprecated CRT functions.
-#define HAVE_VC8
-#endif // VC8+
-
-#if (!defined HAVE_MINGW) && (!defined HAVE_VC8) && (!defined HAVE_WXCONSOLE)
+#elif !defined(HAVE_MINGW) && !defined(HAVE_WXCONSOLE)
 #define __STDC__ 1
 #endif
 
@@ -59,20 +56,21 @@ typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef signed short int16_t;
 typedef signed char int8_t;
-#ifndef HAVE_MINGW
+typedef int __daddr_t;
+#if !defined(HAVE_MINGW)
 typedef long int32_t;
 typedef float float32_t;
 typedef double float64_t;
 #endif
 
-#ifndef HAVE_VC8
+#if !defined(_MSC_VER) || (_MSC_VER < 1400) // VC8+
 typedef long time_t;
 #endif
 
 #if __STDC__
-#ifndef HAVE_MINGW
+#if !defined(HAVE_MINGW)
 typedef _dev_t dev_t;
-#ifndef HAVE_WXCONSOLE
+#if !defined(HAVE_WXCONSOLE)
 typedef __int64 ino_t;
 typedef __int64 off_t;          /* STDC=1 means we can define this */
 #endif
@@ -85,7 +83,7 @@ typedef UINT32 u_int32_t;
 typedef unsigned char u_int8_t;
 typedef unsigned short u_int16_t;
 
-#ifndef HAVE_MINGW
+#if !defined(HAVE_MINGW)
 #undef uint32_t
 #endif
 
@@ -93,8 +91,8 @@ void sleep(int);
 
 typedef UINT32 key_t;
 
-#ifdef HAVE_MINGW
-#ifndef uid_t
+#if defined(HAVE_MINGW)
+#if !defined(uid_t)
 typedef UINT32 uid_t;
 typedef UINT32 gid_t;
 #endif
@@ -102,9 +100,9 @@ typedef UINT32 gid_t;
 typedef UINT32 uid_t;
 typedef UINT32 gid_t;
 typedef UINT32 mode_t;
-/* #ifndef _WX_DEFS_H_  ssize_t is defined in wx/defs.h */
+#if !defined(_WX_DEFS_H_)  /* ssize_t is defined in wx/defs.h */
 typedef INT64  ssize_t;
-/* #endif */
+#endif
 
 #endif /* HAVE_MINGW */
 
@@ -117,11 +115,11 @@ struct dirent {
 typedef void DIR;
 
 
-#ifndef __cplusplus
-#ifndef true
+#if !defined(__cplusplus)
+#if !defined(true)
 #define true 1
 #endif
-#ifndef false
+#if !defined(false)
 #define false 0
 #endif
 #endif
@@ -133,15 +131,15 @@ struct timezone {
 int strcasecmp(const char*, const char *);
 int gettimeofday(struct timeval *, struct timezone *);
 
-#ifndef EETXTBUSY
+#if !defined(EETXTBUSY)
 #define EETXTBUSY 26
 #endif
 
-#ifndef ETIMEDOUT
+#if !defined(ETIMEDOUT)
 #define ETIMEDOUT 55
 #endif
 
-#ifndef ENOMEDIUM
+#if !defined(ENOMEDIUM)
 #define ENOMEDIUM 123
 #endif
 
@@ -213,33 +211,40 @@ struct stat
 #define iscsym  __iscsym
 #endif
 
-#ifndef HAVE_VC8
-#ifndef HAVE_MINGW
-int umask(int);
-off_t lseek(int, off_t, int);
-int dup2(int, int);
-int close(int fd);
-#endif
-#if !defined(HAVE_WXCONSOLE) && !defined(HAVE_MINGW)
-ssize_t read(int fd, void *, ssize_t nbytes);
-ssize_t write(int fd, const void *, ssize_t nbytes);
-#endif
-#endif
+typedef  BOOL (*t_pVSSPathConvert)(const char *szFilePath, char *szShadowPath, int nBuflen);
+typedef  BOOL (*t_pVSSPathConvertW)(const wchar_t  *szFilePath, wchar_t  *szShadowPath, int nBuflen);
+
+void SetVSSPathConvert(t_pVSSPathConvert pPathConvert, t_pVSSPathConvertW pPathConvertW);
+
 int lchown(const char *, uid_t uid, gid_t gid);
 int chown(const char *, uid_t uid, gid_t gid);
-#ifndef HAVE_MINGW
+#if !defined(HAVE_MINGW)
 int chmod(const char *, mode_t mode);
 #endif
+#define O_NONBLOCK   04000
+#define F_GETFL      3
+#define F_SETFL      4
+
+int tape_open(const char *file, int flags, int mode = 0);
+int tape_read(int fd, void *buffer, unsigned int count);
+int tape_write(int fd, const void *buffer, unsigned int count);
+int tape_ioctl(int fd, unsigned long int request, ...);
+int tape_close(int fd);
+
+#define open   _open
+
+int fcntl(int fd, int cmd, long arg);
+int fstat(int fd, struct stat *sb);
+
 int inet_aton(const char *cp, struct in_addr *inp);
 int kill(int pid, int signo);
 int pipe(int []);
 int fork();
 int waitpid(int, int *, int);
 
-#ifndef HAVE_MINGW
+#if !defined(HAVE_MINGW)
 int strncasecmp(const char*, const char *, int);
 int utime(const char *filename, struct utimbuf *buf);
-int open(const char *, int, int);
 #define vsnprintf __vsnprintf
 int __vsnprintf(char *s, size_t count, const char *format, va_list args);
 
@@ -259,6 +264,7 @@ int __sprintf(char *str, const char *fmt, ...);
 #define WIFEXITED(x) 0
 #define WEXITSTATUS(x) x
 #define WIFSIGNALED(x) 0
+#define WTERMSIG(x) x
 #define SIGKILL 9
 #define SIGUSR2 9999
 
@@ -303,18 +309,15 @@ struct sigaction {
 #define unlink win32_unlink
 #define chdir win32_chdir
 extern "C" void syslog(int type, const char *fmt, ...);
-
-#ifndef HAVE_MINGW
-#ifndef LOG_DAEMON
+#if !defined(LOG_DAEMON)
 #define LOG_DAEMON 0
 #endif
-#ifndef LOG_ERR
-#define LOG_ERR 0
-#endif
+
+#if !defined(HAVE_MINGW)
 #define R_OK 04
 #define W_OK 02
 int stat(const char *, struct stat *);
-#ifdef __cplusplus
+#if defined(__cplusplus)
 #define access _access
 extern "C" _CRTIMP int __cdecl _access(const char *, int);
 int execvp(const char *, char *[]);
@@ -343,14 +346,29 @@ char* win32_cgets (char* buffer, int len);
 int WSA_Init(void);
 void Win32ConvCleanupCache();
 
-#ifdef HAVE_MINGW
+#if defined(HAVE_MINGW)
 void closelog();
 void openlog(const char *ident, int option, int facility);
 #endif //HAVE_MINGW
 
-#ifndef INVALID_FILE_ATTRIBUTES
+#if !defined(INVALID_FILE_ATTRIBUTES)
 #define INVALID_FILE_ATTRIBUTES ((DWORD)-1)
 #endif
 
+#if defined(_MSC_VER)
+inline unsigned long ffs(unsigned long word)
+{
+   unsigned long  index;
+   
+   if (_BitScanForward(&index, word) != 0)
+      return index + 1;
+   else
+      return 0;
+}
+
+#define ftruncate    _chsize
+#else
+#define  ffs   __builtin_ffs
+#endif
 
 #endif /* __COMPAT_H_ */

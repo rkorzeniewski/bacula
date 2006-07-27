@@ -309,6 +309,8 @@ static void terminate_btape(int stat)
       dev->term();
    }
 
+   free_volume_list();
+
    if (debug_level > 10)
       print_memory_pool_stats();
 
@@ -2455,7 +2457,11 @@ static void rawfill_cmd()
    Pmsg1(0, _("Begin writing raw blocks of %u bytes.\n"), block->buf_len);
    for ( ;; ) {
       *p = block_num;
-      stat = write(dev->fd, block->buf, block->buf_len);
+      if (dev->is_tape()) {
+         stat = tape_write(dev->fd, block->buf, block->buf_len);
+      } else {
+         stat = write(dev->fd, block->buf, block->buf_len);
+      }
       if (stat == (int)block->buf_len) {
          if ((block_num++ % 100) == 0) {
             printf("+");

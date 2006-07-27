@@ -23,14 +23,15 @@
 
 #include "bacula.h"
 #include "filed.h"
-#ifdef WIN32_VSS
+
+#if defined(WIN32_VSS)
 #include "vss.h"   
+
 static pthread_mutex_t vss_mutex = PTHREAD_MUTEX_INITIALIZER;
+static int enable_vss;
 #endif
 
 extern CLIENT *me;                    /* our client resource */
-
-int enable_vss = 0;                   /* set to use vss */
 
 /* Imported functions */
 extern int status_cmd(JCR *jcr);
@@ -991,10 +992,13 @@ static void set_options(findFOPTS *fo, const char *opts)
 static int fileset_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
+
+#if defined(WIN32_VSS)
    int vss = 0;
 
    sscanf(dir->msg, "fileset vss=%d", &vss);
    enable_vss = vss;
+#endif
 
    if (!init_fileset(jcr)) {
       return 0;
@@ -1250,7 +1254,7 @@ static int backup_cmd(JCR *jcr)
    int SDJobStatus;
    char ed1[50], ed2[50];
 
-#ifdef WIN32_VSS
+#if defined(WIN32_VSS)
    // capture state here, if client is backed up by multiple directors
    // and one enables vss and the other does not then enable_vss can change
    // between here and where its evaluated after the job completes.
@@ -1310,7 +1314,7 @@ static int backup_cmd(JCR *jcr)
    
    generate_daemon_event(jcr, "JobStart");
 
-#ifdef WIN32_VSS
+#if defined(WIN32_VSS)
    /* START VSS ON WIN 32 */
    if (bDoVSS) {      
       if (g_pVSSClient->InitializeForBackup()) {   
@@ -1408,7 +1412,7 @@ static int backup_cmd(JCR *jcr)
    }
 
 cleanup:
-#ifdef WIN32_VSS
+#if defined(WIN32_VSS)
    /* STOP VSS ON WIN 32 */
    /* tell vss to close the backup session */
    if (bDoVSS) {

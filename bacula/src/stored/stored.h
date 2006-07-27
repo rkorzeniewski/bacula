@@ -29,7 +29,7 @@
 # ifdef HAVE_SYS_MTIO_H
 # include <sys/mtio.h>
 # else
-#   ifdef HAVE_SYS_TAPE
+#   ifdef HAVE_SYS_TAPE_H
 #   include <sys/tape.h>
 #   endif
 # endif

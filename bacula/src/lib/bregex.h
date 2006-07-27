@@ -62,6 +62,7 @@ typedef struct {
 #define REG_ICASE    (1<<2)
 #define REG_NOSUB    (1<<3)
 #define REG_NEWLINE  (1<<4)
+#define REG_NOTBOL   (1<<5)
 
 #define REG_NOMATCH -1
 

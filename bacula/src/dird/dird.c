@@ -25,7 +25,7 @@
 #include "dird.h"
 
 /* Forward referenced subroutines */
-static void terminate_dird(int sig);
+void terminate_dird(int sig);
 static int check_resources();
 static void dir_sql_query(JCR *jcr, const char *cmd);
   
@@ -99,6 +99,10 @@ static void usage()
  *         Main Bacula Server program
  *
  */
+#if defined(HAVE_WIN32)
+#define main BaculaMain
+#endif
+
 int main (int argc, char *argv[])
 {
    int ch;
@@ -230,7 +234,9 @@ int main (int argc, char *argv[])
 
    drop(uid, gid);                    /* reduce priveleges if requested */
 
+#if !defined(HAVE_WIN32)
    signal(SIGHUP, reload_config);
+#endif
 
    init_console_msg(working_directory);
 
@@ -273,7 +279,7 @@ static void dir_sql_query(JCR *jcr, const char *cmd)
 }
 
 /* Cleanup and then exit */
-static void terminate_dird(int sig)
+void terminate_dird(int sig)
 {
    static bool already_here = false;
 
@@ -394,7 +400,9 @@ extern "C"
 void reload_config(int sig)
 {
    static bool already_here = false;
+#if !defined(HAVE_WIN32)
    sigset_t set;
+#endif
    JCR *jcr;
    int njobs = 0;                     /* number of running jobs */
    int table, rtable;
@@ -404,9 +412,12 @@ void reload_config(int sig)
       abort();                        /* Oops, recursion -> die */
    }
    already_here = true;
+
+#if !defined(HAVE_WIN32)
    sigemptyset(&set);
    sigaddset(&set, SIGHUP);
    sigprocmask(SIG_BLOCK, &set, NULL);
+#endif
 
    lock_jobs();
    LockRes();
@@ -470,8 +481,10 @@ void reload_config(int sig)
 bail_out:
    UnlockRes();
    unlock_jobs();
+#if !defined(HAVE_WIN32)
    sigprocmask(SIG_UNBLOCK, &set, NULL);
    signal(SIGHUP, reload_config);
+#endif
    already_here = false;
 }
 
