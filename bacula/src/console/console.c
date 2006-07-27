@@ -25,8 +25,10 @@
 #include "console_conf.h"
 #include "jcr.h"
 
+
 #ifdef HAVE_CONIO
 #include "conio.h"
+#define CONIO_FIX 1
 #else
 #define con_init(x)
 #define con_term()
@@ -66,7 +68,7 @@ static char *configfile = NULL;
 static BSOCK *UA_sock = NULL;
 static DIRRES *dir;
 static FILE *output = stdout;
-static bool tee = false;                  /* output to output and stdout */
+static bool teeout = false;               /* output to output and stdout */
 static bool stop = false;
 static int argc;
 static int numdir;
@@ -704,7 +706,7 @@ get_cmd(FILE *input, const char *prompt, BSOCK *sock, int sec)
 {
    int len;
    if (!stop) {
-      if (output == stdout || tee) {
+      if (output == stdout || teeout) {
          sendit(prompt);
       }
    }
@@ -783,14 +785,14 @@ static int inputcmd(FILE *input, BSOCK *UA_sock)
 /* Send output to both termina and specified file */
 static int teecmd(FILE *input, BSOCK *UA_sock)
 {
-   tee = true;
+   teeout = true;
    return do_outputcmd(input, UA_sock);
 }
 
 /* Send output to specified "file" */
 static int outputcmd(FILE *input, BSOCK *UA_sock)
 {
-   tee = false;
+   teeout = false;
    return do_outputcmd(input, UA_sock);
 }
 
@@ -808,7 +810,7 @@ static int do_outputcmd(FILE *input, BSOCK *UA_sock)
       if (output != stdout) {
          fclose(output);
          output = stdout;
-         tee = false;
+         teeout = false;
       }
       return 1;
    }
@@ -855,48 +857,50 @@ static int timecmd(FILE *input, BSOCK *UA_sock)
  */
 void senditf(const char *fmt,...)
 {
-    char buf[3000];
-    va_list arg_ptr;
+   char buf[3000];
+   va_list arg_ptr;
 
-    va_start(arg_ptr, fmt);
-    bvsnprintf(buf, sizeof(buf), (char *)fmt, arg_ptr);
-    va_end(arg_ptr);
-    sendit(buf);
+   va_start(arg_ptr, fmt);
+   bvsnprintf(buf, sizeof(buf), (char *)fmt, arg_ptr);
+   va_end(arg_ptr);
+   sendit(buf);
 }
 
 void sendit(const char *buf)
 {
-#ifdef xHAVE_CONIO
-    if (output == stdout || tee) {
-       char *p, *q;
-       /*
-        * Here, we convert every \n into \r\n because the
-        *  terminal is in raw mode when we are using
-        *  conio.
-        */
-       for (p=q=buf; (p=strchr(q, '\n')); ) {
-          if (p-q > 0) {
-             t_sendl(q, p-q);
-          }
-          t_sendl("\r\n", 2);
-          q = ++p;                    /* point after \n */
-       }
-       if (*q) {
-          t_send(q);
-       }
-    }
-    if (output != stdout) {
-       fputs(buf, output);
-    }
+#ifdef CONIO_FIX
+   char obuf[3000];
+   if (output == stdout || teeout) {
+      const char *p, *q;
+      /*
+       * Here, we convert every \n into \r\n because the
+       *  terminal is in raw mode when we are using
+       *  conio.
+       */
+      for (p=q=buf; (p=strchr(q, '\n')); ) {
+         int len = p - q;
+         if (len > 0) {
+            memcpy(obuf, q, len);
+         }
+         memcpy(obuf+len, "\r\n", 3);
+         q = ++p;                    /* point after \n */
+         fputs(obuf, output);
+      }
+      if (*q) {
+         fputs(q, output);
+      }
+      fflush(output);
+   }
+   if (output != stdout) {
+      fputs(buf, output);
+   }
 #else
 
-    fputs(buf, output);
-    fflush(output);
-    if (tee) {
-       fputs(buf, stdout);
-    }
-    if (output != stdout || tee) {
-       fflush(stdout);
-    }
+   fputs(buf, output);
+   fflush(output);
+   if (teeout) {
+      fputs(buf, stdout);
+      fflush(stdout);
+   }
 #endif
 }
