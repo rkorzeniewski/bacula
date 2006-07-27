@@ -1,10 +1,7 @@
 release
 pthreadGCE.dll
-winres.res
-Makefile.vcpp
 install
 install-debug
-winbacula.nsi
 bacula.ncb
 bacula.suo
 1

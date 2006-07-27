@@ -1,7 +1,3 @@
 *.idb
 *.d
 *.res
-wx-console.conf
-Debug
-Release
-wx-console.vcproj.*
