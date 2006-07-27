@@ -254,18 +254,27 @@ void free_unused_volume(DCR *dcr)
 /*
  * List Volumes -- this should be moved to status.c
  */
-void list_volumes(BSOCK *user)  
+void list_volumes(void sendit(const char *msg, int len, void *sarg), void *arg)
 {
    VOLRES *vol;
+   char *msg;
+   int len;
+
+   msg = (char *)get_pool_memory(PM_MESSAGE);
+
    P(vol_list_lock);
    for (vol=(VOLRES *)vol_list->first(); vol; vol=(VOLRES *)vol_list->next(vol)) {
       if (vol->dev) {
-         bnet_fsend(user, "%s on device %s\n", vol->vol_name, vol->dev->print_name());
+         len = Mmsg(msg, "%s on device %s\n", vol->vol_name, vol->dev->print_name());
+         sendit(msg, len, arg);
       } else {
-         bnet_fsend(user, "%s\n", vol->vol_name);
+         len = Mmsg(msg, "%s\n", vol->vol_name);
+         sendit(msg, len, arg);
       }
    }
    V(vol_list_lock);
+
+   free_pool_memory(msg);
 }
       
 /* Create the Volume list */
@@ -1046,7 +1055,7 @@ static void queue_reserve_message(JCR *jcr)
 /*
  * Send any reservation messages queued for this jcr
  */
-void send_drive_reserve_messages(JCR *jcr, BSOCK *user)
+void send_drive_reserve_messages(JCR *jcr, void sendit(const char *msg, int len, void *sarg), void *arg)
 {
    int i;
    alist *msgs;
@@ -1061,7 +1070,8 @@ void send_drive_reserve_messages(JCR *jcr, BSOCK *user)
    for (i=msgs->size()-1; i >= 0; i--) {
       msg = (char *)msgs->get(i);
       if (msg) {
-         bnet_fsend(user, "   %s", msg);
+         sendit("   ", 3, arg);
+         sendit(msg, strlen(msg), arg);
       } else {
          break;
       }

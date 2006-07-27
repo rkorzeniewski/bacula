@@ -84,6 +84,10 @@ static void usage()
  *  Main Bacula Unix Storage Daemon
  *
  */
+#if defined(HAVE_WIN32)
+#define main BaculaMain
+#endif
+
 int main (int argc, char *argv[])
 {
    int ch;

@@ -133,7 +133,7 @@ void Qmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...);
 bool get_trace(void);
 
 typedef void (*sql_query)(JCR *jcr, const char *cmd);
-extern sql_query p_sql_query;
+extern sql_query     DLL_IMP_EXP p_sql_query;
 
 extern int           DLL_IMP_EXP debug_level;
 extern int           DLL_IMP_EXP verbose;

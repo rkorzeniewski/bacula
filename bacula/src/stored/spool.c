@@ -62,21 +62,31 @@ enum {
    RB_OK
 };
 
-void list_spool_stats(BSOCK *bs)
+void list_spool_stats(void sendit(const char *msg, int len, void *sarg), void *arg)
 {
-   char ed1[30], ed2[30];
+   char *msg, ed1[30], ed2[30];
+   int len;
+
+   msg = (char *)get_pool_memory(PM_MESSAGE);
+
    if (spool_stats.data_jobs || spool_stats.max_data_size) {
-      bnet_fsend(bs, _("Data spooling: %u active jobs, %s bytes; %u total jobs, %s max bytes/job.\n"),
+      len = Mmsg(msg, _("Data spooling: %u active jobs, %s bytes; %u total jobs, %s max bytes/job.\n"),
          spool_stats.data_jobs, edit_uint64_with_commas(spool_stats.data_size, ed1),
          spool_stats.total_data_jobs,
          edit_uint64_with_commas(spool_stats.max_data_size, ed2));
+
+      sendit(msg, len, arg);
    }
    if (spool_stats.attr_jobs || spool_stats.max_attr_size) {
-      bnet_fsend(bs, _("Attr spooling: %u active jobs, %s bytes; %u total jobs, %s max bytes.\n"),
+      len = Mmsg(msg, _("Attr spooling: %u active jobs, %s bytes; %u total jobs, %s max bytes.\n"),
          spool_stats.attr_jobs, edit_uint64_with_commas(spool_stats.attr_size, ed1),
          spool_stats.total_attr_jobs,
          edit_uint64_with_commas(spool_stats.max_attr_size, ed2));
+   
+      sendit(msg, len, arg);
    }
+
+   free_pool_memory(msg);
 }
 
 bool begin_data_spool(DCR *dcr)

@@ -43,10 +43,6 @@
 /* Exported variables */
 
 extern int rl_catch_signals;
-#ifdef HAVE_MINGW
-/* Remove when we have real lib in src/lib */
-int enable_vss;
-#endif
 
 /* Imported functions */
 int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons);

@@ -191,7 +191,7 @@ db_close_database(JCR *jcr, B_DB *mdb)
    db_end_transaction(jcr, mdb);
    P(mutex);
    mdb->ref_count--;
-#ifdef HAVE_TREAD_SAFE_MYSQL
+#if defined(HAVE_THREAD_SAFE_MYSQL)
    my_thread_end();
 #endif
    if (mdb->ref_count == 0) {

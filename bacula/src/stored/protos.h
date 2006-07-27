@@ -217,9 +217,9 @@ bool    free_volume(DEVICE *dev);
 void    free_unused_volume(DCR *dcr);
 void    create_volume_list();
 void    free_volume_list();
-void    list_volumes(BSOCK *user);
+void    list_volumes(void sendit(const char *msg, int len, void *sarg), void *arg);
 bool    is_volume_in_use(DCR *dcr);
-void    send_drive_reserve_messages(JCR *jcr, BSOCK *user);
+void    send_drive_reserve_messages(JCR *jcr, void sendit(const char *msg, int len, void *sarg), void *arg);
 bool    find_suitable_device_for_job(JCR *jcr, RCTX &rctx);
 int     search_res_for_device(RCTX &rctx);
 void    release_msgs(JCR *jcr);
@@ -234,7 +234,7 @@ bool    begin_attribute_spool     (JCR *jcr);
 bool    discard_attribute_spool   (JCR *jcr);
 bool    commit_attribute_spool    (JCR *jcr);
 bool    write_block_to_spool_file (DCR *dcr);
-void    list_spool_stats          (BSOCK *bs);
+void    list_spool_stats          (void sendit(const char *msg, int len, void *sarg), void *arg);
 
 /* From wait.c */
 int wait_for_sysop(DCR *dcr);

@@ -83,7 +83,6 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
       len = Mmsg(msg, " %sWUL,%sWMKD,%sWOP,%sGFAA,%sGFAW,%sGFAEA,%sGFAEW,%sSFAA,%sSFAW,%sBR,%sBW,%sSPSP,\n",
                  p_wunlink?"":"!",
                  p_wmkdir?"":"!",
-                 p_wopen?"":"!",
                  p_GetFileAttributesA?"":"!",
                  p_GetFileAttributesW?"":"!",
                  p_GetFileAttributesExA?"":"!",

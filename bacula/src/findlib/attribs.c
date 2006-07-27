@@ -710,17 +710,4 @@ void win_error(JCR *jcr, char *prefix, DWORD lerror)
    }
    LocalFree(msg);
 }
-
-
-/* Conversion of a Unix filename to a Win32 filename */
-extern void conv_unix_to_win32_path(const char *path, char *win32_path, DWORD dwSize);
-void unix_name_to_win32(POOLMEM **win32_name, char *name)
-{
-   /* One extra byte should suffice, but we double it */
-   /* add MAX_PATH bytes for VSS shadow copy name */
-   DWORD dwSize = 2*strlen(name)+MAX_PATH;
-   *win32_name = check_pool_memory_size(*win32_name, dwSize);
-   conv_unix_to_win32_path(name, *win32_name, dwSize);
-}
-
 #endif  /* HAVE_WIN32 */

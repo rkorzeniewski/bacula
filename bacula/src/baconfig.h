@@ -71,13 +71,26 @@ void InitWinAPIWrapper();
 #define  OSDependentInit()    InitWinAPIWrapper()
 
 #undef ENABLE_NLS
+#if defined(BUILDING_DLL)
+#  define DLL_IMP_EXP   _declspec(dllexport)
+#elif defined(USING_DLL)
+#  define DLL_IMP_EXP   _declspec(dllimport)
+#else
 #  define DLL_IMP_EXP
+#endif
+
 #else
 
 #define DLL_IMP_EXP
 
 #define  OSDependentInit()
+#define  tape_open            open
+#define  tape_ioctl           ioctl
+#define  tape_read            read
+#define  tape_write           write
+#define  tape_close           ::close
 #endif
+
 
 #ifdef ENABLE_NLS
    #include <libintl.h>
