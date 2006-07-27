@@ -9,8 +9,8 @@
 
 ECHO_CMD = @
 
-TOPDIR = /home/robert/src/bacula-w32
-DEPKGS = $(TOPDIR)/depkgs-test
+TOPDIR = @TOPDIR@
+DEPKGS = $(TOPDIR)/depkgs-mingw32
 
 MINGW_BIN = $(TOPDIR)/cross-tools/mingw32/bin
 MINGW_INCLUDE = $(TOPDIR)/cross-tools/mingw32/mingw32/include

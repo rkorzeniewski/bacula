@@ -10,7 +10,7 @@ DIRS=	dll \
 
 .PHONY: $(DIRS) clean all
 
-all: $(DIRS)
+all: Makefile.inc $(DIRS)
 
 clean: $(DIRS)
 	$(ECHO_CMD)-rmdir release
@@ -21,3 +21,7 @@ $(DIRS):
 	else \
 		echo -e "\n!!!!! Make of $@ failed !!!!!\n\n" ; \
 	fi
+
+Makefile.inc: Makefile.inc.cross
+	@echo Creating $@
+	$(ECHO_CMD)sed -e "s^@TOPDIR@^`(cd ../../..;pwd)`^" < Makefile.inc.cross > $@
