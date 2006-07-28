@@ -1134,6 +1134,11 @@ crypto_error_t crypto_session_decode(const uint8_t *data, uint32_t length, alist
    unsigned char *p = (unsigned char *)data;
 #endif
 
+   /* bacula-fd.conf doesn't contains any key */
+   if (!keypairs) {
+      return CRYPTO_ERROR_NORECIPIENT;
+   }
+
    cs = (CRYPTO_SESSION *) malloc(sizeof(CRYPTO_SESSION));
    if (!cs) {
       return CRYPTO_ERROR_INTERNAL;
