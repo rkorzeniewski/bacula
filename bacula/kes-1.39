@@ -3,6 +3,7 @@
 
 General:
 28Jul06
+- Tweak new runscript feature to work with 1.38.x FDs. 
 - Correct crypto.c to fix segfault when restoring an encrypted stream 
   on fd which don't use rsa keys.
 - Add yes/no english keywords on localised yes/no questions.
