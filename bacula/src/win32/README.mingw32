@@ -35,13 +35,13 @@ If you're reading this file you've probably already enlisted in the CVS tree or
 extracted the contents of the source tar.  If not you need to do that first.
 
 Once the source is on your system, change to the win32 directory
-	cd ..../bacula/src/win32
+        cd ..../bacula/src/win32
 
 Download and build the cross compiler tools
-	./build-win32-cross-tools
+        ./build-win32-cross-tools
 
 Download and build the 3rd party dependencies
-	./build-dependencies
+        ./build-dependencies
 
 You need the header files from the Microsoft VSS SDK.  Unfortunately the SDK
 can only be downloaded and installed on a Windows system.  You can find it on
@@ -51,11 +51,11 @@ http://www.microsoft.com/downloads/details.aspx?FamilyID=0b4f56e4-0ccc-4626-826a
 
 If that link doesn't work then go to http://www.microsoft.com and search for
 
-	"download volume shadow copy service sdk"
+        "download volume shadow copy service sdk"
 
 Normally the files will be installed in:
 
-	c:/Program Files/VSSSDK72
+        c:/Program Files/VSSSDK72
 
 You only need to copy everything under the c:/Program Files/VSSSDK72/inc
 directory into ..../depkgs-mingw32/vss/inc.
@@ -65,12 +65,12 @@ or the dependencies versions.  In general, you can run the script multiple
 times with no problem.  For it to work, you must have at a minimum the
 following:
 
-	gcc
-	g++
-	wget
-	texinfo
-	bison
-	man2html
+        gcc
+        g++
+        wget
+        texinfo
+        bison
+        man2html
 
 and possibly other packages.
 
@@ -79,8 +79,64 @@ Building
 
 Finally, to build the Microsoft Windows version of Bacula, do the following:
 
-	cd ..../bacula/src/win32
-	make
+     cd ..../bacula/src/win32
+     make
 
 If all goes well, you will end with all the executables in the
 ..../bacula/src/win32/release directory.
+
+If you have an older build environment, you might do the following
+to ensure that you pick up all the new Win32 changes:
+
+     cd <bacula>
+     make clean
+     cd src/win32
+     make clean
+     cd ../..
+     cvs update
+     cd src/win32
+     make
+
+If one of the patches change in src/win32/patches, you shouldn't
+need to update the cross-tools or dependencies for it to build.
+You can new patches by doing the following (we assume the patch
+in question is for openssl):
+
+     cd <top-level>
+     # delete openssl
+     rm -rf depkgs-mingw32/src/openssl-0.9.8b
+     cd <bacula-source>/src/win32
+     # Call script to reload/rebuild openssl
+     ./build-dependencies openssl
+
+                                     
+Structure of the new Win32 build environment (from Robert):
+
+I've redesigned the minw32 build somewhat, much thanks to Kern and Howard
+for the initial work.
+ 
+For doing a build it is very simple, type make in src/win32 or whichever
+subdirectory you are working on.  For those maintaining it, its a little
+more complicated :-)
+ 
+Here is some documentation for the maintainers.
+ 
+The basic strategy is each makefile in the various subdirectories includes
+Makefile.inc, defines variables and rules specific to what is being built,
+then includes Makefile.rules which defines all the rules.
+ 
+Makefile.inc defines the locations of all the dependencies and the compiler
+and linker flags.  It is automatically created from Makefile.inc.cross.  Any
+changes must be made to Makefile.inc.cross not Makefile.inc or they will be
+overwritten the next time Makefile.inc.cross is updated.  There is also a
+file called Makefile.inc.native.  This file is used for MinGW32 running on
+Windows.  However at this time it probably isn't useful to anyone but me
+since the locations aren't updated automatically.
+ 
+Makefile.rules defines a bunch of macros to simplify building.  It also
+includes all the basic rules for building objects, GUI and console
+executables, etc.
+ 
+Makefile.template is a template for creating new Makefiles, if you are
+creating a new directory, copy Makefile.template to Makefile in that
+directory and edit to suit.
