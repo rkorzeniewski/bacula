@@ -2,6 +2,10 @@
                         Kern Sibbald
 
 General:
+28Jul06
+- Correct crypto.c to fix segfault when restoring an encrypted stream 
+  on fd which don't use rsa keys.
+- Add yes/no english keywords on localised yes/no questions.
 27Jul06
 - Several important commits from Robert Nelson for code cleanup and
   Win32 build.
