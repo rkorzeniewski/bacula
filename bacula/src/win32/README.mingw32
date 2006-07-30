@@ -99,7 +99,7 @@ to ensure that you pick up all the new Win32 changes:
 
 If one of the patches change in src/win32/patches, you shouldn't
 need to update the cross-tools or dependencies for it to build.
-You can new patches by doing the following (we assume the patch
+You can install new patches by doing the following (we assume the patch
 in question is for openssl):
 
      cd <top-level>

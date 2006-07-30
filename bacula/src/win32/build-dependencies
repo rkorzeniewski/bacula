@@ -24,6 +24,10 @@ URL_NSIS_BIN=http://superb-west.dl.sourceforge.net/sourceforge/nsis/nsis-2.17.zi
 DIR_NSIS_BIN=
 URL_NSIS_SRC=http://superb-west.dl.sourceforge.net/sourceforge/nsis/nsis-2.17-src.tar.bz2
 DIR_NSIS_SRC=
+URL_MTX=http://superb-west.dl.sourceforge.net/sourceforge/mtx/mtx-1.3.9.tar.gz
+DIR_MTX=
+URL_MT=ftp://ftp.ibiblio.org/pub/linux/system/backup/mt-st-0.9b.tar.gz
+DIR_MT=
 
 cwd=`pwd`
 cd `dirname $0`
@@ -338,6 +342,37 @@ process_nsis()
 	cp -p build/release/makensis/makensis ../../nsis
 }
 
+process_mtx()
+{
+	if get_source "${URL_MTX}" "${DIR_MTX}"
+	then
+		echo Patching mtx
+		# We can't run configure in a cross-compile environment so we
+		# patch the files to the correct values
+		cp -f config.h.in config.h
+		cp -f Makefile.in Makefile
+		rm -f configure
+		do_patch mtx.patch
+	fi
+	echo Building mtx
+	do_make Makefile prefix=${DEPPKG_DIR} all
+	echo Installing mtx
+	do_make Makefile prefix=${DEPPKG_DIR} install
+}
+
+process_mt()
+{
+	if get_source "${URL_MT}" "${DIR_MT}"
+	then
+		echo Patching mt
+		do_patch mt.patch
+	fi
+	echo Building mt
+	do_make Makefile prefix=${DEPPKG_DIR} all
+	echo Installing mt
+	do_make Makefile PREFIX=${DEPPKG_DIR} install
+}
+
 if [ "$#" -eq 0 ]
 then
 	process_zlib
@@ -350,6 +385,7 @@ then
 	process_wxWidgets
 	process_scons
 	process_nsis
+	process_mtx
 else
 	for dependency in "$@"
 	do
