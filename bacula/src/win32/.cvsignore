@@ -9,3 +9,7 @@ bacula.suo
 2
 3
 mingwm10.dll
+Makefile.vcpp
+winbacula.nsi
+winres.res
+wx-console.res

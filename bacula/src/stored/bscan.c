@@ -751,6 +751,12 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
          Pmsg0(000, _("Got Prog Data Stream record.\n"));
       }
       break;
+
+   case STREAM_UNIX_ATTRIBUTES_ACCESS_ACL:   /* Standard ACL attributes on UNIX */
+   case STREAM_UNIX_ATTRIBUTES_DEFAULT_ACL:  /* Default ACL attributes on UNIX */
+      /* Ignore Unix attributes */
+      break;
+
    default:
       Pmsg2(0, _("Unknown stream type!!! stream=%d data=%s\n"), rec->Stream, rec->data);
       break;

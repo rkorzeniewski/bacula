@@ -282,8 +282,8 @@ void catalog_request(JCR *jcr, BSOCK *bs)
       &jm.FirstIndex, &jm.LastIndex, &jm.StartFile, &jm.EndFile,
       &jm.StartBlock, &jm.EndBlock, &jm.Copy, &Stripe) == 9) {
 
-      if (jcr->previous_jcr) {
-         jm.JobId = jcr->previous_jcr->JobId;
+      if (jcr->mig_jcr) {
+         jm.JobId = jcr->mig_jcr->JobId;
          jm.MediaId = jcr->MediaId;
       } else {
          jm.JobId = jcr->JobId;
@@ -397,8 +397,8 @@ void catalog_update(JCR *jcr, BSOCK *bs)
       ar->FileIndex = FileIndex;
       ar->Stream = Stream;
       ar->link = NULL;
-      if (jcr->previous_jcr) {
-         ar->JobId = jcr->previous_jcr->JobId;
+      if (jcr->mig_jcr) {
+         ar->JobId = jcr->mig_jcr->JobId;
       } else {
          ar->JobId = jcr->JobId;
       }

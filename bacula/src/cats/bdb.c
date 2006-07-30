@@ -462,4 +462,8 @@ db_list_pool_records(JCR *jcr, B_DB *mdb, POOL_DBR *pdbr,
                      DB_LIST_HANDLER *sendit, void *ctx, e_list_type type)
 { }
 
+int db_int64_handler(void *ctx, int num_fields, char **row)
+{ return 0; }
+
+
 #endif /* HAVE_BACULA_DB */

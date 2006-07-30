@@ -2,6 +2,32 @@
                         Kern Sibbald
 
 General:
+30Jul06
+kes  Make bscan ignore ACL streams.
+kes  Update projects files with new Feature Requests.
+kes  Generate current English and French manuals and upload
+     them to the site.
+kes  Update the home page to include the new British/French flags to
+     switch between translations. Work done by Alexandre Baron.
+kes  Make disk-changer script print an error message if the changer
+     directory is not defined.
+kes  Create a generic DB routine for getting an int (32/64 bit) from
+     the DB.
+kes  Add more migration code.
+kes  Add a few more files to .cvsignore here and there.
+
+Version 1.39.18
+29Jul06
+- Incremented the version number to signify that all of Robert's code
+  for Win32 that was in the branch is now integrated into the HEAD,
+  and that Eric has submitted code that we hope will provide limited
+  backward compatibility with 1.38 file daemons (more testing to be
+  done).
+- I rationalized a few of the names of the variables (mainly jcr names)
+  that are used during migration as keeping three different jcrs at the
+  same time clear in one's head is not easy.
+
+Version 1.39.17
 28Jul06
 - Tweak new runscript feature to work with 1.38.x FDs. 
 - Correct crypto.c to fix segfault when restoring an encrypted stream 

@@ -60,6 +60,21 @@ static int int_handler(void *ctx, int num_fields, char **row)
    return 0;
 }
 
+/*
+ * Called here to retrieve a 32/64 bit integer from the database.
+ *   The returned integer will be extended to 64 bit.
+ */
+int db_int64_handler(void *ctx, int num_fields, char **row)
+{
+   db_int64_ctx *lctx = (db_int64_ctx *)ctx;
+
+   if (row[0]) {
+      lctx->value = str_to_int64(row[0]);
+      lctx->count++;
+   }
+   return 0;
+}
+
 
 
 /* NOTE!!! The following routines expect that the
@@ -67,7 +82,7 @@ static int int_handler(void *ctx, int num_fields, char **row)
  */
 
 /* Check that the tables correspond to the version we want */
-int check_tables_version(JCR *jcr, B_DB *mdb)
+bool check_tables_version(JCR *jcr, B_DB *mdb)
 {
    const char *query = "SELECT VersionId FROM Version";
 
@@ -75,14 +90,15 @@ int check_tables_version(JCR *jcr, B_DB *mdb)
    if (!db_sql_query(mdb, query, int_handler, (void *)&bacula_db_version)) {
       Mmsg(mdb->errmsg, "Database not created or server not running.\n");
       Jmsg(jcr, M_FATAL, 0, "%s", mdb->errmsg);
+      return false;
    }
    if (bacula_db_version != BDB_VERSION) {
       Mmsg(mdb->errmsg, "Version error for database \"%s\". Wanted %d, got %d\n",
           mdb->db_name, BDB_VERSION, bacula_db_version);
       Jmsg(jcr, M_FATAL, 0, "%s", mdb->errmsg);
-      return 0;
+      return false;
    }
-   return 1;
+   return true;
 }
 
 /* Utility routine for queries. The database MUST be locked before calling here. */

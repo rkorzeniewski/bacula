@@ -1328,14 +1328,14 @@ static int backup_cmd(JCR *jcr)
             } else {
                /* tell user if snapshot creation of a specific drive failed */
                int i;
-               for (i=0; i < strlen(szWinDriveLetters); i++) {
+               for (i=0; i < (int)strlen(szWinDriveLetters); i++) {
                   if (islower(szWinDriveLetters[i])) {
                      Jmsg(jcr, M_WARNING, 0, _("Generate VSS snapshot of drive \"%c:\\\" failed. VSS support is disabled on this drive.\n"), szWinDriveLetters[i]);
                      jcr->Errors++;
                   }
                }
                /* inform user about writer states */
-               for (i=0; i<g_pVSSClient->GetWriterCount(); i++)                
+               for (i=0; i < (int)g_pVSSClient->GetWriterCount(); i++)                
                   if (g_pVSSClient->GetWriterState(i) < 1) {
                      Jmsg(jcr, M_WARNING, 0, _("VSS Writer (PrepareForBackup): %s\n"), g_pVSSClient->GetWriterInfo(i));                    
                      jcr->Errors++;

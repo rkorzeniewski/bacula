@@ -786,19 +786,24 @@ struct FILESET_DBR {
    bool created;                      /* set when record newly created */
 };
 
+/* Call back context for getting a 32/64 bit value from the database */
+struct db_int64_ctx {
+   int64_t value;                     /* value returned */
+   int count;                         /* number of values seen */
+};
 
 
 #include "protos.h"
 #include "jcr.h"
 
 /*
- * Some functions exported by sql.c for use withing the
+ * Some functions exported by sql.c for use within the
  *   cats directory.
  */
 void list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type type);
 void list_dashes(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx);
 int get_sql_record_max(JCR *jcr, B_DB *mdb);
-int check_tables_version(JCR *jcr, B_DB *mdb);
+bool check_tables_version(JCR *jcr, B_DB *mdb);
 void _db_unlock(const char *file, int line, B_DB *mdb);
 void _db_lock(const char *file, int line, B_DB *mdb);
 
