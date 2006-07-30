@@ -214,7 +214,7 @@ public:
    JOB_DBR jr;                        /* Job DB record for current job */
    JOB_DBR previous_jr;               /* previous job database record */
    JOB *previous_job;                 /* Job resource of migration previous job */
-   JCR *previous_jcr;                 /* previous job control record */
+   JCR *mig_jcr;                      /* JCR for migration/copy job */
    char FSCreateTime[MAX_TIME_LENGTH]; /* FileSet CreateTime as returned from DB */
    char since[MAX_TIME_LENGTH];       /* since time */
    union {

@@ -45,6 +45,9 @@ static bool get_job_to_migrate(JCR *jcr);
 struct idpkt;
 static bool regex_find_jobids(JCR *jcr, idpkt *ids, const char *query1,
                  const char *query2, const char *type);
+static bool find_mediaid_then_jobids(JCR *jcr, idpkt *ids, const char *query1,
+                 const char *type);
+static bool find_jobids_from_mediaid_list(JCR *jcr, idpkt *ids, const char *type);
 static void start_migration_job(JCR *jcr);
 
 /* 
@@ -98,8 +101,22 @@ bool do_migration(JCR *jcr)
    char ed1[100];
    BSOCK *sd;
    JOB *job, *prev_job;
-   JCR *prev_jcr;                     /* newly migrated job */
+   JCR *mig_jcr;                   /* newly migrated job */
 
+   /* 
+    *  previous_jr refers to the job DB record of the Job that is
+    *    being migrated.
+    *  prev_job refers to the job resource of the Job that is
+    *    being migrated.
+    *  jcr is the jcr for the current "migration" job.  It is a
+    *    control job that is put in the DB as a migration job, which
+    *    means that this job migrated a previous job to a new job.
+    *  mig_jcr refers to the newly migrated job that is run by
+    *    the current jcr.  It is a backup job that moves (migrates) the
+    *    data written for the previous_jr into the new pool.  This
+    *    job (mig_jcr) becomes the new backup job that replaces
+    *    the original backup job.
+    */
    if (jcr->previous_jr.JobId == 0 || jcr->ExpectedFiles == 0) {
       set_jcr_job_status(jcr, JS_Terminated);
       migration_cleanup(jcr, jcr->JobStatus);
@@ -122,39 +139,34 @@ bool do_migration(JCR *jcr)
       return false;
    }
 
-   /* 
-    *  prev_jcr is the new Job that corresponds to the original
-    *  job. It "runs" at the same time as the current 
-    *  migration job and becomes a new backup job that replaces
-    *  the original backup job.  Most operations on the current
-    *  migration jcr are also done on the prev_jcr.
-    */
-   prev_jcr = jcr->previous_jcr = new_jcr(sizeof(JCR), dird_free_jcr);
-   memcpy(&prev_jcr->previous_jr, &jcr->previous_jr, sizeof(prev_jcr->previous_jr));
+   mig_jcr = jcr->mig_jcr = new_jcr(sizeof(JCR), dird_free_jcr);
+   memcpy(&mig_jcr->previous_jr, &jcr->previous_jr, sizeof(mig_jcr->previous_jr));
 
-   /* Turn the prev_jcr into a "real" job */
-   set_jcr_defaults(prev_jcr, prev_job);
-   if (!setup_job(prev_jcr)) {
+   /* Turn the mig_jcr into a "real" job that takes on the aspects of
+    *   the previous backup job "prev_job".
+    */
+   set_jcr_defaults(mig_jcr, prev_job);
+   if (!setup_job(mig_jcr)) {
       return false;
    }
 
    /* Now reset the job record from the previous job */
-   memcpy(&prev_jcr->jr, &jcr->previous_jr, sizeof(prev_jcr->jr));
+   memcpy(&mig_jcr->jr, &jcr->previous_jr, sizeof(mig_jcr->jr));
    /* Update the jr to reflect the new values of PoolId, FileSetId, and JobId. */
-   prev_jcr->jr.PoolId = jcr->jr.PoolId;
-   prev_jcr->jr.FileSetId = jcr->jr.FileSetId;
-   prev_jcr->jr.JobId = prev_jcr->JobId;
+   mig_jcr->jr.PoolId = jcr->jr.PoolId;
+   mig_jcr->jr.FileSetId = jcr->jr.FileSetId;
+   mig_jcr->jr.JobId = mig_jcr->JobId;
 
-   Dmsg4(dbglevel, "Prev_jcr: Name=%s JobId=%d Type=%c Level=%c\n",
-      prev_jcr->jr.Name, prev_jcr->jr.JobId, 
-      prev_jcr->jr.JobType, prev_jcr->jr.JobLevel);
+   Dmsg4(dbglevel, "mig_jcr: Name=%s JobId=%d Type=%c Level=%c\n",
+      mig_jcr->jr.Name, mig_jcr->jr.JobId, 
+      mig_jcr->jr.JobType, mig_jcr->jr.JobLevel);
 
    /*
     * Get the PoolId used with the original job. Then
     *  find the pool name from the database record.
     */
    memset(&pr, 0, sizeof(pr));
-   pr.PoolId = prev_jcr->previous_jr.PoolId;
+   pr.PoolId = mig_jcr->previous_jr.PoolId;
    if (!db_get_pool_record(jcr, jcr->db, &pr)) {
       Jmsg(jcr, M_FATAL, 0, _("Pool for JobId %s not in database. ERR=%s\n"),
             edit_int64(pr.PoolId, ed1), db_strerror(jcr->db));
@@ -167,11 +179,8 @@ bool do_migration(JCR *jcr)
       return false;
    }
 
-   /* Check Migration time and High/Low water marks */
-   /* ***FIXME*** */
-
    /* If pool storage specified, use it for restore */
-   copy_rstorage(prev_jcr, pool->storage, _("Pool resource"));
+   copy_rstorage(mig_jcr, pool->storage, _("Pool resource"));
    copy_rstorage(jcr, pool->storage, _("Pool resource"));
 
    /* If the original backup pool has a NextPool, make sure a 
@@ -186,8 +195,8 @@ bool do_migration(JCR *jcr)
        * put the "NextPool" resource pointer in our jcr so that we
        * can pull the Storage reference from it.
        */
-      prev_jcr->pool = jcr->pool = pool->NextPool;
-      prev_jcr->jr.PoolId = jcr->jr.PoolId;
+      mig_jcr->pool = jcr->pool = pool->NextPool;
+      mig_jcr->jr.PoolId = jcr->jr.PoolId;
       pm_strcpy(jcr->pool_source, _("NextPool in Pool resource"));
    }
 
@@ -199,7 +208,7 @@ bool do_migration(JCR *jcr)
         edit_uint64(jcr->JobId, ed1), jcr->Job);
 
    set_jcr_job_status(jcr, JS_Running);
-   set_jcr_job_status(prev_jcr, JS_Running);
+   set_jcr_job_status(mig_jcr, JS_Running);
    Dmsg2(dbglevel, "JobId=%d JobLevel=%c\n", jcr->jr.JobId, jcr->jr.JobLevel);
 
    /* Update job start record for this migration job */
@@ -208,13 +217,13 @@ bool do_migration(JCR *jcr)
       return false;
    }
 
-   Dmsg4(dbglevel, "Prev_jcr: Name=%s JobId=%d Type=%c Level=%c\n",
-      prev_jcr->jr.Name, prev_jcr->jr.JobId, 
-      prev_jcr->jr.JobType, prev_jcr->jr.JobLevel);
+   Dmsg4(dbglevel, "mig_jcr: Name=%s JobId=%d Type=%c Level=%c\n",
+      mig_jcr->jr.Name, mig_jcr->jr.JobId, 
+      mig_jcr->jr.JobType, mig_jcr->jr.JobLevel);
 
    /* Update job start record for migrated job */
-   if (!db_update_job_start_record(prev_jcr, prev_jcr->db, &prev_jcr->jr)) {
-      Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(prev_jcr->db));
+   if (!db_update_job_start_record(mig_jcr, mig_jcr->db, &mig_jcr->jr)) {
+      Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(mig_jcr->db));
       return false;
    }
 
@@ -227,7 +236,7 @@ bool do_migration(JCR *jcr)
     */
    Dmsg0(110, "Open connection with storage daemon\n");
    set_jcr_job_status(jcr, JS_WaitSD);
-   set_jcr_job_status(prev_jcr, JS_WaitSD);
+   set_jcr_job_status(mig_jcr, JS_WaitSD);
    /*
     * Start conversation with Storage daemon
     */
@@ -264,7 +273,7 @@ bool do_migration(JCR *jcr)
 
 
    set_jcr_job_status(jcr, JS_Running);
-   set_jcr_job_status(prev_jcr, JS_Running);
+   set_jcr_job_status(mig_jcr, JS_Running);
 
    /* Pickup Job termination data */
    /* Note, the SD stores in jcr->JobFiles/ReadBytes/JobBytes/Errors */
@@ -275,7 +284,7 @@ bool do_migration(JCR *jcr)
       return false;
    }
    migration_cleanup(jcr, jcr->JobStatus);
-   if (prev_jcr) {
+   if (mig_jcr) {
       UAContext *ua = new_ua_context(jcr);
       purge_files_from_job(ua, jcr->previous_jr.JobId);
       free_ua_context(ua);
@@ -365,7 +374,7 @@ const char *sql_jobids_from_client =
 /* Get Volume names in Pool */
 const char *sql_vol = 
    "SELECT DISTINCT VolumeName FROM Media,Pool WHERE"
-   " VolStatus in ('Full','Used','Error') AND"
+   " VolStatus in ('Full','Used','Error') AND Media.Enabled=1 AND"
    " Media.PoolId=Pool.PoolId AND Pool.Name='%s'";
 
 /* Get JobIds from regex'ed Volume names */
@@ -374,23 +383,21 @@ const char *sql_jobids_from_vol =
    " WHERE Media.VolumeName='%s' AND Media.MediaId=JobMedia.MediaId"
    " AND JobMedia.JobId=Job.JobId" 
    " ORDER by Job.StartTime";
-   
-
-
 
 
 const char *sql_smallest_vol = 
    "SELECT MediaId FROM Media,Pool WHERE"
-   " VolStatus in ('Full','Used','Error') AND"
+   " VolStatus in ('Full','Used','Error') AND Media.Enabled=1 AND"
    " Media.PoolId=Pool.PoolId AND Pool.Name='%s'"
    " ORDER BY VolBytes ASC LIMIT 1";
 
 const char *sql_oldest_vol = 
    "SELECT MediaId FROM Media,Pool WHERE"
-   " VolStatus in ('Full','Used','Error') AND"
+   " VolStatus in ('Full','Used','Error') AND Media.Enabled=1 AND"
    " Media.PoolId=Pool.PoolId AND Pool.Name='%s'"
    " ORDER BY LastWritten ASC LIMIT 1";
 
+/* Get JobIds when we have selected MediaId */
 const char *sql_jobids_from_mediaid =
    "SELECT DISTINCT Job.JobId,Job.StartTime FROM JobMedia,Job"
    " WHERE JobMedia.JobId=Job.JobId AND JobMedia.MediaId=%s"
@@ -398,12 +405,12 @@ const char *sql_jobids_from_mediaid =
 
 const char *sql_pool_bytes =
    "SELECT SUM(VolBytes) FROM Media,Pool WHERE"
-   " VolStatus in ('Full','Used','Error','Append') AND"
+   " VolStatus in ('Full','Used','Error','Append') AND Media.Enabled=1 AND"
    " Media.PoolId=Pool.PoolId AND Pool.Name='%s'";
 
 const char *sql_vol_bytes =
    "SELECT MediaId FROM Media,Pool WHERE"
-   " VolStatus in ('Full','Used','Error') AND"
+   " VolStatus in ('Full','Used','Error') AND Media.Enabled=1 AND"
    " Media.PoolId=Pool.PoolId AND Pool.Name='%s' AND"
    " VolBytes<%s ORDER BY LastWritten ASC LIMIT 1";
 
@@ -467,22 +474,36 @@ static bool get_job_to_migrate(JCR *jcr)
             goto bail_out;
          }
          break;
-
-
-/***** Below not implemented yet *********/
       case MT_SMALLEST_VOL:
-         Mmsg(query, sql_smallest_vol, jcr->pool->hdr.name);
-//       Mmsg(query2, sql_jobids_from_mediaid, JobIds);
-//       Dmsg1(000, "Smallest Vol Jobids=%s\n", JobIds);
+         if (!find_mediaid_then_jobids(jcr, &ids, sql_smallest_vol, "Smallest Volume")) {
+            goto bail_out;
+         }
          break;
       case MT_OLDEST_VOL:
-         Mmsg(query, sql_oldest_vol, jcr->pool->hdr.name);
-//       Mmsg(query2, sql_jobids_from_mediaid, JobIds);
-//       Dmsg1(000, "Oldest Vol Jobids=%s\n", JobIds);
+         if (!find_mediaid_then_jobids(jcr, &ids, sql_oldest_vol, "Oldest Volume")) {
+            goto bail_out;
+         }
          break;
+
+/***** Below not implemented yet *********/
       case MT_POOL_OCCUPANCY:
+         db_int64_ctx ctx;
+
+         ctx.count = 0;
          Mmsg(query, sql_pool_bytes, jcr->pool->hdr.name);
-//       Dmsg1(000, "Pool Occupancy Jobids=%s\n", JobIds);
+         if (!db_sql_query(jcr->db, query.c_str(), db_int64_handler, (void *)&ctx)) {
+            Jmsg(jcr, M_FATAL, 0, _("SQL failed. ERR=%s\n"), db_strerror(jcr->db));
+            goto bail_out;
+         }
+         if (ctx.count == 0) {
+            Jmsg(jcr, M_INFO, 0, _("No Volumes found to migrate.\n"));
+            goto bail_out;
+         }
+         if (ctx.value > (int64_t)jcr->pool->MigrationHighBytes) {
+            Dmsg2(000, "highbytes=%d pool=%d\n", (int)jcr->pool->MigrationHighBytes,
+               (int)ctx.value);
+         }
+         goto bail_out;
          break;
       case MT_POOL_TIME:
          Dmsg0(000, "Pool time not implemented\n");
@@ -566,9 +587,57 @@ static void start_migration_job(JCR *jcr)
    free_ua_context(ua);
 }
 
+static bool find_mediaid_then_jobids(JCR *jcr, idpkt *ids, const char *query1,
+                 const char *type) 
+{
+   bool ok = false;
+   POOL_MEM query(PM_MESSAGE);
+
+   ids->count = 0;
+   /* Basic query for MediaId */
+   Mmsg(query, query1, jcr->pool->hdr.name);
+   if (!db_sql_query(jcr->db, query.c_str(), dbid_handler, (void *)ids)) {
+      Jmsg(jcr, M_FATAL, 0, _("SQL failed. ERR=%s\n"), db_strerror(jcr->db));
+      goto bail_out;
+   }
+   if (ids->count == 0) {
+      Jmsg(jcr, M_INFO, 0, _("No %ss found to migrate.\n"), type);
+   }
+   if (ids->count != 1) {
+      Jmsg(jcr, M_FATAL, 0, _("SQL logic error. Count should be 1 but is %d\n"), 
+         ids->count);
+      goto bail_out;
+   }
+   Dmsg1(000, "Smallest Vol Jobids=%s\n", ids->list);
+
+   ok = find_jobids_from_mediaid_list(jcr, ids, type);
+
+bail_out:
+   return ok;
+}
+
+static bool find_jobids_from_mediaid_list(JCR *jcr, idpkt *ids, const char *type) 
+{
+   bool ok = false;
+   POOL_MEM query(PM_MESSAGE);
+
+   Mmsg(query, sql_jobids_from_mediaid, ids->list);
+   ids->count = 0;
+   if (!db_sql_query(jcr->db, query.c_str(), dbid_handler, (void *)ids)) {
+      Jmsg(jcr, M_FATAL, 0, _("SQL failed. ERR=%s\n"), db_strerror(jcr->db));
+      goto bail_out;
+   }
+   if (ids->count == 0) {
+      Jmsg(jcr, M_INFO, 0, _("No %ss found to migrate.\n"), type);
+   }
+   ok = true;
+bail_out:
+   return ok;
+}
 
 static bool regex_find_jobids(JCR *jcr, idpkt *ids, const char *query1,
-                 const char *query2, const char *type) {
+                 const char *query2, const char *type) 
+{
    dlist *item_chain;
    uitem *item = NULL;
    uitem *last_item = NULL;
@@ -667,7 +736,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
    MEDIA_DBR mr;
    double kbps;
    utime_t RunTime;
-   JCR *prev_jcr = jcr->previous_jcr;
+   JCR *mig_jcr = jcr->mig_jcr;
    POOL_MEM query(PM_MESSAGE);
 
    Dmsg2(100, "Enter migrate_cleanup %d %c\n", TermCode, TermCode);
@@ -678,33 +747,33 @@ void migration_cleanup(JCR *jcr, int TermCode)
 
    /* 
     * Check if we actually did something.  
-    *  prev_jcr is jcr of the newly migrated job.
+    *  mig_jcr is jcr of the newly migrated job.
     */
-   if (prev_jcr) {
-      prev_jcr->JobFiles = jcr->JobFiles = jcr->SDJobFiles;
-      prev_jcr->JobBytes = jcr->JobBytes = jcr->SDJobBytes;
-      prev_jcr->VolSessionId = jcr->VolSessionId;
-      prev_jcr->VolSessionTime = jcr->VolSessionTime;
-      prev_jcr->jr.RealEndTime = 0; 
-      prev_jcr->jr.PriorJobId = jcr->previous_jr.JobId;
+   if (mig_jcr) {
+      mig_jcr->JobFiles = jcr->JobFiles = jcr->SDJobFiles;
+      mig_jcr->JobBytes = jcr->JobBytes = jcr->SDJobBytes;
+      mig_jcr->VolSessionId = jcr->VolSessionId;
+      mig_jcr->VolSessionTime = jcr->VolSessionTime;
+      mig_jcr->jr.RealEndTime = 0; 
+      mig_jcr->jr.PriorJobId = jcr->previous_jr.JobId;
 
-      set_jcr_job_status(prev_jcr, TermCode);
+      set_jcr_job_status(mig_jcr, TermCode);
 
   
-      update_job_end_record(prev_jcr);
+      update_job_end_record(mig_jcr);
      
       /* Update final items to set them to the previous job's values */
       Mmsg(query, "UPDATE Job SET StartTime='%s',EndTime='%s',"
                   "JobTDate=%s WHERE JobId=%s", 
          jcr->previous_jr.cStartTime, jcr->previous_jr.cEndTime, 
          edit_uint64(jcr->previous_jr.JobTDate, ec1),
-         edit_uint64(prev_jcr->jr.JobId, ec2));
-      db_sql_query(prev_jcr->db, query.c_str(), NULL, NULL);
+         edit_uint64(mig_jcr->jr.JobId, ec2));
+      db_sql_query(mig_jcr->db, query.c_str(), NULL, NULL);
 
       /* Now marke the previous job as migrated */
       Mmsg(query, "UPDATE Job SET Type='%c' WHERE JobId=%s",
            (char)JT_MIGRATED_JOB, edit_uint64(jcr->previous_jr.JobId, ec1));
-      db_sql_query(prev_jcr->db, query.c_str(), NULL, NULL);
+      db_sql_query(mig_jcr->db, query.c_str(), NULL, NULL);
 
       if (!db_get_job_record(jcr, jcr->db, &jcr->jr)) {
          Jmsg(jcr, M_WARNING, 0, _("Error getting job record for stats: %s"),
@@ -719,9 +788,9 @@ void migration_cleanup(JCR *jcr, int TermCode)
          set_jcr_job_status(jcr, JS_ErrorTerminated);
       }
 
-      update_bootstrap_file(prev_jcr);
+      update_bootstrap_file(mig_jcr);
 
-      if (!db_get_job_volume_names(prev_jcr, prev_jcr->db, prev_jcr->jr.JobId, &prev_jcr->VolumeName)) {
+      if (!db_get_job_volume_names(mig_jcr, mig_jcr->db, mig_jcr->jr.JobId, &mig_jcr->VolumeName)) {
          /*
           * Note, if the job has erred, most likely it did not write any
           *  tape, so suppress this "error" message since in that case
@@ -729,9 +798,9 @@ void migration_cleanup(JCR *jcr, int TermCode)
           *  normal exit should we complain about this error.
           */
          if (jcr->JobStatus == JS_Terminated && jcr->jr.JobBytes) {
-            Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(prev_jcr->db));
+            Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(mig_jcr->db));
          }
-         prev_jcr->VolumeName[0] = 0;         /* none */
+         mig_jcr->VolumeName[0] = 0;         /* none */
       }
   }
 
@@ -808,8 +877,8 @@ void migration_cleanup(JCR *jcr, int TermCode)
    VERSION,
    LSMDATE,
         edt, 
-        prev_jcr ? edit_uint64(jcr->previous_jr.JobId, ec6) : "0", 
-        prev_jcr ? edit_uint64(prev_jcr->jr.JobId, ec7) : "0",
+        mig_jcr ? edit_uint64(jcr->previous_jr.JobId, ec6) : "0", 
+        mig_jcr ? edit_uint64(mig_jcr->jr.JobId, ec7) : "0",
         edit_uint64(jcr->jr.JobId, ec8),
         jcr->jr.Job,
         level_to_str(jcr->JobLevel), jcr->since,
@@ -825,7 +894,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
         edit_uint64_with_commas(jcr->SDJobBytes, ec2),
         edit_uint64_with_suffix(jcr->SDJobBytes, ec3),
         (float)kbps,
-        prev_jcr ? prev_jcr->VolumeName : "",
+        mig_jcr ? mig_jcr->VolumeName : "",
         jcr->VolSessionId,
         jcr->VolSessionTime,
         edit_uint64_with_commas(mr.VolBytes, ec4),
@@ -834,10 +903,10 @@ void migration_cleanup(JCR *jcr, int TermCode)
         sd_term_msg,
         term_code);
 
-   Dmsg1(100, "migrate_cleanup() previous_jcr=0x%x\n", jcr->previous_jcr);
-   if (jcr->previous_jcr) {
-      free_jcr(jcr->previous_jcr);
-      jcr->previous_jcr = NULL;
+   Dmsg1(100, "migrate_cleanup() mig_jcr=0x%x\n", jcr->mig_jcr);
+   if (jcr->mig_jcr) {
+      free_jcr(jcr->mig_jcr);
+      jcr->mig_jcr = NULL;
    }
    Dmsg0(100, "Leave migrate_cleanup()\n");
 }

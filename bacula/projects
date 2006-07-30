@@ -1,8 +1,8 @@
                 
 Projects:
                      Bacula Projects Roadmap 
-                       07 December 2005
-                    (prioritized by user vote)
+                Prioritized by user vote 07 December 2005
+                    Status updated 30 July 2006
 
 Summary:
 Item  1:  Implement data encryption (as opposed to comm encryption)
@@ -37,7 +37,7 @@ Below, you will find more information on future projects:
 Item  1:  Implement data encryption (as opposed to comm encryption)
   Date:   28 October 2005
   Origin: Sponsored by Landon and 13 contributors to EFF.
-  Status: Landon Fuller has implemented this in 1.39.x.
+  Status: Done: Landon Fuller has implemented this in 1.39.x.
                   
   What:   Currently the data that is stored on the Volume is not
           encrypted. For confidentiality, encryption of data at
@@ -51,7 +51,7 @@ Item 2:   Implement Migration that moves Jobs from one Pool to another.
   Origin: Sponsored by Riege Software International GmbH. Contact:
           Daniel Holtkamp <holtkamp at riege dot com>
   Date:   28 October 2005
-  Status: Partially working in 1.39, more to do. Assigned to
+  Status: 90% complete: Working in 1.39, more to do. Assigned to
           Kern.
 
   What:   The ability to copy, move, or archive data that is on a
@@ -389,7 +389,8 @@ Item  9:  Implement new {Client}Run{Before|After}Job feature.
 Item 10:  Merge multiple backups (Synthetic Backup or Consolidation).
   Origin: Marc Cousin and Eric Bollengier 
   Date:   15 November 2005
-  Status: Depends on first implementing project Item 1 (Migration).
+  Status: Waiting implementation. Depends on first implementing 
+          project Item 2 (Migration).
 
   What:   A merged backup is a backup made without connecting to the Client.
           It would be a Merge of existing backups into a single backup.
@@ -446,7 +447,7 @@ Item 12:  Directive/mode to backup only file changes, not entire file
   Date:   11 November 2005
   Origin: Joshua Kugler <joshua dot kugler at uaf dot edu>
           Marek Bajon <mbajon at bimsplus dot com dot pl>
-  Status: RFC
+  Status: 
 
   What:   Currently when a file changes, the entire file will be backed up in
           the next incremental or full backup.  To save space on the tapes
@@ -755,6 +756,7 @@ Item n:   One line summary ...
 
 ===============================================
 Feature requests submitted after cutoff for December 2005 vote
+  and not yet discussed.
 ===============================================
 Item n:   Allow skipping execution of Jobs
   Date:   29 November 2005
@@ -798,4 +800,106 @@ Item n: archive data
           could do this bit ability to save data uncompresed so
           it can be read in any other system (future proof data)
           save the catalog with the disk as some kind of menu
-          system
+          system 
+
+Item :  Tray monitor window cleanups
+  Origin: Alan Brown ajb2 at mssl dot ucl dot ac dot uk
+  Date:   24 July 2006
+  Status:
+  What:   Resizeable and scrollable windows in the tray monitor.
+
+  Why:    With multiple clients, or with many jobs running, the displayed
+          window often ends up larger than the available screen, making
+          the trailing items difficult to read.
+
+   Notes:
+
+  Item :  Clustered file-daemons
+  Origin: Alan Brown ajb2 at mssl dot ucl dot ac dot uk
+  Date:   24 July 2006
+  Status:
+  What:   A "virtual" filedaemon, which is actually a cluster of real ones.
+
+  Why:    In the case of clustered filesystems (SAN setups, GFS, or OCFS2, etc)
+          multiple machines may have access to the same set of filesystems
+
+          For performance reasons, one may wish to initate backups from
+          several of these machines simultaneously, instead of just using
+          one backup source for the common clustered filesystem.
+
+          For obvious reasons, normally backups of $A-FD/$PATH and
+          B-FD/$PATH are treated as different backup sets. In this case
+          they are the same communal set.
+
+          Likewise when restoring, it would be easier to just specify
+          one of the cluster machines and let bacula decide which to use.
+
+          This can be faked to some extent using DNS round robin entries
+          and a virtual IP address, however it means "status client" will
+          always give bogus answers. Additionally there is no way of
+          spreading the load evenly among the servers.
+
+          What is required is something similar to the storage daemon
+          autochanger directives, so that Bacula can keep track of
+          operating backups/restores and direct new jobs to a "free"
+          client.
+
+   Notes:
+
+Item :  Tray monitor window cleanups
+  Origin: Alan Brown ajb2 at mssl dot ucl dot ac dot uk
+  Date:   24 July 2006
+  Status:
+  What:   Resizeable and scrollable windows in the tray monitor.
+
+  Why:    With multiple clients, or with many jobs running, the displayed
+          window often ends up larger than the available screen, making
+          the trailing items difficult to read.
+
+  Notes:
+
+Item:    Commercial database support
+  Origin: Russell Howe <russell_howe dot wreckage dot org>
+  Date:   26 July 2006
+  Status:
+
+  What:   It would be nice for the database backend to support more 
+          databases. I'm thinking of SQL Server at the moment, but I guess Oracle, 
+          DB2, MaxDB, etc are all candidates. SQL Server would presumably be 
+          implemented using FreeTDS or maybe an ODBC library?
+
+  Why:    We only really have one database server, which is MS SQL Server 
+          2000. Maintaining a second one for the backup software (we grew out of 
+          SQLite, which I liked, but which didn't work so well with our database 
+          size). We don't really have a machine with the resources to run 
+          postgres, and would rather only maintain a single DBMS. We're stuck with 
+          SQL Server because pretty much all the company's custom applications 
+          (written by consultants) are locked into SQL Server 2000. I can imagine 
+          this scenario is fairly common, and it would be nice to use the existing 
+          properly specced database server for storing Bacula's catalog, rather 
+          than having to run a second DBMS.
+
+
+Item n:   Split documentation
+  Origin: Maxx <maxxatworkat gmail dot com>
+  Date:   27th July 2006
+  Status:
+
+  What:   Split documentation in several books
+
+  Why:    Bacula manual has now more than 600 pages, and looking for
+          implementation details is getting complicated.  I think
+          it would be good to split the single volume in two or
+          maybe three parts:
+
+          1) Introduction, requirements and tutorial, typically
+             are useful only until first installation time
+
+          2) Basic installation and configuration, with all the
+             gory details about the directives supported 3)
+             Advanced Bacula: testing, troubleshooting, GUI and
+             ancillary programs, security managements, scripting,
+             etc.
+
+  Notes:
+

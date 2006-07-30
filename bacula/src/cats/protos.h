@@ -39,6 +39,7 @@ int  db_next_index(JCR *jcr, B_DB *mdb, char *table, char *index);
 int  db_sql_query(B_DB *mdb, const char *cmd, DB_RESULT_HANDLER *result_handler, void *ctx);
 void db_start_transaction(JCR *jcr, B_DB *mdb);
 void db_end_transaction(JCR *jcr, B_DB *mdb);
+int db_int64_handler(void *ctx, int num_fields, char **row);
 
 
 /* create.c */

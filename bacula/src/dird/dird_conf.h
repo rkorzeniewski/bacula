@@ -463,8 +463,8 @@ public:
    uint32_t MaxVolFiles;              /* Maximum files on the Volume */
    uint64_t MaxVolBytes;              /* Maximum bytes on the Volume */
    utime_t MigrationTime;             /* Time to migrate to next pool */
-   uint32_t MigrationHighBytes;       /* When migration starts */
-   uint32_t MigrationLowBytes;        /* When migration stops */
+   uint64_t MigrationHighBytes;       /* When migration starts */
+   uint64_t MigrationLowBytes;        /* When migration stops */
    POOL  *NextPool;                   /* Next pool for migration */
    alist *storage;                    /* Where is device -- list of Storage to be used */
    bool  use_catalog;                 /* maintain catalog for media */

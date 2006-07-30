@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     16 July 2006
+                     30 July 2006
 
 Major development:      
 Project                     Developer
@@ -28,6 +28,9 @@ Document:
 Priority:
 
 For 1.39:
+- Fix bextract to restore ACLs, or better yet, use common
+  routines.
+- Do we migrate appendable Volumes?
 - Remove queue.c code.
 - Add bconsole option to use stdin/out instead of conio.
 - Fix ClientRunBefore/AfterJob compatibility.
