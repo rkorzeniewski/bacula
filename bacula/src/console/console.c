@@ -28,7 +28,7 @@
 
 #ifdef HAVE_CONIO
 #include "conio.h"
-#define CONIO_FIX 1
+//#define CONIO_FIX 1
 #else
 #define con_init(x)
 #define con_term()

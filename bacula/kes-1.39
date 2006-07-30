@@ -16,6 +16,7 @@ kes  Create a generic DB routine for getting an int (32/64 bit) from
 kes  Add more migration code.
 kes  Add a few more files to .cvsignore here and there.
 kes  Minor fixes for SD write rate and despooling rate.
+kes  Turn off new test code in src/console.c
 
 Version 1.39.18
 29Jul06
