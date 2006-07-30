@@ -247,7 +247,8 @@ static bool despool_data(DCR *dcr, bool commit)
    Dmsg1(800, "read/write block size = %d\n", block->buf_len);
    lseek(rdcr->spool_fd, 0, SEEK_SET); /* rewind */
 
-   time_t despool_start = time(NULL);
+   /* Add run time, to get current wait time */
+   time_t despool_start = time(NULL) + jcr->run_time;
 
    for ( ; ok; ) {
       if (job_canceled(jcr)) {
@@ -269,10 +270,12 @@ static bool despool_data(DCR *dcr, bool commit)
       Dmsg3(800, "Write block ok=%d FI=%d LI=%d\n", ok, block->FirstIndex, block->LastIndex);
    }
 
-   time_t despool_elapsed = time(NULL) - despool_start;
+   /* Subtracting run_time give us elapsed time - wait_time since we started despooling */
+   time_t despool_elapsed = time(NULL) - despool_start - jcr->run_time;
 
-   if (despool_elapsed == 0)
+   if (despool_elapsed <= 0) {
       despool_elapsed = 1;
+   }
 
    Jmsg(dcr->jcr, M_INFO, 0, _("Despooling elapsed time = %02d:%02d:%02d, Transfer rate = %s bytes/second\n"),
          despool_elapsed / 3600, despool_elapsed % 3600 / 60, despool_elapsed % 60,

@@ -253,12 +253,13 @@ bool do_append_data(JCR *jcr)
 
    time_t job_elapsed = time(NULL) - jcr->run_time;
 
-   if (job_elapsed == 0)
+   if (job_elapsed <= 0) {
       job_elapsed = 1;
+   }
 
    Jmsg(dcr->jcr, M_INFO, 0, _("Job write elapsed time = %02d:%02d:%02d, Transfer rate = %s bytes/second\n"),
          job_elapsed / 3600, job_elapsed % 3600 / 60, job_elapsed % 60,
-         edit_uint64_with_commas(jcr->dcr->job_spool_size / job_elapsed, ec));
+         edit_uint64_with_commas(jcr->JobBytes / job_elapsed, ec));
 
    /* Create Job status for end of session label */
    set_jcr_job_status(jcr, ok?JS_Terminated:JS_ErrorTerminated);
