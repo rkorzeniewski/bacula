@@ -279,7 +279,7 @@ static bool despool_data(DCR *dcr, bool commit)
 
    Jmsg(dcr->jcr, M_INFO, 0, _("Despooling elapsed time = %02d:%02d:%02d, Transfer rate = %s bytes/second\n"),
          despool_elapsed / 3600, despool_elapsed % 3600 / 60, despool_elapsed % 60,
-         edit_uint64_with_commas(jcr->dcr->job_spool_size / despool_elapsed, ec1));
+         edit_uint64_with_suffix(jcr->dcr->job_spool_size / despool_elapsed, ec1));
 
    dcr->block = block;                /* reset block */
 

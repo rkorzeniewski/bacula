@@ -2,6 +2,21 @@
                         Kern Sibbald
 
 General:
+31Jul06
+kes  Make a first cut at a ReleaseNotes and ChangeLog for a 
+     beta release.
+kes  Make make clean decend into the src/win32 directory.
+kes  Fix some #ifdefing so that Solaris and FreeBSD compile 
+     sys/stat.h was turned off.
+kes  Use suffix editing for new transfer rate messages.
+kes  Attempt to come up with a workaround which seems to be an OS
+     bug where write() returns EBUSY.  IMO this should not happen.
+     It triggered in truncatebug test. The workaround retries using
+     a 100 ms wait.
+kes  Eliminate a strerror() call in a class method that failed with
+     older C++ compilers.
+kes  Use rm -rf rather than rmdir to delete the src/win32/release
+     directory during make clean.
 30Jul06
 kes  Make bscan ignore ACL streams.
 kes  Update projects files with new Feature Requests.
@@ -480,7 +495,6 @@ Version 1.39.17
   is not translated.
 - Add NT_ definition for strings that should not be translated.
 - Apply NT_() to ua_label.c
-
 - Remove timed wait for VSS on Win2K3 as it is not yet
   implemented.
 - Correct bacula.in script to reference bacula-ctl-xx in the
@@ -802,7 +816,7 @@ Changes to 1.39.3:
   You have messages. 
 - Delete old bnet packet code.
 - Ignore new BNET_START_SELECT and BNET_END_SELECT signals in
-  wx-console.
+  wx-console. -- not implemented because bconsole must be updated.
 - Modify restore command in wx-console to set gui on and to use
   only .messages instead of messages.  Hopefully this fixes bug
   #514.

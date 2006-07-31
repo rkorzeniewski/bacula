@@ -509,13 +509,20 @@ bool write_block_to_dev(DCR *dcr)
 #endif
 
    /*
-    * Do write here
+    * Do write here, make a somewhat feeble attempt to recover from 
+    *  I/O errors, or from the OS telling us it is busy.
     */ 
-   if (dev->is_tape()) {
-      stat = tape_write(dev->fd, block->buf, (size_t)wlen);
-   } else {
-      stat = write(dev->fd, block->buf, (size_t)wlen);
-   }
+   int retry = 0;
+   do {
+      if (dev->is_tape()) {
+         stat = tape_write(dev->fd, block->buf, (size_t)wlen);
+      } else {
+         stat = write(dev->fd, block->buf, (size_t)wlen);
+      }
+      if (retry > 10) {
+         bmicrosleep(0, 100000);    /* pause a bit if lots of errors */
+      }
+   } while (stat == -1 && (errno == EBUSY || errno == EIO) && retry++ < 30);
 
 #ifdef DEBUG_BLOCK_ZEROING
    if (bp[0] == 0 && bp[1] == 0 && bp[2] == 0 && block->buf[12] == 0) {
