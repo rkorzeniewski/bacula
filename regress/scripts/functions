@@ -63,7 +63,7 @@ check_for_zombie_jobs()
 
 change_jobname()
 {
-   if test $# == 1; then
+   if test $# -eq 1; then
       oldname=NightlySave
       newname=$1
    else
