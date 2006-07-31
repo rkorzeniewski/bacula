@@ -3,6 +3,7 @@
 
 General:
 31Jul06
+kes  Make disk-changer sed command compatible with FreeBSD.
 kes  Make a first cut at a ReleaseNotes and ChangeLog for a 
      beta release.
 kes  Make make clean decend into the src/win32 directory.
