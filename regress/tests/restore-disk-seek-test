@@ -11,8 +11,8 @@ JobName=restore-disk-seek
 . scripts/functions
 set_debug 0
 
-scripts/copy-test-confs
 scripts/cleanup
+scripts/copy-test-confs
 echo "${cwd}/tmp/build" >/tmp/file-list
 rm -rf ${cwd}/tmp/build
 mkdir ${cwd}/tmp/build

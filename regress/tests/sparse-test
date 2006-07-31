@@ -9,8 +9,8 @@ JobName=SparseTest
 set_debug 0
 
 cwd=`pwd`
-scripts/copy-test-confs
 scripts/cleanup
+scripts/copy-test-confs
 echo "${cwd}/build" >/tmp/file-list
 
 start_test

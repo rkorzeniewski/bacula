@@ -8,8 +8,8 @@ JobName=backup
 . scripts/functions
 set_debug 0
 
-scripts/copy-confs
 scripts/cleanup
+scripts/copy-confs
 
 change_jobname Client1 $JobName
 start_test

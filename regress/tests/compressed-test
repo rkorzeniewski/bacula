@@ -8,8 +8,8 @@ JobName=compressed
 . scripts/functions
 set_debug 0
 
-scripts/copy-test-confs
 scripts/cleanup
+scripts/copy-test-confs
 echo "${cwd}/build" >/tmp/file-list
 
 change_jobname CompressedTest $JobName

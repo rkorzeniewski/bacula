@@ -9,8 +9,8 @@ JobName=Relabeltape
 . scripts/functions
 set_debug 0
 
-scripts/copy-tape-confs
 scripts/cleanup-tape
+scripts/copy-tape-confs
 echo "${cwd}/build" >/tmp/file-list
 
 change_jobname $JobName

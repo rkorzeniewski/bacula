@@ -18,8 +18,8 @@ echo " === Starting /etc save/restore test ==="
 echo " "
 echo " "
 cwd=`pwd`
-scripts/copy-test-confs
 scripts/cleanup
+scripts/copy-test-confs
 echo "/etc" >/tmp/file-list
 
 bin/bacula start 2>&1 >/dev/null
