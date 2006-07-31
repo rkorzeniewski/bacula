@@ -13,8 +13,8 @@ if [ $MUID != 0 ] ; then
    exit 1
 fi
 cwd=`pwd`
-scripts/copy-test-confs
 scripts/cleanup
+scripts/copy-test-confs
 echo "/lib" >/tmp/file-list
 
 echo " "

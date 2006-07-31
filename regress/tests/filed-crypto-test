@@ -8,8 +8,8 @@ JobName=Crypto
 . scripts/functions
 set_debug 0
 
-scripts/copy-crypto-confs
 scripts/cleanup
+scripts/copy-crypto-confs
 echo "${cwd}/build" >/tmp/file-list
 
 change_jobname NightlySave $JobName

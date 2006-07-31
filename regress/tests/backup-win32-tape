@@ -9,8 +9,8 @@ JobName=backupwintape
 . scripts/functions
 set_debug 0
 
-scripts/copy-win32-confs
 scripts/cleanup-tape
+scripts/copy-win32-confs
 
 echo "${cwd}/build" >/tmp/file-list
 

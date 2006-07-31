@@ -11,8 +11,8 @@ cd bin
 ./grant_bacula_privileges 2>&1 >/dev/null
 cd ..
 
-scripts/copy-tape-confs
 scripts/cleanup-tape
+scripts/copy-tape-confs
 echo "/lib" >/tmp/file-list
 echo " "
 echo " "

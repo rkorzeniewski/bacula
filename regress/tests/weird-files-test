@@ -15,8 +15,8 @@ if test ! -d weird-files ; then
 fi
 
 cwd=`pwd`
-scripts/copy-test-confs
 scripts/cleanup
+scripts/copy-test-confs
 change_jobname NightlySave $JobName
 #
 # Note, we save the weird-files directory twice on purpose

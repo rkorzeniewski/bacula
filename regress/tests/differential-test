@@ -8,8 +8,8 @@ JobName=differential
 . scripts/functions
 set_debug 0
 
-scripts/copy-test-confs
 scripts/cleanup
+scripts/copy-test-confs
 echo "${cwd}/tmp/build" >/tmp/file-list
 mkdir ${cwd}/tmp/build
 cp -p ${cwd}/build/src/dird/*.c ${cwd}/tmp/build
