@@ -28,6 +28,7 @@ Document:
 Priority:
 
 For 1.39:
+- Possibly turn on St. Bernard code.
 - Fix bextract to restore ACLs, or better yet, use common
   routines.
 - Do we migrate appendable Volumes?

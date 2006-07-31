@@ -13,7 +13,7 @@ DIRS=	dll \
 all: Makefile.inc $(DIRS)
 
 clean: $(DIRS)
-	$(ECHO_CMD)-rmdir release
+	$(ECHO_CMD)-rm -rf release
 
 $(DIRS):
 	@if $(MAKE) -C $@ $(MAKECMDGOALS); then \

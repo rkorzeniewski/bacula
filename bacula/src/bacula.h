@@ -105,9 +105,10 @@
 #endif
 #if defined(HAVE_WIN32) & !defined(HAVE_MINGW)
 #include <winsock2.h>
-#else
-//#include <sys/stat.h>
-#endif
+#endif 
+#if !defined(HAVE_WIN32) & !defined(HAVE_MINGW)
+#include <sys/stat.h>
+#endif 
 #include <sys/time.h>
 #if HAVE_SYS_WAIT_H
 #include <sys/wait.h>

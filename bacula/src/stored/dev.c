@@ -1712,10 +1712,11 @@ void DEVICE::clrerror(int func)
 /* Typically on FreeBSD */
 #ifdef MTIOCERRSTAT
 {
+  berrno be;
    /* Read and clear SCSI error status */
    union mterrstat mt_errstat;
    Dmsg2(200, "Doing MTIOCERRSTAT errno=%d ERR=%s\n", dev_errno,
-      strerror(dev_errno));
+      be.strerror(dev_errno));
    tape_ioctl(fd, MTIOCERRSTAT, (char *)&mt_errstat);
 }
 #endif

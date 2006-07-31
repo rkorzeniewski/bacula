@@ -2099,6 +2099,7 @@ static void do_unfill()
    file_index = 0;
    if (last_block) {
       free_block(last_block);
+      last_block = NULL;
    }
    last_block_num = last_block_num1;
    last_file = last_file1;

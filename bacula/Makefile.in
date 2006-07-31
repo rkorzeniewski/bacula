@@ -189,7 +189,7 @@ Makefiles:
 	 chmod 755 make_catalog_backup delete_catalog_backup)
 
 clean:
-	@for I in ${all_subdirs}; \
+	@for I in ${all_subdirs} src/win32; \
 	  do (cd $$I; echo "==>Entering directory `pwd`"; ${MAKE} $@ || exit 1); done
 	@(cd platforms; echo "==>Entering directory `pwd`"; ${MAKE} $@ || exit 1)
 	@$(RMF) *~ 1 2 3 core core.* config.guess console.log console.sum
