@@ -90,9 +90,6 @@ to ensure that you pick up all the new Win32 changes:
 
      cd <bacula>
      make clean
-     cd src/win32
-     make clean
-     cd ../..
      cvs update
      cd src/win32
      make
