@@ -59,7 +59,7 @@ static BSR *bsr = NULL;
 static void usage()
 {
    fprintf(stderr, _(
-"Copyright (C) 2000-2005 Kern Sibbald.\n"
+"Copyright (C) 2000-%s Kern Sibbald.\n"
 "\nVersion: %s (%s)\n\n"
 "Usage: bls [options] <device-name>\n"
 "       -b <file>       specify a bootstrap file\n"
@@ -74,7 +74,7 @@ static void usage()
 "       -p              proceed inspite of errors\n"
 "       -v              be verbose\n"
 "       -V              specify Volume names (separated by |)\n"
-"       -?              print this message\n\n"), VERSION, BDATE);
+"       -?              print this message\n\n"), BYEAR, VERSION, BDATE);
    exit(1);
 }
 

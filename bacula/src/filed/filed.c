@@ -47,8 +47,8 @@ static pthread_t server_tid;
 
 static void usage()
 {
-   Pmsg2(-1, _(
-"Copyright (C) 2000-2005 Kern Sibbald\n"
+   Pmsg3(-1, _(
+"Copyright (C) 2000-%s Kern Sibbald\n"
 "\nVersion: %s (%s)\n\n"
 "Usage: bacula-fd [-f -s] [-c config_file] [-d debug_level]\n"
 "        -c <file>   use <file> as configuration file\n"
@@ -61,7 +61,7 @@ static void usage()
 "        -u          userid\n"
 "        -v          verbose user messages\n"
 "        -?          print this message.\n"
-"\n"), VERSION, BDATE);
+"\n"), BYEAR, VERSION, BDATE);
    exit(1);
 }
 

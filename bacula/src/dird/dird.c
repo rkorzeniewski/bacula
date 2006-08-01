@@ -75,7 +75,7 @@ extern URES res_all;
 static void usage()
 {
    fprintf(stderr, _(
-"Copyright (C) 2000-2005 Kern Sibbald.\n"
+"Copyright (C) 2000-%s Kern Sibbald.\n"
 "\nVersion: %s (%s)\n\n"
 "Usage: dird [-f -s] [-c config_file] [-d debug_level] [config_file]\n"
 "       -c <file>   set configuration file to file\n"
@@ -88,7 +88,7 @@ static void usage()
 "       -u          userid\n"
 "       -v          verbose user messages\n"
 "       -?          print this message.\n"
-"\n"), VERSION, BDATE);
+"\n"), BYEAR, VERSION, BDATE);
 
    exit(1);
 }

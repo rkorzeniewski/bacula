@@ -2,6 +2,10 @@
                         Kern Sibbald
 
 General:
+01Aug06
+kes  Update copyright date in program files, and for the most part
+     put it on a #define.
+kes  Implement %q in bsnprintf.c apparently I forgot it.
 31Jul06
 kes  Make disk-changer sed command compatible with FreeBSD.
 kes  Make a first cut at a ReleaseNotes and ChangeLog for a 

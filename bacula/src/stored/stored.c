@@ -62,7 +62,7 @@ static workq_t dird_workq;            /* queue for processing connections */
 static void usage()
 {
    fprintf(stderr, _(
-"Copyright (C) 2000-2005 Kern Sibbald.\n"
+"Copyright (C) 2000-%s Kern Sibbald.\n"
 "\nVersion: %s (%s)\n\n"
 "Usage: stored [options] [-c config_file] [config_file]\n"
 "        -c <file>   use <file> as configuration file\n"
@@ -75,7 +75,7 @@ static void usage()
 "        -u <user>   userid to <user>\n"
 "        -v          verbose user messages\n"
 "        -?          print this message.\n"
-"\n"), VERSION, BDATE);
+"\n"), BYEAR, VERSION, BDATE);
    exit(1);
 }
 

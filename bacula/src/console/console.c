@@ -92,7 +92,7 @@ static int sleepcmd(FILE *input, BSOCK *UA_sock);
 static void usage()
 {
    fprintf(stderr, _(
-"Copyright (C) 2000-2005 Kern Sibbald\n"
+"Copyright (C) 2000-%s Kern Sibbald\n"
 "\nVersion: " VERSION " (" BDATE ") %s %s %s\n\n"
 "Usage: bconsole [-s] [-c config_file] [-d debug_level]\n"
 "       -c <file>   set configuration file to file\n"
@@ -100,7 +100,7 @@ static void usage()
 "       -s          no signals\n"
 "       -t          test - read configuration and exit\n"
 "       -?          print this message.\n"
-"\n"), HOST_OS, DISTNAME, DISTVER);
+"\n"), BYEAR, HOST_OS, DISTNAME, DISTVER);
 }
 
 

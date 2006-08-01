@@ -7,7 +7,8 @@
  *
  * Adapted for Bacula -- note there were lots of bugs in
  *     the original code: %lld and %s were seriously broken, and
- *     with FP turned off %f seg faults.
+ *     with FP turned off %f seg faulted.
+ *
  *   Kern Sibbald, November MMV
  *
  *   Version $Id$
@@ -16,11 +17,13 @@
 
 #include "bacula.h"
 #define FP_OUTPUT 1 /* Bacula uses floating point */
-
-/* 
-    Temp only for me -- NOT YET READY FOR USE -- seems to work fine
-    on Linux, but doesn't build correctly on Win32
+/* Define the following if you want all the features of
+ *  normal printf, but with all the security problems.
+ *  For Bacula we turn this off, and it silently ignores
+ *  formats that could pose a security problem.
  */
+#undef SECURITY_PROBLEM 
+
 #ifdef USE_BSNPRINTF
 
 #ifdef HAVE_LONG_DOUBLE
@@ -216,6 +219,10 @@ int bvsnprintf(char *buffer, int32_t maxlen, const char *format, va_list args)
             break;
          case 'L':
             cflags = DP_C_LDOUBLE;
+            ch = *format++;
+            break;
+         case 'q':                 /* same as long long */
+            cflags = DP_C_INT64;
             ch = *format++;
             break;
          default:
