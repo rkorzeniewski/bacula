@@ -35,15 +35,7 @@
 ; /start
 
 !define PRODUCT "Bacula"
-!define VERSION "@VERSION@"
-
-!define PTHREADS_DIR    "..\..\..\depkgs-win32\pthreads\release"
-!define MINGW_DIR       "C:\MinGW\bin"
-
-!define BUILD_TOOLS     "MinGW"
-
-;!define BUILD_TOOLS     "VC8"
-;!define VC_REDIST_DIR "C:\Program Files\Microsoft Visual Studio 8\VC\redist\x86\Microsoft.VC80.CRT"
+!define BUILD_TOOLS "MinGW"
 
 ;
 ; Include the Modern UI
@@ -179,17 +171,22 @@ Function CopyDependencies
   SetOutPath "$INSTDIR\bin"
 
   ${If} $DependenciesDone = 0
-!if BUILD_TOOLS == "VC8"
-    File "${PTHREADS_DIR}\pthreadVCE.dll"
+!if "${BUILD_TOOLS}" == "VC8"
     File "${VC_REDIST_DIR}\msvcm80.dll"
     File "${VC_REDIST_DIR}\msvcp80.dll"
     File "${VC_REDIST_DIR}\msvcr80.dll"
     File "${VC_REDIST_DIR}\Microsoft.VC80.CRT.manifest"
 !endif
-!if BUILD_TOOLS == "MinGW"
-    File "${PTHREADS_DIR}\pthreadGCE.dll"
-    File "${MINGW_DIR}\mingwm10.dll"
+!if "${BUILD_TOOLS}" == "MinGW"
+    File "${MINGW_BIN}\..\mingw32\bin\mingwm10.dll"
 !endif
+    File "libeay32.dll"
+    File "libmysql.dll"
+    File "pthreadGCE.dll"
+    File "ssleay32.dll"
+    File "zlib1.dll"
+    File "openssl.exe"
+    File "bacula.dll"
     StrCpy $DependenciesDone 1
   ${EndIf}
 FunctionEnd
@@ -206,7 +203,7 @@ Section "-Initialize"
   CreateDirectory "$INSTDIR\bin"
   CreateDirectory "$APPDATA\Bacula"
 
-  File ..\..\LICENSE
+  File "..\..\..\LICENSE"
   Delete /REBOOTOK "$INSTDIR\bin\License.txt"
 SectionEnd
 
@@ -216,7 +213,7 @@ Section "File Service" SecFileDaemon
   SectionIn 1 2 3
 
   SetOutPath "$INSTDIR\bin"
-  File "Release\bacula-fd.exe"
+  File "bacula-fd.exe"
 
   StrCpy $R0 0
   StrCpy $R1 "$APPDATA\Bacula\bacula-fd.conf"
@@ -254,12 +251,18 @@ Section "Storage Service" SecStorageDaemon
   SectionIn 2 3
   
   SetOutPath "$INSTDIR\bin"
-  File "Release\bacula-sd.exe"
-  File "Release\bcopy.exe"
-  File "Release\bextract.exe"
-  File "Release\bls.exe"
-  File "Release\bscan.exe"
-  File "Release\btape.exe"
+  File "loaderinfo.exe"
+  File "mt.exe"
+  File "mtx.exe"
+  File "scsitape.exe"
+  File "tapeinfo.exe"
+  File "bacula-sd.exe"
+  File "bcopy.exe"
+  File "bextract.exe"
+  File "bls.exe"
+  File "bscan.exe"
+  File "btape.exe"
+  File /oname=mtx-changer.cmd ..\scripts\mtx-changer.cmd.in
 
   StrCpy $R0 0
   StrCpy $R1 "$APPDATA\Bacula\bacula-sd.conf"
@@ -267,7 +270,7 @@ Section "Storage Service" SecStorageDaemon
     StrCpy $R0 1
     StrCpy $R1 "$R1.new"
     
-  File /oname=$R1 ..\stored\bacula-sd.conf.in
+  File /oname=$R1 "..\..\stored\bacula-sd.conf.in"
   
   ${If} $OptSilent <> 1
   ${AndIf} $R0 <> 1
@@ -292,8 +295,20 @@ Section "Director Service" SecDirectorDaemon
   SectionIn 2 3
 
   SetOutPath "$INSTDIR\bin"
-  File "Release\bacula-dir.exe"
-  File "Release\dbcheck.exe"
+  File "bacula-dir.exe"
+  File "dbcheck.exe"
+  File ..\cats\create_mysql_database.cmd
+  File ..\cats\drop_mysql_database.cmd
+  File ..\cats\make_mysql_tables.cmd
+  File ..\cats\make_mysql_tables.sql
+  File ..\cats\drop_mysql_tables.cmd
+  File ..\cats\drop_mysql_tables.sql
+  File ..\cats\update_mysql_tables.cmd
+  File ..\cats\update_mysql_tables.sql
+  File ..\cats\grant_mysql_privileges.cmd
+  File ..\cats\grant_mysql_privileges.sql
+  File ..\cats\make_catalog_backup.cmd
+  File ..\cats\delete_catalog_backup.cmd
 
   StrCpy $R0 0
   StrCpy $R1 "$APPDATA\Bacula\bacula-dir.conf"
@@ -301,7 +316,7 @@ Section "Director Service" SecDirectorDaemon
     StrCpy $R0 1
     StrCpy $R1 "$R1.new"
     
-  File /oname=$R1 ..\dird\bacula-dir.conf.in
+  File /oname=$R1 "..\..\dird\bacula-dir.conf.in"
   
   ${If} $OptSilent <> 1
   ${AndIf} $R0 <> 1
@@ -329,7 +344,7 @@ SectionGroup "Consoles"
 Section "Command Console" SecConsole
   SectionIn 3
 
-  File Release\bconsole.exe
+  File "bconsole.exe"
   Call CopyDependencies
 
   StrCpy $R0 0
@@ -338,7 +353,7 @@ Section "Command Console" SecConsole
     StrCpy $R0 1
     StrCpy $R1 "$R1.new"
     
-  File /oname=$R1 ..\console\bconsole.conf.in
+  File /oname=$R1 "..\..\console\bconsole.conf.in"
   
   ${If} $OptSilent <> 1
   ${AndIf} $R0 <> 1
@@ -357,8 +372,10 @@ SectionEnd
 Section "Graphical Console" SecWxConsole
   SectionIn 1 2 3
   
-  File Release\wx-console.exe
   Call CopyDependencies
+  File "wxbase26_gcc_bacula.dll"
+  File "wxmsw26_core_gcc_bacula.dll"
+  File "wx-console.exe"
 
   StrCpy $R0 0
   StrCpy $R1 "$APPDATA\Bacula\wx-console.conf"
@@ -366,7 +383,7 @@ Section "Graphical Console" SecWxConsole
     StrCpy $R0 1
     StrCpy $R1 "$R1.new"
     
-  File /oname=$R1 ..\wx-console\wx-console.conf.in
+  File /oname=$R1 "..\..\wx-console\wx-console.conf.in"
   
   ${If} $OptSilent <> 1
   ${AndIf} $R0 <> 1
@@ -392,7 +409,7 @@ Section "Documentation (Acrobat Format)" SecDocPdf
 
   SetOutPath "$INSTDIR\doc"
   CreateDirectory "$INSTDIR\doc"
-  File ..\..\..\docs\manual\bacula.pdf
+  File "${DOCDIR}\manual\bacula.pdf"
   CreateShortCut "$SMPROGRAMS\Bacula\Manual.lnk" '"$INSTDIR\doc\bacula.pdf"'
 SectionEnd
 
@@ -401,9 +418,9 @@ Section "Documentation (HTML Format)" SecDocHtml
 
   SetOutPath "$INSTDIR\doc"
   CreateDirectory "$INSTDIR\doc"
-  File ..\..\..\docs\manual\bacula\*.html
-  File ..\..\..\docs\manual\bacula\*.png
-  File ..\..\..\docs\manual\bacula\*.css
+  File "${DOCDIR}\manual\bacula\*.html"
+  File "${DOCDIR}\manual\bacula\*.png"
+  File "${DOCDIR}\manual\bacula\*.css"
   CreateShortCut "$SMPROGRAMS\Bacula\Manual (HTML).lnk" '"$INSTDIR\doc\bacula.html"'
 SectionEnd
 
@@ -770,8 +787,8 @@ Function InstallDaemon
     ExecWait '"$INSTDIR\bin\$0.exe" /install'
 
     ${If} $OsIsNT <> 1
-      File Start.bat
-      File Stop.bat
+      File "Start.bat"
+      File "Stop.bat"
     ${EndIf}
 
     ; Start the service? (default skipped if silent, use /start to force starting)

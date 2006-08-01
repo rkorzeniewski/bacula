@@ -1,6 +1,6 @@
 Index: SCons/Config/gnu
---- ../nsis-2.17-src-rel/SCons/Config/gnu	2006-04-28 08:54:41.000000000 -0700
-+++ ./SCons/Config/gnu	2006-06-19 23:12:11.000000000 -0700
+--- ../release/nsis-2.17-src/SCons/Config/gnu	2006-04-28 08:54:41.000000000 -0700
++++ ./SCons/Config/gnu	2006-07-31 05:48:44.000000000 -0700
 @@ -65,7 +65,7 @@
  cross_env(stub_env)
  
@@ -37,9 +37,59 @@ Index: SCons/Config/gnu
  cp_util_env.Append(CCFLAGS = '-Wall')             # all warnings
  
  conf = FlagsConfigure(cp_util_env)
+Index: Source/build.cpp
+--- ../release/nsis-2.17-src/Source/build.cpp	2006-04-14 03:05:01.000000000 -0700
++++ ./Source/build.cpp	2006-07-31 13:26:38.000000000 -0700
+@@ -2384,7 +2384,7 @@
+         return PS_ERROR;
+       }
+ #ifdef NSIS_CONFIG_CRC_SUPPORT
+-      crc_writer_sink crc_sink((unsigned long *) &crc);
++      crc_writer_sink crc_sink((unsigned int *) &crc);
+       firstheader_writer w(&crc_sink);
+       w.write(&fh);
+ 
+Index: Source/build.h
+--- ../release/nsis-2.17-src/Source/build.h	2005-04-02 04:04:06.000000000 -0800
++++ ./Source/build.h	2006-07-31 13:28:44.000000000 -0700
+@@ -38,7 +38,7 @@
+ #ifdef NSIS_CONFIG_CRC_SUPPORT
+ extern "C"
+ {
+-  unsigned long NSISCALL CRC32(unsigned long crc, const unsigned char *buf, unsigned int len);
++  unsigned int NSISCALL CRC32(unsigned int crc, const unsigned char *buf, unsigned int len);
+ };
+ #endif
+ 
+Index: Source/crc32.c
+--- ../release/nsis-2.17-src/Source/crc32.c	2004-03-12 12:43:54.000000000 -0800
++++ ./Source/crc32.c	2006-07-31 13:27:12.000000000 -0700
+@@ -3,18 +3,18 @@
+ #ifdef NSIS_CONFIG_CRC_SUPPORT
+ 
+ // this is based on the (slow,small) CRC32 implementation from zlib.
+-unsigned long NSISCALL CRC32(unsigned long crc, const unsigned char *buf, unsigned int len)
++unsigned int NSISCALL CRC32(unsigned int crc, const unsigned char *buf, unsigned int len)
+ {
+-    static unsigned long crc_table[256];
++    static unsigned int crc_table[256];
+ 
+     if (!crc_table[1])
+     {
+-      unsigned long c;
++      unsigned int c;
+       int n, k;
+ 
+       for (n = 0; n < 256; n++)
+       {
+-        c = (unsigned long)n;
++        c = (unsigned int)n;
+         for (k = 0; k < 8; k++) c = (c >> 1) ^ (c & 1 ? 0xedb88320L : 0);
+         crc_table[n] = c;
+       }
 Index: Source/DialogTemplate.cpp
---- ../nsis-2.17-src-rel/Source/DialogTemplate.cpp	2006-03-24 10:36:24.000000000 -0800
-+++ ./Source/DialogTemplate.cpp	2006-06-20 00:04:01.000000000 -0700
+--- ../release/nsis-2.17-src/Source/DialogTemplate.cpp	2006-03-24 10:36:24.000000000 -0800
++++ ./Source/DialogTemplate.cpp	2006-07-31 05:48:44.000000000 -0700
 @@ -93,7 +93,7 @@
      if (IS_INTRESOURCE(x)) { \
        *(WORD*)seeker = 0xFFFF; \
@@ -58,9 +108,21 @@ Index: Source/DialogTemplate.cpp
  
    // DONE!
    return pbDlg;
+Index: Source/exehead/fileform.c
+--- ../release/nsis-2.17-src/Source/exehead/fileform.c	2005-09-09 09:08:44.000000000 -0700
++++ ./Source/exehead/fileform.c	2006-07-31 13:26:08.000000000 -0700
+@@ -95,7 +95,7 @@
+ static z_stream g_inflate_stream;
+ #endif
+ 
+-extern unsigned long NSISCALL CRC32(unsigned long crc, const unsigned char *buf, unsigned int len);
++extern unsigned int NSISCALL CRC32(unsigned int crc, const unsigned char *buf, unsigned int len);
+ 
+ const char * NSISCALL loadHeaders(int cl_flags)
+ {
 Index: Source/Platform.h
---- ../nsis-2.17-src-rel/Source/Platform.h	2006-05-03 08:43:54.000000000 -0700
-+++ ./Source/Platform.h	2006-06-20 00:14:31.000000000 -0700
+--- ../release/nsis-2.17-src/Source/Platform.h	2006-05-03 08:43:54.000000000 -0700
++++ ./Source/Platform.h	2006-07-31 05:48:44.000000000 -0700
 @@ -16,15 +16,15 @@
  // basic types
  typedef unsigned char BYTE, *PBYTE, *LPBYTE;
@@ -128,9 +190,23 @@ Index: Source/Platform.h
  
  #ifndef IDC_HAND
  #  define IDC_HAND MAKEINTRESOURCE(32649)
+Index: Source/Plugins.cpp
+--- ../release/nsis-2.17-src/Source/Plugins.cpp	2006-04-05 11:42:12.000000000 -0700
++++ ./Source/Plugins.cpp	2006-07-31 06:50:08.000000000 -0700
+@@ -120,8 +120,8 @@
+         DWORD prd = FIX_ENDIAN_INT32(sections[i].PointerToRawData);
+         PIMAGE_EXPORT_DIRECTORY exports = PIMAGE_EXPORT_DIRECTORY(&dlldata[0] + prd + ExportDirVA - va);
+         DWORD na = FIX_ENDIAN_INT32(exports->AddressOfNames);
+-        unsigned long *names = (unsigned long*)((unsigned long) exports + (char *) na - ExportDirVA);
+-        for (unsigned long j = 0; j < FIX_ENDIAN_INT32(exports->NumberOfNames); j++)
++        unsigned int *names = (unsigned int*)((unsigned long) exports + (char *) na - ExportDirVA);
++        for (unsigned int j = 0; j < FIX_ENDIAN_INT32(exports->NumberOfNames); j++)
+         {
+           const string name = string((char*)exports + FIX_ENDIAN_INT32(names[j]) - ExportDirVA);
+           const string signature = dllName + "::" + name;
 Index: Source/ResourceEditor.cpp
---- ../nsis-2.17-src-rel/Source/ResourceEditor.cpp	2006-04-05 11:40:09.000000000 -0700
-+++ ./Source/ResourceEditor.cpp	2006-06-20 00:26:25.000000000 -0700
+--- ../release/nsis-2.17-src/Source/ResourceEditor.cpp	2006-04-05 11:40:09.000000000 -0700
++++ ./Source/ResourceEditor.cpp	2006-07-31 05:48:44.000000000 -0700
 @@ -545,7 +545,7 @@
      rdDir.NumberOfIdEntries = ConvertEndianness(rdDir.NumberOfIdEntries);
  
@@ -222,8 +298,8 @@ Index: Source/ResourceEditor.cpp
    else {
      m_bHasName = true;
 Index: Source/ResourceEditor.h
---- ../nsis-2.17-src-rel/Source/ResourceEditor.h	2006-04-28 08:54:42.000000000 -0700
-+++ ./Source/ResourceEditor.h	2006-06-20 00:20:39.000000000 -0700
+--- ../release/nsis-2.17-src/Source/ResourceEditor.h	2006-04-28 08:54:42.000000000 -0700
++++ ./Source/ResourceEditor.h	2006-07-31 05:48:44.000000000 -0700
 @@ -173,7 +173,7 @@
  
    void Destroy();
@@ -251,9 +327,34 @@ Index: Source/ResourceEditor.h
  
  private:
    BYTE* m_pbData;
+Index: Source/script.cpp
+--- ../release/nsis-2.17-src/Source/script.cpp	2006-03-28 10:22:34.000000000 -0800
++++ ./Source/script.cpp	2006-07-31 20:56:03.000000000 -0700
+@@ -4748,8 +4748,8 @@
+           {
+             struct
+             {
+-              long l;
+-              long h;
++              int l;
++              int h;
+             } words;
+             long long ll;
+           };
+@@ -6075,8 +6075,8 @@
+         {
+           struct
+           {
+-            long l;
+-            long h;
++            int l;
++            int h;
+           } words;
+           long long ll;
+         };
 Index: Source/util.cpp
---- ../nsis-2.17-src-rel/Source/util.cpp	2006-04-28 08:54:42.000000000 -0700
-+++ ./Source/util.cpp	2006-06-20 00:41:16.000000000 -0700
+--- ../release/nsis-2.17-src/Source/util.cpp	2006-04-28 08:54:42.000000000 -0700
++++ ./Source/util.cpp	2006-07-31 05:48:44.000000000 -0700
 @@ -312,7 +312,7 @@
    FIX_ENDIAN_INT32_INPLACE(rdEntry.OffsetToData);
    MY_ASSERT(!rdEntry.DirectoryOffset.DataIsDirectory, "bad resource directory");
@@ -294,3 +395,33 @@ Index: Source/util.cpp
    }
  
    LPBYTE seeker = uninstIconData;
+Index: Source/writer.cpp
+--- ../release/nsis-2.17-src/Source/writer.cpp	2006-03-11 03:13:07.000000000 -0800
++++ ./Source/writer.cpp	2006-07-31 13:27:37.000000000 -0700
+@@ -64,7 +64,7 @@
+ }
+ 
+ #ifdef NSIS_CONFIG_CRC_SUPPORT
+-extern "C" unsigned long NSISCALL CRC32(unsigned long crc, const unsigned char *buf, unsigned int len);
++extern "C" unsigned int NSISCALL CRC32(unsigned int crc, const unsigned char *buf, unsigned int len);
+ 
+ void crc_writer_sink::write_data(const void *data, const size_t size)
+ {
+Index: Source/writer.h
+--- ../release/nsis-2.17-src/Source/writer.h	2006-03-11 03:13:07.000000000 -0800
++++ ./Source/writer.h	2006-07-31 13:27:58.000000000 -0700
+@@ -57,12 +57,12 @@
+ #ifdef NSIS_CONFIG_CRC_SUPPORT
+ class crc_writer_sink : public writer_sink {
+ public:
+-  crc_writer_sink(unsigned long *crc) : m_crc(crc) {}
++  crc_writer_sink(unsigned int *crc) : m_crc(crc) {}
+ 
+   virtual void write_data(const void *data, const size_t size);
+ 
+ private:
+-  unsigned long *m_crc;
++  unsigned int *m_crc;
+ 
+ };
+ #endif

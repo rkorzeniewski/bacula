@@ -29,14 +29,12 @@ define link_conapp
 	@echo "Linking $@"
 	$(call checkdir,$@)
 	$(ECHO_CMD)$(CXX) $(CFLAGS) $(LDFLAGS) -mconsole $^ $(1) -o $@
-	$(makedbg)
 endef
 
 define link_winapp
 	@echo "Linking $@"
 	$(call checkdir,$@)
 	$(ECHO_CMD)$(CXX) $(CFLAGS) $(LDFLAGS) -mwindows $^ $(1) -o $@
-	$(makedbg)
 endef
 
 define makedbg

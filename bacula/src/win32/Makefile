@@ -6,7 +6,8 @@ DIRS=	dll \
 	stored \
 	console \
 	wx-console \
-	tools
+	tools \
+	installer
 
 .PHONY: $(DIRS) clean all
 
@@ -22,6 +23,20 @@ $(DIRS):
 		echo -e "\n!!!!! Make of $@ failed !!!!!\n\n" ; \
 	fi
 
-Makefile.inc: Makefile.inc.cross
+Makefile.inc: Makefile.inc.in
 	@echo Creating $@
-	$(ECHO_CMD)sed -e "s^@TOPDIR@^`(cd ../../..;pwd)`^" < Makefile.inc.cross > $@
+	$(ECHO_CMD)TOPDIR=`(cd ../../..;pwd)`; \
+	if test -e ../../../cross-tools/mingw32/bin/mingw32-gcc; then \
+		BINDIR=$${TOPDIR}/cross-tools/mingw32/bin; \
+		INCDIR=$${TOPDIR}/cross-tools/mingw32/mingw32/include; \
+	elif test -e /mingw/bin/mingw32-gcc; then \
+		BINDIR=/mingw/bin; \
+		INCDIR=/mingw/include; \
+	else \
+		echo -e "\nThe GCC cross compiler isn't installed."; \
+		echo -e "You must run build-win32-cross-tools and build-dependencies first.\n"; \
+		exit 1; \
+	fi ; \
+	sed -e "s^@TOPDIR@^$${TOPDIR}^" \
+		-e "s^@BINDIR@^$${BINDIR}^" \
+		-e "s^@INCDIR@^$${INCDIR}^" < Makefile.inc.in > $@

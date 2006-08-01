@@ -48,6 +48,6 @@ clean:
 #
 
 $(BINDIR)/bconsole.exe: $(CONSOLE_OBJS) $(LIBS_BACULA)
-	$(call link_winapp,$(CONSOLE_LIBS))
+	$(call link_conapp,$(CONSOLE_LIBS))
 
 include ../Makefile.rules

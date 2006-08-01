@@ -33,6 +33,7 @@ _Z10_db_unlockPKciP4B_DB
 _Z11db_strerrorP4B_DB
 ;_Z11list_dashesP4B_DBPFvPvPKcES1_
 ;_Z11list_resultP3JCRP4B_DBPFvPvPKcES3_11e_list_type
+_Z16db_int64_handlerPviPPc
 _Z18db_end_transactionP3JCRP4B_DB
 ;_Z18get_sql_record_maxP3JCRP4B_DB
 ;_Z19split_path_and_fileP3JCRP4B_DBPKc

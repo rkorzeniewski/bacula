@@ -98,7 +98,7 @@ PostToBacula(UINT message, WPARAM wParam, LPARAM lParam)
   // Post the message to Bacula
   PostMessage(hservwnd, message, wParam, lParam);
 #endif
-  return TRUE;
+  return FALSE;
 }
 
 

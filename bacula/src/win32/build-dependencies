@@ -1,3 +1,5 @@
+#!/bin/sh
+
 VERBOSE=n
 OVERWRITE=n
 
@@ -36,15 +38,18 @@ SCRIPT_DIR=`pwd`
 cd ../../..
 TOP_DIR=`pwd`
 
-if [ ! -e ${TOP_DIR}/cross-tools/mingw32/bin/mingw32-gcc ] 
+if [ -e ${TOP_DIR}/cross-tools/mingw32/bin/mingw32-gcc ]
 then
+	cd ${TOP_DIR}/cross-tools/mingw32/bin
+	BIN_DIR=`pwd`
+elif [ -e /mingw/bin/mingw32-gcc ] 
+then
+	BIN_DIR=/mingw/bin
+else
 	echo The GCC cross compiler isn\'t installed.
 	echo You must run build-win32-cross-tools first
 	exit 1
 fi
-
-cd ${TOP_DIR}/cross-tools/mingw32/bin
-BIN_DIR=`pwd`
 
 [ ! -e ${TOP_DIR}/depkgs-mingw32 ] && mkdir ${TOP_DIR}/depkgs-mingw32
 cd ${TOP_DIR}/depkgs-mingw32
@@ -221,7 +226,12 @@ process_mysql()
 {
 	get_source "${URL_MYSQL}" "${DIR_MYSQL}"
 	echo Converting mysql lib file
-	${BIN_DIR}/../mingw32/bin/reimp --dlltool ${BIN_DIR}/mingw32-dlltool --as ${BIN_DIR}/mingw32-as lib/opt/libmysql.lib
+	if [ -e ${BIN_DIR}/reimp ]
+	then
+		reimp --dlltool ${BIN_DIR}/mingw32-dlltool --as ${BIN_DIR}/mingw32-as lib/opt/libmysql.lib
+	else
+		${BIN_DIR}/../mingw32/bin/reimp --dlltool ${BIN_DIR}/mingw32-dlltool --as ${BIN_DIR}/mingw32-as lib/opt/libmysql.lib
+	fi
 	echo Installing mysql
 	cp -p liblibmysql.a ../../lib/libmysql.a
 	rm -rf ../../include/mysql
@@ -281,7 +291,7 @@ process_wxWidgets()
 	echo Building wxWidgets
 	cd build/msw
 	> make.log
-	do_make makefile.mingw32 SHARED=1 VENDOR=bacula
+	do_make makefile.mingw32 SHARED=1 VENDOR=bacula DEBUG_INFO=1
 	echo Installing wxWidgets
 	cd ../..
 	rm -rf ../../include/wx
@@ -368,7 +378,7 @@ process_mt()
 		do_patch mt.patch
 	fi
 	echo Building mt
-	do_make Makefile prefix=${DEPPKG_DIR} all
+	do_make Makefile PREFIX=${DEPPKG_DIR} all
 	echo Installing mt
 	do_make Makefile PREFIX=${DEPPKG_DIR} install
 }
@@ -386,6 +396,7 @@ then
 	process_scons
 	process_nsis
 	process_mtx
+	process_mt
 else
 	for dependency in "$@"
 	do
