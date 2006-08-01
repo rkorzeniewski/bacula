@@ -70,7 +70,8 @@ following:
         wget
         texinfo
         bison
-        man2html
+        man2html (in man rpm on Fedora, not available on SuSE, must
+                  manually build and install)
 
 and possibly other packages.
 
@@ -93,6 +94,26 @@ to ensure that you pick up all the new Win32 changes:
      cvs update
      cd src/win32
      make
+
+Building the Installer
+======================
+
+The installer isn't built as part of the default rule, you need to do a make
+in the src/win32/installer directory or type:
+
+     cd src/win32
+     make installer
+
+This was done because building the installer takes a bit of time
+and if you are working on the individual executables it's a pain to wait for
+it.  If you want to build everything in one step you can always type:
+
+     cd src/win32
+     make all installer
+
+
+Updating the 3rd party package patches
+====================================== 
 
 If one of the patches change in src/win32/patches, you shouldn't
 need to update the cross-tools or dependencies for it to build.
