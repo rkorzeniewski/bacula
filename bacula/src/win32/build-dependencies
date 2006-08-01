@@ -138,7 +138,7 @@ do_patch()
 {
 	PATCH_FILE=${SCRIPT_DIR}/patches/$1; shift
 	
-	if patch -f -p0 "$@" >patch.log < ${PATCH_FILE}
+	if patch -f -p0 "$@" >>patch.log < ${PATCH_FILE}
 	then
 		:
 	else
@@ -163,6 +163,7 @@ process_zlib()
 	if get_source "${URL_ZLIB}" "${DIR_ZLIB}"
 	then
 		echo Patching zlib
+		>patch.log
 		do_patch zlib.patch
 	fi
 	echo Building zlib
@@ -177,6 +178,7 @@ process_pcre()
 	if get_source "${URL_PCRE}" "${DIR_PCRE}"
 	then
 		echo Patching PCRE
+		>patch.log
 		do_patch pcre.patch
 	fi
 	echo Configuring PCRE
@@ -192,6 +194,7 @@ process_pthreads()
 	if get_source "${URL_PTHREADS}" "${DIR_PTHREADS}"
 	then
 		echo Patching pthreads
+		>patch.log
 		do_patch pthreads.patch
 	fi
 	echo Building pthreads
@@ -210,6 +213,7 @@ process_openssl()
 	if get_source "${URL_OPENSSL}" "${DIR_OPENSSL}"
 	then
 		echo Patching openssl
+		>patch.log
 		do_patch openssl.patch
 	fi
 	echo Configuring openssl
@@ -245,6 +249,7 @@ process_postgreSQL()
 	if get_source "${URL_POSTGRESQL}" "${DIR_POSTGRESQL}"
 	then
 		echo Patching postgreSQL
+		>patch.log
 		do_patch postgresql.patch
 	fi
 	echo Configuring postgreSQL
@@ -266,6 +271,7 @@ process_sqlite()
 	if get_source "${URL_SQLITE}" "${DIR_SQLITE}"
 	then
 		echo Patching SQLite
+		>patch.log
 		do_patch sqlite.patch
 	fi
 	echo Configuring SQLite
@@ -285,7 +291,9 @@ process_wxWidgets()
 	if get_source "${URL_WX}" "${DIR_WX}"
 	then
 		echo Patching wxWidgets
-		do_patch wx.patch -o build/msw/config.mingw32
+		>patch.log
+		do_patch wx1.patch -o build/msw/config.mingw32
+		do_patch wx2.patch
 		find . -name makefile.gcc -exec sh -c "sed -f ${SCRIPT_DIR}/patches/wx.sed {} > \`echo {} | sed s/\.gcc$/\.mingw32/\`" \;
 	fi
 	echo Building wxWidgets
@@ -335,6 +343,7 @@ process_nsis()
 	if get_source "${URL_NSIS_SRC}" "${DIR_NSIS_SRC}"
 	then
 		echo Patching nsis
+		>patch.log
 		do_patch nsis.patch
 	fi
 	echo Building nsis
@@ -362,6 +371,7 @@ process_mtx()
 		cp -f config.h.in config.h
 		cp -f Makefile.in Makefile
 		rm -f configure
+		>patch.log
 		do_patch mtx.patch
 	fi
 	echo Building mtx
@@ -375,6 +385,7 @@ process_mt()
 	if get_source "${URL_MT}" "${DIR_MT}"
 	then
 		echo Patching mt
+		>patch.log
 		do_patch mt.patch
 	fi
 	echo Building mt
