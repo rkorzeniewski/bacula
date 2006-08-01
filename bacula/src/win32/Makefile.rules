@@ -66,6 +66,8 @@ $(OBJDIR)/%.d: %.c
 $(OBJDIR)/%.d: %.cpp
 	$(makedep)
 
+ifneq ($(ALL_OBJS),)
 ifneq ($(MAKECMDGOALS),clean)
 include $(patsubst %.o,%.d,$(filter-out %.res,$(ALL_OBJS)))
+endif
 endif
