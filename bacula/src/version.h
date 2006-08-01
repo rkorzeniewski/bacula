@@ -6,6 +6,7 @@
 #define VERSION "1.39.18"
 #define BDATE   "31 July 2006"
 #define LSMDATE "31Jul06"
+#define BYEAR "2006"       /* year for copyright messages in progs */
 
 /* Debug flags */
 #undef  DEBUG

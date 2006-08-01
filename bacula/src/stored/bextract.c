@@ -61,7 +61,7 @@ pthread_cond_t wait_device_release = PTHREAD_COND_INITIALIZER;
 static void usage()
 {
    fprintf(stderr, _(
-"Copyright (C) 2000-2005 Kern Sibbald.\n"
+"Copyright (C) 2000-%s Kern Sibbald.\n"
 "\nVersion: %s (%s)\n\n"
 "Usage: bextract <options> <bacula-archive-device-name> <directory-to-store-files>\n"
 "       -b <file>       specify a bootstrap file\n"
@@ -72,7 +72,7 @@ static void usage()
 "       -p              proceed inspite of I/O errors\n"
 "       -v              verbose\n"
 "       -V <volumes>    specify Volume names (separated by |)\n"
-"       -?              print this message\n\n"), VERSION, BDATE);
+"       -?              print this message\n\n"), BYEAR, VERSION, BDATE);
    exit(1);
 }
 

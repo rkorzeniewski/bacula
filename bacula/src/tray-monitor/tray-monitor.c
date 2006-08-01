@@ -8,22 +8,17 @@
  */
 
 /*
-   Copyright (C) 2004-2005 Kern Sibbald
+   Copyright (C) 2004-2006 Kern Sibbald
 
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
-   This library is distributed in the hope that it will be useful,
+   This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
-
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -99,7 +94,7 @@ static gboolean blinkstate = TRUE;
 static void usage()
 {
    fprintf(stderr, _(
-"Copyright (C) 2000-2004 Kern Sibbald and John Walker\n"
+"Copyright (C) 2000-%s Kern Sibbald\n"
 "Written by Nicolas Boichat (2004)\n"
 "\nVersion: %s (%s) %s %s %s\n\n"
 "Usage: tray-monitor [-c config_file] [-d debug_level]\n"
@@ -107,7 +102,7 @@ static void usage()
 "       -dnn          set debug level to nn\n"
 "       -t            test - read configuration and exit\n"
 "       -?            print this message.\n"
-"\n"), VERSION, BDATE, HOST_OS, DISTNAME, DISTVER);
+"\n"), BYEAR, VERSION, BDATE, HOST_OS, DISTNAME, DISTVER);
 }
 
 static GtkWidget *new_image_button(const gchar *stock_id,
@@ -500,7 +495,7 @@ static void MonitorAbout(GtkWidget *widget, gpointer data) {
       "%s"
       "\n<small>%s: %s (%s) %s %s %s</small>",
       _("Bacula Tray Monitor"),
-      _("Copyright (C) 2004-2005 Kern Sibbald\n"
+      _("Copyright (C) 2004-2006 Kern Sibbald\n"
         "Written by Nicolas Boichat\n"),
       _("Version:"),
       VERSION, BDATE, HOST_OS, DISTNAME, DISTVER);
@@ -510,10 +505,10 @@ static void MonitorAbout(GtkWidget *widget, gpointer data) {
       "%s"
       "\n%s %s (%s) %s %s %s",
       _("Bacula Tray Monitor"),
-      _("Copyright (C) 2004-2005 Kern Sibbald\n"
+      _("Copyright (C) 2004-2006 Kern Sibbald\n"
         "Written by Nicolas Boichat\n"),
       _("Version:"),
-      VERSION, BDATE, HOST_OS, DISTNAME, DISTVER);
+      BYEAR, VERSION, BDATE, HOST_OS, DISTNAME);
 #endif
    gtk_dialog_run(GTK_DIALOG(about));
    gtk_widget_destroy(about);

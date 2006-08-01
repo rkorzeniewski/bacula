@@ -8,7 +8,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2002-2005 Kern Sibbald
+   Copyright (C) 2002-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -55,7 +55,7 @@ pthread_cond_t wait_device_release = PTHREAD_COND_INITIALIZER;
 static void usage()
 {
    fprintf(stderr, _(
-"Copyright (C) 2002-2005 Kern Sibbald.\n"
+"Copyright (C) 2002-%s Kern Sibbald.\n"
 "\nVersion: %s (%s)\n\n"
 "Usage: bcopy [-d debug_level] <input-archive> <output-archive>\n"
 "       -b bootstrap      specify a bootstrap file\n"
@@ -66,7 +66,7 @@ static void usage()
 "       -p                proceed inspite of errors\n"
 "       -v                verbose\n"
 "       -w <dir>          specify working directory (default /tmp)\n"
-"       -?                print this message\n\n"), VERSION, BDATE);
+"       -?                print this message\n\n"), BYEAR, VERSION, BDATE);
    exit(1);
 }
 

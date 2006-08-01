@@ -98,7 +98,7 @@ pthread_cond_t wait_device_release = PTHREAD_COND_INITIALIZER;
 static void usage()
 {
    fprintf(stderr, _(
-"Copyright (C) 2001-2005 Kern Sibbald.\n"
+"Copyright (C) 2001-%s Kern Sibbald.\n"
 "\nVersion: %s (%s)\n\n"
 "Usage: bscan [ options ] <bacula-archive>\n"
 "       -b bootstrap      specify a bootstrap file\n"
@@ -116,7 +116,7 @@ static void usage()
 "       -v                verbose\n"
 "       -V <Volumes>      specify Volume names (separated by |)\n"
 "       -w <dir>          specify working directory (default from conf file)\n"
-"       -?                print this message\n\n"), VERSION, BDATE);
+"       -?                print this message\n\n"), BYEAR, VERSION, BDATE);
    exit(1);
 }
 

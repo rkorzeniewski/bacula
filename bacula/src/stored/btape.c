@@ -178,7 +178,8 @@ int main(int margc, char *margv[])
    bsnprintf(buf, sizeof(buf), "%" llu, x64);
    i = bsscanf(buf, "%llu", &y64);
    if (i != 1 || x64 != y64) {
-      Pmsg3(-1, _("64 bit printf/scanf problem. i=%d x64=%" llu " y64=%" llu "\n"), i, x64, y64);
+      Pmsg3(-1, _("64 bit printf/scanf problem. i=%d x64=%" llu " y64=%" llu "\n"), 
+            i, x64, y64);
       exit(1);
    }
 
@@ -2572,7 +2573,7 @@ do_tape_cmds()
    unsigned int i;
    bool found;
 
-   while (get_cmd("*")) {
+   while (!quit && get_cmd("*")) {
       sm_check(__FILE__, __LINE__, false);
       found = false;
       parse_args(cmd, &args, &argc, argk, argv, MAX_CMD_ARGS);
@@ -2582,10 +2583,9 @@ do_tape_cmds()
             found = true;
             break;
          }
-      if (!found)
-         Pmsg1(0, _("%s is an illegal command\n"), cmd);
-      if (quit)
-         break;
+      if (!found) {
+         Pmsg1(0, _("\"%s\" is an illegal command\n"), cmd);
+      }
    }
 }
 
@@ -2603,7 +2603,7 @@ static void helpcmd()
 static void usage()
 {
    fprintf(stderr, _(
-"Copyright (C) 2000-2005 Kern Sibbald.\n"
+"Copyright (C) 2000-%s Kern Sibbald.\n"
 "\nVersion: %s (%s)\n\n"
 "Usage: btape <options> <device_name>\n"
 "       -b <file>   specify bootstrap file\n"
@@ -2613,7 +2613,7 @@ static void usage()
 "       -s          turn off signals\n"
 "       -v          be verbose\n"
 "       -?          print this message.\n"
-"\n"), VERSION, BDATE);
+"\n"), BYEAR, VERSION, BDATE);
 
 }
 
