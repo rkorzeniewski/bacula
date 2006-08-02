@@ -24,11 +24,14 @@ Document:
 - Add example of proper index output to doc.
    show index from File;
 - Correct the Include syntax in the m4.xxx files in examples/conf
+- Document JobStatus and Termination codes.
 
 Priority:
 
 For 1.39:
+- Try turning on disk seek code.
 - Possibly turn on St. Bernard code.
+- Fix bscan to report the JobType when restoring a job.
 - Fix bextract to restore ACLs, or better yet, use common
   routines.
 - Do we migrate appendable Volumes?
@@ -38,7 +41,6 @@ For 1.39:
 - Fix re-read of last block to check if job has actually written
   a block, and check if block was written by a different job
   (i.e. multiple simultaneous jobs writing).
-- JobStatus and Termination codes.
 - Some users claim that they must do two prune commands to get a
   Volume marked as purged.
 - Print warning message if LANG environment variable does not specify
@@ -61,7 +63,6 @@ For 1.39:
 
 Low priority:
 - Get Perl replacement for bregex.c
-
 - Given all the problems with FIFOs, I think the solution is to do something a
   little different, though I will look at the code and see if there is not some
   simple solution (i.e. some bug that was introduced).  What might be a better

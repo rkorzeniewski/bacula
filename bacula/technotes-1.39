@@ -1,7 +1,12 @@
               Technical notes on version 1.39  
-                        Kern Sibbald
 
 General:
+02Aug06
+kes  Change the name of the technical notes file from kes-1.39 to
+     technotes-1.39.  Prefix my messages with 'kes  '.
+kes  Allow dequeue_messages() to be called twice. Should fix bug  
+     # 649.
+kes  Add Job type to bscan Job information output.
 01Aug06
 kes  Update copyright date in program files, and for the most part
      put it on a #define.
