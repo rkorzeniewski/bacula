@@ -1289,12 +1289,18 @@ void dequeue_messages(JCR *jcr)
 {
    MQUEUE_ITEM *item;
    P(msg_queue_mutex);
+   if (!jcr->msg_queue) {
+      goto bail_out;
+   }
    jcr->dequeuing = true;
    foreach_dlist(item, jcr->msg_queue) {
       Jmsg(jcr, item->type, item->mtime, "%s", item->msg);
    }
    jcr->msg_queue->destroy();
+   jcr->msg_queue = NULL;
    jcr->dequeuing = false;
+
+bail_out:
    V(msg_queue_mutex);
 }
 

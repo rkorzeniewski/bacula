@@ -30,7 +30,7 @@
 /* #define DEBUG_MUTEX 1 */
 
 /* Check if header of tape block is zero before writing */
-#define DEBUG_BLOCK_ZEROING 1
+/* #define DEBUG_BLOCK_ZEROING 1 */
 
 /* #define FULL_DEBUG 1 */   /* normally on for testing only */
 
