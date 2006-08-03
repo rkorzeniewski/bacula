@@ -253,7 +253,7 @@ make_wchar_win32_path(POOLMEM *pszUCSPath, BOOL *pBIsRawPath /*= NULL*/)
    if (bAddDrive && !bAddCurrentPath) {
       wchar_t szDrive[3];
 
-      if (!bAddPrefix && dwCurDirPathSize > 3 && wcsncmp((LPCWSTR)pwszCurDirBuf, L"\\\\?\\", 4) == 0) {
+      if (dwCurDirPathSize > 3 && wcsncmp((LPCWSTR)pwszCurDirBuf, L"\\\\?\\", 4) == 0) {
          /* copy drive character */
          wcsncpy((wchar_t *)szDrive, (LPCWSTR)pwszCurDirBuf+4, 2);          
       } else {
@@ -328,9 +328,9 @@ make_wchar_win32_path(POOLMEM *pszUCSPath, BOOL *pBIsRawPath /*= NULL*/)
       /* create temp. buffer */
       POOLMEM* pszBuf = get_pool_memory(PM_FNAME);
       pszBuf = check_pool_memory_size(pszBuf, (dwBufCharsNeeded+MAX_PATH)*sizeof(wchar_t));
-//      if (bAddPrefix)
-//         nParseOffset = 4;
-//      else
+      if (bAddPrefix)
+         nParseOffset = 4;
+      else
          nParseOffset = 0; 
       wcsncpy((wchar_t *)pszBuf, (wchar_t *)pwszBuf+nParseOffset, wcslen((wchar_t *)pwszBuf)+1-nParseOffset);
       g_pVSSPathConvertW((wchar_t *)pszBuf, (wchar_t *)pwszBuf, dwBufCharsNeeded+MAX_PATH);

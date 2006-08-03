@@ -29,6 +29,8 @@ Document:
 Priority:
 
 For 1.39:
+- If a job terminates, the DIR connection can close before the
+  Volume info is updated, leaving the File count wrong.
 - Look at why SIGPIPE during connection can cause seg fault in
   writing the daemon message, when Dir dropped to bacula:bacula
 - Look at zlib 32 => 64 problems.
