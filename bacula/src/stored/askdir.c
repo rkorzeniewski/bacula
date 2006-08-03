@@ -322,7 +322,7 @@ bool dir_update_volume_info(DCR *dcr, bool label)
    /* Do not lock device here because it may be locked from label */
    if (!do_get_volume_info(dcr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", jcr->errmsg);
-      Pmsg2(000, _("Didn't get vol info vol=%s: ERR=%s"), 
+      Dmsg2(100, _("Didn't get vol info vol=%s: ERR=%s"), 
          vol->VolCatName, jcr->errmsg);
       return false;
    }

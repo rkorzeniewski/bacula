@@ -688,7 +688,11 @@ bool get_or_create_fileset_record(JCR *jcr)
       unsigned char digest[MD5HashSize];
       memcpy(&md5c, &jcr->fileset->md5c, sizeof(md5c));
       MD5Final(digest, &md5c);
-      bin_to_base64(fsr.MD5, sizeof(fsr.MD5), (char *)digest, MD5HashSize, true);
+      /*
+       * Keep the flag (last arg) set to false otherwise old FileSets will
+       * get new MD5 sums and the user will get Full backups on everything
+       */
+      bin_to_base64(fsr.MD5, sizeof(fsr.MD5), (char *)digest, MD5HashSize, false);
       bstrncpy(jcr->fileset->MD5, fsr.MD5, sizeof(jcr->fileset->MD5));
    } else {
       Jmsg(jcr, M_WARNING, 0, _("FileSet MD5 digest not found.\n"));
