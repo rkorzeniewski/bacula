@@ -309,7 +309,7 @@ static void *job_thread(void *arg)
       run_scripts(jcr, jcr->job->RunScripts, "AfterJob");
 
       /* Send off any queued messages */
-      if (jcr->msg_queue->size() > 0) {
+      if (jcr->msg_queue && jcr->msg_queue->size() > 0) {
          dequeue_messages(jcr);
       }
    }

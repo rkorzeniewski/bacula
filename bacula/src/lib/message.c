@@ -1297,7 +1297,6 @@ void dequeue_messages(JCR *jcr)
       Jmsg(jcr, item->type, item->mtime, "%s", item->msg);
    }
    jcr->msg_queue->destroy();
-   jcr->msg_queue = NULL;
    jcr->dequeuing = false;
 
 bail_out:
