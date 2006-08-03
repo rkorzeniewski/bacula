@@ -1,6 +1,16 @@
               Technical notes on version 1.39  
 
 General:
+03Aug06
+kes  Attempt to fix problems with the msg_queue crashing on Solaris
+     when Bacula is terminating, but problems remain.
+kes  Add WIN32_VSS to HAVES in src/Makefile.inc.in to correct VSS
+     name editing problems with too many \\?\es.
+kes  Add an extra test for !bAddPrefix at line 256 compat.cpp
+kes  Fix some Bacula source code stlye problems in compat.cpp.
+kes  Turn off 3 lines of code at line 331 of compat.cpp
+kes  Add debug code to compat.cpp and convert non-Bacula debug code
+     to Bacula style.
 02Aug06
 kes  Change the name of the technical notes file from kes-1.39 to
      technotes-1.39.  Prefix my messages with 'kes  '.
