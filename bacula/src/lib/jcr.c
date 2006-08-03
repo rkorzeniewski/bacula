@@ -330,7 +330,10 @@ static void free_common_jcr(JCR *jcr)
    }
    jcr->destroy_mutex();
 
-   delete jcr->msg_queue;
+   if (jcr->msg_queue) {
+      delete jcr->msg_queue;
+      jcr->msg_queue = NULL;
+   }
    close_msg(jcr);                    /* close messages for this job */
 
    /* do this after closing messages */

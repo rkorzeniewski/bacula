@@ -29,6 +29,11 @@ Document:
 Priority:
 
 For 1.39:
+- Look at why SIGPIPE during connection can cause seg fault in
+  writing the daemon message, when Dir dropped to bacula:bacula
+- Look at zlib 32 => 64 problems.
+- Ensure that connection to daemon failure always indicates what
+  daemon it was trying to connect to.
 - Try turning on disk seek code.
 - Possibly turn on St. Bernard code.
 - Fix bscan to report the JobType when restoring a job.

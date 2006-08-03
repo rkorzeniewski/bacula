@@ -9,7 +9,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -806,7 +806,7 @@ static BSOCK *bnet_open(JCR * jcr, const char *name, char *host, char *service,
    }
 
    if (!connected) {
-         free_addresses(addr_list);
+      free_addresses(addr_list);
       errno = save_errno;
       return NULL;
    }
