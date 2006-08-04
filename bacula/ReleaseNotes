@@ -126,7 +126,7 @@ A Lot of New features for 1.39.18:
   accept time qualifiers.
 - Implement jobuid to replace old usage of job in keywords as
   suggested by Eric Bollengier.
-- Apply patch for enhancing wait from Eric Bollengier. On can now:
+- Apply patch for enhancing wait from Eric Bollengier. One can now:
    wait  (wait for all jobs to stop)
    wait jobid=nn
    wait jobuid=unique id
