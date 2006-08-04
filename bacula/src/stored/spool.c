@@ -248,7 +248,7 @@ static bool despool_data(DCR *dcr, bool commit)
    lseek(rdcr->spool_fd, 0, SEEK_SET); /* rewind */
 
    /* Add run time, to get current wait time */
-   time_t despool_start = time(NULL) + jcr->run_time;
+   time_t despool_start = time(NULL) - jcr->run_time;
 
    for ( ; ok; ) {
       if (job_canceled(jcr)) {

@@ -1,6 +1,8 @@
               Technical notes on version 1.39  
 
 General:
+04Aug06
+kes  Correct despool time calculation.
 03Aug06
 kes  Remove previous changes to compat.cpp as they create problems.
 kes  Use old style MD5 for FileSets to avoid Full saves on every Job.
