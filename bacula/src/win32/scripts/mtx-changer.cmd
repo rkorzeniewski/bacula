@@ -80,31 +80,37 @@ SET device=%4
 SET drive=%5
 
 CALL :debug "Parms: %ctl% %cmd% %slot% %device% %drive%"
+IF "%cmd%" EQU "unload" GOTO :cmdUnload
+IF "%cmd%" EQU "load" GOTO :cmdLoad
+IF "%cmd%" EQU "list" GOTO :cmdList
+IF "%cmd%" EQU "loaded" GOTO :cmdLoaded
+IF "%cmd%" EQU "slots" GOTO :cmdSlots
+GOTO :cmdUnknown
 
-IF "%cmd%" NEQ "unload" goto :cmdLoad
+:cmdUnload
    CALL :debug "Doing mtx -f %ctl% unload %slot% %drive%"
-   %MT% -f %device% offline
+   %MT% -f %device% eject
    %MTX% -f %ctl% unload %slot% %drive%
-   EXIT /B %ERRORLEVEL%
+   SET rtn=%ERRORLEVEL%
+   GOTO :cmdExit
 
 :cmdLoad
-IF "%cmd%" NEQ "load" goto :cmdList
    CALL :debug "Doing mtx -f %ctl% load %slot% %drive%"
    %MTX% -f %ctl% load %slot% %drive%
    SET rtn=%ERRORLEVEL%
-   %MT% -f %device% load
+   IF ERRORLEVEL 1 GOTO :cmdExit
+   REM %MT% -f %device% load
    CALL :wait_for_drive %device%
-   EXIT /B %rtn%
+   GOTO :cmdExit
 
 :cmdList
-IF "%cmd%" NEQ "list" goto :cmdLoaded
    CALL :debug "Doing mtx -f %ctl% -- to list volumes"
    CALL :make_temp_file
-   IF ERRORLEVEL 1 GOTO :EOF
 REM Enable the following if you are using barcodes and need an inventory
 REM   %MTX% -f %ctl% inventory
    %MTX% -f %ctl% status >%TMPFILE%
    SET rtn=%ERRORLEVEL%
+   IF ERRORLEVEL 1 GOTO :cmdExit
    FOR /F "usebackq tokens=3,6 delims==: " %%i in ( `findstr /R /C:" *Storage Element [0-9]*:.*Full" %TMPFILE%` ) do echo %%i:%%j
    FOR /F "usebackq tokens=7,10" %%i in ( `findstr /R /C:"^Data Transfer Element [0-9]*:Full (Storage Element [0-9]" %TMPFILE%` ) do echo %%i:%%j
    DEL /F "%TMPFILE%" >nul 2>&1
@@ -112,27 +118,31 @@ REM
 REM If you have a VXA PacketLoader and the above does not work, try
 REM  turning it off and enabling the following line.
 REM   %MTX% -f %ctl% status | grep " *Storage Element [0-9]*:.*Full" | sed "s/*Storage Element //" | sed "s/Full :VolumeTag=//"
-   EXIT /B %rtn%
+
+   GOTO :cmdExit
 
 :cmdLoaded
-IF "%cmd%" NEQ "loaded" goto :cmdSlots
    CALL :debug "Doing mtx -f %ctl% %drive% -- to find what is loaded"
    CALL :make_temp_file
    %MTX% -f %ctl% status >%TMPFILE%
    SET rtn=%ERRORLEVEL%
+   IF ERRORLEVEL 1 GOTO :cmdExit
    FOR /F "usebackq tokens=7" %%i in ( `findstr /R /C:"^Data Transfer Element %drive%:Full" %TMPFILE%` ) do echo %%i
    findstr /R /C:"^Data Transfer Element %drive%:Empty" %TMPFILE% >nul && echo 0
    DEL /F "%TMPFILE%" >nul 2>&1
-   EXIT /B %rtn%
+   GOTO :cmdExit
 
 :cmdSlots
-IF "%cmd%" NEQ "slots" goto :cmdUnknown
    CALL :debug "Doing mtx -f %ctl% -- to get count of slots"
    CALL :make_temp_file
    %MTX% -f %ctl% status >%TMPFILE%
    SET rtn=%ERRORLEVEL%
+   IF ERRORLEVEL 1 GOTO :cmdExit
    FOR /F "usebackq tokens=5" %%i in ( `findstr /R /C:" *Storage Changer" %TMPFILE%` ) do echo %%i
    DEL /F "%TMPFILE%" >nul 2>&1
+   GOTO :cmdExit
+
+:cmdExit
    EXIT /B %rtn%
 
 :cmdUnknown
