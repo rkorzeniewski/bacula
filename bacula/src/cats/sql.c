@@ -501,11 +501,9 @@ list_result(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type t
    send(ctx, "|");
    sql_field_seek(mdb, 0);
    for (i = 0; i < sql_num_fields(mdb); i++) {
-      char fmtbuf[50]; 
       Dmsg1(800, "list_result looking at field %d\n", i);
       field = sql_fetch_field(mdb);
-      bsnprintf(fmtbuf, sizeof(fmtbuf), "%%-%ds }", (int)field->max_length);
-      bsnprintf(buf, sizeof(buf), fmtbuf, field->name);
+      bsnprintf(buf, sizeof(buf), " %-*s |", (int)field->max_length, field->name);
       send(ctx, buf);
    }
    send(ctx, "\n");

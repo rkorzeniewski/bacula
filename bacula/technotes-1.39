@@ -1,6 +1,8 @@
               Technical notes on version 1.39  
 
 General:
+05Aug06
+kes  Correct improperly formated list command output reported by Dan.
 04Aug06
 kes  Correct despool time calculation.
 03Aug06
