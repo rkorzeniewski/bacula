@@ -35,17 +35,6 @@
 /* Imported functions */
 extern void print_bsr(UAContext *ua, RBSR *bsr);
 
-/* Imported variables */
-extern const char *uar_list_jobs,      *uar_file,        *uar_sel_files;
-extern const char *uar_del_temp,       *uar_del_temp1,   *uar_create_temp;
-extern const char *uar_create_temp1,   *uar_last_full,   *uar_full;
-extern const char *uar_inc,            *uar_list_temp,   *uar_sel_jobid_temp;
-extern const char *uar_sel_all_temp1,  *uar_sel_fileset, *uar_mediatype;
-extern const char *uar_jobid_fileindex, *uar_dif,        *uar_sel_all_temp;
-extern const char *uar_count_files,     *uar_jobids_fileindex;
-extern const char *uar_jobid_fileindex_from_dir;
-extern const char *uar_jobid_fileindex_from_table;
-
 
 
 /* Forward referenced functions */

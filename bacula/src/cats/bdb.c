@@ -39,10 +39,6 @@
 
 uint32_t bacula_db_version = 0;
 
-/* Forward referenced functions */
-
-extern const char *working_directory;
-
 /* List of open databases */
 static BQUEUE db_list = {&db_list, &db_list};
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;

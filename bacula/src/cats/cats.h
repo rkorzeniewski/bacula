@@ -795,16 +795,24 @@ struct db_int64_ctx {
 
 #include "protos.h"
 #include "jcr.h"
+#include "sql_cmds.h"
 
 /*
  * Some functions exported by sql.c for use within the
  *   cats directory.
  */
-void list_result(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type type);
+void list_result(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *send, void *ctx, e_list_type type);
 void list_dashes(B_DB *mdb, DB_LIST_HANDLER *send, void *ctx);
 int get_sql_record_max(JCR *jcr, B_DB *mdb);
 bool check_tables_version(JCR *jcr, B_DB *mdb);
 void _db_unlock(const char *file, int line, B_DB *mdb);
 void _db_lock(const char *file, int line, B_DB *mdb);
 
+void print_dashes(B_DB *mdb);
+void print_result(B_DB *mdb);
+int QueryDB(const char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
+int InsertDB(const char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
+int DeleteDB(const char *file, int line, JCR *jcr, B_DB *db, char *delete_cmd);
+int UpdateDB(const char *file, int line, JCR *jcr, B_DB *db, char *update_cmd);
+void split_path_and_file(JCR *jcr, B_DB *mdb, const char *fname);
 #endif /* __SQL_H_ */

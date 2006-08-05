@@ -28,9 +28,6 @@
 #include "bacula.h"
 #include "dird.h"
 
-extern const char *del_File;
-extern const char *upd_Purged;
-
 /* Forward referenced functions */
 static int purge_files_from_client(UAContext *ua, CLIENT *client);
 static int purge_jobs_from_client(UAContext *ua, CLIENT *client);

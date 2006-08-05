@@ -22,7 +22,7 @@
  */
 
 #include "bacula.h"
-#include "dird.h"
+#include "cats.h"
 
 /* For ua_cmds.c */
 const char *list_pool = "SELECT * FROM Pool WHERE PoolId=%s";

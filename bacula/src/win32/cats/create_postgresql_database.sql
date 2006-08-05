@@ -1,0 +1,2 @@
+CREATE DATABASE bacula $ENCODING;
+ALTER DATABASE bacula SET datestyle TO 'ISO, YMD';

@@ -16,6 +16,7 @@ INCLUDES = \
 
 DEFINES = \
 	-DUSING_DLL \
+	-DUSING_CATS \
 	$(HAVES)
 
 VPATH = ../../dird
@@ -47,7 +48,6 @@ DIRD_OBJS = \
 	$(OBJDIR)/restore.o \
 	$(OBJDIR)/run_conf.o \
 	$(OBJDIR)/scheduler.o \
-	$(OBJDIR)/sql_cmds.o \
 	$(OBJDIR)/ua_acl.o \
 	$(OBJDIR)/ua_cmds.o \
 	$(OBJDIR)/ua_dotcmds.o \
@@ -93,7 +93,7 @@ clean:
 # Rules
 #
 
-$(BINDIR)/bacula-dir.exe: $(DIRD_OBJS) $(LIBS_BACULA)
+$(BINDIR)/bacula-dir.exe: $(DIRD_OBJS) $(LIBS_CATS) $(LIBS_BACULA)
 	$(call link_winapp,$(DIRD_LIBS))
 
 $(OBJDIR)/winres.res: ../libwin32/winres.rc

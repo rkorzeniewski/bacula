@@ -1,49 +1,49 @@
 #
 # Makefile for win32 bacula executables
 # Using MinGW cross-compiler on GNU/Linux
-#  
-#  Written for Bacula by Howard Thomson, April 2006
-# 
+#
+#  Written by Robert Nelson, June 2006
+#
 
 include ../Makefile.inc
 
 INCLUDES = \
-	$(INCLUDE_GCC) \
-	$(INCLUDE_MINGW) \
 	$(INCLUDE_PTHREADS) \
 	$(INCLUDE_BACULA) \
 	$(INCLUDE_ZLIB) \
-	$(INCLUDE_VSS) \
-	$(INCLUDE_ICONS) \
 	$(INCLUDE_OPENSSL) \
 	$(INCLUDE_MYSQL)
 
 DEFINES = \
-	-DWIN32 \
 	$(HAVES)
+
+VPATH = ../../cats
 
 ######################################################################
 
-# Files in src/cats
+# Files files in src/lib
 
-LIB_OBJS = \
-	$(OBJDIR)/bdb.o \
-	$(OBJDIR)/bdb_create.o \
-	$(OBJDIR)/bdb_delete.o \
-	$(OBJDIR)/bdb_find.o \
-	$(OBJDIR)/bdb_get.o \
-	$(OBJDIR)/bdb_list.o \
-	$(OBJDIR)/bdb_update.o \
-	$(OBJDIR)/mysql.o \
-	$(OBJDIR)/postgresql.o \
-	$(OBJDIR)/sql.o \
-	$(OBJDIR)/sql_create.o \
-	$(OBJDIR)/sql_delete.o \
-	$(OBJDIR)/sql_find.o \
-	$(OBJDIR)/sql_get.o \
-	$(OBJDIR)/sql_list.o \
-	$(OBJDIR)/sql_update.o \
-	$(OBJDIR)/sqlite.o
+BDB_OBJS = \
+	bdb.o \
+	bdb_create.o \
+	bdb_delete.o \
+	bdb_find.o \
+	bdb_get.o \
+	bdb_list.o \
+	bdb_update.o \
+
+SQL_OBJS = \
+	sql.o \
+	sql_cmds.o \
+	sql_create.o \
+	sql_delete.o \
+	sql_find.o \
+	sql_get.o \
+	sql_list.o \
+	sql_update.o \
+
+LIBS_DLL = \
+	$(LIBS_BACULA)
 
 ######################################################################
 
@@ -51,23 +51,58 @@ LIB_OBJS = \
 
 .PHONY: all clean
 
-all: $(LIBDIR)/libcats.a
+all: $(BINDIR)/cats_mysql.dll $(BINDIR)/cats_pgsql.dll $(BINDIR)/cats_bdb.dll
 
 clean:
 	@echo "Cleaning `pwd`"
-	$(ECHO_CMD)rm -f $(OBJDIR)/*.[od] $(LIBDIR)/libcats.a
+	$(call clean_obj,$(addprefix $(OBJDIR)/mysql/,mysql.o $(SQL_OBJS)))
+	$(call clean_obj,$(addprefix $(OBJDIR)/pgsql/,postgresql.o $(SQL_OBJS)))
+	$(call clean_obj,$(addprefix $(OBJDIR)/bdb/,sql_cmds.o $(BDB_OBJS)))
+	$(call clean_exe,$(BINDIR)/cats_mysql.dll)
+	$(call clean_exe,$(BINDIR)/cats_pgsql.dll)
+	$(call clean_exe,$(BINDIR)/cats_bdb.dll)
+	$(ECHO_CMD)rm -f $(OBJDIR)/libcats.exp $(LIBDIR)/libcats.a
+
+$(LIBDIR)/libcats.a $(OBJDIR)/libcats.exp: bacula_cats.def
+	$(DLLTOOL) --dllname bacula_cats.dll --no-export-all-symbols --input-def bacula_cats.def --output-exp $(OBJDIR)/libcats.exp --output-lib $(LIBDIR)/libcats.a $^
+
+$(BINDIR)/cats_mysql.dll: $(addprefix $(OBJDIR)/mysql/,mysql.o $(SQL_OBJS)) $(OBJDIR)/libcats.exp
+	@echo "Linking $@"
+	$(call checkdir,$@)
+	$(ECHO_CMD)$(CXX) $(LDFLAGS) -mdll -mwindows $^ $(LIBS_MYSQL) $(LIBS_DLL) -o $@
+
+$(BINDIR)/cats_pgsql.dll: $(addprefix $(OBJDIR)/pgsql/,postgresql.o $(SQL_OBJS)) $(OBJDIR)/libcats.exp
+	@echo "Linking $@"
+	$(call checkdir,$@)
+	$(ECHO_CMD)$(CXX) $(LDFLAGS) -mdll -mwindows $^ $(LIBS_POSTGRESQL) $(LIBS_DLL) -o $@
+
+$(BINDIR)/cats_bdb.dll: $(addprefix $(OBJDIR)/bdb/,sql_cmds.o $(BDB_OBJS)) $(OBJDIR)/libcats.exp
+	@echo "Linking $@"
+	$(call checkdir,$@)
+	$(ECHO_CMD)$(CXX) $(LDFLAGS) -mdll -mwindows $^ $(LIBS_DLL) -o $@
 
 #
-# Rules
-# 
-
-$(LIBDIR)/libcats.a: $(LIB_OBJS)
-	@echo "Updating archive $@"
-	$(call checkdir,$@)
-	$(ECHO_CMD)$(AR) rs $@ $^ $(LIB_OBJS)
+# Rules for generating from ../cats
+#
 
 include ../Makefile.rules
 
-ifneq ($(MAKECMDGOALS),clean)
-include $(patsubst %.o,%.d,$(filter-out %.res,$(LIB_OBJS)))
-endif
+define Link_Dll
+$(OBJDIR)/$(1)/%.o: %.c
+	@echo "Compiling $$<"
+	$$(call checkdir,$$@)
+	$(ECHO_CMD)$(CXX) -DBUILDING_CATS -DUSING_DLL -DHAVE_$(2) $(CFLAGS) -c $$< -o $$@
+
+$(OBJDIR)/$(1)/%.o: %.cpp
+	@echo "Compiling $$<"
+	$$(call checkdir,$$@)
+	$(ECHO_CMD)$(CXX) -DBUILDING_CATS -DUSING_DLL -DHAVE_$(2) $(CFLAGS) -c $$< -o $$@
+
+endef
+
+$(eval $(call Link_Dll,mysql,MYSQL))
+
+$(eval $(call Link_Dll,pgsql,POSTGRESQL))
+
+$(eval $(call Link_Dll,bdb,BACULA_DB))
+

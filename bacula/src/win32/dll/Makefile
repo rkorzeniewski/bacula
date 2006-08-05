@@ -11,36 +11,16 @@ INCLUDES = \
 	$(INCLUDE_PTHREADS) \
 	$(INCLUDE_BACULA) \
 	$(INCLUDE_ZLIB) \
-	$(INCLUDE_OPENSSL) \
-	$(INCLUDE_MYSQL)
+	$(INCLUDE_OPENSSL)
 
 DEFINES = \
 	$(HAVES)
 
-VPATH = ../../cats ../compat ../../findlib ../../lib
+VPATH = ../compat ../../findlib ../../lib
 
 ######################################################################
 
 # Files files in src/lib
-
-CATS_OBJS = \
-	$(OBJDIR)/bdb.o \
-	$(OBJDIR)/bdb_create.o \
-	$(OBJDIR)/bdb_delete.o \
-	$(OBJDIR)/bdb_find.o \
-	$(OBJDIR)/bdb_get.o \
-	$(OBJDIR)/bdb_list.o \
-	$(OBJDIR)/bdb_update.o \
-	$(OBJDIR)/mysql.o \
-	$(OBJDIR)/postgresql.o \
-	$(OBJDIR)/sql.o \
-	$(OBJDIR)/sql_create.o \
-	$(OBJDIR)/sql_delete.o \
-	$(OBJDIR)/sql_find.o \
-	$(OBJDIR)/sql_get.o \
-	$(OBJDIR)/sql_list.o \
-	$(OBJDIR)/sql_update.o \
-	$(OBJDIR)/sqlite.o
 
 COMPAT_OBJS = \
 	$(OBJDIR)/compat.o \
@@ -114,7 +94,7 @@ LIB_OBJS = \
 	$(OBJDIR)/workq.o
 
 DLL_OBJS = \
-	$(CATS_OBJS) $(COMPAT_OBJS) $(FIND_OBJS) $(LIB_OBJS)
+	$(COMPAT_OBJS) $(FIND_OBJS) $(LIB_OBJS)
 
 STATIC_OBJS = \
 	$(OBJDIR)/parse_conf.o \
@@ -126,7 +106,6 @@ ALL_OBJS = \
 LIBS_DLL = \
 	$(LIBS_SSL) \
 	$(LIBS_CRYPTO) \
-	$(LIBS_SQL) \
 	$(LIBS_PTHREADS) \
 	$(LIBS_ZLIB) \
 	-lwsock32 \
@@ -166,7 +145,6 @@ $(BINDIR)/bacula.dll: $(COMPAT_OBJS) $(DLL_OBJS) bacula.def
 	@echo "Linking $@"
 	$(call checkdir,$@)
 	$(ECHO_CMD)$(CXX) $(LDFLAGS) -mdll -mwindows -Wl,--out-implib,$(OBJDIR)/bacula.a $^ $(LIBS_DLL) -o $@
-	$(makedbg)
 
 include ../Makefile.rules
 

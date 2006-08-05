@@ -43,10 +43,6 @@
  * -----------------------------------------------------------------------
  */
 
-/* Imported subroutines */
-extern void print_result(B_DB *mdb);
-extern int QueryDB(const char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
-
 /*
  * Find job start time if JobId specified, otherwise
  * find last full save for Incremental and Differential saves.

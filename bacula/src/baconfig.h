@@ -71,6 +71,7 @@ void InitWinAPIWrapper();
 #define  OSDependentInit()    InitWinAPIWrapper()
 
 #undef ENABLE_NLS
+
 #if defined(BUILDING_DLL)
 #  define DLL_IMP_EXP   _declspec(dllexport)
 #elif defined(USING_DLL)
@@ -79,9 +80,16 @@ void InitWinAPIWrapper();
 #  define DLL_IMP_EXP
 #endif
 
+#if defined(USING_CATS)
+#  define CATS_IMP_EXP   _declspec(dllimport)
+#else
+#  define CATS_IMP_EXP
+#endif
+
 #else
 
 #define DLL_IMP_EXP
+#define CATS_IMP_EXP
 
 #define  OSDependentInit()
 #define  tape_open            open

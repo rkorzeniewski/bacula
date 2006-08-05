@@ -100,6 +100,13 @@ void conv_unix_to_win32_path(const char *name, char *win32_name, DWORD dwSize)
         *win32_name++ = '\\';
 
         name += 4;
+    } else if (g_platform_id != VER_PLATFORM_WIN32_WINDOWS &&
+               g_pVSSPathConvert == NULL) {
+        /* allow path to be 32767 bytes */
+        *win32_name++ = '\\';
+        *win32_name++ = '\\';
+        *win32_name++ = '?';
+        *win32_name++ = '\\';
     }
 
     while (*name) {
@@ -139,6 +146,7 @@ void conv_unix_to_win32_path(const char *name, char *win32_name, DWORD dwSize)
        g_pVSSPathConvert(pszBuf, tname, dwSize);
        free_pool_memory(pszBuf);
     }
+
     Dmsg1(100, "Leave cvt_u_to_win32_path path=%s\n", tname);
 }
 
@@ -985,25 +993,8 @@ opendir(const char *path)
     char *tspec = (char *)malloc(max_len);
     if (tspec == NULL) return NULL;
 
-    if (g_platform_id != VER_PLATFORM_WIN32_WINDOWS) {
-#ifdef WIN32_VSS
-       /* will append \\?\ at front itself */
-       conv_unix_to_win32_path(path, tspec, max_len-4);
-       Dmsg1(100, "win32 path=%s\n", tspec);
-#else
-       /* allow path to be 32767 bytes */
-       tspec[0] = '\\';
-       tspec[1] = '\\';
-       tspec[2] = '?';
-       tspec[3] = '\\';
-       tspec[4] = 0;
-       conv_unix_to_win32_path(path, tspec+4, max_len-4);
-       Dmsg1(100, "win32 path=%s\n", tspec);
-#endif
-    } else {
-       conv_unix_to_win32_path(path, tspec, max_len);
-       Dmsg1(100, "win32 path=%s\n", tspec);
-    }
+    conv_unix_to_win32_path(path, tspec, max_len);
+    Dmsg1(100, "win32 path=%s\n", tspec);
 
     // add backslash only if there is none yet (think of c:\)
     if (tspec[strlen(tspec)-1] != '\\')

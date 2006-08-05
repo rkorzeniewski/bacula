@@ -1,6 +1,7 @@
 ECHO_CMD=@
 
 DIRS=	dll \
+	cats \
 	filed \
 	dird \
 	stored \

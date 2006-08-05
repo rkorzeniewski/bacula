@@ -2,115 +2,6 @@ LIBRARY bacula.dll
 EXPORTS
 
 ;
-; cats
-;
-; bdb_create.c:
-
-; bdb_delete.c:
-
-; bdb_find.c:
-
-; bdb_get.c:
-
-; bdb_list.c:
-
-; bdb.c:
-
-; bdb_update.c:
-
-; mysql.c:
-_Z12db_sql_queryP4B_DBPKcPFiPviPPcES3_
-;_Z13db_next_indexP3JCRP4B_DBPcS3_
-_Z16db_escape_stringPcS_i
-_Z16db_init_databaseP3JCRPKcS2_S2_S2_iS2_i
-_Z16db_open_databaseP3JCRP4B_DB
-_Z17db_close_databaseP3JCRP4B_DB
-
-; postgresql.c:
-
-; sql.c:
-_Z10_db_unlockPKciP4B_DB
-_Z11db_strerrorP4B_DB
-;_Z11list_dashesP4B_DBPFvPvPKcES1_
-;_Z11list_resultP3JCRP4B_DBPFvPvPKcES3_11e_list_type
-_Z16db_int64_handlerPviPPc
-_Z18db_end_transactionP3JCRP4B_DB
-;_Z18get_sql_record_maxP3JCRP4B_DB
-;_Z19split_path_and_fileP3JCRP4B_DBPKc
-;_Z20check_tables_versionP3JCRP4B_DB
-_Z20db_start_transactionP3JCRP4B_DB
-;_Z7QueryDBPKciP3JCRP4B_DBPc
-_Z8_db_lockPKciP4B_DB
-;_Z8DeleteDBPKciP3JCRP4B_DBPc
-;_Z8InsertDBPKciP3JCRP4B_DBPc
-;_Z8UpdateDBPKciP3JCRP4B_DBPc
-
-; sql_create.c:
-_Z20db_create_job_recordP3JCRP4B_DBP7JOB_DBR
-_Z21db_create_pool_recordP3JCRP4B_DBP8POOL_DBR
-_Z22db_create_media_recordP3JCRP4B_DBP9MEDIA_DBR
-_Z23db_create_client_recordP3JCRP4B_DBP10CLIENT_DBR
-;_Z23db_create_device_recordP3JCRP4B_DBP10DEVICE_DBR
-_Z24db_create_counter_recordP3JCRP4B_DBP11COUNTER_DBR
-_Z24db_create_fileset_recordP3JCRP4B_DBP11FILESET_DBR
-_Z24db_create_storage_recordP3JCRP4B_DBP11STORAGE_DBR
-_Z25db_create_jobmedia_recordP3JCRP4B_DBP12JOBMEDIA_DBR
-_Z26db_create_mediatype_recordP3JCRP4B_DBP13MEDIATYPE_DBR
-_Z32db_create_file_attributes_recordP3JCRP4B_DBP8ATTR_DBR
-
-; sql_delete.c:
-_Z21db_delete_pool_recordP3JCRP4B_DBP8POOL_DBR
-;_Z21db_purge_media_recordP3JCRP4B_DBP9MEDIA_DBR
-_Z22db_delete_media_recordP3JCRP4B_DBP9MEDIA_DBR
-
-; sql_find.c:
-_Z18db_find_last_jobidP3JCRP4B_DBPKcP7JOB_DBR
-_Z19db_find_next_volumeP3JCRP4B_DBibP9MEDIA_DBR
-_Z22db_find_job_start_timeP3JCRP4B_DBP7JOB_DBRPPc
-_Z24db_find_failed_job_sinceP3JCRP4B_DBP7JOB_DBRPcRi
-
-; sql_get.c:
-_Z15db_get_pool_idsP3JCRP4B_DBPiPPj
-_Z16db_get_media_idsP3JCRP4B_DBjPiPPj
-_Z17db_get_client_idsP3JCRP4B_DBPiPPj
-_Z17db_get_job_recordP3JCRP4B_DBP7JOB_DBR
-_Z18db_get_pool_recordP3JCRP4B_DBP8POOL_DBR
-_Z19db_get_media_recordP3JCRP4B_DBP9MEDIA_DBR
-_Z20db_get_client_recordP3JCRP4B_DBP10CLIENT_DBR
-;_Z21db_get_counter_recordP3JCRP4B_DBP11COUNTER_DBR
-_Z21db_get_fileset_recordP3JCRP4B_DBP11FILESET_DBR
-_Z23db_get_job_volume_namesP3JCRP4B_DBjPPc
-;_Z23db_get_num_pool_recordsP3JCRP4B_DB
-;_Z24db_get_num_media_recordsP3JCRP4B_DB
-_Z28db_get_job_volume_parametersP3JCRP4B_DBjPP10VOL_PARAMS
-_Z29db_get_file_attributes_recordP3JCRP4B_DBPcP7JOB_DBRP8FILE_DBR
-
-; sqlite.c:
-
-; sql_list.c:
-_Z17db_list_sql_queryP3JCRP4B_DBPKcPFvPvS4_ES5_i11e_list_type
-_Z18db_list_job_totalsP3JCRP4B_DBP7JOB_DBRPFvPvPKcES5_
-_Z19db_list_job_recordsP3JCRP4B_DBP7JOB_DBRPFvPvPKcES5_11e_list_type
-_Z20db_list_pool_recordsP3JCRP4B_DBP8POOL_DBRPFvPvPKcES5_11e_list_type
-_Z21db_list_files_for_jobP3JCRP4B_DBjPFvPvPKcES3_
-_Z21db_list_media_recordsP3JCRP4B_DBP9MEDIA_DBRPFvPvPKcES5_11e_list_type
-_Z22db_list_client_recordsP3JCRP4B_DBPFvPvPKcES3_11e_list_type
-_Z24db_list_jobmedia_recordsP3JCRP4B_DBjPFvPvPKcES3_11e_list_type
-
-; sql_update.c:
-_Z19db_mark_file_recordP3JCRP4B_DBjj
-_Z21db_update_pool_recordP3JCRP4B_DBP8POOL_DBR
-_Z22db_update_media_recordP3JCRP4B_DBP9MEDIA_DBR
-_Z23db_update_client_recordP3JCRP4B_DBP10CLIENT_DBR
-_Z24db_make_inchanger_uniqueP3JCRP4B_DBP9MEDIA_DBR
-_Z24db_update_counter_recordP3JCRP4B_DBP11COUNTER_DBR
-_Z24db_update_job_end_recordP3JCRP4B_DBP7JOB_DBR
-_Z24db_update_media_defaultsP3JCRP4B_DBP9MEDIA_DBR
-_Z24db_update_storage_recordP3JCRP4B_DBP11STORAGE_DBR
-_Z26db_update_job_start_recordP3JCRP4B_DBP7JOB_DBR
-_Z28db_add_digest_to_file_recordP3JCRP4B_DBjPci
-
-;
 ; compat
 ;
 ; compat.c:
@@ -397,8 +288,8 @@ _Z2_vPP16pthread_mutex_t_
 _Z4dropPcS_
 _Z6bfgetsPciP6_iobuf
 ;_Z7bcallocjj
-;_Z7bstrcmpPKcS0_
-;_Z7cstrlenPKc
+_Z7bstrcmpPKcS0_
+_Z7cstrlenPKc
 _Z8b_mallocPKcij
 _Z8breallocPvj
 _Z8bstrncatPcPKci
@@ -526,7 +417,7 @@ _ZNK5dlist4nextEPKv
 ;_ZNK5dlist4prevEPKv
 
 ; edit.c:
-;_Z10add_commasPcS_
+_Z10add_commasPcS_
 _Z10edit_int64xPc
 _Z10edit_utimexPci
 _Z11edit_uint64yPc
@@ -674,8 +565,8 @@ _Z23init_python_interpreterPKcS0_S0_
 _Z23term_python_interpreterv
 
 ; queue.c:
-;_Z5qnextP7b_queueS0_
-;_Z7qdchainP7b_queue
+_Z5qnextP7b_queueS0_
+_Z7qdchainP7b_queue
 _Z7qinsertP7b_queueS0_
 ;_Z7qremoveP7b_queue
 

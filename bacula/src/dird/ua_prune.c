@@ -32,24 +32,6 @@
 
 #define MAX_DEL_LIST_LEN 2000000
 
-/* Imported variables */
-extern const char *select_job;
-extern const char *drop_deltabs[];
-extern const char *create_deltabs[];
-extern const char *insert_delcand;
-extern const char *select_backup_del;
-extern const char *select_verify_del;
-extern const char *select_restore_del;
-extern const char *select_admin_del;
-extern const char *cnt_File;
-extern const char *cnt_DelCand;
-extern const char *del_Job;
-extern const char *del_MAC;
-extern const char *del_JobMedia;
-extern const char *cnt_JobMedia;
-extern const char *sel_JobMedia;
-
-
 /* In memory list of JobIds */
 struct s_file_del_ctx {
    JobId_t *JobId;

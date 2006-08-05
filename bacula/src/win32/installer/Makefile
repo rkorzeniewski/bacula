@@ -18,6 +18,9 @@ INSTALL_EXE := winbacula-$(VERSION).exe
 
 BACULA_BINARIES := \
 	bacula.dll \
+	cats_mysql.dll \
+	cats_pgsql.dll \
+	cats_bdb.dll \
 	bacula-dir.exe \
 	bacula-fd.exe \
 	bacula-sd.exe \
@@ -47,8 +50,17 @@ DEPKGS_BINARIES := \
 NONGCC_BINARIES := \
 	libmysql.dll
 
+NONGCC_LIBRARIES := \
+	libpq.dll
+
 SCRIPTS := \
-	../scripts/mtx-changer.cmd.in \
+	../scripts/mtx-changer.cmd \
+	../cats/create_bdb_database.cmd \
+	../cats/drop_bdb_database.cmd \
+	../cats/make_bdb_tables.cmd \
+	../cats/drop_bdb_tables.cmd \
+	../cats/update_bdb_tables.cmd \
+	../cats/grant_bdb_privileges.cmd \
 	../cats/create_mysql_database.cmd \
 	../cats/drop_mysql_database.cmd \
 	../cats/make_mysql_tables.cmd \
@@ -59,6 +71,16 @@ SCRIPTS := \
 	../cats/update_mysql_tables.sql \
 	../cats/grant_mysql_privileges.cmd \
 	../cats/grant_mysql_privileges.sql \
+	../cats/create_postgresql_database.cmd \
+	../cats/drop_postgresql_database.cmd \
+	../cats/make_postgresql_tables.cmd \
+	../cats/make_postgresql_tables.sql \
+	../cats/drop_postgresql_tables.cmd \
+	../cats/drop_postgresql_tables.sql \
+	../cats/update_postgresql_tables.cmd \
+	../cats/update_postgresql_tables.sql \
+	../cats/grant_postgresql_privileges.cmd \
+	../cats/grant_postgresql_privileges.sql \
 	../cats/make_catalog_backup.cmd \
 	../cats/delete_catalog_backup.cmd
 
@@ -74,7 +96,7 @@ installer:	$(INSTALL_EXE)
 
 clean:
 	@echo "Cleaning `pwd`"
-	$(CMD_ECHO)-rm -f $(INSTALL_EXE) $(BACULA_BINARIES) $(DEPKGS_BINARIES) $(NONGCC_BINARIES)
+	$(CMD_ECHO)-rm -f $(INSTALL_EXE) $(BACULA_BINARIES) $(DEPKGS_BINARIES) $(NONGCC_BINARIES) $(NONGCC_LIBRARIES)
 	$(CMD_ECHO)-rm -f $(BACULA_BINARIES) $(addsuffix .dbg,$(basename $(BACULA_BINARIES)))
 	$(CMD_ECHO)-rm -f $(DEPKGS_BINARIES) $(addsuffix .dbg,$(basename $(DEPKGS_BINARIES)))
 
@@ -97,9 +119,11 @@ $(foreach file,$(addprefix $(DEPKGS)/bin/, $(DEPKGS_BINARIES)),$(eval $(call Str
 
 $(foreach file,$(addprefix $(DEPKGS)/bin/, $(NONGCC_BINARIES)),$(eval $(call Copy_Binary,$(file))))
 
+$(foreach file,$(addprefix $(DEPKGS)/lib/, $(NONGCC_LIBRARIES)),$(eval $(call Copy_Binary,$(file))))
+
 $(foreach file,$(addprefix $(BINDIR)/, $(BACULA_BINARIES)),$(eval $(call Strip_Binary,$(file))))
 
-$(INSTALL_EXE): winbacula.nsi $(BACULA_BINARIES) $(SCRIPTS) $(DEPKGS_BINARIES) $(NONGCC_BINARIES)
+$(INSTALL_EXE): winbacula.nsi $(BACULA_BINARIES) $(SCRIPTS) $(DEPKGS_BINARIES) $(NONGCC_BINARIES) $(NONGCC_LIBRARIES)
 	NSISDIR=$(NSIS_DIR) \
 	$(NSIS_DIR)/makensis -V3 $(DEFINES) winbacula.nsi
 

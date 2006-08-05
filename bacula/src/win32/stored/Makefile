@@ -129,7 +129,7 @@ $(BINDIR)/bls.exe: $(OBJDIR)/bls.o $(COMMON_OBJS) $(LIBS_BACULA)
 $(BINDIR)/bextract.exe: $(BEXTRACT_OBJS) $(COMMON_OBJS) $(LIBS_BACULA)
 	$(call link_conapp,$(LIBS_STORED) $(LIBS_ZLIB))
 
-$(BINDIR)/bscan.exe: $(OBJDIR)/bscan.o $(COMMON_OBJS) $(LIBS_BACULA)
+$(BINDIR)/bscan.exe: $(OBJDIR)/bscan.o $(COMMON_OBJS) $(LIBS_CATS) $(LIBS_BACULA)
 	$(call link_conapp,$(LIBS_STORED))
 
 $(BINDIR)/bcopy.exe: $(OBJDIR)/bcopy.o $(COMMON_OBJS) $(LIBS_BACULA)

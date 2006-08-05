@@ -16,6 +16,7 @@ INCLUDES = \
 
 DEFINES = \
 	-DUSING_DLL \
+	-DUSING_CATS \
 	$(HAVES)
 
 VPATH = ../../tools ../../dird
@@ -73,7 +74,7 @@ clean:
 $(BINDIR)/bsmtp.exe: $(OBJDIR)/bsmtp.o $(LIBS_BACULA)
 	$(call link_conapp,)
 
-$(BINDIR)/dbcheck.exe: $(OBJDIR)/dbcheck.o $(DIRCONF_OBJS) $(LIBS_BACULA)
+$(BINDIR)/dbcheck.exe: $(OBJDIR)/dbcheck.o $(DIRCONF_OBJS) $(LIBS_BACULA) $(LIBS_CATS)
 	$(call link_conapp,)
 
 $(BINDIR)/fstype.exe: $(OBJDIR)/fstype.o $(LIBS_BACULA)

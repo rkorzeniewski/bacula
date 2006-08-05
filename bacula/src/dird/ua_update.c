@@ -25,9 +25,6 @@
 #include "bacula.h"
 #include "dird.h"
 
-/* External variables */
-extern const char *list_pool;               /* in sql_cmds.c */
-
 /* Imported functions */
 void update_slots(UAContext *ua);
 

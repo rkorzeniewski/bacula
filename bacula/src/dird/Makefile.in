@@ -38,7 +38,7 @@ SVRSRCS = dird.c admin.c authenticate.c \
 	  mountreq.c msgchan.c next_vol.c newvol.c \
 	  pythondir.c \
 	  recycle.c restore.c run_conf.c \
-	  scheduler.c sql_cmds.c \
+	  scheduler.c \
 	  ua_acl.c ua_cmds.c ua_dotcmds.c \
 	  ua_query.c \
 	  ua_input.c ua_label.c ua_output.c ua_prune.c \
@@ -53,7 +53,7 @@ SVROBJS = dird.o admin.o authenticate.o \
 	  mountreq.o msgchan.o next_vol.o newvol.o \
 	  pythondir.o \
 	  recycle.o restore.o run_conf.o \
-	  scheduler.o sql_cmds.o \
+	  scheduler.o \
 	  ua_acl.o ua_cmds.o ua_dotcmds.o \
 	  ua_query.o \
 	  ua_input.o ua_label.o ua_output.o ua_prune.o \

@@ -98,6 +98,7 @@ Var OptStart
 Var OptSilent
 
 Var DependenciesDone
+Var DatabaseDone
 
 Var OsIsNT
 
@@ -130,6 +131,7 @@ Function .onInit
   StrCpy $OptStart 0
   StrCpy $OptSilent 0
   StrCpy $DependenciesDone 0
+  StrCpy $DatabaseDone 0
   StrCpy $OsIsNT 0
   
   ${GetParameters} $R0
@@ -181,13 +183,28 @@ Function CopyDependencies
     File "${MINGW_BIN}\..\mingw32\bin\mingwm10.dll"
 !endif
     File "libeay32.dll"
-    File "libmysql.dll"
     File "pthreadGCE.dll"
     File "ssleay32.dll"
     File "zlib1.dll"
     File "openssl.exe"
     File "bacula.dll"
     StrCpy $DependenciesDone 1
+  ${EndIf}
+FunctionEnd
+
+Function InstallDatabase
+  ${If} $DatabaseDone = 0
+    ${If} $OptionsDirectorDB = 1
+      File /oname=bacula_cats.dll "cats_mysql.dll"
+      File "libmysql.dll"
+    ${ElseIf} $OptionsDirectorDB = 2
+      File /oname=bacula_cats.dll "cats_pgsql.dll"
+      File "libpq.dll"
+    ${ElseIf} $OptionsDirectorDB = 3
+      File /oname=bacula_cats.dll "cats_bdb.dll"
+    ${EndIf}
+
+    StrCpy $DatabaseDone 1
   ${EndIf}
 FunctionEnd
 
@@ -251,6 +268,7 @@ Section "Storage Service" SecStorageDaemon
   SectionIn 2 3
   
   SetOutPath "$INSTDIR\bin"
+  Call InstallDatabase
   File "loaderinfo.exe"
   File "mt.exe"
   File "mtx.exe"
@@ -295,18 +313,40 @@ Section "Director Service" SecDirectorDaemon
   SectionIn 2 3
 
   SetOutPath "$INSTDIR\bin"
+  Call InstallDatabase
   File "bacula-dir.exe"
   File "dbcheck.exe"
-  File ..\cats\create_mysql_database.cmd
-  File ..\cats\drop_mysql_database.cmd
-  File ..\cats\make_mysql_tables.cmd
-  File ..\cats\make_mysql_tables.sql
-  File ..\cats\drop_mysql_tables.cmd
-  File ..\cats\drop_mysql_tables.sql
-  File ..\cats\update_mysql_tables.cmd
-  File ..\cats\update_mysql_tables.sql
-  File ..\cats\grant_mysql_privileges.cmd
-  File ..\cats\grant_mysql_privileges.sql
+
+  ${If} $OptionsDirectorDB = 1
+    File /oname=create_database.cmd ..\cats\create_mysql_database.cmd
+    File /oname=drop_database.cmd ..\cats\drop_mysql_database.cmd
+    File /oname=make_tables.cmd ..\cats\make_mysql_tables.cmd
+    File ..\cats\make_mysql_tables.sql
+    File /oname=drop_tables.cmd ..\cats\drop_mysql_tables.cmd
+    File ..\cats\drop_mysql_tables.sql
+    File /oname=update_tables.cmd ..\cats\update_mysql_tables.cmd
+    File ..\cats\update_mysql_tables.sql
+    File /oname=grant_privileges.cmd ..\cats\grant_mysql_privileges.cmd
+    File ..\cats\grant_mysql_privileges.sql
+  ${ElseIf} $OptionsDirectorDB = 2
+    File /oname=create_database.cmd ..\cats\create_postgresql_database.cmd
+    File /oname=drop_database.cmd ..\cats\drop_postgresql_database.cmd
+    File /oname=make_tables.cmd ..\cats\make_postgresql_tables.cmd
+    File ..\cats\make_postgresql_tables.sql
+    File /oname=drop_tables.cmd ..\cats\drop_postgresql_tables.cmd
+    File ..\cats\drop_postgresql_tables.sql
+    File /oname=update_tables.cmd ..\cats\update_postgresql_tables.cmd
+    File ..\cats\update_postgresql_tables.sql
+    File /oname=grant_privileges.cmd ..\cats\grant_postgresql_privileges.cmd
+    File ..\cats\grant_postgresql_privileges.sql
+  ${ElseIf} $OptionsDirectorDB = 3
+    File /oname=create_database.cmd ../cats/create_bdb_database.cmd
+    File /oname=drop_database.cmd ../cats/drop_bdb_database.cmd
+    File /oname=make_tables.cmd ../cats/make_bdb_tables.cmd
+    File /oname=drop_tables.cmd ../cats/drop_bdb_tables.cmd
+    File /oname=update_tables.cmd ../cats/update_bdb_tables.cmd
+    File /oname=grant_privileges.cmd ../cats/grant_bdb_privileges.cmd
+  ${EndIf}
   File ..\cats\make_catalog_backup.cmd
   File ..\cats\delete_catalog_backup.cmd
 
@@ -692,6 +732,12 @@ Function EnterOptions
     FileWrite $R3 '[Field $R4]$\r$\nType="Checkbox"$\r$\nState=$OptStart$\r$\nText="Start after install"$\r$\nLeft=6$\r$\nTop=$R5$\r$\nRight=280$\r$\nBottom=$R6$\r$\n'
 
     IntOp $R4 $R4 + 1
+    IntOp $R5 $R6 + 8
+  ${Endif}
+ 
+  ${If} $R1 = 1
+  ${OrIf} $R2 = 1
+    IntOp $R4 $R4 + 1
     IntOp $R5 $R6 + 2
     IntOp $R6 $R5 + 8
 
@@ -713,10 +759,8 @@ Function EnterOptions
 
     FileWrite $R3 '[Field $R4]$\r$\nType="RadioButton"$\r$\nState=0$\r$\nText="Builtin"$\r$\nFlags="NOTABSTOP"$\r$\nLeft=142$\r$\nTop=$R5$\r$\nRight=182$\r$\nBottom=$R6$\r$\n'
 
-    IntOp $R4 $R4 + 1
-    IntOp $R5 $R6 + 8
   ${Endif}
- 
+
   IntOp $R4 $R4 - 1
     
   FileWrite $R3 "[Settings]$\r$\nNumFields=$R4$\r$\n"

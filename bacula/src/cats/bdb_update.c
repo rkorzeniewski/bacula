@@ -41,8 +41,6 @@
 
 #ifdef HAVE_BACULA_DB
 
-/* Forward referenced functions */
-
 /* -----------------------------------------------------------------------
  *
  *   Bacula specific defines and subroutines
@@ -217,5 +215,9 @@ int db_update_media_defaults(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    return 1;
 }
 
+void db_make_inchanger_unique(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
+{
+  return;
+}
 
 #endif /* HAVE_BACULA_DB */
