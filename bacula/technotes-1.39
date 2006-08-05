@@ -2,6 +2,24 @@
 
 General:
 05Aug06
+rbn  Fixed the Windows Makefiles so that they won't accidently try and
+     pickup binaries for the Unix build.  This allows both the Unix
+     build and the Windows build to be built in the same tree without
+     interfering with each other.
+rbn  Fixed error handling and cleaned up mtx-changer.cmd.
+rbn  Added the rest of the database scripts.  These are installed but are
+     not yet editted for variable replacement.
+rbn  Broke out the cats functionality from bacula.dll and put into new
+     separate dlls for each database type.  At installation time the
+     correct one is copied to bacula_cats.dll.
+rbn  Eliminate the need to install the mysql.dll on client only builds.
+rbn  Moved dird/sql_cmds.c into the cats directory so all the database
+     specific #ifdefs were in the cats directory.
+rbn  Added a new sql_cmds.h with all the declarations for the variables
+     exported from sql_cmds.c.
+rbn  Moved catalog_db[] from lib/message.c to a new routine db_get_type()
+     which is implemented in bdb.c, mysql.c, postgresql.c and sqlite.c in
+     src/cats.
 kes  Correct improperly formated list command output reported by Dan.
 04Aug06
 kes  Correct despool time calculation.
