@@ -806,16 +806,15 @@ make mtx
 cd ${cwd}
 
 # patches for the bundled sqlite scripts
-# as of 1.38.0 first 3 patches no longer needed
 
 # patch the make_sqlite_tables script for installation bindir
-# patch src/cats/make_sqlite_tables.in src/cats/make_sqlite_tables.in.patch
+patch src/cats/make_sqlite_tables.in src/cats/make_sqlite_tables.in.patch
 
 # patch the create_sqlite_database script for installation bindir
-#patch src/cats/create_sqlite_database.in src/cats/create_sqlite_database.in.patch
+patch src/cats/create_sqlite_database.in src/cats/create_sqlite_database.in.patch
 
 # patch the make_catalog_backup script for installation bindir
-#patch src/cats/make_catalog_backup.in src/cats/make_catalog_backup.in.patch
+patch src/cats/make_catalog_backup.in src/cats/make_catalog_backup.in.patch
 
 # patch the update_sqlite_tables script for installation bindir
 patch src/cats/update_sqlite_tables.in src/cats/update_sqlite_tables.in.patch
@@ -1621,6 +1620,8 @@ fi
 %endif
 
 %changelog
+* Sat Aug 05 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- bug 648 renable and update sqlite patches
 * Mon Jul 17 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - move pango-devel BuildRequires into gconsole only build
 * Sat Jul 15 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
