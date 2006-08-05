@@ -22,7 +22,8 @@ DEFINES = \
 	-DUSING_DLL \
 	$(HAVES)
 
-VPATH = ../../stored baculasd
+vpath %.c ../../stored baculasd
+vpath %.cpp ../../stored baculasd
 
 ##########################################################################
 

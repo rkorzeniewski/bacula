@@ -16,7 +16,8 @@ DEFINES = \
 	-DUSING_DLL \
 	$(HAVES)
 
-VPATH = ../../console
+vpath %.c ../../console
+vpath %.cpp ../../console
 
 ##########################################################################
 

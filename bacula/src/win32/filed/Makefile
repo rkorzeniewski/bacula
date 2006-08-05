@@ -21,7 +21,8 @@ DEFINES = \
 	-DWIN32_VSS \
 	$(HAVES)
 
-VPATH = ../../filed ../libwin32
+vpath %.c ../../filed ../libwin32
+vpath %.cpp ../../filed ../libwin32
 
 ##########################################################################
 

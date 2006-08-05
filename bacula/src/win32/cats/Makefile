@@ -17,7 +17,8 @@ INCLUDES = \
 DEFINES = \
 	$(HAVES)
 
-VPATH = ../../cats
+vpath %.c ../../cats
+vpath %.cpp ../../cats
 
 ######################################################################
 

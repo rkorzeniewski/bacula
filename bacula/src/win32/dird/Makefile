@@ -19,7 +19,8 @@ DEFINES = \
 	-DUSING_CATS \
 	$(HAVES)
 
-VPATH = ../../dird
+vpath %.c ../../dird
+vpath %.cpp ../../dird
 
 ##########################################################################
 

@@ -24,7 +24,9 @@ DEFINES = \
 	-D_STAT_DEFINED \
 	$(HAVES)
 
-VPATH = ../../wx-console
+vpath %.c ../../wx-console
+vpath %.cpp ../../wx-console
+vpath %.rc ../../wx-console
 
 ##########################################################################
 

@@ -16,7 +16,8 @@ INCLUDES = \
 DEFINES = \
 	$(HAVES)
 
-VPATH = ../compat ../../findlib ../../lib
+vpath %.c ../compat ../../findlib ../../lib
+vpath %.cpp ../compat ../../findlib ../../lib
 
 ######################################################################
 
@@ -141,7 +142,7 @@ $(LIBDIR)/libbacula.a: $(BINDIR)/bacula.dll $(STATIC_OBJS)
 
 $(BINDIR)/bacula.dll: DLL_DEFINE=BUILDING_DLL
 
-$(BINDIR)/bacula.dll: $(COMPAT_OBJS) $(DLL_OBJS) bacula.def
+$(BINDIR)/bacula.dll: $(DLL_OBJS) bacula.def
 	@echo "Linking $@"
 	$(call checkdir,$@)
 	$(ECHO_CMD)$(CXX) $(LDFLAGS) -mdll -mwindows -Wl,--out-implib,$(OBJDIR)/bacula.a $^ $(LIBS_DLL) -o $@
