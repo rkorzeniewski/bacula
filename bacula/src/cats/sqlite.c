@@ -39,8 +39,6 @@
  * -----------------------------------------------------------------------
  */
 
-extern const char *working_directory;
-
 /* List of open databases */
 static BQUEUE db_list = {&db_list, &db_list};
 

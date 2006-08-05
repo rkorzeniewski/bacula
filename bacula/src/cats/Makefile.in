@@ -25,12 +25,12 @@ SVROBJS = cats.o sql.o
 
 LIBSRCS = mysql.c bdb.c bdb_create.c bdb_get.c bdb_update.c \
 	  bdb_delete.c bdb_find.c bdb_list.c \
-	  sql.c sql_create.c sql_delete.c sql_find.c \
+	  sql.c sql_cmds.c sql_create.c sql_delete.c sql_find.c \
 	  sql_get.c sql_list.c sql_update.c sqlite.c \
 	  postgresql.c
 LIBOBJS = mysql.o bdb.o bdb_create.o bdb_get.o bdb_update.o \
 	  bdb_delete.o bdb_find.o bdb_list.o \
-	  sql.o sql_create.o sql_delete.o sql_find.o \
+	  sql.o sql_cmds.o sql_create.o sql_delete.o sql_find.o \
 	  sql_get.o sql_list.o sql_update.o sqlite.o \
 	  postgresql.o
 

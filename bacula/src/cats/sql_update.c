@@ -37,10 +37,6 @@
  * -----------------------------------------------------------------------
  */
 
-/* Imported subroutines */
-extern void print_result(B_DB *mdb);
-extern int UpdateDB(const char *file, int line, JCR *jcr, B_DB *db, char *update_cmd);
-
 /* -----------------------------------------------------------------------
  *
  *   Generic Routines (or almost generic)
@@ -443,15 +439,6 @@ db_make_inchanger_unique(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
       Dmsg1(400, "%s\n", mdb->cmd);
       UPDATE_DB(jcr, mdb, mdb->cmd);
    }
-}
-
-#else
-
-void
-db_make_inchanger_unique(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
-{
-  /* DUMMY func for Bacula_DB */
-  return;
 }
 
 #endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL*/

@@ -32,7 +32,6 @@
 extern int r_first;
 extern int r_last;
 extern struct s_res resources[];
-extern const char *client_backups;
 
 /* Imported functions */
 extern void do_messages(UAContext *ua, const char *cmd);
