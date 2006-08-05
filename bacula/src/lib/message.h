@@ -132,6 +132,9 @@ void Jmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...);
 void Qmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...);
 bool get_trace(void);
 
+const char *get_db_type(void);
+void set_db_type(const char *file);
+
 typedef void (*sql_query)(JCR *jcr, const char *cmd);
 extern sql_query     DLL_IMP_EXP p_sql_query;
 
@@ -140,7 +143,6 @@ extern int           DLL_IMP_EXP verbose;
 extern char          DLL_IMP_EXP my_name[];
 extern const char *  DLL_IMP_EXP working_directory;
 extern time_t        DLL_IMP_EXP daemon_start_time;
-extern char                      catalog_db[];
 
 extern int           DLL_IMP_EXP console_msg_pending;
 extern FILE *        DLL_IMP_EXP con_fd;                 /* Console file descriptor */

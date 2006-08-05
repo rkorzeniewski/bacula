@@ -48,6 +48,15 @@ int QueryDB(const char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
 
 
 /*
+ * Retrieve database type
+ */
+const char *
+db_get_type(void)
+{
+   return "SQLite";
+}
+
+/*
  * Initialize database data structure. In principal this should
  * never have errors, or it is really fatal.
  */

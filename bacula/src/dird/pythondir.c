@@ -174,7 +174,7 @@ PyObject *job_getattr(PyObject *self, char *attrname)
          jcr->catalog->db_name, jcr->catalog->db_address, 
          jcr->catalog->db_user, jcr->catalog->db_password,
          jcr->catalog->db_socket, jcr->catalog->db_port,
-         catalog_db);
+         db_get_type());
 
    }
    bsnprintf(errmsg, sizeof(errmsg), _("Attribute %s not found."), attrname);

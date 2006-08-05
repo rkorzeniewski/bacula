@@ -65,6 +65,7 @@ typedef int (DB_RESULT_HANDLER)(void *, int, char **);
 
 #ifdef __SQL_C
 
+#if defined(BUILDING_CATS)
 #ifdef HAVE_SQLITE
 
 #define BDB_VERSION 10
@@ -490,6 +491,7 @@ struct B_DB {
 #endif /* HAVE_MYSQL */
 #endif /* HAVE_SQLITE */
 #endif /* HAVE_POSTGRESQL */
+#endif
 
 /* Use for better error location printing */
 #define UPDATE_DB(jcr, db, cmd) UpdateDB(__FILE__, __LINE__, jcr, db, cmd)
@@ -807,6 +809,7 @@ int get_sql_record_max(JCR *jcr, B_DB *mdb);
 bool check_tables_version(JCR *jcr, B_DB *mdb);
 void _db_unlock(const char *file, int line, B_DB *mdb);
 void _db_lock(const char *file, int line, B_DB *mdb);
+const char *db_get_type(void);
 
 void print_dashes(B_DB *mdb);
 void print_result(B_DB *mdb);
