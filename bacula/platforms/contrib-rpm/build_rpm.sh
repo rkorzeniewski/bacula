@@ -21,8 +21,8 @@
 ###########################################################################################
 # script configuration section
 
-VERSION=1.38.11
-RELEASE=3
+VERSION=1.39.18
+RELEASE=1
 
 # set to one of rh7,rh8,rh9,fc1,fc3,fc4,fc5,wb3,rhel3,rhel4,centos3,centos4,su9,su10,mdk,mdv
 PLATFORM=su10
@@ -57,11 +57,13 @@ if [ "$WXCONSOLE" = "1" ]; then
 rpmbuild --rebuild --define "build_${PLATFORM} 1" \
 --define "build_mysql${MYSQL} 1" \
 --define "contrib_packager ${PACKAGER}" \
+--define "build_python 1" \
 --define "build_wxconsole 1" \
 ${SRPM}
 else
 rpmbuild --rebuild --define "build_${PLATFORM} 1" \
 --define "build_mysql${MYSQL} 1" \
+--define "build_python 1" \
 --define "contrib_packager ${PACKAGER}" ${SRPM}
 fi
 rm -rf ${RPMBUILD}/*
@@ -71,6 +73,7 @@ sleep 2
 rpmbuild --rebuild --define "build_${PLATFORM} 1" \
 --define "build_postgresql 1" \
 --define "contrib_packager ${PACKAGER}" \
+--define "build_python 1" \
 --define "nobuild_gconsole 1" ${SRPM}
 rm -rf ${RPMBUILD}/*
 
@@ -79,6 +82,7 @@ sleep 2
 rpmbuild --rebuild --define "build_${PLATFORM} 1" \
 --define "build_sqlite 1" \
 --define "contrib_packager ${PACKAGER}" \
+--define "build_python 1" \
 --define "nobuild_gconsole 1" ${SRPM}
 rm -rf ${RPMBUILD}/*
 
@@ -121,6 +125,7 @@ ls
 
 # changelog
 # 16 Jul 2006 initial release
+# 05 Aug 2006 add python support
 
 
 
