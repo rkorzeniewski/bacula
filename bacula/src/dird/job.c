@@ -240,12 +240,13 @@ static void *job_thread(void *arg)
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
    }
 
+   /* Run any script BeforeJob on dird */
+   run_scripts(jcr, jcr->job->RunScripts, "BeforeJob");
+
    if (job_canceled(jcr)) {
       update_job_end_record(jcr);
-   } else {
-      /* Run any script BeforeJob on dird */
-      run_scripts(jcr, jcr->job->RunScripts, "BeforeJob");
 
+   } else {
       /*
        * We re-update the job start record so that the start
        *  time is set after the run before job.  This avoids
