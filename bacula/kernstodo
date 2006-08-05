@@ -25,6 +25,8 @@ Document:
    show index from File;
 - Correct the Include syntax in the m4.xxx files in examples/conf
 - Document JobStatus and Termination codes.
+- Fix the error with the "DVI file can't be opened" while
+  building the French PDF.
 
 Priority:
 

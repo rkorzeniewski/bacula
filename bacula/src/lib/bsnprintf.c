@@ -112,7 +112,6 @@ int bvsnprintf(char *buffer, int32_t maxlen, const char *format, va_list args)
    int cflags;
    int32_t currlen;
    int base;
-   int junk;
 #ifdef FP_OUTPUT
    LDOUBLE fvalue;
 #endif
@@ -168,11 +167,7 @@ int bvsnprintf(char *buffer, int32_t maxlen, const char *format, va_list args)
             min = 10 * min + char_to_int(ch);
             ch = *format++;
          } else if (ch == '*') {
-#ifdef SECURITY_PROBLEM
             min = va_arg(args, int);
-#else
-            junk = va_arg(args, int);
-#endif
             ch = *format++;
             state = DP_S_DOT;
          } else
@@ -193,11 +188,7 @@ int bvsnprintf(char *buffer, int32_t maxlen, const char *format, va_list args)
             max = 10 * max + char_to_int(ch);
             ch = *format++;
          } else if (ch == '*') {
-#ifdef SECURITY_PROBLEM
             max = va_arg(args, int);
-#else
-            junk = va_arg(args, int);
-#endif
             ch = *format++;
             state = DP_S_MOD;
          } else
