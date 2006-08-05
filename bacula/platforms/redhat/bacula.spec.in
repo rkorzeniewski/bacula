@@ -196,13 +196,10 @@ Distribution: %{_dist}
 # leaving all the BuildRequires and Requires in place below for now.
 
 %define gconsole 1
-%if %{rh7} || %{rh8} || %{rh9} || %{wb3} || %{fc1}
+%if %{rh7} || %{rh8} || %{rh9} || %{wb3} || %{fc1} || %{su9}
 %define gconsole 0
 %endif
 %if %{mdk} && ! %{mdv}
-%define gconsole 0
-%endif
-%if %suse_version == 900 || %suse_version == 910
 %define gconsole 0
 %endif
 
