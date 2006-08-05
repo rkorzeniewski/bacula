@@ -55,6 +55,7 @@ Packager: %{_packager}
 %define _docsrc ../%{name}-docs-%{docs_version}
 %define _rescuesrc ../%{name}-rescue-%{_rescuever}
 %define depkgs ../depkgs
+%define _mandir /usr/share/man
 
 # NOTE these defines are used in some rather complex useradd and groupadd
 # commands. If you change them examine the post scripts for consequences.
@@ -191,12 +192,20 @@ exit 1
 %endif
 Distribution: %{_dist}
 
-# Should we build gconsole, possible only if gnome >= 2.0 available
-%if %{rh7}
-%define gconsole 0
-%else
+# Should we build gconsole, possible only if gtk= >= 2.4 available.
+# leaving all the BuildRequires and Requires in place below for now.
+
 %define gconsole 1
+%if %{rh7} || %{rh8} || %{rh9} || %{wb3} || %{fc1}
+%define gconsole 0
 %endif
+%if %{mdk} && ! %{mdv}
+%define gconsole 0
+%endif
+%if %suse_version == 900 || %suse_version == 910
+%define gconsole 0
+%endif
+
 # specifically disallow gconsole if desired
 %{?nobuild_gconsole:%define gconsole 0}
 
@@ -828,16 +837,17 @@ patch platforms/suse/bacula-dir.in platforms/suse/bacula-dir-suse-sqlite.patch
 %endif
 
 # 64 bit lib location hacks
+# as of 1.39.18 it should not be necessary to enable x86_64 as configure is
+# reported to be fixed to properly detect lib locations.
 %if %{x86_64}
 export LDFLAGS="${LDFLAGS} -L/usr/lib64"
 %endif
 %if %{mysql} && %{x86_64}
 export LDFLAGS="${LDFLAGS} -L/usr/lib64/mysql"
 %endif
-# this MAY be necessary for python support - waiting for feedback to enable
-#%if %{python} && %{x86_64}
-#export LDFLAGS="${LDFLAGS} -L/usr/lib64/python%{pyver}"
-#%endif
+%if %{python} && %{x86_64}
+export LDFLAGS="${LDFLAGS} -L/usr/lib64/python%{pyver}"
+%endif
 
 %configure \
         --prefix=/usr \
@@ -883,6 +893,7 @@ make
 %if %{client_only}
 	--enable-client-only \
 %endif
+	--mandir=%{_mandir} \
         --with-working-dir=%{working_dir} \
         --with-pid-dir=/var/run \
         --with-subsys-dir=/var/lock/subsys \
@@ -940,7 +951,15 @@ make \
         sysconfdir=$RPM_BUILD_ROOT/etc/bacula \
         scriptdir=$RPM_BUILD_ROOT/etc/bacula \
         working_dir=$RPM_BUILD_ROOT%{working_dir} \
+	mandir=$RPM_BUILD_ROOT%{_mandir} \
         install
+
+cd manpages
+make \
+	mandir=$RPM_BUILD_ROOT%{_mandir} \
+        install
+cd ${cwd}
+
 
 %if ! %{client_only}
 cd %{depkgs}
@@ -949,9 +968,30 @@ make \
         sbindir=$RPM_BUILD_ROOT/usr/sbin \
         sysconfdir=$RPM_BUILD_ROOT/etc/bacula \
         working_dir=$RPM_BUILD_ROOT%{working_dir} \
-        mandir=$RPM_BUILD_ROOT/usr/man \
+        mandir=$RPM_BUILD_ROOT%{_mandir} \
         mtx-install
 cd ${cwd}
+%endif
+
+# make install in manpages installs _everything_ shotgun style
+# so now delete what we will not be packaging
+%if ! %{wxconsole}
+rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bacula-wxconsole.1.gz
+%endif
+%if ! %{gconsole}
+rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bacula-console-gnome.1.gz
+rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bacula-tray-monitor.1.gz
+%endif
+%if %{client_only}
+rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bsmtp.1.gz
+rm -f $RPM_BUILD_ROOT%{_mandir}/man8/bacula-dir.8.gz
+rm -f $RPM_BUILD_ROOT%{_mandir}/man8/bacula-sd.8.gz
+rm -f $RPM_BUILD_ROOT%{_mandir}/man8/bcopy.8.gz
+rm -f $RPM_BUILD_ROOT%{_mandir}/man8/bextract.8.gz
+rm -f $RPM_BUILD_ROOT%{_mandir}/man8/bls.8.gz
+rm -f $RPM_BUILD_ROOT%{_mandir}/man8/bscan.8.gz
+rm -f $RPM_BUILD_ROOT%{_mandir}/man8/btape.8.gz
+rm -f $RPM_BUILD_ROOT%{_mandir}/man8/dbcheck.8.gz
 %endif
 
 # fixme - make installs the mysql scripts for sqlite build
@@ -1196,18 +1236,31 @@ rm -rf $RPM_BUILD_ROOT/etc/bacula/updatedb
 /usr/sbin/bsmtp
 /usr/sbin/bregex
 /usr/sbin/bwild
+%{_mandir}/man8/bacula-fd.8.gz
+%{_mandir}/man8/bacula-dir.8.gz
+%{_mandir}/man8/bacula-sd.8.gz
+%{_mandir}/man8/bacula.8.gz
+%{_mandir}/man8/bconsole.8.gz
+%{_mandir}/man8/bcopy.8.gz
+%{_mandir}/man8/bextract.8.gz
+%{_mandir}/man8/bls.8.gz
+%{_mandir}/man8/bscan.8.gz
+%{_mandir}/man8/btape.8.gz
+%{_mandir}/man8/btraceback.8.gz
+%{_mandir}/man8/dbcheck.8.gz
+%{_mandir}/man1/bsmtp.1.gz
 %endif
 
 %if %{mysql}
 %pre mysql
-# test for bacula database older than version 8
+# test for bacula database older than version 9
 # note: this ASSUMES no password has been set for bacula database
 DB_VER=`mysql 2>/dev/null bacula -e 'select * from Version;'|tail -n 1`
 %endif
 
 %if %{sqlite}
 %pre sqlite
-# test for bacula database older than version 8
+# test for bacula database older than version 9
 if [ -s %{working_dir}/bacula.db ] && [ -s %{sqlite_bindir}/sqlite ];then
         DB_VER=`echo "select * from Version;" | %{sqlite_bindir}/sqlite 2>/dev/null %{working_dir}/bacula.db | tail -n 1`
 %endif
@@ -1217,13 +1270,13 @@ if [ -s %{working_dir}/bacula.db ] && [ -s %{sqlite_bindir}/sqlite ];then
 DB_VER=`echo 'select * from Version;' | psql bacula 2>/dev/null | tail -3 | head -1`
 %endif
 
-if [ -n "$DB_VER" ] && [ "$DB_VER" -lt "8" ]; then
-        echo "This bacula upgrade will update a bacula database from version 8 to 9."
+if [ -n "$DB_VER" ] && [ "$DB_VER" -lt "9" ]; then
+        echo "This bacula upgrade will update a bacula database from version 9 to 10."
         echo "You appear to be running database version $DB_VER. You must first update"
-        echo "your database to version 8 and then install this upgrade. The alternative"
+        echo "your database to version 9 and then install this upgrade. The alternative"
         echo "is to use /etc/bacula/drop_%{db_backend}_tables to delete all your your current"
         echo "catalog information, then do the upgrade. Information on updating a"
-        echo "database older than version 8 can be found in the release notes."
+        echo "database older than version 9 can be found in the release notes."
         exit 1
 fi
 
@@ -1322,8 +1375,8 @@ if [ -z "$DB_VER" ]; then
         echo "Creating bacula tables..."
         /etc/bacula/make_mysql_tables
 
-# check to see if we need to upgrade a 1.36 or lower database
-elif [ "$DB_VER" -lt "9" ]; then
+# check to see if we need to upgrade a 1.38 or lower database
+elif [ "$DB_VER" -lt "10" ]; then
         echo "This release requires an upgrade to your bacula database."
         echo "Backing up your current database..."
         mysqldump -f --opt bacula | bzip2 > %{working_dir}/bacula_backup.sql.bz2
@@ -1338,8 +1391,8 @@ fi
 # test for an existing database
 if [ -s %{working_dir}/bacula.db ]; then
         DB_VER=`echo "select * from Version;" | %{sqlite_bindir}/sqlite 2>/dev/null %{working_dir}/bacula.db | tail -n 1`
-        # check to see if we need to upgrade a 1.36 or lower database
-        if [ "$DB_VER" -lt "9" ] && [ "$DB_VER" -ge "8" ]; then
+        # check to see if we need to upgrade a 1.38 or lower database
+        if [ "$DB_VER" -lt "10" ] && [ "$DB_VER" -ge "9" ]; then
                 echo "This release requires an upgrade to your bacula database."
                 echo "Backing up your current database..."
                 echo ".dump" | %{sqlite_bindir}/sqlite %{working_dir}/bacula.db | bzip2 > %{working_dir}/bacula_backup.sql.bz2
@@ -1372,8 +1425,8 @@ if [ -z "$DB_VER" ]; then
         echo "Granting privileges for PostgreSQL user bacula..."
         /etc/bacula/grant_postgresql_privileges
 
-# check to see if we need to upgrade a 1.36 or lower database
-elif [ "$DB_VER" -lt "9" ]; then
+# check to see if we need to upgrade a 1.38 or lower database
+elif [ "$DB_VER" -lt "10" ]; then
         echo "This release requires an upgrade to your bacula database."
         echo "Backing up your current database..."
         pg_dump bacula | bzip2 > %{working_dir}/bacula_backup.sql.bz2
@@ -1423,11 +1476,15 @@ fi
 
 %if ! %{client_only}
 %files mtx
+%defattr(-,root,root)
 %attr(-, root, %{storage_daemon_group}) /usr/sbin/loaderinfo
 %attr(-, root, %{storage_daemon_group}) /usr/sbin/mtx
 %attr(-, root, %{storage_daemon_group}) /usr/sbin/scsitape
 %attr(-, root, %{storage_daemon_group}) /usr/sbin/tapeinfo
-/usr/man/man1/*
+%{_mandir}/man1/loaderinfo.1.gz
+%{_mandir}/man1/mtx.1.gz
+%{_mandir}/man1/scsitape.1.gz
+%{_mandir}/man1/tapeinfo.1.gz
 %endif
 
 
@@ -1453,6 +1510,10 @@ fi
 %attr(-, root, %{daemon_group}) /etc/bacula/btraceback.gdb
 %attr(-, root, %{daemon_group}) /etc/bacula/btraceback.dbx
 /usr/sbin/bconsole
+%{_mandir}/man8/bacula-fd.8.gz
+%{_mandir}/man8/bacula.8.gz
+%{_mandir}/man8/bconsole.8.gz
+%{_mandir}/man8/btraceback.8.gz
 
 
 %pre client
@@ -1532,6 +1593,7 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 %attr(-, root, %{daemon_group}) %config(noreplace) /etc/bacula/gnome-console.conf
 /usr/share/pixmaps/bacula.png
 /usr/share/applications/bacula.desktop
+%{_mandir}/man1/bacula-console-gnome.1.gz
 %endif
 
 %if %{gconsole} && ! %{rh8}
@@ -1539,6 +1601,7 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 %config(noreplace) /etc/bacula/tray-monitor.conf
 /usr/share/pixmaps/bacula-tray-monitor.xpm
 /usr/share/applications/bacula-tray-monitor.desktop
+%{_mandir}/man1/bacula-tray-monitor.1.gz
 %endif
 
 %if %{gconsole} && ! %{su9} && ! %{su10}
@@ -1583,6 +1646,7 @@ fi
 %attr(-, root, %{daemon_group}) %config(noreplace) /etc/bacula/wxconsole.conf
 /usr/share/pixmaps/wxwin16x16.xpm
 /usr/share/applications/wxconsole.desktop
+%{_mandir}/man1/bacula-wxconsole.1.gz
 %endif
 
 %if %{wxconsole} && ! %{su9} && ! %{su10}
@@ -1621,7 +1685,11 @@ fi
 
 %changelog
 * Sat Aug 05 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
-- bug 648 renable and update sqlite patches
+- bug 648 re-enable and update sqlite patches
+- 1.39.18 changes
+- updatedb 9 to 10
+- install man pages
+- lock out gconsole build for gtk+ < 2.4
 * Mon Jul 17 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - move pango-devel BuildRequires into gconsole only build
 * Sat Jul 15 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
