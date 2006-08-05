@@ -56,7 +56,7 @@ then
 fi
 
 # select other build options
-OPTIONS=`zenity --title "Select Options" --text "Please choose other options." --list --checklist --column "Select" --column "Platform" False build_wxconsole False nobuild_gconsole False build_x86_64`
+OPTIONS=`zenity --title "Select Options" --text "Please choose other options." --list --checklist --column "Select" --column "Platform" False build_wxconsole False nobuild_gconsole False build_x86_64 False build_python`
 
 RESULT="$?"
 if [ "$RESULT" == "1" ];
@@ -67,6 +67,7 @@ fi
 OPTION1=`echo $OPTIONS|cut --delimiter=\| -f1`
 OPTION2=`echo $OPTIONS|cut --delimiter=\| -f2`
 OPTION3=`echo $OPTIONS|cut --delimiter=\| -f3`
+OPTION4=`echo $OPTIONS|cut --delimiter=\| -f4`
 
 # construct rpmbuild command
 COMMAND="rpmbuild --rebuild --define 'build_$PLATFORM 1' --define 'build_$DATABASE 1' --define 'contrib_packager ${PACKAGER}'"
@@ -82,6 +83,10 @@ fi
 if [ ! -z $OPTION3 ];
 then
 	COMMAND="${COMMAND} --define '$OPTION3 1'";
+fi
+if [ ! -z $OPTION4 ];
+then
+	COMMAND="${COMMAND} --define '$OPTION4 1'";
 fi
 
 COMMAND="${COMMAND} ${SELECTED_FILE}"
@@ -99,4 +104,5 @@ echo $COMMAND | sh
 
 # ChangeLog
 # 30 Jul 2006 initial release
+# 05 Aug 2006 add option for build_python
 
