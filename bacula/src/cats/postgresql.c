@@ -48,6 +48,16 @@ static BQUEUE db_list = {&db_list, &db_list};
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /*
+ * Retrieve database type
+ */
+const char *
+db_get_type(void)
+{
+   return "PostgreSQL";
+
+}
+
+/*
  * Initialize database data structure. In principal this should
  * never have errors, or it is really fatal.
  */

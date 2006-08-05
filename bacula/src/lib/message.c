@@ -47,16 +47,7 @@ char con_fname[500];                  /* Console filename */
 FILE *con_fd = NULL;                  /* Console file descriptor */
 brwlock_t con_lock;                   /* Console lock structure */
 
-
-#if defined(HAVE_POSTGRESQL)
-char catalog_db[] = "PostgreSQL";
-#elif defined(HAVE_MYSQL)
-char catalog_db[] = "MySQL";
-#elif defined(HAVE_SQLITE)
-char catalog_db[] = "SQLite";
-#else
-char catalog_db[] = "Internal";
-#endif
+static char *catalog_db = NULL;	      /* database type */
 
 const char *host_os = HOST_OS;
 const char *distname = DISTNAME;
@@ -140,6 +131,23 @@ void my_name_is(int argc, char *argv[], const char *name)
       }
       Dmsg2(500, "exepath=%s\nexename=%s\n", exepath, exename);
    }
+}
+
+const char *
+get_db_type(void)
+{
+   return catalog_db != NULL ? catalog_db : "unknown";
+}
+
+void
+set_db_type(const char *name)
+{
+   if (catalog_db != NULL)
+   {
+      free(catalog_db);
+   }
+
+   catalog_db = bstrdup(name);
 }
 
 /*

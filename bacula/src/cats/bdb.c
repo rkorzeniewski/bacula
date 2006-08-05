@@ -87,6 +87,15 @@ int bdb_write_control_file(B_DB *mdb)
 }
 
 /*
+ * Retrieve database type
+ */
+const char *
+db_get_type(void)
+{
+   return "Internal";
+}
+
+/*
  * Initialize database data structure. In principal this should
  * never have errors, or it is really fatal.
  */
@@ -106,6 +115,7 @@ db_init_database(JCR *jcr, char const *db_name, char const *db_user, char const 
          return mdb;                  /* already open */
       }
    }
+
    Dmsg0(200, "db_open first time\n");
    mdb = (B_DB *)malloc(sizeof(B_DB));
    memset(mdb, 0, sizeof(B_DB));

@@ -5,6 +5,7 @@ EXPORTS
 ; mysql.c:
 ; postgresql.c:
 ; sqlite.c:
+_Z11db_get_typev
 _Z12db_sql_queryP4B_DBPKcPFiPviPPcES3_
 ;_Z13db_next_indexP3JCRP4B_DBPcS3_
 _Z16db_escape_stringPcS_i
