@@ -215,6 +215,13 @@ Distribution: %{_dist}
 %define python 0
 %{?build_python:%define python 1}
 
+# Mandriva somehow forces the manpage file extension to bz2 rather than gz
+%if %{mdk}
+%define manpage_ext bz2
+%else
+%define manpage_ext gz
+%endif
+
 # for client only build
 %if %{client_only}
 %define mysql 0
@@ -1233,19 +1240,19 @@ rm -rf $RPM_BUILD_ROOT/etc/bacula/updatedb
 /usr/sbin/bsmtp
 /usr/sbin/bregex
 /usr/sbin/bwild
-%{_mandir}/man8/bacula-fd.8.gz
-%{_mandir}/man8/bacula-dir.8.gz
-%{_mandir}/man8/bacula-sd.8.gz
-%{_mandir}/man8/bacula.8.gz
-%{_mandir}/man8/bconsole.8.gz
-%{_mandir}/man8/bcopy.8.gz
-%{_mandir}/man8/bextract.8.gz
-%{_mandir}/man8/bls.8.gz
-%{_mandir}/man8/bscan.8.gz
-%{_mandir}/man8/btape.8.gz
-%{_mandir}/man8/btraceback.8.gz
-%{_mandir}/man8/dbcheck.8.gz
-%{_mandir}/man1/bsmtp.1.gz
+%{_mandir}/man8/bacula-fd.8.%{manpage_ext}
+%{_mandir}/man8/bacula-dir.8.%{manpage_ext}
+%{_mandir}/man8/bacula-sd.8.%{manpage_ext}
+%{_mandir}/man8/bacula.8.%{manpage_ext}
+%{_mandir}/man8/bconsole.8.%{manpage_ext}
+%{_mandir}/man8/bcopy.8.%{manpage_ext}
+%{_mandir}/man8/bextract.8.%{manpage_ext}
+%{_mandir}/man8/bls.8.%{manpage_ext}
+%{_mandir}/man8/bscan.8.%{manpage_ext}
+%{_mandir}/man8/btape.8.%{manpage_ext}
+%{_mandir}/man8/btraceback.8.%{manpage_ext}
+%{_mandir}/man8/dbcheck.8.%{manpage_ext}
+%{_mandir}/man1/bsmtp.1.%{manpage_ext}
 %endif
 
 %if %{mysql}
@@ -1478,10 +1485,10 @@ fi
 %attr(-, root, %{storage_daemon_group}) /usr/sbin/mtx
 %attr(-, root, %{storage_daemon_group}) /usr/sbin/scsitape
 %attr(-, root, %{storage_daemon_group}) /usr/sbin/tapeinfo
-%{_mandir}/man1/loaderinfo.1.gz
-%{_mandir}/man1/mtx.1.gz
-%{_mandir}/man1/scsitape.1.gz
-%{_mandir}/man1/tapeinfo.1.gz
+%{_mandir}/man1/loaderinfo.1.%{manpage_ext}
+%{_mandir}/man1/mtx.1.%{manpage_ext}
+%{_mandir}/man1/scsitape.1.%{manpage_ext}
+%{_mandir}/man1/tapeinfo.1.%{manpage_ext}
 %endif
 
 
@@ -1507,10 +1514,10 @@ fi
 %attr(-, root, %{daemon_group}) /etc/bacula/btraceback.gdb
 %attr(-, root, %{daemon_group}) /etc/bacula/btraceback.dbx
 /usr/sbin/bconsole
-%{_mandir}/man8/bacula-fd.8.gz
-%{_mandir}/man8/bacula.8.gz
-%{_mandir}/man8/bconsole.8.gz
-%{_mandir}/man8/btraceback.8.gz
+%{_mandir}/man8/bacula-fd.8.%{manpage_ext}
+%{_mandir}/man8/bacula.8.%{manpage_ext}
+%{_mandir}/man8/bconsole.8.%{manpage_ext}
+%{_mandir}/man8/btraceback.8.%{manpage_ext}
 
 
 %pre client
@@ -1590,7 +1597,7 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 %attr(-, root, %{daemon_group}) %config(noreplace) /etc/bacula/gnome-console.conf
 /usr/share/pixmaps/bacula.png
 /usr/share/applications/bacula.desktop
-%{_mandir}/man1/bacula-console-gnome.1.gz
+%{_mandir}/man1/bacula-console-gnome.1.%{manpage_ext}
 %endif
 
 %if %{gconsole} && ! %{rh8}
@@ -1598,7 +1605,7 @@ echo "The database update scripts were installed to /etc/bacula/updatedb"
 %config(noreplace) /etc/bacula/tray-monitor.conf
 /usr/share/pixmaps/bacula-tray-monitor.xpm
 /usr/share/applications/bacula-tray-monitor.desktop
-%{_mandir}/man1/bacula-tray-monitor.1.gz
+%{_mandir}/man1/bacula-tray-monitor.1.%{manpage_ext}
 %endif
 
 %if %{gconsole} && ! %{su9} && ! %{su10}
@@ -1643,7 +1650,7 @@ fi
 %attr(-, root, %{daemon_group}) %config(noreplace) /etc/bacula/wxconsole.conf
 /usr/share/pixmaps/wxwin16x16.xpm
 /usr/share/applications/wxconsole.desktop
-%{_mandir}/man1/bacula-wxconsole.1.gz
+%{_mandir}/man1/bacula-wxconsole.1.%{manpage_ext}
 %endif
 
 %if %{wxconsole} && ! %{su9} && ! %{su10}
@@ -1681,6 +1688,8 @@ fi
 %endif
 
 %changelog
+* Sun Aug 06 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- fix manpages file extension for mdk
 * Sat Aug 05 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - bug 648 re-enable and update sqlite patches
 - 1.39.18 changes

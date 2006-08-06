@@ -7,7 +7,10 @@ dsb  Updated rpm spec for 1.39 - updatedb 9 to 10, add new man pages,
      fix bug 648 - update sqlite script patches, lock out gnome2console
      builds for platforms with gtk+ < 2.4.
      Updated build_rpm.sh - add remote source directory, add switch for 
-     signing, refine file names
+     signing, refine file names.
+     Updated spec file again for Mandriva build as they have this curious
+     custom of silently converting all manpages to bzip2 format just before
+     the final packaging step.
 05Aug06
 rbn  Fixed the Windows Makefiles so that they won't accidently try and
      pickup binaries for the Unix build.  This allows both the Unix
