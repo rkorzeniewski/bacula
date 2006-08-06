@@ -132,9 +132,6 @@ void Jmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...);
 void Qmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...);
 bool get_trace(void);
 
-const char *get_db_type(void);
-void set_db_type(const char *file);
-
 typedef void (*sql_query)(JCR *jcr, const char *cmd);
 extern sql_query     DLL_IMP_EXP p_sql_query;
 
