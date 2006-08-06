@@ -65,6 +65,7 @@ typedef int (DB_RESULT_HANDLER)(void *, int, char **);
 
 #ifdef __SQL_C
 
+#define BUILDING_CATS
 #if defined(BUILDING_CATS)
 #ifdef HAVE_SQLITE
 
