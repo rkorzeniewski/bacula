@@ -3,6 +3,11 @@
 General:
 06Aug06
 kes  Defined BUILDING_CATS in src/cats/cats.h so that *nix builds.
+dsb  Updated rpm spec for 1.39 - updatedb 9 to 10, add new man pages,
+     fix bug 648 - update sqlite script patches, lock out gnome2console
+     builds for platforms with gtk+ < 2.4.
+     Updated build_rpm.sh - add remote source directory, add switch for 
+     signing, refine file names
 05Aug06
 rbn  Fixed the Windows Makefiles so that they won't accidently try and
      pickup binaries for the Unix build.  This allows both the Unix

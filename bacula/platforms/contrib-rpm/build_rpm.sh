@@ -2,7 +2,7 @@
 
 # shell script to build bacula rpm release
 # copy this script into a working directory with the src rpm to build and execute
-# 16 Jul 2006 D. Scott Barninger
+# 06 Aug 2006 D. Scott Barninger
 
 # Copyright (C) 2006 Kern Sibbald
 # licensed under GPL-v2
@@ -24,8 +24,17 @@
 VERSION=1.39.18
 RELEASE=1
 
+# build platform for spec
 # set to one of rh7,rh8,rh9,fc1,fc3,fc4,fc5,wb3,rhel3,rhel4,centos3,centos4,su9,su10,mdk,mdv
 PLATFORM=su10
+
+# platform designator for file names
+# for RedHat/Fedora set to one of rh7,rh8,rh9,fc1,fc3,fc4,fc5 OR
+# for RHEL3/clones wb3, rhel3 & centos3 set to el3 OR
+# for RHEL4/clones rhel4 & centos4 set to el4 OR
+# for SuSE set to su90, su91, su92, su100 or su101 OR
+# for Mandrake set to 101mdk or 20060mdk
+FILENAME=su100
 
 # MySQL version
 # set to empty (for MySQL 3), 4 or 5
@@ -44,12 +53,24 @@ RPMDIR=/usr/src/packages/RPMS/i586
 # enter the full path to your rpm BUILD directory
 RPMBUILD=/usr/src/packages/BUILD
 
-# enter your arch string here (i386, i586, i686)
+# enter your arch string here (i386, i586, i686, x86_64)
 ARCH=i586
+
+# if the src rpm is not in the current working directory enter the directory location
+# with trailing slash where it is found.
+SRPMDIR=
+
+# set to 1 to sign packages, 0 not to sign if you want to sign on another machine.
+SIGN=1
+
+# to save the bacula-updatedb package set to 1, else 0
+# only one updatedb package is required per release so normally this should be 0
+# for all contrib packagers
+SAVEUPDATEDB=0
 
 ############################################################################################
 
-SRPM=bacula-$VERSION-$RELEASE.src.rpm
+SRPM=${SRPMDIR}bacula-$VERSION-$RELEASE.src.rpm
 
 echo Building MySQL packages for "$PLATFORM"...
 sleep 2
@@ -88,35 +109,41 @@ rm -rf ${RPMBUILD}/*
 
 # delete the updatedb package and any debuginfo packages built
 rm -f ${RPMDIR}/bacula*debug*
-rm -f ${RPMDIR}/bacula-updatedb*
+if [ "$SAVEUPDATEDB" = "1" ]; then
+	mv -f ${RPMDIR}/bacula-updatedb* ./;
+else
+	rm -f ${RPMDIR}/bacula-updatedb*;
+fi
 
 # copy files to cwd and rename files to final upload names
 
 mv -f ${RPMDIR}/bacula-mysql-${VERSION}-${RELEASE}.${ARCH}.rpm \
-./bacula-mysql-${VERSION}-${RELEASE}.${PLATFORM}.${ARCH}.rpm
+./bacula-mysql-${VERSION}-${RELEASE}.${FILENAME}.${ARCH}.rpm
 
 mv -f ${RPMDIR}/bacula-postgresql-${VERSION}-${RELEASE}.${ARCH}.rpm \
-./bacula-postgresql-${VERSION}-${RELEASE}.${PLATFORM}.${ARCH}.rpm
+./bacula-postgresql-${VERSION}-${RELEASE}.${FILENAME}.${ARCH}.rpm
 
 mv -f ${RPMDIR}/bacula-sqlite-${VERSION}-${RELEASE}.${ARCH}.rpm \
-./bacula-sqlite-${VERSION}-${RELEASE}.${PLATFORM}.${ARCH}.rpm
+./bacula-sqlite-${VERSION}-${RELEASE}.${FILENAME}.${ARCH}.rpm
 
 mv -f ${RPMDIR}/bacula-mtx-${VERSION}-${RELEASE}.${ARCH}.rpm \
-./bacula-mtx-${VERSION}-${RELEASE}.${PLATFORM}.${ARCH}.rpm
+./bacula-mtx-${VERSION}-${RELEASE}.${FILENAME}.${ARCH}.rpm
 
 mv -f ${RPMDIR}/bacula-client-${VERSION}-${RELEASE}.${ARCH}.rpm \
-./bacula-client-${VERSION}-${RELEASE}.${PLATFORM}.${ARCH}.rpm
+./bacula-client-${VERSION}-${RELEASE}.${FILENAME}.${ARCH}.rpm
 
 mv -f ${RPMDIR}/bacula-gconsole-${VERSION}-${RELEASE}.${ARCH}.rpm \
-./bacula-gconsole-${VERSION}-${RELEASE}.${PLATFORM}.${ARCH}.rpm
+./bacula-gconsole-${VERSION}-${RELEASE}.${FILENAME}.${ARCH}.rpm
 
 mv -f ${RPMDIR}/bacula-wxconsole-${VERSION}-${RELEASE}.${ARCH}.rpm \
-./bacula-wxconsole-${VERSION}-${RELEASE}.${PLATFORM}.${ARCH}.rpm
+./bacula-wxconsole-${VERSION}-${RELEASE}.${FILENAME}.${ARCH}.rpm
 
 # now sign the packages
-echo Ready to sign packages...
-sleep 2
-rpm --addsign ./*.rpm
+if [ "$SIGN" = "1" ]; then
+	echo Ready to sign packages...;
+	sleep 2;
+	rpm --addsign ./*.rpm;
+fi
 
 echo
 echo Finished.
@@ -126,6 +153,7 @@ ls
 # changelog
 # 16 Jul 2006 initial release
 # 05 Aug 2006 add python support
+# 06 Aug 2006 add remote source directory, add switch for signing, refine file names
 
 
 
