@@ -1,6 +1,8 @@
               Technical notes on version 1.39  
 
 General:
+06Aug06
+kes  Defined BUILDING_CATS in src/cats/cats.h so that *nix builds.
 05Aug06
 rbn  Fixed the Windows Makefiles so that they won't accidently try and
      pickup binaries for the Unix build.  This allows both the Unix
