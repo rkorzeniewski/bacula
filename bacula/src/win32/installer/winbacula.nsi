@@ -280,7 +280,7 @@ Section "Storage Service" SecStorageDaemon
   File "bls.exe"
   File "bscan.exe"
   File "btape.exe"
-  File /oname=mtx-changer.cmd ..\scripts\mtx-changer.cmd.in
+  File ..\scripts\mtx-changer.cmd
 
   StrCpy $R0 0
   StrCpy $R1 "$APPDATA\Bacula\bacula-sd.conf"

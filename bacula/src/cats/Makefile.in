@@ -11,6 +11,8 @@ topdir = ../..
 # this dir relative to top dir
 thisdir = src/cats
 
+CPPFLAGS += -DBUILDING_CATS
+
 DEBUG=@DEBUG@
 MKDIR=$(topdir)/autoconf/mkinstalldirs
 
