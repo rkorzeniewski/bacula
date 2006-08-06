@@ -1673,8 +1673,6 @@ static void store_short_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
    scan_to_eol(lc);
 }
 
-static RUNSCRIPT  res_runscript;
-
 /*
  * new RunScript items
  *   name             handler         value                                code flags default_value
@@ -1701,10 +1699,11 @@ static void store_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token, i;
    alist **runscripts = (alist **)(item->value) ;
+   RUNSCRIPT  *res_runscript = &res_all.res_runscript;
 
    Dmsg1(200, "store_runscript: begin store_runscript pass=%i\n", pass);
 
-   res_runscript.reset_default();      /* setting on_success, on_failure, abort_on_error */
+   res_runscript->reset_default();      /* setting on_success, on_failure, abort_on_error */
    
    token = lex_get_token(lc, T_SKIP_EOL);
    
@@ -1739,18 +1738,18 @@ static void store_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
    }
 
    if (pass == 2) {
-      if (res_runscript.command == NULL) {
+      if (res_runscript->command == NULL) {
          scan_err2(lc, _("%s item is required in %s resource, but not found.\n"),
                    "command", "runscript");
       }
 
       /* run on client by default */
-      if (res_runscript.target == NULL) {
-         res_runscript.set_target("%c");
+      if (res_runscript->target == NULL) {
+         res_runscript->set_target("%c");
       }
 
       RUNSCRIPT *script = new_runscript();
-      memcpy(script, &res_runscript, sizeof(RUNSCRIPT));
+      memcpy(script, res_runscript, sizeof(RUNSCRIPT));
       
       if (*runscripts == NULL) {
         *runscripts = New(alist(10, not_owned_by_alist));
