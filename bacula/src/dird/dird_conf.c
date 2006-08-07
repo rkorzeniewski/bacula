@@ -1564,6 +1564,8 @@ void store_acl(LEX *lc, RES_ITEM *item, int index, int pass)
    set_bit(index, res_all.hdr.item_present);
 }
 
+/* We build RunScripts items here */
+static RUNSCRIPT res_runscript;
 
 /* Store a runscript->when in a bit field */
 static void store_runscript_when(LEX *lc, RES_ITEM *item, int index, int pass)
@@ -1678,13 +1680,13 @@ static void store_short_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
  *   name             handler         value                                code flags default_value
  */
 static RES_ITEM runscript_items[] = {
-   {"command", store_runscript_cmd,   ITEM(res_runscript),           0,  ITEM_REQUIRED, 0}, 
-   {"target", store_runscript_target, ITEM(res_runscript),            0,  0, 0}, 
-   {"runsonsuccess",    store_bool,   ITEM(res_runscript.on_success), 0,  0, 0},
-   {"runsonfailure",    store_bool,   ITEM(res_runscript.on_failure), 0,  0, 0},
-   {"abortjobonerror", store_bool,    ITEM(res_runscript.abort_on_error), 0, 0,   0},
-   {"runswhen", store_runscript_when, ITEM(res_runscript.when),       0,  0, 0},
-   {"runsonclient", store_runscript_target, ITEM(res_runscript),       0,  0, 0}, /* TODO */
+   {"command", store_runscript_cmd,    (char **)&res_runscript,           0,  ITEM_REQUIRED, 0}, 
+   {"target", store_runscript_target,  (char **)&res_runscript,            0,  0, 0}, 
+   {"runsonsuccess",    store_bool,    (char **)&res_runscript.on_success, 0,  0, 0},
+   {"runsonfailure",    store_bool,    (char **)&res_runscript.on_failure, 0,  0, 0},
+   {"abortjobonerror", store_bool,     (char **)&res_runscript.abort_on_error, 0, 0,   0},
+   {"runswhen", store_runscript_when,  (char **)&res_runscript.when,       0,  0, 0},
+   {"runsonclient", store_runscript_target,  (char **)&res_runscript,       0,  0, 0}, /* TODO */
    {NULL, NULL, {0}, 0, 0, 0}
 };
 
@@ -1699,11 +1701,10 @@ static void store_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token, i;
    alist **runscripts = (alist **)(item->value) ;
-   RUNSCRIPT  *res_runscript = &res_all.res_runscript;
 
    Dmsg1(200, "store_runscript: begin store_runscript pass=%i\n", pass);
 
-   res_runscript->reset_default();      /* setting on_success, on_failure, abort_on_error */
+   res_runscript.reset_default();      /* setting on_success, on_failure, abort_on_error */
    
    token = lex_get_token(lc, T_SKIP_EOL);
    
@@ -1738,18 +1739,18 @@ static void store_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
    }
 
    if (pass == 2) {
-      if (res_runscript->command == NULL) {
+      if (res_runscript.command == NULL) {
          scan_err2(lc, _("%s item is required in %s resource, but not found.\n"),
                    "command", "runscript");
       }
 
       /* run on client by default */
-      if (res_runscript->target == NULL) {
-         res_runscript->set_target("%c");
+      if (res_runscript.target == NULL) {
+         res_runscript.set_target("%c");
       }
 
       RUNSCRIPT *script = new_runscript();
-      memcpy(script, res_runscript, sizeof(RUNSCRIPT));
+      memcpy(script, &res_runscript, sizeof(RUNSCRIPT));
       
       if (*runscripts == NULL) {
         *runscripts = New(alist(10, not_owned_by_alist));
