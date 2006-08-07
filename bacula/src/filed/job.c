@@ -591,19 +591,22 @@ static void add_file_to_fileset(JCR *jcr, const char *fname, findFILESET *filese
       fn = get_pool_memory(PM_FNAME);
       fn = edit_job_codes(jcr, fn, p, "");
       bpipe = open_bpipe(fn, 0, "r");
-      free_pool_memory(fn);
       if (!bpipe) {
+         berrno be;
          Jmsg(jcr, M_FATAL, 0, _("Cannot run program: %s. ERR=%s\n"),
-            p, strerror(errno));
+            p, be.strerror());
+         free_pool_memory(fn);
          return;
       }
+      free_pool_memory(fn);
       while (fgets(buf, sizeof(buf), bpipe->rfd)) {
          strip_trailing_junk(buf);
          fileset->incexe->name_list.append(bstrdup(buf));
       }
       if ((stat=close_bpipe(bpipe)) != 0) {
-         Jmsg(jcr, M_FATAL, 0, _("Error running program: %s. RtnStat=%d ERR=%s\n"),
-            p, stat, strerror(errno));
+         berrno be;
+         Jmsg(jcr, M_FATAL, 0, _("Error running program: %s. stat=%d: ERR=%s\n"),
+            p, be.code(stat), be.strerror(stat));
          return;
       }
       break;

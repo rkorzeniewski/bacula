@@ -12,7 +12,7 @@
  *
  */
 /*
-   Copyright (C) 2004-2005 Kern Sibbald
+   Copyright (C) 2004-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -56,7 +56,7 @@ const char *berrno::strerror()
                return _("Unknown error during program execvp");
             }
          } else {
-            Mmsg(&buf_, _("Child exited with code %d"), stat);
+            Mmsg(buf_, _("Child exited with code %d"), stat);
             return buf_;
          }
          /* If we drop out here, berrno_ is set to an execvp errno */
@@ -64,7 +64,7 @@ const char *berrno::strerror()
    }
    if (berrno_ & b_errno_signal) {
       stat = (berrno_ & ~b_errno_signal);        /* remove bit */
-      Mmsg(&buf_, _("Child died from signal %d: %s"), stat, get_signal_name(stat));
+      Mmsg(buf_, _("Child died from signal %d: %s"), stat, get_signal_name(stat));
       return buf_;
    }
 #endif

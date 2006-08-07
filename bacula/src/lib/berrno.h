@@ -5,7 +5,7 @@
  *
  */
 /*
-   Copyright (C) 2004-2005 Kern Sibbald
+   Copyright (C) 2004-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -19,6 +19,9 @@
 
  */
 
+/*
+ * Extra bits set to interpret errno value differently from errno
+ */
 #ifdef HAVE_WIN32
 #define b_errno_win32  (1<<29)        /* user reserved bit */
 #endif
@@ -48,6 +51,8 @@ public:
    const char *strerror();
    const char *strerror(int errnum);
    void set_errno(int errnum);
+   int code() { return berrno_ & ~(b_errno_exit|b_errno_signal); }
+   int code(int stat) { return stat & ~(b_errno_exit|b_errno_signal); }
 };
 
 /* Constructor */
