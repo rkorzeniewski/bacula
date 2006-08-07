@@ -203,7 +203,7 @@ int RUNSCRIPT::run(JCR *jcr, const char *name)
    free_pool_memory(ecmd);
    if (bpipe == NULL) {
       berrno be;
-      Jmsg(jcr, M_FATAL, 0, _("%s could not execute. ERR=%s\n"), name,
+      Jmsg(jcr, M_FATAL, 0, _("Runscript: %s could not execute. ERR=%s\n"), name,
          be.strerror());
       return false;
    }
@@ -217,8 +217,8 @@ int RUNSCRIPT::run(JCR *jcr, const char *name)
    status = close_bpipe(bpipe);
    if (status != 0) {
       berrno be;
-      Jmsg(jcr, M_FATAL, 0, _("%s returned non-zero status=%d. ERR=%s\n"), name,
-         status, be.strerror(status));
+      Jmsg(jcr, M_FATAL, 0, _("Runscript: %s returned non-zero status=%d. ERR=%s\n"), name,
+         be.code(status), be.strerror(status));
       return false;
    }
    return true;

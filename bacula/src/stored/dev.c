@@ -684,11 +684,18 @@ bool DEVICE::rewind(DCR *dcr)
                first = false;
                continue;
             }
+#ifdef HAVE_SUN_OS
+            if (dev_errno == EIO) {         
+               Mmsg1(errmsg, _("No tape loaded or drive offline on %s.\n"), print_name());
+               return false;
+            }
+#else
             if (dev_errno == EIO && i > 0) {
                Dmsg0(200, "Sleeping 5 seconds.\n");
                bmicrosleep(5, 0);
                continue;
             }
+#endif
             Mmsg2(errmsg, _("Rewind error on %s. ERR=%s.\n"),
                print_name(), be.strerror());
             return false;
@@ -1617,8 +1624,7 @@ void DEVICE::clrerror(int func)
    if (errno == ENOTTY || errno == ENOSYS) { /* Function not implemented */
       switch (func) {
       case -1:
-         Emsg0(M_ABORT, 0, _("Got ENOTTY on read/write!\n"));
-         break;
+         break;              /* ignore message printed later */
       case MTWEOF:
          msg = "WTWEOF";
          capabilities &= ~CAP_EOF; /* turn off feature */

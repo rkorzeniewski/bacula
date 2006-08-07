@@ -1,6 +1,13 @@
               Technical notes on version 1.39  
 
 General:
+07Aug06
+kes  Fix bug #462 incorrect error message printed when client script called
+     from File= was not found.
+kes  Fix bug #558 (waiting for feedback) where Bacula needs too much time to
+     do a rewind on Solaris when no tape is in the drive (Solaris does not
+     have the detailed errno found on Linux).  Added Solaris specific code.
+     Note, this may apply to other OSes as well.
 06Aug06
 kes  Defined BUILDING_CATS in src/cats/cats.h so that *nix builds.
 dsb  Updated rpm spec for 1.39 - updatedb 9 to 10, add new man pages,

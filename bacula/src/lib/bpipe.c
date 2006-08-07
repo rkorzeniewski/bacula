@@ -80,8 +80,8 @@ BPIPE *open_bpipe(char *prog, int wait, const char *mode)
    if (mode_write && pipe(writep) == -1) {
       save_errno = errno;
       free(bpipe);
-      errno = save_errno;
       free_pool_memory(tprog);
+      errno = save_errno;
       return NULL;
    }
    if (mode_read && pipe(readp) == -1) {
@@ -91,8 +91,8 @@ BPIPE *open_bpipe(char *prog, int wait, const char *mode)
          close(writep[1]);
       }
       free(bpipe);
-      errno = save_errno;
       free_pool_memory(tprog);
+      errno = save_errno;
       return NULL;
    }
    /* Start worker process */
@@ -108,8 +108,8 @@ BPIPE *open_bpipe(char *prog, int wait, const char *mode)
          close(readp[1]);
       }
       free(bpipe);
-      errno = save_errno;
       free_pool_memory(tprog);
+      errno = save_errno;
       return NULL;
 
    case 0:                            /* child */
@@ -237,7 +237,7 @@ int close_bpipe(BPIPE *bpipe)
 #ifndef HAVE_WIN32
          stat = WTERMSIG(chldstatus);
 #else
-#warning "WTERMSIG undefined in Win32 !!!"
+         stat = 1;                    /* fake child status */
 #endif
          Dmsg1(800, "Child died from signal %d\n", stat);
          stat |= b_errno_signal;      /* exit signal returned */
@@ -247,7 +247,7 @@ int close_bpipe(BPIPE *bpipe)
       stop_child_timer(bpipe->timer_id);
    }
    free(bpipe);
-   Dmsg1(800, "returning stat = %d\n", stat);
+   Dmsg2(800, "returning stat=%d,%d\n", stat & ~(b_errno_exit|b_errno_signal), stat);
    return stat;
 }
 

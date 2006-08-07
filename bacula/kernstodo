@@ -31,6 +31,7 @@ Document:
 Priority:
 
 For 1.39:
+- Add manpages to the list of directories for make install.
 - If a job terminates, the DIR connection can close before the
   Volume info is updated, leaving the File count wrong.
 - Look at why SIGPIPE during connection can cause seg fault in
