@@ -19,7 +19,6 @@ start_test
 cat <<END_OF_DATA >tmp/bconcmds
 fill
 s
-
 quit
 END_OF_DATA
 
