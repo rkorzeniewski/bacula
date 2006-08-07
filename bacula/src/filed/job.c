@@ -456,7 +456,11 @@ static int runbeforenow_cmd(JCR *jcr)
    BSOCK *dir = jcr->dir_bsock;
 
    run_scripts(jcr, jcr->RunScripts, "ClientBeforeJob");
-   return  bnet_fsend(dir, OKRunBeforeNow);
+   if (job_canceled(jcr)) {
+      return  bnet_fsend(dir, _("2905 Bad RunBeforeNow command.\n"));
+   } else {
+      return  bnet_fsend(dir, OKRunBeforeNow);
+   }
 }
 
 static int runafter_cmd(JCR *jcr)
