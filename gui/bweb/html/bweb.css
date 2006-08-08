@@ -1,0 +1,11 @@
+body { background-color: #ffffff; font-family: verdana,arial,helvetica; font-size: 8pt;}
+a { text-decoration: none;}
+.code_display   {       background-color: #b9b9ac;
+                        border: 1px solid #9d9d94;
+}
+
+abutton.formulaire { class: formulaire; font-size: 9; height: 48px; width: 80px; background-color: transparent; }
+
+button.formulaire { class: formulaire; border: 0px; font-size: 9;  background-color: transparent; }
+
+td.joberr { background-color: red; font-color: white;}

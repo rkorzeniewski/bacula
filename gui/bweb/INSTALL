@@ -1,0 +1,164 @@
+################################################################
+#               INSTALL NOTES                                  #
+################################################################
+
+Bweb works well with 1.39 release.
+
+1) install perl lib
+2) copy your files
+3) intialise your configuration file
+4) do some sql stuff (for postgresql user)
+5) get a bconsole that work with Expect
+6) get bacula log more useful
+7) bweb limitation
+8) using sudo with autochanger
+
+################ FILE COPY #####################################
+
+ # first, copy bweb perl librarie in your PERL5 INC path
+ install -m 644 -o root -g root  bweb/lib/*.pm /usr/share/perl5
+
+ # copy bweb perl program to you cgi location
+ mkdir -m 755 /usr/lib/cgi-bin/bweb
+ install -m 755 -o root -g root  bweb/cgi/*.pl /usr/lib/cgi-bin/bweb
+
+ # get a config file
+ mkdir -m 750 /etc/bweb
+ chown root:www-data /etc/bweb
+ echo "template_dir = /usr/share/bweb/tpl" > /etc/bweb/config
+ chown www-data /etc/bweb/config
+
+ # copy bweb template file
+ mkdir -p /usr/share/bweb/tpl
+ install -m 644 -o root -g root  bweb/tpl/*.tpl /usr/share/bweb/tpl
+
+ # copy bweb graphics elements (bweb elements must reside on /bweb)
+ mkdir /var/www/bweb
+ install -m 644 -o root -g root  bweb/html/*.{js,png,css,gif} /var/www/bweb
+
+ # done !
+
+################ INSTALL PERL LIBRARY ##########################
+
+ - perl modules
+    - DBI (with mysql or postgresql support DBD::Pg and DBD::mysql)
+    - Gd::Graph
+    - HTML::Template
+    - CGI
+    - Expect
+
+ You can install perl modules with CPAN
+ perl -e shell -MCPAN
+  > install Expect
+
+ Or use your distribution
+ apt-get install libgd-graph-perl libhtml-template-perl libexpect-perl
+ apt-get install libdbd-mysql-perl libdbd-pg-perl libdbi-perl
+
+################ APACHE CONFIGURATION ##########################
+
+It could be a good idea to protect your bweb installation.
+
+Put this in you httpd.conf, and add user with htpasswd
+
+<Directory /usr/lib/cgi-bin/bweb>
+        Options ExecCGI -MultiViews +SymLinksIfOwnerMatch
+        AuthType Basic
+        AuthName MyPrivateFile
+        AuthUserFile /etc/apache/htpasswd
+        AllowOverride None
+        Require valid-user
+</Directory>
+
+
+################ CONFIGURATION #################################
+
+/etc/bweb/config look like : (you can edit it inside bweb)
+
+dbi = DBI:Pg:database=bacula;host=192.168.1.2
+user = bacula
+password = test
+template_dir = /usr/share/bweb/tpl
+graph_font = /usr/share/fonts/truetype/msttcorefonts/Arial.ttf
+email_media = eric@localhost
+bconsole = /usr/local/bacula/sbin/bconsole -c /usr/local/bacula/etc/bconsole.conf
+
+################ BRESTORE ######################################
+
+If you want to use brestore with bweb, you must associate mime type
+text/brestore with your brestore.pl.
+
+################ POSTGRESQL NOTES ##############################
+
+If you think that Mysql is not a great database (or just a toy), you must add
+function to the Postgresql bacula database to get Bweb works.
+
+psql -u bacula bacula < script/bweb-postgresql.sql
+
+################ BCONSOLE NOTES ################################
+
+You must use bconsole without conio/readline support ! You can have 2 bconsole
+binary at the same time.
+
+./configure <your-other-options> --disable-conio
+cd src/lib
+make
+cd ..
+cd console
+make
+cp bconsole <your_destination>
+
+################ BACULA LOG ####################################
+
+To use Bweb log engine, you must apply this little patch and have the
+new Log table in your database.
+
+After, you can fill your database with :
+tail -f /tmp/log.sql | bacula -u bacula bacula
+
+cd bacula-src
+patch < message.patch
+--- cvs/src/lib/message.c       2006-07-27 21:06:20.000000000 +0200
++++ cvs/src/lib/message.c.director      2006-07-28 13:46:49.171083494 +0200
+@@ -716,6 +716,18 @@
+                 }
+                 fputs(dt, d->fd);
+                 fputs(msg, d->fd);
++               void db_escape_string(char *snew, char *old, int len);
++               if (jcr) {
++                       char ed1[50];
++                       POOL_MEM cmd(PM_MESSAGE);
++                       int len = strlen(msg);
++                       char *p = (char *)malloc(len * 2 + 1);
++                       db_escape_string(p, msg, len);
++                       FILE *fp = fopen("/tmp/log.sql", "a");
++                       fprintf(fp, "INSERT INTO Log (Time, JobId, LogText) VALUES (NOW(),%s, '%s');\n", edit_int64(jcr->JobId, ed1), p);
++                       fclose(fp);
++               }
++
+                 break;
+              case MD_DIRECTOR:
+                 Dmsg1(850, "DIRECTOR for following msg: %s", msg);
+
+
+
+
+################ BWEB LIMITATION ###############################
+
+To get bweb working, you must follow these rules
+ - Media, Storage and Pool must have [A-Za-z_0-9\.-]+ (no space)
+ - AutoChanger name must be same as Storage name device in bacula
+
+################ SUDO CONFIGURATION ############################
+
+*** At this time, autochanger module works only at home :)
+
+If you use sudo, put this on you /etc/sudoers
+
+www-data ALL = (root) NOPASSWD: /usr/sbin/mtx -f /dev/changer transfer *
+www-data ALL = (root) NOPASSWD: /usr/sbin/mtx -f /dev/changer status
+www-data ALL = (root) NOPASSWD: /usr/sbin/mtx -f /dev/changer load *
+www-data ALL = (root) NOPASSWD: /usr/sbin/mtx -f /dev/changer unload *
+
+
+Enjoy !
