@@ -28,7 +28,7 @@ diff -ru ../../ibiblio/mt-st-0.9b/Makefile ./Makefile
 -install: mt stinit
 -	install -s mt $(BINDIR)
 +install: mt.exe
-+	install -s mt.exe $(BINDIR)
++	install mt.exe $(BINDIR)
  	install -c -m 444 mt.1 $(MANDIR)/man1
  	(if [ -f $(MANDIR)/man1/mt.1.gz ] ; then \
  	  rm -f $(MANDIR)/man1/mt.1.gz; gzip $(MANDIR)/man1/mt.1; fi)

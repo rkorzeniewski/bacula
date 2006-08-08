@@ -273,7 +273,7 @@ function configure_binutils
         cd "binutils-$TARGET"
         echo "Configuring binutils"
         "$SRCDIR/$BINUTILS/configure" --prefix="$PREFIX" --target=$TARGET --disable-nls \
-                --with-gcc --with-gnu-as --with-gnu-ld --disable-shared &> configure.log
+                --with-gcc --with-gnu-as --with-gnu-ld --disable-shared 2>&1 > configure.log
         cd "$BUILDDIR"
 }
 
@@ -282,7 +282,7 @@ function build_binutils
 {
         cd "$BUILDDIR/binutils-$TARGET"
         echo "Building binutils"
-        make CFLAGS="-O2 -fno-exceptions" LDFLAGS="-s" &> make.log
+        make CFLAGS="-O2 -fno-exceptions" LDFLAGS="-s" 2>&1 > make.log
         if test $? -ne 0; then
                 echo "make of binutils failed - log available: binutils-$TARGET/make.log"
                 exit 1
@@ -295,7 +295,7 @@ function install_binutils
 {
         cd "$BUILDDIR/binutils-$TARGET"
         echo "Installing binutils"
-        make install &> make-install.log
+        make install 2>&1 > make-install.log
         if test $? -ne 0; then
                 echo "install of binutils failed - log available: binutils-$TARGET/make-install.log"
                 exit 1
@@ -362,7 +362,7 @@ function configure_gcc
                 --disable-win32-registry --disable-shared --enable-sjlj-exceptions --enable-libgcj \
                 --disable-java-awt --without-x --enable-java-gc=boehm --disable-libgcj-debug \
                 --enable-interpreter --enable-hash-synchronization --enable-libstdcxx-debug \
-                &> configure.log
+                2>&1 > configure.log
         cd "$BUILDDIR"
 }
 
@@ -371,14 +371,14 @@ function build_gcc
 {
         cd "$BUILDDIR/gcc-$TARGET"
         echo "Building gcc"
-        make CFLAGS="-O2" CXXFLAGS="-O2" GCJFLAGS="-O2" LDFLAGS="-s" DEBUG_FLAGS="-g0" &> make.log
+        make CFLAGS="-O2" CXXFLAGS="-O2" GCJFLAGS="-O2" LDFLAGS="-s" DEBUG_FLAGS="-g0" 2>&1 > make.log
         if test $? -ne 0; then
                 echo "make of gcc failed - log available: gcc-$TARGET/make.log"
                 exit 1
         fi
         if [ "x$GCC_ADA" != "x" ]; then
                 cd gcc
-                make "CFLAGS=-O2" "LDFLAGS=-s" gnatlib_and_tools &> make-gnatlib.log
+                make "CFLAGS=-O2" "LDFLAGS=-s" gnatlib_and_tools 2>&1 > make-gnatlib.log
                 if test $? -ne 0; then
                         echo "make of gnatlib and tools failed - log available: gcc-$TARGET/make-gnatlib.log"
                         exit 1
@@ -392,7 +392,7 @@ function install_gcc
 {
         cd "$BUILDDIR/gcc-$TARGET"
         echo "Installing gcc"
-        make install &> make-install.log
+        make install 2>&1 > make-install.log
         if test $? -ne 0; then
                 echo "install of gcc failed - log available: gcc-$TARGET/make-install.log"
                 exit 1
@@ -419,7 +419,7 @@ function patch_mingw_utils
 	MINGW_UTILS=`tar -tzf "$SRCDIR/$MINGW_UTILS_ARCHIVE" | head -n 1`
 	cd "${SRCDIR}/${MINGW_UTILS}"
 	echo "Patching mingw-utils"
-	patch -p0 < ${SCRIPTDIR}/patches/mingw-utils.patch &> patch.log
+	patch -p0 < ${SCRIPTDIR}/patches/mingw-utils.patch 2>&1 > patch.log
 	cd "$BUILDDIR"
 }
 
@@ -431,7 +431,7 @@ function configure_mingw_utils
 	mkdir "mingw-utils"
 	cd "mingw-utils"
 	echo "Configuring mingw-utils"
-	"$SRCDIR/$MINGW_UTILS/configure" --disable-nonportable --prefix="${PREFIX}/${TARGET}" &> configure.log
+	"$SRCDIR/$MINGW_UTILS/configure" --disable-nonportable --prefix="${PREFIX}/${TARGET}" 2>&1 > configure.log
 	cd "$BUILDDIR"
 }
 
@@ -440,7 +440,7 @@ function build_mingw_utils
 {
 	cd "$BUILDDIR/mingw-utils"
 	echo "Building mingw-utils"
-	make CFLAGS="-O2 -fno-exceptions" LDFLAGS="-s" &> make.log
+	make CFLAGS="-O2 -fno-exceptions" LDFLAGS="-s" 2>&1 > make.log
 	if test $? -ne 0; then
 		echo "make of mingw-utils failed - log available: mingw-utils/make.log"
 		exit 1
@@ -453,7 +453,7 @@ function install_mingw_utils
 {
 	cd "$BUILDDIR/mingw-utils"
 	echo "Installing mingw-utils"
-	make install &> make-install.log
+	make install 2>&1 > make-install.log
 	if test $? -ne 0; then
 		echo "install of mingw-utils failed - log available: mingw-utils/make-install.log"
 		exit 1

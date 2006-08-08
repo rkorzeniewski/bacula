@@ -106,7 +106,7 @@ get_source()
 	then
 		rm -rf ${SRC_DIR}
 		echo Extracting ${ARCHIVE}
-		${ARCHIVER} ${ARCHIVE} &> ${ARCHIVE}.log
+		${ARCHIVER} ${ARCHIVE} 2>&1 > ${ARCHIVE}.log
 		cd ${SRC_DIR}
 		return 0
 	fi
@@ -182,7 +182,7 @@ process_pcre()
 		do_patch pcre.patch
 	fi
 	echo Configuring PCRE
-	./configure CC_FOR_BUILD=gcc CXX_FOR_BUILD=g++ --host=mingw32 --prefix=${DEPPKG_DIR} --enable-utf8 --enable-unicode-properties &>make.log
+	./configure CC_FOR_BUILD=gcc CXX_FOR_BUILD=g++ --host=mingw32 --prefix=${DEPPKG_DIR} --enable-utf8 --enable-unicode-properties 2>&1 >make.log
 	echo Building PCRE
 	do_make Makefile PREFIX=${DEPPKG_DIR} all
 	echo Installing PCRE
@@ -217,7 +217,7 @@ process_openssl()
 		do_patch openssl.patch
 	fi
 	echo Configuring openssl
-	./Configure --prefix=${DEPPKG_DIR} shared zlib-dynamic threads --with-zlib-include=${DEPPKG_DIR}/include mingw32 &> make.log
+	./Configure --prefix=${DEPPKG_DIR} shared zlib-dynamic threads --with-zlib-include=${DEPPKG_DIR}/include mingw32 2>&1 > make.log
 	echo Building openssl
 	perl util/mkdef.pl 32 libeay no-static-engine >ms/libeay32.def
 	perl util/mkdef.pl 32 ssleay >ms/ssleay32.def
@@ -253,7 +253,7 @@ process_postgreSQL()
 		do_patch postgresql.patch
 	fi
 	echo Configuring postgreSQL
-	./configure --host=mingw32 --enable-shared --enable-thread-safety --prefix=${DEPPKG_DIR} --with-includes=${DEPPKG_DIR}/include:${DEPPKG_DIR}/include/pthreads --with-libraries=${DEPPKG_DIR}/lib &> make.log
+	./configure --host=mingw32 --enable-shared --enable-thread-safety --prefix=${DEPPKG_DIR} --with-includes=${DEPPKG_DIR}/include:${DEPPKG_DIR}/include/pthreads --with-libraries=${DEPPKG_DIR}/lib 2>&1 > make.log
 	echo Building postgreSQL
 	if [ -e /usr/sbin/zic ]; then ZIC=/usr/sbin/zic
 	elif [ -e /sbin/zic ]; then ZIC=/sbin/zic
@@ -325,7 +325,7 @@ process_scons()
 {
 	get_source "${URL_SCONS}" "${DIR_SCONS}"
 	echo Installing scons
-	if python setup.py install --prefix=${DEPPKG_DIR}/scons &> make.log
+	if python setup.py install --prefix=${DEPPKG_DIR}/scons 2>&1 > make.log
 	then
 		:
 	else
@@ -346,11 +346,19 @@ process_nsis()
 		>patch.log
 		do_patch nsis.patch
 	fi
+	if [ "`uname -s`" = "FreeBSD" ]
+	then
+		ICONV_VARS="CPPPATH=/usr/local/include LIBPATH=/usr/local/lib"
+	else
+		ICONV_VARS=
+	fi
 	echo Building nsis
 	if ../../scons/bin/scons SKIPSTUBS=all SKIPPLUGINS=all SKIPUTILS=all SKIPMISC=all \
 		PREFIX=${DEPPKG_DIR}/nsis PREFIX_BIN=${DEPPKG_DIR}/nsis/Bin \
 		PREFIX_CONF=${DEPPKG_DIR}/nsis PREFIX_DATA=${DEPPKG_DIR}/nsis \
-		PREFIX_DOC=${DEPPKG_DIR}/nsis/Docs 2>&1 | tee make.log | parse_output
+		PREFIX_DOC=${DEPPKG_DIR}/nsis/Docs \
+		${ICONV_VARS} \
+		2>&1 | tee make.log | parse_output
 	then
 		:
 	else

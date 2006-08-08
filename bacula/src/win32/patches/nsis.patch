@@ -1,6 +1,6 @@
 Index: SCons/Config/gnu
 --- ../release/nsis-2.17-src/SCons/Config/gnu	2006-04-28 08:54:41.000000000 -0700
-+++ ./SCons/Config/gnu	2006-07-31 05:48:44.000000000 -0700
++++ SCons/Config/gnu	2006-08-07 18:49:47.000000000 -0700
 @@ -65,7 +65,7 @@
  cross_env(stub_env)
  
@@ -10,7 +10,7 @@ Index: SCons/Config/gnu
  stub_env.Append(CCFLAGS = '-Wall')                # all warnings
  stub_env.Append(CCFLAGS = '-x c')                 # force compile as c
  
-@@ -82,7 +82,7 @@
+@@ -82,8 +82,8 @@
  makensis_env = defenv.Copy()
  
  if not defenv['DEBUG']:
@@ -19,6 +19,7 @@ Index: SCons/Config/gnu
  makensis_env.Append(CCFLAGS = '-Wall')            # all warnings
  
  conf = FlagsConfigure(makensis_env)
+ conf.CheckLinkFlag('$MAP_FLAG')                   # generate map file
 @@ -97,7 +97,7 @@
  cross_env(plugin_env)
  

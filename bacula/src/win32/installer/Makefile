@@ -7,7 +7,7 @@
 
 include ../Makefile.inc
 
-VERSION := $(shell sed -ne 's/.*[ \t]VERSION[ \t]\+"\(.*\)"/\1/p' < ../../version.h)
+VERSION := $(shell sed -ne 's/.*[ \t]VERSION[ \t][ \t]*"\(.*\)"/\1/p' < ../../version.h)
 
 DEFINES := \
 	-DVERSION=$(VERSION) \
