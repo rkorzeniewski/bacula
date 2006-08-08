@@ -160,7 +160,7 @@ PATH="$PREFIX/bin:$PATH"
 #-----------------------------------------------------
 
 
-function download_files
+download_files()
 {
         # Download a file from a given url, only if it is not present
         mkdir -p "$SRCDIR"
@@ -204,7 +204,7 @@ function download_files
 }
 
 
-function download_file
+download_file()
 {
         cd "$SRCDIR"
         if test ! -f $1 ; then
@@ -221,7 +221,7 @@ function download_file
 }
 
 
-function purge_existing_install
+purge_existing_install()
 {
         echo "Purging the existing files in $PREFIX"
         if cd "$PREFIX"; then
@@ -231,7 +231,7 @@ function purge_existing_install
 }
 
 
-function install_libs
+install_libs()
 {
         echo "Installing cross libs and includes"
         mkdir -p "$PREFIX/$TARGET"
@@ -252,7 +252,7 @@ function install_libs
 }
 
 
-function extract_binutils
+extract_binutils()
 {
         cd "$SRCDIR"
         BINUTILS=`tar -tzf "$SRCDIR/$BINUTILS_ARCHIVE" | head -n 1`
@@ -265,7 +265,7 @@ function extract_binutils
 }
 
 
-function configure_binutils
+configure_binutils()
 {
         cd "$BUILDDIR"
         rm -rf "binutils-$TARGET"
@@ -278,7 +278,7 @@ function configure_binutils
 }
 
 
-function build_binutils
+build_binutils()
 {
         cd "$BUILDDIR/binutils-$TARGET"
         echo "Building binutils"
@@ -291,7 +291,7 @@ function build_binutils
 }
 
 
-function install_binutils
+install_binutils()
 {
         cd "$BUILDDIR/binutils-$TARGET"
         echo "Installing binutils"
@@ -304,7 +304,7 @@ function install_binutils
 }
 
 
-function extract_gcc
+extract_gcc()
 {
         cd "$SRCDIR"
         GCC=`tar -tzf "$SRCDIR/$GCC_CORE_ARCHIVE" | head -n 1`
@@ -336,7 +336,7 @@ function extract_gcc
 }
 
 
-function patch_gcc
+patch_gcc()
 {
         if [ "$GCC_PATCH" != "" ]; then
                 echo "Patching gcc"
@@ -347,7 +347,7 @@ function patch_gcc
 }
 
 
-function configure_gcc
+configure_gcc()
 {
         cd "$BUILDDIR"
         rm -rf "gcc-$TARGET"
@@ -367,7 +367,7 @@ function configure_gcc
 }
 
 
-function build_gcc
+build_gcc()
 {
         cd "$BUILDDIR/gcc-$TARGET"
         echo "Building gcc"
@@ -388,7 +388,7 @@ function build_gcc
 }
 
 
-function install_gcc
+install_gcc()
 {
         cd "$BUILDDIR/gcc-$TARGET"
         echo "Installing gcc"
@@ -401,7 +401,7 @@ function install_gcc
 }
 
 
-function extract_mingw_utils
+extract_mingw_utils()
 {
 	cd "$SRCDIR"
 	MINGW_UTILS=`tar -tzf "$SRCDIR/$MINGW_UTILS_ARCHIVE" | head -n 1`
@@ -414,17 +414,21 @@ function extract_mingw_utils
 }
 
 
-function patch_mingw_utils
+patch_mingw_utils()
 {
 	MINGW_UTILS=`tar -tzf "$SRCDIR/$MINGW_UTILS_ARCHIVE" | head -n 1`
 	cd "${SRCDIR}/${MINGW_UTILS}"
 	echo "Patching mingw-utils"
-	patch -p0 < ${SCRIPTDIR}/patches/mingw-utils.patch 2>&1 > patch.log
+	patch -p0 < ${SCRIPTDIR}/patches/mingw-utils1.patch 2>&1 > patch.log
+	cd dos2unix
+	patch -p0 < ${SCRIPTDIR}/patches/mingw-utils2.patch 2>&1 >> patch.log
+	cd ../unix2dos
+	patch -p0 < ${SCRIPTDIR}/patches/mingw-utils3.patch 2>&1 >> patch.log
 	cd "$BUILDDIR"
 }
 
 
-function configure_mingw_utils
+configure_mingw_utils()
 {
 	cd "$BUILDDIR"
 	rm -rf "mingw-utils"
@@ -436,7 +440,7 @@ function configure_mingw_utils
 }
 
 
-function build_mingw_utils
+build_mingw_utils()
 {
 	cd "$BUILDDIR/mingw-utils"
 	echo "Building mingw-utils"
@@ -449,7 +453,7 @@ function build_mingw_utils
 }
 
 
-function install_mingw_utils
+install_mingw_utils()
 {
 	cd "$BUILDDIR/mingw-utils"
 	echo "Installing mingw-utils"
@@ -462,7 +466,7 @@ function install_mingw_utils
 }
 
 
-function final_tweaks
+final_tweaks()
 {
         echo "Finalizing installation"
 
