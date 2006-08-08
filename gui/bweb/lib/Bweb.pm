@@ -1802,6 +1802,10 @@ SELECT  Job.JobId       AS jobid,
         JobFiles        AS jobfiles, 
         JobBytes        AS jobbytes,
 	JobStatus       AS jobstatus,
+     $self->{sql}->{SEC_TO_TIME}(  $self->{sql}->{UNIX_TIMESTAMP}(EndTime)  
+                                 - $self->{sql}->{UNIX_TIMESTAMP}(StartTime)) 
+                        AS duration,
+
         JobErrors	AS joberrors
 
  FROM Client, 
@@ -2521,7 +2525,7 @@ sub get_job_log
 	return $self->error("Can't get jobid");
     }
 
-    my $t = CGI::param('time') || '';
+    my $t = CGI::param('time') || '';
 
     my $query = "
 SELECT Job.Name as name, Client.Name as clientname
@@ -2540,12 +2544,14 @@ SELECT Job.Name as name, Client.Name as clientname
 SELECT Time AS time, LogText AS log
  FROM  Log
  WHERE JobId = $arg->{jobid}
+ ORDER BY Time
 ";
     my $log = $self->dbh_selectall_arrayref($query);
     unless ($log) {
 	return $self->error("Can't get log for jobid $arg->{jobid}");
     }
 
+    my $logtxt;
     if ($t) {
 	# log contains \n
 	$logtxt = join("", map { ($_->[0] . ' ' . $_->[1]) } @$log ) ; 
