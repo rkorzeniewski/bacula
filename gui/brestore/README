@@ -1,0 +1,110 @@
+################################################################
+#             brestore -- a bacula perl interface              #
+################################################################
+
+As we felt a need for a restoration GUI for bacula, we developed a simple
+Perl/GTK GUI.  
+It has the following features :
+
+    * Direct SQL access to the database for good performance
+
+    * Fast Time Navigation (switch almost instantaneously between the different
+      versions of a directory, by changing the date from a list)
+
+    * Possibility to choose a selected file, then browse all its available
+      versions, and see directly if these versions are online in a library or
+      not
+
+    * Simple restoration by the generation of a BSR file
+
+    * Works indifferently with postgresql and mysql 
+
+We have a working (if a bit unpolished) version ready, and think it is time for
+us to publish it and have user and Kern feedback.  
+
+What's missing :
+
+    * We want to add some other features such as : the user has selected a FD
+      and a date, we want to display the list of media requested and their
+      availability.
+
+    * Plenty of features. As we don't have lots of imagination. Don't hesitate
+      to suggest us your ideas ...
+
+For the moment, we want to concentrate on having a restoration interface. We
+don't care about seeing the restoration progress, or anything else.
+
+These tools are available with Bweb.
+
+################ INSTALL #######################################
+
+# you can put glade file on /usr/share/brestore or /usr/local/share/brestore
+mkdir -p /usr/share/brestore
+install -m 644 -o root -g root brestore.glade /usr/share/brestore
+install -m 755 -o root -g root brestore.pl    /usr/bin
+
+# you must get Bconsole.pm from bweb modules (bweb/lib/Bconsole.pm)
+install -m 644 -o root -g root Bconsole.pm /usr/share/perl5
+
+################ INSTALL MODULES ###############################
+
+Perl Modules
+The Debian Way
+
+apt-get install libgtk2-gladexml-perl
+apt-get install libdbd-mysql-perl
+apt-get install libdbd-pg-perl
+apt-get install libexpect-perl
+
+The Red Hat way
+Please contribute, neither of us have a Red Hat to test on :)
+Other distros/Unices
+Please contribute ...
+The generic Way, if those modules aren't packaged by your distro
+
+perl -MCPAN -e shell
+install Gtk2
+install Expect
+install Gtk2::GladeXML
+
+install DBD::mysql
+or
+install DBD::Pg
+
+################ BCONSOLE WITHOUT CONIO ########################
+
+For now, we have problems interfacing with bconsole when it's using conio. So
+you'll have to disable it.
+
+./configure <your-other-options> --disable-conio
+cd src/lib
+make
+cd ..
+cd console
+make
+cp bconsole <your_destination>
+
+Of course, you don't need to overwrite your current bconsole. You can put this
+one wherever you like and dedicate it to brestore.
+
+WARNING : You must be able to execute bconsole and able to read bconsole.conf !
+
+################ CONFIGURATION #################################
+
+You can make configuration from brestore himself (if brestore can find
+his glade file).
+
+Example :
+
+$parameters = {
+                'mozilla' => 'mozilla',
+                'bconsole' => '/usr/local/bin/bconsole.noconio -c /etc/bacula/bconsole.conf',
+                'bweb' => 'http://localhost/cgi-bin/bweb/bweb.pl',
+                'connection_string' => 'DBI:mysql:database=bacula;host=127.0.0.1;port=3306',
+                'username' => 'bacula',
+                'password' => 'xxxx',
+                'bsr_dest' => 'file://var/tmp',
+                'debug' => 0,
+                'use_ok_bkp_only' => 1,
+                'default_restore_job' => 'restore'
+              };
