@@ -474,9 +474,9 @@ sub get
     my ($name, $bweb) = @_;
     my $a = new Bweb::Autochanger(debug => $bweb->{debug}, 
 				  bweb => $bweb,
-				  name => 'SDLT-1-2',
+				  name => 'L80',
 				  precmd => 'sudo',
-				  drive_name => ['SDLT-1', 'SDLT-2'],
+				  drive_name => ['SDLT-0', 'SDLT-1'],
 				  );
     return $a;
 }
@@ -2462,7 +2462,7 @@ WHERE Media.VolumeName IN ($arg->{jmedias})
 
     my $all = $self->dbh_selectall_hashref($query, 'volumename');
 
-    my $a = Bweb::Autochanger::get('SDLT-1-2', $self);
+    my $a = Bweb::Autochanger::get('L80', $self);
 
     $a->status();
     foreach my $vol (values %$all) {

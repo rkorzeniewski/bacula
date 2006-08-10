@@ -109,7 +109,7 @@ if ($action eq 'begin') {		# main display
     $bweb->display_medias();
 
 } elsif ($action eq 'eject') {
-    my $a = Bweb::Autochanger::get('SDLT-1-2', $bweb);
+    my $a = Bweb::Autochanger::get('L80', $bweb);
 
     $a->status();
     foreach my $slot (CGI::param('slot')) {
@@ -127,7 +127,7 @@ if ($action eq 'begin') {		# main display
     $bweb->eject_media();
 
 } elsif ($action eq 'clear_io') {
-    my $a = Bweb::Autochanger::get('SDLT-1-2', $bweb);
+    my $a = Bweb::Autochanger::get('L80', $bweb);
     $a->status();
     $a->clear_io();
     $a->display_content();
@@ -135,19 +135,19 @@ if ($action eq 'begin') {		# main display
 } elsif ($action eq 'ach_view') {
     # TODO : get autochanger name and create it
     $bweb->connect_db();
-    my $a = Bweb::Autochanger::get('SDLT-1-2', $bweb);
+    my $a = Bweb::Autochanger::get('L80', $bweb);
     $a->status();
     $a->display_content();
 
 } elsif ($action eq 'ach_load') {
     my $arg = $bweb->get_form('drive', 'slot');
-    my $a = Bweb::Autochanger::get('SDLT-1-2', $bweb);
+    my $a = Bweb::Autochanger::get('L80', $bweb);
     $a->status();
     $a->load($arg->{drive}, $arg->{slot}) ;
 
 } elsif ($action eq 'ach_unload') {
     my $arg = $bweb->get_form('drive', 'slot');
-    my $a = Bweb::Autochanger::get('SDLT-1-2', $bweb);
+    my $a = Bweb::Autochanger::get('L80', $bweb);
     $a->status();
     $a->unload($arg->{drive}, $arg->{slot}) ;
    

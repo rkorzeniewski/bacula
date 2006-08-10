@@ -24,7 +24,7 @@
  <td>
  <form action='?'>
   <input type='hidden' name='client' value='<TMPL_VAR Client>'>
-  <button class='formulaire' name='action' value='job' title='view jobs of <TMPL_VAR Client>'>
+  <button class='formulaire' name='action' value='job' title='view <TMPL_VAR Client> jobs'>
      View jobs<br/>
      <img src='/bweb/zoom.png'>
   </button>
