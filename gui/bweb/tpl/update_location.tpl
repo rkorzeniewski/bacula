@@ -60,7 +60,7 @@ nrsTable.setup(
 }
 );
 
-<TMPL_IF newlocation>
+<TMPL_IF qnewlocation>
  document.getElementById('loc_' + <TMPL_VAR qnewlocation>).selected=true;
 </TMPL_IF>
 
