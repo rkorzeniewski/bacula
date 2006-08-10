@@ -468,10 +468,10 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       memcpy(sd->msg, ff_pkt->hfsinfo.fndrinfo, 32);
       sd->msglen = 32;
       if (digest) {
-         crypto_digest_update(digest, sd->msg, sd->msglen);
+         crypto_digest_update(digest, (uint8_t *)sd->msg, sd->msglen);
       }
       if (signing_digest) {
-         crypto_digest_update(signing_digest, sd->msg, sd->msglen);
+         crypto_digest_update(signing_digest, (uint8_t *)sd->msg, sd->msglen);
       }
       bnet_send(sd);
       bnet_sig(sd, BNET_EOD);
