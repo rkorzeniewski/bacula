@@ -3,12 +3,34 @@
  </div>
  <div class="bodydiv">
  <table id='id0'></table>
+ <table><td>
  <form action='?'>
   <input type='hidden' name='jobid' value='<TMPL_VAR jobid>'>
-  <button class='formulaire' name='action' value='delete' title='delete this job'>
+  <button class='formulaire' name='action' value='delete' title='delete this job'>   Delete<br/>
      <img src='/bweb/purge.png'>
   </button>
  </form>
+ </td><td>
+ <form action='?'>
+  <TMPL_LOOP volumes>
+   <input type='hidden' name='media' value='<TMPL_VAR VolumeName>'>
+  </TMPL_LOOP>   
+  <button class='formulaire' name='action' value='media' title='view media'>
+     View media<br/>
+     <img src='/bweb/zoom.png'>
+  </button>
+ </form>
+ </td>
+ <td>
+ <form action='?'>
+  <input type='hidden' name='client' value='<TMPL_VAR Client>'>
+  <button class='formulaire' name='action' value='job' title='view jobs of <TMPL_VAR Client>'>
+     View jobs<br/>
+     <img src='/bweb/zoom.png'>
+  </button>
+ </form>
+ </td>
+ </table>
 </div>
 
 <script language='JavaScript'>

@@ -11,9 +11,9 @@
    <form action='?' method='get'>
       <input type='hidden' name='media' value='<TMPL_VAR volumename>'>
 <TMPL_IF online>
-      <button class='formulaire' type='submit' name='action' value='intern'><img src='/bweb/intern.png'></button> 
+      <button class='formulaire' type='submit' name='action' value='extern' title='move out'><img src='/bweb/extern.png'></button>      
 <TMPL_ELSE>
-      <button class='formulaire' type='submit' name='action' value='extern'><img src='/bweb/extern.png'></button>
+      <button class='formulaire' type='submit' name='action' value='intern' title='move in'><img src='/bweb/intern.png'></button> 
 </TMPL_IF>
       <button class='formulaire' type='submit' name='action' value='update_media' title='Update'><img src='/bweb/edit.png'></button> 
       <button class='formulaire' type='submit' name='action' value='purge' title='Purge'><img src='/bweb/purge.png'></button>

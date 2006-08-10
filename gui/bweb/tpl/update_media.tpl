@@ -86,18 +86,26 @@
         </td>
     </tr>
     </table>
-<button class='formulaire' name='action' value='do_update_media'>Apply<br/>
- <img src='/bweb/apply.png'>
-</button>
-<button class='formulaire' name='action' title='Update from pool'
-  value='update_from_pool'>Update<br/>
- <img src='/bweb/update.png' title='Update from pool'>
-</button>
-<button class='formulaire' name='action' value='media'>View Pool<br/>
- <img src='/bweb/zoom.png'>
-</button>
-
-   </form>
+<table>
+ <td>
+  <button class='formulaire' name='action' value='do_update_media'>Apply<br/>
+   <img src='/bweb/apply.png'>
+  </button>
+  <button class='formulaire' name='action' title='Update from pool'
+    value='update_from_pool'>Update<br/>
+   <img src='/bweb/update.png' title='Update from pool'>
+  </button>
+ </form>
+ </td>
+ <td>
+  <form action='?' method='GET'>
+   <input type='hidden' name='pool' value='<TMPL_VAR poolname>'>
+    <button class='formulaire' name='action' value='media'>View Pool<br/>
+     <img src='/bweb/zoom.png'>
+    </button>
+  </form>
+ </td>
+</table>
 </div>
 
 <script language='JavaScript'>

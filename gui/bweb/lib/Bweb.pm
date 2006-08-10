@@ -1888,6 +1888,12 @@ sub display_media
     my ($where, %elt) = $self->get_param('pool',
 					 'location');
 
+    my $arg = $self->get_form('jmedias');
+
+    if ($arg->{jmedias}) {
+	$where = "AND Media.VolumeName IN ($arg->{jmedias}) $where"; 
+    }
+
     my $query="
 SELECT Media.VolumeName AS volumename, 
        Media.VolBytes   AS volbytes,
@@ -2244,14 +2250,13 @@ sub save_location
 {
     my ($self) = @_ ;
 
-    my $medias = $self->get_selected_media();
+    my $arg = $self->get_form('jmedias', 'qnewlocation') ;
 
-    unless ($medias) {
-	return 0;
+    unless ($arg->{jmedias}) {
+	return $self->error("Can't get selected media");
     }
     
-    my $loc = $self->get_form('qnewlocation');
-    unless ($loc->{qnewlocation}) {
+    unless ($arg->{qnewlocation}) {
 	return $self->error("Can't get new location");
     }
 
@@ -2259,8 +2264,8 @@ sub save_location
  UPDATE Media 
      SET LocationId = (SELECT LocationId 
                        FROM Location 
-                       WHERE Location = $loc->{qnewlocation}) 
-     WHERE Media.VolumeName IN ($medias)
+                       WHERE Location = $arg->{qnewlocation}) 
+     WHERE Media.VolumeName IN ($arg->{jmedias})
 ";
 
     my $nb = $self->dbh_do($query);

@@ -21,8 +21,8 @@ Location : <TMPL_VAR location>
 
    <form action='?action=test' method='get'>
     <table id='id_pool_<TMPL_VAR ID>'></table>
-      <button class='formulaire' type='submit' name='action' value='extern'><img src='/bweb/extern.png'></button>
-      <button class='formulaire' type='submit' name='action' value='intern'><img src='/bweb/intern.png'></button> 
+      <button class='formulaire' type='submit' name='action' value='extern' title='Move out'><img src='/bweb/extern.png'></button>
+      <button class='formulaire' type='submit' name='action' value='intern' title='Move in'><img src='/bweb/intern.png'></button> 
       <button class='formulaire' type='submit' name='action' value='update_media' title='Update media'><img src='/bweb/edit.png'></button> 
       <button class='formulaire' type='submit' name='action' value='media_zoom' title='Informations'><img src='/bweb/zoom.png'></button>
 <!--
