@@ -69,7 +69,7 @@ if ($action eq 'begin') {		# main display
 </div>
 <div class='bodydiv'>
 <a href='?action=job;age=172800;jobtype=B'>
-<img src='bgraph.pl?age=172800;width=450;height=250;graph=job_size;limit=100;action=graph' alt='Nothing to display'>
+<img src='bgraph.pl?age=172800;width=450;height=250;graph=job_size;limit=100;action=graph;legend=off' alt='Nothing to display'>
 </a>
 </div>";
     print "</td></table>";
@@ -109,7 +109,7 @@ if ($action eq 'begin') {		# main display
     $bweb->display_medias();
 
 } elsif ($action eq 'eject') {
-    my $a = Bweb::Autochanger::get('L80', $bweb);
+    my $a = Bweb::Autochanger::get('S1_L80', $bweb);
 
     $a->status();
     foreach my $slot (CGI::param('slot')) {
@@ -127,7 +127,7 @@ if ($action eq 'begin') {		# main display
     $bweb->eject_media();
 
 } elsif ($action eq 'clear_io') {
-    my $a = Bweb::Autochanger::get('L80', $bweb);
+    my $a = Bweb::Autochanger::get('S1_L80', $bweb);
     $a->status();
     $a->clear_io();
     $a->display_content();
@@ -135,19 +135,19 @@ if ($action eq 'begin') {		# main display
 } elsif ($action eq 'ach_view') {
     # TODO : get autochanger name and create it
     $bweb->connect_db();
-    my $a = Bweb::Autochanger::get('L80', $bweb);
+    my $a = Bweb::Autochanger::get('S1_L80', $bweb);
     $a->status();
     $a->display_content();
 
 } elsif ($action eq 'ach_load') {
     my $arg = $bweb->get_form('drive', 'slot');
-    my $a = Bweb::Autochanger::get('L80', $bweb);
+    my $a = Bweb::Autochanger::get('S1_L80', $bweb);
     $a->status();
     $a->load($arg->{drive}, $arg->{slot}) ;
 
 } elsif ($action eq 'ach_unload') {
     my $arg = $bweb->get_form('drive', 'slot');
-    my $a = Bweb::Autochanger::get('L80', $bweb);
+    my $a = Bweb::Autochanger::get('S1_L80', $bweb);
     $a->status();
     $a->unload($arg->{drive}, $arg->{slot}) ;
    

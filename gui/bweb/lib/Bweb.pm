@@ -474,9 +474,9 @@ sub get
     my ($name, $bweb) = @_;
     my $a = new Bweb::Autochanger(debug => $bweb->{debug}, 
 				  bweb => $bweb,
-				  name => 'L80',
+				  name => 'S1_L80',
 				  precmd => 'sudo',
-				  drive_name => ['SDLT-0', 'SDLT-1'],
+				  drive_name => ['S1_L80_SDLT0', 'S1_L80_SDLT1'],
 				  );
     return $a;
 }
@@ -817,7 +817,7 @@ sub send_to_io
 sub transfer
 {
     my ($self, $src, $dst) = @_ ;
-    print "$self->{precmd} $self->{mtxcmd} -f $self->{device} transfer $src $dst\n";
+    print "<pre>$self->{precmd} $self->{mtxcmd} -f $self->{device} transfer $src $dst</pre>\n";
     my $out = `$self->{precmd} $self->{mtxcmd} -f $self->{device} transfer $src $dst 2>&1`;
     
     if ($? == 0) {
@@ -2462,7 +2462,7 @@ WHERE Media.VolumeName IN ($arg->{jmedias})
 
     my $all = $self->dbh_selectall_hashref($query, 'volumename');
 
-    my $a = Bweb::Autochanger::get('L80', $self);
+    my $a = Bweb::Autochanger::get('S1_L80', $self);
 
     $a->status();
     foreach my $vol (values %$all) {

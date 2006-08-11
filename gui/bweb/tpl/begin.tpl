@@ -17,7 +17,7 @@
 <a href="?action=running"> Running jobs </a>|
 <a href="?action=job"> Old Jobs </a>|
 <a href="?action=next_job"> Next jobs </a|>|
-<a href="?action=restore"> Restore </a>|
+<a href="?action=restore" title="Launch brestore"> Restore </a>|
 <a href="?action=graph"> Statistics </a>] [
 <a href="?action=pool"> Pools </a>|
 <a href="?action=location"> Locations </a>|

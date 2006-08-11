@@ -42,6 +42,8 @@ my $dbh = $bweb->{dbh};
 my $debug = $bweb->{debug};
 
 my $graph = CGI::param('graph') || 'begin';
+my $legend = CGI::param('legend') || 'on' ;
+$legend = ($legend eq 'on')?1:0;
 
 my $arg = $bweb->get_form(qw/width height limit offset age
 			     jfilesets level status jjobnames jclients/);
@@ -180,7 +182,9 @@ $limitq
     my $all = $dbh->selectall_arrayref($query) ;
 
     my ($d, $ret) = make_tab($all);
-    $obj->set_legend(keys %$ret);
+    if ($legend) {
+	$obj->set_legend(keys %$ret);
+    }
     print $obj->plot([$d, values %$ret])->png;
 }
 
@@ -214,7 +218,9 @@ $limitq
     my $all = $dbh->selectall_arrayref($query) ;
 
     my ($d, $ret) = make_tab($all);
-    $obj->set_legend(keys %$ret);
+    if ($legend) {
+	$obj->set_legend(keys %$ret);
+    }
     print $obj->plot([$d, values %$ret])->png;
 }
 
@@ -254,7 +260,9 @@ $limitq
     my $all = $dbh->selectall_arrayref($query) ;
 
     my ($d, $ret) = make_tab($all);    
-    $obj->set_legend(keys %$ret);
+    if ($legend) {
+	$obj->set_legend(keys %$ret);
+    }
     print $obj->plot([$d, values %$ret])->png;
 }
 
@@ -292,7 +300,9 @@ $limitq
     my $all = $dbh->selectall_arrayref($query) ;
 
     my ($d, $ret) = make_tab($all);
-    $obj->set_legend(keys %$ret);
+    if ($legend) {
+	$obj->set_legend(keys %$ret);
+    }
     print $obj->plot([$d, values %$ret])->png;
 }
 
