@@ -1,35 +1,30 @@
 #!/bin/sh
 
-VERBOSE=n
-OVERWRITE=n
+usage()
+{
+	echo "usage: $0 [-h] [-C] [<dependency 1>] [<dependency 2>] ..."
+	echo "       -h      Displays this usage"
+	echo "       -C      Clobbers (overwrites) the source code by "
+	echo "               reextracting the archive and reapplying the"
+	echo "               patches."
+	echo ""
+	echo "<dependency N> Optional dependency, If none are given then all"
+	echo "               of them will be built."
+	echo ""
+	echo "Valid dependencies are:"
+	grep -v '^#' < External-mingw32 | cut -d'|' -f1 | cut -d'_' -f1 | tr A-Z a-z | sort -u | awk '{ print "        " $1 }'
+}
 
-URL_ZLIB=http://www.zlib.net/zlib-1.2.3.tar.gz
-#URL_ZLIB=http://superb-west.dl.sourceforge.net/sourceforge/libpng/zlib-1.2.3.tar.gz
-DIR_ZLIB=
-URL_PCRE=http://superb-west.dl.sourceforge.net/sourceforge/pcre/pcre-6.3.tar.bz2
-DIR_PCRE=
-URL_PTHREADS=ftp://sources.redhat.com/pub/pthreads-win32/pthreads-snap-2004-06-22.tar.gz
-DIR_PTHREADS=
-URL_OPENSSL=http://www.openssl.org/source/openssl-0.9.8b.tar.gz
-DIR_OPENSSL=
-URL_MYSQL=http://mirror.x10.com/mirror/mysql/Downloads/MySQL-5.0/mysql-noinstall-5.0.22-win32.zip
-DIR_MYSQL=mysql-5.0.22-win32
-URL_POSTGRESQL=ftp://ftp2.us.postgresql.org/postgresql/source/v8.1.4/postgresql-base-8.1.4.tar.bz2
-DIR_POSTGRESQL=postgresql-8.1.4
-URL_SQLITE=http://www.sqlite.org/sqlite-3.3.6.tar.gz
-DIR_SQLITE=
-URL_WX=http://superb-west.dl.sourceforge.net/sourceforge/wxwindows/wxWidgets-2.6.3.tar.gz
-DIR_WX=
-URL_SCONS=http://superb-west.dl.sourceforge.net/sourceforge/scons/scons-0.96.92.tar.gz
-DIR_SCONS=
-URL_NSIS_BIN=http://superb-west.dl.sourceforge.net/sourceforge/nsis/nsis-2.17.zip
-DIR_NSIS_BIN=
-URL_NSIS_SRC=http://superb-west.dl.sourceforge.net/sourceforge/nsis/nsis-2.17-src.tar.bz2
-DIR_NSIS_SRC=
-URL_MTX=http://superb-west.dl.sourceforge.net/sourceforge/mtx/mtx-1.3.9.tar.gz
-DIR_MTX=
-URL_MT=ftp://ftp.ibiblio.org/pub/linux/system/backup/mt-st-0.9b.tar.gz
-DIR_MT=
+CLOBBER_SOURCE=
+
+while getopts "hHC" opt; do
+	case ${opt} in
+	H|h|\?)	usage;exit 1;;
+	C)	CLOBBER_SOURCE=true;;
+	esac
+done
+
+[ ${OPTIND} -gt 1 ] && shift `expr ${OPTIND} - 1`
 
 cwd=`pwd`
 cd `dirname $0`
@@ -54,19 +49,6 @@ fi
 [ ! -e ${TOP_DIR}/depkgs-mingw32 ] && mkdir ${TOP_DIR}/depkgs-mingw32
 cd ${TOP_DIR}/depkgs-mingw32
 DEPPKG_DIR=`pwd`
-cd ${DEPPKG_DIR}
-
-case "${VERBOSE}" in
-y*|t*)	VERBOSE=true ;;
-n*|f*)	VERBOSE=false ;;
-*)	VERBOSE=false ;;
-esac
-
-case ${OVERWRITE} in
-y*|t*)	OVERWRITE=true ;;
-n*|f*)	OVERWRITE=false ;;
-*)	OVERWRITE=true ;;
-esac
 
 export PATH=${BIN_DIR}:${PATH}
 
@@ -75,10 +57,20 @@ export PATH=${BIN_DIR}:${PATH}
 [ ! -e include ] && mkdir include
 [ ! -e lib ] && mkdir lib
 
+OLD_IFS=${IFS};IFS="|";
+while read package url dir mkd; do
+	case ${package} in
+	\#*) ;;
+	*) eval "URL_${package}=${url};DIR_${package}=${dir};MKD_${package}=${mkd}";;
+	esac
+done < ${SCRIPT_DIR}/External-mingw32
+IFS=${OLD_IFS};unset OLD_IFS
+
 get_source()
 {
 	URL=$1
 	SRC_DIR=$2
+	MAKE_DIR=$3
 	ARCHIVE=`basename ${URL}`
 	
 	case ${ARCHIVE} in
@@ -102,11 +94,12 @@ get_source()
 		fi
 	fi
 
-	if [ ! -e "${SRC_DIR}" -o "${OVERWRITE}" = "true" ]
+	if [ ! -e "${SRC_DIR}" -o "${CLOBBER_SOURCE}" = "true" ]
 	then
 		rm -rf ${SRC_DIR}
+		[ "${MAKE_DIR}" = "true" ] && mkdir ${SRC_DIR} && cd ${SRC_DIR}
 		echo Extracting ${ARCHIVE}
-		${ARCHIVER} ${ARCHIVE} 2>&1 > ${ARCHIVE}.log
+		${ARCHIVER} ${ARCHIVE} &> ${ARCHIVE}.log
 		cd ${SRC_DIR}
 		return 0
 	fi
@@ -117,10 +110,6 @@ get_source()
 
 parse_output()
 {
-    if [ "${VERBOSE}" = "true" ]
-    then
-	cat
-    else
 	sed -ne '/\\$/N' -e 's/\\\n//' -e 's/\t\+/ /g' -e 's/ \+/ /g' \
 	    -e '/ error: /p' \
 	    -e "s%.*Entering directory[ ]\\+.${DEPPKG_DIR}/\\([^ ]\+\).%Entering \\1%p" \
@@ -131,7 +120,6 @@ parse_output()
 	    -e 's/.* \([^ ]\+\.s\)\( .*\|\)$/Assembling \1/p' \
 	    -e 's/.*ar [^ ]\+ \([^ ]\+\)\(\( [^ ]\+\.o\)\+\)/Updating \1 -\2/p' \
 	    -e 's/.* -o \([^ ]\+\)\( .*\|\)$/Linking \1/p'
-    fi
 }
 
 do_patch()
@@ -160,7 +148,7 @@ do_make()
 
 process_zlib()
 {
-	if get_source "${URL_ZLIB}" "${DIR_ZLIB}"
+	if get_source "${URL_ZLIB}" "${DIR_ZLIB}" "${MKD_ZLIB}"
 	then
 		echo Patching zlib
 		>patch.log
@@ -175,14 +163,19 @@ process_zlib()
 
 process_pcre()
 {
-	if get_source "${URL_PCRE}" "${DIR_PCRE}"
+	if get_source "${URL_PCRE}" "${DIR_PCRE}" "${MKD_PCRE}"
 	then
 		echo Patching PCRE
 		>patch.log
 		do_patch pcre.patch
+		echo Configuring PCRE
+		./configure CC_FOR_BUILD=gcc \
+			    CXX_FOR_BUILD=g++ \
+			    --host=mingw32 \
+			    --prefix=${DEPPKG_DIR} \
+			    --enable-utf8 \
+			    --enable-unicode-properties &>make.log
 	fi
-	echo Configuring PCRE
-	./configure CC_FOR_BUILD=gcc CXX_FOR_BUILD=g++ --host=mingw32 --prefix=${DEPPKG_DIR} --enable-utf8 --enable-unicode-properties 2>&1 >make.log
 	echo Building PCRE
 	do_make Makefile PREFIX=${DEPPKG_DIR} all
 	echo Installing PCRE
@@ -191,7 +184,7 @@ process_pcre()
 
 process_pthreads()
 {
-	if get_source "${URL_PTHREADS}" "${DIR_PTHREADS}"
+	if get_source "${URL_PTHREADS}" "${DIR_PTHREADS}" "${MKD_PTHREADS}"
 	then
 		echo Patching pthreads
 		>patch.log
@@ -210,14 +203,18 @@ process_pthreads()
 
 process_openssl()
 {
-	if get_source "${URL_OPENSSL}" "${DIR_OPENSSL}"
+	if get_source "${URL_OPENSSL}" "${DIR_OPENSSL}" "${MKD_OPENSSL}"
 	then
 		echo Patching openssl
 		>patch.log
 		do_patch openssl.patch
+		echo Configuring openssl
+		./Configure --prefix=${DEPPKG_DIR} \
+			    shared zlib-dynamic \
+			    threads \
+			    --with-zlib-include=${DEPPKG_DIR}/include \
+			    mingw32 &> make.log
 	fi
-	echo Configuring openssl
-	./Configure --prefix=${DEPPKG_DIR} shared zlib-dynamic threads --with-zlib-include=${DEPPKG_DIR}/include mingw32 2>&1 > make.log
 	echo Building openssl
 	perl util/mkdef.pl 32 libeay no-static-engine >ms/libeay32.def
 	perl util/mkdef.pl 32 ssleay >ms/ssleay32.def
@@ -228,7 +225,7 @@ process_openssl()
 
 process_mysql()
 {
-	get_source "${URL_MYSQL}" "${DIR_MYSQL}"
+	get_source "${URL_MYSQL}" "${DIR_MYSQL}" "${DIR_MYSQL}" "${MKD_MYSQL}"
 	echo Converting mysql lib file
 	if [ -e ${BIN_DIR}/reimp ]
 	then
@@ -244,16 +241,21 @@ process_mysql()
 	cp -p lib/opt/libmysql.dll ../../bin
 }
 
-process_postgreSQL()
+process_postgresql()
 {
-	if get_source "${URL_POSTGRESQL}" "${DIR_POSTGRESQL}"
+	if get_source "${URL_POSTGRESQL}" "${DIR_POSTGRESQL}" "${MKD_POSTGRESQL}"
 	then
 		echo Patching postgreSQL
 		>patch.log
 		do_patch postgresql.patch
+		echo Configuring postgreSQL
+		./configure --host=mingw32 \
+			    --enable-shared \
+			    --enable-thread-safety \
+			    --prefix=${DEPPKG_DIR} \
+			    --with-includes=${DEPPKG_DIR}/include:${DEPPKG_DIR}/include/pthreads \
+			    --with-libraries=${DEPPKG_DIR}/lib &> make.log
 	fi
-	echo Configuring postgreSQL
-	./configure --host=mingw32 --enable-shared --enable-thread-safety --prefix=${DEPPKG_DIR} --with-includes=${DEPPKG_DIR}/include:${DEPPKG_DIR}/include/pthreads --with-libraries=${DEPPKG_DIR}/lib 2>&1 > make.log
 	echo Building postgreSQL
 	if [ -e /usr/sbin/zic ]; then ZIC=/usr/sbin/zic
 	elif [ -e /sbin/zic ]; then ZIC=/sbin/zic
@@ -261,34 +263,33 @@ process_postgreSQL()
 	elif [ -e /bin/zic ]; then ZIC=/bin/zic
 	else ZIC=./zic
 	fi
-	do_make Makefile AR=mingw32-ar DLLTOOL=mingw32-dlltool DLLWRAP=mingw32-dllwrap WINDRES=mingw32-windres PTHREAD_LIBS=-lpthreadGCE ZIC=${ZIC} clean all
+	do_make Makefile AR=mingw32-ar DLLTOOL=mingw32-dlltool DLLWRAP=mingw32-dllwrap WINDRES=mingw32-windres PTHREAD_LIBS=-lpthreadGCE ZIC=${ZIC}
 	echo Installing postgreSQL
 	do_make Makefile AR=mingw32-ar DLLTOOL=mingw32-dlltool DLLWRAP=mingw32-dllwrap WINDRES=mingw32-windres PTHREAD_LIBS=-lpthreadGCE ZIC=${ZIC} install
 }
 
 process_sqlite()
 {
-	if get_source "${URL_SQLITE}" "${DIR_SQLITE}"
+	if get_source "${URL_SQLITE}" "${DIR_SQLITE}" "${MKD_SQLITE}"
 	then
 		echo Patching SQLite
 		>patch.log
 		do_patch sqlite.patch
 	fi
-	echo Configuring SQLite
+	echo Building SQLite
 	[ ! -e bld ] && mkdir bld
 	cd bld
-	echo Building SQLite
 	> make.log
-	do_make ../Makefile.mingw32 CROSSTOOLS=${BIN_DIR} TLIBS="-L${DEPPKG_DIR}/lib" TCL_FLAGS="-I${DEPPKG_DIR}/include" clean all
+	do_make ../Makefile.mingw32 CROSSTOOLS=${BIN_DIR} TLIBS="-L${DEPPKG_DIR}/lib" TCL_FLAGS="-I${DEPPKG_DIR}/include"
 	echo Installing SQLite
 	cp -p sqlite3.exe ${DEPPKG_DIR}/bin
 	cp -p libsqlite3.a ${DEPPKG_DIR}/lib
 	cp -p sqlite3.h ${DEPPKG_DIR}/include
 }
 
-process_wxWidgets()
+process_wx()
 {
-	if get_source "${URL_WX}" "${DIR_WX}"
+	if get_source "${URL_WX}" "${DIR_WX}" "${MKD_WX}"
 	then
 		echo Patching wxWidgets
 		>patch.log
@@ -323,9 +324,9 @@ process_wxWidgets()
 
 process_scons()
 {
-	get_source "${URL_SCONS}" "${DIR_SCONS}"
+	get_source "${URL_SCONS}" "${DIR_SCONS}" "${MKD_SCONS}"
 	echo Installing scons
-	if python setup.py install --prefix=${DEPPKG_DIR}/scons 2>&1 > make.log
+	if python setup.py install --prefix=${DEPPKG_DIR}/scons &> make.log
 	then
 		:
 	else
@@ -336,29 +337,21 @@ process_scons()
 
 process_nsis()
 {
-	get_source "${URL_NSIS_BIN}" "${DIR_NSIS_BIN}"
+	get_source "${URL_NSIS_BIN}" "${DIR_NSIS_BIN}" "${MKD_NSIS_BIN}"
 	cd ..
 	rm -rf ../nsis
 	mv nsis-2.17 ../nsis
-	if get_source "${URL_NSIS_SRC}" "${DIR_NSIS_SRC}"
+	if get_source "${URL_NSIS_SRC}" "${DIR_NSIS_SRC}" "${MKD_NSIS_SRC}"
 	then
 		echo Patching nsis
 		>patch.log
 		do_patch nsis.patch
 	fi
-	if [ "`uname -s`" = "FreeBSD" ]
-	then
-		ICONV_VARS="CPPPATH=/usr/local/include LIBPATH=/usr/local/lib"
-	else
-		ICONV_VARS=
-	fi
 	echo Building nsis
 	if ../../scons/bin/scons SKIPSTUBS=all SKIPPLUGINS=all SKIPUTILS=all SKIPMISC=all \
 		PREFIX=${DEPPKG_DIR}/nsis PREFIX_BIN=${DEPPKG_DIR}/nsis/Bin \
 		PREFIX_CONF=${DEPPKG_DIR}/nsis PREFIX_DATA=${DEPPKG_DIR}/nsis \
-		PREFIX_DOC=${DEPPKG_DIR}/nsis/Docs \
-		${ICONV_VARS} \
-		2>&1 | tee make.log | parse_output
+		PREFIX_DOC=${DEPPKG_DIR}/nsis/Docs 2>&1 | tee make.log | parse_output
 	then
 		:
 	else
@@ -371,7 +364,7 @@ process_nsis()
 
 process_mtx()
 {
-	if get_source "${URL_MTX}" "${DIR_MTX}"
+	if get_source "${URL_MTX}" "${DIR_MTX}" "${MKD_MTX}"
 	then
 		echo Patching mtx
 		# We can't run configure in a cross-compile environment so we
@@ -390,7 +383,7 @@ process_mtx()
 
 process_mt()
 {
-	if get_source "${URL_MT}" "${DIR_MT}"
+	if get_source "${URL_MT}" "${DIR_MT}" "${MKD_MT}"
 	then
 		echo Patching mt
 		>patch.log
@@ -410,8 +403,8 @@ then
 	process_openssl
 	process_mysql
 	process_sqlite
-	process_postgreSQL
-	process_wxWidgets
+	process_postgresql
+	process_wx
 	process_scons
 	process_nsis
 	process_mtx

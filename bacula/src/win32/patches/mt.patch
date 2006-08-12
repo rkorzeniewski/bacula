@@ -1,7 +1,6 @@
-Only in .: .svn
-diff -ru ../../ibiblio/mt-st-0.9b/Makefile ./Makefile
---- ../../ibiblio/mt-st-0.9b/Makefile	Tue Aug 16 12:16:28 2005
-+++ ./Makefile	Sun Jul 30 05:59:14 2006
+diff -ru ..\release\mt-st-0.9b/Makefile ./Makefile
+--- ..\release\mt-st-0.9b/Makefile	2005-08-16 12:16:28.000000000 -0700
++++ ./Makefile	2006-08-09 03:26:58.292856500 -0700
 @@ -1,29 +1,27 @@
 +CC=	mingw32-gcc
  CFLAGS=  -Wall -O2
@@ -44,11 +43,9 @@ diff -ru ../../ibiblio/mt-st-0.9b/Makefile ./Makefile
  clean:
 -	rm -f *~ \#*\# *.o mt stinit
 +	rm -f *~ \#*\# *.o mt.exe stinit.exe
-Only in .: compat.h
-Only in .: mt
-diff -ru ../../ibiblio/mt-st-0.9b/mt.1 ./mt.1
---- ../../ibiblio/mt-st-0.9b/mt.1	Sun Aug 21 11:53:50 2005
-+++ ./mt.1	Sun Jul 30 05:16:07 2006
+diff -ru ..\release\mt-st-0.9b/mt.1 ./mt.1
+--- ..\release\mt-st-0.9b/mt.1	2005-08-21 11:53:50.000000000 -0700
++++ ./mt.1	2006-08-09 03:26:58.302871100 -0700
 @@ -48,20 +48,22 @@
  files.
  The tape is positioned on the first block of the next file.
@@ -78,10 +75,10 @@ diff -ru ../../ibiblio/mt-st-0.9b/mt.1 ./mt.1
  .IP asf
  The tape is positioned at the beginning of the
  .I count
-diff -ru ../../ibiblio/mt-st-0.9b/mt.c ./mt.c
---- ../../ibiblio/mt-st-0.9b/mt.c	Sun Aug 21 11:48:06 2005
-+++ ./mt.c	Sun Jul 30 06:04:13 2006
-@@ -11,6 +11,12 @@
+diff -ru ..\release\mt-st-0.9b/mt.c ./mt.c
+--- ..\release\mt-st-0.9b/mt.c	2005-08-21 11:48:06.000000000 -0700
++++ ./mt.c	2006-08-09 04:00:01.093525100 -0700
+@@ -11,25 +11,35 @@
  	Last Modified: Sun Aug 21 21:48:06 2005 by kai.makisara
  */
  
@@ -92,9 +89,12 @@ diff -ru ../../ibiblio/mt-st-0.9b/mt.c ./mt.c
 +#define O_NONBLOCK   0
 +
  #include <stdio.h>
++#if !defined(_MSC_VER)
  #include <unistd.h>
++#endif
  #include <stdlib.h>
-@@ -19,15 +25,17 @@
+ #include <string.h>
+ #include <ctype.h>
  #include <errno.h>
  #include <fcntl.h>
  #include <sys/types.h>
@@ -113,9 +113,12 @@ diff -ru ../../ibiblio/mt-st-0.9b/mt.c ./mt.c
 -#define VERSION "0.9b"
 +#define VERSION "0.9b-bacula"
  
- typedef int (* cmdfunc)(/* int, struct cmdef_tr *, int, char ** */);
+-typedef int (* cmdfunc)(/* int, struct cmdef_tr *, int, char ** */);
++typedef int (* cmdfunc)(int, struct cmdef_tr *, int, char **);
  
-@@ -143,12 +151,14 @@
+ typedef struct cmdef_tr {
+     char *cmd_name;
+@@ -143,12 +153,14 @@
        FD_RDONLY, ONE_ARG, 0},
      { "defcompression", MTSETDRVBUFFER, do_drvbuffer, MT_ST_DEF_COMPRESSION,
        FD_RDONLY, ONE_ARG, 0},
@@ -130,7 +133,7 @@ diff -ru ../../ibiblio/mt-st-0.9b/mt.c ./mt.c
      { "densities",	0, print_densities,     0, NO_FD,     NO_ARGS,
      0 },
      { "setpartition",	MTSETPART, do_standard, 0, FD_RDONLY, ONE_ARG,
-@@ -211,13 +221,19 @@
+@@ -211,13 +223,19 @@
      {0x30, "AIT-1 or MLR3"},
      {0x31, "AIT-2"},
      {0x32, "AIT-3"},
@@ -151,7 +154,7 @@ diff -ru ../../ibiblio/mt-st-0.9b/mt.c ./mt.c
      {0x80, "DLT 15GB uncomp. or Ecrix"},
      {0x81, "DLT 15GB compressed"},
      {0x82, "DLT 20GB uncompressed"},
-@@ -254,20 +270,25 @@
+@@ -254,20 +272,25 @@
      {"no-blklimits",  MT_ST_NO_BLKLIMS,    "drive doesn't support read block limits"},
      {"can-partitions",MT_ST_CAN_PARTITIONS,"drive can handle partitioned tapes"},
      {"scsi2logical",  MT_ST_SCSI2LOGICAL,  "logical block addresses used with SCSI-2"},
@@ -179,7 +182,7 @@ diff -ru ../../ibiblio/mt-st-0.9b/mt.c ./mt.c
      char *cmdstr;
      cmdef_tr *comp, *comp2;
  
-@@ -344,7 +365,7 @@
+@@ -344,7 +367,7 @@
  	oflags = comp->cmd_fdtype == FD_RDONLY ? O_RDONLY : O_RDWR;
  	if ((comp->error_tests & ET_ONLINE) == 0)
  	    oflags |= O_NONBLOCK;
@@ -188,7 +191,7 @@ diff -ru ../../ibiblio/mt-st-0.9b/mt.c ./mt.c
  	    perror(tape_name);
  	    exit(1);
  	}
-@@ -368,7 +389,7 @@
+@@ -368,7 +391,7 @@
      }
  
      if (mtfd >= 0)
@@ -197,7 +200,7 @@ diff -ru ../../ibiblio/mt-st-0.9b/mt.c ./mt.c
      return i;
  }
  
-@@ -409,9 +430,9 @@
+@@ -409,9 +432,9 @@
  do_standard(int mtfd, cmdef_tr *cmd, int argc, char **argv)
  {
      struct mtop mt_com;
@@ -209,7 +212,7 @@ diff -ru ../../ibiblio/mt-st-0.9b/mt.c ./mt.c
      mt_com.mt_count = (argc > 0 ? strtol(*argv, &endp, 0) : 1);
      if (argc > 0 && endp != *argv) {
  	if (*endp == 'k')
-@@ -464,7 +485,8 @@
+@@ -464,7 +487,8 @@
  	static int
  do_options(int mtfd, cmdef_tr *cmd, int argc, char **argv)
  {
@@ -219,7 +222,7 @@ diff -ru ../../ibiblio/mt-st-0.9b/mt.c ./mt.c
      struct mtop mt_com;
  
      mt_com.mt_op = MTSETDRVBUFFER;
-@@ -596,8 +618,10 @@
+@@ -596,8 +620,10 @@
  	type = "SCSI 1";
      else if (status.mt_type == MT_ISSCSI2)
  	type = "SCSI 2";
@@ -230,7 +233,7 @@ diff -ru ../../ibiblio/mt-st-0.9b/mt.c ./mt.c
      else
  	type = NULL;
      if (type == NULL) {
-@@ -607,7 +631,7 @@
+@@ -607,7 +633,7 @@
  	    printf("IDE-Tape (type code 0) ?\n");
  	else
  	    printf("Unknown tape drive type (type code %ld)\n", status.mt_type);
@@ -239,7 +242,7 @@ diff -ru ../../ibiblio/mt-st-0.9b/mt.c ./mt.c
  	       status.mt_fileno, status.mt_blkno);
  	printf("mt_resid: %ld, mt_erreg: 0x%lx\n",
  	       status.mt_resid, status.mt_erreg);
-@@ -617,14 +641,17 @@
+@@ -617,14 +643,17 @@
      else {
  	printf("%s tape drive:\n", type);
  	if (status.mt_type == MT_ISSCSI2)
@@ -262,7 +265,7 @@ diff -ru ../../ibiblio/mt-st-0.9b/mt.c ./mt.c
  	    dens = (status.mt_dsreg & MT_ST_DENSITY_MASK) >> MT_ST_DENSITY_SHIFT;
  	    density = "no translation";
  	    for (i=0; i < NBR_DENSITIES; i++)
-@@ -666,8 +693,10 @@
+@@ -666,8 +695,10 @@
  	printf(" DR_OPEN");	  
      if (GMT_IM_REP_EN(status.mt_gstat))
  	printf(" IM_REP_EN");
@@ -273,11 +276,9 @@ diff -ru ../../ibiblio/mt-st-0.9b/mt.c ./mt.c
      printf("\n");
      return 0;
  }
-Only in .: mt.exe
-Only in .: mt.patch
-diff -ru ../../ibiblio/mt-st-0.9b/mtio.h ./mtio.h
---- ../../ibiblio/mt-st-0.9b/mtio.h	Tue Aug 16 12:16:28 2005
-+++ ./mtio.h	Sun Jul 30 06:06:13 2006
+diff -ru ..\release\mt-st-0.9b/mtio.h ./mtio.h
+--- ..\release\mt-st-0.9b/mtio.h	2005-08-16 12:16:28.000000000 -0700
++++ ./mtio.h	2006-08-09 03:26:58.352944100 -0700
 @@ -8,9 +8,7 @@
  #ifndef _LINUX_MTIO_H
  #define _LINUX_MTIO_H
@@ -305,11 +306,9 @@ diff -ru ../../ibiblio/mt-st-0.9b/mtio.h ./mtio.h
  
  /* mag tape io control commands */
  #define	MTIOCTOP	_IOW('m', 1, struct mtop)	/* do a mag tape op */
-Only in .: mtops.c
-Only in .: mtops.h
-diff -ru ../../ibiblio/mt-st-0.9b/stinit.def.examples ./stinit.def.examples
---- ../../ibiblio/mt-st-0.9b/stinit.def.examples	Tue Aug 16 12:16:28 2005
-+++ ./stinit.def.examples	Sun Jul 30 05:15:43 2006
+diff -ru ..\release\mt-st-0.9b/stinit.def.examples ./stinit.def.examples
+--- ..\release\mt-st-0.9b/stinit.def.examples	2005-08-16 12:16:28.000000000 -0700
++++ ./stinit.def.examples	2006-08-09 03:26:58.362958700 -0700
 @@ -56,3 +56,169 @@
  mode3 blocksize=0 density=1   #  800 bpi
  }
@@ -480,27 +479,10 @@ diff -ru ../../ibiblio/mt-st-0.9b/stinit.def.examples ./stinit.def.examples
 +mode4 blocksize=0 density=0x4a compression=0	# 300 GB, no ompression
 +}
 +
---- /dev/null	Sun Jul 30 06:23:05 2006
-+++ mtops.h	Sun Jul 30 05:50:17 2006
-@@ -0,0 +1,15 @@
-+int tape_open(const char *file, int flags, int mode);
-+int tape_read(int fd, void *buffer, unsigned int count);
-+int tape_write(int fd, const void *buffer, unsigned int count);
-+int tape_ioctl(int fd, unsigned long int request, ...);
-+int tape_close(int fd);
-+
-+typedef unsigned long	__kernel_daddr_t;
-+
-+#ifndef ENOMEDIUM
-+#define ENOMEDIUM	123
-+#endif
-+
-+#ifndef PATH_MAX
-+#define PATH_MAX	1024
-+#endif
---- /dev/null	Sun Jul 30 06:23:10 2006
-+++ mtops.c	Sun Jul 30 05:46:08 2006
-@@ -0,0 +1,1158 @@
+
+--- /dev/null	1969-12-31 16:00:00.000000000 -0800
++++ mtops.c	2006-08-09 04:03:09.307917500 -0700
+@@ -0,0 +1,1163 @@
 +/*
 + * mtops.cpp - Emulate the Linux st (scsi tape) driver on Microsoft Windows.
 + *
@@ -546,10 +528,15 @@ diff -ru ../../ibiblio/mt-st-0.9b/stinit.def.examples ./stinit.def.examples
 +
 +#include "mtops.h"
 +#include "mtio.h"
++#if defined(_MSC_VER)
++#include <winioctl.h>
++#include <ntddscsi.h>
++#else
 +#include <ddk/ntddstor.h>
 +#include <ddk/ntddscsi.h>
++#endif
 +
-+#ifndef __CPLUS_PLUS
++#ifndef __cplusplus
 +typedef char bool;
 +#define true 1
 +#define false 0
@@ -1659,3 +1646,44 @@ diff -ru ../../ibiblio/mt-st-0.9b/stinit.def.examples ./stinit.def.examples
 +
 +   return -1;
 +}
+--- /dev/null	1969-12-31 16:00:00.000000000 -0800
++++ mtops.h	2006-08-09 03:26:58.372973300 -0700
+@@ -0,0 +1,15 @@
++int tape_open(const char *file, int flags, int mode);
++int tape_read(int fd, void *buffer, unsigned int count);
++int tape_write(int fd, const void *buffer, unsigned int count);
++int tape_ioctl(int fd, unsigned long int request, ...);
++int tape_close(int fd);
++
++typedef unsigned long	__kernel_daddr_t;
++
++#ifndef ENOMEDIUM
++#define ENOMEDIUM	123
++#endif
++
++#ifndef PATH_MAX
++#define PATH_MAX	1024
++#endif
+--- /dev/null	1969-12-31 16:00:00.000000000 -0800
++++ Makefile.msc	2006-08-09 04:00:53.970613100 -0700
+@@ -0,0 +1,20 @@
++CC=	cl
++CFLAGS=  /nologo /Ox /Gy /Zi /W3 /TP \
++	/D_CRT_SECURE_NO_DEPRECATE
++LDFLAGS= /link /DEBUG /INCREMENTAL:NO /OPT:NOREF /PDB:$*.pdb /OUT:$@
++PREFIX= C:\
++
++all:	mt.exe
++
++mt.exe:	mt.c
++	$(CC) $(CFLAGS) mt.c mtops.c $(LDFLAGS)
++
++stinit.exe:	stinit.c
++	$(CC) $(CFLAGS) stinit.c $(LDFLAGS)
++
++install: mt.exe
++	if not exist $(PREFIX)\bin\nul mkdir $(PREFIX)\bin
++	!copy /y $** $(PREFIX)\bin
++
++clean:
++	del /f *~ *.obj mt.exe stinit.exe

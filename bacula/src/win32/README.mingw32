@@ -1,5 +1,6 @@
 This file documents building Bacula for Microsoft Windows using the
-cross-compiler tools on a Linux (or possibly another Unix) system.
+cross-compiler tools on a Linux or FreeBSD system (other Unix systems 
+remain to be tested).
 
 The basic directory structure you need to have is:
 
@@ -8,12 +9,12 @@ The basic directory structure you need to have is:
       src
         win32                main directory where the Windows version is built.
 
-    dekpgs-mingw32           3rd Party Dependencies
+    depkgs-mingw32           3rd Party Dependencies
       bin              --
       include            |
       lib                |
       man                |   Created by script
-      nsis               |-- ..../bacula/src/win32/build-dependencies
+      nsis               |-- ..../bacula/src/win32/build-depkgs-mingw32
       scons              |   
       share              |
       src                |
@@ -21,7 +22,7 @@ The basic directory structure you need to have is:
       vss
         inc                  A copy of the Windows VSS/inc directory
 
-    cross-tools              Cross compilation tools (gcc, g++, mingw, ...)
+    cross-tools              Cross compilation tools (gcc, g++, mingw32, ...)
       binutils-mingw32 --
       gcc-mingw32        |   Created by script
       mingw32            |-- ..../bacula/src/win32/build-win32-cross-tools
@@ -41,7 +42,7 @@ Download and build the cross compiler tools
         ./build-win32-cross-tools
 
 Download and build the 3rd party dependencies
-        ./build-dependencies
+        ./build-depkgs-mingw32
 
 You need the header files from the Microsoft VSS SDK.  Unfortunately the SDK
 can only be downloaded and installed on a Windows system.  You can find it on
@@ -57,7 +58,7 @@ Normally the files will be installed in:
 
         c:/Program Files/Microsoft/VSSSDK72
 
-You only need to copy everything under the c:/Program Files/VSSSDK72/inc
+You only need to copy everything under the c:/Program Files/Microsoft/VSSSDK72/inc
 directory into ..../depkgs-mingw32/vss/inc.
 
 The above only needs to be done once unless we change the cross-tools 
@@ -120,15 +121,15 @@ need to update the cross-tools or dependencies for it to build.
 You can install new patches by doing the following (we assume the patch
 in question is for openssl):
 
-     cd <top-level>
-     # delete openssl
-     rm -rf depkgs-mingw32/src/openssl-0.9.8b
      cd <bacula-source>/src/win32
-     # Call script to reload/rebuild openssl
-     ./build-dependencies openssl
+     ./build-depkgs-mingw32 -C openssl
 
+NOTE: The -C means clobber.  Any local changes to the source code in 
+the depkgs-mingw32/src directory will be lost.  The source will be 
+reextracted from the archive and the current patches will be applied.
                                      
-Structure of the new Win32 build environment:
+Structure of the new Win32 build environment
+============================================
 
 The basic strategy is each Makefile in the various subdirectories includes
 Makefile.inc, defines variables and rules specific to what is being built,

@@ -200,6 +200,10 @@ Function InstallDatabase
     ${ElseIf} $OptionsDirectorDB = 2
       File /oname=bacula_cats.dll "cats_pgsql.dll"
       File "libpq.dll"
+      File "comerr32.dll"
+      File "libintl-2.dll"
+      File "libiconv-2.dll"
+      File "krb5_32.dll"
     ${ElseIf} $OptionsDirectorDB = 3
       File /oname=bacula_cats.dll "cats_bdb.dll"
     ${EndIf}
