@@ -23,8 +23,9 @@
 <a href="?action=location"> Locations </a>|
 <a href="?action=media"> Medias </a>|
 <a href="?action=extern_media"> Eject media </a>| 
-<a href="?action=intern_media"> Load media </a>|
-<a href="?action=ach_view"> View Autochanger </a>] [
+<a href="?action=intern_media"> Load media </a>
+<!--| <a href="?action=ach_view"> View Autochanger </a> -->
+] [
 <a href="?action=view_conf"> Configuration </a>|
 <a href="?action=about"> About </a>]
 Logged as <TMPL_VAR NAME=loginname>
