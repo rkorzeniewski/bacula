@@ -460,10 +460,6 @@ bool autochanger_cmd(DCR *dcr, BSOCK *dir, const char *cmd)
       return false;
    }
 
-   /* List command? */
-   if (strcmp(cmd, "list") == 0) {
-      unload_autochanger(dcr, -1);
-   }
    if (strcmp(cmd, "drives") == 0) {
       AUTOCHANGER *changer_res = dcr->device->changer_res;
       int drives = 1;

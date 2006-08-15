@@ -857,10 +857,11 @@ static bool changer_cmd(JCR *jcr)
    DCR *dcr;
    const char *cmd = NULL;
    bool ok = false;
+   bool dolist = false;
 
    if (sscanf(dir->msg, "autochanger list %127s", devname.c_str()) == 1) {
       cmd = "list";
-      ok = true;
+      dolist = ok = true;
    } else if (sscanf(dir->msg, "autochanger slots %127s", devname.c_str()) == 1) {
       cmd = "slots";
       ok = true;
@@ -877,7 +878,7 @@ static bool changer_cmd(JCR *jcr)
             bnet_fsend(dir, _("3995 Device %s is not an autochanger.\n"), 
                dev->print_name());
          /* Under certain "safe" conditions, we can steal the lock */
-         } else if (!dev->is_open() || dev->can_steal_lock()) {
+         } else if (dolist || !dev->is_open() || dev->can_steal_lock()) {
             autochanger_cmd(dcr, dir, cmd);
          } else if (dev->is_busy() || dev->is_blocked()) {
             send_dir_busy_message(dir, dev);

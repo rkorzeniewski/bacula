@@ -233,21 +233,21 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       jcr->num_files_examined--;      /* correct file count */
       return 1;                       /* not used */
    case FT_NORECURSE:
-     Jmsg(jcr, M_INFO, 1, _("     Recursion turned off. Will not descend into %s\n"),
-          ff_pkt->fname);
+      Jmsg(jcr, M_INFO, 1, _("     Recursion turned off. Will not descend from %s into %s\n"),
+           ff_pkt->top_fname, ff_pkt->fname);
       ff_pkt->type = FT_DIREND;       /* Backup only the directory entry */
       break;
    case FT_NOFSCHG:
       /* Suppress message for /dev filesystems */
       if (strncmp(ff_pkt->fname, "/dev/", 5) != 0) {
-         Jmsg(jcr, M_INFO, 1, _("     Filesystem change prohibited. Will not descend into %s\n"),
-            ff_pkt->fname);
+         Jmsg(jcr, M_INFO, 1, _("     Filesystem change prohibited. Will not descend from %s into %s\n"),
+              ff_pkt->top_fname, ff_pkt->fname);
       }
       ff_pkt->type = FT_DIREND;       /* Backup only the directory entry */
       break;
    case FT_INVALIDFS:
-      Jmsg(jcr, M_INFO, 1, _("     Disallowed filesystem. Will not descend into %s\n"),
-           ff_pkt->fname);
+      Jmsg(jcr, M_INFO, 1, _("     Disallowed filesystem. Will not descend from %s into %s\n"),
+           ff_pkt->top_fname, ff_pkt->fname);
       ff_pkt->type = FT_DIREND;       /* Backup only the directory entry */
       break;
    case FT_INVALIDDT:

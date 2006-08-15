@@ -177,6 +177,7 @@ struct HFSPLUS_INFO {
  * first argument to the find_files callback subroutine.
  */
 struct FF_PKT {
+   char *top_fname;                   /* full filename before descending */
    char *fname;                       /* full filename */
    char *link;                        /* link if file linked */
    POOLMEM *sys_fname;                /* system filename */

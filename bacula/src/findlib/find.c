@@ -179,8 +179,8 @@ find_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt, bool t
          }
          for (j=0; j<incexe->name_list.size(); j++) {
             Dmsg1(100, "F %s\n", (char *)incexe->name_list.get(j));
-            char *fname = (char *)incexe->name_list.get(j);
-            if (find_one_file(jcr, ff, our_callback, his_pkt, fname, (dev_t)-1, true) == 0) {
+            ff->top_fname = (char *)incexe->name_list.get(j);
+            if (find_one_file(jcr, ff, our_callback, his_pkt, ff->top_fname, (dev_t)-1, true) == 0) {
                return 0;                  /* error return */
             }
          }
