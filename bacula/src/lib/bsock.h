@@ -12,7 +12,7 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -87,4 +87,3 @@ enum {
 #define BNET_TLS_NONE     0           /* cannot do TLS */
 #define BNET_TLS_OK       1           /* can do, but not required on my end */
 #define BNET_TLS_REQUIRED 2           /* TLS is required */
-

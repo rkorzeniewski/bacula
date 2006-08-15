@@ -1,7 +1,16 @@
               Technical notes on version 1.39  
 
 General:
-07Aug06
+15Aug06
+kes  Eliminate some compile warnings in dird_conf.c
+kes  Format the bytes field in the terminated jobs part of the status
+     command for the three daemons with suffixes to reduce print size 
+     of backup bytes.  Suggested by a user.
+kes  When not descending into a directory, print the File= name that
+     triggered it -- makes why not descending a bit clearer.
+kes  Do not unload autochanger when doing a list command -- basic code
+     from Eric Bollengier.
+07Aug06                
 kes  Fix bug #462 incorrect error message printed when client script called
      from File= was not found.
 kes  Fix bug #558 (waiting for feedback) where Bacula needs too much time to

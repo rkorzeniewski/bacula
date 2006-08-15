@@ -207,6 +207,7 @@ static void send_blocked_status(DEVICE *dev, void sendit(const char *msg, int le
    if (!dev) {
       len = Mmsg(msg, _("No DEVICE structure.\n\n"));
       sendit(msg, len, arg);
+      free_pool_memory(msg);
       return;
    }
    switch (dev->dev_blocked) {
@@ -452,9 +453,9 @@ static void list_terminated_jobs(void sendit(const char *msg, int len, void *sar
    lock_last_jobs_list();
    msg =  _("\nTerminated Jobs:\n");
    sendit(msg, strlen(msg), arg);
-   msg =  _(" JobId  Level   Files          Bytes Status   Finished        Name \n");
+   msg =  _(" JobId  Level    Files      Bytes   Status   Finished        Name \n");
    sendit(msg, strlen(msg), arg);
-   msg = _("======================================================================\n");
+   msg =  _("===================================================================\n");
    sendit(msg, strlen(msg), arg);
    foreach_dlist(je, last_jobs) {
       char JobName[MAX_NAME_LENGTH];
@@ -501,11 +502,11 @@ static void list_terminated_jobs(void sendit(const char *msg, int len, void *sar
             *p = 0;
          }
       }
-      bsnprintf(buf, sizeof(buf), _("%6d  %-6s %8s %14s %-7s  %-8s %s\n"),
+      bsnprintf(buf, sizeof(buf), _("%6d  %-6s %8s %10s  %-7s  %-8s %s\n"),
          je->JobId,
          level,
          edit_uint64_with_commas(je->JobFiles, b1),
-         edit_uint64_with_commas(je->JobBytes, b2),
+         edit_uint64_with_suffix(je->JobBytes, b2),
          termstat,
          dt, JobName);
       sendit(buf, strlen(buf), arg);

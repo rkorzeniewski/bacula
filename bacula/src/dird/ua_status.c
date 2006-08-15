@@ -677,8 +677,8 @@ static void list_terminated_jobs(UAContext *ua)
    lock_last_jobs_list();
    struct s_last_job *je;
    bsendmsg(ua, _("\nTerminated Jobs:\n"));
-   bsendmsg(ua, _(" JobId  Level     Files      Bytes     Status   Finished        Name \n"));
-   bsendmsg(ua, _("========================================================================\n"));
+   bsendmsg(ua, _(" JobId  Level    Files      Bytes   Status   Finished        Name \n"));
+   bsendmsg(ua, _("====================================================================\n"));
    foreach_dlist(je, last_jobs) {
       char JobName[MAX_NAME_LENGTH];
       const char *termstat;
@@ -728,11 +728,11 @@ static void list_terminated_jobs(UAContext *ua)
          termstat = _("Other");
          break;
       }
-      bsendmsg(ua, _("%6d  %-6s %8s %14s %-7s  %-8s %s\n"),
+      bsendmsg(ua, _("%6d  %-6s %8s %10s  %-7s  %-8s %s\n"),
          je->JobId,
          level,
          edit_uint64_with_commas(je->JobFiles, b1),
-         edit_uint64_with_commas(je->JobBytes, b2),
+         edit_uint64_with_suffix(je->JobBytes, b2),
          termstat,
          dt, JobName);
    }

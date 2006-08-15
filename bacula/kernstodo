@@ -27,10 +27,15 @@ Document:
 - Document JobStatus and Termination codes.
 - Fix the error with the "DVI file can't be opened" while
   building the French PDF.
+- Document more DVD stuff -- particularly that recycling doesn't work,
+  and all the other things too.
 
 Priority:
 
 For 1.39:
+- Change dbcheck to tell users to use native tools for fixing
+  broken databases, and to ensure they have the proper indexes.
+- add udev rules for Bacula devices.
 - Add manpages to the list of directories for make install.
 - If a job terminates, the DIR connection can close before the
   Volume info is updated, leaving the File count wrong.
