@@ -504,6 +504,8 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
       file_size = 0;
    }
    part_size = 0;
+   // Clear any previous truncated_dvd status - we will recalculate it here
+   truncated_dvd = false;
 
    Dmsg2(99, "open_dvd_device: num_parts=%d, VolCatInfo.VolCatParts=%d\n",
       dcr->dev->num_parts, dcr->VolCatInfo.VolCatParts);
@@ -525,6 +527,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
             clear_opened();
             return;
          }
+         truncated_dvd = true;
       }
    } else {
       /* We cannot mount the device */
@@ -576,16 +579,21 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
       berrno be;
       Mmsg2(errmsg, _("Could not open: %s, ERR=%s\n"), archive_name.c_str(), 
             be.strerror());
+      // Should this be set if we try the create/open below
       dev_errno = EIO; /* Interpreted as no device present by acquire.c:acquire_device_for_read(). */
       Dmsg1(29, "open failed: %s", errmsg);
       
-      if ((omode == OPEN_READ_ONLY) && (part == num_parts)) {
-         /* If the last part (on spool), doesn't exists when reading, create it and read from it
-          * (it will report immediately an EOF):
+      if ((omode == OPEN_READ_ONLY || omode == OPEN_READ_WRITE) &&
+          (part == num_parts)) {
+         /* If the last part (on spool), doesn't exists when accessing,
+          * create it. In read/write mode a write will be allowed (higher
+          * level software thinks that we are extending a pre-existing
+          * media. Reads for READ_ONLY will report immediately an EOF 
           * Sometimes it is better to finish with an EOF than with an error. */
-         set_mode(OPEN_READ_WRITE);
+         Dmsg0(29, "Creating last part on spool to make our caller happy\n");
+         set_mode(CREATE_READ_WRITE);
          fd = ::open(archive_name.c_str(), mode, 0640);
-         set_mode(OPEN_READ_ONLY);
+         set_mode(omode);
       }
       
       /* We don't need it. Only the last part is on spool */
@@ -2002,7 +2010,11 @@ void DEVICE::edit_mount_codes(POOL_MEM &omsg, const char *imsg)
             break;
          case 'e':
             if (num_parts == 0) {
-               str = "1";
+               if (truncating || truncated_dvd) {
+                  str = "2";
+               } else {
+                  str = "1";
+               }
             } else {
                str = "0";
             }

@@ -138,7 +138,10 @@ static bool do_mount_dvd(DEVICE* dev, int mount, int dotimeout)
    while ((status = run_program_full_output(ocmd.c_str(), 
                        dev->max_open_wait/2, results)) != 0) {
       /* Doesn't work with internationalisation (This is not a problem) */
-      if (fnmatch("*is already mounted on", results, 0) == 0) {
+      if (mount && fnmatch("*is already mounted on*", results, 0) == 0) {
+         break;
+      }
+      if (!mount && fnmatch("* not mounted*", results, 0) == 0) {
          break;
       }
       if (timeout-- > 0) {
@@ -151,9 +154,10 @@ static bool do_mount_dvd(DEVICE* dev, int mount, int dotimeout)
          bmicrosleep(1, 0);
          continue;
       }
-      Dmsg2(40, "Device %s cannot be mounted. ERR=%s\n", dev->print_name(), results);
-      Mmsg(dev->errmsg, _("Device %s cannot be mounted. ERR=%s\n"), 
-           dev->print_name(), results);
+      Dmsg3(40, "Device %s cannot be %smounted. ERR=%s\n", dev->print_name(),
+           (mount ? "" : "un"), results);
+      Mmsg(dev->errmsg, _("Device %s cannot be %smounted. ERR=%s\n"), 
+           dev->print_name(), (mount ? "" : "un"), results);
       /*
        * Now, just to be sure it is not mounted, try to read the
        *  filesystem.
@@ -201,8 +205,17 @@ static bool do_mount_dvd(DEVICE* dev, int mount, int dotimeout)
       Dmsg1(29, "do_mount_dvd: got %d files in the mount point (not counting ., .. and .keep)\n", count);
       
       if (count > 0) {
-         mount = 1;                      /* If we got more than ., .. and .keep */
-         break;                          /*   there must be something mounted */
+         /* If we got more than ., .. and .keep */
+         /*   there must be something mounted */
+         if (mount) {
+            break;
+         } else {
+            /* An unmount request. We failed to unmount - report an error */
+            dev->set_mounted(true);
+            free_pool_memory(results);
+            Dmsg0(200, "============ DVD mount=1\n");
+            return false;
+         }
       }
 get_out:
       dev->set_mounted(false);
@@ -375,10 +388,11 @@ bool dvd_write_part(DCR *dcr)
    Dmsg2(29, "dvd_write_part: cmd=%s timeout=%d\n", ocmd.c_str(), timeout);
       
    status = run_program_full_output(ocmd.c_str(), timeout, results.c_str());
+   dev->truncated_dvd = false; // Clear this status now write has finished
    if (status != 0) {
       Mmsg1(dev->errmsg, _("Error while writing current part to the DVD: %s"), 
             results.c_str());
-      Dmsg1(000, "%s", dev->errmsg);
+      Dmsg1(000, "%s\n", dev->errmsg);
       dev->dev_errno = EIO;
       mark_volume_in_error(dcr);
       sm_check(__FILE__, __LINE__, false);
@@ -716,6 +730,17 @@ bool dvd_close_job(DCR *dcr)
 bool truncate_dvd(DCR *dcr) {
    DEVICE* dev = dcr->dev;
 
+   if (dev->fd >= 0) {
+      close(dev->fd);
+   }
+   dev->fd = -1;
+   dev->clear_opened();
+
+   if (!unmount_dvd(dev, 1)) {
+      Dmsg0(400, "truncate_dvd: Failed to unmount DVD\n");
+      return false;
+   }
+
    /* Set num_parts to zero (on disk) */
    dev->num_parts = 0;
    dcr->VolCatInfo.VolCatParts = 0;
@@ -724,12 +749,11 @@ bool truncate_dvd(DCR *dcr) {
    Dmsg0(400, "truncate_dvd: Opening first part (1)...\n");
    
    dev->truncating = true;
-   if (dvd_open_first_part(dcr, OPEN_READ_WRITE) < 0) {
+   if (dvd_open_first_part(dcr, CREATE_READ_WRITE) < 0) {
       Dmsg0(400, "truncate_dvd: Error while opening first part (1).\n");
       dev->truncating = false;
       return false;
    }
-   dev->truncating = false;
 
    Dmsg0(400, "truncate_dvd: Truncating...\n");
 
@@ -738,6 +762,7 @@ bool truncate_dvd(DCR *dcr) {
       berrno be;
       Mmsg2(dev->errmsg, _("Unable to truncate device %s. ERR=%s\n"), 
          dev->print_name(), be.strerror());
+      dev->truncating = false;
       return false;
    }
    
@@ -749,8 +774,10 @@ bool truncate_dvd(DCR *dcr) {
    
    if (!dvd_write_part(dcr)) {
       Dmsg0(400, "truncate_dvd: Error while writing to DVD.\n");
+      dev->truncating = false;
       return false;
    }
+   dev->truncating = false;
    
    /* Set num_parts to zero (on disk) */
    dev->num_parts = 0;

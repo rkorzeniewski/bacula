@@ -1301,6 +1301,7 @@ static void do_mount_cmd(UAContext *ua, const char *command)
    JCR *jcr = ua->jcr;
    char dev_name[MAX_NAME_LENGTH];
    int drive;
+   int slot = -1;
 
    if (!open_db(ua)) {
       return;
@@ -1313,6 +1314,9 @@ static void do_mount_cmd(UAContext *ua, const char *command)
    }
    set_wstorage(jcr, store);
    drive = get_storage_drive(ua, store);
+   if (strcmp(command, "mount") == 0) {
+      slot = get_storage_slot(ua, store);
+   }
 
    Dmsg3(120, "Found storage, MediaType=%s DevName=%s drive=%d\n",
       store->media_type, store->dev_name(), drive);
@@ -1324,7 +1328,11 @@ static void do_mount_cmd(UAContext *ua, const char *command)
    sd = jcr->store_bsock;
    bstrncpy(dev_name, store->dev_name(), sizeof(dev_name));
    bash_spaces(dev_name);
-   bnet_fsend(sd, "%s %s drive=%d", command, dev_name, drive);
+   if (slot > 0) {
+      bnet_fsend(sd, "%s %s drive=%d slot=%d", command, dev_name, drive, slot);
+   } else {
+      bnet_fsend(sd, "%s %s drive=%d", command, dev_name, drive);
+   }
    while (bnet_recv(sd) >= 0) {
       bsendmsg(ua, "%s", sd->msg);
    }
@@ -1334,7 +1342,7 @@ static void do_mount_cmd(UAContext *ua, const char *command)
 }
 
 /*
- * mount [storage=<name>] [drive=nn]
+ * mount [storage=<name>] [drive=nn] [slot=mm]
  */
 static int mount_cmd(UAContext *ua, const char *cmd)
 {

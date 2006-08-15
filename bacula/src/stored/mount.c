@@ -194,7 +194,7 @@ read_volume:
     */
    if (dev->has_cap(CAP_STREAM)) {
       vol_label_status = VOL_OK;
-      create_volume_label(dev, dcr->VolumeName, "Default");
+      create_volume_label(dev, dcr->VolumeName, "Default", false /* not DVD */);
       dev->VolHdr.LabelType = PRE_LABEL;
    } else {
       vol_label_status = read_dev_volume_label(dcr);
@@ -421,7 +421,7 @@ static int try_autolabel(DCR *dcr)
       Dmsg0(150, "Create volume label\n");
       /* Create a new Volume label and write it to the device */
       if (!write_new_volume_label_to_dev(dcr, dcr->VolumeName,
-             dcr->pool_name)) {
+             dcr->pool_name, false /* defer DVD label */)) {
          Dmsg0(150, "!write_vol_label\n");
          mark_volume_in_error(dcr);
          return try_next_vol;

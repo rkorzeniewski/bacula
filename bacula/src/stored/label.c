@@ -163,6 +163,7 @@ int read_dev_volume_label(DCR *dcr)
          empty_block(block);
          return VOL_OK;
       }
+      Dmsg0(100, "No volume label - bailing out\n");
       stat = VOL_NO_LABEL;
       goto bail_out;
    }
@@ -288,7 +289,8 @@ bool write_volume_label_to_block(DCR *dcr)
  *
  *  This routine should be used only when labeling a blank tape.
  */
-bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *PoolName)
+bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, 
+                                   const char *PoolName, bool dvdnow)
 {
    DEVICE *dev = dcr->dev;
 
@@ -312,8 +314,8 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *Po
       }
    }
 
-   /* Create PRE_LABEL */
-   create_volume_label(dev, VolName, PoolName);
+   /* Create PRE_LABEL or VOL_LABEL if DVD */
+   create_volume_label(dev, VolName, PoolName, dvdnow);
 
    /*
     * If we have already detected an ANSI label, re-read it
@@ -346,6 +348,15 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *Po
       Dmsg2(30, "Bad Label write on %s: ERR=%s\n", dev->print_name(), dev->bstrerror());
       goto bail_out;
    }
+
+   /* Now commit block to DVD if we should write now */
+   if (dev->is_dvd() && dvdnow) {
+      if (!dvd_write_part(dcr)) {
+         Dmsg2(30, "Bad DVD write on %s: ERR=%s\n", dev->print_name(), dev->bstrerror());
+         goto bail_out;
+      }
+   }
+
    Dmsg0(99, " Wrote block to device\n");
 
    if (dev->weof(1)) {
@@ -541,7 +552,8 @@ static void create_volume_label_record(DCR *dcr, DEV_RECORD *rec)
 /*
  * Create a volume label in memory
  */
-void create_volume_label(DEVICE *dev, const char *VolName, const char *PoolName)
+void create_volume_label(DEVICE *dev, const char *VolName, 
+                         const char *PoolName, bool dvdnow)
 {
    DEVRES *device = (DEVRES *)dev->device;
 
@@ -554,7 +566,12 @@ void create_volume_label(DEVICE *dev, const char *VolName, const char *PoolName)
 
    bstrncpy(dev->VolHdr.Id, BaculaId, sizeof(dev->VolHdr.Id));
    dev->VolHdr.VerNum = BaculaTapeVersion;
-   dev->VolHdr.LabelType = PRE_LABEL;  /* Mark tape as unused */
+   if (dev->is_dvd() && dvdnow) {
+      /* We do not want to re-label a DVD so write VOL_LABEL now */
+      dev->VolHdr.LabelType = VOL_LABEL;
+   } else {
+      dev->VolHdr.LabelType = PRE_LABEL;  /* Mark tape as unused */
+   }
    bstrncpy(dev->VolHdr.VolumeName, VolName, sizeof(dev->VolHdr.VolumeName));
    bstrncpy(dev->VolHdr.PoolName, PoolName, sizeof(dev->VolHdr.PoolName));
    bstrncpy(dev->VolHdr.MediaType, device->media_type, sizeof(dev->VolHdr.MediaType));

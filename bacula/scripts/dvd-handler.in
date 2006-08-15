@@ -267,6 +267,9 @@ class disk:
       cmd = self.growcmd + self.growparams
       if newvol:
          cmd += " -Z "
+         // Ignore any existing iso9660 filesystem - used for truncate
+         if newvol == 2:
+             cmd += "-use-the-force-luke=tty "
       else:
          cmd += " -M "
       cmd += self.device + " " + str(partfile)
@@ -397,8 +400,9 @@ test      Scan the device and report the information found.
 free      Scan the device and report the available space.
 write     Write a part file to disk.
            This operation needs two additional arguments.
-           The first indicates to append (0) or restart the
-           disk (1). The second is the file to write.
+           The first indicates to append (0), restart the
+           disk (1) or restart existing disk (2). The second
+           is the file to write.
 prepare   Prepare a DVD+/-RW for being used by Bacula.
            Note: This is only useful if you already have some
            non-Bacula data on a medium, and you want to use
