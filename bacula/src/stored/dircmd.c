@@ -209,7 +209,7 @@ void *handle_connection_request(void *arg)
            Dmsg1(200, "Do command: %s\n", cmds[i].cmd);
            if (!cmds[i].func(jcr)) { /* do command */
               quit = true; /* error, get out */
-              Dmsg1(190, "Command %s requsts quit\n", cmds[i].cmd);
+              Dmsg1(190, "Command %s reqeusts quit\n", cmds[i].cmd);
            }
            found = true;             /* indicate command found */
            break;
@@ -396,7 +396,12 @@ static void label_volume_if_ok(DCR *dcr, char *oldname,
    steal_device_lock(dev, &hold, BST_WRITING_LABEL);
    Dmsg1(100, "Stole device %s lock, writing label.\n", dev->print_name());
 
-   if (!try_autoload_device(dcr->jcr, slot, newname)) {
+   Dmsg0(90, "try_autoload_device - looking for volume_info\n");
+   if (relabel && dev->is_dvd()) {
+      dcr->VolCatInfo.VolCatParts=1;
+   }
+
+   if (!try_autoload_device(dcr->jcr, slot, (relabel == 0) ? newname : oldname)) {
       goto bail_out;                  /* error */
    }
 
@@ -409,7 +414,7 @@ static void label_volume_if_ok(DCR *dcr, char *oldname,
    if (dev->open(dcr, mode) < 0) {
       bnet_fsend(dir, _("3910 Unable to open device %s: ERR=%s\n"),
          dev->print_name(), dev->strerror());
-      return;      
+      goto bail_out;      
    }
 
    /* See what we have for a Volume */
@@ -436,18 +441,26 @@ static void label_volume_if_ok(DCR *dcr, char *oldname,
          bnet_fsend(dir, _("3922 Cannot relabel an ANSI/IBM labeled Volume.\n"));
          break;
       }
+      if (relabel && dev->is_dvd()) {
+         /* Change the partition file name */
+         bstrncpy(dcr->VolumeName, newname, sizeof(dcr->VolumeName));
+         if (!dev->truncate(dcr)) {
+            bnet_fsend(dir, _("3912 Failed to truncate previous DVD volume.\n"));
+            break;
+         }
+      }
       free_volume(dev);               /* release old volume name */
       /* Fall through wanted! */
    case VOL_IO_ERROR:
    case VOL_NO_LABEL:
-      if (!write_new_volume_label_to_dev(dcr, newname, poolname)) {
+      if (!write_new_volume_label_to_dev(dcr, newname, poolname, true /* write dvd now */)) {
          bnet_fsend(dir, _("3912 Failed to label Volume: ERR=%s\n"), dev->bstrerror());
          break;
       }
       bstrncpy(dcr->VolumeName, newname, sizeof(dcr->VolumeName));
       /* The following 3000 OK label. string is scanned in ua_label.c */
-      bnet_fsend(dir, "3000 OK label. Volume=%s Device=%s\n",
-         newname, dev->print_name());
+      bnet_fsend(dir, "3000 OK label. DVD=%d Volume=\"%s\" Device=\"%s\"\n",
+         dev->is_dvd()?1:0, newname, dev->print_name());
       break;
    case VOL_NO_MEDIA:
       bnet_fsend(dir, _("3912 Failed to label Volume: ERR=%s\n"), dev->bstrerror());
@@ -582,8 +595,15 @@ static bool mount_cmd(JCR *jcr)
    DEVICE *dev;
    DCR *dcr;
    int drive;
+   int slot = 0;
+   bool ok;
 
-   if (sscanf(dir->msg, "mount %127s drive=%d", devname.c_str(), &drive) == 2) {
+   ok = sscanf(dir->msg, "mount %127s drive=%d slot=%d", devname.c_str(), 
+               &drive, &slot) == 3;
+   if (!ok) {
+      ok = sscanf(dir->msg, "mount %127s drive=%d", devname.c_str(), &drive) == 2;
+   }
+   if (ok) {
       dcr = find_device(jcr, devname, drive);
       if (dcr) {
          dev = dcr->dev;
@@ -603,6 +623,9 @@ static bool mount_cmd(JCR *jcr)
          /* In both of these two cases, we (the user) unmounted the Volume */
          case BST_UNMOUNTED_WAITING_FOR_SYSOP:
          case BST_UNMOUNTED:
+            if (dev->is_autochanger() && slot > 0) {
+               try_autoload_device(jcr, slot, "");
+            }
             /* We freed the device, so reopen it and wake any waiting threads */
             if (dev->open(dcr, OPEN_READ_ONLY) < 0) {
                bnet_fsend(dir, _("3901 open device failed: ERR=%s\n"),
@@ -647,6 +670,9 @@ static bool mount_cmd(JCR *jcr)
             break;
 
          case BST_NOT_BLOCKED:
+            if (dev->is_autochanger() && slot > 0) {
+               try_autoload_device(jcr, slot, "");
+            }
             if (dev->is_open()) {
                if (dev->is_labeled()) {
                   bnet_fsend(dir, _("3001 Device %s is mounted with Volume \"%s\"\n"),
@@ -722,19 +748,31 @@ static bool unmount_cmd(JCR *jcr)
             if (!dev->is_busy()) {
                unload_autochanger(jcr->dcr, -1);          
             }
-            Dmsg0(90, "Device already unmounted\n");
-            bnet_fsend(dir, _("3901 Device %s is already unmounted.\n"), 
-               dev->print_name());
-
+            if (dev->is_dvd()) {
+               if (unmount_dvd(dev, 0)) {
+                  bnet_fsend(dir, _("3002 Device %s unmounted.\n"), 
+                     dev->print_name());
+               } else {
+                  bnet_fsend(dir, _("3907 %s"), dev->bstrerror());
+               } 
+            } else {
+               Dmsg0(90, "Device already unmounted\n");
+               bnet_fsend(dir, _("3901 Device %s is already unmounted.\n"), 
+                  dev->print_name());
+            }
          } else if (dev->dev_blocked == BST_WAITING_FOR_SYSOP) {
             Dmsg2(90, "%d waiter dev_block=%d. doing unmount\n", dev->num_waiting,
                dev->dev_blocked);
             if (!unload_autochanger(jcr->dcr, -1)) {
                dev->close();
             }
-            dev->dev_blocked = BST_UNMOUNTED_WAITING_FOR_SYSOP;
-            bnet_fsend(dir, _("3001 Device %s unmounted.\n"), 
-               dev->print_name());
+            if (dev->is_dvd() && !unmount_dvd(dev, 0)) {
+               bnet_fsend(dir, _("3907 %s"), dev->bstrerror());
+            } else {
+               dev->dev_blocked = BST_UNMOUNTED_WAITING_FOR_SYSOP;
+               bnet_fsend(dir, _("3001 Device %s unmounted.\n"), 
+                  dev->print_name());
+            }
 
          } else if (dev->dev_blocked == BST_DOING_ACQUIRE) {
             bnet_fsend(dir, _("3902 Device %s is busy in acquire.\n"), 
@@ -759,8 +797,12 @@ static bool unmount_cmd(JCR *jcr)
             if (!unload_autochanger(jcr->dcr, -1)) {
                dev->close();
             }
-            bnet_fsend(dir, _("3002 Device %s unmounted.\n"), 
-               dev->print_name());
+            if (dev->is_dvd() && !unmount_dvd(dev, 0)) {
+               bnet_fsend(dir, _("3907 %s"), dev->bstrerror());
+            } else {
+               bnet_fsend(dir, _("3002 Device %s unmounted.\n"), 
+                  dev->print_name());
+            }
          }
          V(dev->mutex);
          free_dcr(dcr);

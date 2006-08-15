@@ -629,6 +629,7 @@ static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
    BSOCK *sd;
    char dev_name[MAX_NAME_LENGTH];
    bool ok = false;
+   bool is_dvd = false;
 
    if (!(sd=open_sd_bsock(ua))) {
       return false;
@@ -662,12 +663,20 @@ static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
       if (strncmp(sd->msg, "3000 OK label.", 14) == 0) {
          ok = true;
       }
+      if (strncmp(sd->msg, "3000 OK label. DVD=1 ", 21) == 0) {
+         is_dvd = true;
+      }
    }
    unbash_spaces(mr->VolumeName);
    unbash_spaces(mr->MediaType);
    unbash_spaces(pr->Name);
    mr->LabelDate = time(NULL);
    mr->set_label_date = true;
+   if (is_dvd) {
+      /* We know that a freshly labelled DVD has 1 VolParts */
+      /* This does not apply to auto-labelled DVDs. */
+      mr->VolParts = 1;
+   }
    if (ok) {
       if (media_record_exists) {      /* we update it */
          mr->VolBytes = 1;

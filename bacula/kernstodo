@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     30 July 2006
+                     16 August 2006
 
 Major development:      
 Project                     Developer
@@ -1647,3 +1647,5 @@ Block Position: 0
 - Fix auth compatibility with 1.38
 - Update dbcheck to include Log table
 - Update llist to include new fields.
+- Make unmount unload autochanger.  Make mount load slot.
+

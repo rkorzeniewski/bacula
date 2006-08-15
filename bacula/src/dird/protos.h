@@ -208,6 +208,7 @@ int     do_prompt(UAContext *ua, const char *automsg, const char *msg, char *pro
 CAT    *get_catalog_resource(UAContext *ua);
 STORE  *get_storage_resource(UAContext *ua, bool use_default);
 int     get_storage_drive(UAContext *ua, STORE *store);
+int     get_storage_slot(UAContext *ua, STORE *store);
 int     get_media_type(UAContext *ua, char *MediaType, int max_media);
 bool    get_pool_dbr(UAContext *ua, POOL_DBR *pr);
 int     get_client_dbr(UAContext *ua, CLIENT_DBR *cr);

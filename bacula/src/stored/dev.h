@@ -246,6 +246,7 @@ public:
    uint64_t free_space;               /* current free space on medium (without the current part) */
    int free_space_errno;              /* indicates errno getting freespace */
    bool truncating;                   /* if set, we are currently truncating the DVD */
+   bool truncated_dvd;                /* if set, we have a truncated DVD in the drive */
    
    
    utime_t  vol_poll_interval;        /* interval between polling Vol mount */

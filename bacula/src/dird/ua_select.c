@@ -907,6 +907,27 @@ int get_storage_drive(UAContext *ua, STORE *store)
    return drive;
 }
 
+/* Get slot that we are working with for this storage */
+int get_storage_slot(UAContext *ua, STORE *store)
+{
+   int i, slot = -1;
+   /* Get slot for autochanger if possible */
+   i = find_arg_with_value(ua, "slot");
+   if (i >=0) {
+      slot = atoi(ua->argv[i]);
+   } else if (store && store->autochanger) {
+      /* Ask user to enter slot number */
+      ua->cmd[0] = 0;
+      if (!get_cmd(ua, _("Enter autochanger slot: "))) {
+         slot = -1;  /* None */
+      } else {
+         slot = atoi(ua->cmd);
+      }
+   }
+   return slot;
+}
+
+
 
 /*
  * Scan looking for mediatype=

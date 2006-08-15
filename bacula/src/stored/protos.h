@@ -153,8 +153,8 @@ void     handle_filed_connection(BSOCK *fd, char *job_name);
 int      read_dev_volume_label(DCR *dcr);
 int      read_dvd_volume_label(DCR *dcr, bool write);
 void     create_session_label(DCR *dcr, DEV_RECORD *rec, int label);
-void     create_volume_label(DEVICE *dev, const char *VolName, const char *PoolName);
-bool     write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *PoolName);
+void     create_volume_label(DEVICE *dev, const char *VolName, const char *PoolName, bool dvdnow);
+bool     write_new_volume_label_to_dev(DCR *dcr, const char *VolName, const char *PoolName, bool dvdnow);
 #define ANSI_VOL_LABEL 0
 #define ANSI_EOF_LABEL 1
 #define ANSI_EOV_LABEL 2
