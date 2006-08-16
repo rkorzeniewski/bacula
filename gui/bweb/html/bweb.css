@@ -4,8 +4,38 @@ a { text-decoration: none;}
                         border: 1px solid #9d9d94;
 }
 
-abutton.formulaire { class: formulaire; font-size: 9; height: 48px; width: 80px; background-color: transparent; }
+abutton.formulaire { font-size: 9; height: 48px; width: 80px; background-color: transparent; }
 
-button.formulaire { class: formulaire; border: 0px; font-size: 9;  background-color: transparent; }
+button.formulaire { border: 0px; font-size: 9;  background-color: transparent; }
 
 td.joberr { background-color: red; font-color: white;}
+
+
+.pSlice, .pSliceFull, .pSliceError, .pSliceAppend, .pSlicePurged, .pSliceRecycle, pSliceArchive, pSliceUsed, pSliceRead_Only, pSliceDisabled {
+  width: 2px;
+  height: 9px;
+  margin-right: 1px;
+  margin-bottom: 1px;
+  border: solid 1px #CCCCCC;
+  background-color: #E6E6E6;	
+}
+
+.pSliceFull, pSliceRead_Only,pSliceArchive, pSliceUsed, pSliceDisabled {
+ border: solid 1px #BD0C10;
+ background-color: #FF3029;
+}
+
+.pSliceError {
+ border: solid 1px #000000;
+ background-color: #020202;
+}
+
+.pSliceAppend {
+ border: solid 1px #CD6500;
+ background-color: #FFCE00;
+}
+
+.pSlicePurged, .pSliceRecycle {
+ border: solid 1px #009900;
+ background-color: #00FF00;
+}
