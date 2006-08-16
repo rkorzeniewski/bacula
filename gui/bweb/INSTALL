@@ -73,7 +73,7 @@ Put this in you httpd.conf, and add user with htpasswd
 
 ################ CONFIGURATION #################################
 
-/etc/bweb/config look like : (you can edit it inside bweb)
+/etc/bweb/config looks like : (you can edit it inside bweb)
 
 dbi = DBI:Pg:database=bacula;host=192.168.1.2
 user = bacula
