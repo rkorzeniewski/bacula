@@ -105,12 +105,14 @@ bool do_migration(JCR *jcr)
 
    /* 
     *  previous_jr refers to the job DB record of the Job that is
-    *    being migrated.
+    *    going to be migrated.
     *  prev_job refers to the job resource of the Job that is
-    *    being migrated.
+    *    going to be migrated.
     *  jcr is the jcr for the current "migration" job.  It is a
     *    control job that is put in the DB as a migration job, which
     *    means that this job migrated a previous job to a new job.
+    *    No Volume or File data is associated with this control
+    *    job.
     *  mig_jcr refers to the newly migrated job that is run by
     *    the current jcr.  It is a backup job that moves (migrates) the
     *    data written for the previous_jr into the new pool.  This
@@ -139,10 +141,12 @@ bool do_migration(JCR *jcr)
       return false;
    }
 
+   /* Create a migation jcr */
    mig_jcr = jcr->mig_jcr = new_jcr(sizeof(JCR), dird_free_jcr);
    memcpy(&mig_jcr->previous_jr, &jcr->previous_jr, sizeof(mig_jcr->previous_jr));
 
-   /* Turn the mig_jcr into a "real" job that takes on the aspects of
+   /*
+    * Turn the mig_jcr into a "real" job that takes on the aspects of
     *   the previous backup job "prev_job".
     */
    set_jcr_defaults(mig_jcr, prev_job);
@@ -183,8 +187,10 @@ bool do_migration(JCR *jcr)
    copy_rstorage(mig_jcr, pool->storage, _("Pool resource"));
    copy_rstorage(jcr, pool->storage, _("Pool resource"));
 
-   /* If the original backup pool has a NextPool, make sure a 
-    *  record exists in the database.
+   /*
+    * If the original backup pool has a NextPool, make sure a 
+    *  record exists in the database. Note, in this case, we
+    *  will be migrating from pool to pool->NextPool.
     */
    if (pool->NextPool) {
       jcr->jr.PoolId = get_or_create_pool_record(jcr, pool->NextPool->hdr.name);
@@ -211,7 +217,7 @@ bool do_migration(JCR *jcr)
    set_jcr_job_status(mig_jcr, JS_Running);
    Dmsg2(dbglevel, "JobId=%d JobLevel=%c\n", jcr->jr.JobId, jcr->jr.JobLevel);
 
-   /* Update job start record for this migration job */
+   /* Update job start record for this migration control job */
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
       return false;
@@ -221,7 +227,7 @@ bool do_migration(JCR *jcr)
       mig_jcr->jr.Name, mig_jcr->jr.JobId, 
       mig_jcr->jr.JobType, mig_jcr->jr.JobLevel);
 
-   /* Update job start record for migrated job */
+   /* Update job start record for the real migration backup job */
    if (!db_update_job_start_record(mig_jcr, mig_jcr->db, &mig_jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(mig_jcr->db));
       return false;
@@ -440,8 +446,13 @@ static bool get_job_to_migrate(JCR *jcr)
    ids.list[0] = 0;
    ids.count = 0;
 
+   /*
+    * If MigrateJobId is set, then we migrate only that Job,
+    *  otherwise, we go through the full selection of jobs to
+    *  migrate.
+    */
    if (jcr->MigrateJobId != 0) {
-      Dmsg1(000, "At Job start previous jobid=%u\n", jcr->MigrateJobId);
+      Dmsg1(dbglevel, "At Job start previous jobid=%u\n", jcr->MigrateJobId);
       edit_uint64(jcr->MigrateJobId, ids.list);
       ids.count = 1;
    } else {
@@ -500,13 +511,13 @@ static bool get_job_to_migrate(JCR *jcr)
             goto bail_out;
          }
          if (ctx.value > (int64_t)jcr->pool->MigrationHighBytes) {
-            Dmsg2(000, "highbytes=%d pool=%d\n", (int)jcr->pool->MigrationHighBytes,
+            Dmsg2(dbglevel, "highbytes=%d pool=%d\n", (int)jcr->pool->MigrationHighBytes,
                (int)ctx.value);
          }
          goto bail_out;
          break;
       case MT_POOL_TIME:
-         Dmsg0(000, "Pool time not implemented\n");
+         Dmsg0(dbglevel, "Pool time not implemented\n");
          break;
       default:
          Jmsg(jcr, M_FATAL, 0, _("Unknown Migration Selection Type.\n"));
@@ -523,7 +534,7 @@ static bool get_job_to_migrate(JCR *jcr)
    for (int i=1; i < (int)ids.count; i++) {
       JobId = 0;
       stat = get_next_jobid_from_list(&p, &JobId);
-      Dmsg2(000, "get_next_jobid stat=%d JobId=%u\n", stat, JobId);
+      Dmsg2(dbglevel, "get_next_jobid stat=%d JobId=%u\n", stat, JobId);
       jcr->MigrateJobId = JobId;
       start_migration_job(jcr);
       if (stat < 0) {
@@ -538,7 +549,7 @@ static bool get_job_to_migrate(JCR *jcr)
    /* Now get the last JobId and handle it in the current job */
    JobId = 0;
    stat = get_next_jobid_from_list(&p, &JobId);
-   Dmsg2(000, "Last get_next_jobid stat=%d JobId=%u\n", stat, JobId);
+   Dmsg2(dbglevel, "Last get_next_jobid stat=%d JobId=%u\n", stat, JobId);
    if (stat < 0) {
       Jmsg(jcr, M_FATAL, 0, _("Invalid JobId found.\n"));
       goto bail_out;
@@ -578,7 +589,6 @@ static void start_migration_job(JCR *jcr)
    Dmsg1(dbglevel, "=============== Migration cmd=%s\n", ua->cmd);
    parse_ua_args(ua);                 /* parse command */
    int stat = run_cmd(ua, ua->cmd);
-// int stat = (int)jcr->MigrateJobId;
    if (stat == 0) {
       Jmsg(jcr, M_ERROR, 0, _("Could not start migration job.\n"));
    } else {
@@ -608,7 +618,7 @@ static bool find_mediaid_then_jobids(JCR *jcr, idpkt *ids, const char *query1,
          ids->count);
       goto bail_out;
    }
-   Dmsg1(000, "Smallest Vol Jobids=%s\n", ids->list);
+   Dmsg1(dbglevel, "Smallest Vol Jobids=%s\n", ids->list);
 
    ok = find_jobids_from_mediaid_list(jcr, ids, type);
 
