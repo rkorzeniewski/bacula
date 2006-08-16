@@ -2360,7 +2360,8 @@ SELECT Pool.Name     AS name,
        Pool.VolUseDuration AS voluseduration,
        Pool.MaxVolJobs AS maxvoljobs,
        Pool.MaxVolFiles AS maxvolfiles,
-       Pool.MaxVolBytes AS maxvolbytes, 
+       Pool.MaxVolBytes AS maxvolbytes,
+       Pool.PoolId      AS poolid,
       (SELECT count(Media.MediaId) 
          FROM Media 
         WHERE Media.PoolId = Pool.PoolId
@@ -2369,12 +2370,25 @@ SELECT Pool.Name     AS name,
 ";	
 
     my $all = $self->dbh_selectall_hashref($query, 'name') ;
-    foreach (values %$all) {
-	$_->{maxvolbytes}    = human_size($_->{maxvolbytes}) ;
-	$_->{volretention}   = human_sec($_->{volretention}) ;
-	$_->{voluseduration} = human_sec($_->{voluseduration}) ;
+    foreach my $p (values %$all) {
+	$p->{maxvolbytes}    = human_size($p->{maxvolbytes}) ;
+	$p->{volretention}   = human_sec($p->{volretention}) ;
+	$p->{voluseduration} = human_sec($p->{voluseduration}) ;
+
+	$query = "
+  SELECT VolStatus AS volstatus, count(MediaId) AS nb 
+    FROM Media 
+   WHERE PoolId=$p->{poolid} 
+GROUP BY VolStatus
+";
+
+	my $content = $self->dbh_selectall_hashref($query, 'volstatus');
+	foreach my $t (values %$content) {
+	    $p->{"nb_" . $t->{volstatus}} = $t->{nb} ;
+	}
     }
 
+    $self->debug($all);
     $self->display({ ID => $cur_id++,
 		     Pools => [ values %$all ]},
 		   "display_pool.tpl");

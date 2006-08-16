@@ -4,7 +4,7 @@
  </div>
  <div class="bodydiv">
    <form action='?' method='get'>
-    <table id='id<TMPL_VAR NAME=ID>'></table>
+    <table id='id<TMPL_VAR ID>'></table>
     <button class='formulaire' type='submit' name='action' value='media' title='Show content'>
      <img src='/bweb/zoom.png'>
     </button>
@@ -18,26 +18,44 @@
 
 var header = new Array("Name","Recycle","Retention","Use Duration",
 	               "Max job per volume","Max file per volume", 
-                       "Max volume size","Nb volumes", "Select");
+                       "Max volume size","Nb volumes", "Usage", "Select");
 
 var data = new Array();
 var chkbox;
+var img;
+var d;
 
-<TMPL_LOOP NAME=Pools>
+<TMPL_LOOP Pools>
+d = document.createElement('DIV');
+
+img = percent_display(d, [
+<TMPL_IF nb_recycle>{ name: "Recycle", nb: <TMPL_VAR nb_recycle> },</TMPL_IF>
+<TMPL_IF nb_purged> { name: "Purged", nb: <TMPL_VAR nb_purged> },</TMPL_IF>
+<TMPL_IF nb_append> { name: "Append", nb: <TMPL_VAR nb_append> },</TMPL_IF>
+<TMPL_IF nb_full>   { name: "Full", nb: <TMPL_VAR nb_full> },    </TMPL_IF>
+<TMPL_IF nb_disabled>   { name: "Disabled", nb: <TMPL_VAR nb_disabled> },    </TMPL_IF>
+<TMPL_IF nb_error>  { name: "Error", nb: <TMPL_VAR nb_error> },  </TMPL_IF>
+<TMPL_IF nb_archive>{ name: "Archive", nb: <TMPL_VAR nb_archive> },</TMPL_IF>
+<TMPL_IF nb_used>   { name: "Used", nb: <TMPL_VAR nb_used> },    </TMPL_IF>
+<TMPL_IF NAME='nb_read-only'> { name: "Read-Only", nb: <TMPL_VAR NAME='nb_read-only'> }, </TMPL_IF>
+{}
+]);
+
 chkbox = document.createElement('INPUT');
 chkbox.type  = 'radio';
-chkbox.value = '<TMPL_VAR NAME=Name>';
+chkbox.value = '<TMPL_VAR Name>';
 chkbox.name  = 'pool';
 
 data.push( new Array(
-"<TMPL_VAR NAME=Name>",
-"<TMPL_VAR NAME=Recycle>",
-"<TMPL_VAR NAME=VolRetention>",
-"<TMPL_VAR NAME=VolUseDuration>",
-"<TMPL_VAR NAME=MaxVolJobs>",
-"<TMPL_VAR NAME=MaxVolFiles>",
-"<TMPL_VAR NAME=MaxVolBytes>",
-"<TMPL_VAR NAME=VolNum>",
+"<TMPL_VAR Name>",
+"<TMPL_VAR Recycle>",
+"<TMPL_VAR VolRetention>",
+"<TMPL_VAR VolUseDuration>",
+"<TMPL_VAR MaxVolJobs>",
+"<TMPL_VAR MaxVolFiles>",
+"<TMPL_VAR MaxVolBytes>",
+"<TMPL_VAR VolNum>",
+d,
 chkbox
  )
 );
@@ -45,7 +63,7 @@ chkbox
 
 nrsTable.setup(
 {
- table_name:     "id<TMPL_VAR NAME=ID>",
+ table_name:     "id<TMPL_VAR ID>",
  table_header: header,
  table_data: data,
  up_icon: up_icon,
@@ -60,8 +78,8 @@ nrsTable.setup(
  header_color: header_color,
  page_nav: true,
  padding: 3,
- rows_per_page: rows_per_page,
-// disable_sorting: new Array(5,6)
+// disable_sorting: new Array(5,6),
+ rows_per_page: rows_per_page
 }
 );
 </script>
