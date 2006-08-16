@@ -140,17 +140,34 @@ if ($action eq 'begin') {		# main display
     $a->display_content();
 
 } elsif ($action eq 'ach_load') {
-    my $arg = $bweb->get_form('drive', 'slot');
-    my $a = Bweb::Autochanger::get('S1_L80', $bweb);
-    $a->status();
-    $a->load($arg->{drive}, $arg->{slot}) ;
+    my $arg = $bweb->get_form('ach', 'drive', 'slot');
 
+    if (defined $arg->{ach} and defined $arg->{drive} and defined $arg->{slot})
+    {
+	my $b = new Bconsole(pref => $conf, log_stdout => 1) ;
+	# TODO : use template here
+	print "<pre>\n";
+	$b->send_cmd_with_drive("mount slot=$arg->{slot} storage='$arg->{ach}'",
+				$arg->{drive});
+	print "</pre>\n";
+    } else {
+	$bweb->error("Can't get drive, slot or ach");
+    }
+    
 } elsif ($action eq 'ach_unload') {
-    my $arg = $bweb->get_form('drive', 'slot');
-    my $a = Bweb::Autochanger::get('S1_L80', $bweb);
-    $a->status();
-    $a->unload($arg->{drive}, $arg->{slot}) ;
-   
+    my $arg = $bweb->get_form('drive', 'slot', 'ach');
+    if (defined $arg->{ach} and defined $arg->{drive} and defined $arg->{slot})
+    {
+	my $b = new Bconsole(pref => $conf, log_stdout => 1) ;
+	# TODO : use template here
+	print "<pre>\n";
+	$b->send_cmd_with_drive("umount storage='$arg->{ach}'",
+				$arg->{drive});
+	print "</pre>\n";
+
+    } else {
+	$bweb->error("Can't get drive, slot or ach");
+    }   
 } elsif ($action eq 'intern_media') {
     $bweb->help_intern();
 
