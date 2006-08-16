@@ -66,8 +66,8 @@ nrsTable.setup(
  header_color: header_color,
  page_nav: true,
  padding: 3,
- rows_per_page: rows_per_page,
-// disable_sorting: new Array(5,6)
+// disable_sorting: new Array(5,6),
+ rows_per_page: rows_per_page
 }
 );
 </script>
