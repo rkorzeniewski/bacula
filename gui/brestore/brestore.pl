@@ -271,7 +271,16 @@ sub show_job
 {
     my ($self, $client, $jobid) = @_;
 
-    $self->{pref}->go_bweb("?action=dsp_cur_job;jobid=$jobid;client=$client", "view job status");
+    my $ret = $self->{pref}->go_bweb("?action=dsp_cur_job;jobid=$jobid;client=$client", "view job status");
+
+    if ($ret == -1) {
+	my $widget = Gtk2::MessageDialog->new(undef, 'modal', 'info', 'close', 
+"Your job have been submited to bacula.
+To follow it, you must use bconsole (or install/configure bweb)");
+	$widget->run;
+	$widget->destroy();
+    }
+
     $self->on_cancel_resto_clicked();
 }
 
@@ -567,13 +576,13 @@ sub go_bweb
 
     unless ($self->{mozilla} and $self->{bweb}) {
 	new DlgWarn("You must install Bweb and set your mozilla bin to $msg");
-	return;
+	return -1;
     }
 
     system("$self->{mozilla} -remote 'Ping()'");
     if ($? != 0) {
 	new DlgWarn("Warning, you must have a running $self->{mozilla} to $msg");
-	return;
+	return 0;
     }
 
     my $cmd = "$self->{mozilla} -remote 'OpenURL($self->{bweb}$url,new-tab)'" ;
