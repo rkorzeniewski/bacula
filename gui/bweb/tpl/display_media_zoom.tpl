@@ -66,14 +66,13 @@ nrsTable.setup(
 }
 );
 
-var header = new Array( "Vol Mounts", "Read time", "Write time", "Read Bytes", "Write Bytes", "Errors");
+var header = new Array( "Vol Mounts", "Read time", "Write time", "Errors");
 
 var data = new Array();
 data.push( new Array(
 "<TMPL_VAR nb_mounts>",
 "<TMPL_VAR volreadtime>",
 "<TMPL_VAR volwritetime>",
-"N/A","N/A",
 "<TMPL_VAR nb_errors>"
  )
 );
