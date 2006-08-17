@@ -1978,7 +1978,7 @@ SELECT InChanger     AS online,
           $self->{sql}->{UNIX_TIMESTAMP}(Media.LastWritten) 
         + $self->{sql}->{TO_SEC}(Media.VolRetention)
        ) AS expire
- FROM Job,Pool,
+ FROM Pool,
       Media LEFT JOIN Location ON (Media.LocationId = Location.LocationId)
  WHERE Pool.PoolId = Media.PoolId
  AND VolumeName IN ($medias->{jmedias})
