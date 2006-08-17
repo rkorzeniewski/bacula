@@ -11,7 +11,10 @@ button.formulaire { border: 0px; font-size: 9;  background-color: transparent; }
 td.joberr { background-color: red; font-color: white;}
 
 
-.pSlice, .pSliceFull, .pSliceError, .pSliceAppend, .pSlicePurged, .pSliceRecycle, pSliceArchive, pSliceUsed, pSliceRead_Only, pSliceDisabled {
+.pSlice, .pSliceFull, .pSliceError, .pSliceAppend, .pSlicePurged, .pSliceRecycle, 
+.pSliceArchive, .pSliceUsed, .pSliceRead_Only, .pSliceDisabled,
+.pSliceOk,.pSliceWarn,.pSliceCrit,.pSliceEmpty
+ {
   width: 2px;
   height: 9px;
   margin-right: 1px;
@@ -20,7 +23,8 @@ td.joberr { background-color: red; font-color: white;}
   background-color: #E6E6E6;	
 }
 
-.pSliceFull, pSliceRead_Only,pSliceArchive, pSliceUsed, pSliceDisabled {
+.pSliceFull, .pSliceRead_Only,.pSliceArchive, .pSliceUsed, .pSliceDisabled,
+.pSliceCrit {
  border: solid 1px #BD0C10;
  background-color: #FF3029;
 }
@@ -30,12 +34,12 @@ td.joberr { background-color: red; font-color: white;}
  background-color: #020202;
 }
 
-.pSliceAppend {
+.pSliceAppend, .pSliceWarn {
  border: solid 1px #CD6500;
  background-color: #FFCE00;
 }
 
-.pSlicePurged, .pSliceRecycle {
+.pSlicePurged, .pSliceRecycle, .pSliceOk {
  border: solid 1px #009900;
  background-color: #00FF00;
 }

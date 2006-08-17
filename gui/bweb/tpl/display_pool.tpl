@@ -18,17 +18,16 @@
 
 var header = new Array("Name","Recycle","Retention","Use Duration",
 	               "Max job per volume","Max file per volume", 
-                       "Max volume size","Nb volumes", "Usage", "Select");
+                       "Max volume size","Nb volumes", "Vol Status", "Usage", "Select");
 
 var data = new Array();
 var chkbox;
 var img;
-var d;
+var img2;
 
 <TMPL_LOOP Pools>
-d = document.createElement('DIV');
 
-img = percent_display(d, [
+img = percent_display([
 <TMPL_IF nb_recycle>{ name: "Recycle", nb: <TMPL_VAR nb_recycle> },</TMPL_IF>
 <TMPL_IF nb_purged> { name: "Purged", nb: <TMPL_VAR nb_purged> },</TMPL_IF>
 <TMPL_IF nb_append> { name: "Append", nb: <TMPL_VAR nb_append> },</TMPL_IF>
@@ -46,6 +45,8 @@ chkbox.type  = 'radio';
 chkbox.value = '<TMPL_VAR Name>';
 chkbox.name  = 'pool';
 
+img2 = percent_usage(<TMPL_VAR poolusage>);
+
 data.push( new Array(
 "<TMPL_VAR Name>",
 "<TMPL_VAR Recycle>",
@@ -55,7 +56,8 @@ data.push( new Array(
 "<TMPL_VAR MaxVolFiles>",
 "<TMPL_VAR MaxVolBytes>",
 "<TMPL_VAR VolNum>",
-d,
+img,
+img2,
 chkbox
  )
 );

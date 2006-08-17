@@ -1615,16 +1615,16 @@ sub display_general
     my ($limit, $label) = $self->get_limit(%arg);
 
     my $query = "
-SELECT 
-    (SELECT count(Pool.PoolId)   FROM Pool)   AS nb_pool, 
-    (SELECT count(Media.MediaId) FROM Media)  AS nb_media, 
+SELECT
+    (SELECT count(Pool.PoolId)   FROM Pool)   AS nb_pool,
+    (SELECT count(Media.MediaId) FROM Media)  AS nb_media,
     (SELECT count(Job.JobId)     FROM Job)    AS nb_job,
     (SELECT sum(VolBytes)        FROM Media)  AS nb_bytes,
-    (SELECT count(Job.JobId)     
+    (SELECT count(Job.JobId)
       FROM Job
       WHERE Job.JobStatus IN ('E','e','f','A')
       $limit
-    )					      AS nb_err,
+    )                                         AS nb_err,
     (SELECT count(Client.ClientId) FROM Client) AS nb_client
 ";
 
@@ -1895,19 +1895,28 @@ sub display_media
     }
 
     my $query="
-SELECT Media.VolumeName AS volumename, 
-       Media.VolBytes   AS volbytes,
-       Media.VolStatus  AS volstatus,
-       Media.MediaType  AS mediatype,
-       Media.InChanger  AS online,
+SELECT Media.VolumeName  AS volumename, 
+       Media.VolBytes    AS volbytes,
+       Media.VolStatus   AS volstatus,
+       Media.MediaType   AS mediatype,
+       Media.InChanger   AS online,
        Media.LastWritten AS lastwritten,
        Location.Location AS location,
+       (volbytes*100/COALESCE(media_avg_size.size,-1))  AS volusage,
        Pool.Name         AS poolname,
        $self->{sql}->{FROM_UNIXTIME}(
           $self->{sql}->{UNIX_TIMESTAMP}(Media.LastWritten) 
         + $self->{sql}->{TO_SEC}(Media.VolRetention)
        ) AS expire
-FROM Pool, Media LEFT JOIN Location ON (Media.LocationId = Location.LocationId)
+FROM      Pool, Media 
+LEFT JOIN Location ON (Media.LocationId = Location.LocationId)
+LEFT JOIN (SELECT avg(Media.VolBytes) AS size,
+                  Media.MediaType     AS MediaType
+           FROM Media 
+          WHERE Media.VolStatus = 'Full' 
+          GROUP BY Media.MediaType
+           ) AS media_avg_size ON (Media.MediaType = media_avg_size.MediaType)
+
 WHERE Media.PoolId=Pool.PoolId
 $where
 ";
@@ -1963,6 +1972,8 @@ SELECT InChanger     AS online,
        Media.Recycle AS recycle,
        Media.VolRetention AS volretention,
        Media.LastWritten  AS lastwritten,
+       Media.VolReadTime/100000  AS volreadtime,
+       Media.VolWriteTime/100000  AS volwritetime,
        $self->{sql}->{FROM_UNIXTIME}(
           $self->{sql}->{UNIX_TIMESTAMP}(Media.LastWritten) 
         + $self->{sql}->{TO_SEC}(Media.VolRetention)
@@ -1979,6 +1990,8 @@ SELECT InChanger     AS online,
 	$media->{nb_bytes} = human_size($media->{nb_bytes}) ;
 	$media->{voluseduration} = human_sec($media->{voluseduration});
 	$media->{volretention} = human_sec($media->{volretention});
+	$media->{volreadtime}  = human_sec($media->{volreadtime});
+	$media->{volwritetime}  = human_sec($media->{volwritetime});
 	my $mq = $self->dbh_quote($media->{volumename});
 
 	$query = "
@@ -2126,6 +2139,25 @@ sub update_location
                      medias => [ values %$medias ],
 		   },
 		   "update_location.tpl");
+}
+
+sub get_media_max_size
+{
+    my ($self, $type) = @_;
+    my $query = 
+"SELECT avg(VolBytes) AS size
+  FROM Media 
+ WHERE Media.VolStatus = 'Full' 
+   AND Media.MediaType = '$type'
+";
+    
+    my $res = $self->selectrow_hashref($query);
+
+    if ($res) {
+	return $res->{size};
+    } else {
+	return 0;
+    }
 }
 
 sub do_update_media
@@ -2354,34 +2386,56 @@ sub display_pool
 # TODO : afficher les tailles et les dates
 
     my $query = "
-SELECT Pool.Name     AS name, 
-       Pool.Recycle  AS recycle,
-       Pool.VolRetention AS volretention,
+SELECT sum(subq.volmax)   AS volmax,
+       sum(subq.volnum)   AS volnum,
+       sum(subq.voltotal) AS voltotal,
+       Pool.Name          AS name,
+       Pool.Recycle       AS recycle,
+       Pool.VolRetention  AS volretention,
        Pool.VolUseDuration AS voluseduration,
-       Pool.MaxVolJobs AS maxvoljobs,
-       Pool.MaxVolFiles AS maxvolfiles,
-       Pool.MaxVolBytes AS maxvolbytes,
-       Pool.PoolId      AS poolid,
-      (SELECT count(Media.MediaId) 
-         FROM Media 
-        WHERE Media.PoolId = Pool.PoolId
-      ) AS volnum
- FROM Pool
-";	
+       Pool.MaxVolJobs    AS maxvoljobs,
+       Pool.MaxVolFiles   AS maxvolfiles,
+       Pool.MaxVolBytes   AS maxvolbytes,
+       subq.PoolId        AS PoolId
+FROM
+  (
+    SELECT COALESCE(media_avg_size.volavg,0) * count(Media.MediaId) AS volmax,
+           count(Media.MediaId)  AS volnum,
+           sum(Media.VolBytes)   AS voltotal,
+           Media.PoolId          AS PoolId,
+           Media.MediaType       AS MediaType
+    FROM Media
+    LEFT JOIN (SELECT avg(Media.VolBytes) AS volavg,
+                      Media.MediaType     AS MediaType
+               FROM Media 
+              WHERE Media.VolStatus = 'Full' 
+              GROUP BY Media.MediaType
+               ) AS media_avg_size ON (Media.MediaType = media_avg_size.MediaType)
+    GROUP BY Media.MediaType, Media.PoolId
+  ) AS subq 
+INNER JOIN Pool ON (Pool.PoolId = subq.PoolId) 
+GROUP BY subq.PoolId
+";
 
     my $all = $self->dbh_selectall_hashref($query, 'name') ;
+
     foreach my $p (values %$all) {
 	$p->{maxvolbytes}    = human_size($p->{maxvolbytes}) ;
 	$p->{volretention}   = human_sec($p->{volretention}) ;
 	$p->{voluseduration} = human_sec($p->{voluseduration}) ;
 
+	if ($p->{volmax}) {
+	    $p->{poolusage} = sprintf('%.2f', $p->{voltotal} * 100/ $p->{volmax}) ;
+	} else {
+	    $p->{poolusage} = 0;
+	}
+
 	$query = "
-  SELECT VolStatus AS volstatus, count(MediaId) AS nb 
+  SELECT VolStatus AS volstatus, count(MediaId) AS nb
     FROM Media 
    WHERE PoolId=$p->{poolid} 
 GROUP BY VolStatus
 ";
-
 	my $content = $self->dbh_selectall_hashref($query, 'volstatus');
 	foreach my $t (values %$content) {
 	    $p->{"nb_" . $t->{volstatus}} = $t->{nb} ;

@@ -3,7 +3,9 @@
   <h1 class='newstitle'> Media : <TMPL_VAR volumename></h1>
  </div>
  <div class='bodydiv'>
-    <b> Media Infos </b><br/>
+    <b> Media Infos</b><br/>
+    <table id='id_info_<TMPL_VAR volumename>'></table>
+    <b> Media Stats</b><br/>
     <table id='id_media_<TMPL_VAR volumename>'></table>
     <b> Job List </b></br>
     <table id='id_jobs_<TMPL_VAR volumename>'></table>
@@ -25,9 +27,8 @@
 
 <script language="JavaScript">
 
-var header = new Array("Pool","Online","Location","Vol Status",
-                       "Vol Bytes", "Vol Mounts", "Expire",
-	               "Errors", "Retention", "Max use duration", "Max jobs");
+var header = new Array("Pool","Online","Location","Vol Status", "Vol Bytes", "Expire",
+	               "Retention","Max use duration", "Max jobs" );
 
 var data = new Array();
 var img;
@@ -41,12 +42,39 @@ img,
 "<TMPL_VAR location>",
 "<TMPL_VAR volstatus>",
 "<TMPL_VAR nb_bytes>",
-"<TMPL_VAR nb_mounts>",
 "<TMPL_VAR expire>",
-"<TMPL_VAR nb_errors>",
 "<TMPL_VAR volretention>",
 "<TMPL_VAR voluseduration>",
 "<TMPL_VAR maxvoljobs>"
+ )
+);
+
+nrsTable.setup(
+{
+ table_name:     "id_info_<TMPL_VAR volumename>",
+ table_header: header,
+ up_icon: up_icon,
+ down_icon: down_icon,
+ prev_icon: prev_icon,
+ next_icon: next_icon,
+ rew_icon:  rew_icon,
+ fwd_icon:  fwd_icon,
+ table_data: data,
+ header_color: header_color,
+ padding: 3,
+ disable_sorting: new Array(1)
+}
+);
+
+var header = new Array( "Vol Mounts", "Read time", "Write time", "Read Bytes", "Write Bytes", "Errors");
+
+var data = new Array();
+data.push( new Array(
+"<TMPL_VAR nb_mounts>",
+"<TMPL_VAR volreadtime>",
+"<TMPL_VAR volwritetime>",
+"N/A","N/A",
+"<TMPL_VAR nb_errors>"
  )
 );
 
@@ -62,10 +90,11 @@ nrsTable.setup(
  fwd_icon:  fwd_icon,
  table_data: data,
  header_color: header_color,
- padding: 3,
- disable_sorting: new Array(0,1,2,3,4,5)
+// disable_sorting: new Array()
+ padding: 3
 }
 );
+
 
 var header = new Array("JobId","Name","Start Time","Type",
 	               "Level", "Files", "Bytes", "Status");

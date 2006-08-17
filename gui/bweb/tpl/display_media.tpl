@@ -34,15 +34,18 @@ Location : <TMPL_VAR location>
 
 <script language="JavaScript">
 
-var header = new Array("Volume Name","Online","Vol Bytes","Vol Status",
+var header = new Array("Volume Name","Online","Vol Bytes", "Vol Usage", "Vol Status",
 		       "Pool", "Media Type",
 		       "Last Written", "When expire ?", "Select");
 
 var data = new Array();
 var img;
 var chkbox;
+var d;
 
 <TMPL_LOOP Medias>
+d = percent_usage(<TMPL_VAR volusage>);
+
 img = document.createElement('IMG');
 img.src = '/bweb/inflag<TMPL_VAR online>.png';
 
@@ -55,6 +58,7 @@ data.push( new Array(
 "<TMPL_VAR volumename>",
 img,
 "<TMPL_VAR volbytes>",
+d,
 "<TMPL_VAR volstatus>",
 "<TMPL_VAR poolname>",
 "<TMPL_VAR mediatype>",

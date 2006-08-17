@@ -74,10 +74,17 @@ function percent_get_img(type)
    return img;
 }
 
-function percent_display(parent, hash_values)
+var percent_display_nb_slice = 20;
+var percent_usage_nb_slice = 5;
+
+function percent_display(hash_values, parent)
 {
-   var nb_elt=20;
+   var nb_elt=percent_display_nb_slice;
    var tips= "";
+
+   if (!parent) {
+      parent = document.createElement('DIV');
+   }
 
    if (typeof parent != "object") {
       parent = document.getElementById(parent);
@@ -122,4 +129,53 @@ function percent_display(parent, hash_values)
 
   parent.title = tips;
 
+  return parent;
 }
+
+function percent_usage(value, parent)
+{
+   var nb_elt=percent_usage_nb_slice;
+   var type;
+  
+   if (!parent) {
+      parent = document.createElement('DIV');
+   }   
+
+   if (typeof parent != "object") {
+      parent = document.getElementById(parent);
+   } 
+
+   if (!parent) {
+       alert("E : display_percent(): Can't find parent " + parent);
+       return;
+   }
+
+   if (value <= 0) {
+      type = "Empty";
+      value = 0;      
+   } else if (value <= 40) {
+      type = "Ok";
+   } else if (value <= 75) {
+      type = "Warn";
+   } else if (value <= 85) {
+      type = "Crit";
+   } else {
+      type = "Crit";
+   }
+
+   var nb = parseInt(value*nb_elt/100, 10);
+   parent.title = parseInt(value*100,10)/100 + "% used (approximate)";
+
+   for(var i=0; i<nb; i++) {
+      var img= percent_get_img(type);
+      parent.appendChild(img);
+   }
+
+   for(nb;nb < nb_elt;nb++) {
+      var img= percent_get_img("Empty");
+      parent.appendChild(img);       
+   } 
+
+   return parent;
+}
+
