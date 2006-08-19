@@ -291,7 +291,7 @@ static bool create_temp_tables(UAContext *ua)
 
 
 /*
- * Purging Jobs is a bit more complicated than purging Files
+ * Pruning Jobs is a bit more complicated than purging Files
  * because we delete Job records only if there is a more current
  * backup of the FileSet. Otherwise, we keep the Job record.
  * In other words, we never delete the only Job record that
@@ -386,6 +386,9 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
       break;
    case JT_ADMIN:
       Mmsg(query, select_admin_del, ed1, ed1, ed2);
+      break;
+   case JT_MIGRATE:
+      Mmsg(query, select_migrate_del, ed1, ed1, ed2);
       break;
    }
    if (!db_sql_query(ua->db, query, job_delete_handler, (void *)&del)) {

@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     16 August 2006
+                     19 August 2006
 
 Major development:      
 Project                     Developer
@@ -46,7 +46,6 @@ For 1.39:
   daemon it was trying to connect to.
 - Try turning on disk seek code.
 - Possibly turn on St. Bernard code.
-- Fix bscan to report the JobType when restoring a job.
 - Fix bextract to restore ACLs, or better yet, use common
   routines.
 - Do we migrate appendable Volumes?
@@ -1648,4 +1647,5 @@ Block Position: 0
 - Update dbcheck to include Log table
 - Update llist to include new fields.
 - Make unmount unload autochanger.  Make mount load slot.
+- Fix bscan to report the JobType when restoring a job.
 

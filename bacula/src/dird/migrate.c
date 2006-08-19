@@ -49,6 +49,7 @@ static bool find_mediaid_then_jobids(JCR *jcr, idpkt *ids, const char *query1,
                  const char *type);
 static bool find_jobids_from_mediaid_list(JCR *jcr, idpkt *ids, const char *type);
 static void start_migration_job(JCR *jcr);
+static int get_next_dbid_from_list(char **p, DBId_t *DBId);
 
 /* 
  * Called here before the job is run to do the job
@@ -56,7 +57,7 @@ static void start_migration_job(JCR *jcr);
  */
 bool do_migration_init(JCR *jcr)
 {
-   /* If we find a job to migrate it is previous_jr.JobId */
+   /* If we find a job or jobs to migrate it is previous_jr.JobId */
    if (!get_job_to_migrate(jcr)) {
       return false;
    }
@@ -409,26 +410,53 @@ const char *sql_jobids_from_mediaid =
    " WHERE JobMedia.JobId=Job.JobId AND JobMedia.MediaId=%s"
    " ORDER by Job.StartTime";
 
+/* Get tne number of bytes in the pool */
 const char *sql_pool_bytes =
    "SELECT SUM(VolBytes) FROM Media,Pool WHERE"
    " VolStatus in ('Full','Used','Error','Append') AND Media.Enabled=1 AND"
    " Media.PoolId=Pool.PoolId AND Pool.Name='%s'";
 
-const char *sql_vol_bytes =
+/* Get tne number of bytes in the Jobs */
+const char *sql_job_bytes =
+   "SELECT SUM(JobBytes) FROM Job WHERE JobId IN (%s)";
+
+
+/* Get Media Ids in Pool */
+const char *sql_mediaids =
    "SELECT MediaId FROM Media,Pool WHERE"
    " VolStatus in ('Full','Used','Error') AND Media.Enabled=1 AND"
-   " Media.PoolId=Pool.PoolId AND Pool.Name='%s' AND"
-   " VolBytes<%s ORDER BY LastWritten ASC LIMIT 1";
+   " Media.PoolId=Pool.PoolId AND Pool.Name='%s' ORDER BY LastWritten ASC";
 
+/* Get JobIds in Pool longer than specified time */
+const char *sql_pool_time = 
+   "SELECT DISTINCT Job.JobId from Pool,Job,Media,JobMedia WHERE"
+   " Pool.Name='%s' AND Media.PoolId=Pool.PoolId AND"
+   " VolStatus in ('Full','Used','Error') AND Media.Enabled=1 AND"
+   " JobMedia.JobId=Job.JobId AND Job.PoolId=Media.PoolId"
+   " AND Job.RealEndTime<='%s'";
 
-const char *sql_ujobid =
-   "SELECT DISTINCT Job.Job from Client,Pool,Media,Job,JobMedia "
-   " WHERE Media.PoolId=Pool.PoolId AND Pool.Name='%s' AND"
-   " JobMedia.JobId=Job.JobId AND Job.PoolId=Media.PoolId";
+/*
+* const char *sql_ujobid =
+*   "SELECT DISTINCT Job.Job from Client,Pool,Media,Job,JobMedia "
+*   " WHERE Media.PoolId=Pool.PoolId AND Pool.Name='%s' AND"
+*   " JobMedia.JobId=Job.JobId AND Job.PoolId=Media.PoolId";
+*/
 
 
 
 /*
+ *
+ * This is the central piece of code that finds a job or jobs 
+ *   actually JobIds to migrate.  It first looks to see if one
+ *   has been "manually" specified in jcr->MigrateJobId, and if
+ *   so, it returns that JobId to be run.  Otherwise, it
+ *   examines the Selection Type to see what kind of migration
+ *   we are doing (Volume, Job, Client, ...) and applies any
+ *   Selection Pattern if appropriate to obtain a list of JobIds.
+ *   Finally, it will loop over all the JobIds found, except the last
+ *   one starting a new job with MigrationJobId set to that JobId, and
+ *   finally, it returns the last JobId to the caller.
+ *
  * Returns: false on error
  *          true  if OK and jcr->previous_jr filled in
  */
@@ -437,14 +465,27 @@ static bool get_job_to_migrate(JCR *jcr)
    char ed1[30];
    POOL_MEM query(PM_MESSAGE);
    JobId_t JobId;
+   DBId_t  MediaId = 0;
    int stat;
    char *p;
-   idpkt ids;
+   idpkt ids, mid, jids;
+   db_int64_ctx ctx;
+   int64_t pool_bytes;
+   bool ok;
+   time_t ttime;
+   struct tm tm;
+   char dt[MAX_TIME_LENGTH];
 
    ids.list = get_pool_memory(PM_MESSAGE);
-   Dmsg1(dbglevel, "list=%p\n", ids.list);
    ids.list[0] = 0;
    ids.count = 0;
+   mid.list = get_pool_memory(PM_MESSAGE);
+   mid.list[0] = 0;
+   mid.count = 0;
+   jids.list = get_pool_memory(PM_MESSAGE);
+   jids.list[0] = 0;
+   jids.count = 0;
+
 
    /*
     * If MigrateJobId is set, then we migrate only that Job,
@@ -496,11 +537,9 @@ static bool get_job_to_migrate(JCR *jcr)
          }
          break;
 
-/***** Below not implemented yet *********/
       case MT_POOL_OCCUPANCY:
-         db_int64_ctx ctx;
-
          ctx.count = 0;
+         /* Find count of bytes in pool */
          Mmsg(query, sql_pool_bytes, jcr->pool->hdr.name);
          if (!db_sql_query(jcr->db, query.c_str(), db_int64_handler, (void *)&ctx)) {
             Jmsg(jcr, M_FATAL, 0, _("SQL failed. ERR=%s\n"), db_strerror(jcr->db));
@@ -508,17 +547,98 @@ static bool get_job_to_migrate(JCR *jcr)
          }
          if (ctx.count == 0) {
             Jmsg(jcr, M_INFO, 0, _("No Volumes found to migrate.\n"));
+            goto ok_out;
+         }
+         pool_bytes = ctx.value;
+         Dmsg2(dbglevel, "highbytes=%d pool=%d\n", (int)jcr->pool->MigrationHighBytes,
+               (int)pool_bytes);
+         if (pool_bytes < (int64_t)jcr->pool->MigrationHighBytes) {
+            Jmsg(jcr, M_INFO, 0, _("No Volumes found to migrate.\n"));
+            goto ok_out;
+         }
+         Dmsg0(dbglevel, "We should do Occupation migration.\n");
+
+         ids.count = 0;
+         /* Find a list of MediaIds that could be migrated */
+         Mmsg(query, sql_mediaids, jcr->pool->hdr.name);
+//       Dmsg1(dbglevel, "query=%s\n", query.c_str());
+         if (!db_sql_query(jcr->db, query.c_str(), dbid_handler, (void *)&ids)) {
+            Jmsg(jcr, M_FATAL, 0, _("SQL failed. ERR=%s\n"), db_strerror(jcr->db));
             goto bail_out;
          }
-         if (ctx.value > (int64_t)jcr->pool->MigrationHighBytes) {
-            Dmsg2(dbglevel, "highbytes=%d pool=%d\n", (int)jcr->pool->MigrationHighBytes,
-               (int)ctx.value);
+         if (ids.count == 0) {
+            Jmsg(jcr, M_INFO, 0, _("No Volumes found to migrate.\n"));
+            goto ok_out;
          }
-         goto bail_out;
+         Dmsg2(dbglevel, "Pool Occupancy ids=%d MediaIds=%s\n", ids.count, ids.list);
+
+         /*
+          * Now loop over MediaIds getting more JobIds to migrate until
+          *  we reduce the pool occupancy below the low water mark.
+          */
+         p = ids.list;
+         for (int i=0; i < (int)ids.count; i++) {
+            stat = get_next_dbid_from_list(&p, &MediaId);
+            Dmsg2(dbglevel, "get_next_dbid stat=%d MediaId=%u\n", stat, MediaId);
+            if (stat < 0) {
+               Jmsg(jcr, M_FATAL, 0, _("Invalid MediaId found.\n"));
+               goto bail_out;
+            } else if (stat == 0) {
+               break;
+            }
+            mid.count = 1;
+            Mmsg(mid.list, "%s", edit_int64(MediaId, ed1));
+            ok = find_jobids_from_mediaid_list(jcr, &mid, "Volumes");
+            if (!ok) {
+               continue;
+            }
+            if (i != 0) {
+               pm_strcat(jids.list, ",");
+            }
+            pm_strcat(jids.list, mid.list);
+            jids.count += mid.count;
+
+            /* Now get the count of bytes added */
+            ctx.count = 0;
+            /* Find count of bytes from Jobs */
+            Mmsg(query, sql_job_bytes, mid.list);
+            if (!db_sql_query(jcr->db, query.c_str(), db_int64_handler, (void *)&ctx)) {
+               Jmsg(jcr, M_FATAL, 0, _("SQL failed. ERR=%s\n"), db_strerror(jcr->db));
+               goto bail_out;
+            }
+            pool_bytes -= ctx.value;
+            Dmsg1(dbglevel, "Job bytes=%d\n", (int)ctx.value);
+            Dmsg2(dbglevel, "lowbytes=%d pool=%d\n", (int)jcr->pool->MigrationLowBytes,
+                  (int)pool_bytes);
+            if (pool_bytes <= (int64_t)jcr->pool->MigrationLowBytes) {
+               Dmsg0(dbglevel, "We should be done.\n");
+               break;
+            }
+
+         }
+         Dmsg2(dbglevel, "Pool Occupancy ids=%d JobIds=%s\n", jids.count, jids.list);
+
          break;
+
       case MT_POOL_TIME:
-         Dmsg0(dbglevel, "Pool time not implemented\n");
+         ttime = time(NULL) - (time_t)jcr->pool->MigrationTime;
+         (void)localtime_r(&ttime, &tm);
+         strftime(dt, sizeof(dt), "%Y-%m-%d %H:%M:%S", &tm);
+
+         ids.count = 0;
+         Mmsg(query, sql_pool_time, jcr->pool->hdr.name, dt);
+//       Dmsg1(000, "query=%s\n", query.c_str());
+         if (!db_sql_query(jcr->db, query.c_str(), dbid_handler, (void *)&ids)) {
+            Jmsg(jcr, M_FATAL, 0, _("SQL failed. ERR=%s\n"), db_strerror(jcr->db));
+            goto bail_out;
+         }
+         if (ids.count == 0) {
+            Jmsg(jcr, M_INFO, 0, _("No Volumes found to migrate.\n"));
+            goto ok_out;
+         }
+         Dmsg2(dbglevel, "PoolTime ids=%d JobIds=%s\n", ids.count, ids.list);
          break;
+
       default:
          Jmsg(jcr, M_FATAL, 0, _("Unknown Migration Selection Type.\n"));
          goto bail_out;
@@ -572,10 +692,14 @@ static bool get_job_to_migrate(JCR *jcr)
 
 ok_out:
    free_pool_memory(ids.list);
+   free_pool_memory(mid.list);
+   free_pool_memory(jids.list);
    return true;
 
 bail_out:
    free_pool_memory(ids.list);
+   free_pool_memory(mid.list);
+   free_pool_memory(jids.list);
    return false;
 }
 
@@ -919,4 +1043,38 @@ void migration_cleanup(JCR *jcr, int TermCode)
       jcr->mig_jcr = NULL;
    }
    Dmsg0(100, "Leave migrate_cleanup()\n");
+}
+
+/* 
+ * Return next DBId from comma separated list   
+ *
+ * Returns:
+ *   1 if next DBId returned
+ *   0 if no more DBIds are in list
+ *  -1 there is an error
+ */
+static int get_next_dbid_from_list(char **p, DBId_t *DBId)
+{
+   char id[30];
+   char *q = *p;
+
+   id[0] = 0;
+   for (int i=0; i<(int)sizeof(id); i++) {
+      if (*q == 0) {
+         break;
+      } else if (*q == ',') {
+         q++;
+         break;
+      }
+      id[i] = *q++;
+      id[i+1] = 0;
+   }
+   if (id[0] == 0) {
+      return 0;
+   } else if (!is_a_number(id)) {
+      return -1;                      /* error */
+   }
+   *p = q;
+   *DBId = str_to_int64(id);
+   return 1;
 }

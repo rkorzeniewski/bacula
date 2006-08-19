@@ -172,26 +172,18 @@ A Lot of New features for 1.39.18:
 - Fixes to reloading the Dir conf file from Eric Bollengier and Christopher
   Hull.
 - Modify LICENSE to correct some problems pointed out by Debian.
- Implement patch submitted by cesarb in bug #606 to implement O_NOATIME
-  support.
+- Apply a patch submitted by cesarb in bug #606 to implement O_NOATIME support.
     O_NOATIME is a open() flag which makes it possible to read a file without
     updating the inode atime (and also without the inode ctime update which
     happens if you try to set the atime back to its previous value). It also
     prevents a race condition when two programs are reading the same file, but
     only one does not want to change the atime. It's most useful for backup
     programs and file integrity checkers (and bacula can fit on both
-    categories).
-
-    Recent versions of the Linux kernel and glibc have support for it (the
-    glibc support being mostly copying the O_NOATIME definition to
-    bits/fcntl.h). If there's no support for it on the kernel, trying to use
-    it does nothing (since the kernel ignores unknown flags).
-
-    If the kernel has support for it, trying to use it either works, fails
-    silently (mostly in remote filesystems), or returns errno=EPERM (if you
-    are not either the owner of the file or root). A simple way to prevent the
-    failure is to open the file without the flag and set it later with
-    fcntl(F_SETFL), ignoring any EPERM errors.
+    categories).                                                    
+  You enable it in the Bacula FileSet Options resource by setting:
+     noatime = yes
+  The effect of this option is similar to the keepatime option except
+  it is more efficient and avoids modifying ctime.
 - Implement a pile of new man pages contributed by Jose Tallon.
 - Implement a number of user supplied patches for DVD writing.
 - Modify the database format for handling Migration jobs:
