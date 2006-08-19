@@ -41,7 +41,7 @@ Job {
 }
 
 Job {
-  Name = "migrate"
+  Name = "migrate-job"
   Type = Migrate
   Level = Full
   Client=@hostname@-fd 
@@ -69,6 +69,36 @@ Job {
   Selection Type = Volume
   Selection Pattern = "File*"
 }
+
+Job {
+  Name = "migrate-occupancy"
+  Type = Migrate
+  Level = Full
+  Client=@hostname@-fd 
+  FileSet="Full Set"
+  Messages = Standard
+  Storage = DiskChanger
+  Write Bootstrap = "@working_dir@/migratejob.bsr"
+  Pool = Default
+  Maximum Concurrent Jobs = 4
+  Selection Type = PoolOccupancy
+}
+
+Job {
+  Name = "migrate-time"
+  Type = Migrate
+  Level = Full
+  Client=@hostname@-fd 
+  FileSet="Full Set"
+  Messages = Standard
+  Storage = DiskChanger
+  Write Bootstrap = "@working_dir@/migratejob.bsr"
+  Pool = Default
+  Maximum Concurrent Jobs = 4
+  Selection Type = PoolTime
+}
+
+
 
 
 # Standard Restore template, to be changed by Console program
@@ -184,6 +214,9 @@ Pool {
   Volume Retention = 365d             # one year
   NextPool = Full
   Storage = File
+  Migration High Bytes = 40M
+  Migration Low Bytes = 20M
+  Migration Time = 60
 }
 
 Pool {

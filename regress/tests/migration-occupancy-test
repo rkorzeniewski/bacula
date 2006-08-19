@@ -5,7 +5,7 @@
 #
 # This script uses the virtual disk autochanger
 #
-TestName="migration-job-test"
+TestName="migration-occupancy-test"
 JobName=MigrationJobSave
 . scripts/functions
 set_debug 0
@@ -39,9 +39,10 @@ list volumes
 run job=$JobName yes
 run job=$JobName yes
 wait
+update volume=FileVolume001 VolStatus=Used
 list volumes
 @# should migrate two jobs
-run job=migrate-job yes
+run job=migrate-occupancy yes
 list volumes
 wait
 messages
