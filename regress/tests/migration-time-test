@@ -5,10 +5,10 @@
 #
 # This script uses the virtual disk autochanger
 #
-TestName="migration-test"
-JobName=MigrationSave
+TestName="migration-time-test"
+JobName=MigrationJobSave
 . scripts/functions
-set_debug 1
+set_debug 0
 
 . config.out
 
@@ -21,22 +21,38 @@ change_jobname NightlySave $JobName
 start_test
 
 #
-# Note, we first backup into Pool Default, then Migrate into
-#  Pool Full.  Pool Default uses Storage=File
+# Note, we first backup into Pool Default, 
+#          then Migrate into Pool Full. 
+#              Pool Default uses Storage=File
 #              Pool Full    uses Storage=DiskChanger
 
 # Write out bconsole commands
 cat <<END_OF_DATA >tmp/bconcmds
-@$out /dev/null
+@output
 messages
 @$out tmp/log1.out
 label storage=File volume=FileVolume001 Pool=Default
 label storage=DiskChanger volume=ChangerVolume001 slot=1 Pool=Full drive=0
 label storage=DiskChanger volume=ChangerVolume002 slot=2 Pool=Full drive=0
 list volumes
-run job=$JobName yes
+@# run three jobs
+run job=$JobName level=Full yes
+run job=$JobName level=Full yes
+run job=$JobName level=Full yes
+wait
+update volume=FileVolume001 VolStatus=Used
+sql
+update Job SET RealEndTime='2004-01-01 12:01:01' WHERE JobId IN (2,3);
+
+llist jobid=2,3
+list jobs
 list volumes
-run job=migrate
+@# should migrate only jobid=2 and 3
+run job=migrate-time yes
+wait
+messages
+wait
+list jobs
 list volumes
 @# 
 @# now do a restore
