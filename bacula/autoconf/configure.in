@@ -613,26 +613,26 @@ AC_ARG_WITH(python,
 	  if test -f $python_root/include/python2.2/Python.h; then
 	     PYTHON_INCDIR=-I$python_root/include/python2.2
 	     if test -d $python_root/lib64/python2.2/config; then
-	        PYTHON_LIBS="-L$python_root/lib64/python2.2/config -lpython2.2"
-             else
-	        PYTHON_LIBS="-L$python_root/lib/python2.2/config -lpython2.2"
-             fi
+		PYTHON_LIBS="-L$python_root/lib64/python2.2/config -lpython2.2"
+	     else
+		PYTHON_LIBS="-L$python_root/lib/python2.2/config -lpython2.2"
+	     fi
 	     break
 	  elif test -f $python_root/include/python2.3/Python.h; then
 	     PYTHON_INCDIR=-I$python_root/include/python2.3
 	     if test -d $python_root/lib64/python2.3/config; then
-	        PYTHON_LIBS="-L$python_root/lib64/python2.3/config -lpython2.3"
-             else
-	        PYTHON_LIBS="-L$python_root/lib/python2.3/config -lpython2.3"
-             fi
+		PYTHON_LIBS="-L$python_root/lib64/python2.3/config -lpython2.3"
+	     else
+		PYTHON_LIBS="-L$python_root/lib/python2.3/config -lpython2.3"
+	     fi
 	     break
 	  elif test -f $python_root/include/python2.4/Python.h; then
 	     PYTHON_INCDIR=-I$python_root/include/python2.4
 	     if test -d $python_root/lib64/python2.4/config; then
-	        PYTHON_LIBS="-L$python_root/lib64/python2.4/config -lpython2.4"
-             else
-	        PYTHON_LIBS="-L$python_root/lib/python2.4/config -lpython2.4"
-             fi
+		PYTHON_LIBS="-L$python_root/lib64/python2.4/config -lpython2.4"
+	     else
+		PYTHON_LIBS="-L$python_root/lib/python2.4/config -lpython2.4"
+	     fi
 	     break
 	  fi
 	done
@@ -640,10 +640,10 @@ AC_ARG_WITH(python,
 	  if test -f $prefix/include/Python.h; then
 	     PYTHON_INCDIR=-I$prefix/include
 	     if test -d $prefix/lib64/config; then
-	        PYTHON_LIBS="-L$prefix/lib64/config -lpython"
-             else
-	        PYTHON_LIBS="-L$prefix/lib/config -lpython"
-             fi
+		PYTHON_LIBS="-L$prefix/lib64/config -lpython"
+	     else
+		PYTHON_LIBS="-L$prefix/lib/config -lpython"
+	     fi
 	  else
 	   AC_MSG_RESULT(no)
 	   AC_MSG_ERROR(Unable to find Python.h in standard locations)
@@ -1762,8 +1762,8 @@ freebsd)
 	DISTVER=`uname -a |awk '{print $3}'`
 	VER=`echo $DISTVER | cut -c 1`
 	if test x$VER = x4 ; then
-	   PTHREAD_LIB="${PTHREAD_LIBS}"
-	   CFLAGS="${CFLAGS} ${PTHREAD_CFLAGS}"
+	   PTHREAD_LIB="${PTHREAD_LIBS:--pthread}"
+	   CFLAGS="${CFLAGS} ${PTHREAD_CFLAGS:--pthread}"
 	fi
 	lld="qd"
 	llu="qu"

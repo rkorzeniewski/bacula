@@ -101,7 +101,8 @@ const char *insert_delcand =
    "AND JobTDate<%s "
    "AND ClientId=%s";
 
-/* Select Jobs from the DelCandidates table that have a
+/*
+ * Select Jobs from the DelCandidates table that have a
  * more recent backup -- i.e. are not the only backup.
  * This is the list of Jobs to delete for a Backup Job.
  * At the same time, we select "orphanned" jobs
@@ -114,7 +115,7 @@ const char *select_backup_del =
    "(DelCandidates.JobStatus!='T'))) OR "
    "(Job.JobTDate>%s "
    "AND Job.ClientId=%s "
-   "AND Job.Level='F' AND Job.JobStatus='T' AND Job.Type='B' "
+   "AND Job.Level='F' AND Job.JobStatus='T' AND Job.Type IN ('B','M') "
    "AND Job.FileSetId=DelCandidates.FileSetId)";
 
 /* Select Jobs from the DelCandidates table that have a
@@ -153,6 +154,17 @@ const char *select_admin_del =
    "AND Job.ClientId=%s "
    "AND Job.Type='D')";
 
+/*
+ * Select Jobs from the DelCandidates table.
+ * This is the list of Jobs to delete for an Migrate Job.
+ */
+const char *select_migrate_del =
+   "SELECT DISTINCT DelCandidates.JobId,DelCandidates.PurgedFiles "
+   "FROM Job,DelCandidates "
+   "WHERE (Job.JobTdate<%s AND DelCandidates.JobStatus!='T') OR "
+   "(Job.JobTDate>%s "
+   "AND Job.ClientId=%s "
+   "AND Job.Type='g')";
 
 /* ======= ua_restore.c */
 const char *uar_count_files =

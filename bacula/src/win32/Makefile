@@ -18,10 +18,12 @@ clean: $(DIRS)
 	$(ECHO_CMD)-rm -rf release
 
 $(DIRS):
-	@if $(MAKE) -C $@ $(MAKECMDGOALS); then \
+	@if test -f Makefile.inc; then \
+	   if $(MAKE) -C $@ $(MAKECMDGOALS); then \
 		echo -e "\n===== Make of $@ succeeded =====\n\n" ; \
-	else \
+	   else  \
 		echo -e "\n!!!!! Make of $@ failed !!!!!\n\n" ; \
+	   fi ; \
 	fi
 
 Makefile.inc: Makefile.inc.in

@@ -1,6 +1,12 @@
               Technical notes on version 1.39  
 
 General:
+19Aug06
+kes  Apply Maritn's fix to src/win32/Makefile.
+kes  Apply Martin's fix to configure.in for pthreads on FreeBSD 4.x
+kes  Implement pruning for Migration and migrated jobs.
+kes  Implement PoolOccupancy migration.
+kes  Implement PoolTime migration.
 16Aug06
 kes  If doing a mount, look for a slot, and if specified pass it to
      the SD so that it can load the autochanger.
