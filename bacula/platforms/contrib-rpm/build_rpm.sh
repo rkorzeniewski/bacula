@@ -2,7 +2,7 @@
 
 # shell script to build bacula rpm release
 # copy this script into a working directory with the src rpm to build and execute
-# 06 Aug 2006 D. Scott Barninger
+# 19 Aug 2006 D. Scott Barninger
 
 # Copyright (C) 2006 Kern Sibbald
 # licensed under GPL-v2
@@ -67,6 +67,11 @@ SIGN=1
 # only one updatedb package is required per release so normally this should be 0
 # for all contrib packagers
 SAVEUPDATEDB=0
+
+# to override your language shell variable uncomment and edit this
+# export LANG=en_US.UTF-8
+
+# Make no changes below this point without consensus
 
 ############################################################################################
 
@@ -154,6 +159,7 @@ ls
 # 16 Jul 2006 initial release
 # 05 Aug 2006 add python support
 # 06 Aug 2006 add remote source directory, add switch for signing, refine file names
+# 19 Aug 2006 add $LANG override to config section per request Felix Schwartz
 
 
 
