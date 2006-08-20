@@ -38,7 +38,7 @@
 #define usrbrk() 0
 #endif
 
-#ifdef HAVE_WIN32
+#if defined(HAVE_WIN32)
 #define isatty(fd) (fd==0)
 #endif
 
@@ -70,6 +70,7 @@ static DIRRES *dir;
 static FILE *output = stdout;
 static bool teeout = false;               /* output to output and stdout */
 static bool stop = false;
+static bool no_conio = false;
 static int argc;
 static int numdir;
 static POOLMEM *args;
@@ -97,6 +98,7 @@ static void usage()
 "Usage: bconsole [-s] [-c config_file] [-d debug_level]\n"
 "       -c <file>   set configuration file to file\n"
 "       -dnn        set debug level to nn\n"
+"       -n          no conio\n"
 "       -s          no signals\n"
 "       -t          test - read configuration and exit\n"
 "       -?          print this message.\n"
@@ -335,9 +337,8 @@ int main(int argc, char *argv[])
    init_msg(NULL, NULL);
    working_directory = "/tmp";
    args = get_pool_memory(PM_FNAME);
-   con_init(stdin);
 
-   while ((ch = getopt(argc, argv, "bc:d:r:st?")) != -1) {
+   while ((ch = getopt(argc, argv, "bc:d:nst?")) != -1) {
       switch (ch) {
       case 'c':                    /* configuration file */
          if (configfile != NULL) {
@@ -353,6 +354,10 @@ int main(int argc, char *argv[])
          }
          break;
 
+      case 'n':                    /* no conio */
+         no_conio = true;
+         break;
+
       case 's':                    /* turn off signals */
          no_signals = true;
          break;
@@ -364,7 +369,6 @@ int main(int argc, char *argv[])
       case '?':
       default:
          usage();
-         con_term();
          exit(1);
       }
    }
@@ -390,7 +394,6 @@ int main(int argc, char *argv[])
 
    if (argc) {
       usage();
-      con_term();
       exit(1);
    }
 
@@ -406,6 +409,10 @@ int main(int argc, char *argv[])
 
    if (!check_resources()) {
       Emsg1(M_ERROR_TERM, 0, _("Please correct configuration file: %s\n"), configfile);
+   }
+
+   if (!no_conio) {
+      con_init(stdin);
    }
 
    if (test_config) {
@@ -555,7 +562,9 @@ static void terminate_console(int sig)
    already_here = true;
    cleanup_crypto();
    free_pool_memory(args);
-   con_term();
+   if (!no_conio) {
+      con_term();
+   }
    (void)WSACleanup();               /* Cleanup Windows sockets */
    if (sig != 0) {
       exit(1);
@@ -661,6 +670,14 @@ get_cmd(FILE *input, const char *prompt, BSOCK *sock, int sec)
 
 #else /* no readline, do it ourselves */
 
+static bool bisatty(int fd)
+{
+   if (no_conio) {
+      return false;
+   }
+   return isatty(fd);
+}
+
 /*
  *   Returns: 1 if data available
  *            0 if timeout
@@ -669,11 +686,11 @@ get_cmd(FILE *input, const char *prompt, BSOCK *sock, int sec)
 static int
 wait_for_data(int fd, int sec)
 {
+#if defined(HAVE_WIN32)
+   return 1;
+#else
    fd_set fdset;
    struct timeval tv;
-#ifdef HAVE_WIN32
-   return 1;                          /* select doesn't seem to work on Win32 */
-#endif
 
    tv.tv_sec = sec;
    tv.tv_usec = 0;
@@ -692,6 +709,7 @@ wait_for_data(int fd, int sec)
          return 1;
       }
    }
+#endif
 }
 
 /*
@@ -723,7 +741,7 @@ again:
          goto again;
       }
 #ifdef HAVE_CONIO
-      if (isatty(fileno(input))) {
+      if (bisatty(fileno(input))) {
          input_line(sock->msg, len);
          break;
       }
@@ -750,7 +768,7 @@ again:
    return 1;
 }
 
-#endif
+#endif /* end non-readline code */
 
 static int versioncmd(FILE *input, BSOCK *UA_sock)
 {
