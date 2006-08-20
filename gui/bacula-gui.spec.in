@@ -21,6 +21,8 @@ exit 1
 # source package names
 %define web bacula-web
 %define bimagemgr bimagemgr
+%define bweb bweb
+%define brestore brestore
 
 # set destination directories
 %define cgidir /var/www/cgi-bin
@@ -52,6 +54,8 @@ License: GPL v2
 Source0: %{web}-%{version}.tar.gz
 Source1: %{bimagemgr}-%{version}.tar.gz
 Source2: bacula-docs-%{version}.tar.gz
+Source3: %{bweb}-%{version}.tar.gz
+Source4: %{brestore}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-root
 URL: http://www.bacula.org/
 BuildArchitectures: noarch
@@ -104,11 +108,65 @@ administrator) to manage backup, recovery, and verification of computer
 data across a network of computers of different kinds. bacula-web is a 
 web server based utility to monitor your bacula server.
 
+%package libbweb
+Summary: Bacula - The Network Backup Solution
+Group: System Environment/Daemons
+
+Requires: perl, perl-DBI, perl-DBD-mysql, perl-DBD-Pg, perl-GDGraph
+Requires: perl-HTML-Template, perl-Time-modules
+
+%if %{suse}
+Requires: perl-CGI-Application
+%else
+Requires: perl-CGI
+%endif
+
+%description libbweb
+Bacula is a set of computer programs that permit you (or the system 
+administrator) to manage backup, recovery, and verification of computer 
+data across a network of computers of different kinds. libbweb is a set 
+of perl modules required by bacula-gui-bweb and bacula-gui-brestore utilities.
+
+%package brestore
+Summary: Bacula - The Network Backup Solution
+Group: System Environment/Daemons
+
+Requires: perl, perl-DBI, perl-DBD-mysql, perl-DBD-Pg, perl-Expect
+Requires: perl-Gtk2-GladeXML, bacula-gui-libbweb = %{version}
+
+%description brestore
+Bacula is a set of computer programs that permit you (or the system 
+administrator) to manage backup, recovery, and verification of computer 
+data across a network of computers of different kinds. brestore is a file 
+restoration interface.
+
+%package bweb
+Summary: Bacula - The Network Backup Solution
+Group: System Environment/Daemons
+
+Requires: perl, perl-DBI, perl-DBD-mysql, perl-DBD-Pg, perl-GDGraph
+Requires: perl-HTML-Template, perl-Time-modules, bacula-gui-libbweb
+Requires: bacula-server
+
+%if %{suse}
+Requires: perl-CGI-Application
+%else
+Requires: perl-CGI
+%endif
+
+%description bweb
+Bacula is a set of computer programs that permit you (or the system 
+administrator) to manage backup, recovery, and verification of computer 
+data across a network of computers of different kinds. bweb is a web based 
+interface for a bacula server.
+
 %prep
 
 # unpack both sources inside a directory with package name and version
 %setup -c %{name} -D -b 1
 %setup -c %{name} -T -D -b 2
+%setup -c %{name} -T -D -b 3
+%setup -c %{name} -T -D -b 4
 
 %build
 
@@ -120,6 +178,16 @@ rm -rf docs
 mkdir -p $RPM_BUILD_ROOT%{cgidir}
 mkdir -p $RPM_BUILD_ROOT%{docdir}/%{web}
 mkdir -p $RPM_BUILD_ROOT%{sysconfdir}
+mkdir -p $RPM_BUILD_ROOT%{perl_sitearch}
+mkdir -p $RPM_BUILD_ROOT/usr/bin
+mkdir -p $RPM_BUILD_ROOT/usr/share/brestore
+
+mkdir -p $RPM_BUILD_ROOT%{cgidir}/bweb
+chmod 755 $RPM_BUILD_ROOT%{cgidir}/bweb
+mkdir -p $RPM_BUILD_ROOT/etc/bweb
+chmod 750 $RPM_BUILD_ROOT/etc/bweb
+mkdir -p $RPM_BUILD_ROOT/usr/share/bweb/tpl
+mkdir -p $RPM_BUILD_ROOT%{docdir}/%{bweb}
 
 # install bimagemgr files
 cp -p %{bimagemgr}-%{version}/bimagemgr.pl $RPM_BUILD_ROOT%{cgidir}/
@@ -143,6 +211,29 @@ cp -p %{web}-%{version}/README $RPM_BUILD_ROOT%{sysconfdir}/README.bacula-web
 cp -r -p %{web}-%{version}/* $RPM_BUILD_ROOT%{docdir}/%{web}/
 
 chmod 644 $RPM_BUILD_ROOT%{sysconfdir}/README.bacula-web
+
+# install the libbweb files
+cp -p %{bweb}-%{version}/lib/*.pm $RPM_BUILD_ROOT%{perl_sitearch}/
+chmod 644 $RPM_BUILD_ROOT%{perl_site_arch}/*.pm
+
+# install the brestore files
+cp -p %{brestore}-%{version}/brestore.pl $RPM_BUILD_ROOT/usr/bin/
+cp -p %{brestore}-%{version}/brestore.glade $RPM_BUILD_ROOT/usr/share/brestore/
+chmod 755 $RPM_BUILD_ROOT/usr/bin/brestore.pl
+chmod 644 $RPM_BUILD_ROOT/usr/share/brestore/brestore.glade
+
+# install the bweb files
+cp -p %{bweb}-%{version}/cgi/*.pl $RPM_BUILD_ROOT%{cgidir}/bweb/
+chmod 755 $RPM_BUILD_ROOT%{cgidir}/bweb/*
+echo "template_dir = /usr/share/bweb/tpl" > $RPM_BUILD_ROOT/etc/bweb/config
+cp -p %{bweb}-%{version}/tpl/*.tpl $RPM_BUILD_ROOT/usr/share/bweb/tpl/
+chmod 644 $RPM_BUILD_ROOT/usr/share/bweb/tpl/*
+cp -p %{bweb}-%{version}/html/*.js $RPM_BUILD_ROOT%{docdir}/%{bweb}/
+cp -p %{bweb}-%{version}/html/*.png $RPM_BUILD_ROOT%{docdir}/%{bweb}/
+cp -p %{bweb}-%{version}/html/*.css $RPM_BUILD_ROOT%{docdir}/%{bweb}/
+cp -p %{bweb}-%{version}/html/*.gif $RPM_BUILD_ROOT%{docdir}/%{bweb}/
+chmod 644 $RPM_BUILD_ROOT%{docdir}/%{bweb}/*
+
 
 # remove the standard doc files from the install directory
 rm -f $RPM_BUILD_ROOT%{docdir}/%{web}/ChangeLog
@@ -206,6 +297,27 @@ rm -rf docs
 %{docdir}/%{web}/templates
 %{docdir}/%{web}/templates_c
 
+%files libbweb
+%defattr(-,root,root)
+%{perl_sitearch}/*.pm
+
+%files brestore
+%defattr(-,root,root)
+/usr/bin/brestore.pl
+/usr/share/brestore/brestore.glade
+
+%files bweb
+%defattr(-,%{binowner},%{bingroup})
+%{cgidir}/bweb/*.pl
+/usr/share/bweb/tpl/*.tpl
+%{docdir}/bweb/*
+
+%defattr(-,%{binowner},%{datagroup})
+%dir /etc/bweb
+
+%defattr(-,%{dataowner},%{datagroup})
+/etc/bweb/config
+
 %post bimagemgr
 
 # add the web server user to group bacula
@@ -216,6 +328,8 @@ rm -rf docs
 %{groupmod} -R %{dataowner} bacula
 
 %changelog
+* Sun Aug 20 2006 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- add libbweb, bweb and brestore packages
 * Sun May 14 2006 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - add bimagemgr manual
 * Sun May 07 2006 D. Scott Barninger <barninger at fairfieldcomputers.com>
