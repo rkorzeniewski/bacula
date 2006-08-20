@@ -33,6 +33,7 @@ Document:
 Priority:
 
 For 1.39:
+- Fix wx-console scanning problem with commas in names.
 - Change dbcheck to tell users to use native tools for fixing
   broken databases, and to ensure they have the proper indexes.
 - add udev rules for Bacula devices.
@@ -1648,4 +1649,3 @@ Block Position: 0
 - Update llist to include new fields.
 - Make unmount unload autochanger.  Make mount load slot.
 - Fix bscan to report the JobType when restoring a job.
-

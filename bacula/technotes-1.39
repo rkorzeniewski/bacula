@@ -2,6 +2,7 @@
 
 General:
 20Aug06
+kes  Add -n option to bconsole to turn off conio.
 kes  Print JobIds to be migrated in Job Report.
 kes  Add additional user supplied notes to the messages part of 
      bacula-dir.conf concerning multiple email addresses.
