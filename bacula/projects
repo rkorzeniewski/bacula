@@ -903,3 +903,97 @@ Item n:   Split documentation
 
   Notes:
 
+Item n: Include an option to operate on all pools when doing
+        update vol parameters
+
+   Origin: Dmitriy Pinchukov <absh@bossdev.kiev.ua>
+   Date:   16 August 2006
+   Status:
+
+   What: When I do update -> Volume parameters -> All Volumes
+         from Pool, then I have to select pools one by one.  I'd like
+         console to have an option like "0: All Pools" in the list of
+         defined pools.
+
+   Why: I have many pools and therefore unhappy with manually
+        updating each of them using update -> Volume parameters -> All
+        Volumes from Pool -> pool #.
+
+Item n:   Automatic promotion of backup levels
+   Date:   19 January 2006
+   Origin: Adam Thornton <athornton@sinenomine.net>
+   Status: Blue sky
+
+   What: Amanda has a feature whereby it estimates the space that a  
+         differential, incremental, and full backup would take.  If the  
+         difference in space required between the scheduled level and the next  
+         level up is beneath some user-defined critical threshold, the backup  
+         level is bumped to the next type.  Doing this minimizes the number of  
+         volumes necessary during a restore, with a fairly minimal cost in  
+         backup media space.
+
+   Why:   I know at least one (quite sophisticated and smart) user  
+          for whom the absence of this feature is a deal-breaker in terms of  
+          using Bacula; if we had it it would eliminate the one cool thing  
+          Amanda can do and we can't (at least, the one cool thing I know of).
+
+
+
+
+Item n+1:   Incorporation of XACML2/SAML2 parsing
+   Date:   19 January 2006
+   Origin: Adam Thornton <athornton@sinenomine.net>
+   Status: Blue sky
+
+   What:   XACML is "eXtensible Access Control Markup Language" and  
+          "SAML is the "Security Assertion Markup Language"--an XML standard  
+          for making statements about identity and authorization.  Having these  
+          would give us a framework to approach ACLs in a generic manner, and  
+          in a way flexible enough to support the four major sorts of ACLs I  
+          see as a concern to Bacula at this point, as well as (probably) to  
+          deal with new sorts of ACLs that may appear in the future.
+
+   Why:    Bacula is beginning to need to back up systems with ACLs  
+          that do not map cleanly onto traditional Unix permissions.  I see  
+          four sets of ACLs--in general, mutually incompatible with one  
+          another--that we're going to need to deal with.  These are: NTFS  
+          ACLs, POSIX ACLs, NFSv4 ACLS, and AFS ACLS.  (Some may question the  
+          relevance of AFS; AFS is one of Sine Nomine's core consulting  
+          businesses, and having a reputable file-level backup and restore  
+          technology for it (as Tivoli is probably going to drop AFS support  
+          soon since IBM no longer supports AFS) would be of huge benefit to  
+          our customers; we'd most likely create the AFS support at Sine Nomine  
+          for inclusion into the Bacula (and perhaps some changes to the  
+          OpenAFS volserver) core code.)
+
+          Now, obviously, Bacula already handles NTFS just fine.  However, I  
+          think there's a lot of value in implementing a generic ACL model, so  
+          that it's easy to support whatever particular instances of ACLs come  
+          down the pike: POSIX ACLS (think SELinux) and NFSv4 are the obvious  
+          things arriving in the Linux world in a big way in the near future.   
+          XACML, although overcomplicated for our needs, provides this  
+          framework, and we should be able to leverage other people's  
+          implementations to minimize the amount of work *we* have to do to get  
+          a generic ACL framework.  Basically, the costs of implementation are  
+          high, but they're largely both external to Bacula and already sunk.
+
+Item 1:   Add an over-ride in the Schedule configuration to use a
+          different pool for different backup types.
+
+Date:   19 Jan 2005
+Origin: Chad Slater <chad.slater@clickfox.com>
+Status: 
+                                                
+  What:   Adding a FullStorage=BigTapeLibrary in the Schedule resource
+          would help those of us who use different storage devices for different
+          backup levels cope with the "auto-upgrade" of a backup.
+
+  Why:    Assume I add several new device to be backed up, i.e. several
+          hosts with 1TB RAID.  To avoid tape switching hassles, incrementals are
+          stored in a disk set on a 2TB RAID.  If you add these devices in the
+          middle of the month, the incrementals are upgraded to "full" backups,
+          but they try to use the same storage device as requested in the
+          incremental job, filling up the RAID holding the differentials.  If we
+          could override the Storage parameter for full and/or differential
+          backups, then the Full job would use the proper Storage device, which
+          has more capacity (i.e. a 8TB tape library.
