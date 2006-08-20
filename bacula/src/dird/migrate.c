@@ -651,6 +651,8 @@ static bool get_job_to_migrate(JCR *jcr)
     *  for each of them.  For the last JobId, we handle it below.
     */
    p = ids.list;
+   Jmsg(jcr, M_INFO, 0, _("The following %u JobIds will be migrated: %s\n"),
+      ids.count, ids.list);
    for (int i=1; i < (int)ids.count; i++) {
       JobId = 0;
       stat = get_next_jobid_from_list(&p, &JobId);

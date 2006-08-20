@@ -1,6 +1,12 @@
               Technical notes on version 1.39  
 
 General:
+20Aug06
+kes  Print JobIds to be migrated in Job Report.
+kes  Add additional user supplied notes to the messages part of 
+     bacula-dir.conf concerning multiple email addresses.
+kes  Fix an incorrect comment pointed out by a user in dvd_handler.in
+kes  Add more recent Feature requests to Projects file.
 19Aug06
 kes  Apply Maritn's fix to src/win32/Makefile.
 kes  Apply Martin's fix to configure.in for pthreads on FreeBSD 4.x
