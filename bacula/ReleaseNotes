@@ -5,7 +5,7 @@
 
 Warning for version 1.39.18 and greater:
 - The documentation is almost non-existent for all new features
-  except RunScripts (written and documented by Eric Bollingier).
+  except RunScripts (written and documented by Eric Bollengier).
 - If you have an old pre 1.39.18 database, you must upgrade it using
   the upgrade_bacula_tables script. Please backup your database before
   upgrading just in case.
