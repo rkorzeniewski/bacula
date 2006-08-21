@@ -1,7 +1,34 @@
 
-          Release Notes for Bacula 1.39.18
+          Release Notes for Bacula 1.39.20
 
   Bacula code: Total files = 448 Total lines = 150,330 (*.h *.c *.in)
+
+Version 1.39.20:
+- The basic features of Migration are now complete.
+- There is a Migration chapter in the doc.
+- There is an Encryption chapter in the doc.
+
+New Features in 1.39.20:
+- Add -n option to bconsole to turn off conio.
+- The bytes field in the terminated jobs part of the status
+  command now reports in KB, MB, ... units.
+- When not descending into a directory, print the File= name that
+  triggered it -- makes why not descending a bit clearer
+- Do not unload autochanger when doing "update slots"
+- Implement mount command for autochanger
+
+Fixes for 1.39.20:
+- Writing DVDs should work much better thans to Richard Mortimer.
+- Fix bug #462 incorrect error message printed when client script called
+  from File= was not found.
+- Fix bug #558 (waiting for feedback) where Bacula needs too much time to
+  do a rewind on Solaris when no tape is in the drive (Solaris does not
+  have the detailed errno found on Linux).  Added Solaris specific code.
+  Note, this may apply to other OSes as well.
+- Many cleanups/enhancements for Win32 systems.
+- Correct improperly formated list command output reported by Dan.
+
+==========================================
 
 Warning for version 1.39.18 and greater:
 - The documentation is almost non-existent for all new features
