@@ -2225,15 +2225,15 @@ sub create_filelist
     	my $dbh = $self->{dbh};
 	my %mediainfos;
 	# This query gets all jobid/jobmedia/media combination.
-	my $query = 
-"SELECT Job.JobId, Job.VolsessionId, Job.VolsessionTime, JobMedia.StartFile, 
-        JobMedia.FirstIndex, JobMedia.LastIndex, JobMedia.StartBlock, 
-        JobMedia.EndBlock, JobMedia.VolIndex, Media.Volumename, Media.MediaType
- FROM Job, JobMedia, Media
- WHERE Job.JobId = JobMedia.JobId
-   AND JobMedia.MediaId = Media.MediaId
-   AND JobMedia.StartFile = JobMedia.EndFile
-   ORDER BY JobMedia.FirstIndex, JobMedia.LastIndex";
+	my $query = "
+SELECT Job.JobId, Job.VolsessionId, Job.VolsessionTime, JobMedia.StartFile, 
+       JobMedia.EndFile, JobMedia.FirstIndex, JobMedia.LastIndex,
+       JobMedia.StartBlock, JobMedia.EndBlock, JobMedia.VolIndex, 
+       Media.Volumename, Media.MediaType
+FROM Job, JobMedia, Media
+WHERE Job.JobId = JobMedia.JobId
+  AND JobMedia.MediaId = Media.MediaId
+  ORDER BY JobMedia.FirstIndex, JobMedia.LastIndex";
 	
 
 	my $result = $dbh->selectall_arrayref($query);
@@ -2242,9 +2242,15 @@ sub create_filelist
 
 	foreach my $refrow (@$result)
 	{
-		my ($jobid, $volsessionid, $volsessiontime, $startfile,
+		my ($jobid, $volsessionid, $volsessiontime, $startfile, $endfile,
 		$firstindex, $lastindex, $startblock, $endblock,
 		$volindex, $volumename, $mediatype) = @{$refrow};
+
+                # We just have to deal with the case where starfile != endfile
+                # In this case, we concatenate both, for the bsr
+                if ($startfile != $endfile) { 
+		      $startfile = $startfile . '-' . $endfile;
+		}
 
 		my @tmparray = 
 		($jobid, $volsessionid, $volsessiontime, $startfile, 
