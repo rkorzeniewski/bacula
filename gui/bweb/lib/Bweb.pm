@@ -1136,7 +1136,7 @@ sub new
     my $self = bless { 
 	dbh => undef,		# connect_db();
 	info => {
-	    dbi   => 'DBI:Pg:database=bacula;host=127.0.0.1',
+	    dbi   => '', # DBI:Pg:database=bacula;host=127.0.0.1
 	    user  => 'bacula',
 	    password => 'test', 
 	},
@@ -2552,6 +2552,7 @@ sub restore
     print CGI::header('text/brestore');
     print "jobid=$arg->{jobid}\n" if ($arg->{jobid});
     print "client=$arg->{client}\n" if ($arg->{client});
+    print "\n\nYou have to assign this mime type with /usr/bin/brestore.pl\n";
     print "\n";
 }
 
