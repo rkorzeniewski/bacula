@@ -58,6 +58,11 @@ my $arg = $bweb->get_form('jobid', 'limit', 'offset', 'age');
 
 $bweb->display_begin();
 
+# if no configuration, we send edit_conf
+unless ($bweb->{info}->{dbi}) {
+    $action = 'edit_conf';
+}
+
 if ($action eq 'begin') {		# main display
     print "<table border='0'><td valign='top' width='100%'>\n";
     $bweb->display_general(age => $arg->{age});
