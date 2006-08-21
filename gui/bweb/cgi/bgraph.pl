@@ -41,7 +41,7 @@ $bweb->connect_db();
 my $dbh = $bweb->{dbh};
 my $debug = $bweb->{debug};
 
-my $graph = CGI::param('graph') || 'begin';
+my $graph = CGI::param('graph') || 'job_size';
 my $legend = CGI::param('legend') || 'on' ;
 $legend = ($legend eq 'on')?1:0;
 

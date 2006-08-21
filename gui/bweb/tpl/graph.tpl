@@ -57,10 +57,10 @@
     </select>
   </td>
   <td valign='top'> 
-    <h2>File Set</h2>
-    <select name='fileset' size='15' class='formulaire' multiple>
-<TMPL_LOOP NAME=db_filesets>
-      <option><TMPL_VAR NAME=fileset></option>
+    <h2>Job Name</h2>
+    <select name='jobname' size='15' class='formulaire' multiple>
+<TMPL_LOOP NAME=db_jobnames>
+      <option><TMPL_VAR NAME=jobname></option>
 </TMPL_LOOP>
     </select>
   </td>
@@ -128,11 +128,21 @@
      document.getElementById('age_<TMPL_VAR age>').selected=true;
   </TMPL_IF>
 
-<TMPL_IF selfilesets>
+<TMPL_IF qfilesets>
   for (var i=0; i < document.form1.fileset.length; ++i) {
-  <TMPL_LOOP selfilesets>
+  <TMPL_LOOP qfilesets>
      if (document.form1.fileset[i].value == <TMPL_VAR name>) {
         document.form1.fileset[i].selected = true;
+     }
+  </TMPL_LOOP>
+  }
+</TMPL_IF>
+
+<TMPL_IF qjobnames>
+  for (var i=0; i < document.form1.jobname.length; ++i) {
+  <TMPL_LOOP qjobnames>
+     if (document.form1.jobname[i].value == <TMPL_VAR name>) {
+        document.form1.jobname[i].selected = true;
      }
   </TMPL_LOOP>
   }

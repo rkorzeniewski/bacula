@@ -30,6 +30,17 @@
   </button>
  </form>
  </td>
+ <td>
+ <form action='?'>
+  <input type='hidden' name='age' value='2678400'>
+  <input type='hidden' name='client' value='<TMPL_VAR Client>'>
+  <input type='hidden' name='jobname' value='<TMPL_VAR jobname>'>
+  <button class='formulaire' name='action' value='graph' title='view trends'>
+     View stats<br/>
+     <img src='/bweb/chart.png'>
+  </button>
+ </form>
+ </td>
  </table>
 </div>
 

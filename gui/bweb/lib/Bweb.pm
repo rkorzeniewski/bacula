@@ -832,6 +832,12 @@ sub transfer
     }
 }
 
+sub get_drive_name
+{
+    my ($self, $index) = @_;
+    return $self->{drive_name}->[$index];
+}
+
 # TODO : do a tapeinfo request to get informations
 sub tapeinfo
 {
@@ -1270,7 +1276,7 @@ sub get_form
 		 height => 480,
 		 jobid  =>   0,
 		 slot   =>   0,
-		 drive  =>   undef,
+		 drive  =>   0,
 		 priority => 10,
 		 age    => 60*60*24*7,
 		 days   => 1,
@@ -1377,6 +1383,19 @@ FROM FileSet
 
     }
 
+    if ($what{db_jobnames}) {
+	my $query = "
+SELECT DISTINCT Job.Name AS jobname 
+FROM Job
+";
+
+	my $jobnames = $self->dbh_selectall_hashref($query, 'jobname');
+
+	$ret{db_jobnames} = [sort {lc($a->{jobname}) cmp lc($b->{jobname}) } 
+			       values %$jobnames] ;
+
+    }
+
     return \%ret;
 }
 
@@ -1386,7 +1405,7 @@ sub display_graph
 
     my $fields = $self->get_form(qw/age level status clients filesets 
 				   db_clients limit db_filesets width height
-				   qclients qfilesets/);
+				   qclients qfilesets qjobnames db_jobnames/);
 				
 
     my $url = CGI::url(-full => 0,
@@ -2656,7 +2675,7 @@ sub label_barcodes
 	$slots = join(",", @{ $arg->{slots} });
     }
 
-    my $t = 60*scalar( @{ $arg->{slots} });
+    my $t = 60*scalar( @{ $arg->{slots} }) + 300 ;
     my $b = new Bconsole(pref => $self->{info}, timeout => $t,log_stdout => 1);
     print "<h1>This command can take long time, be patient...</h1>";
     print "<pre>" ;

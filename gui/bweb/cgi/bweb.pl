@@ -149,10 +149,11 @@ if ($action eq 'begin') {		# main display
 
     if (defined $arg->{ach} and defined $arg->{drive} and defined $arg->{slot})
     {
-	my $b = new Bconsole(pref => $conf, log_stdout => 1) ;
+	my $a = Bweb::Autochanger::get('S1_L80', $bweb);
+	my $b = new Bconsole(pref => $conf, timeout => 300, log_stdout => 1) ;
 	# TODO : use template here
 	print "<pre>\n";
-	$b->send_cmd_with_drive("mount slot=$arg->{slot} storage='$arg->{ach}'",
+	$b->send_cmd_with_drive("mount slot=$arg->{slot} storage=\"" . $a->get_drive_name($arg->{drive}) . '"',
 				$arg->{drive});
 	print "</pre>\n";
     } else {
@@ -161,13 +162,16 @@ if ($action eq 'begin') {		# main display
     
 } elsif ($action eq 'ach_unload') {
     my $arg = $bweb->get_form('drive', 'slot', 'ach');
+
     if (defined $arg->{ach} and defined $arg->{drive} and defined $arg->{slot})
     {
-	my $b = new Bconsole(pref => $conf, log_stdout => 1) ;
+	my $a = Bweb::Autochanger::get('S1_L80', $bweb);
+	my $b = new Bconsole(pref => $conf, timeout => 300, log_stdout => 1) ;
 	# TODO : use template here
 	print "<pre>\n";
-	$b->send_cmd_with_drive("umount storage='$arg->{ach}'",
+	$b->send_cmd_with_drive("umount storage=\"" . $a->get_drive_name($arg->{drive}) . '"',
 				$arg->{drive});
+
 	print "</pre>\n";
 
     } else {
