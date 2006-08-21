@@ -845,7 +845,7 @@ Function InstallDaemon
 
     ${If} $3 = 1  
       ${If} $OsIsNT = 1
-        Exec 'net start bacula'
+        Exec 'net start baculafd'
         Sleep 3000
       ${Else}
         Exec '"$INSTDIR\bin\$0.exe" -c "$APPDATA\Bacula\$0.conf"'
