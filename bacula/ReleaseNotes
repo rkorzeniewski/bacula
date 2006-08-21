@@ -27,6 +27,7 @@ Fixes for 1.39.20:
   Note, this may apply to other OSes as well.
 - Many cleanups/enhancements for Win32 systems.
 - Correct improperly formated list command output reported by Dan.
+- Eric fixed RunScripts, which I (Kern) had broken in the last beta.
 
 ==========================================
 
