@@ -108,6 +108,7 @@ select_backup_del DATA
 select_verify_del DATA
 select_restore_del DATA
 select_admin_del DATA
+select_migrate_del DATA
 select_job DATA
 del_File DATA
 ;cnt_File DATA
