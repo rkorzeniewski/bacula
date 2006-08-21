@@ -1,6 +1,75 @@
               Technical notes on version 1.39  
 
 General:
+Version 1.39.20 Beta released:    
+20Aug06
+kes  Add -n option to bconsole to turn off conio.
+kes  Print JobIds to be migrated in Job Report.
+kes  Add additional user supplied notes to the messages part of 
+     bacula-dir.conf concerning multiple email addresses.
+kes  Fix an incorrect comment pointed out by a user in dvd_handler.in
+kes  Add more recent Feature requests to Projects file.
+19Aug06
+kes  Apply Maritn's fix to src/win32/Makefile.
+kes  Apply Martin's fix to configure.in for pthreads on FreeBSD 4.x
+kes  Implement pruning for Migration and migrated jobs.
+kes  Implement PoolOccupancy migration.
+kes  Implement PoolTime migration.
+16Aug06
+kes  If doing a mount, look for a slot, and if specified pass it to
+     the SD so that it can load the autochanger.
+kes  Return DVD=1 flag if a label command is done to a DVD. This
+     permits setting VolParts to 1.
+kes  Apply DVD patch from Richard Mortimer <richm@oldelvet.org.uk>, but
+     rework ua_label code based on DVD media type to use DVD flag returned.
+15Aug06
+kes  Eliminate some compile warnings in dird_conf.c
+kes  Format the bytes field in the terminated jobs part of the status
+     command for the three daemons with suffixes to reduce print size 
+     of backup bytes.  Suggested by a user.
+kes  When not descending into a directory, print the File= name that
+     triggered it -- makes why not descending a bit clearer.
+kes  Do not unload autochanger when doing a list command -- basic code
+     from Eric Bollengier.
+07Aug06                
+kes  Fix bug #462 incorrect error message printed when client script called
+     from File= was not found.
+kes  Fix bug #558 (waiting for feedback) where Bacula needs too much time to
+     do a rewind on Solaris when no tape is in the drive (Solaris does not
+     have the detailed errno found on Linux).  Added Solaris specific code.
+     Note, this may apply to other OSes as well.
+06Aug06
+kes  Defined BUILDING_CATS in src/cats/cats.h so that *nix builds.
+dsb  Updated rpm spec for 1.39 - updatedb 9 to 10, add new man pages,
+     fix bug 648 - update sqlite script patches, lock out gnome2console
+     builds for platforms with gtk+ < 2.4.
+     Updated build_rpm.sh - add remote source directory, add switch for 
+     signing, refine file names.
+     Updated spec file again for Mandriva build as they have this curious
+     custom of silently converting all manpages to bzip2 format just before
+     the final packaging step.
+05Aug06
+rbn  Fixed the Windows Makefiles so that they won't accidently try and
+     pickup binaries for the Unix build.  This allows both the Unix
+     build and the Windows build to be built in the same tree without
+     interfering with each other.
+rbn  Fixed error handling and cleaned up mtx-changer.cmd.
+rbn  Added the rest of the database scripts.  These are installed but are
+     not yet editted for variable replacement.
+rbn  Broke out the cats functionality from bacula.dll and put into new
+     separate dlls for each database type.  At installation time the
+     correct one is copied to bacula_cats.dll.
+rbn  Eliminate the need to install the mysql.dll on client only builds.
+rbn  Moved dird/sql_cmds.c into the cats directory so all the database
+     specific #ifdefs were in the cats directory.
+rbn  Added a new sql_cmds.h with all the declarations for the variables
+     exported from sql_cmds.c.
+rbn  Moved catalog_db[] from lib/message.c to a new routine db_get_type()
+     which is implemented in bdb.c, mysql.c, postgresql.c and sqlite.c in
+     src/cats.
+kes  Correct improperly formated list command output reported by Dan.
+
+Version 1.39.18 Beta released:
 04Aug06
 kes  Correct despool time calculation.
 03Aug06
