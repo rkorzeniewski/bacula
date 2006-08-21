@@ -1,6 +1,8 @@
               Technical notes on version 1.39  
 
 General:
+21Aug06
+kes  Fix Win32 build (new entrypoint, start baculafd).
 20Aug06
 kes  Add -n option to bconsole to turn off conio.
 kes  Print JobIds to be migrated in Job Report.
