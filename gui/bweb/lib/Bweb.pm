@@ -203,7 +203,6 @@ our %k_re = ( dbi      => qr/^(dbi:(Pg|mysql):(?:\w+=[\w\d\.-]+;?)+)$/i,
 	      bconsole    => qr!^(.+)?$!,
 	      syslog_file => qr!^(.+)?$!,
 	      log_dir     => qr!^(.+)?$!,
-	      ach_list    => qr!^(.+)?$!,
 	      );
 
 =head1 FUNCTION
@@ -224,12 +223,54 @@ sub load
     {
 	return $self->error("$self->{config_file} : $!");
     }
+    my $f=''; my $tmpbuffer;
+    while(read FP,$tmpbuffer,4096)
+    {
+	$f .= $tmpbuffer;
+    }
+    close(FP);
 
-    while (my $line = <FP>) 
+    my $VAR1;
+
+    no strict; # I have no idea of the contents of the file
+    eval "$f" ;
+    use strict;
+
+    if ($f and $@) {
+	$self->load_old();
+	$self->save();
+	return $self->error("If you update from an old bweb install, your must reload this page and if it's fail again, you have to configure bweb again...") ;
+    }
+
+    foreach my $k (keys %$VAR1) {
+	$self->{$k} = $VAR1->{$k};
+    }
+
+    return 1;
+}
+
+=head1 FUNCTION
+
+    load_old - load old configuration format
+
+=cut
+
+sub load_old
+{
+    my ($self) = @_ ;
+
+    unless (open(FP, $self->{config_file}))
+    {
+	return $self->error("$self->{config_file} : $!");
+    }
+
+    while (my $line = <FP>)
     {
 	chomp($line);
 	my ($k, $v) = split(/\s*=\s*/, $line, 2);
-	$self->{$k} = $v;
+	if ($k_re{$k}) {
+	    $self->{$k} = $v;
+	}
     }
 
     close(FP);
@@ -248,15 +289,13 @@ sub save
 
     unless (open(FP, ">$self->{config_file}"))
     {
-	return $self->error("$self->{config_file} : $!");
-    }
-    
-    foreach my $k (keys %$self)
-    {
-	next unless (exists $k_re{$k}) ;
-	print FP "$k = $self->{$k}\n";
+	return $self->error("$self->{config_file} : $!\n" .
+			    "You must add this to your config file\n" 
+			    . Data::Dumper::Dumper($self));
     }
 
+    print FP Data::Dumper::Dumper($self);
+    
     close(FP);       
     return 1;
 }
@@ -277,8 +316,9 @@ sub edit
 sub view
 {
     my ($self) = @_ ;
-
-    $self->display($self, "config_view.tpl");    
+    $self->{achs} = [ map { { name => $_ } } keys %{$self->{ach_list}} ];
+    $self->display($self, "config_view.tpl");
+    delete $self->{achs};
 }
 
 sub modify
@@ -299,7 +339,7 @@ sub modify
 	}
     }
 
-    $self->display($self, "config_view.tpl");
+    $self->view();
 
     if ($self->{error}) {	# an error as occured
 	$self->display($self, 'error.tpl');
@@ -466,93 +506,6 @@ use base q/Bweb::Gui/;
     $auto->transfer(10, 11);
 
 =cut
-
-# TODO : get autochanger definition from config/dump file
-my $ach_list ;
-
-sub get
-{
-    my ($name, $bweb) = @_;
-    
-    unless ($name) {
-	return $bweb->error("Can't get your autochanger name ach");
-    }
-
-    unless ($ach_list) {
-	unless (get_defined_ach($bweb)) {
-	    return undef;
-	}
-    }
-    
-    my $a = $ach_list->{$name};
-
-    unless ($a) {
-	$bweb->error("Can't get your autochanger $name from your ach_list");
-	return undef;
-    }
-
-    $a->{bweb} = $bweb;
-
-    return $a;
-}
-
-sub get_defined_ach
-{
-    my ($bweb) = @_;
-    if (defined $bweb->{info}->{ach_list}) {
-	if (open(FP, "<$bweb->{info}->{ach_list}")) {
-	    my $f=''; my $tmpbuffer;
-	    while(read FP,$tmpbuffer,4096)
-	    {
-		$f .= $tmpbuffer;
-	    }
-	    close(FP);
-	    no strict; # I have no idea of the contents of the file
-	    eval '$ach_list = ' . $f ;
-	    use strict;
-	} else {
-	    return $bweb->error("Can't open $bweb->{info}->{ach_list} $!");
-	}
-    } else {
-	return $bweb->error("Can't find your ach_list file in your configuration");
-    }
-
-    $bweb->debug($ach_list);
-
-    return 1;
-}
-
-sub register
-{
-    my ($ach, $bweb) = @_;
-    my $err;
-
-    if (defined $bweb->{info}->{ach_list})
-    {
-	unless ($ach_list) {
-	    get_defined_ach($bweb) ;
-	}
-
-	$ach_list->{$ach->{name}} = $ach;
-
-	if (open(FP, ">$bweb->{info}->{ach_list}")) {
-	    print FP Data::Dumper::Dumper($ach_list);
-	    close(FP);
-	} else {
-	    $err = $!;
-	    $err .= "\nCan you put this in $bweb->{info}->{ach_list}\n";
-	    $err .= Data::Dumper::Dumper($ach_list);
-	}
-    } else {
-	$err = "ach_list isn't defined";
-    }
-
-    if ($err) {
-	return $bweb->error("Can't find to your ach_list (see bweb configuration) $err");
-    }
-    
-    return 1;
-}
 
 sub new
 {
@@ -2632,7 +2585,7 @@ sub eject_media
 	return $self->error("Can't get media selection");
     }
 
-    my $a = Bweb::Autochanger::get($arg->{ach}, $self);
+    my $a = $self->ach_get($arg->{ach});
     unless ($a) {
 	return 0;
     }
@@ -2679,6 +2632,87 @@ sub restore
 # TODO : make this internal to not eject tape ?
 use Bconsole;
 
+
+sub ach_get
+{
+    my ($self, $name) = @_;
+    
+    unless ($name) {
+	return $self->error("Can't get your autochanger name ach");
+    }
+
+    unless ($self->{info}->{ach_list}) {
+	return $self->error("Could not find any autochanger");
+    }
+    
+    my $a = $self->{info}->{ach_list}->{$name};
+
+    unless ($a) {
+	$self->error("Can't get your autochanger $name from your ach_list");
+	return undef;
+    }
+
+    $a->{bweb} = $self;
+
+    return $a;
+}
+
+sub ach_register
+{
+    my ($self, $ach) = @_;
+
+    $self->{info}->{ach_list}->{$ach->{name}} = $ach;
+    $self->{info}->save();
+    
+    return 1;
+}
+
+sub ach_edit
+{
+    my ($self) = @_;
+    my $arg = $self->get_form('ach');
+    if (!$arg->{ach} 
+	or !$self->{info}->{ach_list} 
+	or !$self->{info}->{ach_list}->{$arg->{ach}}) 
+    {
+	return $self->error("Can't get autochanger name");
+    }
+
+    my $ach = $self->{info}->{ach_list}->{$arg->{ach}};
+
+    my $i=0;
+    $ach->{drives} = 
+	[ map { { name => $_, index => $i++ } } @{$ach->{drive_name}} ] ;
+
+    my $b = new Bconsole(pref => $self->{info});    
+    my @storages = $b->list_storage() ;
+
+    $ach->{devices} = [ map { { name => $_ } } @storages ];
+    
+    $self->display($ach, "ach_add.tpl");
+    delete $ach->{drives};
+    delete $ach->{devices};
+    return 1;
+}
+
+sub ach_del
+{
+    my ($self) = @_;
+    my $arg = $self->get_form('ach');
+
+    if (!$arg->{ach} 
+	or !$self->{info}->{ach_list} 
+	or !$self->{info}->{ach_list}->{$arg->{ach}}) 
+    {
+	return $self->error("Can't get autochanger name");
+    }
+   
+    delete $self->{info}->{ach_list}->{$arg->{ach}} ;
+   
+    $self->{info}->save();
+    $self->{info}->view();
+}
+
 sub ach_add
 {
     my ($self) = @_;
@@ -2693,7 +2727,7 @@ sub ach_add
     }
 
     my @drives ;
-    foreach my $drive (CGI::param('drive'))
+    foreach my $drive (CGI::param('drives'))
     {
 	unless (grep(/^$drive$/,@storages)) {
 	    return $self->error("Can't find $drive in storage list");
@@ -2717,7 +2751,9 @@ sub ach_add
 				  device => $arg->{device},
 				  mtxcmd => $arg->{mtxcmd});
 
-    return Bweb::Autochanger::register($a, $self) ;
+    $self->ach_register($a) ;
+    
+    $self->{info}->view();
 }
 
 sub delete
@@ -2772,7 +2808,6 @@ SELECT Job.Name as name, Client.Name as clientname
     unless ($row) {
 	return $self->error("Can't find $arg->{jobid} in catalog");
     }
-    
 
     $query = "
 SELECT Time AS time, LogText AS log

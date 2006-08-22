@@ -59,7 +59,7 @@ my $arg = $bweb->get_form('jobid', 'limit', 'offset', 'age');
 $bweb->display_begin();
 
 # if no configuration, we send edit_conf
-unless ($bweb->{info}->{dbi}) {
+if ($action ne 'apply_conf' and !$bweb->{info}->{dbi}) {
     $action = 'edit_conf';
 }
 
@@ -115,7 +115,7 @@ if ($action eq 'begin') {		# main display
 
 } elsif ($action eq 'eject') {
     my $arg = $bweb->get_form("ach");
-    my $a = Bweb::Autochanger::get($arg->{ach}, $bweb);
+    my $a = $bweb->ach_get($arg->{ach});
     
     if ($a) {
 	$a->status();
@@ -137,18 +137,25 @@ if ($action eq 'begin') {		# main display
 } elsif ($action eq 'clear_io') {
     my $arg = $bweb->get_form('ach');
 
-    my $a = Bweb::Autochanger::get($arg->{ach}, $bweb);
+    my $a = $bweb->ach_get($arg->{ach});
     if (defined $a) {
 	$a->status();
 	$a->clear_io();
 	$a->display_content();
     }
+
+} elsif ($action eq 'ach_edit') {
+    $bweb->ach_edit();
+
+} elsif ($action eq 'ach_del') {
+    $bweb->ach_del();
+
 } elsif ($action eq 'ach_view') {
     # TODO : get autochanger name and create it
     $bweb->connect_db();
     my $arg = $bweb->get_form('ach');
 
-    my $a = Bweb::Autochanger::get($arg->{ach}, $bweb);
+    my $a = $bweb->ach_get($arg->{ach});
     if ($a) {
 	$a->status();
 	$a->display_content();
@@ -160,7 +167,7 @@ if ($action eq 'begin') {		# main display
 } elsif ($action eq 'ach_load') {
     my $arg = $bweb->get_form('ach', 'drive', 'slot');
     
-    my $a = Bweb::Autochanger::get($arg->{ach}, $bweb);
+    my $a = $bweb->ach_get($arg->{ach});
 
     if (defined $a and defined $arg->{drive} and defined $arg->{slot})
     {
@@ -177,7 +184,7 @@ if ($action eq 'begin') {		# main display
 } elsif ($action eq 'ach_unload') {
     my $arg = $bweb->get_form('drive', 'slot', 'ach');
 
-    my $a = Bweb::Autochanger::get($arg->{ach}, $bweb);
+    my $a = $bweb->ach_get($arg->{ach});
 
     if (defined $a and defined $arg->{drive} and defined $arg->{slot})
     {

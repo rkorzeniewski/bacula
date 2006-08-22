@@ -37,11 +37,11 @@ Autochanger : <TMPL_VAR NAME=Name> (<TMPL_VAR NAME=nb_drive> Drives
 </button>
 <br/><br/>
 <button type='submit' name='action' value='ach_load' class='formulaire'
-	title='load drive'>&nbsp;Load&nbsp;<br/>
+	title='mount drive'>Mount<br/>
   <img src='/bweb/load.png'>
 </button>
 <button type='submit' name='action' value='ach_unload' class='formulaire'
-	title='unload drive'>Unload<br/>
+	title='umount drive'>Umount<br/>
   <img src='/bweb/unload.png'>
 </button>
 
