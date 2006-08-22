@@ -1,4 +1,3 @@
-<br/>
 <script language="JavaScript">
 bweb_add_refresh();
 </script>
