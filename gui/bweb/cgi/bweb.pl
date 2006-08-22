@@ -114,42 +114,56 @@ if ($action eq 'begin') {		# main display
     $bweb->display_medias();
 
 } elsif ($action eq 'eject') {
-    my $a = Bweb::Autochanger::get('S1_L80', $bweb);
+    my $arg = $bweb->get_form("ach");
+    my $a = Bweb::Autochanger::get($arg->{ach}, $bweb);
+    
+    if ($a) {
+	$a->status();
+	foreach my $slot (CGI::param('slot')) {
+	    print $a->{error} unless $a->send_to_io($slot);
+	}
 
-    $a->status();
-    foreach my $slot (CGI::param('slot')) {
-	print $a->{error} unless $a->send_to_io($slot);
+	foreach my $media (CGI::param('media')) {
+	    my $slot = $a->get_media_slot($media);
+	    print $a->{error} unless $a->send_to_io($slot);
+	}
+
+	$a->display_content();
     }
-
-    foreach my $media (CGI::param('media')) {
-	my $slot = $a->get_media_slot($media);
-	print $a->{error} unless $a->send_to_io($slot);
-    }
-
-    $a->display_content();
 
 } elsif ($action eq 'eject_media') {
     $bweb->eject_media();
 
 } elsif ($action eq 'clear_io') {
-    my $a = Bweb::Autochanger::get('S1_L80', $bweb);
-    $a->status();
-    $a->clear_io();
-    $a->display_content();
-   
+    my $arg = $bweb->get_form('ach');
+
+    my $a = Bweb::Autochanger::get($arg->{ach}, $bweb);
+    if (defined $a) {
+	$a->status();
+	$a->clear_io();
+	$a->display_content();
+    }
 } elsif ($action eq 'ach_view') {
     # TODO : get autochanger name and create it
     $bweb->connect_db();
-    my $a = Bweb::Autochanger::get('S1_L80', $bweb);
-    $a->status();
-    $a->display_content();
+    my $arg = $bweb->get_form('ach');
+
+    my $a = Bweb::Autochanger::get($arg->{ach}, $bweb);
+    if ($a) {
+	$a->status();
+	$a->display_content();
+    }
+
+} elsif ($action eq 'ach_add') {
+    $bweb->ach_add();
 
 } elsif ($action eq 'ach_load') {
     my $arg = $bweb->get_form('ach', 'drive', 'slot');
+    
+    my $a = Bweb::Autochanger::get($arg->{ach}, $bweb);
 
-    if (defined $arg->{ach} and defined $arg->{drive} and defined $arg->{slot})
+    if (defined $a and defined $arg->{drive} and defined $arg->{slot})
     {
-	my $a = Bweb::Autochanger::get('S1_L80', $bweb);
 	my $b = new Bconsole(pref => $conf, timeout => 300, log_stdout => 1) ;
 	# TODO : use template here
 	print "<pre>\n";
@@ -163,9 +177,10 @@ if ($action eq 'begin') {		# main display
 } elsif ($action eq 'ach_unload') {
     my $arg = $bweb->get_form('drive', 'slot', 'ach');
 
-    if (defined $arg->{ach} and defined $arg->{drive} and defined $arg->{slot})
+    my $a = Bweb::Autochanger::get($arg->{ach}, $bweb);
+
+    if (defined $a and defined $arg->{drive} and defined $arg->{slot})
     {
-	my $a = Bweb::Autochanger::get('S1_L80', $bweb);
 	my $b = new Bconsole(pref => $conf, timeout => 300, log_stdout => 1) ;
 	# TODO : use template here
 	print "<pre>\n";
@@ -256,8 +271,6 @@ if ($action eq 'begin') {		# main display
 					age => $arg->{age});
 	}
     }
-
-  
 
 } elsif ($action eq 'running') {
     $bweb->display_running_jobs(1);

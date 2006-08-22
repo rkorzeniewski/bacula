@@ -35,6 +35,9 @@
      <tr><td>template_dir :</td> 
          <td> <input class="formulaire" type='text' value='<TMPL_VAR NAME=template_dir>' size='64' name='template_dir'> 
          </td></tr>
+     <tr><td>ach_list :</td> 
+         <td> <input class="formulaire" type='text' value='<TMPL_VAR NAME=ach_list>' size='64' name='ach_list'> 
+         </td></tr>
      <tr><td>bconsole :</td> 
          <td> <input class="formulaire" type='text' value='<TMPL_VAR NAME=bconsole>' size='64' name='bconsole'> 
          </td></tr>

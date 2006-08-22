@@ -392,17 +392,17 @@ package main;
 print "test sans conio\n";
 
 my $c = new Bconsole(pref => {
-    bconsole => '/usr/local/bacula/sbin/bconsole -c /usr/local/bacula/etc/bconsole.conf',
+    bconsole => '/tmp/bacula/sbin/bconsole -n -c /tmp/bacula/etc/bconsole.conf',
 },
-		     debug => 1);
+		     debug => 0);
 
 print "fileset : ", join(',', $c->list_fileset()), "\n";
 print "job : ",     join(',', $c->list_job()), "\n";
 print "storage : ", join(',', $c->list_storage()), "\n";
 #print "prune : " . $c->prune_volume('000001'), "\n";
 #print "update : " . $c->send_cmd_with_drive('update slots storage=SDLT-1-2'), "\n";
-print "label : ", join(',', $c->label_barcodes(storage => 'SDLT-1-2',
-					       slots => 6,
-					       drive => 0)), "\n";
+#print "label : ", join(',', $c->label_barcodes(storage => 'SDLT-1-2',
+#					       slots => 6,
+#					       drive => 0)), "\n";
 
 

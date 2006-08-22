@@ -203,6 +203,7 @@ our %k_re = ( dbi      => qr/^(dbi:(Pg|mysql):(?:\w+=[\w\d\.-]+;?)+)$/i,
 	      bconsole    => qr!^(.+)?$!,
 	      syslog_file => qr!^(.+)?$!,
 	      log_dir     => qr!^(.+)?$!,
+	      ach_list    => qr!^(.+)?$!,
 	      );
 
 =head1 FUNCTION
@@ -467,18 +468,90 @@ use base q/Bweb::Gui/;
 =cut
 
 # TODO : get autochanger definition from config/dump file
-my %ach_list ;
+my $ach_list ;
 
 sub get
 {
     my ($name, $bweb) = @_;
-    my $a = new Bweb::Autochanger(debug => $bweb->{debug}, 
-				  bweb => $bweb,
-				  name => 'S1_L80',
-				  precmd => 'sudo',
-				  drive_name => ['S1_L80_SDLT0', 'S1_L80_SDLT1'],
-				  );
+    
+    unless ($name) {
+	return $bweb->error("Can't get your autochanger name ach");
+    }
+
+    unless ($ach_list) {
+	unless (get_defined_ach($bweb)) {
+	    return undef;
+	}
+    }
+    
+    my $a = $ach_list->{$name};
+
+    unless ($a) {
+	$bweb->error("Can't get your autochanger $name from your ach_list");
+	return undef;
+    }
+
+    $a->{bweb} = $bweb;
+
     return $a;
+}
+
+sub get_defined_ach
+{
+    my ($bweb) = @_;
+    if (defined $bweb->{info}->{ach_list}) {
+	if (open(FP, "<$bweb->{info}->{ach_list}")) {
+	    my $f=''; my $tmpbuffer;
+	    while(read FP,$tmpbuffer,4096)
+	    {
+		$f .= $tmpbuffer;
+	    }
+	    close(FP);
+	    no strict; # I have no idea of the contents of the file
+	    eval '$ach_list = ' . $f ;
+	    use strict;
+	} else {
+	    return $bweb->error("Can't open $bweb->{info}->{ach_list} $!");
+	}
+    } else {
+	return $bweb->error("Can't find your ach_list file in your configuration");
+    }
+
+    $bweb->debug($ach_list);
+
+    return 1;
+}
+
+sub register
+{
+    my ($ach, $bweb) = @_;
+    my $err;
+
+    if (defined $bweb->{info}->{ach_list})
+    {
+	unless ($ach_list) {
+	    get_defined_ach($bweb) ;
+	}
+
+	$ach_list->{$ach->{name}} = $ach;
+
+	if (open(FP, ">$bweb->{info}->{ach_list}")) {
+	    print FP Data::Dumper::Dumper($ach_list);
+	    close(FP);
+	} else {
+	    $err = $!;
+	    $err .= "\nCan you put this in $bweb->{info}->{ach_list}\n";
+	    $err .= Data::Dumper::Dumper($ach_list);
+	}
+    } else {
+	$err = "ach_list isn't defined";
+    }
+
+    if ($err) {
+	return $bweb->error("Can't find to your ach_list (see bweb configuration) $err");
+    }
+    
+    return 1;
 }
 
 sub new
@@ -1292,7 +1365,12 @@ sub get_form
                  ach    => 1,
                  jobtype=> 1,
 		 );
-
+    my %opt_p = (		# option with path
+		 mtxcmd => 1,
+		 precmd => 1,
+		 device => 1,
+		 );
+    
     foreach my $i (@what) {
 	if (exists $opt_i{$i}) {# integer param
 	    my $value = CGI::param($i) || $opt_i{$i} ;
@@ -1319,6 +1397,11 @@ sub get_form
 	} elsif ($i =~ /^q(\w+)s$/) { #[ 'arg1', 'arg2']
 	    $ret{$i} = [ map { { name => $self->dbh_quote($_) } } 
 			          CGI::param($1) ];
+	} elsif (exists $opt_p{$i}) {
+	    my $value = CGI::param($i) || '';
+	    if ($value =~ /^([\w\d\.\/\s:\@\-]+)$/) {
+		$ret{$i} = $1;
+	    }
 	}
     }
 
@@ -1393,6 +1476,19 @@ FROM Job
 
 	$ret{db_jobnames} = [sort {lc($a->{jobname}) cmp lc($b->{jobname}) } 
 			       values %$jobnames] ;
+
+    }
+
+    if ($what{db_devices}) {
+	my $query = "
+SELECT Device.Name AS name
+FROM Device
+";
+
+	my $devices = $self->dbh_selectall_hashref($query, 'name');
+
+	$ret{db_devices} = [sort {lc($a->{name}) cmp lc($b->{name}) } 
+			       values %$devices] ;
 
     }
 
@@ -1991,8 +2087,8 @@ SELECT InChanger     AS online,
        Media.Recycle AS recycle,
        Media.VolRetention AS volretention,
        Media.LastWritten  AS lastwritten,
-       Media.VolReadTime/100000  AS volreadtime,
-       Media.VolWriteTime/100000  AS volwritetime,
+       Media.VolReadTime/1000000  AS volreadtime,
+       Media.VolWriteTime/1000000 AS volwritetime,
        $self->{sql}->{FROM_UNIXTIME}(
           $self->{sql}->{UNIX_TIMESTAMP}(Media.LastWritten) 
         + $self->{sql}->{TO_SEC}(Media.VolRetention)
@@ -2535,6 +2631,11 @@ sub eject_media
     unless ($arg->{jmedias}) {
 	return $self->error("Can't get media selection");
     }
+
+    my $a = Bweb::Autochanger::get($arg->{ach}, $self);
+    unless ($a) {
+	return 0;
+    }
     
     my $query = "
 SELECT Media.VolumeName  AS volumename,
@@ -2549,9 +2650,8 @@ WHERE Media.VolumeName IN ($arg->{jmedias})
 
     my $all = $self->dbh_selectall_hashref($query, 'volumename');
 
-    my $a = Bweb::Autochanger::get('S1_L80', $self);
-
     $a->status();
+
     foreach my $vol (values %$all) {
 	print "eject $vol->{volumename} from $vol->{storage} : ";
 	if ($a->send_to_io($vol->{slot})) {
@@ -2578,6 +2678,47 @@ sub restore
 # TODO : move this to Bweb::Autochanger ?
 # TODO : make this internal to not eject tape ?
 use Bconsole;
+
+sub ach_add
+{
+    my ($self) = @_;
+    my $arg = $self->get_form('ach', 'mtxcmd', 'device', 'precmd');
+
+    my $b = new Bconsole(pref => $self->{info});    
+    my @storages = $b->list_storage() ;
+
+    unless ($arg->{ach}) {
+	$arg->{devices} = [ map { { name => $_ } } @storages ];
+	return $self->display($arg, "ach_add.tpl");
+    }
+
+    my @drives ;
+    foreach my $drive (CGI::param('drive'))
+    {
+	unless (grep(/^$drive$/,@storages)) {
+	    return $self->error("Can't find $drive in storage list");
+	}
+
+	my $index = CGI::param("index_$drive");
+	unless (defined $index and $index =~ /^(\d+)$/) {
+	    return $self->error("Can't get $drive index");
+	}
+
+	$drives[$index] = $drive;
+    }
+
+    unless (@drives) {
+	return $self->error("Can't get drives from Autochanger");
+    }
+
+    my $a = new Bweb::Autochanger(name   => $arg->{ach},
+				  precmd => $arg->{precmd},
+				  drive_name => \@drives,
+				  device => $arg->{device},
+				  mtxcmd => $arg->{mtxcmd});
+
+    return Bweb::Autochanger::register($a, $self) ;
+}
 
 sub delete
 {
@@ -2671,11 +2812,12 @@ sub label_barcodes
     }
 
     my $slots = '';
+    my $t = 300 ;
     if ($arg->{slots}) {
 	$slots = join(",", @{ $arg->{slots} });
+	$t += 60*scalar( @{ $arg->{slots} }) ;
     }
 
-    my $t = 60*scalar( @{ $arg->{slots} }) + 300 ;
     my $b = new Bconsole(pref => $self->{info}, timeout => $t,log_stdout => 1);
     print "<h1>This command can take long time, be patient...</h1>";
     print "<pre>" ;

@@ -4,7 +4,6 @@
 </div>
 <div class='bodydiv'>
    <table>
-    <tr class='header'>  <td>SQL connection </td>  <td/></tr>
     <tr>  <td><b>SQL Connection</b></td>  <td/></tr>
     <tr><td>DBI :</td>      <td> <TMPL_VAR NAME=dbi>      </td></tr>
     <tr><td>user :</td>     <td> <TMPL_VAR NAME=user>     </td></tr>
@@ -13,6 +12,7 @@
     <tr><td>email_media :</td> <td> <TMPL_VAR NAME=email_media> </td></tr>
     <tr>  <td><b>Bweb Configuration</b></td>  <td/></tr>
     <tr><td>template_dir :</td> <td> <TMPL_VAR NAME=template_dir> </td></tr>
+    <tr><td title="path to Autochanger dat file">ach_list :</td> <td> <TMPL_VAR NAME=ach_list> </td></tr>
     <tr><td>graph_font :</td> <td> <TMPL_VAR NAME=graph_font> </td></tr>
     <tr><td>bconsole :</td> <td> <TMPL_VAR NAME=bconsole> </td></tr>
     <tr><td>debug :</td> <td> <TMPL_VAR NAME=debug> </td></tr>
