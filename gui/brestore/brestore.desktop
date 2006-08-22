@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.39
+Encoding=UTF-8
+Type=Application
+Name=Brestore
+GenericName=Backup application
+Comment=Bacula restoration gui
+Exec=brestore.pl
+Icon=brestore.png
+Categories=Archiving;Utility
