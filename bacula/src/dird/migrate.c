@@ -373,7 +373,7 @@ const char *sql_client =
 
 /* Get JobIds from regex'ed Client names */
 const char *sql_jobids_from_client =
-   "SELECT DISTINCT Job.JobId,Job.StartTime FROM Job,Pool"
+   "SELECT DISTINCT Job.JobId,Job.StartTime FROM Job,Pool,Client"
    " WHERE Client.Name='%s' AND Pool.Name='%s' AND Job.PoolId=Pool.PoolId"
    " AND Job.ClientId=Client.ClientId "
    " ORDER by Job.StartTime";

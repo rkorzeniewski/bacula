@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     19 August 2006
+                     22 August 2006
 
 Major development:      
 Project                     Developer
@@ -33,11 +33,13 @@ Document:
 Priority:
 
 For 1.39:
+- Implement Python event for backing up/restoring a file.
 - Fix wx-console scanning problem with commas in names.
 - Change dbcheck to tell users to use native tools for fixing
   broken databases, and to ensure they have the proper indexes.
 - add udev rules for Bacula devices.
-- Add manpages to the list of directories for make install.
+- Add manpages to the list of directories for make install. Notify
+  Scott
 - If a job terminates, the DIR connection can close before the
   Volume info is updated, leaving the File count wrong.
 - Look at why SIGPIPE during connection can cause seg fault in
@@ -1629,7 +1631,6 @@ Block Position: 0
 - Add ACL error messages in src/filed/acl.c.
 - Make authentication failures single threaded.
 - Make Dir and SD authentication errors single threaded.
-- Install man pages
 - Fix catreq.c digestbuf at line 411 in src/dird/catreq.c 
 - Make base64.c (bin_to_base64) take a buffer length 
   argument to avoid overruns.

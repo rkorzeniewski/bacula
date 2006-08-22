@@ -28,6 +28,7 @@ Fixes for 1.39.20:
 - Many cleanups/enhancements for Win32 systems.
 - Correct improperly formated list command output reported by Dan.
 - Eric fixed RunScripts, which I (Kern) had broken in the last beta.
+- Correct Client migration SQL as pointed out by Marc.
 
 ==========================================
 

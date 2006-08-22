@@ -1,6 +1,9 @@
               Technical notes on version 1.39  
 
 General:
+22Aug06
+kes  Correct missing Client table reference in SQL pointed out by
+     Marc.
 21Aug06
 kes  Fix Win32 build (new entrypoint, start baculafd).
 20Aug06
