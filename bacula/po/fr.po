@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Bacula 1.38\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
 "POT-Creation-Date: 2006-02-26 10:24+0100\n"
-"PO-Revision-Date: 2006-07-12 22:14+0200\n"
+"PO-Revision-Date: 2006-07-15 11:08+0200\n"
 "Last-Translator: Eric Bollengier <eric@eb.homelinux.org>\n"
 "Language-Team: French <bacula-devel-fr@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -3177,7 +3177,7 @@ msgstr "\nJob terminés :\n"
 
 #: src/dird/ua_status.c:671
 msgid " JobId  Level     Files      Bytes     Status   Finished        Name \n"
-msgstr " JobId  Type      Fichiers   Octets    Statut   Finished        Nom\n"
+msgstr " JobId  Type      Fichiers   Octets    Statut   Terminé         Nom\n"
 
 #: src/dird/ua_status.c:672
 msgid "========================================================================\n"
@@ -10485,6 +10485,8 @@ msgid ""
 "3902 Cannot mount Volume on Storage Device %s because:\n"
 "%s"
 msgstr ""
+"3902 Impossible de monté le volume dans le storage device %s car :\n"
+"%s"
 
 #: src/stored/dircmd.c:521 src/stored/reserve.c:611
 #, c-format
@@ -10509,7 +10511,7 @@ msgstr "3901 l'ouverture du device a échoué : ERR=%s\n"
 #: src/stored/dircmd.c:628 src/stored/dircmd.c:652
 #, c-format
 msgid "3001 Device %s is mounted with Volume \"%s\"\n"
-msgstr "3001 Le device %s est monté avec le Volume « %s »\n"
+msgstr "3001 Device %s est monté avec le volume « %s »\n"
 
 #: src/stored/dircmd.c:631 src/stored/dircmd.c:655 src/stored/dircmd.c:670
 #, c-format
@@ -10533,7 +10535,7 @@ msgstr ""
 #: src/stored/dircmd.c:667
 #, c-format
 msgid "3001 Device %s is already mounted with Volume \"%s\"\n"
-msgstr ""
+msgstr "3001 Device %s est déjà monté avec le volume « %s »\n"
 
 #: src/stored/dircmd.c:676
 #, c-format
@@ -10638,7 +10640,7 @@ msgstr "3001 Volume=%s Slot=%d\n"
 #: src/stored/dircmd.c:1001
 #, c-format
 msgid "3931 Device %s is BLOCKED. user unmounted.\n"
-msgstr ""
+msgstr "3931 Device %s est bloqué, démonté par l'utilisateur.\n"
 
 #: src/stored/dircmd.c:1005
 #, c-format
@@ -10649,32 +10651,32 @@ msgstr ""
 #: src/stored/dircmd.c:1009
 #, c-format
 msgid "3933 Device %s is BLOCKED waiting for media.\n"
-msgstr ""
+msgstr "3933 Device %s est bloqué en attente d'un media.\n"
 
 #: src/stored/dircmd.c:1013
 #, c-format
 msgid "3934 Device %s is being initialized.\n"
-msgstr ""
+msgstr "3934 Device %s est en cours d'initialisation.\n"
 
 #: src/stored/dircmd.c:1017
 #, c-format
 msgid "3935 Device %s is blocked labeling a Volume.\n"
-msgstr ""
+msgstr "3935 Device %s est bloqué par une labélisation de volume.\n"
 
 #: src/stored/dircmd.c:1021
 #, c-format
 msgid "3935 Device %s is blocked for unknown reason.\n"
-msgstr ""
+msgstr "3935 Device %s est bloqué pour une raison inconnue.\n"
 
 #: src/stored/dircmd.c:1026
 #, c-format
 msgid "3936 Device %s is busy reading.\n"
-msgstr ""
+msgstr "3936 Device %s est occupé en lecture.\n"
 
 #: src/stored/dircmd.c:1029
 #, c-format
 msgid "3937 Device %s is busy with %d writer(s).\n"
-msgstr ""
+msgstr "3937 Device %s est occupé avec %d flux en écriture.\n"
 
 #: src/stored/spool.c:69
 #, c-format
