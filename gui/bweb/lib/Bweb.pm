@@ -2398,7 +2398,7 @@ INSERT LocationLog (Date, Comment, MediaId, LocationId, NewVolStatus)
        (SELECT VolStatus FROM Media WHERE VolumeName = '$media')
       )
 ";
-	
+	$self->dbh_do($query);
 	$self->debug($query);
     }
 
