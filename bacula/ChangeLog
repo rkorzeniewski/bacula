@@ -2,6 +2,11 @@
 
 General:
 Version 1.39.20 Beta released:    
+22Aug06
+kes  Correct missing Client table reference in SQL pointed out by
+     Marc.
+21Aug06
+kes  Fix Win32 build (new entrypoint, start baculafd).
 20Aug06
 kes  Add -n option to bconsole to turn off conio.
 kes  Print JobIds to be migrated in Job Report.
