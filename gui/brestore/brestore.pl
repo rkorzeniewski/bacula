@@ -120,7 +120,8 @@ sub new
     my @v = DlgResto::get_all_file_versions($dbh, 
 					    "$path/", 
 					    $file,
-					    $client);
+					    $client,
+					    1);
     for my $ver (@v) {
 	my (undef,$fn,$jobid,$fileindex,$mtime,$size,$inchanger,$md5,$volname)
 	    = @{$ver};
@@ -137,6 +138,12 @@ sub new
     
     return $self;
 }
+
+sub on_forward_keypress
+{
+    return 0;
+}
+
 1;
 ################################################################
 package DlgWarn;
@@ -464,12 +471,13 @@ sub new
 	use_ok_bkp_only => 1,	# dont use bad backup
 	bweb     => 'http://localhost/cgi-bin/bweb/bweb.pl', # bweb url
 	glade_file => $glade_file,
+	see_all_versions => 0,  # display all file versions in FileInfo
 	mozilla  => 'mozilla',  # mozilla bin
 	default_restore_job => 'restore', # regular expression to select default
 				   # restore job
 
 	# keywords that are used to fill DlgPref
-	chk_keyword =>  [ qw/use_ok_bkp_only debug/ ],
+	chk_keyword =>  [ qw/use_ok_bkp_only debug see_all_versions/ ],
         entry_keyword => [ qw/username password bweb mozilla
 			  connection_string default_restore_job
 			  bconsole bsr_dest glade_file/],
@@ -1422,7 +1430,8 @@ sub fill_infoview
     my @v = get_all_file_versions($self->{dbh}, 
 				  "$path/", 
 				  $file,
-				  $self->current_client);
+				  $self->current_client,
+				  $self->{pref}->{see_all_versions});
     for my $ver (@v) {
 	my (undef,$fn,$jobid,$fileindex,$mtime,$size,$inchanger,$md5,$volname)
 	    = @{$ver};
