@@ -1,6 +1,6 @@
 <br/>
 <div class='titlediv'>
-  <h1 class='newstitle'> New autochanger </h1>
+  <h1 class='newstitle'><TMPL_UNLESS name>New</TMPL_UNLESS> Autochanger </h1>
 </div>
 <div class='bodydiv'>
    <form name='form1' action="?" method='get'>
