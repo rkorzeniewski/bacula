@@ -23,9 +23,6 @@
   <td> <b> Bytes: </b> <td> <td> <TMPL_VAR bytes></td>
  </tr>
 </table>
-
- </div>
-
 <form name='form1' action='?' method='GET'>
 <input type="image" name='action' value='dsp_cur_job' 
  src='/bweb/update.png' title='refresh'>&nbsp;
@@ -34,7 +31,7 @@
 <input type="image" name='action' value='cancel_job'
         title='Cancel job' src='/bweb/cancel.png'>&nbsp;
 </form>
-
+ </div>
 
 <script type="text/javascript" language="JavaScript">
   bweb_add_refresh();

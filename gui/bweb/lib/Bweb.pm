@@ -1897,6 +1897,7 @@ SELECT  Job.JobId       AS jobid,
       Job LEFT JOIN Pool     ON (Job.PoolId    = Pool.PoolId)
           LEFT JOIN FileSet  ON (Job.FileSetId = FileSet.FileSetId)
  WHERE Client.ClientId=Job.ClientId
+   AND Job.JobStatus != 'R'
  $where
  $limit
 ";
