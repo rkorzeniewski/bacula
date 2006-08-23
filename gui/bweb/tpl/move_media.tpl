@@ -30,7 +30,7 @@
 <input type='text' name='user' value='<TMPL_VAR loginname>' class='formulaire'>
     </td></tr>
     </td></tr><tr><td> Comment: </td><td>
-<textarea name="comment" class='formulaire'> </textarea>
+<textarea name="comment" class='formulaire'></textarea>
     </td></tr>
     </table>
     <label>
