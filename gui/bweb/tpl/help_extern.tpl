@@ -37,8 +37,7 @@ be asked for choose inside the selection in the next screen.
               value='10'> </td>
     </tr>
     <tr>
-        <td><button class='formulaire' name='action' value='compute_extern_media' title='Next'>
-            <img src='/bweb/next.png'>
+        <td><input type="image" name='action' value='compute_extern_media' title='Next' src='/bweb/next.png'>
         </td><td/>
     </tr>
    </table>

@@ -19,7 +19,7 @@
  </div>
 
 
-<script language="JavaScript">
+<script type="text/javascript" language="JavaScript">
 var header = new Array("JobId", "Job Name", "File Set", "Level", "Start Time", 
                   "Job Files", "Job Bytes", "Errors");
 

@@ -287,6 +287,13 @@ sub save
 {
     my ($self) = @_ ;
 
+    if ($self->{ach_list}) {
+	# shortcut for display_begin
+	$self->{achs} = [ map {{ name => $_ }} 
+			  keys %{$self->{ach_list}}
+			];
+    }
+
     unless (open(FP, ">$self->{config_file}"))
     {
 	return $self->error("$self->{config_file} : $!\n" .
@@ -316,9 +323,7 @@ sub edit
 sub view
 {
     my ($self) = @_ ;
-    $self->{achs} = [ map { { name => $_ } } keys %{$self->{ach_list}} ];
     $self->display($self, "config_view.tpl");
-    delete $self->{achs};
 }
 
 sub modify
@@ -1020,6 +1025,7 @@ our %sql_func = (
 		      TO_SEC => " interval '1 second' * ",
 		      SEC_TO_INT => "SEC_TO_INT",
 		      SEC_TO_TIME => '',
+		      MATCH => " ~ ",
 		  },
 		  mysql => {
 		      UNIX_TIMESTAMP => 'UNIX_TIMESTAMP',
@@ -1027,6 +1033,7 @@ our %sql_func = (
 		      SEC_TO_INT => '',
 		      TO_SEC => '',
 		      SEC_TO_TIME => 'SEC_TO_TIME',
+		      MATCH => " REGEXP ",
 		  },
 		 );
 
@@ -1202,14 +1209,23 @@ sub display_clients
 {
     my ($self) = @_;
 
+    my $where='';
+    my $arg = $self->get_form("client", "qre_client");
+
+    if ($arg->{qre_client}) {
+	$where = "WHERE Name $self->{sql}->{MATCH} $arg->{qre_client} ";
+    } elsif ($arg->{client}) {
+	$where = "WHERE Name = '$arg->{client}' ";
+    }
+
     my $query = "
 SELECT Name   AS name,
        Uname  AS uname,
        AutoPrune AS autoprune,
        FileRetention AS fileretention,
        JobRetention  AS jobretention
-
 FROM Client
+$where
 ";
 
     my $all = $self->dbh_selectall_hashref($query, 'name') ;
@@ -1219,10 +1235,10 @@ FROM Client
 	$_->{jobretention} = human_sec($_->{jobretention});
     }
 
-    my $arg = { ID => $cur_id++,
+    my $dsp = { ID => $cur_id++,
 		clients => [ values %$all] };
 
-    $self->display($arg, "client_list.tpl") ;
+    $self->display($dsp, "client_list.tpl") ;
 }
 
 sub get_limit
@@ -1323,7 +1339,7 @@ sub get_form
 		 precmd => 1,
 		 device => 1,
 		 );
-    
+
     foreach my $i (@what) {
 	if (exists $opt_i{$i}) {# integer param
 	    my $value = CGI::param($i) || $opt_i{$i} ;
@@ -1335,6 +1351,7 @@ sub get_form
 	    if ($value =~ /^([\w\d\.-]+)$/) {
 		$ret{$i} = $1;
 	    }
+
 	} elsif ($i =~ /^j(\w+)s$/) { # quote join args
 	    my @value = CGI::param($1) ;
 	    if (@value) {
@@ -1956,10 +1973,13 @@ sub display_media
     my ($where, %elt) = $self->get_param('pool',
 					 'location');
 
-    my $arg = $self->get_form('jmedias');
+    my $arg = $self->get_form('jmedias', 'qre_media');
 
     if ($arg->{jmedias}) {
 	$where = "AND Media.VolumeName IN ($arg->{jmedias}) $where"; 
+    }
+    if ($arg->{qre_media}) {
+	$where = "AND Media.VolumeName $self->{sql}->{MATCH} $arg->{qre_media} $where"; 
     }
 
     my $query="
@@ -2662,6 +2682,7 @@ sub ach_register
     my ($self, $ach) = @_;
 
     $self->{info}->{ach_list}->{$ach->{name}} = $ach;
+
     $self->{info}->save();
     
     return 1;

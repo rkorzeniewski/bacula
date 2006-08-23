@@ -64,7 +64,7 @@ if ($action ne 'apply_conf' and !$bweb->{info}->{dbi}) {
 }
 
 if ($action eq 'begin') {		# main display
-    print "<table border='0'><td valign='top' width='100%'>\n";
+    print "<div style='left=0;'><table border='0'><tr><td valign='top' width='100%'>\n";
     $bweb->display_general(age => $arg->{age});
     $bweb->display_running_jobs(0);
     print "</td><td valign='top'>";
@@ -74,10 +74,10 @@ if ($action eq 'begin') {		# main display
 </div>
 <div class='bodydiv'>
 <a href='?action=job;age=172800;jobtype=B'>
-<img src='bgraph.pl?age=172800;width=450;height=250;graph=job_size;limit=100;action=graph;legend=off' alt='Nothing to display'>
+<img src='bgraph.pl?age=172800;width=600;height=250;graph=job_size;limit=100;action=graph;legend=off' alt='Nothing to display'>
 </a>
 </div>";
-    print "</td></table>";
+    print "</td></tr></table></div>";
     $bweb->display_job(limit => 10); 
 
 } elsif ($action eq 'view_conf') {
@@ -104,9 +104,9 @@ if ($action eq 'begin') {		# main display
 } elsif ($action eq 'location_add') {
     $bweb->location_add();
 
-#} elsif ($action eq 'del_location') {
-#    $bweb->del_location();
-#
+} elsif ($action eq 'location_del') {
+    $bweb->del_location();
+
 } elsif ($action eq 'media') {
     $bweb->display_media();
 
@@ -259,7 +259,7 @@ if ($action eq 'begin') {		# main display
 
 } elsif ($action eq 'job') {
 
-    print "<table border='0'><td valign='top'>\n";
+    print "<div><table border='0'><tr><td valign='top'>\n";
     my $fields = $bweb->get_form(qw/status level db_clients db_filesets
 				    limit age offset qclients qfilesets
 				    jobtype/);
@@ -269,7 +269,7 @@ if ($action eq 'begin') {		# main display
     $bweb->display_job(age => $arg->{age},  # last 7 days
 		       offset => $arg->{offset},
 		       limit => $arg->{limit});
-    print "</td></table>";
+    print "</td></tr></table></div>";
 } elsif ($action eq 'client_stats') {
 
     foreach my $client (CGI::param('client')) {
@@ -389,14 +389,4 @@ TODO :
  o update d'un volume
  o update d'un pool
 
- - Configuration des autochanger a la main dans un hash dumper
-
- {
-   L10 => {
-     name => 'L10',
-     drive_name => ['SDLT-1', 'STLD-2'],
-     login => 'bacula',
-     host  => 'storehost',
-     device => '/dev/changer',
-   },
- }
+ o Configuration des autochanger a la main dans un hash dumper

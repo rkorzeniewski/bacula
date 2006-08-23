@@ -13,15 +13,16 @@
         </div>
         <div class="otherbox">
        <h1>Actions</h1> 
-       <button name='action' value='job' title='Show last job'><img src='/bweb/zoom.png'></button> &nbsp;
-       <button name='action' value='dsp_cur_job' title='Show current job'><img src='/bweb/zoom.png'></button> &nbsp;
-       <button name='action' value='client_stat' title='Client stats'><img src='/bweb/zoom.png'></button> &nbsp;
+       <input type="image" name='action' value='job' title='Show last job'
+        src='/bweb/zoom.png'> &nbsp;
+       <input type="image" name='action' value='dsp_cur_job' title='Show current job' src='/bweb/zoom.png'> &nbsp;
+       <input type="image" name='action' value='client_stat' title='Client stats' src='/bweb/zoom.png'> &nbsp;
         </div>
 -->
 </form>
  </div>
 
-<script language="JavaScript">
+<script type="text/javascript" language="JavaScript">
 var header = new Array("Name", "Nb Jobs", "Nb Bytes", "Nb Files", "Nb Errors");
 
 var data = new Array();

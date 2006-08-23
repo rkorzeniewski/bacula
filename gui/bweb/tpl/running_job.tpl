@@ -6,19 +6,19 @@
    <form action='?' method='GET'>
    <table id='id<TMPL_VAR NAME=ID>'></table>
    <br/>
-<button type='submit' name='action' value='cancel_job'
-        class='formulaire'
-        title='Cancel job'><img src='/bweb/cancel.png'>
-</button>
-<button type='submit' name='action' value='dsp_cur_job' 
-        class='formulaire'
-        title='View job'><img src='/bweb/zoom.png'>
-</button>
+<label>
+<input type="image" type='submit' name='action' value='cancel_job'
+ title='Cancel job' src='/bweb/cancel.png'>
+</label>
+<label>
+<input type='image' name='action' value='dsp_cur_job' 
+ title='View job' src='/bweb/zoom.png'>
+</label>
    </form>
 
  </div>
 
-<script language="JavaScript">
+<script type="text/javascript" language="JavaScript">
 var header = new Array("JobId",
 	               "Client",
 	               "Job Name", 

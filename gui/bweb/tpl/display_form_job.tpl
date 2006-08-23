@@ -1,5 +1,4 @@
 <br/>
-
 <div class="otherboxtitle">
   Filter &nbsp;
 </div>
@@ -78,13 +77,11 @@
 </tr>
 -->
 </table>
-  <button name='action' value='job' class='formulaire'>
-   <img src='/bweb/update.png'>
-  </button>
+  <input type="image" name='action' value='job' src='/bweb/update.png'>
 
-</div>
 </form>
-<script language="JavaScript">
+</div>
+<script type="text/javascript" language="JavaScript">
 
   <TMPL_LOOP qclients>
      document.getElementById('client_' + <TMPL_VAR name>).selected = true;

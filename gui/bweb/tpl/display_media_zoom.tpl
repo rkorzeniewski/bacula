@@ -12,20 +12,20 @@
     <b> Actions </b></br>
    <form action='?' method='get'>
       <input type='hidden' name='media' value='<TMPL_VAR volumename>'>
-<TMPL_IF online>
-      <button class='formulaire' type='submit' name='action' value='extern' title='move out'><img src='/bweb/extern.png'></button>      
+<TMPL_IF online>&nbsp;
+      <input type="image" name='action' value='extern' title='move out' src='/bweb/extern.png'>&nbsp;
 <TMPL_ELSE>
-      <button class='formulaire' type='submit' name='action' value='intern' title='move in'><img src='/bweb/intern.png'></button> 
+      <input type="image" name='action' value='intern' title='move in' src='/bweb/intern.png'>&nbsp;
 </TMPL_IF>
-      <button class='formulaire' type='submit' name='action' value='update_media' title='Update'><img src='/bweb/edit.png'></button> 
-      <button class='formulaire' type='submit' name='action' value='purge' title='Purge'><img src='/bweb/purge.png'></button>
-      <button class='formulaire' type='submit' name='action' value='prune' title='Prune'><img src='/bweb/prune.png'></button>
+      <input type="image" name='action' value='update_media' title='Update' src='/bweb/edit.png'>&nbsp;
+      <input type="image" name='action' value='purge' title='Purge' src='/bweb/purge.png'>&nbsp;
+      <input type="image" name='action' value='prune' title='Prune' src='/bweb/prune.png'>
    </form>
  </div>
 
 
 
-<script language="JavaScript">
+<script type="text/javascript" language="JavaScript">
 
 var header = new Array("Pool","Online","Location","Vol Status", "Vol Bytes", "Expire",
 	               "Retention","Max use duration", "Max jobs" );

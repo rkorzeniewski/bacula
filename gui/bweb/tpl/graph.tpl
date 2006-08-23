@@ -110,7 +110,7 @@
 </table>
  </div>
 
-<script language="JavaScript">
+<script type="text/javascript" language="JavaScript">
 
   <TMPL_LOOP qclients>
      document.getElementById('client_' + <TMPL_VAR name>).selected = true;

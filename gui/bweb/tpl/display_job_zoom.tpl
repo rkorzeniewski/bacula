@@ -6,28 +6,28 @@
  <table><td>
  <form action='?'>
   <input type='hidden' name='jobid' value='<TMPL_VAR jobid>'>
-  <button class='formulaire' name='action' value='delete' title='delete this job'>   Delete<br/>
-     <img src='/bweb/purge.png'>
-  </button>
+  <label>
+  <input type="image" name='action' value='delete' title='delete this job'
+   src='/bweb/purge.png'> Delete
+  </label>
  </form>
  </td><td>
  <form action='?'>
   <TMPL_LOOP volumes>
    <input type='hidden' name='media' value='<TMPL_VAR VolumeName>'>
   </TMPL_LOOP>   
-  <button class='formulaire' name='action' value='media' title='view media'>
-     View media<br/>
-     <img src='/bweb/zoom.png'>
-  </button>
+  <label>
+  <input type="image" name='action' value='media' title='view media' 
+   src='/bweb/zoom.png'>View media
+  </label>
  </form>
  </td>
  <td>
  <form action='?'>
   <input type='hidden' name='client' value='<TMPL_VAR Client>'>
-  <button class='formulaire' name='action' value='job' title='view <TMPL_VAR Client> jobs'>
-     View jobs<br/>
-     <img src='/bweb/zoom.png'>
-  </button>
+  <label>
+  <input type="image" name='action' value='job' title='view <TMPL_VAR Client> jobs' src='/bweb/zoom.png'>View jobs
+  </label>
  </form>
  </td>
  <td>
@@ -35,16 +35,16 @@
   <input type='hidden' name='age' value='2678400'>
   <input type='hidden' name='client' value='<TMPL_VAR Client>'>
   <input type='hidden' name='jobname' value='<TMPL_VAR jobname>'>
-  <button class='formulaire' name='action' value='graph' title='view trends'>
-     View stats<br/>
-     <img src='/bweb/chart.png'>
-  </button>
+  <label>
+  <input type="image" name='action' value='graph' title='view trends'
+   src='/bweb/chart.png'> View stats
+  </label>
  </form>
  </td>
  </table>
 </div>
 
-<script language='JavaScript'>
+<script type="text/javascript" language='JavaScript'>
 var header = new Array("JobId",
 	               "Client",
 	               "Job Name", 

@@ -8,18 +8,14 @@
     <table id='compute'></table>
     <table><tr>
     <td style='align: left;'>
-    <button onclick='javascript:window.history.go(-2);' class='formulaire' title='Back'>
-      <img src='/bweb/prev.png'> &nbsp;
-    </button>
+    <input type="image" onclick='javascript:window.history.go(-2);' title='Back' src='/bweb/prev.png'>
     </td><td style='align: right;'>
-    <button name='action' value='extern' class='formulaire'>
-      <img src='/bweb/extern.png'>
-    </button>
+    <input type="image" name='action' value='extern' src='/bweb/extern.png'>
    </td></tr>
    </form>
  </div>
 
-<script language="JavaScript">
+<script type="text/javascript" language="JavaScript">
 
 var header = new Array("Volume Name","Vol Status",
 	               "Media Type","Pool Name","Last Written", 

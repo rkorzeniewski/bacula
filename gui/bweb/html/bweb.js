@@ -196,3 +196,36 @@ function percent_usage(value, parent)
    return parent;
 }
 
+function search_media()
+{
+ var what = document.getElementById('searchbox').value;
+ if (what) {
+   document.search.action.value='media';
+   document.search.re_media.value=what;
+   document.search.submit();
+ }
+}
+
+function search_client()
+{
+ var what = document.getElementById('searchbox').value;
+ if (what) {
+   document.search.action.value='client';
+   document.search.re_client.value=what;
+   document.search.submit();
+ }
+}
+
+sfHover = function() {
+ var sfEls = document.getElementById("menu").getElementsByTagName("LI");
+ for (var i=0; i<sfEls.length; i++) {
+    sfEls[i].onmouseover=function() {
+       this.className+=" sfhover";
+    }
+    sfEls[i].onmouseout=function() {
+       this.className=this.className.replace(new RegExp(" sfhover\\b"), "");
+    }
+ }
+}
+
+if (window.attachEvent) window.attachEvent("onload", sfHover);

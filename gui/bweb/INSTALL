@@ -25,7 +25,7 @@ Bweb works well with 1.39 release.
  # get a config file
  mkdir -m 750 /etc/bweb
  chown root:www-data /etc/bweb
- echo "template_dir = /usr/share/bweb/tpl" > /etc/bweb/config
+ echo '$VAR1 = { template_dir => "/usr/share/bweb/tpl" };' > /etc/bweb/config
  chown www-data /etc/bweb/config
 
  # copy bweb template file
@@ -74,14 +74,43 @@ Put this in you httpd.conf, and add user with htpasswd
 ################ CONFIGURATION #################################
 
 /etc/bweb/config looks like : (you can edit it inside bweb)
+$VAR1 = bless( {
+  'graph_font' => '/usr/share/fonts/truetype/ttf-bitstream-vera/Vera.ttf',
+  'name' => undef,
+  'config_file' => '/etc/bweb/config',
+  'bconsole' => '/usr/sbin/bconsole -n -c /etc/bacula/bconsole.conf',
+  'ach_list' => {
+     'S1_L80' => bless( {
+         'info' => {
+                     'drive' => 0,
+                     'io' => 0,
+                     'slot' => 0
+                   },
+         'name' => 'S1_L80',
+         'bweb' => undef,
+         'device' => '/dev/changer',
+         'drive' => [],
+         'debug' => 0,
+         'label' => {},
+         'precmd' => 'sudo',
+         'io' => [],
+         'mtxcmd' => '/usr/sbin/mtx',
+         'drive_name' => [
+                           'S1_L80_SDLT0',
+                           'S1_L80_SDLT1'
+                         ],
+         'slot' => []
+       }, 'Bweb::Autochanger' )
+   },
+  'password' => 'xxx',
+  'template_dir' => '/usr/share/bweb/tpl',
+  'dbi' => 'DBI:mysql:database=bacula',
+  'error' => '',
+  'debug' => 0,
+  'user' => 'bacula',
+  'email_media' => 'eric@localhost'
+}, 'Bweb::Config' );
 
-dbi = DBI:Pg:database=bacula;host=192.168.1.2
-user = bacula
-password = test
-template_dir = /usr/share/bweb/tpl
-graph_font = /usr/share/fonts/truetype/msttcorefonts/Arial.ttf
-email_media = eric@localhost
-bconsole = /usr/local/bacula/sbin/bconsole -c /usr/local/bacula/etc/bconsole.conf
 
 ################ BRESTORE ######################################
 
@@ -97,16 +126,8 @@ psql -u bacula bacula < script/bweb-postgresql.sql
 
 ################ BCONSOLE NOTES ################################
 
-You must use bconsole without conio/readline support ! You can have 2 bconsole
-binary at the same time.
-
-./configure <your-other-options> --disable-conio
-cd src/lib
-make
-cd ..
-cd console
-make
-cp bconsole <your_destination>
+You must use bconsole without conio/readline support. For that, use
+bconsole -n option.
 
 ################ BACULA LOG ####################################
 
@@ -150,8 +171,6 @@ To get bweb working, you must follow these rules
  - AutoChanger name must be same as Storage name device in bacula
 
 ################ SUDO CONFIGURATION ############################
-
-*** At this time, autochanger module works only at home :)
 
 If you use sudo, put this on you /etc/sudoers
 

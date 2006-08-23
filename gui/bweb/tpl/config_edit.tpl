@@ -42,8 +42,6 @@
          <td> <input class="formulaire" type='checkbox' name='debug'> 
          </td></tr>
     </table>
-    <button name='action' value='apply_conf' class='formulaire'>
-     <img src='/bweb/save.png'>
-    </button>
+    <input type="image" name='action' value='apply_conf' src='/bweb/save.png'>
    </form>
 </div>

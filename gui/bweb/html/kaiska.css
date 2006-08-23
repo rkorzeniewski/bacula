@@ -151,7 +151,7 @@ div.menusearch {
   text-align: left;
 	padding: 0;
 	width: auto;
-	background: transparent url('/images/search.png') 2px no-repeat;
+	background: transparent url('/bweb/add.png') 2px no-repeat;
 	padding-left:25px;
 }
 div.menusearch p {

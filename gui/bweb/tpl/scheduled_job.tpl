@@ -5,23 +5,18 @@
  <div class='bodydiv'>
     <form action='?' method='GET'>
      <table id='id<TMPL_VAR ID>'></table>
-     <button class='formulaire' name='action' value='run_job_mod'>
-      Run now<br/>
-      <img src='/bweb/R.png' title='Run now'>
-     </button>
-<!-- <button class='formulaire' name='action' value='enable_job'>
-      Enable<br/>
-      <img src='/bweb/inflag1.png' title='Enable'>
-     </button>
--->
-     <button class='formulaire' name='action' value='disable_job'>
-      Disable<br/>
-      <img src='/bweb/inflag0.png' title='Disable'>
-     </button>
+     <label>
+     <input type="image" name='action' value='run_job_mod'
+      src='/bweb/R.png' title='Run now'>  Run now
+     </label>
+     <label>
+      <input type="image" name='action' value='disable_job'
+       src='/bweb/inflag0.png' title='Disable'> Disable
+      </label>
     </form>
  </div>
 
-<script language="JavaScript">
+<script type="text/javascript" language="JavaScript">
 
 var header = new Array("Scheduled",
                        "Level",

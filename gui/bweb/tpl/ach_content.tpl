@@ -18,32 +18,38 @@ Autochanger : <TMPL_VAR NAME=Name> (<TMPL_VAR NAME=nb_drive> Drives
      Tools
     </div>
     <div class='otherbox'>
-<button type='submit' name='action' value='label_barcodes' class='formulaire'
-        title='run label barcodes'>Label<br/><img src='/bweb/label.png'>
-</button>
+<label>
+<input type="image" name='action' value='label_barcodes'
+        title='run label barcodes' src='/bweb/label.png'>Label
+</label>
 <TMPL_IF NAME=nb_io>
-<button type='submit' name='action' value='eject' class='formulaire'
-        title='put selected media on i/o'>Eject<br/>
-  <img src='/bweb/extern.png'>
-</button>
-<button type='submit' name='action' value='clear_io' class='formulaire'
-        title='Clear i/o'>Clear I/O<br/>
-  <img src='/bweb/intern.png'>
-</button>
+<label>
+<input type="image" name='action' value='eject'
+        title='put selected media on i/o' src='/bweb/extern.png'>
+Eject
+</label>
+<label>
+<input type="image" name='action' value='clear_io'
+        title='Clear i/o' src='/bweb/intern.png'>
+Clear I/O
+</label>
 </TMPL_IF>
-<button type='submit' name='action' value='update_slots' class='formulaire'
-        title='run update slots'>Update<br/>
-  <img src='/bweb/update.png'>
-</button>
+<label>
+<input type="image" name='action' value='update_slots'
+        title='run update slots' src='/bweb/update.png'>
+Update
+</label>
 <br/><br/>
-<button type='submit' name='action' value='ach_load' class='formulaire'
-	title='mount drive'>Mount<br/>
-  <img src='/bweb/load.png'>
-</button>
-<button type='submit' name='action' value='ach_unload' class='formulaire'
-	title='umount drive'>Umount<br/>
-  <img src='/bweb/unload.png'>
-</button>
+<label>
+<input type="image" name='action' value='ach_load'
+	title='mount drive' src='/bweb/load.png'>
+Mount
+</label>
+<label>
+<input type="image" name='action' value='ach_unload'
+	title='umount drive' src='/bweb/unload.png'>
+Umount
+</label>
 
    </div>
     <td width='200'/>
@@ -58,7 +64,7 @@ Autochanger : <TMPL_VAR NAME=Name> (<TMPL_VAR NAME=nb_drive> Drives
    </form>
  </div>
 
-<script language="JavaScript">
+<script type="text/javascript" language="JavaScript">
 
 var header = new Array("Real Slot", "Slot", "Volume Name","Vol Bytes","Vol Status",
 	               "Media Type","Pool Name","Last Written", 
@@ -104,9 +110,9 @@ nrsTable.setup(
  odd_cell_color: odd_cell_color, 
  header_color: header_color,
 // page_nav: true,
- padding: 3,
 // rows_per_page: rows_per_page,
 // disable_sorting: new Array(5,6)
+ padding: 3
 }
 );
 
@@ -146,9 +152,9 @@ nrsTable.setup(
  odd_cell_color: odd_cell_color, 
  header_color: header_color,
 // page_nav: true,
- padding: 3,
 // rows_per_page: rows_per_page,
-// disable_sorting: new Array(5,6)
+// disable_sorting: new Array(5,6),
+ padding: 3
 }
 );
 

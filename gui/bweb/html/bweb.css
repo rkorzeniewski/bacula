@@ -4,12 +4,11 @@ a { text-decoration: none;}
                         border: 1px solid #9d9d94;
 }
 
-abutton.formulaire { font-size: 9; height: 48px; width: 80px; background-color: transparent; }
+abutton.formulaire { font-size: 9pt; height: 48px; width: 80px; background-color: transparent; }
 
-button.formulaire { border: 0px; font-size: 9;  background-color: transparent; }
+button.formulaire { border: 0px; font-size: 9pt;  background-color: transparent; }
 
-td.joberr { background-color: red; font-color: white;}
-
+td.joberr { background-color: red; color: white;}
 
 .pSlice, .pSliceFull, .pSliceError, .pSliceAppend, .pSlicePurged, .pSliceRecycle, 
 .pSliceArchive, .pSliceUsed, .pSliceRead_Only, .pSliceDisabled,
@@ -43,3 +42,86 @@ td.joberr { background-color: red; font-color: white;}
  border: solid 1px #009900;
  background-color: #00FF00;
 }
+
+input.button {
+  border: 0px;
+  margin-right: 5px;
+  margin-left: 5px;
+}
+
+#menu, #menu ul {
+	float: left;
+	list-style: none;
+	line-height: 1;
+	background:#eeeae6 ;
+	font-weight: bold;
+	padding: 0;
+	border: solid #999;
+	border-width: 1px 0;
+	margin: 0 0 1em 0;
+        width: 100%;
+	color: #7C6240;
+}
+
+#menu a {
+	display: block;
+	color: #7C6240;
+	text-decoration: none;
+	padding: 0.25em 2em;
+}
+
+#menu a.daddy {
+	background: url(right.gif) center right no-repeat;
+}
+
+#menu li {
+	float: left;
+	padding: 0;
+	width: 10em;
+}
+
+#menu li ul {
+	position: absolute;
+	left: -999em;
+	height: auto;
+	width: 14.4em;
+	font-weight: normal;
+	border-width: 1px;
+	margin: 0;
+}
+
+#logged {
+	padding: 0.25em 2em;
+	float: right;
+	clear: left;
+	text-align: right;
+
+}
+
+#menu li li {
+	padding-right: 1em;
+	width: 13em
+}
+
+#menu li ul a {
+	width: 13em;
+}
+
+#menu li ul ul {
+	margin: -1.75em 0 0 14em;
+}
+
+#menu li:hover ul ul, #menu li:hover ul ul ul, 
+#menu li.sfhover ul ul, #menu li.sfhover ul ul ul {
+	left: -999em;
+}
+
+#menu li:hover ul, #menu li li:hover ul, #menu li li li:hover ul,
+#menu li.sfhover ul, #menu li li.sfhover ul, #menu li li li.sfhover ul {
+	left: auto;
+}
+
+#menu li:hover, #menu li.sfhover {
+	background: #eeeae6;
+}
+

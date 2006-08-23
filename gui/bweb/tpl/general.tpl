@@ -1,4 +1,5 @@
-<script language="JavaScript">
+
+<script type="text/javascript" language="JavaScript">
 bweb_add_refresh();
 </script>
 <div class='titlediv'>

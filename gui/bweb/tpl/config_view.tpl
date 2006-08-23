@@ -23,29 +23,38 @@
      <table border='0'>
     <TMPL_LOOP achs>
       <tr> 
-       <td><input type='radio' name='ach' value='<TMPL_VAR name>'><TMPL_VAR name></td>
+       <td>
+<label>
+ <input type='radio' name='ach' value='<TMPL_VAR name>'><TMPL_VAR name>
+</label>
+       </td>
       </tr>
     </TMPL_LOOP>
     </table>
    <td>
-    <button class='formulaire' type='submit' name='action' value='ach_edit' title='edit'><img src='/bweb/edit.png'></button>
-    <button class='formulaire' type='submit' name='action' value='ach_del' title='delete'><img src='/bweb/remove.png'></button>
-    <button class='formulaire' type='submit' name='action' value='ach_view' title='view'><img src='/bweb/zoom.png'></button>
+  
+   <input type="image" name="action" value="ach_edit" title="edit" src='/bweb/edit.png'> 
+   <input type="image" name='action' value='ach_del' title='delete' src='/bweb/remove.png'>
+   <input type='image' name='action' value='ach_view' title='view' src='/bweb/zoom.png'>
     </form>
     </td>
    </tr>
    </TMPL_IF achs>
+   <tr>
+   <td><hr></td><td></td>
+   </tr>
   </table>
 
   <form action='?' method='GET'>
-   <button name='action' value='edit_conf' class='formulaire'>
-      Edit<br/><img title='Edit' src='/bweb/edit.png'>
-   </button>
-   <button name='action' value='ach_add' class='formulaire'>
-      Add autochanger<br/><img title='Add an autochanger' src='/bweb/add.png'>
-   </button>
+   <label>
+   <input name='action' value='edit_conf' type="image" title='Edit' src='/bweb/edit.png'> Edit
+   </label>
+   <label>
+   <input name='action' value='ach_add' type="image" title='Add an autochanger' src='/bweb/add.png'> Add autochanger
+   </label>
   </form>
 
+  <TMPL_IF error>
   info :  <TMPL_VAR error> </br>
-
+  </TMPL_IF>
 </div>

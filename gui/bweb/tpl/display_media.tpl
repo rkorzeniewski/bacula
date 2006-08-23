@@ -21,18 +21,18 @@ Location : <TMPL_VAR location>
 
    <form action='?action=test' method='get'>
     <table id='id_pool_<TMPL_VAR ID>'></table>
-      <button class='formulaire' type='submit' name='action' value='extern' title='Move out'><img src='/bweb/extern.png'></button>
-      <button class='formulaire' type='submit' name='action' value='intern' title='Move in'><img src='/bweb/intern.png'></button> 
-      <button class='formulaire' type='submit' name='action' value='update_media' title='Update media'><img src='/bweb/edit.png'></button> 
-      <button class='formulaire' type='submit' name='action' value='media_zoom' title='Informations'><img src='/bweb/zoom.png'></button>
+      <input type="image" name='action' value='extern' title='Move out' src='/bweb/extern.png'>&nbsp;
+      <input type="image" name='action' value='intern' title='Move in' src='/bweb/intern.png'>&nbsp;
+      <input type="image" name='action' value='update_media' title='Update media' src='/bweb/edit.png'>&nbsp;
+      <input type="image" name='action' value='media_zoom' title='Informations' src='/bweb/zoom.png'>&nbsp;
 <!--
-      <button class='formulaire' type='submit' name='action' value='purge' title='Purge'><img src='/bweb/purge.png'></button>
+      <input type="image" name='action' value='purge' title='Purge' src='/bweb/purge.png'>&nbsp;
 -->
-      <button class='formulaire' type='submit' name='action' value='prune' title='Prune'><img src='/bweb/prune.png'></button>
+      <input type="image" name='action' value='prune' title='Prune' src='/bweb/prune.png'>
    </form>
  </div>
 
-<script language="JavaScript">
+<script type="text/javascript" language="JavaScript">
 
 var header = new Array("Volume Name","Online","Vol Bytes", "Vol Usage", "Vol Status",
 		       "Pool", "Media Type",

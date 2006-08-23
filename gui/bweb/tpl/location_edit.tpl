@@ -20,8 +20,7 @@
          </td>
      </tr>
     </table>
-    <button name='action' value='location_save' class='formulaire'>
-     <img src='/bweb/save.png'>
-    </button>
+    <input type="image" name='action' value='location_save'
+     src='/bweb/save.png'>
    </form>
 </div>

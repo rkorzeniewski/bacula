@@ -17,16 +17,17 @@
    </td></tr>
    </table>
    <br/>
-   <button class='formulaire' name='action' value='enable_job' title='Enable'>
-      Enable<br/>
-      <img src='/bweb/inflag1.png'>
-   </button>
-   <button class='formulaire' name='action' value='disable_job' title='Disable'>
-      Disable<br/>
-      <img src='/bweb/inflag0.png'>
-   </button>
-   <button name='action' value='run_job_mod' title='Run now' class='formulaire'>
-    Run now <br/><img src='/bweb/R.png'>
-   </button>
+   <label>
+   <input type="image" name='action' value='enable_job' title='Enable'
+    src='/bweb/inflag1.png'> Enable
+   </label>
+   <label>
+   <input type="image" name='action' value='disable_job' title='Disable'
+    src='/bweb/inflag0.png'> Disable
+   </label>
+   <label>
+   <input type="image" name='action' value='run_job_mod' title='Run now'
+    src='/bweb/R.png'> Run now 
+   </label>
   </form>
  </div>

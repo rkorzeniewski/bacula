@@ -1,4 +1,3 @@
-<br/>
  <div class='titlediv'>
   <h1 class='newstitle'> Last Jobs (<TMPL_VAR Filter>)</h1>
  </div>
@@ -6,7 +5,7 @@
     <table id='id<TMPL_VAR ID>'></table>
  </div>
 
-<script language="JavaScript">
+<script type="text/javascript" language="JavaScript">
 <TMPL_IF status>
 document.getElementById('status_<TMPL_VAR status>').checked = true;
 </TMPL_IF>

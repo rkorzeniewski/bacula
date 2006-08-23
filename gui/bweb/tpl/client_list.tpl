@@ -10,16 +10,21 @@
         </div>
         <div class="otherbox">
 <!--        <h1>Actions</h1> -->	
-       <button class='formulaire' name='action' value='job' title='Show last job'><img src='/bweb/zoom.png'>Last jobs</button> &nbsp;
-       <button class='formulaire' name='action' value='dsp_cur_job' title='Show current job'><img src='/bweb/zoom.png'>Current jobs</button> &nbsp;
-       <button class='formulaire' name='action' value='client_status' title='Show client status'><img src='/bweb/zoom.png'>Status</button> &nbsp;
-       <button class='formulaire' name='action' value='client_stats' title='Client stats'><img src='/bweb/chart.png'>Stats</button> &nbsp;
+       <label>
+       <input type="image" name='action' value='job' title='Show last job' src='/bweb/zoom.png'>Last jobs</label> &nbsp;
+       <label>
+       <input type="image" name='action' value='dsp_cur_job' title='Show current job' src='/bweb/zoom.png'>Current jobs</label> &nbsp;
+       <label>
+       <input type="image" name='action' value='client_status' title='Show client status' src='/bweb/zoom.png'>Status</label> &nbsp;
+       <label>
+       <input type="image" name='action' value='client_stats' title='Client stats' src='/bweb/chart.png'>Stats</label> &nbsp;
+       </label>
         </div>
 
 </form>
  </div>
 
-<script language="JavaScript">
+<script type="text/javascript" language="JavaScript">
 var header = new Array("Name", "Select", "Desc", "Auto Prune", "File Retention", "Job Retention");
 
 var data = new Array();

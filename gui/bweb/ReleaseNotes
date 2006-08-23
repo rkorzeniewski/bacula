@@ -1,5 +1,12 @@
           Release Notes for bweb 1.39.20
 
+
+2006/08/23:
+ - Add client/media search box (with regexp)
+ - Add menubar instead of plain menu
+ - Drop all <button> element (work now with IE)
+ - Fix big div
+
 2006/08/22:
  - Add autochanger module (add/del/mod)
  - Add copyright notice

@@ -88,27 +88,28 @@
     </table>
 <table>
  <td>
-  <button class='formulaire' name='action' value='do_update_media'>Apply<br/>
-   <img src='/bweb/apply.png'>
-  </button>
-  <button class='formulaire' name='action' title='Update from pool'
-    value='update_from_pool'>Update<br/>
-   <img src='/bweb/update.png' title='Update from pool'>
-  </button>
+ <label>
+  <input type="image" name='action' value='do_update_media' src='/bweb/apply.png'> Apply
+  </label>
+  <label>
+  <input type="image" name='action' title='Update from pool'
+    value='update_from_pool' src='/bweb/update.png'> Update
+  </label>
  </form>
  </td>
  <td>
   <form action='?' method='GET'>
    <input type='hidden' name='pool' value='<TMPL_VAR poolname>'>
-    <button class='formulaire' name='action' value='media'>View Pool<br/>
-     <img src='/bweb/zoom.png'>
-    </button>
+   <label>
+    <input type="image" name='action' value='media'
+     src='/bweb/zoom.png'>View Pool
+   </label>
   </form>
  </td>
 </table>
 </div>
 
-<script language='JavaScript'>
+<script type="text/javascript" language='JavaScript'>
 var ok=1;
 for (var i=0; ok && i < document.form1.pool.length; ++i) {
    if (document.form1.pool[i].value == '<TMPL_VAR poolname>') {

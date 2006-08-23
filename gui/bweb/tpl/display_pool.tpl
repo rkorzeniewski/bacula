@@ -5,16 +5,14 @@
  <div class="bodydiv">
    <form action='?' method='get'>
     <table id='id<TMPL_VAR ID>'></table>
-    <button class='formulaire' type='submit' name='action' value='media' title='Show content'>
-     <img src='/bweb/zoom.png'>
-    </button>
+    <input type="image" type='submit' name='action' value='media' title='Show content' src='/bweb/zoom.png'>
    </form>
    <br/>
    Tips: To modify pool properties, you have to edit your bacula configuration
    and reload it. After, you have to run "update pool=mypool" on bconsole.
  </div>
 
-<script language="JavaScript">
+<script type="text/javascript" language="JavaScript">
 
 var header = new Array("Name","Recycle","Retention","Use Duration",
 	               "Max job per volume","Max file per volume", 

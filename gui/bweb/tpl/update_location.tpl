@@ -10,13 +10,11 @@
       <option id='loc_<TMPL_VAR NAME=location>' value='<TMPL_VAR NAME=location>'><TMPL_VAR NAME=location></option>
    </TMPL_LOOP>
   </select>
-  <button class='formulaire' type='submit' name='action' value='save_location'>
-     <img src='/bweb/apply.png'>
-    </button>
+  <input type="image" name='action' value='save_location' src='/bweb/apply.png'>
    </form>
  </div>
 
-<script language="JavaScript">
+<script type="text/javascript" language="JavaScript">
 
 var header = new Array("Volume Name", "Location", "Select");
 

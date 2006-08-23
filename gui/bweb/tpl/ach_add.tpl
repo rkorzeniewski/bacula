@@ -40,13 +40,11 @@
     </tr>
     </TMPL_LOOP>
     </table>
-    <button name='action' value='ach_add' class='formulaire'>
-     <img src='/bweb/save.png'>
-    </button>
+    <input type="image" name='action' value='ach_add' src='/bweb/save.png'>
    </form>
 </div>
 
-<script language="JavaScript">
+<script type="text/javascript" language="JavaScript">
   <TMPL_IF name>
   for (var i=0; i < document.form1.ach.length; ++i) {
      if (document.form1.ach[i].value == '<TMPL_VAR name>') {

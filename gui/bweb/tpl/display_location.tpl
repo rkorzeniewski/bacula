@@ -5,23 +5,16 @@
  <div class="bodydiv">
    <form action='?' method='get'>
     <table id='id<TMPL_VAR ID>'></table>
-    <button class='formulaire' type='submit' name='action' value='location_add' title='Add a location'>
-     <img src='/bweb/add.png'>
-    </button>
-    <button class='formulaire' type='submit' name='action' value='location_del' title='Remove a location'>
-     <img src='/bweb/remove.png'>
-    </button>
-    <button class='formulaire' type='submit' name='action' value='location_edit' title='Edit a location'>
-     <img src='/bweb/edit.png'>
-    </button>
+    <input type="image" name='action' value='location_add' title='Add a location' src='/bweb/add.png'>&nbsp;
+    <input type="image" name='action' value='location_del' title='Remove a location' src='/bweb/remove.png'>&nbsp;
+    <input type="image" name='action' value='location_edit' title='Edit a location' src='/bweb/edit.png'>&nbsp;
 
-    <button class='formulaire' type='submit' name='action' value='media' title='Show content'>
-     <img src='/bweb/zoom.png'>
-    </button>
+    <input type="image" name='action' value='media' title='Show content'
+     src='/bweb/zoom.png'>
    </form>
  </div>
 
-<script language="JavaScript">
+<script type="text/javascript" language="JavaScript">
 
 var header = new Array("Name","Enabled", "Cost", "Nb volumes", "Select");
 

@@ -33,13 +33,13 @@
 <textarea name="comment" class='formulaire'> </textarea>
     </td></tr>
     </table>
-    <button class='formulaire' type='submit' name='action' value='change_location'> 
-	<img src='/bweb/apply.png'> Move
-    </button>
+    <label>
+    <input type="image" class='formulaire' type='submit' name='action' value='change_location' src='/bweb/apply.png'> Move
+    </label>
    </form>
  </div>
 
-<script language="JavaScript">
+<script type="text/javascript" language="JavaScript">
 
 var header = new Array("Volume Name", "Location", "Select");
 

@@ -27,18 +27,16 @@
  </div>
 
 <form name='form1' action='?' method='GET'>
-<button name='action' value='dsp_cur_job' class='formulaire'>
-<img src='/bweb/update.png' title='refresh'>
-</button>
+<input type="image" name='action' value='dsp_cur_job'
+ src='/bweb/update.png' title='refresh'>&nbsp;
 <input type='hidden' name='client' value='<TMPL_VAR Client>'>
 <input type='hidden' name='jobid' value='<TMPL_VAR JobId>'>
-<button type='submit' name='action' value='cancel_job' class='formulaire' 
-        title='Cancel job'><img src='/bweb/cancel.png'>
-</button>
+<input type="image" name='action' value='cancel_job'
+        title='Cancel job' src='/bweb/cancel.png'>&nbsp;
 </form>
 
 
-<script language="JavaScript">
+<script type="text/javascript" language="JavaScript">
 bweb_add_refresh();
 </script>
 

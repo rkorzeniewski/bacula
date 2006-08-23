@@ -66,13 +66,14 @@
    </td></tr>
    </table>
    <br/>
-  <button name='action' value='run_job_now' title='Run job' class='formulaire'>
-   <img src='/bweb/R.png'>
-   </button>
+  <label>
+  <input type="image" name='action' value='run_job_now' title='Run job'
+   src='/bweb/R.png'>Run now
+  </label>
   </form>
  </div>
 
-<script language="JavaScript">
+<script type="text/javascript" language="JavaScript">
   <TMPL_IF job>
      ok=1;
      for(var i=0; ok && i < document.form1.job.length; i++) {
