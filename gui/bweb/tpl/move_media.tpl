@@ -34,7 +34,7 @@
     </td></tr>
     </table>
     <label>
-    <input type="image" class='formulaire' type='submit' name='action' value='change_location' src='/bweb/apply.png'> Move
+    <input type="image" type='submit' name='action' value='change_location' src='/bweb/apply.png'> Move
     </label>
    </form>
  </div>
