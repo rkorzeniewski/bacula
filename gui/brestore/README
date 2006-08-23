@@ -73,19 +73,8 @@ install DBD::Pg
 
 ################ BCONSOLE WITHOUT CONIO ########################
 
-For now, we have problems interfacing with bconsole when it's using conio. So
-you'll have to disable it.
-
-./configure <your-other-options> --disable-conio
-cd src/lib
-make
-cd ..
-cd console
-make
-cp bconsole <your_destination>
-
-Of course, you don't need to overwrite your current bconsole. You can put this
-one wherever you like and dedicate it to brestore.
+You must use bconsole without conio support. For that, use
+bconsole -n option.
 
 WARNING : You must be able to execute bconsole and able to read bconsole.conf !
 
