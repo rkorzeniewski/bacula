@@ -6,6 +6,7 @@
  - Add menubar instead of plain menu
  - Drop all <button> element (work now with IE)
  - Fix big div
+ - Add favicon
 
 2006/08/22:
  - Add autochanger module (add/del/mod)

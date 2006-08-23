@@ -2,6 +2,7 @@
 <html>
 <head>
 <title>Bweb - Bacula Web Interface</title>
+<link rel="SHORTCUT ICON" href="/bweb/favicon.ico">
 <script type="text/javascript" language="JavaScript" src="/bweb/natcompare.js"></script>
 <script type="text/javascript" language="JavaScript" src="/bweb/nrs_table.js"></script>
 <script type="text/javascript" language="JavaScript" src="/bweb/bweb.js"></script>
@@ -32,8 +33,7 @@ if (navigator.appName == 'Konqueror') {
   <ul>
      <li><a href="?action=pool">Pools</a> </li>
      <li><a href="?action=location">Locations</a> </li>
-     <li><a href="?action=media">All Medias</a> </li>
-     <li><hr></li>
+     <li><a href="?action=media">All Medias</a><hr></li>
      <li><a href="?action=extern_media">Eject Medias</a> </li>
      <li><a href="?action=intern_media">Load Medias</a> </li>
   </ul>
@@ -51,8 +51,8 @@ if (navigator.appName == 'Konqueror') {
  <li> <a href="?action=view_conf"> Configuration </a> </li>
  <li> <a href="?action=about"> About </a> </li>
  <li style="padding: 0.25em 2em;float: right;">&nbsp;Logged as <TMPL_VAR NAME=loginname> </li>
- <li style="float: right;padding-right: 1em;white-space: nowrap;">
-<input type="image" class="button" title="search media" onclick="search_media();" src="/bweb/tape.png"><input type="image" title="search client" onclick="search_client();" src="/bweb/client.png">&nbsp;<input class='formulaire' id='searchbox' type='text' size='8' value="search..." onclick="this.value='';" title="search media or client"></li>
+ <li style="float: right;white-space: nowrap;">
+<input type="image" class="button" title="search media" onclick="search_media();" src="/bweb/tape.png"><input type="image" title="search client" onclick="search_client();" src="/bweb/client.png">&nbsp;<input class='formulaire' style="margin: 0 2px 0 2px; padding: 0 0 0 0;" id='searchbox' type='text' size='8' value="search..." onclick="this.value='';" title="search media or client"></li>
 </ul>
 
 <form name="search" action="?" method='GET'>

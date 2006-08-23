@@ -34,7 +34,7 @@ Bweb works well with 1.39 release.
 
  # copy bweb graphics elements (bweb elements must reside on /bweb)
  mkdir /var/www/bweb
- install -m 644 -o root -g root  bweb/html/*.{js,png,css,gif} /var/www/bweb
+ install -m 644 -o root -g root  bweb/html/*.{js,png,css,gif,ico} /var/www/bweb
 
  # done !
 

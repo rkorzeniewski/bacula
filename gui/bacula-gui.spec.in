@@ -232,6 +232,7 @@ cp -p %{bweb}-%{version}/html/*.js $RPM_BUILD_ROOT%{docdir}/%{bweb}/
 cp -p %{bweb}-%{version}/html/*.png $RPM_BUILD_ROOT%{docdir}/%{bweb}/
 cp -p %{bweb}-%{version}/html/*.css $RPM_BUILD_ROOT%{docdir}/%{bweb}/
 cp -p %{bweb}-%{version}/html/*.gif $RPM_BUILD_ROOT%{docdir}/%{bweb}/
+cp -p %{bweb}-%{version}/html/*.ico $RPM_BUILD_ROOT%{docdir}/%{bweb}/
 chmod 644 $RPM_BUILD_ROOT%{docdir}/%{bweb}/*
 
 
