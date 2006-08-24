@@ -1,5 +1,7 @@
           Release Notes for bweb 1.39.20
 
+2006/08/24:
+ - Add Location log to media zoom view 
 
 2006/08/23:
  - Add client/media search box (with regexp)
