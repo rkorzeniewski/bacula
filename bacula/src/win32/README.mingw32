@@ -127,6 +127,14 @@ in question is for openssl):
 NOTE: The -C means clobber.  Any local changes to the source code in 
 the depkgs-mingw32/src directory will be lost.  The source will be 
 reextracted from the archive and the current patches will be applied.
+
+If you add a new subroutine or global symbol in the CATS library 
+================================================================= 
+Edit src/win32/cats/bacula_cats.def and update it appropriately. 
+The output of a link will tell you the C++ mangled subroutine name 
+to add, and for global symbols, it is rather easy.  See the file.
+           
+
                                      
 Structure of the new Win32 build environment
 ============================================

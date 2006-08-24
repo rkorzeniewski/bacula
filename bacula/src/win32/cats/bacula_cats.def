@@ -114,7 +114,6 @@ del_File DATA
 ;cnt_File DATA
 cnt_DelCand DATA
 del_Job DATA
-del_MAC DATA
 del_JobMedia DATA
 cnt_JobMedia DATA
 sel_JobMedia DATA

@@ -33,6 +33,10 @@ Document:
 Priority:
 
 For 1.39:
+- Restricted consoles start in the Default catalog even if it
+  is not permitted.
+- Make sure that the restore options don't permit "seeing" other
+  Client's job data.
 - Implement Python event for backing up/restoring a file.
 - Fix wx-console scanning problem with commas in names.
 - Change dbcheck to tell users to use native tools for fixing

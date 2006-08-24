@@ -18,7 +18,7 @@ New Features in 1.39.20:
 - Implement mount command for autochanger
 
 Fixes for 1.39.20:
-- Writing DVDs should work much better thans to Richard Mortimer.
+- Writing DVDs should work much better thanks to Richard Mortimer.
 - Fix bug #462 incorrect error message printed when client script called
   from File= was not found.
 - Fix bug #558 (waiting for feedback) where Bacula needs too much time to

@@ -220,8 +220,8 @@ static int typescmd(UAContext *ua, const char *cmd)
 static int client_backups_handler(void *ctx, int num_field, char **row)
 {
    UAContext *ua = (UAContext *)ctx;
-   bsendmsg(ua, "| %s | %s | %s | %s | %s | %s | %s |\n",
-      row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]);
+   bsendmsg(ua, "| %s | %s | %s | %s | %s | %s | %s | %s |\n",
+      row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8]);
    return 0;
 }
 

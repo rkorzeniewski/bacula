@@ -32,7 +32,7 @@ void update_slots(UAContext *ua);
 
 /* Forward referenced functions */
 static int update_volume(UAContext *ua);
-static int update_pool(UAContext *ua);
+static bool update_pool(UAContext *ua);
 
 /*
  * Update a Pool Record in the database.
@@ -676,7 +676,7 @@ static int update_volume(UAContext *ua)
 /*
  * Update pool record -- pull info from current POOL resource
  */
-static int update_pool(UAContext *ua)
+static bool update_pool(UAContext *ua)
 {
    POOL_DBR  pr;
    int id;
@@ -686,13 +686,13 @@ static int update_pool(UAContext *ua)
 
    pool = get_pool_resource(ua);
    if (!pool) {
-      return 0;
+      return false;
    }
 
    memset(&pr, 0, sizeof(pr));
    bstrncpy(pr.Name, pool->hdr.name, sizeof(pr.Name));
    if (!get_pool_dbr(ua, &pr)) {
-      return 0;
+      return false;
    }
 
    set_pooldbr_from_poolres(&pr, pool, POOL_OP_UPDATE); /* update */
@@ -707,5 +707,5 @@ static int update_pool(UAContext *ua)
    db_list_sql_query(ua->jcr, ua->db, query, prtit, ua, 1, HORZ_LIST);
    free_pool_memory(query);
    bsendmsg(ua, _("Pool DB record updated from resource.\n"));
-   return 1;
+   return true;
 }
