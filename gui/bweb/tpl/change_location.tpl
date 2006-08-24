@@ -16,7 +16,7 @@
 <td></td>
 <td>
 <textarea name='content' class='formulaire' cols='80' rows='32'>
-Dear,
+Hi,
 
 Could you move these media to <TMPL_VAR newlocation>
 Media :
