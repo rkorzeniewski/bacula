@@ -1,4 +1,5 @@
-<br/>
+<table>
+<td valign='top'>
  <div class='titlediv'>
   <h1 class='newstitle'> Media : <TMPL_VAR volumename></h1>
  </div>
@@ -19,12 +20,24 @@
 </TMPL_IF>
       <input type="image" name='action' value='update_media' title='Update' src='/bweb/edit.png'>&nbsp;
       <input type="image" name='action' value='purge' title='Purge' src='/bweb/purge.png'>&nbsp;
-      <input type="image" name='action' value='prune' title='Prune' src='/bweb/prune.png'>
+      <input type="image" name='action' value='prune' title='Prune' src='/bweb/prune.png'>&nbsp;
+<TMPL_IF Locationlog>
+      <a href='#' onclick='document.getElementById("locationlog").style.visibility="visible";'><img title='View location log' src='/bweb/zoom.png'></a>
+</TMPL_IF>
    </form>
  </div>
-
-
-
+</td>
+<td valign='top'style="visibility:hidden;" id='locationlog'>
+ <div class='titlediv'>
+  <h1 class='newstitle'> Location log </h1>
+ </div>
+ <div class='bodydiv'>
+<pre>
+ <TMPL_VAR LocationLog>
+</pre>
+ </div>
+</td>
+</table>
 <script type="text/javascript" language="JavaScript">
 
 var header = new Array("Pool","Online","Location","Vol Status", "Vol Bytes", "Expire",

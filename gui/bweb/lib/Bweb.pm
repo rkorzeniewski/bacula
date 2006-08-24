@@ -2104,7 +2104,23 @@ SELECT DISTINCT Job.JobId AS jobid,
 	    $_->{bytes} = human_size($_->{bytes}) ;
 	}
 
+	$query = "
+SELECT LocationLog.Date    AS date,
+       Location.Location   AS location,
+       LocationLog.Comment AS comment
+ FROM Media,LocationLog INNER JOIN Location ON (LocationLog.LocationId = Location.LocationId)
+ WHERE Media.MediaId = LocationLog.MediaId
+   AND Media.VolumeName = $mq
+";
+
+	my $logtxt = '';
+	my $log = $self->dbh_selectall_arrayref($query) ;
+	if ($log) {
+	    $logtxt = join("\n", map { ($_->[0] . ' ' . $_->[1] . ' ' . $_->[2])} @$log ) ;
+	}
+
 	$self->display({ jobs => [ values %$jobs ],
+			 LocationLog => $logtxt,
 		         %$media },
 		       "display_media_zoom.tpl");
     }
@@ -2977,7 +2993,7 @@ sub run_job_select
     my ($self) = @_;
     $b = new Bconsole(pref => $self->{info});
 
-    my $joblist = [ map { { name => $_ } } split(/\r\n/, $b->send_cmd(".job")) ];
+    my $joblist = [ map { { name => $_ } } $b->list_job() ];
 
     $self->display({ Jobs => $joblist }, "run_job.tpl");
 }
@@ -3017,12 +3033,12 @@ sub run_job_mod
     my $info = $b->send_cmd("show job=\"$job\"");
     my $attr = $self->run_parse_job($info);
     
-    my $jobs   = [ map {{ name => $_ }} split(/\r\n/, $b->send_cmd(".job")) ];
+    my $jobs   = [ map {{ name => $_ }} $b->list_job() ];
 
-    my $pools  = [ map { { name => $_ } } split(/\r\n/, $b->send_cmd(".pool")) ];
-    my $clients = [ map { { name => $_ } } split(/\r\n/, $b->send_cmd(".client")) ];
-    my $filesets= [ map { { name => $_ } } split(/\r\n/, $b->send_cmd(".fileset")) ];
-    my $storages= [ map { { name => $_ } } split(/\r\n/, $b->send_cmd(".storage")) ];
+    my $pools  = [ map { { name => $_ } } $b->list_pool() ];
+    my $clients = [ map { { name => $_ } }$b->list_client()];
+    my $filesets= [ map { { name => $_ } }$b->list_fileset() ];
+    my $storages= [ map { { name => $_ } }$b->list_storage()];
 
     $self->display({
 	jobs     => $jobs,
@@ -3039,7 +3055,7 @@ sub run_job
     my ($self) = @_;
     $b = new Bconsole(pref => $self->{info});
     
-    my $jobs   = [ map {{ name => $_ }} split(/\r\n/, $b->send_cmd(".job")) ];
+    my $jobs   = [ map {{ name => $_ }} $b->list_job() ];
 
     $self->display({
 	jobs     => $jobs,
