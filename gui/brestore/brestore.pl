@@ -996,6 +996,43 @@ sub on_clear_clicked
     @{$self->{restore_list}->{data}} = ();
 }
 
+sub on_estimate_clicked
+{
+    my ($self) = @_;
+
+    my $size_total=0;
+    my $nb_total=0;
+
+    # TODO : If we get here, things could get lenghty ... draw a popup window .
+    my $widget = Gtk2::MessageDialog->new($self->{mainwin}, 
+					  'destroy-with-parent', 
+					  'info', 'close', 
+					  'Computing size...');
+    $widget->show;
+    refresh_screen();
+
+    my $title = "Computing size...\n";
+    my $txt="";
+    foreach my $entry (@{$self->{restore_list}->{data}})
+    {
+	my ($size, $nb) = $self->estimate_restore_size($entry);
+	my $name = unpack('u', $entry->[0]);
+
+	$txt .= "\n<i>$name</i> : $nb file(s)/" . human($size) ;
+	$widget->set_markup($title . $txt);
+
+	$size_total+=$size;
+	$nb_total+=$nb;
+	refresh_screen();
+    }
+    
+    $txt .= "\n\n<b>Total</b> : $nb_total file(s)/" . human($size_total);
+    $widget->set_markup("Size estimation :\n" . $txt);
+    $widget->signal_connect ("response", sub { my $w=shift; $w->destroy();});
+
+    return 0;
+}
+
 use File::Temp qw/tempfile/;
 
 sub on_go_button_clicked 
@@ -1784,6 +1821,11 @@ WHERE File.FileId = listfiles.id";
     return $result;
 }
 
+sub refresh_screen
+{
+    Gtk2->main_iteration while (Gtk2->events_pending);
+}
+
 # For the dirs, because of the db schema, it's inefficient to get the
 # directories contained inside other directories (regexp match or tossing
 # lots of records...). So we load all the tree and cache it.  The data is 
@@ -1824,7 +1866,6 @@ sub cache_dirs
 					  'info', 'none', 
 					  'Populating cache');
     $widget->show;
-    Gtk2->main_iteration while (Gtk2->events_pending);
 	
     # We have to build the tree, as it's the first time it is asked...
     
@@ -1845,6 +1886,8 @@ sub cache_dirs
 	
     print $query,"\n" if $debug;
     my $result = $dbh->selectall_arrayref($query);
+    refresh_screen();
+
     my @jobids;
     foreach my $record (@{$result})
     {
@@ -1865,6 +1908,8 @@ sub cache_dirs
 
     print $query,"\n" if $debug;
     $result = $dbh->selectall_arrayref($query);
+    refresh_screen();
+
     foreach my $record (@{$result})
     {
     	push @dirids,$record->[0];
@@ -1903,6 +1948,8 @@ WHERE File.PathId = Path.PathId
 ";
     print $query,"\n" if $debug;
     $dbh->do($query);
+    refresh_screen();
+
     $query = "
 CREATE TEMPORARY TABLE T2 AS
 SELECT File.Lstat, File.JobId, File.PathId FROM File
@@ -1911,23 +1958,33 @@ WHERE File.FilenameId IN ($dirinclause)
 ";
     print $query,"\n" if $debug;
     $dbh->do($query);
+    refresh_screen();
+
     $query = "
 CREATE INDEX tmp2 ON T2(PathId)
 ";
     print $query,"\n" if $debug;
     $dbh->do($query);
+    refresh_screen();
     
     $query = "
 SELECT T1.Path, T2.Lstat, T2.JobId
 FROM T1 LEFT JOIN T2
 ON (T1.PathId = T2.PathId)
 ";
-
     print $query,"\n" if $debug;
     $result = $dbh->selectall_arrayref($query);
-	
+    refresh_screen();
+    
+    my $rcount=0;
     foreach my $record (@{$result})
     {
+	if ($rcount > 15000) {
+	    refresh_screen();
+	    $rcount=0;
+	} else {
+	    $rcount++;
+	}
     	# Dirty hack to force the string encoding on perl... we don't
     	# want implicit conversions
 	my $path = pack "U0C*", unpack "C*",$record->[0];
@@ -2507,7 +2564,7 @@ WHERE Job.JobId = JobMedia.JobId
 		elsif ($prev_volsessionid != $volsessionid 
 		       or $prev_volsessiontime != $volsessiontime 
 		       or $prev_volumename ne $volumename 
-		       or $prev_volfile != $volfile)
+		       or $prev_volfile ne $volfile)
 		{
 			# We have to create a new section in the bsr...
 			# We print the previous one ... 
@@ -2616,6 +2673,89 @@ sub print_bsr_section
     return $bsr;
 }
 
+# This function estimates the size to be restored for an entry of the restore
+# list
+# In : self,reference to the entry
+# Out : size in bytes, number of files
+sub estimate_restore_size
+{
+    # reminder : restore_list looks like this : 
+    # ($name,$jobid,'file',$curjobids, undef, undef, undef, $dirfileindex);
+    my $self=shift;
+    my ($entry)=@_;
+    my $query;
+    my $dbh = $self->{dbh};
+    if ($entry->[2] eq 'dir')
+    {
+	my $dir = unpack('u', $entry->[0]);
+	my $inclause = $entry->[3]; #curjobids
+	$query = 
+"SELECT Path.Path, File.FilenameId, File.LStat
+  FROM File, Path, Job
+  WHERE Path.PathId = File.PathId
+  AND File.JobId = Job.JobId
+  AND Path.Path LIKE '$dir%'
+  AND File.JobId IN ($inclause)
+  ORDER BY Path.Path, File.FilenameId, Job.StartTime DESC";
+    }
+    else
+    {
+	# It's a file. Great, we allready have most 
+	# of what is needed. Simple and efficient query
+	my $file = unpack('u', $entry->[0]);
+	my @file = split '/',$file;
+	$file = pop @file;
+	my $dir = join('/',@file);
+	
+	my $jobid = $entry->[1];
+	my $fileindex = $entry->[7];
+	my $inclause = $entry->[3]; # curjobids
+	$query = 
+"SELECT Path.Path, File.FilenameId, File.Lstat
+  FROM File, Path
+  WHERE Path.PathId = File.PathId
+  AND Path.Path = '$dir/'
+  AND Filename.Name = '$file'
+  AND File.JobId = $jobid";
+    }
+
+    print $query,"\n" if $debug;
+    my ($path,$nameid,$lstat);
+    my $sth = $dbh->prepare($query);
+    $sth->execute;
+    $sth->bind_columns(\$path,\$nameid,\$lstat);
+    my $old_path='';
+    my $old_nameid='';
+    my $total_size=0;
+    my $total_files=0;
+
+    refresh_screen();
+
+    my $rcount=0;
+    # We fetch all rows
+    while ($sth->fetchrow_arrayref())
+    {
+        # Only the latest version of a file
+        next if ($nameid eq $old_nameid and $path eq $old_path);
+
+	if ($rcount > 15000) {
+	    refresh_screen();
+	    $rcount=0;
+	} else {
+	    $rcount++;
+	}
+
+        # We get the size of this file
+        my $size=lstat_attrib($lstat,'st_size');
+        $total_size += $size;
+        $total_files++;
+        $old_path=$path;
+        $old_nameid=$nameid;
+    }
+    return ($total_size,$total_files);
+}
+
+
 # Get metadata
 {
     my %attrib_name_id = ( 'st_dev' => 0,'st_ino' => 1,'st_mode' => 2,
@@ -2693,6 +2833,16 @@ sub print_bsr_section
 
 	return 0; # We cannot get a good attribute.
 		  # This directory is here for the sake of visibility
+    }
+    
+    sub lstat_attrib
+    {
+        my ($lstat,$attrib)=@_;
+        if (defined $attrib_name_id{$attrib}) 
+        {
+	    my @d = split(' ', $lstat) ; # TODO : cache this
+	    return from_base64($d[$attrib_name_id{$attrib}]);
+	}
     }
 }
 
