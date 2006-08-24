@@ -711,11 +711,11 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
     */
    jcr->fn_printed = false;
    bsnprintf(buf, sizeof(buf),
-"SELECT Path.Path,Filename.Name FROM File,Path,Filename "
-"WHERE File.JobId=%d "
-"AND File.MarkId!=%d AND File.PathId=Path.PathId "
-"AND File.FilenameId=Filename.FilenameId",
-      JobId, jcr->JobId);
+      "SELECT Path.Path,Filename.Name FROM File,Path,Filename "
+      "WHERE File.JobId=%d "
+      "AND File.MarkId!=%d AND File.PathId=Path.PathId "
+      "AND File.FilenameId=Filename.FilenameId",
+         JobId, jcr->JobId);
    /* missing_handler is called for each file found */
    db_sql_query(jcr->db, buf, missing_handler, (void *)jcr);
    if (jcr->fn_printed) {

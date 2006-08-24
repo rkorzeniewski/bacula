@@ -24,13 +24,13 @@
 #include "bacula.h"
 #include "cats.h"
 
-/* For ua_cmds.c */
+/* For ua_update.c */
 const char *list_pool = "SELECT * FROM Pool WHERE PoolId=%s";
 
 /* For ua_dotcmds.c */
 const char *client_backups =
    "SELECT DISTINCT Job.JobId,Client.Name as Client,Level,StartTime,"
-   "JobFiles,JobBytes,VolumeName,MediaType,FileSet"
+   "JobFiles,JobBytes,VolumeName,MediaType,FileSet,Media.Enabled as Enabled"
    " FROM Client,Job,JobMedia,Media,FileSet"
    " WHERE Client.Name='%s'"
    " AND FileSet='%s'"
@@ -47,7 +47,6 @@ const char *del_File     = "DELETE FROM File WHERE JobId=%s";
 const char *upd_Purged   = "UPDATE Job Set PurgedFiles=1 WHERE JobId=%s";
 const char *cnt_DelCand  = "SELECT count(*) FROM DelCandidates";
 const char *del_Job      = "DELETE FROM Job WHERE JobId=%s";
-const char *del_MAC      = "DELETE FROM MAC WHERE JobId=%s";
 const char *del_JobMedia = "DELETE FROM JobMedia WHERE JobId=%s";
 const char *cnt_JobMedia = "SELECT count(*) FROM JobMedia WHERE MediaId=%s";
 const char *sel_JobMedia = "SELECT JobId FROM JobMedia WHERE MediaId=%s";
@@ -261,6 +260,7 @@ const char *uar_last_full =
    "AND Job.StartTime<'%s' "
    "AND Level='F' AND JobStatus='T' AND Type='B' "
    "AND JobMedia.JobId=Job.JobId "
+   "AND Media.Enabled=1 "
    "AND JobMedia.MediaId=Media.MediaId "
    "AND Job.FileSetId=FileSet.FileSetId "
    "AND FileSet.FileSet='%s' "
@@ -273,6 +273,7 @@ const char *uar_full =
    "StartTime,VolumeName,JobMedia.StartFile,VolSessionId,VolSessionTime "
    "FROM temp1,Job,JobMedia,Media WHERE temp1.JobId=Job.JobId "
    "AND Level='F' AND JobStatus='T' AND Type='B' "
+   "AND Media.Enabled=1 "
    "AND JobMedia.JobId=Job.JobId "
    "AND JobMedia.MediaId=Media.MediaId";
 
@@ -285,6 +286,7 @@ const char *uar_dif =
    "WHERE Job.JobTDate>%s AND Job.StartTime<'%s' "
    "AND Job.ClientId=%s "
    "AND JobMedia.JobId=Job.JobId "
+   "AND Media.Enabled=1 "
    "AND JobMedia.MediaId=Media.MediaId "
    "AND Job.Level='D' AND JobStatus='T' AND Type='B' "
    "AND Job.FileSetId=FileSet.FileSetId "
@@ -300,6 +302,7 @@ const char *uar_inc =
    "FROM Job,JobMedia,Media,FileSet "
    "WHERE Job.JobTDate>%s AND Job.StartTime<'%s' "
    "AND Job.ClientId=%s "
+   "AND Media.Enabled=1 "
    "AND JobMedia.JobId=Job.JobId "
    "AND JobMedia.MediaId=Media.MediaId "
    "AND Job.Level='I' AND JobStatus='T' AND Type='B' "

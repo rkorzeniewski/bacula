@@ -1,6 +1,13 @@
               Technical notes on version 1.39  
 
 General:
+24Aug06
+kes  Add Media.Enabled flag to client backups for dotcmds.c
+kes  Enforce Media.Enabled=1 for a current restore to work.
+kes  Require restore case 3 to have sqlquery permission to work.
+kes  Remove obsolete del_MAC sql command.
+
+Version 1.39.20 beta released:
 22Aug06
 kes  Correct missing Client table reference in SQL pointed out by
      Marc.

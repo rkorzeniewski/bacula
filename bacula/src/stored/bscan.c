@@ -844,6 +844,7 @@ static int create_media_record(B_DB *db, MEDIA_DBR *mr, VOLUME_LABEL *vl)
    /* We mark Vols as Archive to keep them from being re-written */
    bstrncpy(mr->VolStatus, "Archive", sizeof(mr->VolStatus));
    mr->VolRetention = 365 * 3600 * 24; /* 1 year */
+   mr->Enabled = 1;
    if (vl->VerNum >= 11) {
       mr->FirstWritten = btime_to_utime(vl->write_btime);
       mr->LabelDate    = btime_to_utime(vl->label_btime);
