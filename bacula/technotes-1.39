@@ -6,6 +6,7 @@ kes  Add Media.Enabled flag to client backups for dotcmds.c
 kes  Enforce Media.Enabled=1 for a current restore to work.
 kes  Require restore case 3 to have sqlquery permission to work.
 kes  Remove obsolete del_MAC sql command.
+kes  Ensure that bscan creates Volumes with Enabled=1.
 
 Version 1.39.20 beta released:
 22Aug06
