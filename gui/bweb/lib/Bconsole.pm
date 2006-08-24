@@ -301,6 +301,12 @@ sub list_client
     return split(/\r\n/, $self->send_cmd(".clients"));
 }
 
+sub list_pool
+{
+    my ($self) = @_;
+    return split(/\r\n/, $self->send_cmd(".pools"));
+}
+
 use Time::ParseDate qw/parsedate/;
 use POSIX qw/strftime/;
 use Data::Dumper;
