@@ -20,6 +20,7 @@
   <property name="type_hint">GDK_WINDOW_TYPE_HINT_NORMAL</property>
   <property name="gravity">GDK_GRAVITY_NORTH_WEST</property>
   <property name="focus_on_map">True</property>
+  <property name="urgency_hint">False</property>
   <signal name="delete_event" handler="on_console_delete_event" last_modification_time="Tue, 16 Mar 2004 12:30:54 GMT"/>
 
   <child>
@@ -39,6 +40,8 @@
 	  <child>
 	    <widget class="GtkMenuBar" id="menubar1">
 	      <property name="visible">True</property>
+	      <property name="pack_direction">GTK_PACK_DIRECTION_LTR</property>
+	      <property name="child_pack_direction">GTK_PACK_DIRECTION_LTR</property>
 
 	      <child>
 		<widget class="GtkMenuItem" id="file1">
@@ -584,6 +587,7 @@
   <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
   <property name="gravity">GDK_GRAVITY_NORTH_WEST</property>
   <property name="focus_on_map">True</property>
+  <property name="urgency_hint">False</property>
   <property name="has_separator">True</property>
 
   <child internal-child="vbox">
@@ -814,6 +818,7 @@
   <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
   <property name="gravity">GDK_GRAVITY_NORTH_WEST</property>
   <property name="focus_on_map">True</property>
+  <property name="urgency_hint">False</property>
   <property name="has_separator">True</property>
 
   <child internal-child="vbox">
@@ -1046,6 +1051,7 @@
   <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
   <property name="gravity">GDK_GRAVITY_NORTH_WEST</property>
   <property name="focus_on_map">True</property>
+  <property name="urgency_hint">False</property>
   <property name="has_separator">True</property>
 
   <child internal-child="vbox">
@@ -1165,7 +1171,7 @@
 
 			  <child>
 			    <widget class="GtkLabel" id="label63">
-			      <property name="width_request">68</property>
+			      <property name="width_request">85</property>
 			      <property name="height_request">16</property>
 			      <property name="visible">True</property>
 			      <property name="label" translatable="yes">Job:</property>
@@ -1192,6 +1198,7 @@
 
 			  <child>
 			    <widget class="GtkCombo" id="combo_job">
+			      <property name="width_request">198</property>
 			      <property name="visible">True</property>
 			      <property name="value_in_list">True</property>
 			      <property name="allow_empty">False</property>
@@ -1394,7 +1401,7 @@
 
 		  <child>
 		    <widget class="GtkLabel" id="label66">
-		      <property name="width_request">68</property>
+		      <property name="width_request">85</property>
 		      <property name="height_request">16</property>
 		      <property name="visible">True</property>
 		      <property name="label" translatable="yes">Client:</property>
@@ -1517,15 +1524,13 @@
 	      <child>
 		<widget class="GtkHBox" id="hbox31">
 		  <property name="border_width">1</property>
-		  <property name="width_request">503</property>
-		  <property name="height_request">26</property>
 		  <property name="visible">True</property>
 		  <property name="homogeneous">False</property>
 		  <property name="spacing">0</property>
 
 		  <child>
 		    <widget class="GtkLabel" id="label68">
-		      <property name="width_request">68</property>
+		      <property name="width_request">85</property>
 		      <property name="height_request">16</property>
 		      <property name="visible">True</property>
 		      <property name="label" translatable="yes">FileSet: </property>
@@ -1608,8 +1613,8 @@
 		    </widget>
 		    <packing>
 		      <property name="padding">0</property>
-		      <property name="expand">False</property>
-		      <property name="fill">False</property>
+		      <property name="expand">True</property>
+		      <property name="fill">True</property>
 		    </packing>
 		  </child>
 
@@ -1642,8 +1647,7 @@
 
 		  <child>
 		    <widget class="GtkLabel" id="label155">
-		      <property name="width_request">52</property>
-		      <property name="height_request">16</property>
+		      <property name="width_request">103</property>
 		      <property name="visible">True</property>
 		      <property name="label" translatable="yes">Priority:</property>
 		      <property name="use_underline">False</property>
@@ -1662,14 +1666,14 @@
 		    </widget>
 		    <packing>
 		      <property name="padding">0</property>
-		      <property name="expand">False</property>
-		      <property name="fill">False</property>
+		      <property name="expand">True</property>
+		      <property name="fill">True</property>
 		    </packing>
 		  </child>
 
 		  <child>
 		    <widget class="GtkSpinButton" id="spinbutton1">
-		      <property name="width_request">81</property>
+		      <property name="width_request">85</property>
 		      <property name="height_request">24</property>
 		      <property name="visible">True</property>
 		      <property name="can_focus">True</property>
@@ -1683,35 +1687,8 @@
 		    </widget>
 		    <packing>
 		      <property name="padding">4</property>
-		      <property name="expand">False</property>
-		      <property name="fill">False</property>
-		    </packing>
-		  </child>
-
-		  <child>
-		    <widget class="GtkLabel" id="label157">
-		      <property name="width_request">100</property>
-		      <property name="height_request">16</property>
-		      <property name="visible">True</property>
-		      <property name="label" translatable="yes"></property>
-		      <property name="use_underline">False</property>
-		      <property name="use_markup">False</property>
-		      <property name="justify">GTK_JUSTIFY_LEFT</property>
-		      <property name="wrap">False</property>
-		      <property name="selectable">False</property>
-		      <property name="xalign">0.5</property>
-		      <property name="yalign">0.5</property>
-		      <property name="xpad">0</property>
-		      <property name="ypad">0</property>
-		      <property name="ellipsize">PANGO_ELLIPSIZE_NONE</property>
-		      <property name="width_chars">-1</property>
-		      <property name="single_line_mode">False</property>
-		      <property name="angle">0</property>
-		    </widget>
-		    <packing>
-		      <property name="padding">0</property>
-		      <property name="expand">False</property>
-		      <property name="fill">False</property>
+		      <property name="expand">True</property>
+		      <property name="fill">True</property>
 		    </packing>
 		  </child>
 		</widget>
@@ -1731,7 +1708,7 @@
 
 		  <child>
 		    <widget class="GtkLabel" id="label70">
-		      <property name="width_request">68</property>
+		      <property name="width_request">85</property>
 		      <property name="height_request">16</property>
 		      <property name="visible">True</property>
 		      <property name="label" translatable="yes">Level:</property>
@@ -1886,7 +1863,7 @@
 
 		  <child>
 		    <widget class="GtkLabel" id="label72">
-		      <property name="width_request">68</property>
+		      <property name="width_request">85</property>
 		      <property name="height_request">16</property>
 		      <property name="visible">True</property>
 		      <property name="label" translatable="yes">Pool:</property>
@@ -2041,7 +2018,7 @@
 
 		  <child>
 		    <widget class="GtkLabel" id="label96">
-		      <property name="width_request">68</property>
+		      <property name="width_request">85</property>
 		      <property name="height_request">16</property>
 		      <property name="visible">True</property>
 		      <property name="label" translatable="yes">Storage:</property>
@@ -2196,7 +2173,7 @@
 
 		  <child>
 		    <widget class="GtkLabel" id="label98">
-		      <property name="width_request">68</property>
+		      <property name="width_request">85</property>
 		      <property name="height_request">16</property>
 		      <property name="visible">True</property>
 		      <property name="label" translatable="yes">Messages:</property>
@@ -2325,7 +2302,7 @@
 
 		  <child>
 		    <widget class="GtkLabel" id="label77">
-		      <property name="width_request">68</property>
+		      <property name="width_request">85</property>
 		      <property name="height_request">16</property>
 		      <property name="visible">True</property>
 		      <property name="label" translatable="yes">Where: </property>
@@ -2417,7 +2394,7 @@
 
 	      <child>
 		<widget class="GtkLabel" id="label100">
-		  <property name="width_request">68</property>
+		  <property name="width_request">85</property>
 		  <property name="height_request">16</property>
 		  <property name="visible">True</property>
 		  <property name="label" translatable="yes">When:</property>
@@ -2502,7 +2479,7 @@
 
 	      <child>
 		<widget class="GtkLabel" id="label153">
-		  <property name="width_request">68</property>
+		  <property name="width_request">85</property>
 		  <property name="height_request">16</property>
 		  <property name="visible">True</property>
 		  <property name="label" translatable="yes">Bootstrap:</property>
@@ -2633,6 +2610,7 @@
   <property name="type_hint">GDK_WINDOW_TYPE_HINT_NORMAL</property>
   <property name="gravity">GDK_GRAVITY_NORTH_WEST</property>
   <property name="focus_on_map">True</property>
+  <property name="urgency_hint">False</property>
   <signal name="delete_event" handler="on_restore_files_delete_event" last_modification_time="Tue, 16 Mar 2004 11:41:52 GMT"/>
 
   <child>
@@ -2651,6 +2629,8 @@
 	  <child>
 	    <widget class="GtkMenuBar" id="menubar2">
 	      <property name="visible">True</property>
+	      <property name="pack_direction">GTK_PACK_DIRECTION_LTR</property>
+	      <property name="child_pack_direction">GTK_PACK_DIRECTION_LTR</property>
 
 	      <child>
 		<widget class="GtkImageMenuItem" id="file2">
@@ -3156,6 +3136,7 @@
   <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
   <property name="gravity">GDK_GRAVITY_NORTH_WEST</property>
   <property name="focus_on_map">True</property>
+  <property name="urgency_hint">False</property>
   <property name="has_separator">True</property>
 
   <child internal-child="vbox">
@@ -3681,6 +3662,7 @@
   <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
   <property name="gravity">GDK_GRAVITY_NORTH_WEST</property>
   <property name="focus_on_map">True</property>
+  <property name="urgency_hint">False</property>
   <property name="has_separator">True</property>
 
   <child internal-child="vbox">
@@ -4702,6 +4684,7 @@
   <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
   <property name="gravity">GDK_GRAVITY_NORTH_WEST</property>
   <property name="focus_on_map">True</property>
+  <property name="urgency_hint">False</property>
   <property name="has_separator">True</property>
 
   <child internal-child="vbox">
