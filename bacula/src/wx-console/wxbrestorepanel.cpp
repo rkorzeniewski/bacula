@@ -7,7 +7,7 @@
  *    Version $Id$
  */
 /*
-   Copyright (C) 2004-2005 Kern Sibbald
+   Copyright (C) 2004-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -50,22 +50,15 @@ Select parameter to modify (1-11):
        */
 
 #include "bacula.h"
-
 #include "wxbrestorepanel.h"
-
 #include "wxbmainframe.h"
-
 #include "csprint.h"
-
 #include <wx/choice.h>
 #include <wx/datetime.h>
-
 #include <wx/timer.h>
-
 #include "unmarked.xpm"
 #include "marked.xpm"
 #include "partmarked.xpm"
-
 #include <wx/listimpl.cpp>
 
 /* A macro named Yield is defined under MinGW */
@@ -196,7 +189,8 @@ END_EVENT_TABLE()
 /*
  *  wxbRestorePanel constructor
  */
-wxbRestorePanel::wxbRestorePanel(wxWindow* parent): wxbPanel(parent) {
+wxbRestorePanel::wxbRestorePanel(wxWindow* parent): wxbPanel(parent) 
+{
    //pendingEvents = new wxbEventList(); //EVTQUEUE
    //processing = false; //EVTQUEUE
    SetWorking(false);
@@ -374,7 +368,8 @@ wxbRestorePanel::wxbRestorePanel(wxWindow* parent): wxbPanel(parent) {
 /*
  *  wxbRestorePanel destructor
  */
-wxbRestorePanel::~wxbRestorePanel() {
+wxbRestorePanel::~wxbRestorePanel() 
+{
    delete imagelist;
 }
 
@@ -382,17 +377,18 @@ wxbRestorePanel::~wxbRestorePanel() {
    wxbPanel overloadings
   ----------------------------------------------------------------------------*/
 
-wxString wxbRestorePanel::GetTitle() {
+wxString wxbRestorePanel::GetTitle() 
+{
    return _("Restore");
 }
 
-void wxbRestorePanel::EnablePanel(bool enable) {
+void wxbRestorePanel::EnablePanel(bool enable) 
+{
    if (enable) {
       if (status == disabled) {
          SetStatus(activable);
       }
-   }
-   else {
+   } else {
       SetStatus(disabled);
    }
 }
@@ -402,7 +398,8 @@ void wxbRestorePanel::EnablePanel(bool enable) {
   ----------------------------------------------------------------------------*/
 
 /* The main button has been clicked */
-void wxbRestorePanel::CmdStart() {
+void wxbRestorePanel::CmdStart() 
+{
    unsigned int i;
    if (status == activable) {
       wxbMainFrame::GetInstance()->SetStatusText(_("Getting parameters list."));
@@ -1399,7 +1396,8 @@ void wxbRestorePanel::CmdMark(wxTreeItemId treeitem, long* listitems, int listsi
   ----------------------------------------------------------------------------*/
 
 /* Run a dir command, and waits until result is fully received. */
-void wxbRestorePanel::UpdateTreeItem(wxTreeItemId item, bool updatelist, bool recurse) {
+void wxbRestorePanel::UpdateTreeItem(wxTreeItemId item, bool updatelist, bool recurse)
+{
 //   this->updatelist = updatelist;
    wxbDataTokenizer* dt;
 
@@ -1491,7 +1489,8 @@ void wxbRestorePanel::UpdateTreeItem(wxTreeItemId item, bool updatelist, bool re
 }
 
 /* Parse .dir command results, returns true if the result has been stored in entry, false otherwise. */
-int wxbRestorePanel::ParseList(wxString line, wxbDirEntry* entry) {
+int wxbRestorePanel::ParseList(wxString line, wxbDirEntry* entry) 
+{
    /* See ls_output in dird/ua_tree.c */
    //-rw-r-----,1,root,root,41575,2005-10-18 18:21:36, ,/usr/var/bacula/working/bacula.sql
 
@@ -1536,7 +1535,7 @@ int wxbRestorePanel::ParseList(wxString line, wxbDirEntry* entry) {
    
    if (!tkz.HasMoreTokens())
       return false;
-   entry->fullname = tkz.GetNextToken();
+   entry->fullname = tkz.GetString();
    
    /* Get only the filename (cut path by finding the last '/') */
    if (entry->fullname.GetChar(entry->fullname.Length()-1) == '/') {
@@ -1552,7 +1551,8 @@ int wxbRestorePanel::ParseList(wxString line, wxbDirEntry* entry) {
 }
 
 /* Sets a list item state, and update its parents and children if it is a directory */
-void wxbRestorePanel::SetListItemState(long listitem, int newstate) {
+void wxbRestorePanel::SetListItemState(long listitem, int newstate) 
+{
    wxbTreeItemData* itemdata = (wxbTreeItemData*)list->GetItemData(listitem);
    
    wxTreeItemId treeitem;

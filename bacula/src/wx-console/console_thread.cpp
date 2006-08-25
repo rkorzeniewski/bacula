@@ -7,7 +7,7 @@
  *    Version $Id$
  */
 /*
-   Copyright (C) 2004-2005 Kern Sibbald
+   Copyright (C) 2004-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -143,7 +143,8 @@ void console_thread::SetWorkingDirectory(wxString w_dir) {
    }
 }
 
-void console_thread::InitLib() {
+void console_thread::InitLib() 
+{
    if (WSA_Init() != 0) {
       csprint(_("Error while initializing windows sockets...\n"));
       inited = false;
@@ -157,7 +158,8 @@ void console_thread::InitLib() {
    inited = true;
 }
 
-void console_thread::FreeLib() {
+void console_thread::FreeLib() 
+{
    if (inited) {
       if (WSACleanup() != 0) {
          csprint(_("Error while cleaning up windows sockets...\n"));
@@ -194,7 +196,8 @@ static void scan_err(const char *file, int line, LEX *lc, const char *msg, ...)
    errmsg << err; 
 }
 
-wxString console_thread::LoadConfig(wxString configfile) {
+wxString console_thread::LoadConfig(wxString configfile) 
+{
    if (!inited) {
       InitLib();
       if (!inited)
@@ -203,7 +206,7 @@ wxString console_thread::LoadConfig(wxString configfile) {
    
    free_config_resources();
    
-   MSGS* msgs = (MSGS *)malloc(sizeof(MSGS));
+   MSGS* msgs = (MSGS *)bmalloc(sizeof(MSGS));
    memset(msgs, 0, sizeof(MSGS));
    for (int i=1; i<=M_MAX; i++) {
 #ifndef HAVE_WIN32

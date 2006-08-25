@@ -7,7 +7,7 @@
  *    Version $Id$
  */
 /*
-   Copyright (C) 2004-2005 Kern Sibbald
+   Copyright (C) 2004-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -22,7 +22,6 @@
  */
 
 #include "bacula.h"
-
 #include "wxbhistorytextctrl.h"
 
 BEGIN_EVENT_TABLE(wxbHistoryTextCtrl, wxTextCtrl)

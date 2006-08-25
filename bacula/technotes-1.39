@@ -1,6 +1,14 @@
               Technical notes on version 1.39  
 
 General:
+25Aug06
+kes  wx-console crashes because of differences between Bacula and wxWidgets
+     malloc()/free().  Tweek wx-console to use bmalloc()/bfree() for Bacula
+     calls.     
+kes  correct improper indenting in wx-console/console_conf.c
+kes  update wx-console header copyrights
+kes  Fix bug #658 where wx-console mangles file/directory names containing
+     commas.
 24Aug06
 kes  Add Media.Enabled flag to client backups for dotcmds.c
 kes  Enforce Media.Enabled=1 for a current restore to work.

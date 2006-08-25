@@ -42,9 +42,10 @@ char     *bstrncat               (char *dest, POOL_MEM &src, int maxlen);
 bool      bstrcmp                (const char *s1, const char *s2);
 int       cstrlen                (const char *str);
 void     *b_malloc               (const char *file, int line, size_t size);
-#ifndef DEBUG
+#ifndef bmalloc
 void     *bmalloc                (size_t size);
 #endif
+void      bfree                  (void *buf);
 void     *brealloc               (void *buf, size_t size);
 void     *bcalloc                (size_t size1, size_t size2);
 int       bsnprintf              (char *str, int32_t size, const char *format, ...);

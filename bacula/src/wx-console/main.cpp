@@ -38,10 +38,9 @@
 #include <wx/wxprec.h>
 #include <wx/config.h>
 #include <wx/intl.h>
-
 #include "wxbmainframe.h"
-
 #include "csprint.h"
+
 
 /* Dummy functions */
 int generate_daemon_event(JCR *jcr, const char *event) { return 1; }

@@ -37,10 +37,12 @@
 /* _("...") macro returns a wxChar*, so if we need a char*, we need to convert it with:
  * wxString(_("...")).mb_str(*wxConvCurrent) */
 
-#include "bacula.h"
+#include "bacula.h" 
 #include "console_conf.h"
 
 #include <wx/intl.h>
+
+
 
 /* Define the first and last resource ID record
  * types. Note, these should be unique for each
@@ -132,16 +134,16 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       recurse = 0;
    }
    switch (type) {
-      case R_CONSOLE:
-         printf(wxString(_("Console: name=%s rcfile=%s histfile=%s\n")).mb_str(*wxConvCurrent), reshdr->name,
-      res->res_cons.rc_file, res->res_cons.hist_file);
-    break;
-      case R_DIRECTOR:
-         printf(wxString(_("Director: name=%s address=%s DIRport=%d\n")).mb_str(*wxConvCurrent), reshdr->name,
-       res->res_dir.address, res->res_dir.DIRport);
-    break;
-      default:
-         printf(wxString(_("Unknown resource type %d\n")).mb_str(*wxConvCurrent), type);
+   case R_CONSOLE:
+      printf(wxString(_("Console: name=%s rcfile=%s histfile=%s\n")).mb_str(*wxConvCurrent), reshdr->name,
+             res->res_cons.rc_file, res->res_cons.hist_file);
+      break;
+   case R_DIRECTOR:
+      printf(wxString(_("Director: name=%s address=%s DIRport=%d\n")).mb_str(*wxConvCurrent), reshdr->name,
+             res->res_dir.address, res->res_dir.DIRport);
+      break;
+   default:
+      printf(wxString(_("Unknown resource type %d\n")).mb_str(*wxConvCurrent), type);
    }
    if (recurse && res->res_dir.hdr.next) {
       dump_resource(type, res->res_dir.hdr.next, sendit, sock);
@@ -166,60 +168,60 @@ void free_resource(RES *sres, int type)
    /* common stuff -- free the resource name */
    nres = (RES *)res->res_dir.hdr.next;
    if (res->res_dir.hdr.name) {
-      free(res->res_dir.hdr.name);
+      bfree(res->res_dir.hdr.name);
    }
    if (res->res_dir.hdr.desc) {
-      free(res->res_dir.hdr.desc);
+      bfree(res->res_dir.hdr.desc);
    }
 
    switch (type) {
    case R_CONSOLE:
       if (res->res_cons.rc_file) {
-         free(res->res_cons.rc_file);
+         bfree(res->res_cons.rc_file);
       }
       if (res->res_cons.hist_file) {
-         free(res->res_cons.hist_file);
+         bfree(res->res_cons.hist_file);
       }
       if (res->res_cons.tls_ctx) { 
          free_tls_context(res->res_cons.tls_ctx);
       }
       if (res->res_cons.tls_ca_certfile) {
-         free(res->res_cons.tls_ca_certfile);
+         bfree(res->res_cons.tls_ca_certfile);
       }
       if (res->res_cons.tls_ca_certdir) {
-         free(res->res_cons.tls_ca_certdir);
+         bfree(res->res_cons.tls_ca_certdir);
       }
       if (res->res_cons.tls_certfile) {
-         free(res->res_cons.tls_certfile);
+         bfree(res->res_cons.tls_certfile);
       }
       if (res->res_cons.tls_keyfile) {
-         free(res->res_cons.tls_keyfile);
+         bfree(res->res_cons.tls_keyfile);
       }
    case R_DIRECTOR:
       if (res->res_dir.address) {
-         free(res->res_dir.address);
+         bfree(res->res_dir.address);
       }
       if (res->res_dir.tls_ctx) { 
          free_tls_context(res->res_dir.tls_ctx);
       }
       if (res->res_dir.tls_ca_certfile) {
-         free(res->res_dir.tls_ca_certfile);
+         bfree(res->res_dir.tls_ca_certfile);
       }
       if (res->res_dir.tls_ca_certdir) {
-         free(res->res_dir.tls_ca_certdir);
+         bfree(res->res_dir.tls_ca_certdir);
       }
       if (res->res_dir.tls_certfile) {
-         free(res->res_dir.tls_certfile);
+         bfree(res->res_dir.tls_certfile);
       }
       if (res->res_dir.tls_keyfile) {
-         free(res->res_dir.tls_keyfile);
+         bfree(res->res_dir.tls_keyfile);
       }
       break;
    default:
          printf(wxString(_("Unknown resource type %d\n")).mb_str(*wxConvCurrent), type);
       }
    /* Common stuff again -- free the resource, recurse to next one */
-   free(res);
+   bfree(res);
    if (nres) {
       free_resource(nres, type);
    }
@@ -255,62 +257,62 @@ void save_resource(int type, RES_ITEM *items, int pass)
     */
    if (pass == 2) {
       switch (type) {
-    /* Resources not containing a resource */
-    case R_CONSOLE:
-    case R_DIRECTOR:
-       break;
+      /* Resources not containing a resource */
+      case R_CONSOLE:
+      case R_DIRECTOR:
+         break;
 
-    default:
-            Emsg1(M_ERROR, 0, wxString(_("Unknown resource type %d\n")).mb_str(*wxConvCurrent), type);
-       error = 1;
-       break;
+      default:
+         Emsg1(M_ERROR, 0, wxString(_("Unknown resource type %d\n")).mb_str(*wxConvCurrent), type);
+         error = 1;
+         break;
       }
       /* Note, the resoure name was already saved during pass 1,
        * so here, we can just release it.
        */
       if (res_all.res_dir.hdr.name) {
-    free(res_all.res_dir.hdr.name);
-    res_all.res_dir.hdr.name = NULL;
+         bfree(res_all.res_dir.hdr.name);
+         res_all.res_dir.hdr.name = NULL;
       }
       if (res_all.res_dir.hdr.desc) {
-    free(res_all.res_dir.hdr.desc);
-    res_all.res_dir.hdr.desc = NULL;
+         bfree(res_all.res_dir.hdr.desc);
+         res_all.res_dir.hdr.desc = NULL;
       }
       return;
    }
 
    /* The following code is only executed during pass 1 */
    switch (type) {
-      case R_CONSOLE:
-    size = sizeof(CONRES);
-    break;
-      case R_DIRECTOR:
-    size = sizeof(DIRRES);
-    break;
-      default:
-         printf(wxString(_("Unknown resource type %d\n")).mb_str(*wxConvCurrent), type);
-    error = 1;
-    size = 1;
-    break;
+   case R_CONSOLE:
+      size = sizeof(CONRES);
+      break;
+   case R_DIRECTOR:
+      size = sizeof(DIRRES);
+      break;
+   default:
+      printf(wxString(_("Unknown resource type %d\n")).mb_str(*wxConvCurrent), type);
+      error = 1;
+      size = 1;
+      break;
    }
    /* Common */
    if (!error) {
-      res = (URES *)malloc(size);
+      res = (URES *)bmalloc(size);
       memcpy(res, &res_all, size);
       if (!res_head[rindex]) {
-    res_head[rindex] = (RES *)res; /* store first entry */
+         res_head[rindex] = (RES *)res; /* store first entry */
       } else {
-    RES *next;
-    for (next=res_head[rindex]; next->next; next=next->next) {
-       if (strcmp(next->name, res->res_dir.hdr.name) == 0) {
-          Emsg2(M_ERROR_TERM, 0,
-                  wxString(_("Attempt to define second %s resource named \"%s\" is not permitted.\n")).mb_str(*wxConvCurrent),
-        resources[rindex].name, res->res_dir.hdr.name);
-       }
-    }
-    next->next = (RES *)res;
-         Dmsg2(90, "Inserting %s res: %s\n", res_to_str(type),
-          res->res_dir.hdr.name);
+         RES *next;
+         for (next=res_head[rindex]; next->next; next=next->next) {
+            if (strcmp(next->name, res->res_dir.hdr.name) == 0) {
+               Emsg2(M_ERROR_TERM, 0,
+                   wxString(_("Attempt to define second %s resource named \"%s\" is not permitted.\n")).mb_str(*wxConvCurrent),
+                   resources[rindex].name, res->res_dir.hdr.name);
+            }
+         }
+         next->next = (RES *)res;
+            Dmsg2(90, "Inserting %s res: %s\n", res_to_str(type),
+                  res->res_dir.hdr.name);
       }
    }
 }

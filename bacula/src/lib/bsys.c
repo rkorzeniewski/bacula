@@ -176,12 +176,16 @@ int cstrlen(const char *str)
 
 
 
-#ifndef DEBUG
+#ifndef bmalloc
 void *bmalloc(size_t size)
 {
   void *buf;
 
+#ifdef SMARTALLOC
+  buf = sm_malloc(file, line, size);
+#else
   buf = malloc(size);
+#endif
   if (buf == NULL) {
      berrno be;
      Emsg1(M_ABORT, 0, _("Out of memory: ERR=%s\n"), be.strerror());
@@ -205,6 +209,18 @@ void *b_malloc(const char *file, int line, size_t size)
   }
   return buf;
 }
+
+
+void bfree(void *buf)
+{
+#ifdef SMARTALLOC
+  sm_free(__FILE__, __LINE__, buf);
+#else
+  free(buf);
+#endif
+}
+
+
 
 
 void *brealloc (void *buf, size_t size)
