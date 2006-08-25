@@ -1007,9 +1007,6 @@ use base q/Bweb::Gui/;
 use DBI;
 use POSIX qw/strftime/;
 
-our $bpath="/usr/local/bacula";
-our $bconsole="$bpath/sbin/bconsole -c $bpath/etc/bconsole.conf";
-
 our $cur_id=0;
 
 =head1 VARIABLE
@@ -1019,23 +1016,31 @@ our $cur_id=0;
 =cut
 
 our %sql_func = ( 
-		  Pg => { 
-		      UNIX_TIMESTAMP => '',
-		      FROM_UNIXTIME => '',
-		      TO_SEC => " interval '1 second' * ",
-		      SEC_TO_INT => "SEC_TO_INT",
-		      SEC_TO_TIME => '',
-		      MATCH => " ~ ",
-		  },
-		  mysql => {
-		      UNIX_TIMESTAMP => 'UNIX_TIMESTAMP',
-		      FROM_UNIXTIME => 'FROM_UNIXTIME',
-		      SEC_TO_INT => '',
-		      TO_SEC => '',
-		      SEC_TO_TIME => 'SEC_TO_TIME',
-		      MATCH => " REGEXP ",
-		  },
-		 );
+	  Pg => { 
+	      UNIX_TIMESTAMP => '',
+	      FROM_UNIXTIME => '',
+	      TO_SEC => " interval '1 second' * ",
+	      SEC_TO_INT => "SEC_TO_INT",
+	      SEC_TO_TIME => '',
+	      MATCH => " ~ ",
+	      STARTTIME_DAY  => " date_trunc('day', Job.StartTime) ",
+	      STARTTIME_HOUR => " date_trunc('hour', Job.StartTime) ",
+	      STARTTIME_PHOUR=> " date_part('hour', Job.StartTime) ",
+	      STARTTIME_PDAY => " date_part('day', Job.StartTime) ",
+	  },
+	  mysql => {
+	      UNIX_TIMESTAMP => 'UNIX_TIMESTAMP',
+	      FROM_UNIXTIME => 'FROM_UNIXTIME',
+	      SEC_TO_INT => '',
+	      TO_SEC => '',
+	      SEC_TO_TIME => 'SEC_TO_TIME',
+	      MATCH => " REGEXP ",
+	      STARTTIME_DAY  => " DATE_FORMAT(StartTime, '%Y-%m-%d') ",
+	      STARTTIME_HOUR => " DATE_FORMAT(StartTime, '%Y-%m-%d %H') ",
+	      STARTTIME_PHOUR=> " DATE_FORMAT(StartTime, '%H') ",
+	      STARTTIME_PDAY => " DATE_FORMAT(StartTime, '%d') ",
+	  },
+	 );
 
 sub dbh_selectall_arrayref
 {
@@ -1260,6 +1265,10 @@ sub get_limit
 	$label = "last " . human_sec($arg{age});
     }
 
+    if ($arg{groupby}) {
+	$limit .= " GROUP BY $arg{groupby} ";
+    }
+
     if ($arg{order}) {
 	$limit .= " ORDER BY $arg{order} ";
     }
@@ -1333,6 +1342,9 @@ sub get_form
 		 media  => 1,
                  ach    => 1,
                  jobtype=> 1,
+		 graph  => 1,
+                 gtype  => 1,
+                 type   => 1,
 		 );
     my %opt_p = (		# option with path
 		 mtxcmd => 1,
@@ -1469,7 +1481,7 @@ sub display_graph
 {
     my ($self) = @_;
 
-    my $fields = $self->get_form(qw/age level status clients filesets 
+    my $fields = $self->get_form(qw/age level status clients filesets graph gtype type
 				   db_clients limit db_filesets width height
 				   qclients qfilesets qjobnames db_jobnames/);
 				
@@ -1478,16 +1490,6 @@ sub display_graph
 		       -base => 0,
 		       -query => 1);
     $url =~ s/^.+?\?//;	# http://path/to/bweb.pl?arg => arg
-
-    my $type = CGI::param('graph') || '';
-    if ($type =~ /^(\w+)$/) {
-	$fields->{graph} = $1;
-    }
-
-    my $gtype = CGI::param('gtype') || '';
-    if ($gtype =~ /^(\w+)$/) {
-	$fields->{gtype} = $1;
-    } 
 
 # this organisation is to keep user choice between 2 click
 # TODO : fileset and client selection doesn't work
