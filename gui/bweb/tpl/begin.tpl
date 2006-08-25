@@ -24,7 +24,7 @@ if (navigator.appName == 'Konqueror') {
  <li><a href="?action=run_job">Jobs</a>
    <ul> 
      <li><a href="?action=run_job">Defined Jobs</a>
-     <li><a href="?action=job">Old Jobs</a> </li>
+     <li><a href="?action=job">Last Jobs</a> </li>
      <li><a href="?action=running">Running Jobs</a>
      <li><a href="?action=next_job">Next Jobs</a> </li>
      <li><a href="?action=restore" title="Launch brestore">Restore</a> </li>
