@@ -2,6 +2,7 @@
 
 General:
 25Aug06
+kes  Install man pages with 'make install'
 kes  wx-console crashes because of differences between Bacula and wxWidgets
      malloc()/free().  Tweek wx-console to use bmalloc()/bfree() for Bacula
      calls.     

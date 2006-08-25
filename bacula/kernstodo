@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     22 August 2006
+                     25 August 2006
 
 Major development:      
 Project                     Developer
@@ -38,12 +38,9 @@ For 1.39:
 - Make sure that the restore options don't permit "seeing" other
   Client's job data.
 - Implement Python event for backing up/restoring a file.
-- Fix wx-console scanning problem with commas in names.
 - Change dbcheck to tell users to use native tools for fixing
   broken databases, and to ensure they have the proper indexes.
 - add udev rules for Bacula devices.
-- Add manpages to the list of directories for make install. Notify
-  Scott
 - If a job terminates, the DIR connection can close before the
   Volume info is updated, leaving the File count wrong.
 - Look at why SIGPIPE during connection can cause seg fault in
@@ -1654,3 +1651,7 @@ Block Position: 0
 - Update llist to include new fields.
 - Make unmount unload autochanger.  Make mount load slot.
 - Fix bscan to report the JobType when restoring a job.
+- Fix wx-console scanning problem with commas in names.
+- Add manpages to the list of directories for make install. Notify
+  Scott
+
