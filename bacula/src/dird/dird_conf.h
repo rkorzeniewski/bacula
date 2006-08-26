@@ -168,6 +168,7 @@ enum {
    Command_ACL,
    FileSet_ACL,
    Catalog_ACL,
+   Where_ACL,
    Num_ACL                            /* keep last */
 };
 

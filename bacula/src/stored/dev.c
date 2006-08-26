@@ -131,6 +131,7 @@ init_dev(JCR *jcr, DEVRES *device)
 
    dev = (DEVICE *)malloc(sizeof(DEVICE));
    memset(dev, 0, sizeof(DEVICE));
+   dev->Slot = -1;       /* unknown */
 
    /* Copy user supplied device parameters from Resource */
    dev->dev_name = get_memory(strlen(device->device_name)+1);
@@ -281,6 +282,7 @@ DEVICE::open(DCR *dcr, int omode)
    Dmsg4(29, "open dev: type=%d dev_name=%s vol=%s mode=%s\n", dev_type,
          print_name(), VolCatInfo.VolCatName, mode_to_str(omode));
    state &= ~(ST_LABEL|ST_APPEND|ST_READ|ST_EOT|ST_WEOT|ST_EOF);
+   Slot = -1;          /* unknown slot */
    label_type = B_BACULA_LABEL;
    if (is_tape() || is_fifo()) {
       open_tape_device(dcr, omode);
@@ -325,9 +327,7 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
    int nonblocking = O_NONBLOCK;
    Dmsg0(29, "open dev: device is tape\n");
 
-   if (is_autochanger()) {
-      get_autochanger_loaded_slot(dcr);
-   }
+   get_autochanger_loaded_slot(dcr);
 
    set_mode(omode);
    timeout = max_open_wait;
@@ -423,9 +423,7 @@ void DEVICE::open_file_device(DCR *dcr, int omode)
 {
    POOL_MEM archive_name(PM_FNAME);
 
-   if (is_autochanger()) {
-      get_autochanger_loaded_slot(dcr);
-   }
+   get_autochanger_loaded_slot(dcr);
 
    /*
     * Handle opening of File Archive (not a tape)
@@ -1799,6 +1797,7 @@ void DEVICE::close()
    part_size = 0;
    part_start = 0;
    EndFile = EndBlock = 0;
+   Slot = -1;             /* unknown slot */
    free_volume(this);
    memset(&VolCatInfo, 0, sizeof(VolCatInfo));
    memset(&VolHdr, 0, sizeof(VolHdr));

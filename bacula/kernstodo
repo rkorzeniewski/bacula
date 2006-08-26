@@ -46,16 +46,12 @@ For 1.39:
 - Look at why SIGPIPE during connection can cause seg fault in
   writing the daemon message, when Dir dropped to bacula:bacula
 - Look at zlib 32 => 64 problems.
-- Ensure that connection to daemon failure always indicates what
-  daemon it was trying to connect to.
 - Try turning on disk seek code.
 - Possibly turn on St. Bernard code.
 - Fix bextract to restore ACLs, or better yet, use common
   routines.
 - Do we migrate appendable Volumes?
 - Remove queue.c code.
-- Add bconsole option to use stdin/out instead of conio.
-- Fix ClientRunBefore/AfterJob compatibility.
 - Fix re-read of last block to check if job has actually written
   a block, and check if block was written by a different job
   (i.e. multiple simultaneous jobs writing).
@@ -1654,4 +1650,8 @@ Block Position: 0
 - Fix wx-console scanning problem with commas in names.
 - Add manpages to the list of directories for make install. Notify
   Scott
+- Add bconsole option to use stdin/out instead of conio.
+- Fix ClientRunBefore/AfterJob compatibility.
+- Ensure that connection to daemon failure always indicates what
+  daemon it was trying to connect to.
 
