@@ -181,6 +181,8 @@ mkdir -p $RPM_BUILD_ROOT%{sysconfdir}
 mkdir -p $RPM_BUILD_ROOT%{perl_sitearch}
 mkdir -p $RPM_BUILD_ROOT/usr/bin
 mkdir -p $RPM_BUILD_ROOT/usr/share/brestore
+mkdir -p $RPM_BUILD_ROOT/usr/share/applications
+mkdir -p $RPM_BUILD_ROOT/usr/share/pixmaps
 
 mkdir -p $RPM_BUILD_ROOT%{cgidir}/bweb
 chmod 755 $RPM_BUILD_ROOT%{cgidir}/bweb
@@ -219,21 +221,26 @@ chmod 644 $RPM_BUILD_ROOT%{perl_site_arch}/*.pm
 # install the brestore files
 cp -p %{brestore}-%{version}/brestore.pl $RPM_BUILD_ROOT/usr/bin/
 cp -p %{brestore}-%{version}/brestore.glade $RPM_BUILD_ROOT/usr/share/brestore/
+cp -p %{brestore}-%{version}/brestore.desktop $RPM_BUILD_ROOT/usr/share/applications/
+cp -p %{brestore}-%{version}/brestore.png $RPM_BUILD_ROOT/usr/share/pixmaps/
 chmod 755 $RPM_BUILD_ROOT/usr/bin/brestore.pl
 chmod 644 $RPM_BUILD_ROOT/usr/share/brestore/brestore.glade
+chmod 644 $RPM_BUILD_ROOT/usr/share/applications/brestore.desktop
+chmod 644 $RPM_BUILD_ROOT/usr/share/pixmaps/brestore.png
 
 # install the bweb files
 cp -p %{bweb}-%{version}/cgi/*.pl $RPM_BUILD_ROOT%{cgidir}/bweb/
 chmod 755 $RPM_BUILD_ROOT%{cgidir}/bweb/*
-echo '$VAR1 = { template_dir => "/usr/share/bweb/tpl"};' > $RPM_BUILD_ROOT/etc/bweb/config
+echo "template_dir = /usr/share/bweb/tpl" > $RPM_BUILD_ROOT/etc/bweb/config
 cp -p %{bweb}-%{version}/tpl/*.tpl $RPM_BUILD_ROOT/usr/share/bweb/tpl/
 chmod 644 $RPM_BUILD_ROOT/usr/share/bweb/tpl/*
 cp -p %{bweb}-%{version}/html/*.js $RPM_BUILD_ROOT%{docdir}/%{bweb}/
 cp -p %{bweb}-%{version}/html/*.png $RPM_BUILD_ROOT%{docdir}/%{bweb}/
 cp -p %{bweb}-%{version}/html/*.css $RPM_BUILD_ROOT%{docdir}/%{bweb}/
 cp -p %{bweb}-%{version}/html/*.gif $RPM_BUILD_ROOT%{docdir}/%{bweb}/
-cp -p %{bweb}-%{version}/html/*.ico $RPM_BUILD_ROOT%{docdir}/%{bweb}/
 chmod 644 $RPM_BUILD_ROOT%{docdir}/%{bweb}/*
+cp -p %{bweb}-%{version}/script/bweb-postgresql.sql $RPM_BUILD_ROOT/etc/bweb/
+chmod 644 $RPM_BUILD_ROOT/etc/bweb/bweb-postgresql.sql
 
 
 # remove the standard doc files from the install directory
@@ -246,6 +253,8 @@ rm -f $RPM_BUILD_ROOT%{docdir}/%{web}/TODO
 # setup the docs dir
 mkdir -p docs/%{bimagemgr}
 mkdir docs/%{web}
+mkdir docs/%{brestore}
+mkdir docs/%{bweb}
 
 cp -p %{bimagemgr}-%{version}/README docs/%{bimagemgr}/
 cp -p %{bimagemgr}-%{version}/COPYING docs/%{bimagemgr}/
@@ -258,6 +267,14 @@ cp -p %{web}-%{version}/ChangeLog docs/%{web}/
 cp -p %{web}-%{version}/CONTACT docs/%{web}/
 cp -p %{web}-%{version}/COPYING docs/%{web}/
 cp -p bacula-docs-%{version}/%{web}/%{web}.pdf docs/%{web}/
+
+cp -p %{brestore}-%{version}/README docs/%{brestore}/
+cp -p %{brestore}-%{version}/COPYING docs/%{brestore}/
+cp -p %{brestore}-%{version}/ReleaseNotes docs/%{brestore}/
+
+cp -p %{bweb}-%{version}/INSTALL docs/%{bweb}/
+cp -p %{bweb}-%{version}/COPYING docs/%{bweb}/
+cp -p %{bweb}-%{version}/ReleaseNotes docs/%{bweb}/
 
 %clean
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf "$RPM_BUILD_ROOT"
@@ -306,12 +323,17 @@ rm -rf docs
 %defattr(-,root,root)
 /usr/bin/brestore.pl
 /usr/share/brestore/brestore.glade
+/usr/share/applications/brestore.desktop
+/usr/share/pixmaps/brestore.png
+%doc docs/%{brestore}/*
 
 %files bweb
 %defattr(-,%{binowner},%{bingroup})
 %{cgidir}/bweb/*.pl
 /usr/share/bweb/tpl/*.tpl
 %{docdir}/bweb/*
+/etc/bweb/bweb-postgresql.sql
+%doc docs/%{bweb}/*
 
 %defattr(-,%{binowner},%{datagroup})
 %dir /etc/bweb
@@ -328,7 +350,20 @@ rm -rf docs
 # remove the web server user to group bacula
 %{groupmod} -R %{dataowner} bacula
 
+%post brestore
+
+# add the web server user to group bacula
+%{groupmod} -A %{dataowner} bacula
+
+%postun brestore
+# remove the web server user to group bacula
+%{groupmod} -R %{dataowner} bacula
+
 %changelog
+* Sat Aug 26 2006 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- add brestore menu entry and post script
+- add /etc/bweb/bweb-postgresql.sql
+- add bweb and brestore docs
 * Sun Aug 20 2006 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - add libbweb, bweb and brestore packages
 * Sun May 14 2006 D. Scott Barninger <barninger at fairfieldcomputers.com>
