@@ -151,6 +151,24 @@ sub make_tab
     return ($date, $ret);
 }
 
+sub make_tab_sum
+{
+    my ($all_row) = @_;
+
+    my $i=0;
+    my $last_date=0;
+
+    my $ret = {};
+    
+    foreach my $row (@$all_row) {
+	$ret->{date}->[$i]   = $row->[0];	
+	$ret->{nb}->[$i] = $row->[1];
+	$i++;
+    }
+
+    return ($ret);
+}
+
 if ($graph eq 'job_size') {
 
     my $query = "
@@ -304,5 +322,59 @@ $limitq
 	$obj->set_legend(keys %$ret);
     }
     print $obj->plot([$d, values %$ret])->png;
+
+
+# number of job per day/hour
+} elsif ($graph =~ /^job_(count|sum|avg)_((p?)(day|hour|month))$/) {
+    my $t = $1;
+    my $d = uc($2);
+    my $per_t = $3;
+    my ($limit, $label) = $bweb->get_limit(age   => $arg->{age},
+					   limit => $arg->{limit},
+					   offset=> $arg->{offset},
+					   groupby => "A",
+					   );
+    my @arg;			# arg for plotting
+
+    if (!$per_t) {		# much better aspect
+	$gtype = 'lines';
+    } else {
+	push @arg, ("x_number_format" => undef,
+		    "x_min_value" => 0,
+		    );
+    }
+
+    if ($t eq 'sum' or $t eq 'avg') {
+	push @arg, ('y_number_format' => \&Bweb::human_size);
+    }
+
+    my $query = "
+SELECT
+     " . ($per_t?"":"UNIX_TIMESTAMP") . "(" . $bweb->{sql}->{"STARTTIME_$d"} . ") AS A,
+     $t(JobBytes)                  AS nb
+FROM Job, Client, FileSet
+WHERE Job.ClientId = Client.ClientId
+  AND Job.FileSetId = FileSet.FileSetId
+  AND Job.Type = 'B'
+  $clientq
+  $statusq
+  $filesetq
+  $levelq
+  $jobnameq
+$limit
+";
+
+    print STDERR $query  if ($debug);
+
+    my $obj = get_graph('title' => "Job $t : $arg->{jclients}/$arg->{jjobnames}",
+			'y_label' => $t,
+			'y_min_value' => 0,
+			@arg,
+			);
+
+    my $all = $dbh->selectall_arrayref($query) ;
+    my ($ret) = make_tab_sum($all);
+
+    print $obj->plot([$ret->{date}, $ret->{nb}])->png;    
 }
 

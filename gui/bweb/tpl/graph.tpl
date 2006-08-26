@@ -68,10 +68,22 @@
 <tr>
   <td> <h2> Type </h2> 
  <select name='graph' class='formulaire'>
-   <option id='job_size'     value='job_size'>Job Size</option>
-   <option id='job_duration' value='job_duration'>Job Duration</option>
-   <option id='job_rate' value='job_rate'>Job Rate</option>
-   <option id='job_file' value='job_file'>Job Files</option>
+   <option id='job_size'     value='job_size' title="Job size per job for the period">Job Size</option>
+   <option id='job_duration' value='job_duration' title="Job duration per job for the period">Job Duration</option>
+   <option id='job_rate' value='job_rate' title="Job rate per job for the period">Job Rate</option>
+   <option id='job_file' value='job_file' title="Number of backped file per job for the period">Job Files</option>
+   <option id='job_count_phour' value='job_count_phour' title="Number of job per hour for the period">Job per hour</option>
+   <option id='job_count_pday' value='job_count_pday' title="Number of job per day for the period">Job per day</option>
+   <option id='job_avg_phour' value='job_avg_pday' title="Average backup size per day for the period">Job avg B/hour</option>
+   <option id='job_avg_pday' value='job_avg_pday' title="Average backup size per hour for the period">Job avg B/day</option>
+   <option id='job_sum_phour' value='job_sum_phour' title="Job size per hour">Job total B/hour</option>
+   <option id='job_sum_pday' value='job_sum_pday' title="Job size per day">Job total B/day</option>
+   <option id='job_count_hour' value='job_count_hour' title="Number of job per hour for the period">Jobs Count (h)</option>
+   <option id='job_count_day' value='job_count_day' title="Number of job per day for the period">Jobs Count (d)</option>
+   <option id='job_avg_hour' value='job_avg_hour' title="Average backup size per hour for the period">Job avg size (h)</option>
+   <option id='job_avg_day' value='job_avg_day' title="Average backup size per day for the period">Job avg size (d)</option>
+   <option id='job_sum_hour' value='job_sum_hour' title="Job size per hour for the period">Job Bytes (h)</option>
+   <option id='job_sum_day' value='job_sum_day' title="Job size per day for the period">Job Bytes (d)</option>
  </select>
   </td>
   <td valign='bottom'> 
