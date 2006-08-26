@@ -1,12 +1,27 @@
           Release Notes for bweb 1.39.20
 
+2006/08/26:
+ - Add more graphics
+   o job avg size/days
+   o job avg size/hours
+   o ...
+
+2006/08/25:
+ - Cleanup
+ - Add more graphics
+    o job/days
+    o job/hours
+    o size/days
+    o size/hours
+    o ... 
+
 2006/08/24:
  - Add Location log to media zoom view 
 
 2006/08/23:
  - Add client/media search box (with regexp)
  - Add menubar instead of plain menu
- - Drop all <button> element (work now with IE)
+ - Drop all <button> element (works now with IE)
  - Fix big div
  - Add favicon
 
