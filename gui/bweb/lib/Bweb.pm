@@ -1025,8 +1025,10 @@ our %sql_func = (
 	      MATCH => " ~ ",
 	      STARTTIME_DAY  => " date_trunc('day', Job.StartTime) ",
 	      STARTTIME_HOUR => " date_trunc('hour', Job.StartTime) ",
+	      STARTTIME_MONTH  => " date_trunc('month', Job.StartTime) ",
 	      STARTTIME_PHOUR=> " date_part('hour', Job.StartTime) ",
 	      STARTTIME_PDAY => " date_part('day', Job.StartTime) ",
+	      STARTTIME_PMONTH => " date_part('month', Job.StartTime) ",
 	  },
 	  mysql => {
 	      UNIX_TIMESTAMP => 'UNIX_TIMESTAMP',
@@ -1037,8 +1039,10 @@ our %sql_func = (
 	      MATCH => " REGEXP ",
 	      STARTTIME_DAY  => " DATE_FORMAT(StartTime, '%Y-%m-%d') ",
 	      STARTTIME_HOUR => " DATE_FORMAT(StartTime, '%Y-%m-%d %H') ",
+	      STARTTIME_MONTH => " DATE_FORMAT(StartTime, '%Y-%m') ",
 	      STARTTIME_PHOUR=> " DATE_FORMAT(StartTime, '%H') ",
 	      STARTTIME_PDAY => " DATE_FORMAT(StartTime, '%d') ",
+	      STARTTIME_PMONTH => " DATE_FORMAT(StartTime, '%m') ",
 	  },
 	 );
 
