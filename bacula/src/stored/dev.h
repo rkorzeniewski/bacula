@@ -162,7 +162,7 @@ struct VOLUME_CAT_INFO {
    uint32_t EndFile;                  /* Last file number */
    uint32_t EndBlock;                 /* Last block number */
    int32_t  LabelType;                /* Bacula/ANSI/IBM */
-   int32_t  Slot;                     /* Slot in changer */
+   int32_t  Slot;                     /* >0=Slot loaded, 0=nothing, -1=unknown */
    bool     InChanger;                /* Set if vol in current magazine */
    uint32_t VolCatMaxJobs;            /* Maximum Jobs to write to volume */
    uint32_t VolCatMaxFiles;           /* Maximum files to write to volume */

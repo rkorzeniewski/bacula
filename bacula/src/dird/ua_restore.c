@@ -79,6 +79,10 @@ int restore_cmd(UAContext *ua, const char *cmd)
    i = find_arg_with_value(ua, "where");
    if (i >= 0) {
       rx.where = ua->argv[i];
+      if (!acl_access_ok(ua, Where_ACL, rx.where)) {
+         bsendmsg(ua, _("Forbidden \"where\" specified.\n"));
+         goto bail_out;
+      }
    }
 
    if (!open_db(ua)) {
@@ -164,6 +168,10 @@ int restore_cmd(UAContext *ua, const char *cmd)
 
    /* Build run command */
    if (rx.where) {
+      if (!acl_access_ok(ua, Where_ACL, rx.where)) {
+         bsendmsg(ua, _("Forbidden \"where\" specified.\n"));
+         goto bail_out;
+      }
       Mmsg(ua->cmd,
           "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s\""
           " where=\"%s\" files=%d catalog=\"%s\"",

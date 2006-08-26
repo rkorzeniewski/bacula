@@ -185,6 +185,10 @@ int run_cmd(UAContext *ua, const char *cmd)
                   return 0;
                }
                where = ua->argv[i];
+               if (!acl_access_ok(ua, Where_ACL, where)) {
+                  bsendmsg(ua, _("Forbidden \"where\" specified.\n"));
+                  return 0;
+               }
                kw_ok = true;
                break;
             case 10: /* bootstrap */

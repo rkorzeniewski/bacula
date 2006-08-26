@@ -182,6 +182,7 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
             Jmsg(jcr, M_FATAL, 0, _("3992 Bad autochanger \"load slot %d, drive %d\": ERR=%s.\n"),
                     slot, drive, be.strerror());
             rtn_stat = -1;            /* hard error */
+            dev->Slot = -1;           /* mark unknown */
          }
          Dmsg2(100, "load slot %d status=%d\n", slot, status);
          unlock_changer(dcr);
@@ -212,14 +213,21 @@ bail_out:
 int get_autochanger_loaded_slot(DCR *dcr)
 {
    JCR *jcr = dcr->jcr;
+   DEVICE *dev = dcr->dev;
    POOLMEM *changer, *results;
    int status, loaded;
    uint32_t timeout = dcr->device->max_changer_wait;
    int drive = dcr->dev->drive_index;
 
+   if (!dev->is_autochanger()) {
+      return -1;
+   }
    if (!dcr->device->changer_command) {
       Jmsg(jcr, M_FATAL, 0, _("3992 Missing Changer command.\n"));
       return -1;
+   }
+   if (dev->Slot >0) {
+      return dev->Slot;
    }
 
    results = get_pool_memory(PM_MESSAGE);
@@ -228,7 +236,7 @@ int get_autochanger_loaded_slot(DCR *dcr)
 
    /* Find out what is loaded, zero means device is unloaded */
    lock_changer(dcr);
-   Jmsg(jcr, M_INFO, 0, _("3301 Issuing autochanger \"loaded drive %d\" command.\n"),
+   Jmsg(jcr, M_INFO, 0, _("3301 Issuing autochanger \"loaded? drive %d\" command.\n"),
         drive);
    changer = edit_device_codes(dcr, changer, dcr->device->changer_command, "loaded");
    *results = 0;
@@ -238,18 +246,18 @@ int get_autochanger_loaded_slot(DCR *dcr)
    if (status == 0) {
       loaded = str_to_int32(results);
       if (loaded > 0) {
-         Jmsg(jcr, M_INFO, 0, _("3302 Autochanger \"loaded drive %d\", result is Slot %d.\n"),
+         Jmsg(jcr, M_INFO, 0, _("3302 Autochanger \"loaded? drive %d\", result is Slot %d.\n"),
               drive, loaded);
-         dcr->dev->Slot = loaded;
+         dev->Slot = loaded;
       } else {
-         Jmsg(jcr, M_INFO, 0, _("3302 Autochanger \"loaded drive %d\", result: nothing loaded.\n"),
+         Jmsg(jcr, M_INFO, 0, _("3302 Autochanger \"loaded? drive %d\", result: nothing loaded.\n"),
               drive);
-         dcr->dev->Slot = 0;
+         dev->Slot = -1;    /* unknown */
       }
    } else {
       berrno be;
       be.set_errno(status);
-      Jmsg(jcr, M_INFO, 0, _("3991 Bad autochanger \"loaded drive %d\" command: ERR=%s.\n"),
+      Jmsg(jcr, M_INFO, 0, _("3991 Bad autochanger \"loaded? drive %d\" command: ERR=%s.\n"),
            drive, be.strerror());
       loaded = -1;              /* force unload */
    }
@@ -325,7 +333,7 @@ bool unload_autochanger(DCR *dcr, int loaded)
                  slot, dev->drive_index, be.strerror());
          ok = false;
       } else {
-         dev->Slot = 0;            /* nothing loaded */
+         dev->Slot = -1;           /* unknown */ 
       }
       free_pool_memory(changer);
       unlock_changer(dcr);
@@ -424,7 +432,7 @@ static bool unload_other_drive(DCR *dcr, int slot)
               slot, dev->drive_index, be.strerror());
       ok = false;
    } else {
-      dev->Slot = 0;            /* nothing loaded */
+      dev->Slot = -1;           /* nothing loaded */
       Dmsg0(100, "Slot unloaded\n");
    }
    unlock_changer(dcr);

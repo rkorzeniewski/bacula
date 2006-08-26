@@ -4,8 +4,8 @@
 
 #undef  VERSION
 #define VERSION "1.39.21"
-#define BDATE   "23 August 2006"
-#define LSMDATE "23Aug06"
+#define BDATE   "26 August 2006"
+#define LSMDATE "26Aug06"
 #define BYEAR "2006"       /* year for copyright messages in progs */
 
 /* Debug flags */

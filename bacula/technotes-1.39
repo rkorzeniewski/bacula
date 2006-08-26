@@ -1,6 +1,17 @@
               Technical notes on version 1.39  
 
 General:
+26Aug06
+kes  Add host:port to connect failure messages to FD and SD from Dir.
+kes  Add WhereACL to console ACL list.  If nothing is specified, only
+     the default is permitted for restore. Otherwise, *all* allows any
+     path, or you can specify permitted paths. This should allow control
+     over where users can restore files. This is untested.
+kes  Modified message to add a ? (as in loaded?) when querying the autochanger
+     for what Slot is loaded.  
+kes  Fixed the use of Slot, so that is more correctly maintained, thus
+     eliminating unneeded duplicate calls to determine what Slot is loaded.
+
 25Aug06
 kes  Install man pages with 'make install'
 kes  wx-console crashes because of differences between Bacula and wxWidgets

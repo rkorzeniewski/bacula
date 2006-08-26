@@ -997,3 +997,28 @@ Status:
           could override the Storage parameter for full and/or differential
           backups, then the Full job would use the proper Storage device, which
           has more capacity (i.e. a 8TB tape library.
+
+
+Item:     Implement multiple numeric backup levels as supported by dump
+Date:     3 April 2006
+Origin:   Daniel Rich <drich@employees.org>
+Status:
+What:     Dump allows specification of backup levels numerically instead of just
+          "full", "incr", and "diff".  In this system, at any given level, all
+          files are backed up that were were modified since the last backup of a
+          higher level (with 0 being the highest and 9 being the lowest).  A
+          level 0 is therefore equivalent to a full, level 9 an incremental, and
+          the levels 1 through 8 are varying levels of differentials.  For
+          bacula's sake, these could be represented as "full", "incr", and
+          "diff1", "diff2", etc.
+
+Why:      Support of multiple backup levels would provide for more advanced backup
+          rotation schemes such as "Towers of Hanoi".  This would allow better
+          flexibility in performing backups, and can lead to shorter recover
+          times.
+
+Notes:    Legato Networker supports a similar system with full, incr, and 1-9 as
+          levels.
+
+Kern notes: I think this would add very little functionality, but a *lot* of
+          additional overhead to Bacula.

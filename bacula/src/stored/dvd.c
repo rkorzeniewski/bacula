@@ -727,7 +727,8 @@ bool dvd_close_job(DCR *dcr)
    return ok;
 }
 
-bool truncate_dvd(DCR *dcr) {
+bool truncate_dvd(DCR *dcr) 
+{
    DEVICE* dev = dcr->dev;
 
    if (dev->fd >= 0) {
@@ -795,7 +796,8 @@ bool truncate_dvd(DCR *dcr) {
 /* Checks if we can write on a non-blank DVD: meaning that it just have been
  * truncated (there is only one zero-sized file on the DVD, with the right
  * volume name). */
-bool check_can_write_on_non_blank_dvd(DCR *dcr) {
+bool check_can_write_on_non_blank_dvd(DCR *dcr) 
+{
    DEVICE* dev = dcr->dev;
    DIR* dp;
    struct dirent *entry, *result;

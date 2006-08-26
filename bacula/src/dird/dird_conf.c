@@ -137,6 +137,7 @@ static RES_ITEM con_items[] = {
    {"commandacl",  store_acl,      ITEM(res_con.ACL_lists), Command_ACL, 0, 0},
    {"filesetacl",  store_acl,      ITEM(res_con.ACL_lists), FileSet_ACL, 0, 0},
    {"catalogacl",  store_acl,      ITEM(res_con.ACL_lists), Catalog_ACL, 0, 0},
+   {"whereacl",    store_acl,      ITEM(res_con.ACL_lists), Where_ACL, 0, 0},
    {"tlsenable",            store_bool,      ITEM(res_con.tls_enable), 0, 0, 0},
    {"tlsrequire",           store_bool,      ITEM(res_con.tls_require), 0, 0, 0},
    {"tlsverifypeer",        store_bool,      ITEM(res_con.tls_verify_peer), 0, ITEM_DEFAULT, true},
@@ -1546,7 +1547,7 @@ void store_acl(LEX *lc, RES_ITEM *item, int index, int pass)
    int token;
 
    for (;;) {
-      token = lex_get_token(lc, T_NAME);
+      token = lex_get_token(lc, T_STRING);
       if (pass == 1) {
          if (((alist **)item->value)[item->code] == NULL) {
             ((alist **)item->value)[item->code] = New(alist(10, owned_by_alist));
