@@ -171,7 +171,7 @@ you can revert it with patch -p1 -R < message.patch
 
 To get bweb working, you must follow these rules
  - Media, Storage and Pool must have [A-Za-z_0-9\.-]+ (no space)
- - AutoChanger name must be same as Storage name device in bacula
+ - AutoChanger name must be same as Device and Location name in bacula
 
 ################ SUDO CONFIGURATION ############################
 
