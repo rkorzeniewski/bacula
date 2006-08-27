@@ -283,7 +283,8 @@ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
       goto no_match;
    }
    if (!match_volume(bsr, bsr->volume, volrec, 1)) {
-      Dmsg2(300, "bsr vol=%s != rec vol=%s\n", bsr->volume, volrec);
+      Dmsg2(300, "bsr fail vol=%s != rec vol=%s\n", bsr->volume->VolumeName,
+            volrec->VolumeName);
       goto no_match;
    }
    if (!match_volfile(bsr, bsr->volfile, rec, 1)) {

@@ -294,7 +294,7 @@ DEVICE::open(DCR *dcr, int omode)
       open_file_device(dcr, omode);
    }
    state |= preserve;                 /* reset any important state info */
-   Dmsg1(100, "preserve=0x%x\n", preserve);
+   Dmsg2(100, "preserve=0x%x fd=%d\n", preserve, fd);
    return fd;
 }
 
@@ -341,7 +341,7 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
       mode_to_str(omode), nonblocking);
    /* Use system open() */
 
-#ifdef HAVE_WIN32
+#if defined(HAVE_WIN32)
    if ((fd = tape_open(dev_name, mode)) < 0) {
       berrno be;
       dev_errno = errno;
@@ -469,7 +469,7 @@ void DEVICE::open_file_device(DCR *dcr, int omode)
       update_pos_dev(this);                /* update position */
    }
    Dmsg4(29, "open dev: disk fd=%d opened, part=%d/%d, part_size=%u\n", 
-      fd, part, num_parts, part_size);
+      fd, part, num_dvd_parts, part_size);
 }
 
 /*
@@ -489,6 +489,17 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
    Dmsg3(29, "Enter: open_dvd_dev: %s dev=%s mode=%s\n", is_dvd()?"DVD":"disk",
          archive_name.c_str(), mode_to_str(omode));
 
+   /*
+    * For a DVD we must alway pull the state info from dcr->VolCatInfo
+    *  This is a bit ugly, but is necessary because we need to open/close/re-open
+    *  the dvd file in order to properly mount/unmount and access the
+    *  DVD. So we store the state of the DVD as far as is known in the 
+    *  catalog in dcr->VolCatInfo, and thus we refresh the dev->VolCatInfo
+    *  copy here, when opening.
+    */
+   memcpy(&VolCatInfo, &dcr->VolCatInfo, sizeof(VolCatInfo));
+   Dmsg1(100, "Volume=%s\n", VolCatInfo.VolCatName);
+
    if (VolCatInfo.VolCatName[0] == 0) {
       Dmsg1(10,  "Could not open file device %s. No Volume name given.\n",
          print_name());
@@ -499,25 +510,29 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
    }
 
    if (part == 0) {
+      Dmsg0(100, "Set part=1\n");
+      part = 1;                       /* count from 1 */
       file_size = 0;
    }
    part_size = 0;
+   if (num_dvd_parts != VolCatInfo.VolCatParts) {
+      num_dvd_parts = VolCatInfo.VolCatParts;
+   }
    // Clear any previous truncated_dvd status - we will recalculate it here
    truncated_dvd = false;
 
-   Dmsg2(99, "open_dvd_device: num_parts=%d, VolCatInfo.VolCatParts=%d\n",
-      dcr->dev->num_parts, dcr->VolCatInfo.VolCatParts);
-   if (dcr->dev->num_parts < dcr->VolCatInfo.VolCatParts) {
-      Dmsg2(99, "open_dvd_device: num_parts updated to %d (was %d)\n",
-         dcr->VolCatInfo.VolCatParts, dcr->dev->num_parts);
-      dcr->dev->num_parts = dcr->VolCatInfo.VolCatParts;
-   }
-
+   Dmsg3(99, "open_dvd_device: part=%d num_dvd_parts=%d, VolCatInfo.VolCatParts=%d\n",
+      part, num_dvd_parts, dcr->VolCatInfo.VolCatParts);
+     
    if (mount_dvd(this, 1)) {
-      if ((num_parts == 0) && (!truncating)) {
-         /* If we can mount the device, and we are not truncating the DVD, we usually want to abort. */
-         /* There is one exception, if there is only one 0-sized file on the DVD, with the right volume name,
-          * we continue (it's the method used by truncate_dvd to truncate a volume). */
+      Dmsg0(99, "DVD device mounted.\n");
+      if ((num_dvd_parts == 0) && (!truncating)) {
+         /*
+          * If we can mount the device, and we are not truncating the DVD, 
+          * we usually want to abort. There is one exception, if there is 
+          * only one 0-sized file on the DVD, with the right volume name,
+          * we continue (it's the method used by truncate_dvd to truncate a volume).   
+          */
          if (!check_can_write_on_non_blank_dvd(dcr)) {
             Mmsg(errmsg, _("The media in the device %s is not empty, please blank it before writing anything to it.\n"), print_name());
             Emsg0(M_FATAL, 0, errmsg);
@@ -528,21 +543,24 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
          truncated_dvd = true;
       }
    } else {
+      Dmsg0(99, "DVD device mount failed.\n");
       /* We cannot mount the device */
-      if (num_parts == 0) {
+      if (num_dvd_parts == 0) {
          /* Run free space, check there is a media. */
-         update_free_space_dev(this);
-         if (have_media()) {
-            Dmsg1(29, "Could not mount device %s, this is not a problem (num_parts == 0), and have media.\n", print_name());
+         if (!update_free_space_dev(this)) {
+            Emsg0(M_FATAL, 0, errmsg);
+            clear_opened();
+            return;
          }
-         else {
+         if (have_media()) {
+            Dmsg1(29, "Could not mount device %s, this is not a problem (num_dvd_parts == 0), and have media.\n", print_name());
+         } else {
             Mmsg(errmsg, _("There is no valid media in the device %s.\n"), print_name());
             Emsg0(M_FATAL, 0, errmsg);
             clear_opened();
             return;
          }
-      }
-      else {
+      }  else {
          Mmsg(errmsg, _("Could not mount device %s.\n"), print_name());
          Emsg0(M_FATAL, 0, errmsg);
          clear_opened();
@@ -550,9 +568,9 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
       }
    }
    
-   Dmsg6(29, "open dev: %s dev=%s mode=%s part=%d npart=%d volcatnparts=%d\n", 
-      is_dvd()?"DVD":"disk", archive_name.c_str(), mode_to_str(omode),
-      part, num_parts, dcr->VolCatInfo.VolCatParts);
+   Dmsg5(29, "open dev: DVD dev=%s mode=%s part=%d npart=%d volcatnparts=%d\n", 
+      archive_name.c_str(), mode_to_str(omode),
+      part, num_dvd_parts, dcr->VolCatInfo.VolCatParts);
    openmode = omode;
    Dmsg2(100, "openmode=%d %s\n", openmode, mode_to_str(openmode));
    
@@ -560,11 +578,11 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
     * If we are not trying to access the last part, set mode to 
     *   OPEN_READ_ONLY as writing would be an error.
     */
-   if (part < num_parts) {
+   Dmsg2(29, "open DVD part=%d num_dvd_parts=%d\n", part, num_dvd_parts);
+   if (part <= num_dvd_parts) {
       omode = OPEN_READ_ONLY;
       make_mounted_dvd_filename(this, archive_name);
-   }
-   else {
+   } else {
       make_spooled_dvd_filename(this, archive_name);
    }
    set_mode(omode);
@@ -582,13 +600,13 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
       Dmsg1(29, "open failed: %s", errmsg);
       
       if ((omode == OPEN_READ_ONLY || omode == OPEN_READ_WRITE) &&
-          (part == num_parts)) {
+          (part > num_dvd_parts)) {
          /* If the last part (on spool), doesn't exists when accessing,
           * create it. In read/write mode a write will be allowed (higher
           * level software thinks that we are extending a pre-existing
           * media. Reads for READ_ONLY will report immediately an EOF 
           * Sometimes it is better to finish with an EOF than with an error. */
-         Dmsg0(29, "Creating last part on spool to make our caller happy\n");
+         Dmsg1(29, "Creating last part on spool: %s\n", archive_name.c_str());
          set_mode(CREATE_READ_WRITE);
          fd = ::open(archive_name.c_str(), mode, 0640);
          set_mode(omode);
@@ -620,15 +638,18 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
          /* NB: It seems this code is wrong... part number is incremented in open_next_part, not here */
          
          /* Check if just created Volume  part */
-/*         if (omode == OPEN_READ_WRITE && (part == 0 || part_size == 0)) {
-            part++;
-            num_parts = part;
-            VolCatInfo.VolCatParts = num_parts;
-         } else {
-            if (part == 0) {             // we must have opened the first part
-               part++;
-            }
-         }*/
+/*
+ *         if (omode == OPEN_READ_WRITE && (part == 0 || part_size == 0)) {
+ *          part++;
+ *          num_dvd_parts = part;
+ *          VolCatInfo.VolCatParts = num_dvd_parts;
+ *       } else {
+ *          if (part == 0) {             // we must have opened the first part
+ *             part++;
+ *          }
+ *       }
+ */
+
       }
    }
 }
@@ -1155,7 +1176,6 @@ bool DEVICE::offline()
    block_num = file = 0;
    file_size = 0;
    file_addr = 0;
-   part = 0;
 #ifdef MTUNLOCK
    mt_com.mt_op = MTUNLOCK;
    mt_com.mt_count = 1;
@@ -1772,17 +1792,21 @@ void DEVICE::close()
    }
    
    /* Remove the last part file if it is empty */
-   if (num_parts > 0) {
+   if (num_dvd_parts > 0) {
       struct stat statp;
+      int part_save = part;
       POOL_MEM archive_name(PM_FNAME);
-      part = num_parts;
-      Dmsg1(100, "Call make_dvd_filename. Vol=%s\n", VolCatInfo.VolCatName);
+
+      part = num_dvd_parts;
+      Dmsg3(100, "Remove empty part in close call make_dvd_filename. part=%d num=%d vol=%s\n", 
+         part, num_dvd_parts, VolCatInfo.VolCatName);
       make_spooled_dvd_filename(this, archive_name);
       /* Check that the part file is empty */
       if ((stat(archive_name.c_str(), &statp) == 0) && (statp.st_size == 0)) {
          Dmsg1(100, "unlink(%s)\n", archive_name.c_str());
          unlink(archive_name.c_str());
       }
+      part = part_save;               /* restore part number */
    }
    
    /* Clean up device packet so it can be reused */
@@ -1792,10 +1816,6 @@ void DEVICE::close()
    file = block_num = 0;
    file_size = 0;
    file_addr = 0;
-   part = 0;
-   num_parts = 0;
-   part_size = 0;
-   part_start = 0;
    EndFile = EndBlock = 0;
    Slot = -1;             /* unknown slot */
    free_volume(this);
@@ -2008,7 +2028,7 @@ void DEVICE::edit_mount_codes(POOL_MEM &omsg, const char *imsg)
             str = dev_name;
             break;
          case 'e':
-            if (num_parts == 0) {
+            if (num_dvd_parts == 0) {
                if (truncating || truncated_dvd) {
                   str = "2";
                } else {
@@ -2255,5 +2275,10 @@ static char *modes[] = {
 
 static char *mode_to_str(int mode)  
 {
+   static char buf[100];
+   if (mode < 1 || mode > 4) {
+      bsnprintf(buf, sizeof(buf), "BAD mode=%d", mode);
+      return buf;
+    }
    return modes[mode-1];
 }

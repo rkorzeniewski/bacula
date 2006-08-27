@@ -430,7 +430,7 @@ if "free" == sys.argv[2]:
 	 print free
 	 print "No Error reported."
    else:
-      print "Wrong number of arguments for free operation."
+      print "Wrong number of arguments for free operation. Wanted 3 got", len(sys.argv)
       usage()
 elif "prepare" == sys.argv[2]:
    if len(sys.argv) == 3:
@@ -445,7 +445,7 @@ elif "prepare" == sys.argv[2]:
       else:
 	 print "Medium prepared successfully."
    else:
-      print "Wrong number of arguments for prepare operation."
+      print "Wrong number of arguments for prepare operation. Wanted 3 got", len(sys.argv)
       usage()
 elif "test" == sys.argv[2]:
    try:
@@ -467,7 +467,7 @@ elif "write" == sys.argv[2]:
       else:
 	 print "Part file " + sys.argv[4] + " successfully written to disk."
    else:
-      print "Wrong number of arguments for write operation."
+      print "Wrong number of arguments for write operation. Wanted 5 got", len(sys.argv)
       usage()
       sys.exit(1)
 else:

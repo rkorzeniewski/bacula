@@ -114,7 +114,7 @@ bool dvd_write_part(DCR *dcr);
 bool dvd_close_job(DCR *dcr);
 bool mount_dvd(DEVICE* dev, int timeout);
 bool unmount_dvd(DEVICE* dev, int timeout);
-void update_free_space_dev(DEVICE *dev);
+bool update_free_space_dev(DEVICE *dev);
 void make_mounted_dvd_filename(DEVICE *dev, POOL_MEM &archive_name);
 void make_spooled_dvd_filename(DEVICE *dev, POOL_MEM &archive_name);
 bool truncate_dvd(DCR *dcr);

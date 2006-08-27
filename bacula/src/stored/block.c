@@ -710,8 +710,10 @@ static bool terminate_writing_volume(DCR *dcr)
    dev->VolCatInfo.VolCatJobs++;              /* increment number of jobs */
    
    if (dev->is_dvd()) {
-      dvd_write_part(dcr);                 /* write last part */
-      dev->VolCatInfo.VolCatParts = dev->num_parts;
+      if (!dvd_write_part(dcr)) {             /* write last part */
+         ok = false;
+      }
+      dev->VolCatInfo.VolCatParts = dev->num_dvd_parts;
    }
    
    if (!dir_update_volume_info(dcr, false)) {
@@ -806,10 +808,10 @@ static bool do_dvd_size_checks(DCR *dcr)
    /* Limit maximum part size to value specified by user 
     */
    if (dev->max_part_size > 0 && ((dev->part_size + block->binbuf) >= dev->max_part_size)) {
-      if (dev->part < dev->num_parts) {
+      if (dev->part < dev->num_dvd_parts) {
          Jmsg3(dcr->jcr, M_FATAL, 0, _("Error while writing, current part number"
                " is less than the total number of parts (%d/%d, device=%s)\n"),
-               dev->part, dev->num_parts, dev->print_name());
+               dev->part, dev->num_dvd_parts, dev->print_name());
          dev->dev_errno = EIO;
          return false;
       }
@@ -821,7 +823,7 @@ static bool do_dvd_size_checks(DCR *dcr)
          return false;
       }
       
-      dev->VolCatInfo.VolCatParts = dev->num_parts;
+      dev->VolCatInfo.VolCatParts = dev->num_dvd_parts;
             
       if (!dir_update_volume_info(dcr, false)) {
          Dmsg0(190, "Error from update_vol_info.\n");
@@ -915,14 +917,14 @@ reread:
    Dmsg1(100, "dev->file_size-dev->part_start=%u\n",(unsigned int)dev->file_size-dev->part_start);
    Dmsg1(100, "dev->part_size=%u\n", (unsigned int)dev->part_size);
    Dmsg1(100, "dev->part=%u\n", (unsigned int)dev->part);
-   Dmsg1(100, "dev->num_parts=%u\n", (unsigned int)dev->num_parts);
+   Dmsg1(100, "dev->num_dvd_parts=%u\n", (unsigned int)dev->num_dvd_parts);
    Dmsg1(100, "dev->VolCatInfo.VolCatParts=%u\n", (unsigned int)dev->VolCatInfo.VolCatParts);
    Dmsg3(100, "Tests : %d %d %d\n", (dev->VolCatInfo.VolCatParts > 0), 
          ((dev->file_addr-dev->part_start) == dev->part_size), 
          (dev->part <= dev->VolCatInfo.VolCatParts));*/
    /* Check for DVD part file end */
-   if (dev->at_eof() && dev->is_dvd() && dev->num_parts > 0 &&
-        dev->part < dev->num_parts) {
+   if (dev->at_eof() && dev->is_dvd() && dev->num_dvd_parts > 0 &&
+        dev->part < dev->num_dvd_parts) {
       if (dvd_open_next_part(dcr) < 0) {
          Jmsg3(dcr->jcr, M_FATAL, 0, _("Unable to open device part=%d %s: ERR=%s\n"),
                dev->part, dev->print_name(), dev->bstrerror());

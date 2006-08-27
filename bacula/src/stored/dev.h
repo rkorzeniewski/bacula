@@ -241,7 +241,7 @@ public:
    uint64_t part_size;                /* current part size */
    uint32_t part;                     /* current part number (starts at 0) */
    uint64_t part_start;               /* current part start address (relative to the whole volume) */
-   uint32_t num_parts;                /* number of parts WRITTEN on the DVD */
+   uint32_t num_dvd_parts;            /* number of parts WRITTEN on the DVD */
    /* state ST_FREESPACE_OK is set if free_space is valid */
    uint64_t free_space;               /* current free space on medium (without the current part) */
    int free_space_errno;              /* indicates errno getting freespace */

@@ -1,6 +1,11 @@
               Technical notes on version 1.39  
 
 General:
+27Aug06
+kes  Rework many features of DVD writing and reading. Added many error
+     messages.  Most importantly changed part to represent the current
+     part number base zero. This makes current DVD writing incompatible
+     with previous version.
 26Aug06
 kes  Add host:port to connect failure messages to FD and SD from Dir.
 kes  Add WhereACL to console ACL list.  If nothing is specified, only
