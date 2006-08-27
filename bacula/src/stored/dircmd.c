@@ -392,6 +392,7 @@ static void label_volume_if_ok(DCR *dcr, char *oldname,
    DEVICE *dev = dcr->dev;
    int label_status;
    int mode;
+   const char *volname = (relabel == 0) ? newname : oldname;
 
    steal_device_lock(dev, &hold, BST_WRITING_LABEL);
    Dmsg1(100, "Stole device %s lock, writing label.\n", dev->print_name());
@@ -401,7 +402,7 @@ static void label_volume_if_ok(DCR *dcr, char *oldname,
       dcr->VolCatInfo.VolCatParts=1;
    }
 
-   if (!try_autoload_device(dcr->jcr, slot, (relabel == 0) ? newname : oldname)) {
+   if (!try_autoload_device(dcr->jcr, slot, volname)) {
       goto bail_out;                  /* error */
    }
 
@@ -411,6 +412,10 @@ static void label_volume_if_ok(DCR *dcr, char *oldname,
    } else {
       mode = CREATE_READ_WRITE;
    }
+   if (dev->is_dvd()) {
+      bstrncpy(dcr->VolCatInfo.VolCatName, volname, sizeof(dcr->VolCatInfo.VolCatName));
+   }
+
    if (dev->open(dcr, mode) < 0) {
       bnet_fsend(dir, _("3910 Unable to open device %s: ERR=%s\n"),
          dev->print_name(), dev->strerror());

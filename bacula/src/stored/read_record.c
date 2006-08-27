@@ -246,6 +246,9 @@ bool read_records(DCR *dcr,
                rec->VolSessionId, rec->VolSessionTime, rec->FileIndex);
             break;                    /* read second part of record */
          }
+         Dmsg6(dbglvl, "OK callback. recno=%d state=%s blk=%d SI=%d ST=%d FI=%d\n", record,
+               rec_state_to_str(rec), block->BlockNumber,
+               rec->VolSessionId, rec->VolSessionTime, rec->FileIndex);
          ok = record_cb(dcr, rec);
          /*
           * If we have a digest stream, we check to see if we have 
