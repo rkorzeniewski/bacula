@@ -6,7 +6,9 @@
 Version 1.39.20:
 - The basic features of Migration are now complete.
 - There is a Migration chapter in the doc.
+  http://www.bacula.org/dev-manual/Migration.html
 - There is an Encryption chapter in the doc.
+  http://www.bacula.org/dev-manual/Bacula_Data_Encryption.html
 
 New Features in 1.39.20:
 - Add -n option to bconsole to turn off conio.
@@ -107,6 +109,7 @@ A Lot of New features for 1.39.18:
   the old RunBefore/AfterJob and ClientRunBefore/AfterJob features
   plus a *lot* more, allowing you to control just about every aspect
   of running scripts.  See the manual for detailed documentation.
+  http://www.bacula.org/dev-manual/Configuring_Director.html#5227
 - The examples directory has a new bacula_mail_summary.sh file that
   creates a single email summary of any number of jobs. Submitted by
   Andrew J. Millar.
