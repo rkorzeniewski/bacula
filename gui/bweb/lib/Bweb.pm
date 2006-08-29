@@ -2808,7 +2808,6 @@ sub delete
     my $b = new Bconsole(pref => $self->{info});
 
     if ($arg->{jobid}) {
-	my $ret = $b->send_cmd("delete jobid=\"$arg->{jobid}\"");
 	$self->display({
 	    content => $b->send_cmd("delete jobid=\"$arg->{jobid}\""),
 	    title => "Delete a job ",
