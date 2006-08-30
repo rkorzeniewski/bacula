@@ -242,7 +242,7 @@ void free_unused_volume(DCR *dcr)
       if (vol->dcr == dcr && (vol->dev == NULL || 
           strcmp(vol->vol_name, vol->dev->VolHdr.VolumeName) != 0)) {
          vol_list->remove(vol);
-         Dmsg1(100, "free_unused_olume %s\n", vol->vol_name);
+         Dmsg1(100, "free_unused_volume %s\n", vol->vol_name);
          free(vol->vol_name);
          free(vol);
          break;

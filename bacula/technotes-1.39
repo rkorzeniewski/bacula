@@ -1,6 +1,12 @@
               Technical notes on version 1.39  
 
 General:
+30Aug06
+kes  Apply dvd-handler patch from Richard Mortimer.                        
+kes  Apply dvd error check patch from Richard Mortimer.
+kes  Apply bpipe race patch from Richard Mortimer.
+kes  Rework how DVD labels are handled and set append only
+     when part > num_dvd_parts.
 27Aug06
 kes  Rework many features of DVD writing and reading. Added many error
      messages.  Most importantly changed part to represent the current

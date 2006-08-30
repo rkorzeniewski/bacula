@@ -553,9 +553,6 @@ int dvd_open_next_part(DCR *dcr)
    /* Restore Volume header record */
    memcpy(&dev->VolHdr, &VolHdr, sizeof(dev->VolHdr));
    dev->set_labeled();                   /* all next parts are "labeled" */
-   if (dev->part > dev->num_dvd_parts) { /* set append if new part created */
-      dev->set_append();
-   }
    
    return dev->fd;
 }
@@ -595,9 +592,6 @@ int dvd_open_first_part(DCR *dcr, int mode)
    if (dev->open(dcr, mode) < 0) {
       Dmsg0(400, "open dev() failed\n");
       return -1;
-   }
-   if (dev->part > dev->num_dvd_parts) { /* created new part */
-      dev->set_append();
    }
    Dmsg2(400, "Leave open_first_part state=%s append=%d\n", dev->is_open()?"open":"not open", dev->can_append());
    

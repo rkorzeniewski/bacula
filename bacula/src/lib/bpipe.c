@@ -247,7 +247,7 @@ int close_bpipe(BPIPE *bpipe)
       stop_child_timer(bpipe->timer_id);
    }
    free(bpipe);
-   Dmsg2(800, "returning stat=%d,%d\n", stat & ~(b_errno_exit|b_errno_signal), stat);
+   Dmsg2(200, "returning stat=%d,%d\n", stat & ~(b_errno_exit|b_errno_signal), stat);
    return stat;
 }
 
@@ -420,15 +420,22 @@ int run_program_full_output(char *prog, int wait, POOLMEM *results)
          break;
       } else if (stat1 != 0) {
          Dmsg1(900, "Run program fgets stat=%d\n", stat1);
-         if (bpipe->timer_id) {
-            Dmsg1(150, "Run program fgets killed=%d\n", bpipe->timer_id->killed);
-            if (bpipe->timer_id->killed) {
-               pm_strcat(tmp, _("Program killed by Bacula watchdog (timeout)\n"));
-               stat1 = ETIME;
-               break;
-            }
+         if (bpipe->timer_id && bpipe->timer_id->killed) {
+            Dmsg1(250, "Run program saw fgets killed=%d\n", bpipe->timer_id->killed);
+            break;
          }
       }
+   }
+   /*
+    * We always check whether the timer killed the program. We would see
+    * an eof even when it does so we just have to trust the killed flag
+    * and set the timer values to avoid edge cases where the program ends
+    * just as the timer kills it.
+    */
+   if (bpipe->timer_id && bpipe->timer_id->killed) {
+      Dmsg1(150, "Run program fgets killed=%d\n", bpipe->timer_id->killed);
+      pm_strcat(tmp, _("Program killed by Bacula watchdog (timeout)\n"));
+      stat1 = ETIME;
    }
    int len = sizeof_pool_memory(results) - 1;
    bstrncpy(results, tmp, len);
