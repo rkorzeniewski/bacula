@@ -32,6 +32,37 @@ Fixes for 1.39.20:
 - Eric fixed RunScripts, which I (Kern) had broken in the last beta.
 - Correct Client migration SQL as pointed out by Marc.
 
+New Features in 1.40.0 (beginning of release info)
+- There is a new cross-compiled Win32 File daemon that now has all the features
+  that were previously only in the Unix versions.
+
+  To install the 1.39.18 Win32 FD, you *must* first stop any    
+  previous version that is running in a DOS shell with:
+
+     net stop bacula
+
+  or select the 'Close Bacula' menu item from the Bacula tray icon,
+  you should then save your bacula-fd.conf file, and either
+  uninstall (using Uninstall.bat in the c:\bacula directory) or
+  remove the old installation by manually in a DOS shell in the
+  Bacula directory enter:
+
+     bacula-fd /remove
+
+  after that you can proceed with the installation.  My experience
+  is that it does not properly create the new bacula-fd.conf file, so
+  copy the one saved to the directory you chose to install Bacula,
+  or to the directory chosen by the Installer to put the bacula-fd.conf
+  file.  Then you can start Bacula in a DOS shell with:
+
+    net start baculafd
+
+  or use the Windows Control Panel->Administrative Tools->Component
+  Services menu item.  The document has been updated (not completely).
+  For installation details, please see:
+  http://www.bacula.org/dev-manual/Windows_Version_Bacula.html  
+
+
 ==========================================
 
 Warning for version 1.39.18 and greater:
@@ -62,29 +93,6 @@ Warning for version 1.39.18 and greater:
 - The "Accept Any Volume" directive has been removed. It was never
   implemented. Bacula will always accept any valid tape that is in   
   the drive for appending.
-- To install the 1.39.18 Win32 FD, you *must* first stop any    
-  previous version that is running in a DOS shell with:
-
-     net stop bacula
-
-  or select the 'Close Bacula' menu item from the Bacula tray icon,
-  you should then save your bacula-fd.conf file, and either
-  uninstall (using Uninstall.bat in the c:\bacula directory) or
-  remove the old installation by manually in a DOS shell in the
-  Bacula directory enter:
-
-     bacula-fd /remove
-
-  after that you can proceed with the installation.  My experience
-  is that it does not properly create the new bacula-fd.conf file, so
-  copy the one saved to the directory you chose to install Bacula,
-  or to the directory chosen by the Installer to put the bacula-fd.conf
-  file.  Then you can start Bacula in a DOS shell with:
-
-    net start baculafd
-
-  or use the Windows Control Panel->Administrative Tools->Component
-  Services menu item.  
 
 
 A Lot of New features for 1.39.18:

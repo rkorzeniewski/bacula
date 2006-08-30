@@ -527,6 +527,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
    if (mount_dvd(this, 1)) {
       Dmsg0(99, "DVD device mounted.\n");
       if ((num_dvd_parts == 0) && (!truncating)) {
+#ifdef needed
          /*
           * If we can mount the device, and we are not truncating the DVD, 
           * we usually want to abort. There is one exception, if there is 
@@ -540,6 +541,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
             clear_opened();
             return;
          }
+#endif
          truncated_dvd = true;
       }
    } else {
@@ -583,6 +585,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
       omode = OPEN_READ_ONLY;
       make_mounted_dvd_filename(this, archive_name);
    } else {
+      omode = OPEN_READ_WRITE;
       make_spooled_dvd_filename(this, archive_name);
    }
    set_mode(omode);
@@ -599,27 +602,26 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
       dev_errno = EIO; /* Interpreted as no device present by acquire.c:acquire_device_for_read(). */
       Dmsg1(29, "open failed: %s", errmsg);
       
+      /* Previous open failed. See if we can recover */
       if ((omode == OPEN_READ_ONLY || omode == OPEN_READ_WRITE) &&
           (part > num_dvd_parts)) {
-         /* If the last part (on spool), doesn't exists when accessing,
+         /* If the last part (on spool), doesn't exist when accessing,
           * create it. In read/write mode a write will be allowed (higher
           * level software thinks that we are extending a pre-existing
           * media. Reads for READ_ONLY will report immediately an EOF 
           * Sometimes it is better to finish with an EOF than with an error. */
          Dmsg1(29, "Creating last part on spool: %s\n", archive_name.c_str());
+         omode = CREATE_READ_WRITE;
          set_mode(CREATE_READ_WRITE);
          fd = ::open(archive_name.c_str(), mode, 0640);
          set_mode(omode);
       }
-      
-      /* We don't need it. Only the last part is on spool */
-      /*if (omode == OPEN_READ_ONLY) {
-         make_spooled_dvd_filename(this, archive_name);
-         fd = ::open(archive_name.c_str(), mode, 0640);  // try on spool
-      }*/
    }
    Dmsg1(100, "after open fd=%d\n", fd);
    if (fd >= 0) {
+      if (omode == OPEN_READ_WRITE || omode == CREATE_READ_WRITE) {
+         set_append();
+      }
       /* Get size of file */
       if (fstat(fd, &filestat) < 0) {
          berrno be;
@@ -634,22 +636,6 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
          part_size = filestat.st_size;
          dev_errno = 0;
          update_pos_dev(this);                /* update position */
-         
-         /* NB: It seems this code is wrong... part number is incremented in open_next_part, not here */
-         
-         /* Check if just created Volume  part */
-/*
- *         if (omode == OPEN_READ_WRITE && (part == 0 || part_size == 0)) {
- *          part++;
- *          num_dvd_parts = part;
- *          VolCatInfo.VolCatParts = num_dvd_parts;
- *       } else {
- *          if (part == 0) {             // we must have opened the first part
- *             part++;
- *          }
- *       }
- */
-
       }
    }
 }

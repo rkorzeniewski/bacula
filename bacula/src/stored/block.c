@@ -711,7 +711,12 @@ static bool terminate_writing_volume(DCR *dcr)
    
    if (dev->is_dvd()) {
       if (!dvd_write_part(dcr)) {             /* write last part */
+         dev->VolCatInfo.VolCatErrors++;
+         Jmsg(dcr->jcr, M_FATAL, 0, _("Error writing final part to DVD. "
+                                 "This Volume may not be readable.\n%s"),
+                         dev->errmsg);
          ok = false;
+         Dmsg0(100, "dvd_write_part error.\n");
       }
       dev->VolCatInfo.VolCatParts = dev->num_dvd_parts;
    }

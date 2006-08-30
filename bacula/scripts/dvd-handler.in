@@ -288,6 +288,8 @@ class disk:
       self.pid = 0
       print
       signal.signal(signal.SIGTERM, oldsig)
+      if not os.WIFEXITED(status):
+         raise DVDError(0, cmd + " process did not exit correctly, signal/status " + str(status))
       if os.WEXITSTATUS(status) != 0:
 	 raise DVDError(os.WEXITSTATUS(status), cmd + " exited with status " + str(os.WEXITSTATUS(status)) + ", signal/status " + str(status))
 
