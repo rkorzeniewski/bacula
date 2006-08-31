@@ -375,7 +375,7 @@ static int findcmd(UAContext *ua, TREE_CTX *tree)
 
    if (ua->argc == 1) {
       bsendmsg(ua, _("No file specification given.\n"));
-      return 0;
+      return 1;      /* make it non-fatal */
    }
 
    for (int i=1; i < ua->argc; i++) {

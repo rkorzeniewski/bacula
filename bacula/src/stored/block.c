@@ -927,9 +927,11 @@ reread:
    Dmsg3(100, "Tests : %d %d %d\n", (dev->VolCatInfo.VolCatParts > 0), 
          ((dev->file_addr-dev->part_start) == dev->part_size), 
          (dev->part <= dev->VolCatInfo.VolCatParts));*/
+
    /* Check for DVD part file end */
    if (dev->at_eof() && dev->is_dvd() && dev->num_dvd_parts > 0 &&
         dev->part < dev->num_dvd_parts) {
+      Dmsg0(400, "Call dvd_open_next_part\n");
       if (dvd_open_next_part(dcr) < 0) {
          Jmsg3(dcr->jcr, M_FATAL, 0, _("Unable to open device part=%d %s: ERR=%s\n"),
                dev->part, dev->print_name(), dev->bstrerror());
@@ -1096,10 +1098,11 @@ reread:
    if (block->read_len > block->block_len && !dev->is_tape()) {
       char ed1[50];
       off_t pos = lseek_dev(dev, (off_t)0, SEEK_CUR); /* get curr pos */
+      Dmsg1(200, "Current lseek pos=%s\n", edit_int64(pos, ed1));
       pos -= (block->read_len - block->block_len);
       lseek_dev(dev, pos, SEEK_SET);
       Dmsg3(200, "Did lseek pos=%s blk_size=%d rdlen=%d\n", 
-         edit_uint64(pos, ed1), block->block_len,
+         edit_int64(pos, ed1), block->block_len,
             block->read_len);
       dev->file_addr = pos;
       dev->file_size = pos;

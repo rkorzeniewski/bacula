@@ -1,6 +1,14 @@
               Technical notes on version 1.39  
 
 General:
+31Aug06
+kes  Make find with no args in tree restore return error rather than
+     stopping the selection. Fixes bug #665
+kes  Rework DVD writing to ensure that the last part is written
+     on open_next_part when dealing with a spool file.
+kes  Correct the lseek_dev() routine to handle end point correctly
+     (bug introduced by me).
+kes  Allow part number to exceed num_dvd_parts in lseek_dev().
 30Aug06
 kes  Apply dvd-handler patch from Richard Mortimer.                        
 kes  Apply dvd error check patch from Richard Mortimer.
