@@ -32,6 +32,22 @@ Fixes for 1.39.20:
 - Eric fixed RunScripts, which I (Kern) had broken in the last beta.
 - Correct Client migration SQL as pointed out by Marc.
 
+==== IMPORTANT =====
+- The database format has been updated from what was used in    
+  Bacula 1.38.x.  You must manually update your database before 
+  running Bacula 1.39.x or higher.  Please backup your previous
+  version of the database before running the update.  The update
+  script will be automatically installed in your scripts directory,
+  or can also be found in <bacula-source>/src/cats.  It is called:
+
+     ./update_bacula_tables
+
+  It is necessary to run it only once the first time you move to a
+  1.39.x beta or to 1.40.0. Upgrading the Bacula version thereafter
+  does not require updating the database again. Depending on the size of your
+  database the script make take a bit of time, to run, but in
+  general, it should be very fast.
+
 New Features in 1.40.0 (beginning of release info)
 - There is a new cross-compiled Win32 File daemon that now has all the features
   that were previously only in the Unix versions.
@@ -68,9 +84,9 @@ New Features in 1.40.0 (beginning of release info)
 Warning for version 1.39.18 and greater:
 - The documentation is almost non-existent for all new features
   except RunScripts (written and documented by Eric Bollengier).
-- If you have an old pre 1.39.18 database, you must upgrade it using
-  the upgrade_bacula_tables script. Please backup your database before
-  upgrading just in case.
+- If you have an old pre 1.39.18 database, you must update it using
+  the update_bacula_tables script. Please backup your database before
+  updating just in case.
 - You *should* be able to use 1.38.x FDs with version 1.39.18 Director
   and SD providing you do not use any of the new features (runscript,   
   data encryption). It seems to work here, but we do not guarantee it.

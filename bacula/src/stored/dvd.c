@@ -489,10 +489,10 @@ int dvd_open_next_part(DCR *dcr)
    memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
    
    /*
-    * If we have a part open for write, then write it to
+    * If we have a spooled part open, write it to the
     *  DVD before opening the next part.
     */
-   if (dev->part > dev->num_dvd_parts && dev->can_append()) {
+   if (dev->is_part_spooled()) {
       Dmsg2(100, "Before open next write previous. part=%d num_parts=%d\n",
          dev->part, dev->num_dvd_parts);
       if (!dvd_write_part(dcr)) {
@@ -606,25 +606,21 @@ off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
    off_t pos;
    char ed1[50], ed2[50];
    
-   Dmsg3(400, "Enter lseek_dev fd=%d part=%d nparts=%d\n", dev->fd,
-      dev->part, dev->num_dvd_parts);
+   Dmsg5(400, "Enter lseek_dev fd=%d off=%s w=%d part=%d nparts=%d\n", dev->fd,
+      edit_int64(offset, ed1), whence, dev->part, dev->num_dvd_parts);
    if (!dev->is_dvd()) { 
       Dmsg0(400, "Using sys lseek\n");
       return lseek(dev->fd, offset, whence);
    }
 
-   /* Return I/O error ... no part */  
-   if (dev->part > dev->num_dvd_parts) {
-      return 0;
-   }
-      
    dcr = (DCR *)dev->attached_dcrs->first();  /* any dcr will do */
    switch(whence) {
    case SEEK_SET:
       Dmsg2(400, "lseek_dev SEEK_SET to %s (part_start=%s)\n",
-         edit_uint64(offset, ed1), edit_uint64(dev->part_start, ed2));
+         edit_int64(offset, ed1), edit_uint64(dev->part_start, ed2));
       if ((uint64_t)offset >= dev->part_start) {
-         if ((uint64_t)offset < dev->part_start+dev->part_size) {
+         if ((uint64_t)offset == dev->part_start || 
+             (uint64_t)offset < dev->part_start+dev->part_size) {
             /* We are staying in the current part, just seek */
             if ((pos = lseek(dev->fd, offset-dev->part_start, SEEK_SET)) < 0) {
                return pos;
@@ -660,20 +656,22 @@ off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
       }
       break;
    case SEEK_CUR:
-      Dmsg1(400, "lseek_dev SEEK_CUR to %s\n", edit_uint64(offset, ed1));
+      Dmsg1(400, "lseek_dev SEEK_CUR to %s\n", edit_int64(offset, ed1));
       if ((pos = lseek(dev->fd, (off_t)0, SEEK_CUR)) < 0) {
-         return pos;   
+         Dmsg0(400, "Seek error.\n");
+         return pos;                  
       }
       pos += dev->part_start;
       if (offset == 0) {
          Dmsg1(400, "lseek_dev SEEK_CUR returns %s\n", edit_uint64(pos, ed1));
          return pos;
-      } else { /* Not used in Bacula, but should work */
+      } else { 
+         Dmsg1(400, "do lseek_dev SEEK_SET %s\n", edit_uint64(pos, ed1));
          return lseek_dev(dev, pos, SEEK_SET);
       }
       break;
    case SEEK_END:
-      Dmsg1(400, "lseek_dev SEEK_END to %s\n", edit_uint64(offset, ed1));
+      Dmsg1(400, "lseek_dev SEEK_END to %s\n", edit_int64(offset, ed1));
       /*
        * Bacula does not use offsets for SEEK_END
        *  Also, Bacula uses seek_end only when it wants to
@@ -728,6 +726,7 @@ off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
       }
       break;
    default:
+      Dmsg0(400, "Seek call error.\n");
       errno = EINVAL;
       return -1;
    }

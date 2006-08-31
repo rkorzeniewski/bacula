@@ -653,6 +653,10 @@ bool DEVICE::rewind(DCR *dcr)
    bool first = true;
 
    Dmsg3(400, "rewind res=%d fd=%d %s\n", reserved_device, fd, print_name());
+   state &= ~(ST_EOT|ST_EOF|ST_WEOT);  /* remove EOF/EOT flags */
+   block_num = file = 0;
+   file_size = 0;
+   file_addr = 0;
    if (fd < 0) {
       if (!is_dvd()) { /* In case of major error, the fd is not open on DVD, so we don't want to abort. */
          dev_errno = EBADF;
@@ -662,10 +666,6 @@ bool DEVICE::rewind(DCR *dcr)
       }
       return false;
    }
-   state &= ~(ST_EOT|ST_EOF|ST_WEOT);  /* remove EOF/EOT flags */
-   block_num = file = 0;
-   file_size = 0;
-   file_addr = 0;
    if (is_tape()) {
       mt_com.mt_op = MTREW;
       mt_com.mt_count = 1;
