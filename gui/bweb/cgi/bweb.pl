@@ -355,6 +355,9 @@ if ($action eq 'begin') {		# main display
 } elsif ($action eq 'delete') {
     $bweb->delete();
 
+} elsif ($action eq 'fileset_view') {
+    $bweb->fileset_view();
+
 } else {
     $bweb->error("Sorry, this action don't exist");
 }

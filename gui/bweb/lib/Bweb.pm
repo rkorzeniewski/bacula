@@ -1351,6 +1351,7 @@ sub get_form
                  type   => 1,
 		 );
     my %opt_p = (		# option with path
+		 fileset=> 1,
 		 mtxcmd => 1,
 		 precmd => 1,
 		 device => 1,
@@ -1449,7 +1450,6 @@ FROM FileSet
 
 	$ret{db_filesets} = [sort {lc($a->{fileset}) cmp lc($b->{fileset}) } 
 			       values %$filesets] ;
-
     }
 
     if ($what{db_jobnames}) {
@@ -1462,7 +1462,6 @@ FROM Job
 
 	$ret{db_jobnames} = [sort {lc($a->{jobname}) cmp lc($b->{jobname}) } 
 			       values %$jobnames] ;
-
     }
 
     if ($what{db_devices}) {
@@ -1475,7 +1474,6 @@ FROM Device
 
 	$ret{db_devices} = [sort {lc($a->{name}) cmp lc($b->{name}) } 
 			       values %$devices] ;
-
     }
 
     return \%ret;
@@ -1485,9 +1483,10 @@ sub display_graph
 {
     my ($self) = @_;
 
-    my $fields = $self->get_form(qw/age level status clients filesets graph gtype type
-				   db_clients limit db_filesets width height
-				   qclients qfilesets qjobnames db_jobnames/);
+    my $fields = $self->get_form(qw/age level status clients filesets 
+                                    graph gtype type
+				    db_clients limit db_filesets width height
+				    qclients qfilesets qjobnames db_jobnames/);
 				
 
     my $url = CGI::url(-full => 0,
@@ -2728,7 +2727,8 @@ sub ach_edit
     $ach->{drives} = 
 	[ map { { name => $_, index => $i++ } } @{$ach->{drive_name}} ] ;
 
-    my $b = new Bconsole(pref => $self->{info});    
+    my $b = $self->get_bconsole();
+
     my @storages = $b->list_storage() ;
 
     $ach->{devices} = [ map { { name => $_ } } @storages ];
@@ -2762,7 +2762,7 @@ sub ach_add
     my ($self) = @_;
     my $arg = $self->get_form('ach', 'mtxcmd', 'device', 'precmd');
 
-    my $b = new Bconsole(pref => $self->{info});    
+    my $b = $self->get_bconsole();
     my @storages = $b->list_storage() ;
 
     unless ($arg->{ach}) {
@@ -2805,9 +2805,10 @@ sub delete
     my ($self) = @_;
     my $arg = $self->get_form('jobid');
 
-    my $b = new Bconsole(pref => $self->{info});
-
     if ($arg->{jobid}) {
+	my $b = $self->get_bconsole();
+	my $ret = $b->send_cmd("delete jobid=\"$arg->{jobid}\"");
+
 	$self->display({
 	    content => $b->send_cmd("delete jobid=\"$arg->{jobid}\""),
 	    title => "Delete a job ",
@@ -2825,7 +2826,7 @@ sub update_slots
 	return $self->error("Bad autochanger name");
     }
 
-    my $b = new Bconsole(pref => $self->{info});
+    my $b = $self->get_bconsole();
     print "<pre>" . $b->update_slots($ach) . "</pre>";
 }
 
@@ -2904,6 +2905,7 @@ sub label_barcodes
 		       pool  => 'Scratch',
 		       slots => $slots) ;
     print "</pre>";
+    $b->close();
 }
 
 sub purge
@@ -2912,6 +2914,10 @@ sub purge
 
     my @volume = CGI::param('media');
 
+    unless (@volume) {
+	return $self->error("Can't get media selection");
+    }
+
     my $b = new Bconsole(pref => $self->{info}, timeout => 60);
 
     $self->display({
@@ -2919,20 +2925,27 @@ sub purge
 	title => "Purge media",
 	name => "purge volume=" . join(' volume=', @volume),
     }, "command.tpl");	
+    $b->close();
 }
 
 sub prune
 {
     my ($self) = @_;
 
+    my @volume = CGI::param('media');
+    unless (@volume) {
+	return $self->error("Can't get media selection");
+    }
+
     my $b = new Bconsole(pref => $self->{info}, timeout => 60);
 
-    my @volume = CGI::param('media');
     $self->display({
 	content => $b->prune_volume(@volume),
 	title => "Prune media",
 	name => "prune volume=" . join(' volume=', @volume),
     }, "command.tpl");	
+
+    $b->close();
 }
 
 sub cancel_job
@@ -2941,15 +2954,33 @@ sub cancel_job
 
     my $arg = $self->get_form('jobid');
     unless ($arg->{jobid}) {
-	return $self->error('Bad jobid');
+	return $self->error("Can't get jobid");
     }
 
-    my $b = new Bconsole(pref => $self->{info});
+    my $b = $self->get_bconsole();
     $self->display({
 	content => $b->cancel($arg->{jobid}),
 	title => "Cancel job",
 	name => "cancel jobid=$arg->{jobid}",
     }, "command.tpl");	
+}
+
+sub fileset_view
+{
+    # Warning, we display current fileset
+    my ($self) = @_;
+
+    my $arg = $self->get_form('fileset');
+
+    if ($arg->{fileset}) {
+	my $b = $self->get_bconsole();
+	my $ret = $b->get_fileset($arg->{fileset});
+	$self->display({ fileset => $arg->{fileset},
+			 %$ret,
+		     }, "fileset_view.tpl");
+    } else {
+	$self->error("Can't get fileset name");
+    }
 }
 
 sub director_show_sched
@@ -2958,8 +2989,7 @@ sub director_show_sched
 
     my $arg = $self->get_form('days');
 
-    my $b = new Bconsole(pref => $self->{info}) ;
-    
+    my $b = $self->get_bconsole();
     my $ret = $b->director_get_sched( $arg->{days} );
 
     $self->display({
@@ -2977,7 +3007,7 @@ sub enable_disable_job
 	return $self->error("Can't find job name");
     }
 
-    my $b = new Bconsole(pref => $self->{info}) ;
+    my $b = $self->get_bconsole();
 
     my $cmd;
     if ($what) {
@@ -2993,10 +3023,16 @@ sub enable_disable_job
     }, "command.tpl");	
 }
 
+sub get_bconsole
+{
+    my ($self) = @_;
+    return new Bconsole(pref => $self->{info});
+}
+
 sub run_job_select
 {
     my ($self) = @_;
-    $b = new Bconsole(pref => $self->{info});
+    my $b = $self->get_bconsole();
 
     my $joblist = [ map { { name => $_ } } $b->list_job() ];
 
@@ -3031,7 +3067,7 @@ sub run_parse_job
 sub run_job_mod
 {
     my ($self) = @_;
-    $b = new Bconsole(pref => $self->{info});
+    my $b = $self->get_bconsole();
     
     my $job = CGI::param('job') || '';
 
@@ -3058,7 +3094,7 @@ sub run_job_mod
 sub run_job
 {
     my ($self) = @_;
-    $b = new Bconsole(pref => $self->{info});
+    my $b = $self->get_bconsole();
     
     my $jobs   = [ map {{ name => $_ }} $b->list_job() ];
 
@@ -3070,7 +3106,7 @@ sub run_job
 sub run_job_now
 {
     my ($self) = @_;
-    $b = new Bconsole(pref => $self->{info});
+    my $b = $self->get_bconsole();
     
     # TODO: check input (don't use pool, level)
 

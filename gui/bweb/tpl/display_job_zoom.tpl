@@ -41,6 +41,15 @@
   </label>
  </form>
  </td>
+ <td>
+ <form action='?'>
+  <input type='hidden' name='fileset' value='<TMPL_VAR FileSet>'>
+  <label>
+  <input type="image" name='action' value='fileset_view' title='view fileset'
+   src='/bweb/zoom.png'> View FileSet
+  </label>
+ </form>
+ </td>
  </table>
 </div>
 

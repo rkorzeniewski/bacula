@@ -277,6 +277,24 @@ sub update_slots
     return $self->send_cmd_with_drive("update slots storage=$storage", $drive);
 }
 
+sub get_fileset
+{
+    my ($self, $fs) = @_;
+
+    my $out = $self->send_cmd("show fileset=\"$fs\"");
+    
+    my $ret = {};
+
+    foreach my $l (split(/\r\n/, $out)) { 
+        #              I /usr/local
+	if ($l =~ /^\s+([I|E])\s+(.+)$/) { # include
+	    push @{$ret->{$1}}, { file => $2 };
+	}
+    }
+
+    return $ret;
+}
+
 sub list_job
 {
     my ($self) = @_;

@@ -1,5 +1,9 @@
           Release Notes for bweb 1.39.20
 
+2006/08/31:
+ - Add FileSet view action
+ - Add view fileset to job_zoom
+
 2006/08/26:
  - Add more graphics
    o job avg size/days
