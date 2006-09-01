@@ -80,7 +80,7 @@ bool do_append_data(JCR *jcr)
    if (dev->VolCatInfo.VolCatName[0] == 0) {
       Pmsg0(000, _("NULL Volume name. This shouldn't happen!!!\n"));
    }
-   Dmsg1(20, "Begin append device=%s\n", dev->print_name());
+   Dmsg1(50, "Begin append device=%s\n", dev->print_name());
 
    begin_data_spool(dcr);
    begin_attribute_spool(jcr);

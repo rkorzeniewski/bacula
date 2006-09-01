@@ -266,10 +266,10 @@ class disk:
       
       cmd = self.growcmd + self.growparams
       if newvol:
-	 cmd += " -Z "
 	 # Ignore any existing iso9660 filesystem - used for truncate
 	 if newvol == 2:
-	     cmd += "-use-the-force-luke=tty "
+	     cmd += " -use-the-force-luke=tty"
+	 cmd += " -Z "
       else:
 	 cmd += " -M "
       cmd += self.device + " " + str(partfile)

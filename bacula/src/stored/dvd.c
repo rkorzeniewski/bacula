@@ -135,11 +135,11 @@ static bool do_mount_dvd(DEVICE* dev, int mount, int dotimeout)
    results = get_memory(2000);
    results[0] = 0;
    /* If busy retry each second */
-   Dmsg1(100, "Run prog=%s\n", ocmd.c_str());
+   Dmsg1(20, "Run mount prog=%s\n", ocmd.c_str());
    while ((status = run_program_full_output(ocmd.c_str(), 
                        dev->max_open_wait/2, results)) != 0) {
       Dmsg2(99, "Mount status=%d result=%s\n", status, results);
-      /* Doesn't work with internationalisation (This is not a problem) */
+      /* Doesn't work with internationalization (This is not a problem) */
       if (mount && fnmatch("*is already mounted on*", results, 0) == 0) {
          break;
       }
@@ -290,7 +290,7 @@ bool update_free_space_dev(DEVICE* dev)
    
    while (1) {
       berrno be;
-      Dmsg1(100, "Run prog=%s\n", ocmd.c_str());
+      Dmsg1(20, "Run freespace prog=%s\n", ocmd.c_str());
       status = run_program_full_output(ocmd.c_str(), dev->max_open_wait/2, results);
       if (status == 0) {
          free = str_to_int64(results);
@@ -414,8 +414,7 @@ bool dvd_write_part(DCR *dcr)
    else
       timeout = dev->max_open_wait + (dev->part_size/(1350*1024/4));
 
-   Dmsg2(29, "dvd_write_part: cmd=%s timeout=%d\n", ocmd.c_str(), timeout);
-      
+   Dmsg2(20, "dvd_write_part: cmd=%s timeout=%d\n", ocmd.c_str(), timeout);
    status = run_program_full_output(ocmd.c_str(), timeout, results.c_str());
 
    if (status != 0) {
@@ -431,6 +430,9 @@ bool dvd_write_part(DCR *dcr)
       return false;
    }
    Jmsg(dcr->jcr, M_INFO, 0, _("Part %d written to DVD.\n"), dev->part);
+   Dmsg2(400, "dvd_write_part: Part %d written to DVD\nResults: %s\n",
+            dev->part, results.c_str());
+    
    if (dev->truncated_dvd) {
       dev->truncated_dvd = false;   /* turn off flag */
    } else {                         /* DVD part written */

@@ -109,8 +109,14 @@ bool read_records(DCR *dcr,
 
          } else if (dev->at_eof()) {
             if (verbose) {
-               Jmsg(jcr, M_INFO, 0, _("End of file %u  on device %s, Volume \"%s\"\n"),
-                  dev->file, dev->print_name(), dcr->VolumeName);
+               char dvdpart[100];
+               if (dev->is_dvd()) {
+                  bsnprintf(dvdpart, sizeof(dvdpart), _("part %d "), dev->part);
+               } else {
+                  dvdpart[0] = 0;
+               }
+               Jmsg(jcr, M_INFO, 0, _("End of file %u %son device %s, Volume \"%s\"\n"),
+                  dev->file, dvdpart, dev->print_name(), dcr->VolumeName);
             }
             Dmsg3(200, "End of file %u  on device %s, Volume \"%s\"\n",
                   dev->file, dev->print_name(), dcr->VolumeName);

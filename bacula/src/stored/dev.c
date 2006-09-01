@@ -1782,16 +1782,21 @@ void DEVICE::close()
       struct stat statp;
       int part_save = part;
       POOL_MEM archive_name(PM_FNAME);
+      int status;
 
       part = num_dvd_parts;
       Dmsg3(100, "Remove empty part in close call make_dvd_filename. part=%d num=%d vol=%s\n", 
          part, num_dvd_parts, VolCatInfo.VolCatName);
       make_spooled_dvd_filename(this, archive_name);
       /* Check that the part file is empty */
-      if ((stat(archive_name.c_str(), &statp) == 0) && (statp.st_size == 0)) {
+      status = stat(archive_name.c_str(), &statp);
+      if (status == 0 && statp.st_size == 0) {
          Dmsg1(100, "unlink(%s)\n", archive_name.c_str());
          unlink(archive_name.c_str());
-      }
+         set_part_spooled(false);        /* no spooled part left */
+      } else if (status < 0) {                         
+         set_part_spooled(false);        /* spool doesn't exit */
+      }       
       part = part_save;               /* restore part number */
    }
    
@@ -1900,7 +1905,9 @@ bool DEVICE::do_mount(int mount, int dotimeout)
    }
    results = get_memory(2000);
    results[0] = 0;
+
    /* If busy retry each second */
+   Dmsg1(20, "do_mount run_prog=%s\n", ocmd.c_str());
    while ((status = run_program_full_output(ocmd.c_str(), 
                        max_open_wait/2, results)) != 0) {
       /* Doesn't work with internationalisation (This is not a problem) */
