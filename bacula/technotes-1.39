@@ -1,6 +1,12 @@
               Technical notes on version 1.39  
 
 General:
+01Sep06
+kes  Apply new dvd-handler patch from Richard Mortimer.
+kes  Tweak so that debug level 20 shows only DVD commands.
+kes  Correct spooled_part flag in dev.c close() so that it is cleared
+     when the spool file is deleted or does not exist.
+kes  Print part number in read_records when eof hit (restore).
 31Aug06
 kes  Make find with no args in tree restore return error rather than
      stopping the selection. Fixes bug #665

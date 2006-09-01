@@ -704,14 +704,14 @@ bool write_session_label(DCR *dcr, int label)
       return false;
    }
 
-   Dmsg6(20, "Write sesson_label record JobId=%d FI=%s SessId=%d Strm=%s len=%d "
+   Dmsg6(50, "Write sesson_label record JobId=%d FI=%s SessId=%d Strm=%s len=%d "
              "remainder=%d\n", jcr->JobId,
       FI_to_ascii(buf1, rec->FileIndex), rec->VolSessionId,
       stream_to_ascii(buf2, rec->Stream, rec->FileIndex), rec->data_len,
       rec->remainder);
 
    free_record(rec);
-   Dmsg2(20, "Leave write_session_label Block=%d File=%d\n",
+   Dmsg2(50, "Leave write_session_label Block=%d File=%d\n",
       dev->block_num, dev->file);
    return true;
 }
