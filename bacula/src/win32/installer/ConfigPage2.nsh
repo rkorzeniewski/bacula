@@ -24,16 +24,19 @@ Function EnterConfigPage2
   StrCpy $R7 0  ; Top
   
   ${If} $R2 = 1
-    IntOp $R8 $R7 + 90
-  ${ElseIf} $R3 = 1
-    IntOp $R8 $R7 + 52
+    IntOp $R8 $R7 + 92
+  FileWrite $R5 '[Field $R6]$\r$\nType="GroupBox"$\r$\nText="Director"$\r$\nLeft=0$\r$\nTop=$R7$\r$\nRight=300$\r$\nBottom=$R8$\r$\n$\r$\n'
   ${Else}
-    IntOp $R8 $R7 + 24
+    ${If} $R3 = 1
+      IntOp $R8 $R7 + 54
+    ${Else}
+      IntOp $R8 $R7 + 26
+    ${EndIf}
+    FileWrite $R5 '[Field $R6]$\r$\nType="GroupBox"$\r$\nText="Remote Director"$\r$\nLeft=0$\r$\nTop=$R7$\r$\nRight=300$\r$\nBottom=$R8$\r$\n$\r$\n'
   ${EndIf}
 
-  FileWrite $R5 '[Field $R6]$\r$\nType="GroupBox"$\r$\nText="Director"$\r$\nLeft=0$\r$\nTop=$R7$\r$\nRight=300$\r$\nBottom=$R8$\r$\n$\r$\n'
   IntOp $R6 $R6 + 1
-  IntOp $R7 $R7 + 10
+  IntOp $R7 $R7 + 12
 
   IntOp $R8 $R7 + 8
   FileWrite $R5 '[Field $R6]$\r$\nType="Label"$\r$\nText="Name"$\r$\nLeft=6$\r$\nTop=$R7$\r$\nRight=26$\r$\nBottom=$R8$\r$\n$\r$\n'
@@ -205,11 +208,11 @@ Function EnterConfigPage2
     ${OrIf} $R1 = 1
     ${OrIf} $R2 = 1
 
-    IntOp $R8 $R7 + 40
+    IntOp $R8 $R7 + 42
 
     FileWrite $R5 '[Field $R6]$\r$\nType="GroupBox"$\r$\nText="Monitor"$\r$\nLeft=0$\r$\nTop=$R7$\r$\nRight=300$\r$\nBottom=$R8$\r$\n$\r$\n'
     IntOp $R6 $R6 + 1
-    IntOp $R7 $R7 + 10
+    IntOp $R7 $R7 + 12
 
     IntOp $R8 $R7 + 8
     FileWrite $R5 '[Field $R6]$\r$\nType="Label"$\r$\nText="Name"$\r$\nLeft=6$\r$\nTop=$R7$\r$\nRight=26$\r$\nBottom=$R8$\r$\n$\r$\n'

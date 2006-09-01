@@ -66,10 +66,11 @@
 ; Pull in pages
 ;
 
+!define      MUI_COMPONENTSPAGE_SMALLDESC
+!define      MUI_FINISHPAGE_NOAUTOCLOSE
+
 !InsertMacro MUI_PAGE_WELCOME
 ;  !InsertMacro MUI_PAGE_LICENSE "..\..\LICENSE"
-
-!define      MUI_COMPONENTSPAGE_SMALLDESC
 
 !InsertMacro MUI_PAGE_COMPONENTS
 !InsertMacro MUI_PAGE_DIRECTORY
@@ -148,8 +149,8 @@ Function .onInit
 
   ; Process Command Line Options
   StrCpy $OptCygwin 0
-  StrCpy $OptService 0
-  StrCpy $OptStart 0
+  StrCpy $OptService 1
+  StrCpy $OptStart 1
   StrCpy $OptSilent 0
   StrCpy $DependenciesDone 0
   StrCpy $DatabaseDone 0
@@ -163,14 +164,14 @@ Function .onInit
     StrCpy $OptCygwin 1
 
   ClearErrors
-  ${GetOptions} $R0 "/service" $R1
+  ${GetOptions} $R0 "/noservice" $R1
   IfErrors +2
-    StrCpy $OptService 1
+    StrCpy $OptService 0
 
   ClearErrors
-  ${GetOptions} $R0 "/start" $R1
+  ${GetOptions} $R0 "/nostart" $R1
   IfErrors +2
-    StrCpy $OptStart 1
+    StrCpy $OptStart 0
 
   IfSilent 0 +2
     StrCpy $OptSilent 1
@@ -230,6 +231,8 @@ Function .onInit
   File "/oname=$PLUGINSDIR\ssleay32.dll" "${DEPKGS_BIN}\ssleay32.dll"
   File "/oname=$PLUGINSDIR\sed.exe" "${DEPKGS_BIN}\sed.exe"
 
+  SetPluginUnload alwaysoff
+
   nsExec::Exec '"$PLUGINSDIR\openssl.exe" rand -base64 -out $PLUGINSDIR\pw.txt 33'
   pop $R0
   ${If} $R0 = 0
@@ -259,6 +262,8 @@ Function .onInit
      ${StrTrimNewLines} $LocalDirectorPassword $R0
      FileClose $R1
   ${EndIf}
+
+  SetPluginUnload manual
 
   nsExec::Exec '"$PLUGINSDIR\openssl.exe" rand -base64 -out $PLUGINSDIR\pw.txt 33'
   pop $R0
@@ -312,6 +317,8 @@ Function CopyDependencies
 FunctionEnd
 
 Function InstallDatabase
+  SetOutPath "$INSTDIR\bin"
+
   ${If} $DatabaseDone = 0
     ${If} $ConfigDirectorDB = 1
       File /oname=bacula_cats.dll "${BACULA_BIN}\cats_mysql.dll"
@@ -454,6 +461,7 @@ Section "File Service" SecFileDaemon
   SectionIn 1 2 3
 
   SetOutPath "$INSTDIR\bin"
+
   File "${BACULA_BIN}\bacula-fd.exe"
 
   StrCpy $R0 0
@@ -487,8 +495,9 @@ SectionGroup "Server"
 
 Section "Storage Service" SecStorageDaemon
   SectionIn 2 3
-  
+
   SetOutPath "$INSTDIR\bin"
+
   File "${DEPKGS_BIN}\loaderinfo.exe"
   File "${DEPKGS_BIN}\mt.exe"
   File "${DEPKGS_BIN}\mtx.exe"
@@ -524,6 +533,7 @@ Section "Storage Service" SecStorageDaemon
   StrCpy $3 $ConfigStorageStartService
   Call InstallDaemon
 
+  CreateShortCut "$SMPROGRAMS\Bacula\List Devices.lnk" "$INSTDIR\bin\scsilist.exe" "/pause"
   CreateShortCut "$SMPROGRAMS\Bacula\Edit Storage Configuration.lnk" "write.exe" '"$APPDATA\Bacula\bacula-sd.conf"'
 SectionEnd
 
@@ -531,6 +541,7 @@ Section "Director Service" SecDirectorDaemon
   SectionIn 2 3
 
   SetOutPath "$INSTDIR\bin"
+
   Call InstallDatabase
   File "${BACULA_BIN}\bacula-dir.exe"
   File "${BACULA_BIN}\dbcheck.exe"
@@ -597,7 +608,9 @@ SectionGroupEnd
 SectionGroup "Consoles"
 
 Section "Command Console" SecConsole
-  SectionIn 3
+  SectionIn 1 2 3
+
+  SetOutPath "$INSTDIR\bin"
 
   File "${BACULA_BIN}\bconsole.exe"
   Call CopyDependencies
@@ -624,6 +637,8 @@ SectionEnd
 Section "Graphical Console" SecWxConsole
   SectionIn 1 2 3
   
+  SetOutPath "$INSTDIR\bin"
+
   Call CopyDependencies
 !if "${BUILD_TOOLS}" == "VC8"
   File "${DEPKGS_BIN}\wxbase270_vc_bacula.dll"
@@ -669,6 +684,7 @@ Section "Documentation (Acrobat Format)" SecDocPdf
 
   SetOutPath "$INSTDIR\doc"
   CreateDirectory "$INSTDIR\doc"
+
   File "${DOC_DIR}\manual\bacula.pdf"
   CreateShortCut "$SMPROGRAMS\Bacula\Manual.lnk" '"$INSTDIR\doc\bacula.pdf"'
 SectionEnd
@@ -678,6 +694,7 @@ Section "Documentation (HTML Format)" SecDocHtml
 
   SetOutPath "$INSTDIR\doc"
   CreateDirectory "$INSTDIR\doc"
+
   File "${DOC_DIR}\manual\bacula\*.html"
   File "${DOC_DIR}\manual\bacula\*.png"
   File "${DOC_DIR}\manual\bacula\*.css"
@@ -731,6 +748,8 @@ Section "Uninstall"
   nsExec::ExecToLog '"$INSTDIR\bin\bacula-fd.exe" /kill'
   nsExec::ExecToLog '"$INSTDIR\bin\bacula-sd.exe" /kill'
   nsExec::ExecToLog '"$INSTDIR\bin\bacula-dir.exe" /kill'
+  Sleep 3000
+
 
   ReadRegDWORD $R0 HKLM "Software\Bacula" "Service_Bacula-fd"
   ${If} $R0 = 1
@@ -785,9 +804,10 @@ SectionEnd
 Function InstallDaemon
   Call CopyDependencies
 
-  IfFileExists "$APPDATA\Bacula\$0.conf" 0 +3
+  IfFileExists "$APPDATA\Bacula\$0.conf" 0 +4
     nsExec::ExecToLog '"$INSTDIR\bin\$0.exe" /silent /kill'     ; Shutdown any bacula that could be running
     nsExec::ExecToLog '"$INSTDIR\bin\$0.exe" /silent /remove'   ; Remove existing service
+    Sleep 3000
 
   WriteRegDWORD HKLM "Software\Bacula" "Service_$0" $2
   

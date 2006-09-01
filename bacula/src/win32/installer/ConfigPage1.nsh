@@ -16,10 +16,10 @@ Function EnterConfigPage1
   StrCpy $R7 0  ; Top
   
   ${If} $R0 = 1
-    IntOp $R8 $R7 + 50
+    IntOp $R8 $R7 + 52
     FileWrite $R5 '[Field $R6]$\r$\nType="GroupBox"$\r$\nText="Client"$\r$\nLeft=0$\r$\nTop=$R7$\r$\nRight=300$\r$\nBottom=$R8$\r$\n$\r$\n'
     IntOp $R6 $R6 + 1
-    IntOp $R7 $R7 + 10
+    IntOp $R7 $R7 + 12
 
     IntOp $R8 $R7 + 8
     FileWrite $R5 '[Field $R6]$\r$\nType="Label"$\r$\nText="Name"$\r$\nLeft=6$\r$\nTop=$R7$\r$\nRight=26$\r$\nBottom=$R8$\r$\n$\r$\n'
@@ -71,10 +71,10 @@ Function EnterConfigPage1
   ${Endif}
 
   ${If} $R1 = 1
-    IntOp $R8 $R7 + 50
+    IntOp $R8 $R7 + 52
     FileWrite $R5 '[Field $R6]$\r$\nType="GroupBox"$\r$\nText="Storage"$\r$\nLeft=0$\r$\nTop=$R7$\r$\nRight=300$\r$\nBottom=$R8$\r$\n$\r$\n'
     IntOp $R6 $R6 + 1
-    IntOp $R7 $R7 + 10
+    IntOp $R7 $R7 + 12
     
     IntOp $R8 $R7 + 8
     FileWrite $R5 '[Field $R6]$\r$\nType="Label"$\r$\nText="Name"$\r$\nLeft=6$\r$\nTop=$R7$\r$\nRight=26$\r$\nBottom=$R8$\r$\n$\r$\n'

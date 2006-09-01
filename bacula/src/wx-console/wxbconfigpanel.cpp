@@ -21,6 +21,11 @@
 
  */
 
+/*  Windows debug builds set _DEBUG which is used by wxWidgets to select their
+ *  debug memory allocator.  Unfortunately it conflicts with Bacula's SmartAlloc.
+ * So we turn _DEBUG off since we aren't interested in things it enables.
+ */
+
 #undef _DEBUG
 
 #include "bacula.h"

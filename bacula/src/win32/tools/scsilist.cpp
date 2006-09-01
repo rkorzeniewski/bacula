@@ -43,6 +43,7 @@
 
 #include <stdio.h>
 #include <tchar.h>
+#include <conio.h>
 
 #include "ScsiDeviceList.h"
 
@@ -50,7 +51,7 @@
 #define  new   DEBUG_NEW
 #endif
 
-int _tmain(int /* argc */, _TCHAR* /* argv */[])
+int _tmain(int argc, _TCHAR* argv[])
 {
 #if defined(_MSC_VER) && defined(_DEBUG)
    CMemoryState InitialMemState, FinalMemState, DiffMemState;
@@ -97,6 +98,11 @@ int _tmain(int /* argc */, _TCHAR* /* argv */[])
    DiffMemState.Difference(InitialMemState, FinalMemState);
    DiffMemState.DumpStatistics();
 #endif
+
+   if (argc > 1 && _tcsnicmp(argv[1], _T("/pause"), sizeof(_T("/pause")) - sizeof(TCHAR)) == 0) {
+      _fputts(_T("\nPress any key to continue\n"), stderr);
+      _getch();
+   }
 
    return 0;
 }
