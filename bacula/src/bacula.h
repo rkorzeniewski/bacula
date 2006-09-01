@@ -32,10 +32,8 @@
 #else
 #include "winconfig.h"
 #endif
-#include "winhost.h"
 #else
 #include "config.h"
-#include "host.h"
 #endif
 
 
@@ -64,13 +62,23 @@
 #if HAVE_ALLOCA_H
 #include <alloca.h>
 #endif
-
+#if defined(_MSC_VER)
+#include <io.h>
+#include <direct.h>
+#include <process.h>
+#endif
 #include <errno.h>
 #include <fcntl.h>
 
 /* O_NOATIME is defined at fcntl.h when supported */
 #ifndef O_NOATIME
 #define O_NOATIME 0
+#endif
+
+#if defined(_MSC_VER)
+extern "C" {
+#include "getopt.h"
+}
 #endif
 
 #ifdef xxxxx
@@ -158,6 +166,9 @@
 
 #if defined(HAVE_WIN32)
 #include "win32/winapi.h"
+#include "winhost.h"
+#else
+#include "host.h"
 #endif
 
 #ifndef HAVE_ZLIB_H

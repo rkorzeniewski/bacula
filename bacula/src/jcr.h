@@ -353,7 +353,7 @@ struct s_last_job {
 };
 
 extern struct s_last_job last_job;
-extern dlist * DLL_IMP_EXP last_jobs;
+extern DLL_IMP_EXP dlist * last_jobs;
 
 
 /* The following routines are found in lib/jcr.c */

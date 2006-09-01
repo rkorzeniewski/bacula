@@ -123,7 +123,7 @@ int select_data_stream(FF_PKT *ff_pkt)
       default:
          /* All stream types that do not support encryption should clear out
           * FO_ENCRYPT above, and this code block should be unreachable. */
-         ASSERT(!ff_pkt->flags & FO_ENCRYPT);
+         ASSERT(!(ff_pkt->flags & FO_ENCRYPT));
          return STREAM_NONE;
       }
    }

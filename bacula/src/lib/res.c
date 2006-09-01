@@ -23,8 +23,6 @@
 
 #include "bacula.h"
 
-extern int debug_level;
-
 /* Each daemon has a slightly different set of
  * resources, so it will define the following
  * global values.
