@@ -52,7 +52,7 @@ LIBS_DLL = \
 
 .PHONY: all clean
 
-all: $(BINDIR)/cats_mysql.dll $(BINDIR)/cats_pgsql.dll $(BINDIR)/cats_bdb.dll
+all: $(LIBDIR)/libcats.a $(BINDIR)/cats_mysql.dll $(BINDIR)/cats_pgsql.dll $(BINDIR)/cats_bdb.dll
 
 clean:
 	@echo "Cleaning `pwd`"

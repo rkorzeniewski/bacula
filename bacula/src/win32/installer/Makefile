@@ -11,8 +11,13 @@ VERSION := $(shell sed -ne 's/.*[ \t]VERSION[ \t][ \t]*"\(.*\)"/\1/p' < ../../ve
 
 DEFINES := \
 	-DVERSION=$(VERSION) \
-	-DDOCDIR=$(DOCDIR) \
-	-DMINGW_BIN=$(MINGW_BIN) 
+	-DDOC_DIR=$(DOCDIR) \
+	-DBUILD_TOOLS=MinGW \
+	-DMINGW_BIN=$(MINGW_BIN) \
+	-DDEPKGS_BIN=. \
+	-DBACULA_BIN=. \
+	-DCATS_DIR=..\\cats \
+	-DSCRIPT_DIR=..\\scripts
 
 INSTALL_EXE := winbacula-$(VERSION).exe
 
@@ -31,6 +36,7 @@ BACULA_BINARIES := \
 	bscan.exe \
 	btape.exe \
 	dbcheck.exe \
+	scsilist.exe \
 	wx-console.exe
 
 DEPKGS_BINARIES := \
@@ -43,6 +49,7 @@ DEPKGS_BINARIES := \
 	mt.exe \
 	mtx.exe \
 	scsitape.exe \
+	sed.exe \
 	tapeinfo.exe \
 	wxbase26_gcc_bacula.dll \
 	wxmsw26_core_gcc_bacula.dll

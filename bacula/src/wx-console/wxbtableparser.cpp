@@ -28,6 +28,8 @@
 
  */
 
+#undef _DEBUG
+
 #include "bacula.h"
 
 #include "wxbtableparser.h" // class's header file

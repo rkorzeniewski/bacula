@@ -19,7 +19,7 @@
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="4"
+			ConfigurationType="2"
 			CharacterSet="2"
 			>
 			<Tool
@@ -40,15 +40,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../compat;../..;&quot;../../../../depkgs-win32/pthreads&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;HAVE_WIN32;WIN32_VSS;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
+				AdditionalIncludeDirectories="../compat;&quot;../../../../depkgs-msvc/include&quot;;../.."
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;HAVE_WIN32;BUILDING_DLL;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="false"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -60,10 +60,19 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
+				Name="VCLinkerTool"
+				AdditionalDependencies="wsock32.lib pthreadVCE.lib ssleay32.lib libeay32.lib "
+				OutputFile="$(OutDir)\bacula.dll"
+				LinkIncremental="0"
+				AdditionalLibraryDirectories="..\..\..\..\depkgs-msvc\lib"
+				ModuleDefinitionFile="msvc\bacula.def"
+				ImportLibrary="$(TargetDir)libbac.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -75,6 +84,12 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -82,7 +97,7 @@
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="4"
+			ConfigurationType="2"
 			UseOfATL="1"
 			CharacterSet="2"
 			WholeProgramOptimization="0"
@@ -104,8 +119,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../compat;../..;&quot;../../../../depkgs-win32/pthreads&quot;"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;HAVE_WIN32;WIN32_VSS;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
+				AdditionalIncludeDirectories="../compat;&quot;../../../../depkgs-msvc/include&quot;;../.."
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;HAVE_WIN32;WIN32_VSS;BUILDING_DLL;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -124,10 +139,18 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
+				Name="VCLinkerTool"
+				AdditionalDependencies="wsock32.lib pthreadVCE.lib ssleay32.lib libeay32.lib "
+				OutputFile="$(OutDir)\bacula.dll"
+				AdditionalLibraryDirectories="..\..\..\..\depkgs-msvc\lib"
+				ModuleDefinitionFile="..\dll\bacula.def"
+				ImportLibrary="$(TargetDir)libbac.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -137,6 +160,12 @@
 			/>
 			<Tool
 				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -149,6 +178,7 @@
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
 				RelativePath="..\..\lib\address_conf.c"
@@ -231,6 +261,30 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\findlib\attribs.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\msvc\bacula.def"
+				>
+			</File>
+			<File
 				RelativePath="..\..\lib\base64.c"
 				>
 				<FileConfiguration
@@ -252,6 +306,26 @@
 			</File>
 			<File
 				RelativePath="..\..\lib\berrno.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\findlib\bfile.c"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -371,7 +445,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\lib\bshm.c"
+				RelativePath="..\..\lib\bsnprintf.c"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -451,6 +525,26 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\compat\compat.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\lib\cram-md5.c"
 				>
 				<FileConfiguration
@@ -472,6 +566,26 @@
 			</File>
 			<File
 				RelativePath="..\..\lib\crc32.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\findlib\create_file.c"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -551,7 +665,47 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\findlib\drivetype.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\lib\edit.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\findlib\enable_priv.c"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -591,7 +745,67 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\findlib\find.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\findlib\find_one.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\lib\fnmatch.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\findlib\fstype.c"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -711,6 +925,46 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\findlib\makepath.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\findlib\match.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\lib\md5.c"
 				>
 				<FileConfiguration
@@ -771,7 +1025,19 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\lib\parse_conf.c"
+				RelativePath="..\..\lib\openssl.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\compat\print.cpp"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -831,26 +1097,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\lib\res.c"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath="..\..\lib\runscript.c"
 				>
 				<FileConfiguration
@@ -872,6 +1118,26 @@
 			</File>
 			<File
 				RelativePath="..\..\lib\rwlock.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\findlib\save-cwd.c"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -1111,13 +1377,15 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\lib\winapi.c"
+				RelativePath="..\compat\winapi.c"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)\$(InputName)1.obj"
+						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
 						CompileAs="2"
 					/>
 				</FileConfiguration>
@@ -1126,6 +1394,8 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)\$(InputName)1.obj"
+						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
 						CompileAs="2"
 					/>
 				</FileConfiguration>
@@ -1154,6 +1424,7 @@
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
 				RelativePath="..\..\lib\address_conf.h"
@@ -1161,6 +1432,10 @@
 			</File>
 			<File
 				RelativePath="..\..\lib\alist.h"
+				>
+			</File>
+			<File
+				RelativePath="..\compat\alloca.h"
 				>
 			</File>
 			<File
@@ -1173,6 +1448,10 @@
 			</File>
 			<File
 				RelativePath="..\..\lib\berrno.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\findlib\bfile.h"
 				>
 			</File>
 			<File
@@ -1192,10 +1471,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\lib\bshm.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\lib\bsock.h"
 				>
 			</File>
@@ -1212,7 +1487,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\compat\compat.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\lib\crypto.h"
+				>
+			</File>
+			<File
+				RelativePath="..\compat\dirent.h"
 				>
 			</File>
 			<File
@@ -1224,15 +1507,35 @@
 				>
 			</File>
 			<File
+				RelativePath="..\compat\sys\file.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\findlib\find.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\lib\fnmatch.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\lib\getopt.h"
+				RelativePath="..\compat\grp.h"
 				>
 			</File>
 			<File
 				RelativePath="..\..\lib\htable.h"
+				>
+			</File>
+			<File
+				RelativePath="..\compat\netinet\in.h"
+				>
+			</File>
+			<File
+				RelativePath="..\compat\arpa\inet.h"
+				>
+			</File>
+			<File
+				RelativePath="..\compat\sys\ioctl.h"
 				>
 			</File>
 			<File
@@ -1256,6 +1559,26 @@
 				>
 			</File>
 			<File
+				RelativePath="..\compat\mingwconfig.h"
+				>
+			</File>
+			<File
+				RelativePath="..\compat\ms_atl.h"
+				>
+			</File>
+			<File
+				RelativePath="..\compat\mswinver.h"
+				>
+			</File>
+			<File
+				RelativePath="..\compat\sys\mtio.h"
+				>
+			</File>
+			<File
+				RelativePath="..\compat\netdb.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\lib\openssl.h"
 				>
 			</File>
@@ -1268,6 +1591,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\findlib\protos.h"
+				>
+			</File>
+			<File
+				RelativePath="..\compat\pwd.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\lib\queue.h"
 				>
 			</File>
@@ -1277,6 +1608,14 @@
 			</File>
 			<File
 				RelativePath="..\..\lib\rwlock.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\findlib\save-cwd.h"
+				>
+			</File>
+			<File
+				RelativePath="..\compat\sched.h"
 				>
 			</File>
 			<File
@@ -1296,7 +1635,31 @@
 				>
 			</File>
 			<File
+				RelativePath="..\compat\sys\socket.h"
+				>
+			</File>
+			<File
+				RelativePath="..\compat\sys\stat.h"
+				>
+			</File>
+			<File
+				RelativePath="..\compat\stdint.h"
+				>
+			</File>
+			<File
+				RelativePath="..\compat\strings.h"
+				>
+			</File>
+			<File
+				RelativePath="..\compat\syslog.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\lib\tcpd.h"
+				>
+			</File>
+			<File
+				RelativePath="..\compat\sys\time.h"
 				>
 			</File>
 			<File
@@ -1308,7 +1671,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\compat\unistd.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\lib\var.h"
+				>
+			</File>
+			<File
+				RelativePath="..\compat\sys\wait.h"
 				>
 			</File>
 			<File
@@ -1320,7 +1691,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\lib\winapi.h"
+				RelativePath="..\compat\winconfig.h"
+				>
+			</File>
+			<File
+				RelativePath="..\compat\winhost.h"
+				>
+			</File>
+			<File
+				RelativePath="..\compat\winsock.h"
 				>
 			</File>
 			<File
@@ -1331,6 +1710,7 @@
 		<Filter
 			Name="Resource Files"
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
+			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
 	</Files>

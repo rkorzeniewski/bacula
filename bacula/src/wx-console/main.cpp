@@ -29,6 +29,8 @@
 // headers
 // ----------------------------------------------------------------------------
 
+#undef _DEBUG
+
 #include "bacula.h"
 
 #undef setlocale

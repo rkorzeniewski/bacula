@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../compat;../..;&quot;../../../../depkgs-win32/pthreads&quot;"
+				AdditionalIncludeDirectories="../compat;../../../../depkgs-win32/include;../..;../../../../depkgs-win32/include/pthreads;../../../../depkgs-win32/include/mysql;../../../../depkgs-win32/include/postgresql;../../../../depkgs-win32/vss/inc"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;HAVE_WIN32;WIN32_VSS;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -104,7 +104,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../compat;../..;&quot;../../../../depkgs-win32/pthreads&quot;"
+				AdditionalIncludeDirectories="../compat;../../../../depkgs-win32/include;../..;../../../../depkgs-win32/include/pthreads;../../../../depkgs-win32/include/mysql;../../../../depkgs-win32/include/postgresql;../../../../depkgs-win32/vss/inc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;HAVE_WIN32;WIN32_VSS;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -149,16 +149,19 @@
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 		</Filter>
 		<Filter
 			Name="Resource Files"
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
+			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
 	</Files>

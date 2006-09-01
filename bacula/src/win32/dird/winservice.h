@@ -44,8 +44,6 @@
 class bacService
 {
 public:
-   bacService();
-
    // SERVICE INSTALL & START FUNCTIONS
 
    // Routine called by WinMain to cause Bacula to be installed
@@ -53,25 +51,12 @@ public:
    static int BaculaServiceMain();
 
    // Routine to install the Apcupsd service on the local machine
-   static int InstallService();
+   static int InstallService(const char *pszCmdLine);
 
    // Routine to remove the Apcupsd service from the local machine
    static int RemoveService();
 
    // SERVICE SUPPORT FUNCTIONS
-
-   // Routine to establish and return the currently logged in user name
-   static BOOL CurrentUser(char *buffer, UINT size);
-
-   // Routine to post a message to the currently running Apcupsd server
-   // to pass it a handle to the current user
-   static BOOL PostUserHelperMessage();
-   // Routine to process a user helper message
-   static BOOL ProcessUserHelperMessage(WPARAM wParam, LPARAM lParam);
-
-   // Routines to establish which OS we're running on
-   static BOOL IsWin95();
-   static BOOL IsWinNT();
 
    // Routine to establish whether the current instance is running
    // as a service or not
@@ -79,48 +64,6 @@ public:
 
    // Routine to kill any other running copy of Apcupsd
    static BOOL KillRunningCopy();
-
-   // Routine to set the current thread into the given desktop
-   static BOOL SelectHDESK(HDESK newdesktop);
-
-   // Routine to set the current thread into the named desktop,
-   // or the input desktop if no name is given
-   static BOOL SelectDesktop(char *name);
-
-   // Routine to establish whether the current thread desktop is the
-   // current user input one
-   static BOOL InputDesktopSelected();
-
-   // Routine to fake a CtrlAltDel to winlogon when required.
-   // *** This is a nasty little hack...
-   static BOOL SimulateCtrlAltDel();
-
-   // Routine to make any currently running version of Apcupsd show its
-   // Properties dialog, to allow the user to make changes to their settings
-   static BOOL ShowProperties();
-
-   // Routine to make any currently running version of Apcupsd show the
-   // Properties dialog for the default settings, so the user can make changes
-   static BOOL ShowDefaultProperties();
-
-   // Routine to make the an already running copy of Apcupsd bring up its
-   // About box so you can check the version!
-   static BOOL ShowAboutBox();
-
-   // Routine to make the an already running copy of Apcupsd bring up its
-   // Status dialog
-   static BOOL ShowStatus();
-
-   // Routine to make the an already running copy of Apcupsd bring up its
-   // Events dialog
-   static BOOL ShowEvents();
-
-   // Routine to make an already running copy of Apcupsd form an outgoing
-   // connection to a new ups client
-   static BOOL PostAddNewClient(unsigned long ipaddress);
-
-private:
-
 };
 
 #endif

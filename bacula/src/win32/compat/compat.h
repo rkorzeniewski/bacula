@@ -100,9 +100,8 @@ typedef UINT32 gid_t;
 typedef UINT32 uid_t;
 typedef UINT32 gid_t;
 typedef UINT32 mode_t;
-#if !defined(_WX_DEFS_H_)  /* ssize_t is defined in wx/defs.h */
-typedef INT64  ssize_t;
-#endif
+typedef INT32  ssize_t;
+#define HAVE_SSIZE_T 1
 
 #endif /* HAVE_MINGW */
 
@@ -243,20 +242,11 @@ int fork();
 int waitpid(int, int *, int);
 
 #if !defined(HAVE_MINGW)
-int strncasecmp(const char*, const char *, int);
+#define strncasecmp strnicmp
+//int strncasecmp(const char*, const char *, int);
 int utime(const char *filename, struct utimbuf *buf);
-#define vsnprintf __vsnprintf
-int __vsnprintf(char *s, size_t count, const char *format, va_list args);
-
-#define vsprintf __vsprintf
-int __vsprintf(char *s, const char *format, va_list args);
-
-#define snprintf __snprintf
-int __snprintf(char *str, size_t count, const char *fmt, ...);
-
-#define sprintf __sprintf
-int __sprintf(char *str, const char *fmt, ...);
-
+#define vsnprintf _vsnprintf
+#define snprintf _snprintf
 #endif //HAVE_MINGW
 
 

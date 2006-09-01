@@ -428,63 +428,86 @@ int do_shell_expansion(char *name, int name_len)
 
 void make_session_key(char *key, char *seed, int mode)
 {
-     int j, k;
-     struct MD5Context md5c;
-     unsigned char md5key[16], md5key1[16];
-     char s[1024];
+   int j, k;
+   struct MD5Context md5c;
+   unsigned char md5key[16], md5key1[16];
+   char s[1024];
 
-     s[0] = 0;
-     if (seed != NULL) {
-        bstrncat(s, seed, sizeof(s));
-     }
+   s[0] = 0;
+   if (seed != NULL) {
+     bstrncat(s, seed, sizeof(s));
+   }
 
-     /* The following creates a seed for the session key generator
-        based on a collection of volatile and environment-specific
-        information unlikely to be vulnerable (as a whole) to an
-        exhaustive search attack.  If one of these items isn't
-        available on your machine, replace it with something
-        equivalent or, if you like, just delete it. */
+   /* The following creates a seed for the session key generator
+     based on a collection of volatile and environment-specific
+     information unlikely to be vulnerable (as a whole) to an
+     exhaustive search attack.  If one of these items isn't
+     available on your machine, replace it with something
+     equivalent or, if you like, just delete it. */
 
-     sprintf(s + strlen(s), "%lu", (unsigned long)getpid());
-     sprintf(s + strlen(s), "%lu", (unsigned long)getppid());
-     (void)getcwd(s + strlen(s), 256);
-     sprintf(s + strlen(s), "%lu", (unsigned long)clock());
-     sprintf(s + strlen(s), "%lu", (unsigned long)time(NULL));
+#if defined(HAVE_WIN32)
+   {
+      LARGE_INTEGER     li;
+      DWORD             length;
+      FILETIME          ft;
+      char             *p;
+
+      p = s;
+      sprintf(s + strlen(s), "%lu", (unsigned long)GetCurrentProcessId());
+      (void)getcwd(s + strlen(s), 256);
+      sprintf(s + strlen(s), "%lu", (unsigned long)GetTickCount());
+      QueryPerformanceCounter(&li);
+      sprintf(s + strlen(s), "%lu", (unsigned long)li.LowPart);
+      GetSystemTimeAsFileTime(&ft);
+      sprintf(s + strlen(s), "%lu", (unsigned long)ft.dwLowDateTime);
+      sprintf(s + strlen(s), "%lu", (unsigned long)ft.dwHighDateTime);
+      length = 256;
+      GetComputerName(s + strlen(s), &length);
+      length = 256;
+      GetUserName(s + strlen(s), &length);
+   }
+#else
+   sprintf(s + strlen(s), "%lu", (unsigned long)getpid());
+   sprintf(s + strlen(s), "%lu", (unsigned long)getppid());
+   (void)getcwd(s + strlen(s), 256);
+   sprintf(s + strlen(s), "%lu", (unsigned long)clock());
+   sprintf(s + strlen(s), "%lu", (unsigned long)time(NULL));
 #if defined(Solaris)
-     sysinfo(SI_HW_SERIAL,s + strlen(s), 12);
+   sysinfo(SI_HW_SERIAL,s + strlen(s), 12);
 #endif
 #if defined(HAVE_GETHOSTID)
-     sprintf(s + strlen(s), "%lu", (unsigned long) gethostid());
+   sprintf(s + strlen(s), "%lu", (unsigned long) gethostid());
 #endif
-     gethostname(s + strlen(s), 256);
-     sprintf(s + strlen(s), "%u", (unsigned)getuid());
-     sprintf(s + strlen(s), "%u", (unsigned)getgid());
-     MD5Init(&md5c);
-     MD5Update(&md5c, (unsigned char *)s, strlen(s));
-     MD5Final(md5key, &md5c);
-     sprintf(s + strlen(s), "%lu", (unsigned long)((time(NULL) + 65121) ^ 0x375F));
-     MD5Init(&md5c);
-     MD5Update(&md5c, (unsigned char *)s, strlen(s));
-     MD5Final(md5key1, &md5c);
+   gethostname(s + strlen(s), 256);
+   sprintf(s + strlen(s), "%u", (unsigned)getuid());
+   sprintf(s + strlen(s), "%u", (unsigned)getgid());
+#endif
+   MD5Init(&md5c);
+   MD5Update(&md5c, (unsigned char *)s, strlen(s));
+   MD5Final(md5key, &md5c);
+   sprintf(s + strlen(s), "%lu", (unsigned long)((time(NULL) + 65121) ^ 0x375F));
+   MD5Init(&md5c);
+   MD5Update(&md5c, (unsigned char *)s, strlen(s));
+   MD5Final(md5key1, &md5c);
 #define nextrand    (md5key[j] ^ md5key1[j])
-     if (mode) {
-        for (j = k = 0; j < 16; j++) {
-           unsigned char rb = nextrand;
+   if (mode) {
+     for (j = k = 0; j < 16; j++) {
+        unsigned char rb = nextrand;
 
 #define Rad16(x) ((x) + 'A')
-           key[k++] = Rad16((rb >> 4) & 0xF);
-           key[k++] = Rad16(rb & 0xF);
+        key[k++] = Rad16((rb >> 4) & 0xF);
+        key[k++] = Rad16(rb & 0xF);
 #undef Rad16
-           if (j & 1) {
-              key[k++] = '-';
-           }
-        }
-        key[--k] = 0;
-     } else {
-        for (j = 0; j < 16; j++) {
-           key[j] = nextrand;
+        if (j & 1) {
+           key[k++] = '-';
         }
      }
+     key[--k] = 0;
+   } else {
+     for (j = 0; j < 16; j++) {
+        key[j] = nextrand;
+     }
+   }
 }
 #undef nextrand
 

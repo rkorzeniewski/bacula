@@ -286,6 +286,7 @@ _Z16write_state_filePcPKci
 _Z2_pPP16pthread_mutex_t_
 _Z2_vPP16pthread_mutex_t_
 _Z4dropPcS_
+_Z5bfreePv
 _Z6bfgetsPciP6_iobuf
 ;_Z7bcallocjj
 _Z7bstrcmpPKcS0_

@@ -395,6 +395,24 @@ process_mt()
         do_make Makefile PREFIX=${DEPPKG_DIR} install
 }
 
+process_sed()
+{
+        if get_source "${URL_SED}" "${DIR_SED}" "${MKD_SED}"
+        then
+                echo Patching SED
+                >patch.log
+                do_patch sed.patch
+                echo Configuring SED
+                ./configure --host=mingw32 \
+                            --prefix=${DEPPKG_DIR} \
+                            --disable-nls &>make.log
+	fi
+	echo Building SED
+	do_make Makefile all
+	echo Installing SED
+	do_make Makefile install
+}
+
 if [ "$#" -eq 0 ]
 then
         process_zlib
@@ -409,6 +427,7 @@ then
         process_nsis
         process_mtx
         process_mt
+        process_sed
 else
         for dependency in "$@"
         do

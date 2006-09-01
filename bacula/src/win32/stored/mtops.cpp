@@ -42,7 +42,11 @@
 #include "stored.h"                   /* pull in Storage Deamon headers */
 
 #include "sys/mtio.h"
+#if defined(_MSC_VER)
+#include <winioctl.h>
+#else
 #include <ntddstor.h>
+#endif
 #include <ntddscsi.h>
 
 //
@@ -58,11 +62,6 @@
 #define SCSISTAT_RESERVATION_CONFLICT  0x18
 #define SCSISTAT_COMMAND_TERMINATED    0x22
 #define SCSISTAT_QUEUE_FULL            0x28
-
-/* Forward referenced functions */
-
-extern char my_name[];
-extern int debug_level;
 
 inline   SHORT  Read16BitSigned(const unsigned char *pValue)
 {

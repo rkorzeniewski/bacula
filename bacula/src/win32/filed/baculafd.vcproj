@@ -13,9 +13,6 @@
 		/>
 	</Platforms>
 	<ToolFiles>
-		<ToolFile
-			RelativePath="..\bacula.rules"
-		/>
 	</ToolFiles>
 	<Configurations>
 		<Configuration
@@ -36,9 +33,6 @@
 				Name="VCCustomBuildTool"
 			/>
 			<Tool
-				Name="Generated Config Files"
-			/>
-			<Tool
 				Name="VCXMLDataGeneratorTool"
 			/>
 			<Tool
@@ -54,8 +48,8 @@
 				Optimization="3"
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../compat;../..;&quot;../../../../depkgs-win32/pthreads&quot;;&quot;../../../../depkgs-win32/zlib&quot;;&quot;../../../../depkgs-win32/gettext/include&quot;"
-				PreprocessorDefinitions="NDEBUG;WIN32;_CONSOLE;HAVE_WIN32;_USE_32BIT_TIME_T;WIN32_VSS;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
+				AdditionalIncludeDirectories=".;../compat;&quot;../../../../depkgs-msvc/include&quot;;../..;&quot;../../../../depkgs-msvc/include/mysql&quot;;&quot;../../../../depkgs-msvc/vss&quot;;../libwin32"
+				PreprocessorDefinitions="NDEBUG;WIN32;_CONSOLE;HAVE_WIN32;WIN32_VSS;USING_DLL;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
 				StringPooling="true"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -86,7 +80,7 @@
 				OutputFile="$(OutDir)\bacula-fd.exe"
 				LinkIncremental="0"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;..\..\..\..\depkgs-win32\pthreads\release&quot;;&quot;..\..\..\..\depkgs-win32\zlib\release&quot;;&quot;..\..\..\..\depkgs-win32\gettext\lib&quot;;&quot;%VSSSDK_DIR%\lib\win2003\obj\i386&quot;"
+				AdditionalLibraryDirectories="..\..\..\..\depkgs-win32\pthreads\release;..\..\..\..\depkgs-win32\zlib\release;..\..\..\..\depkgs-win32\gettext\lib;%VSSSDK_DIR%\lib\win2003\obj\i386"
 				IgnoreDefaultLibraryNames=""
 				DelayLoadDLLs="$(NOINHERIT)"
 				GenerateDebugInformation="true"
@@ -137,9 +131,6 @@
 				Name="VCCustomBuildTool"
 			/>
 			<Tool
-				Name="Generated Config Files"
-			/>
-			<Tool
 				Name="VCXMLDataGeneratorTool"
 			/>
 			<Tool
@@ -153,8 +144,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../compat,../..,../../../../depkgs-win32/pthreads,../../../../depkgs-win32/zlib,../../../../depkgs-win32/gettext/include"
-				PreprocessorDefinitions="_DEBUG;_WINMAIN_;PTW32_BUILD;WIN32;_CONSOLE;HAVE_WIN32;_USE_32BIT_TIME_T;WIN32_VSS;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
+				AdditionalIncludeDirectories=".;../compat;&quot;../../../../depkgs-msvc/include&quot;;../..;&quot;../../../../depkgs-msvc/include/mysql&quot;;&quot;../../../../depkgs-msvc/vss&quot;;../libwin32"
+				PreprocessorDefinitions="_DEBUG;_WINMAIN_;PTW32_BUILD;WIN32;_CONSOLE;HAVE_WIN32;USING_DLL;_USE_32BIT_TIME_T;WIN32_VSS;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE;__need_getopt"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -180,11 +171,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="pthreadVCEd.lib zlibd.lib wsock32.lib atlsd.lib"
+				AdditionalDependencies="pthreadVCE.lib zlib.lib wsock32.lib atlsd.lib"
 				OutputFile="$(OutDir)\bacula-fd.exe"
 				LinkIncremental="0"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;../../../../depkgs-win32/pthreads/debug&quot;;&quot;../../../../depkgs-win32/zlib/debug&quot;;&quot;../../../../depkgs-win32/gettext/lib&quot;;&quot;%VSSSDK_DIR%\lib\win2003\obj\i386&quot;"
+				AdditionalLibraryDirectories="&quot;../../../../depkgs-msvc/lib&quot;"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -224,6 +215,7 @@
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
 				RelativePath="..\..\filed\acl.c"
@@ -525,6 +517,7 @@
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
 				RelativePath="..\..\filed\acl.h"
@@ -558,6 +551,7 @@
 		<Filter
 			Name="Resource Files"
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
+			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 			<File
 				RelativePath="..\libwin32\bacula.bmp"
@@ -592,10 +586,6 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath="..\..\filed\bacula-fd.conf.in"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>

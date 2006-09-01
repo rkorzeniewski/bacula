@@ -45,8 +45,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../compat;../..;../../../../depkgs-win32/pthreads,../../../../depkgs-win32/gettext/include"
-				PreprocessorDefinitions="_DEBUG;HAVE_CONSOLE;_WINMAIN_;PTW32_BUILD;WIN32;_CONSOLE;HAVE_WIN32;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
+				AdditionalIncludeDirectories="../compat;&quot;../../../../depkgs-msvc/include&quot;;../..;&quot;../../../../depkgs-msvc/include/mysql&quot;"
+				PreprocessorDefinitions="_DEBUG;HAVE_CONSOLE;_WINMAIN_;PTW32_BUILD;WIN32;_CONSOLE;HAVE_WIN32;USING_DLL;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -71,11 +71,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="wsock32.lib pthreadVCEd.lib atlsd.lib"
+				AdditionalDependencies="wsock32.lib pthreadVCE.lib atlsd.lib"
 				OutputFile="$(OutDir)\bconsole.exe"
 				LinkIncremental="0"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="../../../../depkgs-win32/pthreads/debug;../../../../depkgs-win32/gettext/lib"
+				AdditionalLibraryDirectories="../../../../depkgs-msvc/lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -137,8 +137,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="4"
-				AdditionalIncludeDirectories="../compat,../..,../../../../depkgs-win32/pthreads;../../../../depkgs-win32/gettext/include"
-				PreprocessorDefinitions="NDEBUG;HAVE_CONSOLE;_WINMAIN_;PTW32_BUILD;WIN32;_CONSOLE;HAVE_WIN32;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
+				AdditionalIncludeDirectories="../compat;&quot;../../../../depkgs-msvc/include&quot;;../..;&quot;../../../../depkgs-msvc/include/mysql&quot;"
+				PreprocessorDefinitions="NDEBUG;HAVE_CONSOLE;_WINMAIN_;PTW32_BUILD;WIN32;_CONSOLE;HAVE_WIN32;USING_DLL;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
 				StringPooling="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="2"
@@ -168,7 +168,7 @@
 				OutputFile="$(OutDir)\bconsole.exe"
 				LinkIncremental="0"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;../../../../depkgs-win32/pthreads/release&quot;;&quot;../../../../depkgs-win32/gettext/lib&quot;"
+				AdditionalLibraryDirectories="../../../../depkgs-msvc/lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -207,6 +207,7 @@
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
 				RelativePath="..\..\console\authenticate.c"
@@ -280,11 +281,13 @@
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 		</Filter>
 		<Filter
 			Name="Resource Files"
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
+			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
 	</Files>

@@ -37,12 +37,12 @@
 /* _("...") macro returns a wxChar*, so if we need a char*, we need to convert it with:
  * wxString(_("...")).mb_str(*wxConvCurrent) */
 
-#include "bacula.h" 
+#undef _DEBUG
+
+#include "bacula.h"
 #include "console_conf.h"
 
 #include <wx/intl.h>
-
-
 
 /* Define the first and last resource ID record
  * types. Note, these should be unique for each

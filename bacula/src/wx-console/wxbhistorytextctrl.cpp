@@ -21,6 +21,8 @@
 
  */
 
+#undef _DEBUG
+
 #include "bacula.h"
 #include "wxbhistorytextctrl.h"
 

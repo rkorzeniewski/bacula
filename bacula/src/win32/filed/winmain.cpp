@@ -34,13 +34,12 @@ extern void VSSInit();
 
 /* Globals */
 HINSTANCE       hAppInstance;
-const char      *szAppName = "Bacula";
+const char      *szAppName = "Bacula-fd";
 DWORD           mainthreadId;
 bool            silent = false;
 
 /* Imported variables */
 extern DWORD    g_servicethread;
-extern DWORD    g_platform_id;
 
 #define MAX_COMMAND_ARGS 100
 static char *command_args[MAX_COMMAND_ARGS] = {"bacula-fd", NULL};
@@ -94,7 +93,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
    for (i=1;i<MAX_COMMAND_ARGS;i++)
       command_args[i] = NULL;
 
-   wordPtr = szCmdLine;
+   char *pszArgs = bstrdup(szCmdLine);
+   wordPtr = pszArgs;
    quote = 0;
    while  (*wordPtr && (*wordPtr == ' ' || *wordPtr == '\t'))
       wordPtr++;
@@ -113,7 +113,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
          tempPtr = wordPtr;
          if (quote) {
             while (*tempPtr && *tempPtr != '\"')
-            tempPtr++;
+               tempPtr++;
             quote = 0;
          } else {
             while (*tempPtr && *tempPtr != ' ')
@@ -134,25 +134,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
    /*
     * Now process Windows command line options
-    *   as defined by ATT
-    *
-    * Make the command-line lowercase and parse it
     */
-   for (i = 0; i < (int)strlen(szCmdLine); i++) {
-      szCmdLine[i] = tolower(szCmdLine[i]);
-   }
-
    bool argfound = false;
    for (i = 0; i < (int)strlen(szCmdLine); i++) {
       if (szCmdLine[i] <= ' ') {
          continue;
       }
 
-      if (szCmdLine[i] == '-') {
-         while (szCmdLine[i] && szCmdLine[i] != ' ') {
-            i++;
-         }
-         continue;
+      if (szCmdLine[i] != '/') {
+         break;
       }
 
       argfound = true;
@@ -160,30 +150,31 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
       /* Now check for command-line arguments */
 
       /* /silent install quietly -- no prompts */
-      if (strncmp(&szCmdLine[i], "/silent", strlen("/silent")) == 0) {
+      if (strnicmp(&szCmdLine[i], "/silent", strlen("/silent")) == 0) {
          silent = true;
          i += strlen("/silent");
+         continue;
       }
 
       /* /service start service */
-      if (strncmp(&szCmdLine[i], BaculaRunService, strlen(BaculaRunService)) == 0) {
+      if (strnicmp(&szCmdLine[i], BaculaRunService, strlen(BaculaRunService)) == 0) {
          /* Run Bacula as a service */
          return bacService::BaculaServiceMain();
       }
       /* /run  (this is the default if no command line arguments) */
-      if (strncmp(&szCmdLine[i], BaculaRunAsUserApp, strlen(BaculaRunAsUserApp)) == 0) {
+      if (strnicmp(&szCmdLine[i], BaculaRunAsUserApp, strlen(BaculaRunAsUserApp)) == 0) {
          /* Bacula is being run as a user-level program */
          return BaculaAppMain();
       }
       /* /install */
-      if (strncmp(&szCmdLine[i], BaculaInstallService, strlen(BaculaInstallService)) == 0) {
+      if (strnicmp(&szCmdLine[i], BaculaInstallService, strlen(BaculaInstallService)) == 0) {
          /* Install Bacula as a service */
-         bacService::InstallService();
+         bacService::InstallService(&szCmdLine[i + strlen(BaculaInstallService)]);
          i += strlen(BaculaInstallService);
          continue;
       }
       /* /remove */
-      if (strncmp(&szCmdLine[i], BaculaRemoveService, strlen(BaculaRemoveService)) == 0) {
+      if (strnicmp(&szCmdLine[i], BaculaRemoveService, strlen(BaculaRemoveService)) == 0) {
          /* Remove the Bacula service */
          bacService::RemoveService();
          i += strlen(BaculaRemoveService);
@@ -191,7 +182,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
       }
 
       /* /about */
-      if (strncmp(&szCmdLine[i], BaculaShowAbout, strlen(BaculaShowAbout)) == 0) {
+      if (strnicmp(&szCmdLine[i], BaculaShowAbout, strlen(BaculaShowAbout)) == 0) {
          /* Show Bacula's about box */
          bacService::ShowAboutBox();
          i += strlen(BaculaShowAbout);
@@ -199,7 +190,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
       }
 
       /* /status */
-      if (strncmp(&szCmdLine[i], BaculaShowStatus, strlen(BaculaShowStatus)) == 0) {
+      if (strnicmp(&szCmdLine[i], BaculaShowStatus, strlen(BaculaShowStatus)) == 0) {
          /* Show Bacula's status box */                             
          bacService::ShowStatus();
          i += strlen(BaculaShowStatus);
@@ -207,7 +198,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
       }
 
       /* /kill */
-      if (strncmp(&szCmdLine[i], BaculaKillRunningCopy, strlen(BaculaKillRunningCopy)) == 0) {
+      if (strnicmp(&szCmdLine[i], BaculaKillRunningCopy, strlen(BaculaKillRunningCopy)) == 0) {
          /* Kill running copy of Bacula */
          bacService::KillRunningCopy();
          i += strlen(BaculaKillRunningCopy);
@@ -215,7 +206,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
       }
 
       /* /help */
-      if (strncmp(&szCmdLine[i], BaculaShowHelp, strlen(BaculaShowHelp)) == 0) {
+      if (strnicmp(&szCmdLine[i], BaculaShowHelp, strlen(BaculaShowHelp)) == 0) {
          MessageBox(NULL, BaculaUsageText, _("Bacula Usage"), MB_OK|MB_ICONINFORMATION);
          i += strlen(BaculaShowHelp);
          continue;
@@ -260,7 +251,6 @@ void *Main_Msg_Loop(LPVOID lpwThreadParam)
 //    log_error_message("Could not create sys tray menu");
       PostQuitMessage(0);
    }
-
 
    /* Now enter the Windows message handling loop until told to quit! */
    MSG msg;
@@ -319,9 +309,7 @@ int BaculaAppMain()
       _exit(0);
    }
 
-
    /* Create a thread to handle the Windows messages */
-// (void)CreateThread(NULL, 0, Main_Msg_Loop, NULL, 0, &dwThreadID);
    pthread_create(&tid, NULL,  Main_Msg_Loop, (void *)0);
 
    /* Call the "real" Bacula */

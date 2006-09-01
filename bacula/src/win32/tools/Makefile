@@ -19,6 +19,8 @@ DEFINES = \
 	-DUSING_CATS \
 	$(HAVES)
 
+LDFLAGS:=$(LDFLAGS) -lstdc++
+
 vpath %.c ../../tools ../../dird
 vpath %.cpp ../../tools ../../dird
 
@@ -49,7 +51,7 @@ ALL_OBJS = \
 all: \
 	$(BINDIR)/dbcheck.exe $(BINDIR)/fstype.exe $(BINDIR)/drivetype.exe \
 	$(BINDIR)/testfind.exe $(BINDIR)/testls.exe $(BINDIR)/bregex.exe \
-	$(BINDIR)/bwild.exe
+	$(BINDIR)/bwild.exe $(BINDIR)/scsilist.exe
 
 #
 # bsmtp needs passwd file emulation
@@ -94,6 +96,9 @@ $(BINDIR)/bregex.exe: $(OBJDIR)/bregex.o $(LIBS_BACULA)
 	$(call link_conapp,)
 
 $(BINDIR)/bwild.exe: $(OBJDIR)/bwild.o $(LIBS_BACULA)
+	$(call link_conapp,)
+
+$(BINDIR)/scsilist.exe: $(OBJDIR)/scsilist.o ScsiDeviceList.o $(LIBS_BACULA)
 	$(call link_conapp,)
 
 include ../Makefile.rules

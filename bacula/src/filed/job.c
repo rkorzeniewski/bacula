@@ -25,7 +25,7 @@
 #include "filed.h"
 
 #if defined(WIN32_VSS)
-#include "vss.h"   
+#include "vss.h"
 
 static pthread_mutex_t vss_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int enable_vss;

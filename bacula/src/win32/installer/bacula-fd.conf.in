@@ -8,11 +8,22 @@
 #
 
 #
+# "Global" File daemon configuration specifications
+#
+FileDaemon {                            # this is me
+  Name = @client_name@
+  FDport = @client_port@                # where we listen for the director
+  WorkingDirectory = @working_dir@
+  Pid Directory = @working_dir@
+  Maximum Concurrent Jobs = @client_maxjobs@
+}
+
+#
 # List Directors who are permitted to contact this File daemon
 #
 Director {
   Name = @director_name@
-  Password = "@director_password@"
+  Password = "@client_password@"
 }
 
 #
@@ -23,17 +34,6 @@ Director {
   Name = @monitor_name@
   Password = "@monitor_password@"
   Monitor = yes
-}
-
-#
-# "Global" File daemon configuration specifications
-#
-FileDaemon {                            # this is me
-  Name = @client_name@
-  FDport = @client_port@                # where we listen for the director
-  WorkingDirectory = @working_dir@
-  Pid Directory = @working_dir@
-  Maximum Concurrent Jobs = @client_maxjobs@
 }
 
 # Send all messages except skipped files back to Director

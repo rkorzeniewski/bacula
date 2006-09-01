@@ -35,7 +35,6 @@
 ; /start
 
 !define PRODUCT "Bacula"
-!define BUILD_TOOLS "MinGW"
 
 ;
 ; Include the Modern UI
@@ -43,6 +42,8 @@
 !include "MUI.nsh"
 !include "LogicLib.nsh"
 !include "FileFunc.nsh"
+!include "Sections.nsh"
+!include "StrFunc.nsh"
 
 ;
 ; Basics
@@ -57,38 +58,41 @@
   InstType "Server"
   InstType "Full"
 
+  ${StrCase}
+  ${StrRep}
+  ${StrTrimNewLines}
+
 ;
 ; Pull in pages
 ;
 
- !insertmacro MUI_PAGE_WELCOME
-;  !insertmacro MUI_PAGE_LICENSE "..\..\LICENSE"
- !insertmacro MUI_PAGE_COMPONENTS
- !insertmacro MUI_PAGE_DIRECTORY
- Page custom EnterClientConfig LeaveClientConfig
- Page custom EnterOptions
- !insertmacro MUI_PAGE_INSTFILES
- !insertmacro MUI_PAGE_FINISH
+!InsertMacro MUI_PAGE_WELCOME
+;  !InsertMacro MUI_PAGE_LICENSE "..\..\LICENSE"
 
- !insertmacro MUI_UNPAGE_WELCOME
- !insertmacro MUI_UNPAGE_CONFIRM
- !insertmacro MUI_UNPAGE_INSTFILES
- !insertmacro MUI_UNPAGE_FINISH
+!define      MUI_COMPONENTSPAGE_SMALLDESC
 
- !define      MUI_ABORTWARNING
+!InsertMacro MUI_PAGE_COMPONENTS
+!InsertMacro MUI_PAGE_DIRECTORY
+Page custom EnterConfigPage1 LeaveConfigPage1
+Page custom EnterConfigPage2 LeaveConfigPage2
+!InsertMacro MUI_PAGE_INSTFILES
+!InsertMacro MUI_PAGE_FINISH
 
- !insertmacro MUI_LANGUAGE "English"
+!InsertMacro MUI_UNPAGE_WELCOME
+!InsertMacro MUI_UNPAGE_CONFIRM
+!InsertMacro MUI_UNPAGE_INSTFILES
+!InsertMacro MUI_UNPAGE_FINISH
 
- !insertmacro GetParameters
- !insertmacro GetOptions
+!define      MUI_ABORTWARNING
 
-DirText "Setup will install Bacula ${VERSION} to the directory specified below. To install in a different folder, click Browse and select another folder.$\n$\nNote to CYGWIN users: please choose your CYGWIN root directory."
+!InsertMacro MUI_LANGUAGE "English"
 
-;
-; Reserve Files
-;
- ReserveFile "ClientConfig.ini"
- !insertmacro MUI_RESERVEFILE_INSTALLOPTIONS
+!InsertMacro GetParameters
+!InsertMacro GetOptions
+
+DirText "Setup will install Bacula ${VERSION} to the directory specified below. To install in a different folder, click Browse and select another folder."
+
+!InsertMacro MUI_RESERVEFILE_INSTALLOPTIONS
 ;
 ; Global Variables
 ;
@@ -102,21 +106,38 @@ Var DatabaseDone
 
 Var OsIsNT
 
+Var HostName
+
 Var ConfigClientName
 Var ConfigClientPort
-Var ConfigMaxJobs
-Var ConfigDirectorName
-Var ConfigDirectorPW
-Var ConfigMonitorName
-Var ConfigMonitorPW
+Var ConfigClientMaxJobs
+Var ConfigClientPassword
+Var ConfigClientInstallService
+Var ConfigClientStartService
 
-Var OptionsClientService
-Var OptionsClientStart
-Var OptionsStorageService
-Var OptionsStorageStart
-Var OptionsDirectorService
-Var OptionsDirectorStart
-Var OptionsDirectorDB
+Var ConfigStorageName
+Var ConfigStoragePort
+Var ConfigStorageMaxJobs
+Var ConfigStoragePassword
+Var ConfigStorageInstallService
+Var ConfigStorageStartService
+
+Var ConfigDirectorName
+Var ConfigDirectorPort
+Var ConfigDirectorMaxJobs
+Var ConfigDirectorPassword
+Var ConfigDirectorAddress
+Var ConfigDirectorMailServer
+Var ConfigDirectorMailAddress
+Var ConfigDirectorDB
+Var ConfigDirectorInstallService
+Var ConfigDirectorStartService
+
+Var ConfigMonitorName
+Var ConfigMonitorPassword
+
+Var LocalDirectorPassword
+Var LocalHostAddress
 
 Var HDLG
 Var HCTL
@@ -124,7 +145,7 @@ Var HCTL
 Function .onInit
   Push $R0
   Push $R1
-  
+
   ; Process Command Line Options
   StrCpy $OptCygwin 0
   StrCpy $OptService 0
@@ -133,14 +154,14 @@ Function .onInit
   StrCpy $DependenciesDone 0
   StrCpy $DatabaseDone 0
   StrCpy $OsIsNT 0
-  
+
   ${GetParameters} $R0
-  
+
   ClearErrors
   ${GetOptions} $R0 "/cygwin" $R1
   IfErrors +2
     StrCpy $OptCygwin 1
-  
+
   ClearErrors
   ${GetOptions} $R0 "/service" $R1
   IfErrors +2
@@ -153,7 +174,7 @@ Function .onInit
 
   IfSilent 0 +2
     StrCpy $OptSilent 1
-    
+
   ${If} $OptCygwin = 1
     StrCpy $INSTDIR "C:\cygwin\bacula"
   ${EndIf}
@@ -163,8 +184,92 @@ Function .onInit
     StrCpy $OsIsNT 1
   ${EndIf}
 
-  !insertmacro MUI_INSTALLOPTIONS_EXTRACT "ClientConfig.ini"
+;  ${If} $OsIsNT = 0
+;    Call DisableServerSections
+;  ${EndIf}
+
+  Call GetComputerName
+  Pop $HostName
+
+  Call GetHostName
+  Pop $LocalHostAddress
   
+  Call GetUserName
+  Pop $ConfigDirectorMailAddress
+
+  ; Configuration Defaults
+  ;
+  StrCpy $ConfigClientName              "$HostName-fd"
+  StrCpy $ConfigClientPort              "9102"
+  StrCpy $ConfigClientMaxJobs           "2"
+  ;StrCpy $ConfigClientPassword
+  StrCpy $ConfigClientInstallService    "$OptService"
+  StrCpy $ConfigClientStartService      "$OptStart"
+
+  StrCpy $ConfigStorageName             "$HostName-sd"
+  StrCpy $ConfigStoragePort             "9103"
+  StrCpy $ConfigStorageMaxJobs          "10"
+  ;StrCpy $ConfigStoragePassword
+  StrCpy $ConfigStorageInstallService   "$OptService"
+  StrCpy $ConfigStorageStartService     "$OptStart"
+
+  ;StrCpy $ConfigDirectorName            "$HostName-dir"
+  StrCpy $ConfigDirectorPort            "9101"
+  StrCpy $ConfigDirectorMaxJobs         "1"
+  ;StrCpy $ConfigDirectorPassword
+  StrCpy $ConfigDirectorDB              "1"
+  StrCpy $ConfigDirectorInstallService  "$OptService"
+  StrCpy $ConfigDirectorStartService    "$OptStart"
+
+  StrCpy $ConfigMonitorName            "$HostName-mon"
+  ;StrCpy $ConfigMonitorPassword
+
+  InitPluginsDir
+  File "/oname=$PLUGINSDIR\openssl.exe"  "${DEPKGS_BIN}\openssl.exe"
+  File "/oname=$PLUGINSDIR\libeay32.dll" "${DEPKGS_BIN}\libeay32.dll"
+  File "/oname=$PLUGINSDIR\ssleay32.dll" "${DEPKGS_BIN}\ssleay32.dll"
+  File "/oname=$PLUGINSDIR\sed.exe" "${DEPKGS_BIN}\sed.exe"
+
+  nsExec::Exec '"$PLUGINSDIR\openssl.exe" rand -base64 -out $PLUGINSDIR\pw.txt 33'
+  pop $R0
+  ${If} $R0 = 0
+   FileOpen $R1 "$PLUGINSDIR\pw.txt" r
+   IfErrors +4
+     FileRead $R1 $R0
+     ${StrTrimNewLines} $ConfigClientPassword $R0
+     FileClose $R1
+  ${EndIf}
+
+  nsExec::Exec '"$PLUGINSDIR\openssl.exe" rand -base64 -out $PLUGINSDIR\pw.txt 33'
+  pop $R0
+  ${If} $R0 = 0
+   FileOpen $R1 "$PLUGINSDIR\pw.txt" r
+   IfErrors +4
+     FileRead $R1 $R0
+     ${StrTrimNewLines} $ConfigStoragePassword $R0
+     FileClose $R1
+  ${EndIf}
+
+  nsExec::Exec '"$PLUGINSDIR\openssl.exe" rand -base64 -out $PLUGINSDIR\pw.txt 33'
+  pop $R0
+  ${If} $R0 = 0
+   FileOpen $R1 "$PLUGINSDIR\pw.txt" r
+   IfErrors +4
+     FileRead $R1 $R0
+     ${StrTrimNewLines} $LocalDirectorPassword $R0
+     FileClose $R1
+  ${EndIf}
+
+  nsExec::Exec '"$PLUGINSDIR\openssl.exe" rand -base64 -out $PLUGINSDIR\pw.txt 33'
+  pop $R0
+  ${If} $R0 = 0
+   FileOpen $R1 "$PLUGINSDIR\pw.txt" r
+   IfErrors +4
+     FileRead $R1 $R0
+     ${StrTrimNewLines} $ConfigMonitorPassword $R0
+     FileClose $R1
+  ${EndIf}
+
   Pop $R1
   Pop $R0
 FunctionEnd
@@ -178,36 +283,56 @@ Function CopyDependencies
     File "${VC_REDIST_DIR}\msvcp80.dll"
     File "${VC_REDIST_DIR}\msvcr80.dll"
     File "${VC_REDIST_DIR}\Microsoft.VC80.CRT.manifest"
+    File "${DEPKGS_BIN}\pthreadVCE.dll"
+!endif
+!if "${BUILD_TOOLS}" == "VC8_DEBUG"
+    File "${VC_REDIST_DIR}\msvcm80d.dll"
+    File "${VC_REDIST_DIR}\msvcp80d.dll"
+    File "${VC_REDIST_DIR}\msvcr80d.dll"
+    File "${VC_REDIST_DIR}\Microsoft.VC80.DebugCRT.manifest"
+    File "${DEPKGS_BIN}\pthreadVCE.dll"
 !endif
 !if "${BUILD_TOOLS}" == "MinGW"
     File "${MINGW_BIN}\..\mingw32\bin\mingwm10.dll"
+    File "${DEPKGS_BIN}\pthreadGCE.dll"
 !endif
-    File "libeay32.dll"
-    File "pthreadGCE.dll"
-    File "ssleay32.dll"
-    File "zlib1.dll"
-    File "openssl.exe"
-    File "bacula.dll"
+    File "${DEPKGS_BIN}\libeay32.dll"
+    File "${DEPKGS_BIN}\ssleay32.dll"
+    File "${DEPKGS_BIN}\zlib1.dll"
+!if "${BUILD_TOOLS}" == "VC8"
+    File "${DEPKGS_BIN}\zlib1.dll.manifest"
+!endif
+!If "${BUILD_TOOLS}" == "VC8_DEBUG"
+    File "${DEPKGS_BIN}\zlib1.dll.manifest"
+!endif
+    File "${DEPKGS_BIN}\openssl.exe"
+    File "${BACULA_BIN}\bacula.dll"
     StrCpy $DependenciesDone 1
   ${EndIf}
 FunctionEnd
 
 Function InstallDatabase
   ${If} $DatabaseDone = 0
-    ${If} $OptionsDirectorDB = 1
-      File /oname=bacula_cats.dll "cats_mysql.dll"
-      File "libmysql.dll"
-    ${ElseIf} $OptionsDirectorDB = 2
-      File /oname=bacula_cats.dll "cats_pgsql.dll"
-      File "libpq.dll"
+    ${If} $ConfigDirectorDB = 1
+      File /oname=bacula_cats.dll "${BACULA_BIN}\cats_mysql.dll"
+      File "${DEPKGS_BIN}\libmysql.dll"
+    ${ElseIf} $ConfigDirectorDB = 2
+      File /oname=bacula_cats.dll "${BACULA_BIN}\cats_pgsql.dll"
+      File "${DEPKGS_BIN}\libpq.dll"
 !if "${BUILD_TOOLS}" == "VC8"
-      File "comerr32.dll"
-      File "libintl-2.dll"
-      File "libiconv-2.dll"
-      File "krb5_32.dll"
+      File "${DEPKGS_BIN}\comerr32.dll"
+      File "${DEPKGS_BIN}\libintl-2.dll"
+      File "${DEPKGS_BIN}\libiconv-2.dll"
+      File "${DEPKGS_BIN}\krb5_32.dll"
 !endif
-    ${ElseIf} $OptionsDirectorDB = 3
-      File /oname=bacula_cats.dll "cats_bdb.dll"
+!If "${BUILD_TOOLS}" == "VC8_DEBUG"
+      File "${DEPKGS_BIN}\comerr32.dll"
+      File "${DEPKGS_BIN}\libintl-2.dll"
+      File "${DEPKGS_BIN}\libiconv-2.dll"
+      File "${DEPKGS_BIN}\krb5_32.dll"
+!endif
+    ${ElseIf} $ConfigDirectorDB = 4
+      File /oname=bacula_cats.dll "${BACULA_BIN}\cats_bdb.dll"
     ${EndIf}
 
     StrCpy $DatabaseDone 1
@@ -225,9 +350,102 @@ Section "-Initialize"
   CreateDirectory "$INSTDIR"
   CreateDirectory "$INSTDIR\bin"
   CreateDirectory "$APPDATA\Bacula"
+  CreateDirectory "$APPDATA\Bacula\Work"
+  CreateDirectory "$APPDATA\Bacula\Spool"
 
   File "..\..\..\LICENSE"
   Delete /REBOOTOK "$INSTDIR\bin\License.txt"
+
+  FileOpen $R1 $PLUGINSDIR\config.sed w
+  FileWrite $R1 "s;@VERSION@;${VERSION};$\r$\n"
+  FileWrite $R1 "s;@DATE@;${__DATE__};$\r$\n"
+  FileWrite $R1 "s;@DISTNAME@;Windows;$\r$\n"
+
+!If "$BUILD_TOOLS" == "MinGW"
+  StrCpy $R2 "MinGW32"
+!Else
+  StrCpy $R2 "MVS"
+!EndIf
+
+  Call GetHostName
+  Exch $R3
+  Pop $R3
+
+  FileWrite $R1 "s;@DISTVER@;$R2;$\r$\n"
+
+  ${StrRep} $R2 "$APPDATA\Bacula\Work" "\" "\\\\"
+  FileWrite $R1 's;@working_dir@;$R2;$\r$\n'
+
+  ${StrRep} $R2 "$INSTDIR\bin" "\" "\\\\"
+  FileWrite $R1 's;@bin_dir@;$R2;$\r$\n'
+
+  FileWrite $R1 's;@TAPEDRIVE@;Tape0;$\r$\n'
+
+  Call IsDirectorSelected
+  Pop $R2
+
+  ${If} $R2 = 1
+    FileWrite $R1 "s;@director_address@;$LocalHostAddress;$\r$\n"
+  ${Else}
+    ${If} "$ConfigDirectorAddress" != ""
+      FileWrite $R1 "s;@director_address@;$ConfigDirectorAddress;$\r$\n"
+    ${EndIf}
+  ${EndIf}
+
+  FileWrite $R1 "s;@client_address@;$LocalHostAddress;$\r$\n"
+  FileWrite $R1 "s;@storage_address@;$LocalHostAddress;$\r$\n"
+
+  ${If} "$ConfigClientName" != ""
+    FileWrite $R1 "s;@client_name@;$ConfigClientName;$\r$\n"
+  ${EndIf}
+  ${If} "$ConfigClientPort" != ""
+    FileWrite $R1 "s;@client_port@;$ConfigClientPort;$\r$\n"
+  ${EndIf}
+  ${If} "$ConfigClientMaxJobs" != ""
+    FileWrite $R1 "s;@client_maxjobs@;$ConfigClientMaxJobs;$\r$\n"
+  ${EndIf}
+  ${If} "$ConfigClientPassword" != ""
+    FileWrite $R1 "s;@client_password@;$ConfigClientPassword;$\r$\n"
+  ${EndIf}
+  ${If} "$ConfigStorageName" != ""
+    FileWrite $R1 "s;@storage_name@;$ConfigStorageName;$\r$\n"
+  ${EndIf}
+  ${If} "$ConfigStoragePort" != ""
+    FileWrite $R1 "s;@storage_port@;$ConfigStoragePort;$\r$\n"
+  ${EndIf}
+  ${If} "$ConfigStorageMaxJobs" != ""
+    FileWrite $R1 "s;@storage_maxjobs@;$ConfigStorageMaxJobs;$\r$\n"
+  ${EndIf}
+  ${If} "$ConfigStoragePassword" != ""
+    FileWrite $R1 "s;@storage_password@;$ConfigStoragePassword;$\r$\n"
+  ${EndIf}
+  ${If} "$ConfigDirectorName" != ""
+    FileWrite $R1 "s;@director_name@;$ConfigDirectorName;$\r$\n"
+  ${EndIf}
+  ${If} "$ConfigDirectorPort" != ""
+    FileWrite $R1 "s;@director_port@;$ConfigDirectorPort;$\r$\n"
+  ${EndIf}
+  ${If} "$ConfigDirectorMaxJobs" != ""
+    FileWrite $R1 "s;@director_maxjobs@;$ConfigDirectorMaxJobs;$\r$\n"
+  ${EndIf}
+  ${If} "$ConfigDirectorPassword" != ""
+    FileWrite $R1 "s;@director_password@;$ConfigDirectorPassword;$\r$\n"
+  ${EndIf}
+  ${If} "$ConfigDirectorMailServer" != ""
+    FileWrite $R1 "s;@smtp_host@;$ConfigDirectorMailServer;$\r$\n"
+  ${EndIf}
+  ${If} "$ConfigDirectorMailAddress" != ""
+    FileWrite $R1 "s;@job_email@;$ConfigDirectorMailAddress;$\r$\n"
+  ${EndIf}
+  ${If} "$ConfigMonitorName" != ""
+    FileWrite $R1 "s;@monitor_name@;$ConfigMonitorName;$\r$\n"
+  ${EndIf}
+  ${If} "$ConfigMonitorPassword" != ""
+    FileWrite $R1 "s;@monitor_password@;$ConfigMonitorPassword;$\r$\n"
+  ${EndIf}
+
+  FileClose $R1
+
 SectionEnd
 
 SectionGroup "Client"
@@ -236,30 +454,27 @@ Section "File Service" SecFileDaemon
   SectionIn 1 2 3
 
   SetOutPath "$INSTDIR\bin"
-  File "bacula-fd.exe"
+  File "${BACULA_BIN}\bacula-fd.exe"
 
   StrCpy $R0 0
   StrCpy $R1 "$APPDATA\Bacula\bacula-fd.conf"
   IfFileExists $R1 0 +3
     StrCpy $R0 1
     StrCpy $R1 "$R1.new"
-    
-  File /oname=$R1 ..\filed\bacula-fd.conf.in
-  
-  ${If} $OptSilent <> 1
-  ${AndIf} $R0 <> 1
-    MessageBox MB_OK \
-        "Please edit the configuration file $R1 to fit your installation. When you click the OK button Wordpad will open to allow you to do this. Be sure to save your changes before closing Wordpad."
-    Exec 'write "$R1"'  ; spawn wordpad with the file to be edited
-  ${EndIf}
+
+  File "/oname=$PLUGINSDIR\bacula-fd.conf.in" "bacula-fd.conf.in"
+
+  nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\bacula-fd.conf.in"'
+  CopyFiles "$PLUGINSDIR\bacula-fd.conf.in" "$R1"
+
   ${If} $OsIsNT = 1
-    ExecWait 'cmd.exe /C echo Y|cacls "$R1" /G SYSTEM:F Administrators:F'
+    nsExec::ExecToLog 'cmd.exe /C echo Y|cacls "$R1" /G SYSTEM:F Administrators:F'
   ${EndIf}
 
   StrCpy $0 bacula-fd
   StrCpy $1 "File Service"
-  StrCpy $2 $OptionsClientService
-  StrCpy $3 $OptionsClientStart
+  StrCpy $2 $ConfigClientInstallService
+  StrCpy $3 $ConfigClientStartService
   
   Call InstallDaemon
 
@@ -274,42 +489,39 @@ Section "Storage Service" SecStorageDaemon
   SectionIn 2 3
   
   SetOutPath "$INSTDIR\bin"
-  Call InstallDatabase
-  File "loaderinfo.exe"
-  File "mt.exe"
-  File "mtx.exe"
-  File "scsitape.exe"
-  File "tapeinfo.exe"
-  File "bacula-sd.exe"
-  File "bcopy.exe"
-  File "bextract.exe"
-  File "bls.exe"
-  File "bscan.exe"
-  File "btape.exe"
-  File ..\scripts\mtx-changer.cmd
+  File "${DEPKGS_BIN}\loaderinfo.exe"
+  File "${DEPKGS_BIN}\mt.exe"
+  File "${DEPKGS_BIN}\mtx.exe"
+  File "${DEPKGS_BIN}\scsitape.exe"
+  File "${DEPKGS_BIN}\tapeinfo.exe"
+  File "${BACULA_BIN}\bacula-sd.exe"
+  File "${BACULA_BIN}\bcopy.exe"
+  File "${BACULA_BIN}\bextract.exe"
+  File "${BACULA_BIN}\bls.exe"
+  File "${BACULA_BIN}\bscan.exe"
+  File "${BACULA_BIN}\btape.exe"
+  File "${BACULA_BIN}\scsilist.exe"
+  File /oname=mtx-changer.cmd ${SCRIPT_DIR}\mtx-changer.cmd
 
   StrCpy $R0 0
   StrCpy $R1 "$APPDATA\Bacula\bacula-sd.conf"
   IfFileExists $R1 0 +3
     StrCpy $R0 1
     StrCpy $R1 "$R1.new"
-    
-  File /oname=$R1 "..\..\stored\bacula-sd.conf.in"
-  
-  ${If} $OptSilent <> 1
-  ${AndIf} $R0 <> 1
-    MessageBox MB_OK \
-        "Please edit the configuration file $R1 to fit your installation. When you click the OK button Wordpad will open to allow you to do this. Be sure to save your changes before closing Wordpad."
-    Exec 'write "$R1"'  ; spawn wordpad with the file to be edited
-  ${EndIf}
+
+  File "/oname=$PLUGINSDIR\bacula-sd.conf.in" "bacula-sd.conf.in"
+
+  nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\bacula-sd.conf.in"'
+  CopyFiles "$PLUGINSDIR\bacula-sd.conf.in" "$R1"
+
   ${If} $OsIsNT = 1
-    ExecWait 'cmd.exe /C echo Y|cacls "$R1" /G SYSTEM:F Administrators:F'
+    nsExec::ExecToLog 'cmd.exe /C echo Y|cacls "$R1" /G SYSTEM:F Administrators:F'
   ${EndIf}
 
   StrCpy $0 bacula-sd
   StrCpy $1 "Storage Service"
-  StrCpy $2 $OptionsStorageService
-  StrCpy $3 $OptionsStorageStart
+  StrCpy $2 $ConfigStorageInstallService
+  StrCpy $3 $ConfigStorageStartService
   Call InstallDaemon
 
   CreateShortCut "$SMPROGRAMS\Bacula\Edit Storage Configuration.lnk" "write.exe" '"$APPDATA\Bacula\bacula-sd.conf"'
@@ -320,64 +532,61 @@ Section "Director Service" SecDirectorDaemon
 
   SetOutPath "$INSTDIR\bin"
   Call InstallDatabase
-  File "bacula-dir.exe"
-  File "dbcheck.exe"
+  File "${BACULA_BIN}\bacula-dir.exe"
+  File "${BACULA_BIN}\dbcheck.exe"
 
-  ${If} $OptionsDirectorDB = 1
-    File /oname=create_database.cmd ..\cats\create_mysql_database.cmd
-    File /oname=drop_database.cmd ..\cats\drop_mysql_database.cmd
-    File /oname=make_tables.cmd ..\cats\make_mysql_tables.cmd
-    File ..\cats\make_mysql_tables.sql
-    File /oname=drop_tables.cmd ..\cats\drop_mysql_tables.cmd
-    File ..\cats\drop_mysql_tables.sql
-    File /oname=update_tables.cmd ..\cats\update_mysql_tables.cmd
-    File ..\cats\update_mysql_tables.sql
-    File /oname=grant_privileges.cmd ..\cats\grant_mysql_privileges.cmd
-    File ..\cats\grant_mysql_privileges.sql
-  ${ElseIf} $OptionsDirectorDB = 2
-    File /oname=create_database.cmd ..\cats\create_postgresql_database.cmd
-    File /oname=drop_database.cmd ..\cats\drop_postgresql_database.cmd
-    File /oname=make_tables.cmd ..\cats\make_postgresql_tables.cmd
-    File ..\cats\make_postgresql_tables.sql
-    File /oname=drop_tables.cmd ..\cats\drop_postgresql_tables.cmd
-    File ..\cats\drop_postgresql_tables.sql
-    File /oname=update_tables.cmd ..\cats\update_postgresql_tables.cmd
-    File ..\cats\update_postgresql_tables.sql
-    File /oname=grant_privileges.cmd ..\cats\grant_postgresql_privileges.cmd
-    File ..\cats\grant_postgresql_privileges.sql
-  ${ElseIf} $OptionsDirectorDB = 3
-    File /oname=create_database.cmd ../cats/create_bdb_database.cmd
-    File /oname=drop_database.cmd ../cats/drop_bdb_database.cmd
-    File /oname=make_tables.cmd ../cats/make_bdb_tables.cmd
-    File /oname=drop_tables.cmd ../cats/drop_bdb_tables.cmd
-    File /oname=update_tables.cmd ../cats/update_bdb_tables.cmd
-    File /oname=grant_privileges.cmd ../cats/grant_bdb_privileges.cmd
+  ${If} $ConfigDirectorDB = 1
+    File /oname=create_database.cmd ${CATS_DIR}\create_mysql_database.cmd
+    File /oname=drop_database.cmd ${CATS_DIR}\drop_mysql_database.cmd
+    File /oname=make_tables.cmd ${CATS_DIR}\make_mysql_tables.cmd
+    File ${CATS_DIR}\make_mysql_tables.sql
+    File /oname=drop_tables.cmd ${CATS_DIR}\drop_mysql_tables.cmd
+    File ${CATS_DIR}\drop_mysql_tables.sql
+    File /oname=update_tables.cmd ${CATS_DIR}\update_mysql_tables.cmd
+    File ${CATS_DIR}\update_mysql_tables.sql
+    File /oname=grant_privileges.cmd ${CATS_DIR}\grant_mysql_privileges.cmd
+    File ${CATS_DIR}\grant_mysql_privileges.sql
+  ${ElseIf} $ConfigDirectorDB = 2
+    File /oname=create_database.cmd ${CATS_DIR}\create_postgresql_database.cmd
+    File /oname=drop_database.cmd ${CATS_DIR}\drop_postgresql_database.cmd
+    File /oname=make_tables.cmd ${CATS_DIR}\make_postgresql_tables.cmd
+    File ${CATS_DIR}\make_postgresql_tables.sql
+    File /oname=drop_tables.cmd ${CATS_DIR}\drop_postgresql_tables.cmd
+    File ${CATS_DIR}\drop_postgresql_tables.sql
+    File /oname=update_tables.cmd ${CATS_DIR}\update_postgresql_tables.cmd
+    File ${CATS_DIR}\update_postgresql_tables.sql
+    File /oname=grant_privileges.cmd ${CATS_DIR}\grant_postgresql_privileges.cmd
+    File ${CATS_DIR}\grant_postgresql_privileges.sql
+  ${ElseIf} $ConfigDirectorDB = 3
+    File /oname=create_database.cmd ${CATS_DIR}\create_bdb_database.cmd
+    File /oname=drop_database.cmd ${CATS_DIR}\drop_bdb_database.cmd
+    File /oname=make_tables.cmd ${CATS_DIR}\make_bdb_tables.cmd
+    File /oname=drop_tables.cmd ${CATS_DIR}\drop_bdb_tables.cmd
+    File /oname=update_tables.cmd ${CATS_DIR}\update_bdb_tables.cmd
+    File /oname=grant_privileges.cmd ${CATS_DIR}\grant_bdb_privileges.cmd
   ${EndIf}
-  File ..\cats\make_catalog_backup.cmd
-  File ..\cats\delete_catalog_backup.cmd
+  File ${CATS_DIR}\make_catalog_backup.cmd
+  File ${CATS_DIR}\delete_catalog_backup.cmd
 
   StrCpy $R0 0
   StrCpy $R1 "$APPDATA\Bacula\bacula-dir.conf"
   IfFileExists $R1 0 +3
     StrCpy $R0 1
     StrCpy $R1 "$R1.new"
-    
-  File /oname=$R1 "..\..\dird\bacula-dir.conf.in"
-  
-  ${If} $OptSilent <> 1
-  ${AndIf} $R0 <> 1
-    MessageBox MB_OK \
-        "Please edit the configuration file $R1 to fit your installation. When you click the OK button Wordpad will open to allow you to do this. Be sure to save your changes before closing Wordpad."
-    Exec 'write "$R1"'  ; spawn wordpad with the file to be edited
-  ${EndIf}
+
+  File "/oname=$PLUGINSDIR\bacula-dir.conf.in" "bacula-dir.conf.in"
+
+  nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\bacula-dir.conf.in"'
+  CopyFiles "$PLUGINSDIR\bacula-dir.conf.in" "$R1"
+
   ${If} $OsIsNT = 1
-    ExecWait 'cmd.exe /C echo Y|cacls "$R1" /G SYSTEM:F Administrators:F'
+    nsExec::ExecToLog 'cmd.exe /C echo Y|cacls "$R1" /G SYSTEM:F Administrators:F'
   ${EndIf}
 
   StrCpy $0 bacula-dir
   StrCpy $1 "Director Service"
-  StrCpy $2 $OptionsDirectorService
-  StrCpy $3 $OptionsDirectorStart
+  StrCpy $2 $ConfigDirectorInstallService
+  StrCpy $3 $ConfigDirectorStartService
   Call InstallDaemon
 
   CreateShortCut "$SMPROGRAMS\Bacula\Edit Director Configuration.lnk" "write.exe" '"$APPDATA\Bacula\bacula-dir.conf"'
@@ -390,7 +599,7 @@ SectionGroup "Consoles"
 Section "Command Console" SecConsole
   SectionIn 3
 
-  File "bconsole.exe"
+  File "${BACULA_BIN}\bconsole.exe"
   Call CopyDependencies
 
   StrCpy $R0 0
@@ -398,17 +607,14 @@ Section "Command Console" SecConsole
   IfFileExists $R1 0 +3
     StrCpy $R0 1
     StrCpy $R1 "$R1.new"
-    
-  File /oname=$R1 "..\..\console\bconsole.conf.in"
-  
-  ${If} $OptSilent <> 1
-  ${AndIf} $R0 <> 1
-    MessageBox MB_OK \
-        "Please edit the configuration file $R1 to fit your installation. When you click the OK button Wordpad will open to allow you to do this. Be sure to save your changes before closing Wordpad."
-    Exec 'write "$R1"'  ; spawn wordpad with the file to be edited
-  ${EndIf}
+
+  File "/oname=$PLUGINSDIR\bconsole.conf.in" "bconsole.conf.in"
+
+  nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\bconsole.conf.in"'
+  CopyFiles "$PLUGINSDIR\bconsole.conf.in" "$R1"
+
   ${If} $OsIsNT = 1
-    ExecWait 'cmd.exe /C echo Y|cacls "$R1" /G SYSTEM:F Administrators:F'
+    nsExec::ExecToLog 'cmd.exe /C echo Y|cacls "$R1" /G SYSTEM:F Administrators:F'
   ${EndIf}
 
   CreateShortCut "$SMPROGRAMS\Bacula\Edit Command Console Configuration.lnk" "write.exe" '"$APPDATA\Bacula\bconsole.conf"'
@@ -419,26 +625,34 @@ Section "Graphical Console" SecWxConsole
   SectionIn 1 2 3
   
   Call CopyDependencies
-  File "wxbase26_gcc_bacula.dll"
-  File "wxmsw26_core_gcc_bacula.dll"
-  File "wx-console.exe"
+!if "${BUILD_TOOLS}" == "VC8"
+  File "${DEPKGS_BIN}\wxbase270_vc_bacula.dll"
+  File "${DEPKGS_BIN}\wxmsw270_core_vc_bacula.dll"
+!endif
+!If "${BUILD_TOOLS}" == "VC8_DEBUG"
+  File "${DEPKGS_BIN}\wxbase270_vc_bacula.dll"
+  File "${DEPKGS_BIN}\wxmsw270_core_vc_bacula.dll"
+!endif
+!if "${BUILD_TOOLS}" == "MinGW"
+  File "${DEPKGS_BIN}\wxbase26_gcc_bacula.dll"
+  File "${DEPKGS_BIN}\wxmsw26_core_gcc_bacula.dll"
+!endif
+
+  File "${BACULA_BIN}\wx-console.exe"
 
   StrCpy $R0 0
   StrCpy $R1 "$APPDATA\Bacula\wx-console.conf"
   IfFileExists $R1 0 +3
     StrCpy $R0 1
     StrCpy $R1 "$R1.new"
-    
-  File /oname=$R1 "..\..\wx-console\wx-console.conf.in"
-  
-  ${If} $OptSilent <> 1
-  ${AndIf} $R0 <> 1
-    MessageBox MB_OK \
-        "Please edit the configuration file $R1 to fit your installation. When you click the OK button Wordpad will open to allow you to do this. Be sure to save your changes before closing Wordpad."
-    Exec 'write "$R1"'  ; spawn wordpad with the file to be edited
-  ${EndIf}
+
+  File "/oname=$PLUGINSDIR\wx-console.conf.in" "wx-console.conf.in"
+
+  nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\wx-console.conf.in"'
+  CopyFiles "$PLUGINSDIR\wx-console.conf.in" "$R1"
+
   ${If} $OsIsNT = 1
-    ExecWait 'cmd.exe /C echo Y|cacls "$R1" /G SYSTEM:F Administrators:F'
+    nsExec::ExecToLog 'cmd.exe /C echo Y|cacls "$R1" /G SYSTEM:F Administrators:F'
   ${EndIf}
 
   ; Create Start Menu entry
@@ -455,7 +669,7 @@ Section "Documentation (Acrobat Format)" SecDocPdf
 
   SetOutPath "$INSTDIR\doc"
   CreateDirectory "$INSTDIR\doc"
-  File "${DOCDIR}\manual\bacula.pdf"
+  File "${DOC_DIR}\manual\bacula.pdf"
   CreateShortCut "$SMPROGRAMS\Bacula\Manual.lnk" '"$INSTDIR\doc\bacula.pdf"'
 SectionEnd
 
@@ -464,15 +678,15 @@ Section "Documentation (HTML Format)" SecDocHtml
 
   SetOutPath "$INSTDIR\doc"
   CreateDirectory "$INSTDIR\doc"
-  File "${DOCDIR}\manual\bacula\*.html"
-  File "${DOCDIR}\manual\bacula\*.png"
-  File "${DOCDIR}\manual\bacula\*.css"
+  File "${DOC_DIR}\manual\bacula\*.html"
+  File "${DOC_DIR}\manual\bacula\*.png"
+  File "${DOC_DIR}\manual\bacula\*.css"
   CreateShortCut "$SMPROGRAMS\Bacula\Manual (HTML).lnk" '"$INSTDIR\doc\bacula.html"'
 SectionEnd
 
 SectionGroupEnd
 
-Section "-Write Installer"
+Section "-Write Uninstaller"
   ; Write the uninstall keys for Windows & create Start Menu entry
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "DisplayName" "Bacula"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "UninstallString" '"$INSTDIR\uninstall.exe"'
@@ -492,21 +706,21 @@ SectionEnd
   LangString DESC_SecDocPdf ${LANG_ENGLISH} "Install documentation in Acrobat format on this system."
   LangString DESC_SecDocHtml ${LANG_ENGLISH} "Install documentation in HTML format on this system."
 
-  LangString TITLE_ClientConfig ${LANG_ENGLISH} "Configure Client"
-  LangString SUBTITLE_ClientConfig ${LANG_ENGLISH} "Create initial configuration for Client."
+  LangString TITLE_ConfigPage1 ${LANG_ENGLISH} "Configuration"
+  LangString SUBTITLE_ConfigPage1 ${LANG_ENGLISH} "Set installation configuration."
 
-  LangString TITLE_Options ${LANG_ENGLISH} "Options"
-  LangString SUBTITLE_Options ${LANG_ENGLISH} "Set installation options."
+  LangString TITLE_ConfigPage2 ${LANG_ENGLISH} "Configuration (continued)"
+  LangString SUBTITLE_ConfigPage2 ${LANG_ENGLISH} "Set installation configuration."
 
-  !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-    !insertmacro MUI_DESCRIPTION_TEXT ${SecFileDaemon} $(DESC_SecFileDaemon)
-    !insertmacro MUI_DESCRIPTION_TEXT ${SecStorageDaemon} $(DESC_SecStorageDaemon)
-    !insertmacro MUI_DESCRIPTION_TEXT ${SecDirectorDaemon} $(DESC_SecDirectorDaemon)
-    !insertmacro MUI_DESCRIPTION_TEXT ${SecConsole} $(DESC_SecConsole)
-    !insertmacro MUI_DESCRIPTION_TEXT ${SecWxConsole} $(DESC_SecWxConsole)
-    !insertmacro MUI_DESCRIPTION_TEXT ${SecDocPdf} $(DESC_SecDocPdf)
-    !insertmacro MUI_DESCRIPTION_TEXT ${SecDocHtml} $(DESC_SecDocHtml)
-  !insertmacro MUI_FUNCTION_DESCRIPTION_END
+  !InsertMacro MUI_FUNCTION_DESCRIPTION_BEGIN
+    !InsertMacro MUI_DESCRIPTION_TEXT ${SecFileDaemon} $(DESC_SecFileDaemon)
+    !InsertMacro MUI_DESCRIPTION_TEXT ${SecStorageDaemon} $(DESC_SecStorageDaemon)
+    !InsertMacro MUI_DESCRIPTION_TEXT ${SecDirectorDaemon} $(DESC_SecDirectorDaemon)
+    !InsertMacro MUI_DESCRIPTION_TEXT ${SecConsole} $(DESC_SecConsole)
+    !InsertMacro MUI_DESCRIPTION_TEXT ${SecWxConsole} $(DESC_SecWxConsole)
+    !InsertMacro MUI_DESCRIPTION_TEXT ${SecDocPdf} $(DESC_SecDocPdf)
+    !InsertMacro MUI_DESCRIPTION_TEXT ${SecDocHtml} $(DESC_SecDocHtml)
+  !InsertMacro MUI_FUNCTION_DESCRIPTION_END
 
 ; Uninstall section
 
@@ -514,26 +728,26 @@ UninstallText "This will uninstall Bacula. Hit next to continue."
 
 Section "Uninstall"
   ; Shutdown any baculum that could be running
-  ExecWait '"$INSTDIR\bin\bacula-fd.exe" /kill'
-  ExecWait '"$INSTDIR\bin\bacula-sd.exe" /kill'
-  ExecWait '"$INSTDIR\bin\bacula-dir.exe" /kill'
+  nsExec::ExecToLog '"$INSTDIR\bin\bacula-fd.exe" /kill'
+  nsExec::ExecToLog '"$INSTDIR\bin\bacula-sd.exe" /kill'
+  nsExec::ExecToLog '"$INSTDIR\bin\bacula-dir.exe" /kill'
 
-  ReadRegDWORD $R0 HKLM "Software\Bacula" "Installed_Bacula-fd"
+  ReadRegDWORD $R0 HKLM "Software\Bacula" "Service_Bacula-fd"
   ${If} $R0 = 1
     ; Remove bacula service
-    ExecWait '"$INSTDIR\bin\bacula-fd.exe" /remove'
+    nsExec::ExecToLog '"$INSTDIR\bin\bacula-fd.exe" /remove'
   ${EndIf}
   
-  ReadRegDWORD $R0 HKLM "Software\Bacula" "Installed_Bacula-sd"
+  ReadRegDWORD $R0 HKLM "Software\Bacula" "Service_Bacula-sd"
   ${If} $R0 = 1
     ; Remove bacula service
-    ExecWait '"$INSTDIR\bin\bacula-sd.exe" /remove'
+    nsExec::ExecToLog '"$INSTDIR\bin\bacula-sd.exe" /remove'
   ${EndIf}
   
-  ReadRegDWORD $R0 HKLM "Software\Bacula" "Installed_Bacula-dir"
+  ReadRegDWORD $R0 HKLM "Software\Bacula" "Service_Bacula-dir"
   ${If} $R0 = 1
     ; Remove bacula service
-    ExecWait '"$INSTDIR\bin\bacula-dir.exe" /remove'
+    nsExec::ExecToLog '"$INSTDIR\bin\bacula-dir.exe" /remove'
   ${EndIf}
   
   ; remove registry keys
@@ -562,262 +776,6 @@ Section "Uninstall"
   RMDir "$INSTDIR"
 SectionEnd
 
-Function EnterClientConfig
-  SectionGetFlags ${SecFileDaemon} $R0
-  IntOp $R0 $R0 & 1
-  
-  SectionGetFlags ${SecStorageDaemon} $R1
-  IntOp $R1 $R1 & 1
-  
-  SectionGetFlags ${SecDirectorDaemon} $R2
-  IntOp $R2 $R2 & 1
-  
-  ${If} $R0 = 0
-  ${OrIf} $R1 = 1
-  ${OrIf} $R2 = 1
-    Abort
-  ${EndIf}
-  
-  !insertmacro MUI_HEADER_TEXT "$(TITLE_ClientConfig)" "$(SUBTITLE_ClientConfig)"
-  !insertmacro MUI_INSTALLOPTIONS_INITDIALOG "ClientConfig.ini"
-  Pop $HDLG ;HWND of dialog
-
-  ; Initialize Controls
-  ; Client Name
-  !insertmacro MUI_INSTALLOPTIONS_READ $HCTL "ClientConfig.ini" "Field 3" "HWND"
-  SendMessage $HCTL ${EM_LIMITTEXT} 30 0
-  
-  ; Client Port Number
-  !insertmacro MUI_INSTALLOPTIONS_READ $HCTL "ClientConfig.ini" "Field 6" "HWND"
-  SendMessage $HCTL ${EM_LIMITTEXT} 5 0
-  SendMessage $HCTL ${WM_SETTEXT} 0 "STR:9102"
-
-  ; Max Jobs
-  !insertmacro MUI_INSTALLOPTIONS_READ $HCTL "ClientConfig.ini" "Field 8" "HWND"
-  SendMessage $HCTL ${EM_LIMITTEXT} 2 0
-  SendMessage $HCTL ${WM_SETTEXT} 0 "STR:20"
-
-  ; Director Name
-  !insertmacro MUI_INSTALLOPTIONS_READ $HCTL "ClientConfig.ini" "Field 11" "HWND"
-  SendMessage $HCTL ${EM_LIMITTEXT} 30 0
-
-  ; Director Password
-  !insertmacro MUI_INSTALLOPTIONS_READ $HCTL "ClientConfig.ini" "Field 14" "HWND"
-  SendMessage $HCTL ${EM_LIMITTEXT} 60 0
-
-  ; Monitor Name
-  !insertmacro MUI_INSTALLOPTIONS_READ $HCTL "ClientConfig.ini" "Field 17" "HWND"
-  SendMessage $HCTL ${EM_LIMITTEXT} 30 0
-
-  ; Monitor Password
-  !insertmacro MUI_INSTALLOPTIONS_READ $HCTL "ClientConfig.ini" "Field 20" "HWND"
-  SendMessage $HCTL ${EM_LIMITTEXT} 60 0
-
-  !insertmacro MUI_INSTALLOPTIONS_SHOW
-  
-  ;
-  ; Process results
-  ;
-  ; Client Name
-  !insertmacro MUI_INSTALLOPTIONS_READ $ConfigClientName "ClientConfig.ini" "Field 3" "State"
-  ; Client Port Number
-  !insertmacro MUI_INSTALLOPTIONS_READ $ConfigClientPort "ClientConfig.ini" "Field 6" "State"
-  ; Max Jobs
-  !insertmacro MUI_INSTALLOPTIONS_READ $ConfigMaxJobs "ClientConfig.ini" "Field 8" "State"
-
-  ; Director Name
-  !insertmacro MUI_INSTALLOPTIONS_READ $ConfigDirectorName "ClientConfig.ini" "Field 11" "State"
-  ; Director Password
-  !insertmacro MUI_INSTALLOPTIONS_READ $ConfigDirectorPW "ClientConfig.ini" "Field 14" "State"
-
-  ; Monitor Name
-  !insertmacro MUI_INSTALLOPTIONS_READ $ConfigMonitorName "ClientConfig.ini" "Field 17" "State"
-  ; Monitor Password
-  !insertmacro MUI_INSTALLOPTIONS_READ $ConfigMonitorPW "ClientConfig.ini" "Field 20" "State"
-FunctionEnd
-
-Function LeaveClientConfig
-  ; Client Port Number
-  !insertmacro MUI_INSTALLOPTIONS_READ $R0 "ClientConfig.ini" "Field 6" "State"
-  ${If} $R0 < 1024
-  ${OrIf} $R0 > 65535
-    MessageBox MB_OK "Port must be between 1024 and 65535 inclusive."
-    Abort
-  ${EndIf}
-  
-  ; Max Jobs
-  !insertmacro MUI_INSTALLOPTIONS_READ $R0 "ClientConfig.ini" "Field 8" "State"
-  ${If} $R0 < 1
-  ${OrIf} $R0 > 99
-    MessageBox MB_OK "Max Jobs must be between 1 and 99 inclusive."
-    Abort
-  ${EndIf}
-FunctionEnd
-
-Function EnterOptions
-  SectionGetFlags ${SecFileDaemon} $R0
-  IntOp $R0 $R0 & 1
-  
-  SectionGetFlags ${SecStorageDaemon} $R1
-  IntOp $R1 $R1 & 1
-  
-  SectionGetFlags ${SecDirectorDaemon} $R2
-  IntOp $R2 $R2 & 1
-  
-  ${If} $R0 = 0
-  ${AndIf} $R1 = 0
-  ${AndIf} $R2 = 0
-    Abort
-  ${EndIf}
-  
-  FileOpen $R3 "$PLUGINSDIR\options.ini" w
-
-  StrCpy $R4 1  ; Field Number
-  StrCpy $R5 0  ; Top
-  
-  ${If} $R0 = 1
-    IntOp $R6 $R5 + 34
-
-    FileWrite $R3 '[Field $R4]$\r$\n'
-    FileWrite $R3 'Type="GroupBox"$\r$\nText="Client"$\r$\nLeft=0$\r$\nTop=$R5$\r$\nRight=300$\r$\nBottom=$R6$\r$\n'
-
-    IntOp $R4 $R4 + 1
-    IntOp $R5 $R5 + 8
-    IntOp $R6 $R5 + 12
-
-    FileWrite $R3 '[Field $R4]$\r$\nType="Checkbox"$\r$\nState=$OptService$\r$\nText="Install as service"$\r$\nLeft=6$\r$\nTop=$R5$\r$\nRight=280$\r$\nBottom=$R6$\r$\n'
-
-    IntOp $R4 $R4 + 1
-    StrCpy $R5 $R6
-    IntOp $R6 $R5 + 12
-
-    FileWrite $R3 '[Field $R4]$\r$\nType="Checkbox"$\r$\nState=$OptStart$\r$\nText="Start after install"$\r$\nLeft=6$\r$\nTop=$R5$\r$\nRight=280$\r$\nBottom=$R6$\r$\n'
-
-    IntOp $R4 $R4 + 1
-    IntOp $R5 $R6 + 8
-  ${Endif}
-  
-  ${If} $R1 = 1
-    IntOp $R6 $R5 + 34 
-
-    FileWrite $R3 '[Field $R4]$\r$\n'
-    FileWrite $R3 'Type="GroupBox"$\r$\nText="Storage"$\r$\nLeft=0$\r$\nTop=$R5$\r$\nRight=300$\r$\nBottom=$R6$\r$\n'
-
-    IntOp $R4 $R4 + 1
-    IntOp $R5 $R5 + 8
-    IntOp $R6 $R5 + 12
-
-    FileWrite $R3 '[Field $R4]$\r$\nType="Checkbox"$\r$\nState=$OptService$\r$\nText="Install as service"$\r$\nLeft=6$\r$\nTop=$R5$\r$\nRight=280$\r$\nBottom=$R6$\r$\n'
-
-    IntOp $R4 $R4 + 1
-    StrCpy $R5 $R6
-    IntOp $R6 $R5 + 12
-
-    FileWrite $R3 '[Field $R4]$\r$\nType="Checkbox"$\r$\nState=$OptStart$\r$\nText="Start after install"$\r$\nLeft=6$\r$\nTop=$R5$\r$\nRight=280$\r$\nBottom=$R6$\r$\n'
-
-    IntOp $R4 $R4 + 1
-    IntOp $R5 $R6 + 8
-  ${Endif}
-  
-  ${If} $R2 = 1
-    IntOp $R6 $R5 + 46
-
-    FileWrite $R3 '[Field $R4]$\r$\n'
-    FileWrite $R3 'Type="GroupBox"$\r$\nText="Director"$\r$\nLeft=0$\r$\nTop=$R5$\r$\nRight=300$\r$\nBottom=$R6$\r$\n'
-
-    IntOp $R4 $R4 + 1
-    IntOp $R5 $R5 + 8
-    IntOp $R6 $R5 + 12
-
-    FileWrite $R3 '[Field $R4]$\r$\nType="Checkbox"$\r$\nState=$OptService$\r$\nText="Install as service"$\r$\nLeft=6$\r$\nTop=$R5$\r$\nRight=280$\r$\nBottom=$R6$\r$\n'
-
-    IntOp $R4 $R4 + 1
-    StrCpy $R5 $R6
-    IntOp $R6 $R5 + 12
-
-    FileWrite $R3 '[Field $R4]$\r$\nType="Checkbox"$\r$\nState=$OptStart$\r$\nText="Start after install"$\r$\nLeft=6$\r$\nTop=$R5$\r$\nRight=280$\r$\nBottom=$R6$\r$\n'
-
-    IntOp $R4 $R4 + 1
-    IntOp $R5 $R6 + 8
-  ${Endif}
- 
-  ${If} $R1 = 1
-  ${OrIf} $R2 = 1
-    IntOp $R4 $R4 + 1
-    IntOp $R5 $R6 + 2
-    IntOp $R6 $R5 + 8
-
-    FileWrite $R3 '[Field $R4]$\r$\nType="Label"$\r$\nText="Database:"$\r$\nLeft=6$\r$\nTop=$R5$\r$\nRight=46$\r$\nBottom=$R6$\r$\n'
-
-    IntOp $R4 $R4 + 1
-    IntOp $R5 $R5 - 2
-    IntOp $R6 $R5 + 12
-
-    FileWrite $R3 '[Field $R4]$\r$\nType="RadioButton"$\r$\nState=1$\r$\nText="MySQL"$\r$\nFlags="GROUP"$\r$\nLeft=46$\r$\nTop=$R5$\r$\nRight=86$\r$\nBottom=$R6$\r$\n'
-
-    IntOp $R4 $R4 + 1
-    IntOp $R6 $R5 + 12
-
-    FileWrite $R3 '[Field $R4]$\r$\nType="RadioButton"$\r$\nState=0$\r$\nText="PostgreSQL"$\r$\nFlags="NOTABSTOP"$\r$\nLeft=86$\r$\nTop=$R5$\r$\nRight=142$\r$\nBottom=$R6$\r$\n'
-
-    IntOp $R4 $R4 + 1
-    IntOp $R6 $R5 + 12
-
-    FileWrite $R3 '[Field $R4]$\r$\nType="RadioButton"$\r$\nState=0$\r$\nText="Builtin"$\r$\nFlags="NOTABSTOP"$\r$\nLeft=142$\r$\nTop=$R5$\r$\nRight=182$\r$\nBottom=$R6$\r$\n'
-
-  ${Endif}
-
-  IntOp $R4 $R4 - 1
-    
-  FileWrite $R3 "[Settings]$\r$\nNumFields=$R4$\r$\n"
-  
-  FileClose $R3
-   
-  !insertmacro MUI_HEADER_TEXT "$(TITLE_Options)" "$(SUBTITLE_Options)"
-  !insertmacro MUI_INSTALLOPTIONS_DISPLAY "Options.ini"
-  
-  ;
-  ; Process results
-  ;
-  StrCpy $R4 2
-  
-  ${If} $R0 = 1
-    ; Client
-    !insertmacro MUI_INSTALLOPTIONS_READ $OptionsClientService "Options.ini" "Field $R4" "State"
-    IntOp $R4 $R4 + 1
-    !insertmacro MUI_INSTALLOPTIONS_READ $OptionsClientStart "Options.ini" "Field $R4" "State"
-    IntOp $R4 $R4 + 2
-  ${EndIf}
-  
-  ${If} $R0 = 1
-    ; Client
-    !insertmacro MUI_INSTALLOPTIONS_READ $OptionsStorageService "Options.ini" "Field $R4" "State"
-    IntOp $R4 $R4 + 1
-    !insertmacro MUI_INSTALLOPTIONS_READ $OptionsStorageStart "Options.ini" "Field $R4" "State"
-    IntOp $R4 $R4 + 2
-  ${EndIf}
-  
-  ${If} $R0 = 1
-    ; Client
-    !insertmacro MUI_INSTALLOPTIONS_READ $OptionsDirectorService "Options.ini" "Field $R4" "State"
-    IntOp $R4 $R4 + 1
-    !insertmacro MUI_INSTALLOPTIONS_READ $OptionsDirectorStart "Options.ini" "Field $R4" "State"
-    IntOp $R4 $R4 + 2
-    !insertmacro MUI_INSTALLOPTIONS_READ $R3 "Options.ini" "Field $R4" "State"
-    ${If} $R3 = 1
-      StrCpy $OptionsDirectorDB 1
-    ${Else}
-      IntOp $R4 $R4 + 1
-      !insertmacro MUI_INSTALLOPTIONS_READ $R3 "Options.ini" "Field $R4" "State"
-      ${If} $R3 = 1
-        StrCpy $OptionsDirectorDB 2
-      ${Else}
-        StrCpy $OptionsDirectorDB 3
-      ${Endif}
-    ${Endif}
-  ${EndIf}
-FunctionEnd
-
 ;
 ; $0 - Service Name (ie Bacula-FD)
 ; $1 - Service Description (ie Bacula File Daemon)
@@ -828,13 +786,13 @@ Function InstallDaemon
   Call CopyDependencies
 
   IfFileExists "$APPDATA\Bacula\$0.conf" 0 +3
-    ExecWait '"$INSTDIR\bin\$0.exe" /kill' ; Shutdown any bacula that could be running
-    Sleep 3000  ; give it some time to shutdown
+    nsExec::ExecToLog '"$INSTDIR\bin\$0.exe" /silent /kill'     ; Shutdown any bacula that could be running
+    nsExec::ExecToLog '"$INSTDIR\bin\$0.exe" /silent /remove'   ; Remove existing service
 
   WriteRegDWORD HKLM "Software\Bacula" "Service_$0" $2
   
   ${If} $2 = 1
-    ExecWait '"$INSTDIR\bin\$0.exe" /install'
+    nsExec::ExecToLog '"$INSTDIR\bin\$0.exe" /silent /install -c "$APPDATA\Bacula\$0.conf"'
 
     ${If} $OsIsNT <> 1
       File "Start.bat"
@@ -845,8 +803,7 @@ Function InstallDaemon
 
     ${If} $3 = 1  
       ${If} $OsIsNT = 1
-        Exec 'net start baculafd'
-        Sleep 3000
+        nsExec::ExecToLog 'net start $0'
       ${Else}
         Exec '"$INSTDIR\bin\$0.exe" -c "$APPDATA\Bacula\$0.conf"'
       ${EndIf}
@@ -855,3 +812,126 @@ Function InstallDaemon
     CreateShortCut "$SMPROGRAMS\Bacula\Start $1.lnk" "$INSTDIR\bin\$0.exe" '-c "$APPDATA\Bacula\$0.conf"' "$INSTDIR\bin\$0.exe" 0
   ${EndIf}
 FunctionEnd
+
+Function GetComputerName
+  Push $0
+  Push $1
+  Push $2
+
+  System::Call "kernel32::GetComputerNameA(t .r0, *i ${NSIS_MAX_STRLEN} r1) i.r2"
+
+  StrCpy $2 $0
+  ${StrCase} $0 $2 "L"
+
+  Pop $2
+  Pop $1
+  Exch $0
+FunctionEnd
+
+!define ComputerNameDnsFullyQualified   3
+
+Function GetHostName
+  Push $0
+  Push $1
+  Push $2
+
+  ${If} $OsIsNT = 1
+    System::Call "kernel32::GetComputerNameExA(i ${ComputerNameDnsFullyQualified}, t .r0, *i ${NSIS_MAX_STRLEN} r1) i.r2 ?e"
+    ${If} $2 = 0
+      Pop $2
+      DetailPrint "GetComputerNameExA failed - LastError = $2"
+      Call GetComputerName
+      Pop $0
+    ${Else}
+      Pop $2
+    ${EndIf}
+  ${Else}
+    Call GetComputerName
+    Pop $0
+  ${EndIf}
+
+  Pop $2
+  Pop $1
+  Exch $0
+FunctionEnd
+
+!define NameUserPrincipal 8
+
+Function GetUserName
+  Push $0
+  Push $1
+  Push $2
+
+  ${If} $OsIsNT = 1
+    System::Call "secur32::GetUserNameExA(i ${NameUserPrincipal}, t .r0, *i ${NSIS_MAX_STRLEN} r1) i.r2 ?e"
+    ${If} $2 = 0
+      Pop $2
+      DetailPrint "GetUserNameExA failed - LastError = $2"
+      Pop $0
+      StrCpy $0 ""
+    ${Else}
+      Pop $2
+    ${EndIf}
+  ${Else}
+      StrCpy $0 ""
+  ${EndIf}
+
+  ${If} $0 == ""
+    System::Call "advapi32::GetUserNameA(t .r0, *i ${NSIS_MAX_STRLEN} r1) i.r2 ?e"
+    ${If} $2 = 0
+      Pop $2
+      DetailPrint "GetUserNameA failed - LastError = $2"
+      StrCpy $0 ""
+    ${Else}
+      Pop $2
+    ${EndIf}
+  ${EndIf}
+
+  Pop $2
+  Pop $1
+  Exch $0
+FunctionEnd
+
+Function IsClientSelected
+  Push $0
+  SectionGetFlags ${SecFileDaemon} $0
+  IntOp $0 $0 & ${SF_SELECTED}
+  Exch $0
+FunctionEnd
+
+Function IsDirectorSelected
+  Push $0
+  SectionGetFlags ${SecDirectorDaemon} $0
+  IntOp $0 $0 & ${SF_SELECTED}
+  Exch $0
+FunctionEnd
+
+Function IsStorageSelected
+  Push $0
+  SectionGetFlags ${SecStorageDaemon} $0
+  IntOp $R0 $R0 & ${SF_SELECTED}
+  Exch $0
+FunctionEnd
+
+Function IsConsoleSelected
+  Push $0
+  Push $1
+  SectionGetFlags ${SecConsole} $0
+  SectionGetFlags ${SecWxConsole} $1
+  IntOp $0 $0 | $1
+  IntOp $0 $0 & ${SF_SELECTED}
+  Pop $1
+  Exch $0
+FunctionEnd
+
+!If 0 = 1
+Function DisableServerSections
+  !InsertMacro UnselectSection ${SecStorageDaemon}
+  !InsertMacro SetSectionFlag ${SecStorageDaemon} SF_RO
+  !InsertMacro UnselectSection ${SecDirectorDaemon}
+  !InsertMacro SetSectionFlag ${SecDirectorDaemon} SF_RO
+FunctionEnd
+!EndIf
+
+!include "ConfigPage1.nsh"
+!include "ConfigPage2.nsh"

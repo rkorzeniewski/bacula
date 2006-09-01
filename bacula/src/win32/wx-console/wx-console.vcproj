@@ -40,8 +40,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../..;../compat;&quot;../../../../depkgs-win32/wx/include/msvc&quot;;&quot;../../../../depkgs-win32/wx/include&quot;;&quot;../../../../depkgs-win32/pthreads&quot;;&quot;../../../../depkgs-win32/zlib&quot;;&quot;../../../../depkgs-win32/gettext/include&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;wxUSE_GUI;__WXDEBUG__;_CONSOLE;HAVE_WIN32;HAVE_WXCONSOLE;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
+				AdditionalIncludeDirectories="../compat;&quot;../../../../depkgs-msvc/include&quot;;../..;&quot;../../../../depkgs-msvc\lib\wx_dll\msw&quot;"
+				PreprocessorDefinitions="WIN32;_WINDOWS;wxUSE_GUI;WXUSINGDLL;__WXMSW__;_CONSOLE;HAVE_WIN32;HAVE_WXCONSOLE;USING_DLL;_STAT_H;_STAT_DEFINED;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -61,9 +61,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="pthreadVCEd.lib zlibd.lib wsock32.lib comctl32.lib rpcrt4.lib atlsd.lib"
+				AdditionalDependencies="wxmsw27_core.lib wxbase27.lib pthreadVCE.lib zlib.lib wsock32.lib comctl32.lib rpcrt4.lib atlsd.lib"
 				LinkIncremental="0"
-				AdditionalLibraryDirectories="&quot;../../../../depkgs-win32/wx/lib/vc_lib&quot;;&quot;../../../../depkgs-win32/pthreads/debug&quot;;&quot;../../../../depkgs-win32/zlib/debug&quot;;&quot;../../../../depkgs-win32/gettext/lib&quot;"
+				AdditionalLibraryDirectories="&quot;../../../../depkgs-msvc/lib&quot;;&quot;../../../../depkgs-msvc/lib/wx_dll&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -117,8 +117,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../..;../compat;&quot;../../../../depkgs-win32/wx/include/msvc&quot;;&quot;../../../../depkgs-win32/wx/include&quot;;&quot;../../../../depkgs-win32/pthreads&quot;;&quot;../../../../depkgs-win32/zlib&quot;;&quot;../../../../depkgs-win32/gettext/include&quot;"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;wxUSE_GUI;_CONSOLE;HAVE_WIN32;HAVE_WXCONSOLE;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
+				AdditionalIncludeDirectories="../compat;&quot;../../../../depkgs-msvc/include&quot;;../..;&quot;../../../../depkgs-msvc\lib\wx_dll\msw&quot;"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;wxUSE_GUI;_CONSOLE;HAVE_WIN32;HAVE_WXCONSOLE;USING_DLL;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				BrowseInformation="1"
@@ -137,9 +137,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="pthreadVCE.lib zlib.lib wsock32.lib comctl32.lib rpcrt4.lib atls.lib"
+				AdditionalDependencies="wxmsw27_core.lib wxbase27.lib pthreadVCE.lib zlib.lib wsock32.lib comctl32.lib rpcrt4.lib atls.lib"
 				LinkIncremental="0"
-				AdditionalLibraryDirectories="&quot;../../../../depkgs-win32/wx/lib/vc_lib&quot;;&quot;../../../../depkgs-win32/pthreads/release&quot;;&quot;../../../../depkgs-win32/zlib/release&quot;;&quot;../../../../depkgs-win32/gettext/lib&quot;"
+				AdditionalLibraryDirectories="&quot;../../../../depkgs-msvc/lib&quot;;&quot;../../../../depkgs-msvc/lib/wx_dll&quot;"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -179,6 +179,7 @@
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
 				RelativePath="..\..\wx-console\console_conf.h"
@@ -240,11 +241,13 @@
 		<Filter
 			Name="Resource Files"
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx"
+			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
 				RelativePath="..\..\wx-console\authenticate.c"

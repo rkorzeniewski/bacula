@@ -1,6 +1,15 @@
 @echo off
 SETLOCAL
 
+SET PERL_PATH=
+FOR /F "tokens=1" %%I in ( "perl.exe" ) DO SET PERL_PATH=%%~$PATH:I
+
+IF NOT "%PERL_PATH%"=="" GOTO :PERL_OK
+ECHO Perl must be in your PATH.  Please fix and rerun this script!
+EXIT /B 1
+
+:PERL_OK
+
 SET CLOBBER_SOURCE=
 
 FOR /F "eol=# delims=| tokens=1-4" %%I in ( External-msvc ) DO SET URL_%%I=%%J & SET DIR_%%I=%%K & SET MKD_%%I=%%L
@@ -12,7 +21,7 @@ SET SCRIPT_DIR=%CD%
 CD ..\..\..
 set TOP_DIR=%CD%
 
-cd %TOP_DIR%/depkgs-win32
+cd %TOP_DIR%/depkgs-msvc
 set DEPPKG_DIR=%CD%
 
 cd %DEPPKG_DIR%
@@ -56,7 +65,7 @@ REM	CALL :process_pcre
 	CALL :process_mysql
 REM	CALL :process_sqlite
 	CALL :process_postgreSQL
-	CALL :process_wxWidgets
+	CALL :process_wx
 REM	CALL :process_scons
 	CALL :process_nsis
 	CALL :process_mtx
@@ -76,9 +85,9 @@ REM	CALL :process_scons
 	SET MAKE_SRC_ENABLE=%3
 	SET BASENAME=
 
-	IF NOT %2=="" GOTO :get_source_make_src
+	IF NOT "%SRC_DIR%"=="" GOTO :get_source_make_src
 	FOR %%I IN ( %URL% ) DO (SET BASENAME=%%~nI & IF NOT "%%~xI"==".gz" IF NOT "%%~xI"==".bz2" SET SRC_DIR=%%~nI)
-	IF %SRC_DIR%=="" FOR %%I IN ( %BASENAME% ) DO SET SRC_DIR=%%~nI
+	IF "%SRC_DIR%"=="" FOR %%I IN ( %BASENAME% ) DO SET SRC_DIR=%%~nI
 
 :get_source_make_src
 	SET MAKE_SRC_DIR=
@@ -140,6 +149,7 @@ REM	CALL :do_nmake win32\Makefile.msc AS=nasmw ASFLAGS= LOC="-D_CRT_SECURE_NO_DE
 	XCOPY zlib.lib %DEPPKG_DIR%\lib\ /Y
 	XCOPY zdll.lib %DEPPKG_DIR%\lib\ /Y
 	XCOPY zlib.h %DEPPKG_DIR%\include\ /Y
+	XCOPY zconf.h %DEPPKG_DIR%\include\ /Y
 	EXIT /B 0
 
 :process_pcre
@@ -199,8 +209,11 @@ REM	COPY /Y nul patch.log
 REM	do_patch postgresql.patch
 	ECHO Installing postgreSQL
 	XCOPY ..\pgsql\include\libpq-fe.h ..\..\include\ /Y 2>&1
-	dlltool -l ..\..\lib\libpgsql.lib -D libpgsql.dll -d src/interfaces/libpq/libpqdll.def
+	XCOPY ..\pgsql\include\postgres_ext.h ..\..\include\ /Y 2>&1
+	LIB /def:src\interfaces\libpq\libpqdll.def /out:..\..\lib\libpqdll.lib /machine:x86 /subsystem:console
 	XCOPY ..\pgsql\lib\libpq.dll ..\..\bin\ /Y
+	XCOPY ..\pgsql\lib\comerr32.dll ..\..\bin\ /Y
+	XCOPY ..\pgsql\lib\krb5_32.dll ..\..\bin\ /Y
 	XCOPY ..\pgsql\lib\libintl-2.dll ..\..\bin\ /Y
 	XCOPY ..\pgsql\lib\libiconv-2.dll ..\..\bin\ /Y
 	EXIT /B 0
@@ -229,10 +242,10 @@ REM	do_patch sqlite.patch
 	cp -p sqlite3.h %DEPPKG_DIR%/include
 	EXIT /B 0
 
-:process_wxWidgets
+:process_wx
 	CALL :get_source %URL_WX% %DIR_WX% %MKD_WX%
-	IF ERRORLEVEL 2 GOTO :wxWidgets_error
-REM	IF ERRORLEVEL 1 GOTO :wxWidgets_skip_patch
+	IF ERRORLEVEL 2 GOTO :wx_error
+REM	IF ERRORLEVEL 1 GOTO :wx_skip_patch
 REM	ECHO Patching wxWidgets
 REM	COPY /Y nul patch.log
 REM	do_patch wx1.patch -o build/msw/config.mingw32
@@ -241,19 +254,19 @@ REM	find . -name makefile.gcc -exec sh -c "sed -f %SCRIPT_DIR%/patches/wx.sed {%
 	ECHO Building wxWidgets
 	cd build\msw
 	COPY /Y nul make.log
-	CALL :do_nmake makefile.vc BUILD=release SHARED=1 VENDOR=bacula DEBUG_INFO=1
+	CALL :do_nmake makefile.vc BUILD=release SHARED=1 VENDOR=bacula DEBUG_INFO=1 CPPFLAGS=-D_USE_32BIT_TIME_T
 	ECHO Installing wxWidgets
 	cd ..\..
 	IF EXIST ..\..\include\wx\nul RD /s /q ..\..\include\wx
 	XCOPY include\wx ..\..\include\wx\ 2>&1
-	XCOPY include\wx\generic ..\..\include\wx\generic\ 2>&1
-	XCOPY include\wx\msw ..\..\include\wx\msw\ 2>&1
+	XCOPY include\wx\generic ..\..\include\wx\generic\ /e 2>&1
+	XCOPY include\wx\msw ..\..\include\wx\msw\ /e 2>&1
 	XCOPY lib\vc_dll\*.dll ..\..\bin\ /y 
 	IF EXIST ..\..\lib\wx_dll\nul RD /s /q ..\..\lib\wx_dll
 	XCOPY lib\vc_dll\*.lib ..\..\lib\wx_dll\
 	XCOPY lib\vc_dll\msw ..\..\lib\wx_dll\msw\ /e 2>&1
 	EXIT /B 0
-:wxWidgets_error
+:wx_error
 	ECHO Unable to download wxWidgets source from %URL_MTX%
 	EXIT /B 1
 

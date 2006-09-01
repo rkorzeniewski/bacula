@@ -12,9 +12,6 @@
 		/>
 	</Platforms>
 	<ToolFiles>
-		<ToolFile
-			RelativePath="..\bacula.rules"
-		/>
 	</ToolFiles>
 	<Configurations>
 		<Configuration
@@ -35,9 +32,6 @@
 				Name="VCCustomBuildTool"
 			/>
 			<Tool
-				Name="Generated Config Files"
-			/>
-			<Tool
 				Name="VCXMLDataGeneratorTool"
 			/>
 			<Tool
@@ -53,8 +47,8 @@
 				Optimization="3"
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../compat;../..;&quot;../../../../depkgs-win32/pthreads&quot;;&quot;../../../../depkgs-win32/zlib&quot;;&quot;../../../../depkgs-win32/gettext/include&quot;"
-				PreprocessorDefinitions="NDEBUG;WIN32;_CONSOLE;HAVE_WIN32;_USE_32BIT_TIME_T;WIN32_VSS;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
+				AdditionalIncludeDirectories="../compat;&quot;../../../../depkgs-msvc/include&quot;;../.."
+				PreprocessorDefinitions="NDEBUG;WIN32;_CONSOLE;HAVE_WIN32;USING_DLL;USING_CATS;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
 				StringPooling="true"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -81,11 +75,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="pthreadVCE.lib libmysql.lib zlib.lib wsock32.lib atls.lib"
+				AdditionalDependencies="bacula_cats.lib pthreadVCE.lib libmysql.lib zlib.lib wsock32.lib atls.lib"
 				OutputFile="$(OutDir)\bacula-dir.exe"
 				LinkIncremental="0"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;..\..\..\..\depkgs-win32\pthreads\release&quot;;&quot;..\..\..\..\depkgs-win32\zlib\release&quot;;&quot;..\..\..\..\depkgs-win32\gettext\lib&quot;;&quot;%VSSSDK_DIR%\lib\win2003\obj\i386&quot;;&quot;C:\Program Files\MySQL\MySQL Server 5.0\lib\opt&quot;"
+				AdditionalLibraryDirectories="&quot;../../../../depkgs-msvc/lib&quot;;&quot;$(SolutionDir)$(ConfigurationName)&quot;"
 				IgnoreDefaultLibraryNames=""
 				DelayLoadDLLs="$(NOINHERIT)"
 				GenerateDebugInformation="true"
@@ -136,9 +130,6 @@
 				Name="VCCustomBuildTool"
 			/>
 			<Tool
-				Name="Generated Config Files"
-			/>
-			<Tool
 				Name="VCXMLDataGeneratorTool"
 			/>
 			<Tool
@@ -152,8 +143,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../compat;../..;&quot;../../../../depkgs-win32/pthreads&quot;;&quot;../../../../depkgs-win32/zlib&quot;;&quot;../../../../depkgs-win32/gettext/include&quot;"
-				PreprocessorDefinitions="_DEBUG;_WINMAIN_;PTW32_BUILD;WIN32;_CONSOLE;HAVE_WIN32;_USE_32BIT_TIME_T;WIN32_VSS;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
+				AdditionalIncludeDirectories="../compat;&quot;../../../../depkgs-msvc/include&quot;;../.."
+				PreprocessorDefinitions="_DEBUG;_WINMAIN_;PTW32_BUILD;WIN32;_CONSOLE;HAVE_WIN32;USING_DLL;USING_CATS;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -179,11 +170,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="pthreadVCEd.lib zlibd.lib wsock32.lib atlsd.lib libmysql.lib"
+				AdditionalDependencies="bacula_cats.lib pthreadVCE.lib zlib.lib wsock32.lib atlsd.lib"
 				OutputFile="$(OutDir)\bacula-dir.exe"
 				LinkIncremental="0"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;../../../../depkgs-win32/pthreads/debug&quot;;&quot;../../../../depkgs-win32/zlib/debug&quot;;&quot;../../../../depkgs-win32/gettext/lib&quot;;&quot;C:\Program Files\MySQL\MySQL Server 5.0\lib\opt&quot;"
+				AdditionalLibraryDirectories="&quot;../../../../depkgs-msvc/lib&quot;;&quot;$(SolutionDir)$(ConfigurationName)&quot;"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -223,6 +214,7 @@
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
 				RelativePath="..\..\dird\admin.c"
@@ -705,26 +697,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\dird\sql_cmds.c"
-				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath="..\..\dird\ua_acl.c"
 				>
 				<FileConfiguration
@@ -1092,6 +1064,7 @@
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
 				RelativePath="..\..\dird\bsr.h"
@@ -1129,6 +1102,7 @@
 		<Filter
 			Name="Resource Files"
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
+			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
 	</Files>

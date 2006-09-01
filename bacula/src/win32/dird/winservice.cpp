@@ -25,7 +25,7 @@
 // by Kern E. Sibbald.  Many thanks to ATT and James Weatherall,
 // the original author, for providing an excellent template.
 //
-// Copyright (2000-2003) Kern E. Sibbald
+// Copyright (C) 2000-2006 Kern E. Sibbald
 //
 
 
@@ -40,8 +40,6 @@
 #include "bacula.h"
 #include "winbacula.h"
 #include "winservice.h"
-//#include "wintray.h"
-
 
 void set_service_description(SC_HANDLE hSCManager, SC_HANDLE hService,
                              LPSTR lpDesc);
@@ -53,114 +51,14 @@ void set_service_description(SC_HANDLE hSCManager, SC_HANDLE hService,
 
 bacService init;
 
-
-bacService::bacService()
-{
-   OSVERSIONINFO osversioninfo;
-   osversioninfo.dwOSVersionInfoSize = sizeof(osversioninfo);
-
-   // Get the current OS version
-   if (!GetVersionEx(&osversioninfo)) {
-      g_platform_id = 0;
-   } else {
-      g_platform_id = osversioninfo.dwPlatformId;
-   }
-}
-
-
-// IsWin95 - returns a BOOL indicating whether the current OS is Win95
-BOOL
-bacService::IsWin95()
-{
-   return (g_platform_id == VER_PLATFORM_WIN32_WINDOWS);
-}
-
-// IsWinNT - returns a bool indicating whether the current OS is WinNT
-BOOL
-bacService::IsWinNT()
-{
-   return (g_platform_id == VER_PLATFORM_WIN32_NT);
-}
-
-// Internal routine to find the  Bacula menu class window and
-// post a message to it!
-
-BOOL
-PostToBacula(UINT message, WPARAM wParam, LPARAM lParam)
-{
-#if 0
-  // Locate the hidden Bacula menu window
-  HWND hservwnd = FindWindow(MENU_CLASS_NAME, NULL);
-  if (hservwnd == NULL) {
-     return FALSE;
-  }
-
-  // Post the message to Bacula
-  PostMessage(hservwnd, message, wParam, lParam);
-#endif
-  return FALSE;
-}
-
-
-// Static routine to show the Properties dialog for a currently-running
-// copy of Bacula, (usually a servicified version.)
-
-BOOL
-bacService::ShowProperties()
-{
-   return TRUE;
-}
-
-// Static routine to show the Default Properties dialog for a currently-running
-// copy of Bacula, (usually a servicified version.)
-
-BOOL
-bacService::ShowDefaultProperties()
-{
-   return TRUE;
-}
-
-// Static routine to show the About dialog for a currently-running
-// copy of Bacula, (usually a servicified version.)
-
-BOOL
-bacService::ShowAboutBox()
-{
-#if 0
-  // Post to the Bacula menu window
-  if (!PostToBacula(MENU_ABOUTBOX_SHOW, 0, 0)) {
-     MessageBox(NULL, _("No existing instance of Bacula could be contacted"), szAppName, MB_ICONEXCLAMATION | MB_OK);
-     return FALSE;
-  }
-#endif
-  return TRUE;
-}
-
-// Static routine to show the Status dialog for a currently-running
-// copy of Bacula, (usually a servicified version.)
-
-BOOL
-bacService::ShowStatus()
-{
-#if 0
-  // Post to the Bacula menu window
-  if (!PostToBacula(MENU_STATUS_SHOW, 0, 0)) {
-     MessageBox(NULL, _("No existing instance of Bacula could be contacted"), szAppName, MB_ICONEXCLAMATION | MB_OK);
-     return FALSE;
-  }
-#endif
-  return TRUE;
-}
+extern bool    silent;
 
 // SERVICE-MODE ROUTINES
 
 // Service-mode defines:
 
-// Executable name
-#define BAC_APPNAME            "baculadir"
-
 // Internal service name
-#define BAC_SERVICENAME        "Baculadir"
+#define BAC_SERVICENAME        "Bacula-dir"
 
 // Displayed service name
 #define BAC_SERVICEDISPLAYNAME "Bacula Director"
@@ -198,8 +96,8 @@ bacService::RunningAsService()
 BOOL
 bacService::KillRunningCopy()
 {
-  while (PostToBacula(WM_CLOSE, 0, 0))
-      {  }
+//  while (PostToBacula(WM_CLOSE, 0, 0))
+//      {  }
   return TRUE;
 }
 
@@ -210,62 +108,17 @@ bacService::BaculaServiceMain()
    // Mark that we are a service
    g_servicemode = TRUE;
 
-   // How to run as a service depends upon the OS being used
-   switch (g_platform_id) {
+   // Create a service entry table
+   SERVICE_TABLE_ENTRY dispatchTable[] = {
+      {BAC_SERVICENAME, (LPSERVICE_MAIN_FUNCTION)ServiceMain},
+      {NULL, NULL}
+   };
 
-   // Windows 95/98/Me
-   case VER_PLATFORM_WIN32_WINDOWS:
-      {
-      // Obtain a handle to the kernel library
-      HINSTANCE kerneldll = LoadLibrary("KERNEL32.DLL");
-      if (kerneldll == NULL) {
-         MessageBox(NULL, _("KERNEL32.DLL not found: Bacula service not started"), 
-             "Bacula Service", MB_OK);
-         break;
-      }
+   // Call the service control dispatcher with our entry table
+   if (!StartServiceCtrlDispatcher(dispatchTable)) {
+      log_error_message(_("StartServiceCtrlDispatcher failed."));
+   }
 
-      // And find the RegisterServiceProcess function
-      DWORD (WINAPI *RegisterService)(DWORD, DWORD);
-      RegisterService = (DWORD (WINAPI *)(DWORD, DWORD))
-              GetProcAddress(kerneldll, "RegisterServiceProcess");
-      if (RegisterService == NULL) {
-         MessageBox(NULL, _("Registry service not found: Bacula service not started"),
-            "Bacula Service", MB_OK);
-         log_error_message(_("Registry service not found")); 
-         break;
-      }
-      
-      // Register this process with the OS as a service!
-      RegisterService(0, 1);
-
-      // Run the main program as a service
-      BaculaAppMain();
-
-      // Then remove the service from the system service table
-      RegisterService(0, 0);
-
-      // Free the kernel library
-      FreeLibrary(kerneldll);
-      break;
-      }
-
-
-   // Windows NT, Win2K, WinXP 
-   case VER_PLATFORM_WIN32_NT:
-      {
-      // Create a service entry table
-      SERVICE_TABLE_ENTRY dispatchTable[] = {
-         {BAC_SERVICENAME, (LPSERVICE_MAIN_FUNCTION)ServiceMain},
-         {NULL, NULL}
-      };
-
-      // Call the service control dispatcher with our entry table
-      if (!StartServiceCtrlDispatcher(dispatchTable)) {
-         log_error_message(_("StartServiceCtrlDispatcher failed."));
-      }
-      break;
-      } /* end case */
-   } /* end switch */
    return 0;
 }
 
@@ -347,32 +200,21 @@ void ServiceStop()
 
 // SERVICE INSTALL ROUTINE
 int
-bacService::InstallService()
+bacService::InstallService(const char *pszCmdLine)
 {
    const int pathlength = 2048;
    char path[pathlength];
    char servicecmd[pathlength];
-   int len;
 
    // Get the filename of this executable
    if (GetModuleFileName(NULL, path, pathlength-(strlen(BaculaRunService)+2)) == 0) {
-      MessageBox(NULL, _("Unable to install Bacula service"), szAppName, MB_ICONEXCLAMATION | MB_OK);
+      MessageBox(NULL, _("Unable to install Bacula Director service"), szAppName, MB_ICONEXCLAMATION | MB_OK);
       return 0;
    }
 
    // Append the service-start flag to the end of the path:
-   if ((int)strlen(path) + 20 + (int)strlen(BaculaRunService) < pathlength) {
-      sprintf(servicecmd, "\"%s\" %s -c \"%s", path, BaculaRunService, path);
-      len = strlen(servicecmd) - 1;
-      for ( ; len > 0; len--) {
-         if (servicecmd[len] == '\\') {
-            servicecmd[len+1] = 0;
-            break;
-         }
-         servicecmd[len] = 0;
-      }
-      strcat(servicecmd, "bacula-dir.conf\"");
-
+   if ((int)strlen(path) + 5 + (int)strlen(BaculaRunService) + (int)strlen(pszCmdLine) < pathlength) {
+      sprintf(servicecmd, "\"%s\" %s %s", path, BaculaRunService, pszCmdLine);
    } else {
       log_error_message(_("Service command length too long")); 
       MessageBox(NULL, _("Service command length too long. Service not registered."),
@@ -380,104 +222,59 @@ bacService::InstallService()
       return 0;
    }
 
-   // How to add the Bacula service depends upon the OS
-   switch (g_platform_id) {
+   SC_HANDLE   hservice;
+   SC_HANDLE   hsrvmanager;
 
-   // Windows 95/98/Me
-   case VER_PLATFORM_WIN32_WINDOWS:
-      // Locate the RunService registry entry
-      HKEY runservices;
-      if (RegCreateKey(HKEY_LOCAL_MACHINE, 
-              "Software\\Microsoft\\Windows\\CurrentVersion\\RunServices",
-              &runservices) != ERROR_SUCCESS) {
-         log_error_message(_("Cannot write System Registry")); 
-         MessageBox(NULL, _("The System Registry could not be updated - the Bacula service was not installed"), szAppName, MB_ICONEXCLAMATION | MB_OK);
-         break;
-      }
-
-      // Attempt to add a Bacula key
-      if (RegSetValueEx(runservices, szAppName, 0, REG_SZ, (unsigned char *)servicecmd, strlen(servicecmd)+1) != ERROR_SUCCESS) {
-         RegCloseKey(runservices);
-         log_error_message(_("Cannot add Bacula key to System Registry")); 
-         MessageBox(NULL, _("The Bacula service could not be installed"), szAppName, MB_ICONEXCLAMATION | MB_OK);
-         break;
-      }
-
-      RegCloseKey(runservices);
-
-      // We have successfully installed the service!
+   // Open the default, local Service Control Manager database
+   hsrvmanager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+   if (hsrvmanager == NULL) {
+      log_error_message("OpenSCManager failed"); 
       MessageBox(NULL,
-              _("The Bacula File service was successfully installed.\n"
-              "The service may be started by double clicking on the\n"
-              "Bacula \"Start\" icon and will be automatically\n"
-              "be run the next time this machine is rebooted. "),
-              szAppName,
-              MB_ICONINFORMATION | MB_OK);
-      break;
+         _("The Service Control Manager could not be contacted - the Bacula Director service was not installed"),
+         szAppName, MB_ICONEXCLAMATION | MB_OK);
+      return 0;
+   }
 
-   // Windows NT, Win2K, WinXP
-   case VER_PLATFORM_WIN32_NT:
-      SC_HANDLE   hservice;
-      SC_HANDLE   hsrvmanager;
-
-      // Open the default, local Service Control Manager database
-      hsrvmanager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
-      if (hsrvmanager == NULL) {
-         log_error_message("OpenSCManager failed"); 
-         MessageBox(NULL,
-            _("The Service Control Manager could not be contacted - the Bacula service was not installed"),
-            szAppName, MB_ICONEXCLAMATION | MB_OK);
-         break;
-      }
-
-      // Create an entry for the Bacula service
-      hservice = CreateService(
-              hsrvmanager,                    // SCManager database
-              BAC_SERVICENAME,                // name of service
-              BAC_SERVICEDISPLAYNAME,         // name to display
-              SERVICE_ALL_ACCESS,             // desired access
-              SERVICE_WIN32_OWN_PROCESS | SERVICE_INTERACTIVE_PROCESS,
-                                                                      // service type
-              SERVICE_AUTO_START,             // start type
-              SERVICE_ERROR_NORMAL,           // error control type
-              servicecmd,                     // service's binary
-              NULL,                           // no load ordering group
-              NULL,                           // no tag identifier
-              BAC_DEPENDENCIES,               // dependencies
-              NULL,                           // LocalSystem account
-              NULL);                          // no password
-      if (hservice == NULL) {
-         CloseServiceHandle(hsrvmanager);
-         log_error_message("CreateService failed"); 
-         MessageBox(NULL,
-             _("The Bacula service could not be installed"),
-              szAppName, MB_ICONEXCLAMATION | MB_OK);
-         break;
-      }
-
-      set_service_description(hsrvmanager,hservice, 
-_("Provides file backup and restore services. Bacula -- the network backup solution."));
-
+   // Create an entry for the Bacula service
+   hservice = CreateService(
+           hsrvmanager,                    // SCManager database
+           BAC_SERVICENAME,                // name of service
+           BAC_SERVICEDISPLAYNAME,         // name to display
+           SERVICE_ALL_ACCESS,             // desired access
+           SERVICE_WIN32_OWN_PROCESS | SERVICE_INTERACTIVE_PROCESS,
+                                                                   // service type
+           SERVICE_AUTO_START,             // start type
+           SERVICE_ERROR_NORMAL,           // error control type
+           servicecmd,                     // service's binary
+           NULL,                           // no load ordering group
+           NULL,                           // no tag identifier
+           BAC_DEPENDENCIES,               // dependencies
+           NULL,                           // LocalSystem account
+           NULL);                          // no password
+   if (hservice == NULL) {
       CloseServiceHandle(hsrvmanager);
-      CloseServiceHandle(hservice);
-
-      // Everything went fine
+      log_error_message("CreateService failed"); 
       MessageBox(NULL,
-              _("The Bacula File service was successfully installed.\n"
+          _("The Bacula Director service could not be installed"),
+           szAppName, MB_ICONEXCLAMATION | MB_OK);
+      return 0;
+   }
+
+   set_service_description(hsrvmanager,hservice, 
+_("Provides director services. Bacula -- the network backup solution."));
+
+   CloseServiceHandle(hsrvmanager);
+   CloseServiceHandle(hservice);
+
+   // Everything went fine
+   if (!silent) {
+      MessageBox(NULL,
+              _("The Bacula Director service was successfully installed.\n"
               "The service may be started from the Control Panel and will\n"
               "automatically be run the next time this machine is rebooted."),
               szAppName,
               MB_ICONINFORMATION | MB_OK);
-      break;
-   default:
-      log_error_message("Unknown Windows System version"); 
-      MessageBox(NULL, 
-                 _("Unknown Windows operating system.\n"     
-                 "Cannot install Bacula service.\n"),
-                 szAppName, MB_ICONEXCLAMATION | MB_OK);
-       break;     
-   };
-
+   }
    return 0;
 }
 
@@ -486,89 +283,52 @@ _("Provides file backup and restore services. Bacula -- the network backup solut
 int
 bacService::RemoveService()
 {
-   // How to remove the Bacula service depends upon the OS
-   switch (g_platform_id) {
+   SC_HANDLE   hservice;
+   SC_HANDLE   hsrvmanager;
 
-   // Windows 95/98/Me
-   case VER_PLATFORM_WIN32_WINDOWS:
-      // Locate the RunService registry entry
-      HKEY runservices;
-      if (RegOpenKey(HKEY_LOCAL_MACHINE, 
-              "Software\\Microsoft\\Windows\\CurrentVersion\\RunServices",
-              &runservices) != ERROR_SUCCESS) {
-         MessageBox(NULL, 
-            _("Could not find registry entry.\nService probably not registerd - the Bacula service was not removed"), szAppName, MB_ICONEXCLAMATION | MB_OK);
-      } else {
-         // Attempt to delete the Bacula key
-         if (RegDeleteValue(runservices, szAppName) != ERROR_SUCCESS) {
-            RegCloseKey(runservices);
-            MessageBox(NULL, _("Could not delete Registry key.\nThe Bacula service could not be removed"), szAppName, MB_ICONEXCLAMATION | MB_OK);
+   // Open the SCM
+   hsrvmanager = OpenSCManager(
+      NULL,                   // machine (NULL == local)
+      NULL,                   // database (NULL == default)
+      SC_MANAGER_ALL_ACCESS   // access required
+      );
+   if (hsrvmanager) {
+      hservice = OpenService(hsrvmanager, BAC_SERVICENAME, SERVICE_ALL_ACCESS);
+      if (hservice != NULL) {
+         SERVICE_STATUS status;
+
+         // Try to stop the Bacula service
+         if (ControlService(hservice, SERVICE_CONTROL_STOP, &status)) {
+            while(QueryServiceStatus(hservice, &status)) {
+               if (status.dwCurrentState == SERVICE_STOP_PENDING) {
+                  Sleep(1000);
+               } else {
+                  break;
+               }
+            }
+
+            if (status.dwCurrentState != SERVICE_STOPPED) {
+               MessageBox(NULL, _("The Bacula Director service could not be stopped"), szAppName, MB_ICONEXCLAMATION | MB_OK);
+            }
          }
 
-         RegCloseKey(runservices);
-         break;
-      }
-
-      // Try to kill any running copy of Bacula
-      if (!KillRunningCopy()) {
-         MessageBox(NULL,
-             _("Bacula could not be contacted, probably not running"),
-             szAppName, MB_ICONEXCLAMATION | MB_OK);
-         break;
-      }
-
-      // We have successfully removed the service!
-      MessageBox(NULL, _("The Bacula service has been removed"), szAppName, MB_ICONINFORMATION | MB_OK);
-      break;
-
-   // Windows NT, Win2K, WinXP
-   case VER_PLATFORM_WIN32_NT:
-      SC_HANDLE   hservice;
-      SC_HANDLE   hsrvmanager;
-
-      // Open the SCM
-      hsrvmanager = OpenSCManager(
-         NULL,                   // machine (NULL == local)
-         NULL,                   // database (NULL == default)
-         SC_MANAGER_ALL_ACCESS   // access required
-         );
-      if (hsrvmanager) {
-         hservice = OpenService(hsrvmanager, BAC_SERVICENAME, SERVICE_ALL_ACCESS);
-         if (hservice != NULL) {
-            SERVICE_STATUS status;
-
-            // Try to stop the Bacula service
-            if (ControlService(hservice, SERVICE_CONTROL_STOP, &status)) {
-               while(QueryServiceStatus(hservice, &status)) {
-                  if (status.dwCurrentState == SERVICE_STOP_PENDING) {
-                     Sleep(1000);
-                  } else {
-                     break;
-                  }
-               }
-
-               if (status.dwCurrentState != SERVICE_STOPPED) {
-                  MessageBox(NULL, _("The Bacula service could not be stopped"), szAppName, MB_ICONEXCLAMATION | MB_OK);
-               }
+         // Now remove the service from the SCM
+         if(DeleteService(hservice)) {
+            if (!silent) {
+               MessageBox(NULL, _("The Bacula Director service has been removed"), szAppName, MB_ICONINFORMATION | MB_OK);
             }
-
-            // Now remove the service from the SCM
-            if(DeleteService(hservice)) {
-               MessageBox(NULL, _("The Bacula service has been removed"), szAppName, MB_ICONINFORMATION | MB_OK);
-            } else {
-               MessageBox(NULL, _("The Bacula service could not be removed"), szAppName, MB_ICONEXCLAMATION | MB_OK);
-            }
-
-            CloseServiceHandle(hservice);
          } else {
-            MessageBox(NULL, _("The Bacula service could not be found"), szAppName, MB_ICONEXCLAMATION | MB_OK);
+            MessageBox(NULL, _("The Bacula Director service could not be removed"), szAppName, MB_ICONEXCLAMATION | MB_OK);
          }
 
-         CloseServiceHandle(hsrvmanager);
+         CloseServiceHandle(hservice);
       } else {
-         MessageBox(NULL, _("The SCM could not be contacted - the Bacula service was not removed"), szAppName, MB_ICONEXCLAMATION | MB_OK);
+         MessageBox(NULL, _("The Bacula Director service could not be found"), szAppName, MB_ICONEXCLAMATION | MB_OK);
       }
-      break;
+
+      CloseServiceHandle(hsrvmanager);
+   } else {
+      MessageBox(NULL, _("The SCM could not be contacted - the Bacula Director service was not removed"), szAppName, MB_ICONEXCLAMATION | MB_OK);
    }
    return 0;
 }

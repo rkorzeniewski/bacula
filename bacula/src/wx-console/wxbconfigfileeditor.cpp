@@ -21,6 +21,8 @@
 
  */
 
+#undef _DEBUG
+
 #include "bacula.h"
 #include "wxbconfigfileeditor.h"
 #include <wx/file.h>

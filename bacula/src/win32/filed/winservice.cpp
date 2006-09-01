@@ -100,24 +100,6 @@ PostToBacula(UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 
-// Static routine to show the Properties dialog for a currently-running
-// copy of Bacula, (usually a servicified version.)
-
-BOOL
-bacService::ShowProperties()
-{
-   return TRUE;
-}
-
-// Static routine to show the Default Properties dialog for a currently-running
-// copy of Bacula, (usually a servicified version.)
-
-BOOL
-bacService::ShowDefaultProperties()
-{
-   return TRUE;
-}
-
 // Static routine to show the About dialog for a currently-running
 // copy of Bacula, (usually a servicified version.)
 
@@ -126,7 +108,7 @@ bacService::ShowAboutBox()
 {
   // Post to the Bacula menu window
   if (!PostToBacula(MENU_ABOUTBOX_SHOW, 0, 0)) {
-     MessageBox(NULL, _("No existing instance of Bacula could be contacted"), szAppName, MB_ICONEXCLAMATION | MB_OK);
+     MessageBox(NULL, _("No existing instance of Bacula File service could be contacted"), szAppName, MB_ICONEXCLAMATION | MB_OK);
      return FALSE;
   }
   return TRUE;
@@ -140,7 +122,7 @@ bacService::ShowStatus()
 {
   // Post to the Bacula menu window
   if (!PostToBacula(MENU_STATUS_SHOW, 0, 0)) {
-     MessageBox(NULL, _("No existing instance of Bacula could be contacted"), szAppName, MB_ICONEXCLAMATION | MB_OK);
+     MessageBox(NULL, _("No existing instance of Bacula File service could be contacted"), szAppName, MB_ICONEXCLAMATION | MB_OK);
      return FALSE;
   }
   return TRUE;
@@ -150,11 +132,8 @@ bacService::ShowStatus()
 
 // Service-mode defines:
 
-// Executable name
-#define BAC_APPNAME            "baculafd"
-
 // Internal service name
-#define BAC_SERVICENAME        "Baculafd"
+#define BAC_SERVICENAME        "Bacula-fd"
 
 // Displayed service name
 #define BAC_SERVICEDISPLAYNAME "Bacula File Server"
@@ -341,7 +320,7 @@ void ServiceStop()
 
 // SERVICE INSTALL ROUTINE
 int
-bacService::InstallService()
+bacService::InstallService(const char *pszCmdLine)
 {
    const int pathlength = 2048;
    char path[pathlength];
@@ -350,23 +329,13 @@ bacService::InstallService()
 
    // Get the filename of this executable
    if (GetModuleFileName(NULL, path, pathlength-(strlen(BaculaRunService)+2)) == 0) {
-      MessageBox(NULL, _("Unable to install Bacula service"), szAppName, MB_ICONEXCLAMATION | MB_OK);
+      MessageBox(NULL, _("Unable to install Bacula File service"), szAppName, MB_ICONEXCLAMATION | MB_OK);
       return 0;
    }
 
    // Append the service-start flag to the end of the path:
-   if ((int)strlen(path) + 20 + (int)strlen(BaculaRunService) < pathlength) {
-      sprintf(servicecmd, "\"%s\" %s -c \"%s\"", path, BaculaRunService, path);
-      len = strlen(servicecmd) - 1;
-      for ( ; len > 0; len--) {
-         if (servicecmd[len] == '\\') {
-            servicecmd[len] = 0;
-            break;
-         }
-         servicecmd[len] = 0;
-      }
-      strcat(servicecmd, "\\bacula-fd.conf");
-
+   if ((int)strlen(path) + 5 + (int)strlen(BaculaRunService) + (int)strlen(pszCmdLine) < pathlength) {
+      sprintf(servicecmd, "\"%s\" %s %s", path, BaculaRunService, pszCmdLine);
    } else {
       log_error_message(_("Service command length too long")); 
       MessageBox(NULL, _("Service command length too long. Service not registered."),
@@ -548,27 +517,27 @@ bacService::RemoveService()
                }
 
                if (status.dwCurrentState != SERVICE_STOPPED) {
-                  MessageBox(NULL, _("The Bacula service could not be stopped"), szAppName, MB_ICONEXCLAMATION | MB_OK);
+                  MessageBox(NULL, _("The Bacula file service could not be stopped"), szAppName, MB_ICONEXCLAMATION | MB_OK);
                }
             }
 
             // Now remove the service from the SCM
             if (DeleteService(hservice)) {
                if (!silent) {
-                  MessageBox(NULL, _("The Bacula service has been removed"), szAppName, MB_ICONINFORMATION | MB_OK);
+                  MessageBox(NULL, _("The Bacula file service has been removed"), szAppName, MB_ICONINFORMATION | MB_OK);
                }
             } else {
-               MessageBox(NULL, _("The Bacula service could not be removed"), szAppName, MB_ICONEXCLAMATION | MB_OK);
+               MessageBox(NULL, _("The Bacula file service could not be removed"), szAppName, MB_ICONEXCLAMATION | MB_OK);
             }
 
             CloseServiceHandle(hservice);
          } else {
-            MessageBox(NULL, _("The Bacula service could not be found"), szAppName, MB_ICONEXCLAMATION | MB_OK);
+            MessageBox(NULL, _("The Bacula file service could not be found"), szAppName, MB_ICONEXCLAMATION | MB_OK);
          }
 
          CloseServiceHandle(hsrvmanager);
       } else {
-         MessageBox(NULL, _("The SCM could not be contacted - the Bacula service was not removed"), szAppName, MB_ICONEXCLAMATION | MB_OK);
+         MessageBox(NULL, _("The SCM could not be contacted - the Bacula file service was not removed"), szAppName, MB_ICONEXCLAMATION | MB_OK);
       }
       break;
    }

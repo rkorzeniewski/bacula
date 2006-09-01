@@ -2,10 +2,6 @@
 Instructions to build Bacula with Microsoft Visual C++ 2005 Express Edition (free version).
 ---
 
-(Note: for the moment VSS support has been disabled, and this is not
-the official way to build the released FD.  See README.win32 for the
-"official" instructions.)
-
 What you need to download:
 - Visual C++ 2005 Express Edition (2MB + 66MB)
   http://msdn.microsoft.com/vstudio/express/visualc/download/  
@@ -53,6 +49,20 @@ Installation instructions:
 
 Build instructions:
  - deppkgs:
+
+   You need 7-Zip, dlltool, nasm, patch, perl, sed, wget
+
+   build-depkgs
+      Builds
+         libz
+         mt
+         mtx
+         mysql
+         openssl
+         postgreSQL
+         pthreads
+         wxWidgets
+
    + Start VC++ 2005 command prompt (in the start menu)
    + run "<vc++ install dir>\VC\PlatformSDK\SetEnv.Cmd"
    + cd <dev dir>/deppkgs-win32/zlib
