@@ -526,8 +526,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
      
    if (mount_dvd(this, 1)) {
       Dmsg0(99, "DVD device mounted.\n");
-      if ((num_dvd_parts == 0) && (!truncating)) {
-#ifdef needed
+      if (num_dvd_parts == 0 && !truncating) {
          /*
           * If we can mount the device, and we are not truncating the DVD, 
           * we usually want to abort. There is one exception, if there is 
@@ -541,7 +540,6 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
             clear_opened();
             return;
          }
-#endif
          truncated_dvd = true;
       }
    } else {

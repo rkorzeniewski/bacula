@@ -434,8 +434,8 @@ bool dvd_write_part(DCR *dcr)
             dev->part, results.c_str());
     
    if (dev->truncated_dvd) {
-      dev->truncated_dvd = false;   /* turn off flag */
-   } else {                         /* DVD part written */
+      dev->truncated_dvd = false;      /* turn off flag */
+   } else {                            /* DVD part written */
       dev->num_dvd_parts++;            /* there is now one more part on DVD */
       dev->VolCatInfo.VolCatParts = dev->num_dvd_parts;
    }
