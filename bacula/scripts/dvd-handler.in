@@ -6,14 +6,34 @@
 #
 #  called:  dvd-handler <dvd-device-name> operation args
 #
-#  where operation is one of
-#    free
-#    write
+#  operations used by Bacula:
 #
-# in case of operation ``free'' returns:
-# Prints on the first output line the free space available in bytes.
-# If an error occurs, prints a negative number (-errno), followed,
-# on the second line, by an error message.
+#   free  (no arguments)
+#	      Scan the device and report the available space. It returns:
+#	      Prints on the first output line the free space available in bytes.
+#	      If an error occurs, prints a negative number (-errno), followed,
+#	      on the second line, by an error message.
+#
+#   write  op filename
+#	       Write a part file to disk.
+#	       This operation needs two additional arguments.
+#	       The first (op) indicates to
+#		   0 -- append
+#		   1 -- first write to a blank disk
+#		   2 -- blank or truncate a disk
+#
+#		The second is the filename to write
+#
+#   operations available but not used by Bacula:
+#
+#   test      Scan the device and report the information found.
+#	       This operation needs no further arguments.
+#   prepare   Prepare a DVD+/-RW for being used by Bacula.
+#	       Note: This is only useful if you already have some
+#	       non-Bacula data on a medium, and you want to use
+#	       it with Bacula. Don't run this on blank media, it
+#	       is useless.
+#
 # 
 # $Id$
 #
@@ -289,7 +309,7 @@ class disk:
       print
       signal.signal(signal.SIGTERM, oldsig)
       if not os.WIFEXITED(status):
-         raise DVDError(0, cmd + " process did not exit correctly, signal/status " + str(status))
+	 raise DVDError(0, cmd + " process did not exit correctly, signal/status " + str(status))
       if os.WEXITSTATUS(status) != 0:
 	 raise DVDError(os.WEXITSTATUS(status), cmd + " exited with status " + str(os.WEXITSTATUS(status)) + ", signal/status " + str(status))
 
