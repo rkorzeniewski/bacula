@@ -129,7 +129,7 @@ sub new
 
 	DlgResto::listview_push($fileview,
 				$file, $jobid, 'file', 
-				$icon, $volname, $jobid, human($size),
+				$icon, $volname, $jobid,DlgResto::human($size),
 				scalar(localtime($mtime)), $md5);
     }
 
