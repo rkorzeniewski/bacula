@@ -1,6 +1,18 @@
               Technical notes on version 1.39  
 
 General:
+02Sep06
+kes  When doing a label, pass the VolBytes back to the Director,
+     which puts it in the catalog.
+kes  Print an error message if the user attempts to prune an
+     archived Volume.
+kes  Need to start using %ld when sscanfing 32 bit values.
+kes  Update the free
+kes  Correct the counting of VolCatBytes for DVDs. 
+kes  Add code to mount.c to require that VolCatBytes corresponds to
+     what is actually found when doing an append.
+kes  Update freespace only after writing on the DVD.
+kes  Remove code that blows away the current part in the spool file.
 01Sep06
 kes  Apply new dvd-handler patch from Richard Mortimer.
 kes  Tweak so that debug level 20 shows only DVD commands.

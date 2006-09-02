@@ -167,7 +167,7 @@ int main(int margc, char *margv[])
    }
    x32 = 123456789;
    bsnprintf(buf, sizeof(buf), "%u", x32);
-   i = bsscanf(buf, "%u", &y32);
+   i = bsscanf(buf, "%lu", &y32);
    if (i != 1 || x32 != y32) {
       Pmsg3(-1, _("32 bit printf/scanf problem. i=%d x32=%u y32=%u\n"), i, x32, y32);
       exit(1);

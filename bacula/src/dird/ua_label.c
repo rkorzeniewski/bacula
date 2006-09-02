@@ -540,7 +540,7 @@ static void label_from_barcodes(UAContext *ua, int drive)
        */
       if (is_cleaning_tape(ua, &mr, &pr)) {
          if (media_record_exists) {      /* we update it */
-            mr.VolBytes = 1;
+            mr.VolBytes = 1;             /* any bytes to indicate it exists */
             bstrncpy(mr.VolStatus, "Cleaning", sizeof(mr.VolStatus));
             mr.MediaType[0] = 0;
             mr.StorageId = store->StorageId;
@@ -630,6 +630,7 @@ static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
    char dev_name[MAX_NAME_LENGTH];
    bool ok = false;
    bool is_dvd = false;
+   uint64_t VolBytes = 0;
 
    if (!(sd=open_sd_bsock(ua))) {
       return false;
@@ -659,12 +660,12 @@ static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
    }
 
    while (bnet_recv(sd) >= 0) {
+      int dvd;
       bsendmsg(ua, "%s", sd->msg);
-      if (strncmp(sd->msg, "3000 OK label.", 14) == 0) {
+      if (sscanf(sd->msg, "3000 OK label. VolBytes=%llu DVD=%d ", &VolBytes,
+                 &dvd) == 2) {
+         is_dvd = dvd;
          ok = true;
-      }
-      if (strncmp(sd->msg, "3000 OK label. DVD=1 ", 21) == 0) {
-         is_dvd = true;
       }
    }
    unbash_spaces(mr->VolumeName);
@@ -679,7 +680,7 @@ static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
    }
    if (ok) {
       if (media_record_exists) {      /* we update it */
-         mr->VolBytes = 1;
+         mr->VolBytes = VolBytes;
          mr->InChanger = 1;
          mr->StorageId = ua->jcr->wstore->StorageId;
          if (!db_update_media_record(ua->jcr, ua->db, mr)) {
@@ -688,7 +689,7 @@ static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
          }
       } else {                        /* create the media record */
          set_pool_dbr_defaults_in_media_dbr(mr, pr);
-         mr->VolBytes = 1;               /* flag indicating Volume labeled */
+         mr->VolBytes = VolBytes;
          mr->InChanger = 1;
          mr->StorageId = ua->jcr->wstore->StorageId;
          mr->Enabled = 1;

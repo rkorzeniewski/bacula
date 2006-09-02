@@ -33,6 +33,8 @@ Document:
 Priority:
 
 For 1.39:
+- When reading through parts on the DVD, the DVD is mounted and
+  unmounted for each part.
 - Restricted consoles start in the Default catalog even if it
   is not permitted.
 - Make sure that the restore options don't permit "seeing" other
@@ -1654,4 +1656,6 @@ Block Position: 0
 - Fix ClientRunBefore/AfterJob compatibility.
 - Ensure that connection to daemon failure always indicates what
   daemon it was trying to connect to.
+- Freespace on DVD requested over and over even with no intervening
+  writes.
 

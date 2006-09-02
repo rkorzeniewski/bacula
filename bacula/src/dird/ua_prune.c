@@ -174,6 +174,10 @@ int prunecmd(UAContext *ua, const char *cmd)
       if (!select_pool_and_media_dbr(ua, &pr, &mr)) {
          return false;
       }
+      if (mr.Enabled == 2) {
+         bsendmsg(ua, _("Cannot prune Volume \"%s\" because it is archived.\n"),
+            mr.VolumeName);
+      }
       if (!confirm_retention(ua, &mr.VolRetention, "Volume")) {
          return false;
       }

@@ -399,6 +399,9 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
       Dmsg0(200, "Error from write volume label.\n");
       return false;
    }
+
+   dev->VolCatInfo.VolCatBytes = 0;        /* reset byte count */
+
    /*
     * If we are not dealing with a streaming device,
     *  write the block now to ensure we have write permission.
@@ -446,7 +449,6 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
    /* Set or reset Volume statistics */
    dev->VolCatInfo.VolCatJobs = 0;
    dev->VolCatInfo.VolCatFiles = 0;
-   dev->VolCatInfo.VolCatBytes = 1;
    dev->VolCatInfo.VolCatErrors = 0;
    dev->VolCatInfo.VolCatBlocks = 0;
    dev->VolCatInfo.VolCatRBytes = 0;
@@ -558,7 +560,7 @@ void create_volume_label(DEVICE *dev, const char *VolName,
 
    bstrncpy(dev->VolHdr.Id, BaculaId, sizeof(dev->VolHdr.Id));
    dev->VolHdr.VerNum = BaculaTapeVersion;
-   if (dev->is_dvd()) {
+   if (dvdnow) {
       /* We do not want to re-label a DVD so write VOL_LABEL now */
       dev->VolHdr.LabelType = VOL_LABEL;
    } else {

@@ -391,13 +391,14 @@ static void label_volume_if_ok(DCR *dcr, char *oldname,
    int label_status;
    int mode;
    const char *volname = (relabel == 0) ? newname : oldname;
+   char ed1[50];
 
    steal_device_lock(dev, &hold, BST_WRITING_LABEL);
    Dmsg1(100, "Stole device %s lock, writing label.\n", dev->print_name());
 
    Dmsg0(90, "try_autoload_device - looking for volume_info\n");
    if (relabel && dev->is_dvd()) {
-      dcr->VolCatInfo.VolCatParts=1;
+      dcr->VolCatInfo.VolCatParts=0;
    }
 
    if (!try_autoload_device(dcr->jcr, slot, volname)) {
@@ -462,8 +463,9 @@ static void label_volume_if_ok(DCR *dcr, char *oldname,
       }
       bstrncpy(dcr->VolumeName, newname, sizeof(dcr->VolumeName));
       /* The following 3000 OK label. string is scanned in ua_label.c */
-      bnet_fsend(dir, "3000 OK label. DVD=%d Volume=\"%s\" Device=\"%s\"\n",
-         dev->is_dvd()?1:0, newname, dev->print_name());
+      bnet_fsend(dir, "3000 OK label. VolBytes=%s DVD=%d Volume=\"%s\" Device=%s\n",
+                 edit_uint64(dev->VolCatInfo.VolCatBytes, ed1),
+                 dev->is_dvd()?1:0, newname, dev->print_name());
       break;
    case VOL_NO_MEDIA:
       bnet_fsend(dir, _("3912 Failed to label Volume: ERR=%s\n"), dev->bstrerror());

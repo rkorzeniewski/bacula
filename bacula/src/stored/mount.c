@@ -339,6 +339,22 @@ read_volume:
          mark_volume_in_error(dcr);
          goto mount_next_vol;
       }
+      if (dev->is_dvd()) {
+         char ed1[50], ed2[50];
+         if (dev->VolCatInfo.VolCatBytes == dev->part_start + dev->part_size) {
+            Jmsg(jcr, M_INFO, 0, _("Ready to append to end of Volume \"%s\""
+                 " part=%d size=%s\n"), dcr->VolumeName, 
+                 dev->part, edit_uint64(dev->VolCatInfo.VolCatBytes,ed1));
+         } else {
+            Jmsg(jcr, M_ERROR, 0, _("I cannot write on Volume \"%s\" because: "
+                 "The sizes do not match! Volume=%s Catalog=%s\n"),
+                 dcr->VolumeName,
+                 edit_uint64(dev->part_start + dev->part_size, ed1),
+                 edit_uint64(dev->VolCatInfo.VolCatBytes, ed2));
+            mark_volume_in_error(dcr);
+            goto mount_next_vol;
+         }
+      }
       /* *****FIXME**** we should do some checking for files too */
       if (dev->is_tape()) {
          /*
@@ -350,7 +366,7 @@ read_volume:
                  dcr->VolumeName, dev_file(dev));
          } else {
             Jmsg(jcr, M_ERROR, 0, _("I cannot write on Volume \"%s\" because:\n"
-"The number of files mismatch! Volume=%u Catalog=%u\n"),
+                 "The number of files mismatch! Volume=%u Catalog=%u\n"),
                  dcr->VolumeName, dev_file(dev), dev->VolCatInfo.VolCatFiles);
             mark_volume_in_error(dcr);
             goto mount_next_vol;
