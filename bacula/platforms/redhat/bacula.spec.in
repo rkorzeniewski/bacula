@@ -958,13 +958,6 @@ make \
 	mandir=$RPM_BUILD_ROOT%{_mandir} \
         install
 
-cd manpages
-make \
-	mandir=$RPM_BUILD_ROOT%{_mandir} \
-        install
-cd ${cwd}
-
-
 %if ! %{client_only}
 cd %{depkgs}
 make \
@@ -1274,6 +1267,7 @@ if [ -s %{working_dir}/bacula.db ] && [ -s %{sqlite_bindir}/sqlite ];then
 DB_VER=`echo 'select * from Version;' | psql bacula 2>/dev/null | tail -3 | head -1`
 %endif
 
+%if ! %{client_only}
 if [ -n "$DB_VER" ] && [ "$DB_VER" -lt "9" ]; then
         echo "This bacula upgrade will update a bacula database from version 9 to 10."
         echo "You appear to be running database version $DB_VER. You must first update"
@@ -1283,6 +1277,7 @@ if [ -n "$DB_VER" ] && [ "$DB_VER" -lt "9" ]; then
         echo "database older than version 9 can be found in the release notes."
         exit 1
 fi
+%endif
 
 %if %{sqlite}
 fi
@@ -1688,6 +1683,8 @@ fi
 %endif
 
 %changelog
+* Sat Sep 02 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- 1.39.22 remove separate cd and make of manpages the main Makefile does it now
 * Sun Aug 06 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - fix manpages file extension for mdk
 * Sat Aug 05 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
