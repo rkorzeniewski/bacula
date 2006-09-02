@@ -2712,11 +2712,12 @@ sub estimate_restore_size
 	my $inclause = $entry->[3]; # curjobids
 	$query = 
 "SELECT Path.Path, File.FilenameId, File.Lstat
-  FROM File, Path
+  FROM File, Path, Filename
   WHERE Path.PathId = File.PathId
   AND Path.Path = '$dir/'
   AND Filename.Name = '$file'
-  AND File.JobId = $jobid";
+  AND File.JobId = $jobid
+  AND Filename.FilenameId = File.FilenameId";
     }
 
     print $query,"\n" if $debug;
