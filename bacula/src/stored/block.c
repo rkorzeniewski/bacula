@@ -570,8 +570,9 @@ bool write_block_to_dev(DCR *dcr)
    }
 
    /* We successfully wrote the block, now do housekeeping */
-
-   dev->VolCatInfo.VolCatBytes += block->binbuf;
+   Dmsg2(400, "VolCatBytes=%d newVolCatBytes=%d\n", (int)dev->VolCatInfo.VolCatBytes,
+      (int)(dev->VolCatInfo.VolCatBytes+wlen));
+   dev->VolCatInfo.VolCatBytes += wlen;         
    dev->VolCatInfo.VolCatBlocks++;
    dev->EndBlock = dev->block_num;
    dev->EndFile  = dev->file;
@@ -835,6 +836,10 @@ static bool do_dvd_size_checks(DCR *dcr)
          dev->dev_errno = EIO;
          return false;
       }
+   }
+
+   if (!dev->is_freespace_ok()) {
+      update_free_space_dev(dev);
    }
    
    if (!dev->is_freespace_ok()) { /* Error while getting free space */

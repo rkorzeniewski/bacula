@@ -41,12 +41,12 @@ static char Job_status[]     = "Status Job=%s JobStatus=%d\n";
 
 
 /* Responses received from the Director */
-static char OK_media[] = "1000 OK VolName=%127s VolJobs=%u VolFiles=%u"
-   " VolBlocks=%u VolBytes=%" lld " VolMounts=%u VolErrors=%u VolWrites=%u"
-   " MaxVolBytes=%" lld " VolCapacityBytes=%" lld " VolStatus=%20s"
-   " Slot=%d MaxVolJobs=%u MaxVolFiles=%u InChanger=%d"
-   " VolReadTime=%" lld " VolWriteTime=%" lld " EndFile=%u EndBlock=%u"
-   " VolParts=%u LabelType=%d";
+static char OK_media[] = "1000 OK VolName=%127s VolJobs=%u VolFiles=%lu"
+   " VolBlocks=%lu VolBytes=%lld VolMounts=%lu VolErrors=%lu VolWrites=%lu"
+   " MaxVolBytes=%lld VolCapacityBytes=%lld VolStatus=%20s"
+   " Slot=%ld MaxVolJobs=%lu MaxVolFiles=%lu InChanger=%ld"
+   " VolReadTime=%lld VolWriteTime=%lld EndFile=%lu EndBlock=%lu"
+   " VolParts=%lu LabelType=%ld";
 
 
 static char OK_create[] = "1000 OK CreateJobMedia\n";
@@ -153,7 +153,7 @@ static bool do_get_volume_info(DCR *dcr)
     BSOCK *dir = jcr->dir_bsock;
     VOLUME_CAT_INFO vol;
     int n;
-    int InChanger;
+    int32_t InChanger;
 
     dcr->VolumeName[0] = 0;           /* No volume */
     if (bnet_recv(dir) <= 0) {
@@ -302,7 +302,6 @@ bool dir_update_volume_info(DCR *dcr, bool label)
    /* Just labeled or relabeled the tape */
    if (label) {
       bstrncpy(vol->VolCatStatus, "Append", sizeof(vol->VolCatStatus));
-      vol->VolCatBytes = 1;           /* indicates tape labeled */
    }
    pm_strcpy(VolumeName, vol->VolCatName);
    bash_spaces(VolumeName);

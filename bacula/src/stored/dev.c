@@ -1783,12 +1783,12 @@ void DEVICE::close()
       int status;
 
       part = num_dvd_parts;
-      Dmsg3(100, "Remove empty part in close call make_dvd_filename. part=%d num=%d vol=%s\n", 
-         part, num_dvd_parts, VolCatInfo.VolCatName);
       make_spooled_dvd_filename(this, archive_name);
       /* Check that the part file is empty */
       status = stat(archive_name.c_str(), &statp);
       if (status == 0 && statp.st_size == 0) {
+         Dmsg3(100, "Unlink empty part in close call make_dvd_filename. part=%d num=%d vol=%s\n", 
+                part, num_dvd_parts, VolCatInfo.VolCatName);
          Dmsg1(100, "unlink(%s)\n", archive_name.c_str());
          unlink(archive_name.c_str());
          set_part_spooled(false);        /* no spooled part left */

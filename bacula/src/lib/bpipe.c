@@ -247,7 +247,7 @@ int close_bpipe(BPIPE *bpipe)
       stop_child_timer(bpipe->timer_id);
    }
    free(bpipe);
-   Dmsg2(200, "returning stat=%d,%d\n", stat & ~(b_errno_exit|b_errno_signal), stat);
+   Dmsg2(800, "returning stat=%d,%d\n", stat & ~(b_errno_exit|b_errno_signal), stat);
    return stat;
 }
 

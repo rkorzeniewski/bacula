@@ -339,7 +339,9 @@ switch_top:
             }
             vp = (void *)va_arg(ap, void *);
 //          Dmsg2(000, "val=%lld at 0x%lx\n", value, (long unsigned)vp);
-            if (l < 2) {
+            if (l == 0) {
+               *((int *)vp) = (int)value;
+            } else if (l == 1) {
                *((uint32_t *)vp) = (uint32_t)value;
 //             Dmsg0(000, "Store 32 bit int\n");
             } else {

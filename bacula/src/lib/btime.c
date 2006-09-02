@@ -4,22 +4,17 @@
  *   Version $Id$
  */
 /*
-   Copyright (C) 2000-2004 Kern Sibbald and John Walker
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU General Public License
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
 
  */
 
@@ -34,8 +29,8 @@
  *     and is 1 Jan 1970 at 0:0 UTC
  *
  *  The major two times that should be left are:
- *     btime_t	(64 bit integer in microseconds base Epoch)
- *     utime_t	(64 bit integer in seconds base Epoch)
+ *     btime_t  (64 bit integer in microseconds base Epoch)
+ *     utime_t  (64 bit integer in seconds base Epoch)
  */
 
 #include "bacula.h"
@@ -111,7 +106,7 @@ utime_t str_to_utime(char *str)
    time_t ttime;
 
    if (sscanf(str, "%d-%d-%d %d:%d:%d", &tm.tm_year, &tm.tm_mon, &tm.tm_mday,
-					&tm.tm_hour, &tm.tm_min, &tm.tm_sec) != 6) {
+                                        &tm.tm_hour, &tm.tm_min, &tm.tm_sec) != 6) {
       return 0;
    }
    if (tm.tm_mon > 0) {
@@ -168,7 +163,7 @@ utime_t btime_to_utime(btime_t bt)
  */
 int tm_wom(int mday, int wday)
 {
-   int fs;			 /* first sunday */
+   int fs;                       /* first sunday */
    fs = (mday%7) - wday;
    if (fs <= 0) {
       fs += 7;
@@ -234,7 +229,7 @@ void get_current_time(struct date_time *dt)
 }
 
 
-/*  date_encode  --  Encode civil date as a Julian day number.	*/
+/*  date_encode  --  Encode civil date as a Julian day number.  */
 
 /* Deprecated. Do not use. */
 fdate_t date_encode(uint32_t year, uint8_t month, uint8_t day)
@@ -252,44 +247,44 @@ fdate_t date_encode(uint32_t year, uint8_t month, uint8_t day)
     y = year;
 
     if (m <= 2) {
-	y--;
-	m += 12;
+        y--;
+        m += 12;
     }
 
     /* Determine whether date is in Julian or Gregorian calendar based on
        canonical date of calendar reform. */
 
     if ((year < 1582) || ((year == 1582) && ((month < 9) || (month == 9 && day < 5)))) {
-	b = 0;
+        b = 0;
     } else {
-	a = ((int) (y / 100));
-	b = 2 - a + (a / 4);
+        a = ((int) (y / 100));
+        b = 2 - a + (a / 4);
     }
 
     return (((int32_t) (365.25 * (y + 4716))) + ((int) (30.6001 * (m + 1))) +
-		day + b - 1524.5);
+                day + b - 1524.5);
 }
 
 /*  time_encode  --  Encode time from hours, minutes, and seconds
-		     into a fraction of a day.	*/
+                     into a fraction of a day.  */
 
 /* Deprecated. Do not use. */
 ftime_t time_encode(uint8_t hour, uint8_t minute, uint8_t second,
-		   float32_t second_fraction)
+                   float32_t second_fraction)
 {
     ASSERT((second_fraction >= 0.0) || (second_fraction < 1.0));
     return (ftime_t) (((second + 60L * (minute + 60L * hour)) / 86400.0)) +
-		     second_fraction;
+                     second_fraction;
 }
 
 /*  date_time_encode  --  Set day number and fraction from date
-			  and time.  */
+                          and time.  */
 
 /* Deprecated. Do not use. */
 void date_time_encode(struct date_time *dt,
-		      uint32_t year, uint8_t month, uint8_t day,
-		      uint8_t hour, uint8_t minute, uint8_t second,
-		      float32_t second_fraction)
+                      uint32_t year, uint8_t month, uint8_t day,
+                      uint8_t hour, uint8_t minute, uint8_t second,
+                      float32_t second_fraction)
 {
     dt->julian_day_number = date_encode(year, month, day);
     dt->julian_day_fraction = time_encode(hour, minute, second, second_fraction);
@@ -299,7 +294,7 @@ void date_time_encode(struct date_time *dt,
 
 /* Deprecated. Do not use. */
 void date_decode(fdate_t date, uint32_t *year, uint8_t *month,
-		 uint8_t *day)
+                 uint8_t *day)
 {
     fdate_t z, f, a, alpha, b, c, d, e;
 
@@ -308,10 +303,10 @@ void date_decode(fdate_t date, uint32_t *year, uint8_t *month,
     f = date - z;
 
     if (z < 2299161.0) {
-	a = z;
+        a = z;
     } else {
-	alpha = floor((z - 1867216.25) / 36524.25);
-	a = z + 1 + alpha - floor(alpha / 4);
+        alpha = floor((z - 1867216.25) / 36524.25);
+        a = z + 1 + alpha - floor(alpha / 4);
     }
 
     b = a + 1524;
@@ -328,7 +323,7 @@ void date_decode(fdate_t date, uint32_t *year, uint8_t *month,
 
 /* Deprecated. Do not use. */
 void time_decode(ftime_t time, uint8_t *hour, uint8_t *minute,
-		 uint8_t *second, float32_t *second_fraction)
+                 uint8_t *second, float32_t *second_fraction)
 {
     uint32_t ij;
 
@@ -337,30 +332,30 @@ void time_decode(ftime_t time, uint8_t *hour, uint8_t *minute,
     *minute = (uint8_t) ((ij / 60L) % 60L);
     *second = (uint8_t) (ij % 60L);
     if (second_fraction != NULL) {
-	*second_fraction = (float32_t)(time - floor(time));
+        *second_fraction = (float32_t)(time - floor(time));
     }
 }
 
 /*  date_time_decode  --  Decode a Julian day and day fraction
-			  into civil date and time.  */
+                          into civil date and time.  */
 
 /* Deprecated. Do not use. */
 void date_time_decode(struct date_time *dt,
-		      uint32_t *year, uint8_t *month, uint8_t *day,
-		      uint8_t *hour, uint8_t *minute, uint8_t *second,
-		      float32_t *second_fraction)
+                      uint32_t *year, uint8_t *month, uint8_t *day,
+                      uint8_t *hour, uint8_t *minute, uint8_t *second,
+                      float32_t *second_fraction)
 {
     date_decode(dt->julian_day_number, year, month, day);
     time_decode(dt->julian_day_fraction, hour, minute, second, second_fraction);
 }
 
 /*  tm_encode  --  Encode a civil date and time from a tm structure
- *		   to a Julian day and day fraction.
+ *                 to a Julian day and day fraction.
  */
 
 /* Deprecated. Do not use. */
 void tm_encode(struct date_time *dt,
-		      struct tm *tm)
+                      struct tm *tm)
 {
     uint32_t year;
     uint8_t month, day, hour, minute, second;
@@ -377,11 +372,11 @@ void tm_encode(struct date_time *dt,
 
 
 /*  tm_decode  --  Decode a Julian day and day fraction
-		   into civil date and time in tm structure */
+                   into civil date and time in tm structure */
 
 /* Deprecated. Do not use. */
 void tm_decode(struct date_time *dt,
-		      struct tm *tm)
+                      struct tm *tm)
 {
     uint32_t year;
     uint8_t month, day, hour, minute, second;
@@ -398,21 +393,21 @@ void tm_decode(struct date_time *dt,
 
 
 /*  date_time_compare  --  Compare two dates and times and return
-			   the relationship as follows:
+                           the relationship as follows:
 
-				    -1	  dt1 < dt2
-				     0	  dt1 = dt2
-				     1	  dt1 > dt2
+                                    -1    dt1 < dt2
+                                     0    dt1 = dt2
+                                     1    dt1 > dt2
 */
 
 /* Deprecated. Do not use. */
 int date_time_compare(struct date_time *dt1, struct date_time *dt2)
 {
     if (dt1->julian_day_number == dt2->julian_day_number) {
-	if (dt1->julian_day_fraction == dt2->julian_day_fraction) {
-	    return 0;
-	}
-	return (dt1->julian_day_fraction < dt2->julian_day_fraction) ? -1 : 1;
+        if (dt1->julian_day_fraction == dt2->julian_day_fraction) {
+            return 0;
+        }
+        return (dt1->julian_day_fraction < dt2->julian_day_fraction) ? -1 : 1;
     }
     return (dt1->julian_day_number - dt2->julian_day_number) ? -1 : 1;
 }

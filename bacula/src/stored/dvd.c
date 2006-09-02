@@ -138,7 +138,7 @@ static bool do_mount_dvd(DEVICE* dev, int mount, int dotimeout)
    Dmsg1(20, "Run mount prog=%s\n", ocmd.c_str());
    while ((status = run_program_full_output(ocmd.c_str(), 
                        dev->max_open_wait/2, results)) != 0) {
-      Dmsg2(99, "Mount status=%d result=%s\n", status, results);
+      Dmsg2(20, "Mount status=%d result=%s\n", status, results);
       /* Doesn't work with internationalization (This is not a problem) */
       if (mount && fnmatch("*is already mounted on*", results, 0) == 0) {
          break;
@@ -261,6 +261,10 @@ bool update_free_space_dev(DEVICE* dev)
    char ed1[50];
    bool ok = false;
    int status;
+
+   if (!dev->is_dvd() || dev->is_freespace_ok()) {
+      return true;
+   }
    
    /* The device must be mounted in order to dvd-freespace to work */
    mount_dvd(dev, 1);
@@ -271,7 +275,7 @@ bool update_free_space_dev(DEVICE* dev)
    if (!icmd) {
       dev->free_space = 0;
       dev->free_space_errno = 0;
-      dev->clear_freespace_ok();   /* No valid freespace */
+      dev->clear_freespace_ok();              /* No valid freespace */
       dev->clear_media();
       Dmsg2(29, "ERROR: update_free_space_dev: free_space=%s, free_space_errno=%d (!icmd)\n", 
             edit_uint64(dev->free_space, ed1), dev->free_space_errno);
@@ -292,6 +296,7 @@ bool update_free_space_dev(DEVICE* dev)
       berrno be;
       Dmsg1(20, "Run freespace prog=%s\n", ocmd.c_str());
       status = run_program_full_output(ocmd.c_str(), dev->max_open_wait/2, results);
+      Dmsg2(20, "Freespace status=%d result=%s\n", status, results);
       if (status == 0) {
          free = str_to_int64(results);
          Dmsg1(400, "Free space program run: Freespace=%s\n", results);
@@ -352,6 +357,8 @@ bool dvd_write_part(DCR *dcr)
    DEVICE *dev = dcr->dev;
    POOL_MEM archive_name(PM_FNAME);
    
+   dev->clear_freespace_ok();             /* need to update freespace */
+
    /* Don't write empty part files.
     * This is only useful when growisofs does not support write beyond
     * the 4GB boundary.
@@ -409,14 +416,17 @@ bool dvd_write_part(DCR *dcr)
     * in case of a serious emergency.
     */
 
-   if (dev->part == 1)
+   if (dev->part == 1) {
       timeout = 16000;
-   else
+   } else {
       timeout = dev->max_open_wait + (dev->part_size/(1350*1024/4));
+   }
 
-   Dmsg2(20, "dvd_write_part: cmd=%s timeout=%d\n", ocmd.c_str(), timeout);
+   Dmsg2(20, "Write part: cmd=%s timeout=%d\n", ocmd.c_str(), timeout);
    status = run_program_full_output(ocmd.c_str(), timeout, results.c_str());
+   Dmsg2(20, "Write part status=%d result=%s\n", status, results.c_str());
 
+   dev->truncated_dvd = false;
    if (status != 0) {
       Jmsg2(dcr->jcr, M_FATAL, 0, _("Error writing part %d to the DVD: ERR=%s\n"),
          dev->part, results.c_str());
@@ -426,19 +436,15 @@ bool dvd_write_part(DCR *dcr)
       dev->dev_errno = EIO;
       mark_volume_in_error(dcr);
       sm_check(__FILE__, __LINE__, false);
-      dev->truncated_dvd = false;
       return false;
    }
    Jmsg(dcr->jcr, M_INFO, 0, _("Part %d written to DVD.\n"), dev->part);
    Dmsg2(400, "dvd_write_part: Part %d written to DVD\nResults: %s\n",
             dev->part, results.c_str());
     
-   if (dev->truncated_dvd) {
-      dev->truncated_dvd = false;      /* turn off flag */
-   } else {                            /* DVD part written */
-      dev->num_dvd_parts++;            /* there is now one more part on DVD */
-      dev->VolCatInfo.VolCatParts = dev->num_dvd_parts;
-   }
+   dev->num_dvd_parts++;            /* there is now one more part on DVD */
+   dev->VolCatInfo.VolCatParts = dev->num_dvd_parts;
+   Dmsg1(000, "Update num_parts=%d\n", dev->num_dvd_parts);
 
    /* Delete spool file */
    make_spooled_dvd_filename(dev, archive_name);
@@ -507,6 +513,7 @@ int dvd_open_next_part(DCR *dcr)
    dev->part++;
    Dmsg2(29, "Inc part=%d num_dvd_parts=%d\n", dev->part, dev->num_dvd_parts);
 
+   /* Are we working on a part past what is written in the DVD? */
    if (dev->num_dvd_parts < dev->part) {
       POOL_MEM archive_name(PM_FNAME);
       struct stat buf;
@@ -514,7 +521,7 @@ int dvd_open_next_part(DCR *dcr)
        * First check what is on DVD.  If our part is there, we
        *   are in trouble, so bail out.
        * NB: This is however not a problem if we are writing the first part.
-       * It simply means that we are overriding an existing volume...
+       * It simply means that we are over writing an existing volume...
        */
       if (dev->num_dvd_parts > 0) {
          make_mounted_dvd_filename(dev, archive_name);   /* makes dvd name */
@@ -527,13 +534,14 @@ int dvd_open_next_part(DCR *dcr)
          }
       }
 
+#ifdef neeeded
       Dmsg2(400, "num_dvd_parts=%d part=%d\n", dev->num_dvd_parts, dev->part);
       make_spooled_dvd_filename(dev, archive_name);   /* makes spool name */
       
       /* Check if the next part exists in spool directory . */
-      Dmsg1(100, "Check if part on spool: $s\n", archive_name.c_str());
+      Dmsg1(100, "Check if part on spool: %s\n", archive_name.c_str());
       if ((stat(archive_name.c_str(), &buf) == 0) || (errno != ENOENT)) {
-         Dmsg1(29, "open_next_part %s is in the way, deleting it...\n", archive_name.c_str());
+         Dmsg1(29, "======= Part %s is in the way, deleting it...\n", archive_name.c_str());
          /* Then try to unlink it */
          if (unlink(archive_name.c_str()) < 0) {
             berrno be;
@@ -543,6 +551,7 @@ int dvd_open_next_part(DCR *dcr)
             return -1;
          }
       }
+#endif
    }
 
    Dmsg2(400, "Call dev->open(vol=%s, mode=%d)\n", dcr->VolCatInfo.VolCatName, 
@@ -740,7 +749,8 @@ bool dvd_close_job(DCR *dcr)
    JCR *jcr = dcr->jcr;
    bool ok = true;
 
-   /* If the device is a dvd and WritePartAfterJob
+   /*
+    * If the device is a dvd and WritePartAfterJob
     * is set to yes, open the next part, so, in case of a device
     * that requires mount, it will be written to the device.
     */
@@ -853,7 +863,7 @@ bool check_can_write_on_non_blank_dvd(DCR *dcr)
    struct dirent *entry, *result;
    int name_max;
    int count = 0;
-   bool matched = false;
+   bool matched = true;
    struct stat filestat;
       
    name_max = pathconf(".", _PC_NAME_MAX);
