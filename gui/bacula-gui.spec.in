@@ -342,24 +342,49 @@ rm -rf docs
 /etc/bweb/config
 
 %post bimagemgr
-
+%if %{suse}
 # add the web server user to group bacula
 %{groupmod} -A %{dataowner} bacula
+%else
+echo
+echo You must add user %{dataowner} to group bacula.
+echo
+%endif
 
 %postun bimagemgr
+%if %{suse}
 # remove the web server user to group bacula
 %{groupmod} -R %{dataowner} bacula
+%else
+echo
+echo You should remove user %{dataowner} from group bacula.
+echo
+%endif
 
 %post brestore
-
+%if %{suse}
 # add the web server user to group bacula
 %{groupmod} -A %{dataowner} bacula
+%else
+echo
+echo You must add user %{dataowner} to group bacula.
+echo
+%endif
 
 %postun brestore
+%if %{suse}
 # remove the web server user to group bacula
 %{groupmod} -R %{dataowner} bacula
+%else
+echo
+echo You should remove user %{dataowner} from group bacula.
+echo
+%endif
 
 %changelog
+* Sun Sep 03 2006 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- seems that groupmod -A or -R is only available on SuSE
+- add warning for other platforms
 * Sat Aug 26 2006 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - add brestore menu entry and post script
 - add /etc/bweb/bweb-postgresql.sql
