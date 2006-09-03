@@ -44,7 +44,7 @@ exit 1
 %endif
 
 %define groupmod /usr/sbin/groupmod
-$define groupfile /etc/group
+%define groupfile /etc/group
 
 Summary: Bacula - The Network Backup Solution
 Name: bacula-gui
