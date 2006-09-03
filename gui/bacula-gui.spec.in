@@ -347,7 +347,7 @@ rm -rf docs
 %{groupmod} -A %{dataowner} bacula
 %else
 echo
-echo You must add user %{dataowner} to group bacula.
+echo "You must add user %{dataowner} to group bacula."
 echo
 %endif
 
@@ -357,7 +357,7 @@ echo
 %{groupmod} -R %{dataowner} bacula
 %else
 echo
-echo You should remove user %{dataowner} from group bacula.
+echo "You should remove user %{dataowner} from group bacula."
 echo
 %endif
 
@@ -367,7 +367,7 @@ echo
 %{groupmod} -A %{dataowner} bacula
 %else
 echo
-echo You must add user %{dataowner} to group bacula.
+echo "You must add user %{dataowner} to group bacula."
 echo
 %endif
 
@@ -377,7 +377,7 @@ echo
 %{groupmod} -R %{dataowner} bacula
 %else
 echo
-echo You should remove user %{dataowner} from group bacula.
+echo "You should remove user %{dataowner} from group bacula."
 echo
 %endif
 
