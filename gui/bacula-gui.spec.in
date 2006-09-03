@@ -44,6 +44,7 @@ exit 1
 %endif
 
 %define groupmod /usr/sbin/groupmod
+$define groupfile /etc/group
 
 Summary: Bacula - The Network Backup Solution
 Name: bacula-gui
@@ -346,9 +347,9 @@ rm -rf docs
 # add the web server user to group bacula
 %{groupmod} -A %{dataowner} bacula
 %else
-echo
-echo "You must add user %{dataowner} to group bacula."
-echo
+# do it the hard way
+cp -p %{groupfile} %{groupfile}.old
+awk '{if (/bacula:/) print $0",%{dataowner}"; else print $0}' %{groupfile}.old > %{groupfile}
 %endif
 
 %postun bimagemgr
@@ -366,9 +367,9 @@ echo
 # add the web server user to group bacula
 %{groupmod} -A %{dataowner} bacula
 %else
-echo
-echo "You must add user %{dataowner} to group bacula."
-echo
+# do it the hard way
+cp -p %{groupfile} %{groupfile}.old
+awk '{if (/bacula:/) print $0",%{dataowner}"; else print $0}' %{groupfile}.old > %{groupfile}
 %endif
 
 %postun brestore
@@ -384,7 +385,7 @@ echo
 %changelog
 * Sun Sep 03 2006 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - seems that groupmod -A or -R is only available on SuSE
-- add warning for other platforms
+- use awk or add warning for other platforms
 * Sat Aug 26 2006 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - add brestore menu entry and post script
 - add /etc/bweb/bweb-postgresql.sql
