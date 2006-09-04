@@ -38,6 +38,9 @@ Bweb works well with 1.39 release.
 
  # done !
 
+ WARNING : Your www-data user must be able to execute bconsole and able to read bconsole.conf !
+           You can create an bconsole group for that.
+
 ################ INSTALL PERL LIBRARY ##########################
 
  - perl modules
