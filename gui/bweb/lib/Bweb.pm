@@ -2904,8 +2904,8 @@ sub label_barcodes
 		       drive => $arg->{drive},
 		       pool  => 'Scratch',
 		       slots => $slots) ;
-    print "</pre>";
     $b->close();
+    print "</pre>";
 }
 
 sub purge
