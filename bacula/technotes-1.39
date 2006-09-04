@@ -1,6 +1,8 @@
               Technical notes on version 1.39  
 
 General:
+04Sep06
+kes  Implement Enabled on update slots.
 02Sep06
 kes  When doing a label, pass the VolBytes back to the Director,
      which puts it in the catalog.
