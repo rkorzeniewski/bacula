@@ -170,6 +170,7 @@ int get_cmd(UAContext *ua, const char *prompt);
 bool get_pint(UAContext *ua, const char *prompt);
 bool get_yesno(UAContext *ua, const char *prompt);
 bool is_yesno(char *val, int *ret);
+int get_enabled(UAContext *ua, const char *val);
 void parse_ua_args(UAContext *ua);
 
 /* ua_label.c */

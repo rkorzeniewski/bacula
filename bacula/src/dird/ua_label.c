@@ -156,6 +156,9 @@ void update_slots(UAContext *ua)
    bool scan;
    int max_slots;
    int drive;
+   int Enabled = 1;
+   bool have_enabled;
+   int i;
 
 
    if (!open_db(ua)) {
@@ -169,6 +172,15 @@ void update_slots(UAContext *ua)
    drive = get_storage_drive(ua, store);
 
    scan = find_arg(ua, NT_("scan")) >= 0;
+   if ((i=find_arg_with_value(ua, NT_("Enabled"))) >= 0) {
+      Enabled = get_enabled(ua, ua->argv[i]);
+      if (Enabled < 0) {
+         return;
+      }
+      have_enabled = true;
+   } else {
+      have_enabled = false;
+   }
 
    max_slots = get_num_slots_from_SD(ua);
    Dmsg1(100, "max_slots=%d\n", max_slots);
@@ -235,6 +247,9 @@ void update_slots(UAContext *ua)
             mr.Slot = vl->Slot;
             mr.InChanger = 1;
             mr.StorageId = store->StorageId;
+            if (have_enabled) {
+               mr.Enabled = Enabled;
+            }
             if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
                bsendmsg(ua, "%s", db_strerror(ua->db));
             } else {

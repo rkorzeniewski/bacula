@@ -364,17 +364,8 @@ static void update_all_vols_from_pool(UAContext *ua)
 
 static void update_volenabled(UAContext *ua, char *val, MEDIA_DBR *mr)
 {
-   if (strcasecmp(val, "yes") == 0 || strcasecmp(val, "true") == 0) {
-      mr->Enabled = 1;
-   } else if (strcasecmp(val, "no") == 0 || strcasecmp(val, "false") == 0) {
-      mr->Enabled = 0;
-   } else if (strcasecmp(val, "archived") == 0) { 
-      mr->Enabled = 2;
-   } else {
-      mr->Enabled = atoi(val);
-   }
-   if (mr->Enabled < 0 || mr->Enabled > 2) {
-      bsendmsg(ua, _("Invalid Enabled, it must be 0, 1, or 2\n"));
+   mr->Enabled = get_enabled(ua, val);
+   if (mr->Enabled < 0) {
       return;
    }
    if (!db_update_media_record(ua->jcr, ua->db, mr)) {

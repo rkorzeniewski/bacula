@@ -149,6 +149,31 @@ bool get_yesno(UAContext *ua, const char *prompt)
    }
 }
 
+/* 
+ *  Gets an Enabled value => 0, 1, 2, yes, no, archived
+ *  Returns: 0, 1, 2 if OK
+ *           -1 on error
+ */
+int get_enabled(UAContext *ua, const char *val) 
+{
+   int Enabled = -1;
+
+   if (strcasecmp(val, "yes") == 0 || strcasecmp(val, "true") == 0) {
+     Enabled = 1;
+   } else if (strcasecmp(val, "no") == 0 || strcasecmp(val, "false") == 0) {
+      Enabled = 0;
+   } else if (strcasecmp(val, "archived") == 0) { 
+      Enabled = 2;
+   } else {
+      Enabled = atoi(val);
+   }
+   if (Enabled < 0 || Enabled > 2) {
+      bsendmsg(ua, _("Invalid Enabled value, it must be yes, no, archived, 0, 1, or 2\n"));
+      return -1;     
+   }
+   return Enabled;
+}
+
 void parse_ua_args(UAContext *ua)
 {
    parse_args(ua->cmd, &ua->args, &ua->argc, ua->argk, ua->argv, MAX_CMD_ARGS);

@@ -62,13 +62,6 @@ For 1.39:
 - Print warning message if LANG environment variable does not specify
   UTF-8.
 - New dot commands from Arno.
-  .update volume [enabled|disabled|*see below]
-    > However, I could easily imagine an option to "update slots" that says 
-    > "enable=yes|no" that would automatically enable or disable all the Volumes 
-    > found in the autochanger.  This will permit the user to optionally mark all 
-    > the Volumes in the magazine disabled prior to taking them offsite, and mark 
-    > them all enabled when bringing them back on site.   Coupled with the options 
-    > to the slots keyword, you can apply the enable/disable to any or all volumes.
   .show device=xxx lists information from one storage device, including 
      devices (I'm not even sure that information exists in the DIR...)
   .move eject device=xxx mostly the same as 'unmount xxx' but perhaps with 
@@ -1658,4 +1651,11 @@ Block Position: 0
   daemon it was trying to connect to.
 - Freespace on DVD requested over and over even with no intervening
   writes.
+- .update volume [enabled|disabled|*see below]
+    > However, I could easily imagine an option to "update slots" that says 
+    > "enable=yes|no" that would automatically enable or disable all the Volumes 
+    > found in the autochanger.  This will permit the user to optionally mark all 
+    > the Volumes in the magazine disabled prior to taking them offsite, and mark 
+    > them all enabled when bringing them back on site.   Coupled with the options 
+    > to the slots keyword, you can apply the enable/disable to any or all volumes.
 
