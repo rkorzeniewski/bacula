@@ -94,6 +94,17 @@ sub expect_it
     return 1;
 }
 
+sub log_stdout
+{
+    my ($self, $how) = @_;
+
+    if ($self->{bconsole}) {
+	$self->{bconsole}->log_stdout($how);
+    }
+    
+    $self->{log_stdout} = $how;
+}
+
 sub connect
 {
     my ($self) = @_;
