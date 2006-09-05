@@ -560,7 +560,7 @@ void create_volume_label(DEVICE *dev, const char *VolName,
 
    bstrncpy(dev->VolHdr.Id, BaculaId, sizeof(dev->VolHdr.Id));
    dev->VolHdr.VerNum = BaculaTapeVersion;
-   if (dvdnow) {
+   if (dev->is_dvd() && dvdnow) {
       /* We do not want to re-label a DVD so write VOL_LABEL now */
       dev->VolHdr.LabelType = VOL_LABEL;
    } else {
