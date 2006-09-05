@@ -1,13 +1,13 @@
 <br/>
  <div class='titlediv'>
   <h1 class='newstitle'> 
-Autochanger : <TMPL_VAR NAME=Name> (<TMPL_VAR NAME=nb_drive> Drives
-<TMPL_IF NAME=nb_io><TMPL_VAR NAME=nb_io> IMPORT/EXPORT</TMPL_IF>)</h1>
+Autochanger : <TMPL_VAR Name> (<TMPL_VAR nb_drive> Drives
+<TMPL_IF nb_io><TMPL_VAR nb_io> IMPORT/EXPORT</TMPL_IF>)</h1>
  </div>
  <div class='bodydiv'>
    <form action='?' method='get'>
-    <input type='hidden' name='ach' value='<TMPL_VAR NAME=name>'>
-    <TMPL_IF NAME="Update">
+    <input type='hidden' name='ach' value='<TMPL_VAR name>'>
+    <TMPL_IF "Update">
     <font color='red'> You must run update slot, Autochanger status is different from bacula slots </font>
     <br/>
     </TMPL_IF>
@@ -22,7 +22,7 @@ Autochanger : <TMPL_VAR NAME=Name> (<TMPL_VAR NAME=nb_drive> Drives
 <input type="image" name='action' value='label_barcodes'
         title='run label barcodes' src='/bweb/label.png'>Label
 </label>
-<TMPL_IF NAME=nb_io>
+<TMPL_IF nb_io>
 <label>
 <input type="image" name='action' value='eject'
         title='put selected media on i/o' src='/bweb/extern.png'>
@@ -73,22 +73,22 @@ var header = new Array("Real Slot", "Slot", "Volume Name","Vol Bytes","Vol Statu
 var data = new Array();
 var chkbox;
 
-<TMPL_LOOP NAME=Slots>
+<TMPL_LOOP Slots>
 chkbox = document.createElement('INPUT');
 chkbox.type  = 'checkbox';
 chkbox.name = 'slot';
-chkbox.value = '<TMPL_VAR NAME=realslot>';
+chkbox.value = '<TMPL_VAR realslot>';
 
 data.push( new Array(
-"<TMPL_VAR NAME=realslot>",
-"<TMPL_VAR NAME=slot>",
-"<TMPL_VAR NAME=volumename>",
-"<TMPL_VAR NAME=volbytes>",
-"<TMPL_VAR NAME=volstatus>",
-"<TMPL_VAR NAME=mediatype>",
-"<TMPL_VAR NAME=name>",
-"<TMPL_VAR NAME=lastwritten>",
-"<TMPL_VAR NAME=expire>",
+"<TMPL_VAR realslot>",
+"<TMPL_VAR slot>",
+"<TMPL_VAR volumename>",
+human_size(<TMPL_VAR volbytes>),
+"<TMPL_VAR volstatus>",
+"<TMPL_VAR mediatype>",
+"<TMPL_VAR name>",
+"<TMPL_VAR lastwritten>",
+"<TMPL_VAR expire>",
 chkbox
  )
 );
@@ -121,16 +121,16 @@ var header = new Array("Index", "Drive Name", "Volume Name", "Select");
 var data = new Array();
 var chkbox;
 
-<TMPL_LOOP NAME=Drives>
+<TMPL_LOOP Drives>
 chkbox = document.createElement('INPUT');
 chkbox.type  = 'checkbox';
 chkbox.name = 'drive';
-chkbox.value = '<TMPL_VAR NAME=index>';
+chkbox.value = '<TMPL_VAR index>';
 
 data.push( new Array(
-"<TMPL_VAR NAME=index>",
-"<TMPL_VAR NAME=name>",
-"<TMPL_VAR NAME=load>",
+"<TMPL_VAR index>",
+"<TMPL_VAR name>",
+"<TMPL_VAR load>",
 chkbox
  )
 );

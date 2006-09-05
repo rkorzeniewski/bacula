@@ -30,7 +30,7 @@ var data = new Array();
 data.push( 
   new Array( "<TMPL_VAR NAME=clientname>", 
 	     "<TMPL_VAR NAME=nb_jobs>",
-	     "<TMPL_VAR NAME=nb_bytes>",
+	     human_size(<TMPL_VAR NAME=nb_bytes>),
 	     "<TMPL_VAR NAME=nb_files>",
 	     "<TMPL_VAR NAME=nb_err>"
              )

@@ -1,19 +1,19 @@
 <br/>
  <div class='titlediv'>
-  <h1 class='newstitle'> Last jobs for <TMPL_VAR NAME=clientname> (<TMPL_VAR NAME=Filter>)
+  <h1 class='newstitle'> Last jobs for <TMPL_VAR clientname> (<TMPL_VAR Filter>)
   </h1>
  </div>
  <div class='bodydiv'>
 
-   <table id='id<TMPL_VAR NAME=ID>'></table>
+   <table id='id<TMPL_VAR ID>'></table>
 
-<a href="bgraph.pl?client=<TMPL_VAR NAME=clientname>;action=job_size;status=T">
+<a href="bgraph.pl?client=<TMPL_VAR clientname>;action=job_size;status=T">
     <img src="/bweb/chart.png" alt="backup size" title="backup size evolution"/>
     </a>
-<a href="bgraph.pl?client=<TMPL_VAR NAME=clientname>;action=job_duration;status=T">
+<a href="bgraph.pl?client=<TMPL_VAR clientname>;action=job_duration;status=T">
     <img src="/bweb/chart.png" alt="backup duration" title="backup time evolution"/>
     </a>
-<a href="bgraph.pl?client=<TMPL_VAR NAME=clientname>;action=job_rate;status=T">
+<a href="bgraph.pl?client=<TMPL_VAR clientname>;action=job_rate;status=T">
     <img src="/bweb/chart.png" alt="backup rate" title="backup rate evolution"/>
     </a>				
  </div>
@@ -25,23 +25,23 @@ var header = new Array("JobId", "Job Name", "File Set", "Level", "Start Time",
 
 var data = new Array();
 
-<TMPL_LOOP NAME=Jobs>
+<TMPL_LOOP Jobs>
 data.push( new Array(
-"<TMPL_VAR NAME=JobId>",
-"<TMPL_VAR NAME=JobName>",    
-"<TMPL_VAR NAME=FileSet>",    
-"<TMPL_VAR NAME=Level>",      
-"<TMPL_VAR NAME=StartTime>",
-"<TMPL_VAR NAME=JobFiles>",   
-"<TMPL_VAR NAME=JobBytes>",   
-"<TMPL_VAR NAME=JobErrors>"   
+"<TMPL_VAR JobId>",
+"<TMPL_VAR JobName>",    
+"<TMPL_VAR FileSet>",
+"<TMPL_VAR Level>",
+"<TMPL_VAR StartTime>",
+"<TMPL_VAR JobFiles>",   
+human_size(<TMPL_VAR JobBytes>),
+"<TMPL_VAR JobErrors>"   
  )
 );
 </TMPL_LOOP>
 
 nrsTable.setup(
 {
- table_name:     "id<TMPL_VAR NAME=ID>",
+ table_name:     "id<TMPL_VAR ID>",
  table_header: header,
  table_data: data,
  up_icon: up_icon,
@@ -61,5 +61,5 @@ nrsTable.setup(
 );
 
 // get newest job first
-nrsTables['id<TMPL_VAR NAME=ID>'].fieldSort(0);
+nrsTables['id<TMPL_VAR ID>'].fieldSort(0);
 </script>

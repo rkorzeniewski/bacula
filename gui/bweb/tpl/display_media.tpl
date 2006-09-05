@@ -57,7 +57,7 @@ chkbox.value = '<TMPL_VAR volumename>';
 data.push( new Array(
 "<TMPL_VAR volumename>",
 img,
-"<TMPL_VAR volbytes>",
+human_size(<TMPL_VAR volbytes>),
 d,
 "<TMPL_VAR volstatus>",
 "<TMPL_VAR poolname>",

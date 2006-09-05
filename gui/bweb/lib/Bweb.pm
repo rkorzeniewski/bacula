@@ -952,8 +952,7 @@ WHERE Media.VolumeName IN ($media_list)
 		}
 		
 		$all->{$vol}->{realslot} = $slot;
-		$all->{$vol}->{volbytes} = Bweb::human_size($all->{$vol}->{volbytes}) ;
-		
+
 		push @{ $param }, $all->{$vol};
 
 	    } else {		# empty or no label
@@ -1238,11 +1237,6 @@ $where
 ";
 
     my $all = $self->dbh_selectall_hashref($query, 'name') ;
-
-    foreach (values %$all) {
-	$_->{fileretention} = human_sec($_->{fileretention});
-	$_->{jobretention} = human_sec($_->{jobretention});
-    }
 
     my $dsp = { ID => $cur_id++,
 		clients => [ values %$all] };
@@ -1532,10 +1526,6 @@ SELECT DISTINCT Job.JobId       AS jobid,
 ";
 
     my $all = $self->dbh_selectall_hashref($query, 'jobid') ;
-
-    foreach (values %$all) {
-	$_->{jobbytes} = human_size($_->{jobbytes}) ;
-    }
 
     $self->display({ clientname => $arg{clientname},
 		     Filter => $label,
@@ -1846,25 +1836,6 @@ sub get_param
 
     get last backup
 
-SELECT DISTINCT Job.JobId       AS jobid,
-                Client.Name     AS client,
-                FileSet.FileSet AS fileset,
-		Job.Name        AS jobname,
-                Level           AS level,
-                StartTime       AS starttime,
-                JobFiles        AS jobfiles, 
-                JobBytes        AS jobbytes,
-                VolumeName      AS volumename,
-		JobStatus       AS jobstatus,
-                JobErrors	AS joberrors
-
- FROM Client,Job,JobMedia,Media,FileSet
- WHERE Client.ClientId=Job.ClientId
-   AND Job.FileSetId=FileSet.FileSetId
-   AND JobMedia.JobId=Job.JobId 
-   AND JobMedia.MediaId=Media.MediaId
- $limit
-
 =cut 
 
 sub display_job
@@ -1909,10 +1880,6 @@ SELECT  Job.JobId       AS jobid,
 
     my $all = $self->dbh_selectall_hashref($query, 'jobid') ;
 
-    foreach (values %$all) {
-	$_->{jobbytes} = human_size($_->{jobbytes}) ;
-    }
-
     $self->display({ Filter => $label,
 	             ID => $cur_id++,
 		     Jobs => 
@@ -1953,8 +1920,6 @@ SELECT DISTINCT Job.JobId       AS jobid,
 ";
 
     my $row = $self->dbh_selectrow_hashref($query) ;
-
-    $row->{jobbytes} = human_size($row->{jobbytes}) ;
 
     # display all volumes associate with this job
     $query="
@@ -2016,9 +1981,6 @@ $where
 ";
 
     my $all = $self->dbh_selectall_hashref($query, 'volumename') ;
-    foreach (values %$all) {
-	$_->{volbytes} = human_size($_->{volbytes}) ;
-    }
 
     $self->display({ ID => $cur_id++,
 		     Pool => $elt{pool},
@@ -2081,11 +2043,6 @@ SELECT InChanger     AS online,
     my $all = $self->dbh_selectall_hashref($query, 'volumename') ;
 
     foreach my $media (values %$all) {
-	$media->{nb_bytes} = human_size($media->{nb_bytes}) ;
-	$media->{voluseduration} = human_sec($media->{voluseduration});
-	$media->{volretention} = human_sec($media->{volretention});
-	$media->{volreadtime}  = human_sec($media->{volreadtime});
-	$media->{volwritetime}  = human_sec($media->{volwritetime});
 	my $mq = $self->dbh_quote($media->{volumename});
 
 	$query = "
@@ -2104,10 +2061,6 @@ SELECT DISTINCT Job.JobId AS jobid,
 ";
 
 	my $jobs = $self->dbh_selectall_hashref($query, 'jobid') ;
-
-	foreach (values %$jobs) {
-	    $_->{bytes} = human_size($_->{bytes}) ;
-	}
 
 	$query = "
 SELECT LocationLog.Date    AS date,
@@ -2384,8 +2337,7 @@ WHERE Media.VolumeName = $media->{qmedia}
     $self->display({
 	%$elt,
         %$row,
-    },
-		   "update_media.tpl");
+    }, "update_media.tpl");
 }
 
 sub save_location
@@ -2483,7 +2435,6 @@ GROUP BY Client.Name
 
     $row->{ID} = $cur_id++;
     $row->{label} = $label;
-    $row->{nb_bytes}    = human_size($row->{nb_bytes}) ;
 
     $self->display($row, "display_client_stats.tpl");
 }
@@ -2530,10 +2481,6 @@ GROUP BY subq.PoolId
     my $all = $self->dbh_selectall_hashref($query, 'name') ;
 
     foreach my $p (values %$all) {
-	$p->{maxvolbytes}    = human_size($p->{maxvolbytes}) ;
-	$p->{volretention}   = human_sec($p->{volretention}) ;
-	$p->{voluseduration} = human_sec($p->{voluseduration}) ;
-
 	if ($p->{volmax}) {
 	    $p->{poolusage} = sprintf('%.2f', $p->{voltotal} * 100/ $p->{volmax}) ;
 	} else {
@@ -2826,8 +2773,10 @@ sub update_slots
 	return $self->error("Bad autochanger name");
     }
 
-    my $b = $self->get_bconsole();
-    print "<pre>" . $b->update_slots($ach) . "</pre>";
+    print "<pre>";
+    my $b = new Bconsole(pref => $self->{info},timeout => 60,log_stdout => 1);
+    $b->update_slots($ach);
+    print "</pre>\n" 
 }
 
 sub get_job_log

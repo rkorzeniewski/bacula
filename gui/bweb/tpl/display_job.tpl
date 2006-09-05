@@ -47,7 +47,7 @@ data.push( new Array(
 "<TMPL_VAR StartTime>",
 "<TMPL_VAR Duration>",
 "<TMPL_VAR JobFiles>",   
-"<TMPL_VAR JobBytes>",
+human_size(<TMPL_VAR JobBytes>),
 "<TMPL_VAR joberrors">",   
 a
  )

@@ -82,7 +82,7 @@ data.push( new Array(
 "<TMPL_VAR StartTime>",
 "<TMPL_VAR duration>",
 "<TMPL_VAR JobFiles>",   
-"<TMPL_VAR JobBytes>",
+human_size(<TMPL_VAR JobBytes>),
 "<TMPL_VAR poolname>",
 "<TMPL_LOOP volumes><TMPL_VAR VolumeName>\n</TMPL_LOOP>",   
 img

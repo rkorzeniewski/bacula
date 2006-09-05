@@ -54,10 +54,10 @@ data.push( new Array(
 img,
 "<TMPL_VAR location>",
 "<TMPL_VAR volstatus>",
-"<TMPL_VAR nb_bytes>",
+human_size(<TMPL_VAR nb_bytes>),
 "<TMPL_VAR expire>",
-"<TMPL_VAR volretention>",
-"<TMPL_VAR voluseduration>",
+human_sec(<TMPL_VAR volretention>),
+human_sec(<TMPL_VAR voluseduration>),
 "<TMPL_VAR maxvoljobs>"
  )
 );
@@ -84,8 +84,8 @@ var header = new Array( "Vol Mounts", "Read time", "Write time", "Errors");
 var data = new Array();
 data.push( new Array(
 "<TMPL_VAR nb_mounts>",
-"<TMPL_VAR volreadtime>",
-"<TMPL_VAR volwritetime>",
+human_sec(<TMPL_VAR volreadtime>),
+human_sec(<TMPL_VAR volwritetime>),
 "<TMPL_VAR nb_errors>"
  )
 );
@@ -132,7 +132,7 @@ data.push( new Array(
 "<TMPL_VAR type>",
 "<TMPL_VAR level>",
 "<TMPL_VAR files>",
-"<TMPL_VAR bytes>",
+human_size(<TMPL_VAR bytes>),
 a
  )
 );

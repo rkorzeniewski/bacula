@@ -70,6 +70,52 @@ function bweb_add_refresh(){
 	window.setInterval("bweb_refresh()",refresh_time);
 }
 
+function human_size(val)
+{   
+   if (!val) {
+      val = 0;
+   }
+   var unit = ['b', 'Kb', 'Mb', 'Gb', 'Tb'];
+   var i=0;
+   var format;
+   while (val /1024 > 1) {
+      i++;
+      val /= 1024;
+   }
+
+   var format = (i>0)?1:0;
+   return val.toFixed(format) + ' ' + unit[i];
+}
+
+function human_sec(val)
+{
+   if (!val) {
+      val = 0;
+   }
+   val /= 60;			// sec -> min
+   
+   if ((val / 60) <= 1) {
+      return val.toFixed(0) + ' mins';
+   }
+
+   val /= 60;			// min -> hour
+
+   if ((val / 24) <= 1) { 
+      return val.toFixed(0) + ' hours';
+   }
+
+   val /= 24;                   // hour -> day
+
+   if ((val / 365) < 2) { 
+      return val.toFixed(0) + ' days';
+   }
+
+   val /= 365;
+
+   return val.toFixed(0) + ' years';
+}
+
+
 //
 // percent_display("row2", [ { nb: 1, name: "Full"   },
 //			   { nb: 2, name: "Error"  },

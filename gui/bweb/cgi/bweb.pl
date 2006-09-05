@@ -31,7 +31,6 @@ use Bweb;
 use CGI;
 
 my $client_re = qr/^([\w\d\.-]+)$/;
-my $pool_re   = $client_re; 
 
 my $action = CGI::param('action') || 'begin';
 

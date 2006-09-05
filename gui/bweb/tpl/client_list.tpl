@@ -41,8 +41,8 @@ data.push(
              chkbox,
 	     "<TMPL_VAR NAME=Uname>",
 	     "<TMPL_VAR NAME=AutoPrune>",
-	     "<TMPL_VAR NAME=FileRetention>",
-	     "<TMPL_VAR NAME=JobRetention>"
+	     human_sec(<TMPL_VAR NAME=FileRetention>),
+	     human_sec(<TMPL_VAR NAME=JobRetention>)
               )
 ) ; 
 </TMPL_LOOP>
