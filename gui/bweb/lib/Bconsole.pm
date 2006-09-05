@@ -198,7 +198,7 @@ sub send_cmd_with_drive
 	return '';
     }
     $self->send("$cmd\n");
-    $self->expect_it('-re', '\[0\]\s*:');
+    $self->expect_it('-re', qr/:/); # wait for drive input
 
     $self->send("$drive\n");
     $self->expect_it('-re', '[0-9]');
@@ -229,7 +229,7 @@ sub label_barcodes
     }
 
     $self->send("$cmd\n");
-    $self->expect_it('-re', '\[0\]\s*:');
+    $self->expect_it('-re', ':'); # wait for drive input
     $self->send("$arg{drive}\n");
     $self->expect_it('-re', '[?].+\)\s*:');
     my $res = $self->before();
