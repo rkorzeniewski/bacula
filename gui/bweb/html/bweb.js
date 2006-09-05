@@ -73,7 +73,7 @@ function bweb_add_refresh(){
 function human_size(val)
 {   
    if (!val) {
-      val = 0;
+      return '';
    }
    var unit = ['b', 'Kb', 'Mb', 'Gb', 'Tb'];
    var i=0;
