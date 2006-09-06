@@ -432,7 +432,7 @@ void DEVICE::open_file_device(DCR *dcr, int omode)
    pm_strcpy(archive_name, dev_name);
    /*  
     * If this is a virtual autochanger (i.e. changer_res != NULL)
-    *  we simply use the deviced name, assuming it has been
+    *  we simply use the device name, assuming it has been
     *  appropriately setup by the "autochanger".
     */
    if (!device->changer_res) {
@@ -1908,7 +1908,7 @@ bool DEVICE::do_mount(int mount, int dotimeout)
    Dmsg1(20, "do_mount run_prog=%s\n", ocmd.c_str());
    while ((status = run_program_full_output(ocmd.c_str(), 
                        max_open_wait/2, results)) != 0) {
-      /* Doesn't work with internationalisation (This is not a problem) */
+      /* Doesn't work with internationalization (This is not a problem) */
       if (fnmatch("*is already mounted on", results, 0) == 0) {
          break;
       }

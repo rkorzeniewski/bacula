@@ -1022,3 +1022,55 @@ Notes:    Legato Networker supports a similar system with full, incr, and 1-9 as
 
 Kern notes: I think this would add very little functionality, but a *lot* of
           additional overhead to Bacula.
+
+Item 1:   include JobID in spool file name
+  Origin: Mark Bergman <mark.bergman@uphs.upenn.edu>
+  Date:  Tue Aug 22 17:13:39 EDT 2006
+  Status:
+
+  What:   Change the name of the spool file to include the JobID
+
+  Why:    JobIDs are the common key used to refer to jobs, yet the 
+        spoolfile name doesn't include that information. The date/time
+        stamp is useful (and should be retained).
+
+
+
+Item 2:   include timestamp of job launch in "stat clients" output
+  Origin: Mark Bergman <mark.bergman@uphs.upenn.edu>
+  Date:  Tue Aug 22 17:13:39 EDT 2006
+  Status:
+
+  What:   The "stat clients" command doesn't include any detail on when
+        the active backup jobs were launched.
+
+  Why:   Including the timestamp would make it much easier to decide whether
+        a job is running properly. 
+
+  Notes: It may be helpful to have the output from "stat clients" formatted 
+        more like that from "stat dir" (and other commands), in a column
+        format. The per-client information that's currently shown (level,
+        client name, JobId, Volume, pool, device, Files, etc.) is good, but
+        somewhat hard to parse (both programmatically and visually), 
+        particularly when there are many active clients.
+
+Item 1:   Filesystemwatch triggered backup.
+  Date:   31 August 2006
+  Origin: Jesper Krogh <jesper@krogh.cc>
+  Status: Unimplemented, depends probably on "client initiated backups"
+
+  What:   With inotify and similar filesystem triggeret notification
+          systems is it possible to have the file-daemon to monitor
+          filesystem changes and initiate backup.
+
+  Why:    There are 2 situations where this is nice to have.
+          1) It is possible to get a much finer-grained backup than
+             the fixed schedules used now.. A file created and deleted
+             a few hours later, can automatically be caught.
+
+          2) The introduced load on the system will probably be
+             distributed more even on the system.
+
+  Notes:  This can be combined with configration that specifies
+          something like: "at most every 15 minutes or when changes
+          consumed XX MB".
