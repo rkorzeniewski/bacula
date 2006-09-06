@@ -2,6 +2,8 @@
 
 General:
 06Sep06
+kes  Fix incorrect number of arguments in SQL statement in
+     sql_get.c as reported by Eric.
 kes  Manual updates.
 kes  Update examples directory.
 kes  Remove unused variable in winservice.cpp

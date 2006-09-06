@@ -262,7 +262,7 @@ bool db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    if (jr->JobId == 0) {
       Mmsg(mdb->cmd, "SELECT VolSessionId,VolSessionTime,"
 "PoolId,StartTime,EndTime,JobFiles,JobBytes,JobTDate,Job,JobStatus,"
-"Type,Level,ClientId,Name "
+"Type,Level,ClientId,Name,PriorJobId,RealEndTime "
 "FROM Job WHERE Job='%s'", jr->Job);
     } else {
       Mmsg(mdb->cmd, "SELECT VolSessionId,VolSessionTime,"
