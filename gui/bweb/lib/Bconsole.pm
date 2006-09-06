@@ -99,9 +99,9 @@ sub log_stdout
     my ($self, $how) = @_;
 
     if ($self->{bconsole}) {
-	$self->{bconsole}->log_stdout($how);
+       $self->{bconsole}->log_stdout($how);
     }
-    
+
     $self->{log_stdout} = $how;
 }
 
@@ -189,24 +189,6 @@ sub send_cmd_yes
     return $self->before();
 }
 
-sub send_cmd_with_drive
-{
-    my ($self, $cmd, $drive) = @_;
-    $drive = $drive || '0';
-
-    unless ($self->connect()) {
-	return '';
-    }
-    $self->send("$cmd\n");
-    $self->expect_it('-re', qr/:/); # wait for drive input
-
-    $self->send("$drive\n");
-    $self->expect_it('-re', '[0-9]');
-    $self->{bconsole}->clear_accum();
-    $self->expect_it('-re',qr/^[*]/);
-    return $self->before();
-}
-
 sub label_barcodes
 {
     my ($self, %arg) = @_;
@@ -229,7 +211,7 @@ sub label_barcodes
     }
 
     $self->send("$cmd\n");
-    $self->expect_it('-re', ':'); # wait for drive input
+    $self->expect_it('-re', '\[0\]\s*:');
     $self->send("$arg{drive}\n");
     $self->expect_it('-re', '[?].+\)\s*:');
     my $res = $self->before();
@@ -284,8 +266,9 @@ sub director_get_sched
 sub update_slots
 {
     my ($self, $storage, $drive) = @_;
-    
-    return $self->send_cmd_with_drive("update slots storage=$storage", $drive);
+    $drive = $drive || 0;
+
+    return $self->send_cmd("update slots storage=$storage drive=$drive");
 }
 
 sub get_fileset
@@ -435,7 +418,7 @@ print "fileset : ", join(',', $c->list_fileset()), "\n";
 print "job : ",     join(',', $c->list_job()), "\n";
 print "storage : ", join(',', $c->list_storage()), "\n";
 #print "prune : " . $c->prune_volume('000001'), "\n";
-#print "update : " . $c->send_cmd_with_drive('update slots storage=SDLT-1-2'), "\n";
+#print "update : " . $c->send_cmd('update slots storage=SDLT-1-2, drive=0'), "\n";
 #print "label : ", join(',', $c->label_barcodes(storage => 'SDLT-1-2',
 #					       slots => 6,
 #					       drive => 0)), "\n";

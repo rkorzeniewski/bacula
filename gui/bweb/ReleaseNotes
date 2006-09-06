@@ -1,5 +1,10 @@
           Release Notes for bweb 1.39.20
 
+2006/09/06:
+ - Can delete empty location
+ - Drop Bconsole::send_cmd_with_drive and use drive= instead
+ - Use JavaScript to display Human size and time
+
 2006/08/31:
  - Add FileSet view action
  - Add view fileset to job_zoom

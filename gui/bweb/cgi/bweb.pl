@@ -104,7 +104,7 @@ if ($action eq 'begin') {		# main display
     $bweb->location_add();
 
 } elsif ($action eq 'location_del') {
-    $bweb->del_location();
+    $bweb->location_del();
 
 } elsif ($action eq 'media') {
     $bweb->display_media();
@@ -173,8 +173,7 @@ if ($action eq 'begin') {		# main display
 	my $b = new Bconsole(pref => $conf, timeout => 300, log_stdout => 1) ;
 	# TODO : use template here
 	print "<pre>\n";
-	$b->send_cmd_with_drive("mount slot=$arg->{slot} storage=\"" . $a->get_drive_name($arg->{drive}) . '"',
-				$arg->{drive});
+	$b->send_cmd("mount slot=$arg->{slot} drive=$arg->{drive} storage=\"" . $a->get_drive_name($arg->{drive}) . '"');
 	print "</pre>\n";
     } else {
 	$bweb->error("Can't get drive, slot or ach");
@@ -190,9 +189,7 @@ if ($action eq 'begin') {		# main display
 	my $b = new Bconsole(pref => $conf, timeout => 300, log_stdout => 1) ;
 	# TODO : use template here
 	print "<pre>\n";
-	$b->send_cmd_with_drive("umount storage=\"" . $a->get_drive_name($arg->{drive}) . '"',
-				$arg->{drive});
-
+	$b->send_cmd("umount drive=$arg->{drive} storage=\"" . $a->get_drive_name($arg->{drive}) . '"');
 	print "</pre>\n";
 
     } else {

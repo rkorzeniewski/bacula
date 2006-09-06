@@ -2138,6 +2138,37 @@ WHERE Location.Location = $arg->{qlocation}
     $self->display_location();
 }
 
+sub location_del
+{
+    my ($self) = @_ ;
+    my $arg = $self->get_form(qw/qlocation/) ;
+
+    unless ($arg->{qlocation}) {
+	return $self->error("Can't get location");
+    }
+
+    my $query = "
+SELECT count(Media.MediaId) AS nb 
+  FROM Media INNER JOIN Location USING (LocationID)
+WHERE Location = $arg->{qlocation}
+";
+
+    my $res = $self->dbh_selectrow_hashref($query);
+
+    if ($res->{nb}) {
+	return $self->error("Sorry, the location must be empty");
+    }
+
+    $query = "
+DELETE FROM Location WHERE Location = $arg->{qlocation} LIMIT 1
+";
+
+    $self->dbh_do($query);
+
+    $self->display_location();
+}
+
+
 sub location_add
 {
     my ($self) = @_ ;
@@ -2474,7 +2505,7 @@ FROM
                ) AS media_avg_size ON (Media.MediaType = media_avg_size.MediaType)
     GROUP BY Media.MediaType, Media.PoolId
   ) AS subq 
-INNER JOIN Pool ON (Pool.PoolId = subq.PoolId) 
+LEFT JOIN Pool ON (Pool.PoolId = subq.PoolId) 
 GROUP BY subq.PoolId
 ";
 
