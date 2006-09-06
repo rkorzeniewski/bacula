@@ -97,7 +97,7 @@ SCRIPTS := \
 
 .PHONY: all clean installer
 
-all:
+all:		$(INSTALL_EXE)
 
 installer:	$(INSTALL_EXE)
 

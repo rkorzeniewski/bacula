@@ -69,6 +69,32 @@ For 1.39:
   .move eject device=xxx toslot=yyy the same as above, but with a new 
      target slot. The catalog should be updated accordingly.
   .move transfer device=xxx fromslot=yyy toslot=zzz
+- Figure out how to configure query.sql.  Suggestion to use m4:
+    == changequote.m4 ===
+    changequote(`[',`]')dnl
+    ==== query.sql.in ===
+    :List next 20 volumes to expire
+    SELECT
+        Pool.Name AS PoolName,
+        Media.VolumeName,
+        Media.VolStatus,
+        Media.MediaType,
+    ifdef([MySQL],
+    [ FROM_UNIXTIME(UNIX_TIMESTAMP(Media.LastWritten) Media.VolRetention) AS Expire, ])dnl
+    ifdef([PostgreSQL],
+    [ media.lastwritten + interval '1 second' * media.volretention as expire, ])dnl
+      Media.LastWritten
+      FROM Pool
+      LEFT JOIN Media
+      ON Media.PoolId=Pool.PoolId
+      WHERE Media.LastWritten>0
+      ORDER BY Expire
+      LIMIT 20;
+    ====
+    Command: m4 -DmySQL changequote.m4 query.sql.in >query.sql
+
+  The problem is that it requires m4, which is not present on all machines
+  at ./configure time.
 
 Low priority:
 - Get Perl replacement for bregex.c
@@ -1658,4 +1684,3 @@ Block Position: 0
     > the Volumes in the magazine disabled prior to taking them offsite, and mark 
     > them all enabled when bringing them back on site.   Coupled with the options 
     > to the slots keyword, you can apply the enable/disable to any or all volumes.
-

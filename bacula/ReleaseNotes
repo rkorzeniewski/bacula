@@ -49,6 +49,12 @@ Fixes for 1.39.20:
   general, it should be very fast.
 
 New Features in 1.40.0 (beginning of release info)
+- Additional support for removable devices.  See the 
+  Requires Mount, Mount Point, Mount Command, and Unmount
+  Commands in the Storage daemon configuration chapter:
+  http://www.bacula.org/dev-manual/Storage_Daemon_Configuratio.html
+  Also see the Edit Codes for Mount and Unmount Directives in the
+  same chapter.
 - There is a new cross-compiled Win32 File daemon that now has all the features
   that were previously only in the Unix versions.
 

@@ -326,7 +326,6 @@ bacService::InstallService(const char *pszCmdLine)
    const int pathlength = 2048;
    char path[pathlength];
    char servicecmd[pathlength];
-   int len;
 
    // Get the filename of this executable
    if (GetModuleFileName(NULL, path, pathlength-(strlen(BaculaRunService)+2)) == 0) {
