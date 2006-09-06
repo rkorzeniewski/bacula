@@ -1,5 +1,5 @@
 
-          Release Notes for Bacula 1.39.20
+          Release Notes for Bacula 1.39.22
 
   Bacula code: Total files = 448 Total lines = 150,330 (*.h *.c *.in)
 
@@ -18,6 +18,33 @@ New Features in 1.39.20:
   triggered it -- makes why not descending a bit clearer
 - Do not unload autochanger when doing "update slots"
 - Implement mount command for autochanger
+- The new Win32 installer requires that you deinstall any
+  previous version before installing the new version.
+  The simplest way to do that is in a DOS shell:
+          
+  cd c:\bacula\bin
+  net stop bacula
+  net stop baculfd
+  ./bacula-fd /remove
+  (Install the new Bacula)
+    
+  Note, one or both of the 'net stop' commands may fail. Don't
+  worry about it.      
+
+  If you didn't read the release notes or forgot to do those 
+  commands, try the following:
+
+  cd c:\bacula\bin
+  net stop bacula
+  net stop baculafd
+  sc delete bacula
+  sc delete baculafd
+
+  Note, at least one of the 'net' commands and possibly both
+  will fail, and at least one of the 'sc' commands will fail.
+  Don't worry about it.  After that, try again to install
+  the new Bacula.
+     
 
 Fixes for 1.39.20:
 - Writing DVDs should work much better thanks to Richard Mortimer.

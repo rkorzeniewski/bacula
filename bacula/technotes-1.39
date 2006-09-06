@@ -2,6 +2,8 @@
 
 General:
 06Sep06
+kes  Add dev->close() in dir_ask_sysop_to_mount_volume() in
+     bcopy. Fixes bug #669 reported by Eric.
 kes  Fix incorrect number of arguments in SQL statement in
      sql_get.c as reported by Eric.
 kes  Manual updates.
