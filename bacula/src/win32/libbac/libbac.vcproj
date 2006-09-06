@@ -66,6 +66,7 @@
 				LinkIncremental="0"
 				AdditionalLibraryDirectories="..\..\..\..\depkgs-msvc\lib"
 				ModuleDefinitionFile="msvc\bacula.def"
+				GenerateDebugInformation="true"
 				ImportLibrary="$(TargetDir)libbac.lib"
 			/>
 			<Tool
@@ -1587,11 +1588,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\lib\protos.h"
+				RelativePath="..\..\findlib\protos.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\findlib\protos.h"
+				RelativePath="..\..\lib\protos.h"
 				>
 			</File>
 			<File

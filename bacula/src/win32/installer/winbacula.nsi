@@ -39,28 +39,33 @@
 ;
 ; Include the Modern UI
 ;
+
 !include "MUI.nsh"
 !include "LogicLib.nsh"
 !include "FileFunc.nsh"
 !include "Sections.nsh"
 !include "StrFunc.nsh"
+!include "WinMessages.nsh"
 
 ;
 ; Basics
 ;
-  Name "Bacula"
-  OutFile "winbacula-${VERSION}.exe"
-  SetCompressor lzma
-  InstallDir "$PROGRAMFILES\Bacula"
-  InstallDirRegKey HKLM Software\Bacula InstallLocation
+Name "Bacula"
+OutFile "winbacula-${VERSION}.exe"
+SetCompressor lzma
+InstallDir "$PROGRAMFILES\Bacula"
+InstallDirRegKey HKLM "Software\Bacula" "InstallLocation"
 
-  InstType "Client"
-  InstType "Server"
-  InstType "Full"
+InstType "Client"
+InstType "Server"
+InstType "Full"
 
-  ${StrCase}
-  ${StrRep}
-  ${StrTrimNewLines}
+!insertmacro GetParent
+
+${StrCase}
+${StrRep}
+${StrTok}
+${StrTrimNewLines}
 
 ;
 ; Pull in pages
@@ -69,10 +74,16 @@
 !define      MUI_COMPONENTSPAGE_SMALLDESC
 !define      MUI_FINISHPAGE_NOAUTOCLOSE
 
+!define      MUI_HEADERIMAGE
+!define      MUI_BGCOLOR                739AB9
+!define      MUI_HEADERIMAGE_BITMAP     "bacula-logo.bmp"
+
 !InsertMacro MUI_PAGE_WELCOME
 ;  !InsertMacro MUI_PAGE_LICENSE "..\..\LICENSE"
-
+Page custom EnterInstallType
+!define      MUI_PAGE_CUSTOMFUNCTION_SHOW PageComponentsShow
 !InsertMacro MUI_PAGE_COMPONENTS
+!define      MUI_PAGE_CUSTOMFUNCTION_PRE PageDirectoryPre
 !InsertMacro MUI_PAGE_DIRECTORY
 Page custom EnterConfigPage1 LeaveConfigPage1
 Page custom EnterConfigPage2 LeaveConfigPage2
@@ -140,6 +151,39 @@ Var ConfigMonitorPassword
 Var LocalDirectorPassword
 Var LocalHostAddress
 
+Var AutomaticInstall
+Var InstallType
+!define NewInstall      0
+!define UpgradeInstall  1
+!define MigrateInstall  2
+
+Var InitialSelectionDone
+Var OldInstallDir
+Var PreviousComponents
+Var NewComponents
+
+; Bit 0 = File Service
+;     1 = Storage Service
+;     2 = Director Service
+;     3 = Command Console
+;     4 = Graphical Console
+;     5 = Documentation (PDF)
+;     6 = Documentation (HTML)
+
+!define ComponentFile                   1
+!define ComponentStorage                2
+!define ComponentDirector               4
+!define ComponentTextConsole            8
+!define ComponentGUIConsole             16
+!define ComponentPDFDocs                32
+!define ComponentHTMLDocs               64
+
+!define ComponentsRequiringUserConfig           31
+!define ComponentsFileAndStorage                3
+!define ComponentsFileAndStorageAndDirector     7
+!define ComponentsDirectorAndTextGuiConsoles    28
+!define ComponentsTextAndGuiConsoles            24
+
 Var HDLG
 Var HCTL
 
@@ -155,6 +199,12 @@ Function .onInit
   StrCpy $DependenciesDone 0
   StrCpy $DatabaseDone 0
   StrCpy $OsIsNT 0
+  StrCpy $AutomaticInstall 0
+  StrCpy $InstallType ${NewInstall}
+  StrCpy $OldInstallDir ""
+  StrCpy $PreviousComponents 0
+  StrCpy $NewComponents 0
+  StrCpy $InitialSelectionDone 0
 
   ${GetParameters} $R0
 
@@ -185,21 +235,17 @@ Function .onInit
     StrCpy $OsIsNT 1
   ${EndIf}
 
-;  ${If} $OsIsNT = 0
-;    Call DisableServerSections
-;  ${EndIf}
-
   Call GetComputerName
   Pop $HostName
 
   Call GetHostName
   Pop $LocalHostAddress
-  
+
   Call GetUserName
   Pop $ConfigDirectorMailAddress
 
   ; Configuration Defaults
-  ;
+
   StrCpy $ConfigClientName              "$HostName-fd"
   StrCpy $ConfigClientPort              "9102"
   StrCpy $ConfigClientMaxJobs           "2"
@@ -230,6 +276,7 @@ Function .onInit
   File "/oname=$PLUGINSDIR\libeay32.dll" "${DEPKGS_BIN}\libeay32.dll"
   File "/oname=$PLUGINSDIR\ssleay32.dll" "${DEPKGS_BIN}\ssleay32.dll"
   File "/oname=$PLUGINSDIR\sed.exe" "${DEPKGS_BIN}\sed.exe"
+  File "/oname=$PLUGINSDIR\InstallType.ini" "InstallType.ini"
 
   SetPluginUnload alwaysoff
 
@@ -277,6 +324,10 @@ Function .onInit
 
   Pop $R1
   Pop $R0
+FunctionEnd
+
+Function .onSelChange
+  Call UpdateComponentUI
 FunctionEnd
 
 Function CopyDependencies
@@ -347,9 +398,11 @@ Function InstallDatabase
 FunctionEnd
 
 Section "-Initialize"
-  ; Create Start Menu Directory
+  WriteRegStr   HKLM Software\Bacula InstallLocation "$INSTDIR"
 
-  WriteRegStr HKLM Software\Bacula InstallLocation "$INSTDIR"
+  Call GetSelectedComponents
+  Pop $R2
+  WriteRegDWORD HKLM Software\Bacula Components $R2
 
   SetShellVarContext all
   CreateDirectory "$SMPROGRAMS\Bacula"
@@ -390,7 +443,6 @@ Section "-Initialize"
 
   Call IsDirectorSelected
   Pop $R2
-
   ${If} $R2 = 1
     FileWrite $R1 "s;@director_address@;$LocalHostAddress;$\r$\n"
   ${Else}
@@ -455,7 +507,7 @@ Section "-Initialize"
 
 SectionEnd
 
-SectionGroup "Client"
+SectionGroup "Client" SecGroupClient
 
 Section "File Service" SecFileDaemon
   SectionIn 1 2 3
@@ -464,16 +516,17 @@ Section "File Service" SecFileDaemon
 
   File "${BACULA_BIN}\bacula-fd.exe"
 
-  StrCpy $R0 0
-  StrCpy $R1 "$APPDATA\Bacula\bacula-fd.conf"
-  IfFileExists $R1 0 +3
-    StrCpy $R0 1
-    StrCpy $R1 "$R1.new"
+  ${If} $InstallType = ${MigrateInstall}
+  ${AndIf} ${FileExists} "$OldInstallDir\bin\bacula-fd.conf"
+    CopyFiles "$OldInstallDir\bin\bacula-fd.conf" "$APPDATA\Bacula"
+  ${Else}
+    ${Unless} ${FileExists} "$APPDATA\Bacula\bacula-fd.conf"
+      File "/oname=$PLUGINSDIR\bacula-fd.conf.in" "bacula-fd.conf.in"
 
-  File "/oname=$PLUGINSDIR\bacula-fd.conf.in" "bacula-fd.conf.in"
-
-  nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\bacula-fd.conf.in"'
-  CopyFiles "$PLUGINSDIR\bacula-fd.conf.in" "$R1"
+      nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\bacula-fd.conf.in"'
+      CopyFiles "$PLUGINSDIR\bacula-fd.conf.in" "$APPDATA\Bacula\bacula-fd.conf"
+    ${EndIf}
+  ${EndIf}
 
   ${If} $OsIsNT = 1
     nsExec::ExecToLog 'cmd.exe /C echo Y|cacls "$R1" /G SYSTEM:F Administrators:F'
@@ -483,7 +536,7 @@ Section "File Service" SecFileDaemon
   StrCpy $1 "File Service"
   StrCpy $2 $ConfigClientInstallService
   StrCpy $3 $ConfigClientStartService
-  
+
   Call InstallDaemon
 
   CreateShortCut "$SMPROGRAMS\Bacula\Edit Client Configuration.lnk" "write.exe" '"$APPDATA\Bacula\bacula-fd.conf"'
@@ -491,7 +544,7 @@ SectionEnd
 
 SectionGroupEnd
 
-SectionGroup "Server"
+SectionGroup "Server" SecGroupServer
 
 Section "Storage Service" SecStorageDaemon
   SectionIn 2 3
@@ -512,16 +565,12 @@ Section "Storage Service" SecStorageDaemon
   File "${BACULA_BIN}\scsilist.exe"
   File /oname=mtx-changer.cmd ${SCRIPT_DIR}\mtx-changer.cmd
 
-  StrCpy $R0 0
-  StrCpy $R1 "$APPDATA\Bacula\bacula-sd.conf"
-  IfFileExists $R1 0 +3
-    StrCpy $R0 1
-    StrCpy $R1 "$R1.new"
+  ${Unless} ${FileExists} "$APPDATA\Bacula\bacula-sd.conf"
+    File "/oname=$PLUGINSDIR\bacula-sd.conf.in" "bacula-sd.conf.in"
 
-  File "/oname=$PLUGINSDIR\bacula-sd.conf.in" "bacula-sd.conf.in"
-
-  nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\bacula-sd.conf.in"'
-  CopyFiles "$PLUGINSDIR\bacula-sd.conf.in" "$R1"
+    nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\bacula-sd.conf.in"'
+    CopyFiles "$PLUGINSDIR\bacula-sd.conf.in" "$APPDATA\Bacula\bacula-sd.conf"
+  ${EndUnless}
 
   ${If} $OsIsNT = 1
     nsExec::ExecToLog 'cmd.exe /C echo Y|cacls "$R1" /G SYSTEM:F Administrators:F'
@@ -579,16 +628,11 @@ Section "Director Service" SecDirectorDaemon
   File ${CATS_DIR}\make_catalog_backup.cmd
   File ${CATS_DIR}\delete_catalog_backup.cmd
 
-  StrCpy $R0 0
-  StrCpy $R1 "$APPDATA\Bacula\bacula-dir.conf"
-  IfFileExists $R1 0 +3
-    StrCpy $R0 1
-    StrCpy $R1 "$R1.new"
-
-  File "/oname=$PLUGINSDIR\bacula-dir.conf.in" "bacula-dir.conf.in"
-
-  nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\bacula-dir.conf.in"'
-  CopyFiles "$PLUGINSDIR\bacula-dir.conf.in" "$R1"
+  ${Unless} ${FileExists} "$APPDATA\Bacula\bacula-dir.conf"
+    File "/oname=$PLUGINSDIR\bacula-dir.conf.in" "bacula-dir.conf.in"
+    nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\bacula-dir.conf.in"'
+    CopyFiles "$PLUGINSDIR\bacula-dir.conf.in" "$APPDATA\Bacula\bacula-dir.conf"
+  ${EndUnless}
 
   ${If} $OsIsNT = 1
     nsExec::ExecToLog 'cmd.exe /C echo Y|cacls "$R1" /G SYSTEM:F Administrators:F'
@@ -605,7 +649,7 @@ SectionEnd
 
 SectionGroupEnd
 
-SectionGroup "Consoles"
+SectionGroup "Consoles" SecGroupConsoles
 
 Section "Command Console" SecConsole
   SectionIn 1 2 3
@@ -615,16 +659,16 @@ Section "Command Console" SecConsole
   File "${BACULA_BIN}\bconsole.exe"
   Call CopyDependencies
 
-  StrCpy $R0 0
-  StrCpy $R1 "$APPDATA\Bacula\bconsole.conf"
-  IfFileExists $R1 0 +3
-    StrCpy $R0 1
-    StrCpy $R1 "$R1.new"
-
-  File "/oname=$PLUGINSDIR\bconsole.conf.in" "bconsole.conf.in"
-
-  nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\bconsole.conf.in"'
-  CopyFiles "$PLUGINSDIR\bconsole.conf.in" "$R1"
+  ${If} $InstallType = ${MigrateInstall}
+  ${AndIf} ${FileExists} "$OldInstallDir\bin\bconsole.conf"
+    CopyFiles "$OldInstallDir\bin\bconsole.conf" "$APPDATA\Bacula"
+  ${Else}
+    ${Unless} ${FileExists} "$APPDATA\Bacula\bconsole.conf"
+      File "/oname=$PLUGINSDIR\bconsole.conf.in" "bconsole.conf.in"
+      nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\bconsole.conf.in"'
+      CopyFiles "$PLUGINSDIR\bconsole.conf.in" "$APPDATA\Bacula\bconsole.conf"
+    ${EndUnless}
+  ${EndIf}
 
   ${If} $OsIsNT = 1
     nsExec::ExecToLog 'cmd.exe /C echo Y|cacls "$R1" /G SYSTEM:F Administrators:F'
@@ -655,16 +699,16 @@ Section "Graphical Console" SecWxConsole
 
   File "${BACULA_BIN}\wx-console.exe"
 
-  StrCpy $R0 0
-  StrCpy $R1 "$APPDATA\Bacula\wx-console.conf"
-  IfFileExists $R1 0 +3
-    StrCpy $R0 1
-    StrCpy $R1 "$R1.new"
-
-  File "/oname=$PLUGINSDIR\wx-console.conf.in" "wx-console.conf.in"
-
-  nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\wx-console.conf.in"'
-  CopyFiles "$PLUGINSDIR\wx-console.conf.in" "$R1"
+  ${If} $InstallType = ${MigrateInstall}
+  ${AndIf} ${FileExists} "$OldInstallDir\bin\wx-console.conf"
+    CopyFiles "$OldInstallDir\bin\wx-console.conf" "$APPDATA\Bacula"
+  ${Else}
+    ${Unless} ${FileExists} "$APPDATA\Bacula\wx-console.conf"
+      File "/oname=$PLUGINSDIR\wx-console.conf.in" "wx-console.conf.in"
+      nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\wx-console.conf.in"'
+      CopyFiles "$PLUGINSDIR\wx-console.conf.in" "$APPDATA\Bacula\wx-console.conf"
+    ${EndUnless}
+  ${EndIf}
 
   ${If} $OsIsNT = 1
     nsExec::ExecToLog 'cmd.exe /C echo Y|cacls "$R1" /G SYSTEM:F Administrators:F'
@@ -677,7 +721,7 @@ SectionEnd
 
 SectionGroupEnd
 
-SectionGroup "Documentation"
+SectionGroup "Documentation" SecGroupDocumentation
 
 Section "Documentation (Acrobat Format)" SecDocPdf
   SectionIn 1 2 3
@@ -704,40 +748,54 @@ SectionEnd
 SectionGroupEnd
 
 Section "-Write Uninstaller"
+  Push $R0
   ; Write the uninstall keys for Windows & create Start Menu entry
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "DisplayName" "Bacula"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "UninstallString" '"$INSTDIR\uninstall.exe"'
+  WriteRegStr   HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "DisplayName" "Bacula"
+  WriteRegStr   HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "InstallLocation" "$INSTDIR"
+  WriteRegStr   HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "DisplayVersion" "${VERSION}"
+  ${StrTok} $R0 "${VERSION}" "." 0 0
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "VersionMajor" $R0
+  ${StrTok} $R0 "${VERSION}" "." 1 0
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "VersionMinor" $R0
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "NoModify" 1
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "NoRepair" 1
+  WriteRegStr   HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "URLUpdateInfo" "http://sourceforge.net/project/showfiles.php?group_id=50727"
+  WriteRegStr   HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "URLInfoAbout" "http://www.bacula.org"
+  WriteRegStr   HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "HelpLink" "http://www.bacula.org/?page=support"
+  WriteRegStr   HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "UninstallString" '"$INSTDIR\uninstall.exe"'
   WriteUninstaller "$INSTDIR\Uninstall.exe"
   CreateShortCut "$SMPROGRAMS\Bacula\Uninstall Bacula.lnk" "$INSTDIR\Uninstall.exe" "" "$INSTDIR\Uninstall.exe" 0
+  Pop $R0
 SectionEnd
 
-;
 ; Extra Page descriptions
-;
 
-  LangString DESC_SecFileDaemon ${LANG_ENGLISH} "Install Bacula File Daemon on this system."
-  LangString DESC_SecStorageDaemon ${LANG_ENGLISH} "Install Bacula Storage Daemon on this system."
-  LangString DESC_SecDirectorDaemon ${LANG_ENGLISH} "Install Bacula Director Daemon on this system."
-  LangString DESC_SecConsole ${LANG_ENGLISH} "Install command console program on this system."
-  LangString DESC_SecWxConsole ${LANG_ENGLISH} "Install graphical console program on this system."
-  LangString DESC_SecDocPdf ${LANG_ENGLISH} "Install documentation in Acrobat format on this system."
-  LangString DESC_SecDocHtml ${LANG_ENGLISH} "Install documentation in HTML format on this system."
+LangString DESC_SecFileDaemon ${LANG_ENGLISH} "Install Bacula File Daemon on this system."
+LangString DESC_SecStorageDaemon ${LANG_ENGLISH} "Install Bacula Storage Daemon on this system."
+LangString DESC_SecDirectorDaemon ${LANG_ENGLISH} "Install Bacula Director Daemon on this system."
+LangString DESC_SecConsole ${LANG_ENGLISH} "Install command console program on this system."
+LangString DESC_SecWxConsole ${LANG_ENGLISH} "Install graphical console program on this system."
+LangString DESC_SecDocPdf ${LANG_ENGLISH} "Install documentation in Acrobat format on this system."
+LangString DESC_SecDocHtml ${LANG_ENGLISH} "Install documentation in HTML format on this system."
 
-  LangString TITLE_ConfigPage1 ${LANG_ENGLISH} "Configuration"
-  LangString SUBTITLE_ConfigPage1 ${LANG_ENGLISH} "Set installation configuration."
+LangString TITLE_ConfigPage1 ${LANG_ENGLISH} "Configuration"
+LangString SUBTITLE_ConfigPage1 ${LANG_ENGLISH} "Set installation configuration."
 
-  LangString TITLE_ConfigPage2 ${LANG_ENGLISH} "Configuration (continued)"
-  LangString SUBTITLE_ConfigPage2 ${LANG_ENGLISH} "Set installation configuration."
+LangString TITLE_ConfigPage2 ${LANG_ENGLISH} "Configuration (continued)"
+LangString SUBTITLE_ConfigPage2 ${LANG_ENGLISH} "Set installation configuration."
 
-  !InsertMacro MUI_FUNCTION_DESCRIPTION_BEGIN
-    !InsertMacro MUI_DESCRIPTION_TEXT ${SecFileDaemon} $(DESC_SecFileDaemon)
-    !InsertMacro MUI_DESCRIPTION_TEXT ${SecStorageDaemon} $(DESC_SecStorageDaemon)
-    !InsertMacro MUI_DESCRIPTION_TEXT ${SecDirectorDaemon} $(DESC_SecDirectorDaemon)
-    !InsertMacro MUI_DESCRIPTION_TEXT ${SecConsole} $(DESC_SecConsole)
-    !InsertMacro MUI_DESCRIPTION_TEXT ${SecWxConsole} $(DESC_SecWxConsole)
-    !InsertMacro MUI_DESCRIPTION_TEXT ${SecDocPdf} $(DESC_SecDocPdf)
-    !InsertMacro MUI_DESCRIPTION_TEXT ${SecDocHtml} $(DESC_SecDocHtml)
-  !InsertMacro MUI_FUNCTION_DESCRIPTION_END
+LangString TITLE_InstallType ${LANG_ENGLISH} "Installation Type"
+LangString SUBTITLE_InstallType ${LANG_ENGLISH} "Choose installation type."
+
+!InsertMacro MUI_FUNCTION_DESCRIPTION_BEGIN
+  !InsertMacro MUI_DESCRIPTION_TEXT ${SecFileDaemon} $(DESC_SecFileDaemon)
+  !InsertMacro MUI_DESCRIPTION_TEXT ${SecStorageDaemon} $(DESC_SecStorageDaemon)
+  !InsertMacro MUI_DESCRIPTION_TEXT ${SecDirectorDaemon} $(DESC_SecDirectorDaemon)
+  !InsertMacro MUI_DESCRIPTION_TEXT ${SecConsole} $(DESC_SecConsole)
+  !InsertMacro MUI_DESCRIPTION_TEXT ${SecWxConsole} $(DESC_SecWxConsole)
+  !InsertMacro MUI_DESCRIPTION_TEXT ${SecDocPdf} $(DESC_SecDocPdf)
+  !InsertMacro MUI_DESCRIPTION_TEXT ${SecDocHtml} $(DESC_SecDocHtml)
+!InsertMacro MUI_FUNCTION_DESCRIPTION_END
 
 ; Uninstall section
 
@@ -749,7 +807,6 @@ Section "Uninstall"
   nsExec::ExecToLog '"$INSTDIR\bin\bacula-sd.exe" /kill'
   nsExec::ExecToLog '"$INSTDIR\bin\bacula-dir.exe" /kill'
   Sleep 3000
-
 
   ReadRegDWORD $R0 HKLM "Software\Bacula" "Service_Bacula-fd"
   ${If} $R0 = 1
@@ -805,8 +862,8 @@ Function InstallDaemon
   Call CopyDependencies
 
   IfFileExists "$APPDATA\Bacula\$0.conf" 0 +4
-    nsExec::ExecToLog '"$INSTDIR\bin\$0.exe" /silent /kill'     ; Shutdown any bacula that could be running
-    nsExec::ExecToLog '"$INSTDIR\bin\$0.exe" /silent /remove'   ; Remove existing service
+    nsExec::ExecToLog '"$OldInstallDir\bin\$0.exe" /silent /kill'     ; Shutdown any bacula that could be running
+    nsExec::ExecToLog '"$OldInstallDir\bin\$0.exe" /silent /remove'   ; Remove existing service
     Sleep 3000
 
   WriteRegDWORD HKLM "Software\Bacula" "Service_$0" $2
@@ -834,124 +891,209 @@ Function InstallDaemon
 FunctionEnd
 
 Function GetComputerName
-  Push $0
-  Push $1
-  Push $2
+  Push $R0
+  Push $R1
+  Push $R2
 
-  System::Call "kernel32::GetComputerNameA(t .r0, *i ${NSIS_MAX_STRLEN} r1) i.r2"
+  System::Call "kernel32::GetComputerNameA(t .R0, *i ${NSIS_MAX_STRLEN} R1) i.R2"
 
-  StrCpy $2 $0
-  ${StrCase} $0 $2 "L"
+  ${StrCase} $R0 $R0 "L"
 
-  Pop $2
-  Pop $1
-  Exch $0
+  Pop $R2
+  Pop $R1
+  Exch $R0
 FunctionEnd
 
 !define ComputerNameDnsFullyQualified   3
 
 Function GetHostName
-  Push $0
-  Push $1
-  Push $2
+  Push $R0
+  Push $R1
+  Push $R2
 
   ${If} $OsIsNT = 1
-    System::Call "kernel32::GetComputerNameExA(i ${ComputerNameDnsFullyQualified}, t .r0, *i ${NSIS_MAX_STRLEN} r1) i.r2 ?e"
-    ${If} $2 = 0
-      Pop $2
-      DetailPrint "GetComputerNameExA failed - LastError = $2"
+    System::Call "kernel32::GetComputerNameExA(i ${ComputerNameDnsFullyQualified}, t .R0, *i ${NSIS_MAX_STRLEN} R1) i.R2 ?e"
+    ${If} $R2 = 0
+      Pop $R2
+      DetailPrint "GetComputerNameExA failed - LastError = $R2"
       Call GetComputerName
-      Pop $0
+      Pop $R0
     ${Else}
-      Pop $2
+      Pop $R2
     ${EndIf}
   ${Else}
     Call GetComputerName
-    Pop $0
+    Pop $R0
   ${EndIf}
 
-  Pop $2
-  Pop $1
-  Exch $0
+  Pop $R2
+  Pop $R1
+  Exch $R0
 FunctionEnd
 
 !define NameUserPrincipal 8
 
 Function GetUserName
-  Push $0
-  Push $1
-  Push $2
+  Push $R0
+  Push $R1
+  Push $R2
 
   ${If} $OsIsNT = 1
-    System::Call "secur32::GetUserNameExA(i ${NameUserPrincipal}, t .r0, *i ${NSIS_MAX_STRLEN} r1) i.r2 ?e"
-    ${If} $2 = 0
-      Pop $2
-      DetailPrint "GetUserNameExA failed - LastError = $2"
-      Pop $0
-      StrCpy $0 ""
+    System::Call "secur32::GetUserNameExA(i ${NameUserPrincipal}, t .R0, *i ${NSIS_MAX_STRLEN} R1) i.R2 ?e"
+    ${If} $R2 = 0
+      Pop $R2
+      DetailPrint "GetUserNameExA failed - LastError = $R2"
+      Pop $R0
+      StrCpy $R0 ""
     ${Else}
-      Pop $2
+      Pop $R2
     ${EndIf}
   ${Else}
-      StrCpy $0 ""
+      StrCpy $R0 ""
   ${EndIf}
 
-  ${If} $0 == ""
-    System::Call "advapi32::GetUserNameA(t .r0, *i ${NSIS_MAX_STRLEN} r1) i.r2 ?e"
-    ${If} $2 = 0
-      Pop $2
-      DetailPrint "GetUserNameA failed - LastError = $2"
-      StrCpy $0 ""
+  ${If} $R0 == ""
+    System::Call "advapi32::GetUserNameA(t .R0, *i ${NSIS_MAX_STRLEN} R1) i.R2 ?e"
+    ${If} $R2 = 0
+      Pop $R2
+      DetailPrint "GetUserNameA failed - LastError = $R2"
+      StrCpy $R0 ""
     ${Else}
-      Pop $2
+      Pop $R2
     ${EndIf}
   ${EndIf}
 
-  Pop $2
-  Pop $1
-  Exch $0
-FunctionEnd
-
-Function IsClientSelected
-  Push $0
-  SectionGetFlags ${SecFileDaemon} $0
-  IntOp $0 $0 & ${SF_SELECTED}
-  Exch $0
+  Pop $R2
+  Pop $R1
+  Exch $R0
 FunctionEnd
 
 Function IsDirectorSelected
-  Push $0
-  SectionGetFlags ${SecDirectorDaemon} $0
-  IntOp $0 $0 & ${SF_SELECTED}
-  Exch $0
-FunctionEnd
-
-Function IsStorageSelected
-  Push $0
-  SectionGetFlags ${SecStorageDaemon} $0
+  Push $R0
+  SectionGetFlags ${SecDirectorDaemon} $R0
   IntOp $R0 $R0 & ${SF_SELECTED}
-  Exch $0
+  Exch $R0
 FunctionEnd
 
-Function IsConsoleSelected
-  Push $0
-  Push $1
-  SectionGetFlags ${SecConsole} $0
-  SectionGetFlags ${SecWxConsole} $1
-  IntOp $0 $0 | $1
-  IntOp $0 $0 & ${SF_SELECTED}
-  Pop $1
-  Exch $0
+Function GetSelectedComponents
+  Push $R0
+  StrCpy $R0 0
+  ${If} ${SectionIsSelected} ${SecFileDaemon}
+    IntOp $R0 $R0 | ${ComponentFile}
+  ${EndIf}
+  ${If} ${SectionIsSelected} ${SecStorageDaemon}
+    IntOp $R0 $R0 | ${ComponentStorage}
+  ${EndIf}
+  ${If} ${SectionIsSelected} ${SecDirectorDaemon}
+    IntOp $R0 $R0 | ${ComponentDirector}
+  ${EndIf}
+  ${If} ${SectionIsSelected} ${SecConsole}
+    IntOp $R0 $R0 | ${ComponentTextConsole}
+  ${EndIf}
+  ${If} ${SectionIsSelected} ${SecWxConsole}
+    IntOp $R0 $R0 | ${ComponentGUIConsole}
+  ${EndIf}
+  ${If} ${SectionIsSelected} ${SecDocPdf}
+    IntOp $R0 $R0 | ${ComponentPDFDocs}
+  ${EndIf}
+  ${If} ${SectionIsSelected} ${SecDocHtml}
+    IntOp $R0 $R0 | ${ComponentHTMLDocs}
+  ${EndIf}
+  Exch $R0
 FunctionEnd
 
-!If 0 = 1
+Function PageComponentsShow
+  ${If} $OsIsNT != 1
+    Call DisableServerSections
+  ${EndIf}
+
+  Call UpdateComponentUI
+FunctionEnd
+
+Function PageDirectoryPre
+  ${If} $AutomaticInstall = 1
+  ${OrIf} $InstallType = ${UpgradeInstall}
+    Abort
+  ${EndIf}
+FunctionEnd
+
 Function DisableServerSections
+  !InsertMacro UnselectSection ${SecGroupServer}
+  !InsertMacro SetSectionFlag ${SecGroupServer} ${SF_RO}
   !InsertMacro UnselectSection ${SecStorageDaemon}
-  !InsertMacro SetSectionFlag ${SecStorageDaemon} SF_RO
+  !InsertMacro SetSectionFlag ${SecStorageDaemon} ${SF_RO}
   !InsertMacro UnselectSection ${SecDirectorDaemon}
-  !InsertMacro SetSectionFlag ${SecDirectorDaemon} SF_RO
+  !InsertMacro SetSectionFlag ${SecDirectorDaemon} ${SF_RO}
 FunctionEnd
-!EndIf
 
+Function UpdateComponentUI
+  Push $R0
+  Push $R1
+
+  Call GetSelectedComponents
+  Pop $R0
+
+  IntOp $R1 $R0 ^ $PreviousComponents
+  IntOp $NewComponents $R0 & $R1
+
+  ${If} $InstallType <> ${NewInstall}
+    IntOp $R1 $NewComponents & ${ComponentFile}
+    ${If} $R1 <> 0
+      !InsertMacro SetSectionFlag ${SecFileDaemon} ${SF_BOLD}
+    ${Else}
+      !InsertMacro ClearSectionFlag ${SecFileDaemon} ${SF_BOLD}
+    ${EndIf}
+    IntOp $R1 $NewComponents & ${ComponentStorage}
+    ${If} $R1 <> 0
+      !InsertMacro SetSectionFlag ${SecStorageDaemon} ${SF_BOLD}
+    ${Else}
+      !InsertMacro ClearSectionFlag ${SecStorageDaemon} ${SF_BOLD}
+    ${EndIf}
+    IntOp $R1 $NewComponents & ${ComponentDirector}
+    ${If} $R1 <> 0
+      !InsertMacro SetSectionFlag ${SecDirectorDaemon} ${SF_BOLD}
+    ${Else}
+      !InsertMacro ClearSectionFlag ${SecDirectorDaemon} ${SF_BOLD}
+    ${EndIf}
+    IntOp $R1 $NewComponents & ${ComponentTextConsole}
+    ${If} $R1 <> 0
+      !InsertMacro SetSectionFlag ${SecConsole} ${SF_BOLD}
+    ${Else}
+      !InsertMacro ClearSectionFlag ${SecConsole} ${SF_BOLD}
+    ${EndIf}
+    IntOp $R1 $NewComponents & ${ComponentGUIConsole}
+    ${If} $R1 <> 0
+      !InsertMacro SetSectionFlag ${SecWxConsole} ${SF_BOLD}
+    ${Else}
+      !InsertMacro ClearSectionFlag ${SecWxConsole} ${SF_BOLD}
+    ${EndIf}
+    IntOp $R1 $NewComponents & ${ComponentPDFDocs}
+    ${If} $R1 <> 0
+      !InsertMacro SetSectionFlag ${SecDocPdf} ${SF_BOLD}
+    ${Else}
+      !InsertMacro ClearSectionFlag ${SecDocPdf} ${SF_BOLD}
+    ${EndIf}
+    IntOp $R1 $NewComponents & ${ComponentHTMLDocs}
+    ${If} $R1 <> 0
+      !InsertMacro SetSectionFlag ${SecDocHtml} ${SF_BOLD}
+    ${Else}
+      !InsertMacro ClearSectionFlag ${SecDocHtml} ${SF_BOLD}
+    ${EndIf}
+  ${EndIf}
+
+  GetDlgItem $R0 $HWNDPARENT 1
+
+  IntOp $R1 $NewComponents & ${ComponentsRequiringUserConfig}
+  ${If} $R1 = 0
+    SendMessage $R0 ${WM_SETTEXT} 0 "STR:Install"
+  ${Else}
+    SendMessage $R0 ${WM_SETTEXT} 0 "STR:&Next >"
+  ${EndIf}
+
+  Pop $R1
+  Pop $R0
+FunctionEnd
+
+!include "InstallType.nsh"
 !include "ConfigPage1.nsh"
 !include "ConfigPage2.nsh"

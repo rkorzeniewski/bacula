@@ -1,21 +1,21 @@
 Function EnterConfigPage1
-  Call IsClientSelected
-  Pop $R0
-
-  Call IsStorageSelected
-  Pop $R1
-
-  ${If} $R0 = 0
-  ${AndIf} $R1 = 0
+  ${If} $AutomaticInstall = 1
     Abort
   ${EndIf}
-  
+
+  IntOp $R0 $NewComponents & ${ComponentsFileAndStorage}
+
+  ${If} $R0 = 0
+    Abort
+  ${EndIf}
+
   FileOpen $R5 "$PLUGINSDIR\ConfigPage1.ini" w
 
   StrCpy $R6 1  ; Field Number
   StrCpy $R7 0  ; Top
-  
-  ${If} $R0 = 1
+
+  IntOp $R0 $NewComponents & ${ComponentFile}
+  ${If} $R0 <> 0
     IntOp $R8 $R7 + 52
     FileWrite $R5 '[Field $R6]$\r$\nType="GroupBox"$\r$\nText="Client"$\r$\nLeft=0$\r$\nTop=$R7$\r$\nRight=300$\r$\nBottom=$R8$\r$\n$\r$\n'
     IntOp $R6 $R6 + 1
@@ -70,7 +70,8 @@ Function EnterConfigPage1
     IntOp $R7 $R7 + 16
   ${Endif}
 
-  ${If} $R1 = 1
+  IntOp $R0 $NewComponents & ${ComponentStorage}
+  ${If} $R0 <> 0
     IntOp $R8 $R7 + 52
     FileWrite $R5 '[Field $R6]$\r$\nType="GroupBox"$\r$\nText="Storage"$\r$\nLeft=0$\r$\nTop=$R7$\r$\nRight=300$\r$\nBottom=$R8$\r$\n$\r$\n'
     IntOp $R6 $R6 + 1
@@ -139,7 +140,8 @@ Function EnterConfigPage1
 
   StrCpy $R6 1  ; Field Number
 
-  ${If} $R0 = 1
+  IntOp $R0 $NewComponents & ${ComponentFile}
+  ${If} $R0 <> 0
     IntOp $R6 $R6 + 2
 
     ; Client Name
@@ -160,8 +162,9 @@ Function EnterConfigPage1
 
     IntOp $R6 $R6 + 5
   ${Endif}
-  
-  ${If} $R1 = 1
+
+  IntOp $R0 $NewComponents & ${ComponentStorage}
+  ${If} $R0 <> 0
     IntOp $R6 $R6 + 2
 
     ; Storage Name
@@ -183,16 +186,14 @@ Function EnterConfigPage1
     IntOp $R6 $R6 + 5
   ${Endif}
 
-  Push $R0
   !insertmacro MUI_INSTALLOPTIONS_SHOW
-  Pop $R0
 
-  ;
   ; Process results
-  ;
+
   StrCpy $R6 3
-  
-  ${If} $R0 = 1
+
+  IntOp $R0 $NewComponents & ${ComponentFile}
+  ${If} $R0 <> 0
     !insertmacro MUI_INSTALLOPTIONS_READ $ConfigClientName "ConfigPage1.ini" "Field $R6" "State"
 
     IntOp $R6 $R6 + 2
@@ -217,8 +218,9 @@ Function EnterConfigPage1
 
     IntOp $R6 $R6 + 3
   ${Endif}
-  
-  ${If} $R1 = 1
+
+  IntOp $R0 $NewComponents & ${ComponentStorage}
+  ${If} $R0 <> 0
     !insertmacro MUI_INSTALLOPTIONS_READ $ConfigStorageName "ConfigPage1.ini" "Field $R6" "State"
 
     IntOp $R6 $R6 + 2
@@ -247,8 +249,9 @@ FunctionEnd
 
 Function LeaveConfigPage1
   StrCpy $R6 5
-  
-  ${If} $R0 = 1
+
+  IntOp $R0 $NewComponents & ${ComponentFile}
+  ${If} $R0 <> 0
     !insertmacro MUI_INSTALLOPTIONS_READ $R0 "ConfigPage1.ini" "Field $R6" "State"
     ${If} $R0 < 1024
     ${OrIf} $R0 > 65535
@@ -268,7 +271,8 @@ Function LeaveConfigPage1
     IntOp $R6 $R6 + 9
   ${Endif}
   
-  ${If} $R1 = 1
+  IntOp $R0 $NewComponents & ${ComponentStorage}
+  ${If} $R0 <> 0
     !insertmacro MUI_INSTALLOPTIONS_READ $R0 "ConfigPage1.ini" "Field $R6" "State"
     ${If} $R0 < 1024
     ${OrIf} $R0 > 65535

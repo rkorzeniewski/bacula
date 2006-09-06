@@ -145,8 +145,9 @@ bacService::RunningAsService()
 BOOL
 bacService::KillRunningCopy()
 {
-  while (PostToBacula(WM_CLOSE, 0, 0))
-      {  }
+  while (PostToBacula(WM_CLOSE, 0, 0)) {
+     Sleep(500);
+  }
   return TRUE;
 }
 

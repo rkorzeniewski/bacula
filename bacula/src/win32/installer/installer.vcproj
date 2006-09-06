@@ -113,6 +113,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\InstallType.ini"
+			>
+		</File>
+		<File
+			RelativePath=".\InstallType.nsh"
+			>
+		</File>
+		<File
 			RelativePath=".\winbacula.nsi"
 			>
 		</File>

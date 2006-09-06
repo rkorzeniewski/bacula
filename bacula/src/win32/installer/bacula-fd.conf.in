@@ -13,8 +13,8 @@
 FileDaemon {                            # this is me
   Name = @client_name@
   FDport = @client_port@                # where we listen for the director
-  WorkingDirectory = @working_dir@
-  Pid Directory = @working_dir@
+  WorkingDirectory = "@working_dir@"
+  Pid Directory = "@working_dir@"
   Maximum Concurrent Jobs = @client_maxjobs@
 }
 
