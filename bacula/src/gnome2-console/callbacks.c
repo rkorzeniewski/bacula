@@ -1,4 +1,17 @@
 /*
+   Copyright (C) 2000-2006 Kern Sibbald
+
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   version 2 as amended with additional clauses defined in the
+   file LICENSE in the main source directory.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+   the file LICENSE for additional details.
+ */
+/*
  *    Version $Id$
  */
 
@@ -383,8 +396,8 @@ static char *get_spin_text(GtkWidget *dialog, const char *spin_name)
 void
 on_run_ok_clicked(GtkButton *button, gpointer user_data)
 {
-   char *job, *fileset, *level, *client, *pool, *when, *where, *storage;
-
+   char *job, *fileset, *level, *client, *pool, *when, *where, *storage, *priority;
+   
    gtk_widget_hide(run_dialog);
    gtk_main_quit();
 
@@ -394,20 +407,20 @@ on_run_ok_clicked(GtkButton *button, gpointer user_data)
    pool    = get_combo_text(run_dialog, "combo_pool");
    storage = get_combo_text(run_dialog, "combo_storage");
    level   = get_combo_text(run_dialog, "combo_level");
-
+   priority = get_spin_text(run_dialog, "spinbutton1");
    when    = get_entry_text(run_dialog, "entry_when");
    where   = get_entry_text(run_dialog, "entry_where");
 
    if (!job || !fileset || !client || !pool || !storage ||
-       !level || !when || !where) {
+       !level || !priority || !when || !where) {
       set_status_ready();
       return;
    }
 
    bsnprintf(cmd, sizeof(cmd),
              "run job=\"%s\" fileset=\"%s\" level=%s client=\"%s\" pool=\"%s\" "
-             "when=\"%s\" where=\"%s\" storage=\"%s\"",
-             job, fileset, level, client, pool, when, where, storage);
+             "when=\"%s\" where=\"%s\" storage=\"%s\" priority=\"%s\"",
+             job, fileset, level, client, pool, when, where, storage, priority);
    write_director(cmd);
    set_text(cmd, strlen(cmd));
    write_director("yes");

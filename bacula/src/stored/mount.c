@@ -216,7 +216,7 @@ read_volume:
       recycle = strcmp(dev->VolCatInfo.VolCatStatus, "Recycle") == 0;
       break;                    /* got a Volume */
    case VOL_NAME_ERROR:
-      VOLUME_CAT_INFO VolCatInfo, devVolCatInfo;
+      VOLUME_CAT_INFO dcrVolCatInfo, devVolCatInfo;
 
       /* If not removable, Volume is broken */
       if (!dev->is_removable()) {
@@ -239,7 +239,7 @@ read_volume:
        *  this volume is really OK. If not, put back the desired
        *  volume name, mark it not in changer and continue.
        */
-      memcpy(&VolCatInfo, &dcr->VolCatInfo, sizeof(VolCatInfo));
+      memcpy(&dcrVolCatInfo, &dcr->VolCatInfo, sizeof(dcrVolCatInfo));
       memcpy(&devVolCatInfo, &dev->VolCatInfo, sizeof(devVolCatInfo));
       /* Check if this is a valid Volume in the pool */
       bstrncpy(dcr->VolumeName, dev->VolHdr.VolumeName, sizeof(dcr->VolumeName));
@@ -248,6 +248,11 @@ read_volume:
          /* This gets the info regardless of the Pool */
          bstrncpy(dcr->VolumeName, dev->VolHdr.VolumeName, sizeof(dcr->VolumeName));
          if (autochanger && !dir_get_volume_info(dcr, GET_VOL_INFO_FOR_READ)) {
+            /*
+             * If we get here, we know we cannot write on the Volume,
+             *  and we know that we cannot read it either, so it 
+             *  is not in the autochanger.
+             */
             mark_volume_not_inchanger(dcr);
          }
          memcpy(&dev->VolCatInfo, &devVolCatInfo, sizeof(dev->VolCatInfo));
@@ -255,12 +260,15 @@ read_volume:
          Jmsg(jcr, M_WARNING, 0, _("Director wanted Volume \"%s\".\n"
               "    Current Volume \"%s\" not acceptable because:\n"
               "    %s"),
-             VolCatInfo.VolCatName, dev->VolHdr.VolumeName,
+             dcrVolCatInfo.VolCatName, dev->VolHdr.VolumeName,
              jcr->dir_bsock->msg);
          ask = true;
+         /* Restore saved DCR before continuing */
+         memcpy(&dcr->VolCatInfo, &dcrVolCatInfo, sizeof(dcr->VolCatInfo));
          goto mount_next_vol;
       }
-      /* This was not the volume we expected, but it is OK with
+      /*
+       * This was not the volume we expected, but it is OK with
        * the Director, so use it.
        */
       Dmsg1(150, "want new name=%s\n", dcr->VolumeName);
