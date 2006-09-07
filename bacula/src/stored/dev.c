@@ -1817,6 +1817,30 @@ void DEVICE::close()
    openmode = 0;
 }
 
+/*
+ * This call closes the device, but it is used in DVD handling
+ *  where we close one part and then open the next part. The
+ *  difference between close_part() and close() is that close_part()
+ *  saves the state information of the device (e.g. the Volume lable,
+ *  the Volume Catalog record, ...  This permits opening and closing
+ *  the Volume parts multiple times without losing track of what the    
+ *  main Volume parameters are.
+ */
+void DEVICE::close_part(DCR *dcr)
+{
+   VOLUME_LABEL saveVolHdr;
+   VOLUME_CAT_INFO saveVolCatInfo;     /* Volume Catalog Information */
+
+
+   memcpy(&saveVolHdr, &VolHdr, sizeof(saveVolHdr));
+   memcpy(&saveVolCatInfo, &VolCatInfo, sizeof(saveVolCatInfo));
+   close();                           /* close current part */
+   memcpy(&VolHdr, &saveVolHdr, sizeof(VolHdr));
+   memcpy(&VolCatInfo, &saveVolCatInfo, sizeof(VolCatInfo));
+   memcpy(&dcr->VolCatInfo, &saveVolCatInfo, sizeof(dcr->VolCatInfo));
+}
+
+
 
 
 bool DEVICE::truncate(DCR *dcr) /* We need the DCR for DVD-writing */

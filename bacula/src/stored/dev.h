@@ -343,6 +343,7 @@ public:
    void block(int why);          /* in dev.c */
    void unblock();               /* in dev.c */
    void close();                 /* in dev.c */
+   void close_part(DCR *dcr);    /* in dev.c */
    bool truncate(DCR *dcr);      /* in dev.c */
    int open(DCR *dcr, int mode); /* in dev.c */
    void term(void);              /* in dev.c */
