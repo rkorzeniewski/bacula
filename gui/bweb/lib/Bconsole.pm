@@ -42,7 +42,7 @@ sub new
 	pref => $arg{pref},	# Pref object
 	bconsole => undef,	# Expect object
 	log_stdout => $arg{log_stdout} || 0,
-	timeout => $arg{debug} || 10,
+	timeout => $arg{timeout} || 20,
 	debug   => $arg{debug} || 0,
     };
 
