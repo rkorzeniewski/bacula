@@ -2,6 +2,8 @@
 
 General:
 07Sep06
+ebl  Add character substitution in Job/JobDefs WriteBootStrap.
+     You can use now 'WriteBootStrap = "/path/%c_%n.bsr"'
 kes  Apply patch supplied in bug #656 to pass priority field
      in the run dialog to the Director.
 kes  Restore DCR after VOL_NAME_ERROR in mount.c.  Hopefully
