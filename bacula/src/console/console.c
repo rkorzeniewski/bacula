@@ -66,13 +66,15 @@ extern "C" void got_sigtin(int sig);
 /* Static variables */
 static char *configfile = NULL;
 static BSOCK *UA_sock = NULL;
-static DIRRES *dir;
+static DIRRES *dir = NULL;
+static CONRES *cons = NULL;
 static FILE *output = stdout;
 static bool teeout = false;               /* output to output and stdout */
 static bool stop = false;
 static bool no_conio = false;
 static int argc;
 static int numdir;
+static int numcon;
 static POOLMEM *args;
 static char *argk[MAX_CMD_ARGS];
 static char *argv[MAX_CMD_ARGS];
@@ -150,7 +152,7 @@ static struct cmdstruct commands[] = {
  { N_("time"),       timecmd,      _("print current time")},
  { N_("version"),    versioncmd,   _("print Console's version")},
  { N_("exit"),       quitcmd,      _("exit = quit")},
- { N_("zed_keyst"),  zed_keyscmd,  _("zed_keys = use zed keys instead of bash keys")},
+ { N_("zed_keys"),   zed_keyscmd,  _("zed_keys = use zed keys instead of bash keys")},
              };
 #define comsize (sizeof(commands)/sizeof(struct cmdstruct))
 
@@ -423,6 +425,17 @@ int main(int argc, char *argv[])
 
    (void)WSA_Init();                        /* Initialize Windows sockets */
 
+   LockRes();
+   numdir = 0;
+   foreach_res(dir, R_DIRECTOR) {
+      numdir++;
+   }
+   numcon = 0;
+   foreach_res(cons, R_CONSOLE) {
+      numcon++;
+   }
+   UnlockRes();
+
    if (numdir > 1) {
       struct sockaddr client_addr;
       memset(&client_addr, 0, sizeof(client_addr));
@@ -445,22 +458,42 @@ try_again:
          senditf(_("You must enter a number between 1 and %d\n"), numdir);
          goto try_again;
       }
+      term_bsock(UA_sock);
       LockRes();
-      dir = NULL;
       for (i=0; i<item; i++) {
          dir = (DIRRES *)GetNextRes(R_DIRECTOR, (RES *)dir);
       }
+      /* Look for a console linked to this director */
+      for (i=0; i<numcon; i++) {
+         cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)cons);
+         if (cons->director && strcmp(cons->director, dir->hdr.name) == 0) {
+            break;
+         }
+         cons = NULL;
+      }
+      /* Look for the first non-linked console */
+      if (cons == NULL) {
+         for (i=0; i<numcon; i++) {
+            cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)cons);
+            if (cons->director == NULL)
+               break;
+            cons = NULL;
+        }
+      }
       UnlockRes();
-      term_bsock(UA_sock);
-   } else {
+   }
+   /* If no director, take first one */
+   if (!dir) {
       LockRes();
       dir = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
       UnlockRes();
    }
-
-   LockRes();
-   CONRES *cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)NULL);
-   UnlockRes();
+   /* If no console, take first one */
+   if (!cons) {
+      LockRes();
+      cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)NULL);
+      UnlockRes();
+   }
 
    senditf(_("Connecting to Director %s:%d\n"), dir->address,dir->DIRport);
 
@@ -483,7 +516,6 @@ try_again:
          terminate_console(0);
          return 1;
       }
-
    }
 
    /* Initialize Director TLS context */

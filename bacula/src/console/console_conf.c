@@ -20,7 +20,7 @@
  *     Kern Sibbald, January MM, September MM
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -81,6 +81,7 @@ static RES_ITEM cons_items[] = {
    {"tlscacertificatedir", store_dir,  ITEM(res_cons.tls_ca_certdir), 0, 0, 0},
    {"tlscertificate", store_dir,       ITEM(res_cons.tls_certfile), 0, 0, 0},
    {"tlskey",         store_dir,       ITEM(res_cons.tls_keyfile), 0, 0, 0},
+   {"director",       store_str,       ITEM(res_cons.director), 0, 0, 0},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 

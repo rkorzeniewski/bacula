@@ -35,10 +35,8 @@ Priority:
 For 1.39:
 - When reading through parts on the DVD, the DVD is mounted and
   unmounted for each part.
-- Restricted consoles start in the Default catalog even if it
-  is not permitted.
 - Make sure that the restore options don't permit "seeing" other
-  Client's job data.
+  Client's job data. -- mostly fixed.
 - Implement Python event for backing up/restoring a file.
 - Change dbcheck to tell users to use native tools for fixing
   broken databases, and to ensure they have the proper indexes.
@@ -54,9 +52,6 @@ For 1.39:
   routines.
 - Do we migrate appendable Volumes?
 - Remove queue.c code.
-- Fix re-read of last block to check if job has actually written
-  a block, and check if block was written by a different job
-  (i.e. multiple simultaneous jobs writing).
 - Some users claim that they must do two prune commands to get a
   Volume marked as purged.
 - Print warning message if LANG environment variable does not specify
@@ -69,6 +64,11 @@ For 1.39:
   .move eject device=xxx toslot=yyy the same as above, but with a new 
      target slot. The catalog should be updated accordingly.
   .move transfer device=xxx fromslot=yyy toslot=zzz
+
+Low priority:
+- Fix re-read of last block to check if job has actually written
+  a block, and check if block was written by a different job
+  (i.e. multiple simultaneous jobs writing).
 - Figure out how to configure query.sql.  Suggestion to use m4:
     == changequote.m4 ===
     changequote(`[',`]')dnl
@@ -95,8 +95,6 @@ For 1.39:
 
   The problem is that it requires m4, which is not present on all machines
   at ./configure time.
-
-Low priority:
 - Get Perl replacement for bregex.c
 - Given all the problems with FIFOs, I think the solution is to do something a
   little different, though I will look at the code and see if there is not some
@@ -1684,3 +1682,6 @@ Block Position: 0
     > the Volumes in the magazine disabled prior to taking them offsite, and mark 
     > them all enabled when bringing them back on site.   Coupled with the options 
     > to the slots keyword, you can apply the enable/disable to any or all volumes.
+- Restricted consoles start in the Default catalog even if it
+  is not permitted.
+

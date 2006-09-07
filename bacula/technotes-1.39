@@ -2,6 +2,11 @@
 
 General:
 07Sep06
+kes  Use get_catalog_resource() to open catalog database
+     to ensure that ACLs are respected and that user is
+     correctly prompted for database.
+kes  Integrate multiple console/director patch from 
+     Carsten Paeth calle@calle.in-berlin.de
 ebl  Add character substitution in Job/JobDefs WriteBootStrap.
      You can use now 'WriteBootStrap = "/path/%c_%n.bsr"'
 kes  Apply patch supplied in bug #656 to pass priority field
