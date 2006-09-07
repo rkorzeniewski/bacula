@@ -1,6 +1,9 @@
               Technical notes on version 1.39  
 
 General:
+07Sep06
+ebl  Add support of encrypted data stream to bscan.
+     display data_len instead of data content (may be binary)
 06Sep06
 kes  Add dev->close() in dir_ask_sysop_to_mount_volume() in
      bcopy. Fixes bug #669 reported by Eric.
