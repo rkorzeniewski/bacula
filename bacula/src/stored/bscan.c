@@ -670,6 +670,13 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    case STREAM_WIN32_DATA:
    case STREAM_FILE_DATA:
    case STREAM_SPARSE_DATA:
+   case STREAM_ENCRYPTED_FILE_DATA:
+   case STREAM_ENCRYPTED_WIN32_DATA:
+   case STREAM_ENCRYPTED_MACOS_FORK_DATA:
+      /*
+       * For encrypted stream, this is an approximation.
+       * The data must be decrypted to know the correct length.
+       */
       mjcr->JobBytes += rec->data_len;
       if (rec->Stream == STREAM_SPARSE_DATA) {
          mjcr->JobBytes -= sizeof(uint64_t);
@@ -679,8 +686,13 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       break;
 
    case STREAM_GZIP_DATA:
-      mjcr->JobBytes += rec->data_len; /* No correct, we should expand it */
-      free_jcr(mjcr);                 /* done using JCR */
+   case STREAM_ENCRYPTED_FILE_GZIP_DATA:
+   case STREAM_ENCRYPTED_WIN32_GZIP_DATA:
+      /* No correct, we should (decrypt and) expand it 
+         done using JCR 
+      */
+      mjcr->JobBytes += rec->data_len;
+      free_jcr(mjcr);                 
       break;
 
    case STREAM_SPARSE_GZIP_DATA:
@@ -758,7 +770,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       break;
 
    default:
-      Pmsg2(0, _("Unknown stream type!!! stream=%d data=%s\n"), rec->Stream, rec->data);
+      Pmsg2(0, _("Unknown stream type!!! stream=%d len=%i\n"), rec->Stream, rec->data_len);
       break;
    }
    return true;
