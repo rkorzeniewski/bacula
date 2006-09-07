@@ -489,15 +489,16 @@ void update_bootstrap_file(JCR *jcr)
       FILE *fd;
       BPIPE *bpipe = NULL;
       int got_pipe = 0;
-      char *fname = jcr->job->WriteBootstrap;
+      POOLMEM *fname = get_pool_memory(PM_FNAME);
+      fname = edit_job_codes(jcr, fname, jcr->job->WriteBootstrap, "");
+
       VOL_PARAMS *VolParams = NULL;
       int VolCount;
       char edt[50];
 
       if (*fname == '|') {
-         fname++;
          got_pipe = 1;
-         bpipe = open_bpipe(fname, 0, "w");
+         bpipe = open_bpipe(fname+1, 0, "w"); /* skip first char "|" */
          fd = bpipe ? bpipe->wfd : NULL;
       } else {
          /* ***FIXME*** handle BASE */
@@ -545,5 +546,6 @@ void update_bootstrap_file(JCR *jcr)
               "%s: ERR=%s\n"), fname, be.strerror());
          set_jcr_job_status(jcr, JS_ErrorTerminated);
       }
+      free_pool_memory(fname);
    }
 }
