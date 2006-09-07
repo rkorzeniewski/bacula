@@ -2,6 +2,11 @@
 
 General:
 07Sep06
+kes  Apply patch supplied in bug #656 to pass priority field
+     in the run dialog to the Director.
+kes  Restore DCR after VOL_NAME_ERROR in mount.c.  Hopefully
+     this will fix bug #627 where Bacula eventually gets 
+     confused about what Volume it wants.
 kes  Add a new close_part() class in the SD to save the device
      state around open/close_part/open for DVD writing.  This
      should fix the num_dvd_parts getting zeroed as reported by
