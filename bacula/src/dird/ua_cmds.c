@@ -1586,9 +1586,8 @@ static int version_cmd(UAContext *ua, const char *cmd)
 }
 
 
-/* A bit brain damaged in that if the user has not done
- * a "use catalog xxx" command, we simply find the first
- * catalog resource and open it.
+/*
+ * Open the catalog database.
  */
 bool open_db(UAContext *ua)
 {
@@ -1596,19 +1595,10 @@ bool open_db(UAContext *ua)
       return true;
    }
    if (!ua->catalog) {
-      LockRes();
-      ua->catalog = (CAT *)GetNextRes(R_CATALOG, NULL);
-      UnlockRes();
+      ua->catalog = get_catalog_resource(ua);
       if (!ua->catalog) {
          bsendmsg(ua, _("Could not find a Catalog resource\n"));
          return false;
-      } else if (!acl_access_ok(ua, Catalog_ACL, ua->catalog->hdr.name)) {
-         bsendmsg(ua, _("You must specify a \"use <catalog-name>\" command before continuing.\n"));
-         ua->catalog = NULL;
-         return false;
-      } else {
-         bsendmsg(ua, _("Using default Catalog name=%s DB=%s\n"),
-            ua->catalog->hdr.name, ua->catalog->db_name);
       }
    }
 

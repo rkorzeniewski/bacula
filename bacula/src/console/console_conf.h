@@ -6,7 +6,7 @@
  *     Version $Id$
  */
 /*
-   Copyright (C) 2000-2005 Kern Sibbald
+   Copyright (C) 2000-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -57,6 +57,7 @@ struct CONRES {
    char *tls_ca_certdir;              /* TLS CA Certificate Directory */
    char *tls_certfile;                /* TLS Client Certificate File */
    char *tls_keyfile;                 /* TLS Client Key File */
+   char *director;                    /* bind to director */
 
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
 };
