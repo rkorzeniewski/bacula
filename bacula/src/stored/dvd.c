@@ -470,7 +470,6 @@ bool dvd_write_part(DCR *dcr)
 int dvd_open_next_part(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
-   VOLUME_LABEL VolHdr;
 
    Dmsg6(29, "Enter: == open_next_part part=%d npart=%d dev=%s vol=%s mode=%d file_addr=%d\n", 
       dev->part, dev->num_dvd_parts, dev->print_name(),
@@ -487,14 +486,7 @@ int dvd_open_next_part(DCR *dcr)
       return dev->fd;
    }
 
-   /*              
-    * Note, when we close, the Volume header is zeroed. Since
-    *  we reopen, but are in fact opening the same volume without
-    *  re-reading the Volume header, we simply save and restore it.
-    */
-   memcpy(&VolHdr, &dev->VolHdr, sizeof(VolHdr));
-   dev->close();                      /* close current part */
-   memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
+   dev->close_part(dcr);               /* close current part */
    
    /*
     * If we have a spooled part open, write it to the
@@ -561,8 +553,6 @@ int dvd_open_next_part(DCR *dcr)
    if (dev->open(dcr, OPEN_READ_ONLY) < 0) {
       return -1;
    } 
-   /* Restore Volume header record */
-   memcpy(&dev->VolHdr, &VolHdr, sizeof(dev->VolHdr));
    dev->set_labeled();                   /* all next parts are "labeled" */
    
    return dev->fd;
@@ -576,20 +566,12 @@ int dvd_open_next_part(DCR *dcr)
 int dvd_open_first_part(DCR *dcr, int mode)
 {
    DEVICE *dev = dcr->dev;
-   VOLUME_LABEL VolHdr;
 
    Dmsg5(29, "Enter: ==== open_first_part dev=%s Vol=%s mode=%d num_dvd_parts=%d append=%d\n", dev->print_name(), 
          dev->VolCatInfo.VolCatName, dev->openmode, dev->num_dvd_parts, dev->can_append());
 
 
-   /*              
-    * Note, when we close, the Volume header is zeroed. Since
-    *  we reopen, but are in fact opening the same volume without
-    *  re-reading the Volume header, we simply save and restore it.
-    */
-   memcpy(&VolHdr, &dev->VolHdr, sizeof(VolHdr));
-   dev->close();
-   memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
+   dev->close_part(dcr);
 
    Dmsg2(400, "Call dev->open(vol=%s, mode=%d)\n", dcr->VolCatInfo.VolCatName, 
          mode);
@@ -597,9 +579,6 @@ int dvd_open_first_part(DCR *dcr, int mode)
    dev->part = 1;
    dev->part_start = 0;
 
-
-   /* Restore Volume header record */
-   memcpy(&dev->VolHdr, &VolHdr, sizeof(dev->VolHdr));
    if (dev->open(dcr, mode) < 0) {
       Dmsg0(400, "open dev() failed\n");
       return -1;
@@ -778,8 +757,7 @@ bool truncate_dvd(DCR *dcr)
 {
    DEVICE* dev = dcr->dev;
 
-   dev->close();
-   memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
+   dev->close_part(dcr);
 
    if (!unmount_dvd(dev, 1)) {
       Dmsg0(400, "truncate_dvd: Failed to unmount DVD\n");
@@ -811,8 +789,7 @@ bool truncate_dvd(DCR *dcr)
       return false;
    }
    
-   dev->close();
-   memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
+   dev->close_part(dcr);
    
    Dmsg0(400, "truncate_dvd: Opening first part (2)...\n");
    
@@ -904,7 +881,7 @@ bool check_can_write_on_non_blank_dvd(DCR *dcr)
                   filename.c_str(), be.strerror());
                return false;
             }
-            Dmsg2(99, "check_can_write_on_non_blank_dvd: size of %s is %d\n", 
+            Dmsg2(99, "check_can_write_on_non_blank_dvd: size of %s is %lld\n", 
                filename.c_str(), filestat.st_size);
             matched = filestat.st_size == 0;
          }

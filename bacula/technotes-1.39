@@ -2,6 +2,12 @@
 
 General:
 07Sep06
+kes  Add a new close_part() class in the SD to save the device
+     state around open/close_part/open for DVD writing.  This
+     should fix the num_dvd_parts getting zeroed as reported by
+     Richard Mortimer.
+kes  Apply patch from Richard Mortimer that correct edit code
+     for debug output of st_size.
 ebl  Add support of encrypted data stream to bscan.
      display data_len instead of data content (may be binary)
 06Sep06
