@@ -334,7 +334,7 @@ FunctionEnd
 Function InstallCommonFiles
   ${If} $CommonFilesDone = 0
     SetOutPath "$INSTDIR"
-    File "..\Readme.txt"
+    File "Readme.txt"
 
     SetOutPath "$INSTDIR\bin"
 !if "${BUILD_TOOLS}" == "VC8"
