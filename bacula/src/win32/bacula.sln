@@ -48,6 +48,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		External-msvc = External-msvc
 		..\..\autoconf\bacula-macros\largefiles.m4 = ..\..\autoconf\bacula-macros\largefiles.m4
 		..\..\autoconf\bacula-macros\os.m4 = ..\..\autoconf\bacula-macros\os.m4
+		README.mingw32 = README.mingw32
+		README.vc8 = README.vc8
+		README.win32 = README.win32
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Header Files", "Header Files", "{C8301485-CFD1-43D4-827C-8EA050C8E256}"

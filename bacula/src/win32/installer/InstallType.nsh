@@ -8,13 +8,11 @@ Function EnterInstallType
   ReadRegStr $R0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "UninstallString"
 
   ${If} "$R0" != ""
-    ; Processing Upgrade - Get Install Directory
-    ${GetParent} $R0 $OldInstallDir
-
     ; Check registry for new installer
-    ReadRegStr $R0 HKLM "Software\Bacula" "InstallLocation"
-    ${If} "$R0" != ""
+    ReadRegStr $R1 HKLM "Software\Bacula" "InstallLocation"
+    ${If} "$R1" != ""
       ; New Installer 
+      StrCpy $OldInstallDir $R1
       StrCpy $InstallType ${UpgradeInstall}
 
       SetShellVarContext all
@@ -22,18 +20,16 @@ Function EnterInstallType
       StrCpy $R1 "$APPDATA\Bacula"
       StrCpy $R2 "$INSTDIR\Doc"
 
-      ; Debugging code
-      ${If} "$R0" != "$OldInstallDir"
-        DetailPrint "Uninstall directory = $OldInstallDir, Install Location = $R0"
-        StrCpy $OldInstallDir $R0
-      ${EndIf}
-
       ReadRegDWORD $PreviousComponents HKLM "Software\Bacula" "Components"
 
       WriteINIStr "$PLUGINSDIR\InstallType.ini" "Field 1" "Text" "A previous installation has been found in $OldInstallDir.  Please choose the installation type for any additional components you select."
       WriteINIStr "$PLUGINSDIR\InstallType.ini" "Field 5" "Text" "The configuration files for additional components will be generated using defaults applicable to most installations."
       WriteINIStr "$PLUGINSDIR\InstallType.ini" "Field 6" "Text" "The configuration defaults for additional components will be displayed and you will be given the chance to make changes before the configuration files are written."
     ${Else}
+      ; Processing Upgrade - Get Install Directory
+      ${StrRep} $R0 $R0 '"' ''
+      ${GetParent} $R0 $OldInstallDir
+
       ; Old Installer 
       StrCpy $InstallType ${MigrateInstall}
       StrCpy $R1 "$OldInstallDir\bin"

@@ -121,6 +121,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Readme.txt"
+			>
+		</File>
+		<File
 			RelativePath=".\winbacula.nsi"
 			>
 		</File>

@@ -88,6 +88,7 @@ Page custom EnterInstallType
 Page custom EnterConfigPage1 LeaveConfigPage1
 Page custom EnterConfigPage2 LeaveConfigPage2
 !InsertMacro MUI_PAGE_INSTFILES
+!Define      MUI_FINISHPAGE_SHOWREADME $INSTDIR\Readme.txt
 !InsertMacro MUI_PAGE_FINISH
 
 !InsertMacro MUI_UNPAGE_WELCOME
@@ -113,7 +114,7 @@ Var OptService
 Var OptStart
 Var OptSilent
 
-Var DependenciesDone
+Var CommonFilesDone
 Var DatabaseDone
 
 Var OsIsNT
@@ -196,7 +197,7 @@ Function .onInit
   StrCpy $OptService 1
   StrCpy $OptStart 1
   StrCpy $OptSilent 0
-  StrCpy $DependenciesDone 0
+  StrCpy $CommonFilesDone 0
   StrCpy $DatabaseDone 0
   StrCpy $OsIsNT 0
   StrCpy $AutomaticInstall 0
@@ -330,10 +331,12 @@ Function .onSelChange
   Call UpdateComponentUI
 FunctionEnd
 
-Function CopyDependencies
-  SetOutPath "$INSTDIR\bin"
+Function InstallCommonFiles
+  ${If} $CommonFilesDone = 0
+    SetOutPath "$INSTDIR"
+    File "..\Readme.txt"
 
-  ${If} $DependenciesDone = 0
+    SetOutPath "$INSTDIR\bin"
 !if "${BUILD_TOOLS}" == "VC8"
     File "${VC_REDIST_DIR}\msvcm80.dll"
     File "${VC_REDIST_DIR}\msvcp80.dll"
@@ -363,7 +366,10 @@ Function CopyDependencies
 !endif
     File "${DEPKGS_BIN}\openssl.exe"
     File "${BACULA_BIN}\bacula.dll"
-    StrCpy $DependenciesDone 1
+
+    CreateShortCut "$SMPROGRAMS\Bacula\View Readme.lnk" "write.exe" '"$INSTDIR\Readme.txt"'
+
+    StrCpy $CommonFilesDone 1
   ${EndIf}
 FunctionEnd
 
@@ -505,12 +511,31 @@ Section "-Initialize"
 
   FileClose $R1
 
+  ${If} $InstallType = ${MigrateInstall}
+    FileOpen $R1 $PLUGINSDIR\migrate.sed w
+    ${StrRep} $R2 "$APPDATA\Bacula\Work" "\" "\\\\"
+    FileWrite $R1 's;\(Working *Directory *= *\)[^ ][^ ]*.*$$;\1"$R2";$\r$\n'
+    FileWrite $R1 's;\(Pid *Directory *= *\)[^ ][^ ]*.*$$;\1"$R2";$\r$\n'
+    FileClose $R1
+  ${EndIf}
 SectionEnd
 
 SectionGroup "Client" SecGroupClient
 
 Section "File Service" SecFileDaemon
   SectionIn 1 2 3
+
+  ${If} ${FileExists} "$OldInstallDir\bin\bacula-fd.exe"
+    ${If} $InstallType <> ${MigrateInstall}
+      nsExec::ExecToLog '"$OldInstallDir\bin\bacula-fd.exe" /silent /kill'     ; Shutdown any bacula that could be running
+      Sleep 3000
+      nsExec::ExecToLog '"$OldInstallDir\bin\bacula-fd.exe" /silent /remove'   ; Remove existing service
+    ${Else}
+      nsExec::ExecToLog '"$OldInstallDir\bin\bacula-fd.exe" /kill'     ; Shutdown any bacula that could be running
+      Sleep 3000
+      nsExec::ExecToLog '"$OldInstallDir\bin\bacula-fd.exe" /remove'   ; Remove existing service
+    ${EndIf}
+  ${EndIf}
 
   SetOutPath "$INSTDIR\bin"
 
@@ -519,13 +544,14 @@ Section "File Service" SecFileDaemon
   ${If} $InstallType = ${MigrateInstall}
   ${AndIf} ${FileExists} "$OldInstallDir\bin\bacula-fd.conf"
     CopyFiles "$OldInstallDir\bin\bacula-fd.conf" "$APPDATA\Bacula"
+    nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\migrate.sed" -i.bak "$APPDATA\Bacula\bacula-fd.conf"'
   ${Else}
     ${Unless} ${FileExists} "$APPDATA\Bacula\bacula-fd.conf"
       File "/oname=$PLUGINSDIR\bacula-fd.conf.in" "bacula-fd.conf.in"
 
       nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\bacula-fd.conf.in"'
       CopyFiles "$PLUGINSDIR\bacula-fd.conf.in" "$APPDATA\Bacula\bacula-fd.conf"
-    ${EndIf}
+    ${EndUnless}
   ${EndIf}
 
   ${If} $OsIsNT = 1
@@ -548,6 +574,12 @@ SectionGroup "Server" SecGroupServer
 
 Section "Storage Service" SecStorageDaemon
   SectionIn 2 3
+
+  ${If} ${FileExists} "$OldInstallDir\bin\bacula-sd.exe"
+    nsExec::ExecToLog '"$OldInstallDir\bin\bacula-sd.exe" /silent /kill'     ; Shutdown any bacula that could be running
+    Sleep 3000
+    nsExec::ExecToLog '"$OldInstallDir\bin\bacula-sd.exe" /silent /remove'   ; Remove existing service
+  ${EndIf}
 
   SetOutPath "$INSTDIR\bin"
 
@@ -589,6 +621,12 @@ SectionEnd
 Section "Director Service" SecDirectorDaemon
   SectionIn 2 3
 
+  ${If} ${FileExists} "$OldInstallDir\bin\bacula-dir.exe"
+    nsExec::ExecToLog '"$OldInstallDir\bin\bacula-dir.exe" /silent /kill'     ; Shutdown any bacula that could be running
+    Sleep 3000
+    nsExec::ExecToLog '"$OldInstallDir\bin\bacula-dir.exe" /silent /remove'   ; Remove existing service
+  ${EndIf}
+
   SetOutPath "$INSTDIR\bin"
 
   Call InstallDatabase
@@ -617,7 +655,7 @@ Section "Director Service" SecDirectorDaemon
     File ${CATS_DIR}\update_postgresql_tables.sql
     File /oname=grant_privileges.cmd ${CATS_DIR}\grant_postgresql_privileges.cmd
     File ${CATS_DIR}\grant_postgresql_privileges.sql
-  ${ElseIf} $ConfigDirectorDB = 3
+  ${ElseIf} $ConfigDirectorDB = 4
     File /oname=create_database.cmd ${CATS_DIR}\create_bdb_database.cmd
     File /oname=drop_database.cmd ${CATS_DIR}\drop_bdb_database.cmd
     File /oname=make_tables.cmd ${CATS_DIR}\make_bdb_tables.cmd
@@ -657,7 +695,7 @@ Section "Command Console" SecConsole
   SetOutPath "$INSTDIR\bin"
 
   File "${BACULA_BIN}\bconsole.exe"
-  Call CopyDependencies
+  Call InstallCommonFiles
 
   ${If} $InstallType = ${MigrateInstall}
   ${AndIf} ${FileExists} "$OldInstallDir\bin\bconsole.conf"
@@ -683,7 +721,7 @@ Section "Graphical Console" SecWxConsole
   
   SetOutPath "$INSTDIR\bin"
 
-  Call CopyDependencies
+  Call InstallCommonFiles
 !if "${BUILD_TOOLS}" == "VC8"
   File "${DEPKGS_BIN}\wxbase270_vc_bacula.dll"
   File "${DEPKGS_BIN}\wxmsw270_core_vc_bacula.dll"
@@ -803,27 +841,27 @@ UninstallText "This will uninstall Bacula. Hit next to continue."
 
 Section "Uninstall"
   ; Shutdown any baculum that could be running
-  nsExec::ExecToLog '"$INSTDIR\bin\bacula-fd.exe" /kill'
-  nsExec::ExecToLog '"$INSTDIR\bin\bacula-sd.exe" /kill'
-  nsExec::ExecToLog '"$INSTDIR\bin\bacula-dir.exe" /kill'
+  nsExec::ExecToLog '"$INSTDIR\bin\bacula-fd.exe" /silent /kill'
+  nsExec::ExecToLog '"$INSTDIR\bin\bacula-sd.exe" /silent /kill'
+  nsExec::ExecToLog '"$INSTDIR\bin\bacula-dir.exe" /silent /kill'
   Sleep 3000
 
   ReadRegDWORD $R0 HKLM "Software\Bacula" "Service_Bacula-fd"
   ${If} $R0 = 1
     ; Remove bacula service
-    nsExec::ExecToLog '"$INSTDIR\bin\bacula-fd.exe" /remove'
+    nsExec::ExecToLog '"$INSTDIR\bin\bacula-fd.exe" /silent /remove'
   ${EndIf}
   
   ReadRegDWORD $R0 HKLM "Software\Bacula" "Service_Bacula-sd"
   ${If} $R0 = 1
     ; Remove bacula service
-    nsExec::ExecToLog '"$INSTDIR\bin\bacula-sd.exe" /remove'
+    nsExec::ExecToLog '"$INSTDIR\bin\bacula-sd.exe" /silent /remove'
   ${EndIf}
   
   ReadRegDWORD $R0 HKLM "Software\Bacula" "Service_Bacula-dir"
   ${If} $R0 = 1
     ; Remove bacula service
-    nsExec::ExecToLog '"$INSTDIR\bin\bacula-dir.exe" /remove'
+    nsExec::ExecToLog '"$INSTDIR\bin\bacula-dir.exe" /silent /remove'
   ${EndIf}
   
   ; remove registry keys
@@ -842,8 +880,12 @@ Section "Uninstall"
 
   ; Check for existing installation
   MessageBox MB_YESNO|MB_ICONQUESTION \
-  "Would you like to delete the current configuration files and the working state file?" IDNO +3
+  "Would you like to delete the current configuration files and the working state file?" IDNO +7
     Delete /REBOOTOK "$APPDATA\Bacula\*"
+    Delete /REBOOTOK "$APPDATA\Bacula\Work\*"
+    Delete /REBOOTOK "$APPDATA\Bacula\Spool\*"
+    RMDir "$APPDATA\Bacula\Work"
+    RMDir "$APPDATA\Bacula\Spool"
     RMDir "$APPDATA\Bacula"
 
   ; remove directories used
@@ -859,12 +901,7 @@ SectionEnd
 ; $3 - Start Service now
 ;
 Function InstallDaemon
-  Call CopyDependencies
-
-  IfFileExists "$APPDATA\Bacula\$0.conf" 0 +4
-    nsExec::ExecToLog '"$OldInstallDir\bin\$0.exe" /silent /kill'     ; Shutdown any bacula that could be running
-    nsExec::ExecToLog '"$OldInstallDir\bin\$0.exe" /silent /remove'   ; Remove existing service
-    Sleep 3000
+  Call InstallCommonFiles
 
   WriteRegDWORD HKLM "Software\Bacula" "Service_$0" $2
   
