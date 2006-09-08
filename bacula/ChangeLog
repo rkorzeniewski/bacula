@@ -1,6 +1,106 @@
               Technical notes on version 1.39  
 
 General:
+08Sep06
+rbn  Fixed problems migrating settings from previous releases in
+     Win32 installer. Add Readme.txt with an option to show it on 
+     the installer Finish page.
+07Sep06
+kes  Use get_catalog_resource() to open catalog database
+     to ensure that ACLs are respected and that user is
+     correctly prompted for database.
+kes  Integrate multiple console/director patch from 
+     Carsten Paeth calle@calle.in-berlin.de
+ebl  Add character substitution in Job/JobDefs WriteBootStrap.
+     You can use now 'WriteBootStrap = "/path/%c_%n.bsr"'
+kes  Apply patch supplied in bug #656 to pass priority field
+     in the run dialog to the Director.
+kes  Restore DCR after VOL_NAME_ERROR in mount.c.  Hopefully
+     this will fix bug #627 where Bacula eventually gets 
+     confused about what Volume it wants.
+kes  Add a new close_part() class in the SD to save the device
+     state around open/close_part/open for DVD writing.  This
+     should fix the num_dvd_parts getting zeroed as reported by
+     Richard Mortimer.
+kes  Apply patch from Richard Mortimer that correct edit code
+     for debug output of st_size.
+ebl  Add support of encrypted data stream to bscan.
+     display data_len instead of data content (may be binary)
+06Sep06
+kes  Add dev->close() in dir_ask_sysop_to_mount_volume() in
+     bcopy. Fixes bug #669 reported by Eric.
+kes  Fix incorrect number of arguments in SQL statement in
+     sql_get.c as reported by Eric.
+kes  Manual updates.
+kes  Update examples directory.
+kes  Remove unused variable in winservice.cpp
+kes  Make Win32 make command build installer.
+04Sep06
+kes  Correct dvd code that breaks tape labeling.      
+kes  Implement Enabled on update slots.
+02Sep06
+kes  When doing a label, pass the VolBytes back to the Director,
+     which puts it in the catalog.
+kes  Print an error message if the user attempts to prune an
+     archived Volume.
+kes  Need to start using %ld when sscanfing 32 bit values.
+kes  Update the free
+kes  Correct the counting of VolCatBytes for DVDs. 
+kes  Add code to mount.c to require that VolCatBytes corresponds to
+     what is actually found when doing an append.
+kes  Update freespace only after writing on the DVD.
+kes  Remove code that blows away the current part in the spool file.
+01Sep06
+kes  Apply new dvd-handler patch from Richard Mortimer.
+kes  Tweak so that debug level 20 shows only DVD commands.
+kes  Correct spooled_part flag in dev.c close() so that it is cleared
+     when the spool file is deleted or does not exist.
+kes  Print part number in read_records when eof hit (restore).
+31Aug06
+kes  Make find with no args in tree restore return error rather than
+     stopping the selection. Fixes bug #665
+kes  Rework DVD writing to ensure that the last part is written
+     on open_next_part when dealing with a spool file.
+kes  Correct the lseek_dev() routine to handle end point correctly
+     (bug introduced by me).
+kes  Allow part number to exceed num_dvd_parts in lseek_dev().
+30Aug06
+kes  Apply dvd-handler patch from Richard Mortimer.                        
+kes  Apply dvd error check patch from Richard Mortimer.
+kes  Apply bpipe race patch from Richard Mortimer.
+kes  Rework how DVD labels are handled and set append only
+     when part > num_dvd_parts.
+27Aug06
+kes  Rework many features of DVD writing and reading. Added many error
+     messages.  Most importantly changed part to represent the current
+     part number base zero. This makes current DVD writing incompatible
+     with previous version.
+26Aug06
+kes  Add host:port to connect failure messages to FD and SD from Dir.
+kes  Add WhereACL to console ACL list.  If nothing is specified, only
+     the default is permitted for restore. Otherwise, *all* allows any
+     path, or you can specify permitted paths. This should allow control
+     over where users can restore files. This is untested.
+kes  Modified message to add a ? (as in loaded?) when querying the autochanger
+     for what Slot is loaded.  
+kes  Fixed the use of Slot, so that is more correctly maintained, thus
+     eliminating unneeded duplicate calls to determine what Slot is loaded.
+25Aug06
+kes  Install man pages with 'make install'
+kes  wx-console crashes because of differences between Bacula and wxWidgets
+     malloc()/free().  Tweek wx-console to use bmalloc()/bfree() for Bacula
+     calls.     
+kes  correct improper indenting in wx-console/console_conf.c
+kes  update wx-console header copyrights
+kes  Fix bug #658 where wx-console mangles file/directory names containing
+     commas.
+24Aug06
+kes  Add Media.Enabled flag to client backups for dotcmds.c
+kes  Enforce Media.Enabled=1 for a current restore to work.
+kes  Require restore case 3 to have sqlquery permission to work.
+kes  Remove obsolete del_MAC sql command.
+kes  Ensure that bscan creates Volumes with Enabled=1.
+
 Version 1.39.20 Beta released:    
 22Aug06
 kes  Correct missing Client table reference in SQL pointed out by

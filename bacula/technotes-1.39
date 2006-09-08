@@ -1,6 +1,11 @@
               Technical notes on version 1.39  
 
 General:
+08Sep06
+kes  Put installer/Readme.txt into Win32 EOL format for Notebook.
+rbn  Fixed problems migrating settings from previous releases in
+     Win32 installer. Add Readme.txt with an option to show it on 
+     the installer Finish page.
 07Sep06
 kes  Use get_catalog_resource() to open catalog database
      to ensure that ACLs are respected and that user is
@@ -10,7 +15,7 @@ kes  Integrate multiple console/director patch from
 ebl  Add character substitution in Job/JobDefs WriteBootStrap.
      You can use now 'WriteBootStrap = "/path/%c_%n.bsr"'
 kes  Apply patch supplied in bug #656 to pass priority field
-     in the run dialog to the Director.
+     in the run dialog to the Director in gnome console
 kes  Restore DCR after VOL_NAME_ERROR in mount.c.  Hopefully
      this will fix bug #627 where Bacula eventually gets 
      confused about what Volume it wants.
@@ -53,7 +58,7 @@ kes  Correct spooled_part flag in dev.c close() so that it is cleared
      when the spool file is deleted or does not exist.
 kes  Print part number in read_records when eof hit (restore).
 31Aug06
-kes  Make find with no args in tree restore return error rather than
+-es  Make find with no args in tree restore return error rather than
      stopping the selection. Fixes bug #665
 kes  Rework DVD writing to ensure that the last part is written
      on open_next_part when dealing with a spool file.
@@ -81,7 +86,6 @@ kes  Modified message to add a ? (as in loaded?) when querying the autochanger
      for what Slot is loaded.  
 kes  Fixed the use of Slot, so that is more correctly maintained, thus
      eliminating unneeded duplicate calls to determine what Slot is loaded.
-
 25Aug06
 kes  Install man pages with 'make install'
 kes  wx-console crashes because of differences between Bacula and wxWidgets
