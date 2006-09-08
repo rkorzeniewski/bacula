@@ -2,6 +2,14 @@
 
 General:
 08Sep06
+08Sep06
+kes  At Eric's suggestion make both the "slots" and "drive" commands
+     to the Storage daemon work even if the drive is busy.
+kes  Make two separate Win32 menu links for starting bconsole and
+     wx-console in winbacula.nsi
+kes  Apply DVD part_spooled patch from Richard Mortimer 
+     richm@oldelvet.org.uk 
+kes  Put installer/Readme.txt into Win32 EOL format for Notebook.
 rbn  Fixed problems migrating settings from previous releases in
      Win32 installer. Add Readme.txt with an option to show it on 
      the installer Finish page.
