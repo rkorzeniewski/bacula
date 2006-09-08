@@ -332,8 +332,9 @@ bool unload_autochanger(DCR *dcr, int loaded)
          Jmsg(jcr, M_INFO, 0, _("3995 Bad autochanger \"unload slot %d, drive %d\": ERR=%s.\n"),
                  slot, dev->drive_index, be.strerror());
          ok = false;
+         dev->Slot = -1;           /* unknown */
       } else {
-         dev->Slot = -1;           /* unknown */ 
+         dev->Slot = 0;            /* nothing loaded */
       }
       free_pool_memory(changer);
       unlock_changer(dcr);
@@ -431,8 +432,9 @@ static bool unload_other_drive(DCR *dcr, int slot)
       Dmsg3(100, "Bad autochanger \"unload slot %d, drive %d\": ERR=%s.\n",
               slot, dev->drive_index, be.strerror());
       ok = false;
+      dev->Slot = -1;          /* unknown */
    } else {
-      dev->Slot = -1;           /* nothing loaded */
+      dev->Slot = 0;           /* nothing loaded */
       Dmsg0(100, "Slot unloaded\n");
    }
    unlock_changer(dcr);
