@@ -582,9 +582,11 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
    if (part <= num_dvd_parts) {
       omode = OPEN_READ_ONLY;
       make_mounted_dvd_filename(this, archive_name);
+      set_part_spooled(false);
    } else {
       omode = OPEN_READ_WRITE;
       make_spooled_dvd_filename(this, archive_name);
+      set_part_spooled(true);
    }
    set_mode(omode);
 
@@ -1778,7 +1780,7 @@ void DEVICE::close()
    /* Remove the last part file if it is empty */
    if (num_dvd_parts > 0) {
       struct stat statp;
-      int part_save = part;
+      uint32_t part_save = part;
       POOL_MEM archive_name(PM_FNAME);
       int status;
 
@@ -1791,9 +1793,13 @@ void DEVICE::close()
                 part, num_dvd_parts, VolCatInfo.VolCatName);
          Dmsg1(100, "unlink(%s)\n", archive_name.c_str());
          unlink(archive_name.c_str());
-         set_part_spooled(false);        /* no spooled part left */
+         if (part_save == part) {
+           set_part_spooled(false);        /* no spooled part left */
+         }
       } else if (status < 0) {                         
-         set_part_spooled(false);        /* spool doesn't exit */
+         if (part_save == part) {
+           set_part_spooled(false);        /* spool doesn't exit */
+         }
       }       
       part = part_save;               /* restore part number */
    }
