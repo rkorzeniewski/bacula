@@ -1,26 +1,81 @@
 
           Release Notes for Bacula 1.39.22
 
-  Bacula code: Total files = 448 Total lines = 150,330 (*.h *.c *.in)
+  Bacula code: Total files = 447 Total lines = 149,711 (*.h *.c *.in)
 
-Version 1.39.20:
-- The basic features of Migration are now complete.
-- There is a Migration chapter in the doc.
-  http://www.bacula.org/dev-manual/Migration.html
-- There is an Encryption chapter in the doc.
-  http://www.bacula.org/dev-manual/Bacula_Data_Encryption.html
+New Features in 1.39.22:
+- Fix opening of database in console to respect ACL.     
+- Permit multiple console/director resources in bconsole.conf.
+  patch from Carsten Paeth calle@calle.in-berlin.de
+- Character substitution in Job/JobDefs WriteBootStrap.
+  from Eric Bollengier.
+- Apply patch supplied in bug #656 to pass priority field
+  in the run dialog to the Director in gnome console.
+- Add support of encrypted data stream to bscan from Eric.
+  display data_len instead of data content (may be binary)
+- Add Enabled=xxx on update slots command.
+- Add host:port to connect failure messages to FD and SD from Dir
+- Add WhereACL to console ACL list.  If nothing is specified, only
+  the default is permitted for restore. Otherwise, *all* allows any
+  path, or you can specify permitted paths. This should allow control
+  over where users can restore files. This is untested.
+- Install man pages with 'make install'
+- Add Media.Enabled flag to client backups for dotcmds.c
+- Enforce Media.Enabled=1 for a current restore to work
+- Require restore case 3 to have sqlquery permission to work.
 
-New Features in 1.39.20:
-- Add -n option to bconsole to turn off conio.
-- The bytes field in the terminated jobs part of the status
-  command now reports in KB, MB, ... units.
-- When not descending into a directory, print the File= name that
-  triggered it -- makes why not descending a bit clearer
-- Do not unload autochanger when doing "update slots"
-- Implement mount command for autochanger
-- The new Win32 installer requires that you deinstall any
-  previous version before installing the new version.
-  The simplest way to do that is in a DOS shell:
+Fixes to 1.39.22:
+- Lots of fixes -- see ChangeLog.
+- Lots of work on DVD writing.
+- Lots of work on documentation in the manual.
+- Lots of work on the rescue disk.
+
+==== IMPORTANT Catalog update required =====
+- The database format has been updated from what was used in    
+  Bacula 1.38.x.  You must manually update your database before 
+  running Bacula 1.39.x or higher.  Please backup your previous
+  version of the database before running the update.  The update
+  script will be automatically installed in your scripts directory,
+  or can also be found in <bacula-source>/src/cats.  It is called:
+
+     ./update_bacula_tables
+
+  It is necessary to run it only once the first time you move to a
+  1.39.x beta or to 1.40.0. Upgrading the Bacula version thereafter
+  does not require updating the database again. Depending on the size of your
+  database the script make take a bit of time, to run, but in
+  general, it should be very fast.
+
+==== IMPORTANT new Win32 install procedure =====
+  For Win32 migrations from versions prior to the new installer nothing special
+  needs to be done to upgrade.  Everything should be taken care of
+  automatically.  The only thing not done is to delete the old C:\Bacula
+  directory (mostly out of paranoia, we can change that prior to release if
+  everyone is comfortable with it).
+
+  Prior to using the current installer, if you used a prior 1.39.x 
+  beta version, you must do one of the following three things:
+
+   1)      Uninstall prior beta version and select the option to delete
+   the configuration and state files.  This will get rid of the bogus
+   configuration files.  Reinstall the new 1.39.22 version.
+
+   2)      Manually copy the *.conf files from C:\Bacula\bin to
+   C:\Documents and Settings\All Users\Application Data\Bacula.
+
+   3)      Manually edit the *.conf files in C:\Documents and
+   Settings\All Users\Application Data\Bacula.  The links in the Bacula menu
+   can be used to avoid having to enter that ugly path.
+
+  After one of these has been done the upgrade should work fine.
+
+  If you have problems with the above, try the following
+  The new Win32 installer requires that you deinstall any
+  previous 1.39.x beta version before installing the new version.
+  The following is not necessary if you are upgrading from
+  a 1.38.x installation.
+
+  The simplest way to do clean up a prior 1.39.x beta is in a DOS shell:
           
   cd c:\bacula\bin
   net stop bacula
@@ -44,79 +99,46 @@ New Features in 1.39.20:
   will fail, and at least one of the 'sc' commands will fail.
   Don't worry about it.  After that, try again to install
   the new Bacula.
-     
 
-Fixes for 1.39.20:
-- Writing DVDs should work much better thanks to Richard Mortimer.
-- Fix bug #462 incorrect error message printed when client script called
-  from File= was not found.
-- Fix bug #558 (waiting for feedback) where Bacula needs too much time to
-  do a rewind on Solaris when no tape is in the drive (Solaris does not
-  have the detailed errno found on Linux).  Added Solaris specific code.
-  Note, this may apply to other OSes as well.
-- Many cleanups/enhancements for Win32 systems.
-- Correct improperly formated list command output reported by Dan.
-- Eric fixed RunScripts, which I (Kern) had broken in the last beta.
-- Correct Client migration SQL as pointed out by Marc.
-
-==== IMPORTANT =====
-- The database format has been updated from what was used in    
-  Bacula 1.38.x.  You must manually update your database before 
-  running Bacula 1.39.x or higher.  Please backup your previous
-  version of the database before running the update.  The update
-  script will be automatically installed in your scripts directory,
-  or can also be found in <bacula-source>/src/cats.  It is called:
-
-     ./update_bacula_tables
-
-  It is necessary to run it only once the first time you move to a
-  1.39.x beta or to 1.40.0. Upgrading the Bacula version thereafter
-  does not require updating the database again. Depending on the size of your
-  database the script make take a bit of time, to run, but in
-  general, it should be very fast.
 
 New Features in 1.40.0 (beginning of release info)
+- The basic features of Migration are now complete.
+- There is a Migration chapter in the doc.
+  http://www.bacula.org/dev-manual/Migration.html
+- There is an Encryption chapter in the doc.
+  http://www.bacula.org/dev-manual/Bacula_Data_Encryption.html
 - Additional support for removable devices.  See the 
   Requires Mount, Mount Point, Mount Command, and Unmount
   Commands in the Storage daemon configuration chapter:
   http://www.bacula.org/dev-manual/Storage_Daemon_Configuratio.html
   Also see the Edit Codes for Mount and Unmount Directives in the
   same chapter.
-- There is a new cross-compiled Win32 File daemon that now has all the features
-  that were previously only in the Unix versions.
-
-  To install the 1.39.18 Win32 FD, you *must* first stop any    
-  previous version that is running in a DOS shell with:
-
-     net stop bacula
-
-  or select the 'Close Bacula' menu item from the Bacula tray icon,
-  you should then save your bacula-fd.conf file, and either
-  uninstall (using Uninstall.bat in the c:\bacula directory) or
-  remove the old installation by manually in a DOS shell in the
-  Bacula directory enter:
-
-     bacula-fd /remove
-
-  after that you can proceed with the installation.  My experience
-  is that it does not properly create the new bacula-fd.conf file, so
-  copy the one saved to the directory you chose to install Bacula,
-  or to the directory chosen by the Installer to put the bacula-fd.conf
-  file.  Then you can start Bacula in a DOS shell with:
-
-    net start baculafd
-
-  or use the Windows Control Panel->Administrative Tools->Component
-  Services menu item.  The document has been updated (not completely).
-  For installation details, please see:
-  http://www.bacula.org/dev-manual/Windows_Version_Bacula.html  
+- Add -n option to bconsole to turn off conio.
+- The bytes field in the terminated jobs part of the status
+  command now reports in KB, MB, ... units.
+- When not descending into a directory, print the File= name that
+  triggered it -- makes why not descending a bit clearer
+- Do not unload autochanger when doing "update slots"
+- Implement mount command for autochanger
+- Fix bug #462 incorrect error message printed when client script called
+  from File= was not found.
+- Fix bug #558 (waiting for feedback) where Bacula needs too much time to
+  do a rewind on Solaris when no tape is in the drive (Solaris does not
+  have the detailed errno found on Linux).  Added Solaris specific code.
+  Note, this may apply to other OSes as well.
 
 
 ==========================================
 
+Beta version 1.39.20:
+- Writing DVDs should work much better thanks to Richard Mortimer.
+- Many cleanups/enhancements for Win32 systems.
+- Correct improperly formated list command output reported by Dan.
+- Eric fixed RunScripts, which I (Kern) had broken in the last beta.
+- Correct Client migration SQL as pointed out by Marc.
+
+
 Warning for version 1.39.18 and greater:
-- The documentation is almost non-existent for all new features
-  except RunScripts (written and documented by Eric Bollengier).
 - If you have an old pre 1.39.18 database, you must update it using
   the update_bacula_tables script. Please backup your database before
   updating just in case.
