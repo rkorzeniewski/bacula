@@ -256,12 +256,15 @@ static void send_blocked_status(DEVICE *dev, void sendit(const char *msg, int le
    }
    /* Send autochanger slot status */
    if (dev->is_autochanger()) {
-      if (dev->Slot) {
+      if (dev->Slot > 0) {
          len = Mmsg(msg, _("    Slot %d is loaded in drive %d.\n"), 
             dev->Slot, dev->drive_index);
          sendit(msg, len, arg);
-      } else {
+      } else if (dev->Slot == 0) {
          len = Mmsg(msg, _("    Drive %d is not loaded.\n"), dev->drive_index);
+         sendit(msg, len, arg);
+      } else {
+         len = Mmsg(msg, _("    Drive %d status unknown.\n"), dev->drive_index);
          sendit(msg, len, arg);
       }
    }

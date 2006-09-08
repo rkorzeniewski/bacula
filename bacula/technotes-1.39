@@ -2,6 +2,9 @@
 
 General:
 08Sep06
+kes  Fix logic error in handling error return from mtx-changer 
+     script.
+kes  Make status from SD aware of -1 (unknown) Slot status.
 kes  At Eric's suggestion make both the "slots" and "drive" commands
      to the Storage daemon work even if the drive is busy.
 kes  Make two separate Win32 menu links for starting bconsole and
