@@ -712,6 +712,7 @@ Section "Command Console" SecConsole
     nsExec::ExecToLog 'cmd.exe /C echo Y|cacls "$R1" /G SYSTEM:F Administrators:F'
   ${EndIf}
 
+  CreateShortCut "$SMPROGRAMS\Bacula\bconsole.lnk" "$INSTDIR\bin\bconsole.exe" '-c "$APPDATA\Bacula\bconsole.conf"' "$INSTDIR\bin\bconsole.exe" 0
   CreateShortCut "$SMPROGRAMS\Bacula\Edit Command Console Configuration.lnk" "write.exe" '"$APPDATA\Bacula\bconsole.conf"'
 
 SectionEnd
@@ -753,7 +754,7 @@ Section "Graphical Console" SecWxConsole
   ${EndIf}
 
   ; Create Start Menu entry
-  CreateShortCut "$SMPROGRAMS\Bacula\Console.lnk" "$INSTDIR\bin\wx-console.exe" '-c "$APPDATA\Bacula\wx-console.conf"' "$INSTDIR\bin\wx-console.exe" 0
+  CreateShortCut "$SMPROGRAMS\Bacula\wx-console.lnk" "$INSTDIR\bin\wx-console.exe" '-c "$APPDATA\Bacula\wx-console.conf"' "$INSTDIR\bin\wx-console.exe" 0
   CreateShortCut "$SMPROGRAMS\Bacula\Edit Graphical Console Configuration.lnk" "write.exe" '"$APPDATA\Bacula\wx-console.conf"'
 SectionEnd
 

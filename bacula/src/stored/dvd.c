@@ -36,7 +36,6 @@ void make_mounted_dvd_filename(DEVICE *dev, POOL_MEM &archive_name)
 {
    pm_strcpy(archive_name, dev->device->mount_point);
    add_file_and_part_name(dev, archive_name);
-   dev->set_part_spooled(false);
 }
 
 void make_spooled_dvd_filename(DEVICE *dev, POOL_MEM &archive_name)
@@ -48,7 +47,6 @@ void make_spooled_dvd_filename(DEVICE *dev, POOL_MEM &archive_name)
       pm_strcpy(archive_name, working_directory);
    }
    add_file_and_part_name(dev, archive_name);
-   dev->set_part_spooled(true);
 }      
 
 static void add_file_and_part_name(DEVICE *dev, POOL_MEM &archive_name)
@@ -65,7 +63,8 @@ static void add_file_and_part_name(DEVICE *dev, POOL_MEM &archive_name)
       bsnprintf(partnumber, sizeof(partnumber), "%d", dev->part);
       pm_strcat(archive_name, partnumber);
    }
-   Dmsg1(400, "Exit add_file_part_name: arch=%s\n", archive_name.c_str());
+   Dmsg2(400, "Exit add_file_part_name: arch=%s, part=%d\n",
+                  archive_name.c_str(), dev->part);
 }  
 
 /* Mount the device.
@@ -380,6 +379,7 @@ bool dvd_write_part(DCR *dcr)
       /* Delete spool file */
       make_spooled_dvd_filename(dev, archive_name);
       unlink(archive_name.c_str());
+      dev->set_part_spooled(false);
       Dmsg1(29, "unlink(%s)\n", archive_name.c_str());
       sm_check(__FILE__, __LINE__, false);
       return true;
@@ -449,6 +449,7 @@ bool dvd_write_part(DCR *dcr)
    /* Delete spool file */
    make_spooled_dvd_filename(dev, archive_name);
    unlink(archive_name.c_str());
+   dev->set_part_spooled(false);
    Dmsg1(29, "unlink(%s)\n", archive_name.c_str());
    sm_check(__FILE__, __LINE__, false);
    
@@ -520,6 +521,7 @@ int dvd_open_next_part(DCR *dcr)
          Dmsg1(100, "Check if part on DVD: %s\n", archive_name.c_str());
          if (stat(archive_name.c_str(), &buf) == 0) {
             /* bad news bail out */
+            dev->set_part_spooled(false);
             Mmsg1(&dev->errmsg, _("Next Volume part already exists on DVD. Cannot continue: %s\n"),
                archive_name.c_str());
             return -1;
@@ -537,6 +539,7 @@ int dvd_open_next_part(DCR *dcr)
          /* Then try to unlink it */
          if (unlink(archive_name.c_str()) < 0) {
             berrno be;
+            dev->set_part_spooled(false);
             dev->dev_errno = errno;
             Mmsg2(dev->errmsg, _("open_next_part can't unlink existing part %s, ERR=%s\n"), 
                    archive_name.c_str(), be.strerror());

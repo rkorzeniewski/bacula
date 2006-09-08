@@ -324,7 +324,8 @@ public:
    void set_short_block() { state |= ST_SHORT; };
    void set_freespace_ok() { state |= ST_FREESPACE_OK; }
    void set_part_spooled(int val) { if (val) state |= ST_PART_SPOOLED; \
-          else state &= ~ST_PART_SPOOLED; };
+          else state &= ~ST_PART_SPOOLED;
+   };
    void set_mounted(int val) { if (val) state |= ST_MOUNTED; \
           else state &= ~ST_MOUNTED; };
    void clear_append() { state &= ~ST_APPEND; };
