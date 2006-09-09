@@ -1,4 +1,8 @@
-          Release Notes for bweb 1.39.20
+          Release Notes for bweb 1.39.23
+
+2006/09/08:
+ - Eject media takes Location as Autochanger Name
+ - Email is now sent when request to move media
 
 2006/09/06:
  - Can delete empty location

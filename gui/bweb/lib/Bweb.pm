@@ -853,7 +853,7 @@ sub transfer
     
     if ($? == 0) {
 	my $content = $self->get_slot($src);
-	print "content = $content<br/> $src => $dst<br/>";
+	print "$content ($src) => $dst<br/>";
 	$self->{slot}->[$src] = 'empty';
 	$self->set_slot($dst, $content);
 	return 1;
@@ -2395,7 +2395,9 @@ sub save_location
 
     my $nb = $self->dbh_do($query);
 
-    print "$nb media updated";
+    print "$nb media updated, you may have to update your autochanger.";
+
+    $self->display_media();
 }
 
 sub change_location
@@ -2599,17 +2601,12 @@ WHERE JobStatus IN ('C','R','B','e','D','F','S','m','M','s','j','c','d','t','p')
 sub eject_media
 {
     my ($self) = @_;
-    my $arg = $self->get_form('jmedias', 'slots', 'ach');
+    my $arg = $self->get_form('jmedias');
 
     unless ($arg->{jmedias}) {
 	return $self->error("Can't get media selection");
     }
 
-    my $a = $self->ach_get($arg->{ach});
-    unless ($a) {
-	return 0;
-    }
-    
     my $query = "
 SELECT Media.VolumeName  AS volumename,
        Storage.Name      AS storage,
@@ -2623,9 +2620,18 @@ WHERE Media.VolumeName IN ($arg->{jmedias})
 
     my $all = $self->dbh_selectall_hashref($query, 'volumename');
 
-    $a->status();
-
     foreach my $vol (values %$all) {
+	my $a = $self->ach_get($vol->{location});
+	unless ($a) {
+	    $self->error("Can't find autochanger $vol->{location}");
+	    next;
+	}
+
+	unless ($a->{have_status}) {
+	    $a->status();
+	    $a->{have_status} = 1;
+	}
+
 	print "eject $vol->{volumename} from $vol->{storage} : ";
 	if ($a->send_to_io($vol->{slot})) {
 	    print "ok</br>";
@@ -2633,6 +2639,23 @@ WHERE Media.VolumeName IN ($arg->{jmedias})
 	    print "err</br>";
 	}
     }
+}
+
+sub move_email
+{
+    my ($self) = @_;
+
+    my ($to, $subject, $content) = (CGI::param('email'),
+				    CGI::param('subject'),
+				    CGI::param('content'));
+    $to =~ s/[^\w\d\.\@<>,]//;
+    $subject =~ s/[^\w\d\.\[\]]/ /;    
+
+    open(MAIL, "|mail -s '$subject' '$to'") ;
+    print MAIL $content;
+    close(MAIL);
+
+    print "Mail sent";
 }
 
 sub restore

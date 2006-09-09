@@ -208,8 +208,11 @@ if ($action eq 'begin') {		# main display
     $bweb->help_extern_compute();
 
 } elsif ($action eq 'extern') {
-    print "TODO : Eject ", join(",", CGI::param('media'));
+    $bweb->eject_media();
     $bweb->move_media();
+
+} elsif ($action eq 'move_email') {
+    $bweb->move_email();
 
 } elsif ($action eq 'change_location') {
     $bweb->change_location();

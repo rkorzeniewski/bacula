@@ -22,4 +22,7 @@
     <input type="image" name='action' value='location_add' title="save"
       src='/bweb/save.png'>
    </form>
+
+Tips: It's a good idea to have a location per autochanger. 
+
 </div>

@@ -24,14 +24,13 @@ Media :
  - <TMPL_VAR VolumeName>  (<TMPL_VAR location>)
 </TMPL_LOOP>
 
-When it's finish, could you update media location ? (you can use <a
-href="<TMPL_VAR url>">
-this link</a>).
+When it's finish, could you update media location ? 
+(you can use this link : <TMPL_VAR url>).
 
 Thanks
 </textarea>
 </td></tr></table>
-<input class='formulaire' type='submit' name='action' value='email_move'>
+<input class='formulaire' type='submit' name='action' value='move_email'>
 </form>
 <br>
 <a href="<TMPL_VAR url>"><img alt='update now' src='/bweb/update.png'>Update now</a>
